@@ -340,7 +340,7 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 
 ExprStmt::ExprStmt(ExprPtr arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))
 	{
-	if ( e && e->IsPure() )
+	if ( e && e->IsPure() && e->GetType()->Tag() != TYPE_ERROR )
 		Warn("expression value ignored");
 
 	SetLocationInfo(e->GetLocationInfo());

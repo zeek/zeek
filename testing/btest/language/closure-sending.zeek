@@ -54,6 +54,7 @@ function send_event()
 	local stepper = l(50);
 
     ++n;
+    ++event_count;
     if ( n % 2 == 0)
         {
         local e2 = Broker::make_event(ping, "function 1", l);

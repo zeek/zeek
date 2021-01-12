@@ -395,7 +395,7 @@ struct val_converter {
 			if ( t->Tag() != TYPE_FUNC )
 				return nullptr;
 
-			if ( a.size() == 2 ) // We have a closure.
+			if ( a.size() == 2 ) // we have a closure/capture frame
 				{
 				auto frame = broker::get_if<broker::vector>(a[1]);
 				if ( ! frame )
@@ -405,8 +405,19 @@ struct val_converter {
 				if ( ! b )
 					return nullptr;
 
-				if ( ! b->UpdateClosure(*frame) )
-					return nullptr;
+				auto copy_semantics = b->GetType()->GetCaptures().has_value();
+
+				if ( copy_semantics )
+					{
+					if ( ! b->DeserializeCaptures(*frame) )
+						return nullptr;
+					}
+				else
+					{
+					// Support for deprecated serialization.
+					if ( ! b->UpdateClosure(*frame) )
+						return nullptr;
+					}
 				}
 
 			return rval;

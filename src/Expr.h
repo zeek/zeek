@@ -1042,9 +1042,13 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 private:
+	void CheckCaptures();
+
 	std::unique_ptr<function_ingredients> ingredients;
 
 	IDPList outer_ids;
+	bool capture_by_ref;	// if true, use deprecated reference semantics
+
 	std::string my_name;
 };
 

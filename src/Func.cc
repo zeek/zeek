@@ -320,6 +320,9 @@ ScriptFunc::~ScriptFunc()
 	{
 	if ( ! weak_closure_ref )
 		Unref(closure);
+
+	delete captures_frame;
+	delete captures_offset_mapping;
 	}
 
 bool ScriptFunc::IsPure() const
@@ -472,6 +475,56 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 	return result;
 	}
 
+void ScriptFunc::CreateCaptures(Frame* f)
+	{
+	const auto& captures = type->GetCaptures();
+
+	if ( ! captures )
+		return;
+
+	// Create a private Frame to hold the values of captured variables,
+	// and a mapping from those variables to their offsets in the Frame.
+	delete captures_frame;
+	delete captures_offset_mapping;
+	captures_frame = new Frame(captures->size(), this, nullptr);
+	captures_offset_mapping = new OffsetMap;
+
+	int offset = 0;
+	for ( const auto& c : *captures )
+		{
+		auto v = f->GetElementByID(c.id);
+
+		if ( v )
+			{
+			if ( c.deep_copy || ! v->Modifiable() )
+				v = v->Clone();
+
+			captures_frame->SetElement(offset, std::move(v));
+			}
+
+		(*captures_offset_mapping)[c.id->Name()] = offset;
+		++offset;
+		}
+	}
+
+void ScriptFunc::SetCaptures(Frame* f)
+	{
+	const auto& captures = type->GetCaptures();
+	ASSERT(captures);
+
+	delete captures_frame;
+	delete captures_offset_mapping;
+	captures_frame = f;
+	captures_offset_mapping = new OffsetMap;
+
+	int offset = 0;
+	for ( const auto& c : *captures )
+		{
+		(*captures_offset_mapping)[c.id->Name()] = offset;
+		++offset;
+		}
+	}
+
 void ScriptFunc::AddBody(StmtPtr new_body,
                          const std::vector<IDPtr>& new_inits,
                          size_t new_frame_size, int priority)
@@ -545,7 +598,7 @@ void ScriptFunc::SetClosureFrame(Frame* f)
 
 bool ScriptFunc::UpdateClosure(const broker::vector& data)
 	{
-	auto result = Frame::Unserialize(data);
+	auto result = Frame::Unserialize(data, {});
 
 	if ( ! result.first )
 		return false;
@@ -564,6 +617,17 @@ bool ScriptFunc::UpdateClosure(const broker::vector& data)
 	return true;
 	}
 
+bool ScriptFunc::DeserializeCaptures(const broker::vector& data)
+	{
+	auto result = Frame::Unserialize(data, GetType()->GetCaptures());
+
+ASSERT(result.first);
+
+	SetCaptures(result.second.release());
+
+	return true;
+	}
+
 
 FuncPtr ScriptFunc::DoClone()
 	{
@@ -578,12 +642,22 @@ FuncPtr ScriptFunc::DoClone()
 	other->weak_closure_ref = false;
 	other->outer_ids = outer_ids;
 
+	if ( captures_frame )
+		{
+		other->captures_frame = captures_frame->Clone();
+		other->captures_offset_mapping = new OffsetMap;
+		*other->captures_offset_mapping = *captures_offset_mapping;
+		}
+
 	return other;
 	}
 
 broker::expected<broker::data> ScriptFunc::SerializeClosure() const
 	{
-	return Frame::Serialize(closure, outer_ids);
+	if ( captures_frame )
+		return captures_frame->SerializeCopyFrame();
+	else
+		return closure->SerializeClosureFrame(outer_ids);
 	}
 
 void ScriptFunc::Describe(ODesc* d) const

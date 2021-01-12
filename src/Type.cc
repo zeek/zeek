@@ -632,6 +632,7 @@ TypePtr FuncType::ShallowClone()
 	f->yield = yield;
 	f->flavor = flavor;
 	f->prototypes = prototypes;
+	f->captures = captures;
 	return f;
 	}
 
@@ -653,8 +654,6 @@ string FuncType::FlavorString() const
 		return "invalid_func_flavor";
 	}
 	}
-
-FuncType::~FuncType() = default;
 
 int FuncType::MatchesIndex(detail::ListExpr* const index) const
 	{
@@ -696,6 +695,11 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args,
 			}
 
 	return success;
+	}
+
+void FuncType::SetCaptures(std::optional<CaptureList> _captures)
+	{
+	captures = std::move(_captures);
 	}
 
 void FuncType::Describe(ODesc* d) const

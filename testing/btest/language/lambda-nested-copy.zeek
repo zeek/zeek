@@ -3,9 +3,9 @@
 
 local outer = 100;
 
-local lambda = function()
+local lambda = function[outer]()
 	{
-	local inner = function(a: count, b: count, c: count, d: count, e: count, f: count)
+	local inner = function[outer](a: count, b: count, c: count, d: count, e: count, f: count)
 		{
 		print outer + f;
 		};

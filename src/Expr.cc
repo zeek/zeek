@@ -4429,6 +4429,7 @@ void LambdaExpr::CheckCaptures()
 		{
 		if ( outer_ids.size() > 0 )
 			{
+			// TODO: Remove in v5.1: these deprecated closure semantics
 			reporter->Warning("use of outer identifiers in lambdas without [] captures is deprecated: %s%s",
 				outer_ids.size() > 1 ? "e.g., " : "",
 				outer_ids[0]->Name());

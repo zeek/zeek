@@ -59,6 +59,9 @@ export {
 		process_received_from: bool        &default=T;
 		## Indicates if client activity has been seen, but not yet logged.
 		has_client_activity:  bool            &default=F;
+		## Indicates if the SMTP headers should still be processed.
+		process_smtp_headers:  bool        &default=T;
+		entity_count:	       count	   &default=0;
 	};
 
 	type State: record {
@@ -212,7 +215,7 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 
 event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 	{
-	if ( ! c?$smtp ) return;
+	if ( ! c?$smtp || ! c$smtp$process_smtp_headers ) return;
 
 	if ( h$name == "MESSAGE-ID" )
 		c$smtp$msg_id = h$value;
@@ -281,7 +284,8 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=3
 	# If we've decided that we're done watching the received headers for
 	# whatever reason, we're done.  Could be due to only watching until
 	# local addresses are seen in the received from headers.
-	if ( ! c?$smtp || h$name != "RECEIVED" || ! c$smtp$process_received_from )
+	if ( ! c?$smtp || h$name != "RECEIVED" || ! c$smtp$process_received_from ||
+	     ! c$smtp$process_smtp_headers )
 		return;
 
 	local text_ip = find_address_in_smtp_header(h$value);
@@ -296,6 +300,19 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=3
 		}
 	if ( c$smtp$path[|c$smtp$path|-1] != ip )
 		c$smtp$path += ip;
+	}
+
+# This event handler sets the flag to stop processing SMTP headers if
+# any sub-entity is found.
+event mime_begin_entity(c: connection) &priority=5
+	{
+	if ( c?$smtp )
+		{
+		++c$smtp$entity_count;
+
+		if ( c$smtp$entity_count > 1 )
+			c$smtp$process_smtp_headers = F;
+		}
 	}
 
 event connection_state_remove(c: connection) &priority=-5

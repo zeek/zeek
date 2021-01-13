@@ -488,6 +488,119 @@ static bool canonical_arg_types_match(const FuncType* decl, const FuncType* impl
 	return true;
 	}
 
+static auto get_prototype(IDPtr id, FuncTypePtr t)
+	{
+	auto decl = id->GetType()->AsFuncType();
+	auto prototype = func_type_check(decl, t.get());
+
+	if ( prototype )
+		{
+		if ( decl->Flavor() == FUNC_FLAVOR_FUNCTION )
+			{
+			// If a previous declaration of the function had
+			// &default params, automatically transfer any that
+			// are missing (convenience so that implementations
+			// don't need to specify the &default expression again).
+			transfer_arg_defaults(prototype->args.get(), t->Params().get());
+			}
+		else
+			{
+			// Warn for trying to use &default parameters in
+			// hook/event handler body when it already has a
+			// declaration since only &default in the declaration
+			// has any effect.
+			const auto& args = t->Params();
+
+			for ( int i = 0; i < args->NumFields(); ++i )
+				{
+				auto f = args->FieldDecl(i);
+
+				if ( f->attrs && f->attrs->Find(ATTR_DEFAULT) )
+					{
+					reporter->PushLocation(args->GetLocationInfo());
+					reporter->Warning(
+					    "&default on parameter '%s' has no effect (not a %s declaration)",
+					    args->FieldName(i), t->FlavorString().data());
+					reporter->PopLocation();
+					}
+				}
+			}
+
+		if ( prototype->deprecated )
+			{
+			if ( prototype->deprecation_msg.empty() )
+				t->Warn(util::fmt("use of deprecated '%s' prototype", id->Name()),
+					prototype->args.get(), true);
+			else
+				t->Warn(util::fmt("use of deprecated '%s' prototype: %s",
+						  id->Name(), prototype->deprecation_msg.data()),
+					prototype->args.get(), true);
+			}
+		}
+
+	else
+		{
+		// Allow renaming arguments, but only for the canonical
+		// prototypes of hooks/events.
+		if ( canonical_arg_types_match(decl, t.get()) )
+			prototype = decl->Prototypes()[0];
+		else
+			t->Error("use of undeclared alternate prototype", id.get());
+		}
+
+	return prototype;
+	}
+
+static bool check_params(int i, std::optional<FuncType::Prototype> prototype,
+				const RecordTypePtr& args,
+				const RecordTypePtr& canon_args,
+				const char* module_name)
+	{
+	TypeDecl* arg_i;
+	bool hide = false;
+
+	if ( prototype )
+		{
+		auto it = prototype->offsets.find(i);
+
+		if ( it == prototype->offsets.end() )
+			{
+			// Alternate prototype hides this param
+			hide = true;
+			arg_i = canon_args->FieldDecl(i);
+			}
+		else
+			{
+			// Alternate prototype maps this param to another index
+			arg_i = args->FieldDecl(it->second);
+			}
+		}
+	else
+		{
+		if ( i < args->NumFields() )
+			arg_i = args->FieldDecl(i);
+		else
+			return false;
+		}
+
+	auto arg_id = lookup_ID(arg_i->id, module_name);
+
+	if ( arg_id && ! arg_id->IsGlobal() )
+		arg_id->Error("argument name used twice");
+
+	const char* local_name = arg_i->id;
+
+	if ( hide )
+		// Note the illegal '-' in hidden name implies we haven't
+		// clobbered any local variable names.
+		local_name = util::fmt("%s-hidden", local_name);
+
+	arg_id = install_ID(local_name, module_name, false, false);
+	arg_id->SetType(arg_i->type);
+
+	return true;
+	}
+
 void begin_func(IDPtr id, const char* module_name,
                 FunctionFlavor flavor, bool is_redef,
                 FuncTypePtr t,
@@ -506,63 +619,7 @@ void begin_func(IDPtr id, const char* module_name,
 	std::optional<FuncType::Prototype> prototype;
 
 	if ( id->GetType() )
-		{
-		auto decl = id->GetType()->AsFuncType();
-		prototype = func_type_check(decl, t.get());
-
-		if ( prototype )
-			{
-			if ( decl->Flavor() == FUNC_FLAVOR_FUNCTION )
-				{
-				// If a previous declaration of the function had &default
-				// params, automatically transfer any that are missing
-				// (convenience so that implementations don't need to specify
-				// the &default expression again).
-				transfer_arg_defaults(prototype->args.get(), t->Params().get());
-				}
-			else
-				{
-				// Warn for trying to use &default parameters in hook/event
-				// handler body when it already has a declaration since only
-				// &default in the declaration has any effect.
-				const auto& args = t->Params();
-
-				for ( int i = 0; i < args->NumFields(); ++i )
-					{
-					auto f = args->FieldDecl(i);
-
-					if ( f->attrs && f->attrs->Find(ATTR_DEFAULT) )
-						{
-						reporter->PushLocation(args->GetLocationInfo());
-						reporter->Warning(
-						    "&default on parameter '%s' has no effect (not a %s declaration)",
-						    args->FieldName(i), t->FlavorString().data());
-						reporter->PopLocation();
-						}
-					}
-				}
-
-			if ( prototype->deprecated )
-				{
-				if ( prototype->deprecation_msg.empty() )
-					t->Warn(util::fmt("use of deprecated '%s' prototype", id->Name()),
-					        prototype->args.get(), true);
-				else
-					t->Warn(util::fmt("use of deprecated '%s' prototype: %s",
-					                  id->Name(), prototype->deprecation_msg.data()),
-					        prototype->args.get(), true);
-				}
-			}
-		else
-			{
-			// Allow renaming arguments, but only for the canonical
-			// prototypes of hooks/events.
-			if ( canonical_arg_types_match(decl, t.get()) )
-				prototype = decl->Prototypes()[0];
-			else
-				t->Error("use of undeclared alternate prototype", id.get());
-			}
-		}
+		prototype = get_prototype(id, t);
 
 	else if ( is_redef )
 		id->Error("redef of not-previously-declared value");
@@ -606,49 +663,8 @@ void begin_func(IDPtr id, const char* module_name,
 	push_scope(std::move(id), std::move(attrs));
 
 	for ( int i = 0; i < canon_args->NumFields(); ++i )
-		{
-		TypeDecl* arg_i;
-		bool hide = false;
-
-		if ( prototype )
-			{
-			auto it = prototype->offsets.find(i);
-
-			if ( it == prototype->offsets.end() )
-				{
-				// Alternate prototype hides this param
-				hide = true;
-				arg_i = canon_args->FieldDecl(i);
-				}
-			else
-				{
-				// Alternate prototype maps this param to another index
-				arg_i = args->FieldDecl(it->second);
-				}
-			}
-		else
-			{
-			if ( i < args->NumFields() )
-				arg_i = args->FieldDecl(i);
-			else
-				break;
-			}
-
-		auto arg_id = lookup_ID(arg_i->id, module_name);
-
-		if ( arg_id && ! arg_id->IsGlobal() )
-			arg_id->Error("argument name used twice");
-
-		const char* local_name = arg_i->id;
-
-		if ( hide )
-			// Note the illegal '-' in hidden name implies we haven't
-			// clobbered any local variable names.
-			local_name = util::fmt("%s-hidden", local_name);
-
-		arg_id = install_ID(local_name, module_name, false, false);
-		arg_id->SetType(arg_i->type);
-		}
+		if ( ! check_params(i, prototype, args, canon_args, module_name) )
+			break;
 
 	if ( Attr* depr_attr = find_attr(current_scope()->Attrs().get(), ATTR_DEPRECATED) )
 		current_scope()->GetID()->MakeDeprecated(depr_attr->GetExpr());
@@ -665,7 +681,7 @@ public:
 	TraversalCode PostExpr(const Expr*) override;
 
 	std::vector<Scope*> scopes;
-	std::vector<const NameExpr*> outer_id_references;
+	std::unordered_set<const NameExpr*> outer_id_references;
 };
 
 TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
@@ -691,7 +707,7 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 			// not something we have to worry about also being at outer scope.
 			return TC_CONTINUE;
 
-	outer_id_references.push_back(e);
+	outer_id_references.insert(e);
 	return TC_CONTINUE;
 	}
 
@@ -754,17 +770,10 @@ IDPList gather_outer_ids(Scope* scope, Stmt* body)
 	OuterIDBindingFinder cb(scope);
 	body->Traverse(&cb);
 
-	IDPList idl ( cb.outer_id_references.size() );
+	IDPList idl;
 
-	for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
-		{
-		auto id = cb.outer_id_references[i]->Id();
-
-		if ( idl.is_member(id) )
-			continue;
-
-		idl.append(id);
-		}
+	for ( auto ne : cb.outer_id_references )
+		idl.append(ne->Id());
 
 	return idl;
 	}

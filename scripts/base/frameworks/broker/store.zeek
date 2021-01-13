@@ -55,7 +55,6 @@ export {
 	type BackendType: enum {
 		MEMORY,
 		SQLITE,
-		ROCKSDB,
 	};
 
 	## Options to tune the SQLite storage backend.
@@ -66,18 +65,9 @@ export {
 		path: string &default = "";
 	};
 
-	## Options to tune the RocksDB storage backend.
-	type RocksDBOptions: record {
-		## File system path of the database.
-		## If left empty, will be derived from the name of the store,
-		## and use the '.rocksdb' file suffix.
-		path: string &default = "";
-	};
-
 	## Options to tune the particular storage backends.
 	type BackendOptions: record {
 		sqlite: SQLiteOptions &default = SQLiteOptions();
-		rocksdb: RocksDBOptions &default = RocksDBOptions();
 	};
 
 	## Create a master data store which contains key-value pairs.

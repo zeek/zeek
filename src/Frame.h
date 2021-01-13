@@ -7,12 +7,14 @@
 #include <utility>
 #include <vector>
 #include <memory>
+#include <optional>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
 #include "zeek/ZeekList.h" // for typedef val_list
 #include "zeek/Obj.h"
+#include "zeek/Type.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/ZeekArgs.h"
 
@@ -192,29 +194,42 @@ public:
 	Frame* SelectiveClone(const IDPList& selection, ScriptFunc* func) const;
 
 	/**
-	 * Serializes the Frame into a Broker representation.
-	 *
-	 * Serializing a frame can be fairly non-trivial. If the frame has no
-	 * closure the serialized frame is just a vector:
+	 * Serializes the frame in the context of supporting the (deprecated)
+	 * reference semantics for closures.  This can be fairly non-trivial.
+	 * If the frame itself has no closure then the serialized frame
+	 * is a vector:
 	 *
 	 * [ "Frame", [offset_map] [serialized_values] ]
 	 *
-	 * Where serialized_values are two element vectors. A serialized_value
+	 * where serialized_values are two-element vectors. A serialized_value
 	 * has the result of calling broker::data_to_val on the value in the
 	 * first index, and an integer representing that value's type in the
 	 * second index. offset_map is a serialized version of the frame's
 	 * offset_map.
 	 *
-	 * A Frame with a closure needs to serialize a little more information.
-	 * It is serialized as:
+	 * A reference-semantics frame with its own closure needs to
+	 * (recursively) serialize more information:
 	 *
 	 * [ "ClosureFrame", [outer_ids], Serialize(closure), [offset_map],
 	 *   [serialized_values] ]
 	 *
-	 * @return the broker representaton, or an error if the serialization
+	 * @return the broker representation, or an error if the serialization
 	 * failed.
 	 */
-	static broker::expected<broker::data> Serialize(const Frame* target, const IDPList& selection);
+	broker::expected<broker::data> SerializeClosureFrame(const IDPList& selection);
+
+	/**
+	 * Serializes the frame in the context of supporting copy semantics
+	 * for lambdas:
+	 *
+	 * [ "CopyFrame", serialized_values ]
+	 *
+	 * where serialized_values are two-element vectors. A serialized_value
+	 * has the result of calling broker::data_to_val on the value in the
+	 * first index, and an integer representing that value's type in the
+	 * second index.
+	 */
+	broker::expected<broker::data> SerializeCopyFrame();
 
 	/**
 	 * Instantiates a Frame from a serialized one.
@@ -222,8 +237,13 @@ public:
 	 * @return a pair in which the first item is the status of the serialization;
 	 * and the second is the unserialized frame with reference count +1, or
 	 * null if the serialization wasn't successful.
+	 *
+	 * The *captures* argument, if non-nil, specifies that the frame
+	 * reflects captures with copy-semantics rather than deprecated
+	 * reference semantics.
 	 */
-	static std::pair<bool, FramePtr> Unserialize(const broker::vector& data);
+	static std::pair<bool, FramePtr> Unserialize(const broker::vector& data,
+			const std::optional<FuncType::CaptureList>& captures);
 
 	/**
 	 * Sets the IDs that the frame knows offsets for. These offsets will
@@ -300,8 +320,11 @@ private:
 	 */
 	void ClearElement(int n);
 
-	/** Have we captured this id? */
+	/** Have we captured this id?  Version for deprecated semantics. */
 	bool IsOuterID(const ID* in) const;
+
+	/** Have we captured this id?  Version for current semantics. */
+	bool IsCaptureID(const ID* in) const;
 
 	/** Serializes an offset_map */
 	static broker::expected<broker::data>
@@ -337,10 +360,12 @@ private:
 	 */
 	int current_offset;
 
-	/** The enclosing frame of this frame. */
+	/** The enclosing frame of this frame. Used for reference semantics. */
 	Frame* closure;
 
-	/** ID's used in this frame from the enclosing frame. */
+	/** ID's used in this frame from the enclosing frame, when using
+	 * reference semantics (closure != nullptr).
+	 */
 	IDPList outer_ids;
 
 	/**
@@ -349,8 +374,22 @@ private:
 	 */
 	std::unique_ptr<OffsetMap> offset_map;
 
+	/** Frame used for captures (if any) with copy semantics. */
+	Frame* captures;
+
+	/** Maps IDs to offsets into the "captures" frame.  If the ID
+	 * isn't present, then it's not a capture.
+	 *
+	 * We keep this separate from offset_map to help ensure we don't
+	 * confuse code from the deprecated semantics with the current
+	 * semantics.
+	 */
+	const OffsetMap* captures_offset_map;
+
 	/** The function this frame is associated with. */
 	const ScriptFunc* function;
+
+	// The following is only needed for the debugger.
 	/** The arguments to the function that this Frame is associated with. */
 	const zeek::Args* func_args;
 

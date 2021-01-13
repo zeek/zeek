@@ -9,14 +9,30 @@ Zeek 4.1.0
 New Functionality
 -----------------
 
+- Lambda functions can now use capture-list to help specify exactly which local
+  variables from outer scopes need to made available while evaluating the lambda
+  and also the method by which they're made available: deep vs. shallow copy.
+
+  For examples, see: https://docs.zeek.org/en/master/script-reference/types.html#type-function
+
 Changed Functionality
 ---------------------
 
 Removed Functionality
 ---------------------
 
+- Support for the RocksDB Broker data store was previously broken and unusable,
+  so all code/options related to it are now removed.
+
 Deprecated Functionality
 ------------------------
+
+- Lambda/closure support: automatic capturing of references to variables
+  outside a lambda's scope is now deprecated.  An explicit capture
+  list which also specifies the desired copy-semantics is now required when
+  writing lambda functions that refer to local variables of an outer scope.
+
+  For examples, see: https://docs.zeek.org/en/master/script-reference/types.html#type-function
 
 Zeek 4.0.0
 ==========

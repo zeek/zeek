@@ -3,9 +3,11 @@
 
 global numberone : count = 1;
 
+type mutable_aggregate: record { x: count; };
+
 function make_count_upper (start : count) : function(step : count) : count
 	{
-	return function(step : count) : count
+	return function[start](step : count) : count
 		{ return (start += (step + numberone)); };
         }
 
@@ -14,7 +16,7 @@ function dog_maker(name: string, weight: count) : function (action: string)
 	local eat = function (lbs: count) { print fmt("eat i weigh %s", lbs); };
 	local bark = function (who: string) { print fmt("bark i am %s", who); };
 
-	local dog = function (action: string)
+	local dog = function [eat, bark, name, weight](action: string)
 		{
 		switch action
 			{
@@ -72,14 +74,14 @@ event zeek_init()
 	print c(1) == two(3);
 	
 	# a little more complicated ...
-	local cat_dog = 100;
-	local add_n_and_m = function(n: count) : function(m : count) : function(o : count) : count
+	local cat_dog = mutable_aggregate($x=100);
+	local add_n_and_m = function[cat_dog](n: count) : function(m : count) : function(o : count) : count
 		{
-		cat_dog += 1;
+		cat_dog$x += 1;
 		local can_we_make_variables_inside = 11;
-		return function(m : count) : function(o : count) : count
-			{ return function(o : count) : count
-				{ return  n + m + o + cat_dog + can_we_make_variables_inside; }; };
+		return function[can_we_make_variables_inside, cat_dog, n](m : count) : function(o : count) : count
+			{ return function[cat_dog, can_we_make_variables_inside, m, n](o : count) : count
+				{ return  n + m + o + cat_dog$x + can_we_make_variables_inside; }; };
 		};
 
 	local add_m = add_n_and_m(2);
@@ -95,14 +97,14 @@ event zeek_init()
 
 	# can mutate closure:
 	print "expect: 101";
-	print cat_dog;
+	print cat_dog$x;
 	
 	# complicated - has state across calls
 	local two_part_adder_maker = function (begin : count) : function (base_step : count) : function ( step : count) : count
 		{
-		return function (base_step : count) : function (step : count) : count
+		return function [begin](base_step : count) : function (step : count) : count
 			{
-				return function (step : count) : count
+				return function [base_step, begin](step : count) : count
 					{
 					return (begin += base_step + step); }; }; };
 	
@@ -115,10 +117,17 @@ event zeek_init()
 	print stepper(15);
 
 	# another copy check
-	print "expect: 290";
+	#
+	# under old reference capture semantics, this would print 290 because
+	# the twotwofive copy wouldn't have a copy of the "begin" variable but
+	# instead a reference to it; under copy capture semantics, though,
+	# those are separate values, so executing stepper() after the copy
+	# won't affect the copy
+	#
+	print "expect: 225";
 	print twotwofive(15);
 
-	local hamster : count = 3;
+	local hamster = mutable_aggregate($x=3);
 	
 	print "";
 	print "tables:";
@@ -128,10 +137,10 @@ event zeek_init()
 	    [1] = "symmetric active",
 	    [2] = "symmetric passive",
 	    [3] = "client",
-            } &default = function(i: count):string { return fmt("unknown-%d. outside-%d", i, hamster += 1); } &redef;
+            } &default = function[hamster](i: count):string { return fmt("unknown-%d. outside-%d", i, hamster$x += 1); } &redef;
 
 	# changing the value here will show in the function.
-	hamster += hamster;
+	hamster$x += hamster$x;
 	
 	print "expect: unknown-11. outside-7";
 	print modes[11];
@@ -156,7 +165,7 @@ event zeek_init()
             [1] = "symmetric active",
             [2] = "symmetric passive",
             [3] = "client"
-	)&default = function(i: count):string { return fmt("unknown-%d. outside-%d", i, hamster_also += 1); } &redef;
+	)&default = function[hamster_also](i: count):string { return fmt("unknown-%d. outside-%d", i, hamster_also += 1); } &redef;
 
         print "expect: unknown-11. outside-4";
         print modes_also[11];

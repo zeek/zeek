@@ -393,9 +393,6 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 
 		if ( info$options$sqlite$path == default_options$sqlite$path )
 			info$options$sqlite$path = path + ".sqlite";
-
-		if ( info$options$rocksdb$path == default_options$rocksdb$path )
-			info$options$rocksdb$path = path + ".rocksdb";
 		}
 
 	if ( persistent )
@@ -405,8 +402,6 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 			info$backend = Cluster::default_persistent_backend;
 			break;
 		case Broker::SQLITE:
-			fallthrough;
-		case Broker::ROCKSDB:
 			# no-op: user already asked for a specific persistent backend.
 			break;
 		default:

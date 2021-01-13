@@ -13,7 +13,7 @@ event zeek_init() &priority=+10
 	{
 	local outer = 101;
 
-	local lambda = function()
+	local lambda = function[outer]()
 		{ print outer; };
 
 	lambda();

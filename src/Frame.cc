@@ -31,6 +31,14 @@ Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args)
 
 	closure = nullptr;
 
+	// We could Ref()/Unref() the captures frame, but there's really
+	// no need because by definition this current frame exists to
+	// enable execution of the function, and its captures frame won't
+	// go away until the function itself goes away, which can only be
+	// after this frame does.
+	captures = function ? function->GetCapturesFrame() : nullptr;
+	captures_offset_map =
+		function ? function->GetCapturesOffsetMap() : nullptr;
 	current_offset = 0;
 	}
 
@@ -86,11 +94,18 @@ void Frame::SetElementWeak(int n, Val* v)
 
 void Frame::SetElement(const ID* id, ValPtr v)
 	{
-	if ( closure )
+	if ( closure && IsOuterID(id) )
 		{
-		if ( IsOuterID(id) )
+		closure->SetElement(id, std::move(v));
+		return;
+		}
+
+	if ( captures )
+		{
+		auto cap_off = captures_offset_map->find(id->Name());
+		if ( cap_off != captures_offset_map->end() )
 			{
-			closure->SetElement(id, std::move(v));
+			captures->SetElement(cap_off->second, std::move(v));
 			return;
 			}
 		}
@@ -115,10 +130,14 @@ void Frame::SetElement(const ID* id, ValPtr v)
 
 const ValPtr& Frame::GetElementByID(const ID* id) const
 	{
-	if ( closure )
+	if ( closure && IsOuterID(id) )
+		return closure->GetElementByID(id);
+
+	if ( captures )
 		{
-		if ( IsOuterID(id) )
-			return closure->GetElementByID(id);
+		auto cap_off = captures_offset_map->find(id->Name());
+		if ( cap_off != captures_offset_map->end() )
+			return captures->GetElement(cap_off->second);
 		}
 
 	// do we have an offset for it?
@@ -190,6 +209,9 @@ Frame* Frame::Clone() const
 	for ( int i = 0; i < size; i++ )
 		if ( frame[i].val )
 			other->frame[i].val = frame[i].val->Clone();
+
+	// Note, there's no need to clone "captures" or "captures_offset_map"
+	// since those get created fresh when constructing "other".
 
 	return other;
 	}
@@ -269,7 +291,7 @@ Frame* Frame::SelectiveClone(const IDPList& selection, ScriptFunc* func) const
 	// 	other->closure = closure->SelectiveClone(them);
 	// other->outer_ids = outer_ids;
 
-	if( closure )
+	if ( closure )
 		other->CaptureClosure(closure, outer_ids);
 
 	if ( offset_map )
@@ -285,24 +307,25 @@ Frame* Frame::SelectiveClone(const IDPList& selection, ScriptFunc* func) const
 	return other;
 	}
 
-broker::expected<broker::data> Frame::Serialize(const Frame* target, const IDPList& selection)
+broker::expected<broker::data> Frame::SerializeClosureFrame(const IDPList& selection)
 	{
 	broker::vector rval;
 
 	if ( selection.length() == 0 )
+		// Easy - no captures, so frame is irrelvant.
 		return {std::move(rval)};
 
 	IDPList us;
 	// and
 	IDPList them;
 
-	std::unordered_map<std::string, int> new_map;
-	if ( target->offset_map )
-		new_map = *(target->offset_map);
+	OffsetMap new_map;
+	if ( offset_map )
+		new_map = *offset_map;
 
-	for (const auto& we : selection)
+	for ( const auto& we : selection )
 		{
-		if ( target->IsOuterID(we) )
+		if ( IsOuterID(we) )
 			them.append(we);
 		else
 			{
@@ -313,18 +336,18 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const IDPLi
 
 	if ( them.length() )
 		{
-		if ( ! target->closure )
+		if ( ! closure )
 			reporter->InternalError("Attempting to serialize values from a frame that does not exist.");
 
 		rval.emplace_back(std::string("ClosureFrame"));
 
-		auto ids = SerializeIDList(target->outer_ids);
+		auto ids = SerializeIDList(outer_ids);
 		if ( ! ids )
 			return broker::ec::invalid_data;
 
 		rval.emplace_back(*ids);
 
-		auto serialized = Frame::Serialize(target->closure, them);
+		auto serialized = closure->SerializeClosureFrame(them);
 		if ( ! serialized )
 			return broker::ec::invalid_data;
 
@@ -341,7 +364,7 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const IDPLi
 
 	broker::vector body;
 
-	for ( int i = 0; i < target->size; ++i )
+	for ( int i = 0; i < size; ++i )
 		body.emplace_back(broker::none());
 
 	for ( const auto& id : us )
@@ -349,10 +372,10 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const IDPLi
 		int location = id->Offset();
 
 		auto where = new_map.find(std::string(id->Name()));
-		if (where != new_map.end())
+		if ( where != new_map.end() )
 			location = where->second;
 
-		const auto& val = target->frame[location].val;
+		const auto& val = frame[location].val;
 
 		TypeTag tag = val->GetType()->Tag();
 
@@ -369,14 +392,36 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const IDPLi
 	return {std::move(rval)};
 	}
 
-std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data)
+broker::expected<broker::data> Frame::SerializeCopyFrame()
+	{
+	broker::vector rval;
+	rval.emplace_back(std::string("CopyFrame"));
+
+	broker::vector body;
+
+	for ( int i = 0; i < size; ++i )
+		{
+		const auto& val = frame[i].val;
+		auto expected = Broker::detail::val_to_data(val.get());
+		if ( ! expected )
+			return broker::ec::invalid_data;
+
+		TypeTag tag = val->GetType()->Tag();
+		broker::vector val_tuple {std::move(*expected),
+				static_cast<broker::integer>(tag)};
+		body.emplace_back(std::move(val_tuple));
+		}
+
+	rval.emplace_back(std::move(body));
+
+	return {std::move(rval)};
+	}
+
+std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data,
+				const std::optional<FuncType::CaptureList>& captures)
 	{
 	if ( data.size() == 0 )
 		return std::make_pair(true, nullptr);
-
-	IDPList outer_ids;
-	OffsetMap offset_map;
-	FramePtr closure;
 
 	auto where = data.begin();
 
@@ -385,6 +430,54 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data)
 		return std::make_pair(false, nullptr);
 
 	std::advance(where, 1);
+
+	if ( captures || *has_name == "CopyFrame" )
+		{
+		ASSERT(captures && *has_name == "CopyFrame");
+
+		auto has_body = broker::get_if<broker::vector>(*where);
+		if ( ! has_body )
+			return std::make_pair(false, nullptr);
+
+		broker::vector body = *has_body;
+		int frame_size = body.size();
+		auto rf = make_intrusive<Frame>(frame_size, nullptr, nullptr);
+
+		rf->closure = nullptr;
+
+		for ( int i = 0; i < frame_size; ++i )
+			{
+			auto has_vec = broker::get_if<broker::vector>(body[i]);
+			if ( ! has_vec )
+				continue;
+
+			broker::vector val_tuple = *has_vec;
+			if ( val_tuple.size() != 2 )
+				return std::make_pair(false, nullptr);
+
+			auto has_type = broker::get_if<broker::integer>(val_tuple[1]);
+			if ( ! has_type )
+				return std::make_pair(false, nullptr);
+
+			broker::integer g = *has_type;
+			Type t( static_cast<TypeTag>(g) );
+
+			auto val = Broker::detail::data_to_val(std::move(val_tuple[0]), &t);
+			if ( ! val )
+				return std::make_pair(false, nullptr);
+
+			rf->frame[i].val = std::move(val);
+			}
+
+		return std::make_pair(true, std::move(rf));
+		}
+
+
+	// Code to support deprecated semantics:
+
+	IDPList outer_ids;
+	OffsetMap offset_map;
+	FramePtr closure;
 
 	if ( *has_name == "ClosureFrame" )
 		{
@@ -411,7 +504,7 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data)
 
 		std::advance(where, 1);
 
-		auto closure_pair = Frame::Unserialize(*has_vec);
+		auto closure_pair = Frame::Unserialize(*has_vec, {});
 		if ( ! closure_pair.first )
 			{
 			for ( auto& i : outer_ids )
@@ -566,7 +659,7 @@ broker::expected<broker::data> Frame::SerializeIDList(const IDPList& in)
 	}
 
 broker::expected<broker::data>
-Frame::SerializeOffsetMap(const std::unordered_map<std::string, int>& in)
+Frame::SerializeOffsetMap(const OffsetMap& in)
 	{
 	broker::vector rval;
 
@@ -621,7 +714,7 @@ Frame::UnserializeIDList(const broker::vector& data)
 std::pair<bool, std::unordered_map<std::string, int>>
 Frame::UnserializeOffsetMap(const broker::vector& data)
 	{
-	std::unordered_map<std::string, int> rval;
+	OffsetMap rval;
 
 	for ( broker::vector::size_type i = 0; i < data.size(); i += 2 )
 		{

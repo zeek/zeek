@@ -1,4 +1,43 @@
 
+4.1.0-dev.71 | 2021-01-11 18:03:25 -0800
+
+  * Add []-style variable-capture-list for Zeek lambda functions (Vern Paxson, Corelight)
+
+    The previous behavior of automatically capturing references to variables
+    outside a lambda's scope is now deprecated. An explicit capture list which
+    also specifies the desired copy-semantics will be required when
+    writing lambda functions that refer to local variables of an outer scope.
+
+    Examples of the new capture-list syntax are described at
+    https://docs.zeek.org/en/master/script-reference/types.html#type-function
+
+  * nit: fixed some 0/1 values that should instead be false/true (Vern Paxson, Corelight)
+
+  * factored some complexity of begin_func() into static functions for clarity (Vern Paxson, Corelight)
+
+  * error propagation fix: don't complain about "unused" values that themselves are due to errors (Vern Paxson, Corelight)
+
+  * corrected & reflowed some comments, plus a whitespace tweak (Vern Paxson, Corelight)
+
+4.1.0-dev.52 | 2021-01-11 11:11:13 -0800
+
+  * Remove unusable/broken RocksDB code and options (Jon Siwek, Corelight)
+
+    The Broker RockSDB data store backend was previously unusable
+    and broken, so all code and options related to it are now removed.
+
+4.1.0-dev.51 | 2021-01-07 17:02:28 -0800
+
+  * Virtualize Obj::GetLocationInfo() (Vern Paxson, Corelight)
+
+    Cleaner approach for localizing errors associated with duplicated ASTs.
+
+  * Add support for inlining of Zeek script functions (Vern Paxson, Corelight)
+
+  * Add support for duplicating Zeek ASTS (Vern Paxson, Corelight)
+
+  * Update COPYING to 2021 (Johanna Amann, Corelight)
+
 4.1.0-dev.27 | 2021-01-06 20:42:35 -0800
 
   * GH-1347: Update cmake module to fix ZeekPluginDynamic's find_package(CAF) (Jon Siwek, Corelight)

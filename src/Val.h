@@ -216,7 +216,7 @@ UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
 		// Since we're converting from "this", make sure the type requested is a pointer.
 		static_assert(std::is_pointer<T>());
 
-		auto v = dynamic_cast<T>(this);
+		auto v = static_cast<T>(this);
 		if ( ! v )
 			reporter->InternalError("Failed dynamic_cast between Val types");
 
@@ -1263,7 +1263,7 @@ public:
     auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T>
 		{
 		auto& field_ptr = GetField(field);
-		auto field_val_ptr = dynamic_cast<T*>(field_ptr.get());
+		auto field_val_ptr = static_cast<T*>(field_ptr.get());
 		if ( ! field_val_ptr )
 			reporter->InternalError("Typecast failed in TableVal::GetFieldAs");
 
@@ -1274,7 +1274,7 @@ public:
     auto GetFieldAs(const char* field) const -> std::invoke_result_t<decltype(&T::Get), T>
 		{
 		auto& field_ptr = GetField(field);
-		auto field_val_ptr = dynamic_cast<T*>(field_ptr.get());
+		auto field_val_ptr = static_cast<T*>(field_ptr.get());
 		if ( ! field_val_ptr )
 			reporter->InternalError("Typecast failed in TableVal::GetFieldAs");
 
@@ -1520,7 +1520,7 @@ private:
 
 #define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name) \
 	inline ctype Val::name() const \
-		{ return dynamic_cast<const ztype*>(this)->Get(); }
+		{ return static_cast<const ztype*>(this)->Get(); }
 
 UNDERLYING_ACCESSOR_DEF(detail::IntValImplementation, bro_int_t, AsInt)
 UNDERLYING_ACCESSOR_DEF(BoolVal, bool, AsBool)

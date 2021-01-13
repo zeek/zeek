@@ -10,7 +10,7 @@ TempVar::TempVar(int num, const TypePtr& t, ExprPtr _rhs) : type(t)
 	{
 	char buf[8192];
 	snprintf(buf, sizeof buf, "#%d", num);
-	name = util::copy_string(buf);
+	name = buf;
 	id = nullptr;
 	}
 

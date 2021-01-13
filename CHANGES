@@ -1,4 +1,13 @@
 
+4.0.0-rc1.14 | 2021-01-21 17:10:26 -0800
+
+  * GH-1352: Added flag to stop processing SMTP headers in attached messages (Jon Oakley)
+
+    Previously, header values from sub-entities could overwrite the top-level
+    MIME entity values, causing the SMTP log to contain misleading information.
+
+  * Update COPYING to 2021 (Johanna Amann, Corelight)
+
 4.0.0-rc1.11 | 2021-01-21 15:51:17 -0800
 
   * Use xcode 11 on the Catalina CI image (Tim Wojtulewicz, Corelight)

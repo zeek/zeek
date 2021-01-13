@@ -1054,7 +1054,7 @@ ValPtr CheckAnyLenStmt::Exec(Frame* f, StmtFlowType& flow) const
 
 	auto& v = e->Eval(f)->AsListVal()->Vals();
 
-	if ( v.size() != expected_len )
+	if ( v.size() != static_cast<size_t>(expected_len) )
 		reporter->ExprRuntimeError(e.get(), "mismatch in list lengths");
 
 	return nullptr;

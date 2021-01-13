@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <string>
+#include <optional>
+
 #include "zeek/Func.h"
 #include "zeek/Expr.h"
 #include "zeek/Scope.h"
@@ -25,7 +28,7 @@ struct AnalyOpt {
 	bool dump_xform = false;
 
 	// If non-nil, then only analyze the given function/event/hook.
-	const char* only_func = nullptr;
+	std::optional<std::string> only_func;
 
 	// If true, do global inlining.
 	bool inliner = false;

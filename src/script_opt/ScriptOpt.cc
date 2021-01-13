@@ -28,7 +28,7 @@ void optimize_func(ScriptFunc* f, ProfileFunc* pf, ScopePtr scope_ptr,
 		return;
 
 	if ( analysis_options.only_func &&
-	     ! util::streq(f->Name(), analysis_options.only_func) )
+	     *analysis_options.only_func != f->Name() )
 		return;
 
 	if ( analysis_options.only_func )
@@ -110,7 +110,11 @@ void analyze_scripts(Options& opts)
 		check_env_opt("ZEEK_XFORM", analysis_options.activate);
 
 		if ( ! analysis_options.only_func )
-			analysis_options.only_func = getenv("ZEEK_ONLY");
+			{
+			auto zo = getenv("ZEEK_ONLY");
+			if ( zo )
+				analysis_options.only_func = zo;
+			}
 
 		if ( analysis_options.only_func )
 			analysis_options.activate = true;

@@ -208,7 +208,8 @@ void Expr::AssignToIndex(ValPtr v1, ValPtr v2, ValPtr v3) const
 	{
 	bool iterators_invalidated;
 
-	auto error_msg = assign_to_index(v1, v2, v3, iterators_invalidated);
+	auto error_msg = assign_to_index(std::move(v1), std::move(v2), std::move(v3),
+	                                 iterators_invalidated);
 
 	if ( iterators_invalidated )
 		{
@@ -241,7 +242,7 @@ const char* assign_to_index(ValPtr v1, ValPtr v2, ValPtr v3,
 	if ( ! v1 || ! v2 || ! v3 )
 		return nullptr;
 
-	// Hold an extra reference to 'arg_v' in case the ownership transfer
+	// Hold an extra reference in case the ownership transfer
 	// to the table/vector goes wrong and we still want to obtain
 	// diagnostic info from the original value after the assignment
 	// already unref'd.

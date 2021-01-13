@@ -5277,7 +5277,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 
 	if ( el.length() < ntypes )
 		{
-		ExprPList def_elements;
+		std::vector<ExprPtr> def_elements;
 
 		// Start from rightmost parameter, work backward to fill in missing
 		// arguments using &default expressions.
@@ -5300,12 +5300,13 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 			// separately for each instance, rather than
 			// one instance inheriting the transformed version
 			// from another.
-			auto e = def_attr->GetExpr();
-			def_elements.push_front(e->Duplicate().release());
+			const auto& e = def_attr->GetExpr();
+			def_elements.emplace_back(e->Duplicate());
 			}
 
-		for ( const auto& elem : def_elements )
-			el.push_back(elem->Ref());
+		auto ne = def_elements.size();
+		while ( ne )
+			el.push_back(def_elements[--ne].release());
 		}
 
 	TypeList* tl = new TypeList();

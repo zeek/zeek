@@ -142,7 +142,7 @@ public:
 	const Stmt* Body() const	{ return s.get(); }
 	Stmt* Body()			{ return s.get(); }
 
-	void UpdateBody(StmtPtr new_body)	{ s = new_body; }
+	void UpdateBody(StmtPtr new_body)	{ s = std::move(new_body); }
 
 	void Describe(ODesc* d) const override;
 

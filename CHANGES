@@ -1,3 +1,6 @@
+4.1.0-dev.74 | 2021-01-14 11:57:48 -0700
+
+  * Use xcode 11 on the Catalina CI image (Tim Wojtulewicz, Corelight)
 
 4.1.0-dev.71 | 2021-01-11 18:03:25 -0800
 

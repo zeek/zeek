@@ -1,4 +1,8 @@
 
+4.0.0-rc1.11 | 2021-01-21 15:51:17 -0800
+
+  * Use xcode 11 on the Catalina CI image (Tim Wojtulewicz, Corelight)
+
 4.0.0-rc1.10 | 2021-01-21 13:40:45 -0800
 
   * Install BTest with Zeek (Christian Kreibich, Corelight)

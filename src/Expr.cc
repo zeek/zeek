@@ -41,6 +41,10 @@ const char* expr_name(BroExprTag t)
 		"coerce", "record_coerce", "table_coerce", "vector_coerce",
 		"sizeof", "cast", "is", "[:]=",
 		"inline()",
+		"[]=", "$=",
+		"vec+=",
+		"to_any_coerce", "from_any_coerce",
+		"any[]",
 		"nop",
 
 	};
@@ -95,10 +99,22 @@ NameExpr* Expr::AsNameExpr()
 	return (NameExpr*) this;
 	}
 
+NameExprPtr Expr::AsNameExprPtr()
+	{
+	CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
+	return {NewRef{}, (NameExpr*) this};
+	}
+
 const ConstExpr* Expr::AsConstExpr() const
 	{
 	CHECK_TAG(tag, EXPR_CONST, "ExprVal::AsConstExpr", expr_name)
 	return (const ConstExpr*) this;
+	}
+
+ConstExprPtr Expr::AsConstExprPtr()
+	{
+	CHECK_TAG(tag, EXPR_CONST, "ExprVal::AsConstExpr", expr_name)
+	return {NewRef{}, (ConstExpr*) this};
 	}
 
 const CallExpr* Expr::AsCallExpr() const
@@ -143,6 +159,12 @@ EventExprPtr Expr::AsEventExprPtr()
 	return {NewRef{}, (EventExpr*) this};
 	}
 
+RefExprPtr Expr::AsRefExprPtr()
+	{
+	CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
+	return {NewRef{}, (RefExpr*) this};
+	}
+
 bool Expr::CanAdd() const
 	{
 	return false;
@@ -180,6 +202,133 @@ void Expr::EvalIntoAggregate(const zeek::Type* /* t */, Val* /* aggr */,
 void Expr::Assign(Frame* /* f */, ValPtr /* v */)
 	{
 	Internal("Expr::Assign called");
+	}
+
+void Expr::AssignToIndex(ValPtr v1, ValPtr v2, ValPtr v3) const
+	{
+	bool iterators_invalidated;
+
+	auto error_msg = assign_to_index(std::move(v1), std::move(v2), std::move(v3),
+	                                 iterators_invalidated);
+
+	if ( iterators_invalidated )
+		{
+		ODesc d;
+		Describe(&d);
+		reporter->PushLocation(GetLocationInfo());
+		reporter->Warning("possible loop/iterator invalidation caused by expression: %s", d.Description());
+		reporter->PopLocation();
+		}
+
+	if ( error_msg )
+		RuntimeErrorWithCallStack(error_msg);
+	}
+
+static int get_slice_index(int idx, int len)
+	{
+	if ( abs(idx) > len )
+		idx = idx > 0 ? len : 0; // Clamp maximum positive/negative indices.
+	else if ( idx < 0 )
+		idx += len;  // Map to a positive index.
+
+	return idx;
+	}
+
+const char* assign_to_index(ValPtr v1, ValPtr v2, ValPtr v3,
+				bool& iterators_invalidated)
+	{
+	iterators_invalidated = false;
+
+	if ( ! v1 || ! v2 || ! v3 )
+		return nullptr;
+
+	// Hold an extra reference in case the ownership transfer
+	// to the table/vector goes wrong and we still want to obtain
+	// diagnostic info from the original value after the assignment
+	// already unref'd.
+	auto v_extra = v3;
+
+	switch ( v1->GetType()->Tag() ) {
+	case TYPE_VECTOR:
+		{
+		const ListVal* lv = v2->AsListVal();
+		VectorVal* v1_vect = v1->AsVectorVal();
+
+		if ( lv->Length() > 1 )
+			{
+			auto len = v1_vect->Size();
+			bro_int_t first = get_slice_index(lv->Idx(0)->CoerceToInt(), len);
+			bro_int_t last = get_slice_index(lv->Idx(1)->CoerceToInt(), len);
+
+			// Remove the elements from the vector within the slice.
+			for ( auto idx = first; idx < last; idx++ )
+				v1_vect->Remove(first);
+
+			// Insert the new elements starting at the first
+			// position.
+
+			VectorVal* v_vect = v3->AsVectorVal();
+
+			for ( auto idx = 0u; idx < v_vect->Size();
+			      idx++, first++ )
+				v1_vect->Insert(first, v_vect->At(idx));
+			}
+
+		else if ( ! v1_vect->Assign(lv->Idx(0)->CoerceToUnsigned(), std::move(v3)) )
+			{
+			v3 = std::move(v_extra);
+
+			if ( v3 )
+				{
+				ODesc d;
+				v3->Describe(&d);
+				const auto& vt = v3->GetType();
+				auto vtt = vt->Tag();
+				std::string tn = vtt == TYPE_RECORD ?
+					vt->GetName() : type_name(vtt);
+				return util::fmt("vector index assignment failed for invalid type '%s', value: %s",
+					tn.data(), d.Description());
+				}
+			else
+				return "assignment failed with null value";
+			}
+		break;
+		}
+
+	case TYPE_TABLE:
+		{
+		if ( ! v1->AsTableVal()->Assign(std::move(v2), std::move(v3), true, &iterators_invalidated) )
+			{
+			v3 = std::move(v_extra);
+
+			if ( v3 )
+				{
+				ODesc d;
+				v3->Describe(&d);
+				const auto& vt = v3->GetType();
+				auto vtt = vt->Tag();
+				std::string tn = vtt == TYPE_RECORD ?
+					vt->GetName() : type_name(vtt);
+				return util::fmt("table index assignment failed for invalid type '%s', value: %s",
+					tn.data(), d.Description());
+				}
+			else
+				return "assignment failed with null value";
+			}
+
+		break;
+		}
+
+	case TYPE_STRING:
+		return "assignment via string index accessor not allowed";
+		break;
+
+	default:
+		return "bad index expression type in assignment";
+		break;
+	}
+
+	return nullptr;
 	}
 
 TypePtr Expr::InitType() const
@@ -312,6 +461,12 @@ NameExpr::NameExpr(IDPtr arg_id, bool const_init)
 		h->SetUsed();
 	}
 
+// This isn't in-lined to avoid needing to pull in ID.h.
+IDPtr NameExpr::IdPtr()
+	{
+	return id;
+	}
+
 ValPtr NameExpr::Eval(Frame* f) const
 	{
 	ValPtr v;
@@ -437,7 +592,14 @@ ValPtr UnaryExpr::Eval(Frame* f) const
 	if ( ! v )
 		return nullptr;
 
-	if ( is_vector(v) && Tag() != EXPR_IS && Tag() != EXPR_CAST )
+	if ( is_vector(v) && Tag() != EXPR_IS && Tag() != EXPR_CAST &&
+	     // The following allows passing vectors-by-reference to
+	     // functions that use vector-of-any for generic vector
+	     // manipulation ...
+	     Tag() != EXPR_TO_ANY_COERCE &&
+	     // ... and the following to avoid vectorizing operations
+	     // on vector-of-any's
+	     Tag() != EXPR_FROM_ANY_COERCE )
 		{
 		VectorVal* v_op = v->AsVectorVal();
 		VectorTypePtr out_t;
@@ -458,9 +620,7 @@ ValPtr UnaryExpr::Eval(Frame* f) const
 		return result;
 		}
 	else
-		{
 		return Fold(v.get());
-		}
 	}
 
 bool UnaryExpr::IsPure() const
@@ -2130,7 +2290,8 @@ void RefExpr::Assign(Frame* f, ValPtr v)
 AssignExpr::AssignExpr(ExprPtr arg_op1,
                        ExprPtr arg_op2,
                        bool arg_is_init, ValPtr arg_val,
-                       const AttributesPtr& attrs)
+                       const AttributesPtr& attrs,
+                       bool typecheck)
 	: BinaryExpr(EXPR_ASSIGN, arg_is_init ?
 	             std::move(arg_op1) : arg_op1->MakeLvalue(),
 	             std::move(arg_op2))
@@ -2153,9 +2314,10 @@ AssignExpr::AssignExpr(ExprPtr arg_op1,
 		return;
 		}
 
-	// We discard the status from TypeCheck since it has already
-	// generated error messages.
-	(void) TypeCheck(attrs);
+	if ( typecheck )
+		// We discard the status from TypeCheck since it has already
+		// generated error messages.
+		(void) TypeCheck(attrs);
 
 	val = std::move(arg_val);
 
@@ -2755,16 +2917,6 @@ ValPtr IndexExpr::Eval(Frame* f) const
 		return Fold(v1.get(), v2.get());
 	}
 
-static int get_slice_index(int idx, int len)
-	{
-	if ( abs(idx) > len )
-		idx = idx > 0 ? len : 0; // Clamp maximum positive/negative indices.
-	else if ( idx < 0 )
-		idx += len;  // Map to a positive index.
-
-	return idx;
-	}
-
 ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 	{
 	if ( IsError() )
@@ -2856,105 +3008,9 @@ void IndexExpr::Assign(Frame* f, ValPtr v)
 		return;
 
 	auto v1 = op1->Eval(f);
-
-	if ( ! v1 )
-		return;
-
 	auto v2 = op2->Eval(f);
 
-	if ( ! v1 || ! v2 )
-		return;
-
-	// Hold an extra reference to 'arg_v' in case the ownership transfer to
-	// the table/vector goes wrong and we still want to obtain diagnostic info
-	// from the original value after the assignment already unref'd.
-	auto v_extra = v;
-
-	switch ( v1->GetType()->Tag() ) {
-	case TYPE_VECTOR:
-		{
-		const ListVal* lv = v2->AsListVal();
-		VectorVal* v1_vect = v1->AsVectorVal();
-
-		if ( lv->Length() > 1 )
-			{
-			auto len = v1_vect->Size();
-			bro_int_t first = get_slice_index(lv->Idx(0)->CoerceToInt(), len);
-			bro_int_t last = get_slice_index(lv->Idx(1)->CoerceToInt(), len);
-
-			// Remove the elements from the vector within the slice
-			for ( auto idx = first; idx < last; idx++ )
-				v1_vect->Remove(first);
-
-			// Insert the new elements starting at the first position
-			VectorVal* v_vect = v->AsVectorVal();
-
-			for ( auto idx = 0u; idx < v_vect->Size(); idx++, first++ )
-				v1_vect->Insert(first, v_vect->At(idx));
-			}
-		else if ( ! v1_vect->Assign(lv->Idx(0)->CoerceToUnsigned(), std::move(v)) )
-			{
-			v = std::move(v_extra);
-
-			if ( v )
-				{
-				ODesc d;
-				v->Describe(&d);
-				const auto& vt = v->GetType();
-				auto vtt = vt->Tag();
-				std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
-				RuntimeErrorWithCallStack(util::fmt(
-				  "vector index assignment failed for invalid type '%s', value: %s",
-				  tn.data(), d.Description()));
-				}
-			else
-				RuntimeErrorWithCallStack("assignment failed with null value");
-			}
-		break;
-		}
-
-	case TYPE_TABLE:
-		{
-		bool iterators_invalidated = false;
-
-		if ( ! v1->AsTableVal()->Assign(std::move(v2), std::move(v), true, &iterators_invalidated) )
-			{
-			v = std::move(v_extra);
-
-			if ( v )
-				{
-				ODesc d;
-				v->Describe(&d);
-				const auto& vt = v->GetType();
-				auto vtt = vt->Tag();
-				std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
-				RuntimeErrorWithCallStack(util::fmt(
-				  "table index assignment failed for invalid type '%s', value: %s",
-				  tn.data(), d.Description()));
-				}
-			else
-				RuntimeErrorWithCallStack("assignment failed with null value");
-			}
-
-		if ( iterators_invalidated )
-			{
-			ODesc d;
-			Describe(&d);
-			reporter->PushLocation(GetLocationInfo());
-			reporter->Warning("possible loop/iterator invalidation caused by expression: %s", d.Description());
-			reporter->PopLocation();
-			}
-		}
-		break;
-
-	case TYPE_STRING:
-		RuntimeErrorWithCallStack("assignment via string index accessor not allowed");
-		break;
-
-	default:
-		RuntimeErrorWithCallStack("bad index expression type in assignment");
-		break;
-	}
+	AssignToIndex(v1, v2, v);
 	}
 
 void IndexExpr::ExprDescribe(ODesc* d) const
@@ -5222,7 +5278,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 
 	if ( el.length() < ntypes )
 		{
-		ExprPList def_elements;
+		std::vector<ExprPtr> def_elements;
 
 		// Start from rightmost parameter, work backward to fill in missing
 		// arguments using &default expressions.
@@ -5237,11 +5293,21 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 				return false;
 				}
 
-			def_elements.push_front(def_attr->GetExpr().get());
+			// Don't use the default expression directly, as
+			// doing so will wind up sharing its code across
+			// different invocations that use the default
+			// argument.  That works okay for the interpreter,
+			// but if we transform the code we want that done
+			// separately for each instance, rather than
+			// one instance inheriting the transformed version
+			// from another.
+			const auto& e = def_attr->GetExpr();
+			def_elements.emplace_back(e->Duplicate());
 			}
 
-		for ( const auto& elem : def_elements )
-			el.push_back(elem->Ref());
+		auto ne = def_elements.size();
+		while ( ne )
+			el.push_back(def_elements[--ne].release());
 		}
 
 	TypeList* tl = new TypeList();

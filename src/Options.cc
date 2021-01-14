@@ -106,6 +106,7 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
 	fprintf(stderr, "    -O|--optimize[=<option>]       | enable script optimization (use -O help for options)\n");
+	fprintf(stderr, "    -o|--optimize-only=<func>      | enable script optimization only for the given function\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
 	fprintf(stderr, "    -S|--debug-rules               | enable rule debugging\n");
@@ -145,20 +146,34 @@ void usage(const char* prog, int code)
 
 static void set_analysis_option(const char* opt, Options& opts)
 	{
+	if ( ! opt || util::streq(opt, "all") )
+		{
+		opts.analysis_options.inliner = true;
+		opts.analysis_options.activate = true;
+		return;
+		}
+
 	if ( util::streq(opt, "help") )
 		{
 		fprintf(stderr, "--optimize options:\n");
+		fprintf(stderr, "    dump-xform	dump transformed scripts to stdout; implies xform\n");
 		fprintf(stderr, "    help	print this list\n");
 		fprintf(stderr, "    inline	inline function calls\n");
 		fprintf(stderr, "    recursive	report on recursive functions and exit\n");
+		fprintf(stderr, "    xform	tranform scripts to \"reduced\" form\n");
 		exit(0);
 		}
 
-	if ( util::streq(opt, "inline") )
-		opts.analysis_options.inliner = true;
+	auto& a_o = opts.analysis_options;
+
+	if ( util::streq(opt, "dump-xform") )
+		a_o.activate = a_o.dump_xform = true;
+	else if ( util::streq(opt, "inline") )
+		a_o.inliner = true;
 	else if ( util::streq(opt, "recursive") )
-		opts.analysis_options.inliner =
-			opts.analysis_options.report_recursive = true;
+		a_o.inliner = a_o.report_recursive = true;
+	else if ( util::streq(opt, "xform") )
+		a_o.activate = true;
 
 	else
 		{
@@ -279,6 +294,7 @@ Options parse_cmdline(int argc, char** argv)
 		{"save-seeds",		required_argument,	nullptr,	'H'},
 		{"print-plugins",	no_argument,		nullptr,	'N'},
 		{"optimize",		required_argument,	nullptr,	'O'},
+		{"optimize-only",	required_argument,	nullptr,	'o'},
 		{"prime-dns",		no_argument,		nullptr,	'P'},
 		{"time",		no_argument,		nullptr,	'Q'},
 		{"debug-rules",		no_argument,		nullptr,	'S'},
@@ -306,7 +322,7 @@ Options parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:p:r:s:T:t:U:w:X:CDFNPQSWabdhv",
+	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:o:p:r:s:T:t:U:w:X:CDFNPQSWabdhv",
 	                         sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -430,6 +446,9 @@ Options parse_cmdline(int argc, char** argv)
 			break;
 		case 'O':
 			set_analysis_option(optarg, rval);
+			break;
+		case 'o':
+			rval.analysis_options.only_func = optarg;
 			break;
 		case 'P':
 			if ( rval.dns_mode != detail::DNS_DEFAULT )

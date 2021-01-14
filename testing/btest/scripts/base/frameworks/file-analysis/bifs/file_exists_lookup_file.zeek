@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT 2>&1
-# @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stdout
 
 @load base/protocols/http
 

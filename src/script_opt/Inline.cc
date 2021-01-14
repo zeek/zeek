@@ -154,7 +154,7 @@ void Inliner::InlineFunction(FuncInfo* f)
 		f->Func()->SetFrameSize(new_frame_size);
 	}
 
-ExprPtr Inliner::CheckForInlining(IntrusivePtr<CallExpr> c)
+ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 	{
 	auto f = c->Func();
 

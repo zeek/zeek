@@ -235,6 +235,11 @@ public:
 	             const std::vector<IDPtr>& new_inits,
 	             size_t new_frame_size, int priority) override;
 
+	// Replace the given current instance of a function body with
+	// a new one.
+	void ReplaceBody(const detail::StmtPtr& old_body,
+				detail::StmtPtr new_body);
+
 	StmtPtr CurrentBody() const		{ return current_body; }
 
 	/**

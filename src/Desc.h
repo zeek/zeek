@@ -210,6 +210,13 @@ protected:
 	std::set<const Type*> encountered_types;
 };
 
+// Returns a string representation of an object's description.  Used for
+// debugging and error messages.  takes a bare pointer rather than an
+// IntrusivePtr because the latter is harder to deal with when making
+// calls from a debugger like lldb, which is the main use of this function.
+class Obj;
+extern std::string obj_desc(const Obj* o);
+
 } // namespace zeek
 
 using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;

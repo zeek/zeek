@@ -1,3 +1,29 @@
+
+4.1.0-dev.114 | 2021-01-14 15:00:48 -0800
+
+  * Add support for rewriting the ASTs for script functions in "reduced" form
+
+    In reduced ASTs, expressions have only variables or constants for operands
+    (no subexpressions - those are replaced by temporary variables). In
+    addition, some expressions are transformed into alternatives (new specialized
+    expressions, or in some cases new internal types of statements) to
+    more directly encapsulate their operation.
+
+    The functionality is enabled by using -O xform. You can dump the
+    before-and-after ASTs using -O dump-xform (very large output!). The new
+    command-line option --optimize-only=X restricts the processing to only the
+    function named X, and also automatically turns on dump-xform.
+
+  * Add new btest alternative for script transformation (xform) (Vern Paxson, Corelight)
+
+  * split bifs.string_utils into a non-error test and an only-errors test (Vern Paxson, Corelight)
+
+    To help control for differing error propagation
+
+  * Add convenience function, obj_desc(), for accessing object descriptions (Vern Paxson, Corelight)
+
+  * removed unused EventBodyList subclass (Vern Paxson, Corelight)
+
 4.1.0-dev.82 | 2021-01-14 13:27:23 -0700
 
   * Use static_cast instead of dynamic_cast for Val conversions (Tim Wojtulewicz)

@@ -18,6 +18,8 @@ enum StmtTag {
 	STMT_INIT,
 	STMT_FALLTHROUGH,
 	STMT_WHILE,
+	STMT_CATCH_RETURN,	// for reduced InlineExpr's
+	STMT_CHECK_ANY_LEN,	// internal reduced statement
 	STMT_NULL
 #define NUM_STMTS (int(STMT_NULL) + 1)
 };

@@ -369,7 +369,7 @@ ExprPtr NameExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		return TransformMe(make_intrusive<ConstExpr>(v), c, red_stmt);
 		}
 
-	return c->UpdateName(this)->ThisPtr();
+	return c->UpdateName({NewRef{}, this});
 	}
 
 ValPtr NameExpr::FoldVal() const

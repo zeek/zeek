@@ -845,7 +845,7 @@ bool StmtList::ReduceStmt(int& s_i, StmtPList* f_stmts, Reducer* c)
 			auto merge = c->MergeStmts(var, rhs, s_i_succ);
 			if ( merge )
 				{
-				f_stmts->append(merge);
+				f_stmts->append(merge.release());
 
 				// Skip both this statement and the next,
 				// now that we've substituted the merge.

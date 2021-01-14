@@ -25,7 +25,7 @@ public:
 
 	ExprPtr GenTemporaryExpr(const TypePtr& t, ExprPtr rhs);
 
-	NameExpr* UpdateName(NameExpr* n);
+	NameExprPtr UpdateName(NameExprPtr n);
 	bool NameIsReduced(const NameExpr* n) const;
 
 	void UpdateIDs(IDPList* ids);
@@ -105,7 +105,7 @@ public:
 	// Given an lhs=rhs statement followed by succ_stmt, returns
 	// a (new) merge of the two if they're of the form tmp=rhs, var=tmp;
 	// otherwise, nil.
-	Stmt* MergeStmts(const NameExpr* lhs, ExprPtr rhs, Stmt* succ_stmt);
+	StmtPtr MergeStmts(const NameExpr* lhs, ExprPtr rhs, Stmt* succ_stmt);
 
 	// The following two methods will, in the future, update expressions
 	// with optimized versions.  They are distinct because the first

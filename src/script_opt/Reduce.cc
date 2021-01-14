@@ -33,15 +33,12 @@ ExprPtr Reducer::GenTemporaryExpr(const TypePtr& t, ExprPtr rhs)
 	return e;
 	}
 
-NameExpr* Reducer::UpdateName(NameExpr* n)
+NameExprPtr Reducer::UpdateName(NameExprPtr n)
 	{
-	if ( NameIsReduced(n) )
-		{
-		Ref(n);
+	if ( NameIsReduced(n.get()) )
 		return n;
-		}
 
-	return new NameExpr(FindNewLocal(n));
+	return make_intrusive<NameExpr>(FindNewLocal(n.get()));
 	}
 
 bool Reducer::NameIsReduced(const NameExpr* n) const
@@ -58,7 +55,10 @@ void Reducer::UpdateIDs(IDPList* ids)
 		IDPtr id = {NewRef{}, (*ids)[i]};
 
 		if ( ! ID_IsReduced(id) )
+			{
+			Unref((*ids)[i]);
 			(*ids)[i] = UpdateID(id).release();
+			}
 		}
 	}
 
@@ -198,7 +198,7 @@ TempVar* Reducer::FindTemporary(const ID* id) const
 		return tmp->second;
 	}
 
-Stmt* Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, Stmt* succ_stmt)
+StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, Stmt* succ_stmt)
 	{
 	// First check for tmp=rhs.
 	auto lhs_id = lhs->Id();
@@ -254,7 +254,7 @@ Stmt* Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, Stmt* succ_stmt)
 						nullptr, nullptr, false);
 	TrackExprReplacement(rhs.get(), merge_e.get());
 
-	return new ExprStmt(merge_e);
+	return make_intrusive<ExprStmt>(merge_e);
 	}
                  
 void Reducer::TrackExprReplacement(const Expr* orig, const Expr* e)

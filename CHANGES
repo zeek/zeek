@@ -1,4 +1,16 @@
 
+4.0.0-rc1.10 | 2021-01-21 13:40:45 -0800
+
+  * Install BTest with Zeek (Christian Kreibich, Corelight)
+
+    Configuring with --disable-btest skips the installation. The main
+    reason for doing this is that many Zeek packages come with testsuites
+    that nearly always require btest, so providing btest out of the box
+    makes sense. Note that zkg's recent additions to its PATH environment
+    variable management mean that this btest instance is automatically
+    found also when the Zeek installation's binary folder isn't in the
+    path.
+
 4.0.0-rc1.6 | 2020-12-23 10:40:23 -0800
 
   * Fix subtle race on data store initialization (Dominik Charousset, Corelight)

@@ -568,6 +568,7 @@ add_subdirectory(man)
 
 include(CheckOptionalBuildSources)
 
+CheckOptionalBuildSources(auxil/btest BTest INSTALL_BTEST)
 CheckOptionalBuildSources(auxil/package-manager ZKG INSTALL_ZKG)
 CheckOptionalBuildSources(auxil/zeekctl   ZeekControl INSTALL_ZEEKCTL)
 CheckOptionalBuildSources(auxil/zeek-aux  Zeek-Aux  INSTALL_AUX_TOOLS)
@@ -616,6 +617,7 @@ message(
     "\n"
     "\nZeekControl:       ${INSTALL_ZEEKCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
+    "\nBTest:             ${INSTALL_BTEST}"
     "\nzkg:               ${INSTALL_ZKG}"
     "\n"
     "\nlibmaxminddb:      ${USE_GEOIP}"

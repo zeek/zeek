@@ -322,7 +322,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 		// defined.
 		std::vector<IDPtr> inits;
 		auto f = make_intrusive<ScriptFunc>(id, nullptr, inits, 0, 0);
-		id->SetVal(make_intrusive<Val>(std::move(f)));
+		id->SetVal(make_intrusive<FuncVal>(std::move(f)));
 		}
 	}
 
@@ -750,11 +750,12 @@ void end_func(StmtPtr body)
 			ingredients->frame_size,
 			ingredients->priority);
 
-		ingredients->id->SetVal(make_intrusive<Val>(std::move(f)));
+		ingredients->id->SetVal(make_intrusive<FuncVal>(std::move(f)));
 		ingredients->id->SetConst();
 		}
 
-	auto func = cast_intrusive<ScriptFunc>(ingredients->id->GetVal()->AsFuncPtr());
+	auto func_ptr = cast_intrusive<FuncVal>(ingredients->id->GetVal())->AsFuncPtr();
+	auto func = cast_intrusive<ScriptFunc>(func_ptr);
 	func->SetScope(ingredients->scope);
 
 	analyze_func(std::move(func));

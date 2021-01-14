@@ -318,7 +318,7 @@ Connection* NetSessions::FindConnection(Val* v)
 		return nullptr;
 
 	RecordType* vr = vt->AsRecordType();
-	auto vl = v->AsRecord();
+	auto vl = v->As<RecordVal*>();
 
 	int orig_h, orig_p;	// indices into record's value list
 	int resp_h, resp_p;
@@ -346,11 +346,11 @@ Connection* NetSessions::FindConnection(Val* v)
 		// types, too.
 		}
 
-	const IPAddr& orig_addr = (*vl)[orig_h]->AsAddr();
-	const IPAddr& resp_addr = (*vl)[resp_h]->AsAddr();
+	const IPAddr& orig_addr = vl->GetFieldAs<AddrVal>(orig_h);
+	const IPAddr& resp_addr = vl->GetFieldAs<AddrVal>(resp_h);
 
-	PortVal* orig_portv = (*vl)[orig_p]->AsPortVal();
-	PortVal* resp_portv = (*vl)[resp_p]->AsPortVal();
+	const PortVal* orig_portv = vl->GetFieldAs<PortVal>(orig_p);
+	const PortVal* resp_portv = vl->GetFieldAs<PortVal>(resp_p);
 
 	ConnID id;
 

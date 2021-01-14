@@ -101,7 +101,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 	case TYPE_INTERNAL_INT:
 		{
 		bro_int_t* kp = AlignAndPadType<bro_int_t>(kp0);
-		*kp = v->ForceAsInt();
+		*kp = v->AsInt();
 		kp1 = reinterpret_cast<char*>(kp+1);
 		}
 		break;
@@ -109,7 +109,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 	case TYPE_INTERNAL_UNSIGNED:
 		{
 		bro_uint_t* kp = AlignAndPadType<bro_uint_t>(kp0);
-		*kp = v->ForceAsUInt();
+		*kp = v->AsCount();
 		kp1 = reinterpret_cast<char*>(kp+1);
 		}
 		break;
@@ -407,8 +407,10 @@ std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const Val* v, bool 
 
 	switch ( singleton_tag ) {
 	case TYPE_INTERNAL_INT:
+		return std::make_unique<HashKey>(v->AsInt());
+
 	case TYPE_INTERNAL_UNSIGNED:
-		return std::make_unique<HashKey>(v->ForceAsInt());
+		return std::make_unique<HashKey>(v->AsCount());
 
 	case TYPE_INTERNAL_ADDR:
 		return v->AsAddr().MakeHashKey();
@@ -855,7 +857,7 @@ const char* CompositeHash::RecoverOneVal(
 			if ( ! f )
 				reporter->InternalError("failed to look up unique function id %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp);
 
-			*pval = make_intrusive<Val>(f);
+			*pval = make_intrusive<FuncVal>(f);
 			const auto& pvt = (*pval)->GetType();
 
 			if ( ! pvt )

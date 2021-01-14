@@ -46,41 +46,8 @@ using namespace std;
 
 namespace zeek {
 
-Val::Val(Func* f) : Val({NewRef{}, f})
-	{}
-
-Val::Val(FuncPtr f)
-	: val(f.release()), type(val.func_val->GetType())
-	{}
-
-static const FileTypePtr& GetStringFileType() noexcept
-	{
-	static auto string_file_type
-		= make_intrusive<FileType>(base_type(TYPE_STRING));
-
-	return string_file_type;
-	}
-
-Val::Val(File* f) : Val({AdoptRef{}, f})
-	{}
-
-Val::Val(FilePtr f)
-	: val(f.release()), type(GetStringFileType())
-	{
-	assert(val.file_val->GetType()->Tag() == TYPE_STRING);
-	}
-
 Val::~Val()
 	{
-	if ( type->InternalType() == TYPE_INTERNAL_STRING )
-		delete val.string_val;
-
-	else if ( type->Tag() == TYPE_FUNC )
-		Unref(val.func_val);
-
-	else if ( type->Tag() == TYPE_FILE )
-		Unref(val.file_val);
-
 #ifdef DEBUG
 	delete [] bound_id;
 #endif
@@ -152,33 +119,6 @@ ValPtr Val::DoClone(CloneState* state)
 	 	// Immutable.
 		return {NewRef{}, this};
 
-	case TYPE_INTERNAL_OTHER:
-		// Derived classes are responsible for this. Exception:
-		// Functions and files. There aren't any derived classes.
-		if ( type->Tag() == TYPE_FUNC )
-			return make_intrusive<Val>(AsFunc()->DoClone());
-
-		if ( type->Tag() == TYPE_FILE )
-			{
-			// I think we can just ref the file here - it is unclear what else
-			// to do.  In the case of cached files, I think this is equivalent
-			// to what happened before - serialization + unserialization just
-			// have you the same pointer that you already had.  In the case of
-			// non-cached files, the behavior now is different; in the past,
-			// serialize + unserialize gave you a new file object because the
-			// old one was not in the list anymore. This object was
-			// automatically opened. This does not happen anymore - instead you
-			// get the non-cached pointer back which is brought back into the
-			// cache when written too.
-			return {NewRef{}, this};
-			}
-
-		if ( type->Tag() == TYPE_TYPE )
-			// These are immutable, essentially.
-			return {NewRef{}, this};
-
-		// Fall-through.
-
 	default:
 		reporter->InternalError("cloning illegal base type");
 	}
@@ -187,18 +127,12 @@ ValPtr Val::DoClone(CloneState* state)
 	return nullptr;
  	}
 
-FuncPtr Val::AsFuncPtr() const
-	{
-	CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::Func", type_name)
-	return {NewRef{}, val.func_val};
-	}
-
 bool Val::IsZero() const
 	{
 	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_INT:		return val.int_val == 0;
-	case TYPE_INTERNAL_UNSIGNED:	return val.uint_val == 0;
-	case TYPE_INTERNAL_DOUBLE:	return val.double_val == 0.0;
+	case TYPE_INTERNAL_INT:		return AsInt() == 0;
+	case TYPE_INTERNAL_UNSIGNED:	return AsCount() == 0;
+	case TYPE_INTERNAL_DOUBLE:	return AsDouble() == 0.0;
 
 	default:			return false;
 	}
@@ -207,9 +141,9 @@ bool Val::IsZero() const
 bool Val::IsOne() const
 	{
 	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_INT:		return val.int_val == 1;
-	case TYPE_INTERNAL_UNSIGNED:	return val.uint_val == 1;
-	case TYPE_INTERNAL_DOUBLE:	return val.double_val == 1.0;
+	case TYPE_INTERNAL_INT:		return AsInt() == 1;
+	case TYPE_INTERNAL_UNSIGNED:	return AsCount() == 1;
+	case TYPE_INTERNAL_DOUBLE:	return AsDouble() == 1.0;
 
 	default:			return false;
 	}
@@ -218,10 +152,10 @@ bool Val::IsOne() const
 bro_int_t Val::InternalInt() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_INT )
-		return val.int_val;
+		return AsInt();
 	else if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
 		// ### should check here for overflow
-		return static_cast<bro_int_t>(val.uint_val);
+		return static_cast<bro_int_t>(AsCount());
 	else
 		InternalWarning("bad request for InternalInt");
 
@@ -231,7 +165,7 @@ bro_int_t Val::InternalInt() const
 bro_uint_t Val::InternalUnsigned() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		return val.uint_val;
+		return AsCount();
 	else
 		InternalWarning("bad request for InternalUnsigned");
 
@@ -241,7 +175,7 @@ bro_uint_t Val::InternalUnsigned() const
 double Val::InternalDouble() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
-		return val.double_val;
+		return AsDouble();
 	else
 		InternalWarning("bad request for InternalDouble");
 
@@ -251,11 +185,11 @@ double Val::InternalDouble() const
 bro_int_t Val::CoerceToInt() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_INT )
-		return val.int_val;
+		return AsInt();
 	else if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		return static_cast<bro_int_t>(val.uint_val);
+		return static_cast<bro_int_t>(AsCount());
 	else if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
-		return static_cast<bro_int_t>(val.double_val);
+		return static_cast<bro_int_t>(AsDouble());
 	else
 		InternalWarning("bad request for CoerceToInt");
 
@@ -265,11 +199,11 @@ bro_int_t Val::CoerceToInt() const
 bro_uint_t Val::CoerceToUnsigned() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		return val.uint_val;
+		return AsCount();
 	else if ( type->InternalType() == TYPE_INTERNAL_INT )
-		return static_cast<bro_uint_t>(val.int_val);
+		return static_cast<bro_uint_t>(AsInt());
 	else if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
-		return static_cast<bro_uint_t>(val.double_val);
+		return static_cast<bro_uint_t>(AsDouble());
 	else
 		InternalWarning("bad request for CoerceToUnsigned");
 
@@ -279,11 +213,11 @@ bro_uint_t Val::CoerceToUnsigned() const
 double Val::CoerceToDouble() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
-		return val.double_val;
+		return AsDouble();
 	else if ( type->InternalType() == TYPE_INTERNAL_INT )
-		return static_cast<double>(val.int_val);
+		return static_cast<double>(AsInt());
 	else if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		return static_cast<double>(val.uint_val);
+		return static_cast<double>(AsCount());
 	else
 		InternalWarning("bad request for CoerceToDouble");
 
@@ -296,24 +230,16 @@ ValPtr Val::SizeVal() const
 	case TYPE_INTERNAL_INT:
 		// Return abs value. However abs() only works on ints and llabs
 		// doesn't work on Mac OS X 10.5. So we do it by hand
-		if ( val.int_val < 0 )
-			return val_mgr->Count(-val.int_val);
+		if ( AsInt() < 0 )
+			return val_mgr->Count(-AsInt());
 		else
-			return val_mgr->Count(val.int_val);
+			return val_mgr->Count(AsInt());
 
 	case TYPE_INTERNAL_UNSIGNED:
-		return val_mgr->Count(val.uint_val);
+		return val_mgr->Count(AsCount());
 
 	case TYPE_INTERNAL_DOUBLE:
-		return make_intrusive<DoubleVal>(fabs(val.double_val));
-
-	case TYPE_INTERNAL_OTHER:
-		if ( type->Tag() == TYPE_FUNC )
-			return val_mgr->Count(val.func_val->GetType()->ParamList()->GetTypes().size());
-
-		if ( type->Tag() == TYPE_FILE )
-			return make_intrusive<DoubleVal>(val.file_val->Size());
-		break;
+		return make_intrusive<DoubleVal>(fabs(AsDouble()));
 
 	default:
 		break;
@@ -364,26 +290,23 @@ void Val::ValDescribe(ODesc* d) const
 		}
 
 	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_INT:		d->Add(val.int_val); break;
-	case TYPE_INTERNAL_UNSIGNED:	d->Add(val.uint_val); break;
-	case TYPE_INTERNAL_DOUBLE:	d->Add(val.double_val); break;
-	case TYPE_INTERNAL_STRING:	d->AddBytes(val.string_val); break;
-	case TYPE_INTERNAL_ADDR:	d->Add(val.addr_val->AsString().c_str()); break;
+	case TYPE_INTERNAL_INT:		d->Add(AsInt()); break;
+	case TYPE_INTERNAL_UNSIGNED:	d->Add(AsCount()); break;
+	case TYPE_INTERNAL_DOUBLE:	d->Add(AsDouble()); break;
+	case TYPE_INTERNAL_STRING:	d->AddBytes(AsString()); break;
+
+	case TYPE_INTERNAL_ADDR:
+		d->Add(AsAddr().AsString().c_str());
+		break;
 
 	case TYPE_INTERNAL_SUBNET:
-		d->Add(val.subnet_val->AsString().c_str());
+		d->Add(AsSubNet().AsString().c_str());
 		break;
 
 	case TYPE_INTERNAL_ERROR:	d->AddCS("error"); break;
+
 	case TYPE_INTERNAL_OTHER:
-		if ( type->Tag() == TYPE_FUNC )
-			AsFunc()->Describe(d);
-		else if ( type->Tag() == TYPE_FILE )
-			AsFile()->Describe(d);
-		else if ( type->Tag() == TYPE_TYPE )
-			d->Add(type->AsTypeType()->GetType()->GetName());
-		else
-			d->Add("<no value description>");
+		d->Add("<no value description>");
 		break;
 
 	case TYPE_INTERNAL_VOID:
@@ -710,7 +633,7 @@ void IntervalVal::ValDescribe(ODesc* d) const
 		unit_word{ Microseconds, "usec" },
 	};
 
-	double v = val.double_val;
+	double v = AsDouble();
 
 	if ( v == 0.0 )
 		{
@@ -772,7 +695,7 @@ void IntervalVal::ValDescribe(ODesc* d) const
 
 ValPtr PortVal::SizeVal() const
 	{
-	return val_mgr->Int(val.uint_val);
+	return val_mgr->Int(uint_val);
 	}
 
 uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
@@ -806,13 +729,14 @@ uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
 	return port_num;
 	}
 
-PortVal::PortVal(uint32_t p) : Val(bro_uint_t(p), TYPE_PORT)
+PortVal::PortVal(uint32_t p)
+	: UnsignedValImplementation(base_type(TYPE_PORT), bro_uint_t(p))
 	{
 	}
 
 uint32_t PortVal::Port() const
 	{
-	uint32_t p = static_cast<uint32_t>(val.uint_val);
+	uint32_t p = static_cast<uint32_t>(uint_val);
 	return p & ~PORT_SPACE_MASK;
 	}
 
@@ -830,22 +754,22 @@ string PortVal::Protocol() const
 
 bool PortVal::IsTCP() const
 	{
-	return (val.uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK;
+	return (uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK;
 	}
 
 bool PortVal::IsUDP() const
 	{
-	return (val.uint_val & PORT_SPACE_MASK) == UDP_PORT_MASK;
+	return (uint_val & PORT_SPACE_MASK) == UDP_PORT_MASK;
 	}
 
 bool PortVal::IsICMP() const
 	{
-	return (val.uint_val & PORT_SPACE_MASK) == ICMP_PORT_MASK;
+	return (uint_val & PORT_SPACE_MASK) == ICMP_PORT_MASK;
 	}
 
 void PortVal::ValDescribe(ODesc* d) const
 	{
-	uint32_t p = static_cast<uint32_t>(val.uint_val);
+	uint32_t p = static_cast<uint32_t>(uint_val);
 	d->Add(p & ~PORT_SPACE_MASK);
 	d->Add("/");
 	d->Add(Protocol());
@@ -857,40 +781,44 @@ ValPtr PortVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-AddrVal::AddrVal(const char* text) : Val(new IPAddr(text), TYPE_ADDR)
+AddrVal::AddrVal(const char* text) : Val(base_type(TYPE_ADDR))
 	{
+	addr_val = new IPAddr(text);
 	}
 
 AddrVal::AddrVal(const std::string& text) : AddrVal(text.c_str())
 	{
 	}
 
-AddrVal::AddrVal(uint32_t addr) : Val(new IPAddr(IPv4, &addr, IPAddr::Network), TYPE_ADDR)
+AddrVal::AddrVal(uint32_t addr) : Val(base_type(TYPE_ADDR))
 	{
+	addr_val = new IPAddr(IPv4, &addr, IPAddr::Network);
 	// ### perhaps do gethostbyaddr here?
 	}
 
-AddrVal::AddrVal(const uint32_t addr[4]) : Val(new IPAddr(IPv6, addr, IPAddr::Network), TYPE_ADDR)
+AddrVal::AddrVal(const uint32_t addr[4]) : Val(base_type(TYPE_ADDR))
 	{
+	addr_val = new IPAddr(IPv6, addr, IPAddr::Network);
 	}
 
-AddrVal::AddrVal(const IPAddr& addr) : Val(new IPAddr(addr), TYPE_ADDR)
+AddrVal::AddrVal(const IPAddr& addr) : Val(base_type(TYPE_ADDR))
 	{
+	addr_val = new IPAddr(addr);
 	}
 
 AddrVal::~AddrVal()
 	{
-	delete val.addr_val;
+	delete addr_val;
 	}
 
 unsigned int AddrVal::MemoryAllocation() const
 	{
-	return padded_sizeof(*this) + val.addr_val->MemoryAllocation();
+	return padded_sizeof(*this) + addr_val->MemoryAllocation();
 	}
 
 ValPtr AddrVal::SizeVal() const
 	{
-	if ( val.addr_val->GetFamily() == IPv4 )
+	if ( addr_val->GetFamily() == IPv4 )
 		return val_mgr->Count(32);
 	else
 		return val_mgr->Count(128);
@@ -902,14 +830,17 @@ ValPtr AddrVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-SubNetVal::SubNetVal(const char* text) : Val(new IPPrefix(), TYPE_SUBNET)
+SubNetVal::SubNetVal(const char* text) : Val(base_type(TYPE_SUBNET))
 	{
-	if ( ! IPPrefix::ConvertString(text, val.subnet_val) )
+	subnet_val = new IPPrefix();
+
+	if ( ! IPPrefix::ConvertString(text, subnet_val) )
 		reporter->Error("Bad string in SubNetVal ctor: %s", text);
 	}
 
-SubNetVal::SubNetVal(const char* text, int width) : Val(new IPPrefix(text, width), TYPE_SUBNET)
+SubNetVal::SubNetVal(const char* text, int width) : Val(base_type(TYPE_SUBNET))
 	{
+	subnet_val = new IPPrefix(text, width);
 	}
 
 SubNetVal::SubNetVal(uint32_t addr, int width) : SubNetVal(IPAddr{IPv4, &addr, IPAddr::Network}, width)
@@ -920,48 +851,50 @@ SubNetVal::SubNetVal(const uint32_t* addr, int width) : SubNetVal(IPAddr{IPv6, a
 	{
 	}
 
-SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(new IPPrefix(addr, width), TYPE_SUBNET)
+SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(base_type(TYPE_SUBNET))
 	{
+	subnet_val = new IPPrefix(addr, width);
 	}
 
-SubNetVal::SubNetVal(const IPPrefix& prefix) : Val(new IPPrefix(prefix), TYPE_SUBNET)
+SubNetVal::SubNetVal(const IPPrefix& prefix) : Val(base_type(TYPE_SUBNET))
 	{
+	subnet_val = new IPPrefix(prefix);
 	}
 
 SubNetVal::~SubNetVal()
 	{
-	delete val.subnet_val;
+	delete subnet_val;
 	}
 
 const IPAddr& SubNetVal::Prefix() const
 	{
-	return val.subnet_val->Prefix();
+	return subnet_val->Prefix();
 	}
 
 int SubNetVal::Width() const
 	{
-	return val.subnet_val->Length();
+	return subnet_val->Length();
 	}
 
 unsigned int SubNetVal::MemoryAllocation() const
 	{
-	return padded_sizeof(*this) + val.subnet_val->MemoryAllocation();
+	return padded_sizeof(*this) + subnet_val->MemoryAllocation();
 	}
 
 ValPtr SubNetVal::SizeVal() const
 	{
-	int retained = 128 - val.subnet_val->LengthIPv6();
+	int retained = 128 - subnet_val->LengthIPv6();
 	return make_intrusive<DoubleVal>(pow(2.0, double(retained)));
 	}
 
 void SubNetVal::ValDescribe(ODesc* d) const
 	{
-	d->Add(string(*val.subnet_val).c_str());
+	d->Add(string(*subnet_val).c_str());
 	}
 
 IPAddr SubNetVal::Mask() const
 	{
-	if ( val.subnet_val->Length() == 0 )
+	if ( subnet_val->Length() == 0 )
 		{
 		// We need to special-case a mask width of zero, since
 		// the compiler doesn't guarantee that 1 << 32 yields 0.
@@ -976,7 +909,7 @@ IPAddr SubNetVal::Mask() const
 	uint32_t* mp = m;
 
 	uint32_t w;
-	for ( w = val.subnet_val->Length(); w >= 32; w -= 32 )
+	for ( w = subnet_val->Length(); w >= 32; w -= 32 )
 		   *(mp++) = 0xffffffff;
 
 	*mp = ~((1 << (32 - w)) - 1);
@@ -990,7 +923,7 @@ IPAddr SubNetVal::Mask() const
 
 bool SubNetVal::Contains(const IPAddr& addr) const
 	{
-	return val.subnet_val->Contains(addr);
+	return subnet_val->Contains(addr);
 	}
 
 ValPtr SubNetVal::DoClone(CloneState* state)
@@ -999,8 +932,9 @@ ValPtr SubNetVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-StringVal::StringVal(String* s) : Val(s, TYPE_STRING)
+StringVal::StringVal(String* s) : Val(base_type(TYPE_STRING))
 	{
+	string_val = s;
 	}
 
 // The following adds a NUL at the end.
@@ -1017,9 +951,14 @@ StringVal::StringVal(const string& s) : StringVal(s.length(), s.data())
 	{
 	}
 
+StringVal::~StringVal()
+	{
+	delete string_val;
+	}
+
 ValPtr StringVal::SizeVal() const
 	{
-	return val_mgr->Count(val.string_val->Len());
+	return val_mgr->Count(string_val->Len());
 	}
 
 int StringVal::Len()
@@ -1045,7 +984,7 @@ string StringVal::ToStdString() const
 
 StringVal* StringVal::ToUpper()
 	{
-	val.string_val->ToUpper();
+	string_val->ToUpper();
 	return this;
 	}
 
@@ -1054,14 +993,14 @@ void StringVal::ValDescribe(ODesc* d) const
 	// Should reintroduce escapes ? ###
 	if ( d->WantQuotes() )
 		d->Add("\"");
-	d->AddBytes(val.string_val);
+	d->AddBytes(string_val);
 	if ( d->WantQuotes() )
 		d->Add("\"");
 	}
 
 unsigned int StringVal::MemoryAllocation() const
 	{
-	return padded_sizeof(*this) + val.string_val->MemoryAllocation();
+	return padded_sizeof(*this) + string_val->MemoryAllocation();
 	}
 
 StringValPtr StringVal::Replace(
@@ -1155,19 +1094,76 @@ ValPtr StringVal::DoClone(CloneState* state)
 	// instead of creating a new copy, but we first need to be careful and
 	// audit whether anything internal actually does mutate it.
 	return state->NewClone(this, make_intrusive<StringVal>(
-	        new String((u_char*) val.string_val->Bytes(),
-	                   val.string_val->Len(), true)));
+	        new String((u_char*) string_val->Bytes(),
+	                   string_val->Len(), true)));
+	}
+
+FuncVal::FuncVal(FuncPtr f) : Val(f->GetType())
+	{
+	func_val = std::move(f);
+	}
+
+FuncPtr FuncVal::AsFuncPtr() const
+	{
+	return func_val;
+	}
+
+ValPtr FuncVal::SizeVal() const
+	{
+	return val_mgr->Count(func_val->GetType()->ParamList()->GetTypes().size());
+	}
+
+void FuncVal::ValDescribe(ODesc* d) const
+	{
+	func_val->Describe(d);
+	}
+
+ValPtr FuncVal::DoClone(CloneState* state)
+	{
+	return make_intrusive<FuncVal>(func_val->DoClone());
+	}
+
+FileVal::FileVal(FilePtr f)
+: Val(make_intrusive<FileType>(base_type(TYPE_STRING)))
+	{
+	file_val = std::move(f);
+	assert(file_val->GetType()->Tag() == TYPE_STRING);
+	}
+
+ValPtr FileVal::SizeVal() const
+	{
+	return make_intrusive<DoubleVal>(file_val->Size());
+	}
+
+void FileVal::ValDescribe(ODesc* d) const
+	{
+	file_val->Describe(d);
+	}
+
+ValPtr FileVal::DoClone(CloneState* state)
+	{
+	// I think we can just ref the file here - it is unclear what else
+	// to do.  In the case of cached files, I think this is equivalent
+	// to what happened before - serialization + unserialization just
+	// gave you the same pointer that you already had.  In the case of
+	// non-cached files, the behavior now is different; in the past,
+	// serialize + unserialize gave you a new file object because the
+	// old one was not in the list anymore. This object was
+	// automatically opened. This does not happen anymore - instead you
+	// get the non-cached pointer back which is brought back into the
+	// cache when written to.
+	return {NewRef{}, this};
 	}
 
 PatternVal::PatternVal(RE_Matcher* re)
 	: Val(base_type(TYPE_PATTERN))
 	{
-	val.re_val = re;
+	re_val = re;
 	}
 
 PatternVal::~PatternVal()
 	{
-	delete AsPattern();
+	delete re_val;
 	}
 
 bool PatternVal::AddTo(Val* v, bool /* is_first_init */) const
@@ -1192,7 +1188,17 @@ bool PatternVal::AddTo(Val* v, bool /* is_first_init */) const
 void PatternVal::SetMatcher(RE_Matcher* re)
 	{
 	delete AsPattern();
-	val.re_val = re;
+	re_val = re;
+	}
+
+bool PatternVal::MatchExactly(const String* s) const
+	{
+	return re_val->MatchExactly(s);
+	}
+
+bool PatternVal::MatchAnywhere(const String* s) const
+	{
+	return re_val->MatchAnywhere(s);
 	}
 
 void PatternVal::ValDescribe(ODesc* d) const
@@ -1204,7 +1210,7 @@ void PatternVal::ValDescribe(ODesc* d) const
 
 unsigned int PatternVal::MemoryAllocation() const
 	{
-	return padded_sizeof(*this) + val.re_val->MemoryAllocation();
+	return padded_sizeof(*this) + re_val->MemoryAllocation();
 	}
 
 ValPtr PatternVal::DoClone(CloneState* state)
@@ -1212,8 +1218,8 @@ ValPtr PatternVal::DoClone(CloneState* state)
 	// We could likely treat this type as immutable and return a reference
 	// instead of creating a new copy, but we first need to be careful and
 	// audit whether anything internal actually does mutate it.
-	auto re = new RE_Matcher(val.re_val->PatternText(),
-	                         val.re_val->AnywherePatternText());
+	auto re = new RE_Matcher(re_val->PatternText(),
+	                         re_val->AnywherePatternText());
 	re->Compile();
 	return state->NewClone(this, make_intrusive<PatternVal>(re));
 	}
@@ -1442,8 +1448,8 @@ void TableVal::Init(TableTypePtr t)
 		subnets = nullptr;
 
 	table_hash = new detail::CompositeHash(table_type->GetIndices());
-	val.table_val = new PDict<TableEntryVal>;
-	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
+	table_val = new PDict<TableEntryVal>;
+	table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
 
 TableVal::~TableVal()
@@ -1452,36 +1458,35 @@ TableVal::~TableVal()
 		detail::timer_mgr->Cancel(timer);
 
 	delete table_hash;
-	delete AsTable();
+	delete table_val;
 	delete subnets;
 	}
 
 void TableVal::RemoveAll()
 	{
 	// Here we take the brute force approach.
-	delete AsTable();
-	val.table_val = new PDict<TableEntryVal>;
-	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
+	delete table_val;
+	table_val = new PDict<TableEntryVal>;
+	table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
 
 int TableVal::Size() const
 	{
-	return AsTable()->Length();
+	return table_val->Length();
 	}
 
 int TableVal::RecursiveSize() const
 	{
-	int n = AsTable()->Length();
+	int n = table_val->Length();
 
 	if ( GetType()->IsSet() ||
 	     GetType()->AsTableType()->Yield()->Tag() != TYPE_TABLE )
 		return n;
 
-	PDict<TableEntryVal>* v = val.table_val;
-	IterCookie* c = v->InitForIteration();
+	IterCookie* c = table_val->InitForIteration();
 
 	TableEntryVal* tv;
-	while ( (tv = v->NextEntry(c)) )
+	while ( (tv = table_val->NextEntry(c)) )
 		{
 		if ( tv->GetVal() )
 			n += tv->GetVal()->AsTableVal()->RecursiveSize();
@@ -1577,7 +1582,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
 
 	TableEntryVal* new_entry_val = new TableEntryVal(std::move(new_val));
 	detail::HashKey k_copy(k->Key(), k->Size(), k->Hash());
-	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k.get(), new_entry_val, iterators_invalidated);
+	TableEntryVal* old_entry_val = table_val->Insert(k.get(), new_entry_val, iterators_invalidated);
 
 	// If the dictionary index already existed, the insert may free up the
 	// memory allocated to the key bytes, so have to assume k is invalid
@@ -1652,12 +1657,11 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 		return false;
 		}
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-	IterCookie* c = tbl->InitForIteration();
+	IterCookie* c = table_val->InitForIteration();
 
 	detail::HashKey* k;
 	TableEntryVal* v;
-	while ( (v = tbl->NextEntry(k, c)) )
+	while ( (v = table_val->NextEntry(k, c)) )
 		{
 		std::unique_ptr<detail::HashKey> hk{k};
 
@@ -1700,11 +1704,10 @@ bool TableVal::RemoveFrom(Val* val) const
 		return false;
 		}
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-	IterCookie* c = tbl->InitForIteration();
+	IterCookie* c = table_val->InitForIteration();
 
 	detail::HashKey* k;
-	while ( tbl->NextEntry(k, c) )
+	while ( table_val->NextEntry(k, c) )
 		{
 		// Not sure that this is 100% sound, since the HashKey
 		// comes from one table but is being used in another.
@@ -1722,9 +1725,8 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 	{
 	auto result = make_intrusive<TableVal>(table_type);
 
-	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t0 = table_val;
 	const PDict<TableEntryVal>* t1 = tv.AsTable();
-	PDict<TableEntryVal>* t2 = result->AsNonConstTable();
 
 	// Figure out which is smaller; assign it to t1.
 	if ( t1->Length() > t0->Length() )
@@ -1741,7 +1743,7 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 		// Here we leverage the same assumption about consistent
 		// hashes as in TableVal::RemoveFrom above.
 		if ( t0->Lookup(k) )
-			t2->Insert(k, new TableEntryVal(nullptr));
+			result->table_val->Insert(k, new TableEntryVal(nullptr));
 
 		delete k;
 		}
@@ -1751,7 +1753,7 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 
 bool TableVal::EqualTo(const TableVal& tv) const
 	{
-	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t0 = table_val;
 	const PDict<TableEntryVal>* t1 = tv.AsTable();
 
 	if ( t0->Length() != t1->Length() )
@@ -1778,7 +1780,7 @@ bool TableVal::EqualTo(const TableVal& tv) const
 
 bool TableVal::IsSubsetOf(const TableVal& tv) const
 	{
-	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t0 = table_val;
 	const PDict<TableEntryVal>* t1 = tv.AsTable();
 
 	if ( t0->Length() > t1->Length() )
@@ -1958,15 +1960,13 @@ const ValPtr& TableVal::Find(const ValPtr& index)
 		return Val::nil;
 		}
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-
-	if ( tbl->Length() > 0 )
+	if ( table_val->Length() > 0 )
 		{
 		auto k = MakeHashKey(*index);
 
 		if ( k )
 			{
-			TableEntryVal* v = AsTable()->Lookup(k.get());
+			TableEntryVal* v = table_val->Lookup(k.get());
 
 			if ( v )
 				{
@@ -2074,7 +2074,7 @@ bool TableVal::UpdateTimestamp(Val* index)
 		if ( ! k )
 			return false;
 
-		v = AsTable()->Lookup(k.get());
+		v = table_val->Lookup(k.get());
 		}
 
 	if ( ! v )
@@ -2268,7 +2268,7 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
 	{
 	auto k = MakeHashKey(index);
 
-	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k.get(), iterators_invalidated) : nullptr;
+	TableEntryVal* v = k ? table_val->RemoveEntry(k.get(), iterators_invalidated) : nullptr;
 	ValPtr va;
 
 	if ( v )
@@ -2296,7 +2296,7 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
 
 ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated)
 	{
-	TableEntryVal* v = AsNonConstTable()->RemoveEntry(k, iterators_invalidated);
+	TableEntryVal* v = table_val->RemoveEntry(k, iterators_invalidated);
 	ValPtr va;
 
 	if ( v )
@@ -2331,11 +2331,10 @@ ListValPtr TableVal::ToListVal(TypeTag t) const
 	{
 	auto l = make_intrusive<ListVal>(t);
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-	IterCookie* c = tbl->InitForIteration();
+	IterCookie* c = table_val->InitForIteration();
 
 	detail::HashKey* k;
-	while ( tbl->NextEntry(k, c) )
+	while ( table_val->NextEntry(k, c) )
 		{
 		auto index = table_hash->RecoverVals(*k);
 
@@ -2385,8 +2384,7 @@ const detail::AttrPtr& TableVal::GetAttr(detail::AttrTag t) const
 
 void TableVal::Describe(ODesc* d) const
 	{
-	const PDict<TableEntryVal>* tbl = AsTable();
-	int n = tbl->Length();
+	int n = table_val->Length();
 
 	if ( d->IsBinary() || d->IsPortable() )
 		{
@@ -2402,12 +2400,12 @@ void TableVal::Describe(ODesc* d) const
 		d->PushIndent();
 		}
 
-	IterCookie* c = tbl->InitForIteration();
+	IterCookie* c = table_val->InitForIteration();
 
 	for ( int i = 0; i < n; ++i )
 		{
 		detail::HashKey* k;
-		TableEntryVal* v = tbl->NextEntry(k, c);
+		TableEntryVal* v = table_val->NextEntry(k, c);
 
 		if ( ! v )
 			reporter->InternalError("hash table underflow in TableVal::Describe");
@@ -2459,7 +2457,7 @@ void TableVal::Describe(ODesc* d) const
 			}
 		}
 
-	if ( tbl->NextEntry(c) )
+	if ( table_val->NextEntry(c) )
 		reporter->InternalError("hash table overflow in TableVal::Describe");
 
 	if ( d->IsPortable() || d->IsReadable() )
@@ -2547,8 +2545,6 @@ void TableVal::DoExpire(double t)
 	if ( ! type )
 		return; // FIX ME ###
 
-	PDict<TableEntryVal>* tbl = AsNonConstTable();
-
 	double timeout = GetExpireTime();
 
 	if ( timeout < 0 )
@@ -2558,8 +2554,8 @@ void TableVal::DoExpire(double t)
 
 	if ( ! expire_cookie )
 		{
-		expire_cookie = tbl->InitForIteration();
-		tbl->MakeRobustCookie(expire_cookie);
+		expire_cookie = table_val->InitForIteration();
+		table_val->MakeRobustCookie(expire_cookie);
 		}
 
 	detail::HashKey* k = nullptr;
@@ -2568,7 +2564,7 @@ void TableVal::DoExpire(double t)
 	bool modified = false;
 
 	for ( int i = 0; i < zeek::detail::table_incremental_step &&
-		      (v = tbl->NextEntry(k, expire_cookie)); ++i )
+		      (v = table_val->NextEntry(k, expire_cookie)); ++i )
 		{
 		if ( v->ExpireAccessTime() == 0 )
 			{
@@ -2592,7 +2588,7 @@ void TableVal::DoExpire(double t)
 				// function modified or deleted the table
 				// value, so look it up again.
 				v_saved = v;
-				v = tbl->Lookup(k);
+				v = table_val->Lookup(k);
 
 				if ( ! v )
 					{ // user-provided function deleted it
@@ -2620,7 +2616,7 @@ void TableVal::DoExpire(double t)
 					reporter->InternalWarning("index not in prefix table");
 				}
 
-			tbl->RemoveEntry(k);
+			table_val->RemoveEntry(k);
 			if ( change_func )
 				{
 				if ( ! idx )
@@ -2744,15 +2740,14 @@ ValPtr TableVal::DoClone(CloneState* state)
 	auto tv = make_intrusive<TableVal>(table_type);
 	state->NewClone(this, tv);
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-	IterCookie* cookie = tbl->InitForIteration();
+	IterCookie* cookie = table_val->InitForIteration();
 
 	detail::HashKey* key;
 	TableEntryVal* val;
-	while ( (val = tbl->NextEntry(key, cookie)) )
+	while ( (val = table_val->NextEntry(key, cookie)) )
 		{
 		TableEntryVal* nval = val->Clone(state);
-		tv->AsNonConstTable()->Insert(key, nval);
+		tv->table_val->Insert(key, nval);
 
 		if ( subnets )
 			{
@@ -2788,18 +2783,17 @@ unsigned int TableVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
 
-	PDict<TableEntryVal>* v = val.table_val;
-	IterCookie* c = v->InitForIteration();
+	IterCookie* c = table_val->InitForIteration();
 
 	TableEntryVal* tv;
-	while ( (tv = v->NextEntry(c)) )
+	while ( (tv = table_val->NextEntry(c)) )
 		{
 		if ( tv->GetVal() )
 			size += tv->GetVal()->MemoryAllocation();
 		size += padded_sizeof(TableEntryVal);
 		}
 
-	return size + padded_sizeof(*this) + val.table_val->MemoryAllocation()
+	return size + padded_sizeof(*this) + table_val->MemoryAllocation()
 		+ table_hash->MemoryAllocation();
 	}
 
@@ -2839,15 +2833,14 @@ void TableVal::DoneParsing()
 
 TableVal::ParseTimeTableState TableVal::DumpTableState()
 	{
-	const PDict<TableEntryVal>* tbl = AsTable();
-	IterCookie* cookie = tbl->InitForIteration();
+	IterCookie* cookie = table_val->InitForIteration();
 
 	detail::HashKey* key;
 	TableEntryVal* val;
 
 	ParseTimeTableState rval;
 
-	while ( (val = tbl->NextEntry(key, cookie)) )
+	while ( (val = table_val->NextEntry(key, cookie)) )
 		{
 		rval.emplace_back(RecreateIndex(*key), val->GetVal());
 		delete key;
@@ -2881,7 +2874,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 	origin = nullptr;
 	auto rt = GetType()->AsRecordType();
 	int n = rt->NumFields();
-	auto vl = val.record_val = new std::vector<ValPtr>;
+	auto vl = record_val = new std::vector<ValPtr>;
 	vl->reserve(n);
 
 	if ( run_state::is_parsing )
@@ -2908,7 +2901,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 				if ( run_state::is_parsing )
 					parse_time_records[rt].pop_back();
 
-				delete AsNonConstRecord();
+				delete record_val;
 				throw;
 				}
 
@@ -2945,7 +2938,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 
 RecordVal::~RecordVal()
 	{
-	delete AsNonConstRecord();
+	delete record_val;
 	}
 
 ValPtr RecordVal::SizeVal() const
@@ -2955,7 +2948,7 @@ ValPtr RecordVal::SizeVal() const
 
 void RecordVal::Assign(int field, ValPtr new_val)
 	{
-	(*AsNonConstRecord())[field] = std::move(new_val);
+	(*record_val)[field] = std::move(new_val);
 	Modified();
 	}
 
@@ -2966,7 +2959,7 @@ void RecordVal::Assign(int field, Val* new_val)
 
 ValPtr RecordVal::GetFieldOrDefault(int field) const
 	{
-	const auto& val = (*AsRecord())[field];
+	const auto& val = (*record_val)[field];
 
 	if ( val )
 		return val;
@@ -2985,16 +2978,15 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 
 	for ( auto& rv : rvs )
 		{
-		auto vs = rv->val.record_val;
-		int current_length = vs->size();
+		int current_length = rv->NumFields();
 		auto required_length = rt->NumFields();
 
 		if ( required_length > current_length )
 			{
-			vs->reserve(required_length);
+			rv->Reserve(required_length);
 
 			for ( auto i = current_length; i < required_length; ++i )
-				vs->emplace_back(rt->FieldDefault(i));
+				rv->AppendField(rt->FieldDefault(i));
 			}
 		}
 	}
@@ -3103,8 +3095,7 @@ TableValPtr RecordVal::GetRecordFieldsVal() const
 
 void RecordVal::Describe(ODesc* d) const
 	{
-	auto vl = AsRecord();
-	auto n = vl->size();
+	auto n = record_val->size();
 	auto record_type = GetType()->AsRecordType();
 
 	if ( d->IsBinary() || d->IsPortable() )
@@ -3127,7 +3118,7 @@ void RecordVal::Describe(ODesc* d) const
 		if ( ! d->IsBinary() )
 			d->Add("=");
 
-		const auto& v = (*vl)[i];
+		const auto& v = (*record_val)[i];
 
 		if ( v )
 			v->Describe(d);
@@ -3141,8 +3132,7 @@ void RecordVal::Describe(ODesc* d) const
 
 void RecordVal::DescribeReST(ODesc* d) const
 	{
-	auto vl = AsRecord();
-	auto n = vl->size();
+	auto n = record_val->size();
 	auto record_type = GetType()->AsRecordType();
 
 	d->Add("{");
@@ -3156,7 +3146,7 @@ void RecordVal::DescribeReST(ODesc* d) const
 		d->Add(record_type->FieldName(i));
 		d->Add("=");
 
-		const auto& v = (*vl)[i];
+		const auto& v = (*record_val)[i];
 
 		if ( v )
 			v->Describe(d);
@@ -3179,10 +3169,10 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
-	for ( const auto& vlv : *val.record_val)
+	for ( const auto& vlv : *record_val)
 		{
 		auto v = vlv ? vlv->Clone(state) : nullptr;
-  		rv->val.record_val->emplace_back(std::move(v));
+  		rv->AppendField(std::move(v));
 		}
 
 	return rv;
@@ -3191,7 +3181,7 @@ ValPtr RecordVal::DoClone(CloneState* state)
 unsigned int RecordVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
-	const auto& vl = *AsRecord();
+	const auto& vl = *record_val;
 
 	for ( const auto& v : vl )
 		{
@@ -3206,12 +3196,12 @@ unsigned int RecordVal::MemoryAllocation() const
 
 ValPtr EnumVal::SizeVal() const
 	{
-	return val_mgr->Int(val.int_val);
+	return val_mgr->Int(AsInt());
 	}
 
 void EnumVal::ValDescribe(ODesc* d) const
 	{
-	const char* ename = type->AsEnumType()->Lookup(val.int_val);
+	const char* ename = type->AsEnumType()->Lookup(int_val);
 
 	if ( ! ename )
 		ename = "<undefined>";
@@ -3225,22 +3215,33 @@ ValPtr EnumVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
+void TypeVal::ValDescribe(ODesc* d) const
+	{
+	d->Add(type->AsTypeType()->GetType()->GetName());
+	}
+
+ValPtr TypeVal::DoClone(CloneState* state)
+	{
+	// Immutable.
+	return {NewRef{}, this};
+	}
+
 VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef{}, t})
 	{ }
 
 VectorVal::VectorVal(VectorTypePtr t) : Val(std::move(t))
 	{
-	val.vector_val = new vector<ValPtr>();
+	vector_val = new vector<ValPtr>();
 	}
 
 VectorVal::~VectorVal()
 	{
-	delete val.vector_val;
+	delete vector_val;
 	}
 
 ValPtr VectorVal::SizeVal() const
 	{
-	return val_mgr->Count(uint32_t(val.vector_val->size()));
+	return val_mgr->Count(uint32_t(vector_val->size()));
 	}
 
 bool VectorVal::Assign(unsigned int index, ValPtr element)
@@ -3249,10 +3250,10 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
 		return false;
 
-	if ( index >= val.vector_val->size() )
-		val.vector_val->resize(index + 1);
+	if ( index >= vector_val->size() )
+		vector_val->resize(index + 1);
 
-	(*val.vector_val)[index] = std::move(element);
+	(*vector_val)[index] = std::move(element);
 
 	Modified();
 	return true;
@@ -3280,12 +3281,12 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 
 	vector<ValPtr>::iterator it;
 
-	if ( index < val.vector_val->size() )
-		it = std::next(val.vector_val->begin(), index);
+	if ( index < vector_val->size() )
+		it = std::next(vector_val->begin(), index);
 	else
-		it = val.vector_val->end();
+		it = vector_val->end();
 
-	val.vector_val->insert(it, std::move(element));
+	vector_val->insert(it, std::move(element));
 
 	Modified();
 	return true;
@@ -3293,11 +3294,11 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 
 bool VectorVal::Remove(unsigned int index)
 	{
-	if ( index >= val.vector_val->size() )
+	if ( index >= vector_val->size() )
 		return false;
 
-	auto it = std::next(val.vector_val->begin(), index);
-	val.vector_val->erase(it);
+	auto it = std::next(vector_val->begin(), index);
+	vector_val->erase(it);
 
 	Modified();
 	return true;
@@ -3329,39 +3330,49 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 
 const ValPtr& VectorVal::At(unsigned int index) const
 	{
-	if ( index >= val.vector_val->size() )
+	if ( index >= vector_val->size() )
 		return Val::nil;
 
-	return (*val.vector_val)[index];
+	return (*vector_val)[index];
+	}
+
+void VectorVal::Sort(bool cmp_func(const ValPtr& a, const ValPtr& b))
+	{
+	sort(vector_val->begin(), vector_val->end(), cmp_func);
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
 	{
-	unsigned int oldsize = val.vector_val->size();
-	val.vector_val->reserve(new_num_elements);
-	val.vector_val->resize(new_num_elements);
+	unsigned int oldsize = vector_val->size();
+	vector_val->reserve(new_num_elements);
+	vector_val->resize(new_num_elements);
 	return oldsize;
 	}
 
 unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 	 {
-	 unsigned int old_size = val.vector_val->size();
+	 unsigned int old_size = vector_val->size();
 	 if ( new_num_elements <= old_size )
 		 return old_size;
 
 	 return Resize(new_num_elements);
 	 }
 
+void VectorVal::Reserve(unsigned int num_elements)
+	{
+	vector_val->reserve(num_elements);
+	}
+
 ValPtr VectorVal::DoClone(CloneState* state)
 	{
 	auto vv = make_intrusive<VectorVal>(GetType<VectorType>());
-	vv->val.vector_val->reserve(val.vector_val->size());
+	vv->Reserve(vector_val->size());
 	state->NewClone(this, vv);
 
-	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
+	for ( const auto& e : *vector_val )
 		{
-		auto v = (*val.vector_val)[i]->Clone(state);
-		vv->val.vector_val->push_back(std::move(v));
+		auto vc = e->Clone(state);
+		vv->Append(std::move(vc));
 		}
 
 	return vv;
@@ -3371,17 +3382,20 @@ void VectorVal::ValDescribe(ODesc* d) const
 	{
 	d->Add("[");
 
-	if ( val.vector_val->size() > 0 )
-		for ( unsigned int i = 0; i < (val.vector_val->size() - 1); ++i )
+	size_t vector_size = vector_val->size();
+
+	if ( vector_size != 0)
+		{
+		for ( unsigned int i = 0; i < (vector_size - 1); ++i )
 			{
-			if ( (*val.vector_val)[i] )
-				(*val.vector_val)[i]->Describe(d);
+			if ( vector_val->at(i) )
+				vector_val->at(i)->Describe(d);
 			d->Add(", ");
 			}
+		}
 
-	if ( val.vector_val->size() &&
-	     (*val.vector_val)[val.vector_val->size() - 1] )
-		(*val.vector_val)[val.vector_val->size() - 1]->Describe(d);
+	if ( vector_size != 0 && vector_val->back() )
+		vector_val->back()->Describe(d);
 
 	d->Add("]");
 	}
@@ -3534,9 +3548,9 @@ bool same_atomic_val(const Val* v1, const Val* v2)
 	case TYPE_INTERNAL_STRING:
 		return Bstr_eq(v1->AsString(), v2->AsString());
 	case TYPE_INTERNAL_ADDR:
-		return v1->AsAddr() == v2->AsAddr();
+		return &v1->AsAddr() == &v2->AsAddr();
 	case TYPE_INTERNAL_SUBNET:
-		return v1->AsSubNet() == v2->AsSubNet();
+		return &v1->AsSubNet() == &v2->AsSubNet();
 
 	default:
 		reporter->InternalWarning("same_atomic_val called for non-atomic value");
@@ -3664,17 +3678,17 @@ bool can_cast_value_to_type(const Type* s, Type* t)
 
 ValPtr Val::MakeBool(bool b)
 	{
-	return IntrusivePtr{AdoptRef{}, new Val(bro_int_t(b), TYPE_BOOL)};
+	return make_intrusive<BoolVal>(b);
 	}
 
 ValPtr Val::MakeInt(bro_int_t i)
 	{
-	return IntrusivePtr{AdoptRef{}, new Val(i, TYPE_INT)};
+	return make_intrusive<IntVal>(i);
 	}
 
 ValPtr Val::MakeCount(bro_uint_t u)
 	{
-	return IntrusivePtr{AdoptRef{}, new Val(u, TYPE_COUNT)};
+	return make_intrusive<CountVal>(u);
 	}
 
 ValManager::ValManager()

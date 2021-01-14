@@ -1,3 +1,19 @@
+4.1.0-dev.82 | 2021-01-14 13:27:23 -0700
+
+  * Use static_cast instead of dynamic_cast for Val conversions (Tim Wojtulewicz)
+
+  * Remove GET_FIELD_AS macro, replace with template methods (Tim Wojtulewicz, Corelight)
+
+  * Add templated As() method to Val, use in various places we were using dynamic_cast (Tim Wojtulewicz, Corelight)
+
+  * Move ValImpl classes into detail namespace (Tim Wojtulewicz)
+
+  * Some review cleanup in Val.cc (Tim Wojtulewicz, Corelight)
+
+  * Changes addressing pending issues per PR discussion (Vern Paxson, Corelight)
+
+  * Remove BroValUnion by hoisting underlying Val subclass values into subclasses (Vern Paxson, Corelight)
+
 4.1.0-dev.74 | 2021-01-14 11:57:48 -0700
 
   * Use xcode 11 on the Catalina CI image (Tim Wojtulewicz, Corelight)

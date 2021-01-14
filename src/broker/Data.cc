@@ -127,7 +127,7 @@ struct val_converter {
 			auto file = File::Get(a.data());
 
 			if ( file )
-				return make_intrusive<Val>(std::move(file));
+				return make_intrusive<FileVal>(std::move(file));
 
 			return nullptr;
 			}

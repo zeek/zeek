@@ -2243,7 +2243,11 @@ ExprPtr ListExpr::Duplicate()
 ExprPtr ListExpr::Inline(Inliner* inl)
 	{
 	loop_over_list(exprs, i)
-		exprs[i] = exprs[i]->Inline(inl).release();
+		{
+		auto in_expr = exprs[i]->Inline(inl);
+		Unref(exprs[i]);
+		exprs[i] = in_expr.release();
+		}
 
 	return ThisPtr();
 	}
@@ -2286,7 +2290,8 @@ ExprPtr ListExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		if ( c->Optimizing() )
 			{
 			auto e_i = c->UpdateExpr(exprs[i]->ThisPtr());
-			exprs.replace(i, e_i.release());
+			auto old = exprs.replace(i, e_i.release());
+			Unref(old);
 			continue;
 			}
 
@@ -2294,8 +2299,9 @@ ExprPtr ListExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 			continue;
 
 		StmtPtr e_stmt;
-		exprs.replace(i,
+		auto old = exprs.replace(i,
 			exprs[i]->ReduceToSingleton(c, e_stmt).release());
+		Unref(old);
 
 		if ( e_stmt )
 			red_stmt = MergeStmts(red_stmt, e_stmt);
@@ -2314,7 +2320,8 @@ StmtPtr ListExpr::ReduceToSingletons(Reducer* c)
 			continue;
 
 		StmtPtr e_stmt;
-		exprs.replace(i, exprs[i]->Reduce(c, e_stmt).release());
+		auto old = exprs.replace(i, exprs[i]->Reduce(c, e_stmt).release());
+		Unref(old);
 
 		if ( e_stmt )
 			red_stmt = MergeStmts(red_stmt, e_stmt);

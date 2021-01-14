@@ -3,6 +3,9 @@
 #pragma once
 
 #include "zeek/IntrusivePtr.h"
+#include "zeek/Scope.h"
+#include "zeek/Expr.h"
+#include "zeek/Stmt.h"
 
 namespace zeek::detail {
 

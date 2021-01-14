@@ -276,7 +276,7 @@ public:
 
 	// Optimization-related:
 	StmtPtr CondPredStmt() const
-		{ return loop_cond_pred_stmt ? loop_cond_pred_stmt : nullptr; }
+		{ return loop_cond_pred_stmt; }
 	StmtPtr Duplicate() override;
 	void Inline(Inliner* inl) override;
 

@@ -272,11 +272,7 @@ public:
 		{ return false; }
 
 	// Returns the current expression transformed into "new_me".
-	// Takes a bare pointer for "new_me" since often it's newly
-	// allocated.
-	ExprPtr TransformMe(Expr* new_me, Reducer* c, StmtPtr& red_stmt);
-	ExprPtr TransformMe(ExprPtr new_me, Reducer* c, StmtPtr& red_stmt)
-		{ return TransformMe(new_me.get(), c, red_stmt); }
+	ExprPtr TransformMe(ExprPtr new_me, Reducer* c, StmtPtr& red_stmt);
 
 	// Returns a set of predecessor statements in red_stmt (which might
 	// be nil if no reduction necessary), and the reduced version of

@@ -514,8 +514,8 @@ public:
 	ExprPtr GetOp1() const override final	{ return op1; }
 	ExprPtr GetOp2() const override final	{ return op2; }
 
-	void SetOp1(ExprPtr _op) override final	{ std::move(op1 = _op); }
-	void SetOp2(ExprPtr _op) override final	{ std::move(op2 = _op); }
+	void SetOp1(ExprPtr _op) override final	{ op1 = std::move(_op); }
+	void SetOp2(ExprPtr _op) override final	{ op2 = std::move(_op); }
 
 protected:
 	BinaryExpr(BroExprTag arg_tag,
@@ -1497,7 +1497,7 @@ public:
 	ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
 
 	ExprPtr GetOp3() const override final	{ return op3; }
-	void SetOp3(ExprPtr _op) override final { op3 = _op; }
+	void SetOp3(ExprPtr _op) override final { op3 = std::move(_op); }
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 

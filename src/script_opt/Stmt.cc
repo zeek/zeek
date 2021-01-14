@@ -37,7 +37,7 @@ StmtPtr Stmt::Reduce(Reducer* c)
 	return DoReduce(c);
 	}
 
-StmtPtr Stmt::TransformMe(Stmt* new_me, Reducer* c)
+StmtPtr Stmt::TransformMe(StmtPtr new_me, Reducer* c)
 	{
 	ASSERT(new_me != this);
 
@@ -71,7 +71,7 @@ StmtPtr ExprListStmt::DoReduce(Reducer* c)
 		return ThisPtr();
 
 	auto new_l = make_intrusive<ListExpr>();
-	auto s = new StmtList;
+	auto s = make_intrusive<StmtList>();
 
 	ExprPList& e = l->Exprs();
 	for ( auto& expr : e )
@@ -143,12 +143,12 @@ StmtPtr ExprStmt::DoReduce(Reducer* c)
 	{
 	if ( ! e )
 		// e can be nil for our derived classes (like ReturnStmt).
-		return TransformMe(new NullStmt, c);
+		return TransformMe(make_intrusive<NullStmt>(), c);
 
 	auto t = e->Tag();
 
 	if ( t == EXPR_NOP )
-		return TransformMe(new NullStmt, c);
+		return TransformMe(make_intrusive<NullStmt>(), c);
 
 	if ( c->Optimizing() )
 		{
@@ -158,7 +158,7 @@ StmtPtr ExprStmt::DoReduce(Reducer* c)
 
 	if ( e->IsSingleton(c) )
 		// No point evaluating.
-		return TransformMe(new NullStmt, c);
+		return TransformMe(make_intrusive<NullStmt>(), c);
 
 	if ( (t == EXPR_ASSIGN || t == EXPR_CALL ||
 	      t == EXPR_INDEX_ASSIGN || t == EXPR_FIELD_LHS_ASSIGN ||
@@ -178,7 +178,7 @@ StmtPtr ExprStmt::DoReduce(Reducer* c)
 
 	if ( red_e_stmt )
 		{
-		auto s = new StmtList(red_e_stmt, ThisPtr());
+		auto s = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
 		return TransformMe(s, c);
 		}
 
@@ -268,7 +268,7 @@ StmtPtr IfStmt::DoReduce(Reducer* c)
 	s2 = s2->Reduce(c);
 
 	if ( s1->Tag() == STMT_NULL && s2->Tag() == STMT_NULL )
-		return TransformMe(new NullStmt, c);
+		return TransformMe(make_intrusive<NullStmt>(), c);
 
 	if ( c->Optimizing() )
 		e = c->OptExpr(e);
@@ -293,13 +293,13 @@ StmtPtr IfStmt::DoReduce(Reducer* c)
 			return t ? s1 : s2;
 
 		if ( t )
-			return TransformMe(new StmtList(red_e_stmt, s1), c);
+			return TransformMe(make_intrusive<StmtList>(red_e_stmt, s1), c);
 		else
-			return TransformMe(new StmtList(red_e_stmt, s2), c);
+			return TransformMe(make_intrusive<StmtList>(red_e_stmt, s2), c);
 		}
 
 	if ( red_e_stmt )
-		return TransformMe(new StmtList(red_e_stmt, this), c);
+		return TransformMe(make_intrusive<StmtList>(red_e_stmt, this), c);
 
 	return ThisPtr();
 	}
@@ -415,7 +415,7 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc)
 	if ( s->Stmts().length() > 0 )
 		{
 		StmtPtr me = ThisPtr();
-		auto pre_and_me = new StmtList(s, me);
+		auto pre_and_me = make_intrusive<StmtList>(s, me);
 		return TransformMe(pre_and_me, rc);
 		}
 
@@ -465,7 +465,7 @@ StmtPtr AddDelStmt::DoReduce(Reducer* c)
 
 	if ( red_e_stmt )
 		{
-		auto s = new StmtList(red_e_stmt, ThisPtr());
+		auto s = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
 		return TransformMe(s, c);
 		}
 
@@ -509,7 +509,7 @@ StmtPtr EventStmt::DoReduce(Reducer* c)
 
 		if ( red_e_stmt )
 			{
-			auto s = new StmtList(red_e_stmt, ThisPtr());
+			auto s = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
 			return TransformMe(s, c);
 			}
 		}
@@ -642,7 +642,7 @@ StmtPtr ForStmt::DoReduce(Reducer* c)
 		Error("empty \"for\" body leaves loop variables in indeterminant state");
 
 	if ( red_e_stmt )
-		return TransformMe(new StmtList(red_e_stmt, this), c);
+		return TransformMe(make_intrusive<StmtList>(red_e_stmt, this), c);
 
 	return ThisPtr();
 	}
@@ -676,7 +676,7 @@ StmtPtr ReturnStmt::DoReduce(Reducer* c)
 
 		if ( red_e_stmt )
 			{
-			auto s = new StmtList(red_e_stmt, ThisPtr());
+			auto s = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
 			return TransformMe(s, c);
 			}
 		}
@@ -770,7 +770,7 @@ StmtPtr StmtList::DoReduce(Reducer* c)
 		}
 
 	if ( f_stmts->length() == 0 )
-		return TransformMe(new NullStmt, c);
+		return TransformMe(make_intrusive<NullStmt>(), c);
 
 	if ( f_stmts->length() == 1 )
 		return (*f_stmts)[0]->Reduce(c);

@@ -156,9 +156,8 @@ protected:
 	explicit Stmt(StmtTag arg_tag);
 
 	// Helper function called after reductions to perform canonical
-	// actions.  Takes a bare pointer for new_me because usually
-	// it's been newly new'd, so this keeps down code clutter.
-	StmtPtr TransformMe(Stmt* new_me, Reducer* c);
+	// actions.
+	StmtPtr TransformMe(StmtPtr new_me, Reducer* c);
 
 	void AddTag(ODesc* d) const;
 	virtual void StmtDescribe(ODesc* d) const;

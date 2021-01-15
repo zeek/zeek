@@ -210,11 +210,10 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			kp1 = reinterpret_cast<char*>(kp+1);
 
 			auto tbl = tv->AsTable();
-			auto it = tbl->InitForIteration();
 			auto lv = make_intrusive<ListVal>(TYPE_ANY);
 
 			struct HashKeyComparer {
-				bool operator()(const HashKey* a, const HashKey* b) const
+				bool operator()(const std::unique_ptr<HashKey>& a, const std::unique_ptr<HashKey>& b) const
 					{
 					if ( a->Hash() != b->Hash() )
 						return a->Hash() < b->Hash();
@@ -226,18 +225,15 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 					}
 			};
 
-			std::map<HashKey*, int, HashKeyComparer> hashkeys;
-			HashKey* k;
+			std::map<std::unique_ptr<HashKey>, int, HashKeyComparer> hashkeys;
 			auto idx = 0;
 
-			while ( tbl->NextEntry(k, it) )
+			for ( const auto& entry : *tbl )
 				{
-				hashkeys[k] = idx++;
+				auto k = entry.GetHashKey();
 				lv->Append(tv->RecreateIndex(*k));
+				hashkeys[std::move(k)] = idx++;
 				}
-
-			for ( auto& kv : hashkeys )
-				delete kv.first;
 
 			for ( auto& kv : hashkeys )
 				{
@@ -253,11 +249,10 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 					auto val = tv->FindOrDefault(key);
 
 					if ( ! (kp1 = SingleValHash(type_check, kp1, val->GetType().get(),
-								    val.get(), false)) )
+					                            val.get(), false)) )
 						return nullptr;
 					}
 				}
-
 			}
 			break;
 

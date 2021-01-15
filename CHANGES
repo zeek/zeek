@@ -1,4 +1,8 @@
 
+4.1.0-dev.116 | 2021-01-14 19:29:58 -0800
+
+  * Implement standard-library-compatible iterators for Dictionary (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.114 | 2021-01-14 15:00:48 -0800
 
   * Add support for rewriting the ASTs for script functions in "reduced" form

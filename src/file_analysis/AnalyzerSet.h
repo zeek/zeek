@@ -92,8 +92,14 @@ public:
 	 * @see Dictionary#InitForIteration
 	 * @return an iterator that may be used to loop over analyzers in the set.
 	 */
+	[[deprecated("Remove in v5.1. Use standard-library compatible iteration.")]]
 	IterCookie* InitForIteration() const
-		{ return analyzer_map.InitForIteration(); }
+		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		return analyzer_map.InitForIteration();
+#pragma GCC diagnostic pop
+		}
 
 	/**
 	 * Get next entry in the analyzer set.
@@ -102,8 +108,27 @@ public:
 	 * @return the next analyzer in the set or a null pointer if there is no
 	 *         more left (in that case the cookie is also deleted).
 	 */
+	[[deprecated("Remove in v5.1. Use standard-library compatible iteration.")]]
 	file_analysis::Analyzer* NextEntry(IterCookie* c)
-		{ return analyzer_map.NextEntry(c); }
+		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		return analyzer_map.NextEntry(c);
+#pragma GCC diagnostic pop
+		}
+
+	// Iterator support
+	using iterator = zeek::DictIterator;
+	using const_iterator = const iterator;
+	using reverse_iterator = std::reverse_iterator<iterator>;
+	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+	iterator begin() { return analyzer_map.begin(); }
+	iterator end() { return analyzer_map.end(); }
+	const_iterator begin() const { return analyzer_map.begin(); }
+	const_iterator end() const { return analyzer_map.end(); }
+	const_iterator cbegin() { return analyzer_map.cbegin(); }
+	const_iterator cend() { return analyzer_map.cend(); }
 
 protected:
 

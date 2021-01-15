@@ -927,14 +927,12 @@ broker::expected<broker::data> val_to_data(const Val* v)
 		else
 			rval = broker::table();
 
-		zeek::detail::HashKey* hk;
-		TableEntryVal* entry;
-		auto c = table->InitForIteration();
-
-		while ( (entry = table->NextEntry(hk, c)) )
+		for ( const auto& te : *table )
 			{
+			auto hk = te.GetHashKey();
+			auto* entry = te.GetValue<TableEntryVal*>();
+
 			auto vl = table_val->RecreateIndex(*hk);
-			delete hk;
 
 			broker::vector composite_key;
 			composite_key.reserve(vl->Length());

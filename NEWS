@@ -34,6 +34,11 @@ Deprecated Functionality
 
   For examples, see: https://docs.zeek.org/en/master/script-reference/types.html#type-function
 
+- The ``IterCookie`` version of iteration over ``Dictionary`` and ``PDict``
+  objects was marked as deprecated. It was replaced by standard-library
+  compatible iterators. This enables the use of standard constructs such
+  as ranged-for loops to iterate over those objects.
+
 Zeek 4.0.0
 ==========
 

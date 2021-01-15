@@ -1261,14 +1261,13 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 
 	auto cluster_table_val = node->GetField("cluster")->AsTableVal();
 	auto cluster_table = cluster_table_val->AsTable();
-	auto c = cluster_table->InitForIteration();
-	detail::HashKey* k;
-	TableEntryVal* v;
 
-	while ( (v = cluster_table->NextEntry(k, c)) )
+	for ( const auto& cte : *cluster_table )
 		{
+		auto k = cte.GetHashKey();
+		auto* v = cte.GetValue<TableEntryVal*>();
+
 		auto key = cluster_table_val->RecreateIndex(*k);
-		delete k;
 		auto name = key->Idx(0)->AsStringVal()->ToStdString();
 		auto rv = v->GetVal()->AsRecordVal();
 

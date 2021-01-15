@@ -889,17 +889,16 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			info->path = util::copy_string(path.c_str());
 			info->network_time = run_state::network_time;
 
-			zeek::detail::HashKey* k;
-			IterCookie* c = filter->config->AsTable()->InitForIteration();
-
-			TableEntryVal* v;
-			while ( (v = filter->config->AsTable()->NextEntry(k, c)) )
+			auto* filter_config_table = filter->config->AsTable();
+			for ( const auto& fcte : *filter_config_table )
 				{
+				auto k = fcte.GetHashKey();
+				auto* v = fcte.GetValue<TableEntryVal*>();
+
 				auto index = filter->config->RecreateIndex(*k);
 				string key = index->Idx(0)->AsString()->CheckString();
 				string value = v->GetVal()->AsString()->CheckString();
 				info->config.insert(std::make_pair(util::copy_string(key.c_str()), util::copy_string(value.c_str())));
-				delete k;
 				}
 
 			// CreateWriter() will set the other fields in info.

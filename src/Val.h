@@ -213,12 +213,7 @@ UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
 		{
 		// Since we're converting from "this", make sure the type requested is a pointer.
 		static_assert(std::is_pointer<T>());
-
-		auto v = static_cast<T>(this);
-		if ( ! v )
-			reporter->InternalError("Failed dynamic_cast between Val types");
-
-		return v;
+		return static_cast<T>(this);
 		}
 
 protected:
@@ -1262,9 +1257,6 @@ public:
 		{
 		auto& field_ptr = GetField(field);
 		auto field_val_ptr = static_cast<T*>(field_ptr.get());
-		if ( ! field_val_ptr )
-			reporter->InternalError("Typecast failed in TableVal::GetFieldAs");
-
 		return field_val_ptr->Get();
 		}
 
@@ -1273,9 +1265,6 @@ public:
 		{
 		auto& field_ptr = GetField(field);
 		auto field_val_ptr = static_cast<T*>(field_ptr.get());
-		if ( ! field_val_ptr )
-			reporter->InternalError("Typecast failed in TableVal::GetFieldAs");
-
 		return field_val_ptr->Get();
 		}
 

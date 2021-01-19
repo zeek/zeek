@@ -1,3 +1,6 @@
+4.1.0-dev.118 | 2021-01-18 19:14:30 -0700
+
+  * Remove superfluous nullptr checks in Val/RecordVal methods (Jon Siwek, Corelight)
 
 4.1.0-dev.116 | 2021-01-14 19:29:58 -0800
 

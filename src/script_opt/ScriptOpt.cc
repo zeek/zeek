@@ -56,9 +56,16 @@ void optimize_func(ScriptFunc* f, ProfileFunc* pf, ScopePtr scope_ptr,
 
 	non_reduced_perp = nullptr;
 	checking_reduction = true;
+
 	if ( ! new_body->IsReduced(rc) )
-		printf("Reduction inconsistency for %s: %s\n", f->Name(),
-			obj_desc(non_reduced_perp).c_str());
+		{
+		if ( non_reduced_perp )
+			printf("Reduction inconsistency for %s: %s\n", f->Name(),
+			       obj_desc(non_reduced_perp).c_str());
+		else
+			printf("Reduction inconsistency for %s\n", f->Name());
+		}
+
 	checking_reduction = false;
 
 	if ( analysis_options.only_func || analysis_options.dump_xform )

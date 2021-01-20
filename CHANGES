@@ -1,3 +1,11 @@
+
+4.1.0-dev.120 | 2021-01-19 21:08:11 -0800
+
+  * Update Cirrus CI naming for MacOS images (Christian Kreibich, Corelight)
+
+    The docs on https://cirrus-ci.org/guide/macOS/ changed from
+    "osx_instance" to "macos_instance", so let's reflect that.
+
 4.1.0-dev.118 | 2021-01-18 19:14:30 -0700
 
   * Remove superfluous nullptr checks in Val/RecordVal methods (Jon Siwek, Corelight)

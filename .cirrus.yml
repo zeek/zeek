@@ -178,14 +178,14 @@ ubuntu16_task:
 # Apple doesn't publish official long-term support timelines.
 # We aim to support both the current and previous macOS release.
 macos_big_sur_task:
-  osx_instance:
+  macos_instance:
     image: big-sur-base
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_RESOURCES_TEMPLATE
 
 macos_catalina_task:
-  osx_instance:
+  macos_instance:
     image: catalina-xcode-11.6
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE

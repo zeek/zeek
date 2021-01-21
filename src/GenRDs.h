@@ -37,6 +37,8 @@ protected:
 
 	bool IsAggr(const Expr* e) const;
 
+	void CheckVar(const Expr* e, const ID* id);
+
 	void CreateInitPreDef(const ID* id, DefinitionPoint dp);
 
 	void CreateInitPostDef(const ID* id, DefinitionPoint dp,

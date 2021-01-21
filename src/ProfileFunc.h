@@ -48,7 +48,6 @@ public:
 
 	int num_stmts = 0;
 	int num_when_stmts = 0;
-	int num_lambdas = 0;
 	int num_exprs = 0;
 
 protected:

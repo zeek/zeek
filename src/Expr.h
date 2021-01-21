@@ -1450,9 +1450,14 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* Inline(Inliner* inl) override;
 	IntrusivePtr<Expr> Duplicate() override;
+
+	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	const CompiledStmt Compile(Compiler* c) const override;
+
+	id_list OuterIDs() const	{ return outer_ids; }
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -1462,6 +1467,7 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 private:
+	IntrusivePtr<BroFunc> master_func;
 	std::unique_ptr<function_ingredients> ingredients;
 
 	id_list outer_ids;

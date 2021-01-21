@@ -470,8 +470,14 @@ UDs UseDefs::ExprUDs(const Expr* e)
 		break;
 
 	case EXPR_LAMBDA:
-		// ### Punt on these for now.
+		{
+		auto l = dynamic_cast<const LambdaExpr*>(e);
+		auto ids = l->OuterIDs();
+
+		for ( auto& id : ids )
+			AddID(uds, id);
 		break;
+		}
 
 	case EXPR_CALL:
 		{

@@ -817,6 +817,23 @@ bool RD_Decorate::IsAggr(const Expr* e) const
 	return ::IsAggr(tag);
 	}
 
+void RD_Decorate::CheckVar(const Expr* e, const ID* id)
+	{
+	if ( id->IsGlobal() )
+		return;
+
+	if ( analysis_options.usage_issues > 0 &&
+	     ! mgr.HasPreMinRD(e, id) && ! id->FindAttr(ATTR_IS_SET) )
+		e->Error("used without definition");
+
+	if ( id->Type()->Tag() == TYPE_RECORD )
+		{
+		auto di = mgr.GetID_DI(id);
+		auto e_pre = mgr.GetPreMinRDs(e);
+		CheckRecordRDs(di, DefinitionPoint(e), e_pre, e);
+		}
+	}
+
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
 	ASSERT(mgr.HasPreMinRDs(e));
@@ -831,25 +848,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 	switch ( e->Tag() ) {
 	case EXPR_NAME:
-		{
-		auto n = e->AsNameExpr();
-		auto id = n->Id();
-
-		if ( id->IsGlobal() )
-			break;
-
-		if ( analysis_options.usage_issues > 0 &&
-		     ! mgr.HasPreMinRD(e, id) && ! id->FindAttr(ATTR_IS_SET) )
-			e->Error("used without definition");
-
-		if ( id->Type()->Tag() == TYPE_RECORD )
-			{
-			auto di = mgr.GetID_DI(id);
-			auto e_pre = mgr.GetPreMinRDs(e);
-			CheckRecordRDs(di, DefinitionPoint(n), e_pre, e);
-			}
+		CheckVar(e, e->AsNameExpr()->Id());
 		break;
-		}
 
 	case EXPR_LIST:
 		{
@@ -1148,8 +1148,17 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		return TC_ABORTSTMT;
 
 	case EXPR_LAMBDA:
-		// ### Too tricky to get these right.
+		{
+		auto l = dynamic_cast<const LambdaExpr*>(e);
+		auto ids = l->OuterIDs();
+
+		for ( auto& id : ids )
+			CheckVar(e, id);
+
+		// Don't descend into the lambda body - we analyze and
+		// optimize it separately, as its own function.
 		return TC_ABORTSTMT;
+		}
 
 	default:
 		if ( e->GetOp1() )

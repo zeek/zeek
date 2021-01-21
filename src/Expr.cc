@@ -14,6 +14,7 @@
 #include "Scope.h"
 #include "Stmt.h"
 #include "EventRegistry.h"
+#include "ScriptAnaly.h"
 #include "Net.h"
 #include "Traverse.h"
 #include "Trigger.h"
@@ -7269,12 +7270,8 @@ void InlineExpr::ExprDescribe(ODesc* d) const
 		}
 	}
 
-static std::unique_ptr<id_list> shallow_copy_func_inits(const IntrusivePtr<Stmt>& body,
-                                                        const id_list* src)
+static std::unique_ptr<id_list> shallow_copy_func_inits(const id_list* src)
 	{
-	if ( ! body )
-		return nullptr;
-
 	if ( ! src )
 		return nullptr;
 
@@ -7302,18 +7299,25 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
-	BroFunc* dummy_func = new BroFunc(
+	master_func = make_intrusive<BroFunc>(
 		ingredients->id.get(),
 		ingredients->body,
-		shallow_copy_func_inits(ingredients->body, ingredients->inits).release(),
+		shallow_copy_func_inits(ingredients->inits).release(),
 		ingredients->frame_size,
 		ingredients->priority);
 
-	dummy_func->SetOuterIDs(outer_ids);
+	master_func->SetOuterIDs(outer_ids);
 
-	// Get the body's "string" representation.
+	analyze_func(master_func.get());
+
+	// Get the body's "string" representation.  Note, even if this
+	// representation changes due to subsequent script optimization,
+	// what matters is that when building this LambdaExpr AST node,
+	// each worker uses the same current representation, since the
+	// point is to agree upon an identifier name representing the
+	// lambda.
 	ODesc d;
-	dummy_func->Describe(&d);
+	master_func->Describe(&d);
 
 	for ( ; ; )
 		{
@@ -7337,11 +7341,10 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	// Install that in the global_scope
 	auto id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
-	// Update lamb's name
-	dummy_func->SetName(my_name.c_str());
+	// Update lambda's name
+	master_func->SetName(my_name.c_str());
 
-	auto v = make_intrusive<Val>(dummy_func);
-	Unref(dummy_func);
+	auto v = make_intrusive<Val>(master_func.get());
 	id->SetVal(std::move(v));
 	id->SetType({NewRef{}, ingredients->id->Type()});
 	id->SetConst();
@@ -7354,16 +7357,20 @@ Scope* LambdaExpr::GetScope() const
 
 IntrusivePtr<Val> LambdaExpr::Eval(Frame* f) const
 	{
+	// The body and the frame size may have been altered by script
+	// optimization, so fetch fresh values for them rather than relying
+	// on what was in the original ingredients.
+	auto body = master_func->CurrentBody();
+	auto frame_size = master_func->FrameSize();
+
 	auto lamb = make_intrusive<BroFunc>(
-		ingredients->id.get(),
-		ingredients->body,
-		shallow_copy_func_inits(ingredients->body, ingredients->inits).release(),
-		ingredients->frame_size,
-		ingredients->priority);
+			ingredients->id.get(), body,
+			shallow_copy_func_inits(ingredients->inits).release(),
+			frame_size, ingredients->priority);
 
 	lamb->AddClosure(outer_ids, f);
 
-	// Set name to corresponding dummy func.
+	// Set name to corresponding master func.
 	// Allows for lookups by the receiver.
 	lamb->SetName(my_name.c_str());
 
@@ -7374,13 +7381,13 @@ Expr* LambdaExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
 		return this->Ref();
-	else
-		return AssignToTemporary(c, red_stmt);
+
+	return AssignToTemporary(c, red_stmt);
 	}
 
 Expr* LambdaExpr::Inline(Inliner* inl)
 	{
-	// Don't inline these, we currently don't get the closure right.
+	ingredients->body->Inline(inl);
 	return this->Ref();
 	}
 
@@ -7391,10 +7398,14 @@ IntrusivePtr<Expr> LambdaExpr::Duplicate()
 	return SetSucc(new LambdaExpr(std::move(ingr), outer_ids));
 	}
 
+const CompiledStmt LambdaExpr::Compile(Compiler* c) const
+	{
+	}
+
 void LambdaExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add(expr_name(Tag()));
-	ingredients->body->Describe(d);
+	master_func->CurrentBody()->Describe(d);
 	}
 
 TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const

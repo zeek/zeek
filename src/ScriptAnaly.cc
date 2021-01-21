@@ -32,20 +32,10 @@ void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 	if ( analysis_options.only_func )
 		printf("Original: %s\n", obj_desc(body));
 
-	if ( pf->num_when_stmts > 0 || pf->num_lambdas > 0 )
+	if ( pf->num_when_stmts > 0 )
 		{
 		if ( analysis_options.only_func )
-			printf("Skipping analysis due to \"when\" statement or use of lambdas\n");
-
-		if ( analysis_options.report_uncompilable &&
-		     // We already reported skipping-due-to-when
-		     pf->num_lambdas > 0 )
-			{
-			ODesc d;
-			body->AddLocation(&d);
-			printf("%s cannot be compiled due to use of lambda expressions (%s)\n",
-				f->Name(), d.Description());
-			}
+			printf("Skipping analysis due to \"when\" statement\n");
 		return;
 		}
 

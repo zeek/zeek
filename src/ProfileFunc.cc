@@ -174,10 +174,6 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 		events.insert(e->AsEventExpr()->Name());
 		break;
 
-	case EXPR_LAMBDA:
-		++num_lambdas;
-		break;
-
 	default:
 		break;
 	}

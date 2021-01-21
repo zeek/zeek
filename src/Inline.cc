@@ -111,7 +111,7 @@ void Inliner::Analyze()
 		// make the parent non-compilable.
 		if ( f->func->Flavor() == FUNC_FLAVOR_FUNCTION &&
 		     non_recursive_funcs.count(f->func) > 0 &&
-		     f->pf->num_lambdas == 0 && f->pf->num_when_stmts == 0 )
+		     f->pf->num_when_stmts == 0 )
 			inline_ables.insert(f->func);
 
 	for ( auto& f : funcs )

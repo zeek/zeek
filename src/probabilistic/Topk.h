@@ -173,11 +173,3 @@ private:
 };
 
 } // namespace zeek::probabilistic::detail
-
-namespace probabilistic {
-
-using Element [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::Element.")]] = zeek::probabilistic::detail::Element;
-using Bucket [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::Bucket.")]] = zeek::probabilistic::detail::Bucket;
-using TopkVal [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::TopkVal.")]] = zeek::probabilistic::detail::TopkVal;
-
-} //namespace probabilistic

@@ -13,13 +13,9 @@
 #include "zeek/ZeekString.h"
 
 zeek::detail::CCL* zeek::detail::curr_ccl = nullptr;
-zeek::detail::CCL*& curr_ccl = zeek::detail::curr_ccl;
 zeek::detail::Specific_RE_Matcher* zeek::detail::rem = nullptr;
-zeek::detail::Specific_RE_Matcher*& rem = zeek::detail::rem;
 zeek::detail::NFA_Machine* zeek::detail::nfa = nullptr;
-zeek::detail::NFA_Machine*& nfa = zeek::detail::nfa;
 int zeek::detail::case_insensitive = 0;
-int& case_insensitive = zeek::detail::case_insensitive;
 
 extern int RE_parse(void);
 extern void RE_set_input(const char* str);

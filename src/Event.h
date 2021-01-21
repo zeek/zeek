@@ -52,39 +52,6 @@ public:
 	EventMgr();
 	~EventMgr() override;
 
-	// Queues an event without first checking if there's any available event
-	// handlers (or remote consumers).  If it turns out there's actually
-	// nothing that will consume the event, then this may leak memory due to
-	// failing to decrement the reference count of each element in 'vl'.  i.e.
-	// use this function instead of QueueEvent() if you've already guarded
-	// against the case where there's no handlers (one usually also does that
-	// because it would be a waste of effort to construct all the event
-	// arguments when there's no handlers to consume them).
-	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
-	void QueueEventFast(const EventHandlerPtr &h, ValPList vl,
-	                    util::detail::SourceID src = util::detail::SOURCE_LOCAL, analyzer::ID aid = 0,
-	                    detail::TimerMgr* mgr = nullptr, Obj* obj = nullptr);
-
-	// Queues an event if there's an event handler (or remote consumer).  This
-	// function always takes ownership of decrementing the reference count of
-	// each element of 'vl', even if there's no event handler.  If you've
-	// checked for event handler existence, you may wish to call
-	// QueueEventFast() instead of this function to prevent the redundant
-	// existence check.
-	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
-	void QueueEvent(const EventHandlerPtr &h, ValPList vl,
-	                util::detail::SourceID src = util::detail::SOURCE_LOCAL, analyzer::ID aid = 0,
-	                detail::TimerMgr* mgr = nullptr, Obj* obj = nullptr);
-
-	// Same as QueueEvent, except taking the event's argument list via a
-	// pointer instead of by value.  This function takes ownership of the
-	// memory pointed to by 'vl' as well as decrementing the reference count of
-	// each of its elements.
-	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
-	void QueueEvent(const EventHandlerPtr &h, ValPList* vl,
-	                util::detail::SourceID src = util::detail::SOURCE_LOCAL, analyzer::ID aid = 0,
-	                detail::TimerMgr* mgr = nullptr, Obj* obj = nullptr);
-
 	/**
 	 * Adds an event to the queue.  If no handler is found for the event
 	 * when later going to call it, nothing happens except for having
@@ -153,10 +120,3 @@ protected:
 extern EventMgr event_mgr;
 
 } // namespace zeek
-
-using Event [[deprecated("Remove in v4.1. Use zeek::Event.")]] = zeek::Event;
-using EventMgr [[deprecated("Remove in v4.1. Use zeek::EventMgr.")]] = zeek::EventMgr;
-extern zeek::EventMgr& mgr [[deprecated("Remove in v4.1. Use zeek::event_mgr")]];
-
-extern uint64_t& num_events_queued [[deprecated("Remove in v4.1. Use zeek::event_mgr.num_events_queued")]];
-extern uint64_t& num_events_dispatched [[deprecated("Remove in v4.1. Use zeek::event_mgr.num_events_dispatched")]];

@@ -8,8 +8,4 @@ namespace zeek::detail {
 BifReturnVal::BifReturnVal(std::nullptr_t) noexcept
 	{}
 
-BifReturnVal::BifReturnVal(Val* v) noexcept
-	: rval(AdoptRef{}, v)
-	{}
-
 } // namespace zeek::detail

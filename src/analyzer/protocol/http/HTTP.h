@@ -286,25 +286,3 @@ extern String* unescape_URI(const u_char* line, const u_char* line_end,
                             analyzer::Analyzer* analyzer);
 
 } // namespace zeek::analyzer::http
-
-namespace analyzer::http {
-
-using CHUNKED_TRANSFER_STATE [[deprecated("Remove in v4.1. Use zeek::analyzer::http::CHUNKED_TRANSFER_STATE.")]] = zeek::analyzer::http::CHUNKED_TRANSFER_STATE;
-constexpr auto NON_CHUNKED_TRANSFER [[deprecated("Remove in v4.1. Use zeek::analyzer::http::NON_CHUNKED_TRANSFER.")]] = zeek::analyzer::http::NON_CHUNKED_TRANSFER;
-constexpr auto BEFORE_CHUNK [[deprecated("Remove in v4.1. Use zeek::analyzer::http::BEFORE_CHUNK.")]] = zeek::analyzer::http::BEFORE_CHUNK;
-constexpr auto EXPECT_CHUNK_SIZE [[deprecated("Remove in v4.1. Use zeek::analyzer::http::EXPECT_CHUNK_SIZE.")]] = zeek::analyzer::http::EXPECT_CHUNK_SIZE;
-constexpr auto EXPECT_CHUNK_DATA [[deprecated("Remove in v4.1. Use zeek::analyzer::http::EXPECT_CHUNK_DATA.")]] = zeek::analyzer::http::EXPECT_CHUNK_DATA;
-constexpr auto EXPECT_CHUNK_DATA_CRLF [[deprecated("Remove in v4.1. Use zeek::analyzer::http::EXPECT_CHUNK_DATA_CRLF.")]] = zeek::analyzer::http::EXPECT_CHUNK_DATA_CRLF;
-constexpr auto EXPECT_CHUNK_TRAILER [[deprecated("Remove in v4.1. Use zeek::analyzer::http::EXPECT_CHUNK_TRAILER.")]] = zeek::analyzer::http::EXPECT_CHUNK_TRAILER;
-constexpr auto EXPECT_NOTHING [[deprecated("Remove in v4.1. Use zeek::analyzer::http::EXPECT_NOTHING.")]] = zeek::analyzer::http::EXPECT_NOTHING;
-
-using HTTP_Entity [[deprecated("Remove in v4.1. Use zeek::analyzer::http::HTTP_Entity.")]] = zeek::analyzer::http::HTTP_Entity;
-using HTTP_Message [[deprecated("Remove in v4.1. Use zeek::analyzer::http::HTTP_Message.")]] = zeek::analyzer::http::HTTP_Message;
-using HTTP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::http::HTTP_Analyzer.")]] = zeek::analyzer::http::HTTP_Analyzer;
-
-constexpr auto is_reserved_URI_char [[deprecated("Remove in v4.1. Use zeek::analyzer::http::is_reserved_URI_char.")]] = zeek::analyzer::http::is_reserved_URI_char;
-constexpr auto is_unreserved_URI_char [[deprecated("Remove in v4.1. Use zeek::analyzer::http::is_unreserved_URI_char.")]] = zeek::analyzer::http::is_unreserved_URI_char;
-constexpr auto escape_URI_char [[deprecated("Remove in v4.1. Use zeek::analyzer::http::escape_URI_char.")]] = zeek::analyzer::http::escape_URI_char;
-constexpr auto unescape_URI [[deprecated("Remove in v4.1. Use zeek::analyzer::http::unescape_URI.")]] = zeek::analyzer::http::unescape_URI;
-
-} // namespace analyzer::http

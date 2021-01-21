@@ -108,15 +108,6 @@ bool is_lws(char ch)
 	return ch == 9 || ch == 32;
 	}
 
-StringVal* new_string_val(int length, const char* data)
-	{ return to_string_val(length, data).release(); }
-
-StringVal* new_string_val(const char* data, const char* end_of_data)
-	{ return to_string_val(data, end_of_data).release(); }
-
-StringVal* new_string_val(const data_chunk_t buf)
-	{ return to_string_val(buf).release(); }
-
 StringValPtr to_string_val(int length, const char* data)
 	{
 	return make_intrusive<StringVal>(length, data);
@@ -1292,9 +1283,6 @@ void MIME_Entity::DebugPrintHeaders()
 #endif
 	}
 
-RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
-	{ return ToHeaderVal(h).release(); }
-
 RecordValPtr MIME_Message::ToHeaderVal(MIME_Header* h)
 	{
 	static auto mime_header_rec = id::find_type<RecordType>("mime_header_rec");
@@ -1306,9 +1294,6 @@ RecordValPtr MIME_Message::ToHeaderVal(MIME_Header* h)
 	header_record->Assign(2, to_string_val(h->get_value()));
 	return header_record;
 	}
-
-TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
-	{ return ToHeaderTable(hlist).release(); }
 
 TableValPtr MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
 	{
@@ -1565,22 +1550,3 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 	}
 
 } // namespace zeek::analyzer::mime
-
-
-namespace analyzer::mime {
-
-zeek::StringVal* new_string_val(int length, const char* data)
-	{ return zeek::analyzer::mime::to_string_val(length, data).release(); }
-zeek::StringVal* new_string_val(const char* data, const char* end_of_data)
-	{ return zeek::analyzer::mime::to_string_val(data, end_of_data).release(); }
-zeek::StringVal* new_string_val(const zeek::data_chunk_t buf)
-	{ return zeek::analyzer::mime::to_string_val(buf).release(); }
-
-zeek::StringValPtr to_string_val(int length, const char* data)
-	{ return zeek::analyzer::mime::to_string_val(length, data); }
-zeek::StringValPtr to_string_val(const char* data, const char* end_of_data)
-	{ return zeek::analyzer::mime::to_string_val(data, end_of_data); }
-zeek::StringValPtr to_string_val(const zeek::data_chunk_t buf)
-	{ return zeek::analyzer::mime::to_string_val(buf); }
-
-} // namespace analyzer::mime

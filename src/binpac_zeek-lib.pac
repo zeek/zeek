@@ -55,11 +55,6 @@ zeek::StringValPtr utf16_to_utf8_val(zeek::Connection* conn, const bytestring& u
 	//return new StringVal(resultstring.length(), (const char *) resultstring.data());
 	return zeek::make_intrusive<zeek::StringVal>(resultstring.c_str());
 	}
-
-zeek::StringVal* utf16_bytestring_to_utf8_val(zeek::Connection* conn, const bytestring& utf16)
-	{
-	return utf16_to_utf8_val(conn, utf16).release();
-	}
 %}
 
 function network_time(): double

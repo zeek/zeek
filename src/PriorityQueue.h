@@ -101,6 +101,3 @@ protected:
 };
 
 } // namespace zeek::detail
-
-using PQ_Element [[deprecated("Remove in v4.1. Use zeek::detail::PQ_Element.")]] = zeek::detail::PQ_Element;
-using PriorityQueue [[deprecated("Remove in v4.1. Use zeek::detail::PriorityQueue.")]] = zeek::detail::PriorityQueue;

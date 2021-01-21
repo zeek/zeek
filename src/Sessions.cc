@@ -74,11 +74,6 @@ void NetSessions::Done()
 	{
 	}
 
-void NetSessions::NextPacket(double t, Packet* pkt)
-	{
-	packet_mgr->ProcessPacket(pkt);
-	}
-
 void NetSessions::ProcessTransportLayer(double t, const Packet* pkt, size_t remaining)
 	{
 	const std::unique_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;

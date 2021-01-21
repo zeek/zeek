@@ -244,12 +244,3 @@ protected:
 extern DNS_Mgr* dns_mgr;
 
 } // namespace zeek::detail
-
-using DNS_Mgr [[deprecated("Remove in v4.1. Use zeek::detail::DNS_Mgr.")]] = zeek::detail::DNS_Mgr;
-extern zeek::detail::DNS_Mgr*& dns_mgr [[deprecated("Remove in v4.1. Use zeek::detail::dns_mgr.")]];
-
-using DNS_MgrMode [[deprecated("Remove in v4.1. Use zeek::detail::DNS_MgrMode.")]] = zeek::detail::DNS_MgrMode;
-constexpr auto DNS_PRIME [[deprecated("Remove in v4.1. Use zeek::detail::DNS_PRIME.")]] = zeek::detail::DNS_PRIME;
-constexpr auto DNS_FORCE [[deprecated("Remove in v4.1. Use zeek::detail::DNS_FORCE.")]] = zeek::detail::DNS_FORCE;
-constexpr auto DNS_DEFAULT [[deprecated("Remove in v4.1. Use zeek::detail::DNS_DEFAULT.")]] = zeek::detail::DNS_DEFAULT;
-constexpr auto DNS_FAKE [[deprecated("Remove in v4.1. Use zeek::detail::DNS_FAKE.")]] = zeek::detail::DNS_FAKE;

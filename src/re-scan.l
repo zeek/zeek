@@ -15,7 +15,6 @@
 #include "re-parse.h"
 
 const char* zeek::detail::RE_parse_input = nullptr;
-const char*& RE_parse_input = zeek::detail::RE_parse_input;
 
 #define RET_CCE(func) \
 	BEGIN(SC_CCL); \

@@ -482,25 +482,3 @@ void continue_processing()
 bool is_processing_suspended()	{ return _processing_suspended; }
 
 } // namespace zeek::run_state
-
-// Remove all of these in v4.1.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-zeek::iosource::PktSrc*& current_pktsrc = zeek::run_state::detail::current_pktsrc;
-#pragma GCC diagnostic pop
-zeek::iosource::IOSource*& current_iosrc = zeek::run_state::detail::current_iosrc;
-zeek::iosource::PktDumper*& pkt_dumper = zeek::run_state::detail::pkt_dumper;
-bool& have_pending_timers = zeek::run_state::detail::have_pending_timers;
-
-bool& reading_live = zeek::run_state::reading_live;
-bool& reading_traces = zeek::run_state::reading_traces;
-double& pseudo_realtime = zeek::run_state::pseudo_realtime;
-double& processing_start_time = zeek::run_state::processing_start_time;
-double& bro_start_time = zeek::run_state::zeek_start_time;
-double& bro_start_network_time = zeek::run_state::zeek_start_network_time;
-bool& terminating = zeek::run_state::terminating;
-bool& is_parsing = zeek::run_state::is_parsing;
-
-const zeek::Packet*& current_pkt = zeek::run_state::current_pkt;
-int& current_dispatched = zeek::run_state::current_dispatched;
-double& current_timestamp = zeek::run_state::current_timestamp;

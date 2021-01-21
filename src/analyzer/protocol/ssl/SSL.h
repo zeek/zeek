@@ -41,9 +41,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::ssl
-
-namespace analyzer::ssl {
-
-using SSL_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ssl::SSL_Analyzer.")]] = zeek::analyzer::ssl::SSL_Analyzer;
-
-} // namespace analyzer::ssl

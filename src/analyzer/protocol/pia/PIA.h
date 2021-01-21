@@ -173,11 +173,3 @@ private:
 };
 
 } // namespace zeek::analyzer::pia
-
-namespace analzyer::pia {
-
-using PIA [[deprecated("Remove in v4.1. Use zeek::analyzer::pia::PIA.")]] = zeek::analyzer::pia::PIA;
-using PIA_TCP [[deprecated("Remove in v4.1. Use zeek::analyzer::pia::PIA_TCP.")]] = zeek::analyzer::pia::PIA_TCP;
-using PIA_UDP [[deprecated("Remove in v4.1. Use zeek::analyzer::pia::PIA_UDP.")]] = zeek::analyzer::pia::PIA_UDP;
-
-} // namespace analyzer::pia

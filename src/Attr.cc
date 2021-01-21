@@ -150,25 +150,6 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
-Attributes::Attributes(AttrPList* a, TypePtr t, bool arg_in_record, bool is_global)
-	{
-	attrs_list.resize(a->length());
-	attrs.reserve(a->length());
-	in_record = arg_in_record;
-	global_var = is_global;
-
-	SetLocationInfo(&start_location, &end_location);
-
-	// We loop through 'a' and add each attribute individually,
-	// rather than just taking over 'a' for ourselves, so that
-	// the necessary checking gets done.
-
-	for ( const auto& attr : *a )
-		AddAttr({NewRef{}, attr});
-
-	delete a;
-	}
-
 Attributes::Attributes(TypePtr t, bool arg_in_record, bool is_global)
     : Attributes(std::vector<AttrPtr>{}, std::move(t),
                  arg_in_record, is_global)
@@ -178,7 +159,6 @@ Attributes::Attributes(std::vector<AttrPtr> a,
                        TypePtr t, bool arg_in_record, bool is_global)
 	: type(std::move(t))
 	{
-	attrs_list.resize(a.size());
 	attrs.reserve(a.size());
 	in_record = arg_in_record;
 	global_var = is_global;
@@ -224,7 +204,6 @@ void Attributes::AddAttr(AttrPtr attr, bool is_redef)
 
 	// We overwrite old attributes by deleting them first.
 	RemoveAttr(attr->Tag());
-	attrs_list.push_back(attr.get());
 	attrs.emplace_back(attr);
 
 	// We only check the attribute after we've added it, to facilitate
@@ -237,7 +216,6 @@ void Attributes::AddAttr(AttrPtr attr, bool is_redef)
 	     ! Find(ATTR_REDEF) )
 		{
 		auto a = make_intrusive<Attr>(ATTR_REDEF);
-		attrs_list.push_back(a.get());
 		attrs.emplace_back(std::move(a));
 		}
 
@@ -246,7 +224,6 @@ void Attributes::AddAttr(AttrPtr attr, bool is_redef)
 	     ! Find(ATTR_OPTIONAL) )
 		{
 		auto a = make_intrusive<Attr>(ATTR_OPTIONAL);
-		attrs_list.push_back(a.get());
 		attrs.emplace_back(std::move(a));
 		}
 	}
@@ -255,23 +232,6 @@ void Attributes::AddAttrs(const AttributesPtr& a, bool is_redef)
 	{
 	for ( const auto& attr : a->GetAttrs() )
 		AddAttr(attr, is_redef);
-	}
-
-void Attributes::AddAttrs(Attributes* a, bool is_redef)
-	{
-	for ( const auto& attr : a->GetAttrs() )
-		AddAttr(attr, is_redef);
-
-	Unref(a);
-	}
-
-Attr* Attributes::FindAttr(AttrTag t) const
-	{
-	for ( const auto& a : attrs )
-		if ( a->Tag() == t )
-			return a.get();
-
-	return nullptr;
 	}
 
 const AttrPtr& Attributes::Find(AttrTag t) const
@@ -285,10 +245,6 @@ const AttrPtr& Attributes::Find(AttrTag t) const
 
 void Attributes::RemoveAttr(AttrTag t)
 	{
-	for ( int i = 0; i < attrs_list.length(); i++ )
-		if ( attrs_list[i]->Tag() == t )
-			attrs_list.remove_nth(i--);
-
 	for ( auto it = attrs.begin(); it != attrs.end(); )
 		{
 		if ( (*it)->Tag() == t )

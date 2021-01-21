@@ -16,12 +16,11 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 class ConnCompressor;
 
-namespace zeek { struct ConnID; }
-using ConnID [[deprecated("Remove in v4.1. Use zeek::ConnID.")]] = zeek::ConnID;
-
 ZEEK_FORWARD_DECLARE_NAMESPACED(SteppingStoneManager, zeek, analyzer::stepping_stone);
 
 namespace zeek {
+
+struct ConnID;
 
 struct SessionStats {
 	size_t num_TCP_conns;
@@ -45,10 +44,6 @@ class NetSessions {
 public:
 	NetSessions();
 	~NetSessions();
-
-	// Main entry point for packet processing.
-	[[deprecated("Remove in v4.1. Do not call this method directly. Packet processing should start with a call to packet_mgr->ProcessPacket().")]]
-	void NextPacket(double t, Packet* pkt);
 
 	void Done();	// call to drain events before destructing
 
@@ -184,9 +179,3 @@ protected:
 extern NetSessions* sessions;
 
 } // namespace zeek
-
-using SessionStats [[deprecated("Remove in v4.1. Use zeek::SessionStats.")]] = zeek::SessionStats;
-using NetSessions [[deprecated("Remove in v4.1. Use zeek::NetSessions.")]] = zeek::NetSessions;
-using FragReassemblerTracker [[deprecated("Remove in v4.1. Use zeek::detail::FragReassemblerTracker.")]] = zeek::detail::FragReassemblerTracker;
-
-extern zeek::NetSessions*& sessions [[deprecated("Remove in v4.1. Use zeek:sessions.")]];

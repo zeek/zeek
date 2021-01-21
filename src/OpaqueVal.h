@@ -96,8 +96,6 @@ private:
  */
 class OpaqueVal : public Val {
 public:
-	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit OpaqueVal(OpaqueType* t);
 	explicit OpaqueVal(OpaqueTypePtr t);
 	~OpaqueVal() override;
 
@@ -187,8 +185,6 @@ protected:
 	static void digest_one(EVP_MD_CTX* h, const Val* v);
 	static void digest_one(EVP_MD_CTX* h, const ValPtr& v);
 
-	[[deprecated("Remove in v4.1. Construct from IntrusivePtr instead.")]]
-	explicit HashVal(OpaqueType* t);
 	explicit HashVal(OpaqueTypePtr t);
 
 	virtual bool DoInit();
@@ -378,14 +374,3 @@ private:
 };
 
 } // namespace zeek
-
-using OpaqueMgr [[deprecated("Remove in v4.1. Use zeek::OpaqueMgr instead.")]] = zeek::OpaqueMgr;
-using OpaqueVal [[deprecated("Remove in v4.1. Use zeek::OpaqueVal instead.")]] = zeek::OpaqueVal;
-using HashVal [[deprecated("Remove in v4.1. Use zeek::HashVal instead.")]] = zeek::HashVal;
-using MD5Val [[deprecated("Remove in v4.1. Use zeek::MD5Val instead.")]] = zeek::MD5Val;
-using SHA1Val [[deprecated("Remove in v4.1. Use zeek::SHA1Val instead.")]] = zeek::SHA1Val;
-using SHA256Val [[deprecated("Remove in v4.1. Use zeek::SHA256Val instead.")]] = zeek::SHA256Val;
-using EntropyVal [[deprecated("Remove in v4.1. Use zeek::EntropyVal instead.")]] = zeek::EntropyVal;
-using BloomFilterVal [[deprecated("Remove in v4.1. Use zeek::BloomFilterVal instead.")]] = zeek::BloomFilterVal;
-using CardinalityVal [[deprecated("Remove in v4.1. Use zeek::CardinalityVal instead.")]] = zeek::CardinalityVal;
-using ParaglobVal [[deprecated("Remove in v4.1. Use zeek::ParaglobVal instead.")]] = zeek::ParaglobVal;

@@ -202,10 +202,3 @@ private:
 };
 
 } // namespace zeek::zeekygen::detail
-
-namespace zeekygen {
-
-using IdentifierInfo [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::IdentifierInfo.")]] = zeek::zeekygen::detail::IdentifierInfo;
-using ScriptInfo [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::ScriptInfo.")]] = zeek::zeekygen::detail::ScriptInfo;
-
-} // namespace zeekygen

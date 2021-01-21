@@ -25,17 +25,12 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 namespace zeek::threading {
 	struct Field;
 }
-namespace threading {
-	using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
-}
 
 namespace zeek {
 template <class T> class IntrusivePtr;
 using ValPtr = IntrusivePtr<Val>;
 class Obj;
 }
-
-using BroObj [[deprecated("Remove in v4.1. Use zeek::Obj instead.")]] = zeek::Obj;
 
 namespace zeek::plugin  {
 
@@ -895,44 +890,3 @@ private:
 };
 
 } // namespace zeek::plugin
-
-namespace plugin {
-
-[[deprecated("Remove in v4.1. Use zeek::plugin::hook_name().")]]
-constexpr auto hook_name = zeek::plugin::hook_name;
-
-using VersionNumber [[deprecated("Remove in v4.1. Use zeek::plugin::VersionNumber instead")]] = zeek::plugin::VersionNumber;
-using Configuration [[deprecated("Remove in v4.1. Use zeek::plugin::Configuration instead")]] = zeek::plugin::Configuration;
-using BifItem [[deprecated("Remove in v4.1. Use zeek::plugin::BifItem instead")]] = zeek::plugin::BifItem;
-using HookArgument [[deprecated("Remove in v4.1. Use zeek::plugin::HookArgument instead")]] = zeek::plugin::HookArgument;
-using HookArgumentList [[deprecated("Remove in v4.1. Use zeek::plugin::HookArgumentList instead")]] = zeek::plugin::HookArgumentList;
-using Plugin [[deprecated("Remove in v4.1. Use zeek::plugin::Plugin instead")]] = zeek::plugin::Plugin;
-
-using HookType [[deprecated("Remove in v4.1. Use the zeek::plugin::HookType instead.")]] = zeek::plugin::HookType;
-
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_LOAD_FILE instead.")]]
-constexpr auto HOOK_LOAD_FILE = zeek::plugin::HOOK_LOAD_FILE;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_CALL_FUNCTION instead.")]]
-constexpr auto HOOK_CALL_FUNCTION = zeek::plugin::HOOK_CALL_FUNCTION;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_QUEUE_EVENT instead.")]]
-constexpr auto HOOK_QUEUE_EVENT = zeek::plugin::HOOK_QUEUE_EVENT;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_DRAIN_EVENTS instead.")]]
-constexpr auto HOOK_DRAIN_EVENTS = zeek::plugin::HOOK_DRAIN_EVENTS;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_UPDATE_NETWORK_TIME instead.")]]
-constexpr auto HOOK_UPDATE_NETWORK_TIME = zeek::plugin::HOOK_UPDATE_NETWORK_TIME;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_BRO_OBJ_DTOR instead.")]]
-constexpr auto HOOK_BRO_OBJ_DTOR = zeek::plugin::HOOK_BRO_OBJ_DTOR;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_SETUP_ANALYZER_TREE instead.")]]
-constexpr auto HOOK_SETUP_ANALYZER_TREE = zeek::plugin::HOOK_SETUP_ANALYZER_TREE;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_LOG_INIT instead.")]]
-constexpr auto HOOK_LOG_INIT = zeek::plugin::HOOK_LOG_INIT;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_LOG_WRITE instead.")]]
-constexpr auto HOOK_LOG_WRITE = zeek::plugin::HOOK_LOG_WRITE;
-[[deprecated("Remove in v4.1. Use zeek::plugin::HOOK_REPORTER instead.")]]
-constexpr auto HOOK_REPORTER = zeek::plugin::HOOK_REPORTER;
-[[deprecated("Remove in v4.1. Use zeek::plugin::META_HOOK_PRE instead.")]]
-constexpr auto META_HOOK_PRE = zeek::plugin::META_HOOK_PRE;
-[[deprecated("Remove in v4.1. Use zeek::plugin::META_HOOK_POST instead.")]]
-constexpr auto META_HOOK_POST = zeek::plugin::META_HOOK_POST;
-
-} // namespace plugin

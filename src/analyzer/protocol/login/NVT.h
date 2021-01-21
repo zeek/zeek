@@ -176,15 +176,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::login
-
-namespace analyzer::login {
-
-using TelnetOption [[deprecated("Remove in v4.1. Use zeek::analyzer::login::TelnetOption.")]] = zeek::analyzer::login::TelnetOption;
-using TelnetTerminalOption [[deprecated("Remove in v4.1. Use zeek::analyzer::login::detail::TelnetTerminalOption.")]] = zeek::analyzer::login::detail::TelnetTerminalOption;
-using TelnetEncryptOption [[deprecated("Remove in v4.1. Use zeek::analyzer::login::detail::TelnetEncryptOption.")]] = zeek::analyzer::login::detail::TelnetEncryptOption;
-using TelnetAuthenticateOption [[deprecated("Remove in v4.1. Use zeek::analyzer::login::detail::TelnetAuthenticateOption.")]] = zeek::analyzer::login::detail::TelnetAuthenticateOption;
-using TelnetEnvironmentOption [[deprecated("Remove in v4.1. Use zeek::analyzer::login::detail::TelnetEnvironmentOption.")]] = zeek::analyzer::login::detail::TelnetEnvironmentOption;
-using TelnetBinaryOption [[deprecated("Remove in v4.1. Use zeek::analyzer::login::detail::TelnetBinaryOption.")]] = zeek::analyzer::login::detail::TelnetBinaryOption;
-using NVT_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::login::NVT_Analyzer.")]] = zeek::analyzer::login::NVT_Analyzer;
-
-} // namespace analyzer::login

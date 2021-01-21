@@ -115,9 +115,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::tcp
-
-namespace analyzer::tcp {
-
-using ContentLine_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::ContentLine_Analyzer.")]] = zeek::analyzer::tcp::ContentLine_Analyzer;
-
-} // namespace analyzer::tcp

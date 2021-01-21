@@ -31,7 +31,7 @@ static void describe_hook_args(const zeek::plugin::HookArgumentList& args, zeek:
 	{
 	bool first = true;
 
-	for ( plugin::HookArgumentList::const_iterator i = args.begin(); i != args.end(); i++ )
+	for ( zeek::plugin::HookArgumentList::const_iterator i = args.begin(); i != args.end(); i++ )
 		{
 		if ( ! first )
 			d->Add(", ");

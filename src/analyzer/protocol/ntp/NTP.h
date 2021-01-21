@@ -26,9 +26,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::ntp
-
-namespace analyzer::NTP {
-
-using NTP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ntp::NTP_Analyzer.")]] = zeek::analyzer::ntp::NTP_Analyzer;
-
-} // namespace analyzer::NTP

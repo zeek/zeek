@@ -261,11 +261,3 @@ private:
 extern input::Manager* input_mgr;
 
 } // namespace zeek
-
-extern zeek::input::Manager*& input_mgr [[deprecated("Remove in v4.1. Use zeek::input_mgr.")]];
-
-namespace input {
-
-using Manager [[deprecated("Remove in v4.1. Use zeek::input::Manager.")]] = zeek::input::Manager;
-
-} // namespace input

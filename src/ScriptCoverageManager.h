@@ -87,6 +87,3 @@ private:
 extern ScriptCoverageManager script_coverage_mgr;
 
 } // namespace zeek::detail
-
-using Brofiler [[deprecated("Remove in v4.1. Use zeek::detail::ScriptCoverageManager.")]] = zeek::detail::ScriptCoverageManager;
-extern zeek::detail::ScriptCoverageManager& brofiler [[deprecated("Remove in v4.1. Use zeek::detail::brofiler.")]];

@@ -121,9 +121,6 @@ public:
 	 */
 	RecordValPtr ToRawPktHdrVal() const;
 
-	[[deprecated("Remove in v4.1.  Use ToRawPktHdrval() instead.")]]
-	RecordVal* BuildPktHdrVal() const;
-
 	/**
 	 * Maximal length of a layer 2 address.
 	 */
@@ -246,11 +243,3 @@ private:
 };
 
 } // namespace zeek
-
-using Layer3Proto [[deprecated("Remove in v4.1. Use zeek::Layer3Proto.")]] = zeek::Layer3Proto;
-using Packet [[deprecated("Remove in v4.1. Use zeek::Packet.")]] = zeek::Packet;
-
-constexpr auto L3_UNKNOWN [[deprecated("Remove in v4.1. Use zeek::L3_UNKNOWN")]] = zeek::L3_UNKNOWN;
-constexpr auto L3_IPV4 [[deprecated("Remove in v4.1. Use zeek::L3_IPV4")]] = zeek::L3_IPV4;
-constexpr auto L3_IPV6 [[deprecated("Remove in v4.1. Use zeek::L3_IPV6")]] = zeek::L3_IPV6;
-constexpr auto L3_ARP [[deprecated("Remove in v4.1. Use zeek::L3_ARP")]] = zeek::L3_ARP;

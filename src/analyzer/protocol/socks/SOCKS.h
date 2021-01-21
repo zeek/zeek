@@ -38,9 +38,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::socks
-
-namespace analyzer::socks {
-
-using SOCKS_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::socks::SOCKS_Analyzer.")]] = zeek::analyzer::socks::SOCKS_Analyzer;
-
-} // namespace analyzer::socks

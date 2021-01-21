@@ -238,9 +238,3 @@ private:
 };
 
 } // namespace zeek::file_analysis::detail
-
-namespace file_analysis {
-
-using AnalyzerSet [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::AnalyzerSet.")]] = zeek::file_analysis::detail::AnalyzerSet;
-
-} // namespace file_analysis

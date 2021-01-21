@@ -90,9 +90,3 @@ private:
 };
 
 } // namespace zeek::input::reader::detail
-
-namespace input::reader {
-
-using Raw [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::Raw.")]] = zeek::input::reader::detail::Raw;
-
-} // namespace input::reader

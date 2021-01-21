@@ -33,9 +33,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::xmpp
-
-namespace analyzer::xmpp {
-
-using XMPP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::xmpp::XMPP_Analyzer.")]] = zeek::analyzer::xmpp::XMPP_Analyzer;
-
-} // namespace analyzer::xmpp

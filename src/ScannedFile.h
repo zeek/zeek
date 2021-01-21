@@ -37,7 +37,3 @@ extern std::list<ScannedFile> files_scanned;
 extern std::vector<std::string> sig_files;
 
 } // namespace zeek::detail
-
-using ScannedFile [[deprecated("Remove in v4.1. Use zeek::detail::ScannedFile.")]] = zeek::detail::ScannedFile;
-extern std::list<zeek::detail::ScannedFile>& files_scanned [[deprecated("Remove in v4.1. Use zeek::detail::files_scanned.")]];
-extern std::vector<std::string>& sig_files [[deprecated("Remove in v4.1. Use zeek::detail::sig_files.")]];

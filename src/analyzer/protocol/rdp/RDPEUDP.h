@@ -24,9 +24,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::rdpeudp
-
-namespace analyzer::rdpeudp {
-
-using RDP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::rdpeudp::RDP_Analyzer.")]] = zeek::analyzer::rdpeudp::RDP_Analyzer;
-
-} // namespace analyzer::rdpeudp

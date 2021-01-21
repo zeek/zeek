@@ -80,21 +80,3 @@ DbgCmdFn dbg_cmd_list;
 DbgCmdFn dbg_cmd_trace;
 
 } // namespace zeek::detail
-
-using DebugCmdInfo [[deprecated("Remove in v4.1. Use zeek::detail::DebugCmdInfo.")]] = zeek::detail::DebugCmdInfo;
-constexpr auto init_global_dbg_constants [[deprecated("Remove in v4.1. Use zeek::detail::init_global_dbg_constants.")]] = zeek::detail::init_global_dbg_constants;
-constexpr auto get_debug_cmd_info [[deprecated("Remove in v4.1. Use zeek::detail::get_debug_cmd_info.")]] = zeek::detail::get_debug_cmd_info;
-constexpr auto find_all_matching_cmds [[deprecated("Remove in v4.1. Use zeek::detail::find_all_matching_cmds.")]] = zeek::detail::find_all_matching_cmds;
-
-constexpr auto dbg_cmd_backtrace [[deprecated("Remove in v4.1. Use zeek::detail::dbg_cmd_backtrace")]] = zeek::detail::dbg_cmd_backtrace;
-constexpr auto dbg_cmd_frame [[deprecated("Remove in v4.1. Use zeek::detail::dbg_cmd_frame")]] = zeek::detail::dbg_cmd_frame;
-constexpr auto dbg_cmd_help [[deprecated("Remove in v4.1. Use zeek::detail::dbg_cmd_help")]] = zeek::detail::dbg_cmd_help;
-constexpr auto dbg_cmd_break [[deprecated("Remove in v4.1. Use zeek::detail::dbg_cmd_break")]] = zeek::detail::dbg_cmd_break;
-constexpr auto dbg_cmd_break_condition [[deprecated("Remove in v4.1. Use zeek::detail::dbg_cmd_break_condition")]] = zeek::detail::dbg_cmd_break_condition;
-constexpr auto dbg_cmd_break_set_state [[deprecated("Remove in v4.1. Use zeek::detail::dbg_cmd_break_set_state")]] = zeek::detail::dbg_cmd_break_set_state;
-constexpr auto dbg_cmd_print [[deprecated("Remove in v4.1. Use zeek::detail::dbg_cmd_print")]] = zeek::detail::dbg_cmd_print;
-constexpr auto dbg_cmd_info [[deprecated("Remove in v4.1. Use zeek::detail::dbg_cmd_info")]] = zeek::detail::dbg_cmd_info;
-constexpr auto dbg_cmd_list [[deprecated("Remove in v4.1. Use zeek::detail::dbg_cmd_list")]] = zeek::detail::dbg_cmd_list;
-constexpr auto dbg_cmd_trace [[deprecated("Remove in v4.1. Use zeek::detail::dbg_cmd_trace")]] = zeek::detail::dbg_cmd_trace;
-
-extern zeek::PQueue<zeek::detail::DebugCmdInfo>& g_DebugCmdInfos [[deprecated("Remove in v4.1. Use zeek::detail::g_DebugCmdInfos.")]];

@@ -26,9 +26,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::sip
-
-namespace analyzer::SIP {
-
-using SIP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::sip::SIP_Analyzer.")]] = zeek::analyzer::sip::SIP_Analyzer;
-
-} // namespace analyzer::SIP

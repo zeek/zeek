@@ -439,12 +439,3 @@ private:
 extern Broker::Manager* broker_mgr;
 
 } // namespace zeek
-
-extern zeek::Broker::Manager*& broker_mgr [[deprecated("Remove in v4.1. Use zeek::broker_mgr.")]];
-
-namespace bro_broker {
-
-using Stats [[deprecated("Remove in v4.1. Use zeek::Broker::Stats.")]] = zeek::Broker::Stats;
-using Manager [[deprecated("Remove in v4.1. Use zeek::Broker::Manager.")]] = zeek::Broker::Manager;
-
-} // namespace bro_broker

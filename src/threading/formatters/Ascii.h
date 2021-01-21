@@ -60,9 +60,3 @@ private:
 };
 
 } // namespace zeek::threading::formatter
-
-namespace threading::formatter {
-
-using Ascii [[deprecated("Remove in v4.1. Use zeek::threading::formatter::Ascii.")]] = zeek::threading::formatter::Ascii;
-
-} // namespace threading::formatter

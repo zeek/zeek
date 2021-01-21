@@ -62,8 +62,7 @@ uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
 Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t,
-                       const ConnID* id, uint32_t flow, const Packet* pkt,
-                       const EncapsulationStack* arg_encap)
+                       const ConnID* id, uint32_t flow, const Packet* pkt)
 	{
 	sessions = s;
 	key = k;
@@ -117,21 +116,8 @@ Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t,
 	++current_connections;
 	++total_connections;
 
-	if ( arg_encap )
-		encapsulation = std::make_unique<EncapsulationStack>(*arg_encap);
-	else
-		encapsulation = nullptr;
+	encapsulation = pkt->encap;
 	}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t,
-                       const ConnID* id, uint32_t flow, const Packet* pkt)
-	: Connection(s, k, t, id, flow, pkt, pkt->encap.get())
-	{
-	}
-#pragma GCC diagnostic pop
-
 
 Connection::~Connection()
 	{
@@ -342,11 +328,6 @@ void Connection::StatusUpdateTimer(double t)
 	          detail::TIMER_CONN_STATUS_UPDATE);
 	}
 
-RecordVal* Connection::BuildConnVal()
-	{
-	return ConnVal()->Ref()->AsRecordVal();
-	}
-
 const RecordValPtr& Connection::ConnVal()
 	{
 	if ( ! conn_val )
@@ -475,55 +456,6 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const ch
 		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), ConnVal());
 	else
 		EnqueueEvent(f, analyzer, ConnVal());
-	}
-
-void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2)
-	{
-	if ( ! f )
-		{
-		Unref(v1);
-		Unref(v2);
-		return;
-		}
-
-	if ( v2 )
-		EnqueueEvent(f, analyzer,
-		             ConnVal(),
-		             IntrusivePtr{AdoptRef{}, v1},
-		             IntrusivePtr{AdoptRef{}, v2});
-	else
-		EnqueueEvent(f, analyzer,
-		             ConnVal(),
-		             IntrusivePtr{AdoptRef{}, v1});
-	}
-
-void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, ValPList vl)
-	{
-	auto args = val_list_to_args(vl);
-
-	if ( ! f )
-		// This may actually happen if there is no local handler
-		// and a previously existing remote handler went away.
-		return;
-
-	// "this" is passed as a cookie for the event
-	event_mgr.Enqueue(f, std::move(args), util::detail::SOURCE_LOCAL, a ? a->GetID() : 0, this);
-	}
-
-void Connection::ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* a, ValPList vl)
-	{
-	// "this" is passed as a cookie for the event
-	event_mgr.Enqueue(f, val_list_to_args(vl), util::detail::SOURCE_LOCAL,
-	                        a ? a->GetID() : 0, this);
-	}
-
-void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, ValPList* vl)
-	{
-	auto args = val_list_to_args(*vl);
-	delete vl;
-
-	if ( f )
-		EnqueueEvent(f, a, std::move(args));
 	}
 
 void Connection::EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* a,

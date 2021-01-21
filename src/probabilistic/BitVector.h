@@ -357,9 +357,3 @@ private:
 };
 
 } // namespace zeek::probabilistic::detail
-
-namespace probabilistic {
-
-using BitVector [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::BitVector.")]] = zeek::probabilistic::detail::BitVector;
-
-} // namespace probabilistic

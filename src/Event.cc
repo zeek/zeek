@@ -94,34 +94,6 @@ EventMgr::~EventMgr()
 	Unref(src_val);
 	}
 
-void EventMgr::QueueEventFast(const EventHandlerPtr &h, ValPList vl,
-                              util::detail::SourceID src, analyzer::ID aid, detail::TimerMgr* mgr,
-                              Obj* obj)
-	{
-	QueueEvent(new Event(h, val_list_to_args(vl), src, aid, obj));
-	}
-
-void EventMgr::QueueEvent(const EventHandlerPtr &h, ValPList vl,
-                          util::detail::SourceID src, analyzer::ID aid,
-                          detail::TimerMgr* mgr, Obj* obj)
-	{
-	auto args = val_list_to_args(vl);
-
-	if ( h )
-		Enqueue(h, std::move(args), src, aid, obj);
-	}
-
-void EventMgr::QueueEvent(const EventHandlerPtr &h, ValPList* vl,
-                          util::detail::SourceID src, analyzer::ID aid,
-                          detail::TimerMgr* mgr, Obj* obj)
-	{
-	auto args = val_list_to_args(*vl);
-	delete vl;
-
-	if ( h )
-		Enqueue(h, std::move(args), src, aid, obj);
-	}
-
 void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl,
                        util::detail::SourceID src,
                        analyzer::ID aid, Obj* obj)

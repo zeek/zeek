@@ -337,8 +337,6 @@ using name_list = PList<char>;
 
 } // namespace zeek
 
-using ListOrder [[deprecated("Remove in v4.1. Use zeek::ListOrder instead.")]] = zeek::ListOrder;
-
 // Macro to visit each list element in turn.
 #define loop_over_list(list, iterator)  \
 	int iterator;	\

@@ -213,8 +213,3 @@ void obj_delete_func(void* v)
 	}
 
 } // namespace zeek
-
-void print(const zeek::Obj* obj)
-	{
-	obj->Print();
-	}

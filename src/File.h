@@ -45,9 +45,6 @@ public:
 
 	void SetBuf(bool buffered);	// false=line buffered, true=fully buffered
 
-	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	Type* FType() const	{ return t.get(); }
-
 	const TypePtr& GetType() const
 		{ return t; }
 
@@ -76,9 +73,6 @@ public:
 
 	// Get the file with the given name, opening it if it doesn't yet exist.
 	static FilePtr Get(const char* name);
-	[[deprecated("Remove in v4.1.  Use File::Get().")]]
-	static File* GetFile(const char* name)
-		{ return Get(name).release(); }
 
 	void EnableRawOutput()		{ raw_output = true; }
 	bool IsRawOutput() const	{ return raw_output; }
@@ -125,7 +119,3 @@ private:
 };
 
 } // namespace zeek
-
-using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
-using BroFile [[deprecated("Remove in v4.1. Use zeek::File instead.")]] = zeek::File;
-using BroFilePtr [[deprecated("Remove in v4.1. Use zeek::FilePtr instead.")]] = zeek::FilePtr;

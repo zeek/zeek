@@ -84,10 +84,6 @@ public:
 	 */
 	RecordValPtr ToVal() const;
 
-	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	RecordVal* GetRecordVal() const
-		{ return ToVal().release(); }
-
 	friend bool operator==(const EncapsulatingConn& ec1,
 	                       const EncapsulatingConn& ec2)
 		{
@@ -210,10 +206,6 @@ public:
 
 		return vv;
 		}
-
-	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	VectorVal* GetVectorVal() const
-		{ return ToVal().release(); }
 
 	friend bool operator==(const EncapsulationStack& e1,
 	                       const EncapsulationStack& e2);

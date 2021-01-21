@@ -121,12 +121,3 @@ private:
 };
 
 } // namespace zeek::zeekygen::detail
-
-namespace zeekygen {
-
-using ScriptInfo [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::ScriptInfo.")]] = zeek::zeekygen::detail::ScriptInfo;
-using id_info_set [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::id_info_set.")]] = zeek::zeekygen::detail::id_info_set;
-using id_info_list [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::id_info_list.")]] = zeek::zeekygen::detail::id_info_list;
-using IdInfoComp [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::IdInfoComp.")]] = zeek::zeekygen::detail::IdInfoComp;
-
-} // namespace zeekygen

@@ -57,5 +57,3 @@ protected:
 };
 
 } // namespace zeek::iosource::detail
-
-using BPF_Program [[deprecated("Remove in v4.1. Use zeek::iosource::detail::BPF_Program.")]] = zeek::iosource::detail::BPF_Program;

@@ -101,10 +101,6 @@ public:
 	const RecordValPtr& GetArgs() const
 		{ return args; }
 
-	[[deprecated("Remove in v4.1.  Use GetArgs().")]]
-	RecordVal* Args() const
-		{ return args.get(); }
-
 	/**
 	 * @return the file_analysis::File object to which the analyzer is attached.
 	 */
@@ -156,9 +152,6 @@ protected:
 	 */
 	Analyzer(file_analysis::Tag arg_tag, RecordValPtr arg_args, File* arg_file);
 
-	[[deprecated("Remove in v4.1..  Construct using IntrusivePtr instead.")]]
-	Analyzer(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file);
-
 	/**
 	 * Constructor.  Only derived classes are meant to be instantiated.
 	 * As this version of the constructor does not receive a name or tag,
@@ -169,9 +162,6 @@ protected:
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
 	Analyzer(RecordValPtr arg_args, File* arg_file);
-
-	[[deprecated("Remove in v4.1..  Construct using IntrusivePtr instead.")]]
-	Analyzer(RecordVal* arg_args, File* arg_file);
 
 private:
 
@@ -186,10 +176,3 @@ private:
 };
 
 } // namespace zeek::file_analysis
-
-namespace file_analysis {
-
-using ID [[deprecated("Remove in v4.1. Use zeek::file_analysis::ID.")]] = zeek::file_analysis::ID;
-using Analyzer [[deprecated("Remove in v4.1. Use zeek::file_analysis::Analyzer.")]] = zeek::file_analysis::Analyzer;
-
-} // namespace file_analysis

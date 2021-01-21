@@ -203,9 +203,6 @@ void File::SetTimeoutInterval(double interval)
 	val->Assign(timeout_interval_idx, make_intrusive<IntervalVal>(interval));
 	}
 
-bool File::SetExtractionLimit(RecordVal* args, uint64_t bytes)
-	{ return SetExtractionLimit({NewRef{}, args}, bytes); }
-
 bool File::SetExtractionLimit(RecordValPtr args, uint64_t bytes)
 	{
 	Analyzer* a = analyzers.Find(file_mgr->GetComponentTag("EXTRACT"),
@@ -253,9 +250,6 @@ void File::ScheduleInactivityTimer() const
 	zeek::detail::timer_mgr->Add(new detail::FileTimer(run_state::network_time, id, GetTimeoutInterval()));
 	}
 
-bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
-	{ return AddAnalyzer(tag, {NewRef{}, args}); }
-
 bool File::AddAnalyzer(file_analysis::Tag tag, RecordValPtr args)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing addition of %s analyzer",
@@ -266,9 +260,6 @@ bool File::AddAnalyzer(file_analysis::Tag tag, RecordValPtr args)
 
 	return analyzers.QueueAdd(tag, std::move(args)) != nullptr;
 	}
-
-bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
-	{ return RemoveAnalyzer(tag, {NewRef{}, args}); }
 
 bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordValPtr args)
 	{
@@ -619,17 +610,6 @@ void File::FileEvent(EventHandlerPtr h)
 		return;
 
 	FileEvent(h, Args{val});
-	}
-
-void File::FileEvent(EventHandlerPtr h, ValPList* vl)
-	{
-	FileEvent(h, val_list_to_args(*vl));
-	delete vl;
-	}
-
-void File::FileEvent(EventHandlerPtr h, ValPList vl)
-	{
-	FileEvent(h, val_list_to_args(vl));
 	}
 
 void File::FileEvent(EventHandlerPtr h, Args args)

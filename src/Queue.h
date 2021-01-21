@@ -200,6 +200,3 @@ template<typename T>
 using PQueue = Queue<T*>;
 
 } // namespace zeek
-
-template<typename T> using Queue [[deprecated("Remove in v4.1. Use zeek::Queue instead.")]] = zeek::Queue<T>;
-template<typename T> using PQueue [[deprecated("Remove in v4.1. Use zeek::Queue instead.")]] = zeek::PQueue<T>;

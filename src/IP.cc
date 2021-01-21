@@ -303,11 +303,6 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 RecordValPtr IPv6_Hdr::ToVal() const
 	{ return ToVal(nullptr); }
 
-RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
-	{
-	return ToVal({AdoptRef{}, chain}).release();
-	}
-
 IPAddr IP_Hdr::IPHeaderSrcAddr() const
 	{
 	return ip4 ? IPAddr(ip4->ip_src) : IPAddr(ip6->ip6_src);
@@ -353,20 +348,10 @@ RecordValPtr IP_Hdr::ToIPHdrVal() const
 	return rval;
 	}
 
-RecordVal* IP_Hdr::BuildIPHdrVal() const
-	{
-	return ToIPHdrVal().release();
-	}
-
 RecordValPtr IP_Hdr::ToPktHdrVal() const
 	{
 	static auto pkt_hdr_type = id::find_type<RecordType>("pkt_hdr");
 	return ToPktHdrVal(make_intrusive<RecordVal>(pkt_hdr_type), 0);
-	}
-
-RecordVal* IP_Hdr::BuildPktHdrVal() const
-	{
-	return ToPktHdrVal().release();
 	}
 
 RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const
@@ -450,11 +435,6 @@ RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const
 	}
 
 	return pkt_hdr;
-	}
-
-RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
-	{
-	return ToPktHdrVal({AdoptRef{}, pkt_hdr}, sindex).release();
 	}
 
 static inline bool isIPv6ExtHeader(uint8_t type)
@@ -730,11 +710,6 @@ VectorValPtr IPv6_Hdr_Chain::ToVal() const
 		}
 
 	return rval;
-	}
-
-VectorVal* IPv6_Hdr_Chain::BuildVal() const
-	{
-	return ToVal().release();
 	}
 
 IP_Hdr* IP_Hdr::Copy() const

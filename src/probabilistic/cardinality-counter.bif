@@ -4,7 +4,7 @@
 #include "zeek/probabilistic/CardinalityCounter.h"
 #include "zeek/OpaqueVal.h"
 
-using namespace probabilistic;
+using namespace zeek::probabilistic;
 %%}
 
 module GLOBAL;

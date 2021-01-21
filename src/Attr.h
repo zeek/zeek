@@ -65,9 +65,6 @@ public:
 
 	AttrTag Tag() const	{ return tag; }
 
-	[[deprecated("Remove in v4.1.  Use GetExpr().")]]
-	Expr* AttrExpr() const	{ return expr.get(); }
-
 	const ExprPtr& GetExpr() const
 		{ return expr; }
 
@@ -106,9 +103,6 @@ protected:
 // Manages a collection of attributes.
 class Attributes final : public Obj {
 public:
-	[[deprecated("Remove in v4.1.  Construct using IntrusivePtrs instead.")]]
-	Attributes(AttrPList* a, TypePtr t, bool in_record, bool is_global);
-
 	Attributes(std::vector<AttrPtr> a, TypePtr t,
 	           bool in_record, bool is_global);
 	Attributes(TypePtr t, bool in_record, bool is_global);
@@ -119,22 +113,12 @@ public:
 
 	void AddAttrs(const AttributesPtr& a, bool is_redef = false);
 
-	[[deprecated("Remove in v4.1. Pass IntrusivePtr instead.")]]
-	void AddAttrs(Attributes* a, bool is_redef = false);	// Unref's 'a' when done
-
-	[[deprecated("Remove in v4.1. Use Find().")]]
-	Attr* FindAttr(AttrTag t) const;
-
 	const AttrPtr& Find(AttrTag t) const;
 
 	void RemoveAttr(AttrTag t);
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
-
-	[[deprecated("Remove in v4.1. Use GetAttrs().")]]
-	const AttrPList* Attrs() const
-		{ return &attrs_list; }
 
 	const std::vector<AttrPtr>& GetAttrs() const
 		{ return attrs; }
@@ -147,55 +131,9 @@ protected:
 	TypePtr type;
 	std::vector<AttrPtr> attrs;
 
-	// Remove in v4.1. This is used by Attrs(), which is deprecated.
-	AttrPList attrs_list;
 	bool in_record;
 	bool global_var;
 };
 
 } // namespace detail
 } // namespace zeek
-
-using Attr [[deprecated("Remove in v4.1. Use zeek::detail::Attr instead.")]] = zeek::detail::Attr;
-using Attributes [[deprecated("Remove in v4.1. Use zeek::detail::Attr instead.")]] = zeek::detail::Attributes;
-
-using AttrTag [[deprecated("Remove in v4.1. Use zeek::detail::AttrTag instead.")]] = zeek::detail::AttrTag;
-
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_OPTIONAL instead.")]]
-constexpr auto ATTR_OPTIONAL = zeek::detail::ATTR_OPTIONAL;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_DEFAULT instead.")]]
-constexpr auto ATTR_DEFAULT = zeek::detail::ATTR_DEFAULT;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_REDEF instead.")]]
-constexpr auto ATTR_REDEF = zeek::detail::ATTR_REDEF;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_ADD_FUNC instead.")]]
-constexpr auto ATTR_ADD_FUNC = zeek::detail::ATTR_ADD_FUNC;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_DEL_FUNC instead.")]]
-constexpr auto ATTR_DEL_FUNC = zeek::detail::ATTR_DEL_FUNC;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_EXPIRE_FUNC instead.")]]
-constexpr auto ATTR_EXPIRE_FUNC = zeek::detail::ATTR_EXPIRE_FUNC;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_EXPIRE_READ instead.")]]
-constexpr auto ATTR_EXPIRE_READ = zeek::detail::ATTR_EXPIRE_READ;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_EXPIRE_WRITE instead.")]]
-constexpr auto ATTR_EXPIRE_WRITE = zeek::detail::ATTR_EXPIRE_WRITE;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_EXPIRE_CREATE instead.")]]
-constexpr auto ATTR_EXPIRE_CREATE = zeek::detail::ATTR_EXPIRE_CREATE;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_RAW_OUTPUT instead.")]]
-constexpr auto ATTR_RAW_OUTPUT = zeek::detail::ATTR_RAW_OUTPUT;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_PRIORITY instead.")]]
-constexpr auto ATTR_PRIORITY = zeek::detail::ATTR_PRIORITY;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_GROUP instead.")]]
-constexpr auto ATTR_GROUP = zeek::detail::ATTR_GROUP;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_LOG instead.")]]
-constexpr auto ATTR_LOG = zeek::detail::ATTR_LOG;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_ERROR_HANDLER instead.")]]
-constexpr auto ATTR_ERROR_HANDLER = zeek::detail::ATTR_ERROR_HANDLER;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_TYPE_COLUMN instead.")]]
-constexpr auto ATTR_TYPE_COLUMN = zeek::detail::ATTR_TYPE_COLUMN;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_TRACKED instead.")]]
-constexpr auto ATTR_TRACKED = zeek::detail::ATTR_TRACKED;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_ON_CHANGE instead.")]]
-constexpr auto ATTR_ON_CHANGE = zeek::detail::ATTR_ON_CHANGE;
-[[deprecated("Remove in v4.1. Use zeek::detail::ATTR_DEPRECATED instead.")]]
-constexpr auto ATTR_DEPRECATED = zeek::detail::ATTR_DEPRECATED;
-[[deprecated("Remove in v4.1. Use zeek::detail::NUM_ATTRS instead.")]]
-constexpr auto NUM_ATTRS = zeek::detail::NUM_ATTRS;

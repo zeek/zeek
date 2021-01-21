@@ -82,11 +82,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::stepping_stone
-
-namespace analyzer::stepping_stone {
-
-using SteppingStoneEndpoint [[deprecated("Remove in v4.1. Use zeek::analyzer::stepping_stone::SteppingStoneEndpoint.")]] = zeek::analyzer::stepping_stone::SteppingStoneEndpoint;
-using SteppingStone_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::stepping_stone::SteppingStone_Analyzer.")]] = zeek::analyzer::stepping_stone::SteppingStone_Analyzer;
-using SteppingStoneManager [[deprecated("Remove in v4.1. Use zeek::analyzer::stepping_stone::SteppingStoneManager.")]] = zeek::analyzer::stepping_stone::SteppingStoneManager;
-
-} // namespace analyzer::stepping_stone

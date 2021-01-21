@@ -16,9 +16,3 @@ public:
 };
 
 } // namespace zeek::analyzer::login
-
-namespace analyzer::login {
-
-using Telnet_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::login::Telnet_Analyzer.")]] = zeek::analyzer::login::Telnet_Analyzer;
-
-} // namespace analyzer::login

@@ -45,9 +45,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::ssh
-
-namespace analyzer::SSH {
-
-using SSH_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ssh::SSH_Analyzer.")]] = zeek::analyzer::ssh::SSH_Analyzer;
-
-} // namespace analyzer::SSH

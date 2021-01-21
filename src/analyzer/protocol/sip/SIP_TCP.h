@@ -32,9 +32,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::sip_tcp
-
-namespace analyzer::sip_tcp {
-
-using SIP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::sip_tcp::SIP_Analyzer.")]] = zeek::analyzer::sip_tcp::SIP_Analyzer;
-
-} // namespace analyzer::sip_tcp

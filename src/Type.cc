@@ -240,16 +240,6 @@ const TypePtr& Type::Yield() const
 	return Type::nil;
 	}
 
-bool Type::HasField(const char* /* field */) const
-	{
-	return false;
-	}
-
-Type* Type::FieldType(const char* /* field */) const
-	{
-	return nullptr;
-	}
-
 void Type::Describe(ODesc* d) const
 	{
 	if ( d->IsBinary() )
@@ -292,7 +282,6 @@ void TypeList::Append(TypePtr t)
 	if ( pure_type && ! same_type(t, pure_type) )
 		reporter->InternalError("pure type-list violation");
 
-	types_list.push_back(t.get());
 	types.emplace_back(std::move(t));
 	}
 
@@ -301,7 +290,6 @@ void TypeList::AppendEvenIfNotPure(TypePtr t)
 	if ( pure_type && ! same_type(t, pure_type) )
 		pure_type = nullptr;
 
-	types_list.push_back(t.get());
 	types.emplace_back(std::move(t));
 	}
 
@@ -1410,13 +1398,6 @@ const EnumValPtr& EnumType::GetEnumVal(bro_int_t i)
 	return it->second;
 	}
 
-EnumVal* EnumType::GetVal(bro_int_t i)
-	{
-	auto rval = GetEnumVal(i).get();
-	zeek::Ref(rval);
-	return rval;
-	}
-
 void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	d->Add(":zeek:type:`enum`");
@@ -1606,10 +1587,6 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 	case TYPE_BOOL:
 	case TYPE_INT:
 	case TYPE_COUNT:
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	case TYPE_COUNTER:
-#pragma GCC diagnostic pop
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
@@ -1814,10 +1791,6 @@ bool is_assignable(TypeTag t)
 	case TYPE_BOOL:
 	case TYPE_INT:
 	case TYPE_COUNT:
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	case TYPE_COUNTER:
-#pragma GCC diagnostic pop
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:

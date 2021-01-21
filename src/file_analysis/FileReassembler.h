@@ -5,7 +5,6 @@
 #include "zeek/Reassem.h"
 
 namespace zeek { class File; }
-using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
@@ -59,9 +58,3 @@ protected:
 };
 
 } // namespace zeek::file_analysis
-
-namespace file_analysis {
-
-using FileReassembler [[deprecated("Remove in v4.1. Use zeek::file_analysis::FileReassembler.")]] = zeek::file_analysis::FileReassembler;
-
-} // namespace file_analysis

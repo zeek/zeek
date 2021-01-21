@@ -157,9 +157,3 @@ private:
 };
 
 } // namespace zeek::probabilistic::detail
-
-namespace probabilistic {
-
-using CounterVector [[deprecated("Remove in v4.1. Use zeek::probabilisitc::detail::CounterVector.")]] = zeek::probabilistic::detail::CounterVector;
-
-} // namespace probabilistic

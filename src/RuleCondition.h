@@ -124,10 +124,3 @@ private:
 };
 
 } // namespace zeek::detail
-
-using RuleCondition [[deprecated("Remove in v4.1. Use zeek::detail::RuleCondition.")]] = zeek::detail::RuleCondition;
-using RuleConditionTCPState [[deprecated("Remove in v4.1. Use zeek::detail::RuleConditionTCPState.")]] = zeek::detail::RuleConditionTCPState;
-using RuleConditionIPOptions [[deprecated("Remove in v4.1. Use zeek::detail::RuleConditionIPOptions.")]] = zeek::detail::RuleConditionIPOptions;
-using RuleConditionSameIP [[deprecated("Remove in v4.1. Use zeek::detail::RuleConditionSameIP.")]] = zeek::detail::RuleConditionSameIP;
-using RuleConditionPayloadSize [[deprecated("Remove in v4.1. Use zeek::detail::RuleConditionPayloadSize.")]] = zeek::detail::RuleConditionPayloadSize;
-using RuleConditionEval [[deprecated("Remove in v4.1. Use zeek::detail::RuleConditionEval.")]] = zeek::detail::RuleConditionEval;

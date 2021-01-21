@@ -29,9 +29,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::mqtt
-
-namespace analyzer::MQTT {
-
-using MQTT_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::mqtt::MQTT_Analyzer.")]] = zeek::analyzer::mqtt::MQTT_Analyzer;
-
-} // namespace analyzer::mqtt

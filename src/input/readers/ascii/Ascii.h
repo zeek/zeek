@@ -86,10 +86,3 @@ private:
 };
 
 } // namespace zeek::input::reader::detail
-
-namespace input::reader {
-
-using FieldMapping [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::FieldMapping.")]] = zeek::input::reader::detail::FieldMapping;
-using Ascii [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::Ascii.")]] = zeek::input::reader::detail::Ascii;
-
-} // namespace input::reader

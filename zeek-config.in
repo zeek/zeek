@@ -10,8 +10,7 @@ plugin_dir=@BRO_PLUGIN_INSTALL_PATH@
 config_dir=@ZEEK_ETC_INSTALL_DIR@
 python_dir=@PY_MOD_INSTALL_DIR@
 cmake_dir=@CMAKE_INSTALL_PREFIX@/share/zeek/cmake
-# Remove in v4.1: don't need @prefix@/include/zeek, just @prefix@/include
-include_dir=@CMAKE_INSTALL_PREFIX@/include:@CMAKE_INSTALL_PREFIX@/include/zeek
+include_dir=@CMAKE_INSTALL_PREFIX@/include
 zeekpath=@DEFAULT_ZEEKPATH@
 zeek_dist=@ZEEK_DIST@
 binpac_root=@ZEEK_CONFIG_BINPAC_ROOT_DIR@

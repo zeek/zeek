@@ -96,10 +96,6 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 		return TYPE_INTERNAL_INT;
 
 	case TYPE_COUNT:
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	case TYPE_COUNTER:
-#pragma GCC diagnostic pop
 	case TYPE_PORT:
 		return TYPE_INTERNAL_UNSIGNED;
 
@@ -205,22 +201,6 @@ public:
 	// type.  Returns nil if this is not an index type.
 	virtual const TypePtr& Yield() const;
 
-	[[deprecated("Remove in v4.1.  Use Yield() instead.")]]
-	virtual Type* YieldType()
-		{ return Yield().get(); }
-	[[deprecated("Remove in v4.1.  Use Yield() instead.")]]
-	virtual const Type* YieldType() const
-		{ return Yield().get(); }
-
-	// Returns true if this type is a record and contains the
-	// given field, false otherwise.
-	[[deprecated("Remove in v4.1.  Use RecordType::HasField() directly.")]]
-	virtual bool HasField(const char* field) const;
-
-	// Returns the type of the given field, or nil if no such field.
-	[[deprecated("Remove in v4.1.  Use RecordType::GetFieldType() directly.")]]
-	virtual Type* FieldType(const char* field) const;
-
 	const TypeList* AsTypeList() const;
 	TypeList* AsTypeList();
 
@@ -302,15 +282,6 @@ public:
 		return it == Type::type_aliases.end() ? empty : it->second;
 		}
 
-	[[deprecated("Remove in v4.1. Use zeek::Type::Aliases() instead.")]]
-	static std::set<Type*> GetAliases(const std::string& type_name)
-		{
-		std::set<Type*> rval;
-		for ( const auto& t : Type::type_aliases[type_name] )
-			rval.emplace(t.get());
-		return rval;
-		}
-
 	/**
 	 * Registers a new type alias.
 	 * @param type_name  the name of the type to register a new alias for.
@@ -325,10 +296,6 @@ public:
 			it = Type::type_aliases.emplace(std::string{type_name}, TypePtrSet{}).first;
 		return it->second.emplace(std::move(type)).second;
 		}
-
-	[[deprecated("Remove in v4.1. Use zeek::Type::RegisterAlias().")]]
-	static void AddAlias(const std::string &type_name, Type* type)
-		{ Type::type_aliases[type_name].insert({NewRef{}, type}); }
 
 protected:
 	Type() = default;
@@ -354,10 +321,6 @@ public:
 
 	~TypeList() override = default;
 
-	[[deprecated("Remove in v4.1. Use GetTypes() instead.")]]
-	const TypePList* Types() const
-		{ return &types_list; }
-
 	const std::vector<TypePtr>& GetTypes() const
 		{ return types; }
 
@@ -367,11 +330,6 @@ public:
 	// is not pure or is empty.
 	const TypePtr& GetPureType() const
 		{ return pure_type; }
-
-	[[deprecated("Remove in v4.1.  Use GetPureType() instead.")]]
-	Type* PureType()		{ return pure_type.get(); }
-	[[deprecated("Remove in v4.1.  Use GetPureType() instead.")]]
-	const Type* PureType() const	{ return pure_type.get(); }
 
 	// True if all of the types match t, false otherwise.  If
 	// is_init is true, then the matching is done in the context
@@ -390,9 +348,6 @@ public:
 protected:
 	TypePtr pure_type;
 	std::vector<TypePtr> types;
-
-	// Remove in v4.1. This is used by Types(), which is deprecated.
-	TypePList types_list;
 };
 
 class IndexType : public Type {
@@ -402,18 +357,6 @@ public:
 
 	const TypeListPtr& GetIndices() const
 		{ return indices; }
-
-	[[deprecated("Remove in v4.1. Use GetIndices().")]]
-	TypeList* Indices() const		{ return indices.get(); }
-
-	[[deprecated("Remove in v4.1. Use GetIndexTypes().")]]
-	const TypePList* IndexTypes() const
-		{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		return indices->Types();
-#pragma GCC diagnostic pop
-		}
 
 	const std::vector<TypePtr>& GetIndexTypes() const
 		{ return indices->GetTypes(); }
@@ -459,9 +402,6 @@ public:
 
 	TypePtr ShallowClone() override;
 
-	[[deprecated("Remove in v4.1.  Use Elements() instead.")]]
-	detail::ListExpr* SetElements() const	{ return elements.get(); }
-
 	const detail::ListExprPtr& Elements() const
 		{ return elements; }
 
@@ -492,9 +432,6 @@ public:
 
 	TypePtr ShallowClone() override;
 
-	[[deprecated("Remove in v4.1.  Use Params().")]]
-	RecordType* Args() const	{ return args.get(); }
-
 	const RecordTypePtr& Params() const
 		{ return args; }
 
@@ -513,9 +450,6 @@ public:
 	bool CheckArgs(const TypePList* args, bool is_init = false) const;
 	bool CheckArgs(const std::vector<TypePtr>& args,
 	               bool is_init = false) const;
-
-	[[deprecated("Remove in v4.1.  Use ParamList().")]]
-	TypeList* ArgTypes() const	{ return arg_types.get(); }
 
 	const TypeListPtr& ParamList() const
 		{ return arg_types; }
@@ -589,11 +523,6 @@ public:
 	IntrusivePtr<T> GetType() const
 		{ return cast_intrusive<T>(type); }
 
-	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	zeek::Type* Type()			{ return type.get(); }
-	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	const zeek::Type* Type() const	{ return type.get(); }
-
 protected:
 	TypePtr type;
 };
@@ -624,18 +553,7 @@ public:
 
 	~RecordType() override;
 
-	bool HasField(const char* field) const override;
-
-	[[deprecated("Remove in v4.1.  Use GetFieldType() instead (note it doesn't check for invalid names).")]]
-	Type* FieldType(const char* field) const override
-		{
-		auto offset = FieldOffset(field);
-		return offset >= 0 ? GetFieldType(offset).get() : nullptr;
-		}
-
-	[[deprecated("Remove in v4.1.  Use GetFieldType() instead.")]]
-	Type* FieldType(int field) const
-		{ return GetFieldType(field).get(); }
+	bool HasField(const char* field) const;
 
 	/**
 	 * Looks up a field by name and returns its type.  No check for invalid
@@ -788,9 +706,6 @@ public:
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 	const EnumValPtr& GetEnumVal(bro_int_t i);
-
-	[[deprecated("Remove in v4.1. Use GetEnumVal() instead.")]]
-	EnumVal* GetVal(bro_int_t i);
 
 protected:
 	void AddNameInternal(const std::string& module_name,
@@ -952,12 +867,6 @@ inline const TypePtr& error_type()       { return base_type(TYPE_ERROR); }
 
 } // namespace zeek
 
-// Returns the basic (non-parameterized) type with the given type.
-// The reference count of the type is not increased.
-[[deprecated("Remove in v4.1.  Use zeek::base_type() instead")]]
-inline zeek::Type* base_type_no_ref(zeek::TypeTag tag)
-	{ return zeek::base_type(tag).get(); }
-
 extern zeek::OpaqueTypePtr md5_type;
 extern zeek::OpaqueTypePtr sha1_type;
 extern zeek::OpaqueTypePtr sha256_type;
@@ -968,128 +877,3 @@ extern zeek::OpaqueTypePtr bloomfilter_type;
 extern zeek::OpaqueTypePtr x509_opaque_type;
 extern zeek::OpaqueTypePtr ocsp_resp_opaque_type;
 extern zeek::OpaqueTypePtr paraglob_type;
-
-using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
-using TypeList [[deprecated("Remove in v4.1. Use zeek::TypeList instead.")]] = zeek::TypeList;
-using IndexType [[deprecated("Remove in v4.1. Use zeek::IndexType instead.")]] = zeek::IndexType;
-using TableType [[deprecated("Remove in v4.1. Use zeek::TableType instead.")]] = zeek::TableType;
-using SetType [[deprecated("Remove in v4.1. Use zeek::SetType instead.")]] = zeek::SetType;
-using FuncType [[deprecated("Remove in v4.1. Use zeek::FuncType instead.")]] = zeek::FuncType;
-using TypeType [[deprecated("Remove in v4.1. Use zeek::TypeType instead.")]] = zeek::TypeType;
-using TypeDecl [[deprecated("Remove in v4.1. Use zeek::TypeDecl instead.")]] = zeek::TypeDecl;
-using RecordType [[deprecated("Remove in v4.1. Use zeek::RecordType instead.")]] = zeek::RecordType;
-using SubNetType [[deprecated("Remove in v4.1. Use zeek::SubNetType instead.")]] = zeek::SubNetType;
-using FileType [[deprecated("Remove in v4.1. Use zeek::FileType instead.")]] = zeek::FileType;
-using OpaqueType [[deprecated("Remove in v4.1. Use zeek::OpaqueType instead.")]] = zeek::OpaqueType;
-using EnumType [[deprecated("Remove in v4.1. Use zeek::EnumType instead.")]] = zeek::EnumType;
-using VectorType [[deprecated("Remove in v4.1. Use zeek::VectorType instead.")]] = zeek::VectorType;
-using type_decl_list [[deprecated("Remove in v4.1. Use zeek::type_decl_list instead.")]] = zeek::type_decl_list;
-
-constexpr auto IsIntegral [[deprecated("Remove in v4.1. Use zeek::IsIntegral instead.")]] = zeek::IsIntegral;
-constexpr auto IsArithmetic [[deprecated("Remove in v4.1. Use zeek::IsArithmetic instead.")]] = zeek::IsArithmetic;
-constexpr auto IsBool [[deprecated("Remove in v4.1. Use zeek::IsBool instead.")]] = zeek::IsBool;
-constexpr auto IsInterval [[deprecated("Remove in v4.1. Use zeek::IsInterval instead.")]] = zeek::IsInterval;
-constexpr auto IsRecord [[deprecated("Remove in v4.1. Use zeek::IsRecord instead.")]] = zeek::IsRecord;
-constexpr auto IsFunc [[deprecated("Remove in v4.1. Use zeek::IsFunc instead.")]] = zeek::IsFunc;
-constexpr auto IsVector [[deprecated("Remove in v4.1. Use zeek::IsVector instead.")]] = zeek::IsVector;
-constexpr auto IsString [[deprecated("Remove in v4.1. Use zeek::IsString instead.")]] = zeek::IsString;
-constexpr auto IsErrorType [[deprecated("Remove in v4.1. Use zeek::IsErrorType instead.")]] = zeek::IsErrorType;
-constexpr auto BothIntegral [[deprecated("Remove in v4.1. Use zeek::BothIntegral instead.")]] = zeek::BothIntegral;
-constexpr auto BothArithmetic [[deprecated("Remove in v4.1. Use zeek::BothArithmetic instead.")]] = zeek::BothArithmetic;
-constexpr auto EitherArithmetic [[deprecated("Remove in v4.1. Use zeek::EitherArithmetic instead.")]] = zeek::EitherArithmetic;
-constexpr auto BothBool [[deprecated("Remove in v4.1. Use zeek::BothBool instead.")]] = zeek::BothBool;
-constexpr auto BothInterval [[deprecated("Remove in v4.1. Use zeek::BothInterval instead.")]] = zeek::BothInterval;
-constexpr auto BothString [[deprecated("Remove in v4.1. Use zeek::BothString instead.")]] = zeek::BothString;
-constexpr auto EitherError [[deprecated("Remove in v4.1. Use zeek::EitherError instead.")]] = zeek::EitherError;
-constexpr auto base_type [[deprecated("Remove in v4.1. Use zeek::base_type instead.")]] = zeek::base_type;
-constexpr auto error_type [[deprecated("Remove in v4.1. Use zeek::error_type instead.")]] = zeek::error_type;
-constexpr auto type_name [[deprecated("Remove in v4.1. Use zeek::type_name instead.")]] = zeek::type_name;
-constexpr auto is_network_order [[deprecated("Remove in v4.1. Use zeek::is_network_order instead.")]] = zeek::is_network_order;
-
-using TypeTag [[deprecated("Remove in v4.1. Use zeek::TypeTag instead.")]] = zeek::TypeTag;
-
-[[deprecated("Remove in v4.1. Use zeek::TYPE_VOID instead.")]]
-constexpr auto TYPE_VOID = zeek::TYPE_VOID;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_BOOL instead.")]]
-constexpr auto TYPE_BOOL = zeek::TYPE_BOOL;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_INT instead.")]]
-constexpr auto TYPE_INT = zeek::TYPE_INT;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_COUNT instead.")]]
-constexpr auto TYPE_COUNT = zeek::TYPE_COUNT;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-[[deprecated("Remove in v4.1. TYPE_COUNTER was removed. Use zeek::TYPE_COUNT instead.")]]
-constexpr auto TYPE_COUNTER = zeek::TYPE_COUNTER;
-#pragma GCC diagnostic pop
-[[deprecated("Remove in v4.1. Use zeek::TYPE_DOUBLE instead.")]]
-constexpr auto TYPE_DOUBLE = zeek::TYPE_DOUBLE;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_TIME instead.")]]
-constexpr auto TYPE_TIME = zeek::TYPE_TIME;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERVAL instead.")]]
-constexpr auto TYPE_INTERVAL = zeek::TYPE_INTERVAL;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_STRING instead.")]]
-constexpr auto TYPE_STRING = zeek::TYPE_STRING;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_PATTERN instead.")]]
-constexpr auto TYPE_PATTERN = zeek::TYPE_PATTERN;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_ENUM instead.")]]
-constexpr auto TYPE_ENUM = zeek::TYPE_ENUM;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_TIMER instead.")]]
-constexpr auto TYPE_TIMER = zeek::TYPE_TIMER;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_PORT instead.")]]
-constexpr auto TYPE_PORT = zeek::TYPE_PORT;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_ADDR instead.")]]
-constexpr auto TYPE_ADDR = zeek::TYPE_ADDR;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_SUBNET instead.")]]
-constexpr auto TYPE_SUBNET = zeek::TYPE_SUBNET;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_ANY instead.")]]
-constexpr auto TYPE_ANY = zeek::TYPE_ANY;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_TABLE instead.")]]
-constexpr auto TYPE_TABLE = zeek::TYPE_TABLE;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_UNION instead.")]]
-constexpr auto TYPE_UNION = zeek::TYPE_UNION;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_RECORD instead.")]]
-constexpr auto TYPE_RECORD = zeek::TYPE_RECORD;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_LIST instead.")]]
-constexpr auto TYPE_LIST = zeek::TYPE_LIST;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_FUNC instead.")]]
-constexpr auto TYPE_FUNC = zeek::TYPE_FUNC;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_FILE instead.")]]
-constexpr auto TYPE_FILE = zeek::TYPE_FILE;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_VECTOR instead.")]]
-constexpr auto TYPE_VECTOR = zeek::TYPE_VECTOR;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_OPAQUE instead.")]]
-constexpr auto TYPE_OPAQUE = zeek::TYPE_OPAQUE;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_TYPE instead.")]]
-constexpr auto TYPE_TYPE = zeek::TYPE_TYPE;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_TYPE instead.")]]
-constexpr auto TYPE_ERROR = zeek::TYPE_ERROR;
-
-using function_flavor [[deprecated("Remove in v4.1. Use zeek::FunctionFlavor instead.")]] = zeek::FunctionFlavor;
-
-[[deprecated("Remove in v4.1. Use zeek::FUNC_FLAVOR_FUNCTION instead.")]]
-constexpr auto FUNC_FLAVOR_FUNCTION = zeek::FUNC_FLAVOR_FUNCTION;
-[[deprecated("Remove in v4.1. Use zeek::FUNC_FLAVOR_EVENT instead.")]]
-constexpr auto FUNC_FLAVOR_EVENT = zeek::FUNC_FLAVOR_EVENT;
-[[deprecated("Remove in v4.1. Use zeek::FUNC_FLAVOR_HOOK instead.")]]
-constexpr auto FUNC_FLAVOR_HOOK = zeek::FUNC_FLAVOR_HOOK;
-
-using InternalTypeTag [[deprecated("Remove in v4.1. Use zeek::InteralTypeTag instead.")]] = zeek::InternalTypeTag;
-
-[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_VOID instead.")]]
-constexpr auto TYPE_INTERNAL_VOID = zeek::TYPE_INTERNAL_VOID;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_INT instead.")]]
-constexpr auto TYPE_INTERNAL_INT = zeek::TYPE_INTERNAL_INT;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_UNSIGNED instead.")]]
-constexpr auto TYPE_INTERNAL_UNSIGNED = zeek::TYPE_INTERNAL_UNSIGNED;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_DOUBLE instead.")]]
-constexpr auto TYPE_INTERNAL_DOUBLE = zeek::TYPE_INTERNAL_DOUBLE;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_STRING instead.")]]
-constexpr auto TYPE_INTERNAL_STRING = zeek::TYPE_INTERNAL_STRING;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_ADDR instead.")]]
-constexpr auto TYPE_INTERNAL_ADDR = zeek::TYPE_INTERNAL_ADDR;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_SUBNET instead.")]]
-constexpr auto TYPE_INTERNAL_SUBNET = zeek::TYPE_INTERNAL_SUBNET;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_OTHER instead.")]]
-constexpr auto TYPE_INTERNAL_OTHER = zeek::TYPE_INTERNAL_OTHER;
-[[deprecated("Remove in v4.1. Use zeek::TYPE_INTERNAL_ERROR instead.")]]
-constexpr auto TYPE_INTERNAL_ERROR = zeek::TYPE_INTERNAL_ERROR;

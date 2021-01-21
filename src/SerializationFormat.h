@@ -138,6 +138,3 @@ public:
 };
 
 } // namespace zeek::detail
-
-using SerializationFormat [[deprecated("Remove in v4.1. Use zeek::detail::SerializationFormat.")]] = zeek::detail::SerializationFormat;
-using BinarySerializationFormat [[deprecated("Remove in v4.1. Use zeek::detail::BinarySerializationFormat.")]] = zeek::detail::BinarySerializationFormat;

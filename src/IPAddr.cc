@@ -50,9 +50,6 @@ IPAddr::IPAddr(const String& s)
 	Init(s.CheckString());
 	}
 
-detail::HashKey* IPAddr::GetHashKey() const
-	{ return MakeHashKey().release(); }
-
 std::unique_ptr<detail::HashKey> IPAddr::MakeHashKey() const
 	{
 	return std::make_unique<detail::HashKey>((void*)in6.s6_addr, sizeof(in6.s6_addr));
@@ -302,9 +299,6 @@ std::string IPPrefix::AsString() const
 
 	return prefix.AsString() +"/" + l;
 	}
-
-detail::HashKey* IPPrefix::GetHashKey() const
-	{ return MakeHashKey().release(); }
 
 std::unique_ptr<detail::HashKey> IPPrefix::MakeHashKey() const
 	{

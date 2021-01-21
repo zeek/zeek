@@ -1590,11 +1590,8 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 	     arg_t2.Tag() == TYPE_ANY )
 		return true;
 
-	auto t1 = flatten_type(&arg_t1);
-	auto t2 = flatten_type(&arg_t2);
-
-	if ( t1 == t2 )
-		return true;
+	auto t1 = &arg_t1;
+	auto t2 = &arg_t2;
 
 	if ( t1->Tag() != t2->Tag() )
 		{

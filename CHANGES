@@ -1,4 +1,32 @@
 
+4.1.0-dev.132 | 2021-01-21 13:59:35 -0800
+
+  * GH-1296: fix type-checks related to list-type equality (Jon Siwek, Corelight)
+
+    List-types as used in composite table/set indices, for example,
+    previously had incorrect same_type() comparisons due to flattening
+    of the list-type into a single type without checking whether the
+    number and kind of types all match.
+
+    This patch simply removes the flatten_type() call from same_type() since
+    it was already contradicting/preventing a subsequent full-comparison
+    between elements of two TYPE_LISTs.
+
+    There was also a superfluous special-case of the `in` operator's
+    type-checking for testing whether a record is in a table/set.  It's
+    superfluous because the general case will already do the type-checking
+    from MatchesIndex() after first wrapping the record operand in a
+    ListExpr.  The previous logic was incorrectly relying on the
+    flatten_type() for testing equality of a record-type against a
+    list-type, whereas the general case correctly normalizes to testing
+    equality of two list-types.
+
+    The special-cased type-checking logic for assigning a record value to a
+    table index during its initialization similarly needed minor
+    re-organization in order to maintain the same error messages as before.
+
+  * Guard against nullptr deref after AST-reduction consistency checks (Jon Siwek, Corelight)
+
 4.1.0-dev.128 | 2021-01-21 13:37:10 -0800
 
   * Install BTest with Zeek (Christian Kreibich, Corelight)

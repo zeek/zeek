@@ -130,7 +130,6 @@ include(BinPAC)
 set(BINPAC_AUXSRC
     ${CMAKE_SOURCE_DIR}/src/binpac.pac
     ${CMAKE_SOURCE_DIR}/src/zeek.pac
-    ${CMAKE_SOURCE_DIR}/src/bro.pac
     ${CMAKE_SOURCE_DIR}/src/binpac_zeek.h
 )
 

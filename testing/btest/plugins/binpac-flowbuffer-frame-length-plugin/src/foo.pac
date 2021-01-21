@@ -1,5 +1,5 @@
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 	#include "foo.bif.h"
@@ -11,7 +11,7 @@ analyzer FOO withcontext {
 };
 
 # Our connection consists of two flows, one in each direction.
-connection FOO_Conn(bro_analyzer: BroAnalyzer) {
+connection FOO_Conn(bro_analyzer: ZeekAnalyzer) {
 	upflow   = FOO_Flow(true);
 	downflow = FOO_Flow(false);
 };

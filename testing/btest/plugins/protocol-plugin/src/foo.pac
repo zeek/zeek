@@ -1,5 +1,5 @@
 %include binpac.pac
-%include bro.pac
+%include zeek.pac
 
 %extern{
 #include "Foo.h"
@@ -12,7 +12,7 @@ analyzer Foo withcontext {
     flow:       Foo_Flow;
 };
 
-connection Foo_Conn(bro_analyzer: BroAnalyzer) {
+connection Foo_Conn(bro_analyzer: ZeekAnalyzer) {
     upflow   = Foo_Flow(true);
     downflow = Foo_Flow(false);
 };

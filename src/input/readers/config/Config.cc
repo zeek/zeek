@@ -10,6 +10,7 @@
 #include <sstream>
 #include <unordered_set>
 
+#include "zeek/Desc.h"
 #include "zeek/input/Manager.h"
 #include "zeek/threading/SerialTypes.h"
 
@@ -38,7 +39,7 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 		if ( id->GetType()->Tag() == TYPE_RECORD ||
 		     ! Manager::IsCompatibleType(id->GetType().get()) )
 			{
-			option_types[id->Name()] = std::make_tuple(TYPE_ERROR, id->GetType()->Tag());
+			option_types[id->Name()] = std::make_tuple(TYPE_ERROR, id->GetType()->Tag(), id);
 			continue;
 			}
 
@@ -49,7 +50,7 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 		else if ( primary == TYPE_VECTOR )
 			secondary = id->GetType()->AsVectorType()->Yield()->Tag();
 
-		option_types[id->Name()] = std::make_tuple(primary, secondary);
+		option_types[id->Name()] = std::make_tuple(primary, secondary, id);
 		}
 	}
 
@@ -212,8 +213,10 @@ bool Config::DoUpdate()
 
 		if ( std::get<0>((*typeit).second) == TYPE_ERROR )
 			{
+			ODesc d;
+			std::get<2>((*typeit).second)->GetType()->Describe(&d);
 			Warning(Fmt("Option '%s' has type '%s', which is not supported for file input. Ignoring line.",
-			            key.c_str(), type_name(std::get<1>((*typeit).second))));
+			            key.c_str(), d.Description()));
 			continue;
 			}
 

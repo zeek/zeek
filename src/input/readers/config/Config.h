@@ -9,6 +9,7 @@
 #include <memory>
 #include <unordered_map>
 
+#include "zeek/ID.h"
 #include "zeek/input/ReaderBackend.h"
 #include "zeek/threading/formatters/Ascii.h"
 
@@ -50,7 +51,7 @@ private:
 	std::string empty_field;
 
 	std::unique_ptr<threading::Formatter> formatter;
-	std::unordered_map<std::string, std::tuple<TypeTag, TypeTag>> option_types;
+	std::unordered_map<std::string, std::tuple<TypeTag, TypeTag, zeek::detail::IDPtr>> option_types;
 	std::unordered_map<std::string, std::string> option_values;
 };
 

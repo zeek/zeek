@@ -1,4 +1,31 @@
 
+4.1.0-dev.125 | 2021-01-21 11:27:14 +0000
+
+  * More precise type information in a config framework error message
+
+    When an option's value is a reader-incompatible table or set, Zeek now
+    renders the type as expressed in the script layer (e.g. "set[addr,addr]")
+    as opposed to the internal type tag (which'd here be "table", including
+    for sets). (Christian Kreibich, Corelight)
+
+  * Explicitly don't support sets with multiple index types in input/config frameworks
+
+    The input framework's Manager::IsCompatibleType() already rejected
+    sets with multiple index types that aren't all the same (i.e. that are
+    not pure). Pure ones (e.g. "set[addr,addr]") slipped through and could
+    cause Zeek to segfault elsewhere in the config framework due to type
+    comparison subtleties. Note that the ASCII reader can't read such sets
+    anyway, so this method now rejects sets with any kind of index-type
+    tuple.
+
+    In the config framework, the script-level change handler has a risky
+    conversion from any to set[bool], which can trigger segfaults when the
+    underlying set's index is a type tuple. We now prevent this code path
+    by ensuring it only applies to sets with a single index type.
+    (Christian Kreibich, Corelight)
+
+  * Fix logo/website link in README (Jon Siwek, Corelight)
+
 4.1.0-dev.120 | 2021-01-19 21:08:11 -0800
 
   * Update Cirrus CI naming for MacOS images (Christian Kreibich, Corelight)

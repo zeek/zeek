@@ -27,8 +27,8 @@ public:
 
 	void PrintBro(FILE* fp);
 	void PrintCDef(FILE* fp, int n);
-	void PrintCArg(FILE* fp, int n, bool smart);
-	void PrintBroValConstructor(FILE* fp, bool smart);
+	void PrintCArg(FILE* fp, int n);
+	void PrintBroValConstructor(FILE* fp);
 
 protected:
 	const char* name;

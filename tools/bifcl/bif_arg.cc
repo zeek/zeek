@@ -72,19 +72,12 @@ void BuiltinFuncArg::PrintCDef(FILE* fp, int n)
 	fprintf(fp, ");\n");
 	}
 
-void BuiltinFuncArg::PrintCArg(FILE* fp, int n, bool smart)
+void BuiltinFuncArg::PrintCArg(FILE* fp, int n)
 	{
-	const char* ctype = smart ? builtin_func_arg_type[type].c_type_smart
-	                          : builtin_func_arg_type[type].c_type;
-	char buf[1024];
-
-	fprintf(fp, "%s %s", ctype, name);
+	fprintf(fp, "%s %s", builtin_func_arg_type[type].c_type_smart, name);
 	}
 
-void BuiltinFuncArg::PrintBroValConstructor(FILE* fp, bool smart)
+void BuiltinFuncArg::PrintBroValConstructor(FILE* fp)
 	{
-	if ( smart )
-		fprintf(fp, builtin_func_arg_type[type].ctor_smart, name);
-	else
-		fprintf(fp, builtin_func_arg_type[type].constructor, name);
+	fprintf(fp, builtin_func_arg_type[type].ctor_smart, name);
 	}

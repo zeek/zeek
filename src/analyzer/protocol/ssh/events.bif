@@ -144,9 +144,7 @@ event ssh2_server_host_key%(c: connection, key: string%);
 ##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key
-event ssh1_server_host_key%(c: connection, p: string &deprecated="Remove in v4.1", e: string &deprecated="Remove in v4.1", modulus: string, exponent: string%);
 event ssh1_server_host_key%(c: connection, modulus: string, exponent: string%);
-event ssh1_server_host_key%(c: connection, p: string, e: string%) &deprecated="Remove in v4.1.  The 'p' and 'e' parameters are misleadingly named don't use them.";
 
 ## During the :abbr:`SSH (Secure Shell)` key exchange, the server
 ## supplies its public host key. This event is generated when the

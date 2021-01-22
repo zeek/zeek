@@ -696,44 +696,6 @@ function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_su
 	%}
 
 ## Splits a string into substrings with the help of an index vector of cutting
-## points.
-##
-## s: The string to split.
-##
-## idx: The index vector (``vector of count``) with the cutting points.
-##
-## Returns: A one-indexed vector of strings.
-##
-## .. zeek:see:: split_string split_string1 split_string_all split_string_n
-function str_split%(s: string, idx: index_vec%): string_vec &deprecated="Remove in v4.1. Use str_split_indices."
-	%{
-	auto idx_v = idx->As<VectorVal*>();
-	auto n = idx_v->Size();
-	zeek::String::IdxVec indices(n);
-	unsigned int i;
-
-	for ( i = 0; i < n; i++ )
-		indices[i] = idx_v->CountAt(i);
-
-	zeek::String::Vec* result = s->AsString()->Split(indices);
-	auto result_v = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
-
-	if ( result )
-		{
-		i = 1;
-
-		for ( zeek::String::VecIt it = result->begin();
-		      it != result->end(); ++it, ++i )
-			result_v->Assign(i, zeek::make_intrusive<zeek::StringVal>(*it));
-			// StringVal now possesses string.
-
-		delete result;
-		}
-
-	return result_v;
-	%}
-
-## Splits a string into substrings with the help of an index vector of cutting
 ## points. This differs from str_split() in that it does not return an empty element
 ## at the beginning of the result.
 ##

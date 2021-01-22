@@ -1,4 +1,11 @@
 
+4.1.0-dev.135 | 2021-01-21 16:57:01 -0800
+
+  * GH-1352: Added flag to stop processing SMTP headers in attached messages (Jon Oakley)
+
+    Previously, header values from sub-entities could overwrite the top-level
+    MIME entity values, causing the SMTP log to contain misleading information.
+
 4.1.0-dev.132 | 2021-01-21 13:59:35 -0800
 
   * GH-1296: fix type-checks related to list-type equality (Jon Siwek, Corelight)

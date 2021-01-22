@@ -34,7 +34,6 @@ const char* type_name(TypeTag t)
 		"bool",      // 1
 		"int",       // 2
 		"count",     // 3
-		"counter",   // 4
 		"double",    // 5
 		"time",      // 6
 		"interval",  // 7

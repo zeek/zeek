@@ -38,7 +38,6 @@ enum TypeTag {
 	TYPE_BOOL,      // 1
 	TYPE_INT,       // 2
 	TYPE_COUNT,     // 3
-	TYPE_COUNTER [[deprecated("Remove in v4.1. TYPE_COUNTER was removed; use TYPE_COUNT instead.")]], // 4
 	TYPE_DOUBLE,    // 5
 	TYPE_TIME,      // 6
 	TYPE_INTERVAL,  // 7

@@ -12,6 +12,8 @@
 namespace zeek::detail {
 
 
+AnalyOpt analysis_options;
+
 std::unordered_set<const Func*> non_recursive_funcs;
 
 // Tracks all of the loaded functions (including event handlers and hooks).
@@ -104,10 +106,8 @@ static void check_env_opt(const char* opt, bool& opt_flag)
 		opt_flag = true;
 	}
 
-void analyze_scripts(Options& opts)
+void analyze_scripts()
 	{
-	auto& analysis_options = opts.analysis_options;
-
 	static bool did_init = false;
 
 	if ( ! did_init )
@@ -116,6 +116,11 @@ void analyze_scripts(Options& opts)
 		check_env_opt("ZEEK_INLINE", analysis_options.inliner);
 		check_env_opt("ZEEK_XFORM", analysis_options.activate);
 
+		auto usage = getenv("ZEEK_USAGE_ISSUES");
+
+		if ( usage )
+			analysis_options.usage_issues = atoi(usage) > 1 ? 2 : 1;
+
 		if ( ! analysis_options.only_func )
 			{
 			auto zo = getenv("ZEEK_ONLY");
@@ -123,7 +128,8 @@ void analyze_scripts(Options& opts)
 				analysis_options.only_func = zo;
 			}
 
-		if ( analysis_options.only_func )
+		if ( analysis_options.only_func ||
+		     analysis_options.usage_issues > 0 )
 			analysis_options.activate = true;
 
 		did_init = true;

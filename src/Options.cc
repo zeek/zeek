@@ -93,6 +93,7 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file (only one allowed, pass '-' as the filename to read from stdin)\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
+	fprintf(stderr, "    -u|--usage-issues              | find variable usage issues and exit; use -uu for deeper/more expensive analysis\n");
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
 	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
 #ifdef DEBUG
@@ -286,6 +287,7 @@ Options parse_cmdline(int argc, char** argv)
 		{"rulefile",		required_argument,	nullptr,	's'},
 		{"tracefile",		required_argument,	nullptr,	't'},
 		{"writefile",		required_argument,	nullptr,	'w'},
+		{"usage-issues",	no_argument,		nullptr,	'u'},
 		{"version",		no_argument,		nullptr,	'v'},
 		{"no-checksums",	no_argument,		nullptr,	'C'},
 		{"force-dns",		no_argument,		nullptr,	'F'},
@@ -322,7 +324,7 @@ Options parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:o:p:r:s:T:t:U:w:X:CDFNPQSWabdhv",
+	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:o:p:r:s:T:t:U:w:X:CDFNPQSWabdhuv",
 	                         sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -406,6 +408,9 @@ Options parse_cmdline(int argc, char** argv)
 			break;
 		case 't':
 			rval.debug_script_tracing_file = optarg;
+			break;
+		case 'u':
+			++rval.analysis_options.usage_issues;
 			break;
 		case 'v':
 			rval.print_version = true;

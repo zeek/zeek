@@ -95,7 +95,7 @@ event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, log
 	if ( |f$conns| != 1 )
 		return;
 
-	local c: connection;
+	local c: connection &is_set;
 
 	for ( cid, c in f$conns )
 		{

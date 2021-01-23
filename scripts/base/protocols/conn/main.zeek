@@ -240,7 +240,7 @@ function set_conn(c: connection, eoc: bool)
 	{
 	if ( ! c?$conn )
 		{
-		local tmp: Info;
+		local tmp: Info &is_set;
 		c$conn = tmp;
 		}
 

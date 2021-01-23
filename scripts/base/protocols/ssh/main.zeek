@@ -142,7 +142,7 @@ function set_session(c: connection)
 	{
 	if ( ! c?$ssh )
 		{
-		local info: SSH::Info;
+		local info: SSH::Info &is_set;	# needed for $version
 		info$ts  = network_time();
 		info$uid = c$uid;
 		info$id  = c$id;

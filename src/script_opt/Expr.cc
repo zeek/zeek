@@ -67,6 +67,12 @@ const AddToExpr* Expr::AsAddToExpr() const
 	return (const AddToExpr*) this;
 	}
 
+const InlineExpr* Expr::AsInlineExpr() const
+	{
+	CHECK_TAG(tag, EXPR_INLINE, "ExprVal::AsInlineExpr", expr_name)
+	return (const InlineExpr*) this;
+	}
+
 ExprPtr Expr::GetOp1() const { return nullptr; }
 ExprPtr Expr::GetOp2() const { return nullptr; }
 ExprPtr Expr::GetOp3() const { return nullptr; }

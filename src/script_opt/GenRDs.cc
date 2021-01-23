@@ -1092,7 +1092,6 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 	case EXPR_INLINE:
 		{
-		ASSERT(0);
 		auto inl = e->AsInlineExpr();
 		mgr.SetPreFromPre(inl->Args().get(), inl);
 		mgr.SetPreFromPre(inl->Body().get(), inl);

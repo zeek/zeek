@@ -165,6 +165,7 @@ public:
 	~SwitchStmt() override;
 
 	const case_list* Cases() const	{ return cases; }
+	bool HasDefault() const		{ return default_case_idx != -1; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -275,19 +276,19 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
-	StmtPtr CondPredStmt() const
-		{ return loop_cond_pred_stmt; }
 	StmtPtr Duplicate() override;
 	void Inline(Inliner* inl) override;
 
 	bool IsReduced(Reducer* c) const override;
 	StmtPtr DoReduce(Reducer* c) override;
 
+	const ExprPtr& Condition() const	{ return loop_condition; }
+	StmtPtr CondPredStmt() const		{ return loop_cond_pred_stmt; }
+	const StmtPtr& Body() const		{ return body; }
+	const StmtPtr& ConditionAsStmt() const	{ return stmt_loop_condition; }
+
 	// Note, no need for a NoFlowAfter method because the loop might
 	// execute zero times, so it's always the default of "false".
-
-	const StmtPtr ConditionAsStmt() const
-		{ return stmt_loop_condition; }
 
 protected:
 	ValPtr Exec(Frame* f, StmtFlowType& flow) const override;

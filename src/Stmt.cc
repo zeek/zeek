@@ -84,6 +84,18 @@ const InitStmt* Stmt::AsInitStmt() const
 	return (const InitStmt*) this;
 	}
 
+const IfStmt* Stmt::AsIfStmt() const
+	{
+	CHECK_TAG(tag, STMT_IF, "Stmt::AsIfStmt", stmt_name)
+	return (const IfStmt*) this;
+	}
+
+const WhileStmt* Stmt::AsWhileStmt() const
+	{
+	CHECK_TAG(tag, STMT_WHILE, "Stmt::AsWhileStmt", stmt_name)
+	return (const WhileStmt*) this;
+	}
+
 const WhenStmt* Stmt::AsWhenStmt() const
 	{
 	CHECK_TAG(tag, STMT_WHEN, "Stmt::AsWhenStmt", stmt_name)
@@ -100,6 +112,18 @@ const ExprStmt* Stmt::AsExprStmt() const
 	{
 	CHECK_TAG(tag, STMT_EXPR, "Stmt::AsExprStmt", stmt_name)
 	return (const ExprStmt*) this;
+	}
+
+const PrintStmt* Stmt::AsPrintStmt() const
+	{
+	CHECK_TAG(tag, STMT_PRINT, "Stmt::AsPrintStmt", stmt_name)
+	return (const PrintStmt*) this;
+	}
+
+const CatchReturnStmt* Stmt::AsCatchReturnStmt() const
+	{
+	CHECK_TAG(tag, STMT_CATCH_RETURN, "Stmt::AsCatchReturnStmt", stmt_name)
+	return (const CatchReturnStmt*) this;
 	}
 
 const ReturnStmt* Stmt::AsReturnStmt() const

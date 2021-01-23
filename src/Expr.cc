@@ -159,6 +159,12 @@ EventExprPtr Expr::AsEventExprPtr()
 	return {NewRef{}, (EventExpr*) this};
 	}
 
+const RefExpr* Expr::AsRefExpr() const
+	{
+	CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
+	return (const RefExpr*) this;
+	}
+
 RefExprPtr Expr::AsRefExprPtr()
 	{
 	CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)

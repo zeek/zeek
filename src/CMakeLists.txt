@@ -323,6 +323,7 @@ set(MAIN_SRCS
     plugin/Plugin.cc
 
     script_opt/DefItem.cc
+    script_opt/DefSetsMgr.cc
     script_opt/Expr.cc
     script_opt/Inline.cc
     script_opt/ProfileFunc.cc

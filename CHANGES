@@ -1,4 +1,8 @@
 
+4.0.0-rc2 | 2021-01-25 12:50:34 -0800
+
+  * Release 4.0.0-rc2.
+
 4.0.0-rc1.15 | 2021-01-25 12:49:48 -0800
 
   * Update submodules: zkg 2.7.0, broker 2.0.0-rc2, CAF 0.18.0 (Jon Siwek, Corelight)

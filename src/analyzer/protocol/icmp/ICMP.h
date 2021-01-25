@@ -54,9 +54,6 @@ protected:
 
 	void Describe(ODesc* d) const;
 
-	RecordValPtr BuildICMPVal(const struct icmp* icmpp, int len,
-	                          int icmpv6, const IP_Hdr* ip_hdr);
-
 	RecordValPtr BuildInfo(const struct icmp* icmpp, int len,
 	                       bool icmpv6, const IP_Hdr* ip_hdr);
 

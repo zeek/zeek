@@ -1,4 +1,8 @@
 
+4.1.0-dev.141 | 2021-01-25 12:32:48 -0800
+
+  * Update broker submodule, embedded CAF to 0.18 (Jon Siwek, Corelight)
+
 4.1.0-dev.137 | 2021-01-21 17:29:40 -0800
 
   * Update SSL consts (Johanna Amann)

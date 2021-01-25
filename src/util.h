@@ -174,11 +174,6 @@ constexpr SourceID SOURCE_LOCAL = 0;
 // indicating whether it's a local or remote event.
 constexpr SourceID SOURCE_BROKER = 0xffffffff;
 
-extern const std::array<std::string, 2> script_extensions;
-
-/** Prints a warning if the filename ends in .bro. */
-void warn_if_legacy_script(std::string_view filename);
-
 bool is_package_loader(const std::string& path);
 
 extern void add_to_zeek_path(const std::string& dir);

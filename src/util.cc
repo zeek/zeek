@@ -581,17 +581,6 @@ uint64_t rand64bit()
 	return base;
 	}
 
-const array<string, 2> script_extensions = {".zeek", ".bro"};
-
-void warn_if_legacy_script(std::string_view filename)
-	{
-	if ( ends_with(filename, ".bro") )
-		{
-		std::string x(filename);
-		reporter->Warning("Loading script '%s' with legacy extension, support for '.bro' will be removed in Zeek v4.1", x.c_str());
-		}
-	}
-
 TEST_CASE("util is_package_loader")
 	{
 	CHECK(is_package_loader("/some/path/__load__.zeek") == true);
@@ -601,17 +590,7 @@ TEST_CASE("util is_package_loader")
 bool is_package_loader(const string& path)
 	{
 	string filename(std::move(SafeBasename(path).result));
-
-	for ( const string& ext : script_extensions )
-		{
-		if ( filename == "__load__" + ext )
-			{
-			warn_if_legacy_script(filename);
-			return true;
-			}
-		}
-
-	return false;
+	return ( filename == "__load__.zeek" );
 	}
 
 void add_to_zeek_path(const string& dir)
@@ -627,19 +606,15 @@ FILE* open_package(string& path, const string& mode)
 	string arg_path = path;
 	path.append("/__load__");
 
-	for ( const string& ext : script_extensions )
+	string p = path + ".zeek";
+	if ( can_read(p) )
 		{
-		string p = path + ext;
-		if ( can_read(p) )
-			{
-			warn_if_legacy_script(path);
-			path.append(ext);
-			return open_file(path, mode);
-			}
+		path.append(".zeek");
+		return open_file(path, mode);
 		}
 
-	path.append(script_extensions[0]);
-	string package_loader = "__load__" + script_extensions[0];
+	path.append(".zeek");
+	string package_loader = "__load__.zeek";
 	reporter->Error("Failed to open package '%s': missing '%s' file",
 	                arg_path.c_str(), package_loader.c_str());
 	return nullptr;
@@ -2008,27 +1983,14 @@ string find_script_file(const string& filename, const string& path_set)
 	vector<string> paths;
 	tokenize_string(path_set, ":", &paths);
 
-	vector<string> ext(detail::script_extensions.begin(), detail::script_extensions.end());
+	vector<string> ext = {".zeek"};
 
 	for ( size_t n = 0; n < paths.size(); ++n )
 		{
 		string f = find_file_in_path(filename, paths[n], ext);
 
 		if ( ! f.empty() )
-			{
-			detail::warn_if_legacy_script(f);
 			return f;
-			}
-		}
-
-	if ( ends_with(filename, ".bro") )
-		{
-		detail::warn_if_legacy_script(filename);
-
-		// We were looking for a file explicitly ending in .bro and didn't
-		// find it, so fall back to one ending in .zeek, if it exists.
-		auto fallback = string(filename.data(), filename.size() - 4) + ".zeek";
-		return find_script_file(fallback, path_set);
 		}
 
 	return string();
@@ -2404,17 +2366,7 @@ char* zeekenv(const char* name)
 	if ( it == legacy_vars.end() )
 		return rval;
 
-	auto val = getenv(it->second);
-
-	if ( val && starts_with(it->second, "BRO_") )
-		{
-		if ( reporter )
-			reporter->Warning("Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead", it->second, name);
-		else
-			fprintf(stderr, "Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead\n", it->second, name);
-		}
-
-	return val;
+	return getenv(it->second);
 	}
 
 static string json_escape_byte(char c)

@@ -677,9 +677,6 @@ protected:
 	virtual std::pair<bool, ValPtr>
 	HookFunctionCall(const Func* func, zeek::detail::Frame* parent, Args* args);
 
-	[[deprecated("Remove in v4.1.  Use HookFunctionCall()")]]
-	virtual std::pair<bool, Val*> HookCallFunction(const Func* func, zeek::detail::Frame *parent, ValPList* args);
-
 	/**
 	 * Hook into raising events. Whenever the script interpreter is about
 	 * to queue an event for later execution, it first gives all plugins

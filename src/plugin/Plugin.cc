@@ -376,27 +376,7 @@ std::pair<bool, ValPtr>
 Plugin::HookFunctionCall(const Func* func, zeek::detail::Frame* parent,
                          Args* args)
 	{
-	ValPList vlargs(args->size());
-
-	for ( auto& v : *args )
-		vlargs.push_back(v.release());
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	auto [handled, result] = HookCallFunction(func, parent, &vlargs);
-#pragma GCC diagnostic pop
-
-	for ( auto i = 0u; i < args->size(); ++i )
-		(*args)[i] = {AdoptRef{}, vlargs[i]};
-
-	return {handled, {AdoptRef{}, result}};
-	}
-
-std::pair<bool, Val*> Plugin::HookCallFunction(
-	const Func* func, zeek::detail::Frame *parent, ValPList* args)
-	{
-	std::pair<bool, Val*> result(false, NULL);
-	return result;
+	return {false, nullptr};
 	}
 
 bool Plugin::HookQueueEvent(Event* event)

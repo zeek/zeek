@@ -1,18 +1,9 @@
 # @TEST-EXEC: zeek -b -r ${TRACES}/wikipedia.trace  %INPUT >out
 # @TEST-EXEC: btest-diff http.log
-
 @load base/protocols/http
 
 module Foo;
 
-event zeek_init() {
-
-    Log::remove_default_filter(HTTP::LOG);
-
-    local filter: Log::Filter = [$name = "http", 
-                                 $pred = function(rec: HTTP::Info): bool {
-                                    rec$id$orig_h = remask_addr(rec$id$orig_h, 0.0.0.0, 112);
-                                    return T;
-                                 }];
-    Log::add_filter(HTTP::LOG, filter);
+hook HTTP::log_policy(rec: HTTP::Info, id: Log::ID, filter: Log::Filter) {
+    rec$id$orig_h = remask_addr(rec$id$orig_h, 0.0.0.0, 112);
 }

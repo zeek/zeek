@@ -2,7 +2,7 @@
 #include "zeek/Reporter.h"
 %%}
 
-## Decode a NetBIOS name.  See http://support.microsoft.com/kb/194203.
+## Decode a NetBIOS name.  See https://jeffpar.github.io/kbarchive/kb/194/Q194203/.
 ##
 ## name: The encoded NetBIOS name, e.g., ``"FEEIEFCAEOEFFEECEJEPFDCAEOEBENEF"``.
 ##
@@ -38,7 +38,7 @@ function decode_netbios_name%(name: string%): string
 	%}
 
 ## Converts a NetBIOS name type to its corresponding numeric value.
-## See http://support.microsoft.com/kb/163409.
+## See https://en.wikipedia.org/wiki/NetBIOS#NetBIOS_Suffixes.
 ##
 ## name: The NetBIOS name type.
 ##

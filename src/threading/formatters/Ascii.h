@@ -54,7 +54,7 @@ public:
 	                          TypeTag type, TypeTag subtype = TYPE_ERROR) const;
 
 private:
-	bool CheckNumberError(const char* start, const char* end) const;
+	bool CheckNumberError(const char* start, const char* end, bool nonneg_only = false) const;
 
 	SeparatorInfo separators;
 };

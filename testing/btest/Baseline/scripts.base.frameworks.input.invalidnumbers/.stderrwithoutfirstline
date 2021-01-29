@@ -5,5 +5,7 @@ warning: ..<...>/Input::READER_ASCII: Number '9223372036854775801TEXTHERE' conta
 warning: ..<...>/Input::READER_ASCII: Number '1Justtext' contained non-numeric trailing characters. Ignored trailing characters 'Justtext'
 warning: ..<...>/Input::READER_ASCII: String 'Justtext' contained no parseable number
 warning: ..<...>/Input::READER_ASCII: Could not convert line 'Justtext	1' of ../input.log to Val. Ignoring line.
+warning: ..<...>/Input::READER_ASCII: Number ' -18446744073709551612' cannot be negative
+warning: ..<...>/Input::READER_ASCII: Could not convert line '9223372036854775800	 -18446744073709551612' of ../input.log to Val. Ignoring line.
 received termination signal
 >>>

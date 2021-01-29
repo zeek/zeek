@@ -5181,11 +5181,11 @@ export {
 
 	## NTP mode 7 message. Note that this is not defined in any RFC and is
 	## implementation dependent. We used the official implementation from the
-	## `NTP official project <www.ntp.org>`_.  A mode 7 packet is used
+	## `NTP official project <https://www.ntp.org>`_.  A mode 7 packet is used
 	## exchanging data between an NTP server and a client for purposes other
 	## than time synchronization, e.g.  monitoring, statistics gathering and
 	## configuration.  For details see the documentation from the `NTP official
-	## project <www.ntp.org>`_, code v. ntp-4.2.8p13, in include/ntp_request.h.
+	## project <https://www.ntp.org>`_, code v. ntp-4.2.8p13, in include/ntp_request.h.
 	type NTP::Mode7Message: record {
 		## An implementation-specific code which specifies the
 		## operation to be (which has been) performed and/or the
@@ -5246,7 +5246,7 @@ export {
 		## If mode 7, the fields for extra operations are here.
 		## Note that this is not defined in any RFC
 		## and is implementation dependent. We used the official implementation
-		## from the `NTP official project <www.ntp.org>`_.
+		## from the `NTP official project <https://www.ntp.org>`_.
 		## A mode 7 packet is used exchanging data between an NTP server
 		## and a client for purposes other than time synchronization, e.g.
 		## monitoring, statistics gathering and configuration.

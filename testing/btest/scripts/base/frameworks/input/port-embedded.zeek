@@ -9,6 +9,7 @@
 1.2.3.5	52/udp
 1.2.3.6	30/unknown
 1.2.3.7	50/trash
+1.2.3.8	-1/tcp
 @TEST-END-FILE
 
 redef exit_only_after_terminate = T;

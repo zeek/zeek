@@ -4,6 +4,8 @@
 # @TEST-EXEC: sed 1d .stderr > .stderrwithoutfirstline
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderrwithoutfirstline
 
+# Note the tab+space separator in the last line of the following is
+# intentional. It verifies our whitespace handling.
 @TEST-START-FILE input.log
 #separator \x09
 #fields	i	c
@@ -11,7 +13,7 @@
 12129223372036854775800	121218446744073709551612
 9223372036854775801TEXTHERE	1Justtext
 Justtext	1
-9223372036854775800	-18446744073709551612
+9223372036854775800	 -18446744073709551612
 @TEST-END-FILE
 
 redef exit_only_after_terminate = T;

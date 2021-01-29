@@ -1,3 +1,20 @@
+
+4.1.0-dev.146 | 2021-01-29 10:20:28 -0800
+
+  * Skip negative integers in input framework where not type-permissible (Christian Kreibich, Corelight)
+
+    Script-layer counts, when provided as negative integers in an input
+    file, got cast to unsigned values because strtoull() does not complain
+    about negative values. For example, input string "-1" would lead to
+    value 18446744073709551615 (an all-ones 64-bit int) on x86_64. This is
+    more likely to be an error than an intent to get very large,
+    platform-dependent values, so these input lines are now skipped with
+    according messaging in the reporter.log/stderr.
+
+    This also affected ports: -1/tcp got cast to unsigned and only thrown
+    out because PortVal rejects values > 65535, mapping them to 0. We now
+    skip such inputs as well.
+
 4.1.0-dev.144 | 2021-01-29 09:54:01 -0700
 
   * Fix various broken links in script documentation (Jon Siwek, Corelight)

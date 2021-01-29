@@ -261,7 +261,7 @@ Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, Type
 
 	case TYPE_COUNT:
 		val->val.uint_val = strtoull(start, &end, 10);
-		if ( CheckNumberError(start, end) )
+		if ( CheckNumberError(start, end, true) )
 			goto parse_error;
 		break;
 
@@ -292,7 +292,7 @@ Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, Type
 			start = numberpart.c_str();
 			}
 		val->val.port_val.port = strtoull(start, &end, 10);
-		if ( CheckNumberError(start, end) )
+		if ( CheckNumberError(start, end, true) )
 			goto parse_error;
 		}
 		break;
@@ -473,7 +473,7 @@ parse_error:
 	return nullptr;
 	}
 
-bool Ascii::CheckNumberError(const char* start, const char* end) const
+bool Ascii::CheckNumberError(const char* start, const char* end, bool nonneg_only) const
 	{
 	MsgThread* thread = GetThread();
 
@@ -490,6 +490,18 @@ bool Ascii::CheckNumberError(const char* start, const char* end) const
 
 	if ( (*end != '\0') )
 		thread->Warning(thread->Fmt("Number '%s' contained non-numeric trailing characters. Ignored trailing characters '%s'", start, end));
+
+	if ( nonneg_only ) {
+		// String may legitimately start with whitespace, so
+		// we skip this before checking for a minus sign.
+		const char* s = start;
+		while ( s < end && isspace(*s) )
+			s++;
+		if ( *s == '-' ) {
+			thread->Warning(thread->Fmt("Number '%s' cannot be negative", start));
+			return true;
+		}
+	}
 
 	if ( errno == EINVAL )
 		{

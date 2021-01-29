@@ -2841,13 +2841,15 @@ RecordVal::RecordVal(RecordType* t, bool init_fields)
 RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 	{
 	origin = nullptr;
-	auto rt = GetType()->AsRecordType();
+	rt = {NewRef{}, GetType()->AsRecordType()};
 	int n = rt->NumFields();
-	auto vl = record_val = new std::vector<ValPtr>;
+	auto vl = record_val = new std::vector<ZVal>;
 	vl->reserve(n);
 
+	is_in_record = new std::vector<bool>(n, false);
+
 	if ( run_state::is_parsing )
-		parse_time_records[rt].emplace_back(NewRef{}, this);
+		parse_time_records[rt.get()].emplace_back(NewRef{}, this);
 
 	if ( ! init_fields )
 		return;
@@ -2868,9 +2870,10 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 			catch ( InterpreterException& )
 				{
 				if ( run_state::is_parsing )
-					parse_time_records[rt].pop_back();
+					parse_time_records[rt.get()].pop_back();
 
 				delete record_val;
+				delete is_in_record;
 				throw;
 				}
 
@@ -2901,13 +2904,14 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 				def = make_intrusive<VectorVal>(cast_intrusive<VectorType>(type));
 			}
 
-		vl->emplace_back(std::move(def));
+		vl->emplace_back(ZVal(def, def->GetType()));
 		}
 	}
 
 RecordVal::~RecordVal()
 	{
 	delete record_val;
+	delete is_in_record;
 	}
 
 ValPtr RecordVal::SizeVal() const
@@ -2917,18 +2921,15 @@ ValPtr RecordVal::SizeVal() const
 
 void RecordVal::Assign(int field, ValPtr new_val)
 	{
-	(*record_val)[field] = std::move(new_val);
-	Modified();
-	}
+	(*record_val)[field] = ZVal(new_val, rt->GetFieldType(field));
+	(*is_in_record)[field] = new_val != nullptr;
 
-void RecordVal::Assign(int field, Val* new_val)
-	{
-	Assign(field, {AdoptRef{}, new_val});
+	Modified();
 	}
 
 ValPtr RecordVal::GetFieldOrDefault(int field) const
 	{
-	const auto& val = (*record_val)[field];
+	auto val = GetField(field);
 
 	if ( val )
 		return val;
@@ -2936,9 +2937,9 @@ ValPtr RecordVal::GetFieldOrDefault(int field) const
 	return GetType()->AsRecordType()->FieldDefault(field);
 	}
 
-void RecordVal::ResizeParseTimeRecords(RecordType* rt)
+void RecordVal::ResizeParseTimeRecords(RecordType* revised_rt)
 	{
-	auto it = parse_time_records.find(rt);
+	auto it = parse_time_records.find(revised_rt);
 
 	if ( it == parse_time_records.end() )
 		return;
@@ -2948,14 +2949,14 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 	for ( auto& rv : rvs )
 		{
 		int current_length = rv->NumFields();
-		auto required_length = rt->NumFields();
+		auto required_length = revised_rt->NumFields();
 
 		if ( required_length > current_length )
 			{
 			rv->Reserve(required_length);
 
 			for ( auto i = current_length; i < required_length; ++i )
-				rv->AppendField(rt->FieldDefault(i));
+				rv->AppendField(revised_rt->FieldDefault(i));
 			}
 		}
 	}
@@ -2965,7 +2966,7 @@ void RecordVal::DoneParsing()
 	parse_time_records.clear();
 	}
 
-const ValPtr& RecordVal::GetField(const char* field) const
+ValPtr RecordVal::GetField(const char* field) const
 	{
 	int idx = GetType()->AsRecordType()->FieldOffset(field);
 
@@ -3065,11 +3066,10 @@ TableValPtr RecordVal::GetRecordFieldsVal() const
 void RecordVal::Describe(ODesc* d) const
 	{
 	auto n = record_val->size();
-	auto record_type = GetType()->AsRecordType();
 
 	if ( d->IsBinary() || d->IsPortable() )
 		{
-		record_type->Describe(d);
+		rt->Describe(d);
 		d->SP();
 		d->Add(static_cast<uint64_t>(n));
 		d->SP();
@@ -3082,12 +3082,12 @@ void RecordVal::Describe(ODesc* d) const
 		if ( ! d->IsBinary() && i > 0 )
 			d->Add(", ");
 
-		d->Add(record_type->FieldName(i));
+		d->Add(rt->FieldName(i));
 
 		if ( ! d->IsBinary() )
 			d->Add("=");
 
-		const auto& v = (*record_val)[i];
+		auto v = GetField(i);
 
 		if ( v )
 			v->Describe(d);
@@ -3102,7 +3102,7 @@ void RecordVal::Describe(ODesc* d) const
 void RecordVal::DescribeReST(ODesc* d) const
 	{
 	auto n = record_val->size();
-	auto record_type = GetType()->AsRecordType();
+	auto rt = GetType()->AsRecordType();
 
 	d->Add("{");
 	d->PushIndent();
@@ -3112,10 +3112,10 @@ void RecordVal::DescribeReST(ODesc* d) const
 		if ( i > 0 )
 			d->NL();
 
-		d->Add(record_type->FieldName(i));
+		d->Add(rt->FieldName(i));
 		d->Add("=");
 
-		const auto& v = (*record_val)[i];
+		auto v = GetField(i);
 
 		if ( v )
 			v->Describe(d);
@@ -3138,9 +3138,11 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
-	for ( const auto& vlv : *record_val)
+	int n = NumFields();
+	for ( auto i = 0; i < n; ++i )
 		{
-		auto v = vlv ? vlv->Clone(state) : nullptr;
+		auto f_i = GetField(i);
+		auto v = f_i ? f_i->Clone(state) : nullptr;
   		rv->AppendField(std::move(v));
 		}
 
@@ -3150,16 +3152,25 @@ ValPtr RecordVal::DoClone(CloneState* state)
 unsigned int RecordVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
-	const auto& vl = *record_val;
 
-	for ( const auto& v : vl )
+	int n = NumFields();
+	for ( auto i = 0; i < n; ++i )
 		{
-		if ( v )
-		    size += v->MemoryAllocation();
+		auto f_i = GetField(i);
+		if ( f_i )
+			size += f_i->MemoryAllocation();
 		}
 
-	size += util::pad_size(vl.capacity() * sizeof(ValPtr));
-	size += padded_sizeof(vl);
+	size += util::pad_size(record_val->capacity() * sizeof(ZVal));
+	size += padded_sizeof(*record_val);
+
+	// It's tricky sizing is_in_record since it's a std::vector
+	// specialization.  We approximate this by not scaling capacity()
+	// by sizeof(bool) but just using its raw value.  That's still
+	// presumably going to be an overestimate.
+	size += util::pad_size(is_in_record->capacity());
+	size += padded_sizeof(*is_in_record);
+
 	return size + padded_sizeof(*this);
 	}
 

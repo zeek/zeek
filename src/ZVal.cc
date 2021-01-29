@@ -1,7 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/ZVal.h"
-
 #include "zeek/ZeekString.h"
 #include "zeek/File.h"
 #include "zeek/Func.h"

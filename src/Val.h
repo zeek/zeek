@@ -15,6 +15,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/net_util.h"
 #include "zeek/Dict.h"
+#include "zeek/ZVal.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -1143,15 +1144,9 @@ public:
 	void Assign(int field, Ts&&... args)
 		{ Assign(field, make_intrusive<T>(std::forward<Ts>(args)...)); }
 
-	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
-	void Assign(int field, Val* new_val);
 	// Note: the following nullptr method can also go upon removing the above.
 	void Assign(int field, std::nullptr_t)
 		{ Assign(field, ValPtr{}); }
-
-	[[deprecated("Remove in v4.1.  Use GetField().")]]
-	Val* Lookup(int field) const    // Does not Ref() value.
-		{ return (*record_val)[field].get(); }
 
 	/**
 	 * Appends a value to the record's fields.  The caller is responsible
@@ -1160,7 +1155,10 @@ public:
 	 * @param v  The value to append.
 	 */
 	void AppendField(ValPtr v)
-		{ record_val->emplace_back(std::move(v)); }
+		{
+		record_val->emplace_back(ZVal(v, v->GetType()));
+		is_in_record->emplace_back(true);
+		}
 
 	/**
 	 * Ensures that the record has enough internal storage for the
@@ -1168,13 +1166,16 @@ public:
 	 * @param n  The number of fields.
 	 */
 	void Reserve(unsigned int n)
-		{ record_val->reserve(n); }
+		{
+		record_val->reserve(n);
+		is_in_record->reserve(n);
+		}
 
 	/**
 	 * Returns the number of fields in the record.
 	 * @return  The number of fields in the record.
 	 */
-	unsigned int NumFields()
+	unsigned int NumFields() const
 		{ return record_val->size(); }
 
 	/**
@@ -1182,8 +1183,13 @@ public:
 	 * @param field  The field index to retrieve.
 	 * @return  The value at the given field index.
 	 */
-	const ValPtr& GetField(int field) const
-		{ return (*record_val)[field]; }
+	ValPtr GetField(int field) const
+		{
+		if ( ! (*is_in_record)[field] )
+			return nullptr;
+
+		return (*record_val)[field].ToVal(rt->GetFieldType(field));
+		}
 
 	/**
 	 * Returns the value of a given field index as cast to type @c T.
@@ -1214,7 +1220,7 @@ public:
 	 * @return  The value of the given field.  If no such field name exists,
 	 * a fatal error occurs.
 	 */
-	const ValPtr& GetField(const char* field) const;
+	ValPtr GetField(const char* field) const;
 
 	/**
 	 * Returns the value of a given field name as cast to type @c T.
@@ -1255,7 +1261,7 @@ public:
 	template <typename T>
     auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T>
 		{
-		auto& field_ptr = GetField(field);
+		auto field_ptr = GetField(field);
 		auto field_val_ptr = static_cast<T*>(field_ptr.get());
 		return field_val_ptr->Get();
 		}
@@ -1263,7 +1269,7 @@ public:
 	template <typename T>
     auto GetFieldAs(const char* field) const -> std::invoke_result_t<decltype(&T::Get), T>
 		{
-		auto& field_ptr = GetField(field);
+		auto field_ptr = GetField(field);
 		auto field_val_ptr = static_cast<T*>(field_ptr.get());
 		return field_val_ptr->Get();
 		}
@@ -1330,7 +1336,16 @@ protected:
 	static RecordTypeValMap parse_time_records;
 
 private:
-	std::vector<ValPtr>* record_val;
+	// Keep this handy for quick access during low-level operations.
+	RecordTypePtr rt;
+
+	// Low-level values of each of the fields.
+	std::vector<ZVal>* record_val;
+
+	// Whether a given field exists - for optional fields, and because
+	// Zeek does not enforce that non-optional fields are actually
+	// present.
+	std::vector<bool>* is_in_record;
 };
 
 class EnumVal final : public detail::IntValImplementation {

@@ -2842,9 +2842,11 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 	{
 	origin = nullptr;
 	rt = {NewRef{}, GetType()->AsRecordType()};
+
 	int n = rt->NumFields();
-	auto vl = record_val = new std::vector<ZVal>;
-	vl->reserve(n);
+
+	record_val = new std::vector<ZVal>;
+	record_val->reserve(n);
 
 	is_in_record = new std::vector<bool>(n, false);
 
@@ -2904,7 +2906,16 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 				def = make_intrusive<VectorVal>(cast_intrusive<VectorType>(type));
 			}
 
-		vl->emplace_back(ZVal(def, def->GetType()));
+		if ( def )
+			{
+			record_val->emplace_back(ZVal(def, def->GetType()));
+			(*is_in_record)[i] = true;
+			}
+		else
+			{
+			record_val->emplace_back(ZVal());
+			(*is_in_record)[i] = false;
+			}
 		}
 	}
 
@@ -2921,8 +2932,21 @@ ValPtr RecordVal::SizeVal() const
 
 void RecordVal::Assign(int field, ValPtr new_val)
 	{
-	(*record_val)[field] = ZVal(new_val, rt->GetFieldType(field));
-	(*is_in_record)[field] = new_val != nullptr;
+	auto t = rt->GetFieldType(field);
+
+	if ( new_val )
+		{
+		(*record_val)[field] = ZVal(new_val, t);
+		(*is_in_record)[field] = true;
+		}
+	else
+		{
+		if ( (*is_in_record)[field] )
+			DeleteIfManaged((*record_val)[field], t);
+
+		(*record_val)[field] = ZVal();
+		(*is_in_record)[field] = false;
+		}
 
 	Modified();
 	}

@@ -1111,9 +1111,12 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 		// potentially be nested inside other records.
 		list<int>& indices = filter->indices[i];
 
+		ValPtr val_ptr;
+
 		for ( list<int>::iterator j = indices.begin(); j != indices.end(); ++j )
 			{
-			val = val->AsRecordVal()->GetField(*j).get();
+			val_ptr = val->AsRecordVal()->GetField(*j);
+			val = val_ptr.get();
 
 			if ( ! val )
 				{

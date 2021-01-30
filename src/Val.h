@@ -1150,14 +1150,22 @@ public:
 
 	/**
 	 * Appends a value to the record's fields.  The caller is responsible
-	 * for ensuring that fields are appended in the correct orer and
+	 * for ensuring that fields are appended in the correct order and
 	 * with the correct type.
 	 * @param v  The value to append.
 	 */
 	void AppendField(ValPtr v)
 		{
-		record_val->emplace_back(ZVal(v, v->GetType()));
-		is_in_record->emplace_back(true);
+		if ( v )
+			{
+			(*is_in_record)[record_val->size()] = true;
+			record_val->emplace_back(ZVal(v, v->GetType()));
+			}
+		else
+			{
+			(*is_in_record)[record_val->size()] = false;
+			record_val->emplace_back(ZVal());
+			}
 		}
 
 	/**
@@ -1169,6 +1177,9 @@ public:
 		{
 		record_val->reserve(n);
 		is_in_record->reserve(n);
+
+		for ( auto i = is_in_record->size(); i < n; ++i )
+			is_in_record->emplace_back(false);
 		}
 
 	/**

@@ -108,4 +108,11 @@ inline void DeleteManagedType(ZVal& v)
 	Unref(v.managed_val);
 	}
 
+// Deletes a possibly-managed value.
+inline void DeleteIfManaged(ZVal& v, const TypePtr& t)
+	{
+	if ( IsManagedType(t) )
+		DeleteManagedType(v);
+	}
+
 } // zeek

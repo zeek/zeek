@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/threading/formatters/JSON.h"
 
 #ifndef __STDC_LIMIT_MACROS

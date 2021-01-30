@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #ifndef HAVE_STRSEP
 

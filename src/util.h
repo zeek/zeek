@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.

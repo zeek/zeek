@@ -2,7 +2,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/Reporter.h"
 
 #include <unistd.h>

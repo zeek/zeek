@@ -1,7 +1,7 @@
 // This code contributed to Bro by Florian Schimandl, Hugh Dollman and
 // Robin Sommer.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/pop3/POP3.h"
 
 #include <vector>

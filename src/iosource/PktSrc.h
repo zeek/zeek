@@ -92,21 +92,6 @@ public:
 	const char* ErrorMsg() const;
 
 	/**
-	 * In pseudo-realtime mode, returns the logical timestamp of the
-	 * current packet. Undefined if not running pseudo-realtime mode.
-	 */
-	[[deprecated("Remove in v4.1. Use zeek::run_state::current_packet_timestamp().")]]
-	double CurrentPacketTimestamp();
-
-	/**
-	 * In pseudo-realtime mode, returns the wall clock time associated
-	 * with current packet. Undefined if not running pseudo-realtime
-	 * mode.
-	 */
-	[[deprecated("Remove in v4.1. Use zeek::run_state::current_wallclock().")]]
-	double CurrentPacketWallClock();
-
-	/**
 	 * Precompiles a BPF filter and associates the given index with it.
 	 * The compiled filter will be then available via \a GetBPFFilter().
 	 *
@@ -366,9 +351,3 @@ private:
 };
 
 } // namespace zeek::iosource
-
-namespace iosource {
-
-using PktSrc [[deprecated("Remove in v4.1. Use zeek::iosource::PktSrc.")]] = zeek::iosource::PktSrc;
-
-} // namespace iosource

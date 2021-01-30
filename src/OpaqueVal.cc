@@ -40,9 +40,6 @@ OpaqueMgr* OpaqueMgr::mgr()
 	return &mgr;
 	}
 
-OpaqueVal::OpaqueVal(OpaqueType* t) : OpaqueVal({NewRef{}, t})
-	{}
-
 OpaqueVal::OpaqueVal(OpaqueTypePtr t) : Val(std::move(t))
 	{}
 
@@ -213,9 +210,6 @@ HashVal::HashVal(OpaqueTypePtr t) : OpaqueVal(std::move(t))
 	{
 	valid = false;
 	}
-
-HashVal::HashVal(OpaqueType* t) : HashVal({NewRef{}, t})
-	{}
 
 MD5Val::MD5Val() : HashVal(md5_type)
 	{

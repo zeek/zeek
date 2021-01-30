@@ -98,7 +98,3 @@ inline UID& UID::operator=(const UID& other)
 	}
 
 } // namespace zeek
-
-namespace Bro {
-	using UID [[deprecated("Remove in v4.1. Use zeek::UID.")]] = zeek::UID;
-}

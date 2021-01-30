@@ -35,6 +35,3 @@ protected:
 };
 
 } // namespace zeek::detail
-
-using int_list [[deprecated("Remove in v4.1. Use zeek::detail::int_list.")]] = zeek::detail::int_list;
-using CCL [[deprecated("Remove in v4.1. Use zeek::detail::CCL.")]] = zeek::detail::CCL;

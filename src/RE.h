@@ -14,9 +14,6 @@
 
 typedef int (*cce_func)(int);
 
-namespace zeek { class String; }
-using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
-
 ZEEK_FORWARD_DECLARE_NAMESPACED(NFA_Machine, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(DFA_Machine, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(DFA_State, zeek::detail);
@@ -28,6 +25,9 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(CCL, zeek::detail);
 extern int re_lex(void);
 
 namespace zeek {
+
+class String;
+
 namespace detail {
 
 extern int case_insensitive;
@@ -240,25 +240,3 @@ protected:
 };
 
 } // namespace zeek
-
-constexpr auto clower [[deprecated("Remove in v4.1. Use zeek::detail::clower.")]] = zeek::detail::clower;
-constexpr auto synerr [[deprecated("Remove in v4.1. Use zeek::detail::synerr.")]] = zeek::detail::synerr;
-
-using AcceptIdx [[deprecated("Remove in v4.1. Use zeek::detail::AcceptIdx.")]] = zeek::detail::AcceptIdx;
-using AcceptingSet [[deprecated("Remove in v4.1. Use zeek::detail::AcceptingSet.")]] = zeek::detail::AcceptingSet;
-using MatchPos [[deprecated("Remove in v4.1. Use zeek::detail::MatchPos.")]] = zeek::detail::MatchPos;
-using AcceptingMatchSet [[deprecated("Remove in v4.1. Use zeek::detail::AcceptingMatchSet.")]] = zeek::detail::AcceptingMatchSet;
-using string_list [[deprecated("Remove in v4.1. Use zeek::detail::string_list.")]] = zeek::detail::string_list;
-
-constexpr auto MATCH_ANYWHERE [[deprecated("Remove in v4.1. Use zeek::detail::MATCH_ANYWHERE.")]] = zeek::detail::MATCH_ANYWHERE;
-constexpr auto MATCH_EXACTLY [[deprecated("Remove in v4.1. Use zeek::detail::MATCH_EXACTLY.")]] = zeek::detail::MATCH_EXACTLY;
-
-using Specific_RE_Matcher [[deprecated("Remove in v4.1. Use zeek::detail::Specific_RE_Matcher.")]] = zeek::detail::Specific_RE_Matcher;
-using RE_Match_State [[deprecated("Remove in v4.1. Use zeek::detail::RE_Match_State.")]] = zeek::detail::RE_Match_State;
-using RE_Matcher [[deprecated("Remove in v4.1. Use zeek::RE_Matcher.")]] = zeek::RE_Matcher;
-
-extern int& case_insensitive [[deprecated("Remove in v4.1. Use zeek::detail::case_insensitive")]];
-extern zeek::detail::CCL*& curr_ccl [[deprecated("Remove in v4.1. Use zeek::detail::curr_ccl")]];;
-extern zeek::detail::NFA_Machine*& nfa [[deprecated("Remove in v4.1. Use zeek::detail::nfa")]];;
-extern zeek::detail::Specific_RE_Matcher*& rem [[deprecated("Remove in v4.1. Use zeek::detail::rem")]];;
-extern const char*& RE_parse_input [[deprecated("Remove in v4.1. Use zeek::detail::RE_parse_input")]];;

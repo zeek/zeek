@@ -41,16 +41,9 @@ extern "C" {
 using namespace std;
 
 bool zeek::detail::g_policy_debug = false;
-bool& g_policy_debug = zeek::detail::g_policy_debug;
-
 zeek::detail::DebuggerState zeek::detail::g_debugger_state;
-zeek::detail::DebuggerState& g_debugger_state = zeek::detail::g_debugger_state;
-
 zeek::detail::TraceState zeek::detail::g_trace_state;
-zeek::detail::TraceState& g_trace_state = zeek::detail::g_trace_state;
-
 std::map<string, zeek::detail::Filemap*> zeek::detail::g_dbgfilemaps;
-std::map<string, zeek::detail::Filemap*>& g_dbgfilemaps = zeek::detail::g_dbgfilemaps;
 
 // These variables are used only to decide whether or not to print the
 // current context; you don't want to do it after a step or next

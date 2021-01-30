@@ -1269,11 +1269,6 @@ void ListVal::Append(ValPtr v)
 	type->AsTypeList()->Append(vt);
 	}
 
-void ListVal::Append(Val* v)
-	{
-	Append({AdoptRef{}, v});
-	}
-
 TableValPtr ListVal::ToSetVal() const
 	{
 	if ( tag == TYPE_ANY )
@@ -1289,11 +1284,6 @@ TableValPtr ListVal::ToSetVal() const
 		t->Assign(val, nullptr);
 
 	return t;
-	}
-
-TableVal* ListVal::ConvertToSet() const
-	{
-	return ToSetVal().release();
 	}
 
 void ListVal::Describe(ODesc* d) const
@@ -1568,11 +1558,6 @@ bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward,
 	return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward, iterators_invalidated);
 	}
 
-bool TableVal::Assign(Val* index, Val* new_val)
-	{
-	return Assign({NewRef{}, index}, {AdoptRef{}, new_val});
-	}
-
 bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
                       ValPtr new_val, bool broker_forward, bool* iterators_invalidated)
 	{
@@ -1625,11 +1610,6 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
 	delete old_entry_val;
 
 	return true;
-	}
-
-bool TableVal::Assign(Val* index, detail::HashKey* k, Val* new_val)
-	{
-	return Assign({NewRef{}, index}, std::unique_ptr<detail::HashKey>{k}, {AdoptRef{}, new_val});
 	}
 
 ValPtr TableVal::SizeVal() const
@@ -1985,22 +1965,6 @@ bool TableVal::Contains(const IPAddr& addr) const
 	return (subnets->Lookup(addr, true) != 0);
 	}
 
-Val* TableVal::Lookup(Val* index, bool use_default_val)
-	{
-	static ValPtr last_default;
-	last_default = nullptr;
-	ValPtr idx{NewRef{}, index};
-
-	if ( const auto& rval = Find(idx) )
-		return rval.get();
-
-	if ( ! use_default_val )
-		return nullptr;
-
-	last_default = Default(idx);
-	return last_default.get();
-	}
-
 VectorValPtr TableVal::LookupSubnets(const SubNetVal* search)
 	{
 	if ( ! subnets )
@@ -2333,11 +2297,6 @@ ListValPtr TableVal::ToListVal(TypeTag t) const
 	return l;
 	}
 
-ListVal* TableVal::ConvertToList(TypeTag t) const
-	{
-	return ToListVal().release();
-	}
-
 ListValPtr TableVal::ToPureListVal() const
 	{
 	const auto& tl = table_type->GetIndices()->GetTypes();
@@ -2348,11 +2307,6 @@ ListValPtr TableVal::ToPureListVal() const
 		}
 
 	return ToListVal(tl[0]->Tag());
-	}
-
-ListVal* TableVal::ConvertToPureList() const
-	{
-	return ToPureListVal().release();
 	}
 
 const detail::AttrPtr& TableVal::GetAttr(detail::AttrTag t) const
@@ -2770,9 +2724,6 @@ unsigned int TableVal::MemoryAllocation() const
 		+ table_hash->MemoryAllocation();
 	}
 
-detail::HashKey* TableVal::ComputeHash(const Val* index) const
-	{ return MakeHashKey(*index).release(); }
-
 std::unique_ptr<detail::HashKey> TableVal::MakeHashKey(const Val& index) const
 	{
 	return table_hash->MakeHashKey(index, true);
@@ -2833,10 +2784,6 @@ TableVal::ParseTimeTableStates TableVal::parse_time_table_states;
 TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies;
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
-
-RecordVal::RecordVal(RecordType* t, bool init_fields)
-	: RecordVal({NewRef{}, t}, init_fields)
-	{}
 
 RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 	{
@@ -2919,11 +2866,6 @@ void RecordVal::Assign(int field, ValPtr new_val)
 	{
 	(*record_val)[field] = std::move(new_val);
 	Modified();
-	}
-
-void RecordVal::Assign(int field, Val* new_val)
-	{
-	Assign(field, {AdoptRef{}, new_val});
 	}
 
 ValPtr RecordVal::GetFieldOrDefault(int field) const
@@ -3194,9 +3136,6 @@ ValPtr TypeVal::DoClone(CloneState* state)
 	// Immutable.
 	return {NewRef{}, this};
 	}
-
-VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef{}, t})
-	{ }
 
 VectorVal::VectorVal(VectorTypePtr t) : Val(std::move(t))
 	{
@@ -3682,11 +3621,6 @@ ValManager::ValManager()
 		}
 	}
 
-StringVal* ValManager::GetEmptyString() const
-	{
-	return empty_string->Ref()->AsStringVal();
-	}
-
 const PortValPtr& ValManager::Port(uint32_t port_num, TransportProto port_type) const
 	{
 	if ( port_num >= 65536 )
@@ -3696,11 +3630,6 @@ const PortValPtr& ValManager::Port(uint32_t port_num, TransportProto port_type) 
 		}
 
 	return ports[port_type][port_num];
-	}
-
-PortVal* ValManager::GetPort(uint32_t port_num, TransportProto port_type) const
-	{
-	return Port(port_num, port_type)->Ref()->AsPortVal();
 	}
 
 const PortValPtr& ValManager::Port(uint32_t port_num) const
@@ -3716,11 +3645,6 @@ const PortValPtr& ValManager::Port(uint32_t port_num) const
 		return Port(port_num, TRANSPORT_ICMP);
 	else
 		return Port(port_num, TRANSPORT_UNKNOWN);
-	}
-
-PortVal* ValManager::GetPort(uint32_t port_num) const
-	{
-	return Port(port_num)->Ref()->AsPortVal();
 	}
 
 }

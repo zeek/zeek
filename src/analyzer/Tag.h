@@ -12,14 +12,6 @@ namespace zeek::plugin {
 	template <class T> class TaggedComponent;
 	template <class T, class C> class ComponentManager;
 }
-namespace plugin {
-	template <class T>
-	using TaggedComponent [[deprecated("Remove in v4.1. Use zeek::plugin::TaggedComponent instead.")]] =
-		zeek::plugin::TaggedComponent<T>;
-	template <class T, class C>
-	using ComponentManager [[deprecated("Remove in v4.1. Use zeek::plugin::ComponentManager instead.")]] =
-		zeek::plugin::ComponentManager<T, C>;
-}
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, analyzer);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Component, zeek, analyzer);
@@ -92,9 +84,6 @@ public:
 	 */
 	const EnumValPtr& AsVal() const;
 
-	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]]
-	EnumVal* AsEnumVal() const;
-
 	static const Tag Error;
 
 protected:
@@ -120,13 +109,6 @@ protected:
 	 * @param val An enum value of script type \c Analyzer::Tag.
 	 */
 	explicit Tag(EnumValPtr val);
-
-	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead")]]
-	explicit Tag(EnumVal* val);
 };
 
 } // namespace zeek::analyzer
-
-namespace analyzer {
-	using Tag [[deprecated("Remove in v4.1. Use zeek::analyzer::Tag")]] = zeek::analyzer::Tag;
-} // namespace analyzer

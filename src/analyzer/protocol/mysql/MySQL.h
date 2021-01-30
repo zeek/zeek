@@ -33,9 +33,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::mysql
-
-namespace analyzer::MySQL {
-
-using MySQL_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::mysql::MySQL_Analyzer.")]] = zeek::analyzer::mysql::MySQL_Analyzer;
-
-} // namespace analyzer::MySQL

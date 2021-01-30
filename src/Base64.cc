@@ -284,13 +284,3 @@ String* encode_base64(const String* s, const String* a, Connection* conn)
 	}
 
 } // namespace zeek::detail
-
-zeek::String* decode_base64(const zeek::String* s, const zeek::String* a, zeek::Connection* conn)
-	{
-	return zeek::detail::decode_base64(s, a, conn);
-	}
-
-zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, zeek::Connection* conn)
-	{
-	return zeek::detail::encode_base64(s ,a ,conn);
-	}

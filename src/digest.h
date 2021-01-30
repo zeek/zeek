@@ -71,21 +71,3 @@ unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsign
 unsigned char* calculate_digest(HashAlgorithm Alg, const unsigned char* data, uint64_t len, unsigned char* out);
 
 } // namespace zeek::detail
-
-using HashAlgorithm [[deprecated("Remove in v4.1. Use zeek::detail::HashAlgorithm.")]] = zeek::detail::HashAlgorithm;
-constexpr auto Hash_MD5 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_MD5.")]] = zeek::detail::Hash_MD5;
-constexpr auto Hash_SHA1 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA1.")]] = zeek::detail::Hash_SHA1;
-constexpr auto Hash_SHA224 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA224.")]] = zeek::detail::Hash_SHA224;
-constexpr auto Hash_SHA256 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA256.")]] = zeek::detail::Hash_SHA256;
-constexpr auto Hash_SHA384 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA384.")]] = zeek::detail::Hash_SHA384;
-constexpr auto Hash_SHA512 [[deprecated("Remove in v4.1. Use zeek::detail::Hash_SHA512.")]] = zeek::detail::Hash_SHA512;
-
-constexpr auto digest_print [[deprecated("Remove in v4.1. Use zeek::detail::digest_print.")]] = zeek::detail::digest_print;
-constexpr auto md5_digest_print [[deprecated("Remove in v4.1. Use zeek::detail::md5_digest_print.")]] = zeek::detail::md5_digest_print;
-constexpr auto sha1_digest_print [[deprecated("Remove in v4.1. Use zeek::detail::sha1_digest_print.")]] = zeek::detail::sha1_digest_print;
-constexpr auto sha256_digest_print [[deprecated("Remove in v4.1. Use zeek::detail::sha256_digest_print.")]] = zeek::detail::sha256_digest_print;
-constexpr auto hash_init [[deprecated("Remove in v4.1. Use zeek::detail::hash_init.")]] = zeek::detail::hash_init;
-constexpr auto hash_update [[deprecated("Remove in v4.1. Use zeek::detail::hash_update.")]] = zeek::detail::hash_update;
-constexpr auto hash_final [[deprecated("Remove in v4.1. Use zeek::detail::hash_final.")]] = zeek::detail::hash_final;
-constexpr auto internal_md5 [[deprecated("Remove in v4.1. Use zeek::detail::internal_md5.")]] = zeek::detail::internal_md5;
-constexpr auto calculate_digest [[deprecated("Remove in v4.1. Use zeek::detail::calculate_digest.")]] = zeek::detail::calculate_digest;

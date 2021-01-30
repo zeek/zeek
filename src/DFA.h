@@ -152,8 +152,3 @@ inline DFA_State* DFA_State::Xtion(int sym, DFA_Machine* machine)
 	}
 
 } // namespace zeek::detail
-
-using DFA_State [[deprecated("Remove in v4.1. Use zeek::detail::DFA_State.")]] = zeek::detail::DFA_State;
-using DigestStr [[deprecated("Remove in v4.1. Use zeek::detail::DigestStr.")]] = zeek::detail::DigestStr;
-using DFA_State_Cache [[deprecated("Remove in v4.1. Use zeek::detail::DFA_State_Cache.")]] = zeek::detail::DFA_State_Cache;
-using DFA_Machine [[deprecated("Remove in v4.1. Use zeek::detail::DFA_Machine.")]] = zeek::detail::DFA_Machine;

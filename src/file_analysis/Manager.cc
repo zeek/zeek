@@ -80,7 +80,7 @@ void Manager::SetHandle(const string& handle)
 		return;
 
 #ifdef DEBUG
-	if ( debug_logger.IsEnabled(DBG_FILE_ANALYSIS) )
+	if ( zeek::detail::debug_logger.IsEnabled(DBG_FILE_ANALYSIS) )
 		{
 		String tmp{handle};
 		auto rendered = tmp.Render();
@@ -260,10 +260,6 @@ bool Manager::SetReassemblyBuffer(const string& file_id, uint64_t max)
 	return true;
 	}
 
-bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args,
-                                 uint64_t n) const
-	{ return SetExtractionLimit(file_id, {NewRef{}, args}, n); }
-
 bool Manager::SetExtractionLimit(const string& file_id,
                                  RecordValPtr args, uint64_t n) const
 	{
@@ -276,10 +272,6 @@ bool Manager::SetExtractionLimit(const string& file_id,
 	}
 
 bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
-                          RecordVal* args) const
-	{ return AddAnalyzer(file_id, tag, {NewRef{}, args}); }
-
-bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
                           RecordValPtr args) const
 	{
 	File* file = LookupFile(file_id);
@@ -289,10 +281,6 @@ bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
 
 	return file->AddAnalyzer(tag, std::move(args));
 	}
-
-bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
-                             RecordVal* args) const
-	{ return RemoveAnalyzer(file_id, tag, {NewRef{}, args}); }
 
 bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
                              RecordValPtr args) const
@@ -456,9 +444,6 @@ bool Manager::IsDisabled(const analyzer::Tag& tag)
 	return yield->AsBool();
 	}
 
-Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const
-	{ return InstantiateAnalyzer(tag, {NewRef{}, args}, f); }
-
 Analyzer* Manager::InstantiateAnalyzer(const Tag& tag,
                                        RecordValPtr args,
                                        File* f) const
@@ -480,8 +465,6 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag,
 
 	if ( c->factory_func )
 		a = c->factory_func(std::move(args), f);
-	else if ( c->factory )
-		a = c->factory(args.get(), f);
 	else
 		{
 		reporter->InternalWarning("file analyzer %s cannot be instantiated "

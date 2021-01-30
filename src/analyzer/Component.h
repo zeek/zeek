@@ -108,7 +108,3 @@ private:
 };
 
 } // namespace zeek::analyzer
-
-namespace analyzer {
-	using Component [[deprecated("Remove in v4.1. Use zeek::analyzer::Component.")]] = zeek::analyzer::Component;
-} // namespace analyzer

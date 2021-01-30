@@ -15,15 +15,21 @@ export {
 	type Log: record {
 		t: time;
 		id: conn_id; # Will be rolled out into individual columns.
-		status: string &optional;
+		status: string;
 		country: string &default="unknown";
 	} &log;
 }
 
+hook fail_only(rec: Log, id: Log::ID, filter: Log::Filter)
+	{
+	if ( rec$status != "failure" )
+		break;
+	}
+
 event zeek_init()
 {
 	Log::create_stream(SSH::LOG, [$columns=Log]);
-	Log::add_filter(SSH::LOG, [$name="f1", $path="ssh.failure", $pred=function(rec: Log): bool { return rec$status == "failure"; }]);
+	Log::add_filter(SSH::LOG, [$name="f1", $path="ssh.failure", $policy=fail_only]);
 
 	local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
 

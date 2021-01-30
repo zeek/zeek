@@ -31,8 +31,6 @@ using ValPtr = IntrusivePtr<Val>;
 using FuncPtr = IntrusivePtr<Func>;
 }
 
-using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
-
 namespace zeek::detail {
 
 class Attributes;
@@ -64,13 +62,6 @@ public:
 	std::string ModuleName() const;
 
 	void SetType(TypePtr t);
-	[[deprecated("Remove in v4.1.  Use version that takes IntrusivePtr.")]]
-	void SetType(zeek::Type* t);
-
-	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	zeek::Type* Type()			{ return type.get(); }
-	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	const zeek::Type* Type() const	{ return type.get(); }
 
 	const TypePtr& GetType() const
 		{ return type; }
@@ -78,11 +69,6 @@ public:
 	template <class T>
 	IntrusivePtr<T> GetType() const
 		{ return cast_intrusive<T>(type); }
-
-	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
-	zeek::Type* AsType()		{ return is_type ? GetType().get() : nullptr; }
-	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
-	const zeek::Type* AsType() const	{ return is_type ? GetType().get() : nullptr; }
 
 	bool IsType() const
 		{ return is_type; }
@@ -95,11 +81,6 @@ public:
 	void SetVal(ExprPtr ev, InitClass c);
 
 	bool HasVal() const		{ return val != nullptr; }
-
-	[[deprecated("Remove in v4.1.  Use GetVal().")]]
-	Val* ID_Val()			{ return val.get(); }
-	[[deprecated("Remove in v4.1.  Use GetVal().")]]
-	const Val* ID_Val() const	{ return val.get(); }
 
 	const ValPtr& GetVal() const
 		{ return val; }
@@ -127,9 +108,6 @@ public:
 
 	const AttributesPtr& GetAttrs() const
 		{ return attrs; }
-
-	[[deprecated("Remove in 4.1.  Use GetAttrs().")]]
-	Attributes* Attrs() const	{ return attrs.get(); }
 
 	const AttrPtr& GetAttr(AttrTag t) const;
 
@@ -183,8 +161,6 @@ protected:
 };
 
 } // namespace zeek::detail
-
-using ID [[deprecated("Remove in v4.1. Use zeek::detail::ID instead.")]] = zeek::detail::ID;
 
 namespace zeek::id {
 
@@ -276,23 +252,3 @@ void init_types();
 
 } // namespace detail
 } // namespace zeek::id
-
-using ID [[deprecated("Remove in v4.1 Use zeek::detail::ID instead.")]] = zeek::detail::ID;
-
-using init_class [[deprecated("Remove in v4.1. Use zeek::detail::InitClass instead.")]] = zeek::detail::InitClass;
-[[deprecated("Remove in v4.1. Use zeek::detail::INIT_NONE instead.")]]
-constexpr auto INIT_NONE = zeek::detail::INIT_NONE;
-[[deprecated("Remove in v4.1. Use zeek::detail::INIT_FULL instead.")]]
-constexpr auto INIT_FULL = zeek::detail::INIT_FULL;
-[[deprecated("Remove in v4.1. Use zeek::detail::INIT_EXTRA instead.")]]
-constexpr auto INIT_EXTRA = zeek::detail::INIT_EXTRA;
-[[deprecated("Remove in v4.1. Use zeek::detail::INIT_REMOVE instead.")]]
-constexpr auto INIT_REMOVE = zeek::detail::INIT_REMOVE;
-
-using IDScope [[deprecated("Remove in v4.1. Use zeek::detail::IDScope instead.")]] = zeek::detail::IDScope;
-[[deprecated("Remove in v4.1. Use zeek::detail::SCOPE_FUNCTION instead.")]]
-constexpr auto SCOPE_FUNCTION = zeek::detail::SCOPE_FUNCTION;
-[[deprecated("Remove in v4.1. Use zeek::detail::SCOPE_MODULE instead.")]]
-constexpr auto SCOPE_MODULE = zeek::detail::SCOPE_MODULE;
-[[deprecated("Remove in v4.1. Use zeek::detail::SCOPE_GLOBAL instead.")]]
-constexpr auto SCOPE_GLOBAL = zeek::detail::SCOPE_GLOBAL;

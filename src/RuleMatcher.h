@@ -28,7 +28,6 @@ extern int rules_line_number;
 extern const char* current_rule_file;
 
 namespace zeek { class File; }
-using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Match_State, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Specific_RE_Matcher, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RuleMatcher, zeek::detail);
@@ -392,18 +391,3 @@ private:
 };
 
 } // namespace zeek::detail
-
-using Range [[deprecated("Remove in v4.1. Use zeek::detail::Range.")]] = zeek::detail::Range;
-using MaskedValue [[deprecated("Remove in v4.1. Use zeek::detail::MaskedValue.")]] = zeek::detail::MaskedValue;
-using RuleHdrTest [[deprecated("Remove in v4.1. Use zeek::detail::RuleHdrTest.")]] = zeek::detail::RuleHdrTest;
-using RuleEndpointState [[deprecated("Remove in v4.1. Use zeek::detail::RuleEndpointState.")]] = zeek::detail::RuleEndpointState;
-using RuleFileMagicState [[deprecated("Remove in v4.1. Use zeek::detail::RuleFileMagicState.")]] = zeek::detail::RuleFileMagicState;
-using RuleMatcher [[deprecated("Remove in v4.1. Use zeek::detail::RuleMatcher.")]] = zeek::detail::RuleMatcher;
-using RuleMatcherState [[deprecated("Remove in v4.1. Use zeek::detail::RuleMatcherState.")]] = zeek::detail::RuleMatcherState;
-
-using maskedvalue_list [[deprecated("Remove in v4.1. Use zeek::detail::maskedvalue_list.")]] = zeek::detail::maskedvalue_list;
-using string_list [[deprecated("Remove in v4.1. Use zeek::detail::string_list.")]] = zeek::detail::string_list;
-using bstr_list [[deprecated("Remove in v4.1. Use zeek::detail::bstr_list.")]] = zeek::detail::bstr_list;
-using rule_hdr_test_list [[deprecated("Remove in v4.1. Use zeek::detail::rule_hdr_test_list.")]] = zeek::detail::rule_hdr_test_list;
-
-extern zeek::detail::RuleMatcher*& rule_matcher [[deprecated("Remove in v4.1. Use zeek::detail::rule_matcher.")]];

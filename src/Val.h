@@ -29,7 +29,6 @@
 namespace zeek {
 class String;
 }
-using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
@@ -39,11 +38,8 @@ namespace zeek {
 class File;
 using FilePtr = zeek::IntrusivePtr<File>;
 }
-using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
-using BroFilePtr [[deprecated("Remove in v4.1. Use zeek::FilePtr.")]] = zeek::FilePtr;
 
 namespace zeek::detail { class ScriptFunc; }
-using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] = zeek::detail::ScriptFunc;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(PrefixTable, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
@@ -122,11 +118,6 @@ public:
 
 	// Remove this value from the given value (if appropriate).
 	virtual bool RemoveFrom(Val* v) const;
-
-	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	zeek::Type* Type()			{ return type.get(); }
-	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	const zeek::Type* Type() const	{ return type.get(); }
 
 	const TypePtr& GetType() const
 		{ return type; }
@@ -272,33 +263,14 @@ public:
 
 	ValManager();
 
-	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->True() instead.")]]
-	inline Val* GetTrue() const
-		{ return b_true->Ref(); }
-
 	inline const ValPtr& True() const
 		{ return b_true; }
-
-	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->False() instead.")]]
-	inline Val* GetFalse() const
-		{ return b_false->Ref(); }
 
 	inline const ValPtr& False() const
 		{ return b_false; }
 
-	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Bool() instead.")]]
-	inline Val* GetBool(bool b) const
-		{ return b ? b_true->Ref() : b_false->Ref(); }
-
 	inline const ValPtr& Bool(bool b) const
 		{ return b ? b_true : b_false; }
-
-	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Int() instead.")]]
-	inline Val* GetInt(int64_t i) const
-		{
-		return i < PREALLOCATED_INT_LOWEST || i > PREALLOCATED_INT_HIGHEST ?
-		    Val::MakeInt(i).release() : ints[i - PREALLOCATED_INT_LOWEST]->Ref();
-		}
 
 	inline ValPtr Int(int64_t i) const
 		{
@@ -306,33 +278,16 @@ public:
 		    Val::MakeInt(i) : ints[i - PREALLOCATED_INT_LOWEST];
 		}
 
-	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Count() instead.")]]
-	inline Val* GetCount(uint64_t i) const
-		{
-		return i >= PREALLOCATED_COUNTS ? Val::MakeCount(i).release() : counts[i]->Ref();
-		}
-
 	inline ValPtr Count(uint64_t i) const
 		{
 		return i >= PREALLOCATED_COUNTS ? Val::MakeCount(i) : counts[i];
 		}
 
-	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->EmptyString() instead.")]]
-	StringVal* GetEmptyString() const;
-
 	inline const StringValPtr& EmptyString() const
 		{ return empty_string; }
 
 	// Port number given in host order.
-	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Port() instead.")]]
-	PortVal* GetPort(uint32_t port_num, TransportProto port_type) const;
-
-	// Port number given in host order.
 	const PortValPtr& Port(uint32_t port_num, TransportProto port_type) const;
-
-	// Host-order port number already masked with port space protocol mask.
-	[[deprecated("Remove in v4.1.  Use zeek::val_mgr->Port() instead.")]]
-	PortVal* GetPort(uint32_t port_num) const;
 
 	// Host-order port number already masked with port space protocol mask.
 	const PortValPtr& Port(uint32_t port_num) const;
@@ -583,10 +538,6 @@ public:
 	StringValPtr Replace(RE_Matcher* re, const String& repl,
 	                                      bool do_all);
 
-	[[deprecated("Remove in v4.1.  Use Replace().")]]
-	Val* Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
-		{ return Replace(re, *repl->AsString(), do_all).release(); }
-
 protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
@@ -669,11 +620,6 @@ public:
 
 	const ValPtr& Idx(size_t i) const	{ return vals[i]; }
 
-	[[deprecated("Remove in v4.1.  Use Idx() instead")]]
-	Val* Index(const int n)		{ return vals[n].get(); }
-	[[deprecated("Remove in v4.1.  Use Idx() instead")]]
-	const Val* Index(const int n) const	{ return vals[n].get(); }
-
 	// Returns an RE_Matcher() that will match any string that
 	// includes embedded within it one of the patterns listed
 	// (as a string, e.g., "foo|bar") in this ListVal.
@@ -690,14 +636,8 @@ public:
 	 */
 	void Append(ValPtr v);
 
-	[[deprecated("Remove in v4.1.  Use Append(IntrusivePtr) instead.")]]
-	void Append(Val* v);
-
 	// Returns a Set representation of the list (which must be homogeneous).
 	TableValPtr ToSetVal() const;
-
-	[[deprecated("Remove in v4.1.  Use ToSetVal() instead.")]]
-	TableVal* ConvertToSet() const;
 
 	const std::vector<ValPtr>& Vals() const	{ return vals; }
 
@@ -722,9 +662,6 @@ public:
 		}
 
 	TableEntryVal* Clone(Val::CloneState* state);
-
-	[[deprecated("Remove in v4.1.  Use GetVal().")]]
-	Val* Value()	{ return val.get(); }
 
 	const ValPtr& GetVal() const
 		{ return val; }
@@ -763,11 +700,6 @@ class TableVal final : public Val, public notifier::detail::Modifiable {
 public:
 	explicit TableVal(TableTypePtr t, detail::AttributesPtr attrs = nullptr);
 
-	[[deprecated("Remove in v4.1.  Construct from IntrusivePtrs instead.")]]
-	explicit TableVal(TableType* t, detail::Attributes* attrs = nullptr)
-		: TableVal({NewRef{}, t}, {NewRef{}, attrs})
-		{}
-
 	~TableVal() override;
 
 	/**
@@ -803,17 +735,6 @@ public:
 	            ValPtr new_val, bool broker_forward = true,
 	            bool* iterators_invalidated = nullptr);
 
-	// Returns true if the assignment typechecked, false if not. The
-	// methods take ownership of new_val, but not of the index.  If we're
-	// a set, new_val has to be nil.
-	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
-	bool Assign(Val* index, Val* new_val);
-
-	// Same as other Assign() method, but takes a precomuted detail::HashKey and
-	// deletes it when done.
-	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
-	bool Assign(Val* index, detail::HashKey* k, Val* new_val);
-
 	ValPtr SizeVal() const override;
 
 	// Add the entire contents of the table to the given value,
@@ -844,27 +765,15 @@ public:
 	 */
 	TableValPtr Intersection(const TableVal& v) const;
 
-	[[deprecated("Remove in v4.1.  Use Intersection() instead.")]]
-	TableVal* Intersect(const TableVal* v) const
-		{ return Intersection(*v).release(); }
-
 	// Returns true if this set contains the same members as the
 	// given set.  Note that comparisons are done using hash keys,
 	// so errors can arise for compound sets such as sets-of-sets.
 	// See https://bro-tracker.atlassian.net/browse/BIT-1949.
 	bool EqualTo(const TableVal& v) const;
 
-	[[deprecated("Remove in v4.1.  Pass TableVal& instead.")]]
-	bool EqualTo(const TableVal* v) const
-		{ return EqualTo(*v); }
-
 	// Returns true if this set is a subset (not necessarily proper)
 	// of the given set.
 	bool IsSubsetOf(const TableVal& v) const;
-
-	[[deprecated("Remove in v4.1.  Pass TableVal& instead.")]]
-	bool IsSubsetOf(const TableVal* v) const
-		{ return IsSubsetOf(*v); }
 
 	// Expands any lists in the index into multiple initializations.
 	// Returns true if the initializations typecheck, false if not.
@@ -890,12 +799,6 @@ public:
 	 * attribute, then nullptr is still returned for non-existent index.
 	 */
 	ValPtr FindOrDefault(const ValPtr& index);
-
-	// Returns the element's value if it exists in the table,
-	// nil otherwise.  Note, "index" is not const because we
-	// need to Ref/Unref it when calling the default function.
-	[[deprecated("Remove in v4.1.  Use Find() or FindOrDefault().")]]
-	Val* Lookup(Val* index, bool use_default_val = true);
 
 	/**
 	 * Returns true if this is a table[subnet]/set[subnet] and the
@@ -926,10 +829,6 @@ public:
 	 */
 	ListValPtr RecreateIndex(const detail::HashKey& k) const;
 
-	[[deprecated("Remove in v4.1.  Use RecreateIndex().")]]
-	ListVal* RecoverIndex(const detail::HashKey* k) const
-		{ return RecreateIndex(*k).release(); }
-
 	/**
 	 * Remove an element from the table and return it.
 	 * @param index  The index to remove.
@@ -953,14 +852,6 @@ public:
 	 */
 	ValPtr Remove(const detail::HashKey& k, bool* iterators_invalidated = nullptr);
 
-	[[deprecated("Remove in v4.1.  Use Remove().")]]
-	Val* Delete(const Val* index)
-		{ return Remove(*index).release(); }
-
-	[[deprecated("Remove in v4.1.  Use Remove().")]]
-	Val* Delete(const detail::HashKey* k)
-		{ return Remove(*k).release(); }
-
 	// Returns a ListVal representation of the table (which must be a set).
 	ListValPtr ToListVal(TypeTag t = TYPE_ANY) const;
 
@@ -968,17 +859,9 @@ public:
 	// with non-composite index type).
 	ListValPtr ToPureListVal() const;
 
-	[[deprecated("Remove in v4.1.  Use ToListVal() instead.")]]
-	ListVal* ConvertToList(TypeTag t=TYPE_ANY) const;
-	[[deprecated("Remove in v4.1.  Use ToPureListVal() instead.")]]
-	ListVal* ConvertToPureList() const;	// must be single index type
-
 	void SetAttrs(detail::AttributesPtr attrs);
 
 	const detail::AttrPtr& GetAttr(detail::AttrTag t) const;
-
-	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
-	detail::Attributes* Attrs()	{ return attrs.get(); }
 
 	const detail::AttributesPtr& GetAttrs() const
 		{ return attrs; }
@@ -1018,9 +901,6 @@ public:
 	 * type-checking failed.
 	 */
 	std::unique_ptr<detail::HashKey> MakeHashKey(const Val& index) const;
-
-	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	detail::HashKey* ComputeHash(const Val* index) const;
 
 	notifier::detail::Modifiable* Modifiable() override	{ return this; }
 
@@ -1117,8 +997,6 @@ private:
 
 class RecordVal final : public Val, public notifier::detail::Modifiable {
 public:
-	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit RecordVal(RecordType* t, bool init_fields = true);
 	explicit RecordVal(RecordTypePtr t, bool init_fields = true);
 
 	~RecordVal() override;
@@ -1142,16 +1020,6 @@ public:
 	template <class T, class... Ts>
 	void Assign(int field, Ts&&... args)
 		{ Assign(field, make_intrusive<T>(std::forward<Ts>(args)...)); }
-
-	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
-	void Assign(int field, Val* new_val);
-	// Note: the following nullptr method can also go upon removing the above.
-	void Assign(int field, std::nullptr_t)
-		{ Assign(field, ValPtr{}); }
-
-	[[deprecated("Remove in v4.1.  Use GetField().")]]
-	Val* Lookup(int field) const    // Does not Ref() value.
-		{ return (*record_val)[field].get(); }
 
 	/**
 	 * Appends a value to the record's fields.  The caller is responsible
@@ -1203,10 +1071,6 @@ public:
 	 * the field hasn't been assigned yet.
 	 */
 	ValPtr GetFieldOrDefault(int field) const;
-
-	[[deprecated("Remove in v4.1.  Use GetFieldOrDefault().")]]
-	Val* LookupWithDefault(int field) const
-		{ return GetFieldOrDefault(field).release(); }
 
 	/**
 	 * Returns the value of a given field name.
@@ -1267,18 +1131,6 @@ public:
 		auto field_val_ptr = static_cast<T*>(field_ptr.get());
 		return field_val_ptr->Get();
 		}
-
-	/**
-	 * Looks up the value of a field by field name.  If the field doesn't
-	 * exist in the record type, it's an internal error: abort.
-	 * @param field name of field to lookup.
-	 * @param with_default whether to rely on field's &default attribute when
-	 * the field has yet to be initialized.
-	 * @return the value in field \a field.
-	 */
-	[[deprecated("Remove in v4.1.  Use GetField() or GetFieldOrDefault().")]]
-	Val* Lookup(const char* field, bool with_default = false) const
-		{ return with_default ? GetFieldOrDefault(field).release() : GetField(field).get(); }
 
 	void Describe(ODesc* d) const override;
 
@@ -1372,8 +1224,6 @@ protected:
 
 class VectorVal final : public Val, public notifier::detail::Modifiable {
 public:
-	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit VectorVal(VectorType* t);
 	explicit VectorVal(VectorTypePtr t);
 	~VectorVal() override;
 
@@ -1388,21 +1238,9 @@ public:
 	 */
 	bool Assign(unsigned int index, ValPtr element);
 
-	// Note: does NOT Ref() the element! Remember to do so unless
-	//       the element was just created and thus has refcount 1.
-	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
-	bool Assign(unsigned int index, Val* element)
-		{ return Assign(index, {AdoptRef{}, element}); }
 	// Note: the following nullptr method can also go upon removing the above.
 	void Assign(unsigned int index, std::nullptr_t)
 		{ Assign(index, ValPtr{}); }
-
-	[[deprecated("Remove in v4.1.  Assign using integer index and IntrusivePtr element.")]]
-	bool Assign(Val* index, Val* element)
-		{
-		return Assign(index->AsListVal()->Idx(0)->CoerceToUnsigned(),
-		              {AdoptRef{}, element});
-		}
 
 	/**
 	 * Assigns a given value to multiple indices in the vector.
@@ -1413,10 +1251,6 @@ public:
 	 */
 	bool AssignRepeat(unsigned int index, unsigned int how_many,
 	                  ValPtr element);
-
-	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
-	bool AssignRepeat(unsigned int index, unsigned int how_many, Val* element)
-		{ return AssignRepeat(index, how_many, {NewRef{}, element}); }
 
 	// Add this value to the given value (if appropriate).
 	// Returns true if succcessful.
@@ -1439,17 +1273,6 @@ public:
 	 */
 	bro_uint_t CountAt(unsigned int index) const
 		{ return At(index)->AsCount(); }
-
-	[[deprecated("Remove in v4.1.  Use At().")]]
-	Val* Lookup(unsigned int index) const
-		{ return At(index).get(); }
-
-	[[deprecated("Remove in v4.1.  Use At().")]]
-	Val* Lookup(Val* index)
-		{
-		bro_uint_t i = index->AsListVal()->Idx(0)->CoerceToUnsigned();
-		return At(static_cast<unsigned int>(i)).get();
-		}
 
 	unsigned int Size() const { return vector_val->size(); }
 
@@ -1474,10 +1297,6 @@ public:
 	 * the wrong type.
 	 */
 	bool Insert(unsigned int index, ValPtr element);
-
-	[[deprecated("Remove in v4.1.  Insert an IntrusivePtr instead.")]]
-	bool Insert(unsigned int index, Val* element)
-		{ return Insert(index, {AdoptRef{}, element}); }
 
 	/**
 	 * Inserts an element at the end of the vector.
@@ -1564,24 +1383,3 @@ extern bool can_cast_value_to_type(const Val* v, Type* t);
 extern bool can_cast_value_to_type(const Type* s, Type* t);
 
 } // namespace zeek
-
-using Val [[deprecated("Remove in v4.1. Use zeek::Val instead.")]] = zeek::Val;
-using PortVal [[deprecated("Remove in v4.1. Use zeek::PortVal instead.")]] = zeek::PortVal;
-using AddrVal [[deprecated("Remove in v4.1. Use zeek::AddrVal instead.")]] = zeek::AddrVal;
-using SubNetVal [[deprecated("Remove in v4.1. Use zeek::SubNetVal instead.")]] = zeek::SubNetVal;
-using PatternVal [[deprecated("Remove in v4.1. Use zeek::PatternVal instead.")]] = zeek::PatternVal;
-using TableVal [[deprecated("Remove in v4.1. Use zeek::TableVal instead.")]] = zeek::TableVal;
-using TableValTimer [[deprecated("Remove in v4.1. Use zeek::TableVal instead.")]] = zeek::TableValTimer;
-using RecordVal [[deprecated("Remove in v4.1. Use zeek::RecordVal instead.")]] = zeek::RecordVal;
-using ListVal [[deprecated("Remove in v4.1. Use zeek::ListVal instead.")]] = zeek::ListVal;
-using StringVal [[deprecated("Remove in v4.1. Use zeek::StringVal instead.")]] = zeek::StringVal;
-using EnumVal [[deprecated("Remove in v4.1. Use zeek::EnumVal instead.")]] = zeek::EnumVal;
-using VectorVal [[deprecated("Remove in v4.1. Use zeek::VectorVal instead.")]] = zeek::VectorVal;
-using TableEntryVal [[deprecated("Remove in v4.1. Use zeek::TableEntryVal instead.")]] = zeek::TableEntryVal;
-using TimeVal [[deprecated("Remove in v4.1. Use zeek::TimeVal instead.")]] = zeek::TimeVal;
-using DoubleVal [[deprecated("Remove in v4.1. Use zeek::DoubleVal instead.")]] = zeek::DoubleVal;
-using IntervalVal [[deprecated("Remove in v4.1. Use zeek::IntervalVal instead.")]] = zeek::IntervalVal;
-using ValManager [[deprecated("Remove in v4.1. Use zeek::ValManager instead.")]] = zeek::ValManager;
-
-// Alias for zeek::val_mgr.
-extern zeek::ValManager*& val_mgr [[deprecated("Remove in v4.1. Use zeek::val_mgr instead.")]];

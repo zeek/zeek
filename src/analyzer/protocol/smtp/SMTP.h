@@ -97,26 +97,3 @@ private:
 };
 
 } // namespace zeek::analyzer::smtp
-
-namespace analyzer::smtp {
-
-using SMTP_Cmd [[deprecated("Remove in v4.1. Use zeek::analyzer::smtp::detail::SMTP_Cmd.")]] = zeek::analyzer::smtp::detail::SMTP_Cmd;
-// The values from SMTP_Cmd come from a #include
-using SMTP_State [[deprecated("Remove in v4.1. Use zeek::analyzer::smtp::detail::SMTP_State.")]] = zeek::analyzer::smtp::detail::SMTP_State;
-constexpr auto SMTP_CONNECTED [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_CONNECTED.")]] = zeek::analyzer::smtp::detail::SMTP_CONNECTED;
-constexpr auto SMTP_INITIATED [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_INITIATED.")]] = zeek::analyzer::smtp::detail::SMTP_INITIATED;
-constexpr auto SMTP_NOT_AVAILABLE [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_NOT_AVAILABLE.")]] = zeek::analyzer::smtp::detail::SMTP_NOT_AVAILABLE;
-constexpr auto SMTP_READY [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_READY.")]] = zeek::analyzer::smtp::detail::SMTP_READY;
-constexpr auto SMTP_MAIL_OK [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_MAIL_OK.")]] = zeek::analyzer::smtp::detail::SMTP_MAIL_OK;
-constexpr auto SMTP_RCPT_OK [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_RCPT_OK.")]] = zeek::analyzer::smtp::detail::SMTP_RCPT_OK;
-constexpr auto SMTP_IN_DATA [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_IN_DATA.")]] = zeek::analyzer::smtp::detail::SMTP_IN_DATA;
-constexpr auto SMTP_AFTER_DATA [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_AFTER_DATA.")]] = zeek::analyzer::smtp::detail::SMTP_AFTER_DATA;
-constexpr auto SMTP_IN_AUTH [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_IN_AUTH.")]] = zeek::analyzer::smtp::detail::SMTP_IN_AUTH;
-constexpr auto SMTP_IN_TLS [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_IN_TLS.")]] = zeek::analyzer::smtp::detail::SMTP_IN_TLS;
-constexpr auto SMTP_QUIT [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_QUIT.")]] = zeek::analyzer::smtp::detail::SMTP_QUIT;
-constexpr auto SMTP_AFTER_GAP [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_AFTER_GAP.")]] = zeek::analyzer::smtp::detail::SMTP_AFTER_GAP;
-constexpr auto SMTP_GAP_RECOVERY [[deprecated("Remove in v4.1. Uze zeek::analyzer::smtp::detail::SMTP_GAP_RECOVERY.")]] = zeek::analyzer::smtp::detail::SMTP_GAP_RECOVERY;
-
-using SMTP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::smtp::SMTP_Analyzer.")]] = zeek::analyzer::smtp::SMTP_Analyzer;
-
-} // namespace analyzer::smtp

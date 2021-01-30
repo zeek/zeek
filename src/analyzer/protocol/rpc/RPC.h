@@ -254,35 +254,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::rpc
-
-namespace analyzer::rpc {
-
-constexpr auto RPC_CALL [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_CALL.")]] = zeek::analyzer::rpc::detail::RPC_CALL;
-constexpr auto RPC_REPLY [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_REPLY.")]] = zeek::analyzer::rpc::detail::RPC_REPLY;
-constexpr auto RPC_MSG_ACCEPTED [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_MSG_ACCEPTED.")]] = zeek::analyzer::rpc::detail::RPC_MSG_ACCEPTED;
-constexpr auto RPC_MSG_DENIED [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_MSG_DENIED.")]] = zeek::analyzer::rpc::detail::RPC_MSG_DENIED;
-constexpr auto RPC_SUCCESS [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_SUCCESS.")]] = zeek::analyzer::rpc::detail::RPC_SUCCESS;
-constexpr auto RPC_PROG_UNAVAIL [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_PROG_UNAVAIL.")]] = zeek::analyzer::rpc::detail::RPC_PROG_UNAVAIL;
-constexpr auto RPC_PROG_MISMATCH [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_PROG_MISMATCH.")]] = zeek::analyzer::rpc::detail::RPC_PROG_MISMATCH;
-constexpr auto RPC_PROC_UNAVAIL [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_PROC_UNAVAIL.")]] = zeek::analyzer::rpc::detail::RPC_PROC_UNAVAIL;
-constexpr auto RPC_GARBAGE_ARGS [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_GARBAGE_ARGS.")]] = zeek::analyzer::rpc::detail::RPC_GARBAGE_ARGS;
-constexpr auto RPC_SYSTEM_ERR [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_SYSTEM_ERR.")]] = zeek::analyzer::rpc::detail::RPC_SYSTEM_ERR;
-constexpr auto RPC_MISMATCH [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_MISMATCH.")]] = zeek::analyzer::rpc::detail::RPC_MISMATCH;
-constexpr auto RPC_AUTH_ERROR [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_AUTH_ERROR.")]] = zeek::analyzer::rpc::detail::RPC_AUTH_ERROR;
-constexpr auto RPC_AUTH_BADCRED [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_AUTH_BADCRED.")]] = zeek::analyzer::rpc::detail::RPC_AUTH_BADCRED;
-constexpr auto RPC_AUTH_REJECTEDCRED [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_AUTH_REJECTEDCRED.")]] = zeek::analyzer::rpc::detail::RPC_AUTH_REJECTEDCRED;
-constexpr auto RPC_AUTH_BADVERF [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_AUTH_BADVERF.")]] = zeek::analyzer::rpc::detail::RPC_AUTH_BADVERF;
-constexpr auto RPC_AUTH_REJECTEDVERF [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_AUTH_REJECTEDVERF.")]] = zeek::analyzer::rpc::detail::RPC_AUTH_REJECTEDVERF;
-constexpr auto RPC_AUTH_TOOWEAK [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_AUTH_TOOWEAK.")]] = zeek::analyzer::rpc::detail::RPC_AUTH_TOOWEAK;
-constexpr auto RPC_AUTH_NULL [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_AUTH_NULL.")]] = zeek::analyzer::rpc::detail::RPC_AUTH_NULL;
-constexpr auto RPC_AUTH_UNIX [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_AUTH_UNIX.")]] = zeek::analyzer::rpc::detail::RPC_AUTH_UNIX;
-constexpr auto RPC_AUTH_SHORT [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_AUTH_SHORT.")]] = zeek::analyzer::rpc::detail::RPC_AUTH_SHORT;
-constexpr auto RPC_AUTH_DES [[deprecated("Remove in v4.1. Uze zeek::analyzer::rpc::detail::RPC_AUTH_DES.")]] = zeek::analyzer::rpc::detail::RPC_AUTH_DES;
-
-using RPC_CallInfo [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::detail::RPC_CallInfo.")]] = zeek::analyzer::rpc::detail::RPC_CallInfo;
-using RPC_Interpreter [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::detail::RPC_Interpreter.")]] = zeek::analyzer::rpc::detail::RPC_Interpreter;
-using RPC_Reasm_Buffer [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::detail::RPC_Reasm_Buffer.")]] = zeek::analyzer::rpc::detail::RPC_Reasm_Buffer;
-using Contents_RPC [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::Contents_RPC.")]] = zeek::analyzer::rpc::Contents_RPC;
-using RPC_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::RPC_Analyzer.")]] = zeek::analyzer::rpc::RPC_Analyzer;
-
-} // namespace analyzer::rpc

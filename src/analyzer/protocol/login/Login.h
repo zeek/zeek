@@ -83,15 +83,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::login
-
-namespace analyzer::login {
-
-using login_state [[deprecated("Remove in v4.1. Use zeek::analyzer::login::login_state.")]] = zeek::analyzer::login::login_state;
-constexpr auto LOGIN_STATE_AUTHENTICATE [[deprecated("Remove in v4.1. Use zeek::analyzer::login::LOGIN_STATE_AUTHENTICATE.")]] = zeek::analyzer::login::LOGIN_STATE_AUTHENTICATE;
-constexpr auto LOGIN_STATE_LOGGED_IN [[deprecated("Remove in v4.1. Use zeek::analyzer::login::LOGIN_STATE_LOGGED_IN.")]] = zeek::analyzer::login::LOGIN_STATE_LOGGED_IN;
-constexpr auto LOGIN_STATE_SKIP [[deprecated("Remove in v4.1. Use zeek::analyzer::login::LOGIN_STATE_SKIP.")]] = zeek::analyzer::login::LOGIN_STATE_SKIP;
-constexpr auto LOGIN_STATE_CONFUSED [[deprecated("Remove in v4.1. Use zeek::analyzer::login::LOGIN_STATE_CONFUSED.")]] = zeek::analyzer::login::LOGIN_STATE_CONFUSED;
-
-using Login_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::login::Login_Analyzer.")]] = zeek::analyzer::login::Login_Analyzer;
-
-} // namespace analyzer::login

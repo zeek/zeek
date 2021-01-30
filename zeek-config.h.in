@@ -283,11 +283,8 @@ extern const char* BRO_VERSION_FUNCTION();
 #define ZEEK_FDN_0()
 #define ZEEK_FDN_1(cls)
 #define ZEEK_FDN_2(cls, ns) \
-	namespace ns { class cls; } \
-	using cls [[deprecated("Remove in v4.1. Use " #ns "::" #cls " instead.")]] = ns::cls;
+	namespace ns { class cls; }
 #define ZEEK_FDN_3(cls, ns1, ns2) \
-	namespace ns1::ns2 { class cls; } \
-	namespace ns2 { using cls [[deprecated("Remove in v4.1. Use " #ns1 "::" #ns2 "::" #cls " instead.")]] = ns1::ns2::cls; }
+	namespace ns1::ns2 { class cls; }
 #define ZEEK_FDN_4(cls, ns1, ns2, ns3) \
-	namespace ns1::ns2::ns3 { class cls; } \
-	namespace ns2 { using cls [[deprecated("Remove in v4.1. Use " #ns1 "::" #ns2 "::" #ns3 "::" #cls " instead.")]] = ns1::ns2::ns3::cls; }
+	namespace ns1::ns2::ns3 { class cls; }

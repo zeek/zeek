@@ -70,16 +70,6 @@ bool PktSrc::IsLive() const
 	return props.is_live;
 	}
 
-double PktSrc::CurrentPacketTimestamp()
-	{
-	return run_state::current_packet_timestamp();
-	}
-
-double PktSrc::CurrentPacketWallClock()
-	{
-	return run_state::current_packet_wallclock();
-	}
-
 void PktSrc::Opened(const Properties& arg_props)
 	{
 	props = arg_props;

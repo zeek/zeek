@@ -78,7 +78,6 @@ extern "C" {
 };
 
 zeek::detail::ScriptCoverageManager zeek::detail::script_coverage_mgr;
-zeek::detail::ScriptCoverageManager& brofiler = zeek::detail::script_coverage_mgr;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -93,61 +92,37 @@ int perftools_profile = 0;
 #endif
 
 zeek::ValManager* zeek::val_mgr = nullptr;
-zeek::ValManager*& val_mgr = zeek::val_mgr;
 zeek::analyzer::Manager* zeek::analyzer_mgr = nullptr;
-zeek::analyzer::Manager*& analyzer_mgr = zeek::analyzer_mgr;
 zeek::packet_analysis::Manager* zeek::packet_mgr = nullptr;
 zeek::plugin::Manager* zeek::plugin_mgr = nullptr;
-zeek::plugin::Manager*& plugin_mgr = zeek::plugin_mgr;
 
 zeek::detail::RuleMatcher* zeek::detail::rule_matcher = nullptr;
-zeek::detail::RuleMatcher*& rule_matcher = zeek::detail::rule_matcher;
-
 zeek::detail::DNS_Mgr* zeek::detail::dns_mgr = nullptr;
-zeek::detail::DNS_Mgr*& dns_mgr = zeek::detail::dns_mgr;
-
 zeek::detail::TimerMgr* zeek::detail::timer_mgr = nullptr;
-zeek::detail::TimerMgr*& timer_mgr = zeek::detail::timer_mgr;
 
 zeek::logging::Manager* zeek::log_mgr = nullptr;
-zeek::logging::Manager*& log_mgr = zeek::log_mgr;
 zeek::threading::Manager* zeek::thread_mgr = nullptr;
-zeek::threading::Manager*& thread_mgr = zeek::thread_mgr;
 zeek::input::Manager* zeek::input_mgr = nullptr;
-zeek::input::Manager*& input_mgr = zeek::input_mgr;
 zeek::file_analysis::Manager* zeek::file_mgr = nullptr;
-zeek::file_analysis::Manager*& file_mgr = zeek::file_mgr;
 zeek::zeekygen::detail::Manager* zeek::detail::zeekygen_mgr = nullptr;
-zeek::zeekygen::detail::Manager*& zeekygen_mgr = zeek::detail::zeekygen_mgr;
 zeek::iosource::Manager* zeek::iosource_mgr = nullptr;
-zeek::iosource::Manager*& iosource_mgr = zeek::iosource_mgr;
 zeek::Broker::Manager* zeek::broker_mgr = nullptr;
-zeek::Broker::Manager*& broker_mgr = zeek::broker_mgr;
 zeek::Supervisor* zeek::supervisor_mgr = nullptr;
 zeek::detail::trigger::Manager* zeek::detail::trigger_mgr = nullptr;
-zeek::detail::trigger::Manager*& trigger_mgr = zeek::detail::trigger_mgr;
 
 std::vector<std::string> zeek::detail::zeek_script_prefixes;
-std::vector<std::string>& zeek_script_prefixes = zeek::detail::zeek_script_prefixes;
 zeek::detail::Stmt* zeek::detail::stmts = nullptr;
-zeek::detail::Stmt*& stmts = zeek::detail::stmts;
 zeek::EventRegistry* zeek::event_registry = nullptr;
-zeek::EventRegistry*& event_registry = zeek::event_registry;
 zeek::detail::ProfileLogger* zeek::detail::profiling_logger = nullptr;
-zeek::detail::ProfileLogger*& profiling_logger = zeek::detail::profiling_logger;
 zeek::detail::ProfileLogger* zeek::detail::segment_logger = nullptr;
-zeek::detail::ProfileLogger*& segment_logger = zeek::detail::segment_logger;
 zeek::detail::SampleLogger* zeek::detail::sample_logger = nullptr;
-zeek::detail::SampleLogger*& sample_logger = zeek::detail::sample_logger;
 
 zeek::detail::FragmentManager* zeek::detail::fragment_mgr = nullptr;
 
 int signal_val = 0;
 extern char version[];
 const char* zeek::detail::command_line_policy = nullptr;
-const char*& command_line_policy = zeek::detail::command_line_policy;
 vector<string> zeek::detail::params;
-vector<string>& params = zeek::detail::params;
 set<string> requested_plugins;
 const char* proc_status_file = nullptr;
 
@@ -164,9 +139,7 @@ zeek::OpaqueTypePtr paraglob_type;
 
 // Keep copy of command line
 int zeek::detail::zeek_argc;
-int& bro_argc = zeek::detail::zeek_argc;
 char** zeek::detail::zeek_argv;
-char**& bro_argv = zeek::detail::zeek_argv;
 
 namespace zeek {
 

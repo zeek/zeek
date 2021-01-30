@@ -99,10 +99,3 @@ public:
 };
 
 } // namespace zeek::detail
-
-using RuleAction [[deprecated("Remove in v4.1. Use zeek::detail::RuleAction.")]] = zeek::detail::RuleAction;
-using RuleActionEvent [[deprecated("Remove in v4.1. Use zeek::detail::RuleActionEvent.")]] = zeek::detail::RuleActionEvent;
-using RuleActionMIME [[deprecated("Remove in v4.1. Use zeek::detail::RuleActionMIME.")]] = zeek::detail::RuleActionMIME;
-using RuleActionAnalyzer [[deprecated("Remove in v4.1. Use zeek::detail::RuleActionAnalyzer.")]] = zeek::detail::RuleActionAnalyzer;
-using RuleActionEnable [[deprecated("Remove in v4.1. Use zeek::detail::RuleActionEnable.")]] = zeek::detail::RuleActionEnable;
-using RuleActionDisable [[deprecated("Remove in v4.1. Use zeek::detail::RuleActionDisable.")]] = zeek::detail::RuleActionDisable;

@@ -123,9 +123,6 @@ protected:
 	 */
 	const EnumValPtr& AsVal(const EnumTypePtr& etype) const;
 
-	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]]
-	EnumVal* AsEnumVal(EnumType* etype) const;
-
 	/**
 	 * Constructor.
 	 *
@@ -139,18 +136,12 @@ protected:
 	 */
 	Tag(const EnumTypePtr& etype, type_t type, subtype_t subtype = 0);
 
-	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr& instead.")]]
-	Tag(EnumType* etype, type_t type, subtype_t subtype = 0);
-
 	/**
 	 * Constructor.
 	 *
 	 * @param val An enum value of script type \c Analyzer::Tag.
 	 */
 	explicit Tag(EnumValPtr val);
-
-	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit Tag(EnumVal* val);
 
 private:
 	type_t type;            // Main type.
@@ -159,5 +150,3 @@ private:
 };
 
 } // namespace zeek
-
-using Tag [[deprecated("Remove in v4.1. Use zeek::Tag instead")]] = zeek::Tag;

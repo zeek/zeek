@@ -41,6 +41,3 @@ public:
 TraversalCode traverse_all(TraversalCallback* cb);
 
 } // namespace zeek::detail
-
-using TraversalCallback [[deprecated("Remove in v4.1. Use zeek::detail::TraversalCallback.")]] = zeek::detail::TraversalCallback;
-constexpr auto traverse_all [[deprecated("Remove in v4.1. Use zeek::detail::traverse_all.")]] = zeek::detail::traverse_all;

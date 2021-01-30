@@ -204,7 +204,6 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
 	if ( icmp_sent )
 		EnqueueConnEvent(icmp_sent,
 			ConnVal(),
-			BuildICMPVal(icmpp, len, icmpv6, ip_hdr),
 			BuildInfo(icmpp, len, icmpv6, ip_hdr)
 		);
 
@@ -214,31 +213,10 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
 
 		EnqueueConnEvent(icmp_sent_payload,
 			ConnVal(),
-			BuildICMPVal(icmpp, len, icmpv6, ip_hdr),
 			BuildInfo(icmpp, len, icmpv6, ip_hdr),
 			make_intrusive<StringVal>(payload)
 		);
 		}
-	}
-
-RecordValPtr ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,
-                                         int icmpv6, const IP_Hdr* ip_hdr)
-	{
-	if ( ! icmp_conn_val )
-		{
-		static auto icmp_conn = id::find_type<RecordType>("icmp_conn");
-		icmp_conn_val = make_intrusive<RecordVal>(icmp_conn);
-
-		icmp_conn_val->Assign(0, make_intrusive<AddrVal>(Conn()->OrigAddr()));
-		icmp_conn_val->Assign(1, make_intrusive<AddrVal>(Conn()->RespAddr()));
-		icmp_conn_val->Assign(2, val_mgr->Count(icmpp->icmp_type));
-		icmp_conn_val->Assign(3, val_mgr->Count(icmpp->icmp_code));
-		icmp_conn_val->Assign(4, val_mgr->Count(len));
-		icmp_conn_val->Assign(5, val_mgr->Count(ip_hdr->TTL()));
-		icmp_conn_val->Assign(6, val_mgr->Bool(icmpv6));
-		}
-
-	return icmp_conn_val;
 	}
 
 RecordValPtr ICMP_Analyzer::BuildInfo(const struct icmp* icmpp, int len,
@@ -536,7 +514,6 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 
 	EnqueueConnEvent(f,
 		ConnVal(),
-		BuildICMPVal(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP, ip_hdr),
 		BuildInfo(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP, ip_hdr),
 		val_mgr->Count(iid),
 		val_mgr->Count(iseq),
@@ -565,7 +542,6 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 
 	EnqueueConnEvent(f,
 		ConnVal(),
-		BuildICMPVal(icmpp, len, 1, ip_hdr),
 		BuildInfo(icmpp, len, 1, ip_hdr),
 		val_mgr->Count(icmpp->icmp_num_addrs), // Cur Hop Limit
 		val_mgr->Bool(icmpp->icmp_wpa & 0x80), // Managed
@@ -599,7 +575,6 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 
 	EnqueueConnEvent(f,
 		ConnVal(),
-		BuildICMPVal(icmpp, len, 1, ip_hdr),
 		BuildInfo(icmpp, len, 1, ip_hdr),
 		val_mgr->Bool(icmpp->icmp_num_addrs & 0x80), // Router
 		val_mgr->Bool(icmpp->icmp_num_addrs & 0x40), // Solicited
@@ -627,7 +602,6 @@ void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
 
 	EnqueueConnEvent(f,
 		ConnVal(),
-		BuildICMPVal(icmpp, len, 1, ip_hdr),
 		BuildInfo(icmpp, len, 1, ip_hdr),
 		make_intrusive<AddrVal>(tgtaddr),
 		BuildNDOptionsVal(caplen - opt_offset, data + opt_offset)
@@ -655,7 +629,6 @@ void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
 
 	EnqueueConnEvent(f,
 		ConnVal(),
-		BuildICMPVal(icmpp, len, 1, ip_hdr),
 		BuildInfo(icmpp, len, 1, ip_hdr),
 		make_intrusive<AddrVal>(tgtaddr),
 		make_intrusive<AddrVal>(dstaddr),
@@ -674,7 +647,6 @@ void ICMP_Analyzer::RouterSolicit(double t, const struct icmp* icmpp, int len,
 
 	EnqueueConnEvent(f,
 		ConnVal(),
-		BuildICMPVal(icmpp, len, 1, ip_hdr),
 		BuildInfo(icmpp, len, 1, ip_hdr),
 		BuildNDOptionsVal(caplen, data)
 	);
@@ -700,7 +672,6 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 	if ( f )
 		EnqueueConnEvent(f,
 			ConnVal(),
-			BuildICMPVal(icmpp, len, 0, ip_hdr),
 			BuildInfo(icmpp, len, 0, ip_hdr),
 			val_mgr->Count(icmpp->icmp_code),
 			ExtractICMP4Context(caplen, data)
@@ -739,7 +710,6 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 	if ( f )
 		EnqueueConnEvent(f,
 			ConnVal(),
-			BuildICMPVal(icmpp, len, 1, ip_hdr),
 			BuildInfo(icmpp, len, 1, ip_hdr),
 			val_mgr->Count(icmpp->icmp_code),
 			ExtractICMP6Context(caplen, data)

@@ -30,7 +30,6 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(BifReturnVal, zeek::detail);
 
 namespace zeek { class String; }
-using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
 
 namespace zeek::BifFunc {
 	extern zeek::detail::BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
@@ -281,18 +280,3 @@ protected:
 extern void init_hash_function();
 
 } // namespace zeek::detail
-
-using hash_t [[deprecated("Remove in v4.1. Use zeek::detail::hash_t.")]] = zeek::detail::hash_t;
-using hash64_t [[deprecated("Remove in v4.1. Use zeek::detail::hash64_t.")]] = zeek::detail::hash64_t;
-using hash128_t [[deprecated("Remove in v4.1. Use zeek::detail::hash128_t.")]] = zeek::detail::hash128_t;
-using hash256_t [[deprecated("Remove in v4.1. Use zeek::detail::hash256_t.")]] = zeek::detail::hash256_t;
-
-using KeyedHash [[deprecated("Remove in v4.1. Use zeek::detail::KeyedHash.")]] = zeek::detail::KeyedHash;
-using HashKeyTag [[deprecated("Remove in v4.1. Use zeek::detail::HashKeyTag.")]] = zeek::detail::HashKeyTag;
-using HashKey [[deprecated("Remove in v4.1. Use zeek::detail::HashKey.")]] = zeek::detail::HashKey;
-
-constexpr auto HASH_KEY_INT [[deprecated("Remove in v4.1. Use zeek::detail::HASH_KEY_INT.")]] = zeek::detail::HASH_KEY_INT;
-constexpr auto HASH_KEY_DOUBLE [[deprecated("Remove in v4.1. Use zeek::detail::HASH_KEY_DOUBLE.")]] = zeek::detail::HASH_KEY_DOUBLE;
-constexpr auto HASH_KEY_STRING [[deprecated("Remove in v4.1. Use zeek::detail::HASH_KEY_STRING.")]] = zeek::detail::HASH_KEY_STRING;
-
-constexpr auto init_hash_function [[deprecated("Remove in v4.1. Use zeek::detail::init_hash_function.")]] = zeek::detail::init_hash_function;

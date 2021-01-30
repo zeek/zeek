@@ -146,11 +146,6 @@ RecordValPtr Packet::ToRawPktHdrVal() const
 		return pkt_hdr;
 	}
 
-RecordVal* Packet::BuildPktHdrVal() const
-	{
-	return ToRawPktHdrVal().release();
-	}
-
 ValPtr Packet::FmtEUI48(const u_char* mac) const
 	{
 	char buf[20];

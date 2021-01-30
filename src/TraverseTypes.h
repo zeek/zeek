@@ -44,8 +44,3 @@ enum TraversalCode {
 	return (code);
 
 } // namespace zeek::detail
-
-using TraversalCode [[deprecated("Remove in v4.1. Use zeek::detail::TraversalCode.")]] = zeek::detail::TraversalCode;
-constexpr auto TC_CONTINUE [[deprecated("Remove in v4.1. Use zeek::detail::TC_CONTINUE.")]] = zeek::detail::TC_CONTINUE;
-constexpr auto TC_ABORTALL [[deprecated("Remove in v4.1. Use zeek::detail::TC_ABORTALL.")]] = zeek::detail::TC_ABORTALL;
-constexpr auto TC_ABORTSTMT [[deprecated("Remove in v4.1. Use zeek::detail::TC_ABORTSTMT.")]] = zeek::detail::TC_ABORTSTMT;

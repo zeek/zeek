@@ -22,9 +22,3 @@ public:
 };
 
 } // namespace zeek::analyzer::vxlan
-
-namespace analyzer::vxlan {
-
-using VXLAN_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::vxlan::VXLAN_Analyzer.")]] = zeek::analyzer::vxlan::VXLAN_Analyzer;
-
-} // namespace analyzer::vxlan

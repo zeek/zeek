@@ -218,16 +218,3 @@ class Obj;
 extern std::string obj_desc(const Obj* o);
 
 } // namespace zeek
-
-using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
-using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
-
-using ODesc [[deprecated("Remove in v4.1. Use zeek::ODesc.")]] = zeek::ODesc;
-using desc_type [[deprecated("Remove in v4.1. Use zeek::DescType.")]] = zeek::DescType;
-constexpr auto DESC_READABLE [[deprecated("Remove in v4.1. Use zeek::DESC_READABLE.")]] = zeek::DESC_READABLE;
-constexpr auto DESC_PORTABLE [[deprecated("Remove in v4.1. Use zeek::DESC_PORTABLE.")]] = zeek::DESC_PORTABLE;
-constexpr auto DESC_BINARY [[deprecated("Remove in v4.1. Use zeek::DESC_BINARY.")]] = zeek::DESC_BINARY;
-
-using desc_style [[deprecated("Remove in v4.1. Use zeek::DescStyle.")]] = zeek::DescStyle;
-constexpr auto STANDARD_STYLE [[deprecated("Remove in v4.1. Use zeek::STANDARD_STYLE.")]] = zeek::STANDARD_STYLE;
-constexpr auto RAW_STYLE [[deprecated("Remove in v4.1. Use zeek::RAW_STYLE.")]] = zeek::RAW_STYLE;

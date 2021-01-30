@@ -25,9 +25,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::modbus
-
-namespace analyzer::modbus {
-
-using ModbusTCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::modbus::ModbusTCP_Analyzer.")]] = zeek::analyzer::modbus::ModbusTCP_Analyzer;
-
-} // namespace analyzer::modbus

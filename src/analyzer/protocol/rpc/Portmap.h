@@ -38,10 +38,3 @@ public:
 };
 
 } // namespace zeek::analyzer::detail
-
-namespace analyzer::rpc {
-
-using PortmapperInterp [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::detail::PortmapperInterp.")]] = zeek::analyzer::rpc::detail::PortmapperInterp;
-using Portmapper_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::Portmapper_Analyzer.")]] = zeek::analyzer::rpc::Portmapper_Analyzer;
-
-} // namespace analyzer::rpc

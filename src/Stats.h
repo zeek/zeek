@@ -10,7 +10,6 @@
 #include <stdint.h>
 
 namespace zeek { class File; }
-using BroFile [[deprecated("Remove in v4.1. Use zeek::File.")]] = zeek::File;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
@@ -144,22 +143,3 @@ protected:
 };
 
 } // namespace zeek::detail
-
-using SegmentStatsReporter [[deprecated("Remove in v4.1. Use zeek::detail::SegmentStatsReporter.")]] = zeek::detail::SegmentStatsReporter;
-using SegmentProfiler [[deprecated("Remove in v4.1. Use zeek::detail::SegmentProfiler.")]] = zeek::detail::SegmentProfiler;
-using ProfileLogger [[deprecated("Remove in v4.1. Use zeek::detail::ProfileLogger.")]] = zeek::detail::ProfileLogger;
-using SampleLogger [[deprecated("Remove in v4.1. Use zeek::detail::SampleLogger.")]] = zeek::detail::SampleLogger;
-using PacketProfiler [[deprecated("Remove in v4.1. Use zeek::detail::PacketProfiler.")]] = zeek::detail::PacketProfiler;
-
-extern zeek::detail::ProfileLogger*& profiling_logger [[deprecated("Remove in v4.1. Use zeek::detail::profiling_logger.")]];
-extern zeek::detail::ProfileLogger*& segment_logger [[deprecated("Remove in v4.1. Use zeek::detail::segment_logger.")]];
-extern zeek::detail::SampleLogger*& sample_logger [[deprecated("Remove in v4.1. Use zeek::detail::sample_logger.")]];
-
-// Connection statistics.
-extern uint64_t& killed_by_inactivity [[deprecated("Remove in v4.1. Use zeek::detail::killed_by_inactivity.")]];
-
-// Content gap statistics.
-extern uint64_t& tot_ack_events [[deprecated("Remove in v4.1. Use zeek::detail::tot_ack_events.")]];
-extern uint64_t& tot_ack_bytes [[deprecated("Remove in v4.1. Use zeek::detail::tot_ack_bytes.")]];
-extern uint64_t& tot_gap_events [[deprecated("Remove in v4.1. Use zeek::detail::tot_gap_events.")]];
-extern uint64_t& tot_gap_bytes [[deprecated("Remove in v4.1. Use zeek::detail::tot_gap_bytes.")]];

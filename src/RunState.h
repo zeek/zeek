@@ -36,7 +36,6 @@ extern zeek::iosource::PktSrc* current_packet_source();
 
 extern double check_pseudo_time(const Packet *pkt);
 
-extern zeek::iosource::PktSrc* current_pktsrc [[deprecated("Remove in v4.1. Use zeek::run_state::detail::get_current_pktsrc().")]];
 extern zeek::iosource::IOSource* current_iosrc;
 extern zeek::iosource::PktDumper* pkt_dumper;	// where to save packets
 
@@ -105,33 +104,3 @@ extern int current_dispatched;
 extern double current_timestamp;
 
 } // namespace zeek::run_state
-
-constexpr auto net_init [[deprecated("Remove in v4.1. Use zeek::run_state::detail::init_run.")]] = zeek::run_state::detail::init_run;
-constexpr auto net_run [[deprecated("Remove in v4.1. Use zeek::run_state::detail::run_run.")]] = zeek::run_state::detail::run_loop;
-constexpr auto net_get_final_stats [[deprecated("Remove in v4.1. Use zeek::run_state::detail::get_final_stats.")]] = zeek::run_state::detail::get_final_stats;
-constexpr auto net_finish [[deprecated("Remove in v4.1. Use zeek::run_state::detail::finish_run.")]] = zeek::run_state::detail::finish_run;
-constexpr auto net_delete [[deprecated("Remove in v4.1. Use zeek::run_state::detail::delete_run.")]] = zeek::run_state::detail::delete_run;
-constexpr auto net_update_time [[deprecated("Remove in v4.1. Use zeek::run_state::detail::update_network_time.")]] = zeek::run_state::detail::update_network_time;
-constexpr auto net_packet_dispatch [[deprecated("Remove in v4.1. Use zeek::run_state::detail::dispatch_packet.")]] = zeek::run_state::detail::dispatch_packet;
-constexpr auto expire_timers [[deprecated("Remove in v4.1. Use zeek::run_state::detail::expire_timers.")]] = zeek::run_state::detail::expire_timers;
-constexpr auto zeek_terminate_loop [[deprecated("Remove in v4.1. Use zeek::run_state::detail::zeek_terminate_loop.")]] = zeek::run_state::detail::zeek_terminate_loop;
-extern zeek::iosource::PktSrc*& current_pktsrc [[deprecated("Remove in v4.1. Use zeek::run_state::detail::get_current_pktsrc().")]];
-extern zeek::iosource::IOSource*& current_iosrc [[deprecated("Remove in v4.1. Use zeek::run_state::detail::current_iosrc.")]];
-extern zeek::iosource::PktDumper*& pkt_dumper [[deprecated("Remove in v4.1. Use zeek::run_state::detail::pkt_dumper.")]];
-extern bool& have_pending_timers [[deprecated("Remove in v4.1. Use zeek::run_state::detail::have_pending_timers.")]];
-
-constexpr auto net_suspend_processing [[deprecated("Remove in v4.1. Use zeek::run_state::suspend_processing.")]] = zeek::run_state::suspend_processing;
-constexpr auto net_continue_processing [[deprecated("Remove in v4.1. Use zeek::run_state::continue_processing.")]] = zeek::run_state::continue_processing;
-constexpr auto net_is_processing_suspended [[deprecated("Remove in v4.1. Use zeek::run_state::is_processing_suspended.")]] = zeek::run_state::is_processing_suspended;
-
-extern bool& reading_live [[deprecated("Remove in v4.1. Use zeek::run_state::reading_live.")]];
-extern bool& reading_traces [[deprecated("Remove in v4.1. Use zeek::run_state::reading_traces.")]];
-extern double& pseudo_realtime [[deprecated("Remove in v4.1. Use zeek::run_state::pseudo_realtime.")]];
-extern double& processing_start_time [[deprecated("Remove in v4.1. Use zeek::run_state::processing_start_time.")]];
-extern double& bro_start_time [[deprecated("Remove in v4.1. Use zeek::run_state::zeek_start_time.")]];
-extern double& bro_start_network_time [[deprecated("Remove in v4.1. Use zeek::run_state::zeek_start_network_time.")]];
-extern bool& terminating [[deprecated("Remove in v4.1. Use zeek::run_state::terminating.")]];
-extern bool& is_parsing [[deprecated("Remove in v4.1. Use zeek::run_state::is_parsing.")]];
-extern const zeek::Packet*& current_pkt [[deprecated("Remove in v4.1. Use zeek::run_state::current_pkt.")]];
-extern int& current_dispatched [[deprecated("Remove in v4.1. Use zeek::run_state::current_dispatched.")]];
-extern double& current_timestamp [[deprecated("Remove in v4.1. Use zeek::run_state::current_timestamp.")]];

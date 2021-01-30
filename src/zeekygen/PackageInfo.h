@@ -46,9 +46,3 @@ private:
 };
 
 } // namespace zeek::zeekygen::detail
-
-namespace zeekygen {
-
-using PackageInfo [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::PackageInfo.")]] = zeek::zeekygen::detail::PackageInfo;
-
-} // namespace zeekygen

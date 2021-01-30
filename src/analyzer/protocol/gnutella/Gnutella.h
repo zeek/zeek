@@ -72,10 +72,3 @@ private:
 };
 
 } // namespace zeek::analyzer::gnutella
-
-namespace analyzer::gnutella {
-
-using GnutellaMsgState [[deprecated("Remove in v4.1. Use zeek::analyzer::gnutella::detail::GnutellaMsgState.")]] = zeek::analyzer::gnutella::detail::GnutellaMsgState;
-using Gnutella_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::gnutella::Gnutella_Analyzer.")]] = zeek::analyzer::gnutella::Gnutella_Analyzer;
-
-} // namespace analyzer::gnutella

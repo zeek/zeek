@@ -35,7 +35,7 @@ EOF
 cat >src/foo.bif <<EOF
 function hello_plugin_world%(%): string
         %{
-        return new StringVal("Hello from the plugin!");
+        return zeek::make_intrusive<zeek::StringVal>("Hello from the plugin!");
         %}
 
 event plugin_event%(foo: count%);
@@ -44,4 +44,3 @@ EOF
 cat >activate.zeek <<EOF
 @load-plugin Demo::Foo
 EOF
-

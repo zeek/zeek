@@ -34,9 +34,3 @@ private:
 };
 
 } // namespace zeek::file_analysis::detail
-
-namespace file_analysis {
-
-using FileTimer [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::FileTimer.")]] = zeek::file_analysis::detail::FileTimer;
-
-} // namespace file_analysis

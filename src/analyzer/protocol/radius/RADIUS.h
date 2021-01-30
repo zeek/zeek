@@ -25,9 +25,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::radius
-
-namespace analyzer::RADIUS {
-
-using RADIUS_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::radius::RADIUS_Analyzer.")]] = zeek::analyzer::radius::RADIUS_Analyzer;
-
-} // namespace analyzer::RADIUS

@@ -91,10 +91,3 @@ protected:
 } // namespace detail
 
 } // namespace zeek::analyzer::teredo
-
-namespace analyzer::teredo {
-
-using Teredo_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::teredo::Teredo_Analyzer.")]] = zeek::analyzer::teredo::Teredo_Analyzer;
-using TeredoEncapsulation [[deprecated("Remove in v4.1. Use zeek::analyzer::teredo::detail::TeredoEncapsulation.")]] = zeek::analyzer::teredo::detail::TeredoEncapsulation;
-
-} // namespace analyzer::teredo

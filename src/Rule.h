@@ -111,7 +111,3 @@ private:
 	};
 
 } // namespace zeek::detail
-
-using Rule [[deprecated("Remove in v4.1. Use zeek::detail::Rule.")]] = zeek::detail::Rule;
-using rule_list [[deprecated("Remove in v4.1. Use zeek::detail::rule_list.")]] = zeek::detail::rule_list;
-using rule_dict [[deprecated("Remove in v4.1. Use zeek::detail::rule_dict.")]] = zeek::detail::rule_dict;

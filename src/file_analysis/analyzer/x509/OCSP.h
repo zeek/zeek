@@ -35,9 +35,3 @@ private:
 };
 
 } // namespace zeek::file_analysis::detail
-
-namespace file_analysis {
-
-using OCSP [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::OCSP.")]] = zeek::file_analysis::detail::OCSP;
-
-} // namespace file_analysis

@@ -144,9 +144,6 @@ public:
 	RecordValPtr ToVal(VectorValPtr chain) const;
 	RecordValPtr ToVal() const;
 
-	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	RecordVal* BuildRecordVal(VectorVal* chain = nullptr) const;
-
 protected:
 	uint8_t type;
 	const u_char* data;
@@ -235,9 +232,6 @@ public:
 	 * representation of all extension headers in the chain.
 	 */
 	VectorValPtr ToVal() const;
-
-	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	VectorVal* BuildVal() const;
 
 protected:
 	// for access to protected ctor that changes next header values that
@@ -533,26 +527,17 @@ public:
 	 */
 	RecordValPtr ToIPHdrVal() const;
 
-	[[deprecated("Remove in v4.1.  Use ToIPHdrVal() instead.")]]
-	RecordVal* BuildIPHdrVal() const;
-
 	/**
 	 * Returns a pkt_hdr RecordVal, which includes not only the IP header, but
 	 * also upper-layer (tcp/udp/icmp) headers.
 	 */
 	RecordValPtr ToPktHdrVal() const;
 
-	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
-	RecordVal* BuildPktHdrVal() const;
-
 	/**
 	 * Same as above, but simply add our values into the record at the
 	 * specified starting index.
 	 */
 	RecordValPtr ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const;
-
-	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
-	RecordVal* BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const;
 
 	/**
 	 * Denotes whether this header is from a set of packet fragments.
@@ -567,11 +552,3 @@ private:
 };
 
 } // namespace zeek
-
-#ifdef ENABLE_MOBILE_IPV6
-using ip6_mobility [[deprecated("Remove in v4.1. Use zeek::ip6_mobility.")]] = zeek::ip6_mobility;
-#endif
-
-using IPv6_Hdr [[deprecated("Remove in v4.1. Use zeek::IPv6_Hdr.")]] = zeek::IPv6_Hdr;
-using IPv6_Hdr_Chain [[deprecated("Remove in v4.1. Use zeek::IPv6_Hdr_Chain.")]] = zeek::IPv6_Hdr_Chain;
-using IP_Hdr [[deprecated("Remove in v4.1. Use zeek::IP_Hdr.")]] = zeek::IP_Hdr;

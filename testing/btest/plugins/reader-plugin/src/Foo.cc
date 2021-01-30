@@ -48,7 +48,7 @@ std::string Foo::RandomString(const int len)
 		// zeek::random_number() is not thread-safe; as we are only using one simultaneous thread
 		// here, this should not matter in this case. If this test ever starts showing
 		// random errors, this might be the culprit.
-		s[i] = values[zeek::random_number() / (zeek::max_random() / sizeof(values))];
+		s[i] = values[zeek::util::detail::random_number() / (zeek::util::detail::max_random() / sizeof(values))];
 
 	return s;
 	}
@@ -84,7 +84,7 @@ zeek::threading::Value* Foo::EntryToVal(zeek::TypeTag type, zeek::TypeTag subtyp
 	case zeek::TYPE_STRING:
 		{
 		std::string rnd = RandomString(10);
-		val->val.string_val.data = copy_string(rnd.c_str());
+		val->val.string_val.data = zeek::util::copy_string(rnd.c_str());
 		val->val.string_val.length = rnd.size();
 		break;
 		}

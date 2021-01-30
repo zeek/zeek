@@ -151,11 +151,3 @@ extern Substring::Vec* smith_waterman(const String* s1,
                                       SWParams& params);
 
 } // namespace zeek::detail
-
-using BroSubstring [[deprecated("Remove in v4.1. Use zeek::detail::Substring.")]] = zeek::detail::Substring;
-using BroSubstringCmp [[deprecated("Remove in v4.1 Use zeel::detail::SubstringCmp.")]] = zeek::detail::SubstringCmp;
-using SWParams [[deprecated("Remove in v4.1. Use zeek::detail::SWParams.")]] = zeek::detail::SWParams;
-
-constexpr auto SW_SINGLE [[deprecated("Remove in v4.1. Use zeek::detai::SW_SINGLE.")]] = zeek::detail::SW_SINGLE;
-constexpr auto SW_MULTIPLE [[deprecated("Remove in v4.1. Use zeek::detai::SW_MULTIPLE.")]] = zeek::detail::SW_MULTIPLE;
-constexpr auto smith_waterman [[deprecated("Remove in v4.1. Use zeek::detail::smith_waterman.")]] = zeek::detail::smith_waterman;

@@ -34,9 +34,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::ident
-
-namespace analyzer::ident {
-
-using Ident_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ident::Ident_Analyzer.")]] = zeek::analyzer::ident::Ident_Analyzer;
-
-} // namespace analyzer::ident

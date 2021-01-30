@@ -28,7 +28,6 @@ namespace zeek::file_analysis {
 class Component : public plugin::Component,
                   public plugin::TaggedComponent<file_analysis::Tag> {
 public:
-	typedef Analyzer* (*factory_callback)(RecordVal* args, File* file);
 	using factory_function = Analyzer* (*)(RecordValPtr args, File* file);
 
 	/**
@@ -52,9 +51,6 @@ public:
 	 */
 	Component(const std::string& name, factory_function factory, Tag::subtype_t subtype = 0);
 
-	[[deprecated("Remove in v4.1.  Use factory_function w/ IntrusivePtr args")]]
-	Component(const std::string& name, factory_callback factory, Tag::subtype_t subtype = 0);
-
 	/**
 	 * Destructor.
 	 */
@@ -73,9 +69,6 @@ public:
 	factory_function FactoryFunction() const
 		{ return factory_func; }
 
-	[[deprecated("Remove in v4.1.  Use FactoryFunction().")]]
-	factory_callback Factory() const	{ return factory; }
-
 protected:
 	/**
 	  * Overriden from plugin::Component.
@@ -85,14 +78,7 @@ protected:
 private:
 	friend class Manager;
 
-	factory_callback factory;	// The analyzer's factory callback (deprecated).
 	factory_function factory_func;	// The analyzer's factory callback.
 };
 
 } // namespace zeek::file_analysis
-
-namespace file_analysis {
-
-using Component [[deprecated("Remove in v4.1. Use zeek::file_analysis::Component.")]] = zeek::file_analysis::Component;
-
-} // namespace file_analysis

@@ -92,11 +92,3 @@ public:
 
 
 } // namespace zeek::analyzer::dnp3
-
-namespace analyzer::dnp3 {
-
-using DNP3_Base [[deprecated("Remove in v4.1. Use zeek::analyzer::dnp3::detail::DNP3_Base.")]] = zeek::analyzer::dnp3::detail::DNP3_Base;
-using DNP3_TCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::dnp3::DNP3_TCP_Analyzer.")]] = zeek::analyzer::dnp3::DNP3_TCP_Analyzer;
-using DNP3_UDP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::dnp3::DNP3_UDP_Analyzer.")]] = zeek::analyzer::dnp3::DNP3_UDP_Analyzer;
-
-} // namespace analyzer::dnp3

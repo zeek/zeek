@@ -71,9 +71,3 @@ private:
 };
 
 } // namespace zeek::analyzer::irc
-
-namespace analyzer::irc {
-
-using IRC_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::irc::IRC_Analyzer.")]] = zeek::analyzer::irc::IRC_Analyzer;
-
-} // namespace analyzer::irc

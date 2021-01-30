@@ -45,10 +45,6 @@ public:
 	const RecordValPtr& ToVal() const
 		{ return val; }
 
-	[[deprecated("Remove in v4.1.  Use ToVal().")]]
-	RecordVal* GetVal() const
-		{ return val.get(); }
-
 	/**
 	 * @return the value of the "source" field from #val record or an empty
 	 * string if it's not initialized.
@@ -79,9 +75,6 @@ public:
 	 * @return false if no extraction analyzer is active, else true.
 	 */
 	bool SetExtractionLimit(RecordValPtr args, uint64_t bytes);
-
-	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
-	bool SetExtractionLimit(RecordVal* args, uint64_t bytes);
 
 	/**
 	 * @return value of the "id" field from #val record.
@@ -128,9 +121,6 @@ public:
 	 */
 	bool AddAnalyzer(file_analysis::Tag tag, RecordValPtr args);
 
-	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
-	bool AddAnalyzer(file_analysis::Tag tag, RecordVal* args);
-
 	/**
 	 * Queues removal of an analyzer.
 	 * @param tag the analyzer tag of the file analyzer to remove.
@@ -138,9 +128,6 @@ public:
 	 * @return true if analyzer was active at time of call, else false.
 	 */
 	bool RemoveAnalyzer(file_analysis::Tag tag, RecordValPtr args);
-
-	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
-	bool RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Signal that this analyzer can be deleted once it's safe to do so.
@@ -186,22 +173,6 @@ public:
 	 * @param h pointer to an event handler.
 	 */
 	void FileEvent(EventHandlerPtr h);
-
-	/**
-	 * Raises an event related to the file's life-cycle.
-	 * @param h pointer to an event handler.
-	 * @param vl list of argument values to pass to event call.
-	 */
-	[[deprecated("Remove in v4.1. Use Args overload instead.")]]
-	void FileEvent(EventHandlerPtr h, ValPList* vl);
-
-	/**
-	 * Raises an event related to the file's life-cycle.
-	 * @param h pointer to an event handler.
-	 * @param vl list of argument values to pass to event call.
-	 */
-	[[deprecated("Remove in v4.1. Use Args overload instead.")]]
-	void FileEvent(EventHandlerPtr h, ValPList vl);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
@@ -396,9 +367,3 @@ protected:
 };
 
 } // namespace file_analysis
-
-namespace file_analysis {
-
-using File [[deprecated("Remove in v4.1. Use zeek::file_analysis::File.")]] = zeek::file_analysis::File;
-
-} // namespace zeek::file_analysis

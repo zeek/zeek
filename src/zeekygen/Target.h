@@ -406,20 +406,3 @@ private:
 };
 
 } // namespace zeek::zeekygen::detail
-
-namespace zeekygen {
-
-using TargetFile [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::TargetFile.")]] = zeek::zeekygen::detail::TargetFile;
-using Target [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::Target.")]] = zeek::zeekygen::detail::Target;
-using TargetFactory [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::TargetFactory.")]] = zeek::zeekygen::detail::TargetFactory;
-using AnalyzerTarget [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::AnalyzerTarget.")]] = zeek::zeekygen::detail::AnalyzerTarget;
-using ProtoAnalyzerTarget [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::ProtoAnalyzerTarget.")]] = zeek::zeekygen::detail::ProtoAnalyzerTarget;
-using FileAnalyzerTarget [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::FileAnalyzerTarget.")]] = zeek::zeekygen::detail::FileAnalyzerTarget;
-using PackageTarget [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::PackageTarget.")]] = zeek::zeekygen::detail::PackageTarget;
-using PackageIndexTarget [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::PackageIndexTarget.")]] = zeek::zeekygen::detail::PackageIndexTarget;
-using ScriptTarget [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::ScriptTarget.")]] = zeek::zeekygen::detail::ScriptTarget;
-using ScriptSummaryTarget [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::ScriptSummaryTarget.")]] = zeek::zeekygen::detail::ScriptSummaryTarget;
-using ScriptIndexTarget [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::ScriptIndexTarget.")]] = zeek::zeekygen::detail::ScriptIndexTarget;
-using IdentifierTarget [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::IdentifierTarget.")]] = zeek::zeekygen::detail::IdentifierTarget;
-
-} // namespace zeekygen

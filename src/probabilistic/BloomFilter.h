@@ -231,15 +231,3 @@ private:
 };
 
 } // namespace zeek::probabilistic
-
-namespace probabilistic {
-
-using BloomFilterType [[deprecated("Remove in v4.1. Use zeek::probabilistic::BloomFilterType.")]] = zeek::probabilistic::BloomFilterType;
-constexpr auto Basic [[deprecated("Remove in v4.1. Use zeek::probabilistic::Basic.")]] = zeek::probabilistic::Basic;
-constexpr auto Counting [[deprecated("Remove in v4.1. Use zeek::probabilistic::Counting.")]] = zeek::probabilistic::Counting;
-
-using BloomFilter [[deprecated("Remove in v4.1. Use zeek::probabilistic::BloomFilter.")]] = zeek::probabilistic::BloomFilter;
-using BasicBloomFilter [[deprecated("Remove in v4.1. Use zeek::probabilistic::BasicBloomFilter.")]] = zeek::probabilistic::BasicBloomFilter;
-using CountingBloomFilter [[deprecated("Remove in v4.1. Use zeek::probabilistic::CountingBloomFilter.")]] = zeek::probabilistic::CountingBloomFilter;
-
-} // namespace probabilistic

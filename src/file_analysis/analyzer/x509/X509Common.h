@@ -54,9 +54,3 @@ protected:
 };
 
 } // namespace zeek::file_analysis
-
-namespace file_analysis {
-
-using X509Common [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::X509Common.")]] = zeek::file_analysis::detail::X509Common;
-
-} // namespace file_analysis

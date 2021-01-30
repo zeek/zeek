@@ -27,5 +27,3 @@ protected:
 	};
 
 } // namespace zeek::detail
-
-using DbgDisplay [[deprecated("Remove in v4.1. Use zeek::detail::DbgDisplay.")]] = zeek::detail::DbgDisplay;

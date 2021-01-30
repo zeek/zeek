@@ -32,9 +32,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::gssapi
-
-namespace analyzer::gssapi {
-
-using GSSAPI_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::gssapi::GSSAPI_Analyzer.")]] = zeek::analyzer::gssapi::GSSAPI_Analyzer;
-
-} // namespace analyzer::gssapi

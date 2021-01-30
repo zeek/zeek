@@ -1,4 +1,30 @@
 
+4.1.0-dev.158 | 2021-01-29 16:37:56 -0800
+
+  * Fix language.init-in-anon-function btest due to changes to log filter predicates (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated log filter predicates for 4.1 (Christian Kreibich, Corelight)
+
+    Update the logging framework tests: since hooks operate
+    by name, they cannot be anonymous. I'm also dropping the &optional
+    attribute from the status field, since here know that the values are
+    actually defined, and access to an optional status field should
+    normally be guarded by the existence test operator.
+
+  * Remove deprecated Plugin::HookCallFunction (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated support for .bro script extension and BRO_ environment variables (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated ICMP events (Tim Wojtulewicz, Corelight)
+
+  * Remove some deprected methods/events from bif files (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated TYPE_COUNTER (Tim Wojtulewicz, Corelight)
+
+  * Remove all of the random single-file deprecations (Tim Wojtulewicz, Corelight)
+
+  * Remove all fully-deprecated files (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.146 | 2021-01-29 10:20:28 -0800
 
   * Skip negative integers in input framework where not type-permissible (Christian Kreibich, Corelight)

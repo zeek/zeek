@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include "zeek/logging/WriterBackend.h"
 #include "zeek/threading/formatters/Ascii.h"

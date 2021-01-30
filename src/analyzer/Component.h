@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include "zeek/analyzer/Tag.h"
 #include "zeek/plugin/Component.h"

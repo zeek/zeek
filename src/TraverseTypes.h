@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(TraversalCallback, zeek::detail);
 

@@ -1,4 +1,8 @@
 
+4.1.0-dev.162 | 2021-01-29 21:05:41 -0800
+
+  * GH-1377: Add missing zeek/ to header includes (Jon Siwek, Corelight)
+
 4.1.0-dev.158 | 2021-01-29 16:37:56 -0800
 
   * Fix language.init-in-anon-function btest due to changes to log filter predicates (Tim Wojtulewicz, Corelight)

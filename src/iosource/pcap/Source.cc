@@ -1,6 +1,6 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/iosource/pcap/Source.h"
 
 #ifdef HAVE_PCAP_INT_H

@@ -1,6 +1,6 @@
 // Debugging support for Bro policy files.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include "zeek/Debug.h"
 

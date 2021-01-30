@@ -235,14 +235,14 @@ void init_alternative_mode()
 	fprintf(fp_func_h, "#ifndef BRO_IN_NETVAR\n");
 	fprintf(fp_func_h, "#ifndef %s\n", guard);
 	fprintf(fp_func_h, "#define %s\n", guard);
-	fprintf(fp_func_h, "#include \"zeek-bif.h\"\n");
+	fprintf(fp_func_h, "#include \"zeek/zeek-bif.h\"\n");
 	fprintf(fp_func_h, "#endif\n");
 	fprintf(fp_func_h, "#endif\n");
 	fprintf(fp_func_h, "\n");
 
 	fprintf(fp_func_def, "\n");
 	fprintf(fp_func_def, "#include \"%s.h\"\n", input_filename);
-	fprintf(fp_func_def, "#include \"Func.h\"\n");
+	fprintf(fp_func_def, "#include \"zeek/Func.h\"\n");
 	fprintf(fp_func_def, "\n");
 
 	static char name[1024];
@@ -267,8 +267,8 @@ void init_alternative_mode()
 		fprintf(fp_func_init, "\n");
 		fprintf(fp_func_init, "#include <list>\n");
 		fprintf(fp_func_init, "#include <string>\n");
-		fprintf(fp_func_init, "#include \"plugin/Plugin.h\"\n");
-		fprintf(fp_func_init, "#include \"Func.h\"\n");
+		fprintf(fp_func_init, "#include \"zeek/plugin/Plugin.h\"\n");
+		fprintf(fp_func_init, "#include \"zeek/Func.h\"\n");
 		fprintf(fp_func_init, "#include \"%s.h\"\n", input_filename);
 		fprintf(fp_func_init, "\n");
 		fprintf(fp_func_init, "namespace plugin { namespace %s {\n", plugin_canon);
@@ -276,7 +276,7 @@ void init_alternative_mode()
 		fprintf(fp_func_init, "void __bif_%s_init(zeek::plugin::Plugin* plugin)\n", name);
 		fprintf(fp_func_init, "\t{\n");
 
-		fprintf(fp_func_register, "#include \"plugin/Manager.h\"\n");
+		fprintf(fp_func_register, "#include \"zeek/plugin/Manager.h\"\n");
 		fprintf(fp_func_register, "\n");
 		fprintf(fp_func_register, "namespace plugin { namespace %s {\n", plugin_canon);
 		fprintf(fp_func_register, "void __bif_%s_init(zeek::plugin::Plugin* plugin);\n", name);

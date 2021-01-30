@@ -185,7 +185,7 @@ void Manager::InitPostScript()
 	else
 		reporter->FatalError("Invalid Broker::scheduler_policy: %s", scheduler_policy);
 
-	auto max_threads_env = util::zeekenv("ZEEK_BROKER_MAX_THREADS");
+	auto max_threads_env = getenv("ZEEK_BROKER_MAX_THREADS");
 
 	if ( max_threads_env )
 		config.set("caf.scheduler.max-threads", atoi(max_threads_env));
@@ -365,7 +365,7 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 	DBG_LOG(DBG_BROKER, "Starting to peer with %s:%" PRIu16,
 		addr.c_str(), port);
 
-	auto e = util::zeekenv("ZEEK_DEFAULT_CONNECT_RETRY");
+	auto e = getenv("ZEEK_DEFAULT_CONNECT_RETRY");
 
 	if ( e )
 		retry = atoi(e);

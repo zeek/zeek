@@ -39,7 +39,7 @@ void ScriptCoverageManager::AddStmt(Stmt* s)
 
 bool ScriptCoverageManager::ReadStats()
 	{
-	char* bf = util::zeekenv("ZEEK_PROFILER_FILE");
+	char* bf = getenv("ZEEK_PROFILER_FILE");
 
 	if ( ! bf )
 		return false;
@@ -89,7 +89,7 @@ bool ScriptCoverageManager::ReadStats()
 
 bool ScriptCoverageManager::WriteStats()
 	{
-	char* bf = util::zeekenv("ZEEK_PROFILER_FILE");
+	char* bf = getenv("ZEEK_PROFILER_FILE");
 
 	if ( ! bf )
 		return false;

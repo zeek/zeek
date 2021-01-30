@@ -344,7 +344,7 @@ function network_time%(%): time
 ## .. zeek:see:: setenv
 function getenv%(var: string%): string
 	%{
-	const char* env_val = zeek::util::zeekenv(var->CheckString());
+	const char* env_val = getenv(var->CheckString());
 	if ( ! env_val )
 		env_val = "";	// ###
 	return zeek::make_intrusive<zeek::StringVal>(env_val);

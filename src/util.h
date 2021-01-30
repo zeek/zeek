@@ -526,6 +526,7 @@ void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen);
  * A wrapper function for getenv().  Helps check for existence of
  * legacy environment variable names that map to the latest \a name.
  */
+[[deprecated("Remove in v5.1.  Use getenv() directly.")]]
 char* zeekenv(const char* name);
 
 /**

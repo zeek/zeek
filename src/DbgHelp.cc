@@ -1,5 +1,5 @@
 // Bro Debugger Help
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include "zeek/Debug.h"

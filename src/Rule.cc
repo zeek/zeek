@@ -1,4 +1,4 @@
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include "zeek/Rule.h"
 #include "zeek/RuleAction.h"

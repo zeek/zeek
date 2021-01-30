@@ -6,7 +6,7 @@ namespace zeek::analyzer::krb { class KRB_Analyzer; }
 namespace binpac { namespace KRB { class KRB_Conn; } }
 using KRBAnalyzer = zeek::analyzer::krb::KRB_Analyzer*;
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/krb/KRB.h"
 
 #include "analyzer/protocol/krb/types.bif.h"

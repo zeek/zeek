@@ -5,7 +5,7 @@
 
 #ifdef DEBUG
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include <stdio.h>
 #include <string>

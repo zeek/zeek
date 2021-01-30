@@ -1,6 +1,6 @@
 // Implementation of breakpoints.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include "zeek/DbgBreakpoint.h"
 

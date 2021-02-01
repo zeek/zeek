@@ -3233,14 +3233,16 @@ ValPtr TypeVal::DoClone(CloneState* state)
 VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef{}, t})
 	{ }
 
-VectorVal::VectorVal(VectorTypePtr t) : Val(std::move(t))
+VectorVal::VectorVal(VectorTypePtr t) : Val(t)
 	{
 	vector_val = new vector<ValPtr>();
+	yield_type = t->Yield();
 	}
 
 VectorVal::~VectorVal()
 	{
 	delete vector_val;
+	delete yield_types;
 	}
 
 ValPtr VectorVal::SizeVal() const
@@ -3248,14 +3250,47 @@ ValPtr VectorVal::SizeVal() const
 	return val_mgr->Count(uint32_t(vector_val->size()));
 	}
 
+void VectorVal::CheckElementType(const ValPtr& element)
+	{
+	if ( ! element )
+		return;
+
+	if ( yield_type->Tag() == TYPE_VOID )
+		// First addition to an empty vector.
+		yield_type = element->GetType();
+
+	else if ( ! yield_types &&
+		  ! same_type(element->GetType(), yield_type, false) )
+		{
+		// We assume that we're only called in already type-checked
+		// circumstances, so the mismatch here means that this
+		// must be a heterogeneous vector-of-any.
+
+		yield_types = new std::vector<TypePtr>();
+
+		// Since we're only now switching to the heterogeneous
+		// representation, capture the types of the existing
+		// elements.
+		auto n = vector_val->size();
+
+		for ( auto i = 0; i < n; ++i )
+			yield_types->emplace_back(yield_type);
+		}
+	}
+
 bool VectorVal::Assign(unsigned int index, ValPtr element)
 	{
-	if ( element &&
-	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
-		return false;
+	CheckElementType(element);
 
 	if ( index >= vector_val->size() )
+		{
 		vector_val->resize(index + 1);
+		if ( yield_types )
+			yield_types->resize(index + 1);
+		}
+
+	if ( yield_types )
+		(*yield_types)[index] = element->GetType();
 
 	(*vector_val)[index] = std::move(element);
 
@@ -3277,18 +3312,26 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 
 bool VectorVal::Insert(unsigned int index, ValPtr element)
 	{
-	if ( element &&
-	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
-		{
-		return false;
-		}
+	CheckElementType(element);
 
 	vector<ValPtr>::iterator it;
+	vector<TypePtr>::iterator types_it;
 
 	if ( index < vector_val->size() )
+		{
 		it = std::next(vector_val->begin(), index);
+		if ( yield_types )
+			types_it = std::next(yield_types->begin(), index);
+		}
 	else
+		{
 		it = vector_val->end();
+		if ( yield_types )
+			types_it = yield_types->end();
+		}
+
+	if ( yield_types )
+		yield_types->insert(types_it, element->GetType());
 
 	vector_val->insert(it, std::move(element));
 
@@ -3303,6 +3346,12 @@ bool VectorVal::Remove(unsigned int index)
 
 	auto it = std::next(vector_val->begin(), index);
 	vector_val->erase(it);
+
+	if ( yield_types )
+		{
+		auto types_it = std::next(yield_types->begin(), index);
+		yield_types->erase(types_it);
+		}
 
 	Modified();
 	return true;
@@ -3486,6 +3535,9 @@ static bool indirect_double_sort_function(size_t a, size_t b)
 
 void VectorVal::Sort(Func* cmp_func)
 	{
+	if ( yield_types )
+		reporter->RuntimeError(GetLocationInfo(), "cannot sort a vector-of-any");
+
 	bool (*sort_func)(const zeek::ValPtr&, const zeek::ValPtr&);
 
 	if ( cmp_func )
@@ -3515,6 +3567,12 @@ void VectorVal::Sort(Func* cmp_func)
 
 VectorValPtr VectorVal::Order(Func* cmp_func)
 	{
+	if ( yield_types )
+		{
+		reporter->RuntimeError(GetLocationInfo(), "cannot order a vector-of-any");
+		return nullptr;
+		}
+
 	bool (*sort_func)(size_t, size_t);
 
 	if ( cmp_func )
@@ -3571,6 +3629,13 @@ unsigned int VectorVal::Resize(unsigned int new_num_elements)
 	unsigned int oldsize = vector_val->size();
 	vector_val->reserve(new_num_elements);
 	vector_val->resize(new_num_elements);
+
+	if ( yield_types )
+		{
+		yield_types->reserve(new_num_elements);
+		yield_types->resize(new_num_elements);
+		}
+
 	return oldsize;
 	}
 
@@ -3586,6 +3651,9 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 void VectorVal::Reserve(unsigned int num_elements)
 	{
 	vector_val->reserve(num_elements);
+
+	if ( yield_types )
+		yield_types->reserve(num_elements);
 	}
 
 ValPtr VectorVal::DoClone(CloneState* state)

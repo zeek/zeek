@@ -3237,6 +3237,9 @@ VectorVal::VectorVal(VectorTypePtr t) : Val(t)
 	{
 	vector_val = new vector<ValPtr>();
 	yield_type = t->Yield();
+
+	auto y_tag = yield_type->Tag();
+	any_yield = (y_tag == TYPE_VOID || y_tag == TYPE_ANY);
 	}
 
 VectorVal::~VectorVal()
@@ -3250,37 +3253,48 @@ ValPtr VectorVal::SizeVal() const
 	return val_mgr->Count(uint32_t(vector_val->size()));
 	}
 
-void VectorVal::CheckElementType(const ValPtr& element)
+bool VectorVal::CheckElementType(const ValPtr& element)
 	{
 	if ( ! element )
-		return;
+		// Insertion isn't actually going to happen.
+		return true;
 
-	if ( yield_type->Tag() == TYPE_VOID )
-		// First addition to an empty vector.
-		yield_type = element->GetType();
+	if ( yield_types )
+		// We're already a heterogeneous vector-of-any.
+		return true;
 
-	else if ( ! yield_types &&
-		  ! same_type(element->GetType(), yield_type, false) )
+	if ( any_yield )
 		{
-		// We assume that we're only called in already type-checked
-		// circumstances, so the mismatch here means that this
-		// must be a heterogeneous vector-of-any.
-
-		yield_types = new std::vector<TypePtr>();
-
-		// Since we're only now switching to the heterogeneous
-		// representation, capture the types of the existing
-		// elements.
 		auto n = vector_val->size();
 
-		for ( auto i = 0; i < n; ++i )
-			yield_types->emplace_back(yield_type);
+		if ( n == 0 )
+			// First addition to an empty vector-of-any, perhaps
+			// it will be homogeneous.
+			yield_type = element->GetType();
+
+		else
+			{
+			yield_types = new std::vector<TypePtr>();
+
+			// Since we're only now switching to the heterogeneous
+			// representation, capture the types of the existing
+			// elements.
+
+			for ( auto i = 0; i < n; ++i )
+				yield_types->emplace_back(yield_type);
+			}
 		}
+
+	else if ( ! same_type(element->GetType(), yield_type, false) )
+		return false;
+
+	return true;
 	}
 
 bool VectorVal::Assign(unsigned int index, ValPtr element)
 	{
-	CheckElementType(element);
+	if ( ! CheckElementType(element) )
+		return false;
 
 	if ( index >= vector_val->size() )
 		{
@@ -3312,7 +3326,8 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 
 bool VectorVal::Insert(unsigned int index, ValPtr element)
 	{
-	CheckElementType(element);
+	if ( ! CheckElementType(element) )
+		return false;
 
 	vector<ValPtr>::iterator it;
 	vector<TypePtr>::iterator types_it;

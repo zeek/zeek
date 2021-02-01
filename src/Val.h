@@ -1548,8 +1548,9 @@ protected:
 
 private:
 	// Check the type of the given element against our current
-	// yield type and adjust as necessary.
-	void CheckElementType(const ValPtr& element);
+	// yield type and adjust as necessary.  Returns whether the
+	// element type-checked.
+	bool CheckElementType(const ValPtr& element);
 
 	std::vector<ValPtr>* vector_val;
 
@@ -1557,6 +1558,10 @@ private:
 	// elements.  Will be TYPE_VOID for empty vectors created using
 	// "vector()".
 	TypePtr yield_type;
+
+	// True if this is a vector-of-any, or potentially one (which is
+	// the case for empty vectors created using "vector()").
+	bool any_yield;
 
 	// For heterogeneous vectors, the individual type of each element,
 	// parallel to vector_val.  Heterogeneous vectors can arise for

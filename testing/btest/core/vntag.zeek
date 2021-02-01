@@ -1,0 +1,4 @@
+# @TEST-EXEC: zeek -C -r $TRACES/vntag.pcap %INPUT
+# @TEST-EXEC: btest-diff unknown_protocols.log
+
+@load policy/misc/unknown-protocols

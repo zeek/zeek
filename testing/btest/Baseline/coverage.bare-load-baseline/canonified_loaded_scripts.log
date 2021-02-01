@@ -54,6 +54,8 @@ scripts/base/init-bare.zeek
       scripts/base/packet-protocols/gre/main.zeek
     scripts/base/packet-protocols/iptunnel/__load__.zeek
       scripts/base/packet-protocols/iptunnel/main.zeek
+    scripts/base/packet-protocols/vntag/__load__.zeek
+      scripts/base/packet-protocols/vntag/main.zeek
 scripts/base/init-frameworks-and-bifs.zeek
   scripts/base/frameworks/logging/__load__.zeek
     scripts/base/frameworks/logging/main.zeek

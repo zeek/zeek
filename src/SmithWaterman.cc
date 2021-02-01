@@ -91,7 +91,7 @@ VectorVal* Substring::VecToPolicy(Vec* vec)
 
 			st_val->Assign(1, std::move(aligns));
 			st_val->Assign(2, val_mgr->Bool(bst->IsNewAlignment()));
-			result->Assign(i + 1, std::move(st_val));
+			result->Assign(i, std::move(st_val));
 			}
 		}
 
@@ -105,23 +105,23 @@ Substring::Vec* Substring::VecFromPolicy(VectorVal* vec)
 	// VectorVals start at index 1!
 	for ( unsigned int i = 1; i <= vec->Size(); ++i )
 		{
-		const auto& v = vec->At(i);	// get the RecordVal
+		auto v = vec->RecordValAt(i);
 		if ( ! v )
 			continue;
 
-		const String* str = v->AsRecordVal()->GetFieldAs<StringVal>(0);
+		const String* str = v->GetFieldAs<StringVal>(0);
 		auto* substr = new Substring(*str);
 
-		const VectorVal* aligns = v->AsRecordVal()->GetField(1)->AsVectorVal();
+		const VectorVal* aligns = v->GetField(1)->AsVectorVal();
 		for ( unsigned int j = 1; j <= aligns->Size(); ++j )
 			{
-			const RecordVal* align = aligns->AsVectorVal()->At(j)->AsRecordVal();
+			const RecordVal* align = aligns->AsVectorVal()->RecordValAt(j);
 			const String* str = align->GetFieldAs<StringVal>(0);
 			int index = align->GetFieldAs<CountVal>(1);
 			substr->AddAlignment(str, index);
 			}
 
-		bool new_alignment = v->AsRecordVal()->GetFieldAs<BoolVal>(2);
+		bool new_alignment = v->GetFieldAs<BoolVal>(2);
 		substr->MarkNewAlignment(new_alignment);
 
 		result->push_back(substr);

@@ -73,6 +73,9 @@ mode[c] = 1;
 
 for ( i in s1 )
 	{
+	if ( i == 0 )
+		next;
+
 	local ss: sw_substring_vec;
 
 	params$min_strlen = min[i];

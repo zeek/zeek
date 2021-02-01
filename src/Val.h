@@ -1449,14 +1449,6 @@ public:
 	bool AddTo(Val* v, bool is_first_init) const override;
 
 	/**
-	 * Returns the element at a given index or nullptr if it does not exist.
-	 * @param index  The position in the vector of the element to return.
-	 * @return  The element at the given index or nullptr if the index
-	 * does not exist (it's greater than or equal to vector's current size).
-	 */
-	const ValPtr& At(unsigned int index) const;
-
-	/**
 	 * Returns the given element treated as a Count type, to efficiently
 	 * support a common type of vector access if we change the underlying
 	 * vector representation.
@@ -1518,12 +1510,39 @@ public:
 	bool Remove(unsigned int index);
 
 	/**
-	 * Sorts the vector in place, using the given comparison function.
+	 * Sorts the vector in place, using the given optional
+	 * comparison function.
 	 * @param cmp_func  Comparison function for vector elements.
 	 */
-	void Sort(bool cmp_func(const ValPtr& a, const ValPtr& b));
+	void Sort(Func* cmp_func = nullptr);
+	// void Sort(bool cmp_func(const ValPtr& a, const ValPtr& b));
+
+	/**
+	 * Returns a "vector of count" holding the indices of this
+	 * vector when sorted using the given (optional) comparison function.
+	 * @param cmp_func  Comparison function for vector elements.
+	 */
+	VectorValPtr Order(Func* cmp_func = nullptr);
+
+	ValPtr ValAt(unsigned int index) const	{ return At(index); }
+	RecordVal* RecordValAt(unsigned int index) const
+		{ return At(index)->AsRecordVal(); }
+	bool BoolAt(unsigned int index) const
+		{ return ! At(index)->IsZero(); }
+	StringVal* StringValAt(unsigned int index) const
+		{ return At(index)->AsStringVal(); }
+	const String* StringAt(unsigned int index) const
+		{ return StringValAt(index)->AsString(); }
 
 protected:
+	/**
+	 * Returns the element at a given index or nullptr if it does not exist.
+	 * @param index  The position in the vector of the element to return.
+	 * @return  The element at the given index or nullptr if the index
+	 * does not exist (it's greater than or equal to vector's current size).
+	 */
+	ValPtr At(unsigned int index) const;
+
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
 

@@ -26,7 +26,10 @@ event zeek_init()
 	local res_split: string_vec = str_split(s1, idx1);
 
 	for ( i in res_split )
-		print res_split[i];
+		{
+		if ( i > 0 )
+			print res_split[i];
+		}
 
 	print fmt("Splitting '%s' at %d points in zero-indexed mode...", s1, |idx1|);
 	res_split = str_split_indices(s1, idx1);

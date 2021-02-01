@@ -815,7 +815,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
-		const String* s = vv->At(i)->AsString();
+		auto s = vv->StringAt(i);
 		patterns.push_back(std::string(reinterpret_cast<const char*>(s->Bytes()), s->Len()));
 		}
 
@@ -1293,7 +1293,7 @@ function any_set%(v: any%) : bool
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
-		if ( vv->At(i) && vv->At(i)->AsBool() )
+		if ( vv->BoolAt(i) )
 			return zeek::val_mgr->True();
 
 	return zeek::val_mgr->False();
@@ -1322,78 +1322,18 @@ function all_set%(v: any%) : bool
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
-		if ( ! vv->At(i) || ! vv->At(i)->AsBool() )
+		if ( ! vv->BoolAt(i) )
 			return zeek::val_mgr->False();
 
 	return zeek::val_mgr->True();
 	%}
-
-%%{
-static zeek::Func* sort_function_comp = nullptr;
-static std::vector<const zeek::ValPtr*> index_map;	// used for indirect sorting to support order()
-
-bool sort_function(const zeek::ValPtr& a, const zeek::ValPtr& b)
-	{
-	// Sort missing values as "high".
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	auto result = sort_function_comp->Invoke(a, b);
-	int int_result = result->CoerceToInt();
-
-	return int_result < 0;
-	}
-
-bool indirect_sort_function(size_t a, size_t b)
-	{
-	return sort_function(*index_map[a], *index_map[b]);
-	}
-
-bool signed_sort_function (const zeek::ValPtr& a, const zeek::ValPtr& b)
-	{
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	auto ia = a->CoerceToInt();
-	auto ib = b->CoerceToInt();
-
-	return ia < ib;
-	}
-
-bool unsigned_sort_function (const zeek::ValPtr& a, const zeek::ValPtr& b)
-	{
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	auto ia = a->CoerceToUnsigned();
-	auto ib = b->CoerceToUnsigned();
-
-	return ia < ib;
-	}
-
-bool indirect_signed_sort_function(size_t a, size_t b)
-	{
-	return signed_sort_function(*index_map[a], *index_map[b]);
-	}
-
-bool indirect_unsigned_sort_function(size_t a, size_t b)
-	{
-	return unsigned_sort_function(*index_map[a], *index_map[b]);
-	}
-%%}
 
 ## Sorts a vector in place. The second argument is a comparison function that
 ## takes two arguments: if the vector type is ``vector of T``, then the
 ## comparison function must be ``function(a: T, b: T): int``, which returns
 ## a value less than zero if ``a < b`` for some type-specific notion of the
 ## less-than operator.  The comparison function is optional if the type
-## is an integral type (int, count, etc.).
+## is a numeric type (int, count, double, time, etc.).
 ##
 ## v: The vector instance to sort.
 ##
@@ -1415,7 +1355,10 @@ function sort%(v: any, ...%) : any
 	zeek::Func* comp = nullptr;
 
 	if ( @ARG@.size() > 2 )
+		{
 		zeek::emit_builtin_error("sort() called with extraneous argument");
+		return rval;
+		}
 
 	if ( @ARG@.size() == 2 )
 		{
@@ -1427,35 +1370,26 @@ function sort%(v: any, ...%) : any
 			}
 
 		comp = comp_val->AsFunc();
-		}
-
-	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		zeek::emit_builtin_error("comparison function required for sort() with non-integral types");
-
-	auto vv = v->As<zeek::VectorVal*>();
-
-	if ( comp )
-		{
 		const auto& comp_type = comp->GetType();
 
 		if ( comp_type->Yield()->Tag() != zeek::TYPE_INT ||
-		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
+		     ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
+		     comp_type->ParamList()->GetTypes().size() != 2 )
 			{
 			zeek::emit_builtin_error("invalid comparison function in call to sort()");
 			return rval;
 			}
-
-		sort_function_comp = comp;
-
-		vv->Sort(sort_function);
 		}
-	else
+
+	if ( ! comp && ! IsIntegral(elt_type->Tag()) &&
+	     elt_type->InternalType() != TYPE_INTERNAL_DOUBLE )
 		{
-		if ( elt_type->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
-			vv->Sort(unsigned_sort_function);
-		else
-			vv->Sort(signed_sort_function);
+		zeek::emit_builtin_error("comparison function required for sort() with non-numeric types");
+		return rval;
 		}
+
+	auto vv = v->As<zeek::VectorVal*>();
+	vv->Sort(comp);
 
 	return rval;
 	%}
@@ -1473,19 +1407,22 @@ function sort%(v: any, ...%) : any
 ## .. zeek:see:: sort
 function order%(v: any, ...%) : index_vec
 	%{
-	auto result_v = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
+	auto err_v = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
 	if ( v->GetType()->Tag() != zeek::TYPE_VECTOR )
 		{
 		zeek::emit_builtin_error("order() requires vector");
-		return result_v;
+		return err_v;
 		}
 
 	const auto& elt_type = v->GetType()->Yield();
 	zeek::Func* comp = nullptr;
 
 	if ( @ARG@.size() > 2 )
+		{
 		zeek::emit_builtin_error("order() called with extraneous argument");
+		return err_v;
+		}
 
 	if ( @ARG@.size() == 2 )
 		{
@@ -1497,57 +1434,27 @@ function order%(v: any, ...%) : index_vec
 			}
 
 		comp = comp_val->AsFunc();
-		}
 
-	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		zeek::emit_builtin_error("comparison function required for order() with non-integral types");
-
-	auto vv = v->As<zeek::VectorVal*>();
-	auto n = vv->Size();
-
-	// Set up initial mapping of indices directly to corresponding
-	// elements.
-	vector<size_t> ind_vv(n);
-	index_map.reserve(n);
-	size_t i;
-	for ( i = 0; i < n; ++i )
-		{
-		ind_vv[i] = i;
-		index_map.emplace_back(&vv->At(i));
-		}
-
-	if ( comp )
-		{
 		const auto& comp_type = comp->GetType();
 		if ( comp_type->Yield()->Tag() != zeek::TYPE_INT ||
-		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
+		     ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
+		     comp_type->ParamList()->GetTypes().size() != 2 )
 			{
 			zeek::emit_builtin_error("invalid comparison function in call to order()");
 			return zeek::ValPtr{zeek::NewRef{}, v};
 			}
-
-		sort_function_comp = comp;
-
-		sort(ind_vv.begin(), ind_vv.end(), indirect_sort_function);
 		}
-	else
+
+	if ( ! comp && ! IsIntegral(elt_type->Tag()) &&
+	     elt_type->InternalType() != TYPE_INTERNAL_DOUBLE )
 		{
-		if ( elt_type->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
-			sort(ind_vv.begin(), ind_vv.end(), indirect_unsigned_sort_function);
-		else
-			sort(ind_vv.begin(), ind_vv.end(), indirect_signed_sort_function);
+		zeek::emit_builtin_error("comparison function required for order() with non-numeric types");
+		return err_v;
 		}
 
-	index_map = {};
+	auto vv = v->As<zeek::VectorVal*>();
 
-	// Now spin through ind_vv to read out the rearrangement.
-	for ( i = 0; i < n; ++i )
-		{
-		int ind = ind_vv[i];
-		result_v->Assign(i, zeek::val_mgr->Count(ind));
-		}
-
-	return result_v;
+	return vv->Order(comp);
 	%}
 
 # ===========================================================================

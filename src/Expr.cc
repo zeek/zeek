@@ -271,7 +271,7 @@ const char* assign_to_index(ValPtr v1, ValPtr v2, ValPtr v3,
 
 			for ( auto idx = 0u; idx < v_vect->Size();
 			      idx++, first++ )
-				v1_vect->Insert(first, v_vect->At(idx));
+				v1_vect->Insert(first, v_vect->ValAt(idx));
 			}
 
 		else if ( ! v1_vect->Assign(lv->Idx(0)->CoerceToUnsigned(), std::move(v3)) )
@@ -613,8 +613,11 @@ ValPtr UnaryExpr::Eval(Frame* f) const
 
 		for ( unsigned int i = 0; i < v_op->Size(); ++i )
 			{
-			const auto& v_i = v_op->At(i);
-			result->Assign(i, v_i ? Fold(v_i.get()) : nullptr);
+			auto vop = v_op->ValAt(i);
+			if ( vop )
+				result->Assign(i, Fold(vop.get()));
+			else
+				result->Assign(i, nullptr);
 			}
 
 		return result;
@@ -702,11 +705,12 @@ ValPtr BinaryExpr::Eval(Frame* f) const
 
 		for ( unsigned int i = 0; i < v_op1->Size(); ++i )
 			{
-			if ( v_op1->At(i) && v_op2->At(i) )
-				v_result->Assign(i, Fold(v_op1->At(i).get(), v_op2->At(i).get()));
+			auto v1_i = v_op1->ValAt(i);
+			auto v2_i = v_op2->ValAt(i);
+			if ( v1_i && v2_i )
+				v_result->Assign(i, Fold(v_op1->ValAt(i).get(), v_op2->ValAt(i).get()));
 			else
 				v_result->Assign(i, nullptr);
-			// SetError("undefined element in vector operation");
 			}
 
 		return v_result;
@@ -719,13 +723,12 @@ ValPtr BinaryExpr::Eval(Frame* f) const
 
 		for ( unsigned int i = 0; i < vv->Size(); ++i )
 			{
-			if ( const auto& vv_i = vv->At(i) )
+			auto vv_i = vv->ValAt(i);
+			if ( vv_i )
 				v_result->Assign(i, is_vec1 ? Fold(vv_i.get(), v2.get())
-				                            : Fold(v1.get(), vv_i.get()));
+							    : Fold(v1.get(), vv_i.get()));
 			else
 				v_result->Assign(i, nullptr);
-
-			// SetError("Undefined element in vector operation");
 			}
 
 		return v_result;
@@ -1229,12 +1232,8 @@ ValPtr IncrExpr::Eval(Frame* f) const
 
 		for ( unsigned int i = 0; i < v_vec->Size(); ++i )
 			{
-			const auto& elt = v_vec->At(i);
-
-			if ( elt )
-				v_vec->Assign(i, DoSingleEval(f, elt.get()));
-			else
-				v_vec->Assign(i, nullptr);
+			auto elt = v_vec->ValAt(i);
+			v_vec->Assign(i, DoSingleEval(f, elt.get()));
 			}
 
 		op->Assign(f, std::move(v_vec));
@@ -1857,18 +1856,13 @@ ValPtr BoolExpr::Eval(Frame* f) const
 
 	for ( unsigned int i = 0; i < vec_v1->Size(); ++i )
 		{
-		const auto& op1 = vec_v1->At(i);
-		const auto& op2 = vec_v2->At(i);
-		if ( op1 && op2 )
-			{
-			bool local_result = (tag == EXPR_AND_AND) ?
-				(! op1->IsZero() && ! op2->IsZero()) :
-				(! op1->IsZero() || ! op2->IsZero());
+		const auto op1 = vec_v1->BoolAt(i);
+		const auto op2 = vec_v2->BoolAt(i);
 
-			result->Assign(i, val_mgr->Bool(local_result));
-			}
-		else
-			result->Assign(i, nullptr);
+		bool local_result =
+			(tag == EXPR_AND_AND) ? (op1 && op2) : (op1 || op2);
+
+		result->Assign(i, val_mgr->Bool(local_result));
 		}
 
 	return result;
@@ -2219,15 +2213,9 @@ ValPtr CondExpr::Eval(Frame* f) const
 
 	for ( unsigned int i = 0; i < cond->Size(); ++i )
 		{
-		const auto& local_cond = cond->At(i);
-
-		if ( local_cond )
-			{
-			const auto& v = local_cond->IsZero() ? b->At(i) : a->At(i);
-			result->Assign(i, v);
-			}
-		else
-			result->Assign(i, nullptr);
+		auto local_cond = cond->BoolAt(i);
+		auto v = local_cond ? a->ValAt(i) : b->ValAt(i);
+		result->Assign(i, v);
 		}
 
 	return result;
@@ -2906,8 +2894,8 @@ ValPtr IndexExpr::Eval(Frame* f) const
 
 			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
 				{
-				if ( v_v2->At(i)->AsBool() )
-					v_result->Assign(v_result->Size() + 1, v_v1->At(i));
+				if ( v_v2->BoolAt(i) )
+					v_result->Assign(v_result->Size() + 1, v_v1->ValAt(i));
 				}
 			}
 		else
@@ -2917,7 +2905,7 @@ ValPtr IndexExpr::Eval(Frame* f) const
 			// Probably only do this if *all* are negative.
 			v_result->Resize(v_v2->Size());
 			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
-				v_result->Assign(i, v_v1->At(v_v2->At(i)->CoerceToInt()));
+				v_result->Assign(i, v_v1->ValAt(v_v2->ValAt(i)->CoerceToInt()));
 			}
 
 		return v_result;
@@ -2940,7 +2928,7 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 		const ListVal* lv = v2->AsListVal();
 
 		if ( lv->Length() == 1 )
-			v = vect->At(lv->Idx(0)->CoerceToUnsigned());
+			v = vect->ValAt(lv->Idx(0)->CoerceToUnsigned());
 		else
 			{
 			size_t len = vect->Size();
@@ -2955,7 +2943,7 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 				result->Resize(sub_length);
 
 				for ( bro_int_t idx = first; idx < last; idx++ )
-					result->Assign(idx - first, vect->At(idx));
+					result->Assign(idx - first, vect->ValAt(idx));
 				}
 
 			return result;
@@ -3758,7 +3746,8 @@ ValPtr ArithCoerceExpr::Fold(Val* v) const
 
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
-		if ( const auto& elt = vv->At(i) )
+		auto elt = vv->ValAt(i);
+		if ( elt )
 			result->Assign(i, FoldSingleVal(elt.get(), t));
 		else
 			result->Assign(i, nullptr);
@@ -4216,7 +4205,11 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const
 	bool res;
 
 	if ( is_vector(v2) )
-		res = (bool)v2->AsVectorVal()->At(v1->AsListVal()->Idx(0)->CoerceToUnsigned());
+		{
+		auto vv2 = v2->AsVectorVal();
+		auto ind = v1->AsListVal()->Idx(0)->CoerceToUnsigned();
+		res = ind < vv2->Size() && vv2->ValAt(ind);
+		}
 	else
 		res = (bool)v2->AsTableVal()->Find({NewRef{}, v1});
 

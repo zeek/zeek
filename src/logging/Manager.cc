@@ -1061,7 +1061,7 @@ threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
 		for ( bro_int_t i = 0; i < lval->val.vector_val.size; i++ )
 			{
 			lval->val.vector_val.vals[i] =
-				ValToLogVal(vec->At(i).get(),
+				ValToLogVal(vec->ValAt(i).get(),
 					    vec->GetType()->Yield().get());
 			}
 

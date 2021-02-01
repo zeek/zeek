@@ -20,6 +20,16 @@ function myfunc2(a: double, b: double): int
 		return 1;
 	}
 
+function myfunc3(a: bool, b: bool): int
+	{
+	if (a == b)
+		return 0;
+	else if (a)
+		return 1;
+	else
+		return -1;
+	}
+
 event zeek_init()
 	{
 	# Tests without supplying a comparison function
@@ -34,17 +44,23 @@ event zeek_init()
 	print a2;
 	print b2;
 
+	# this one is expected to fail (i.e., "sort" doesn't sort the vector)
 	local a3: vector of bool = vector( T, F, F, T );
 	local b3 = sort(a3);
 	print a3;
 	print b3;
 
+	local a3x: vector of bool = vector( T, F, F, T );
+	local b3x = sort(a3x, myfunc3);
+	print a3x;
+	print b3x;
+
+	# this one is expected to fail (i.e., "sort" doesn't sort the vector)
 	local a4: vector of port = vector( 12/icmp, 123/tcp, 500/udp, 7/udp, 57/tcp );
 	local b4 = sort(a4);
 	print a4;
 	print b4;
 
-	# this one is expected to fail (i.e., "sort" doesn't sort the vector)
 	local a5: vector of double = vector( 3.03, 3.01, 3.02, 3.015  );
 	local b5 = sort(a5);
 	print a5;

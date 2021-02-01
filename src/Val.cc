@@ -588,7 +588,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			auto* vval = val->AsVectorVal();
 			size_t size = vval->SizeVal()->AsCount();
 			for (size_t i = 0; i < size; i++)
-				BuildJSON(writer, vval->At(i).get(), only_loggable, re);
+				BuildJSON(writer, vval->ValAt(i).get(), only_loggable, re);
 
 			writer.EndArray();
 			break;
@@ -3332,7 +3332,7 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 	return true;
 	}
 
-const ValPtr& VectorVal::At(unsigned int index) const
+ValPtr VectorVal::At(unsigned int index) const
 	{
 	if ( index >= vector_val->size() )
 		return Val::nil;
@@ -3340,9 +3340,230 @@ const ValPtr& VectorVal::At(unsigned int index) const
 	return (*vector_val)[index];
 	}
 
-void VectorVal::Sort(bool cmp_func(const ValPtr& a, const ValPtr& b))
+static zeek::Func* sort_function_comp = nullptr;
+
+// Used for indirect sorting to support order().
+//### static std::vector<zeek::ZAMValUnion> index_map;
+static std::vector<const zeek::ValPtr*> index_map;	// used for indirect sorting to support order()
+
+// Yuck, we need a variable to hold the type.  Luckily, this won't be
+// invoked concurrently for two different types.
+//### static zeek::IntrusivePtr<zeek::Type> sort_type;
+//### static bool sort_type_is_managed = false;
+
+static bool sort_function(const zeek::ValPtr& a, const zeek::ValPtr& b)
 	{
-	sort(vector_val->begin(), vector_val->end(), cmp_func);
+	// Sort missing values as "high".
+	if ( ! a )
+		return 0;
+	if ( ! b )
+		return 1;
+
+	auto result = sort_function_comp->Invoke(a, b);
+	int int_result = result->CoerceToInt();
+
+	return int_result < 0;
+	}
+
+static bool indirect_sort_function(size_t a, size_t b)
+	{
+	return sort_function(*index_map[a], *index_map[b]);
+	}
+
+static bool signed_sort_function (const zeek::ValPtr& a, const zeek::ValPtr& b)
+	{
+	if ( ! a )
+		return 0;
+	if ( ! b )
+		return 1;
+
+	auto ia = a->CoerceToInt();
+	auto ib = b->CoerceToInt();
+
+	return ia < ib;
+	}
+
+static bool unsigned_sort_function (const zeek::ValPtr& a, const zeek::ValPtr& b)
+	{
+	if ( ! a )
+		return 0;
+	if ( ! b )
+		return 1;
+
+	auto ia = a->CoerceToUnsigned();
+	auto ib = b->CoerceToUnsigned();
+
+	return ia < ib;
+	}
+
+static bool double_sort_function (const zeek::ValPtr& a, const zeek::ValPtr& b)
+	{
+	if ( ! a )
+		return 0;
+	if ( ! b )
+		return 1;
+
+	auto ia = a->CoerceToDouble();
+	auto ib = b->CoerceToDouble();
+
+	return ia < ib;
+	}
+
+static bool indirect_signed_sort_function(size_t a, size_t b)
+	{
+	return signed_sort_function(*index_map[a], *index_map[b]);
+	}
+
+static bool indirect_unsigned_sort_function(size_t a, size_t b)
+	{
+	return unsigned_sort_function(*index_map[a], *index_map[b]);
+	}
+
+static bool indirect_double_sort_function(size_t a, size_t b)
+	{
+	return double_sort_function(*index_map[a], *index_map[b]);
+	}
+
+#if 0
+static bool sort_function(zeek::ZAMValUnion& a, zeek::ZAMValUnion& b)
+	{
+	// Unable to fully do this:
+	//	Sort missing values as "high".
+	// But we can for managed types.
+
+	if ( sort_type_is_managed )
+		{
+		if ( ! a.managed_val )
+			return 0;
+		if ( ! b.managed_val )
+			return 1;
+		}
+
+	auto a_v = a.ToVal(sort_type);
+	auto b_v = b.ToVal(sort_type);
+
+	auto result = sort_function_comp->Invoke(a_v, b_v);
+	int int_result = result->CoerceToInt();
+
+	return int_result < 0;
+	}
+
+static bool signed_sort_function (zeek::ZAMValUnion& a, zeek::ZAMValUnion& b)
+	{
+	return a.int_val < b.int_val;
+	}
+
+static bool unsigned_sort_function (zeek::ZAMValUnion& a, zeek::ZAMValUnion& b)
+	{
+	return a.uint_val < b.uint_val;
+	}
+
+static bool double_sort_function (zeek::ZAMValUnion& a, zeek::ZAMValUnion& b)
+	{
+	return a.double_val < b.double_val;
+	}
+
+static bool indirect_sort_function(size_t a, size_t b)
+	{
+	return sort_function(index_map[a], index_map[b]);
+	}
+
+static bool indirect_signed_sort_function(size_t a, size_t b)
+	{
+	return signed_sort_function(index_map[a], index_map[b]);
+	}
+
+static bool indirect_unsigned_sort_function(size_t a, size_t b)
+	{
+	return unsigned_sort_function(index_map[a], index_map[b]);
+	}
+
+static bool indirect_double_sort_function(size_t a, size_t b)
+	{
+	return double_sort_function(index_map[a], index_map[b]);
+	}
+#endif
+
+void VectorVal::Sort(Func* cmp_func)
+	{
+	bool (*sort_func)(const zeek::ValPtr&, const zeek::ValPtr&);
+
+	if ( cmp_func )
+		{
+		sort_function_comp = cmp_func;
+		sort_func = sort_function;
+		}
+
+	else
+		{
+		const auto& elt_type = GetType()->Yield();
+		auto eti = elt_type->InternalType();
+
+		if ( eti == TYPE_INTERNAL_INT )
+			sort_func = signed_sort_function;
+		else if ( eti == TYPE_INTERNAL_UNSIGNED )
+			sort_func = unsigned_sort_function;
+		else
+			{
+			ASSERT(eti == TYPE_INTERNAL_DOUBLE);
+			sort_func = double_sort_function;
+			}
+		}
+
+	sort(vector_val->begin(), vector_val->end(), sort_func);
+	}
+
+VectorValPtr VectorVal::Order(Func* cmp_func)
+	{
+	bool (*sort_func)(size_t, size_t);
+
+	if ( cmp_func )
+		{
+		sort_function_comp = cmp_func;
+		sort_func = indirect_sort_function;
+		}
+
+	else
+		{
+		const auto& elt_type = GetType()->Yield();
+		auto eti = elt_type->InternalType();
+
+		if ( eti == TYPE_INTERNAL_INT )
+			sort_func = indirect_signed_sort_function;
+		else if ( eti == TYPE_INTERNAL_UNSIGNED )
+			sort_func = indirect_unsigned_sort_function;
+		else
+			{
+			ASSERT(eti == TYPE_INTERNAL_DOUBLE);
+			sort_func = indirect_double_sort_function;
+			}
+		}
+
+	int n = Size();
+
+	// Set up initial mapping of indices directly to corresponding
+	// elements.
+	vector<size_t> ind_vv(n);
+	size_t i;
+	for ( i = 0; i < n; ++i )
+		{
+		ind_vv[i] = i;
+		index_map.emplace_back(&(*vector_val)[i]);
+		}
+
+	sort(ind_vv.begin(), ind_vv.end(), sort_func);
+
+	index_map = {};
+
+	// Now spin through ind_vv to read out the rearrangement.
+	auto result_v = make_intrusive<VectorVal>(zeek::id::index_vec);
+	for ( i = 0; i < n; ++i )
+		{
+		int ind = ind_vv[i];
+		result_v->Assign(i, zeek::val_mgr->Count(ind));
+		}
+
+	return result_v;
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)

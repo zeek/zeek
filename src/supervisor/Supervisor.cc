@@ -1255,7 +1255,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 
 	for ( auto i = 0u; i < scripts_val->Size(); ++i )
 		{
-		auto script = scripts_val->At(i)->AsStringVal()->ToStdString();
+		auto script = scripts_val->StringValAt(i)->ToStdString();
 		rval.scripts.emplace_back(std::move(script));
 		}
 

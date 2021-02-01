@@ -265,7 +265,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			kp1 = reinterpret_cast<char*>(kp+1);
 			for ( unsigned int i = 0; i < vv->Size(); ++i )
 				{
-				const auto& val = vv->At(i);
+				auto val = vv->ValAt(i);
 				unsigned int* kp = AlignAndPadType<unsigned int>(kp1);
 				*kp = i;
 				kp1 = reinterpret_cast<char*>(kp+1);
@@ -566,7 +566,7 @@ int CompositeHash::SingleTypeKeySize(Type* bt, const Val* v,
 			VectorVal* vv = const_cast<VectorVal*>(v->AsVectorVal());
 			for ( unsigned int i = 0; i < vv->Size(); ++i )
 				{
-				const auto& val = vv->At(i);
+				auto val = vv->ValAt(i);
 				sz = SizeAlign(sz, sizeof(unsigned int));
 				sz = SizeAlign(sz, sizeof(unsigned int));
 				if ( val )

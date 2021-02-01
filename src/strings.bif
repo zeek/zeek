@@ -104,7 +104,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 		if ( i > 0 )
 			d.Add(sep->CheckString(), 0);
 
-		const auto& e = v->At(i);
+		auto e = v->ValAt(i);
 
 		// If the element is empty, skip it.
 		if ( ! e )

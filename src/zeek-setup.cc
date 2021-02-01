@@ -427,7 +427,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	RETSIGTYPE (*oldhandler)(int);
 
 	zeek_script_prefixes = options.script_prefixes;
-	auto zeek_prefixes = util::zeekenv("ZEEK_PREFIXES");
+	auto zeek_prefixes = getenv("ZEEK_PREFIXES");
 
 	if ( zeek_prefixes )
 		util::tokenize_string(zeek_prefixes, ":", &zeek_script_prefixes);
@@ -488,7 +488,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		supervisor_mgr = new Supervisor(std::move(cfg), std::move(*stem));
 		}
 
-	const char* seed_load_file = util::zeekenv("ZEEK_SEED_FILE");
+	const char* seed_load_file = getenv("ZEEK_SEED_FILE");
 
 	if ( options.random_seed_input_file )
 		seed_load_file = options.random_seed_input_file->data();
@@ -879,7 +879,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	// Drain the event queue here to support the protocols framework configuring DPM
 	event_mgr.Drain();
 
-	if ( reporter->Errors() > 0 && ! util::zeekenv("ZEEK_ALLOW_INIT_ERRORS") )
+	if ( reporter->Errors() > 0 && ! getenv("ZEEK_ALLOW_INIT_ERRORS") )
 		reporter->FatalError("errors occurred while initializing");
 
 	run_state::detail::zeek_init_done = true;

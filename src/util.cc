@@ -876,7 +876,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 
 const char* log_file_name(const char* tag)
 	{
-	const char* env = zeekenv("ZEEK_LOG_SUFFIX");
+	const char* env = getenv("ZEEK_LOG_SUFFIX");
 	return fmt("%s.%s", tag, (env ? env : "log"));
 	}
 
@@ -1705,7 +1705,7 @@ const std::string& zeek_path()
 	{
 	if ( zeek_path_value.empty() )
 		{
-		const char* path = zeekenv("ZEEKPATH");
+		const char* path = getenv("ZEEKPATH");
 
 		if ( ! path )
 			path = DEFAULT_ZEEKPATH;
@@ -1718,7 +1718,7 @@ const std::string& zeek_path()
 
 const char* zeek_plugin_path()
 	{
-	const char* path = zeekenv("ZEEK_PLUGIN_PATH");
+	const char* path = getenv("ZEEK_PLUGIN_PATH");
 
 	if ( ! path )
 		path = BRO_PLUGIN_INSTALL_PATH;
@@ -1728,7 +1728,7 @@ const char* zeek_plugin_path()
 
 const char* zeek_plugin_activate()
 	{
-	const char* names = zeekenv("ZEEK_PLUGIN_ACTIVATE");
+	const char* names = getenv("ZEEK_PLUGIN_ACTIVATE");
 
 	if ( ! names )
 		names = "";
@@ -2338,35 +2338,9 @@ void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen)
 	strerror_r_helper(res, buf, buflen);
 	}
 
-static const std::map<const char*, const char*, CompareString> legacy_vars = {
-	{ "ZEEKPATH", "BROPATH" },
-	{ "ZEEK_PLUGIN_PATH", "BRO_PLUGIN_PATH" },
-	{ "ZEEK_PLUGIN_ACTIVATE", "BRO_PLUGIN_ACTIVATE" },
-	{ "ZEEK_PREFIXES", "BRO_PREFIXES" },
-	{ "ZEEK_DNS_FAKE", "BRO_DNS_FAKE" },
-	{ "ZEEK_SEED_FILE", "BRO_SEED_FILE" },
-	{ "ZEEK_LOG_SUFFIX", "BRO_LOG_SUFFIX" },
-	{ "ZEEK_PROFILER_FILE", "BRO_PROFILER_FILE" },
-	{ "ZEEK_DISABLE_ZEEKYGEN", "BRO_DISABLE_BROXYGEN" },
-	{ "ZEEK_DEFAULT_CONNECT_RETRY", "BRO_DEFAULT_CONNECT_RETRY" },
-	{ "ZEEK_BROKER_MAX_THREADS", "BRO_BROKER_MAX_THREADS" },
-	{ "ZEEK_DEFAULT_LISTEN_ADDRESS", "BRO_DEFAULT_LISTEN_ADDRESS" },
-	{ "ZEEK_DEFAULT_LISTEN_RETRY", "BRO_DEFAULT_LISTEN_RETRY" },
-};
-
 char* zeekenv(const char* name)
 	{
-	auto rval = getenv(name);
-
-	if ( rval )
-		return rval;
-
-	auto it = legacy_vars.find(name);
-
-	if ( it == legacy_vars.end() )
-		return rval;
-
-	return getenv(it->second);
+	return getenv(name);
 	}
 
 static string json_escape_byte(char c)

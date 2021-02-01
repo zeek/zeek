@@ -70,7 +70,7 @@ void Options::filter_supervised_node_options()
 
 bool fake_dns()
 	{
-	return util::zeekenv("ZEEK_DNS_FAKE");
+	return getenv("ZEEK_DNS_FAKE");
 	}
 
 extern const char* zeek_version();
@@ -135,8 +135,8 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    $ZEEK_SEED_FILE                | file to load seeds from (not set)\n");
 	fprintf(stderr, "    $ZEEK_LOG_SUFFIX               | ASCII log file extension (.%s)\n", logging::writer::detail::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $ZEEK_PROFILER_FILE            | Output file for script execution statistics (not set)\n");
-	fprintf(stderr, "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n", util::zeekenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
-	fprintf(stderr, "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n", util::zeekenv("ZEEK_DNS_RESOLVER") ? util::zeekenv("ZEEK_DNS_RESOLVER") : "not set, will use first IPv4 address from /etc/resolv.conf");
+	fprintf(stderr, "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n", getenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
+	fprintf(stderr, "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n", getenv("ZEEK_DNS_RESOLVER") ? getenv("ZEEK_DNS_RESOLVER") : "not set, will use first IPv4 address from /etc/resolv.conf");
 	fprintf(stderr, "    $ZEEK_DEBUG_LOG_STDERR         | Use stderr for debug logs generated via the -B flag");
 
 	fprintf(stderr, "\n");

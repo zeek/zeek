@@ -850,7 +850,7 @@ void Ascii::RotateLeftoverLogs()
 
 string Ascii::LogExt()
 	{
-	const char* ext = util::zeekenv("ZEEK_LOG_SUFFIX");
+	const char* ext = getenv("ZEEK_LOG_SUFFIX");
 
 	if ( ! ext )
 		ext = "log";

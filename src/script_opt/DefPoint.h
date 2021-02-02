@@ -13,7 +13,7 @@ namespace zeek::detail {
 // definition (a statement, inside an expression, an aggregate passed to
 // a function or hook, or at the start of a function).
 
-typedef enum {
+enum DefPointType {
 	// Used to capture the notion "the variable may have no definition
 	// at this point" (or "has no definition", depending on whether we're
 	// concerned with minimal or maximal RDs).
@@ -42,7 +42,7 @@ typedef enum {
 	// it's a function parameter.
 	FUNC_DEF,
 
-} DefPointType;
+};
 
 class DefinitionPoint {
 public:

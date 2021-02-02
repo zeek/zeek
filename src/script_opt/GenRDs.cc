@@ -10,40 +10,6 @@
 namespace zeek::detail {
 
 
-// Helper class that tracks definitions gathered in a block that either
-// need to be propagated to the beginning of the block or to the end.
-// Used for RD propagation due to altered control flow (next/break/fallthrough).
-// Managed as a stack (vector) to deal with nested loops, switches, etc.
-// Only applies to gathering maximum RDs.
-class BlockDefs {
-public:
-	BlockDefs(bool _is_case)
-		{ is_case = _is_case; }
-
-	void AddPreRDs(RDPtr RDs)	{ pre_RDs.push_back(std::move(RDs)); }
-	void AddPostRDs(RDPtr RDs)	{ post_RDs.push_back(std::move(RDs)); }
-	void AddFutureRDs(RDPtr RDs)	{ future_RDs.push_back(std::move(RDs)); }
-
-	const std::vector<RDPtr>& PreRDs() const	{ return pre_RDs; }
-	const std::vector<RDPtr>& PostRDs() const	{ return post_RDs; }
-	const std::vector<RDPtr>& FutureRDs() const	{ return future_RDs; }
-
-	void Clear()
-		{ pre_RDs.clear(); post_RDs.clear(); future_RDs.clear(); }
-
-	bool IsCase() const	{ return is_case; }
-
-private:
-	std::vector<RDPtr> pre_RDs;
-	std::vector<RDPtr> post_RDs;
-	std::vector<RDPtr> future_RDs;	// RDs for next case block
-
-	// Whether this block is for a switch case.  If not,
-	// it's for a loop body.
-	bool is_case;
-};
-
-
 void RD_Decorate::TraverseFunction(const Func* f, Scope* scope, StmtPtr body)
 	{
 	func_flavor = f->Flavor();
@@ -236,7 +202,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		// To keep from traversing the loop expression, we just do
 		// the body manually here.
 
-		block_defs.push_back(new BlockDefs(false));
+		block_defs.emplace_back(std::make_unique<BlockDefs>(false));
 
 		body->Traverse(this);
 
@@ -274,7 +240,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto body = w->Body().get();
 		mgr.SetPreFromPre(body, cond);
 
-		block_defs.push_back(new BlockDefs(false));
+		block_defs.emplace_back(std::make_unique<BlockDefs>(false));
 
 		body->Traverse(this);
 
@@ -319,8 +285,8 @@ void RD_Decorate::TraverseSwitch(const SwitchStmt* sw)
 	auto sw_min_pre = mgr.GetPreMinRDs(sw);
 	auto sw_max_pre = mgr.GetPreMaxRDs(sw);
 
-	auto bd = new BlockDefs(true);
-	block_defs.push_back(bd);
+	block_defs.emplace_back(std::make_unique<BlockDefs>(true));
+	auto bd = block_defs.back().get();
 
 	RDPtr sw_post_min_rds = nullptr;
 	RDPtr sw_post_max_rds = nullptr;
@@ -431,7 +397,6 @@ void RD_Decorate::TraverseSwitch(const SwitchStmt* sw)
 	sw_post_max_rds.release();
 
 	block_defs.pop_back();
-	delete bd;
 	}
 
 void RD_Decorate::DoIfStmtConfluence(const IfStmt* i)
@@ -452,7 +417,7 @@ void RD_Decorate::DoIfStmtConfluence(const IfStmt* i)
 void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 					const Stmt* body)
 	{
-	auto bd = block_defs.back();
+	auto bd = std::move(block_defs.back());
 	block_defs.pop_back();
 
 	auto loop_pre = mgr.GetPreMaxRDs(top);
@@ -493,8 +458,7 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 			mgr.MergeIntoPre(body, mgr.GetPostMaxRDs(top));
 			}
 
-		auto bd2 = new BlockDefs(false);
-		block_defs.push_back(bd2);
+		block_defs.emplace_back(std::make_unique<BlockDefs>(false));
 		body->Traverse(this);
 		block_defs.pop_back();
 
@@ -502,7 +466,6 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 		// definitions in bd.  This is tricky because the body
 		// itself might not have RDs if it ends in a "break" or
 		// such.
-		delete bd2;
 		}
 
 	DefinitionPoint ds(s);
@@ -532,8 +495,6 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 		mgr.SetPostMaxRDs(s, max_post_rds);
 		max_post_rds.release();
 		}
-
-	delete bd;
 	}
 
 TraversalCode RD_Decorate::PostStmt(const Stmt* s)
@@ -635,7 +596,7 @@ void RD_Decorate::AddBlockDefs(const Stmt* s,
 	// match to this one.
 	for ( int i = block_defs.size() - 1; i >= 0; --i )
 		{
-		auto bd = block_defs[i];
+		auto& bd = block_defs[i];
 
 		if ( bd->IsCase() == is_case )
 			{ // This one matches what we're looking for.

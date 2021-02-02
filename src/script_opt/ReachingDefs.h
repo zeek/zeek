@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "zeek/script_opt/DefItem.h"
 
 
@@ -20,7 +22,7 @@ namespace zeek::detail {
 // as (maximally) reaching.
 
 typedef List<DefinitionPoint> DefPoints;
-typedef std::unordered_map<const DefinitionItem*, DefPoints*> ReachingDefsMap;
+typedef std::unordered_map<const DefinitionItem*, std::unique_ptr<DefPoints>> ReachingDefsMap;
 
 
 // The ReachingDefs class tracks all of the RDs associated with a given
@@ -40,8 +42,6 @@ public:
 
 	// Create a new object, using the RDs from another object.
 	ReachingDefs(RDPtr rd);
-
-	~ReachingDefs();
 
 	// Add in all the definition points from rd into our set, if
 	// we don't already have them.
@@ -69,7 +69,7 @@ public:
 		{
 		auto map = RDMap();
 		auto dps = map->find(di);
-		return dps == map->end() ? nullptr : dps->second;
+		return dps == map->end() ? nullptr : dps->second.get();
 		}
 
 	// Returns true if two sets of definition points are equivalent,
@@ -130,7 +130,7 @@ protected:
 	void AddRDs(const ReachingDefsMap* rd_m);
 
 	const ReachingDefsMap* RDMap() const
-		{ return my_rd_map ? my_rd_map : const_rd_map->RDMap(); }
+		{ return my_rd_map ? my_rd_map.get() : const_rd_map->RDMap(); }
 
 	// If we don't already have our own map, copy the one we're using
 	// so that we then do.
@@ -142,7 +142,7 @@ protected:
 	// If my_rd_map is non-nil, then we use that map.  Otherwise,
 	// we use the map that const_rd_map points to.
 	RDPtr const_rd_map;
-	ReachingDefsMap* my_rd_map;
+	std::unique_ptr<ReachingDefsMap> my_rd_map;
 };
 
 
@@ -157,18 +157,11 @@ typedef std::unordered_map<const Obj*, RDPtr> AnalyInfo;
 class ReachingDefSet : public Obj {
 public:
 	ReachingDefSet(DefItemMap& _item_map) : item_map(_item_map)
-		{
-		a_i = new AnalyInfo;
-		}
-
-	~ReachingDefSet()
-		{
-		delete a_i;
-		}
+		{ }
 
 	// Whether in our collection we have RDs associated with the
 	// given AST node.
-	bool HasRDs(const Obj* o) const	{ return a_i->count(o) > 0; }
+	bool HasRDs(const Obj* o) const	{ return a_i.count(o) > 0; }
 
 	// Whether in our collection we have RDs associated with the
 	// given variable.
@@ -179,8 +172,8 @@ public:
 	// at the given AST node.
 	bool HasSingleRD(const Obj* o, const ID* id) const
 		{
-		auto RDs = a_i->find(o);
-		if ( RDs == a_i->end() )
+		auto RDs = a_i.find(o);
+		if ( RDs == a_i.end() )
 			return false;
 
 		auto di = item_map.GetConstID_DI(id);
@@ -196,8 +189,8 @@ public:
 	// AST node.
 	bool HasRD(const Obj* o, const DefinitionItem* di) const
 		{
-		auto RDs = a_i->find(o);
-		if ( RDs == a_i->end() )
+		auto RDs = a_i.find(o);
+		if ( RDs == a_i.end() )
 			return false;
 
 		return RDs->second->HasDI(di);
@@ -205,13 +198,13 @@ public:
 
 	// Returns the RDs associated with a given AST node, if any.
 	// If none are, returns an empty ReachingDef object.
-	RDPtr& FindRDs(const Obj* o) const;
+	const RDPtr& FindRDs(const Obj* o) const;
 
 	// Associates the given RDs with the given AST node.
 	void SetRDs(const Obj* o, RDPtr rd)
 		{
 		auto new_rd = make_intrusive<ReachingDefs>(std::move(rd));
-		(*a_i)[o] = new_rd;
+		a_i[o] = new_rd;
 		}
 
 	// If the given di is new, add this definition.  If it
@@ -226,7 +219,7 @@ public:
 		if ( HasRDs(o) )
 			MergeRDs(o, rd);
 		else
-			(*a_i)[o] = rd;
+			a_i[o] = rd;
 		}
 
 protected:
@@ -236,11 +229,11 @@ protected:
 	// RDs of 'o'.
 	void MergeRDs(const Obj* o, const RDPtr& rd)
 		{
-		auto curr_rds = a_i->find(o)->second;
+		auto curr_rds = a_i.find(o)->second;
 		curr_rds->AddRDs(rd);
 		}
 
-	AnalyInfo* a_i;
+	AnalyInfo a_i;
 	DefItemMap& item_map;
 };
 

@@ -9,7 +9,7 @@ namespace zeek::detail {
 
 ReachingDefs::ReachingDefs()
 	{
-	my_rd_map = new ReachingDefsMap;
+	my_rd_map = std::make_unique<ReachingDefsMap>();
 	const_rd_map = nullptr;
 	}
 
@@ -17,17 +17,6 @@ ReachingDefs::ReachingDefs(RDPtr rd)
 	{
 	const_rd_map = std::move(rd);
 	my_rd_map = nullptr;
-	}
-
-ReachingDefs::~ReachingDefs()
-	{
-	if ( my_rd_map )
-		{
-		for ( auto& one_rd : *my_rd_map )
-			delete one_rd.second;
-
-		delete my_rd_map;
-		}
 	}
 
 void ReachingDefs::AddRD(const DefinitionItem* di, const DefinitionPoint& dp)
@@ -41,14 +30,14 @@ void ReachingDefs::AddRD(const DefinitionItem* di, const DefinitionPoint& dp)
 
 	if ( curr_defs == my_rd_map->end() )
 		{
-		auto dps = new List<DefinitionPoint>();
+		auto dps = std::make_unique<List<DefinitionPoint>>();
 		dps->push_back(dp);
-		(*my_rd_map)[di] = dps;
+		(*my_rd_map)[di] = std::move(dps);
 		}
 
 	else
 		{
-		auto dps = curr_defs->second;
+		auto& dps = curr_defs->second;
 		dps->push_back(dp);
 		}
 	}
@@ -158,7 +147,7 @@ void ReachingDefs::CopyMapIfNeeded()
 	if ( my_rd_map )
 		return;
 
-	my_rd_map = new ReachingDefsMap;
+	my_rd_map = std::make_unique<ReachingDefsMap>();
 	auto old_const_rd_map = const_rd_map;
 	const_rd_map = nullptr;
 	AddRDs(old_const_rd_map);
@@ -179,7 +168,7 @@ void ReachingDefs::DumpMap(const ReachingDefsMap* map) const
 		if ( ++n > 1 )
 			printf(", ");
 
-		PrintRD(r->first, r->second);
+		PrintRD(r->first, r->second.get());
 		}
 
 	printf("\n");
@@ -200,10 +189,10 @@ void ReachingDefs::PrintRD(const DefinitionItem* di, const DefPoints* dps) const
 	}
 
 
-RDPtr& ReachingDefSet::FindRDs(const Obj* o) const
+const RDPtr& ReachingDefSet::FindRDs(const Obj* o) const
 	{
-	auto rd = a_i->find(o);
-	if ( rd == a_i->end() )
+	auto rd = a_i.find(o);
+	if ( rd == a_i.end() )
 		{
 		static RDPtr empty_rds;
 		return empty_rds;
@@ -215,8 +204,8 @@ RDPtr& ReachingDefSet::FindRDs(const Obj* o) const
 void ReachingDefSet::AddOrReplace(const Obj* o, const DefinitionItem* di,
 					const DefinitionPoint& dp)
 	{
-	auto rd = a_i->find(o);
-	ASSERT(rd != a_i->end());
+	auto rd = a_i.find(o);
+	ASSERT(rd != a_i.end());
 	rd->second->AddOrFullyReplace(di, dp);
 	}
 

@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "zeek/script_opt/ReachingDefs.h"
 #include "zeek/script_opt/DefSetsMgr.h"
 #include "zeek/script_opt/ProfileFunc.h"
@@ -14,7 +16,37 @@ namespace zeek::detail {
 
 // Helper class that tracks definitions gathered in a block that either
 // need to be propagated to the beginning of the block or to the end.
-class BlockDefs;
+// Used for RD propagation due to altered control flow (next/break/fallthrough).
+// Managed as a stack (vector) to deal with nested loops, switches, etc.
+// Only applies to gathering maximum RDs.
+class BlockDefs {
+public:
+	BlockDefs(bool _is_case)
+		{ is_case = _is_case; }
+
+	void AddPreRDs(RDPtr RDs)	{ pre_RDs.push_back(std::move(RDs)); }
+	void AddPostRDs(RDPtr RDs)	{ post_RDs.push_back(std::move(RDs)); }
+	void AddFutureRDs(RDPtr RDs)	{ future_RDs.push_back(std::move(RDs)); }
+
+	const std::vector<RDPtr>& PreRDs() const	{ return pre_RDs; }
+	const std::vector<RDPtr>& PostRDs() const	{ return post_RDs; }
+	const std::vector<RDPtr>& FutureRDs() const	{ return future_RDs; }
+
+	void Clear()
+		{ pre_RDs.clear(); post_RDs.clear(); future_RDs.clear(); }
+
+	bool IsCase() const	{ return is_case; }
+
+private:
+	std::vector<RDPtr> pre_RDs;
+	std::vector<RDPtr> post_RDs;
+	std::vector<RDPtr> future_RDs;	// RDs for next case block
+
+	// Whether this block is for a switch case.  If not,
+	// it's for a loop body.
+	bool is_case;
+};
+
 
 class RD_Decorate : public TraversalCallback {
 public:
@@ -113,7 +145,7 @@ private:
 
 	// A stack of definitions associated with (potentially nested) loop
 	// and switch blocks.
-	std::vector<BlockDefs*> block_defs;
+	std::vector<std::unique_ptr<BlockDefs>> block_defs;
 };
 
 } // zeek::detail

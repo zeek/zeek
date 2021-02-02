@@ -75,7 +75,6 @@ public:
 		auto empty_rds = make_intrusive<ReachingDefs>();
 		SetPreMinRDs(o, empty_rds);
 		SetPreMaxRDs(o, empty_rds);
-		empty_rds.release();
 		}
 
 	// Inherit a node's pre-RDs from those of another node.

@@ -392,9 +392,7 @@ void RD_Decorate::TraverseSwitch(const SwitchStmt* sw)
 		// an empty RD.
 		sw_post_min_rds = make_intrusive<ReachingDefs>();
 
-	mgr.SetPostRDs(sw, sw_post_min_rds, sw_post_max_rds);
-	sw_post_min_rds.release();
-	sw_post_max_rds.release();
+	mgr.SetPostRDs(sw, std::move(sw_post_min_rds), std::move(sw_post_max_rds));
 
 	block_defs.pop_back();
 	}
@@ -409,9 +407,7 @@ void RD_Decorate::DoIfStmtConfluence(const IfStmt* i)
 	auto max_else_branch_rd = mgr.GetPostMaxRDs(i->FalseBranch());
 	auto max_post_rds = max_if_branch_rd->Union(max_else_branch_rd);
 
-	mgr.SetPostRDs(i, min_post_rds, max_post_rds);
-	min_post_rds.release();
-	max_post_rds.release();
+	mgr.SetPostRDs(i, std::move(min_post_rds), std::move(max_post_rds));
 	}
 
 void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
@@ -478,10 +474,8 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 	// of whether the loop body has flow reaching the end of it,
 	// since an internal "next" can still cause definitions to
 	// propagate to the beginning.
-	auto min_post_rds = s_min_pre->IntersectWithConsolidation(loop_min_post,
-									ds);
-	mgr.SetPostMinRDs(s, min_post_rds);
-	min_post_rds.release();
+	auto min_post_rds = s_min_pre->IntersectWithConsolidation(loop_min_post, ds);
+	mgr.SetPostMinRDs(s, std::move(min_post_rds));
 
 	// Note, we use ignore_break=true because what we care about is not
 	// whether flow goes just beyond the last statement of the body,
@@ -492,8 +486,7 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 	else
 		{
 		auto max_post_rds = s_max_pre->Union(loop_max_post);
-		mgr.SetPostMaxRDs(s, max_post_rds);
-		max_post_rds.release();
+		mgr.SetPostMaxRDs(s, std::move(max_post_rds));
 		}
 	}
 

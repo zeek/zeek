@@ -1076,7 +1076,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 	case EXPR_RECORD_CONSTRUCTOR:
 		{
-		auto r = dynamic_cast<const RecordConstructorExpr*>(e);
+		auto r = static_cast<const RecordConstructorExpr*>(e);
 		auto l = r->Op();
 		mgr.SetPreFromPre(l, e);
 		break;
@@ -1084,7 +1084,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 	case EXPR_LAMBDA:
 		{
-		auto l = dynamic_cast<const LambdaExpr*>(e);
+		auto l = static_cast<const LambdaExpr*>(e);
 		const auto& ids = l->OuterIDs();
 
 		for ( auto& id : ids )

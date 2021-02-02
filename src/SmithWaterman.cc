@@ -102,8 +102,7 @@ Substring::Vec* Substring::VecFromPolicy(VectorVal* vec)
 	{
 	Vec* result = new Vec();
 
-	// VectorVals start at index 1!
-	for ( unsigned int i = 1; i <= vec->Size(); ++i )
+	for ( unsigned int i = 0; i < vec->Size(); ++i )
 		{
 		auto v = vec->RecordValAt(i);
 		if ( ! v )

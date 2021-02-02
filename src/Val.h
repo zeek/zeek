@@ -1525,12 +1525,13 @@ public:
 	VectorValPtr Order(Func* cmp_func = nullptr);
 
 	ValPtr ValAt(unsigned int index) const	{ return At(index); }
-	RecordVal* RecordValAt(unsigned int index) const
-		{ return At(index)->AsRecordVal(); }
+
+	const RecordVal* RecordValAt(unsigned int index) const
+		{ return (*vector_val)[index].AsRecord(); }
 	bool BoolAt(unsigned int index) const
-		{ return ! At(index)->IsZero(); }
-	StringVal* StringValAt(unsigned int index) const
-		{ return At(index)->AsStringVal(); }
+		{ return (*vector_val)[index].AsCount() != 0; }
+	const StringVal* StringValAt(unsigned int index) const
+		{ return (*vector_val)[index].AsString(); }
 	const String* StringAt(unsigned int index) const
 		{ return StringValAt(index)->AsString(); }
 

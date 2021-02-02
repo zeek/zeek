@@ -555,16 +555,15 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		auto init = s->AsInitStmt();
 		auto& inits = init->Inits();
 
-		for ( int i = 0; i < inits.size(); ++i )
+		for ( const auto& id : inits )
 			{
-			auto id = inits[i].get();
 			auto id_t = id->GetType();
 
 			// Only aggregates get initialized.
 			if ( ! zeek::IsAggr(id_t->Tag()) )
 				continue;
 
-			CreateInitPostDef(id, DefinitionPoint(s), false, 0);
+			CreateInitPostDef(id.get(), DefinitionPoint(s), false, 0);
 			}
 
 		break;

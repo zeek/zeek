@@ -4,7 +4,7 @@
 #include "binpac.h"
 #include "zeek/RE.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
+namespace zeek { class RE_Matcher; }
 
 namespace binpac
 {

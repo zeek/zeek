@@ -47,12 +47,12 @@ union ZVal {
 	// ensure that they're providing the correct type.
 	ValPtr ToVal(const TypePtr& t) const;
 
-	// Whether a low-level ZVal error has occurred.  Used to generate
-	// run-time error messages.
-	static bool ZValErrorStatus()		{ return zval_error_status; }
+	// Whether a ZVal was accessed that was missing (a nil pointer).
+	// Used to generate run-time error messages.
+	static bool ZValNilStatus()		{ return zval_was_nil; }
 
 	// Resets the notion of low-level-error-occurred.
-	static void ClearZValErrorStatus()	{ zval_error_status = false; }
+	static void ClearZValNilStatus()	{ zval_was_nil = false; }
 
 	bro_int_t AsInt() const		{ return int_val; }
 	bro_uint_t AsCount() const	{ return uint_val; }
@@ -109,12 +109,13 @@ private:
 	// Used for generic access to managed (derived-from-Obj) objects.
 	Obj* managed_val;
 
-	// A class-wide status variable set to true when a run-time
-	// error associated with ZVal's occurs.  Static because often
-	// the caller won't have direct access to the particular ZVal
-	// that experienced the error, and just wants to know whether
-	// *some* error has occurred.
-	static bool zval_error_status;
+	// A class-wide status variable set to true when a missing
+	// value was accessed.  Only germane for managed types, since
+	// we don't track the presence of non-managed types.  Static
+	// because often the caller won't have direct access to the
+	// particular ZVal that produces the issue, and just wants to
+	// know whether it occurred at some point.
+	static bool zval_was_nil;
 };
 
 // True if a given type is one for which we manage the associated

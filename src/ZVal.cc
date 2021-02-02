@@ -10,7 +10,7 @@
 using namespace zeek;
 
 
-bool ZVal::zval_error_status = false;
+bool ZVal::zval_was_nil = false;
 
 
 bool zeek::IsManagedType(const TypePtr& t)
@@ -104,29 +104,8 @@ ZVal::ZVal(ValPtr v, const TypePtr& t)
 		break;
 
 	case TYPE_VECTOR:
-		{
 		vector_val = v.release()->AsVectorVal();
-
-		// Some run-time type-checking, sigh.
-		auto my_ytag = t->AsVectorType()->Yield()->Tag();
-		auto v_ytag = vt->AsVectorType()->Yield()->Tag();
-
-		if ( my_ytag != v_ytag && my_ytag != TYPE_ANY &&
-		     v_ytag != TYPE_ANY )
-			{
-			// Despite the above checks, this clash can still
-			// happen thanks to the intercession of vector-of-any,
-			// which for example can allow a function to return
-			// a concrete vector-of-X that's assigned to a local
-			// with a concrete vector-of-Y type.
-			reporter->Error("vector type clash: %s vs. %s (%s)",
-					type_name(my_ytag), type_name(v_ytag),
-					obj_desc(v.get()).c_str());
-			zval_error_status = true;
-			}
-
 		break;
-		}
 
 	case TYPE_RECORD:
 		record_val = v.release()->AsRecordVal();
@@ -237,7 +216,7 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 		return {NewRef{}, v};
 
 	reporter->Error("value used but not set");
-	zval_error_status = true;
+	zval_was_nil = true;
 
 	return nullptr;
 	}

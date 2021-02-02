@@ -1302,7 +1302,7 @@ public:
 	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
 	           IDPList outer_ids);
 
-	IDPList OuterIDs() const	{ return outer_ids; }
+	const IDPList& OuterIDs() const	{ return outer_ids; }
 
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;

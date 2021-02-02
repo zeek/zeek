@@ -1126,7 +1126,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	case EXPR_LAMBDA:
 		{
 		auto l = dynamic_cast<const LambdaExpr*>(e);
-		auto ids = l->OuterIDs();
+		const auto& ids = l->OuterIDs();
 
 		for ( auto& id : ids )
 			CheckVar(e, id, false);

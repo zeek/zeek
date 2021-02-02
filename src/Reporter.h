@@ -15,21 +15,28 @@
 #include "zeek/ZeekList.h"
 #include "zeek/net_util.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
-ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Location, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Reporter, zeek);
-
 namespace zeek {
+
+class Connection;
+class EventHandlerPtr;
+class RecordVal;
+class StringVal;
+class IPAddr;
+class Reporter;
+
 template <class T> class IntrusivePtr;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
+
+namespace detail {
+
+class Location;
+class Expr;
+
+} // namespace detail
+
+namespace analyzer { class Analyzer; }
+namespace file_analysis { class File; }
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.

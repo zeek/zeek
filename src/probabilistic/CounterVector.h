@@ -12,9 +12,9 @@
 
 namespace broker { class data; }
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(BitVector, zeek, probabilistic, detail);
-
 namespace zeek::probabilistic::detail {
+
+class BitVector;
 
 /**
  * A vector of counters, each of which has a fixed number of bits.

@@ -5,12 +5,15 @@
 #include "zeek/IPAddr.h"
 #include "zeek/File.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Analyzer, zeek, analyzer::tcp);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Reassembler, zeek, analyzer::tcp);
+namespace zeek {
 
-namespace zeek::analyzer::tcp {
+class Connection;
+class IP_Hdr;
+
+namespace analyzer::tcp {
+
+class TCP_Analyzer;
+class TCP_Reassembler;
 
 enum EndpointState {
 	TCP_ENDPOINT_INACTIVE,	// no SYN (or other packets) seen for this side
@@ -251,4 +254,5 @@ protected:
 #define ENDIAN_BIG 2
 #define ENDIAN_CONFUSED 3
 
-} // namespace zeek::analyzer::tcp
+} // namespace analyzer::tcp
+} // namespace zeek

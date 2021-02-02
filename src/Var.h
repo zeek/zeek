@@ -6,17 +6,19 @@
 #include "zeek/ID.h"
 #include "zeek/Type.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(FuncType, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
+namespace zeek {
 
-namespace zeek::detail {
+class EventHandlerPtr;
+class StringVal;
+class TableVal;
+class ListVal;
+class FuncType;
 
+namespace detail {
+
+class Expr;
+class Scope;
+class Stmt;
 using StmtPtr = IntrusivePtr<Stmt>;
 
 enum DeclType { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, };
@@ -41,4 +43,5 @@ extern void end_func(StmtPtr body);
 // Gather all IDs referenced inside a body that aren't part of a given scope.
 extern IDPList gather_outer_ids(Scope* scope, Stmt* body);
 
-} // namespace zeek::detail
+} // namespace detail
+} // namespace zeek

@@ -15,9 +15,8 @@
 
 namespace broker { class data; }
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(CounterVector, zeek, probabilistic, detail);
-
 namespace zeek::probabilistic {
+namespace detail { class CounterVector; }
 
 /** Types of derived BloomFilter classes. */
 enum BloomFilterType { Basic, Counting };

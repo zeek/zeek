@@ -15,14 +15,15 @@
 #include "zeek/logging/WriterBackend.h"
 
 namespace broker { struct endpoint_info; }
-ZEEK_FORWARD_DECLARE_NAMESPACED(SerializationFormat, zeek::detail);
-
-ZEEK_FORWARD_DECLARE_NAMESPACED(WriterFrontend, zeek, logging);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RotationFinishedMessage, zeek, logging);
 
 namespace zeek {
+
+namespace detail { class SerializationFormat; }
+
 namespace logging {
 
+class WriterFrontend;
+class RotationFinishedMessage;
 class RotationTimer;
 
 /**

@@ -10,11 +10,10 @@
 #include "zeek/Dict.h"
 #include "zeek/ID.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(NameExpr, zeek::detail);
-
 namespace zeek::detail {
 
+class CompositeHash;
+class NameExpr;
 using NameExprPtr = IntrusivePtr<zeek::detail::NameExpr>;
 
 class ExprListStmt : public Stmt {

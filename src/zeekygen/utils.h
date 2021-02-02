@@ -7,7 +7,7 @@
 #include <time.h> // for time_t
 #include <string>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
+namespace zeek::detail { class ID; }
 
 namespace zeek::zeekygen::detail {
 

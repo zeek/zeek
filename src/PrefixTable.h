@@ -4,14 +4,17 @@ extern "C" {
 	#include "zeek/patricia.h"
 }
 
+#include <tuple>
 #include <list>
 
 #include "zeek/IPAddr.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(SubNetVal, zeek);
+namespace zeek {
 
-namespace zeek::detail {
+class Val;
+class SubNetVal;
+
+namespace detail {
 
 class PrefixTable {
 private:
@@ -64,4 +67,5 @@ private:
 	data_fn_t delete_function;
 };
 
-} // namespace zeek::detail
+} // namespace detail
+} // namespace zeek

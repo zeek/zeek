@@ -5,9 +5,11 @@
 #include "zeek/zeek-config.h"
 #include <string>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
+namespace zeek {
 
-namespace zeek::plugin {
+class ODesc;
+
+namespace plugin {
 namespace component {
 
 /**
@@ -105,4 +107,5 @@ private:
 	std::string canon_name;
 };
 
-} // namespace zeek::plugin
+} // namespace plugin
+} // namespace zeek

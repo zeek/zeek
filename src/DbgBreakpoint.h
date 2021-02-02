@@ -5,10 +5,10 @@
 #include <string>
 #include "zeek/util.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ParseLocationRec, zeek::detail);
-
 namespace zeek::detail {
+
+class Stmt;
+class ParseLocationRec;
 
 enum BreakCode { BC_NO_HIT, BC_HIT, BC_HIT_AND_DELETE };
 class DbgBreakpoint {

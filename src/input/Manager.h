@@ -12,12 +12,14 @@
 #include "zeek/threading/SerialTypes.h"
 #include "zeek/input/Tag.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderFrontend, zeek, input);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderBackend, zeek, input);
-
 namespace zeek {
+
+class RecordVal;
+
 namespace input {
+
+class ReaderFrontend;
+class ReaderBackend;
 
 /**
  * Singleton class for managing input streams.

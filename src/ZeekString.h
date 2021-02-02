@@ -10,12 +10,12 @@
 #include <string>
 #include <iosfwd>
 
+namespace zeek {
+
 // Forward declaration, for helper functions that convert (sub)string vectors
 // to and from policy-level representations.
 //
-ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
-
-namespace zeek {
+class VectorVal;
 
 typedef u_char* byte_vec;
 

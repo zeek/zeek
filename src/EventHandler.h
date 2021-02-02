@@ -9,9 +9,9 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/Type.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
-
 namespace zeek {
+
+class Func;
 using FuncPtr = IntrusivePtr<Func>;
 
 class EventHandler {

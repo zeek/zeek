@@ -6,9 +6,10 @@
 #include <string>
 
 #include "zeek/util.h"
-ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 
 namespace zeek::detail {
+
+class Stmt;
 
 /**
  * A simple class for managing stats of Bro script coverage across Bro runs.

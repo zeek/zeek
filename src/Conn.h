@@ -21,22 +21,32 @@
 #include "zeek/analyzer/Tag.h"
 #include "zeek/analyzer/Analyzer.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ConnectionTimer, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(NetSessions, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
-
-ZEEK_FORWARD_DECLARE_NAMESPACED(Specific_RE_Matcher, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RuleHdrTest, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TransportLayerAnalyzer, zeek, analyzer);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
-
 namespace zeek {
+
+class Connection;
+class NetSessions;
+class EncapsulationStack;
+class Val;
+class RecordVal;
+
 using ValPtr = IntrusivePtr<Val>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
+
+namespace detail {
+
+class ConnectionTimer;
+class Specific_RE_Matcher;
+class RuleEndpointState;
+class RuleHdrTest;
+
+} // namespace detail
+
+namespace analyzer {
+
+class TransportLayerAnalyzer;
+class Analyzer;
+
+} // namespace analyzer
 
 enum ConnEventToFlag {
 	NUL_IN_LINE,

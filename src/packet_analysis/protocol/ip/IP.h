@@ -6,7 +6,7 @@
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/Frag.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Discarder, zeek::detail);
+namespace zeek::detail { class Discarder; }
 
 namespace zeek::packet_analysis::IP {
 

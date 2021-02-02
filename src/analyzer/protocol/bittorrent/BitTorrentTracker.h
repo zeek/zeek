@@ -6,9 +6,11 @@
 
 #define BTTRACKER_BUF 2048
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
+namespace zeek {
 
-namespace zeek::analyzer::bittorrent {
+class StringVal;
+
+namespace analyzer::bittorrent {
 
 // If the following is defined, then the analyzer will store all of
 // the headers seen in tracker messages.
@@ -133,4 +135,5 @@ protected:
 	bool stop_orig, stop_resp;
 };
 
-} // namespace zeek::analyzer::bittorrent
+} // namespace analyzer::bittorrent
+} // namespace zeek

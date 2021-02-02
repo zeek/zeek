@@ -10,15 +10,19 @@
 #include "zeek/util.h"
 #include "zeek/IntrusivePtr.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
+namespace zeek {
 
-namespace zeek::detail {
+class ODesc;
+class Val;
+
+namespace detail {
+
+class Frame;
+class Stmt;
+class Expr;
+class CallExpr;
+class ID;
+
 namespace trigger {
 
 
@@ -149,4 +153,5 @@ private:
 
 extern trigger::Manager* trigger_mgr;
 
-} // namespace zeek::detail
+} // namespace detail
+} // namespace zeek

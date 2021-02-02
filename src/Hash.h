@@ -26,10 +26,13 @@
 // to allow bro_md5_hmac access to the hmac seed
 #include "zeek/ZeekArgs.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(BifReturnVal, zeek::detail);
-
 namespace zeek { class String; }
+namespace zeek::detail {
+
+class Frame;
+class BifReturnVal;
+
+}
 
 namespace zeek::BifFunc {
 	extern zeek::detail::BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);

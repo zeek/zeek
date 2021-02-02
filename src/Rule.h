@@ -8,13 +8,13 @@
 #include "zeek/List.h"
 #include "zeek/Obj.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(RuleCondition, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RuleAction, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RuleHdrTest, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RuleMatcher, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
-
 namespace zeek::detail {
+
+class RuleCondition;
+class RuleAction;
+class RuleHdrTest;
+class RuleMatcher;
+class Rule;
 
 using rule_list = PList<Rule>;
 using rule_dict = std::map<std::string, Rule*>;

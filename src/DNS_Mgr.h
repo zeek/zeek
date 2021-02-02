@@ -13,19 +13,20 @@
 #include "zeek/IPAddr.h"
 #include "zeek/util.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandler, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(DNS_Mgr_Request, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
-
 namespace zeek {
+
+class EventHandler;
+class RecordType;
+class Val;
+class ListVal;
+class TableVal;
+
 template <class T> class IntrusivePtr;
 using ValPtr = IntrusivePtr<Val>;
 using ListValPtr = IntrusivePtr<ListVal>;
 using TableValPtr = IntrusivePtr<TableVal>;
-}
+
+} // namespace zeek
 
 // Defined in nb_dns.h
 struct nb_dns_info;
@@ -33,6 +34,7 @@ struct nb_dns_result;
 
 namespace zeek::detail {
 
+class DNS_Mgr_Request;
 using DNS_mgr_request_list = PList<DNS_Mgr_Request>;
 
 class DNS_Mapping;

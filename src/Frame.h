@@ -18,18 +18,21 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/ZeekArgs.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Trigger, zeek::detail::trigger);
-
 namespace zeek {
+
 using ValPtr = IntrusivePtr<Val>;
 
 namespace detail {
+
+class CallExpr;
 class ScriptFunc;
 using IDPtr = IntrusivePtr<ID>;
 
 namespace trigger {
+
+class Trigger;
 using TriggerPtr = IntrusivePtr<Trigger>;
+
 }
 
 class Frame;

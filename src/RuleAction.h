@@ -5,10 +5,10 @@
 #include <sys/types.h> // for u_char
 #include <string>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);
-
 namespace zeek::detail {
+
+class Rule;
+class RuleEndpointState;
 
 // Base class of all rule actions.
 class RuleAction {

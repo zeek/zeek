@@ -6,17 +6,21 @@
 #include "zeek/zeek-config.h"
 #include "zeek/Tag.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
+namespace zeek {
 
-namespace zeek::plugin {
-	template <class T> class TaggedComponent;
-	template <class T, class C> class ComponentManager;
-}
+class EnumVal;
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, analyzer);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Component, zeek, analyzer);
+namespace plugin {
 
-namespace zeek::analyzer {
+template <class T> class TaggedComponent;
+template <class T, class C> class ComponentManager;
+
+} // namespace plugin
+
+namespace analyzer {
+
+class Manager;
+class Component;
 
 /**
  * Class to identify a protocol analyzer type.
@@ -111,4 +115,5 @@ protected:
 	explicit Tag(EnumValPtr val);
 };
 
-} // namespace zeek::analyzer
+} // namespace analyzer
+} // namespace zeek

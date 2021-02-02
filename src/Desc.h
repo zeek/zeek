@@ -11,11 +11,10 @@
 #include "zeek/ZeekString.h" // for byte_vec
 #include "zeek/util.h" // for bro_int_t
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
-
 namespace zeek {
 
+class IPAddr;
+class IPPrefix;
 class File;
 class Type;
 

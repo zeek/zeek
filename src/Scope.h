@@ -12,18 +12,16 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/TraverseTypes.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Type, zeek);
-
-ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Attr, zeek::detail);
-
 namespace zeek {
 
+class Type;
 template <class T> class IntrusivePtr;
 using TypePtr = IntrusivePtr<Type>;
 
 namespace detail {
 
+class Attr;
+class ID;
 using AttrPtr = IntrusivePtr<Attr>;
 using IDPtr = IntrusivePtr<ID>;
 

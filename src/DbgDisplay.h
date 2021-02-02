@@ -2,9 +2,9 @@
 
 #pragma once
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
-
 namespace zeek::detail {
+
+class Expr;
 
 // Automatic displays: display these at each stoppage.
 class DbgDisplay {

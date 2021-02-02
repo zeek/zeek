@@ -13,9 +13,9 @@
 
 #include "zeek/zeekygen/Info.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(IdentifierInfo, zeek, zeekygen, detail);
-
 namespace zeek::zeekygen::detail {
+
+class IdentifierInfo;
 
 struct IdInfoComp {
 	bool operator() (const IdentifierInfo* lhs,

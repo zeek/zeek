@@ -27,33 +27,31 @@
 #define ICMP_PORT_MASK	0x30000
 
 namespace zeek {
-class String;
-}
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
-namespace zeek {
+class String;
+class Func;
+class IPAddr;
+class IPPrefix;
+class RE_Matcher;
 class File;
 using FilePtr = zeek::IntrusivePtr<File>;
-}
 
-namespace zeek::detail { class ScriptFunc; }
+namespace detail {
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(PrefixTable, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
+class ScriptFunc;
+class Frame;
+class PrefixTable;
+class CompositeHash;
+class HashKey;
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
+} // namespace detail
 
-namespace zeek {
 namespace run_state {
 
 extern double network_time;
 extern double zeek_start_network_time;
 
-}
+} // namespace run_state
 
 using FuncPtr = IntrusivePtr<Func>;
 using FilePtr = IntrusivePtr<File>;

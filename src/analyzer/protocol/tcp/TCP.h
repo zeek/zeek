@@ -14,12 +14,13 @@
 //   protocol running on top of TCP.
 //
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(PIA_TCP, zeek, analyzer::pia);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Endpoint, zeek, analyzer::tcp);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Reassembler, zeek, analyzer::tcp);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_ApplicationAnalyzer, zeek, analyzer::tcp);
+namespace zeek::analyzer::pia { class PIA_TCP; }
 
 namespace zeek::analyzer::tcp {
+
+class TCP_Endpoint;
+class TCP_Reassembler;
+class TCP_ApplicationAnalyzer;
 
 class TCP_Analyzer final : public analyzer::TransportLayerAnalyzer {
 public:

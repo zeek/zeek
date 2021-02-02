@@ -10,18 +10,20 @@
 
 #include "zeek/file_analysis/Analyzer.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Reporter, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Tag, zeek, file_analysis);
-
 namespace zeek {
+
+class EventHandlerPtr;
+class Reporter;
+class StringVal;
 template <class T> class IntrusivePtr;
 using StringValPtr = IntrusivePtr<StringVal>;
-}
 
-namespace zeek::file_analysis::detail {
+namespace file_analysis {
+
+class File;
+class Tag;
+
+namespace detail {
 
 class X509Common : public file_analysis::Analyzer {
 public:
@@ -53,4 +55,6 @@ protected:
 	virtual void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) = 0;
 };
 
-} // namespace zeek::file_analysis
+} // namespace detail
+} // namespace file_analysis
+} // namespace zeek

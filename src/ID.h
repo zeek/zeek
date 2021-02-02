@@ -13,14 +13,14 @@
 #include "zeek/Notifier.h"
 #include "zeek/TraverseTypes.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TableType, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(VectorType, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(EnumType, zeek);
-
 namespace zeek {
+
+class Func;
+class Val;
+class RecordType;
+class TableType;
+class VectorType;
+class EnumType;
 class Type;
 using TypePtr = IntrusivePtr<Type>;
 using RecordTypePtr = IntrusivePtr<RecordType>;
@@ -29,6 +29,7 @@ using VectorTypePtr = IntrusivePtr<VectorType>;
 using EnumTypePtr = IntrusivePtr<EnumType>;
 using ValPtr = IntrusivePtr<Val>;
 using FuncPtr = IntrusivePtr<Func>;
+
 }
 
 namespace zeek::detail {

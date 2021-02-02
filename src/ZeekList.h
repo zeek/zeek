@@ -4,15 +4,18 @@
 
 #include "zeek/List.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Attr, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Timer, zeek::detail);
-
 namespace zeek {
+namespace detail {
 
+class Expr;
+class ID;
+class Stmt;
+class Attr;
+class Timer;
+
+} // namespace detail
+
+class Val;
 class Type;
 
 using ValPList = PList<Val>;

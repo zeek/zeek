@@ -7,14 +7,16 @@
 #include "zeek/Type.h"
 #include "zeek/IntrusivePtr.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
-
 namespace zeek {
+
+class ListVal;
 using ListValPtr = zeek::IntrusivePtr<ListVal>;
-}
+
+} // namespace zeek
 
 namespace zeek::detail {
+
+class HashKey;
 
 class CompositeHash {
 public:

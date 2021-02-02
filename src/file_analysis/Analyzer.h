@@ -6,15 +6,14 @@
 
 #include "zeek/file_analysis/Tag.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 namespace zeek {
+
+class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
-}
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
+namespace file_analysis {
 
-namespace zeek::file_analysis {
-
+class File;
 using ID = uint32_t;
 
 /**
@@ -175,4 +174,5 @@ private:
 	static ID id_counter;
 };
 
-} // namespace zeek::file_analysis
+} // namespace file_analysis
+} // namespace zeek

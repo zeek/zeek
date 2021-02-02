@@ -17,22 +17,22 @@
 
 #define BRO_PLUGIN_BRO_VERSION BRO_VERSION_FUNCTION
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Event, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
-
-namespace zeek::threading {
-	struct Field;
-}
+namespace zeek::threading { struct Field; }
 
 namespace zeek {
+
+class ODesc;
+class Event;
+class Func;
+class Obj;
+
 template <class T> class IntrusivePtr;
 using ValPtr = IntrusivePtr<Val>;
-class Obj;
-}
 
-namespace zeek::plugin  {
+namespace threading { struct Field; }
+namespace detail { class Frame; }
+
+namespace plugin  {
 
 class Manager;
 class Component;
@@ -886,4 +886,5 @@ private:
 	bif_item_list bif_items;	// BiF items the plugin provides.
 };
 
-} // namespace zeek::plugin
+} // namespace plugin
+} // namespace zeek

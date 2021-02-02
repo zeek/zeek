@@ -4,9 +4,9 @@
 
 #include "zeek/logging/WriterBackend.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, logging);
-
 namespace zeek::logging  {
+
+class Manager;
 
 /**
  * Bridge class between the logging::Manager and backend writer threads. The

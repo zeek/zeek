@@ -4,9 +4,9 @@
 
 #include "zeek/zeek-config.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(TraversalCallback, zeek::detail);
-
 namespace zeek::detail {
+
+class TraversalCallback;
 
 enum TraversalCode {
 	TC_CONTINUE = 0,

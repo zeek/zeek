@@ -22,9 +22,9 @@
 
 #define PLUGIN_DBG_LOG(plugin, args...) ::zeek::detail::debug_logger.Log(plugin, args)
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Plugin, zeek, plugin);
-
 namespace zeek {
+
+namespace plugin { class Plugin; }
 
 // To add a new debugging stream, add a constant here as well as
 // an entry to DebugLogger::streams in DebugLogger.cc.

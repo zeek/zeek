@@ -9,7 +9,7 @@
 // This class implements the top-k algorithm. Or - to be more precise - an
 // interpretation of it.
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
+namespace zeek::detail { class CompositeHash; }
 
 namespace zeek::probabilistic::detail {
 

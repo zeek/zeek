@@ -7,9 +7,9 @@
 #include "zeek/Type.h"
 #include "zeek/threading/SerialTypes.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(MsgThread, zeek, threading);
-
 namespace zeek::threading {
+
+class MsgThread;
 
 /**
   * A thread-safe class for converting values into some textual format. This

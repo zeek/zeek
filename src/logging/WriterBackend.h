@@ -9,9 +9,9 @@
 
 namespace broker { class data; }
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(WriterFrontend, zeek, logging);
-
 namespace zeek::logging {
+
+class WriterFrontend;
 
 /**
  * Base class for writer implementation. When the logging::Manager creates a

@@ -41,7 +41,7 @@ void DefSetsMgr::CreatePostDef(std::shared_ptr<DefinitionItem> di,
 		SetPostFromPre(where);
 		}
 
-	CreateDef(di, dp, false, min_only);
+	CreateDef(std::move(di), dp, false, min_only);
 	}
 
 void DefSetsMgr::CreateDef(std::shared_ptr<DefinitionItem> di,

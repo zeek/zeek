@@ -13,9 +13,9 @@ ReachingDefs::ReachingDefs()
 	const_rd_map = nullptr;
 	}
 
-ReachingDefs::ReachingDefs(RDPtr& rd)
+ReachingDefs::ReachingDefs(RDPtr rd)
 	{
-	const_rd_map = rd;
+	const_rd_map = std::move(rd);
 	my_rd_map = nullptr;
 	}
 

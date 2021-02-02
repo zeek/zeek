@@ -95,8 +95,8 @@ public:
 	// Set the post-RDs for a given node to the given min/max values.
 	void SetPostRDs(const Obj* o, RDPtr min_rd, RDPtr max_rd)
 		{
-		SetPostMinRDs(o, min_rd);
-		SetPostMaxRDs(o, max_rd);
+		SetPostMinRDs(o, std::move(min_rd));
+		SetPostMaxRDs(o, std::move(max_rd));
 		}
 
 	// Propagate the node's pre-RDs to also be its post-RDs.
@@ -122,14 +122,14 @@ public:
 
 	// Fine-grained control for setting RDs.
 	void SetPreMinRDs(const Obj* o, RDPtr rd)
-		{ pre_min_defs->SetRDs(o, rd); }
+		{ pre_min_defs->SetRDs(o, std::move(rd)); }
 	void SetPreMaxRDs(const Obj* o, RDPtr rd)
-		{ pre_max_defs->SetRDs(o, rd); }
+		{ pre_max_defs->SetRDs(o, std::move(rd)); }
 
 	void SetPostMinRDs(const Obj* o, RDPtr rd)
-		{ post_min_defs->SetRDs(o, rd); }
+		{ post_min_defs->SetRDs(o, std::move(rd)); }
 	void SetPostMaxRDs(const Obj* o, RDPtr rd)
-		{ post_max_defs->SetRDs(o, rd); }
+		{ post_max_defs->SetRDs(o, std::move(rd)); }
 
 	// Used for confluence: add a set of RDs into those already
 	// associated with a node's pre-RDs / post-RDs.  Only applies
@@ -172,7 +172,7 @@ public:
 	// then only done for minimal RDs.
 	void CreatePreDef(std::shared_ptr<DefinitionItem> di,
 				DefinitionPoint dp, bool min_only)
-		{ CreateDef(di, dp, true, min_only); }
+		{ CreateDef(std::move(di), dp, true, min_only); }
 	void CreatePostDef(const ID* id, DefinitionPoint dp, bool min_only);
 	void CreatePostDef(std::shared_ptr<DefinitionItem> di,
 				DefinitionPoint dp, bool min_only);

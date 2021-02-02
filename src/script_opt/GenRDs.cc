@@ -20,9 +20,9 @@ public:
 	BlockDefs(bool _is_case)
 		{ is_case = _is_case; }
 
-	void AddPreRDs(RDPtr RDs)	{ pre_RDs.push_back(RDs); }
-	void AddPostRDs(RDPtr RDs)	{ post_RDs.push_back(RDs); }
-	void AddFutureRDs(RDPtr RDs)	{ future_RDs.push_back(RDs); }
+	void AddPreRDs(RDPtr RDs)	{ pre_RDs.push_back(std::move(RDs)); }
+	void AddPostRDs(RDPtr RDs)	{ post_RDs.push_back(std::move(RDs)); }
+	void AddFutureRDs(RDPtr RDs)	{ future_RDs.push_back(std::move(RDs)); }
 
 	const std::vector<RDPtr>& PreRDs() const	{ return pre_RDs; }
 	const std::vector<RDPtr>& PostRDs() const	{ return post_RDs; }
@@ -48,12 +48,12 @@ void RD_Decorate::TraverseFunction(const Func* f, Scope* scope, StmtPtr body)
 	{
 	func_flavor = f->Flavor();
 
-	auto args = scope->OrderedVars();
+	const auto& args = scope->OrderedVars();
 	int nparam = f->GetType()->Params()->NumFields();
 
 	mgr.SetEmptyPre(f);
 
-	for ( auto a : args )
+	for ( const auto& a : args )
 		{
 		if ( --nparam < 0 )
 			break;
@@ -141,7 +141,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	case STMT_LIST:
 		{
 		auto sl = s->AsStmtList();
-		auto stmts = sl->Stmts();
+		const auto& stmts = sl->Stmts();
 		const Stmt* pred_stmt = s;	// current Stmt's predecessor
 
 		for ( const auto& stmt : stmts )
@@ -723,9 +723,8 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 		auto fn = f->FieldName();
 
 		auto field_rd = r_def->FindField(fn);
-		auto ft = f->GetType();
 		if ( ! field_rd )
-			field_rd = r_def->CreateField(fn, ft);
+			field_rd = r_def->CreateField(fn, f->GetType());
 
 		CreateInitPostDef(field_rd, DefinitionPoint(e), false, rhs.get());
 
@@ -942,9 +941,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		auto offset = f->Field();
 		auto field_rd = r_def->FindField(offset);
 
-		auto ft = f->GetType();
 		if ( ! field_rd )
-			field_rd = r_def->CreateField(offset, ft);
+			field_rd = r_def->CreateField(offset, f->GetType());
 
 		CreateInitPostDef(field_rd, DefinitionPoint(e), false, r);
 
@@ -1031,7 +1029,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			if ( ! field_rd )
 				{
 				auto ft = id_rt->GetFieldType(fn);
-				field_rd = id_di->CreateField(fn, ft);
+				field_rd = id_di->CreateField(fn, std::move(ft));
 				CreateInitPostDef(field_rd, DefinitionPoint(hf),
 							false, 0);
 				}
@@ -1189,7 +1187,7 @@ void RD_Decorate::CreateInitPostDef(std::shared_ptr<DefinitionItem> di,
 					DefinitionPoint dp, bool assume_full,
 					const Expr* rhs)
 	{
-	CreateInitDef(di, dp, false, assume_full, rhs);
+	CreateInitDef(std::move(di), dp, false, assume_full, rhs);
 	}
 
 void RD_Decorate::CreateInitDef(std::shared_ptr<DefinitionItem> di,
@@ -1225,7 +1223,7 @@ void RD_Decorate::CreateInitDef(std::shared_ptr<DefinitionItem> di,
 			}
 		}
 
-	CreateRecordRDs(di, dp, is_pre, assume_full, rhs_di.get());
+	CreateRecordRDs(std::move(di), dp, is_pre, assume_full, rhs_di.get());
 	}
 
 void RD_Decorate::CreateRecordRDs(std::shared_ptr<DefinitionItem> di,
@@ -1239,7 +1237,7 @@ void RD_Decorate::CreateRecordRDs(std::shared_ptr<DefinitionItem> di,
 	for ( auto i = 0; i < n; ++i )
 		{
 		auto n_i = rt->FieldName(i);
-		auto t_i = rt->GetFieldType(i);
+		const auto& t_i = rt->GetFieldType(i);
 		auto rhs_di_i = rhs_di ? rhs_di->FindField(n_i) : nullptr;
 
 		bool field_is_defined = false;
@@ -1323,7 +1321,7 @@ void RD_Decorate::CheckRecordRDs(std::shared_ptr<DefinitionItem> di,
 			// very heavy if run on the full code base because
 			// there are some massive records (in some places
 			// nested 5 deep).
-			auto t_i = rt->GetFieldType(i);
+			const auto& t_i = rt->GetFieldType(i);
 			if ( t_i->Tag() == TYPE_RECORD )
 				CheckRecordRDs(field_di, dp, pre_rds, o);
 			}

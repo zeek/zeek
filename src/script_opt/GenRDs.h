@@ -75,7 +75,7 @@ private:
 	void CreateRecordRDs(std::shared_ptr<DefinitionItem> di,
 				DefinitionPoint dp, bool assume_full,
 				const DefinitionItem* rhs_di)
-		{ CreateRecordRDs(di, dp, false, assume_full, rhs_di); }
+		{ CreateRecordRDs(std::move(di), dp, false, assume_full, rhs_di); }
 	void CreateRecordRDs(std::shared_ptr<DefinitionItem> di,
 				DefinitionPoint dp, bool is_pre,
 				bool assume_full, const DefinitionItem* rhs_di);

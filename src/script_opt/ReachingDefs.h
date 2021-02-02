@@ -39,7 +39,7 @@ public:
 	ReachingDefs();
 
 	// Create a new object, using the RDs from another object.
-	ReachingDefs(RDPtr& rd);
+	ReachingDefs(RDPtr rd);
 
 	~ReachingDefs();
 
@@ -208,9 +208,9 @@ public:
 	RDPtr& FindRDs(const Obj* o) const;
 
 	// Associates the given RDs with the given AST node.
-	void SetRDs(const Obj* o, RDPtr& rd)
+	void SetRDs(const Obj* o, RDPtr rd)
 		{
-		auto new_rd = make_intrusive<ReachingDefs>(rd);
+		auto new_rd = make_intrusive<ReachingDefs>(std::move(rd));
 		(*a_i)[o] = new_rd;
 		}
 

@@ -3235,7 +3235,7 @@ VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef{}, t})
 
 VectorVal::VectorVal(VectorTypePtr t) : Val(t)
 	{
-	vector_val = new vector<ValPtr>();
+	vector_val = new vector<ZVal>();
 	yield_type = t->Yield();
 
 	auto y_tag = yield_type->Tag();
@@ -3304,9 +3304,13 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 		}
 
 	if ( yield_types )
-		(*yield_types)[index] = element->GetType();
-
-	(*vector_val)[index] = std::move(element);
+		{
+		const auto& t = element->GetType();
+		(*yield_types)[index] = t;
+		(*vector_val)[index] = ZVal(std::move(element), t);
+		}
+	else
+		(*vector_val)[index] = ZVal(std::move(element), yield_type);
 
 	Modified();
 	return true;
@@ -3329,7 +3333,7 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 	if ( ! CheckElementType(element) )
 		return false;
 
-	vector<ValPtr>::iterator it;
+	vector<ZVal>::iterator it;
 	vector<TypePtr>::iterator types_it;
 
 	if ( index < vector_val->size() )
@@ -3346,9 +3350,13 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 		}
 
 	if ( yield_types )
+		{
+		const auto& t = element->GetType();
 		yield_types->insert(types_it, element->GetType());
-
-	vector_val->insert(it, std::move(element));
+		vector_val->insert(it, ZVal(std::move(element), t));
+		}
+	else
+		vector_val->insert(it, ZVal(std::move(element), yield_type));
 
 	Modified();
 	return true;
@@ -3401,76 +3409,58 @@ ValPtr VectorVal::At(unsigned int index) const
 	if ( index >= vector_val->size() )
 		return Val::nil;
 
-	return (*vector_val)[index];
+	const auto& t = yield_types ? (*yield_types)[index] : yield_type;
+
+	return (*vector_val)[index].ToVal(t);
 	}
 
-static zeek::Func* sort_function_comp = nullptr;
+static Func* sort_function_comp = nullptr;
 
 // Used for indirect sorting to support order().
-//### static std::vector<zeek::ZAMValUnion> index_map;
-static std::vector<const zeek::ValPtr*> index_map;	// used for indirect sorting to support order()
+static std::vector<const ZVal*> index_map;
 
-// Yuck, we need a variable to hold the type.  Luckily, this won't be
-// invoked concurrently for two different types.
-//### static zeek::IntrusivePtr<zeek::Type> sort_type;
-//### static bool sort_type_is_managed = false;
+// The yield type of the vector being sorted.
+static TypePtr sort_type;
+static bool sort_type_is_managed = false;
 
-static bool sort_function(const zeek::ValPtr& a, const zeek::ValPtr& b)
+static bool sort_function(const ZVal& a, const ZVal& b)
 	{
-	// Sort missing values as "high".
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
+	// Missing values are only applicable for managed types.
+	if ( sort_type_is_managed )
+		{
+		if ( ! a.ManagedVal() )
+			return 0;
+		if ( ! b.ManagedVal() )
+			return 1;
+		}
 
-	auto result = sort_function_comp->Invoke(a, b);
+	auto a_v = a.ToVal(sort_type);
+	auto b_v = b.ToVal(sort_type);
+
+	auto result = sort_function_comp->Invoke(a_v, b_v);
 	int int_result = result->CoerceToInt();
 
 	return int_result < 0;
 	}
 
+static bool signed_sort_function (const ZVal& a, const ZVal& b)
+	{
+	return a.AsInt() < b.AsInt();
+	}
+
+static bool unsigned_sort_function (const ZVal& a, const ZVal& b)
+	{
+	return a.AsCount() < b.AsCount();
+	}
+
+static bool double_sort_function (const ZVal& a, const ZVal& b)
+	{
+	return a.AsDouble() < b.AsDouble();
+	}
+
 static bool indirect_sort_function(size_t a, size_t b)
 	{
 	return sort_function(*index_map[a], *index_map[b]);
-	}
-
-static bool signed_sort_function (const zeek::ValPtr& a, const zeek::ValPtr& b)
-	{
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	auto ia = a->CoerceToInt();
-	auto ib = b->CoerceToInt();
-
-	return ia < ib;
-	}
-
-static bool unsigned_sort_function (const zeek::ValPtr& a, const zeek::ValPtr& b)
-	{
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	auto ia = a->CoerceToUnsigned();
-	auto ib = b->CoerceToUnsigned();
-
-	return ia < ib;
-	}
-
-static bool double_sort_function (const zeek::ValPtr& a, const zeek::ValPtr& b)
-	{
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	auto ia = a->CoerceToDouble();
-	auto ib = b->CoerceToDouble();
-
-	return ia < ib;
 	}
 
 static bool indirect_signed_sort_function(size_t a, size_t b)
@@ -3488,72 +3478,15 @@ static bool indirect_double_sort_function(size_t a, size_t b)
 	return double_sort_function(*index_map[a], *index_map[b]);
 	}
 
-#if 0
-static bool sort_function(zeek::ZAMValUnion& a, zeek::ZAMValUnion& b)
-	{
-	// Unable to fully do this:
-	//	Sort missing values as "high".
-	// But we can for managed types.
-
-	if ( sort_type_is_managed )
-		{
-		if ( ! a.managed_val )
-			return 0;
-		if ( ! b.managed_val )
-			return 1;
-		}
-
-	auto a_v = a.ToVal(sort_type);
-	auto b_v = b.ToVal(sort_type);
-
-	auto result = sort_function_comp->Invoke(a_v, b_v);
-	int int_result = result->CoerceToInt();
-
-	return int_result < 0;
-	}
-
-static bool signed_sort_function (zeek::ZAMValUnion& a, zeek::ZAMValUnion& b)
-	{
-	return a.int_val < b.int_val;
-	}
-
-static bool unsigned_sort_function (zeek::ZAMValUnion& a, zeek::ZAMValUnion& b)
-	{
-	return a.uint_val < b.uint_val;
-	}
-
-static bool double_sort_function (zeek::ZAMValUnion& a, zeek::ZAMValUnion& b)
-	{
-	return a.double_val < b.double_val;
-	}
-
-static bool indirect_sort_function(size_t a, size_t b)
-	{
-	return sort_function(index_map[a], index_map[b]);
-	}
-
-static bool indirect_signed_sort_function(size_t a, size_t b)
-	{
-	return signed_sort_function(index_map[a], index_map[b]);
-	}
-
-static bool indirect_unsigned_sort_function(size_t a, size_t b)
-	{
-	return unsigned_sort_function(index_map[a], index_map[b]);
-	}
-
-static bool indirect_double_sort_function(size_t a, size_t b)
-	{
-	return double_sort_function(index_map[a], index_map[b]);
-	}
-#endif
-
 void VectorVal::Sort(Func* cmp_func)
 	{
 	if ( yield_types )
 		reporter->RuntimeError(GetLocationInfo(), "cannot sort a vector-of-any");
 
-	bool (*sort_func)(const zeek::ValPtr&, const zeek::ValPtr&);
+	sort_type = yield_type;
+	sort_type_is_managed = IsManagedType(sort_type);
+
+	bool (*sort_func)(const ZVal&, const ZVal&);
 
 	if ( cmp_func )
 		{
@@ -3563,8 +3496,7 @@ void VectorVal::Sort(Func* cmp_func)
 
 	else
 		{
-		const auto& elt_type = GetType()->Yield();
-		auto eti = elt_type->InternalType();
+		auto eti = sort_type->InternalType();
 
 		if ( eti == TYPE_INTERNAL_INT )
 			sort_func = signed_sort_function;
@@ -3588,6 +3520,9 @@ VectorValPtr VectorVal::Order(Func* cmp_func)
 		return nullptr;
 		}
 
+	sort_type = yield_type;
+	sort_type_is_managed = IsManagedType(sort_type);
+
 	bool (*sort_func)(size_t, size_t);
 
 	if ( cmp_func )
@@ -3598,8 +3533,7 @@ VectorValPtr VectorVal::Order(Func* cmp_func)
 
 	else
 		{
-		const auto& elt_type = GetType()->Yield();
-		auto eti = elt_type->InternalType();
+		auto eti = sort_type->InternalType();
 
 		if ( eti == TYPE_INTERNAL_INT )
 			sort_func = indirect_signed_sort_function;
@@ -3626,7 +3560,7 @@ VectorValPtr VectorVal::Order(Func* cmp_func)
 
 	sort(ind_vv.begin(), ind_vv.end(), sort_func);
 
-	index_map = {};
+	index_map.clear();
 
 	// Now spin through ind_vv to read out the rearrangement.
 	auto result_v = make_intrusive<VectorVal>(zeek::id::index_vec);
@@ -3677,9 +3611,11 @@ ValPtr VectorVal::DoClone(CloneState* state)
 	vv->Reserve(vector_val->size());
 	state->NewClone(this, vv);
 
-	for ( const auto& e : *vector_val )
+	auto n = vector_val->size();
+
+	for ( auto i = 0; i < n; ++i )
 		{
-		auto vc = e->Clone(state);
+		auto vc = At(i)->Clone(state);
 		vv->Append(std::move(vc));
 		}
 
@@ -3692,18 +3628,21 @@ void VectorVal::ValDescribe(ODesc* d) const
 
 	size_t vector_size = vector_val->size();
 
-	if ( vector_size != 0)
+	if ( vector_size != 0 )
 		{
-		for ( unsigned int i = 0; i < (vector_size - 1); ++i )
+		auto last_ind = vector_size - 1;
+		for ( unsigned int i = 0; i < last_ind; ++i )
 			{
-			if ( vector_val->at(i) )
-				vector_val->at(i)->Describe(d);
+			auto v = At(i);
+			if ( v )
+				v->Describe(d);
 			d->Add(", ");
 			}
-		}
 
-	if ( vector_size != 0 && vector_val->back() )
-		vector_val->back()->Describe(d);
+		auto v = At(last_ind);
+		if ( v )
+			v->Describe(d);
+		}
 
 	d->Add("]");
 	}

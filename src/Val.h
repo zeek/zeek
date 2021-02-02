@@ -1552,7 +1552,7 @@ private:
 	// element type-checked.
 	bool CheckElementType(const ValPtr& element);
 
-	std::vector<ValPtr>* vector_val;
+	std::vector<ZVal>* vector_val;
 
 	// For homogeneous vectors (the usual case), the type of the
 	// elements.  Will be TYPE_VOID for empty vectors created using

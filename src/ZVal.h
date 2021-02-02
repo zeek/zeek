@@ -54,6 +54,26 @@ union ZVal {
 	// Resets the notion of low-level-error-occurred.
 	static void ClearZValErrorStatus()	{ zval_error_status = false; }
 
+	bro_int_t AsInt() const		{ return int_val; }
+	bro_uint_t AsCount() const	{ return uint_val; }
+	double AsDouble() const		{ return double_val; }
+
+	StringVal* AsString() const	{ return string_val; }
+	AddrVal* AsAddr() const		{ return addr_val; }
+	SubNetVal* AsSubNet() const	{ return subnet_val; }
+	File* AsFile() const		{ return file_val; }
+	Func* AsFunc() const		{ return func_val; }
+	ListVal* AsList() const		{ return list_val; }
+	OpaqueVal* AsOpaque() const	{ return opaque_val; }
+	PatternVal* AsPattern() const	{ return re_val; }
+	TableVal* AsTable() const	{ return table_val; }
+	RecordVal* AsRecord() const	{ return record_val; }
+	VectorVal* AsVector() const	{ return vector_val; }
+	Type* AsType() const		{ return type_val; }
+	Val* AsAny() const		{ return any_val; }
+
+	Obj* ManagedVal() const		{ return managed_val; }
+
 private:
 	friend void DeleteManagedType(ZVal& v);
 

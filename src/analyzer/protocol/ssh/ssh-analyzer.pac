@@ -197,8 +197,6 @@ refine flow SSH_Flow += {
 			{
 			zeek::BifEvent::enqueue_ssh1_server_host_key(connection()->zeek_analyzer(),
 				connection()->zeek_analyzer()->Conn(),
-				to_stringval(${exp}),
-				to_stringval(${mod}),
 				to_stringval(${mod}),
 				to_stringval(${exp}));
 			}

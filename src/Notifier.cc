@@ -6,7 +6,6 @@
 #include "zeek/DebugLogger.h"
 
 zeek::notifier::detail::Registry zeek::notifier::detail::registry;
-zeek::notifier::detail::Registry& notifier::registry = zeek::notifier::detail::registry;
 
 namespace zeek::notifier::detail {
 

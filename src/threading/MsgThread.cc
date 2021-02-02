@@ -118,7 +118,7 @@ public:
 
 	bool Process() override
 		{
-		debug_logger.Log(stream, "%s: %s", Object()->Name(), msg);
+		zeek::detail::debug_logger.Log(stream, "%s: %s", Object()->Name(), msg);
 		return true;
 		}
 private:

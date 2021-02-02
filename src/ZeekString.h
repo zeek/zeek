@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include <sys/types.h>
 
@@ -188,8 +188,3 @@ extern String* concatenate(String::CVec& v);
 extern void delete_strings(std::vector<const String*>& v);
 
 } // namespace zeek
-
-using BroString [[deprecated("Remove in v4.1. Use zeek::String instead.")]] = zeek::String;
-using BroStringLenCmp [[deprecated("Remove in v4.1. Use zeek::StringLenCmp instead.")]] = zeek::StringLenCmp;
-using byte_vec [[deprecated("Remove in v4.1. Use zeek::byte_vec instead.")]] = zeek::byte_vec;
-using data_chunk_t [[deprecated("Remove in v4.1. Use zeek::data_chunk_t instead.")]] = zeek::data_chunk_t;

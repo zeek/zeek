@@ -65,9 +65,3 @@ private:
 };
 
 } // namespace zeek::analyzer::tcp
-
-namespace analyzer::tcp {
-
-using TCPStateStats [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCPStateStats.")]] = zeek::analyzer::tcp::TCPStateStats;
-
-} // namespace analyzer::tcp

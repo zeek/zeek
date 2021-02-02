@@ -210,16 +210,6 @@ export {
 		## The logging writer implementation to use.
 		writer: Writer &default=default_writer;
 
-		## Indicates whether a log entry should be recorded.
-		## If not given, all entries are recorded.
-		##
-		## rec: An instance of the stream's ``columns`` type with its
-		##      fields set to the values to be logged.
-		##
-		## Returns: True if the entry is to be recorded.
-		pred: function(rec: any): bool &optional
-			&deprecated="Remove in 4.1. PolicyHooks will replace the $pred function.";
-
 		## Output path for recording entries matching this
 		## filter.
 		##

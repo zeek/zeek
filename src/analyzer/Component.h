@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include "zeek/analyzer/Tag.h"
 #include "zeek/plugin/Component.h"
@@ -108,7 +108,3 @@ private:
 };
 
 } // namespace zeek::analyzer
-
-namespace analyzer {
-	using Component [[deprecated("Remove in v4.1. Use zeek::analyzer::Component.")]] = zeek::analyzer::Component;
-} // namespace analyzer

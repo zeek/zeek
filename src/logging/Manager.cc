@@ -37,7 +37,6 @@ struct Manager::Filter {
 	string name;
 	EnumVal* id;
 	Func* policy;
-	Func* pred;
 	Func* path_func;
 	string path;
 	Val* path_val;
@@ -560,7 +559,6 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 
 	auto name = fval->GetFieldOrDefault("name");
 	auto policy = fval->GetFieldOrDefault("policy");
-	auto pred = fval->GetFieldOrDefault("pred");
 	auto path_func = fval->GetFieldOrDefault("path_func");
 	auto log_local = fval->GetFieldOrDefault("log_local");
 	auto log_remote = fval->GetFieldOrDefault("log_remote");
@@ -577,7 +575,6 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->name = name->AsString()->CheckString();
 	filter->id = id->Ref()->AsEnumVal();
 	filter->policy = policy ? policy->AsFunc() : stream->policy;
-	filter->pred = pred ? pred->AsFunc() : nullptr;
 	filter->path_func = path_func ? path_func->AsFunc() : nullptr;
 	filter->writer = writer->Ref()->AsEnumVal();
 	filter->local = log_local->AsBool();
@@ -660,7 +657,6 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	DBG_LOG(DBG_LOGGING, "   path      : %s", filter->path.c_str());
 	DBG_LOG(DBG_LOGGING, "   path_func : %s", (filter->path_func ? "set" : "not set"));
 	DBG_LOG(DBG_LOGGING, "   policy    : %s", (filter->policy ? "set" : "not set"));
-	DBG_LOG(DBG_LOGGING, "   pred      : %s", (filter->pred ? "set" : "not set"));
 
 	for ( int i = 0; i < filter->num_fields; i++ )
 		{
@@ -744,18 +740,6 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 							IntrusivePtr{NewRef{}, id},
 							IntrusivePtr{NewRef{}, filter->fval});
 			if ( v  && ! v->AsBool() )
-				continue;
-			}
-
-		// $pred is deprecated and will get removed in 4.1.
-		// This block can go when that time comes.
-		if ( filter->pred )
-			{
-			// See whether the predicate indicates that we want
-			// to log this record.
-			auto v = filter->pred->Invoke(columns);
-
-			if ( v && ! v->AsBool() )
 				continue;
 			}
 

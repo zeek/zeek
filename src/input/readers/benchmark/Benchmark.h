@@ -43,9 +43,3 @@ private:
 };
 
 } // namespace zeek::input::reader
-
-namespace input::reader {
-
-using Benchmark [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::Benchmark.")]] = zeek::input::reader::detail::Benchmark;
-
-} // namespace input::reader

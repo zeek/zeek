@@ -34,9 +34,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::rfb
-
-namespace analyzer::rfb {
-
-using RFB_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::rfb::RFB_Analyzer.")]] = zeek::analyzer::rfb::RFB_Analyzer;
-
-} // namespace analyzer::rfb

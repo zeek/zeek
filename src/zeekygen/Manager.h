@@ -270,11 +270,3 @@ namespace zeek::detail {
 extern zeekygen::detail::Manager* zeekygen_mgr;
 
 } // namespace zeek::detail
-
-namespace zeekygen {
-
-using Manager [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::Manager.")]] = zeek::zeekygen::detail::Manager;
-
-} // namespace zeekygen
-
-extern zeek::zeekygen::detail::Manager*& zeekygen_mgr [[deprecated("Remove in v4.1. Use zeek::detail::zeekygen_mgr.")]];

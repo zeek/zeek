@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/Tag.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
@@ -10,14 +10,6 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
 namespace zeek::plugin {
 	template <class T> class TaggedComponent;
 	template <class T, class C> class ComponentManager;
-}
-namespace plugin {
-	template <class T>
-	using TaggedComponent [[deprecated("Remove in v4.1. Use zeek::plugin::TaggedComponent instead.")]] =
-		zeek::plugin::TaggedComponent<T>;
-	template <class T, class C>
-	using ComponentManager [[deprecated("Remove in v4.1. Use zeek::plugin::ComponentManager instead.")]] =
-		zeek::plugin::ComponentManager<T, C>;
 }
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, logging);
@@ -96,9 +88,6 @@ public:
 	 */
 	const EnumValPtr& AsVal() const;
 
-	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]]
-	EnumVal* AsEnumVal() const;
-
 	static const Tag Error;
 
 protected:
@@ -123,15 +112,6 @@ protected:
 	 * @param val An enum value of script type \c Log::Writer.
 	 */
 	explicit Tag(EnumValPtr val);
-
-	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit Tag(EnumVal* val);
 };
 
 } // namespace zeek::logging
-
-namespace logging {
-
-using Tag [[deprecated("Remove in v4.1. Use zeek::logging::Tag.")]] = zeek::logging::Tag;
-
-} // namespace logging

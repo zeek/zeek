@@ -33,9 +33,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::dtls
-
-namespace analyzer::dtls {
-
-using DTLS_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::dtls::DTLS_Analyzer.")]] = zeek::analyzer::dtls::DTLS_Analyzer;
-
-} // namespace analyzer::dtls

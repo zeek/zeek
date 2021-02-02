@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include <vector>
 
@@ -83,10 +83,6 @@ public:
 	 * Returns record value of type "EncapsulatingConn" representing the tunnel.
 	 */
 	RecordValPtr ToVal() const;
-
-	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	RecordVal* GetRecordVal() const
-		{ return ToVal().release(); }
 
 	friend bool operator==(const EncapsulatingConn& ec1,
 	                       const EncapsulatingConn& ec2)
@@ -210,10 +206,6 @@ public:
 
 		return vv;
 		}
-
-	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
-	VectorVal* GetVectorVal() const
-		{ return ToVal().release(); }
 
 	friend bool operator==(const EncapsulationStack& e1,
 	                       const EncapsulationStack& e2);

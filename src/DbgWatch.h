@@ -6,7 +6,6 @@
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 namespace zeek { class Obj; }
-using BroObj [[deprecated("Remove in v4.1. Use zeek:Obj instead.")]] = zeek::Obj;
 
 namespace zeek::detail {
 
@@ -22,5 +21,3 @@ protected:
 };
 
 } // namespace zeek::detail
-
-using DbgWatch [[deprecated("Remove in v4.1. Using zeek::detail::DbgWatch.")]] = zeek::detail::DbgWatch;

@@ -784,11 +784,6 @@ void Analyzer::UpdateConnVal(RecordVal *conn_val)
 		(*i)->UpdateConnVal(conn_val);
 	}
 
-RecordVal* Analyzer::BuildConnVal()
-	{
-	return conn->ConnVal()->Ref()->AsRecordVal();
-	}
-
 const RecordValPtr& Analyzer::ConnVal()
 	{
 	return conn->ConnVal();
@@ -797,38 +792,6 @@ const RecordValPtr& Analyzer::ConnVal()
 void Analyzer::Event(EventHandlerPtr f, const char* name)
 	{
 	conn->Event(f, this, name);
-	}
-
-void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
-	{
-	IntrusivePtr val1{AdoptRef{}, v1};
-	IntrusivePtr val2{AdoptRef{}, v2};
-
-	if ( f )
-		conn->EnqueueEvent(f, this, conn->ConnVal(), std::move(val1), std::move(val2));
-	}
-
-void Analyzer::ConnectionEvent(EventHandlerPtr f, ValPList* vl)
-	{
-	auto args = val_list_to_args(*vl);
-	delete vl;
-
-	if ( f )
-		conn->EnqueueEvent(f, this, std::move(args));
-	}
-
-void Analyzer::ConnectionEvent(EventHandlerPtr f, ValPList vl)
-	{
-	auto args = val_list_to_args(vl);
-
-	if ( f )
-		conn->EnqueueEvent(f, this, std::move(args));
-	}
-
-void Analyzer::ConnectionEventFast(EventHandlerPtr f, ValPList vl)
-	{
-	auto args = val_list_to_args(vl);
-	conn->EnqueueEvent(f, this, std::move(args));
 	}
 
 void Analyzer::EnqueueConnEvent(EventHandlerPtr f, Args args)

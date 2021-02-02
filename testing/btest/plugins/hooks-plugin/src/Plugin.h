@@ -9,7 +9,8 @@ class Plugin : public zeek::plugin::Plugin
 {
 protected:
 	int HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved) override;
-	std::pair<bool, zeek::Val*> HookCallFunction(const zeek::Func* func, zeek::detail::Frame* frame, zeek::ValPList* args) override;
+	std::pair<bool, zeek::ValPtr> HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* parent,
+	                                               zeek::Args* args) override;
 	bool HookQueueEvent(zeek::Event* event) override;
 	void HookDrainEvents() override;
 	void HookUpdateNetworkTime(double network_time) override;

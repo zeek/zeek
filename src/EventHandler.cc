@@ -50,9 +50,6 @@ const FuncTypePtr& EventHandler::GetType(bool check_export)
 void EventHandler::SetFunc(FuncPtr f)
 	{ local = std::move(f); }
 
-void EventHandler::SetLocalHandler(Func* f)
-	{ SetFunc({NewRef{}, f}); }
-
 void EventHandler::Call(Args* vl, bool no_remote)
 	{
 #ifdef PROFILE_BRO_FUNCTIONS

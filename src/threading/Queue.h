@@ -262,9 +262,3 @@ inline void Queue<T>::WakeUp()
 	}
 
 } // namespace zeek::threading
-
-namespace threading {
-
-template<typename T> using Queue [[deprecated("Remove in v4.1. Use zeek::threading::Queue.")]] = zeek::threading::Queue<T>;
-
-} // namespace threading

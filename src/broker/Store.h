@@ -146,28 +146,3 @@ broker::backend_options to_backend_options(broker::backend backend,
                                            RecordVal* options);
 
 } // namespace zeek::Broker
-
-namespace bro_broker {
-
-extern zeek::OpaqueTypePtr& opaque_of_store_handle [[deprecated("Remove in v4.1. Use zeek::Broker::detail::opaque_of_store_handle.")]];
-
-[[deprecated("Remove in v4.1. Use zeek::Broker::detail::query_result.")]]
-inline zeek::RecordValPtr query_result()
-	{
-	return zeek::Broker::detail::query_result();
-	}
-
-[[deprecated("Remove in v4.1. Use zeek::Broker::detail::query_result.")]]
-inline zeek::RecordValPtr query_result(zeek::RecordValPtr data)
-	{
-	return zeek::Broker::detail::query_result();
-	}
-
-constexpr auto convert_expiry [[deprecated("Remove in v4.1. Use zeek::Broker::detail::convert_expiry.")]] = zeek::Broker::detail::convert_expiry;
-using StoreQueryCallback [[deprecated("Remove in v4.1. Use zeek::Broker::detail::StoreQueryCallback.")]] = zeek::Broker::detail::StoreQueryCallback;
-using StoreHandleVal [[deprecated("Remove in v4.1. Use zeek::Broker::detail::StoreHandleVal.")]] = zeek::Broker::detail::StoreHandleVal;
-
-constexpr auto to_backend_type [[deprecated("Remove in v4.1. Use zeek::Broker::detail::to_backend_type.")]] = zeek::Broker::detail::to_backend_type;
-constexpr auto to_backend_options [[deprecated("Remove in v4.1. Use zeek::Broker::detail::to_backend_options.")]] = zeek::Broker::detail::to_backend_options;
-
-} // namespace bro_broker

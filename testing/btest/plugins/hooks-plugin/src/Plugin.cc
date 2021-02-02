@@ -56,7 +56,8 @@ int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std
 	return -1;
 	}
 
-std::pair<bool, zeek::Val*> Plugin::HookCallFunction(const zeek::Func* func, zeek::detail::Frame* frame, zeek::ValPList* args)
+std::pair<bool, zeek::ValPtr> Plugin::HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* frame,
+                                                       zeek::Args* args)
 	{
 	zeek::ODesc d;
 	d.SetShort();
@@ -65,7 +66,7 @@ std::pair<bool, zeek::Val*> Plugin::HookCallFunction(const zeek::Func* func, zee
 	fprintf(stderr, "%.6f %-15s %s\n", zeek::run_state::network_time, "| HookCallFunction",
 		d.Description());
 
-	return std::pair<bool, zeek::Val*>(false, NULL);
+	return {false, nullptr};
 	}
 
 bool Plugin::HookQueueEvent(zeek::Event* event)

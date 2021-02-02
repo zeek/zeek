@@ -306,13 +306,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::tcp
-
-namespace analyzer::tcp {
-
-using TCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_Analyzer.")]] = zeek::analyzer::tcp::TCP_Analyzer;
-using TCP_ApplicationAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_ApplicationAnalyzer.")]] = zeek::analyzer::tcp::TCP_ApplicationAnalyzer;
-using TCP_SupportAnalyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCP_SupportAnalyzer.")]] = zeek::analyzer::tcp::TCP_SupportAnalyzer;
-using TCPStats_Endpoint [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCPStats_Endpoint.")]] = zeek::analyzer::tcp::TCPStats_Endpoint;
-using TCPStats_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::tcp::TCPStats_Analyzer.")]] = zeek::analyzer::tcp::TCPStats_Analyzer;
-
-} // namespace analyzer::tcp

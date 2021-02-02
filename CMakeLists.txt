@@ -493,6 +493,9 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
+execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
+                "."
+                "${CMAKE_CURRENT_BINARY_DIR}/zeek")
 
 if ( CAF_ROOT )
   set(ZEEK_CONFIG_CAF_ROOT_DIR ${CAF_ROOT})

@@ -51,5 +51,3 @@ private:
 };
 
 } // namespace zeek::detail
-
-using PacketFilter [[deprecated("Remove in v4.1. Use zeek::detail::PacketFilter.")]] = zeek::detail::PacketFilter;

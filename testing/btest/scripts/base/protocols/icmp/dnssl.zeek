@@ -3,7 +3,7 @@
 
 @load base/protocols/conn
 
-event icmp_router_advertisement(c: connection, icmp: icmp_conn, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool,
+event icmp_router_advertisement(c: connection, icmp: icmp_info, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool,
                                 pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval,
                                 retrans_timer: interval, options: icmp6_nd_options ){
 	for (i in options){

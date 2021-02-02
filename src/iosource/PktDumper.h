@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include <string>
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
@@ -134,9 +134,3 @@ private:
 };
 
 } // namespace zeek::iosource
-
-namespace iosource {
-
-using PktDumper [[deprecated("Remove in v4.1. Use zeek::iosource::PktDumper.")]] = zeek::iosource::PktDumper;
-
-} // namespace iosource

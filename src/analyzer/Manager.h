@@ -406,13 +406,7 @@ extern analyzer::Manager* analyzer_mgr;
 
 } // namespace zeek
 
-namespace analyzer {
-	using Manager [[deprecated("Remove in v4.1. Use zeek::analyzer::Manager instead.")]] = zeek::analyzer::Manager;
-} // namespace analyzer
-
-extern zeek::analyzer::Manager*& analyzer_mgr [[deprecated("Remove in v4.1. Use zeek::analyzer_mgr instead.")]];
-
-// Macros for anayzer debug logging which include the connection id into the
+// Macros for analyzer debug logging which include the connection id into the
 // message.
 #ifdef DEBUG
 # define DBG_ANALYZER(conn, txt) \

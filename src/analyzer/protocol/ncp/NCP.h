@@ -118,13 +118,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::ncp
-
-namespace analyzer::ncp {
-
-using NCP_Session [[deprecated("Remove in v4.1. Use zeek::analyzer::ncp::detail::NCP_Session.")]] = zeek::analyzer::ncp::detail::NCP_Session;
-using FrameBuffer [[deprecated("Remove in v4.1. Use zeek::analyzer::ncp::detail::FrameBuffer.")]] = zeek::analyzer::ncp::detail::FrameBuffer;
-using NCP_FrameBuffer [[deprecated("Remove in v4.1. Use zeek::analyzer::ncp::detail::NCP_FrameBuffer.")]] = zeek::analyzer::ncp::detail::NCP_FrameBuffer;
-using Contents_NCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ncp::Contents_NCP_Analyzer.")]] = zeek::analyzer::ncp::Contents_NCP_Analyzer;
-using NCP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ncp::NCP_Analyzer.")]] = zeek::analyzer::ncp::NCP_Analyzer;
-
-} // namespace analyzer::ncp

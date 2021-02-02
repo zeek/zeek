@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -157,9 +157,3 @@ private:
 };
 
 } // namespace zeek::probabilistic::detail
-
-namespace probabilistic {
-
-using CounterVector [[deprecated("Remove in v4.1. Use zeek::probabilisitc::detail::CounterVector.")]] = zeek::probabilistic::detail::CounterVector;
-
-} // namespace probabilistic

@@ -53,9 +53,6 @@ public:
 	 */
 	const EnumTypePtr& GetTagType() const;
 
-	[[deprecated("Remove in v4.1.  Use GetTagType() instead.")]]
-	EnumType* GetTagEnumType() const;
-
 	/**
 	 * Get a component name from its tag.
 	 *
@@ -71,9 +68,6 @@ public:
 	 * @return The canonical component name.
 	 */
 	const std::string& GetComponentName(EnumValPtr val) const;
-
-	[[deprecated("Remove in v4.1.  Use IntrusivePtr argument instead.")]]
-	const std::string& GetComponentName(Val* val) const;
 
 	/**
 	 * Get a component tag from its name.
@@ -168,12 +162,6 @@ const EnumTypePtr& ComponentManager<T, C>::GetTagType() const
 	}
 
 template <class T, class C>
-EnumType* ComponentManager<T, C>::GetTagEnumType() const
-	{
-	return tag_enum_type.get();
-	}
-
-template <class T, class C>
 const std::string& ComponentManager<T, C>::GetComponentName(T tag) const
 	{
 	static const std::string error = "<error>";
@@ -195,12 +183,6 @@ template <class T, class C>
 const std::string& ComponentManager<T, C>::GetComponentName(EnumValPtr val) const
 	{
 	return GetComponentName(T(std::move(val)));
-	}
-
-template <class T, class C>
-const std::string& ComponentManager<T, C>::GetComponentName(Val* val) const
-	{
-	return GetComponentName(T({NewRef{}, val->AsEnumVal()}));
 	}
 
 template <class T, class C>
@@ -266,11 +248,3 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	}
 
 } // namespace zeek::plugin
-
-namespace plugin {
-
-template <class T, class C>
-using ComponentManager [[deprecated("Remove in v4.1. Use zeek::plugin::ComponentManager instead.")]] =
-	zeek::plugin::ComponentManager<T, C>;
-
-} // namespace plugin

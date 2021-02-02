@@ -68,5 +68,3 @@ inline void IntSet::Clear()
 	}
 
 } // namespace zeek::detail
-
-using IntSet [[deprecated("Remove in v4.1. Use zeek::detail::IntSet.")]] = zeek::detail::IntSet;

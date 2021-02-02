@@ -169,36 +169,3 @@ protected:
 int IsReuse(double t, const u_char* pkt);
 
 } // namespace zeek::analyzer::netbios_ssn
-
-namespace analyzer::netbios_ssn {
-
-using NetbiosSSN_Opcode [[deprecated("Remove in v4.1. Use zeek::analyzer::netbios_ssn::detail::NetbiosSSN_Opcode.")]] = zeek::analyzer::netbios_ssn::detail::NetbiosSSN_Opcode;
-constexpr auto NETBIOS_SSN_MSG [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_MSG.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_MSG;
-constexpr auto NETBIOS_DGM_DIRECT_UNIQUE [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_DGM_DIRECT_UNIQUE.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_DGM_DIRECT_UNIQUE;
-constexpr auto NETBIOS_DGM_DIRECT_GROUP [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_DGM_DIRECT_GROUP.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_DGM_DIRECT_GROUP;
-constexpr auto NETBIOS_DGM_BROADCAST [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_DGM_BROADCAST.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_DGM_BROADCAST;
-constexpr auto NETBIOS_DGM_ERROR [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_DGM_ERROR.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_DGM_ERROR;
-constexpr auto NETBIOS_DGG_QUERY_REQ [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_DGG_QUERY_REQ.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_DGG_QUERY_REQ;
-constexpr auto NETBIOS_DGM_POS_RESP [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_DGM_POS_RESP.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_DGM_POS_RESP;
-constexpr auto NETBIOS_DGM_NEG_RESP [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_DGM_NEG_RESP.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_DGM_NEG_RESP;
-constexpr auto NETBIOS_SSN_REQ [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_REQ.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_REQ;
-constexpr auto NETBIOS_SSN_POS_RESP [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_POS_RESP.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_POS_RESP;
-constexpr auto NETBIOS_SSN_NEG_RESP [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_NEG_RESP.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_NEG_RESP;
-constexpr auto NETBIOS_SSN_RETARG_RESP [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_RETARG_RESP.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_RETARG_RESP;
-constexpr auto NETBIOS_SSN_KEEP_ALIVE [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_KEEP_ALIVE.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_KEEP_ALIVE;
-
-using NetbiosSSN_RawMsgHdr [[deprecated("Remove in v4.1. Use zeek::analyzer::netbios_ssn::detail::NetbiosSSN_RawMsgHdr.")]] = zeek::analyzer::netbios_ssn::detail::NetbiosSSN_RawMsgHdr;
-using NetbiosDGM_RawMsgHdr [[deprecated("Remove in v4.1. Use zeek::analyzer::netbios_ssn::detail::NetbiosDGM_RawMsgHdr.")]] = zeek::analyzer::netbios_ssn::detail::NetbiosDGM_RawMsgHdr;
-
-using NetbiosSSN_State [[deprecated("Remove in v4.1. Use zeek::analyzer::netbios_ssn::detail::NetbiosSSN_State.")]] = zeek::analyzer::netbios_ssn::detail::NetbiosSSN_State;
-constexpr auto NETBIOS_SSN_TYPE [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_TYPE.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_TYPE;
-constexpr auto NETBIOS_SSN_FLAGS [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_FLAGS.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_FLAGS;
-constexpr auto NETBIOS_SSN_LEN_HI [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_LEN_HI.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_LEN_HI;
-constexpr auto NETBIOS_SSN_LEN_LO [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_LEN_LO.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_LEN_LO;
-constexpr auto NETBIOS_SSN_BUF [[deprecated("Remove in v4.1. Uze zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_BUF.")]] = zeek::analyzer::netbios_ssn::detail::NETBIOS_SSN_BUF;
-
-using NetbiosSSN_Interpreter [[deprecated("Remove in v4.1. Use zeek::analyzer::netbios_ssn::detail::NetbiosSSN_Interpreter.")]] = zeek::analyzer::netbios_ssn::detail::NetbiosSSN_Interpreter;
-using Contents_NetbiosSSN [[deprecated("Remove in v4.1. Use zeek::analyzer::netbios_ssn::Contents_NetbiosSSN.")]] = zeek::analyzer::netbios_ssn::Contents_NetbiosSSN;
-using NetbiosSSN_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::netbios_ssn::NetbiosSSN_Analyzer.")]] = zeek::analyzer::netbios_ssn::NetbiosSSN_Analyzer;
-
-} // namespace analyzer::netbios_ssn

@@ -54,15 +54,9 @@ public:
 	                          TypeTag type, TypeTag subtype = TYPE_ERROR) const;
 
 private:
-	bool CheckNumberError(const char* start, const char* end) const;
+	bool CheckNumberError(const char* start, const char* end, bool nonneg_only = false) const;
 
 	SeparatorInfo separators;
 };
 
 } // namespace zeek::threading::formatter
-
-namespace threading::formatter {
-
-using Ascii [[deprecated("Remove in v4.1. Use zeek::threading::formatter::Ascii.")]] = zeek::threading::formatter::Ascii;
-
-} // namespace threading::formatter

@@ -137,13 +137,3 @@ extern NFA_state_list* epsilon_closure(NFA_state_list* states);
 extern bool NFA_state_cmp_neg(const NFA_State* v1, const NFA_State* v2);
 
 } // namespace zeek::detail
-
-using NFA_state_list [[deprecated("Remove in v4.1. Use zeek::detail::NFA_state_list.")]] = zeek::detail::NFA_state_list;
-using NFA_State [[deprecated("Remove in v4.1. Use zeek::detail::NFA_State.")]] = zeek::detail::NFA_State;
-using EpsilonState [[deprecated("Remove in v4.1. Use zeek::detail::EpsilonState.")]] = zeek::detail::EpsilonState;
-using NFA_Machine [[deprecated("Remove in v4.1. Use zeek::detail::NFA_Machine.")]] = zeek::detail::NFA_Machine;
-
-// TODO: could at least the first two of these methods be made static methods in NFA_Machine and NFA_State to remove them from the namespace?
-constexpr auto make_alternate [[deprecated("Remove in v4.1. Use zeek::detail::make_alternate.")]] = zeek::detail::make_alternate;
-constexpr auto epsilon_closure [[deprecated("Remove in v4.1. Use zeek::detail::epsilon_closure.")]] = zeek::detail::epsilon_closure;
-constexpr auto NFA_state_cmp_neg [[deprecated("Remove in v4.1. Use zeek::detail::NFA_state_cmp_neg.")]] = zeek::detail::NFA_state_cmp_neg;

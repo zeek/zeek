@@ -31,9 +31,3 @@ protected:
 };
 
 } // namespace zeek::file_analysis::detail
-
-namespace file_analysis {
-
-using PE [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::PE.")]] = zeek::file_analysis::detail::PE;
-
-} // namespace file_analysis

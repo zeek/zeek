@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/Obj.h"
 
 #include <stdlib.h>
@@ -213,8 +213,3 @@ void obj_delete_func(void* v)
 	}
 
 } // namespace zeek
-
-void print(const zeek::Obj* obj)
-	{
-	obj->Print();
-	}

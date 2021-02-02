@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include <mutex>
 
 #ifdef USE_KRB5
@@ -45,9 +45,3 @@ private:
 };
 
 } // namespace zeek::analyzer::krb
-
-namespace analyzer::krb {
-
-using KRB_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::krb::KRB_Analyzer.")]] = zeek::analyzer::krb::KRB_Analyzer;
-
-} // namespace analyzer::krb

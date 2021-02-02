@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/packet_analysis/protocol/arp/ARP.h"
 
 #ifdef HAVE_NET_ETHERNET_H

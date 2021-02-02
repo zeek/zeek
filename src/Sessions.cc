@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/Sessions.h"
 
 #include <netinet/in.h>
@@ -72,11 +72,6 @@ NetSessions::~NetSessions()
 
 void NetSessions::Done()
 	{
-	}
-
-void NetSessions::NextPacket(double t, Packet* pkt)
-	{
-	packet_mgr->ProcessPacket(pkt);
 	}
 
 void NetSessions::ProcessTransportLayer(double t, const Packet* pkt, size_t remaining)

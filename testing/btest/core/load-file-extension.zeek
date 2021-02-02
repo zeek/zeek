@@ -1,33 +1,10 @@
 # Test loading scripts with different file extensions.
 #
-# Test that either ".zeek" or ".bro" can be loaded without specifying extension
-# @TEST-EXEC: cp x/foo.bro .
-# @TEST-EXEC: zeek -b load_foo > bro_only
-# @TEST-EXEC: btest-diff bro_only
-# @TEST-EXEC: rm foo.bro
-#
+# Test that ".zeek" can be loaded without specifying extension
 # @TEST-EXEC: cp x/foo.zeek .
 # @TEST-EXEC: zeek -b load_foo > zeek_only
 # @TEST-EXEC: btest-diff zeek_only
 # @TEST-EXEC: rm foo.zeek
-#
-# Test that ".zeek" is the preferred file extension, unless ".bro" is specified
-# @TEST-EXEC: cp x/foo.* .
-# @TEST-EXEC: cp x2/foo .
-# @TEST-EXEC: zeek -b load_foo > zeek_preferred
-# @TEST-EXEC: btest-diff zeek_preferred
-#
-# @TEST-EXEC: zeek -b load_foo_bro > bro_preferred
-# @TEST-EXEC: btest-diff bro_preferred
-# @TEST-EXEC: rm foo*
-#
-# Test that ".bro" is preferred over a script with no file extension (when
-# there is no ".zeek" script)
-# @TEST-EXEC: cp x/foo.bro .
-# @TEST-EXEC: cp x2/foo .
-# @TEST-EXEC: zeek -b load_foo > bro_preferred_2
-# @TEST-EXEC: btest-diff bro_preferred_2
-# @TEST-EXEC: rm foo*
 #
 # Test that a script with no file extension can be loaded
 # @TEST-EXEC: cp x2/foo .
@@ -55,18 +32,10 @@
 @load foo
 @TEST-END-FILE
 
-@TEST-START-FILE load_foo_bro
-@load foo.bro
-@TEST-END-FILE
-
 @TEST-START-FILE load_foo_xyz
 @load foo.xyz
 @TEST-END-FILE
 
-
-@TEST-START-FILE x/foo.bro
-print "Bro script loaded";
-@TEST-END-FILE
 
 @TEST-START-FILE x/foo.zeek
 print "Zeek script loaded";

@@ -215,10 +215,3 @@ private:
 };
 
 } // namespace zeek::threading
-
-namespace threading {
-
-using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
-using Value [[deprecated("Remove in v4.1. Use zeek::threading::Value.")]] = zeek::threading::Value;
-
-} // namespace threading

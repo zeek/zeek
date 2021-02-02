@@ -12,7 +12,7 @@ namespace zeek::analyzer::imap { class IMAP_Analyzer; }
 namespace binpac { namespace IMAP { class IMAP_Conn; } }
 using IMAPAnalyzer = zeek::analyzer::imap::IMAP_Analyzer*;
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/imap/IMAP.h"
 

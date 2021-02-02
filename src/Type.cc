@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/Type.h"
 
 #include <string>
@@ -34,28 +34,27 @@ const char* type_name(TypeTag t)
 		"bool",      // 1
 		"int",       // 2
 		"count",     // 3
-		"counter",   // 4
-		"double",    // 5
-		"time",      // 6
-		"interval",  // 7
-		"string",    // 8
-		"pattern",   // 9
-		"enum",      // 10
-		"timer",     // 11
-		"port",      // 12
-		"addr",      // 13
-		"subnet",    // 14
-		"any",       // 15
-		"table",     // 16
-		"union",     // 17
-		"record",    // 18
-		"types",     // 19
-		"func",      // 20
-		"file",      // 21
-		"vector",    // 22
-		"opaque",    // 23
-		"type",      // 24
-		"error",     // 25
+		"double",    // 4
+		"time",      // 5
+		"interval",  // 6
+		"string",    // 7
+		"pattern",   // 8
+		"enum",      // 9
+		"timer",     // 10
+		"port",      // 11
+		"addr",      // 12
+		"subnet",    // 13
+		"any",       // 14
+		"table",     // 15
+		"union",     // 16
+		"record",    // 17
+		"types",     // 18
+		"func",      // 19
+		"file",      // 20
+		"vector",    // 21
+		"opaque",    // 22
+		"type",      // 23
+		"error",     // 24
 	};
 
 	if ( int(t) >= NUM_TYPES )
@@ -240,16 +239,6 @@ const TypePtr& Type::Yield() const
 	return Type::nil;
 	}
 
-bool Type::HasField(const char* /* field */) const
-	{
-	return false;
-	}
-
-Type* Type::FieldType(const char* /* field */) const
-	{
-	return nullptr;
-	}
-
 void Type::Describe(ODesc* d) const
 	{
 	if ( d->IsBinary() )
@@ -292,7 +281,6 @@ void TypeList::Append(TypePtr t)
 	if ( pure_type && ! same_type(t, pure_type) )
 		reporter->InternalError("pure type-list violation");
 
-	types_list.push_back(t.get());
 	types.emplace_back(std::move(t));
 	}
 
@@ -301,7 +289,6 @@ void TypeList::AppendEvenIfNotPure(TypePtr t)
 	if ( pure_type && ! same_type(t, pure_type) )
 		pure_type = nullptr;
 
-	types_list.push_back(t.get());
 	types.emplace_back(std::move(t));
 	}
 
@@ -1410,13 +1397,6 @@ const EnumValPtr& EnumType::GetEnumVal(bro_int_t i)
 	return it->second;
 	}
 
-EnumVal* EnumType::GetVal(bro_int_t i)
-	{
-	auto rval = GetEnumVal(i).get();
-	zeek::Ref(rval);
-	return rval;
-	}
-
 void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	d->Add(":zeek:type:`enum`");
@@ -1606,10 +1586,6 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 	case TYPE_BOOL:
 	case TYPE_INT:
 	case TYPE_COUNT:
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	case TYPE_COUNTER:
-#pragma GCC diagnostic pop
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
@@ -1814,10 +1790,6 @@ bool is_assignable(TypeTag t)
 	case TYPE_BOOL:
 	case TYPE_INT:
 	case TYPE_COUNT:
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	case TYPE_COUNTER:
-#pragma GCC diagnostic pop
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:

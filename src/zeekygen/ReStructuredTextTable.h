@@ -48,9 +48,3 @@ private:
 };
 
 } // namespace zeek::zeekygen::detail
-
-namespace zeekygen {
-
-using ReStructuredTextTable [[deprecated("Remove in v4.1. Use zeek::zeekygen::detail::ReStructuredTextTable.")]] = zeek::zeekygen::detail::ReStructuredTextTable;
-
-} // namespace zeekygen

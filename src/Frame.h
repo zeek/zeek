@@ -21,13 +21,11 @@
 ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Trigger, zeek::detail::trigger);
 
-namespace zeek::detail { class ScriptFunc; }
-using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc instead.")]] = zeek::detail::ScriptFunc;
-
 namespace zeek {
 using ValPtr = IntrusivePtr<Val>;
 
 namespace detail {
+class ScriptFunc;
 using IDPtr = IntrusivePtr<ID>;
 
 namespace trigger {
@@ -67,18 +65,12 @@ public:
 		return frame[n].val;
 		}
 
-	[[deprecated("Remove in v4.1.  Use GetElement(int).")]]
-	Val* NthElement(int n) const	{ return frame[n].val.get(); }
-
 	/**
 	 * Sets the element at index *n* of the underlying array to *v*.
 	 * @param n the index to set
 	 * @param v the value to set it to
 	 */
 	void SetElement(int n, ValPtr v);
-
-	[[deprecated("Remove in v4.1.  Pass IntrusivePtr instead.")]]
-	void SetElement(int n, Val* v);
 
 	/**
 	 * Associates *id* and *v* in the frame. Future lookups of
@@ -100,10 +92,6 @@ public:
 	 */
 	const ValPtr& GetElementByID(const IDPtr& id) const
 		{ return GetElementByID(id.get()); }
-
-	[[deprecated("Remove in v4.1.  Use GetElementByID().")]]
-	Val* GetElement(const ID* id) const
-		{ return GetElementByID(id).get(); }
 
 	/**
 	 * Adjusts the current offset being used for frame accesses.
@@ -404,8 +392,6 @@ private:
 
 } // namespace detail
 } // namespace zeek
-
-using Frame [[deprecated("Remove in v4.1. Use zeek::detail::Frame instead.")]] = zeek::detail::Frame;
 
 /**
  * If we stopped using this and instead just made a struct of the information

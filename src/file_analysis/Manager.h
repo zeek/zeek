@@ -253,10 +253,6 @@ public:
 	bool SetExtractionLimit(const std::string& file_id,
 	                        RecordValPtr args, uint64_t n) const;
 
-	[[deprecated("Remove in v4.1.  Pass IntrusivePtr args param instead.")]]
-	bool SetExtractionLimit(const std::string& file_id, RecordVal* args,
-	                        uint64_t n) const;
-
 	/**
 	 * Try to retrieve a file that's being analyzed, using its identifier/hash.
 	 * @param file_id the file identifier/hash.
@@ -277,10 +273,6 @@ public:
 	bool AddAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
 	                 RecordValPtr args) const;
 
-	[[deprecated("Remove in v4.1.  Pass IntrusivePtr args param instead.")]]
-	bool AddAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
-	                 RecordVal* args) const;
-
 	/**
 	 * Queue removal of an analyzer for a given file identifier.
 	 * @param file_id the file identifier/hash.
@@ -290,10 +282,6 @@ public:
 	 */
 	bool RemoveAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
 	                    RecordValPtr args) const;
-
-	[[deprecated("Remove in v4.1.  Pass IntrusivePtr args param instead.")]]
-	bool RemoveAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
-	                    RecordVal* args) const;
 
 	/**
 	 * Tells whether analysis for a file is active or ignored.
@@ -311,9 +299,6 @@ public:
 	 */
 	Analyzer* InstantiateAnalyzer(const Tag& tag, RecordValPtr args,
 	                              File* f) const;
-
-	[[deprecated("Remove in v4.1.  Pass in IntrusivePtr args instead.")]]
-	Analyzer* InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const;
 
 	/**
 	 * Returns a set of all matching MIME magic signatures for a given
@@ -443,11 +428,3 @@ VectorValPtr GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m)
 extern file_analysis::Manager* file_mgr;
 
 } // namespace zeek
-
-namespace file_analysis {
-
-using Manager [[deprecated("Remove in v4.1. Use zeek::file_analysis::Manager.")]] = zeek::file_analysis::Manager;
-
-} // namespace file_analysis
-
-extern zeek::file_analysis::Manager*& file_mgr [[deprecated("Remove in v4.1. Use zeek::file_mgr.")]];

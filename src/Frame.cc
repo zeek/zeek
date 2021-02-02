@@ -73,9 +73,6 @@ void Frame::AddFunctionWithClosureRef(ScriptFunc* func)
 	functions_with_closure_frame_reference->emplace_back(func);
 	}
 
-void Frame::SetElement(int n, Val* v)
-	{ SetElement(n, {AdoptRef{}, v}); }
-
 void Frame::SetElement(int n, ValPtr v)
 	{
 	n += current_offset;

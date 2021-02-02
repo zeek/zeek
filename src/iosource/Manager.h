@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include <string>
 #include <vector>
@@ -215,11 +215,3 @@ private:
 extern iosource::Manager* iosource_mgr;
 
 } // namespace zeek
-
-extern zeek::iosource::Manager*& iosource_mgr [[deprecated("Remove in v4.1. Use zeek::iosource_mgr.")]];
-
-namespace iosource {
-
-using Manager [[deprecated("Remove in v4.1. Use zeek::iosource::Manager.")]] = zeek::iosource::Manager;
-
-} // namespace iosource

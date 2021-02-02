@@ -84,13 +84,3 @@ protected:
 };
 
 } // namespace zeek::detail
-
-using DbgBreakPoint [[deprecated("Remove in v4.1. Use zeek::detail::DbgBreakpoint.")]] = zeek::detail::DbgBreakpoint;
-
-using BreakCode [[deprecated("Remove in v4.1. Use zeek::detail::BreakCode.")]] = zeek::detail::BreakCode;
-[[deprecated("Remove in v4.1. Use zeek::detail::BC_NO_HIT.")]]
-constexpr auto bcNoHit = zeek::detail::BC_NO_HIT;
-[[deprecated("Remove in v4.1. Use zeek::detail::BC_HIT.")]]
-constexpr auto bcHit = zeek::detail::BC_HIT;
-[[deprecated("Remove in v4.1. Use zeek::detail::BC_HIT_AND_DELETE.")]]
-constexpr auto bcHitAndDelete = zeek::detail::BC_HIT_AND_DELETE;

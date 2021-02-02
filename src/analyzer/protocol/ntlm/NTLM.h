@@ -32,9 +32,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::ntlm
-
-namespace analyzer::ntlm {
-
-using NTLM_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ntlm::NTLM_Analyzer.")]] = zeek::analyzer::ntlm::NTLM_Analyzer;
-
-} // namespace analyzer::ntlm

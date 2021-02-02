@@ -101,10 +101,6 @@ public:
 
 	MIME_Entity* Parent() const { return parent; }
 	int MIMEContentType() const { return content_type; }
-	[[deprecated("Remove in v4.1.  Use GetContentType().")]]
-	StringVal* ContentType() const { return content_type_str.get(); }
-	[[deprecated("Remove in v4.1.  Use GetContentSubType().")]]
-	StringVal* ContentSubType() const { return content_subtype_str.get(); }
 	const StringValPtr& GetContentType() const { return content_type_str; }
 	const StringValPtr& GetContentSubType() const { return content_subtype_str; }
 	int ContentTransferEncoding() const { return content_encoding; }
@@ -233,11 +229,6 @@ protected:
 	MIME_Entity* top_level;
 	bool finished;
 
-	[[deprecated("Remove in v4.1.  Use ToHeaderVal().")]]
-	RecordVal* BuildHeaderVal(MIME_Header* h);
-	[[deprecated("Remove in v4.1.  Use ToHeaderTable().")]]
-	TableVal* BuildHeaderTable(MIME_HeaderList& hlist);
-
 	RecordValPtr ToHeaderVal(MIME_Header* h);
 	TableValPtr ToHeaderTable(MIME_HeaderList& hlist);
 };
@@ -277,12 +268,6 @@ protected:
 };
 
 extern bool is_null_data_chunk(data_chunk_t b);
-[[deprecated("Remove in v4.1.  Use analyzer::mime::to_string_val().")]]
-extern StringVal* new_string_val(int length, const char* data);
-[[deprecated("Remove in v4.1.  Use analyzer::mime::to_string_val().")]]
-extern StringVal* new_string_val(const char* data, const char* end_of_data);
-[[deprecated("Remove in v4.1.  Use analyzer::mime::to_string_val().")]]
-extern StringVal* new_string_val(const data_chunk_t buf);
 extern StringValPtr to_string_val(int length, const char* data);
 extern StringValPtr to_string_val(const char* data, const char* end_of_data);
 extern StringValPtr to_string_val(const data_chunk_t buf);
@@ -303,53 +288,3 @@ extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
 extern String* MIME_decode_quoted_pairs(data_chunk_t buf);
 
 } // namespace zeek::analyzer::mime
-
-namespace analyzer::mime {
-
-using MIME_CONTENT_TYPE [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_CONTENT_TYPE.")]] = zeek::analyzer::mime::MIME_CONTENT_TYPE;
-constexpr auto CONTENT_TYPE_MULTIPART [[deprecated("Remove in v4.1. Uze zeek::analyzer::mime::CONTENT_TYPE_MULTIPART.")]] = zeek::analyzer::mime::CONTENT_TYPE_MULTIPART;
-constexpr auto CONTENT_TYPE_MESSAGE [[deprecated("Remove in v4.1. Uze zeek::analyzer::mime::CONTENT_TYPE_MESSAGE.")]] = zeek::analyzer::mime::CONTENT_TYPE_MESSAGE;
-constexpr auto CONTENT_TYPE_TEXT [[deprecated("Remove in v4.1. Uze zeek::analyzer::mime::CONTENT_TYPE_TEXT.")]] = zeek::analyzer::mime::CONTENT_TYPE_TEXT;
-constexpr auto CONTENT_TYPE_OTHER [[deprecated("Remove in v4.1. Uze zeek::analyzer::mime::CONTENT_TYPE_OTHER.")]] = zeek::analyzer::mime::CONTENT_TYPE_OTHER;
-
-using MIME_EVENT_TYPE [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_EVENT_TYPE.")]] = zeek::analyzer::mime::MIME_EVENT_TYPE;
-constexpr auto MIME_EVENT_ILLEGAL_FORMAT [[deprecated("Remove in v4.1. Uze zeek::analyzer::mime::MIME_EVENT_ILLEGAL_FORMAT.")]] = zeek::analyzer::mime::MIME_EVENT_ILLEGAL_FORMAT;
-constexpr auto MIME_EVENT_ILLEGAL_ENCODING [[deprecated("Remove in v4.1. Uze zeek::analyzer::mime::MIME_EVENT_ILLEGAL_ENCODING.")]] = zeek::analyzer::mime::MIME_EVENT_ILLEGAL_ENCODING;
-constexpr auto MIME_EVENT_CONTENT_GAP [[deprecated("Remove in v4.1. Uze zeek::analyzer::mime::MIME_EVENT_CONTENT_GAP.")]] = zeek::analyzer::mime::MIME_EVENT_CONTENT_GAP;
-constexpr auto MIME_EVENT_OTHER [[deprecated("Remove in v4.1. Uze zeek::analyzer::mime::MIME_EVENT_OTHER.")]] = zeek::analyzer::mime::MIME_EVENT_OTHER;
-
-using MIME_Multiline [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_Multiline.")]] = zeek::analyzer::mime::MIME_Multiline;
-using MIME_Header [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_Header.")]] = zeek::analyzer::mime::MIME_Header;
-using MIME_HeaderList [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_HeaderList.")]] = zeek::analyzer::mime::MIME_HeaderList;
-using MIME_Entity [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_Entity.")]] = zeek::analyzer::mime::MIME_Entity;
-using MIME_Message [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_Message.")]] = zeek::analyzer::mime::MIME_Message;
-using MIME_Mail [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_Mail.")]] = zeek::analyzer::mime::MIME_Mail;
-
-constexpr auto is_null_data_chunk [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::is_null_data_chunk.")]] = zeek::analyzer::mime::is_null_data_chunk;
-constexpr auto is_lws [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::is_lws.")]] = zeek::analyzer::mime::is_lws;
-constexpr auto MIME_is_field_name_char [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_is_field_name_char.")]] = zeek::analyzer::mime::MIME_is_field_name_char;
-constexpr auto MIME_count_leading_lws [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_count_leading_lws.")]] = zeek::analyzer::mime::MIME_count_leading_lws;
-constexpr auto MIME_count_trailing_lws [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_count_trailing_lws.")]] = zeek::analyzer::mime::MIME_count_trailing_lws;
-constexpr auto MIME_skip_comments [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_skip_comments.")]] = zeek::analyzer::mime::MIME_skip_comments;
-constexpr auto MIME_skip_lws_comments [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_skip_lws_comments.")]] = zeek::analyzer::mime::MIME_skip_lws_comments;
-constexpr auto MIME_get_token [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_get_token.")]] = zeek::analyzer::mime::MIME_get_token;
-constexpr auto MIME_get_slash_token_pair [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_get_slash_token_pair.")]] = zeek::analyzer::mime::MIME_get_slash_token_pair;
-constexpr auto MIME_get_value [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_get_value.")]] = zeek::analyzer::mime::MIME_get_value;
-constexpr auto MIME_get_field_name [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_get_field_name.")]] = zeek::analyzer::mime::MIME_get_field_name;
-constexpr auto MIME_decode_quoted_pairs [[deprecated("Remove in v4.1. Use zeek::analyzer::mime::MIME_decode_quoted_pairs.")]] = zeek::analyzer::mime::MIME_decode_quoted_pairs;
-
-[[deprecated("Remove in v4.1.  Use zeek::analyzer::mime::to_string_val().")]]
-extern zeek::StringVal* new_string_val(int length, const char* data);
-[[deprecated("Remove in v4.1.  Use zeek::analyzer::mime::to_string_val().")]]
-extern zeek::StringVal* new_string_val(const char* data, const char* end_of_data);
-[[deprecated("Remove in v4.1.  Use zeek::analyzer::mime::to_string_val().")]]
-extern zeek::StringVal* new_string_val(const zeek::data_chunk_t buf);
-
-[[deprecated("Remove in v4.1.  Use zeek::analyzer::mime::to_string_val().")]]
-extern zeek::StringValPtr to_string_val(int length, const char* data);
-[[deprecated("Remove in v4.1.  Use zeek::analyzer::mime::to_string_val().")]]
-extern zeek::StringValPtr to_string_val(const char* data, const char* end_of_data);
-[[deprecated("Remove in v4.1.  Use zeek::analyzer::mime::to_string_val().")]]
-extern zeek::StringValPtr to_string_val(const zeek::data_chunk_t buf);
-
-} // namespace analyzer::mime

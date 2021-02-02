@@ -16,15 +16,10 @@
 using namespace std;
 
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_data_type;
-zeek::OpaqueTypePtr& bro_broker::opaque_of_data_type = zeek::Broker::detail::opaque_of_data_type;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_set_iterator;
-zeek::OpaqueTypePtr& bro_broker::opaque_of_set_iterator = zeek::Broker::detail::opaque_of_set_iterator;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_table_iterator;
-zeek::OpaqueTypePtr& bro_broker::opaque_of_table_iterator = zeek::Broker::detail::opaque_of_table_iterator;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_vector_iterator;
-zeek::OpaqueTypePtr& bro_broker::opaque_of_vector_iterator = zeek::Broker::detail::opaque_of_vector_iterator;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_record_iterator;
-zeek::OpaqueTypePtr& bro_broker::opaque_of_record_iterator = zeek::Broker::detail::opaque_of_record_iterator;
 
 static broker::port::protocol to_broker_port_proto(TransportProto tp)
 	{

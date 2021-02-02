@@ -36,9 +36,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::imap
-
-namespace analyzer::imap {
-
-using IMAP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::imap::IMAP_Analyzer.")]] = zeek::analyzer::imap::IMAP_Analyzer;
-
-} // namespace analyzer::imap

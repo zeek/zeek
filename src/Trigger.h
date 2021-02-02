@@ -150,12 +150,3 @@ private:
 extern trigger::Manager* trigger_mgr;
 
 } // namespace zeek::detail
-
-namespace trigger {
-
-using Trigger [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Trigger.")]] = zeek::detail::trigger::Trigger;
-using Manager [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Manager.")]] = zeek::detail::trigger::Manager;
-
-} // namespace trigger
-
-extern zeek::detail::trigger::Manager*& trigger_mgr [[deprecated("Remove in v4.1. Use zeek::detail::trigger_mgr.")]];

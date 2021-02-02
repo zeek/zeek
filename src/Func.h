@@ -57,7 +57,6 @@ public:
 	static inline const FuncPtr nil;
 
 	enum Kind { SCRIPT_FUNC, BUILTIN_FUNC };
-	static constexpr auto BRO_FUNC [[deprecated("Remove in v4.1. Use Func::SCRIPT_FUNC instead.")]] = SCRIPT_FUNC;
 
 	explicit Func(Kind arg_kind);
 
@@ -75,9 +74,6 @@ public:
 
 	const std::vector<Body>& GetBodies() const	{ return bodies; }
 	bool HasBodies() const	{ return bodies.size(); }
-
-	[[deprecated("Remove in v4.1. Use Invoke() instead.")]]
-	Val* Call(ValPList* args, detail::Frame* parent = nullptr) const;
 
 	/**
 	 * Calls a Zeek function.
@@ -108,9 +104,6 @@ public:
 
 	virtual void SetScope(detail::ScopePtr newscope);
 	virtual detail::Scope* GetScope() const		{ return scope.get(); }
-
-	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	virtual FuncType* FType() const { return type.get(); }
 
 	const FuncTypePtr& GetType() const
 		{ return type; }
@@ -251,7 +244,7 @@ public:
 	/**
 	 * Changes the function's frame size to a new size - used for
 	 * script optimization/compilation.
-	 * 
+	 *
 	 * @param new_size  The frame size the function should use.
 	 */
 	void SetFrameSize(int new_size)		{ frame_size = new_size; }
@@ -385,22 +378,3 @@ extern void emit_builtin_error(const char* msg, const ValPtr&);
 extern void emit_builtin_error(const char* msg, Obj* arg);
 
 } // namespace zeek
-
-using Func [[deprecated("Remove in v4.1. Use zeek::Func.")]] = zeek::Func;
-using BroFunc [[deprecated("Remove in v4.1. Use zeek::detail::ScriptFunc.")]] = zeek::detail::ScriptFunc;
-using BuiltinFunc [[deprecated("Remove in v4.1. Use zeek::detail::BuiltinFunc.")]] = zeek::detail::BuiltinFunc;
-using CallInfo [[deprecated("Remove in v4.1. Use zeek::detail::CallInfo.")]] = zeek::detail::CallInfo;
-using function_ingredients [[deprecated("Remove in v4.1. Use zeek::detail::function_ingredients.")]] = zeek::detail::function_ingredients;
-
-constexpr auto check_built_in_call [[deprecated("Remove in v4.1. Use zeek::detail::check_built_in_call.")]] = zeek::detail::check_built_in_call;
-constexpr auto render_call_stack [[deprecated("Remove in v4.1. Use zeek::render_call_stack.")]] = zeek::render_call_stack;
-
-// TODO: do call_stack and did_builtin_init need to be aliased?
-
-// These have to be implemented as actual methods due to function overloading breaking the use of aliases.
-[[deprecated("Remove in v4.1. Use zeek::emit_builtin_error.")]]
-extern void builtin_error(const char* msg);
-[[deprecated("Remove in v4.1. Use zeek::emit_builtin_error.")]]
-extern void builtin_error(const char* msg, zeek::ValPtr);
-[[deprecated("Remove in v4.1. Use zeek::emit_builtin_error.")]]
-extern void builtin_error(const char* msg, zeek::Obj* arg);

@@ -1,7 +1,7 @@
 
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/Func.h"
 
 #include <sys/types.h>
@@ -288,12 +288,6 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result,
 		}
 	}
 	}
-
-Val* Func::Call(ValPList* args, detail::Frame* parent) const
-	{
-	auto zargs = val_list_to_args(*args);
-	return Invoke(&zargs, parent).release();
-	};
 
 namespace detail {
 
@@ -1048,18 +1042,3 @@ void emit_builtin_error(const char* msg, Obj* arg)
 	}
 
 } // namespace zeek
-
-void builtin_error(const char* msg)
-	{
-	zeek::emit_builtin_error(msg);
-	}
-
-void builtin_error(const char* msg, const zeek::ValPtr& arg)
-	{
-	zeek::emit_builtin_error(msg, arg);
-	}
-
-void builtin_error(const char* msg, zeek::Obj* arg)
-	{
-	zeek::emit_builtin_error(msg, arg);
-	}

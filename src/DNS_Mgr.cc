@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/DNS_Mgr.h"
 
 #include <sys/types.h>
@@ -409,7 +409,7 @@ void DNS_Mgr::InitSource()
 	// script-layer option to configure the DNS resolver as it may not be
 	// configured to the user's desired address at the time when we need to to
 	// the lookup.
-	auto dns_resolver = util::zeekenv("ZEEK_DNS_RESOLVER");
+	auto dns_resolver = getenv("ZEEK_DNS_RESOLVER");
 	auto dns_resolver_addr = dns_resolver ? IPAddr(dns_resolver) : IPAddr();
 	char err[NB_DNS_ERRSIZE];
 

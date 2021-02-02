@@ -56,9 +56,3 @@ private:
 };
 
 } // namespace zeek::input::reader::detail
-
-namespace input::reader {
-
-using Config [[deprecated("Remove in v4.1. Use zeek::input::reader::detail::Config.")]] = zeek::input::reader::detail::Config;
-
-} // namespace input::reader

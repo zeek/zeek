@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include <zlib.h>
 
@@ -29,9 +29,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::zip
-
-namespace analyzer::zip {
-
-using ZIP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::zip::ZIP_Analyzer.")]] = zeek::analyzer::zip::ZIP_Analyzer;
-
-} // namespace analyzer::zip

@@ -36,14 +36,4 @@ Analyzer::Analyzer(RecordValPtr arg_args, File* arg_file)
 	: Analyzer({}, std::move(arg_args), arg_file)
 	{}
 
-Analyzer::Analyzer(file_analysis::Tag arg_tag,
-                   RecordVal* arg_args,
-                   File* arg_file)
-	: Analyzer(arg_tag, {NewRef{}, arg_args}, arg_file)
-	{}
-
-Analyzer::Analyzer(RecordVal* arg_args, File* arg_file)
-	: Analyzer({}, {NewRef{}, arg_args}, arg_file)
-	{}
-
 } // namespace zeek::file_analysis

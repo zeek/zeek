@@ -10,10 +10,6 @@ namespace zeek::threading {
 	struct Value;
 	struct Field;
 }
-namespace threading {
-	using Value [[deprecated("Remove in v4.1. Use zeek::threading::Value.")]] = zeek::threading::Value;
-	using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
-}
 
 namespace zeek::Broker::detail {
 
@@ -293,50 +289,3 @@ protected:
 };
 
 } // namespace zeek::Broker
-
-namespace bro_broker {
-
-extern zeek::OpaqueTypePtr& opaque_of_data_type;
-extern zeek::OpaqueTypePtr& opaque_of_set_iterator;
-extern zeek::OpaqueTypePtr& opaque_of_table_iterator;
-extern zeek::OpaqueTypePtr& opaque_of_vector_iterator;
-extern zeek::OpaqueTypePtr& opaque_of_record_iterator;
-
-constexpr auto to_bro_port_proto [[deprecated("Remove in v4.1. Use zeek::Broker::detail::to_zeek_port_proto.")]] = zeek::Broker::detail::to_zeek_port_proto;
-
-[[deprecated("Remove in v4.1. Use zeek::Broker::detail::make_data_val.")]]
-inline zeek::RecordValPtr make_data_val(zeek::Val* v)	 { return zeek::Broker::detail::make_data_val(v); }
-[[deprecated("Remove in v4.1. Use zeek::Broker::detail::make_data_val.")]]
-inline zeek::RecordValPtr make_data_val(broker::data d)	 { return zeek::Broker::detail::make_data_val(d); }
-
-constexpr auto get_data_type [[deprecated("Remove in v4.1. Use zeek::Broker::detail::get_data_type.")]] = zeek::Broker::detail::get_data_type;
-constexpr auto val_to_data [[deprecated("Remove in v4.1. Use zeek::Broker::detail::val_to_data.")]] = zeek::Broker::detail::val_to_data;
-constexpr auto data_to_val [[deprecated("Remove in v4.1. Use zeek::Broker::detail::data_to_val.")]] = zeek::Broker::detail::data_to_val;
-constexpr auto threading_field_to_data [[deprecated("Remove in v4.1. Use zeek::Broker::detail::threading_field_to_data.")]] = zeek::Broker::detail::threading_field_to_data;
-constexpr auto data_to_threading_field [[deprecated("Remove in v4.1. Use zeek::Broker::detail::data_to_threading_field.")]] = zeek::Broker::detail::data_to_threading_field;
-
-using DataVal [[deprecated("Remove in v4.1. Use zeek::Broker::detail::DataVal.")]] = zeek::Broker::detail::DataVal;
-using type_name_getter [[deprecated("Remove in v4.1. Use zeek::Broker::detail::type_name_getter.")]] = zeek::Broker::detail::type_name_getter;
-
-constexpr auto opaque_field_to_data [[deprecated("Remove in v4.1. Use zeek::Broker::detail::opaque_field_to_data.")]] = zeek::Broker::detail::opaque_field_to_data;
-
-template <typename T>
-[[deprecated("Remove in v4.1. Use zeek::Broker::detail::require_data_type.")]]
-T& require_data_type(broker::data& d, zeek::TypeTag tag, zeek::detail::Frame* f)
-	{
-	return zeek::Broker::detail::require_data_type<T>(d, tag, f);
-	}
-
-template <typename T>
-[[deprecated("Remove in v4.1. Use zeek::Broker::detail::require_data_type.")]]
-inline T& require_data_type(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
-	{
-	return zeek::Broker::detail::require_data_type<T>(v, tag, f);
-	}
-
-using SetIterator [[deprecated("Remove in v4.1. Use zeek::Broker::detail::SetIterator.")]] = zeek::Broker::detail::SetIterator;
-using TableIterator [[deprecated("Remove in v4.1. Use zeek::Broker::detail::TableIterator.")]] = zeek::Broker::detail::TableIterator;
-using VectorIterator [[deprecated("Remove in v4.1. Use zeek::Broker::detail::VectorIterator.")]] = zeek::Broker::detail::VectorIterator;
-using RecordIterator [[deprecated("Remove in v4.1. Use zeek::Broker::detail::RecordIterator.")]] = zeek::Broker::detail::RecordIterator;
-
-} // namespace bro_broker

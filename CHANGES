@@ -1,4 +1,66 @@
 
+4.1.0-dev.165 | 2021-02-01 15:53:56 -0800
+
+  * Update documentation to include "Book of Zeek" revisions (Jon Siwek, Corelight)
+
+4.1.0-dev.164 | 2021-02-01 12:13:38 -0800
+
+  * Deprecate zeekenv() and use getenv() directly (Jon Siwek, Corelight)
+
+4.1.0-dev.162 | 2021-01-29 21:05:41 -0800
+
+  * GH-1377: Add missing zeek/ to header includes (Jon Siwek, Corelight)
+
+4.1.0-dev.158 | 2021-01-29 16:37:56 -0800
+
+  * Fix language.init-in-anon-function btest due to changes to log filter predicates (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated log filter predicates for 4.1 (Christian Kreibich, Corelight)
+
+    Update the logging framework tests: since hooks operate
+    by name, they cannot be anonymous. I'm also dropping the &optional
+    attribute from the status field, since here know that the values are
+    actually defined, and access to an optional status field should
+    normally be guarded by the existence test operator.
+
+  * Remove deprecated Plugin::HookCallFunction (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated support for .bro script extension and BRO_ environment variables (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated ICMP events (Tim Wojtulewicz, Corelight)
+
+  * Remove some deprected methods/events from bif files (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated TYPE_COUNTER (Tim Wojtulewicz, Corelight)
+
+  * Remove all of the random single-file deprecations (Tim Wojtulewicz, Corelight)
+
+  * Remove all fully-deprecated files (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.146 | 2021-01-29 10:20:28 -0800
+
+  * Skip negative integers in input framework where not type-permissible (Christian Kreibich, Corelight)
+
+    Script-layer counts, when provided as negative integers in an input
+    file, got cast to unsigned values because strtoull() does not complain
+    about negative values. For example, input string "-1" would lead to
+    value 18446744073709551615 (an all-ones 64-bit int) on x86_64. This is
+    more likely to be an error than an intent to get very large,
+    platform-dependent values, so these input lines are now skipped with
+    according messaging in the reporter.log/stderr.
+
+    This also affected ports: -1/tcp got cast to unsigned and only thrown
+    out because PortVal rejects values > 65535, mapping them to 0. We now
+    skip such inputs as well.
+
+4.1.0-dev.144 | 2021-01-29 09:54:01 -0700
+
+  * Fix various broken links in script documentation (Jon Siwek, Corelight)
+
+4.1.0-dev.141 | 2021-01-25 12:32:48 -0800
+
+  * Update broker submodule, embedded CAF to 0.18 (Jon Siwek, Corelight)
+
 4.1.0-dev.137 | 2021-01-21 17:29:40 -0800
 
   * Update SSL consts (Johanna Amann)

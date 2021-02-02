@@ -13,7 +13,6 @@
 #include "zeek/TraverseTypes.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Type, zeek);
-using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Attr, zeek::detail);
@@ -38,11 +37,6 @@ public:
 
 	const IDPtr& Find(std::string_view name) const;
 
-	template<typename N>
-	[[deprecated("Remove in v4.1.  Use Find().")]]
-	ID* Lookup(N&& name) const
-		{ return Find(name).get(); }
-
 	template<typename N, typename I>
 	void Insert(N&& name, I&& id)
 		{
@@ -50,17 +44,11 @@ public:
 		ordered_vars.push_back(std::forward<I>(id));
 		}
 
-	[[deprecated("Remove in v4.1.  Use GetID().")]]
-	ID* ScopeID() const		{ return scope_id.get(); }
-
 	const IDPtr& GetID() const
 		{ return scope_id; }
 
 	const std::unique_ptr<std::vector<AttrPtr>>& Attrs() const
 		{ return attrs; }
-
-	[[deprecated("Remove in v4.1.  Use GetReturnTrype().")]]
-	Type* ReturnType() const	{ return return_type.get(); }
 
 	const TypePtr& GetReturnType() const
 		{ return return_type; }
@@ -124,21 +112,3 @@ extern std::string current_module;
 } // namespace zeek
 
 extern bool in_debug;
-
-using Scope [[deprecated("Remove in v4.1. Use zeek::detail::Scope instead.")]] = zeek::detail::Scope;
-extern std::string& current_module [[deprecated("Remove in v4.1. Use zeek::detail::current_module.")]];
-
-constexpr auto install_ID [[deprecated("Remove in v4.1 Use zeek::detail::install_ID instead.")]] = zeek::detail::install_ID;
-constexpr auto push_scope [[deprecated("Remove in v4.1 Use zeek::detail::push_scope instead.")]] = zeek::detail::push_scope;
-constexpr auto push_existing_scope[[deprecated("Remove in v4.1 Use zeek::detail::push_existing_scope instead.")]] = zeek::detail::push_existing_scope;
-constexpr auto pop_scope [[deprecated("Remove in v4.1 Use zeek::detail::pop_scope instead.")]] = zeek::detail::pop_scope;
-constexpr auto current_scope [[deprecated("Remove in v4.1 Use zeek::detail::current_scope instead.")]] = zeek::detail::current_scope;
-constexpr auto global_scope [[deprecated("Remove in v4.1 Use zeek::detail::global_scope instead.")]] = zeek::detail::global_scope;
-
-// Because of the use of default arguments, this function can't be aliased like the rest.
-[[deprecated("Remove in v4.1 Use zeek::detail::lookup_ID instead.")]]
-extern zeek::detail::ID* lookup_ID(
-	const char* name, const char* module,
-	bool no_global = false,
-	bool same_module_only = false,
-	bool check_export = true);

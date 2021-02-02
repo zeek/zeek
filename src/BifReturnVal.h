@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/IntrusivePtr.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
@@ -27,12 +27,7 @@ public:
 
 	BifReturnVal(std::nullptr_t) noexcept;
 
-	[[deprecated("Remove in v4.1.  Return an IntrusivePtr instead.")]]
-	BifReturnVal(Val* v) noexcept;
-
 	ValPtr rval;
 };
 
 } // namespace zeek::detail
-
-using BifReturnVal [[deprecated("Remove in v4.1. Use zeek::detail::BifReturnVal.")]] = zeek::detail::BifReturnVal;

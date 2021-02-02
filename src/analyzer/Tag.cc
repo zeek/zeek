@@ -23,17 +23,8 @@ const EnumValPtr& Tag::AsVal() const
 	return zeek::Tag::AsVal(analyzer_mgr->GetTagType());
 	}
 
-EnumVal* Tag::AsEnumVal() const
-	{
-	return AsVal().get();
-	}
-
 Tag::Tag(EnumValPtr val)
 	: zeek::Tag(std::move(val))
-	{ }
-
-Tag::Tag(EnumVal* val)
-	: zeek::Tag({NewRef{}, val})
 	{ }
 
 } // namespace zeek::analyzer

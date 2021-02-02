@@ -39,6 +39,10 @@ Deprecated Functionality
   compatible iterators. This enables the use of standard constructs such
   as ranged-for loops to iterate over those objects.
 
+- The ``zeek::util::zeekenv()`` function is deprecated since use of all
+  environment variables prefixed by ``BRO_`` is now removed and calling
+  ``getenv()`` directly with ``ZEEK_`` environment variables can be done.
+
 Zeek 4.0.0
 ==========
 

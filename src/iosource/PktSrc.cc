@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/iosource/PktSrc.h"
 
 #include <sys/stat.h>
@@ -68,16 +68,6 @@ bool PktSrc::IsError() const
 bool PktSrc::IsLive() const
 	{
 	return props.is_live;
-	}
-
-double PktSrc::CurrentPacketTimestamp()
-	{
-	return run_state::current_packet_timestamp();
-	}
-
-double PktSrc::CurrentPacketWallClock()
-	{
-	return run_state::current_packet_wallclock();
 	}
 
 void PktSrc::Opened(const Properties& arg_props)

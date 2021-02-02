@@ -23,19 +23,9 @@ public:
 	const FuncPtr& GetFunc()
 		{ return local; }
 
-	[[deprecated("Remove in v4.1.  Use GetFunc().")]]
-	Func* LocalHandler()	{ return local.get(); }
-
 	const FuncTypePtr& GetType(bool check_export = true);
 
-	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	FuncType* FType(bool check_export = true)
-		{ return GetType().get(); }
-
 	void SetFunc(FuncPtr f);
-
-	[[deprecated("Remove in v4.1.  Use SetFunc().")]]
-	void SetLocalHandler(Func* f);
 
 	void AutoPublish(std::string topic)
 		{
@@ -106,6 +96,3 @@ private:
 };
 
 } // namespace zeek
-
-using EventHandler [[deprecated("Remove in v4.1. Use zeek::EventHandler.")]] = zeek::EventHandler;
-using EventHandlerPtr [[deprecated("Remove in v4.1. Use zeek::EventHandlerPtr.")]] = zeek::EventHandlerPtr;

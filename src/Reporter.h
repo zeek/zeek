@@ -321,9 +321,3 @@ private:
 extern Reporter* reporter;
 
 } // namespace zeek
-
-using Reporter [[deprecated("Remove in v4.1. Use zeek::Reporter.")]] = zeek::Reporter;
-using ReporterException [[deprecated("Remove in v4.1. Use zeek::ReporterException.")]] = zeek::ReporterException;
-using InterpreterException [[deprecated("Remove in v4.1. Use zeek::InterpreterException.")]] = zeek::InterpreterException;
-
-extern zeek::Reporter*& reporter [[deprecated("Remove v4.1. Use zeek::reporter.")]];

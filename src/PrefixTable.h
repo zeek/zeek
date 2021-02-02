@@ -65,5 +65,3 @@ private:
 };
 
 } // namespace zeek::detail
-
-using PrefixTable [[deprecated("Remove in v4.1. Use zeek::detail::PrefixTable.")]] = zeek::detail::PrefixTable;

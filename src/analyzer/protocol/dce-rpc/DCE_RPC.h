@@ -33,9 +33,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::dce_rpc
-
-namespace analyzer::dce_rpc {
-
-using DCE_RPC_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::dce_rpc::DCE_RPC_Analyzer.")]] = zeek::analyzer::dce_rpc::DCE_RPC_Analyzer;
-
-} // namespace analyzer::dce_rpc

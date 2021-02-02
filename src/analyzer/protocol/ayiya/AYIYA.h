@@ -31,9 +31,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::ayiya
-
-namespace analyzer::ayiya {
-
-using AYIYA_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::ayiya::AYIYA_Analyzer.")]] = zeek::analyzer::ayiya::AYIYA_Analyzer;
-
-} // namespace analyzer::ayiya

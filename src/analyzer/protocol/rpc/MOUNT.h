@@ -50,10 +50,3 @@ public:
 };
 
 } // namespace zeek::analyzer::rpc
-
-namespace analyzer::rpc {
-
-using MOUNT_Interp [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::detail::MOUNT_Interp.")]] = zeek::analyzer::rpc::detail::MOUNT_Interp;
-using MOUNT_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::rpc::MOUNT_Analyzer.")]] = zeek::analyzer::rpc::MOUNT_Analyzer;
-
-} // namespace analyzer::rpc

@@ -46,9 +46,3 @@ protected:
 //
 
 } // namespace zeek::analyzer::syslog
-
-namespace analyzer::syslog {
-
-using Syslog_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::syslog::Syslog_Analyzer.")]] = zeek::analyzer::syslog::Syslog_Analyzer;
-
-} // namespace analyzer::syslog

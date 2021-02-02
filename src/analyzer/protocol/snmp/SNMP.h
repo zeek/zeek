@@ -26,9 +26,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::snmp
-
-namespace analyzer::snmp {
-
-using SNMP_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::snmp::SNMP_Analyzer.")]] = zeek::analyzer::snmp::SNMP_Analyzer;
-
-} // namespace analyzer::snmp

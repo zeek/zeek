@@ -257,16 +257,3 @@ private:
 };
 
 } // namespace zeek::probabilistic::detail
-
-namespace probabilistic {
-
-using HasherType [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::HasherType.")]] = zeek::probabilistic::detail::HasherType;
-constexpr auto Default [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::Default.")]] = zeek::probabilistic::detail::Default;
-constexpr auto Double [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::Double.")]] = zeek::probabilistic::detail::Double;
-
-using Hasher [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::Hasher.")]] = zeek::probabilistic::detail::Hasher;
-using UHF [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::UHF.")]] = zeek::probabilistic::detail::UHF;
-using DefaultHasher [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::DefaultHasher.")]] = zeek::probabilistic::detail::DefaultHasher;
-using DoubleHasher [[deprecated("Remove in v4.1. Use zeek::probabilistic::detail::DoubleHasher.")]] = zeek::probabilistic::detail::DoubleHasher;
-
-} // namespace probabilistic

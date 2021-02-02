@@ -25,16 +25,8 @@ public:
 	// or nullptr if it fails to typecheck.
 	std::unique_ptr<HashKey> MakeHashKey(const Val& v, bool type_check) const;
 
-	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
-	HashKey* ComputeHash(const Val* v, bool type_check) const
-		{ return MakeHashKey(*v, type_check).release(); }
-
 	// Given a hash key, recover the values used to create it.
 	ListValPtr RecoverVals(const HashKey& k) const;
-
-	[[deprecated("Remove in v4.1.  Pass in HashKey& instead.")]]
-	ListValPtr RecoverVals(const HashKey* k) const
-		{ return RecoverVals(*k); }
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this) + util::pad_size(size); }
 
@@ -107,5 +99,3 @@ protected:
 };
 
 } // namespace zeek::detail
-
-using CompositeHash [[deprecated("Remove in v4.1. Use zeek::detail::CompositeHash.")]] = zeek::detail::CompositeHash;

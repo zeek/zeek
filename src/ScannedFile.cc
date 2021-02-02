@@ -51,6 +51,3 @@ bool ScannedFile::AlreadyScanned() const
 	}
 
 } // namespace zeek::detail
-
-std::list<zeek::detail::ScannedFile>& files_scanned = zeek::detail::files_scanned;
-std::vector<std::string>& sig_files = zeek::detail::sig_files;

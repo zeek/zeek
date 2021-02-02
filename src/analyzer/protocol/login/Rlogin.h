@@ -66,24 +66,3 @@ public:
 };
 
 } // namespace zeek::analyzer::login
-
-namespace analyzer::login {
-
-using rlogin_state [[deprecated("Remove in v4.1. Use zeek::analyzer::login::rlogin_state.")]] = zeek::analyzer::login::rlogin_state;
-constexpr auto RLOGIN_FIRST_NULL [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RLOGIN_FIRST_NULL.")]] = zeek::analyzer::login::RLOGIN_FIRST_NULL;
-constexpr auto RLOGIN_CLIENT_USER_NAME [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RLOGIN_CLIENT_USER_NAME.")]] = zeek::analyzer::login::RLOGIN_CLIENT_USER_NAME;
-constexpr auto RLOGIN_SERVER_USER_NAME [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RLOGIN_SERVER_USER_NAME.")]] = zeek::analyzer::login::RLOGIN_SERVER_USER_NAME;
-constexpr auto RLOGIN_TERMINAL_TYPE [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RLOGIN_TERMINAL_TYPE.")]] = zeek::analyzer::login::RLOGIN_TERMINAL_TYPE;
-constexpr auto RLOGIN_SERVER_ACK [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RLOGIN_SERVER_ACK.")]] = zeek::analyzer::login::RLOGIN_SERVER_ACK;
-constexpr auto RLOGIN_IN_BAND_CONTROL_FF2 [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RLOGIN_IN_BAND_CONTROL_FF2.")]] = zeek::analyzer::login::RLOGIN_IN_BAND_CONTROL_FF2;
-constexpr auto RLOGIN_WINDOW_CHANGE_S1 [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RLOGIN_WINDOW_CHANGE_S1.")]] = zeek::analyzer::login::RLOGIN_WINDOW_CHANGE_S1;
-constexpr auto RLOGIN_WINDOW_CHANGE_S2 [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RLOGIN_WINDOW_CHANGE_S2.")]] = zeek::analyzer::login::RLOGIN_WINDOW_CHANGE_S2;
-constexpr auto RLOGIN_WINDOW_CHANGE_REMAINDER [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RLOGIN_WINDOW_CHANGE_REMAINDER.")]] = zeek::analyzer::login::RLOGIN_WINDOW_CHANGE_REMAINDER;
-constexpr auto RLOGIN_LINE_MODE [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RLOGIN_LINE_MODE.")]] = zeek::analyzer::login::RLOGIN_LINE_MODE;
-constexpr auto RLOGIN_PRESUMED_REJECTED [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RLOGIN_PRESUMED_REJECTED.")]] = zeek::analyzer::login::RLOGIN_PRESUMED_REJECTED;
-constexpr auto RLOGIN_UNKNOWN [[deprecated("Remove in v4.1. Use zeek::analyzer::login::RLOGIN_UNKNOWN.")]] = zeek::analyzer::login::RLOGIN_UNKNOWN;
-
-using Contents_Rlogin_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::login::Contents_Rlogin_Analyzer.")]] = zeek::analyzer::login::Contents_Rlogin_Analyzer;
-using Rlogin_Analyzer [[deprecated("Remove in v4.1. Use zeek::analyzer::login::Rlogin_Analyzer.")]] = zeek::analyzer::login::Rlogin_Analyzer;
-
-} // namespace analyzer::login

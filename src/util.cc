@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "util-config.h"
 
 #include "zeek/util.h"
@@ -581,17 +581,6 @@ uint64_t rand64bit()
 	return base;
 	}
 
-const array<string, 2> script_extensions = {".zeek", ".bro"};
-
-void warn_if_legacy_script(std::string_view filename)
-	{
-	if ( ends_with(filename, ".bro") )
-		{
-		std::string x(filename);
-		reporter->Warning("Loading script '%s' with legacy extension, support for '.bro' will be removed in Zeek v4.1", x.c_str());
-		}
-	}
-
 TEST_CASE("util is_package_loader")
 	{
 	CHECK(is_package_loader("/some/path/__load__.zeek") == true);
@@ -601,17 +590,7 @@ TEST_CASE("util is_package_loader")
 bool is_package_loader(const string& path)
 	{
 	string filename(std::move(SafeBasename(path).result));
-
-	for ( const string& ext : script_extensions )
-		{
-		if ( filename == "__load__" + ext )
-			{
-			warn_if_legacy_script(filename);
-			return true;
-			}
-		}
-
-	return false;
+	return ( filename == "__load__.zeek" );
 	}
 
 void add_to_zeek_path(const string& dir)
@@ -627,19 +606,15 @@ FILE* open_package(string& path, const string& mode)
 	string arg_path = path;
 	path.append("/__load__");
 
-	for ( const string& ext : script_extensions )
+	string p = path + ".zeek";
+	if ( can_read(p) )
 		{
-		string p = path + ext;
-		if ( can_read(p) )
-			{
-			warn_if_legacy_script(path);
-			path.append(ext);
-			return open_file(path, mode);
-			}
+		path.append(".zeek");
+		return open_file(path, mode);
 		}
 
-	path.append(script_extensions[0]);
-	string package_loader = "__load__" + script_extensions[0];
+	path.append(".zeek");
+	string package_loader = "__load__.zeek";
 	reporter->Error("Failed to open package '%s': missing '%s' file",
 	                arg_path.c_str(), package_loader.c_str());
 	return nullptr;
@@ -901,7 +876,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 
 const char* log_file_name(const char* tag)
 	{
-	const char* env = zeekenv("ZEEK_LOG_SUFFIX");
+	const char* env = getenv("ZEEK_LOG_SUFFIX");
 	return fmt("%s.%s", tag, (env ? env : "log"));
 	}
 
@@ -1730,7 +1705,7 @@ const std::string& zeek_path()
 	{
 	if ( zeek_path_value.empty() )
 		{
-		const char* path = zeekenv("ZEEKPATH");
+		const char* path = getenv("ZEEKPATH");
 
 		if ( ! path )
 			path = DEFAULT_ZEEKPATH;
@@ -1743,7 +1718,7 @@ const std::string& zeek_path()
 
 const char* zeek_plugin_path()
 	{
-	const char* path = zeekenv("ZEEK_PLUGIN_PATH");
+	const char* path = getenv("ZEEK_PLUGIN_PATH");
 
 	if ( ! path )
 		path = BRO_PLUGIN_INSTALL_PATH;
@@ -1753,7 +1728,7 @@ const char* zeek_plugin_path()
 
 const char* zeek_plugin_activate()
 	{
-	const char* names = zeekenv("ZEEK_PLUGIN_ACTIVATE");
+	const char* names = getenv("ZEEK_PLUGIN_ACTIVATE");
 
 	if ( ! names )
 		names = "";
@@ -2008,27 +1983,14 @@ string find_script_file(const string& filename, const string& path_set)
 	vector<string> paths;
 	tokenize_string(path_set, ":", &paths);
 
-	vector<string> ext(detail::script_extensions.begin(), detail::script_extensions.end());
+	vector<string> ext = {".zeek"};
 
 	for ( size_t n = 0; n < paths.size(); ++n )
 		{
 		string f = find_file_in_path(filename, paths[n], ext);
 
 		if ( ! f.empty() )
-			{
-			detail::warn_if_legacy_script(f);
 			return f;
-			}
-		}
-
-	if ( ends_with(filename, ".bro") )
-		{
-		detail::warn_if_legacy_script(filename);
-
-		// We were looking for a file explicitly ending in .bro and didn't
-		// find it, so fall back to one ending in .zeek, if it exists.
-		auto fallback = string(filename.data(), filename.size() - 4) + ".zeek";
-		return find_script_file(fallback, path_set);
 		}
 
 	return string();
@@ -2376,45 +2338,9 @@ void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen)
 	strerror_r_helper(res, buf, buflen);
 	}
 
-static const std::map<const char*, const char*, CompareString> legacy_vars = {
-	{ "ZEEKPATH", "BROPATH" },
-	{ "ZEEK_PLUGIN_PATH", "BRO_PLUGIN_PATH" },
-	{ "ZEEK_PLUGIN_ACTIVATE", "BRO_PLUGIN_ACTIVATE" },
-	{ "ZEEK_PREFIXES", "BRO_PREFIXES" },
-	{ "ZEEK_DNS_FAKE", "BRO_DNS_FAKE" },
-	{ "ZEEK_SEED_FILE", "BRO_SEED_FILE" },
-	{ "ZEEK_LOG_SUFFIX", "BRO_LOG_SUFFIX" },
-	{ "ZEEK_PROFILER_FILE", "BRO_PROFILER_FILE" },
-	{ "ZEEK_DISABLE_ZEEKYGEN", "BRO_DISABLE_BROXYGEN" },
-	{ "ZEEK_DEFAULT_CONNECT_RETRY", "BRO_DEFAULT_CONNECT_RETRY" },
-	{ "ZEEK_BROKER_MAX_THREADS", "BRO_BROKER_MAX_THREADS" },
-	{ "ZEEK_DEFAULT_LISTEN_ADDRESS", "BRO_DEFAULT_LISTEN_ADDRESS" },
-	{ "ZEEK_DEFAULT_LISTEN_RETRY", "BRO_DEFAULT_LISTEN_RETRY" },
-};
-
 char* zeekenv(const char* name)
 	{
-	auto rval = getenv(name);
-
-	if ( rval )
-		return rval;
-
-	auto it = legacy_vars.find(name);
-
-	if ( it == legacy_vars.end() )
-		return rval;
-
-	auto val = getenv(it->second);
-
-	if ( val && starts_with(it->second, "BRO_") )
-		{
-		if ( reporter )
-			reporter->Warning("Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead", it->second, name);
-		else
-			fprintf(stderr, "Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead\n", it->second, name);
-		}
-
-	return val;
+	return getenv(name);
 	}
 
 static string json_escape_byte(char c)
@@ -2544,87 +2470,6 @@ string json_escape_utf8(const string& val)
 	}
 
 } // namespace zeek::util
-
-// Remove in v4.1.
-double& network_time = zeek::run_state::network_time;
-
-unsigned int bro_prng(unsigned int  state)
-	{ return zeek::util::detail::prng(state); }
-
-long int bro_random()
-	{ return zeek::util::detail::random_number(); }
-
-void bro_srandom(unsigned int seed)
-	{ zeek::util::detail::seed_random(seed); }
-
-zeek::ODesc* get_escaped_string(zeek::ODesc* d, const char* str, size_t len, bool escape_all)
-	{ return zeek::util::get_escaped_string(d, str, len, escape_all); }
-std::string get_escaped_string(const char* str, size_t len, bool escape_all)
-	{ return zeek::util::get_escaped_string(str, len, escape_all); }
-std::string get_escaped_string(const std::string& str, bool escape_all)
-	{ return zeek::util::get_escaped_string(str, escape_all); }
-
-std::vector<std::string>* tokenize_string(std::string_view input,
-                                          std::string_view delim,
-                                          std::vector<std::string>* rval, int limit)
-	{ return zeek::util::tokenize_string(input, delim, rval, limit); }
-std::vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept
-	{ return zeek::util::tokenize_string(input, delim); }
-
-char* skip_whitespace(char* s)
-	{ return zeek::util::skip_whitespace(s); }
-const char* skip_whitespace(const char* s)
-	{ return zeek::util::skip_whitespace(s); }
-char* skip_whitespace(char* s, char* end_of_s)
-	{ return zeek::util::skip_whitespace(s, end_of_s); }
-const char* skip_whitespace(const char* s, const char* end_of_s)
-	{ return zeek::util::skip_whitespace(s, end_of_s); }
-
-char* get_word(char*& s)
-	{ return zeek::util::get_word(s); }
-void get_word(int length, const char* s, int& pwlen, const char*& pw)
-	{ zeek::util::get_word(length, s, pwlen, pw); }
-void to_upper(char* s)
-	{ zeek::util::to_upper(s); }
-std::string to_upper(const std::string& s)
-	{ return zeek::util::to_upper(s); }
-
-char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix)
-	{ return zeek::util::uitoa_n(value, str, n, base, prefix); }
-int fputs(int len, const char* s, FILE* fp)
-	{ return zeek::util::fputs(len, s, fp); }
-
-std::string implode_string_vector(const std::vector<std::string>& v,
-                                  const std::string& delim)
-	{ return zeek::util::implode_string_vector(v, delim); }
-std::string flatten_script_name(const std::string& name,
-                                const std::string& prefix)
-	{ return zeek::util::detail::flatten_script_name(name, prefix); }
-
-std::string find_file(const std::string& filename, const std::string& path_set,
-                      const std::string& opt_ext)
-	{ return zeek::util::find_file(filename, path_set, opt_ext); }
-FILE* open_file(const std::string& path, const std::string& mode)
-	{ return zeek::util::open_file(path, mode); }
-FILE* open_package(std::string& path, const std::string& mode)
-	{ return zeek::util::detail::open_package(path, mode); }
-
-double current_time(bool real)
-	{ return zeek::util::current_time(real); }
-
-uint64_t calculate_unique_id()
-	{ return zeek::util::calculate_unique_id(); }
-uint64_t calculate_unique_id(const size_t pool)
-	{ return zeek::util::calculate_unique_id(pool); }
-
-const array<string, 2>& script_extensions = zeek::util::detail::script_extensions;
-
-namespace zeek {
-
-void set_thread_name(const char* name, pthread_t tid)
-	{ zeek::util::detail::set_thread_name(name, tid); }
-
-} // namespace zeek
 
 extern "C" void out_of_memory(const char* where)
 	{

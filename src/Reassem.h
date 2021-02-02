@@ -315,15 +315,3 @@ protected:
 };
 
 } // namespace zeek
-
-using ReassemblerType [[deprecated("Remove in v4.1. Use zeek::ReassemblerType.")]] = zeek::ReassemblerType;
-constexpr auto REASSEM_UNKNOWN [[deprecated("Remove in v4.1. Use zeek::REASSEM_UNKNOWN.")]] = zeek::REASSEM_UNKNOWN;
-constexpr auto REASSEM_TCP [[deprecated("Remove in v4.1. Use zeek::REASSEM_TCP.")]] = zeek::REASSEM_TCP;
-constexpr auto REASSEM_FRAG [[deprecated("Remove in v4.1. Use zeek::REASSEM_FRAG.")]] = zeek::REASSEM_FRAG;
-constexpr auto REASSEM_FILE [[deprecated("Remove in v4.1. Use zeek::REASSEM_FILE.")]] = zeek::REASSEM_FILE;
-constexpr auto REASSEM_NUM [[deprecated("Remove in v4.1. Use zeek::REASSEM_NUM.")]] = zeek::REASSEM_NUM;
-
-using DataBlock [[deprecated("Remove in v4.1. Use zeek::DataBlock.")]] = zeek::DataBlock;
-using DataBlockMap [[deprecated("Remove in v4.1. Use zeek::DataBlockMap.")]] = zeek::DataBlockMap;
-using DataBlockList [[deprecated("Remove in v4.1. Use zeek::DataBlockList.")]] = zeek::DataBlockList;
-using Reassembler [[deprecated("Remove in v4.1. Use zeek::Reassembler.")]] = zeek::Reassembler;

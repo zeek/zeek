@@ -11,7 +11,7 @@
  * crack reply buffers is private.
  */
 
-#include "zeek-config.h"			/* must appear before first ifdef */
+#include "zeek/zeek-config.h"			/* must appear before first ifdef */
 #include "zeek/nb_dns.h"
 
 #include <sys/types.h>

@@ -33,9 +33,3 @@ private:
 };
 
 } // namespace zeek::file_analysis::detail
-
-namespace file_analysis {
-
-using Unified2 [[deprecated("Remove in v4.1. Use zeek::file_analysis::detail::Unified2.")]] = zeek::file_analysis::detail::Unified2;
-
-} // namespace file_analysis

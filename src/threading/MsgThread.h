@@ -7,16 +7,9 @@
 #include "zeek/Flare.h"
 
 namespace zeek::threading {
-	struct Value;
-	struct Field;
-}
-namespace threading {
-	using Value [[deprecated("Remove in v4.1. Use zeek::threading::Value.")]] = zeek::threading::Value;
-	using Field [[deprecated("Remove in v4.1. Use zeek::threading::Field.")]] = zeek::threading::Field;
-}
 
-namespace zeek::threading {
-
+struct Value;
+struct Field;
 class BasicInputMessage;
 class BasicOutputMessage;
 
@@ -479,14 +472,3 @@ private:
 };
 
 } // namespace zeek::threading
-
-namespace threading {
-
-using MsgThread [[deprecated("Remove in v4.1. Use zeek::threading::MsgThread.")]] = zeek::threading::MsgThread;
-using Message [[deprecated("Remove in v4.1. Use zeek::threading::Message.")]] = zeek::threading::Message;
-using BasicInputMessage [[deprecated("Remove in v4.1. Use zeek::threading::BasicInputMessage.")]] = zeek::threading::BasicInputMessage;
-using BasicOutputMessage [[deprecated("Remove in v4.1. Use zeek::threading::BasicOutputMessage.")]] = zeek::threading::BasicOutputMessage;
-template<typename O> using InputMessage [[deprecated("Remove in v4.1. Use zeek::threading::InputMessage.")]] = zeek::threading::InputMessage<O>;
-template<typename O> using OutputMessage [[deprecated("Remove in v4.1. Use zeek::threading::OutputMessage.")]] = zeek::threading::OutputMessage<O>;
-
-} // namespace threading

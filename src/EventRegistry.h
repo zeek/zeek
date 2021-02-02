@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include <map>
 #include <memory>
@@ -58,6 +58,3 @@ private:
 extern EventRegistry* event_registry;
 
 } // namespace zeek
-
-using EventRegistry [[deprecated("Remove in v4.1. Use zeek::EventRegistry.")]] = zeek::EventRegistry;
-extern zeek::EventRegistry*& event_registry;

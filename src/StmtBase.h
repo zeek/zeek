@@ -185,5 +185,3 @@ protected:
 };
 
 } // namespace zeek::detail
-
-using Stmt [[deprecated("Remove in v4.1. Use zeek::detail::Stmt instead.")]] = zeek::detail::Stmt;

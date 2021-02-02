@@ -1,7 +1,7 @@
 
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/ID.h"
 
 #include "zeek/Attr.h"
@@ -136,11 +136,6 @@ std::string ID::ModuleName() const
 void ID::SetType(TypePtr t)
 	{
 	type = std::move(t);
-	}
-
-void ID::SetType(zeek::Type* t)
-	{
-	SetType({AdoptRef(), t});
 	}
 
 void ID::ClearVal()

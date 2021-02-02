@@ -32,9 +32,3 @@ private:
 };
 
 } // namespace zeek::iosource::pcap
-
-namespace iosource::pcap {
-
-using PcapDumper [[deprecated("Remove in v4.1. Use zeek::iosource::pcap::PcapDumper.")]] = zeek::iosource::pcap::PcapDumper;
-
-} // namespace iosource::pcap

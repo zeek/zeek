@@ -215,7 +215,6 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 	if ( v )
 		return {NewRef{}, v};
 
-	reporter->Error("value used but not set");
 	zval_was_nil = true;
 
 	return nullptr;

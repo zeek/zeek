@@ -75,8 +75,6 @@ union ZVal {
 	Obj* ManagedVal() const		{ return managed_val; }
 
 private:
-	friend void DeleteManagedType(ZVal& v);
-
 	// Used for bool, int, enum.
 	bro_int_t int_val;
 
@@ -126,7 +124,7 @@ bool IsManagedType(const TypePtr& t);
 // indeed holds such.
 inline void DeleteManagedType(ZVal& v)
 	{
-	Unref(v.managed_val);
+	Unref(v.ManagedVal());
 	}
 
 // Deletes a possibly-managed value.

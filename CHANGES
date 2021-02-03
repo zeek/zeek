@@ -1,4 +1,13 @@
 
+4.0.0-rc2.6 | 2021-02-12 12:39:45 -0800
+
+  * Bump macOS jobs in CI from 4 to 12 cores (Christian Kreibich, Corelight)
+
+  * Update Cirrus CI naming update for MacOS images (Christian Kreibich, Corelight)
+
+    The docs on https://cirrus-ci.org/guide/macOS/ changed from
+    "osx_instance" to "macos_instance", so let's reflect that.
+
 4.0.0-rc2.4 | 2021-02-12 11:53:15 -0800
 
   * GH-1398: Fix buffer overread in ascii formatter (Johanna Amann, Corelight)

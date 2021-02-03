@@ -1,3 +1,8 @@
+
+4.1.0-dev.173 | 2021-02-03 11:16:04 -0800
+
+  * GH-1389: Add VN-Tag packet analyzer that skips VN-Tag headers (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.171 | 2021-02-03 09:53:12 -0700
 
   * Prefix #includes of .bif.h files with zeek/

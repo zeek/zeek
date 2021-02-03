@@ -14,3 +14,4 @@
 @load base/packet-protocols/mpls
 @load base/packet-protocols/gre
 @load base/packet-protocols/iptunnel
+@load base/packet-protocols/vntag

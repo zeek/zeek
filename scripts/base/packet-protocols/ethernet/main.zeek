@@ -20,4 +20,5 @@ event zeek_init() &priority=20
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 0x88A8, PacketAnalyzer::ANALYZER_VLAN);
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 0x9100, PacketAnalyzer::ANALYZER_VLAN);
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 0x8864, PacketAnalyzer::ANALYZER_PPPOE);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 0x8926, PacketAnalyzer::ANALYZER_VNTAG);
 	}

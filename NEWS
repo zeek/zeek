@@ -15,6 +15,10 @@ New Functionality
 
   For examples, see: https://docs.zeek.org/en/master/script-reference/types.html#type-function
 
+- Support for VN-Tag protocol headers: the new VN-Tag packet analyzer simply
+  skips past the VN-Tag header, allowing for further analysis of subsequent
+  packet contents.
+
 Changed Functionality
 ---------------------
 

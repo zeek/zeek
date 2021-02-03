@@ -1,3 +1,9 @@
+4.1.0-dev.169 | 2021-02-03 09:50:33 -0700
+
+  * Bump macOS jobs in CI from 4 to 12 cores
+
+    A recent Cirrus upgrade enables this and saves 4-5 minutes for the
+    build and test jobs (combined), for both Catalina and Big Sur. (Christian Kreibich, Corelight)
 
 4.1.0-dev.165 | 2021-02-01 15:53:56 -0800
 

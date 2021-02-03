@@ -12,7 +12,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/Manager.h"
 
-#include "analyzer/protocol/pop3/events.bif.h"
+#include "zeek/analyzer/protocol/pop3/events.bif.h"
 
 namespace zeek::analyzer::pop3 {
 

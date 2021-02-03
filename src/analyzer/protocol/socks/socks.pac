@@ -5,7 +5,7 @@
 #include "zeek/analyzer/protocol/socks/SOCKS.h"
 #include "zeek/Reporter.h"
 
-#include "analyzer/protocol/socks/events.bif.h"
+#include "zeek/analyzer/protocol/socks/events.bif.h"
 %}
 
 analyzer SOCKS withcontext {

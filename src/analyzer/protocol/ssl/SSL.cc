@@ -4,9 +4,9 @@
 #include "zeek/Reporter.h"
 #include "zeek/util.h"
 
-#include "analyzer/protocol/ssl/events.bif.h"
-#include "analyzer/protocol/ssl/ssl_pac.h"
-#include "analyzer/protocol/ssl/tls-handshake_pac.h"
+#include "zeek/analyzer/protocol/ssl/events.bif.h"
+#include "zeek/analyzer/protocol/ssl/ssl_pac.h"
+#include "zeek/analyzer/protocol/ssl/tls-handshake_pac.h"
 
 namespace zeek::analyzer::ssl {
 

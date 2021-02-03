@@ -9,7 +9,7 @@
 #include "zeek/analyzer/protocol/zip/ZIP.h"
 #include "zeek/analyzer/Manager.h"
 
-#include "analyzer/protocol/irc/events.bif.h"
+#include "zeek/analyzer/protocol/irc/events.bif.h"
 
 using namespace std;
 

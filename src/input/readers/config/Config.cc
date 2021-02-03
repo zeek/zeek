@@ -14,7 +14,7 @@
 #include "zeek/input/Manager.h"
 #include "zeek/threading/SerialTypes.h"
 
-#include "input/readers/config/config.bif.h"
+#include "zeek/input/readers/config/config.bif.h"
 
 using zeek::threading::Value;
 using zeek::threading::Field;

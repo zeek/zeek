@@ -6,7 +6,7 @@
 %extern{
 #define MSGLEN_LIMIT 0x40000
 
-#include "analyzer/protocol/bittorrent/events.bif.h"
+#include "zeek/analyzer/protocol/bittorrent/events.bif.h"
 %}
 
 analyzer BitTorrent withcontext {

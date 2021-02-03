@@ -7,7 +7,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/util.h"
 
-#include "analyzer/protocol/file/events.bif.h"
+#include "zeek/analyzer/protocol/file/events.bif.h"
 
 namespace zeek::analyzer::file {
 

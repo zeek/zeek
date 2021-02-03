@@ -16,7 +16,7 @@ using XMPPAnalyzer = zeek::analyzer::xmpp::XMPP_Analyzer*;
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/xmpp/XMPP.h"
 
-#include "analyzer/protocol/xmpp/events.bif.h"
+#include "zeek/analyzer/protocol/xmpp/events.bif.h"
 %}
 
 extern type XMPPAnalyzer;

@@ -11,7 +11,7 @@
 #include "zeek/iosource/BPF_Program.h"
 #include "zeek/Event.h"
 
-#include "iosource/pcap/pcap.bif.h"
+#include "zeek/iosource/pcap/pcap.bif.h"
 
 namespace zeek::iosource::pcap {
 

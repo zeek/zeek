@@ -11,7 +11,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "analyzer/protocol/login/events.bif.h"
+#include "zeek/analyzer/protocol/login/events.bif.h"
 
 #define IS_3_BYTE_OPTION(c) (c >= 251 && c <= 254)
 

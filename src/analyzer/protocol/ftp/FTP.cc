@@ -13,7 +13,7 @@
 #include "zeek/analyzer/protocol/login/NVT.h"
 #include "zeek/RuleMatcher.h"
 
-#include "analyzer/protocol/ftp/events.bif.h"
+#include "zeek/analyzer/protocol/ftp/events.bif.h"
 
 namespace zeek::analyzer::ftp {
 

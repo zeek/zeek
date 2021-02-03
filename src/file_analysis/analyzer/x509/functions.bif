@@ -9,7 +9,7 @@
 #include "zeek/file_analysis/analyzer/x509/X509.h"
 #include "zeek/net_util.h"
 
-#include "file_analysis/analyzer/x509/types.bif.h"
+#include "zeek/file_analysis/analyzer/x509/types.bif.h"
 
 // construct an error record
 static zeek::RecordValPtr x509_result_record(uint64_t num, const char* reason, zeek::ValPtr chainVector = nullptr)

@@ -10,7 +10,7 @@
 %include zeek.pac
 
 %extern{
-#include "analyzer/protocol/modbus/events.bif.h"
+#include "zeek/analyzer/protocol/modbus/events.bif.h"
 %}
 
 analyzer ModbusTCP withcontext {

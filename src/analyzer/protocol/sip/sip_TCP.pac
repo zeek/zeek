@@ -8,7 +8,7 @@
 %include zeek.pac
 
 %extern{
-#include "analyzer/protocol/sip/events.bif.h"
+#include "zeek/analyzer/protocol/sip/events.bif.h"
 %}
 
 analyzer SIP_TCP withcontext {

@@ -10,7 +10,7 @@
 #include "zeek/threading/SerialTypes.h"
 #include "zeek/threading/Manager.h"
 
-#include "input/readers/benchmark/benchmark.bif.h"
+#include "zeek/input/readers/benchmark/benchmark.bif.h"
 
 using zeek::threading::Value;
 using zeek::threading::Field;

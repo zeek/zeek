@@ -5,8 +5,8 @@
 
 %extern{
 	#include "zeek/analyzer/protocol/mqtt/MQTT.h"
-	#include "analyzer/protocol/mqtt/events.bif.h"
-	#include "analyzer/protocol/mqtt/types.bif.h"
+	#include "zeek/analyzer/protocol/mqtt/events.bif.h"
+	#include "zeek/analyzer/protocol/mqtt/types.bif.h"
 %}
 
 analyzer MQTT withcontext {

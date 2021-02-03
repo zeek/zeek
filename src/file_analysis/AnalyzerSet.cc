@@ -7,7 +7,7 @@
 #include "zeek/CompHash.h"
 #include "zeek/Val.h"
 
-#include "file_analysis/file_analysis.bif.h"
+#include "zeek/file_analysis/file_analysis.bif.h"
 
 namespace zeek::file_analysis::detail {
 

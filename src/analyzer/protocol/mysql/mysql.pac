@@ -8,7 +8,7 @@
 %include zeek.pac
 
 %extern{
-	#include "analyzer/protocol/mysql/events.bif.h"
+	#include "zeek/analyzer/protocol/mysql/events.bif.h"
 %}
 
 analyzer MySQL withcontext {

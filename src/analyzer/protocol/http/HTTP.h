@@ -10,7 +10,7 @@
 #include "zeek/binpac_zeek.h"
 #include "zeek/IPAddr.h"
 
-#include "analyzer/protocol/http/events.bif.h"
+#include "zeek/analyzer/protocol/http/events.bif.h"
 
 namespace zeek::analyzer::http {
 

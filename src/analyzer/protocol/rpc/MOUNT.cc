@@ -11,7 +11,7 @@
 #include "zeek/analyzer/protocol/rpc/XDR.h"
 #include "zeek/Event.h"
 
-#include "analyzer/protocol/rpc/events.bif.h"
+#include "zeek/analyzer/protocol/rpc/events.bif.h"
 
 namespace zeek::analyzer::rpc {
 namespace detail {

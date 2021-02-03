@@ -3,7 +3,7 @@
 #include "foo_pac.h"
 #include "events.bif.h"
 
-#include <analyzer/protocol/tcp/TCP_Reassembler.h>
+#include <zeek/analyzer/protocol/tcp/TCP_Reassembler.h>
 
 using namespace btest::plugin::Demo_Foo;
 

@@ -8,8 +8,8 @@
 #include "zeek/OpaqueVal.h"
 #include "zeek/Trigger.h"
 
-#include "broker/store.bif.h"
-#include "broker/data.bif.h"
+#include "zeek/broker/store.bif.h"
+#include "zeek/broker/data.bif.h"
 
 namespace zeek::Broker::detail {
 

@@ -6,7 +6,7 @@
 %include zeek.pac
 
 %extern{
-	#include "analyzer/protocol/rfb/events.bif.h"
+	#include "zeek/analyzer/protocol/rfb/events.bif.h"
 %}
 
 analyzer RFB withcontext {

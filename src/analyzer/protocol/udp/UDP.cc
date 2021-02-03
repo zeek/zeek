@@ -11,7 +11,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/Conn.h"
 
-#include "analyzer/protocol/udp/events.bif.h"
+#include "zeek/analyzer/protocol/udp/events.bif.h"
 
 namespace zeek::analyzer::udp {
 

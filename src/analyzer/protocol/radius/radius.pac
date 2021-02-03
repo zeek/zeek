@@ -6,7 +6,7 @@
 %include zeek.pac
 
 %extern{
-	#include "analyzer/protocol/radius/events.bif.h"
+	#include "zeek/analyzer/protocol/radius/events.bif.h"
 %}
 
 analyzer RADIUS withcontext {

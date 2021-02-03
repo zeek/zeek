@@ -9,8 +9,8 @@ using KRBTCPAnalyzer = zeek::analyzer::krb_tcp::KRB_Analyzer*;
 #include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/krb/KRB_TCP.h"
 
-#include "analyzer/protocol/krb/types.bif.h"
-#include "analyzer/protocol/krb/events.bif.h"
+#include "zeek/analyzer/protocol/krb/types.bif.h"
+#include "zeek/analyzer/protocol/krb/events.bif.h"
 %}
 
 extern type KRBTCPAnalyzer;

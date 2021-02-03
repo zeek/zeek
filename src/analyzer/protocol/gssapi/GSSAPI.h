@@ -4,8 +4,8 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "analyzer/protocol/gssapi/events.bif.h"
-#include "analyzer/protocol/gssapi/gssapi_pac.h"
+#include "zeek/analyzer/protocol/gssapi/events.bif.h"
+#include "zeek/analyzer/protocol/gssapi/gssapi_pac.h"
 
 namespace zeek::analyzer::gssapi {
 

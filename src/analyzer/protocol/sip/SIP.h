@@ -2,8 +2,8 @@
 
 #include "zeek/analyzer/protocol/udp/UDP.h"
 
-#include "analyzer/protocol/sip/events.bif.h"
-#include "analyzer/protocol/sip/sip_pac.h"
+#include "zeek/analyzer/protocol/sip/events.bif.h"
+#include "zeek/analyzer/protocol/sip/sip_pac.h"
 
 namespace zeek::analyzer::sip{
 

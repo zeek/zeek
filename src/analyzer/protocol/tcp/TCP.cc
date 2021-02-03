@@ -16,8 +16,8 @@
 #include "zeek/Sessions.h"
 #include "zeek/DebugLogger.h"
 
-#include "analyzer/protocol/tcp/events.bif.h"
-#include "analyzer/protocol/tcp/types.bif.h"
+#include "zeek/analyzer/protocol/tcp/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/types.bif.h"
 
 namespace { // local namespace
 	const bool DEBUG_tcp_data_sent = false;

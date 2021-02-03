@@ -1,7 +1,15 @@
 include_directories(BEFORE
                     ${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
+                    ${CMAKE_CURRENT_BINARY_DIR}/include
 )
+
+# Allows header file inclusion via zeek/ within the build tree
+execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory
+                "${CMAKE_CURRENT_BINARY_DIR}/include")
+execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
+                ".."
+                "${CMAKE_CURRENT_BINARY_DIR}/include/zeek")
 
 # This collects generated bif and pac files from subdirectories.
 set(bro_ALL_GENERATED_OUTPUTS  CACHE INTERNAL "automatically generated files" FORCE)

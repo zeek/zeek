@@ -3,7 +3,7 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/Reporter.h"
 
-#include "analyzer/protocol/tcp/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/events.bif.h"
 
 namespace zeek::analyzer::tcp {
 

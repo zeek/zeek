@@ -3,7 +3,7 @@
 
 #include "foo.bif.h"
 
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
 #include "foo_pac.h"
 

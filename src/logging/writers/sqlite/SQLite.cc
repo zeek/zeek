@@ -9,7 +9,7 @@
 
 #include "zeek/threading/SerialTypes.h"
 
-#include "logging/writers/sqlite/sqlite.bif.h"
+#include "zeek/logging/writers/sqlite/sqlite.bif.h"
 
 using namespace std;
 using zeek::threading::Value;

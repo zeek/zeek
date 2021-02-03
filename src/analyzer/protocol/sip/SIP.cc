@@ -1,6 +1,6 @@
 #include "zeek/analyzer/protocol/sip/SIP.h"
 
-#include "analyzer/protocol/sip/events.bif.h"
+#include "zeek/analyzer/protocol/sip/events.bif.h"
 
 namespace zeek::analyzer::sip {
 

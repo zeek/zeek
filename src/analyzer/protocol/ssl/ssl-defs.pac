@@ -87,7 +87,7 @@ function version_ok(vers : uint16) : bool
 
 %extern{
 #include <string>
-#include "analyzer/protocol/ssl/events.bif.h"
+#include "zeek/analyzer/protocol/ssl/events.bif.h"
 
 using std::string;
 %}

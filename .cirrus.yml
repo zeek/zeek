@@ -19,11 +19,11 @@ resources_template: &RESOURCES_TEMPLATE
   memory: *MEMORY
 
 macos_resources_template: &MACOS_RESOURCES_TEMPLATE
-  # cpu/memory setting is implicitly 2 core / 4 thread and 8GB, and
-  # trying to set it explicitly results in an error.
+  # https://medium.com/cirruslabs/new-macos-task-execution-architecture-for-cirrus-ci-604250627c94
+  # suggests we can go faster here:
   env:
-    ZEEK_CI_CPUS: 4
-    ZEEK_CI_BTEST_JOBS: 4
+    ZEEK_CI_CPUS: 12
+    ZEEK_CI_BTEST_JOBS: 12
     # No permission to write to default location of /zeek
     CIRRUS_WORKING_DIR: /tmp/zeek
 

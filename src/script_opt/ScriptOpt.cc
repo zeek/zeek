@@ -47,12 +47,11 @@ void optimize_func(ScriptFunc* f, ProfileFunc* pf, ScopePtr scope_ptr,
 	auto scope = scope_ptr.release();
 	push_existing_scope(scope);
 
-	auto rc = new Reducer(scope);
+	auto rc = std::make_unique<Reducer>(scope);
 	auto new_body = rc->Reduce(body);
 
 	if ( reporter->Errors() > 0 )
 		{
-		delete rc;
 		pop_scope();
 		return;
 		}
@@ -60,7 +59,7 @@ void optimize_func(ScriptFunc* f, ProfileFunc* pf, ScopePtr scope_ptr,
 	non_reduced_perp = nullptr;
 	checking_reduction = true;
 
-	if ( ! new_body->IsReduced(rc) )
+	if ( ! new_body->IsReduced(rc.get()) )
 		{
 		if ( non_reduced_perp )
 			printf("Reduction inconsistency for %s: %s\n", f->Name(),
@@ -86,8 +85,6 @@ void optimize_func(ScriptFunc* f, ProfileFunc* pf, ScopePtr scope_ptr,
 
 	if ( new_frame_size > f->FrameSize() )
 		f->SetFrameSize(new_frame_size);
-
-	delete rc;
 
 	pop_scope();
 	}
@@ -210,15 +207,12 @@ void analyze_scripts()
 		new_to_do.clear();
 		}
 
-	Inliner* inl = nullptr;
+	std::unique_ptr<Inliner> inl;
 	if ( analysis_options.inliner )
-		inl = new Inliner(funcs, analysis_options.report_recursive);
+		inl = std::make_unique<Inliner>(funcs, analysis_options.report_recursive);
 
 	if ( ! analysis_options.activate )
-		{
-		delete inl;
 		return;
-		}
 
 	for ( auto& f : funcs )
 		{
@@ -236,8 +230,6 @@ void analyze_scripts()
 				new_body, analysis_options);
 		f.SetBody(new_body);
 		}
-
-	delete inl;
 	}
 
 

@@ -10,10 +10,10 @@
 
 #include "zeek/Reporter.h"
 
-#include "file_analysis/analyzer/x509/x509-extension_pac.h"
-#include "file_analysis/analyzer/x509/events.bif.h"
-#include "file_analysis/analyzer/x509/ocsp_events.bif.h"
-#include "file_analysis/analyzer/x509/types.bif.h"
+#include "zeek/file_analysis/analyzer/x509/x509-extension_pac.h"
+#include "zeek/file_analysis/analyzer/x509/events.bif.h"
+#include "zeek/file_analysis/analyzer/x509/ocsp_events.bif.h"
+#include "zeek/file_analysis/analyzer/x509/types.bif.h"
 
 namespace zeek::file_analysis::detail {
 

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <algorithm>
 
-#include "analyzer/protocol/rpc/events.bif.h"
+#include "zeek/analyzer/protocol/rpc/events.bif.h"
 
 uint32_t zeek::analyzer::rpc::extract_XDR_uint32(const u_char*& buf, int& len)
 	{

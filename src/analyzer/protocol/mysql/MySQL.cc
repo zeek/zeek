@@ -5,7 +5,7 @@
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/Reporter.h"
 
-#include "analyzer/protocol/mysql/events.bif.h"
+#include "zeek/analyzer/protocol/mysql/events.bif.h"
 
 namespace zeek::analyzer::mysql {
 

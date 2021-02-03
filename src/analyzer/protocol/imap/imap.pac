@@ -16,7 +16,7 @@ using IMAPAnalyzer = zeek::analyzer::imap::IMAP_Analyzer*;
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/imap/IMAP.h"
 
-#include "analyzer/protocol/imap/events.bif.h"
+#include "zeek/analyzer/protocol/imap/events.bif.h"
 
 %}
 

@@ -11,7 +11,7 @@
 #include "zeek/Event.h"
 #include "zeek/RunState.h"
 
-#include "analyzer/protocol/netbios/events.bif.h"
+#include "zeek/analyzer/protocol/netbios/events.bif.h"
 
 constexpr double netbios_ssn_session_timeout = 15.0;
 

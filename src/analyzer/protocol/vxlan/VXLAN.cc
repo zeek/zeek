@@ -15,7 +15,7 @@ extern "C" {
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
-#include "analyzer/protocol/vxlan/events.bif.h"
+#include "zeek/analyzer/protocol/vxlan/events.bif.h"
 
 namespace zeek::analyzer::vxlan {
 

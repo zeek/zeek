@@ -11,9 +11,9 @@
 
 #include "zeek/threading/SerialTypes.h"
 
-#include "input/readers/sqlite/sqlite.bif.h"
-#include "logging/writers/sqlite/sqlite.bif.h"
-#include "logging/writers/ascii/ascii.bif.h"
+#include "zeek/input/readers/sqlite/sqlite.bif.h"
+#include "zeek/logging/writers/sqlite/sqlite.bif.h"
+#include "zeek/logging/writers/ascii/ascii.bif.h"
 
 using zeek::threading::Value;
 using zeek::threading::Field;

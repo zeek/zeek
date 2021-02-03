@@ -15,7 +15,7 @@
 #include "zeek/Event.h"
 #include "zeek/RunState.h"
 
-#include "analyzer/protocol/dns/events.bif.h"
+#include "zeek/analyzer/protocol/dns/events.bif.h"
 
 namespace zeek::analyzer::dns {
 

@@ -15,7 +15,7 @@
 #include "zeek/input/readers/raw/Plugin.h"
 #include "zeek/threading/SerialTypes.h"
 
-#include "input/readers/raw/raw.bif.h"
+#include "zeek/input/readers/raw/raw.bif.h"
 
 extern "C" {
 #include "zeek/setsignal.h"

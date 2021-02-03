@@ -11,7 +11,7 @@
 #include "zeek/Func.h"
 #include "zeek/module_util.h"
 
-#include "broker/data.bif.h"
+#include "zeek/broker/data.bif.h"
 
 using namespace std;
 

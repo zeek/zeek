@@ -21,7 +21,7 @@
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/threading/SerialTypes.h"
 
-#include "input/input.bif.h"
+#include "zeek/input/input.bif.h"
 
 using namespace std;
 using zeek::threading::Value;

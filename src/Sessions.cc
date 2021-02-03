@@ -28,7 +28,7 @@
 #include "zeek/iosource/IOSource.h"
 #include "zeek/packet_analysis/Manager.h"
 
-#include "analyzer/protocol/stepping-stone/events.bif.h"
+#include "zeek/analyzer/protocol/stepping-stone/events.bif.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server

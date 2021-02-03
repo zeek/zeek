@@ -6,7 +6,7 @@
 
 #include "zeek/threading/SerialTypes.h"
 
-#include "input/readers/binary/binary.bif.h"
+#include "zeek/input/readers/binary/binary.bif.h"
 
 using namespace std;
 using zeek::threading::Value;

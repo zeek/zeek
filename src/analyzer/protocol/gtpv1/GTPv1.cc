@@ -3,7 +3,7 @@
 #include "zeek/analyzer/protocol/gtpv1/GTPv1.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
-#include "analyzer/protocol/gtpv1/events.bif.h"
+#include "zeek/analyzer/protocol/gtpv1/events.bif.h"
 
 namespace zeek::analyzer::gtpv1 {
 

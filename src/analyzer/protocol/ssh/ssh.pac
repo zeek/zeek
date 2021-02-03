@@ -8,8 +8,8 @@
 %include zeek.pac
 
 %extern{
-	#include "analyzer/protocol/ssh/types.bif.h"
-	#include "analyzer/protocol/ssh/events.bif.h"
+	#include "zeek/analyzer/protocol/ssh/types.bif.h"
+	#include "zeek/analyzer/protocol/ssh/events.bif.h"
 %}
 
 analyzer SSH withcontext {

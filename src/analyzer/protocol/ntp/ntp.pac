@@ -3,8 +3,8 @@
 %include zeek.pac
 
 %extern{
-	#include "analyzer/protocol/ntp/types.bif.h"
-	#include "analyzer/protocol/ntp/events.bif.h"
+	#include "zeek/analyzer/protocol/ntp/types.bif.h"
+	#include "zeek/analyzer/protocol/ntp/events.bif.h"
 %}
 
 analyzer NTP withcontext {

@@ -1,9 +1,9 @@
 
 #include "Foo.h"
-#include "file_analysis/File.h"
+#include "events.bif.h"
 
-#include <events.bif.h>
-#include <file_analysis/Manager.h>
+#include <zeek/file_analysis/Manager.h>
+#include <zeek/file_analysis/File.h>
 
 using namespace btest::plugin::Demo_Foo;
 

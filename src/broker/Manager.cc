@@ -21,10 +21,10 @@
 #include "zeek/SerializationFormat.h"
 #include "zeek/RunState.h"
 
-#include "broker/comm.bif.h"
-#include "broker/data.bif.h"
-#include "broker/messaging.bif.h"
-#include "broker/store.bif.h"
+#include "zeek/broker/comm.bif.h"
+#include "zeek/broker/data.bif.h"
+#include "zeek/broker/messaging.bif.h"
+#include "zeek/broker/store.bif.h"
 
 using namespace std;
 

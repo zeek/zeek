@@ -1,8 +1,8 @@
 #include "FOO.h"
 
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-#include "Reporter.h"
+#include "zeek/Reporter.h"
 
 #include "foo.bif.h"
 

@@ -10,7 +10,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/Manager.h"
 
-#include "analyzer/protocol/smtp/events.bif.h"
+#include "zeek/analyzer/protocol/smtp/events.bif.h"
 
 #undef SMTP_CMD_DEF
 #define SMTP_CMD_DEF(cmd)	#cmd,

@@ -4,8 +4,8 @@
 #include "zeek/file_analysis/File.h"
 #include "zeek/IPAddr.h"
 
-#include "file_analysis/analyzer/unified2/events.bif.h"
-#include "file_analysis/analyzer/unified2/types.bif.h"
+#include "zeek/file_analysis/analyzer/unified2/events.bif.h"
+#include "zeek/file_analysis/analyzer/unified2/types.bif.h"
 %}
 
 %code{

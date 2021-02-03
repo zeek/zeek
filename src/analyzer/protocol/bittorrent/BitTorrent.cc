@@ -3,7 +3,7 @@
 #include "zeek/analyzer/protocol/bittorrent/BitTorrent.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-#include "analyzer/protocol/bittorrent/events.bif.h"
+#include "zeek/analyzer/protocol/bittorrent/events.bif.h"
 
 namespace zeek::analyzer::bittorrent {
 

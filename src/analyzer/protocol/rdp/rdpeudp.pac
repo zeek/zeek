@@ -2,7 +2,7 @@
 %include zeek.pac
 
 %extern{
-	#include "analyzer/protocol/rdp/events.bif.h"
+	#include "zeek/analyzer/protocol/rdp/events.bif.h"
 %}
 
 analyzer RDPEUDP withcontext {

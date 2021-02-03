@@ -9,7 +9,7 @@
 #include "zeek/RunState.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
-#include "analyzer/protocol/teredo/events.bif.h"
+#include "zeek/analyzer/protocol/teredo/events.bif.h"
 
 namespace zeek::analyzer::teredo {
 

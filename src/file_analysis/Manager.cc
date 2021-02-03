@@ -12,7 +12,7 @@
 #include "zeek/plugin/Manager.h"
 #include "zeek/analyzer/Manager.h"
 
-#include "file_analysis/file_analysis.bif.h"
+#include "zeek/file_analysis/file_analysis.bif.h"
 
 using namespace std;
 

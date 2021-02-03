@@ -7,8 +7,8 @@
 %extern{
 #include "zeek/file_analysis/File.h"
 
-#include "file_analysis/analyzer/x509/types.bif.h"
-#include "file_analysis/analyzer/x509/events.bif.h"
+#include "zeek/file_analysis/analyzer/x509/types.bif.h"
+#include "zeek/file_analysis/analyzer/x509/events.bif.h"
 %}
 
 analyzer X509Extension withcontext {

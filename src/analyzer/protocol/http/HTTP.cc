@@ -14,7 +14,7 @@
 #include "zeek/analyzer/protocol/mime/MIME.h"
 #include "zeek/file_analysis/Manager.h"
 
-#include "analyzer/protocol/http/events.bif.h"
+#include "zeek/analyzer/protocol/http/events.bif.h"
 
 namespace zeek::analyzer::http {
 

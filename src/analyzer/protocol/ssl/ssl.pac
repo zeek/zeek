@@ -16,7 +16,7 @@ using SSLAnalyzer = zeek::analyzer::ssl::SSL_Analyzer*;
 #include "zeek/Desc.h"
 #include "zeek/analyzer/protocol/ssl/SSL.h"
 
-#include "analyzer/protocol/ssl/events.bif.h"
+#include "zeek/analyzer/protocol/ssl/events.bif.h"
 %}
 
 extern type SSLAnalyzer;

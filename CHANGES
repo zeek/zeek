@@ -1,3 +1,13 @@
+4.1.0-dev.171 | 2021-02-03 09:53:12 -0700
+
+  * Prefix #includes of .bif.h files with zeek/
+
+    This enables locating the headers within the install-tree using the
+    dirs provided by `zeek-config --include_dir`.
+
+    To enable locating these headers within the build-tree, this change also
+    creates a 'build/src/include/zeek -> ..' symlink. (Jon Siwek, Corelight)
+
 4.1.0-dev.169 | 2021-02-03 09:50:33 -0700
 
   * Bump macOS jobs in CI from 4 to 12 cores

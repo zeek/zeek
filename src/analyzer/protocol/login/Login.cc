@@ -13,7 +13,7 @@
 #include "zeek/Event.h"
 #include "zeek/Var.h"
 
-#include "analyzer/protocol/login/events.bif.h"
+#include "zeek/analyzer/protocol/login/events.bif.h"
 
 namespace zeek::analyzer::login {
 

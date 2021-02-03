@@ -12,7 +12,7 @@
 #include "zeek/Sessions.h"
 #include "zeek/RunState.h"
 
-#include "analyzer/protocol/rpc/events.bif.h"
+#include "zeek/analyzer/protocol/rpc/events.bif.h"
 
 namespace { // local namespace
 	const bool DEBUG_rpc_resync = false;

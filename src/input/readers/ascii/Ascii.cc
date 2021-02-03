@@ -10,7 +10,7 @@
 
 #include "zeek/threading/SerialTypes.h"
 
-#include "input/readers/ascii/ascii.bif.h"
+#include "zeek/input/readers/ascii/ascii.bif.h"
 
 using namespace std;
 using zeek::threading::Value;

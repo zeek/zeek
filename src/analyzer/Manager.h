@@ -32,7 +32,7 @@
 #include "zeek/net_util.h"
 #include "zeek/IP.h"
 
-#include "analyzer/analyzer.bif.h"
+#include "zeek/analyzer/analyzer.bif.h"
 
 namespace zeek {
 namespace analyzer {

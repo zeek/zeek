@@ -19,6 +19,10 @@ event zeek_init()
 	local x: r;
 	print x;
 
+	if ( x?$a )
+		x$e = "I'm set";
+	print x;	# should complain about $e, but not about $a
+
 	local x2: r2;
 	print x2;
 

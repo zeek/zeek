@@ -66,7 +66,7 @@ event zeek_init() &priority=5
 
 event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5
 	{
-	local info: Info &is_set;	# &is_set for case where no $std_msg
+	local info: Info &is_assigned;	# for case where no $std_msg
 	info$ts  = network_time();
 	info$uid = c$uid;
 	info$id  = c$id;

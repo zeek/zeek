@@ -102,7 +102,7 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 	         || f$info$mime_type == "application/pkix-cert" ) )
 		return;
 
-	local c: connection &is_set;	# &is_set to help static analysis
+	local c: connection &is_assigned;	# to help static analysis
 
 	for ( cid, c in f$conns )
 		{

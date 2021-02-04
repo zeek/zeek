@@ -5,12 +5,12 @@ type r: record {
 	a: count;
 	b: count &optional;
 	c: count &default = 9;
-	d: string &is_set;
+	d: string &is_assigned;
 	e: string;
 };
 
 type r2: record {
-	no_worries: r &is_set;
+	no_worries: r &is_assigned;
 	worries: r;
 };
 

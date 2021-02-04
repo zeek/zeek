@@ -290,7 +290,7 @@ void Attributes::CheckAttr(Attr* a)
 	switch ( a->Tag() ) {
 	case ATTR_DEPRECATED:
 	case ATTR_REDEF:
-	case ATTR_IS_SET:
+	case ATTR_IS_ASSIGNED:
 		break;
 
 	case ATTR_OPTIONAL:

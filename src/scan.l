@@ -285,7 +285,7 @@ when	return TOK_WHEN;
 &expire_func	return TOK_ATTR_EXPIRE_FUNC;
 &log		return TOK_ATTR_LOG;
 &optional	return TOK_ATTR_OPTIONAL;
-&is_set		return TOK_ATTR_IS_SET;
+&is_assigned	return TOK_ATTR_IS_ASSIGNED;
 &priority	return TOK_ATTR_PRIORITY;
 &type_column	return TOK_ATTR_TYPE_COLUMN;
 &read_expire	return TOK_ATTR_EXPIRE_READ;

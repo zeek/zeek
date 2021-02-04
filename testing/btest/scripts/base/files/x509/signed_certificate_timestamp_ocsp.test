@@ -20,7 +20,7 @@ event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, log
 		if ( ! f$conns[cid]?$ssl )
 			return;
 
-		local c: connection &is_set;
+		local c: connection &is_assigned;
 		c = f$conns[cid];
 		}
 

@@ -28,7 +28,7 @@
 %token TOK_ATTR_BROKER_STORE_ALLOW_COMPLEX TOK_ATTR_BACKEND
 %token TOK_ATTR_PRIORITY TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
 %token TOK_ATTR_TYPE_COLUMN TOK_ATTR_DEPRECATED
-%token TOK_ATTR_IS_SET
+%token TOK_ATTR_IS_ASSIGNED
 
 %token TOK_DEBUG
 
@@ -1472,8 +1472,8 @@ attr:
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_OPTIONAL); }
 	|	TOK_ATTR_REDEF
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_REDEF); }
-	|	TOK_ATTR_IS_SET
-			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_IS_SET); }
+	|	TOK_ATTR_IS_ASSIGNED
+			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_IS_ASSIGNED); }
 	|	TOK_ATTR_ADD_FUNC '=' expr
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_ADD_FUNC, {zeek::AdoptRef{}, $3}); }
 	|	TOK_ATTR_DEL_FUNC '=' expr

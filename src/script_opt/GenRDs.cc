@@ -820,13 +820,17 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		mgr.SetPreFromPre(lhs, a);
 		mgr.SetPreFromPre(rhs, a);
 
-		if ( CheckLHS(lhs, a) )
+		if ( ! rhs_aggr )
 			{
-			if ( ! rhs_aggr )
-				rhs->Traverse(this);
+			rhs->Traverse(this);
 
-			return TC_ABORTSTMT;
+			// The RHS could have established a pseudo-RD
+			// due to a ?$ operation.
+			mgr.SetPostFromPost(e, rhs);
 			}
+
+		if ( CheckLHS(lhs, a) )
+			return TC_ABORTSTMT;
 
 		if ( rhs_aggr )
 			{
@@ -987,6 +991,10 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				CreateInitPostDef(field_rd, DefinitionPoint(hf),
 							false, 0);
 				}
+
+			// Don't analyze r itself, since it's not expected
+			// to be defined here.
+			return TC_ABORTSTMT;
 			}
 
 		break;

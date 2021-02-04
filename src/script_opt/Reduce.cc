@@ -176,6 +176,7 @@ IDPtr Reducer::GenLocal(ID* orig)
 
 	IDPtr local_id = install_ID(buf, "<internal>", false, false);
 	local_id->SetType(orig->GetType());
+	local_id->SetAttrs(orig->GetAttrs());
 
 	new_locals.insert(local_id.get());
 	orig_to_new_locals[orig] = local_id;

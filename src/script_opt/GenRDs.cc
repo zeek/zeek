@@ -975,7 +975,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto id_rt = id_e->GetType()->AsRecordType();
 			auto id_di = mgr.GetID_DI(id);
 
-			if ( ! id_di /*### && ! analysis_options.inliner */ )
+			if ( ! id_di )
 				{
 				printf("%s possibly used without definition\n",
 					id->Name());

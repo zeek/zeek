@@ -9,13 +9,13 @@ namespace zeek::detail {
 
 ReachingDefs::ReachingDefs()
 	{
-	my_rd_map = std::make_unique<ReachingDefsMap>();
+	my_rd_map = std::make_shared<ReachingDefsMap>();
 	const_rd_map = nullptr;
 	}
 
 ReachingDefs::ReachingDefs(RDPtr rd)
 	{
-	const_rd_map = std::move(rd);
+	const_rd_map = rd->RDMap();
 	my_rd_map = nullptr;
 	}
 
@@ -65,7 +65,7 @@ RDPtr ReachingDefs::Intersect(const RDPtr& r) const
 
 	auto res = make_intrusive<ReachingDefs>();
 
-	for ( const auto& i : *RDMap() )
+	for ( const auto& i : *RDMapRef() )
 		for ( const auto& dp : *i.second )
 			{
 			if ( r->HasPair(i.first, dp) )
@@ -87,7 +87,7 @@ RDPtr ReachingDefs::Union(const RDPtr& r) const
 
 	res->AddRDs(r);
 
-	for ( const auto& i : *RDMap() )
+	for ( const auto& i : *RDMapRef() )
 		for ( const auto& dp : *i.second )
 			res->AddRD(i.first, dp);
 
@@ -102,7 +102,7 @@ RDPtr ReachingDefs::IntersectWithConsolidation(const RDPtr& r,
 
 	auto res = make_intrusive<ReachingDefs>();
 
-	for ( const auto& i : *RDMap() )
+	for ( const auto& i : *RDMapRef() )
 		for ( const auto& dp : *i.second )
 			{
 			if ( r->HasPair(i.first, dp) )
@@ -122,7 +122,7 @@ RDPtr ReachingDefs::IntersectWithConsolidation(const RDPtr& r,
 bool ReachingDefs::HasPair(const DefinitionItem* di, const DefinitionPoint& dp)
 const
 	{
-	auto map = RDMap();
+	const auto& map = RDMapRef();
 
 	auto l = map->find(di);
 	if ( l == map->end() )
@@ -135,7 +135,7 @@ const
 	return false;
 	}
 
-void ReachingDefs::AddRDs(const ReachingDefsMap* rd_m)
+void ReachingDefs::AddRDs(const std::shared_ptr<ReachingDefsMap>& rd_m)
 	{
 	for ( const auto& one_rd : *rd_m )
 		for ( const auto& dp : *one_rd.second )
@@ -147,18 +147,18 @@ void ReachingDefs::CopyMapIfNeeded()
 	if ( my_rd_map )
 		return;
 
-	my_rd_map = std::make_unique<ReachingDefsMap>();
-	auto old_const_rd_map = const_rd_map;
+	my_rd_map = std::make_shared<ReachingDefsMap>();
+	auto old_const_rd_map = std::move(const_rd_map);
 	const_rd_map = nullptr;
 	AddRDs(old_const_rd_map);
 	}
 
 void ReachingDefs::Dump() const
 	{
-	DumpMap(RDMap());
+	DumpMap(RDMapRef());
 	}
 
-void ReachingDefs::DumpMap(const ReachingDefsMap* map) const
+void ReachingDefs::DumpMap(const std::shared_ptr<ReachingDefsMap>& map) const
 	{
 	printf("%d RD element%s: ", Size(), Size() == 1 ? "" : "s");
 

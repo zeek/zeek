@@ -45,7 +45,7 @@ public:
 
 	// Add in all the definition points from rd into our set, if
 	// we don't already have them.
-	void AddRDs(const RDPtr& rd)	{ AddRDs(rd->RDMap()); }
+	void AddRDs(const RDPtr& rd)	{ AddRDs(rd->RDMapRef()); }
 
 	// Add in a single definition pair, creating the entry for
 	// the item if necessary.
@@ -59,7 +59,7 @@ public:
 	// True if the given definition item is present in our RDs.
 	bool HasDI(const DefinitionItem* di) const
 		{
-		auto map = RDMap();
+		const auto& map = RDMapRef();
 		return map->find(di) != map->end();
 		}
 
@@ -67,7 +67,7 @@ public:
 	// points at our location in the AST.
 	DefPoints* GetDefPoints(const DefinitionItem* di)
 		{
-		auto map = RDMap();
+		const auto& map = RDMapRef();
 		auto dps = map->find(di);
 		return dps == map->end() ? nullptr : dps->second.get();
 		}
@@ -115,11 +115,11 @@ public:
 	RDPtr IntersectWithConsolidation(const RDPtr& r,
 					const DefinitionPoint& di) const;
 
-	int Size() const	{ return RDMap()->size(); }
+	int Size() const	{ return RDMapRef()->size(); }
 
 	// Print out the RDs, for debugging purposes.
 	void Dump() const;
-	void DumpMap(const ReachingDefsMap* map) const;
+	void DumpMap(const std::shared_ptr<ReachingDefsMap>& map) const;
 
 protected:
 	// True if our RDs include the given definition item, defined at
@@ -127,10 +127,13 @@ protected:
 	bool HasPair(const DefinitionItem* di, const DefinitionPoint& dp) const;
 
 	// Adds in the given RDs if we don't already have them.
-	void AddRDs(const ReachingDefsMap* rd_m);
+	void AddRDs(const std::shared_ptr<ReachingDefsMap>& rd_m);
 
-	const ReachingDefsMap* RDMap() const
-		{ return my_rd_map ? my_rd_map.get() : const_rd_map->RDMap(); }
+	std::shared_ptr<ReachingDefsMap> RDMap() const
+		{ return my_rd_map ? my_rd_map : const_rd_map; }
+
+	const std::shared_ptr<ReachingDefsMap>& RDMapRef() const
+		{ return my_rd_map ? my_rd_map : const_rd_map; }
 
 	// If we don't already have our own map, copy the one we're using
 	// so that we then do.
@@ -140,9 +143,11 @@ protected:
 	void PrintRD(const DefinitionItem* di, const DefinitionPoint& dp) const;
 
 	// If my_rd_map is non-nil, then we use that map.  Otherwise,
-	// we use the map that const_rd_map points to.
-	RDPtr const_rd_map;
-	std::unique_ptr<ReachingDefsMap> my_rd_map;
+	// we use the map that const_rd_map points to.  The "const" in
+	// the latter's name is a reminder to not make any changes to
+	// that map.
+	std::shared_ptr<ReachingDefsMap> my_rd_map;
+	std::shared_ptr<ReachingDefsMap> const_rd_map;
 };
 
 

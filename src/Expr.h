@@ -1452,6 +1452,8 @@ public:
 	ExprPtr Duplicate() override;
 
 	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override	{ return false; }
+	bool WillTransform(Reducer* c) const override	{ return true; }
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;

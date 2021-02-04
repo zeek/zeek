@@ -983,14 +983,11 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				}
 
 			auto fn = hf->FieldName();
-			auto field_rd = id_di->FindField(fn);
-			if ( ! field_rd )
-				{
-				auto ft = id_rt->GetFieldType(fn);
-				field_rd = id_di->CreateField(fn, std::move(ft));
-				CreateInitPostDef(field_rd, DefinitionPoint(hf),
-							false, 0);
-				}
+			auto ft = id_rt->GetFieldType(fn);
+			auto field_rd = id_di->CreateField(fn, std::move(ft));
+
+			CreateInitPostDef(field_rd, DefinitionPoint(hf),
+						true, 0);
 
 			// Don't analyze r itself, since it's not expected
 			// to be defined here.

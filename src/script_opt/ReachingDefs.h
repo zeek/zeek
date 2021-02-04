@@ -45,7 +45,7 @@ public:
 
 	// Add in all the definition points from rd into our set, if
 	// we don't already have them.
-	void AddRDs(const RDPtr& rd)	{ AddRDs(rd->RDMapRef()); }
+	void AddRDs(const RDPtr& rd)	{ AddRDs(rd->RDMap()); }
 
 	// Add in a single definition pair, creating the entry for
 	// the item if necessary.
@@ -59,7 +59,7 @@ public:
 	// True if the given definition item is present in our RDs.
 	bool HasDI(const DefinitionItem* di) const
 		{
-		const auto& map = RDMapRef();
+		const auto& map = RDMap();
 		return map->find(di) != map->end();
 		}
 
@@ -67,7 +67,7 @@ public:
 	// points at our location in the AST.
 	DefPoints* GetDefPoints(const DefinitionItem* di)
 		{
-		const auto& map = RDMapRef();
+		const auto& map = RDMap();
 		auto dps = map->find(di);
 		return dps == map->end() ? nullptr : dps->second.get();
 		}
@@ -115,7 +115,7 @@ public:
 	RDPtr IntersectWithConsolidation(const RDPtr& r,
 					const DefinitionPoint& di) const;
 
-	int Size() const	{ return RDMapRef()->size(); }
+	int Size() const	{ return RDMap()->size(); }
 
 	// Print out the RDs, for debugging purposes.
 	void Dump() const;
@@ -129,10 +129,7 @@ protected:
 	// Adds in the given RDs if we don't already have them.
 	void AddRDs(const std::shared_ptr<ReachingDefsMap>& rd_m);
 
-	std::shared_ptr<ReachingDefsMap> RDMap() const
-		{ return my_rd_map ? my_rd_map : const_rd_map; }
-
-	const std::shared_ptr<ReachingDefsMap>& RDMapRef() const
+	const std::shared_ptr<ReachingDefsMap>& RDMap() const
 		{ return my_rd_map ? my_rd_map : const_rd_map; }
 
 	// If we don't already have our own map, copy the one we're using

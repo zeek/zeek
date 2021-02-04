@@ -349,8 +349,8 @@ Connection* NetSessions::FindConnection(Val* v)
 	const IPAddr& orig_addr = vl->GetFieldAs<AddrVal>(orig_h);
 	const IPAddr& resp_addr = vl->GetFieldAs<AddrVal>(resp_h);
 
-	const PortVal* orig_portv = vl->GetFieldAs<PortVal>(orig_p);
-	const PortVal* resp_portv = vl->GetFieldAs<PortVal>(resp_p);
+	auto orig_portv = vl->GetFieldAs<PortVal>(orig_p);
+	auto resp_portv = vl->GetFieldAs<PortVal>(resp_p);
 
 	ConnID id;
 

@@ -147,7 +147,7 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 	case TYPE_INT:
 		return val_mgr->Int(int_val);
 
-	case TYPE_BOOL:	
+	case TYPE_BOOL:
 		return val_mgr->Bool(int_val ? true : false);
 
 	case TYPE_PORT:

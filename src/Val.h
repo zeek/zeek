@@ -8,6 +8,7 @@
 #include <array>
 #include <unordered_map>
 
+#include "zeek/Obj.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Type.h"
 #include "zeek/Timer.h"
@@ -77,6 +78,7 @@ class EnumVal;
 class OpaqueVal;
 class VectorVal;
 class TableEntryVal;
+class TypeVal;
 
 using AddrValPtr = IntrusivePtr<AddrVal>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
@@ -491,7 +493,9 @@ public:
 	// Returns a masked port number
 	static uint32_t Mask(uint32_t port_num, TransportProto port_type);
 
-	const PortVal* Get() const	{ return AsPortVal(); }
+	// This method is just here to trick the interface in `RecordVal::GetFieldAs` into
+	// returning the right type. It shouldn't actually be used for anything.
+	zeek::IntrusivePtr<PortVal> Get() { return { NewRef(), AsPortVal() }; }
 
 protected:
 	friend class ValManager;
@@ -1116,6 +1120,38 @@ private:
 	PDict<TableEntryVal>* table_val;
 };
 
+// This would be way easier with is_convertible_v, but sadly that won't work here
+// because Obj has deleted copy constructors (and for good reason). Instead we make
+// up our own type trait here that basically combines a bunch of is_same traits
+// into a single trait to make life easier in the defintions of GetFieldAs().
+template <typename T>
+struct is_zeek_val
+	{
+	static const bool value = std::disjunction_v<
+		std::is_same<AddrVal, T>,
+		std::is_same<BoolVal, T>,
+		std::is_same<CountVal, T>,
+		std::is_same<DoubleVal, T>,
+		std::is_same<EnumVal, T>,
+		std::is_same<FileVal, T>,
+		std::is_same<FuncVal, T>,
+		std::is_same<IntVal, T>,
+		std::is_same<IntervalVal, T>,
+		std::is_same<ListVal, T>,
+		std::is_same<OpaqueVal, T>,
+		std::is_same<PatternVal, T>,
+		std::is_same<PortVal, T>,
+		std::is_same<RecordVal, T>,
+		std::is_same<StringVal, T>,
+		std::is_same<SubNetVal, T>,
+		std::is_same<TableVal, T>,
+		std::is_same<TimeVal, T>,
+		std::is_same<TypeVal, T>,
+		std::is_same<VectorVal, T>>;
+	};
+template <typename T>
+inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
+
 class RecordVal final : public Val, public notifier::detail::Modifiable {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
@@ -1269,20 +1305,78 @@ public:
 	// underlying value.  We provide these to enable efficient
 	// access to record fields (without requiring an intermediary Val)
 	// if we change the underlying representation of records.
-	template <typename T>
-    auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T>
+	template <typename T,
+	          typename std::enable_if_t<is_zeek_val_v<T>, bool> = true>
+	auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T>
 		{
-		auto field_ptr = GetField(field);
-		auto field_val_ptr = static_cast<T*>(field_ptr.get());
-		return field_val_ptr->Get();
+		if ( ! (*is_in_record)[field] )
+			{
+			// TODO: should this be an error via reporter?
+			}
+
+		if constexpr ( std::is_same_v<T, BoolVal> ||
+		               std::is_same_v<T, IntVal> ||
+		               std::is_same_v<T, EnumVal> )
+			return record_val->at(field).int_val;
+		else if constexpr ( std::is_same_v<T, CountVal> )
+			return record_val->at(field).uint_val;
+		else if constexpr ( std::is_same_v<T, DoubleVal> ||
+		                    std::is_same_v<T, TimeVal> ||
+		                    std::is_same_v<T, IntervalVal> )
+			return record_val->at(field).double_val;
+		else if constexpr ( std::is_same_v<T, PortVal> )
+			return val_mgr->Port(record_val->at(field).uint_val);
+		else if constexpr ( std::is_same_v<T, StringVal> )
+			return record_val->at(field).string_val->Get();
+		else if constexpr ( std::is_same_v<T, AddrVal> )
+			return record_val->at(field).addr_val->Get();
+		else if constexpr ( std::is_same_v<T, SubNetVal> )
+			return record_val->at(field).subnet_val->Get();
+		else if constexpr ( std::is_same_v<T, File> )
+			return *(record_val->at(field).file_val);
+		else if constexpr ( std::is_same_v<T, Func> )
+			return *(record_val->at(field).func_val);
+		else if constexpr ( std::is_same_v<T, PatternVal> )
+			return record_val->at(field).re_val->Get();
+		else if constexpr ( std::is_same_v<T, TableVal> )
+			return record_val->at(field).table_val->Get();
+		else
+			{
+			// TODO: error here, although because of the type trait it really shouldn't
+			// ever get here.
+			}
+		}
+
+	template <typename T,
+	          typename std::enable_if_t<!is_zeek_val_v<T>, bool> = true>
+	T GetFieldAs(int field) const
+		{
+		if ( ! (*is_in_record)[field] )
+			{
+			// TODO: should this be an error via reporter?
+			}
+
+		if constexpr ( std::is_integral_v<T> && std::is_signed_v<T> )
+			return record_val->at(field).int_val;
+		else if constexpr ( std::is_integral_v<T> && std::is_unsigned_v<T> )
+			return record_val->at(field).uint_val;
+		else if constexpr ( std::is_floating_point_v<T> )
+			return record_val->at(field).double_val;
+
+		// TODO: add other types here using type traits, such as is_same_v<T, std::string>, etc
+
+		return T{};
 		}
 
 	template <typename T>
-    auto GetFieldAs(const char* field) const -> std::invoke_result_t<decltype(&T::Get), T>
+	auto GetFieldAs(const char* field) const
 		{
-		auto field_ptr = GetField(field);
-		auto field_val_ptr = static_cast<T*>(field_ptr.get());
-		return field_val_ptr->Get();
+		int idx = GetType()->AsRecordType()->FieldOffset(field);
+
+		if ( idx < 0 )
+			reporter->InternalError("missing record field: %s", field);
+
+		return GetFieldAs<T>(idx);
 		}
 
 	/**

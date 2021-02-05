@@ -26,6 +26,9 @@ event zeek_init()
 	local x2: r2;
 	print x2;
 
-	local x3: count;
+	local x3: r2 &is_assigned;
 	print x3;
+
+	local x4: count;
+	print x4;	# note, no execution after this point due to error
 	}

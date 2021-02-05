@@ -21,25 +21,21 @@ ReachingDefs::ReachingDefs(RDPtr rd)
 
 void ReachingDefs::AddRD(const DefinitionItem* di, const DefinitionPoint& dp)
 	{
-	if ( HasPair(di, dp) )
+	auto points = FindItem(di);
+
+	if ( points && HasPoint(dp, *points) )
 		return;
 
-	CopyMapIfNeeded();
-
-	auto curr_defs = my_rd_map->find(di);
-
-	if ( curr_defs == my_rd_map->end() )
+	if ( ! my_rd_map )
 		{
-		auto dps = std::make_unique<List<DefinitionPoint>>();
-		dps->push_back(dp);
-		(*my_rd_map)[di] = std::move(dps);
+		CopyMap();
+		points = FindItem(di);
 		}
 
+	if ( points )
+		points->push_back(dp);
 	else
-		{
-		auto& dps = curr_defs->second;
-		dps->push_back(dp);
-		}
+		my_rd_map->emplace(di, std::make_unique<DefPoints>(&dp, 1));
 	}
 
 void ReachingDefs::AddOrFullyReplace(const DefinitionItem* di,
@@ -122,13 +118,24 @@ RDPtr ReachingDefs::IntersectWithConsolidation(const RDPtr& r,
 bool ReachingDefs::HasPair(const DefinitionItem* di, const DefinitionPoint& dp)
 const
 	{
+	auto points = FindItem(di);
+	return points && HasPoint(dp, *points);
+	}
+
+DefPoints* ReachingDefs::FindItem(const DefinitionItem* di) const
+	{
 	const auto& map = RDMap();
+	auto it = map->find(di);
 
-	auto l = map->find(di);
-	if ( l == map->end() )
-		return false;
+	if ( it == map->end() )
+		return nullptr;
 
-	for ( const auto& l_dp : *l->second )
+	return it->second.get();
+	}
+
+bool ReachingDefs::HasPoint(const DefinitionPoint& dp, const DefPoints& dps) const
+	{
+	for ( const auto& l_dp : dps )
 		if ( l_dp.SameAs(dp) )
 			return true;
 
@@ -142,11 +149,8 @@ void ReachingDefs::AddRDs(const std::shared_ptr<ReachingDefsMap>& rd_m)
 			AddRD(one_rd.first, dp);
 	}
 
-void ReachingDefs::CopyMapIfNeeded()
+void ReachingDefs::CopyMap()
 	{
-	if ( my_rd_map )
-		return;
-
 	my_rd_map = std::make_shared<ReachingDefsMap>();
 	auto old_const_rd_map = std::move(const_rd_map);
 	const_rd_map = nullptr;

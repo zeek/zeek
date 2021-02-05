@@ -126,6 +126,10 @@ protected:
 	// the given definition point.
 	bool HasPair(const DefinitionItem* di, const DefinitionPoint& dp) const;
 
+	DefPoints* FindItem(const DefinitionItem* di) const;
+
+	bool HasPoint(const DefinitionPoint&, const DefPoints& dps) const;
+
 	// Adds in the given RDs if we don't already have them.
 	void AddRDs(const std::shared_ptr<ReachingDefsMap>& rd_m);
 
@@ -134,7 +138,9 @@ protected:
 
 	// If we don't already have our own map, copy the one we're using
 	// so that we then do.
-	void CopyMapIfNeeded();
+	void CopyMapIfNeeded()
+		{ if ( ! my_rd_map ) CopyMap(); }
+	void CopyMap();
 
 	void PrintRD(const DefinitionItem* di, const DefPoints* dp) const;
 	void PrintRD(const DefinitionItem* di, const DefinitionPoint& dp) const;

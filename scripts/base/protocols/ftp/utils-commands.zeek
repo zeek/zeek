@@ -87,7 +87,7 @@ function add_pending_cmd(pc: PendingCmds, cmd: string, arg: string): CmdArg
 # response code and message.
 function get_pending_cmd(pc: PendingCmds, reply_code: count, reply_msg: string): CmdArg
 	{
-	local best_match: CmdArg;
+	local best_match: CmdArg &is_assigned;	# &is_assigned for $ts field
 	local best_seq = 0;
 	local best_score: int = -1;
 

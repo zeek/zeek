@@ -754,9 +754,11 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			}
 		}
 
-	analyze_scripts(options);
+	// Set up the global that facilitates access to analysis/optimization
+	// options from deep within some modules.
+	analysis_options = options.analysis_options;
 
-	auto& analysis_options = options.analysis_options;
+	analyze_scripts();
 
 	if ( analysis_options.report_recursive )
 		// This option is report-and-exit.

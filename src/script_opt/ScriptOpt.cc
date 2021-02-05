@@ -7,10 +7,13 @@
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/Inline.h"
 #include "zeek/script_opt/Reduce.h"
+#include "zeek/script_opt/GenRDs.h"
 
 
 namespace zeek::detail {
 
+
+AnalyOpt analysis_options;
 
 std::unordered_set<const Func*> non_recursive_funcs;
 
@@ -44,12 +47,11 @@ void optimize_func(ScriptFunc* f, ProfileFunc* pf, ScopePtr scope_ptr,
 	auto scope = scope_ptr.release();
 	push_existing_scope(scope);
 
-	auto rc = new Reducer(scope);
+	auto rc = std::make_unique<Reducer>(scope);
 	auto new_body = rc->Reduce(body);
 
 	if ( reporter->Errors() > 0 )
 		{
-		delete rc;
 		pop_scope();
 		return;
 		}
@@ -57,7 +59,7 @@ void optimize_func(ScriptFunc* f, ProfileFunc* pf, ScopePtr scope_ptr,
 	non_reduced_perp = nullptr;
 	checking_reduction = true;
 
-	if ( ! new_body->IsReduced(rc) )
+	if ( ! new_body->IsReduced(rc.get()) )
 		{
 		if ( non_reduced_perp )
 			printf("Reduction inconsistency for %s: %s\n", f->Name(),
@@ -73,14 +75,16 @@ void optimize_func(ScriptFunc* f, ProfileFunc* pf, ScopePtr scope_ptr,
 
 	f->ReplaceBody(body, new_body);
 	body = new_body;
+	body->Traverse(pf);
+
+	RD_Decorate reduced_rds(pf);
+	reduced_rds.TraverseFunction(f, scope, body);
 
 	int new_frame_size =
 		scope->Length() + rc->NumTemps() + rc->NumNewLocals();
 
 	if ( new_frame_size > f->FrameSize() )
 		f->SetFrameSize(new_frame_size);
-
-	delete rc;
 
 	pop_scope();
 	}
@@ -104,10 +108,8 @@ static void check_env_opt(const char* opt, bool& opt_flag)
 		opt_flag = true;
 	}
 
-void analyze_scripts(Options& opts)
+void analyze_scripts()
 	{
-	auto& analysis_options = opts.analysis_options;
-
 	static bool did_init = false;
 
 	if ( ! did_init )
@@ -116,6 +118,11 @@ void analyze_scripts(Options& opts)
 		check_env_opt("ZEEK_INLINE", analysis_options.inliner);
 		check_env_opt("ZEEK_XFORM", analysis_options.activate);
 
+		auto usage = getenv("ZEEK_USAGE_ISSUES");
+
+		if ( usage )
+			analysis_options.usage_issues = atoi(usage) > 1 ? 2 : 1;
+
 		if ( ! analysis_options.only_func )
 			{
 			auto zo = getenv("ZEEK_ONLY");
@@ -123,7 +130,8 @@ void analyze_scripts(Options& opts)
 				analysis_options.only_func = zo;
 			}
 
-		if ( analysis_options.only_func )
+		if ( analysis_options.only_func ||
+		     analysis_options.usage_issues > 0 )
 			analysis_options.activate = true;
 
 		did_init = true;
@@ -199,15 +207,12 @@ void analyze_scripts(Options& opts)
 		new_to_do.clear();
 		}
 
-	Inliner* inl = nullptr;
+	std::unique_ptr<Inliner> inl;
 	if ( analysis_options.inliner )
-		inl = new Inliner(funcs, analysis_options.report_recursive);
+		inl = std::make_unique<Inliner>(funcs, analysis_options.report_recursive);
 
 	if ( ! analysis_options.activate )
-		{
-		delete inl;
 		return;
-		}
 
 	for ( auto& f : funcs )
 		{
@@ -225,8 +230,6 @@ void analyze_scripts(Options& opts)
 				new_body, analysis_options);
 		f.SetBody(new_body);
 		}
-
-	delete inl;
 	}
 
 

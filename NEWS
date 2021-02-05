@@ -19,6 +19,29 @@ New Functionality
   skips past the VN-Tag header, allowing for further analysis of subsequent
   packet contents.
 
+- Support for Zeek script "Reaching Definitions" (RD) analysis: tracking the
+  extent to which a given variable definition (assignment) can be visible
+  elsewhere in the Zeek script.  The analysis works on local variables in
+  function/event/hook bodies, but not across them.
+
+  The code tracks two forms of RDs, "minimal" (what's guaranteed to reach a
+  given point in a function body) and "maximal" (what possibly could reach).
+  Upcoming script optimization will use the latter, but the former currently
+  allows identification of places for which a value is used where it
+  does not appear that it will necessarily be defined. Specifying the
+  ``zeek -u`` option will generate warnings for instances where this holds for
+  local variables. Specifying ``zeek -uu`` turns on additional (expensive)
+  analysis to report instances where record fields might be used without
+  having previously been set.
+
+  The base scripts have some places where the static analysis lacks sufficient
+  power to tell that values are being used safely (guaranteed to have been
+  identified). In order to enable users to employ ``zeek -u`` on their own
+  scripts without being distracted by these instances, this change also
+  includes a new attribute, ``&is_assigned``, which can be associated with a
+  variable or a record field to inform Zeek's analysis that the script writer
+  asserts the value will be set, suppressing the associated warnings.
+
 Changed Functionality
 ---------------------
 

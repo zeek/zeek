@@ -24,13 +24,17 @@ using ValPtr = IntrusivePtr<Val>;
 
 namespace zeek::detail {
 
+class CatchReturnStmt;
 class ExprStmt;
 class ForStmt;
+class IfStmt;
 class InitStmt;
+class PrintStmt;
 class ReturnStmt;
 class StmtList;
 class SwitchStmt;
 class WhenStmt;
+class WhileStmt;
 
 class EventExpr;
 class ListExpr;
@@ -69,8 +73,12 @@ public:
 	const ForStmt* AsForStmt() const;
 
 	const ExprStmt* AsExprStmt() const;
+	const PrintStmt* AsPrintStmt() const;
 	const InitStmt* AsInitStmt() const;
+	const CatchReturnStmt* AsCatchReturnStmt() const;
 	const ReturnStmt* AsReturnStmt() const;
+	const IfStmt* AsIfStmt() const;
+	const WhileStmt* AsWhileStmt() const;
 	const WhenStmt* AsWhenStmt() const;
 	const SwitchStmt* AsSwitchStmt() const;
 

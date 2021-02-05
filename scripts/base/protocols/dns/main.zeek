@@ -293,7 +293,7 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 				else
 					{
 					# Just pick an arbitrary, unpaired query.
-					local tid: count;
+					local tid: count &is_assigned;
 					local found_one = F;
 
 					for ( trans_id, q in c$dns_state$pending_queries )

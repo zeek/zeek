@@ -25,6 +25,12 @@ ConstExpr* Expr::AsConstExpr()
 	return (ConstExpr*) this;
 	}
 
+const FieldExpr* Expr::AsFieldExpr() const
+	{
+	CHECK_TAG(tag, EXPR_FIELD, "ExprVal::AsFieldExpr", expr_name)
+	return (const FieldExpr*) this;
+	}
+
 FieldExpr* Expr::AsFieldExpr()
 	{
 	CHECK_TAG(tag, EXPR_FIELD, "ExprVal::AsFieldExpr", expr_name)
@@ -35,6 +41,36 @@ IntrusivePtr<FieldAssignExpr> Expr::AsFieldAssignExprPtr()
 	{
 	CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
 	return {NewRef{}, (FieldAssignExpr*) this};
+	}
+
+const IndexAssignExpr* Expr::AsIndexAssignExpr() const
+	{
+	CHECK_TAG(tag, EXPR_INDEX_ASSIGN, "ExprVal::AsIndexAssignExpr", expr_name)
+	return (const IndexAssignExpr*) this;
+	}
+
+const FieldLHSAssignExpr* Expr::AsFieldLHSAssignExpr() const
+	{
+	CHECK_TAG(tag, EXPR_FIELD_LHS_ASSIGN, "ExprVal::AsFieldLHSAssignExpr", expr_name)
+	return (const FieldLHSAssignExpr*) this;
+	}
+
+const HasFieldExpr* Expr::AsHasFieldExpr() const
+	{
+	CHECK_TAG(tag, EXPR_HAS_FIELD, "ExprVal::AsHasFieldExpr", expr_name)
+	return (const HasFieldExpr*) this;
+	}
+
+const AddToExpr* Expr::AsAddToExpr() const
+	{
+	CHECK_TAG(tag, EXPR_ADD_TO, "ExprVal::AsAddToExpr", expr_name)
+	return (const AddToExpr*) this;
+	}
+
+const InlineExpr* Expr::AsInlineExpr() const
+	{
+	CHECK_TAG(tag, EXPR_INLINE, "ExprVal::AsInlineExpr", expr_name)
+	return (const InlineExpr*) this;
 	}
 
 ExprPtr Expr::GetOp1() const { return nullptr; }

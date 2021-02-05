@@ -82,14 +82,19 @@ enum BroExprTag : int {
 
 extern const char* expr_name(BroExprTag t);
 
+class AddToExpr;
 class AssignExpr;
 class CallExpr;
 class ConstExpr;
 class EventExpr;
 class FieldAssignExpr;
 class FieldExpr;
+class FieldLHSAssignExpr;
 class ForExpr;
+class HasFieldExpr;
+class IndexAssignExpr;
 class IndexExpr;
+class InlineExpr;
 class ListExpr;
 class NameExpr;
 class RefExpr;
@@ -195,14 +200,19 @@ public:
 	ctype* As ## ctype (); \
 	IntrusivePtr<ctype> As ## ctype ## Ptr ();
 
+	ZEEK_EXPR_ACCESSOR_DECLS(AddToExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(AssignExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(CallExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(ConstExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(EventExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(FieldAssignExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(FieldExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(FieldLHSAssignExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(ForExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(HasFieldExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(IndexAssignExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(IndexExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(InlineExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(ListExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(NameExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(RefExpr)
@@ -1292,6 +1302,8 @@ public:
 	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
 	           IDPList outer_ids);
 
+	const IDPList& OuterIDs() const	{ return outer_ids; }
+
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -1440,6 +1452,8 @@ public:
 	ExprPtr Duplicate() override;
 
 	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override	{ return false; }
+	bool WillTransform(Reducer* c) const override	{ return true; }
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;

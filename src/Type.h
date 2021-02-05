@@ -834,6 +834,12 @@ inline bool IsVector(TypeTag t)	{ return (t == TYPE_VECTOR); }
 // True if the given type type is a string.
 inline bool IsString(TypeTag t)	{ return (t == TYPE_STRING); }
 
+// True if the given type is a container aggregate.
+inline bool IsAggr(TypeTag tag)
+	{
+	return tag == TYPE_VECTOR || tag == TYPE_TABLE || tag == TYPE_RECORD;
+	}
+
 // True if the given type tag corresponds to the error type.
 inline bool IsErrorType(TypeTag t)	{ return (t == TYPE_ERROR); }
 

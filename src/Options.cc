@@ -157,6 +157,7 @@ static void set_analysis_option(const char* opt, Options& opts)
 	if ( util::streq(opt, "help") )
 		{
 		fprintf(stderr, "--optimize options:\n");
+		fprintf(stderr, "    dump-uds	dump use-defs to stdout; implies xform\n");
 		fprintf(stderr, "    dump-xform	dump transformed scripts to stdout; implies xform\n");
 		fprintf(stderr, "    help	print this list\n");
 		fprintf(stderr, "    inline	inline function calls\n");
@@ -167,7 +168,9 @@ static void set_analysis_option(const char* opt, Options& opts)
 
 	auto& a_o = opts.analysis_options;
 
-	if ( util::streq(opt, "dump-xform") )
+	if ( util::streq(opt, "dump-uds") )
+		a_o.activate = a_o.dump_uds = true;
+	else if ( util::streq(opt, "dump-xform") )
 		a_o.activate = a_o.dump_xform = true;
 	else if ( util::streq(opt, "inline") )
 		a_o.inliner = true;

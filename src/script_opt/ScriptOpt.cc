@@ -115,6 +115,7 @@ void analyze_scripts()
 	if ( ! did_init )
 		{
 		check_env_opt("ZEEK_DUMP_XFORM", analysis_options.dump_xform);
+		check_env_opt("ZEEK_DUMP_UDS", analysis_options.dump_uds);
 		check_env_opt("ZEEK_INLINE", analysis_options.inliner);
 		check_env_opt("ZEEK_XFORM", analysis_options.activate);
 

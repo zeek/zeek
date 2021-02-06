@@ -27,6 +27,9 @@ struct AnalyOpt {
 	// them.  Always done if only_func is set.
 	bool dump_xform = false;
 
+	// If true, dump out the use-defs for each analyzed function.
+	bool dump_uds = false;
+
 	// If non-nil, then only analyze the given function/event/hook.
 	std::optional<std::string> only_func;
 

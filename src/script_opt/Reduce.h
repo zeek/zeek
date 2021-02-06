@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include "zeek/IntrusivePtr.h"
 #include "zeek/Scope.h"
 #include "zeek/Expr.h"
 #include "zeek/Stmt.h"
+#include "zeek/script_opt/DefSetsMgr.h"
 
 namespace zeek::detail {
 
@@ -22,6 +22,9 @@ public:
 		{
 		return s->Reduce(this);
 		}
+
+	const DefSetsMgr* GetDefSetsMgr() const		{ return mgr; }
+	void SetDefSetsMgr(const DefSetsMgr* _mgr)	{ mgr = _mgr; }
 
 	ExprPtr GenTemporaryExpr(const TypePtr& t, ExprPtr rhs);
 
@@ -70,25 +73,50 @@ public:
 	bool IsTemporary(const ID* id) const
 		{ return FindTemporary(id) != nullptr; }
 
-	// This is a stub for now, since it's not relevant for AST
-	// reduction by itself.  However, many of the Reduce methods
-	// ultimately will call this predicate to control how they
-	// function during the second traversal used to optimize
-	// the reduced form, so we provide the hook now.
-	bool Optimizing() const	{ return false; }
+	bool IsConstantVar(const ID* id) const
+		{ return constant_vars.find(id) != constant_vars.end(); }
 
-	// A stub for now, but ultimately a predicate that indicates whether
-	// a given reduction pass is being made to prune unused statements.
-	bool IsPruning() const		{ return false; }
+	// True if the Reducer is being used in the context of a second
+	// pass over for AST optimization.
+	bool Optimizing() const
+		{ return ! IsPruning() && mgr != nullptr; }
 
-	// A stub for now, ultimately a predicate that returns true if
-	// the given statement should be removed due to AST optimization.
-	bool ShouldOmitStmt(const StmtPtr& s) const	{ return false; }
+	// A predicate that indicates whether a given reduction pass
+	// is being made to prune unused statements.
+	bool IsPruning() const		{ return omitted_stmts.size() > 0; }
 
-	// A stub for now, ultimately provides a replacement for the
-	// given statement due to AST optimization, or nil if there's
-	// no replacement.
-	StmtPtr ReplacementStmt(const StmtPtr& s) const	{ return nullptr; }
+	// A predicate that returns true if the given statement should
+	// be removed due to AST optimization.
+	bool ShouldOmitStmt(const Stmt* s) const
+		{ return omitted_stmts.find(s) != omitted_stmts.end(); }
+
+	// Provides a replacement for the given statement due to
+	// AST optimization, or nil if there's no replacement.
+	StmtPtr ReplacementStmt(const StmtPtr& s) const
+		{
+		auto repl = replaced_stmts.find(s.get());
+		if ( repl == replaced_stmts.end() )
+			return nullptr;
+		else
+			return repl->second;
+		}
+
+	// Tells the reducer to prune the given statement during the
+	// next reduction pass.
+	void AddStmtToOmit(const Stmt* s)	{ omitted_stmts.insert(s); }
+
+	// Tells the reducer to replace the given statement during the
+	// next reduction pass.
+	void AddStmtToReplace(const Stmt* s_old, StmtPtr s_new)
+		{ replaced_stmts[s_old] = s_new; }
+
+	// Tells the reducer that it can reclaim the storage associated
+	// with the omitted statements.
+	void ResetAlteredStmts()
+		{
+		omitted_stmts.clear();
+		replaced_stmts.clear();
+		}
 
 	// NOT YET IMPLEMENTED, SO CURRENTLY A STUB:
 	// Given the LHS and RHS of an assignment, returns true
@@ -162,6 +190,9 @@ protected:
 	std::unordered_set<ID*> new_locals;
 	std::unordered_map<const ID*, IDPtr> orig_to_new_locals;
 
+	std::unordered_set<const Stmt*> omitted_stmts;
+	std::unordered_map<const Stmt*, StmtPtr> replaced_stmts;
+
 	// Tracks whether we're inside an inline block, and if so then
 	// how deeply.
 	int inline_block_level = 0;
@@ -172,10 +203,16 @@ protected:
 	// exponentially.
 	int bifurcation_level = 0;
 
+	// Tracks which (non-temporary) variables had constant
+	// values used for constant propagation.
+	std::unordered_set<const ID*> constant_vars;
+
 	// For a new expression we've created, map it to the expression
 	// it's replacing.  This allows us to locate the RDs associated
 	// with the usage.
 	std::unordered_map<const Expr*, const Expr*> new_expr_to_orig;
+
+	const DefSetsMgr* mgr = nullptr;
 };
 
 // Used for debugging, to communicate which expression wasn't

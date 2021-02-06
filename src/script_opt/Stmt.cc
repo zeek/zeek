@@ -27,7 +27,7 @@ StmtPtr Stmt::Reduce(Reducer* c)
 	if ( repl )
 		return repl;
 
-	if ( c->ShouldOmitStmt(this_ptr) )
+	if ( c->ShouldOmitStmt(this) )
 		{
 		auto null = make_intrusive<NullStmt>();
 		null->SetOriginal(this_ptr);

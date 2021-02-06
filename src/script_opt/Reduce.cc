@@ -257,11 +257,11 @@ StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, Stmt* succ_stmt)
 
 	return make_intrusive<ExprStmt>(merge_e);
 	}
-                 
+
 void Reducer::TrackExprReplacement(const Expr* orig, const Expr* e)
 	{
 	new_expr_to_orig[e] = orig;
-	}       
+	}
 
 
 const Expr* non_reduced_perp;

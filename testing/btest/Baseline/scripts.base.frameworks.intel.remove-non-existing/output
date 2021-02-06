@@ -7,6 +7,6 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	level	message	location
 #types	time	enum	string	string
-XXXXXXXXXX.XXXXXX	Reporter::INFO	Tried to remove non-existing item '192.168.1.1' (Intel::ADDR).	<...>/main.zeek, lines 566-567
+XXXXXXXXXX.XXXXXX	Reporter::INFO	Tried to remove non-existing item '192.168.1.1' (Intel::ADDR).	<...>/main.zeek, lines 570-571
 XXXXXXXXXX.XXXXXX	Reporter::INFO	received termination signal	(empty)
 #close XXXX-XX-XX-XX-XX-XX

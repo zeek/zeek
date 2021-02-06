@@ -46,7 +46,8 @@ enum AttrTag {
 	ATTR_BROKER_STORE_ALLOW_COMPLEX, // for Broker store backed tables
 	ATTR_BACKEND, // for Broker store backed tables
 	ATTR_DEPRECATED,
-	ATTR_IS_ASSIGNED, // to suppress warnings
+	ATTR_IS_ASSIGNED, // to suppress usage warnings
+	ATTR_IS_USED, // to suppress usage warnings
 	NUM_ATTRS // this item should always be last
 };
 

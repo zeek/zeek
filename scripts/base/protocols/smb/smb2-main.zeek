@@ -22,9 +22,7 @@ event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=5
 	
 	local smb_state = c$smb_state;
 	local tid = hdr$tree_id;
-	local pid = hdr$process_id;
 	local mid = hdr$message_id;
-	local sid = hdr$session_id;
 
 	if ( mid !in smb_state$pending_cmds )
 		{

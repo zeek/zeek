@@ -65,18 +65,18 @@ public:
 	ScriptFuncPtr FuncPtr()	{ return func; }
 	ScopePtr Scope()	{ return scope; }
 	StmtPtr Body()		{ return body; }
-	ProfileFunc* Profile()	{ return pf.get(); }
+	std::shared_ptr<ProfileFunc> Profile()	{ return pf; }
 	const std::string& SaveFile()	{ return save_file; }
 
 	void SetBody(StmtPtr new_body)	{ body = std::move(new_body); }
-	void SetProfile(std::unique_ptr<ProfileFunc> _pf);
+	void SetProfile(std::shared_ptr<ProfileFunc> _pf);
 	void SetSaveFile(std::string _sf)	{ save_file = std::move(_sf); }
 
 protected:
 	ScriptFuncPtr func;
 	ScopePtr scope;
 	StmtPtr body;
-	std::unique_ptr<ProfileFunc> pf;
+	std::shared_ptr<ProfileFunc> pf;
 
 	// If we're saving this function in a file, this is the name
 	// of the file to use.

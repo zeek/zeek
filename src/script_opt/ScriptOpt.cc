@@ -21,8 +21,9 @@ std::unordered_set<const Func*> non_recursive_funcs;
 static std::vector<FuncInfo> funcs;
 
 
-void optimize_func(ScriptFunc* f, ProfileFunc* pf, ScopePtr scope_ptr,
-			StmtPtr& body, AnalyOpt& analysis_options)
+void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
+			ScopePtr scope_ptr, StmtPtr& body,
+			AnalyOpt& analysis_options)
 	{
 	if ( reporter->Errors() > 0 )
 		return;
@@ -47,7 +48,7 @@ void optimize_func(ScriptFunc* f, ProfileFunc* pf, ScopePtr scope_ptr,
 	auto scope = scope_ptr.release();
 	push_existing_scope(scope);
 
-	auto rc = std::make_unique<Reducer>(scope);
+	auto rc = std::make_shared<Reducer>(scope);
 	auto new_body = rc->Reduce(body);
 
 	if ( reporter->Errors() > 0 )
@@ -75,7 +76,7 @@ void optimize_func(ScriptFunc* f, ProfileFunc* pf, ScopePtr scope_ptr,
 
 	f->ReplaceBody(body, new_body);
 	body = new_body;
-	body->Traverse(pf);
+	body->Traverse(pf.get());
 
 	RD_Decorate reduced_rds(pf);
 	reduced_rds.TraverseFunction(f, scope, body);
@@ -94,7 +95,7 @@ FuncInfo::FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body)
 		: func(std::move(_func)), scope(std::move(_scope)), body(std::move(_body))
 	{}
 
-void FuncInfo::SetProfile(std::unique_ptr<ProfileFunc> _pf)
+void FuncInfo::SetProfile(std::shared_ptr<ProfileFunc> _pf)
 	{ pf = std::move(_pf); }
 
 void analyze_func(ScriptFuncPtr f)
@@ -143,12 +144,13 @@ void analyze_scripts()
 
 	// Now that everything's parsed and BiF's have been initialized,
 	// profile the functions.
-	std::unordered_map<const ScriptFunc*, const ProfileFunc*> func_profs;
+	std::unordered_map<const ScriptFunc*, std::shared_ptr<ProfileFunc>>
+		func_profs;
 
 	for ( auto& f : funcs )
 		{
-		f.SetProfile(std::make_unique<ProfileFunc>(true));
-		f.Body()->Traverse(f.Profile());
+		f.SetProfile(std::make_shared<ProfileFunc>(true));
+		f.Body()->Traverse(f.Profile().get());
 		func_profs[f.Func()] = f.Profile();
 		}
 

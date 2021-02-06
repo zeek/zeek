@@ -471,8 +471,12 @@ function insert_meta_data(item: Item): bool
 # indicates whether the item might be new for other nodes.
 function _insert(item: Item, first_dispatch: bool &default = T)
 	{
-	# Assume that the item is new by default.
-	local is_new: bool = T;
+	# Assume that the item is new by default.  The &is_used attribute
+	# is because if have_full_data isn't redef'd to F, then constant
+	# propagation will cause the definition here to be shadowed by
+	# the one below.  Alternatively, we could skip initializing here
+	# and instead do so in the "else" branch for the have_full_data test.
+	local is_new: bool = T &is_used;
 
 	# All intelligence is case insensitive at the moment.
 	local lower_indicator = to_lower(item$indicator);

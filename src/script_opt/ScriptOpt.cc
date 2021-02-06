@@ -8,6 +8,7 @@
 #include "zeek/script_opt/Inline.h"
 #include "zeek/script_opt/Reduce.h"
 #include "zeek/script_opt/GenRDs.h"
+#include "zeek/script_opt/UseDefs.h"
 
 
 namespace zeek::detail {
@@ -76,10 +77,24 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	f->ReplaceBody(body, new_body);
 	body = new_body;
+
+	// Profile the new body.
+	pf = std::make_shared<ProfileFunc>(false);
 	body->Traverse(pf.get());
 
+	// Compute its reaching definitions.
 	RD_Decorate reduced_rds(pf);
 	reduced_rds.TraverseFunction(f, scope, body);
+
+	rc->SetDefSetsMgr(reduced_rds.GetDefSetsMgr());
+
+	auto ud = std::make_unique<UseDefs>(body, rc);
+	ud->Analyze();
+
+	if ( analysis_options.dump_uds )
+		ud->Dump();
+
+	ud->RemoveUnused();
 
 	int new_frame_size =
 		scope->Length() + rc->NumTemps() + rc->NumNewLocals();

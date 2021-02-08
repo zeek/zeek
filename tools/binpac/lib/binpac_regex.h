@@ -2,7 +2,7 @@
 #define binpac_regex_h
 
 #include "binpac.h"
-#include "RE.h"
+#include "zeek/RE.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
 

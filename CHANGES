@@ -1,4 +1,17 @@
 
+4.1.0-dev.216 | 2021-02-08 13:06:07 -0800
+
+  * Allow --parse-only to work with --usage-issues flag (Jon Siwek, Corelight)
+
+    Use of --parse-only would previously exit before --usage-issues had a
+    chance to analyze scripts and report any discovered issues and it can be
+    useful to combine both flags for checking scripts for mistakes without
+    actually executing any code.
+
+    This also improves the behavior of --parse-only in combination with
+    reporting problems in signature files (previously, it exited before
+    even reading them).
+
 4.1.0-dev.212 | 2021-02-05 10:56:23 -0800
 
   * Support for Zeek script "Reaching Definitions" (RD) analysis (Vern Paxson, Corelight)

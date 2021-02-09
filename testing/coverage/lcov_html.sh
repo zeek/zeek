@@ -93,7 +93,7 @@ fi
 
 # Files and directories that will be removed from the counts in step 5. Directories
 # need to be surrounded by escaped wildcards.
-REMOVE_TARGETS="*.yy *.ll *.y *.l \*/bro.dir/\* *.bif \*/zeek.dir/\* \*/src/3rdparty/\* \*/auxil/\*"
+REMOVE_TARGETS="*.yy *.ll *.y *.l \*/bro.dir/\* *.bif \*/zeek.dir/\* \*/src/3rdparty/\* \*/src/zeek/3rdparty/\* \*/auxil/\* "
 
 # 1. Move to base dir, create tmp dir
 cd ../../;
@@ -131,6 +131,12 @@ if [ $HTML_REPORT -eq 1 ]; then
     echo -n "Creating HTML files... "
     verify_run "genhtml -o $COVERAGE_HTML_DIR $COVERAGE_FILE"
 else
+    # The data we send to coveralls has a lot of duplicate files in it because of the
+    # zeek symlink in the src directory. Run a script that cleans that up.
+    echo -n "Cleaning coverage data for Coveralls..."
+    COVERAGE_FILE_CLEAN="${COVERAGE_FILE}.clean"
+    verify_run "testing/coverage/coverage_cleanup.py ${COVERAGE_FILE} > ${COVERAGE_FILE_CLEAN} 2>&1"
+
     echo -n "Reporting to Coveralls..."
     coveralls_cmd="coveralls-lcov -t ${COVERALLS_REPO_TOKEN}"
 
@@ -141,7 +147,7 @@ else
 	coveralls_cmd="${coveralls_cmd} --service-name=local"
     fi
 
-    coveralls_cmd="${coveralls_cmd} ${COVERAGE_FILE}"
+    coveralls_cmd="${coveralls_cmd} ${COVERAGE_FILE_CLEAN}"
 
     verify_run "${coveralls_cmd}"
 fi

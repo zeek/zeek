@@ -194,7 +194,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs,
 	case STMT_LIST:
 		{
 		auto sl = s->AsStmtList();
-		auto stmts = sl->Stmts();
+		const auto& stmts = sl->Stmts();
 
 		for ( int i = stmts.length(); --i >= 0; )
 			{
@@ -396,7 +396,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs,
 		successor2[body.get()] = succ_stmt;
 		auto body_UDs = PropagateUDs(body.get(), succ_UDs, succ.get(), second_pass);
 
-		auto cond = w->Condition();
+		const auto& cond = w->Condition();
 		auto w_UDs = UD_Union(ExprUDs(cond.get()), body_UDs);
 		FoldInUDs(w_UDs, body_UDs);
 
@@ -404,7 +404,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs,
 			{
 			// Create a successor for the cond_stmt
 			// that has the correct UDs associated with it.
-			auto c_as_s = w->ConditionAsStmt();
+			const auto& c_as_s = w->ConditionAsStmt();
 			auto c_as_s_UDs = std::make_shared<UseDefSet>(w_UDs);
 			CreateUDs(c_as_s.get(), c_as_s_UDs);
 

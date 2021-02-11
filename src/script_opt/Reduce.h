@@ -108,7 +108,7 @@ public:
 	// Tells the reducer to replace the given statement during the
 	// next reduction pass.
 	void AddStmtToReplace(const Stmt* s_old, StmtPtr s_new)
-		{ replaced_stmts[s_old] = s_new; }
+		{ replaced_stmts[s_old] = std::move(s_new); }
 
 	// Tells the reducer that it can reclaim the storage associated
 	// with the omitted statements.

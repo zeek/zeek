@@ -95,7 +95,7 @@ private:
 	UDs PropagateUDs(const StmtPtr& s, UDs succ_UDs,
 				const StmtPtr& succ_stmt, bool second_pass)
 		{
-		return PropagateUDs(s.get(), succ_UDs, succ_stmt.get(),
+		return PropagateUDs(s.get(), std::move(succ_UDs), succ_stmt.get(),
 					second_pass);
 		}
 	UDs PropagateUDs(const Stmt* s, UDs succ_UDs,

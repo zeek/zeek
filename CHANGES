@@ -1,4 +1,8 @@
 
+4.1.0-dev.220 | 2021-02-11 11:10:46 -0800
+
+  * GH-1399: Remove RocksDB configure script options (Jon Siwek, Corelight)
+
 4.1.0-dev.219 | 2021-02-11 10:56:16 -0800
 
   * Add a script to cleanup the file listing before sending to Coveralls (Tim Wojtulewicz)

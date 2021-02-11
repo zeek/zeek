@@ -1,4 +1,14 @@
 
+4.1.0-dev.219 | 2021-02-11 10:56:16 -0800
+
+  * Add a script to cleanup the file listing before sending to Coveralls (Tim Wojtulewicz)
+
+    GCC has a "feature" where it doesn't realize that files in the
+    src/zeek/... tree are the same as files in the normal 'src/' tree. This
+    leads the coverage script to send duplicates to Coveralls and pollute
+    the display with them. The new script scrapes the intermediate output
+    from lcov and de-duplicates anything in src/zeek/ to be just from src/.
+
 4.1.0-dev.216 | 2021-02-08 13:06:07 -0800
 
   * Allow --parse-only to work with --usage-issues flag (Jon Siwek, Corelight)

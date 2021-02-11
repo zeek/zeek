@@ -430,10 +430,7 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 		}
 
 	for ( const auto& post : bd->PostRDs() )
-		{
 		mgr.MergeIntoPost(body, post);
-		mgr.MergeIntoPre(s, post);
-		}
 
 	// Freshen due to mergers.
 	loop_pre = mgr.GetPreMaxRDs(top);

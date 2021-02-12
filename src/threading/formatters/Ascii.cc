@@ -225,7 +225,9 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 		{
 		string unescaped = get_unescaped_string(s);
 		val->val.string_val.length = unescaped.size();
-		val->val.string_val.data = copy_string(unescaped.c_str());
+		val->val.string_val.data = new char[val->val.string_val.length];
+		// we do not need a zero-byte at the end - the input manager adds that explicitly
+		memcpy(val->val.string_val.data, unescaped.data(), unescaped.size());
 		break;
 		}
 

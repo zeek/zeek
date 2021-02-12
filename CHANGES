@@ -1,4 +1,14 @@
 
+4.1.0-dev.224 | 2021-02-12 11:18:32 -0800
+
+  * GH-1398: Fix buffer overread in ascii formatter (Johanna Amann, Corelight)
+
+    When a text with an (escaped) zero byte was passed to ParseValue, only
+    the part of the string up to the zero byte was copied, but the length of
+    the full string was passed to the input framework.
+
+    This leads to the input manager reading over the end of the buffer.
+
 4.1.0-dev.220 | 2021-02-11 11:10:46 -0800
 
   * GH-1399: Remove RocksDB configure script options (Jon Siwek, Corelight)

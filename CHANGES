@@ -1,4 +1,11 @@
 
+4.0.0-rc2.7 | 2021-02-12 14:42:17 -0800
+
+  * Fix CentOS 8 CI Dockerfile (Jon Siwek, Corelight)
+
+    The "PowerTools" repoid changed to "powertools":
+    https://bugs.centos.org/view.php?id=17920
+
 4.0.0-rc2.6 | 2021-02-12 12:39:45 -0800
 
   * Bump macOS jobs in CI from 4 to 12 cores (Christian Kreibich, Corelight)

@@ -145,7 +145,7 @@ refine flow File += {
 			oh->Assign(13, val_mgr->GetCount(${h.os_version_minor}));
 			oh->Assign(14, val_mgr->GetCount(${h.major_image_version}));
 			oh->Assign(15, val_mgr->GetCount(${h.minor_image_version}));
-			oh->Assign(16, val_mgr->GetCount(${h.minor_subsys_version}));
+			oh->Assign(16, val_mgr->GetCount(${h.major_subsys_version}));
 			oh->Assign(17, val_mgr->GetCount(${h.minor_subsys_version}));
 			oh->Assign(18, val_mgr->GetCount(${h.size_of_image}));
 			oh->Assign(19, val_mgr->GetCount(${h.size_of_headers}));

@@ -146,7 +146,7 @@ refine flow File += {
 			oh->Assign(13, zeek::val_mgr->Count(${h.os_version_minor}));
 			oh->Assign(14, zeek::val_mgr->Count(${h.major_image_version}));
 			oh->Assign(15, zeek::val_mgr->Count(${h.minor_image_version}));
-			oh->Assign(16, zeek::val_mgr->Count(${h.minor_subsys_version}));
+			oh->Assign(16, zeek::val_mgr->Count(${h.major_subsys_version}));
 			oh->Assign(17, zeek::val_mgr->Count(${h.minor_subsys_version}));
 			oh->Assign(18, zeek::val_mgr->Count(${h.size_of_image}));
 			oh->Assign(19, zeek::val_mgr->Count(${h.size_of_headers}));

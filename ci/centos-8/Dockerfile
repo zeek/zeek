@@ -3,7 +3,7 @@ FROM centos:8
 RUN dnf -y install epel-release dnf-plugins-core \
   && dnf clean all && rm -rf /var/cache/dnf
 
-RUN dnf config-manager --set-enabled PowerTools
+RUN dnf config-manager --set-enabled powertools
 
 RUN dnf -y update && dnf -y install \
     git \

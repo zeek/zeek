@@ -1,4 +1,11 @@
 
+4.1.0-dev.225 | 2021-02-12 14:40:14 -0800
+
+  * Fix CentOS 8 CI Dockerfile (Jon Siwek, Corelight)
+
+    The "PowerTools" repoid changed to "powertools":
+    https://bugs.centos.org/view.php?id=17920
+
 4.1.0-dev.224 | 2021-02-12 11:18:32 -0800
 
   * GH-1398: Fix buffer overread in ascii formatter (Johanna Amann, Corelight)

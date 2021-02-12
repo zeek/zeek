@@ -21,6 +21,7 @@ redef InputAscii::unset_field = "-";
 abc\x0a\xffdef|DATA2
 abc\x7c\xffdef|DATA2
 abc\xff\x7cdef|DATA2
+abc\x00\x00\x00\xff\x7cdef|DATA3
 #end|2012-07-20-01-49-19
 @TEST-END-FILE
 
@@ -37,7 +38,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, a: string, b
 	print outfile, a;
 	print outfile, b;
 	try = try + 1;
-	if ( try == 3 )
+	if ( try == 4 )
 		{
 		Input::remove("input");
 		close(outfile);

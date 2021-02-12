@@ -311,35 +311,18 @@ if ( PYTHON_VERSION_STRING VERSION_LESS ${ZEEK_PYTHON_MIN} )
     message(FATAL_ERROR "Python ${ZEEK_PYTHON_MIN} or greater is required.")
 endif ()
 
-if ( CAF_ROOT OR BROKER_ROOT_DIR )
-  # TODO: drop < 3.12 compatibility check when raising the minimum CMake version
-  if ( CAF_ROOT AND CMAKE_VERSION VERSION_LESS 3.12 )
-    find_package(CAF ${CAF_VERSION_MIN_REQUIRED} REQUIRED CONFIG
-                 COMPONENTS openssl test io core
-                 PATHS "${CAF_ROOT}")
-  else ()
-    find_package(CAF ${CAF_VERSION_MIN_REQUIRED} REQUIRED CONFIG
-                 COMPONENTS openssl test io core)
-  endif ()
-  message(STATUS "Using system CAF version ${CAF_VERSION}")
-  # TODO: drop these legacy variables and simply use the targets consistently
-  set(CAF_LIBRARIES CAF::core CAF::io CAF::openssl CACHE INTERNAL "")
-  set(caf_dirs "")
-  foreach (caf_lib IN LISTS CAF_LIBRARIES ITEMS CAF::test)
-    get_target_property(dirs ${caf_lib} INTERFACE_INCLUDE_DIRECTORIES)
-    if ( dirs )
-      list(APPEND caf_dirs ${dirs})
-    endif ()
-  endforeach ()
-  list(REMOVE_DUPLICATES caf_dirs)
-  list(GET caf_dirs 0 caf_dir)
-  set(CAF_INCLUDE_DIRS "${caf_dirs}" CACHE INTERNAL "")
+if ( CAF_ROOT_DIR )
+  find_package(CAF COMPONENTS core io openssl REQUIRED)
 endif ()
 
 add_subdirectory(auxil/paraglob)
 set(zeekdeps ${zeekdeps} paraglob)
 
 if ( BROKER_ROOT_DIR )
+  # Avoid calling find_package(CAF) twice.
+  if ( NOT CAF_ROOT_DIR )
+    find_package(CAF COMPONENTS core io openssl REQUIRED)
+  endif ()
   find_package(Broker REQUIRED)
   set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
   set(broker_includes ${BROKER_INCLUDE_DIR})
@@ -494,7 +477,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
 
-if ( CAF_ROOT )
+if ( CAF_ROOT_DIR )
   set(ZEEK_CONFIG_CAF_ROOT_DIR ${CAF_ROOT})
 else ()
   set(ZEEK_CONFIG_CAF_ROOT_DIR ${ZEEK_ROOT_DIR})

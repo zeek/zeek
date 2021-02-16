@@ -1,4 +1,11 @@
 
+4.1.0-dev.228 | 2021-02-16 11:10:40 -0800
+
+  * Fix `major_subsys_version` field in `pe_optional_header` event
+
+    It was incorrectly set the same as the `minor_subsys_version` field
+    of the `PE::OptionalHeader` record. (Jon Siwek, Corelight)
+
 4.1.0-dev.225 | 2021-02-12 14:40:14 -0800
 
   * Fix CentOS 8 CI Dockerfile (Jon Siwek, Corelight)

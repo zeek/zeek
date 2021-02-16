@@ -1015,6 +1015,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/x509, <...>/x509) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/xmpp, <...>/xmpp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/zeek.bif, <...>/zeek.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./archive, <...>/archive.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./audio, <...>/audio.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./dpd.sig, <...>/dpd.sig) -> -1
@@ -2048,6 +2049,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/x509, <...>/x509)
 0.000000   MetaHookPre   LoadFile(0, base<...>/xmpp, <...>/xmpp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/zeek.bif, <...>/zeek.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek)
 0.000000   MetaHookPre   LoadFile(1, ./archive, <...>/archive.sig)
 0.000000   MetaHookPre   LoadFile(1, ./audio, <...>/audio.sig)
 0.000000   MetaHookPre   LoadFile(1, ./dpd.sig, <...>/dpd.sig)
@@ -3092,6 +3094,7 @@
 0.000000 | HookLoadFile  base<...>/x509 <...>/x509
 0.000000 | HookLoadFile  base<...>/xmpp <...>/xmpp
 0.000000 | HookLoadFile  base<...>/zeek.bif <...>/zeek.bif.zeek
+0.000000 | HookLoadFile  builtin-plugins/__load__.zeek <...>/__load__.zeek
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
 0.000000 | HookLogWrite  packet_filter [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()

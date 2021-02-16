@@ -413,9 +413,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	// options from deep within some modules.
 	analysis_options = options.analysis_options;
 
-	if ( options.print_usage )
-		usage(argv[0], 0);
-
 	if ( options.print_version )
 		{
 		fprintf(stdout, "%s version %s\n", argv[0], zeek_version());
@@ -551,6 +548,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	if ( ! options.bare_mode )
 		add_input_file("base/init-default.zeek");
 
+	add_input_file("builtin-plugins/__load__.zeek");
+
 	plugin_mgr->SearchDynamicPlugins(util::zeek_plugin_path());
 
 	if ( options.plugins_to_load.empty() && options.scripts_to_load.empty() &&
@@ -597,6 +596,13 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	plugin_mgr->InitPreScript();
 	file_mgr->InitPreScript();
 	zeekygen_mgr->InitPreScript();
+
+	// This has to happen before ActivateDynamicPlugin() below or the list of plugins in the
+	// manager will be missing the plugins we want to try to add to the path.
+	plugin_mgr->ExtendZeekPathForPlugins();
+
+	if ( options.print_usage )
+		usage(argv[0], 0);
 
 	for ( const auto& x : requested_plugins )
 		plugin_mgr->ActivateDynamicPlugin(std::move(x));

@@ -574,6 +574,34 @@ if ( INSTALL_ZKG )
 endif ()
 
 ########################################################################
+## Look for external plugins to build in
+
+string(REPLACE "," " " _build_in_plugins "${ZEEK_INCLUDE_PLUGINS}")
+separate_arguments(_build_in_plugins)
+foreach(plugin_dir ${_build_in_plugins})
+    if ( NOT IS_ABSOLUTE "${plugin_dir}/CMakeLists.txt" )
+      message(FATAL_ERROR "Plugins to build in need to be defined with absolute path! ${plugin_dir}")
+    endif()
+
+    if ( NOT EXISTS "${plugin_dir}/CMakeLists.txt" )
+      message(FATAL_ERROR "No plugin found at ${plugin_dir}!")
+    endif()
+
+    get_filename_component(plugin_name ${plugin_dir} NAME)
+
+    # Create a list of plugin directories that will then be added in the src/CMakeLists.txt
+    list(APPEND BUILTIN_PLUGIN_LIST ${plugin_dir})
+
+    message(STATUS "  Building in plugin: ${plugin_name} (${plugin_dir})")
+
+    if ( "${ZEEK_BUILTIN_PLUGINS}" STREQUAL "" )
+        set(ZEEK_BUILTIN_PLUGINS ${plugin_name})
+    else ()
+        set(ZEEK_BUILTIN_PLUGINS "${ZEEK_BUILTIN_PLUGINS}, ${plugin_name}")
+    endif ()
+endforeach()
+
+########################################################################
 ## Recurse on sub-directories
 
 add_subdirectory(src)
@@ -629,6 +657,7 @@ message(
     "\nZeek Script Path:  ${ZEEK_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\nUnit tests:        ${ENABLE_ZEEK_UNIT_TESTS}"
+    "\nBuiltin Plugins:   ${ZEEK_BUILTIN_PLUGINS}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"
     "\nCFLAGS:            ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}"

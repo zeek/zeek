@@ -428,5 +428,6 @@ scripts/base/init-default.zeek
   scripts/base/misc/find-checksum-offloading.zeek
   scripts/base/misc/find-filtered-trace.zeek
   scripts/base/misc/version.zeek
+build/scripts/builtin-plugins/__load__.zeek
 scripts/policy/misc/loaded-scripts.zeek
 #close XXXX-XX-XX-XX-XX-XX

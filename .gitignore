@@ -1,4 +1,7 @@
-build
+# Ignore anything prefixed with build since people
+# tend to name all of their build directories prefixed that way.
+build*
+
 tmp
 *.gcov
 

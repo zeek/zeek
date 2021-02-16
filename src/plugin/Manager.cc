@@ -12,6 +12,7 @@
 #include <optional>
 #include <sstream>
 #include <fstream>
+#include <regex>
 
 #include "zeek/Reporter.h"
 #include "zeek/Func.h"
@@ -171,9 +172,9 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		// this should be rare to begin with.
 		plugin_list* all_plugins = Manager::ActivePluginsInternal();
 
-		for ( Manager::plugin_list::const_iterator i = all_plugins->begin(); i != all_plugins->end(); i++ )
+		for ( const auto& p : *all_plugins )
 			{
-			if ( (*i)->Name() == name )
+			if ( p->Name() == name )
 				return true;
 			}
 
@@ -227,7 +228,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			current_plugin->SetDynamic(true);
 			current_plugin->DoConfigure();
-			DBG_LOG(DBG_PLUGINS, "  InitialzingComponents");
+			DBG_LOG(DBG_PLUGINS, "  InitializingComponents");
 			current_plugin->InitializeComponents();
 
 			plugins_by_path.insert(std::make_pair(util::detail::normalize_path(dir), current_plugin));
@@ -273,6 +274,15 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 	// First load {scripts}/__preload__.zeek automatically.
 	init = dir + "scripts/__preload__.zeek";
+
+	if ( util::is_file(init) )
+		{
+		DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+		scripts_to_load.push_back(init);
+		}
+
+	// First load {scripts}/__preload__.zeek automatically.
+	init = dir + "builtin-plugins/__preload__.zeek";
 
 	if ( util::is_file(init) )
 		{
@@ -401,6 +411,25 @@ void Manager::RegisterBifFile(const char* plugin, bif_init_func c)
 		i = bifs->insert(std::make_pair(lower_plugin, new bif_init_func_list())).first;
 
 	i->second->push_back(c);
+	}
+
+void Manager::ExtendZeekPathForPlugins()
+	{
+	for ( const auto& p : Manager::ActivePlugins() )
+		{
+		if ( p->DynamicPlugin() || p->Name().empty() )
+			continue;
+
+		string canon = std::regex_replace(p->Name(), std::regex("::"), "_");
+		string dir = "plugins/" + canon + "/";
+		// Use find_file to find the directory in the path.
+		string script_dir = util::find_file(dir, util::zeek_path());
+		if ( ! util::is_dir(script_dir) )
+			continue;
+
+		DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", script_dir.c_str());
+		util::detail::add_to_zeek_path(script_dir);
+		}
 	}
 
 void Manager::InitPreScript()

@@ -1,4 +1,8 @@
 
+4.1.0-dev.229 | 2021-02-16 12:32:23 -0800
+
+  * Update Broker submodule for performance/credit-tracking fixes (Jon Siwek, Corelight)
+
 4.1.0-dev.228 | 2021-02-16 11:10:40 -0800
 
   * Fix `major_subsys_version` field in `pe_optional_header` event

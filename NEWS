@@ -3,6 +3,29 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 3.2.4
+==========
+
+This release fixes the following security issues:
+
+* Fix ASCII Input reader's treatment of input files containing null-bytes
+  https://github.com/zeek/zeek/issues/1398
+  https://github.com/zeek/zeek/commit/a636f8edbd903d3710ec4d7e06b8bb0d68d8aab9
+
+  This is mostly only significant for deployments that utilize input data feeds
+  whose content is controlled by external sources: an input file containing
+  null-bytes could lead to a buffer-over-read, crash Zeek, and be exploited
+  to cause Denial of Service.
+
+This release fixes the following bugs:
+
+* MIME sub-entities overwrote top-level header values cause misleading SMTP log
+  https://github.com/zeek/zeek/issues/1352
+  https://github.com/zeek/zeek/pull/1365
+
+* Fix incorrect `major_subsys_version` field in `pe_optional_header` event
+  https://github.com/zeek/zeek/pull/1401
+
 Zeek 3.2.3
 ==========
 

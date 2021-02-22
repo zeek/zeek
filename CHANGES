@@ -1,4 +1,34 @@
 
+3.0.13 | 2021-02-22 10:17:00 -0800
+
+  * GH-1352: Added flag to stop processing SMTP headers in attached messages (Jon Oakley)
+
+  * Fix `major_subsys_version` field in `pe_optional_header` event (Jon Siwek, Corelight)
+
+    It was incorrectly set the same as the `minor_subsys_version` field
+    of the `PE::OptionalHeader` record.
+
+  * Fix CentOS 8 Dockerfile (Jon Siwek, Corelight)
+
+    The "PowerTools" repoid changed to "powertools":
+    https://bugs.centos.org/view.php?id=17920
+
+  * Update CI configuration (Jon Siwek, Corelight)
+
+    * Add tasks for Fedora 33, CentOS 8, Debian 10, Ubuntu 20.04,
+      FreeBSD 11, and macOS Big Sur
+    * Bump FreeBSD 12-1 task to 12-2
+    * Switch macOS Catalina image to "catalina-xode-11.6 image"
+    * Increase CPUs used for macOS tasks
+
+  * GH-1398: Fix buffer overread in ascii formatter (Johanna Amann, Corelight)
+
+    When a text with an (escaped) zero byte was passed to ParseValue, only
+    the part of the string up to the zero byte was copied, but the length of
+    the full string was passed to the input framework.
+
+    This leads to the input manager reading over the end of the buffer.
+
 3.0.12 | 2020-12-14 19:13:58 -0800
 
   * GH-1286: Fix SMB2 response status parsing. (Vlad Grigorescu)

@@ -38,6 +38,37 @@ function Files::__set_reassembly_buffer%(file_id: string, max: count%): bool
 	return zeek::val_mgr->Bool(result);
 	%}
 
+## :zeek:see:`Files::enable_analyzer`.
+function Files::__enable_analyzer%(tag: Files::Tag%) : bool
+	%{
+	auto c = zeek::file_mgr->Lookup(tag->AsEnumVal());
+
+	if ( ! c )
+		return zeek::val_mgr->False();
+
+	c->SetEnabled(true);
+	return zeek::val_mgr->True();
+	%}
+
+## :zeek:see:`Files::disable_analyzer`.
+function Files::__disable_analyzer%(tag: Files::Tag%) : bool
+	%{
+	auto c = zeek::file_mgr->Lookup(tag->AsEnumVal());
+
+	if ( ! c )
+		return zeek::val_mgr->False();
+
+	c->SetEnabled(false);
+	return zeek::val_mgr->True();
+	%}
+
+## :zeek:see:`Files::analyzer_enabled`.
+function Files::__analyzer_enabled%(tag: Files::Tag%) : bool
+	%{
+	auto c = zeek::file_mgr->Lookup(tag->AsEnumVal());
+	return zeek::val_mgr->Bool(c && c->Enabled());
+	%}
+
 ## :zeek:see:`Files::add_analyzer`.
 function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
 	%{

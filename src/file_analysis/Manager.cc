@@ -458,6 +458,13 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag,
 		return nullptr;
 		}
 
+	if ( ! c->Enabled() )
+		{
+		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Skip instantiation of disabled analyzer %s",
+		        f->id.c_str(), GetComponentName(tag).c_str());
+		return nullptr;
+		}
+
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s",
 	        f->id.c_str(), GetComponentName(tag).c_str());
 

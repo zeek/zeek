@@ -48,8 +48,12 @@ public:
 	 * analyzer::Tag that the manager associates with this analyzer, and
 	 * analyzer instances can accordingly access it via analyzer::Tag().
 	 * If not used, leave at zero.
+	 *
+	 * @param enabled If false the analyzer starts out as disabled and
+	 * hence won't be used. It can still be enabled later via the
+	 * manager, including from script-land.
 	 */
-	Component(const std::string& name, factory_function factory, Tag::subtype_t subtype = 0);
+	Component(const std::string& name, factory_function factory, Tag::subtype_t subtype = 0, bool enabled = true);
 
 	/**
 	 * Destructor.
@@ -69,6 +73,20 @@ public:
 	factory_function FactoryFunction() const
 		{ return factory_func; }
 
+	/**
+	 * Returns true if the analyzer is currently enabled and hence
+	 * available for use.
+	 */
+	bool Enabled() const	{ return enabled; }
+
+	/**
+	 * Enables or disables this analyzer.
+	 *
+	 * @param arg_enabled True to enabled, false to disable.
+	 *
+	 */
+	void SetEnabled(bool arg_enabled)	{ enabled = arg_enabled; }
+
 protected:
 	/**
 	  * Overriden from plugin::Component.
@@ -79,6 +97,7 @@ private:
 	friend class Manager;
 
 	factory_function factory_func;	// The analyzer's factory callback.
+	bool enabled;	// True if the analyzer is enabled.
 };
 
 } // namespace zeek::file_analysis

@@ -493,9 +493,10 @@ public:
 	// Returns a masked port number
 	static uint32_t Mask(uint32_t port_num, TransportProto port_type);
 
-	// This method is just here to trick the interface in `RecordVal::GetFieldAs` into
-	// returning the right type. It shouldn't actually be used for anything.
-	zeek::IntrusivePtr<PortVal> Get() { return { NewRef(), AsPortVal() }; }
+	// This method is just here to trick the interface in
+	// `RecordVal::GetFieldAs` into returning the right type.
+	// It shouldn't actually be used for anything.
+	zeek::IntrusivePtr<PortVal> Get() { return { NewRef{}, AsPortVal() }; }
 
 protected:
 	friend class ValManager;
@@ -1120,10 +1121,11 @@ private:
 	PDict<TableEntryVal>* table_val;
 };
 
-// This would be way easier with is_convertible_v, but sadly that won't work here
-// because Obj has deleted copy constructors (and for good reason). Instead we make
-// up our own type trait here that basically combines a bunch of is_same traits
-// into a single trait to make life easier in the defintions of GetFieldAs().
+// This would be way easier with is_convertible_v, but sadly that won't
+// work here because Obj has deleted copy constructors (and for good
+// reason). Instead we make up our own type trait here that basically
+// combines a bunch of is_same traits into a single trait to make life
+// easier in the definitions of GetFieldAs().
 template <typename T>
 struct is_zeek_val
 	{
@@ -1342,8 +1344,8 @@ public:
 			return record_val->at(field).table_val->Get();
 		else
 			{
-			// TODO: error here, although because of the type trait it really shouldn't
-			// ever get here.
+			// TODO: error here, although because of the
+			// type trait it really shouldn't ever get here.
 			}
 		}
 
@@ -1358,12 +1360,14 @@ public:
 
 		if constexpr ( std::is_integral_v<T> && std::is_signed_v<T> )
 			return record_val->at(field).int_val;
-		else if constexpr ( std::is_integral_v<T> && std::is_unsigned_v<T> )
+		else if constexpr ( std::is_integral_v<T> &&
+					std::is_unsigned_v<T> )
 			return record_val->at(field).uint_val;
 		else if constexpr ( std::is_floating_point_v<T> )
 			return record_val->at(field).double_val;
 
-		// TODO: add other types here using type traits, such as is_same_v<T, std::string>, etc
+		// TODO: add other types here using type traits,
+		// such as is_same_v<T, std::string>, etc
 
 		return T{};
 		}

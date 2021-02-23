@@ -74,6 +74,9 @@ union ZVal {
 
 	Obj* ManagedVal() const		{ return managed_val; }
 
+private:
+	friend class RecordVal;
+
 	// Used for bool, int, enum.
 	bro_int_t int_val;
 

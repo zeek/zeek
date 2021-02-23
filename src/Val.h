@@ -493,17 +493,19 @@ public:
 	// Returns a masked port number
 	static uint32_t Mask(uint32_t port_num, TransportProto port_type);
 
-	// This method is just here to trick the interface in
-	// `RecordVal::GetFieldAs` into returning the right type.
-	// It shouldn't actually be used for anything.
-	zeek::IntrusivePtr<PortVal> Get() { return { NewRef{}, AsPortVal() }; }
-
 protected:
 	friend class ValManager;
 	PortVal(uint32_t p);
 
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
+
+private:
+	// This method is just here to trick the interface in
+	// `RecordVal::GetFieldAs` into returning the right type.
+	// It shouldn't actually be used for anything.
+	friend class RecordVal;
+	zeek::IntrusivePtr<PortVal> Get() { return { NewRef{}, AsPortVal() }; }
 };
 
 class AddrVal final : public Val {

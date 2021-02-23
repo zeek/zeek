@@ -336,6 +336,7 @@ set(MAIN_SRCS
     script_opt/ScriptOpt.cc
     script_opt/Stmt.cc
     script_opt/TempVar.cc
+    script_opt/UseDefs.cc
 
     nb_dns.c
     digest.h

@@ -562,6 +562,7 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 34887, PacketAnalyzer::ANALYZER_MPLS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 34916, PacketAnalyzer::ANALYZER_PPPOE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 34984, PacketAnalyzer::ANALYZER_VLAN)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 35110, PacketAnalyzer::ANALYZER_VNTAG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 37120, PacketAnalyzer::ANALYZER_VLAN)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 2048, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 2054, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
@@ -601,6 +602,9 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VLAN, 34525, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VLAN, 34887, PacketAnalyzer::ANALYZER_MPLS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VLAN, 34916, PacketAnalyzer::ANALYZER_PPPOE)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VNTAG, 33024, PacketAnalyzer::ANALYZER_VLAN)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VNTAG, 34984, PacketAnalyzer::ANALYZER_VLAN)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VNTAG, 37120, PacketAnalyzer::ANALYZER_VLAN)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::build, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::combine_filters, <frame>, (ip or not ip, and, )) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::install, <frame>, ()) -> <no result>
@@ -976,6 +980,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/utils, <...>/utils.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/version, <...>/version.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/vlan, <...>/vlan) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/vntag, <...>/vntag) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/weird, <...>/weird.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/x509, <...>/x509) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/xmpp, <...>/xmpp) -> -1
@@ -1560,6 +1565,7 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 34887, PacketAnalyzer::ANALYZER_MPLS))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 34916, PacketAnalyzer::ANALYZER_PPPOE))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 34984, PacketAnalyzer::ANALYZER_VLAN))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 35110, PacketAnalyzer::ANALYZER_VNTAG))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 37120, PacketAnalyzer::ANALYZER_VLAN))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 2048, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 2054, PacketAnalyzer::ANALYZER_ARP))
@@ -1599,6 +1605,9 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VLAN, 34525, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VLAN, 34887, PacketAnalyzer::ANALYZER_MPLS))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VLAN, 34916, PacketAnalyzer::ANALYZER_PPPOE))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VNTAG, 33024, PacketAnalyzer::ANALYZER_VLAN))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VNTAG, 34984, PacketAnalyzer::ANALYZER_VLAN))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VNTAG, 37120, PacketAnalyzer::ANALYZER_VLAN))
 0.000000   MetaHookPre   CallFunction(PacketFilter::build, <frame>, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::combine_filters, <frame>, (ip or not ip, and, ))
 0.000000   MetaHookPre   CallFunction(PacketFilter::install, <frame>, ())
@@ -1974,6 +1983,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/utils, <...>/utils.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/version, <...>/version.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/vlan, <...>/vlan)
+0.000000   MetaHookPre   LoadFile(0, base<...>/vntag, <...>/vntag)
 0.000000   MetaHookPre   LoadFile(0, base<...>/weird, <...>/weird.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/x509, <...>/x509)
 0.000000   MetaHookPre   LoadFile(0, base<...>/xmpp, <...>/xmpp)
@@ -2557,6 +2567,7 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 34887, PacketAnalyzer::ANALYZER_MPLS)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 34916, PacketAnalyzer::ANALYZER_PPPOE)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 34984, PacketAnalyzer::ANALYZER_VLAN)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 35110, PacketAnalyzer::ANALYZER_VNTAG)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 37120, PacketAnalyzer::ANALYZER_VLAN)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11, 2048, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11, 2054, PacketAnalyzer::ANALYZER_ARP)
@@ -2596,6 +2607,9 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VLAN, 34525, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VLAN, 34887, PacketAnalyzer::ANALYZER_MPLS)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VLAN, 34916, PacketAnalyzer::ANALYZER_PPPOE)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VNTAG, 33024, PacketAnalyzer::ANALYZER_VLAN)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VNTAG, 34984, PacketAnalyzer::ANALYZER_VLAN)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VNTAG, 37120, PacketAnalyzer::ANALYZER_VLAN)
 0.000000 | HookCallFunction PacketFilter::build()
 0.000000 | HookCallFunction PacketFilter::combine_filters(ip or not ip, and, )
 0.000000 | HookCallFunction PacketFilter::install()
@@ -2983,6 +2997,7 @@
 0.000000 | HookLoadFile  base<...>/utils <...>/utils.zeek
 0.000000 | HookLoadFile  base<...>/version <...>/version.zeek
 0.000000 | HookLoadFile  base<...>/vlan <...>/vlan
+0.000000 | HookLoadFile  base<...>/vntag <...>/vntag
 0.000000 | HookLoadFile  base<...>/weird <...>/weird.zeek
 0.000000 | HookLoadFile  base<...>/x509 <...>/x509
 0.000000 | HookLoadFile  base<...>/xmpp <...>/xmpp

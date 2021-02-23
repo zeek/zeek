@@ -1,4 +1,31 @@
 
+4.1.0-dev.252 | 2021-02-23 12:01:52 -0800
+
+  * "xform" btest alternative baseline update (Vern Paxson, Corelight)
+
+  * Test baselines updates related to "unused assignment" warnings (Vern Paxson, Corelight)
+
+  * USE ZEEK_USAGE_ISSUES environment variable in tests rather than -u/-uu (Vern Paxson, Corelight)
+
+    Since it has precedence over the flag arguments and don't want btest
+    alternatives to override it.
+
+  * splitting out "usage" test suite alternative into -u/-uu versions (Vern Paxson, Corelight)
+
+  * adding &is_used attribute for base scripts (Vern Paxson, Corelight)
+
+    Not actually needed yet, but will be once optimization is added.
+
+  * removing unused assignments from base scripts (Vern Paxson, Corelight)
+
+  * enhancements/changes to the Reduce class in preparation for use-defs (Vern Paxson, Corelight)
+
+  * Add "-Odump-uds" and "ZEEK_DUMP_UDS" flag/environment variable for dumping use-defs (Vern Paxson, Corelight)
+
+  * Add &is_used attribute to suppress set-but-not-used usage warnings (Vern Paxson, Corelight)
+
+  * Support for "unused assignment" dead-code detection/warning via -u/-uu analysis (Vern Paxson, Corelight)
+
 4.1.0-dev.229 | 2021-02-16 12:32:23 -0800
 
   * Update Broker submodule for performance/credit-tracking fixes (Jon Siwek, Corelight)

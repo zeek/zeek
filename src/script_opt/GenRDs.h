@@ -50,7 +50,7 @@ private:
 
 class RD_Decorate : public TraversalCallback {
 public:
-	RD_Decorate(const ProfileFunc* _pf) : pf(_pf)
+	RD_Decorate(std::shared_ptr<ProfileFunc> _pf) : pf(_pf)
 		{ }
 
 	// Traverses the given function body, using the first two
@@ -133,7 +133,7 @@ private:
 
 	// Profile for the function.  Currently, all we actually need from
 	// this is the list of globals.
-	const ProfileFunc* pf;
+	std::shared_ptr<ProfileFunc> pf;
 
 	// Whether the Func is an event/hook/function.  We currently only
 	// need to know whether it's a hook, so we correctly interpret an

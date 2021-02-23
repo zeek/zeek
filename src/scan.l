@@ -286,6 +286,7 @@ when	return TOK_WHEN;
 &log		return TOK_ATTR_LOG;
 &optional	return TOK_ATTR_OPTIONAL;
 &is_assigned	return TOK_ATTR_IS_ASSIGNED;
+&is_used	return TOK_ATTR_IS_USED;
 &priority	return TOK_ATTR_PRIORITY;
 &type_column	return TOK_ATTR_TYPE_COLUMN;
 &read_expire	return TOK_ATTR_EXPIRE_READ;

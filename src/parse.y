@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 135
+%expect 141
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -28,7 +28,7 @@
 %token TOK_ATTR_BROKER_STORE_ALLOW_COMPLEX TOK_ATTR_BACKEND
 %token TOK_ATTR_PRIORITY TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
 %token TOK_ATTR_TYPE_COLUMN TOK_ATTR_DEPRECATED
-%token TOK_ATTR_IS_ASSIGNED
+%token TOK_ATTR_IS_ASSIGNED TOK_ATTR_IS_USED
 
 %token TOK_DEBUG
 
@@ -1474,6 +1474,8 @@ attr:
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_REDEF); }
 	|	TOK_ATTR_IS_ASSIGNED
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_IS_ASSIGNED); }
+	|	TOK_ATTR_IS_USED
+			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_IS_USED); }
 	|	TOK_ATTR_ADD_FUNC '=' expr
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_ADD_FUNC, {zeek::AdoptRef{}, $3}); }
 	|	TOK_ATTR_DEL_FUNC '=' expr

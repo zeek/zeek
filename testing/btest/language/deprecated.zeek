@@ -39,7 +39,7 @@ event zeek_init()
 
 	local l: blah = "testing";
 
-	local ls: string = " test";
+	local ls: string = " test" &is_used;
 
 	event my_event("generate my_event please");
 	schedule 1sec { my_event("schedule my_event please") };
@@ -119,7 +119,7 @@ event zeek_init()
 
 	local l: blah = "testing";
 
-	local ls: string = " test";
+	local ls: string = " test" &is_used;
 
 	event my_event("generate my_event please");
 	schedule 1sec { my_event("schedule my_event please") };

@@ -22,7 +22,7 @@ const char* attr_name(AttrTag t)
 		"&group", "&log", "&error_handler", "&type_column",
 		"(&tracked)", "&on_change", "&broker_store",
 		"&broker_allow_complex_type", "&backend", "&deprecated",
-		"&is_set",
+		"&is_assigned", "&is_used",
 	};
 
 	return attr_names[int(t)];
@@ -291,6 +291,7 @@ void Attributes::CheckAttr(Attr* a)
 	case ATTR_DEPRECATED:
 	case ATTR_REDEF:
 	case ATTR_IS_ASSIGNED:
+	case ATTR_IS_USED:
 		break;
 
 	case ATTR_OPTIONAL:

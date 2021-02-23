@@ -34,6 +34,10 @@ New Functionality
   analysis to report instances where record fields might be used without
   having previously been set.
 
+  The ``zeek -u`` option can also identify assigned-to variables that aren't
+  subsequently used (i.e. "dead code") and issues a warning.  A new ``is_used``
+  attribute can be used situationally to suppress such warnings.
+
   The base scripts have some places where the static analysis lacks sufficient
   power to tell that values are being used safely (guaranteed to have been
   identified). In order to enable users to employ ``zeek -u`` on their own

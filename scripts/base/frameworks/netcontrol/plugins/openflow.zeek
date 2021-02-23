@@ -361,7 +361,6 @@ event OpenFlow::flow_mod_success(name: string, match: OpenFlow::ofp_match, flow_
 
 	local r = of_messages[id,flow_mod$command]$r;
 	local p = of_messages[id,flow_mod$command]$p;
-	local c = of_messages[id,flow_mod$command]$c;
 
 	if ( r$entity$ty == ADDRESS || r$entity$ty == MAC )
 		{

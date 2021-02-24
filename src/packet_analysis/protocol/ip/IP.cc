@@ -235,14 +235,6 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	packet->proto = proto;
 
 	switch ( proto ) {
-	case IPPROTO_TCP:
-	case IPPROTO_UDP:
-	case IPPROTO_ICMP:
-	case IPPROTO_ICMPV6:
-		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
-		        GetAnalyzerName(), proto);
-		session_mgr->ProcessTransportLayer(run_state::processing_start_time, packet, len);
-		break;
 	case IPPROTO_NONE:
 		// If the packet is encapsulated in Teredo, then it was a bubble and
 		// the Teredo analyzer may have raised an event for that, else we're

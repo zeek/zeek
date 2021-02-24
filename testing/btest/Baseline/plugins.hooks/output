@@ -572,9 +572,13 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 32821, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 34525, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11_RADIO, 105, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 1, PacketAnalyzer::ANALYZER_ICMP_PKT)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 17, PacketAnalyzer::ANALYZER_UDP_PKT)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPTUNNEL)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPTUNNEL)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 47, PacketAnalyzer::ANALYZER_GRE)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 58, PacketAnalyzer::ANALYZER_ICMP_PKT)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 6, PacketAnalyzer::ANALYZER_TCP_PKT)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2048, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2054, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 32821, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
@@ -915,6 +919,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/hash, <...>/hash) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/hash_hrw, <...>/hash_hrw.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/http, <...>/http) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/icmp, <...>/icmp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ieee802_11, <...>/ieee802_11) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ieee802_11_radio, <...>/ieee802_11_radio) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/imap, <...>/imap) -> -1
@@ -979,10 +984,12 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/supervisor, <...>/supervisor) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/syslog, <...>/syslog) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/tcp, <...>/tcp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/thresholds, <...>/thresholds.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/time, <...>/time.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/tunnels, <...>/tunnels) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/types.bif, <...>/types.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/udp, <...>/udp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/urls, <...>/urls.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/utils, <...>/utils.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/version, <...>/version.zeek) -> -1
@@ -1582,9 +1589,13 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 32821, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 34525, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11_RADIO, 105, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 1, PacketAnalyzer::ANALYZER_ICMP_PKT))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 17, PacketAnalyzer::ANALYZER_UDP_PKT))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPTUNNEL))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPTUNNEL))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 47, PacketAnalyzer::ANALYZER_GRE))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 58, PacketAnalyzer::ANALYZER_ICMP_PKT))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 6, PacketAnalyzer::ANALYZER_TCP_PKT))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2048, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2054, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 32821, PacketAnalyzer::ANALYZER_ARP))
@@ -1925,6 +1936,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/hash, <...>/hash)
 0.000000   MetaHookPre   LoadFile(0, base<...>/hash_hrw, <...>/hash_hrw.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/http, <...>/http)
+0.000000   MetaHookPre   LoadFile(0, base<...>/icmp, <...>/icmp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ieee802_11, <...>/ieee802_11)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ieee802_11_radio, <...>/ieee802_11_radio)
 0.000000   MetaHookPre   LoadFile(0, base<...>/imap, <...>/imap)
@@ -1989,10 +2001,12 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/supervisor, <...>/supervisor)
 0.000000   MetaHookPre   LoadFile(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/syslog, <...>/syslog)
+0.000000   MetaHookPre   LoadFile(0, base<...>/tcp, <...>/tcp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/thresholds, <...>/thresholds.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/time, <...>/time.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/tunnels, <...>/tunnels)
 0.000000   MetaHookPre   LoadFile(0, base<...>/types.bif, <...>/types.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/udp, <...>/udp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/urls, <...>/urls.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/utils, <...>/utils.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/version, <...>/version.zeek)
@@ -2591,9 +2605,13 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11, 32821, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11, 34525, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11_RADIO, 105, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 1, PacketAnalyzer::ANALYZER_ICMP_PKT)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 17, PacketAnalyzer::ANALYZER_UDP_PKT)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPTUNNEL)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPTUNNEL)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 47, PacketAnalyzer::ANALYZER_GRE)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 58, PacketAnalyzer::ANALYZER_ICMP_PKT)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 6, PacketAnalyzer::ANALYZER_TCP_PKT)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL, 2048, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL, 2054, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL, 32821, PacketAnalyzer::ANALYZER_ARP)
@@ -2946,6 +2964,7 @@
 0.000000 | HookLoadFile  base<...>/hash <...>/hash
 0.000000 | HookLoadFile  base<...>/hash_hrw <...>/hash_hrw.zeek
 0.000000 | HookLoadFile  base<...>/http <...>/http
+0.000000 | HookLoadFile  base<...>/icmp <...>/icmp
 0.000000 | HookLoadFile  base<...>/ieee802_11 <...>/ieee802_11
 0.000000 | HookLoadFile  base<...>/ieee802_11_radio <...>/ieee802_11_radio
 0.000000 | HookLoadFile  base<...>/imap <...>/imap
@@ -3010,10 +3029,12 @@
 0.000000 | HookLoadFile  base<...>/supervisor <...>/supervisor
 0.000000 | HookLoadFile  base<...>/supervisor.bif <...>/supervisor.bif.zeek
 0.000000 | HookLoadFile  base<...>/syslog <...>/syslog
+0.000000 | HookLoadFile  base<...>/tcp <...>/tcp
 0.000000 | HookLoadFile  base<...>/thresholds <...>/thresholds.zeek
 0.000000 | HookLoadFile  base<...>/time <...>/time.zeek
 0.000000 | HookLoadFile  base<...>/tunnels <...>/tunnels
 0.000000 | HookLoadFile  base<...>/types.bif <...>/types.bif.zeek
+0.000000 | HookLoadFile  base<...>/udp <...>/udp
 0.000000 | HookLoadFile  base<...>/urls <...>/urls.zeek
 0.000000 | HookLoadFile  base<...>/utils <...>/utils.zeek
 0.000000 | HookLoadFile  base<...>/version <...>/version.zeek

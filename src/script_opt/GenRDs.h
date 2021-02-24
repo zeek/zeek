@@ -50,7 +50,7 @@ private:
 
 class RD_Decorate : public TraversalCallback {
 public:
-	RD_Decorate(std::shared_ptr<ProfileFunc> _pf) : pf(_pf)
+	RD_Decorate(std::shared_ptr<ProfileFunc> _pf) : pf(std::move(_pf))
 		{ }
 
 	// Traverses the given function body, using the first two

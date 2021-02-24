@@ -2941,7 +2941,7 @@ void RecordVal::Assign(int field, ValPtr new_val)
 		}
 	else
 		{
-		if ( (*is_in_record)[field] )
+		if ( HasField(field) )
 			DeleteIfManaged((*record_val)[field], t);
 
 		(*record_val)[field] = ZVal();

@@ -505,7 +505,7 @@ private:
 	// `RecordVal::GetFieldAs` into returning the right type.
 	// It shouldn't actually be used for anything.
 	friend class RecordVal;
-	zeek::IntrusivePtr<PortVal> Get() { return { NewRef{}, AsPortVal() }; }
+	PortValPtr Get()	{ return {NewRef{}, this}; }
 };
 
 class AddrVal final : public Val {
@@ -1230,13 +1230,24 @@ public:
 		{ return record_val->size(); }
 
 	/**
+	 * Returns true if the given field is in the record, false if
+	 * it's missing.
+	 * @param field  The field index to retrieve.
+	 * @return  Whether there's a value for the given field index.
+	 */
+	bool HasField(int field) const
+		{
+		return (*is_in_record)[field];
+		}
+
+	/**
 	 * Returns the value of a given field index.
 	 * @param field  The field index to retrieve.
 	 * @return  The value at the given field index.
 	 */
 	ValPtr GetField(int field) const
 		{
-		if ( ! (*is_in_record)[field] )
+		if ( ! HasField(field) )
 			return nullptr;
 
 		return (*record_val)[field].ToVal(rt->GetFieldType(field));
@@ -1313,7 +1324,7 @@ public:
 	          typename std::enable_if_t<is_zeek_val_v<T>, bool> = true>
 	auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T>
 		{
-		if ( ! (*is_in_record)[field] )
+		if ( ! HasField(field) )
 			{
 			// TODO: should this be an error via reporter?
 			}
@@ -1342,6 +1353,10 @@ public:
 			return *(record_val->at(field).func_val);
 		else if constexpr ( std::is_same_v<T, PatternVal> )
 			return record_val->at(field).re_val->Get();
+		else if constexpr ( std::is_same_v<T, RecordVal> )
+			return record_val->at(field).record_val;
+		else if constexpr ( std::is_same_v<T, VectorVal> )
+			return record_val->at(field).vector_val;
 		else if constexpr ( std::is_same_v<T, TableVal> )
 			return record_val->at(field).table_val->Get();
 		else
@@ -1355,7 +1370,7 @@ public:
 	          typename std::enable_if_t<!is_zeek_val_v<T>, bool> = true>
 	T GetFieldAs(int field) const
 		{
-		if ( ! (*is_in_record)[field] )
+		if ( ! HasField(field) )
 			{
 			// TODO: should this be an error via reporter?
 			}
@@ -1437,6 +1452,8 @@ public:
 	static void ResizeParseTimeRecords(RecordType* rt);
 
 	static void DoneParsing();
+
+	RecordVal* Get()	{ return this; }
 
 protected:
 	ValPtr DoClone(CloneState* state) override;
@@ -1634,6 +1651,8 @@ public:
 		{ return (*vector_val)[index].AsString(); }
 	const String* StringAt(unsigned int index) const
 		{ return StringValAt(index)->AsString(); }
+
+	VectorVal* Get()	{ return this; }
 
 protected:
 	/**

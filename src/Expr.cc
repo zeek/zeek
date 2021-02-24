@@ -3158,7 +3158,7 @@ HasFieldExpr::~HasFieldExpr()
 ValPtr HasFieldExpr::Fold(Val* v) const
 	{
 	auto rv = v->AsRecordVal();
-	return val_mgr->Bool(rv->GetField(field) != nullptr);
+	return val_mgr->Bool(rv->HasField(field));
 	}
 
 void HasFieldExpr::ExprDescribe(ODesc* d) const
@@ -5089,7 +5089,7 @@ ValPtr CastExpr::Eval(Frame* f) const
 	d.Add("'");
 
 	if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) &&
-		 ! v->AsRecordVal()->GetField(0) )
+		 ! v->AsRecordVal()->HasField(0) )
 		d.Add(" (nil $data field)");
 
 	RuntimeError(d.Description());

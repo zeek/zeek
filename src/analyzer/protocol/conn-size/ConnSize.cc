@@ -171,8 +171,8 @@ void ConnSize_Analyzer::SetDurationThreshold(double duration)
 void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
 	// RecordType *connection_type is decleared in NetVar.h
-	RecordVal* orig_endp = conn_val->GetField("orig")->AsRecordVal();
-	RecordVal* resp_endp = conn_val->GetField("resp")->AsRecordVal();
+	auto orig_endp = conn_val->GetFieldAs<RecordVal>("orig");
+	auto resp_endp = conn_val->GetFieldAs<RecordVal>("resp");
 
 	// endpoint is the RecordType from NetVar.h
 	int pktidx = id::endpoint->FieldOffset("num_pkts");

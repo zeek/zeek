@@ -1099,7 +1099,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		SynWeirds(flags, endpoint, len);
 		RecordVal* SYN_vals = build_syn_packet_val(is_orig, ip, tp);
-		init_window(endpoint, peer, flags, SYN_vals->GetField(5)->CoerceToInt(),
+		init_window(endpoint, peer, flags, SYN_vals->GetFieldAs<IntVal>(5),
 		            base_seq, ack_seq);
 
 		if ( connection_SYN_packet )
@@ -1282,8 +1282,8 @@ void TCP_Analyzer::FlipRoles()
 
 void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	RecordVal* orig_endp_val = conn_val->GetField("orig")->AsRecordVal();
-	RecordVal* resp_endp_val = conn_val->GetField("resp")->AsRecordVal();
+	auto orig_endp_val = conn_val->GetFieldAs<RecordVal>("orig");
+	auto resp_endp_val = conn_val->GetFieldAs<RecordVal>("resp");
 
 	orig_endp_val->Assign(0, val_mgr->Count(orig->Size()));
 	orig_endp_val->Assign(1, val_mgr->Count(int(orig->state)));

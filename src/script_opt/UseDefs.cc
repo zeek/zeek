@@ -444,7 +444,7 @@ UDs UseDefs::FindSuccUsage(const Stmt* s) const
 	auto uds = no_succ ? nullptr : FindUsage(succ->second);
 
 	auto succ2 = successor2.find(s);
-	auto no_succ2 = (succ2 == successor.end() || ! succ2->second);
+	auto no_succ2 = (succ2 == successor2.end() || ! succ2->second);
 	auto uds2 = no_succ2 ? nullptr : FindUsage(succ2->second);
 
 	if ( uds && uds2 )

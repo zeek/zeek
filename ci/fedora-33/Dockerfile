@@ -1,6 +1,6 @@
 FROM fedora:33
 
-RUN yum -y install \
+RUN dnf -y install \
     bison \
     cmake \
     diffutils \
@@ -11,15 +11,13 @@ RUN yum -y install \
     gcc-c++ \
     libpcap-devel \
     make \
-    openssl \
     openssl-devel \
-    python3 \
     python3-devel \
     python3-pip\
     sqlite \
     swig \
     which \
     zlib-devel \
-  && yum clean all && rm -rf /var/cache/yum
+  && dnf clean all && rm -rf /var/cache/dnf
 
 RUN pip3 install junit2html

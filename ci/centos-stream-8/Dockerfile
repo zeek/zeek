@@ -1,10 +1,11 @@
-FROM fedora:32
+FROM quay.io/centos/centos:stream8
+
+RUN dnf config-manager --set-enabled powertools
 
 RUN dnf -y install \
     bison \
     cmake \
     diffutils \
-    findutils \
     flex \
     git \
     gcc \
@@ -16,7 +17,6 @@ RUN dnf -y install \
     python3-pip\
     sqlite \
     swig \
-    which \
     zlib-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 

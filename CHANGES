@@ -1,3 +1,16 @@
+4.1.0-dev.258 | 2021-02-24 15:10:51 -0700
+
+  * Minor Fedora 32/33 updates in CI
+
+    - Switch Fedora package management from yum to dnf, the default
+    - Minimize set of requested RPMs (Christian Kreibich, Corelight)
+
+  * Add CentOS Stream 8 to CI
+
+    There's no official Docker image on the Docker Hub, it's on quay.io:
+    https://quay.io/repository/centos/centos?tab=tags
+
+    At the moment, "Stream" and "Stream 8" are synonymous. (Christian Kreibich, Corelight)
 
 4.1.0-dev.255 | 2021-02-24 12:35:47 -0800
 

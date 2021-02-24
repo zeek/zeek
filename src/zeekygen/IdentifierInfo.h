@@ -13,9 +13,11 @@
 #include "zeek/ID.h"
 #include "zeek/util.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(TypeDecl, zeek);
+namespace zeek {
 
-namespace zeek::zeekygen::detail {
+class TypeDecl;
+
+namespace zeekygen::detail {
 
 class ScriptInfo;
 
@@ -201,4 +203,5 @@ private:
 	bool from_redef = false;
 };
 
-} // namespace zeek::zeekygen::detail
+} // namespace zeekygen::detail
+} // namespace zeek

@@ -4,9 +4,9 @@
 
 #include <stdio.h>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(CCL, zeek::detail);
-
 namespace zeek::detail {
+
+class CCL;
 
 class EquivClass {
 public:

@@ -14,11 +14,14 @@
 #include "zeek/ID.h"
 #include "zeek/util.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(TypeDecl, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(PackageInfo, zeek, zeekygen, detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ScriptInfoInfo, zeek, zeekygen, detail);
+namespace zeek {
 
-namespace zeek::zeekygen::detail {
+class TypeDecl;
+
+namespace zeekygen::detail {
+
+class PackageInfo;
+class ScriptInfo;
 
 /**
  * Map of info objects.  Just a wrapper around std::map to improve code
@@ -263,10 +266,11 @@ bool Manager::IsUpToDate(const std::string& target_file,
 	return true;
 	}
 
-} // namespace zeek::zeekygen::detail
+} // namespace zeekygen::detail
 
-namespace zeek::detail {
+namespace detail {
 
 extern zeekygen::detail::Manager* zeekygen_mgr;
 
-} // namespace zeek::detail
+} // namespace detail
+} // namespace zeek

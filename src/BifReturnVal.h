@@ -5,12 +5,12 @@
 #include "zeek/zeek-config.h"
 #include "zeek/IntrusivePtr.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
 namespace zeek {
-using ValPtr = IntrusivePtr<Val>;
-}
 
-namespace zeek::detail {
+class Val;
+using ValPtr = IntrusivePtr<Val>;
+
+namespace detail {
 
 /**
  * A simple wrapper class to use for the return value of BIFs so that
@@ -30,4 +30,5 @@ public:
 	ValPtr rval;
 };
 
-} // namespace zeek::detail
+} // namespace detail
+} // namespace zeek

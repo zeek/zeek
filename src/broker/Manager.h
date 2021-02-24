@@ -22,14 +22,15 @@
 #include "zeek/iosource/IOSource.h"
 #include "zeek/logging/WriterBackend.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(VectorType, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
-
 namespace zeek {
+
+class Func;
+class VectorType;
+class TableVal;
 using VectorTypePtr = IntrusivePtr<VectorType>;
 using TableValPtr = IntrusivePtr<TableVal>;
+
+namespace detail { class Frame; }
 
 namespace Broker {
 

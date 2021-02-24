@@ -7,11 +7,11 @@
 
 #include "zeek/IntrusivePtr.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-
 namespace zeek {
+
+class IP_Hdr;
+class Val;
+class Func;
 using FuncPtr = IntrusivePtr<Func>;
 
 namespace detail {

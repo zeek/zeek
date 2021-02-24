@@ -10,9 +10,6 @@
 
 #include "zeek/threading/SerialTypes.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(HashKey, zeek::detail);
-namespace analyzer { class ExpectedConn; }
-
 typedef in_addr in4_addr;
 
 namespace zeek {
@@ -21,6 +18,8 @@ class String;
 struct ConnID;
 
 namespace detail {
+
+class HashKey;
 
 struct ConnIDKey {
 	in6_addr ip1;

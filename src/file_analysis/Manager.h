@@ -14,15 +14,22 @@
 #include "zeek/analyzer/Tag.h"
 #include "zeek/file_analysis/FileTimer.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Tag, zeek, analyzer);
-ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Tag, zeek, file_analysis);
-
 namespace zeek {
+
+class TableVal;
+class VectorVal;
+
+namespace analyzer {
+
+class Analyzer;
+class Tag;
+
+} // namespace analyzer
+
 namespace file_analysis {
+
+class File;
+class Tag;
 
 /**
  * Main entry point for interacting with file analysis.

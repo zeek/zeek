@@ -11,20 +11,21 @@
 #include "zeek/StmtEnums.h"
 #include "zeek/util.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(DbgBreakpoint, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(DbgWatch, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(DbgDisplay, zeek::detail);
-
 namespace zeek {
+
+class Val;
 template <class T> class IntrusivePtr;
 using ValPtr = zeek::IntrusivePtr<Val>;
 
 extern std::string current_module;
 
 namespace detail {
+
+class Frame;
+class Stmt;
+class DbgBreakpoint;
+class DbgWatch;
+class DbgDisplay;
 
 // This needs to be defined before we do the includes that come after it.
 enum ParseLocationRecType { PLR_UNKNOWN, PLR_FILE_AND_LINE, PLR_FUNCTION };

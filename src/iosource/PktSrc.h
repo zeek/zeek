@@ -9,9 +9,10 @@
 #include "zeek/iosource/Packet.h"
 
 struct pcap_pkthdr;
-ZEEK_FORWARD_DECLARE_NAMESPACED(BPF_Program, zeek::iosource::detail);
 
 namespace zeek::iosource {
+
+namespace detail { class BPF_Program; }
 
 /**
  * Base class for packet sources.

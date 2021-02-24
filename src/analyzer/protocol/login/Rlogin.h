@@ -5,9 +5,9 @@
 #include "zeek/analyzer/protocol/login/Login.h"
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Rlogin_Analyzer, zeek, analyzer::login);
-
 namespace zeek::analyzer::login {
+
+class Rlogin_Analyzer;
 
 enum rlogin_state {
 	RLOGIN_FIRST_NULL,	// waiting to see first NUL

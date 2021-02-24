@@ -7,11 +7,11 @@
 
 #include "zeek/plugin/Component.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(IOSource, zeek, iosource);
-ZEEK_FORWARD_DECLARE_NAMESPACED(PktSrc, zeek, iosource);
-ZEEK_FORWARD_DECLARE_NAMESPACED(PktDumper, zeek, iosource);
-
 namespace zeek::iosource {
+
+class IOSource;
+class PktSrc;
+class PktDumper;
 
 /**
  * Component description for plugins providing IOSources.

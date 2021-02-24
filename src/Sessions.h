@@ -11,16 +11,16 @@
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/tcp/Stats.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(EncapsulationStack, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
 class ConnCompressor;
-
-ZEEK_FORWARD_DECLARE_NAMESPACED(SteppingStoneManager, zeek, analyzer::stepping_stone);
 
 namespace zeek {
 
+class EncapsulationStack;
+class Packet;
+class Connection;
 struct ConnID;
+
+namespace analyzer::stepping_stone { class SteppingStoneManager; }
 
 struct SessionStats {
 	size_t num_TCP_conns;

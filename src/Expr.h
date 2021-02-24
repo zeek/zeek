@@ -18,14 +18,13 @@
 #include "zeek/Val.h"
 #include "zeek/ZeekArgs.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
-
 namespace zeek {
 template <class T> class IntrusivePtr;
 
 namespace detail {
 
+class Frame;
+class Scope;
 struct function_ingredients;
 using IDPtr = IntrusivePtr<ID>;
 

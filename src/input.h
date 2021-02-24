@@ -34,9 +34,9 @@ extern void do_doc_token_stop();
 extern int line_number;
 extern const char* filename;
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
-
 namespace zeek::detail {
+
+class Stmt;
 
 extern int zeek_argc;
 extern char** zeek_argv;

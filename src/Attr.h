@@ -9,8 +9,6 @@
 #include "zeek/ZeekList.h"
 #include "zeek/IntrusivePtr.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
-
 // Note that there are two kinds of attributes: the kind (here) which
 // modify expressions or supply metadata on types, and the kind that
 // are extra metadata on every variable instance.
@@ -22,6 +20,7 @@ using TypePtr = IntrusivePtr<Type>;
 
 namespace detail {
 
+class Expr;
 using ExprPtr = IntrusivePtr<Expr>;
 
 enum AttrTag {

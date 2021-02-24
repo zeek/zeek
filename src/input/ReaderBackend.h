@@ -9,9 +9,9 @@
 
 #include "zeek/input/Component.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderFrontend, zeek::input);
-
 namespace zeek::input {
+
+class ReaderFrontend;
 
 /**
  * The modes a reader can be in.

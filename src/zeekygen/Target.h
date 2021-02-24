@@ -9,12 +9,12 @@
 #include <vector>
 #include <cstdio>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Info, zeek, zeekygen, detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(PackageInfo, zeek, zeekygen, detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ScriptInfo, zeek, zeekygen, detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IdentifierInfo, zeek, zeekygen, detail);
-
 namespace zeek::zeekygen::detail {
+
+class Info;
+class PackageInfo;
+class ScriptInfo;
+class IdentifierInfo;
 
 /**
  * Helper class to create files in arbitrary file paths and automatically

@@ -8,9 +8,9 @@
 #include <iosfwd>
 #include <thread>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, threading);
-
 namespace zeek::threading {
+
+class Manager;
 
 /**
  * Base class for all threads.

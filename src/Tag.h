@@ -10,11 +10,10 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/util.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(EnumType, zeek);
-
 namespace zeek {
 
+class EnumVal;
+class EnumType;
 using EnumTypePtr = IntrusivePtr<EnumType>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
 

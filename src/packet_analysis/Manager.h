@@ -8,9 +8,10 @@
 #include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/Dispatcher.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(PacketProfiler, zeek::detail);
-
 namespace zeek {
+
+namespace detail { class PacketProfiler; }
+
 namespace packet_analysis {
 
 class Analyzer;

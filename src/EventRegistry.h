@@ -10,11 +10,11 @@
 #include <string_view>
 #include <vector>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandler, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Matcher, zeek);
-
 namespace zeek {
+
+class EventHandler;
+class EventHandlerPtr;
+class RE_Matcher;
 
 // The registry keeps track of all events that we provide or handle.
 class EventRegistry {

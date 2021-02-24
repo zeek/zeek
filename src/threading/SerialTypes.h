@@ -9,7 +9,7 @@
 #include "zeek/Type.h"
 #include "zeek/net_util.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(SerializationFormat, zeek::detail);
+namespace zeek::detail { class SerializationFormat; }
 
 namespace zeek::threading {
 

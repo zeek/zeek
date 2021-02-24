@@ -9,13 +9,15 @@
 #include <sys/resource.h>
 #include <stdint.h>
 
-namespace zeek { class File; }
+namespace zeek {
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Location, zeek::detail);
+class File;
+class Func;
+class TableVal;
 
-namespace zeek::detail {
+namespace detail {
+
+class Location;
 
 // Object called by SegmentProfiler when it is done and reports its
 // cumulative CPU/memory statistics.
@@ -142,4 +144,5 @@ protected:
 	uint64_t byte_cnt;
 };
 
-} // namespace zeek::detail
+} // namespace detail
+} // namespace zeek

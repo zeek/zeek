@@ -6,10 +6,10 @@
 #include "zeek/plugin/TaggedComponent.h"
 #include "zeek/input/Tag.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderFrontend, zeek, input);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ReaderBackend, zeek, input);
-
 namespace zeek::input {
+
+class ReaderFrontend;
+class ReaderBackend;
 
 /**
  * Component description for plugins providing log readers.

@@ -14,11 +14,11 @@
 struct timespec;
 struct kevent;
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(PktSrc, zeek, iosource);
-ZEEK_FORWARD_DECLARE_NAMESPACED(PktDumper, zeek, iosource);
-
 namespace zeek {
 namespace iosource {
+
+class PktSrc;
+class PktDumper;
 
 /**
  * Manager class for IO sources. This handles all of the polling of sources

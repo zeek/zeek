@@ -8,9 +8,11 @@
                         bits than the mantissa of your "double"
                         floating point type. */
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(EntropyVal, zeek);
+namespace zeek {
 
-namespace zeek::detail {
+class EntropyVal;
+
+namespace detail {
 
 class RandTest {
 public:
@@ -32,4 +34,5 @@ private:
 	       sccu0, scclast, scct1, scct2, scct3;
 };
 
-} // namespace zeek::detail
+} // namespace detail
+} // namespace zeek

@@ -5,9 +5,11 @@
 #include "zeek/zeek-config.h"
 #include <string>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
+namespace zeek {
 
-namespace zeek::iosource {
+class Packet;
+
+namespace iosource {
 
 /**
  * Base class for packet dumpers.
@@ -133,4 +135,5 @@ private:
 	std::string errmsg;
 };
 
-} // namespace zeek::iosource
+} // namespace iosource
+} // namespace zeek

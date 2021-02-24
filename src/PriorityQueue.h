@@ -7,9 +7,9 @@
 #include <math.h>
 #include <stdint.h>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(PriorityQueue, zeek::detail);
-
 namespace zeek::detail {
+
+class PriorityQueue;
 
 class PQ_Element {
 public:

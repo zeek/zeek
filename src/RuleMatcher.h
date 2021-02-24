@@ -27,18 +27,22 @@ extern FILE* rules_in;
 extern int rules_line_number;
 extern const char* current_rule_file;
 
-namespace zeek { class File; }
-ZEEK_FORWARD_DECLARE_NAMESPACED(RE_Match_State, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Specific_RE_Matcher, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RuleMatcher, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IntSet, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(PIA, zeek, analyzer::pia);
+namespace zeek {
 
-namespace zeek::detail {
+class File;
+class IP_Hdr;
+class IPPrefix;
+class Val;
+
+namespace analyzer { class Analyzer; }
+namespace analyzer::pia { class PIA; }
+
+namespace detail {
+
+class RE_Match_State;
+class Specific_RE_Matcher;
+class RuleMatcher;
+class IntSet;
 
 extern RuleMatcher* rule_matcher;
 
@@ -390,4 +394,5 @@ private:
 	RuleEndpointState* resp_match_state;
 };
 
-} // namespace zeek::detail
+} // namespace detail
+} // namespace zeek

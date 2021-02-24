@@ -7,9 +7,11 @@
 
 #include "zeek/file_analysis/analyzer/x509/X509Common.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
+namespace zeek::file_analysis {
 
-namespace zeek::file_analysis::detail {
+class File;
+
+namespace detail {
 
 class OCSP : public file_analysis::detail::X509Common {
 public:
@@ -34,4 +36,5 @@ private:
 	bool request = false; // true if ocsp request, false if reply
 };
 
-} // namespace zeek::file_analysis::detail
+} // namespace detail
+} // namespace zeek::file_analysis

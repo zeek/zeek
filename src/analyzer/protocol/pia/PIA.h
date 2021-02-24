@@ -6,7 +6,7 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/RuleMatcher.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);
+namespace zeek::detail { class RuleEndpointState; }
 
 namespace zeek::analyzer::pia {
 

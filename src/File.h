@@ -16,11 +16,16 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/util.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(PrintStmt, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
-
 namespace zeek {
+
+namespace detail {
+
+class PrintStmt;
+class Attributes;
+
+} // namespace detail;
+
+class RecordVal;
 class Type;
 using TypePtr = IntrusivePtr<Type>;
 

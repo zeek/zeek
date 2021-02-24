@@ -13,10 +13,10 @@
 
 namespace broker { class data; }
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(BloomFilter, zeek, probabilistic);
-ZEEK_FORWARD_DECLARE_NAMESPACED(CardinalityCounter, zeek, probabilistic, detail);
-
 namespace zeek {
+
+namespace probabilistic { class BloomFilter; }
+namespace probabilistic::detail { class CardinalityCounter; }
 
 class OpaqueVal;
 using OpaqueValPtr = IntrusivePtr<OpaqueVal>;

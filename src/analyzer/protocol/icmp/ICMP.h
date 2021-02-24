@@ -6,12 +6,12 @@
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/net_util.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
 namespace zeek {
-using VectorValPtr = IntrusivePtr<VectorVal>;
-}
 
-namespace zeek::analyzer::icmp {
+class VectorVal;
+using VectorValPtr = IntrusivePtr<VectorVal>;
+
+namespace analyzer::icmp {
 
 enum ICMP_EndpointState {
 	ICMP_INACTIVE,	// no packet seen
@@ -95,4 +95,5 @@ private:
 extern int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 extern int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 
-} // namespace zeek::analyzer::icmp
+} // namespace analyzer::icmp
+} // namespace zeek

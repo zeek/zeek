@@ -3,10 +3,12 @@
 #include "zeek/zeek-config.h"
 #include <string>
 
-namespace zeek { class String; }
-ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
+namespace zeek {
 
-namespace zeek::detail {
+class String;
+class Connection;
+
+namespace detail {
 
 // Maybe we should have a base class for generic decoders?
 class Base64Converter {
@@ -63,4 +65,5 @@ protected:
 String* decode_base64(const String* s, const String* a = nullptr, Connection* conn = nullptr);
 String* encode_base64(const String* s, const String* a = nullptr, Connection* conn = nullptr);
 
-} // namespace zeek::detail
+} // namespace detail
+} // namespace zeek

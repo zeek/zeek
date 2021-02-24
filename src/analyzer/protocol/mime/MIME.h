@@ -10,16 +10,16 @@
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/Analyzer.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Base64Converter, zeek::detail);
-
 namespace zeek {
+
+class TableVal;
+class StringVal;
 using TableValPtr = IntrusivePtr<TableVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
-}
 
-namespace zeek::analyzer::mime {
+namespace detail { class Base64Converter; }
+
+namespace analyzer::mime {
 
 // MIME: Multipurpose Internet Mail Extensions
 // Follows RFC 822 & 2822 (Internet Mail), 2045-2049 (MIME)
@@ -287,4 +287,5 @@ extern int MIME_get_value(int len, const char* data, String*& buf,
 extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
 extern String* MIME_decode_quoted_pairs(data_chunk_t buf);
 
-} // namespace zeek::analyzer::mime
+} // namespace analyzer::mime
+} // namespace zeek

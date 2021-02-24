@@ -8,14 +8,13 @@
 
 #include "zeek/Hash.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(IterCookie, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Dictionary, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(DictEntry, zeek::detail);
-
 // Type for function to be called when deleting elements.
 typedef void (*dict_delete_func)(void*);
 
 namespace zeek {
+
+class IterCookie;
+class Dictionary;
 
 enum DictOrder { ORDERED, UNORDERED };
 
@@ -23,6 +22,8 @@ enum DictOrder { ORDERED, UNORDERED };
 extern void generic_delete_func(void*);
 
 namespace detail {
+
+class DictEntry;
 
 // Default number of hash buckets in dictionary.  The dictionary will increase the size
 // of the hash table as needed.

@@ -11,9 +11,9 @@
 #include "zeek/ID.h"
 #include "zeek/UID.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
-
 namespace zeek {
+
+class Connection;
 
 /**
  * Represents various types of tunnel "connections", that is, a pair of

@@ -69,9 +69,6 @@ extern "C"
 using bro_int_t = int64_t;
 using bro_uint_t = uint64_t;
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
-
 #ifndef HAVE_STRCASESTR
 extern char* strcasestr(const char* s, const char* find);
 #endif
@@ -79,7 +76,12 @@ extern char* strcasestr(const char* s, const char* find);
 // This is used by the patricia code and so it remains outside of hte namespace.
 extern "C" void out_of_memory(const char* where);
 
-namespace zeek::util {
+namespace zeek {
+
+class ODesc;
+class RecordVal;
+
+namespace util {
 namespace detail {
 
 std::string extract_ip(const std::string& i);
@@ -537,4 +539,5 @@ char* zeekenv(const char* name);
  */
 std::string json_escape_utf8(const std::string& val);
 
-} // namespace zeek::util
+} // namespace util
+} // namespace zeek

@@ -13,19 +13,19 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/WeirdState.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(EventHandlerPtr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 namespace zeek {
+
+class Connection;
+class EventHandlerPtr;
+class RecordVal;
+class RecordType;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 using RecordTypePtr = IntrusivePtr<RecordType>;
-}
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(FileReassembler, zeek, file_analysis);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Tag, zeek, file_analysis);
+namespace file_analysis {
 
-namespace zeek::file_analysis {
+class FileReassembler;
+class Tag;
 
 /**
  * Wrapper class around \c fa_file record values from script layer.
@@ -367,3 +367,4 @@ protected:
 };
 
 } // namespace file_analysis
+} // namespace zeek

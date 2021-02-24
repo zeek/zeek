@@ -4,7 +4,7 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(NVT_Analyzer, zeek, analyzer::login);
+namespace zeek::analyzer::login { class NVT_Analyzer; }
 
 namespace zeek::analyzer::ftp {
 

@@ -7,13 +7,15 @@
 #include <stdint.h>
 #include <string>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IPPrefix, zeek);
-
 struct in_addr;
 struct in6_addr;
 
-namespace zeek::detail {
+namespace zeek {
+
+class IPAddr;
+class IPPrefix;
+
+namespace detail {
 
 // Abstract base class.
 class SerializationFormat {
@@ -138,3 +140,4 @@ public:
 };
 
 } // namespace zeek::detail
+} // namespace zeek

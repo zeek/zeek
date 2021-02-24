@@ -3,9 +3,9 @@
 #include "zeek/file_analysis/FileReassembler.h"
 #include "zeek/file_analysis/File.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
-
 namespace zeek::file_analysis {
+
+class File;
 
 FileReassembler::FileReassembler(File *f, uint64_t starting_offset)
 	: Reassembler(starting_offset, REASSEM_FILE), the_file(f), flushing(false)

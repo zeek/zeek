@@ -5,11 +5,11 @@
 
 #include "zeek/util.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(RuleEndpointState, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
-
 namespace zeek::detail {
+
+class RuleEndpointState;
+class Rule;
+class ID;
 
 // Base class for all rule conditions except patterns and "header".
 class RuleCondition {

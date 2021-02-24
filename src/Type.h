@@ -15,22 +15,23 @@
 #include "zeek/ZeekList.h"
 #include "zeek/IntrusivePtr.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(EnumVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ListExpr, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
-
 namespace zeek {
 
+class Val;
+class EnumVal;
+class TableVal;
 using ValPtr = IntrusivePtr<Val>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
 using TableValPtr = IntrusivePtr<TableVal>;
 
 namespace detail {
+
+class Expr;
+class ListExpr;
+class Attributes;
 using ListExprPtr = IntrusivePtr<ListExpr>;
-}
+
+} // namespace detail
 
 // BRO types.
 enum TypeTag {

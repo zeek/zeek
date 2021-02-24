@@ -4,10 +4,11 @@
 
 #include "zeek/util.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 namespace zeek { class Obj; }
 
 namespace zeek::detail {
+
+class Expr;
 
 class DbgWatch {
 public:

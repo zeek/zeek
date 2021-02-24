@@ -5,13 +5,18 @@
 #include "zeek/Frame.h"
 #include "zeek/Expr.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
-namespace zeek::threading {
-	struct Value;
-	struct Field;
-}
+namespace zeek {
 
-namespace zeek::Broker::detail {
+class ODesc;
+
+namespace threading {
+
+struct Value;
+struct Field;
+
+} // namespace threading
+
+namespace Broker::detail {
 
 extern OpaqueTypePtr opaque_of_data_type;
 extern OpaqueTypePtr opaque_of_set_iterator;
@@ -288,4 +293,5 @@ protected:
 	DECLARE_OPAQUE_VALUE(zeek::Broker::detail::RecordIterator)
 };
 
-} // namespace zeek::Broker
+} // namespace Broker::detail
+} // namespace zeek

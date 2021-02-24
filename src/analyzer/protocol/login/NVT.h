@@ -11,9 +11,9 @@
 #define TELNET_OPTION_ENVIRON 39
 #define NUM_TELNET_OPTIONS 5
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(NVT_Analyzer, zeek, analyzer::login);
-
 namespace zeek::analyzer::login {
+
+class NVT_Analyzer;
 
 class TelnetOption {
 public:

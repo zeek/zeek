@@ -18,14 +18,6 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/BifReturnVal.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Scope, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(FuncType, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
-
 namespace caf {
 template <class> class expected;
 }
@@ -38,8 +30,16 @@ using caf::expected;
 
 namespace zeek {
 
+class Val;
+class FuncType;
+
 namespace detail {
 
+class Scope;
+class Stmt;
+class CallExpr;
+class ID;
+class Frame;
 using ScopePtr = IntrusivePtr<Scope>;
 using IDPtr = IntrusivePtr<ID>;
 using StmtPtr = IntrusivePtr<Stmt>;

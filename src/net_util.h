@@ -116,10 +116,10 @@ struct ip6_rthdr {
 #define	TCPOPT_TIMESTAMP TCPOPT_TSTAMP
 #endif
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
-
 namespace zeek {
+
+class IPAddr;
+class IP_Hdr;
 
 namespace detail {
 

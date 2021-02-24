@@ -8,16 +8,16 @@
 #include "zeek/plugin/Component.h"
 #include "zeek/plugin/TaggedComponent.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 namespace zeek {
+
+class RecordVal;
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
-}
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, file_analysis);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Manager, zeek, file_analysis);
+namespace file_analysis {
 
-namespace zeek::file_analysis {
+class File;
+class Analyzer;
+class Manager;
 
 /**
  * Component description for plugins providing file analyzers.
@@ -100,4 +100,5 @@ private:
 	bool enabled;	// True if the analyzer is enabled.
 };
 
-} // namespace zeek::file_analysis
+} // namespace file_analysis
+} // namespace zeek

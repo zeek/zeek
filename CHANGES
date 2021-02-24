@@ -1,3 +1,8 @@
+
+4.1.0-dev.260 | 2021-02-24 15:52:31 -0800
+
+  * Remove obsolete ZEEK_FORWARD_DECLARE_NAMESPACED macros (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.258 | 2021-02-24 15:10:51 -0700
 
   * Minor Fedora 32/33 updates in CI

@@ -5,11 +5,17 @@
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
 #include "zeek/File.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, analyzer);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_Analyzer, zeek, analyzer::tcp);
+namespace zeek {
 
-namespace zeek::analyzer::tcp {
+class Connection;
+
+namespace analyzer {
+
+class Analyzer;
+
+namespace tcp {
+
+class TCP_Analyzer;
 
 class TCP_Reassembler final : public Reassembler {
 public:
@@ -112,4 +118,6 @@ private:
 	Type type;
 };
 
-} // namespace zeek::analyzer::tcp
+} // namespace tcp
+} // namespace analyzer
+} // namespace zeek

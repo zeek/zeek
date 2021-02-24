@@ -7,12 +7,19 @@
 #include <string>
 #include <optional>
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(IOSource, zeek, iosource);
-ZEEK_FORWARD_DECLARE_NAMESPACED(PktSrc, zeek, iosource);
-ZEEK_FORWARD_DECLARE_NAMESPACED(PktDumper, zeek, iosource);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Packet, zeek);
+namespace zeek {
 
-namespace zeek::run_state {
+class Packet;
+
+namespace iosource {
+
+class IOSource;
+class PktSrc;
+class PktDumper;
+
+} // namespace iosource
+
+namespace run_state {
 namespace detail {
 
 extern void init_run(const std::optional<std::string>& interfaces,
@@ -103,4 +110,5 @@ extern const zeek::Packet* current_pkt;
 extern int current_dispatched;
 extern double current_timestamp;
 
-} // namespace zeek::run_state
+} // namespace run_state
+} // namespace zeek

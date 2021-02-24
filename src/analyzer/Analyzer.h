@@ -16,19 +16,22 @@
 #include "zeek/Timer.h"
 #include "zeek/IntrusivePtr.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Connection, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Rule, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(IP_Hdr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TCP_ApplicationAnalyzer, zeek, analyzer::tcp);
-ZEEK_FORWARD_DECLARE_NAMESPACED(PIA, zeek, analyzer::pia);
-
 namespace zeek {
-using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+
+class Connection;
+class IP_Hdr;
 class File;
 using FilePtr = zeek::IntrusivePtr<File>;
-}
+using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
+
+namespace detail { class Rule; }
+
+} // namespace zeek
 
 namespace zeek::analyzer {
+
+namespace tcp { class TCP_ApplicationAnalyzer; }
+namespace pia { class PIA; }
 
 class Analyzer;
 class AnalyzerTimer;

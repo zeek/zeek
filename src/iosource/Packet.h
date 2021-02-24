@@ -19,11 +19,11 @@ typedef struct timeval pkt_timeval;
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/IP.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
-
 namespace zeek {
+
+class ODesc;
+class Val;
+class RecordVal;
 
 template <class T> class IntrusivePtr;
 using ValPtr = IntrusivePtr<Val>;

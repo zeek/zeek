@@ -7,7 +7,7 @@
 #include "zeek/PriorityQueue.h"
 #include "zeek/iosource/IOSource.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(ODesc, zeek);
+namespace zeek { class ODesc; }
 
 namespace zeek::detail {
 

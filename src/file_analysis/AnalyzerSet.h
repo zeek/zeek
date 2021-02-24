@@ -8,16 +8,19 @@
 #include "zeek/Dict.h"
 #include "zeek/file_analysis/Tag.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(CompositeHash, zeek::detail);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
 namespace zeek {
+
+class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
-}
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(Analyzer, zeek, file_analysis);
-ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek, file_analysis);
+namespace detail { class CompositeHash; }
 
-namespace zeek::file_analysis::detail {
+namespace file_analysis {
+
+class Analyzer;
+class File;
+
+namespace detail {
 
 /**
  * A set of file analysis analyzers indexed by an \c AnalyzerArgs (script-layer
@@ -237,4 +240,6 @@ private:
 	ModQueue mod_queue;	/**< A queue of analyzer additions/removals requests. */
 };
 
-} // namespace zeek::file_analysis::detail
+} // namespace detail
+} // namespace file_analysis
+} // namespace zeek

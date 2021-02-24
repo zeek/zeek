@@ -12,9 +12,9 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/IntrusivePtr.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(EventMgr, zeek);
-
 namespace zeek {
+
+class EventMgr;
 
 class Event final : public Obj {
 public:

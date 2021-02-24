@@ -16,14 +16,15 @@
 
 #include "zeek/IntrusivePtr.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(IPAddr, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(FragReassembler, zeek::detail);
-
 namespace zeek {
+
+class IPAddr;
+class RecordVal;
+class VectorVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
+
+namespace detail { class FragReassembler; }
 
 #ifdef ENABLE_MOBILE_IPV6
 

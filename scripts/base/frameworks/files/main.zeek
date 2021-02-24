@@ -178,6 +178,27 @@ export {
 	##          for the file isn't currently active.
 	global set_timeout_interval: function(f: fa_file, t: interval): bool;
 
+	## Enables a file analyzer.
+	##
+	## tag: the analyzer type to enable.
+	##
+	## Returns: false if the analyzer tag could not be found, else true.
+	global enable_analyzer: function(tag: Files::Tag): bool;
+
+	## Disables a file analyzer.
+	##
+	## tag: the analyzer type to disable.
+	##
+	## Returns: false if the analyzer tag could not be found, else true.
+	global disable_analyzer: function(tag: Files::Tag): bool;
+
+	## Checks whether a file analyzer is generally enabled.
+	##
+	## tag: the analyzer type to check.
+	##
+	## Returns: true if the analyzer is generally enabled, else false.
+	global analyzer_enabled: function(tag: Files::Tag): bool;
+
 	## Adds an analyzer to the analysis of a given file.
 	##
 	## f: the file.
@@ -377,8 +398,26 @@ function set_reassembly_buffer_size(f: fa_file, max: count)
 	__set_reassembly_buffer(f$id, max);
 	}
 
+function enable_analyzer(tag: Files::Tag): bool
+	{
+	return __enable_analyzer(tag);
+	}
+
+function disable_analyzer(tag: Files::Tag): bool
+	{
+	return __disable_analyzer(tag);
+	}
+
+function analyzer_enabled(tag: Files::Tag): bool
+	{
+	return __analyzer_enabled(tag);
+	}
+
 function add_analyzer(f: fa_file, tag: Files::Tag, args: AnalyzerArgs): bool
 	{
+	if ( ! Files::analyzer_enabled(tag) )
+		return F;
+
 	add f$info$analyzers[Files::analyzer_name(tag)];
 
 	if ( tag in analyzer_add_callbacks )
@@ -516,10 +555,7 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=10
 		{
 		local analyzers = mime_type_to_analyzers[meta$mime_type];
 		for ( a in analyzers )
-			{
-			add f$info$analyzers[Files::analyzer_name(a)];
 			Files::add_analyzer(f, a);
-			}
 		}
 	}
 

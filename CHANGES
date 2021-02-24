@@ -1,4 +1,11 @@
 
+4.1.0-dev.255 | 2021-02-24 12:35:47 -0800
+
+  * Support explicit disabling of file analyzers (Jon Siwek, Corelight)
+
+    This adds various methods/BIFs the enable/disable file analyzers
+    or query whether they're currently enabled.
+
 4.1.0-dev.252 | 2021-02-23 12:01:52 -0800
 
   * "xform" btest alternative baseline update (Vern Paxson, Corelight)

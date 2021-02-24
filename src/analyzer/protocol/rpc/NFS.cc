@@ -321,16 +321,16 @@ Args NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status
 	auto info = make_intrusive<RecordVal>(BifType::Record::NFS3::info_t);
 	info->Assign(0, BifType::Enum::rpc_status->GetEnumVal(rpc_status));
 	info->Assign(1, BifType::Enum::NFS3::status_t->GetEnumVal(nfs_status));
-	info->Assign(2, make_intrusive<TimeVal>(c->StartTime()));
-	info->Assign(3, make_intrusive<IntervalVal>(c->LastTime()-c->StartTime()));
-	info->Assign(4, val_mgr->Count(c->RPCLen()));
-	info->Assign(5, make_intrusive<TimeVal>(rep_start_time));
-	info->Assign(6, make_intrusive<IntervalVal>(rep_last_time-rep_start_time));
-	info->Assign(7, val_mgr->Count(reply_len));
-	info->Assign(8, val_mgr->Count(c->Uid()));
-	info->Assign(9, val_mgr->Count(c->Gid()));
-	info->Assign(10, val_mgr->Count(c->Stamp()));
-	info->Assign(11, make_intrusive<StringVal>(c->MachineName()));
+	info->Assign(2, c->StartTime());
+	info->Assign(3, c->LastTime()-c->StartTime());
+	info->Assign(4, c->RPCLen());
+	info->Assign(5, rep_start_time);
+	info->Assign(6, rep_last_time-rep_start_time);
+	info->Assign(7, reply_len);
+	info->Assign(8, c->Uid());
+	info->Assign(9, c->Gid());
+	info->Assign(10, c->Stamp());
+	info->Assign(11, c->MachineName());
 	info->Assign(12, std::move(auxgids));
 
 	vl.emplace_back(std::move(info));
@@ -565,7 +565,7 @@ RecordValPtr NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NF
 
 		rep->Assign(0, nfs3_post_op_attr(buf, n));
 		bytes_read = extract_XDR_uint32(buf, n);
-		rep->Assign(1, val_mgr->Count(bytes_read));
+		rep->Assign(1, bytes_read);
 		rep->Assign(2, ExtractBool(buf, n));
 		rep->Assign(3, nfs3_file_data(buf, n, offset, bytes_read));
 		}
@@ -648,9 +648,9 @@ RecordValPtr NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 
 	writeargs->Assign(0, nfs3_fh(buf, n));
 	offset = extract_XDR_uint64(buf, n);
-	writeargs->Assign(1, val_mgr->Count(offset));  // offset
+	writeargs->Assign(1, offset);  // offset
 	bytes = extract_XDR_uint32(buf, n);
-	writeargs->Assign(2, val_mgr->Count(bytes));   // size
+	writeargs->Assign(2, bytes);   // size
 
 	writeargs->Assign(3, nfs3_stable_how(buf, n));
 	writeargs->Assign(4, nfs3_file_data(buf, n, offset, bytes));
@@ -735,7 +735,7 @@ RecordValPtr NFS_Interp::nfs3_readdirargs(bool isplus, const u_char*& buf, int&n
 	{
 	auto args = make_intrusive<RecordVal>(BifType::Record::NFS3::readdirargs_t);
 
-	args->Assign(0, val_mgr->Bool(isplus));
+	args->Assign(0, isplus);
 	args->Assign(1, nfs3_fh(buf, n));
 	args->Assign(2, ExtractUint64(buf,n));	// cookie
 	args->Assign(3, ExtractUint64(buf,n));	// cookieverf
@@ -752,7 +752,7 @@ RecordValPtr NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 	{
 	auto rep = make_intrusive<RecordVal>(BifType::Record::NFS3::readdir_reply_t);
 
-	rep->Assign(0, val_mgr->Bool(isplus));
+	rep->Assign(0, isplus);
 
 	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
@@ -792,29 +792,29 @@ RecordValPtr NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 	return rep;
 	}
 
-ValPtr NFS_Interp::ExtractUint32(const u_char*& buf, int& n)
+uint32_t NFS_Interp::ExtractUint32(const u_char*& buf, int& n)
 	{
-	return val_mgr->Count(extract_XDR_uint32(buf, n));
+	return extract_XDR_uint32(buf, n);
 	}
 
-ValPtr NFS_Interp::ExtractUint64(const u_char*& buf, int& n)
+uint64_t NFS_Interp::ExtractUint64(const u_char*& buf, int& n)
 	{
-	return val_mgr->Count(extract_XDR_uint64(buf, n));
+	return extract_XDR_uint64(buf, n);
 	}
 
-ValPtr NFS_Interp::ExtractTime(const u_char*& buf, int& n)
+double NFS_Interp::ExtractTime(const u_char*& buf, int& n)
 	{
-	return make_intrusive<TimeVal>(extract_XDR_time(buf, n));
+	return extract_XDR_time(buf, n);
 	}
 
-ValPtr NFS_Interp::ExtractInterval(const u_char*& buf, int& n)
+double NFS_Interp::ExtractInterval(const u_char*& buf, int& n)
 	{
-	return make_intrusive<IntervalVal>(double(extract_XDR_uint32(buf, n)), 1.0);
+	return double(extract_XDR_uint32(buf, n));
 	}
 
-ValPtr NFS_Interp::ExtractBool(const u_char*& buf, int& n)
+bool NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 	{
-	return val_mgr->Bool(extract_XDR_uint32(buf, n));
+	return extract_XDR_uint32(buf, n);
 	}
 
 } // namespace detail

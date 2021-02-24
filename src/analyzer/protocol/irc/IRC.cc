@@ -841,14 +841,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		for ( size_t i = 0; i < channels.size(); ++i )
 			{
 			auto info = make_intrusive<RecordVal>(irc_join_info);
-			info->Assign(0, make_intrusive<StringVal>(nickname.c_str()));
-			info->Assign(1, make_intrusive<StringVal>(channels[i].c_str()));
+			info->Assign(0, nickname);
+			info->Assign(1, channels[i]);
 			if ( i < passwords.size() )
-				info->Assign(2, make_intrusive<StringVal>(passwords[i].c_str()));
+				info->Assign(2, passwords[i]);
 			else
-				info->Assign(2, make_intrusive<StringVal>(empty_string.c_str()));
+				info->Assign(2, empty_string);
 			// User mode.
-			info->Assign(3, make_intrusive<StringVal>(empty_string.c_str()));
+			info->Assign(3, empty_string);
 			list->Assign(std::move(info), nullptr);
 			}
 
@@ -903,12 +903,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				mode = "voice";
 				}
 
-			info->Assign(0, make_intrusive<StringVal>(nick.c_str()));
-			info->Assign(1, make_intrusive<StringVal>(channel.c_str()));
+			info->Assign(0, nick);
+			info->Assign(1, channel);
 			// Password:
-			info->Assign(2, make_intrusive<StringVal>(empty_string.c_str()));
+			info->Assign(2, empty_string);
 			// User mode:
-			info->Assign(3, make_intrusive<StringVal>(mode.c_str()));
+			info->Assign(3, mode);
 			list->Assign(std::move(info), nullptr);
 			}
 

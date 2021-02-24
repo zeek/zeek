@@ -784,7 +784,7 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame)
 				return rval;
 				}
 
-			rval->Assign(0, make_intrusive<StringVal>(func->Name()));
+			rval->Assign(0, func->Name());
 			continue;
 			}
 
@@ -1453,20 +1453,20 @@ void Manager::ProcessStatus(broker::status_view stat)
 
 	if ( ctx )
 		{
-		endpoint_info->Assign(0, make_intrusive<StringVal>(to_string(ctx->node)));
+		endpoint_info->Assign(0, to_string(ctx->node));
 		static auto ni = id::find_type<RecordType>("Broker::NetworkInfo");
 		auto network_info = make_intrusive<RecordVal>(ni);
 
 		if ( ctx->network )
 			{
-			network_info->Assign(0, make_intrusive<StringVal>(ctx->network->address.data()));
+			network_info->Assign(0, ctx->network->address.data());
 			network_info->Assign(1, val_mgr->Port(ctx->network->port, TRANSPORT_TCP));
 			}
 		else
 			{
 			// TODO: are there any status messages where the ctx->network
 			// is not set and actually could be?
-			network_info->Assign(0, make_intrusive<StringVal>("<unknown>"));
+			network_info->Assign(0, "<unknown>");
 			network_info->Assign(1, val_mgr->Port(0, TRANSPORT_TCP));
 			}
 

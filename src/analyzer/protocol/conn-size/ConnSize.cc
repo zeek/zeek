@@ -184,10 +184,10 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	if ( bytesidx < 0 )
 		reporter->InternalError("'endpoint' record missing 'num_bytes_ip' field");
 
-	orig_endp->Assign(pktidx, val_mgr->Count(orig_pkts));
-	orig_endp->Assign(bytesidx, val_mgr->Count(orig_bytes));
-	resp_endp->Assign(pktidx, val_mgr->Count(resp_pkts));
-	resp_endp->Assign(bytesidx, val_mgr->Count(resp_bytes));
+	orig_endp->Assign(pktidx, orig_pkts);
+	orig_endp->Assign(bytesidx, orig_bytes);
+	resp_endp->Assign(pktidx, resp_pkts);
+	resp_endp->Assign(bytesidx, resp_bytes);
 
 	Analyzer::UpdateConnVal(conn_val);
 	}

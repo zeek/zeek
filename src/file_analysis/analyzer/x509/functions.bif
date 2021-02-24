@@ -16,8 +16,8 @@ static zeek::RecordValPtr x509_result_record(uint64_t num, const char* reason, z
 	{
 	auto rrecord = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::X509::Result);
 
-	rrecord->Assign(0, zeek::val_mgr->Int(num));
-	rrecord->Assign(1, zeek::make_intrusive<zeek::StringVal>(reason));
+	rrecord->Assign(0, num);
+	rrecord->Assign(1, reason);
 	if ( chainVector )
 		rrecord->Assign(2, std::move(chainVector));
 

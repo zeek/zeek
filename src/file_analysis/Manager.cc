@@ -534,8 +534,8 @@ VectorValPtr GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m)
 		for ( set<string>::const_iterator it2 = it->second.begin();
 		      it2 != it->second.end(); ++it2 )
 			{
-			element->Assign(0, val_mgr->Int(it->first));
-			element->Assign(1, make_intrusive<StringVal>(*it2));
+			element->Assign(0, it->first);
+			element->Assign(1, *it2);
 			}
 
 		rval->Assign(rval->Size(), std::move(element));

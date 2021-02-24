@@ -54,16 +54,16 @@ refine flow DHCP_Flow += {
 			double secs = static_cast<double>(${msg.secs});
 
 			auto dhcp_msg_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::DHCP::Msg);
-			dhcp_msg_val->Assign(0, zeek::val_mgr->Count(${msg.op}));
-			dhcp_msg_val->Assign(1, zeek::val_mgr->Count(${msg.type}));
-			dhcp_msg_val->Assign(2, zeek::val_mgr->Count(${msg.xid}));
-			dhcp_msg_val->Assign(3, zeek::make_intrusive<zeek::IntervalVal>(secs));
-			dhcp_msg_val->Assign(4, zeek::val_mgr->Count(${msg.flags}));
+			dhcp_msg_val->Assign(0, ${msg.op});
+			dhcp_msg_val->Assign(1, ${msg.type});
+			dhcp_msg_val->Assign(2, ${msg.xid});
+			dhcp_msg_val->Assign(3, secs);
+			dhcp_msg_val->Assign(4, ${msg.flags});
 			dhcp_msg_val->Assign(5, zeek::make_intrusive<zeek::AddrVal>(htonl(${msg.ciaddr})));
 			dhcp_msg_val->Assign(6, zeek::make_intrusive<zeek::AddrVal>(htonl(${msg.yiaddr})));
 			dhcp_msg_val->Assign(7, zeek::make_intrusive<zeek::AddrVal>(htonl(${msg.siaddr})));
 			dhcp_msg_val->Assign(8, zeek::make_intrusive<zeek::AddrVal>(htonl(${msg.giaddr})));
-			dhcp_msg_val->Assign(9, zeek::make_intrusive<zeek::StringVal>(mac_str));
+			dhcp_msg_val->Assign(9, mac_str);
 
 			int last_non_null = 0;
 

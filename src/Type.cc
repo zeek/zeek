@@ -1000,8 +1000,8 @@ TableValPtr RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 		auto nr = make_intrusive<RecordVal>(record_field);
 
 		string s = container_type_name(ft.get());
-		nr->Assign(0, make_intrusive<StringVal>(s));
-		nr->Assign(1, val_mgr->Bool(logged));
+		nr->Assign(0, s);
+		nr->Assign(1, logged);
 		nr->Assign(2, std::move(fv));
 		nr->Assign(3, FieldDefault(i));
 		auto field_name = make_intrusive<StringVal>(FieldName(i));

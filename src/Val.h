@@ -1166,6 +1166,54 @@ public:
 
 	ValPtr SizeVal() const override;
 
+	void Assign(int field, bool new_val)
+		{
+		(*record_val)[field].int_val = int(new_val);
+		AddedField(field);
+		}
+
+	void Assign(int field, int new_val)
+		{
+		(*record_val)[field].int_val = new_val;
+		AddedField(field);
+		}
+
+	void Assign(int field, uint64_t new_val)
+		{
+		(*record_val)[field].uint_val = new_val;
+		AddedField(field);
+		}
+
+	void Assign(int field, uint32_t new_val)
+		{
+		(*record_val)[field].uint_val = new_val;
+		AddedField(field);
+		}
+
+	void Assign(int field, double new_val)
+		{
+		(*record_val)[field].double_val = new_val;
+		AddedField(field);
+		}
+
+	void Assign(int field, const char* new_val)
+		{
+		(*record_val)[field].string_val = new StringVal(new_val);
+		AddedField(field);
+		}
+
+	void Assign(int field, const std::string& new_val)
+		{
+		(*record_val)[field].string_val = new StringVal(new_val);
+		AddedField(field);
+		}
+
+	void Assign(int field, String* new_val)
+		{
+		(*record_val)[field].string_val = new StringVal(new_val);
+		AddedField(field);
+		}
+
 	/**
 	 * Assign a value to a record field.
 	 * @param field  The field index to assign.
@@ -1457,6 +1505,12 @@ public:
 
 protected:
 	ValPtr DoClone(CloneState* state) override;
+
+	void AddedField(int field)
+		{
+		(*is_in_record)[field] = true;
+		Modified();
+		}
 
 	Obj* origin;
 

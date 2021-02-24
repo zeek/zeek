@@ -41,12 +41,12 @@ refine connection SMB_Conn += {
 			{
 			auto nr = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::NegotiateResponse);
 
-			nr->Assign(0, zeek::val_mgr->Count(${val.dialect_revision}));
-			nr->Assign(1, zeek::val_mgr->Count(${val.security_mode}));
+			nr->Assign(0, ${val.dialect_revision});
+			nr->Assign(1, ${val.security_mode});
 			nr->Assign(2, BuildSMB2GUID(${val.server_guid}));
 			nr->Assign(3, filetime2zeektime(${val.system_time}));
 			nr->Assign(4, filetime2zeektime(${val.server_start_time}));
-			nr->Assign(5, zeek::val_mgr->Count(${val.negotiate_context_count}));
+			nr->Assign(5, ${val.negotiate_context_count});
 
 			auto cv = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::SMB2::NegotiateContextValues);
 

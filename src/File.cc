@@ -290,7 +290,7 @@ RecordVal* File::Rotate()
 		return nullptr;
 		}
 
-	info->Assign<TimeVal>(2, open_time);
+	info->Assign(2, open_time);
 
 	Unlink();
 

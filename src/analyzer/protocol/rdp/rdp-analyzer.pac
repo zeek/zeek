@@ -66,35 +66,35 @@ refine flow RDP_Flow += {
 		if ( rdp_client_core_data )
 			{
 			auto ec_flags = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::RDP::EarlyCapabilityFlags);
-			ec_flags->Assign(0, zeek::val_mgr->Bool(${ccore.SUPPORT_ERRINFO_PDU}));
-			ec_flags->Assign(1, zeek::val_mgr->Bool(${ccore.WANT_32BPP_SESSION}));
-			ec_flags->Assign(2, zeek::val_mgr->Bool(${ccore.SUPPORT_STATUSINFO_PDU}));
-			ec_flags->Assign(3, zeek::val_mgr->Bool(${ccore.STRONG_ASYMMETRIC_KEYS}));
-			ec_flags->Assign(4, zeek::val_mgr->Bool(${ccore.SUPPORT_MONITOR_LAYOUT_PDU}));
-			ec_flags->Assign(5, zeek::val_mgr->Bool(${ccore.SUPPORT_NETCHAR_AUTODETECT}));
-			ec_flags->Assign(6, zeek::val_mgr->Bool(${ccore.SUPPORT_DYNVC_GFX_PROTOCOL}));
-			ec_flags->Assign(7, zeek::val_mgr->Bool(${ccore.SUPPORT_DYNAMIC_TIME_ZONE}));
-			ec_flags->Assign(8, zeek::val_mgr->Bool(${ccore.SUPPORT_HEARTBEAT_PDU}));
+			ec_flags->Assign(0, bool(${ccore.SUPPORT_ERRINFO_PDU}));
+			ec_flags->Assign(1, bool(${ccore.WANT_32BPP_SESSION}));
+			ec_flags->Assign(2, bool(${ccore.SUPPORT_STATUSINFO_PDU}));
+			ec_flags->Assign(3, bool(${ccore.STRONG_ASYMMETRIC_KEYS}));
+			ec_flags->Assign(4, bool(${ccore.SUPPORT_MONITOR_LAYOUT_PDU}));
+			ec_flags->Assign(5, bool(${ccore.SUPPORT_NETCHAR_AUTODETECT}));
+			ec_flags->Assign(6, bool(${ccore.SUPPORT_DYNVC_GFX_PROTOCOL}));
+			ec_flags->Assign(7, bool(${ccore.SUPPORT_DYNAMIC_TIME_ZONE}));
+			ec_flags->Assign(8, bool(${ccore.SUPPORT_HEARTBEAT_PDU}));
 
 			auto ccd = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::RDP::ClientCoreData);
-			ccd->Assign(0, zeek::val_mgr->Count(${ccore.version_major}));
-			ccd->Assign(1, zeek::val_mgr->Count(${ccore.version_minor}));
-			ccd->Assign(2, zeek::val_mgr->Count(${ccore.desktop_width}));
-			ccd->Assign(3, zeek::val_mgr->Count(${ccore.desktop_height}));
-			ccd->Assign(4, zeek::val_mgr->Count(${ccore.color_depth}));
-			ccd->Assign(5, zeek::val_mgr->Count(${ccore.sas_sequence}));
-			ccd->Assign(6, zeek::val_mgr->Count(${ccore.keyboard_layout}));
-			ccd->Assign(7, zeek::val_mgr->Count(${ccore.client_build}));
+			ccd->Assign(0, ${ccore.version_major});
+			ccd->Assign(1, ${ccore.version_minor});
+			ccd->Assign(2, ${ccore.desktop_width});
+			ccd->Assign(3, ${ccore.desktop_height});
+			ccd->Assign(4, ${ccore.color_depth});
+			ccd->Assign(5, ${ccore.sas_sequence});
+			ccd->Assign(6, ${ccore.keyboard_layout});
+			ccd->Assign(7, ${ccore.client_build});
 			ccd->Assign(8, utf16_to_utf8_val(connection()->zeek_analyzer()->Conn(), ${ccore.client_name}));
-			ccd->Assign(9, zeek::val_mgr->Count(${ccore.keyboard_type}));
-			ccd->Assign(10, zeek::val_mgr->Count(${ccore.keyboard_sub}));
-			ccd->Assign(11, zeek::val_mgr->Count(${ccore.keyboard_function_key}));
+			ccd->Assign(9, ${ccore.keyboard_type});
+			ccd->Assign(10, ${ccore.keyboard_sub});
+			ccd->Assign(11, ${ccore.keyboard_function_key});
 			ccd->Assign(12, utf16_to_utf8_val(connection()->zeek_analyzer()->Conn(), ${ccore.ime_file_name}));
-			ccd->Assign(13, zeek::val_mgr->Count(${ccore.post_beta2_color_depth}));
-			ccd->Assign(14, zeek::val_mgr->Count(${ccore.client_product_id}));
-			ccd->Assign(15, zeek::val_mgr->Count(${ccore.serial_number}));
-			ccd->Assign(16, zeek::val_mgr->Count(${ccore.high_color_depth}));
-			ccd->Assign(17, zeek::val_mgr->Count(${ccore.supported_color_depths}));
+			ccd->Assign(13, ${ccore.post_beta2_color_depth});
+			ccd->Assign(14, ${ccore.client_product_id});
+			ccd->Assign(15, ${ccore.serial_number});
+			ccd->Assign(16, ${ccore.high_color_depth});
+			ccd->Assign(17, ${ccore.supported_color_depths});
 			ccd->Assign(18, std::move(ec_flags));
 			ccd->Assign(19, utf16_to_utf8_val(connection()->zeek_analyzer()->Conn(), ${ccore.dig_product_id}));
 
@@ -112,8 +112,8 @@ refine flow RDP_Flow += {
 			return false;
 
 		auto csd = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::RDP::ClientSecurityData);
-		csd->Assign(0, zeek::val_mgr->Count(${csec.encryption_methods}));
-		csd->Assign(1, zeek::val_mgr->Count(${csec.ext_encryption_methods}));
+		csd->Assign(0, ${csec.encryption_methods});
+		csd->Assign(1, ${csec.ext_encryption_methods});
 
 		zeek::BifEvent::enqueue_rdp_client_security_data(connection()->zeek_analyzer(),
 		                                           connection()->zeek_analyzer()->Conn(),
@@ -135,7 +135,7 @@ refine flow RDP_Flow += {
 				auto channel_def = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::RDP::ClientChannelDef);
 
 				channel_def->Assign(0, to_stringval(${cnetwork.channel_def_array[i].name}));
-				channel_def->Assign(1, zeek::val_mgr->Count(${cnetwork.channel_def_array[i].options}));
+				channel_def->Assign(1, ${cnetwork.channel_def_array[i].options});
 
 				channel_def->Assign(2, zeek::val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_INITIALIZED}));
 				channel_def->Assign(3, zeek::val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_RDP}));
@@ -166,12 +166,12 @@ refine flow RDP_Flow += {
 			return false;
 
 		auto ccld = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::RDP::ClientClusterData);
-		ccld->Assign(0, zeek::val_mgr->Count(${ccluster.flags}));
-		ccld->Assign(1, zeek::val_mgr->Count(${ccluster.redir_session_id}));
-		ccld->Assign(2, zeek::val_mgr->Bool(${ccluster.REDIRECTION_SUPPORTED}));
-		ccld->Assign(3, zeek::val_mgr->Count(${ccluster.SERVER_SESSION_REDIRECTION_VERSION_MASK}));
-		ccld->Assign(4, zeek::val_mgr->Bool(${ccluster.REDIRECTED_SESSIONID_FIELD_VALID}));
-		ccld->Assign(5, zeek::val_mgr->Bool(${ccluster.REDIRECTED_SMARTCARD}));
+		ccld->Assign(0, ${ccluster.flags});
+		ccld->Assign(1, ${ccluster.redir_session_id});
+		ccld->Assign(2, bool(${ccluster.REDIRECTION_SUPPORTED}));
+		ccld->Assign(3, ${ccluster.SERVER_SESSION_REDIRECTION_VERSION_MASK});
+		ccld->Assign(4, bool(${ccluster.REDIRECTED_SESSIONID_FIELD_VALID}));
+		ccld->Assign(5, bool(${ccluster.REDIRECTED_SMARTCARD}));
 
 		zeek::BifEvent::enqueue_rdp_client_cluster_data(connection()->zeek_analyzer(),
 		                                          connection()->zeek_analyzer()->Conn(),

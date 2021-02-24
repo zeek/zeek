@@ -30,10 +30,10 @@
 	zeek::RecordValPtr HeaderToVal(ModbusTCP_TransportHeader* header)
 		{
 		auto modbus_header = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ModbusHeaders);
-		modbus_header->Assign(0, zeek::val_mgr->Count(header->tid()));
-		modbus_header->Assign(1, zeek::val_mgr->Count(header->pid()));
-		modbus_header->Assign(2, zeek::val_mgr->Count(header->uid()));
-		modbus_header->Assign(3, zeek::val_mgr->Count(header->fc()));
+		modbus_header->Assign(0, header->tid());
+		modbus_header->Assign(1, header->pid());
+		modbus_header->Assign(2, header->uid());
+		modbus_header->Assign(3, header->fc());
 		return modbus_header;
 		}
 

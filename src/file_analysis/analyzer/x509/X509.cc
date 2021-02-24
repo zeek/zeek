@@ -124,7 +124,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 	auto pX509Cert = make_intrusive<RecordVal>(BifType::Record::X509::Certificate);
 	BIO *bio = BIO_new(BIO_s_mem());
 
-	pX509Cert->Assign(0, val_mgr->Count((uint64_t) X509_get_version(ssl_cert) + 1));
+	pX509Cert->Assign(0, uint64_t(X509_get_version(ssl_cert) + 1));
 	i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
 	int len = BIO_read(bio, buf, sizeof(buf));
 	pX509Cert->Assign(1, make_intrusive<StringVal>(len, buf));
@@ -161,8 +161,8 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 	pX509Cert->Assign(3, make_intrusive<StringVal>(len, buf));
 	BIO_free(bio);
 
-	pX509Cert->Assign(5, make_intrusive<TimeVal>(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, reporter)));
-	pX509Cert->Assign(6, make_intrusive<TimeVal>(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, reporter)));
+	pX509Cert->Assign(5, GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, reporter));
+	pX509Cert->Assign(6, GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, reporter));
 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,
@@ -172,7 +172,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 	if ( ! i2t_ASN1_OBJECT(buf, 255, algorithm) )
 		buf[0] = 0;
 
-	pX509Cert->Assign(7, make_intrusive<StringVal>(buf));
+	pX509Cert->Assign(7, buf);
 
 	// Special case for RDP server certificates. For some reason some (all?) RDP server
 	// certificates like to specify their key algorithm as md5WithRSAEncryption, which
@@ -194,25 +194,25 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 	if ( ! i2t_ASN1_OBJECT(buf, 255, OBJ_nid2obj(X509_get_signature_nid(ssl_cert))) )
 		buf[0] = 0;
 
-	pX509Cert->Assign(8, make_intrusive<StringVal>(buf));
+	pX509Cert->Assign(8, buf);
 
 	// Things we can do when we have the key...
 	EVP_PKEY *pkey = X509_extract_key(ssl_cert);
 	if ( pkey != NULL )
 		{
 		if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_DSA )
-			pX509Cert->Assign(9, make_intrusive<StringVal>("dsa"));
+			pX509Cert->Assign(9, "dsa");
 
 		else if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_RSA )
 			{
-			pX509Cert->Assign(9, make_intrusive<StringVal>("rsa"));
+			pX509Cert->Assign(9, "rsa");
 
 			const BIGNUM *e;
 			RSA_get0_key(EVP_PKEY_get0_RSA(pkey), NULL, &e, NULL);
 			char *exponent = BN_bn2dec(e);
 			if ( exponent != NULL )
 				{
-				pX509Cert->Assign(11, make_intrusive<StringVal>(exponent));
+				pX509Cert->Assign(11, exponent);
 				OPENSSL_free(exponent);
 				exponent = NULL;
 				}
@@ -220,7 +220,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 #ifndef OPENSSL_NO_EC
 		else if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_EC )
 			{
-			pX509Cert->Assign(9, make_intrusive<StringVal>("ecdsa"));
+			pX509Cert->Assign(9, "ecdsa");
 			pX509Cert->Assign(12, KeyCurve(pkey));
 			}
 #endif
@@ -232,7 +232,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )
-			pX509Cert->Assign(10, val_mgr->Count(length));
+			pX509Cert->Assign(10, length);
 
 		EVP_PKEY_free(pkey);
 		}
@@ -292,10 +292,10 @@ void X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		if ( x509_ext_basic_constraints )
 			{
 			auto pBasicConstraint = make_intrusive<RecordVal>(BifType::Record::X509::BasicConstraints);
-			pBasicConstraint->Assign(0, val_mgr->Bool(constr->ca));
+			pBasicConstraint->Assign(0, constr->ca);
 
 			if ( constr->pathlen )
-				pBasicConstraint->Assign(1, val_mgr->Count((int32_t) ASN1_INTEGER_get(constr->pathlen)));
+				pBasicConstraint->Assign(1, int32_t(ASN1_INTEGER_get(constr->pathlen)));
 
 			event_mgr.Enqueue(x509_ext_basic_constraints,
 			                  GetFile()->ToVal(),
@@ -436,7 +436,7 @@ void X509::ParseSAN(X509_EXTENSION* ext)
 		if ( ips != nullptr )
 			sanExt->Assign(3, ips);
 
-		sanExt->Assign(4, val_mgr->Bool(otherfields));
+		sanExt->Assign(4, otherfields);
 
 		event_mgr.Enqueue(x509_ext_subject_alternative_name,
 		                        GetFile()->ToVal(),

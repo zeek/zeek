@@ -76,6 +76,7 @@ union ZVal {
 
 private:
 	friend class RecordVal;
+	friend class VectorVal;
 
 	// Used for bool, int, enum.
 	bro_int_t int_val;

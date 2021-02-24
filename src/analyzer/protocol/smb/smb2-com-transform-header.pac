@@ -7,9 +7,9 @@ refine connection SMB_Conn += {
 			auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::Transform_header);
 			r->Assign(0, to_stringval(${hdr.signature}));
 			r->Assign(1, to_stringval(${hdr.nonce}));
-			r->Assign(2, zeek::val_mgr->Count(${hdr.orig_msg_size}));
-			r->Assign(3, zeek::val_mgr->Count(${hdr.flags}));
-			r->Assign(4, zeek::val_mgr->Count(${hdr.session_id}));
+			r->Assign(2, ${hdr.orig_msg_size});
+			r->Assign(3, ${hdr.flags});
+			r->Assign(4, ${hdr.session_id});
 
 			zeek::BifEvent::enqueue_smb2_transform_header(zeek_analyzer(),
 			                                        zeek_analyzer()->Conn(),

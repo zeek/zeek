@@ -126,7 +126,7 @@ function Broker::__peers%(%): PeerInfos
 			network_info->Assign(1, zeek::val_mgr->Port(0, TRANSPORT_TCP));
 			}
 
-		endpoint_info->Assign(0, zeek::make_intrusive<zeek::StringVal>(to_string(p.peer.node)));
+		endpoint_info->Assign(0, to_string(p.peer.node));
 		endpoint_info->Assign(1, std::move(network_info));
 
 		auto ps = (BifEnum::Broker::PeerStatus)p.status;

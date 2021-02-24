@@ -362,23 +362,23 @@ const RecordValPtr& Connection::ConnVal()
 		id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
 
 		auto orig_endp = make_intrusive<RecordVal>(id::endpoint);
-		orig_endp->Assign(0, val_mgr->Count(0));
-		orig_endp->Assign(1, val_mgr->Count(0));
-		orig_endp->Assign(4, val_mgr->Count(orig_flow_label));
+		orig_endp->Assign(0, 0);
+		orig_endp->Assign(1, 0);
+		orig_endp->Assign(4, orig_flow_label);
 
 		const int l2_len = sizeof(orig_l2_addr);
 		char null[l2_len]{};
 
 		if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
-			orig_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(orig_l2_addr, l2_len)));
+			orig_endp->Assign(5, fmt_mac(orig_l2_addr, l2_len));
 
 		auto resp_endp = make_intrusive<RecordVal>(id::endpoint);
-		resp_endp->Assign(0, val_mgr->Count(0));
-		resp_endp->Assign(1, val_mgr->Count(0));
-		resp_endp->Assign(4, val_mgr->Count(resp_flow_label));
+		resp_endp->Assign(0, 0);
+		resp_endp->Assign(1, 0);
+		resp_endp->Assign(4, resp_flow_label);
 
 		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
-			resp_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(resp_l2_addr, l2_len)));
+			resp_endp->Assign(5, fmt_mac(resp_l2_addr, l2_len));
 
 		conn_val->Assign(0, std::move(id_val));
 		conn_val->Assign(1, std::move(orig_endp));
@@ -390,25 +390,25 @@ const RecordValPtr& Connection::ConnVal()
 		if ( ! uid )
 			uid.Set(zeek::detail::bits_per_uid);
 
-		conn_val->Assign(7, make_intrusive<StringVal>(uid.Base62("C").c_str()));
+		conn_val->Assign(7, uid.Base62("C"));
 
 		if ( encapsulation && encapsulation->Depth() > 0 )
 			conn_val->Assign(8, encapsulation->ToVal());
 
 		if ( vlan != 0 )
-			conn_val->Assign(9, val_mgr->Int(vlan));
+			conn_val->Assign(9, vlan);
 
 		if ( inner_vlan != 0 )
-			conn_val->Assign(10, val_mgr->Int(inner_vlan));
+			conn_val->Assign(10, inner_vlan);
 
 		}
 
 	if ( root_analyzer )
 		root_analyzer->UpdateConnVal(conn_val.get());
 
-	conn_val->Assign(3, make_intrusive<TimeVal>(start_time));	// ###
-	conn_val->Assign(4, make_intrusive<IntervalVal>(last_time - start_time));
-	conn_val->Assign(6, make_intrusive<StringVal>(history.c_str()));
+	conn_val->Assign(3, start_time);	// ###
+	conn_val->Assign(4, last_time - start_time);
+	conn_val->Assign(6, history);
 
 	conn_val->SetOrigin(this);
 
@@ -437,7 +437,7 @@ void Connection::AppendAddl(const char* str)
 	const char* old = cv->GetFieldAs<StringVal>(6)->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
 
-	cv->Assign(6, make_intrusive<StringVal>(util::fmt(format, old, str)));
+	cv->Assign(6, util::fmt(format, old, str));
 	}
 
 // Returns true if the character at s separates a version number.
@@ -701,7 +701,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 			{
 			RecordVal* endp =
 				conn_val->GetFieldAs<RecordVal>(is_orig ? 1 : 2);
-			endp->Assign(4, val_mgr->Count(flow_label));
+			endp->Assign(4, flow_label);
 			}
 
 		if ( connection_flow_label_changed &&

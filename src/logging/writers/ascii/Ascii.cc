@@ -818,11 +818,11 @@ void Ascii::RotateLeftoverLogs()
 
 		auto rot_info = make_intrusive<RecordVal>(rot_info_type);
 		rot_info->Assign(0, writer_val);
-		rot_info->Assign<StringVal>(1, rotation_path);
-		rot_info->Assign<StringVal>(2, ll.Path());
-		rot_info->Assign<TimeVal>(3, ll.open_time);
-		rot_info->Assign<TimeVal>(4, ll.close_time);
-		rot_info->Assign(5, val_mgr->False());
+		rot_info->Assign(1, rotation_path);
+		rot_info->Assign(2, ll.Path());
+		rot_info->Assign(3, double(ll.open_time));
+		rot_info->Assign(4, double(ll.close_time));
+		rot_info->Assign(5, false);
 
 		if ( rename(ll.filename.data(), rotation_path.data()) != 0 )
 			reporter->FatalError("Found leftover/unprocessed log '%s', but "

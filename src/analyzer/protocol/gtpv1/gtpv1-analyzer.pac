@@ -9,21 +9,21 @@ zeek::RecordValPtr BuildGTPv1Hdr(const GTPv1_Header* pdu)
 	{
 	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::gtpv1_hdr);
 
-	rv->Assign(0, zeek::val_mgr->Count(pdu->version()));
-	rv->Assign(1, zeek::val_mgr->Bool(pdu->pt_flag()));
-	rv->Assign(2, zeek::val_mgr->Bool(pdu->rsv()));
-	rv->Assign(3, zeek::val_mgr->Bool(pdu->e_flag()));
-	rv->Assign(4, zeek::val_mgr->Bool(pdu->s_flag()));
-	rv->Assign(5, zeek::val_mgr->Bool(pdu->pn_flag()));
-	rv->Assign(6, zeek::val_mgr->Count(pdu->msg_type()));
-	rv->Assign(7, zeek::val_mgr->Count(pdu->length()));
-	rv->Assign(8, zeek::val_mgr->Count(pdu->teid()));
+	rv->Assign(0, pdu->version());
+	rv->Assign(1, bool(pdu->pt_flag()));
+	rv->Assign(2, bool(pdu->rsv()));
+	rv->Assign(3, bool(pdu->e_flag()));
+	rv->Assign(4, bool(pdu->s_flag()));
+	rv->Assign(5, bool(pdu->pn_flag()));
+	rv->Assign(6, pdu->msg_type());
+	rv->Assign(7, pdu->length());
+	rv->Assign(8, pdu->teid());
 
 	if ( pdu->has_opt() )
 		{
-		rv->Assign(9, zeek::val_mgr->Count(pdu->opt_hdr()->seq()));
-		rv->Assign(10, zeek::val_mgr->Count(pdu->opt_hdr()->n_pdu()));
-		rv->Assign(11, zeek::val_mgr->Count(pdu->opt_hdr()->next_type()));
+		rv->Assign(9, pdu->opt_hdr()->seq());
+		rv->Assign(10, pdu->opt_hdr()->n_pdu());
+		rv->Assign(11, pdu->opt_hdr()->next_type());
 		}
 
 	return rv;
@@ -37,10 +37,10 @@ static zeek::ValPtr BuildIMSI(const InformationElement* ie)
 static zeek::ValPtr BuildRAI(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::gtp_rai);
-	ev->Assign(0, zeek::val_mgr->Count(ie->rai()->mcc()));
-	ev->Assign(1, zeek::val_mgr->Count(ie->rai()->mnc()));
-	ev->Assign(2, zeek::val_mgr->Count(ie->rai()->lac()));
-	ev->Assign(3, zeek::val_mgr->Count(ie->rai()->rac()));
+	ev->Assign(0, ie->rai()->mcc());
+	ev->Assign(1, ie->rai()->mnc());
+	ev->Assign(2, ie->rai()->lac());
+	ev->Assign(3, ie->rai()->rac());
 	return ev;
 	}
 
@@ -87,8 +87,8 @@ static zeek::ValPtr BuildTraceType(const InformationElement* ie)
 zeek::ValPtr BuildEndUserAddr(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::gtp_end_user_addr);
-	ev->Assign(0, zeek::val_mgr->Count(ie->end_user_addr()->pdp_type_org()));
-	ev->Assign(1, zeek::val_mgr->Count(ie->end_user_addr()->pdp_type_num()));
+	ev->Assign(0, ie->end_user_addr()->pdp_type_org());
+	ev->Assign(1, ie->end_user_addr()->pdp_type_num());
 
 	int len = ie->end_user_addr()->pdp_addr().length();
 
@@ -106,8 +106,7 @@ zeek::ValPtr BuildEndUserAddr(const InformationElement* ie)
 			  zeek::IPAddr(IPv6, (const uint32*) d, zeek::IPAddr::Network)));
 			break;
 		default:
-			ev->Assign(3, zeek::make_intrusive<zeek::StringVal>(
-			  new zeek::String((const u_char*) d, len, false)));
+			ev->Assign(3, new zeek::String((const u_char*) d, len, false));
 			break;
 		}
 		}
@@ -143,7 +142,7 @@ zeek::ValPtr BuildGSN_Addr(const InformationElement* ie)
 		ev->Assign(0, zeek::make_intrusive<zeek::AddrVal>(
 		  zeek::IPAddr(IPv6, (const uint32*) d, zeek::IPAddr::Network)));
 	else
-		ev->Assign(1, zeek::make_intrusive<zeek::StringVal>(new zeek::String((const u_char*) d, len, false)));
+		ev->Assign(1, new zeek::String((const u_char*) d, len, false));
 
 	return ev;
 	}
@@ -162,8 +161,8 @@ zeek::ValPtr BuildQoS_Profile(const InformationElement* ie)
 	const u_char* d = (const u_char*) ie->qos_profile()->data().data();
 	int len = ie->qos_profile()->data().length();
 
-	ev->Assign(0, zeek::val_mgr->Count(ie->qos_profile()->alloc_retention_priority()));
-	ev->Assign(1, zeek::make_intrusive<zeek::StringVal>(new zeek::String(d, len, false)));
+	ev->Assign(0, ie->qos_profile()->alloc_retention_priority());
+	ev->Assign(1, new zeek::String(d, len, false));
 
 	return ev;
 	}
@@ -196,8 +195,8 @@ zeek::ValPtr BuildPrivateExt(const InformationElement* ie)
 	const uint8* d = ie->private_ext()->value().data();
 	int len = ie->private_ext()->value().length();
 
-	ev->Assign(0, zeek::val_mgr->Count(ie->private_ext()->id()));
-	ev->Assign(1, zeek::make_intrusive<zeek::StringVal>(new zeek::String((const u_char*) d, len, false)));
+	ev->Assign(0, ie->private_ext()->id());
+	ev->Assign(1, new zeek::String((const u_char*) d, len, false));
 
 	return ev;
 	}

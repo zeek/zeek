@@ -1366,8 +1366,7 @@ public:
 
 	// The following return the given field converted to a particular
 	// underlying value.  We provide these to enable efficient
-	// access to record fields (without requiring an intermediary Val)
-	// if we change the underlying representation of records.
+	// access to record fields (without requiring an intermediary Val).
 	template <typename T,
 	          typename std::enable_if_t<is_zeek_val_v<T>, bool> = true>
 	auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T>
@@ -1619,16 +1618,6 @@ public:
 	// Returns true if succcessful.
 	bool AddTo(Val* v, bool is_first_init) const override;
 
-	/**
-	 * Returns the given element treated as a Count type, to efficiently
-	 * support a common type of vector access if we change the underlying
-	 * vector representation.
-	 * @param index  The position in the vector of the element to return.
-	 * @return  The element's value, as a Count underlying representation.
-	 */
-	bro_uint_t CountAt(unsigned int index) const
-		{ return At(index)->AsCount(); }
-
 	[[deprecated("Remove in v4.1.  Use At().")]]
 	Val* Lookup(unsigned int index) const
 		{ return At(index).get(); }
@@ -1697,12 +1686,21 @@ public:
 
 	ValPtr ValAt(unsigned int index) const	{ return At(index); }
 
+	/**
+	 * Returns the given element in a given underlying representation.
+	 * Enables efficient vector access.  Caller must ensure that the
+	 * index lies within the vector's range.
+	 * @param index  The position in the vector of the element to return.
+	 * @return  The element's underlying value.
+	 */
+	bro_uint_t CountAt(unsigned int index) const
+		{ return (*vector_val)[index].uint_val; }
 	const RecordVal* RecordValAt(unsigned int index) const
-		{ return (*vector_val)[index].AsRecord(); }
+		{ return (*vector_val)[index].record_val; }
 	bool BoolAt(unsigned int index) const
-		{ return (*vector_val)[index].AsCount() != 0; }
+		{ return bool((*vector_val)[index].uint_val); }
 	const StringVal* StringValAt(unsigned int index) const
-		{ return (*vector_val)[index].AsString(); }
+		{ return (*vector_val)[index].string_val; }
 	const String* StringAt(unsigned int index) const
 		{ return StringValAt(index)->AsString(); }
 

@@ -357,7 +357,7 @@ when	return TOK_WHEN;
 			zeek::reporter->Error("failed to find file associated with @load-sigs %s",
 			                      file);
 		else
-			zeek::detail::sig_files.push_back(zeek::util::copy_string(path.c_str()));
+			zeek::detail::sig_files.push_back(std::move(path));
 		break;
 
 	case 0:

@@ -1,3 +1,14 @@
+4.1.0-dev.266 | 2021-02-25 08:45:49 -0700
+
+  * Avoid superfluous string copies when adding to zeek::detail::sig_files
+
+    Coverity 1387015 (Jon Siwek, Corelight)
+
+  * Initialize an RD_Decorate member via std::move (Jon Siwek, Corelight)
+
+  * Fix invalid iterator comparison in UseDefs::FindSuccUsage()
+
+    Coverity 1447018 (Jon Siwek, Corelight)
 
 4.1.0-dev.260 | 2021-02-24 15:52:31 -0800
 

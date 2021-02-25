@@ -62,6 +62,8 @@ public:
 	 */
 	virtual ~Manager();
 
+	void LoadScriptsForStaticPlugins();
+
 	/**
 	 * Searches a set of directories for plugins. If a specified directory
 	 * does not contain a plugin itself, the method searches for plugins

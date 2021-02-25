@@ -1,4 +1,7 @@
-build
+# Ignore anything prefixed with build since people
+# tend to name all of their build directories prefixed that way.
+build*
+
 tmp
 *.gcov
 
@@ -11,3 +14,6 @@ cmake-build-*
 
 # ignore pyenv local settings
 .python-version
+
+# ignore external, but builtin plugins
+src/plugins/

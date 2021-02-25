@@ -10,6 +10,7 @@
 #include <optional>
 #include <sstream>
 #include <fstream>
+#include <regex>
 
 #include "zeek/Reporter.h"
 #include "zeek/Func.h"
@@ -140,6 +141,33 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 	closedir(d);
 	}
 
+void Manager::LoadScriptsForStaticPlugins()
+	{
+	for ( const auto& p : *Manager::ActivePluginsInternal() )
+		{
+		if ( p->DynamicPlugin() )
+			continue;
+
+		string canon = std::regex_replace(p->Name(), std::regex("::"), "_");
+
+		string preload_file;
+		string dir = "plugins/" + canon + "/";
+		for ( const string& ext : util::detail::script_extensions )
+			{
+			preload_file = dir + "scripts/__preload__" + ext;
+			string preload_file = util::find_file(dir + "__preload__", util::zeek_path(), ext);
+
+			if ( util::is_file(preload_file) )
+				{
+				DBG_LOG(DBG_PLUGINS, "  Loading %s", preload_file.c_str());
+				util::detail::warn_if_legacy_script(preload_file);
+				scripts_to_load.push_back(preload_file);
+				break;
+				}
+			}
+		}
+	}
+
 bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found, std::vector<std::string>* errors)
 	{
 	errors->clear(); // caller should pass it in empty, but just to be sure
@@ -156,9 +184,9 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		// this should be rare to begin with.
 		plugin_list* all_plugins = Manager::ActivePluginsInternal();
 
-		for ( Manager::plugin_list::const_iterator i = all_plugins->begin(); i != all_plugins->end(); i++ )
+		for ( const auto& p : *all_plugins )
 			{
-			if ( (*i)->Name() == name )
+			if ( p->Name() == name )
 				return true;
 			}
 
@@ -212,7 +240,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			current_plugin->SetDynamic(true);
 			current_plugin->DoConfigure();
-			DBG_LOG(DBG_PLUGINS, "  InitialzingComponents");
+			DBG_LOG(DBG_PLUGINS, "  InitializingComponents");
 			current_plugin->InitializeComponents();
 
 			plugins_by_path.insert(std::make_pair(util::detail::normalize_path(dir), current_plugin));

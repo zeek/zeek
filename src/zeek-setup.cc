@@ -579,6 +579,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	file_mgr->InitPreScript();
 	zeekygen_mgr->InitPreScript();
 
+	plugin_mgr->LoadScriptsForStaticPlugins();
+
 	for ( const auto& x : requested_plugins )
 		plugin_mgr->ActivateDynamicPlugin(std::move(x));
 

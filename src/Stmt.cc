@@ -1324,7 +1324,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) const
 		{
 		VectorVal* vv = v->AsVectorVal();
 
-		for ( auto i = 0u; i <= vv->Size(); ++i )
+		for ( auto i = 0u; i < vv->Size(); ++i )
 			{
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.

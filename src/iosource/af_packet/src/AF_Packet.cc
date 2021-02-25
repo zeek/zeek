@@ -1,12 +1,12 @@
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 
 #include "AF_Packet.h"
 #include "RX_Ring.h"
 
 #include "af_packet.bif.h"
 
-using namespace iosource::pktsrc;
+using namespace af_packet::iosource::pktsrc;
 
 AF_PacketSource::~AF_PacketSource()
 	{
@@ -25,10 +25,10 @@ AF_PacketSource::AF_PacketSource(const std::string& path, bool is_live)
 
 void AF_PacketSource::Open()
 	{
-	uint64_t buffer_size = BifConst::AF_Packet::buffer_size;
-	bool enable_hw_timestamping = BifConst::AF_Packet::enable_hw_timestamping;
-	bool enable_fanout = BifConst::AF_Packet::enable_fanout;
-	bool enable_defrag = BifConst::AF_Packet::enable_defrag;
+	uint64_t buffer_size = zeek::BifConst::AF_Packet::buffer_size;
+	bool enable_hw_timestamping = zeek::BifConst::AF_Packet::enable_hw_timestamping;
+	bool enable_fanout = zeek::BifConst::AF_Packet::enable_fanout;
+	bool enable_defrag = zeek::BifConst::AF_Packet::enable_defrag;
 
 	socket_fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 
@@ -137,7 +137,7 @@ inline bool AF_PacketSource::ConfigureFanoutGroup(bool enabled, bool defrag)
 		uint32_t fanout_arg, fanout_id;
 		int ret;
 
-		fanout_id = BifConst::AF_Packet::fanout_id;
+		fanout_id = zeek::BifConst::AF_Packet::fanout_id;
 		fanout_arg = ((fanout_id & 0xffff) | (GetFanoutMode(defrag) << 16));
 
 		ret = setsockopt(socket_fd, SOL_PACKET, PACKET_FANOUT,
@@ -181,7 +181,7 @@ inline uint32_t AF_PacketSource::GetFanoutMode(bool defrag)
 	{
 	uint32_t fanout_mode;
 
-	switch ( BifConst::AF_Packet::fanout_mode->AsEnum() ) {
+	switch ( zeek::BifConst::AF_Packet::fanout_mode->AsEnum() ) {
 		case BifEnum::AF_Packet::FANOUT_CPU: fanout_mode = PACKET_FANOUT_CPU;
 		                                     break;
 	#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0)
@@ -210,7 +210,7 @@ void AF_PacketSource::Close()
 	Closed();
 	}
 
-bool AF_PacketSource::ExtractNextPacket(Packet* pkt)
+bool AF_PacketSource::ExtractNextPacket(zeek::Packet* pkt)
 	{
 	if ( ! socket_fd )
 		return false;
@@ -294,7 +294,7 @@ void AF_PacketSource::Statistics(Stats* s)
 	memcpy(s, &stats, sizeof(Stats));
 	}
 
-iosource::PktSrc* AF_PacketSource::InstantiateAF_Packet(const std::string& path, bool is_live)
+zeek::iosource::PktSrc* AF_PacketSource::InstantiateAF_Packet(const std::string& path, bool is_live)
 	{
 	return new AF_PacketSource(path, is_live);
 	}

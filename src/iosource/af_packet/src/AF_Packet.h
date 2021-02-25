@@ -20,13 +20,12 @@ extern "C" {
 #include <pcap.h>
 }
 
-#include "iosource/PktSrc.h"
+#include "zeek/iosource/PktSrc.h"
 #include "RX_Ring.h"
 
-namespace iosource {
-namespace pktsrc {
+namespace af_packet::iosource::pktsrc {
 
-class AF_PacketSource : public iosource::PktSrc {
+class AF_PacketSource : public zeek::iosource::PktSrc {
 public:
 	/**
 	 * Constructor.
@@ -50,7 +49,7 @@ protected:
 	// PktSrc interface.
 	virtual void Open();
 	virtual void Close();
-	virtual bool ExtractNextPacket(Packet* pkt);
+	virtual bool ExtractNextPacket(zeek::Packet* pkt);
 	virtual void DoneWithPacket();
 	virtual bool PrecompileFilter(int index, const std::string& filter);
 	virtual bool SetFilter(int index);
@@ -74,7 +73,6 @@ private:
 	uint32_t GetFanoutMode(bool defrag=false);
 };
 
-}
 }
 
 #endif

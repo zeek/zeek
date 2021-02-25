@@ -3009,7 +3009,7 @@ RecordValPtr RecordVal::CoerceTo(RecordTypePtr t,
 		}
 
 	for ( i = 0; i < ar_t->NumFields(); ++i )
-		if ( ! aggr->GetField(i) &&
+		if ( ! aggr->HasField(i) &&
 		     ! ar_t->FieldDecl(i)->GetAttr(detail::ATTR_OPTIONAL) )
 			{
 			char buf[512];

@@ -433,7 +433,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	if ( peer_count == 0 )
 		return true;
 
-	if ( ! args->GetField(0) )
+	if ( ! args->HasField(0) )
 		return false;
 
 	auto event_name = args->GetFieldAs<StringVal>(0)->CheckString();
@@ -807,7 +807,7 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame)
 		else
 			data_val = detail::make_data_val((*args)[i]);
 
-		if ( ! data_val->GetField(0) )
+		if ( ! data_val->HasField(0) )
 			{
 			rval->Assign(0, nullptr);
 			Error("failed to convert param #%d of type %s to broker data",

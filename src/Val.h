@@ -1068,6 +1068,64 @@ public:
 	 */
 	void Remove(int field);
 
+	// The following provide efficient record field assignments.
+	void Assign(int field, bool new_val)
+		{
+		(*record_val)[field].int_val = int(new_val);
+		AddedField(field);
+		}
+
+	void Assign(int field, int new_val)
+		{
+		(*record_val)[field].int_val = new_val;
+		AddedField(field);
+		}
+
+	// For unsigned, we provide both uint32_t and uint64_t versions
+	// for convenience, since sometimes the caller has one rather
+	// than the other.
+	void Assign(int field, uint32_t new_val)
+		{
+		(*record_val)[field].uint_val = new_val;
+		AddedField(field);
+		}
+	void Assign(int field, uint64_t new_val)
+		{
+		(*record_val)[field].uint_val = new_val;
+		AddedField(field);
+		}
+
+	void Assign(int field, double new_val)
+		{
+		(*record_val)[field].double_val = new_val;
+		AddedField(field);
+		}
+
+	// The following two are the same as the previous method,
+	// but we use the names so that in the future if it would
+	// be helpful, we can track the intent of the underlying
+	// value representing a time or an interval.
+	void AssignTime(int field, double new_val)
+		{ Assign(field, new_val); }
+	void AssignInterval(int field, double new_val)
+		{ Assign(field, new_val); }
+
+	void Assign(int field, const char* new_val)
+		{
+		(*record_val)[field].string_val = new StringVal(new_val);
+		AddedField(field);
+		}
+	void Assign(int field, const std::string& new_val)
+		{
+		(*record_val)[field].string_val = new StringVal(new_val);
+		AddedField(field);
+		}
+	void Assign(int field, String* new_val)
+		{
+		(*record_val)[field].string_val = new StringVal(new_val);
+		AddedField(field);
+		}
+
 	/**
 	 * Appends a value to the record's fields.  The caller is responsible
 	 * for ensuring that fields are appended in the correct order and
@@ -1310,6 +1368,12 @@ public:
 
 protected:
 	ValPtr DoClone(CloneState* state) override;
+
+	void AddedField(int field)
+		{
+		(*is_in_record)[field] = true;
+		Modified();
+		}
 
 	Obj* origin;
 

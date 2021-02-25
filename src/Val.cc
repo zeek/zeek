@@ -3358,9 +3358,163 @@ ValPtr VectorVal::At(unsigned int index) const
 	return (*vector_val)[index].ToVal(t);
 	}
 
-void VectorVal::Sort(bool cmp_func(const ValPtr& a, const ValPtr& b))
+static Func* sort_function_comp = nullptr;
+
+// Used for indirect sorting to support order().
+static std::vector<const ZVal*> index_map;
+
+// The yield type of the vector being sorted.
+static TypePtr sort_type;
+static bool sort_type_is_managed = false;
+
+static bool sort_function(const ZVal& a, const ZVal& b)
 	{
-	// Placeholder - will be filled in by a later commit.
+	// Missing values are only applicable for managed types.
+	if ( sort_type_is_managed )
+		{
+		if ( ! a.ManagedVal() )
+			return 0;
+		if ( ! b.ManagedVal() )
+			return 1;
+		}
+
+	auto a_v = a.ToVal(sort_type);
+	auto b_v = b.ToVal(sort_type);
+
+	auto result = sort_function_comp->Invoke(a_v, b_v);
+	int int_result = result->CoerceToInt();
+
+	return int_result < 0;
+	}
+
+static bool signed_sort_function (const ZVal& a, const ZVal& b)
+	{
+	return a.AsInt() < b.AsInt();
+	}
+
+static bool unsigned_sort_function (const ZVal& a, const ZVal& b)
+	{
+	return a.AsCount() < b.AsCount();
+	}
+
+static bool double_sort_function (const ZVal& a, const ZVal& b)
+	{
+	return a.AsDouble() < b.AsDouble();
+	}
+
+static bool indirect_sort_function(size_t a, size_t b)
+	{
+	return sort_function(*index_map[a], *index_map[b]);
+	}
+
+static bool indirect_signed_sort_function(size_t a, size_t b)
+	{
+	return signed_sort_function(*index_map[a], *index_map[b]);
+	}
+
+static bool indirect_unsigned_sort_function(size_t a, size_t b)
+	{
+	return unsigned_sort_function(*index_map[a], *index_map[b]);
+	}
+
+static bool indirect_double_sort_function(size_t a, size_t b)
+	{
+	return double_sort_function(*index_map[a], *index_map[b]);
+	}
+
+void VectorVal::Sort(Func* cmp_func)
+	{
+	if ( yield_types )
+		reporter->RuntimeError(GetLocationInfo(), "cannot sort a vector-of-any");
+
+	sort_type = yield_type;
+	sort_type_is_managed = IsManagedType(sort_type);
+
+	bool (*sort_func)(const ZVal&, const ZVal&);
+
+	if ( cmp_func )
+		{
+		sort_function_comp = cmp_func;
+		sort_func = sort_function;
+		}
+
+	else
+		{
+		auto eti = sort_type->InternalType();
+
+		if ( eti == TYPE_INTERNAL_INT )
+			sort_func = signed_sort_function;
+		else if ( eti == TYPE_INTERNAL_UNSIGNED )
+			sort_func = unsigned_sort_function;
+		else
+			{
+			ASSERT(eti == TYPE_INTERNAL_DOUBLE);
+			sort_func = double_sort_function;
+			}
+		}
+
+	sort(vector_val->begin(), vector_val->end(), sort_func);
+	}
+
+VectorValPtr VectorVal::Order(Func* cmp_func)
+	{
+	if ( yield_types )
+		{
+		reporter->RuntimeError(GetLocationInfo(), "cannot order a vector-of-any");
+		return nullptr;
+		}
+
+	sort_type = yield_type;
+	sort_type_is_managed = IsManagedType(sort_type);
+
+	bool (*sort_func)(size_t, size_t);
+
+	if ( cmp_func )
+		{
+		sort_function_comp = cmp_func;
+		sort_func = indirect_sort_function;
+		}
+
+	else
+		{
+		auto eti = sort_type->InternalType();
+
+		if ( eti == TYPE_INTERNAL_INT )
+			sort_func = indirect_signed_sort_function;
+		else if ( eti == TYPE_INTERNAL_UNSIGNED )
+			sort_func = indirect_unsigned_sort_function;
+		else
+			{
+			ASSERT(eti == TYPE_INTERNAL_DOUBLE);
+			sort_func = indirect_double_sort_function;
+			}
+		}
+
+	int n = Size();
+
+	// Set up initial mapping of indices directly to corresponding
+	// elements.
+	vector<size_t> ind_vv(n);
+	size_t i;
+	for ( i = 0; i < n; ++i )
+		{
+		ind_vv[i] = i;
+		index_map.emplace_back(&(*vector_val)[i]);
+		}
+
+	sort(ind_vv.begin(), ind_vv.end(), sort_func);
+
+	index_map.clear();
+
+	// Now spin through ind_vv to read out the rearrangement.
+	auto result_v = make_intrusive<VectorVal>(zeek::id::index_vec);
+	for ( i = 0; i < n; ++i )
+		{
+		int ind = ind_vv[i];
+		result_v->Assign(i, zeek::val_mgr->Count(ind));
+		}
+
+	return result_v;
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)

@@ -83,6 +83,6 @@ for ( i in s1 )
 
 	for ( j in ss )
 		print fmt("tok %d: %s (%d/%d, %s)",
-				j, ss[j]$str, ss[j]$aligns[1]$index,
-				ss[j]$aligns[2]$index, ss[j]$new);
+				j, ss[j]$str, ss[j]$aligns[0]$index,
+				ss[j]$aligns[1]$index, ss[j]$new);
 	}

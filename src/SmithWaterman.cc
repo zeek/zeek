@@ -86,12 +86,12 @@ VectorVal* Substring::VecToPolicy(Vec* vec)
 				align_val->Assign(0, make_intrusive<StringVal>(new String(*align.string)));
 				align_val->Assign(1, val_mgr->Count(align.index));
 
-				aligns->Assign(j + 1, std::move(align_val));
+				aligns->Assign(j, std::move(align_val));
 				}
 
 			st_val->Assign(1, std::move(aligns));
 			st_val->Assign(2, val_mgr->Bool(bst->IsNewAlignment()));
-			result->Assign(i + 1, std::move(st_val));
+			result->Assign(i, std::move(st_val));
 			}
 		}
 
@@ -102,8 +102,7 @@ Substring::Vec* Substring::VecFromPolicy(VectorVal* vec)
 	{
 	Vec* result = new Vec();
 
-	// VectorVals start at index 1!
-	for ( unsigned int i = 1; i <= vec->Size(); ++i )
+	for ( unsigned int i = 0; i < vec->Size(); ++i )
 		{
 		const auto& v = vec->At(i);	// get the RecordVal
 		if ( ! v )

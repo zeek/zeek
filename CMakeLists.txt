@@ -578,6 +578,36 @@ CheckOptionalBuildSources(auxil/zeek-aux  Zeek-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER)
 
 ########################################################################
+## Look for external plugins to build in
+
+if(IS_DIRECTORY ${ZEEK_BUILTIN_PLUGINS_DIR})
+    message (STATUS "Searching for plugins to build in...")
+    file(GLOB PLUGIN_DIRS CONFIGURE_DEPENDS "${ZEEK_BUILTIN_PLUGINS_DIR}/*/CMakeLists.txt")
+
+    foreach(plugin_cmake ${PLUGIN_DIRS})
+        get_filename_component(plugin_dir ${plugin_cmake} DIRECTORY)
+        get_filename_component(plugin_name ${plugin_dir} NAME)
+
+        include_directories(AFTER ${CMAKE_CURRENT_BINARY_DIR}/plugins/${plugin_name})
+        if(IS_DIRECTORY "${plugin_dir}/cmake")
+            set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${plugin_dir}/cmake")
+        endif()
+
+        message(STATUS "  Building in plugin: ${plugin_name} (${plugin_dir})")
+        add_subdirectory(${plugin_dir} ${CMAKE_CURRENT_BINARY_DIR}/src/plugins/${plugin_name})
+
+        if ( "${ZEEK_BUILTIN_PLUGINS}" STREQUAL "" )
+          set(ZEEK_BUILTIN_PLUGINS ${plugin_name})
+        else ()
+          set(ZEEK_BUILTIN_PLUGINS "${ZEEK_BUILTIN_PLUGINS}, ${plugin_name}")
+        endif ()
+    endforeach()
+else()
+    message (STATUS "No external plugins to build in")
+endif()
+
+
+########################################################################
 ## Packaging Setup
 
 if ( INSTALL_ZEEKCTL OR INSTALL_ZKG )
@@ -611,6 +641,7 @@ message(
     "\nZeek Script Path:  ${ZEEK_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\nUnit tests:        ${ENABLE_ZEEK_UNIT_TESTS}"
+    "\nBuiltin Plugins:   ${ZEEK_BUILTIN_PLUGINS}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"
     "\nCFLAGS:            ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}"

@@ -168,34 +168,6 @@ add_subdirectory(probabilistic)
 
 add_subdirectory(fuzzers)
 
-if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/plugins")
-    message (STATUS "Searching for plugins to build in...")
-    file(GLOB PLUGIN_DIRS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/plugins/*/CMakeLists.txt")
-    # The plugins need the src/ directories for includes.
-    #include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src)
-    foreach(plugin_cmake ${PLUGIN_DIRS})
-        get_filename_component(plugin_dir ${plugin_cmake} DIRECTORY)
-        get_filename_component(plugin_name ${plugin_dir} NAME)
-
-        include_directories(AFTER ${CMAKE_CURRENT_BINARY_DIR}/plugins/${plugin_name})
-        if(IS_DIRECTORY "${plugin_dir}/cmake")
-            set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${plugin_dir}/cmake")
-        endif()
-
-        message(STATUS "  Building in plugin: ${plugin_name} (${plugin_dir})")
-        add_subdirectory(${plugin_dir})
-
-        # Check to see if there are scripts so we can install them.
-        #get_filename_component (SCRIPT_DIR "scripts" ABSOLUTE BASE_DIR ${plugin_dir})
-        set(scripts_dir "${plugin_dir}/scripts")
-        if(IS_DIRECTORY ${scripts_dir})
-            message(STATUS "    Going to install scripts -- ${_plugin_name_canon} -- ${plugin_name_canon} -- ${scripts_dir}")
-        endif()
-    endforeach()
-else()
-    message (STATUS "No external plugins to build in")
-endif()
-
 ########################################################################
 ## bro target
 

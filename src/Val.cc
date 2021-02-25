@@ -2879,23 +2879,29 @@ ValPtr RecordVal::SizeVal() const
 
 void RecordVal::Assign(int field, ValPtr new_val)
 	{
-	auto t = rt->GetFieldType(field);
-
 	if ( new_val )
 		{
+		auto t = rt->GetFieldType(field);
 		(*record_val)[field] = ZVal(new_val, t);
 		(*is_in_record)[field] = true;
+		Modified();
 		}
 	else
+		Remove(field);
+	}
+
+void RecordVal::Remove(int field)
+	{
+	if ( HasField(field) )
 		{
-		if ( HasField(field) )
-			DeleteIfManaged((*record_val)[field], t);
+		auto t = rt->GetFieldType(field);
+		DeleteIfManaged((*record_val)[field], t);
 
 		(*record_val)[field] = ZVal();
 		(*is_in_record)[field] = false;
-		}
 
-	Modified();
+		Modified();
+		}
 	}
 
 ValPtr RecordVal::GetFieldOrDefault(int field) const

@@ -1062,6 +1062,13 @@ public:
 		{ Assign(field, make_intrusive<T>(std::forward<Ts>(args)...)); }
 
 	/**
+	 * Sets the given record field to not-in-record.  Equivalent to
+	 * Assign using a nil ValPtr.
+	 * @param field  The field index to remove.
+	 */
+	void Remove(int field);
+
+	/**
 	 * Appends a value to the record's fields.  The caller is responsible
 	 * for ensuring that fields are appended in the correct order and
 	 * with the correct type.

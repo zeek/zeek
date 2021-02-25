@@ -1305,7 +1305,7 @@ public:
 	 * @return  The element at the given index or nullptr if the index
 	 * does not exist (it's greater than or equal to vector's current size).
 	 */
-	const ValPtr& At(unsigned int index) const;
+	ValPtr At(unsigned int index) const;
 
 	/**
 	 * Returns the given element treated as a Count type, to efficiently
@@ -1364,7 +1364,29 @@ protected:
 	ValPtr DoClone(CloneState* state) override;
 
 private:
-	std::vector<ValPtr>* vector_val;
+	// Check the type of the given element against our current
+	// yield type and adjust as necessary.  Returns whether the
+	// element type-checked.
+	bool CheckElementType(const ValPtr& element);
+
+	std::vector<ZVal>* vector_val;
+
+	// For homogeneous vectors (the usual case), the type of the
+	// elements.  Will be TYPE_VOID for empty vectors created using
+	// "vector()".
+	TypePtr yield_type;
+
+	// True if this is a vector-of-any, or potentially one (which is
+	// the case for empty vectors created using "vector()").
+	bool any_yield;
+
+	// For heterogeneous vectors, the individual type of each element,
+	// parallel to vector_val.  Heterogeneous vectors can arise for
+	// "vector of any" when disparate elements are stored in the vector.
+	//
+	// Thus, if yield_types is non-nil, then we know this is a
+	// vector-of-any.
+	std::vector<TypePtr>* yield_types = nullptr;
 };
 
 #define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name) \

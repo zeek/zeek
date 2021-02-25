@@ -3177,14 +3177,19 @@ ValPtr TypeVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-VectorVal::VectorVal(VectorTypePtr t) : Val(std::move(t))
+VectorVal::VectorVal(VectorTypePtr t) : Val(t)
 	{
-	vector_val = new vector<ValPtr>();
+	vector_val = new vector<ZVal>();
+	yield_type = t->Yield();
+
+	auto y_tag = yield_type->Tag();
+	any_yield = (y_tag == TYPE_VOID || y_tag == TYPE_ANY);
 	}
 
 VectorVal::~VectorVal()
 	{
 	delete vector_val;
+	delete yield_types;
 	}
 
 ValPtr VectorVal::SizeVal() const
@@ -3192,16 +3197,64 @@ ValPtr VectorVal::SizeVal() const
 	return val_mgr->Count(uint32_t(vector_val->size()));
 	}
 
+bool VectorVal::CheckElementType(const ValPtr& element)
+	{
+	if ( ! element )
+		// Insertion isn't actually going to happen.
+		return true;
+
+	if ( yield_types )
+		// We're already a heterogeneous vector-of-any.
+		return true;
+
+	if ( any_yield )
+		{
+		auto n = vector_val->size();
+
+		if ( n == 0 )
+			// First addition to an empty vector-of-any, perhaps
+			// it will be homogeneous.
+			yield_type = element->GetType();
+
+		else
+			{
+			yield_types = new std::vector<TypePtr>();
+
+			// Since we're only now switching to the heterogeneous
+			// representation, capture the types of the existing
+			// elements.
+
+			for ( auto i = 0; i < n; ++i )
+				yield_types->emplace_back(yield_type);
+			}
+		}
+
+	else if ( ! same_type(element->GetType(), yield_type, false) )
+		return false;
+
+	return true;
+	}
+
 bool VectorVal::Assign(unsigned int index, ValPtr element)
 	{
-	if ( element &&
-	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
+	if ( ! CheckElementType(element) )
 		return false;
 
 	if ( index >= vector_val->size() )
+		{
 		vector_val->resize(index + 1);
+		if ( yield_types )
+			yield_types->resize(index + 1);
+		}
 
-	(*vector_val)[index] = std::move(element);
+	if ( yield_types )
+		{
+		const auto& t = element->GetType();
+		(*yield_types)[index] = t;
+		(*vector_val)[index] = ZVal(std::move(element), t);
+		}
+	else
+		(*vector_val)[index] = ZVal(std::move(element), yield_type);
 
 	Modified();
 	return true;
@@ -3221,20 +3274,33 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 
 bool VectorVal::Insert(unsigned int index, ValPtr element)
 	{
-	if ( element &&
-	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
-		{
+	if ( ! CheckElementType(element) )
 		return false;
-		}
 
-	vector<ValPtr>::iterator it;
+	vector<ZVal>::iterator it;
+	vector<TypePtr>::iterator types_it;
 
 	if ( index < vector_val->size() )
+		{
 		it = std::next(vector_val->begin(), index);
+		if ( yield_types )
+			types_it = std::next(yield_types->begin(), index);
+		}
 	else
+		{
 		it = vector_val->end();
+		if ( yield_types )
+			types_it = yield_types->end();
+		}
 
-	vector_val->insert(it, std::move(element));
+	if ( yield_types )
+		{
+		const auto& t = element->GetType();
+		yield_types->insert(types_it, element->GetType());
+		vector_val->insert(it, ZVal(std::move(element), t));
+		}
+	else
+		vector_val->insert(it, ZVal(std::move(element), yield_type));
 
 	Modified();
 	return true;
@@ -3247,6 +3313,12 @@ bool VectorVal::Remove(unsigned int index)
 
 	auto it = std::next(vector_val->begin(), index);
 	vector_val->erase(it);
+
+	if ( yield_types )
+		{
+		auto types_it = std::next(yield_types->begin(), index);
+		yield_types->erase(types_it);
+		}
 
 	Modified();
 	return true;
@@ -3276,17 +3348,19 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 	return true;
 	}
 
-const ValPtr& VectorVal::At(unsigned int index) const
+ValPtr VectorVal::At(unsigned int index) const
 	{
 	if ( index >= vector_val->size() )
 		return Val::nil;
 
-	return (*vector_val)[index];
+	const auto& t = yield_types ? (*yield_types)[index] : yield_type;
+
+	return (*vector_val)[index].ToVal(t);
 	}
 
 void VectorVal::Sort(bool cmp_func(const ValPtr& a, const ValPtr& b))
 	{
-	sort(vector_val->begin(), vector_val->end(), cmp_func);
+	// Placeholder - will be filled in by a later commit.
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
@@ -3294,6 +3368,13 @@ unsigned int VectorVal::Resize(unsigned int new_num_elements)
 	unsigned int oldsize = vector_val->size();
 	vector_val->reserve(new_num_elements);
 	vector_val->resize(new_num_elements);
+
+	if ( yield_types )
+		{
+		yield_types->reserve(new_num_elements);
+		yield_types->resize(new_num_elements);
+		}
+
 	return oldsize;
 	}
 
@@ -3309,6 +3390,9 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 void VectorVal::Reserve(unsigned int num_elements)
 	{
 	vector_val->reserve(num_elements);
+
+	if ( yield_types )
+		yield_types->reserve(num_elements);
 	}
 
 ValPtr VectorVal::DoClone(CloneState* state)
@@ -3317,9 +3401,11 @@ ValPtr VectorVal::DoClone(CloneState* state)
 	vv->Reserve(vector_val->size());
 	state->NewClone(this, vv);
 
-	for ( const auto& e : *vector_val )
+	auto n = vector_val->size();
+
+	for ( auto i = 0; i < n; ++i )
 		{
-		auto vc = e->Clone(state);
+		auto vc = At(i)->Clone(state);
 		vv->Append(std::move(vc));
 		}
 
@@ -3332,18 +3418,21 @@ void VectorVal::ValDescribe(ODesc* d) const
 
 	size_t vector_size = vector_val->size();
 
-	if ( vector_size != 0)
+	if ( vector_size != 0 )
 		{
-		for ( unsigned int i = 0; i < (vector_size - 1); ++i )
+		auto last_ind = vector_size - 1;
+		for ( unsigned int i = 0; i < last_ind; ++i )
 			{
-			if ( vector_val->at(i) )
-				vector_val->at(i)->Describe(d);
+			auto v = At(i);
+			if ( v )
+				v->Describe(d);
 			d->Add(", ");
 			}
-		}
 
-	if ( vector_size != 0 && vector_val->back() )
-		vector_val->back()->Describe(d);
+		auto v = At(last_ind);
+		if ( v )
+			v->Describe(d);
+		}
 
 	d->Add("]");
 	}

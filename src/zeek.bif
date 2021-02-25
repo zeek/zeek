@@ -1513,7 +1513,8 @@ function order%(v: any, ...%) : index_vec
 	for ( i = 0; i < n; ++i )
 		{
 		ind_vv[i] = i;
-		index_map.emplace_back(&vv->At(i));
+		auto tmp_until_later_commit = vv->At(i);
+		index_map.emplace_back(&tmp_until_later_commit);
 		}
 
 	if ( comp )

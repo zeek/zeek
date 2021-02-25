@@ -34,7 +34,7 @@ Extract::~Extract()
 		util::safe_close(fd);
 	}
 
-static const ValPtr& get_extract_field_val(const RecordValPtr& args,
+static ValPtr get_extract_field_val(const RecordValPtr& args,
                                            const char* name)
 	{
 	const auto& rval = args->GetField(name);

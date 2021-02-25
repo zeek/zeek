@@ -631,7 +631,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		{
 		if ( conn_val )
 			{
-			RecordVal* endp = conn_val->GetField(is_orig ? 1 : 2)->AsRecordVal();
+			RecordVal* endp = conn_val->GetFieldAs<RecordVal>(is_orig ? 1 : 2);
 			endp->Assign(4, val_mgr->Count(flow_label));
 			}
 

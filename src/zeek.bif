@@ -3435,8 +3435,7 @@ function lookup_connection%(cid: conn_id%): connection
 %%{
 const char* conn_id_string(zeek::Val* c)
 	{
-	auto id = c->As<zeek::RecordVal*>()->GetField(0);
-	auto id_r = id->As<zeek::RecordVal*>();
+	auto id_r = c->As<zeek::RecordVal*>()->GetFieldAs<zeek::RecordVal>(0);
 
 	const zeek::IPAddr& orig_h = id_r->GetFieldAs<zeek::AddrVal>(0);
 	uint32_t orig_p = id_r->GetFieldAs<zeek::PortVal>(1)->Port();

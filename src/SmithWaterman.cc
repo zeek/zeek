@@ -111,7 +111,7 @@ Substring::Vec* Substring::VecFromPolicy(VectorVal* vec)
 		const String* str = v->GetFieldAs<StringVal>(0);
 		auto* substr = new Substring(*str);
 
-		const VectorVal* aligns = v->GetField(1)->AsVectorVal();
+		const VectorVal* aligns = v->GetFieldAs<VectorVal>(1);
 		for ( unsigned int j = 1; j <= aligns->Size(); ++j )
 			{
 			const RecordVal* align = aligns->AsVectorVal()->RecordValAt(j);

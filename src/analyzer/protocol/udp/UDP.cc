@@ -220,8 +220,8 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 void UDP_Analyzer::UpdateConnVal(RecordVal* conn_val)
 	{
-	RecordVal* orig_endp = conn_val->GetField("orig")->AsRecordVal();
-	RecordVal* resp_endp = conn_val->GetField("resp")->AsRecordVal();
+	auto orig_endp = conn_val->GetFieldAs<RecordVal>("orig");
+	auto resp_endp = conn_val->GetFieldAs<RecordVal>("resp");
 
 	UpdateEndpointVal(orig_endp, true);
 	UpdateEndpointVal(resp_endp, false);

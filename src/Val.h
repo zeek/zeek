@@ -1310,6 +1310,9 @@ protected:
 	static RecordTypeValMap parse_time_records;
 
 private:
+	// Just for template inferencing.
+	RecordVal* Get()	{ return this; }
+
 	// Keep this handy for quick access during low-level operations.
 	RecordTypePtr rt;
 
@@ -1479,6 +1482,10 @@ protected:
 	ValPtr DoClone(CloneState* state) override;
 
 private:
+	// Just for template inferencing.
+	friend class RecordVal;
+	VectorVal* Get()	{ return this; }
+
 	// Check the type of the given element against our current
 	// yield type and adjust as necessary.  Returns whether the
 	// element type-checked.

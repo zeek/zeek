@@ -793,7 +793,7 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame)
 
 		if ( ! same_type(got_type, expected_type) )
 			{
-			rval->Assign(0, nullptr);
+			rval->Remove(0);
 			Error("event parameter #%d type mismatch, got %s, expect %s", i,
 			      type_name(got_type->Tag()),
 			      type_name(expected_type->Tag()));
@@ -809,7 +809,7 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame)
 
 		if ( ! data_val->HasField(0) )
 			{
-			rval->Assign(0, nullptr);
+			rval->Remove(0);
 			Error("failed to convert param #%d of type %s to broker data",
 				  i, type_name(got_type->Tag()));
 			return rval;

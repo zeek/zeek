@@ -430,7 +430,7 @@ struct val_converter {
 
 				if ( caf::get_if<broker::none>(&a[idx]) != nullptr )
 					{
-					rval->Assign(i, nullptr);
+					rval->Remove(i);
 					++idx;
 					continue;
 					}

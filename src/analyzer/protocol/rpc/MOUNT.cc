@@ -272,11 +272,6 @@ RecordValPtr MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 
 		rep->Assign(1, std::move(auth_flavors));
 		}
-	else
-		{
-		rep->Assign(0, nullptr);
-		rep->Assign(1, nullptr);
-		}
 
 	return rep;
 	}

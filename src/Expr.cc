@@ -3921,7 +3921,7 @@ ValPtr RecordCoerceExpr::Fold(Val* v) const
 			if ( ! rhs )
 				{
 				// Optional field is missing.
-				val->Assign(i, nullptr);
+				val->Remove(i);
 				continue;
 				}
 
@@ -3968,7 +3968,7 @@ ValPtr RecordCoerceExpr::Fold(Val* v) const
 				val->Assign(i, std::move(def_val));
 				}
 			else
-				val->Assign(i, nullptr);
+				val->Remove(i);
 			}
 		}
 

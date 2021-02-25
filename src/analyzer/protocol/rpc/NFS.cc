@@ -353,22 +353,18 @@ RecordValPtr NFS_Interp::nfs3_sattr(const u_char*& buf, int& n)
 	{
 	auto attrs = make_intrusive<RecordVal>(BifType::Record::NFS3::sattr_t);
 
-	attrs->Assign(0, nullptr); // mode
 	int mode_set_it =  extract_XDR_uint32(buf, n);
 	if ( mode_set_it )
 		attrs->Assign(0, ExtractUint32(buf, n)); // mode
 
-	attrs->Assign(1, nullptr); // uid
 	int uid_set_it =  extract_XDR_uint32(buf, n);
 	if ( uid_set_it )
 		attrs->Assign(1, ExtractUint32(buf, n)); // uid
 
-	attrs->Assign(2, nullptr); // gid
 	int gid_set_it =  extract_XDR_uint32(buf, n);
 	if ( gid_set_it )
 		attrs->Assign(2, ExtractUint32(buf, n)); // gid
 
-	attrs->Assign(3, nullptr); // size
 	int size_set_it =  extract_XDR_uint32(buf, n);
 	if ( size_set_it )
 		attrs->Assign(3, ExtractTime(buf, n));	 // size
@@ -388,11 +384,6 @@ RecordValPtr NFS_Interp::nfs3_sattr_reply(const u_char*& buf, int& n, BifEnum::N
 		{
 		rep->Assign(0, nfs3_pre_op_attr(buf, n));
 		rep->Assign(1, nfs3_post_op_attr(buf, n));
-		}
-	else
-		{
-		rep->Assign(1, nullptr);
-		rep->Assign(2, nullptr);
 		}
 
 	return rep;
@@ -536,8 +527,6 @@ RecordValPtr NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::
 		}
 	else
 		{
-		rep->Assign(0, nullptr);
-		rep->Assign(1, nullptr);
 		rep->Assign(2, nfs3_post_op_attr(buf, n));
 		}
 	return rep;
@@ -698,8 +687,6 @@ RecordValPtr NFS_Interp::nfs3_newobj_reply(const u_char*& buf, int& n, BifEnum::
 		}
 	else
 		{
-		rep->Assign(0, nullptr);
-		rep->Assign(1, nullptr);
 		rep->Assign(2, nfs3_pre_op_attr(buf, n));
 		rep->Assign(3, nfs3_post_op_attr(buf, n));
 		}

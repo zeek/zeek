@@ -364,11 +364,11 @@ String::Vec* String::VecFromPolicy(VectorVal* vec)
 
 	for ( unsigned int i = 0; i < vec->Size(); ++i )
 		{
-		const auto& v = vec->At(i);	// get the RecordVal
+		auto v = vec->StringAt(i);
 		if ( ! v )
 			continue;
 
-		String* string = new String(*(v->AsString()));
+		String* string = new String(*v);
 		result->push_back(string);
 		}
 

@@ -1326,10 +1326,6 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) const
 
 		for ( auto i = 0u; i <= vv->Size(); ++i )
 			{
-			// Skip unassigned vector indices.
-			if ( ! vv->At(i) )
-				continue;
-
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
 			f->SetElement((*loop_vars)[0], val_mgr->Count(i));

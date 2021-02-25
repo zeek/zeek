@@ -588,7 +588,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			auto* vval = val->AsVectorVal();
 			size_t size = vval->SizeVal()->AsCount();
 			for (size_t i = 0; i < size; i++)
-				BuildJSON(writer, vval->At(i).get(), only_loggable, re);
+				BuildJSON(writer, vval->ValAt(i).get(), only_loggable, re);
 
 			writer.EndArray();
 			break;

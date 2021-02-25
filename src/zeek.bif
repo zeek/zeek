@@ -815,7 +815,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
-		const String* s = vv->At(i)->AsString();
+		auto s = vv->StringAt(i);
 		patterns.push_back(std::string(reinterpret_cast<const char*>(s->Bytes()), s->Len()));
 		}
 
@@ -1293,7 +1293,7 @@ function any_set%(v: any%) : bool
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
-		if ( vv->At(i) && vv->At(i)->AsBool() )
+		if ( vv->BoolAt(i) )
 			return zeek::val_mgr->True();
 
 	return zeek::val_mgr->False();
@@ -1322,7 +1322,7 @@ function all_set%(v: any%) : bool
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
-		if ( ! vv->At(i) || ! vv->At(i)->AsBool() )
+		if ( ! vv->BoolAt(i) )
 			return zeek::val_mgr->False();
 
 	return zeek::val_mgr->True();

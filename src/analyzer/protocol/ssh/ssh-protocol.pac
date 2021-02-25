@@ -456,11 +456,11 @@ refine connection SSH_Conn += {
 			{
 			for ( unsigned int j = 0; j < server_list->Size(); ++j )
 				{
-				if ( *(client_list->At(i)->AsStringVal()->AsString()) == *(server_list->At(j)->AsStringVal()->AsString()) )
+				if ( *(client_list->StringAt(i)) == *(server_list->StringAt(j)) )
 					{
 					kex_algorithm_.free();
-					kex_algorithm_.init((const uint8 *) client_list->At(i)->AsStringVal()->Bytes(),
-						client_list->At(i)->AsStringVal()->Len());
+					kex_algorithm_.init((const uint8 *) client_list->StringAt(i)->Bytes(),
+						client_list->StringAt(i)->Len());
 
 					// UNTESTED
 					if ( update_kex_state_if_equal("rsa1024-sha1", KEX_RSA) )

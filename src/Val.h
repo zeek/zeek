@@ -1299,24 +1299,6 @@ public:
 	// Returns true if succcessful.
 	bool AddTo(Val* v, bool is_first_init) const override;
 
-	/**
-	 * Returns the element at a given index or nullptr if it does not exist.
-	 * @param index  The position in the vector of the element to return.
-	 * @return  The element at the given index or nullptr if the index
-	 * does not exist (it's greater than or equal to vector's current size).
-	 */
-	ValPtr At(unsigned int index) const;
-
-	/**
-	 * Returns the given element treated as a Count type, to efficiently
-	 * support a common type of vector access if we change the underlying
-	 * vector representation.
-	 * @param index  The position in the vector of the element to return.
-	 * @return  The element's value, as a Count underlying representation.
-	 */
-	bro_uint_t CountAt(unsigned int index) const
-		{ return At(index)->AsCount(); }
-
 	unsigned int Size() const { return vector_val->size(); }
 
 	// Is there any way to reclaim previously-allocated memory when you
@@ -1367,7 +1349,38 @@ public:
 	 */
 	VectorValPtr Order(Func* cmp_func = nullptr);
 
+	ValPtr ValAt(unsigned int index) const	{ return At(index); }
+
+	/**
+	 * Returns the given element in a given underlying representation.
+	 * Enables efficient vector access.  Caller must ensure that the
+	 * index lies within the vector's range.
+	 * @param index  The position in the vector of the element to return.
+	 * @return  The element's underlying value.
+	 */
+	bro_uint_t CountAt(unsigned int index) const
+		{ return (*vector_val)[index].uint_val; }
+	const RecordVal* RecordValAt(unsigned int index) const
+		{ return (*vector_val)[index].record_val; }
+	bool BoolAt(unsigned int index) const
+		{ return bool((*vector_val)[index].uint_val); }
+	const StringVal* StringValAt(unsigned int index) const
+		{ return (*vector_val)[index].string_val; }
+	const String* StringAt(unsigned int index) const
+		{ return StringValAt(index)->AsString(); }
+
 protected:
+	/**
+	 * Returns the element at a given index or nullptr if it does not exist.
+	 * @param index  The position in the vector of the element to return.
+	 * @return  The element at the given index or nullptr if the index
+	 * does not exist (it's greater than or equal to vector's current size).
+	 *
+	 * Protected to ensure callers pick one of the differentiated accessors
+	 * above, as appropriate, with ValAt() providing the original semantics.
+	 */
+	ValPtr At(unsigned int index) const;
+
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
 

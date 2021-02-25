@@ -443,7 +443,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 
 	for ( auto i = 0u; i < vv->Size(); ++i )
 		{
-		const auto& val = vv->At(i)->AsRecordVal()->GetField(0);
+		const auto& val = vv->RecordValAt(i)->GetField(0);
 		auto data_val = static_cast<detail::DataVal*>(val.get());
 		xs.emplace_back(data_val->data);
 		}

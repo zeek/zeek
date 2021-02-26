@@ -64,4 +64,14 @@ bool is_all_whitespace(const std::string& s);
  */
 std::string redef_indication(const std::string& from_script);
 
+/**
+ * Turns a script's path into a shortened, normalized version that
+ * can be used for indexing and cross-referencing links.
+ *
+ * @param path  the associate path to a Zeek script, which may be absolute.
+ *
+ * @return  a normalized/shortened path (containing no ZEEKPATH components)
+ *
+ */
+std::string normalize_script_path(std::string_view path);
 } // namespace zeek::zeekygen::detail

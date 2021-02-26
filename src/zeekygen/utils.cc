@@ -8,6 +8,7 @@
 #include "zeek/ID.h"
 #include "zeek/Scope.h"
 #include "zeek/Reporter.h"
+#include "zeek/plugin/Manager.h"
 
 using namespace std;
 
@@ -137,4 +138,15 @@ string redef_indication(const string& from_script)
 	                 from_script.c_str());
 	}
 
+std::string normalize_script_path(std::string_view path)
+	{
+	if ( auto p = plugin_mgr->LookupPluginByPath(path) )
+		{
+		auto rval = util::detail::normalize_path(path);
+		auto prefix = util::SafeBasename(p->PluginDirectory()).result;
+		return prefix + "/" + rval.substr(p->PluginDirectory().size() + 1);
+		}
+
+	return util::detail::without_zeekpath_component(path);
+	}
 } // namespace zeek::zeekygen::detail

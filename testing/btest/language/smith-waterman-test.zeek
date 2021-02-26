@@ -12,7 +12,7 @@ global s1: string_vec;
 global s2: string_vec;
 
 # Single alignment, no matches:
-s1[++c] = "abcdefgh";
+s1[c] = "abcdefgh";
 s2[c] = "ijklmnop";
 min[c] = 2;;
 mode[c] = 0;

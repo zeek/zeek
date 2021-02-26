@@ -179,7 +179,9 @@ foreach (plugin_dir ${BUILTIN_PLUGIN_LIST})
     endif()
 
     # Setup the include path for built source artifacts.
-    include_directories(AFTER ${CMAKE_CURRENT_BINARY_DIR}/plugins/${plugin_name})
+    include_directories(AFTER 
+                        ${CMAKE_CURRENT_BINARY_DIR}/plugins/${plugin_name}
+                        ${plugin_dir}/src)
 
     add_subdirectory(${plugin_dir} ${CMAKE_CURRENT_BINARY_DIR}/plugins/${plugin_name})
 endforeach ()

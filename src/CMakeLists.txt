@@ -169,6 +169,22 @@ add_subdirectory(probabilistic)
 add_subdirectory(fuzzers)
 
 ########################################################################
+## Build in the discovered external plugins
+
+foreach (plugin_dir ${BUILTIN_PLUGIN_LIST})
+    get_filename_component(plugin_name ${plugin_dir} NAME)
+
+    if(IS_DIRECTORY "${plugin_dir}/cmake")
+        set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${plugin_dir}/cmake")
+    endif()
+
+    # Setup the include path for built source artifacts.
+    include_directories(AFTER ${CMAKE_CURRENT_BINARY_DIR}/plugins/${plugin_name})
+
+    add_subdirectory(${plugin_dir} ${CMAKE_CURRENT_BINARY_DIR}/plugins/${plugin_name})
+endforeach ()
+
+########################################################################
 ## bro target
 
 find_package (Threads)

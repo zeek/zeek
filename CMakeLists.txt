@@ -563,6 +563,32 @@ if ( INSTALL_ZKG )
 endif ()
 
 ########################################################################
+## Look for external plugins to build in
+
+if( NOT ("${ZEEK_BUILTIN_PLUGINS_DIR}" STREQUAL "") AND IS_DIRECTORY ${ZEEK_BUILTIN_PLUGINS_DIR})
+    message (STATUS "Searching for external plugins in ${ZEEK_BUILTIN_PLUGINS_DIR}")
+    file(GLOB PLUGIN_DIRS CONFIGURE_DEPENDS "${ZEEK_BUILTIN_PLUGINS_DIR}/*/CMakeLists.txt")
+
+    foreach(plugin_cmake ${PLUGIN_DIRS})
+        get_filename_component(plugin_dir ${plugin_cmake} DIRECTORY)
+        get_filename_component(plugin_name ${plugin_dir} NAME)
+
+        # Create a list of plugin directories that will then be added in the src/CMakeLists.txt
+        list(APPEND BUILTIN_PLUGIN_LIST ${plugin_dir})
+
+        message(STATUS "  Building in plugin: ${plugin_name} (${plugin_dir})")
+
+        if ( "${ZEEK_BUILTIN_PLUGINS}" STREQUAL "" )
+            set(ZEEK_BUILTIN_PLUGINS ${plugin_name})
+        else ()
+            set(ZEEK_BUILTIN_PLUGINS "${ZEEK_BUILTIN_PLUGINS}, ${plugin_name}")
+        endif ()
+    endforeach()
+else()
+    message (STATUS "No external plugins to build in")
+endif()
+
+########################################################################
 ## Recurse on sub-directories
 
 add_subdirectory(src)
@@ -576,35 +602,6 @@ CheckOptionalBuildSources(auxil/package-manager ZKG INSTALL_ZKG)
 CheckOptionalBuildSources(auxil/zeekctl   ZeekControl INSTALL_ZEEKCTL)
 CheckOptionalBuildSources(auxil/zeek-aux  Zeek-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER)
-
-########################################################################
-## Look for external plugins to build in
-
-if(IS_DIRECTORY ${ZEEK_BUILTIN_PLUGINS_DIR})
-    message (STATUS "Searching for plugins to build in...")
-    file(GLOB PLUGIN_DIRS CONFIGURE_DEPENDS "${ZEEK_BUILTIN_PLUGINS_DIR}/*/CMakeLists.txt")
-
-    foreach(plugin_cmake ${PLUGIN_DIRS})
-        get_filename_component(plugin_dir ${plugin_cmake} DIRECTORY)
-        get_filename_component(plugin_name ${plugin_dir} NAME)
-
-        include_directories(AFTER ${CMAKE_CURRENT_BINARY_DIR}/plugins/${plugin_name})
-        if(IS_DIRECTORY "${plugin_dir}/cmake")
-            set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${plugin_dir}/cmake")
-        endif()
-
-        message(STATUS "  Building in plugin: ${plugin_name} (${plugin_dir})")
-        add_subdirectory(${plugin_dir} ${CMAKE_CURRENT_BINARY_DIR}/src/plugins/${plugin_name})
-
-        if ( "${ZEEK_BUILTIN_PLUGINS}" STREQUAL "" )
-          set(ZEEK_BUILTIN_PLUGINS ${plugin_name})
-        else ()
-          set(ZEEK_BUILTIN_PLUGINS "${ZEEK_BUILTIN_PLUGINS}, ${plugin_name}")
-        endif ()
-    endforeach()
-else()
-    message (STATUS "No external plugins to build in")
-endif()
 
 
 ########################################################################

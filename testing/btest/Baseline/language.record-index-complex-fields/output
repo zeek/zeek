@@ -11,7 +11,7 @@ b
 }
 }
 {
-[a=13, tags_v=[, , 2, 3], tags_t={
+[a=13, tags_v=[0, 0, 2, 3], tags_t={
 [four] = 4,
 [five] = 5
 }, tags_s={

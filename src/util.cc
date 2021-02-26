@@ -78,36 +78,6 @@ static bool can_read(const string& path)
 	return access(path.c_str(), R_OK) == 0;
 	}
 
-static bool starts_with(std::string_view s, std::string_view beginning)
-	{
-	if ( beginning.size() > s.size() )
-		return false;
-
-	return std::equal(beginning.begin(), beginning.end(), s.begin());
-	}
-
-TEST_CASE("util starts_with")
-	{
-	CHECK(starts_with("abcde", "ab") == true);
-	CHECK(starts_with("abcde", "de") == false);
-	CHECK(starts_with("abcde", "abcedf") == false);
-	}
-
-static bool ends_with(std::string_view s, std::string_view ending)
-	{
-	if ( ending.size() > s.size() )
-		return false;
-
-	return std::equal(ending.rbegin(), ending.rend(), s.rbegin());
-	}
-
-TEST_CASE("util ends_with")
-	{
-	CHECK(ends_with("abcde", "de") == true);
-	CHECK(ends_with("abcde", "fg") == false);
-	CHECK(ends_with("abcde", "abcedf") == false);
-	}
-
 static string zeek_path_value;
 
 namespace zeek::util {
@@ -1155,6 +1125,36 @@ TEST_CASE("util streq")
 int streq(const char* s1, const char* s2)
 	{
 	return ! strcmp(s1, s2);
+	}
+
+bool starts_with(std::string_view s, std::string_view beginning)
+	{
+	if ( beginning.size() > s.size() )
+		return false;
+
+	return std::equal(beginning.begin(), beginning.end(), s.begin());
+	}
+
+TEST_CASE("util starts_with")
+	{
+	CHECK(starts_with("abcde", "ab") == true);
+	CHECK(starts_with("abcde", "de") == false);
+	CHECK(starts_with("abcde", "abcedf") == false);
+	}
+
+bool ends_with(std::string_view s, std::string_view ending)
+	{
+	if ( ending.size() > s.size() )
+		return false;
+
+	return std::equal(ending.rbegin(), ending.rend(), s.rbegin());
+	}
+
+TEST_CASE("util ends_with")
+	{
+	CHECK(ends_with("abcde", "de") == true);
+	CHECK(ends_with("abcde", "fg") == false);
+	CHECK(ends_with("abcde", "abcedf") == false);
 	}
 
 char* skip_whitespace(char* s)

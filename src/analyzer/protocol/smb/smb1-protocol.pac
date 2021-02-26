@@ -25,14 +25,14 @@
 		//	{ // do nothing
 		//	}
 
-		r->Assign(0, zeek::val_mgr->Count(${hdr.command}));
-		r->Assign(1, zeek::val_mgr->Count(${hdr.status}));
-		r->Assign(2, zeek::val_mgr->Count(${hdr.flags}));
-		r->Assign(3, zeek::val_mgr->Count(${hdr.flags2}));
-		r->Assign(4, zeek::val_mgr->Count(${hdr.tid}));
-		r->Assign(5, zeek::val_mgr->Count(${hdr.pid}));
-		r->Assign(6, zeek::val_mgr->Count(${hdr.uid}));
-		r->Assign(7, zeek::val_mgr->Count(${hdr.mid}));
+		r->Assign(0, ${hdr.command});
+		r->Assign(1, ${hdr.status});
+		r->Assign(2, ${hdr.flags});
+		r->Assign(3, ${hdr.flags2});
+		r->Assign(4, ${hdr.tid});
+		r->Assign(5, ${hdr.pid});
+		r->Assign(6, ${hdr.uid});
+		r->Assign(7, ${hdr.mid});
 
 		return r;
 		}

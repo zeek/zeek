@@ -297,7 +297,7 @@ static void print_log(const std::vector<ValPtr>& vals)
 		vec->Assign(vec->Size(), make_intrusive<StringVal>(d.Description()));
 		}
 
-	record->Assign(0, make_intrusive<TimeVal>(run_state::network_time));
+	record->AssignTime(0, run_state::network_time);
 	record->Assign(1, std::move(vec));
 	log_mgr->Write(plval.get(), record.get());
 	}

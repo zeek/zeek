@@ -74,7 +74,7 @@ VectorVal* Substring::VecToPolicy(Vec* vec)
 			Substring* bst = (*vec)[i];
 
 			auto st_val = make_intrusive<RecordVal>(sw_substring_type);
-			st_val->Assign(0, make_intrusive<StringVal>(new String(*bst)));
+			st_val->Assign(0, new String(*bst));
 
 			auto aligns = make_intrusive<VectorVal>(sw_align_vec_type);
 
@@ -83,14 +83,14 @@ VectorVal* Substring::VecToPolicy(Vec* vec)
 				const BSSAlign& align = (bst->GetAlignments())[j];
 
 				auto align_val = make_intrusive<RecordVal>(sw_align_type);
-				align_val->Assign(0, make_intrusive<StringVal>(new String(*align.string)));
-				align_val->Assign(1, val_mgr->Count(align.index));
+				align_val->Assign(0, new String(*align.string));
+				align_val->Assign(1, align.index);
 
 				aligns->Assign(j, std::move(align_val));
 				}
 
 			st_val->Assign(1, std::move(aligns));
-			st_val->Assign(2, val_mgr->Bool(bst->IsNewAlignment()));
+			st_val->Assign(2, bst->IsNewAlignment());
 			result->Assign(i, std::move(st_val));
 			}
 		}

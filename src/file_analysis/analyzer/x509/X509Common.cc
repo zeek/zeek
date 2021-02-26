@@ -273,13 +273,13 @@ void X509Common::ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bo
 		ext_val = make_intrusive<StringVal>(0, "");
 
 	auto pX509Ext = make_intrusive<RecordVal>(BifType::Record::X509::Extension);
-	pX509Ext->Assign(0, make_intrusive<StringVal>(name));
+	pX509Ext->Assign(0, name);
 
 	if ( short_name and strlen(short_name) > 0 )
-		pX509Ext->Assign(1, make_intrusive<StringVal>(short_name));
+		pX509Ext->Assign(1, short_name);
 
-	pX509Ext->Assign(2, make_intrusive<StringVal>(oid));
-	pX509Ext->Assign(3, val_mgr->Bool(critical));
+	pX509Ext->Assign(2, oid);
+	pX509Ext->Assign(3, critical);
 	pX509Ext->Assign(4, ext_val);
 
 	// send off generic extension event

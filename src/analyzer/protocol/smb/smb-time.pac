@@ -1,21 +1,20 @@
 %header{
-zeek::ValPtr filetime2zeektime(uint64_t ts);
-zeek::ValPtr time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz);
+double filetime2zeektime(uint64_t ts);
+double time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz);
 
 zeek::RecordValPtr SMB_BuildMACTimes(uint64_t modify, uint64_t access,
                                      uint64_t create, uint64_t change);
 %}
 
 %code{
-zeek::ValPtr filetime2zeektime(uint64_t ts)
+double filetime2zeektime(uint64_t ts)
 	{
 	// Zeek can't support times back to the 1600's
 	// so we subtract a lot of seconds.
-	double secs = (ts / 10000000.0L) - 11644473600.0L;
-	return zeek::make_intrusive<zeek::TimeVal>(secs);
+	return (ts / 10000000.0L) - 11644473600.0L;
 	}
 
-zeek::ValPtr time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
+double time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
 	{
 	tm lTime;
 	lTime.tm_sec = ${t.two_seconds} * 2;
@@ -25,8 +24,7 @@ zeek::ValPtr time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
 	lTime.tm_mon = ${d.month};
 	lTime.tm_year = 1980 + ${d.year};
 	lTime.tm_isdst = -1;
-	double lResult = mktime(&lTime);
-	return zeek::make_intrusive<zeek::TimeVal>(lResult + tz);
+	return mktime(&lTime) + tz;
 	}
 
 zeek::RecordValPtr SMB_BuildMACTimes(uint64_t modify, uint64_t access,

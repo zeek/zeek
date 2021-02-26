@@ -188,16 +188,16 @@ Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	auto info = make_intrusive<RecordVal>(BifType::Record::MOUNT3::info_t);
 	info->Assign(0, BifType::Enum::rpc_status->GetEnumVal(rpc_status));
 	info->Assign(1, BifType::Enum::MOUNT3::status_t->GetEnumVal(mount_status));
-	info->Assign(2, make_intrusive<TimeVal>(c->StartTime()));
-	info->Assign(3, make_intrusive<IntervalVal>(c->LastTime() - c->StartTime()));
-	info->Assign(4, val_mgr->Count(c->RPCLen()));
-	info->Assign(5, make_intrusive<TimeVal>(rep_start_time));
-	info->Assign(6, make_intrusive<IntervalVal>(rep_last_time - rep_start_time));
-	info->Assign(7, val_mgr->Count(reply_len));
-	info->Assign(8, val_mgr->Count(c->Uid()));
-	info->Assign(9, val_mgr->Count(c->Gid()));
-	info->Assign(10, val_mgr->Count(c->Stamp()));
-	info->Assign(11, make_intrusive<StringVal>(c->MachineName()));
+	info->AssignTime(2, c->StartTime());
+	info->AssignInterval(3, c->LastTime() - c->StartTime());
+	info->Assign(4, c->RPCLen());
+	info->AssignTime(5, rep_start_time);
+	info->AssignInterval(6, rep_last_time - rep_start_time);
+	info->Assign(7, reply_len);
+	info->Assign(8, c->Uid());
+	info->Assign(9, c->Gid());
+	info->Assign(10, c->Stamp());
+	info->Assign(11, c->MachineName());
 	info->Assign(12, std::move(auxgids));
 
 	vl.emplace_back(std::move(info));
@@ -259,7 +259,7 @@ RecordValPtr MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 			auth_flavors_count = max_auth_flavors;
 			}
 
-		auto enum_vector = make_intrusive<VectorType>(base_type(TYPE_ENUM));
+		auto enum_vector = make_intrusive<VectorType>(BifType::Enum::MOUNT3::auth_flavor_t);
 		auto auth_flavors = make_intrusive<VectorVal>(std::move(enum_vector));
 
 		for ( auto i = 0u; i < auth_flavors_count; ++i )

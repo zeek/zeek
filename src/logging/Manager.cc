@@ -1517,9 +1517,9 @@ std::string Manager::FormatRotationPath(EnumValPtr writer,
 	auto ri = make_intrusive<RecordVal>(BifType::Record::Log::RotationFmtInfo);
 	ri->Assign(0, std::move(writer));
 	ri->Assign<StringVal>(1, path.size(), path.data());
-	ri->Assign<TimeVal>(2, open);
-	ri->Assign<TimeVal>(3, close);
-	ri->Assign(4, val_mgr->Bool(terminating));
+	ri->AssignTime(2, open);
+	ri->AssignTime(3, close);
+	ri->Assign(4, terminating);
 	ri->Assign<FuncVal>(5, std::move(postprocessor));
 
 	std::string rval;
@@ -1608,11 +1608,11 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 
 	auto info = make_intrusive<RecordVal>(BifType::Record::Log::RotationInfo);
 	info->Assign(0, {NewRef{}, winfo->type});
-	info->Assign(1, make_intrusive<StringVal>(new_name));
-	info->Assign(2, make_intrusive<StringVal>(winfo->writer->Info().path));
-	info->Assign(3, make_intrusive<TimeVal>(open));
-	info->Assign(4, make_intrusive<TimeVal>(close));
-	info->Assign(5, val_mgr->Bool(terminating));
+	info->Assign(1, new_name);
+	info->Assign(2, winfo->writer->Info().path);
+	info->AssignTime(3, open);
+	info->AssignTime(4, close);
+	info->Assign(5, terminating);
 
 	static auto default_ppf = id::find_func("Log::__default_rotation_postprocessor");
 

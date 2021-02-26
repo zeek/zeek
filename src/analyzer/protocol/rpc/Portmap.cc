@@ -195,8 +195,8 @@ ValPtr PortmapperInterp::ExtractMapping(const u_char*& buf, int& len)
 	static auto pm_mapping = id::find_type<RecordType>("pm_mapping");
 	auto mapping = make_intrusive<RecordVal>(pm_mapping);
 
-	mapping->Assign(0, val_mgr->Count(extract_XDR_uint32(buf, len)));
-	mapping->Assign(1, val_mgr->Count(extract_XDR_uint32(buf, len)));
+	mapping->Assign(0, extract_XDR_uint32(buf, len));
+	mapping->Assign(1, extract_XDR_uint32(buf, len));
 
 	bool is_tcp = extract_XDR_uint32(buf, len) == IPPROTO_TCP;
 	uint32_t port = extract_XDR_uint32(buf, len);
@@ -213,11 +213,11 @@ ValPtr PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len)
 	static auto pm_port_request = id::find_type<RecordType>("pm_port_request");
 	auto pr = make_intrusive<RecordVal>(pm_port_request);
 
-	pr->Assign(0, val_mgr->Count(extract_XDR_uint32(buf, len)));
-	pr->Assign(1, val_mgr->Count(extract_XDR_uint32(buf, len)));
+	pr->Assign(0, extract_XDR_uint32(buf, len));
+	pr->Assign(1, extract_XDR_uint32(buf, len));
 
 	bool is_tcp = extract_XDR_uint32(buf, len) == IPPROTO_TCP;
-	pr->Assign(2, val_mgr->Bool(is_tcp));
+	pr->Assign(2, bool(is_tcp));
 	(void) extract_XDR_uint32(buf, len);	// consume the bogus port
 
 	if ( ! buf )
@@ -231,13 +231,13 @@ ValPtr PortmapperInterp::ExtractCallItRequest(const u_char*& buf, int& len)
 	static auto pm_callit_request = id::find_type<RecordType>("pm_callit_request");
 	auto c = make_intrusive<RecordVal>(pm_callit_request);
 
-	c->Assign(0, val_mgr->Count(extract_XDR_uint32(buf, len)));
-	c->Assign(1, val_mgr->Count(extract_XDR_uint32(buf, len)));
-	c->Assign(2, val_mgr->Count(extract_XDR_uint32(buf, len)));
+	c->Assign(0, extract_XDR_uint32(buf, len));
+	c->Assign(1, extract_XDR_uint32(buf, len));
+	c->Assign(2, extract_XDR_uint32(buf, len));
 
 	int arg_n;
 	(void) extract_XDR_opaque(buf, len, arg_n);
-	c->Assign(3, val_mgr->Count(arg_n));
+	c->Assign(3, arg_n);
 
 	if ( ! buf )
 		return nullptr;

@@ -73,11 +73,11 @@ protected:
 	//   * size is the amount of bytes read (or requested to be written),
 	StringValPtr nfs3_file_data(const u_char*& buf, int& n, uint64_t offset, int size);
 
-	ValPtr ExtractUint32(const u_char*& buf, int& n);
-	ValPtr ExtractUint64(const u_char*& buf, int& n);
-	ValPtr ExtractTime(const u_char*& buf, int& n);
-	ValPtr ExtractInterval(const u_char*& buf, int& n);
-	ValPtr ExtractBool(const u_char*& buf, int& n);
+	uint32_t ExtractUint32(const u_char*& buf, int& n);
+	uint64_t ExtractUint64(const u_char*& buf, int& n);
+	double ExtractTime(const u_char*& buf, int& n);
+	double ExtractInterval(const u_char*& buf, int& n);
+	bool ExtractBool(const u_char*& buf, int& n);
 };
 
 } // namespace detail

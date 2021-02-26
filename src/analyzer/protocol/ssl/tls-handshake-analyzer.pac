@@ -161,8 +161,8 @@ refine connection Handshake_Conn += {
 			for ( unsigned int i = 0; i < supported_signature_algorithms->size(); ++i )
 				{
 				auto el = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSL::SignatureAndHashAlgorithm);
-				el->Assign(0, zeek::val_mgr->Count((*supported_signature_algorithms)[i]->HashAlgorithm()));
-				el->Assign(1, zeek::val_mgr->Count((*supported_signature_algorithms)[i]->SignatureAlgorithm()));
+				el->Assign(0, (*supported_signature_algorithms)[i]->HashAlgorithm());
+				el->Assign(1, (*supported_signature_algorithms)[i]->SignatureAlgorithm());
 				slist->Assign(i, std::move(el));
 				}
 			}
@@ -345,14 +345,14 @@ refine connection Handshake_Conn += {
 
 			if ( ${kex.signed_params.uses_signature_and_hashalgorithm} )
 				{
-				ha->Assign(0, zeek::val_mgr->Count(${kex.signed_params.algorithm.HashAlgorithm}));
-				ha->Assign(1, zeek::val_mgr->Count(${kex.signed_params.algorithm.SignatureAlgorithm}));
+				ha->Assign(0, ${kex.signed_params.algorithm.HashAlgorithm});
+				ha->Assign(1, ${kex.signed_params.algorithm.SignatureAlgorithm});
 				}
 			else
 				{
 				// set to impossible value
-				ha->Assign(0, zeek::val_mgr->Count(256));
-				ha->Assign(1, zeek::val_mgr->Count(256));
+				ha->Assign(0, 256);
+				ha->Assign(1, 256);
 				}
 
 			zeek::BifEvent::enqueue_ssl_server_signature(zeek_analyzer(),
@@ -414,8 +414,8 @@ refine connection Handshake_Conn += {
 			return true;
 
 		auto ha = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSL::SignatureAndHashAlgorithm);
-		ha->Assign(0, zeek::val_mgr->Count(digitally_signed_algorithms->HashAlgorithm()));
-		ha->Assign(1, zeek::val_mgr->Count(digitally_signed_algorithms->SignatureAlgorithm()));
+		ha->Assign(0, digitally_signed_algorithms->HashAlgorithm());
+		ha->Assign(1, digitally_signed_algorithms->SignatureAlgorithm());
 
 		zeek::BifEvent::enqueue_ssl_extension_signed_certificate_timestamp(zeek_analyzer(),
 			zeek_analyzer()->Conn(), ${rec.is_orig},
@@ -445,14 +445,14 @@ refine connection Handshake_Conn += {
 
 			if ( ${signed_params.uses_signature_and_hashalgorithm} )
 				{
-				ha->Assign(0, zeek::val_mgr->Count(${signed_params.algorithm.HashAlgorithm}));
-				ha->Assign(1, zeek::val_mgr->Count(${signed_params.algorithm.SignatureAlgorithm}));
+				ha->Assign(0, ${signed_params.algorithm.HashAlgorithm});
+				ha->Assign(1, ${signed_params.algorithm.SignatureAlgorithm});
 				}
 				else
 				{
 				// set to impossible value
-				ha->Assign(0, zeek::val_mgr->Count(256));
-				ha->Assign(1, zeek::val_mgr->Count(256));
+				ha->Assign(0, 256);
+				ha->Assign(1, 256);
 				}
 
 			zeek::BifEvent::enqueue_ssl_server_signature(zeek_analyzer(),
@@ -499,7 +499,7 @@ refine connection Handshake_Conn += {
 				{
 				auto el = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSL::PSKIdentity);
 				el->Assign(0, zeek::make_intrusive<zeek::StringVal>(identity->identity().length(), (const char*) identity->identity().data()));
-				el->Assign(1, zeek::val_mgr->Count(identity->obfuscated_ticket_age()));
+				el->Assign(1, identity->obfuscated_ticket_age());
 				slist->Assign(slist->Size(), std::move(el));
 				}
 			}

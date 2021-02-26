@@ -224,11 +224,11 @@ RecordValPtr ICMP_Analyzer::BuildInfo(const struct icmp* icmpp, int len,
 	{
 	static auto icmp_info = id::find_type<RecordType>("icmp_info");
 	auto rval = make_intrusive<RecordVal>(icmp_info);
-	rval->Assign(0, val_mgr->Bool(icmpv6));
-	rval->Assign(1, val_mgr->Count(icmpp->icmp_type));
-	rval->Assign(2, val_mgr->Count(icmpp->icmp_code));
-	rval->Assign(3, val_mgr->Count(len));
-	rval->Assign(4, val_mgr->Count(ip_hdr->TTL()));
+	rval->Assign(0, bool(icmpv6));
+	rval->Assign(1, uint32_t(icmpp->icmp_type));
+	rval->Assign(2, uint32_t(icmpp->icmp_code));
+	rval->Assign(3, uint32_t(len));
+	rval->Assign(4, uint32_t(ip_hdr->TTL()));
 	return rval;
 	}
 
@@ -355,13 +355,13 @@ RecordValPtr ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	id_val->Assign(3, val_mgr->Port(dst_port, proto));
 
 	iprec->Assign(0, std::move(id_val));
-	iprec->Assign(1, val_mgr->Count(ip_len));
-	iprec->Assign(2, val_mgr->Count(proto));
-	iprec->Assign(3, val_mgr->Count(frag_offset));
-	iprec->Assign(4, val_mgr->Bool(bad_hdr_len));
-	iprec->Assign(5, val_mgr->Bool(bad_checksum));
-	iprec->Assign(6, val_mgr->Bool(MF));
-	iprec->Assign(7, val_mgr->Bool(DF));
+	iprec->Assign(1, uint32_t(ip_len));
+	iprec->Assign(2, uint32_t(proto));
+	iprec->Assign(3, uint32_t(frag_offset));
+	iprec->Assign(4, bool(bad_hdr_len));
+	iprec->Assign(5, bool(bad_checksum));
+	iprec->Assign(6, bool(MF));
+	iprec->Assign(7, bool(DF));
 
 	return iprec;
 	}
@@ -415,14 +415,14 @@ RecordValPtr ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	id_val->Assign(3, val_mgr->Port(dst_port, proto));
 
 	iprec->Assign(0, std::move(id_val));
-	iprec->Assign(1, val_mgr->Count(ip_len));
-	iprec->Assign(2, val_mgr->Count(proto));
-	iprec->Assign(3, val_mgr->Count(frag_offset));
-	iprec->Assign(4, val_mgr->Bool(bad_hdr_len));
+	iprec->Assign(1, uint32_t(ip_len));
+	iprec->Assign(2, uint32_t(proto));
+	iprec->Assign(3, uint32_t(frag_offset));
+	iprec->Assign(4, bool(bad_hdr_len));
 	// bad_checksum is always false since IPv6 layer doesn't have a checksum.
-	iprec->Assign(5, val_mgr->False());
-	iprec->Assign(6, val_mgr->Bool(MF));
-	iprec->Assign(7, val_mgr->Bool(DF));
+	iprec->Assign(5, false);
+	iprec->Assign(6, bool(MF));
+	iprec->Assign(7, bool(DF));
 
 	return iprec;
 	}
@@ -472,14 +472,14 @@ void ICMP_Analyzer::UpdateEndpointVal(const ValPtr& endp_arg, bool is_orig)
 
 	if ( size < 0 )
 		{
-		endp->Assign(0, val_mgr->Count(0));
-		endp->Assign(1, val_mgr->Count(int(ICMP_INACTIVE)));
+		endp->Assign(0, 0);
+		endp->Assign(1, int(ICMP_INACTIVE));
 		}
 
 	else
 		{
-		endp->Assign(0, val_mgr->Count(size));
-		endp->Assign(1, val_mgr->Count(int(ICMP_ACTIVE)));
+		endp->Assign(0, size);
+		endp->Assign(1, int(ICMP_ACTIVE));
 		}
 	}
 
@@ -743,8 +743,8 @@ VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			}
 
 		auto rv = make_intrusive<RecordVal>(icmp6_nd_option_type);
-		rv->Assign(0, val_mgr->Count(type));
-		rv->Assign(1, val_mgr->Count(length));
+		rv->Assign(0, type);
+		rv->Assign(1, length);
 
 		// Adjust length to be in units of bytes, exclude type/length fields.
 		length = length * 8 - 2;
@@ -763,7 +763,7 @@ VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			if ( caplen >= length )
 				{
 				String* link_addr = new String(data, length, false);
-				rv->Assign(2, make_intrusive<StringVal>(link_addr));
+				rv->Assign(2, link_addr);
 				}
 			else
 				set_payload_field = true;
@@ -783,11 +783,11 @@ VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 				uint32_t valid_life = *((const uint32_t*)(data + 2));
 				uint32_t prefer_life = *((const uint32_t*)(data + 6));
 				in6_addr prefix = *((const in6_addr*)(data + 14));
-				info->Assign(0, val_mgr->Count(prefix_len));
-				info->Assign(1, val_mgr->Bool(L_flag));
-				info->Assign(2, val_mgr->Bool(A_flag));
-				info->Assign(3, make_intrusive<IntervalVal>((double)ntohl(valid_life), Seconds));
-				info->Assign(4, make_intrusive<IntervalVal>((double)ntohl(prefer_life), Seconds));
+				info->Assign(0, prefix_len);
+				info->Assign(1, L_flag);
+				info->Assign(2, A_flag);
+				info->AssignInterval(3, double(ntohl(valid_life)));
+				info->AssignInterval(4, double(ntohl(prefer_life)));
 				info->Assign(5, make_intrusive<AddrVal>(IPAddr(prefix)));
 				rv->Assign(3, std::move(info));
 				}
@@ -816,7 +816,7 @@ VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			// MTU option
 			{
 			if ( caplen >= 6 )
-				rv->Assign(5, val_mgr->Count(ntohl(*((const uint32_t*)(data + 2)))));
+				rv->Assign(5, uint32_t(ntohl(*((const uint32_t*)(data + 2)))));
 			else
 				set_payload_field = true;
 
@@ -833,7 +833,7 @@ VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 		if ( set_payload_field )
 			{
 			String* payload = new String(data, std::min((int)length, caplen), false);
-			rv->Assign(6, make_intrusive<StringVal>(payload));
+			rv->Assign(6, payload);
 			}
 
 		data += length;

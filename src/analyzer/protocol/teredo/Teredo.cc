@@ -109,12 +109,10 @@ RecordValPtr TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 		uint8_t au_len = *((uint8_t*)(auth + 3));
 		uint64_t nonce = ntohll(*((uint64_t*)(auth + 4 + id_len + au_len)));
 		uint8_t conf = *((uint8_t*)(auth + 4 + id_len + au_len + 8));
-		teredo_auth->Assign(0, make_intrusive<StringVal>(
-		    new String(auth + 4, id_len, true)));
-		teredo_auth->Assign(1, make_intrusive<StringVal>(
-		    new String(auth + 4 + id_len, au_len, true)));
-		teredo_auth->Assign(2, val_mgr->Count(nonce));
-		teredo_auth->Assign(3, val_mgr->Count(conf));
+		teredo_auth->Assign(0, new String(auth + 4, id_len, true));
+		teredo_auth->Assign(1, new String(auth + 4 + id_len, au_len, true));
+		teredo_auth->Assign(2, nonce);
+		teredo_auth->Assign(3, conf);
 		teredo_hdr->Assign(0, std::move(teredo_auth));
 		}
 

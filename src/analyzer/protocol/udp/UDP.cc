@@ -235,14 +235,14 @@ void UDP_Analyzer::UpdateEndpointVal(RecordVal* endp, bool is_orig)
 	bro_int_t size = is_orig ? request_len : reply_len;
 	if ( size < 0 )
 		{
-		endp->Assign(0, val_mgr->Count(0));
-		endp->Assign(1, val_mgr->Count(int(UDP_INACTIVE)));
+		endp->Assign(0, 0);
+		endp->Assign(1, int(UDP_INACTIVE));
 		}
 
 	else
 		{
-		endp->Assign(0, val_mgr->Count(size));
-		endp->Assign(1, val_mgr->Count(int(UDP_ACTIVE)));
+		endp->Assign(0, uint64_t(size));
+		endp->Assign(1, int(UDP_ACTIVE));
 		}
 	}
 

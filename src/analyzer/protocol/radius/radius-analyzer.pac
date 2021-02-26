@@ -8,8 +8,8 @@ refine flow RADIUS_Flow += {
 			return false;
 
 		auto result = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::RADIUS::Message);
-		result->Assign(0, zeek::val_mgr->Count(${msg.code}));
-		result->Assign(1, zeek::val_mgr->Count(${msg.trans_id}));
+		result->Assign(0, ${msg.code});
+		result->Assign(1, ${msg.trans_id});
 		result->Assign(2, to_stringval(${msg.authenticator}));
 
 		if ( ${msg.attributes}->size() )

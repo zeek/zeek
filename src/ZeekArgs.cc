@@ -32,12 +32,12 @@ VectorValPtr MakeCallArgumentVector(const Args& vals,
 
 		static auto call_argument = id::find_type<RecordType>("call_argument");
 		auto rec = make_intrusive<RecordVal>(call_argument);
-		rec->Assign(0, make_intrusive<StringVal>(fname));
+		rec->Assign(0, fname);
 
 		ODesc d;
 		d.SetShort();
 		ftype->Describe(&d);
-		rec->Assign(1, make_intrusive<StringVal>(d.Description()));
+		rec->Assign(1, d.Description());
 
 		if ( fdefault )
 			rec->Assign(2, std::move(fdefault));

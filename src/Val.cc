@@ -2868,6 +2868,12 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 
 RecordVal::~RecordVal()
 	{
+	auto n = record_val->size();
+
+	for ( unsigned int i = 0; i < n; ++i )
+		if ( HasField(i) )
+			DeleteIfManaged((*record_val)[i], rt->GetFieldType(i));
+
 	delete record_val;
 	delete is_in_record;
 	}
@@ -3194,8 +3200,21 @@ VectorVal::VectorVal(VectorTypePtr t) : Val(t)
 
 VectorVal::~VectorVal()
 	{
+	if ( yield_types )
+		{
+		auto n = yield_types->size();
+		for ( auto i = 0; i < n; ++i )
+			DeleteIfManaged((*vector_val)[i], (*yield_types)[i]);
+		delete yield_types;
+		}
+
+	else if ( IsManagedType(yield_type) )
+		{
+		for ( auto& elem : *vector_val )
+			DeleteManagedType(elem);
+		}
+
 	delete vector_val;
-	delete yield_types;
 	}
 
 ValPtr VectorVal::SizeVal() const

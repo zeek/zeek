@@ -44,7 +44,7 @@ public:
     /**
      * @returns the names for all label dimensions.
      */
-	Span<const std::string> label_names() const noexcept;
+	Span<const std::string> labelNames() const noexcept;
 
     /**
      * @returns a short explanation of the metric.

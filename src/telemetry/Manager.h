@@ -9,6 +9,7 @@
 
 #include "zeek/Span.h"
 #include "zeek/telemetry/Counter.h"
+#include "zeek/telemetry/Gauge.h"
 
 namespace zeek::telemetry {
 
@@ -129,6 +130,107 @@ public:
 		return fam.getOrAdd({});
 	}
 
+	/**
+	 * @returns a gauge metric family. Creates the family lazily if necessary.
+	 * @param prefix The prefix (namespace) this family belongs to.
+	 * @param name The human-readable name of the metric, e.g., `requests`.
+	 * @param labels Names for all label dimensions of the metric.
+	 * @param helptext Short explanation of the metric.
+	 * @param unit Unit of measurement.
+	 * @param isSum Indicates whether this metric accumulates something, where
+	 *              only the total value is of interest.
+	 */
+	template <class ValueType = int64_t>
+	GaugeFamily<ValueType>
+	gaugeFamily(std::string_view prefix, std::string_view name,
+	              Span<const std::string_view> labels,
+	              std::string_view helptext,
+	              std::string_view unit = "1", bool isSum = false) {
+		if constexpr (std::is_same<ValueType, int64_t>::value)
+			{
+			return intGaugeFam(prefix, name, labels, helptext, unit, isSum);
+			}
+		else
+			{
+			static_assert(std::is_same<ValueType, double>::value,
+			              "metrics only support int64_t and double values");
+			return dblGaugeFam(prefix, name, labels, helptext, unit, isSum);
+			}
+	}
+
+	/// @copydoc gaugeFamily
+	template <class ValueType = int64_t>
+	GaugeFamily<ValueType>
+	gaugeFamily(std::string_view prefix, std::string_view name,
+	              std::initializer_list<std::string_view> labels,
+	              std::string_view helptext, std::string_view unit = "1",
+	              bool isSum = false)
+	{
+		auto lblSpan = Span{labels.begin(), labels.size()};
+		return gaugeFamily<ValueType>(prefix, name, lblSpan, helptext,
+		                              unit, isSum);
+	}
+
+	/**
+	 * Accesses a gauge instance. Creates the hosting metric family as well
+	 * as the gauge lazily if necessary.
+	 * @param prefix The prefix (namespace) this family belongs to.
+	 * @param name The human-readable name of the metric, e.g., `requests`.
+	 * @param labels Values for all label dimensions of the metric.
+	 * @param helptext Short explanation of the metric.
+	 * @param unit Unit of measurement.
+	 * @param isSum Indicates whether this metric accumulates something, where
+	 *              only the total value is of interest.
+	 */
+	template <class ValueType = int64_t>
+	Gauge<ValueType>
+	gaugeInstance(std::string_view prefix, std::string_view name,
+	                Span<const LabelView> labels, std::string_view helptext,
+	                std::string_view unit = "1", bool isSum = false)
+		{
+		return withLabelNames(labels, [&, this](auto labelNames)
+			{
+			auto family = gaugeFamily<ValueType>(prefix, name, labelNames,
+			                                     helptext, unit, isSum);
+			return family.getOrAdd(labels);
+			});
+		}
+
+	/// @copydoc gaugeInstance
+	template <class ValueType = int64_t>
+	Gauge<ValueType>
+	gaugeInstance(std::string_view prefix, std::string_view name,
+	                std::initializer_list<LabelView> labels,
+	                std::string_view helptext, std::string_view unit = "1",
+	                bool isSum = false)
+		{
+		auto lblSpan = Span{labels.begin(), labels.size()};
+		return gaugeInstance(prefix, name, lblSpan, helptext, unit, isSum);
+		}
+
+	/**
+	 * Accesses a gauge singleton, i.e., a gauge that belongs to a family
+	 * without label dimensions (which thus only has a single member). Creates
+	 * the hosting metric family as well as the gauge lazily if necessary.
+	 * @param prefix The prefix (namespace) this family belongs to.
+	 * @param name The human-readable name of the metric, e.g., `requests`.
+	 * @param helptext Short explanation of the metric.
+	 * @param unit Unit of measurement.
+	 * @param isSum Indicates whether this metric accumulates something, where
+	 *              only the total value is of interest.
+	 */
+	template <class ValueType = int64_t>
+	Gauge<ValueType>
+	gaugeSingleton(std::string_view prefix, std::string_view name,
+	                 std::string_view helptext, std::string_view unit = "1",
+	                 bool isSum = false)
+		{
+		auto labels = Span<const std::string_view>{};
+		auto fam = gaugeFamily<ValueType>(prefix, name, labels, helptext,
+		                                  unit, isSum);
+		return fam.getOrAdd({});
+	}
+
 private:
 	IntCounterFamily
 	intCounterFam(std::string_view prefix, std::string_view name,
@@ -137,6 +239,16 @@ private:
 
 	DblCounterFamily
 	dblCounterFam(std::string_view prefix, std::string_view name,
+	              Span<const std::string_view> labels,
+	              std::string_view helptext, std::string_view unit, bool isSum);
+
+	IntGaugeFamily
+	intGaugeFam(std::string_view prefix, std::string_view name,
+	              Span<const std::string_view> labels,
+	              std::string_view helptext, std::string_view unit, bool isSum);
+
+	DblGaugeFamily
+	dblGaugeFam(std::string_view prefix, std::string_view name,
 	              Span<const std::string_view> labels,
 	              std::string_view helptext, std::string_view unit, bool isSum);
 

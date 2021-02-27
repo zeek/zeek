@@ -128,12 +128,12 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 	if ( ! conn )
 		return false;
 
-	Val* conns = val->GetField(conns_idx).get();
+	auto conns = val->GetField(conns_idx);
 
 	if ( ! conns )
 		{
 		auto ect = empty_connection_table();
-		conns = ect.get();
+		conns = ect;
 		val->Assign(conns_idx, std::move(ect));
 		}
 
@@ -309,7 +309,7 @@ void File::InferMetadata()
 	{
 	did_metadata_inference = true;
 
-	Val* bof_buffer_val = val->GetField(bof_buffer_idx).get();
+	auto bof_buffer_val = val->GetField(bof_buffer_idx);
 
 	if ( ! bof_buffer_val )
 		{
@@ -318,7 +318,7 @@ void File::InferMetadata()
 
 		String* bs = concatenate(bof_buffer.chunks);
 		val->Assign(bof_buffer_idx, bs);
-		bof_buffer_val = val->GetField(bof_buffer_idx).get();
+		bof_buffer_val = val->GetField(bof_buffer_idx);
 		}
 
 	if ( ! FileEventAvailable(file_sniff) )

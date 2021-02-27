@@ -599,6 +599,11 @@ public:
 	const TypeDecl* FieldDecl(int field) const;
 	TypeDecl* FieldDecl(int field);
 
+	// Returns flags corresponding to which fields in the record
+	// have types requiring memory management (reference counting).
+	const std::vector<bool>& ManagedFields() const
+		{ return managed_fields; }
+
 	int NumFields() const			{ return num_fields; }
 
 	/**
@@ -633,6 +638,12 @@ public:
 
 protected:
 	RecordType() { types = nullptr; }
+
+	void AddField(unsigned int field, const TypeDecl* td);
+
+	// If we were willing to bound the size of records, then we could
+	// use std::bitset here instead.
+	std::vector<bool> managed_fields;
 
 	int num_fields;
 	type_decl_list* types;

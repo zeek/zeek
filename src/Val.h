@@ -1110,21 +1110,18 @@ public:
 	void AssignInterval(int field, double new_val)
 		{ Assign(field, new_val); }
 
+	void Assign(int field, StringVal* new_val)
+		{
+		DeleteManagedType((*record_val)[field]);
+		(*record_val)[field].string_val = new_val;
+		AddedField(field);
+		}
 	void Assign(int field, const char* new_val)
-		{
-		(*record_val)[field].string_val = new StringVal(new_val);
-		AddedField(field);
-		}
+		{ Assign(field, new StringVal(new_val)); }
 	void Assign(int field, const std::string& new_val)
-		{
-		(*record_val)[field].string_val = new StringVal(new_val);
-		AddedField(field);
-		}
+		{ Assign(field, new StringVal(new_val)); }
 	void Assign(int field, String* new_val)
-		{
-		(*record_val)[field].string_val = new StringVal(new_val);
-		AddedField(field);
-		}
+		{ Assign(field, new StringVal(new_val)); }
 
 	/**
 	 * Appends a value to the record's fields.  The caller is responsible
@@ -1381,6 +1378,15 @@ protected:
 	static RecordTypeValMap parse_time_records;
 
 private:
+	void DeleteFieldIfManaged(unsigned int field)
+		{
+		if ( HasField(field) && IsManaged(field) )
+			DeleteManagedType((*record_val)[field]);
+		}
+
+	bool IsManaged(unsigned int offset) const
+		{ return is_managed[offset]; }
+
 	// Just for template inferencing.
 	RecordVal* Get()	{ return this; }
 
@@ -1394,6 +1400,9 @@ private:
 	// Zeek does not enforce that non-optional fields are actually
 	// present.
 	std::vector<bool>* is_in_record;
+
+	// Whether a given field requires explicit memory management.
+	const std::vector<bool>& is_managed;
 };
 
 class EnumVal final : public detail::IntValImplementation {

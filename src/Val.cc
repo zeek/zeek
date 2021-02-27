@@ -2785,10 +2785,11 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
+RecordVal::RecordVal(RecordTypePtr t, bool init_fields)
+: Val(t), is_managed(t->ManagedFields())
 	{
 	origin = nullptr;
-	rt = {NewRef{}, GetType()->AsRecordType()};
+	rt = std::move(t);
 
 	int n = rt->NumFields();
 
@@ -2871,8 +2872,8 @@ RecordVal::~RecordVal()
 	auto n = record_val->size();
 
 	for ( unsigned int i = 0; i < n; ++i )
-		if ( HasField(i) )
-			DeleteIfManaged((*record_val)[i], rt->GetFieldType(i));
+		if ( HasField(i) && IsManaged(i) )
+			DeleteManagedType((*record_val)[i]);
 
 	delete record_val;
 	delete is_in_record;
@@ -2887,6 +2888,8 @@ void RecordVal::Assign(int field, ValPtr new_val)
 	{
 	if ( new_val )
 		{
+		DeleteFieldIfManaged(field);
+
 		auto t = rt->GetFieldType(field);
 		(*record_val)[field] = ZVal(new_val, t);
 		(*is_in_record)[field] = true;
@@ -2900,8 +2903,8 @@ void RecordVal::Remove(int field)
 	{
 	if ( HasField(field) )
 		{
-		auto t = rt->GetFieldType(field);
-		DeleteIfManaged((*record_val)[field], t);
+		if ( IsManaged(field) )
+			DeleteManagedType((*record_val)[field]);
 
 		(*record_val)[field] = ZVal();
 		(*is_in_record)[field] = false;

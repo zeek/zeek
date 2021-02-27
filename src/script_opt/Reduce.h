@@ -15,8 +15,7 @@ class ProfileFunc;
 
 class Reducer {
 public:
-	Reducer(Scope* s);
-	~Reducer();
+	Reducer()	{ }
 
 	StmtPtr Reduce(StmtPtr s)
 		{
@@ -160,15 +159,15 @@ protected:
 
 	// Retrieve the identifier corresponding to the new local for
 	// the given expression.  Creates the local if necessary.
-	IDPtr FindNewLocal(ID* id);
-	IDPtr FindNewLocal(const NameExpr* n)
-		{ return FindNewLocal(n->Id()); }
+	IDPtr FindNewLocal(const IDPtr& id);
+	IDPtr FindNewLocal(const NameExprPtr& n)
+		{ return FindNewLocal(n->IdPtr()); }
 
 	// Generate a new local to use in lieu of the original (seen
 	// in an inlined block).  The difference is that the new
 	// version has a distinct name and has a correct frame offset
 	// for the current function.
-	IDPtr GenLocal(ID* orig);
+	IDPtr GenLocal(const IDPtr& orig);
 
 	// Track that we're replacing instances of "orig" with a new
 	// expression.  This allows us to locate the RDs associated

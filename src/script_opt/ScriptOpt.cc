@@ -49,7 +49,7 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 	auto scope = scope_ptr.release();
 	push_existing_scope(scope);
 
-	auto rc = std::make_shared<Reducer>(scope);
+	auto rc = std::make_shared<Reducer>();
 	auto new_body = rc->Reduce(body);
 
 	if ( reporter->Errors() > 0 )

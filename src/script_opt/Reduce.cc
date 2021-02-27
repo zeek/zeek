@@ -15,17 +15,6 @@
 namespace zeek::detail {
 
 
-Reducer::Reducer(Scope* s)
-	{
-	scope = s;
-	}
-
-Reducer::~Reducer()
-	{
-	for ( int i = 0; i < temps.length(); ++i )
-		delete temps[i];
-	}
-
 ExprPtr Reducer::GenTemporaryExpr(const TypePtr& t, ExprPtr rhs)
 	{
 	auto e = make_intrusive<NameExpr>(GenTemporary(t, rhs));
@@ -38,7 +27,7 @@ NameExprPtr Reducer::UpdateName(NameExprPtr n)
 	if ( NameIsReduced(n.get()) )
 		return n;
 
-	return make_intrusive<NameExpr>(FindNewLocal(n.get()));
+	return make_intrusive<NameExpr>(FindNewLocal(n));
 	}
 
 bool Reducer::NameIsReduced(const NameExpr* n) const
@@ -80,7 +69,7 @@ bool Reducer::IDsAreReduced(const IDPList* ids) const
 
 bool Reducer::IDsAreReduced(const std::vector<IDPtr>& ids) const
 	{
-	for ( auto& id : ids )
+	for ( const auto& id : ids )
 		if ( ! ID_IsReduced(id) )
 			return false;
 
@@ -92,7 +81,7 @@ IDPtr Reducer::UpdateID(IDPtr id)
 	if ( ID_IsReduced(id) )
 		return id;
 
-	return FindNewLocal(id.get());
+	return FindNewLocal(id);
 	}
 
 bool Reducer::ID_IsReduced(const ID* id) const
@@ -103,7 +92,7 @@ bool Reducer::ID_IsReduced(const ID* id) const
 
 NameExprPtr Reducer::GenInlineBlockName(IDPtr id)
 	{
-	return make_intrusive<NameExpr>(GenLocal(id.get()));
+	return make_intrusive<NameExpr>(GenLocal(id));
 	}
 
 NameExprPtr Reducer::PushInlineBlock(TypePtr type)
@@ -155,9 +144,9 @@ IDPtr Reducer::GenTemporary(const TypePtr& t, ExprPtr rhs)
 	return temp_id;
 	}
 
-IDPtr Reducer::FindNewLocal(ID* id)
+IDPtr Reducer::FindNewLocal(const IDPtr& id)
 	{
-	auto mapping = orig_to_new_locals.find(id);
+	auto mapping = orig_to_new_locals.find(id.get());
 
 	if ( mapping != orig_to_new_locals.end() )
 		return mapping->second;
@@ -165,7 +154,7 @@ IDPtr Reducer::FindNewLocal(ID* id)
 	return GenLocal(id);
 	}
 
-IDPtr Reducer::GenLocal(ID* orig)
+IDPtr Reducer::GenLocal(const IDPtr& orig)
 	{
 	if ( Optimizing() )
 		reporter->InternalError("Generating a new local while optimizing");
@@ -179,7 +168,7 @@ IDPtr Reducer::GenLocal(ID* orig)
 	local_id->SetAttrs(orig->GetAttrs());
 
 	new_locals.insert(local_id.get());
-	orig_to_new_locals[orig] = local_id;
+	orig_to_new_locals[orig.get()] = local_id;
 
 	return local_id;
 	}

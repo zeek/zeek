@@ -752,7 +752,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
-	bool WillTransform(Reducer* c) const override	{ return true; }
+	bool WillTransform(Reducer* c) const override;
 	bool WillTransformInConditional(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 

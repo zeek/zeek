@@ -1582,6 +1582,10 @@ private:
 	// the case for empty vectors created using "vector()").
 	bool any_yield;
 
+	// True if this is a vector-of-managed-types, requiring explicit
+	// memory management.
+	bool managed_yield;
+
 	// For heterogeneous vectors, the individual type of each element,
 	// parallel to vector_val.  Heterogeneous vectors can arise for
 	// "vector of any" when disparate elements are stored in the vector.

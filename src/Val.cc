@@ -3199,6 +3199,7 @@ VectorVal::VectorVal(VectorTypePtr t) : Val(t)
 
 	auto y_tag = yield_type->Tag();
 	any_yield = (y_tag == TYPE_VOID || y_tag == TYPE_ANY);
+	managed_yield = IsManagedType(yield_type);
 	}
 
 VectorVal::~VectorVal()
@@ -3211,7 +3212,7 @@ VectorVal::~VectorVal()
 		delete yield_types;
 		}
 
-	else if ( IsManagedType(yield_type) )
+	else if ( managed_yield )
 		{
 		for ( auto& elem : *vector_val )
 			DeleteManagedType(elem);
@@ -3279,10 +3280,15 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 		{
 		const auto& t = element->GetType();
 		(*yield_types)[index] = t;
+		DeleteIfManaged((*vector_val)[index], t);
 		(*vector_val)[index] = ZVal(std::move(element), t);
 		}
 	else
+		{
+		if ( managed_yield )
+			DeleteManagedType((*vector_val)[index]);
 		(*vector_val)[index] = ZVal(std::move(element), yield_type);
+		}
 
 	Modified();
 	return true;
@@ -3308,11 +3314,18 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 	vector<ZVal>::iterator it;
 	vector<TypePtr>::iterator types_it;
 
+	const auto& t = element->GetType();
+
 	if ( index < vector_val->size() )
 		{
 		it = std::next(vector_val->begin(), index);
 		if ( yield_types )
+			{
+			DeleteIfManaged(*it, t);
 			types_it = std::next(yield_types->begin(), index);
+			}
+		else if ( managed_yield )
+			DeleteManagedType(*it);
 		}
 	else
 		{
@@ -3323,8 +3336,7 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 
 	if ( yield_types )
 		{
-		const auto& t = element->GetType();
-		yield_types->insert(types_it, element->GetType());
+		yield_types->insert(types_it, t);
 		vector_val->insert(it, ZVal(std::move(element), t));
 		}
 	else
@@ -3340,13 +3352,18 @@ bool VectorVal::Remove(unsigned int index)
 		return false;
 
 	auto it = std::next(vector_val->begin(), index);
-	vector_val->erase(it);
 
 	if ( yield_types )
 		{
 		auto types_it = std::next(yield_types->begin(), index);
+		DeleteIfManaged(*it, *types_it);
 		yield_types->erase(types_it);
 		}
+
+	else if ( managed_yield )
+		DeleteManagedType(*it);
+
+	vector_val->erase(it);
 
 	Modified();
 	return true;

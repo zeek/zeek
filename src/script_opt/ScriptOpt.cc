@@ -78,8 +78,39 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 	f->ReplaceBody(body, new_body);
 	body = new_body;
 
+	if ( analysis_options.optimize_AST )
+		{
+		pf = std::make_shared<ProfileFunc>(false);
+		body->Traverse(pf.get());
+
+		RD_Decorate reduced_rds(pf);
+		reduced_rds.TraverseFunction(f, scope, body);
+
+		if ( reporter->Errors() > 0 )
+			{
+			pop_scope();
+			return;
+			}
+
+		rc->SetDefSetsMgr(reduced_rds.GetDefSetsMgr());
+
+		new_body = rc->Reduce(body);
+
+		if ( reporter->Errors() > 0 )
+			{
+			pop_scope();
+			return;
+			}
+
+		if ( analysis_options.only_func || analysis_options.dump_xform )
+			printf("Optimized: %s\n", obj_desc(new_body.get()).c_str());
+
+		f->ReplaceBody(body, new_body);
+		body = new_body;
+		}
+
 	// Profile the new body.
-	pf = std::make_shared<ProfileFunc>(false);
+	pf = std::make_shared<ProfileFunc>();
 	body->Traverse(pf.get());
 
 	// Compute its reaching definitions.

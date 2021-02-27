@@ -447,9 +447,10 @@ public:
 		{ yield = nullptr; flavor = arg_flav; }
 
 	int MatchesIndex(detail::ListExpr* index) const override;
-	bool CheckArgs(const TypePList* args, bool is_init = false) const;
+	bool CheckArgs(const TypePList* args, bool is_init = false,
+			bool do_warn = true) const;
 	bool CheckArgs(const std::vector<TypePtr>& args,
-	               bool is_init = false) const;
+	               bool is_init = false, bool do_warn = true) const;
 
 	const TypeListPtr& ParamList() const
 		{ return arg_types; }

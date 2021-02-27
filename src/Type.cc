@@ -826,7 +826,16 @@ void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const
 RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 	{
 	types = arg_types;
-	num_fields = types ? types->length() : 0;
+
+	if ( types )
+		{
+		num_fields = types->length();
+
+		loop_over_list(*types, i)
+			AddField(i, (*types)[i]);
+		}
+	else
+		num_fields = 0;
 	}
 
 // in this case the clone is actually not so shallow, since
@@ -848,6 +857,13 @@ RecordType::~RecordType()
 
 		delete types;
 		}
+	}
+
+void RecordType::AddField(unsigned int field, const TypeDecl* td)
+	{
+	ASSERT(field == managed_fields.size());
+
+	managed_fields.push_back(IsManagedType(td->type));
 	}
 
 bool RecordType::HasField(const char* field) const
@@ -1023,7 +1039,9 @@ const char* RecordType::AddFields(const type_decl_list& others,
 			td->attrs->AddAttr(make_intrusive<detail::Attr>(detail::ATTR_LOG));
 			}
 
+		int field = types->size();
 		types->push_back(td);
+		AddField(field, td);
 		}
 
 	num_fields = types->length();

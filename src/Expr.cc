@@ -3039,21 +3039,6 @@ void IndexExpr::ExprDescribe(ODesc* d) const
 		d->Add("]");
 	}
 
-TraversalCode IndexExpr::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreExpr(this);
-	HANDLE_TC_EXPR_PRE(tc);
-
-	tc = op1->Traverse(cb);
-	HANDLE_TC_EXPR_PRE(tc);
-
-	tc = op2->Traverse(cb);
-	HANDLE_TC_EXPR_PRE(tc);
-
-	tc = cb->PostExpr(this);
-	HANDLE_TC_EXPR_POST(tc);
-	}
-
 FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
 	: UnaryExpr(EXPR_FIELD, std::move(arg_op)),
 	  field_name(util::copy_string(arg_field_name)), td(nullptr), field(0)

@@ -840,6 +840,14 @@ inline bool IsAggr(TypeTag tag)
 	{
 	return tag == TYPE_VECTOR || tag == TYPE_TABLE || tag == TYPE_RECORD;
 	}
+inline bool IsAggr(const Type* t)
+	{
+	return IsAggr(t->Tag());
+	}
+inline bool IsAggr(const TypePtr& t)
+	{
+	return IsAggr(t->Tag());
+	}
 
 // True if the given type tag corresponds to the error type.
 inline bool IsErrorType(TypeTag t)	{ return (t == TYPE_ERROR); }

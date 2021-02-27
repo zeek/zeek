@@ -82,6 +82,7 @@ enum BroExprTag : int {
 extern const char* expr_name(BroExprTag t);
 
 class AddToExpr;
+class AnyIndexExpr;
 class AssignExpr;
 class CallExpr;
 class ConstExpr;
@@ -93,6 +94,7 @@ class ForExpr;
 class HasFieldExpr;
 class IndexAssignExpr;
 class IndexExpr;
+class IsExpr;
 class InlineExpr;
 class ListExpr;
 class NameExpr;
@@ -200,6 +202,7 @@ public:
 	IntrusivePtr<ctype> As ## ctype ## Ptr ();
 
 	ZEEK_EXPR_ACCESSOR_DECLS(AddToExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(AnyIndexExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(AssignExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(CallExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(ConstExpr)
@@ -211,6 +214,7 @@ public:
 	ZEEK_EXPR_ACCESSOR_DECLS(HasFieldExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(IndexAssignExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(IndexExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(IsExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(InlineExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(ListExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(NameExpr)
@@ -1009,6 +1013,7 @@ public:
 	~HasFieldExpr() override;
 
 	const char* FieldName() const	{ return field_name; }
+	int Field() const		{ return field; }
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -1423,6 +1428,8 @@ protected:
 class IsExpr final : public UnaryExpr {
 public:
 	IsExpr(ExprPtr op, TypePtr t);
+
+	TypePtr TestType() const	{ return t; }
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;

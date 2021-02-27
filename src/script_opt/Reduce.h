@@ -5,6 +5,7 @@
 #include "zeek/Scope.h"
 #include "zeek/Expr.h"
 #include "zeek/Stmt.h"
+#include "zeek/Traverse.h"
 #include "zeek/script_opt/DefSetsMgr.h"
 
 namespace zeek::detail {
@@ -213,6 +214,79 @@ protected:
 
 	const DefSetsMgr* mgr = nullptr;
 };
+
+
+// Helper class that walks an AST to determine whether it's safe
+// to substitute a common subexpression (which at this point is
+// an assignment to a variable) created using the assignment
+// expression at position "start_e", at the location specified by
+// the expression at position "end_e".
+//
+// See Reducer::ExprValid for a discussion of what's required
+// for safety.
+
+class CSE_ValidityChecker : public TraversalCallback {
+public:
+	CSE_ValidityChecker(const std::vector<const ID*>& ids,
+			const Expr* start_e, const Expr* end_e);
+
+	TraversalCode PreStmt(const Stmt*) override;
+	TraversalCode PostStmt(const Stmt*) override;
+	TraversalCode PreExpr(const Expr*) override;
+
+	// Returns the ultimate verdict re safety.
+	bool IsValid() const
+		{
+		if ( ! is_valid )
+			return false;
+
+		if ( ! have_end_e )
+			reporter->InternalError("CSE_ValidityChecker: saw start but not end");
+		return true;
+		}
+
+protected:
+	// Returns true if an assigment involving the given identifier on
+	// the LHS is in conflict with the given list of identifiers.
+	bool CheckID(const std::vector<const ID*>& ids, const ID* id,
+			bool ignore_orig) const;
+
+	// Returns true if the assignment given by 'e' modifies an aggregate
+	// with the same type as that of one of the identifiers.
+	bool CheckAggrMod(const std::vector<const ID*>& ids,
+				const Expr* e) const;
+
+	// The list of identifiers for which an assignment to one of them
+	// renders the CSE unsafe.
+	const std::vector<const ID*>& ids;
+
+	// Where in the AST to start our analysis.  This is the initial
+	// assignment expression.
+	const Expr* start_e;
+
+	// Where in the AST to end our analysis.
+	const Expr* end_e;
+
+	// If what we're analyzing is a record element, then its offset.
+	// -1 if not.
+	int field;
+
+	// The type of that record element, if any.
+	TypePtr field_type;
+
+	// The verdict so far.
+	bool is_valid = true;
+
+	// Whether we've encountered the start/end expression in
+	// the AST traversal.
+	bool have_start_e = false;
+	bool have_end_e = false;
+
+	// Whether analyzed expressions occur in the context of
+	// a statement that modifies an aggregate ("add" or "delete").
+	bool in_aggr_mod_stmt = false;
+};
+
 
 extern bool same_DPs(const DefPoints* dp1, const DefPoints* dp2);
 

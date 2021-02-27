@@ -3269,8 +3269,11 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 	if ( ! CheckElementType(element) )
 		return false;
 
-	if ( index >= vector_val->size() )
+	auto n = vector_val->size();
+
+	if ( index >= n )
 		{
+		AddHoles(index - n);
 		vector_val->resize(index + 1);
 		if ( yield_types )
 			yield_types->resize(index + 1);
@@ -3332,14 +3335,7 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 		it = vector_val->end();
 		if ( yield_types )
 			types_it = yield_types->end();
-
-		// Initialize any holes the assignment induces in the vector.
-		TypePtr fill_t = yield_type;
-		if ( yield_type->Tag() == TYPE_VOID )
-			fill_t = base_type(TYPE_ANY);
-
-		for ( auto i = n; i < index; ++i )
-			vector_val->emplace_back(ZVal(fill_t));
+		AddHoles(index - n);
 		}
 
 	if ( yield_types )
@@ -3353,6 +3349,16 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 
 	Modified();
 	return true;
+	}
+
+void VectorVal::AddHoles(int nholes)
+	{
+	TypePtr fill_t = yield_type;
+	if ( yield_type->Tag() == TYPE_VOID )
+		fill_t = base_type(TYPE_ANY);
+
+	for ( auto i = 0; i < nholes; ++i )
+		vector_val->emplace_back(ZVal(fill_t));
 	}
 
 bool VectorVal::Remove(unsigned int index)

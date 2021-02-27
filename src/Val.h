@@ -1571,6 +1571,9 @@ private:
 	// element type-checked.
 	bool CheckElementType(const ValPtr& element);
 
+	// Add the given number of "holes" to the end of a vector.
+	void AddHoles(int nholes);
+
 	std::vector<ZVal>* vector_val;
 
 	// For homogeneous vectors (the usual case), the type of the

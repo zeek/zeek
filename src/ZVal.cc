@@ -139,6 +139,86 @@ ZVal::ZVal(ValPtr v, const TypePtr& t)
 	}
 	}
 
+ZVal::ZVal(const TypePtr& t)
+	{
+	switch ( t->Tag() ) {
+	case TYPE_BOOL:
+	case TYPE_INT:
+	case TYPE_ENUM:
+		int_val = 0;
+		break;
+
+	case TYPE_COUNT:
+	case TYPE_PORT:
+		uint_val = 0;
+		break;
+
+	case TYPE_DOUBLE:
+	case TYPE_INTERVAL:
+	case TYPE_TIME:
+		double_val = 0.0;
+		break;
+
+	case TYPE_FUNC:
+		func_val = nullptr;
+		break;
+
+	case TYPE_FILE:
+		file_val = nullptr;
+		break;
+
+	case TYPE_LIST:
+		list_val = nullptr;
+		break;
+
+	case TYPE_OPAQUE:
+		opaque_val = nullptr;
+		break;
+
+	case TYPE_PATTERN:
+		re_val = nullptr;
+		break;
+
+	case TYPE_TABLE:
+		table_val = nullptr;
+		break;
+
+	case TYPE_VECTOR:
+		vector_val = nullptr;
+		break;
+
+	case TYPE_RECORD:
+		record_val = nullptr;
+		break;
+
+	case TYPE_STRING:
+		string_val = nullptr;
+		break;
+
+	case TYPE_ADDR:
+		addr_val = nullptr;
+		break;
+
+	case TYPE_SUBNET:
+		subnet_val = nullptr;
+		break;
+
+	case TYPE_ANY:
+		any_val = nullptr;
+		break;
+
+	case TYPE_TYPE:
+		type_val = nullptr;
+		break;
+
+	case TYPE_ERROR:
+	case TYPE_TIMER:
+	case TYPE_UNION:
+	case TYPE_VOID:
+		reporter->InternalError("bad type in ZVal constructor");
+	}
+	}
+
 ValPtr ZVal::ToVal(const TypePtr& t) const
 	{
 	Val* v;

@@ -3334,8 +3334,12 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 			types_it = yield_types->end();
 
 		// Initialize any holes the assignment induces in the vector.
+		TypePtr fill_t = yield_type;
+		if ( yield_type->Tag() == TYPE_VOID )
+			fill_t = base_type(TYPE_ANY);
+
 		for ( auto i = n; i < index; ++i )
-			vector_val->emplace_back(ZVal());
+			vector_val->emplace_back(ZVal(fill_t));
 		}
 
 	if ( yield_types )

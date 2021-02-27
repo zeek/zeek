@@ -253,6 +253,27 @@ void Reducer::TrackExprReplacement(const Expr* orig, const Expr* e)
 	}
 
 
+bool same_DPs(const DefPoints* dp1, const DefPoints* dp2)
+	{
+	if ( dp1 == dp2 )
+		return true;
+
+	if ( ! dp1 || ! dp2 )
+		return false;
+
+	// Given how we construct DPs, they should be element-by-element
+	// equivalent; we don't have to worry about reordering.
+	if ( dp1->length() != dp2->length() )
+		return false;
+
+	for ( auto i = 0; i < dp1->length(); ++i )
+		if ( ! (*dp1)[i].SameAs((*dp2)[i]) )
+			return false;
+
+	return true;
+	}
+
+
 const Expr* non_reduced_perp;
 bool checking_reduction;
 

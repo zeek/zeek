@@ -214,6 +214,8 @@ protected:
 	const DefSetsMgr* mgr = nullptr;
 };
 
+extern bool same_DPs(const DefPoints* dp1, const DefPoints* dp2);
+
 // Used for debugging, to communicate which expression wasn't
 // reduced when we expected them all to be.
 extern const Expr* non_reduced_perp;

@@ -20,6 +20,7 @@ public:
 
 	StmtPtr Reduce(StmtPtr s)
 		{
+		reduction_root = s;
 		return s->Reduce(this);
 		}
 
@@ -63,7 +64,7 @@ public:
 	void PushBifurcation()		{ ++bifurcation_level; }
 	void PopBifurcation()		{ --bifurcation_level; }
 
-	int NumTemps() const		{ return temps.length(); }
+	int NumTemps() const		{ return temps.size(); }
 
 	// True if this name already reflects the replacement.
 	bool IsNewLocal(const NameExpr* n) const
@@ -118,45 +119,94 @@ public:
 		replaced_stmts.clear();
 		}
 
-	// NOT YET IMPLEMENTED, SO CURRENTLY A STUB:
 	// Given the LHS and RHS of an assignment, returns true
 	// if the RHS is a common subexpression (meaning that the
 	// current assignment statement should be deleted).  In
 	// that case, has the side effect of associating an alias
-	// for the LHS with the temporary holding the equivalent RHS.
+	// for the LHS with the temporary variable that holds the
+	// equivalent RHS.
 	//
 	// Assumes reduction (including alias propagation) has
 	// already been applied.
-	bool IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
-		{ return false; }
+	bool IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs);
 
 	// Given an lhs=rhs statement followed by succ_stmt, returns
 	// a (new) merge of the two if they're of the form tmp=rhs, var=tmp;
 	// otherwise, nil.
 	StmtPtr MergeStmts(const NameExpr* lhs, ExprPtr rhs, Stmt* succ_stmt);
 
-	// The following two methods will, in the future, update expressions
-	// with optimized versions.  They are distinct because the first
-	// one (meant for calls in a Stmt reduction context) will also Reduce
-	// the expression, whereas the second one (meant for calls in an Expr
-	// context) does not, to avoid circularity.
-	//
-	// For now, they are stubs.
-	//
-	// These two are used for use in optimizing expressions that appear in
-	// a Stmt context.
-	ExprPtr OptExpr(Expr* e)	{ return {NewRef{}, e}; }
-	ExprPtr OptExpr(ExprPtr e)	{ return e; }
-	// This one for expressions appearing in an Expr context.
-	ExprPtr UpdateExpr(ExprPtr e)	{ return e; }
+	// Update expressions with optimized versions.  They are distinct
+	// because the first two (meant for calls in a Stmt reduction
+	// context) will also Reduce the expression, whereas the last
+	// one (meant for calls in an Expr context) does not, to avoid
+	// circularity.
+	ExprPtr OptExpr(Expr* e);
+	ExprPtr OptExpr(ExprPtr e)
+		{ return OptExpr(e.get()); }
 
-	const Scope* FuncScope() const	{ return scope; }
+	// This one for expressions appearing in an Expr context.
+	ExprPtr UpdateExpr(ExprPtr e);
 
 protected:
+	// True if two Val's refer to the same underlying value.  We gauge
+	// this conservatively (i.e., for complicated values we just return
+	// false, even if with a lot of work we could establish that they
+	// are in fact equivalent.)
 	bool SameVal(const Val* v1, const Val* v2) const;
 
+	// Track that the variable "var", which has the given set of
+	// definition points, will be a replacement for the "orig"
+	// expression.  Returns the replacement expression (which is
+	// is just a NameExpr referring to "var").
+	ExprPtr NewVarUsage(IDPtr var, const DefPoints* dps, const Expr* orig);
+
+	// Returns the definition points associated with "var".  If none
+	// exist in our cache, then populates the cache.
+	const DefPoints* GetDefPoints(const NameExpr* var);
+
+	// Retrieve the definition points associated in our cache with the
+	// given variable, if any.
+	const DefPoints* FindDefPoints(const NameExpr* var) const;
+
+	// Adds a mapping in our cache of the given variable to the given
+	// set of definition points.
+	void SetDefPoints(const NameExpr* var, const DefPoints* dps);
+
+	// Returns true if op1 and op2 represent the same operand, given
+	// the reaching definitions available at their usages (e1 and e2).
+	bool SameOp(const Expr* op1, const Expr* op2);
+	bool SameOp(const ExprPtr& op1, const ExprPtr& op2)
+		{ return SameOp(op1.get(), op2.get()); }
+
+	// True if e1 and e2 reflect identical expressions in the context
+	// of using a value computed for one of them in lieu of computing
+	// the other.  (Thus, for example, two record construction expressions
+	// are never equivalent even if they both specify exactly the same
+	// record elements, because each invocation of the expression produces
+	// a distinct value.)
+	bool SameExpr(const Expr* e1, const Expr* e2);
+
+	// Finds a temporary, if any, whose RHS matches the given "rhs", using
+	// the reaching defs associated with the assignment "a".  The context
+	// is that "rhs" is currently being assigned to temporary "lhs_tmp"
+	// (nil if the assignment isn't to a temporary), and we're wondering
+	// whether we can skip that assignment because we already have the
+	// exact same value available in a previously assigned temporary.
+	IDPtr FindExprTmp(const Expr* rhs, const Expr* a,
+				const std::shared_ptr<const TempVar>& lhs_tmp);
+
+	// Tests whether an expression computed at e1 (and assigned to "id")
+	// remains valid for substitution at e2.
+	bool ExprValid(const ID* id, const Expr* e1, const Expr* e2) const;
+
+	// Inspects the given expression for identifiers, adding any
+	// observed to the given vector.  Assumes reduced form, so only
+	// NameExpr's and ListExpr's are of interest - does not traverse
+	// into compound expressions.
+	void CheckIDs(const Expr* e, std::vector<const ID*>& ids) const;
+
 	IDPtr GenTemporary(const TypePtr& t, ExprPtr rhs);
-	TempVar* FindTemporary(const ID* id) const;
+	std::shared_ptr<TempVar> FindTemporary(const ID* id) const;
 
 	// Retrieve the identifier corresponding to the new local for
 	// the given expression.  Creates the local if necessary.
@@ -170,27 +220,48 @@ protected:
 	// for the current function.
 	IDPtr GenLocal(const IDPtr& orig);
 
+	// This is the heart of constant propagation.  Given an identifier
+	// and a set of definition points for it, if its value is constant
+	// then returns the corresponding ConstExpr with the value.
+	const ConstExpr* CheckForConst(const IDPtr& id,
+					const DefPoints* dps) const;
+
 	// Track that we're replacing instances of "orig" with a new
 	// expression.  This allows us to locate the RDs associated
 	// with "orig" in the context of the new expression, without
 	// requiring an additional RD propagation pass.
 	void TrackExprReplacement(const Expr* orig, const Expr* e);
 
-	Scope* scope;
-	PList<TempVar> temps;
+	// Returns the object we should use to look up RD's associated
+	// with 'e'.  (This isn't necessarily 'e' itself because we
+	// may have decided to replace it with a different expression,
+	// per TrackExprReplacement().)
+	const Obj* GetRDLookupObj(const Expr* e) const;
+
+	// Tracks the temporary variables created during the reduction/
+	// optimization process.
+	std::vector<std::shared_ptr<TempVar>> temps;
 
 	// Temps for which we've processed their associated expression
 	// (and they didn't wind up being aliases).
-	PList<TempVar> expr_temps;
+	std::vector<std::shared_ptr<const TempVar>> expr_temps;
 
-	// Let's us go from an identifier to an associated temporary
+	// Lets us go from an identifier to an associated temporary
 	// variable, if it corresponds to one.
-	std::unordered_map<const ID*, TempVar*> ids_to_temps;
+	std::unordered_map<const ID*, std::shared_ptr<TempVar>> ids_to_temps;
 
+	// Local variables created during reduction/optimization.
 	std::unordered_set<ID*> new_locals;
+
+	// Mapping of original identifiers to new locals.  Used to
+	// rename local variables when inlining.
 	std::unordered_map<const ID*, IDPtr> orig_to_new_locals;
 
+	// Which statements to elide from the AST (because optimization
+	// has determined they're no longer needed).
 	std::unordered_set<const Stmt*> omitted_stmts;
+
+	// Maps statements to replacements constructed during optimization.
 	std::unordered_map<const Stmt*, StmtPtr> replaced_stmts;
 
 	// Tracks whether we're inside an inline block, and if so then
@@ -203,6 +274,12 @@ protected:
 	// exponentially.
 	int bifurcation_level = 0;
 
+	// For a given usage of a variable's value, return the definition
+	// points associated with its use at that point.  We use this
+	// both as a cache (populating it every time we do a more laborious
+	// lookup), and proactively when creating new references to variables.
+	std::unordered_map<const NameExpr*, const DefPoints*> var_usage_to_DPs;
+
 	// Tracks which (non-temporary) variables had constant
 	// values used for constant propagation.
 	std::unordered_set<const ID*> constant_vars;
@@ -211,6 +288,9 @@ protected:
 	// it's replacing.  This allows us to locate the RDs associated
 	// with the usage.
 	std::unordered_map<const Expr*, const Expr*> new_expr_to_orig;
+
+	// Statement at which the current reduction started.
+	StmtPtr reduction_root = nullptr;
 
 	const DefSetsMgr* mgr = nullptr;
 };

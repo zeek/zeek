@@ -133,6 +133,7 @@ void analyze_scripts()
 		check_env_opt("ZEEK_DUMP_XFORM", analysis_options.dump_xform);
 		check_env_opt("ZEEK_DUMP_UDS", analysis_options.dump_uds);
 		check_env_opt("ZEEK_INLINE", analysis_options.inliner);
+		check_env_opt("ZEEK_OPT", analysis_options.optimize_AST);
 		check_env_opt("ZEEK_XFORM", analysis_options.activate);
 
 		auto usage = getenv("ZEEK_USAGE_ISSUES");
@@ -148,6 +149,7 @@ void analyze_scripts()
 			}
 
 		if ( analysis_options.only_func ||
+		     analysis_options.optimize_AST ||
 		     analysis_options.usage_issues > 0 )
 			analysis_options.activate = true;
 
@@ -156,6 +158,12 @@ void analyze_scripts()
 
 	if ( ! analysis_options.activate && ! analysis_options.inliner )
 		return;
+
+	if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST )
+		{
+		fprintf(stderr, "warning: \"-O optimize-AST\" option is incompatible with -u option, deactivating optimization\n");
+		analysis_options.optimize_AST = false;
+		}
 
 	// Now that everything's parsed and BiF's have been initialized,
 	// profile the functions.

@@ -151,6 +151,7 @@ static void set_analysis_option(const char* opt, Options& opts)
 		{
 		opts.analysis_options.inliner = true;
 		opts.analysis_options.activate = true;
+		opts.analysis_options.optimize_AST = true;
 		return;
 		}
 
@@ -161,6 +162,7 @@ static void set_analysis_option(const char* opt, Options& opts)
 		fprintf(stderr, "    dump-xform	dump transformed scripts to stdout; implies xform\n");
 		fprintf(stderr, "    help	print this list\n");
 		fprintf(stderr, "    inline	inline function calls\n");
+		fprintf(stderr, "    optimize-AST	optimize the (transformed) AST; implies xform\n");
 		fprintf(stderr, "    recursive	report on recursive functions and exit\n");
 		fprintf(stderr, "    xform	tranform scripts to \"reduced\" form\n");
 		exit(0);
@@ -178,6 +180,8 @@ static void set_analysis_option(const char* opt, Options& opts)
 		a_o.inliner = a_o.report_recursive = true;
 	else if ( util::streq(opt, "xform") )
 		a_o.activate = true;
+	else if ( util::streq(opt, "optimize-AST") )
+		a_o.activate = a_o.optimize_AST = true;
 
 	else
 		{

@@ -1056,13 +1056,7 @@ ExprPtr BoolExpr::Duplicate()
 
 bool BoolExpr::WillTransform(Reducer* c) const
 	{
-	if ( op1->IsConst() || (op1->HasNoSideEffects() && op2->IsConst()) )
-		return true;
-
-	if ( IsVector(op1->GetType()->Tag()) )
-		return false;
-
-	return WillTransformInConditional(c);
+	return ! IsVector(op1->GetType()->Tag());
 	}
 
 bool BoolExpr::WillTransformInConditional(Reducer* c) const

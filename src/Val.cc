@@ -3314,14 +3314,14 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 	vector<ZVal>::iterator it;
 	vector<TypePtr>::iterator types_it;
 
-	const auto& t = element->GetType();
+	auto n = vector_val->size();
 
-	if ( index < vector_val->size() )
-		{
+	if ( index < n )
+		{ // May need to delete previous element
 		it = std::next(vector_val->begin(), index);
 		if ( yield_types )
 			{
-			DeleteIfManaged(*it, t);
+			DeleteIfManaged(*it, element->GetType());
 			types_it = std::next(yield_types->begin(), index);
 			}
 		else if ( managed_yield )
@@ -3332,10 +3332,15 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 		it = vector_val->end();
 		if ( yield_types )
 			types_it = yield_types->end();
+
+		// Initialize any holes the assignment induces in the vector.
+		for ( auto i = n; i < index; ++i )
+			vector_val->emplace_back(ZVal());
 		}
 
 	if ( yield_types )
 		{
+		const auto& t = element->GetType();
 		yield_types->insert(types_it, t);
 		vector_val->insert(it, ZVal(std::move(element), t));
 		}

@@ -3269,8 +3269,11 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 	if ( ! CheckElementType(element) )
 		return false;
 
-	if ( index >= vector_val->size() )
+	auto n = vector_val->size();
+
+	if ( index >= n )
 		{
+		AddHoles(index - n);
 		vector_val->resize(index + 1);
 		if ( yield_types )
 			yield_types->resize(index + 1);
@@ -3314,14 +3317,14 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 	vector<ZVal>::iterator it;
 	vector<TypePtr>::iterator types_it;
 
-	const auto& t = element->GetType();
+	auto n = vector_val->size();
 
-	if ( index < vector_val->size() )
-		{
+	if ( index < n )
+		{ // May need to delete previous element
 		it = std::next(vector_val->begin(), index);
 		if ( yield_types )
 			{
-			DeleteIfManaged(*it, t);
+			DeleteIfManaged(*it, element->GetType());
 			types_it = std::next(yield_types->begin(), index);
 			}
 		else if ( managed_yield )
@@ -3332,10 +3335,12 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 		it = vector_val->end();
 		if ( yield_types )
 			types_it = yield_types->end();
+		AddHoles(index - n);
 		}
 
 	if ( yield_types )
 		{
+		const auto& t = element->GetType();
 		yield_types->insert(types_it, t);
 		vector_val->insert(it, ZVal(std::move(element), t));
 		}
@@ -3344,6 +3349,16 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 
 	Modified();
 	return true;
+	}
+
+void VectorVal::AddHoles(int nholes)
+	{
+	TypePtr fill_t = yield_type;
+	if ( yield_type->Tag() == TYPE_VOID )
+		fill_t = base_type(TYPE_ANY);
+
+	for ( auto i = 0; i < nholes; ++i )
+		vector_val->emplace_back(ZVal(fill_t));
 	}
 
 bool VectorVal::Remove(unsigned int index)

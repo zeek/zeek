@@ -43,6 +43,9 @@ union ZVal {
 	// Construct from a given higher-level script value with a given type.
 	ZVal(ValPtr v, const TypePtr& t);
 
+	// Construct an empty value compatible with the given type.
+	ZVal(const TypePtr& t);
+
 	// Convert to a higher-level script value.  The caller needs to
 	// ensure that they're providing the correct type.
 	ValPtr ToVal(const TypePtr& t) const;

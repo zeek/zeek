@@ -405,7 +405,7 @@ public:
 	explicit NameExpr(IDPtr id, bool const_init = false);
 
 	ID* Id() const		{ return id.get(); }
-	IDPtr IdPtr();
+	const IDPtr& IdPtr() const;
 
 	ValPtr Eval(Frame* f) const override;
 	void Assign(Frame* f, ValPtr v) override;

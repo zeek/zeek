@@ -468,7 +468,7 @@ NameExpr::NameExpr(IDPtr arg_id, bool const_init)
 	}
 
 // This isn't in-lined to avoid needing to pull in ID.h.
-IDPtr NameExpr::IdPtr()
+const IDPtr& NameExpr::IdPtr() const
 	{
 	return id;
 	}

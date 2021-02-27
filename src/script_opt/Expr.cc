@@ -989,7 +989,7 @@ ExprPtr ModExpr::Duplicate()
 // nullptr, and the caller should have ensured that the starting point is
 // a disjunction (since a bare "/pat/ in var" by itself isn't a "cascade"
 // and doesn't present a potential optimization opportunity.
-static bool is_pattern_cascade(ExprPtr e, IDPtr& id,
+static bool is_pattern_cascade(const ExprPtr& e, IDPtr& id,
 				std::vector<ConstExprPtr>& patterns)
 	{
 	auto lhs = e->GetOp1();
@@ -1002,7 +1002,7 @@ static bool is_pattern_cascade(ExprPtr e, IDPtr& id,
 		     rhs->Tag() != EXPR_NAME )
 			return false;
 
-		auto rhs_id = rhs->AsNameExpr()->IdPtr();
+		const auto& rhs_id = rhs->AsNameExpr()->IdPtr();
 
 		if ( id && rhs_id != id )
 			return false;

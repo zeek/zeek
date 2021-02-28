@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "ID.h"
-#include "Var.h"
-#include "Scope.h"
-#include "Expr.h"
-#include "Stmt.h"
-#include "Desc.h"
-#include "ProfileFunc.h"
-#include "Reporter.h"
+#include "zeek/ID.h"
+#include "zeek/Var.h"
+#include "zeek/Scope.h"
+#include "zeek/Expr.h"
+#include "zeek/Stmt.h"
+#include "zeek/Desc.h"
+#include "zeek/Reporter.h"
+#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/Reduce.h"
 #include "zeek/script_opt/TempVar.h"
 

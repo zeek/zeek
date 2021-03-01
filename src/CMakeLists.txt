@@ -193,6 +193,8 @@ foreach (static_preload_script ${STATIC_PLUGIN_PRELOADS})
     string(REPLACE ${CMAKE_BINARY_DIR}/scripts/ "" load_script ${static_preload_script})
     file(APPEND ${CMAKE_BINARY_DIR}/scripts/plugins/__preload__.zeek "@load ${load_script}\n")
 endforeach ()
+install(FILES ${CMAKE_BINARY_DIR}/scripts/plugins/__preload__.zeek DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/plugins/)
+
 
 ########################################################################
 ## bro target

@@ -143,35 +143,29 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 void Manager::LoadScriptsForStaticPlugins()
 	{
-	for ( const auto& p : *Manager::ActivePluginsInternal() )
+	for ( const auto& p : Manager::ActivePlugins() )
 		{
 		if ( p->DynamicPlugin() )
 			continue;
 
 		string canon = std::regex_replace(p->Name(), std::regex("::"), "_");
-		string dir = "plugins/" + canon + "/";
+		if ( canon == "" )
+			continue;
 
+		string dir = "plugins/" + canon + "/";
 		// Use find_file to find the directory in the path.
 		string script_dir = util::find_file(dir, util::zeek_path());
-		if ( util::is_dir(script_dir) )
-			{
-			DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", script_dir.c_str());
-			util::detail::add_to_zeek_path(script_dir);
-			}
+		if ( ! util::is_dir(script_dir) )
+			continue;
 
-		string load_file;
-		load_file = util::find_file(dir + "__preload__", util::zeek_path(), ".zeek");
-		if ( util::is_file(load_file) )
-			{
-			DBG_LOG(DBG_PLUGINS, "  Loading %s", load_file.c_str());
-			scripts_to_load.push_back(load_file);
-			}
+		DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", script_dir.c_str());
+		util::detail::add_to_zeek_path(script_dir);
 
 		load_file = util::find_file(dir + "__load__", util::zeek_path(), ".zeek");
 		if ( util::is_file(load_file) )
 			{
 			DBG_LOG(DBG_PLUGINS, "  Loading %s", load_file.c_str());
-			scripts_to_load.push_back(load_file);
+			add_input_file(load_file.c_str());
 			}
 		}
 	}

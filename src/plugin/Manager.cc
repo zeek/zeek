@@ -158,7 +158,7 @@ void Manager::LoadScriptsForStaticPlugins()
 		DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", script_dir.c_str());
 		util::detail::add_to_zeek_path(script_dir);
 
-		load_file = util::find_file(dir + "__load__", util::zeek_path(), ".zeek");
+		string load_file = util::find_file(dir + "__load__", util::zeek_path(), ".zeek");
 		if ( util::is_file(load_file) )
 			{
 			DBG_LOG(DBG_PLUGINS, "  Loading %s", load_file.c_str());

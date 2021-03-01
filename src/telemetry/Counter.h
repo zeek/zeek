@@ -61,7 +61,6 @@ public:
 private:
 	explicit IntCounter(Impl* ptr) noexcept : pimpl(ptr)
 		{
-		// nop
 		}
 
 	Impl* pimpl;
@@ -154,7 +153,6 @@ public:
 private:
 	explicit DblCounter(Impl* ptr) noexcept : pimpl(ptr)
 		{
-		// nop
 		}
 
 	Impl* pimpl;

@@ -73,20 +73,20 @@ auto opaque(NativeDblGauge* ptr)
 template <class F>
 auto withNativeLabels(Span<const LabelView> xs, F continuation)
 	{
-	if (xs.size() <= 10)
+	if ( xs.size() <= 10 )
 		{
 		ct::label_view buf[10]={
 			{{},{}}, {{},{}}, {{},{}}, {{},{}}, {{},{}},
 			{{},{}}, {{},{}}, {{},{}}, {{},{}}, {{},{}},
 		};
-		for (size_t index = 0; index < xs.size(); ++index)
+		for ( size_t index = 0; index < xs.size(); ++index )
 			buf[index] = ct::label_view{xs[index].first, xs[index].second};
 		return continuation(Span{buf, xs.size()});
 		}
 	else
 		{
 		std::vector<ct::label_view> buf;
-		for (auto x : xs)
+		for ( auto x : xs )
 			buf.emplace_back(x.first, x.second);
 		return continuation(Span{buf});
 		}
@@ -133,7 +133,6 @@ int64_t IntGauge::value() const noexcept
 
 IntGaugeFamily::IntGaugeFamily(Impl* ptr) : MetricFamily(upcast(ptr))
 	{
-	// nop
 	}
 
 IntGauge IntGaugeFamily::getOrAdd(Span<const LabelView> labels)
@@ -174,7 +173,6 @@ double DblGauge::value() const noexcept
 
 DblGaugeFamily::DblGaugeFamily(Impl* ptr) : MetricFamily(upcast(ptr))
 	{
-	// nop
 	}
 
 DblGauge DblGaugeFamily::getOrAdd(Span<const LabelView> labels)

@@ -77,7 +77,6 @@ public:
 private:
 	explicit IntGauge(Impl* ptr) noexcept : pimpl(ptr)
 		{
-		// nop
 		}
 
 	Impl* pimpl;
@@ -180,7 +179,6 @@ public:
 private:
 	explicit DblGauge(Impl* ptr) noexcept : pimpl(ptr)
 		{
-		// nop
 		}
 
 	Impl* pimpl;

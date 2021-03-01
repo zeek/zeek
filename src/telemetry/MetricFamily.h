@@ -68,7 +68,6 @@ public:
 protected:
 	explicit MetricFamily(Impl* ptr) : pimpl(ptr)
 		{
-		// nop
 		}
 
 	Impl* pimpl;

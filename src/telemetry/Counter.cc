@@ -73,20 +73,20 @@ auto opaque(NativeDblCounter* ptr)
 template <class F>
 auto withNativeLabels(Span<const LabelView> xs, F continuation)
 	{
-	if (xs.size() <= 10)
+	if ( xs.size() <= 10 )
 		{
 		ct::label_view buf[10]={
 			{{},{}}, {{},{}}, {{},{}}, {{},{}}, {{},{}},
 			{{},{}}, {{},{}}, {{},{}}, {{},{}}, {{},{}},
 		};
-		for (size_t index = 0; index < xs.size(); ++index)
+		for ( size_t index = 0; index < xs.size(); ++index )
 			buf[index] = ct::label_view{xs[index].first, xs[index].second};
 		return continuation(Span{buf, xs.size()});
 		}
 	else
 		{
 		std::vector<ct::label_view> buf;
-		for (auto x : xs)
+		for ( auto x : xs )
 			buf.emplace_back(x.first, x.second);
 		return continuation(Span{buf});
 		}
@@ -118,7 +118,6 @@ int64_t IntCounter::value() const noexcept
 
 IntCounterFamily::IntCounterFamily(Impl* ptr) : MetricFamily(upcast(ptr))
 	{
-	// nop
 	}
 
 IntCounter IntCounterFamily::getOrAdd(Span<const LabelView> labels)
@@ -149,7 +148,6 @@ double DblCounter::value() const noexcept
 
 DblCounterFamily::DblCounterFamily(Impl* ptr) : MetricFamily(upcast(ptr))
 	{
-	// nop
 	}
 
 DblCounter DblCounterFamily::getOrAdd(Span<const LabelView> labels)

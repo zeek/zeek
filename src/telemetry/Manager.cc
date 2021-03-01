@@ -63,23 +63,27 @@ auto opaque(NativeDblGaugeFamily* ptr)
 template <class F>
 auto withNative(Span<const std::string_view> xs, F continuation)
 	{
-	if (xs.size() <= 10)
+	if ( xs.size() <= 10 )
 		{
 		caf::string_view buf[10];
-		for (size_t index = 0; index < xs.size(); ++index)
+		for ( size_t index = 0; index < xs.size(); ++index )
 			buf[index] = xs[index];
 		return continuation(Span{buf, xs.size()});
 		}
 	else
 		{
 		std::vector<caf::string_view> buf;
-		for (auto x : xs)
+		for ( auto x : xs )
 			buf.emplace_back(x);
 		return continuation(Span{buf});
 		}
 	}
 
 } // namespace
+
+Manager::~Manager()
+	{
+	}
 
 IntCounterFamily Manager::intCounterFam(std::string_view prefix,
                                         std::string_view name,
@@ -150,7 +154,7 @@ template <class T>
 auto toVector(zeek::Span<T> xs)
 	{
 	std::vector<std::remove_const_t<T>> result;
-	for (auto&& x : xs)
+	for ( auto&& x : xs )
 		result.emplace_back(x);
 	return result;
 	}

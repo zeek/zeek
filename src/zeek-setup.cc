@@ -69,6 +69,7 @@ extern "C" {
 #include "zeek/zeekygen/Manager.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/telemetry/Manager.h"
 
 #include "zeek/binpac_zeek.h"
 #include "zeek/module_util.h"
@@ -107,6 +108,7 @@ zeek::file_analysis::Manager* zeek::file_mgr = nullptr;
 zeek::zeekygen::detail::Manager* zeek::detail::zeekygen_mgr = nullptr;
 zeek::iosource::Manager* zeek::iosource_mgr = nullptr;
 zeek::Broker::Manager* zeek::broker_mgr = nullptr;
+zeek::telemetry::Manager* zeek::telemetry_mgr = nullptr;
 zeek::Supervisor* zeek::supervisor_mgr = nullptr;
 zeek::detail::trigger::Manager* zeek::detail::trigger_mgr = nullptr;
 
@@ -327,6 +329,7 @@ static void terminate_bro()
 	delete plugin_mgr;
 	delete val_mgr;
 	delete fragment_mgr;
+	delete telemetry_mgr;
 
 	// free the global scope
 	pop_scope();
@@ -576,6 +579,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	file_mgr = new file_analysis::Manager();
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
 	broker_mgr = new Broker::Manager(broker_real_time);
+	telemetry_mgr = broker_mgr->NewTelemetryManager().release();
 	trigger_mgr = new trigger::Manager();
 
 	plugin_mgr->InitPreScript();

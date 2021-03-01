@@ -4,26 +4,28 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <unordered_set>
 
 #include "zeek/Dict.h"
 #include "zeek/Expr.h"
 
-ZEEK_FORWARD_DECLARE_NAMESPACED(StringVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(AddrVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(SubNetVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(File, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(ListVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(OpaqueVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(PatternVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(TableVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(RecordVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(VectorVal, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Type, zeek);
-ZEEK_FORWARD_DECLARE_NAMESPACED(Val, zeek);
-
 namespace zeek {
+
+class StringVal;
+class AddrVal;
+class SubNetVal;
+class File;
+class Func;
+class ListVal;
+class OpaqueVal;
+class PatternVal;
+class TableVal;
+class RecordVal;
+class VectorVal;
+class Type;
+class Val;
 
 // Note that a ZVal by itself is ambiguous: it doesn't track its type.
 // This makes them consume less memory and cheaper to copy.  It does

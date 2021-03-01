@@ -18,6 +18,7 @@
 #include "zeek/zeekygen/Manager.h"
 #include "zeek/zeekygen/IdentifierInfo.h"
 #include "zeek/zeekygen/ScriptInfo.h"
+#include "zeek/zeekygen/utils.h"
 #include "zeek/module_util.h"
 
 namespace zeek {
@@ -492,7 +493,15 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 			d->Add(".. zeek:type:: ");
 		else
 			d->Add(".. zeek:id:: ");
+
 		d->Add(name);
+
+		if ( auto sc = zeek::zeekygen::detail::source_code_range(this) )
+			{
+			d->PushIndent();
+			d->Add(util::fmt(":source-code: %s", sc->data()));
+			d->PopIndentNoNL();
+			}
 		}
 
 	d->PushIndent();

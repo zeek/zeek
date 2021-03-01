@@ -5,8 +5,9 @@
 #include <utility>
 #include <cstdlib>
 
-#include "zeek/plugin/Manager.h"
+#include "zeek/DebugLogger.h"
 #include "zeek/util.h"
+#include "zeek/zeekygen/utils.h"
 #include "zeek/zeekygen/Info.h"
 #include "zeek/zeekygen/PackageInfo.h"
 #include "zeek/zeekygen/ScriptInfo.h"
@@ -50,20 +51,6 @@ static string RemoveLeadingSpace(const string& s)
 	string rval = s;
 	rval.erase(0, 1);
 	return rval;
-	}
-
-// Turns a script's full path into a shortened, normalized version that we
-// use for indexing.
-static string NormalizeScriptPath(const string& path)
-	{
-	if ( auto p = plugin_mgr->LookupPluginByPath(path) )
-		{
-		auto rval = util::detail::normalize_path(path);
-		auto prefix = util::SafeBasename(p->PluginDirectory()).result;
-		return prefix + "/" + rval.substr(p->PluginDirectory().size() + 1);
-		}
-
-	return util::detail::without_zeekpath_component(path);
 	}
 
 Manager::Manager(const string& arg_config, const string& bro_command)
@@ -135,7 +122,7 @@ void Manager::Script(const string& path)
 	if ( disabled )
 		return;
 
-	string name = NormalizeScriptPath(path);
+	string name = normalize_script_path(path);
 
 	if ( scripts.GetInfo(name) )
 		{
@@ -179,8 +166,8 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 		return;
 		}
 
-	string name = NormalizeScriptPath(path);
-	string depname = NormalizeScriptPath(dep);
+	string name = normalize_script_path(path);
+	string depname = normalize_script_path(dep);
 	ScriptInfo* script_info = scripts.GetInfo(name);
 
 	if ( ! script_info )
@@ -204,7 +191,7 @@ void Manager::ModuleUsage(const string& path, const string& module)
 	if ( disabled )
 		return;
 
-	string name = NormalizeScriptPath(path);
+	string name = normalize_script_path(path);
 	ScriptInfo* script_info = scripts.GetInfo(name);
 
 	if ( ! script_info )
@@ -263,7 +250,7 @@ void Manager::StartType(zeek::detail::IDPtr id)
 		return;
 		}
 
-	string script = NormalizeScriptPath(id->GetLocationInfo()->filename);
+	string script = normalize_script_path(id->GetLocationInfo()->filename);
 	ScriptInfo* script_info = scripts.GetInfo(script);
 
 	if ( ! script_info )
@@ -327,7 +314,7 @@ void Manager::Identifier(zeek::detail::IDPtr id, bool from_redef)
 		return;
 		}
 
-	string script = NormalizeScriptPath(id->GetLocationInfo()->filename);
+	string script = normalize_script_path(id->GetLocationInfo()->filename);
 	ScriptInfo* script_info = scripts.GetInfo(script);
 
 	if ( ! script_info )
@@ -357,7 +344,7 @@ void Manager::RecordField(const zeek::detail::ID* id, const TypeDecl* field,
 		return;
 		}
 
-	string script = NormalizeScriptPath(path);
+	string script = normalize_script_path(path);
 	idd->AddRecordField(field, script, comment_buffer, from_redef);
 	comment_buffer.clear();
 	DBG_LOG(DBG_ZEEKYGEN, "Document record field %s, identifier %s, script %s",
@@ -385,7 +372,7 @@ void Manager::Redef(const zeek::detail::ID* id, const string& path,
 		return;
 		}
 
-	string from_script = NormalizeScriptPath(path);
+	string from_script = normalize_script_path(path);
 	ScriptInfo* script_info = scripts.GetInfo(from_script);
 
 	if ( ! script_info )
@@ -413,7 +400,7 @@ void Manager::SummaryComment(const string& script, const string& comment)
 	if ( disabled )
 		return;
 
-	string name = NormalizeScriptPath(script);
+	string name = normalize_script_path(script);
 	ScriptInfo* info = scripts.GetInfo(name);
 
 	if ( info )

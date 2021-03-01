@@ -6,6 +6,7 @@
 
 #include <time.h> // for time_t
 #include <string>
+#include <optional>
 
 namespace zeek::detail { class ID; }
 
@@ -63,5 +64,29 @@ bool is_all_whitespace(const std::string& s);
  * record field.
  */
 std::string redef_indication(const std::string& from_script);
+
+/**
+ * Turns a script's path into a shortened, normalized version that
+ * can be used for indexing and cross-referencing links.
+ *
+ * @param path  the associate path to a Zeek script, which may be absolute.
+ *
+ * @return  a normalized/shortened path (containing no ZEEKPATH components)
+ *
+ */
+std::string normalize_script_path(std::string_view path);
+
+/**
+ * Determines the associated section of source code associated with an
+ * identifier's definition.
+ *
+ * @param id  identifier for which obtain source code location info is obtained
+ *
+ * @return  a nil value if source code location could not be determined, else
+ * a space-separated string with 3 components.  The 1st component is a path
+ * relative to the "scripts/" directory, the 2nd and 3rd components are
+ * line numbers denoting the start and end of the relevant source code.
+ */
+std::optional<std::string> source_code_range(const zeek::detail::ID* id);
 
 } // namespace zeek::zeekygen::detail

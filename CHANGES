@@ -1,3 +1,18 @@
+
+4.1.0-dev.272 | 2021-03-01 11:36:06 -0800
+
+  * Change update-zeekygen-docs.sh to set release branch in Sphinx config (Jon Siwek, Corelight)
+
+    Allows release branches to generate correct links to GitHub source code.
+
+  * Teach Zeekygen to produce source-code-range information (Jon Siwek, Corelight)
+
+    Related to https://github.com/zeek/zeek-docs/issues/56
+
+  * Add normalize_script_path() zeek::zeekygen::detail namespace (Jon Siwek, Corelight)
+
+  * Add starts_with()/ends_with() to zeek::util namespace (Jon Siwek, Corelight)
+
 4.1.0-dev.266 | 2021-02-25 08:45:49 -0700
 
   * Avoid superfluous string copies when adding to zeek::detail::sig_files

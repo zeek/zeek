@@ -6,8 +6,11 @@
 #include <errno.h>
 
 #include "zeek/ID.h"
+#include "zeek/Val.h"
+#include "zeek/Func.h"
 #include "zeek/Scope.h"
 #include "zeek/Reporter.h"
+#include "zeek/plugin/Manager.h"
 
 using namespace std;
 
@@ -135,6 +138,81 @@ string redef_indication(const string& from_script)
 	{
 	return util::fmt("(present if :doc:`/scripts/%s` is loaded)",
 	                 from_script.c_str());
+	}
+
+std::string normalize_script_path(std::string_view path)
+	{
+	if ( auto p = plugin_mgr->LookupPluginByPath(path) )
+		{
+		auto rval = util::detail::normalize_path(path);
+		auto prefix = util::SafeBasename(p->PluginDirectory()).result;
+		return prefix + "/" + rval.substr(p->PluginDirectory().size() + 1);
+		}
+
+	return util::detail::without_zeekpath_component(path);
+	}
+
+std::optional<std::string> source_code_range(const zeek::detail::ID* id)
+	{
+	const auto& type = id->GetType();
+
+	if ( ! type )
+		return {};
+
+	// Some object locations won't end up capturing concrete syntax of closing
+	// braces on subsequent line -- of course that doesn't have to always be
+	// case, but it's true for current code style and the possibility of
+	// capturing an extra line of context is not harmful (human reader shouldn't
+	// be too confused by it).
+	int extra_lines = 0;
+	const zeek::detail::Location* loc = &zeek::detail::no_location;
+
+	switch ( type->Tag() ) {
+	case TYPE_FUNC:
+		{
+		const auto& v = id->GetVal();
+
+		if ( v && v->AsFunc()->GetBodies().size() == 1 )
+			{
+			// Either a function or an event/hook with single body can
+			// report that single, continuous range.
+			loc = v->AsFunc()->GetBodies()[0].stmts->GetLocationInfo();
+			++extra_lines;
+			}
+		else
+			loc = id->GetLocationInfo();
+		}
+		break;
+	case TYPE_ENUM:
+		// Fallthrough
+	case TYPE_RECORD:
+		if ( id->IsType() )
+			{
+			loc = type->GetLocationInfo();
+
+			if ( zeek::util::ends_with(loc->filename, ".bif.zeek") )
+				// Source code won't be available to reference, so fall back
+				// to identifier location which may actually be in a regular
+				// .zeek script.
+				loc = id->GetLocationInfo();
+			else
+				++extra_lines;
+			}
+		else
+			loc = id->GetLocationInfo();
+
+		break;
+	default:
+		loc = id->GetLocationInfo();
+		break;
+	}
+
+	if ( loc == &zeek::detail::no_location )
+		return {};
+
+	return util::fmt("%s %d %d",
+	                 normalize_script_path(loc->filename).data(),
+	                 loc->first_line, loc->last_line + extra_lines);
 	}
 
 } // namespace zeek::zeekygen::detail

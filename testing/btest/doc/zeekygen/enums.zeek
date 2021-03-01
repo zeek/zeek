@@ -1,5 +1,5 @@
 # @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; unset BRO_DISABLE_BROXYGEN; zeek -b -X zeekygen.config %INPUT
-# @TEST-EXEC: btest-diff autogen-reST-enums.rst
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff autogen-reST-enums.rst
 
 @TEST-START-FILE zeekygen.config
 identifier	TestEnum*	autogen-reST-enums.rst

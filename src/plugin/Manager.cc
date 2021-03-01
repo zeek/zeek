@@ -145,13 +145,10 @@ void Manager::LoadScriptsForStaticPlugins()
 	{
 	for ( const auto& p : Manager::ActivePlugins() )
 		{
-		if ( p->DynamicPlugin() )
+		if ( p->DynamicPlugin() || p->Name() == "" )
 			continue;
 
 		string canon = std::regex_replace(p->Name(), std::regex("::"), "_");
-		if ( canon == "" )
-			continue;
-
 		string dir = "plugins/" + canon + "/";
 		// Use find_file to find the directory in the path.
 		string script_dir = util::find_file(dir, util::zeek_path());

@@ -157,7 +157,7 @@ public:
 		return numElements;
 		}
 
-	constexpr size_t numElementsbytes() const noexcept
+	constexpr size_t size_bytes() const noexcept
 		{
 		return numElements * sizeof(element_type);
 		}
@@ -174,9 +174,9 @@ public:
 
 	// -- subviews -------------------------------------------------------------
 
-	constexpr Span subspan(size_t offset, size_t num_bytes) const
+	constexpr Span subspan(size_t offset, size_t num_elements) const
 		{
-		return {memoryBlock + offset, num_bytes};
+		return {memoryBlock + offset, num_elements};
 		}
 
 	constexpr Span subspan(size_t offset) const
@@ -184,14 +184,14 @@ public:
 		return {memoryBlock + offset, numElements - offset};
 		}
 
-	constexpr Span first(size_t num_bytes) const
+	constexpr Span first(size_t num_elements) const
 		{
-		return {memoryBlock, num_bytes};
+		return {memoryBlock, num_elements};
 		}
 
-	constexpr Span last(size_t num_bytes) const
+	constexpr Span last(size_t num_elements) const
 		{
-		return subspan(numElements - num_bytes, num_bytes);
+		return subspan(numElements - num_elements, num_elements);
 		}
 
 private:

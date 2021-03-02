@@ -6,80 +6,9 @@
 
 #include "zeek/3rdparty/doctest.h"
 
+#include "zeek/telemetry/Detail.h"
+
 namespace zeek::telemetry {
-
-namespace {
-
-namespace ct = caf::telemetry;
-
-using NativeManager = ct::metric_registry;
-
-using NativeIntCounter = ct::int_counter;
-
-using NativeIntCounterFamily = ct::metric_family_impl<NativeIntCounter>;
-
-using NativeDblCounter = ct::dbl_counter;
-
-using NativeDblCounterFamily = ct::metric_family_impl<NativeDblCounter>;
-
-using NativeIntGauge = ct::int_gauge;
-
-using NativeIntGaugeFamily = ct::metric_family_impl<NativeIntGauge>;
-
-using NativeDblGauge = ct::dbl_gauge;
-
-using NativeDblGaugeFamily = ct::metric_family_impl<NativeDblGauge>;
-
-auto& deref(Manager::Impl* ptr)
-	{
-	return *reinterpret_cast<NativeManager*>(ptr);
-	}
-
-auto opaque(NativeManager* ptr)
-	{
-	return reinterpret_cast<Manager::Impl*>(ptr);
-	}
-
-auto opaque(NativeIntCounterFamily* ptr)
-	{
-	return reinterpret_cast<IntCounterFamily::Impl*>(ptr);
-	}
-
-auto opaque(NativeDblCounterFamily* ptr)
-	{
-	return reinterpret_cast<DblCounterFamily::Impl*>(ptr);
-	}
-
-auto opaque(NativeIntGaugeFamily* ptr)
-	{
-	return reinterpret_cast<IntGaugeFamily::Impl*>(ptr);
-	}
-
-auto opaque(NativeDblGaugeFamily* ptr)
-	{
-	return reinterpret_cast<DblGaugeFamily::Impl*>(ptr);
-	}
-
-template <class F>
-auto with_native(Span<const std::string_view> xs, F continuation)
-	{
-	if ( xs.size() <= 10 )
-		{
-		caf::string_view buf[10];
-		for ( size_t index = 0; index < xs.size(); ++index )
-			buf[index] = xs[index];
-		return continuation(Span{buf, xs.size()});
-		}
-	else
-		{
-		std::vector<caf::string_view> buf;
-		for ( auto x : xs )
-			buf.emplace_back(x);
-		return continuation(Span{buf});
-		}
-	}
-
-} // namespace
 
 Manager::~Manager()
 	{
@@ -91,7 +20,7 @@ IntCounterFamily Manager::IntCounterFam(std::string_view prefix,
                                         std::string_view helptext,
                                         std::string_view unit, bool is_sum)
 	{
-	return with_native(labels, [&, this](auto xs)
+	return with_native_labels(labels, [&, this](auto xs)
 		{
 		auto ptr = deref(pimpl).counter_family(prefix, name, xs,
 		                                       helptext, unit, is_sum);
@@ -105,7 +34,7 @@ DblCounterFamily Manager::DblCounterFam(std::string_view prefix,
                                         std::string_view helptext,
                                         std::string_view unit, bool is_sum)
 	{
-	return with_native(labels, [&, this](auto xs)
+	return with_native_labels(labels, [&, this](auto xs)
 		{
 		auto ptr = deref(pimpl).counter_family<double>(prefix, name, xs,
 		                                               helptext, unit, is_sum);
@@ -119,7 +48,7 @@ IntGaugeFamily Manager::IntGaugeFam(std::string_view prefix,
                                     std::string_view helptext,
                                     std::string_view unit, bool is_sum)
 	{
-	return with_native(labels, [&, this](auto xs)
+	return with_native_labels(labels, [&, this](auto xs)
 		{
 		auto ptr = deref(pimpl).gauge_family(prefix, name, xs,
 		                                     helptext, unit, is_sum);
@@ -133,11 +62,44 @@ DblGaugeFamily Manager::DblGaugeFam(std::string_view prefix,
                                     std::string_view helptext,
                                     std::string_view unit, bool is_sum)
 	{
-	return with_native(labels, [&, this](auto xs)
+	return with_native_labels(labels, [&, this](auto xs)
 		{
 		auto ptr = deref(pimpl).gauge_family<double>(prefix, name, xs,
 		                                             helptext, unit, is_sum);
 		return DblGaugeFamily{opaque(ptr)};
+		});
+	}
+
+IntHistogramFamily Manager::IntHistoFam(std::string_view prefix,
+                                        std::string_view name,
+                                        Span<const std::string_view> labels,
+                                        Span<const int64_t> ubounds,
+                                        std::string_view helptext,
+                                        std::string_view unit, bool is_sum)
+	{
+	return with_native_labels(labels, [&, this](auto xs)
+		{
+		auto bounds = caf::span<const int64_t>{ubounds.data(), ubounds.size()};
+		auto ptr = deref(pimpl).histogram_family(prefix, name, xs, bounds,
+		                                         helptext, unit, is_sum);
+		return IntHistogramFamily{opaque(ptr)};
+		});
+	}
+
+DblHistogramFamily Manager::DblHistoFam(std::string_view prefix,
+                                        std::string_view name,
+                                        Span<const std::string_view> labels,
+                                        Span<const double> ubounds,
+                                        std::string_view helptext,
+                                        std::string_view unit, bool is_sum)
+	{
+	return with_native_labels(labels, [&, this](auto xs)
+		{
+		auto bounds = caf::span<const double>{ubounds.data(), ubounds.size()};
+		auto ptr = deref(pimpl).histogram_family<double>(prefix, name, xs,
+		                                                 bounds, helptext,
+		                                                 unit, is_sum);
+		return DblHistogramFamily{opaque(ptr)};
 		});
 	}
 
@@ -147,6 +109,8 @@ DblGaugeFamily Manager::DblGaugeFam(std::string_view prefix,
 
 using namespace std::literals;
 using namespace zeek::telemetry;
+
+using NativeManager = caf::telemetry::metric_registry;
 
 namespace {
 
@@ -241,13 +205,13 @@ SCENARIO("telemetry managers provide access to counter families")
 				CHECK_EQ(family.Unit(), "1"sv);
 				CHECK_EQ(family.IsSum(), true);
 				}
-			AND_THEN("getOrAdd returns the same metric for the same labels")
+			AND_THEN("GetOrAdd returns the same metric for the same labels")
 				{
 				auto first = family.GetOrAdd({{"method", "get"}});
 				auto second = family.GetOrAdd({{"method", "get"}});
 				CHECK_EQ(first, second);
 				}
-			AND_THEN("getOrAdd returns different metric for the disjoint labels")
+			AND_THEN("GetOrAdd returns different metric for the disjoint labels")
 				{
 				auto first = family.GetOrAdd({{"method", "get"}});
 				auto second = family.GetOrAdd({{"method", "put"}});
@@ -266,13 +230,13 @@ SCENARIO("telemetry managers provide access to counter families")
 				CHECK_EQ(family.Unit(), "seconds"sv);
 				CHECK_EQ(family.IsSum(), true);
 				}
-			AND_THEN("getOrAdd returns the same metric for the same labels")
+			AND_THEN("GetOrAdd returns the same metric for the same labels")
 				{
 				auto first = family.GetOrAdd({{"query", "foo"}});
 				auto second = family.GetOrAdd({{"query", "foo"}});
 				CHECK_EQ(first, second);
 				}
-			AND_THEN("getOrAdd returns different metric for the disjoint labels")
+			AND_THEN("GetOrAdd returns different metric for the disjoint labels")
 				{
 				auto first = family.GetOrAdd({{"query", "foo"}});
 				auto second = family.GetOrAdd({{"query", "bar"}});
@@ -371,13 +335,13 @@ SCENARIO("telemetry managers provide access to gauge families")
 				CHECK_EQ(family.Unit(), "1"sv);
 				CHECK_EQ(family.IsSum(), false);
 				}
-			AND_THEN("getOrAdd returns the same metric for the same labels")
+			AND_THEN("GetOrAdd returns the same metric for the same labels")
 				{
 				auto first = family.GetOrAdd({{"protocol", "tcp"}});
 				auto second = family.GetOrAdd({{"protocol", "tcp"}});
 				CHECK_EQ(first, second);
 				}
-			AND_THEN("getOrAdd returns different metric for the disjoint labels")
+			AND_THEN("GetOrAdd returns different metric for the disjoint labels")
 				{
 				auto first = family.GetOrAdd({{"protocol", "tcp"}});
 				auto second = family.GetOrAdd({{"protocol", "quic"}});
@@ -396,16 +360,164 @@ SCENARIO("telemetry managers provide access to gauge families")
 				CHECK_EQ(family.Unit(), "meters"sv);
 				CHECK_EQ(family.IsSum(), false);
 				}
-			AND_THEN("getOrAdd returns the same metric for the same labels")
+			AND_THEN("GetOrAdd returns the same metric for the same labels")
 				{
 				auto first = family.GetOrAdd({{"river", "Sacramento"}});
 				auto second = family.GetOrAdd({{"river", "Sacramento"}});
 				CHECK_EQ(first, second);
 				}
-			AND_THEN("getOrAdd returns different metric for the disjoint labels")
+			AND_THEN("GetOrAdd returns different metric for the disjoint labels")
 				{
 				auto first = family.GetOrAdd({{"query", "Sacramento"}});
 				auto second = family.GetOrAdd({{"query", "San Joaquin"}});
+				CHECK_NE(first, second);
+				}
+			}
+		}
+	}
+
+SCENARIO("telemetry managers provide access to histogram singletons")
+	{
+	GIVEN("a telemetry manager")
+		{
+		NativeManager native_mgr;
+		Manager mgr{opaque(&native_mgr)};
+		WHEN("retrieving an IntHistogram singleton")
+			{
+			const auto max_int = std::numeric_limits<int64_t>::max();
+			int64_t buckets [] = { 10, 20 };
+			auto first = mgr.HistogramSingleton("zeek", "int-hist", buckets, "test");
+			THEN("it initially has no observations")
+				{
+				REQUIRE_EQ(first.NumBuckets(), 3u);
+				CHECK_EQ(first.Sum(), 0);
+				CHECK_EQ(first.CountAt(0), 0);
+				CHECK_EQ(first.CountAt(1), 0);
+				CHECK_EQ(first.CountAt(2), 0);
+				CHECK_EQ(first.UpperBoundAt(0), 10);
+				CHECK_EQ(first.UpperBoundAt(1), 20);
+				CHECK_EQ(first.UpperBoundAt(2), max_int);
+				}
+			AND_THEN("calling Observe() increments bucket counters")
+				{
+				first.Observe(1);
+				first.Observe(9);
+				first.Observe(10);
+				first.Observe(11);
+				first.Observe(19);
+				first.Observe(20);
+				first.Observe(21);
+				CHECK_EQ(first.Sum(), 91);
+				CHECK_EQ(first.CountAt(0), 3);
+				CHECK_EQ(first.CountAt(1), 3);
+				CHECK_EQ(first.CountAt(2), 1);
+				}
+			AND_THEN("calling HistogramSingleton again for the same name returns the same handle")
+				{
+				auto second = mgr.HistogramSingleton("zeek", "int-hist", buckets, "test");
+				CHECK_EQ(first, second);
+				}
+			AND_THEN("calling HistogramSingleton for a different name returns another handle")
+				{
+				auto third = mgr.HistogramSingleton("zeek", "int-hist-2", buckets, "test");
+				CHECK_NE(first, third);
+				}
+			}
+		WHEN("retrieving a DblHistogram singleton")
+			{
+			double buckets [] = { 10.0, 20.0 };
+			auto first = mgr.HistogramSingleton<double>("zeek", "dbl-count", buckets, "test");
+			THEN("it initially has no observations")
+				{
+				REQUIRE_EQ(first.NumBuckets(), 3u);
+				CHECK_EQ(first.Sum(), 0.0);
+				CHECK_EQ(first.CountAt(0), 0);
+				CHECK_EQ(first.CountAt(1), 0);
+				CHECK_EQ(first.CountAt(2), 0);
+				CHECK_EQ(first.UpperBoundAt(0), 10.0);
+				CHECK_EQ(first.UpperBoundAt(1), 20.0);
+				}
+			AND_THEN("calling Observe() increments bucket counters")
+				{
+				first.Observe(2.0);
+				first.Observe(4.0);
+				first.Observe(8.0);
+				first.Observe(16.0);
+				first.Observe(32.0);
+				CHECK_EQ(first.Sum(), 62.0);
+				CHECK_EQ(first.CountAt(0), 3);
+				CHECK_EQ(first.CountAt(1), 1);
+				CHECK_EQ(first.CountAt(2), 1);
+				}
+			AND_THEN("calling histogramSingleton again for the same name returns the same handle")
+				{
+				auto second = mgr.HistogramSingleton<double>("zeek", "dbl-count", buckets, "test");
+				CHECK_EQ(first, second);
+				}
+			AND_THEN("calling histogramSingleton for a different name returns another handle")
+				{
+				auto third = mgr.HistogramSingleton<double>("zeek", "dbl-count-2", buckets, "test");
+				CHECK_NE(first, third);
+				}
+			}
+		}
+	}
+
+SCENARIO("telemetry managers provide access to histogram families")
+	{
+	GIVEN("a telemetry manager")
+		{
+		NativeManager native_mgr;
+		Manager mgr{opaque(&native_mgr)};
+		WHEN("retrieving an IntHistogram family")
+			{
+			int64_t buckets [] = { 10, 20 };
+			auto family = mgr.HistogramFamily("zeek", "payload-size", {"protocol"}, buckets, "test", "bytes");
+			THEN("the family object stores the parameters")
+				{
+				CHECK_EQ(family.Prefix(), "zeek"sv);
+				CHECK_EQ(family.Name(), "payload-size"sv);
+				CHECK_EQ(toVector(family.LabelNames()), std::vector{"protocol"s});
+				CHECK_EQ(family.Helptext(), "test"sv);
+				CHECK_EQ(family.Unit(), "bytes"sv);
+				CHECK_EQ(family.IsSum(), false);
+				}
+			AND_THEN("GetOrAdd returns the same metric for the same labels")
+				{
+				auto first = family.GetOrAdd({{"protocol", "tcp"}});
+				auto second = family.GetOrAdd({{"protocol", "tcp"}});
+				CHECK_EQ(first, second);
+				}
+			AND_THEN("GetOrAdd returns different metric for the disjoint labels")
+				{
+				auto first = family.GetOrAdd({{"protocol", "tcp"}});
+				auto second = family.GetOrAdd({{"protocol", "udp"}});
+				CHECK_NE(first, second);
+				}
+			}
+		WHEN("retrieving a DblHistogram family")
+			{
+			double buckets [] = { 10.0, 20.0 };
+			auto family = mgr.HistogramFamily<double>("zeek", "parse-time", {"protocol"}, buckets, "test", "seconds");
+			THEN("the family object stores the parameters")
+				{
+				CHECK_EQ(family.Prefix(), "zeek"sv);
+				CHECK_EQ(family.Name(), "parse-time"sv);
+				CHECK_EQ(toVector(family.LabelNames()), std::vector{"protocol"s});
+				CHECK_EQ(family.Helptext(), "test"sv);
+				CHECK_EQ(family.Unit(), "seconds"sv);
+				CHECK_EQ(family.IsSum(), false);
+				}
+			AND_THEN("GetOrAdd returns the same metric for the same labels")
+				{
+				auto first = family.GetOrAdd({{"protocol", "tcp"}});
+				auto second = family.GetOrAdd({{"protocol", "tcp"}});
+				CHECK_EQ(first, second);
+				}
+			AND_THEN("GetOrAdd returns different metric for the disjoint labels")
+				{
+				auto first = family.GetOrAdd({{"protocol", "tcp"}});
+				auto second = family.GetOrAdd({{"protocol", "udp"}});
 				CHECK_NE(first, second);
 				}
 			}

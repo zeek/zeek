@@ -12,44 +12,6 @@ namespace ct = caf::telemetry;
 
 namespace zeek::telemetry {
 
-// -- bindings to private utility functions ------------------------------------
-
-template <>
-struct PimplTrait<IntCounter::Impl>
-	{
-	using Native = ct::int_counter;
-	using Oqaque = IntCounter::Impl;
-	using NativeFamily = ct::metric_family_impl<Native>;
-	};
-
-template <>
-struct PimplTrait<ct::int_counter> : PimplTrait<IntCounter::Impl> { };
-
-template <>
-struct PimplTrait<IntCounterFamily::Impl>
-	{
-	using Native = typename PimplTrait<IntCounter::Impl>::NativeFamily;
-	using Oqaque = IntCounterFamily::Impl;
-	};
-
-template <>
-struct PimplTrait<DblCounter::Impl>
-	{
-	using Native = ct::dbl_counter;
-	using Oqaque = DblCounter::Impl;
-	using NativeFamily = ct::metric_family_impl<Native>;
-	};
-
-template <>
-struct PimplTrait<ct::dbl_counter> : PimplTrait<DblCounter::Impl> { };
-
-template <>
-struct PimplTrait<DblCounterFamily::Impl>
-	{
-	using Native = typename PimplTrait<DblCounter::Impl>::NativeFamily;
-	using Oqaque = DblCounterFamily::Impl;
-	};
-
 // -- IntCounter ---------------------------------------------------------------
 
 void IntCounter::Inc() noexcept

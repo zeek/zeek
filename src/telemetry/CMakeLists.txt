@@ -8,6 +8,7 @@ include_directories(BEFORE
 set(telemetry_SRCS
     Counter.cc
     Gauge.cc
+    Histogram.cc
     Manager.cc
     MetricFamily.cc
 )

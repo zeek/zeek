@@ -8,47 +8,7 @@
 
 #include "zeek/telemetry/Detail.h"
 
-namespace ct = caf::telemetry;
-
 namespace zeek::telemetry {
-
-// -- bindings to private utility functions ------------------------------------
-
-template <>
-struct PimplTrait<IntGauge::Impl>
-	{
-	using Native = ct::int_gauge;
-	using Oqaque = IntGauge::Impl;
-	using NativeFamily = ct::metric_family_impl<Native>;
-	};
-
-template <>
-struct PimplTrait<ct::int_gauge> : PimplTrait<IntGauge::Impl> { };
-
-template <>
-struct PimplTrait<IntGaugeFamily::Impl>
-	{
-	using Native = typename PimplTrait<IntGauge::Impl>::NativeFamily;
-	using Oqaque = IntGaugeFamily::Impl;
-	};
-
-template <>
-struct PimplTrait<DblGauge::Impl>
-	{
-	using Native = ct::dbl_gauge;
-	using Oqaque = DblGauge::Impl;
-	using NativeFamily = ct::metric_family_impl<Native>;
-	};
-
-template <>
-struct PimplTrait<ct::dbl_gauge> : PimplTrait<DblGauge::Impl> { };
-
-template <>
-struct PimplTrait<DblGaugeFamily::Impl>
-	{
-	using Native = typename PimplTrait<DblGauge::Impl>::NativeFamily;
-	using Oqaque = DblGaugeFamily::Impl;
-	};
 
 // -- IntGauge ---------------------------------------------------------------
 

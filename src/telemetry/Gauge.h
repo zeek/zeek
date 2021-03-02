@@ -107,6 +107,8 @@ public:
 
 	class Impl;
 
+	using InstanceType = IntGauge;
+
 	IntGaugeFamily(const IntGaugeFamily&) noexcept = default;
 	IntGaugeFamily& operator=(const IntGaugeFamily&) noexcept = default;
 
@@ -208,6 +210,8 @@ public:
 	friend class Manager;
 
 	class Impl;
+
+	using InstanceType = DblGauge;
 
 	DblGaugeFamily(const DblGaugeFamily&) noexcept = default;
 	DblGaugeFamily& operator=(const DblGaugeFamily&) noexcept = default;

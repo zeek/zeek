@@ -6,93 +6,49 @@
 #include "caf/telemetry/metric_family.hpp"
 #include "caf/telemetry/metric_family_impl.hpp"
 
-namespace zeek::telemetry {
-
-// -- private utilities --------------------------------------------------------
-
-namespace {
+#include "zeek/telemetry/Detail.h"
 
 namespace ct = caf::telemetry;
 
-using NativeMetricFamily = ct::metric_family;
+namespace zeek::telemetry {
 
-using NativeIntCounter = ct::int_counter;
+// -- bindings to private utility functions ------------------------------------
 
-using NativeIntCounterFamily = ct::metric_family_impl<NativeIntCounter>;
-
-using NativeDblCounter = ct::dbl_counter;
-
-using NativeDblCounterFamily = ct::metric_family_impl<NativeDblCounter>;
-
-auto& deref(IntCounter::Impl* ptr)
+template <>
+struct PimplTrait<IntCounter::Impl>
 	{
-	return *reinterpret_cast<NativeIntCounter*>(ptr);
-	}
+	using Native = ct::int_counter;
+	using Oqaque = IntCounter::Impl;
+	using NativeFamily = ct::metric_family_impl<Native>;
+	};
 
-auto& deref(IntCounterFamily*, MetricFamily::Impl* ptr)
+template <>
+struct PimplTrait<ct::int_counter> : PimplTrait<IntCounter::Impl> { };
+
+template <>
+struct PimplTrait<IntCounterFamily::Impl>
 	{
-	auto basePtr = reinterpret_cast<NativeMetricFamily*>(ptr);
-	return *static_cast<NativeIntCounterFamily*>(basePtr);
-	}
+	using Native = typename PimplTrait<IntCounter::Impl>::NativeFamily;
+	using Oqaque = IntCounterFamily::Impl;
+	};
 
-auto upcast(IntCounterFamily::Impl* ptr)
+template <>
+struct PimplTrait<DblCounter::Impl>
 	{
-	auto native = reinterpret_cast<NativeIntCounterFamily*>(ptr);
-	auto basePtr = static_cast<NativeMetricFamily*>(native);
-	return reinterpret_cast<MetricFamily::Impl*>(basePtr);
-	}
+	using Native = ct::dbl_counter;
+	using Oqaque = DblCounter::Impl;
+	using NativeFamily = ct::metric_family_impl<Native>;
+	};
 
-auto opaque(NativeIntCounter* ptr)
+template <>
+struct PimplTrait<ct::dbl_counter> : PimplTrait<DblCounter::Impl> { };
+
+template <>
+struct PimplTrait<DblCounterFamily::Impl>
 	{
-	return reinterpret_cast<IntCounter::Impl*>(ptr);
-	}
-
-auto& deref(DblCounter::Impl* ptr)
-	{
-	return *reinterpret_cast<ct::dbl_counter*>(ptr);
-	}
-
-auto& deref(DblCounterFamily*, MetricFamily::Impl* ptr)
-	{
-	auto basePtr = reinterpret_cast<NativeMetricFamily*>(ptr);
-	return *static_cast<NativeDblCounterFamily*>(basePtr);
-	}
-
-auto upcast(DblCounterFamily::Impl* ptr)
-	{
-	auto native = reinterpret_cast<NativeDblCounterFamily*>(ptr);
-	auto basePtr = static_cast<NativeMetricFamily*>(native);
-	return reinterpret_cast<MetricFamily::Impl*>(basePtr);
-	}
-
-auto opaque(NativeDblCounter* ptr)
-	{
-	return reinterpret_cast<DblCounter::Impl*>(ptr);
-	}
-
-template <class F>
-auto withNativeLabels(Span<const LabelView> xs, F continuation)
-	{
-	if ( xs.size() <= 10 )
-		{
-		ct::label_view buf[10]={
-			{{},{}}, {{},{}}, {{},{}}, {{},{}}, {{},{}},
-			{{},{}}, {{},{}}, {{},{}}, {{},{}}, {{},{}},
-		};
-		for ( size_t index = 0; index < xs.size(); ++index )
-			buf[index] = ct::label_view{xs[index].first, xs[index].second};
-		return continuation(Span{buf, xs.size()});
-		}
-	else
-		{
-		std::vector<ct::label_view> buf;
-		for ( auto x : xs )
-			buf.emplace_back(x.first, x.second);
-		return continuation(Span{buf});
-		}
-	}
-
-} // namespace
+	using Native = typename PimplTrait<DblCounter::Impl>::NativeFamily;
+	using Oqaque = DblCounterFamily::Impl;
+	};
 
 // -- IntCounter ---------------------------------------------------------------
 
@@ -122,7 +78,7 @@ IntCounterFamily::IntCounterFamily(Impl* ptr) : MetricFamily(upcast(ptr))
 
 IntCounter IntCounterFamily::GetOrAdd(Span<const LabelView> labels)
 	{
-	return withNativeLabels(labels, [this](auto nativeLabels)
+	return with_native_labels(labels, [this](auto nativeLabels)
 		{
 		auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
 		return IntCounter{hdl};
@@ -152,7 +108,7 @@ DblCounterFamily::DblCounterFamily(Impl* ptr) : MetricFamily(upcast(ptr))
 
 DblCounter DblCounterFamily::GetOrAdd(Span<const LabelView> labels)
 	{
-	return withNativeLabels(labels, [this](auto nativeLabels)
+	return with_native_labels(labels, [this](auto nativeLabels)
 		{
 		auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
 		return DblCounter{hdl};

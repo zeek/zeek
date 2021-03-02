@@ -6,93 +6,49 @@
 #include "caf/telemetry/metric_family.hpp"
 #include "caf/telemetry/metric_family_impl.hpp"
 
-namespace zeek::telemetry {
-
-// -- private utilities --------------------------------------------------------
-
-namespace {
+#include "zeek/telemetry/Detail.h"
 
 namespace ct = caf::telemetry;
 
-using NativeMetricFamily = ct::metric_family;
+namespace zeek::telemetry {
 
-using NativeIntGauge = ct::int_gauge;
+// -- bindings to private utility functions ------------------------------------
 
-using NativeIntGaugeFamily = ct::metric_family_impl<NativeIntGauge>;
-
-using NativeDblGauge = ct::dbl_gauge;
-
-using NativeDblGaugeFamily = ct::metric_family_impl<NativeDblGauge>;
-
-auto& deref(IntGauge::Impl* ptr)
+template <>
+struct PimplTrait<IntGauge::Impl>
 	{
-	return *reinterpret_cast<NativeIntGauge*>(ptr);
-	}
+	using Native = ct::int_gauge;
+	using Oqaque = IntGauge::Impl;
+	using NativeFamily = ct::metric_family_impl<Native>;
+	};
 
-auto& deref(IntGaugeFamily*, MetricFamily::Impl* ptr)
+template <>
+struct PimplTrait<ct::int_gauge> : PimplTrait<IntGauge::Impl> { };
+
+template <>
+struct PimplTrait<IntGaugeFamily::Impl>
 	{
-	auto basePtr = reinterpret_cast<NativeMetricFamily*>(ptr);
-	return *static_cast<NativeIntGaugeFamily*>(basePtr);
-	}
+	using Native = typename PimplTrait<IntGauge::Impl>::NativeFamily;
+	using Oqaque = IntGaugeFamily::Impl;
+	};
 
-auto upcast(IntGaugeFamily::Impl* ptr)
+template <>
+struct PimplTrait<DblGauge::Impl>
 	{
-	auto native = reinterpret_cast<NativeIntGaugeFamily*>(ptr);
-	auto basePtr = static_cast<NativeMetricFamily*>(native);
-	return reinterpret_cast<MetricFamily::Impl*>(basePtr);
-	}
+	using Native = ct::dbl_gauge;
+	using Oqaque = DblGauge::Impl;
+	using NativeFamily = ct::metric_family_impl<Native>;
+	};
 
-auto opaque(NativeIntGauge* ptr)
+template <>
+struct PimplTrait<ct::dbl_gauge> : PimplTrait<DblGauge::Impl> { };
+
+template <>
+struct PimplTrait<DblGaugeFamily::Impl>
 	{
-	return reinterpret_cast<IntGauge::Impl*>(ptr);
-	}
-
-auto& deref(DblGauge::Impl* ptr)
-	{
-	return *reinterpret_cast<ct::dbl_gauge*>(ptr);
-	}
-
-auto& deref(DblGaugeFamily*, MetricFamily::Impl* ptr)
-	{
-	auto basePtr = reinterpret_cast<NativeMetricFamily*>(ptr);
-	return *static_cast<NativeDblGaugeFamily*>(basePtr);
-	}
-
-auto upcast(DblGaugeFamily::Impl* ptr)
-	{
-	auto native = reinterpret_cast<NativeDblGaugeFamily*>(ptr);
-	auto basePtr = static_cast<NativeMetricFamily*>(native);
-	return reinterpret_cast<MetricFamily::Impl*>(basePtr);
-	}
-
-auto opaque(NativeDblGauge* ptr)
-	{
-	return reinterpret_cast<DblGauge::Impl*>(ptr);
-	}
-
-template <class F>
-auto withNativeLabels(Span<const LabelView> xs, F continuation)
-	{
-	if ( xs.size() <= 10 )
-		{
-		ct::label_view buf[10]={
-			{{},{}}, {{},{}}, {{},{}}, {{},{}}, {{},{}},
-			{{},{}}, {{},{}}, {{},{}}, {{},{}}, {{},{}},
-		};
-		for ( size_t index = 0; index < xs.size(); ++index )
-			buf[index] = ct::label_view{xs[index].first, xs[index].second};
-		return continuation(Span{buf, xs.size()});
-		}
-	else
-		{
-		std::vector<ct::label_view> buf;
-		for ( auto x : xs )
-			buf.emplace_back(x.first, x.second);
-		return continuation(Span{buf});
-		}
-	}
-
-} // namespace
+	using Native = typename PimplTrait<DblGauge::Impl>::NativeFamily;
+	using Oqaque = DblGaugeFamily::Impl;
+	};
 
 // -- IntGauge ---------------------------------------------------------------
 
@@ -137,7 +93,7 @@ IntGaugeFamily::IntGaugeFamily(Impl* ptr) : MetricFamily(upcast(ptr))
 
 IntGauge IntGaugeFamily::GetOrAdd(Span<const LabelView> labels)
 	{
-	return withNativeLabels(labels, [this](auto nativeLabels)
+	return with_native_labels(labels, [this](auto nativeLabels)
 		{
 		auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
 		return IntGauge{hdl};
@@ -177,7 +133,7 @@ DblGaugeFamily::DblGaugeFamily(Impl* ptr) : MetricFamily(upcast(ptr))
 
 DblGauge DblGaugeFamily::GetOrAdd(Span<const LabelView> labels)
 	{
-	return withNativeLabels(labels, [this](auto nativeLabels)
+	return with_native_labels(labels, [this](auto nativeLabels)
 		{
 		auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
 		return DblGauge{hdl};

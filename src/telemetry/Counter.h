@@ -91,6 +91,8 @@ public:
 
 	class Impl;
 
+	using InstanceType = IntCounter;
+
 	IntCounterFamily(const IntCounterFamily&) noexcept = default;
 	IntCounterFamily& operator=(const IntCounterFamily&) noexcept = default;
 
@@ -182,6 +184,8 @@ public:
 	friend class Manager;
 
 	class Impl;
+
+	using InstanceType = DblCounter;
 
 	DblCounterFamily(const DblCounterFamily&) noexcept = default;
 	DblCounterFamily& operator=(const DblCounterFamily&) noexcept = default;

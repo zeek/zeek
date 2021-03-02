@@ -31,29 +31,29 @@ public:
 	/**
 	 * Increments the value by 1.
 	 */
-	void inc() noexcept;
+	void Inc() noexcept;
 
 	/**
 	 * Increments the value by @p amount.
 	 * @pre `amount >= 0`
 	 */
-	void inc(int64_t amount) noexcept;
+	void Inc(int64_t amount) noexcept;
 
 	/**
 	 * Increments the value by 1.
-	 * @returns the new value.
+	 * @return The new value.
 	 */
 	int64_t operator++() noexcept;
 
 	/**
-	 * @returns the current value.
+	 * @return The current value.
 	 */
-	int64_t value() const noexcept;
+	int64_t Value() const noexcept;
 
 	/**
-	 * @returns whether @c this and @p other refer to the same counter.
+	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool isSameAs(IntCounter other) const noexcept
+	constexpr bool IsSameAs(IntCounter other) const noexcept
 		{
 		return pimpl == other.pimpl;
 		}
@@ -68,12 +68,12 @@ private:
 
 /**
  * Checks whether two @ref IntCounter handles are identical.
- * @returns whether @p lhs and @p rhs refer to the same object.
+ * @return Whether @p lhs and @p rhs refer to the same object.
  * @note compare their @c value instead to check for equality.
  */
 constexpr bool operator==(IntCounter lhs, IntCounter rhs) noexcept
 	{
-	return lhs.isSameAs(rhs);
+	return lhs.IsSameAs(rhs);
 	}
 
 /// @relates IntCounter
@@ -98,14 +98,14 @@ public:
 	 * Returns the metrics handle for given labels, creating a new instance
 	 * lazily if necessary.
 	 */
-	IntCounter getOrAdd(Span<const LabelView> labels);
+	IntCounter GetOrAdd(Span<const LabelView> labels);
 
 	/**
-	 * @copydoc getOrAdd
+	 * @copydoc GetOrAdd
 	 */
-	IntCounter getOrAdd(std::initializer_list<LabelView> labels)
+	IntCounter GetOrAdd(std::initializer_list<LabelView> labels)
 		{
-		return getOrAdd(Span{labels.begin(), labels.size()});
+		return GetOrAdd(Span{labels.begin(), labels.size()});
 		}
 
 private:
@@ -129,23 +129,23 @@ public:
 	/**
 	 * Increments the value by 1.
 	 */
-	void inc() noexcept;
+	void Inc() noexcept;
 
 	/**
 	 * Increments the value by @p amount.
 	 * @pre `amount >= 0`
 	 */
-	void inc(double amount) noexcept;
+	void Inc(double amount) noexcept;
 
 	/**
-	 * @returns the current value.
+	 * @return The current value.
 	 */
-	double value() const noexcept;
+	double Value() const noexcept;
 
 	/**
-	 * @returns whether @c this and @p other refer to the same counter.
+	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool isSameAs(DblCounter other) const noexcept
+	constexpr bool IsSameAs(DblCounter other) const noexcept
 		{
 		return pimpl == other.pimpl;
 		}
@@ -160,12 +160,12 @@ private:
 
 /**
  * Checks whether two @ref DblCounter handles are identical.
- * @returns whether @p lhs and @p rhs refer to the same object.
+ * @return Whether @p lhs and @p rhs refer to the same object.
  * @note compare their @c value instead to check for equality.
  */
 constexpr bool operator==(DblCounter lhs, DblCounter rhs) noexcept
 	{
-	return lhs.isSameAs(rhs);
+	return lhs.IsSameAs(rhs);
 	}
 
 /// @relates DblCounter
@@ -190,14 +190,14 @@ public:
 	 * Returns the metrics handle for given labels, creating a new instance
 	 * lazily if necessary.
 	 */
-	DblCounter getOrAdd(Span<const LabelView> labels);
+	DblCounter GetOrAdd(Span<const LabelView> labels);
 
 	/**
-	 * @copydoc getOrAdd
+	 * @copydoc GetOrAdd
 	 */
-	DblCounter getOrAdd(std::initializer_list<LabelView> labels)
+	DblCounter GetOrAdd(std::initializer_list<LabelView> labels)
 		{
-		return getOrAdd(Span{labels.begin(), labels.size()});
+		return GetOrAdd(Span{labels.begin(), labels.size()});
 		}
 
 private:
@@ -212,23 +212,16 @@ struct CounterOracle {
 	              "Counter<T> only supports int64_t and double");
 
 	using type = IntCounter;
-
-	using family_type = IntCounterFamily;
 };
 
 template <>
 struct CounterOracle<double> {
 	using type = DblCounter;
-
-	using family_type = DblCounterFamily;
 };
 
 } // namespace detail
 
 template <class T>
 using Counter = typename detail::CounterOracle<T>::type;
-
-template <class T>
-using CounterFamily = typename detail::CounterOracle<T>::family_type;
 
 } // namespace zeek::telemetry

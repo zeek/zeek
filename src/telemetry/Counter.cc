@@ -96,12 +96,12 @@ auto withNativeLabels(Span<const LabelView> xs, F continuation)
 
 // -- IntCounter ---------------------------------------------------------------
 
-void IntCounter::inc() noexcept
+void IntCounter::Inc() noexcept
 	{
 	deref(pimpl).inc();
 	}
 
-void IntCounter::inc(int64_t amount) noexcept
+void IntCounter::Inc(int64_t amount) noexcept
 	{
 	deref(pimpl).inc(amount);
 	}
@@ -111,7 +111,7 @@ int64_t IntCounter::operator++() noexcept
 	return ++deref(pimpl);
 	}
 
-int64_t IntCounter::value() const noexcept
+int64_t IntCounter::Value() const noexcept
 	{
 	return deref(pimpl).value();
 	}
@@ -120,7 +120,7 @@ IntCounterFamily::IntCounterFamily(Impl* ptr) : MetricFamily(upcast(ptr))
 	{
 	}
 
-IntCounter IntCounterFamily::getOrAdd(Span<const LabelView> labels)
+IntCounter IntCounterFamily::GetOrAdd(Span<const LabelView> labels)
 	{
 	return withNativeLabels(labels, [this](auto nativeLabels)
 		{
@@ -131,17 +131,17 @@ IntCounter IntCounterFamily::getOrAdd(Span<const LabelView> labels)
 
 // -- DblCounter ---------------------------------------------------------------
 
-void DblCounter::inc() noexcept
+void DblCounter::Inc() noexcept
 	{
 	deref(pimpl).inc();
 	}
 
-void DblCounter::inc(double amount) noexcept
+void DblCounter::Inc(double amount) noexcept
 	{
 	deref(pimpl).inc(amount);
 	}
 
-double DblCounter::value() const noexcept
+double DblCounter::Value() const noexcept
 	{
 	return deref(pimpl).value();
 	}
@@ -150,7 +150,7 @@ DblCounterFamily::DblCounterFamily(Impl* ptr) : MetricFamily(upcast(ptr))
 	{
 	}
 
-DblCounter DblCounterFamily::getOrAdd(Span<const LabelView> labels)
+DblCounter DblCounterFamily::GetOrAdd(Span<const LabelView> labels)
 	{
 	return withNativeLabels(labels, [this](auto nativeLabels)
 		{

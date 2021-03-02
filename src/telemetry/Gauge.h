@@ -32,44 +32,44 @@ public:
 	/**
 	 * Increments the value by 1.
 	 */
-	void inc() noexcept;
+	void Inc() noexcept;
 
 	/**
 	 * Increments the value by @p amount.
 	 */
-	void inc(int64_t amount) noexcept;
+	void Inc(int64_t amount) noexcept;
 
 	/**
 	 * Increments the value by 1.
-	 * @returns the new value.
+	 * @return The new value.
 	 */
 	int64_t operator++() noexcept;
 
 	/**
 	 * Decrements the value by 1.
 	 */
-	void dec() noexcept;
+	void Dec() noexcept;
 
 	/**
 	 * Decrements the value by @p amount.
 	 */
-	void dec(int64_t amount) noexcept;
+	void Dec(int64_t amount) noexcept;
 
 	/**
 	 * Decrements the value by 1.
-	 * @returns the new value.
+	 * @return The new value.
 	 */
 	int64_t operator--() noexcept;
 
 	/**
-	 * @returns the current value.
+	 * @return The current value.
 	 */
-	int64_t value() const noexcept;
+	int64_t Value() const noexcept;
 
 	/**
-	 * @returns whether @c this and @p other refer to the same counter.
+	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool isSameAs(IntGauge other) const noexcept
+	constexpr bool IsSameAs(IntGauge other) const noexcept
 		{
 		return pimpl == other.pimpl;
 		}
@@ -84,12 +84,12 @@ private:
 
 /**
  * Checks whether two @ref IntGauge handles are identical.
- * @returns whether @p lhs and @p rhs refer to the same object.
+ * @return Whether @p lhs and @p rhs refer to the same object.
  * @note compare their @c value instead to check for equality.
  */
 constexpr bool operator==(IntGauge lhs, IntGauge rhs) noexcept
 	{
-	return lhs.isSameAs(rhs);
+	return lhs.IsSameAs(rhs);
 	}
 
 /// @relates IntGauge
@@ -114,14 +114,14 @@ public:
 	 * Returns the metrics handle for given labels, creating a new instance
 	 * lazily if necessary.
 	 */
-	IntGauge getOrAdd(Span<const LabelView> labels);
+	IntGauge GetOrAdd(Span<const LabelView> labels);
 
 	/**
-	 * @copydoc getOrAdd
+	 * @copydoc GetOrAdd
 	 */
-	IntGauge getOrAdd(std::initializer_list<LabelView> labels)
+	IntGauge GetOrAdd(std::initializer_list<LabelView> labels)
 		{
-		return getOrAdd(Span{labels.begin(), labels.size()});
+		return GetOrAdd(Span{labels.begin(), labels.size()});
 		}
 
 private:
@@ -146,32 +146,32 @@ public:
 	/**
 	 * Increments the value by 1.
 	 */
-	void inc() noexcept;
+	void Inc() noexcept;
 
 	/**
 	 * Increments the value by @p amount.
 	 */
-	void inc(double amount) noexcept;
+	void Inc(double amount) noexcept;
 
 	/**
 	 * Increments the value by 1.
 	 */
-	void dec() noexcept;
+	void Dec() noexcept;
 
 	/**
 	 * Increments the value by @p amount.
 	 */
-	void dec(double amount) noexcept;
+	void Dec(double amount) noexcept;
 
 	/**
-	 * @returns the current value.
+	 * @return The current value.
 	 */
-	double value() const noexcept;
+	double Value() const noexcept;
 
 	/**
-	 * @returns whether @c this and @p other refer to the same counter.
+	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool isSameAs(DblGauge other) const noexcept
+	constexpr bool IsSameAs(DblGauge other) const noexcept
 		{
 		return pimpl == other.pimpl;
 		}
@@ -186,12 +186,12 @@ private:
 
 /**
  * Checks whether two @ref DblGauge handles are identical.
- * @returns whether @p lhs and @p rhs refer to the same object.
+ * @return Whether @p lhs and @p rhs refer to the same object.
  * @note compare their @c value instead to check for equality.
  */
 constexpr bool operator==(DblGauge lhs, DblGauge rhs) noexcept
 	{
-	return lhs.isSameAs(rhs);
+	return lhs.IsSameAs(rhs);
 	}
 
 /// @relates DblGauge
@@ -216,14 +216,14 @@ public:
 	 * Returns the metrics handle for given labels, creating a new instance
 	 * lazily if necessary.
 	 */
-	DblGauge getOrAdd(Span<const LabelView> labels);
+	DblGauge GetOrAdd(Span<const LabelView> labels);
 
 	/**
-	 * @copydoc getOrAdd
+	 * @copydoc GetOrAdd
 	 */
-	DblGauge getOrAdd(std::initializer_list<LabelView> labels)
+	DblGauge GetOrAdd(std::initializer_list<LabelView> labels)
 		{
-		return getOrAdd(Span{labels.begin(), labels.size()});
+		return GetOrAdd(Span{labels.begin(), labels.size()});
 		}
 
 private:
@@ -238,23 +238,16 @@ struct GaugeOracle {
 	              "Gauge<T> only supports int64_t and double");
 
 	using type = IntGauge;
-
-	using family_type = IntGaugeFamily;
 };
 
 template <>
 struct GaugeOracle<double> {
 	using type = DblGauge;
-
-	using family_type = DblGaugeFamily;
 };
 
 } // namespace detail
 
 template <class T>
 using Gauge = typename detail::GaugeOracle<T>::type;
-
-template <class T>
-using GaugeFamily = typename detail::GaugeOracle<T>::family_type;
 
 } // namespace zeek::telemetry

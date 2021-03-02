@@ -45,46 +45,40 @@ public:
 
 	// -- constructors, destructors, and assignment operators ------------------
 
-	constexpr Span() noexcept : memoryBlock(nullptr), numElements(0)
+	constexpr Span() noexcept : memory_block(nullptr), num_elements(0)
 	{
-	// nop
 	}
 
 	constexpr Span(pointer ptr, size_t size)
-	: memoryBlock(ptr), numElements(size)
+	: memory_block(ptr), num_elements(size)
 	{
-	// nop
 	}
 
 	constexpr Span(pointer first, pointer last)
-	: memoryBlock(first), numElements(static_cast<size_t>(last - first))
+	: memory_block(first), num_elements(static_cast<size_t>(last - first))
 		{
-		// nop
 		}
 
 	template <size_t Size>
 	constexpr Span(element_type (&arr)[Size]) noexcept
-	: memoryBlock(arr), numElements(Size)
+	: memory_block(arr), num_elements(Size)
 		{
-		// nop
 		}
 
 	template <class Container,
 	          class Data = typename Container::value_type,
 	          class = std::enable_if_t<std::is_convertible_v<Data*, T*>>>
 	Span(Container& xs) noexcept
-	: memoryBlock(xs.data()), numElements(xs.size())
+	: memory_block(xs.data()), num_elements(xs.size())
 		{
-		// nop
 		}
 
 	template <class Container,
 	          class Data = typename Container::value_type,
 	          class = std::enable_if_t<std::is_convertible_v<const Data*, T*>>>
 	Span(const Container& xs) noexcept
-	: memoryBlock(xs.data()), numElements(xs.size())
+	: memory_block(xs.data()), num_elements(xs.size())
 		{
-		// nop
 		}
 
 	constexpr Span(const Span&) noexcept = default;
@@ -95,22 +89,22 @@ public:
 
 	constexpr iterator begin() const noexcept
 		{
-		return memoryBlock;
+		return memory_block;
 		}
 
 	constexpr const_iterator cbegin() const noexcept
 		{
-		return memoryBlock;
+		return memory_block;
 		}
 
 	constexpr iterator end() const noexcept
 		{
-		return begin() + numElements;
+		return begin() + num_elements;
 		}
 
 	constexpr const_iterator cend() const noexcept
 		{
-		return cbegin() + numElements;
+		return cbegin() + num_elements;
 		}
 
 	constexpr reverse_iterator rbegin() const noexcept
@@ -137,71 +131,71 @@ public:
 
 	constexpr reference operator[](size_t index) const noexcept
 		{
-		return memoryBlock[index];
+		return memory_block[index];
 		}
 
 	constexpr reference front() const noexcept
 		{
-		return *memoryBlock;
+		return *memory_block;
 		}
 
 	constexpr reference back() const noexcept
 		{
-		return (*this)[numElements - 1];
+		return (*this)[num_elements - 1];
 		}
 
 	// -- properties -----------------------------------------------------------
 
 	constexpr size_t size() const noexcept
 		{
-		return numElements;
+		return num_elements;
 		}
 
 	constexpr size_t size_bytes() const noexcept
 		{
-		return numElements * sizeof(element_type);
+		return num_elements * sizeof(element_type);
 		}
 
 	constexpr bool empty() const noexcept
 		{
-		return numElements == 0;
+		return num_elements == 0;
 		}
 
 	constexpr pointer data() const noexcept
 		{
-		return memoryBlock;
+		return memory_block;
 		}
 
 	// -- subviews -------------------------------------------------------------
 
 	constexpr Span subspan(size_t offset, size_t num_elements) const
 		{
-		return {memoryBlock + offset, num_elements};
+		return {memory_block + offset, num_elements};
 		}
 
 	constexpr Span subspan(size_t offset) const
 		{
-		return {memoryBlock + offset, numElements - offset};
+		return {memory_block + offset, num_elements - offset};
 		}
 
 	constexpr Span first(size_t num_elements) const
 		{
-		return {memoryBlock, num_elements};
+		return {memory_block, num_elements};
 		}
 
 	constexpr Span last(size_t num_elements) const
 		{
-		return subspan(numElements - num_elements, num_elements);
+		return subspan(num_elements - num_elements, num_elements);
 		}
 
 private:
 	// -- member variables -----------------------------------------------------
 
   /// Points to the first element in the contiguous memory block.
-  pointer memoryBlock;
+  pointer memory_block;
 
   /// Stores the number of elements in the contiguous memory block.
-  size_t numElements;
+  size_t num_elements;
 };
 
 // -- deduction guides ---------------------------------------------------------

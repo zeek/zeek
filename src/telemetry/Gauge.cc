@@ -96,22 +96,22 @@ auto withNativeLabels(Span<const LabelView> xs, F continuation)
 
 // -- IntGauge ---------------------------------------------------------------
 
-void IntGauge::inc() noexcept
+void IntGauge::Inc() noexcept
 	{
 	deref(pimpl).inc();
 	}
 
-void IntGauge::inc(int64_t amount) noexcept
+void IntGauge::Inc(int64_t amount) noexcept
 	{
 	deref(pimpl).inc(amount);
 	}
 
-void IntGauge::dec() noexcept
+void IntGauge::Dec() noexcept
 	{
 	deref(pimpl).dec();
 	}
 
-void IntGauge::dec(int64_t amount) noexcept
+void IntGauge::Dec(int64_t amount) noexcept
 	{
 	deref(pimpl).dec(amount);
 	}
@@ -126,7 +126,7 @@ int64_t IntGauge::operator--() noexcept
 	return --deref(pimpl);
 	}
 
-int64_t IntGauge::value() const noexcept
+int64_t IntGauge::Value() const noexcept
 	{
 	return deref(pimpl).value();
 	}
@@ -135,7 +135,7 @@ IntGaugeFamily::IntGaugeFamily(Impl* ptr) : MetricFamily(upcast(ptr))
 	{
 	}
 
-IntGauge IntGaugeFamily::getOrAdd(Span<const LabelView> labels)
+IntGauge IntGaugeFamily::GetOrAdd(Span<const LabelView> labels)
 	{
 	return withNativeLabels(labels, [this](auto nativeLabels)
 		{
@@ -146,27 +146,27 @@ IntGauge IntGaugeFamily::getOrAdd(Span<const LabelView> labels)
 
 // -- DblGauge ---------------------------------------------------------------
 
-void DblGauge::inc() noexcept
+void DblGauge::Inc() noexcept
 	{
 	deref(pimpl).inc();
 	}
 
-void DblGauge::inc(double amount) noexcept
+void DblGauge::Inc(double amount) noexcept
 	{
 	deref(pimpl).inc(amount);
 	}
 
-void DblGauge::dec() noexcept
+void DblGauge::Dec() noexcept
 	{
 	deref(pimpl).dec();
 	}
 
-void DblGauge::dec(double amount) noexcept
+void DblGauge::Dec(double amount) noexcept
 	{
 	deref(pimpl).dec(amount);
 	}
 
-double DblGauge::value() const noexcept
+double DblGauge::Value() const noexcept
 	{
 	return deref(pimpl).value();
 	}
@@ -175,7 +175,7 @@ DblGaugeFamily::DblGaugeFamily(Impl* ptr) : MetricFamily(upcast(ptr))
 	{
 	}
 
-DblGauge DblGaugeFamily::getOrAdd(Span<const LabelView> labels)
+DblGauge DblGaugeFamily::GetOrAdd(Span<const LabelView> labels)
 	{
 	return withNativeLabels(labels, [this](auto nativeLabels)
 		{

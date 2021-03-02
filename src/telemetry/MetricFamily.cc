@@ -19,32 +19,32 @@ auto& deref(MetricFamily::Impl* ptr)
 
 } // namespace
 
-std::string_view MetricFamily::prefix() const noexcept
+std::string_view MetricFamily::Prefix() const noexcept
 	{
 	return deref(pimpl).prefix();
 	}
 
-std::string_view MetricFamily::name() const noexcept
+std::string_view MetricFamily::Name() const noexcept
 	{
 	return deref(pimpl).name();
 	}
 
-Span<const std::string> MetricFamily::labelNames() const noexcept
+Span<const std::string> MetricFamily::LabelNames() const noexcept
 	{
 	return deref(pimpl).label_names();
 	}
 
-std::string_view MetricFamily::helptext() const noexcept
+std::string_view MetricFamily::Helptext() const noexcept
 	{
 	return deref(pimpl).helptext();
 	}
 
-std::string_view MetricFamily::unit() const noexcept
+std::string_view MetricFamily::Unit() const noexcept
 	{
 	return deref(pimpl).unit();
 	}
 
-bool MetricFamily::isSum() const noexcept
+bool MetricFamily::IsSum() const noexcept
 	{
 	return deref(pimpl).is_sum();
 	}

@@ -3206,7 +3206,7 @@ VectorVal::~VectorVal()
 	{
 	if ( yield_types )
 		{
-		auto n = yield_types->size();
+		int n = yield_types->size();
 		for ( auto i = 0; i < n; ++i )
 			DeleteIfManaged((*vector_val)[i], (*yield_types)[i]);
 		delete yield_types;
@@ -3238,7 +3238,7 @@ bool VectorVal::CheckElementType(const ValPtr& element)
 
 	if ( any_yield )
 		{
-		auto n = vector_val->size();
+		int n = vector_val->size();
 
 		if ( n == 0 )
 			// First addition to an empty vector-of-any, perhaps
@@ -3269,7 +3269,7 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 	if ( ! CheckElementType(element) )
 		return false;
 
-	auto n = vector_val->size();
+	unsigned int n = vector_val->size();
 
 	if ( index >= n )
 		{
@@ -3555,7 +3555,7 @@ VectorValPtr VectorVal::Order(Func* cmp_func)
 	// Set up initial mapping of indices directly to corresponding
 	// elements.
 	vector<size_t> ind_vv(n);
-	size_t i;
+	int i;
 	for ( i = 0; i < n; ++i )
 		{
 		ind_vv[i] = i;
@@ -3615,7 +3615,7 @@ ValPtr VectorVal::DoClone(CloneState* state)
 	vv->Reserve(vector_val->size());
 	state->NewClone(this, vv);
 
-	auto n = vector_val->size();
+	int n = vector_val->size();
 
 	for ( auto i = 0; i < n; ++i )
 		{

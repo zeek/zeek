@@ -289,6 +289,7 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 	case TYPE_TIMER:
 	case TYPE_UNION:
 	case TYPE_VOID:
+		v = nullptr;
 		reporter->InternalError("bad ret type return tag");
 	}
 

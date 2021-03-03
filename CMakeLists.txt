@@ -565,12 +565,14 @@ endif ()
 ########################################################################
 ## Look for external plugins to build in
 
-if( NOT ("${ZEEK_BUILTIN_PLUGINS_DIR}" STREQUAL "") AND IS_DIRECTORY ${ZEEK_BUILTIN_PLUGINS_DIR})
-    message (STATUS "Searching for external plugins in ${ZEEK_BUILTIN_PLUGINS_DIR}")
-    file(GLOB PLUGIN_DIRS CONFIGURE_DEPENDS "${ZEEK_BUILTIN_PLUGINS_DIR}/*/CMakeLists.txt")
+if ( NOT "${ZEEK_BUILTIN_PLUGINS_MANIFEST}" STREQUAL "" )
+    macro(zeek_add_builtin_plugin)
+        list(APPEND PLUGIN_DIRS ${ARGV})
+    endmacro()
 
-    foreach(plugin_cmake ${PLUGIN_DIRS})
-        get_filename_component(plugin_dir ${plugin_cmake} DIRECTORY)
+    include(${ZEEK_BUILTIN_PLUGINS_MANIFEST})
+
+    foreach(plugin_dir ${PLUGIN_DIRS})
         get_filename_component(plugin_name ${plugin_dir} NAME)
 
         # Create a list of plugin directories that will then be added in the src/CMakeLists.txt

@@ -28,8 +28,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --toolchain=PATH            path to a CMAKE_TOOLCHAIN_FILE
                                 (useful for cross-compiling)
     --sanitizers=LIST           comma-separated list of sanitizer names to enable
-    --builtin-plugins-dir=PATH  A directory containing plugins to build directly
-                                into the installation.
+    --builtin-plugins=PATH      Path to a file containing a list of
+                                'zeek_add_builtin_plugin(<plugin source-dir>)'
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/zeek]
@@ -207,8 +207,8 @@ while [ $# -ne 0 ]; do
         --toolchain=*)
             append_cache_entry CMAKE_TOOLCHAIN_FILE  PATH   $optarg
             ;;
-        --builtin-plugins-dir=*)
-            append_cache_entry ZEEK_BUILTIN_PLUGINS_DIR  PATH   $optarg
+        --builtin-plugins=*)
+            append_cache_entry ZEEK_BUILTIN_PLUGINS_MANIFEST PATH   $optarg
             ;;
         --prefix=*)
             prefix=$optarg

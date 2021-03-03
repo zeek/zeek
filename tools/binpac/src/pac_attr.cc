@@ -17,6 +17,7 @@ void Attr::init()
 	{
 	expr_ = 0;
 	seqend_ = 0;
+	delete_expr_ = false;
 	}
 
 Attr::Attr(AttrType type)
@@ -40,6 +41,7 @@ Attr::Attr(AttrType type, ExprList *exprlist)
 	type_ = type;
 	init();
 	expr_ = new Expr(exprlist);
+	delete_expr_ = true;
 	}
 
 Attr::Attr(AttrType type, SeqEnd *seqend)
@@ -48,6 +50,12 @@ Attr::Attr(AttrType type, SeqEnd *seqend)
 	type_ = type;
 	init();
 	seqend_ = seqend;
+	}
+
+Attr::~Attr()
+	{
+	if ( delete_expr_ )
+		delete expr_;
 	}
 
 LetAttr::LetAttr(FieldList *letfields)

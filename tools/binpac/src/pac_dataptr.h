@@ -11,6 +11,7 @@ class DataPtr
 {
 public:
 	DataPtr(Env* env, const ID* arg_id, const int arg_off);
+	DataPtr(DataPtr const& x) { *this = x; }
 
 	DataPtr const &operator=(DataPtr const &x)
 		{

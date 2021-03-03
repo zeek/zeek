@@ -19,9 +19,6 @@ string PPSet::ToCode(Env *env)
 string PPType::ToCode(Env *env)
 	{
 	Type *type = expr_->DataType(env);
-	if ( ! type )
-		{
-		}
 	return type->DataTypeStr();
 	}
 

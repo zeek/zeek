@@ -32,6 +32,8 @@ public:
 	Attr(AttrType type, ExprList *exprlist);
 	Attr(AttrType type, SeqEnd *seqend);
 
+	virtual ~Attr();
+
 	AttrType type() const 		{ return type_; }
 	Expr *expr() const		{ return expr_; }
 	SeqEnd *seqend() const		{ return seqend_; }
@@ -47,6 +49,7 @@ protected:
 	AttrType type_;
 	Expr *expr_;
 	SeqEnd *seqend_;
+	bool delete_expr_;
 };
 
 class LetAttr : public Attr

@@ -50,7 +50,7 @@ public:
 		}
 	~ID()
 		{
-		delete locname;
+		delete [] locname;
 		}
 
 	bool operator==(ID const &x) const { return name == x.Name(); }

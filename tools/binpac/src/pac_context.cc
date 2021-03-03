@@ -66,6 +66,7 @@ AnalyzerContextDecl::AnalyzerContextDecl(
 AnalyzerContextDecl::~AnalyzerContextDecl()
 	{
 	delete context_name_id_;
+	delete param_type_;
 	delete_list(ContextFieldList, context_fields_);
 	}
 

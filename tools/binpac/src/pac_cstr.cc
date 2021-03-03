@@ -87,7 +87,7 @@ ConstString::ConstString(const string &s)
 		int len = strlen(text) + 1;
 		int i = 0;
 
-		char* s = new char[len];
+		char* new_s = new char[len];
 
 		// Skip leading quote.
 		for ( ++text; *text; ++text )
@@ -95,22 +95,22 @@ ConstString::ConstString(const string &s)
 			if ( *text == '\\' )
 				{
 				++text;	// skip '\'
-				s[i++] = expand_escape(text);
+				new_s[i++] = expand_escape(text);
 				--text;	// point to end of sequence
 				}
 			else
 				{
-				s[i++] = *text;
+				new_s[i++] = *text;
 				}
 			}
 		ASSERT(i < len);
 
 		// Get rid of trailing quote.
-		ASSERT(s[i-1] == '"');
-		s[i-1] = '\0';
+		ASSERT(new_s[i-1] == '"');
+		new_s[i-1] = '\0';
 
-		unescaped_ = s;
-		delete [] s;
+		unescaped_ = new_s;
+		delete [] new_s;
 		}
 	catch(EscapeException const &e)
 		{

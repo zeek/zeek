@@ -8,9 +8,6 @@ namespace {
 
 void GenLetEval(const ID *id, Expr *expr, string prefix, Output* out, Env* env)
 	{
-	if ( expr )
-		{
-		}
 	}
 
 } // private namespace

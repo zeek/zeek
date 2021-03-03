@@ -436,22 +436,21 @@ void CaseField::GenParseCode(Output* out_cc, Env* env,
 	
 	{
 	Env case_env(env, this);
-	Env *env = &case_env;
 
-	type_->GenPreParsing(out_cc, env);
-	type_->GenParseCode(out_cc, env, data, 0);
+	type_->GenPreParsing(out_cc, &case_env);
+	type_->GenParseCode(out_cc, &case_env, data, 0);
 	if ( size_var )
 		{
-		out_cc->println("%s = %s;", 
-			env->LValue(size_var),
-			type_->DataSize(out_cc, env, data).c_str());
+		out_cc->println("%s = %s;",
+			case_env.LValue(size_var),
+			type_->DataSize(out_cc, &case_env, data).c_str());
 		}
 	if ( type_->incremental_input() )
 		{
 		ASSERT(case_type()->parsing_complete_var());
-		out_cc->println("%s = %s;", 
-			env->LValue(case_type()->parsing_complete_var()),
-			env->RValue(type_->parsing_complete_var()));
+		out_cc->println("%s = %s;",
+			case_env.LValue(case_type()->parsing_complete_var()),
+			case_env.RValue(type_->parsing_complete_var()));
 		}
 	out_cc->println("}");
 	}

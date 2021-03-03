@@ -24,6 +24,7 @@ ConnDecl::~ConnDecl()
 	{
 	delete flows_[0];
 	delete flows_[1];
+	delete data_type_;
 	}
 
 void ConnDecl::AddBaseClass(vector<string> *base_classes) const

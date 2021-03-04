@@ -26,6 +26,8 @@ public:
 
 	struct Impl;
 
+	static inline const char* OpaqueName = "IntHistogramMetricVal";
+
 	IntHistogram() = delete;
 	IntHistogram(const IntHistogram&) noexcept = default;
 	IntHistogram& operator=(const IntHistogram&) noexcept = default;
@@ -90,6 +92,8 @@ public:
 
 	class Impl;
 
+	static inline const char* OpaqueName = "IntHistogramMetricFamilyVal";
+
 	using InstanceType = IntHistogram;
 
 	IntHistogramFamily(const IntHistogramFamily&) noexcept = default;
@@ -123,6 +127,8 @@ public:
 	friend class DblHistogramFamily;
 
 	struct Impl;
+
+	static inline const char* OpaqueName = "DblHistogramMetricVal";
 
 	DblHistogram() = delete;
 	DblHistogram(const DblHistogram&) noexcept = default;
@@ -187,6 +193,8 @@ public:
 	friend class Manager;
 
 	class Impl;
+
+	static inline const char* OpaqueName = "DblHistogramMetricFamilyVal";
 
 	using InstanceType = DblHistogram;
 

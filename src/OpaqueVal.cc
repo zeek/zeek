@@ -1033,4 +1033,63 @@ ValPtr ParaglobVal::DoClone(CloneState* state)
 		}
 	}
 
+broker::expected<broker::data> TelemetryVal::DoSerialize() const
+	{
+	return broker::make_error(broker::ec::invalid_data,
+	                          "cannot serialize metric handles");
+	}
+
+bool TelemetryVal::DoUnserialize(const broker::data&)
+	{
+	return false;
+	}
+
+TelemetryVal::TelemetryVal(telemetry::IntCounter) :OpaqueVal(int_counter_metric_type)
+	{
+	}
+
+TelemetryVal::TelemetryVal(telemetry::IntCounterFamily) :OpaqueVal(int_counter_metric_family_type)
+	{
+	}
+
+TelemetryVal::TelemetryVal(telemetry::DblCounter) :OpaqueVal(dbl_counter_metric_type)
+	{
+	}
+
+TelemetryVal::TelemetryVal(telemetry::DblCounterFamily) :OpaqueVal(dbl_counter_metric_family_type)
+	{
+	}
+
+TelemetryVal::TelemetryVal(telemetry::IntGauge) :OpaqueVal(int_gauge_metric_type)
+	{
+	}
+
+TelemetryVal::TelemetryVal(telemetry::IntGaugeFamily) :OpaqueVal(int_gauge_metric_family_type)
+	{
+	}
+
+TelemetryVal::TelemetryVal(telemetry::DblGauge) :OpaqueVal(dbl_gauge_metric_type)
+	{
+	}
+
+TelemetryVal::TelemetryVal(telemetry::DblGaugeFamily) :OpaqueVal(dbl_gauge_metric_family_type)
+	{
+	}
+
+TelemetryVal::TelemetryVal(telemetry::IntHistogram) :OpaqueVal(int_histogram_metric_type)
+	{
+	}
+
+TelemetryVal::TelemetryVal(telemetry::IntHistogramFamily) :OpaqueVal(int_histogram_metric_family_type)
+	{
+	}
+
+TelemetryVal::TelemetryVal(telemetry::DblHistogram) :OpaqueVal(dbl_histogram_metric_type)
+	{
+	}
+
+TelemetryVal::TelemetryVal(telemetry::DblHistogramFamily) :OpaqueVal(dbl_histogram_metric_family_type)
+	{
+	}
+
 }

@@ -10,6 +10,9 @@
 #include "zeek/RandTest.h"
 #include "zeek/Val.h"
 #include "zeek/digest.h"
+#include "zeek/telemetry/Counter.h"
+#include "zeek/telemetry/Gauge.h"
+#include "zeek/telemetry/Histogram.h"
 
 namespace broker { class data; }
 
@@ -372,5 +375,67 @@ protected:
 private:
 	std::unique_ptr<paraglob::Paraglob> internal_paraglob;
 };
+
+/**
+ * Base class for metric handles. Handle types are not serializable.
+ */
+class TelemetryVal : public OpaqueVal {
+protected:
+	explicit TelemetryVal(telemetry::IntCounter);
+	explicit TelemetryVal(telemetry::IntCounterFamily);
+	explicit TelemetryVal(telemetry::DblCounter);
+	explicit TelemetryVal(telemetry::DblCounterFamily);
+	explicit TelemetryVal(telemetry::IntGauge);
+	explicit TelemetryVal(telemetry::IntGaugeFamily);
+	explicit TelemetryVal(telemetry::DblGauge);
+	explicit TelemetryVal(telemetry::DblGaugeFamily);
+	explicit TelemetryVal(telemetry::IntHistogram);
+	explicit TelemetryVal(telemetry::IntHistogramFamily);
+	explicit TelemetryVal(telemetry::DblHistogram);
+	explicit TelemetryVal(telemetry::DblHistogramFamily);
+
+	broker::expected<broker::data> DoSerialize() const override;
+	bool DoUnserialize(const broker::data& data) override;
+};
+
+template <class Handle>
+class TelemetryValImpl : public TelemetryVal {
+public:
+	using HandleType = Handle;
+
+	explicit TelemetryValImpl(Handle hdl) : TelemetryVal(hdl), hdl(hdl) { }
+
+	Handle GetHandle() const noexcept
+		{
+		return hdl;
+		}
+
+protected:
+	ValPtr DoClone(CloneState*) override
+		{
+		return make_intrusive<TelemetryValImpl>(hdl);
+		}
+
+	const char* OpaqueName() const override
+		{
+		return Handle::OpaqueName;
+		}
+
+private:
+	Handle hdl;
+};
+
+using IntCounterMetricVal = TelemetryValImpl<telemetry::IntCounter>;
+using IntCounterMetricFamilyVal = TelemetryValImpl<telemetry::IntCounterFamily>;
+using DblCounterMetricVal = TelemetryValImpl<telemetry::DblCounter>;
+using DblCounterMetricFamilyVal = TelemetryValImpl<telemetry::DblCounterFamily>;
+using IntGaugeMetricVal = TelemetryValImpl<telemetry::IntGauge>;
+using IntGaugeMetricFamilyVal = TelemetryValImpl<telemetry::IntGaugeFamily>;
+using DblGaugeMetricVal = TelemetryValImpl<telemetry::DblGauge>;
+using DblGaugeMetricFamilyVal = TelemetryValImpl<telemetry::DblGaugeFamily>;
+using IntHistogramMetricVal = TelemetryValImpl<telemetry::IntHistogram>;
+using IntHistogramMetricFamilyVal = TelemetryValImpl<telemetry::IntHistogramFamily>;
+using DblHistogramMetricVal = TelemetryValImpl<telemetry::DblHistogram>;
+using DblHistogramMetricFamilyVal = TelemetryValImpl<telemetry::DblHistogramFamily>;
 
 } // namespace zeek

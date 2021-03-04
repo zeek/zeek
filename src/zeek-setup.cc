@@ -138,6 +138,18 @@ zeek::OpaqueTypePtr bloomfilter_type;
 zeek::OpaqueTypePtr x509_opaque_type;
 zeek::OpaqueTypePtr ocsp_resp_opaque_type;
 zeek::OpaqueTypePtr paraglob_type;
+zeek::OpaqueTypePtr int_counter_metric_type;
+zeek::OpaqueTypePtr int_counter_metric_family_type;
+zeek::OpaqueTypePtr dbl_counter_metric_type;
+zeek::OpaqueTypePtr dbl_counter_metric_family_type;
+zeek::OpaqueTypePtr int_gauge_metric_type;
+zeek::OpaqueTypePtr int_gauge_metric_family_type;
+zeek::OpaqueTypePtr dbl_gauge_metric_type;
+zeek::OpaqueTypePtr dbl_gauge_metric_family_type;
+zeek::OpaqueTypePtr int_histogram_metric_type;
+zeek::OpaqueTypePtr int_histogram_metric_family_type;
+zeek::OpaqueTypePtr dbl_histogram_metric_type;
+zeek::OpaqueTypePtr dbl_histogram_metric_family_type;
 
 // Keep copy of command line
 int zeek::detail::zeek_argc;
@@ -604,6 +616,18 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	x509_opaque_type = make_intrusive<OpaqueType>("x509");
 	ocsp_resp_opaque_type = make_intrusive<OpaqueType>("ocsp_resp");
 	paraglob_type = make_intrusive<OpaqueType>("paraglob");
+	int_counter_metric_type = make_intrusive<OpaqueType>("int_counter_metric");
+	int_counter_metric_family_type = make_intrusive<OpaqueType>("int_counter_metric_family");
+	dbl_counter_metric_type = make_intrusive<OpaqueType>("dbl_counter_metric");
+	dbl_counter_metric_family_type = make_intrusive<OpaqueType>("dbl_counter_metric_family");
+	int_gauge_metric_type = make_intrusive<OpaqueType>("int_gauge_metric");
+	int_gauge_metric_family_type = make_intrusive<OpaqueType>("int_gauge_metric_family");
+	dbl_gauge_metric_type = make_intrusive<OpaqueType>("dbl_gauge_metric");
+	dbl_gauge_metric_family_type = make_intrusive<OpaqueType>("dbl_gauge_metric_family");
+	int_histogram_metric_type = make_intrusive<OpaqueType>("int_histogram_metric");
+	int_histogram_metric_family_type = make_intrusive<OpaqueType>("int_histogram_metric_family");
+	dbl_histogram_metric_type = make_intrusive<OpaqueType>("dbl_histogram_metric");
+	dbl_histogram_metric_family_type = make_intrusive<OpaqueType>("dbl_histogram_metric_family");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
@@ -671,6 +695,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	plugin_mgr->InitPostScript();
 	zeekygen_mgr->InitPostScript();
 	broker_mgr->InitPostScript();
+	telemetry_mgr->InitPostScript();
 	timer_mgr->InitPostScript();
 	event_mgr.InitPostScript();
 

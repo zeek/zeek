@@ -1815,23 +1815,45 @@ std::unique_ptr<telemetry::Manager> Manager::NewTelemetryManager()
 	// owns the CAF actor system, lives for as long as necessary. This also
 	// makes sure that the Broker Manager may even get destroyed before the
 	// telemetry Manager.
-	struct TM : public telemetry::Manager
+	struct TM final : public telemetry::Manager
 	{
+		using MetricRegistryPtr = std::unique_ptr<caf::telemetry::metric_registry>;
+
 		static auto getPimpl(BrokerState& st)
 			{
 			auto registry = std::addressof(st.endpoint.system().metrics());
 			return reinterpret_cast<telemetry::Manager::Impl*>(registry);
 			}
 
-		explicit TM(const std::shared_ptr<BrokerState>& bsptr)
-		: telemetry::Manager(getPimpl(*bsptr)), ptr(bsptr)
+		static auto getPimpl(MetricRegistryPtr& ptr)
 			{
+			return reinterpret_cast<telemetry::Manager::Impl*>(ptr.get());
 			}
 
+		explicit TM(Broker::Manager* parent, MetricRegistryPtr ptr)
+		: telemetry::Manager(getPimpl(ptr)), parent(parent), tmp(std::move(ptr))
+			{
+			assert(tmp != nullptr);
+			assert(parent != nullptr);
+			}
+
+		void InitPostScript() override
+			{
+			assert(parent->bstate != nullptr);
+			ptr = parent->bstate;
+			auto registry = std::addressof(ptr->endpoint.system().metrics());
+			registry->merge(*tmp);
+			tmp.reset();
+			pimpl = reinterpret_cast<telemetry::Manager::Impl*>(registry);
+			}
+
+		Broker::Manager* parent;
+		MetricRegistryPtr tmp;
 		std::shared_ptr<BrokerState> ptr;
 	};
 
-	return std::make_unique<TM>(bstate);
+	auto tmp = std::make_unique<caf::telemetry::metric_registry>();
+	return std::make_unique<TM>(this, std::move(tmp));
 	}
 
 } // namespace zeek::Broker

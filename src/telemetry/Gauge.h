@@ -25,6 +25,8 @@ public:
 
 	struct Impl;
 
+	static inline const char* OpaqueName = "IntGaugeMetricVal";
+
 	IntGauge() = delete;
 	IntGauge(const IntGauge&) noexcept = default;
 	IntGauge& operator=(const IntGauge&) noexcept = default;
@@ -107,6 +109,8 @@ public:
 
 	class Impl;
 
+	static inline const char* OpaqueName = "IntGaugeMetricFamilyVal";
+
 	using InstanceType = IntGauge;
 
 	IntGaugeFamily(const IntGaugeFamily&) noexcept = default;
@@ -140,6 +144,8 @@ public:
 	friend class DblGaugeFamily;
 
 	struct Impl;
+
+	static inline const char* OpaqueName = "DblGaugeMetricVal";
 
 	DblGauge() = delete;
 	DblGauge(const DblGauge&) noexcept = default;
@@ -210,6 +216,8 @@ public:
 	friend class Manager;
 
 	class Impl;
+
+	static inline const char* OpaqueName = "DblGaugeMetricFamilyVal";
 
 	using InstanceType = DblGauge;
 

@@ -14,6 +14,10 @@ Manager::~Manager()
 	{
 	}
 
+void Manager::InitPostScript()
+	{
+	}
+
 IntCounterFamily Manager::IntCounterFam(std::string_view prefix,
                                         std::string_view name,
                                         Span<const std::string_view> labels,

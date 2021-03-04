@@ -32,6 +32,12 @@ public:
 	virtual ~Manager();
 
 	/**
+	 * Initialization of the manager. This is called late during Bro's
+	 * initialization after any scripts are processed.
+	 */
+	virtual void InitPostScript();
+
+	/**
 	 * @return A counter metric family. Creates the family lazily if necessary.
 	 * @param prefix The prefix (namespace) this family belongs to.
 	 * @param name The human-readable name of the metric, e.g., `requests`.
@@ -384,7 +390,7 @@ public:
 		return fam.GetOrAdd({});
 		}
 
-private:
+protected:
 	IntCounterFamily
 	IntCounterFam(std::string_view prefix, std::string_view name,
 	              Span<const std::string_view> labels,

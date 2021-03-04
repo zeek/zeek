@@ -24,6 +24,8 @@ public:
 
 	struct Impl;
 
+	static inline const char* OpaqueName = "IntCounterMetricVal";
+
 	IntCounter() = delete;
 	IntCounter(const IntCounter&) noexcept = default;
 	IntCounter& operator=(const IntCounter&) noexcept = default;
@@ -91,6 +93,8 @@ public:
 
 	class Impl;
 
+	static inline const char* OpaqueName = "IntCounterMetricFamilyVal";
+
 	using InstanceType = IntCounter;
 
 	IntCounterFamily(const IntCounterFamily&) noexcept = default;
@@ -123,6 +127,8 @@ public:
 	friend class DblCounterFamily;
 
 	struct Impl;
+
+	static inline const char* OpaqueName = "DblCounterMetricVal";
 
 	DblCounter() = delete;
 	DblCounter(const DblCounter&) noexcept = default;
@@ -184,6 +190,8 @@ public:
 	friend class Manager;
 
 	class Impl;
+
+	static inline const char* OpaqueName = "DblCounterMetricFamilyVal";
 
 	using InstanceType = DblCounter;
 

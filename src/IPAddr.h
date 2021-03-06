@@ -33,6 +33,11 @@ struct ConnIDKey {
 		memset(&ip2, 0, sizeof(in6_addr));
 		}
 
+	ConnIDKey(const ConnIDKey& rhs)
+		{
+		*this = rhs;
+		}
+
 	bool operator<(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) < 0; }
 	bool operator==(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) == 0; }
 

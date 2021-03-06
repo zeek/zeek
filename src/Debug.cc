@@ -113,14 +113,14 @@ int debug_msg(const char* fmt, ...)
 
 // Trace message output
 
-FILE* TraceState::SetTraceFile(const char* filename)
+FILE* TraceState::SetTraceFile(const char* trace_filename)
 	{
 	FILE* newfile;
 
-	if ( util::streq(filename, "-") )
+	if ( util::streq(trace_filename, "-") )
 		newfile = stderr;
 	else
-		newfile = fopen(filename, "w");
+		newfile = fopen(trace_filename, "w");
 
 	FILE* oldfile = trace_file;
 	if ( newfile )
@@ -129,7 +129,7 @@ FILE* TraceState::SetTraceFile(const char* filename)
 		}
 	else
 		{
-		fprintf(stderr, "Unable to open trace file %s\n", filename);
+		fprintf(stderr, "Unable to open trace file %s\n", trace_filename);
 		trace_file = nullptr;
 		}
 
@@ -326,19 +326,19 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 	else
 		{
 		result.pop_back();
-		ParseLocationRec plr;
+		ParseLocationRec result_plr;
 
-		for ( unsigned int i = 0; i < bodies.size(); ++i )
+		for ( const auto& body : bodies )
 			{
-			get_first_statement(bodies[i].stmts.get(), first, stmt_loc);
+			get_first_statement(body.stmts.get(), first, stmt_loc);
 			if ( ! first )
 				continue;
 
-			plr.type = PLR_FUNCTION;
-			plr.stmt = first;
-			plr.filename = stmt_loc.filename;
-			plr.line = stmt_loc.last_line;
-			result.push_back(plr);
+			result_plr.type = PLR_FUNCTION;
+			result_plr.stmt = first;
+			result_plr.filename = stmt_loc.filename;
+			result_plr.line = stmt_loc.last_line;
+			result.push_back(result_plr);
 			}
 		}
 	}
@@ -369,17 +369,17 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			parse_function_name(result, plr, s);
 		else
 			{ // file:line
-			string filename = s.substr(0, pos_colon);
+			string policy_filename = s.substr(0, pos_colon);
 			string line_string = s.substr(pos_colon + 1, s.length() - pos_colon);
 
 			if ( ! sscanf(line_string.c_str(), "%d", &plr.line) )
 				plr.type = PLR_UNKNOWN;
 
-			string path(util::find_script_file(filename, util::zeek_path()));
+			string path(util::find_script_file(policy_filename, util::zeek_path()));
 
 			if ( path.empty() )
 				{
-				debug_msg("No such policy file: %s.\n", filename.c_str());
+				debug_msg("No such policy file: %s.\n", policy_filename.c_str());
 				plr.type = PLR_UNKNOWN;
 				return result;
 				}

@@ -47,6 +47,22 @@ struct Field {
 		delete [] secondary_name;
 		}
 
+	Field& operator=(const Field& other)
+		{
+		if ( this != &other )
+			{
+			delete [] name;
+			delete [] secondary_name;
+			name = other.name ? util::copy_string(other.name) : nullptr;
+			secondary_name = other.secondary_name ? util::copy_string(other.secondary_name) : nullptr;
+			type = other.type;
+			subtype = other.subtype;
+			optional = other.optional;
+			}
+
+		return *this;
+		}
+
 	/**
 	 * Unserializes a field.
 	 *

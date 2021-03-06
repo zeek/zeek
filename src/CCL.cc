@@ -34,8 +34,8 @@ void CCL::Add(int sym)
 	auto sym_p = static_cast<std::intptr_t>(sym);
 
 	// Check to see if the character is already in the ccl.
-	for ( auto sym : *syms )
-		if ( sym == sym_p )
+	for ( auto sym_entry : *syms )
+		if ( sym_entry == sym_p )
 			return;
 
 	syms->push_back(sym_p);

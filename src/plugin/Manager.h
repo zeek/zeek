@@ -414,7 +414,7 @@ private:
 	bool ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found, std::vector<std::string>* errors);
 	void UpdateInputFiles();
 	void MetaHookPre(HookType hook, const HookArgumentList& args) const;
-	void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) const;
+	void MetaHookPost(HookType hook, const HookArgumentList& args, const HookArgument& result) const;
 
 	// Plugins that were explicitly requested to be activated, but failed to
 	// load at first.

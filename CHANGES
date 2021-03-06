@@ -1,4 +1,14 @@
 
+4.1.0-dev.284 | 2021-03-05 17:37:03 -0800
+
+  * Simplify some copy_string() usages in threading::Field (Jon Siwek, Corelight)
+
+  * Use const-reference in plugin::Manager::MetaHookPost for minor performance gain (Tim Wojtulewicz, Corelight)
+
+  * Fix missing assigmnent operator/copy constructor pairings reported by LGTM (Tim Wojtulewicz, Corelight)
+
+  * Fix variable shadowing issues reported by LGTM (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.277 | 2021-03-05 16:14:23 -0800
 
   * Avoid reporting paths repeatedly in zeek-config --include_dir (Christian Kreibich, Corelight)

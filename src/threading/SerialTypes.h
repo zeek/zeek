@@ -29,16 +29,16 @@ struct Field {
 	 * Constructor.
 	 */
 	Field(const char* name, const char* secondary_name, TypeTag type, TypeTag subtype, bool optional)
-		: name(name ? util::copy_string(name) : nullptr),
-		  secondary_name(secondary_name ? util::copy_string(secondary_name) : nullptr),
+		: name(util::copy_string(name)),
+		  secondary_name(util::copy_string(secondary_name)),
 		  type(type), subtype(subtype), optional(optional)	{ }
 
 	/**
 	 * Copy constructor.
 	 */
 	Field(const Field& other)
-		: name(other.name ? util::copy_string(other.name) : nullptr),
-		  secondary_name(other.secondary_name ? util::copy_string(other.secondary_name) : nullptr),
+		: name(util::copy_string(other.name)),
+		  secondary_name(util::copy_string(other.secondary_name)),
 		  type(other.type), subtype(other.subtype), optional(other.optional)	{ }
 
 	~Field()
@@ -53,8 +53,8 @@ struct Field {
 			{
 			delete [] name;
 			delete [] secondary_name;
-			name = other.name ? util::copy_string(other.name) : nullptr;
-			secondary_name = other.secondary_name ? util::copy_string(other.secondary_name) : nullptr;
+			name = util::copy_string(other.name);
+			secondary_name = util::copy_string(other.secondary_name);
 			type = other.type;
 			subtype = other.subtype;
 			optional = other.optional;

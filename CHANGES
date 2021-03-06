@@ -1,4 +1,10 @@
 
+4.1.0-dev.277 | 2021-03-05 16:14:23 -0800
+
+  * Avoid reporting paths repeatedly in zeek-config --include_dir (Christian Kreibich, Corelight)
+
+  * Fix comment in IP analyzer (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.272 | 2021-03-01 11:36:06 -0800
 
   * Change update-zeekygen-docs.sh to set release branch in Sphinx config (Jon Siwek, Corelight)

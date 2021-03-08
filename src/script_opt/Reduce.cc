@@ -90,7 +90,7 @@ bool Reducer::ID_IsReduced(const ID* id) const
 		IsNewLocal(id);
 	}
 
-NameExprPtr Reducer::GenInlineBlockName(IDPtr id)
+NameExprPtr Reducer::GenInlineBlockName(const IDPtr& id)
 	{
 	return make_intrusive<NameExpr>(GenLocal(id));
 	}
@@ -1004,7 +1004,7 @@ bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids,
 bool CSE_ValidityChecker::CheckAggrMod(const std::vector<const ID*>& ids,
 					const Expr* e) const
 	{
-	auto e_i_t = e->GetType();
+	const auto& e_i_t = e->GetType();
 	if ( IsAggr(e_i_t) )
 		{
 		// This assignment sets an aggregate value.

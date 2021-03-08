@@ -11,7 +11,7 @@ TempVar::TempVar(int num, const TypePtr& t, ExprPtr _rhs) : type(t)
 	char buf[8192];
 	snprintf(buf, sizeof buf, "#%d", num);
 	name = buf;
-	rhs = _rhs;
+	rhs = std::move(_rhs);
 	}
 
 void TempVar::SetAlias(IDPtr _alias, const DefPoints* _dps)
@@ -28,7 +28,7 @@ void TempVar::SetAlias(IDPtr _alias, const DefPoints* _dps)
 	if ( alias == id )
 		reporter->InternalError("Creating alias loop");
 
-	alias = _alias;
+	alias = std::move(_alias);
 	dps = _dps;
 	}
 

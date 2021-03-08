@@ -39,7 +39,7 @@ public:
 	void SetDPs(const DefPoints* _dps);
 
 	const RDPtr& MaxRDs() const	{ return max_rds; }
-	void SetMaxRDs(RDPtr rds)	{ max_rds = rds; }
+	void SetMaxRDs(RDPtr rds)	{ max_rds = std::move(rds); }
 
 protected:
 	std::string name;

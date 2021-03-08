@@ -20,8 +20,8 @@ public:
 
 	StmtPtr Reduce(StmtPtr s)
 		{
-		reduction_root = s;
-		return s->Reduce(this);
+		reduction_root = std::move(s);
+		return reduction_root->Reduce(this);
 		}
 
 	const DefSetsMgr* GetDefSetsMgr() const		{ return mgr; }
@@ -45,7 +45,7 @@ public:
 
 	// This is called *prior* to pushing a new inline block, in
 	// order to generate the equivalent of function parameters.
-	NameExprPtr GenInlineBlockName(IDPtr id);
+	NameExprPtr GenInlineBlockName(const IDPtr& id);
 
 	int NumNewLocals() const	{ return new_locals.size(); }
 
@@ -141,7 +141,7 @@ public:
 	// one (meant for calls in an Expr context) does not, to avoid
 	// circularity.
 	ExprPtr OptExpr(Expr* e);
-	ExprPtr OptExpr(ExprPtr e)
+	ExprPtr OptExpr(const ExprPtr& e)
 		{ return OptExpr(e.get()); }
 
 	// This one for expressions appearing in an Expr context.

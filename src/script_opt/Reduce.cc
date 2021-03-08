@@ -224,8 +224,8 @@ bool Reducer::SameOp(const Expr* op1, const Expr* op2)
 		return true;
 		}
 
-	else
-		reporter->InternalError("bad singleton tag");
+	reporter->InternalError("bad singleton tag");
+	return false;
 	}
 
 bool Reducer::SameExpr(const Expr* e1, const Expr* e2)

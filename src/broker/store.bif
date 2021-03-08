@@ -8,7 +8,10 @@
 #include "zeek/Trigger.h"
 
 static zeek::Broker::detail::StoreHandleVal* to_store_handle(zeek::Val* h)
-	{ return dynamic_cast<zeek::Broker::detail::StoreHandleVal*>(h); }
+	{
+	auto rval = dynamic_cast<zeek::Broker::detail::StoreHandleVal*>(h);
+	return rval && rval->have_store ? rval : nullptr;
+	}
 %%}
 
 module Broker;
@@ -41,7 +44,7 @@ function Broker::__create_master%(id: string, b: BackendType,
 	if ( ! store )
 		{
 		zeek::emit_builtin_error(zeek::util::fmt("Could not create Broker master store '%s'", name));
-		return nullptr;
+		return make_intrusive<zeek::Broker::detail::StoreHandleVal>();
 		}
 
 	return store;
@@ -66,7 +69,7 @@ function Broker::__create_clone%(id: string, resync_interval: interval,
 	if ( ! store )
 		{
 		zeek::emit_builtin_error(zeek::util::fmt("Could not create clone of Broker store '%s'", name));
-		return nullptr;
+		return make_intrusive<zeek::Broker::detail::StoreHandleVal>();
 		}
 
 	return store;
@@ -75,12 +78,15 @@ function Broker::__create_clone%(id: string, resync_interval: interval,
 function Broker::__is_closed%(h: opaque of Broker::Store%): bool
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	auto handle = to_store_handle(h);
+	auto handle = dynamic_cast<zeek::Broker::detail::StoreHandleVal*>(h);
 
 	if ( ! handle )
 		zeek::detail::emit_builtin_exception("invalid Broker store handle", h);
 
-	return zeek::val_mgr->Bool(broker_mgr->LookupStore(handle->store.name()));
+	if ( ! handle->have_store )
+		return zeek::val_mgr->True();
+
+	return zeek::val_mgr->Bool(! broker_mgr->LookupStore(handle->store.name()));
 	%}
 
 function Broker::__close%(h: opaque of Broker::Store%): bool

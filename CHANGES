@@ -1,4 +1,15 @@
 
+4.1.0-dev.288 | 2021-03-08 12:29:14 -0800
+
+  * GH-1426: Improve handling of Broker data store creation failures (Jon Siwek, Corelight)
+
+    Broker::create_master() and Broker::create_clone() now return
+    a valid value even when there's a failure to open the backend database
+    (e.g. SQLite filesystem error).  In that case, the returned value can
+    still be passed into other data store operations, but they'll fail
+    immediately with an error.  Broker::is_closed() can now also be used to
+    determine whether the data store creation calls failed.
+
 4.1.0-dev.286 | 2021-03-08 11:24:38 +0000
 
   * Allow non-TCP based protocols to use SSL analyzer. (Keith Jones)

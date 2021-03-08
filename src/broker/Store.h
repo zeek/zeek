@@ -114,8 +114,12 @@ private:
  */
 class StoreHandleVal : public OpaqueVal {
 public:
+	StoreHandleVal()
+		: OpaqueVal(Broker::detail::opaque_of_store_handle)
+		{}
+
 	StoreHandleVal(broker::store s)
-		: OpaqueVal(Broker::detail::opaque_of_store_handle), store{s}, proxy{store}, store_pid{store.frontend_id()}
+		: OpaqueVal(Broker::detail::opaque_of_store_handle), store{std::move(s)}, proxy{store}, store_pid{store.frontend_id()}, forward_to{}, have_store{true}
 		{ }
 
 	void ValDescribe(ODesc* d) const override;
@@ -125,15 +129,12 @@ public:
 	broker::publisher_id store_pid;
 	// Zeek table that events are forwarded to.
 	TableValPtr forward_to;
+	bool have_store = false;
 
 protected:
 
 	IntrusivePtr<Val> DoClone(CloneState* state) override
 		{ return { NewRef{}, this }; }
-
-	StoreHandleVal()
-		: OpaqueVal(Broker::detail::opaque_of_store_handle)
-		{}
 
 	DECLARE_OPAQUE_VALUE(StoreHandleVal)
 };
@@ -145,4 +146,4 @@ broker::backend to_backend_type(BifEnum::Broker::BackendType type);
 broker::backend_options to_backend_options(broker::backend backend,
                                            RecordVal* options);
 
-} // namespace zeek::Broker
+} // namespace zeek::Broker::detail

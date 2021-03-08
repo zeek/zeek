@@ -78,7 +78,9 @@ export {
 	##
 	## options: tunes how some storage backends operate.
 	##
-	## Returns: a handle to the data store.
+	## Returns: a handle to the data store for which a subsequent call to
+	##          :zeek:see:`Broker::is_closed` will return true if the store
+	##          could not be created/opened.
 	global create_master: function(name: string, b: BackendType &default = MEMORY,
 	                               options: BackendOptions &default = BackendOptions()): opaque of Broker::Store;
 
@@ -111,7 +113,9 @@ export {
 	##                           acknowledged by the master.  A negative/zero
 	##                           value indicates that commands never buffer.
 	##
-	## Returns: a handle to the data store.
+	## Returns: a handle to the data store for which a subsequent call to
+	##          :zeek:see:`Broker::is_closed` will return true if the store
+	##          could not be created/opened.
 	global create_clone: function(name: string,
 	                              resync_interval: interval &default = default_clone_resync_interval,
 	                              stale_interval: interval &default = default_clone_stale_interval,

@@ -48,7 +48,7 @@ public:
 	TraceState()	{ dbgtrace = false; trace_file = stderr; }
 
 	// Returns previous filename.
-	FILE* SetTraceFile(const char* filename);
+	FILE* SetTraceFile(const char* trace_filename);
 
 	bool DoTrace() const	{ return dbgtrace; }
 	void TraceOn();

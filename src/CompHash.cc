@@ -187,14 +187,14 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 				auto rv_i = rv->GetField(i).get();
 
 				Attributes* a = rt->FieldDecl(i)->attrs.get();
-				bool optional = (a && a->Find(ATTR_OPTIONAL));
+				bool optional_attr = (a && a->Find(ATTR_OPTIONAL));
 
-				if ( ! (rv_i || optional) )
+				if ( ! (rv_i || optional_attr) )
 					return nullptr;
 
 				if ( ! (kp = SingleValHash(type_check, kp,
 							   rt->GetFieldType(i).get(),
-							   rv_i, optional)) )
+							   rv_i, optional_attr)) )
 					return nullptr;
 				}
 
@@ -292,9 +292,9 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			kp1 = reinterpret_cast<char*>(kp+1);
 			for ( int i = 0; i < lv->Length(); ++i )
 				{
-				Val* v = lv->Idx(i).get();
-				if ( ! (kp1 = SingleValHash(type_check, kp1, v->GetType().get(), v,
-				                            false)) )
+				Val* entry_val = lv->Idx(i).get();
+				if ( ! (kp1 = SingleValHash(type_check, kp1, entry_val->GetType().get(),
+				                            entry_val, false)) )
 					return nullptr;
 				}
 			}
@@ -515,11 +515,11 @@ int CompositeHash::SingleTypeKeySize(Type* bt, const Val* v,
 			for ( int i = 0; i < num_fields; ++i )
 				{
 				Attributes* a = rt->FieldDecl(i)->attrs.get();
-				bool optional = (a && a->Find(ATTR_OPTIONAL));
+				bool optional_attr = (a && a->Find(ATTR_OPTIONAL));
 
 				sz = SingleTypeKeySize(rt->GetFieldType(i).get(),
 						       rv ? rv->GetField(i).get() : nullptr,
-						       type_check, sz, optional,
+						       type_check, sz, optional_attr,
 						       calc_static_size);
 				if ( ! sz )
 					return 0;

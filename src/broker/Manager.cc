@@ -1746,6 +1746,10 @@ bool Manager::CloseStore(const string& name)
 		++i;
 		}
 
+	s->second->have_store = false;
+	s->second->store_pid = {};
+	s->second->proxy = {};
+	s->second->store = {};
 	Unref(s->second);
 	data_stores.erase(s);
 	return true;

@@ -71,7 +71,8 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	const struct ip* ip4 = packet->ip_hdr->IP4_Hdr();
 
-	// total_len is the length of the packet minus all of the headers so far, including IP
+	// TotalLen() returns the full length of the IP portion of the packet, including
+	// the IP header and payload.
 	uint32_t total_len = packet->ip_hdr->TotalLen();
 	if ( total_len == 0 )
 		{

@@ -57,8 +57,10 @@ void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	assert(TCP());
-	if ( TCP()->IsPartial() )
+	// We purposefully accept protocols other than TCP here. SSL/TLS are a bit special;
+	// they are wrapped in a lot of other protocols. Some of them are UDP based - and provide
+	// their own reassembly on top of UDP.
+	if ( TCP() && TCP()->IsPartial() )
 		return;
 
 	if ( had_gap )

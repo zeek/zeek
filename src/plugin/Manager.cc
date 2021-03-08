@@ -942,7 +942,7 @@ void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const
 			plugin->MetaHookPre(hook, args);
 	}
 
-void Manager::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) const
+void Manager::MetaHookPost(HookType hook, const HookArgumentList& args, const HookArgument& result) const
 	{
 	if ( hook_list* l = hooks[HOOK_CALL_FUNCTION] )
 		for ( const auto& [hook_type, plugin] : *l )

@@ -311,6 +311,8 @@ std::vector<std::string_view> tokenize_string(std::string_view input, const char
 
 extern char* copy_string(const char* s);
 extern int streq(const char* s1, const char* s2);
+extern bool starts_with(std::string_view s, std::string_view beginning);
+extern bool ends_with(std::string_view s, std::string_view ending);
 
 extern char* skip_whitespace(char* s);
 extern const char* skip_whitespace(const char* s);

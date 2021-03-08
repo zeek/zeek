@@ -15,7 +15,7 @@ public:
 	explicit SSL_Analyzer(Connection* conn);
 	~SSL_Analyzer() override;
 
-	// Overriden from Analyzer.
+	// Overridden from Analyzer.
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
@@ -27,7 +27,7 @@ public:
 	// Get the TLS version that the server chose. 0 if not yet known.
 	uint16_t GetNegotiatedVersion() const;
 
-	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
+	// Overridden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)

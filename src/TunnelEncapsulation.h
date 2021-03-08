@@ -76,6 +76,22 @@ public:
 	~EncapsulatingConn()
 		{}
 
+	EncapsulatingConn& operator=(const EncapsulatingConn& other)
+		{
+		if ( this != &other )
+			{
+			src_addr = other.src_addr;
+			dst_addr = other.dst_addr;
+			src_port = other.src_port;
+			dst_port = other.dst_port;
+			proto = other.proto;
+			type = other.type;
+			uid = other.uid;
+			}
+
+		return *this;
+		}
+
 	BifEnum::Tunnel::Type Type() const
 		{ return type; }
 

@@ -18,6 +18,7 @@
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
+#include "zeek/Session.h"
 #include "zeek/TunnelEncapsulation.h"
 
 #include "zeek/analyzer/protocol/icmp/ICMP.h"
@@ -363,8 +364,10 @@ Connection* NetSessions::FindConnection(Val* v)
 	return conn;
 	}
 
-void NetSessions::Remove(Connection* c)
+void NetSessions::Remove(Session* s)
 	{
+	Connection* c = static_cast<Connection*>(s);
+
 	if ( c->IsKeyValid() )
 		{
 		const detail::ConnIDKey& key = c->Key();

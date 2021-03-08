@@ -17,6 +17,7 @@ namespace detail { class PacketFilter; }
 class EncapsulationStack;
 class Packet;
 class Connection;
+class Session;
 struct ConnID;
 
 struct SessionStats {
@@ -49,7 +50,16 @@ public:
 	// no such connection or the Val is ill-formed.
 	Connection* FindConnection(Val* v);
 
-	void Remove(Connection* c);
+	/**
+	 * Looks up the connection referred to by a given key.
+	 *
+	 * @param key The key for the connection to search for.
+	 * @param proto The transport protocol for the connection.
+	 * @return The connection, or nullptr if one doesn't exist.
+	 */
+	Connection* FindConnection(const detail::ConnIDKey& key, TransportProto proto);
+
+	void Remove(Session* s);
 	void Insert(Connection* c);
 
 	// Generating connection_pending events for all connections

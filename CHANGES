@@ -1,4 +1,8 @@
 
+4.1.0-dev.286 | 2021-03-08 11:24:38 +0000
+
+  * Allow non-TCP based protocols to use SSL analyzer. (Keith Jones)
+
 4.1.0-dev.284 | 2021-03-05 17:37:03 -0800
 
   * Simplify some copy_string() usages in threading::Field (Jon Siwek, Corelight)

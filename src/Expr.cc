@@ -468,7 +468,7 @@ NameExpr::NameExpr(IDPtr arg_id, bool const_init)
 	}
 
 // This isn't in-lined to avoid needing to pull in ID.h.
-IDPtr NameExpr::IdPtr()
+const IDPtr& NameExpr::IdPtr() const
 	{
 	return id;
 	}
@@ -3037,21 +3037,6 @@ void IndexExpr::ExprDescribe(ODesc* d) const
 	op2->Describe(d);
 	if ( d->IsReadable() )
 		d->Add("]");
-	}
-
-TraversalCode IndexExpr::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreExpr(this);
-	HANDLE_TC_EXPR_PRE(tc);
-
-	tc = op1->Traverse(cb);
-	HANDLE_TC_EXPR_PRE(tc);
-
-	tc = op2->Traverse(cb);
-	HANDLE_TC_EXPR_PRE(tc);
-
-	tc = cb->PostExpr(this);
-	HANDLE_TC_EXPR_POST(tc);
 	}
 
 FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)

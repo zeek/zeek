@@ -1,4 +1,36 @@
 
+4.1.0-dev.314 | 2021-03-08 18:28:22 -0800
+
+  * new "opt" btest alternative (Vern Paxson, Corelight)
+
+  * update to "xform" test suite baseline due to recent line number changes (Vern Paxson, Corelight)
+
+  * logic for driving AST optimization when requested (Vern Paxson, Corelight)
+
+  * methods implementing AST optimization (aliasing, constant propagation, CSE) (Vern Paxson, Corelight)
+
+  * helper class checking if common-subexpression elimination opportunity is valid (Vern Paxson, Corelight)
+
+  * helper function for comparing collections of definition points (Vern Paxson, Corelight)
+
+  * track more information about temporary variables (Vern Paxson, Corelight)
+
+  * simplify and tidy up some script-opt interfaces (Vern Paxson, Corelight)
+
+  * enable setting "-O optimize-AST" option (Vern Paxson, Corelight)
+
+  * fix for reducing operations on boolean vectors (Vern Paxson, Corelight)
+
+  * Add flag to FuncType::CheckArgs() to control type-equivalence warning output (Vern Paxson, Corelight)
+
+  * remove unneeded IndexExpr::Traverse() virtual method (same as inherited method) (Vern Paxson, Corelight)
+
+  * accessors for additional Expr subclasses (Vern Paxson, Corelight)
+
+  * convenience functions to check for aggregate types (Vern Paxson, Corelight)
+
+  * fix header includes to have proper zeek/ prefixes (Vern Paxson, Corelight)
+
 4.1.0-dev.288 | 2021-03-08 12:29:14 -0800
 
   * GH-1426: Improve handling of Broker data store creation failures (Jon Siwek, Corelight)

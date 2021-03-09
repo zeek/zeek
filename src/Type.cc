@@ -648,7 +648,7 @@ int FuncType::MatchesIndex(detail::ListExpr* const index) const
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
-bool FuncType::CheckArgs(const TypePList* args, bool is_init) const
+bool FuncType::CheckArgs(const TypePList* args, bool is_init, bool do_warn) const
 	{
 	std::vector<TypePtr> as;
 	as.reserve(args->length());
@@ -656,18 +656,19 @@ bool FuncType::CheckArgs(const TypePList* args, bool is_init) const
 	for ( auto a : *args )
 		as.emplace_back(NewRef{}, a);
 
-	return CheckArgs(as, is_init);
+	return CheckArgs(as, is_init, do_warn);
 	}
 
 bool FuncType::CheckArgs(const std::vector<TypePtr>& args,
-                         bool is_init) const
+                         bool is_init, bool do_warn) const
 	{
 	const auto& my_args = arg_types->GetTypes();
 
 	if ( my_args.size() != args.size() )
 		{
-		Warn(util::fmt("Wrong number of arguments for function. Expected %zu, got %zu.",
-		               args.size(), my_args.size()));
+		if ( do_warn )
+			Warn(util::fmt("Wrong number of arguments for function. Expected %zu, got %zu.",
+				       args.size(), my_args.size()));
 		return false;
 		}
 
@@ -676,8 +677,9 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args,
 	for ( size_t i = 0; i < my_args.size(); ++i )
 		if ( ! same_type(args[i], my_args[i], is_init) )
 			{
-			Warn(util::fmt("Type mismatch in function argument #%zu. Expected %s, got %s.",
-			               i, type_name(args[i]->Tag()), type_name(my_args[i]->Tag())));
+			if ( do_warn )
+				Warn(util::fmt("Type mismatch in function argument #%zu. Expected %s, got %s.",
+					       i, type_name(args[i]->Tag()), type_name(my_args[i]->Tag())));
 			success = false;
 			}
 
@@ -1647,7 +1649,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 				return false;
 			}
 
-		return ft1->CheckArgs(ft2->ParamList()->GetTypes(), is_init);
+		return ft1->CheckArgs(ft2->ParamList()->GetTypes(), is_init, false);
 		}
 
 	case TYPE_RECORD:

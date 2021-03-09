@@ -22,6 +22,9 @@ struct AnalyOpt {
 	// Whether to analyze scripts.
 	bool activate = false;
 
+	// Whether to optimize the AST.
+	bool optimize_AST = false;
+
 	// If true, dump out transformed code: the results of reducing
 	// interpreted scripts, and, if optimize is set, of then optimizing
 	// them.  Always done if only_func is set.

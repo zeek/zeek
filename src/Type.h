@@ -447,9 +447,10 @@ public:
 		{ yield = nullptr; flavor = arg_flav; }
 
 	int MatchesIndex(detail::ListExpr* index) const override;
-	bool CheckArgs(const TypePList* args, bool is_init = false) const;
+	bool CheckArgs(const TypePList* args, bool is_init = false,
+			bool do_warn = true) const;
 	bool CheckArgs(const std::vector<TypePtr>& args,
-	               bool is_init = false) const;
+	               bool is_init = false, bool do_warn = true) const;
 
 	const TypeListPtr& ParamList() const
 		{ return arg_types; }
@@ -839,6 +840,14 @@ inline bool IsString(TypeTag t)	{ return (t == TYPE_STRING); }
 inline bool IsAggr(TypeTag tag)
 	{
 	return tag == TYPE_VECTOR || tag == TYPE_TABLE || tag == TYPE_RECORD;
+	}
+inline bool IsAggr(const Type* t)
+	{
+	return IsAggr(t->Tag());
+	}
+inline bool IsAggr(const TypePtr& t)
+	{
+	return IsAggr(t->Tag());
 	}
 
 // True if the given type tag corresponds to the error type.

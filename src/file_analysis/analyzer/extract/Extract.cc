@@ -17,12 +17,21 @@ Extract::Extract(RecordValPtr args, file_analysis::File* file,
                               std::move(args), file),
       filename(arg_filename), limit(arg_limit), depth(0)
 	{
-	fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0666);
+	char buf[128];
+	file_stream = fopen(filename.data(), "w");
 
-	if ( fd < 0 )
+	if ( file_stream )
 		{
-		fd = 0;
-		char buf[128];
+		// Try to ensure full buffering.
+		if ( setvbuf(file_stream, nullptr, _IOFBF, BUFSIZ) )
+			{
+			util::zeek_strerror_r(errno, buf, sizeof(buf));
+			reporter->Warning("cannot set buffering mode for %s: %s",
+			                  filename.data(), buf);
+			}
+		}
+	else
+		{
 		util::zeek_strerror_r(errno, buf, sizeof(buf));
 		reporter->Error("cannot open %s: %s", filename.c_str(), buf);
 		}
@@ -30,8 +39,12 @@ Extract::Extract(RecordValPtr args, file_analysis::File* file,
 
 Extract::~Extract()
 	{
-	if ( fd )
-		util::safe_close(fd);
+	if ( file_stream && fclose(file_stream) )
+		{
+		char buf[128];
+		util::zeek_strerror_r(errno, buf, sizeof(buf));
+		reporter->Error("cannot close %s: %s", filename.data(), buf);
+		}
 	}
 
 static const ValPtr& get_extract_field_val(const RecordValPtr& args,
@@ -86,7 +99,7 @@ static bool check_limit_exceeded(uint64_t lim, uint64_t depth, uint64_t len, uin
 
 bool Extract::DeliverStream(const u_char* data, uint64_t len)
 	{
-	if ( ! fd )
+	if ( ! file_stream )
 		return false;
 
 	uint64_t towrite = 0;
@@ -106,10 +119,32 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 		limit_exceeded = check_limit_exceeded(limit, depth, len, &towrite);
 		}
 
+	char buf[128];
+
 	if ( towrite > 0 )
 		{
-		util::safe_write(fd, reinterpret_cast<const char*>(data), towrite);
+		if ( fwrite(data, towrite, 1, file_stream) != 1 )
+			{
+			util::zeek_strerror_r(errno, buf, sizeof(buf));
+			reporter->Error("failed to write to extracted file %s: %s",
+			                filename.data(), buf);
+			fclose(file_stream);
+			file_stream = nullptr;
+			return false;
+			}
+
 		depth += towrite;
+		}
+
+	// Assume we may not try to write anything more for a while due to reaching
+	// the extraction limit and the file analysis File still proceeding to
+	// do other analysis without destructing/closing this one until the very end,
+	// so flush anything currently buffered.
+	if ( limit_exceeded && fflush(file_stream) )
+		{
+		util::zeek_strerror_r(errno, buf, sizeof(buf));
+		reporter->Warning("cannot fflush extracted file %s: %s",
+		                  filename.data(), buf);
 		}
 
 	return ( ! limit_exceeded );
@@ -117,10 +152,25 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 
 bool Extract::Undelivered(uint64_t offset, uint64_t len)
 	{
+	if ( ! file_stream )
+		return false;
+
 	if ( depth == offset )
 		{
 		char* tmp = new char[len]();
-		util::safe_write(fd, tmp, len);
+
+		if ( fwrite(tmp, len, 1, file_stream) != 1 )
+			{
+			char buf[128];
+			util::zeek_strerror_r(errno, buf, sizeof(buf));
+			reporter->Error("failed to write to extracted file %s: %s",
+			                filename.data(), buf);
+			fclose(file_stream);
+			file_stream = nullptr;
+			delete [] tmp;
+			return false;
+			}
+
 		delete [] tmp;
 		depth += len;
 		}

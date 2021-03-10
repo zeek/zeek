@@ -1,4 +1,12 @@
 
+4.1.0-dev.320 | 2021-03-10 12:29:13 -0800
+
+  * GH-1432: Use buffered IO for file extraction (Jon Siwek, Corelight)
+
+    This can improve performance significantly: ~3.5x faster when tested on
+    a large file passing data to the file analysis framework in small chunks
+    of 20 bytes.
+
 4.1.0-dev.318 | 2021-03-10 12:05:47 -0800
 
   * Avoid searching a directory for dynamic plugins multiple times (Jon Siwek, Corelight)

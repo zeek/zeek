@@ -1,4 +1,13 @@
 
+4.1.0-dev.316 | 2021-03-10 13:00:27 +0000
+
+  * Fix potential mime type detection bug in IRC/FTP file_transferred event
+
+    The files framework uses strncpy to copy data into the buffer that is
+    used for IRC/FTP mime type detection. From all I can tell that means
+    that, in these cases, currently mime type detection will be messed up if
+    the data being passed in contains zero bytes. (Johanna Amann, Corelight)
+
 4.1.0-dev.314 | 2021-03-08 18:28:22 -0800
 
   * new "opt" btest alternative (Vern Paxson, Corelight)

@@ -25,7 +25,7 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	if ( n )
 		{
-		strncpy(buffer + buffer_len, (const char*) data, n);
+		memcpy(buffer + buffer_len, (const char*) data, n);
 		buffer_len += n;
 
 		if ( buffer_len == BUFFER_SIZE )

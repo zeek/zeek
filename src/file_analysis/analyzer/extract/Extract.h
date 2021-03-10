@@ -3,6 +3,7 @@
 #pragma once
 
 #include <string>
+#include <cstdio>
 
 #include "zeek/Val.h"
 #include "zeek/file_analysis/File.h"
@@ -72,7 +73,7 @@ protected:
 
 private:
 	std::string filename;
-	int fd;
+	FILE* file_stream;
 	uint64_t limit;
 	uint64_t depth;
 };

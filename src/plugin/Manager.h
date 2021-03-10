@@ -416,6 +416,11 @@ private:
 	void MetaHookPre(HookType hook, const HookArgumentList& args) const;
 	void MetaHookPost(HookType hook, const HookArgumentList& args, const HookArgument& result) const;
 
+	// Directories that have already been searched for dynamic plugins.
+	// Used to prevent multiple searches of the same dirs (e.g. via symlinks).
+	// The paths stored in the set are made canonical via realpath().
+	std::set<std::string, std::less<>> searched_dirs;
+
 	// Plugins that were explicitly requested to be activated, but failed to
 	// load at first.
 	std::set<std::string> requested_plugins;

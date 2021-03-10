@@ -1,4 +1,8 @@
 
+4.1.0-dev.318 | 2021-03-10 12:05:47 -0800
+
+  * Avoid searching a directory for dynamic plugins multiple times (Jon Siwek, Corelight)
+
 4.1.0-dev.316 | 2021-03-10 13:00:27 +0000
 
   * Fix potential mime type detection bug in IRC/FTP file_transferred event

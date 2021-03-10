@@ -7,6 +7,8 @@
 #include <dlfcn.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <limits.h> // for PATH_MAX
+#include <cstdlib>
 #include <optional>
 #include <sstream>
 #include <fstream>
@@ -69,6 +71,19 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		DBG_LOG(DBG_PLUGINS, "Not a valid plugin directory: %s", dir.c_str());
 		return;
 		}
+
+	char canon_path[PATH_MAX];
+	if ( ! realpath(dir.data(), canon_path) )
+		{
+		DBG_LOG(DBG_PLUGINS, "skip dynamic plugin search in %s, realpath failed: %s",
+		        dir.data(), strerror(errno));
+		return;
+		}
+
+	if ( searched_dirs.count(canon_path) )
+		return;
+
+	searched_dirs.emplace(canon_path);
 
 	// Check if it's a plugin dirctory.
 

@@ -48,7 +48,7 @@ export {
 	## This record is for the smb_files.log
 	type FileInfo: record {
 		## Time when the file was first discovered.
-		ts				: time    &log;
+		ts				: time    &log &default=network_time();
 		## Unique ID of the connection the file was sent over.
 		uid				: string  &log;
 		## ID of the connection the file was sent over.
@@ -74,7 +74,7 @@ export {
 	## This record is for the smb_mapping.log
 	type TreeInfo: record {
 		## Time when the tree was mapped.
-		ts                  : time   &log &optional;
+		ts                  : time   &log &default=network_time();
 		## Unique ID of the connection the tree was mapped over.
 		uid                 : string  &log;
 		## ID of the connection the tree was mapped over.
@@ -94,7 +94,7 @@ export {
 	## This record is for the smb_cmd.log
 	type CmdInfo: record {
 		## Timestamp of the command request.
-		ts				: time &log;
+		ts				: time &log &default=network_time();
 		## Unique ID of the connection the request was sent over.
 		uid				: string &log;
 		## ID of the connection the request was sent over.

@@ -1,4 +1,13 @@
 
+4.1.0-dev.323 | 2021-03-11 12:43:21 -0800
+
+  * ts fields in SMB logs now default to network_time() (Seth Hall, Corelight)
+
+    This avoids a problem identified by amanbansal2709 in pull
+    request #1288. I fixed it in a different way than that pull request
+    by making sure the ts field is always set so that this isssue doesn't
+    return in the future.
+
 4.1.0-dev.320 | 2021-03-10 12:29:13 -0800
 
   * GH-1432: Use buffered IO for file extraction (Jon Siwek, Corelight)

@@ -22,21 +22,12 @@
 
 #include "zeek/analyzer/protocol/icmp/ICMP.h"
 #include "zeek/analyzer/protocol/udp/UDP.h"
-#include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
 #include "zeek/analyzer/Manager.h"
 
 #include "zeek/iosource/IOSource.h"
 #include "zeek/packet_analysis/Manager.h"
 
 #include "zeek/analyzer/protocol/stepping-stone/events.bif.h"
-
-// These represent NetBIOS services on ephemeral ports.  They're numbered
-// so that we can use a single int to hold either an actual TCP/UDP server
-// port or one of these.
-enum NetBIOS_Service {
-	NETBIOS_SERVICE_START = 0x10000L,	// larger than any port
-	NETBIOS_SERVICE_DCE_RPC,
-};
 
 zeek::NetSessions* zeek::sessions;
 zeek::NetSessions*& sessions = zeek::sessions;
@@ -45,11 +36,6 @@ namespace zeek {
 
 NetSessions::NetSessions()
 	{
-	if ( stp_correlate_pair )
-		stp_manager = new analyzer::stepping_stone::SteppingStoneManager();
-	else
-		stp_manager = nullptr;
-
 	packet_filter = nullptr;
 
 	memset(&stats, 0, sizeof(SessionStats));
@@ -58,7 +44,6 @@ NetSessions::NetSessions()
 NetSessions::~NetSessions()
 	{
 	delete packet_filter;
-	delete stp_manager;
 
 	for ( const auto& entry : tcp_conns )
 		Unref(entry.second);
@@ -388,16 +373,6 @@ void NetSessions::Remove(Connection* c)
 		{
 		const detail::ConnIDKey& key = c->Key();
 		c->CancelTimers();
-
-		if ( c->ConnTransport() == TRANSPORT_TCP )
-			{
-			auto ta = static_cast<analyzer::tcp::TCP_Analyzer*>(c->GetRootAnalyzer());
-			assert(ta->IsAnalyzer("TCP"));
-			analyzer::tcp::TCP_Endpoint* to = ta->Orig();
-			analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
-
-			tcp_stats.StateLeft(to->state, tr->state);
-			}
 
 		c->Done();
 		c->RemovalEvent();

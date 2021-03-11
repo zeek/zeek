@@ -170,6 +170,19 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
 
 void Connection::Done()
 	{
+	// TODO: this still doesn't feel like the right place to do this, but it's better
+	// here than in SessionManager. This really should be down in the TCP analyzer
+	// somewhere, but it's session-related, so maybe not?
+	if ( ConnTransport() == TRANSPORT_TCP )
+		{
+		auto ta = static_cast<analyzer::tcp::TCP_Analyzer*>(GetRootAnalyzer());
+		assert(ta->IsAnalyzer("TCP"));
+		analyzer::tcp::TCP_Endpoint* to = ta->Orig();
+		analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
+
+		sessions->tcp_stats.StateLeft(to->state, tr->state);
+		}
+
 	finished = 1;
 
 	if ( root_analyzer && ! root_analyzer->IsFinished() )

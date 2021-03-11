@@ -11,16 +11,12 @@
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/tcp/Stats.h"
 
-class ConnCompressor;
-
 namespace zeek {
 
 class EncapsulationStack;
 class Packet;
 class Connection;
 struct ConnID;
-
-namespace analyzer::stepping_stone { class SteppingStoneManager; }
 
 struct SessionStats {
 	size_t num_TCP_conns;
@@ -76,8 +72,6 @@ public:
 		return packet_filter;
 		}
 
-	analyzer::stepping_stone::SteppingStoneManager* GetSTPManager()	{ return stp_manager; }
-
 	unsigned int CurrentConnections()
 		{
 		return tcp_conns.size() + udp_conns.size() + icmp_conns.size();
@@ -123,6 +117,8 @@ public:
 	unsigned int ConnectionMemoryUsage();
 	unsigned int ConnectionMemoryUsageConnVals();
 	unsigned int MemoryAllocation();
+
+	// TODO: should this move somewhere else?
 	analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
 
 protected:
@@ -171,7 +167,6 @@ protected:
 
 	SessionStats stats;
 
-	analyzer::stepping_stone::SteppingStoneManager* stp_manager;
 	detail::PacketFilter* packet_filter;
 };
 

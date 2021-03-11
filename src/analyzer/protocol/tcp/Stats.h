@@ -9,7 +9,7 @@ namespace zeek::analyzer::tcp {
 class TCPStateStats {
 public:
 	TCPStateStats();
-	~TCPStateStats() { }
+	~TCPStateStats() = default;
 
 	void ChangeState(EndpointState o_prev, EndpointState o_now,
 				EndpointState r_prev, EndpointState r_now);

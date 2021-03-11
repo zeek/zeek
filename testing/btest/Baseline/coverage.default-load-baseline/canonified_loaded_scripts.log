@@ -97,6 +97,7 @@ scripts/base/init-frameworks-and-bifs.zeek
         scripts/base/utils/patterns.zeek
     scripts/base/frameworks/files/magic/__load__.zeek
   build/scripts/base/bif/__load__.zeek
+    build/scripts/base/bif/telemetry.bif.zeek
     build/scripts/base/bif/zeekygen.bif.zeek
     build/scripts/base/bif/pcap.bif.zeek
     build/scripts/base/bif/bloom-filter.bif.zeek

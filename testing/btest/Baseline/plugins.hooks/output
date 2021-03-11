@@ -837,6 +837,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./strings.bif.zeek, <...>/strings.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./sum, <...>/sum.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./telemetry.bif.zeek, <...>/telemetry.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./thresholds, <...>/thresholds.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./top-k.bif.zeek, <...>/top-k.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./topk, <...>/topk.zeek) -> -1
@@ -1840,6 +1841,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./strings.bif.zeek, <...>/strings.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./sum, <...>/sum.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./telemetry.bif.zeek, <...>/telemetry.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./thresholds, <...>/thresholds.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./top-k.bif.zeek, <...>/top-k.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./topk, <...>/topk.zeek)
@@ -2853,6 +2855,7 @@
 0.000000 | HookLoadFile  ./strings.bif.zeek <...>/strings.bif.zeek
 0.000000 | HookLoadFile  ./sum <...>/sum.zeek
 0.000000 | HookLoadFile  ./supervisor.bif.zeek <...>/supervisor.bif.zeek
+0.000000 | HookLoadFile  ./telemetry.bif.zeek <...>/telemetry.bif.zeek
 0.000000 | HookLoadFile  ./thresholds <...>/thresholds.zeek
 0.000000 | HookLoadFile  ./top-k.bif.zeek <...>/top-k.bif.zeek
 0.000000 | HookLoadFile  ./topk <...>/topk.zeek

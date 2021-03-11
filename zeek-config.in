@@ -16,6 +16,7 @@ zeek_dist=@ZEEK_DIST@
 binpac_root=@ZEEK_CONFIG_BINPAC_ROOT_DIR@
 caf_root=@ZEEK_CONFIG_CAF_ROOT_DIR@
 broker_root=@ZEEK_CONFIG_BROKER_ROOT_DIR@
+btest_tools_dir=@ZEEK_CONFIG_BTEST_TOOLS_DIR@
 
 add_path() {
     # $1: existing path
@@ -38,7 +39,7 @@ include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_LibKrb5_INCLUDE_DIR@")
 include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_GooglePerftools_INCLUDE_DIR@")
 
 usage="\
-Usage: zeek-config [--version] [--build_type] [--prefix] [--lib_dir] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--zeekpath] [--zeek_dist] [--binpac_root] [--caf_root] [--broker_root]"
+Usage: zeek-config [--version] [--build_type] [--prefix] [--btest_tools_dir] [--lib_dir] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--zeekpath] [--zeek_dist] [--binpac_root] [--caf_root] [--broker_root]"
 
 if [ $# -eq 0 ] ; then
       echo "${usage}" 1>&2
@@ -63,6 +64,9 @@ while [ $# -ne 0 ]; do
       ;;
     --bropath)   # For compatibility with legacy Bro plugins.
       echo $zeekpath
+      ;;
+    --btest_tools_dir)
+      echo $btest_tools_dir
       ;;
     --build_type)
       echo $build_type

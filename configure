@@ -65,6 +65,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-auxtools     don't build or install auxiliary tools
     --disable-archiver     don't build or install zeek-archiver tool
     --disable-btest        don't install BTest
+    --disable-btest-pcaps  don't install Zeek's BTest input pcaps
     --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
     --disable-zkg          don't install zkg
@@ -161,6 +162,7 @@ append_cache_entry ENABLE_JEMALLOC      BOOL   false
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_BTEST        BOOL   true
+append_cache_entry INSTALL_BTEST_PCAPS  BOOL   true
 append_cache_entry INSTALL_ZEEK_ARCHIVER BOOL  true
 append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry INSTALL_ZKG          BOOL   true
@@ -288,6 +290,9 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-btest)
             append_cache_entry INSTALL_BTEST BOOL false
+            ;;
+        --disable-btest-pcaps)
+            append_cache_entry INSTALL_BTEST_PCAPS BOOL false
             ;;
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true

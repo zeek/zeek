@@ -48,9 +48,9 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=5
 	
 	if ( mid !in smb_state$pending_cmds )
 		{
-		local tmp_cmd = SMB::CmdInfo($ts=network_time(), $uid=c$uid, $id=c$id, $version="SMB1", $command = SMB1::commands[hdr$command]);
+		local tmp_cmd = SMB::CmdInfo($uid=c$uid, $id=c$id, $version="SMB1", $command = SMB1::commands[hdr$command]);
 
-		local tmp_file = SMB::FileInfo($ts=network_time(), $uid=c$uid, $id=c$id);
+		local tmp_file = SMB::FileInfo($uid=c$uid, $id=c$id);
 		tmp_cmd$referenced_file = tmp_file;
 		tmp_cmd$referenced_tree = smb_state$current_tree;
 		
@@ -105,7 +105,7 @@ event smb1_negotiate_response(c: connection, hdr: SMB1::Header, response: SMB1::
 	
 event smb1_tree_connect_andx_request(c: connection, hdr: SMB1::Header, path: string, service: string) &priority=5
 	{
-	local tmp_tree = SMB::TreeInfo($ts=network_time(), $uid=c$uid, $id=c$id, $path=path, $service=service);
+	local tmp_tree = SMB::TreeInfo($uid=c$uid, $id=c$id, $path=path, $service=service);
 
 	c$smb_state$current_cmd$referenced_tree = tmp_tree;
 	c$smb_state$current_cmd$argument = path;
@@ -133,7 +133,7 @@ event smb1_tree_connect_andx_response(c: connection, hdr: SMB1::Header, service:
 
 event smb1_nt_create_andx_request(c: connection, hdr: SMB1::Header, name: string) &priority=5
 	{
-	local tmp_file = SMB::FileInfo($ts=network_time(), $uid=c$uid, $id=c$id);
+	local tmp_file = SMB::FileInfo($uid=c$uid, $id=c$id);
 	c$smb_state$current_cmd$referenced_file = tmp_file;
 
 	c$smb_state$current_cmd$referenced_file$name = name;

@@ -28,8 +28,8 @@ event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=5
 
 	if ( mid !in smb_state$pending_cmds )
 		{
-		local tmp_file = SMB::FileInfo($ts=network_time(), $uid=c$uid, $id=c$id);
-		local tmp_cmd = SMB::CmdInfo($ts=network_time(), $uid=c$uid, $id=c$id, $version="SMB2", $command = SMB2::commands[hdr$command]);
+		local tmp_file = SMB::FileInfo($uid=c$uid, $id=c$id);
+		local tmp_cmd = SMB::CmdInfo($uid=c$uid, $id=c$id, $version="SMB2", $command = SMB2::commands[hdr$command]);
 		tmp_cmd$referenced_file = tmp_file;
 		smb_state$pending_cmds[mid] = tmp_cmd;
 		}
@@ -43,14 +43,14 @@ event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=5
 			}
 		else if ( tid !in smb_state$tid_map )
 			{
-			local tmp_tree = SMB::TreeInfo($ts=network_time(), $uid=c$uid, $id=c$id);
+			local tmp_tree = SMB::TreeInfo($uid=c$uid, $id=c$id);
 			smb_state$tid_map[tid] = tmp_tree;
 			}
 		smb_state$current_cmd$referenced_tree = smb_state$tid_map[tid];
 		}
 	else
 		{
-		smb_state$current_cmd$referenced_tree = SMB::TreeInfo($ts=network_time(), $uid=c$uid, $id=c$id);
+		smb_state$current_cmd$referenced_tree = SMB::TreeInfo($uid=c$uid, $id=c$id);
 		}
 
 	smb_state$current_file = smb_state$current_cmd$referenced_file;

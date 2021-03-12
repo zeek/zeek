@@ -311,17 +311,19 @@ void finish_alternative_mode()
 	#endif
 #endif
 
-#if defined(USING_ASAN)
+// FreeBSD doesn't support LeakSanitizer
+#if defined(USING_ASAN) && !defined(__FreeBSD__)
 	#include <sanitizer/lsan_interface.h>
+	#define BIFCL_LSAN_DISABLE(x) __lsan_disable(x)
+#else
+	#define BIFCL_LSAN_DISABLE(x)
 #endif
 
 int main(int argc, char* argv[])
 	{
-	#if defined(USING_ASAN)
 	// We generally do not care at all if bifcl is leaking and the default
 	// behavior of LSAN to treat leaks as errors only trips up Zeek's build.
-	__lsan_disable();
-	#endif
+	BIFCL_LSAN_DISABLE();
 
 	int opt;
 

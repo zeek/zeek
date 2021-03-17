@@ -260,7 +260,8 @@ extern const char* BRO_VERSION_FUNCTION();
 	#endif
 #endif
 
-#if defined(ZEEK_ASAN)
+// FreeBSD doesn't support LeakSanitizer
+#if defined(ZEEK_ASAN) && !defined(__FreeBSD__)
 	#include <sanitizer/lsan_interface.h>
 	#define ZEEK_LSAN_CHECK(x) __lsan_do_leak_check(x)
 	#define ZEEK_LSAN_ENABLE(x) __lsan_enable(x)

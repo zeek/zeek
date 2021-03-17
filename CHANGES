@@ -1,3 +1,14 @@
+4.1.0-dev.328 | 2021-03-17 10:35:59 -0700
+
+  * Add tests for ERSPAN Type I patch
+
+    Co-authored-by: Markel Elorza Alvarez <melorzaalvarez@gmail.com>
+    Co-authored-by: Ivan Arrizabalaga Cupido <ivanarrcup@gmail.com> (Gorka Olalde Mendia)
+
+  * Add ERSPAN Type I patch
+
+    Co-authored-by: Markel Elorza Alvarez <melorzaalvarez@gmail.com>
+    Co-authored-by: Ivan Arrizabalaga Cupido <ivanarrcup@gmail.com> (Gorka Olalde Mendia)
 
 4.1.0-dev.323 | 2021-03-11 12:43:21 -0800
 

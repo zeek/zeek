@@ -38,7 +38,7 @@ class AnalyzerTimer;
 class SupportAnalyzer;
 class OutputHandler;
 
-using analyzer_list = std::list<Analyzer*>;
+using analyzer_list = std::vector<Analyzer*>;
 typedef uint32_t ID;
 typedef void (Analyzer::*analyzer_timer_func)(double t);
 
@@ -685,8 +685,9 @@ protected:
 
 private:
 	// Internal method to eventually delete a child analyzer that's
-	// already Done().
-	void DeleteChild(analyzer_list::iterator i);
+	// already Done(). Returns an iterator to the next element, following
+	// std::list::erase()'s semantics.
+	analyzer_list::iterator DeleteChild(analyzer_list::iterator i);
 
 	// Helper for the ctors.
 	void CtorInit(const Tag& tag, Connection* conn);
@@ -727,31 +728,27 @@ private:
  * Internal convenience macro to iterate over the list of child analyzers.
  */
 #define LOOP_OVER_CHILDREN(var) \
-	for ( zeek::analyzer::analyzer_list::iterator var = children.begin(); \
-	      var != children.end(); var++ )
+	for ( auto var = children.begin(); var != children.end(); ++var )
 
 /**
  * Internal convenience macro to iterate over the constant list of child
  * analyzers.
  */
 #define LOOP_OVER_CONST_CHILDREN(var) \
-	for ( zeek::analyzer::analyzer_list::const_iterator var = children.begin(); \
-	      var != children.end(); var++ )
+	for ( auto var = children.cbegin(); var != children.cend(); ++var )
 
 /**
  * Convenience macro to iterate over a given list of child analyzers.
  */
 #define LOOP_OVER_GIVEN_CHILDREN(var, the_kids) \
-	for ( zeek::analyzer::analyzer_list::iterator var = the_kids.begin(); \
-	      var != the_kids.end(); var++ )
+	for ( auto var = the_kids.begin(); var != the_kids.end(); ++var )
 
 /**
  * Convenience macro to iterate over a given constant list of child
  * analyzers.
  */
 #define LOOP_OVER_GIVEN_CONST_CHILDREN(var, the_kids) \
-	for ( zeek::analyzer::analyzer_list::const_iterator var = the_kids.begin(); \
-	      var != the_kids.end(); var++ )
+	for ( auto var = the_kids.cbegin(); var != the_kids.cend(); ++var )
 
 /**
  * Support analyzer preprocess input before it reaches an analyzer's main

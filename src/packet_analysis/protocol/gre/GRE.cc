@@ -99,13 +99,24 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 		else if ( proto_typ == 0x88be )
 			{
-			// ERSPAN type II
-			if ( len > gre_len + 14 + 8 )
+			if ( len > gre_len + 14 )
 				{
-				erspan_len = 8;
-				eth_len = 14;
-				gre_link_type = DLT_EN10MB;
-				proto_typ = ntohs(*((uint16_t*)(data + gre_len + erspan_len + eth_len - 2)));
+					// ERSPAN type I
+					erspan_len = 0;
+					eth_len = 14;
+					gre_link_type = DLT_EN10MB;
+					bool have_sequence_header = ( flags_ver & 0x1000 );
+					if( have_sequence_header )
+						{
+							// ERSPAN type II
+							erspan_len += 8;
+							if ( len < gre_len + eth_len + erspan_len )
+								{
+									Weird("truncated_GRE", packet);
+									return false;
+								}
+						}
+					proto_typ = ntohs(*((uint16_t *) (data + gre_len + erspan_len + eth_len - 2)));
 				}
 			else
 				{

@@ -941,6 +941,10 @@ protected:
 	bool is_slice;
 };
 
+extern VectorValPtr index_slice(VectorVal* vect, const ListVal* lv);
+extern VectorValPtr index_slice(VectorVal* vect, int first, int last);
+extern StringValPtr index_string(const String* s, const ListVal* lv);
+
 class IndexExprWhen final : public IndexExpr {
 public:
 	static inline std::vector<ValPtr> results = {};

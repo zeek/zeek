@@ -146,6 +146,10 @@ void FuncInfo::SetProfile(std::shared_ptr<ProfileFunc> _pf)
 
 void analyze_func(ScriptFuncPtr f)
 	{
+	if ( analysis_options.only_func &&
+	     *analysis_options.only_func != f->Name() )
+		return;
+
 	funcs.emplace_back(f, ScopePtr{NewRef{}, f->GetScope()}, f->CurrentBody());
 	}
 

@@ -1,7 +1,7 @@
 #
 # In "normal" test mode, connection uids should be determistic.
 #
-# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace %INPUT >output
+# @TEST-EXEC: zeek -b -D -C -r $TRACES/wikipedia.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 #
 # Without a seed, they should differ each time:

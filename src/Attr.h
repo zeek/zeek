@@ -86,10 +86,11 @@ public:
 			return false;
 
 		if ( expr || other.expr )
-			// If any has an expression and they aren't the same object, we
-			// declare them unequal, as we can't really find out if the two
-			// expressions are equivalent.
-			return (expr == other.expr);
+			// Too hard to check for equivalency, since one
+			// might be expressed/compiled differently than
+			// the other, so assume they're compatible, as
+			// long as both are present.
+			return expr && other.expr;
 
 		return true;
 		}

@@ -208,8 +208,11 @@ void Attributes::AddAttr(AttrPtr attr, bool is_redef)
 	attrs.emplace_back(attr);
 
 	// We only check the attribute after we've added it, to facilitate
-	// generating error messages via Attributes::Describe.
-	CheckAttr(attr.get());
+	// generating error messages via Attributes::Describe.  If the
+	// instantiator of the object specified a null type, however, then
+	// that's a signal to skip the checking.
+	if ( type )
+		CheckAttr(attr.get());
 
 	// For ADD_FUNC or DEL_FUNC, add in an implicit REDEF, since
 	// those attributes only have meaning for a redefinable value.

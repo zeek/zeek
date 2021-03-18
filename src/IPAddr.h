@@ -39,7 +39,11 @@ struct ConnIDKey {
 		}
 
 	bool operator<(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) < 0; }
+	bool operator<=(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) <= 0; }
 	bool operator==(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) == 0; }
+	bool operator!=(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) != 0; }
+	bool operator>=(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) >= 0; }
+	bool operator>(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) > 0; }
 
 	ConnIDKey& operator=(const ConnIDKey& rhs)
 		{

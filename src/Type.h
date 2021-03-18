@@ -716,6 +716,8 @@ protected:
 	void AddNameInternal(const std::string& module_name,
 			const char* name, bro_int_t val, bool is_export);
 
+	void AddNameInternal(const std::string& full_name, bro_int_t val);
+
 	void CheckAndAddName(const std::string& module_name,
 	                     const char* name, bro_int_t val, bool is_export,
 	                     detail::Expr* deprecation = nullptr,

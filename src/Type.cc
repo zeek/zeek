@@ -1367,6 +1367,14 @@ void EnumType::AddNameInternal(const string& module_name, const char* name,
 	names[fullname] = val;
 	}
 
+void EnumType::AddNameInternal(const string& full_name, bro_int_t val)
+	{
+	names[full_name] = val;
+
+	if ( vals.find(val) == vals.end() )
+		vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
+	}
+
 bro_int_t EnumType::Lookup(const string& module_name, const char* name) const
 	{
 	NameMap::const_iterator pos =

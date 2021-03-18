@@ -217,7 +217,7 @@ function set_current_threshold(c: connection, ttype: threshold_type, is_orig: bo
 		return set_current_conn_packets_threshold(c$id, t, T);
 	else if ( ttype == PACKETS && ! is_orig )
 		return set_current_conn_packets_threshold(c$id, t, F);
-	else if ( ttype == DURATION )
+	else # ttype == DURATION
 		return set_current_conn_duration_threshold(c$id, td);
 	}
 

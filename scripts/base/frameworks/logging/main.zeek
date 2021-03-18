@@ -713,6 +713,8 @@ function enable_stream(id: ID) : bool
 
 	if ( id in all_streams )
 		active_streams[id] = all_streams[id];
+
+	return T;
 	}
 
 # convenience function to add a filter name to stream_filters

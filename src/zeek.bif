@@ -68,6 +68,10 @@ static int check_fmt_type(zeek::TypeTag t, zeek::TypeTag ok[])
 
 static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 	{
+	if ( ! v )
+		// Help with error propagation in compiled code.
+		return;
+
 	zeek::TypeTag t = v->GetType()->Tag();
 	zeek::InternalTypeTag it = v->GetType()->InternalType();
 

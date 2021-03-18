@@ -40,6 +40,7 @@ ODesc::ODesc(DescType t, File* arg_f)
 	indent_level = 0;
 	is_short = false;
 	want_quotes = false;
+	want_determinism = false;
 	do_flush = true;
 	include_stats = false;
 	indent_with_spaces = 0;

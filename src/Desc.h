@@ -47,6 +47,11 @@ public:
 	bool WantQuotes() const	{ return want_quotes; }
 	void SetQuotes(bool q)	{ want_quotes = q; }
 
+	// Whether to ensure deterministic output (for example, when
+	// describing TableVal's).
+	bool WantDeterminism() const	{ return want_determinism; }
+	void SetDeterminism(bool d)	{ want_determinism = d; }
+
 	// Whether we want to print statistics like access time and execution
 	// count where available.
 	bool IncludeStats() const	{ return include_stats; }
@@ -122,7 +127,7 @@ public:
 				Add("\n", 0);
 			}
 
-	// Bypasses the escaping enabled via SetEscape().
+	// Bypasses the escaping enabled via EnableEscaping().
 	void AddRaw(const char* s, int len)	{ AddBytesRaw(s, len); }
 	void AddRaw(const std::string &s)		{ AddBytesRaw(s.data(), s.size()); }
 
@@ -194,6 +199,7 @@ protected:
 	bool escape;	// escape unprintable characters in output?
 	bool is_short;
 	bool want_quotes;
+	bool want_determinism;
 
 	int indent_with_spaces;
 

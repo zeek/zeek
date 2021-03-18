@@ -616,6 +616,11 @@ void Frame::CaptureClosure(Frame* c, IDPList arg_outer_ids)
 	// if (c) closure = c->SelectiveClone(outer_ids);
 	}
 
+const detail::Location* Frame::GetCallLocation() const
+	{
+	return call ? call->GetLocationInfo() : nullptr;
+	}
+
 void Frame::SetTrigger(trigger::TriggerPtr arg_trigger)
 	{
 	trigger = std::move(arg_trigger);

@@ -1177,7 +1177,7 @@ broker::data& opaque_field_to_data(RecordVal* v, zeek::detail::Frame* f)
 	const auto& d = v->GetField(0);
 
 	if ( ! d )
-		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
+		reporter->RuntimeError(f->GetCallLocation(),
 		                             "Broker::Data's opaque field is not set");
 
 	// RuntimeError throws an exception which causes this line to never exceute.

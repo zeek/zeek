@@ -306,18 +306,23 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
                          StmtFlowType& /* flow */)
 	{
 	RegisterAccess();
+	do_print_stmt(vals);
+	return nullptr;
+	}
 
+void do_print_stmt(const std::vector<ValPtr>& vals)
+	{
 	if ( ! print_stdout )
 		print_stdout = new File(stdout);
 
 	File* f = print_stdout;
 	int offset = 0;
 
-	if ( vals.size() > 0 && (vals)[0]->GetType()->Tag() == TYPE_FILE )
+	if ( vals.size() > 0 && vals[0] && vals[0]->GetType()->Tag() == TYPE_FILE )
 		{
 		f = (vals)[0]->AsFile();
 		if ( ! f->IsOpen() )
-			return nullptr;
+			return;
 
 		++offset;
 		}
@@ -331,7 +336,7 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 	case BifEnum::Log::REDIRECT_ALL:
 		{
 		print_log(vals);
-		return nullptr;
+		return;
 		}
 	case BifEnum::Log::REDIRECT_STDOUT:
 		if ( f->FileHandle() == stdout )
@@ -339,7 +344,7 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 			// Should catch even printing to a "manually opened" stdout file,
 			// like "/dev/stdout" or "-".
 			print_log(vals);
-			return nullptr;
+			return;
 			}
 		break;
 	default:
@@ -368,8 +373,6 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 		describe_vals(vals, &d, offset);
 		f->Write("\n", 1);
 		}
-
-	return nullptr;
 	}
 
 ExprStmt::ExprStmt(ExprPtr arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))

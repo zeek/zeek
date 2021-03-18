@@ -93,7 +93,7 @@ zeek::ValPtr time_ticks_to_val(const TimeTicks* tt)
 zeek::RecordValPtr build_hdr(const Header* header)
 	{
 	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::Header);
-	rv->Assign(0, uint64_t(header->version()));
+	rv->Assign(0, static_cast<uint64_t>(header->version()));
 
 	switch ( header->version() ) {
 	case SNMPV1_TAG:
@@ -133,9 +133,9 @@ zeek::RecordValPtr build_hdrV3(const Header* header)
 	v3->Assign(0, asn1_integer_to_val(global_data->id(), zeek::TYPE_COUNT));
 	v3->Assign(1, asn1_integer_to_val(global_data->max_size(), zeek::TYPE_COUNT));
 	v3->Assign(2, flags_byte);
-	v3->Assign(3, bool(flags_byte & 0x01));
-	v3->Assign(4, bool(flags_byte & 0x02));
-	v3->Assign(5, bool(flags_byte & 0x04));
+	v3->Assign(3, static_cast<bool>(flags_byte & 0x01));
+	v3->Assign(4, static_cast<bool>(flags_byte & 0x02));
+	v3->Assign(5, static_cast<bool>(flags_byte & 0x04));
 	v3->Assign(6, asn1_integer_to_val(global_data->security_model(), zeek::TYPE_COUNT));
 	v3->Assign(7, asn1_octet_string_to_val(v3hdr->security_parameters()));
 

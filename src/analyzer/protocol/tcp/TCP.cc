@@ -109,14 +109,14 @@ static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
 	static auto SYN_packet = id::find_type<RecordType>("SYN_packet");
 	auto* v = new RecordVal(SYN_packet);
 
-	v->Assign(0, bool(is_orig));
-	v->Assign(1, bool(int(ip->DF())));
-	v->Assign(2, uint32_t(ip->TTL()));
-	v->Assign(3, uint32_t((ip->TotalLen())));
-	v->Assign(4, uint32_t(ntohs(tcp->th_win)));
-	v->Assign(5, int(winscale));
-	v->Assign(6, uint32_t(MSS));
-	v->Assign(7, bool(SACK));
+	v->Assign(0, is_orig);
+	v->Assign(1, static_cast<bool>(ip->DF()));
+	v->Assign(2, ip->TTL());
+	v->Assign(3, ip->TotalLen());
+	v->Assign(4, ntohs(tcp->th_win));
+	v->Assign(5, winscale);
+	v->Assign(6, MSS);
+	v->Assign(7, static_cast<bool>(SACK));
 
 	return v;
 	}
@@ -1286,9 +1286,9 @@ void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	auto resp_endp_val = conn_val->GetFieldAs<RecordVal>("resp");
 
 	orig_endp_val->Assign(0, orig->Size());
-	orig_endp_val->Assign(1, int(orig->state));
+	orig_endp_val->Assign(1, orig->state);
 	resp_endp_val->Assign(0, resp->Size());
-	resp_endp_val->Assign(1, int(resp->state));
+	resp_endp_val->Assign(1, resp->state);
 
 	// Call children's UpdateConnVal
 	Analyzer::UpdateConnVal(conn_val);
@@ -1369,8 +1369,8 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			auto length = kind < 2 ? 1 : o[1];
 			auto option_record = make_intrusive<RecordVal>(BifType::Record::TCP::Option);
 			option_list->Assign(option_list->Size(), option_record);
-			option_record->Assign(0, uint32_t(kind));
-			option_record->Assign(1, uint32_t(length));
+			option_record->Assign(0, kind);
+			option_record->Assign(1, length);
 
 			switch ( kind ) {
 			case 2:
@@ -1378,7 +1378,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				if ( length == 4 )
 					{
 					auto mss = ntohs(*reinterpret_cast<const uint16_t*>(o + 2));
-					option_record->Assign(3, uint32_t(mss));
+					option_record->Assign(3, mss);
 					}
 				else
 					{
@@ -1392,7 +1392,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				if ( length == 3 )
 					{
 					auto scale = o[2];
-					option_record->Assign(4, uint32_t(scale));
+					option_record->Assign(4, scale);
 					}
 				else
 					{
@@ -1438,8 +1438,8 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					{
 					auto send = ntohl(*reinterpret_cast<const uint32_t*>(o + 2));
 					auto echo = ntohl(*reinterpret_cast<const uint32_t*>(o + 6));
-					option_record->Assign(6, uint32_t(send));
-					option_record->Assign(7, uint32_t(echo));
+					option_record->Assign(6, send);
+					option_record->Assign(7, echo);
 					}
 				else
 					{

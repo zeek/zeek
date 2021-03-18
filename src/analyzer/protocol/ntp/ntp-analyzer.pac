@@ -78,7 +78,7 @@
 		if ( ${nsm.has_exts} )
 			{
 			// TODO: add extension fields
-			rv->Assign(14, (uint32) ${nsm.exts}->size());
+			rv->Assign(14, static_cast<uint32>(${nsm.exts}->size()));
 			}
 
 		return rv;
@@ -90,9 +90,9 @@
 		auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::NTP::ControlMessage);
 
 		rv->Assign(0, ${ncm.OpCode});
-		rv->Assign(1, bool(${ncm.R}));
-		rv->Assign(2, bool(${ncm.E}));
-		rv->Assign(3, bool(${ncm.M}));
+		rv->Assign(1, ${ncm.R});
+		rv->Assign(2, ${ncm.E});
+		rv->Assign(3, ${ncm.M});
 		rv->Assign(4, ${ncm.sequence});
 		rv->Assign(5, ${ncm.status});
 		rv->Assign(6, ${ncm.association_id});
@@ -115,7 +115,7 @@
 		auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::NTP::Mode7Message);
 
 		rv->Assign(0, ${m7.request_code});
-		rv->Assign(1, bool(${m7.auth_bit}));
+		rv->Assign(1, ${m7.auth_bit});
 		rv->Assign(2, ${m7.sequence});
 		rv->Assign(3, ${m7.implementation});
 		rv->Assign(4, ${m7.error_code});

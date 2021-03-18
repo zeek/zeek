@@ -217,7 +217,7 @@ ValPtr PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len)
 	pr->Assign(1, extract_XDR_uint32(buf, len));
 
 	bool is_tcp = extract_XDR_uint32(buf, len) == IPPROTO_TCP;
-	pr->Assign(2, bool(is_tcp));
+	pr->Assign(2, is_tcp);
 	(void) extract_XDR_uint32(buf, len);	// consume the bogus port
 
 	if ( ! buf )

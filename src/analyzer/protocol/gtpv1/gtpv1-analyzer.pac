@@ -10,11 +10,11 @@ zeek::RecordValPtr BuildGTPv1Hdr(const GTPv1_Header* pdu)
 	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::gtpv1_hdr);
 
 	rv->Assign(0, pdu->version());
-	rv->Assign(1, bool(pdu->pt_flag()));
-	rv->Assign(2, bool(pdu->rsv()));
-	rv->Assign(3, bool(pdu->e_flag()));
-	rv->Assign(4, bool(pdu->s_flag()));
-	rv->Assign(5, bool(pdu->pn_flag()));
+	rv->Assign(1, pdu->pt_flag());
+	rv->Assign(2, pdu->rsv());
+	rv->Assign(3, pdu->e_flag());
+	rv->Assign(4, pdu->s_flag());
+	rv->Assign(5, pdu->pn_flag());
 	rv->Assign(6, pdu->msg_type());
 	rv->Assign(7, pdu->length());
 	rv->Assign(8, pdu->teid());

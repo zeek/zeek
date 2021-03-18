@@ -111,7 +111,7 @@ refine flow SSH_Flow += {
 			}
 
 
-		result->Assign(6, bool(!${msg.is_orig}));
+		result->Assign(6, !${msg.is_orig});
 
 		zeek::BifEvent::enqueue_ssh_capabilities(connection()->zeek_analyzer(),
 			connection()->zeek_analyzer()->Conn(), to_stringval(${msg.cookie}),

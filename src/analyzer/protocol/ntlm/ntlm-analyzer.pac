@@ -31,28 +31,28 @@
 	zeek::RecordValPtr build_negotiate_flag_record(NTLM_Negotiate_Flags* val)
 		{
 		auto flags = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::NTLM::NegotiateFlags);
-		flags->Assign(0, bool(${val.negotiate_56}));
-		flags->Assign(1, bool(${val.negotiate_key_exch}));
-		flags->Assign(2, bool(${val.negotiate_128}));
-		flags->Assign(3, bool(${val.negotiate_version}));
-		flags->Assign(4, bool(${val.negotiate_target_info}));
-		flags->Assign(5, bool(${val.request_non_nt_session_key}));
-		flags->Assign(6, bool(${val.negotiate_identify}));
-		flags->Assign(7, bool(${val.negotiate_extended_sessionsecurity}));
-		flags->Assign(8, bool(${val.target_type_server}));
-		flags->Assign(9, bool(${val.target_type_domain}));
-		flags->Assign(10, bool(${val.negotiate_always_sign}));
-		flags->Assign(11, bool(${val.negotiate_oem_workstation_supplied}));
-		flags->Assign(12, bool(${val.negotiate_oem_domain_supplied}));
-		flags->Assign(13, bool(${val.negotiate_anonymous_connection}));
-		flags->Assign(14, bool(${val.negotiate_ntlm}));
-		flags->Assign(15, bool(${val.negotiate_lm_key}));
-		flags->Assign(16, bool(${val.negotiate_datagram}));
-		flags->Assign(17, bool(${val.negotiate_seal}));
-		flags->Assign(18, bool(${val.negotiate_sign}));
-		flags->Assign(19, bool(${val.request_target}));
-		flags->Assign(20, bool(${val.negotiate_oem}));
-		flags->Assign(21, bool(${val.negotiate_unicode}));
+		flags->Assign(0, ${val.negotiate_56});
+		flags->Assign(1, ${val.negotiate_key_exch});
+		flags->Assign(2, ${val.negotiate_128});
+		flags->Assign(3, ${val.negotiate_version});
+		flags->Assign(4, ${val.negotiate_target_info});
+		flags->Assign(5, ${val.request_non_nt_session_key});
+		flags->Assign(6, ${val.negotiate_identify});
+		flags->Assign(7, ${val.negotiate_extended_sessionsecurity});
+		flags->Assign(8, ${val.target_type_server});
+		flags->Assign(9, ${val.target_type_domain});
+		flags->Assign(10, ${val.negotiate_always_sign});
+		flags->Assign(11, ${val.negotiate_oem_workstation_supplied});
+		flags->Assign(12, ${val.negotiate_oem_domain_supplied});
+		flags->Assign(13, ${val.negotiate_anonymous_connection});
+		flags->Assign(14, ${val.negotiate_ntlm});
+		flags->Assign(15, ${val.negotiate_lm_key});
+		flags->Assign(16, ${val.negotiate_datagram});
+		flags->Assign(17, ${val.negotiate_seal});
+		flags->Assign(18, ${val.negotiate_sign});
+		flags->Assign(19, ${val.request_target});
+		flags->Assign(20, ${val.negotiate_oem});
+		flags->Assign(21, ${val.negotiate_unicode});
 
 		return flags;
 		}
@@ -96,7 +96,7 @@ refine connection NTLM_Conn += {
 					result->Assign(4, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.pairs[i].dns_tree_name.data}));
 					break;
 				case 6:
-					result->Assign(5, bool(${val.pairs[i].constrained_auth}));
+					result->Assign(5, ${val.pairs[i].constrained_auth});
 					break;
 				case 7:
 					result->Assign(6, filetime2zeektime(${val.pairs[i].timestamp}));

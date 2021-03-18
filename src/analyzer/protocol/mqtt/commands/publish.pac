@@ -24,9 +24,9 @@ refine flow MQTT_Flow += {
 		if ( mqtt_publish )
 			{
 			auto m = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::MQTT::PublishMsg);
-			m->Assign(0, bool(${msg.dup}));
+			m->Assign(0, ${msg.dup});
 			m->Assign(1, ${msg.qos});
-			m->Assign(2, bool(${msg.retain}));
+			m->Assign(2, ${msg.retain});
 			m->Assign<zeek::StringVal>(3, ${msg.topic.str}.length(),
 			                     reinterpret_cast<const char*>(${msg.topic.str}.begin()));
 

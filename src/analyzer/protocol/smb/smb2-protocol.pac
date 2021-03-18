@@ -36,21 +36,21 @@ zeek::RecordValPtr BuildSMB2GUID(SMB2_guid* file_id)
 zeek::RecordValPtr smb2_file_attrs_to_zeek(SMB2_file_attributes* val)
 	{
 	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::FileAttrs);
-	r->Assign(0, bool(${val.read_only}));
-	r->Assign(1, bool(${val.hidden}));
-	r->Assign(2, bool(${val.system}));
-	r->Assign(3, bool(${val.directory}));
-	r->Assign(4, bool(${val.archive}));
-	r->Assign(5, bool(${val.normal}));
-	r->Assign(6, bool(${val.temporary}));
-	r->Assign(7, bool(${val.sparse_file}));
-	r->Assign(8, bool(${val.reparse_point}));
-	r->Assign(9, bool(${val.compressed}));
-	r->Assign(10, bool(${val.offline}));
-	r->Assign(11, bool(${val.not_content_indexed}));
-	r->Assign(12, bool(${val.encrypted}));
-	r->Assign(13, bool(${val.integrity_stream}));
-	r->Assign(14, bool(${val.no_scrub_data}));
+	r->Assign(0, ${val.read_only});
+	r->Assign(1, ${val.hidden});
+	r->Assign(2, ${val.system});
+	r->Assign(3, ${val.directory});
+	r->Assign(4, ${val.archive});
+	r->Assign(5, ${val.normal});
+	r->Assign(6, ${val.temporary});
+	r->Assign(7, ${val.sparse_file});
+	r->Assign(8, ${val.reparse_point});
+	r->Assign(9, ${val.compressed});
+	r->Assign(10, ${val.offline});
+	r->Assign(11, ${val.not_content_indexed});
+	r->Assign(12, ${val.encrypted});
+	r->Assign(13, ${val.integrity_stream});
+	r->Assign(14, ${val.no_scrub_data});
 	return r;
 	}
 

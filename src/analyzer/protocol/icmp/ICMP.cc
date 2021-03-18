@@ -224,11 +224,11 @@ RecordValPtr ICMP_Analyzer::BuildInfo(const struct icmp* icmpp, int len,
 	{
 	static auto icmp_info = id::find_type<RecordType>("icmp_info");
 	auto rval = make_intrusive<RecordVal>(icmp_info);
-	rval->Assign(0, bool(icmpv6));
-	rval->Assign(1, uint32_t(icmpp->icmp_type));
-	rval->Assign(2, uint32_t(icmpp->icmp_code));
-	rval->Assign(3, uint32_t(len));
-	rval->Assign(4, uint32_t(ip_hdr->TTL()));
+	rval->Assign(0, static_cast<bool>(icmpv6));
+	rval->Assign(1, icmpp->icmp_type);
+	rval->Assign(2, icmpp->icmp_code);
+	rval->Assign(3, len);
+	rval->Assign(4, ip_hdr->TTL());
 	return rval;
 	}
 
@@ -355,13 +355,13 @@ RecordValPtr ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	id_val->Assign(3, val_mgr->Port(dst_port, proto));
 
 	iprec->Assign(0, std::move(id_val));
-	iprec->Assign(1, uint32_t(ip_len));
-	iprec->Assign(2, uint32_t(proto));
-	iprec->Assign(3, uint32_t(frag_offset));
-	iprec->Assign(4, bool(bad_hdr_len));
-	iprec->Assign(5, bool(bad_checksum));
-	iprec->Assign(6, bool(MF));
-	iprec->Assign(7, bool(DF));
+	iprec->Assign(1, ip_len);
+	iprec->Assign(2, proto);
+	iprec->Assign(3, frag_offset);
+	iprec->Assign(4, static_cast<bool>(bad_hdr_len));
+	iprec->Assign(5, static_cast<bool>(bad_checksum));
+	iprec->Assign(6, static_cast<bool>(MF));
+	iprec->Assign(7, static_cast<bool>(DF));
 
 	return iprec;
 	}
@@ -415,14 +415,14 @@ RecordValPtr ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	id_val->Assign(3, val_mgr->Port(dst_port, proto));
 
 	iprec->Assign(0, std::move(id_val));
-	iprec->Assign(1, uint32_t(ip_len));
-	iprec->Assign(2, uint32_t(proto));
-	iprec->Assign(3, uint32_t(frag_offset));
-	iprec->Assign(4, bool(bad_hdr_len));
+	iprec->Assign(1, ip_len);
+	iprec->Assign(2, proto);
+	iprec->Assign(3, frag_offset);
+	iprec->Assign(4, static_cast<bool>(bad_hdr_len));
 	// bad_checksum is always false since IPv6 layer doesn't have a checksum.
 	iprec->Assign(5, false);
-	iprec->Assign(6, bool(MF));
-	iprec->Assign(7, bool(DF));
+	iprec->Assign(6, static_cast<bool>(MF));
+	iprec->Assign(7, static_cast<bool>(DF));
 
 	return iprec;
 	}
@@ -473,13 +473,13 @@ void ICMP_Analyzer::UpdateEndpointVal(const ValPtr& endp_arg, bool is_orig)
 	if ( size < 0 )
 		{
 		endp->Assign(0, 0);
-		endp->Assign(1, int(ICMP_INACTIVE));
+		endp->Assign(1, ICMP_INACTIVE);
 		}
 
 	else
 		{
 		endp->Assign(0, size);
-		endp->Assign(1, int(ICMP_ACTIVE));
+		endp->Assign(1, ICMP_ACTIVE);
 		}
 	}
 
@@ -816,7 +816,7 @@ VectorValPtr ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			// MTU option
 			{
 			if ( caplen >= 6 )
-				rv->Assign(5, uint32_t(ntohl(*((const uint32_t*)(data + 2)))));
+				rv->Assign(5, ntohl(*((const uint32_t*)(data + 2))));
 			else
 				set_payload_field = true;
 

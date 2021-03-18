@@ -1926,7 +1926,7 @@ function packet_source%(%): PacketSource
 
 	if ( ps )
 		{
-		r->Assign(0, bool(ps->IsLive()));
+		r->Assign(0, ps->IsLive());
 		r->Assign(1, ps->Path());
 		r->Assign(2, ps->LinkType());
 		r->Assign(3, ps->Netmask());
@@ -1980,12 +1980,12 @@ function global_ids%(%): id_table
 		static auto script_id = zeek::id::find_type<zeek::RecordType>("script_id");
 		auto rec = zeek::make_intrusive<zeek::RecordVal>(script_id);
 		rec->Assign(0, type_name(id->GetType()->Tag()));
-		rec->Assign(1, bool(id->IsExport()));
-		rec->Assign(2, bool(id->IsConst()));
-		rec->Assign(3, bool(id->IsEnumConst()));
-		rec->Assign(4, bool(id->IsOption()));
-		rec->Assign(5, bool(id->IsRedefinable()));
-		rec->Assign(6, bool(id->GetAttr(zeek::detail::ATTR_BACKEND) != zeek::detail::Attr::nil));
+		rec->Assign(1, id->IsExport());
+		rec->Assign(2, id->IsConst());
+		rec->Assign(3, id->IsEnumConst());
+		rec->Assign(4, id->IsOption());
+		rec->Assign(5, id->IsRedefinable());
+		rec->Assign(6, id->GetAttr(zeek::detail::ATTR_BACKEND) != zeek::detail::Attr::nil);
 
 		if ( id->HasVal() )
 			rec->Assign(7, id->GetVal());
@@ -3503,8 +3503,8 @@ function get_current_packet%(%) : pcap_packet
 		return pkt;
 		}
 
-	pkt->Assign(0, uint32_t(p->ts.tv_sec));
-	pkt->Assign(1, uint32_t(p->ts.tv_usec));
+	pkt->Assign(0, static_cast<uint32_t>(p->ts.tv_sec));
+	pkt->Assign(1, static_cast<uint32_t>(p->ts.tv_usec));
 	pkt->Assign(2, p->cap_len);
 	pkt->Assign(3, p->len);
 	pkt->Assign(4, zeek::make_intrusive<zeek::StringVal>(p->cap_len, (const char*)p->data));

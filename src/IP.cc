@@ -122,7 +122,7 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 		rv->Assign(1, frag->ip6f_reserved);
 		rv->Assign(2, (ntohs(frag->ip6f_offlg) & 0xfff8)>>3);
 		rv->Assign(3, (ntohs(frag->ip6f_offlg) & 0x0006)>>1);
-		rv->Assign(4, bool(ntohs(frag->ip6f_offlg) & 0x0001));
+		rv->Assign(4, static_cast<bool>(ntohs(frag->ip6f_offlg) & 0x0001));
 		rv->Assign(5, ntohl(frag->ip6f_ident));
 		}
 		break;
@@ -246,10 +246,10 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 			{
 			auto m = make_intrusive<RecordVal>(ip6_mob_bu_type);
 			m->Assign(0, ntohs(*((uint16_t*)msg_data))));
-			m->Assign(1, bool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x8000));
-			m->Assign(2, bool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x4000));
-			m->Assign(3, bool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x2000));
-			m->Assign(4, bool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x1000));
+			m->Assign(1, static_cast<bool>(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x8000));
+			m->Assign(2, static_cast<bool>(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x4000));
+			m->Assign(3, static_cast<bool>(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x2000));
+			m->Assign(4, static_cast<bool>(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x1000));
 			m->Assign(5, ntohs(*((uint16_t*)(msg_data + 2*sizeof(uint16_t)))));
 			off += 3 * sizeof(uint16_t);
 			m->Assign(6, BuildOptionsVal(data + off, Length() - off));
@@ -261,7 +261,7 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 			{
 			auto m = make_intrusive<RecordVal>(ip6_mob_back_type);
 			m->Assign(0, *((uint8_t*)msg_data));
-			m->Assign(1, bool(*((uint8_t*)(msg_data + sizeof(uint8_t))) & 0x80));
+			m->Assign(1, static_cast<bool>(*((uint8_t*)(msg_data + sizeof(uint8_t))) & 0x80));
 			m->Assign(2, ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))));
 			m->Assign(3, ntohs(*((uint16_t*)(msg_data + 2*sizeof(uint16_t)))));
 			off += 3 * sizeof(uint16_t);
@@ -379,8 +379,8 @@ RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const
 
 		tcp_hdr->Assign(0, val_mgr->Port(ntohs(tp->th_sport), TRANSPORT_TCP));
 		tcp_hdr->Assign(1, val_mgr->Port(ntohs(tp->th_dport), TRANSPORT_TCP));
-		tcp_hdr->Assign(2, uint32_t(ntohl(tp->th_seq)));
-		tcp_hdr->Assign(3, uint32_t(ntohl(tp->th_ack)));
+		tcp_hdr->Assign(2, ntohl(tp->th_seq));
+		tcp_hdr->Assign(3, ntohl(tp->th_ack));
 		tcp_hdr->Assign(4, tcp_hdr_len);
 		tcp_hdr->Assign(5, data_len);
 		tcp_hdr->Assign(6, tp->th_x2);

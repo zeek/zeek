@@ -1543,7 +1543,7 @@ public:
 	const RecordVal* RecordValAt(unsigned int index) const
 		{ return (*vector_val)[index].record_val; }
 	bool BoolAt(unsigned int index) const
-		{ return bool((*vector_val)[index].uint_val); }
+		{ return static_cast<bool>((*vector_val)[index].uint_val); }
 	const StringVal* StringValAt(unsigned int index) const
 		{ return (*vector_val)[index].string_val; }
 	const String* StringAt(unsigned int index) const

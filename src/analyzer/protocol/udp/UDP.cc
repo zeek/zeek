@@ -236,13 +236,13 @@ void UDP_Analyzer::UpdateEndpointVal(RecordVal* endp, bool is_orig)
 	if ( size < 0 )
 		{
 		endp->Assign(0, 0);
-		endp->Assign(1, int(UDP_INACTIVE));
+		endp->Assign(1, UDP_INACTIVE);
 		}
 
 	else
 		{
-		endp->Assign(0, uint64_t(size));
-		endp->Assign(1, int(UDP_ACTIVE));
+		endp->Assign(0, static_cast<uint64_t>(size));
+		endp->Assign(1, UDP_ACTIVE);
 		}
 	}
 

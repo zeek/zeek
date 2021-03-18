@@ -146,11 +146,11 @@ function findalldevs%(%): Pcap::Interfaces
 				}
 			}
 		r->Assign(2, addrs->ToSetVal());
-		r->Assign(3, bool(d->flags & PCAP_IF_LOOPBACK));
+		r->Assign(3, static_cast<bool>(d->flags & PCAP_IF_LOOPBACK));
 #ifdef PCAP_IF_UP
 		// These didn't become available until libpcap 1.6.1
-		r->Assign(4, bool(d->flags & PCAP_IF_UP));
-		r->Assign(5, bool(d->flags & PCAP_IF_RUNNING));
+		r->Assign(4, static_cast<bool>(d->flags & PCAP_IF_UP));
+		r->Assign(5, static_cast<bool>(d->flags & PCAP_IF_RUNNING));
 #endif
 
 		pcap_interfaces->Assign(std::move(r), nullptr);

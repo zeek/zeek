@@ -10,19 +10,19 @@ zeek::RecordValPtr proc_krb_kdc_options(const KRB_KDC_Options* opts)
 {
 	auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::KDC_Options);
 
-	rv->Assign(0, bool(opts->forwardable()));
-	rv->Assign(1, bool(opts->forwarded()));
-	rv->Assign(2, bool(opts->proxiable()));
-	rv->Assign(3, bool(opts->proxy()));
-	rv->Assign(4, bool(opts->allow_postdate()));
-	rv->Assign(5, bool(opts->postdated()));
-	rv->Assign(6, bool(opts->renewable()));
-	rv->Assign(7, bool(opts->opt_hardware_auth()));
-	rv->Assign(8, bool(opts->disable_transited_check()));
-	rv->Assign(9, bool(opts->renewable_ok()));
-	rv->Assign(10, bool(opts->enc_tkt_in_skey()));
-	rv->Assign(11, bool(opts->renew()));
-	rv->Assign(12, bool(opts->validate()));
+	rv->Assign(0, opts->forwardable());
+	rv->Assign(1, opts->forwarded());
+	rv->Assign(2, opts->proxiable());
+	rv->Assign(3, opts->proxy());
+	rv->Assign(4, opts->allow_postdate());
+	rv->Assign(5, opts->postdated());
+	rv->Assign(6, opts->renewable());
+	rv->Assign(7, opts->opt_hardware_auth());
+	rv->Assign(8, opts->disable_transited_check());
+	rv->Assign(9, opts->renewable_ok());
+	rv->Assign(10, opts->enc_tkt_in_skey());
+	rv->Assign(11, opts->renew());
+	rv->Assign(12, opts->validate());
 
 	return rv;
 }
@@ -259,8 +259,8 @@ refine connection KRB_Conn += {
 		if ( krb_ap_request )
 			{
 			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::AP_Options);
-			rv->Assign(0, bool(${msg.ap_options.use_session_key}));
-			rv->Assign(1, bool(${msg.ap_options.mutual_required}));
+			rv->Assign(0, ${msg.ap_options.use_session_key});
+			rv->Assign(1, ${msg.ap_options.mutual_required});
 
 			auto rvticket = proc_ticket(${msg.ticket});
 			auto authenticationinfo = zeek_analyzer()->GetAuthenticationInfo(

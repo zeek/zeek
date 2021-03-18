@@ -627,11 +627,11 @@ RecordValPtr HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
 	auto stat = make_intrusive<RecordVal>(http_message_stat);
 	int field = 0;
 	stat->AssignTime(field++, start_time);
-	stat->Assign(field++, bool(interrupted));
+	stat->Assign(field++, interrupted);
 	stat->Assign(field++, msg);
-	stat->Assign(field++, uint64_t(body_length));
-	stat->Assign(field++, uint64_t(content_gap_length));
-	stat->Assign(field++, uint64_t(header_length));
+	stat->Assign(field++, static_cast<uint64_t>(body_length));
+	stat->Assign(field++, static_cast<uint64_t>(content_gap_length));
+	stat->Assign(field++, static_cast<uint64_t>(header_length));
 	return stat;
 	}
 

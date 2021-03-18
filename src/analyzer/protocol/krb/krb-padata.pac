@@ -21,7 +21,7 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnaly
 	for ( uint i = 0; i < data->data()->padata_elems()->size(); ++i)
 		{
 		KRB_PA_Data* element = (*data->data()->padata_elems())[i];
-		int64 data_type = element->data_type();
+		uint64_t data_type = element->data_type();
 
 		if ( is_error && ( data_type == PA_PW_AS_REQ || data_type == PA_PW_AS_REP ) )
 			data_type = 0;
@@ -37,7 +37,7 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnaly
 			case PA_PW_SALT:
 				{
 				auto type_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Type_Value);
-				type_val->Assign(0, uint64_t(data_type));
+				type_val->Assign(0, data_type);
 				type_val->Assign(1, to_stringval(element->pa_data_element()->pa_pw_salt()->encoding()->content()));
 				vv->Assign(vv->Size(), std::move(type_val));
 				break;
@@ -45,7 +45,7 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnaly
 			case PA_ENCTYPE_INFO:
 				{
 				auto type_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Type_Value);
-				type_val->Assign(0, uint64_t(data_type));
+				type_val->Assign(0, data_type);
 				type_val->Assign(1, to_stringval(element->pa_data_element()->pf_enctype_info()->salt()));
 				vv->Assign(vv->Size(), std::move(type_val));
 				break;
@@ -53,7 +53,7 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnaly
 			case PA_ENCTYPE_INFO2:
 				{
 				auto type_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Type_Value);
-				type_val->Assign(0, uint64_t(data_type));
+				type_val->Assign(0, data_type);
 				type_val->Assign(1, to_stringval(element->pa_data_element()->pf_enctype_info2()->salt()));
 				vv->Assign(vv->Size(), std::move(type_val));
 				break;
@@ -113,7 +113,7 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnaly
 				if ( ! is_error && element->pa_data_element()->unknown()->meta()->length() > 0 )
 					{
 					auto type_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Type_Value);
-					type_val->Assign(0, uint64_t(data_type));
+					type_val->Assign(0, data_type);
 					type_val->Assign(1, to_stringval(element->pa_data_element()->unknown()->content()));
 					vv->Assign(vv->Size(), std::move(type_val));
 					}

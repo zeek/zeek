@@ -21,9 +21,9 @@ refine connection SMB_Conn += {
 		if ( smb2_session_setup_response )
 			{
 			auto flags = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::SessionSetupFlags);
-			flags->Assign(0, bool(${val.flag_guest}));
-			flags->Assign(1, bool(${val.flag_anonymous}));
-			flags->Assign(2, bool(${val.flag_encrypt}));
+			flags->Assign(0, ${val.flag_guest});
+			flags->Assign(1, ${val.flag_anonymous});
+			flags->Assign(2, ${val.flag_encrypt});
 
 			auto resp = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::SessionSetupResponse);
 			resp->Assign(0, std::move(flags));

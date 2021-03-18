@@ -124,7 +124,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val,
 	auto pX509Cert = make_intrusive<RecordVal>(BifType::Record::X509::Certificate);
 	BIO *bio = BIO_new(BIO_s_mem());
 
-	pX509Cert->Assign(0, uint64_t(X509_get_version(ssl_cert) + 1));
+	pX509Cert->Assign(0, static_cast<uint64_t>(X509_get_version(ssl_cert) + 1));
 	i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
 	int len = BIO_read(bio, buf, sizeof(buf));
 	pX509Cert->Assign(1, make_intrusive<StringVal>(len, buf));
@@ -295,7 +295,7 @@ void X509::ParseBasicConstraints(X509_EXTENSION* ex)
 			pBasicConstraint->Assign(0, constr->ca);
 
 			if ( constr->pathlen )
-				pBasicConstraint->Assign(1, int32_t(ASN1_INTEGER_get(constr->pathlen)));
+				pBasicConstraint->Assign(1, static_cast<int32_t>(ASN1_INTEGER_get(constr->pathlen)));
 
 			event_mgr.Enqueue(x509_ext_basic_constraints,
 			                  GetFile()->ToVal(),

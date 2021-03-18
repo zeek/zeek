@@ -52,8 +52,8 @@ refine flow MQTT_Flow += {
 			                           reinterpret_cast<const char*>(${msg.client_id.str}.begin())));
 			m->AssignInterval(3, double(${msg.keep_alive}));
 
-			m->Assign(4, bool(${msg.clean_session}));
-			m->Assign(5, bool(${msg.will_retain}));
+			m->Assign(4, ${msg.clean_session});
+			m->Assign(5, ${msg.will_retain});
 			m->Assign(6, ${msg.will_qos});
 
 			if ( ${msg.will_flag} )

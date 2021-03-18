@@ -193,9 +193,9 @@ refine connection SMB_Conn += {
 		if ( smb2_file_fscontrol )
 			{
 			auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB2::Fscontrol);
-			r->Assign(0, int(${val.free_space_start_filtering}));
-			r->Assign(1, int(${val.free_space_start_threshold}));
-			r->Assign(2, int(${val.free_space_stop_filtering}));
+			r->Assign(0, static_cast<int>(${val.free_space_start_filtering}));
+			r->Assign(1, static_cast<int>(${val.free_space_start_threshold}));
+			r->Assign(2, static_cast<int>(${val.free_space_stop_filtering}));
 			r->Assign(3, ${val.default_quota_threshold});
 			r->Assign(4, ${val.default_quota_limit});
 			r->Assign(5, ${val.file_system_control_flags});

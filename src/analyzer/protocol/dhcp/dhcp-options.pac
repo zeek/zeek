@@ -34,7 +34,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_time_offset_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(25, int(${v.time_offset}));
+		${context.flow}->options->Assign(25, ${v.time_offset});
 		return true;
 		%}
 };

@@ -960,7 +960,7 @@ CatchReturnStmt::CatchReturnStmt(StmtPtr _block, NameExprPtr _ret_var)
 	ret_var = _ret_var;
 	}
 
-ValPtr CatchReturnStmt::Exec(Frame* f, StmtFlowType& flow) const
+ValPtr CatchReturnStmt::Exec(Frame* f, StmtFlowType& flow)
 	{
 	RegisterAccess();
 
@@ -1047,7 +1047,7 @@ CheckAnyLenStmt::CheckAnyLenStmt(ExprPtr arg_e, int _expected_len)
 	expected_len = _expected_len;
 	}
 
-ValPtr CheckAnyLenStmt::Exec(Frame* f, StmtFlowType& flow) const
+ValPtr CheckAnyLenStmt::Exec(Frame* f, StmtFlowType& flow)
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;

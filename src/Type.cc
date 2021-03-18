@@ -147,6 +147,18 @@ FuncType* Type::AsFuncType()
 	return (FuncType*) this;
 	}
 
+const FileType* Type::AsFileType() const
+	{
+	CHECK_TYPE_TAG(TYPE_FILE, "Type::AsFileType");
+	return (const FileType*) this;
+	}
+
+FileType* Type::AsFileType()
+	{
+	CHECK_TYPE_TAG(TYPE_FILE, "Type::AsFileType");
+	return (FileType*) this;
+	}
+
 const EnumType* Type::AsEnumType() const
 	{
 	CHECK_TYPE_TAG(TYPE_ENUM, "Type::AsEnumType");

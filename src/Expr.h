@@ -96,6 +96,7 @@ class IndexAssignExpr;
 class IndexExpr;
 class IsExpr;
 class InlineExpr;
+class LambdaExpr;
 class ListExpr;
 class NameExpr;
 class RefExpr;
@@ -216,6 +217,7 @@ public:
 	ZEEK_EXPR_ACCESSOR_DECLS(IndexExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(IsExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(InlineExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(LambdaExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(ListExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(NameExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(RefExpr)
@@ -1304,7 +1306,9 @@ public:
 	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
 	           IDPList outer_ids);
 
+	const std::string& Name() const	{ return my_name; }
 	const IDPList& OuterIDs() const	{ return outer_ids; }
+	const function_ingredients& Ingredients() const	{ return *ingredients; }
 
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -1427,7 +1431,7 @@ class IsExpr final : public UnaryExpr {
 public:
 	IsExpr(ExprPtr op, TypePtr t);
 
-	TypePtr TestType() const	{ return t; }
+	const TypePtr& TestType() const	{ return t; }
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;

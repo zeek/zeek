@@ -219,6 +219,9 @@ public:
 	const FuncType* AsFuncType() const;
 	FuncType* AsFuncType();
 
+	const FileType* AsFileType() const;
+	FileType* AsFileType();
+
 	const EnumType* AsEnumType() const;
 	EnumType* AsEnumType();
 
@@ -595,7 +598,8 @@ public:
 	// Given an offset, returns the field's name.
 	const char* FieldName(int field) const;
 
-	type_decl_list* Types() { return types; }
+	const type_decl_list* Types() const	{ return types; }
+	type_decl_list* Types()			{ return types; }
 
 	// Given an offset, returns the field's TypeDecl.
 	const TypeDecl* FieldDecl(int field) const;

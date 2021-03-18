@@ -71,6 +71,8 @@ Val::~Val()
 	CONVERTER(tag, ctype, name) \
 	CONST_CONVERTER(tag, ctype, name)
 
+CONVERTERS(TYPE_FUNC, FuncVal*, Val::AsFuncVal)
+CONVERTERS(TYPE_FILE, FileVal*, Val::AsFileVal)
 CONVERTERS(TYPE_PATTERN, PatternVal*, Val::AsPatternVal)
 CONVERTERS(TYPE_PORT, PortVal*, Val::AsPortVal)
 CONVERTERS(TYPE_SUBNET, SubNetVal*, Val::AsSubNetVal)

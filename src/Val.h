@@ -771,6 +771,33 @@ public:
 	 */
 	TableValPtr Intersection(const TableVal& v) const;
 
+	/**
+	 * Returns a new table that is the union of this table and the
+	 * given table.  Union is done only on index, so this generally
+	 * makes most sense to use for sets, not tables.
+	 * @param v  The union'ing table.
+	 * @return  The union of this table and the given one.
+	 */
+	TableValPtr Union(TableVal* v) const
+		{
+		auto v_clone = cast_intrusive<TableVal>(v->Clone());
+		AddTo(v_clone.get(), false, false);
+		return v_clone;
+		}
+
+	/**
+	 * Returns a copy of this table with the given table removed.
+	 * @param v  The table to remove.
+	 * @return  The subset of this table that doesn't include v.
+	 */
+	TableValPtr TakeOut(TableVal* v)
+		{
+		auto clone = cast_intrusive<TableVal>(Clone());
+		cast_intrusive<TableVal>(v->Clone());
+		v->RemoveFrom(clone.get());
+		return clone;
+		}
+
 	// Returns true if this set contains the same members as the
 	// given set.  Note that comparisons are done using hash keys,
 	// so errors can arise for compound sets such as sets-of-sets.

@@ -1583,6 +1583,19 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 		return false;
 		}
 
+	// A major complication we have to deal with is the potential
+	// presence of recursive types (records, in particular).  If
+	// we simply traverse a type's members recursively, then if the
+	// type is itself recursive we will end up with infinite recursion.
+	// To prevent this, we need to instead track our analysis process
+
+	// Which types we're in the process of analyzing.  We add (compound)
+	// types to this as we recurse into their elements, and remove them
+	// when we're done processing them.
+	static std::unordered_set<const Type*> analyzed_types;
+
+	// First do all checks that don't require any recursion.
+
 	switch ( t1->Tag() ) {
 	case TYPE_VOID:
 	case TYPE_BOOL:
@@ -1608,6 +1621,13 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 		// true per default?
 		return true;
 
+	case TYPE_OPAQUE:
+		{
+		const OpaqueType* ot1 = (const OpaqueType*) t1;
+		const OpaqueType* ot2 = (const OpaqueType*) t2;
+		return ot1->Name() == ot2->Name();
+		}
+
 	case TYPE_TABLE:
 		{
 		const IndexType* it1 = (const IndexType*) t1;
@@ -1616,22 +1636,16 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 		const auto& tl1 = it1->GetIndices();
 		const auto& tl2 = it2->GetIndices();
 
-		if ( tl1 || tl2 )
-			{
-			if ( ! tl1 || ! tl2 || ! same_type(tl1, tl2, is_init, match_record_field_names) )
-				return false;
-			}
+		if ( (tl1 || tl2) && ! (tl1 && tl2) )
+			return false;
 
 		const auto& y1 = t1->Yield();
 		const auto& y2 = t2->Yield();
 
-		if ( y1 || y2 )
-			{
-			if ( ! y1 || ! y2 || ! same_type(y1, y2, is_init, match_record_field_names) )
-				return false;
-			}
+		if ( (y1 || y2) && ! (y1 && y2) )
+			return false;
 
-		return true;
+		break;
 		}
 
 	case TYPE_FUNC:
@@ -1642,14 +1656,12 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 		if ( ft1->Flavor() != ft2->Flavor() )
 			return false;
 
-		if ( t1->Yield() || t2->Yield() )
-			{
-			if ( ! t1->Yield() || ! t2->Yield() ||
-			     ! same_type(t1->Yield(), t2->Yield(), is_init, match_record_field_names) )
-				return false;
-			}
+		const auto& y1 = t1->Yield();
+		const auto& y2 = t2->Yield();
+		if ( (y1 || y2) && ! (y1 && y2) )
+			return false;
 
-		return ft1->CheckArgs(ft2->ParamList()->GetTypes(), is_init, false);
+		break;
 		}
 
 	case TYPE_RECORD:
@@ -1665,15 +1677,15 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 			const TypeDecl* td1 = rt1->FieldDecl(i);
 			const TypeDecl* td2 = rt2->FieldDecl(i);
 
-			if ( (match_record_field_names && ! util::streq(td1->id, td2->id)) ||
-			     ! same_type(td1->type, td2->type, is_init, match_record_field_names) )
+			if ( match_record_field_names &&
+			     ! util::streq(td1->id, td2->id) )
 				return false;
 
 			if ( ! same_attrs(td1->attrs.get(), td2->attrs.get()) )
 				return false;
 			}
 
-		return true;
+		break;
 		}
 
 	case TYPE_LIST:
@@ -1684,36 +1696,149 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 		if ( tl1.size() != tl2.size() )
 			return false;
 
-		for ( auto i = 0u; i < tl1.size(); ++i )
-			if ( ! same_type(tl1[i], tl2[i], is_init, match_record_field_names) )
-				return false;
-
-		return true;
+		break;
 		}
 
 	case TYPE_VECTOR:
 	case TYPE_FILE:
-		return same_type(t1->Yield(), t2->Yield(), is_init, match_record_field_names);
+	case TYPE_TYPE:
+		break;
 
-	case TYPE_OPAQUE:
+	case TYPE_UNION:
+		reporter->Error("union type in same_type()");
+	}
+
+	// If we get to here, then we're dealing with a type with
+	// subtypes, and thus potentially recursive.
+
+	if ( analyzed_types.count(t1) > 0 || analyzed_types.count(t2) > 0 )
 		{
-		const OpaqueType* ot1 = (const OpaqueType*) t1;
-		const OpaqueType* ot2 = (const OpaqueType*) t2;
-		return ot1->Name() == ot2->Name();
+		// We've analyzed at least one of the types previously.
+		// Avoid infinite recursion.
+
+		if ( analyzed_types.count(t1) > 0 &&
+		     analyzed_types.count(t2) > 0 )
+			// We've analyzed them both.  In theory, this
+			// could happen while the types are still different.
+			// Checking for that is a pain - we could do so
+			// by recursively expanding all of the types present
+			// when traversing them (suppressing repeats), and
+			// see that they individually match in a non-recursive
+			// manner.  For now, we assume they're a direct match.
+			return true;
+
+		// One is definitely recursive and the other has not yet
+		// manifested as such.  In theory, they again could still
+		// be a match, if the non-recursive one would manifest
+		// becoming recursive if only we traversed it further, but
+		// for now we assume they're not a match.
+		return false;
 		}
+
+	// Track the two types for when we recurse.
+	analyzed_types.insert(t1);
+	analyzed_types.insert(t2);
+
+	bool result;
+
+	switch ( t1->Tag() ) {
+	case TYPE_TABLE:
+		{
+		const IndexType* it1 = (const IndexType*) t1;
+		const IndexType* it2 = (const IndexType*) t2;
+
+		const auto& tl1 = it1->GetIndices();
+		const auto& tl2 = it2->GetIndices();
+
+		if ( ! same_type(tl1, tl2, is_init, match_record_field_names) )
+			result = false;
+		else
+			{
+			const auto& y1 = t1->Yield();
+			const auto& y2 = t2->Yield();
+
+			result = same_type(y1, y2, is_init,
+						match_record_field_names);
+			}
+		break;
+		}
+
+	case TYPE_FUNC:
+		{
+		const FuncType* ft1 = (const FuncType*) t1;
+		const FuncType* ft2 = (const FuncType*) t2;
+
+		if ( ! same_type(t1->Yield(), t2->Yield(), is_init,
+					match_record_field_names) )
+			result = false;
+		else
+			result = ft1->CheckArgs(ft2->ParamList()->GetTypes(),
+						is_init, false);
+		break;
+		}
+
+	case TYPE_RECORD:
+		{
+		const RecordType* rt1 = (const RecordType*) t1;
+		const RecordType* rt2 = (const RecordType*) t2;
+
+		result = true;
+
+		for ( int i = 0; i < rt1->NumFields(); ++i )
+			{
+			const TypeDecl* td1 = rt1->FieldDecl(i);
+			const TypeDecl* td2 = rt2->FieldDecl(i);
+
+			if ( ! same_type(td1->type, td2->type, is_init,
+						match_record_field_names) )
+				{
+				result = false;
+				break;
+				}
+			}
+		break;
+		}
+
+	case TYPE_LIST:
+		{
+		const auto& tl1 = t1->AsTypeList()->GetTypes();
+		const auto& tl2 = t2->AsTypeList()->GetTypes();
+
+		result = true;
+
+		for ( auto i = 0u; i < tl1.size(); ++i )
+			if ( ! same_type(tl1[i], tl2[i], is_init,
+						match_record_field_names) )
+				{
+				result = false;
+				break;
+				}
+		break;
+		}
+
+	case TYPE_VECTOR:
+	case TYPE_FILE:
+		result = same_type(t1->Yield(), t2->Yield(),
+					is_init, match_record_field_names);
+		break;
 
 	case TYPE_TYPE:
 		{
 		auto tt1 = t1->AsTypeType();
 		auto tt2 = t2->AsTypeType();
-		return same_type(tt1->GetType(), tt1->GetType(),
-		                 is_init, match_record_field_names);
+		result = same_type(tt1->GetType(), tt1->GetType(),
+					 is_init, match_record_field_names);
+		break;
 		}
 
-	case TYPE_UNION:
-		reporter->Error("union type in same_type()");
+	default:
+		result = false;
 	}
-	return false;
+
+	analyzed_types.erase(t1);
+	analyzed_types.erase(t2);
+
+	return result;
 	}
 
 bool same_attrs(const detail::Attributes* a1, const detail::Attributes* a2)

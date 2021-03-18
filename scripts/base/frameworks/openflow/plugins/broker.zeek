@@ -87,7 +87,7 @@ function broker_new(name: string, host: addr, host_port: port, topic: string, dp
 	register_controller(OpenFlow::BROKER, name, c);
 
 	if ( [host_port, cat(host)] in broker_peers )
-		Reporter::warning(fmt("Peer %s:%s was added to NetControl acld plugin twice.", host, host_port));
+		Reporter::warning(fmt("Peer %s:%s was added to NetControl openflow plugin twice.", host, host_port));
 	else
 		broker_peers[host_port, cat(host)] = c;
 

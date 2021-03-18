@@ -84,19 +84,19 @@ public:
 	// Returns the number of errors reported so far.
 	int Errors()	{ return errors; }
 
-	// Report a fatal error. Bro will terminate after the message has been
+	// Report a fatal error. Zeek will terminate after the message has been
 	// reported.
 	[[noreturn]] void FatalError(const char* fmt, ...) FMT_ATTR;
 
-	// Report a fatal error. Bro will terminate after the message has been
+	// Report a fatal error. Zeek will terminate after the message has been
 	// reported and always generate a core dump.
 	[[noreturn]] void FatalErrorWithCore(const char* fmt, ...) FMT_ATTR;
 
-	// Report a runtime error in evaluating a Bro script expression. This
+	// Report a runtime error in evaluating a Zeek script expression. This
 	// function will not return but raise an InterpreterException.
 	[[noreturn]] void ExprRuntimeError(const detail::Expr* expr, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
-	// Report a runtime error in evaluating a Bro script expression. This
+	// Report a runtime error in evaluating a Zeek script expression. This
 	// function will not return but raise an InterpreterException.
 	[[noreturn]] void RuntimeError(const detail::Location* location, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
@@ -116,16 +116,16 @@ public:
 	// offline from a trace.
 	void Syslog(const char* fmt, ...) FMT_ATTR;
 
-	// Report about a potential internal problem. Bro will continue
+	// Report about a potential internal problem. Zeek will continue
 	// normally.
 	void InternalWarning(const char* fmt, ...) FMT_ATTR;
 
-	// Report an internal program error. Bro will terminate with a core
+	// Report an internal program error. Zeek will terminate with a core
 	// dump after the message has been reported.
 	[[noreturn]] void InternalError(const char* fmt, ...) FMT_ATTR;
 
 	// Report an analyzer error. That analyzer will be set to not process
-	// any further input, but Bro otherwise continues normally.
+	// any further input, but Zeek otherwise continues normally.
 	void AnalyzerError(analyzer::Analyzer* a, const char* fmt, ...) __attribute__((format(printf, 3, 4)));;
 
 	// Toggle whether non-fatal messages should be reported through the

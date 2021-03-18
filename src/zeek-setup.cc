@@ -394,6 +394,10 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	auto options = zopts ? *zopts : parse_cmdline(argc, argv);
 
+	// Set up the global that facilitates access to analysis/optimization
+	// options from deep within some modules.
+	analysis_options = options.analysis_options;
+
 	if ( options.print_usage )
 		usage(argv[0], 0);
 
@@ -747,10 +751,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			delete [] interfaces_str;
 			}
 		}
-
-	// Set up the global that facilitates access to analysis/optimization
-	// options from deep within some modules.
-	analysis_options = options.analysis_options;
 
 	analyze_scripts();
 

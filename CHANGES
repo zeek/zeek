@@ -1,3 +1,23 @@
+4.1.0-dev.341 | 2021-03-18 12:45:04 -0700
+
+  * fix for associating current scope with the name of enums; name tidying (Vern Paxson, Corelight)
+
+  * avoid infinite recursion in same_type() if it is analyzing recursive types (Vern Paxson, Corelight)
+
+  * remove iffy reliance on type punning that relies on interpreter's behavior (Vern Paxson, Corelight)
+
+  * fixes for propagating optimization options, and pruning script function analysis (Vern Paxson, Corelight)
+
+  * tidying with respect to "const", and streamlining OuterIDBindingFinder (Vern Paxson, Corelight)
+
+  * making Exec methods non-const, so execution can manage side-information (Vern Paxson, Corelight)
+
+  * removing unneeded BoolVal constructor that can cause overload ambiguity issues (Vern Paxson, Corelight)
+
+  * lint fixes: ensuring functions return values, robustness to nil Val's (Vern Paxson, Corelight)
+
+  * correcting some simple typos (Vern Paxson, Corelight)
+
 4.1.0-dev.330 | 2021-03-17 13:48:34 -0700
 
   * Prevent use of LeakSanitizer on FreeBSD (Jon Siwek, Corelight)

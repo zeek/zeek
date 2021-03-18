@@ -1522,7 +1522,10 @@ public:
 	/**
 	 * Returns a "vector of count" holding the indices of this
 	 * vector when sorted using the given (optional) comparison function.
-	 * @param cmp_func  Comparison function for vector elements.
+	 * @param cmp_func  Comparison function for vector elements.  If
+	 *                  nullptr, then the vector must be internally
+	 *                  of a numeric, and the usual '<' comparison
+	 *                  will be used.
 	 */
 	VectorValPtr Order(Func* cmp_func = nullptr);
 

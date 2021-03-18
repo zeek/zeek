@@ -29,7 +29,7 @@ public:
 	ExprPtr CheckForInlining(CallExprPtr c);
 
 	// True if the given function has been inlined.
-	bool WasInlined(Func* f)	{ return inline_ables.count(f) > 0; }
+	bool WasInlined(const Func* f)	{ return inline_ables.count(f) > 0; }
 
 protected:
 	// Driver routine that analyzes all of the script functions and
@@ -44,7 +44,7 @@ protected:
 	std::vector<FuncInfo>& funcs;
 
 	// Functions that we've determined to be suitable for inlining.
-	std::unordered_set<Func*> inline_ables;
+	std::unordered_set<const Func*> inline_ables;
 
 	// As we do inlining for a given function, this tracks the
 	// largest frame size of any inlined function.

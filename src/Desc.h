@@ -122,7 +122,7 @@ public:
 				Add("\n", 0);
 			}
 
-	// Bypasses the escaping enabled via SetEscape().
+	// Bypasses the escaping enabled via EnableEscaping().
 	void AddRaw(const char* s, int len)	{ AddBytesRaw(s, len); }
 	void AddRaw(const std::string &s)		{ AddBytesRaw(s.data(), s.size()); }
 

@@ -54,7 +54,7 @@ public:
 
 	~Stmt() override;
 
-	virtual ValPtr Exec(Frame* f, StmtFlowType& flow) const = 0;
+	virtual ValPtr Exec(Frame* f, StmtFlowType& flow) = 0;
 
 	Stmt* Ref()			{ zeek::Ref(this); return this; }
 	StmtPtr ThisPtr()		{ return {NewRef{}, this}; }

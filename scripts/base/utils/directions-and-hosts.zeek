@@ -33,7 +33,7 @@ function id_matches_direction(id: conn_id, d: Direction): bool
 		return (o_local && !r_local) || (!o_local && r_local);
 	else if ( d == OUTBOUND )
 		return o_local && !r_local;
-	else if ( d == INBOUND )
+	else # d == INBOUND
 		return !o_local && r_local;
 	}
 

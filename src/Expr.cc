@@ -3759,8 +3759,7 @@ ValPtr ArithCoerceExpr::Fold(Val* v) const
 	}
 
 RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
-	: UnaryExpr(EXPR_RECORD_COERCE, std::move(arg_op)),
-	  map(nullptr), map_size(0)
+	: UnaryExpr(EXPR_RECORD_COERCE, std::move(arg_op))
 	{
 	if ( IsError() )
 		return;
@@ -3778,12 +3777,12 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 		RecordType* t_r = type->AsRecordType();
 		RecordType* sub_r = op->GetType()->AsRecordType();
 
-		map_size = t_r->NumFields();
-		map = new int[map_size];
+		int map_size = t_r->NumFields();
+		map.reserve(map_size);
 
 		int i;
 		for ( i = 0; i < map_size; ++i )
-			map[i] = -1;	// -1 = field is not mapped
+			map.emplace_back(-1);	// -1 = field is not mapped
 
 		for ( i = 0; i < sub_r->NumFields(); ++i )
 			{
@@ -3865,11 +3864,6 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 		}
 	}
 
-RecordCoerceExpr::~RecordCoerceExpr()
-	{
-	delete [] map;
-	}
-
 ValPtr RecordCoerceExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
 	if ( auto v = Eval(nullptr) )
@@ -3892,7 +3886,15 @@ ValPtr RecordCoerceExpr::Fold(Val* v) const
 	if ( same_type(GetType(), Op()->GetType()) )
 		return IntrusivePtr{NewRef{}, v};
 
-	auto val = make_intrusive<RecordVal>(GetType<RecordType>());
+	auto rt = cast_intrusive<RecordType>(GetType());
+	return coerce_to_record(rt, v, map);
+	}
+
+RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v,
+				const std::vector<int>& map)
+	{
+	auto map_size = map.size();
+	auto val = make_intrusive<RecordVal>(rt);
 	RecordType* val_type = val->GetType()->AsRecordType();
 
 	RecordVal* rv = v->AsRecordVal();
@@ -3905,14 +3907,15 @@ ValPtr RecordCoerceExpr::Fold(Val* v) const
 
 			if ( ! rhs )
 				{
-				const auto& def = rv->GetType()->AsRecordType()->FieldDecl(
-					map[i])->GetAttr(ATTR_DEFAULT);
+				auto rv_rt = rv->GetType()->AsRecordType();
+				const auto& def = rv_rt->FieldDecl(map[i])->
+							GetAttr(ATTR_DEFAULT);
 
 				if ( def )
 					rhs = def->GetExpr()->Eval(nullptr);
 				}
 
-			assert(rhs || GetType()->AsRecordType()->FieldDecl(i)->GetAttr(ATTR_OPTIONAL));
+			assert(rhs || rt->FieldDecl(i)->GetAttr(ATTR_OPTIONAL));
 
 			if ( ! rhs )
 				{
@@ -3934,21 +3937,19 @@ ValPtr RecordCoerceExpr::Fold(Val* v) const
 			else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) &&
 			          ! same_type(rhs_type, field_type) )
 				{
-				if ( auto new_val = check_and_promote(rhs, field_type.get(), false, op->GetLocationInfo()) )
-					rhs = std::move(new_val);
-				else
-					RuntimeError("Failed type conversion");
+				auto new_val = check_and_promote(rhs, field_type.get(), false);
+				rhs = std::move(new_val);
 				}
 
 			val->Assign(i, std::move(rhs));
 			}
 		else
 			{
-			if ( const auto& def = GetType()->AsRecordType()->FieldDecl(i)->GetAttr(ATTR_DEFAULT) )
+			if ( const auto& def = rt->FieldDecl(i)->GetAttr(ATTR_DEFAULT) )
 				{
 				auto def_val = def->GetExpr()->Eval(nullptr);
 				const auto& def_type = def_val->GetType();
-				const auto& field_type = GetType()->AsRecordType()->GetFieldType(i);
+				const auto& field_type = rt->GetFieldType(i);
 
 				if ( def_type->Tag() == TYPE_RECORD &&
 				     field_type->Tag() == TYPE_RECORD &&

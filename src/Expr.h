@@ -1170,10 +1170,11 @@ protected:
 class RecordCoerceExpr final : public UnaryExpr {
 public:
 	RecordCoerceExpr(ExprPtr op, RecordTypePtr r);
-	~RecordCoerceExpr() override;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+
+	const std::vector<int>& Map() const	{ return map; }
 
 protected:
 	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
@@ -1181,9 +1182,11 @@ protected:
 
 	// For each super-record slot, gives subrecord slot with which to
 	// fill it.
-	int* map;
-	int map_size;	// equivalent to Type()->AsRecordType()->NumFields()
+	std::vector<int> map;
 };
+
+extern RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v,
+					const std::vector<int>& map);
 
 class TableCoerceExpr final : public UnaryExpr {
 public:

@@ -587,6 +587,11 @@ bool ScriptFunc::StrengthenClosureReference(Frame* f)
 	return true;
 	}
 
+bool ScriptFunc::CopySemantics() const
+	{
+	return type->GetCaptures().has_value();
+	}
+
 void ScriptFunc::SetClosureFrame(Frame* f)
 	{
 	if ( closure )

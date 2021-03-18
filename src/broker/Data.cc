@@ -392,6 +392,17 @@ struct val_converter {
 
 			if ( a.size() == 2 ) // we have a closure/capture frame
 				{
+				// Note, seems if we already have a separate
+				// instance of the same lambda, then unless
+				// we use a cloned value, we'll step on that
+				// one's captures, too.  This is because
+				// the capture mapping lives with the Func
+				// object rather than the FuncVal.  However,
+				// we can't readily Clone() here because
+				// rval is const (and, grrr, Clone() is not).
+				// -VP
+				// rval = rval->Clone();
+
 				auto frame = broker::get_if<broker::vector>(a[1]);
 				if ( ! frame )
 					return nullptr;
@@ -400,9 +411,7 @@ struct val_converter {
 				if ( ! b )
 					return nullptr;
 
-				auto copy_semantics = b->GetType()->GetCaptures().has_value();
-
-				if ( copy_semantics )
+				if ( b->CopySemantics() )
 					{
 					if ( ! b->DeserializeCaptures(*frame) )
 						return nullptr;

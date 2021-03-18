@@ -145,7 +145,7 @@ protected:
 
 namespace detail {
 
-class ScriptFunc final : public Func {
+class ScriptFunc : public Func {
 public:
 	ScriptFunc(const IDPtr& id, StmtPtr body,
 	        const std::vector<IDPtr>& inits,
@@ -211,11 +211,16 @@ public:
 	bool StrengthenClosureReference(Frame* f);
 
 	/**
+	 * Whether the function's closure uses copy semantics.
+	 */
+	virtual bool CopySemantics() const;
+
+	/**
 	 * Serializes this function's closure or capture frame.
 	 *
 	 * @return a serialized version of the function's closure/capture frame.
 	 */
-	broker::expected<broker::data> SerializeClosure() const;
+	virtual broker::expected<broker::data> SerializeClosure() const;
 
 	/**
 	 * Sets the captures frame to one built from *data*.
@@ -257,6 +262,7 @@ public:
 
 protected:
 	ScriptFunc() : Func(SCRIPT_FUNC)	{}
+
 	StmtPtr AddInits(
 		StmtPtr body,
 		const std::vector<IDPtr>& inits);
@@ -280,7 +286,7 @@ protected:
 	 *
 	 * @param f  the frame holding the values of capture variables
 	 */
-	void SetCaptures(Frame* f);
+	virtual void SetCaptures(Frame* f);
 
 private:
 	size_t frame_size;

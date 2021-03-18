@@ -9,5 +9,5 @@ orig=/^?(.*PATTERN.*)$?/ (pattern) clone=/^?(.*PATTERN.*)$?/ (pattern) same_obje
 orig=2,5,3,4,1 (set[count]) clone=2,5,3,4,1 (set[count]) equal=T same_object=F (ok)
 orig=[1, 2, 3, 4, 5] (vector of count) clone=[1, 2, 3, 4, 5] (vector of count) equal=T same_object=F (ok)
 orig=a=va;b=vb (table[string] of string) clone=a=va;b=vb (table[string] of string) equal=T same_object=F (ok)
-orig=ENUMME (enum) clone=ENUMME (enum) equal=T same_object=T (ok)
-orig=[s1=s1, s2=s2, i1=[a=a], i2=[a=a], donotset=<uninitialized>, def=5] (record { s1:string; s2:string; i1:record { a:string; }; i2:record { a:string; }; donotset:record { a:string; }; def:count; }) clone=[s1=s1, s2=s2, i1=[a=a], i2=[a=a], donotset=<uninitialized>, def=5] (record { s1:string; s2:string; i1:record { a:string; }; i2:record { a:string; }; donotset:record { a:string; }; def:count; }) equal=T same_object=F (ok)
+orig=ENUMME (enum MyEnum) clone=ENUMME (enum MyEnum) equal=T same_object=T (ok)
+orig=[s1=s1, s2=s2, i1=[a=a], i2=[a=a], donotset=<uninitialized>, def=5] (record { s1:string; s2:string; i1:record { a:string; }; i2:record { a:string; } &optional; donotset:record { a:string; } &optional; def:count &default=5, &optional; }) clone=[s1=s1, s2=s2, i1=[a=a], i2=[a=a], donotset=<uninitialized>, def=5] (record { s1:string; s2:string; i1:record { a:string; }; i2:record { a:string; } &optional; donotset:record { a:string; } &optional; def:count &default=5, &optional; }) equal=T same_object=F (ok)

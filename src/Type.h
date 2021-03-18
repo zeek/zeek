@@ -708,6 +708,7 @@ public:
 	// will be fully qualified with their module name.
 	enum_name_list Names() const;
 
+	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 	const EnumValPtr& GetEnumVal(bro_int_t i);

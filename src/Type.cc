@@ -1064,6 +1064,12 @@ void RecordType::DescribeFields(ODesc* d) const
 			else
 				td->type->Describe(d);
 
+			if ( td->attrs )
+				{
+				d->SP();
+				td->attrs->Describe(d);
+				}
+
 			d->Add(";");
 			}
 		}
@@ -1417,6 +1423,27 @@ const EnumValPtr& EnumType::GetEnumVal(bro_int_t i)
 		}
 
 	return it->second;
+	}
+
+void EnumType::Describe(ODesc* d) const
+	{
+	auto t = Tag();
+
+	if ( d->IsBinary() )
+		{
+		d->Add(int(t));
+		if ( ! d->IsShort() )
+			d->Add(GetName());
+		}
+	else
+		{
+		d->Add(type_name(t));
+		if ( ! d->IsShort() )
+			{
+			d->SP();
+			d->Add(GetName());
+			}
+		}
 	}
 
 void EnumType::DescribeReST(ODesc* d, bool roles_only) const

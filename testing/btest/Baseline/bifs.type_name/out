@@ -7,7 +7,7 @@ bool
 time
 interval
 pattern
-enum
+enum color
 port
 addr
 addr

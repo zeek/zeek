@@ -863,7 +863,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	{
 	ASSERT(field == managed_fields.size());
 
-	managed_fields.push_back(IsManagedType(td->type));
+	managed_fields.push_back(ZVal::IsManagedType(td->type));
 	}
 
 bool RecordType::HasField(const char* field) const

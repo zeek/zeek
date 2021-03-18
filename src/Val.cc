@@ -2873,7 +2873,7 @@ RecordVal::~RecordVal()
 
 	for ( unsigned int i = 0; i < n; ++i )
 		if ( HasField(i) && IsManaged(i) )
-			DeleteManagedType((*record_val)[i]);
+			ZVal::DeleteManagedType((*record_val)[i]);
 
 	delete record_val;
 	delete is_in_record;
@@ -2904,7 +2904,7 @@ void RecordVal::Remove(int field)
 	if ( HasField(field) )
 		{
 		if ( IsManaged(field) )
-			DeleteManagedType((*record_val)[field]);
+			ZVal::DeleteManagedType((*record_val)[field]);
 
 		(*record_val)[field] = ZVal();
 		(*is_in_record)[field] = false;
@@ -3199,7 +3199,7 @@ VectorVal::VectorVal(VectorTypePtr t) : Val(t)
 
 	auto y_tag = yield_type->Tag();
 	any_yield = (y_tag == TYPE_VOID || y_tag == TYPE_ANY);
-	managed_yield = IsManagedType(yield_type);
+	managed_yield = ZVal::IsManagedType(yield_type);
 	}
 
 VectorVal::~VectorVal()
@@ -3208,14 +3208,14 @@ VectorVal::~VectorVal()
 		{
 		int n = yield_types->size();
 		for ( auto i = 0; i < n; ++i )
-			DeleteIfManaged((*vector_val)[i], (*yield_types)[i]);
+			ZVal::DeleteIfManaged((*vector_val)[i], (*yield_types)[i]);
 		delete yield_types;
 		}
 
 	else if ( managed_yield )
 		{
 		for ( auto& elem : *vector_val )
-			DeleteManagedType(elem);
+			ZVal::DeleteManagedType(elem);
 		}
 
 	delete vector_val;
@@ -3283,13 +3283,13 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 		{
 		const auto& t = element->GetType();
 		(*yield_types)[index] = t;
-		DeleteIfManaged((*vector_val)[index], t);
+		ZVal::DeleteIfManaged((*vector_val)[index], t);
 		(*vector_val)[index] = ZVal(std::move(element), t);
 		}
 	else
 		{
 		if ( managed_yield )
-			DeleteManagedType((*vector_val)[index]);
+			ZVal::DeleteManagedType((*vector_val)[index]);
 		(*vector_val)[index] = ZVal(std::move(element), yield_type);
 		}
 
@@ -3324,11 +3324,11 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 		it = std::next(vector_val->begin(), index);
 		if ( yield_types )
 			{
-			DeleteIfManaged(*it, element->GetType());
+			ZVal::DeleteIfManaged(*it, element->GetType());
 			types_it = std::next(yield_types->begin(), index);
 			}
 		else if ( managed_yield )
-			DeleteManagedType(*it);
+			ZVal::DeleteManagedType(*it);
 		}
 	else
 		{
@@ -3371,12 +3371,12 @@ bool VectorVal::Remove(unsigned int index)
 	if ( yield_types )
 		{
 		auto types_it = std::next(yield_types->begin(), index);
-		DeleteIfManaged(*it, *types_it);
+		ZVal::DeleteIfManaged(*it, *types_it);
 		yield_types->erase(types_it);
 		}
 
 	else if ( managed_yield )
-		DeleteManagedType(*it);
+		ZVal::DeleteManagedType(*it);
 
 	vector_val->erase(it);
 
@@ -3488,7 +3488,7 @@ void VectorVal::Sort(Func* cmp_func)
 		reporter->RuntimeError(GetLocationInfo(), "cannot sort a vector-of-any");
 
 	sort_type = yield_type;
-	sort_type_is_managed = IsManagedType(sort_type);
+	sort_type_is_managed = ZVal::IsManagedType(sort_type);
 
 	bool (*sort_func)(const ZVal&, const ZVal&);
 
@@ -3525,7 +3525,7 @@ VectorValPtr VectorVal::Order(Func* cmp_func)
 		}
 
 	sort_type = yield_type;
-	sort_type_is_managed = IsManagedType(sort_type);
+	sort_type_is_managed = ZVal::IsManagedType(sort_type);
 
 	bool (*sort_func)(size_t, size_t);
 

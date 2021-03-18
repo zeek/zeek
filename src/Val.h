@@ -1112,7 +1112,7 @@ public:
 
 	void Assign(int field, StringVal* new_val)
 		{
-		DeleteManagedType((*record_val)[field]);
+		ZVal::DeleteManagedType((*record_val)[field]);
 		(*record_val)[field].string_val = new_val;
 		AddedField(field);
 		}
@@ -1381,7 +1381,7 @@ private:
 	void DeleteFieldIfManaged(unsigned int field)
 		{
 		if ( HasField(field) && IsManaged(field) )
-			DeleteManagedType((*record_val)[field]);
+			ZVal::DeleteManagedType((*record_val)[field]);
 		}
 
 	bool IsManaged(unsigned int offset) const

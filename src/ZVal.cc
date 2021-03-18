@@ -13,31 +13,6 @@ using namespace zeek;
 bool ZVal::zval_was_nil = false;
 
 
-bool zeek::IsManagedType(const TypePtr& t)
-	{
-	switch ( t->Tag() ) {
-	case zeek::TYPE_ADDR:
-	case zeek::TYPE_ANY:
-	case zeek::TYPE_FILE:
-	case zeek::TYPE_FUNC:
-	case zeek::TYPE_LIST:
-	case zeek::TYPE_OPAQUE:
-	case zeek::TYPE_PATTERN:
-	case zeek::TYPE_RECORD:
-	case zeek::TYPE_STRING:
-	case zeek::TYPE_SUBNET:
-	case zeek::TYPE_TABLE:
-	case zeek::TYPE_TYPE:
-	case zeek::TYPE_VECTOR:
-		return true;
-
-	default:
-		return false;
-
-	}
-	}
-
-
 ZVal::ZVal(ValPtr v, const TypePtr& t)
 	{
 	if ( ! v )
@@ -299,4 +274,28 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 	zval_was_nil = true;
 
 	return nullptr;
+	}
+
+bool ZVal::IsManagedType(const TypePtr& t)
+	{
+	switch ( t->Tag() ) {
+	case zeek::TYPE_ADDR:
+	case zeek::TYPE_ANY:
+	case zeek::TYPE_FILE:
+	case zeek::TYPE_FUNC:
+	case zeek::TYPE_LIST:
+	case zeek::TYPE_OPAQUE:
+	case zeek::TYPE_PATTERN:
+	case zeek::TYPE_RECORD:
+	case zeek::TYPE_STRING:
+	case zeek::TYPE_SUBNET:
+	case zeek::TYPE_TABLE:
+	case zeek::TYPE_TYPE:
+	case zeek::TYPE_VECTOR:
+		return true;
+
+	default:
+		return false;
+
+	}
 	}

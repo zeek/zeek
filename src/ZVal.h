@@ -79,6 +79,24 @@ union ZVal {
 
 	Obj* ManagedVal() const		{ return managed_val; }
 
+	// True if a given type is one for which we manage the associated
+	// memory internally.
+	static bool IsManagedType(const TypePtr& t);
+
+	// Deletes a managed value.  Caller needs to ensure that the ZVal
+	// indeed holds such.
+	static void DeleteManagedType(ZVal& v)
+		{
+		Unref(v.ManagedVal());
+		}
+
+	// Deletes a possibly-managed value.
+	static void DeleteIfManaged(ZVal& v, const TypePtr& t)
+		{
+		if ( IsManagedType(t) )
+			DeleteManagedType(v);
+		}
+
 private:
 	friend class RecordVal;
 	friend class VectorVal;
@@ -123,23 +141,5 @@ private:
 	// know whether it occurred at some point.
 	static bool zval_was_nil;
 };
-
-// True if a given type is one for which we manage the associated
-// memory internally.
-bool IsManagedType(const TypePtr& t);
-
-// Deletes a managed value.  Caller needs to ensure that the ZVal
-// indeed holds such.
-inline void DeleteManagedType(ZVal& v)
-	{
-	Unref(v.ManagedVal());
-	}
-
-// Deletes a possibly-managed value.
-inline void DeleteIfManaged(ZVal& v, const TypePtr& t)
-	{
-	if ( IsManagedType(t) )
-		DeleteManagedType(v);
-	}
 
 } // zeek

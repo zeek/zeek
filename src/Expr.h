@@ -941,8 +941,20 @@ protected:
 	bool is_slice;
 };
 
+// The following execute the heart of IndexExpr functionality for
+// vector slices and strings.
+
+// Extracts a slice of a vector, where the span of the slice is specified
+// by a list of (exactly) two values.  This is how the interpreter develops
+// the components of a slice.
 extern VectorValPtr index_slice(VectorVal* vect, const ListVal* lv);
+
+// Lower-level access to the slice, where its span is expressed
+// directly as integers.
 extern VectorValPtr index_slice(VectorVal* vect, int first, int last);
+
+// Returns a subset of a string, with the span specified by a list of
+// (exactly) two values.
 extern StringValPtr index_string(const String* s, const ListVal* lv);
 
 class IndexExprWhen final : public IndexExpr {

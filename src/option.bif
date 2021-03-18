@@ -213,3 +213,30 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 	i->AddOptionHandler(func, -priority);
 	return zeek::val_mgr->True();
 	%}
+
+## Helper function that converts a set (of arbitrary index type) to
+## a "vector of any".
+##
+## v: an "any" type corresponding to a set.
+##
+## Returns: a vector-of-any with one element for each member of v.
+function Option::any_set_to_any_vec%(v: any%): any_vec
+	%{
+	auto ret_type = make_intrusive<VectorType>(base_type(TYPE_ANY));
+	auto ret = make_intrusive<VectorVal>(ret_type);
+	const auto& t = v->GetType();
+
+	if ( ! t->IsSet() )
+		{
+		zeek::emit_builtin_error("argument is not a set");
+		return ret;
+		}
+
+	auto lv = v->AsTableVal()->ToListVal();
+	auto n = lv->Length();
+
+	for ( int i = 0; i < n; ++i )
+		ret->Assign(i, lv->Idx(i));
+
+	return ret;
+	%}

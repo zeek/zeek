@@ -127,13 +127,9 @@ function format_value(value: any) : string
 
 	if ( /^set/ in tn && strstr(tn, ",") == 0 )
 		{
-		# The conversion to set here is tricky and assumes
-		# that the set isn't indexed via a tuple of types.
-		# The above check for commas in the type name
-		# ensures this.
-		local it: set[bool] = value;
-		for ( sv in it )
-			part += cat(sv);
+		local vec = Option::any_set_to_any_vec(value);
+		for ( sv in vec )
+			part += cat(vec[sv]);
 		return join_string_vec(part, ",");
 		}
 	else if ( /^vector/ in tn )

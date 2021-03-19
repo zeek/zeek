@@ -3778,12 +3778,9 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 		RecordType* sub_r = op->GetType()->AsRecordType();
 
 		int map_size = t_r->NumFields();
-		map.reserve(map_size);
+		map.resize(map_size, -1);	// -1 = field is not mapped
 
 		int i;
-		for ( i = 0; i < map_size; ++i )
-			map.emplace_back(-1);	// -1 = field is not mapped
-
 		for ( i = 0; i < sub_r->NumFields(); ++i )
 			{
 			int t_i = t_r->FieldOffset(sub_r->FieldName(i));

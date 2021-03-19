@@ -213,7 +213,7 @@ public:
 	/**
 	 * Whether the function's closure uses copy semantics.
 	 */
-	virtual bool CopySemantics() const;
+	virtual bool HasCopySemantics() const;
 
 	/**
 	 * Serializes this function's closure or capture frame.

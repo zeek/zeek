@@ -411,7 +411,7 @@ struct val_converter {
 				if ( ! b )
 					return nullptr;
 
-				if ( b->CopySemantics() )
+				if ( b->HasCopySemantics() )
 					{
 					if ( ! b->DeserializeCaptures(*frame) )
 						return nullptr;

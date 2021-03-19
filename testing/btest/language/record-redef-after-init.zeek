@@ -27,26 +27,29 @@ redef record myrec += {
     q: string &default="OPTQ";
 };
 
-print mr;                        # original 'myrec' type with updated a value
-print myrec($a = "runtime");     # check we get new defaults
+event zeek_init()
+	{
+	print mr;                        # original 'myrec' type with updated a value
+	print myrec($a = "runtime");     # check we get new defaults
 
-local mr2 = myrec($a = "local");
-print mr2;
+	local mr2 = myrec($a = "local");
+	print mr2;
 
-mr2 = mr;      # Copying should do the right thing
-print mr2;
+	mr2 = mr;      # Copying should do the right thing
+	print mr2;
 
-local mr3: myrec = mr; # Initializing should do the right thing
-print mr3;
+	local mr3: myrec = mr; # Initializing should do the right thing
+	print mr3;
 
-if ( mr?$q )    # the test that did not work properly
-    {
-    print mr$q; # accessed invalid memory location
-    }
-mr$p = "newp";  # Assignment updates mr as much as needed
-print mr$p;
-print mr;
-print mr$q;
-mr$q = "our value";
-print mr$q;
-print mr;
+	if ( mr?$q )    # the test that did not work properly
+	    {
+	    print mr$q; # accessed invalid memory location
+	    }
+	mr$p = "newp";  # Assignment updates mr as much as needed
+	print mr$p;
+	print mr;
+	print mr$q;
+	mr$q = "our value";
+	print mr$q;
+	print mr;
+	}

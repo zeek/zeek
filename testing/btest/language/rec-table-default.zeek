@@ -11,8 +11,10 @@ type X: record {
 global x: X;
 global y: table[string] of bool &default=T;
 
-print x$a;
-print x$b;
-print x$c;
-print x$d;
-
+event zeek_init()
+	{
+	print x$a;
+	print x$b;
+	print x$c;
+	print x$d;
+	}

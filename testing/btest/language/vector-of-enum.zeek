@@ -6,4 +6,8 @@
 
 type color: enum { Red, Green, Blue };
 global v = vector(Red, Green, Blue);
-print type_name(v), v;
+
+event zeek_init()
+	{
+	print type_name(v), v;
+	}

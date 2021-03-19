@@ -21,4 +21,7 @@ global matched_software: table[string] of Info = {
                 [$name="Wget", $version=[$major=1,$minor=9,$addl="+cvs"], $host=0.0.0.0, $ts=network_time()],
 };
 
-print matched_software;
+event zeek_init()
+	{
+	print matched_software;
+	}

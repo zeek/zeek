@@ -32,25 +32,28 @@ global bar:  Bar = [$bar=4321];
 global bar2: Bar = [$bar=4231, $foo=[$foo=1000]];
 global bar3: Bar = [$bar=4321, $foo=[$foo=10, $quux=42]];
 
-print_bar(bar);
-print_bar(bar2);
-print_bar(bar3);
+event zeek_init()
+	{
+	print_bar(bar);
+	print_bar(bar2);
+	print_bar(bar3);
 
-local bar4: Bar = [$bar=100];
-local bar5: Bar = [$bar=100, $foo=[$foo=1001]];
-local bar6: Bar = [$bar=100, $foo=[$foo=11, $quux=7]];
+	local bar4: Bar = [$bar=100];
+	local bar5: Bar = [$bar=100, $foo=[$foo=1001]];
+	local bar6: Bar = [$bar=100, $foo=[$foo=11, $quux=7]];
 
-print_bar(bar4);
-print_bar(bar5);
-print_bar(bar6);
+	print_bar(bar4);
+	print_bar(bar5);
+	print_bar(bar6);
 
-local r: MyRecord = [$c=13];
-print r;
-print |r$v|;
-r$v += "test";
-print r;
-print |r$v|;
+	local r: MyRecord = [$c=13];
+	print r;
+	print |r$v|;
+	r$v += "test";
+	print r;
+	print |r$v|;
 
-local q = Qux();
-q$a["one"] = "1";
-print q;
+	local q = Qux();
+	q$a["one"] = "1";
+	print q;
+	}

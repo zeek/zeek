@@ -7,9 +7,12 @@ module TEST;
 
 type test_enum2: enum { TWO };
 
-print ONE;
-print fmt("%s", ONE);
+event zeek_init()
+	{
+	print ONE;
+	print fmt("%s", ONE);
 
 
-print TWO;
-print fmt("%s", TWO);
+	print TWO;
+	print fmt("%s", TWO);
+	}

@@ -11,4 +11,7 @@ export {
 	type foo: enum { a, b };
 }
 
-print GLOBAL::a, GLOBAL::b, a, b, c;
+event zeek_init()
+	{
+	print GLOBAL::a, GLOBAL::b, a, b, c;
+	}

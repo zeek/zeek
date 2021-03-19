@@ -9,8 +9,11 @@ type FooBar: record {
 
 global test: FooBar;
 
-delete test$a;
-delete test$b;
-delete test$c;
+event zeek_init()
+	{
+	delete test$a;
+	delete test$b;
+	delete test$c;
 
-print test;
+	print test;
+	}

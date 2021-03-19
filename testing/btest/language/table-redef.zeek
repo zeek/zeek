@@ -23,4 +23,7 @@ redef foo["cool"] = 28.0;
 redef foo["abc"] = 8.0;
 redef foo += { ["def"] = 99.0 };
 
-print foo;
+event zeek_init()
+	{
+	print foo;
+	}

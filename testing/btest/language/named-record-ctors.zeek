@@ -28,12 +28,15 @@ redef Software::vulnerable_versions += {
 	["Java"] = set(java_1_6_vuln, java_1_7_vuln)
 };
 
-local myrec: MyRec = MyRec($max=2);
-print myrec;
-myrec = MyRec($min=7, $max=42);
-print myrec;
+event zeek_init()
+	{
+	local myrec: MyRec = MyRec($max=2);
+	print myrec;
+	myrec = MyRec($min=7, $max=42);
+	print myrec;
 
-local data = Bar($aaa=1, $bbb="test");
-print data;
+	local data = Bar($aaa=1, $bbb="test");
+	print data;
 
-print Software::vulnerable_versions;
+	print Software::vulnerable_versions;
+	}

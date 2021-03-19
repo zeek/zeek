@@ -11,4 +11,7 @@ type Foo: record {
 
 global f: Foo;
 
-print f;
+event zeek_init()
+	{
+	print f;
+	}

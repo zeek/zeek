@@ -7,6 +7,10 @@ type State: record {
 
 global session: State;
 global s: State;
-s = session;
-s$host = "XXX";
-print s$host, session$host;
+
+event zeek_init()
+	{
+	s = session;
+	s$host = "XXX";
+	print s$host, session$host;
+	}

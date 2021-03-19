@@ -10,11 +10,14 @@ global x: X;
 
 global a: vector of count;
 
-a = vector();
-print a;
+event zeek_init()
+	{
+	a = vector();
+	print a;
 
-a = vector(1,2,3);
-print a;
+	a = vector(1,2,3);
+	print a;
 
-print x$a;
-print x$b;
+	print x$a;
+	print x$b;
+	}

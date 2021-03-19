@@ -14,7 +14,10 @@ const v: vector of Foo = {
 	[$s="baz"]
 };
 
-for ( i in v )
-	print fmt("element %d = %s", i, v[i]);
+event zeek_init()
+	{
+	for ( i in v )
+		print fmt("element %d = %s", i, v[i]);
 
-print v;
+	print v;
+	}

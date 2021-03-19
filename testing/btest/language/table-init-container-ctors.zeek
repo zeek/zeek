@@ -72,24 +72,27 @@ function compare_record_yield(a: record_yield, b: record_yield)
 	print a$a == b$a && a$b == b$b;
 	}
 
-print "table of set";
-print table_of_set;
-print "";
-print "table of vector";
-print table_of_vector;
-print "";
-print "table of table";
-print table_of_table;
-print "";
-print "table of record";
-print table_of_record;
-print "";
+event zeek_init()
+	{
+	print "table of set";
+	print table_of_set;
+	print "";
+	print "table of vector";
+	print table_of_vector;
+	print "";
+	print "table of table";
+	print table_of_table;
+	print "";
+	print "table of record";
+	print table_of_record;
+	print "";
 
-compare_set_yield(table_of_set[13], lone_set_ctor);
-compare_set_yield(table_of_set[5], inline_set_ctor);
-compare_vector_yield(table_of_vector[13], lone_vector_ctor);
-compare_vector_yield(table_of_vector[5], inline_vector_ctor);
-compare_table_yield(table_of_table[13], lone_table_ctor);
-compare_table_yield(table_of_table[5], inline_table_ctor);
-compare_record_yield(table_of_record[13], lone_record_ctor);
-compare_record_yield(table_of_record[5], inline_record_ctor);
+	compare_set_yield(table_of_set[13], lone_set_ctor);
+	compare_set_yield(table_of_set[5], inline_set_ctor);
+	compare_vector_yield(table_of_vector[13], lone_vector_ctor);
+	compare_vector_yield(table_of_vector[5], inline_vector_ctor);
+	compare_table_yield(table_of_table[13], lone_table_ctor);
+	compare_table_yield(table_of_table[5], inline_table_ctor);
+	compare_record_yield(table_of_record[13], lone_record_ctor);
+	compare_record_yield(table_of_record[5], inline_record_ctor);
+	}

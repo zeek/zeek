@@ -18,21 +18,25 @@ global t2_t: table[string] of count = { ["four"] = 4, ["five"] = 5 };
 
 global t1_v: vector of count = vector();
 global t2_v: vector of count = vector();
-t1_v[0] = 0;
-t1_v[1] = 1;
-t2_v[2] = 2;
-t2_v[3] = 3;
 
-local m: MetaData = [$a=4, $tags_v=t1_v, $tags_t=t1_t, $tags_s=set("a", "b")];
-local n: MetaData = [$a=13, $tags_v=t2_v, $tags_t=t2_t, $tags_s=set("c", "d")];
+event zeek_init()
+	{
+	t1_v[0] = 0;
+	t1_v[1] = 1;
+	t2_v[2] = 2;
+	t2_v[3] = 3;
 
-if ( 1.2.3.4 !in ip_data )
-	ip_data[1.2.3.4] = set(m);
-else
-	add ip_data[1.2.3.4][m];
+	local m: MetaData = [$a=4, $tags_v=t1_v, $tags_t=t1_t, $tags_s=set("a", "b")];
+	local n: MetaData = [$a=13, $tags_v=t2_v, $tags_t=t2_t, $tags_s=set("c", "d")];
 
-print ip_data;
+	if ( 1.2.3.4 !in ip_data )
+		ip_data[1.2.3.4] = set(m);
+	else
+		add ip_data[1.2.3.4][m];
 
-add ip_data[1.2.3.4][n];
+	print ip_data;
 
-print ip_data[1.2.3.4];
+	add ip_data[1.2.3.4][n];
+
+	print ip_data[1.2.3.4];
+	}

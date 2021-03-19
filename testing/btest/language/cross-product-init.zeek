@@ -7,4 +7,7 @@ global x: set[string, subnet] &redef;
 
 redef x += { [["foo", "bar"], my_subs] };
 
-print x;
+event zeek_init()
+	{
+	print x;
+	}

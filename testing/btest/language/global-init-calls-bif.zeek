@@ -8,7 +8,10 @@
 
 global my_cc = hll_cardinality_init(0.1, 0.999);
 
-hll_cardinality_add(my_cc, 1);
-hll_cardinality_add(my_cc, 2);
-hll_cardinality_add(my_cc, 3);
-print hll_cardinality_estimate(my_cc);
+event zeek_init()
+	{
+	hll_cardinality_add(my_cc, 1);
+	hll_cardinality_add(my_cc, 2);
+	hll_cardinality_add(my_cc, 3);
+	print hll_cardinality_estimate(my_cc);
+	}

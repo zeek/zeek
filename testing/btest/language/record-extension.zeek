@@ -16,6 +16,8 @@ redef record Foo += {
 global f1: Foo = [$a=21];
 global f2: Foo = [$a=21, $d="XXX"];
 
-print f1;
-print f2;
-
+event zeek_init()
+	{
+	print f1;
+	print f2;
+	}

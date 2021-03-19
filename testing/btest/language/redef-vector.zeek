@@ -13,6 +13,9 @@ redef baz += { "a", "b", "c" };
 const d = "d";
 redef baz += { "a" + "b" + "c", d };
 
-print foo;
-print bar;
-print baz;
+event zeek_init()
+	{
+	print foo;
+	print bar;
+	print baz;
+	}

@@ -12,9 +12,12 @@ function p(x: X)
 	print x$b;
 	}
 
-
 global x: X = [$a=20, $b=20];
-p(x);
-delete x$a;
-delete x$b;
-p(x);
+
+event zeek_init()
+	{
+	p(x);
+	delete x$a;
+	delete x$b;
+	p(x);
+	}

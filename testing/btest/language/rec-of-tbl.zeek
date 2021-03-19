@@ -9,8 +9,11 @@ global y: x;
 
 global yy: table[int] of count;
 
-y$a = yy;
+event zeek_init()
+	{
+	y$a = yy;
 
-y$a[+5] = 3;
+	y$a[+5] = 3;
 
-print y;
+	print y;
+	}

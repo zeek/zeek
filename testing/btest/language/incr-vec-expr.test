@@ -11,17 +11,20 @@ global vec: vector of count = vector(0,0,0);
 
 global v: rec = [$a=0, $b="test", $c=vector(1,2,3)];
 
-print vec;
-print v;
+event zeek_init()
+	{
+	print vec;
+	print v;
 
-++vec;
+	++vec;
 
-print vec;
+	print vec;
 
-++v$a;
+	++v$a;
 
-print v;
+	print v;
 
-++v$c;
+	++v$c;
 
-print v;
+	print v;
+	}

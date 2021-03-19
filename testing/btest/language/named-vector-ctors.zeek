@@ -14,6 +14,9 @@ global myvec: FooVector = FooVector("one", "two", "three");
 global myvecd: FooVectorD = FooVectorD(1, 2, 3);
 global myvecrec: FooVectorRec = FooVectorRec([$max=1], [$max=2], [$max=3]);
 
-print myvec;
-print myvecd;
-print myvecrec;
+event zeek_init()
+	{
+	print myvec;
+	print myvecd;
+	print myvecrec;
+	}

@@ -10,5 +10,8 @@ redef mymap = {
 	[1] = "uno",
 } &default="some number";
 
-print mymap[1];
-print mymap[2];
+event zeek_init()
+	{
+	print mymap[1];
+	print mymap[2];
+	}

@@ -1288,8 +1288,10 @@ public:
 			return record_val->at(field).table_val->Get();
 		else
 			{
-			// TODO: error here, although because of the
-			// type trait it really shouldn't ever get here.
+			// It's an error to reach here, although because of
+			// the type trait we really shouldn't ever wind up
+			// here.
+			reporter->InternalError("bad type in GetFieldAs");
 			}
 		}
 
@@ -1305,7 +1307,7 @@ public:
 		else if constexpr ( std::is_floating_point_v<T> )
 			return record_val->at(field).double_val;
 
-		// Could add other types here using type traits,
+		// Note: we could add other types here using type traits,
 		// such as is_same_v<T, std::string>, etc.
 
 		return T{};

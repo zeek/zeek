@@ -732,7 +732,7 @@ ValPtr BinaryExpr::Eval(Frame* f) const
 			auto vv_i = vv->ValAt(i);
 			if ( vv_i )
 				v_result->Assign(i, is_vec1 ? Fold(vv_i.get(), v2.get())
-							    : Fold(v1.get(), vv_i.get()));
+				                            : Fold(v1.get(), vv_i.get()));
 			else
 				v_result->Assign(i, nullptr);
 			}

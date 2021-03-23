@@ -1,3 +1,13 @@
+
+4.1.0-dev.344 | 2021-03-23 16:29:27 -0700
+
+  * Clean up iterator usage in Analyzer (Tim Wojtulewicz, Corelight)
+
+    The ``zeek::analyzer::analyzer_list`` type-alias changed from an
+    ``std::list`` to ``std::vector`` which, in practice, is not expected to be
+    used from plugins in API-incompatible way and may result in ~1-2% overall
+    performance benefit.
+
 4.1.0-dev.341 | 2021-03-18 12:45:04 -0700
 
   * fix for associating current scope with the name of enums; name tidying (Vern Paxson, Corelight)

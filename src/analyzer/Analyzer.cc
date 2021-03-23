@@ -301,17 +301,17 @@ void Analyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
 	AppendNewChildren();
 
 	// Pass to all children.
-	analyzer_list::iterator next;
-	for ( analyzer_list::iterator i = children.begin();
-	      i != children.end(); i = next )
+	for ( auto i = children.begin(); i != children.end(); )
 		{
 		Analyzer* current = *i;
-		next = ++i;
 
 		if ( ! (current->finished || current->removing ) )
+			{
 			current->NextPacket(len, data, is_orig, seq, ip, caplen);
+			++i;
+			}
 		else
-			DeleteChild(--i);
+			i = DeleteChild(i);
 		}
 
 	AppendNewChildren();
@@ -324,17 +324,17 @@ void Analyzer::ForwardStream(int len, const u_char* data, bool is_orig)
 
 	AppendNewChildren();
 
-	analyzer_list::iterator next;
-	for ( analyzer_list::iterator i = children.begin();
-	      i != children.end(); i = next )
+	for ( auto i = children.begin(); i != children.end(); )
 		{
 		Analyzer* current = *i;
-		next = ++i;
 
 		if ( ! (current->finished || current->removing ) )
+			{
 			current->NextStream(len, data, is_orig);
+			++i;
+			}
 		else
-			DeleteChild(--i);
+			i = DeleteChild(i);
 		}
 
 	AppendNewChildren();
@@ -347,17 +347,17 @@ void Analyzer::ForwardUndelivered(uint64_t seq, int len, bool is_orig)
 
 	AppendNewChildren();
 
-	analyzer_list::iterator next;
-	for ( analyzer_list::iterator i = children.begin();
-	      i != children.end(); i = next )
+	for ( auto i = children.begin(); i != children.end(); )
 		{
 		Analyzer* current = *i;
-		next = ++i;
 
 		if ( ! (current->finished || current->removing ) )
+			{
 			current->NextUndelivered(seq, len, is_orig);
+			++i;
+			}
 		else
-			DeleteChild(--i);
+			i = DeleteChild(i);
 		}
 
 	AppendNewChildren();
@@ -367,17 +367,17 @@ void Analyzer::ForwardEndOfData(bool orig)
 	{
 	AppendNewChildren();
 
-	analyzer_list::iterator next;
-	for ( analyzer_list::iterator i = children.begin();
-	      i != children.end(); i = next )
+	for ( auto i = children.begin(); i != children.end(); )
 		{
 		Analyzer* current = *i;
-		next = ++i;
 
 		if ( ! (current->finished || current->removing ) )
+			{
 			current->NextEndOfData(orig);
+			++i;
+			}
 		else
-			DeleteChild(--i);
+			i = DeleteChild(i);
 		}
 
 	AppendNewChildren();
@@ -541,7 +541,7 @@ Analyzer* Analyzer::FindChild(const char* name)
 	return tag ? FindChild(tag) : nullptr;
 	}
 
-void Analyzer::DeleteChild(analyzer_list::iterator i)
+analyzer_list::iterator Analyzer::DeleteChild(analyzer_list::iterator i)
 	{
 	Analyzer* child = *i;
 
@@ -557,8 +557,9 @@ void Analyzer::DeleteChild(analyzer_list::iterator i)
 	DBG_LOG(DBG_ANALYZER, "%s deleted child %s 3",
 		fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
 
-	children.erase(i);
+	auto next = children.erase(i);
 	delete child;
+	return next;
 	}
 
 void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)

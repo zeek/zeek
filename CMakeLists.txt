@@ -56,8 +56,14 @@ get_filename_component(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_SCRIPT_INSTALL_PATH}
 # A folder for library-like Zeek-specific things: Python modules, Zeek
 # plugins, etc.
 set(ZEEK_LIBDIR_PATH ${CMAKE_INSTALL_FULL_LIBDIR}/zeek)
-set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_LIBDIR_PATH}/plugins
-    CACHE STRING "Installation path for plugins" FORCE)
+
+if (ZEEK_PLUGIN_DIR)
+    set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_PLUGIN_DIR}
+        CACHE STRING "Installation path for plugins" FORCE)
+else ()
+    set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_LIBDIR_PATH}/plugins
+        CACHE STRING "Installation path for plugins" FORCE)
+endif ()
 
 configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
 execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink

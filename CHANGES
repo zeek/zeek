@@ -1,4 +1,10 @@
 
+4.1.0-dev.346 | 2021-03-23 17:25:02 -0700
+
+  * Add new ``./configure --plugindir`` option (Vlad Grigorescu)
+
+    Useful for customizing the default installation path for plugins.
+
 4.1.0-dev.344 | 2021-03-23 16:29:27 -0700
 
   * Clean up iterator usage in Analyzer (Tim Wojtulewicz, Corelight)

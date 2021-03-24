@@ -41,6 +41,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --logdir=PATH          when using ZeekControl, path to store log file
                            [PREFIX/logs]
     --libdir=PATH          installation directory for library files [PREFIX/lib]
+    --plugindir=PATH       installation directory for plugins [LIBDIR/zeek/plugin]
     --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
     --mandir=PATH          installation path for man pages [PREFIX/share/man]
     --python-dir=PATH      explicit installation directory for Python modules
@@ -212,6 +213,9 @@ while [ $# -ne 0 ]; do
             ;;
         --libdir=*)
             append_cache_entry CMAKE_INSTALL_LIBDIR PATH   $optarg
+            ;;
+        --plugindir=*)
+            append_cache_entry ZEEK_PLUGIN_DIR PATH   $optarg
             ;;
         --python-dir=*)
             append_cache_entry ZEEK_PYTHON_DIR PATH   $optarg

@@ -6,11 +6,6 @@
 
 #include "zeek/zeek-config.h"
 
-#include <unordered_set>
-
-#include "zeek/Dict.h"
-#include "zeek/Expr.h"
-
 namespace zeek {
 
 class StringVal;

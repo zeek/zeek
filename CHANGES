@@ -1,3 +1,90 @@
+4.1.0-dev.400 | 2021-03-23 20:44:19 -0700
+
+  * whitespace tweaks (Vern Paxson, Corelight)
+
+  * resolved some TODO comments (Vern Paxson, Corelight)
+
+  * remove unnecessary casts, and change necessary ones to use static_cast<> (Vern Paxson, Corelight)
+
+  * explain cmp_func default (Vern Paxson, Corelight)
+
+  * change functions for ZVal type management to static members (Vern Paxson, Corelight)
+
+  * fix some unsigned/signed integer warnings (Vern Paxson, Corelight)
+
+  * address lint concern about uninitialized variable (Vern Paxson, Corelight)
+
+  * Remove use of obsolete forward-declaration macros (Tim Wojtulewicz, Corelight)
+
+  * Merge branch 'topic/vern/zval' of github.com:zeek/zeek into topic/vern/zval (Vern Paxson, Corelight)
+
+  * fix #include's that lack zeek/ prefixes (Vern Paxson, Corelight)
+
+  * overlooked another way in which vector holes can be created (Vern Paxson, Corelight)
+
+  * initialize vector holes to the correct corresponding type (Vern Paxson, Corelight)
+
+  * explicitly populate holes created in vectors (Vern Paxson, Corelight)
+
+  * fix other instances of GetField().get() assuming long-lived ValPtr's (Vern Paxson, Corelight)
+
+  * fix for now-incorrect assumption that GetField always returns an existing ValPtr (Vern Paxson, Corelight)
+
+  * ... and porting over memory management for assignment to vector elements (Vern Paxson, Corelight)
+
+  * ... porting over memory management for assignment to record fields (Vern Paxson, Corelight)
+
+  * dagnabbit, forgot to port over destructor cleanup from ZAM_vector/ZAM_record (Vern Paxson, Corelight)
+
+  * fix #include's that lack zeek/ prefixes (Vern Paxson, Corelight)
+
+  * explicitly populate holes created in vectors (Vern Paxson, Corelight)
+
+  * fixes for now-incorrect assumption that GetField always returns an existing ValPtr (Vern Paxson, Corelight)
+
+  * memory management for assignment to vector elements (Vern Paxson, Corelight)
+
+  * memory management for assignment to record fields (Vern Paxson, Corelight)
+
+  * destructor cleanup from ZAM_vector/ZAM_record (Vern Paxson, Corelight)
+
+  * test suite update for Smith-Waterman now using 0-based vectors (Vern Paxson, Corelight)
+
+  * test suite updates for expanded sort() BiF semantics (bools, doubles) (Vern Paxson, Corelight)
+
+  * test suite updates reflecting that vectors no longer support arbitrary "holes" (Vern Paxson, Corelight)
+
+  * migration to using new differentiated methods for setting record fields (Vern Paxson, Corelight)
+
+  * RecordVal methods for differentiated setting of record fields (Vern Paxson, Corelight)
+
+  * fix for fencepost error when looping over vectors (Vern Paxson, Corelight)
+
+  * migrate to using RecordVal's new Remove() method (Vern Paxson, Corelight)
+
+  * new RecordVal Remove() method to clear a field (Vern Paxson, Corelight)
+
+  * use differentiated record field accessors (Vern Paxson, Corelight)
+
+  * base support for differentiated record field accessors (Vern Paxson, Corelight)
+
+  * migrate to differentiated vector "At" accessors to support future efficiency (Vern Paxson, Corelight)
+
+  * fix for subtle bug due to GetField now potentially returning a new ValPtr (Vern Paxson, Corelight)
+
+  * use HasField() rather than GetField() where appropriate (Vern Paxson, Corelight)
+
+  * moving sort()/order() functionality into VectorVal (Vern Paxson, Corelight)
+
+  * convert VectorVal's to use vector<ZVal> as internal representation (Vern Paxson, Corelight)
+
+  * convert RecordVal's to use vector<ZVal> as internal representation (Vern Paxson, Corelight)
+
+  * added ZVal for low-level representations of Zeek script values (Vern Paxson, Corelight)
+
+  * fix mis-typed record fields that happened to work in original RecordVal impl. (Vern Paxson, Corelight)
+
+  * fix off-by-one assumption regarding vector indexing dating to 2011 (Vern Paxson, Corelight)
 
 4.1.0-dev.356 | 2021-03-23 19:33:44 -0700
 

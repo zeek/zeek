@@ -219,6 +219,9 @@ public:
 	const FuncType* AsFuncType() const;
 	FuncType* AsFuncType();
 
+	const FileType* AsFileType() const;
+	FileType* AsFileType();
+
 	const EnumType* AsEnumType() const;
 	EnumType* AsEnumType();
 
@@ -595,7 +598,8 @@ public:
 	// Given an offset, returns the field's name.
 	const char* FieldName(int field) const;
 
-	type_decl_list* Types() { return types; }
+	const type_decl_list* Types() const	{ return types; }
+	type_decl_list* Types()			{ return types; }
 
 	// Given an offset, returns the field's TypeDecl.
 	const TypeDecl* FieldDecl(int field) const;
@@ -704,6 +708,7 @@ public:
 	// will be fully qualified with their module name.
 	enum_name_list Names() const;
 
+	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 	const EnumValPtr& GetEnumVal(bro_int_t i);
@@ -711,6 +716,8 @@ public:
 protected:
 	void AddNameInternal(const std::string& module_name,
 			const char* name, bro_int_t val, bool is_export);
+
+	void AddNameInternal(const std::string& full_name, bro_int_t val);
 
 	void CheckAndAddName(const std::string& module_name,
 	                     const char* name, bro_int_t val, bool is_export,

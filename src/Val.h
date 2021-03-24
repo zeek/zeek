@@ -61,6 +61,8 @@ class PortVal;
 class AddrVal;
 class SubNetVal;
 class IntervalVal;
+class FuncVal;
+class FileVal;
 class PatternVal;
 class TableVal;
 class RecordVal;
@@ -142,6 +144,12 @@ UNDERLYING_ACCESSOR_DECL(FileVal, File*, AsFile)
 UNDERLYING_ACCESSOR_DECL(PatternVal, const RE_Matcher*, AsPattern)
 UNDERLYING_ACCESSOR_DECL(TableVal, const PDict<TableEntryVal>*, AsTable)
 UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
+
+	FuncVal* AsFuncVal();
+	const FuncVal* AsFuncVal() const;
+
+	FileVal* AsFileVal();
+	const FileVal* AsFileVal() const;
 
 	PatternVal* AsPatternVal();
 	const PatternVal* AsPatternVal() const;
@@ -759,6 +767,32 @@ public:
 	 * @return  The intersection of this table and the given one.
 	 */
 	TableValPtr Intersection(const TableVal& v) const;
+
+	/**
+	 * Returns a new table that is the union of this table and the
+	 * given table.  Union is done only on index, so this generally
+	 * makes most sense to use for sets, not tables.
+	 * @param v  The union'ing table.
+	 * @return  The union of this table and the given one.
+	 */
+	TableValPtr Union(TableVal* v) const
+		{
+		auto v_clone = cast_intrusive<TableVal>(v->Clone());
+		AddTo(v_clone.get(), false, false);
+		return v_clone;
+		}
+
+	/**
+	 * Returns a copy of this table with the given table removed.
+	 * @param v  The table to remove.
+	 * @return  The subset of this table that doesn't include v.
+	 */
+	TableValPtr TakeOut(TableVal* v)
+		{
+		auto clone = cast_intrusive<TableVal>(Clone());
+		v->RemoveFrom(clone.get());
+		return clone;
+		}
 
 	// Returns true if this set contains the same members as the
 	// given set.  Note that comparisons are done using hash keys,

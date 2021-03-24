@@ -71,6 +71,8 @@ Val::~Val()
 	CONVERTER(tag, ctype, name) \
 	CONST_CONVERTER(tag, ctype, name)
 
+CONVERTERS(TYPE_FUNC, FuncVal*, Val::AsFuncVal)
+CONVERTERS(TYPE_FILE, FileVal*, Val::AsFileVal)
 CONVERTERS(TYPE_PATTERN, PatternVal*, Val::AsPatternVal)
 CONVERTERS(TYPE_PORT, PortVal*, Val::AsPortVal)
 CONVERTERS(TYPE_SUBNET, SubNetVal*, Val::AsSubNetVal)
@@ -2332,6 +2334,9 @@ void TableVal::Describe(ODesc* d) const
 		d->PushIndent();
 		}
 
+	bool determ = d->WantDeterminism();
+	std::vector<std::string> elem_descs;
+
 	auto iter = table_val->begin();
 
 	for ( int i = 0; i < n; ++i )
@@ -2345,7 +2350,10 @@ void TableVal::Describe(ODesc* d) const
 		auto vl = table_hash->RecoverVals(*k);
 		int dim = vl->Length();
 
-		if ( i > 0 )
+		ODesc intermediary_d;
+		ODesc* d_ptr = determ ? &intermediary_d : d;
+
+		if ( ! determ && i > 0 )
 			{
 			if ( ! d->IsBinary() )
 				d->Add(",");
@@ -2356,41 +2364,64 @@ void TableVal::Describe(ODesc* d) const
 		if ( d->IsReadable() )
 			{
 			if ( dim != 1 || ! table_type->IsSet() )
-				d->Add("[");
+				d_ptr->Add("[");
 			}
 		else
 			{
-			d->Add(dim);
-			d->SP();
+			d_ptr->Add(dim);
+			d_ptr->SP();
 			}
 
-		vl->Describe(d);
+		vl->Describe(d_ptr);
 
 		if ( table_type->IsSet() )
 			{ // We're a set, not a table.
 			if ( d->IsReadable() )
 				if ( dim != 1 )
-					d->AddSP("]");
+					d_ptr->AddSP("]");
 			}
 		else
 			{
 			if ( d->IsReadable() )
-				d->AddSP("] =");
+				d_ptr->AddSP("] =");
 			if ( v->GetVal() )
-				v->GetVal()->Describe(d);
+				v->GetVal()->Describe(d_ptr);
 			}
 
 		if ( d->IsReadable() && ! d->IsShort() && d->IncludeStats() )
 			{
-			d->Add(" @");
-			d->Add(util::detail::fmt_access_time(v->ExpireAccessTime()));
+			d_ptr->Add(" @");
+			d_ptr->Add(util::detail::fmt_access_time(v->ExpireAccessTime()));
 			}
+
+		if ( determ )
+			elem_descs.emplace_back(d_ptr->Description());
 
 		++iter;
 		}
 
 	if ( iter != table_val->end() )
 		reporter->InternalError("hash table overflow in TableVal::Describe");
+
+	if ( determ )
+		{
+		sort(elem_descs.begin(), elem_descs.end());
+		bool did_elems = false;
+
+		for ( const auto& ed : elem_descs )
+			{
+			if ( did_elems )
+				{
+				if ( ! d->IsBinary() )
+					d->Add(",");
+
+				d->NL();
+				}
+
+			d->Add(ed);
+			did_elems = true;
+			}
+		}
 
 	if ( d->IsPortable() || d->IsReadable() )
 		{
@@ -3499,7 +3530,8 @@ void describe_vals(const std::vector<ValPtr>& vals,
 		if ( i > offset && d->IsReadable() && d->Style() != RAW_STYLE )
 			d->Add(", ");
 
-		vals[i]->Describe(d);
+		if ( vals[i] )
+			vals[i]->Describe(d);
 		}
 	}
 

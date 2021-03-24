@@ -147,6 +147,18 @@ FuncType* Type::AsFuncType()
 	return (FuncType*) this;
 	}
 
+const FileType* Type::AsFileType() const
+	{
+	CHECK_TYPE_TAG(TYPE_FILE, "Type::AsFileType");
+	return (const FileType*) this;
+	}
+
+FileType* Type::AsFileType()
+	{
+	CHECK_TYPE_TAG(TYPE_FILE, "Type::AsFileType");
+	return (FileType*) this;
+	}
+
 const EnumType* Type::AsEnumType() const
 	{
 	CHECK_TYPE_TAG(TYPE_ENUM, "Type::AsEnumType");
@@ -1052,6 +1064,12 @@ void RecordType::DescribeFields(ODesc* d) const
 			else
 				td->type->Describe(d);
 
+			if ( td->attrs )
+				{
+				d->SP();
+				td->attrs->Describe(d);
+				}
+
 			d->Add(";");
 			}
 		}
@@ -1355,6 +1373,14 @@ void EnumType::AddNameInternal(const string& module_name, const char* name,
 	names[fullname] = val;
 	}
 
+void EnumType::AddNameInternal(const string& full_name, bro_int_t val)
+	{
+	names[full_name] = val;
+
+	if ( vals.find(val) == vals.end() )
+		vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
+	}
+
 bro_int_t EnumType::Lookup(const string& module_name, const char* name) const
 	{
 	NameMap::const_iterator pos =
@@ -1397,6 +1423,27 @@ const EnumValPtr& EnumType::GetEnumVal(bro_int_t i)
 		}
 
 	return it->second;
+	}
+
+void EnumType::Describe(ODesc* d) const
+	{
+	auto t = Tag();
+
+	if ( d->IsBinary() )
+		{
+		d->Add(int(t));
+		if ( ! d->IsShort() )
+			d->Add(GetName());
+		}
+	else
+		{
+		d->Add(type_name(t));
+		if ( ! d->IsShort() )
+			{
+			d->SP();
+			d->Add(GetName());
+			}
+		}
 	}
 
 void EnumType::DescribeReST(ODesc* d, bool roles_only) const

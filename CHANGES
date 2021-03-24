@@ -1,4 +1,22 @@
 
+4.1.0-dev.355 | 2021-03-23 19:05:10 -0700
+
+  * add option for deterministic descriptions of sets & tables (Vern Paxson, Corelight)
+
+  * determinism for concurrent Zeek test suite invocations; split out deprecations (Vern Paxson, Corelight)
+
+  * disambiguate descriptions of enum types; include attributes when describing record types (Vern Paxson, Corelight)
+
+  * more liberal view of attribute equality; allow suppressing attr type-checking (Vern Paxson, Corelight)
+
+  * support for operations on sets that return new values (Vern Paxson, Corelight)
+
+  * add low-level method for adding new enum values (Vern Paxson, Corelight)
+
+  * sundry accessors/cast-ers; RE_Matcher's track their construction values (Vern Paxson, Corelight)
+
+  * add convenience functions for comparing IP addresses (Vern Paxson, Corelight)
+
 4.1.0-dev.346 | 2021-03-23 17:25:02 -0700
 
   * Add new ``./configure --plugindir`` option (Vlad Grigorescu)

@@ -1,3 +1,11 @@
+
+4.1.0-dev.402 | 2021-03-24 15:49:52 -0700
+
+  * Add `bin_dir` setting for default zkg config file (Jon Siwek, Corelight)
+
+    Which defaults to `${zeek_install_prefix}/bin`, same as what a
+    standalone `zkg autoconfig` would use.
+
 4.1.0-dev.400 | 2021-03-23 20:44:19 -0700
 
   * whitespace tweaks (Vern Paxson, Corelight)

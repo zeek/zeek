@@ -590,7 +590,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			auto* vval = val->AsVectorVal();
 			size_t size = vval->SizeVal()->AsCount();
 			for (size_t i = 0; i < size; i++)
-				BuildJSON(writer, vval->At(i).get(), only_loggable, re);
+				BuildJSON(writer, vval->ValAt(i).get(), only_loggable, re);
 
 			writer.EndArray();
 			break;
@@ -2816,16 +2816,21 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
+RecordVal::RecordVal(RecordTypePtr t, bool init_fields)
+: Val(t), is_managed(t->ManagedFields())
 	{
 	origin = nullptr;
-	auto rt = GetType()->AsRecordType();
+	rt = std::move(t);
+
 	int n = rt->NumFields();
-	auto vl = record_val = new std::vector<ValPtr>;
-	vl->reserve(n);
+
+	record_val = new std::vector<ZVal>;
+	record_val->reserve(n);
+
+	is_in_record = new std::vector<bool>(n, false);
 
 	if ( run_state::is_parsing )
-		parse_time_records[rt].emplace_back(NewRef{}, this);
+		parse_time_records[rt.get()].emplace_back(NewRef{}, this);
 
 	if ( ! init_fields )
 		return;
@@ -2846,9 +2851,10 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 			catch ( InterpreterException& )
 				{
 				if ( run_state::is_parsing )
-					parse_time_records[rt].pop_back();
+					parse_time_records[rt.get()].pop_back();
 
 				delete record_val;
+				delete is_in_record;
 				throw;
 				}
 
@@ -2879,13 +2885,29 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t))
 				def = make_intrusive<VectorVal>(cast_intrusive<VectorType>(type));
 			}
 
-		vl->emplace_back(std::move(def));
+		if ( def )
+			{
+			record_val->emplace_back(ZVal(def, def->GetType()));
+			(*is_in_record)[i] = true;
+			}
+		else
+			{
+			record_val->emplace_back(ZVal());
+			(*is_in_record)[i] = false;
+			}
 		}
 	}
 
 RecordVal::~RecordVal()
 	{
+	auto n = record_val->size();
+
+	for ( unsigned int i = 0; i < n; ++i )
+		if ( HasField(i) && IsManaged(i) )
+			ZVal::DeleteManagedType((*record_val)[i]);
+
 	delete record_val;
+	delete is_in_record;
 	}
 
 ValPtr RecordVal::SizeVal() const
@@ -2895,13 +2917,36 @@ ValPtr RecordVal::SizeVal() const
 
 void RecordVal::Assign(int field, ValPtr new_val)
 	{
-	(*record_val)[field] = std::move(new_val);
-	Modified();
+	if ( new_val )
+		{
+		DeleteFieldIfManaged(field);
+
+		auto t = rt->GetFieldType(field);
+		(*record_val)[field] = ZVal(new_val, t);
+		(*is_in_record)[field] = true;
+		Modified();
+		}
+	else
+		Remove(field);
+	}
+
+void RecordVal::Remove(int field)
+	{
+	if ( HasField(field) )
+		{
+		if ( IsManaged(field) )
+			ZVal::DeleteManagedType((*record_val)[field]);
+
+		(*record_val)[field] = ZVal();
+		(*is_in_record)[field] = false;
+
+		Modified();
+		}
 	}
 
 ValPtr RecordVal::GetFieldOrDefault(int field) const
 	{
-	const auto& val = (*record_val)[field];
+	auto val = GetField(field);
 
 	if ( val )
 		return val;
@@ -2909,9 +2954,9 @@ ValPtr RecordVal::GetFieldOrDefault(int field) const
 	return GetType()->AsRecordType()->FieldDefault(field);
 	}
 
-void RecordVal::ResizeParseTimeRecords(RecordType* rt)
+void RecordVal::ResizeParseTimeRecords(RecordType* revised_rt)
 	{
-	auto it = parse_time_records.find(rt);
+	auto it = parse_time_records.find(revised_rt);
 
 	if ( it == parse_time_records.end() )
 		return;
@@ -2921,14 +2966,14 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 	for ( auto& rv : rvs )
 		{
 		int current_length = rv->NumFields();
-		auto required_length = rt->NumFields();
+		auto required_length = revised_rt->NumFields();
 
 		if ( required_length > current_length )
 			{
 			rv->Reserve(required_length);
 
 			for ( auto i = current_length; i < required_length; ++i )
-				rv->AppendField(rt->FieldDefault(i));
+				rv->AppendField(revised_rt->FieldDefault(i));
 			}
 		}
 	}
@@ -2938,7 +2983,7 @@ void RecordVal::DoneParsing()
 	parse_time_records.clear();
 	}
 
-const ValPtr& RecordVal::GetField(const char* field) const
+ValPtr RecordVal::GetField(const char* field) const
 	{
 	int idx = GetType()->AsRecordType()->FieldOffset(field);
 
@@ -3010,7 +3055,7 @@ RecordValPtr RecordVal::CoerceTo(RecordTypePtr t,
 		}
 
 	for ( i = 0; i < ar_t->NumFields(); ++i )
-		if ( ! aggr->GetField(i) &&
+		if ( ! aggr->HasField(i) &&
 		     ! ar_t->FieldDecl(i)->GetAttr(detail::ATTR_OPTIONAL) )
 			{
 			char buf[512];
@@ -3038,11 +3083,10 @@ TableValPtr RecordVal::GetRecordFieldsVal() const
 void RecordVal::Describe(ODesc* d) const
 	{
 	auto n = record_val->size();
-	auto record_type = GetType()->AsRecordType();
 
 	if ( d->IsBinary() || d->IsPortable() )
 		{
-		record_type->Describe(d);
+		rt->Describe(d);
 		d->SP();
 		d->Add(static_cast<uint64_t>(n));
 		d->SP();
@@ -3055,12 +3099,12 @@ void RecordVal::Describe(ODesc* d) const
 		if ( ! d->IsBinary() && i > 0 )
 			d->Add(", ");
 
-		d->Add(record_type->FieldName(i));
+		d->Add(rt->FieldName(i));
 
 		if ( ! d->IsBinary() )
 			d->Add("=");
 
-		const auto& v = (*record_val)[i];
+		auto v = GetField(i);
 
 		if ( v )
 			v->Describe(d);
@@ -3075,7 +3119,7 @@ void RecordVal::Describe(ODesc* d) const
 void RecordVal::DescribeReST(ODesc* d) const
 	{
 	auto n = record_val->size();
-	auto record_type = GetType()->AsRecordType();
+	auto rt = GetType()->AsRecordType();
 
 	d->Add("{");
 	d->PushIndent();
@@ -3085,10 +3129,10 @@ void RecordVal::DescribeReST(ODesc* d) const
 		if ( i > 0 )
 			d->NL();
 
-		d->Add(record_type->FieldName(i));
+		d->Add(rt->FieldName(i));
 		d->Add("=");
 
-		const auto& v = (*record_val)[i];
+		auto v = GetField(i);
 
 		if ( v )
 			v->Describe(d);
@@ -3111,9 +3155,11 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
-	for ( const auto& vlv : *record_val)
+	int n = NumFields();
+	for ( auto i = 0; i < n; ++i )
 		{
-		auto v = vlv ? vlv->Clone(state) : nullptr;
+		auto f_i = GetField(i);
+		auto v = f_i ? f_i->Clone(state) : nullptr;
   		rv->AppendField(std::move(v));
 		}
 
@@ -3123,16 +3169,25 @@ ValPtr RecordVal::DoClone(CloneState* state)
 unsigned int RecordVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
-	const auto& vl = *record_val;
 
-	for ( const auto& v : vl )
+	int n = NumFields();
+	for ( auto i = 0; i < n; ++i )
 		{
-		if ( v )
-		    size += v->MemoryAllocation();
+		auto f_i = GetField(i);
+		if ( f_i )
+			size += f_i->MemoryAllocation();
 		}
 
-	size += util::pad_size(vl.capacity() * sizeof(ValPtr));
-	size += padded_sizeof(vl);
+	size += util::pad_size(record_val->capacity() * sizeof(ZVal));
+	size += padded_sizeof(*record_val);
+
+	// It's tricky sizing is_in_record since it's a std::vector
+	// specialization.  We approximate this by not scaling capacity()
+	// by sizeof(bool) but just using its raw value.  That's still
+	// presumably going to be an overestimate.
+	size += util::pad_size(is_in_record->capacity());
+	size += padded_sizeof(*is_in_record);
+
 	return size + padded_sizeof(*this);
 	}
 
@@ -3168,13 +3223,32 @@ ValPtr TypeVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-VectorVal::VectorVal(VectorTypePtr t) : Val(std::move(t))
+VectorVal::VectorVal(VectorTypePtr t) : Val(t)
 	{
-	vector_val = new vector<ValPtr>();
+	vector_val = new vector<ZVal>();
+	yield_type = t->Yield();
+
+	auto y_tag = yield_type->Tag();
+	any_yield = (y_tag == TYPE_VOID || y_tag == TYPE_ANY);
+	managed_yield = ZVal::IsManagedType(yield_type);
 	}
 
 VectorVal::~VectorVal()
 	{
+	if ( yield_types )
+		{
+		int n = yield_types->size();
+		for ( auto i = 0; i < n; ++i )
+			ZVal::DeleteIfManaged((*vector_val)[i], (*yield_types)[i]);
+		delete yield_types;
+		}
+
+	else if ( managed_yield )
+		{
+		for ( auto& elem : *vector_val )
+			ZVal::DeleteManagedType(elem);
+		}
+
 	delete vector_val;
 	}
 
@@ -3183,16 +3257,72 @@ ValPtr VectorVal::SizeVal() const
 	return val_mgr->Count(uint32_t(vector_val->size()));
 	}
 
-bool VectorVal::Assign(unsigned int index, ValPtr element)
+bool VectorVal::CheckElementType(const ValPtr& element)
 	{
-	if ( element &&
-	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
+	if ( ! element )
+		// Insertion isn't actually going to happen.
+		return true;
+
+	if ( yield_types )
+		// We're already a heterogeneous vector-of-any.
+		return true;
+
+	if ( any_yield )
+		{
+		int n = vector_val->size();
+
+		if ( n == 0 )
+			// First addition to an empty vector-of-any, perhaps
+			// it will be homogeneous.
+			yield_type = element->GetType();
+
+		else
+			{
+			yield_types = new std::vector<TypePtr>();
+
+			// Since we're only now switching to the heterogeneous
+			// representation, capture the types of the existing
+			// elements.
+
+			for ( auto i = 0; i < n; ++i )
+				yield_types->emplace_back(yield_type);
+			}
+		}
+
+	else if ( ! same_type(element->GetType(), yield_type, false) )
 		return false;
 
-	if ( index >= vector_val->size() )
-		vector_val->resize(index + 1);
+	return true;
+	}
 
-	(*vector_val)[index] = std::move(element);
+bool VectorVal::Assign(unsigned int index, ValPtr element)
+	{
+	if ( ! CheckElementType(element) )
+		return false;
+
+	unsigned int n = vector_val->size();
+
+	if ( index >= n )
+		{
+		AddHoles(index - n);
+		vector_val->resize(index + 1);
+		if ( yield_types )
+			yield_types->resize(index + 1);
+		}
+
+	if ( yield_types )
+		{
+		const auto& t = element->GetType();
+		(*yield_types)[index] = t;
+		ZVal::DeleteIfManaged((*vector_val)[index], t);
+		(*vector_val)[index] = ZVal(std::move(element), t);
+		}
+	else
+		{
+		if ( managed_yield )
+			ZVal::DeleteManagedType((*vector_val)[index]);
+		(*vector_val)[index] = ZVal(std::move(element), yield_type);
+		}
 
 	Modified();
 	return true;
@@ -3212,23 +3342,54 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 
 bool VectorVal::Insert(unsigned int index, ValPtr element)
 	{
-	if ( element &&
-	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
-		{
+	if ( ! CheckElementType(element) )
 		return false;
+
+	vector<ZVal>::iterator it;
+	vector<TypePtr>::iterator types_it;
+
+	auto n = vector_val->size();
+
+	if ( index < n )
+		{ // May need to delete previous element
+		it = std::next(vector_val->begin(), index);
+		if ( yield_types )
+			{
+			ZVal::DeleteIfManaged(*it, element->GetType());
+			types_it = std::next(yield_types->begin(), index);
+			}
+		else if ( managed_yield )
+			ZVal::DeleteManagedType(*it);
+		}
+	else
+		{
+		it = vector_val->end();
+		if ( yield_types )
+			types_it = yield_types->end();
+		AddHoles(index - n);
 		}
 
-	vector<ValPtr>::iterator it;
-
-	if ( index < vector_val->size() )
-		it = std::next(vector_val->begin(), index);
+	if ( yield_types )
+		{
+		const auto& t = element->GetType();
+		yield_types->insert(types_it, t);
+		vector_val->insert(it, ZVal(std::move(element), t));
+		}
 	else
-		it = vector_val->end();
-
-	vector_val->insert(it, std::move(element));
+		vector_val->insert(it, ZVal(std::move(element), yield_type));
 
 	Modified();
 	return true;
+	}
+
+void VectorVal::AddHoles(int nholes)
+	{
+	TypePtr fill_t = yield_type;
+	if ( yield_type->Tag() == TYPE_VOID )
+		fill_t = base_type(TYPE_ANY);
+
+	for ( auto i = 0; i < nholes; ++i )
+		vector_val->emplace_back(ZVal(fill_t));
 	}
 
 bool VectorVal::Remove(unsigned int index)
@@ -3237,6 +3398,17 @@ bool VectorVal::Remove(unsigned int index)
 		return false;
 
 	auto it = std::next(vector_val->begin(), index);
+
+	if ( yield_types )
+		{
+		auto types_it = std::next(yield_types->begin(), index);
+		ZVal::DeleteIfManaged(*it, *types_it);
+		yield_types->erase(types_it);
+		}
+
+	else if ( managed_yield )
+		ZVal::DeleteManagedType(*it);
+
 	vector_val->erase(it);
 
 	Modified();
@@ -3267,17 +3439,173 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 	return true;
 	}
 
-const ValPtr& VectorVal::At(unsigned int index) const
+ValPtr VectorVal::At(unsigned int index) const
 	{
 	if ( index >= vector_val->size() )
 		return Val::nil;
 
-	return (*vector_val)[index];
+	const auto& t = yield_types ? (*yield_types)[index] : yield_type;
+
+	return (*vector_val)[index].ToVal(t);
 	}
 
-void VectorVal::Sort(bool cmp_func(const ValPtr& a, const ValPtr& b))
+static Func* sort_function_comp = nullptr;
+
+// Used for indirect sorting to support order().
+static std::vector<const ZVal*> index_map;
+
+// The yield type of the vector being sorted.
+static TypePtr sort_type;
+static bool sort_type_is_managed = false;
+
+static bool sort_function(const ZVal& a, const ZVal& b)
 	{
-	sort(vector_val->begin(), vector_val->end(), cmp_func);
+	// Missing values are only applicable for managed types.
+	if ( sort_type_is_managed )
+		{
+		if ( ! a.ManagedVal() )
+			return 0;
+		if ( ! b.ManagedVal() )
+			return 1;
+		}
+
+	auto a_v = a.ToVal(sort_type);
+	auto b_v = b.ToVal(sort_type);
+
+	auto result = sort_function_comp->Invoke(a_v, b_v);
+	int int_result = result->CoerceToInt();
+
+	return int_result < 0;
+	}
+
+static bool signed_sort_function (const ZVal& a, const ZVal& b)
+	{
+	return a.AsInt() < b.AsInt();
+	}
+
+static bool unsigned_sort_function (const ZVal& a, const ZVal& b)
+	{
+	return a.AsCount() < b.AsCount();
+	}
+
+static bool double_sort_function (const ZVal& a, const ZVal& b)
+	{
+	return a.AsDouble() < b.AsDouble();
+	}
+
+static bool indirect_sort_function(size_t a, size_t b)
+	{
+	return sort_function(*index_map[a], *index_map[b]);
+	}
+
+static bool indirect_signed_sort_function(size_t a, size_t b)
+	{
+	return signed_sort_function(*index_map[a], *index_map[b]);
+	}
+
+static bool indirect_unsigned_sort_function(size_t a, size_t b)
+	{
+	return unsigned_sort_function(*index_map[a], *index_map[b]);
+	}
+
+static bool indirect_double_sort_function(size_t a, size_t b)
+	{
+	return double_sort_function(*index_map[a], *index_map[b]);
+	}
+
+void VectorVal::Sort(Func* cmp_func)
+	{
+	if ( yield_types )
+		reporter->RuntimeError(GetLocationInfo(), "cannot sort a vector-of-any");
+
+	sort_type = yield_type;
+	sort_type_is_managed = ZVal::IsManagedType(sort_type);
+
+	bool (*sort_func)(const ZVal&, const ZVal&);
+
+	if ( cmp_func )
+		{
+		sort_function_comp = cmp_func;
+		sort_func = sort_function;
+		}
+
+	else
+		{
+		auto eti = sort_type->InternalType();
+
+		if ( eti == TYPE_INTERNAL_INT )
+			sort_func = signed_sort_function;
+		else if ( eti == TYPE_INTERNAL_UNSIGNED )
+			sort_func = unsigned_sort_function;
+		else
+			{
+			ASSERT(eti == TYPE_INTERNAL_DOUBLE);
+			sort_func = double_sort_function;
+			}
+		}
+
+	sort(vector_val->begin(), vector_val->end(), sort_func);
+	}
+
+VectorValPtr VectorVal::Order(Func* cmp_func)
+	{
+	if ( yield_types )
+		{
+		reporter->RuntimeError(GetLocationInfo(), "cannot order a vector-of-any");
+		return nullptr;
+		}
+
+	sort_type = yield_type;
+	sort_type_is_managed = ZVal::IsManagedType(sort_type);
+
+	bool (*sort_func)(size_t, size_t);
+
+	if ( cmp_func )
+		{
+		sort_function_comp = cmp_func;
+		sort_func = indirect_sort_function;
+		}
+
+	else
+		{
+		auto eti = sort_type->InternalType();
+
+		if ( eti == TYPE_INTERNAL_INT )
+			sort_func = indirect_signed_sort_function;
+		else if ( eti == TYPE_INTERNAL_UNSIGNED )
+			sort_func = indirect_unsigned_sort_function;
+		else
+			{
+			ASSERT(eti == TYPE_INTERNAL_DOUBLE);
+			sort_func = indirect_double_sort_function;
+			}
+		}
+
+	int n = Size();
+
+	// Set up initial mapping of indices directly to corresponding
+	// elements.
+	vector<size_t> ind_vv(n);
+	int i;
+	for ( i = 0; i < n; ++i )
+		{
+		ind_vv[i] = i;
+		index_map.emplace_back(&(*vector_val)[i]);
+		}
+
+	sort(ind_vv.begin(), ind_vv.end(), sort_func);
+
+	index_map.clear();
+
+	// Now spin through ind_vv to read out the rearrangement.
+	auto result_v = make_intrusive<VectorVal>(zeek::id::index_vec);
+	for ( i = 0; i < n; ++i )
+		{
+		int ind = ind_vv[i];
+		result_v->Assign(i, zeek::val_mgr->Count(ind));
+		}
+
+	return result_v;
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
@@ -3285,6 +3613,13 @@ unsigned int VectorVal::Resize(unsigned int new_num_elements)
 	unsigned int oldsize = vector_val->size();
 	vector_val->reserve(new_num_elements);
 	vector_val->resize(new_num_elements);
+
+	if ( yield_types )
+		{
+		yield_types->reserve(new_num_elements);
+		yield_types->resize(new_num_elements);
+		}
+
 	return oldsize;
 	}
 
@@ -3300,6 +3635,9 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 void VectorVal::Reserve(unsigned int num_elements)
 	{
 	vector_val->reserve(num_elements);
+
+	if ( yield_types )
+		yield_types->reserve(num_elements);
 	}
 
 ValPtr VectorVal::DoClone(CloneState* state)
@@ -3308,9 +3646,11 @@ ValPtr VectorVal::DoClone(CloneState* state)
 	vv->Reserve(vector_val->size());
 	state->NewClone(this, vv);
 
-	for ( const auto& e : *vector_val )
+	int n = vector_val->size();
+
+	for ( auto i = 0; i < n; ++i )
 		{
-		auto vc = e->Clone(state);
+		auto vc = At(i)->Clone(state);
 		vv->Append(std::move(vc));
 		}
 
@@ -3323,18 +3663,21 @@ void VectorVal::ValDescribe(ODesc* d) const
 
 	size_t vector_size = vector_val->size();
 
-	if ( vector_size != 0)
+	if ( vector_size != 0 )
 		{
-		for ( unsigned int i = 0; i < (vector_size - 1); ++i )
+		auto last_ind = vector_size - 1;
+		for ( unsigned int i = 0; i < last_ind; ++i )
 			{
-			if ( vector_val->at(i) )
-				vector_val->at(i)->Describe(d);
+			auto v = At(i);
+			if ( v )
+				v->Describe(d);
 			d->Add(", ");
 			}
-		}
 
-	if ( vector_size != 0 && vector_val->back() )
-		vector_val->back()->Describe(d);
+		auto v = At(last_ind);
+		if ( v )
+			v->Describe(d);
+		}
 
 	d->Add("]");
 	}

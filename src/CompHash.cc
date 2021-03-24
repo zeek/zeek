@@ -184,7 +184,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 
 			for ( int i = 0; i < num_fields; ++i )
 				{
-				auto rv_i = rv->GetField(i).get();
+				auto rv_i = rv->GetField(i);
 
 				Attributes* a = rt->FieldDecl(i)->attrs.get();
 				bool optional_attr = (a && a->Find(ATTR_OPTIONAL));
@@ -194,7 +194,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 
 				if ( ! (kp = SingleValHash(type_check, kp,
 							   rt->GetFieldType(i).get(),
-							   rv_i, optional_attr)) )
+							   rv_i.get(), optional_attr)) )
 					return nullptr;
 				}
 
@@ -265,7 +265,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			kp1 = reinterpret_cast<char*>(kp+1);
 			for ( unsigned int i = 0; i < vv->Size(); ++i )
 				{
-				const auto& val = vv->At(i);
+				auto val = vv->ValAt(i);
 				unsigned int* kp = AlignAndPadType<unsigned int>(kp1);
 				*kp = i;
 				kp1 = reinterpret_cast<char*>(kp+1);
@@ -517,8 +517,9 @@ int CompositeHash::SingleTypeKeySize(Type* bt, const Val* v,
 				Attributes* a = rt->FieldDecl(i)->attrs.get();
 				bool optional_attr = (a && a->Find(ATTR_OPTIONAL));
 
+				auto rv_v = rv ? rv->GetField(i) : nullptr;
 				sz = SingleTypeKeySize(rt->GetFieldType(i).get(),
-						       rv ? rv->GetField(i).get() : nullptr,
+						       rv_v.get(),
 						       type_check, sz, optional_attr,
 						       calc_static_size);
 				if ( ! sz )
@@ -566,7 +567,7 @@ int CompositeHash::SingleTypeKeySize(Type* bt, const Val* v,
 			VectorVal* vv = const_cast<VectorVal*>(v->AsVectorVal());
 			for ( unsigned int i = 0; i < vv->Size(); ++i )
 				{
-				const auto& val = vv->At(i);
+				auto val = vv->ValAt(i);
 				sz = SizeAlign(sz, sizeof(unsigned int));
 				sz = SizeAlign(sz, sizeof(unsigned int));
 				if ( val )

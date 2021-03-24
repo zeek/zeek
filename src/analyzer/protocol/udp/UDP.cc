@@ -220,8 +220,8 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 void UDP_Analyzer::UpdateConnVal(RecordVal* conn_val)
 	{
-	RecordVal* orig_endp = conn_val->GetField("orig")->AsRecordVal();
-	RecordVal* resp_endp = conn_val->GetField("resp")->AsRecordVal();
+	auto orig_endp = conn_val->GetFieldAs<RecordVal>("orig");
+	auto resp_endp = conn_val->GetFieldAs<RecordVal>("resp");
 
 	UpdateEndpointVal(orig_endp, true);
 	UpdateEndpointVal(resp_endp, false);
@@ -235,14 +235,14 @@ void UDP_Analyzer::UpdateEndpointVal(RecordVal* endp, bool is_orig)
 	bro_int_t size = is_orig ? request_len : reply_len;
 	if ( size < 0 )
 		{
-		endp->Assign(0, val_mgr->Count(0));
-		endp->Assign(1, val_mgr->Count(int(UDP_INACTIVE)));
+		endp->Assign(0, 0);
+		endp->Assign(1, UDP_INACTIVE);
 		}
 
 	else
 		{
-		endp->Assign(0, val_mgr->Count(size));
-		endp->Assign(1, val_mgr->Count(int(UDP_ACTIVE)));
+		endp->Assign(0, static_cast<uint64_t>(size));
+		endp->Assign(1, UDP_ACTIVE);
 		}
 	}
 

@@ -433,17 +433,17 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	if ( peer_count == 0 )
 		return true;
 
-	if ( ! args->GetField(0) )
+	if ( ! args->HasField(0) )
 		return false;
 
 	auto event_name = args->GetFieldAs<StringVal>(0)->CheckString();
-	auto vv = args->GetField(1)->AsVectorVal();
+	auto vv = args->GetFieldAs<VectorVal>(1);
 	broker::vector xs;
 	xs.reserve(vv->Size());
 
 	for ( auto i = 0u; i < vv->Size(); ++i )
 		{
-		const auto& val = vv->At(i)->AsRecordVal()->GetField(0);
+		const auto& val = vv->RecordValAt(i)->GetField(0);
 		auto data_val = static_cast<detail::DataVal*>(val.get());
 		xs.emplace_back(data_val->data);
 		}
@@ -784,7 +784,7 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame)
 				return rval;
 				}
 
-			rval->Assign(0, make_intrusive<StringVal>(func->Name()));
+			rval->Assign(0, func->Name());
 			continue;
 			}
 
@@ -793,7 +793,7 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame)
 
 		if ( ! same_type(got_type, expected_type) )
 			{
-			rval->Assign(0, nullptr);
+			rval->Remove(0);
 			Error("event parameter #%d type mismatch, got %s, expect %s", i,
 			      type_name(got_type->Tag()),
 			      type_name(expected_type->Tag()));
@@ -807,9 +807,9 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame)
 		else
 			data_val = detail::make_data_val((*args)[i]);
 
-		if ( ! data_val->GetField(0) )
+		if ( ! data_val->HasField(0) )
 			{
-			rval->Assign(0, nullptr);
+			rval->Remove(0);
 			Error("failed to convert param #%d of type %s to broker data",
 				  i, type_name(got_type->Tag()));
 			return rval;
@@ -1453,20 +1453,20 @@ void Manager::ProcessStatus(broker::status_view stat)
 
 	if ( ctx )
 		{
-		endpoint_info->Assign(0, make_intrusive<StringVal>(to_string(ctx->node)));
+		endpoint_info->Assign(0, to_string(ctx->node));
 		static auto ni = id::find_type<RecordType>("Broker::NetworkInfo");
 		auto network_info = make_intrusive<RecordVal>(ni);
 
 		if ( ctx->network )
 			{
-			network_info->Assign(0, make_intrusive<StringVal>(ctx->network->address.data()));
+			network_info->Assign(0, ctx->network->address.data());
 			network_info->Assign(1, val_mgr->Port(ctx->network->port, TRANSPORT_TCP));
 			}
 		else
 			{
 			// TODO: are there any status messages where the ctx->network
 			// is not set and actually could be?
-			network_info->Assign(0, make_intrusive<StringVal>("<unknown>"));
+			network_info->Assign(0, "<unknown>");
 			network_info->Assign(1, val_mgr->Port(0, TRANSPORT_TCP));
 			}
 

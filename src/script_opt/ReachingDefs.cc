@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/script_opt/ReachingDefs.h"
-#include "Desc.h"
+#include "zeek/Desc.h"
 
 
 namespace zeek::detail {

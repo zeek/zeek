@@ -352,7 +352,7 @@ VectorVal* String:: VecToPolicy(Vec* vec)
 		String* string = (*vec)[i];
 		auto val = make_intrusive<StringVal>(string->Len(),
 		                                     (const char*) string->Bytes());
-		result->Assign(i+1, std::move(val));
+		result->Assign(i, std::move(val));
 		}
 
 	return result.release();
@@ -362,14 +362,13 @@ String::Vec* String::VecFromPolicy(VectorVal* vec)
 	{
 	Vec* result = new Vec();
 
-	// VectorVals start at index 1!
-	for ( unsigned int i = 1; i <= vec->Size(); ++i )
+	for ( unsigned int i = 0; i < vec->Size(); ++i )
 		{
-		const auto& v = vec->At(i);	// get the RecordVal
+		auto v = vec->StringAt(i);
 		if ( ! v )
 			continue;
 
-		String* string = new String(*(v->AsString()));
+		String* string = new String(*v);
 		result->push_back(string);
 		}
 

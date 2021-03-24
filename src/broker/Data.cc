@@ -430,7 +430,7 @@ struct val_converter {
 
 				if ( caf::get_if<broker::none>(&a[idx]) != nullptr )
 					{
-					rval->Assign(i, nullptr);
+					rval->Remove(i);
 					++idx;
 					continue;
 					}
@@ -972,7 +972,7 @@ broker::expected<broker::data> val_to_data(const Val* v)
 
 		for ( auto i = 0u; i < vec->Size(); ++i )
 			{
-			const auto& item_val = vec->At(i);
+			auto item_val = vec->ValAt(i);
 
 			if ( ! item_val )
 				continue;

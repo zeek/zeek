@@ -92,12 +92,12 @@ File::File(const std::string& file_id, const std::string& source_name, Connectio
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Creating new File object", file_id.c_str());
 
 	val = make_intrusive<RecordVal>(id::fa_file);
-	val->Assign(id_idx, make_intrusive<StringVal>(file_id.c_str()));
+	val->Assign(id_idx, file_id);
 	SetSource(source_name);
 
 	if ( conn )
 		{
-		val->Assign(is_orig_idx, val_mgr->Bool(is_orig));
+		val->Assign(is_orig_idx, is_orig);
 		UpdateConnectionFields(conn, is_orig);
 		}
 
@@ -115,7 +115,7 @@ File::~File()
 
 void File::UpdateLastActivityTime()
 	{
-	val->Assign(last_active_idx, make_intrusive<TimeVal>(run_state::network_time));
+	val->AssignTime(last_active_idx, run_state::network_time);
 	}
 
 double File::GetLastActivityTime() const
@@ -128,12 +128,12 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 	if ( ! conn )
 		return false;
 
-	Val* conns = val->GetField(conns_idx).get();
+	auto conns = val->GetField(conns_idx);
 
 	if ( ! conns )
 		{
 		auto ect = empty_connection_table();
-		conns = ect.get();
+		conns = ect;
 		val->Assign(conns_idx, std::move(ect));
 		}
 
@@ -190,7 +190,7 @@ std::string File::GetSource() const
 
 void File::SetSource(const std::string& source)
 	{
-	val->Assign(source_idx, make_intrusive<StringVal>(source.c_str()));
+	val->Assign(source_idx, source);
 	}
 
 double File::GetTimeoutInterval() const
@@ -200,7 +200,7 @@ double File::GetTimeoutInterval() const
 
 void File::SetTimeoutInterval(double interval)
 	{
-	val->Assign(timeout_interval_idx, make_intrusive<IntervalVal>(interval));
+	val->AssignInterval(timeout_interval_idx, interval);
 	}
 
 bool File::SetExtractionLimit(RecordValPtr args, uint64_t bytes)
@@ -223,13 +223,13 @@ bool File::SetExtractionLimit(RecordValPtr args, uint64_t bytes)
 void File::IncrementByteCount(uint64_t size, int field_idx)
 	{
 	uint64_t old = LookupFieldDefaultCount(field_idx);
-	val->Assign(field_idx, val_mgr->Count(old + size));
+	val->Assign(field_idx, old + size);
 	}
 
 void File::SetTotalBytes(uint64_t size)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Total bytes %" PRIu64, id.c_str(), size);
-	val->Assign(total_bytes_idx, val_mgr->Count(size));
+	val->Assign(total_bytes_idx, size);
 	}
 
 bool File::IsComplete() const
@@ -298,8 +298,8 @@ bool File::SetMime(const std::string& mime_type)
 		return false;
 
 	auto meta = make_intrusive<RecordVal>(id::fa_metadata);
-	meta->Assign(meta_mime_type_idx, make_intrusive<StringVal>(mime_type));
-	meta->Assign(meta_inferred_idx, val_mgr->False());
+	meta->Assign(meta_mime_type_idx, mime_type);
+	meta->Assign(meta_inferred_idx, false);
 
 	FileEvent(file_sniff, {val, std::move(meta)});
 	return true;
@@ -309,7 +309,7 @@ void File::InferMetadata()
 	{
 	did_metadata_inference = true;
 
-	Val* bof_buffer_val = val->GetField(bof_buffer_idx).get();
+	auto bof_buffer_val = val->GetField(bof_buffer_idx);
 
 	if ( ! bof_buffer_val )
 		{
@@ -317,8 +317,8 @@ void File::InferMetadata()
 			return;
 
 		String* bs = concatenate(bof_buffer.chunks);
-		val->Assign<StringVal>(bof_buffer_idx, bs);
-		bof_buffer_val = val->GetField(bof_buffer_idx).get();
+		val->Assign(bof_buffer_idx, bs);
+		bof_buffer_val = val->GetField(bof_buffer_idx);
 		}
 
 	if ( ! FileEventAvailable(file_sniff) )
@@ -334,7 +334,7 @@ void File::InferMetadata()
 
 	if ( ! matches.empty() )
 		{
-		meta->Assign<StringVal>(meta_mime_type_idx,
+		meta->Assign(meta_mime_type_idx,
 		                        *(matches.begin()->second.begin()));
 		meta->Assign(meta_mime_types_idx,
 		             file_analysis::GenMIMEMatchesVal(matches));
@@ -361,7 +361,7 @@ bool File::BufferBOF(const u_char* data, uint64_t len)
 	if ( bof_buffer.size > 0 )
 		{
 		String* bs = concatenate(bof_buffer.chunks);
-		val->Assign(bof_buffer_idx, make_intrusive<StringVal>(bs));
+		val->Assign(bof_buffer_idx, bs);
 		}
 
 	return false;

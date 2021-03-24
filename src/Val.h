@@ -15,6 +15,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/net_util.h"
 #include "zeek/Dict.h"
+#include "zeek/ZVal.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -72,6 +73,7 @@ class EnumVal;
 class OpaqueVal;
 class VectorVal;
 class TableEntryVal;
+class TypeVal;
 
 using AddrValPtr = IntrusivePtr<AddrVal>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
@@ -448,14 +450,19 @@ public:
 	// Returns a masked port number
 	static uint32_t Mask(uint32_t port_num, TransportProto port_type);
 
-	const PortVal* Get() const	{ return AsPortVal(); }
-
 protected:
 	friend class ValManager;
 	PortVal(uint32_t p);
 
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
+
+private:
+	// This method is just here to trick the interface in
+	// `RecordVal::GetFieldAs` into returning the right type.
+	// It shouldn't actually be used for anything.
+	friend class RecordVal;
+	PortValPtr Get()	{ return {NewRef{}, this}; }
 };
 
 class AddrVal final : public Val {
@@ -1024,6 +1031,39 @@ private:
 	PDict<TableEntryVal>* table_val;
 };
 
+// This would be way easier with is_convertible_v, but sadly that won't
+// work here because Obj has deleted copy constructors (and for good
+// reason). Instead we make up our own type trait here that basically
+// combines a bunch of is_same traits into a single trait to make life
+// easier in the definitions of GetFieldAs().
+template <typename T>
+struct is_zeek_val
+	{
+	static const bool value = std::disjunction_v<
+		std::is_same<AddrVal, T>,
+		std::is_same<BoolVal, T>,
+		std::is_same<CountVal, T>,
+		std::is_same<DoubleVal, T>,
+		std::is_same<EnumVal, T>,
+		std::is_same<FileVal, T>,
+		std::is_same<FuncVal, T>,
+		std::is_same<IntVal, T>,
+		std::is_same<IntervalVal, T>,
+		std::is_same<ListVal, T>,
+		std::is_same<OpaqueVal, T>,
+		std::is_same<PatternVal, T>,
+		std::is_same<PortVal, T>,
+		std::is_same<RecordVal, T>,
+		std::is_same<StringVal, T>,
+		std::is_same<SubNetVal, T>,
+		std::is_same<TableVal, T>,
+		std::is_same<TimeVal, T>,
+		std::is_same<TypeVal, T>,
+		std::is_same<VectorVal, T>>;
+	};
+template <typename T>
+inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
+
 class RecordVal final : public Val, public notifier::detail::Modifiable {
 public:
 	explicit RecordVal(RecordTypePtr t, bool init_fields = true);
@@ -1051,13 +1091,86 @@ public:
 		{ Assign(field, make_intrusive<T>(std::forward<Ts>(args)...)); }
 
 	/**
+	 * Sets the given record field to not-in-record.  Equivalent to
+	 * Assign using a nil ValPtr.
+	 * @param field  The field index to remove.
+	 */
+	void Remove(int field);
+
+	// The following provide efficient record field assignments.
+	void Assign(int field, bool new_val)
+		{
+		(*record_val)[field].int_val = int(new_val);
+		AddedField(field);
+		}
+
+	void Assign(int field, int new_val)
+		{
+		(*record_val)[field].int_val = new_val;
+		AddedField(field);
+		}
+
+	// For unsigned, we provide both uint32_t and uint64_t versions
+	// for convenience, since sometimes the caller has one rather
+	// than the other.
+	void Assign(int field, uint32_t new_val)
+		{
+		(*record_val)[field].uint_val = new_val;
+		AddedField(field);
+		}
+	void Assign(int field, uint64_t new_val)
+		{
+		(*record_val)[field].uint_val = new_val;
+		AddedField(field);
+		}
+
+	void Assign(int field, double new_val)
+		{
+		(*record_val)[field].double_val = new_val;
+		AddedField(field);
+		}
+
+	// The following two are the same as the previous method,
+	// but we use the names so that in the future if it would
+	// be helpful, we can track the intent of the underlying
+	// value representing a time or an interval.
+	void AssignTime(int field, double new_val)
+		{ Assign(field, new_val); }
+	void AssignInterval(int field, double new_val)
+		{ Assign(field, new_val); }
+
+	void Assign(int field, StringVal* new_val)
+		{
+		ZVal::DeleteManagedType((*record_val)[field]);
+		(*record_val)[field].string_val = new_val;
+		AddedField(field);
+		}
+	void Assign(int field, const char* new_val)
+		{ Assign(field, new StringVal(new_val)); }
+	void Assign(int field, const std::string& new_val)
+		{ Assign(field, new StringVal(new_val)); }
+	void Assign(int field, String* new_val)
+		{ Assign(field, new StringVal(new_val)); }
+
+	/**
 	 * Appends a value to the record's fields.  The caller is responsible
-	 * for ensuring that fields are appended in the correct orer and
+	 * for ensuring that fields are appended in the correct order and
 	 * with the correct type.
 	 * @param v  The value to append.
 	 */
 	void AppendField(ValPtr v)
-		{ record_val->emplace_back(std::move(v)); }
+		{
+		if ( v )
+			{
+			(*is_in_record)[record_val->size()] = true;
+			record_val->emplace_back(ZVal(v, v->GetType()));
+			}
+		else
+			{
+			(*is_in_record)[record_val->size()] = false;
+			record_val->emplace_back(ZVal());
+			}
+		}
 
 	/**
 	 * Ensures that the record has enough internal storage for the
@@ -1065,22 +1178,44 @@ public:
 	 * @param n  The number of fields.
 	 */
 	void Reserve(unsigned int n)
-		{ record_val->reserve(n); }
+		{
+		record_val->reserve(n);
+		is_in_record->reserve(n);
+
+		for ( auto i = is_in_record->size(); i < n; ++i )
+			is_in_record->emplace_back(false);
+		}
 
 	/**
 	 * Returns the number of fields in the record.
 	 * @return  The number of fields in the record.
 	 */
-	unsigned int NumFields()
+	unsigned int NumFields() const
 		{ return record_val->size(); }
+
+	/**
+	 * Returns true if the given field is in the record, false if
+	 * it's missing.
+	 * @param field  The field index to retrieve.
+	 * @return  Whether there's a value for the given field index.
+	 */
+	bool HasField(int field) const
+		{
+		return (*is_in_record)[field];
+		}
 
 	/**
 	 * Returns the value of a given field index.
 	 * @param field  The field index to retrieve.
 	 * @return  The value at the given field index.
 	 */
-	const ValPtr& GetField(int field) const
-		{ return (*record_val)[field]; }
+	ValPtr GetField(int field) const
+		{
+		if ( ! HasField(field) )
+			return nullptr;
+
+		return (*record_val)[field].ToVal(rt->GetFieldType(field));
+		}
 
 	/**
 	 * Returns the value of a given field index as cast to type @c T.
@@ -1107,7 +1242,7 @@ public:
 	 * @return  The value of the given field.  If no such field name exists,
 	 * a fatal error occurs.
 	 */
-	const ValPtr& GetField(const char* field) const;
+	ValPtr GetField(const char* field) const;
 
 	/**
 	 * Returns the value of a given field name as cast to type @c T.
@@ -1143,22 +1278,79 @@ public:
 
 	// The following return the given field converted to a particular
 	// underlying value.  We provide these to enable efficient
-	// access to record fields (without requiring an intermediary Val)
-	// if we change the underlying representation of records.
-	template <typename T>
-    auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T>
+	// access to record fields (without requiring an intermediary Val).
+	// It is up to the caller to ensure that the field exists in the
+	// record (using HasField(), if necessary).
+	template <typename T,
+	          typename std::enable_if_t<is_zeek_val_v<T>, bool> = true>
+	auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T>
 		{
-		auto& field_ptr = GetField(field);
-		auto field_val_ptr = static_cast<T*>(field_ptr.get());
-		return field_val_ptr->Get();
+		if constexpr ( std::is_same_v<T, BoolVal> ||
+		               std::is_same_v<T, IntVal> ||
+		               std::is_same_v<T, EnumVal> )
+			return record_val->at(field).int_val;
+		else if constexpr ( std::is_same_v<T, CountVal> )
+			return record_val->at(field).uint_val;
+		else if constexpr ( std::is_same_v<T, DoubleVal> ||
+		                    std::is_same_v<T, TimeVal> ||
+		                    std::is_same_v<T, IntervalVal> )
+			return record_val->at(field).double_val;
+		else if constexpr ( std::is_same_v<T, PortVal> )
+			return val_mgr->Port(record_val->at(field).uint_val);
+		else if constexpr ( std::is_same_v<T, StringVal> )
+			return record_val->at(field).string_val->Get();
+		else if constexpr ( std::is_same_v<T, AddrVal> )
+			return record_val->at(field).addr_val->Get();
+		else if constexpr ( std::is_same_v<T, SubNetVal> )
+			return record_val->at(field).subnet_val->Get();
+		else if constexpr ( std::is_same_v<T, File> )
+			return *(record_val->at(field).file_val);
+		else if constexpr ( std::is_same_v<T, Func> )
+			return *(record_val->at(field).func_val);
+		else if constexpr ( std::is_same_v<T, PatternVal> )
+			return record_val->at(field).re_val->Get();
+		else if constexpr ( std::is_same_v<T, RecordVal> )
+			return record_val->at(field).record_val;
+		else if constexpr ( std::is_same_v<T, VectorVal> )
+			return record_val->at(field).vector_val;
+		else if constexpr ( std::is_same_v<T, TableVal> )
+			return record_val->at(field).table_val->Get();
+		else
+			{
+			// It's an error to reach here, although because of
+			// the type trait we really shouldn't ever wind up
+			// here.
+			reporter->InternalError("bad type in GetFieldAs");
+			}
+		}
+
+	template <typename T,
+	          typename std::enable_if_t<!is_zeek_val_v<T>, bool> = true>
+	T GetFieldAs(int field) const
+		{
+		if constexpr ( std::is_integral_v<T> && std::is_signed_v<T> )
+			return record_val->at(field).int_val;
+		else if constexpr ( std::is_integral_v<T> &&
+					std::is_unsigned_v<T> )
+			return record_val->at(field).uint_val;
+		else if constexpr ( std::is_floating_point_v<T> )
+			return record_val->at(field).double_val;
+
+		// Note: we could add other types here using type traits,
+		// such as is_same_v<T, std::string>, etc.
+
+		return T{};
 		}
 
 	template <typename T>
-    auto GetFieldAs(const char* field) const -> std::invoke_result_t<decltype(&T::Get), T>
+	auto GetFieldAs(const char* field) const
 		{
-		auto& field_ptr = GetField(field);
-		auto field_val_ptr = static_cast<T*>(field_ptr.get());
-		return field_val_ptr->Get();
+		int idx = GetType()->AsRecordType()->FieldOffset(field);
+
+		if ( idx < 0 )
+			reporter->InternalError("missing record field: %s", field);
+
+		return GetFieldAs<T>(idx);
 		}
 
 	void Describe(ODesc* d) const override;
@@ -1205,13 +1397,43 @@ public:
 protected:
 	ValPtr DoClone(CloneState* state) override;
 
+	void AddedField(int field)
+		{
+		(*is_in_record)[field] = true;
+		Modified();
+		}
+
 	Obj* origin;
 
 	using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<RecordValPtr>>;
 	static RecordTypeValMap parse_time_records;
 
 private:
-	std::vector<ValPtr>* record_val;
+	void DeleteFieldIfManaged(unsigned int field)
+		{
+		if ( HasField(field) && IsManaged(field) )
+			ZVal::DeleteManagedType((*record_val)[field]);
+		}
+
+	bool IsManaged(unsigned int offset) const
+		{ return is_managed[offset]; }
+
+	// Just for template inferencing.
+	RecordVal* Get()	{ return this; }
+
+	// Keep this handy for quick access during low-level operations.
+	RecordTypePtr rt;
+
+	// Low-level values of each of the fields.
+	std::vector<ZVal>* record_val;
+
+	// Whether a given field exists - for optional fields, and because
+	// Zeek does not enforce that non-optional fields are actually
+	// present.
+	std::vector<bool>* is_in_record;
+
+	// Whether a given field requires explicit memory management.
+	const std::vector<bool>& is_managed;
 };
 
 class EnumVal final : public detail::IntValImplementation {
@@ -1285,24 +1507,6 @@ public:
 	// Returns true if succcessful.
 	bool AddTo(Val* v, bool is_first_init) const override;
 
-	/**
-	 * Returns the element at a given index or nullptr if it does not exist.
-	 * @param index  The position in the vector of the element to return.
-	 * @return  The element at the given index or nullptr if the index
-	 * does not exist (it's greater than or equal to vector's current size).
-	 */
-	const ValPtr& At(unsigned int index) const;
-
-	/**
-	 * Returns the given element treated as a Count type, to efficiently
-	 * support a common type of vector access if we change the underlying
-	 * vector representation.
-	 * @param index  The position in the vector of the element to return.
-	 * @return  The element's value, as a Count underlying representation.
-	 */
-	bro_uint_t CountAt(unsigned int index) const
-		{ return At(index)->AsCount(); }
-
 	unsigned int Size() const { return vector_val->size(); }
 
 	// Is there any way to reclaim previously-allocated memory when you
@@ -1340,17 +1544,92 @@ public:
 	bool Remove(unsigned int index);
 
 	/**
-	 * Sorts the vector in place, using the given comparison function.
+	 * Sorts the vector in place, using the given optional
+	 * comparison function.
 	 * @param cmp_func  Comparison function for vector elements.
 	 */
-	void Sort(bool cmp_func(const ValPtr& a, const ValPtr& b));
+	void Sort(Func* cmp_func = nullptr);
+
+	/**
+	 * Returns a "vector of count" holding the indices of this
+	 * vector when sorted using the given (optional) comparison function.
+	 * @param cmp_func  Comparison function for vector elements.  If
+	 *                  nullptr, then the vector must be internally
+	 *                  of a numeric, and the usual '<' comparison
+	 *                  will be used.
+	 */
+	VectorValPtr Order(Func* cmp_func = nullptr);
+
+	ValPtr ValAt(unsigned int index) const	{ return At(index); }
+
+	/**
+	 * Returns the given element in a given underlying representation.
+	 * Enables efficient vector access.  Caller must ensure that the
+	 * index lies within the vector's range.
+	 * @param index  The position in the vector of the element to return.
+	 * @return  The element's underlying value.
+	 */
+	bro_uint_t CountAt(unsigned int index) const
+		{ return (*vector_val)[index].uint_val; }
+	const RecordVal* RecordValAt(unsigned int index) const
+		{ return (*vector_val)[index].record_val; }
+	bool BoolAt(unsigned int index) const
+		{ return static_cast<bool>((*vector_val)[index].uint_val); }
+	const StringVal* StringValAt(unsigned int index) const
+		{ return (*vector_val)[index].string_val; }
+	const String* StringAt(unsigned int index) const
+		{ return StringValAt(index)->AsString(); }
 
 protected:
+	/**
+	 * Returns the element at a given index or nullptr if it does not exist.
+	 * @param index  The position in the vector of the element to return.
+	 * @return  The element at the given index or nullptr if the index
+	 * does not exist (it's greater than or equal to vector's current size).
+	 *
+	 * Protected to ensure callers pick one of the differentiated accessors
+	 * above, as appropriate, with ValAt() providing the original semantics.
+	 */
+	ValPtr At(unsigned int index) const;
+
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
 
 private:
-	std::vector<ValPtr>* vector_val;
+	// Just for template inferencing.
+	friend class RecordVal;
+	VectorVal* Get()	{ return this; }
+
+	// Check the type of the given element against our current
+	// yield type and adjust as necessary.  Returns whether the
+	// element type-checked.
+	bool CheckElementType(const ValPtr& element);
+
+	// Add the given number of "holes" to the end of a vector.
+	void AddHoles(int nholes);
+
+	std::vector<ZVal>* vector_val;
+
+	// For homogeneous vectors (the usual case), the type of the
+	// elements.  Will be TYPE_VOID for empty vectors created using
+	// "vector()".
+	TypePtr yield_type;
+
+	// True if this is a vector-of-any, or potentially one (which is
+	// the case for empty vectors created using "vector()").
+	bool any_yield;
+
+	// True if this is a vector-of-managed-types, requiring explicit
+	// memory management.
+	bool managed_yield;
+
+	// For heterogeneous vectors, the individual type of each element,
+	// parallel to vector_val.  Heterogeneous vectors can arise for
+	// "vector of any" when disparate elements are stored in the vector.
+	//
+	// Thus, if yield_types is non-nil, then we know this is a
+	// vector-of-any.
+	std::vector<TypePtr>* yield_types = nullptr;
 };
 
 #define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name) \

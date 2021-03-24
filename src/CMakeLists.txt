@@ -301,6 +301,7 @@ set(MAIN_SRCS
     WeirdState.cc
     ZeekArgs.cc
     ZeekString.cc
+    ZVal.cc
     bsd-getopt-long.c
     bro_inet_ntop.c
     in_cksum.cc

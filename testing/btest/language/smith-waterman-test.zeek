@@ -12,7 +12,7 @@ global s1: string_vec;
 global s2: string_vec;
 
 # Single alignment, no matches:
-s1[++c] = "abcdefgh";
+s1[c] = "abcdefgh";
 s2[c] = "ijklmnop";
 min[c] = 2;;
 mode[c] = 0;
@@ -83,6 +83,6 @@ for ( i in s1 )
 
 	for ( j in ss )
 		print fmt("tok %d: %s (%d/%d, %s)",
-				j, ss[j]$str, ss[j]$aligns[1]$index,
-				ss[j]$aligns[2]$index, ss[j]$new);
+				j, ss[j]$str, ss[j]$aligns[0]$index,
+				ss[j]$aligns[1]$index, ss[j]$new);
 	}

@@ -1255,7 +1255,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 
 	for ( auto i = 0u; i < scripts_val->Size(); ++i )
 		{
-		auto script = scripts_val->At(i)->AsStringVal()->ToStdString();
+		auto script = scripts_val->StringValAt(i)->ToStdString();
 		rval.scripts.emplace_back(std::move(script));
 		}
 
@@ -1348,22 +1348,22 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 	{
 	const auto& rt = BifType::Record::Supervisor::NodeConfig;
 	auto rval = make_intrusive<RecordVal>(rt);
-	rval->Assign(rt->FieldOffset("name"), make_intrusive<StringVal>(name));
+	rval->Assign(rt->FieldOffset("name"), name);
 
 	if ( interface )
-		rval->Assign(rt->FieldOffset("interface"), make_intrusive<StringVal>(*interface));
+		rval->Assign(rt->FieldOffset("interface"), *interface);
 
 	if ( directory )
-		rval->Assign(rt->FieldOffset("directory"), make_intrusive<StringVal>(*directory));
+		rval->Assign(rt->FieldOffset("directory"), *directory);
 
 	if ( stdout_file )
-		rval->Assign(rt->FieldOffset("stdout_file"), make_intrusive<StringVal>(*stdout_file));
+		rval->Assign(rt->FieldOffset("stdout_file"), *stdout_file);
 
 	if ( stderr_file )
-		rval->Assign(rt->FieldOffset("stderr_file"), make_intrusive<StringVal>(*stderr_file));
+		rval->Assign(rt->FieldOffset("stderr_file"), *stderr_file);
 
 	if ( cpu_affinity )
-		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->Int(*cpu_affinity));
+		rval->Assign(rt->FieldOffset("cpu_affinity"), *cpu_affinity);
 
 	auto st = rt->GetFieldType<VectorType>("scripts");
 	auto scripts_val = make_intrusive<VectorVal>(std::move(st));
@@ -1390,7 +1390,7 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 		val->Assign(ept->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
-			val->Assign(ept->FieldOffset("interface"), make_intrusive<StringVal>(*ep.interface));
+			val->Assign(ept->FieldOffset("interface"), *ep.interface);
 
 		cluster_val->Assign(std::move(key), std::move(val));
 		}
@@ -1406,7 +1406,7 @@ RecordValPtr SupervisorNode::ToRecord() const
 	rval->Assign(rt->FieldOffset("node"), config.ToRecord());
 
 	if ( pid )
-		rval->Assign(rt->FieldOffset("pid"), val_mgr->Int(pid));
+		rval->Assign(rt->FieldOffset("pid"), pid);
 
 	return rval;
 	}
@@ -1464,11 +1464,11 @@ bool SupervisedNode::InitCluster() const
 
 		if ( ep.interface )
 			val->Assign(cluster_node_type->FieldOffset("interface"),
-			            make_intrusive<StringVal>(*ep.interface));
+			            *ep.interface);
 
 		if ( manager_name && ep.role != BifEnum::Supervisor::MANAGER )
 			val->Assign(cluster_node_type->FieldOffset("manager"),
-			            make_intrusive<StringVal>(*manager_name));
+			            *manager_name);
 
 		cluster_nodes->Assign(std::move(key), std::move(val));
 		}

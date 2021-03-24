@@ -835,10 +835,10 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	// Init rotate_info.
 	if ( rotate_info )
 		{
-		rotate_info->Assign<StringVal>(0, name);
-		rotate_info->Assign<StringVal>(1, newname);
-		rotate_info->Assign<TimeVal>(2, run_state::network_time);
-		rotate_info->Assign<TimeVal>(3, run_state::network_time);
+		rotate_info->Assign(0, name);
+		rotate_info->Assign(1, newname);
+		rotate_info->AssignTime(2, run_state::network_time);
+		rotate_info->AssignTime(3, run_state::network_time);
 		}
 
 	return newf;

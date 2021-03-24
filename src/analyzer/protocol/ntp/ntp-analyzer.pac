@@ -36,9 +36,9 @@
 		{
 		auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::NTP::StandardMessage);
 
-		rv->Assign(0, zeek::val_mgr->Count(${nsm.stratum}));
-		rv->Assign(1, zeek::make_intrusive<zeek::IntervalVal>(pow(2, ${nsm.poll})));
-		rv->Assign(2, zeek::make_intrusive<zeek::IntervalVal>(pow(2, ${nsm.precision})));
+		rv->Assign(0, ${nsm.stratum});
+		rv->AssignInterval(1, pow(2, ${nsm.poll}));
+		rv->AssignInterval(2, pow(2, ${nsm.precision}));
 		rv->Assign(3, proc_ntp_short(${nsm.root_delay}));
 		rv->Assign(4, proc_ntp_short(${nsm.root_dispersion}));
 
@@ -66,19 +66,19 @@
 
 		if ( ${nsm.mac_len} == 20 )
 			{
-			rv->Assign(12, zeek::val_mgr->Count(${nsm.mac.key_id}));
+			rv->Assign(12, ${nsm.mac.key_id});
 			rv->Assign(13, to_stringval(${nsm.mac.digest}));
 			}
 		else if ( ${nsm.mac_len} == 24 )
 			{
-			rv->Assign(12, zeek::val_mgr->Count(${nsm.mac_ext.key_id}));
+			rv->Assign(12, ${nsm.mac_ext.key_id});
 			rv->Assign(13, to_stringval(${nsm.mac_ext.digest}));
 			}
 
 		if ( ${nsm.has_exts} )
 			{
 			// TODO: add extension fields
-			rv->Assign(14, zeek::val_mgr->Count((uint32) ${nsm.exts}->size()));
+			rv->Assign(14, static_cast<uint32>(${nsm.exts}->size()));
 			}
 
 		return rv;
@@ -89,20 +89,20 @@
 		{
 		auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::NTP::ControlMessage);
 
-		rv->Assign(0, zeek::val_mgr->Count(${ncm.OpCode}));
-		rv->Assign(1, zeek::val_mgr->Bool(${ncm.R}));
-		rv->Assign(2, zeek::val_mgr->Bool(${ncm.E}));
-		rv->Assign(3, zeek::val_mgr->Bool(${ncm.M}));
-		rv->Assign(4, zeek::val_mgr->Count(${ncm.sequence}));
-		rv->Assign(5, zeek::val_mgr->Count(${ncm.status}));
-		rv->Assign(6, zeek::val_mgr->Count(${ncm.association_id}));
+		rv->Assign(0, ${ncm.OpCode});
+		rv->Assign(1, ${ncm.R});
+		rv->Assign(2, ${ncm.E});
+		rv->Assign(3, ${ncm.M});
+		rv->Assign(4, ${ncm.sequence});
+		rv->Assign(5, ${ncm.status});
+		rv->Assign(6, ${ncm.association_id});
 
 		if ( ${ncm.c} > 0 )
 			rv->Assign(7, to_stringval(${ncm.data}));
 
 		if ( ${ncm.has_control_mac} )
 			{
-			rv->Assign(8, zeek::val_mgr->Count(${ncm.mac.key_id}));
+			rv->Assign(8, ${ncm.mac.key_id});
 			rv->Assign(9, to_stringval(${ncm.mac.crypto_checksum}));
 			}
 
@@ -114,11 +114,11 @@
 		{
 		auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::NTP::Mode7Message);
 
-		rv->Assign(0, zeek::val_mgr->Count(${m7.request_code}));
-		rv->Assign(1, zeek::val_mgr->Bool(${m7.auth_bit}));
-		rv->Assign(2, zeek::val_mgr->Count(${m7.sequence}));
-		rv->Assign(3, zeek::val_mgr->Count(${m7.implementation}));
-		rv->Assign(4, zeek::val_mgr->Count(${m7.error_code}));
+		rv->Assign(0, ${m7.request_code});
+		rv->Assign(1, ${m7.auth_bit});
+		rv->Assign(2, ${m7.sequence});
+		rv->Assign(3, ${m7.implementation});
+		rv->Assign(4, ${m7.error_code});
 
 		if ( ${m7.data_len} > 0 )
 			rv->Assign(5, to_stringval(${m7.data}));
@@ -139,8 +139,8 @@ refine flow NTP_Flow += {
 			return false;
 
 		auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::NTP::Message);
-		rv->Assign(0, zeek::val_mgr->Count(${msg.version}));
-		rv->Assign(1, zeek::val_mgr->Count(${msg.mode}));
+		rv->Assign(0, ${msg.version});
+		rv->Assign(1, ${msg.mode});
 
 		// The standard record
 		if ( ${msg.mode} >=1 && ${msg.mode} <= 5 )

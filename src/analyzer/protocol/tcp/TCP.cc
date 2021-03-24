@@ -109,14 +109,14 @@ static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
 	static auto SYN_packet = id::find_type<RecordType>("SYN_packet");
 	auto* v = new RecordVal(SYN_packet);
 
-	v->Assign(0, val_mgr->Bool(is_orig));
-	v->Assign(1, val_mgr->Bool(int(ip->DF())));
-	v->Assign(2, val_mgr->Count((ip->TTL())));
-	v->Assign(3, val_mgr->Count((ip->TotalLen())));
-	v->Assign(4, val_mgr->Count(ntohs(tcp->th_win)));
-	v->Assign(5, val_mgr->Int(winscale));
-	v->Assign(6, val_mgr->Count(MSS));
-	v->Assign(7, val_mgr->Bool(SACK));
+	v->Assign(0, is_orig);
+	v->Assign(1, static_cast<bool>(ip->DF()));
+	v->Assign(2, ip->TTL());
+	v->Assign(3, ip->TotalLen());
+	v->Assign(4, ntohs(tcp->th_win));
+	v->Assign(5, winscale);
+	v->Assign(6, MSS);
+	v->Assign(7, static_cast<bool>(SACK));
 
 	return v;
 	}
@@ -1099,7 +1099,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		SynWeirds(flags, endpoint, len);
 		RecordVal* SYN_vals = build_syn_packet_val(is_orig, ip, tp);
-		init_window(endpoint, peer, flags, SYN_vals->GetField(5)->CoerceToInt(),
+		init_window(endpoint, peer, flags, SYN_vals->GetFieldAs<IntVal>(5),
 		            base_seq, ack_seq);
 
 		if ( connection_SYN_packet )
@@ -1282,13 +1282,13 @@ void TCP_Analyzer::FlipRoles()
 
 void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	RecordVal* orig_endp_val = conn_val->GetField("orig")->AsRecordVal();
-	RecordVal* resp_endp_val = conn_val->GetField("resp")->AsRecordVal();
+	auto orig_endp_val = conn_val->GetFieldAs<RecordVal>("orig");
+	auto resp_endp_val = conn_val->GetFieldAs<RecordVal>("resp");
 
-	orig_endp_val->Assign(0, val_mgr->Count(orig->Size()));
-	orig_endp_val->Assign(1, val_mgr->Count(int(orig->state)));
-	resp_endp_val->Assign(0, val_mgr->Count(resp->Size()));
-	resp_endp_val->Assign(1, val_mgr->Count(int(resp->state)));
+	orig_endp_val->Assign(0, orig->Size());
+	orig_endp_val->Assign(1, orig->state);
+	resp_endp_val->Assign(0, resp->Size());
+	resp_endp_val->Assign(1, resp->state);
 
 	// Call children's UpdateConnVal
 	Analyzer::UpdateConnVal(conn_val);
@@ -1369,8 +1369,8 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			auto length = kind < 2 ? 1 : o[1];
 			auto option_record = make_intrusive<RecordVal>(BifType::Record::TCP::Option);
 			option_list->Assign(option_list->Size(), option_record);
-			option_record->Assign(0, val_mgr->Count(kind));
-			option_record->Assign(1, val_mgr->Count(length));
+			option_record->Assign(0, kind);
+			option_record->Assign(1, length);
 
 			switch ( kind ) {
 			case 2:
@@ -1378,7 +1378,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				if ( length == 4 )
 					{
 					auto mss = ntohs(*reinterpret_cast<const uint16_t*>(o + 2));
-					option_record->Assign(3, val_mgr->Count(mss));
+					option_record->Assign(3, mss);
 					}
 				else
 					{
@@ -1392,7 +1392,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				if ( length == 3 )
 					{
 					auto scale = o[2];
-					option_record->Assign(4, val_mgr->Count(scale));
+					option_record->Assign(4, scale);
 					}
 				else
 					{
@@ -1438,8 +1438,8 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					{
 					auto send = ntohl(*reinterpret_cast<const uint32_t*>(o + 2));
 					auto echo = ntohl(*reinterpret_cast<const uint32_t*>(o + 6));
-					option_record->Assign(6, val_mgr->Count(send));
-					option_record->Assign(7, val_mgr->Count(echo));
+					option_record->Assign(6, send);
+					option_record->Assign(7, echo);
 					}
 				else
 					{
@@ -2076,13 +2076,13 @@ RecordVal* TCPStats_Endpoint::BuildStats()
 	static auto endpoint_stats = id::find_type<RecordType>("endpoint_stats");
 	auto* stats = new RecordVal(endpoint_stats);
 
-	stats->Assign(0, val_mgr->Count(num_pkts));
-	stats->Assign(1, val_mgr->Count(num_rxmit));
-	stats->Assign(2, val_mgr->Count(num_rxmit_bytes));
-	stats->Assign(3, val_mgr->Count(num_in_order));
-	stats->Assign(4, val_mgr->Count(num_OO));
-	stats->Assign(5, val_mgr->Count(num_repl));
-	stats->Assign(6, val_mgr->Count(endian_type));
+	stats->Assign(0, num_pkts);
+	stats->Assign(1, num_rxmit);
+	stats->Assign(2, num_rxmit_bytes);
+	stats->Assign(3, num_in_order);
+	stats->Assign(4, num_OO);
+	stats->Assign(5, num_repl);
+	stats->Assign(6, endian_type);
 
 	return stats;
 	}

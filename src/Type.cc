@@ -840,7 +840,16 @@ void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const
 RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 	{
 	types = arg_types;
-	num_fields = types ? types->length() : 0;
+
+	if ( types )
+		{
+		num_fields = types->length();
+
+		loop_over_list(*types, i)
+			AddField(i, (*types)[i]);
+		}
+	else
+		num_fields = 0;
 	}
 
 // in this case the clone is actually not so shallow, since
@@ -862,6 +871,13 @@ RecordType::~RecordType()
 
 		delete types;
 		}
+	}
+
+void RecordType::AddField(unsigned int field, const TypeDecl* td)
+	{
+	ASSERT(field == managed_fields.size());
+
+	managed_fields.push_back(ZVal::IsManagedType(td->type));
 	}
 
 bool RecordType::HasField(const char* field) const
@@ -1001,8 +1017,8 @@ TableValPtr RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 		auto nr = make_intrusive<RecordVal>(record_field);
 
 		string s = container_type_name(ft.get());
-		nr->Assign(0, make_intrusive<StringVal>(s));
-		nr->Assign(1, val_mgr->Bool(logged));
+		nr->Assign(0, s);
+		nr->Assign(1, logged);
 		nr->Assign(2, std::move(fv));
 		nr->Assign(3, FieldDefault(i));
 		auto field_name = make_intrusive<StringVal>(FieldName(i));
@@ -1037,7 +1053,9 @@ const char* RecordType::AddFields(const type_decl_list& others,
 			td->attrs->AddAttr(make_intrusive<detail::Attr>(detail::ATTR_LOG));
 			}
 
+		int field = types->size();
 		types->push_back(td);
+		AddField(field, td);
 		}
 
 	num_fields = types->length();

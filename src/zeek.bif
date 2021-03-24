@@ -819,7 +819,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
-		const String* s = vv->At(i)->AsString();
+		auto s = vv->StringAt(i);
 		patterns.push_back(std::string(reinterpret_cast<const char*>(s->Bytes()), s->Len()));
 		}
 
@@ -1057,11 +1057,11 @@ function find_entropy%(data: string%): entropy_test_result
 
 	static auto entropy_test_result = zeek::id::find_type<zeek::RecordType>("entropy_test_result");
 	auto ent_result = zeek::make_intrusive<zeek::RecordVal>(entropy_test_result);
-	ent_result->Assign(0, zeek::make_intrusive<zeek::DoubleVal>(ent));
-	ent_result->Assign(1, zeek::make_intrusive<zeek::DoubleVal>(chisq));
-	ent_result->Assign(2, zeek::make_intrusive<zeek::DoubleVal>(mean));
-	ent_result->Assign(3, zeek::make_intrusive<zeek::DoubleVal>(montepi));
-	ent_result->Assign(4, zeek::make_intrusive<zeek::DoubleVal>(scc));
+	ent_result->Assign(0, ent);
+	ent_result->Assign(1, chisq);
+	ent_result->Assign(2, mean);
+	ent_result->Assign(3, montepi);
+	ent_result->Assign(4, scc);
 	return ent_result;
 	%}
 
@@ -1109,11 +1109,11 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 
 	static auto entropy_test_result = zeek::id::find_type<zeek::RecordType>("entropy_test_result");
 	auto ent_result = zeek::make_intrusive<zeek::RecordVal>(entropy_test_result);
-	ent_result->Assign(0, zeek::make_intrusive<zeek::DoubleVal>(ent));
-	ent_result->Assign(1, zeek::make_intrusive<zeek::DoubleVal>(chisq));
-	ent_result->Assign(2, zeek::make_intrusive<zeek::DoubleVal>(mean));
-	ent_result->Assign(3, zeek::make_intrusive<zeek::DoubleVal>(montepi));
-	ent_result->Assign(4, zeek::make_intrusive<zeek::DoubleVal>(scc));
+	ent_result->Assign(0, ent);
+	ent_result->Assign(1, chisq);
+	ent_result->Assign(2, mean);
+	ent_result->Assign(3, montepi);
+	ent_result->Assign(4, scc);
 	return ent_result;
 	%}
 
@@ -1297,7 +1297,7 @@ function any_set%(v: any%) : bool
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
-		if ( vv->At(i) && vv->At(i)->AsBool() )
+		if ( vv->BoolAt(i) )
 			return zeek::val_mgr->True();
 
 	return zeek::val_mgr->False();
@@ -1326,78 +1326,18 @@ function all_set%(v: any%) : bool
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
-		if ( ! vv->At(i) || ! vv->At(i)->AsBool() )
+		if ( ! vv->BoolAt(i) )
 			return zeek::val_mgr->False();
 
 	return zeek::val_mgr->True();
 	%}
-
-%%{
-static zeek::Func* sort_function_comp = nullptr;
-static std::vector<const zeek::ValPtr*> index_map;	// used for indirect sorting to support order()
-
-bool sort_function(const zeek::ValPtr& a, const zeek::ValPtr& b)
-	{
-	// Sort missing values as "high".
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	auto result = sort_function_comp->Invoke(a, b);
-	int int_result = result->CoerceToInt();
-
-	return int_result < 0;
-	}
-
-bool indirect_sort_function(size_t a, size_t b)
-	{
-	return sort_function(*index_map[a], *index_map[b]);
-	}
-
-bool signed_sort_function (const zeek::ValPtr& a, const zeek::ValPtr& b)
-	{
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	auto ia = a->CoerceToInt();
-	auto ib = b->CoerceToInt();
-
-	return ia < ib;
-	}
-
-bool unsigned_sort_function (const zeek::ValPtr& a, const zeek::ValPtr& b)
-	{
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	auto ia = a->CoerceToUnsigned();
-	auto ib = b->CoerceToUnsigned();
-
-	return ia < ib;
-	}
-
-bool indirect_signed_sort_function(size_t a, size_t b)
-	{
-	return signed_sort_function(*index_map[a], *index_map[b]);
-	}
-
-bool indirect_unsigned_sort_function(size_t a, size_t b)
-	{
-	return unsigned_sort_function(*index_map[a], *index_map[b]);
-	}
-%%}
 
 ## Sorts a vector in place. The second argument is a comparison function that
 ## takes two arguments: if the vector type is ``vector of T``, then the
 ## comparison function must be ``function(a: T, b: T): int``, which returns
 ## a value less than zero if ``a < b`` for some type-specific notion of the
 ## less-than operator.  The comparison function is optional if the type
-## is an integral type (int, count, etc.).
+## is a numeric type (int, count, double, time, etc.).
 ##
 ## v: The vector instance to sort.
 ##
@@ -1419,7 +1359,10 @@ function sort%(v: any, ...%) : any
 	zeek::Func* comp = nullptr;
 
 	if ( @ARG@.size() > 2 )
+		{
 		zeek::emit_builtin_error("sort() called with extraneous argument");
+		return rval;
+		}
 
 	if ( @ARG@.size() == 2 )
 		{
@@ -1431,35 +1374,26 @@ function sort%(v: any, ...%) : any
 			}
 
 		comp = comp_val->AsFunc();
-		}
-
-	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		zeek::emit_builtin_error("comparison function required for sort() with non-integral types");
-
-	auto vv = v->As<zeek::VectorVal*>();
-
-	if ( comp )
-		{
 		const auto& comp_type = comp->GetType();
 
 		if ( comp_type->Yield()->Tag() != zeek::TYPE_INT ||
-		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
+		     ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
+		     comp_type->ParamList()->GetTypes().size() != 2 )
 			{
 			zeek::emit_builtin_error("invalid comparison function in call to sort()");
 			return rval;
 			}
-
-		sort_function_comp = comp;
-
-		vv->Sort(sort_function);
 		}
-	else
+
+	if ( ! comp && ! IsIntegral(elt_type->Tag()) &&
+	     elt_type->InternalType() != TYPE_INTERNAL_DOUBLE )
 		{
-		if ( elt_type->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
-			vv->Sort(unsigned_sort_function);
-		else
-			vv->Sort(signed_sort_function);
+		zeek::emit_builtin_error("comparison function required for sort() with non-numeric types");
+		return rval;
 		}
+
+	auto vv = v->As<zeek::VectorVal*>();
+	vv->Sort(comp);
 
 	return rval;
 	%}
@@ -1477,19 +1411,22 @@ function sort%(v: any, ...%) : any
 ## .. zeek:see:: sort
 function order%(v: any, ...%) : index_vec
 	%{
-	auto result_v = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
+	auto err_v = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
 	if ( v->GetType()->Tag() != zeek::TYPE_VECTOR )
 		{
 		zeek::emit_builtin_error("order() requires vector");
-		return result_v;
+		return err_v;
 		}
 
 	const auto& elt_type = v->GetType()->Yield();
 	zeek::Func* comp = nullptr;
 
 	if ( @ARG@.size() > 2 )
+		{
 		zeek::emit_builtin_error("order() called with extraneous argument");
+		return err_v;
+		}
 
 	if ( @ARG@.size() == 2 )
 		{
@@ -1501,57 +1438,27 @@ function order%(v: any, ...%) : index_vec
 			}
 
 		comp = comp_val->AsFunc();
-		}
 
-	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		zeek::emit_builtin_error("comparison function required for order() with non-integral types");
-
-	auto vv = v->As<zeek::VectorVal*>();
-	auto n = vv->Size();
-
-	// Set up initial mapping of indices directly to corresponding
-	// elements.
-	vector<size_t> ind_vv(n);
-	index_map.reserve(n);
-	size_t i;
-	for ( i = 0; i < n; ++i )
-		{
-		ind_vv[i] = i;
-		index_map.emplace_back(&vv->At(i));
-		}
-
-	if ( comp )
-		{
 		const auto& comp_type = comp->GetType();
 		if ( comp_type->Yield()->Tag() != zeek::TYPE_INT ||
-		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
+		     ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
+		     comp_type->ParamList()->GetTypes().size() != 2 )
 			{
 			zeek::emit_builtin_error("invalid comparison function in call to order()");
 			return zeek::ValPtr{zeek::NewRef{}, v};
 			}
-
-		sort_function_comp = comp;
-
-		sort(ind_vv.begin(), ind_vv.end(), indirect_sort_function);
 		}
-	else
+
+	if ( ! comp && ! IsIntegral(elt_type->Tag()) &&
+	     elt_type->InternalType() != TYPE_INTERNAL_DOUBLE )
 		{
-		if ( elt_type->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
-			sort(ind_vv.begin(), ind_vv.end(), indirect_unsigned_sort_function);
-		else
-			sort(ind_vv.begin(), ind_vv.end(), indirect_signed_sort_function);
+		zeek::emit_builtin_error("comparison function required for order() with non-numeric types");
+		return err_v;
 		}
 
-	index_map = {};
+	auto vv = v->As<zeek::VectorVal*>();
 
-	// Now spin through ind_vv to read out the rearrangement.
-	for ( i = 0; i < n; ++i )
-		{
-		int ind = ind_vv[i];
-		result_v->Assign(i, zeek::val_mgr->Count(ind));
-		}
-
-	return result_v;
+	return vv->Order(comp);
 	%}
 
 # ===========================================================================
@@ -2023,10 +1930,10 @@ function packet_source%(%): PacketSource
 
 	if ( ps )
 		{
-		r->Assign(0, zeek::val_mgr->Bool(ps->IsLive()));
-		r->Assign(1, zeek::make_intrusive<zeek::StringVal>(ps->Path()));
-		r->Assign(2, zeek::val_mgr->Int(ps->LinkType()));
-		r->Assign(3, zeek::val_mgr->Count(ps->Netmask()));
+		r->Assign(0, ps->IsLive());
+		r->Assign(1, ps->Path());
+		r->Assign(2, ps->LinkType());
+		r->Assign(3, ps->Netmask());
 		}
 
 	return r;
@@ -2076,13 +1983,13 @@ function global_ids%(%): id_table
 		const auto& id = global.second;
 		static auto script_id = zeek::id::find_type<zeek::RecordType>("script_id");
 		auto rec = zeek::make_intrusive<zeek::RecordVal>(script_id);
-		rec->Assign(0, zeek::make_intrusive<zeek::StringVal>(type_name(id->GetType()->Tag())));
-		rec->Assign(1, zeek::val_mgr->Bool(id->IsExport()));
-		rec->Assign(2, zeek::val_mgr->Bool(id->IsConst()));
-		rec->Assign(3, zeek::val_mgr->Bool(id->IsEnumConst()));
-		rec->Assign(4, zeek::val_mgr->Bool(id->IsOption()));
-		rec->Assign(5, zeek::val_mgr->Bool(id->IsRedefinable()));
-		rec->Assign(6, zeek::val_mgr->Bool(id->GetAttr(zeek::detail::ATTR_BACKEND) != zeek::detail::Attr::nil));
+		rec->Assign(0, type_name(id->GetType()->Tag()));
+		rec->Assign(1, id->IsExport());
+		rec->Assign(2, id->IsConst());
+		rec->Assign(3, id->IsEnumConst());
+		rec->Assign(4, id->IsOption());
+		rec->Assign(5, id->IsRedefinable());
+		rec->Assign(6, id->GetAttr(zeek::detail::ATTR_BACKEND) != zeek::detail::Attr::nil);
 
 		if ( id->HasVal() )
 			rec->Assign(7, id->GetVal());
@@ -2332,14 +2239,14 @@ function backtrace%(%): Backtrace
 		const auto& params = ci.func->GetType()->Params();
 		auto args = MakeCallArgumentVector(ci.args, params);
 
-		elem->Assign<StringVal>(function_name_idx, ci.func->Name());
+		elem->Assign(function_name_idx, ci.func->Name());
 		elem->Assign(function_args_idx, std::move(args));
 
 		if ( ci.call )
 			{
 			auto loc = ci.call->GetLocationInfo();
-			elem->Assign<StringVal>(file_location_idx, loc->filename);
-			elem->Assign(line_location_idx, val_mgr->Count(loc->first_line));
+			elem->Assign(file_location_idx, loc->filename);
+			elem->Assign(line_location_idx, loc->first_line);
 			}
 
 		rval->Assign(rval->Size(), std::move(elem));
@@ -3511,18 +3418,18 @@ function lookup_connection%(cid: conn_id%): connection
 	c->Assign(0, std::move(id_val));
 
 	auto orig_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);
-	orig_endp->Assign(0, zeek::val_mgr->Count(0));
-	orig_endp->Assign(1, zeek::val_mgr->Count(int(0)));
+	orig_endp->Assign(0, 0);
+	orig_endp->Assign(1, 0);
 
 	auto resp_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);
-	resp_endp->Assign(0, zeek::val_mgr->Count(0));
-	resp_endp->Assign(1, zeek::val_mgr->Count(int(0)));
+	resp_endp->Assign(0, 0);
+	resp_endp->Assign(1, 0);
 
 	c->Assign(1, std::move(orig_endp));
 	c->Assign(2, std::move(resp_endp));
 
-	c->Assign(3, zeek::make_intrusive<zeek::TimeVal>(zeek::run_state::network_time));
-	c->Assign(4, zeek::make_intrusive<zeek::IntervalVal>(0.0));
+	c->AssignTime(3, zeek::run_state::network_time);
+	c->AssignInterval(4, 0.0);
 	c->Assign(5, zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set));	// service
 	c->Assign(6, zeek::val_mgr->EmptyString());	// history
 
@@ -3532,8 +3439,7 @@ function lookup_connection%(cid: conn_id%): connection
 %%{
 const char* conn_id_string(zeek::Val* c)
 	{
-	auto id = c->As<zeek::RecordVal*>()->GetField(0);
-	auto id_r = id->As<zeek::RecordVal*>();
+	auto id_r = c->As<zeek::RecordVal*>()->GetFieldAs<zeek::RecordVal>(0);
 
 	const zeek::IPAddr& orig_h = id_r->GetFieldAs<zeek::AddrVal>(0);
 	uint32_t orig_p = id_r->GetFieldAs<zeek::PortVal>(1)->Port();
@@ -3592,19 +3498,19 @@ function get_current_packet%(%) : pcap_packet
 
 	if ( ! pkt_src || ! pkt_src->GetCurrentPacket(&p) )
 		{
-		pkt->Assign(0, zeek::val_mgr->Count(0));
-		pkt->Assign(1, zeek::val_mgr->Count(0));
-		pkt->Assign(2, zeek::val_mgr->Count(0));
-		pkt->Assign(3, zeek::val_mgr->Count(0));
+		pkt->Assign(0, 0);
+		pkt->Assign(1, 0);
+		pkt->Assign(2, 0);
+		pkt->Assign(3, 0);
 		pkt->Assign(4, zeek::val_mgr->EmptyString());
 		pkt->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_UNKNOWN));
 		return pkt;
 		}
 
-	pkt->Assign(0, zeek::val_mgr->Count(uint32_t(p->ts.tv_sec)));
-	pkt->Assign(1, zeek::val_mgr->Count(uint32_t(p->ts.tv_usec)));
-	pkt->Assign(2, zeek::val_mgr->Count(p->cap_len));
-	pkt->Assign(3, zeek::val_mgr->Count(p->len));
+	pkt->Assign(0, static_cast<uint32_t>(p->ts.tv_sec));
+	pkt->Assign(1, static_cast<uint32_t>(p->ts.tv_usec));
+	pkt->Assign(2, p->cap_len);
+	pkt->Assign(3, p->len);
 	pkt->Assign(4, zeek::make_intrusive<zeek::StringVal>(p->cap_len, (const char*)p->data));
 	pkt->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(p->link_type));
 
@@ -4834,8 +4740,8 @@ function rotate_file%(f: file%): rotate_info
 	info = zeek::make_intrusive<zeek::RecordVal>(rotate_info);
 	info->Assign(0, zeek::val_mgr->EmptyString());
 	info->Assign(1, zeek::val_mgr->EmptyString());
-	info->Assign(2, zeek::make_intrusive<zeek::TimeVal>(0.0));
-	info->Assign(3, zeek::make_intrusive<zeek::TimeVal>(0.0));
+	info->AssignTime(2, 0.0);
+	info->AssignTime(3, 0.0);
 
 	return info;
 	%}
@@ -4877,8 +4783,8 @@ function rotate_file_by_name%(f: string%): rotate_info
 		// Record indicating error.
 		info->Assign(0, zeek::val_mgr->EmptyString());
 		info->Assign(1, zeek::val_mgr->EmptyString());
-		info->Assign(2, zeek::make_intrusive<zeek::TimeVal>(0.0));
-		info->Assign(3, zeek::make_intrusive<zeek::TimeVal>(0.0));
+		info->AssignTime(2, 0.0);
+		info->AssignTime(3, 0.0);
 		return info;
 		}
 
@@ -4886,12 +4792,12 @@ function rotate_file_by_name%(f: string%): rotate_info
 
 	if ( is_pkt_dumper )
 		{
-		info->Assign(2, zeek::make_intrusive<zeek::TimeVal>(zeek::run_state::detail::pkt_dumper->OpenTime()));
+		info->AssignTime(2, zeek::run_state::detail::pkt_dumper->OpenTime());
 		zeek::run_state::detail::pkt_dumper->Open();
 		}
 
 	if ( is_addl_pkt_dumper )
-		info->Assign(2, zeek::make_intrusive<zeek::TimeVal>(addl_pkt_dumper->OpenTime()));
+		info->AssignTime(2, addl_pkt_dumper->OpenTime());
 
 	return info;
 	%}

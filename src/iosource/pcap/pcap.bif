@@ -127,9 +127,9 @@ function findalldevs%(%): Pcap::Interfaces
 		{
 		auto r = make_intrusive<RecordVal>(iface_type);
 
-		r->Assign(0, make_intrusive<StringVal>(d->name));
+		r->Assign(0, d->name);
 		if ( d->description )
-			r->Assign(1, make_intrusive<StringVal>(d->description));
+			r->Assign(1, d->description);
 
 		auto addrs = make_intrusive<ListVal>(TYPE_ADDR);
 		for ( auto addr = d->addresses; addr != NULL; addr = addr->next )
@@ -146,11 +146,11 @@ function findalldevs%(%): Pcap::Interfaces
 				}
 			}
 		r->Assign(2, addrs->ToSetVal());
-		r->Assign(3, val_mgr->Bool(d->flags & PCAP_IF_LOOPBACK));
+		r->Assign(3, static_cast<bool>(d->flags & PCAP_IF_LOOPBACK));
 #ifdef PCAP_IF_UP
 		// These didn't become available until libpcap 1.6.1
-		r->Assign(4, val_mgr->Bool(d->flags & PCAP_IF_UP));
-		r->Assign(5, val_mgr->Bool(d->flags & PCAP_IF_RUNNING));
+		r->Assign(4, static_cast<bool>(d->flags & PCAP_IF_UP));
+		r->Assign(5, static_cast<bool>(d->flags & PCAP_IF_RUNNING));
 #endif
 
 		pcap_interfaces->Assign(std::move(r), nullptr);

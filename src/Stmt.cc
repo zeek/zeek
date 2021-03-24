@@ -297,7 +297,7 @@ static void print_log(const std::vector<ValPtr>& vals)
 		vec->Assign(vec->Size(), make_intrusive<StringVal>(d.Description()));
 		}
 
-	record->Assign(0, make_intrusive<TimeVal>(run_state::network_time));
+	record->AssignTime(0, run_state::network_time);
 	record->Assign(1, std::move(vec));
 	log_mgr->Write(plval.get(), record.get());
 	}
@@ -1324,12 +1324,8 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow)
 		{
 		VectorVal* vv = v->AsVectorVal();
 
-		for ( auto i = 0u; i <= vv->Size(); ++i )
+		for ( auto i = 0u; i < vv->Size(); ++i )
 			{
-			// Skip unassigned vector indices.
-			if ( ! vv->At(i) )
-				continue;
-
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
 			f->SetElement((*loop_vars)[0], val_mgr->Count(i));

@@ -30,7 +30,7 @@ RecordValPtr EncapsulatingConn::ToVal() const
 	rv->Assign(0, std::move(id_val));
 	rv->Assign(1, BifType::Enum::Tunnel::Type->GetEnumVal(type));
 
-	rv->Assign(2, make_intrusive<StringVal>(uid.Base62("C").c_str()));
+	rv->Assign(2, uid.Base62("C"));
 
 	return rv;
 	}

@@ -171,8 +171,8 @@ void ConnSize_Analyzer::SetDurationThreshold(double duration)
 void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
 	// RecordType *connection_type is decleared in NetVar.h
-	RecordVal* orig_endp = conn_val->GetField("orig")->AsRecordVal();
-	RecordVal* resp_endp = conn_val->GetField("resp")->AsRecordVal();
+	RecordVal* orig_endp = conn_val->GetFieldAs<RecordVal>("orig");
+	RecordVal* resp_endp = conn_val->GetFieldAs<RecordVal>("resp");
 
 	// endpoint is the RecordType from NetVar.h
 	int pktidx = id::endpoint->FieldOffset("num_pkts");
@@ -184,10 +184,10 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	if ( bytesidx < 0 )
 		reporter->InternalError("'endpoint' record missing 'num_bytes_ip' field");
 
-	orig_endp->Assign(pktidx, val_mgr->Count(orig_pkts));
-	orig_endp->Assign(bytesidx, val_mgr->Count(orig_bytes));
-	resp_endp->Assign(pktidx, val_mgr->Count(resp_pkts));
-	resp_endp->Assign(bytesidx, val_mgr->Count(resp_bytes));
+	orig_endp->Assign(pktidx, orig_pkts);
+	orig_endp->Assign(bytesidx, orig_bytes);
+	resp_endp->Assign(pktidx, resp_pkts);
+	resp_endp->Assign(bytesidx, resp_bytes);
 
 	Analyzer::UpdateConnVal(conn_val);
 	}

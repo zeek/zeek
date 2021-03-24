@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "DefItem.h"
-#include "Expr.h"
+#include "zeek/Expr.h"
+#include "zeek/script_opt/DefItem.h"
 
 
 namespace zeek::detail {

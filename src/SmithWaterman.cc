@@ -74,7 +74,7 @@ VectorVal* Substring::VecToPolicy(Vec* vec)
 			Substring* bst = (*vec)[i];
 
 			auto st_val = make_intrusive<RecordVal>(sw_substring_type);
-			st_val->Assign(0, make_intrusive<StringVal>(new String(*bst)));
+			st_val->Assign(0, new String(*bst));
 
 			auto aligns = make_intrusive<VectorVal>(sw_align_vec_type);
 
@@ -83,15 +83,15 @@ VectorVal* Substring::VecToPolicy(Vec* vec)
 				const BSSAlign& align = (bst->GetAlignments())[j];
 
 				auto align_val = make_intrusive<RecordVal>(sw_align_type);
-				align_val->Assign(0, make_intrusive<StringVal>(new String(*align.string)));
-				align_val->Assign(1, val_mgr->Count(align.index));
+				align_val->Assign(0, new String(*align.string));
+				align_val->Assign(1, align.index);
 
-				aligns->Assign(j + 1, std::move(align_val));
+				aligns->Assign(j, std::move(align_val));
 				}
 
 			st_val->Assign(1, std::move(aligns));
-			st_val->Assign(2, val_mgr->Bool(bst->IsNewAlignment()));
-			result->Assign(i + 1, std::move(st_val));
+			st_val->Assign(2, bst->IsNewAlignment());
+			result->Assign(i, std::move(st_val));
 			}
 		}
 
@@ -102,26 +102,25 @@ Substring::Vec* Substring::VecFromPolicy(VectorVal* vec)
 	{
 	Vec* result = new Vec();
 
-	// VectorVals start at index 1!
-	for ( unsigned int i = 1; i <= vec->Size(); ++i )
+	for ( unsigned int i = 0; i < vec->Size(); ++i )
 		{
-		const auto& v = vec->At(i);	// get the RecordVal
+		auto v = vec->RecordValAt(i);
 		if ( ! v )
 			continue;
 
-		const String* str = v->AsRecordVal()->GetFieldAs<StringVal>(0);
+		const String* str = v->GetFieldAs<StringVal>(0);
 		auto* substr = new Substring(*str);
 
-		const VectorVal* aligns = v->AsRecordVal()->GetField(1)->AsVectorVal();
+		const VectorVal* aligns = v->GetFieldAs<VectorVal>(1);
 		for ( unsigned int j = 1; j <= aligns->Size(); ++j )
 			{
-			const RecordVal* align = aligns->AsVectorVal()->At(j)->AsRecordVal();
+			const RecordVal* align = aligns->AsVectorVal()->RecordValAt(j);
 			const String* str = align->GetFieldAs<StringVal>(0);
 			int index = align->GetFieldAs<CountVal>(1);
 			substr->AddAlignment(str, index);
 			}
 
-		bool new_alignment = v->AsRecordVal()->GetFieldAs<BoolVal>(2);
+		bool new_alignment = v->GetFieldAs<BoolVal>(2);
 		substr->MarkNewAlignment(new_alignment);
 
 		result->push_back(substr);

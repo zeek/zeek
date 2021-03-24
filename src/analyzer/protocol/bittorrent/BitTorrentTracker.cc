@@ -500,7 +500,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 	auto benc_value = make_intrusive<RecordVal>(bittorrent_benc_value);
 	auto name_ = make_intrusive<StringVal>(name_len, name);
 
-	benc_value->Assign(type, val_mgr->Int(value));
+	benc_value->Assign(type, static_cast<int>(value));
 	res_val_benc->Assign(std::move(name_), std::move(benc_value));
 	}
 

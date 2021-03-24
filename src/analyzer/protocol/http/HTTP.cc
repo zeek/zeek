@@ -626,12 +626,12 @@ RecordValPtr HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
 	static auto http_message_stat = id::find_type<RecordType>("http_message_stat");
 	auto stat = make_intrusive<RecordVal>(http_message_stat);
 	int field = 0;
-	stat->Assign(field++, make_intrusive<TimeVal>(start_time));
-	stat->Assign(field++, val_mgr->Bool(interrupted));
-	stat->Assign(field++, make_intrusive<StringVal>(msg));
-	stat->Assign(field++, val_mgr->Count(body_length));
-	stat->Assign(field++, val_mgr->Count(content_gap_length));
-	stat->Assign(field++, val_mgr->Count(header_length));
+	stat->AssignTime(field++, start_time);
+	stat->Assign(field++, interrupted);
+	stat->Assign(field++, msg);
+	stat->Assign(field++, static_cast<uint64_t>(body_length));
+	stat->Assign(field++, static_cast<uint64_t>(content_gap_length));
+	stat->Assign(field++, static_cast<uint64_t>(header_length));
 	return stat;
 	}
 
@@ -1165,10 +1165,10 @@ void HTTP_Analyzer::GenStats()
 		{
 		static auto http_stats_rec = id::find_type<RecordType>("http_stats_rec");
 		auto r = make_intrusive<RecordVal>(http_stats_rec);
-		r->Assign(0, val_mgr->Count(num_requests));
-		r->Assign(1, val_mgr->Count(num_replies));
-		r->Assign(2, make_intrusive<DoubleVal>(request_version.ToDouble()));
-		r->Assign(3, make_intrusive<DoubleVal>(reply_version.ToDouble()));
+		r->Assign(0, num_requests);
+		r->Assign(1, num_replies);
+		r->Assign(2, request_version.ToDouble());
+		r->Assign(3, reply_version.ToDouble());
 
 		// DEBUG_MSG("%.6f http_stats\n", run_state::network_time);
 		EnqueueConnEvent(http_stats, ConnVal(), std::move(r));

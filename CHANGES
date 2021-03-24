@@ -1,4 +1,11 @@
 
+4.1.0-dev.404 | 2021-03-24 16:58:50 -0700
+
+  * Fix missing `user_agent` existence check in smtp/software.zeek (Michael Dopheide)
+
+    Without the check there can be extra reporter.log error noise, but
+    no actual difference in functionality.
+
 4.1.0-dev.402 | 2021-03-24 15:49:52 -0700
 
   * Add `bin_dir` setting for default zkg config file (Jon Siwek, Corelight)

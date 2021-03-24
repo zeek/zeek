@@ -48,7 +48,7 @@ export {
 
 event mime_one_header(c: connection, h: mime_header_rec) &priority=4
 	{
-	if ( ! c?$smtp ) return;
+	if ( ! c?$smtp || ! c$smtp?$user_agent ) return;
 	if ( h$name == "USER-AGENT" && webmail_user_agents in c$smtp$user_agent )
 		c$smtp$is_webmail = T;
 	}

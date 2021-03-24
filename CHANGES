@@ -1,4 +1,8 @@
 
+4.1.0-dev.356 | 2021-03-23 19:33:44 -0700
+
+  * Increase timeout of openflow.log-cluster btest (Jon Siwek, Corelight)
+
 4.1.0-dev.355 | 2021-03-23 19:05:10 -0700
 
   * add option for deterministic descriptions of sets & tables (Vern Paxson, Corelight)

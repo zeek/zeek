@@ -752,6 +752,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			}
 		}
 
+	auto init_stmts = stmts ? analyze_global_stmts(stmts) : nullptr;
+
 	analyze_scripts();
 
 	if ( analysis_options.report_recursive )
@@ -838,15 +840,15 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	// cause more severe problems.
 	ZEEK_LSAN_ENABLE();
 
-	if ( stmts )
+	if ( init_stmts )
 		{
 		StmtFlowType flow;
-		Frame f(current_scope()->Length(), nullptr, nullptr);
+		Frame f(init_stmts->Scope()->Length(), nullptr, nullptr);
 		g_frame_stack.push_back(&f);
 
 		try
 			{
-			stmts->Exec(&f, flow);
+			init_stmts->Body()->Exec(&f, flow);
 			}
 		catch ( InterpreterException& )
 			{

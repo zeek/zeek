@@ -96,6 +96,11 @@ extern std::unordered_set<const Func*> non_recursive_funcs;
 // Analyze a given function for optimization.
 extern void analyze_func(ScriptFuncPtr f);
 
+// Analyze the given top-level statement(s) for optimization.  Returns
+// a pointer to a FuncInfo for an argument-less quasi-function that can
+// be Invoked, or its body executed directly, to execute the statements.
+extern const FuncInfo* analyze_global_stmts(Stmt* stmts);
+
 // Analyze all of the parsed scripts collectively for optimization.
 extern void analyze_scripts();
 

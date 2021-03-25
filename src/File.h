@@ -12,8 +12,7 @@
 #include <krb5.h>
 #endif // NEED_KRB5_H
 
-#include "zeek/Obj.h"
-#include "zeek/IntrusivePtr.h"
+#include "zeek/Val.h"
 #include "zeek/util.h"
 
 namespace zeek {
@@ -22,6 +21,8 @@ namespace detail {
 
 class PrintStmt;
 class Attributes;
+
+extern void do_print_stmt(const std::vector<ValPtr>& vals);
 
 } // namespace detail;
 
@@ -84,7 +85,7 @@ public:
 
 protected:
 
-	friend class detail::PrintStmt;
+	friend void detail::do_print_stmt(const std::vector<ValPtr>& vals);
 
 	File()	{ Init(); }
 	void Init();

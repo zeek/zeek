@@ -194,7 +194,7 @@ T& require_data_type(broker::data& d, zeek::TypeTag tag, zeek::detail::Frame* f)
 	{
 	auto ptr = caf::get_if<T>(&d);
 	if ( ! ptr )
-		zeek::reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
+		zeek::reporter->RuntimeError(f->GetCallLocation(),
 		                             "data is of type '%s' not of type '%s'",
 		                             caf::visit(type_name_getter{tag}, d),
 		                             zeek::type_name(tag));

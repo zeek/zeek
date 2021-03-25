@@ -1,3 +1,26 @@
+4.1.0-dev.417 | 2021-03-25 11:37:55 -0700
+
+  * test suite update due to factoring out coerce_to_record() (Vern Paxson, Corelight)
+
+  * removal of vestigial #include's (breaking an include loop in the process) (Vern Paxson, Corelight)
+
+  * better method name: HasCopySemantics() (Vern Paxson, Corelight)
+
+  * Use STL functionality to initialize coercion map (Vern Paxson, Corelight)
+
+  * comments for factored-out index slice functions (Vern Paxson, Corelight)
+
+  * support for subclassing ScriptFunc's, esp. for alternate lambda closures (Vern Paxson, Corelight)
+
+  * factor out record coercion; modernize management of coercion "map" (Vern Paxson, Corelight)
+
+  * lower-level method for adding fields to records (Vern Paxson, Corelight)
+
+  * factor out "print" statement's execution functionality (Vern Paxson, Corelight)
+
+  * functions for indexing slices and strings (Vern Paxson, Corelight)
+
+  * new function for getting the location, if any, associated with the current call (Vern Paxson, Corelight)
 
 4.1.0-dev.404 | 2021-03-24 16:58:50 -0700
 

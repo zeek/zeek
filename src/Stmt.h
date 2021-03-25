@@ -62,6 +62,8 @@ protected:
 	StmtPtr DoSubclassReduce(ListExprPtr singletons, Reducer* c) override;
 };
 
+extern void do_print_stmt(const std::vector<ValPtr>& vals);
+
 class ExprStmt : public Stmt {
 public:
 	explicit ExprStmt(ExprPtr e);

@@ -2936,24 +2936,7 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 		if ( lv->Length() == 1 )
 			v = vect->ValAt(lv->Idx(0)->CoerceToUnsigned());
 		else
-			{
-			size_t len = vect->Size();
-			auto result = make_intrusive<VectorVal>(vect->GetType<VectorType>());
-
-			bro_int_t first = get_slice_index(lv->Idx(0)->CoerceToInt(), len);
-			bro_int_t last = get_slice_index(lv->Idx(1)->CoerceToInt(), len);
-			bro_int_t sub_length = last - first;
-
-			if ( sub_length >= 0 )
-				{
-				result->Resize(sub_length);
-
-				for ( bro_int_t idx = first; idx < last; idx++ )
-					result->Assign(idx - first, vect->ValAt(idx));
-				}
-
-			return result;
-			}
+			return index_slice(vect, lv);
 		}
 		break;
 
@@ -2962,36 +2945,7 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 		break;
 
 	case TYPE_STRING:
-		{
-		const ListVal* lv = v2->AsListVal();
-		const String* s = v1->AsString();
-		int len = s->Len();
-		String* substring = nullptr;
-
-		if ( lv->Length() == 1 )
-			{
-			bro_int_t idx = lv->Idx(0)->AsInt();
-
-			if ( idx < 0 )
-				idx += len;
-
-			// Out-of-range index will return null pointer.
-			substring = s->GetSubstring(idx, 1);
-			}
-		else
-			{
-			bro_int_t first = get_slice_index(lv->Idx(0)->AsInt(), len);
-			bro_int_t last = get_slice_index(lv->Idx(1)->AsInt(), len);
-			bro_int_t substring_len = last - first;
-
-			if ( substring_len < 0 )
-				substring = nullptr;
-			else
-				substring = s->GetSubstring(first, substring_len);
-			}
-
-		return make_intrusive<StringVal>(substring ? substring : new String(""));
-		}
+		return index_string(v1->AsString(), v2->AsListVal());
 
 	default:
 		RuntimeError("type cannot be indexed");
@@ -3003,6 +2957,63 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 
 	RuntimeError("no such index");
 	return nullptr;
+	}
+
+StringValPtr index_string(const String* s, const ListVal* lv)
+	{
+	int len = s->Len();
+	String* substring = nullptr;
+
+	if ( lv->Length() == 1 )
+		{
+		bro_int_t idx = lv->Idx(0)->AsInt();
+
+		if ( idx < 0 )
+			idx += len;
+
+		// Out-of-range index will return null pointer.
+		substring = s->GetSubstring(idx, 1);
+		}
+	else
+		{
+		bro_int_t first = get_slice_index(lv->Idx(0)->AsInt(), len);
+		bro_int_t last = get_slice_index(lv->Idx(1)->AsInt(), len);
+		bro_int_t substring_len = last - first;
+
+		if ( substring_len < 0 )
+			substring = nullptr;
+		else
+			substring = s->GetSubstring(first, substring_len);
+		}
+
+	return make_intrusive<StringVal>(substring ? substring : new String(""));
+	}
+
+VectorValPtr index_slice(VectorVal* vect, const ListVal* lv)
+	{
+	auto first = lv->Idx(0)->CoerceToInt();
+	auto last = lv->Idx(1)->CoerceToInt();
+	return index_slice(vect, first, last);
+	}
+
+VectorValPtr index_slice(VectorVal* vect, int _first, int _last)
+	{
+	size_t len = vect->Size();
+	auto result = make_intrusive<VectorVal>(vect->GetType<VectorType>());
+
+	bro_int_t first = get_slice_index(_first, len);
+	bro_int_t last = get_slice_index(_last, len);
+	bro_int_t sub_length = last - first;
+
+	if ( sub_length >= 0 )
+		{
+		result->Resize(sub_length);
+
+		for ( bro_int_t idx = first; idx < last; idx++ )
+			result->Assign(idx - first, vect->ValAt(idx));
+		}
+
+	return result;
 	}
 
 void IndexExpr::Assign(Frame* f, ValPtr v)
@@ -3748,8 +3759,7 @@ ValPtr ArithCoerceExpr::Fold(Val* v) const
 	}
 
 RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
-	: UnaryExpr(EXPR_RECORD_COERCE, std::move(arg_op)),
-	  map(nullptr), map_size(0)
+	: UnaryExpr(EXPR_RECORD_COERCE, std::move(arg_op))
 	{
 	if ( IsError() )
 		return;
@@ -3767,13 +3777,10 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 		RecordType* t_r = type->AsRecordType();
 		RecordType* sub_r = op->GetType()->AsRecordType();
 
-		map_size = t_r->NumFields();
-		map = new int[map_size];
+		int map_size = t_r->NumFields();
+		map.resize(map_size, -1);	// -1 = field is not mapped
 
 		int i;
-		for ( i = 0; i < map_size; ++i )
-			map[i] = -1;	// -1 = field is not mapped
-
 		for ( i = 0; i < sub_r->NumFields(); ++i )
 			{
 			int t_i = t_r->FieldOffset(sub_r->FieldName(i));
@@ -3854,11 +3861,6 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 		}
 	}
 
-RecordCoerceExpr::~RecordCoerceExpr()
-	{
-	delete [] map;
-	}
-
 ValPtr RecordCoerceExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
 	if ( auto v = Eval(nullptr) )
@@ -3881,7 +3883,15 @@ ValPtr RecordCoerceExpr::Fold(Val* v) const
 	if ( same_type(GetType(), Op()->GetType()) )
 		return IntrusivePtr{NewRef{}, v};
 
-	auto val = make_intrusive<RecordVal>(GetType<RecordType>());
+	auto rt = cast_intrusive<RecordType>(GetType());
+	return coerce_to_record(rt, v, map);
+	}
+
+RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v,
+				const std::vector<int>& map)
+	{
+	auto map_size = map.size();
+	auto val = make_intrusive<RecordVal>(rt);
 	RecordType* val_type = val->GetType()->AsRecordType();
 
 	RecordVal* rv = v->AsRecordVal();
@@ -3894,14 +3904,15 @@ ValPtr RecordCoerceExpr::Fold(Val* v) const
 
 			if ( ! rhs )
 				{
-				const auto& def = rv->GetType()->AsRecordType()->FieldDecl(
-					map[i])->GetAttr(ATTR_DEFAULT);
+				auto rv_rt = rv->GetType()->AsRecordType();
+				const auto& def = rv_rt->FieldDecl(map[i])->
+							GetAttr(ATTR_DEFAULT);
 
 				if ( def )
 					rhs = def->GetExpr()->Eval(nullptr);
 				}
 
-			assert(rhs || GetType()->AsRecordType()->FieldDecl(i)->GetAttr(ATTR_OPTIONAL));
+			assert(rhs || rt->FieldDecl(i)->GetAttr(ATTR_OPTIONAL));
 
 			if ( ! rhs )
 				{
@@ -3923,21 +3934,19 @@ ValPtr RecordCoerceExpr::Fold(Val* v) const
 			else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) &&
 			          ! same_type(rhs_type, field_type) )
 				{
-				if ( auto new_val = check_and_promote(rhs, field_type.get(), false, op->GetLocationInfo()) )
-					rhs = std::move(new_val);
-				else
-					RuntimeError("Failed type conversion");
+				auto new_val = check_and_promote(rhs, field_type.get(), false);
+				rhs = std::move(new_val);
 				}
 
 			val->Assign(i, std::move(rhs));
 			}
 		else
 			{
-			if ( const auto& def = GetType()->AsRecordType()->FieldDecl(i)->GetAttr(ATTR_DEFAULT) )
+			if ( const auto& def = rt->FieldDecl(i)->GetAttr(ATTR_DEFAULT) )
 				{
 				auto def_val = def->GetExpr()->Eval(nullptr);
 				const auto& def_type = def_val->GetType();
-				const auto& field_type = GetType()->AsRecordType()->GetFieldType(i);
+				const auto& field_type = rt->GetFieldType(i);
 
 				if ( def_type->Tag() == TYPE_RECORD &&
 				     field_type->Tag() == TYPE_RECORD &&

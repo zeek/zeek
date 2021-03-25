@@ -5,7 +5,6 @@
 #include "zeek/Func.h"
 #include "zeek/OpaqueVal.h"
 #include "zeek/Reporter.h"
-#include "zeek/Desc.h"
 
 using namespace zeek;
 

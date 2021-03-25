@@ -74,7 +74,7 @@ int Manager::script_scope = 0;
 struct scoped_reporter_location {
 	scoped_reporter_location(zeek::detail::Frame* frame)
 		{
-		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->PushLocation(frame->GetCallLocation());
 		}
 
 	~scoped_reporter_location()

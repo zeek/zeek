@@ -262,6 +262,7 @@ public:
 	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
 	void ClearCall()			{ call = nullptr; }
 	const CallExpr* GetCall() const		{ return call; }
+	const detail::Location* GetCallLocation() const;
 
 	void SetDelayed()	{ delayed = true; }
 	bool HasDelayed() const	{ return delayed; }

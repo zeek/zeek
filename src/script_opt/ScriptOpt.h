@@ -75,6 +75,13 @@ public:
 	void SetProfile(std::shared_ptr<ProfileFunc> _pf);
 	void SetSaveFile(std::string _sf)	{ save_file = std::move(_sf); }
 
+	// The following provide a way of marking FuncInfo's as
+	// should-be-skipped for script optimization, generally because
+	// the function body has a property that a given script optimizer
+	// doesn't know how to deal with.  Defaults to don't-skip.
+	bool ShouldSkip() const		{ return skip; }
+	void SetSkip(bool should_skip)	{ skip = should_skip; }
+
 protected:
 	ScriptFuncPtr func;
 	ScopePtr scope;
@@ -84,6 +91,9 @@ protected:
 	// If we're saving this function in a file, this is the name
 	// of the file to use.
 	std::string save_file;
+
+	// Whether to skip optimizing this function.
+	bool skip = false;
 };
 
 

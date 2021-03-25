@@ -154,7 +154,7 @@ event ssl_encrypted_heartbeat(c: connection, is_orig: bool, length: count)
 			NOTICE([$note=SSL_Heartbeat_Many_Requests,
 				$msg=fmt("Server sending more heartbeat responses than requests seen. Possible attack. Client count: %d, server count: %d", c$ssl$originator_heartbeats, c$ssl$responder_heartbeats),
 				$conn=c,
-				$n=(c$ssl$originator_heartbeats-c$ssl$responder_heartbeats),
+				$n=(c$ssl$responder_heartbeats-c$ssl$originator_heartbeats),
 				$identifier=fmt("%s%d", c$uid, c$ssl$responder_heartbeats/1000) # re-throw every 1000 heartbeats
 				]);
 

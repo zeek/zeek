@@ -168,8 +168,7 @@ const FuncInfo* analyze_global_stmts(Stmt* stmts)
 	auto sc = current_scope();
 	std::vector<IDPtr> empty_inits;
 	StmtPtr stmts_p{NewRef{}, stmts};
-	auto sf = make_intrusive<ScriptFunc>(id, stmts_p, empty_inits,
-						sc->Length(), 0);
+	auto sf = make_intrusive<ScriptFunc>(id, stmts_p, empty_inits, sc->Length(), 0);
 
 	funcs.emplace_back(sf, ScopePtr{NewRef{}, sc}, stmts_p);
 

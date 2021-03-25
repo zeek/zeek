@@ -4,7 +4,7 @@
 # (Including BOMs for UTF-8, 16, and 32)
 signature file-plaintext {
 	file-mime "text/plain", -20
-	file-magic /^(\xef\xbb\xbf|(\x00\x00)?\xfe\xff|\xff\xfe(\x00\x00)?)?[[:space:]\x20-\x7E]{10}/
+	file-magic /^(\xef\xbb\xbf|(\x00\x00)?\xfe\xff|\xff\xfe(\x00\x00)?)?[:space:]?([\x20-\x7E]\x00){5}/
 }
 
 signature file-json {

@@ -35,7 +35,7 @@ TARGET="https://${ZEEK_BENCHMARK_HOST}:${ZEEK_BENCHMARK_PORT}${ZEEK_BENCHMARK_EN
 set +e
 
 # Make a request to the benchmark host.
-RESULTS=$(curl -sS --stderr - --fail --insecure -X POST -H "Zeek-HMAC: ${HMAC_DIGEST}" -H "Zeek-HMAC-Timestamp: ${TIMESTAMP}" "${TARGET}?branch=${CIRRUS_BRANCH}&build=${BUILD_URL}&build_hash=${BUILD_HASH}")
+RESULTS=$(curl -sS --stderr - --fail --insecure -X POST -H "Zeek-HMAC: ${HMAC_DIGEST}" -H "Zeek-HMAC-Timestamp: ${TIMESTAMP}" "${TARGET}?branch=${CIRRUS_BRANCH}&build=${BUILD_URL}&build_hash=${BUILD_HASH}&commit=${CIRRUS_CHANGE_IN_REPO}")
 STATUS=$?
 
 # If we got a bad status back from the host, we want to make sure to mask the host

@@ -1,4 +1,16 @@
 
+4.1.0-dev.423 | 2021-03-26 16:44:26 -0700
+
+  * GH-1454: Heartbleed: fix substraction order. (Johanna Amann)
+
+    Fixes incorrect/overflowed `n` value for `SSL_Heartbeat_Many_Requests`
+    notices where number of server heartbeats is greater than number of client
+    heartbeats.
+
+    The larger number was substracted from the smaller one leading to an
+    integer overflow. However, no information was lost due to everything
+    also being present in the notice message.
+
 4.1.0-dev.421 | 2021-03-26 16:39:22 -0700
 
   * Fix crash in Analyzer::ForwardPacket due to recursive analyzer calls. (Tim Wojtulewicz, Corelight)

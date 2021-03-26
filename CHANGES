@@ -1,3 +1,16 @@
+
+4.1.0-dev.421 | 2021-03-26 16:39:22 -0700
+
+  * Fix crash in Analyzer::ForwardPacket due to recursive analyzer calls. (Tim Wojtulewicz, Corelight)
+
+    The change in 44f558df7b5a85bae40945de653bcb2448e0a7f4 that made analyzer_list
+    a std::vector instead of a std::list doesn't take into account that in some
+    cases an analyzer may chain back into itself, such as with UDP-in-UDP tunnels.
+    In these cases, the second call to ForwardPacket may cause iterator
+    invalidation, leading to a crash, so this reverts back to using an std::list.
+
+  * Include git sha in request to benchmark host (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.417 | 2021-03-25 11:37:55 -0700
 
   * test suite update due to factoring out coerce_to_record() (Vern Paxson, Corelight)

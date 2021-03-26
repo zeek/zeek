@@ -49,11 +49,6 @@ New Functionality
 Changed Functionality
 ---------------------
 
-- The ``zeek::analyzer::analyzer_list`` type-alias changed from an
-  ``std::list`` to ``std::vector`` which, in practice, is not expected to be
-  used from plugins in API-incompatible way and may result in ~1-2% overall
-  performance benefit.
-
 Removed Functionality
 ---------------------
 

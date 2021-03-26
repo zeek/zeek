@@ -370,9 +370,6 @@ endif ()
 # we have to care about CAF here because Broker headers can pull in CAF
 # headers.
 set(zeekdeps ${zeekdeps} ${CAF_LIBRARIES})
-include_directories(BEFORE ${broker_includes} ${CAF_INCLUDE_DIRS})
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/paraglob/include)
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include)
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
@@ -435,15 +432,20 @@ endif ()
 # if one specifies --with-openssl (which may be common).
 include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
 
-# Make everyone find the highwayhash includes
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/highwayhash)
-
 # Determine if libfts is external to libc, i.e. musl
 find_package(FTS)
 if ( FTS_FOUND )
     list(APPEND OPTLIBS ${FTS_LIBRARY})
     include_directories(BEFORE ${FTS_INCLUDE_DIR})
 endif ()
+
+# Any headers that are possibly bundled in the Zeek source-tree and that are supposed
+# to have priority over any pre-existing/system-wide headers need to appear early in
+# compiler search path.
+include_directories(BEFORE ${broker_includes} ${CAF_INCLUDE_DIRS})
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/highwayhash)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/paraglob/include)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include)
 
 set(zeekdeps ${zeekdeps}
     ${BinPAC_LIBRARY}

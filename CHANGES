@@ -1,4 +1,10 @@
 
+4.1.0-dev.426 | 2021-03-26 17:17:45 -0700
+
+  * GH-1463: Rename supervisor_rotation_format_func to archiver_rotation_format_func (Vlad Grigorescu)
+
+    And expose it for non-supervised setups.  Also deprecates the old name.
+
 4.1.0-dev.423 | 2021-03-26 16:44:26 -0700
 
   * GH-1454: Heartbleed: fix substraction order. (Johanna Amann)

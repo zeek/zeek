@@ -1348,22 +1348,22 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 	{
 	const auto& rt = BifType::Record::Supervisor::NodeConfig;
 	auto rval = make_intrusive<RecordVal>(rt);
-	rval->Assign(rt->FieldOffset("name"), name);
+	rval->AssignField("name", name);
 
 	if ( interface )
-		rval->Assign(rt->FieldOffset("interface"), *interface);
+		rval->AssignField("interface", *interface);
 
 	if ( directory )
-		rval->Assign(rt->FieldOffset("directory"), *directory);
+		rval->AssignField("directory", *directory);
 
 	if ( stdout_file )
-		rval->Assign(rt->FieldOffset("stdout_file"), *stdout_file);
+		rval->AssignField("stdout_file", *stdout_file);
 
 	if ( stderr_file )
-		rval->Assign(rt->FieldOffset("stderr_file"), *stderr_file);
+		rval->AssignField("stderr_file", *stderr_file);
 
 	if ( cpu_affinity )
-		rval->Assign(rt->FieldOffset("cpu_affinity"), *cpu_affinity);
+		rval->AssignField("cpu_affinity", *cpu_affinity);
 
 	auto st = rt->GetFieldType<VectorType>("scripts");
 	auto scripts_val = make_intrusive<VectorVal>(std::move(st));
@@ -1371,11 +1371,11 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 	for ( const auto& s : scripts )
 		scripts_val->Assign(scripts_val->Size(), make_intrusive<StringVal>(s));
 
-	rval->Assign(rt->FieldOffset("scripts"), std::move(scripts_val));
+	rval->AssignField("scripts", std::move(scripts_val));
 
 	auto tt = rt->GetFieldType<TableType>("cluster");
 	auto cluster_val = make_intrusive<TableVal>(std::move(tt));
-	rval->Assign(rt->FieldOffset("cluster"), cluster_val);
+	rval->AssignField("cluster", cluster_val);
 
 	for ( const auto& e : cluster )
 		{
@@ -1385,12 +1385,12 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 		const auto& ept = BifType::Record::Supervisor::ClusterEndpoint;
 		auto val = make_intrusive<RecordVal>(ept);
 
-		val->Assign(ept->FieldOffset("role"), BifType::Enum::Supervisor::ClusterRole->GetEnumVal(ep.role));
-		val->Assign(ept->FieldOffset("host"), make_intrusive<AddrVal>(ep.host));
-		val->Assign(ept->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
+		val->AssignField("role", BifType::Enum::Supervisor::ClusterRole->GetEnumVal(ep.role));
+		val->AssignField("host", make_intrusive<AddrVal>(ep.host));
+		val->AssignField("p", val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
-			val->Assign(ept->FieldOffset("interface"), *ep.interface);
+			val->AssignField("interface", *ep.interface);
 
 		cluster_val->Assign(std::move(key), std::move(val));
 		}
@@ -1403,10 +1403,10 @@ RecordValPtr SupervisorNode::ToRecord() const
 	const auto& rt = BifType::Record::Supervisor::NodeStatus;
 	auto rval = make_intrusive<RecordVal>(rt);
 
-	rval->Assign(rt->FieldOffset("node"), config.ToRecord());
+	rval->AssignField("node", config.ToRecord());
 
 	if ( pid )
-		rval->Assign(rt->FieldOffset("pid"), pid);
+		rval->AssignField("pid", pid);
 
 	return rval;
 	}
@@ -1458,17 +1458,15 @@ bool SupervisedNode::InitCluster() const
 		auto val = make_intrusive<RecordVal>(cluster_node_type);
 
 		auto node_type = supervisor_role_to_cluster_node_type(ep.role);
-		val->Assign(cluster_node_type->FieldOffset("node_type"), std::move(node_type));
-		val->Assign(cluster_node_type->FieldOffset("ip"), make_intrusive<AddrVal>(ep.host));
-		val->Assign(cluster_node_type->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
+		val->AssignField("node_type", std::move(node_type));
+		val->AssignField("ip", make_intrusive<AddrVal>(ep.host));
+		val->AssignField("p", val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
-			val->Assign(cluster_node_type->FieldOffset("interface"),
-			            *ep.interface);
+			val->AssignField("interface", *ep.interface);
 
 		if ( manager_name && ep.role != BifEnum::Supervisor::MANAGER )
-			val->Assign(cluster_node_type->FieldOffset("manager"),
-			            *manager_name);
+			val->AssignField("manager", *manager_name);
 
 		cluster_nodes->Assign(std::move(key), std::move(val));
 		}

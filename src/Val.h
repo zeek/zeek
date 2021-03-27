@@ -1153,6 +1153,19 @@ public:
 		{ Assign(field, new StringVal(new_val)); }
 
 	/**
+	 * Assign a value of type @c T to a record field of the given name.
+	 * A fatal error occurs if the no such field name exists.
+	 */
+	template <class T>
+	void AssignField(const char* field_name, T&& val)
+		{
+		int idx = GetType()->AsRecordType()->FieldOffset(field_name);
+		if ( idx < 0 )
+			reporter->InternalError("missing record field: %s", field_name);
+		Assign(idx, std::forward<T>(val));
+		}
+
+	/**
 	 * Appends a value to the record's fields.  The caller is responsible
 	 * for ensuring that fields are appended in the correct order and
 	 * with the correct type.

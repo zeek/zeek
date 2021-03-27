@@ -1,4 +1,8 @@
 
+4.1.0-dev.427 | 2021-03-27 14:18:16 -0700
+
+  * Update bundled CAF to 0.18.2 (Jon Siwek, Corelight)
+
 4.1.0-dev.426 | 2021-03-26 17:17:45 -0700
 
   * GH-1463: Rename supervisor_rotation_format_func to archiver_rotation_format_func (Vlad Grigorescu)

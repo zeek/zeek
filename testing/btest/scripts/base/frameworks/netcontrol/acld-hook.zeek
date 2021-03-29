@@ -9,6 +9,7 @@
 @TEST-START-FILE send.zeek
 
 @load base/frameworks/netcontrol
+@load base/frameworks/broker
 
 redef exit_only_after_terminate = T;
 global have_peer = F;

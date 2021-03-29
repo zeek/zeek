@@ -1,4 +1,10 @@
 
+4.1.0-dev.438 | 2021-03-29 15:42:25 -0700
+
+  * "balance" tests with multiple Zeek scripts to load the same elements (Vern Paxson, Corelight)
+
+  * put global statements into a quasi-function to support script optimization (Vern Paxson, Corelight)
+
 4.1.0-dev.434 | 2021-03-29 13:18:18 -0700
 
   * Fix sign-compare compiler warning in coerce_to_record() (Jon Siwek, Corelight)

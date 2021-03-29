@@ -42,7 +42,7 @@ std::vector<std::string_view> sv_vec(zeek::VectorVal* xs)
 	std::vector<std::string_view> result;
 	if ( xs )
 		for ( unsigned index = 0; index < xs->Size(); ++index )
-			if ( auto& ptr = xs->At(index) )
+			if ( auto ptr = xs->ValAt(index) )
 				if ( auto* str = ptr->AsString() )
 					result.emplace_back(sv(str));
 	return result;
@@ -82,9 +82,9 @@ auto to_std_vec(zeek::VectorVal* xs)
 		for ( unsigned index = 0; index < xs->Size() ; ++index )
 			{
 			if constexpr (std::is_same<IntOrDbl, int64_t>::value)
-				result.emplace_back(xs->At(index)->AsInt());
+				result.emplace_back(xs->ValAt(index)->AsInt());
 			else
-				result.emplace_back(xs->At(index)->AsDouble());
+				result.emplace_back(xs->ValAt(index)->AsDouble());
 			}
 	return result;
 	}

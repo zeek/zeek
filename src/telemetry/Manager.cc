@@ -4,9 +4,12 @@
 
 #include "caf/telemetry/metric_registry.hpp"
 
+#include <thread>
+
 #include "zeek/3rdparty/doctest.h"
 
 #include "zeek/telemetry/Detail.h"
+#include "zeek/telemetry/Timer.h"
 
 namespace zeek::telemetry {
 
@@ -523,6 +526,16 @@ SCENARIO("telemetry managers provide access to histogram families")
 				auto first = family.GetOrAdd({{"protocol", "tcp"}});
 				auto second = family.GetOrAdd({{"protocol", "udp"}});
 				CHECK_NE(first, second);
+				}
+			AND_THEN("Timers add observations to histograms")
+				{
+				auto hg = family.GetOrAdd({{"protocol", "tst"}});
+				CHECK_EQ(hg.Sum(), 0.0);
+				{
+					Timer observer{hg};
+					std::this_thread::sleep_for(1ms);
+				}
+				CHECK_NE(hg.Sum(), 0.0);
 				}
 			}
 		}

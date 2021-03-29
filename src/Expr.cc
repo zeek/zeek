@@ -3890,7 +3890,7 @@ ValPtr RecordCoerceExpr::Fold(Val* v) const
 RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v,
 				const std::vector<int>& map)
 	{
-	auto map_size = map.size();
+	int map_size = map.size();
 	auto val = make_intrusive<RecordVal>(rt);
 	RecordType* val_type = val->GetType()->AsRecordType();
 

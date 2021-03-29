@@ -1,4 +1,29 @@
 
+4.1.0-dev.434 | 2021-03-29 13:18:18 -0700
+
+  * Fix sign-compare compiler warning in coerce_to_record() (Jon Siwek, Corelight)
+
+  * Fix maybe-uninitialized warning in ZVal::ToVal() (Jon Siwek, Corelight)
+
+  * Change RecordVal::GetFieldAs() to use std::vector::operator[] (Jon Siwek, Corelight)
+
+    Since the method claims it's up to the user to ensure the field exists
+    before calling, the extra bounds-checking done by std::vector::at()
+    isn't needed.
+
+  * Add RecordVal::AssignField() and use it in supervisor code (Jon Siwek, Corelight)
+
+    This is a convenience method to assign a known record field value by
+    field name.  May also be useful to reduce warnings from static analysis
+    (e.g. Coverity) about not checking for negative return values before
+    assigning since that now flows through a [[noreturn]] error path.
+
+  * GH-960: Fix include order of bundled header files (Jon Siwek, Corelight)
+
+    Previously, a system-wide installation of any bundled auxil/ software
+    (like CAF) may get found/included rather than the bundled version and
+    possibly break the build.
+
 4.1.0-dev.427 | 2021-03-27 14:18:16 -0700
 
   * Update bundled CAF to 0.18.2 (Jon Siwek, Corelight)

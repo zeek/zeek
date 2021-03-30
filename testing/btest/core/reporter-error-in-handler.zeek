@@ -2,8 +2,9 @@
 # This test procudes a recursive error: the error handler is itself broken. Rather
 # than looping indefinitly, the error inside the handler should reported to stderr.
 #
-# @TEST-EXEC: zeek -b %INPUT >output 2>&1
+# @TEST-EXEC: zeek -b %INPUT >output 2>err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff err
 
 global a: table[count] of count;
 

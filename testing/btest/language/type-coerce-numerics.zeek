@@ -1,17 +1,22 @@
-# @TEST-EXEC: zeek -b first_set.zeek >first_set.out 2>&1
+# @TEST-EXEC: zeek -b first_set.zeek >first_set.out 2>first_set.err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff first_set.out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff first_set.err
 
-# @TEST-EXEC-FAIL: zeek -b double_convert_failure1.zeek >double_convert_failure1.out 2>&1
+# @TEST-EXEC-FAIL: zeek -b double_convert_failure1.zeek >double_convert_failure1.out 2>double_convert_failure1.err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff double_convert_failure1.out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff double_convert_failure1.err
 
-# @TEST-EXEC-FAIL: zeek -b double_convert_failure2.zeek >double_convert_failure2.out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff double_convert_failure1.out
+# @TEST-EXEC-FAIL: zeek -b double_convert_failure2.zeek >double_convert_failure2.out 2>double_convert_failure2.err
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff double_convert_failure2.out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff double_convert_failure2.err
 
-# @TEST-EXEC-FAIL: zeek -b int_convert_failure.zeek >int_convert_failure.out 2>&1
+# @TEST-EXEC-FAIL: zeek -b int_convert_failure.zeek >int_convert_failure.out 2>int_convert_failure.err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff int_convert_failure.out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff int_convert_failure.err
 
-# @TEST-EXEC: zeek -b vectors.zeek >vectors.out 2>&1
+# @TEST-EXEC: zeek -b vectors.zeek >vectors.out 2>vectors.err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff vectors.out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff vectors.err
 
 @TEST-START-FILE first_set.zeek
 type myrecord : record {

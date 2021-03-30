@@ -1,5 +1,6 @@
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT 2>err
 # @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: btest-diff err
 
 @load base/protocols/http
 

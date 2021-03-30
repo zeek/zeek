@@ -1,4 +1,10 @@
 
+4.1.0-dev.440 | 2021-03-30 14:57:07 -0700
+
+  * Fix incomplete-type for struct timeval (Andrew Benson)
+
+    This fixes building on musl (e.g. Void, Alpine, etc.)
+
 4.1.0-dev.438 | 2021-03-29 15:42:25 -0700
 
   * "balance" tests with multiple Zeek scripts to load the same elements (Vern Paxson, Corelight)

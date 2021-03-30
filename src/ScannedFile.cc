@@ -1,6 +1,6 @@
 #include "zeek/ScannedFile.h"
 
-#include <sys/errno.h>
+#include <errno.h>
 #include <limits.h> // for PATH_MAX
 
 #include "zeek/DebugLogger.h"

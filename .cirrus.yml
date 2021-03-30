@@ -199,6 +199,15 @@ ubuntu16_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+alpine_task:
+  container:
+    # Alpine releases typically happen every 6 months w/ support for 2 years.
+    # The Dockerfile simply tracks latest Alpine release and shouldn't
+    # generally need updating based on particular Alpine release timelines.
+    dockerfile: ci/alpine/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 # Apple doesn't publish official long-term support timelines.
 # We aim to support both the current and previous macOS release.
 macos_big_sur_task:

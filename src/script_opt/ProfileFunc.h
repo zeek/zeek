@@ -31,6 +31,8 @@
 
 #pragma once
 
+#include <string_view>
+
 #include "zeek/Expr.h"
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
@@ -49,11 +51,8 @@ using p_hash_type = unsigned long long;
 inline p_hash_type p_hash(int val)
 	{ return std::hash<int>{}(val); }
 
-inline p_hash_type p_hash(std::string val)
-	{ return std::hash<std::string>{}(val); }
-
-inline p_hash_type p_hash(const char* val)
-	{ return p_hash(std::string(val)); }
+inline p_hash_type p_hash(std::string_view val)
+	{ return std::hash<std::string_view>{}(val); }
 
 extern p_hash_type p_hash(const Obj* o);
 inline p_hash_type p_hash(const IntrusivePtr<Obj>& o)

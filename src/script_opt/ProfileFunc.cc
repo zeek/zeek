@@ -380,11 +380,12 @@ void ProfileFunc::TrackType(const Type* t)
 	if ( ! t )
 		return;
 
-	if ( types.count(t) > 0 )
-		// We've already tracke it.
+	auto [it, inserted] = types.insert(t);
+
+	if ( ! inserted )
+		// We've already tracked it.
 		return;
 
-	types.insert(t);
 	ordered_types.push_back(t);
 	}
 
@@ -393,11 +394,12 @@ void ProfileFunc::TrackID(const ID* id)
 	if ( ! id )
 		return;
 
-	if ( ids.count(id) > 0 )
+	auto [it, inserted] = ids.insert(id);
+
+	if ( ! inserted )
 		// Already tracked.
 		return;
 
-	ids.insert(id);
 	ordered_ids.push_back(id);
 	}
 
@@ -546,22 +548,29 @@ p_hash_type ProfileFuncs::HashType(const Type* t)
 	if ( ! t )
 		return 0;
 
-	if ( type_hashes.count(t) > 0 )
+	auto it = type_hashes.find(t);
+
+	if ( it != type_hashes.end() )
 		// We've already done this Type*.
-		return type_hashes[t];
+		return it->second;
 
 	auto& tn = t->GetName();
-	if ( tn.size() > 0 && seen_type_names.count(tn) > 0 )
+	if ( ! tn.empty() )
 		{
-		// We've already done a type with the same name, even
-		// though with a different Type*.  Reuse its results.
-		auto seen_t = seen_type_names[tn];
-		auto h = type_hashes[seen_t];
+		auto seen_it = seen_type_names.find(tn);
 
-		type_hashes[t] = h;
-		type_to_rep[t] = type_to_rep[seen_t];
+		if ( seen_it != seen_type_names.end() )
+			{
+			// We've already done a type with the same name, even
+			// though with a different Type*.  Reuse its results.
+			auto seen_t = seen_it->second;
+			auto h = type_hashes[seen_t];
 
-		return h;
+			type_hashes[t] = h;
+			type_to_rep[t] = type_to_rep[seen_t];
+
+			return h;
+			}
 		}
 
 	auto h = p_hash(t->Tag());
@@ -676,16 +685,17 @@ p_hash_type ProfileFuncs::HashType(const Type* t)
 
 	type_hashes[t] = h;
 
-	if ( type_hash_reps.count(h) == 0 )
+	auto [rep_it, rep_inserted] = type_hash_reps.emplace(h, t);
+
+	if ( rep_inserted )
 		{ // No previous rep, so use this Type* for that.
-		type_hash_reps[h] = t;
 		type_to_rep[t] = t;
 		rep_types.push_back(t);
 		}
 	else
-		type_to_rep[t] = type_hash_reps[h];
+		type_to_rep[t] = rep_it->second;
 
-	if ( tn.size() > 0 )
+	if ( ! tn.empty() )
 		seen_type_names[tn] = t;
 
 	return h;

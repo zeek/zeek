@@ -316,8 +316,9 @@ public:
 	// the parameter (which might be the parameter itself).
 	const Type* TypeRep(const Type* orig)
 		{
-		ASSERT(type_to_rep.count(orig) > 0);
-		return type_to_rep[orig];
+		auto it = type_to_rep.find(orig);
+		ASSERT(it != type_to_rep.end());
+		return it->second;
 		}
 
 	// Returns the hash associated with the given type, computing it

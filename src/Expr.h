@@ -941,6 +941,22 @@ protected:
 	bool is_slice;
 };
 
+// The following execute the heart of IndexExpr functionality for
+// vector slices and strings.
+
+// Extracts a slice of a vector, where the span of the slice is specified
+// by a list of (exactly) two values.  This is how the interpreter develops
+// the components of a slice.
+extern VectorValPtr index_slice(VectorVal* vect, const ListVal* lv);
+
+// Lower-level access to the slice, where its span is expressed
+// directly as integers.
+extern VectorValPtr index_slice(VectorVal* vect, int first, int last);
+
+// Returns a subset of a string, with the span specified by a list of
+// (exactly) two values.
+extern StringValPtr index_string(const String* s, const ListVal* lv);
+
 class IndexExprWhen final : public IndexExpr {
 public:
 	static inline std::vector<ValPtr> results = {};
@@ -1166,10 +1182,11 @@ protected:
 class RecordCoerceExpr final : public UnaryExpr {
 public:
 	RecordCoerceExpr(ExprPtr op, RecordTypePtr r);
-	~RecordCoerceExpr() override;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+
+	const std::vector<int>& Map() const	{ return map; }
 
 protected:
 	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
@@ -1177,9 +1194,11 @@ protected:
 
 	// For each super-record slot, gives subrecord slot with which to
 	// fill it.
-	int* map;
-	int map_size;	// equivalent to Type()->AsRecordType()->NumFields()
+	std::vector<int> map;
 };
+
+extern RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v,
+					const std::vector<int>& map);
 
 class TableCoerceExpr final : public UnaryExpr {
 public:

@@ -1153,6 +1153,19 @@ public:
 		{ Assign(field, new StringVal(new_val)); }
 
 	/**
+	 * Assign a value of type @c T to a record field of the given name.
+	 * A fatal error occurs if the no such field name exists.
+	 */
+	template <class T>
+	void AssignField(const char* field_name, T&& val)
+		{
+		int idx = GetType()->AsRecordType()->FieldOffset(field_name);
+		if ( idx < 0 )
+			reporter->InternalError("missing record field: %s", field_name);
+		Assign(idx, std::forward<T>(val));
+		}
+
+	/**
 	 * Appends a value to the record's fields.  The caller is responsible
 	 * for ensuring that fields are appended in the correct order and
 	 * with the correct type.
@@ -1288,33 +1301,33 @@ public:
 		if constexpr ( std::is_same_v<T, BoolVal> ||
 		               std::is_same_v<T, IntVal> ||
 		               std::is_same_v<T, EnumVal> )
-			return record_val->at(field).int_val;
+			return record_val->operator[](field).int_val;
 		else if constexpr ( std::is_same_v<T, CountVal> )
-			return record_val->at(field).uint_val;
+			return record_val->operator[](field).uint_val;
 		else if constexpr ( std::is_same_v<T, DoubleVal> ||
 		                    std::is_same_v<T, TimeVal> ||
 		                    std::is_same_v<T, IntervalVal> )
-			return record_val->at(field).double_val;
+			return record_val->operator[](field).double_val;
 		else if constexpr ( std::is_same_v<T, PortVal> )
 			return val_mgr->Port(record_val->at(field).uint_val);
 		else if constexpr ( std::is_same_v<T, StringVal> )
-			return record_val->at(field).string_val->Get();
+			return record_val->operator[](field).string_val->Get();
 		else if constexpr ( std::is_same_v<T, AddrVal> )
-			return record_val->at(field).addr_val->Get();
+			return record_val->operator[](field).addr_val->Get();
 		else if constexpr ( std::is_same_v<T, SubNetVal> )
-			return record_val->at(field).subnet_val->Get();
+			return record_val->operator[](field).subnet_val->Get();
 		else if constexpr ( std::is_same_v<T, File> )
-			return *(record_val->at(field).file_val);
+			return *(record_val->operator[](field).file_val);
 		else if constexpr ( std::is_same_v<T, Func> )
-			return *(record_val->at(field).func_val);
+			return *(record_val->operator[](field).func_val);
 		else if constexpr ( std::is_same_v<T, PatternVal> )
-			return record_val->at(field).re_val->Get();
+			return record_val->operator[](field).re_val->Get();
 		else if constexpr ( std::is_same_v<T, RecordVal> )
-			return record_val->at(field).record_val;
+			return record_val->operator[](field).record_val;
 		else if constexpr ( std::is_same_v<T, VectorVal> )
-			return record_val->at(field).vector_val;
+			return record_val->operator[](field).vector_val;
 		else if constexpr ( std::is_same_v<T, TableVal> )
-			return record_val->at(field).table_val->Get();
+			return record_val->operator[](field).table_val->Get();
 		else
 			{
 			// It's an error to reach here, although because of
@@ -1329,12 +1342,12 @@ public:
 	T GetFieldAs(int field) const
 		{
 		if constexpr ( std::is_integral_v<T> && std::is_signed_v<T> )
-			return record_val->at(field).int_val;
+			return record_val->operator[](field).int_val;
 		else if constexpr ( std::is_integral_v<T> &&
 					std::is_unsigned_v<T> )
-			return record_val->at(field).uint_val;
+			return record_val->operator[](field).uint_val;
 		else if constexpr ( std::is_floating_point_v<T> )
-			return record_val->at(field).double_val;
+			return record_val->operator[](field).double_val;
 
 		// Note: we could add other types here using type traits,
 		// such as is_same_v<T, std::string>, etc.

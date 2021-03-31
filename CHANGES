@@ -1,4 +1,133 @@
 
+4.1.0-dev.451 | 2021-03-31 11:58:08 -0700
+
+  * Add ssh to Alpine Dockerfile for retrieving external test repos (Jon Siwek, Corelight)
+
+4.1.0-dev.449 | 2021-03-31 10:47:22 -0700
+
+  * Change ci/init-external-repos.sh to use `base64 -d` (Jon Siwek, Corelight)
+
+    The BusyBox version of `base64` does not have `--decode`.
+
+4.1.0-dev.448 | 2021-03-31 10:29:17 -0700
+
+  * Teach ci/init-external-repos.sh to consider user permissions (Jon Siwek, Corelight)
+
+    Any errors while setting up external/private test repo should fail the
+    task for PRs submitted by a user with write/admin permission.
+
+4.1.0-dev.447 | 2021-03-31 09:55:05 -0700
+
+  * CI: Add OpenSUSE Leap 15.2 (Johanna Amann, Corelight)
+
+  * Add CI task for Alpine Linux (Jon Siwek, Corelight)
+
+  * Separate stdout from stderr in btest baselines (Jon Siwek, Corelight)
+
+    Redirecting both to the same file can show platform-specific differences
+    (e.g. Alpine), likely due to different buffering defaults.
+
+  * Remove newline-eof canonification attempt in diff-remove-timestamps (Jon Siwek, Corelight)
+
+  * Change a <sys/errno.h> include to <errno.h> (Jon Siwek, Corelight)
+
+    Some systems (e.g. Alpine) may warn that that the former is incorrect.
+
+4.1.0-dev.440 | 2021-03-30 14:57:07 -0700
+
+  * Fix incomplete-type for struct timeval (Andrew Benson)
+
+    This fixes building on musl (e.g. Void, Alpine, etc.)
+
+4.1.0-dev.438 | 2021-03-29 15:42:25 -0700
+
+  * "balance" tests with multiple Zeek scripts to load the same elements (Vern Paxson, Corelight)
+
+  * put global statements into a quasi-function to support script optimization (Vern Paxson, Corelight)
+
+4.1.0-dev.434 | 2021-03-29 13:18:18 -0700
+
+  * Fix sign-compare compiler warning in coerce_to_record() (Jon Siwek, Corelight)
+
+  * Fix maybe-uninitialized warning in ZVal::ToVal() (Jon Siwek, Corelight)
+
+  * Change RecordVal::GetFieldAs() to use std::vector::operator[] (Jon Siwek, Corelight)
+
+    Since the method claims it's up to the user to ensure the field exists
+    before calling, the extra bounds-checking done by std::vector::at()
+    isn't needed.
+
+  * Add RecordVal::AssignField() and use it in supervisor code (Jon Siwek, Corelight)
+
+    This is a convenience method to assign a known record field value by
+    field name.  May also be useful to reduce warnings from static analysis
+    (e.g. Coverity) about not checking for negative return values before
+    assigning since that now flows through a [[noreturn]] error path.
+
+  * GH-960: Fix include order of bundled header files (Jon Siwek, Corelight)
+
+    Previously, a system-wide installation of any bundled auxil/ software
+    (like CAF) may get found/included rather than the bundled version and
+    possibly break the build.
+
+4.1.0-dev.427 | 2021-03-27 14:18:16 -0700
+
+  * Update bundled CAF to 0.18.2 (Jon Siwek, Corelight)
+
+4.1.0-dev.426 | 2021-03-26 17:17:45 -0700
+
+  * GH-1463: Rename supervisor_rotation_format_func to archiver_rotation_format_func (Vlad Grigorescu)
+
+    And expose it for non-supervised setups.  Also deprecates the old name.
+
+4.1.0-dev.423 | 2021-03-26 16:44:26 -0700
+
+  * GH-1454: Heartbleed: fix substraction order. (Johanna Amann)
+
+    Fixes incorrect/overflowed `n` value for `SSL_Heartbeat_Many_Requests`
+    notices where number of server heartbeats is greater than number of client
+    heartbeats.
+
+    The larger number was substracted from the smaller one leading to an
+    integer overflow. However, no information was lost due to everything
+    also being present in the notice message.
+
+4.1.0-dev.421 | 2021-03-26 16:39:22 -0700
+
+  * Fix crash in Analyzer::ForwardPacket due to recursive analyzer calls. (Tim Wojtulewicz, Corelight)
+
+    The change in 44f558df7b5a85bae40945de653bcb2448e0a7f4 that made analyzer_list
+    a std::vector instead of a std::list doesn't take into account that in some
+    cases an analyzer may chain back into itself, such as with UDP-in-UDP tunnels.
+    In these cases, the second call to ForwardPacket may cause iterator
+    invalidation, leading to a crash, so this reverts back to using an std::list.
+
+  * Include git sha in request to benchmark host (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.417 | 2021-03-25 11:37:55 -0700
+
+  * test suite update due to factoring out coerce_to_record() (Vern Paxson, Corelight)
+
+  * removal of vestigial #include's (breaking an include loop in the process) (Vern Paxson, Corelight)
+
+  * better method name: HasCopySemantics() (Vern Paxson, Corelight)
+
+  * Use STL functionality to initialize coercion map (Vern Paxson, Corelight)
+
+  * comments for factored-out index slice functions (Vern Paxson, Corelight)
+
+  * support for subclassing ScriptFunc's, esp. for alternate lambda closures (Vern Paxson, Corelight)
+
+  * factor out record coercion; modernize management of coercion "map" (Vern Paxson, Corelight)
+
+  * lower-level method for adding fields to records (Vern Paxson, Corelight)
+
+  * factor out "print" statement's execution functionality (Vern Paxson, Corelight)
+
+  * functions for indexing slices and strings (Vern Paxson, Corelight)
+
+  * new function for getting the location, if any, associated with the current call (Vern Paxson, Corelight)
+
 4.1.0-dev.404 | 2021-03-24 16:58:50 -0700
 
   * Fix missing `user_agent` existence check in smtp/software.zeek (Michael Dopheide)

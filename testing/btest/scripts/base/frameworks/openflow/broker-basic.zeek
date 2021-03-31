@@ -82,6 +82,7 @@ event OpenFlow::flow_mod_failure(name: string, match: OpenFlow::ofp_match, flow_
 
 @TEST-START-FILE recv.zeek
 
+@load base/protocols/conn
 @load base/frameworks/openflow
 
 redef exit_only_after_terminate = T;

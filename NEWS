@@ -49,11 +49,6 @@ New Functionality
 Changed Functionality
 ---------------------
 
-- The ``zeek::analyzer::analyzer_list`` type-alias changed from an
-  ``std::list`` to ``std::vector`` which, in practice, is not expected to be
-  used from plugins in API-incompatible way and may result in ~1-2% overall
-  performance benefit.
-
 Removed Functionality
 ---------------------
 
@@ -78,6 +73,8 @@ Deprecated Functionality
 - The ``zeek::util::zeekenv()`` function is deprecated since use of all
   environment variables prefixed by ``BRO_`` is now removed and calling
   ``getenv()`` directly with ``ZEEK_`` environment variables can be done.
+
+- ``supervisor_rotation_format_func`` is renamed to ``archiver_rotation_format_func``
 
 Zeek 4.0.0
 ==========

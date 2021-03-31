@@ -39,14 +39,20 @@ if [[ -n "${CIRRUS_CI}" ]] && [[ ! -d zeek-testing-private ]]; then
     # the key is also available in PRs for people with write access to the
     # repo, so we can still try for those cases).
     if [[ -n "${CIRRUS_PR}" ]]; then
-        set +e
+        if [[ "${CIRRUS_USER_PERMISSION}" == "write" ]]; then
+            set -e
+        elif [[ "${CIRRUS_USER_PERMISSION}" == "admin" ]]; then
+            set -e
+        else
+            set +e
+        fi
     else
         set -e
     fi
 
     banner "Trying to clone zeek-testing-private git repo"
     echo "${ZEEK_TESTING_PRIVATE_SSH_KEY}" > cirrus_key.b64
-    base64 --decode cirrus_key.b64 > cirrus_key
+    base64 -d cirrus_key.b64 > cirrus_key
     rm cirrus_key.b64
     chmod 600 cirrus_key
     git --version

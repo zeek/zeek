@@ -1,7 +1,8 @@
 # The default is for an initialization error to be a hard failure.
 
-# @TEST-EXEC-FAIL: unset ZEEK_ALLOW_INIT_ERRORS && zeek -b %INPUT >out 2>&1
+# @TEST-EXEC-FAIL: unset ZEEK_ALLOW_INIT_ERRORS && zeek -b %INPUT >out 2>err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff err
 
 event zeek_init() &priority=10
 	{

@@ -38,7 +38,12 @@ class AnalyzerTimer;
 class SupportAnalyzer;
 class OutputHandler;
 
-using analyzer_list = std::vector<Analyzer*>;
+// This needs to remain a std::list because of the usage of iterators in the
+// Analyzer::Forward methods. These methods have the chance to loop back
+// into the same analyzer in the case of tunnels. If the recursive call adds
+// to the children list, it can invalidate iterators in the outer call,
+// causing a crash.
+using analyzer_list = std::list<Analyzer*>;
 typedef uint32_t ID;
 typedef void (Analyzer::*analyzer_timer_func)(double t);
 

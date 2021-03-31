@@ -3,6 +3,7 @@
 #include "zeek/Options.h"
 #include "zeek/Reporter.h"
 #include "zeek/Desc.h"
+#include "zeek/module_util.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/Inline.h"
@@ -151,6 +152,27 @@ void analyze_func(ScriptFuncPtr f)
 		return;
 
 	funcs.emplace_back(f, ScopePtr{NewRef{}, f->GetScope()}, f->CurrentBody());
+	}
+
+const FuncInfo* analyze_global_stmts(Stmt* stmts)
+	{
+	// We ignore analysis_options.only_func - if it's in use, later
+	// logic will keep this function from being compiled, but it's handy
+	// now to enter it into "funcs" so we have a FuncInfo to return.
+
+	auto id = install_ID("<global-stmts>", GLOBAL_MODULE_NAME, true, false);
+	auto empty_args_t = make_intrusive<RecordType>(nullptr);
+	auto func_t = make_intrusive<FuncType>(empty_args_t, nullptr, FUNC_FLAVOR_FUNCTION);
+	id->SetType(func_t);
+
+	auto sc = current_scope();
+	std::vector<IDPtr> empty_inits;
+	StmtPtr stmts_p{NewRef{}, stmts};
+	auto sf = make_intrusive<ScriptFunc>(id, stmts_p, empty_inits, sc->Length(), 0);
+
+	funcs.emplace_back(sf, ScopePtr{NewRef{}, sc}, stmts_p);
+
+	return &funcs.back();
 	}
 
 static void check_env_opt(const char* opt, bool& opt_flag)

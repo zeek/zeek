@@ -1,6 +1,7 @@
 #
-# @TEST-EXEC: zeek -b %INPUT >out 2>&1
+# @TEST-EXEC: zeek -b %INPUT >out 2>err
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff err
 
 event zeek_init()
 	{

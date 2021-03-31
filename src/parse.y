@@ -266,7 +266,7 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 
 %%
 
-bro:
+zeek:
 		decl_list stmt_list
 			{
 			if ( zeek::detail::stmts )

@@ -18,6 +18,7 @@ RUN apk add --no-cache \
   fts-dev \
   git \
   curl \
+  openssh-client \
   py3-pip
 
 RUN pip3 install junit2html

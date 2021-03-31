@@ -1,4 +1,8 @@
 
+4.1.0-dev.451 | 2021-03-31 11:58:08 -0700
+
+  * Add ssh to Alpine Dockerfile for retrieving external test repos (Jon Siwek, Corelight)
+
 4.1.0-dev.449 | 2021-03-31 10:47:22 -0700
 
   * Change ci/init-external-repos.sh to use `base64 -d` (Jon Siwek, Corelight)

@@ -29,16 +29,19 @@ std::string script_specific_filename(const StmtPtr& body)
 	auto bl_f = body_loc->filename;
 	ASSERT(bl_f != nullptr);
 
-	if ( bl_f[0] == '.' &&
-	     (bl_f[1] == '/' || (bl_f[1] == '.' && bl_f[2] == '/')) )
+	if ( (bl_f[0] != '.' && bl_f[0] != '/') ||
+	     (bl_f[0] == '.' && (bl_f[1] == '/' ||
+	                         (bl_f[1] == '.' && bl_f[2] == '/'))) )
 		{
 		// Add working directory to avoid collisions over the
 		// same relative name.
 		static std::string working_dir;
-		if ( working_dir.size() == 0 )
+		if ( working_dir.empty() )
 			{
 			char buf[8192];
-			getcwd(buf, sizeof buf);
+			if ( ! getcwd(buf, sizeof buf) )
+				reporter->InternalError("getcwd failed: %s", strerror(errno));
+
 			working_dir = buf;
 			}
 

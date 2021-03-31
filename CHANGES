@@ -1,4 +1,11 @@
 
+4.1.0-dev.448 | 2021-03-31 10:29:17 -0700
+
+  * Teach ci/init-external-repos.sh to consider user permissions (Jon Siwek, Corelight)
+
+    Any errors while setting up external/private test repo should fail the
+    task for PRs submitted by a user with write/admin permission.
+
 4.1.0-dev.447 | 2021-03-31 09:55:05 -0700
 
   * CI: Add OpenSUSE Leap 15.2 (Johanna Amann, Corelight)

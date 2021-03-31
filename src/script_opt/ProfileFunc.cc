@@ -343,7 +343,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 	case EXPR_SET_CONSTRUCTOR:
 		{
 		auto sc = static_cast<const SetConstructorExpr*>(e);
-		auto attrs = sc->GetAttrs();
+		const auto& attrs = sc->GetAttrs();
 
 		if ( attrs )
 			constructor_attrs.insert(attrs.get());
@@ -353,7 +353,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 	case EXPR_TABLE_CONSTRUCTOR:
 		{
 		auto tc = static_cast<const TableConstructorExpr*>(e);
-		auto attrs = tc->GetAttrs();
+		const auto& attrs = tc->GetAttrs();
 
 		if ( attrs )
 			constructor_attrs.insert(attrs.get());

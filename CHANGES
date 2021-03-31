@@ -1,4 +1,21 @@
 
+4.1.0-dev.447 | 2021-03-31 09:55:05 -0700
+
+  * CI: Add OpenSUSE Leap 15.2 (Johanna Amann, Corelight)
+
+  * Add CI task for Alpine Linux (Jon Siwek, Corelight)
+
+  * Separate stdout from stderr in btest baselines (Jon Siwek, Corelight)
+
+    Redirecting both to the same file can show platform-specific differences
+    (e.g. Alpine), likely due to different buffering defaults.
+
+  * Remove newline-eof canonification attempt in diff-remove-timestamps (Jon Siwek, Corelight)
+
+  * Change a <sys/errno.h> include to <errno.h> (Jon Siwek, Corelight)
+
+    Some systems (e.g. Alpine) may warn that that the former is incorrect.
+
 4.1.0-dev.440 | 2021-03-30 14:57:07 -0700
 
   * Fix incomplete-type for struct timeval (Andrew Benson)

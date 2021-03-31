@@ -1,5 +1,6 @@
-# @TEST-EXEC: zeek -b %INPUT >out 2>&1
+# @TEST-EXEC: zeek -b %INPUT >out 2>err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff err
 
 # Note that while modifying container membership during for-loop iteration is
 # supposed to be undefined-behavior, it should be practically ok to have this

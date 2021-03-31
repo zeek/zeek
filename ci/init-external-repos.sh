@@ -52,7 +52,7 @@ if [[ -n "${CIRRUS_CI}" ]] && [[ ! -d zeek-testing-private ]]; then
 
     banner "Trying to clone zeek-testing-private git repo"
     echo "${ZEEK_TESTING_PRIVATE_SSH_KEY}" > cirrus_key.b64
-    base64 --decode cirrus_key.b64 > cirrus_key
+    base64 -d cirrus_key.b64 > cirrus_key
     rm cirrus_key.b64
     chmod 600 cirrus_key
     git --version

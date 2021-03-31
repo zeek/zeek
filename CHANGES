@@ -1,4 +1,10 @@
 
+4.1.0-dev.449 | 2021-03-31 10:47:22 -0700
+
+  * Change ci/init-external-repos.sh to use `base64 -d` (Jon Siwek, Corelight)
+
+    The BusyBox version of `base64` does not have `--decode`.
+
 4.1.0-dev.448 | 2021-03-31 10:29:17 -0700
 
   * Teach ci/init-external-repos.sh to consider user permissions (Jon Siwek, Corelight)

@@ -57,9 +57,8 @@
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_lambda case_type
 %type <id_l> local_id_list case_type_list
 %type <ic> init_class
-%type <expr> opt_init
 %type <val> TOK_CONSTANT
-%type <expr> expr opt_expr init anonymous_function lambda_body index_slice opt_deprecated when_condition
+%type <expr> expr opt_expr init opt_init anonymous_function lambda_body index_slice opt_deprecated when_condition
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> type opt_type enum_body
@@ -115,18 +114,14 @@ extern int brolex();
 using namespace zeek;
 using namespace zeek::detail;
 
-/*
- * Part of the module facility: while parsing, keep track of which
- * module to put things in.
- */
+// Part of the module facility: while parsing, keep track of which
+// module to put things in.
 std::string zeek::detail::current_module = GLOBAL_MODULE_NAME;
 
 bool is_export = false; // true if in an export {} block
 
-/*
- * When parsing an expression for the debugger, where to put the result
- * (obviously not reentrant).
- */
+// When parsing an expression for the debugger, where to put the result
+// (obviously not reentrant).
 extern Expr* g_curr_debug_expr;
 extern bool in_debug;
 extern const char* g_curr_debug_error;
@@ -145,9 +140,9 @@ static Location func_hdr_location;
 EnumType* cur_enum_type = nullptr;
 static ID* cur_decl_type_id = nullptr;
 
-static void parse_new_enum (void)
+static void parse_new_enum(void)
 	{
-	/* Starting a new enum definition. */
+	// Starting a new enum definition.
 	assert(cur_enum_type == nullptr);
 
 	if ( cur_decl_type_id )
@@ -159,10 +154,10 @@ static void parse_new_enum (void)
 		reporter->FatalError("incorrect syntax for enum type declaration");
 	}
 
-static void parse_redef_enum (ID* id)
+static void parse_redef_enum(ID* id)
 	{
-	/* Redef an enum. id points to the enum to be redefined.
-	   Let cur_enum_type point to it. */
+	// Redef an enum. id points to the enum to be redefined.
+	// Let cur_enum_type point to it.
 	assert(cur_enum_type == nullptr);
 
 	// abort on errors; enums need to be accessible to continue parsing
@@ -852,10 +847,9 @@ enum_body_elem:
 
 	|	TOK_ID '=' '-' TOK_CONSTANT
 			{
-			/* We only accept counts as enumerator, but we want to return a nice
-			   error message if users triy to use a negative integer (will also
-			   catch other cases, but that's fine.)
-			*/
+			// We only accept counts as enumerator, but we want to return a nice
+			// error message if users triy to use a negative integer (will also
+			// catch other cases, but that's fine.)
 			reporter->Error("enumerator is not a count constant");
 			}
 

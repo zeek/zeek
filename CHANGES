@@ -1,4 +1,18 @@
 
+4.1.0-dev.461 | 2021-04-01 14:11:44 -0700
+
+  * function profiling rewritten - more detailed info, supports global profiling (Vern Paxson, Corelight)
+
+    Hashes for Zeek script types are now done globally rather than
+    per-function-body, which can save considerable time due to the complexity
+    of some commonly used types (such as connection records).
+
+    Hashing has been expanded to provide more robust distinctness
+    (lack of collisions in practice) and determinism (consistently computing
+    the same hash across compilations).
+
+  * track whether a given function/body should be included/skipped for optimization (Vern Paxson, Corelight)
+
 4.1.0-dev.451 | 2021-03-31 11:58:08 -0700
 
   * Add ssh to Alpine Dockerfile for retrieving external test repos (Jon Siwek, Corelight)

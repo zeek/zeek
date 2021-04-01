@@ -81,7 +81,7 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	if ( analysis_options.optimize_AST )
 		{
-		pf = std::make_shared<ProfileFunc>(false);
+		pf = std::make_shared<ProfileFunc>(f, body);
 		body->Traverse(pf.get());
 
 		RD_Decorate reduced_rds(pf);
@@ -111,7 +111,7 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 		}
 
 	// Profile the new body.
-	pf = std::make_shared<ProfileFunc>();
+	pf = std::make_shared<ProfileFunc>(f, body);
 	body->Traverse(pf.get());
 
 	// Compute its reaching definitions.
@@ -224,15 +224,7 @@ void analyze_scripts()
 
 	// Now that everything's parsed and BiF's have been initialized,
 	// profile the functions.
-	std::unordered_map<const ScriptFunc*, std::shared_ptr<ProfileFunc>>
-		func_profs;
-
-	for ( auto& f : funcs )
-		{
-		f.SetProfile(std::make_shared<ProfileFunc>(true));
-		f.Body()->Traverse(f.Profile().get());
-		func_profs[f.Func()] = f.Profile();
-		}
+	auto pfs = std::make_unique<ProfileFuncs>(funcs);
 
 	// Figure out which functions either directly or indirectly
 	// appear in "when" clauses.
@@ -275,7 +267,7 @@ void analyze_scripts()
 			{
 			when_funcs.insert(wf);
 
-			for ( auto& wff : func_profs[wf]->ScriptCalls() )
+			for ( auto& wff : pfs->FuncProf(wf)->ScriptCalls() )
 				{
 				if ( when_funcs.count(wff) > 0 )
 					// We've already processed this

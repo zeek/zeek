@@ -458,10 +458,10 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf)
 
 	for ( auto& g : pf->Globals() )
 		{
-		if ( globals.count(g) > 0 )
-			continue;
+		auto [it, inserted] = globals.emplace(g);
 
-		globals.insert(g);
+		if ( ! inserted )
+			continue;
 
 		auto& v = g->GetVal();
 		if ( v )

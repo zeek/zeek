@@ -232,6 +232,41 @@ static bool expr_is_table_type_name(const Expr* expr)
 
 	return false;
 	}
+
+static void build_global(ID* id, Type* t, InitClass ic, Expr* e,
+                         std::vector<AttrPtr>* attrs, DeclType dt)
+	{
+	IDPtr id_ptr{AdoptRef{}, id};
+	TypePtr t_ptr{AdoptRef{}, t};
+	ExprPtr e_ptr{AdoptRef{}, e};
+
+	auto attrs_ptr = attrs ? std::make_unique<std::vector<AttrPtr>>(*attrs) : nullptr;
+
+	add_global(id_ptr, t_ptr, ic, e_ptr, std::move(attrs_ptr), dt);
+
+	if ( dt == VAR_REDEF )
+		zeekygen_mgr->Redef(id, ::filename, ic, std::move(e_ptr));
+	else
+		zeekygen_mgr->Identifier(std::move(id_ptr));
+	}
+
+static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
+                           std::vector<AttrPtr>* attrs, DeclType dt,
+                           bool do_coverage)
+	{
+	IDPtr id_ptr{AdoptRef{}, id};
+	TypePtr t_ptr{AdoptRef{}, t};
+	ExprPtr e_ptr{AdoptRef{}, e};
+
+	auto attrs_ptr = attrs ? std::make_unique<std::vector<AttrPtr>>(*attrs) : nullptr;
+
+	auto init = add_local(id_ptr, t_ptr, ic, e_ptr, std::move(attrs_ptr), dt);
+
+	if ( do_coverage )
+		script_coverage_mgr.AddStmt(init.get());
+
+	return init;
+	}
 %}
 
 %union {
@@ -1114,39 +1149,22 @@ decl:
 
 	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			IntrusivePtr id{AdoptRef{}, $2};
-			add_global(id, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
-			                         std::unique_ptr<std::vector<AttrPtr>>{$6},
-			                         VAR_REGULAR);
-			zeekygen_mgr->Identifier(std::move(id));
+			build_global($2, $3, $4, $5, $6, VAR_REGULAR);
 			}
 
 	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			IntrusivePtr id{AdoptRef{}, $2};
-			add_global(id, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
-			                         std::unique_ptr<std::vector<AttrPtr>>{$6},
-			                         VAR_OPTION);
-			zeekygen_mgr->Identifier(std::move(id));
+			build_global($2, $3, $4, $5, $6, VAR_OPTION);
 			}
 
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			IntrusivePtr id{AdoptRef{}, $2};
-			add_global(id, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
-			                         std::unique_ptr<std::vector<AttrPtr>>{$6},
-			                         VAR_CONST);
-			zeekygen_mgr->Identifier(std::move(id));
+			build_global($2, $3, $4, $5, $6, VAR_CONST);
 			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
-			IntrusivePtr id{AdoptRef{}, $2};
-			ExprPtr init{AdoptRef{}, $5};
-			add_global(id, {AdoptRef{}, $3}, $4, init,
-			                         std::unique_ptr<std::vector<AttrPtr>>{$6},
-			                         VAR_REDEF);
-			zeekygen_mgr->Redef(id.get(), ::filename, $4, std::move(init));
+			build_global($2, $3, $4, $5, $6, VAR_REDEF);
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
@@ -1637,23 +1655,13 @@ stmt:
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @7);
-			$$ = add_local({AdoptRef{}, $2}, {AdoptRef{}, $3}, $4,
-			                             {AdoptRef{}, $5},
-			                             std::unique_ptr<std::vector<AttrPtr>>{$6},
-			                             VAR_REGULAR).release();
-			if ( ! $8 )
-			    script_coverage_mgr.AddStmt($$);
+			$$ = build_local($2, $3, $4, $5, $6, VAR_REGULAR, ! $8).release();
 			}
 
 	|	TOK_CONST local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @6);
-			$$ = add_local({AdoptRef{}, $2}, {AdoptRef{}, $3}, $4,
-			                             {AdoptRef{}, $5},
-			                             std::unique_ptr<std::vector<AttrPtr>>{$6},
-			                             VAR_CONST).release();
-			if ( ! $8 )
-			    script_coverage_mgr.AddStmt($$);
+			$$ = build_local($2, $3, $4, $5, $6, VAR_CONST, ! $8).release();
 			}
 
 	|	TOK_WHEN '(' when_condition ')' stmt

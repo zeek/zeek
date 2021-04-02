@@ -611,6 +611,7 @@ public:
 		{ return managed_fields; }
 
 	int NumFields() const			{ return num_fields; }
+	int NumOrigFields() const		{ return num_orig_fields; }
 
 	/**
 	 * Returns a "record_field_table" value for introspection purposes.
@@ -654,7 +655,12 @@ protected:
 	// use std::bitset here instead.
 	std::vector<bool> managed_fields;
 
+	// Number of fields in the type.
 	int num_fields;
+
+	// Number of fields in the type when originally declared.
+	int num_orig_fields;
+
 	type_decl_list* types;
 };
 

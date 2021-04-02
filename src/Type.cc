@@ -850,6 +850,8 @@ RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 		}
 	else
 		num_fields = 0;
+
+	num_orig_fields = num_fields;
 	}
 
 // in this case the clone is actually not so shallow, since

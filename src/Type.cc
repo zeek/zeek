@@ -1414,8 +1414,12 @@ void EnumType::AddNameInternal(const string& full_name, bro_int_t val)
 
 bro_int_t EnumType::Lookup(const string& module_name, const char* name) const
 	{
-	NameMap::const_iterator pos =
-		names.find(detail::make_full_var_name(module_name.c_str(), name).c_str());
+	return Lookup(detail::make_full_var_name(module_name.c_str(), name));
+	}
+
+bro_int_t EnumType::Lookup(const string& full_name) const
+	{
+	NameMap::const_iterator pos = names.find(full_name.c_str());
 
 	if ( pos == names.end() )
 		return -1;

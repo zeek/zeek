@@ -1341,6 +1341,9 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
                                bro_int_t val, bool is_export, detail::Expr* deprecation,
                                bool from_redef)
 	{
+	if ( from_redef )
+		has_redefs = true;
+
 	if ( Lookup(val) )
 		{
 		reporter->Error("enumerator value in enumerated type definition already exists");

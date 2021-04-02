@@ -722,11 +722,14 @@ public:
 
 	// -1 indicates not found.
 	bro_int_t Lookup(const std::string& module_name, const char* name) const;
+
 	const char* Lookup(bro_int_t value) const; // Returns 0 if not found
 
 	// Returns the list of defined names with their values. The names
 	// will be fully qualified with their module name.
 	enum_name_list Names() const;
+
+	bool HasRedefs() const		{ return has_redefs; }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
@@ -746,6 +749,9 @@ protected:
 
 	typedef std::map<std::string, bro_int_t> NameMap;
 	NameMap names;
+
+	// Whether any of the elements of the enum were added via redef's.
+	bool has_redefs = false;
 
 	using ValMap = std::unordered_map<bro_int_t, EnumValPtr>;
 	ValMap vals;

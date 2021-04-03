@@ -4,6 +4,7 @@
 
 #include <type_traits>
 #include <utility>
+#include <functional>
 
 namespace zeek {
 
@@ -292,3 +293,13 @@ auto operator!=(const zeek::IntrusivePtr<T>& x, const zeek::IntrusivePtr<U>& y)
 	}
 
 } // namespace zeek
+
+// -- hashing ------------------------------------------------
+
+namespace std {
+template <class T> struct hash<zeek::IntrusivePtr<T>> {
+	// Hash of intrusive pointer is the same as hash of the raw pointer it holds.
+	size_t operator()(const zeek::IntrusivePtr<T>& v) const noexcept
+		{ return std::hash<T*>{}(v.get()); }
+};
+}

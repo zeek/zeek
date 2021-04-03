@@ -198,8 +198,6 @@ IntrusivePtr<T> cast_intrusive(IntrusivePtr<U> p) noexcept
 	return {AdoptRef{}, static_cast<T*>(p.release())};
 	}
 
-} // namespace zeek
-
 // -- comparison to nullptr ----------------------------------------------------
 
 /**
@@ -292,3 +290,5 @@ auto operator!=(const zeek::IntrusivePtr<T>& x, const zeek::IntrusivePtr<U>& y)
 	{
 	return x.get() != y.get();
 	}
+
+} // namespace zeek

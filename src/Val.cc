@@ -2311,9 +2311,9 @@ ListValPtr TableVal::ToPureListVal() const
 	return ToListVal(tl[0]->Tag());
 	}
 
-std::unordered_map<Val*, ValPtr> TableVal::ToMap() const
+std::unordered_map<ValPtr, ValPtr> TableVal::ToMap() const
 	{
-	std::unordered_map<Val*, ValPtr> res;
+	std::unordered_map<ValPtr, ValPtr> res;
 
 	for ( const auto& iter : *table_val )
 		{
@@ -2321,7 +2321,7 @@ std::unordered_map<Val*, ValPtr> TableVal::ToMap() const
 		auto v = iter.GetValue<TableEntryVal*>();
 		auto vl = table_hash->RecoverVals(*k);
 
-		res[vl.release()] = v->GetVal();
+		res[std::move(vl)] = v->GetVal();
 		}
 
 	return res;

@@ -1,4 +1,31 @@
 
+4.1.0-dev.475 | 2021-04-03 09:39:10 -0700
+
+  * Increase timeout of plugins.reader btest (Jon Siwek, Corelight)
+
+  * optionally hash original, not extended, form of records for profiling (Vern Paxson, Corelight)
+
+    profile types associated with global initializations
+    incorporate type name, if present, into type hash
+
+  * fixed out-of-range enum constant: OpenFlow::INVALID_COOKIE (Vern Paxson, Corelight)
+
+    (Though it's not currently an enum value)
+
+  * Add method to add a fully-qualified enum name (module name included) (Vern Paxson, Corelight)
+
+  * enum types track whether they've had values added via "redef" (Vern Paxson, Corelight)
+
+  * tracking of original size of records (pre redef'ing) (Vern Paxson, Corelight)
+
+  * Added TableVal::ToMap to retrieve a table's entire contents as a unordered_map (Vern Paxson, Corelight)
+
+  * factoring out some replicated code in the parser (Vern Paxson, Corelight)
+
+  * some micro-preening of parse.y; no semantic changes (Vern Paxson, Corelight)
+
+  * for readability, removed explicit scoping in parse.y; no semantic changes (Vern Paxson, Corelight)
+
 4.1.0-dev.461 | 2021-04-01 14:11:44 -0700
 
   * function profiling rewritten - more detailed info, supports global profiling (Vern Paxson, Corelight)

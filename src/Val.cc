@@ -2311,6 +2311,22 @@ ListValPtr TableVal::ToPureListVal() const
 	return ToListVal(tl[0]->Tag());
 	}
 
+std::unordered_map<Val*, ValPtr> TableVal::ToMap() const
+	{
+	std::unordered_map<Val*, ValPtr> res;
+
+	for ( const auto& iter : *table_val )
+		{
+		auto k = iter.GetHashKey();
+		auto v = iter.GetValue<TableEntryVal*>();
+		auto vl = table_hash->RecoverVals(*k);
+
+		res[vl.release()] = v->GetVal();
+		}
+
+	return res;
+	}
+
 const detail::AttrPtr& TableVal::GetAttr(detail::AttrTag t) const
 	{
 	return attrs ? attrs->Find(t) : detail::Attr::nil;

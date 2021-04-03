@@ -611,6 +611,7 @@ public:
 		{ return managed_fields; }
 
 	int NumFields() const			{ return num_fields; }
+	int NumOrigFields() const		{ return num_orig_fields; }
 
 	/**
 	 * Returns a "record_field_table" value for introspection purposes.
@@ -654,7 +655,12 @@ protected:
 	// use std::bitset here instead.
 	std::vector<bool> managed_fields;
 
+	// Number of fields in the type.
 	int num_fields;
+
+	// Number of fields in the type when originally declared.
+	int num_orig_fields;
+
 	type_decl_list* types;
 };
 
@@ -714,13 +720,18 @@ public:
 	// added that aren't likewise explicitly initalized.
 	void AddName(const std::string& module_name, const char* name, bro_int_t val, bool is_export, detail::Expr* deprecation = nullptr, bool from_redef = false);
 
-	// -1 indicates not found.
+	// -1 indicates not found.  Second version is for full names
+	// that already incorporate the module.
 	bro_int_t Lookup(const std::string& module_name, const char* name) const;
+	bro_int_t Lookup(const std::string& full_name) const;
+
 	const char* Lookup(bro_int_t value) const; // Returns 0 if not found
 
 	// Returns the list of defined names with their values. The names
 	// will be fully qualified with their module name.
 	enum_name_list Names() const;
+
+	bool HasRedefs() const		{ return has_redefs; }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
@@ -740,6 +751,9 @@ protected:
 
 	typedef std::map<std::string, bro_int_t> NameMap;
 	NameMap names;
+
+	// Whether any of the elements of the enum were added via redef's.
+	bool has_redefs = false;
 
 	using ValMap = std::unordered_map<bro_int_t, EnumValPtr>;
 	ValMap vals;

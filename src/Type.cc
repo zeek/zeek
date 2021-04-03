@@ -850,6 +850,8 @@ RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 		}
 	else
 		num_fields = 0;
+
+	num_orig_fields = num_fields;
 	}
 
 // in this case the clone is actually not so shallow, since
@@ -1339,6 +1341,9 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
                                bro_int_t val, bool is_export, detail::Expr* deprecation,
                                bool from_redef)
 	{
+	if ( from_redef )
+		has_redefs = true;
+
 	if ( Lookup(val) )
 		{
 		reporter->Error("enumerator value in enumerated type definition already exists");
@@ -1409,8 +1414,12 @@ void EnumType::AddNameInternal(const string& full_name, bro_int_t val)
 
 bro_int_t EnumType::Lookup(const string& module_name, const char* name) const
 	{
-	NameMap::const_iterator pos =
-		names.find(detail::make_full_var_name(module_name.c_str(), name).c_str());
+	return Lookup(detail::make_full_var_name(module_name.c_str(), name));
+	}
+
+bro_int_t EnumType::Lookup(const string& full_name) const
+	{
+	NameMap::const_iterator pos = names.find(full_name.c_str());
 
 	if ( pos == names.end() )
 		return -1;

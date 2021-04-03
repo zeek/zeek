@@ -81,7 +81,7 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	if ( analysis_options.optimize_AST )
 		{
-		pf = std::make_shared<ProfileFunc>(f, body);
+		pf = std::make_shared<ProfileFunc>(f, body, true);
 		body->Traverse(pf.get());
 
 		RD_Decorate reduced_rds(pf);
@@ -111,7 +111,7 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 		}
 
 	// Profile the new body.
-	pf = std::make_shared<ProfileFunc>(f, body);
+	pf = std::make_shared<ProfileFunc>(f, body, true);
 	body->Traverse(pf.get());
 
 	// Compute its reaching definitions.
@@ -224,7 +224,7 @@ void analyze_scripts()
 
 	// Now that everything's parsed and BiF's have been initialized,
 	// profile the functions.
-	auto pfs = std::make_unique<ProfileFuncs>(funcs);
+	auto pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
 
 	// Figure out which functions either directly or indirectly
 	// appear in "when" clauses.

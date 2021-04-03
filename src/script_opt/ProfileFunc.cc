@@ -59,13 +59,16 @@ p_hash_type script_specific_hash(const StmtPtr& body, p_hash_type generic_hash)
 	}
 
 
-ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body)
+ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fields)
 	{
+	abs_rec_fields = _abs_rec_fields;
 	Profile(func->GetType().get(), body);
 	}
 
-ProfileFunc::ProfileFunc(const Expr* e)
+ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields)
 	{
+	abs_rec_fields = _abs_rec_fields;
+
 	if ( e->Tag() == EXPR_LAMBDA )
 		{
 		auto func = e->AsLambdaExpr();
@@ -227,10 +230,16 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 		}
 
 	case EXPR_FIELD:
-		{
-		auto f = e->AsFieldExpr()->Field();
-		addl_hashes.push_back(p_hash(f));
-		}
+		if ( abs_rec_fields )
+			{
+			auto f = e->AsFieldExpr()->Field();
+			addl_hashes.push_back(p_hash(f));
+			}
+		else
+			{
+			auto fn = e->AsFieldExpr()->FieldName();
+			addl_hashes.push_back(p_hash(fn));
+			}
 		break;
 
 	case EXPR_ASSIGN:
@@ -405,14 +414,18 @@ void ProfileFunc::TrackID(const ID* id)
 	}
 
 
-ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred)
+ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs,
+                           is_compilable_pred pred, bool _full_record_hashes)
 	{
+	full_record_hashes = _full_record_hashes;
+
 	for ( auto& f : funcs )
 		{
 		if ( f.ShouldSkip() )
 			continue;
 
-		auto pf = std::make_unique<ProfileFunc>(f.Func(), f.Body());
+		auto pf = std::make_unique<ProfileFunc>(f.Func(), f.Body(),
+		                                        full_record_hashes);
 
 		if ( ! pred || (*pred)(pf.get()) )
 			MergeInProfile(pf.get());
@@ -442,7 +455,19 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
 void ProfileFuncs::MergeInProfile(ProfileFunc* pf)
 	{
 	all_globals.insert(pf->AllGlobals().begin(), pf->AllGlobals().end());
-	globals.insert(pf->Globals().begin(), pf->Globals().end());
+
+	for ( auto& g : pf->Globals() )
+		{
+		auto [it, inserted] = globals.emplace(g);
+
+		if ( ! inserted )
+			continue;
+
+		auto& v = g->GetVal();
+		if ( v )
+			main_types.push_back(v->GetType().get());
+		}
+
 	constants.insert(pf->Constants().begin(), pf->Constants().end());
 	main_types.insert(main_types.end(),
 			pf->OrderedTypes().begin(), pf->OrderedTypes().end());
@@ -471,7 +496,7 @@ void ProfileFuncs::DrainPendingExprs()
 
 		for ( auto e : pe )
 			{
-			auto pf = std::make_shared<ProfileFunc>(e);
+			auto pf = std::make_shared<ProfileFunc>(e, full_record_hashes);
 
 			expr_profs[e] = pf;
 			MergeInProfile(pf.get());
@@ -575,6 +600,8 @@ p_hash_type ProfileFuncs::HashType(const Type* t)
 		}
 
 	auto h = p_hash(t->Tag());
+	if ( ! tn.empty() )
+		h = merge_p_hashes(h, p_hash(tn));
 
 	// Enter an initial value for this type's hash.  We'll update it
 	// at the end, but having it here first will prevent recursive
@@ -611,13 +638,30 @@ p_hash_type ProfileFuncs::HashType(const Type* t)
 		{
 		const auto& ft = t->AsRecordType();
 		auto n = ft->NumFields();
+		auto orig_n = ft->NumOrigFields();
 
 		h = merge_p_hashes(h, p_hash("record"));
-		h = merge_p_hashes(h, p_hash(n));
+
+		if ( full_record_hashes )
+			h = merge_p_hashes(h, p_hash(n));
+		else
+			h = merge_p_hashes(h, p_hash(orig_n));
 
 		for ( auto i = 0; i < n; ++i )
 			{
+			bool do_hash = full_record_hashes;
+			if ( ! do_hash )
+				do_hash = (i < orig_n);
+
 			const auto& f = ft->FieldDecl(i);
+			auto type_h = HashType(f->type);
+
+			if ( do_hash )
+				{
+				h = merge_p_hashes(h, p_hash(f->id));
+				h = merge_p_hashes(h, type_h);
+				}
+
 			h = merge_p_hashes(h, p_hash(f->id));
 			h = merge_p_hashes(h, HashType(f->type));
 
@@ -626,7 +670,8 @@ p_hash_type ProfileFuncs::HashType(const Type* t)
 
 			if ( f->attrs )
 				{
-				h = merge_p_hashes(h, p_hash(f->attrs));
+				if ( do_hash )
+					h = merge_p_hashes(h, HashAttrs(f->attrs));
 				AnalyzeAttrs(f->attrs.get());
 				}
 			}
@@ -698,6 +743,29 @@ p_hash_type ProfileFuncs::HashType(const Type* t)
 
 	if ( ! tn.empty() )
 		seen_type_names[tn] = t;
+
+	return h;
+	}
+
+p_hash_type ProfileFuncs::HashAttrs(const AttributesPtr& Attrs)
+	{
+	// It's tempting to just use p_hash, but that won't work
+	// if the attributes wind up with extensible records in their
+	// descriptions, if we're not doing full record hashes.
+	auto attrs = Attrs->GetAttrs();
+	p_hash_type h = 0;
+
+	for ( const auto& a : attrs )
+		{
+		h = merge_p_hashes(h, p_hash(a->Tag()));
+		auto e = a->GetExpr();
+
+		// We don't try to hash an associated expression, since those
+		// can vary in structure due to compilation of elements.  We
+		// do though enforce consistency for their types.
+		if ( e )
+			h = merge_p_hashes(h, HashType(e->GetType()));
+		}
 
 	return h;
 	}

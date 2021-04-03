@@ -84,13 +84,13 @@ class ProfileFunc : public TraversalCallback {
 public:
 	// Constructor used for the usual case of profiling a script
 	// function and one of its bodies.
-	ProfileFunc(const Func* func, const StmtPtr& body);
+	ProfileFunc(const Func* func, const StmtPtr& body, bool abs_rec_fields);
 
 	// Constructor for profiling an AST expression.  This exists
 	// to support (1) profiling lambda expressions, and (2) traversing
 	// attribute expressions (such as &default=expr) to discover what
 	// components they include.
-	ProfileFunc(const Expr* func);
+	ProfileFunc(const Expr* func, bool abs_rec_fields);
 
 	// See the comments for the associated member variables for each
 	// of these accessors.
@@ -263,6 +263,10 @@ protected:
 	// whether a given body contains any.
 	int num_when_stmts = 0;
 
+	// Whether we should treat record field accesses as absolute
+	// (integer offset) or relative (name-based).
+	bool abs_rec_fields;
+
 	// Whether we're separately processing a "when" condition to
 	// mine out its script calls.
 	bool in_when = false;
@@ -280,8 +284,11 @@ public:
 	// Updates entries in "funcs" to include profiles.  If pred is
 	// non-nil, then it is called for each profile to see whether it's
 	// compilable, and, if not, the FuncInfo is marked as ShouldSkip().
+	// "full_record_hashes" controls whether the hashes for extended
+	// records covers their final, full form, or should only their
+	// original fields.
 	ProfileFuncs(std::vector<FuncInfo>& funcs,
-	             is_compilable_pred pred = nullptr);
+	             is_compilable_pred pred, bool full_record_hashes);
 
 	// The following accessors provide a global profile across all of
 	// the (non-skipped) functions in "funcs".  See the comments for
@@ -325,6 +332,8 @@ public:
 	// if necessary.
 	p_hash_type HashType(const TypePtr& t)	{ return HashType(t.get()); }
 	p_hash_type HashType(const Type* t);
+
+	p_hash_type HashAttrs(const AttributesPtr& attrs);
 
 protected:
 	// Incorporate the given function profile into the global profile.
@@ -414,6 +423,10 @@ protected:
 	// profile.  These can arise for example due to lambdas or
 	// record attributes.
 	std::vector<const Expr*> pending_exprs;
+
+	// Whether the hashes for extended records should cover their final,
+	// full form, or only their original fields.
+	bool full_record_hashes;
 };
 
 

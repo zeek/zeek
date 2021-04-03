@@ -123,7 +123,7 @@ export {
 	## Return value for a cookie from a flow
 	## which is not added, modified or deleted
 	## from the Zeek openflow framework.
-	const INVALID_COOKIE = 0xffffffffffffffff;
+	const INVALID_COOKIE = 0x7fffffffffffffff;
 	# Openflow physical port definitions
 	## Send the packet out the input port. This
 	## virual port must be explicitly used in

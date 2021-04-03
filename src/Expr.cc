@@ -3397,7 +3397,7 @@ ValPtr TableConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 	auto tval = aggr ?
 	        TableValPtr{AdoptRef{}, aggr.release()->AsTableVal()} :
-	make_intrusive<TableVal>(std::move(tt), attrs);
+	        make_intrusive<TableVal>(std::move(tt), attrs);
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )

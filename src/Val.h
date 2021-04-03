@@ -895,6 +895,11 @@ public:
 	// with non-composite index type).
 	ListValPtr ToPureListVal() const;
 
+	// Returns a map of index-to-value's.  The value is nil for sets.
+	// It's up to the caller to Unref() the index Val* when done
+	// with it.
+	std::unordered_map<Val*, ValPtr> ToMap() const;
+
 	void SetAttrs(detail::AttributesPtr attrs);
 
 	const detail::AttrPtr& GetAttr(detail::AttrTag t) const;

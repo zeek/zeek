@@ -46,6 +46,9 @@ New Functionality
   variable or a record field to inform Zeek's analysis that the script writer
   asserts the value will be set, suppressing the associated warnings.
 
+- A Telemetry API was added to assist in gathering arbitrary runtime metrics
+  and allows potential export to Prometheus.
+
 Changed Functionality
 ---------------------
 

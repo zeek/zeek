@@ -69,6 +69,7 @@ extern "C" {
 #include "zeek/zeekygen/Manager.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/telemetry/Manager.h"
 
 #include "zeek/binpac_zeek.h"
 #include "zeek/module_util.h"
@@ -107,6 +108,7 @@ zeek::file_analysis::Manager* zeek::file_mgr = nullptr;
 zeek::zeekygen::detail::Manager* zeek::detail::zeekygen_mgr = nullptr;
 zeek::iosource::Manager* zeek::iosource_mgr = nullptr;
 zeek::Broker::Manager* zeek::broker_mgr = nullptr;
+zeek::telemetry::Manager* zeek::telemetry_mgr = nullptr;
 zeek::Supervisor* zeek::supervisor_mgr = nullptr;
 zeek::detail::trigger::Manager* zeek::detail::trigger_mgr = nullptr;
 
@@ -136,6 +138,18 @@ zeek::OpaqueTypePtr bloomfilter_type;
 zeek::OpaqueTypePtr x509_opaque_type;
 zeek::OpaqueTypePtr ocsp_resp_opaque_type;
 zeek::OpaqueTypePtr paraglob_type;
+zeek::OpaqueTypePtr int_counter_metric_type;
+zeek::OpaqueTypePtr int_counter_metric_family_type;
+zeek::OpaqueTypePtr dbl_counter_metric_type;
+zeek::OpaqueTypePtr dbl_counter_metric_family_type;
+zeek::OpaqueTypePtr int_gauge_metric_type;
+zeek::OpaqueTypePtr int_gauge_metric_family_type;
+zeek::OpaqueTypePtr dbl_gauge_metric_type;
+zeek::OpaqueTypePtr dbl_gauge_metric_family_type;
+zeek::OpaqueTypePtr int_histogram_metric_type;
+zeek::OpaqueTypePtr int_histogram_metric_family_type;
+zeek::OpaqueTypePtr dbl_histogram_metric_type;
+zeek::OpaqueTypePtr dbl_histogram_metric_family_type;
 
 // Keep copy of command line
 int zeek::detail::zeek_argc;
@@ -327,6 +341,7 @@ static void terminate_bro()
 	delete plugin_mgr;
 	delete val_mgr;
 	delete fragment_mgr;
+	delete telemetry_mgr;
 
 	// free the global scope
 	pop_scope();
@@ -576,6 +591,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	file_mgr = new file_analysis::Manager();
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
 	broker_mgr = new Broker::Manager(broker_real_time);
+	telemetry_mgr = broker_mgr->NewTelemetryManager().release();
 	trigger_mgr = new trigger::Manager();
 
 	plugin_mgr->InitPreScript();
@@ -600,6 +616,18 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	x509_opaque_type = make_intrusive<OpaqueType>("x509");
 	ocsp_resp_opaque_type = make_intrusive<OpaqueType>("ocsp_resp");
 	paraglob_type = make_intrusive<OpaqueType>("paraglob");
+	int_counter_metric_type = make_intrusive<OpaqueType>("int_counter_metric");
+	int_counter_metric_family_type = make_intrusive<OpaqueType>("int_counter_metric_family");
+	dbl_counter_metric_type = make_intrusive<OpaqueType>("dbl_counter_metric");
+	dbl_counter_metric_family_type = make_intrusive<OpaqueType>("dbl_counter_metric_family");
+	int_gauge_metric_type = make_intrusive<OpaqueType>("int_gauge_metric");
+	int_gauge_metric_family_type = make_intrusive<OpaqueType>("int_gauge_metric_family");
+	dbl_gauge_metric_type = make_intrusive<OpaqueType>("dbl_gauge_metric");
+	dbl_gauge_metric_family_type = make_intrusive<OpaqueType>("dbl_gauge_metric_family");
+	int_histogram_metric_type = make_intrusive<OpaqueType>("int_histogram_metric");
+	int_histogram_metric_family_type = make_intrusive<OpaqueType>("int_histogram_metric_family");
+	dbl_histogram_metric_type = make_intrusive<OpaqueType>("dbl_histogram_metric");
+	dbl_histogram_metric_family_type = make_intrusive<OpaqueType>("dbl_histogram_metric_family");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
@@ -667,6 +695,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	plugin_mgr->InitPostScript();
 	zeekygen_mgr->InitPostScript();
 	broker_mgr->InitPostScript();
+	telemetry_mgr->InitPostScript();
 	timer_mgr->InitPostScript();
 	event_mgr.InitPostScript();
 

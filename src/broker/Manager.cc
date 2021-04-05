@@ -10,6 +10,7 @@
 #include "zeek/Func.h"
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Store.h"
+#include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
 #include "zeek/Var.h"
 #include "zeek/Desc.h"
@@ -1804,6 +1805,55 @@ void Manager::PrepareForwarding(const std::string &name)
 
 	handle->forward_to = forwarded_stores.at(name);
 	DBG_LOG(DBG_BROKER, "Resolved table forward for data store %s", name.c_str());
+	}
+
+std::unique_ptr<telemetry::Manager> Manager::NewTelemetryManager()
+	{
+	// The telemetry Manager actually only has a dependency on the actor system,
+	// not to the Broker Manager. By having the telemetry Manager hold on to a
+	// shared_ptr to our Broker state, we make sure the Broker endpoint, which
+	// owns the CAF actor system, lives for as long as necessary. This also
+	// makes sure that the Broker Manager may even get destroyed before the
+	// telemetry Manager.
+	struct TM final : public telemetry::Manager
+	{
+		using MetricRegistryPtr = std::unique_ptr<caf::telemetry::metric_registry>;
+
+		static auto getPimpl(BrokerState& st)
+			{
+			auto registry = std::addressof(st.endpoint.system().metrics());
+			return reinterpret_cast<telemetry::Manager::Impl*>(registry);
+			}
+
+		static auto getPimpl(MetricRegistryPtr& ptr)
+			{
+			return reinterpret_cast<telemetry::Manager::Impl*>(ptr.get());
+			}
+
+		explicit TM(Broker::Manager* parent, MetricRegistryPtr ptr)
+		: telemetry::Manager(getPimpl(ptr)), parent(parent), tmp(std::move(ptr))
+			{
+			assert(tmp != nullptr);
+			assert(parent != nullptr);
+			}
+
+		void InitPostScript() override
+			{
+			assert(parent->bstate != nullptr);
+			ptr = parent->bstate;
+			auto registry = std::addressof(ptr->endpoint.system().metrics());
+			registry->merge(*tmp);
+			tmp.reset();
+			pimpl = reinterpret_cast<telemetry::Manager::Impl*>(registry);
+			}
+
+		Broker::Manager* parent;
+		MetricRegistryPtr tmp;
+		std::shared_ptr<BrokerState> ptr;
+	};
+
+	auto tmp = std::make_unique<caf::telemetry::metric_registry>();
+	return std::make_unique<TM>(this, std::move(tmp));
 	}
 
 } // namespace zeek::Broker

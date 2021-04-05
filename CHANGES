@@ -1,4 +1,12 @@
 
+4.1.0-dev.490 | 2021-04-05 14:13:48 -0700
+
+  * Add Telemetry API (C++/BIFs) for gathering runtime metrics (Dominik Charousset, Corelight)
+
+    This relies on the CAF metrics API/implementation and allows potential
+    export to Prometheus.  These typical metric types are supported:
+    counters, gauges, histograms, timers.
+
 4.1.0-dev.475 | 2021-04-03 09:39:10 -0700
 
   * Increase timeout of plugins.reader btest (Jon Siwek, Corelight)

@@ -46,6 +46,20 @@ type count_set: set[count];
 ##    directly and then remove this alias.
 type index_vec: vector of count;
 
+## A vector of integers, used by telemetry builtin functions to store histogram bounds.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type int_vec: vector of int;
+
+## A vector of floating point numbers, used by telemetry builtin functions to store histogram bounds.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type double_vec: vector of double;
+
 ## A vector of subnets.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
@@ -3844,7 +3858,7 @@ type dns_loc_rr: record {
 	vert_pre: count;	##< The vertical precision of the data, in centimeters.
 	latitude: count;	##< The latitude of the center of the sphere.
 	longitude: count;	##< The longitude of the center of the sphere.
-	altitude: count;	##< The altitude of the center of the sphere. 
+	altitude: count;	##< The altitude of the center of the sphere.
 	is_query: count;	##< The RR is a query/Response.
 };
 

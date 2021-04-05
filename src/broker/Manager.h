@@ -30,6 +30,8 @@ class TableVal;
 using VectorTypePtr = IntrusivePtr<VectorType>;
 using TableValPtr = IntrusivePtr<TableVal>;
 
+namespace telemetry { class Manager; }
+
 namespace detail { class Frame; }
 
 namespace Broker {
@@ -356,6 +358,11 @@ public:
 		ScriptScopeGuard() { ++script_scope; }
 		~ScriptScopeGuard() { --script_scope; }
 	};
+
+	/**
+	 * Allocates a new manager for telemetry data.
+	 */
+	std::unique_ptr<telemetry::Manager> NewTelemetryManager();
 
 private:
 

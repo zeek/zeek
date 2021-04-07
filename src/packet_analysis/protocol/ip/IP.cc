@@ -200,9 +200,9 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	// last if present.
 	if ( packet->ip_hdr->LastHeader() == IPPROTO_MOBILITY )
 		{
-		dump_this_packet = true;
+		packet->dump_packet = true;
 
-		if ( ! ignore_checksums && mobility_header_checksum(packet->ip_hdr) != 0xffff )
+		if ( ! detail::ignore_checksums && mobility_header_checksum(packet->ip_hdr.get()) != 0xffff )
 			{
 			Weird("bad_MH_checksum", packet);
 			return false;

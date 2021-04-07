@@ -245,7 +245,7 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 		case 5:
 			{
 			auto m = make_intrusive<RecordVal>(ip6_mob_bu_type);
-			m->Assign(0, ntohs(*((uint16_t*)msg_data))));
+			m->Assign(0, ntohs(*((uint16_t*)msg_data)));
 			m->Assign(1, static_cast<bool>(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x8000));
 			m->Assign(2, static_cast<bool>(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x4000));
 			m->Assign(3, static_cast<bool>(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x2000));

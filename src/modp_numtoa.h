@@ -70,7 +70,8 @@ void modp_ulitoa10(uint64_t value, char* buf);
  * trailing zeros
  *
  * If the input value is greater than 1<<31, then the output format
- * will be switched exponential format.
+ * will be switched exponential format and include as many precision digits
+ * as needed to preserve information.
  *
  * \param[in] value
  * \param[out] buf  The allocated output buffer.  Should be 32 chars or more.
@@ -87,7 +88,8 @@ void modp_dtoa(double value, char* buf, int precision);
  * of format oddly does not exists with printf.
  *
  * If the input value is greater than 1<<31, then the output format
- * will be switched exponential format.
+ * will be switched exponential format and include as many precision digits
+ * as needed to preserve information.
  *
  * \param[in] value
  * \param[out] buf  The allocated output buffer.  Should be 32 chars or more.

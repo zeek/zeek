@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <limits.h>
+#include <float.h>
 
 // other interesting references on num to string convesion
 // http://www.jb.man.ac.uk/~slowe/cpp/itoa.html
@@ -29,6 +30,68 @@ static void strreverse(char* begin, char* end)
     while (end > begin)
         aux = *end, *end-- = *begin, *begin++ = aux;
 }
+
+// Expects 'str' to have been made using "%e" scientific notation format string
+static void sn_strip_trailing_zeros(char* str)
+	{
+	char* frac = 0;
+
+	for ( ; ; )
+		{
+		if ( *str == '.' )
+			{
+			frac = str + 1;
+			break;
+			}
+
+		if ( *str == 0 )
+			break;
+
+		++str;
+		}
+
+	if ( ! frac )
+		return;
+
+	char* exp = 0;
+	char* trailing_zeros = 0;
+
+	for ( ; ; )
+		{
+		if ( *frac == 0 )
+			break;
+
+		if ( *frac == 'e' )
+			{
+			exp = frac;
+			break;
+			}
+
+		if ( *frac == '0' )
+			{
+			if ( ! trailing_zeros )
+				trailing_zeros = frac;
+			}
+		else
+			trailing_zeros = 0;
+
+		++frac;
+		}
+
+	if ( trailing_zeros && exp )
+		{
+		for ( ; ; )
+			{
+			*trailing_zeros = *exp;
+
+			if ( *exp == 0 )
+				break;
+
+			++trailing_zeros;
+			++exp;
+			}
+		}
+	}
 
 void modp_itoa10(int32_t value, char* str)
 {
@@ -108,7 +171,8 @@ void modp_dtoa(double value, char* str, int prec)
       which can be 100s of characters overflowing your buffers == bad
     */
     if (value >= thres_max) {
-        sprintf(str, "%e", neg ? -value : value);
+        sprintf(str, "%.*e", DBL_DECIMAL_DIG - 1, neg ? -value : value);
+        sn_strip_trailing_zeros(str);
         return;
     }
 
@@ -207,7 +271,8 @@ void modp_dtoa2(double value, char* str, int prec)
       which can be 100s of characters overflowing your buffers == bad
     */
     if (value >= thres_max) {
-        sprintf(str, "%e", neg ? -value : value);
+        sprintf(str, "%.*e", DBL_DECIMAL_DIG - 1, neg ? -value : value);
+        sn_strip_trailing_zeros(str);
         return;
     }
 

@@ -36,15 +36,11 @@ namespace zeek {
 
 NetSessions::NetSessions()
 	{
-	packet_filter = nullptr;
-
 	memset(&stats, 0, sizeof(SessionStats));
 	}
 
 NetSessions::~NetSessions()
 	{
-	delete packet_filter;
-
 	for ( const auto& entry : tcp_conns )
 		Unref(entry.second);
 	for ( const auto& entry : udp_conns )
@@ -756,6 +752,11 @@ void NetSessions::InsertConnection(ConnectionMap* m, const detail::ConnIDKey& ke
 			break;
 		default: break;
 		}
+	}
+
+detail::PacketFilter* NetSessions::GetPacketFilter(bool init)
+	{
+	return packet_mgr->GetPacketFilter(init);
 	}
 
 } // namespace zeek

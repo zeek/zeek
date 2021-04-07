@@ -7,11 +7,12 @@
 #include <utility>
 
 #include "zeek/Frag.h"
-#include "zeek/PacketFilter.h"
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/tcp/Stats.h"
 
 namespace zeek {
+
+namespace detail { class PacketFilter; }
 
 class EncapsulationStack;
 class Packet;
@@ -65,12 +66,8 @@ public:
 	void Weird(const char* name, const IP_Hdr* ip,
 	           const char* addl = "");
 
-	detail::PacketFilter* GetPacketFilter(bool init=true)
-		{
-		if ( ! packet_filter && init )
-			packet_filter = new detail::PacketFilter(detail::packet_filter_default);
-		return packet_filter;
-		}
+	[[deprecated("Remove in v5.1. Use packet_mgr->GetPacketFilter().")]]
+	detail::PacketFilter* GetPacketFilter(bool init=true);
 
 	unsigned int CurrentConnections()
 		{
@@ -166,8 +163,6 @@ protected:
 	ConnectionMap icmp_conns;
 
 	SessionStats stats;
-
-	detail::PacketFilter* packet_filter;
 };
 
 // Manager for the currently active sessions.

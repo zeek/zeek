@@ -122,7 +122,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		}
 
 	// Ignore if packet matches packet filter.
-	detail::PacketFilter* packet_filter = sessions->GetPacketFilter(false);
+	detail::PacketFilter* packet_filter = packet_mgr->GetPacketFilter(false);
 	if ( packet_filter && packet_filter->Match(packet->ip_hdr, total_len, len) )
 		 return false;
 

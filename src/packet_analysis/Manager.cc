@@ -20,6 +20,7 @@ Manager::Manager()
 Manager::~Manager()
 	{
 	delete pkt_profiler;
+	delete pkt_filter;
 	}
 
 void Manager::InitPostScript()

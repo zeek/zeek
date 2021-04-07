@@ -4,6 +4,7 @@
 
 #include <type_traits>
 #include <utility>
+#include <functional>
 
 namespace zeek {
 
@@ -198,8 +199,6 @@ IntrusivePtr<T> cast_intrusive(IntrusivePtr<U> p) noexcept
 	return {AdoptRef{}, static_cast<T*>(p.release())};
 	}
 
-} // namespace zeek
-
 // -- comparison to nullptr ----------------------------------------------------
 
 /**
@@ -292,3 +291,15 @@ auto operator!=(const zeek::IntrusivePtr<T>& x, const zeek::IntrusivePtr<U>& y)
 	{
 	return x.get() != y.get();
 	}
+
+} // namespace zeek
+
+// -- hashing ------------------------------------------------
+
+namespace std {
+template <class T> struct hash<zeek::IntrusivePtr<T>> {
+	// Hash of intrusive pointer is the same as hash of the raw pointer it holds.
+	size_t operator()(const zeek::IntrusivePtr<T>& v) const noexcept
+		{ return std::hash<T*>{}(v.get()); }
+};
+}

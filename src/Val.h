@@ -896,9 +896,7 @@ public:
 	ListValPtr ToPureListVal() const;
 
 	// Returns a map of index-to-value's.  The value is nil for sets.
-	// It's up to the caller to Unref() the index Val* when done
-	// with it.
-	std::unordered_map<Val*, ValPtr> ToMap() const;
+	std::unordered_map<ValPtr, ValPtr> ToMap() const;
 
 	void SetAttrs(detail::AttributesPtr attrs);
 

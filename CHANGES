@@ -1,3 +1,12 @@
+4.1.0-dev.495 | 2021-04-07 11:12:13 -0700
+
+  * Change TableVal::ToMap() to return ValPtr-indexed maps (Jon Siwek, Corelight)
+
+  * Add std::hash specialization for IntrusivePtr (Jon Siwek, Corelight)
+
+  * Move IntrusivePtr relational operators to zeek namespace
+
+    Otherwise some cases relying on argument-dependent lookup (ADL) fail. (Jon Siwek, Corelight)
 
 4.1.0-dev.490 | 2021-04-05 14:13:48 -0700
 

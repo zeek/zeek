@@ -61,6 +61,7 @@ struct ConnID {
 	uint32_t src_port;
 	uint32_t dst_port;
 	bool is_one_way;	// if true, don't canonicalize order
+	TransportProto proto;
 };
 
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,

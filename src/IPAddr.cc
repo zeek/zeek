@@ -42,6 +42,8 @@ detail::ConnIDKey detail::BuildConnIDKey(const ConnID& id)
 		key.port2 = id.src_port;
 		}
 
+	key.transport = id.proto;
+
 	return key;
 	}
 

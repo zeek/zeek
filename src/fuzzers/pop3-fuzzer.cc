@@ -25,9 +25,10 @@ static zeek::Connection* add_connection()
 	conn_id.src_port = htons(23132);
 	conn_id.dst_port = htons(80);
 	conn_id.is_one_way = false;
+	conn_id.proto = TRANSPORT_TCP;
 	zeek::detail::ConnIDKey key = zeek::detail::BuildConnIDKey(conn_id);
 	zeek::Connection* conn = new zeek::Connection(zeek::sessions, key, network_time_start,
-	                                  &conn_id, 1, &p);
+	                                              &conn_id, 1, &p);
 	conn->SetTransport(TRANSPORT_TCP);
 	zeek::sessions->Insert(conn);
 	return conn;

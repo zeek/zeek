@@ -10,6 +10,8 @@
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/tcp/Stats.h"
 #include "zeek/telemetry/Gauge.h"
+#include "zeek/Hash.h"
+#include "zeek/Session.h"
 
 namespace zeek {
 
@@ -18,7 +20,6 @@ namespace detail { class PacketFilter; }
 class EncapsulationStack;
 class Packet;
 class Connection;
-class Session;
 struct ConnID;
 
 struct SessionStats {
@@ -39,7 +40,7 @@ struct SessionStats {
 	uint64_t num_packets;
 };
 
-class NetSessions {
+class NetSessions final {
 public:
 	NetSessions();
 	~NetSessions();
@@ -61,7 +62,7 @@ public:
 	Connection* FindConnection(const detail::ConnIDKey& key, TransportProto proto);
 
 	void Remove(Session* s);
-	void Insert(Connection* c);
+	void Insert(Session* c);
 
 	// Generating connection_pending events for all connections
 	// that are still active.
@@ -82,7 +83,7 @@ public:
 
 	unsigned int CurrentConnections()
 		{
-		return tcp_conns.size() + udp_conns.size() + icmp_conns.size();
+		return session_map.size();
 		}
 
 	/**
@@ -130,15 +131,12 @@ public:
 	analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
 
 protected:
-	friend class ConnCompressor;
 
-	using ConnectionMap = std::map<detail::ConnIDKey, Connection*>;
+	using SessionMap = std::map<detail::SessionKey, Session*>;
 
 	Connection* NewConn(const detail::ConnIDKey& k, double t, const ConnID* id,
 	                    const u_char* data, int proto, uint32_t flow_label,
 	                    const Packet* pkt);
-
-	Connection* LookupConn(const ConnectionMap& conns, const detail::ConnIDKey& key);
 
 	// Returns true if the port corresonds to an application
 	// for which there's a Bro analyzer (even if it might not
@@ -167,12 +165,9 @@ protected:
 	// the new one.  Connection count stats get updated either way (so most
 	// cases should likely check that the key is not already in the map to
 	// avoid unnecessary incrementing of connecting counts).
-	void InsertConnection(ConnectionMap* m, const detail::ConnIDKey& key, Connection* conn);
+	void InsertSession(detail::SessionKey key, Session* session);
 
-	ConnectionMap tcp_conns;
-	ConnectionMap udp_conns;
-	ConnectionMap icmp_conns;
-
+	SessionMap session_map;
 	telemetry::IntGaugeFamily stats;
 };
 

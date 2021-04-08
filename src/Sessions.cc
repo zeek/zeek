@@ -20,6 +20,7 @@
 #include "zeek/RuleMatcher.h"
 #include "zeek/Session.h"
 #include "zeek/TunnelEncapsulation.h"
+#include "zeek/telemetry/Manager.h"
 
 #include "zeek/analyzer/protocol/icmp/ICMP.h"
 #include "zeek/analyzer/protocol/udp/UDP.h"
@@ -36,8 +37,10 @@ zeek::NetSessions*& sessions = zeek::sessions;
 namespace zeek {
 
 NetSessions::NetSessions()
+	: stats(telemetry_mgr->GaugeFamily("zeek", "session_stats",
+	                                   {"tcp", "udp", "icmp"},
+	                                   "Zeek Session Stats", "1", false))
 	{
-	memset(&stats, 0, sizeof(SessionStats));
 	}
 
 NetSessions::~NetSessions()
@@ -385,16 +388,22 @@ void NetSessions::Remove(Session* s)
 		case TRANSPORT_TCP:
 			if ( tcp_conns.erase(key) == 0 )
 				reporter->InternalWarning("connection missing");
+			else
+				stats.GetOrAdd({{"tcp", "num_conns"}}).Dec();
 			break;
 
 		case TRANSPORT_UDP:
 			if ( udp_conns.erase(key) == 0 )
 				reporter->InternalWarning("connection missing");
+			else
+				stats.GetOrAdd({{"udp", "num_conns"}}).Dec();
 			break;
 
 		case TRANSPORT_ICMP:
 			if ( icmp_conns.erase(key) == 0 )
 				reporter->InternalWarning("connection missing");
+			else
+				stats.GetOrAdd({{"icmp", "num_conns"}}).Dec();
 			break;
 
 		case TRANSPORT_UNKNOWN:
@@ -490,21 +499,23 @@ void NetSessions::Clear()
 	detail::fragment_mgr->Clear();
 	}
 
-void NetSessions::GetStats(SessionStats& s) const
+void NetSessions::GetStats(SessionStats& s)
 	{
-	s.num_TCP_conns = tcp_conns.size();
-	s.cumulative_TCP_conns = stats.cumulative_TCP_conns;
-	s.num_UDP_conns = udp_conns.size();
-	s.cumulative_UDP_conns = stats.cumulative_UDP_conns;
-	s.num_ICMP_conns = icmp_conns.size();
-	s.cumulative_ICMP_conns = stats.cumulative_ICMP_conns;
-	s.num_fragments = detail::fragment_mgr->Size();
-	s.num_packets = packet_mgr->PacketsProcessed();
+	s.max_TCP_conns = stats.GetOrAdd({{"tcp", "max_conns"}}).Value();
+	s.num_TCP_conns = stats.GetOrAdd({{"tcp", "num_conns"}}).Value();
+	s.cumulative_TCP_conns = stats.GetOrAdd({{"tcp", "cumulative_conns"}}).Value();
 
-	s.max_TCP_conns = stats.max_TCP_conns;
-	s.max_UDP_conns = stats.max_UDP_conns;
-	s.max_ICMP_conns = stats.max_ICMP_conns;
+	s.max_UDP_conns = stats.GetOrAdd({{"udp", "max_conns"}}).Value();
+	s.num_UDP_conns = stats.GetOrAdd({{"udp", "num_conns"}}).Value();
+	s.cumulative_UDP_conns = stats.GetOrAdd({{"udp", "cumulative_conns"}}).Value();
+
+	s.max_ICMP_conns = stats.GetOrAdd({{"icmp", "max_conns"}}).Value();
+	s.num_ICMP_conns = stats.GetOrAdd({{"icmp", "num_conns"}}).Value();
+	s.cumulative_ICMP_conns = stats.GetOrAdd({{"icmp", "cumulative_conns"}}).Value();
+
+	s.num_fragments = detail::fragment_mgr->Size();
 	s.max_fragments = detail::fragment_mgr->MaxFragments();
+	s.num_packets = packet_mgr->PacketsProcessed();
 	}
 
 Connection* NetSessions::NewConn(const detail::ConnIDKey& k, double t, const ConnID* id,
@@ -739,20 +750,32 @@ void NetSessions::InsertConnection(ConnectionMap* m, const detail::ConnIDKey& ke
 	switch ( conn->ConnTransport() )
 		{
 		case TRANSPORT_TCP:
-			stats.cumulative_TCP_conns++;
-			if ( m->size() > stats.max_TCP_conns )
-				stats.max_TCP_conns = m->size();
+			{
+			stats.GetOrAdd({{"tcp", "num_conns"}}).Inc();
+			stats.GetOrAdd({{"tcp", "cumulative_conns"}}).Inc();
+			auto max = stats.GetOrAdd({{"tcp", "max_conns"}});
+			if ( m->size() > max.Value() )
+				max.Inc();
 			break;
+			}
 		case TRANSPORT_UDP:
-			stats.cumulative_UDP_conns++;
-			if ( m->size() > stats.max_UDP_conns )
-				stats.max_UDP_conns = m->size();
+			{
+			stats.GetOrAdd({{"udp", "num_conns"}}).Inc();
+			stats.GetOrAdd({{"udp", "cumulative_conns"}}).Inc();
+			auto max = stats.GetOrAdd({{"udp", "max_conns"}});
+			if ( m->size() > max.Value() )
+				max.Inc();
 			break;
+			}
 		case TRANSPORT_ICMP:
-			stats.cumulative_ICMP_conns++;
-			if ( m->size() > stats.max_ICMP_conns )
-				stats.max_ICMP_conns = m->size();
+			{
+			stats.GetOrAdd({{"icmp", "num_conns"}}).Inc();
+			stats.GetOrAdd({{"icmp", "cumulative_conns"}}).Inc();
+			auto max = stats.GetOrAdd({{"icmp", "max_conns"}});
+			if ( m->size() > max.Value() )
+				max.Inc();
 			break;
+			}
 		default: break;
 		}
 	}

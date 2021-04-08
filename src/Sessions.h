@@ -9,6 +9,7 @@
 #include "zeek/Frag.h"
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/tcp/Stats.h"
+#include "zeek/telemetry/Gauge.h"
 
 namespace zeek {
 
@@ -69,7 +70,7 @@ public:
 	// Clears the session maps.
 	void Clear();
 
-	void GetStats(SessionStats& s) const;
+	void GetStats(SessionStats& s);
 
 	void Weird(const char* name, const Packet* pkt,
 	           const char* addl = "", const char* source = "");
@@ -172,7 +173,7 @@ protected:
 	ConnectionMap udp_conns;
 	ConnectionMap icmp_conns;
 
-	SessionStats stats;
+	telemetry::IntGaugeFamily stats;
 };
 
 // Manager for the currently active sessions.

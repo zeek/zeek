@@ -1,4 +1,8 @@
 
+4.1.0-dev.498 | 2021-04-07 18:30:58 -0700
+
+  * Disable Broker tests in Coverity Scan cronjob build (Jon Siwek, Corelight)
+
 4.1.0-dev.497 | 2021-04-07 15:54:21 -0700
 
   * GH-1493: Fix build with -DENABLE_MOBILE_IPV6 (Tim Wojtulewicz, Corelight)

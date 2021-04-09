@@ -3404,7 +3404,7 @@ function lookup_connection%(cid: conn_id%): connection
 	%{
 	Connection* conn = session_mgr->FindConnection(cid);
 	if ( conn )
-		return conn->ConnVal();
+		return conn->GetVal();
 
 	zeek::emit_builtin_error("connection ID not a known connection", cid);
 

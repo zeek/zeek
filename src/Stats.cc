@@ -126,21 +126,23 @@ void ProfileLogger::Log()
 		run_state::network_time, (utime + stime) - (first_utime + first_stime),
 		utime - first_utime, stime - first_stime, rtime - first_rtime));
 
-	int conn_mem_use = expensive ? session_mgr->ConnectionMemoryUsage() : 0;
+	int conn_mem_use = expensive ? session_mgr->SessionMemoryUsage() : 0;
 	double avg_conn_mem_use = 0;
 
-	if ( expensive && session_mgr->CurrentConnections() != 0 )
-		avg_conn_mem_use = conn_mem_use / static_cast<double>(session_mgr->CurrentConnections());
+	if ( expensive && session_mgr->CurrentSessions() != 0 )
+		avg_conn_mem_use = conn_mem_use / static_cast<double>(session_mgr->CurrentSessions());
 
+	// TODO: This previously output the number of connections, but now that we're storing sessions
+	// as well as connections, this might need to be renamed.
 	file->Write(util::fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
 		run_state::network_time,
 		Connection::TotalConnections(),
 		Connection::CurrentConnections(),
-		session_mgr->CurrentConnections(),
+		session_mgr->CurrentSessions(),
 		conn_mem_use,
 		avg_conn_mem_use,
 		expensive ? session_mgr->MemoryAllocation() / 1024 : 0,
-		expensive ? session_mgr->ConnectionMemoryUsageConnVals() / 1024 : 0
+		expensive ? session_mgr->SessionMemoryUsageVals() / 1024 : 0
 		));
 
 	SessionStats s;

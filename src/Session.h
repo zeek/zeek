@@ -95,15 +95,20 @@ public:
 
 	/**
 	 * Returns the associated "session" record.
-	 * TODO: rename this to SessionVal(). This requires a swath of other changes.
 	 */
-	virtual const RecordValPtr& ConnVal() = 0;
+	virtual const RecordValPtr& GetVal() = 0;
+
+	[[deprecated("Remove in v5.1. Use GetVal().")]]
+	const RecordValPtr& ConnVal() { return GetVal(); }
 
 	/**
 	 * Return the memory allocation required by the session record. This requires at
-	 * least one call to ConnVal() first in order to setup the record object.
+	 * least one call to Get() first in order to setup the record object.
 	 */
-	virtual unsigned int MemoryAllocationConnVal() const = 0;
+	virtual unsigned int MemoryAllocationVal() const = 0;
+
+	[[deprecated("Remove in v5.1. Use MemoryAllocationVal().")]]
+	unsigned int MemoryAllocationConnVal() const { return MemoryAllocationVal(); }
 
 	/**
 	 * A lower-bound calculation of how much memory a session object is using.

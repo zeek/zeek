@@ -97,7 +97,7 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
 		if ( *encapsulation != *arg_encap )
 			{
 			if ( tunnel_changed )
-				EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
+				EnqueueEvent(tunnel_changed, nullptr, GetVal(),
 				             arg_encap->ToVal());
 
 			encapsulation = std::make_shared<EncapsulationStack>(*arg_encap);
@@ -109,7 +109,7 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
 		if ( tunnel_changed )
 			{
 			EncapsulationStack empty;
-			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), empty.ToVal());
+			EnqueueEvent(tunnel_changed, nullptr, GetVal(), empty.ToVal());
 			}
 
 		encapsulation = nullptr;
@@ -118,7 +118,7 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
 	else if ( arg_encap )
 		{
 		if ( tunnel_changed )
-			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), arg_encap->ToVal());
+			EnqueueEvent(tunnel_changed, nullptr, GetVal(), arg_encap->ToVal());
 
 		encapsulation = std::make_shared<EncapsulationStack>(*arg_encap);
 		}
@@ -215,13 +215,13 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 		return;
 
 	EnqueueEvent(e, nullptr,
-		ConnVal(),
+		GetVal(),
 		val_mgr->Bool(is_orig),
 		val_mgr->Count(threshold)
 	);
 	}
 
-const RecordValPtr& Connection::ConnVal()
+const RecordValPtr& Connection::GetVal()
 	{
 	if ( ! conn_val )
 		{
@@ -306,7 +306,7 @@ analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
 
 void Connection::AppendAddl(const char* str)
 	{
-	const auto& cv = ConnVal();
+	const auto& cv = GetVal();
 
 	const char* old = cv->GetFieldAs<StringVal>(6)->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
@@ -337,7 +337,7 @@ void Connection::Match(detail::Rule::PatternType type, const u_char* data, int l
 void Connection::RemovalEvent()
 	{
 	if ( connection_state_remove )
-		EnqueueEvent(connection_state_remove, nullptr, ConnVal());
+		EnqueueEvent(connection_state_remove, nullptr, GetVal());
 	}
 
 void Connection::Weird(const char* name, const char* addl, const char* source)
@@ -390,7 +390,7 @@ unsigned int Connection::MemoryAllocation() const
 		;
 	}
 
-unsigned int Connection::MemoryAllocationConnVal() const
+unsigned int Connection::MemoryAllocationVal() const
 	{
 	return conn_val ? conn_val->MemoryAllocation() : 0;
 	}
@@ -473,7 +473,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
 			{
 			EnqueueEvent(connection_flow_label_changed, nullptr,
-				ConnVal(),
+				GetVal(),
 				val_mgr->Bool(is_orig),
 				val_mgr->Count(my_flow_label),
 				val_mgr->Count(flow_label)

@@ -137,9 +137,9 @@ void Session::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char*
 		return;
 
 	if ( name )
-		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), ConnVal());
+		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), GetVal());
 	else
-		EnqueueEvent(f, analyzer, ConnVal());
+		EnqueueEvent(f, analyzer, GetVal());
 	}
 
 void Session::EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* a, Args args)
@@ -258,7 +258,7 @@ void Session::InactivityTimer(double t)
 
 void Session::StatusUpdateTimer(double t)
 	{
-	EnqueueEvent(session_status_update_event, nullptr, ConnVal());
+	EnqueueEvent(session_status_update_event, nullptr, GetVal());
 	ADD_TIMER(&Session::StatusUpdateTimer,
 	          run_state::network_time + session_status_update_interval, 0,
 	          detail::TIMER_CONN_STATUS_UPDATE);

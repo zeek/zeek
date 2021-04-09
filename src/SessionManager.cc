@@ -183,12 +183,12 @@ void SessionManager::ProcessTransportLayer(double t, const Packet* pkt, size_t r
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
 		pkt_hdr_val = ip_hdr->ToPktHdrVal();
-		conn->EnqueueEvent(ipv6_ext_headers, nullptr, conn->ConnVal(),
+		conn->EnqueueEvent(ipv6_ext_headers, nullptr, conn->GetVal(),
 		                   pkt_hdr_val);
 		}
 
 	if ( new_packet )
-		conn->EnqueueEvent(new_packet, nullptr, conn->ConnVal(), pkt_hdr_val ?
+		conn->EnqueueEvent(new_packet, nullptr, conn->GetVal(), pkt_hdr_val ?
 		                   std::move(pkt_hdr_val) : ip_hdr->ToPktHdrVal());
 
 	conn->NextPacket(t, is_orig, ip_hdr.get(), len, remaining, data,
@@ -602,7 +602,7 @@ void SessionManager::Weird(const char* name, const IP_Hdr* ip, const char* addl)
 	reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name, addl);
 	}
 
-unsigned int SessionManager::ConnectionMemoryUsage()
+unsigned int SessionManager::SessionMemoryUsage()
 	{
 	unsigned int mem = 0;
 
@@ -616,7 +616,7 @@ unsigned int SessionManager::ConnectionMemoryUsage()
 	return mem;
 	}
 
-unsigned int SessionManager::ConnectionMemoryUsageConnVals()
+unsigned int SessionManager::SessionMemoryUsageVals()
 	{
 	unsigned int mem = 0;
 
@@ -625,7 +625,7 @@ unsigned int SessionManager::ConnectionMemoryUsageConnVals()
 		return 0;
 
 	for ( const auto& entry : session_map )
-		mem += entry.second->MemoryAllocationConnVal();
+		mem += entry.second->MemoryAllocationVal();
 
 	return mem;
 	}
@@ -636,7 +636,7 @@ unsigned int SessionManager::MemoryAllocation()
 		// Connections have been flushed already.
 		return 0;
 
-	return ConnectionMemoryUsage()
+	return SessionMemoryUsage()
 		+ padded_sizeof(*this)
 		+ (session_map.size() * (sizeof(SessionMap::key_type) + sizeof(SessionMap::value_type)))
 		+ detail::fragment_mgr->MemoryAllocation();

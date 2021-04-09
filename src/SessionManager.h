@@ -81,10 +81,13 @@ public:
 	[[deprecated("Remove in v5.1. Use packet_mgr->GetPacketFilter().")]]
 	detail::PacketFilter* GetPacketFilter(bool init=true);
 
-	unsigned int CurrentConnections()
+	unsigned int CurrentSessions()
 		{
 		return session_map.size();
 		}
+
+	[[deprecated("Remove in v5.1. Use CurrentSessions().")]]
+	unsigned int CurrentConnections() { return CurrentSessions(); }
 
 	/**
 	 * Main entry point for processing packets destined for session analyzers. This
@@ -123,8 +126,14 @@ public:
 	int ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 	                  IP_Hdr*& inner);
 
-	unsigned int ConnectionMemoryUsage();
-	unsigned int ConnectionMemoryUsageConnVals();
+	unsigned int SessionMemoryUsage();
+	unsigned int SessionMemoryUsageVals();
+
+	[[deprecated("Remove in v5.1. Use SessionMemoryUsage().")]]
+	unsigned int ConnectionMemoryUsage() { return SessionMemoryUsage(); }
+	[[deprecated("Remove in v5.1. Use SessionMemoryUsageVals().")]]
+	unsigned int ConnectionMemoryUsageConnVals() { return SessionMemoryUsageVals(); }
+
 	unsigned int MemoryAllocation();
 
 	// TODO: should this move somewhere else?

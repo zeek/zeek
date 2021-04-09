@@ -168,6 +168,10 @@ type transport_proto: enum {
 ## .. note:: It's actually a 5-tuple: the transport-layer protocol is stored as
 ##    part of the port values, `orig_p` and `resp_p`, and can be extracted from
 ##    them with :zeek:id:`get_port_transport_proto`.
+##
+## .. note:: For explanation of Zeek's "originator" and "responder" terminology,
+##    see :ref:`the manual's description of the connection record
+##    <writing-scripts-connection-record>`.
 type conn_id: record {
 	orig_h: addr;	##< The originator's IP address.
 	orig_p: port;	##< The originator's port number.

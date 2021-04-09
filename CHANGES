@@ -1,4 +1,8 @@
 
+4.1.0-dev.500 | 2021-04-09 12:18:06 -0700
+
+  * Reference the manual's explanation of originator and responder from conn_id (Christian Kreibich, Corelight)
+
 4.1.0-dev.498 | 2021-04-07 18:30:58 -0700
 
   * Disable Broker tests in Coverity Scan cronjob build (Jon Siwek, Corelight)

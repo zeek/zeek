@@ -565,7 +565,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 <RE>[\\\n]	return yytext[0];	// should cause a parse error
 
-<*>.	zeek::reporter->Error("unrecognized character - %s", yytext);
+<*>.	zeek::reporter->Error("unrecognized character: '%s'", zeek::util::get_escaped_string(yytext, false).data());
 
 <<EOF>>	last_tok[0] = '\0'; return EOF;
 

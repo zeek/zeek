@@ -3052,7 +3052,7 @@ function decode_base64%(s: string, a: string &default=""%): string
 ## .. zeek:see:: decode_base64
 function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): string
 	%{
-	Connection* conn = sessions->FindConnection(cid);
+	Connection* conn = session_mgr->FindConnection(cid);
 	if ( ! conn )
 		{
 		zeek::emit_builtin_error("connection ID not a known connection", cid);
@@ -3353,7 +3353,7 @@ static zeek::EnumValPtr map_conn_type(TransportProto tp)
 ##              get_orig_seq get_resp_seq
 function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		{
 		zeek::emit_builtin_error("unknown connection id in get_conn_transport_proto()", cid);
@@ -3385,7 +3385,7 @@ function get_port_transport_proto%(p: port%): transport_proto
 ## .. zeek:see:: lookup_connection
 function connection_exists%(c: conn_id%): bool
 	%{
-	if ( sessions->FindConnection(c) )
+	if ( session_mgr->FindConnection(c) )
 		return zeek::val_mgr->True();
 	else
 		return zeek::val_mgr->False();
@@ -3402,7 +3402,7 @@ function connection_exists%(c: conn_id%): bool
 ## .. zeek:see:: connection_exists
 function lookup_connection%(cid: conn_id%): connection
 	%{
-	Connection* conn = sessions->FindConnection(cid);
+	Connection* conn = session_mgr->FindConnection(cid);
 	if ( conn )
 		return conn->ConnVal();
 
@@ -4388,7 +4388,7 @@ function file_mode%(mode: count%): string
 ## .. zeek:see:: Analyzer::schedule_analyzer Analyzer::name
 function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &default=T, prevent: bool &default=F%) : bool
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		{
 		zeek::reporter->Error("cannot find connection");
@@ -4426,7 +4426,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 ##     :zeek:id:`connection_finished`.
 function skip_further_processing%(cid: conn_id%): bool
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 
@@ -4456,7 +4456,7 @@ function skip_further_processing%(cid: conn_id%): bool
 ## .. zeek:see:: get_contents_file set_contents_file
 function set_record_packets%(cid: conn_id, do_record: bool%): bool
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 
@@ -4474,7 +4474,7 @@ function set_record_packets%(cid: conn_id, do_record: bool%): bool
 ## Returns: The previous timeout interval.
 function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::make_intrusive<zeek::IntervalVal>(0.0);
 

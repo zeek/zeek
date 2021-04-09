@@ -9,7 +9,7 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/Reporter.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/Event.h"
 #include "zeek/File.h"
 #include "zeek/Val.h"
@@ -66,7 +66,7 @@ void TCP_Endpoint::SetPeer(TCP_Endpoint* p)
 	peer = p;
 	if ( IsOrig() )
 		// Only one Endpoint adds the initial state to the counter.
-		sessions->tcp_stats.StateEntered(state, peer->state);
+		session_mgr->tcp_stats.StateEntered(state, peer->state);
 	}
 
 bool TCP_Endpoint::HadGap() const
@@ -145,11 +145,11 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		prev_state = state;
 		state = new_state;
 		if ( IsOrig() )
-			sessions->tcp_stats.ChangeState(prev_state, state,
-			                                      peer->state, peer->state);
+			session_mgr->tcp_stats.ChangeState(prev_state, state,
+			                                   peer->state, peer->state);
 		else
-			sessions->tcp_stats.ChangeState(peer->state, peer->state,
-			                                      prev_state, state);
+			session_mgr->tcp_stats.ChangeState(peer->state, peer->state,
+			                                   prev_state, state);
 		}
 	}
 

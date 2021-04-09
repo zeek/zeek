@@ -5,7 +5,7 @@
 #include "zeek/IP.h"
 #include "zeek/Discard.h"
 #include "zeek/PacketFilter.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/RunState.h"
 #include "zeek/Frag.h"
 #include "zeek/Event.h"
@@ -241,7 +241,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	case IPPROTO_ICMPV6:
 		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
 		        GetAnalyzerName(), proto);
-		sessions->ProcessTransportLayer(run_state::processing_start_time, packet, len);
+		session_mgr->ProcessTransportLayer(run_state::processing_start_time, packet, len);
 		break;
 	case IPPROTO_NONE:
 		// If the packet is encapsulated in Teredo, then it was a bubble and

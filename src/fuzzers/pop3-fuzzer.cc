@@ -2,7 +2,7 @@
 
 #include "zeek/RunState.h"
 #include "zeek/Conn.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
@@ -27,10 +27,10 @@ static zeek::Connection* add_connection()
 	conn_id.is_one_way = false;
 	conn_id.proto = TRANSPORT_TCP;
 	zeek::detail::ConnIDKey key = zeek::detail::BuildConnIDKey(conn_id);
-	zeek::Connection* conn = new zeek::Connection(zeek::sessions, key, network_time_start,
+	zeek::Connection* conn = new zeek::Connection(key, network_time_start,
 	                                              &conn_id, 1, &p);
 	conn->SetTransport(TRANSPORT_TCP);
-	zeek::sessions->Insert(conn);
+	zeek::session_mgr->Insert(conn);
 	return conn;
 	}
 

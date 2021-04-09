@@ -88,14 +88,14 @@ function get_conn_stats%(%): ConnStats
 
 	r->Assign(n++, Connection::TotalConnections());
 	r->Assign(n++, Connection::CurrentConnections());
-	r->Assign(n++, sessions->CurrentConnections());
+	r->Assign(n++, session_mgr->CurrentConnections());
 
 	SessionStats s;
-	if ( sessions )
-		sessions->GetStats(s);
+	if ( session_mgr )
+		session_mgr->GetStats(s);
 
 #define ADD_STAT(x) \
-	r->Assign(n++, static_cast<uint64_t>(sessions ? x : 0));
+	r->Assign(n++, static_cast<uint64_t>(session_mgr ? x : 0));
 
 	ADD_STAT(s.num_packets);
 	ADD_STAT(s.num_fragments);

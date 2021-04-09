@@ -5,7 +5,7 @@
 #include "zeek/Dict.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/RunState.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/util.h"
 
 namespace zeek::packet_analysis {
@@ -121,7 +121,7 @@ void Analyzer::RegisterProtocol(uint32_t identifier, AnalyzerPtr child)
 
 void Analyzer::Weird(const char* name, Packet* packet, const char* addl) const
 	{
-	sessions->Weird(name, packet, addl, GetAnalyzerName());
+	session_mgr->Weird(name, packet, addl, GetAnalyzerName());
 	}
 
 } // namespace zeek::packet_analysis

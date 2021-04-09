@@ -4,7 +4,7 @@
 
 #include <pcap.h> // For DLT_ constants
 
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/RunState.h"
 #include "zeek/IP.h"
 #include "zeek/TunnelEncapsulation.h"
@@ -50,7 +50,7 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 	if ( gre_version != 0 )
 		{
 		// Check for a valid inner packet first.
-		int result = sessions->ParseIPPacket(len, data, proto, inner);
+		int result = session_mgr->ParseIPPacket(len, data, proto, inner);
 		if ( result == -2 )
 			Weird("invalid_inner_IP_version", packet);
 		else if ( result < 0 )

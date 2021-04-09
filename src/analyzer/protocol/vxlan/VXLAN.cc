@@ -10,7 +10,6 @@ extern "C" {
 #include "zeek/Conn.h"
 #include "zeek/IP.h"
 #include "zeek/RunState.h"
-#include "zeek/Sessions.h"
 #include "zeek/Reporter.h"
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"

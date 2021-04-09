@@ -7,7 +7,7 @@
 #include "zeek/RunState.h"
 #include "zeek/NetVar.h"
 #include "zeek/ID.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/Scope.h"
 #include "zeek/DNS_Mgr.h"
 #include "zeek/Trigger.h"
@@ -126,25 +126,25 @@ void ProfileLogger::Log()
 		run_state::network_time, (utime + stime) - (first_utime + first_stime),
 		utime - first_utime, stime - first_stime, rtime - first_rtime));
 
-	int conn_mem_use = expensive ? sessions->ConnectionMemoryUsage() : 0;
+	int conn_mem_use = expensive ? session_mgr->ConnectionMemoryUsage() : 0;
 	double avg_conn_mem_use = 0;
 
-	if ( expensive && sessions->CurrentConnections() != 0 )
-		avg_conn_mem_use = conn_mem_use / static_cast<double>(sessions->CurrentConnections());
+	if ( expensive && session_mgr->CurrentConnections() != 0 )
+		avg_conn_mem_use = conn_mem_use / static_cast<double>(session_mgr->CurrentConnections());
 
 	file->Write(util::fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
 		run_state::network_time,
 		Connection::TotalConnections(),
 		Connection::CurrentConnections(),
-		sessions->CurrentConnections(),
+		session_mgr->CurrentConnections(),
 		conn_mem_use,
 		avg_conn_mem_use,
-		expensive ? sessions->MemoryAllocation() / 1024 : 0,
-		expensive ? sessions->ConnectionMemoryUsageConnVals() / 1024 : 0
+		expensive ? session_mgr->MemoryAllocation() / 1024 : 0,
+		expensive ? session_mgr->ConnectionMemoryUsageConnVals() / 1024 : 0
 		));
 
 	SessionStats s;
-	sessions->GetStats(s);
+	session_mgr->GetStats(s);
 
 	file->Write(util::fmt("%.06f Conns: tcp=%zu/%zu udp=%zu/%zu icmp=%zu/%zu\n",
 		run_state::network_time,
@@ -153,22 +153,22 @@ void ProfileLogger::Log()
 		s.num_ICMP_conns, s.max_ICMP_conns
 		));
 
-	sessions->tcp_stats.PrintStats(file,
+	session_mgr->tcp_stats.PrintStats(file,
 			util::fmt("%.06f TCP-States:", run_state::network_time));
 
 	// Alternatively, if you prefer more compact output...
 	/*
 	file->Write(util::fmt("%.8f TCP-States: I=%d S=%d SA=%d SR=%d E=%d EF=%d ER=%d F=%d P=%d\n",
 		       run_state::network_time,
-		       sessions->tcp_stats.StateInactive(),
-		       sessions->tcp_stats.StateRequest(),
-		       sessions->tcp_stats.StateSuccRequest(),
-		       sessions->tcp_stats.StateRstRequest(),
-		       sessions->tcp_stats.StateEstablished(),
-		       sessions->tcp_stats.StateHalfClose(),
-		       sessions->tcp_stats.StateHalfRst(),
-		       sessions->tcp_stats.StateClosed(),
-		       sessions->tcp_stats.StatePartial()
+		       session_mgr->tcp_stats.StateInactive(),
+		       session_mgr->tcp_stats.StateRequest(),
+		       session_mgr->tcp_stats.StateSuccRequest(),
+		       session_mgr->tcp_stats.StateRstRequest(),
+		       session_mgr->tcp_stats.StateEstablished(),
+		       session_mgr->tcp_stats.StateHalfClose(),
+		       session_mgr->tcp_stats.StateHalfRst(),
+		       session_mgr->tcp_stats.StateClosed(),
+		       session_mgr->tcp_stats.StatePartial()
 		       ));
 	*/
 

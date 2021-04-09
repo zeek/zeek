@@ -25,7 +25,7 @@
 namespace zeek {
 
 class Connection;
-class NetSessions;
+class SessionManager;
 class EncapsulationStack;
 class Val;
 class RecordVal;
@@ -73,7 +73,7 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,
 class Connection final : public Session {
 public:
 
-	Connection(NetSessions* s, const detail::ConnIDKey& k, double t, const ConnID* id,
+	Connection(const detail::ConnIDKey& k, double t, const ConnID* id,
 	           uint32_t flow, const Packet* pkt);
 	~Connection() override;
 
@@ -246,8 +246,6 @@ protected:
 
 	// Allow other classes to access pointers to these:
 	friend class detail::SessionTimer;
-
-	NetSessions* sessions;
 
 	IPAddr orig_addr;
 	IPAddr resp_addr;

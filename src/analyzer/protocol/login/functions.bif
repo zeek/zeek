@@ -2,7 +2,7 @@
 %%{
 #include "zeek/analyzer/protocol/login/Login.h"
 #include "zeek/Reporter.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 %%}
 
 ## Returns the state of the given login (Telnet or Rlogin) connection.
@@ -26,7 +26,7 @@
 ## .. zeek:see:: set_login_state
 function get_login_state%(cid: conn_id%): count
 	%{
-	zeek::Connection* c = sessions->FindConnection(cid);
+	zeek::Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 
@@ -50,7 +50,7 @@ function get_login_state%(cid: conn_id%): count
 ## .. zeek:see:: get_login_state
 function set_login_state%(cid: conn_id, new_state: count%): bool
 	%{
-	zeek::Connection* c = sessions->FindConnection(cid);
+	zeek::Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 

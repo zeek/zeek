@@ -4,7 +4,7 @@
 #include "zeek/Conn.h"
 #include "zeek/IP.h"
 #include "zeek/Reporter.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/ZeekString.h"
 #include "zeek/RunState.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
@@ -165,7 +165,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 
 	IP_Hdr* inner = nullptr;
-	int rslt = sessions->ParseIPPacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
+	int rslt = session_mgr->ParseIPPacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
 
 	if ( rslt > 0 )
 		{

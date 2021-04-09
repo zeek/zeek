@@ -7,7 +7,7 @@
 
 #include "zeek/ZeekString.h"
 #include "zeek/NetVar.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/Event.h"
 #include "zeek/RunState.h"
 
@@ -531,7 +531,7 @@ void NetbiosSSN_Analyzer::ExpireTimer(double t)
 		     netbios_ssn_session_timeout - 1.0 )
 		{
 		Event(connection_timeout);
-		sessions->Remove(Conn());
+		session_mgr->Remove(Conn());
 		}
 	else
 		ADD_ANALYZER_TIMER(&NetbiosSSN_Analyzer::ExpireTimer,

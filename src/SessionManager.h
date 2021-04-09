@@ -40,10 +40,10 @@ struct SessionStats {
 	uint64_t num_packets;
 };
 
-class NetSessions final {
+class SessionManager final {
 public:
-	NetSessions();
-	~NetSessions();
+	SessionManager();
+	~SessionManager();
 
 	void Done();	// call to drain events before destructing
 
@@ -130,7 +130,7 @@ public:
 	// TODO: should this move somewhere else?
 	analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
 
-protected:
+private:
 
 	using SessionMap = std::map<detail::SessionKey, Session*>;
 
@@ -172,6 +172,9 @@ protected:
 };
 
 // Manager for the currently active sessions.
-extern NetSessions* sessions;
+extern SessionManager* session_mgr;
+extern SessionManager*& sessions [[deprecated("Remove in v5.1. Use zeek::session_mgr.")]];
+
+using NetSessions [[deprecated("Remove in v5.1. Use zeek::SessionManager.")]] = SessionManager;
 
 } // namespace zeek

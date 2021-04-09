@@ -24,7 +24,7 @@ extern "C" {
 };
 
 #include "zeek/NetVar.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/Event.h"
 #include "zeek/Timer.h"
 #include "zeek/ID.h"
@@ -195,7 +195,7 @@ void init_run(const std::optional<std::string>& interface,
 
 	zeek::detail::init_ip_addr_anonymizers();
 
-	sessions = new NetSessions();
+	session_mgr = new SessionManager();
 
 	// Initialize the stepping stone manager. We intentionally throw away the result here.
 	SteppingStoneManager::Get();
@@ -390,13 +390,13 @@ void finish_run(int drain_events)
 
 	if ( drain_events )
 		{
-		if ( sessions )
-			sessions->Drain();
+		if ( session_mgr )
+			session_mgr->Drain();
 
 		event_mgr.Drain();
 
-		if ( sessions )
-			sessions->Done();
+		if ( session_mgr )
+			session_mgr->Done();
 		}
 
 #ifdef DEBUG
@@ -413,7 +413,7 @@ void delete_run()
 	{
 	util::detail::set_processing_status("TERMINATING", "delete_run");
 
-	delete sessions;
+	delete session_mgr;
 	delete SteppingStoneManager::Get();
 
 	for ( int i = 0; i < zeek::detail::NUM_ADDR_ANONYMIZATION_METHODS; ++i )

@@ -8,7 +8,7 @@
 #include "zeek/util.h"
 #include "zeek/Hash.h"
 #include "zeek/RunState.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/packet_analysis/Manager.h"
@@ -125,7 +125,7 @@ void PktSrc::Info(const std::string& msg)
 
 void PktSrc::Weird(const std::string& msg, const Packet* p)
 	{
-	sessions->Weird(msg.c_str(), p);
+	session_mgr->Weird(msg.c_str(), p);
 	}
 
 void PktSrc::InternalError(const std::string& msg)

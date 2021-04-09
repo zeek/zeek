@@ -45,7 +45,7 @@
 #include "zeek/Frame.h"
 #include "zeek/Var.h"
 #include "zeek/analyzer/protocol/login/Login.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/RE.h"
 #include "zeek/Event.h"
 #include "zeek/Traverse.h"

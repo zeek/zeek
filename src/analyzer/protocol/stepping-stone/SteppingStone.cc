@@ -9,7 +9,6 @@
 #include "zeek/RunState.h"
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/Sessions.h"
 #include "zeek/util.h"
 
 #include "zeek/analyzer/protocol/stepping-stone/events.bif.h"

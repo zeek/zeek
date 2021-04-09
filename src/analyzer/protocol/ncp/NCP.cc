@@ -7,8 +7,6 @@
 #include <string>
 #include <map>
 
-#include "zeek/Sessions.h"
-
 #include "zeek/analyzer/protocol/ncp/events.bif.h"
 #include "zeek/analyzer/protocol/ncp/consts.bif.h"
 

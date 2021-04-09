@@ -3,6 +3,7 @@
 #include "zeek/analyzer/protocol/gtpv1/GTPv1.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
+#include "zeek/SessionManager.h"
 #include "zeek/analyzer/protocol/gtpv1/events.bif.h"
 
 namespace zeek::analyzer::gtpv1 {
@@ -47,7 +48,7 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 	inner_packet_offset = -1;
 
 	IP_Hdr* inner = nullptr;
-	int result = sessions->ParseIPPacket(len, data, next_header, inner);
+	int result = session_mgr->ParseIPPacket(len, data, next_header, inner);
 
 	if ( result == 0 )
 		{

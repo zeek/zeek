@@ -1,7 +1,7 @@
 
 %%{
 #include "zeek/File.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 %%}
@@ -18,7 +18,7 @@
 ## .. zeek:see:: get_resp_seq
 function get_orig_seq%(cid: conn_id%): count
 	%{
-	zeek::Connection* c = zeek::sessions->FindConnection(cid);
+	zeek::Connection* c = zeek::session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->Count(0);
 
@@ -47,7 +47,7 @@ function get_orig_seq%(cid: conn_id%): count
 ## .. zeek:see:: get_orig_seq
 function get_resp_seq%(cid: conn_id%): count
 	%{
-	zeek::Connection* c = zeek::sessions->FindConnection(cid);
+	zeek::Connection* c = zeek::session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->Count(0);
 
@@ -97,7 +97,7 @@ function get_resp_seq%(cid: conn_id%): count
 ## .. zeek:see:: get_contents_file set_record_packets contents_file_write_failure
 function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	%{
-	zeek::Connection* c = zeek::sessions->FindConnection(cid);
+	zeek::Connection* c = zeek::session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 
@@ -120,7 +120,7 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 ## .. zeek:see:: set_contents_file set_record_packets contents_file_write_failure
 function get_contents_file%(cid: conn_id, direction: count%): file
 	%{
-	zeek::Connection* c = zeek::sessions->FindConnection(cid);
+	zeek::Connection* c = zeek::session_mgr->FindConnection(cid);
 
 	if ( c )
 		{

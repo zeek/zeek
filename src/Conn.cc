@@ -10,7 +10,7 @@
 #include "zeek/RunState.h"
 #include "zeek/NetVar.h"
 #include "zeek/Event.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/Reporter.h"
 #include "zeek/Timer.h"
 #include "zeek/iosource/IOSource.h"
@@ -25,12 +25,11 @@ namespace zeek {
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
-Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t,
+Connection::Connection(const detail::ConnIDKey& k, double t,
                        const ConnID* id, uint32_t flow, const Packet* pkt)
 	: Session(t, connection_timeout, connection_status_update,
 	          detail::connection_status_update_interval)
 	{
-	sessions = s;
 	key = k;
 	key_valid = true;
 
@@ -137,7 +136,7 @@ void Connection::Done()
 		analyzer::tcp::TCP_Endpoint* to = ta->Orig();
 		analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
 
-		sessions->tcp_stats.StateLeft(to->state, tr->state);
+		session_mgr->tcp_stats.StateLeft(to->state, tr->state);
 		}
 
 	finished = 1;

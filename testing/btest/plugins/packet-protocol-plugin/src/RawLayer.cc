@@ -1,7 +1,7 @@
 #include "RawLayer.h"
 #include "zeek/Event.h"
 #include "zeek/Val.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 
 #include "events.bif.h"
 

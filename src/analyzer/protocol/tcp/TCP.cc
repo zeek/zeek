@@ -13,7 +13,7 @@
 #include "zeek/File.h"
 #include "zeek/Event.h"
 #include "zeek/Reporter.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/DebugLogger.h"
 
 #include "zeek/analyzer/protocol/tcp/events.bif.h"
@@ -1272,7 +1272,7 @@ void TCP_Analyzer::FlipRoles()
 	{
 	Analyzer::FlipRoles();
 
-	sessions->tcp_stats.FlipState(orig->state, resp->state);
+	session_mgr->tcp_stats.FlipState(orig->state, resp->state);
 	TCP_Endpoint* tmp_ep = resp;
 	resp = orig;
 	orig = tmp_ep;
@@ -1480,7 +1480,7 @@ void TCP_Analyzer::AttemptTimer(double /* t */)
 		is_active = 0;
 
 		// All done with this connection.
-		sessions->Remove(Conn());
+		session_mgr->Remove(Conn());
 		}
 	}
 
@@ -1500,7 +1500,7 @@ void TCP_Analyzer::PartialCloseTimer(double /* t */)
 			return;
 
 		Event(connection_partial_close);
-		sessions->Remove(Conn());
+		session_mgr->Remove(Conn());
 		}
 	}
 
@@ -1530,7 +1530,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 				// the session remove and Unref() us here.
 				Event(connection_timeout);
 				is_active = 0;
-				sessions->Remove(Conn());
+				session_mgr->Remove(Conn());
 				return;
 				}
 			}
@@ -1545,7 +1545,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 				// before setting up an attempt timer,
 				// so we need to clean it up here.
 				Event(connection_timeout);
-				sessions->Remove(Conn());
+				session_mgr->Remove(Conn());
 				return;
 				}
 			}
@@ -1566,12 +1566,12 @@ void TCP_Analyzer::ResetTimer(double /* t */)
 	if ( ! BothClosed() )
 		ConnectionReset();
 
-	sessions->Remove(Conn());
+	session_mgr->Remove(Conn());
 	}
 
 void TCP_Analyzer::DeleteTimer(double /* t */)
 	{
-	sessions->Remove(Conn());
+	session_mgr->Remove(Conn());
 	}
 
 void TCP_Analyzer::ConnDeleteTimer(double t)
@@ -1689,7 +1689,7 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 		// Note, even if tcp_close_delay is zero, we can't
 		// simply do:
 		//
-		//	sessions->Remove(this);
+		//	session_mgr->Remove(this);
 		//
 		// here, because that would cause the object to be
 		// deleted out from under us.

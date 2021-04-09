@@ -11,7 +11,7 @@
 
 #include "zeek/ZeekString.h"
 #include "zeek/NetVar.h"
-#include "zeek/Sessions.h"
+#include "zeek/SessionManager.h"
 #include "zeek/Event.h"
 #include "zeek/RunState.h"
 
@@ -346,7 +346,7 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg,
 		case detail::TYPE_DS:
 			status = ParseRR_DS(msg, data, len, rdlength, msg_start);
 			break;
-		
+
 		case detail::TYPE_BINDS:
 			status = ParseRR_BINDS(msg, data, len, rdlength, msg_start);
 			break;
@@ -354,7 +354,7 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg,
 		case detail::TYPE_SSHFP:
 			status = ParseRR_SSHFP(msg, data, len, rdlength, msg_start);
 			break;
-		
+
 		case detail::TYPE_LOC:
 			status = ParseRR_LOC(msg, data, len, rdlength, msg_start);
 			break;
@@ -2261,7 +2261,7 @@ void DNS_Analyzer::ExpireTimer(double t)
 	if ( t - Conn()->LastTime() >= zeek::detail::dns_session_timeout - 1.0 || run_state::terminating )
 		{
 		Event(connection_timeout);
-		sessions->Remove(Conn());
+		session_mgr->Remove(Conn());
 		}
 	else
 		ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,

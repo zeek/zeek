@@ -564,7 +564,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 	}
 
 <RE>\r?\n	 {
-	zeek::reporter->Error("patterns must not span multiple lines");
+	zeek::reporter->Error("pattern not terminated before end of line");
 }
 
 <*>.	zeek::reporter->Error("unrecognized character: '%s'", zeek::util::get_escaped_string(yytext, false).data());

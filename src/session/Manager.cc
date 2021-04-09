@@ -264,43 +264,6 @@ void Manager::ProcessTransportLayer(double t, const Packet* pkt, size_t remainin
 		}
 	}
 
-int Manager::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
-                           IP_Hdr*& inner)
-	{
-	if ( proto == IPPROTO_IPV6 )
-		{
-		if ( caplen < (int)sizeof(struct ip6_hdr) )
-			return -1;
-
-		const struct ip6_hdr* ip6 = (const struct ip6_hdr*) pkt;
-		inner = new IP_Hdr(ip6, false, caplen);
-		if ( ( ip6->ip6_ctlun.ip6_un2_vfc & 0xF0 ) != 0x60 )
-			return -2;
-		}
-
-	else if ( proto == IPPROTO_IPV4 )
-		{
-		if ( caplen < (int)sizeof(struct ip) )
-			return -1;
-
-		const struct ip* ip4 = (const struct ip*) pkt;
-		inner = new IP_Hdr(ip4, false);
-		if ( ip4->ip_v != 4 )
-			return -2;
-		}
-
-	else
-		{
-		reporter->InternalWarning("Bad IP protocol version in ParseIPPacket");
-		return -1;
-		}
-
-	if ( (uint32_t)caplen != inner->TotalLen() )
-		return (uint32_t)caplen < inner->TotalLen() ? -1 : 1;
-
-	return 0;
-	}
-
 bool Manager::CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
                                const Packet* p)
 	{

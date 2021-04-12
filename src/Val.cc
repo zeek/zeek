@@ -1502,7 +1502,12 @@ void TableVal::SetAttrs(detail::AttributesPtr a)
 	const auto& ef = attrs->Find(detail::ATTR_EXPIRE_FUNC);
 
 	if ( ef )
-		expire_func = ef->GetExpr();
+		{
+		if ( GetType()->AsTableType()->CheckExpireFuncCompatibility(ef) )
+			expire_func = ef->GetExpr();
+		else
+			expire_func = nullptr;
+		}
 
 	const auto& cf = attrs->Find(detail::ATTR_ON_CHANGE);
 

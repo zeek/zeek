@@ -498,51 +498,7 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		const auto& expire_func = a->GetExpr();
-
-		if ( expire_func->GetType()->Tag() != TYPE_FUNC )
-			{
-			Error("&expire_func attribute is not a function");
-			break;
-			}
-
-		const FuncType* e_ft = expire_func->GetType()->AsFuncType();
-
-		if ( e_ft->Flavor() != FUNC_FLAVOR_FUNCTION )
-			{
-			Error("&expire_func attribute is not a function");
-			break;
-			}
-
-		if ( e_ft->Yield()->Tag() != TYPE_INTERVAL )
-			{
-			Error("&expire_func must yield a value of type interval");
-			break;
-			}
-
-		const TableType* the_table = type->AsTableType();
-
-		if (the_table->IsUnspecifiedTable())
-			break;
-
-		const auto& func_index_types = e_ft->ParamList()->GetTypes();
-		// Keep backwards compatibility with idx: any idiom.
-		if ( func_index_types.size() == 2 )
-			{
-			if (func_index_types[1]->Tag() == TYPE_ANY)
-				break;
-			}
-
-		const auto& table_index_types = the_table->GetIndexTypes();
-
-		TypePList expected_args(1 + static_cast<int>(table_index_types.size()));
-		expected_args.push_back(type->AsTableType());
-
-		for ( const auto& t : table_index_types )
-			expected_args.push_back(t.get());
-
-		if ( ! e_ft->CheckArgs(&expected_args) )
-			Error("&expire_func argument type clash");
+		type->AsTableType()->CheckExpireFuncCompatibility({NewRef{}, a});
 
 		if ( Find(ATTR_BROKER_STORE ) )
 			Error("&broker_store and &expire_func cannot be used simultaneously");

@@ -1726,7 +1726,6 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 		TableStream* stream = (TableStream*) i;
 		bool convert_error = false;
 		Val* idxval = ValueToIndexVal(i, stream->num_idx_fields, stream->itype, vals, convert_error);
-		assert(idxval != nullptr);
 		readVals = stream->num_idx_fields + stream->num_val_fields;
 		bool streamresult = true;
 
@@ -1735,6 +1734,8 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 			Unref(idxval);
 			return false;
 			}
+
+		assert(idxval != nullptr);
 
 		if ( stream->pred || stream->event )
 			{

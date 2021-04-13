@@ -1,4 +1,8 @@
 
+4.1.0-dev.501 | 2021-04-12 18:03:53 -0700
+
+  * Add explanation of vector holes/in-operator changes to NEWS (Jon Siwek, Corelight)
+
 4.1.0-dev.500 | 2021-04-09 12:18:06 -0700
 
   * Reference the manual's explanation of originator and responder from conn_id (Christian Kreibich, Corelight)

@@ -35,6 +35,9 @@
 #include "zeek/analyzer/analyzer.bif.h"
 
 namespace zeek {
+
+namespace packet_analysis::IP { class IPBasedAnalyzer; }
+
 namespace analyzer {
 
 /**
@@ -244,10 +247,22 @@ public:
 	 *
 	 * @param conn The connection to add the initial set of analyzers to.
 	 *
-	 * @return False if the tree cannot be build; that's usually an
-	 * internally error.
+	 * @return False if the tree cannot be built; that's usually an
+	 * internal error.
 	 */
 	bool BuildInitialAnalyzerTree(Connection* conn);
+
+	/**
+	 * Builds the analyzer tree used by transport-layer analyzers in the
+	 * packet analysis framework.
+	 *
+	 * @param conn The connection to add the initial set of analyzers to.
+	 * @param analyzer The packet analyzer requesting the tree.
+	 * @return False if the tree cannot be built; that's usually an
+	 * internal error.
+	 */
+	bool BuildSessionAnalyzerTree(Connection* conn,
+	                              packet_analysis::IP::IPBasedAnalyzer* analyzer);
 
 	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once

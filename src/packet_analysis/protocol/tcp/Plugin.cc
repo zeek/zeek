@@ -10,7 +10,7 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure()
 		{
-		AddComponent(new zeek::packet_analysis::Component("TCP_PKT",
+		AddComponent(new zeek::packet_analysis::Component("TCP",
 		                 zeek::packet_analysis::TCP::TCPAnalyzer::Instantiate));
 
 		zeek::plugin::Configuration config;

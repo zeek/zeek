@@ -10,7 +10,7 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure()
 		{
-		AddComponent(new zeek::packet_analysis::Component("ICMP_PKT",
+		AddComponent(new zeek::packet_analysis::Component("ICMP",
 		                 zeek::packet_analysis::ICMP::ICMPAnalyzer::Instantiate));
 
 		zeek::plugin::Configuration config;

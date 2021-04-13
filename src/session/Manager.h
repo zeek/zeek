@@ -60,14 +60,13 @@ public:
 	/**
 	 * Looks up the connection referred to by a given key.
 	 *
-	 * @param key The key for the connection to search for.
-	 * @param proto The transport protocol for the connection.
+	 * @param conn_key The key for the connection to search for.
 	 * @return The connection, or nullptr if one doesn't exist.
 	 */
-	Connection* FindConnection(const zeek::detail::ConnKey& key, TransportProto proto);
+	Connection* FindConnection(const zeek::detail::ConnKey& conn_key);
 
 	void Remove(Session* s);
-	void Insert(Session* c);
+	void Insert(Session* c, bool remove_existing=true);
 
 	// Generating connection_pending events for all connections
 	// that are still active.
@@ -94,18 +93,6 @@ public:
 	[[deprecated("Remove in v5.1. Use CurrentSessions().")]]
 	unsigned int CurrentConnections() { return CurrentSessions(); }
 
-	/**
-	 * Main entry point for processing packets destined for session analyzers. This
-	 * method is called by the packet analysis manager when after it has processed
-	 * an IP-based packet, and shouldn't be called directly from other places.
-	 *
-	 * @param t The timestamp for this packet.
-	 * @param pkt The packet being processed.
-	 * @param len The number of bytes that haven't been processed yet by packet
-	 * analysis.
-	 */
-	void ProcessTransportLayer(double t, const Packet *pkt, size_t len);
-
 	unsigned int SessionMemoryUsage();
 	unsigned int SessionMemoryUsageVals();
 
@@ -122,32 +109,6 @@ public:
 private:
 
 	using SessionMap = std::map<detail::Key, Session*>;
-
-	Connection* NewConn(const zeek::detail::ConnKey& k, double t, const ConnTuple* id,
-	                    const u_char* data, int proto, uint32_t flow_label,
-	                    const Packet* pkt);
-
-	// Returns true if the port corresonds to an application
-	// for which there's a Bro analyzer (even if it might not
-	// be used by the present policy script), or it's more
-	// generally a likely server port, false otherwise.
-	//
-	// Note, port is in host order.
-	bool IsLikelyServerPort(uint32_t port, TransportProto transport_proto) const;
-
-	// Upon seeing the first packet of a connection, checks whether
-	// we want to analyze it (e.g., we may not want to look at partial
-	// connections), and, if yes, whether we should flip the roles of
-	// originator and responder (based on known ports or such).
-	// Use tcp_flags=0 for non-TCP.
-	bool WantConnection(uint16_t src_port, uint16_t dest_port,
-	                    TransportProto transport_proto,
-	                    uint8_t tcp_flags, bool& flip_roles);
-
-	// For a given protocol, checks whether the header's length as derived
-	// from lower-level headers or the length actually captured is less
-	// than that protocol's minimum header size.
-	bool CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen, const Packet *pkt);
 
 	// Inserts a new connection into the sessions map. If a connection with
 	// the same key already exists in the map, it will be overwritten by

@@ -10,7 +10,7 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure()
 		{
-		AddComponent(new zeek::packet_analysis::Component("UDP_PKT",
+		AddComponent(new zeek::packet_analysis::Component("UDP",
 		                 zeek::packet_analysis::UDP::UDPAnalyzer::Instantiate));
 
 		zeek::plugin::Configuration config;

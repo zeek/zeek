@@ -101,7 +101,7 @@ void Manager::ProcessPacket(Packet* packet)
 	bool dumped_packet = false;
 	if ( packet->dump_packet || zeek::detail::record_all_packets )
 		{
-		DumpPacket(packet);
+		DumpPacket(packet, packet->dump_size);
 		dumped_packet = true;
 		}
 
@@ -114,7 +114,7 @@ void Manager::ProcessPacket(Packet* packet)
 
 	// Check whether packet should be recorded based on session analysis
 	if ( packet->dump_packet && ! dumped_packet )
-		DumpPacket(packet);
+		DumpPacket(packet, packet->dump_size);
 	}
 
 bool Manager::ProcessInnerPacket(Packet* packet)

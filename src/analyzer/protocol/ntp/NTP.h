@@ -1,7 +1,5 @@
 #pragma once
 
-#include "zeek/analyzer/protocol/udp/UDP.h"
-
 #include "zeek/analyzer/protocol/ntp/events.bif.h"
 #include "zeek/analyzer/protocol/ntp/types.bif.h"
 #include "zeek/analyzer/protocol/ntp/ntp_pac.h"

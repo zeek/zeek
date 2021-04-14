@@ -11,7 +11,6 @@
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/analyzer/protocol/udp/UDP.h"
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 
 #include "zeek/plugin/Manager.h"
@@ -373,13 +372,6 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 		pia = new analyzer::pia::PIA_TCP(conn);
 		check_port = true;
 		DBG_ANALYZER(conn, "activated TCP analyzer");
-		break;
-
-	case TRANSPORT_UDP:
-		root = new analyzer::udp::UDP_Analyzer(conn);
-		pia = new analyzer::pia::PIA_UDP(conn);
-		check_port = true;
-		DBG_ANALYZER(conn, "activated UDP analyzer");
 		break;
 
 	default:

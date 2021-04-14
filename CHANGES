@@ -1,3 +1,16 @@
+4.1.0-dev.510 | 2021-04-14 16:05:55 -0700
+
+  * GH-1450: Improve printing/logging of large double/interval/time values
+
+    The modp_dtoa/modp_dtoa2 functions aren't capable of handling double
+    values larger than INT_MAX and fallback on using sprintf() in that
+    situation.  Previously, the format string to that sprintf() was "%e",
+    defaulting to a precision of 6, which is already too few digits to
+    represent a number known to be larger than INT_MAX.  Now, an sprintf()
+    is still performed for values larger than INT_MAX and still uses a
+    scientific notation format, but in a way that uses as many decimal
+    digits as needed to preserve information. (Jon Siwek, Corelight)
+
 4.1.0-dev.508 | 2021-04-14 15:54:03 -0700
 
   * Add btest for unterminated pattern parsing error behavior

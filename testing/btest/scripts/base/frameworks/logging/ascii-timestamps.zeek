@@ -1,6 +1,6 @@
 #
 # @TEST-EXEC: zeek -b %INPUT
-# @TEST-EXEC: btest-diff test.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-openclose-timestamps btest-diff test.log
 
 module Test;
 
@@ -23,5 +23,6 @@ event zeek_init()
 	Log::write(Test::LOG, [$data=double_to_time(1234567890.00001)]);
 	Log::write(Test::LOG, [$data=double_to_time(1234567890.000001)]);
 	Log::write(Test::LOG, [$data=double_to_time(1234567890.0000001)]);
+	Log::write(Test::LOG, [$data=double_to_time(2385642157)]);
 }
 

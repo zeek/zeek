@@ -8,7 +8,6 @@
 #include "zeek/RunState.h"
 
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
-#include "zeek/analyzer/protocol/icmp/ICMP.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
@@ -382,12 +381,6 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 		check_port = true;
 		DBG_ANALYZER(conn, "activated UDP analyzer");
 		break;
-
-	case TRANSPORT_ICMP: {
-		root = new analyzer::icmp::ICMP_Analyzer(conn);
-		DBG_ANALYZER(conn, "activated ICMP analyzer");
-		break;
-		}
 
 	default:
 		reporter->InternalWarning("unknown protocol can't build analyzer tree");

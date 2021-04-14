@@ -12,9 +12,11 @@ public:
 		{
 		AddComponent(new zeek::packet_analysis::Component("ICMP",
 		                 zeek::packet_analysis::ICMP::ICMPAnalyzer::Instantiate));
+		AddComponent(new zeek::analyzer::Component("ICMP",
+		                 zeek::packet_analysis::ICMP::ICMPTransportAnalyzer::Instantiate));
 
 		zeek::plugin::Configuration config;
-		config.name = "Zeek::ICMP_PKT";
+		config.name = "Zeek::ICMP";
 		config.description = "Packet analyzer for ICMP";
 		return config;
 		}

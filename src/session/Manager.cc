@@ -21,9 +21,6 @@
 #include "zeek/session/Session.h"
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/telemetry/Manager.h"
-
-#include "zeek/analyzer/protocol/icmp/ICMP.h"
-#include "zeek/analyzer/protocol/udp/UDP.h"
 #include "zeek/analyzer/Manager.h"
 
 #include "zeek/iosource/IOSource.h"

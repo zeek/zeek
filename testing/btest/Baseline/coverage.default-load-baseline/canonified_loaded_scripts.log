@@ -131,7 +131,6 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_GTPv1.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_HTTP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_HTTP.functions.bif.zeek
-    build/scripts/base/bif/plugins/Zeek_ICMP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Ident.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_IMAP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_IRC.events.bif.zeek
@@ -211,6 +210,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_VXLAN.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_XMPP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_ARP.events.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_ICMP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_FileEntropy.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_FileExtract.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_FileExtract.functions.bif.zeek

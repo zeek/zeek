@@ -139,12 +139,12 @@ HEX	[0-9a-fA-F]+
 IDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
 ID	{IDCOMPONENT}(::{IDCOMPONENT})*
 IP6 ("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}:){6}({D}"."){3}{D}"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
-FILE	[^ \t\n]+
-PREFIX	[^ \t\n]+
+FILE	[^ \t\r\n]+
+PREFIX	[^ \t\r\n]+
 FLOAT	(({D}*"."?{D})|({D}"."?{D}*))([eE][-+]?{D})?
 H	[A-Za-z0-9][A-Za-z0-9\-]*
 HTLD	[A-Za-z][A-Za-z0-9\-]*
-ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
+ESCSEQ	(\\([^\r\n]|[0-7]+|x[[:xdigit:]]+))
 
 %%
 
@@ -175,7 +175,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 {WS}	/* eat whitespace */
 
-<INITIAL,IGNORE>\n	{
+<INITIAL,IGNORE>\r?\n	{
 			++line_number;
 			++yylloc.first_line;
 			++yylloc.last_line;
@@ -446,7 +446,7 @@ when	return TOK_WHEN;
 <IGNORE>@ifndef	++current_depth;
 <IGNORE>@else   return TOK_ATELSE;
 <IGNORE>@endif	return TOK_ATENDIF;
-<IGNORE>[^@\n]+	/* eat */
+<IGNORE>[^@\r\n]+	/* eat */
 <IGNORE>.	/* eat */
 
 T	RET_CONST(zeek::val_mgr->True()->Ref())
@@ -511,7 +511,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 ({H}".")+{HTLD}		RET_CONST(zeek::detail::dns_mgr->LookupHost(yytext).release())
 
-\"([^\\\n\"]|{ESCSEQ})*\"	{
+\"([^\\\r\\\n\"]|{ESCSEQ})*\"	{
 	const char* text = yytext;
 	int len = strlen(text) + 1;
 	int i = 0;
@@ -544,7 +544,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 	RET_CONST(new zeek::StringVal(new zeek::String(1, (zeek::byte_vec) s, i-1)))
 	}
 
-<RE>([^/\\\n]|{ESCSEQ})+	{
+<RE>([^/\\\r\\\n]|{ESCSEQ})+	{
 	yylval.str = zeek::util::copy_string(yytext);
 	return TOK_PATTERN_TEXT;
 	}
@@ -561,9 +561,11 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 	return TOK_PATTERN_END;
 	}
 
-<RE>[\\\n]	return yytext[0];	// should cause a parse error
+<RE>\r?\n	 {
+	zeek::reporter->Error("pattern not terminated before end of line");
+}
 
-<*>.	zeek::reporter->Error("unrecognized character - %s", yytext);
+<*>.	zeek::reporter->Error("unrecognized character: '%s'", zeek::util::get_escaped_string(yytext, false).data());
 
 <<EOF>>	last_tok[0] = '\0'; return EOF;
 

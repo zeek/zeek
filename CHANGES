@@ -1,3 +1,15 @@
+4.1.0-dev.508 | 2021-04-14 15:54:03 -0700
+
+  * Add btest for unterminated pattern parsing error behavior
+
+    And clarified the error message that it's more about finding an
+    unterminated pattern than knowing for sure there's remaining pattern
+    text spanning multiple lines. (Jon Siwek, Corelight)
+
+  * GH-1497: Support CRLF line-endings in Zeek scripts and signature files (Jon Siwek, Corelight)
+
+  * Escape non-printables in "unrecognized character" parser error messages (Jon Siwek, Corelight)
+
 4.1.0-dev.504 | 2021-04-14 15:51:39 -0700
 
   * Add a check for null packet data in pcap IOSource

@@ -24,12 +24,12 @@ WS	[ \t]+
 D	[0-9]+
 H	[0-9a-fA-F]+
 HEX {H}
-STRING	\"([^\n\"]|\\\")*\"
+STRING	\"([^\r\n\"]|\\\")*\"
 IDCOMPONENT [a-zA-Z_][0-9a-zA-Z_-]*
 ID	{IDCOMPONENT}(::{IDCOMPONENT})*
 IP6	("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
 RE	\/(\\\/)?([^/]|[^\\]\\\/)*\/i?
-META	\.[^ \t]+{WS}[^\n]+
+META	\.[^ \t]+{WS}[^\r\n]+
 PIDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
 PID  {PIDCOMPONENT}(::{PIDCOMPONENT})*
 
@@ -41,7 +41,7 @@ PID  {PIDCOMPONENT}(::{PIDCOMPONENT})*
 	#.*	/* eat comments */
 	{WS}	/* eat white space */
 	{META}	/* eat any meta-data/comments */
-	\n	++rules_line_number;
+	\r?\n	++rules_line_number;
 }
 
 {IP6}	{

@@ -1,3 +1,11 @@
+4.1.0-dev.504 | 2021-04-14 15:51:39 -0700
+
+  * Add a check for null packet data in pcap IOSource
+
+    Some libpcaps (observed in Myricom's) may claim to have read a packet,
+    but either did not really read a packet or at least provide no way
+    to access its contents, so this adds a check for null-data to
+    handle those cases. (Jon Siwek, Corelight)
 
 4.1.0-dev.501 | 2021-04-12 18:03:53 -0700
 

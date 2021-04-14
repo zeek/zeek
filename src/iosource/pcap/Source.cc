@@ -220,6 +220,14 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 		return false;
 	case 1:
 		// Read a packet without problem.
+		// Although, some libpcaps may claim to have read a packet, but either did
+		// not really read a packet or at least provide no way to access its
+		// contents, so the following check for null-data helps handle those cases.
+		if ( ! data )
+			{
+			reporter->Weird("pcap_null_data_packet");
+			return false;
+			}
 		break;
 	default:
 		reporter->InternalError("unhandled pcap_next_ex return value: %d", res);

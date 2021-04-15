@@ -3241,7 +3241,7 @@ ValPtr TypeVal::DoClone(CloneState* state)
 
 VectorVal::VectorVal(VectorTypePtr t) : Val(t)
 	{
-	vector_val = new vector<ZVal>();
+	vector_val = new vector<std::optional<ZVal>>();
 	yield_type = t->Yield();
 
 	auto y_tag = yield_type->Tag();
@@ -3255,14 +3255,19 @@ VectorVal::~VectorVal()
 		{
 		int n = yield_types->size();
 		for ( auto i = 0; i < n; ++i )
-			ZVal::DeleteIfManaged((*vector_val)[i], (*yield_types)[i]);
+			{
+			auto& elem = (*vector_val)[i];
+			if ( elem )
+				ZVal::DeleteIfManaged(*elem, (*yield_types)[i]);
+			}
 		delete yield_types;
 		}
 
 	else if ( managed_yield )
 		{
 		for ( auto& elem : *vector_val )
-			ZVal::DeleteManagedType(elem);
+			if ( elem )
+				ZVal::DeleteManagedType(*elem);
 		}
 
 	delete vector_val;
@@ -3320,7 +3325,9 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 
 	if ( index >= n )
 		{
-		AddHoles(index - n);
+		if ( index > n )
+			AddHoles(index - n);
+
 		vector_val->resize(index + 1);
 		if ( yield_types )
 			yield_types->resize(index + 1);
@@ -3330,14 +3337,21 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 		{
 		const auto& t = element->GetType();
 		(*yield_types)[index] = t;
-		ZVal::DeleteIfManaged((*vector_val)[index], t);
-		(*vector_val)[index] = ZVal(std::move(element), t);
+		auto& elem = (*vector_val)[index];
+		if ( elem )
+			ZVal::DeleteIfManaged(*elem, t);
+		elem = ZVal(std::move(element), t);
 		}
 	else
 		{
-		if ( managed_yield )
-			ZVal::DeleteManagedType((*vector_val)[index]);
-		(*vector_val)[index] = ZVal(std::move(element), yield_type);
+		auto& elem = (*vector_val)[index];
+		if ( managed_yield && elem )
+			ZVal::DeleteManagedType(*elem);
+
+		if ( element )
+			elem = ZVal(std::move(element), yield_type);
+		else
+			elem = std::nullopt;
 		}
 
 	Modified();
@@ -3361,7 +3375,7 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 	if ( ! CheckElementType(element) )
 		return false;
 
-	vector<ZVal>::iterator it;
+	vector<std::optional<ZVal>>::iterator it;
 	vector<TypePtr>::iterator types_it;
 
 	auto n = vector_val->size();
@@ -3371,28 +3385,36 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 		it = std::next(vector_val->begin(), index);
 		if ( yield_types )
 			{
-			ZVal::DeleteIfManaged(*it, element->GetType());
+			if ( *it )
+				ZVal::DeleteIfManaged(**it, element->GetType());
 			types_it = std::next(yield_types->begin(), index);
 			}
 		else if ( managed_yield )
-			ZVal::DeleteManagedType(*it);
+			ZVal::DeleteManagedType(**it);
 		}
 	else
 		{
 		it = vector_val->end();
 		if ( yield_types )
 			types_it = yield_types->end();
-		AddHoles(index - n);
+
+		if ( index > n )
+			AddHoles(index - n);
 		}
 
-	if ( yield_types )
+	if ( element )
 		{
-		const auto& t = element->GetType();
-		yield_types->insert(types_it, t);
-		vector_val->insert(it, ZVal(std::move(element), t));
+		if ( yield_types )
+			{
+			const auto& t = element->GetType();
+			yield_types->insert(types_it, t);
+			vector_val->insert(it, ZVal(std::move(element), t));
+			}
+		else
+			vector_val->insert(it, ZVal(std::move(element), yield_type));
 		}
 	else
-		vector_val->insert(it, ZVal(std::move(element), yield_type));
+		vector_val->insert(it, std::nullopt);
 
 	Modified();
 	return true;
@@ -3405,7 +3427,7 @@ void VectorVal::AddHoles(int nholes)
 		fill_t = base_type(TYPE_ANY);
 
 	for ( auto i = 0; i < nholes; ++i )
-		vector_val->emplace_back(ZVal(fill_t));
+		vector_val->emplace_back(std::nullopt);
 	}
 
 bool VectorVal::Remove(unsigned int index)
@@ -3418,12 +3440,13 @@ bool VectorVal::Remove(unsigned int index)
 	if ( yield_types )
 		{
 		auto types_it = std::next(yield_types->begin(), index);
-		ZVal::DeleteIfManaged(*it, *types_it);
+		if ( *it )
+			ZVal::DeleteIfManaged(**it, *types_it);
 		yield_types->erase(types_it);
 		}
 
 	else if ( managed_yield )
-		ZVal::DeleteManagedType(*it);
+		ZVal::DeleteManagedType(**it);
 
 	vector_val->erase(it);
 
@@ -3460,33 +3483,33 @@ ValPtr VectorVal::At(unsigned int index) const
 	if ( index >= vector_val->size() )
 		return Val::nil;
 
+	auto& elem = (*vector_val)[index];
+	if ( ! elem )
+		return Val::nil;
+
 	const auto& t = yield_types ? (*yield_types)[index] : yield_type;
 
-	return (*vector_val)[index].ToVal(t);
+	return elem->ToVal(t);
 	}
 
 static Func* sort_function_comp = nullptr;
 
 // Used for indirect sorting to support order().
-static std::vector<const ZVal*> index_map;
+static std::vector<const std::optional<ZVal>*> index_map;
 
 // The yield type of the vector being sorted.
 static TypePtr sort_type;
-static bool sort_type_is_managed = false;
 
-static bool sort_function(const ZVal& a, const ZVal& b)
+static bool sort_function(const std::optional<ZVal>& a, const std::optional<ZVal>& b)
 	{
-	// Missing values are only applicable for managed types.
-	if ( sort_type_is_managed )
-		{
-		if ( ! a.ManagedVal() )
-			return 0;
-		if ( ! b.ManagedVal() )
-			return 1;
-		}
+	if ( ! a )
+		return false;
 
-	auto a_v = a.ToVal(sort_type);
-	auto b_v = b.ToVal(sort_type);
+	if ( ! b )
+		return true;
+
+	auto a_v = a->ToVal(sort_type);
+	auto b_v = b->ToVal(sort_type);
 
 	auto result = sort_function_comp->Invoke(a_v, b_v);
 	int int_result = result->CoerceToInt();
@@ -3494,19 +3517,37 @@ static bool sort_function(const ZVal& a, const ZVal& b)
 	return int_result < 0;
 	}
 
-static bool signed_sort_function (const ZVal& a, const ZVal& b)
+static bool signed_sort_function(const std::optional<ZVal>& a, const std::optional<ZVal>& b)
 	{
-	return a.AsInt() < b.AsInt();
+	if ( ! a )
+		return false;
+
+	if ( ! b )
+		return true;
+
+	return a->AsInt() < b->AsInt();
 	}
 
-static bool unsigned_sort_function (const ZVal& a, const ZVal& b)
+static bool unsigned_sort_function(const std::optional<ZVal>& a, const std::optional<ZVal>& b)
 	{
-	return a.AsCount() < b.AsCount();
+	if ( ! a )
+		return false;
+
+	if ( ! b )
+		return true;
+
+	return a->AsCount() < b->AsCount();
 	}
 
-static bool double_sort_function (const ZVal& a, const ZVal& b)
+static bool double_sort_function(const std::optional<ZVal>& a, const std::optional<ZVal>& b)
 	{
-	return a.AsDouble() < b.AsDouble();
+	if ( ! a )
+		return false;
+
+	if ( ! b )
+		return true;
+
+	return a->AsDouble() < b->AsDouble();
 	}
 
 static bool indirect_sort_function(size_t a, size_t b)
@@ -3535,9 +3576,8 @@ void VectorVal::Sort(Func* cmp_func)
 		reporter->RuntimeError(GetLocationInfo(), "cannot sort a vector-of-any");
 
 	sort_type = yield_type;
-	sort_type_is_managed = ZVal::IsManagedType(sort_type);
 
-	bool (*sort_func)(const ZVal&, const ZVal&);
+	bool (*sort_func)(const std::optional<ZVal>&, const std::optional<ZVal>&);
 
 	if ( cmp_func )
 		{
@@ -3572,7 +3612,6 @@ VectorValPtr VectorVal::Order(Func* cmp_func)
 		}
 
 	sort_type = yield_type;
-	sort_type_is_managed = ZVal::IsManagedType(sort_type);
 
 	bool (*sort_func)(size_t, size_t);
 
@@ -3666,8 +3705,9 @@ ValPtr VectorVal::DoClone(CloneState* state)
 
 	for ( auto i = 0; i < n; ++i )
 		{
-		auto vc = At(i)->Clone(state);
-		vv->Append(std::move(vc));
+		auto elem = At(i);
+		if ( elem )
+			vv->Assign(i, elem->Clone(state));
 		}
 
 	return vv;

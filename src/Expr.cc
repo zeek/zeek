@@ -1239,7 +1239,8 @@ ValPtr IncrExpr::Eval(Frame* f) const
 		for ( unsigned int i = 0; i < v_vec->Size(); ++i )
 			{
 			auto elt = v_vec->ValAt(i);
-			v_vec->Assign(i, DoSingleEval(f, elt.get()));
+			if ( elt )
+				v_vec->Assign(i, DoSingleEval(f, elt.get()));
 			}
 
 		op->Assign(f, std::move(v_vec));

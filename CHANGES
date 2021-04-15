@@ -1,3 +1,7 @@
+4.1.0-dev.512 | 2021-04-15 11:54:44 -0700
+
+  * GH-1496: Fix build on armv7 architecture (Jon Siwek, Corelight)
+
 4.1.0-dev.510 | 2021-04-14 16:05:55 -0700
 
   * GH-1450: Improve printing/logging of large double/interval/time values

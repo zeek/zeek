@@ -362,6 +362,18 @@ set(HH_SRCS
 )
 
 if (${COMPILER_ARCHITECTURE} STREQUAL "arm")
+  check_c_source_compiles("
+      #if defined(__ARM_NEON__) || defined(__ARM_NEON)
+      int main() { return 0; }
+      #else
+      #error
+      #endif
+  " test_arm_neon)
+
+  if (test_arm_neon)
+    list(APPEND HH_SRCS ../auxil/highwayhash/highwayhash/hh_neon.cc)
+  endif ()
+
   set_source_files_properties(${HH_SRCS} PROPERTIES COMPILE_FLAGS
                               -mfloat-abi=hard -march=armv7-a -mfpu=neon)
 elseif (${COMPILER_ARCHITECTURE} STREQUAL "aarch64")

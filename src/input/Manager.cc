@@ -1059,19 +1059,33 @@ Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType 
 		}
 	else
 		{
-		auto* l = new ListVal(TYPE_ANY);
+		auto l = make_intrusive<ListVal>(TYPE_ANY);
 		for ( int j = 0 ; j < type->NumFields(); j++ )
 			{
 			if ( type->GetFieldType(j)->Tag() == TYPE_RECORD )
-				l->Append({AdoptRef{}, ValueToRecordVal(i, vals,
-				          type->GetFieldType(j)->AsRecordType(), &position, have_error)});
+				{
+				auto rv = ValueToRecordVal(i, vals, type->GetFieldType(j)->AsRecordType(),
+				                           &position, have_error);
+				if ( have_error )
+					break;
+
+				l->Append({AdoptRef{}, rv});
+				}
 			else
 				{
-				l->Append({AdoptRef{}, ValueToVal(i, vals[position], type->GetFieldType(j).get(), have_error)});
+				auto v = ValueToVal(i, vals[position], type->GetFieldType(j).get(), have_error);
+				if ( have_error )
+					break;
+
+				l->Append({AdoptRef{}, v});
 				position++;
 				}
 			}
-		idxval = l;
+
+		if ( have_error )
+			return nullptr;
+
+		idxval = l.release();
 		}
 
 	assert ( position == num_fields );
@@ -1500,8 +1514,10 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *
 
 	if ( stream->want_record )
 		{
-		RecordVal * r = ValueToRecordVal(i, vals, stream->fields, &position, convert_error);
-		out_vals.push_back(r);
+		RecordVal* r = ValueToRecordVal(i, vals, stream->fields, &position, convert_error);
+
+		if ( ! convert_error )
+			out_vals.push_back(r);
 		}
 
 	else
@@ -1520,6 +1536,9 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *
 				val = ValueToVal(i, vals[position], stream->fields->GetFieldType(j).get(), convert_error);
 				position++;
 				}
+
+			if ( convert_error)
+				break;
 
 			out_vals.push_back(val);
 			}
@@ -1707,7 +1726,6 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 		TableStream* stream = (TableStream*) i;
 		bool convert_error = false;
 		Val* idxval = ValueToIndexVal(i, stream->num_idx_fields, stream->itype, vals, convert_error);
-		assert(idxval != nullptr);
 		readVals = stream->num_idx_fields + stream->num_val_fields;
 		bool streamresult = true;
 
@@ -1716,6 +1734,8 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 			Unref(idxval);
 			return false;
 			}
+
+		assert(idxval != nullptr);
 
 		if ( stream->pred || stream->event )
 			{
@@ -1883,7 +1903,7 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 	{
 	assert(position != nullptr); // we need the pointer to point to data.
 
-	auto* rec = new RecordVal({NewRef{}, request_type});
+	auto rec = make_intrusive<RecordVal>(RecordTypePtr{NewRef{}, request_type});
 	for ( int i = 0; i < request_type->NumFields(); i++ )
 		{
 		Val* fieldVal = nullptr;
@@ -1907,11 +1927,13 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 			(*position)++;
 			}
 
-		if ( fieldVal )
+		if ( have_error )
+			return nullptr;
+		else if ( fieldVal )
 			rec->Assign(i, {AdoptRef{}, fieldVal});
 		}
 
-	return rec;
+	return rec.release();
 	}
 
 // Count the length of the values used to create a correct length buffer for
@@ -2287,15 +2309,18 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type, 
 		auto set_index = make_intrusive<TypeList>(type);
 		set_index->Append(type);
 		auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
-		auto* t = new TableVal(std::move(s));
+		auto t = make_intrusive<TableVal>(std::move(s));
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
 			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], type.get(), have_error);
 
+			if ( have_error )
+				return nullptr;
+
 			t->Assign({AdoptRef{}, assignval}, nullptr);
 			}
 
-		return t;
+		return t.release();
 		}
 
 	case TYPE_VECTOR:
@@ -2308,6 +2333,10 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type, 
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
 			auto el = ValueToVal(i, val->val.vector_val.vals[j], type.get(), have_error);
+
+			if ( have_error )
+				return nullptr;
+
 			v->Assign(j, {AdoptRef{}, el});
 			}
 

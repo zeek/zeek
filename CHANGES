@@ -1,3 +1,12 @@
+4.1.0-dev.524 | 2021-04-16 08:08:38 -0700
+
+  * Move an assert() in input/Manager.cc to account for ValueToVal errors (Jon Siwek, Corelight)
+
+  * Add test for config framework (Tim Wojtulewicz, Corelight)
+
+  * Fix similar issues with ValueTo* methods in the input framework (Tim Wojtulewicz, Corelight)
+
+  * GH-1487: Handle error from ValueToVal instead of ignoring it (Tim Wojtulewicz, Corelight)
 
 4.1.0-dev.519 | 2021-04-15 17:44:16 -0700
 

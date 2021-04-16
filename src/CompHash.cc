@@ -22,12 +22,13 @@ CompositeHash::CompositeHash(TypeListPtr composite_type)
 	{
 	singleton_tag = TYPE_INTERNAL_ERROR;
 
-	// If the only element is a record, don't treat it as a
+	// If the only element is a record or vector, don't treat it as a
 	// singleton, since it needs to be evaluated specially.
 
 	if ( type->GetTypes().size() == 1 )
 		{
-		if ( type->GetTypes()[0]->Tag() == TYPE_RECORD )
+		if ( type->GetTypes()[0]->Tag() == TYPE_RECORD ||
+		     type->GetTypes()[0]->Tag() == TYPE_VECTOR)
 			{
 			is_complex_type = true;
 			is_singleton = false;

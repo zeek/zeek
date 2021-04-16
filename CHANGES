@@ -1,3 +1,23 @@
+
+4.1.0-dev.519 | 2021-04-15 17:44:16 -0700
+
+  * Fix indexing of set/table types with a vector (Jon Siwek, Corelight)
+
+    That previously caused an internal error/crash
+
+  * GH-1507: Tolerate junk data before SIP requests (Jon Siwek, Corelight)
+
+    This allows for data that won't match a SIP request method to precede an
+    actual request and generates a new 'sip_junk_before_request' weird when
+    encountering such a situation.
+
+  * GH-1503: Improve &expire_func compatibility type-checking (Jon Siwek, Corelight)
+
+    Previously, incompatible &expire_funcs could mistakenly be used, such as
+    when using that attribute on the unspecified table()/set()
+    initializations/assignments, resulting in invalid function calls that
+    eventually crash Zeek.
+
 4.1.0-dev.512 | 2021-04-15 11:54:44 -0700
 
   * GH-1496: Fix build on armv7 architecture (Jon Siwek, Corelight)

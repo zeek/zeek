@@ -1,3 +1,19 @@
+
+4.1.0-dev.526 | 2021-04-16 16:03:06 -0700
+
+  * GH-1506: Fix Broker unserialization of set/table function indices (Jon Siwek, Corelight)
+
+    Zeek function types are serialized as a broker::vector, but the
+    unserialization logic for Zeek set/table types that use a function for
+    as an index incorrectly identified it as a composite-index, which also
+    use broker::vector, rather than a singleton-index, and makes such
+    unserialization fail.
+
+    A general example where this failure can happen in practice is when
+    trying to unserialize a connection record for which there's a
+    Conn::RemovalHook, since that's a set[function], and a specific case of
+    that is use of the Intel Framework in a Zeek cluster.
+
 4.1.0-dev.524 | 2021-04-16 08:08:38 -0700
 
   * Move an assert() in input/Manager.cc to account for ValueToVal errors (Jon Siwek, Corelight)

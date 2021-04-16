@@ -53,6 +53,22 @@ TEST_CASE("converting Zeek to Broker protocol constants")
 
 namespace zeek::Broker::detail {
 
+// Returns true if the given Zeek type is serialized as a broker::vector
+static bool serialized_as_vector(TypeTag tag)
+	{
+	switch ( tag ) {
+	case TYPE_VECTOR:
+	case TYPE_RECORD:
+	case TYPE_FUNC:
+	case TYPE_PATTERN:
+	case TYPE_OPAQUE:
+		return true;
+	default:
+		return false;
+	}
+	return false;
+	}
+
 static bool data_type_check(const broker::data& d, Type* t);
 
 TransportProto to_zeek_port_proto(broker::port::protocol tp)
@@ -221,11 +237,9 @@ struct val_converter {
 				{
 				if ( expected_index_types.size() == 1 )
 					{
-					auto index_is_vector_or_record =
-					     expected_index_types[0]->Tag() == TYPE_RECORD ||
-					     expected_index_types[0]->Tag() == TYPE_VECTOR;
+					auto disambiguate = serialized_as_vector(expected_index_types[0]->Tag());
 
-					if ( index_is_vector_or_record )
+					if ( disambiguate )
 						{
 						// Disambiguate from composite key w/ multiple vals.
 						composite_key.emplace_back(move(item));
@@ -280,11 +294,9 @@ struct val_converter {
 				{
 				if ( expected_index_types.size() == 1 )
 					{
-					auto index_is_vector_or_record =
-					     expected_index_types[0]->Tag() == TYPE_RECORD ||
-					     expected_index_types[0]->Tag() == TYPE_VECTOR;
+					auto disambiguate = serialized_as_vector(expected_index_types[0]->Tag());
 
-					if ( index_is_vector_or_record )
+					if ( disambiguate )
 						{
 						// Disambiguate from composite key w/ multiple vals.
 						composite_key.emplace_back(move(item.first));
@@ -591,11 +603,9 @@ struct type_checker {
 				{
 				if ( expected_index_types.size() == 1 )
 					{
-					auto index_is_vector_or_record =
-					     expected_index_types[0]->Tag() == TYPE_RECORD ||
-					     expected_index_types[0]->Tag() == TYPE_VECTOR;
+					auto disambiguate = serialized_as_vector(expected_index_types[0]->Tag());
 
-					if ( index_is_vector_or_record )
+					if ( disambiguate )
 						// Disambiguate from composite key w/ multiple vals.
 						indices_to_check.emplace_back(&item);
 					else
@@ -650,11 +660,9 @@ struct type_checker {
 				{
 				if ( expected_index_types.size() == 1 )
 					{
-					auto index_is_vector_or_record =
-					     expected_index_types[0]->Tag() == TYPE_RECORD ||
-					     expected_index_types[0]->Tag() == TYPE_VECTOR;
+					auto disambiguate = serialized_as_vector(expected_index_types[0]->Tag());
 
-					if ( index_is_vector_or_record )
+					if ( disambiguate )
 						// Disambiguate from composite key w/ multiple vals.
 						indices_to_check.emplace_back(&item.first);
 					else

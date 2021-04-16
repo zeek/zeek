@@ -391,6 +391,15 @@ class TableType : public IndexType {
 public:
 	TableType(TypeListPtr ind, TypePtr yield);
 
+	/**
+	 * Assesses whether an &expire_func attribute's function type is compatible
+	 * with this table type.
+	 * @param attr  the &expire_func attribute to check (this method must not be
+	 * called with other type of attributes).
+	 * @return  true if compatible, false if not
+	 */
+	bool CheckExpireFuncCompatibility(const detail::AttrPtr& attr);
+
 	TypePtr ShallowClone() override;
 
 	// Returns true if this table type is "unspecified", which is

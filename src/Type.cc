@@ -526,6 +526,61 @@ TableType::TableType(TypeListPtr ind, TypePtr yield)
 		}
 	}
 
+bool TableType::CheckExpireFuncCompatibility(const detail::AttrPtr& attr)
+	{
+	assert(attr->Tag() == detail::ATTR_EXPIRE_FUNC);
+
+	const auto& expire_func = attr->GetExpr();
+
+	if ( expire_func->GetType()->Tag() != TYPE_FUNC )
+		{
+		attr->Error("&expire_func attribute is not a function");
+		return false;
+		}
+
+	const FuncType* e_ft = expire_func->GetType()->AsFuncType();
+
+	if ( e_ft->Flavor() != FUNC_FLAVOR_FUNCTION )
+		{
+		attr->Error("&expire_func attribute is not a function");
+		return false;
+		}
+
+	if ( e_ft->Yield()->Tag() != TYPE_INTERVAL )
+		{
+		attr->Error("&expire_func must yield a value of type interval");
+		return false;
+		}
+
+	if ( IsUnspecifiedTable() )
+		return true;
+
+	const auto& func_index_types = e_ft->ParamList()->GetTypes();
+	// Keep backwards compatibility with idx: any idiom.
+	if ( func_index_types.size() == 2 )
+		{
+		if ( func_index_types[1]->Tag() == TYPE_ANY )
+			return true;
+		}
+
+	const auto& table_index_types = GetIndexTypes();
+
+	std::vector<TypePtr> expected_args;
+	expected_args.reserve(1 + table_index_types.size());
+	expected_args.emplace_back(NewRef{}, this);
+
+	for ( const auto& t : table_index_types )
+		expected_args.emplace_back(t);
+
+	if ( ! e_ft->CheckArgs(expected_args) )
+		{
+		attr->Error("&expire_func argument type clash");
+		return false;
+		}
+
+	return true;
+	}
+
 TypePtr TableType::ShallowClone()
 	{
 	return make_intrusive<TableType>(indices, yield_type);

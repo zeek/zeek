@@ -1085,14 +1085,33 @@ Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType 
 		for ( int j = 0 ; j < type->NumFields(); j++ )
 			{
 			if ( type->FieldType(j)->Tag() == TYPE_RECORD )
-				l->Append(ValueToRecordVal(i, vals,
-				          type->FieldType(j)->AsRecordType(), &position, have_error));
+				{
+				auto rv = ValueToRecordVal(i, vals, type->FieldType(j)->AsRecordType(),
+				                           &position, have_error);
+
+				if ( have_error )
+					break;
+
+				l->Append(rv);
+				}
 			else
 				{
-				l->Append(ValueToVal(i, vals[position], type->FieldType(j), have_error));
+				auto v = ValueToVal(i, vals[position], type->FieldType(j), have_error);
+
+				if ( have_error )
+					break;
+
+				l->Append(v);
 				position++;
 				}
 			}
+
+		if ( have_error )
+			{
+			Unref(l);
+			return nullptr;
+			}
+
 		idxval = l;
 		}
 
@@ -1546,8 +1565,10 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *
 
 	if ( stream->want_record )
 		{
-		RecordVal * r = ValueToRecordVal(i, vals, stream->fields, &position, convert_error);
-		out_vals.push_back(r);
+		RecordVal* r = ValueToRecordVal(i, vals, stream->fields, &position, convert_error);
+
+		if ( ! convert_error )
+			out_vals.push_back(r);
 		}
 
 	else
@@ -1566,6 +1587,9 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *
 				val = ValueToVal(i, vals[position], stream->fields->FieldType(j), convert_error);
 				position++;
 				}
+
+			if ( convert_error)
+				break;
 
 			out_vals.push_back(val);
 			}
@@ -1757,7 +1781,6 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 		TableStream* stream = (TableStream*) i;
 		bool convert_error = false;
 		Val* idxval = ValueToIndexVal(i, stream->num_idx_fields, stream->itype, vals, convert_error);
-		assert(idxval != 0);
 		readVals = stream->num_idx_fields + stream->num_val_fields;
 		bool streamresult = true;
 
@@ -1766,6 +1789,8 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 			Unref(idxval);
 			return false;
 			}
+
+		assert(idxval != nullptr);
 
 		if ( stream->pred || stream->event )
 			{
@@ -2024,7 +2049,12 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 			(*position)++;
 			}
 
-		if ( fieldVal )
+		if ( have_error )
+			{
+			Unref(rec);
+			return nullptr;
+			}
+		else if ( fieldVal )
 			rec->Assign(i, fieldVal);
 		}
 
@@ -2408,6 +2438,13 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 			{
 			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], type, have_error);
 
+			if ( have_error )
+				{
+				Unref(t);
+				Unref(s);
+				return nullptr;
+				}
+
 			t->Assign(assignval, 0);
 			Unref(assignval); // index is not consumed by assign.
 			}
@@ -2424,7 +2461,16 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		VectorVal* v = new VectorVal(vt);
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
-			v->Assign(j, ValueToVal(i, val->val.vector_val.vals[j], type, have_error));
+			auto el = ValueToVal(i, val->val.vector_val.vals[j], type, have_error);
+
+			if ( have_error )
+				{
+				Unref(v);
+				Unref(vt);
+				return nullptr;
+				}
+
+			v->Assign(j, el);
 			}
 
 		Unref(vt);
@@ -2591,6 +2637,13 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 			{
 			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], have_error);
 
+			if ( have_error )
+				{
+				Unref(t);
+				Unref(s);
+				return nullptr;
+				}
+
 			t->Assign(assignval, 0);
 			Unref(assignval); // index is not consumed by assign.
 			}
@@ -2618,7 +2671,16 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 		VectorVal* v = new VectorVal(vt);
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
-			v->Assign(j, ValueToVal(i, val->val.vector_val.vals[j], have_error));
+			auto el = ValueToVal(i, val->val.vector_val.vals[j], have_error);
+
+			if ( have_error )
+				{
+				Unref(v);
+				Unref(vt);
+				return nullptr;
+				}
+
+			v->Assign(j, el);
 			}
 
 		Unref(vt);

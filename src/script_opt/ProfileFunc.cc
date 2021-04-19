@@ -242,6 +242,19 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 			}
 		break;
 
+	case EXPR_HAS_FIELD:
+		if ( abs_rec_fields )
+			{
+			auto f = e->AsHasFieldExpr()->Field();
+			addl_hashes.push_back(std::hash<int>{}(f));
+			}
+		else
+			{
+			auto fn = e->AsHasFieldExpr()->FieldName();
+			addl_hashes.push_back(std::hash<std::string>{}(fn));
+			}
+		break;
+
 	case EXPR_ASSIGN:
 		{
 		if ( e->GetOp1()->Tag() == EXPR_REF )

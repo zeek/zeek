@@ -2,14 +2,18 @@
 
 #include "zeek/Options.h"
 #include "zeek/Reporter.h"
-#include "zeek/Desc.h"
 #include "zeek/module_util.h"
+#include "zeek/Desc.h"
+#include "zeek/EventHandler.h"
+#include "zeek/EventRegistry.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/Inline.h"
 #include "zeek/script_opt/Reduce.h"
 #include "zeek/script_opt/GenRDs.h"
 #include "zeek/script_opt/UseDefs.h"
+#include "zeek/script_opt/CPP/Compile.h"
+#include "zeek/script_opt/CPP/Func.h"
 
 
 namespace zeek::detail {
@@ -41,6 +45,10 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	if ( analysis_options.only_func )
 		printf("Original: %s\n", obj_desc(body.get()).c_str());
+
+	if ( body->Tag() == STMT_CPP )
+		// We're not able to optimize this.
+		return;
 
 	if ( pf->NumWhenStmts() > 0 || pf->NumLambdas() > 0 )
 		{
@@ -116,8 +124,10 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 	pf = std::make_shared<ProfileFunc>(f, body, true);
 	body->Traverse(pf.get());
 
+	pf = std::make_shared<ProfileFunc>(f, body, true);
 	// Compute its reaching definitions.
 	RD_Decorate reduced_rds(pf);
+
 	reduced_rds.TraverseFunction(f, scope, body);
 
 	rc->SetDefSetsMgr(reduced_rds.GetDefSetsMgr());
@@ -189,14 +199,68 @@ static void check_env_opt(const char* opt, bool& opt_flag)
 void analyze_scripts()
 	{
 	static bool did_init = false;
+	static std::string hash_dir;
+
+	bool generating_CPP = false;
 
 	if ( ! did_init )
 		{
+		auto hd = getenv("ZEEK_HASH_DIR");
+		if ( hd )
+			hash_dir = std::string(hd) + "/";
+
 		check_env_opt("ZEEK_DUMP_XFORM", analysis_options.dump_xform);
 		check_env_opt("ZEEK_DUMP_UDS", analysis_options.dump_uds);
 		check_env_opt("ZEEK_INLINE", analysis_options.inliner);
 		check_env_opt("ZEEK_OPT", analysis_options.optimize_AST);
 		check_env_opt("ZEEK_XFORM", analysis_options.activate);
+		check_env_opt("ZEEK_ADD_CPP", analysis_options.add_CPP);
+		check_env_opt("ZEEK_UPDATE_CPP", analysis_options.update_CPP);
+		check_env_opt("ZEEK_GEN_CPP", analysis_options.gen_CPP);
+		check_env_opt("ZEEK_GEN_STANDALONE_CPP",
+		              analysis_options.gen_standalone_CPP);
+		check_env_opt("ZEEK_REPORT_CPP", analysis_options.report_CPP);
+		check_env_opt("ZEEK_USE_CPP", analysis_options.use_CPP);
+		check_env_opt("ZEEK_FORCE_USE_CPP",
+		              analysis_options.force_use_CPP);
+
+		if ( analysis_options.gen_standalone_CPP )
+			analysis_options.gen_CPP = true;
+
+		if ( analysis_options.force_use_CPP )
+			analysis_options.use_CPP = true;
+
+		if ( analysis_options.gen_CPP )
+			{
+			if ( analysis_options.add_CPP )
+				{
+				reporter->Warning("gen-C++ incompatible with add-C++");
+				analysis_options.add_CPP = false;
+				}
+
+			if ( analysis_options.update_CPP )
+				{
+				reporter->Warning("gen-C++ incompatible with update-C++");
+				analysis_options.update_CPP = false;
+				}
+
+			generating_CPP = true;
+			}
+
+		if ( analysis_options.update_CPP || analysis_options.add_CPP )
+			generating_CPP = true;
+
+		if ( analysis_options.use_CPP && generating_CPP )
+			{
+			reporter->Error("generating C++ incompatible with using C++");
+			exit(1);
+			}
+
+		if ( analysis_options.use_CPP && ! CPP_init_hook )
+			{
+			reporter->Error("no C++ functions available to use");
+			exit(1);
+			}
 
 		auto usage = getenv("ZEEK_USAGE_ISSUES");
 
@@ -218,8 +282,201 @@ void analyze_scripts()
 		did_init = true;
 		}
 
-	if ( ! analysis_options.activate && ! analysis_options.inliner )
+	if ( ! analysis_options.activate && ! analysis_options.inliner &&
+	     ! generating_CPP && ! analysis_options.report_CPP &&
+	     ! analysis_options.use_CPP )
+		// Avoid profiling overhead.
 		return;
+
+	const auto hash_name = hash_dir + "CPP-hashes";
+	const auto gen_name = hash_dir + "CPP-gen-addl.h";
+
+	// Now that everything's parsed and BiF's have been initialized,
+	// profile the functions.
+	auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
+
+	if ( CPP_init_hook )
+		(*CPP_init_hook)();
+
+	if ( analysis_options.report_CPP )
+		{
+		if ( ! CPP_init_hook )
+			{
+			printf("no C++ script bodies available\n");
+			exit(0);
+			}
+
+		printf("C++ script bodies available that match loaded scripts:\n");
+
+		std::unordered_set<unsigned long long> already_reported;
+
+		for ( auto& f : funcs )
+			{
+			auto name = f.Func()->Name();
+			auto hash = f.Profile()->HashVal();
+			bool have = compiled_scripts.count(hash) > 0;
+			auto specific = "";
+
+			if ( ! have )
+				{
+				hash = script_specific_hash(f.Body(), hash);
+				have = compiled_scripts.count(hash) > 0;
+				if ( have )
+					specific = " - specific";
+				}
+
+			printf("script function %s (hash %llu%s): %s\n",
+				name, hash, specific, have ? "yes" : "no");
+
+			if ( have )
+				already_reported.insert(hash);
+			}
+
+		printf("\nAdditional C++ script bodies available:\n");
+		int addl = 0;
+		for ( auto s : compiled_scripts )
+			if ( already_reported.count(s.first) == 0 )
+				{
+				printf("%s body (hash %llu)\n",
+					s.second.body->Name().c_str(), s.first);
+				++addl;
+				}
+
+		if ( addl == 0 )
+			printf("(none)\n");
+
+		exit(0);
+		}
+
+	if ( analysis_options.use_CPP )
+		{
+		for ( auto& f : funcs )
+			{
+			auto hash = f.Profile()->HashVal();
+			auto s = compiled_scripts.find(hash);
+
+			if ( s == compiled_scripts.end() )
+				{ // Look for script-specific body.
+				hash = script_specific_hash(f.Body(), hash);
+				s = compiled_scripts.find(hash);
+				}
+
+			if ( s != compiled_scripts.end() )
+				{
+				auto b = s->second.body;
+				b->SetHash(hash);
+				f.Func()->ReplaceBody(f.Body(), b);
+				f.SetBody(b);
+
+				for ( auto& e : s->second.events )
+					{
+					auto h = event_registry->Register(e);
+					h->SetUsed();
+					}
+				}
+
+			else if ( analysis_options.force_use_CPP )
+				reporter->Warning("no C++ available for %s", f.Func()->Name());
+			}
+
+		// Now that we've loaded all of the compiled scripts
+		// relevant for the AST, activate standalone ones.
+		for ( auto cb : standalone_activations )
+			(*cb)();
+		}
+
+	if ( generating_CPP )
+		{
+		auto hm = std::make_unique<CPPHashManager>(hash_name.c_str(),
+						analysis_options.add_CPP);
+
+		if ( ! analysis_options.gen_CPP )
+			{
+			for ( auto& func : funcs )
+				{
+				auto hash = func.Profile()->HashVal();
+				if ( compiled_scripts.count(hash) > 0 ||
+				     hm->HasHash(hash) )
+					func.SetSkip(true);
+				}
+
+			// Now that we've presumably marked a lot of functions
+			// as skippable, recompute the global profile.
+			pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
+			}
+
+		CPPCompile cpp(funcs, *pfs, gen_name.c_str(), *hm,
+			       analysis_options.gen_CPP ||
+			       analysis_options.update_CPP,
+			       analysis_options.gen_standalone_CPP);
+
+		exit(0);
+		}
+
+	if ( analysis_options.use_CPP )
+		{
+		for ( auto& f : funcs )
+			{
+			auto hash = f.Profile()->HashVal();
+			auto s = compiled_scripts.find(hash);
+
+			if ( s == compiled_scripts.end() )
+				{ // Look for script-specific body.
+				hash = script_specific_hash(f.Body(), hash);
+				s = compiled_scripts.find(hash);
+				}
+
+			if ( s != compiled_scripts.end() )
+				{
+				auto b = s->second.body;
+				b->SetHash(hash);
+				f.Func()->ReplaceBody(f.Body(), b);
+				f.SetBody(b);
+
+				for ( auto& e : s->second.events )
+					{
+					auto h = event_registry->Register(e);
+					h->SetUsed();
+					}
+				}
+
+			else if ( analysis_options.force_use_CPP )
+				reporter->Warning("no C++ available for %s", f.Func()->Name());
+			}
+
+		// Now that we've loaded all of the compiled scripts
+		// relevant for the AST, activate standalone ones.
+		for ( auto cb : standalone_activations )
+			(*cb)();
+		}
+
+	if ( generating_CPP )
+		{
+		auto hm = std::make_unique<CPPHashManager>(hash_name.c_str(),
+						analysis_options.add_CPP);
+
+		if ( ! analysis_options.gen_CPP )
+			{
+			for ( auto& func : funcs )
+				{
+				auto hash = func.Profile()->HashVal();
+				if ( compiled_scripts.count(hash) > 0 ||
+				     hm->HasHash(hash) )
+					func.SetSkip(true);
+				}
+
+			// Now that we've presumably marked a lot of functions
+			// as skippable, recompute the global profile.
+			pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
+			}
+
+		CPPCompile cpp(funcs, *pfs, gen_name.c_str(), *hm,
+			       analysis_options.gen_CPP ||
+			       analysis_options.update_CPP,
+			       analysis_options.gen_standalone_CPP);
+
+		exit(0);
+		}
 
 	if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST )
 		{
@@ -227,9 +484,16 @@ void analyze_scripts()
 		analysis_options.optimize_AST = false;
 		}
 
-	// Now that everything's parsed and BiF's have been initialized,
-	// profile the functions.
-	auto pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
+	// Re-profile the functions, this time without worrying about
+	// compatibility with compilation to C++.  Note that the first
+	// profiling pass above may have marked some of the functions
+	// as to-skip, so first clear those markings.  Once we have
+	// full compile-to-C++ and ZAM support for all Zeek language
+	// features, we can remove the re-profiling here.
+	for ( auto& f : funcs )
+		f.SetSkip(false);
+
+	pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
 
 	// Figure out which functions either directly or indirectly
 	// appear in "when" clauses.
@@ -247,7 +511,10 @@ void analyze_scripts()
 			when_funcs.insert(f.Func());
 
 			for ( auto& bf : f.Profile()->WhenCalls() )
+				{
+				ASSERT(pfs->FuncProf(bf));
 				when_funcs_to_do.insert(bf);
+				}
 
 #ifdef NOT_YET
 			if ( analysis_options.report_uncompilable )

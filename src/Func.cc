@@ -62,6 +62,7 @@
 #include "option.bif.func_h"
 #include "supervisor.bif.func_h"
 #include "packet_analysis.bif.func_h"
+#include "CPP-load.bif.func_h"
 
 #include "zeek.bif.func_def"
 #include "stats.bif.func_def"
@@ -70,6 +71,7 @@
 #include "option.bif.func_def"
 #include "supervisor.bif.func_def"
 #include "packet_analysis.bif.func_def"
+#include "CPP-load.bif.func_def"
 
 extern	RETSIGTYPE sig_handler(int signo);
 

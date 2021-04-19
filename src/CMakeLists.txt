@@ -124,6 +124,9 @@ set(BIF_SRCS
     # it's needed before parsing the packet protocol scripts, which happen
     # very near to the start of parsing.
     packet_analysis/packet_analysis.bif
+    # The C++ loading BIF is treated like other top-level BIFs to give
+    # us flexibility regarding when it's called.
+    script_opt/CPP/CPP-load.bif
 )
 
 foreach (bift ${BIF_SRCS})

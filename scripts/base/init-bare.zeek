@@ -1933,6 +1933,7 @@ type gtp_delete_pdp_ctx_response_elements: record {
 @load base/frameworks/supervisor/api
 @load base/bif/supervisor.bif
 @load base/bif/packet_analysis.bif
+@load base/bif/CPP-load.bif
 
 ## Internal function.
 function add_interface(iold: string, inew: string): string

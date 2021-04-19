@@ -305,7 +305,7 @@ ScriptFunc::ScriptFunc(const IDPtr& arg_id, StmtPtr arg_body,
 		Body b;
 		b.stmts = AddInits(std::move(arg_body), aggr_inits);
 		current_body = b.stmts;
-		b.priority = priority;
+		current_priority = b.priority = priority;
 		bodies.push_back(b);
 		}
 	}
@@ -542,9 +542,8 @@ void ScriptFunc::AddBody(StmtPtr new_body,
 
 	Body b;
 	b.stmts = new_body;
-	b.priority = priority;
-
 	current_body = new_body;
+	current_priority = b.priority = priority;
 
 	bodies.push_back(b);
 	sort(bodies.begin(), bodies.end());
@@ -558,6 +557,7 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body)
 		if ( body.stmts.get() == old_body.get() )
 			{
 			body.stmts = new_body;
+			current_priority = body.priority;
 			found_it = true;
 			}
 

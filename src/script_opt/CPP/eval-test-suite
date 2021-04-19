@@ -1,0 +1,12 @@
+#! /bin/sh
+
+base=../../..
+test=$base/testing/btest
+so=$base/src/script_opt/CPP
+build=$base/build
+gen=CPP-gen-addl.h
+
+export -n ZEEK_ADD_CPP
+cd $test
+rm -rf .tmp
+../../auxil/btest/btest -j -a cpp -f cpp-test.diag core

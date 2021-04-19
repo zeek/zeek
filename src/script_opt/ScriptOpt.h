@@ -118,4 +118,9 @@ extern const FuncInfo* analyze_global_stmts(Stmt* stmts);
 extern void analyze_scripts();
 
 
+// Used for C++-compiled scripts to signal their presence, by setting this
+// to a non-empty value.
+extern void (*CPP_init_hook)();
+
+
 } // namespace zeek::detail

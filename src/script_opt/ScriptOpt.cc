@@ -19,6 +19,8 @@ AnalyOpt analysis_options;
 
 std::unordered_set<const Func*> non_recursive_funcs;
 
+void (*CPP_init_hook)() = nullptr;
+
 // Tracks all of the loaded functions (including event handlers and hooks).
 static std::vector<FuncInfo> funcs;
 

@@ -1,0 +1,13 @@
+#! /bin/sh
+
+base=../../..
+so=$base/src/script_opt/CPP
+build=$base/build
+
+echo > $so/CPP-gen-addl.h
+export -n ZEEK_USE_CPP ZEEK_ADD_CPP
+export ZEEK_HASH_DIR=$build
+cd $build
+echo | src/zeek -b -O gen-C++
+mv ./CPP-gen-addl.h $so/CPP-gen.cc
+ninja || echo Bare embedded build failed

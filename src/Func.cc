@@ -310,6 +310,30 @@ ScriptFunc::ScriptFunc(const IDPtr& arg_id, StmtPtr arg_body,
 		}
 	}
 
+ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft,
+	               std::vector<StmtPtr> bs, std::vector<int> priorities)
+	{
+	name = std::move(_name);
+	frame_size = ft->ParamList()->GetTypes().size();
+	type = std::move(ft);
+
+	auto n = bs.size();
+	ASSERT(n == priorities.size());
+
+	for ( auto i = 0; i < n; ++i )
+		{
+		Body b;
+		b.stmts = std::move(bs[i]);
+		b.priority = priorities[i];
+		bodies.push_back(b);
+		}
+
+	sort(bodies.begin(), bodies.end());
+
+	current_body = bodies[0].stmts;
+	current_priority = bodies[0].priority;
+	}
+
 ScriptFunc::~ScriptFunc()
 	{
 	if ( ! weak_closure_ref )

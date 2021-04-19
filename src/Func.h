@@ -151,6 +151,10 @@ public:
 	        const std::vector<IDPtr>& inits,
 	        size_t frame_size, int priority);
 
+	// For compiled scripts.
+	ScriptFunc(std::string name, FuncTypePtr ft,
+	           std::vector<StmtPtr> bodies, std::vector<int> priorities);
+
 	~ScriptFunc() override;
 
 	bool IsPure() const override;

@@ -450,10 +450,11 @@ public:
 	// Returns a masked port number
 	static uint32_t Mask(uint32_t port_num, TransportProto port_type);
 
-protected:
-	friend class ValManager;
+	// Only meant for use by ValManager and compiled-to-C++ script
+	// functions.
 	PortVal(uint32_t p);
 
+protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
 
@@ -1434,6 +1435,8 @@ public:
 protected:
 	friend class Val;
 	friend class EnumType;
+
+	friend EnumValPtr make_enum__CPP(TypePtr t, int i);
 
 	template<class T, class... Ts>
 	friend IntrusivePtr<T> make_intrusive(Ts&&... args);

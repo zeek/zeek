@@ -36,13 +36,6 @@ zeek::SessionManager*& zeek::sessions = zeek::session_mgr;
 
 namespace zeek {
 
-SessionManager::SessionManager()
-	: stats(telemetry_mgr->GaugeFamily("zeek", "session_stats",
-	                                   {"tcp", "udp", "icmp"},
-	                                   "Zeek Session Stats", "1", false))
-	{
-	}
-
 SessionManager::~SessionManager()
 	{
 	Clear();
@@ -361,17 +354,9 @@ void SessionManager::Remove(Session* s)
 		if ( session_map.erase(key) == 0 )
 			reporter->InternalWarning("connection missing");
 		else
-			switch ( c->ConnTransport() ) {
-			case TRANSPORT_TCP:
-				stats.GetOrAdd({{"tcp", "num_conns"}}).Dec();
-				break;
-			case TRANSPORT_UDP:
-				stats.GetOrAdd({{"udp", "num_conns"}}).Dec();
-				break;
-			case TRANSPORT_ICMP:
-				stats.GetOrAdd({{"icmp", "num_conns"}}).Dec();
-				break;
-			case TRANSPORT_UNKNOWN: break;
+			{
+			if ( auto* stat_block = stats.GetCounters(c->TransportIdentifier()) )
+				stat_block->num.Dec();
 			}
 
 		s->ClearKey();
@@ -425,17 +410,20 @@ void SessionManager::Clear()
 
 void SessionManager::GetStats(SessionStats& s)
 	{
-	s.max_TCP_conns = stats.GetOrAdd({{"tcp", "max_conns"}}).Value();
-	s.num_TCP_conns = stats.GetOrAdd({{"tcp", "num_conns"}}).Value();
-	s.cumulative_TCP_conns = stats.GetOrAdd({{"tcp", "cumulative_conns"}}).Value();
+	auto* tcp_stats = stats.GetCounters("tcp");
+	s.max_TCP_conns = tcp_stats->max;
+	s.num_TCP_conns = tcp_stats->num.Value();
+	s.cumulative_TCP_conns = tcp_stats->total.Value();
 
-	s.max_UDP_conns = stats.GetOrAdd({{"udp", "max_conns"}}).Value();
-	s.num_UDP_conns = stats.GetOrAdd({{"udp", "num_conns"}}).Value();
-	s.cumulative_UDP_conns = stats.GetOrAdd({{"udp", "cumulative_conns"}}).Value();
+	auto* udp_stats = stats.GetCounters("udp");
+	s.max_UDP_conns = udp_stats->max;
+	s.num_UDP_conns = udp_stats->num.Value();
+	s.cumulative_UDP_conns = udp_stats->total.Value();
 
-	s.max_ICMP_conns = stats.GetOrAdd({{"icmp", "max_conns"}}).Value();
-	s.num_ICMP_conns = stats.GetOrAdd({{"icmp", "num_conns"}}).Value();
-	s.cumulative_ICMP_conns = stats.GetOrAdd({{"icmp", "cumulative_conns"}}).Value();
+	auto* icmp_stats = stats.GetCounters("icmp");
+	s.max_ICMP_conns = icmp_stats->max;
+	s.num_ICMP_conns = icmp_stats->num.Value();
+	s.cumulative_ICMP_conns = icmp_stats->total.Value();
 
 	s.num_fragments = detail::fragment_mgr->Size();
 	s.max_fragments = detail::fragment_mgr->MaxFragments();
@@ -649,31 +637,15 @@ void SessionManager::InsertSession(detail::SessionKey key, Session* session)
 	key.CopyData();
 	session_map.insert_or_assign(std::move(key), session);
 
-	std::string protocol;
-	switch ( static_cast<Connection*>(session)->ConnTransport() )
-		{
-		case TRANSPORT_TCP:
-			protocol = "tcp";
-			break;
-		case TRANSPORT_UDP:
-			protocol = "udp";
-			break;
-		case TRANSPORT_ICMP:
-			protocol = "icmp";
-			break;
-		default:
-			break;
-		}
+	std::string protocol = session->TransportIdentifier();
 
-	if ( ! protocol.empty() )
+	if ( auto* stat_block = stats.GetCounters(protocol) )
 		{
-		auto max = stats.GetOrAdd({{protocol, "max_conns"}});
-		auto num = stats.GetOrAdd({{protocol, "num_conns"}});
-		num.Inc();
+		stat_block->num.Inc();
+		stat_block->total.Inc();
 
-		stats.GetOrAdd({{protocol, "cumulative_conns"}}).Inc();
-		if ( num.Value() > max.Value() )
-			max.Inc();
+		if ( stat_block->num.Value() > stat_block->max )
+			stat_block->max++;
 		}
 	}
 

@@ -9,7 +9,7 @@
 #include "zeek/Frag.h"
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/tcp/Stats.h"
-#include "zeek/telemetry/Gauge.h"
+#include "zeek/telemetry/Manager.h"
 #include "zeek/Hash.h"
 #include "zeek/Session.h"
 
@@ -42,7 +42,7 @@ struct SessionStats {
 
 class SessionManager final {
 public:
-	SessionManager();
+	SessionManager() = default;
 	~SessionManager();
 
 	void Done();	// call to drain events before destructing
@@ -141,6 +141,59 @@ public:
 
 private:
 
+	class StatBlocks {
+
+	public:
+
+		struct Block {
+			telemetry::IntGauge num;
+			telemetry::IntCounter total;
+			size_t max = 0;
+
+			Block(telemetry::IntGaugeFamily num_family,
+			      telemetry::IntCounterFamily total_family,
+			      std::string protocol) : num(num_family.GetOrAdd({{"protocol", protocol}})),
+			                              total(total_family.GetOrAdd({{"protocol", protocol}}))
+				{
+				}
+			};
+
+		using BlockMap = std::map<std::string, Block>;
+
+		BlockMap::iterator InitCounters(std::string protocol)
+			{
+			telemetry::IntGaugeFamily num_family = telemetry_mgr->GaugeFamily(
+				"zeek", "open-sessions", {"protocol"}, "Active Zeek Sessions");
+			telemetry::IntCounterFamily total_family = telemetry_mgr->CounterFamily(
+				"zeek", "sessions", {"protocol"},
+				"Total number of sessions", "1", true);
+
+			auto [it, inserted] = entries.insert(
+				{protocol, Block{num_family, total_family, protocol}});
+
+			if ( inserted )
+				return it;
+
+			return entries.end();
+			}
+
+		Block* GetCounters(std::string protocol)
+			{
+			auto it = entries.find(protocol);
+			if ( it == entries.end() )
+				it = InitCounters(protocol);
+
+			if ( it != entries.end() )
+				return &(it->second);
+
+			return nullptr;
+			}
+
+	private:
+
+		BlockMap entries;
+	};
+
 	using SessionMap = std::map<detail::SessionKey, Session*>;
 
 	Connection* NewConn(const detail::ConnIDKey& k, double t, const ConnID* id,
@@ -177,7 +230,7 @@ private:
 	void InsertSession(detail::SessionKey key, Session* session);
 
 	SessionMap session_map;
-	telemetry::IntGaugeFamily stats;
+	StatBlocks stats;
 };
 
 // Manager for the currently active sessions.

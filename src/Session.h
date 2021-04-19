@@ -191,6 +191,12 @@ public:
 	 */
 	void DeleteTimer(double t);
 
+	/**
+	 * Returns a string representation of the transport protocol referenced by the
+	 * session. This is used by SessionManager for statistics.
+	 */
+	virtual std::string TransportIdentifier() const = 0;
+
 protected:
 
 	friend class detail::SessionTimer;
@@ -239,7 +245,6 @@ protected:
 	unsigned int is_active:1;
 	unsigned int record_packets:1, record_contents:1;
 	unsigned int record_current_packet:1, record_current_content:1;
-
 };
 
 namespace detail {

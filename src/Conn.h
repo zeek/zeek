@@ -132,6 +132,17 @@ public:
 	analyzer::Analyzer* FindAnalyzer(const char* name);	// find first in tree.
 
 	TransportProto ConnTransport() const { return proto; }
+	std::string TransportIdentifier() const override
+		{
+		if ( proto == TRANSPORT_TCP )
+			return "tcp";
+		else if ( proto == TRANSPORT_UDP )
+			return "udp";
+		else if ( proto == TRANSPORT_ICMP )
+			return "icmp";
+		else
+			return "unknown";
+		}
 
 	// FIXME: Now this is in Analyzer and should eventually be removed here.
 	//

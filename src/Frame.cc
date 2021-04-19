@@ -430,7 +430,8 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data,
 
 	if ( captures || *has_name == "CopyFrame" )
 		{
-		ASSERT(captures && *has_name == "CopyFrame");
+		if ( captures )
+			ASSERT(*has_name == "CopyFrame");
 
 		auto has_body = broker::get_if<broker::vector>(*where);
 		if ( ! has_body )

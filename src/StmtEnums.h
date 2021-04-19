@@ -20,6 +20,7 @@ enum StmtTag {
 	STMT_WHILE,
 	STMT_CATCH_RETURN,	// for reduced InlineExpr's
 	STMT_CHECK_ANY_LEN,	// internal reduced statement
+	STMT_CPP,	// compiled C++
 	STMT_NULL
 #define NUM_STMTS (int(STMT_NULL) + 1)
 };

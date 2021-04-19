@@ -339,6 +339,10 @@ protected:
 	// Incorporate the given function profile into the global profile.
 	void MergeInProfile(ProfileFunc* pf);
 
+	// Recursively traverse a (possibly aggregate) value to extract
+	// all of the types its elements use.
+	void TraverseValue(const ValPtr& v);
+
 	// When traversing types, Zeek records can have attributes that in
 	// turn have expressions associated with them.  The expressions can
 	// in turn have types, which might be records with further attribute

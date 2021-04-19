@@ -476,14 +476,30 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf)
 		if ( ! inserted )
 			continue;
 
-		auto& v = g->GetVal();
-		if ( v )
-			main_types.push_back(v->GetType().get());
+		TraverseValue(g->GetVal());
+
+		const auto& t = g->GetType();
+		if ( t->Tag() == TYPE_TYPE )
+			(void) HashType(t->AsTypeType()->GetType());
+
+		auto& init_exprs = g->GetInitExprs();
+		for ( auto i_e : init_exprs )
+			if ( i_e )
+				{
+				pending_exprs.push_back(i_e.get());
+
+				if ( i_e->Tag() == EXPR_LAMBDA )
+					lambdas.insert(i_e->AsLambdaExpr());
+				}
+
+		auto& attrs = g->GetAttrs();
+		if ( attrs )
+			AnalyzeAttrs(attrs.get());
 		}
 
 	constants.insert(pf->Constants().begin(), pf->Constants().end());
 	main_types.insert(main_types.end(),
-			pf->OrderedTypes().begin(), pf->OrderedTypes().end());
+	                  pf->OrderedTypes().begin(), pf->OrderedTypes().end());
 	script_calls.insert(pf->ScriptCalls().begin(), pf->ScriptCalls().end());
 	BiF_globals.insert(pf->BiFGlobals().begin(), pf->BiFGlobals().end());
 	events.insert(pf->Events().begin(), pf->Events().end());
@@ -496,6 +512,86 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf)
 
 	for ( auto& a : pf->ConstructorAttrs() )
 		AnalyzeAttrs(a);
+	}
+
+void ProfileFuncs::TraverseValue(const ValPtr& v)
+	{
+	if ( ! v )
+		return;
+
+	const auto& t = v->GetType();
+	(void) HashType(t);
+
+	switch ( t->Tag() ) {
+	case TYPE_ADDR:
+	case TYPE_ANY:
+	case TYPE_BOOL:
+	case TYPE_COUNT:
+	case TYPE_DOUBLE:
+	case TYPE_ENUM:
+	case TYPE_ERROR:
+	case TYPE_FILE:
+	case TYPE_FUNC:
+	case TYPE_INT:
+	case TYPE_INTERVAL:
+	case TYPE_OPAQUE:
+	case TYPE_PATTERN:
+	case TYPE_PORT:
+	case TYPE_STRING:
+	case TYPE_SUBNET:
+	case TYPE_TIME:
+	case TYPE_TIMER:
+	case TYPE_UNION:
+	case TYPE_VOID:
+		break;
+
+	case TYPE_RECORD:
+		{
+		auto r = cast_intrusive<RecordVal>(v);
+		auto n = r->NumFields();
+
+		for ( auto i = 0; i < n; ++i )
+			TraverseValue(r->GetField(i));
+		}
+		break;
+
+	case TYPE_TABLE:
+		{
+		auto tv = cast_intrusive<TableVal>(v);
+		auto tv_map = tv->ToMap();
+
+		for ( auto& tv_i : tv_map )
+			{
+			TraverseValue(tv_i.first);
+			TraverseValue(tv_i.second);
+			}
+		}
+		break;
+
+	case TYPE_LIST:
+		{
+		auto lv = cast_intrusive<ListVal>(v);
+		auto n = lv->Length();
+
+		for ( auto i = 0; i < n; ++i )
+			TraverseValue(lv->Idx(i));
+		}
+		break;
+
+	case TYPE_VECTOR:
+		{
+		auto vv = cast_intrusive<VectorVal>(v);
+		auto n = vv->Size();
+
+		for ( auto i = 0; i < n; ++i )
+			TraverseValue(vv->ValAt(i));
+		}
+		break;
+
+	case TYPE_TYPE:
+		(void) HashType(t->AsTypeType()->GetType());
+		break;
+	}
 	}
 
 void ProfileFuncs::DrainPendingExprs()

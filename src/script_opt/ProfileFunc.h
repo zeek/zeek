@@ -396,8 +396,9 @@ protected:
 
 	// Maps script functions to associated profiles.  This isn't
 	// actually well-defined in the case of event handlers and hooks,
-	// which can have multiple bodies.  However, this is only used
-	// in the context of analyzing a single-bodied function.
+	// which can have multiple bodies.  However, the need for this
+	// is temporary (it's for skipping compilation of functions that
+	// appear in "when" clauses), and in that context it suffices.
 	std::unordered_map<const ScriptFunc*, std::shared_ptr<ProfileFunc>> func_profs;
 
 	// Maps expressions to their profiles.  This is only germane

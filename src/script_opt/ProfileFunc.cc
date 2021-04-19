@@ -433,7 +433,7 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs,
 			f.SetSkip(true);
 
 		f.SetProfile(std::move(pf));
-		func_profs[f.Func()] = f.Profile();
+		func_profs[f.Func()] = f.ProfilePtr();
 		}
 
 	// We now have the main (starting) types used by all of the
@@ -524,7 +524,7 @@ void ProfileFuncs::ComputeBodyHashes(std::vector<FuncInfo>& funcs)
 	{
 	for ( auto& f : funcs )
 		if ( ! f.ShouldSkip() )
-			ComputeProfileHash(f.Profile());
+			ComputeProfileHash(f.ProfilePtr());
 
 	for ( auto& l : lambdas )
 		ComputeProfileHash(ExprProf(l));

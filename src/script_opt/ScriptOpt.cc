@@ -138,8 +138,10 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 	}
 
 
-FuncInfo::FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body)
-		: func(std::move(_func)), scope(std::move(_scope)), body(std::move(_body))
+FuncInfo::FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body,
+                   int _priority)
+		: func(std::move(_func)), scope(std::move(_scope)),
+		  body(std::move(_body)), priority(_priority)
 	{}
 
 void FuncInfo::SetProfile(std::shared_ptr<ProfileFunc> _pf)
@@ -151,7 +153,8 @@ void analyze_func(ScriptFuncPtr f)
 	     *analysis_options.only_func != f->Name() )
 		return;
 
-	funcs.emplace_back(f, ScopePtr{NewRef{}, f->GetScope()}, f->CurrentBody());
+	funcs.emplace_back(f, ScopePtr{NewRef{}, f->GetScope()},
+	                   f->CurrentBody(), f->CurrentPriority());
 	}
 
 const FuncInfo* analyze_global_stmts(Stmt* stmts)
@@ -170,7 +173,7 @@ const FuncInfo* analyze_global_stmts(Stmt* stmts)
 	StmtPtr stmts_p{NewRef{}, stmts};
 	auto sf = make_intrusive<ScriptFunc>(id, stmts_p, empty_inits, sc->Length(), 0);
 
-	funcs.emplace_back(sf, ScopePtr{NewRef{}, sc}, stmts_p);
+	funcs.emplace_back(sf, ScopePtr{NewRef{}, sc}, stmts_p, 0);
 
 	return &funcs.back();
 	}
@@ -301,7 +304,7 @@ void analyze_scripts()
 			continue;
 
 		auto new_body = f.Body();
-		optimize_func(f.Func(), f.Profile(), f.Scope(),
+		optimize_func(f.Func(), f.ProfilePtr(), f.Scope(),
 				new_body, analysis_options);
 		f.SetBody(new_body);
 		}

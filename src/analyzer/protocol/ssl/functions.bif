@@ -16,3 +16,25 @@ function set_ssl_established%(c: connection%): any
 		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->StartEncryption();
 	return nullptr;
 	%}
+
+function set_secret%(c: connection, secret: string%): bool
+	%{
+	analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
+	if ( sa )
+	{
+		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->SetSecret(secret->Bytes(), secret->Len());
+		return zeek::val_mgr->True();
+	}
+	return zeek::val_mgr->False();
+	%}
+
+function set_keys%(c: connection, keys: string%): bool
+	%{
+	analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
+	if ( sa )
+	{
+		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->SetKeys(keys->Bytes(), keys->Len());
+		return zeek::val_mgr->True();
+	}
+	return zeek::val_mgr->False();
+	%}

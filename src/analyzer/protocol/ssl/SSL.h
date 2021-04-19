@@ -1,5 +1,6 @@
 #pragma once
 
+#include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 #include "zeek/analyzer/protocol/ssl/events.bif.h"
@@ -33,11 +34,24 @@ public:
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SSL_Analyzer(conn); }
 
+	// Key material for decryption
+	void SetSecret(const u_char* data, int len);
+	void SetKeys(const u_char* data, int len);
+
+	bool TryDecryptApplicationData(int len, const u_char* data, bool is_orig, uint8_t content_type, uint16_t raw_tls_version);
+	void ForwardDecryptedData(int len, const u_char* data, bool is_orig);
+
 protected:
 	binpac::SSL::SSL_Conn* interp;
 	binpac::TLSHandshake::Handshake_Conn* handshake_interp;
 	bool had_gap;
 
+	// FIXME: should this be moved into the connection?
+	int c_seq;
+	int s_seq;
+	zeek::StringVal *secret;
+	zeek::StringVal *keys;
+	zeek::analyzer::pia::PIA_TCP *pia;
 };
 
 } // namespace zeek::analyzer::ssl

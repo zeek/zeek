@@ -25,8 +25,8 @@
 
 refine connection Handshake_Conn += {
 
-	%include proc-client-hello.pac
-	%include proc-server-hello.pac
+	%include proc-client-hello-tls.pac
+	%include proc-server-hello-tls.pac
 	%include proc-certificate.pac
 
 	function proc_session_ticket_handshake(rec: SessionTicketHandshake, is_orig: bool): bool

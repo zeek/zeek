@@ -185,6 +185,11 @@ Known Issues
 Here we list various known issues with using the compiler:
 <br>
 
+* Run-time error messages generally lack location information and information
+about associated expressions/statements, making them hard to puzzle out.
+This could be fixed, but would add execution overhead in passing around
+the necessary strings / `Location` objects.
+
 * Compilation of compiled code can be noticeably slow (if built using
 `./configure --enable-debug`) or hugely slow (if not), with the latter
 taking on the order of an hour on a beefy laptop.  This slowness complicates

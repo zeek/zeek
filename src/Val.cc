@@ -3390,7 +3390,10 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 			types_it = std::next(yield_types->begin(), index);
 			}
 		else if ( managed_yield )
-			ZVal::DeleteManagedType(**it);
+			{
+			if ( *it )
+				ZVal::DeleteManagedType(**it);
+			}
 		}
 	else
 		{
@@ -3446,7 +3449,10 @@ bool VectorVal::Remove(unsigned int index)
 		}
 
 	else if ( managed_yield )
-		ZVal::DeleteManagedType(**it);
+		{
+		if ( *it )
+			ZVal::DeleteManagedType(**it);
+		}
 
 	vector_val->erase(it);
 

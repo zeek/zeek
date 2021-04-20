@@ -10,6 +10,11 @@ function test_case(msg: string, expect: bool)
 # Note: only global vectors can be initialized with curly braces
 global vg1: vector of string = { "curly", "braces" };
 
+type R: record {
+	a: bool &default=T;
+};
+
+
 event zeek_init()
 {
 	local v1: vector of string = vector( "test", "example" );
@@ -205,4 +210,11 @@ event zeek_init()
 	v5[6:] = vector();
 	local v20 = copy(v5);
 	print "copy of a vector with trailing holes", v5, v20;
+
+	local v21 = vector(R(), R());
+	v21[4] = R();
+	print "hole in vector of managed types", |v21|, v21;
+	v21[3:] = vector();
+	print "hole in vector of managed types after replacing slice", |v21|, v21;
+
 }

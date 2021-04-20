@@ -22,4 +22,4 @@ ninja >& errs || echo build for $1 failed
 export -n ZEEK_ADD_CPP
 cd $test
 rm -rf .tmp
-../../auxil/btest/btest -j -a cpp -f cpp-jtest.$1.diag $1
+../../auxil/btest/btest -j -a cpp -f cpp-test.$1.diag $1

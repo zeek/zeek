@@ -63,7 +63,7 @@
 // the test suite.
 //
 // Zeek invocations specifying "-O use-C++" will activate any code compiled
-// into the zeek binary; otherwise, the code lies dormant.  "-O force-C++"
+// into the zeek binary; otherwise, the code lies dormant.  "-O force-use-C++"
 // does the same but generates warnings for script functions not found in
 // compiled in.  This is useful for debugging the compiled code, to ensure
 // that it's indeed being run.

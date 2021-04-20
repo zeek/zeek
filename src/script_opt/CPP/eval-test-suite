@@ -9,4 +9,4 @@ gen=CPP-gen-addl.h
 export -n ZEEK_ADD_CPP
 cd $test
 rm -rf .tmp
-../../auxil/btest/btest -j -a cpp -f cpp-test.diag core
+../../auxil/btest/btest -j -a cpp -f cpp-test.diag $1

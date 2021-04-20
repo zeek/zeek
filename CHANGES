@@ -1,4 +1,8 @@
 
+4.1.0-dev.539 | 2021-04-20 15:21:03 -0700
+
+  * Fix LGTM finding in zeek-cut with uses of localtime and gmtime (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.537 | 2021-04-20 14:34:48 -0700
 
   * Restore support for vectors with holes and improve test cases (Vern Paxson, Corelight)

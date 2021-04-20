@@ -3706,8 +3706,7 @@ ValPtr VectorVal::DoClone(CloneState* state)
 	for ( auto i = 0; i < n; ++i )
 		{
 		auto elem = At(i);
-		if ( elem )
-			vv->Assign(i, elem->Clone(state));
+		vv->Assign(i, elem ? elem->Clone(state) : nullptr);
 		}
 
 	return vv;

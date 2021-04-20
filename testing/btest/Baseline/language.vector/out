@@ -75,3 +75,4 @@ slicing assignment grow (PASS)
 slicing assignment shrink (PASS)
 ? operator (PASS)
 copy of a vector with holes (PASS)
+copy of a vector with trailing holes, [0, 2, 3, 77, , ], [0, 2, 3, 77, , ]

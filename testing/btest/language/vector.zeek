@@ -200,4 +200,9 @@ event zeek_init()
 	# Test copying of a vector with holes, as this used to crash.
 	local v19 = copy(v5);
 	test_case( "copy of a vector with holes", |v5| == |v19| );
+	# Even after removing some elements at the end, any trailing holes should
+	# be preserved after copying;
+	v5[6:] = vector();
+	local v20 = copy(v5);
+	print "copy of a vector with trailing holes", v5, v20;
 }

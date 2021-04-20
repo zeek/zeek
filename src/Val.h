@@ -1505,10 +1505,6 @@ public:
 	 */
 	bool Assign(unsigned int index, ValPtr element);
 
-	// Note: the following nullptr method can also go upon removing the above.
-	void Assign(unsigned int index, std::nullptr_t)
-		{ Assign(index, ValPtr{}); }
-
 	/**
 	 * Assigns a given value to multiple indices in the vector.
 	 * @param index  The starting index to assign to.
@@ -1581,18 +1577,19 @@ public:
 	/**
 	 * Returns the given element in a given underlying representation.
 	 * Enables efficient vector access.  Caller must ensure that the
-	 * index lies within the vector's range.
+	 * index lies within the vector's range, and does not point to
+	 * a "hole".
 	 * @param index  The position in the vector of the element to return.
 	 * @return  The element's underlying value.
 	 */
 	bro_uint_t CountAt(unsigned int index) const
-		{ return (*vector_val)[index].uint_val; }
+		{ return (*vector_val)[index]->uint_val; }
 	const RecordVal* RecordValAt(unsigned int index) const
-		{ return (*vector_val)[index].record_val; }
+		{ return (*vector_val)[index]->record_val; }
 	bool BoolAt(unsigned int index) const
-		{ return static_cast<bool>((*vector_val)[index].uint_val); }
+		{ return static_cast<bool>((*vector_val)[index]->uint_val); }
 	const StringVal* StringValAt(unsigned int index) const
-		{ return (*vector_val)[index].string_val; }
+		{ return (*vector_val)[index]->string_val; }
 	const String* StringAt(unsigned int index) const
 		{ return StringValAt(index)->AsString(); }
 
@@ -1601,7 +1598,7 @@ protected:
 	 * Returns the element at a given index or nullptr if it does not exist.
 	 * @param index  The position in the vector of the element to return.
 	 * @return  The element at the given index or nullptr if the index
-	 * does not exist (it's greater than or equal to vector's current size).
+	 * does not exist.
 	 *
 	 * Protected to ensure callers pick one of the differentiated accessors
 	 * above, as appropriate, with ValAt() providing the original semantics.
@@ -1624,7 +1621,7 @@ private:
 	// Add the given number of "holes" to the end of a vector.
 	void AddHoles(int nholes);
 
-	std::vector<ZVal>* vector_val;
+	std::vector<std::optional<ZVal>>* vector_val;
 
 	// For homogeneous vectors (the usual case), the type of the
 	// elements.  Will be TYPE_VOID for empty vectors created using

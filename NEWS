@@ -52,19 +52,6 @@ New Functionality
 Changed Functionality
 ---------------------
 
-- The ``in`` operator does not any more track whether a given vector element
-  has been assigned-to. It now simply equates to "is this index between zero
-  and the size-of-the-vector-minus-one, inclusive".  Previously, the ``in``
-  operator could have detected whether, by purpose or accident, a "hole" was
-  created in a vector by way of assigning to an index that's more than 1 beyond
-  the end of the vector (with intermediate elements becoming "holes") and
-  whether a "hole" had ever been subsequently filled by an assignment.
-
-  The behavior of creating a "hole" in a vector was never explicitly
-  documented, and should be thought of as undefined behavior and not something
-  the ``in`` operator can be used to detect.  For this kind of usage, a
-  ``table[count] of X`` is more appropriate than a vector.
-
 Removed Functionality
 ---------------------
 

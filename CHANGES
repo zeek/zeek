@@ -1,4 +1,15 @@
 
+4.1.0-dev.537 | 2021-04-20 14:34:48 -0700
+
+  * Restore support for vectors with holes and improve test cases (Vern Paxson, Corelight)
+
+    There's no longer breaking behavior changes to how vector-holes work from
+    previous Zeek versions.
+
+  * Fix cloning/copying vectors that contain holes (Vern Paxson, Corelight)
+
+  * fix using ++/-- to vectors that contain holes (Vern Paxson, Corelight)
+
 4.1.0-dev.526 | 2021-04-16 16:03:06 -0700
 
   * GH-1506: Fix Broker unserialization of set/table function indices (Jon Siwek, Corelight)

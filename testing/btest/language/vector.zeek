@@ -183,4 +183,15 @@ event zeek_init()
 	test_case( "slicing assignment grow", all_set(v17 == vector(6, 2, 9, 10, 11, 5)) );
 	v17[2:5] = vector(9);
 	test_case( "slicing assignment shrink", all_set(v17 == vector(6, 2, 9, 5)) );
+
+	# Test copying of a vector with holes, as this used to crash.
+	local v18 = vector(0, 1, 2);
+	v18[10] = 10;
+	local v19 = copy(v18);
+	print "copy of a vector with holes", |v18|, |v19|, v18, v19;
+	# Even after removing some elements at the end, any trailing holes should
+	# be preserved after copying;
+	v18[6:] = vector();
+	local v20 = copy(v18);
+	print "copy of a vector with trailing holes", |v18|, |v20|, v18, v20;
 }

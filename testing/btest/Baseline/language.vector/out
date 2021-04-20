@@ -68,3 +68,5 @@ slicing assignment (PASS)
 slicing assignment (PASS)
 slicing assignment grow (PASS)
 slicing assignment shrink (PASS)
+copy of a vector with holes, 11, 11, [0, 1, 2, , , , , , , , 10], [0, 1, 2, , , , , , , , 10]
+copy of a vector with trailing holes, 6, 6, [0, 1, 2, , , ], [0, 1, 2, , , ]

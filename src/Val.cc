@@ -3360,8 +3360,10 @@ ValPtr VectorVal::DoClone(CloneState* state)
 
 	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
 		{
-		auto v = (*val.vector_val)[i]->Clone(state);
-		vv->val.vector_val->push_back(std::move(v));
+		if ( (*val.vector_val)[i] )
+			vv->val.vector_val->push_back((*val.vector_val)[i]->Clone(state));
+		else
+			vv->val.vector_val->push_back(nullptr);
 		}
 
 	return vv;

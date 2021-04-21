@@ -3,6 +3,107 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 4.0.1
+==========
+
+This release fixes the following security issue:
+
+- Fix null-pointer dereference when encountering an invalid `enum` name in a
+  config/input file that tries to read it into a `set[enum]`.  For those
+  that have such an input feed whose contents may come from external/remote
+  sources, this is a potential DoS vulnerability.
+
+  https://github.com/zeek/zeek/issues/1487
+  https://github.com/zeek/zeek/pull/1488
+
+This release fixes the following bugs:
+
+- Fix mime type detection bug in IRC/FTP `file_transferred` event for file
+  data containing null-bytes
+
+  https://github.com/zeek/zeek/pull/1430
+
+- Fix potential for missing timestamps in SMB logs
+
+  https://github.com/zeek/zeek/pull/1436
+
+- Remove use of LeakSanitizer API on FreeBSD where it's unsupported
+
+  https://github.com/zeek/zeek/pull/1440
+
+- Fix incorrect parsing of ERSPAN Type I
+
+  https://github.com/zeek/zeek/pull/1445
+  https://github.com/zeek/zeek/commit/f53fb9a22e1ad5aa1ebdf726f241c9cad0ceeb32
+
+- Fix incorrect/overflowed `n` value for `SSL_Heartbeat_Many_Requests` notices
+  where number of server heartbeats is greater than number of client heartbeats.
+
+  https://github.com/zeek/zeek/issues/1454
+  https://github.com/zeek/zeek/pull/1459
+  https://github.com/zeek/zeek/commit/c23e3ca1056c03be347da6163a8e447670ce06b1
+
+- Fix missing `user_agent` existence check in `smtp/software.zeek`
+  (causes `reporter.log` error noise, but no functional difference)
+
+  https://github.com/zeek/zeek/pull/1455
+  https://github.com/zeek/zeek/commit/83d5b44462722c5571b33eb6bcb0491af90cccc7
+
+- Fix include order of bundled headers to avoid conflicts with
+  pre-existing/system-wide installs
+
+  https://github.com/zeek/zeek/pull/1465
+
+- Fix musl build (e.g. Void, Alpine, etc.)
+
+  https://github.com/zeek/zeek/pull/1469
+  https://github.com/zeek/zeek/commit/2ad482535ee36c99d7f9ea3bcd3077cb9c81bc78
+
+- Fix build with `-DENABLE_MOBILE_IPV6 ` / `./configure --enable-mobile-ipv6`
+
+  https://github.com/zeek/zeek/issues/1493
+  https://github.com/zeek/zeek/pull/1495
+
+- Add check for null packet data in pcap IOSource, which is an observed state
+  in Myricom libpcap that crashes Zeek via null-pointer dereference
+
+  https://github.com/zeek/zeek/pull/1498
+
+- Allow CRLF line-endings in Zeek scripts and signature files
+
+  https://github.com/zeek/zeek/issues/1497
+  https://github.com/zeek/zeek/pull/1499
+
+- Fix armv7 build
+
+  https://github.com/zeek/zeek/issues/1496
+  https://github.com/zeek/zeek/issues/1502
+
+- Fix unserialization of `set[function]`, generally now used by `connection`
+  record removal hooks, and specifically breaking `intel.log` of Zeek clusters
+
+  https://github.com/zeek/zeek/issues/1506
+  https://github.com/zeek/zeek/pull/1513
+
+- Fix indexing of set/table types with a vector
+
+  https://github.com/zeek/zeek/pull/1514
+
+- Fix precision loss in ASCII logging/printing of large double, time, or
+  interval values
+
+  https://github.com/zeek/zeek/issues/1450
+  https://github.com/zeek/zeek/pull/1494
+
+- Improve handling of invalid SIP data before requests
+
+  https://github.com/zeek/zeek/issues/1507
+  https://github.com/zeek/zeek/pull/1511
+
+- Fix `copy()`/cloning vectors that have holes (indices w/ null values)
+
+  https://github.com/zeek/zeek/commit/180ab3181f7743cf57b74a2840bd1d701679647b
+
 Zeek 4.0.0
 ==========
 

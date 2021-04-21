@@ -1,0 +1,2 @@
+warning: Value 'asdf' for stream 'config-oneshot-../configfile' is not a valid enum.
+error: SendEvent for event InputConfig::new_value failed

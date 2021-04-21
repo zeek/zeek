@@ -1,4 +1,13 @@
 
+3.0.14 | 2021-04-21 11:02:28 -0700
+
+  * Release 3.0.14.
+
+  * Fix crash on reading invalid set[enum] from config/input file (Tim Wojtulewicz, Corelight)
+
+    Attempting to read an invalid enum name into a set[enum] from a
+    config-file or input-file causes a null-pointer dereference.
+
 3.0.13 | 2021-02-22 10:17:00 -0800
 
   * GH-1352: Added flag to stop processing SMTP headers in attached messages (Jon Oakley)

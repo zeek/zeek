@@ -3,6 +3,19 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 3.0.14
+===========
+
+This release fixes the following security issue:
+
+- Fix null-pointer dereference when encountering an invalid `enum` name in a
+  config/input file that tries to read it into a `set[enum]`.  For those
+  that have such an input feed whose contents may come from external/remote
+  sources, this is a potential DoS vulnerability.
+
+  https://github.com/zeek/zeek/issues/1487
+  https://github.com/zeek/zeek/pull/1488
+
 Zeek 3.0.13
 ===========
 

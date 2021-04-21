@@ -267,7 +267,7 @@ void CPPCompile::GenSwitchStmt(const SwitchStmt* sw)
 				if ( is_int )
 					c_v_rep = Fmt(int(c_v->AsInt()));
 				else if ( is_uint )
-					c_v_rep = Fmt(c_v->AsCount());
+					c_v_rep = Fmt(p_hash_type(c_v->AsCount()));
 				else
 					c_v_rep = Fmt(p_hash(c_v));
 

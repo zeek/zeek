@@ -721,7 +721,7 @@ std::string CPPCompile::GenVal(const ValPtr& v)
 		return GenEnum(t, v);
 
 	if ( tag == TYPE_PORT )
-		return Fmt(v->AsCount());
+		return Fmt(int(v->AsCount()));
 
 	if ( it == TYPE_INTERNAL_DOUBLE )
 		return Fmt(v->AsDouble());

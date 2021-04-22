@@ -325,7 +325,6 @@ set(MAIN_SRCS
     Var.cc
     WeirdState.cc
     ZAM.cc
-    ZAM-Gen.cc
     ZBody.cc
     ZBuiltIn.cc
     ZGen.cc
@@ -362,6 +361,10 @@ set(MAIN_SRCS
     digest.h
 )
 
+set(ZAM_GEN_SRCS
+    ZAM-Gen.cc
+)
+
 set(THIRD_PARTY_SRCS
     3rdparty/sqlite3.c
 )
@@ -388,9 +391,12 @@ set(bro_SRCS
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})
+collect_headers(ZAM_GEN_HEADERS ${ZAM_GEN_SRCS})
 
 add_executable(zeek ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIR_LIBS} ${bro_PLUGIN_LIBS})
 target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+
+add_executable(ZAM-Gen ${ZAM_GEN_SRCS} ${ZAM_GEN_HEADERS})
 
 if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )
     set_target_properties(zeek PROPERTIES LINK_FLAGS "${bro_LINKER_FLAGS}")

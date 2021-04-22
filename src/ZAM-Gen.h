@@ -1,13 +1,24 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
+#pragma once
+
+#include <memory>
 #include <ZInst.h>
 
+using std::string;
+using std::vector;
+
 enum ZAM_OperandType {
+	ZAM_OT_AUX,
 	ZAM_OT_CONSTANT,
-	ZAM_OT_VAR,	// a frame slot
+	ZAM_OT_EVENT_HANDLER,
+	ZAM_OT_FIELD,
 	ZAM_OT_INT,
 	ZAM_OT_LIST,
-	ZAM_OT_EVENT_HANDLER,
-	ZAM_OT_AUX,
 	ZAM_OT_RECORD_FIELD,
+	ZAM_OT_VAR,	// a frame slot
+
+	ZAM_OT_NONE
 };
 
 enum ZAM_ExprType {
@@ -16,25 +27,35 @@ enum ZAM_ExprType {
 	ZAM_EXPR_TYPE_DOUBLE_CUSTOM,
 	ZAM_EXPR_TYPE_INT,
 	ZAM_EXPR_TYPE_INT_CUSTOM,
-	ZAM_EXPR_TYPE_NONE,
 	ZAM_EXPR_TYPE_PORT,
-	ZAM_EXPR_TYPE_SET,
+	ZAM_EXPR_TYPE_STRING,
 	ZAM_EXPR_TYPE_SUBNET,
 	ZAM_EXPR_TYPE_TABLE,
 	ZAM_EXPR_TYPE_UINT,
 	ZAM_EXPR_TYPE_UINT_CUSTOM,
 	ZAM_EXPR_TYPE_VECTOR,
 
-	ZAM_EXPR_TYPE_ALL,
+	ZAM_EXPR_TYPE_ANY,
+	ZAM_EXPR_TYPE_NONE,
 };
+
+class TemplateInput;
+
+// We only use the following in the context where the vector's elements
+// are individual words from the same line.  We don't use it in other
+// contexts where we're tracking a bunch of strings.
+using Words = vector<string>;
 
 class ZAM_OpTemplate {
 public:
-	ZAM_OpTemplate(std::string _base_name);
+	ZAM_OpTemplate(TemplateInput* _ti, string _base_name);
+	virtual ~ZAM_OpTemplate()	{ }
+
+	void Build();
 
 	void AddOpType(ZAM_OperandType ot)
 		{ ots.push_back(ot); }
-	const std::vector<ZAM_OperandType>& OperandTypes() const
+	const vector<ZAM_OperandType>& OperandTypes() const
 		{ return ots; }
 
 	void SetOp1Flavor(ZAMOp1Flavor fl)	{ op1_flavor = fl; }
@@ -46,185 +67,240 @@ public:
 	void SetType2Param(int param)		{ type2_param = param; }
 	int GetType2Param() const		{ return type2_param; }
 
-	void AddEval(std::string line)
-		{ evals.push_back(std::move(line)); }
+	void AddEval(string line)		{ evals.push_back(line); }
 	bool HasEvals() const			{ return evals.size() > 0; }
-	const std::vector<std::string>& Evals() const	{ return evals; }
+	const vector<string>& Evals() const	{ return evals; }
 
-	void SetCustomMethod(std::string cm)
-		{ custom_method = std::move(cm); }
+	void SetCustomMethod(string cm)		{ custom_method = cm; }
 	bool HasCustomMethod() const
 		{ return custom_method.size() > 0; }
-	const std::string& GetCustomMethod() const
+	const string& GetCustomMethod() const
 		{ return custom_method; }
 
-	void SetPostMethod(std::string cm)
-		{ post_method = std::move(cm); }
+	void SetPostMethod(string cm)		{ post_method = cm; }
 	bool HasPostMethod() const
 		{ return post_method.size() > 0; }
-	const std::string& GetPostMethod() const
+	const string& GetPostMethod() const
 		{ return post_method; }
 
-	virtual int Arity() const			{ return 0; }
 	virtual bool IncludesFieldOp() const		{ return false; }
 	virtual bool IsInternal() const			{ return false; }
 
 	bool IncludesVectorOp() const	{ return includes_vector_op; }
 	void SetIncludesVectorOp() 	{ includes_vector_op = true; }
 
-	virtual bool HasSideEffects() const		{ return false; }
+	bool HasSideEffects() const	{ return has_side_effects; }
+	void SetHasSideEffects()	{ has_side_effects = true; }
+
 	bool HasSpecificSideEffects() const
 		{ return specific_side_effects.size() > 0; }
-	void SetSpecificSideEffects(std::string sse, std::string sse_ot)
+	void SetSpecificSideEffects(string sse, string sse_ot)
 		{
-		specific_side_effects = std::move(sse);
-		specific_side_effects_op_type = std::move(sse_ot);
+		specific_side_effects = sse;
+		specific_side_effects_op_type = sse_ot;
 		}
-	const std::string& SpecificSideEffects() const
+	const string& SpecificSideEffects() const
 		{ return specific_side_effects; }
-	const std::string& SpecificSideEffectsOpType() const
+	const string& SpecificSideEffectsOpType() const
 		{ return specific_side_effects_op_type; }
 
 protected:
-	std::string base_name;
+	virtual void Parse(const string& attr, const string& line, const Words& words);
+	int ExtractTypeParam(const string& arg);
 
-	std::vector<ZAM_OperandType> ots;
+	TemplateInput* ti;
+
+	string base_name;
+
+	vector<ZAM_OperandType> ots;
 	ZAMOp1Flavor op1_flavor;
 
 	int type_param = 0;	// 0 = not set
 	int type2_param = 0;
 
-	std::vector<std::string> evals;
+	vector<string> evals;
 
-	std::string custom_method;
-	std::string post_method;
+	string custom_method;
+	string post_method;
 
 	bool includes_vector_op = false;
+	bool has_side_effects = false;
 
-	std::string specific_side_effects;
-	std::string specific_side_effects_op_type;
+	string specific_side_effects;
+	string specific_side_effects_op_type;
 };
 
-class ZAM_UnaryOpTemplate : ZAM_OpTemplate {
+class ZAM_UnaryOpTemplate : public ZAM_OpTemplate {
 public:
-	ZAM_UnaryOpTemplate(std::string _base_name)
-	: ZAM_OpTemplate(_base_name) { }
+	ZAM_UnaryOpTemplate(TemplateInput* _ti, string _base_name)
+	: ZAM_OpTemplate(_ti, _base_name) { }
 
 	bool HasDirectOp() const		{ return direct_op.size() > 0; }
-	void SetDirectOp(std::string d_o)	{ direct_op = std::move(d_o); }
-	const std::string& GetDirectOp() const	{ return direct_op; }
+	void SetDirectOp(string d_o)		{ direct_op = d_o; }
+	const string& GetDirectOp() const	{ return direct_op; }
 
 	bool NoConst() const			{ return no_const; }
 	void SetNoConst()			{ no_const = true; }
-	int Arity() const override		{ return 1; }
+
+protected:
+	virtual void Parse(const string& attr, const string& line, const Words& words);
 
 private:
-	std::string direct_op;
+	string direct_op;
 	bool no_const = false;
 };
 
-class ZAM_DirectUnaryOpTemplate : ZAM_OpTemplate {
+class ZAM_DirectUnaryOpTemplate : public ZAM_OpTemplate {
 public:
-	ZAM_DirectUnaryOpTemplate(std::string _base_name)
-	: ZAM_OpTemplate(_base_name) { }
+	ZAM_DirectUnaryOpTemplate(TemplateInput* _ti, string _base_name, string _direct)
+	: ZAM_OpTemplate(_ti, _base_name), direct(_direct) { }
 
+private:
+	std::string direct;
 };
 
-class ZAM_AssignOpTemplate : ZAM_OpTemplate {
+class ZAM_AssignOpTemplate : public ZAM_OpTemplate {
 public:
-	ZAM_AssignOpTemplate(std::string _base_name)
-	: ZAM_OpTemplate(_base_name) { }
+	ZAM_AssignOpTemplate(TemplateInput* _ti, string _base_name)
+	: ZAM_OpTemplate(_ti, _base_name) { }
 
+	bool IncludesFieldOp() const override	{ return field_op; }
+
+private:
+	bool field_op = false;
 };
 
-class ZAM_ExprOpTemplate : ZAM_OpTemplate {
+class ZAM_ExprOpTemplate : public ZAM_OpTemplate {
 public:
-	ZAM_ExprOpTemplate(std::string _base_name)
-	: ZAM_OpTemplate(_base_name) { }
+	ZAM_ExprOpTemplate(TemplateInput* _ti, string _base_name)
+	: ZAM_OpTemplate(_ti, _base_name) { }
 
 	bool IncludesFieldOp() const override	{ return true; }
+
+	virtual int Arity() const			{ return 0; }
 
 	int TypeSelector() const	{ return type_selector; }
 	void SetTypeSelector(int ts)	{ type_selector = ts; }
 
-	void AddEvalSet(ZAM_ExprType et, std::string ev)
-		{ eval_set[et].emplace_back(std::move(ev)); }
-	void AddEvalSet(ZAM_ExprType et1, ZAM_ExprType et2, std::string ev)
-		{ eval_mixed_set[et1][et2].emplace_back(std::move(ev)); }
+	void AddExprType(ZAM_ExprType et)
+		{ expr_types.insert(et); }
+
+	void AddEvalSet(ZAM_ExprType et, string ev)
+		{ eval_set[et].emplace_back(ev); }
+	void AddEvalSet(ZAM_ExprType et1, ZAM_ExprType et2, string ev)
+		{ eval_mixed_set[et1][et2].emplace_back(ev); }
 
 	bool HasPreEval() const			{ return pre_eval.size() > 0; }
-	void SetPreEval(std::string pe)		{ pre_eval = std::move(pe); }
-	const std::string GetPreEval() const	{ return pre_eval; }
+	void SetPreEval(string pe)		{ pre_eval = pe; }
+	const string GetPreEval() const	{ return pre_eval; }
+
+protected:
+	void Parse(const string& attr, const string& line, const Words& words) override;
 
 private:
-	std::unordered_map<ZAM_ExprType, std::vector<std::string>> eval_set;
+	std::unordered_set<ZAM_ExprType> expr_types;
+
+	std::unordered_map<ZAM_ExprType, vector<string>> eval_set;
 	std::unordered_map<ZAM_ExprType,
-	 std::unordered_map<ZAM_ExprType, std::vector<std::string>>>
+	 std::unordered_map<ZAM_ExprType, vector<string>>>
 	  eval_mixed_set;
 
 	// If non-zero, code to generate prior to evaluating the expression.
-	std::string pre_eval;
+	string pre_eval;
 
 	// If non-zero, specifies which operand to use to determine
 	// the result type of the expression.
 	int type_selector = 0;
 };
 
-class ZAM_UnaryExprOpTemplate : ZAM_ExprOpTemplate {
+class ZAM_UnaryExprOpTemplate : public ZAM_ExprOpTemplate {
 public:
-	ZAM_UnaryExprOpTemplate(std::string _base_name)
-	: ZAM_ExprOpTemplate(_base_name) { }
+	ZAM_UnaryExprOpTemplate(TemplateInput* _ti, string _base_name)
+	: ZAM_ExprOpTemplate(_ti, _base_name) { }
 
 	int Arity() const override		{ return 1; }
 };
 
-class ZAM_BinaryExprOpTemplate : ZAM_ExprOpTemplate {
+class ZAM_BinaryExprOpTemplate : public ZAM_ExprOpTemplate {
 public:
-	ZAM_BinaryExprOpTemplate(std::string _base_name)
-	: ZAM_ExprOpTemplate(_base_name) { }
+	ZAM_BinaryExprOpTemplate(TemplateInput* _ti, string _base_name)
+	: ZAM_ExprOpTemplate(_ti, _base_name) { }
 
 	int Arity() const override		{ return 2; }
 };
 
-class ZAM_RelationalExprOpTemplate : ZAM_BinaryExprOpTemplate {
+class ZAM_RelationalExprOpTemplate : public ZAM_BinaryExprOpTemplate {
 public:
-	ZAM_RelationalExprOpTemplate(std::string _base_name)
-	: ZAM_BinaryExprOpTemplate(_base_name) { }
+	ZAM_RelationalExprOpTemplate(TemplateInput* _ti, string _base_name)
+	: ZAM_BinaryExprOpTemplate(_ti, _base_name) { }
 };
 
-class ZAM_InternalBinaryOpTemplate : ZAM_BinaryExprOpTemplate {
+class ZAM_InternalBinaryOpTemplate : public ZAM_BinaryExprOpTemplate {
 public:
-	ZAM_InternalBinaryOpTemplate(std::string _base_name)
-	: ZAM_BinaryExprOpTemplate(_base_name) { }
+	ZAM_InternalBinaryOpTemplate(TemplateInput* _ti, string _base_name)
+	: ZAM_BinaryExprOpTemplate(_ti, _base_name) { }
 
 	bool IsInternal() const override	{ return true; }
 
-	void SetOp1Accessor(std::string accessor)
-		{ op1_accessor = std::move(accessor); }
-	void SetOp2Accessor(std::string accessor)
-		{ op2_accessor = std::move(accessor); }
-	void SetOpAccessor(std::string accessor)
+	void SetOp1Accessor(string accessor)	{ op1_accessor = accessor; }
+	void SetOp2Accessor(string accessor)	{ op2_accessor = accessor; }
+	void SetOpAccessor(string accessor)
 		{
 		SetOp1Accessor(accessor); 
-		SetOp2Accessor(std::move(accessor));
+		SetOp2Accessor(accessor);
 		}
 
 private:
-	std::string op1_accessor;
-	std::string op2_accessor;
+	string op1_accessor;
+	string op2_accessor;
 };
 
-class ZAM_InternalOpTemplate : ZAM_OpTemplate {
+class ZAM_InternalOpTemplate : public ZAM_OpTemplate {
 public:
-	ZAM_InternalOpTemplate(std::string _base_name)
-	: ZAM_OpTemplate(_base_name) { }
+	ZAM_InternalOpTemplate(TemplateInput* _ti, string _base_name)
+	: ZAM_OpTemplate(_ti, _base_name) { }
 
 	bool IsInternal() const override	{ return true; }
-	bool HasSideEffects() const override	{ return true; }
 };
 
-class ZAM_InternalAssignOpTemplate : ZAM_InternalOpTemplate {
+class ZAM_InternalAssignOpTemplate : public ZAM_InternalOpTemplate {
 public:
-	ZAM_InternalAssignOpTemplate(std::string _base_name)
-	: ZAM_InternalOpTemplate(_base_name) { }
+	ZAM_InternalAssignOpTemplate(TemplateInput* _ti, string _base_name)
+	: ZAM_InternalOpTemplate(_ti, _base_name) { }
+};
+
+
+// Helper class for managing input from the template file, including
+// low-level scanning.
+class TemplateInput {
+public:
+	TemplateInput(FILE* _f, const char* _prog_name, const char* _file_name)
+	: f(_f), prog_name(_prog_name), file_name(_file_name)
+		{ }
+
+	bool ScanLine(string& line);
+	Words SplitIntoWords(const string& line) const;
+	string AllButFirstWord(const string& line) const;
+	void PutBack(const string& line)	{ put_back = line; }
+	void Gripe(const char* msg, const string& input);
+
+private:
+	string put_back;	// if non-empty, use this for the next ScanLine
+
+	FILE* f;
+	const char* prog_name;
+	const char* file_name;
+	int line_num = 0;
+};
+
+
+class ZAMGen {
+public:
+	ZAMGen(int argc, char** argv);
+
+private:
+	bool ParseTemplate();
+
+	std::unique_ptr<TemplateInput> ti;
+	vector<std::unique_ptr<ZAM_OpTemplate>> templates;
 };

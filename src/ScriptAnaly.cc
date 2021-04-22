@@ -41,6 +41,10 @@ void optimize_func(BroFunc* f, ProfileFunc* pf,  IntrusivePtr<Scope> scope_ptr,
 
 	auto scope = scope_ptr.get();
 
+// ### hack for now
+if ( ! scope )
+	return;
+
 	::Ref(scope);
 	push_existing_scope(scope);
 

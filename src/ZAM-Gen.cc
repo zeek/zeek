@@ -114,6 +114,12 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 		SetHasSideEffects();
 		}
 
+	else if ( attr == "no-eval" )
+		{
+		num_args = 0;
+		SetNoEval();
+		}
+
 	else if ( attr == "vector" )
 		{
 		num_args = 0;
@@ -124,24 +130,9 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 		{
 		AddEval(ti->AllButFirstWord(line));
 
-		string l;
-		while ( ti->ScanLine(l) )
-			{
-			if ( l.size() <= 1 )
-				{
-				// Saw a break, all done with this template.
-				ti->PutBack(l);
-				return;
-				}
-
-			if ( isspace(l.c_str()[0]) )
-				AddEval(ti->AllButFirstWord(l));
-			else
-				{
-				ti->PutBack(l);
-				break;
-				}
-			}
+		auto addl = GatherEvals();
+		if ( addl.size() > 0 )
+			AddEval(addl);
 		}
 
 	else
@@ -149,6 +140,24 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 
 	if ( num_args >= 0 && num_args != nwords - 1 )
 		ti->Gripe("extraneous arguments", line);
+	}
+
+string ZAM_OpTemplate::GatherEvals()
+	{
+	string res;
+	string l;
+	while ( ti->ScanLine(l) )
+		{
+		if ( l.size() <= 1 || ! isspace(l.c_str()[0]) )
+			{
+			ti->PutBack(l);
+			return res;
+			}
+
+		res += l;
+		}
+
+	return res;
 	}
 
 int ZAM_OpTemplate::ExtractTypeParam(const string& arg)
@@ -165,6 +174,38 @@ int ZAM_OpTemplate::ExtractTypeParam(const string& arg)
 	return param;
 	}
 
+void ZAM_AssignOpTemplate::Parse(const string& attr, const string& line,
+                                 const Words& words)
+	{
+	if ( attr == "field-op" )
+		{
+		if ( words.size() != 1 )
+			ti->Gripe("field-op does not take any arguments", line);
+
+		SetIncludesFieldOp();
+		}
+
+	else
+		ZAM_OpTemplate::Parse(attr, line, words);
+	}
+
+std::unordered_map<char, ZAM_ExprType> ZAM_ExprOpTemplate::expr_type_names = {
+	{ '*', ZAM_EXPR_TYPE_ANY },
+	{ 'A', ZAM_EXPR_TYPE_ADDR },
+	{ 'D', ZAM_EXPR_TYPE_DOUBLE },
+	{ 'I', ZAM_EXPR_TYPE_INT },
+	{ 'N', ZAM_EXPR_TYPE_SUBNET },
+	{ 'P', ZAM_EXPR_TYPE_PORT },
+	{ 'S', ZAM_EXPR_TYPE_STRING },
+	{ 'T', ZAM_EXPR_TYPE_TABLE },
+	{ 'U', ZAM_EXPR_TYPE_UINT },
+	{ 'V', ZAM_EXPR_TYPE_VECTOR },
+	{ 'X', ZAM_EXPR_TYPE_NONE },
+	{ 'd', ZAM_EXPR_TYPE_DOUBLE_CUSTOM },
+	{ 'i', ZAM_EXPR_TYPE_INT_CUSTOM },
+	{ 'u', ZAM_EXPR_TYPE_UINT_CUSTOM },
+};
+
 void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
                                const Words& words)
 	{
@@ -173,40 +214,136 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 		if ( words.size() == 1 )
 			ti->Gripe("op-type needs arguments", line);
 
-		for ( auto i = 2; i < words.size(); ++i )
+		for ( auto i = 1; i < words.size(); ++i )
 			{
 			auto& w_i = words[i];
 			if ( w_i.size() != 1 )
 				ti->Gripe("bad op-type argument", w_i);
 
-			ZAM_ExprType et = ZAM_EXPR_TYPE_NONE;
-			switch ( w_i.c_str()[0] ) {
-			case '*':	et = ZAM_EXPR_TYPE_ANY; break;
-			case 'A':	et = ZAM_EXPR_TYPE_ADDR; break;
-			case 'D':	et = ZAM_EXPR_TYPE_DOUBLE; break;
-			case 'I':	et = ZAM_EXPR_TYPE_INT; break;
-			case 'N':	et = ZAM_EXPR_TYPE_SUBNET; break;
-			case 'P':	et = ZAM_EXPR_TYPE_PORT; break;
-			case 'S':	et = ZAM_EXPR_TYPE_STRING; break;
-			case 'T':	et = ZAM_EXPR_TYPE_TABLE; break;
-			case 'U':	et = ZAM_EXPR_TYPE_UINT; break;
-			case 'V':	et = ZAM_EXPR_TYPE_VECTOR; break;
-			case 'X':	et = ZAM_EXPR_TYPE_NONE; break;
-
-			case 'd':	et = ZAM_EXPR_TYPE_DOUBLE_CUSTOM; break;
-			case 'i':	et = ZAM_EXPR_TYPE_INT_CUSTOM; break;
-			case 'u':	et = ZAM_EXPR_TYPE_UINT_CUSTOM; break;
-
-			default:
+			auto et_c = w_i.c_str()[0];
+			if ( expr_type_names.count(et_c) == 0 )
 				ti->Gripe("bad op-type argument", w_i);
-			}
 
-			AddExprType(et);
+			AddExprType(expr_type_names[et_c]);
 			}
+		}
+
+	else if ( attr == "eval-flavor" )
+		{
+		if ( words.size() < 3 )
+			ti->Gripe("eval-flavor needs type and evaluation", line);
+
+		auto& flavor = words[1];
+		if ( flavor.size() != 1 )
+			ti->Gripe("bad eval-flavor flavor", flavor);
+
+		auto flavor_c = flavor.c_str()[0];
+		if ( expr_type_names.count(flavor_c) == 0 )
+			ti->Gripe("bad eval-flavor flavor", flavor);
+
+		auto et = expr_type_names[flavor_c];
+
+		if ( expr_types.count(et) == 0 )
+			ti->Gripe("eval-flavor flavor not present in op-type", flavor);
+
+		// Skip the first two words.
+		auto eval = ti->AllButFirstWord(ti->AllButFirstWord(line));
+		eval += GatherEvals();
+		AddEvalSet(et, eval);
+		}
+
+	else if ( attr == "eval-mixed" )
+		{
+		if ( words.size() < 4 )
+			ti->Gripe("eval-mixed needs types and evaluation", line);
+
+		auto& flavor1 = words[1];
+		auto& flavor2 = words[2];
+		if ( flavor1.size() != 1 || flavor2.size() != 1 )
+			ti->Gripe("bad eval-mixed flavors", line);
+
+		auto flavor_c1 = flavor1.c_str()[0];
+		auto flavor_c2 = flavor2.c_str()[0];
+		if ( expr_type_names.count(flavor_c1) == 0 ||
+		     expr_type_names.count(flavor_c2) == 0 )
+			ti->Gripe("bad eval-mixed flavors", line);
+
+		auto et1 = expr_type_names[flavor_c1];
+		auto et2 = expr_type_names[flavor_c2];
+
+		// Skip the first three words.
+		auto eval = ti->AllButFirstWord(ti->AllButFirstWord(line));
+		eval = ti->AllButFirstWord(eval);
+		eval += GatherEvals();
+		AddEvalSet(et1, et2, eval);
+		}
+
+	else if ( attr == "eval-pre" )
+		{
+		if ( words.size() < 2 )
+			ti->Gripe("eval-pre needs evaluation", line);
+
+		auto eval = ti->AllButFirstWord(line);
+		eval += GatherEvals();
+
+		SetPreEval(eval);
 		}
 
 	else
 		ZAM_OpTemplate::Parse(attr, line, words);
+	}
+
+void ZAM_UnaryExprOpTemplate::Parse(const string& attr, const string& line,
+                                    const Words& words)
+	{
+	if ( attr == "no-const" )
+		{
+		if ( words.size() != 1 )
+			ti->Gripe("extraneous argument to no-const", line);
+
+		SetNoConst();
+		}
+
+	else if ( attr == "type-selector" )
+		{
+		if ( words.size() != 2 )
+			ti->Gripe("type-selector takes one numeric argument", line);
+		SetTypeSelector(stoi(words[1]));
+		}
+
+	else
+		ZAM_ExprOpTemplate::Parse(attr, line, words);
+	}
+
+void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,
+                                         const Words& words)
+	{
+	if ( attr == "op-accessor" )
+		{
+		if ( words.size() != 2 )
+			ti->Gripe("op-accessor takes one argument", line);
+
+		SetOpAccessor(words[1]);
+		}
+
+	else if ( attr == "op1-accessor" )
+		{
+		if ( words.size() != 2 )
+			ti->Gripe("op-accessor1 takes one argument", line);
+
+		SetOp1Accessor(words[1]);
+		}
+
+	else if ( attr == "op2-accessor" )
+		{
+		if ( words.size() != 2 )
+			ti->Gripe("op-accessor2 takes one argument", line);
+
+		SetOp2Accessor(words[1]);
+		}
+
+	else
+		ZAM_BinaryExprOpTemplate::Parse(attr, line, words);
 	}
 
 

@@ -86,6 +86,9 @@ public:
 	virtual bool IncludesFieldOp() const		{ return false; }
 	virtual bool IsInternal() const			{ return false; }
 
+	bool NoEval() const	{ return no_eval; }
+	void SetNoEval() 	{ no_eval = true; }
+
 	bool IncludesVectorOp() const	{ return includes_vector_op; }
 	void SetIncludesVectorOp() 	{ includes_vector_op = true; }
 
@@ -106,6 +109,7 @@ public:
 
 protected:
 	virtual void Parse(const string& attr, const string& line, const Words& words);
+	string GatherEvals();
 	int ExtractTypeParam(const string& arg);
 
 	TemplateInput* ti;
@@ -123,6 +127,7 @@ protected:
 	string custom_method;
 	string post_method;
 
+	bool no_eval = false;
 	bool includes_vector_op = false;
 	bool has_side_effects = false;
 
@@ -139,15 +144,8 @@ public:
 	void SetDirectOp(string d_o)		{ direct_op = d_o; }
 	const string& GetDirectOp() const	{ return direct_op; }
 
-	bool NoConst() const			{ return no_const; }
-	void SetNoConst()			{ no_const = true; }
-
-protected:
-	virtual void Parse(const string& attr, const string& line, const Words& words);
-
 private:
 	string direct_op;
-	bool no_const = false;
 };
 
 class ZAM_DirectUnaryOpTemplate : public ZAM_OpTemplate {
@@ -165,6 +163,10 @@ public:
 	: ZAM_OpTemplate(_ti, _base_name) { }
 
 	bool IncludesFieldOp() const override	{ return field_op; }
+	void SetIncludesFieldOp()		{ field_op = true; }
+
+protected:
+	void Parse(const string& attr, const string& line, const Words& words) override;
 
 private:
 	bool field_op = false;
@@ -198,6 +200,8 @@ protected:
 	void Parse(const string& attr, const string& line, const Words& words) override;
 
 private:
+	static std::unordered_map<char, ZAM_ExprType> expr_type_names;
+
 	std::unordered_set<ZAM_ExprType> expr_types;
 
 	std::unordered_map<ZAM_ExprType, vector<string>> eval_set;
@@ -219,6 +223,15 @@ public:
 	: ZAM_ExprOpTemplate(_ti, _base_name) { }
 
 	int Arity() const override		{ return 1; }
+
+	bool NoConst() const			{ return no_const; }
+	void SetNoConst()			{ no_const = true; }
+
+protected:
+	virtual void Parse(const string& attr, const string& line, const Words& words) override;
+
+private:
+	bool no_const = false;
 };
 
 class ZAM_BinaryExprOpTemplate : public ZAM_ExprOpTemplate {
@@ -249,6 +262,9 @@ public:
 		SetOp1Accessor(accessor); 
 		SetOp2Accessor(accessor);
 		}
+
+protected:
+	virtual void Parse(const string& attr, const string& line, const Words& words) override;
 
 private:
 	string op1_accessor;

@@ -20,8 +20,10 @@
 #include "pac_record.h"
 #include "pac_type.h"
 #include "pac_utils.h"
-#include <libgen.h>
+
 #include <errno.h>
+#include <filesystem>
+#include <string_view>
 
 int line_number = 1;
 
@@ -41,6 +43,11 @@ int char_token(int tok)
 	}
 
 void include_file(const char *filename);
+
+string dirname(std::string_view path)
+{
+  return std::filesystem::path(path).parent_path().string();
+}
 
 %}
 
@@ -334,10 +341,10 @@ void include_file(const char *filename)
         {
         char* tmp = new char[strlen(input_filename.c_str()) + 1];
         strcpy(tmp, input_filename.c_str());
-        char* dir = dirname(tmp);
+        string dir = dirname(tmp);
 
-        if ( dir )
-            full_filename = string(dir) + "/" + filename;
+        if ( ! dir.empty() )
+            full_filename = dir + "/" + filename;
         else
             {
             fprintf(stderr, "%s:%d error: cannot include file \"%s\": %s\n",

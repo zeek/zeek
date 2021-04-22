@@ -3,7 +3,9 @@
 #ifndef binpac_h
 #define binpac_h
 
+#ifndef _MSC_VER
 #include <sys/param.h>
+#endif
 
 #cmakedefine HOST_BIGENDIAN
 #ifdef HOST_BIGENDIAN
@@ -136,7 +138,7 @@ inline string strfmt(const char* format, ...)
 
 } // anonymous namespace
 
-#define binpac_fmt(x...) strfmt(x).c_str()
+#define binpac_fmt(...) strfmt(__VA_ARGS__).c_str()
 
 class RefCount
 {

@@ -46,17 +46,23 @@ class TemplateInput;
 // contexts where we're tracking a bunch of strings.
 using Words = vector<string>;
 
+struct InputLoc {
+	const char* file_name;
+	int line_num = 0;
+};
+
 class ZAM_OpTemplate {
 public:
 	ZAM_OpTemplate(TemplateInput* _ti, string _base_name);
 	virtual ~ZAM_OpTemplate()	{ }
 
 	void Build();
+	virtual void Instantiate();
 
 	void AddOpType(ZAM_OperandType ot)
-		{ ots.push_back(ot); }
+		{ op_types.push_back(ot); }
 	const vector<ZAM_OperandType>& OperandTypes() const
-		{ return ots; }
+		{ return op_types; }
 
 	void SetOp1Flavor(ZAMOp1Flavor fl)	{ op1_flavor = fl; }
 	ZAMOp1Flavor GetOp1Flavor() const	{ return op1_flavor; }
@@ -84,10 +90,15 @@ public:
 		{ return post_method; }
 
 	virtual bool IncludesFieldOp() const		{ return false; }
+	virtual bool IncludesConditional() const	{ return false; }
 	virtual bool IsInternal() const			{ return false; }
+	virtual bool IsFieldOp() const			{ return false; }
 
 	bool NoEval() const	{ return no_eval; }
 	void SetNoEval() 	{ no_eval = true; }
+
+	bool NoConst() const			{ return no_const; }
+	void SetNoConst()			{ no_const = true; }
 
 	bool IncludesVectorOp() const	{ return includes_vector_op; }
 	void SetIncludesVectorOp() 	{ includes_vector_op = true; }
@@ -112,11 +123,21 @@ protected:
 	string GatherEvals();
 	int ExtractTypeParam(const string& arg);
 
+	void UnaryInstantiate();
+	void InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_vec);
+	void InstantiateMethod(const string& m);
+
+	static std::unordered_map<ZAM_OperandType, char> ot_to_char;
+
 	TemplateInput* ti;
 
 	string base_name;
+	string orig_name;
+	string cname;
 
-	vector<ZAM_OperandType> ots;
+	InputLoc op_loc;
+
+	vector<ZAM_OperandType> op_types;
 	ZAMOp1Flavor op1_flavor;
 
 	int type_param = 0;	// 0 = not set
@@ -128,6 +149,7 @@ protected:
 	string post_method;
 
 	bool no_eval = false;
+	bool no_const = false;
 	bool includes_vector_op = false;
 	bool has_side_effects = false;
 
@@ -140,12 +162,8 @@ public:
 	ZAM_UnaryOpTemplate(TemplateInput* _ti, string _base_name)
 	: ZAM_OpTemplate(_ti, _base_name) { }
 
-	bool HasDirectOp() const		{ return direct_op.size() > 0; }
-	void SetDirectOp(string d_o)		{ direct_op = d_o; }
-	const string& GetDirectOp() const	{ return direct_op; }
-
-private:
-	string direct_op;
+protected:
+	void Instantiate() override;
 };
 
 class ZAM_DirectUnaryOpTemplate : public ZAM_OpTemplate {
@@ -153,31 +171,17 @@ public:
 	ZAM_DirectUnaryOpTemplate(TemplateInput* _ti, string _base_name, string _direct)
 	: ZAM_OpTemplate(_ti, _base_name), direct(_direct) { }
 
+protected:
+	void Instantiate() override;
+
 private:
 	std::string direct;
-};
-
-class ZAM_AssignOpTemplate : public ZAM_OpTemplate {
-public:
-	ZAM_AssignOpTemplate(TemplateInput* _ti, string _base_name)
-	: ZAM_OpTemplate(_ti, _base_name) { }
-
-	bool IncludesFieldOp() const override	{ return field_op; }
-	void SetIncludesFieldOp()		{ field_op = true; }
-
-protected:
-	void Parse(const string& attr, const string& line, const Words& words) override;
-
-private:
-	bool field_op = false;
 };
 
 class ZAM_ExprOpTemplate : public ZAM_OpTemplate {
 public:
 	ZAM_ExprOpTemplate(TemplateInput* _ti, string _base_name)
 	: ZAM_OpTemplate(_ti, _base_name) { }
-
-	bool IncludesFieldOp() const override	{ return true; }
 
 	virtual int Arity() const			{ return 0; }
 
@@ -191,6 +195,9 @@ public:
 		{ eval_set[et].emplace_back(ev); }
 	void AddEvalSet(ZAM_ExprType et1, ZAM_ExprType et2, string ev)
 		{ eval_mixed_set[et1][et2].emplace_back(ev); }
+
+	bool IncludesFieldOp() const override	{ return includes_field_op; }
+	void SetIncludesFieldOp()		{ includes_field_op = true; }
 
 	bool HasPreEval() const			{ return pre_eval.size() > 0; }
 	void SetPreEval(string pe)		{ pre_eval = pe; }
@@ -209,6 +216,8 @@ private:
 	 std::unordered_map<ZAM_ExprType, vector<string>>>
 	  eval_mixed_set;
 
+	bool includes_field_op = false;
+
 	// If non-zero, code to generate prior to evaluating the expression.
 	string pre_eval;
 
@@ -222,16 +231,30 @@ public:
 	ZAM_UnaryExprOpTemplate(TemplateInput* _ti, string _base_name)
 	: ZAM_ExprOpTemplate(_ti, _base_name) { }
 
-	int Arity() const override		{ return 1; }
+	bool IncludesFieldOp() const override	{ return true; }
 
-	bool NoConst() const			{ return no_const; }
-	void SetNoConst()			{ no_const = true; }
+	int Arity() const override		{ return 1; }
 
 protected:
 	virtual void Parse(const string& attr, const string& line, const Words& words) override;
+	void Instantiate() override;
+};
+
+class ZAM_AssignOpTemplate : public ZAM_UnaryExprOpTemplate {
+public:
+	ZAM_AssignOpTemplate(TemplateInput* _ti, string _base_name)
+	: ZAM_UnaryExprOpTemplate(_ti, _base_name) { }
+
+	bool IncludesFieldOp() const override	{ return false; }
+	bool IsFieldOp() const override		{ return field_op; }
+	void SetFieldOp()			{ field_op = true; }
+
+protected:
+	void Parse(const string& attr, const string& line, const Words& words) override;
+	void Instantiate() override;
 
 private:
-	bool no_const = false;
+	bool field_op = false;
 };
 
 class ZAM_BinaryExprOpTemplate : public ZAM_ExprOpTemplate {
@@ -239,13 +262,21 @@ public:
 	ZAM_BinaryExprOpTemplate(TemplateInput* _ti, string _base_name)
 	: ZAM_ExprOpTemplate(_ti, _base_name) { }
 
+	bool IncludesFieldOp() const override	{ return true; }
+
 	int Arity() const override		{ return 2; }
+
+protected:
+	void Instantiate() override;
 };
 
 class ZAM_RelationalExprOpTemplate : public ZAM_BinaryExprOpTemplate {
 public:
 	ZAM_RelationalExprOpTemplate(TemplateInput* _ti, string _base_name)
 	: ZAM_BinaryExprOpTemplate(_ti, _base_name) { }
+
+	bool IncludesFieldOp() const override		{ return false; }
+	bool IncludesConditional() const override	{ return true; }
 };
 
 class ZAM_InternalBinaryOpTemplate : public ZAM_BinaryExprOpTemplate {
@@ -286,27 +317,33 @@ public:
 };
 
 
-// Helper class for managing input from the template file, including
+// Helper classes for managing input from the template file, including
 // low-level scanning.
+
 class TemplateInput {
 public:
 	TemplateInput(FILE* _f, const char* _prog_name, const char* _file_name)
-	: f(_f), prog_name(_prog_name), file_name(_file_name)
-		{ }
+	: f(_f), prog_name(_prog_name)
+		{
+		loc.file_name = _file_name;
+		}
+
+	const InputLoc& CurrLoc() const	{ return loc; }
 
 	bool ScanLine(string& line);
 	Words SplitIntoWords(const string& line) const;
 	string AllButFirstWord(const string& line) const;
 	void PutBack(const string& line)	{ put_back = line; }
+
 	void Gripe(const char* msg, const string& input);
+	void Gripe(const char* msg, const InputLoc& loc);
 
 private:
 	string put_back;	// if non-empty, use this for the next ScanLine
 
 	FILE* f;
 	const char* prog_name;
-	const char* file_name;
-	int line_num = 0;
+	InputLoc loc;
 };
 
 

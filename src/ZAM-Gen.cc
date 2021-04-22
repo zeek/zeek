@@ -6,13 +6,28 @@
 
 using namespace std;
 
+char dash_to_under(char c)
+	{
+	if ( c == '-' )
+		return '_';
+	return c;
+	}
+
 ZAM_OpTemplate::ZAM_OpTemplate(TemplateInput* _ti, string _base_name)
 : ti(_ti), base_name(std::move(_base_name))
 	{
+	orig_name = base_name;
+	transform(base_name.begin(), base_name.end(), base_name.begin(),
+	          dash_to_under);
+
+	cname = base_name;
+	transform(cname.begin(), cname.end(), cname.begin(), ::toupper);
 	}
 
 void ZAM_OpTemplate::Build()
 	{
+	op_loc = ti->CurrLoc();
+
 	string line;
 	while ( ti->ScanLine(line) )
 		{
@@ -25,6 +40,32 @@ void ZAM_OpTemplate::Build()
 
 		Parse(words[0], line, words);
 		}
+	}
+
+void ZAM_OpTemplate::Instantiate()
+	{
+	InstantiateOp(OperandTypes(), IncludesVectorOp());
+	}
+
+void ZAM_OpTemplate::UnaryInstantiate()
+	{
+	// First operand is always the frame slot to which this operation
+	// assigns the result of the applying unary operator.
+	vector<ZAM_OperandType> ots = { ZAM_OT_VAR };
+	ots.resize(2);
+
+	// Now build versions for a constant operand (maybe not actually
+	// needed due to constant folding, but sometimes that gets deferred
+	// to run-time) ...
+	if ( ! NoConst() )
+		{
+		ots[1] = ZAM_OT_CONSTANT;
+		InstantiateOp(ots, IncludesVectorOp());
+		}
+
+	// ... and for a variable (frame-slot) operand.
+	ots[1] = ZAM_OT_VAR;
+	InstantiateOp(ots, IncludesVectorOp());
 	}
 
 void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& words)
@@ -174,19 +215,52 @@ int ZAM_OpTemplate::ExtractTypeParam(const string& arg)
 	return param;
 	}
 
-void ZAM_AssignOpTemplate::Parse(const string& attr, const string& line,
-                                 const Words& words)
+std::unordered_map<ZAM_OperandType, char> ZAM_OpTemplate::ot_to_char = {
+	{ ZAM_OT_AUX, 'O' },
+	{ ZAM_OT_CONSTANT, 'C' },
+	{ ZAM_OT_EVENT_HANDLER, 'H' },
+	{ ZAM_OT_FIELD, 'F' },
+	{ ZAM_OT_INT, 'i' },
+	{ ZAM_OT_LIST, 'L' },
+	{ ZAM_OT_NONE, 'X' },
+	{ ZAM_OT_RECORD_FIELD, 'R' },
+	{ ZAM_OT_VAR, 'V' },
+};
+
+void ZAM_OpTemplate::InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_vec)
 	{
-	if ( attr == "field-op" )
+	if ( ! IsInternal() )
 		{
-		if ( words.size() != 1 )
-			ti->Gripe("field-op does not take any arguments", line);
+		auto method = base_name;
+		for ( auto& o : ot )
+			method += ot_to_char[o];
 
-		SetIncludesFieldOp();
+		InstantiateMethod(method);
+
+		if ( IncludesFieldOp() )
+			InstantiateMethod(method + "_field");
+
+		if ( do_vec )
+			InstantiateMethod(method + "_vec");
+
+		if ( IncludesConditional() )
+			InstantiateMethod(method + "_cond");
 		}
+	}
 
-	else
-		ZAM_OpTemplate::Parse(attr, line, words);
+void ZAM_OpTemplate::InstantiateMethod(const string& m)
+	{
+	printf("method %s\n", m.c_str());
+	}
+
+
+void ZAM_UnaryOpTemplate::Instantiate()
+	{
+	UnaryInstantiate();
+	}
+
+void ZAM_DirectUnaryOpTemplate::Instantiate()
+	{
 	}
 
 std::unordered_map<char, ZAM_ExprType> ZAM_ExprOpTemplate::expr_type_names = {
@@ -226,6 +300,14 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 
 			AddExprType(expr_type_names[et_c]);
 			}
+		}
+
+	else if ( attr == "includes-field-op" )
+		{
+		if ( words.size() != 1 )
+			ti->Gripe("includes-field-op does not take any arguments", line);
+
+		SetIncludesFieldOp();
 		}
 
 	else if ( attr == "eval-flavor" )
@@ -315,6 +397,78 @@ void ZAM_UnaryExprOpTemplate::Parse(const string& attr, const string& line,
 		ZAM_ExprOpTemplate::Parse(attr, line, words);
 	}
 
+void ZAM_UnaryExprOpTemplate::Instantiate()
+	{
+	UnaryInstantiate();
+	}
+
+void ZAM_AssignOpTemplate::Parse(const string& attr, const string& line,
+                                 const Words& words)
+	{
+	if ( attr == "field-op" )
+		{
+		if ( words.size() != 1 )
+			ti->Gripe("field-op does not take any arguments", line);
+
+		SetFieldOp();
+		}
+
+	else
+		ZAM_OpTemplate::Parse(attr, line, words);
+	}
+
+void ZAM_AssignOpTemplate::Instantiate()
+	{
+	if ( op_types.size() != 1 )
+		ti->Gripe("operation needs precisely one \"type\"", op_loc);
+
+	vector<ZAM_OperandType> ots;
+	ots.push_back(op_types[0]);
+
+	// Build constant/variable versions ...
+	ots.push_back(ZAM_OT_CONSTANT);
+	InstantiateOp(ots, false);
+
+	ots[1] = ZAM_OT_VAR;
+	InstantiateOp(ots, false);
+
+	// ... and for assignments to fields, additional field versions.
+	if ( ots[0] == ZAM_OT_FIELD )
+		{
+		ots[1] = ZAM_OT_FIELD;
+
+		ots.push_back(ZAM_OT_CONSTANT);
+		InstantiateOp(ots, false);
+
+		ots[2] = ZAM_OT_VAR;
+		InstantiateOp(ots, false);
+		}
+	}
+
+void ZAM_BinaryExprOpTemplate::Instantiate()
+	{
+	// As usual, the first slot receives the operator's result.
+	vector<ZAM_OperandType> ots = { ZAM_OT_VAR };
+	ots.resize(3);
+
+	// Build each combination for constant/variable operand,
+	// except skip constant/constant as that is always folded.
+
+	// We only include vector operations when both operands
+	// are non-constants.
+
+	ots[1] = ZAM_OT_CONSTANT;
+	ots[2] = ZAM_OT_VAR;
+	InstantiateOp(ots, false);
+
+	ots[1] = ZAM_OT_VAR;
+	ots[2] = ZAM_OT_CONSTANT;
+	InstantiateOp(ots, false);
+
+	ots[2] = ZAM_OT_VAR;
+	InstantiateOp(ots, IncludesVectorOp());
+	}
+
 void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,
                                          const Words& words)
 	{
@@ -370,6 +524,9 @@ ZAMGen::ZAMGen(int argc, char** argv)
 
 	while ( ParseTemplate() )
 		;
+
+	for ( auto& t : templates )
+		t->Instantiate();
 	}
 
 bool ZAMGen::ParseTemplate()
@@ -458,7 +615,7 @@ bool TemplateInput::ScanLine(string& line)
 	do {
 		if ( ! fgets(buf, sizeof buf, f) )
 			return false;
-		++line_num;
+		++loc.line_num;
 	} while ( buf[0] == '#' );
 
 	line = buf;
@@ -499,10 +656,17 @@ void TemplateInput::Gripe(const char* msg, const string& input)
 	auto input_s = input.c_str();
 	int n = strlen(input_s);
 
-	fprintf(stderr, "%s, line %d: %s - %s", file_name, line_num, msg, input_s);
+	fprintf(stderr, "%s, line %d: %s - %s",
+	        loc.file_name, loc.line_num, msg, input_s);
 	if ( n == 0 || input_s[n-1] != '\n' )
 		fprintf(stderr, "\n");
 
+	exit(1);
+	}
+
+void TemplateInput::Gripe(const char* msg, const InputLoc& l)
+	{
+	fprintf(stderr, "%s, line %d: %s\n", l.file_name, l.line_num, msg);
 	exit(1);
 	}
 

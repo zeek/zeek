@@ -16,6 +16,11 @@ if ( MISSING_PREREQS )
     message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
 endif ()
 
+if (MSVC)
+    set_property(SOURCE bif_lex.cc APPEND_STRING PROPERTY COMPILE_FLAGS "/wd4018")
+else()
+    set_property(SOURCE bif_lex.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
+endif()
 include(RequireCXX17)
 
 include_directories(BEFORE
@@ -33,7 +38,6 @@ bison_target(BIFParser builtin-func.y
              COMPILE_FLAGS "${BISON_FLAGS}")
 flex_target(BIFScanner builtin-func.l ${BifCl_BINARY_DIR}/bif_lex.cc)
 add_flex_bison_dependency(BIFScanner BIFParser)
-set_property(SOURCE bif_lex.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 
 set(bifcl_SRCS
    ${BISON_BIFParser_INPUT}
@@ -47,6 +51,10 @@ set(bifcl_SRCS
 )
 
 add_executable(bifcl ${bifcl_SRCS})
+
+if (MSVC)
+    target_link_libraries(bifcl PRIVATE zeek_windows)
+endif()
 
 install(TARGETS bifcl DESTINATION bin)
 

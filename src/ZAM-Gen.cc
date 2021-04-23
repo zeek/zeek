@@ -13,73 +13,6 @@ char dash_to_under(char c)
 	return c;
 	}
 
-// Helper class.
-class ArgsManager {
-public:
-	ArgsManager(const vector<ZAM_OperandType>& ot, bool is_cond);
-
-	string Params()
-		{
-		string params;
-
-		for ( auto i = 0; i < arg_names.size(); ++i )
-			{
-			if ( params.size() > 0 )
-				params += ", ";
-
-			params += arg_names[i];
-			}
-
-		return params;
-		}
-
-	const string& NthParam(int n)	{ return arg_names[n]; }
-
-	string ParamDecls()
-		{
-		string decls;
-
-		for ( auto i = 0; i < arg_names.size(); ++i )
-			{
-			if ( decls.size() > 0 )
-				decls += ", ";
-
-			decls += arg_types[i] + " " + arg_names[i];
-			}
-
-		return decls;
-		}
-
-private:
-	void AddArg(const char* type, const char* name)
-		{
-		arg_types.emplace_back(type);
-		arg_names.emplace_back(name);
-
-		if ( name_count.count(name) == 0 )
-			name_count[name] = 1;
-		else
-			++name_count[name];
-
-		arg_name_count.emplace_back(name_count[name]);
-		}
-
-	void Differentiate()
-		{
-		for ( auto i = 0; i < arg_names.size(); ++i )
-			if ( name_count[arg_names[i]] > 1 )
-				// Need to differentiate
-				arg_names[i] += to_string(arg_name_count[i]);
-		}
-
-	static std::unordered_map<ZAM_OperandType,
-	        std::pair<const char*, const char*>> ot_to_args;
-
-	vector<string> arg_types;
-	vector<string> arg_names;
-	vector<int> arg_name_count;
-	std::unordered_map<string, int> name_count;
-};
 
 std::unordered_map<ZAM_OperandType,
                    std::pair<const char*, const char*>>
@@ -135,6 +68,57 @@ ArgsManager::ArgsManager(const vector<ZAM_OperandType>& ot, bool is_cond)
 		AddArg("int", "field");
 
 	Differentiate();
+	}
+
+string ArgsManager::Params()
+	{
+	string params;
+
+	for ( auto i = 0; i < arg_names.size(); ++i )
+		{
+		if ( params.size() > 0 )
+			params += ", ";
+
+		params += arg_names[i];
+		}
+
+	return params;
+	}
+
+string ArgsManager::ParamDecls()
+	{
+	string decls;
+
+	for ( auto i = 0; i < arg_names.size(); ++i )
+		{
+		if ( decls.size() > 0 )
+			decls += ", ";
+
+		decls += arg_types[i] + " " + arg_names[i];
+		}
+
+	return decls;
+	}
+
+void ArgsManager::AddArg(const char* type, const char* name)
+	{
+	arg_types.emplace_back(type);
+	arg_names.emplace_back(name);
+
+	if ( name_count.count(name) == 0 )
+		name_count[name] = 1;
+	else
+		++name_count[name];
+
+	arg_name_count.emplace_back(name_count[name]);
+	}
+
+void ArgsManager::Differentiate()
+	{
+	for ( auto i = 0; i < arg_names.size(); ++i )
+		if ( name_count[arg_names[i]] > 1 )
+			// Need to differentiate
+			arg_names[i] += to_string(arg_name_count[i]);
 	}
 
 
@@ -434,12 +418,13 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
                 }
 
 	ArgsManager args(ot, is_cond);
+
 	auto params = args.Params();
 
 	if ( is_field )
 		params += ", i";
 
-	Emit("z = GenInst(this, " + op + ", " + params + ");");
+	BuildInstruction(op, args, params);
 
 	auto tp = GetTypeParam();
 	if ( tp > 0 )
@@ -448,6 +433,12 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 	auto tp2 = GetType2Param();
 	if ( tp2 > 0 )
 		Emit("z.t2 = " + args.NthParam(tp2 - 1) + "->Type();");
+	}
+
+void ZAM_OpTemplate::BuildInstruction(const string& op, const ArgsManager& args,
+                                      const string& params)
+	{
+	Emit("z = GenInst(this, " + op + ", " + params + ");");
 	}
 
 string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const
@@ -578,7 +569,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 		auto et = expr_type_names[flavor_c];
 
 		if ( expr_types.count(et) == 0 )
-			ti->Gripe("eval-flavor flavor not present in op-type", flavor);
+			ti->Gripe("eval-flavor flavor not present in eval-flavor", flavor);
 
 		// Skip the first two words.
 		auto eval = ti->AllButFirstWord(ti->AllButFirstWord(line));

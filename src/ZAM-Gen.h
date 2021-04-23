@@ -51,6 +51,28 @@ struct InputLoc {
 	int line_num = 0;
 };
 
+// Helper class.
+class ArgsManager {
+public:
+	ArgsManager(const vector<ZAM_OperandType>& ot, bool is_cond);
+
+	string Params();
+	const string& NthParam(int n)	{ return arg_names[n]; }
+	string ParamDecls();
+
+private:
+	void AddArg(const char* type, const char* name);
+	void Differentiate();
+
+	static std::unordered_map<ZAM_OperandType,
+	        std::pair<const char*, const char*>> ot_to_args;
+
+	vector<string> arg_types;
+	vector<string> arg_names;
+	vector<int> arg_name_count;
+	std::unordered_map<string, int> name_count;
+};
+
 class ZAM_OpTemplate {
 public:
 	ZAM_OpTemplate(TemplateInput* _ti, string _base_name);
@@ -131,6 +153,8 @@ protected:
 	void InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 				   string suffix,
 	                           bool is_field, bool is_vec, bool is_cond);
+	virtual void BuildInstruction(const string& op, const ArgsManager& args,
+	                              const string& params);
 
 	string MethodName(const vector<ZAM_OperandType>& ot) const;
 	string MethodParams(const vector<ZAM_OperandType>& ot,

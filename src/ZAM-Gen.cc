@@ -261,6 +261,28 @@ void ZAM_OpTemplate::InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_ve
 		}
 	}
 
+void ZAM_OpTemplate::InstantiateMethod(const string& m,
+                                       const vector<ZAM_OperandType>& ot_orig,
+                                       bool is_field, bool is_cond)
+	{
+	if ( ! HasCustomMethod() )
+		return;
+	auto params = MethodParams(ot_orig, is_field, is_cond);
+	printf("const CompiledStmt ZAM::%s(%s)\n", m.c_str(), params.c_str());
+	printf("\t{\n");
+
+	if ( HasCustomMethod() )
+		{
+		printf("\t%s\t}\n\n", GetCustomMethod().c_str());
+		return;
+		}
+	}
+
+string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const
+	{
+	return base_name + OpString(ot);
+	}
+
 // Helper class.
 class ArgsManager {
 public:
@@ -306,9 +328,8 @@ public:
 	std::unordered_map<string, int> name_count;
 };
 
-void ZAM_OpTemplate::InstantiateMethod(const string& m,
-                                       const vector<ZAM_OperandType>& ot_orig,
-                                       bool is_field, bool is_cond)
+string ZAM_OpTemplate::MethodParams(const vector<ZAM_OperandType>& ot_orig,
+                                    bool is_field, bool is_cond)
 	{
 	ArgsManager args;
 
@@ -353,14 +374,8 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m,
 		args.AddArg("int", "field");
 
 	args.Differentiate();
-	auto params = args.BuildParams();
 
-	// printf("method %s(%s)\n", m.c_str(), params.c_str());
-	}
-
-string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const
-	{
-	return base_name + OpString(ot);
+	return args.BuildParams();
 	}
 
 string ZAM_OpTemplate::OpString(const vector<ZAM_OperandType>& ot) const
@@ -369,6 +384,15 @@ string ZAM_OpTemplate::OpString(const vector<ZAM_OperandType>& ot) const
 	for ( auto& o : ot )
 		os += ot_to_char[o];
 	return os;
+	}
+
+string ZAM_OpTemplate::SkipWS(const std::string& s) const
+	{
+	auto sp = s.c_str();
+	while ( *sp && isspace(*sp) )
+		++sp;
+
+	return sp;
 	}
 
 

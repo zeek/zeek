@@ -77,7 +77,7 @@ public:
 	bool HasEvals() const			{ return evals.size() > 0; }
 	const vector<string>& Evals() const	{ return evals; }
 
-	void SetCustomMethod(string cm)		{ custom_method = cm; }
+	void SetCustomMethod(string cm)		{ custom_method = SkipWS(cm); }
 	bool HasCustomMethod() const
 		{ return custom_method.size() > 0; }
 	const string& GetCustomMethod() const
@@ -130,7 +130,11 @@ protected:
 	                       bool is_field = false, bool is_cond = false);
 
 	string MethodName(const vector<ZAM_OperandType>& ot) const;
+	string MethodParams(const vector<ZAM_OperandType>& ot,
+	                    bool is_field, bool is_cond);
 	string OpString(const vector<ZAM_OperandType>& ot) const;
+
+	string SkipWS(const std::string& s) const;
 
 	static std::unordered_map<ZAM_OperandType, char> ot_to_char;
 	static std::unordered_map<ZAM_OperandType,

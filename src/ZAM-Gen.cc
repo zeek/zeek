@@ -246,9 +246,7 @@ void ZAM_OpTemplate::InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_ve
 	{
 	if ( ! IsInternal() )
 		{
-		auto method = base_name;
-		for ( auto& o : ot )
-			method += ot_to_char[o];
+		auto method = MethodName(ot);
 
 		InstantiateMethod(method, ot);
 
@@ -358,6 +356,14 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m,
 	auto params = args.BuildParams();
 
 	// printf("method %s(%s)\n", m.c_str(), params.c_str());
+	}
+
+string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const
+	{
+	auto method = base_name;
+	for ( auto& o : ot )
+		method += ot_to_char[o];
+	return method;
 	}
 
 
@@ -483,6 +489,46 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 		ZAM_OpTemplate::Parse(attr, line, words);
 	}
 
+void ZAM_ExprOpTemplate::Instantiate()
+	{
+	if ( op_types.size() > 1 && op_types[1] == ZAM_OT_CONSTANT )
+		InstantiateC1(op_types, op_types.size() - 1);
+	}
+
+void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots,
+                                       int arity, bool do_vec)
+	{
+	string args = "lhs, r1->AsConstExpr()";
+
+	if ( arity == 1 && ots[0] == ZAM_OT_RECORD_FIELD )
+		args += ", rhs->AsFieldExpr()";
+
+	else if ( arity > 1 )
+		{
+		args += ", ";
+
+		if ( ots[2] == ZAM_OT_RECORD_FIELD )
+			args += "rhs->AsFieldExpr()";
+		else
+			args += "r2->AsNameExpr()";
+		}
+
+	printf("case EXPR_%s:", cname.c_str());
+
+	auto method = MethodName(ots).c_str();
+
+	if ( do_vec )
+		{
+		printf("\n\tif ( rt->Tag() == TYPE_VECTOR )\n");
+		printf("\t\treturn c->%s_vec(%s);\n", method, args.c_str());
+		printf("\telse\n");
+		printf("\t\treturn c->%s(%s);\n", method, args.c_str());
+		}
+
+	else
+		printf("\treturn c->%s(%s);\n", method, args.c_str());
+	}
+
 void ZAM_UnaryExprOpTemplate::Parse(const string& attr, const string& line,
                                     const Words& words)
 	{
@@ -508,6 +554,12 @@ void ZAM_UnaryExprOpTemplate::Parse(const string& attr, const string& line,
 void ZAM_UnaryExprOpTemplate::Instantiate()
 	{
 	UnaryInstantiate();
+
+	if ( ! NoConst() )
+		{
+		vector<ZAM_OperandType> ots = { ZAM_OT_VAR, ZAM_OT_CONSTANT };
+		InstantiateC1(ots, 1, IncludesVectorOp());
+		}
 	}
 
 void ZAM_AssignOpTemplate::Parse(const string& attr, const string& line,
@@ -536,6 +588,7 @@ void ZAM_AssignOpTemplate::Instantiate()
 	// Build constant/variable versions ...
 	ots.push_back(ZAM_OT_CONSTANT);
 	InstantiateOp(ots, false);
+	InstantiateC1(ots, 1);
 
 	ots[1] = ZAM_OT_VAR;
 	InstantiateOp(ots, false);
@@ -568,6 +621,9 @@ void ZAM_BinaryExprOpTemplate::Instantiate()
 	ots[1] = ZAM_OT_CONSTANT;
 	ots[2] = ZAM_OT_VAR;
 	InstantiateOp(ots, false);
+
+	if ( ! IsInternal() )
+		InstantiateC1(ots, 2);
 
 	ots[1] = ZAM_OT_VAR;
 	ots[2] = ZAM_OT_CONSTANT;

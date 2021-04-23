@@ -128,6 +128,7 @@ protected:
 	void InstantiateMethod(const string& m,
 	                       const vector<ZAM_OperandType>& ot,
 	                       bool is_field = false, bool is_cond = false);
+	string MethodName(const vector<ZAM_OperandType>& ot) const;
 
 	static std::unordered_map<ZAM_OperandType, char> ot_to_char;
 	static std::unordered_map<ZAM_OperandType,
@@ -209,6 +210,12 @@ public:
 
 protected:
 	void Parse(const string& attr, const string& line, const Words& words) override;
+	void Instantiate() override;
+
+	void InstantiateC1(const vector<ZAM_OperandType>& ots, int arity,
+	                   bool do_vec = false);
+	void InstantiateC2();
+	void InstantiateC3();
 
 private:
 	static std::unordered_map<char, ZAM_ExprType> expr_type_names;

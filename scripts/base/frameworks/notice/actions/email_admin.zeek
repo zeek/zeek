@@ -33,3 +33,8 @@ hook notice(n: Notice::Info) &priority=-5
 			email_notice_to(n, email, T);
 		}
 	}
+
+# If hostnames.zeek was loaded first, add ourselves
+@ifdef ( email_with_hostnames_types )
+redef email_with_hostnames_types += { ACTION_EMAIL_ADMIN };
+@endif

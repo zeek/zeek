@@ -11,7 +11,7 @@ export {
 		## variable.
 		ACTION_PAGE
 	};
-	
+
 	## Email address to send notices with the :zeek:enum:`Notice::ACTION_PAGE`
 	## action.
 	option mail_page_dest = "";
@@ -22,3 +22,8 @@ hook notice(n: Notice::Info) &priority=-5
 	if ( ACTION_PAGE in n$actions )
 		email_notice_to(n, mail_page_dest, F);
 	}
+
+# If hostnames.zeek was loaded first, add ourselves
+@ifdef ( email_with_hostnames_types )
+redef email_with_hostnames_types += { ACTION_PAGE };
+@endif

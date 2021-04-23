@@ -1,11 +1,19 @@
-##! Loading this script extends the :zeek:enum:`Notice::ACTION_EMAIL` action
+##! Loading this script extends the emails that Zeek sends
 ##! by appending to the email the hostnames associated with
 ##! :zeek:type:`Notice::Info`'s *src* and *dst* fields as determined by a
-##! DNS lookup.
+##! DNS lookup. This is enabled for the :zeek:enum:`Notice::ACTION_EMAIL`
+##! action by default, and :zeek:enum:`Notice::ACTION_EMAIL_ADMIN` and
+##! :zeek:enum:`Notice::ACTION_PAGE` if their scripts are loaded.
 
 @load base/frameworks/notice/main
 
 module Notice;
+
+export {
+	## The Notice action types whose e-mails will be extended with hostnames.
+	## :zeek:see:`Notice::Action`
+	option email_with_hostnames_types: set[Notice::Action] = {ACTION_EMAIL};
+}
 
 # We have to store references to the notices here because the when statement
 # clones the frame which doesn't give us access to modify values outside
@@ -19,7 +27,8 @@ hook notice(n: Notice::Info) &priority=10
 		return;
 
 	# This should only be done for notices that are being sent to email.
-	if ( ACTION_EMAIL !in n$actions )
+	# We calculate the intersection, and don't do anything if it's empty.
+	if ( |n$actions & email_with_hostnames_types| == 0 )
 		return;
 
 	# I'm not recovering gracefully from the when statements because I want
@@ -50,3 +59,13 @@ hook notice(n: Notice::Info) &priority=10
 			}
 		}
 	}
+
+# If page.zeek was loaded first, add that action
+@ifdef ( ACTION_PAGE )
+redef email_with_hostnames_types += { ACTION_PAGE };
+@endif
+
+# If email_admin.zeek was loaded first, add that action
+@ifdef ( ACTION_EMAIL_ADMIN )
+redef email_with_hostnames_types += { ACTION_EMAIL_ADMIN };
+@endif

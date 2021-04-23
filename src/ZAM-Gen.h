@@ -215,7 +215,7 @@ protected:
 	void InstantiateC1(const vector<ZAM_OperandType>& ots, int arity,
 	                   bool do_vec = false);
 	void InstantiateC2(const vector<ZAM_OperandType>& ots, int arity);
-	void InstantiateC3();
+	void InstantiateC3(const vector<ZAM_OperandType>& ots);
 
 private:
 	static std::unordered_map<char, ZAM_ExprType> expr_type_names;

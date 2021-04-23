@@ -173,8 +173,6 @@ protected:
 	void EndBlock()		{ Emit("}"); IndentDown(); }
 
 	static std::unordered_map<ZAM_OperandType, char> ot_to_char;
-	static std::unordered_map<ZAM_OperandType,
-	        std::pair<const char*, const char*>> ot_to_args;
 
 	TemplateInput* ti;
 

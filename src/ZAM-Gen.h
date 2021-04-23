@@ -138,6 +138,40 @@ protected:
 
 	string SkipWS(const string& s) const;
 
+	enum EmitTarget {
+		None,
+		MethodDef,
+		DirectDef,
+		C1Def,
+		C2Def,
+		C3Def,
+		VDef,
+		Cond,
+	};
+
+	void Emit(EmitTarget et, const string& s);
+	void Emit(const string& s)	{ Emit(curr_et, s); }
+	void EmitTo(EmitTarget et)	{ curr_et = et; }
+	void EmitUp(const string& s)
+		{
+		IndentUp();
+		Emit(s);
+		IndentDown();
+		}
+	void EmitNoNL(const string& s)
+		{
+		no_NL = true;
+		Emit(s);
+		no_NL = false;
+		}
+
+	void NL()	{ Emit(""); }
+
+	void IndentUp()		{ ++indent_level; }
+	void IndentDown()	{ --indent_level; }
+	void BeginBlock()	{ IndentUp(); Emit("{"); }
+	void EndBlock()		{ Emit("}"); IndentDown(); }
+
 	static std::unordered_map<ZAM_OperandType, char> ot_to_char;
 	static std::unordered_map<ZAM_OperandType,
 	        std::pair<const char*, const char*>> ot_to_args;
@@ -149,6 +183,10 @@ protected:
 	string cname;
 
 	InputLoc op_loc;
+
+	EmitTarget curr_et = None;
+	int indent_level = 0;
+	bool no_NL = false;
 
 	vector<ZAM_OperandType> op_types;
 	ZAMOp1Flavor op1_flavor;
@@ -226,6 +264,8 @@ protected:
 	void InstantiateC3(const vector<ZAM_OperandType>& ots);
 
 	void InstantiateV(const vector<ZAM_OperandType>& ots);
+
+	void DoVectorCase(const string& m, const string& args);
 
 private:
 	static std::unordered_map<char, ZAM_ExprType> expr_type_names;

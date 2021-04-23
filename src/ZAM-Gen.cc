@@ -273,15 +273,17 @@ void ZAM_OpTemplate::InstantiateMethod(const string& method,
 
 	auto params = MethodParams(ot, is_field, is_cond);
 
-	printf("const CompiledStmt ZAM::%s(%s)\n", m.c_str(), params.c_str());
-	printf("\t{\n");
+	Emit(MethodDef, "const CompiledStmt ZAM::" + m + "(" + params + ")");
+	BeginBlock();
 
 	InstantiateMethodCore(ot, is_field, is_vec, is_cond);
 
 	if ( HasPostMethod() )
-		printf("\t%s", GetPostMethod().c_str());
+		Emit(GetPostMethod());
 
-	printf("\treturn AddInst(z);\n\t}\n\n");
+	Emit("return AddInst(z);");
+	EndBlock();
+	NL();
 	}
 
 void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
@@ -290,24 +292,23 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 	{
 	if ( HasCustomMethod() )
 		{
-		printf("\t%s", GetCustomMethod().c_str());
+		Emit(GetCustomMethod());
 		return;
 		}
 
 	auto op = "OP_" + cname + "_" + OpString(ot);
 
-	printf("\tZInstI z;\n");
+	Emit("ZInstI z;");
 
 	if ( ot[0] == ZAM_OT_AUX )
 		{
-                printf("\tz = ZInstI(%s);\n", op.c_str());
+                Emit("z = ZInstI(" + op + ");");
 		return;
 		}
 
 	if ( ot.size() > 1 && ot[1] == ZAM_OT_AUX )
                 {
-                printf("\tz = ZInstI(%s, Frame1Slot(n, %s);\n",
-		       op.c_str(), op.c_str());
+                Emit("z = ZInstI(" + op + ", Frame1Slot(n, " + op + "));");
 		return;
                 }
 	}
@@ -429,6 +430,23 @@ string ZAM_OpTemplate::SkipWS(const std::string& s) const
 	return sp;
 	}
 
+void ZAM_OpTemplate::Emit(EmitTarget et, const string& s)
+	{
+	ASSERT(et != None);
+
+	curr_et = et;
+
+	FILE* f = stdout;
+
+	for ( auto i = indent_level; i > 0; --i )
+		fputs("\t", f);
+
+	fputs(s.c_str(), f);
+
+	if ( s.back() != '\n' && ! no_NL )
+		fputs("\n", f);
+	}
+
 
 void ZAM_UnaryOpTemplate::Instantiate()
 	{
@@ -437,7 +455,8 @@ void ZAM_UnaryOpTemplate::Instantiate()
 
 void ZAM_DirectUnaryOpTemplate::Instantiate()
 	{
-	// printf("case EXPR_%s:\treturn c->%s(lhs, rhs);\n", cname.c_str(), direct.c_str());
+	Emit(DirectDef, "case EXPR_" + cname + ":\treturn c->" + direct +
+	     "(lhs, rhs);");
 	}
 
 std::unordered_map<char, ZAM_ExprType> ZAM_ExprOpTemplate::expr_type_names = {
@@ -592,27 +611,20 @@ void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots,
 			args += "r2->AsNameExpr()";
 		}
 
-	auto method = MethodName(ots);
-	auto m = method.c_str();
+	auto m = MethodName(ots);
 
-return;
+	EmitTo(C1Def);
 
 	if ( IncludesFieldOp() && false )
-		printf("case EXPR_%s:\treturn c->%s_field(%s, field);\n",
-		       cname.c_str(), m, args.c_str());
+		Emit("case EXPR_" + cname + ":\treturn c->" + m +
+		     "_field(" + args + ", field);");
 
-	printf("case EXPR_%s:", cname.c_str());
+	EmitNoNL("case EXPR_" + cname + ":");
 
 	if ( do_vec )
-		{
-		printf("\n\tif ( rt->Tag() == TYPE_VECTOR )\n");
-		printf("\t\treturn c->%s_vec(%s);\n", m, args.c_str());
-		printf("\telse\n");
-		printf("\t\treturn c->%s(%s);\n", m, args.c_str());
-		}
-
+		DoVectorCase(m ,args);
 	else
-		printf("\treturn c->%s(%s);\n", m, args.c_str());
+		Emit("\treturn c->" + m + "(" + args + ");");
 	}
 
 void ZAM_ExprOpTemplate::InstantiateC2(const vector<ZAM_OperandType>& ots,
@@ -625,27 +637,26 @@ void ZAM_ExprOpTemplate::InstantiateC2(const vector<ZAM_OperandType>& ots,
 
 	auto method = MethodName(ots);
 	auto m = method.c_str();
-return;
+
+	EmitTo(C2Def);
 
 	if ( IncludesFieldOp() )
-		printf("case EXPR_%s:\treturn c->%s_field(%s, field);\n",
-		       cname.c_str(), m, args.c_str());
+		Emit("case EXPR_" + cname + ":\treturn c->" +
+		     m + "_field(" + args + ", field);");
 
-	printf("case EXPR_%s:\treturn c->%s(%s);\n", cname.c_str(),
-	       m, args.c_str());
+	Emit("case EXPR_" + cname + ":\treturn c->" + m + "(" + args + ");");
 	}
 
 void ZAM_ExprOpTemplate::InstantiateC3(const vector<ZAM_OperandType>& ots)
 	{
-return;
-	printf("case EXPR_%s:\treturn c->%s(lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsConstExpr());\n",
-	       cname.c_str(), MethodName(ots).c_str());
+	EmitTo(C3Def);
+	Emit("case EXPR_" + cname + ":\treturn c->" + MethodName(ots) +
+	     "(lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsConstExpr());");
 	}
 
 void ZAM_ExprOpTemplate::InstantiateV(const vector<ZAM_OperandType>& ots)
 	{
-	auto method = MethodName(ots);
-	auto m = method.c_str();
+	auto m = MethodName(ots);
 
 	string args = "lhs, r1->AsNameExpr()";
 
@@ -663,24 +674,31 @@ void ZAM_ExprOpTemplate::InstantiateV(const vector<ZAM_OperandType>& ots)
 			args += ", r3->AsNameExpr()";
 		}
 
-return;
-	if ( IncludesFieldOp() )
-		printf("case EXPR_%s:\treturn c->%s_field(%s, field);\n",
-		       cname.c_str(), m, args.c_str());
+	EmitTo(VDef);
 
-	printf("case EXPR_%s:", cname.c_str());
+	if ( IncludesFieldOp() )
+		Emit("case EXPR_" + cname + "\treturn c->" + m + "_field(" +
+		     args + ", field);");
+
+	EmitNoNL("case EXPR_" + cname + ":");
 
 	if ( IncludesVectorOp() )
-		{
-		printf("\n\tif ( rt->Tag() == TYPE_VECTOR )\n");
-		printf("\t\treturn c->%s_vec(%s);\n", m, args.c_str());
-		printf("\telse\n");
-		printf("\t\treturn c->%s(%s);\n", m, args.c_str());
-		}
-
+		DoVectorCase(m, args);
 	else
-		printf("\treturn c->%s(%s);\n", m, args.c_str());
+		Emit("return c->" + m + "(" + args + ");");
 	}
+
+void ZAM_ExprOpTemplate::DoVectorCase(const string& m, const string& args)
+	{
+	NL();
+	IndentUp();
+	Emit("if ( rt->Tag() == TYPE_VECTOR )");
+	EmitUp("return c->" + m + "_vec(" + args + ");");
+	Emit("else");
+	EmitUp("return c->" + m + "(" + args + ");");
+	IndentDown();
+	}
+
 
 void ZAM_UnaryExprOpTemplate::Parse(const string& attr, const string& line,
                                     const Words& words)
@@ -801,16 +819,18 @@ void ZAM_RelationalExprOpTemplate::Instantiate()
 	{
 	ZAM_BinaryExprOpTemplate::Instantiate();
 
-return;
-	auto op = cname.c_str();
+	EmitTo(Cond);
 
-	printf("case EXPR_%s:\n", op);
-	printf("\tif ( n1 && n2 )\n");
-	printf("\t\treturn %sVVV_cond(n1, n2);\n", op);
-	printf("\telse if ( n1 )\n");
-	printf("\t\treturn %sVVC_cond(n1, c);\n", op);
-	printf("\telse\n");
-	printf("\t\treturn %sVCV_cond(c, n2);\n\n", op);
+	Emit("case EXPR_" + cname + ":");
+	IndentUp();
+	Emit("if ( n1 && n2 )");
+	EmitUp("return " + cname + "VVV_cond(n1, n2);");
+	Emit("else if ( n1 )");
+	EmitUp("return " + cname + "VVC_cond(n1, c);");
+	Emit("else");
+	EmitUp("return " + cname + "VCV_cond(c, n2);");
+	IndentDown();
+	NL();
 	}
 
 void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,

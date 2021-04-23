@@ -227,6 +227,21 @@ std::unordered_map<ZAM_OperandType, char> ZAM_OpTemplate::ot_to_char = {
 	{ ZAM_OT_VAR, 'V' },
 };
 
+std::unordered_map<ZAM_OperandType,
+                   std::pair<const char*, const char*>>
+                                          ZAM_OpTemplate::ot_to_args = {
+	{ ZAM_OT_AUX, { "OpaqueVals*", "v" } },
+	{ ZAM_OT_CONSTANT, { "const ConstExpr*", "c" } },
+	{ ZAM_OT_EVENT_HANDLER, { "EventHandler*", "h" } },
+	{ ZAM_OT_INT, { "int", "i" } },
+	{ ZAM_OT_LIST, { "const ListExpr*", "l" } },
+	{ ZAM_OT_RECORD_FIELD, { "const NameExpr*", "n" } },
+	{ ZAM_OT_VAR, { "const NameExpr*", "n" } },
+
+	// The following gets special treatment.
+	{ ZAM_OT_FIELD, { "const NameExpr*", "n" } },
+};
+
 void ZAM_OpTemplate::InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_vec)
 	{
 	if ( ! IsInternal() )
@@ -235,22 +250,114 @@ void ZAM_OpTemplate::InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_ve
 		for ( auto& o : ot )
 			method += ot_to_char[o];
 
-		InstantiateMethod(method);
+		InstantiateMethod(method, ot);
 
 		if ( IncludesFieldOp() )
-			InstantiateMethod(method + "_field");
+			InstantiateMethod(method + "_field", ot, true);
 
 		if ( do_vec )
-			InstantiateMethod(method + "_vec");
+			InstantiateMethod(method + "_vec", ot);
 
 		if ( IncludesConditional() )
-			InstantiateMethod(method + "_cond");
+			InstantiateMethod(method + "_cond", ot, false, true);
 		}
 	}
 
-void ZAM_OpTemplate::InstantiateMethod(const string& m)
+// Helper class.
+class ArgsManager {
+public:
+	void AddArg(const char* type, const char* name)
+		{
+		arg_types.emplace_back(type);
+		arg_names.emplace_back(name);
+
+		if ( name_count.count(name) == 0 )
+			name_count[name] = 1;
+		else
+			++name_count[name];
+
+		arg_name_count.emplace_back(name_count[name]);
+		}
+
+	void Differentiate()
+		{
+		for ( auto i = 0; i < arg_names.size(); ++i )
+			if ( name_count[arg_names[i]] > 1 )
+				// Need to differentiate
+				arg_names[i] += to_string(arg_name_count[i]);
+		}
+
+	string BuildParams()
+		{
+		string params;
+
+		for ( auto i = 0; i < arg_names.size(); ++i )
+			{
+			if ( params.size() > 0 )
+				params += ", ";
+
+			params += arg_types[i] + " " + arg_names[i];
+			}
+
+		return params;
+		}
+
+	vector<string> arg_types;
+	vector<string> arg_names;
+	vector<int> arg_name_count;
+	std::unordered_map<string, int> name_count;
+};
+
+void ZAM_OpTemplate::InstantiateMethod(const string& m,
+                                       const vector<ZAM_OperandType>& ot_orig,
+                                       bool is_field, bool is_cond)
 	{
-	printf("method %s\n", m.c_str());
+	ArgsManager args;
+
+	auto ot = ot_orig;
+	if ( is_field )
+		ot.emplace_back(ZAM_OT_INT);
+
+	int n = 0;
+	bool add_field = false;
+
+	for ( auto ot_i : ot )
+		{
+		if ( ot_i == ZAM_OT_NONE )
+			{
+			ASSERT(ot.size() == 1);
+			break;
+			}
+
+		if ( n++ == 0 && is_cond )
+			// Skip the conditional's nominal assignment slot.
+			continue;
+
+		if ( ot_i == ZAM_OT_FIELD && n > 1 )
+			{
+			ASSERT(! add_field);
+			add_field = true;
+			continue;
+			}
+
+		auto& arg_i = ot_to_args[ot_i];
+		args.AddArg(arg_i.first, arg_i.second);
+
+		if ( ot_i == ZAM_OT_FIELD )
+			{
+			// Add in extra arguments.
+			args.AddArg("int", "field");
+			args.AddArg("const BroType*", "t");
+			}
+		}
+
+	if ( add_field )
+		args.AddArg("int", "field");
+
+	args.Differentiate();
+	auto params = args.BuildParams();
+
+	printf("method %s(%s)\n", m.c_str(), params.c_str());
 	}
 
 

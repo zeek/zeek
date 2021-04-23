@@ -125,9 +125,13 @@ protected:
 
 	void UnaryInstantiate();
 	void InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_vec);
-	void InstantiateMethod(const string& m);
+	void InstantiateMethod(const string& m,
+	                       const vector<ZAM_OperandType>& ot,
+	                       bool is_field = false, bool is_cond = false);
 
 	static std::unordered_map<ZAM_OperandType, char> ot_to_char;
+	static std::unordered_map<ZAM_OperandType,
+	        std::pair<const char*, const char*>> ot_to_args;
 
 	TemplateInput* ti;
 

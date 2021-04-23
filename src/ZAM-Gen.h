@@ -129,6 +129,7 @@ protected:
 	                       const vector<ZAM_OperandType>& ot,
 	                       bool is_field, bool is_vec, bool is_cond);
 	void InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
+				   string suffix,
 	                           bool is_field, bool is_vec, bool is_cond);
 
 	string MethodName(const vector<ZAM_OperandType>& ot) const;

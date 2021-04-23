@@ -376,17 +376,20 @@ void ZAM_OpTemplate::InstantiateMethod(const string& method,
                                        bool is_field, bool is_vec, bool is_cond)
 	{
 	auto m = method;
+	string suffix = "";
 
-	if ( is_field )	m += "_field";
-	if ( is_vec )	m += "_vec";
-	if ( is_cond )	m += "_cond";
+	if ( is_field )	suffix = "_field";
+	if ( is_vec )	suffix = "_vec";
+	if ( is_cond )	suffix = "_cond";
+
+	m += suffix;
 
 	auto params = MethodParams(ot, is_field, is_cond);
 
 	Emit(MethodDef, "const CompiledStmt ZAM::" + m + "(" + params + ")");
 	BeginBlock();
 
-	InstantiateMethodCore(ot, is_field, is_vec, is_cond);
+	InstantiateMethodCore(ot, suffix, is_field, is_vec, is_cond);
 
 	if ( HasPostMethod() )
 		Emit(GetPostMethod());
@@ -397,8 +400,8 @@ void ZAM_OpTemplate::InstantiateMethod(const string& method,
 	}
 
 void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
-                                           bool is_field, bool is_vec,
-                                           bool is_cond)
+					   string suffix, bool is_field,
+					   bool is_vec, bool is_cond)
 	{
 	if ( HasCustomMethod() )
 		{
@@ -408,7 +411,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 
 	ASSERT(ot.size() > 0);
 
-	auto op = "OP_" + cname + "_" + OpString(ot);
+	auto op = "OP_" + cname + "_" + OpString(ot) + suffix;
 
 	Emit("ZInstI z;");
 
@@ -431,15 +434,20 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
                 }
 
 	ArgsManager args(ot, is_cond);
-	Emit("z = ZInstI(" + op + ", " + args.Params() + ");");
+	auto params = args.Params();
+
+	if ( is_field )
+		params += ", i";
+
+	Emit("z = GenInst(this, " + op + ", " + params + ");");
 
 	auto tp = GetTypeParam();
 	if ( tp > 0 )
-		Emit("z.SetType(" + args.NthParam(tp - 1) + "->GetType());");
+		Emit("z.SetType(" + args.NthParam(tp - 1) + "->Type());");
 
 	auto tp2 = GetType2Param();
 	if ( tp2 > 0 )
-		Emit("z.t2 = " + args.NthParam(tp2 - 1) + "->GetType());");
+		Emit("z.t2 = " + args.NthParam(tp2 - 1) + "->Type();");
 	}
 
 string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const

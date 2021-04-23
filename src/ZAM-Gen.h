@@ -83,7 +83,7 @@ public:
 	const string& GetCustomMethod() const
 		{ return custom_method; }
 
-	void SetPostMethod(string cm)		{ post_method = cm; }
+	void SetPostMethod(string cm)		{ post_method = SkipWS(cm); }
 	bool HasPostMethod() const
 		{ return post_method.size() > 0; }
 	const string& GetPostMethod() const
@@ -127,14 +127,16 @@ protected:
 	void InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_vec);
 	void InstantiateMethod(const string& m,
 	                       const vector<ZAM_OperandType>& ot,
-	                       bool is_field = false, bool is_cond = false);
+	                       bool is_field, bool is_vec, bool is_cond);
+	void InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
+	                           bool is_field, bool is_vec, bool is_cond);
 
 	string MethodName(const vector<ZAM_OperandType>& ot) const;
 	string MethodParams(const vector<ZAM_OperandType>& ot,
 	                    bool is_field, bool is_cond);
 	string OpString(const vector<ZAM_OperandType>& ot) const;
 
-	string SkipWS(const std::string& s) const;
+	string SkipWS(const string& s) const;
 
 	static std::unordered_map<ZAM_OperandType, char> ot_to_char;
 	static std::unordered_map<ZAM_OperandType,
@@ -186,7 +188,7 @@ protected:
 	void Instantiate() override;
 
 private:
-	std::string direct;
+	string direct;
 };
 
 class ZAM_ExprOpTemplate : public ZAM_OpTemplate {
@@ -211,8 +213,8 @@ public:
 	void SetIncludesFieldOp()		{ includes_field_op = true; }
 
 	bool HasPreEval() const			{ return pre_eval.size() > 0; }
-	void SetPreEval(string pe)		{ pre_eval = pe; }
-	const string GetPreEval() const	{ return pre_eval; }
+	void SetPreEval(string pe)		{ pre_eval = SkipWS(pe); }
+	const string& GetPreEval() const	{ return pre_eval; }
 
 protected:
 	void Parse(const string& attr, const string& line, const Words& words) override;

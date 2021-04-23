@@ -1437,13 +1437,6 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 		print ("\tz = ZInstI(" full_op pre_arg ");") >methods_f
 		}
 
-	else if ( mt == "R" )
-		{
-		print ("\tz = GenInst(this, " full_op ", " \
-			args2[mt] ");") >methods_f
-		print ("\tz.SetType(n1->Type());") >methods_f
-		}
-
 	else if ( args2[mt] != "" )
 		{
 		if ( sub_type && sub_type != "X" )

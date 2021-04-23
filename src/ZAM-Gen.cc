@@ -248,34 +248,68 @@ void ZAM_OpTemplate::InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_ve
 		{
 		auto method = MethodName(ot);
 
-		InstantiateMethod(method, ot);
+		InstantiateMethod(method, ot, false, false, false);
 
 		if ( IncludesFieldOp() )
-			InstantiateMethod(method + "_field", ot, true);
+			InstantiateMethod(method, ot, true, false, false);
 
 		if ( do_vec )
-			InstantiateMethod(method + "_vec", ot);
+			InstantiateMethod(method, ot, false, true, false);
 
 		if ( IncludesConditional() )
-			InstantiateMethod(method + "_cond", ot, false, true);
+			InstantiateMethod(method, ot, false, false, true);
 		}
 	}
 
-void ZAM_OpTemplate::InstantiateMethod(const string& m,
-                                       const vector<ZAM_OperandType>& ot_orig,
-                                       bool is_field, bool is_cond)
+void ZAM_OpTemplate::InstantiateMethod(const string& method,
+                                       const vector<ZAM_OperandType>& ot,
+                                       bool is_field, bool is_vec, bool is_cond)
 	{
-	if ( ! HasCustomMethod() )
-		return;
-	auto params = MethodParams(ot_orig, is_field, is_cond);
+	auto m = method;
+
+	if ( is_field )	m += "_field";
+	if ( is_vec )	m += "_vec";
+	if ( is_cond )	m += "_cond";
+
+	auto params = MethodParams(ot, is_field, is_cond);
+
 	printf("const CompiledStmt ZAM::%s(%s)\n", m.c_str(), params.c_str());
 	printf("\t{\n");
 
+	InstantiateMethodCore(ot, is_field, is_vec, is_cond);
+
+	if ( HasPostMethod() )
+		printf("\t%s", GetPostMethod().c_str());
+
+	printf("\treturn AddInst(z);\n\t}\n\n");
+	}
+
+void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
+                                           bool is_field, bool is_vec,
+                                           bool is_cond)
+	{
 	if ( HasCustomMethod() )
 		{
-		printf("\t%s\t}\n\n", GetCustomMethod().c_str());
+		printf("\t%s", GetCustomMethod().c_str());
 		return;
 		}
+
+	auto op = "OP_" + cname + "_" + OpString(ot);
+
+	printf("\tZInstI z;\n");
+
+	if ( ot[0] == ZAM_OT_AUX )
+		{
+                printf("\tz = ZInstI(%s);\n", op.c_str());
+		return;
+		}
+
+	if ( ot.size() > 1 && ot[1] == ZAM_OT_AUX )
+                {
+                printf("\tz = ZInstI(%s, Frame1Slot(n, %s);\n",
+		       op.c_str(), op.c_str());
+		return;
+                }
 	}
 
 string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const

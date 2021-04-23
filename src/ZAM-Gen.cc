@@ -581,7 +581,6 @@ return;
 
 void ZAM_ExprOpTemplate::InstantiateV(const vector<ZAM_OperandType>& ots)
 	{
-return;
 	auto method = MethodName(ots);
 	auto m = method.c_str();
 
@@ -600,6 +599,11 @@ return;
 		if ( ots.size() == 4 )
 			args += ", r3->AsNameExpr()";
 		}
+
+return;
+	if ( IncludesFieldOp() )
+		printf("case EXPR_%s:\treturn c->%s_field(%s, field);\n",
+		       cname.c_str(), m, args.c_str());
 
 	printf("case EXPR_%s:", cname.c_str());
 

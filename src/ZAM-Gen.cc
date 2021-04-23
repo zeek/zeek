@@ -493,6 +493,8 @@ void ZAM_ExprOpTemplate::Instantiate()
 	{
 	if ( op_types.size() > 1 && op_types[1] == ZAM_OT_CONSTANT )
 		InstantiateC1(op_types, op_types.size() - 1);
+	if ( op_types.size() > 2 && op_types[2] == ZAM_OT_CONSTANT )
+		InstantiateC2(op_types, op_types.size() - 1);
 	}
 
 void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots,
@@ -512,6 +514,7 @@ void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots,
 		else
 			args += "r2->AsNameExpr()";
 		}
+return;
 
 	printf("case EXPR_%s:", cname.c_str());
 
@@ -527,6 +530,20 @@ void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots,
 
 	else
 		printf("\treturn c->%s(%s);\n", method, args.c_str());
+	}
+
+void ZAM_ExprOpTemplate::InstantiateC2(const vector<ZAM_OperandType>& ots,
+                                       int arity)
+	{
+	string args = "lhs, r1->AsNameExpr(), r2->AsConstExpr()";
+
+	if ( arity == 3 )
+		args += ", r3->AsNameExpr()";
+
+	auto method = MethodName(ots).c_str();
+
+	printf("case EXPR_%s:\treturn c->%s(%s);\n", cname.c_str(), method,
+	       args.c_str());
 	}
 
 void ZAM_UnaryExprOpTemplate::Parse(const string& attr, const string& line,
@@ -628,6 +645,9 @@ void ZAM_BinaryExprOpTemplate::Instantiate()
 	ots[1] = ZAM_OT_VAR;
 	ots[2] = ZAM_OT_CONSTANT;
 	InstantiateOp(ots, false);
+
+	if ( ! IsInternal() )
+		InstantiateC2(ots, 2);
 
 	ots[2] = ZAM_OT_VAR;
 	InstantiateOp(ots, IncludesVectorOp());

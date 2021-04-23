@@ -357,7 +357,7 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m,
 	args.Differentiate();
 	auto params = args.BuildParams();
 
-	printf("method %s(%s)\n", m.c_str(), params.c_str());
+	// printf("method %s(%s)\n", m.c_str(), params.c_str());
 	}
 
 
@@ -368,6 +368,7 @@ void ZAM_UnaryOpTemplate::Instantiate()
 
 void ZAM_DirectUnaryOpTemplate::Instantiate()
 	{
+	// printf("case EXPR_%s:\treturn c->%s(lhs, rhs);\n", cname.c_str(), direct.c_str());
 	}
 
 std::unordered_map<char, ZAM_ExprType> ZAM_ExprOpTemplate::expr_type_names = {

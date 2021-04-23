@@ -28,12 +28,9 @@ struct ConnIDKey {
 	uint16_t port2;
 	TransportProto transport;
 
-	ConnIDKey() : port1(0), port2(0), transport(TRANSPORT_UNKNOWN)
-		{
-		memset(&ip1, 0, sizeof(in6_addr));
-		memset(&ip2, 0, sizeof(in6_addr));
-		}
-
+	ConnIDKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port,
+	          uint16_t dst_port, TransportProto t, bool one_way);
+	ConnIDKey(const ConnID& conn);
 	ConnIDKey(const ConnIDKey& rhs)
 		{
 		*this = rhs;
@@ -54,11 +51,6 @@ struct ConnIDKey {
 		return *this;
 		}
 };
-
-/**
- * Returns a map key for a given ConnID.
- */
-ConnIDKey BuildConnIDKey(const ConnID& id);
 
 } // namespace detail
 
@@ -398,8 +390,6 @@ public:
 	  */
 	void ConvertToThreadingValue(threading::Value::addr_t* v) const;
 
-	friend detail::ConnIDKey detail::BuildConnIDKey(const ConnID& id);
-
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
 	/**
@@ -451,6 +441,7 @@ public:
 	static const IPAddr v6_unspecified;
 
 private:
+	friend struct detail::ConnIDKey;
 	friend class IPPrefix;
 
 	/**

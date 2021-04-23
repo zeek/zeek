@@ -15,37 +15,42 @@
 namespace zeek {
 
 const IPAddr IPAddr::v4_unspecified = IPAddr(in4_addr{});
-
 const IPAddr IPAddr::v6_unspecified = IPAddr();
 
-detail::ConnIDKey detail::BuildConnIDKey(const ConnID& id)
-	{
-	ConnIDKey key;
+namespace detail {
 
-	// Lookup up connection based on canonical ordering, which is
+ConnIDKey::ConnIDKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port,
+                     uint16_t dst_port, TransportProto t, bool one_way)
+	: transport(t)
+	{
+ 	// Lookup up connection based on canonical ordering, which is
 	// the smaller of <src addr, src port> and <dst addr, dst port>
 	// followed by the other.
-	if ( id.is_one_way ||
-	     addr_port_canon_lt(id.src_addr, id.src_port, id.dst_addr, id.dst_port)
+	if ( one_way ||
+	     addr_port_canon_lt(src, src_port, dst, dst_port)
 	   )
 		{
-		key.ip1 = id.src_addr.in6;
-		key.ip2 = id.dst_addr.in6;
-		key.port1 = id.src_port;
-		key.port2 = id.dst_port;
+		ip1 = src.in6;
+		ip2 = dst.in6;
+		port1 = src_port;
+		port2 = dst_port;
 		}
 	else
 		{
-		key.ip1 = id.dst_addr.in6;
-		key.ip2 = id.src_addr.in6;
-		key.port1 = id.dst_port;
-		key.port2 = id.src_port;
+		ip1 = dst.in6;
+		ip2 = src.in6;
+		port1 = dst_port;
+		port2 = src_port;
 		}
-
-	key.transport = id.proto;
-
-	return key;
 	}
+
+detail::ConnIDKey::ConnIDKey(const ConnID& id)
+	: ConnIDKey(id.src_addr, id.dst_addr, id.src_port, id.dst_port,
+	            id.proto, id.is_one_way)
+	{
+	}
+
+} // namespace detail
 
 IPAddr::IPAddr(const String& s)
 	{

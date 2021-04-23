@@ -118,6 +118,7 @@ Session::Session(double t,
 	  session_status_update_event(status_update_event),
 	  session_status_update_interval(status_update_interval)
 	{
+	in_session_table = true;
 	record_contents = record_packets = 1;
 	record_current_packet = record_current_content = 0;
 	is_active = 1;
@@ -229,7 +230,7 @@ void Session::AddTimer(timer_func timer, double t, bool do_expire,
 	// If the key is cleared, the session isn't stored in the session table
 	// anymore and will soon be deleted. We're not installed new timers
 	// anymore then.
-	if ( ! IsKeyValid() )
+	if ( ! IsInSessionTable() )
 		return;
 
 	detail::Timer* conn_timer = new detail::SessionTimer(this, timer, t, do_expire, type);

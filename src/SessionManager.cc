@@ -35,10 +35,72 @@ zeek::SessionManager* zeek::session_mgr = nullptr;
 zeek::SessionManager*& zeek::sessions = zeek::session_mgr;
 
 namespace zeek {
+namespace detail {
+
+class ProtocolStats {
+
+public:
+
+	struct Protocol {
+		telemetry::IntGauge active;
+		telemetry::IntCounter total;
+		ssize_t max = 0;
+
+		Protocol(telemetry::IntGaugeFamily active_family,
+		         telemetry::IntCounterFamily total_family,
+		         std::string protocol) : active(active_family.GetOrAdd({{"protocol", protocol}})),
+		                                 total(total_family.GetOrAdd({{"protocol", protocol}}))
+			{
+			}
+		};
+
+	using ProtocolMap = std::map<std::string, Protocol>;
+
+	ProtocolMap::iterator InitCounters(const std::string& protocol)
+		{
+		telemetry::IntGaugeFamily active_family = telemetry_mgr->GaugeFamily(
+			"zeek", "active-sessions", {"protocol"}, "Active Zeek Sessions");
+		telemetry::IntCounterFamily total_family = telemetry_mgr->CounterFamily(
+			"zeek", "total-sessions", {"protocol"},
+			"Total number of sessions", "1", true);
+
+		auto [it, inserted] = entries.insert(
+			{protocol, Protocol{active_family, total_family, protocol}});
+
+		if ( inserted )
+			return it;
+
+		return entries.end();
+		}
+
+	Protocol* GetCounters(const std::string& protocol)
+		{
+		auto it = entries.find(protocol);
+		if ( it == entries.end() )
+			it = InitCounters(protocol);
+
+		if ( it != entries.end() )
+			return &(it->second);
+
+		return nullptr;
+		}
+
+private:
+
+	ProtocolMap entries;
+};
+
+} // namespace detail
+
+SessionManager::SessionManager()
+	{
+	stats = new detail::ProtocolStats();
+	}
 
 SessionManager::~SessionManager()
 	{
 	Clear();
+	delete stats;
 	}
 
 void SessionManager::Done()
@@ -126,7 +188,7 @@ void SessionManager::ProcessTransportLayer(double t, const Packet* pkt, size_t r
 		return;
 	}
 
-	detail::ConnIDKey conn_key = detail::BuildConnIDKey(id);
+	detail::ConnIDKey conn_key(id);
 	detail::SessionKey key(&conn_key, sizeof(conn_key), false);
 	Connection* conn = nullptr;
 
@@ -203,7 +265,7 @@ void SessionManager::ProcessTransportLayer(double t, const Packet* pkt, size_t r
 	}
 
 int SessionManager::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
-                               IP_Hdr*& inner)
+                                  IP_Hdr*& inner)
 	{
 	if ( proto == IPPROTO_IPV6 )
 		{
@@ -292,7 +354,6 @@ Connection* SessionManager::FindConnection(Val* v)
 		resp_h = 2;
 		resp_p = 3;
 		}
-
 	else
 		{
 		// While it's not a conn_id, it may have equivalent fields.
@@ -314,18 +375,11 @@ Connection* SessionManager::FindConnection(Val* v)
 	auto orig_portv = vl->GetFieldAs<PortVal>(orig_p);
 	auto resp_portv = vl->GetFieldAs<PortVal>(resp_p);
 
-	ConnID id;
+	detail::ConnIDKey conn_key(orig_addr, resp_addr,
+	                           htons((unsigned short) orig_portv->Port()),
+	                           htons((unsigned short) resp_portv->Port()),
+	                           orig_portv->PortType(), false);
 
-	id.src_addr = orig_addr;
-	id.dst_addr = resp_addr;
-
-	id.src_port = htons((unsigned short) orig_portv->Port());
-	id.dst_port = htons((unsigned short) resp_portv->Port());
-
-	id.is_one_way = false;	// ### incorrect for ICMP connections
-	id.proto = orig_portv->PortType();
-
-	detail::ConnIDKey conn_key = detail::BuildConnIDKey(id);
 	detail::SessionKey key(&conn_key, sizeof(conn_key), false);
 
 	Connection* conn = nullptr;
@@ -338,36 +392,34 @@ Connection* SessionManager::FindConnection(Val* v)
 
 void SessionManager::Remove(Session* s)
 	{
-	Connection* c = static_cast<Connection*>(s);
-
-	if ( s->IsKeyValid() )
+	if ( s->IsInSessionTable() )
 		{
 		s->CancelTimers();
 		s->Done();
 		s->RemovalEvent();
 
-		// Clears out the session's copy of the key so that if the
-		// session has been Ref()'d somewhere, we know that on a future
-		// call to Remove() that it's no longer in the map.
 		detail::SessionKey key = s->SessionKey(false);
 
 		if ( session_map.erase(key) == 0 )
 			reporter->InternalWarning("connection missing");
 		else
 			{
-			if ( auto* stat_block = stats.GetCounters(c->TransportIdentifier()) )
-				stat_block->num.Dec();
+			Connection* c = static_cast<Connection*>(s);
+			if ( auto* stat_block = stats->GetCounters(c->TransportIdentifier()) )
+				stat_block->active.Dec();
 			}
 
-		s->ClearKey();
+		// Mark that the session isn't in the table so that in case the
+		// session has been Ref()'d somewhere, we know that on a future
+		// call to Remove() that it's no longer in the map.
+		s->SetInSessionTable(false);
+
 		Unref(s);
 		}
 	}
 
 void SessionManager::Insert(Session* s)
 	{
-	assert(s->IsKeyValid());
-
 	Session* old = nullptr;
 	detail::SessionKey key = s->SessionKey(true);
 
@@ -383,7 +435,7 @@ void SessionManager::Insert(Session* s)
 		// Some clean-ups similar to those in Remove() (but invisible
 		// to the script layer).
 		old->CancelTimers();
-		old->ClearKey();
+		old->SetInSessionTable(false);
 		Unref(old);
 		}
 	}
@@ -410,19 +462,19 @@ void SessionManager::Clear()
 
 void SessionManager::GetStats(SessionStats& s)
 	{
-	auto* tcp_stats = stats.GetCounters("tcp");
+	auto* tcp_stats = stats->GetCounters("tcp");
 	s.max_TCP_conns = tcp_stats->max;
-	s.num_TCP_conns = tcp_stats->num.Value();
+	s.num_TCP_conns = tcp_stats->active.Value();
 	s.cumulative_TCP_conns = tcp_stats->total.Value();
 
-	auto* udp_stats = stats.GetCounters("udp");
+	auto* udp_stats = stats->GetCounters("udp");
 	s.max_UDP_conns = udp_stats->max;
-	s.num_UDP_conns = udp_stats->num.Value();
+	s.num_UDP_conns = udp_stats->active.Value();
 	s.cumulative_UDP_conns = udp_stats->total.Value();
 
-	auto* icmp_stats = stats.GetCounters("icmp");
+	auto* icmp_stats = stats->GetCounters("icmp");
 	s.max_ICMP_conns = icmp_stats->max;
-	s.num_ICMP_conns = icmp_stats->num.Value();
+	s.num_ICMP_conns = icmp_stats->active.Value();
 	s.cumulative_ICMP_conns = icmp_stats->total.Value();
 
 	s.num_fragments = detail::fragment_mgr->Size();
@@ -634,17 +686,18 @@ unsigned int SessionManager::MemoryAllocation()
 
 void SessionManager::InsertSession(detail::SessionKey key, Session* session)
 	{
+	session->SetInSessionTable(true);
 	key.CopyData();
 	session_map.insert_or_assign(std::move(key), session);
 
 	std::string protocol = session->TransportIdentifier();
 
-	if ( auto* stat_block = stats.GetCounters(protocol) )
+	if ( auto* stat_block = stats->GetCounters(protocol) )
 		{
-		stat_block->num.Inc();
+		stat_block->active.Inc();
 		stat_block->total.Inc();
 
-		if ( stat_block->num.Value() > stat_block->max )
+		if ( stat_block->active.Value() > stat_block->max )
 			stat_block->max++;
 		}
 	}

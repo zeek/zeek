@@ -56,20 +56,20 @@ public:
 	 * Returns a key for the session. This is used as the key for storing
 	 * the session in SessionManager.
 	 *
-	 * @param copy Flag to indicate that the key returned has a copy of the
+	 * @param copy Flag to indicate that the key returned must have a copy of the
 	 * key data instead of just a pointer to it.
 	 */
 	virtual detail::SessionKey SessionKey(bool copy) const = 0;
 
 	/**
-	 * Set the key as invalid.
+	 * Set whether this session is in the session table.
 	 */
-	virtual void ClearKey() = 0;
+	void SetInSessionTable(bool in_table)	{ in_session_table = in_table; }
 
 	/**
-	 * Return whether the key is valid.
+	 * Return whether this session is in the session table.
 	 */
-	virtual bool IsKeyValid() const = 0;
+	bool IsInSessionTable() const 	{ return in_session_table; }
 
 	double StartTime() const		{ return start_time; }
 	void SetStartTime(double t)		{ start_time = t; }
@@ -245,6 +245,7 @@ protected:
 	unsigned int is_active:1;
 	unsigned int record_packets:1, record_contents:1;
 	unsigned int record_current_packet:1, record_current_content:1;
+	bool in_session_table;
 };
 
 namespace detail {
@@ -274,11 +275,14 @@ public:
 	~SessionKey();
 
 	// Implement move semantics for SessionKey, since they're used as keys
-	// in a map and copying them would cause double-free issues. Adding this
-	// constructor and operator explicitly disables the equivalent copy
-	// operations.
+	// in a map.
 	SessionKey(SessionKey&& rhs);
 	SessionKey& operator=(SessionKey&& rhs);
+
+	// Explicitly delete the copy constructor and operator since copying
+	// may cause issues with double-freeing pointers.
+	SessionKey(const SessionKey& rhs) = delete;
+	SessionKey& operator=(const SessionKey& rhs) = delete;
 
 	void CopyData();
 

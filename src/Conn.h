@@ -116,8 +116,6 @@ public:
 	const detail::ConnIDKey& Key() const	{ return key; }
 	detail::SessionKey SessionKey(bool copy) const override
 		{ return detail::SessionKey{&key, sizeof(key), copy}; }
-	void ClearKey() override			{ key_valid = false; }
-	bool IsKeyValid() const	override	{ return key_valid; }
 
 	const IPAddr& OrigAddr() const		{ return orig_addr; }
 	const IPAddr& RespAddr() const		{ return resp_addr; }
@@ -271,7 +269,6 @@ protected:
 	std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
 
 	detail::ConnIDKey key;
-	bool key_valid;
 
 	unsigned int skip:1;
 	unsigned int weird:1;

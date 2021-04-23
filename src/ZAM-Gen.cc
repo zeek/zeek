@@ -624,7 +624,7 @@ void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots,
 	if ( do_vec )
 		DoVectorCase(m ,args);
 	else
-		Emit("\treturn c->" + m + "(" + args + ");");
+		EmitUp("return c->" + m + "(" + args + ");");
 	}
 
 void ZAM_ExprOpTemplate::InstantiateC2(const vector<ZAM_OperandType>& ots,

@@ -497,6 +497,18 @@ void ZAM_ExprOpTemplate::Instantiate()
 		InstantiateC2(op_types, op_types.size() - 1);
 	if ( op_types.size() > 3 && op_types[3] == ZAM_OT_CONSTANT )
 		InstantiateC3(op_types);
+
+	bool all_var = true;
+	for ( auto i = 1; i < op_types.size(); ++i )
+		if ( op_types[i] != ZAM_OT_VAR )
+			all_var = false;
+
+	if ( all_var )
+		InstantiateV(op_types);
+
+	if ( op_types.size() == 3 &&
+	     op_types[1] == ZAM_OT_RECORD_FIELD && op_types[2] == ZAM_OT_INT)
+		InstantiateV(op_types);
 	}
 
 void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots,
@@ -520,18 +532,19 @@ return;
 
 	printf("case EXPR_%s:", cname.c_str());
 
-	auto method = MethodName(ots).c_str();
+	auto method = MethodName(ots);
+	auto m = method.c_str();
 
 	if ( do_vec )
 		{
 		printf("\n\tif ( rt->Tag() == TYPE_VECTOR )\n");
-		printf("\t\treturn c->%s_vec(%s);\n", method, args.c_str());
+		printf("\t\treturn c->%s_vec(%s);\n", m, args.c_str());
 		printf("\telse\n");
-		printf("\t\treturn c->%s(%s);\n", method, args.c_str());
+		printf("\t\treturn c->%s(%s);\n", m, args.c_str());
 		}
 
 	else
-		printf("\treturn c->%s(%s);\n", method, args.c_str());
+		printf("\treturn c->%s(%s);\n", m, args.c_str());
 	}
 
 void ZAM_ExprOpTemplate::InstantiateC2(const vector<ZAM_OperandType>& ots,
@@ -543,16 +556,53 @@ return;
 	if ( arity == 3 )
 		args += ", r3->AsNameExpr()";
 
-	auto method = MethodName(ots).c_str();
+	auto method = MethodName(ots);
 
-	printf("case EXPR_%s:\treturn c->%s(%s);\n", cname.c_str(), method,
-	       args.c_str());
+	printf("case EXPR_%s:\treturn c->%s(%s);\n", cname.c_str(),
+	       method.c_str(), args.c_str());
 	}
 
 void ZAM_ExprOpTemplate::InstantiateC3(const vector<ZAM_OperandType>& ots)
 	{
+return;
 	printf("case EXPR_%s:\treturn c->%s(lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsConstExpr());\n",
 	       cname.c_str(), MethodName(ots).c_str());
+	}
+
+void ZAM_ExprOpTemplate::InstantiateV(const vector<ZAM_OperandType>& ots)
+	{
+return;
+	auto method = MethodName(ots);
+	auto m = method.c_str();
+
+	string args = "lhs, r1->AsNameExpr()";
+
+	if ( ots[0] == ZAM_OT_RECORD_FIELD )
+		args += ", rhs->AsFieldExpr()";
+
+	if ( ots.size() >= 3 )
+		{
+		if ( ots[2] == ZAM_OT_INT )
+			args += ", rhs->AsHasFieldExpr()->Field()";
+		else
+			args += ", r2->AsNameExpr()";
+
+		if ( ots.size() == 4 )
+			args += ", r3->AsNameExpr()";
+		}
+
+	printf("case EXPR_%s:", cname.c_str());
+
+	if ( IncludesVectorOp() )
+		{
+		printf("\n\tif ( rt->Tag() == TYPE_VECTOR )\n");
+		printf("\t\treturn c->%s_vec(%s);\n", m, args.c_str());
+		printf("\telse\n");
+		printf("\t\treturn c->%s(%s);\n", m, args.c_str());
+		}
+
+	else
+		printf("\treturn c->%s(%s);\n", m, args.c_str());
 	}
 
 void ZAM_UnaryExprOpTemplate::Parse(const string& attr, const string& line,
@@ -581,11 +631,13 @@ void ZAM_UnaryExprOpTemplate::Instantiate()
 	{
 	UnaryInstantiate();
 
+	vector<ZAM_OperandType> ots = { ZAM_OT_VAR, ZAM_OT_CONSTANT };
+
 	if ( ! NoConst() )
-		{
-		vector<ZAM_OperandType> ots = { ZAM_OT_VAR, ZAM_OT_CONSTANT };
 		InstantiateC1(ots, 1, IncludesVectorOp());
-		}
+
+	ots[1] = ZAM_OT_VAR;
+	InstantiateV(ots);
 	}
 
 void ZAM_AssignOpTemplate::Parse(const string& attr, const string& line,
@@ -618,6 +670,9 @@ void ZAM_AssignOpTemplate::Instantiate()
 
 	ots[1] = ZAM_OT_VAR;
 	InstantiateOp(ots, false);
+
+	if ( ots[0] != ZAM_OT_FIELD )
+		InstantiateV(ots);
 
 	// ... and for assignments to fields, additional field versions.
 	if ( ots[0] == ZAM_OT_FIELD )
@@ -660,6 +715,9 @@ void ZAM_BinaryExprOpTemplate::Instantiate()
 
 	ots[2] = ZAM_OT_VAR;
 	InstantiateOp(ots, IncludesVectorOp());
+
+	if ( ! IsInternal() )
+		InstantiateV(ots);
 	}
 
 void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,

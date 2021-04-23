@@ -13,6 +13,131 @@ char dash_to_under(char c)
 	return c;
 	}
 
+// Helper class.
+class ArgsManager {
+public:
+	ArgsManager(const vector<ZAM_OperandType>& ot, bool is_cond);
+
+	string Params()
+		{
+		string params;
+
+		for ( auto i = 0; i < arg_names.size(); ++i )
+			{
+			if ( params.size() > 0 )
+				params += ", ";
+
+			params += arg_names[i];
+			}
+
+		return params;
+		}
+
+	const string& NthParam(int n)	{ return arg_names[n]; }
+
+	string ParamDecls()
+		{
+		string decls;
+
+		for ( auto i = 0; i < arg_names.size(); ++i )
+			{
+			if ( decls.size() > 0 )
+				decls += ", ";
+
+			decls += arg_types[i] + " " + arg_names[i];
+			}
+
+		return decls;
+		}
+
+private:
+	void AddArg(const char* type, const char* name)
+		{
+		arg_types.emplace_back(type);
+		arg_names.emplace_back(name);
+
+		if ( name_count.count(name) == 0 )
+			name_count[name] = 1;
+		else
+			++name_count[name];
+
+		arg_name_count.emplace_back(name_count[name]);
+		}
+
+	void Differentiate()
+		{
+		for ( auto i = 0; i < arg_names.size(); ++i )
+			if ( name_count[arg_names[i]] > 1 )
+				// Need to differentiate
+				arg_names[i] += to_string(arg_name_count[i]);
+		}
+
+	static std::unordered_map<ZAM_OperandType,
+	        std::pair<const char*, const char*>> ot_to_args;
+
+	vector<string> arg_types;
+	vector<string> arg_names;
+	vector<int> arg_name_count;
+	std::unordered_map<string, int> name_count;
+};
+
+std::unordered_map<ZAM_OperandType,
+                   std::pair<const char*, const char*>>
+                                          ArgsManager::ot_to_args = {
+	{ ZAM_OT_AUX, { "OpaqueVals*", "v" } },
+	{ ZAM_OT_CONSTANT, { "const ConstExpr*", "c" } },
+	{ ZAM_OT_EVENT_HANDLER, { "EventHandler*", "h" } },
+	{ ZAM_OT_INT, { "int", "i" } },
+	{ ZAM_OT_LIST, { "const ListExpr*", "l" } },
+	{ ZAM_OT_RECORD_FIELD, { "const NameExpr*", "n" } },
+	{ ZAM_OT_VAR, { "const NameExpr*", "n" } },
+
+	// The following gets special treatment.
+	{ ZAM_OT_FIELD, { "const NameExpr*", "n" } },
+};
+
+ArgsManager::ArgsManager(const vector<ZAM_OperandType>& ot, bool is_cond)
+	{
+	int n = 0;
+	bool add_field = false;
+
+	for ( auto ot_i : ot )
+		{
+		if ( ot_i == ZAM_OT_NONE )
+			{
+			ASSERT(ot.size() == 1);
+			break;
+			}
+
+		if ( n++ == 0 && is_cond )
+			// Skip the conditional's nominal assignment slot.
+			continue;
+
+		if ( ot_i == ZAM_OT_FIELD && n > 1 )
+			{
+			ASSERT(! add_field);
+			add_field = true;
+			continue;
+			}
+
+		auto& arg_i = ot_to_args[ot_i];
+		AddArg(arg_i.first, arg_i.second);
+
+		if ( ot_i == ZAM_OT_FIELD )
+			{
+			// Add in extra arguments.
+			AddArg("int", "field");
+			AddArg("const BroType*", "t");
+			}
+		}
+
+	if ( add_field )
+		AddArg("int", "field");
+
+	Differentiate();
+	}
+
+
 ZAM_OpTemplate::ZAM_OpTemplate(TemplateInput* _ti, string _base_name)
 : ti(_ti), base_name(std::move(_base_name))
 	{
@@ -304,118 +429,18 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
                 Emit("z = ZInstI(" + op + ", Frame1Slot(n, " + op + "));");
 		return;
                 }
+
+	ArgsManager args(ot, is_cond);
+	Emit("z = ZInstI(" + op + ", " + args.Params() + ");");
+
+	auto tp = GetTypeParam();
+	if ( tp > 0 )
+		Emit("z->SetType(" + args.NthParam(tp - 1) + "->GetType());");
 	}
 
 string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const
 	{
 	return base_name + OpString(ot);
-	}
-
-// Helper class.
-class ArgsManager {
-public:
-	ArgsManager(const vector<ZAM_OperandType>& ot, bool is_cond);
-
-	string BuildParams()
-		{
-		string params;
-
-		for ( auto i = 0; i < arg_names.size(); ++i )
-			{
-			if ( params.size() > 0 )
-				params += ", ";
-
-			params += arg_types[i] + " " + arg_names[i];
-			}
-
-		return params;
-		}
-
-private:
-	void AddArg(const char* type, const char* name)
-		{
-		arg_types.emplace_back(type);
-		arg_names.emplace_back(name);
-
-		if ( name_count.count(name) == 0 )
-			name_count[name] = 1;
-		else
-			++name_count[name];
-
-		arg_name_count.emplace_back(name_count[name]);
-		}
-
-	void Differentiate()
-		{
-		for ( auto i = 0; i < arg_names.size(); ++i )
-			if ( name_count[arg_names[i]] > 1 )
-				// Need to differentiate
-				arg_names[i] += to_string(arg_name_count[i]);
-		}
-
-	static std::unordered_map<ZAM_OperandType,
-	        std::pair<const char*, const char*>> ot_to_args;
-
-	vector<string> arg_types;
-	vector<string> arg_names;
-	vector<int> arg_name_count;
-	std::unordered_map<string, int> name_count;
-};
-
-std::unordered_map<ZAM_OperandType,
-                   std::pair<const char*, const char*>>
-                                          ArgsManager::ot_to_args = {
-	{ ZAM_OT_AUX, { "OpaqueVals*", "v" } },
-	{ ZAM_OT_CONSTANT, { "const ConstExpr*", "c" } },
-	{ ZAM_OT_EVENT_HANDLER, { "EventHandler*", "h" } },
-	{ ZAM_OT_INT, { "int", "i" } },
-	{ ZAM_OT_LIST, { "const ListExpr*", "l" } },
-	{ ZAM_OT_RECORD_FIELD, { "const NameExpr*", "n" } },
-	{ ZAM_OT_VAR, { "const NameExpr*", "n" } },
-
-	// The following gets special treatment.
-	{ ZAM_OT_FIELD, { "const NameExpr*", "n" } },
-};
-
-ArgsManager::ArgsManager(const vector<ZAM_OperandType>& ot, bool is_cond)
-	{
-	int n = 0;
-	bool add_field = false;
-
-	for ( auto ot_i : ot )
-		{
-		if ( ot_i == ZAM_OT_NONE )
-			{
-			ASSERT(ot.size() == 1);
-			break;
-			}
-
-		if ( n++ == 0 && is_cond )
-			// Skip the conditional's nominal assignment slot.
-			continue;
-
-		if ( ot_i == ZAM_OT_FIELD && n > 1 )
-			{
-			ASSERT(! add_field);
-			add_field = true;
-			continue;
-			}
-
-		auto& arg_i = ot_to_args[ot_i];
-		AddArg(arg_i.first, arg_i.second);
-
-		if ( ot_i == ZAM_OT_FIELD )
-			{
-			// Add in extra arguments.
-			AddArg("int", "field");
-			AddArg("const BroType*", "t");
-			}
-		}
-
-	if ( add_field )
-		AddArg("int", "field");
-
-	Differentiate();
 	}
 
 string ZAM_OpTemplate::MethodParams(const vector<ZAM_OperandType>& ot_orig,
@@ -426,7 +451,7 @@ string ZAM_OpTemplate::MethodParams(const vector<ZAM_OperandType>& ot_orig,
 		ot.emplace_back(ZAM_OT_INT);
 
 	ArgsManager args(ot, is_cond);
-	return args.BuildParams();
+	return args.ParamDecls();
 	}
 
 string ZAM_OpTemplate::OpString(const vector<ZAM_OperandType>& ot) const

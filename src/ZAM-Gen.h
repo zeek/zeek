@@ -290,6 +290,9 @@ public:
 
 	bool IncludesFieldOp() const override		{ return false; }
 	bool IncludesConditional() const override	{ return true; }
+
+protected:
+	void Instantiate() override;
 };
 
 class ZAM_InternalBinaryOpTemplate : public ZAM_BinaryExprOpTemplate {

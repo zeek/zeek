@@ -734,6 +734,22 @@ void ZAM_BinaryExprOpTemplate::Instantiate()
 		InstantiateV(ots);
 	}
 
+void ZAM_RelationalExprOpTemplate::Instantiate()
+	{
+	ZAM_BinaryExprOpTemplate::Instantiate();
+
+return;
+	auto op = cname.c_str();
+
+	printf("case EXPR_%s:\n", op);
+	printf("\tif ( n1 && n2 )\n");
+	printf("\t\treturn %sVVV_cond(n1, n2);\n", op);
+	printf("\telse if ( n1 )\n");
+	printf("\t\treturn %sVVC_cond(n1, c);\n", op);
+	printf("\telse\n");
+	printf("\t\treturn %sVCV_cond(c, n2);\n\n", op);
+	}
+
 void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,
                                          const Words& words)
 	{

@@ -553,18 +553,23 @@ return;
 	}
 
 void ZAM_ExprOpTemplate::InstantiateC2(const vector<ZAM_OperandType>& ots,
-                                       int arity)
+                                       int arity, bool do_field)
 	{
-return;
 	string args = "lhs, r1->AsNameExpr(), r2->AsConstExpr()";
 
 	if ( arity == 3 )
 		args += ", r3->AsNameExpr()";
 
 	auto method = MethodName(ots);
+	auto m = method.c_str();
+
+return;
+	if ( do_field )
+		printf("case EXPR_%s:\treturn c->%s_field(%s, field);\n",
+		       cname.c_str(), m, args.c_str());
 
 	printf("case EXPR_%s:\treturn c->%s(%s);\n", cname.c_str(),
-	       method.c_str(), args.c_str());
+	       m, args.c_str());
 	}
 
 void ZAM_ExprOpTemplate::InstantiateC3(const vector<ZAM_OperandType>& ots)
@@ -716,7 +721,7 @@ void ZAM_BinaryExprOpTemplate::Instantiate()
 	InstantiateOp(ots, false);
 
 	if ( ! IsInternal() )
-		InstantiateC2(ots, 2);
+		InstantiateC2(ots, 2, IncludesFieldOp());
 
 	ots[2] = ZAM_OT_VAR;
 	InstantiateOp(ots, IncludesVectorOp());

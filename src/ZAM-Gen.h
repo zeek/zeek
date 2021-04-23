@@ -214,7 +214,8 @@ protected:
 
 	void InstantiateC1(const vector<ZAM_OperandType>& ots, int arity,
 	                   bool do_vec = false, bool do_field = false);
-	void InstantiateC2(const vector<ZAM_OperandType>& ots, int arity);
+	void InstantiateC2(const vector<ZAM_OperandType>& ots, int arity,
+	                   bool do_field = false);
 	void InstantiateC3(const vector<ZAM_OperandType>& ots);
 
 	void InstantiateV(const vector<ZAM_OperandType>& ots);

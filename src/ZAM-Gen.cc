@@ -435,7 +435,11 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 
 	auto tp = GetTypeParam();
 	if ( tp > 0 )
-		Emit("z->SetType(" + args.NthParam(tp - 1) + "->GetType());");
+		Emit("z.SetType(" + args.NthParam(tp - 1) + "->GetType());");
+
+	auto tp2 = GetType2Param();
+	if ( tp2 > 0 )
+		Emit("z.t2 = " + args.NthParam(tp2 - 1) + "->GetType());");
 	}
 
 string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const

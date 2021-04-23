@@ -213,9 +213,8 @@ protected:
 	void Instantiate() override;
 
 	void InstantiateC1(const vector<ZAM_OperandType>& ots, int arity,
-	                   bool do_vec = false, bool do_field = false);
-	void InstantiateC2(const vector<ZAM_OperandType>& ots, int arity,
-	                   bool do_field = false);
+	                   bool do_vec = false);
+	void InstantiateC2(const vector<ZAM_OperandType>& ots, int arity);
 	void InstantiateC3(const vector<ZAM_OperandType>& ots);
 
 	void InstantiateV(const vector<ZAM_OperandType>& ots);

@@ -360,10 +360,15 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m,
 
 string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const
 	{
-	auto method = base_name;
+	return base_name + OpString(ot);
+	}
+
+string ZAM_OpTemplate::OpString(const vector<ZAM_OperandType>& ot) const
+	{
+	std::string os;
 	for ( auto& o : ot )
-		method += ot_to_char[o];
-	return method;
+		os += ot_to_char[o];
+	return os;
 	}
 
 

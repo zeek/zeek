@@ -128,7 +128,9 @@ protected:
 	void InstantiateMethod(const string& m,
 	                       const vector<ZAM_OperandType>& ot,
 	                       bool is_field = false, bool is_cond = false);
+
 	string MethodName(const vector<ZAM_OperandType>& ot) const;
+	string OpString(const vector<ZAM_OperandType>& ot) const;
 
 	static std::unordered_map<ZAM_OperandType, char> ot_to_char;
 	static std::unordered_map<ZAM_OperandType,

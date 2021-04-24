@@ -122,8 +122,8 @@ void ArgsManager::Differentiate()
 	}
 
 
-ZAM_OpTemplate::ZAM_OpTemplate(TemplateInput* _ti, string _base_name)
-: ti(_ti), base_name(std::move(_base_name))
+ZAM_OpTemplate::ZAM_OpTemplate(ZAMGen* _g, string _base_name)
+: g(_g), base_name(std::move(_base_name))
 	{
 	orig_name = base_name;
 	transform(base_name.begin(), base_name.end(), base_name.begin(),
@@ -135,15 +135,15 @@ ZAM_OpTemplate::ZAM_OpTemplate(TemplateInput* _ti, string _base_name)
 
 void ZAM_OpTemplate::Build()
 	{
-	op_loc = ti->CurrLoc();
+	op_loc = g->CurrLoc();
 
 	string line;
-	while ( ti->ScanLine(line) )
+	while ( g->ScanLine(line) )
 		{
 		if ( line.size() <= 1 )
 			break;
 
-		auto words = ti->SplitIntoWords(line);
+		auto words = g->SplitIntoWords(line);
 		if ( words.size() == 0 )
 			break;
 
@@ -204,7 +204,7 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 				case 'X':	ot = ZAM_OT_NONE; break;
 
 				default:
-					ti->Gripe("bad operand type", words[1]);
+					g->Gripe("bad operand type", words[1]);
 					break;
 				}
 
@@ -248,10 +248,10 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 		}
 
 	else if ( attr == "custom-method" )
-		SetCustomMethod(ti->AllButFirstWord(line));
+		SetCustomMethod(g->AllButFirstWord(line));
 
 	else if ( attr == "method-post" )
-		SetPostMethod(ti->AllButFirstWord(line));
+		SetPostMethod(g->AllButFirstWord(line));
 
 	else if ( attr == "side-effects" )
 		{
@@ -278,7 +278,7 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 
 	else if ( attr == "eval" )
 		{
-		AddEval(ti->AllButFirstWord(line));
+		AddEval(g->AllButFirstWord(line));
 
 		auto addl = GatherEvals();
 		if ( addl.size() > 0 )
@@ -286,21 +286,21 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 		}
 
 	else
-		ti->Gripe("unknown template attribute", attr);
+		g->Gripe("unknown template attribute", attr);
 
 	if ( num_args >= 0 && num_args != nwords - 1 )
-		ti->Gripe("extraneous arguments", line);
+		g->Gripe("extraneous arguments", line);
 	}
 
 string ZAM_OpTemplate::GatherEvals()
 	{
 	string res;
 	string l;
-	while ( ti->ScanLine(l) )
+	while ( g->ScanLine(l) )
 		{
 		if ( l.size() <= 1 || ! isspace(l.c_str()[0]) )
 			{
-			ti->PutBack(l);
+			g->PutBack(l);
 			return res;
 			}
 
@@ -314,12 +314,12 @@ int ZAM_OpTemplate::ExtractTypeParam(const string& arg)
 	{
 	auto param_str = arg.c_str();
 	if ( *param_str != '$' )
-		ti->Gripe("bad set-type parameter, should be $n", arg);
+		g->Gripe("bad set-type parameter, should be $n", arg);
 
 	int param = atoi(&param_str[1]);
 
 	if ( param <= 0 || param > 3 )
-		ti->Gripe("bad set-type parameter, should be $1/$2/$3", arg);
+		g->Gripe("bad set-type parameter, should be $1/$2/$3", arg);
 
 	return param;
 	}
@@ -377,7 +377,8 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m, const string& suffix,
 
 	auto params = MethodParams(ot, is_field, is_cond);
 
-	Emit(MethodDef, "const CompiledStmt ZAM::" + m + suffix + "(" + params + ")");
+	EmitTo(MethodDef);
+	Emit("const CompiledStmt ZAM::" + m + suffix + "(" + params + ")");
 	BeginBlock();
 
 	InstantiateMethodCore(ot, suffix, is_field, is_vec, is_cond);
@@ -493,59 +494,26 @@ string ZAM_OpTemplate::SkipWS(const std::string& s) const
 	return sp;
 	}
 
-void ZAM_OpTemplate::Emit(EmitTarget et, const string& s)
+void ZAM_OpTemplate::Emit(const string& s)
 	{
-	ASSERT(et != None);
+	g->Emit(curr_et, s);
+	}
 
-	if ( gen_files.size() == 0 )
-		{ // need to open the files
-		static std::unordered_map<EmitTarget, const char*>
-		 gen_file_names = {
-			{ None, nullptr },
-			{ MethodDef, "MethodDef" },
-			{ DirectDef, "DirectDef" },
-			{ C1Def, "C1Def" },
-			{ C2Def, "C2Def" },
-			{ C3Def, "C3Def" },
-			{ VDef, "VDef" },
-			{ Cond, "Cond" },
-			{ Eval, "Eval" },
-		};
+void ZAM_OpTemplate::EmitNoNL(const string& s)
+	{
+	g->SetNoNL(true);
+	Emit(s);
+	g->SetNoNL(false);
+	}
 
-		for ( auto& gfn : gen_file_names )
-			{
-			auto fn = gfn.second;
-			if ( ! fn )
-				continue;
+void ZAM_OpTemplate::IndentUp()
+	{
+	g->IndentUp();
+	}
 
-			auto f = fopen(fn, "w");
-			if ( ! f )
-				{
-				fprintf(stderr, "can't open generation file %s\n", fn);
-				exit(1);
-				}
-
-			gen_files[gfn.first] = f;
-			}
-		}
-
-	if ( gen_files.count(et) == 0 )
-		{
-		fprintf(stderr, "bad generation file type\n");
-		exit(1);
-		}
-
-	curr_et = et;
-
-	FILE* f = gen_files[et];
-
-	for ( auto i = indent_level; i > 0; --i )
-		fputs("\t", f);
-
-	fputs(s.c_str(), f);
-
-	if ( s.back() != '\n' && ! no_NL )
-		fputs("\n", f);
+void ZAM_OpTemplate::IndentDown()
+	{
+	g->IndentDown();
 	}
 
 
@@ -556,8 +524,8 @@ void ZAM_UnaryOpTemplate::Instantiate()
 
 void ZAM_DirectUnaryOpTemplate::Instantiate()
 	{
-	Emit(DirectDef, "case EXPR_" + cname + ":\treturn c->" + direct +
-	     "(lhs, rhs);");
+	EmitTo(DirectDef);
+	Emit("case EXPR_" + cname + ":\treturn c->" + direct + "(lhs, rhs);");
 	}
 
 static std::unordered_map<char, ZAM_ExprType> expr_type_names = {
@@ -580,8 +548,8 @@ static std::unordered_map<char, ZAM_ExprType> expr_type_names = {
 // Inverse of the above.
 static std::unordered_map<ZAM_ExprType, char> expr_name_types;
 
-ZAM_ExprOpTemplate::ZAM_ExprOpTemplate(TemplateInput* _ti, string _base_name)
-: ZAM_OpTemplate(_ti, _base_name)
+ZAM_ExprOpTemplate::ZAM_ExprOpTemplate(ZAMGen* _g, string _base_name)
+: ZAM_OpTemplate(_g, _base_name)
 	{
 	static bool did_map_init = false;
 
@@ -600,17 +568,17 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 	if ( attr == "op-type" )
 		{
 		if ( words.size() == 1 )
-			ti->Gripe("op-type needs arguments", line);
+			g->Gripe("op-type needs arguments", line);
 
 		for ( auto i = 1; i < words.size(); ++i )
 			{
 			auto& w_i = words[i];
 			if ( w_i.size() != 1 )
-				ti->Gripe("bad op-type argument", w_i);
+				g->Gripe("bad op-type argument", w_i);
 
 			auto et_c = w_i.c_str()[0];
 			if ( expr_type_names.count(et_c) == 0 )
-				ti->Gripe("bad op-type argument", w_i);
+				g->Gripe("bad op-type argument", w_i);
 
 			AddExprType(expr_type_names[et_c]);
 			}
@@ -619,7 +587,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 	else if ( attr == "includes-field-op" )
 		{
 		if ( words.size() != 1 )
-			ti->Gripe("includes-field-op does not take any arguments", line);
+			g->Gripe("includes-field-op does not take any arguments", line);
 
 		SetIncludesFieldOp();
 		}
@@ -627,23 +595,23 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 	else if ( attr == "eval-flavor" )
 		{
 		if ( words.size() < 3 )
-			ti->Gripe("eval-flavor needs type and evaluation", line);
+			g->Gripe("eval-flavor needs type and evaluation", line);
 
 		auto& flavor = words[1];
 		if ( flavor.size() != 1 )
-			ti->Gripe("bad eval-flavor flavor", flavor);
+			g->Gripe("bad eval-flavor flavor", flavor);
 
 		auto flavor_c = flavor.c_str()[0];
 		if ( expr_type_names.count(flavor_c) == 0 )
-			ti->Gripe("bad eval-flavor flavor", flavor);
+			g->Gripe("bad eval-flavor flavor", flavor);
 
 		auto et = expr_type_names[flavor_c];
 
 		if ( expr_types.count(et) == 0 )
-			ti->Gripe("eval-flavor flavor not present in eval-flavor", flavor);
+			g->Gripe("eval-flavor flavor not present in eval-flavor", flavor);
 
 		// Skip the first two words.
-		auto eval = ti->AllButFirstWord(ti->AllButFirstWord(line));
+		auto eval = g->AllButFirstWord(g->AllButFirstWord(line));
 		eval += GatherEvals();
 		AddEvalSet(et, eval);
 		}
@@ -651,25 +619,25 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 	else if ( attr == "eval-mixed" )
 		{
 		if ( words.size() < 4 )
-			ti->Gripe("eval-mixed needs types and evaluation", line);
+			g->Gripe("eval-mixed needs types and evaluation", line);
 
 		auto& flavor1 = words[1];
 		auto& flavor2 = words[2];
 		if ( flavor1.size() != 1 || flavor2.size() != 1 )
-			ti->Gripe("bad eval-mixed flavors", line);
+			g->Gripe("bad eval-mixed flavors", line);
 
 		auto flavor_c1 = flavor1.c_str()[0];
 		auto flavor_c2 = flavor2.c_str()[0];
 		if ( expr_type_names.count(flavor_c1) == 0 ||
 		     expr_type_names.count(flavor_c2) == 0 )
-			ti->Gripe("bad eval-mixed flavors", line);
+			g->Gripe("bad eval-mixed flavors", line);
 
 		auto et1 = expr_type_names[flavor_c1];
 		auto et2 = expr_type_names[flavor_c2];
 
 		// Skip the first three words.
-		auto eval = ti->AllButFirstWord(ti->AllButFirstWord(line));
-		eval = ti->AllButFirstWord(eval);
+		auto eval = g->AllButFirstWord(g->AllButFirstWord(line));
+		eval = g->AllButFirstWord(eval);
 		eval += GatherEvals();
 		AddEvalSet(et1, et2, eval);
 		}
@@ -677,9 +645,9 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 	else if ( attr == "eval-pre" )
 		{
 		if ( words.size() < 2 )
-			ti->Gripe("eval-pre needs evaluation", line);
+			g->Gripe("eval-pre needs evaluation", line);
 
-		auto eval = ti->AllButFirstWord(line);
+		auto eval = g->AllButFirstWord(line);
 		eval += GatherEvals();
 
 		SetPreEval(eval);
@@ -824,7 +792,7 @@ void ZAM_UnaryExprOpTemplate::Parse(const string& attr, const string& line,
 	if ( attr == "no-const" )
 		{
 		if ( words.size() != 1 )
-			ti->Gripe("extraneous argument to no-const", line);
+			g->Gripe("extraneous argument to no-const", line);
 
 		SetNoConst();
 		}
@@ -832,7 +800,7 @@ void ZAM_UnaryExprOpTemplate::Parse(const string& attr, const string& line,
 	else if ( attr == "type-selector" )
 		{
 		if ( words.size() != 2 )
-			ti->Gripe("type-selector takes one numeric argument", line);
+			g->Gripe("type-selector takes one numeric argument", line);
 		SetTypeSelector(stoi(words[1]));
 		}
 
@@ -893,7 +861,7 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const string& op,
 	for ( auto et : ets )
 		{
 		if ( if_tests.count(et) == 0 )
-			ti->Gripe("bad op-type", op_loc);
+			g->Gripe("bad op-type", op_loc);
 
 		auto if_test = if_tests[et];
 		auto if_var = if_test.first;
@@ -929,7 +897,7 @@ void ZAM_AssignOpTemplate::Parse(const string& attr, const string& line,
 	if ( attr == "field-op" )
 		{
 		if ( words.size() != 1 )
-			ti->Gripe("field-op does not take any arguments", line);
+			g->Gripe("field-op does not take any arguments", line);
 
 		SetFieldOp();
 		}
@@ -941,7 +909,7 @@ void ZAM_AssignOpTemplate::Parse(const string& attr, const string& line,
 void ZAM_AssignOpTemplate::Instantiate()
 	{
 	if ( op_types.size() != 1 )
-		ti->Gripe("operation needs precisely one \"type\"", op_loc);
+		g->Gripe("operation needs precisely one \"type\"", op_loc);
 
 	vector<ZAM_OperandType> ots;
 	ots.push_back(op_types[0]);
@@ -1027,7 +995,7 @@ void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,
 	if ( attr == "op-accessor" )
 		{
 		if ( words.size() != 2 )
-			ti->Gripe("op-accessor takes one argument", line);
+			g->Gripe("op-accessor takes one argument", line);
 
 		SetOpAccessor(words[1]);
 		}
@@ -1035,7 +1003,7 @@ void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,
 	else if ( attr == "op1-accessor" )
 		{
 		if ( words.size() != 2 )
-			ti->Gripe("op-accessor1 takes one argument", line);
+			g->Gripe("op-accessor1 takes one argument", line);
 
 		SetOp1Accessor(words[1]);
 		}
@@ -1043,7 +1011,7 @@ void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,
 	else if ( attr == "op2-accessor" )
 		{
 		if ( words.size() != 2 )
-			ti->Gripe("op-accessor2 takes one argument", line);
+			g->Gripe("op-accessor2 takes one argument", line);
 
 		SetOp2Accessor(words[1]);
 		}
@@ -1085,17 +1053,17 @@ bool ZAMGen::ParseTemplate()
 	{
 	string line;
 
-	if ( ! ti->ScanLine(line) )
+	if ( ! ScanLine(line) )
 		return false;
 
 	if ( line.size() <= 1 )
 		// A blank line - no template to parse.
 		return true;
 
-	auto words = ti->SplitIntoWords(line);
+	auto words = SplitIntoWords(line);
 
 	if ( words.size() < 2 )
-		ti->Gripe("too few words at start of template", line);
+		Gripe("too few words at start of template", line);
 
 	auto op = words[0];
 	auto op_name = words[1];
@@ -1117,38 +1085,92 @@ bool ZAMGen::ParseTemplate()
 	unique_ptr<ZAM_OpTemplate> t;
 
 	if ( op == "op" )
-		t = make_unique<ZAM_OpTemplate>(ti.get(), op_name);
+		t = make_unique<ZAM_OpTemplate>(this, op_name);
 	else if ( op == "unary-op" )
-		t = make_unique<ZAM_UnaryOpTemplate>(ti.get(), op_name);
+		t = make_unique<ZAM_UnaryOpTemplate>(this, op_name);
 	else if ( op == "direct-unary-op" )
-		t = make_unique<ZAM_DirectUnaryOpTemplate>(ti.get(), op_name, words[2]);
+		t = make_unique<ZAM_DirectUnaryOpTemplate>(this, op_name, words[2]);
 	else if ( op == "assign-op" )
-		t = make_unique<ZAM_AssignOpTemplate>(ti.get(), op_name);
+		t = make_unique<ZAM_AssignOpTemplate>(this, op_name);
 	else if ( op == "expr-op" )
-		t = make_unique<ZAM_ExprOpTemplate>(ti.get(), op_name);
+		t = make_unique<ZAM_ExprOpTemplate>(this, op_name);
 	else if ( op == "unary-expr-op" )
-		t = make_unique<ZAM_UnaryExprOpTemplate>(ti.get(), op_name);
+		t = make_unique<ZAM_UnaryExprOpTemplate>(this, op_name);
 	else if ( op == "binary-expr-op" )
-		t = make_unique<ZAM_BinaryExprOpTemplate>(ti.get(), op_name);
+		t = make_unique<ZAM_BinaryExprOpTemplate>(this, op_name);
 	else if ( op == "rel-expr-op" )
-		t = make_unique<ZAM_RelationalExprOpTemplate>(ti.get(), op_name);
+		t = make_unique<ZAM_RelationalExprOpTemplate>(this, op_name);
 	else if ( op == "internal-binary-op" )
-		t = make_unique<ZAM_InternalBinaryOpTemplate>(ti.get(), op_name);
+		t = make_unique<ZAM_InternalBinaryOpTemplate>(this, op_name);
 	else if ( op == "internal-op" )
-		t = make_unique<ZAM_InternalOpTemplate>(ti.get(), op_name);
+		t = make_unique<ZAM_InternalOpTemplate>(this, op_name);
 	else if ( op == "internal-assignment-op" )
-		t = make_unique<ZAM_InternalAssignOpTemplate>(ti.get(), op_name);
+		t = make_unique<ZAM_InternalAssignOpTemplate>(this, op_name);
 
 	else
-		ti->Gripe("bad template name", op);
+		Gripe("bad template name", op);
 
 	if ( args_mismatch )
-		ti->Gripe(args_mismatch, line);
+		Gripe(args_mismatch, line);
 
 	t->Build();
 	templates.emplace_back(std::move(t));
 
 	return true;
+	}
+
+void ZAMGen::Emit(EmitTarget et, const string& s)
+	{
+	ASSERT(et != None);
+
+	static std::unordered_map<EmitTarget, FILE*> gen_files;
+	if ( gen_files.size() == 0 )
+		{ // need to open the files
+		static std::unordered_map<EmitTarget, const char*>
+		 gen_file_names = {
+			{ None, nullptr },
+			{ MethodDef, "MethodDef" },
+			{ DirectDef, "DirectDef" },
+			{ C1Def, "C1Def" },
+			{ C2Def, "C2Def" },
+			{ C3Def, "C3Def" },
+			{ VDef, "VDef" },
+			{ Cond, "Cond" },
+			{ Eval, "Eval" },
+		};
+
+		for ( auto& gfn : gen_file_names )
+			{
+			auto fn = gfn.second;
+			if ( ! fn )
+				continue;
+
+			auto f = fopen(fn, "w");
+			if ( ! f )
+				{
+				fprintf(stderr, "can't open generation file %s\n", fn);
+				exit(1);
+				}
+
+			gen_files[gfn.first] = f;
+			}
+		}
+
+	if ( gen_files.count(et) == 0 )
+		{
+		fprintf(stderr, "bad generation file type\n");
+		exit(1);
+		}
+
+	FILE* f = gen_files[et];
+
+	for ( auto i = indent_level; i > 0; --i )
+		fputs("\t", f);
+
+	fputs(s.c_str(), f);
+
+	if ( s.back() != '\n' && ! no_NL )
+		fputs("\n", f);
 	}
 
 

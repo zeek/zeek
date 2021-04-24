@@ -39,7 +39,7 @@ enum ZAM_ExprType {
 	ZAM_EXPR_TYPE_NONE,
 };
 
-class TemplateInput;
+class ZAMGen;
 
 // We only use the following in the context where the vector's elements
 // are individual words from the same line.  We don't use it in other
@@ -49,6 +49,18 @@ using Words = vector<string>;
 struct InputLoc {
 	const char* file_name;
 	int line_num = 0;
+};
+
+enum EmitTarget {
+	None,
+	MethodDef,
+	DirectDef,
+	C1Def,
+	C2Def,
+	C3Def,
+	VDef,
+	Cond,
+	Eval,
 };
 
 // Helper class.
@@ -75,7 +87,7 @@ private:
 
 class ZAM_OpTemplate {
 public:
-	ZAM_OpTemplate(TemplateInput* _ti, string _base_name);
+	ZAM_OpTemplate(ZAMGen* _g, string _base_name);
 	virtual ~ZAM_OpTemplate()	{ }
 
 	void Build();
@@ -171,20 +183,7 @@ protected:
 
 	string SkipWS(const string& s) const;
 
-	enum EmitTarget {
-		None,
-		MethodDef,
-		DirectDef,
-		C1Def,
-		C2Def,
-		C3Def,
-		VDef,
-		Cond,
-		Eval,
-	};
-
-	void Emit(EmitTarget et, const string& s);
-	void Emit(const string& s)	{ Emit(curr_et, s); }
+	void Emit(const string& s);
 	void EmitTo(EmitTarget et)	{ curr_et = et; }
 	void EmitUp(const string& s)
 		{
@@ -192,23 +191,18 @@ protected:
 		Emit(s);
 		IndentDown();
 		}
-	void EmitNoNL(const string& s)
-		{
-		no_NL = true;
-		Emit(s);
-		no_NL = false;
-		}
+	void EmitNoNL(const string& s);
 
 	void NL()	{ Emit(""); }
 
-	void IndentUp()		{ ++indent_level; }
-	void IndentDown()	{ --indent_level; }
+	void IndentUp();
+	void IndentDown();
 	void BeginBlock()	{ IndentUp(); Emit("{"); }
 	void EndBlock()		{ Emit("}"); IndentDown(); }
 
 	static std::unordered_map<ZAM_OperandType, char> ot_to_char;
 
-	TemplateInput* ti;
+	ZAMGen* g;
 
 	string base_name;
 	string orig_name;
@@ -216,10 +210,7 @@ protected:
 
 	InputLoc op_loc;
 
-	std::unordered_map<EmitTarget, FILE*> gen_files;
 	EmitTarget curr_et = None;
-	int indent_level = 0;
-	bool no_NL = false;
 
 	vector<ZAM_OperandType> op_types;
 	ZAMOp1Flavor op1_flavor;
@@ -243,8 +234,8 @@ protected:
 
 class ZAM_UnaryOpTemplate : public ZAM_OpTemplate {
 public:
-	ZAM_UnaryOpTemplate(TemplateInput* _ti, string _base_name)
-	: ZAM_OpTemplate(_ti, _base_name) { }
+	ZAM_UnaryOpTemplate(ZAMGen* _g, string _base_name)
+	: ZAM_OpTemplate(_g, _base_name) { }
 
 protected:
 	void Instantiate() override;
@@ -252,8 +243,8 @@ protected:
 
 class ZAM_DirectUnaryOpTemplate : public ZAM_OpTemplate {
 public:
-	ZAM_DirectUnaryOpTemplate(TemplateInput* _ti, string _base_name, string _direct)
-	: ZAM_OpTemplate(_ti, _base_name), direct(_direct) { }
+	ZAM_DirectUnaryOpTemplate(ZAMGen* _g, string _base_name, string _direct)
+	: ZAM_OpTemplate(_g, _base_name), direct(_direct) { }
 
 protected:
 	void Instantiate() override;
@@ -264,7 +255,7 @@ private:
 
 class ZAM_ExprOpTemplate : public ZAM_OpTemplate {
 public:
-	ZAM_ExprOpTemplate(TemplateInput* _ti, string _base_name);
+	ZAM_ExprOpTemplate(ZAMGen* _g, string _base_name);
 
 	virtual int Arity() const			{ return 0; }
 
@@ -321,8 +312,8 @@ private:
 
 class ZAM_UnaryExprOpTemplate : public ZAM_ExprOpTemplate {
 public:
-	ZAM_UnaryExprOpTemplate(TemplateInput* _ti, string _base_name)
-	: ZAM_ExprOpTemplate(_ti, _base_name) { }
+	ZAM_UnaryExprOpTemplate(ZAMGen* _g, string _base_name)
+	: ZAM_ExprOpTemplate(_g, _base_name) { }
 
 	bool IncludesFieldOp() const override	{ return true; }
 
@@ -340,8 +331,8 @@ protected:
 
 class ZAM_AssignOpTemplate : public ZAM_UnaryExprOpTemplate {
 public:
-	ZAM_AssignOpTemplate(TemplateInput* _ti, string _base_name)
-	: ZAM_UnaryExprOpTemplate(_ti, _base_name) { }
+	ZAM_AssignOpTemplate(ZAMGen* _g, string _base_name)
+	: ZAM_UnaryExprOpTemplate(_g, _base_name) { }
 
 	bool IncludesFieldOp() const override	{ return false; }
 	bool IsFieldOp() const override		{ return field_op; }
@@ -357,8 +348,8 @@ private:
 
 class ZAM_BinaryExprOpTemplate : public ZAM_ExprOpTemplate {
 public:
-	ZAM_BinaryExprOpTemplate(TemplateInput* _ti, string _base_name)
-	: ZAM_ExprOpTemplate(_ti, _base_name) { }
+	ZAM_BinaryExprOpTemplate(ZAMGen* _g, string _base_name)
+	: ZAM_ExprOpTemplate(_g, _base_name) { }
 
 	bool IncludesFieldOp() const override	{ return true; }
 
@@ -370,8 +361,8 @@ protected:
 
 class ZAM_RelationalExprOpTemplate : public ZAM_BinaryExprOpTemplate {
 public:
-	ZAM_RelationalExprOpTemplate(TemplateInput* _ti, string _base_name)
-	: ZAM_BinaryExprOpTemplate(_ti, _base_name) { }
+	ZAM_RelationalExprOpTemplate(ZAMGen* _g, string _base_name)
+	: ZAM_BinaryExprOpTemplate(_g, _base_name) { }
 
 	bool IncludesFieldOp() const override		{ return false; }
 	bool IncludesConditional() const override	{ return true; }
@@ -382,8 +373,8 @@ protected:
 
 class ZAM_InternalBinaryOpTemplate : public ZAM_BinaryExprOpTemplate {
 public:
-	ZAM_InternalBinaryOpTemplate(TemplateInput* _ti, string _base_name)
-	: ZAM_BinaryExprOpTemplate(_ti, _base_name) { }
+	ZAM_InternalBinaryOpTemplate(ZAMGen* _g, string _base_name)
+	: ZAM_BinaryExprOpTemplate(_g, _base_name) { }
 
 	bool IsInternal() const override	{ return true; }
 
@@ -405,16 +396,16 @@ private:
 
 class ZAM_InternalOpTemplate : public ZAM_OpTemplate {
 public:
-	ZAM_InternalOpTemplate(TemplateInput* _ti, string _base_name)
-	: ZAM_OpTemplate(_ti, _base_name) { }
+	ZAM_InternalOpTemplate(ZAMGen* _g, string _base_name)
+	: ZAM_OpTemplate(_g, _base_name) { }
 
 	bool IsInternal() const override	{ return true; }
 };
 
 class ZAM_InternalAssignOpTemplate : public ZAM_InternalOpTemplate {
 public:
-	ZAM_InternalAssignOpTemplate(TemplateInput* _ti, string _base_name)
-	: ZAM_InternalOpTemplate(_ti, _base_name) { }
+	ZAM_InternalAssignOpTemplate(ZAMGen* _g, string _base_name)
+	: ZAM_InternalOpTemplate(_g, _base_name) { }
 };
 
 
@@ -452,9 +443,30 @@ class ZAMGen {
 public:
 	ZAMGen(int argc, char** argv);
 
+	const InputLoc& CurrLoc() const	{ return ti->CurrLoc(); }
+	bool ScanLine(string& line)	{ return ti->ScanLine(line); }
+	Words SplitIntoWords(const string& line) const
+		{ return ti->SplitIntoWords(line); }
+	string AllButFirstWord(const string& line) const
+		{ return ti->AllButFirstWord(line); }
+	void PutBack(const string& line)	{ ti->PutBack(line); }
+
+	void Emit(EmitTarget et, const string& s);
+	void IndentUp()			{ ++indent_level; }
+	void IndentDown()		{ --indent_level; }
+	void SetNoNL(bool _no_NL)	{ no_NL = _no_NL; }
+
+	void Gripe(const char* msg, const string& input)
+		{ ti->Gripe(msg, input); }
+	void Gripe(const char* msg, const InputLoc& loc)
+		{ ti->Gripe(msg, loc); }
+
 private:
 	bool ParseTemplate();
 
 	std::unique_ptr<TemplateInput> ti;
 	vector<std::unique_ptr<ZAM_OpTemplate>> templates;
+
+	int indent_level = 0;
+	bool no_NL = false;
 };

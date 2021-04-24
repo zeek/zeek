@@ -13,6 +13,13 @@ char dash_to_under(char c)
 	return c;
 	}
 
+char under_to_dash(char c)
+	{
+	if ( c == '_' )
+		return '-';
+	return c;
+	}
+
 
 std::unordered_map<ZAM_OperandType,
                    std::pair<const char*, const char*>>
@@ -38,7 +45,7 @@ ArgsManager::ArgsManager(const vector<ZAM_OperandType>& ot, bool is_cond)
 		{
 		if ( ot_i == ZAM_OT_NONE )
 			{
-			ASSERT(ot.size() == 1);
+			assert(ot.size() == 1);
 			break;
 			}
 
@@ -48,7 +55,7 @@ ArgsManager::ArgsManager(const vector<ZAM_OperandType>& ot, bool is_cond)
 
 		if ( ot_i == ZAM_OT_FIELD && n > 1 )
 			{
-			ASSERT(! add_field);
+			assert(! add_field);
 			add_field = true;
 			continue;
 			}
@@ -218,19 +225,19 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 	else if ( attr == "op1-read" )
 		{
 		num_args = 0;
-		SetOp1Flavor(OP1_READ);
+		SetOp1Flavor("OP1_READ");
 		}
 
 	else if ( attr == "op1-read-write" )
 		{
 		num_args = 0;
-		SetOp1Flavor(OP1_READ_WRITE);
+		SetOp1Flavor("OP1_READ_WRITE");
 		}
 
 	else if ( attr == "op1-internal" )
 		{
 		num_args = 0;
-		SetOp1Flavor(OP1_INTERNAL);
+		SetOp1Flavor("OP1_INTERNAL");
 		}
 
 	else if ( attr == "set-type" )
@@ -401,9 +408,9 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 		return;
 		}
 
-	ASSERT(ot.size() > 0);
+	assert(ot.size() > 0);
 
-	auto op = "OP_" + cname + "_" + OpString(ot) + suffix;
+	auto op = g->GenOpCode(this, "_" + OpString(ot) + suffix);
 
 	Emit("ZInstI z;");
 
@@ -458,7 +465,16 @@ void ZAM_OpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
                                      const string& suffix,
                                      bool is_field, bool is_vec, bool is_cond)
 	{
-	// ###
+	auto op_code = g->GenOpCode(this, "_" + OpString(ot) + suffix);
+	auto& eval = Evals();
+
+	EmitTo(Eval);
+	Emit("case " + op_code + ":");
+	BeginBlock();
+	for ( auto& e : eval )
+		Emit(e);
+	EndBlock();
+	Emit("break;");
 	}
 
 string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const
@@ -1121,7 +1137,7 @@ bool ZAMGen::ParseTemplate()
 
 void ZAMGen::Emit(EmitTarget et, const string& s)
 	{
-	ASSERT(et != None);
+	assert(et != None);
 
 	static std::unordered_map<EmitTarget, FILE*> gen_files;
 	if ( gen_files.size() == 0 )
@@ -1137,6 +1153,10 @@ void ZAMGen::Emit(EmitTarget et, const string& s)
 			{ VDef, "VDef" },
 			{ Cond, "Cond" },
 			{ Eval, "Eval" },
+			{ Op1Flavor, "Op1Flavor" },
+			{ OpSideEffects, "OpSideEffects" },
+			{ OpDef, "OpDef" },
+			{ OpName, "OpName" },
 		};
 
 		for ( auto& gfn : gen_file_names )
@@ -1171,6 +1191,38 @@ void ZAMGen::Emit(EmitTarget et, const string& s)
 
 	if ( s.back() != '\n' && ! no_NL )
 		fputs("\n", f);
+	}
+
+string ZAMGen::GenOpCode(const ZAM_OpTemplate* ot, const string& suffix)
+	{
+	auto op = "OP_" + ot->CanonicalName() + suffix;
+
+	static unordered_set<string> known_opcodes;
+
+	if ( known_opcodes.count(op) > 0 )
+		return op;
+
+	known_opcodes.insert(op);
+
+	IndentUp();
+
+	Emit(OpDef, op + ",");
+
+	auto op_comment = ",\t// " + op;
+	Emit(Op1Flavor, ot->GetOp1Flavor() + op_comment);
+
+	auto se = ot->HasSideEffects() ? "true" : "false";
+	Emit(OpSideEffects, se + op_comment);
+
+	auto name = ot->BaseName();
+	transform(name.begin(), name.end(), name.begin(), ::tolower);
+	name += suffix;
+	transform(name.begin(), name.end(), name.begin(), under_to_dash);
+	Emit(OpName, "case " + op + ":\treturn \"" + name + "\";");
+
+	IndentDown();
+
+	return op;
 	}
 
 

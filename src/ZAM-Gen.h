@@ -2,8 +2,13 @@
 
 #pragma once
 
+#include <assert.h>
 #include <memory>
-#include <ZInst.h>
+#include <string>
+#include <vector>
+#include <map>
+#include <unordered_set>
+#include <unordered_map>
 
 using std::string;
 using std::vector;
@@ -61,6 +66,10 @@ enum EmitTarget {
 	VDef,
 	Cond,
 	Eval,
+	Op1Flavor,
+	OpSideEffects,
+	OpDef,
+	OpName,
 };
 
 // Helper class.
@@ -93,13 +102,17 @@ public:
 	void Build();
 	virtual void Instantiate();
 
+	const string& BaseName() const	{ return base_name; }
+	const string& OrigName() const	{ return orig_name; }
+	const string& CanonicalName() const	{ return cname; }
+
 	void AddOpType(ZAM_OperandType ot)
 		{ op_types.push_back(ot); }
 	const vector<ZAM_OperandType>& OperandTypes() const
 		{ return op_types; }
 
-	void SetOp1Flavor(ZAMOp1Flavor fl)	{ op1_flavor = fl; }
-	ZAMOp1Flavor GetOp1Flavor() const	{ return op1_flavor; }
+	void SetOp1Flavor(string fl)		{ op1_flavor = fl; }
+	const string& GetOp1Flavor() const	{ return op1_flavor; }
 
 	void SetTypeParam(int param)		{ type_param = param; }
 	int GetTypeParam() const		{ return type_param; }
@@ -213,7 +226,7 @@ protected:
 	EmitTarget curr_et = None;
 
 	vector<ZAM_OperandType> op_types;
-	ZAMOp1Flavor op1_flavor;
+	string op1_flavor = "OP1_WRITE";
 
 	int type_param = 0;	// 0 = not set
 	int type2_param = 0;
@@ -450,6 +463,8 @@ public:
 	string AllButFirstWord(const string& line) const
 		{ return ti->AllButFirstWord(line); }
 	void PutBack(const string& line)	{ ti->PutBack(line); }
+
+	string GenOpCode(const ZAM_OpTemplate* ot, const string& suffix);
 
 	void Emit(EmitTarget et, const string& s);
 	void IndentUp()			{ ++indent_level; }

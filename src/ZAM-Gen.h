@@ -209,6 +209,7 @@ protected:
 
 	InputLoc op_loc;
 
+	std::unordered_map<EmitTarget, FILE*> gen_files;
 	EmitTarget curr_et = None;
 	int indent_level = 0;
 	bool no_NL = false;

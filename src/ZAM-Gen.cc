@@ -483,12 +483,40 @@ void ZAM_OpTemplate::Emit(EmitTarget et, const string& s)
 	{
 	ASSERT(et != None);
 
+	if ( gen_files.size() == 0 )
+		{ // need to open the files
+		static std::unordered_map<EmitTarget, const char*>
+		 gen_file_names = {
+			{ None, nullptr },
+			{ MethodDef, "MethodDef" },
+			{ DirectDef, "DirectDef" },
+			{ C1Def, "C1Def" },
+			{ C2Def, "C2Def" },
+			{ C3Def, "C3Def" },
+			{ VDef, "VDef" },
+			{ Cond, "Cond" },
+		};
+
+		for ( auto& gfn : gen_file_names )
+			{
+			auto fn = gfn.second;
+			if ( ! fn )
+				continue;
+
+			auto f = fopen(fn, "w");
+			if ( ! f )
+				{
+				fprintf(stderr, "can't open generation file %s\n", fn);
+				exit(1);
+				}
+
+			gen_files[gfn.first] = f;
+			}
+		}
+
 	curr_et = et;
 
-	if ( et != MethodDef )
-		return;
-
-	FILE* f = stdout;
+	FILE* f = gen_files[et];
 
 	for ( auto i = indent_level; i > 0; --i )
 		fputs("\t", f);

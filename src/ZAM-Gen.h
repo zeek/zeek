@@ -147,7 +147,10 @@ protected:
 
 	void UnaryInstantiate();
 	void InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_vec);
-	void InstantiateMethod(const string& m,
+	void InstantiateOp(const string& m,
+	                   const vector<ZAM_OperandType>& ot,
+	                   bool is_field, bool is_vec, bool is_cond);
+	void InstantiateMethod(const string& m, const string& suffix,
 	                       const vector<ZAM_OperandType>& ot,
 	                       bool is_field, bool is_vec, bool is_cond);
 	void InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
@@ -157,6 +160,9 @@ protected:
 	                              const string& suffix,
 	                              const ArgsManager& args,
 	                              const string& params);
+	virtual void InstantiateEval(const vector<ZAM_OperandType>& ot,
+	                             const string& suffix,
+	                             bool is_field, bool is_vec, bool is_cond);
 
 	string MethodName(const vector<ZAM_OperandType>& ot) const;
 	string MethodParams(const vector<ZAM_OperandType>& ot,
@@ -174,6 +180,7 @@ protected:
 		C3Def,
 		VDef,
 		Cond,
+		Eval,
 	};
 
 	void Emit(EmitTarget et, const string& s);

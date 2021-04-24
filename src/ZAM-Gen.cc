@@ -338,39 +338,46 @@ std::unordered_map<ZAM_OperandType, char> ZAM_OpTemplate::ot_to_char = {
 
 void ZAM_OpTemplate::InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_vec)
 	{
-	if ( ! IsInternal() )
-		{
-		auto method = MethodName(ot);
+	auto method = MethodName(ot);
 
-		InstantiateMethod(method, ot, false, false, false);
+	InstantiateOp(method, ot, false, false, false);
 
-		if ( IncludesFieldOp() )
-			InstantiateMethod(method, ot, true, false, false);
+	if ( IncludesFieldOp() )
+		InstantiateOp(method, ot, true, false, false);
 
-		if ( do_vec )
-			InstantiateMethod(method, ot, false, true, false);
+	if ( do_vec )
+		InstantiateOp(method, ot, false, true, false);
 
-		if ( IncludesConditional() )
-			InstantiateMethod(method, ot, false, false, true);
-		}
+	if ( IncludesConditional() )
+		InstantiateOp(method, ot, false, false, true);
 	}
 
-void ZAM_OpTemplate::InstantiateMethod(const string& method,
-                                       const vector<ZAM_OperandType>& ot,
-                                       bool is_field, bool is_vec, bool is_cond)
+void ZAM_OpTemplate::InstantiateOp(const string& method,
+                                   const vector<ZAM_OperandType>& ot,
+                                   bool is_field, bool is_vec, bool is_cond)
 	{
-	auto m = method;
 	string suffix = "";
 
 	if ( is_field )	suffix = "_field";
 	if ( is_vec )	suffix = "_vec";
 	if ( is_cond )	suffix = "_cond";
 
-	m += suffix;
+	if ( ! IsInternal() )
+		InstantiateMethod(method, suffix, ot, is_field, is_vec, is_cond);
+
+	InstantiateEval(ot, suffix, is_field, is_vec, is_cond);
+	}
+
+void ZAM_OpTemplate::InstantiateMethod(const string& m, const string& suffix,
+                                       const vector<ZAM_OperandType>& ot,
+                                       bool is_field, bool is_vec, bool is_cond)
+	{
+	if ( IsInternal() )
+		return;
 
 	auto params = MethodParams(ot, is_field, is_cond);
 
-	Emit(MethodDef, "const CompiledStmt ZAM::" + m + "(" + params + ")");
+	Emit(MethodDef, "const CompiledStmt ZAM::" + m + suffix + "(" + params + ")");
 	BeginBlock();
 
 	InstantiateMethodCore(ot, suffix, is_field, is_vec, is_cond);
@@ -446,6 +453,13 @@ void ZAM_OpTemplate::BuildInstruction(const string& op,
 	Emit("z = GenInst(this, " + op + ", " + params + ");");
 	}
 
+void ZAM_OpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
+                                     const string& suffix,
+                                     bool is_field, bool is_vec, bool is_cond)
+	{
+	// ###
+	}
+
 string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const
 	{
 	return base_name + OpString(ot);
@@ -495,6 +509,7 @@ void ZAM_OpTemplate::Emit(EmitTarget et, const string& s)
 			{ C3Def, "C3Def" },
 			{ VDef, "VDef" },
 			{ Cond, "Cond" },
+			{ Eval, "Eval" },
 		};
 
 		for ( auto& gfn : gen_file_names )
@@ -512,6 +527,12 @@ void ZAM_OpTemplate::Emit(EmitTarget et, const string& s)
 
 			gen_files[gfn.first] = f;
 			}
+		}
+
+	if ( gen_files.count(et) == 0 )
+		{
+		fprintf(stderr, "bad generation file type\n");
+		exit(1);
 		}
 
 	curr_et = et;

@@ -422,9 +422,12 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 	auto params = args.Params();
 
 	if ( is_field )
+		{
 		params += ", i";
+		Emit("auto field = f->Field();");
+		}
 
-	BuildInstruction(op, args, params);
+	BuildInstruction(op, suffix, args, params);
 
 	auto tp = GetTypeParam();
 	if ( tp > 0 )
@@ -435,7 +438,9 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 		Emit("z.t2 = " + args.NthParam(tp2 - 1) + "->Type();");
 	}
 
-void ZAM_OpTemplate::BuildInstruction(const string& op, const ArgsManager& args,
+void ZAM_OpTemplate::BuildInstruction(const string& op,
+                                      const string& suffix,
+                                      const ArgsManager& args,
                                       const string& params)
 	{
 	Emit("z = GenInst(this, " + op + ", " + params + ");");
@@ -506,7 +511,7 @@ void ZAM_DirectUnaryOpTemplate::Instantiate()
 	     "(lhs, rhs);");
 	}
 
-std::unordered_map<char, ZAM_ExprType> ZAM_ExprOpTemplate::expr_type_names = {
+static std::unordered_map<char, ZAM_ExprType> expr_type_names = {
 	{ '*', ZAM_EXPR_TYPE_ANY },
 	{ 'A', ZAM_EXPR_TYPE_ADDR },
 	{ 'D', ZAM_EXPR_TYPE_DOUBLE },
@@ -522,6 +527,23 @@ std::unordered_map<char, ZAM_ExprType> ZAM_ExprOpTemplate::expr_type_names = {
 	{ 'i', ZAM_EXPR_TYPE_INT_CUSTOM },
 	{ 'u', ZAM_EXPR_TYPE_UINT_CUSTOM },
 };
+
+// Inverse of the above.
+static std::unordered_map<ZAM_ExprType, char> expr_name_types;
+
+ZAM_ExprOpTemplate::ZAM_ExprOpTemplate(TemplateInput* _ti, string _base_name)
+: ZAM_OpTemplate(_ti, _base_name)
+	{
+	static bool did_map_init = false;
+
+	if ( ! did_map_init )
+		{
+		for ( auto& tn : expr_type_names )
+			expr_name_types[tn.second] = tn.first;
+
+		did_map_init = true;
+		}
+	}
 
 void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
                                const Words& words)
@@ -780,6 +802,76 @@ void ZAM_UnaryExprOpTemplate::Instantiate()
 
 	ots[1] = ZAM_OT_VAR;
 	InstantiateV(ots);
+	}
+
+void ZAM_UnaryExprOpTemplate::BuildInstruction(const string& op,
+                                               const string& suffix,
+                                               const ArgsManager& args,
+                                               const string& params)
+	{
+	const auto& ets = ExprTypes();
+
+	if ( ets.size() == 1 && ets.count(ZAM_EXPR_TYPE_NONE) == 1 )
+		{
+		ZAM_ExprOpTemplate::BuildInstruction(op, suffix, args, params);
+		return;
+		}
+
+	Emit("auto t = n2->Type();");
+	Emit("auto tag = t->Tag();");
+	Emit("auto i_t = t->InternalType();");
+
+	static std::map<ZAM_ExprType, std::pair<string, string>> if_tests = {
+		{ ZAM_EXPR_TYPE_ADDR, { "i_t", "TYPE_INTERNAL_ADDR" } },
+		{ ZAM_EXPR_TYPE_DOUBLE, { "i_t", "TYPE_INTERNAL_DOUBLE" } },
+		{ ZAM_EXPR_TYPE_DOUBLE_CUSTOM, { "i_t", "TYPE_INTERNAL_DOUBLE" } },
+		{ ZAM_EXPR_TYPE_INT, { "i_t", "TYPE_INTERNAL_INT" } },
+		{ ZAM_EXPR_TYPE_INT_CUSTOM, { "i_t", "TYPE_INTERNAL_INT" } },
+		{ ZAM_EXPR_TYPE_UINT, { "i_t", "TYPE_INTERNAL_UNSIGNED" } },
+		{ ZAM_EXPR_TYPE_UINT_CUSTOM, { "i_t", "TYPE_INTERNAL_UNSIGNED" } },
+		{ ZAM_EXPR_TYPE_PORT, { "i_t", "TYPE_INTERNAL_UNSIGNED" } },
+		{ ZAM_EXPR_TYPE_STRING, { "i_t", "TYPE_INTERNAL_STRING" } },
+		{ ZAM_EXPR_TYPE_SUBNET, { "i_t", "TYPE_INTERNAL_SUBNET" } },
+		{ ZAM_EXPR_TYPE_TABLE, { "tag", "TYPE_TABLE" } },
+		{ ZAM_EXPR_TYPE_VECTOR, { "tag", "TYPE_VECTOR" } },
+
+		{ ZAM_EXPR_TYPE_ANY, { "", "" } },
+	};
+
+	bool do_default = false;
+	int ncases = 0;
+
+	for ( auto et : ets )
+		{
+		if ( if_tests.count(et) == 0 )
+			ti->Gripe("bad op-type", op_loc);
+
+		auto if_test = if_tests[et];
+		auto if_var = if_test.first;
+		auto if_val = if_test.second;
+
+		if ( if_var.size() == 0 )
+			{
+			do_default = true;
+			continue;
+			}
+
+		auto if_stmt = "if ( " + if_var + " == " + if_val + ")";
+		if ( ++ncases > 1 )
+			if_stmt = "else " + if_stmt;
+
+		Emit(if_stmt);
+
+		auto inst = op + "_" + expr_name_types[et] + suffix;
+		EmitUp("z = GenInst(this, " + inst + ", " + params + ");");
+		}
+
+	if ( do_default )
+		{
+		Emit("else");
+		EmitUp("z = GenInst(this, " + op + suffix +
+		       ", " + params + ");");
+		}
 	}
 
 void ZAM_AssignOpTemplate::Parse(const string& attr, const string& line,

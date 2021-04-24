@@ -153,7 +153,9 @@ protected:
 	void InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 				   string suffix,
 	                           bool is_field, bool is_vec, bool is_cond);
-	virtual void BuildInstruction(const string& op, const ArgsManager& args,
+	virtual void BuildInstruction(const string& op,
+	                              const string& suffix,
+	                              const ArgsManager& args,
 	                              const string& params);
 
 	string MethodName(const vector<ZAM_OperandType>& ot) const;
@@ -254,8 +256,7 @@ private:
 
 class ZAM_ExprOpTemplate : public ZAM_OpTemplate {
 public:
-	ZAM_ExprOpTemplate(TemplateInput* _ti, string _base_name)
-	: ZAM_OpTemplate(_ti, _base_name) { }
+	ZAM_ExprOpTemplate(TemplateInput* _ti, string _base_name);
 
 	virtual int Arity() const			{ return 0; }
 
@@ -264,6 +265,8 @@ public:
 
 	void AddExprType(ZAM_ExprType et)
 		{ expr_types.insert(et); }
+	const std::unordered_set<ZAM_ExprType>& ExprTypes()
+		{ return expr_types; }
 
 	void AddEvalSet(ZAM_ExprType et, string ev)
 		{ eval_set[et].emplace_back(ev); }
@@ -291,8 +294,6 @@ protected:
 	void DoVectorCase(const string& m, const string& args);
 
 private:
-	static std::unordered_map<char, ZAM_ExprType> expr_type_names;
-
 	std::unordered_set<ZAM_ExprType> expr_types;
 
 	std::unordered_map<ZAM_ExprType, vector<string>> eval_set;
@@ -322,6 +323,11 @@ public:
 protected:
 	virtual void Parse(const string& attr, const string& line, const Words& words) override;
 	void Instantiate() override;
+
+	void BuildInstruction(const string& op,
+	                      const string& suffix,
+	                      const ArgsManager& args,
+	                      const string& params) override;
 };
 
 class ZAM_AssignOpTemplate : public ZAM_UnaryExprOpTemplate {

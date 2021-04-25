@@ -398,6 +398,13 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m, const string& suffix,
 
 	auto params = MethodParams(ot, is_field, is_cond);
 
+	EmitTo(MethodDecl);
+	Emit("virtual const CompiledStmt " + m + suffix + "(" + params +
+	     ") = 0;");
+
+	EmitTo(SubDecl);
+	Emit("const CompiledStmt " + m + suffix + "(" + params + ") override;");
+
 	EmitTo(MethodDef);
 	Emit("const CompiledStmt ZAM::" + m + suffix + "(" + params + ")");
 	BeginBlock();
@@ -1229,6 +1236,8 @@ void ZAMGen::Emit(EmitTarget et, const string& s)
 		{ // need to open the files
 		static unordered_map<EmitTarget, const char*> gen_file_names = {
 			{ None, nullptr },
+			{ MethodDecl, "MethodDecl" },
+			{ SubDecl, "SubDecl" },
 			{ MethodDef, "MethodDef" },
 			{ DirectDef, "DirectDef" },
 			{ C1Def, "C1Def" },

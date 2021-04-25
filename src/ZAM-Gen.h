@@ -58,6 +58,8 @@ struct InputLoc {
 
 enum EmitTarget {
 	None,
+	MethodDecl,
+	SubDecl,
 	MethodDef,
 	DirectDef,
 	C1Def,

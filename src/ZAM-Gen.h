@@ -161,17 +161,17 @@ public:
 	bool HasSideEffects() const	{ return has_side_effects; }
 	void SetHasSideEffects()	{ has_side_effects = true; }
 
-	bool HasSpecificSideEffects() const
-		{ return specific_side_effects.size() > 0; }
-	void SetSpecificSideEffects(string sse, string sse_ot)
+	bool HasAssignmentLess() const
+		{ return assignment_less_op.size() > 0; }
+	void SetAssignmentLess(string op, string op_type)
 		{
-		specific_side_effects = sse;
-		specific_side_effects_op_type = sse_ot;
+		assignment_less_op = op;
+		assignment_less_op_type = op_type;
 		}
-	const string& SpecificSideEffects() const
-		{ return specific_side_effects; }
-	const string& SpecificSideEffectsOpType() const
-		{ return specific_side_effects_op_type; }
+	const string& AssignmentLessOp() const
+		{ return assignment_less_op; }
+	const string& AssignmentLessOpType() const
+		{ return assignment_less_op_type; }
 
 protected:
 	virtual void Parse(const string& attr, const string& line, const Words& words);
@@ -253,8 +253,8 @@ protected:
 	bool includes_vector_op = false;
 	bool has_side_effects = false;
 
-	string specific_side_effects;
-	string specific_side_effects_op_type;
+	string assignment_less_op;
+	string assignment_less_op_type;
 };
 
 class ZAM_UnaryOpTemplate : public ZAM_OpTemplate {

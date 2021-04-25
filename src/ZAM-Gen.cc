@@ -262,7 +262,7 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 	else if ( attr == "side-effects" )
 		{
 		if ( nwords == 3 )
-			SetSpecificSideEffects(words[1], words[2]);
+			SetAssignmentLess(words[1], words[2]);
 		else
 			// otherwise shouldn't be any arguments
 			num_args = 0;
@@ -414,7 +414,9 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m, const string& suffix,
 	if ( HasPostMethod() )
 		Emit(GetPostMethod());
 
-	Emit("return AddInst(z);");
+	if ( ! HasCustomMethod() )
+		Emit("return AddInst(z);");
+
 	EndBlock();
 	NL();
 	}
@@ -1101,6 +1103,14 @@ void ZAM_InternalAssignOpTemplate::InstantiateEval(
 
 		EmitTo(AssignFlavor);
 		Emit(flavor_ind + "[" + ai.tag + "] = " + op + ";");
+
+		if ( HasAssignmentLess() )
+			{
+			Emit("assignmentless_op[" + op + "] = " +
+			     AssignmentLessOp() + ";");
+			Emit("assignmentless_op_type[" + op + "] = " +
+			     AssignmentLessOpType() + ";");
+			}
 
 		EmitTo(Eval);
 		Emit("case " + op + ":");

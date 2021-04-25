@@ -21,9 +21,8 @@ char under_to_dash(char c)
 	}
 
 
-std::unordered_map<ZAM_OperandType,
-                   std::pair<const char*, const char*>>
-                                          ArgsManager::ot_to_args = {
+unordered_map<ZAM_OperandType, pair<const char*, const char*>>
+ ArgsManager::ot_to_args = {
 	{ ZAM_OT_AUX, { "OpaqueVals*", "v" } },
 	{ ZAM_OT_CONSTANT, { "const ConstExpr*", "c" } },
 	{ ZAM_OT_EVENT_HANDLER, { "EventHandler*", "h" } },
@@ -130,7 +129,7 @@ void ArgsManager::Differentiate()
 
 
 ZAM_OpTemplate::ZAM_OpTemplate(ZAMGen* _g, string _base_name)
-: g(_g), base_name(std::move(_base_name))
+: g(_g), base_name(move(_base_name))
 	{
 	orig_name = base_name;
 	transform(base_name.begin(), base_name.end(), base_name.begin(),
@@ -283,6 +282,13 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 		SetIncludesVectorOp();
 		}
 
+	else if ( attr == "assign-val" )
+		{
+		num_args = 1;
+		if ( words.size() > 1 )
+			SetAssignVal(words[1]);
+		}
+
 	else if ( attr == "eval" )
 		{
 		AddEval(g->AllButFirstWord(line));
@@ -297,6 +303,14 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 
 	if ( num_args >= 0 && num_args != nwords - 1 )
 		g->Gripe("extraneous arguments", line);
+	}
+
+string ZAM_OpTemplate::CompleteEval() const
+	{
+	string res;
+	for ( auto& e : Evals() )
+		res += e;
+	return res;
 	}
 
 string ZAM_OpTemplate::GatherEvals()
@@ -331,7 +345,7 @@ int ZAM_OpTemplate::ExtractTypeParam(const string& arg)
 	return param;
 	}
 
-std::unordered_map<ZAM_OperandType, char> ZAM_OpTemplate::ot_to_char = {
+unordered_map<ZAM_OperandType, char> ZAM_OpTemplate::ot_to_char = {
 	{ ZAM_OT_AUX, 'O' },
 	{ ZAM_OT_CONSTANT, 'C' },
 	{ ZAM_OT_EVENT_HANDLER, 'H' },
@@ -466,13 +480,12 @@ void ZAM_OpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
                                      bool is_field, bool is_vec, bool is_cond)
 	{
 	auto op_code = g->GenOpCode(this, "_" + OpString(ot) + suffix);
-	auto& eval = Evals();
+	auto eval = CompleteEval();
 
 	EmitTo(Eval);
 	Emit("case " + op_code + ":");
 	BeginBlock();
-	for ( auto& e : eval )
-		Emit(e);
+	Emit(eval);
 	EndBlock();
 	Emit("break;");
 	}
@@ -495,13 +508,13 @@ string ZAM_OpTemplate::MethodParams(const vector<ZAM_OperandType>& ot_orig,
 
 string ZAM_OpTemplate::OpString(const vector<ZAM_OperandType>& ot) const
 	{
-	std::string os;
+	string os;
 	for ( auto& o : ot )
 		os += ot_to_char[o];
 	return os;
 	}
 
-string ZAM_OpTemplate::SkipWS(const std::string& s) const
+string ZAM_OpTemplate::SkipWS(const string& s) const
 	{
 	auto sp = s.c_str();
 	while ( *sp && isspace(*sp) )
@@ -544,7 +557,7 @@ void ZAM_DirectUnaryOpTemplate::Instantiate()
 	Emit("case EXPR_" + cname + ":\treturn c->" + direct + "(lhs, rhs);");
 	}
 
-static std::unordered_map<char, ZAM_ExprType> expr_type_names = {
+static unordered_map<char, ZAM_ExprType> expr_type_names = {
 	{ '*', ZAM_EXPR_TYPE_ANY },
 	{ 'A', ZAM_EXPR_TYPE_ADDR },
 	{ 'D', ZAM_EXPR_TYPE_DOUBLE },
@@ -556,13 +569,10 @@ static std::unordered_map<char, ZAM_ExprType> expr_type_names = {
 	{ 'U', ZAM_EXPR_TYPE_UINT },
 	{ 'V', ZAM_EXPR_TYPE_VECTOR },
 	{ 'X', ZAM_EXPR_TYPE_NONE },
-	{ 'd', ZAM_EXPR_TYPE_DOUBLE_CUSTOM },
-	{ 'i', ZAM_EXPR_TYPE_INT_CUSTOM },
-	{ 'u', ZAM_EXPR_TYPE_UINT_CUSTOM },
 };
 
 // Inverse of the above.
-static std::unordered_map<ZAM_ExprType, char> expr_name_types;
+static unordered_map<ZAM_ExprType, char> expr_name_types;
 
 ZAM_ExprOpTemplate::ZAM_ExprOpTemplate(ZAMGen* _g, string _base_name)
 : ZAM_OpTemplate(_g, _base_name)
@@ -854,14 +864,11 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const string& op,
 	Emit("auto tag = t->Tag();");
 	Emit("auto i_t = t->InternalType();");
 
-	static std::map<ZAM_ExprType, std::pair<string, string>> if_tests = {
+	static map<ZAM_ExprType, pair<string, string>> if_tests = {
 		{ ZAM_EXPR_TYPE_ADDR, { "i_t", "TYPE_INTERNAL_ADDR" } },
 		{ ZAM_EXPR_TYPE_DOUBLE, { "i_t", "TYPE_INTERNAL_DOUBLE" } },
-		{ ZAM_EXPR_TYPE_DOUBLE_CUSTOM, { "i_t", "TYPE_INTERNAL_DOUBLE" } },
 		{ ZAM_EXPR_TYPE_INT, { "i_t", "TYPE_INTERNAL_INT" } },
-		{ ZAM_EXPR_TYPE_INT_CUSTOM, { "i_t", "TYPE_INTERNAL_INT" } },
 		{ ZAM_EXPR_TYPE_UINT, { "i_t", "TYPE_INTERNAL_UNSIGNED" } },
-		{ ZAM_EXPR_TYPE_UINT_CUSTOM, { "i_t", "TYPE_INTERNAL_UNSIGNED" } },
 		{ ZAM_EXPR_TYPE_PORT, { "i_t", "TYPE_INTERNAL_UNSIGNED" } },
 		{ ZAM_EXPR_TYPE_STRING, { "i_t", "TYPE_INTERNAL_STRING" } },
 		{ ZAM_EXPR_TYPE_SUBNET, { "i_t", "TYPE_INTERNAL_SUBNET" } },
@@ -1036,6 +1043,84 @@ void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,
 		ZAM_BinaryExprOpTemplate::Parse(attr, line, words);
 	}
 
+void ZAM_InternalAssignOpTemplate::InstantiateEval(
+                      const vector<ZAM_OperandType>& ot, const string& suffix,
+                      bool is_field, bool is_vec, bool is_cond)
+	{
+	// First, create a generic version of the operand, which the
+	// ZAM compiler uses to find specific-flavored versions.
+	auto op_string = "_" + OpString(ot);
+	auto generic_op = g->GenOpCode(this, op_string);
+	auto flavor_ind = "assignment_flavor[" + generic_op + "]";
+
+	EmitTo(AssignFlavor);
+	Emit(flavor_ind + " = empty_map;");
+
+	struct AssignOpInfo {
+		string tag;
+		string suffix;
+		string accessor;	// doesn't include "_val"
+		bool is_managed;
+	};
+
+	// ### sort me
+	static vector<AssignOpInfo> assign_op_info = {
+		{ "TYPE_COUNT", "u", "uint", false },
+		{ "TYPE_ADDR", "A", "addr", true },
+		{ "TYPE_SUBNET", "N", "subnet", true },
+		{ "TYPE_INT", "i", "int", false },
+		{ "TYPE_OPAQUE", "O", "opaque", true },
+		{ "TYPE_PATTERN", "P", "pattern", true },
+		{ "TYPE_DOUBLE", "D", "double", false },
+		{ "TYPE_RECORD", "R", "record", true },
+		{ "TYPE_FUNC", "F", "func", true },
+		{ "TYPE_STRING", "S", "string", true },
+		{ "TYPE_TABLE", "T", "table", true },
+		{ "TYPE_VECTOR", "V", "vector", true },
+		{ "TYPE_ANY", "_any", "any", true },
+		{ "TYPE_FILE", "f", "file", true },
+		{ "TYPE_LIST", "L", "list", true },
+		{ "TYPE_TYPE", "t", "type", true },
+	};
+
+	auto eval = CompleteEval();
+
+	assert(HasAssignVal());
+	auto v = GetAssignVal();
+
+	for ( auto& ai : assign_op_info )
+		{
+		auto op = g->GenOpCode(this, op_string + ai.suffix);
+
+		EmitTo(AssignFlavor);
+		Emit(flavor_ind + "[" + ai.tag + "] = " + op + ";");
+
+		EmitTo(Eval);
+		Emit("case " + op + ":");
+		BeginBlock();
+		Emit(eval);
+
+		auto acc = ai.accessor + "_val";
+
+		if ( ai.is_managed )
+			{
+			auto val_accessor = ai.accessor;
+			auto& Va1 = val_accessor.front();
+			Va1 = toupper(Va1);
+
+			Emit("auto& v1 = frame[z.v1]." + acc + ";");
+			Emit("Unref(v1);");
+			Emit("v1 = " + v + "->As" + val_accessor + "Val();");
+			Emit("::Ref(v1);");
+			}
+		else
+			Emit("frame[z.v1]." + acc + " = " + v + "->val."
+			     + acc + ";");
+
+		EndBlock();
+		}
+	}
+
 
 ZAMGen::ZAMGen(int argc, char** argv)
 	{
@@ -1130,7 +1215,7 @@ bool ZAMGen::ParseTemplate()
 		Gripe(args_mismatch, line);
 
 	t->Build();
-	templates.emplace_back(std::move(t));
+	templates.emplace_back(move(t));
 
 	return true;
 	}
@@ -1139,11 +1224,10 @@ void ZAMGen::Emit(EmitTarget et, const string& s)
 	{
 	assert(et != None);
 
-	static std::unordered_map<EmitTarget, FILE*> gen_files;
+	static unordered_map<EmitTarget, FILE*> gen_files;
 	if ( gen_files.size() == 0 )
 		{ // need to open the files
-		static std::unordered_map<EmitTarget, const char*>
-		 gen_file_names = {
+		static unordered_map<EmitTarget, const char*> gen_file_names = {
 			{ None, nullptr },
 			{ MethodDef, "MethodDef" },
 			{ DirectDef, "DirectDef" },
@@ -1153,6 +1237,7 @@ void ZAMGen::Emit(EmitTarget et, const string& s)
 			{ VDef, "VDef" },
 			{ Cond, "Cond" },
 			{ Eval, "Eval" },
+			{ AssignFlavor, "AssignFlavor" },
 			{ Op1Flavor, "Op1Flavor" },
 			{ OpSideEffects, "OpSideEffects" },
 			{ OpDef, "OpDef" },
@@ -1272,7 +1357,7 @@ string TemplateInput::AllButFirstWord(const string& line) const
 	{
 	for ( auto s = line.c_str(); *s && *s != '\n'; ++s )
 		if ( isspace(*s) )
-			return std::string(s);
+			return string(s);
 
 	return "";
 	}

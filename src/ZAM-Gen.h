@@ -66,6 +66,7 @@ enum EmitTarget {
 	VDef,
 	Cond,
 	Eval,
+	AssignFlavor,
 	Op1Flavor,
 	OpSideEffects,
 	OpDef,
@@ -120,9 +121,14 @@ public:
 	void SetType2Param(int param)		{ type2_param = param; }
 	int GetType2Param() const		{ return type2_param; }
 
+	void SetAssignVal(string _av)		{ av = _av; }
+	bool HasAssignVal() const		{ return av.size() > 0; }
+	const string& GetAssignVal() const	{ return av; }
+
 	void AddEval(string line)		{ evals.push_back(line); }
 	bool HasEvals() const			{ return evals.size() > 0; }
 	const vector<string>& Evals() const	{ return evals; }
+	string CompleteEval() const;
 
 	void SetCustomMethod(string cm)		{ custom_method = SkipWS(cm); }
 	bool HasCustomMethod() const
@@ -230,6 +236,10 @@ protected:
 
 	int type_param = 0;	// 0 = not set
 	int type2_param = 0;
+
+	// If non-empty, the value to assign to the target in an assignment
+	// operation.  May contain $ parameters designating instruction slots.
+	string av;
 
 	vector<string> evals;
 
@@ -419,6 +429,11 @@ class ZAM_InternalAssignOpTemplate : public ZAM_InternalOpTemplate {
 public:
 	ZAM_InternalAssignOpTemplate(ZAMGen* _g, string _base_name)
 	: ZAM_InternalOpTemplate(_g, _base_name) { }
+
+protected:
+	void InstantiateEval(const vector<ZAM_OperandType>& ot,
+	                     const string& suffix,
+	                     bool is_field, bool is_vec, bool is_cond) override;
 };
 
 

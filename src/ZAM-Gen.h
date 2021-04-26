@@ -146,7 +146,8 @@ public:
 
 	virtual bool IncludesFieldOp() const		{ return false; }
 	virtual bool IncludesConditional() const	{ return false; }
-	virtual bool IsInternal() const			{ return false; }
+	virtual bool IsInternalOp() const		{ return false; }
+	virtual bool IsAssignOp() const			{ return false; }
 	virtual bool IsFieldOp() const			{ return false; }
 
 	bool NoEval() const	{ return no_eval; }
@@ -196,6 +197,11 @@ protected:
 	virtual void InstantiateEval(const vector<ZAM_OperandType>& ot,
 	                             const string& suffix,
 	                             bool is_field, bool is_vec, bool is_cond);
+	void InstantiateAssignOp(const vector<ZAM_OperandType>& ot,
+	                         const string& suffix);
+	void GenAssignOpCore(const vector<ZAM_OperandType>& ot,
+	                     const string& eval, const string& accessor,
+			     bool is_managed);
 
 	string MethodName(const vector<ZAM_OperandType>& ot) const;
 	string MethodParams(const vector<ZAM_OperandType>& ot,
@@ -240,7 +246,7 @@ protected:
 	int type2_param = 0;
 
 	// If non-empty, the value to assign to the target in an assignment
-	// operation.  May contain $ parameters designating instruction slots.
+	// operation.
 	string av;
 
 	vector<string> evals;
@@ -359,6 +365,7 @@ public:
 	ZAM_AssignOpTemplate(ZAMGen* _g, string _base_name)
 	: ZAM_UnaryExprOpTemplate(_g, _base_name) { }
 
+	bool IsAssignOp() const override	{ return true; }
 	bool IncludesFieldOp() const override	{ return false; }
 	bool IsFieldOp() const override		{ return field_op; }
 	void SetFieldOp()			{ field_op = true; }
@@ -401,7 +408,7 @@ public:
 	ZAM_InternalBinaryOpTemplate(ZAMGen* _g, string _base_name)
 	: ZAM_BinaryExprOpTemplate(_g, _base_name) { }
 
-	bool IsInternal() const override	{ return true; }
+	bool IsInternalOp() const override	{ return true; }
 
 	void SetOp1Accessor(string accessor)	{ op1_accessor = accessor; }
 	void SetOp2Accessor(string accessor)	{ op2_accessor = accessor; }
@@ -424,7 +431,7 @@ public:
 	ZAM_InternalOpTemplate(ZAMGen* _g, string _base_name)
 	: ZAM_OpTemplate(_g, _base_name) { }
 
-	bool IsInternal() const override	{ return true; }
+	bool IsInternalOp() const override	{ return true; }
 };
 
 class ZAM_InternalAssignOpTemplate : public ZAM_InternalOpTemplate {
@@ -432,10 +439,7 @@ public:
 	ZAM_InternalAssignOpTemplate(ZAMGen* _g, string _base_name)
 	: ZAM_InternalOpTemplate(_g, _base_name) { }
 
-protected:
-	void InstantiateEval(const vector<ZAM_OperandType>& ot,
-	                     const string& suffix,
-	                     bool is_field, bool is_vec, bool is_cond) override;
+	bool IsAssignOp() const override	{ return true; }
 };
 
 

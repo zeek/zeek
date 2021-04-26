@@ -383,17 +383,20 @@ void ZAM_OpTemplate::InstantiateOp(const string& method,
 	if ( is_vec )	suffix = "_vec";
 	if ( is_cond )	suffix = "_cond";
 
-	if ( ! IsInternal() )
+	if ( ! IsInternalOp() )
 		InstantiateMethod(method, suffix, ot, is_field, is_vec, is_cond);
 
-	InstantiateEval(ot, suffix, is_field, is_vec, is_cond);
+	if ( IsAssignOp() )
+		InstantiateAssignOp(ot, suffix);
+	else
+		InstantiateEval(ot, suffix, is_field, is_vec, is_cond);
 	}
 
 void ZAM_OpTemplate::InstantiateMethod(const string& m, const string& suffix,
                                        const vector<ZAM_OperandType>& ot,
                                        bool is_field, bool is_vec, bool is_cond)
 	{
-	if ( IsInternal() )
+	if ( IsInternalOp() )
 		return;
 
 	auto params = MethodParams(ot, is_field, is_cond);
@@ -497,6 +500,157 @@ void ZAM_OpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 	Emit(eval);
 	EndBlock();
 	Emit("break;");
+	}
+
+void ZAM_OpTemplate::InstantiateAssignOp(const vector<ZAM_OperandType>& ot,
+                                         const string& suffix)
+	{
+	// First, create a generic version of the operand, which the
+	// ZAM compiler uses to find specific-flavored versions.
+	auto op_string = "_" + OpString(ot);
+	auto generic_op = g->GenOpCode(this, op_string);
+	auto flavor_ind = "assignment_flavor[" + generic_op + "]";
+
+	EmitTo(AssignFlavor);
+	Emit(flavor_ind + " = empty_map;");
+
+	struct AssignOpInfo {
+		string tag;
+		string suffix;
+		string accessor;	// doesn't include "_val"
+		bool is_managed;
+	};
+
+	static vector<AssignOpInfo> assign_op_info = {
+		{ "TYPE_ADDR", "A", "addr", true },
+		{ "TYPE_ANY", "_any", "any", true },
+		{ "TYPE_COUNT", "u", "uint", false },
+		{ "TYPE_DOUBLE", "D", "double", false },
+		{ "TYPE_FILE", "f", "file", true },
+		{ "TYPE_FUNC", "F", "func", true },
+		{ "TYPE_INT", "i", "int", false },
+		{ "TYPE_LIST", "L", "list", true },
+		{ "TYPE_OPAQUE", "O", "opaque", true },
+		{ "TYPE_PATTERN", "P", "pattern", true },
+		{ "TYPE_RECORD", "R", "record", true },
+		{ "TYPE_STRING", "S", "string", true },
+		{ "TYPE_SUBNET", "N", "subnet", true },
+		{ "TYPE_TABLE", "T", "table", true },
+		{ "TYPE_TYPE", "t", "type", true },
+		{ "TYPE_VECTOR", "V", "vector", true },
+	};
+
+	auto eval = CompleteEval();
+	auto v = GetAssignVal();
+
+	for ( auto& ai : assign_op_info )
+		{
+		auto op = g->GenOpCode(this, op_string + "_" + ai.suffix);
+
+		if ( IsInternalOp() )
+			{
+			EmitTo(AssignFlavor);
+			Emit(flavor_ind + "[" + ai.tag + "] = " + op + ";");
+
+			if ( HasAssignmentLess() )
+				{
+				Emit("assignmentless_op[" + op + "] = " +
+				     AssignmentLessOp() + ";");
+				Emit("assignmentless_op_type[" + op + "] = " +
+				     AssignmentLessOpType() + ";");
+				}
+			}
+
+		EmitTo(Eval);
+		Emit("case " + op + ":");
+		BeginBlock();
+		GenAssignOpCore(ot, eval, ai.accessor, ai.is_managed);
+		Emit("break;");
+		EndBlock();
+		}
+	}
+
+void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
+                                     const string& eval,
+                                     const string& accessor, bool is_managed)
+	{
+	auto acc = "." + accessor + "_val";
+
+	if ( HasAssignVal() )
+		{
+		auto v = GetAssignVal();
+
+		Emit(eval);
+
+		if ( is_managed )
+			{
+			auto val_accessor = accessor;
+			auto& Va1 = val_accessor.front();
+			Va1 = toupper(Va1);
+
+			Emit("auto& v1 = frame[z.v1]" + acc + ";");
+			Emit("Unref(v1);");
+			Emit("v1 = " + v + "->As" + val_accessor + "Val();");
+			Emit("::Ref(v1);");
+			}
+		else
+			Emit("frame[z.v1]" + acc + " = " +
+			     v + "->val" + acc + ";");
+
+		return;
+		}
+
+	auto lhs_field = (ot[0] == ZAM_OT_FIELD);
+	auto rhs_field = lhs_field && (ot[1] == ZAM_OT_FIELD);
+
+	int op2_offset = rhs_field ? 2 : 1;
+	auto constant_op = (ot[op2_offset] == ZAM_OT_CONSTANT);
+
+	string rhs = constant_op ? "z.c" : "frame[z.v2]";
+
+	if ( rhs_field )
+		{
+		auto lhs_offset = constant_op ? 2 : 3;
+		auto rhs_offset = lhs_offset + 1;
+
+		Emit("auto v = " + rhs +
+		     ".record_val->RawFields()->Lookup(z.v" +
+		     to_string(rhs_offset) + ", ZAM_error);");
+
+		Emit("if ( ZAM_error )");
+		EmitUp("ZAM_run_time_error(z.loc, \"field value missing\");");
+		Emit("else");
+
+		BeginBlock();
+		if ( is_managed )
+			Emit("::Ref(v" + acc + ");");
+
+		Emit("frame[z.v1].record_val->RawFields()->Assign(z.v" +
+		     to_string(lhs_offset) + ", v);");
+		EndBlock();
+		}
+
+	else
+		{
+		if ( is_managed )
+			Emit("::Ref(" + rhs + acc + ");");
+
+		if ( lhs_field )
+			{
+			auto lhs_offset = constant_op ? 2 : 3;
+
+			Emit("frame[z.v1].record_val->RawFields()->Assign(z.v" +
+			     to_string(lhs_offset) + ", " + rhs + ");");
+			}
+
+		else
+			{
+			if ( is_managed )
+				Emit("Unref(frame[z.v1]" + acc + ");");
+
+			Emit("frame[z.v1]" + acc + " = " + rhs + acc + ";");
+			}
+		}
 	}
 
 string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const
@@ -986,20 +1140,20 @@ void ZAM_BinaryExprOpTemplate::Instantiate()
 	ots[2] = ZAM_OT_VAR;
 	InstantiateOp(ots, false);
 
-	if ( ! IsInternal() )
+	if ( ! IsInternalOp() )
 		InstantiateC1(ots, 2, false);
 
 	ots[1] = ZAM_OT_VAR;
 	ots[2] = ZAM_OT_CONSTANT;
 	InstantiateOp(ots, false);
 
-	if ( ! IsInternal() )
+	if ( ! IsInternalOp() )
 		InstantiateC2(ots, 2);
 
 	ots[2] = ZAM_OT_VAR;
 	InstantiateOp(ots, IncludesVectorOp());
 
-	if ( ! IsInternal() )
+	if ( ! IsInternalOp() )
 		InstantiateV(ots);
 	}
 
@@ -1050,92 +1204,6 @@ void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,
 
 	else
 		ZAM_BinaryExprOpTemplate::Parse(attr, line, words);
-	}
-
-void ZAM_InternalAssignOpTemplate::InstantiateEval(
-                      const vector<ZAM_OperandType>& ot, const string& suffix,
-                      bool is_field, bool is_vec, bool is_cond)
-	{
-	// First, create a generic version of the operand, which the
-	// ZAM compiler uses to find specific-flavored versions.
-	auto op_string = "_" + OpString(ot);
-	auto generic_op = g->GenOpCode(this, op_string);
-	auto flavor_ind = "assignment_flavor[" + generic_op + "]";
-
-	EmitTo(AssignFlavor);
-	Emit(flavor_ind + " = empty_map;");
-
-	struct AssignOpInfo {
-		string tag;
-		string suffix;
-		string accessor;	// doesn't include "_val"
-		bool is_managed;
-	};
-
-	// ### sort me
-	static vector<AssignOpInfo> assign_op_info = {
-		{ "TYPE_COUNT", "u", "uint", false },
-		{ "TYPE_ADDR", "A", "addr", true },
-		{ "TYPE_SUBNET", "N", "subnet", true },
-		{ "TYPE_INT", "i", "int", false },
-		{ "TYPE_OPAQUE", "O", "opaque", true },
-		{ "TYPE_PATTERN", "P", "pattern", true },
-		{ "TYPE_DOUBLE", "D", "double", false },
-		{ "TYPE_RECORD", "R", "record", true },
-		{ "TYPE_FUNC", "F", "func", true },
-		{ "TYPE_STRING", "S", "string", true },
-		{ "TYPE_TABLE", "T", "table", true },
-		{ "TYPE_VECTOR", "V", "vector", true },
-		{ "TYPE_ANY", "_any", "any", true },
-		{ "TYPE_FILE", "f", "file", true },
-		{ "TYPE_LIST", "L", "list", true },
-		{ "TYPE_TYPE", "t", "type", true },
-	};
-
-	auto eval = CompleteEval();
-
-	assert(HasAssignVal());
-	auto v = GetAssignVal();
-
-	for ( auto& ai : assign_op_info )
-		{
-		auto op = g->GenOpCode(this, op_string + ai.suffix);
-
-		EmitTo(AssignFlavor);
-		Emit(flavor_ind + "[" + ai.tag + "] = " + op + ";");
-
-		if ( HasAssignmentLess() )
-			{
-			Emit("assignmentless_op[" + op + "] = " +
-			     AssignmentLessOp() + ";");
-			Emit("assignmentless_op_type[" + op + "] = " +
-			     AssignmentLessOpType() + ";");
-			}
-
-		EmitTo(Eval);
-		Emit("case " + op + ":");
-		BeginBlock();
-		Emit(eval);
-
-		auto acc = ai.accessor + "_val";
-
-		if ( ai.is_managed )
-			{
-			auto val_accessor = ai.accessor;
-			auto& Va1 = val_accessor.front();
-			Va1 = toupper(Va1);
-
-			Emit("auto& v1 = frame[z.v1]." + acc + ";");
-			Emit("Unref(v1);");
-			Emit("v1 = " + v + "->As" + val_accessor + "Val();");
-			Emit("::Ref(v1);");
-			}
-		else
-			Emit("frame[z.v1]." + acc + " = " + v + "->val."
-			     + acc + ";");
-
-		EndBlock();
-		}
 	}
 
 

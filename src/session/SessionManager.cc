@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/zeek-config.h"
-#include "zeek/SessionManager.h"
+#include "zeek/session/SessionManager.h"
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -18,7 +18,7 @@
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
-#include "zeek/Session.h"
+#include "zeek/session/Session.h"
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/telemetry/Manager.h"
 
@@ -31,10 +31,10 @@
 
 #include "zeek/analyzer/protocol/stepping-stone/events.bif.h"
 
-zeek::SessionManager* zeek::session_mgr = nullptr;
-zeek::SessionManager*& zeek::sessions = zeek::session_mgr;
+zeek::session::SessionManager* zeek::session_mgr = nullptr;
+zeek::session::SessionManager*& zeek::sessions = zeek::session_mgr;
 
-namespace zeek {
+namespace zeek::session {
 namespace detail {
 
 class ProtocolStats {
@@ -188,7 +188,7 @@ void SessionManager::ProcessTransportLayer(double t, const Packet* pkt, size_t r
 		return;
 	}
 
-	detail::ConnIDKey conn_key(id);
+	zeek::detail::ConnIDKey conn_key(id);
 	detail::SessionKey key(&conn_key, sizeof(conn_key), false);
 	Connection* conn = nullptr;
 
@@ -375,10 +375,10 @@ Connection* SessionManager::FindConnection(Val* v)
 	auto orig_portv = vl->GetFieldAs<PortVal>(orig_p);
 	auto resp_portv = vl->GetFieldAs<PortVal>(resp_p);
 
-	detail::ConnIDKey conn_key(orig_addr, resp_addr,
-	                           htons((unsigned short) orig_portv->Port()),
-	                           htons((unsigned short) resp_portv->Port()),
-	                           orig_portv->PortType(), false);
+	zeek::detail::ConnIDKey conn_key(orig_addr, resp_addr,
+	                                 htons((unsigned short) orig_portv->Port()),
+	                                 htons((unsigned short) resp_portv->Port()),
+	                                 orig_portv->PortType(), false);
 
 	detail::SessionKey key(&conn_key, sizeof(conn_key), false);
 
@@ -457,7 +457,7 @@ void SessionManager::Clear()
 
 	session_map.clear();
 
-	detail::fragment_mgr->Clear();
+	zeek::detail::fragment_mgr->Clear();
 	}
 
 void SessionManager::GetStats(SessionStats& s)
@@ -477,12 +477,12 @@ void SessionManager::GetStats(SessionStats& s)
 	s.num_ICMP_conns = icmp_stats->active.Value();
 	s.cumulative_ICMP_conns = icmp_stats->total.Value();
 
-	s.num_fragments = detail::fragment_mgr->Size();
-	s.max_fragments = detail::fragment_mgr->MaxFragments();
+	s.num_fragments = zeek::detail::fragment_mgr->Size();
+	s.max_fragments = zeek::detail::fragment_mgr->MaxFragments();
 	s.num_packets = packet_mgr->PacketsProcessed();
 	}
 
-Connection* SessionManager::NewConn(const detail::ConnIDKey& k, double t, const ConnID* id,
+Connection* SessionManager::NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
                                     const u_char* data, int proto, uint32_t flow_label,
                                     const Packet* pkt)
 	{
@@ -679,7 +679,7 @@ unsigned int SessionManager::MemoryAllocation()
 	return SessionMemoryUsage()
 		+ padded_sizeof(*this)
 		+ (session_map.size() * (sizeof(SessionMap::key_type) + sizeof(SessionMap::value_type)))
-		+ detail::fragment_mgr->MemoryAllocation();
+		+ zeek::detail::fragment_mgr->MemoryAllocation();
 		// FIXME: MemoryAllocation() not implemented for rest.
 		;
 	}
@@ -702,9 +702,9 @@ void SessionManager::InsertSession(detail::SessionKey key, Session* session)
 		}
 	}
 
-detail::PacketFilter* SessionManager::GetPacketFilter(bool init)
+zeek::detail::PacketFilter* SessionManager::GetPacketFilter(bool init)
 	{
 	return packet_mgr->GetPacketFilter(init);
 	}
 
-} // namespace zeek
+} // namespace zeek::session

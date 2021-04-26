@@ -5,7 +5,7 @@
 #include "zeek/Dict.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/RunState.h"
-#include "zeek/SessionManager.h"
+#include "zeek/session/SessionManager.h"
 #include "zeek/util.h"
 
 namespace zeek::packet_analysis {

@@ -9,7 +9,7 @@
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/rpc/XDR.h"
 #include "zeek/Reporter.h"
-#include "zeek/SessionManager.h"
+#include "zeek/session/SessionManager.h"
 #include "zeek/RunState.h"
 
 #include "zeek/analyzer/protocol/rpc/events.bif.h"

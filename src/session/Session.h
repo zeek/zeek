@@ -8,17 +8,19 @@
 #include "zeek/Obj.h"
 #include "zeek/EventHandler.h"
 #include "zeek/Timer.h"
-#include "zeek/SessionKey.h"
+#include "zeek/session/SessionKey.h"
 
 namespace zeek {
 
 class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
-class Session;
 
 namespace analyzer { class Analyzer; }
+
+namespace session {
 namespace detail { class SessionTimer; }
 
+class Session;
 typedef void (Session::*timer_func)(double t);
 
 class Session : public Obj {
@@ -80,7 +82,7 @@ public:
 	bool RecordPackets() const		{ return record_packets; }
 	void SetRecordPackets(bool do_record)	{ record_packets = do_record ? 1 : 0; }
 
-	// True if we should record full packets for this connection,
+	// True if we should record full packets for this session,
 	// false if we should just record headers.
 	bool RecordContents() const		{ return record_contents; }
 	void SetRecordContents(bool do_record)	{ record_contents = do_record ? 1 : 0; }
@@ -133,7 +135,7 @@ public:
 	           const char* name = nullptr);
 
 	/**
-	 * Enqueues an event associated with this connection and given analyzer.
+	 * Enqueues an event associated with this session and given analyzer.
 	 */
 	void EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer, Args args);
 
@@ -210,12 +212,12 @@ protected:
 	 * @param type The type of timer being added.
 	 */
 	void AddTimer(timer_func timer, double t, bool do_expire,
-	              detail::TimerType type);
+	              zeek::detail::TimerType type);
 
 	/**
 	 * Remove a specific timer from firing.
 	 */
-	void RemoveTimer(detail::Timer* t);
+	void RemoveTimer(zeek::detail::Timer* t);
 
 	/**
 	 * The handler method for inactivity timers.
@@ -248,26 +250,28 @@ protected:
 
 namespace detail {
 
-class SessionTimer final : public Timer {
+class SessionTimer final : public zeek::detail::Timer {
 public:
-	SessionTimer(Session* arg_conn, timer_func arg_timer,
-	                double arg_t, bool arg_do_expire, TimerType arg_type)
-		: Timer(arg_t, arg_type)
-		{ Init(arg_conn, arg_timer, arg_do_expire); }
+	SessionTimer(Session* arg_session, timer_func arg_timer,
+	             double arg_t, bool arg_do_expire,
+	             zeek::detail::TimerType arg_type)
+		: zeek::detail::Timer(arg_t, arg_type)
+		{ Init(arg_session, arg_timer, arg_do_expire); }
 	~SessionTimer() override;
 
 	void Dispatch(double t, bool is_expire) override;
 
 protected:
 
-	void Init(Session* conn, timer_func timer, bool do_expire);
+	void Init(Session* session, timer_func timer, bool do_expire);
 
-	Session* conn;
+	Session* session;
 	timer_func timer;
 	bool do_expire;
 };
 
 } // namespace detail
+} // namespace session
 } // namespace zeek
 
 #define ADD_TIMER(timer, t, do_expire, type) \

@@ -166,6 +166,7 @@ add_subdirectory(input)
 add_subdirectory(iosource)
 add_subdirectory(logging)
 add_subdirectory(probabilistic)
+add_subdirectory(session)
 
 add_subdirectory(fuzzers)
 
@@ -286,9 +287,6 @@ set(MAIN_SRCS
     Scope.cc
     ScriptCoverageManager.cc
     SerializationFormat.cc
-    Session.cc
-    SessionKey.cc
-    SessionManager.cc
     SmithWaterman.cc
     Stats.cc
     Stmt.cc

@@ -10,7 +10,7 @@
 #include "zeek/RunState.h"
 #include "zeek/NetVar.h"
 #include "zeek/Event.h"
-#include "zeek/SessionManager.h"
+#include "zeek/session/SessionManager.h"
 #include "zeek/Reporter.h"
 #include "zeek/Timer.h"
 #include "zeek/iosource/IOSource.h"
@@ -380,7 +380,7 @@ void Connection::FlipRoles()
 
 unsigned int Connection::MemoryAllocation() const
 	{
-	return Session::MemoryAllocation() + padded_sizeof(*this)
+	return session::Session::MemoryAllocation() + padded_sizeof(*this)
 		+ (timers.MemoryAllocation() - padded_sizeof(timers))
 		+ (conn_val ? conn_val->MemoryAllocation() : 0)
 		+ (root_analyzer ? root_analyzer->MemoryAllocation(): 0)
@@ -395,7 +395,7 @@ unsigned int Connection::MemoryAllocationVal() const
 
 void Connection::Describe(ODesc* d) const
 	{
-	Session::Describe(d);
+	session::Session::Describe(d);
 
 	switch ( proto ) {
 		case TRANSPORT_TCP:

@@ -24,7 +24,7 @@ extern "C" {
 };
 
 #include "zeek/NetVar.h"
-#include "zeek/SessionManager.h"
+#include "zeek/session/SessionManager.h"
 #include "zeek/Event.h"
 #include "zeek/Timer.h"
 #include "zeek/ID.h"
@@ -195,7 +195,7 @@ void init_run(const std::optional<std::string>& interface,
 
 	zeek::detail::init_ip_addr_anonymizers();
 
-	session_mgr = new SessionManager();
+	session_mgr = new session::SessionManager();
 
 	// Initialize the stepping stone manager. We intentionally throw away the result here.
 	SteppingStoneManager::Get();

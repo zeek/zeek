@@ -6,7 +6,7 @@
 #include "zeek/Hash.h"
 #include "zeek/IP.h"
 #include "zeek/NetVar.h"
-#include "zeek/SessionManager.h"
+#include "zeek/session/SessionManager.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 
@@ -29,7 +29,7 @@ void FragTimer::Dispatch(double t, bool /* is_expire */)
 		reporter->InternalWarning("fragment timer dispatched w/o reassembler");
 	}
 
-FragReassembler::FragReassembler(SessionManager* arg_s,
+FragReassembler::FragReassembler(session::SessionManager* arg_s,
                                  const std::unique_ptr<IP_Hdr>& ip, const u_char* pkt,
                                  const FragReassemblerKey& k, double t)
 	: Reassembler(0, REASSEM_FRAG)

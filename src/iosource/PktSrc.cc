@@ -8,7 +8,7 @@
 #include "zeek/util.h"
 #include "zeek/Hash.h"
 #include "zeek/RunState.h"
-#include "zeek/SessionManager.h"
+#include "zeek/session/SessionManager.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/packet_analysis/Manager.h"

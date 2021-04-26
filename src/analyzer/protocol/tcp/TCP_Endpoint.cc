@@ -9,7 +9,7 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/Reporter.h"
-#include "zeek/SessionManager.h"
+#include "zeek/session/SessionManager.h"
 #include "zeek/Event.h"
 #include "zeek/File.h"
 #include "zeek/Val.h"

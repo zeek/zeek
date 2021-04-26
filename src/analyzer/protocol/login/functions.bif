@@ -2,7 +2,7 @@
 %%{
 #include "zeek/analyzer/protocol/login/Login.h"
 #include "zeek/Reporter.h"
-#include "zeek/SessionManager.h"
+#include "zeek/session/SessionManager.h"
 %%}
 
 ## Returns the state of the given login (Telnet or Rlogin) connection.

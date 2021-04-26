@@ -13,7 +13,7 @@
 #include "zeek/File.h"
 #include "zeek/Event.h"
 #include "zeek/Reporter.h"
-#include "zeek/SessionManager.h"
+#include "zeek/session/SessionManager.h"
 #include "zeek/DebugLogger.h"
 
 #include "zeek/analyzer/protocol/tcp/events.bif.h"

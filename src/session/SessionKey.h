@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace zeek::detail {
+namespace zeek::session::detail {
 
 /**
  * This type is used as the key for the map in SessionManager. It represents a
@@ -58,4 +58,4 @@ private:
 	bool copied = false;
 };
 
-} // namespace zeek::detail
+} // namespace zeek::session::detail

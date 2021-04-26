@@ -6,7 +6,7 @@
 #include "zeek/zeek-setup.h"
 
 #include "zeek/Event.h"
-#include "zeek/SessionManager.h"
+#include "zeek/session/SessionManager.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/file_analysis/Manager.h"
 

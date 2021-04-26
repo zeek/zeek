@@ -11,22 +11,21 @@
 #include "zeek/analyzer/protocol/tcp/Stats.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/Hash.h"
-#include "zeek/Session.h"
+#include "zeek/session/Session.h"
 
 namespace zeek {
 
-namespace detail {
-
-class PacketFilter;
-class ProtocolStats;
-
-} // namespace detail
+namespace detail { class PacketFilter; }
 
 class EncapsulationStack;
 class Packet;
 class Connection;
 struct ConnID;
 class StatBlocks;
+
+namespace session {
+
+namespace detail { class ProtocolStats; }
 
 struct SessionStats {
 	size_t num_TCP_conns;
@@ -65,7 +64,7 @@ public:
 	 * @param proto The transport protocol for the connection.
 	 * @return The connection, or nullptr if one doesn't exist.
 	 */
-	Connection* FindConnection(const detail::ConnIDKey& key, TransportProto proto);
+	Connection* FindConnection(const zeek::detail::ConnIDKey& key, TransportProto proto);
 
 	void Remove(Session* s);
 	void Insert(Session* c);
@@ -85,7 +84,7 @@ public:
 	           const char* addl = "");
 
 	[[deprecated("Remove in v5.1. Use packet_mgr->GetPacketFilter().")]]
-	detail::PacketFilter* GetPacketFilter(bool init=true);
+	zeek::detail::PacketFilter* GetPacketFilter(bool init=true);
 
 	unsigned int CurrentSessions()
 		{
@@ -149,7 +148,7 @@ private:
 
 	using SessionMap = std::map<detail::SessionKey, Session*>;
 
-	Connection* NewConn(const detail::ConnIDKey& k, double t, const ConnID* id,
+	Connection* NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
 	                    const u_char* data, int proto, uint32_t flow_label,
 	                    const Packet* pkt);
 
@@ -186,10 +185,12 @@ private:
 	detail::ProtocolStats* stats;
 };
 
-// Manager for the currently active sessions.
-extern SessionManager* session_mgr;
-extern SessionManager*& sessions [[deprecated("Remove in v5.1. Use zeek::session_mgr.")]];
+} // namespace session
 
-using NetSessions [[deprecated("Remove in v5.1. Use zeek::SessionManager.")]] = SessionManager;
+// Manager for the currently active sessions.
+extern session::SessionManager* session_mgr;
+
+extern session::SessionManager*& sessions [[deprecated("Remove in v5.1. Use zeek::sessions::session_mgr.")]];
+using NetSessions [[deprecated("Remove in v5.1. Use zeek::session::SessionManager.")]] = session::SessionManager;
 
 } // namespace zeek

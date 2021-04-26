@@ -4,7 +4,7 @@
 #include "zeek/Conn.h"
 #include "zeek/IP.h"
 #include "zeek/Reporter.h"
-#include "zeek/SessionManager.h"
+#include "zeek/session/SessionManager.h"
 #include "zeek/ZeekString.h"
 #include "zeek/RunState.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"

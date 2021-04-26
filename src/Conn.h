@@ -16,7 +16,7 @@
 #include "zeek/WeirdState.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/IntrusivePtr.h"
-#include "zeek/Session.h"
+#include "zeek/session/Session.h"
 #include "zeek/iosource/Packet.h"
 
 #include "zeek/analyzer/Tag.h"
@@ -25,7 +25,6 @@
 namespace zeek {
 
 class Connection;
-class SessionManager;
 class EncapsulationStack;
 class Val;
 class RecordVal;
@@ -33,6 +32,7 @@ class RecordVal;
 using ValPtr = IntrusivePtr<Val>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
+namespace session { class SessionManager; }
 namespace detail {
 
 class Specific_RE_Matcher;
@@ -70,7 +70,7 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,
 	return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
 	}
 
-class Connection final : public Session {
+class Connection final : public session::Session {
 public:
 
 	Connection(const detail::ConnIDKey& k, double t, const ConnID* id,
@@ -114,8 +114,8 @@ public:
 	// connection is in the session map. If it is removed, the key
 	// should be marked invalid.
 	const detail::ConnIDKey& Key() const	{ return key; }
-	detail::SessionKey SessionKey(bool copy) const override
-		{ return detail::SessionKey{&key, sizeof(key), copy}; }
+	session::detail::SessionKey SessionKey(bool copy) const override
+		{ return session::detail::SessionKey{&key, sizeof(key), copy}; }
 
 	const IPAddr& OrigAddr() const		{ return orig_addr; }
 	const IPAddr& RespAddr() const		{ return resp_addr; }
@@ -254,7 +254,7 @@ public:
 protected:
 
 	// Allow other classes to access pointers to these:
-	friend class detail::SessionTimer;
+	friend class session::detail::SessionTimer;
 
 	IPAddr orig_addr;
 	IPAddr resp_addr;

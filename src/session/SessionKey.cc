@@ -1,8 +1,8 @@
-#include "zeek/SessionKey.h"
+#include "zeek/session/SessionKey.h"
 
 #include <cstring>
 
-namespace zeek::detail {
+namespace zeek::session::detail {
 
 SessionKey::SessionKey(const void* session, size_t size, bool copy) : size(size)
 	{
@@ -64,4 +64,4 @@ bool SessionKey::operator<(const SessionKey& rhs) const
 	return memcmp(data, rhs.data, size) < 0;
 	}
 
-} // namespace zeek::detail
+} // namespace zeek::session::detail

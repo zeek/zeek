@@ -10,6 +10,8 @@
 
 namespace zeek::detail {
 
+using namespace std;
+
 void CPPCompile::GenInitExpr(const ExprPtr& e)
 	{
 	NL();
@@ -18,7 +20,7 @@ void CPPCompile::GenInitExpr(const ExprPtr& e)
 	auto ename = InitExprName(e);
 
 	// First, create a CPPFunc that we can compile to compute 'e'.
-	auto name = std::string("wrapper_") + ename;
+	auto name = string("wrapper_") + ename;
 
 	// Forward declaration of the function that computes 'e'.
 	Emit("static %s %s(Frame* f__CPP);", FullTypeName(t), name);
@@ -58,7 +60,7 @@ void CPPCompile::GenInitExpr(const ExprPtr& e)
 	Emit("CallExprPtr %s;", ename);
 
 	NoteInitDependency(e, TypeRep(t));
-	AddInit(e, ename, std::string("make_intrusive<CallExpr>(make_intrusive<ConstExpr>(make_intrusive<FuncVal>(make_intrusive<") +
+	AddInit(e, ename, string("make_intrusive<CallExpr>(make_intrusive<ConstExpr>(make_intrusive<FuncVal>(make_intrusive<") +
 		name + "_cl>())), make_intrusive<ListExpr>(), false)");
 	}
 
@@ -87,12 +89,12 @@ bool CPPCompile::IsSimpleInitExpr(const ExprPtr& e) const
 	}
 	}
 
-std::string CPPCompile::InitExprName(const ExprPtr& e)
+string CPPCompile::InitExprName(const ExprPtr& e)
 	{
 	return init_exprs.KeyName(e);
 	}
 
-void CPPCompile::GenGlobalInit(const ID* g, std::string& gl, const ValPtr& v)
+void CPPCompile::GenGlobalInit(const ID* g, string& gl, const ValPtr& v)
 	{
 	const auto& t = v->GetType();
 	auto tag = t->Tag();
@@ -102,7 +104,7 @@ void CPPCompile::GenGlobalInit(const ID* g, std::string& gl, const ValPtr& v)
 		// the function's body.
 		return;
 
-	std::string init_val;
+	string init_val;
 	if ( tag == TYPE_OPAQUE )
 		{
 		// We can only generate these by reproducing the expression
@@ -127,7 +129,7 @@ void CPPCompile::GenGlobalInit(const ID* g, std::string& gl, const ValPtr& v)
 
 	auto& attrs = g->GetAttrs();
 
-	AddInit(g, std::string("if ( ! ") + gl + "->HasVal() )");
+	AddInit(g, string("if ( ! ") + gl + "->HasVal() )");
 
 	if ( attrs )
 		{
@@ -157,7 +159,7 @@ void CPPCompile::GenFuncVarInits()
 
 		const auto& bodies = f->GetBodies();
 
-		std::string hashes = "{";
+		string hashes = "{";
 
 		for ( auto b : bodies )
 			{
@@ -178,7 +180,7 @@ void CPPCompile::GenFuncVarInits()
 
 		hashes += "}";
 
-		auto init = std::string("lookup_func__CPP(\"") + fn +
+		auto init = string("lookup_func__CPP(\"") + fn +
 			    "\", " + hashes + ", " + GenTypeName(ft) + ")";
 
 		AddInit(fv, const_name, init);
@@ -187,7 +189,7 @@ void CPPCompile::GenFuncVarInits()
 
 void CPPCompile::GenPreInit(const Type* t)
 	{
-	std::string pre_init;
+	string pre_init;
 
 	switch ( t->Tag() ) {
 	case TYPE_ADDR:
@@ -204,43 +206,43 @@ void CPPCompile::GenPreInit(const Type* t)
 	case TYPE_TIME:
 	case TYPE_TIMER:
 	case TYPE_VOID:
-		pre_init = std::string("base_type(") + TypeTagName(t->Tag()) + ")";
+		pre_init = string("base_type(") + TypeTagName(t->Tag()) + ")";
 		break;
 
 	case TYPE_ENUM:
-		pre_init = std::string("get_enum_type__CPP(\"") +
+		pre_init = string("get_enum_type__CPP(\"") +
 		           t->GetName() + "\")";
 		break;
 
 	case TYPE_SUBNET:
-		pre_init = std::string("make_intrusive<SubNetType>()");
+		pre_init = string("make_intrusive<SubNetType>()");
 		break;
 
 	case TYPE_FILE:
-		pre_init = std::string("make_intrusive<FileType>(") +
+		pre_init = string("make_intrusive<FileType>(") +
 		           GenTypeName(t->AsFileType()->Yield()) + ")";
 		break;
 
 	case TYPE_OPAQUE:
-		pre_init = std::string("make_intrusive<OpaqueType>(\"") +
+		pre_init = string("make_intrusive<OpaqueType>(\"") +
 		           t->AsOpaqueType()->Name() + "\")";
 		break;
 
 	case TYPE_RECORD:
 		{
-		std::string name;
+		string name;
 
 		if ( t->GetName() != "" )
-			name = std::string("\"") + t->GetName() + std::string("\"");
+			name = string("\"") + t->GetName() + string("\"");
 		else
 			name = "nullptr";
 
-		pre_init = std::string("get_record_type__CPP(") + name + ")";
+		pre_init = string("get_record_type__CPP(") + name + ")";
 		}
 		break;
 
 	case TYPE_LIST:
-		pre_init = std::string("make_intrusive<TypeList>()");
+		pre_init = string("make_intrusive<TypeList>()");
 		break;
 
 	case TYPE_TYPE:
@@ -268,7 +270,7 @@ void CPPCompile::GenPreInits()
 	EndBlock();
 	}
 
-void CPPCompile::AddInit(const Obj* o, const std::string& init)
+void CPPCompile::AddInit(const Obj* o, const string& init)
 	{
 	obj_inits[o].emplace_back(init);
 	}
@@ -277,7 +279,7 @@ void CPPCompile::AddInit(const Obj* o)
 	{
 	if ( obj_inits.count(o) == 0 )
 		{
-		std::vector<std::string> empty;
+		vector<string> empty;
 		obj_inits[o] = empty;
 		}
 	}
@@ -287,7 +289,7 @@ void CPPCompile::NoteInitDependency(const Obj* o1, const Obj* o2)
 	obj_deps[o1].emplace(o2);
 	}
 
-void CPPCompile::CheckInitConsistency(std::unordered_set<const Obj*>& to_do)
+void CPPCompile::CheckInitConsistency(unordered_set<const Obj*>& to_do)
 	{
 	for ( const auto& od : obj_deps )
 		{
@@ -312,7 +314,7 @@ void CPPCompile::CheckInitConsistency(std::unordered_set<const Obj*>& to_do)
 		}
 	}
 
-int CPPCompile::GenDependentInits(std::unordered_set<const Obj*>& to_do)
+int CPPCompile::GenDependentInits(unordered_set<const Obj*>& to_do)
 	{
 	int n = 0;
 
@@ -323,7 +325,7 @@ int CPPCompile::GenDependentInits(std::unordered_set<const Obj*>& to_do)
 	// are no more to-do items.
 	while ( to_do.size() > 0 )
 		{
-		std::unordered_set<const Obj*> cohort;
+		unordered_set<const Obj*> cohort;
 
 		for ( const auto& o : to_do )
 			{
@@ -361,7 +363,7 @@ int CPPCompile::GenDependentInits(std::unordered_set<const Obj*>& to_do)
 	return n;
 	}
 
-void CPPCompile::GenInitCohort(int nc, std::unordered_set<const Obj*>& cohort)
+void CPPCompile::GenInitCohort(int nc, unordered_set<const Obj*>& cohort)
 	{
 	NL();
 	Emit("void init_%s__CPP()", Fmt(nc));
@@ -430,7 +432,7 @@ void CPPCompile::InitializeEnumMappings()
 	}
 
 void CPPCompile::InitializeEnumMappings(const EnumType* et,
-                                        const std::string& e_name, int index)
+                                        const string& e_name, int index)
 	{
 	AddInit(et, "{");
 
@@ -490,7 +492,7 @@ void CPPCompile::GenStandaloneActivation()
 	// associated scripts.
 
 	// First, build up a list of per-hook/event handler bodies.
-	std::unordered_map<const Func*, std::vector<p_hash_type>> func_bodies;
+	unordered_map<const Func*, vector<p_hash_type>> func_bodies;
 
 	for ( const auto& func : funcs )
 		{
@@ -517,7 +519,7 @@ void CPPCompile::GenStandaloneActivation()
 		const auto fn = f->Name();
 		const auto& ft = f->GetType();
 
-		std::string hashes;
+		string hashes;
 		for ( auto h : fb.second )
 			{
 			if ( hashes.size() > 0 )
@@ -540,7 +542,7 @@ void CPPCompile::GenLoad()
 	{
 	// First, generate a hash unique to this compilation.
 	auto t = util::current_time();
-	auto th = std::hash<double>{}(t);
+	auto th = hash<double>{}(t);
 
 	total_hash = merge_p_hashes(total_hash, th);
 

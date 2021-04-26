@@ -9,8 +9,10 @@
 
 namespace zeek::detail {
 
+using namespace std;
 
-CPPCompile::CPPCompile(std::vector<FuncInfo>& _funcs, ProfileFuncs& _pfs,
+
+CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs,
                        const char* gen_name, CPPHashManager& _hm,
                        bool _update, bool _standalone)
 : funcs(_funcs), pfs(_pfs), hm(_hm), update(_update), standalone(_standalone)
@@ -124,14 +126,14 @@ void CPPCompile::Compile()
 		RegisterAttributes(g->GetAttrs());
 		if ( g->HasVal() )
 			{
-			auto gn = std::string(g->Name());
+			auto gn = string(g->Name());
 			GenGlobalInit(g, globals[gn], g->GetVal());
 			}
 		}
 
 	for ( const auto& e : pfs.Events() )
 		if ( AddGlobal(e, "gl", false) )
-			Emit("EventHandlerPtr %s_ev;", globals[std::string(e)]);
+			Emit("EventHandlerPtr %s_ev;", globals[string(e)]);
 
 	for ( const auto& t : pfs.RepTypes() )
 		{
@@ -149,7 +151,7 @@ void CPPCompile::Compile()
 	// LambdaExpr's can wind up referring to the same underlying lambda
 	// if the bodies happen to be identical.  In that case, we don't
 	// want to generate the lambda twice.
-	std::unordered_set<std::string> lambda_names;
+	unordered_set<string> lambda_names;
 	for ( const auto& l : pfs.Lambdas() )
 		{
 		const auto& n = l->Name();
@@ -202,13 +204,13 @@ void CPPCompile::GenProlog()
 	NL();
 	}
 
-void CPPCompile::RegisterCompiledBody(const std::string& f)
+void CPPCompile::RegisterCompiledBody(const string& f)
 	{
 	auto h = body_hashes[f];
 	auto p = body_priorities[f];
 
 	// Build up an initializer of the events relevant to the function.
-	std::string events;
+	string events;
 	if ( body_events.count(f) > 0 )
 		for ( auto e : body_events[f] )
 			{
@@ -217,7 +219,7 @@ void CPPCompile::RegisterCompiledBody(const std::string& f)
 			events = events + "\"" + e + "\"";
 			}
 
-	events = std::string("{") + events + "}";
+	events = string("{") + events + "}";
 
 	if ( addl_tag > 0 )
 		// Hash in the location associated with this compilation
@@ -229,7 +231,7 @@ void CPPCompile::RegisterCompiledBody(const std::string& f)
 		// same binary).
 		h = merge_p_hashes(h, p_hash(cf_locs[f]));
 
-	auto init = std::string("register_body__CPP(make_intrusive<") +
+	auto init = string("register_body__CPP(make_intrusive<") +
 			f + "_cl>(\"" + f + "\"), " + Fmt(p) + ", " +
 			Fmt(h) + ", " + events + ");";
 
@@ -274,7 +276,7 @@ void CPPCompile::GenEpilog()
 
 	GenPreInits();
 
-	std::unordered_set<const Obj*> to_do;
+	unordered_set<const Obj*> to_do;
 	for ( const auto& oi : obj_inits )
 		to_do.insert(oi.first);
 

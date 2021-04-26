@@ -6,13 +6,15 @@
 
 namespace zeek::detail {
 
+using namespace std;
+
 VarMapper compiled_items;
 
 CPPHashManager::CPPHashManager(const char* hash_name_base, bool _append)
 	{
 	append = _append;
 
-	hash_name = std::string(hash_name_base) + ".dat";
+	hash_name = string(hash_name_base) + ".dat";
 
 	if ( append )
 		{
@@ -52,7 +54,7 @@ CPPHashManager::~CPPHashManager()
 
 void CPPHashManager::LoadHashes(FILE* f)
 	{
-	std::string key;
+	string key;
 
 	// The hash file format is inefficient but simple to scan.
 	// It doesn't appear to pose a bottleneck, so until it does
@@ -60,7 +62,7 @@ void CPPHashManager::LoadHashes(FILE* f)
 
 	while ( GetLine(f, key) )
 		{
-		std::string line;
+		string line;
 
 		RequireLine(f, line);
 
@@ -133,7 +135,7 @@ void CPPHashManager::LoadHashes(FILE* f)
 		}
 	}
 
-void CPPHashManager::RequireLine(FILE* f, std::string& line)
+void CPPHashManager::RequireLine(FILE* f, string& line)
 	{
 	if ( ! GetLine(f, line) )
 		{
@@ -142,7 +144,7 @@ void CPPHashManager::RequireLine(FILE* f, std::string& line)
 		}
 	}
 
-bool CPPHashManager::GetLine(FILE* f, std::string& line)
+bool CPPHashManager::GetLine(FILE* f, string& line)
 	{
 	char buf[8192];
 	if ( ! fgets(buf, sizeof buf, f) )
@@ -156,7 +158,7 @@ bool CPPHashManager::GetLine(FILE* f, std::string& line)
 	return true;
 	}
 
-void CPPHashManager::BadLine(std::string& line)
+void CPPHashManager::BadLine(string& line)
 	{
 	reporter->Error("bad %s hash file entry: %s",
                         hash_name.c_str(), line.c_str());

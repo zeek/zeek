@@ -7,7 +7,9 @@
 
 namespace zeek::detail {
 
-std::string CPPCompile::BuildConstant(const Obj* parent, const ValPtr& vp)
+using namespace std;
+
+string CPPCompile::BuildConstant(const Obj* parent, const ValPtr& vp)
 	{
 	if ( ! vp )
 		return "nullptr";
@@ -55,7 +57,7 @@ bool CPPCompile::AddConstant(const ValPtr& vp)
 	// Formulate a key that's unique per distinct constant.
 
 	const auto& t = v->GetType();
-	std::string c_desc;
+	string c_desc;
 
 	if ( t->Tag() == TYPE_STRING )
 		{
@@ -63,7 +65,7 @@ bool CPPCompile::AddConstant(const ValPtr& vp)
 		// escaping, sigh.  Just use the raw string.
 		auto s = v->AsString();
 		auto b = (const char*)(s->Bytes());
-		c_desc = std::string(b, s->Len()) + "string";
+		c_desc = string(b, s->Len()) + "string";
 		}
 	else
 		{
@@ -90,8 +92,7 @@ bool CPPCompile::AddConstant(const ValPtr& vp)
 		}
 
 	// Need a C++ global for this constant.
-	auto const_name = std::string("CPP__const__") +
-				Fmt(int(constants.size()));
+	auto const_name = string("CPP__const__") + Fmt(int(constants.size()));
 
 	const_vals[v] = constants[c_desc] = const_name;
 	constants_to_vals[c_desc] = v;
@@ -134,7 +135,7 @@ bool CPPCompile::AddConstant(const ValPtr& vp)
 		v->Describe(&d);
 
 		AddInit(v, const_name,
-			std::string("make_intrusive<") + prefix +
+			string("make_intrusive<") + prefix +
 			"Val>(\"" + d.Description() + "\")");
 		}
 		break;
@@ -156,7 +157,7 @@ bool CPPCompile::AddConstant(const ValPtr& vp)
 		auto f = cast_intrusive<FileVal>(vp)->Get();
 
 		AddInit(v, const_name,
-			std::string("make_intrusive<FileVal>(") +
+			string("make_intrusive<FileVal>(") +
 			"make_intrusive<File>(\"" + f->Name() + "\", \"w\"))");
 		}
 		break;
@@ -168,7 +169,7 @@ bool CPPCompile::AddConstant(const ValPtr& vp)
 	return true;
 	}
 
-void CPPCompile::AddStringConstant(const ValPtr& v, std::string& const_name)
+void CPPCompile::AddStringConstant(const ValPtr& v, string& const_name)
 	{
 	Emit("StringValPtr %s;", const_name);
 
@@ -179,13 +180,13 @@ void CPPCompile::AddStringConstant(const ValPtr& v, std::string& const_name)
 	AddInit(v, const_name, GenString(b, len));
 	}
 
-void CPPCompile::AddPatternConstant(const ValPtr& v, std::string& const_name)
+void CPPCompile::AddPatternConstant(const ValPtr& v, string& const_name)
 	{
 	Emit("PatternValPtr %s;", const_name);
 
 	auto re = v->AsPatternVal()->Get();
 
-	AddInit(v, std::string("{ auto re = new RE_Matcher(") +
+	AddInit(v, string("{ auto re = new RE_Matcher(") +
 	        CPPEscape(re->OrigText()) + ");");
 
 	if ( re->IsCaseInsensitive() )
@@ -196,7 +197,7 @@ void CPPCompile::AddPatternConstant(const ValPtr& v, std::string& const_name)
 	AddInit(v, "}");
 	}
 
-void CPPCompile::AddListConstant(const ValPtr& v, std::string& const_name)
+void CPPCompile::AddListConstant(const ValPtr& v, string& const_name)
 	{
 	Emit("ListValPtr %s;", const_name);
 
@@ -204,7 +205,7 @@ void CPPCompile::AddListConstant(const ValPtr& v, std::string& const_name)
 	// use the underlying TypeList.  However, we *do* use the types of
 	// the elements.
 
-	AddInit(v, const_name, std::string("make_intrusive<ListVal>(TYPE_ANY)"));
+	AddInit(v, const_name, string("make_intrusive<ListVal>(TYPE_ANY)"));
 
 	auto lv = cast_intrusive<ListVal>(v);
 	auto n = lv->Length();
@@ -218,7 +219,7 @@ void CPPCompile::AddListConstant(const ValPtr& v, std::string& const_name)
 		}
 	}
 
-void CPPCompile::AddRecordConstant(const ValPtr& v, std::string& const_name)
+void CPPCompile::AddRecordConstant(const ValPtr& v, string& const_name)
 	{
 	const auto& t = v->GetType();
 
@@ -226,7 +227,7 @@ void CPPCompile::AddRecordConstant(const ValPtr& v, std::string& const_name)
 
 	NoteInitDependency(v, TypeRep(t));
 
-	AddInit(v, const_name, std::string("make_intrusive<RecordVal>(") +
+	AddInit(v, const_name, string("make_intrusive<RecordVal>(") +
 	        "cast_intrusive<RecordType>(" + GenTypeName(t) + "))");
 
 	auto r = cast_intrusive<RecordVal>(v);
@@ -245,7 +246,7 @@ void CPPCompile::AddRecordConstant(const ValPtr& v, std::string& const_name)
 		}
 	}
 
-void CPPCompile::AddTableConstant(const ValPtr& v, std::string& const_name)
+void CPPCompile::AddTableConstant(const ValPtr& v, string& const_name)
 	{
 	const auto& t = v->GetType();
 
@@ -253,7 +254,7 @@ void CPPCompile::AddTableConstant(const ValPtr& v, std::string& const_name)
 
 	NoteInitDependency(v, TypeRep(t));
 
-	AddInit(v, const_name, std::string("make_intrusive<TableVal>(") +
+	AddInit(v, const_name, string("make_intrusive<TableVal>(") +
 	        "cast_intrusive<TableType>(" + GenTypeName(t) + "))");
 
 	auto tv = cast_intrusive<TableVal>(v);
@@ -267,7 +268,7 @@ void CPPCompile::AddTableConstant(const ValPtr& v, std::string& const_name)
 		}
 	}
 
-void CPPCompile::AddVectorConstant(const ValPtr& v, std::string& const_name)
+void CPPCompile::AddVectorConstant(const ValPtr& v, string& const_name)
 	{
 	const auto& t = v->GetType();
 
@@ -275,7 +276,7 @@ void CPPCompile::AddVectorConstant(const ValPtr& v, std::string& const_name)
 
 	NoteInitDependency(v, TypeRep(t));
 
-	AddInit(v, const_name, std::string("make_intrusive<VectorVal>(") +
+	AddInit(v, const_name, string("make_intrusive<VectorVal>(") +
 	        "cast_intrusive<VectorType>(" + GenTypeName(t) + "))");
 
 	auto vv = cast_intrusive<VectorVal>(v);

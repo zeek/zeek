@@ -8,9 +8,11 @@
 
 namespace zeek::detail {
 
+using namespace std;
+
 StringValPtr str_concat__CPP(const String* s1, const String* s2)
 	{
-	std::vector<const String*> strings(2);
+	vector<const String*> strings(2);
 	strings[0] = s1;
 	strings[1] = s2;
 
@@ -23,7 +25,7 @@ bool str_in__CPP(const String* s1, const String* s2)
 	return util::strstr_n(s2->Len(), s2->Bytes(), s1->Len(), s) != -1;
 	}
 
-ListValPtr index_val__CPP(std::vector<ValPtr> indices)
+ListValPtr index_val__CPP(vector<ValPtr> indices)
 	{
 	auto ind_v = make_intrusive<ListVal>(TYPE_ANY);
 
@@ -35,9 +37,9 @@ ListValPtr index_val__CPP(std::vector<ValPtr> indices)
 	return ind_v;
 	}
 
-ValPtr index_table__CPP(const TableValPtr& t, std::vector<ValPtr> indices)
+ValPtr index_table__CPP(const TableValPtr& t, vector<ValPtr> indices)
 	{
-	auto v = t->FindOrDefault(index_val__CPP(std::move(indices)));
+	auto v = t->FindOrDefault(index_val__CPP(move(indices)));
 	if ( ! v )
 		reporter->CPPRuntimeError("no such index");
 	return v;
@@ -51,15 +53,15 @@ ValPtr index_vec__CPP(const VectorValPtr& vec, int index)
 	return v;
 	}
 
-ValPtr index_string__CPP(const StringValPtr& svp, std::vector<ValPtr> indices)
+ValPtr index_string__CPP(const StringValPtr& svp, vector<ValPtr> indices)
 	{
 	return index_string(svp->AsString(),
-				index_val__CPP(std::move(indices)).get());
+	                    index_val__CPP(move(indices)).get());
 	}
 
 ValPtr set_event__CPP(IDPtr g, ValPtr v, EventHandlerPtr& gh)
 	{
-	g->SetVal(std::move(v));
+	g->SetVal(move(v));
 	gh = event_registry->Register(g->Name());
 	return v;
 	}
@@ -102,7 +104,7 @@ template <typename T>
 ValPtr assign_to_index__CPP(T v1, ValPtr v2, ValPtr v3)
 	{
 	bool iterators_invalidated = false;
-	auto err_msg = assign_to_index(std::move(v1), std::move(v2), v3, iterators_invalidated);
+	auto err_msg = assign_to_index(move(v1), move(v2), v3, iterators_invalidated);
 
 	check_iterators__CPP(iterators_invalidated);
 
@@ -143,10 +145,10 @@ void remove_element__CPP(TableValPtr aggr, ListValPtr indices)
 // and values and returns a collective AttributesPtr corresponding to
 // those instantiated attributes.  For attributes that don't have
 // associated expressions, the correspoinding value should be nil.
-static AttributesPtr build_attrs__CPP(std::vector<int> attr_tags,
-				      std::vector<ValPtr> attr_vals)
+static AttributesPtr build_attrs__CPP(vector<int> attr_tags,
+				      vector<ValPtr> attr_vals)
 	{
-	std::vector<AttrPtr> attrs;
+	vector<AttrPtr> attrs;
 	int nattrs = attr_tags.size();
 	for ( auto i = 0; i < nattrs; ++i )
 		{
@@ -160,46 +162,45 @@ static AttributesPtr build_attrs__CPP(std::vector<int> attr_tags,
 		attrs.emplace_back(make_intrusive<Attr>(t_i, e));
 		}
 
-	return make_intrusive<Attributes>(std::move(attrs), nullptr, false, false);
+	return make_intrusive<Attributes>(move(attrs), nullptr, false, false);
 	}
 
-TableValPtr set_constructor__CPP(std::vector<ValPtr> elements, TableTypePtr t,
-                                 std::vector<int> attr_tags,
-                                 std::vector<ValPtr> attr_vals)
+TableValPtr set_constructor__CPP(vector<ValPtr> elements, TableTypePtr t,
+                                 vector<int> attr_tags,
+                                 vector<ValPtr> attr_vals)
 	{
-	auto attrs = build_attrs__CPP(std::move(attr_tags), std::move(attr_vals));
-	auto aggr = make_intrusive<TableVal>(std::move(t), std::move(attrs));
+	auto attrs = build_attrs__CPP(move(attr_tags), move(attr_vals));
+	auto aggr = make_intrusive<TableVal>(move(t), move(attrs));
 
 	for ( const auto& elem : elements )
-		aggr->Assign(std::move(elem), nullptr);
+		aggr->Assign(move(elem), nullptr);
 
 	return aggr;
 	}
 
-TableValPtr table_constructor__CPP(std::vector<ValPtr> indices,
-                                   std::vector<ValPtr> vals, TableTypePtr t,
-                                   std::vector<int> attr_tags,
-                                   std::vector<ValPtr> attr_vals)
+TableValPtr table_constructor__CPP(vector<ValPtr> indices, vector<ValPtr> vals,
+                                   TableTypePtr t, vector<int> attr_tags,
+                                   vector<ValPtr> attr_vals)
 	{
 	const auto& yt = t->Yield().get();
 	auto n = indices.size();
 
-	auto attrs = build_attrs__CPP(std::move(attr_tags), std::move(attr_vals));
-	auto aggr = make_intrusive<TableVal>(std::move(t), std::move(attrs));
+	auto attrs = build_attrs__CPP(move(attr_tags), move(attr_vals));
+	auto aggr = make_intrusive<TableVal>(move(t), move(attrs));
 
 	for ( auto i = 0; i < n; ++i )
 		{
 		auto v = check_and_promote(vals[i], yt, true);
 		if ( v )
-			aggr->Assign(std::move(indices[i]), std::move(v));
+			aggr->Assign(move(indices[i]), move(v));
 		}
 
 	return aggr;
 	}
 
-RecordValPtr record_constructor__CPP(std::vector<ValPtr> vals, RecordTypePtr t)
+RecordValPtr record_constructor__CPP(vector<ValPtr> vals, RecordTypePtr t)
 	{
-	auto rv = make_intrusive<RecordVal>(std::move(t));
+	auto rv = make_intrusive<RecordVal>(move(t));
 	auto n = vals.size();
 
 	rv->Reserve(n);
@@ -210,9 +211,9 @@ RecordValPtr record_constructor__CPP(std::vector<ValPtr> vals, RecordTypePtr t)
 	return rv;
 	}
 
-VectorValPtr vector_constructor__CPP(std::vector<ValPtr> vals, VectorTypePtr t)
+VectorValPtr vector_constructor__CPP(vector<ValPtr> vals, VectorTypePtr t)
 	{
-	auto vv = make_intrusive<VectorVal>(std::move(t));
+	auto vv = make_intrusive<VectorVal>(move(t));
 	auto n = vals.size();
 
 	for ( auto i = 0; i < n; ++i )
@@ -221,10 +222,10 @@ VectorValPtr vector_constructor__CPP(std::vector<ValPtr> vals, VectorTypePtr t)
 	return vv;
 	}
 
-ValPtr schedule__CPP(double dt, EventHandlerPtr event, std::vector<ValPtr> args)
+ValPtr schedule__CPP(double dt, EventHandlerPtr event, vector<ValPtr> args)
 	{
 	if ( ! run_state::terminating )
-		timer_mgr->Add(new ScheduleTimer(event, std::move(args), dt));
+		timer_mgr->Add(new ScheduleTimer(event, move(args), dt));
 
 	return nullptr;
 	}

@@ -9,6 +9,8 @@
 
 namespace zeek::detail {
 
+using namespace std;
+
 void CPPCompile::StartBlock()
 	{
 	++block_level;
@@ -21,15 +23,15 @@ void CPPCompile::EndBlock(bool needs_semi)
 	--block_level;
 	}
 
-std::string CPPCompile::GenString(const char* b, int len) const
+string CPPCompile::GenString(const char* b, int len) const
 	{
-	return std::string("make_intrusive<StringVal>(") + Fmt(len) +
-			", " + CPPEscape(b, len) + ")";
+	return string("make_intrusive<StringVal>(") + Fmt(len) + ", " +
+	              CPPEscape(b, len) + ")";
 	}
 
-std::string CPPCompile::CPPEscape(const char* b, int len) const
+string CPPCompile::CPPEscape(const char* b, int len) const
 	{
-	std::string res = "\"";
+	string res = "\"";
 
 	for ( int i = 0; i < len; ++i )
 		{

@@ -8,6 +8,8 @@
 
 namespace zeek::detail {
 
+using namespace std;
+
 template<class T>
 void CPPTracker<T>::AddKey(IntrusivePtr<T> key, p_hash_type h)
 	{
@@ -43,7 +45,7 @@ void CPPTracker<T>::AddKey(IntrusivePtr<T> key, p_hash_type h)
 	}
 
 template<class T>
-std::string CPPTracker<T>::KeyName(const T* key)
+string CPPTracker<T>::KeyName(const T* key)
 	{
 	ASSERT(HasKey(key));
 
@@ -52,11 +54,11 @@ std::string CPPTracker<T>::KeyName(const T* key)
 
 	auto index = map2[hash];
 
-	std::string scope;
+	string scope;
 	if ( IsInherited(hash) )
 		scope = scope_prefix(scope2[hash]);
 
-	return scope + std::string(base_name) + "_" + Fmt(index) + "__CPP";
+	return scope + string(base_name) + "_" + Fmt(index) + "__CPP";
 	}
 
 template<class T>
@@ -77,8 +79,8 @@ p_hash_type CPPTracker<T>::Hash(IntrusivePtr<T> key) const
 	ODesc d;
 	d.SetDeterminism(true);
 	key->Describe(&d);
-	std::string desc = d.Description();
-	auto h = std::hash<std::string>{}(base_name + desc);
+	string desc = d.Description();
+	auto h = hash<string>{}(base_name + desc);
 	return p_hash_type(h);
 	}
 

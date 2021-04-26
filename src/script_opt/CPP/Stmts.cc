@@ -6,6 +6,8 @@
 
 namespace zeek::detail {
 
+using namespace std;
+
 void CPPCompile::GenStmt(const Stmt* s)
 	{
 	switch ( s->Tag() ) {
@@ -222,11 +224,11 @@ void CPPCompile::GenEventStmt(const EventStmt* ev)
 
 	if ( ev_e->Args()->Exprs().length() > 0 )
 		Emit("event_mgr.Enqueue(%s_ev, %s);",
-                     globals[std::string(ev_n)],
+                     globals[string(ev_n)],
                      GenExpr(ev_e->Args(), GEN_VAL_PTR));
 	else
 		Emit("event_mgr.Enqueue(%s_ev, Args{});",
-                     globals[std::string(ev_n)]);
+                     globals[string(ev_n)]);
 	}
 
 void CPPCompile::GenSwitchStmt(const SwitchStmt* sw)
@@ -239,12 +241,12 @@ void CPPCompile::GenSwitchStmt(const SwitchStmt* sw)
 	bool is_uint = e_it == TYPE_INTERNAL_UNSIGNED;
 	bool organic = is_int || is_uint;
 
-	std::string sw_val;
+	string sw_val;
 
 	if ( organic )
 		sw_val = GenExpr(e, GEN_NATIVE);
 	else
-		sw_val = std::string("p_hash(") + GenExpr(e, GEN_VAL_PTR) + ")";
+		sw_val = string("p_hash(") + GenExpr(e, GEN_VAL_PTR) + ")";
 
 	Emit("switch ( %s ) {", sw_val.c_str());
 
@@ -262,7 +264,7 @@ void CPPCompile::GenSwitchStmt(const SwitchStmt* sw)
 				auto c_v = c_e->Eval(nullptr);
 				ASSERT(c_v);
 
-				std::string c_v_rep;
+				string c_v_rep;
 
 				if ( is_int )
 					c_v_rep = Fmt(int(c_v->AsInt()));

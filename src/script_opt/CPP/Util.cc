@@ -8,7 +8,9 @@
 
 namespace zeek::detail {
 
-std::string Fmt(double d)
+using namespace std;
+
+string Fmt(double d)
 	{
 	// Special hack to preserve the signed-ness of the magic -0.0.
 	if ( d == 0.0 && signbit(d) )
@@ -21,14 +23,14 @@ std::string Fmt(double d)
 	return buf;
 	}
 
-std::string scope_prefix(const std::string& scope)
+string scope_prefix(const string& scope)
 	{
-	return std::string("zeek::detail::CPP_") + scope + "::";
+	return string("zeek::detail::CPP_") + scope + "::";
 	}
 
-std::string scope_prefix(int scope)
+string scope_prefix(int scope)
 	{
-	return scope_prefix(std::to_string(scope));
+	return scope_prefix(to_string(scope));
 	}
 
 bool is_CPP_compilable(const ProfileFunc* pf)
@@ -42,7 +44,7 @@ bool is_CPP_compilable(const ProfileFunc* pf)
 	return true;
 	}
 
-void lock_file(const std::string& fname, FILE* f)
+void lock_file(const string& fname, FILE* f)
 	{
 	if ( flock(fileno(f), LOCK_EX) < 0 )
 		{
@@ -53,7 +55,7 @@ void lock_file(const std::string& fname, FILE* f)
 		}
 	}
 
-void unlock_file(const std::string& fname, FILE* f)
+void unlock_file(const string& fname, FILE* f)
 	{
 	if ( flock(fileno(f), LOCK_UN) < 0 )
 		{

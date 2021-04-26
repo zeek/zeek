@@ -10,11 +10,13 @@
 
 namespace zeek::detail {
 
+using namespace std;
+
 bool CPPCompile::CheckForCollisions()
 	{
 	for ( auto& g : pfs.AllGlobals() )
 		{
-		auto gn = std::string(g->Name());
+		auto gn = string(g->Name());
 
 		if ( hm.HasGlobal(gn) )
 			{
@@ -75,7 +77,7 @@ bool CPPCompile::CheckForCollisions()
 
 void CPPCompile::CreateGlobal(const ID* g)
 	{
-	auto gn = std::string(g->Name());
+	auto gn = string(g->Name());
 	bool is_bif = pfs.BiFGlobals().count(g) > 0;
 
 	if ( pfs.Globals().count(g) == 0 )
@@ -108,7 +110,7 @@ void CPPCompile::CreateGlobal(const ID* g)
 		NoteInitDependency(g, TypeRep(t));
 
 		AddInit(g, globals[gn],
-		        std::string("lookup_global__CPP(\"") + gn + "\", " +
+		        string("lookup_global__CPP(\"") + gn + "\", " +
 		        GenTypeName(t) + ")");
 		}
 
@@ -159,17 +161,17 @@ void CPPCompile::UpdateGlobalHashes()
 void CPPCompile::AddBiF(const ID* b, bool is_var)
 	{
 	auto bn = b->Name();
-	auto n = std::string(bn);
+	auto n = string(bn);
 	if ( is_var )
 		n = n + "_";	// make the name distinct
 
 	if ( AddGlobal(n, "bif", true) )
 		Emit("Func* %s;", globals[n]);
 
-	AddInit(b, globals[n], std::string("lookup_bif__CPP(\"") + bn + "\")");
+	AddInit(b, globals[n], string("lookup_bif__CPP(\"") + bn + "\")");
 	}
 
-bool CPPCompile::AddGlobal(const std::string& g, const char* suffix, bool track)
+bool CPPCompile::AddGlobal(const string& g, const char* suffix, bool track)
 	{
 	bool new_var = false;
 
@@ -194,16 +196,16 @@ bool CPPCompile::AddGlobal(const std::string& g, const char* suffix, bool track)
 	return new_var;
 	}
 
-void CPPCompile::RegisterEvent(std::string ev_name)
+void CPPCompile::RegisterEvent(string ev_name)
 	{
-	body_events[body_name].emplace_back(std::move(ev_name));
+	body_events[body_name].emplace_back(move(ev_name));
 	}
 
-const std::string& CPPCompile::IDNameStr(const ID* id) const
+const string& CPPCompile::IDNameStr(const ID* id) const
 	{
 	if ( id->IsGlobal() )
 		{
-		auto g = std::string(id->Name());
+		auto g = string(id->Name());
 		ASSERT(globals.count(g) > 0);
 		return ((CPPCompile*)(this))->globals[g];
 		}
@@ -213,7 +215,7 @@ const std::string& CPPCompile::IDNameStr(const ID* id) const
 	return ((CPPCompile*)(this))->locals[id];
 	}
 
-std::string CPPCompile::LocalName(const ID* l) const
+string CPPCompile::LocalName(const ID* l) const
 	{
 	auto n = l->Name();
 	auto without_module = strstr(n, "::");
@@ -224,9 +226,9 @@ std::string CPPCompile::LocalName(const ID* l) const
 		return Canonicalize(n);
 	}
 
-std::string CPPCompile::Canonicalize(const char* name) const
+string CPPCompile::Canonicalize(const char* name) const
 	{
-	std::string cname;
+	string cname;
 
 	for ( int i = 0; name[i]; ++i )
 		{

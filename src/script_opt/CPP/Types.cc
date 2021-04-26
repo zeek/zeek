@@ -5,6 +5,8 @@
 
 namespace zeek::detail {
 
+using namespace std;
+
 bool CPPCompile::IsNativeType(const TypePtr& t) const
 	{
 	if ( ! t )
@@ -45,8 +47,7 @@ bool CPPCompile::IsNativeType(const TypePtr& t) const
 	}
 	}
 
-std::string CPPCompile::NativeToGT(const std::string& expr, const TypePtr& t,
-                                   GenType gt)
+string CPPCompile::NativeToGT(const string& expr, const TypePtr& t, GenType gt)
 	{
 	if ( gt == GEN_DONT_CARE )
 		return expr;
@@ -60,34 +61,34 @@ std::string CPPCompile::NativeToGT(const std::string& expr, const TypePtr& t,
 		return expr;
 
 	case TYPE_BOOL:
-		return std::string("val_mgr->Bool(") + expr + ")";
+		return string("val_mgr->Bool(") + expr + ")";
 
 	case TYPE_INT:
-		return std::string("val_mgr->Int(") + expr + ")";
+		return string("val_mgr->Int(") + expr + ")";
 
 	case TYPE_COUNT:
-		return std::string("val_mgr->Count(") + expr + ")";
+		return string("val_mgr->Count(") + expr + ")";
 
 	case TYPE_PORT:
-		return std::string("val_mgr->Port(") + expr + ")";
+		return string("val_mgr->Port(") + expr + ")";
 
 	case TYPE_ENUM:
-		return std::string("make_enum__CPP(") + GenTypeName(t) + ", " +
+		return string("make_enum__CPP(") + GenTypeName(t) + ", " +
 					expr + ")";
 
 	default:
-		return std::string("make_intrusive<") + IntrusiveVal(t) +
+		return string("make_intrusive<") + IntrusiveVal(t) +
 			">(" + expr + ")";
 	}
 	}
 
-std::string CPPCompile::GenericValPtrToGT(const std::string& expr,
-                                          const TypePtr& t, GenType gt)
+string CPPCompile::GenericValPtrToGT(const string& expr, const TypePtr& t,
+                                     GenType gt)
 	{
 	if ( gt != GEN_VAL_PTR && IsNativeType(t) )
 		return expr + NativeAccessor(t);
 	else
-		return std::string("cast_intrusive<") + IntrusiveVal(t) +
+		return string("cast_intrusive<") + IntrusiveVal(t) +
 		       ">(" + expr + ")";
 	}
 
@@ -117,12 +118,12 @@ void CPPCompile::ExpandTypeVar(const TypePtr& t)
 		break;
 
 	case TYPE_TYPE:
-		AddInit(t, tn, std::string("make_intrusive<TypeType>(") +
+		AddInit(t, tn, string("make_intrusive<TypeType>(") +
 		        GenTypeName(t->AsTypeType()->GetType()) + ")");
 		break;
 
 	case TYPE_VECTOR:
-		AddInit(t, tn, std::string("make_intrusive<VectorType>(") +
+		AddInit(t, tn, string("make_intrusive<VectorType>(") +
 		        GenTypeName(t->AsVectorType()->Yield()) + ")");
 		break;
 
@@ -137,7 +138,7 @@ void CPPCompile::ExpandTypeVar(const TypePtr& t)
 	AddInit(t);
 	}
 
-void CPPCompile::ExpandListTypeVar(const TypePtr& t, std::string& tn)
+void CPPCompile::ExpandListTypeVar(const TypePtr& t, string& tn)
 	{
 	auto tl = t->AsTypeList()->GetTypes();
 	auto t_name = tn + "->AsTypeList()";
@@ -147,12 +148,12 @@ void CPPCompile::ExpandListTypeVar(const TypePtr& t, std::string& tn)
 			GenTypeName(tl[i]) + ");");
 	}
 
-void CPPCompile::ExpandRecordTypeVar(const TypePtr& t, std::string& tn)
+void CPPCompile::ExpandRecordTypeVar(const TypePtr& t, string& tn)
 	{
 	auto r = t->AsRecordType()->Types();
 	auto t_name = tn + "->AsRecordType()";
 
-	AddInit(t, std::string("if ( ") + t_name + "->NumFields() == 0 )");
+	AddInit(t, string("if ( ") + t_name + "->NumFields() == 0 )");
 
 	AddInit(t, "{");
 	AddInit(t, "type_decl_list tl;");
@@ -167,7 +168,7 @@ void CPPCompile::ExpandRecordTypeVar(const TypePtr& t, std::string& tn)
 	AddInit(t, "}");
 	}
 
-void CPPCompile::ExpandEnumTypeVar(const TypePtr& t, std::string& tn)
+void CPPCompile::ExpandEnumTypeVar(const TypePtr& t, string& tn)
 	{
 	auto e_name = tn + "->AsEnumType()";
 	auto et = t->AsEnumType();
@@ -177,14 +178,14 @@ void CPPCompile::ExpandEnumTypeVar(const TypePtr& t, std::string& tn)
 	AddInit(t, "if ( et->Names().size() == 0 ) {");
 
 	for ( const auto& name_pair : et->Names() )
-		AddInit(t, std::string("\tet->AddNameInternal(\"") +
+		AddInit(t, string("\tet->AddNameInternal(\"") +
 		        name_pair.first + "\", " +
 		        Fmt(int(name_pair.second)) + ");");
 
 	AddInit(t, "}}");
 	}
 
-void CPPCompile::ExpandTableTypeVar(const TypePtr& t, std::string& tn)
+void CPPCompile::ExpandTableTypeVar(const TypePtr& t, string& tn)
 	{
 	auto tbl = t->AsTableType();
 
@@ -193,23 +194,23 @@ void CPPCompile::ExpandTableTypeVar(const TypePtr& t, std::string& tn)
 
 	if ( tbl->IsSet() )
 		AddInit(t, tn,
-		        std::string("make_intrusive<SetType>(cast_intrusive<TypeList>(") +
+		        string("make_intrusive<SetType>(cast_intrusive<TypeList>(") +
 		        GenTypeName(indices) + " ), nullptr)");
 	else
 		AddInit(t, tn,
-		        std::string("make_intrusive<TableType>(cast_intrusive<TypeList>(") +
+		        string("make_intrusive<TableType>(cast_intrusive<TypeList>(") +
 		        GenTypeName(indices) + "), " +
 		        GenTypeName(yield) + ")");
 	}
 
-void CPPCompile::ExpandFuncTypeVar(const TypePtr& t, std::string& tn)
+void CPPCompile::ExpandFuncTypeVar(const TypePtr& t, string& tn)
 	{
 	auto f = t->AsFuncType();
 
 	auto args_type_accessor = GenTypeName(f->Params());
 	auto yt = f->Yield();
 
-	std::string yield_type_accessor;
+	string yield_type_accessor;
 
 	if ( yt )
 		yield_type_accessor += GenTypeName(yt);
@@ -218,7 +219,7 @@ void CPPCompile::ExpandFuncTypeVar(const TypePtr& t, std::string& tn)
 
 	auto fl = f->Flavor();
 
-	std::string fl_name;
+	string fl_name;
 	if ( fl == FUNC_FLAVOR_FUNCTION )
 		fl_name = "FUNC_FLAVOR_FUNCTION";
 	else if ( fl == FUNC_FLAVOR_EVENT )
@@ -226,29 +227,29 @@ void CPPCompile::ExpandFuncTypeVar(const TypePtr& t, std::string& tn)
 	else if ( fl == FUNC_FLAVOR_HOOK )
 		fl_name = "FUNC_FLAVOR_HOOK";
 
-	auto type_init = std::string("make_intrusive<FuncType>(cast_intrusive<RecordType>(") +
+	auto type_init = string("make_intrusive<FuncType>(cast_intrusive<RecordType>(") +
 	                 args_type_accessor + "), " +
 	                 yield_type_accessor + ", " + fl_name + ")";
 
 	AddInit(t, tn, type_init);
 	}
 
-std::string CPPCompile::GenTypeDecl(const TypeDecl* td)
+string CPPCompile::GenTypeDecl(const TypeDecl* td)
 	{
 	auto type_accessor = GenTypeName(td->type);
 
-	auto td_name = std::string("util::copy_string(\"") + td->id + "\")";
+	auto td_name = string("util::copy_string(\"") + td->id + "\")";
 
 	if ( td->attrs )
-		return std::string("tl.append(new TypeDecl(") +
+		return string("tl.append(new TypeDecl(") +
 		       td_name + ", " + type_accessor +
 		       ", " + AttrsName(td->attrs) +"));";
 
-	return std::string("tl.append(new TypeDecl(") + td_name + ", " +
-	                   type_accessor +"));";
+	return string("tl.append(new TypeDecl(") + td_name + ", " +
+	       type_accessor +"));";
 	}
 
-std::string CPPCompile::GenTypeName(const Type* t)
+string CPPCompile::GenTypeName(const Type* t)
 	{
 	return types.KeyName(TypeRep(t));
 	}

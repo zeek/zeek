@@ -5,6 +5,8 @@
 
 namespace zeek::detail {
 
+using namespace std;
+
 void CPPCompile::RegisterAttributes(const AttributesPtr& attrs)
 	{
 	if ( ! attrs || attributes.HasKey(attrs) )
@@ -43,8 +45,8 @@ void CPPCompile::RegisterAttributes(const AttributesPtr& attrs)
 		}
 	}
 
-void CPPCompile::BuildAttrs(const AttributesPtr& attrs, std::string& attr_tags,
-                            std::string& attr_vals)
+void CPPCompile::BuildAttrs(const AttributesPtr& attrs, string& attr_tags,
+                            string& attr_vals)
 	{
 	if ( attrs )
 		{
@@ -67,8 +69,8 @@ void CPPCompile::BuildAttrs(const AttributesPtr& attrs, std::string& attr_tags,
 			}
 		}
 
-	attr_tags = std::string("{") + attr_tags + "}";
-	attr_vals = std::string("{") + attr_vals + "}";
+	attr_tags = string("{") + attr_tags + "}";
+	attr_vals = string("{") + attr_vals + "}";
 	}
 
 void CPPCompile::GenAttrs(const AttributesPtr& attrs)
@@ -80,7 +82,7 @@ void CPPCompile::GenAttrs(const AttributesPtr& attrs)
 	StartBlock();
 
 	const auto& avec = attrs->GetAttrs();
-	Emit("auto attrs = std::vector<AttrPtr>();");
+	Emit("auto attrs = vector<AttrPtr>();");
 
 	AddInit(attrs);
 
@@ -99,7 +101,7 @@ void CPPCompile::GenAttrs(const AttributesPtr& attrs)
 		NoteInitDependency(attrs, e);
 		AddInit(e);
 
-		std::string e_arg;
+		string e_arg;
 		if ( IsSimpleInitExpr(e) )
 			e_arg = GenAttrExpr(e);
 		else
@@ -114,21 +116,21 @@ void CPPCompile::GenAttrs(const AttributesPtr& attrs)
 	EndBlock();
 	}
 
-std::string CPPCompile::GenAttrExpr(const ExprPtr& e)
+string CPPCompile::GenAttrExpr(const ExprPtr& e)
 	{
 	switch ( e->Tag() ) {
 	case EXPR_CONST:
-		return std::string("make_intrusive<ConstExpr>(") +
+		return string("make_intrusive<ConstExpr>(") +
 		       GenExpr(e, GEN_VAL_PTR) + ")";
 
 	case EXPR_NAME:
 		NoteInitDependency(e, e->AsNameExpr()->IdPtr());
-		return std::string("make_intrusive<NameExpr>(") +
+		return string("make_intrusive<NameExpr>(") +
 		       globals[e->AsNameExpr()->Id()->Name()] + ")";
 
 	case EXPR_RECORD_COERCE:
 		NoteInitDependency(e, TypeRep(e->GetType()));
-		return std::string("make_intrusive<RecordCoerceExpr>(make_intrusive<RecordConstructorExpr>(make_intrusive<ListExpr>()), cast_intrusive<RecordType>(") +
+		return string("make_intrusive<RecordCoerceExpr>(make_intrusive<RecordConstructorExpr>(make_intrusive<ListExpr>()), cast_intrusive<RecordType>(") +
 		       GenTypeName(e->GetType()) + "))";
 
 	default:
@@ -137,7 +139,7 @@ std::string CPPCompile::GenAttrExpr(const ExprPtr& e)
 	}
 	}
 
-std::string CPPCompile::AttrsName(const AttributesPtr& a)
+string CPPCompile::AttrsName(const AttributesPtr& a)
 	{
 	return attributes.KeyName(a) + "()";
 	}

@@ -6,7 +6,9 @@
 
 namespace zeek::detail {
 
-std::vector<CPP_init_func> CPP_init_funcs;
+using namespace std;
+
+vector<CPP_init_func> CPP_init_funcs;
 
 // Calls all of the initialization hooks, in the order they were added.
 void init_CPPs()
@@ -29,9 +31,9 @@ static int dummy = flag_init_CPP();
 
 
 void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash,
-                        std::vector<std::string> events)
+                        vector<string> events)
 	{
-	compiled_scripts[hash] = { std::move(body), priority, std::move(events) };
+	compiled_scripts[hash] = { move(body), priority, move(events) };
 	}
 
 void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name,
@@ -44,8 +46,8 @@ void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name,
 	auto func = make_intrusive<CPPLambdaFunc>(name, ft, body);
 	func->SetName(name);
 
-	auto v = make_intrusive<FuncVal>(std::move(func));
-	id->SetVal(std::move(v));
+	auto v = make_intrusive<FuncVal>(move(func));
+	id->SetVal(move(v));
 	id->SetType(ft);
 
 	// Lambdas used in initializing global functions need to
@@ -65,8 +67,7 @@ void register_scripts__CPP(p_hash_type h, void (*callback)())
 	standalone_callbacks[h] = callback;
 	}
 
-void activate_bodies__CPP(const char* fn, TypePtr t,
-                          std::vector<p_hash_type> hashes)
+void activate_bodies__CPP(const char* fn, TypePtr t, vector<p_hash_type> hashes)
 	{
 	auto ft = cast_intrusive<FuncType>(t);
 	auto fg = lookup_ID(fn, GLOBAL_MODULE_NAME, false, false, false);
@@ -81,7 +82,7 @@ void activate_bodies__CPP(const char* fn, TypePtr t,
 	const auto& bodies = f->GetBodies();
 
 	// Track hashes of compiled bodies already associated with f.
-	std::unordered_set<p_hash_type> existing_CPP_bodies;
+	unordered_set<p_hash_type> existing_CPP_bodies;
 	for ( auto& b : bodies )
 		{
 		auto s = b.stmts;
@@ -93,12 +94,12 @@ void activate_bodies__CPP(const char* fn, TypePtr t,
 		}
 
 	// Events we need to register.
-	std::unordered_set<std::string> events;
+	unordered_set<string> events;
 
 	if ( ft->Flavor() == FUNC_FLAVOR_EVENT )
 		events.insert(fn);
 
-	std::vector<detail::IDPtr> no_inits;	// empty initialization vector
+	vector<detail::IDPtr> no_inits;	// empty initialization vector
 	int num_params = ft->Params()->NumFields();
 
 	for ( auto h : hashes )
@@ -144,13 +145,13 @@ Func* lookup_bif__CPP(const char* bif)
 	return b ? b->GetVal()->AsFunc() : nullptr;
 	}
 
-FuncValPtr lookup_func__CPP(std::string name, std::vector<p_hash_type> hashes,
+FuncValPtr lookup_func__CPP(string name, vector<p_hash_type> hashes,
                             const TypePtr& t)
 	{
 	auto ft = cast_intrusive<FuncType>(t);
 
-	std::vector<StmtPtr> bodies;
-	std::vector<int> priorities;
+	vector<StmtPtr> bodies;
+	vector<int> priorities;
 
 	for ( auto h : hashes )
 		{
@@ -170,11 +171,10 @@ FuncValPtr lookup_func__CPP(std::string name, std::vector<p_hash_type> hashes,
 			}
 		}
 
-	auto sf = make_intrusive<ScriptFunc>(std::move(name), std::move(ft),
-	                                     std::move(bodies),
-	                                     std::move(priorities));
+	auto sf = make_intrusive<ScriptFunc>(move(name), move(ft), move(bodies),
+	                                     move(priorities));
 
-	return make_intrusive<FuncVal>(std::move(sf));
+	return make_intrusive<FuncVal>(move(sf));
 	}
 
 
@@ -190,7 +190,7 @@ RecordTypePtr get_record_type__CPP(const char* record_type_name)
 	return make_intrusive<RecordType>(new type_decl_list());
 	}
 
-EnumTypePtr get_enum_type__CPP(const std::string& enum_type_name)
+EnumTypePtr get_enum_type__CPP(const string& enum_type_name)
 	{
 	auto existing_type = global_scope()->Find(enum_type_name);
 
@@ -202,7 +202,7 @@ EnumTypePtr get_enum_type__CPP(const std::string& enum_type_name)
 
 EnumValPtr make_enum__CPP(TypePtr t, int i)
 	{
-	auto et = cast_intrusive<EnumType>(std::move(t));
+	auto et = cast_intrusive<EnumType>(move(t));
 	return make_intrusive<EnumVal>(et, i);
 	}
 

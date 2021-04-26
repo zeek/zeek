@@ -9,6 +9,8 @@
 
 namespace zeek::detail {
 
+using namespace std;
+
 void CPPCompile::CompileFunc(const FuncInfo& func)
 	{
 	if ( ! IsCompilable(func) )
@@ -33,8 +35,8 @@ void CPPCompile::CompileLambda(const LambdaExpr* l, const ProfileFunc* pf)
 	           FUNC_FLAVOR_FUNCTION);
 	}
 
-void CPPCompile::GenInvokeBody(const std::string& fname, const TypePtr& t,
-                               const std::string& args)
+void CPPCompile::GenInvokeBody(const string& fname, const TypePtr& t,
+                               const string& args)
 	{
 	auto call = fname + "(" + args + ")";
 
@@ -48,7 +50,7 @@ void CPPCompile::GenInvokeBody(const std::string& fname, const TypePtr& t,
 	}
 
 void CPPCompile::DefineBody(const FuncTypePtr& ft, const ProfileFunc* pf,
-                            const std::string& fname, const StmtPtr& body,
+                            const string& fname, const StmtPtr& body,
                             const IDPList* lambda_ids, FunctionFlavor flavor)
 	{
 	locals.clear();
@@ -117,7 +119,7 @@ void CPPCompile::TranslateAnyParams(const FuncTypePtr& ft, const ProfileFunc* pf
 			// It's already "any", nothing more to do.
 			continue;
 
-		auto any_i = std::string("any_param__CPP_") + Fmt(i);
+		auto any_i = string("any_param__CPP_") + Fmt(i);
 
 		Emit("%s %s = %s;", FullTypeName(pt), LocalName(param_id),
 		     GenericValPtrToGT(any_i, pt, GEN_NATIVE));
@@ -156,7 +158,7 @@ void CPPCompile::InitializeEvents(const ProfileFunc* pf)
 void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids)
 	{
 	// It's handy to have a set of the lambda captures rather than a list.
-	std::unordered_set<const ID*> lambda_set;
+	unordered_set<const ID*> lambda_set;
 	if ( lambda_ids )
 		for ( auto li : *lambda_ids )
 			lambda_set.insert(li);
@@ -189,11 +191,11 @@ void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids)
 		NL();
 	}
 
-std::string CPPCompile::BodyName(const FuncInfo& func)
+string CPPCompile::BodyName(const FuncInfo& func)
 	{
 	const auto& f = func.Func();
 	const auto& bodies = f->GetBodies();
-	std::string fname = f->Name();
+	string fname = f->Name();
 
 	if ( bodies.size() == 1 )
 		return fname;
@@ -212,10 +214,10 @@ std::string CPPCompile::BodyName(const FuncInfo& func)
 	return fname + "__" + Fmt(i);
 	}
 
-std::string CPPCompile::GenArgs(const RecordTypePtr& params, const Expr* e)
+string CPPCompile::GenArgs(const RecordTypePtr& params, const Expr* e)
 	{
 	const auto& exprs = e->AsListExpr()->Exprs();
-	std::string gen;
+	string gen;
 
 	int n = exprs.size();
 

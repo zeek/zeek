@@ -9,9 +9,11 @@
 
 namespace zeek::detail {
 
-std::unordered_map<p_hash_type, CompiledScript> compiled_scripts;
-std::unordered_map<p_hash_type, void (*)()> standalone_callbacks;
-std::vector<void (*)()> standalone_activations;
+using namespace std;
+
+unordered_map<p_hash_type, CompiledScript> compiled_scripts;
+unordered_map<p_hash_type, void (*)()> standalone_callbacks;
+vector<void (*)()> standalone_activations;
 
 void CPPFunc::Describe(ODesc* d) const
 	{
@@ -19,11 +21,10 @@ void CPPFunc::Describe(ODesc* d) const
 	d->Add(name);
 	}
 
-CPPLambdaFunc::CPPLambdaFunc(std::string _name, FuncTypePtr ft,
-				CPPStmtPtr _l_body)
-: ScriptFunc(std::move(_name), std::move(ft), {_l_body}, {0})
+CPPLambdaFunc::CPPLambdaFunc(string _name, FuncTypePtr ft, CPPStmtPtr _l_body)
+: ScriptFunc(move(_name), move(ft), {_l_body}, {0})
 	{
-	l_body = std::move(_l_body);
+	l_body = move(_l_body);
 	}
 
 broker::expected<broker::data> CPPLambdaFunc::SerializeClosure() const
@@ -31,7 +32,7 @@ broker::expected<broker::data> CPPLambdaFunc::SerializeClosure() const
 	auto vals = l_body->SerializeLambdaCaptures();
 
 	broker::vector rval;
-	rval.emplace_back(std::string("CopyFrame"));
+	rval.emplace_back(string("CopyFrame"));
 
 	broker::vector body;
 
@@ -43,14 +44,14 @@ broker::expected<broker::data> CPPLambdaFunc::SerializeClosure() const
 			return broker::ec::invalid_data;
 
 		TypeTag tag = val->GetType()->Tag();
-		broker::vector val_tuple {std::move(*expected),
+		broker::vector val_tuple {move(*expected),
 		                          static_cast<broker::integer>(tag)};
-		body.emplace_back(std::move(val_tuple));
+		body.emplace_back(move(val_tuple));
 		}
 
-	rval.emplace_back(std::move(body));
+	rval.emplace_back(move(body));
 
-	return {std::move(rval)};
+	return {move(rval)};
 	}
 
 void CPPLambdaFunc::SetCaptures(Frame* f)

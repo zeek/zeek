@@ -9,6 +9,8 @@
 
 namespace zeek::detail {
 
+using namespace std;
+
 void CPPCompile::DeclareFunc(const FuncInfo& func)
 	{
 	if ( ! IsCompilable(func) )
@@ -41,7 +43,7 @@ void CPPCompile::DeclareLambda(const LambdaExpr* l, const ProfileFunc* pf)
 	}
 
 void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf,
-                                 const std::string& fname,
+                                 const string& fname,
                                  const StmtPtr& body, int priority,
                                  const LambdaExpr* l, FunctionFlavor flavor)
 	{
@@ -59,8 +61,8 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf,
 
 	Emit("public:");
 
-	std::string addl_args;	// captures passed in on construction
-	std::string inits;	// initializers for corresponding member vars
+	string addl_args;	// captures passed in on construction
+	string inits;	// initializers for corresponding member vars
 
 	if ( lambda_ids )
 		{
@@ -131,13 +133,13 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf,
 	body_hashes[fname] = h;
 	body_priorities[fname] = priority;
 	body_names.emplace(body.get(), fname);
-	names_to_bodies.emplace(std::move(fname), body.get());
+	names_to_bodies.emplace(move(fname), body.get());
 
 	total_hash = merge_p_hashes(total_hash, h);
 	}
 
 void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf,
-                             const std::string& fname, const StmtPtr& body,
+                             const string& fname, const StmtPtr& body,
                              const LambdaExpr* l, const IDPList* lambda_ids)
 	{
 	// Declare the member variables for holding the captures.
@@ -149,14 +151,14 @@ void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf,
 		}
 
 	// Generate initialization to create and register the lambda.
-	auto literal_name = std::string("\"") + l->Name() + "\"";
-	auto instantiate = std::string("make_intrusive<") + fname + "_cl>(" +
+	auto literal_name = string("\"") + l->Name() + "\"";
+	auto instantiate = string("make_intrusive<") + fname + "_cl>(" +
 	                   literal_name + ")";
 
 	int nl = lambda_ids->length();
 	auto h = Fmt(pf->HashVal());
 	auto has_captures = nl > 0 ? "true" : "false";
-	auto l_init = std::string("register_lambda__CPP(") + instantiate +
+	auto l_init = string("register_lambda__CPP(") + instantiate +
 	              ", " + h + ", \"" + l->Name() + "\", " +
 	              GenTypeName(ft) + ", " + has_captures + ");";
 
@@ -178,7 +180,7 @@ void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf,
 		{
 		auto l_i = (*lambda_ids)[i];
 		const auto& t_i = l_i->GetType();
-		auto cap_i = std::string("f->GetElement(") + Fmt(i) + ")";
+		auto cap_i = string("f->GetElement(") + Fmt(i) + ")";
 		Emit("%s = %s;", lambda_names[l_i],
 		     GenericValPtrToGT(cap_i, t_i, GEN_NATIVE));
 		}
@@ -206,17 +208,17 @@ void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf,
 	EndBlock();
 	}
 
-std::string CPPCompile::BindArgs(const FuncTypePtr& ft, const IDPList* lambda_ids)
+string CPPCompile::BindArgs(const FuncTypePtr& ft, const IDPList* lambda_ids)
 	{
 	const auto& params = ft->Params();
 	auto t = params->Types();
 
-	std::string res;
+	string res;
 
 	int n = t ? t->size() : 0;
 	for ( auto i = 0; i < n; ++i )
 		{
-		auto arg_i = std::string("f->GetElement(") + Fmt(i) + ")";
+		auto arg_i = string("f->GetElement(") + Fmt(i) + ")";
 		const auto& ft = params->GetFieldType(i);
 
 		if ( IsNativeType(ft) )
@@ -237,21 +239,20 @@ std::string CPPCompile::BindArgs(const FuncTypePtr& ft, const IDPList* lambda_id
 	return res + "f";
 	}
 
-std::string CPPCompile::ParamDecl(const FuncTypePtr& ft,
-                                  const IDPList* lambda_ids,
-                                  const ProfileFunc* pf)
+string CPPCompile::ParamDecl(const FuncTypePtr& ft, const IDPList* lambda_ids,
+                             const ProfileFunc* pf)
 	{
 	const auto& params = ft->Params();
 	int n = params->NumFields();
 
-	std::string decl;
+	string decl;
 
 	for ( auto i = 0; i < n; ++i )
 		{
 		const auto& t = params->GetFieldType(i);
 		auto tn = FullTypeName(t);
 		auto param_id = FindParam(i, pf);
-		std::string fn;
+		string fn;
 
 		if ( param_id )
 			{
@@ -260,7 +261,7 @@ std::string CPPCompile::ParamDecl(const FuncTypePtr& ft,
 				// We'll need to translate the parameter
 				// from its current representation to
 				// type "any".
-				fn = std::string("any_param__CPP_") + Fmt(i);
+				fn = string("any_param__CPP_") + Fmt(i);
 			else
 				fn = LocalName(param_id);
 			}
@@ -270,7 +271,7 @@ std::string CPPCompile::ParamDecl(const FuncTypePtr& ft,
 			// name out of the function's declaration, we
 			// explicitly name them to reflect that they're
 			// unused.
-			fn = std::string("unused_param__CPP_") + Fmt(i);
+			fn = string("unused_param__CPP_") + Fmt(i);
 
 		if ( IsNativeType(t) )
 			// Native types are always pass-by-value.

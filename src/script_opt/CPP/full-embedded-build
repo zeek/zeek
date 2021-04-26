@@ -1,13 +1,12 @@
 #! /bin/sh
 
-base=../../..
-so=$base/src/script_opt/CPP
-build=$base/build
+build=../../../build
 
-echo > $so/CPP-gen-addl.h
-export -n ZEEK_USE_CPP ZEEK_ADD_CPP
-export ZEEK_HASH_DIR=$build
-cd $build
-echo | src/zeek -O gen-C++
-mv ./CPP-gen-addl.h $so/CPP-gen.cc
-ninja || echo Full embedded build failed
+echo > CPP-gen-addl.h
+(cd $build
+ export -n ZEEK_USE_CPP ZEEK_ADD_CPP
+ export ZEEK_HASH_DIR=.
+ echo | src/zeek -O gen-C++
+)
+mv $build/CPP-gen-addl.h CPP-gen.cc
+(cd $build ; ninja || echo Full embedded build failed)

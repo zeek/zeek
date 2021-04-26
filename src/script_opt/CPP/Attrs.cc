@@ -82,7 +82,7 @@ void CPPCompile::GenAttrs(const AttributesPtr& attrs)
 	StartBlock();
 
 	const auto& avec = attrs->GetAttrs();
-	Emit("auto attrs = vector<AttrPtr>();");
+	Emit("auto attrs = std::vector<AttrPtr>();");
 
 	AddInit(attrs);
 

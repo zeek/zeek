@@ -287,6 +287,7 @@ set(MAIN_SRCS
     ScriptCoverageManager.cc
     SerializationFormat.cc
     Session.cc
+    SessionKey.cc
     SessionManager.cc
     SmithWaterman.cc
     Stats.cc

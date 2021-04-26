@@ -8,6 +8,7 @@
 #include "zeek/Obj.h"
 #include "zeek/EventHandler.h"
 #include "zeek/Timer.h"
+#include "zeek/SessionKey.h"
 
 namespace zeek {
 
@@ -16,10 +17,7 @@ using RecordValPtr = IntrusivePtr<RecordVal>;
 class Session;
 
 namespace analyzer { class Analyzer; }
-namespace detail {
-	class SessionTimer;
-	class SessionKey;
-}
+namespace detail { class SessionTimer; }
 
 typedef void (Session::*timer_func)(double t);
 
@@ -267,31 +265,6 @@ protected:
 	Session* conn;
 	timer_func timer;
 	bool do_expire;
-};
-
-class SessionKey final {
-public:
-	SessionKey(const void* session, size_t size, bool copy=false);
-	~SessionKey();
-
-	// Implement move semantics for SessionKey, since they're used as keys
-	// in a map.
-	SessionKey(SessionKey&& rhs);
-	SessionKey& operator=(SessionKey&& rhs);
-
-	// Explicitly delete the copy constructor and operator since copying
-	// may cause issues with double-freeing pointers.
-	SessionKey(const SessionKey& rhs) = delete;
-	SessionKey& operator=(const SessionKey& rhs) = delete;
-
-	void CopyData();
-
-	bool operator<(const SessionKey& rhs) const;
-
-private:
-	const uint8_t* data = nullptr;
-	size_t size = 0;
-	bool copied = false;
 };
 
 } // namespace detail

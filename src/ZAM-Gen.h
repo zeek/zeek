@@ -58,7 +58,7 @@ struct InputLoc {
 
 enum EmitTarget {
 	None,
-	MethodDecl,
+	BaseDecl,
 	SubDecl,
 	MethodDef,
 	DirectDef,
@@ -80,21 +80,28 @@ class ArgsManager {
 public:
 	ArgsManager(const vector<ZAM_OperandType>& ot, bool is_cond);
 
-	string Params();
-	const string& NthParam(int n)	{ return arg_names[n]; }
-	string ParamDecls();
+	string Decls()			{ return full_decl; }
+	string Params()			{ return full_params; }
+	const string& NthParam(int n)	{ return params[n]; }
 
 private:
-	void AddArg(const char* type, const char* name);
 	void Differentiate();
 
 	static std::unordered_map<ZAM_OperandType,
 	        std::pair<const char*, const char*>> ot_to_args;
 
-	vector<string> arg_types;
-	vector<string> arg_names;
-	vector<int> arg_name_count;
-	std::unordered_map<string, int> name_count;
+	struct Arg {
+		string decl_name;
+		string decl_type;
+		string param_name;
+		bool is_field;
+	};
+
+	vector<Arg> args;
+
+	vector<string> params;
+	string full_decl;
+	string full_params;
 };
 
 class ZAM_OpTemplate {
@@ -192,7 +199,7 @@ protected:
 	                           bool is_field, bool is_vec, bool is_cond);
 	virtual void BuildInstruction(const string& op,
 	                              const string& suffix,
-	                              const ArgsManager& args,
+			              const vector<ZAM_OperandType>& ot,
 	                              const string& params);
 	virtual void InstantiateEval(const vector<ZAM_OperandType>& ot,
 	                             const string& suffix,
@@ -204,8 +211,8 @@ protected:
 			     bool is_managed);
 
 	string MethodName(const vector<ZAM_OperandType>& ot) const;
-	string MethodParams(const vector<ZAM_OperandType>& ot,
-	                    bool is_field, bool is_cond);
+	string MethodDecl(const vector<ZAM_OperandType>& ot,
+	                  bool is_field, bool is_cond);
 	string OpString(const vector<ZAM_OperandType>& ot) const;
 
 	string SkipWS(const string& s) const;
@@ -356,14 +363,13 @@ protected:
 
 	void BuildInstruction(const string& op,
 	                      const string& suffix,
-	                      const ArgsManager& args,
+			      const vector<ZAM_OperandType>& ot,
 	                      const string& params) override;
 };
 
 class ZAM_AssignOpTemplate : public ZAM_UnaryExprOpTemplate {
 public:
-	ZAM_AssignOpTemplate(ZAMGen* _g, string _base_name)
-	: ZAM_UnaryExprOpTemplate(_g, _base_name) { }
+	ZAM_AssignOpTemplate(ZAMGen* _g, string _base_name);
 
 	bool IsAssignOp() const override	{ return true; }
 	bool IncludesFieldOp() const override	{ return false; }

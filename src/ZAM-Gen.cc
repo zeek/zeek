@@ -52,79 +52,92 @@ ArgsManager::ArgsManager(const vector<ZAM_OperandType>& ot, bool is_cond)
 			// Skip the conditional's nominal assignment slot.
 			continue;
 
-		if ( ot_i == ZAM_OT_FIELD && n > 1 )
-			{
-			assert(! add_field);
-			add_field = true;
-			continue;
-			}
-
+		// Start off the argument info using the usual case
+		// of (1) same method parameter name as GenInst argument,
+		// and (2) not requiring a record field.
 		auto& arg_i = ot_to_args[ot_i];
-		AddArg(arg_i.first, arg_i.second);
+		Arg arg = { arg_i.second, arg_i.first, arg_i.second, false };
 
 		if ( ot_i == ZAM_OT_FIELD )
 			{
-			// Add in extra arguments.
-			AddArg("int", "field");
-			AddArg("const BroType*", "t");
-			}
-		}
+			arg.is_field = true;
 
-	if ( add_field )
-		AddArg("int", "field");
+			if ( n == 1 )
+				{
+				arg.decl_name = "flhs";
+				arg.decl_type = "const FieldLHSAssignExpr*";
+				}
+			}
+
+		args.emplace_back(move(arg));
+		}
 
 	Differentiate();
 	}
 
-string ArgsManager::Params()
-	{
-	string params;
-
-	for ( auto i = 0; i < arg_names.size(); ++i )
-		{
-		if ( params.size() > 0 )
-			params += ", ";
-
-		params += arg_names[i];
-		}
-
-	return params;
-	}
-
-string ArgsManager::ParamDecls()
-	{
-	string decls;
-
-	for ( auto i = 0; i < arg_names.size(); ++i )
-		{
-		if ( decls.size() > 0 )
-			decls += ", ";
-
-		decls += arg_types[i] + " " + arg_names[i];
-		}
-
-	return decls;
-	}
-
-void ArgsManager::AddArg(const char* type, const char* name)
-	{
-	arg_types.emplace_back(type);
-	arg_names.emplace_back(name);
-
-	if ( name_count.count(name) == 0 )
-		name_count[name] = 1;
-	else
-		++name_count[name];
-
-	arg_name_count.emplace_back(name_count[name]);
-	}
-
 void ArgsManager::Differentiate()
 	{
-	for ( auto i = 0; i < arg_names.size(); ++i )
-		if ( name_count[arg_names[i]] > 1 )
-			// Need to differentiate
-			arg_names[i] += to_string(arg_name_count[i]);
+	// First, figure out which parameter names are used how often.
+	map<string, int> name_count;	// how often the name apepars
+	map<string, int> usage_count;	// how often the name's been used so far
+	for ( auto& arg : args )
+		{
+		auto& name = arg.param_name;
+		if ( name_count.count(name) == 0 )
+			{
+			name_count[name] = 1;
+			usage_count[name] = 0;
+			}
+		else
+			++name_count[name];
+		}
+
+	// Now for each name - whether appearing as an argument or in
+	// a declaration - if it's used more than once, then differentiate
+	// it.  Note, some names only appear multiple times as arguments,
+	// but not in the declarations.
+	for ( auto& arg : args )
+		{
+		auto& decl = arg.decl_name;
+		auto& name = arg.param_name;
+		bool decl_and_arg_same = decl == name;
+
+		if ( name_count[name] == 1 )
+			continue;
+
+		auto n = to_string(++usage_count[name]);
+		name += n;
+		if ( decl_and_arg_same )
+			decl += n;
+		}
+
+	// Finally, build the full versions of the declaration and
+	// parameters.
+	int num_fields = 0;
+	for ( auto& arg : args )
+		{
+		if ( full_decl.size() > 0 )
+			full_decl += ", ";
+
+		full_decl += arg.decl_type + " " + arg.decl_name;
+
+		if ( full_params.size() > 0 )
+			full_params += ", ";
+
+		full_params += arg.param_name;
+		params.push_back(arg.param_name);
+
+		if ( arg.is_field )
+			++num_fields;
+		}
+
+	if ( num_fields == 1 )
+		full_params += ", field";
+	else
+		{
+		full_decl += ", int field2";
+		full_params += ", field1, field2";
+		}
 	}
 
 
@@ -399,17 +412,17 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m, const string& suffix,
 	if ( IsInternalOp() )
 		return;
 
-	auto params = MethodParams(ot, is_field, is_cond);
+	auto decls = MethodDecl(ot, is_field, is_cond);
 
-	EmitTo(MethodDecl);
-	Emit("virtual const CompiledStmt " + m + suffix + "(" + params +
+	EmitTo(BaseDecl);
+	Emit("virtual const CompiledStmt " + m + suffix + "(" + decls +
 	     ") = 0;");
 
 	EmitTo(SubDecl);
-	Emit("const CompiledStmt " + m + suffix + "(" + params + ") override;");
+	Emit("const CompiledStmt " + m + suffix + "(" + decls + ") override;");
 
 	EmitTo(MethodDef);
-	Emit("const CompiledStmt ZAM::" + m + suffix + "(" + params + ")");
+	Emit("const CompiledStmt ZAM::" + m + suffix + "(" + decls + ")");
 	BeginBlock();
 
 	InstantiateMethodCore(ot, suffix, is_field, is_vec, is_cond);
@@ -468,7 +481,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 		Emit("auto field = f->Field();");
 		}
 
-	BuildInstruction(op, suffix, args, params);
+	BuildInstruction(op, suffix, ot, params);
 
 	auto tp = GetTypeParam();
 	if ( tp > 0 )
@@ -481,7 +494,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 
 void ZAM_OpTemplate::BuildInstruction(const string& op,
                                       const string& suffix,
-                                      const ArgsManager& args,
+			              const vector<ZAM_OperandType>& ot,
                                       const string& params)
 	{
 	Emit("z = GenInst(this, " + op + ", " + params + ");");
@@ -658,15 +671,15 @@ string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const
 	return base_name + OpString(ot);
 	}
 
-string ZAM_OpTemplate::MethodParams(const vector<ZAM_OperandType>& ot_orig,
-                                    bool is_field, bool is_cond)
+string ZAM_OpTemplate::MethodDecl(const vector<ZAM_OperandType>& ot_orig,
+                                  bool is_field, bool is_cond)
 	{
 	auto ot = ot_orig;
 	if ( is_field )
 		ot.emplace_back(ZAM_OT_INT);
 
 	ArgsManager args(ot, is_cond);
-	return args.ParamDecls();
+	return args.Decls();
 	}
 
 string ZAM_OpTemplate::OpString(const vector<ZAM_OperandType>& ot) const
@@ -1012,18 +1025,33 @@ void ZAM_UnaryExprOpTemplate::Instantiate()
 
 void ZAM_UnaryExprOpTemplate::BuildInstruction(const string& op,
                                                const string& suffix,
-                                               const ArgsManager& args,
+			                       const vector<ZAM_OperandType>& ot,
                                                const string& params)
 	{
 	const auto& ets = ExprTypes();
 
 	if ( ets.size() == 1 && ets.count(ZAM_EXPR_TYPE_NONE) == 1 )
 		{
-		ZAM_ExprOpTemplate::BuildInstruction(op, suffix, args, params);
+		ZAM_ExprOpTemplate::BuildInstruction(op, suffix, ot, params);
 		return;
 		}
 
-	Emit("auto t = n2->Type();");
+	auto constant_op = ot.back() == ZAM_OT_CONSTANT;
+	string operand = constant_op ? "c" : "n2";
+
+	if ( ot[0] == ZAM_OT_FIELD )
+		{
+		operand = constant_op ? "n" : "n1";
+		Emit("auto " + operand + " = flhs->GetOp1()->AsNameExpr();");
+		Emit("auto t = flhs->Type();");
+
+		string f = ot[1] == ZAM_OT_FIELD ? "field1" : "field";
+		Emit("int " + f + " = flhs->Field();");
+		}
+
+	else
+		Emit("auto t = " + operand + "->Type();");
+
 	Emit("auto tag = t->Tag();");
 	Emit("auto i_t = t->InternalType();");
 
@@ -1059,7 +1087,7 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const string& op,
 			continue;
 			}
 
-		auto if_stmt = "if ( " + if_var + " == " + if_val + ")";
+		auto if_stmt = "if ( " + if_var + " == " + if_val + " )";
 		if ( ++ncases > 1 )
 			if_stmt = "else " + if_stmt;
 
@@ -1074,6 +1102,18 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const string& op,
 		Emit("else");
 		EmitUp("z = GenInst(this, " + op + suffix +
 		       ", " + params + ");");
+		}
+	}
+
+ZAM_AssignOpTemplate::ZAM_AssignOpTemplate(ZAMGen* _g, string _base_name)
+: ZAM_UnaryExprOpTemplate(_g, _base_name)
+	{
+	// Assignments apply to every valid form of ExprType.
+	for ( auto& etn : expr_type_names )
+		{
+		auto et = etn.second;
+		if ( et != ZAM_EXPR_TYPE_NONE )
+			AddExprType(et);
 		}
 	}
 
@@ -1314,7 +1354,7 @@ void ZAMGen::Emit(EmitTarget et, const string& s)
 		{ // need to open the files
 		static unordered_map<EmitTarget, const char*> gen_file_names = {
 			{ None, nullptr },
-			{ MethodDecl, "MethodDecl" },
+			{ BaseDecl, "BaseDecl" },
 			{ SubDecl, "SubDecl" },
 			{ MethodDef, "MethodDef" },
 			{ DirectDef, "DirectDef" },

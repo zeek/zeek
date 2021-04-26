@@ -194,14 +194,34 @@ void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids)
 string CPPCompile::BodyName(const FuncInfo& func)
 	{
 	const auto& f = func.Func();
-	const auto& bodies = f->GetBodies();
+	const auto& body = func.Body();
 	string fname = f->Name();
+
+	// Extend name with location information.
+	auto loc = body->GetLocationInfo();
+	if ( loc->filename )
+		{
+		auto fn = loc->filename;
+
+		// Skip leading goop that gets added by search paths.
+		while ( *fn == '.' || *fn == '/' )
+			++fn;
+
+		auto canonicalize =
+			[](char c) -> char { return isalnum(c) ? c : '_'; };
+
+		string fns = fn;
+		transform(fns.begin(), fns.end(), fns.begin(), canonicalize);
+
+		fname = fns + "__" + fname;
+		}
+
+	const auto& bodies = f->GetBodies();
 
 	if ( bodies.size() == 1 )
 		return fname;
 
 	// Make the name distinct-per-body.
-	const auto& body = func.Body();
 
 	int i;
 	for ( i = 0; i < bodies.size(); ++i )

@@ -1,3 +1,13 @@
+
+4.1.0-dev.545 | 2021-04-26 11:14:49 -0700
+
+  * GH-1483: Improve error for mismatched container initialization types (Jon Siwek, Corelight)
+
+    For example, trying to assign a vector, table, set, or record
+    constructor expression to a global variable of a different type now
+    provides a more explanatory error message than the previous
+    "Val::CONVERTER" fatal-error and coredump.
+
 4.1.0-dev.543 | 2021-04-26 09:53:53 -0700
 
   * Update btest baselines for --enable-mobile-ipv6 builds (Tim Wojtulewicz, Corelight)

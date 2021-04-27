@@ -863,6 +863,8 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 
 void ZAM_ExprOpTemplate::Instantiate()
 	{
+	InstantiateOp(OperandTypes(), IncludesVectorOp());
+
 	if ( op_types.size() > 1 && op_types[1] == ZAM_OT_CONSTANT )
 		InstantiateC1(op_types, op_types.size() - 1);
 	if ( op_types.size() > 2 && op_types[2] == ZAM_OT_CONSTANT )

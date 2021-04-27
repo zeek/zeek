@@ -5,7 +5,7 @@
 #include "zeek/IP.h"
 #include "zeek/Discard.h"
 #include "zeek/PacketFilter.h"
-#include "zeek/session/SessionManager.h"
+#include "zeek/session/Manager.h"
 #include "zeek/RunState.h"
 #include "zeek/Frag.h"
 #include "zeek/Event.h"

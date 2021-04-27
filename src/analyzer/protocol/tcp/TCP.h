@@ -143,7 +143,7 @@ protected:
 	void CheckRecording(bool need_contents, TCP_Flags flags);
 	void CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip);
 
-	friend class session::detail::SessionTimer;
+	friend class session::detail::Timer;
 	void AttemptTimer(double t);
 	void PartialCloseTimer(double t);
 	void ExpireTimer(double t);

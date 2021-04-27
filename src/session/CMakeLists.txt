@@ -8,8 +8,8 @@ include_directories(BEFORE
 
 set(session_SRCS
   Session.cc
-  SessionKey.cc
-  SessionManager.cc
+  Key.cc
+  Manager.cc
 )
 
 bro_add_subdir_library(session ${session_SRCS})

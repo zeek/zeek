@@ -10,7 +10,7 @@
 #include "zeek/RunState.h"
 #include "zeek/NetVar.h"
 #include "zeek/Event.h"
-#include "zeek/session/SessionManager.h"
+#include "zeek/session/Manager.h"
 #include "zeek/Reporter.h"
 #include "zeek/Timer.h"
 #include "zeek/iosource/IOSource.h"

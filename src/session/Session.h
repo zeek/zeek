@@ -8,7 +8,7 @@
 #include "zeek/Obj.h"
 #include "zeek/EventHandler.h"
 #include "zeek/Timer.h"
-#include "zeek/session/SessionKey.h"
+#include "zeek/session/Key.h"
 
 namespace zeek {
 
@@ -18,7 +18,7 @@ using RecordValPtr = IntrusivePtr<RecordVal>;
 namespace analyzer { class Analyzer; }
 
 namespace session {
-namespace detail { class SessionTimer; }
+namespace detail { class Timer; }
 
 class Session;
 typedef void (Session::*timer_func)(double t);
@@ -59,7 +59,7 @@ public:
 	 * @param copy Flag to indicate that the key returned must have a copy of the
 	 * key data instead of just a pointer to it.
 	 */
-	virtual detail::SessionKey SessionKey(bool copy) const = 0;
+	virtual detail::Key SessionKey(bool copy) const = 0;
 
 	/**
 	 * Set whether this session is in the session table.
@@ -199,7 +199,7 @@ public:
 
 protected:
 
-	friend class detail::SessionTimer;
+	friend class detail::Timer;
 
 	/**
 	 * Add a given timer to expire at a specific time.
@@ -250,14 +250,14 @@ protected:
 
 namespace detail {
 
-class SessionTimer final : public zeek::detail::Timer {
+class Timer final : public zeek::detail::Timer {
 public:
-	SessionTimer(Session* arg_session, timer_func arg_timer,
+	Timer(Session* arg_session, timer_func arg_timer,
 	             double arg_t, bool arg_do_expire,
 	             zeek::detail::TimerType arg_type)
 		: zeek::detail::Timer(arg_t, arg_type)
 		{ Init(arg_session, arg_timer, arg_do_expire); }
-	~SessionTimer() override;
+	~Timer() override;
 
 	void Dispatch(double t, bool is_expire) override;
 

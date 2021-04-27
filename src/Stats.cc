@@ -7,7 +7,7 @@
 #include "zeek/RunState.h"
 #include "zeek/NetVar.h"
 #include "zeek/ID.h"
-#include "zeek/session/SessionManager.h"
+#include "zeek/session/Manager.h"
 #include "zeek/Scope.h"
 #include "zeek/DNS_Mgr.h"
 #include "zeek/Trigger.h"
@@ -145,7 +145,7 @@ void ProfileLogger::Log()
 		expensive ? session_mgr->SessionMemoryUsageVals() / 1024 : 0
 		));
 
-	session::SessionStats s;
+	session::Stats s;
 	session_mgr->GetStats(s);
 
 	file->Write(util::fmt("%.06f Conns: tcp=%zu/%zu udp=%zu/%zu icmp=%zu/%zu\n",

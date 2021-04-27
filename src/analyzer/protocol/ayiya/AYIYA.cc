@@ -2,7 +2,7 @@
 
 #include "zeek/analyzer/protocol/ayiya/AYIYA.h"
 
-#include "zeek/session/SessionManager.h"
+#include "zeek/session/Manager.h"
 #include "zeek/Func.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 

@@ -7,7 +7,7 @@
 
 #include "zeek/ZeekString.h"
 #include "zeek/NetVar.h"
-#include "zeek/session/SessionManager.h"
+#include "zeek/session/Manager.h"
 #include "zeek/Event.h"
 #include "zeek/RunState.h"
 

@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/zeek-config.h"
-#include "zeek/session/SessionManager.h"
+#include "zeek/session/Manager.h"
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -31,8 +31,8 @@
 
 #include "zeek/analyzer/protocol/stepping-stone/events.bif.h"
 
-zeek::session::SessionManager* zeek::session_mgr = nullptr;
-zeek::session::SessionManager*& zeek::sessions = zeek::session_mgr;
+zeek::session::Manager* zeek::session_mgr = nullptr;
+zeek::session::Manager*& zeek::sessions = zeek::session_mgr;
 
 namespace zeek::session {
 namespace detail {
@@ -92,22 +92,22 @@ private:
 
 } // namespace detail
 
-SessionManager::SessionManager()
+Manager::Manager()
 	{
 	stats = new detail::ProtocolStats();
 	}
 
-SessionManager::~SessionManager()
+Manager::~Manager()
 	{
 	Clear();
 	delete stats;
 	}
 
-void SessionManager::Done()
+void Manager::Done()
 	{
 	}
 
-void SessionManager::ProcessTransportLayer(double t, const Packet* pkt, size_t remaining)
+void Manager::ProcessTransportLayer(double t, const Packet* pkt, size_t remaining)
 	{
 	const std::unique_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;
 
@@ -189,7 +189,7 @@ void SessionManager::ProcessTransportLayer(double t, const Packet* pkt, size_t r
 	}
 
 	zeek::detail::ConnIDKey conn_key(id);
-	detail::SessionKey key(&conn_key, sizeof(conn_key), false);
+	detail::Key key(&conn_key, sizeof(conn_key), false);
 	Connection* conn = nullptr;
 
 	// FIXME: The following is getting pretty complex. Need to split up
@@ -264,8 +264,8 @@ void SessionManager::ProcessTransportLayer(double t, const Packet* pkt, size_t r
 		}
 	}
 
-int SessionManager::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
-                                  IP_Hdr*& inner)
+int Manager::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
+                           IP_Hdr*& inner)
 	{
 	if ( proto == IPPROTO_IPV6 )
 		{
@@ -301,8 +301,8 @@ int SessionManager::ParseIPPacket(int caplen, const u_char* const pkt, int proto
 	return 0;
 	}
 
-bool SessionManager::CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
-                                   const Packet* p)
+bool Manager::CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
+                               const Packet* p)
 	{
 	uint32_t min_hdr_len = 0;
 	switch ( proto ) {
@@ -335,7 +335,7 @@ bool SessionManager::CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
 	return false;
 	}
 
-Connection* SessionManager::FindConnection(Val* v)
+Connection* Manager::FindConnection(Val* v)
 	{
 	const auto& vt = v->GetType();
 	if ( ! IsRecord(vt->Tag()) )
@@ -380,7 +380,7 @@ Connection* SessionManager::FindConnection(Val* v)
 	                                 htons((unsigned short) resp_portv->Port()),
 	                                 orig_portv->PortType(), false);
 
-	detail::SessionKey key(&conn_key, sizeof(conn_key), false);
+	detail::Key key(&conn_key, sizeof(conn_key), false);
 
 	Connection* conn = nullptr;
 	auto it = session_map.find(key);
@@ -390,7 +390,7 @@ Connection* SessionManager::FindConnection(Val* v)
 	return conn;
 	}
 
-void SessionManager::Remove(Session* s)
+void Manager::Remove(Session* s)
 	{
 	if ( s->IsInSessionTable() )
 		{
@@ -398,7 +398,7 @@ void SessionManager::Remove(Session* s)
 		s->Done();
 		s->RemovalEvent();
 
-		detail::SessionKey key = s->SessionKey(false);
+		detail::Key key = s->SessionKey(false);
 
 		if ( session_map.erase(key) == 0 )
 			reporter->InternalWarning("connection missing");
@@ -418,10 +418,10 @@ void SessionManager::Remove(Session* s)
 		}
 	}
 
-void SessionManager::Insert(Session* s)
+void Manager::Insert(Session* s)
 	{
 	Session* old = nullptr;
-	detail::SessionKey key = s->SessionKey(true);
+	detail::Key key = s->SessionKey(true);
 
 	auto it = session_map.find(key);
 	if ( it != session_map.end() )
@@ -440,7 +440,7 @@ void SessionManager::Insert(Session* s)
 		}
 	}
 
-void SessionManager::Drain()
+void Manager::Drain()
 	{
 	for ( const auto& entry : session_map )
 		{
@@ -450,7 +450,7 @@ void SessionManager::Drain()
 		}
 	}
 
-void SessionManager::Clear()
+void Manager::Clear()
 	{
 	for ( const auto& entry : session_map )
 		Unref(entry.second);
@@ -460,7 +460,7 @@ void SessionManager::Clear()
 	zeek::detail::fragment_mgr->Clear();
 	}
 
-void SessionManager::GetStats(SessionStats& s)
+void Manager::GetStats(Stats& s)
 	{
 	auto* tcp_stats = stats->GetCounters("tcp");
 	s.max_TCP_conns = tcp_stats->max;
@@ -482,9 +482,9 @@ void SessionManager::GetStats(SessionStats& s)
 	s.num_packets = packet_mgr->PacketsProcessed();
 	}
 
-Connection* SessionManager::NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
-                                    const u_char* data, int proto, uint32_t flow_label,
-                                    const Packet* pkt)
+Connection* Manager::NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
+                             const u_char* data, int proto, uint32_t flow_label,
+                             const Packet* pkt)
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
 	// But I'm not yet sure what the right abstraction for these things is.
@@ -542,7 +542,7 @@ Connection* SessionManager::NewConn(const zeek::detail::ConnIDKey& k, double t, 
 	return conn;
 	}
 
-bool SessionManager::IsLikelyServerPort(uint32_t port, TransportProto proto) const
+bool Manager::IsLikelyServerPort(uint32_t port, TransportProto proto) const
 	{
 	// We keep a cached in-core version of the table to speed up the lookup.
 	static std::set<bro_uint_t> port_cache;
@@ -569,9 +569,9 @@ bool SessionManager::IsLikelyServerPort(uint32_t port, TransportProto proto) con
 	return port_cache.find(port) != port_cache.end();
 	}
 
-bool SessionManager::WantConnection(uint16_t src_port, uint16_t dst_port,
-                                 TransportProto transport_proto,
-                                 uint8_t tcp_flags, bool& flip_roles)
+bool Manager::WantConnection(uint16_t src_port, uint16_t dst_port,
+                             TransportProto transport_proto,
+                             uint8_t tcp_flags, bool& flip_roles)
 	{
 	flip_roles = false;
 
@@ -616,7 +616,7 @@ bool SessionManager::WantConnection(uint16_t src_port, uint16_t dst_port,
 	return true;
 	}
 
-void SessionManager::Weird(const char* name, const Packet* pkt, const char* addl, const char* source)
+void Manager::Weird(const char* name, const Packet* pkt, const char* addl, const char* source)
 	{
 	const char* weird_name = name;
 
@@ -637,12 +637,12 @@ void SessionManager::Weird(const char* name, const Packet* pkt, const char* addl
 	reporter->Weird(weird_name, addl, source);
 	}
 
-void SessionManager::Weird(const char* name, const IP_Hdr* ip, const char* addl)
+void Manager::Weird(const char* name, const IP_Hdr* ip, const char* addl)
 	{
 	reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name, addl);
 	}
 
-unsigned int SessionManager::SessionMemoryUsage()
+unsigned int Manager::SessionMemoryUsage()
 	{
 	unsigned int mem = 0;
 
@@ -656,7 +656,7 @@ unsigned int SessionManager::SessionMemoryUsage()
 	return mem;
 	}
 
-unsigned int SessionManager::SessionMemoryUsageVals()
+unsigned int Manager::SessionMemoryUsageVals()
 	{
 	unsigned int mem = 0;
 
@@ -670,7 +670,7 @@ unsigned int SessionManager::SessionMemoryUsageVals()
 	return mem;
 	}
 
-unsigned int SessionManager::MemoryAllocation()
+unsigned int Manager::MemoryAllocation()
 	{
 	if ( run_state::terminating )
 		// Connections have been flushed already.
@@ -684,7 +684,7 @@ unsigned int SessionManager::MemoryAllocation()
 		;
 	}
 
-void SessionManager::InsertSession(detail::SessionKey key, Session* session)
+void Manager::InsertSession(detail::Key key, Session* session)
 	{
 	session->SetInSessionTable(true);
 	key.CopyData();
@@ -702,7 +702,7 @@ void SessionManager::InsertSession(detail::SessionKey key, Session* session)
 		}
 	}
 
-zeek::detail::PacketFilter* SessionManager::GetPacketFilter(bool init)
+zeek::detail::PacketFilter* Manager::GetPacketFilter(bool init)
 	{
 	return packet_mgr->GetPacketFilter(init);
 	}

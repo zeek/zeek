@@ -32,7 +32,7 @@ class RecordVal;
 using ValPtr = IntrusivePtr<Val>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
-namespace session { class SessionManager; }
+namespace session { class Manager; }
 namespace detail {
 
 class Specific_RE_Matcher;
@@ -114,8 +114,8 @@ public:
 	// connection is in the session map. If it is removed, the key
 	// should be marked invalid.
 	const detail::ConnIDKey& Key() const	{ return key; }
-	session::detail::SessionKey SessionKey(bool copy) const override
-		{ return session::detail::SessionKey{&key, sizeof(key), copy}; }
+	session::detail::Key SessionKey(bool copy) const override
+		{ return session::detail::Key{&key, sizeof(key), copy}; }
 
 	const IPAddr& OrigAddr() const		{ return orig_addr; }
 	const IPAddr& RespAddr() const		{ return resp_addr; }
@@ -251,10 +251,9 @@ public:
 	bool PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
 	                 double duration);
 
-protected:
+private:
 
-	// Allow other classes to access pointers to these:
-	friend class session::detail::SessionTimer;
+	friend class session::detail::Timer;
 
 	IPAddr orig_addr;
 	IPAddr resp_addr;

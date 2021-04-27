@@ -7,14 +7,14 @@
 #include "zeek/Val.h"
 #include "zeek/Event.h"
 #include "zeek/Desc.h"
-#include "zeek/session/SessionManager.h"
+#include "zeek/session/Manager.h"
 #include "zeek/IP.h"
 
 namespace zeek::session {
 namespace detail {
 
-void SessionTimer::Init(Session* arg_session, timer_func arg_timer,
-                        bool arg_do_expire)
+void Timer::Init(Session* arg_session, timer_func arg_timer,
+                 bool arg_do_expire)
 	{
 	session = arg_session;
 	timer = arg_timer;
@@ -22,16 +22,16 @@ void SessionTimer::Init(Session* arg_session, timer_func arg_timer,
 	Ref(session);
 	}
 
-SessionTimer::~SessionTimer()
+Timer::~Timer()
 	{
 	if ( session->RefCnt() < 1 )
-		reporter->InternalError("reference count inconsistency in ~SessionTimer");
+		reporter->InternalError("reference count inconsistency in session~Timer");
 
 	session->RemoveTimer(this);
 	Unref(session);
 	}
 
-void SessionTimer::Dispatch(double t, bool is_expire)
+void Timer::Dispatch(double t, bool is_expire)
 	{
 	if ( is_expire && ! do_expire )
 		return;
@@ -43,7 +43,7 @@ void SessionTimer::Dispatch(double t, bool is_expire)
 	(session->*timer)(t);
 
 	if ( session->RefCnt() < 1 )
-		reporter->InternalError("reference count inconsistency in SessionTimer::Dispatch");
+		reporter->InternalError("reference count inconsistency in session::Timer::Dispatch");
 	}
 
 } // namespace detail
@@ -172,7 +172,7 @@ void Session::AddTimer(timer_func timer, double t, bool do_expire,
 	if ( ! IsInSessionTable() )
 		return;
 
-	zeek::detail::Timer* conn_timer = new detail::SessionTimer(this, timer, t, do_expire, type);
+	zeek::detail::Timer* conn_timer = new detail::Timer(this, timer, t, do_expire, type);
 	zeek::detail::timer_mgr->Add(conn_timer);
 	timers.push_back(conn_timer);
 	}

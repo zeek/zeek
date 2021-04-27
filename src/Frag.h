@@ -14,7 +14,7 @@ namespace zeek {
 
 class IP_Hdr;
 
-namespace session { class SessionManager; }
+namespace session { class Manager; }
 
 namespace detail {
 
@@ -25,7 +25,7 @@ using FragReassemblerKey = std::tuple<IPAddr, IPAddr, bro_uint_t>;
 
 class FragReassembler : public Reassembler {
 public:
-	FragReassembler(session::SessionManager* s, const std::unique_ptr<IP_Hdr>& ip,
+	FragReassembler(session::Manager* s, const std::unique_ptr<IP_Hdr>& ip,
 	                const u_char* pkt, const FragReassemblerKey& k, double t);
 	~FragReassembler() override;
 
@@ -45,7 +45,7 @@ protected:
 
 	u_char* proto_hdr;
 	std::unique_ptr<IP_Hdr> reassembled_pkt;
-	session::SessionManager* s;
+	session::Manager* s;
 	uint64_t frag_size;	// size of fully reassembled fragment
 	FragReassemblerKey key;
 	uint16_t next_proto; // first IPv6 fragment header's next proto field

@@ -27,7 +27,7 @@ namespace session {
 
 namespace detail { class ProtocolStats; }
 
-struct SessionStats {
+struct Stats {
 	size_t num_TCP_conns;
 	size_t max_TCP_conns;
 	uint64_t cumulative_TCP_conns;
@@ -45,10 +45,10 @@ struct SessionStats {
 	uint64_t num_packets;
 };
 
-class SessionManager final {
+class Manager final {
 public:
-	SessionManager();
-	~SessionManager();
+	Manager();
+	~Manager();
 
 	void Done();	// call to drain events before destructing
 
@@ -76,7 +76,7 @@ public:
 	// Clears the session maps.
 	void Clear();
 
-	void GetStats(SessionStats& s);
+	void GetStats(Stats& s);
 
 	void Weird(const char* name, const Packet* pkt,
 	           const char* addl = "", const char* source = "");
@@ -146,7 +146,7 @@ public:
 
 private:
 
-	using SessionMap = std::map<detail::SessionKey, Session*>;
+	using SessionMap = std::map<detail::Key, Session*>;
 
 	Connection* NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
 	                    const u_char* data, int proto, uint32_t flow_label,
@@ -179,7 +179,7 @@ private:
 	// the new one.  Connection count stats get updated either way (so most
 	// cases should likely check that the key is not already in the map to
 	// avoid unnecessary incrementing of connecting counts).
-	void InsertSession(detail::SessionKey key, Session* session);
+	void InsertSession(detail::Key key, Session* session);
 
 	SessionMap session_map;
 	detail::ProtocolStats* stats;
@@ -188,9 +188,9 @@ private:
 } // namespace session
 
 // Manager for the currently active sessions.
-extern session::SessionManager* session_mgr;
+extern session::Manager* session_mgr;
 
-extern session::SessionManager*& sessions [[deprecated("Remove in v5.1. Use zeek::sessions::session_mgr.")]];
-using NetSessions [[deprecated("Remove in v5.1. Use zeek::session::SessionManager.")]] = session::SessionManager;
+extern session::Manager*& sessions [[deprecated("Remove in v5.1. Use zeek::sessions::session_mgr.")]];
+using NetSessions [[deprecated("Remove in v5.1. Use zeek::session::Manager.")]] = session::Manager;
 
 } // namespace zeek

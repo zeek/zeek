@@ -1,17 +1,17 @@
-#include "zeek/session/SessionKey.h"
+#include "zeek/session/Key.h"
 
 #include <cstring>
 
 namespace zeek::session::detail {
 
-SessionKey::SessionKey(const void* session, size_t size, bool copy) : size(size)
+Key::Key(const void* session, size_t size, bool copy) : size(size)
 	{
 	data = reinterpret_cast<const uint8_t*>(session);
 	if ( copy )
 		CopyData();
 	}
 
-SessionKey::SessionKey(SessionKey&& rhs)
+Key::Key(Key&& rhs)
 	{
 	data = rhs.data;
 	size = rhs.size;
@@ -22,7 +22,7 @@ SessionKey::SessionKey(SessionKey&& rhs)
 	rhs.copied = false;
 	}
 
-SessionKey& SessionKey::operator=(SessionKey&& rhs)
+Key& Key::operator=(Key&& rhs)
 	{
 	if ( this != &rhs )
 		{
@@ -38,13 +38,13 @@ SessionKey& SessionKey::operator=(SessionKey&& rhs)
 	return *this;
 	}
 
-SessionKey::~SessionKey()
+Key::~Key()
 	{
 	if ( copied )
 		delete [] data;
 	}
 
-void SessionKey::CopyData()
+void Key::CopyData()
 	{
 	if ( copied )
 		return;
@@ -56,7 +56,7 @@ void SessionKey::CopyData()
 	data = temp;
 	}
 
-bool SessionKey::operator<(const SessionKey& rhs) const
+bool Key::operator<(const Key& rhs) const
 	{
 	if ( size != rhs.size )
 		return size < rhs.size;

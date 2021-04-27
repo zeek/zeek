@@ -17,9 +17,13 @@ export {
 	option mail_page_dest = "";
 }
 
-# Runs after EMAIL_ADMIN (assume page supercedes), but before hostnames are added.
-hook notice(n: Notice::Info) &priority=4
+hook notice(n: Notice::Info)
 	{
 	if ( ACTION_PAGE in n$actions )
-		n$email_dest = mail_page_dest;
+		{
+		if ( ! n?$email_dest )
+			n$email_dest = set();
+
+		add n$email_dest[mail_page_dest];
+		}
 	}

@@ -5,6 +5,7 @@
 ##! the notice framework can be found in :doc:`/frameworks/notice`.
 
 @load base/frameworks/cluster
+@load base/utils/strings
 
 module Notice;
 
@@ -136,8 +137,8 @@ export {
 		## The actions which have been applied to this notice.
 		actions:        ActionSet      &log &default=ActionSet();
 
-		## The email address where to send this notice
-		email_dest:     string         &log &optional;
+		## The email address(es) where to send this notice
+		email_dest:     set[string]    &log &optional;
 
 		## By adding chunks of text into this element, other scripts
 		## can expand on notices that are being emailed.  The normal
@@ -513,14 +514,22 @@ hook Notice::policy(n: Notice::Info) &priority=10
 	add n$actions[ACTION_LOG];
 	}
 
+hook Notice::notice(n: Notice::Info)
+	{
+	if ( ACTION_EMAIL in n$actions )
+		{
+		if ( ! n?$email_dest )
+			n$email_dest = set();
+
+		add n$email_dest[mail_dest];
+		}
+	}
+
 hook Notice::notice(n: Notice::Info) &priority=-5
 	{
-	# Send to requested address if set
 	if ( n?$email_dest )
-		email_notice_to(n, n$email_dest, T);
-	# Otherwise Send to default address
-	else if ( ACTION_EMAIL in n$actions )
-		email_notice_to(n, mail_dest, T);
+		for ( dest in n$email_dest )
+			email_notice_to(n, dest, T);
 
 	if ( ACTION_LOG in n$actions )
 		Log::write(Notice::LOG, n);

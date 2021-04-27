@@ -2,17 +2,26 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-event zeek_init()
+function decode_name(name: string)
 	{
-	local names_to_decode = set(
+	local dn = decode_netbios_name(name);
+	local suffix = decode_netbios_name_type(name);
+	print suffix, |dn|, dn;
+	}
+
+local encoded_names = vector(
 		"ejfdebfeebfacacacacacacacacacaaa", # ISATAP
 		"fhepfcelehfcepfffacacacacacacabl", # WORKGROUP
 		"abacfpfpenfdecfcepfhfdeffpfpacab", # \001\002__MSBROWSE__\002
-		"enebfcfeejeocacacacacacacacacaad"); # MARTIN
+		"enebfcfeejeocacacacacacacacacaad", # MARTIN
+		"FEEIEFCAEOEFFEECEJEPFDCAEOEBENEF", # THE NETBIOS NAM
+		"cbcccdcecfcgchcicjckclcmcncodnaa", # !"#$%&'()*+,-.=
+		"dkdleafofphlhnhoaaaaaaaaaaaaaaaa", # :;@^_{}~
+		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", # empty
+		"cacacacacacacacacacacacacacacaca", # empty
+		"abcd",                             # invalid length
+		"~jfdebfeebfacacacacacacacacacaaa", # invalid alphabet
+		"0jfdebfeebfacacacacacacacacacaaa");# invalid alphabet
 
-	for ( name in names_to_decode )
-		{
-		print decode_netbios_name(name);
-		print decode_netbios_name_type(name);
-		}
-	}
+for ( i in encoded_names )
+	decode_name(encoded_names[i]);

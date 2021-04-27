@@ -434,7 +434,11 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 	#       worked into the query/response in some fashion.
 	if ( c$id$resp_p == 137/udp )
 		{
-		query = decode_netbios_name(query);
+		local decoded_query = decode_netbios_name(query);
+
+		if ( |decoded_query| != 0 )
+			query = decoded_query;
+
 		if ( c$dns$qtype_name == "SRV" )
 			{
 			# The SRV RFC used the ID used for NetBios Status RRs.

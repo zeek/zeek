@@ -495,7 +495,8 @@ public:
 		{ return ti->AllButFirstWord(line); }
 	void PutBack(const string& line)	{ ti->PutBack(line); }
 
-	string GenOpCode(const ZAM_OpTemplate* ot, const string& suffix);
+	string GenOpCode(const ZAM_OpTemplate* ot, const string& suffix,
+	                 bool is_field = false);
 
 	void Emit(EmitTarget et, const string& s);
 	void IndentUp()			{ ++indent_level; }

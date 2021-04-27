@@ -451,7 +451,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 
 	assert(ot.size() > 0);
 
-	auto op = g->GenOpCode(this, "_" + OpString(ot) + suffix);
+	auto op = g->GenOpCode(this, "_" + OpString(ot) + suffix, is_field);
 
 	Emit("ZInstI z;");
 
@@ -506,7 +506,7 @@ void ZAM_OpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
                                      const string& suffix,
                                      bool is_field, bool is_vec, bool is_cond)
 	{
-	auto op_code = g->GenOpCode(this, "_" + OpString(ot) + suffix);
+	auto op_code = g->GenOpCode(this, "_" + OpString(ot) + suffix, is_field);
 	auto eval = CompleteEval();
 
 	EmitTo(Eval);
@@ -1417,7 +1417,8 @@ void ZAMGen::Emit(EmitTarget et, const string& s)
 		fputs("\n", f);
 	}
 
-string ZAMGen::GenOpCode(const ZAM_OpTemplate* ot, const string& suffix)
+string ZAMGen::GenOpCode(const ZAM_OpTemplate* ot, const string& suffix,
+                         bool is_field)
 	{
 	auto op = "OP_" + ot->CanonicalName() + suffix;
 
@@ -1433,7 +1434,8 @@ string ZAMGen::GenOpCode(const ZAM_OpTemplate* ot, const string& suffix)
 	Emit(OpDef, op + ",");
 
 	auto op_comment = ",\t// " + op;
-	Emit(Op1Flavor, ot->GetOp1Flavor() + op_comment);
+	auto flavor = is_field ? "OP1_READ" : ot->GetOp1Flavor();
+	Emit(Op1Flavor, flavor + op_comment);
 
 	auto se = ot->HasSideEffects() ? "true" : "false";
 	Emit(OpSideEffects, se + op_comment);

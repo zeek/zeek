@@ -78,6 +78,8 @@ struct Options {
 
 	std::vector<std::string> script_args;
 
+	std::optional<std::string> logdir; // -l flag
+
 	// For script optimization:
 	detail::AnalyOpt analysis_options;
 };

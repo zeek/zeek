@@ -60,6 +60,15 @@ public:
 		 */
 		const char* path;
 
+
+		/**
+		 * A string used for implementing the logging directory for the .
+		 * ASCII writer
+		 * Structure takes ownership of string.
+		 */
+		const char* logdir;
+
+
 		/**
 		 * The name of the postprocessor function that will be called
 		 * upon the logging manager processing the "rotation finished"
@@ -90,7 +99,7 @@ public:
 		 */
 		config_map config;
 
-		WriterInfo() : path(nullptr), rotation_interval(0.0), rotation_base(0.0),
+		WriterInfo() : path(nullptr),logdir(nullptr), rotation_interval(0.0), rotation_base(0.0),
 		               network_time(0.0)
 			{
 			}
@@ -98,6 +107,7 @@ public:
 		WriterInfo(const WriterInfo& other)
 			{
 			path = other.path ? util::copy_string(other.path) : nullptr;
+			logdir = other.logdir ? util::copy_string(other.logdir) : nullptr;
 			post_proc_func = other.post_proc_func ? util::copy_string(other.post_proc_func) : nullptr;
 			rotation_interval = other.rotation_interval;
 			rotation_base = other.rotation_base;
@@ -111,6 +121,7 @@ public:
 		~WriterInfo()
 			{
 			delete [] path;
+			delete [] logdir;
 			delete [] post_proc_func;
 
 			for ( config_map::iterator i = config.begin(); i != config.end(); i++ )

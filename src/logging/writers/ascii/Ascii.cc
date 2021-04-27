@@ -431,13 +431,22 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 	if ( ! init_options )
 		return false;
 
+
 	string path = info.path;
 
 	if ( output_to_stdout )
 		path = "/dev/stdout";
 
-	fname = path;
+	if ( info.logdir )
+	  {
+		string logdir = info.logdir;
+		fprintf(stderr, "In Ascii.cc logdir %s \n", info.logdir);
+		fname = logdir + "/" + path;
+	  }
+	else
+		fname = path;
 
+	fprintf(stderr, "In Ascii.cc fname %s \n", fname.c_str());
 	if ( ! IsSpecial(fname) )
 		{
 		std::string ext = "." + LogExt();
@@ -489,6 +498,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 			}
 		}
 
+	fprintf(stderr, "Open file %s \n", fname.c_str());
 	fd = open(fname.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 	if ( fd < 0 )

@@ -89,6 +89,7 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
 	fprintf(stderr, "    -h|--help                      | command line help\n");
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface (only one allowed)\n");
+	fprintf(stderr, "    -l|--logdir <dir>              | output log files to directory specified\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to Zeek script file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file (only one allowed, pass '-' as the filename to read from stdin)\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
@@ -134,6 +135,7 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    $ZEEK_PREFIXES                 | prefix list (%s)\n", util::zeek_prefixes().c_str());
 	fprintf(stderr, "    $ZEEK_DNS_FAKE                 | disable DNS lookups (%s)\n", fake_dns() ? "on" : "off");
 	fprintf(stderr, "    $ZEEK_SEED_FILE                | file to load seeds from (not set)\n");
+//	fprintf(stderr, "    $ZEEK_LOG_DIR                  | output log files to directory specified\n");
 	fprintf(stderr, "    $ZEEK_LOG_SUFFIX               | ASCII log file extension (.%s)\n", logging::writer::detail::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $ZEEK_PROFILER_FILE            | Output file for script execution statistics (not set)\n");
 	fprintf(stderr, "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n", getenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
@@ -288,6 +290,7 @@ Options parse_cmdline(int argc, char** argv)
 		{"filter",		required_argument,	nullptr,	'f'},
 		{"help",		no_argument,		nullptr,	'h'},
 		{"iface",		required_argument,	nullptr,	'i'},
+		{"logdir",		required_argument,	nullptr,	'l'},
 		{"zeekygen",		required_argument,		nullptr,	'X'},
 		{"prefix",		required_argument,	nullptr,	'p'},
 		{"readfile",		required_argument,	nullptr,	'r'},
@@ -391,6 +394,9 @@ Options parse_cmdline(int argc, char** argv)
 				// expected to be number of workers like "-j 4" or possibly a
 				// list of worker/proxy/logger counts like "-j 4,2,1"
 				}
+			break;
+		case 'l':
+			rval.logdir = optarg;
 			break;
 		case 'p':
 			rval.script_prefixes.emplace_back(optarg);

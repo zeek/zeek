@@ -186,12 +186,13 @@ bool WriterBackend::Init(int arg_num_fields, const Field* const* arg_fields)
 	if ( Failed() )
 		return true;
 
+ //fprintf(stderr, "In WriterBackend.cc before DoIinit logdir %s \n", info->logdir);
 	if ( ! DoInit(*info, arg_num_fields, arg_fields) )
 		{
 		DisableFrontend();
 		return false;
 		}
-
+  //fprintf(stderr, "In WriterBackend.cc after DoIinit logdir %s \n", info->logdir);
 	return true;
 	}
 

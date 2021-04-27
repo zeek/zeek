@@ -33,9 +33,19 @@ class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
 
 	/**
+	 * Configuration options that change logging behavior.
+	 */
+	struct Config {
+		/**
+		 * The filesystem path of the Zeek logs.
+		 */
+		std::string zeek_logdir;
+	};
+
+	/**
 	 * Constructor.
 	 */
-	Manager();
+	Manager(Config cfg);
 
 	/**
 	 * Destructor.
@@ -279,6 +289,8 @@ private:
 	struct Filter;
 	struct Stream;
 	struct WriterInfo;
+
+	Config config;
 
 	bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 	                    TableVal* include, TableVal* exclude,

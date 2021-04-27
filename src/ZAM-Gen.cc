@@ -131,9 +131,11 @@ void ArgsManager::Differentiate()
 			++num_fields;
 		}
 
+	assert(num_fields <= 2);
+
 	if ( num_fields == 1 )
 		full_params += ", field";
-	else
+	else if ( num_fields == 2 )
 		{
 		full_decl += ", int field2";
 		full_params += ", field1, field2";

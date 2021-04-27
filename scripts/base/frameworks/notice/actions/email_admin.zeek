@@ -30,11 +30,6 @@ hook notice(n: Notice::Info) &priority=-5
 			email = fmt("%s, %s", email, Site::get_emails(n$dst));
 		
 		if ( email != "" )
-			email_notice_to(n, email, T);
+			n$email_dest = email;
 		}
 	}
-
-# If hostnames.zeek was loaded first, add ourselves
-@ifdef ( email_with_hostnames_types )
-redef email_with_hostnames_types += { ACTION_EMAIL_ADMIN };
-@endif

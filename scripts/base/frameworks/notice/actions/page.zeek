@@ -17,13 +17,8 @@ export {
 	option mail_page_dest = "";
 }
 
-hook notice(n: Notice::Info) &priority=-5
+hook notice(n: Notice::Info) &priority=-6
 	{
 	if ( ACTION_PAGE in n$actions )
-		email_notice_to(n, mail_page_dest, F);
+		n$email_dest = mail_page_dest;
 	}
-
-# If hostnames.zeek was loaded first, add ourselves
-@ifdef ( email_with_hostnames_types )
-redef email_with_hostnames_types += { ACTION_PAGE };
-@endif

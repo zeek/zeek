@@ -437,11 +437,9 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 	if ( output_to_stdout )
 		path = "/dev/stdout";
 
-	if ( info.logdir )
-	  {
-		string logdir = info.logdir;
+	string logdir = info.logdir;
+	if ( ! logdir.empty() )
 		fname = logdir + "/" + path;
-	  }
 	else
 		fname = path;
 
@@ -495,6 +493,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 				}
 			}
 		}
+
 
 	fd = open(fname.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 

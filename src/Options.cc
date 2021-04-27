@@ -334,7 +334,7 @@ Options parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:o:p:r:s:T:t:U:w:X:CDFNPQSWabdhuv",
+	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::l:n:O:o:p:r:s:T:t:U:w:X:CDFNPQSWabdhuv",
 	                         sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG

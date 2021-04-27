@@ -2542,14 +2542,12 @@ void TableVal::DoExpire(double t)
 		expire_iterator = new RobustDictIterator(std::move(it));
 		}
 
-	TableEntryVal* v = nullptr;
-	TableEntryVal* v_saved = nullptr;
 	bool modified = false;
 
 	for ( int i = 0; i < zeek::detail::table_incremental_step &&
 		      *expire_iterator != table_val->end_robust(); ++i, ++(*expire_iterator) )
 		{
-		v = (*expire_iterator)->GetValue<TableEntryVal*>();
+		auto v = (*expire_iterator)->GetValue<TableEntryVal*>();
 
 		if ( v->ExpireAccessTime() == 0 )
 			{
@@ -2573,12 +2571,10 @@ void TableVal::DoExpire(double t)
 				// It's possible that the user-provided
 				// function modified or deleted the table
 				// value, so look it up again.
-				v_saved = v;
 				v = table_val->Lookup(k.get());
 
 				if ( ! v )
 					{ // user-provided function deleted it
-					v = v_saved;
 					continue;
 					}
 

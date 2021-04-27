@@ -1451,6 +1451,9 @@ TableVal::~TableVal()
 	if ( timer )
 		detail::timer_mgr->Cancel(timer);
 
+	if ( expire_cookie )
+		AsTable()->StopIteration(expire_cookie);
+
 	delete table_hash;
 	delete AsTable();
 	delete subnets;
@@ -1458,6 +1461,12 @@ TableVal::~TableVal()
 
 void TableVal::RemoveAll()
 	{
+	if ( expire_cookie )
+		{
+		AsTable()->StopIteration(expire_cookie);
+		expire_cookie = nullptr;
+		}
+
 	// Here we take the brute force approach.
 	delete AsTable();
 	val.table_val = new PDict<TableEntryVal>;
@@ -2547,8 +2556,6 @@ void TableVal::DoExpire(double t)
 	if ( ! type )
 		return; // FIX ME ###
 
-	PDict<TableEntryVal>* tbl = AsNonConstTable();
-
 	double timeout = GetExpireTime();
 
 	if ( timeout < 0 )
@@ -2558,8 +2565,8 @@ void TableVal::DoExpire(double t)
 
 	if ( ! expire_cookie )
 		{
-		expire_cookie = tbl->InitForIteration();
-		tbl->MakeRobustCookie(expire_cookie);
+		expire_cookie = val.table_val->InitForIteration();
+		val.table_val->MakeRobustCookie(expire_cookie);
 		}
 
 	detail::HashKey* k = nullptr;
@@ -2568,7 +2575,7 @@ void TableVal::DoExpire(double t)
 	bool modified = false;
 
 	for ( int i = 0; i < zeek::detail::table_incremental_step &&
-		      (v = tbl->NextEntry(k, expire_cookie)); ++i )
+		      (v = val.table_val->NextEntry(k, expire_cookie)); ++i )
 		{
 		if ( v->ExpireAccessTime() == 0 )
 			{
@@ -2592,12 +2599,17 @@ void TableVal::DoExpire(double t)
 				// function modified or deleted the table
 				// value, so look it up again.
 				v_saved = v;
-				v = tbl->Lookup(k);
+				v = val.table_val->Lookup(k);
 
 				if ( ! v )
 					{ // user-provided function deleted it
-					v = v_saved;
 					delete k;
+
+					if ( ! expire_cookie )
+						// Entire table got dropped (e.g. clear_table() / RemoveAll())
+						break;
+
+					v = v_saved;
 					continue;
 					}
 
@@ -2620,7 +2632,7 @@ void TableVal::DoExpire(double t)
 					reporter->InternalWarning("index not in prefix table");
 				}
 
-			tbl->RemoveEntry(k);
+			val.table_val->RemoveEntry(k);
 			if ( change_func )
 				{
 				if ( ! idx )

@@ -586,7 +586,15 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	event_registry = new EventRegistry();
 	analyzer_mgr = new analyzer::Manager();
 	packet_mgr = new packet_analysis::Manager();
-	log_mgr = new logging::Manager();
+
+	logging::Manager::Config cfg = {};
+	if ( options.logdir )
+		{
+		cfg.zeek_logdir = options.logdir.value();
+		fprintf(stderr, "zeek-setup found logdir %s \n", cfg.zeek_logdir.c_str());
+		}
+	log_mgr = new logging::Manager(std::move(cfg));
+
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;

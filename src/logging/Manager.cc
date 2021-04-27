@@ -133,8 +133,8 @@ Manager::Stream::~Stream()
 		delete *f;
 	}
 
-Manager::Manager()
-	: plugin::ComponentManager<logging::Tag, logging::Component>("Log", "Writer")
+Manager::Manager(Config cfg)
+	: config(std::move(cfg)),plugin::ComponentManager<logging::Tag, logging::Component>("Log", "Writer")
 	{
 	rotations_pending = 0;
 	}
@@ -870,8 +870,13 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				}
 
 			info = new WriterBackend::WriterInfo;
+
 			info->path = util::copy_string(path.c_str());
+			info->logdir = util::copy_string(config.zeek_logdir.c_str());
 			info->network_time = run_state::network_time;
+			fprintf(stderr, "In manager New WriterBackend config.zeek_logdir %s \n", config.zeek_logdir.c_str());
+			//fprintf(stderr, "In manager New WriterBackend info.logdir %s \n", info->logdir);
+			fprintf(stderr, "In manager New WriterBackend info.path %s \n", info->path);
 
 			auto* filter_config_table = filter->config->AsTable();
 			for ( const auto& fcte : *filter_config_table )
@@ -1139,6 +1144,8 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 	WriterFrontend* result = nullptr;
 
 	Stream* stream = FindStream(id);
+
+	// fprintf(stderr, "In CreateWriter.cc logdir %s \n", info->logdir);
 
 	if ( ! stream )
 		{

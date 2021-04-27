@@ -1027,7 +1027,13 @@ int Dictionary::LookupIndex(const void* key, int key_size, detail::hash_t hash, 
 		*insert_position = i;
 
 	if ( insert_distance )
+		{
 		*insert_distance = i - bucket;
+
+		if ( *insert_distance >= detail::TOO_FAR_TO_REACH )
+			reporter->FatalErrorWithCore("Dictionary (size %d) insertion distance too far: %d",
+			                             Length(), *insert_distance);
+		}
 
 	return -1;
 	}

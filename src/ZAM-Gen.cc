@@ -905,16 +905,19 @@ void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots,
 
 	EmitTo(C1Def);
 
-	if ( IncludesFieldOp() && false )
-		Emit("case EXPR_" + cname + ":\treturn c->" + m +
-		     "_field(" + args + ", field);");
-
 	EmitNoNL("case EXPR_" + cname + ":");
 
 	if ( do_vec )
-		DoVectorCase(m ,args);
+		DoVectorCase(m, args);
 	else
 		EmitUp("return c->" + m + "(" + args + ");");
+
+	if ( IncludesFieldOp() )
+		{
+		EmitTo(C1FieldDef);
+		Emit("case EXPR_" + cname + ":\treturn c->" + m +
+		     "_field(" + args + ", field);");
+		}
 	}
 
 void ZAM_ExprOpTemplate::InstantiateC2(const vector<ZAM_OperandType>& ots,
@@ -929,12 +932,14 @@ void ZAM_ExprOpTemplate::InstantiateC2(const vector<ZAM_OperandType>& ots,
 	auto m = method.c_str();
 
 	EmitTo(C2Def);
+	Emit("case EXPR_" + cname + ":\treturn c->" + m + "(" + args + ");");
 
 	if ( IncludesFieldOp() )
+		{
+		EmitTo(C2FieldDef);
 		Emit("case EXPR_" + cname + ":\treturn c->" +
 		     m + "_field(" + args + ", field);");
-
-	Emit("case EXPR_" + cname + ":\treturn c->" + m + "(" + args + ");");
+		}
 	}
 
 void ZAM_ExprOpTemplate::InstantiateC3(const vector<ZAM_OperandType>& ots)
@@ -965,17 +970,19 @@ void ZAM_ExprOpTemplate::InstantiateV(const vector<ZAM_OperandType>& ots)
 		}
 
 	EmitTo(VDef);
-
-	if ( IncludesFieldOp() )
-		Emit("case EXPR_" + cname + "\treturn c->" + m + "_field(" +
-		     args + ", field);");
-
 	EmitNoNL("case EXPR_" + cname + ":");
 
 	if ( IncludesVectorOp() )
 		DoVectorCase(m, args);
 	else
-		Emit("return c->" + m + "(" + args + ");");
+		EmitUp("return c->" + m + "(" + args + ");");
+
+	if ( IncludesFieldOp() )
+		{
+		EmitTo(VFieldDef);
+		Emit("case EXPR_" + cname + ":\treturn c->" + m + "_field(" +
+		     args + ", field);");
+		}
 	}
 
 void ZAM_ExprOpTemplate::DoVectorCase(const string& m, const string& args)
@@ -1361,9 +1368,12 @@ void ZAMGen::Emit(EmitTarget et, const string& s)
 			{ MethodDef, "MethodDef" },
 			{ DirectDef, "DirectDef" },
 			{ C1Def, "C1Def" },
+			{ C1FieldDef, "C1FieldDef" },
 			{ C2Def, "C2Def" },
+			{ C2FieldDef, "C2FieldDef" },
 			{ C3Def, "C3Def" },
 			{ VDef, "VDef" },
+			{ VFieldDef, "VFieldDef" },
 			{ Cond, "Cond" },
 			{ Eval, "Eval" },
 			{ AssignFlavor, "AssignFlavor" },

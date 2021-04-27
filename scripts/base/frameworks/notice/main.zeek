@@ -5,7 +5,6 @@
 ##! the notice framework can be found in :doc:`/frameworks/notice`.
 
 @load base/frameworks/cluster
-@load base/utils/strings
 
 module Notice;
 

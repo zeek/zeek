@@ -305,7 +305,7 @@ public:
 
 	void AddExprType(ZAM_ExprType et)
 		{ expr_types.insert(et); }
-	const std::unordered_set<ZAM_ExprType>& ExprTypes()
+	const std::unordered_set<ZAM_ExprType>& ExprTypes() const
 		{ return expr_types; }
 
 	void AddEvalSet(ZAM_ExprType et, string ev)
@@ -356,7 +356,8 @@ public:
 	ZAM_UnaryExprOpTemplate(ZAMGen* _g, string _base_name)
 	: ZAM_ExprOpTemplate(_g, _base_name) { }
 
-	bool IncludesFieldOp() const override	{ return true; }
+	bool IncludesFieldOp() const override
+		{ return ExprTypes().count(ZAM_EXPR_TYPE_NONE) == 0; }
 
 	int Arity() const override		{ return 1; }
 

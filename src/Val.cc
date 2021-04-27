@@ -2542,7 +2542,6 @@ void TableVal::DoExpire(double t)
 		expire_iterator = new RobustDictIterator(std::move(it));
 		}
 
-	std::unique_ptr<detail::HashKey> k = nullptr;
 	TableEntryVal* v = nullptr;
 	TableEntryVal* v_saved = nullptr;
 	bool modified = false;
@@ -2550,7 +2549,6 @@ void TableVal::DoExpire(double t)
 	for ( int i = 0; i < zeek::detail::table_incremental_step &&
 		      *expire_iterator != table_val->end_robust(); ++i, ++(*expire_iterator) )
 		{
-		k = (*expire_iterator)->GetHashKey();
 		v = (*expire_iterator)->GetValue<TableEntryVal*>();
 
 		if ( v->ExpireAccessTime() == 0 )
@@ -2564,6 +2562,7 @@ void TableVal::DoExpire(double t)
 
 		else if ( v->ExpireAccessTime() + timeout < t )
 			{
+			auto k = (*expire_iterator)->GetHashKey();
 			ListValPtr idx = nullptr;
 
 			if ( expire_func )

@@ -26,10 +26,9 @@
 
 using namespace std;
 
-zeek::PQueue<zeek::detail::DebugCmdInfo> zeek::detail::g_DebugCmdInfos;
-zeek::PQueue<zeek::detail::DebugCmdInfo>& g_DebugCmdInfos = zeek::detail::g_DebugCmdInfos;
-
 namespace zeek::detail {
+
+DebugCmdInfoQueue g_DebugCmdInfos;
 
 //
 // Helper routines
@@ -154,7 +153,7 @@ DebugCmdInfo::DebugCmdInfo(DebugCmd arg_cmd, const char* const* arg_names,
 
 const DebugCmdInfo* get_debug_cmd_info(DebugCmd cmd)
 	{
-	if ( (int) cmd < g_DebugCmdInfos.length() )
+	if ( (int) cmd < g_DebugCmdInfos.size() )
 		return g_DebugCmdInfos[(int) cmd];
 	else
 		return nullptr;

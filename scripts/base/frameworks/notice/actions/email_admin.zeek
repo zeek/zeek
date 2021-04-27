@@ -18,7 +18,8 @@ export {
 	};
 }
 
-hook notice(n: Notice::Info) &priority=-5
+# Run before ACTION_PAGE
+hook notice(n: Notice::Info) &priority=5
 	{
 	if ( |Site::local_admins| > 0 &&
 	     ACTION_EMAIL_ADMIN in n$actions )
@@ -28,7 +29,7 @@ hook notice(n: Notice::Info) &priority=-5
 			email = fmt("%s, %s", email, Site::get_emails(n$src));
 		if ( n?$dst && |Site::get_emails(n$dst)| > 0 )
 			email = fmt("%s, %s", email, Site::get_emails(n$dst));
-		
+
 		if ( email != "" )
 			n$email_dest = email;
 		}

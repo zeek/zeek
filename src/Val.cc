@@ -1459,6 +1459,8 @@ TableVal::~TableVal()
 
 void TableVal::RemoveAll()
 	{
+	delete expire_iterator;
+	expire_iterator = nullptr;
 	// Here we take the brute force approach.
 	delete table_val;
 	table_val = new PDict<TableEntryVal>;
@@ -2575,6 +2577,10 @@ void TableVal::DoExpire(double t)
 
 				if ( ! v )
 					{ // user-provided function deleted it
+					if ( ! expire_iterator )
+						// Entire table got dropped (e.g. clear_table() / RemoveAll())
+						break;
+
 					continue;
 					}
 
@@ -2613,7 +2619,7 @@ void TableVal::DoExpire(double t)
 	if ( modified )
 		Modified();
 
-	if ( (*expire_iterator) == table_val->end_robust() )
+	if ( ! expire_iterator || (*expire_iterator) == table_val->end_robust() )
 		{
 		delete expire_iterator;
 		expire_iterator = nullptr;

@@ -591,7 +591,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	if ( options.logdir )
 		{
 		cfg.zeek_logdir = options.logdir.value();
-		fprintf(stderr, "zeek-setup found logdir %s \n", cfg.zeek_logdir.c_str());
 		}
 	log_mgr = new logging::Manager(std::move(cfg));
 

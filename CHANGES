@@ -1,3 +1,8 @@
+
+4.1.0-dev.549 | 2021-04-28 13:09:30 -0700
+
+  * Fix -Wsign-compare warnings in Debug{Cmds}.cc (Jon Siwek, Corelight)
+
 4.1.0-dev.547 | 2021-04-28 09:27:15 -0700
 
   * GH-1528: Remove broken Queue/PQueue class, replace with std::deque (Tim Wojtulewicz, Corelight)

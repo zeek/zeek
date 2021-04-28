@@ -270,10 +270,10 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 		}
 
 	else if ( attr == "custom-method" )
-		SetCustomMethod(g->AllButFirstWord(line));
+		SetCustomMethod(g->SkipWords(line, 1));
 
 	else if ( attr == "method-post" )
-		SetPostMethod(g->AllButFirstWord(line));
+		SetPostMethod(g->SkipWords(line, 1));
 
 	else if ( attr == "side-effects" )
 		{
@@ -307,7 +307,7 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 
 	else if ( attr == "eval" )
 		{
-		AddEval(g->AllButFirstWord(line));
+		AddEval(g->SkipWords(line, 1));
 
 		auto addl = GatherEvals();
 		if ( addl.size() > 0 )
@@ -819,8 +819,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 		if ( expr_types.count(et) == 0 )
 			g->Gripe("eval-flavor flavor not present in eval-flavor", flavor);
 
-		// Skip the first two words.
-		auto eval = g->AllButFirstTwoWords(line);
+		auto eval = g->SkipWords(line, 2);
 		eval += GatherEvals();
 		AddEvalSet(et, eval);
 		}
@@ -844,9 +843,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 		auto et1 = expr_type_names[flavor_c1];
 		auto et2 = expr_type_names[flavor_c2];
 
-		// Skip the first three words.
-		auto eval = g->AllButFirstTwoWords(line);
-		eval = g->AllButFirstWord(eval);
+		auto eval = g->SkipWords(line, 3);
 		eval += GatherEvals();
 		AddEvalSet(et1, et2, eval);
 		}
@@ -856,7 +853,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 		if ( words.size() < 2 )
 			g->Gripe("eval-pre needs evaluation", line);
 
-		auto eval = g->AllButFirstWord(line);
+		auto eval = g->SkipWords(line, 1);
 		eval += GatherEvals();
 
 		SetPreEval(eval);
@@ -1072,11 +1069,11 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 
 	auto ot_str = OpString(ot);
 
-	string target;
+	string lhs;
 	if ( is_vec )
-		target = "vec1[i]";
+		lhs = "vec1[i]";
 	else
-		target = "frame[z.v1]";
+		lhs = "frame[z.v1]";
 
 	auto op2_offset = 3;
 
@@ -1118,47 +1115,100 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		{ ZAM_EXPR_TYPE_VECTOR, { "vector", "V" } },
 	};
 
+	struct EvalInstance {
+		EvalInstance(ZAM_ExprType _lhs_et, ZAM_ExprType _op1_et,
+		             ZAM_ExprType _op2_et, string _eval)
+			{
+			lhs_et = _lhs_et;
+			op1_et = _op1_et;
+			op2_et = _op2_et;
+			eval = move(_eval);
+			}
+
+		string LHSAccessor() const	{ return Accessor(lhs_et); }
+		string Op1Accessor() const	{ return Accessor(op1_et); }
+		string Op2Accessor() const	{ return Accessor(op2_et); }
+
+		string Accessor(ZAM_ExprType et) const
+			{ return "." + et_info[et].first + "_val"; }
+
+		string OpMarker() const
+			{
+			if ( op1_et == op2_et )
+				return "_" + et_info[op1_et].second;
+			else
+				return "_" + et_info[op1_et].second +
+				       et_info[op2_et].second;
+			}
+
+		ZAM_ExprType lhs_et;
+		ZAM_ExprType op1_et;
+		ZAM_ExprType op2_et;
+		string eval;
+	};
+	vector<EvalInstance> eval_instances;
+
 	for ( auto et : expr_types )
 		{
 		string eval;
-
 		if ( eval_set.count(et) > 0 )
 			{
 			auto es = eval_set[et];
 			for ( auto& es_i : es )
 				eval = eval + es_i;
 			}
-
 		else
 			eval = CompleteEval();
 
-		auto op_marker = string("_") + et_info[et].second;
+		auto lhs_et = IsConditional() ? ZAM_EXPR_TYPE_INT : et;
+		eval_instances.emplace_back(lhs_et, et, et, eval);
+		}
 
-		eval = SkipWS(eval);
+	for ( auto em1 : eval_mixed_set )
+		{
+		auto et1 = em1.first;
+		for ( auto em2 : em1.second )
+			{
+			auto et2 = em2.first;
+			string eval;
 
-		auto accessor = string(".") + et_info[et].first + "_val";
-		auto op1_et = op1 + accessor;
-		auto op2_et = op2 + accessor;
+			for ( auto& e : em2.second )
+				eval += e;
 
-		eval = regex_replace(eval, regex("\\$1"), op1_et);
-		eval = regex_replace(eval, regex("\\$2"), op2_et);
+			// For the LHS, either its expression type is
+			// ignored, or if it's a conditional, so just
+			// note it for the latter.
+			auto lhs_et = ZAM_EXPR_TYPE_INT;
+			eval_instances.emplace_back(lhs_et, et1, et2, eval);
+			}
+		}
 
-		auto has_target = eval.find("$$") != string::npos;
+	for ( auto& ei : eval_instances )
+		{
+		auto lhs_ei = lhs + ei.LHSAccessor();
+		auto op1_ei = op1 + ei.Op1Accessor();
+		auto op2_ei = op2 + ei.Op2Accessor();
 
-		if ( has_target )
-			eval = regex_replace(eval, regex("\\$\\$"), target);
+		auto eval = SkipWS(ei.eval);
+
+		eval = regex_replace(eval, regex("\\$1"), op1_ei);
+		eval = regex_replace(eval, regex("\\$2"), op2_ei);
+
+		if ( eval.find("$$") != string::npos )
+			eval = regex_replace(eval, regex("\\$\\$"), lhs_ei);
 
 		else if ( is_cond )
-			eval = "if ( ! (" + eval + ") ) { pc = " +
-			       branch_target + "; continue; }";
-
-		else
 			{
-			auto ta = IsConditional() ? ".int_val" : accessor;
-			eval = "frame[z.v1]" + ta + " = " + eval;
+			// Aesthetics: get rid of trailing newlines.
+			eval = regex_replace(eval, regex("\n"), "");
+			eval = "if ( ! (" + eval + ") ) " +
+			       "{ pc = " + branch_target + "; continue; }";
 			}
 
-		ZAM_OpTemplate::InstantiateEval(ot_str + op_marker + suffix,
+		else
+			eval = lhs_ei + " = " + eval;
+
+		ZAM_OpTemplate::InstantiateEval(ot_str + ei.OpMarker() + suffix,
 		                                eval, is_field);
 		}
 	}
@@ -1626,26 +1676,29 @@ vector<string> TemplateInput::SplitIntoWords(const string& line) const
 	return words;
 	}
 
-string TemplateInput::AllButFirstWord(const string& line) const
+string TemplateInput::SkipWords(const string& line, int n) const
 	{
-	for ( auto s = line.c_str(); *s && *s != '\n'; ++s )
-		if ( isspace(*s) )
-			return string(s);
+	auto s = line.c_str();
 
-	return "";
-	}
+	for ( int i = 0; i < n; ++i )
+		{
+		// Find end of current word.
+		while ( *s && *s != '\n' )
+			{
+			if ( isspace(*s) )
+				break;
+			++s;
+			}
 
-string TemplateInput::AllButFirstTwoWords(const string& line) const
-	{
-	const char* s;
-	for ( s = line.c_str(); *s && *s != '\n'; ++s )
-		if ( isspace(*s) )
+		if ( *s == '\n' )
 			break;
 
-	for ( ; *s && isspace(*s); ++s )
-		;
+		// Find start of next word.
+		while ( *s && isspace(*s) )
+			++s;
+		}
 
-	return AllButFirstWord(s);
+	return string(s);
 	}
 
 void TemplateInput::Gripe(const char* msg, const string& input)

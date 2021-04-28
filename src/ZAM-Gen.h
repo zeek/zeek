@@ -480,8 +480,7 @@ public:
 
 	bool ScanLine(string& line);
 	Words SplitIntoWords(const string& line) const;
-	string AllButFirstWord(const string& line) const;
-	string AllButFirstTwoWords(const string& line) const;
+	string SkipWords(const string& line, int n) const;
 	void PutBack(const string& line)	{ put_back = line; }
 
 	void Gripe(const char* msg, const string& input);
@@ -504,10 +503,8 @@ public:
 	bool ScanLine(string& line)	{ return ti->ScanLine(line); }
 	Words SplitIntoWords(const string& line) const
 		{ return ti->SplitIntoWords(line); }
-	string AllButFirstWord(const string& line) const
-		{ return ti->AllButFirstWord(line); }
-	string AllButFirstTwoWords(const string& line) const
-		{ return ti->AllButFirstTwoWords(line); }
+	string SkipWords(const string& line, int n) const
+		{ return ti->SkipWords(line, n); }
 	void PutBack(const string& line)	{ ti->PutBack(line); }
 
 	string GenOpCode(const ZAM_OpTemplate* ot, const string& suffix,

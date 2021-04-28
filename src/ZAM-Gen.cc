@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <ctype.h>
+#include <regex>
 
 #include "ZAM-Gen.h"
 
@@ -320,14 +321,6 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 		g->Gripe("extraneous arguments", line);
 	}
 
-string ZAM_OpTemplate::CompleteEval() const
-	{
-	string res;
-	for ( auto& e : Evals() )
-		res += e;
-	return res;
-	}
-
 string ZAM_OpTemplate::GatherEvals()
 	{
 	string res;
@@ -384,7 +377,7 @@ void ZAM_OpTemplate::InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_ve
 	if ( do_vec )
 		InstantiateOp(method, ot, false, true, false);
 
-	if ( IncludesConditional() )
+	if ( IsConditional() )
 		InstantiateOp(method, ot, false, false, true);
 	}
 
@@ -483,7 +476,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 		Emit("auto field = f->Field();");
 		}
 
-	BuildInstruction(op, suffix, ot, params);
+	BuildInstruction(op, ot, params, is_cond);
 
 	auto tp = GetTypeParam();
 	if ( tp > 0 )
@@ -495,9 +488,8 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 	}
 
 void ZAM_OpTemplate::BuildInstruction(const string& op,
-                                      const string& suffix,
 			              const vector<ZAM_OperandType>& ot,
-                                      const string& params)
+                                      const string& params, bool is_cond)
 	{
 	Emit("z = GenInst(this, " + op + ", " + params + ");");
 	}
@@ -506,8 +498,13 @@ void ZAM_OpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
                                      const string& suffix,
                                      bool is_field, bool is_vec, bool is_cond)
 	{
-	auto op_code = g->GenOpCode(this, "_" + OpString(ot) + suffix, is_field);
-	auto eval = CompleteEval();
+	InstantiateEval(OpString(ot) + suffix, CompleteEval(), is_field);
+	}
+
+void ZAM_OpTemplate::InstantiateEval(const string& op_suffix,
+                                     const string& eval, bool is_field)
+	{
+	auto op_code = g->GenOpCode(this, "_" + op_suffix, is_field);
 
 	EmitTo(Eval);
 	Emit("case " + op_code + ":");
@@ -515,6 +512,14 @@ void ZAM_OpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 	Emit(eval);
 	EndBlock();
 	Emit("break;");
+	}
+
+string ZAM_OpTemplate::CompleteEval() const
+	{
+	string res;
+	for ( auto& e : Evals() )
+		res += e;
+	return res;
 	}
 
 void ZAM_OpTemplate::InstantiateAssignOp(const vector<ZAM_OperandType>& ot,
@@ -741,7 +746,7 @@ static unordered_map<char, ZAM_ExprType> expr_type_names = {
 	{ 'D', ZAM_EXPR_TYPE_DOUBLE },
 	{ 'I', ZAM_EXPR_TYPE_INT },
 	{ 'N', ZAM_EXPR_TYPE_SUBNET },
-	{ 'P', ZAM_EXPR_TYPE_PORT },
+	{ 'P', ZAM_EXPR_TYPE_PATTERN },
 	{ 'S', ZAM_EXPR_TYPE_STRING },
 	{ 'T', ZAM_EXPR_TYPE_TABLE },
 	{ 'U', ZAM_EXPR_TYPE_UINT },
@@ -815,7 +820,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 			g->Gripe("eval-flavor flavor not present in eval-flavor", flavor);
 
 		// Skip the first two words.
-		auto eval = g->AllButFirstWord(g->AllButFirstWord(line));
+		auto eval = g->AllButFirstTwoWords(line);
 		eval += GatherEvals();
 		AddEvalSet(et, eval);
 		}
@@ -840,7 +845,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 		auto et2 = expr_type_names[flavor_c2];
 
 		// Skip the first three words.
-		auto eval = g->AllButFirstWord(g->AllButFirstWord(line));
+		auto eval = g->AllButFirstTwoWords(line);
 		eval = g->AllButFirstWord(eval);
 		eval += GatherEvals();
 		AddEvalSet(et1, et2, eval);
@@ -998,6 +1003,166 @@ void ZAM_ExprOpTemplate::DoVectorCase(const string& m, const string& args)
 	IndentDown();
 	}
 
+void ZAM_ExprOpTemplate::BuildInstructionCore(const string& op,
+                                              const string& params)
+	{
+	const auto& ets = ExprTypes();
+
+	Emit("auto tag = t->Tag();");
+	Emit("auto i_t = t->InternalType();");
+
+	static map<ZAM_ExprType, pair<string, string>> if_tests = {
+		{ ZAM_EXPR_TYPE_ADDR, { "i_t", "TYPE_INTERNAL_ADDR" } },
+		{ ZAM_EXPR_TYPE_DOUBLE, { "i_t", "TYPE_INTERNAL_DOUBLE" } },
+		{ ZAM_EXPR_TYPE_INT, { "i_t", "TYPE_INTERNAL_INT" } },
+		{ ZAM_EXPR_TYPE_UINT, { "i_t", "TYPE_INTERNAL_UNSIGNED" } },
+		{ ZAM_EXPR_TYPE_PATTERN, { "tag", "TYPE_PATTERN" } },
+		{ ZAM_EXPR_TYPE_STRING, { "i_t", "TYPE_INTERNAL_STRING" } },
+		{ ZAM_EXPR_TYPE_SUBNET, { "i_t", "TYPE_INTERNAL_SUBNET" } },
+		{ ZAM_EXPR_TYPE_TABLE, { "tag", "TYPE_TABLE" } },
+		{ ZAM_EXPR_TYPE_VECTOR, { "tag", "TYPE_VECTOR" } },
+
+		{ ZAM_EXPR_TYPE_ANY, { "", "" } },
+	};
+
+	bool do_default = false;
+	int ncases = 0;
+
+	for ( auto et : ets )
+		{
+		if ( if_tests.count(et) == 0 )
+			g->Gripe("bad op-type", op_loc);
+
+		auto if_test = if_tests[et];
+		auto if_var = if_test.first;
+		auto if_val = if_test.second;
+
+		if ( if_var.size() == 0 )
+			{
+			do_default = true;
+			continue;
+			}
+
+		auto if_stmt = "if ( " + if_var + " == " + if_val + " )";
+		if ( ++ncases > 1 )
+			if_stmt = "else " + if_stmt;
+
+		Emit(if_stmt);
+
+		auto inst = op + "_" + expr_name_types[et];
+		EmitUp("z = GenInst(this, " + inst + ", " + params + ");");
+		}
+
+	if ( do_default )
+		{
+		Emit("else");
+		EmitUp("z = GenInst(this, " + op + ", " + params + ");");
+		}
+	}
+
+void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
+                                         const string& suffix, bool is_field,
+                                         bool is_vec, bool is_cond)
+	{
+	if ( expr_types.size() == 0 )
+		{ // No operand types to expand over.
+		ZAM_OpTemplate::InstantiateEval(ot, suffix, is_field, is_vec, is_cond);
+		return;
+		}
+
+	auto ot_str = OpString(ot);
+
+	string target;
+	if ( is_vec )
+		target = "vec1[i]";
+	else
+		target = "frame[z.v1]";
+
+	auto op2_offset = 3;
+
+	string branch_target = "z.v";
+
+	string op1;
+	if ( ot[1] == ZAM_OT_CONSTANT )
+		{
+		op1 = "z.c";
+		--op2_offset;
+		branch_target += "2";
+		}
+	else
+		{
+		op1 = "frame[z.v2]";
+
+		if ( Arity() > 1 && ot[2] == ZAM_OT_VAR )
+			branch_target += "3";
+		else
+			branch_target += "2";
+		}
+
+	string op2;
+	if ( Arity() == 1 || ot[2] == ZAM_OT_CONSTANT )
+		op2 = "z.c";
+	else
+		op2 = "frame[z.v" + to_string(op2_offset) + "]";
+
+	static map<ZAM_ExprType, pair<string, string>> et_info = {
+		{ ZAM_EXPR_TYPE_ADDR, { "addr", "A" } },
+		{ ZAM_EXPR_TYPE_ANY, { "any", "_any" } },
+		{ ZAM_EXPR_TYPE_DOUBLE, { "double", "D" } },
+		{ ZAM_EXPR_TYPE_INT, { "int", "I" } },
+		{ ZAM_EXPR_TYPE_PATTERN, { "pattern", "P" } },
+		{ ZAM_EXPR_TYPE_STRING, { "string", "S" } },
+		{ ZAM_EXPR_TYPE_SUBNET, { "subnet", "N" } },
+		{ ZAM_EXPR_TYPE_TABLE, { "table", "T" } },
+		{ ZAM_EXPR_TYPE_UINT, { "uint", "U" } },
+		{ ZAM_EXPR_TYPE_VECTOR, { "vector", "V" } },
+	};
+
+	for ( auto et : expr_types )
+		{
+		string eval;
+
+		if ( eval_set.count(et) > 0 )
+			{
+			auto es = eval_set[et];
+			for ( auto& es_i : es )
+				eval = eval + es_i;
+			}
+
+		else
+			eval = CompleteEval();
+
+		auto op_marker = string("_") + et_info[et].second;
+
+		eval = SkipWS(eval);
+
+		auto accessor = string(".") + et_info[et].first + "_val";
+		auto op1_et = op1 + accessor;
+		auto op2_et = op2 + accessor;
+
+		eval = regex_replace(eval, regex("\\$1"), op1_et);
+		eval = regex_replace(eval, regex("\\$2"), op2_et);
+
+		auto has_target = eval.find("$$") != string::npos;
+
+		if ( has_target )
+			eval = regex_replace(eval, regex("\\$\\$"), target);
+
+		else if ( is_cond )
+			eval = "if ( ! (" + eval + ") ) { pc = " +
+			       branch_target + "; continue; }";
+
+		else
+			{
+			auto ta = IsConditional() ? ".int_val" : accessor;
+			eval = "frame[z.v1]" + ta + " = " + eval;
+			}
+
+		ZAM_OpTemplate::InstantiateEval(ot_str + op_marker + suffix,
+		                                eval, is_field);
+		}
+	}
+
 
 void ZAM_UnaryExprOpTemplate::Parse(const string& attr, const string& line,
                                     const Words& words)
@@ -1035,15 +1200,15 @@ void ZAM_UnaryExprOpTemplate::Instantiate()
 	}
 
 void ZAM_UnaryExprOpTemplate::BuildInstruction(const string& op,
-                                               const string& suffix,
 			                       const vector<ZAM_OperandType>& ot,
-                                               const string& params)
+                                               const string& params,
+                                               bool is_cond)
 	{
 	const auto& ets = ExprTypes();
 
 	if ( ets.size() == 1 && ets.count(ZAM_EXPR_TYPE_NONE) == 1 )
 		{
-		ZAM_ExprOpTemplate::BuildInstruction(op, suffix, ot, params);
+		ZAM_ExprOpTemplate::BuildInstruction(op, ot, params, is_cond);
 		return;
 		}
 
@@ -1063,58 +1228,9 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const string& op,
 	else
 		Emit("auto t = " + operand + "->Type();");
 
-	Emit("auto tag = t->Tag();");
-	Emit("auto i_t = t->InternalType();");
-
-	static map<ZAM_ExprType, pair<string, string>> if_tests = {
-		{ ZAM_EXPR_TYPE_ADDR, { "i_t", "TYPE_INTERNAL_ADDR" } },
-		{ ZAM_EXPR_TYPE_DOUBLE, { "i_t", "TYPE_INTERNAL_DOUBLE" } },
-		{ ZAM_EXPR_TYPE_INT, { "i_t", "TYPE_INTERNAL_INT" } },
-		{ ZAM_EXPR_TYPE_UINT, { "i_t", "TYPE_INTERNAL_UNSIGNED" } },
-		{ ZAM_EXPR_TYPE_PORT, { "i_t", "TYPE_INTERNAL_UNSIGNED" } },
-		{ ZAM_EXPR_TYPE_STRING, { "i_t", "TYPE_INTERNAL_STRING" } },
-		{ ZAM_EXPR_TYPE_SUBNET, { "i_t", "TYPE_INTERNAL_SUBNET" } },
-		{ ZAM_EXPR_TYPE_TABLE, { "tag", "TYPE_TABLE" } },
-		{ ZAM_EXPR_TYPE_VECTOR, { "tag", "TYPE_VECTOR" } },
-
-		{ ZAM_EXPR_TYPE_ANY, { "", "" } },
-	};
-
-	bool do_default = false;
-	int ncases = 0;
-
-	for ( auto et : ets )
-		{
-		if ( if_tests.count(et) == 0 )
-			g->Gripe("bad op-type", op_loc);
-
-		auto if_test = if_tests[et];
-		auto if_var = if_test.first;
-		auto if_val = if_test.second;
-
-		if ( if_var.size() == 0 )
-			{
-			do_default = true;
-			continue;
-			}
-
-		auto if_stmt = "if ( " + if_var + " == " + if_val + " )";
-		if ( ++ncases > 1 )
-			if_stmt = "else " + if_stmt;
-
-		Emit(if_stmt);
-
-		auto inst = op + "_" + expr_name_types[et] + suffix;
-		EmitUp("z = GenInst(this, " + inst + ", " + params + ");");
-		}
-
-	if ( do_default )
-		{
-		Emit("else");
-		EmitUp("z = GenInst(this, " + op + suffix +
-		       ", " + params + ");");
-		}
+	BuildInstructionCore(op, params);
 	}
+
 
 ZAM_AssignOpTemplate::ZAM_AssignOpTemplate(ZAMGen* _g, string _base_name)
 : ZAM_UnaryExprOpTemplate(_g, _base_name)
@@ -1142,6 +1258,7 @@ void ZAM_AssignOpTemplate::Parse(const string& attr, const string& line,
 	else
 		ZAM_OpTemplate::Parse(attr, line, words);
 	}
+
 
 void ZAM_AssignOpTemplate::Instantiate()
 	{
@@ -1174,6 +1291,7 @@ void ZAM_AssignOpTemplate::Instantiate()
 		InstantiateOp(ots, false);
 		}
 	}
+
 
 void ZAM_BinaryExprOpTemplate::Instantiate()
 	{
@@ -1208,6 +1326,7 @@ void ZAM_BinaryExprOpTemplate::Instantiate()
 		InstantiateV(ots);
 	}
 
+
 void ZAM_RelationalExprOpTemplate::Instantiate()
 	{
 	ZAM_BinaryExprOpTemplate::Instantiate();
@@ -1225,6 +1344,17 @@ void ZAM_RelationalExprOpTemplate::Instantiate()
 	IndentDown();
 	NL();
 	}
+
+void ZAM_RelationalExprOpTemplate::BuildInstruction(const string& op,
+			                            const vector<ZAM_OperandType>& ot,
+                                                    const string& params,
+						    bool is_cond)
+	{
+	string op1 = is_cond ? "n" : "n2";
+	Emit("auto t = " + op1 + "->Type();");
+	BuildInstructionCore(op, params);
+	}
+
 
 void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,
                                          const Words& words)
@@ -1503,6 +1633,19 @@ string TemplateInput::AllButFirstWord(const string& line) const
 			return string(s);
 
 	return "";
+	}
+
+string TemplateInput::AllButFirstTwoWords(const string& line) const
+	{
+	const char* s;
+	for ( s = line.c_str(); *s && *s != '\n'; ++s )
+		if ( isspace(*s) )
+			break;
+
+	for ( ; *s && isspace(*s); ++s )
+		;
+
+	return AllButFirstWord(s);
 	}
 
 void TemplateInput::Gripe(const char* msg, const string& input)

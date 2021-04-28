@@ -32,7 +32,7 @@ enum ZAM_ExprType {
 	ZAM_EXPR_TYPE_DOUBLE_CUSTOM,
 	ZAM_EXPR_TYPE_INT,
 	ZAM_EXPR_TYPE_INT_CUSTOM,
-	ZAM_EXPR_TYPE_PORT,
+	ZAM_EXPR_TYPE_PATTERN,
 	ZAM_EXPR_TYPE_STRING,
 	ZAM_EXPR_TYPE_SUBNET,
 	ZAM_EXPR_TYPE_TABLE,
@@ -140,7 +140,6 @@ public:
 	void AddEval(string line)		{ evals.push_back(line); }
 	bool HasEvals() const			{ return evals.size() > 0; }
 	const vector<string>& Evals() const	{ return evals; }
-	string CompleteEval() const;
 
 	void SetCustomMethod(string cm)		{ custom_method = SkipWS(cm); }
 	bool HasCustomMethod() const
@@ -155,7 +154,7 @@ public:
 		{ return post_method; }
 
 	virtual bool IncludesFieldOp() const		{ return false; }
-	virtual bool IncludesConditional() const	{ return false; }
+	virtual bool IsConditional() const		{ return false; }
 	virtual bool IsInternalOp() const		{ return false; }
 	virtual bool IsAssignOp() const			{ return false; }
 	virtual bool IsFieldOp() const			{ return false; }
@@ -201,12 +200,16 @@ protected:
 				   string suffix,
 	                           bool is_field, bool is_vec, bool is_cond);
 	virtual void BuildInstruction(const string& op,
-	                              const string& suffix,
 			              const vector<ZAM_OperandType>& ot,
-	                              const string& params);
+	                              const string& params, bool is_cond);
+
 	virtual void InstantiateEval(const vector<ZAM_OperandType>& ot,
 	                             const string& suffix,
 	                             bool is_field, bool is_vec, bool is_cond);
+	void InstantiateEval(const string& op_suffix, const string& eval,
+	                     bool is_field);
+	string CompleteEval() const;
+
 	void InstantiateAssignOp(const vector<ZAM_OperandType>& ot,
 	                         const string& suffix);
 	void GenAssignOpCore(const vector<ZAM_OperandType>& ot,
@@ -333,6 +336,12 @@ protected:
 
 	void DoVectorCase(const string& m, const string& args);
 
+	void BuildInstructionCore(const string& op, const string& params);
+
+	void InstantiateEval(const vector<ZAM_OperandType>& ot,
+	                     const string& suffix, bool is_field,
+	                     bool is_vec, bool is_cond) override;
+
 private:
 	std::unordered_set<ZAM_ExprType> expr_types;
 
@@ -366,9 +375,8 @@ protected:
 	void Instantiate() override;
 
 	void BuildInstruction(const string& op,
-	                      const string& suffix,
 			      const vector<ZAM_OperandType>& ot,
-	                      const string& params) override;
+	                      const string& params, bool is_cond) override;
 };
 
 class ZAM_AssignOpTemplate : public ZAM_UnaryExprOpTemplate {
@@ -407,10 +415,14 @@ public:
 	: ZAM_BinaryExprOpTemplate(_g, _base_name) { }
 
 	bool IncludesFieldOp() const override		{ return false; }
-	bool IncludesConditional() const override	{ return true; }
+	bool IsConditional() const override		{ return true; }
 
 protected:
 	void Instantiate() override;
+
+	void BuildInstruction(const string& op,
+			      const vector<ZAM_OperandType>& ot,
+	                      const string& params, bool is_cond) override;
 };
 
 class ZAM_InternalBinaryOpTemplate : public ZAM_BinaryExprOpTemplate {
@@ -469,6 +481,7 @@ public:
 	bool ScanLine(string& line);
 	Words SplitIntoWords(const string& line) const;
 	string AllButFirstWord(const string& line) const;
+	string AllButFirstTwoWords(const string& line) const;
 	void PutBack(const string& line)	{ put_back = line; }
 
 	void Gripe(const char* msg, const string& input);
@@ -493,6 +506,8 @@ public:
 		{ return ti->SplitIntoWords(line); }
 	string AllButFirstWord(const string& line) const
 		{ return ti->AllButFirstWord(line); }
+	string AllButFirstTwoWords(const string& line) const
+		{ return ti->AllButFirstTwoWords(line); }
 	void PutBack(const string& line)	{ ti->PutBack(line); }
 
 	string GenOpCode(const ZAM_OpTemplate* ot, const string& suffix,

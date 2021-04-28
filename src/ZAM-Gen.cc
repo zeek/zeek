@@ -498,15 +498,15 @@ void ZAM_OpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
                                      const string& suffix,
                                      bool is_field, bool is_vec, bool is_cond)
 	{
-	InstantiateEval(OpString(ot) + suffix, CompleteEval(), is_field);
+	InstantiateEval(Eval, OpString(ot) + suffix, CompleteEval(), is_field);
 	}
 
-void ZAM_OpTemplate::InstantiateEval(const string& op_suffix,
+void ZAM_OpTemplate::InstantiateEval(EmitTarget et, const string& op_suffix,
                                      const string& eval, bool is_field)
 	{
 	auto op_code = g->GenOpCode(this, "_" + op_suffix, is_field);
 
-	EmitTo(Eval);
+	EmitTo(et);
 	Emit("case " + op_code + ":");
 	BeginBlock();
 	Emit(eval);
@@ -1069,38 +1069,49 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 
 	auto ot_str = OpString(ot);
 
-	string lhs;
-	if ( is_vec )
-		lhs = "vec1[i]";
-	else
-		lhs = "frame[z.v1]";
-
-	auto op2_offset = 3;
-
+	// Some of these might not wind up being used, but no harm in
+	// initializing them in cse they are.
+	string lhs, op1, op2;
 	string branch_target = "z.v";
 
-	string op1;
-	if ( ot[1] == ZAM_OT_CONSTANT )
+	EmitTarget emit_target = Eval;
+
+	if ( is_vec )
 		{
-		op1 = "z.c";
-		--op2_offset;
-		branch_target += "2";
+		lhs = "vec1[i]";
+		op1 = "vec2[i]";
+		op2 = "vec3[i]";
+
+		emit_target = Arity() == 1 ? Vec1Eval : Vec2Eval;
 		}
+
 	else
 		{
-		op1 = "frame[z.v2]";
+		lhs = "frame[z.v1]";
 
-		if ( Arity() > 1 && ot[2] == ZAM_OT_VAR )
-			branch_target += "3";
-		else
+		auto op2_offset = 3;
+
+		if ( ot[1] == ZAM_OT_CONSTANT )
+			{
+			op1 = "z.c";
+			--op2_offset;
 			branch_target += "2";
-		}
+			}
+		else
+			{
+			op1 = "frame[z.v2]";
 
-	string op2;
-	if ( Arity() == 1 || ot[2] == ZAM_OT_CONSTANT )
-		op2 = "z.c";
-	else
-		op2 = "frame[z.v" + to_string(op2_offset) + "]";
+			if ( Arity() > 1 && ot[2] == ZAM_OT_VAR )
+				branch_target += "3";
+			else
+				branch_target += "2";
+			}
+
+		if ( Arity() == 1 || ot[2] == ZAM_OT_CONSTANT )
+			op2 = "z.c";
+		else
+			op2 = "frame[z.v" + to_string(op2_offset) + "]";
+		}
 
 	static map<ZAM_ExprType, pair<string, string>> et_info = {
 		{ ZAM_EXPR_TYPE_ADDR, { "addr", "A" } },
@@ -1208,8 +1219,26 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		else
 			eval = lhs_ei + " = " + eval;
 
-		ZAM_OpTemplate::InstantiateEval(ot_str + ei.OpMarker() + suffix,
+		auto full_suffix = ot_str + ei.OpMarker() + suffix;
+
+		ZAM_OpTemplate::InstantiateEval(emit_target, full_suffix,
 		                                eval, is_field);
+
+		if ( is_vec )
+			{
+			string dispatch_params = "frame[z.v1].vector_val, frame[z.v2].vector_val";
+
+			if ( Arity() == 2 )
+				dispatch_params += ", frame[z.v3].vector_val";
+
+			auto op_code = g->GenOpCode(this, "_" + full_suffix,
+			                            false);
+			auto dispatch = "vec_exec(" + op_code + ", z.t, " +
+					dispatch_params + ");";
+
+			ZAM_OpTemplate::InstantiateEval(Eval, full_suffix,
+							dispatch, false);
+			}
 		}
 	}
 
@@ -1558,6 +1587,8 @@ void ZAMGen::Emit(EmitTarget et, const string& s)
 			{ VFieldDef, "VFieldDef" },
 			{ Cond, "Cond" },
 			{ Eval, "Eval" },
+			{ Vec1Eval, "Vec1Eval" },
+			{ Vec2Eval, "Vec2Eval" },
 			{ AssignFlavor, "AssignFlavor" },
 			{ Op1Flavor, "Op1Flavor" },
 			{ OpSideEffects, "OpSideEffects" },

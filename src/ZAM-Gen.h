@@ -71,6 +71,8 @@ enum EmitTarget {
 	VFieldDef,
 	Cond,
 	Eval,
+	Vec1Eval,
+	Vec2Eval,
 	AssignFlavor,
 	Op1Flavor,
 	OpSideEffects,
@@ -206,8 +208,8 @@ protected:
 	virtual void InstantiateEval(const vector<ZAM_OperandType>& ot,
 	                             const string& suffix,
 	                             bool is_field, bool is_vec, bool is_cond);
-	void InstantiateEval(const string& op_suffix, const string& eval,
-	                     bool is_field);
+	void InstantiateEval(EmitTarget et, const string& op_suffix,
+	                     const string& eval, bool is_field);
 	string CompleteEval() const;
 
 	void InstantiateAssignOp(const vector<ZAM_OperandType>& ot,

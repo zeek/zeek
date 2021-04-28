@@ -801,23 +801,23 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 		SetIncludesFieldOp();
 		}
 
-	else if ( attr == "eval-flavor" )
+	else if ( attr == "eval-type" )
 		{
 		if ( words.size() < 3 )
-			g->Gripe("eval-flavor needs type and evaluation", line);
+			g->Gripe("eval-type needs type and evaluation", line);
 
-		auto& flavor = words[1];
-		if ( flavor.size() != 1 )
-			g->Gripe("bad eval-flavor flavor", flavor);
+		auto& type = words[1];
+		if ( type.size() != 1 )
+			g->Gripe("bad eval-type type", type);
 
-		auto flavor_c = flavor.c_str()[0];
-		if ( expr_type_names.count(flavor_c) == 0 )
-			g->Gripe("bad eval-flavor flavor", flavor);
+		auto type_c = type.c_str()[0];
+		if ( expr_type_names.count(type_c) == 0 )
+			g->Gripe("bad eval-type type", type);
 
-		auto et = expr_type_names[flavor_c];
+		auto et = expr_type_names[type_c];
 
 		if ( expr_types.count(et) == 0 )
-			g->Gripe("eval-flavor flavor not present in eval-flavor", flavor);
+			g->Gripe("eval-type type not present in eval-type", type);
 
 		auto eval = g->SkipWords(line, 2);
 		eval += GatherEvals();
@@ -829,19 +829,19 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 		if ( words.size() < 4 )
 			g->Gripe("eval-mixed needs types and evaluation", line);
 
-		auto& flavor1 = words[1];
-		auto& flavor2 = words[2];
-		if ( flavor1.size() != 1 || flavor2.size() != 1 )
-			g->Gripe("bad eval-mixed flavors", line);
+		auto& type1 = words[1];
+		auto& type2 = words[2];
+		if ( type1.size() != 1 || type2.size() != 1 )
+			g->Gripe("bad eval-mixed types", line);
 
-		auto flavor_c1 = flavor1.c_str()[0];
-		auto flavor_c2 = flavor2.c_str()[0];
-		if ( expr_type_names.count(flavor_c1) == 0 ||
-		     expr_type_names.count(flavor_c2) == 0 )
-			g->Gripe("bad eval-mixed flavors", line);
+		auto type_c1 = type1.c_str()[0];
+		auto type_c2 = type2.c_str()[0];
+		if ( expr_type_names.count(type_c1) == 0 ||
+		     expr_type_names.count(type_c2) == 0 )
+			g->Gripe("bad eval-mixed types", line);
 
-		auto et1 = expr_type_names[flavor_c1];
-		auto et2 = expr_type_names[flavor_c2];
+		auto et1 = expr_type_names[type_c1];
+		auto et2 = expr_type_names[type_c2];
 
 		auto eval = g->SkipWords(line, 3);
 		eval += GatherEvals();

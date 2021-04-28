@@ -22,6 +22,45 @@ char under_to_dash(char c)
 	}
 
 
+struct TypeInfo {
+	string tag;
+	ZAM_ExprType et;
+	string suffix;
+	string accessor;	// doesn't include "_val"
+	bool is_managed;
+};
+
+static vector<TypeInfo> ZAM_type_info = {
+	{ "TYPE_ADDR",		ZAM_EXPR_TYPE_ADDR,	"A", "addr", true },
+	{ "TYPE_ANY",		ZAM_EXPR_TYPE_ANY,	"_any", "any", true },
+	{ "TYPE_COUNT",		ZAM_EXPR_TYPE_UINT,	"U", "uint", false },
+	{ "TYPE_DOUBLE",	ZAM_EXPR_TYPE_DOUBLE,	"D", "double", false },
+	{ "TYPE_INT",		ZAM_EXPR_TYPE_INT,	"I", "int", false },
+	{ "TYPE_PATTERN",	ZAM_EXPR_TYPE_PATTERN,	"P", "re", true },
+	{ "TYPE_STRING",	ZAM_EXPR_TYPE_STRING,	"S", "string", true },
+	{ "TYPE_SUBNET",	ZAM_EXPR_TYPE_SUBNET,	"N", "subnet", true },
+	{ "TYPE_TABLE",		ZAM_EXPR_TYPE_TABLE,	"T", "table", true },
+	{ "TYPE_VECTOR",	ZAM_EXPR_TYPE_VECTOR,	"V", "vector", true },
+
+	{ "TYPE_FILE",		ZAM_EXPR_TYPE_NONE, "f", "file", true },
+	{ "TYPE_FUNC",		ZAM_EXPR_TYPE_NONE, "F", "func", true },
+	{ "TYPE_LIST",		ZAM_EXPR_TYPE_NONE, "L", "list", true },
+	{ "TYPE_OPAQUE",	ZAM_EXPR_TYPE_NONE, "O", "opaque", true },
+	{ "TYPE_RECORD",	ZAM_EXPR_TYPE_NONE, "R", "record", true },
+	{ "TYPE_TYPE",		ZAM_EXPR_TYPE_NONE, "t", "type", true },
+};
+
+const TypeInfo& find_type_info(ZAM_ExprType et)
+	{
+	for ( auto& ti : ZAM_type_info )
+		if ( ti.et == et )
+			return ti;
+
+	assert(false);
+	return ZAM_type_info[0];
+	}
+
+
 unordered_map<ZAM_OperandType, pair<const char*, const char*>>
  ArgsManager::ot_to_args = {
 	{ ZAM_OT_AUX, { "OpaqueVals*", "v" } },
@@ -526,43 +565,17 @@ void ZAM_OpTemplate::InstantiateAssignOp(const vector<ZAM_OperandType>& ot,
 	EmitTo(AssignFlavor);
 	Emit(flavor_ind + " = empty_map;");
 
-	struct AssignOpInfo {
-		string tag;
-		string suffix;
-		string accessor;	// doesn't include "_val"
-		bool is_managed;
-	};
-
-	static vector<AssignOpInfo> assign_op_info = {
-		{ "TYPE_ADDR", "A", "addr", true },
-		{ "TYPE_ANY", "_any", "any", true },
-		{ "TYPE_COUNT", "u", "uint", false },
-		{ "TYPE_DOUBLE", "D", "double", false },
-		{ "TYPE_FILE", "f", "file", true },
-		{ "TYPE_FUNC", "F", "func", true },
-		{ "TYPE_INT", "i", "int", false },
-		{ "TYPE_LIST", "L", "list", true },
-		{ "TYPE_OPAQUE", "O", "opaque", true },
-		{ "TYPE_PATTERN", "P", "re", true },
-		{ "TYPE_RECORD", "R", "record", true },
-		{ "TYPE_STRING", "S", "string", true },
-		{ "TYPE_SUBNET", "N", "subnet", true },
-		{ "TYPE_TABLE", "T", "table", true },
-		{ "TYPE_TYPE", "t", "type", true },
-		{ "TYPE_VECTOR", "V", "vector", true },
-	};
-
 	auto eval = GetEval();
 	auto v = GetAssignVal();
 
-	for ( auto& ai : assign_op_info )
+	for ( auto& ti : ZAM_type_info )
 		{
-		auto op = g->GenOpCode(this, op_string + "_" + ai.suffix);
+		auto op = g->GenOpCode(this, op_string + "_" + ti.suffix);
 
 		if ( IsInternalOp() )
 			{
 			EmitTo(AssignFlavor);
-			Emit(flavor_ind + "[" + ai.tag + "] = " + op + ";");
+			Emit(flavor_ind + "[" + ti.tag + "] = " + op + ";");
 
 			if ( HasAssignmentLess() )
 				{
@@ -576,7 +589,7 @@ void ZAM_OpTemplate::InstantiateAssignOp(const vector<ZAM_OperandType>& ot,
 		EmitTo(Eval);
 		Emit("case " + op + ":");
 		BeginBlock();
-		GenAssignOpCore(ot, eval, ai.accessor, ai.is_managed);
+		GenAssignOpCore(ot, eval, ti.accessor, ti.is_managed);
 		Emit("break;");
 		EndBlock();
 		}
@@ -1105,19 +1118,6 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 			op2 = "frame[z.v" + to_string(op2_offset) + "]";
 		}
 
-	static map<ZAM_ExprType, pair<string, string>> et_info = {
-		{ ZAM_EXPR_TYPE_ADDR, { "addr", "A" } },
-		{ ZAM_EXPR_TYPE_ANY, { "any", "_any" } },
-		{ ZAM_EXPR_TYPE_DOUBLE, { "double", "D" } },
-		{ ZAM_EXPR_TYPE_INT, { "int", "I" } },
-		{ ZAM_EXPR_TYPE_PATTERN, { "re", "P" } },
-		{ ZAM_EXPR_TYPE_STRING, { "string", "S" } },
-		{ ZAM_EXPR_TYPE_SUBNET, { "subnet", "N" } },
-		{ ZAM_EXPR_TYPE_TABLE, { "table", "T" } },
-		{ ZAM_EXPR_TYPE_UINT, { "uint", "U" } },
-		{ ZAM_EXPR_TYPE_VECTOR, { "vector", "V" } },
-	};
-
 	struct EvalInstance {
 		EvalInstance(ZAM_ExprType _lhs_et, ZAM_ExprType _op1_et,
 		             ZAM_ExprType _op2_et, string _eval)
@@ -1133,15 +1133,15 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		string Op2Accessor() const	{ return Accessor(op2_et); }
 
 		string Accessor(ZAM_ExprType et) const
-			{ return "." + et_info[et].first + "_val"; }
+			{ return "." + find_type_info(et).accessor + "_val"; }
 
 		string OpMarker() const
 			{
 			if ( op1_et == op2_et )
-				return "_" + et_info[op1_et].second;
+				return "_" + find_type_info(op1_et).suffix;
 			else
-				return "_" + et_info[op1_et].second +
-				       et_info[op2_et].second;
+				return "_" + find_type_info(op1_et).suffix +
+				       find_type_info(op2_et).suffix;
 			}
 
 		ZAM_ExprType lhs_et;

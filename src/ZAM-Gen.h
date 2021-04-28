@@ -301,8 +301,8 @@ public:
 
 	virtual int Arity() const			{ return 0; }
 
-	int TypeSelector() const	{ return type_selector; }
-	void SetTypeSelector(int ts)	{ type_selector = ts; }
+	int HasExplicitResultType() const	{ return explicit_res_type; }
+	void SetHasExplicitResultType()		{ explicit_res_type = true; }
 
 	void AddExprType(ZAM_ExprType et)
 		{ expr_types.insert(et); }
@@ -353,9 +353,9 @@ private:
 	// If non-zero, code to generate prior to evaluating the expression.
 	string pre_eval;
 
-	// If non-zero, specifies which operand to use to determine
-	// the result type of the expression.
-	int type_selector = 0;
+	// If true, then the evaluations will take care of ensuring
+	// proper result types when assigning to $$.
+	bool explicit_res_type = false;
 };
 
 class ZAM_UnaryExprOpTemplate : public ZAM_ExprOpTemplate {

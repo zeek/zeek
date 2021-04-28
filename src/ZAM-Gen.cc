@@ -52,6 +52,8 @@ static vector<TypeInfo> ZAM_type_info = {
 
 const TypeInfo& find_type_info(ZAM_ExprType et)
 	{
+	assert(et != ZAM_EXPR_TYPE_NONE);
+
 	for ( auto& ti : ZAM_type_info )
 		if ( ti.et == et )
 			return ti;
@@ -1164,11 +1166,17 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		string Op2Accessor() const	{ return Accessor(op2_et); }
 
 		string Accessor(ZAM_ExprType et) const
-			{ return "." + find_type_info(et).accessor + "_val"; }
+			{
+			if ( lhs_et == ZAM_EXPR_TYPE_NONE )
+				return "";
+			else
+				return "." + find_type_info(et).accessor + "_val";
+			}
 
 		string OpMarker() const
 			{
-			if ( op1_et == ZAM_EXPR_TYPE_ANY )
+			if ( op1_et == ZAM_EXPR_TYPE_ANY ||
+			     op1_et == ZAM_EXPR_TYPE_NONE )
 				return "";
 			else if ( op1_et == op2_et )
 				return "_" + find_type_info(op1_et).suffix;
@@ -1208,13 +1216,22 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 
 	for ( auto& ei : eval_instances )
 		{
-		auto lhs_ei = lhs + ei.LHSAccessor();
+		auto lhs_accessor = ei.LHSAccessor();
+		if ( HasExplicitResultType() )
+			lhs_accessor = "";
+
+		auto lhs_ei = lhs + lhs_accessor;
 		auto op1_ei = op1 + ei.Op1Accessor();
 		auto op2_ei = op2 + ei.Op2Accessor();
 
 		auto eval = SkipWS(ei.eval);
 
-		if ( ! is_field && find_type_info(ei.lhs_et).is_managed )
+		auto is_none = ei.lhs_et == ZAM_EXPR_TYPE_NONE;
+		auto is_star = ei.lhs_et == ZAM_EXPR_TYPE_ANY;
+
+		if ( ! is_field && ! is_none && ! is_star &&
+		     find_type_info(ei.lhs_et).is_managed &&
+		     ! HasExplicitResultType() )
 			{
 			auto pre = "auto hold_lhs = " + lhs_ei + ";\n\t";
 			auto post = "\tUnref(hold_lhs);";
@@ -1235,7 +1252,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 			       "{ pc = " + branch_target + "; continue; }";
 			}
 
-		else
+		else if ( ! is_none )
 			eval = lhs_ei + " = " + eval;
 
 		auto full_suffix = ot_str + ei.OpMarker() + suffix;
@@ -1273,11 +1290,11 @@ void ZAM_UnaryExprOpTemplate::Parse(const string& attr, const string& line,
 		SetNoConst();
 		}
 
-	else if ( attr == "type-selector" )
+	else if ( attr == "explicit-result-type" )
 		{
-		if ( words.size() != 2 )
-			g->Gripe("type-selector takes one numeric argument", line);
-		SetTypeSelector(stoi(words[1]));
+		if ( words.size() != 1 )
+			g->Gripe("extraneous argument to explicit-result-type", line);
+		SetHasExplicitResultType();
 		}
 
 	else

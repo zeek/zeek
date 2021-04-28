@@ -550,7 +550,8 @@ void ZAM_OpTemplate::InstantiateEval(EmitTarget et, const string& op_suffix,
 	BeginBlock();
 	Emit(eval);
 	EndBlock();
-	Emit("break;");
+	EmitUp("break;");
+	NL();
 	}
 
 void ZAM_OpTemplate::InstantiateAssignOp(const vector<ZAM_OperandType>& ot,
@@ -1180,6 +1181,13 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		auto op2_ei = op2 + ei.Op2Accessor();
 
 		auto eval = SkipWS(ei.eval);
+
+		if ( ! is_field && find_type_info(ei.lhs_et).is_managed )
+			{
+			auto pre = "auto hold_lhs = " + lhs_ei + ";\n\t";
+			auto post = "\tUnref(hold_lhs);";
+			eval = pre + eval + post;
+			}
 
 		eval = regex_replace(eval, regex("\\$1"), op1_ei);
 		eval = regex_replace(eval, regex("\\$2"), op2_ei);

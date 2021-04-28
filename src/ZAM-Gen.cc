@@ -309,7 +309,7 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 		{
 		AddEval(g->SkipWords(line, 1));
 
-		auto addl = GatherEvals();
+		auto addl = GatherEval();
 		if ( addl.size() > 0 )
 			AddEval(addl);
 		}
@@ -321,7 +321,7 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 		g->Gripe("extraneous arguments", line);
 	}
 
-string ZAM_OpTemplate::GatherEvals()
+string ZAM_OpTemplate::GatherEval()
 	{
 	string res;
 	string l;
@@ -498,7 +498,7 @@ void ZAM_OpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
                                      const string& suffix,
                                      bool is_field, bool is_vec, bool is_cond)
 	{
-	InstantiateEval(Eval, OpString(ot) + suffix, CompleteEval(), is_field);
+	InstantiateEval(Eval, OpString(ot) + suffix, GetEval(), is_field);
 	}
 
 void ZAM_OpTemplate::InstantiateEval(EmitTarget et, const string& op_suffix,
@@ -512,14 +512,6 @@ void ZAM_OpTemplate::InstantiateEval(EmitTarget et, const string& op_suffix,
 	Emit(eval);
 	EndBlock();
 	Emit("break;");
-	}
-
-string ZAM_OpTemplate::CompleteEval() const
-	{
-	string res;
-	for ( auto& e : Evals() )
-		res += e;
-	return res;
 	}
 
 void ZAM_OpTemplate::InstantiateAssignOp(const vector<ZAM_OperandType>& ot,
@@ -560,7 +552,7 @@ void ZAM_OpTemplate::InstantiateAssignOp(const vector<ZAM_OperandType>& ot,
 		{ "TYPE_VECTOR", "V", "vector", true },
 	};
 
-	auto eval = CompleteEval();
+	auto eval = GetEval();
 	auto v = GetAssignVal();
 
 	for ( auto& ai : assign_op_info )
@@ -820,7 +812,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 			g->Gripe("eval-type type not present in eval-type", type);
 
 		auto eval = g->SkipWords(line, 2);
-		eval += GatherEvals();
+		eval += GatherEval();
 		AddEvalSet(et, eval);
 		}
 
@@ -844,7 +836,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 		auto et2 = expr_type_names[type_c2];
 
 		auto eval = g->SkipWords(line, 3);
-		eval += GatherEvals();
+		eval += GatherEval();
 		AddEvalSet(et1, et2, eval);
 		}
 
@@ -854,7 +846,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 			g->Gripe("eval-pre needs evaluation", line);
 
 		auto eval = g->SkipWords(line, 1);
-		eval += GatherEvals();
+		eval += GatherEval();
 
 		SetPreEval(eval);
 		}
@@ -1161,16 +1153,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 
 	for ( auto et : expr_types )
 		{
-		string eval;
-		if ( eval_set.count(et) > 0 )
-			{
-			auto es = eval_set[et];
-			for ( auto& es_i : es )
-				eval = eval + es_i;
-			}
-		else
-			eval = CompleteEval();
-
+		string eval = eval_set.count(et) > 0 ? eval_set[et] : GetEval();
 		auto lhs_et = IsConditional() ? ZAM_EXPR_TYPE_INT : et;
 		eval_instances.emplace_back(lhs_et, et, et, eval);
 		}
@@ -1181,16 +1164,12 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		for ( auto em2 : em1.second )
 			{
 			auto et2 = em2.first;
-			string eval;
-
-			for ( auto& e : em2.second )
-				eval += e;
 
 			// For the LHS, either its expression type is
 			// ignored, or if it's a conditional, so just
 			// note it for the latter.
 			auto lhs_et = ZAM_EXPR_TYPE_INT;
-			eval_instances.emplace_back(lhs_et, et1, et2, eval);
+			eval_instances.emplace_back(lhs_et, et1, et2, em2.second);
 			}
 		}
 

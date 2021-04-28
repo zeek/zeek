@@ -139,9 +139,9 @@ public:
 	bool HasAssignVal() const		{ return av.size() > 0; }
 	const string& GetAssignVal() const	{ return av; }
 
-	void AddEval(string line)		{ evals.push_back(line); }
-	bool HasEvals() const			{ return evals.size() > 0; }
-	const vector<string>& Evals() const	{ return evals; }
+	void AddEval(string line)		{ eval += line; }
+	bool HasEval() const			{ return eval.size() > 0; }
+	const string& GetEval() const		{ return eval; }
 
 	void SetCustomMethod(string cm)		{ custom_method = SkipWS(cm); }
 	bool HasCustomMethod() const
@@ -187,7 +187,7 @@ public:
 
 protected:
 	virtual void Parse(const string& attr, const string& line, const Words& words);
-	string GatherEvals();
+	string GatherEval();
 	int ExtractTypeParam(const string& arg);
 
 	void UnaryInstantiate();
@@ -210,7 +210,6 @@ protected:
 	                             bool is_field, bool is_vec, bool is_cond);
 	void InstantiateEval(EmitTarget et, const string& op_suffix,
 	                     const string& eval, bool is_field);
-	string CompleteEval() const;
 
 	void InstantiateAssignOp(const vector<ZAM_OperandType>& ot,
 	                         const string& suffix);
@@ -264,7 +263,7 @@ protected:
 	// operation.
 	string av;
 
-	vector<string> evals;
+	string eval;
 
 	string custom_method;
 	string post_method;
@@ -314,9 +313,9 @@ public:
 		{ return expr_types; }
 
 	void AddEvalSet(ZAM_ExprType et, string ev)
-		{ eval_set[et].emplace_back(ev); }
+		{ eval_set[et] += ev; }
 	void AddEvalSet(ZAM_ExprType et1, ZAM_ExprType et2, string ev)
-		{ eval_mixed_set[et1][et2].emplace_back(ev); }
+		{ eval_mixed_set[et1][et2] += ev; }
 
 	bool IncludesFieldOp() const override	{ return includes_field_op; }
 	void SetIncludesFieldOp()		{ includes_field_op = true; }
@@ -347,9 +346,9 @@ protected:
 private:
 	std::unordered_set<ZAM_ExprType> expr_types;
 
-	std::unordered_map<ZAM_ExprType, vector<string>> eval_set;
+	std::unordered_map<ZAM_ExprType, string> eval_set;
 	std::unordered_map<ZAM_ExprType,
-	 std::unordered_map<ZAM_ExprType, vector<string>>>
+	 std::unordered_map<ZAM_ExprType, string>>
 	  eval_mixed_set;
 
 	bool includes_field_op = false;

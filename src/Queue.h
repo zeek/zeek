@@ -26,11 +26,11 @@
 namespace zeek {
 
 template<typename T>
-class Queue {
+class [[deprecated("Remove in v5.1. This class is deprecated (and is likely broken, see #1528). Use std::vector<T>.")]] Queue {
 public:
 	explicit Queue(int size = 0)
 		{
-		const int DEFAULT_CHUNK_SIZE = 10;
+		constexpr int DEFAULT_CHUNK_SIZE = 10;
 		chunk_size = DEFAULT_CHUNK_SIZE;
 
 		head = tail = num_entries = 0;
@@ -55,6 +55,7 @@ public:
 	~Queue()		{ delete[] entries; }
 
 	int length() const	{ return num_entries; }
+	int capacity() const	{ return max_entries; }
 	int resize(int new_size = 0)	// 0 => size to fit current number of entries
 		{
 		if ( new_size < num_entries )
@@ -197,6 +198,6 @@ protected:
 
 
 template<typename T>
-using PQueue = Queue<T*>;
+using PQueue [[deprecated("Remove in v5.1. This class is deprecated (and is likely broken, see #1528). Use std::vector<T*>.")]] = Queue<T*>;
 
 } // namespace zeek

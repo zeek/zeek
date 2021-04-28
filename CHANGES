@@ -1,3 +1,6 @@
+4.1.0-dev.547 | 2021-04-28 09:27:15 -0700
+
+  * GH-1528: Remove broken Queue/PQueue class, replace with std::deque (Tim Wojtulewicz, Corelight)
 
 4.1.0-dev.545 | 2021-04-26 11:14:49 -0700
 

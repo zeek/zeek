@@ -73,7 +73,7 @@ bool SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen
 
 	double tmin = t - zeek::detail::stp_delta;
 
-	while ( stp_manager->OrderedEndpoints().length() > 0 )
+	while ( ! stp_manager->OrderedEndpoints().empty() )
 		{
 	    auto e = stp_manager->OrderedEndpoints().front();
 

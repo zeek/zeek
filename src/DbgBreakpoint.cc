@@ -8,7 +8,6 @@
 
 #include "zeek/Desc.h"
 #include "zeek/ID.h"
-#include "zeek/Queue.h"
 #include "zeek/Debug.h"
 #include "zeek/Scope.h"
 #include "zeek/Frame.h"

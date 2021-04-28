@@ -1459,6 +1459,8 @@ TableVal::~TableVal()
 
 void TableVal::RemoveAll()
 	{
+	delete expire_iterator;
+	expire_iterator = nullptr;
 	// Here we take the brute force approach.
 	delete table_val;
 	table_val = new PDict<TableEntryVal>;
@@ -2542,16 +2544,12 @@ void TableVal::DoExpire(double t)
 		expire_iterator = new RobustDictIterator(std::move(it));
 		}
 
-	std::unique_ptr<detail::HashKey> k = nullptr;
-	TableEntryVal* v = nullptr;
-	TableEntryVal* v_saved = nullptr;
 	bool modified = false;
 
 	for ( int i = 0; i < zeek::detail::table_incremental_step &&
 		      *expire_iterator != table_val->end_robust(); ++i, ++(*expire_iterator) )
 		{
-		k = (*expire_iterator)->GetHashKey();
-		v = (*expire_iterator)->GetValue<TableEntryVal*>();
+		auto v = (*expire_iterator)->GetValue<TableEntryVal*>();
 
 		if ( v->ExpireAccessTime() == 0 )
 			{
@@ -2564,6 +2562,7 @@ void TableVal::DoExpire(double t)
 
 		else if ( v->ExpireAccessTime() + timeout < t )
 			{
+			auto k = (*expire_iterator)->GetHashKey();
 			ListValPtr idx = nullptr;
 
 			if ( expire_func )
@@ -2574,12 +2573,14 @@ void TableVal::DoExpire(double t)
 				// It's possible that the user-provided
 				// function modified or deleted the table
 				// value, so look it up again.
-				v_saved = v;
 				v = table_val->Lookup(k.get());
 
 				if ( ! v )
 					{ // user-provided function deleted it
-					v = v_saved;
+					if ( ! expire_iterator )
+						// Entire table got dropped (e.g. clear_table() / RemoveAll())
+						break;
+
 					continue;
 					}
 
@@ -2618,7 +2619,7 @@ void TableVal::DoExpire(double t)
 	if ( modified )
 		Modified();
 
-	if ( (*expire_iterator) == table_val->end_robust() )
+	if ( ! expire_iterator || (*expire_iterator) == table_val->end_robust() )
 		{
 		delete expire_iterator;
 		expire_iterator = nullptr;

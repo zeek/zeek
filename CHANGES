@@ -1,4 +1,39 @@
 
+4.1.0-dev.554 | 2021-04-28 13:45:53 -0700
+
+  * Add a fatal error condition for invalid Dictionary insertion distances (Jon Siwek, Corelight)
+
+    When choosing poor/aggressive values for `table_expire_interval`,
+    `table_expire_delay`, and/or `table_incremental_step` that tend to
+    leave tables in state of constant table-expiry-iteration, the underlying
+    Dictionary is never allowed the chance to complete remapping operations
+    which re-position entries to more ideal locations (e.g. after
+    reallocating the table to be able to store more entries).
+
+    That situation not only leads to the Dictionary generally having a less
+    efficient structure, but eventually, the lack of re-positioning may
+    cause an insertion to calculate the new entry's
+    distance-from-ideal-position to be a value requiring a full 16-bits or
+    more (>=65535), but an entry only allows storing 16-bit distance values,
+    with 65535 being a sentinel value that is supposed to indicate an empty
+    entry.  Dictionary operations may start misbehaving if that's allowed to
+    happen.
+
+  * Fix using clear_table() within an &expire_func (Jon Siwek, Corelight)
+
+    This previously crashed since clear_table()/TableVal::RemoveAll() left
+    behind a stale iterator to the old table causing a heap-use-after-free
+    when resuming table expiry iteration in TableVal::DoExpire().
+
+  * Remove saving/restoring of value pointer after calling expire_func (Jon Siwek, Corelight)
+
+    It's no longer used for anything.  Previously, it was used to detect
+    whether the expiry batch finished iterating the entire table or not, but
+    that's now determined by directly checking if the iterator itself
+    signifies the end of the table.
+
+  * Avoid allocating a HashKey for no-op table expiry iterations (Jon Siwek, Corelight)
+
 4.1.0-dev.549 | 2021-04-28 13:09:30 -0700
 
   * Fix -Wsign-compare warnings in Debug{Cmds}.cc (Jon Siwek, Corelight)

@@ -32,7 +32,7 @@ struct TypeInfo {
 
 static vector<TypeInfo> ZAM_type_info = {
 	{ "TYPE_ADDR",		ZAM_EXPR_TYPE_ADDR,	"A", "addr", true },
-	{ "TYPE_ANY",		ZAM_EXPR_TYPE_ANY,	"_any", "any", true },
+	{ "TYPE_ANY",		ZAM_EXPR_TYPE_ANY,	"", "any", true },
 	{ "TYPE_COUNT",		ZAM_EXPR_TYPE_UINT,	"U", "uint", false },
 	{ "TYPE_DOUBLE",	ZAM_EXPR_TYPE_DOUBLE,	"D", "double", false },
 	{ "TYPE_INT",		ZAM_EXPR_TYPE_INT,	"I", "int", false },
@@ -1096,8 +1096,10 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		lhs = "frame[z.v1]";
 
 		auto op2_offset = 3;
+		bool ot1_const = ot[1] == ZAM_OT_CONSTANT;
+		bool ot2_const = Arity() >= 2 && ot[2] == ZAM_OT_CONSTANT;
 
-		if ( ot[1] == ZAM_OT_CONSTANT )
+		if ( ot1_const )
 			{
 			op1 = "z.c";
 			--op2_offset;
@@ -1113,10 +1115,32 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 				branch_target += "2";
 			}
 
-		if ( Arity() == 1 || ot[2] == ZAM_OT_CONSTANT )
+		if ( ot2_const )
 			op2 = "z.c";
 		else
 			op2 = "frame[z.v" + to_string(op2_offset) + "]";
+
+		if ( is_field )
+			{
+			// Compute the slot holding the field offset.
+
+			auto f =
+				// The first slots are taken up by the
+				// assignment slot and the operands ...
+				Arity() + 1 +
+				// ... and slots are numbered starting at 1.
+				+ 1;
+
+			if ( ot1_const || ot2_const )
+				// One of the operand slots won't be needed
+				// due to the presence of a constant.
+				// (It's never the case that both operands
+				// are constants - those instead get folded.)
+				--f;
+
+			lhs += ".record_val->RawFields()->SetField(z.v" +
+			       to_string(f) + ")";
+			}
 		}
 
 	struct EvalInstance {
@@ -1129,7 +1153,13 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 			eval = move(_eval);
 			}
 
-		string LHSAccessor() const	{ return Accessor(lhs_et); }
+		string LHSAccessor() const
+			{
+			if ( lhs_et == ZAM_EXPR_TYPE_ANY )
+				return "";
+			else
+				return Accessor(lhs_et);
+			}
 		string Op1Accessor() const	{ return Accessor(op1_et); }
 		string Op2Accessor() const	{ return Accessor(op2_et); }
 
@@ -1138,7 +1168,9 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 
 		string OpMarker() const
 			{
-			if ( op1_et == op2_et )
+			if ( op1_et == ZAM_EXPR_TYPE_ANY )
+				return "";
+			else if ( op1_et == op2_et )
 				return "_" + find_type_info(op1_et).suffix;
 			else
 				return "_" + find_type_info(op1_et).suffix +

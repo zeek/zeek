@@ -769,6 +769,13 @@ expr:
 
 				else if ( id->IsEnumConst() )
 					{
+					if ( IsErrorType(id->GetType()->Tag()) )
+						{
+						// The most-relevant error message should already be reported, so
+						// just bail out.
+						YYERROR;
+						}
+
 					EnumType* t = id->GetType()->AsEnumType();
 					auto intval = t->Lookup(id->ModuleName(), id->Name());
 					if ( intval < 0 )

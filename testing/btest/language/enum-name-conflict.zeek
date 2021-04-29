@@ -40,3 +40,10 @@ global NOPE = 37;
 redef enum a += {
 	NOPE,
 };
+
+type E: enum { Red, Green, Blue };
+redef enum E += { Pink };
+redef enum E += { Pink };
+
+print Pink;
+print Pink;

@@ -512,10 +512,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 	auto params = args.Params();
 
 	if ( is_field )
-		{
 		params += ", i";
-		Emit("auto field = f->Field();");
-		}
 
 	BuildInstruction(op, ot, params, is_cond);
 
@@ -618,12 +615,12 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 
 			Emit("auto& v1 = frame[z.v1]" + acc + ";");
 			Emit("Unref(v1);");
-			Emit("v1 = " + v + "->As" + val_accessor + "Val();");
+			// Emit("v1 = " + v + "->As" + val_accessor + "Val();");
+			Emit("v1 = " + v + "." + accessor + "_val;");
 			Emit("::Ref(v1);");
 			}
 		else
-			Emit("frame[z.v1]" + acc + " = " +
-			     v + "->val" + acc + ";");
+			Emit("frame[z.v1]" + acc + " = " + v + acc + ";");
 
 		return;
 		}
@@ -891,7 +888,7 @@ void ZAM_ExprOpTemplate::Instantiate()
 		InstantiateV(op_types);
 
 	if ( op_types.size() == 3 &&
-	     op_types[1] == ZAM_OT_RECORD_FIELD && op_types[2] == ZAM_OT_INT)
+	     op_types[1] == ZAM_OT_RECORD_FIELD && op_types[2] == ZAM_OT_INT )
 		InstantiateV(op_types);
 	}
 
@@ -1147,12 +1144,13 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 
 	struct EvalInstance {
 		EvalInstance(ZAM_ExprType _lhs_et, ZAM_ExprType _op1_et,
-		             ZAM_ExprType _op2_et, string _eval)
+		             ZAM_ExprType _op2_et, string _eval, bool _is_def)
 			{
 			lhs_et = _lhs_et;
 			op1_et = _op1_et;
 			op2_et = _op2_et;
 			eval = move(_eval);
+			is_def = _is_def;
 			}
 
 		string LHSAccessor() const
@@ -1187,14 +1185,16 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		ZAM_ExprType op1_et;
 		ZAM_ExprType op2_et;
 		string eval;
+		bool is_def;
 	};
 	vector<EvalInstance> eval_instances;
 
 	for ( auto et : expr_types )
 		{
-		string eval = eval_set.count(et) > 0 ? eval_set[et] : GetEval();
+		auto is_def = eval_set.count(et) == 0;
+		string eval = is_def ? GetEval() : eval_set[et];
 		auto lhs_et = IsConditional() ? ZAM_EXPR_TYPE_INT : et;
-		eval_instances.emplace_back(lhs_et, et, et, eval);
+		eval_instances.emplace_back(lhs_et, et, et, eval, is_def);
 		}
 
 	for ( auto em1 : eval_mixed_set )
@@ -1208,7 +1208,8 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 			// ignored, or if it's a conditional, so just
 			// note it for the latter.
 			auto lhs_et = ZAM_EXPR_TYPE_INT;
-			eval_instances.emplace_back(lhs_et, et1, et2, em2.second);
+			eval_instances.emplace_back(lhs_et, et1, et2,
+			                            em2.second, false);
 			}
 		}
 
@@ -1250,13 +1251,12 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 			       "{ pc = " + branch_target + "; continue; }";
 			}
 
-		else if ( ! is_none )
+		else if ( ! is_none && (ei.is_def || IsConditional()) )
 			{
 			eval = lhs_ei + " = " + eval;
 
-			if ( eval_set.size() == 0 && eval_mixed_set.size() == 0 )
-				// Add terminating semicolon.
-				eval = regex_replace(eval, regex("\n"), ";\n");
+			// Ensure a single terminating semicolon.
+			eval = regex_replace(eval, regex(";*\n"), ";\n");
 			}
 
 		auto full_suffix = ot_str + ei.OpMarker() + suffix;
@@ -1377,7 +1377,6 @@ void ZAM_AssignOpTemplate::Parse(const string& attr, const string& line,
 	else
 		ZAM_OpTemplate::Parse(attr, line, words);
 	}
-
 
 void ZAM_AssignOpTemplate::Instantiate()
 	{

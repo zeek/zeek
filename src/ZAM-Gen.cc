@@ -1157,17 +1157,15 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 
 		string LHSAccessor() const
 			{
-			if ( lhs_et == ZAM_EXPR_TYPE_DEFAULT )
-				return "";
-			else
-				return Accessor(lhs_et);
+			return Accessor(lhs_et);
 			}
 		string Op1Accessor() const	{ return Accessor(op1_et); }
 		string Op2Accessor() const	{ return Accessor(op2_et); }
 
 		string Accessor(ZAM_ExprType et) const
 			{
-			if ( lhs_et == ZAM_EXPR_TYPE_NONE )
+			if ( et == ZAM_EXPR_TYPE_NONE ||
+			     et == ZAM_EXPR_TYPE_DEFAULT)
 				return "";
 			else
 				return "." + find_type_info(et).accessor + "_val";
@@ -1554,6 +1552,8 @@ void ZAM_InternalOpTemplate::Parse(const string& attr, const string& line,
 
 	else if ( n != 0 )
 		{
+		eval += "auto aux = z.aux;\n";
+
 		if ( n < 0 )
 			{
 			if ( is_indirect_call )
@@ -1562,7 +1562,6 @@ void ZAM_InternalOpTemplate::Parse(const string& attr, const string& line,
 				eval += "auto func = frame[z.v";
 				eval += to_string(arg_slot) + "].func_val;\n";
 				}
-		eval += "auto aux = z.aux;\n";
 
 			eval += "auto n = aux->n;\n";
 			eval += "for ( auto i = 0; i < n; ++i )\n";

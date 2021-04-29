@@ -787,7 +787,7 @@ void Analyzer::UpdateConnVal(RecordVal *conn_val)
 
 const RecordValPtr& Analyzer::ConnVal()
 	{
-	return conn->ConnVal();
+	return conn->GetVal();
 	}
 
 void Analyzer::Event(EventHandlerPtr f, const char* name)

@@ -358,7 +358,7 @@ void TCP_Reassembler::RecordBlock(const DataBlock& b, const FilePtr& f)
 
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
-			Endpoint()->Conn()->ConnVal(),
+			Endpoint()->Conn()->GetVal(),
 			val_mgr->Bool(IsOrig()),
 			make_intrusive<StringVal>("TCP reassembler content write failure")
 		);
@@ -373,7 +373,7 @@ void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const Fi
 
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
-			Endpoint()->Conn()->ConnVal(),
+			Endpoint()->Conn()->GetVal(),
 			val_mgr->Bool(IsOrig()),
 			make_intrusive<StringVal>("TCP reassembler gap write failure")
 		);

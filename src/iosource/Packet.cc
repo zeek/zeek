@@ -14,7 +14,6 @@ extern "C" {
 #endif
 }
 
-#include "zeek/Sessions.h"
 #include "zeek/Desc.h"
 #include "zeek/IP.h"
 #include "zeek/iosource/Manager.h"

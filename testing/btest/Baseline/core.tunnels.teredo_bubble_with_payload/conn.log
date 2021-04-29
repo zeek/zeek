@@ -7,11 +7,11 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
-XXXXXXXXXX.XXXXXX	CP5puj4I8PtEU4qzYg	2001:0:4137:9e50:8000:f12a:b9c8:2815	1286	2001:4860:0:2001::68	80	tcp	http	0.052829	1675	10467	S1	-	-	0	ShADad	10	2279	12	11191	CUM0KZ3MLUfNB0cl11
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.2.16	3797	65.55.158.80	3544	udp	teredo	0.010291	129	52	SF	-	-	0	Dd	2	185	1	80	-
 XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	192.168.2.16	3797	65.55.158.81	3544	udp	-	-	-	-	SHR	-	-	0	^d	0	0	1	137	-
 XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	192.168.2.16	3797	83.170.1.38	32900	udp	teredo	0.065485	2367	11243	SF	-	-	0	Dd	12	2703	13	11607	-
 XXXXXXXXXX.XXXXXX	CmES5u32sYpV7JYN	2001:0:4137:9e50:8000:f12a:b9c8:2815	128	2001:4860:0:2001::68	129	icmp	-	0.007778	4	4	OTH	-	-	0	-	1	52	1	52	CHhAvVGS1DHFjwGM9,CUM0KZ3MLUfNB0cl11
+XXXXXXXXXX.XXXXXX	CP5puj4I8PtEU4qzYg	2001:0:4137:9e50:8000:f12a:b9c8:2815	1286	2001:4860:0:2001::68	80	tcp	http	0.052829	1675	10467	S1	-	-	0	ShADad	10	2279	12	11191	CUM0KZ3MLUfNB0cl11
 XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	fe80::8000:f227:bec8:61af	134	fe80::8000:ffff:ffff:fffd	133	icmp	-	-	-	-	OTH	-	-	0	-	1	88	0	0	C4J4Th3PJpwUYZZ6gc
 XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	fe80::8000:ffff:ffff:fffd	133	ff02::2	134	icmp	-	-	-	-	OTH	-	-	0	-	1	64	0	0	CHhAvVGS1DHFjwGM9
 #close XXXX-XX-XX-XX-XX-XX

@@ -7,6 +7,7 @@
 #include "zeek/plugin/ComponentManager.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/Dispatcher.h"
+#include "zeek/PacketFilter.h"
 
 namespace zeek {
 
@@ -112,6 +113,13 @@ public:
 	 */
 	void ResetUnknownProtocolTimer(const std::string& analyzer, uint32_t protocol);
 
+	detail::PacketFilter* GetPacketFilter(bool init=true)
+		{
+		if ( ! pkt_filter && init )
+			pkt_filter = new detail::PacketFilter(detail::packet_filter_default);
+		return pkt_filter;
+		}
+
 private:
 	/**
 	 * Instantiates a new analyzer instance.
@@ -140,6 +148,7 @@ private:
 
 	uint64_t num_packets_processed = 0;
 	detail::PacketProfiler* pkt_profiler = nullptr;
+	detail::PacketFilter* pkt_filter = nullptr;
 
 	using UnknownProtocolPair = std::pair<std::string, uint32_t>;
 	std::map<UnknownProtocolPair, uint64_t> unknown_protocols;

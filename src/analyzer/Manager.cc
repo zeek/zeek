@@ -628,7 +628,7 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, TransportLaye
 
 		if ( scheduled_analyzer_applied )
 			conn->EnqueueEvent(scheduled_analyzer_applied, nullptr,
-			                   conn->ConnVal(), it->AsVal());
+			                   conn->GetVal(), it->AsVal());
 
 		DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
 		                  analyzer_mgr->GetComponentName(*it).c_str());

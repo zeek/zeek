@@ -9,12 +9,13 @@
 #include "zeek/RunState.h"
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/Sessions.h"
 #include "zeek/util.h"
 
 #include "zeek/analyzer/protocol/stepping-stone/events.bif.h"
 
 namespace zeek::analyzer::stepping_stone {
+
+SteppingStoneManager* SteppingStoneManager::instance = nullptr;
 
 SteppingStoneEndpoint::SteppingStoneEndpoint(analyzer::tcp::TCP_Endpoint* e, SteppingStoneManager* m)
 	{
@@ -156,7 +157,7 @@ void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
 SteppingStone_Analyzer::SteppingStone_Analyzer(Connection* c)
 	: analyzer::tcp::TCP_ApplicationAnalyzer("STEPPINGSTONE", c)
 	{
-	stp_manager = sessions->GetSTPManager();
+	stp_manager = SteppingStoneManager::Get();
 
 	orig_endp = resp_endp = nullptr;
 	orig_stream_pos = resp_stream_pos = 1;
@@ -213,6 +214,14 @@ void SteppingStone_Analyzer::Done()
 
 	Unref(orig_endp);
 	Unref(resp_endp);
+	}
+
+SteppingStoneManager* SteppingStoneManager::Get()
+	{
+	if ( ! instance && stp_correlate_pair )
+		instance = new SteppingStoneManager();
+
+	return instance;
 	}
 
 } // namespace zeek::analyzer::stepping_stone

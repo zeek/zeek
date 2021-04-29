@@ -6,7 +6,6 @@
 #include "zeek/packet_analysis/Dispatcher.h"
 #include "zeek/zeek-bif.h"
 #include "zeek/Stats.h"
-#include "zeek/Sessions.h"
 #include "zeek/RunState.h"
 #include "zeek/iosource/PktDumper.h"
 
@@ -20,6 +19,7 @@ Manager::Manager()
 Manager::~Manager()
 	{
 	delete pkt_profiler;
+	delete pkt_filter;
 	}
 
 void Manager::InitPostScript()

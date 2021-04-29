@@ -8,8 +8,6 @@
 
 namespace zeek {
 
-class NetSessions;
-
 namespace analyzer::stepping_stone {
 
 class SteppingStoneEndpoint;
@@ -80,9 +78,13 @@ public:
 	// Use postfix ++, since the first ID needs to be even.
 	int NextID()	{ return endp_cnt++; }
 
+	static SteppingStoneManager* Get();
+
 protected:
 	EndpointQueue ordered_endps;
 	int endp_cnt = 0;
+
+	static SteppingStoneManager* instance;
 };
 
 } // namespace analyzer::stepping_stone

@@ -41,7 +41,7 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //	if ( t - Conn()->LastTime() >= Syslog_session_timeout - 1.0 || terminating )
 //		{
 //		Event(connection_timeout);
-//		sessions->Remove(Conn());
+//		session_mgr->Remove(Conn());
 //		}
 //	else
 //		ADD_ANALYZER_TIMER(&Syslog_Analyzer::ExpireTimer,

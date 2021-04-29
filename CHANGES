@@ -1,3 +1,66 @@
+4.1.0-dev.573 | 2021-04-29 11:29:39 -0700
+
+  * Rename ConnID and ConnIDKey (Tim Wojtulewicz, Corelight)
+
+  * Remove Session prefix from some session-related classes and files (Tim Wojtulewicz, Corelight)
+
+  * Move session code into new directory and into zeek::session namespace (Tim Wojtulewicz, Corelight)
+
+  * Move SessionKey into a separate file, added comments (Tim Wojtulewicz, Corelight)
+
+  * Review cleanup
+
+    - Add constructors for ConnIDKey, remove BuildConnIDKey()
+    - Rename protocol stats classes and move to implementation file
+    - Rename "num" field of protocol stats to "active"
+    - Explicitly delete copy operations for SessionKey
+    - Change argument for ProtocolStats methods to const-reference
+    - Make key validity methods in Session not be virtual
+    - Rename Session::ClearKey and Session::IsKeyValid (Tim Wojtulewicz, Corelight)
+
+  * Rework stats to store handles to the counters (Tim Wojtulewicz, Corelight)
+
+  * Rename some connection-specific methods in Session and SessionManager (Tim Wojtulewicz, Corelight)
+
+  * Add deprecated version of Sessions.h (Tim Wojtulewicz, Corelight)
+
+  * Rename NetSessions to SessionManager
+
+    This also includes:
+    - Deprecating the NetSessions name.
+    - Renaming the zeek::sessions global to zeek::session_mgr and deprecating the old name.
+    - Renaming Sessions.{h,cc} to SessionManager.{h,cc}. (Tim Wojtulewicz, Corelight)
+
+  * Store a single map of Sessions instead of split maps of Connections.
+
+    This commit also includes:
+    - Storing the transport protocol in ConnID and ConnIDKey to allow tcp and
+      udp connections from the same IP/Port combinations. This happens in the
+      core.cisco-fabric-path test, for example.
+    - Lots of test updates. The reasons for these are two fold. First, with
+      the change to only store a single map means that TCP, UDP, and ICMP
+      connections are now mixed. When Zeek drains the map at shutdown, it drains
+      each of those protocols together instead of separately. The second is
+      because of how Sessions are stored in the map. We're now storing them
+      keyed by the hash of the key stored by the Session objects, which causes
+      them to again be in the map in a different order. (Tim Wojtulewicz, Corelight)
+
+  * Convert session stats to use the new telemetry API (Tim Wojtulewicz, Corelight)
+
+  * Add test for get_conn_stats BIF before reworking session stats (Tim Wojtulewicz, Corelight)
+
+  * Add new Session base class
+
+    This is mostly code copied from the existing Connection class, as that class now
+    inherits from Session. (Tim Wojtulewicz, Corelight)
+
+  * Move packet filter out of NetSessions (Tim Wojtulewicz, Corelight)
+
+  * Move some code out of NetSessions
+
+    - TCPStateStats update when a session is removed was moved to Connection
+    - Stepping Stone manager moved to a singleton object in SteppingStoneManager (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.557 | 2021-04-29 09:00:51 -0700
 
   * Add basic testing for Geneve protocol analyzer

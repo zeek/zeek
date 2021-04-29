@@ -1664,12 +1664,48 @@ void ZAMGen::InitEmitTargets()
 
 		gen_files[gfn.first] = f;
 		}
+
+	InitSwitch(C1Def, "C1 assignment");
+	InitSwitch(C2Def, "C2 assignment");
+	InitSwitch(C3Def, "C3 assignment");
+	InitSwitch(VDef, "V assignment");
+
+	InitSwitch(C1FieldDef, "C1 field assignment");
+	InitSwitch(C2FieldDef, "C2 field assignment");
+	InitSwitch(VFieldDef, "V field assignment");
 	}
 
 void ZAMGen::CloseEmitTargets()
 	{
+	FinishSwitches();
+
 	for ( auto& gf : gen_files )
 		fclose(gf.second);
+	}
+
+void ZAMGen::InitSwitch(EmitTarget et, string desc)
+	{
+	Emit(et, "{");
+        Emit(et, "switch ( rhs->Tag() ) {");
+
+	switch_targets[et] = desc;
+	}
+
+void ZAMGen::FinishSwitches()
+	{
+	for ( auto& st : switch_targets )
+		{
+		auto et = st.first;
+		auto& desc = st.second;
+
+		Emit(et, "default:");
+		IndentUp();
+		Emit(et, "reporter->InternalError(\"inconsistency in " + desc +
+			 ": %s\", obj_desc(rhs));");
+		IndentDown();
+		Emit(et, "}");
+		Emit(et, "}");
+		}
 	}
 
 bool ZAMGen::ParseTemplate()

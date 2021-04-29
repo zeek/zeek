@@ -530,9 +530,14 @@ private:
 	void InitEmitTargets();
 	void CloseEmitTargets();
 
+	void InitSwitch(EmitTarget et, string desc);
+	void FinishSwitches();
+
 	bool ParseTemplate();
 
 	std::unordered_map<EmitTarget, FILE*> gen_files;
+	std::unordered_map<EmitTarget, string> switch_targets;
+
 	std::unique_ptr<TemplateInput> ti;
 	vector<std::unique_ptr<ZAM_OpTemplate>> templates;
 

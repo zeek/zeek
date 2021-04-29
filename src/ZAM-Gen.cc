@@ -1612,11 +1612,64 @@ ZAMGen::ZAMGen(int argc, char** argv)
 
 	ti = make_unique<TemplateInput>(f, prog_name, file_name);
 
+	InitEmitTargets();
+
 	while ( ParseTemplate() )
 		;
 
 	for ( auto& t : templates )
 		t->Instantiate();
+
+	CloseEmitTargets();
+	}
+
+void ZAMGen::InitEmitTargets()
+	{
+	static const unordered_map<EmitTarget, const char*> gen_file_names = {
+		{ None, nullptr },
+		{ BaseDecl, "BaseDecl" },
+		{ SubDecl, "SubDecl" },
+		{ MethodDef, "MethodDef" },
+		{ DirectDef, "DirectDef" },
+		{ C1Def, "C1Def" },
+		{ C1FieldDef, "C1FieldDef" },
+		{ C2Def, "C2Def" },
+		{ C2FieldDef, "C2FieldDef" },
+		{ C3Def, "C3Def" },
+		{ VDef, "VDef" },
+		{ VFieldDef, "VFieldDef" },
+		{ Cond, "Cond" },
+		{ Eval, "Eval" },
+		{ Vec1Eval, "Vec1Eval" },
+		{ Vec2Eval, "Vec2Eval" },
+		{ AssignFlavor, "AssignFlavor" },
+		{ Op1Flavor, "Op1Flavor" },
+		{ OpSideEffects, "OpSideEffects" },
+		{ OpDef, "OpDef" },
+		{ OpName, "OpName" },
+	};
+
+	for ( auto& gfn : gen_file_names )
+		{
+		auto fn = gfn.second;
+		if ( ! fn )
+			continue;
+
+		auto f = fopen(fn, "w");
+		if ( ! f )
+			{
+			fprintf(stderr, "can't open generation file %s\n", fn);
+			exit(1);
+			}
+
+		gen_files[gfn.first] = f;
+		}
+	}
+
+void ZAMGen::CloseEmitTargets()
+	{
+	for ( auto& gf : gen_files )
+		fclose(gf.second);
 	}
 
 bool ZAMGen::ParseTemplate()
@@ -1692,50 +1745,6 @@ bool ZAMGen::ParseTemplate()
 void ZAMGen::Emit(EmitTarget et, const string& s)
 	{
 	assert(et != None);
-
-	static unordered_map<EmitTarget, FILE*> gen_files;
-	if ( gen_files.size() == 0 )
-		{ // need to open the files
-		static unordered_map<EmitTarget, const char*> gen_file_names = {
-			{ None, nullptr },
-			{ BaseDecl, "BaseDecl" },
-			{ SubDecl, "SubDecl" },
-			{ MethodDef, "MethodDef" },
-			{ DirectDef, "DirectDef" },
-			{ C1Def, "C1Def" },
-			{ C1FieldDef, "C1FieldDef" },
-			{ C2Def, "C2Def" },
-			{ C2FieldDef, "C2FieldDef" },
-			{ C3Def, "C3Def" },
-			{ VDef, "VDef" },
-			{ VFieldDef, "VFieldDef" },
-			{ Cond, "Cond" },
-			{ Eval, "Eval" },
-			{ Vec1Eval, "Vec1Eval" },
-			{ Vec2Eval, "Vec2Eval" },
-			{ AssignFlavor, "AssignFlavor" },
-			{ Op1Flavor, "Op1Flavor" },
-			{ OpSideEffects, "OpSideEffects" },
-			{ OpDef, "OpDef" },
-			{ OpName, "OpName" },
-		};
-
-		for ( auto& gfn : gen_file_names )
-			{
-			auto fn = gfn.second;
-			if ( ! fn )
-				continue;
-
-			auto f = fopen(fn, "w");
-			if ( ! f )
-				{
-				fprintf(stderr, "can't open generation file %s\n", fn);
-				exit(1);
-				}
-
-			gen_files[gfn.first] = f;
-			}
-		}
 
 	if ( gen_files.count(et) == 0 )
 		{

@@ -527,8 +527,12 @@ public:
 		{ ti->Gripe(msg, loc); }
 
 private:
+	void InitEmitTargets();
+	void CloseEmitTargets();
+
 	bool ParseTemplate();
 
+	std::unordered_map<EmitTarget, FILE*> gen_files;
 	std::unique_ptr<TemplateInput> ti;
 	vector<std::unique_ptr<ZAM_OpTemplate>> templates;
 

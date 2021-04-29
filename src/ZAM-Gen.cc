@@ -32,7 +32,7 @@ struct TypeInfo {
 
 static vector<TypeInfo> ZAM_type_info = {
 	{ "TYPE_ADDR",		ZAM_EXPR_TYPE_ADDR,	"A", "addr", true },
-	{ "TYPE_ANY",		ZAM_EXPR_TYPE_ANY,	"", "any", true },
+	{ "TYPE_ANY",		ZAM_EXPR_TYPE_ANY,	"any", "any", true },
 	{ "TYPE_COUNT",		ZAM_EXPR_TYPE_UINT,	"U", "uint", false },
 	{ "TYPE_DOUBLE",	ZAM_EXPR_TYPE_DOUBLE,	"D", "double", false },
 	{ "TYPE_INT",		ZAM_EXPR_TYPE_INT,	"I", "int", false },
@@ -749,7 +749,7 @@ void ZAM_DirectUnaryOpTemplate::Instantiate()
 	}
 
 static unordered_map<char, ZAM_ExprType> expr_type_names = {
-	{ '*', ZAM_EXPR_TYPE_ANY },
+	{ '*', ZAM_EXPR_TYPE_DEFAULT },
 	{ 'A', ZAM_EXPR_TYPE_ADDR },
 	{ 'D', ZAM_EXPR_TYPE_DOUBLE },
 	{ 'I', ZAM_EXPR_TYPE_INT },
@@ -1027,7 +1027,7 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& op,
 		{ ZAM_EXPR_TYPE_TABLE, { "tag", "TYPE_TABLE" } },
 		{ ZAM_EXPR_TYPE_VECTOR, { "tag", "TYPE_VECTOR" } },
 
-		{ ZAM_EXPR_TYPE_ANY, { "", "" } },
+		{ ZAM_EXPR_TYPE_DEFAULT, { "", "" } },
 	};
 
 	bool do_default = false;
@@ -1157,7 +1157,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 
 		string LHSAccessor() const
 			{
-			if ( lhs_et == ZAM_EXPR_TYPE_ANY )
+			if ( lhs_et == ZAM_EXPR_TYPE_DEFAULT )
 				return "";
 			else
 				return Accessor(lhs_et);
@@ -1175,7 +1175,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 
 		string OpMarker() const
 			{
-			if ( op1_et == ZAM_EXPR_TYPE_ANY ||
+			if ( op1_et == ZAM_EXPR_TYPE_DEFAULT ||
 			     op1_et == ZAM_EXPR_TYPE_NONE )
 				return "";
 			else if ( op1_et == op2_et )
@@ -1227,9 +1227,9 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		auto eval = SkipWS(ei.eval);
 
 		auto is_none = ei.lhs_et == ZAM_EXPR_TYPE_NONE;
-		auto is_star = ei.lhs_et == ZAM_EXPR_TYPE_ANY;
+		auto is_default = ei.lhs_et == ZAM_EXPR_TYPE_DEFAULT;
 
-		if ( ! is_field && ! is_none && ! is_star &&
+		if ( ! is_field && ! is_none && ! is_default &&
 		     find_type_info(ei.lhs_et).is_managed &&
 		     ! HasExplicitResultType() )
 			{

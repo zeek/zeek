@@ -1509,6 +1509,89 @@ void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,
 	}
 
 
+void ZAM_InternalOpTemplate::Parse(const string& attr, const string& line,
+                                   const Words& words)
+	{
+	if ( attr != "num-call-args" )
+		{
+		if ( attr == "indirect-call" )
+			{
+			if ( words.size() != 1 )
+				g->Gripe("indirect-call takes one argument", line);
+			// Note, currently only works with a *subsequent*
+			// num-call-args, whose setting needs to be 'n'.
+			is_indirect_call = true;
+			}
+		else
+			ZAM_OpTemplate::Parse(attr, line, words);
+
+		return;
+		}
+
+	if ( words.size() != 2 )
+		g->Gripe("num-call-args takes one argument", line);
+
+	eval = "std::vector<IntrusivePtr<Val>> args;\n";
+
+	auto& arg = words[1];
+	int n = arg == "n" ? -1 : stoi(arg);
+
+	auto arg_offset = HasAssignVal() ? 1 : 0;
+	auto arg_slot = arg_offset + 1;
+
+	string func = "z.func";
+
+	if ( n == 1 )
+		{
+		eval += "args.push_back(";
+		if ( op_types[arg_offset] == ZAM_OT_CONSTANT )
+			eval += "z.c";
+		else
+			eval += "frame[z.v" + to_string(arg_slot) + "]";
+
+		eval += ".ToVal(z.t));\n";
+		}
+
+	else if ( n != 0 )
+		{
+		if ( n < 0 )
+			{
+			if ( is_indirect_call )
+				{
+				func = "func";
+				eval += "auto func = frame[z.v";
+				eval += to_string(arg_slot) + "].func_val;\n";
+				}
+		eval += "auto aux = z.aux;\n";
+
+			eval += "auto n = aux->n;\n";
+			eval += "for ( auto i = 0; i < n; ++i )\n";
+			eval += "\targs.push_back(aux->ToVal(frame, i));\n";
+			}
+
+		else
+			for ( auto i = 0; i < n; ++i )
+				{
+				eval += "args.push_back(aux->ToVal(frame, ";
+				eval += to_string(i);
+				eval += "));";
+				}
+		}
+
+	eval += "f->SetCallLoc(z.loc);\n";
+
+	if ( HasAssignVal() )
+		{
+		auto av = GetAssignVal();
+		eval += "auto " + av + "_ptr = " + func + "->Call(args, f);\n";
+		eval += "if ( ! v_ptr ) { ZAM_error = true; break; }\n";
+		eval += "auto v = v_ptr.get();\n";
+		}
+	else
+		eval += "(void) " + func + "->Call(args, f);\n";
+	}
+
+
 ZAMGen::ZAMGen(int argc, char** argv)
 	{
 	auto prog_name = argv[0];

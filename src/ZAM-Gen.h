@@ -371,7 +371,7 @@ public:
 	int Arity() const override		{ return 1; }
 
 protected:
-	virtual void Parse(const string& attr, const string& line, const Words& words) override;
+	void Parse(const string& attr, const string& line, const Words& words) override;
 	void Instantiate() override;
 
 	void BuildInstruction(const string& op,
@@ -441,7 +441,7 @@ public:
 		}
 
 protected:
-	virtual void Parse(const string& attr, const string& line, const Words& words) override;
+	void Parse(const string& attr, const string& line, const Words& words) override;
 
 private:
 	string op1_accessor;
@@ -454,6 +454,12 @@ public:
 	: ZAM_OpTemplate(_g, _base_name) { }
 
 	bool IsInternalOp() const override	{ return true; }
+
+protected:
+	void Parse(const string& attr, const string& line, const Words& words) override;
+
+private:
+	bool is_indirect_call = false;
 };
 
 class ZAM_InternalAssignOpTemplate : public ZAM_InternalOpTemplate {

@@ -10,7 +10,7 @@ namespace zeek::session::detail {
 /**
  * This type is used as the key for the map in SessionManager. It represents a
  * raw block of memory that points to a key of some type for a session, such as
- * a ConnIDKey for a Connection. This allows us to do type-independent
+ * a ConnKey for a Connection. This allows us to do type-independent
  * comparison of the keys in the map. By default, this type does not maintain
  * the lifetime of the data pointed to by the Key. It only holds a
  * pointer. When a Key object is inserted into the SessionManager's map,

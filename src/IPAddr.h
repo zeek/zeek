@@ -15,42 +15,44 @@ typedef in_addr in4_addr;
 namespace zeek {
 
 class String;
-struct ConnID;
+struct ConnTuple;
 
 namespace detail {
 
 class HashKey;
 
-struct ConnIDKey {
+struct ConnKey {
 	in6_addr ip1;
 	in6_addr ip2;
 	uint16_t port1;
 	uint16_t port2;
 	TransportProto transport;
 
-	ConnIDKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port,
+	ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port,
 	          uint16_t dst_port, TransportProto t, bool one_way);
-	ConnIDKey(const ConnID& conn);
-	ConnIDKey(const ConnIDKey& rhs)
+	ConnKey(const ConnTuple& conn);
+	ConnKey(const ConnKey& rhs)
 		{
 		*this = rhs;
 		}
 
-	bool operator<(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) < 0; }
-	bool operator<=(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) <= 0; }
-	bool operator==(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) == 0; }
-	bool operator!=(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) != 0; }
-	bool operator>=(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) >= 0; }
-	bool operator>(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) > 0; }
+	bool operator<(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) < 0; }
+	bool operator<=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) <= 0; }
+	bool operator==(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) == 0; }
+	bool operator!=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) != 0; }
+	bool operator>=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) >= 0; }
+	bool operator>(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) > 0; }
 
-	ConnIDKey& operator=(const ConnIDKey& rhs)
+	ConnKey& operator=(const ConnKey& rhs)
 		{
 		if ( this != &rhs )
-			memcpy(this, &rhs, sizeof(ConnIDKey));
+			memcpy(this, &rhs, sizeof(ConnKey));
 
 		return *this;
 		}
 };
+
+using ConnIDKey [[deprecated("Remove in v5.1. Use zeek::detail::ConnKey.")]] = ConnKey;
 
 } // namespace detail
 
@@ -441,7 +443,7 @@ public:
 	static const IPAddr v6_unspecified;
 
 private:
-	friend struct detail::ConnIDKey;
+	friend struct detail::ConnKey;
 	friend class IPPrefix;
 
 	/**

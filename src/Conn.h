@@ -55,7 +55,7 @@ enum ConnEventToFlag {
 	NUM_EVENTS_TO_FLAG,
 };
 
-struct ConnID {
+struct ConnTuple {
 	IPAddr src_addr;
 	IPAddr dst_addr;
 	uint32_t src_port;
@@ -63,6 +63,8 @@ struct ConnID {
 	bool is_one_way;	// if true, don't canonicalize order
 	TransportProto proto;
 };
+
+using ConnID [[deprecated("Remove in v5.1. Use zeek::ConnTuple.")]] = ConnTuple;
 
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,
                                      const IPAddr& addr2, uint32_t p2)
@@ -73,7 +75,7 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,
 class Connection final : public session::Session {
 public:
 
-	Connection(const detail::ConnIDKey& k, double t, const ConnID* id,
+	Connection(const detail::ConnKey& k, double t, const ConnTuple* id,
 	           uint32_t flow, const Packet* pkt);
 	~Connection() override;
 
@@ -113,7 +115,7 @@ public:
 	// Keys are only considered valid for a connection when a
 	// connection is in the session map. If it is removed, the key
 	// should be marked invalid.
-	const detail::ConnIDKey& Key() const	{ return key; }
+	const detail::ConnKey& Key() const	{ return key; }
 	session::detail::Key SessionKey(bool copy) const override
 		{ return session::detail::Key{&key, sizeof(key), copy}; }
 
@@ -267,7 +269,7 @@ private:
 	RecordValPtr conn_val;
 	std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
 
-	detail::ConnIDKey key;
+	detail::ConnKey key;
 
 	unsigned int skip:1;
 	unsigned int weird:1;

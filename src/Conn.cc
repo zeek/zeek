@@ -25,8 +25,8 @@ namespace zeek {
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
-Connection::Connection(const detail::ConnIDKey& k, double t,
-                       const ConnID* id, uint32_t flow, const Packet* pkt)
+Connection::Connection(const detail::ConnKey& k, double t,
+                       const ConnTuple* id, uint32_t flow, const Packet* pkt)
 	: Session(t, connection_timeout, connection_status_update,
 	          detail::connection_status_update_interval),
 	  key(k)

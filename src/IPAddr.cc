@@ -19,8 +19,8 @@ const IPAddr IPAddr::v6_unspecified = IPAddr();
 
 namespace detail {
 
-ConnIDKey::ConnIDKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port,
-                     uint16_t dst_port, TransportProto t, bool one_way)
+ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port,
+                 uint16_t dst_port, TransportProto t, bool one_way)
 	: transport(t)
 	{
  	// Lookup up connection based on canonical ordering, which is
@@ -44,9 +44,9 @@ ConnIDKey::ConnIDKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port,
 		}
 	}
 
-detail::ConnIDKey::ConnIDKey(const ConnID& id)
-	: ConnIDKey(id.src_addr, id.dst_addr, id.src_port, id.dst_port,
-	            id.proto, id.is_one_way)
+detail::ConnKey::ConnKey(const ConnTuple& id)
+	: ConnKey(id.src_addr, id.dst_addr, id.src_port, id.dst_port,
+	          id.proto, id.is_one_way)
 	{
 	}
 

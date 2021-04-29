@@ -20,7 +20,7 @@ namespace detail { class PacketFilter; }
 class EncapsulationStack;
 class Packet;
 class Connection;
-struct ConnID;
+struct ConnTuple;
 class StatBlocks;
 
 namespace session {
@@ -64,7 +64,7 @@ public:
 	 * @param proto The transport protocol for the connection.
 	 * @return The connection, or nullptr if one doesn't exist.
 	 */
-	Connection* FindConnection(const zeek::detail::ConnIDKey& key, TransportProto proto);
+	Connection* FindConnection(const zeek::detail::ConnKey& key, TransportProto proto);
 
 	void Remove(Session* s);
 	void Insert(Session* c);
@@ -148,7 +148,7 @@ private:
 
 	using SessionMap = std::map<detail::Key, Session*>;
 
-	Connection* NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
+	Connection* NewConn(const zeek::detail::ConnKey& k, double t, const ConnTuple* id,
 	                    const u_char* data, int proto, uint32_t flow_label,
 	                    const Packet* pkt);
 

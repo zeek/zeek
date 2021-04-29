@@ -129,7 +129,7 @@ void Manager::ProcessTransportLayer(double t, const Packet* pkt, size_t remainin
 
 	const u_char* data = ip_hdr->Payload();
 
-	ConnID id;
+	ConnTuple id;
 	id.src_addr = ip_hdr->SrcAddr();
 	id.dst_addr = ip_hdr->DstAddr();
 	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::IP;
@@ -188,7 +188,7 @@ void Manager::ProcessTransportLayer(double t, const Packet* pkt, size_t remainin
 		return;
 	}
 
-	zeek::detail::ConnIDKey conn_key(id);
+	zeek::detail::ConnKey conn_key(id);
 	detail::Key key(&conn_key, sizeof(conn_key), false);
 	Connection* conn = nullptr;
 
@@ -375,7 +375,7 @@ Connection* Manager::FindConnection(Val* v)
 	auto orig_portv = vl->GetFieldAs<PortVal>(orig_p);
 	auto resp_portv = vl->GetFieldAs<PortVal>(resp_p);
 
-	zeek::detail::ConnIDKey conn_key(orig_addr, resp_addr,
+	zeek::detail::ConnKey conn_key(orig_addr, resp_addr,
 	                                 htons((unsigned short) orig_portv->Port()),
 	                                 htons((unsigned short) resp_portv->Port()),
 	                                 orig_portv->PortType(), false);
@@ -482,7 +482,7 @@ void Manager::GetStats(Stats& s)
 	s.num_packets = packet_mgr->PacketsProcessed();
 	}
 
-Connection* Manager::NewConn(const zeek::detail::ConnIDKey& k, double t, const ConnID* id,
+Connection* Manager::NewConn(const zeek::detail::ConnKey& k, double t, const ConnTuple* id,
                              const u_char* data, int proto, uint32_t flow_label,
                              const Packet* pkt)
 	{

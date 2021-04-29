@@ -1253,7 +1253,13 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 			}
 
 		else if ( ! is_none )
+			{
 			eval = lhs_ei + " = " + eval;
+
+			if ( eval_set.size() == 0 && eval_mixed_set.size() == 0 )
+				// Add terminating semicolon.
+				eval = regex_replace(eval, regex("\n"), ";\n");
+			}
 
 		auto full_suffix = ot_str + ei.OpMarker() + suffix;
 

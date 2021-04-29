@@ -1,3 +1,16 @@
+4.1.0-dev.557 | 2021-04-29 09:00:51 -0700
+
+  * Add basic testing for Geneve protocol analyzer
+
+    The added pcap file was downloaded from an attachment to
+    https://gitlab.com/wireshark/wireshark/-/issues/10193 without explicit
+    license. (Benjamin Bannier, Corelight)
+
+  * GH-1517: Add Geneve decap support
+
+    This patch adds the ability to decap Geneve packets to process the inner
+    payload. The structure of the analyzer borrows heavily from the VXLAN
+    analyzer. (Benjamin Bannier, Corelight)
 
 4.1.0-dev.554 | 2021-04-28 13:45:53 -0700
 

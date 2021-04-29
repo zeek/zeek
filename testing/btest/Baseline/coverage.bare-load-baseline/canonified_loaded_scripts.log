@@ -118,6 +118,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_Finger.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_FTP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_FTP.functions.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_Geneve.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Gnutella.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_GSSAPI.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_GTPv1.events.bif.zeek

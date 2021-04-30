@@ -128,6 +128,24 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	ud->RemoveUnused();
 
+	if ( analysis_options.gen_ZAM )
+		{
+#if 0
+		auto zam = new ZAM(f, scope, new_body, ud, rc, pf_red);
+		new_body = zam->CompileBody();
+
+		if ( reporter->Errors() > 0 )
+			return;
+
+		if ( analysis_options.only_func || analysis_options.dump_ZAM )
+			zam->Dump();
+
+		new_body_ptr = {AdoptRef{}, new_body};
+		f->ReplaceBody(body, new_body_ptr);
+		body = new_body_ptr;
+#endif
+		}
+
 	int new_frame_size =
 		scope->Length() + rc->NumTemps() + rc->NumNewLocals();
 
@@ -192,6 +210,8 @@ void analyze_scripts()
 		check_env_opt("ZEEK_INLINE", analysis_options.inliner);
 		check_env_opt("ZEEK_OPT", analysis_options.optimize_AST);
 		check_env_opt("ZEEK_XFORM", analysis_options.activate);
+		check_env_opt("ZEEK_ZAM", analysis_options.gen_ZAM);
+		check_env_opt("ZEEK_DUMP_ZAM", analysis_options.dump_ZAM);
 
 		auto usage = getenv("ZEEK_USAGE_ISSUES");
 
@@ -205,8 +225,12 @@ void analyze_scripts()
 				analysis_options.only_func = zo;
 			}
 
+		if ( analysis_options.dump_ZAM )
+			analysis_options.gen_ZAM = true;
+
 		if ( analysis_options.only_func ||
 		     analysis_options.optimize_AST ||
+		     analysis_options.gen_ZAM ||
 		     analysis_options.usage_issues > 0 )
 			analysis_options.activate = true;
 

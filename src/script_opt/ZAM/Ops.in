@@ -1,0 +1,1997 @@
+# Templates used to generate virtual functions, opcodes, and evaluation
+# code for compiled code.
+
+########## Unary Ops ##########
+
+assign-op Assign
+type V
+
+unary-expr-op Clone
+no-const
+op-type X
+set-type $1
+set-type2 $2
+eval	auto v = frame[z.v2].ToVal(z.t2)->Clone();
+	AssignV1(BuildVal(v, z.t))
+
+unary-expr-op Size
+no-const
+op-type I U D A N S T V *
+explicit-result-type
+set-type $1
+set-type2 $2
+eval-type I	$$.uint_val = $1 < 0 ? -$1 : $1;
+eval-type U	$$.uint_val = $1;
+eval-type D	$$.double_val = $1 < 0 ? -$1 : $1;
+eval-type A	$$.uint_val = $1->AsAddr().GetFamily() == IPv4 ? 32 : 128;
+eval-type N	$$.double_val = pow(2.0, double(128 - $1->AsSubNet().LengthIPv6()));
+eval-type S	$$.uint_val = $1->Len();
+eval-type T	$$.uint_val = $1->Size();
+eval-type V	$$.uint_val = $1->Size();
+eval	auto v = frame[z.v2].ToVal(z.t2)->SizeVal();
+	$$ = BuildVal(v, z.t);
+
+unary-expr-op Not
+op-type I
+eval ! $1
+
+unary-expr-op Complement
+op-type U
+eval ~ $1
+
+unary-expr-op Positive
+op-type I D
+vector
+eval $1
+
+unary-expr-op Negate
+op-type I D
+vector
+eval -$1
+
+op IncrI
+op1-read-write
+type V
+eval	++frame[z.v1].int_val;
+
+op IncrU
+op1-read-write
+type V
+eval	++frame[z.v1].uint_val;
+
+op DecrI
+op1-read-write
+type V
+eval	--frame[z.v1].int_val;
+
+op DecrU
+op1-read-write
+type V
+eval	--frame[z.v1].uint_val;
+
+unary-op AppendTo
+# Note, even though it feels like appending both reads and modifies
+# its first operand, for our purposes it just reads it (to get the
+# aggregate), and then modifies its *content* but not the operand's
+# value itself.
+op1-read
+set-type $2
+eval	auto copy = CopyVal($1);
+	auto& vv = frame[z.v1].vector_val->RawVector()->ModVec();
+	vv.push_back(copy);
+
+internal-op AppendToField
+type VVi
+op1-read
+eval	auto v = CopyVal(frame[z.v2]);
+	auto fvv = frame[z.v1].record_val->RawFields()->Lookup(z.v3, ZAM_error);
+	if ( ZAM_error )
+		ZAM_run_time_error(z.loc, fmt("field value missing: $%s", frame[z.v1].record_val->Type()->AsRecordType()->FieldName(z.v3)));
+	else
+		fvv.vector_val->RawVector()->ModVec().push_back(v);
+
+internal-op AppendToField
+type VCi
+op1-read
+eval	auto v = CopyVal(z.c);
+	auto fvv = frame[z.v1].record_val->RawFields()->Lookup(z.v2, ZAM_error);
+	if ( ZAM_error )
+		ZAM_run_time_error(z.loc, fmt("field value missing: $%s", frame[z.v1].record_val->Type()->AsRecordType()->FieldName(z.v2)));
+	else
+		fvv.vector_val->RawVector()->ModVec().push_back(v);
+
+unary-expr-op Cast
+op-type X
+set-type $1
+set-type2 $2
+eval	const char* error;
+	auto rhs = frame[z.v2].ToVal(z.t2).get();
+	auto res = cast_value(rhs, z.t.get(), error);
+	if ( error )
+		ZAM_run_time_error(z.loc, error);
+	else
+		AssignV1(BuildVal(res, z.t))
+
+# Cast an "any" type to the given type.  Only needed for type-based swith
+# statements.
+internal-op Cast-Any
+type VV
+eval	const char* error;
+	auto res = cast_value(frame[z.v2].any_val, z.t.get(), error);
+	if ( error )
+		ZAM_run_time_error(z.loc, error);
+	else
+		AssignV1(BuildVal(res, z.t))
+
+direct-unary-op Is Is
+
+internal-op Is
+type VV
+eval	auto rhs = frame[z.v2].ToVal(z.t2).get();
+	frame[z.v1].int_val = can_cast_value_to_type(rhs, z.t.get());
+
+########## Binary Ops ##########
+
+binary-expr-op Add
+op-type I U D S
+vector
+eval $1 + $2
+eval-type S	vector<const BroString*> strings;
+		strings.push_back($1->AsString());
+		strings.push_back($2->AsString());
+		auto res = new StringVal(concatenate(strings));
+		$$ = res;
+
+binary-expr-op Sub
+op-type I U D T
+vector
+eval $1 - $2
+#
+eval-type T	auto v = $1->Clone();
+		auto s = v.release()->AsTableVal();
+		$2->RemoveFrom(s);
+		$$ = s;
+
+binary-expr-op Times
+op-type I U D
+vector
+eval $1 * $2
+
+binary-expr-op Divide
+op-type I U D
+vector
+#
+eval-pre	if ( $2 == 0 )
+			{
+			ZAM_run_time_error(z.loc, "division by zero");
+			break;
+			}
+eval $1 / $2
+#
+eval-mixed A I	auto mask = static_cast<uint32_t>($2);
+		auto a = $1->AsAddr();
+		if ( a.GetFamily() == IPv4 && mask > 32 )
+			ZAM_run_time_error(z.loc, fmt("bad IPv4 subnet prefix length: %" PRIu32, mask));
+		if ( a.GetFamily() == IPv6 && mask > 128 )
+			ZAM_run_time_error(z.loc, fmt("bad IPv6 subnet prefix length: %" PRIu32, mask));
+		auto v = make_intrusive<SubNetVal>(a, mask);
+		Unref(frame[z.v1].subnet_val);
+		frame[z.v1].subnet_val = v.release();
+
+binary-expr-op Mod
+op-type I U
+vector
+eval-pre	if ( $2 == 0 )
+			{
+			ZAM_run_time_error(z.loc, "modulo by zero");
+			break;
+			}
+eval $1 % $2
+
+binary-expr-op And-And
+op-type I
+vector
+eval $1 && $2
+
+binary-expr-op Or-Or
+op-type I
+vector
+eval $1 || $2
+
+binary-expr-op And
+op-type U P T
+vector
+eval $1 & $2
+#
+eval-type P	$$ = new PatternVal(RE_Matcher_conjunction($1->AsPattern(), $2->AsPattern()));
+#
+eval-type T	$$ = $1->Intersect($2);
+
+binary-expr-op Or
+op-type U P T
+vector
+eval $1 | $2
+#
+eval-type P	$$ = new PatternVal(RE_Matcher_disjunction($1->AsPattern(), $2->AsPattern()));
+#
+eval-type T	auto v = $1->Clone();
+		auto s = v.release()->AsTableVal();
+		(void) $2->AddTo(s, false, false);
+		$$ = s;
+
+binary-expr-op Xor
+op-type U
+vector
+eval $1 ^ $2
+
+########## Relationals ##########
+
+rel-expr-op LT
+op-type I U D S T A
+vector
+eval $1 < $2
+eval-type S	Bstr_cmp($1->AsString(), $2->AsString()) < 0
+eval-type T	$1->IsSubsetOf($2) && $1->Size() < $2->Size()
+eval-type A	$1->AsAddr() < $2->AsAddr()
+
+rel-expr-op LE
+op-type I U D S T A
+vector
+eval $1 <= $2
+eval-type S	Bstr_cmp($1->AsString(), $2->AsString()) <= 0
+eval-type T	$1->IsSubsetOf($2)
+eval-type A	$1->AsAddr() < $2->AsAddr() || $1->AsAddr() == $2->AsAddr()
+
+rel-expr-op EQ
+op-type I U D S T A N
+vector
+eval $1 == $2
+eval-type S	Bstr_cmp($1->AsString(), $2->AsString()) == 0
+eval-type T	$1->EqualTo($2)
+eval-type A	$1->AsAddr() == $2->AsAddr()
+eval-type N	$1->AsSubNet() == $2->AsSubNet()
+eval-mixed P S	$1->AsPattern()->MatchExactly($2->AsString())
+
+rel-expr-op NE
+op-type I U D S T A N
+vector
+eval $1 != $2
+eval-type S	Bstr_cmp($1->AsString(), $2->AsString()) != 0
+eval-type T	! $1->EqualTo($2)
+eval-type A	$1->AsAddr() != $2->AsAddr()
+eval-type N	$1->AsSubNet() != $2->AsSubNet()
+eval-mixed P S	! $1->AsPattern()->MatchExactly($2->AsString())
+
+# Note, canonicalization means that GE and GT shouldn't occur
+# for Sets (type T).
+rel-expr-op GE
+op-type I U D S A
+vector
+eval $1 >= $2
+eval-type S	Bstr_cmp($1->AsString(), $2->AsString()) >= 0
+eval-type A	! ($1->AsAddr() < $2->AsAddr())
+
+rel-expr-op GT
+op-type I U D S A
+vector
+eval $1 > $2
+eval-type S	Bstr_cmp($1->AsString(), $2->AsString()) > 0
+eval-type A	! ($1->AsAddr() < $2->AsAddr()) && $1->AsAddr() != $2->AsAddr()
+
+########## Nonuniform Expressions ##########
+
+assign-op Field
+type R
+field-op
+assign-val v
+eval	auto rv = frame[z.v2].record_val->RawFields();
+	auto v = rv->Lookup(z.v3, ZAM_error);
+	if ( ZAM_error )
+		{
+		ZAM_run_time_error(z.loc, fmt("field value missing: $%s", frame[z.v2].record_val->Type()->AsRecordType()->FieldName(z.v3)));
+		break;
+		}
+
+expr-op Has-Field
+type VRi
+includes-field-op
+eval	frame[z.v1].int_val = frame[z.v2].record_val->RawFields()->HasField(z.v3);
+
+internal-op Has-Field-Cond
+op1-read
+type VVV
+eval	if ( ! frame[z.v1].record_val->RawFields()->HasField(z.v2) )
+		BRANCH(v3)
+
+internal-op Not-Has-Field-Cond
+op1-read
+type VVV
+eval	if ( frame[z.v1].record_val->RawFields()->HasField(z.v2) )
+		BRANCH(v3)
+
+expr-op In
+type VVV
+custom-method return CompileInExpr(n1, n2, n3);
+no-eval
+
+expr-op In
+type VCV
+custom-method return CompileInExpr(n1, c, n2);
+no-eval
+
+expr-op In
+type VVC
+custom-method return CompileInExpr(n1, n2, c);
+no-eval
+
+internal-op P-In-S
+type VVV
+eval	frame[z.v1].int_val = frame[z.v2].re_val->AsPattern()->MatchAnywhere(frame[z.v3].string_val->AsString()) != 0;
+
+internal-op P-In-S
+type VCV
+eval	frame[z.v1].int_val = z.c.re_val->AsPattern()->MatchAnywhere(frame[z.v2].string_val->AsString()) != 0;
+
+internal-op P-In-S
+type VVC
+eval	frame[z.v1].int_val = frame[z.v2].re_val->AsPattern()->MatchAnywhere(z.c.string_val->AsString()) != 0;
+
+internal-binary-op S-In-S
+op-accessor string_val
+op-type I
+eval	auto sc = reinterpret_cast<const unsigned char*>(op1->CheckString());
+	auto cmp = strstr_n(op2->Len(), op2->Bytes(), op1->Len(), sc);
+	$$ = cmp != -1;
+
+internal-binary-op A-In-S
+op1-accessor addr_val
+op2-accessor subnet_val
+op-type I
+eval	$$ = op2->Contains(op1->AsAddr());
+
+
+# Handled differently because of the unusual middle argument.
+op L-In-T
+type VLV
+custom-method return CompileInExpr(n1, l, n2);
+no-eval
+
+op L-In-T
+type VLC
+custom-method return CompileInExpr(n, l, c);
+no-eval
+
+op L-In-Vec
+type VLV
+custom-method return CompileInExpr(n1, l, n2);
+no-eval
+
+op L-In-Vec
+type VLC
+custom-method return CompileInExpr(n, l, c);
+no-eval
+
+
+internal-op Val-Is-In-Table
+type VVV
+# No set-type as these are internal ops.
+eval	auto op1 = frame[z.v2].ToVal(z.t);
+	frame[z.v1].int_val = frame[z.v3].table_val->Lookup(op1.get()) != nullptr;
+
+internal-op Val-Is-In-Table-Cond
+op1-read
+type VVV
+eval	auto op1 = frame[z.v1].ToVal(z.t);
+	if ( ! frame[z.v2].table_val->Lookup(op1.get()) )
+		BRANCH(v3)
+
+internal-op Val-Is-Not-In-Table-Cond
+op1-read
+type VVV
+eval	auto op1 = frame[z.v1].ToVal(z.t);
+	if ( frame[z.v2].table_val->Lookup(op1.get()) )
+		BRANCH(v3)
+
+# Variants for indexing two values, one of which might be a constant.
+# We set the instructions's *second* type to be that of the first variable
+# index.  We get the type of the second variable (if any) by digging it
+# out of the table's type.  For a constant in either position, we use
+# the main instruction type, as always.
+
+internal-op Val2-Is-In-Table
+type VVVV
+eval	auto& tt_ind = *frame[z.v4].table_val->Type()->AsTableType()->IndexTypes();
+	auto op1 = frame[z.v2].ToVal(z.t2);
+	auto op2 = frame[z.v3].ToVal({NewRef{}, tt_ind[1]});
+	ListVal lv(TYPE_ANY);
+	lv.Append(op1.release());
+	lv.Append(op2.release());
+	frame[z.v1].int_val = frame[z.v4].table_val->Lookup(&lv) != nullptr;
+
+internal-op Val2-Is-In-Table-Cond
+op1-read
+type VVVV
+eval	auto& tt_ind = *frame[z.v3].table_val->Type()->AsTableType()->IndexTypes();
+	auto op1 = frame[z.v1].ToVal(z.t2);
+	auto op2 = frame[z.v2].ToVal({NewRef{}, tt_ind[1]});
+	ListVal lv(TYPE_ANY);
+	lv.Append(op1.release());
+	lv.Append(op2.release());
+	if ( ! frame[z.v3].table_val->Lookup(&lv) )
+		BRANCH(v4)
+
+internal-op Val2-Is-Not-In-Table-Cond
+op1-read
+type VVVV
+eval	auto& tt_ind = *frame[z.v3].table_val->Type()->AsTableType()->IndexTypes();
+	auto op1 = frame[z.v1].ToVal(z.t2);
+	auto op2 = frame[z.v2].ToVal({NewRef{}, tt_ind[1]});
+	ListVal lv(TYPE_ANY);
+	lv.Append(op1.release());
+	lv.Append(op2.release());
+	if ( frame[z.v3].table_val->Lookup(&lv) )
+		BRANCH(v4)
+
+internal-op Val2-Is-In-Table
+type VVVC
+eval	auto op1 = frame[z.v2].ToVal(z.t2);
+	auto op2 = z.c.ToVal(z.t);
+	ListVal lv(TYPE_ANY);
+	lv.Append(op1.release());
+	lv.Append(op2.release());
+	frame[z.v1].int_val = frame[z.v3].table_val->Lookup(&lv) != nullptr;
+
+internal-op Val2-Is-In-Table-Cond
+op1-read
+type VVVC
+eval	auto op1 = frame[z.v1].ToVal(z.t2);
+	auto op2 = z.c.ToVal(z.t);
+	ListVal lv(TYPE_ANY);
+	lv.Append(op1.release());
+	lv.Append(op2.release());
+	if ( ! frame[z.v2].table_val->Lookup(&lv) )
+		BRANCH(v3)
+
+internal-op Val2-Is-Not-In-Table-Cond
+op1-read
+type VVVC
+eval	auto op1 = frame[z.v1].ToVal(z.t2);
+	auto op2 = z.c.ToVal(z.t);
+	ListVal lv(TYPE_ANY);
+	lv.Append(op1.release());
+	lv.Append(op2.release());
+	if ( frame[z.v2].table_val->Lookup(&lv) )
+		BRANCH(v3)
+
+internal-op Val2-Is-In-Table
+type VVCV
+eval	auto op1 = z.c.ToVal(z.t);
+	auto op2 = frame[z.v2].ToVal(z.t2);
+	ListVal lv(TYPE_ANY);
+	lv.Append(op1.release());
+	lv.Append(op2.release());
+	frame[z.v1].int_val = frame[z.v3].table_val->Lookup(&lv) != nullptr;
+
+internal-op Val2-Is-In-Table-Cond
+op1-read
+type VVCV
+eval	auto op1 = z.c.ToVal(z.t);
+	auto op2 = frame[z.v1].ToVal(z.t2);
+	ListVal lv(TYPE_ANY);
+	lv.Append(op1.release());
+	lv.Append(op2.release());
+	if ( ! frame[z.v2].table_val->Lookup(&lv) )
+		BRANCH(v3)
+
+internal-op Val2-Is-Not-In-Table-Cond
+op1-read
+type VVCV
+eval	auto op1 = z.c.ToVal(z.t);
+	auto op2 = frame[z.v1].ToVal(z.t2);
+	ListVal lv(TYPE_ANY);
+	lv.Append(op1.release());
+	lv.Append(op2.release());
+	if ( frame[z.v2].table_val->Lookup(&lv) )
+		BRANCH(v3)
+
+
+internal-op Const-Is-In-Table
+type VCV
+eval	auto op1 = z.c.ToVal(z.t);
+	frame[z.v1].int_val = frame[z.v2].table_val->Lookup(op1.get()) != nullptr;
+
+internal-op Const-Is-In-Table-Cond
+op1-read
+type VVC
+eval	auto op1 = z.c.ToVal(z.t);
+	if ( ! frame[z.v1].table_val->Lookup(op1.get()) )
+		BRANCH(v2)
+
+internal-op Const-Is-Not-In-Table-Cond
+op1-read
+type VVC
+eval	auto op1 = z.c.ToVal(z.t);
+	if ( frame[z.v1].table_val->Lookup(op1.get()) )
+		BRANCH(v2)
+
+internal-op List-Is-In-Table
+type VV
+eval	auto op1 = z.aux->ToListVal(frame);
+	frame[z.v1].int_val = frame[z.v2].table_val->Lookup(op1.get()) != nullptr;
+
+internal-op List-Is-In-Table
+type VC
+eval	auto op1 = z.aux->ToListVal(frame);
+	frame[z.v1].int_val = z.c.table_val->Lookup(op1.get()) != nullptr;
+
+internal-op Val-Is-In-Vector
+type VVV
+eval	auto& vec = frame[z.v3].vector_val;
+	auto ind = frame[z.v2].int_val;
+	frame[z.v1].int_val = ind >= 0 && ind < vec->Size();
+
+internal-op Const-Is-In-Vector
+type VCV
+eval	auto& vec = frame[z.v2].vector_val;
+	auto ind = z.c.int_val;
+	frame[z.v1].int_val = ind >= 0 && ind < vec->Size();
+
+internal-op Index-Is-In-Vector
+type VV
+eval	auto op1 = z.aux->ToListVal(frame);
+	auto op2 = frame[z.v2].vector_val;
+	frame[z.v1].int_val = op2->Lookup(op1.get()) != nullptr;
+
+internal-op Index-Is-In-Vector
+type VC
+eval	auto op1 = z.aux->ToListVal(frame);
+	auto op2 = z.c.vector_val;
+	frame[z.v1].int_val = op2->Lookup(op1.get()) != nullptr;
+
+expr-op Cond
+type VVVV
+set-type $3
+eval	AssignV1(frame[z.v2].int_val ? CopyVal(frame[z.v3]) : CopyVal(frame[z.v4]))
+
+expr-op Cond
+type VVVC
+set-type $3
+eval	AssignV1(frame[z.v2].int_val ? CopyVal(frame[z.v3]) : CopyVal(z.c))
+
+expr-op Cond
+type VVCV
+set-type $3
+eval	AssignV1(frame[z.v2].int_val ? CopyVal(z.c) : CopyVal(frame[z.v3]))
+
+# Our statement structure doesn't accommodate two constants, so for
+# the singular case of a V ? C1 : C2 conditional, we split it into
+# two operations, V ? C1 and !V ? C2.
+op CondC1
+type VVC
+set-type $1
+eval	if ( frame[z.v2].int_val )
+		AssignV1(CopyVal(z.c))
+
+op CondC2
+set-type $1
+type VVC
+eval	if ( ! frame[z.v2].int_val )
+		AssignV1(CopyVal(z.c))
+
+########## Index Expressions ##########
+
+op IndexVecBoolSelect
+type VVV
+set-type $1
+eval	if ( frame[z.v2].vector_val->Size() != frame[z.v3].vector_val->Size() )
+		{
+		ZAM_run_time_error(z.loc, "size mismatch, boolean index and vector");
+		break;
+		}
+	auto vt = z.t->AsVectorType();
+	auto v2 = frame[z.v2].vector_val;
+	auto v3 = frame[z.v3].vector_val;
+	auto v = vector_bool_select(vt, v2, v3);
+	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = v.release();
+
+op IndexVecBoolSelect
+type VCV
+set-type $1
+eval	if ( z.c.vector_val->Size() != frame[z.v2].vector_val->Size() )
+		{
+		ZAM_run_time_error(z.loc, "size mismatch, boolean index and vector");
+		break;
+		}
+	auto vt = z.t->AsVectorType();
+	auto v2 = z.c.vector_val;
+	auto v3 = frame[z.v2].vector_val;
+	auto v = vector_bool_select(vt, v2, v3);
+	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = v.release();
+
+op IndexVecIntSelect
+type VVV
+set-type $1
+eval	auto vt = z.t->AsVectorType();
+	auto v2 = frame[z.v2].vector_val;
+	auto v3 = frame[z.v3].vector_val;
+	auto v = vector_int_select(vt, v2, v3);
+	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = v.release();
+
+op IndexVecIntSelect
+type VCV
+set-type $1
+eval	auto vt = z.t->AsVectorType();
+	auto v2 = z.c.vector_val;
+	auto v3 = frame[z.v2].vector_val;
+	auto v = vector_int_select(vt, v2, v3);
+	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = v.release();
+
+op Index
+type VVL
+custom-method return CompileIndex(n1, n2, l);
+
+op Index
+type VCL
+custom-method return CompileIndex(n, c, l);
+
+internal-op Index-Vec
+type VVV
+eval	auto vv = frame[z.v2].vector_val->RawVector();
+	auto& vec = vv->ConstVec();
+	auto ind = frame[z.v3].uint_val;
+	if ( ind >= vv->Size() )
+		ZAM_run_time_error(z.loc, "no such index");
+	AssignV1(CopyVal(vec[ind]))
+
+internal-op Index-Any-Vec
+type VVV
+eval	auto vv = frame[z.v2].vector_val->RawVector();
+	auto& vec = vv->ConstVec();
+	auto ind = frame[z.v3].uint_val;
+	if ( ind >= vv->Size() )
+		ZAM_run_time_error(z.loc, "no such index");
+	auto v = vec[ind].ToVal(vv->YieldType());
+	Unref(frame[z.v1].any_val);
+	frame[z.v1].any_val = v.release();
+
+internal-op Index-VecC
+type VVV
+eval	auto vv = frame[z.v2].vector_val->RawVector();
+	auto& vec = vv->ConstVec();
+	unsigned int ind = z.v3;
+	if ( ind >= vv->Size() )
+		ZAM_run_time_error(z.loc, "no such index");
+	AssignV1(CopyVal(vec[ind]))
+
+internal-op Index-Any-VecC
+type VVV
+eval	auto vv = frame[z.v2].vector_val->RawVector();
+	auto& vec = vv->ConstVec();
+	unsigned int ind = z.v3;
+	if ( ind >= vv->Size() )
+		ZAM_run_time_error(z.loc, "no such index");
+	auto v = vec[ind].ToVal(vv->YieldType());
+	Unref(frame[z.v1].any_val);
+	frame[z.v1].any_val = v.release();
+
+internal-op Index-Vec-Slice
+type VV
+eval	auto vt = z.t->AsVectorType();
+	auto vec = frame[z.v2].vector_val;
+	auto lv = z.aux->ToListVal(frame);
+	auto v = vector_index(vt, vec, lv.get());
+	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = v.release();
+
+internal-op Table-Index
+type VV
+eval	auto v2 = z.aux->ToListVal(frame);
+	auto v = frame[z.v2].table_val->Lookup(v2.get());
+	if ( ! v )
+		ZAM_run_time_error(z.loc, "no such index");
+	AssignV1(BuildVal(v, z.t))
+
+internal-assignment-op Table-Index1
+type VVV
+assign-val v
+eval	auto v2 = frame[z.v3].ToVal(z.t);
+	auto v_ptr = frame[z.v2].table_val->Lookup(v2.get());
+	auto v = v_ptr.get();
+	if ( ! v )
+		ZAM_run_time_error(z.loc, "no such index");
+
+internal-assignment-op Table-Index1
+type VVC
+assign-val v
+eval	auto v2 = z.c.ToVal(z.t);
+	auto v_ptr = frame[z.v2].table_val->Lookup(v2.get());
+	auto v = v_ptr.get();
+	if ( ! v )
+		ZAM_run_time_error(z.loc, "no such index");
+
+# This version is for a variable v3.
+internal-op Index-String
+type VVV
+eval	auto str = frame[z.v2].string_val->AsString();
+	auto len = str->Len();
+	auto idx = frame[z.v3].int_val;
+	if ( idx < 0 )
+		idx += len;
+	auto v = str->GetSubstring(idx, 1);
+	Unref(frame[z.v1].string_val);
+	frame[z.v1].string_val = new StringVal(v ? v : new BroString(""));
+
+# This version is for a constant v3.
+internal-op Index-StringC
+type VVV
+eval	auto str = frame[z.v2].string_val->AsString();
+	auto len = str->Len();
+	auto idx = z.v3;
+	if ( idx < 0 )
+		idx += len;
+	auto v = str->GetSubstring(idx, 1);
+	Unref(frame[z.v1].string_val);
+	frame[z.v1].string_val = new StringVal(v ? v : new BroString(""));
+
+internal-op Index-String-Slice
+type VV
+eval	auto str = frame[z.v2].string_val->AsString();
+	auto lv = z.aux->ToListVal(frame);
+	auto slice = index_string_slice(str, lv.get());
+	Unref(frame[z.v1].string_val);
+	frame[z.v1].string_val = new StringVal(slice);
+
+op AnyIndex
+type VVi
+set-type $1
+eval	auto lv = frame[z.v2].any_val->AsListVal();
+	if ( z.v3 < 0 || z.v3 >= lv->Length() )
+		reporter->InternalError("bad \"any\" element index");
+	IntrusivePtr<Val> elem = {NewRef{}, lv->Index(z.v3)};
+	if ( CheckAnyType(elem->Type(), z.t.get(), z.loc) )
+		AssignV1(BuildVal(elem, z.t))
+	else
+		ZAM_error = true;
+
+
+########## Constructors ##########
+
+# Table construction requires atypical evaluation of list elements
+# using information from their expression specifics.  We punt those
+# back to the interpreter.
+direct-unary-op Table-Constructor ConstructTable
+
+internal-op Construct-Table
+type VV
+eval	IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()};
+	IntrusivePtr<Attributes> attrs = {NewRef{}, z.attrs};
+	auto new_t = new TableVal(tt, attrs);
+	auto aux = z.aux;
+	auto n = aux->n;
+	auto ind_width = z.v2;
+	for ( auto i = 0; i < n; ++i )
+		{
+		auto indices = aux->ToIndices(frame, i, ind_width);
+		auto v = aux->ToVal(frame, i + ind_width);
+		new_t->Assign(indices.get(), v);
+		i += ind_width;
+		}
+	auto& t = frame[z.v1].table_val;
+	Unref(t);
+	t = new_t;
+
+direct-unary-op Set-Constructor ConstructSet
+
+internal-op Construct-Set
+type VV
+eval	IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()};
+	IntrusivePtr<Attributes> attrs = {NewRef{}, z.attrs};
+	auto new_s = new TableVal(tt, attrs);
+	auto aux = z.aux;
+	auto n = aux->n;
+	auto ind_width = z.v2;
+	for ( auto i = 0; i < n; i += ind_width )
+		{
+		auto indices = aux->ToIndices(frame, i, ind_width);
+		new_s->Assign(indices.get(), nullptr);
+		}
+	auto& s = frame[z.v1].table_val;
+	Unref(s);
+	s = new_s;
+
+direct-unary-op Record-Constructor ConstructRecord
+
+internal-op Construct-Record
+type V
+eval	auto rt = z.t->AsRecordType();
+	auto new_r = new RecordVal(rt);
+	auto aux = z.aux;
+	auto n = aux->n;
+	for ( auto i = 0; i < n; ++i )
+		new_r->Assign(i, aux->ToVal(frame, i));
+	auto& r = frame[z.v1].record_val;
+	Unref(r);
+	r = new_r;
+
+internal-op Construct-Known-Record
+type V
+eval	auto rt = z.t->AsRecordType();
+	auto new_r = new RecordVal(rt);
+	auto aux = z.aux;
+	auto n = aux->n;
+	auto map = aux->map;
+	for ( auto i = 0; i < n; ++i )
+		new_r->Assign(map[i], aux->ToVal(frame, i));
+	auto& r = frame[z.v1].record_val;
+	Unref(r);
+	r = new_r;
+
+direct-unary-op Vector-Constructor ConstructVector
+
+internal-op Construct-Vector
+type V
+eval	auto new_vv = new VectorVal(z.t->AsVectorType());
+	auto aux = z.aux;
+	auto n = aux->n;
+	for ( auto i = 0; i < n; ++i )
+		new_vv->Assign(i, aux->ToVal(frame, i));
+	auto& vv = frame[z.v1].vector_val;
+	Unref(vv);
+	vv = new_vv;
+
+########## Coercions ##########
+
+direct-unary-op Arith-Coerce ArithCoerce
+
+internal-op Coerce-UI
+type VV
+eval	auto v = frame[z.v2].int_val;
+	if ( v < 0 )
+		{
+		ZAM_run_time_error(z.loc, "underflow converting int to count");
+		break;
+		}
+	frame[z.v1].uint_val = bro_uint_t(v);
+
+internal-op Coerce-UI-Vec
+type VV
+eval	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = vec_coerce_UI(frame[z.v2].vector_val);
+
+internal-op Coerce-UD
+type VV
+eval	auto v = frame[z.v2].double_val;
+	if ( v < 0.0 )
+		{
+		ZAM_run_time_error(z.loc, "underflow converting double to count");
+		break;
+		}
+	if ( v > UINT64_MAX )
+		{
+		ZAM_run_time_error(z.loc, "overflow converting double to count");
+		break;
+		}
+	frame[z.v1].uint_val = bro_uint_t(v);
+
+internal-op Coerce-UD-Vec
+type VV
+eval	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = vec_coerce_UD(frame[z.v2].vector_val);
+
+internal-op Coerce-IU
+type VV
+eval	auto v = frame[z.v2].uint_val;
+	if ( v > INT64_MAX )
+		{
+		ZAM_run_time_error(z.loc, "overflow converting count to int");
+		break;
+		}
+	frame[z.v1].int_val = bro_int_t(v);
+
+internal-op Coerce-IU-Vec
+type VV
+eval	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = vec_coerce_IU(frame[z.v2].vector_val);
+
+internal-op Coerce-ID
+type VV
+eval	auto v = frame[z.v2].double_val;
+	if ( v < static_cast<double>(INT64_MIN) )
+		{
+		ZAM_run_time_error(z.loc, "underflow converting double to int");
+		break;
+		}
+	if ( v > static_cast<double>(INT64_MAX) )
+		{
+		ZAM_run_time_error(z.loc, "overflow converting double to int");
+		break;
+		}
+	frame[z.v1].int_val = bro_int_t(v);
+
+internal-op Coerce-ID-Vec
+type VV
+eval	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = vec_coerce_ID(frame[z.v2].vector_val);
+
+internal-op Coerce-DI
+type VV
+eval	frame[z.v1].double_val = double(frame[z.v2].int_val);
+
+internal-op Coerce-DI-Vec
+type VV
+eval	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = vec_coerce_DI(frame[z.v2].vector_val);
+
+internal-op Coerce-DU
+type VV
+eval	frame[z.v1].double_val = double(frame[z.v2].uint_val);
+
+internal-op Coerce-DU-Vec
+type VV
+eval	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = vec_coerce_DU(frame[z.v2].vector_val);
+
+direct-unary-op Record-Coerce RecordCoerce
+
+internal-op Record-Coerce
+type VV
+eval	auto rt = z.t->AsRecordType();
+	auto v = frame[z.v2].record_val;
+	auto map = z.aux->ints;
+	auto map_size = z.aux->n;
+	auto to_r = coerce_to_record(rt, v, map, map_size);
+	Unref(frame[z.v1].record_val);
+	frame[z.v1].record_val = to_r.release();
+
+direct-unary-op Table-Coerce TableCoerce
+
+internal-op Table-Coerce
+type VV
+eval	auto tv = frame[z.v2].table_val;
+	if ( tv->Size() > 0 )
+		{
+		ZAM_run_time_error(z.loc, "coercion of non-empty table/set");
+		break;
+		}
+	IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()};
+	IntrusivePtr<Attributes> attrs = {NewRef{}, tv->Attrs()};
+	auto t = make_intrusive<TableVal>(tt, attrs);
+	Unref(frame[z.v1].table_val);
+	frame[z.v1].table_val = t.release();
+
+direct-unary-op Vector-Coerce VectorCoerce
+
+internal-op Vector-Coerce
+type VV
+eval	if ( frame[z.v2].vector_val->Size() > 0 )
+		{
+		ZAM_run_time_error(z.loc, "coercion of non-empty vector");
+		break;
+		}
+	auto t = z.t->Ref()->AsVectorType();
+	auto vv = new VectorVal(t);
+	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = vv;
+
+unary-expr-op To-Any-Coerce
+op-type X
+set-type $2
+eval	AssignV1(ZAMValUnion(frame[z.v2].ToVal(z.t), any_base_type))
+
+unary-expr-op From-Any-Coerce
+op-type X
+set-type $1
+eval	auto v = frame[z.v2].any_val;
+	if ( z.t->Tag() == TYPE_VECTOR )
+		{
+		auto t = v->Type();
+		if ( t->Tag() != TYPE_VECTOR )
+			{
+			ZAM_run_time_error(z.loc, "RHS is not a vector");
+			break;
+			}
+		if ( ! same_type(z.t.get(), t) )
+			{
+			ZAM_run_time_error(z.loc, "incompatible vectors");
+			break;
+			}
+		::Ref(v);
+		Unref(frame[z.v1].vector_val);
+		frame[z.v1].vector_val = v->AsVectorVal();
+		}
+	else
+		AssignV1(ZAMValUnion({NewRef{}, v}, z.t))
+
+
+########## Aggregate Assignments ##########
+
+op Vector-Elem-Assign
+op1-read
+type VVV
+eval	auto ind = frame[z.v2].uint_val;
+	auto vv = frame[z.v1].vector_val->RawVector();
+	vv->SetYieldType(z.t);
+	if ( ! vv->CopyElement(ind, frame[z.v3]) )
+		ZAM_run_time_error(z.loc, "value used but not set");
+
+op Vector-Elem-Assign-Any
+op1-read
+type VVV
+eval	auto ind = frame[z.v2].uint_val;
+	auto vv = frame[z.v1].vector_val->RawVector();
+	vv->SetYieldType(z.t);
+	auto any_v = frame[z.v3].any_val;
+	auto any_z = ZAMValUnion({NewRef{}, any_v}, {NewRef{}, any_v->Type()});
+	vv->SetElement(ind, any_z);
+
+op Vector-Elem-Assign
+op1-read
+type VVC
+eval	auto ind = frame[z.v2].uint_val;
+	auto vv = frame[z.v1].vector_val->RawVector();
+	vv->SetYieldType(z.t);
+	(void) vv->CopyElement(ind, z.c);
+
+# These versions are used when the constant is the index, not the new value.
+op Vector-Elem-Assign
+op1-read
+type VVi
+eval	auto vv = frame[z.v1].vector_val->RawVector();
+	vv->SetYieldType(z.t);
+	if ( ! vv->CopyElement(z.v3, frame[z.v2]) )
+		ZAM_run_time_error(z.loc, "value used but not set");
+
+op Vector-Elem-Assign-Any
+op1-read
+type VVi
+eval	auto vv = frame[z.v1].vector_val->RawVector();
+	vv->SetYieldType(z.t);
+	auto any_v = frame[z.v2].any_val;
+	auto any_z = ZAMValUnion({NewRef{}, any_v}, {NewRef{}, any_v->Type()});
+	vv->SetElement(z.v3, any_z);
+
+internal-op Vector-Slice-Assign
+op1-read
+type VV
+eval	IntrusivePtr<Val> vec = {NewRef{}, frame[z.v1].vector_val};
+	auto slice = z.aux->ToListVal(frame);
+	IntrusivePtr<Val> vals = {NewRef{}, frame[z.v2].vector_val};
+	auto error = assign_to_index(vec, slice, vals);
+	if ( error )
+		ZAM_run_time_error(z.loc, error);
+
+
+internal-op Table-Elem-Assign
+op1-read
+type VV
+eval	auto indices = z.aux->ToListVal(frame);
+	auto val = frame[z.v2].ToVal(z.t);
+	frame[z.v1].table_val->Assign(indices.get(), val);
+
+internal-op Table-Elem-Assign
+op1-read
+type VC
+eval	auto indices = z.aux->ToListVal(frame);
+	auto val = z.c.ToVal(z.t);
+	frame[z.v1].table_val->Assign(indices.get(), val);
+
+
+### Move up
+assign-op Field-LHS-Assign
+op1-read
+type F
+
+########## Function Calls ##########
+
+# A call with no arguments and no return value.
+internal-op Call0
+op1-read
+type X
+side-effects
+num-call-args 0
+
+# A call with no arguments and a return value.
+internal-assignment-op Call0
+type V
+side-effects OP_CALL0_X OP_X
+assign-val v
+num-call-args 0
+
+# Calls with 1 argument and no return value.
+internal-op Call1
+op1-read
+type V
+side-effects
+num-call-args 1
+
+internal-op Call1
+op1-read
+type C
+side-effects
+num-call-args 1
+
+# Same but with a return value.
+internal-assignment-op Call1
+type VV
+side-effects OP_CALL1_V OP_V
+assign-val v
+num-call-args 1
+
+internal-assignment-op Call1
+type VC
+side-effects OP_CALL1_C OP_C
+assign-val v
+num-call-args 1
+
+# Calls with 2-5 arguments and no return value.
+internal-op Call2
+type X
+side-effects
+num-call-args 2
+
+# Same with a return value.
+internal-assignment-op Call2
+type V
+side-effects OP_CALL2_X OP_X
+assign-val v
+num-call-args 2
+
+internal-op Call3
+type X
+side-effects
+num-call-args 3
+
+# Same with a return value.
+internal-assignment-op Call3
+type V
+side-effects OP_CALL3_X OP_X
+assign-val v
+num-call-args 3
+
+internal-op Call4
+type X
+side-effects
+num-call-args 4
+
+# Same with a return value.
+internal-assignment-op Call4
+type V
+side-effects OP_CALL4_X OP_X
+assign-val v
+num-call-args 4
+
+internal-op Call5
+type X
+side-effects
+num-call-args 5
+
+# Same with a return value.
+internal-assignment-op Call5
+type V
+side-effects OP_CALL5_X OP_X
+assign-val v
+num-call-args 5
+
+# ... and with an arbitrary number of arguments.
+
+internal-op CallN
+type X
+side-effects
+num-call-args n
+
+# Same with a return value.
+internal-assignment-op CallN
+type V
+side-effects OP_CALLN_X OP_X
+assign-val v
+num-call-args n
+
+# Same, but for indirect calls via a local variable.
+internal-op IndCallN
+op1-read
+type V
+side-effects
+indirect-call
+num-call-args n
+
+# Same with a return value.
+internal-assignment-op IndCallN
+type VV
+side-effects OP_INDCALLN_V OP_V
+assign-val v
+indirect-call
+num-call-args n
+
+########## Statements ##########
+
+op Schedule
+type ViHL
+op1-read
+custom-method return CompileSchedule(n, nullptr, i, h, l);
+eval	if ( terminating )
+		break;
+	double dt = frame[z.v1].double_val;
+	if ( z.v2 ) dt += network_time;
+	auto handler = EventHandlerPtr(z.event_handler);
+	val_vec args;
+	z.aux->FillValVec(args, frame);
+	auto timer = new ScheduleTimer(z.event_handler, std::move(args), dt);
+	timer_mgr->Add(timer);
+
+op Schedule
+type CiHL
+op1-read
+custom-method return CompileSchedule(nullptr, c, i, h, l);
+eval	if ( terminating )
+		break;
+	double dt = z.c.double_val;
+	if ( z.v1 ) dt += network_time;
+	auto hp = EventHandlerPtr(z.event_handler);
+	val_vec args;
+	z.aux->FillValVec(args, frame);
+	auto timer = new ScheduleTimer(z.event_handler, std::move(args), dt);
+	timer_mgr->Add(timer);
+
+internal-op Schedule0
+type ViH
+op1-read
+eval	if ( terminating )
+		break;
+	double dt = frame[z.v1].double_val;
+	if ( z.v2 ) dt += network_time;
+	auto handler = EventHandlerPtr(z.event_handler);
+	val_vec args;
+	auto timer = new ScheduleTimer(z.event_handler, std::move(args), dt);
+	timer_mgr->Add(timer);
+
+internal-op Schedule0
+type CiH
+op1-read
+eval	if ( terminating )
+		break;
+	double dt = z.c.double_val;
+	if ( z.v1 ) dt += network_time;
+	auto hp = EventHandlerPtr(z.event_handler);
+	val_vec args;;
+	auto timer = new ScheduleTimer(z.event_handler, std::move(args), dt);
+	timer_mgr->Add(timer);
+
+
+op Event
+type HL
+op1-read
+custom-method return CompileEvent(h, l);
+eval	val_vec args;
+	z.aux->FillValVec(args, frame);
+	mgr.Enqueue(z.event_handler, std::move(args));
+
+internal-op Event0
+type X
+eval	val_vec args(0);
+	mgr.Enqueue(z.event_handler, std::move(args));
+
+internal-op Event1
+type V
+op1-read
+eval	val_vec args(1);
+	args[0] = frame[z.v1].ToVal(z.t);
+	mgr.Enqueue(z.event_handler, std::move(args));
+
+internal-op Event2
+type VV
+op1-read
+eval	val_vec args(2);
+	args[0] = frame[z.v1].ToVal(z.t);
+	args[1] = frame[z.v2].ToVal(z.t2);
+	mgr.Enqueue(z.event_handler, std::move(args));
+
+internal-op Event3
+type VVV
+op1-read
+eval	val_vec args(3);
+	args[0] = frame[z.v1].ToVal(z.t);
+	args[1] = frame[z.v2].ToVal(z.t2);
+	auto types = z.aux->types;
+	args[2] = frame[z.v3].ToVal(types[2]);
+	mgr.Enqueue(z.event_handler, std::move(args));
+
+internal-op Event4
+type VVVV
+op1-read
+eval	val_vec args(4);
+	args[0] = frame[z.v1].ToVal(z.t);
+	args[1] = frame[z.v2].ToVal(z.t2);
+	auto types = z.aux->types;
+	args[2] = frame[z.v3].ToVal(types[2]);
+	args[3] = frame[z.v4].ToVal(types[3]);
+	mgr.Enqueue(z.event_handler, std::move(args));
+
+
+op Return
+type X
+eval	ret_u = nullptr;
+	pc = end_pc;
+	continue;
+
+op Return
+op1-read
+type V
+set-type $1
+eval	ret_u = &frame[z.v1];
+	ret_type = z.t;
+	pc = end_pc;
+	continue;
+
+op Return
+type C
+eval	ret_u = &z.c;
+	ret_type = z.t;
+	pc = end_pc;
+	continue;
+
+
+# Branch on the value of v1 using switch table v2, with default branch to v3
+internal-op SwitchI
+type VVV
+op1-read
+eval	auto v = frame[z.v1].int_val;
+	SWITCH_BODY(int_cases,)
+
+internal-op SwitchU
+op1-read
+type VVV
+eval	auto v = frame[z.v1].uint_val;
+	SWITCH_BODY(uint_cases,)
+
+internal-op SwitchD
+op1-read
+type VVV
+eval	auto v = frame[z.v1].double_val;
+	SWITCH_BODY(double_cases,)
+
+internal-op SwitchS
+op1-read
+type VVV
+eval	auto vs = frame[z.v1].string_val->AsString()->Render();
+	std::string v(vs);
+	SWITCH_BODY(str_cases,delete[] vs;)
+
+internal-op SwitchA
+op1-read
+type VVV
+eval	auto v = frame[z.v1].addr_val->AsAddr().AsString();
+	SWITCH_BODY(str_cases,)
+
+internal-op SwitchN
+op1-read
+type VVV
+eval	auto v = frame[z.v1].subnet_val->AsSubNet().AsString();
+	SWITCH_BODY(str_cases,)
+	auto t = str_cases[z.v2];
+
+
+internal-op Branch-If-Not-Type
+op1-read
+type VV
+eval	auto v = frame[z.v1].any_val;
+	if ( ! can_cast_value_to_type(v, z.t.get()) )
+		BRANCH(v2)
+
+
+internal-op Init-Table-Loop
+type VV
+eval	auto ii = z.aux->iter_info;
+	ii->tv = frame[z.v2].table_val;
+	ii->loop_vals = ii->tv->AsTable();
+	ii->c = ii->loop_vals->InitForIteration();
+	ii->value_var_type = z.t;
+	frame[z.v1].iter_info = ii;
+
+internal-op Init-Table-Loop-Recursive
+type VVV
+eval	auto ii = z.aux->iter_info;
+	auto& nii = (*iters)[z.v3];
+	nii.loop_vars = ii->loop_vars;
+	nii.loop_var_types = ii->loop_var_types;
+	ii = &nii;
+	ii->tv = frame[z.v2].table_val;
+	ii->loop_vals = ii->tv->AsTable();
+	ii->c = ii->loop_vals->InitForIteration();
+	ii->value_var_type = z.t;
+	frame[z.v1].iter_info = ii;
+
+internal-op Next-Table-Iter
+op1-read
+# v1 = iteration info
+# v2 = branch target if loop done
+type VV
+eval	HashKey* k;
+	auto ii = frame[z.v1].iter_info;
+	TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c);
+	if ( ! current_tev )
+		BRANCH(v2)
+	auto ind_lv = ii->tv->RecoverIndex(k);
+	delete k;
+	for ( int i = 0; i < ind_lv->Length(); i++ )
+		{
+		IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)};
+		auto t = ii->loop_var_types[i];
+		auto& var = frame[ii->loop_vars[i]];
+		if ( IsManagedType(t) )
+			DeleteManagedType(var);
+		var = BuildVal(ind_lv_p, ii->loop_var_types[i]);
+		}
+
+internal-op Next-Table-Iter-No-Vars
+op1-read
+# v1 = iteration info
+# v2 = branch target if loop done
+type VV
+eval	auto ii = frame[z.v1].iter_info;
+	TableEntryVal* current_tev = ii->loop_vals->NextEntry(ii->c);
+	if ( ! current_tev )
+		BRANCH(v2)
+
+internal-op Next-Table-Iter-Val-Var
+# v1 = slot of the "ValueVar"
+# v2 = iteration info
+# v3 = branch target if loop done
+type VVV
+eval	HashKey* k;
+	auto ii = frame[z.v2].iter_info;
+	TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c);
+	if ( ! current_tev )
+		BRANCH(v3)
+	auto ind_lv = ii->tv->RecoverIndex(k);
+	delete k;
+	IntrusivePtr<Val> tev_p = {NewRef{}, current_tev->Value()};
+	auto val_var_t = ii->value_var_type;
+	if ( z.is_managed )
+		DeleteManagedType(frame[z.v1]);
+	frame[z.v1] = BuildVal(tev_p, val_var_t);
+	for ( int i = 0; i < ind_lv->Length(); i++ )
+		{
+		IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)};
+		auto ind = ii->loop_vars[i];
+		auto loop_var_t = ii->loop_var_types[i];
+		if ( IsManagedType(loop_var_t) )
+			DeleteManagedType(frame[ind]);
+		frame[ind] = BuildVal(ind_lv_p, loop_var_t);
+		}
+
+internal-op Next-Table-Iter-Val-Var-No-Vars
+# v1 = slot of the "ValueVar"
+# v2 = iteration info
+# v3 = branch target if loop done
+type VVV
+eval	auto ii = frame[z.v2].iter_info;
+	TableEntryVal* current_tev = ii->loop_vals->NextEntry(ii->c);
+	if ( ! current_tev )
+		BRANCH(v3)
+	IntrusivePtr<Val> tev_p = {NewRef{}, current_tev->Value()};
+	auto val_var_t = ii->value_var_type;
+	if ( z.is_managed )
+		DeleteManagedType(frame[z.v1]);
+	frame[z.v1] = BuildVal(tev_p, val_var_t);
+
+internal-op Init-Vector-Loop
+type VV
+eval	auto ii = z.aux->iter_info;
+	ii->vv = frame[z.v2].vector_val->RawVector();
+	ii->n = ii->vv->Size();
+	ii->iter = 0;
+	frame[z.v1].iter_info = ii;
+
+internal-op Init-Vector-Loop-Recursive
+type VVV
+eval	auto ii = z.aux->iter_info;
+	auto& nii = (*iters)[z.v3];
+	nii.vec_type = ii->vec_type;
+	nii.yield_type = ii->yield_type;
+	ii = &nii;
+	ii->vv = frame[z.v2].vector_val->RawVector();
+	ii->n = ii->vv->Size();
+	ii->iter = 0;
+	frame[z.v1].iter_info = ii;
+
+internal-op Next-Vector-Iter
+# v1 = iteration variable
+# v2 = iteration info
+# v3 = branch target if loop done
+type VVV
+eval	auto ii = frame[z.v2].iter_info;
+	if ( ii->iter >= ii->n )
+		BRANCH(v3)
+	auto& vv = ii->vv->ConstVec();
+	if ( vv[ii->iter].IsNil(ii->yield_type) )
+		{
+		++ii->iter;
+		--pc;
+		break;
+		}
+	frame[z.v1].uint_val = ii->iter;
+	++ii->iter;
+
+internal-op Init-String-Loop
+type VV
+eval	auto ii = z.aux->iter_info;
+	ii->s = frame[z.v2].string_val->AsString();
+	ii->iter = 0;
+	ii->n = ii->s->Len();
+	frame[z.v1].iter_info = ii;
+
+internal-op Init-String-Loop-Recursive
+type VVV
+eval	auto ii = &(*iters)[z.v3];
+	ii->s = frame[z.v2].string_val->AsString();
+	ii->iter = 0;
+	ii->n = ii->s->Len();
+	frame[z.v1].iter_info = ii;
+
+internal-op Next-String-Iter
+# v1 = iteration variable
+# v2 = iteration info
+# v3 = branch target if loop done
+type VVV
+eval	auto ii = frame[z.v2].iter_info;
+	auto sval = ii->s;
+	if ( ii->iter >= ii->n )
+		BRANCH(v3)
+	auto bytes = (const char*) sval->Bytes() + ii->iter;
+	auto sv = new StringVal(1, bytes);
+	Unref(frame[z.v1].string_val);
+	frame[z.v1].string_val = sv;
+	++ii->iter;
+
+internal-op End-Loop
+op1-read
+type V
+eval	auto ii = frame[z.v1].iter_info;
+	if ( ii->c )
+		ii->loop_vals->StopIteration(ii->c);
+	ii->c = nullptr;
+	ii->vv = nullptr;
+
+
+op When
+op1-read
+type VVVV
+eval	auto when_body = new ResumptionAM(this, z.v2);
+	auto timeout_body = new ResumptionAM(this, z.v3);
+	new trigger::Trigger(z.e, when_body, timeout_body, frame[z.v1].double_val, f, z.v4, z.loc);
+
+op When
+type VVVC
+eval	auto when_body = new ResumptionAM(this, z.v1);
+	auto timeout_body = new ResumptionAM(this, z.v2);
+	new trigger::Trigger(z.e, when_body, timeout_body, z.c.double_val, f, z.v3, z.loc);
+
+op When
+type VV
+eval	auto when_body = new ResumptionAM(this, z.v2);
+	new trigger::Trigger(z.e, when_body, nullptr, -1.0, f, z.v1, z.loc);
+
+op CheckAnyLen
+op1-read
+type Vi
+eval	auto v = frame[z.v1].list_val;
+	if ( v->Vals()->length() != z.v2 )
+		ZAM_run_time_error(z.loc, "mismatch in list lengths");
+
+op Print
+type O
+eval	do_print(z.aux->ToValVec(frame));
+method-post z.aux = v->aux;
+
+op Print1
+op1-read
+type V
+set-type $1
+eval	std::vector<IntrusivePtr<Val>> vals;
+	vals.push_back(frame[z.v1].ToVal(z.t));
+	do_print(vals);
+
+op Print1
+op1-read
+type C
+set-type $1
+eval	std::vector<IntrusivePtr<Val>> vals;
+	vals.push_back(z.c.ToVal(z.t));
+	do_print(vals);
+
+
+internal-op If-Else
+op1-read
+type VV
+eval	if ( ! frame[z.v1].int_val ) BRANCH(v2)
+
+internal-op If
+op1-read
+type VV
+eval	if ( ! frame[z.v1].int_val ) BRANCH(v2)
+
+internal-op If-Not
+op1-read
+type VV
+eval	if ( frame[z.v1].int_val ) BRANCH(v2)
+
+
+op AddStmt
+op1-read
+type VO
+eval	auto index = z.aux->ToListVal(frame);
+	frame[z.v1].table_val->Assign(index.get(), nullptr);
+method-post z.aux = v->aux;
+
+op AddStmt1
+op1-read
+set-type $2
+type VV
+eval	auto index = frame[z.v2].ToVal(z.t);
+	frame[z.v1].table_val->Assign(index.get(), nullptr);
+
+op AddStmt1
+op1-read
+type VC
+eval	auto index = z.c.ToVal(z.t);
+	frame[z.v1].table_val->Assign(index.get(), nullptr);
+
+
+op DelTable
+op1-read
+type VO
+eval	auto index = z.aux->ToListVal(frame);
+	frame[z.v1].table_val->Delete(index.get());
+method-post z.aux = v->aux;
+
+op DelField
+op1-read
+type Vi
+eval	frame[z.v1].record_val->RawFields()->DeleteField(z.v2);
+
+
+internal-op Init-Record
+type V
+eval	auto r = new RecordVal(z.t->AsRecordType());
+	Unref(frame[z.v1].record_val);
+	frame[z.v1].record_val = r;
+
+internal-op Init-Vector
+type V
+eval	auto vt = z.t->AsVectorType();
+	auto yt = vt->YieldType();
+	auto vec = new VectorVal(vt);
+	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = vec;
+
+internal-op Init-Table
+type V
+eval	IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()};
+	IntrusivePtr<Attributes> attrs = {NewRef{}, z.attrs};
+	auto t = new TableVal(tt, attrs);
+	Unref(frame[z.v1].table_val);
+	frame[z.v1].table_val = t;
+
+
+########################################
+# Internal
+########################################
+
+op Sync-Globals
+type X
+eval	for ( auto i = 0; i < num_globals; ++i )
+		{
+		if ( global_state[i] == GS_DIRTY )
+			{
+			auto id = globals[i].id;
+			auto slot = globals[i].slot;
+			auto t = id->Type();
+			auto v = frame[slot].ToVal({NewRef{}, t});
+			id->SetVal(v);
+			}
+		global_state[i] = GS_UNLOADED;
+		}
+
+op Dirty-Global
+op1-internal
+type V
+eval	global_state[z.v1] = GS_DIRTY;
+
+# These two are only needed for type-based switch statements.  Could think
+# about replacing them using CoerceFromAnyExpr.
+op Assign-Any
+type VV
+set-type $2
+eval	auto v = frame[z.v2].ToVal(z.t);
+	frame[z.v1].any_val = v.release();
+
+op Assign-Any
+type VC
+set-type $2
+eval	auto v = z.c.ToVal(z.t);
+	frame[z.v1].any_val = v.release();
+
+# Lazy way to assign without having to track the specific type of
+# a constant.
+internal-op Assign-Const
+type VC
+eval	AssignV1(BuildVal(z.c.ToVal(z.t), z.t))
+
+internal-assignment-op Load-Val
+type VV
+assign-val v
+eval	auto v = f->NthElement(z.v2);
+
+internal-assignment-op Load-Global
+type VV
+assign-val v
+eval	if ( global_state[z.v2] != GS_UNLOADED )
+		break;
+	global_state[z.v2] = GS_CLEAN;
+	auto v = z.aux->id_val->ID_Val();
+	if ( ! v )
+		{
+		ZAM_run_time_error(z.loc, "value used but not set", z.aux->id_val);
+		break;
+		}
+
+# We need a special form here for loading global types, as they don't
+# fit the usual template.
+internal-op Load-Global-Type
+type VV
+eval	if ( global_state[z.v2] != GS_UNLOADED )
+		break;
+	global_state[z.v2] = GS_CLEAN;
+	auto& v = frame[z.v1].type_val;
+	Unref(v);
+	IntrusivePtr<BroType> t = {NewRef{}, z.aux->id_val->AsType()};
+	v = new TypeType(t);
+
+internal-op Store-Val
+op1-read
+type VV
+eval	auto val = frame[z.v1].ToVal(z.t);
+	f->SetElement(z.v2, val.release());
+
+### This now should work as just an ordinary Store-Val.
+internal-op Store-Any-Val
+op1-read
+type VV
+eval	auto v = frame[z.v1].any_val->Ref();
+	f->SetElement(z.v2, v);
+
+internal-op Copy-To
+type VC
+set-type $2
+eval	AssignV1(CopyVal(z.c))
+
+internal-op GoTo
+type V
+eval	BRANCH(v1)
+
+internal-op Hook-Break
+type X
+eval	flow = FLOW_BREAK;
+	pc = end_pc;
+	continue;
+
+
+# Make sure that the given vector-of-any is either empty or in fact
+# has the expected concrete internal type.
+internal-op Check-Any-Vec
+op1-read
+type V
+eval	auto any_vec = frame[z.v1].vector_val->RawVector();
+	auto at = any_vec->YieldType();
+	if ( ! at )
+		break;
+	if ( at->Tag() == TYPE_ANY && any_vec->ConstVec().size() > 0 )
+		reporter->InternalError("non-concrete vector-of-any");
+	if ( ! CheckAnyType(at.get(), z.t.get(), z.loc) )
+		ZAM_error = true;
+
+# Transform the given vector-of-any to a concrete internal type.
+internal-op Transform-Any-Vec
+op1-read-write
+type V
+eval	auto any_vec = frame[z.v1].vector_val->RawVector();
+	auto at = any_vec->YieldType();
+	if ( ! at || at->Tag() == TYPE_ANY )
+		{
+		if ( at && any_vec->ConstVec().size() > 0 )
+			reporter->InternalError("concretizing non-empty vector-of-any");
+		any_vec->SetYieldType(z.t);
+		}
+
+# Transform the given vector-of-any (v1) to be compatible with having one of
+# its elements assigned to the dynamic type of the "any" value (v2).
+internal-op Transform-Any-Vec2
+op1-read-write
+type VV
+eval	auto vt = frame[z.v2].any_val->Type();
+	auto any_vec = frame[z.v1].vector_val->RawVector();
+	auto at = any_vec->YieldType();
+	if ( ! at || at->Tag() == TYPE_ANY )
+		{
+		if ( at && any_vec->ConstVec().size() > 0 )
+			reporter->InternalError("concretizing non-empty vector-of-any");
+		any_vec->SetYieldType({NewRef{}, vt});
+		}
+	else if ( ! same_type(at.get(), vt) )
+		{
+		reporter->Error("inconsistent types for vector-of-any: %s vs. %s", type_name(at->Tag()), type_name(vt->Tag()));
+		ZAM_error = true;
+		}
+
+
+########################################
+# Built-in Functions
+########################################
+
+internal-op Sub-Bytes
+type VVVV
+eval	SUB_BYTES(frame[z.v2], frame[z.v3].uint_val, frame[z.v4].int_val)
+
+internal-op Sub-Bytes
+type VVVi
+eval	SUB_BYTES(frame[z.v2], frame[z.v3].uint_val, z.v4)
+
+internal-op Sub-Bytes
+type VViV
+eval	SUB_BYTES(frame[z.v2], bro_uint_t(z.v4), frame[z.v3].int_val)
+
+internal-op Sub-Bytes
+type VVii
+eval	SUB_BYTES(frame[z.v2], bro_uint_t(z.v3), z.v4)
+
+internal-op Sub-Bytes
+type VVVC
+eval	SUB_BYTES(z.c, frame[z.v2].uint_val, frame[z.v3].uint_val)
+
+internal-op Sub-Bytes
+type VViC
+eval	SUB_BYTES(z.c, frame[z.v2].uint_val, z.v3)
+
+internal-op Sub-Bytes
+type ViVC
+eval	SUB_BYTES(z.c, bro_uint_t(z.v3), frame[z.v2].uint_val)
+
+internal-op Sub-Bytes
+type ViiC
+eval	SUB_BYTES(z.c, bro_uint_t(z.v2), z.v3)
+
+internal-op To-Lower
+type VV
+eval	auto sv = ZAM_to_lower(frame[z.v2].string_val);
+	Unref(frame[z.v1].string_val);
+	frame[z.v1].string_val = sv;
+
+# A ZAM version of Log::__write.  In calls to it, the first argument
+# is generally a constant (enum) *if we inlined*, but otherwise a
+# parameter, so we support both VVV ad VVC.
+#
+# It's actually the case that the return value is pretty much always
+# ignored ... plus optimization can elide it away.  See the second
+# pair of built-ins for versions that discard the return value.
+#
+# Could speed things up further by modifying the Write method to just
+# take the raw enum value, as it appears that that's all that's ever
+# actually used.
+
+internal-op Log-Write
+side-effects
+type VVV
+eval	auto id = frame[z.v2].ToVal(log_ID_enum_type);
+	auto columns = frame[z.v3].ToVal(z.t);
+	bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
+	frame[z.v1].int_val = result;
+
+internal-op Log-WriteC
+side-effects
+type VV
+eval	auto id = z.aux->constants[0];
+	auto columns = frame[z.v2].ToVal(z.t);
+	bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
+	frame[z.v1].int_val = result;
+
+# Versions that discard the return value.
+internal-op Log-Write
+side-effects
+op1-read
+type VV
+eval	auto id = frame[z.v1].ToVal(log_ID_enum_type);
+	auto columns = frame[z.v2].ToVal(z.t);
+	(void) log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
+
+internal-op Log-WriteC
+side-effects
+op1-read
+type V
+eval	auto id = z.aux->constants[0];
+	auto columns = frame[z.v1].ToVal(z.t);
+	(void) log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
+
+internal-op Broker-Flush-Logs
+side-effects
+type V
+eval	frame[z.v1].uint_val = broker_mgr->FlushLogBuffers();
+
+internal-op Broker-Flush-Logs
+side-effects
+type X
+eval	(void) broker_mgr->FlushLogBuffers();
+
+internal-op Get-Port-Transport-Proto
+type VV
+eval	auto mask = frame[z.v2].uint_val & PORT_SPACE_MASK;
+	auto v = 0; /* TRANSPORT_UNKNOWN */
+	if ( mask == TCP_PORT_MASK )
+		v = 1;
+	else if ( mask == UDP_PORT_MASK )
+		v = 2;
+	else if ( mask == ICMP_PORT_MASK )
+		v = 3;
+	frame[z.v1].uint_val = v;
+
+internal-op Network-Time
+type V
+eval	frame[z.v1].double_val = network_time;
+
+internal-op Current-Time
+type V
+eval	frame[z.v1].double_val = current_time();
+
+internal-op Reading-Live-Traffic
+type V
+eval	frame[z.v1].int_val = reading_live;
+
+internal-op Reading-Traces
+type V
+eval	frame[z.v1].int_val = reading_traces;
+
+internal-op StrStr
+type VVV
+eval	auto big = frame[z.v2].string_val;
+	auto little = frame[z.v3].string_val;
+	frame[z.v1].int_val = 1 + big->AsString()->FindSubstring(little->AsString());
+
+internal-op StrStr
+type VCV
+eval	auto big = z.c.string_val;
+	auto little = frame[z.v2].string_val;
+	frame[z.v1].int_val = 1 + big->AsString()->FindSubstring(little->AsString());
+
+internal-op StrStr
+type VVC
+eval	auto big = frame[z.v2].string_val;
+	auto little = z.c.string_val;
+	frame[z.v1].int_val = 1 + big->AsString()->FindSubstring(little->AsString());
+
+internal-op Analyzer--Name
+type VV
+eval	auto atype = frame[z.v2].ToVal(z.t);
+	auto& name = analyzer_mgr->GetComponentName(atype->AsEnumVal());
+	Unref(frame[z.v1].string_val);
+	frame[z.v1].string_val = new StringVal(name);
+
+internal-op Files--Enable-Reassembly
+op1-read
+type V
+eval	auto f = frame[z.v1].string_val->CheckString();
+	file_mgr->EnableReassembly(f);
+
+internal-op Files--Set-Reassembly-Buffer
+op1-read
+type VV
+eval	auto f = frame[z.v1].string_val->CheckString();
+	file_mgr->SetReassemblyBuffer(f, frame[z.v2].uint_val);
+
+internal-op Files--Set-Reassembly-Buffer
+op1-read
+type VC
+eval	auto f = frame[z.v1].string_val->CheckString();
+	file_mgr->SetReassemblyBuffer(f, bro_uint_t(z.v2));

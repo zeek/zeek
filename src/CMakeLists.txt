@@ -217,6 +217,36 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+# define a command that's used to run the gen-compiler-templates.sh script
+# building the bro binary depends on the outputs of this script
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CompilerBaseDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsDirectDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsC1.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsC2.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsC3.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsV.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsFieldsDefsC1.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsFieldsDefsC2.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsFieldsDefsV.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-AssignFlavorsDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Conds.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-SubDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Op1FlavorsDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpSideEffects.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsNamesDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsEvalDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Vec1EvalDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Vec2EvalDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsMethodsDefs.h
+                   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/Gen-ZAM
+                   ARGS ${CMAKE_CURRENT_SOURCE_DIR}/script_opt/ZAM/Ops.in
+                   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Gen-ZAM
+                           ${CMAKE_CURRENT_SOURCE_DIR}/script_opt/ZAM/Ops.in
+                   COMMENT "[sh] Generating ZAM operations"
+                   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
+
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
@@ -347,6 +377,10 @@ set(MAIN_SRCS
 set(THIRD_PARTY_SRCS
     3rdparty/sqlite3.c
 )
+                          
+set(GEN_ZAM_SRCS
+    script_opt/ZAM/Gen-ZAM.cc
+)
 
 # Highwayhash. Highwayhash is a bit special since it has architecture dependent code...
 
@@ -414,12 +448,14 @@ set(zeek_SRCS
     ${FLEX_Scanner_INPUT}
     ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
+    ${CMAKE_CURRENT_BINARY_DIR}/CompilerBaseDefs.h
     ${THIRD_PARTY_SRCS}
     ${HH_SRCS}
     ${MAIN_SRCS}
 )
 
 collect_headers(zeek_HEADERS ${zeek_SRCS})
+collect_headers(GEN_ZAM_HEADERS ${GEN_ZAM_SRCS})
 
 add_library(zeek_objs OBJECT ${zeek_SRCS})
 
@@ -434,6 +470,8 @@ target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS
 set_target_properties(zeek PROPERTIES ENABLE_EXPORTS TRUE)
 
 install(TARGETS zeek DESTINATION bin)
+
+add_executable(Gen-ZAM ${GEN_ZAM_SRCS} ${GEN_ZAM_HEADERS})
 
 # Install wrapper script for Bro-to-Zeek renaming.
 include(InstallSymlink)

@@ -50,6 +50,9 @@ struct AnalyOpt {
 	// analyzes nested records in depth.  Warning: with the current
 	// data structures this greatly increases analysis time.
 	int usage_issues = 0;
+
+	bool gen_ZAM = false;
+	bool dump_ZAM = false;
 };
 
 extern AnalyOpt analysis_options;

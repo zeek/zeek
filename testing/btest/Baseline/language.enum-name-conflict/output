@@ -4,3 +4,4 @@ error in <...>/enum-name-conflict.zeek, line 15 and <...>/enum-name-conflict.zee
 error in <...>/enum-name-conflict.zeek, line 27 and <...>/enum-name-conflict.zeek, line 23: conflicting definition of enum value 'Foo::TWO' in type 'Foo::bf'
 error in <...>/enum-name-conflict.zeek, line 32 and <...>/enum-name-conflict.zeek, line 22: conflicting definition of enum value 'Foo::ONE' in type 'Foo::bf'
 error in <...>/enum-name-conflict.zeek, line 41 and <...>/enum-name-conflict.zeek, line 38: conflicting definition of enum value 'NOPE' in type 'a'
+error in <...>/enum-name-conflict.zeek, line 46 and <...>/enum-name-conflict.zeek, line 45: conflicting definition of enum value 'Pink' in type 'E'

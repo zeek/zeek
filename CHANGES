@@ -1,3 +1,11 @@
+4.1.0-dev.578 | 2021-04-30 09:42:26 -0700
+
+  * GH-1534: Fix excessive coredump for duplicate enum definitions
+
+    An adequate error message was previously reported for duplicate enum
+    definitions, this just now prevents trying to access it as a constant in
+    subsequent parsing and further generating a coredump. (Jon Siwek, Corelight)
+
 4.1.0-dev.576 | 2021-04-30 09:40:18 -0700
 
   * Fixes to `decode_netbios_name` and `decode_netbios_name_type` BIFs

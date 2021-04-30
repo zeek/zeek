@@ -1311,8 +1311,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 				type_arg = ", z.t";
 				}
 
-			auto op_code = g->GenOpCode(this, "_" + full_suffix,
-			                            false);
+			auto op_code = g->GenOpCode(this, "_" + full_suffix);
 			auto dispatch = "vec_exec(" + op_code + type_arg +
 					", " + dispatch_params + ");";
 
@@ -1428,6 +1427,10 @@ void ZAM_AssignOpTemplate::Instantiate()
 
 	// Build constant/variable versions ...
 	ots.push_back(ZAM_OT_CONSTANT);
+
+	if ( ots[0] == ZAM_OT_RECORD_FIELD )
+		ots.push_back(ZAM_OT_INT);
+
 	InstantiateOp(ots, false);
 	InstantiateC1(ots, 1);
 

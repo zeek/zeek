@@ -212,6 +212,7 @@ void analyze_scripts()
 		check_env_opt("ZEEK_XFORM", analysis_options.activate);
 		check_env_opt("ZEEK_ZAM", analysis_options.gen_ZAM);
 		check_env_opt("ZEEK_DUMP_ZAM", analysis_options.dump_ZAM);
+		check_env_opt("ZEEK_PROFILE", analysis_options.profile_ZAM);
 
 		auto usage = getenv("ZEEK_USAGE_ISSUES");
 

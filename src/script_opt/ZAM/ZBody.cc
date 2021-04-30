@@ -1,32 +1,31 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/Desc.h"
+#include "zeek/RE.h"
+#include "zeek/Frame.h"
+#include "zeek/Trigger.h"
+#include "zeek/Traverse.h"
+#include "zeek/Reporter.h"
+#include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/ZBody.h"
-#if 0
-#include "ScriptAnaly.h"
-#include "Desc.h"
-#include "RE.h"
-#include "Frame.h"
-#include "Trigger.h"
-#include "Traverse.h"
-#include "Reporter.h"
 
 // Needed for managing the corresponding values.
-#include "File.h"
-#include "Func.h"
-#include "OpaqueVal.h"
+#include "zeek/File.h"
+#include "zeek/Func.h"
+#include "zeek/OpaqueVal.h"
 
 // Just needed for BiFs.
-#include "Net.h"
-#include "analyzer/Manager.h"
-#include "broker/Manager.h"
-#include "file_analysis/Manager.h"
-#include "logging/Manager.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/broker/Manager.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/logging/Manager.h"
 
+
+namespace zeek::detail {
+
+using std::vector;
 
 static bool did_init = false;
-IntrusivePtr<BroType> log_ID_enum_type;
-IntrusivePtr<BroType> any_base_type;
-
 
 // Count of how often each top of ZOP executed, and how much CPU it
 // cumulatively took.
@@ -55,7 +54,7 @@ void report_ZOP_profile()
 				ZOP_count[i], ZOP_CPU[i]);
 
 	for ( auto& e : expr_CPU )
-		printf("expr CPU %.06f %s\n", e.second, obj_desc(e.first));
+		printf("expr CPU %.06f %s\n", e.second, obj_desc(e.first).c_str());
 	}
 
 
@@ -66,9 +65,10 @@ void report_ZOP_profile()
 static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2);
 
 // Binary ones *can* have managed types (strings).
-static void vec_exec(ZOp op, const IntrusivePtr<BroType>& t,
+static void vec_exec(ZOp op, const TypePtr& t,
 			VectorVal*& v1, VectorVal* v2, const VectorVal* v3);
 
+#if 0
 // Vector coercion.
 //
 // ### Should check for underflow/overflow.
@@ -91,6 +91,7 @@ VEC_COERCE(UI, TYPE_COUNT, uint_val, bro_int_t, int_val)
 VEC_COERCE(UD, TYPE_COUNT, uint_val, bro_uint_t, double_val)
 VEC_COERCE(DI, TYPE_DOUBLE, double_val, double, int_val)
 VEC_COERCE(DU, TYPE_DOUBLE, double_val, double, uint_val)
+#endif
 
 double curr_CPU_time()
 	{
@@ -101,14 +102,14 @@ double curr_CPU_time()
 
 
 ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
-		std::vector<int>& _managed_slots,
-		std::vector<GlobalInfo>& _globals,
+		vector<int>& _managed_slots,
+		vector<GlobalInfo>& _globals,
 		int _num_iters, bool non_recursive,
 		CaseMaps<bro_int_t>& _int_cases, 
 		CaseMaps<bro_uint_t>& _uint_cases,
 		CaseMaps<double>& _double_cases, 
 		CaseMaps<std::string>& _str_cases)
-: Stmt(STMT_COMPILED)
+: Stmt(STMT_ZAM)
 	{
 	func_name = _func_name;
 
@@ -134,7 +135,7 @@ ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 
 	if ( non_recursive )
 		{
-		fixed_frame = new ZAMValUnion[frame_size];
+		fixed_frame = new ZVal[frame_size];
 
 		for ( unsigned int i = 0; i < managed_slots.size(); ++i )
 			fixed_frame[managed_slots[i]].managed_val = nullptr;
@@ -147,11 +148,9 @@ ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 		{
 		auto log_ID_type = lookup_ID("ID", "Log");
 		ASSERT(log_ID_type);
-		log_ID_enum_type = {NewRef{}, log_ID_type->Type()->AsEnumType()};
+		log_ID_enum_type = {NewRef{}, log_ID_type->GetType()->AsEnumType()};
 
 		any_base_type = base_type(TYPE_ANY);
-
-		zval_error_addr = &ZAM_error;
 
 		did_init = false;
 		}
@@ -165,7 +164,7 @@ ZBody::~ZBody()
 		for ( unsigned int i = 0; i < managed_slots.size(); ++i )
 			{
 			auto& v = fixed_frame[managed_slots[i]];
-			DeleteManagedType(v);
+			ZVal::DeleteManagedType(v);
 			}
 
 		delete[] fixed_frame;
@@ -211,7 +210,7 @@ void ZBody::SetInsts(vector<ZInstI*>& instsI)
 
 void ZBody::InitProfile()
 	{
-	if ( analysis_options.report_profile )
+	if ( analysis_options.profile_ZAM )
 		{
 		inst_count = new vector<int>;
 		inst_CPU = new vector<double>;
@@ -226,40 +225,31 @@ void ZBody::InitProfile()
 		}
 	}
 
-IntrusivePtr<Val> ZBody::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow)
 	{
 #ifdef DEBUG
-	auto nv = num_Vals;
-	auto ndv = num_del_Vals;
-
-	double t = analysis_options.report_profile ? curr_CPU_time() : 0.0;
+	double t = analysis_options.profile_ZAM ? curr_CPU_time() : 0.0;
 #endif
 
 	auto val = DoExec(f, 0, flow);
 
 #ifdef DEBUG
-	if ( analysis_options.report_profile )
+	if ( analysis_options.profile_ZAM )
 		*CPU_time += curr_CPU_time() - t;
-
-	auto dnv = num_Vals - nv;
-	auto dndv = num_del_Vals - ndv;
-
-	if ( /* dnv || dndv */ 0 )
-		printf("%s vals: +%d -%d\n", func_name, dnv, dndv);
 #endif
 
 	return val;
 	}
 
-IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
-				stmt_flow_type& flow) const
+ValPtr ZBody::DoExec(Frame* f, int start_pc,
+				StmtFlowType& flow)
 	{
 	auto global_state = num_globals > 0 ? new GlobalState[num_globals] :
 						nullptr;
 	int pc = start_pc;
 	int end_pc = ninst;
 
-#define BuildVal(v, t) ZAMValUnion(v, t)
+#define BuildVal(v, t) ZVal(v, t)
 #define CopyVal(v) (ZVal::IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t) : v)
 
 // Managed assignments to frame[s.v1].
@@ -269,7 +259,7 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 		/* It's important to hold a reference to v here prior \
 		   to the deletion in case frame[z.v1] points to v. */ \
 		auto v2 = v; \
-		DeleteManagedType(frame[z.v1]); \
+		ZVal::DeleteManagedType(frame[z.v1]); \
 		frame[z.v1] = v2; \
 		} \
 	else \
@@ -280,8 +270,8 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 
 #define SUB_BYTES(arg1, arg2, arg3) \
 	{ \
-	auto sv = ZAM_sub_bytes(arg1.string_val, arg2, arg3); \
-	Unref(frame[z.v1].string_val); \
+	auto sv = ZAM_sub_bytes(arg1.AsString(), arg2, arg3); \
+	Unref(frame[z.v1].AsString()); \
 	frame[z.v1].string_val = sv; \
 	}
 
@@ -300,21 +290,21 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 
 
 	// Return value, or nil if none.
-	const ZAMValUnion* ret_u;
+	const ZVal* ret_u;
 
 	// Type of the return value.  If nil, then we don't have a value.
-	IntrusivePtr<BroType> ret_type = nullptr;
+	TypePtr ret_type = nullptr;
 
 #ifdef DEBUG
-	bool do_profile = analysis_options.report_profile;
+	bool do_profile = analysis_options.profile_ZAM;
 #endif
 
 	// All globals start out unloaded.
 	for ( auto i = 0; i < num_globals; ++i )
 		global_state[i] = GS_UNLOADED;
 
-	ZAMValUnion* frame;
-	std::vector<IterInfo>* iters = nullptr;
+	ZVal* frame;
+	vector<IterInfo>* iters = nullptr;
 
 	if ( fixed_frame )
 		{
@@ -323,13 +313,13 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 		}
 	else
 		{
-		frame = new ZAMValUnion[frame_size];
+		frame = new ZVal[frame_size];
 		// Clear slots for which we do explicit memory management.
 		for ( auto s : managed_slots )
 			frame[s].managed_val = nullptr;
 
 		if ( num_iters > 0 )
-			iters = new std::vector<IterInfo>(num_iters);
+			iters = new vector<IterInfo>(num_iters);
 		}
 
 	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
@@ -355,7 +345,7 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 		case OP_NOP:
 			break;
 
-#include "ZAM-OpsEvalDefs.h"
+// #include "ZAM-OpsEvalDefs.h"
 		}
 
 #ifdef DEBUG
@@ -378,7 +368,7 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 		for ( unsigned int i = 0; i < managed_slots.size(); ++i )
 			{
 			auto& v = frame[managed_slots[i]];
-			DeleteManagedType(v);
+			ZVal::DeleteManagedType(v);
 			}
 
 		delete [] frame;
@@ -395,6 +385,7 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 	}
 
 
+#if 0
 // Class for tracking items of a given type that we need to
 // (1) save in a readable form, and (2) maintain a mapping so
 // that we can refer to the items when saving instructions.
@@ -408,7 +399,7 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 // string representation.  This both makes the save representation
 // more compact and quicker to load, and also addresses the problem
 // of items that are transient, such as Val's constructed using
-// ZAMValUnion::ToVal, which will have a different pointer value
+// ZVal::ToVal, which will have a different pointer value
 // every time we instantiate them.
 
 // Constant used to represent a missing value.
@@ -465,7 +456,7 @@ protected:
 	// This is specialized per type T.
 	virtual RepType ItemRep(const T item) const = 0;
 
-	std::vector<RepType> items;
+	vector<RepType> items;
 	std::unordered_map<RepType, int> item_map;	// inverse
 };
 
@@ -478,8 +469,8 @@ protected:
 
 		// Special case for integers: we need these to be
 		// parsed as such, and not as counts.
-		auto t = item->Type();
-		if ( t->Tag() == TYPE_INT && item->ForceAsInt() >= 0 )
+		auto t = item->GetType();
+		if ( t->Tag() == TYPE_INT && item->AsInt() >= 0 )
 			d.Add("+");
 
 		// Special case for doubles that aren't representable
@@ -568,9 +559,9 @@ protected:
 };
 
 
-class TypeTracker : public ItemTracker<const BroType*> {
+class TypeTracker : public ItemTracker<const Type*> {
 protected:
-	RepType ItemRep(const BroType* item) const override
+	RepType ItemRep(const Type* item) const override
 		{
 		ODesc d(DESC_PARSEABLE);
 		DescribeType(item, &d, true);
@@ -578,14 +569,14 @@ protected:
 		}
 
 	// Describes the given type in a form that is parse-able (which
-	// is more detailed than what we get just using BroType::Describe()).
+	// is more detailed than what we get just using Type::Describe()).
 	//
 	// top_level is true if we're describing the type stand-alone
 	// (not as a component of another type).
-	void DescribeType(const BroType* t, ODesc* d, bool top_level) const;
+	void DescribeType(const Type* t, ODesc* d, bool top_level) const;
 };
 
-void TypeTracker::DescribeType(const BroType* t, ODesc* d, bool top_level) const
+void TypeTracker::DescribeType(const Type* t, ODesc* d, bool top_level) const
 	{
 	auto t_name = t->GetName();
 
@@ -622,7 +613,7 @@ void TypeTracker::DescribeType(const BroType* t, ODesc* d, bool top_level) const
 
 	case TYPE_TYPE:
 		d->AddSP("type {");
-		DescribeType(t->AsTypeType()->Type(), d, false);
+		DescribeType(t->AsTypeType()->GetType(), d, false);
 		d->Add("}");
 		break;
 
@@ -1066,6 +1057,8 @@ void ZBody::SaveTo(FILE* f, int interp_frame_size) const
 
 	fprintf(f, "}\n");
 	}
+#endif
+
 
 void ZBody::ProfileExecution() const
 	{
@@ -1091,7 +1084,7 @@ void ZBody::ProfileExecution() const
 		}
 	}
 
-bool ZBody::CheckAnyType(const BroType* any_type, const BroType* expected_type,
+bool ZBody::CheckAnyType(const Type* any_type, const Type* expected_type,
 			const Location* loc) const
 	{
 	if ( IsAny(expected_type) )
@@ -1122,6 +1115,7 @@ bool ZBody::CheckAnyType(const BroType* any_type, const BroType* expected_type,
 	return true;
 	}
 
+#if 0
 void ZBody::SaveCaseMap(FILE* f, const bro_int_t& val) const
 	{
 	fprintf(f, "%lld", val);
@@ -1164,6 +1158,7 @@ template<class T> void ZBody::SaveCaseMaps(FILE* f, const CaseMaps<T>& cms,
 
 	fprintf(f, "}\n");
 	}
+#endif
 
 void ZBody::Dump() const
 	{
@@ -1221,17 +1216,17 @@ TraversalCode ZBody::Traverse(TraversalCallback* cb) const
 	}
 
 
-IntrusivePtr<Val> ResumptionAM::Exec(Frame* f, stmt_flow_type& flow) const
+ValPtr ZAMResumption::Exec(Frame* f, StmtFlowType& flow)
 	{
 	return am->DoExec(f, xfer_pc, flow);
 	}
 
-void ResumptionAM::StmtDescribe(ODesc* d) const
+void ZAMResumption::StmtDescribe(ODesc* d) const
 	{
 	d->Add("resumption of compiled code");
 	}
 
-TraversalCode ResumptionAM::Traverse(TraversalCallback* cb) const
+TraversalCode ZAMResumption::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
@@ -1241,6 +1236,7 @@ TraversalCode ResumptionAM::Traverse(TraversalCallback* cb) const
 	}
 
 
+#if 0
 // Unary vector operation of v1 <vec-op> v2.
 static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 	{
@@ -1252,7 +1248,7 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 
 	auto old_v1 = v1;
 	auto& vec2 = v2->RawVector()->ConstVec();
-	auto vt = v2->Type()->AsVectorType();
+	auto vt = v2->GetType()->AsVectorType();
 
 	::Ref(vt);
 	v1 = new VectorVal(vt);
@@ -1264,7 +1260,7 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 	for ( unsigned int i = 0; i < vec2.size(); ++i )
 		switch ( op ) {
 
-#include "ZAM-Vec1EvalDefs.h"
+// #include "ZAM-Vec1EvalDefs.h"
 
 		default:
 			reporter->InternalError("bad invocation of VecExec");
@@ -1274,7 +1270,7 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 	}
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
-static void vec_exec(ZOp op, const IntrusivePtr<BroType>& yt, VectorVal*& v1,
+static void vec_exec(ZOp op, const TypePtr& yt, VectorVal*& v1,
 			VectorVal* v2, const VectorVal* v3)
 	{
 	// See comment above re further speed-up.
@@ -1293,7 +1289,7 @@ static void vec_exec(ZOp op, const IntrusivePtr<BroType>& yt, VectorVal*& v1,
 	for ( unsigned int i = 0; i < vec2.size(); ++i )
 		switch ( op ) {
 
-#include "ZAM-Vec2EvalDefs.h"
+// #include "ZAM-Vec2EvalDefs.h"
 
 		default:
 			reporter->InternalError("bad invocation of VecExec");
@@ -1302,3 +1298,5 @@ static void vec_exec(ZOp op, const IntrusivePtr<BroType>& yt, VectorVal*& v1,
 	Unref(old_v1);
 	}
 #endif
+
+} // zeek::detail

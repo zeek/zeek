@@ -167,6 +167,7 @@ static void set_analysis_option(const char* opt, Options& opts)
 		fprintf(stderr, "    xform	tranform scripts to \"reduced\" form\n");
 		fprintf(stderr, "    gen-ZAM	compile scripts to low-level ZAM code\n");
 		fprintf(stderr, "    dump-ZAM	dump generated ZAM code; implies gen-ZAM\n");
+		fprintf(stderr, "    profile-ZAM	generate to stdout a ZAM execution profile\n");
 		exit(0);
 		}
 
@@ -188,6 +189,8 @@ static void set_analysis_option(const char* opt, Options& opts)
 		a_o.activate = a_o.gen_ZAM = true;
 	else if ( util::streq(opt, "dump-ZAM") )
 		a_o.activate = a_o.dump_ZAM = true;
+	else if ( util::streq(opt, "profile-ZAM") )
+		a_o.activate = a_o.profile_ZAM = true;
 
 	else
 		{

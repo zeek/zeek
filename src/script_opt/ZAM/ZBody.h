@@ -119,7 +119,7 @@ private:
 // ZBody.  Used for deferred execution for "when" statements.
 class ZAMResumption : public Stmt {
 public:
-	ZAMResumption(const ZBody* _am, int _xfer_pc)
+	ZAMResumption(ZBody* _am, int _xfer_pc)
 	: Stmt(STMT_ZAM_RESUMPTION)
 		{
 		am = _am;
@@ -135,7 +135,7 @@ public:
 protected:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
-	const ZBody* am;
+	ZBody* am;
 	int xfer_pc = 0;
 };
 

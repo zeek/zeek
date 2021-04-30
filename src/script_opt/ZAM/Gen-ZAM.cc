@@ -653,7 +653,7 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 			Emit("auto& v1 = frame[z.v1]" + acc + ";");
 			Emit("Unref(v1);");
 			Emit("v1 = " + rhs + ";");
-			Emit("::Ref(v1);");
+			Emit("zeek::Ref(v1);");
 			}
 		else
 			Emit("frame[z.v1]" + acc + " = " + rhs + ";");
@@ -684,7 +684,7 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 
 		BeginBlock();
 		if ( is_managed )
-			Emit("::Ref(v" + acc + ");");
+			Emit("zeek::Ref(v" + acc + ");");
 
 		Emit("frame[z.v1].record_val->RawFields()->Assign(z.v" +
 		     to_string(lhs_offset) + ", v);");
@@ -694,7 +694,7 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 	else
 		{
 		if ( is_managed )
-			Emit("::Ref(" + rhs + acc + ");");
+			Emit("zeek::Ref(" + rhs + acc + ");");
 
 		if ( lhs_field )
 			{

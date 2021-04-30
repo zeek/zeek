@@ -53,6 +53,7 @@ struct AnalyOpt {
 
 	bool gen_ZAM = false;
 	bool dump_ZAM = false;
+	bool profile_ZAM = false;
 };
 
 extern AnalyOpt analysis_options;

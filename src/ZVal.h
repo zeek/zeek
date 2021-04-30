@@ -22,6 +22,10 @@ class VectorVal;
 class Type;
 class Val;
 
+namespace detail {
+	class ZBody;
+}
+
 // Note that a ZVal by itself is ambiguous: it doesn't track its type.
 // This makes them consume less memory and cheaper to copy.  It does
 // however require a separate way to determine the type.  Generally
@@ -73,6 +77,7 @@ union ZVal {
 	Val* AsAny() const		{ return any_val; }
 
 	Obj* ManagedVal() const		{ return managed_val; }
+	void ClearManagedVal()		{ managed_val = nullptr; }
 
 	// True if a given type is one for which we manage the associated
 	// memory internally.
@@ -91,6 +96,25 @@ union ZVal {
 		if ( IsManagedType(t) )
 			DeleteManagedType(v);
 		}
+
+protected:
+	friend detail::ZBody;
+
+	ZVal(bro_int_t v)	{ int_val = v; }
+	ZVal(bro_uint_t v)	{ uint_val = v; }
+	ZVal(double v)		{ double_val = v; }
+	ZVal(StringVal* v)	{ string_val = v; }
+	ZVal(AddrVal* v)	{ addr_val = v; }
+	ZVal(SubNetVal* v)	{ subnet_val = v; }
+	ZVal(File* v)		{ file_val = v; }
+	ZVal(Func* v)		{ func_val = v; }
+	ZVal(ListVal* v)	{ list_val = v; }
+	ZVal(OpaqueVal* v)	{ opaque_val = v; }
+	ZVal(PatternVal* v)	{ re_val = v; }
+	ZVal(TableVal* v)	{ table_val = v; }
+	ZVal(RecordVal* v)	{ record_val = v; }
+	ZVal(VectorVal* v)	{ vector_val = v; }
+	ZVal(Type* v)		{ type_val = v; }
 
 private:
 	friend class RecordVal;

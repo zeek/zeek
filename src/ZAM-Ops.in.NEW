@@ -12,7 +12,7 @@ op-type X
 set-type $1
 set-type2 $2
 eval	auto v = frame[z.v2].ToVal(z.t2)->Clone();
-	AssignV1(BuildVal(v, z.t));
+	AssignV1(BuildVal(v, z.t))
 
 unary-expr-op Size
 no-const
@@ -110,7 +110,7 @@ eval	const char* error;
 	if ( error )
 		ZAM_run_time_error(z.loc, error);
 	else
-		AssignV1(BuildVal(res, z.t));
+		AssignV1(BuildVal(res, z.t))
 
 # Cast an "any" type to the given type.  Only needed for type-based swith
 # statements.
@@ -121,7 +121,7 @@ eval	const char* error;
 	if ( error )
 		ZAM_run_time_error(z.loc, error);
 	else
-		AssignV1(BuildVal(res, z.t));
+		AssignV1(BuildVal(res, z.t))
 
 direct-unary-op Is Is
 
@@ -347,7 +347,7 @@ internal-binary-op A-In-S
 op1-accessor addr_val
 op2-accessor subnet_val
 op-type I
-eval	$$ = op2->Contains(op1->AsAddr())
+eval	$$ = op2->Contains(op1->AsAddr());
 
 
 # Handled differently because of the unusual middle argument.
@@ -510,7 +510,7 @@ eval	auto op1 = z.c.ToVal(z.t);
 internal-op Const-Is-Not-In-Table-Cond
 op1-read
 type VVC
-eval	auto op1 = z.c.ToVal(z.t)
+eval	auto op1 = z.c.ToVal(z.t);
 	if ( frame[z.v1].table_val->Lookup(op1.get()) )
 		BRANCH(v2)
 
@@ -551,17 +551,17 @@ eval	auto op1 = z.aux->ToListVal(frame);
 expr-op Cond
 type VVVV
 set-type $3
-eval	AssignV1(frame[z.v2].int_val ? CopyVal(frame[z.v3]) : CopyVal(frame[z.v4]));
+eval	AssignV1(frame[z.v2].int_val ? CopyVal(frame[z.v3]) : CopyVal(frame[z.v4]))
 
 expr-op Cond
 type VVVC
 set-type $3
-eval	AssignV1(frame[z.v2].int_val ? CopyVal(frame[z.v3]) : CopyVal(z.c));
+eval	AssignV1(frame[z.v2].int_val ? CopyVal(frame[z.v3]) : CopyVal(z.c))
 
 expr-op Cond
 type VVCV
 set-type $3
-eval	AssignV1(frame[z.v2].int_val ? CopyVal(z.c) : CopyVal(frame[z.v3]));
+eval	AssignV1(frame[z.v2].int_val ? CopyVal(z.c) : CopyVal(frame[z.v3]))
 
 # Our statement structure doesn't accommodate two constants, so for
 # the singular case of a V ? C1 : C2 conditional, we split it into
@@ -570,13 +570,13 @@ op CondC1
 type VVC
 set-type $1
 eval	if ( frame[z.v2].int_val )
-		AssignV1(CopyVal(z.c));
+		AssignV1(CopyVal(z.c))
 
 op CondC2
 set-type $1
 type VVC
 eval	if ( ! frame[z.v2].int_val )
-		AssignV1(CopyVal(z.c));
+		AssignV1(CopyVal(z.c))
 
 ########## Index Expressions ##########
 
@@ -645,7 +645,7 @@ eval	auto vv = frame[z.v2].vector_val->RawVector();
 	auto ind = frame[z.v3].uint_val;
 	if ( ind >= vv->Size() )
 		ZAM_run_time_error(z.loc, "no such index");
-	AssignV1(CopyVal(vec[ind]));
+	AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-Any-Vec
 type VVV
@@ -665,7 +665,7 @@ eval	auto vv = frame[z.v2].vector_val->RawVector();
 	unsigned int ind = z.v3;
 	if ( ind >= vv->Size() )
 		ZAM_run_time_error(z.loc, "no such index");
-	AssignV1(CopyVal(vec[ind]));
+	AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-Any-VecC
 type VVV
@@ -693,7 +693,7 @@ eval	auto v2 = z.aux->ToListVal(frame);
 	auto v = frame[z.v2].table_val->Lookup(v2.get());
 	if ( ! v )
 		ZAM_run_time_error(z.loc, "no such index");
-	AssignV1(BuildVal(v, z.t));
+	AssignV1(BuildVal(v, z.t))
 
 internal-assignment-op Table-Index1
 type VVV
@@ -753,7 +753,7 @@ eval	auto lv = frame[z.v2].any_val->AsListVal();
 		reporter->InternalError("bad \"any\" element index");
 	IntrusivePtr<Val> elem = {NewRef{}, lv->Index(z.v3)};
 	if ( CheckAnyType(elem->Type(), z.t.get(), z.loc) )
-		AssignV1(BuildVal(elem, z.t));
+		AssignV1(BuildVal(elem, z.t))
 	else
 		ZAM_error = true;
 
@@ -980,7 +980,7 @@ eval	if ( frame[z.v2].vector_val->Size() > 0 )
 unary-expr-op To-Any-Coerce
 op-type X
 set-type $2
-eval	AssignV1(ZAMValUnion(frame[z.v2].ToVal(z.t), any_base_type));
+eval	AssignV1(ZAMValUnion(frame[z.v2].ToVal(z.t), any_base_type))
 
 unary-expr-op From-Any-Coerce
 op-type X
@@ -1004,7 +1004,7 @@ eval	auto v = frame[z.v2].any_val;
 		frame[z.v1].vector_val = v->AsVectorVal();
 		}
 	else
-		AssignV1(ZAMValUnion({NewRef{}, v}, z.t));
+		AssignV1(ZAMValUnion({NewRef{}, v}, z.t))
 
 
 ########## Aggregate Assignments ##########
@@ -1313,7 +1313,7 @@ eval	val_vec args(4);
 
 op Return
 type X
-eval	ret_u = nullptr:
+eval	ret_u = nullptr;
 	pc = end_pc;
 	continue;
 
@@ -1418,9 +1418,9 @@ eval	HashKey* k;
 	delete k;
 	for ( int i = 0; i < ind_lv->Length(); i++ )
 		{
-		IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)}:
-		auto t = ii->loop_var_types[i]:
-		auto& var = frame[ii->loop_vars[i]]:
+		IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)};
+		auto t = ii->loop_var_types[i];
+		auto& var = frame[ii->loop_vars[i]];
 		if ( IsManagedType(t) )
 			DeleteManagedType(var);
 		var = BuildVal(ind_lv_p, ii->loop_var_types[i]);
@@ -1476,7 +1476,7 @@ eval	auto ii = frame[z.v2].iter_info;
 	auto val_var_t = ii->value_var_type;
 	if ( z.is_managed )
 		DeleteManagedType(frame[z.v1]);
-	frame[z.v1] = BuildVal(tev_p, val_var_t):
+	frame[z.v1] = BuildVal(tev_p, val_var_t);
 
 internal-op Init-Vector-Loop
 type VV
@@ -1580,7 +1580,7 @@ op1-read
 type Vi
 eval	auto v = frame[z.v1].list_val;
 	if ( v->Vals()->length() != z.v2 )
-		ZAM_run_time_error(z.loc, "mismatch in list lengths")
+		ZAM_run_time_error(z.loc, "mismatch in list lengths");
 
 op Print
 type O
@@ -1719,7 +1719,7 @@ eval	auto v = z.c.ToVal(z.t);
 # a constant.
 internal-op Assign-Const
 type VC
-eval	AssignV1(BuildVal(z.c.ToVal(z.t), z.t));
+eval	AssignV1(BuildVal(z.c.ToVal(z.t), z.t))
 
 internal-assignment-op Load-Val
 type VV
@@ -1767,7 +1767,7 @@ eval	auto v = frame[z.v1].any_val->Ref();
 internal-op Copy-To
 type VC
 set-type $2
-eval	AssignV1(CopyVal(z.c));
+eval	AssignV1(CopyVal(z.c))
 
 internal-op GoTo
 type V

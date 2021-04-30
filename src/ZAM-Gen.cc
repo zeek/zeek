@@ -536,7 +536,20 @@ void ZAM_OpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
                                      const string& suffix,
                                      bool is_field, bool is_vec, bool is_cond)
 	{
-	InstantiateEval(Eval, OpString(ot) + suffix, GetEval(), is_field);
+	auto eval = GetEval();
+
+	if ( ot.size() > 1 )
+		{
+		string op1;
+		if ( ot[1] == ZAM_OT_CONSTANT )
+			op1 = "z.c";
+		else if ( ot[1] == ZAM_OT_VAR )
+			op1 = "frame[z.v2]";
+
+		eval = regex_replace(eval, regex("\\$1"), op1);
+		}
+
+	InstantiateEval(Eval, OpString(ot) + suffix, eval, is_field);
 	}
 
 void ZAM_OpTemplate::InstantiateEval(EmitTarget et, const string& op_suffix,
@@ -607,20 +620,42 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 
 		Emit(eval);
 
+		static unordered_map<string, string> val_accessors = {
+			{ "addr", "->AsAddrVal()" },
+			{ "any", "" },
+			{ "uint", "->AsCount()" },
+			{ "double", "->AsDouble()" },
+			{ "int", "->AsInt()" },
+			{ "re", "->AsPatternVal()" },
+			{ "string", "->AsStringVal()" },
+			{ "subnet", "->AsSubNetVal()" },
+			{ "table", "->AsTableVal()" },
+			{ "vector", "->AsVectorVal()" },
+			{ "file", "->AsFile()" },
+			{ "func", "->AsFunc()" },
+			{ "list", "->AsListVal()" },
+			{ "opaque", "->AsOpaqueVal()" },
+			{ "record", "->AsRecordVal()" },
+			{ "type", "->AsType()" },
+		};
+
+		auto val_accessor = val_accessors[accessor];
+
+		string rhs;
+		if ( IsInternalOp() )
+			rhs = v + val_accessor;
+		else
+			rhs = v + acc;
+
 		if ( is_managed )
 			{
-			auto val_accessor = accessor;
-			auto& Va1 = val_accessor.front();
-			Va1 = toupper(Va1);
-
 			Emit("auto& v1 = frame[z.v1]" + acc + ";");
 			Emit("Unref(v1);");
-			// Emit("v1 = " + v + "->As" + val_accessor + "Val();");
-			Emit("v1 = " + v + "." + accessor + "_val;");
+			Emit("v1 = " + rhs + ";");
 			Emit("::Ref(v1);");
 			}
 		else
-			Emit("frame[z.v1]" + acc + " = " + v + acc + ";");
+			Emit("frame[z.v1]" + acc + " = " + rhs + ";");
 
 		return;
 		}
@@ -1197,21 +1232,22 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		eval_instances.emplace_back(lhs_et, et, et, eval, is_def);
 		}
 
-	for ( auto em1 : eval_mixed_set )
-		{
-		auto et1 = em1.first;
-		for ( auto em2 : em1.second )
+	if ( ! is_vec )
+		for ( auto em1 : eval_mixed_set )
 			{
-			auto et2 = em2.first;
+			auto et1 = em1.first;
+			for ( auto em2 : em1.second )
+				{
+				auto et2 = em2.first;
 
-			// For the LHS, either its expression type is
-			// ignored, or if it's a conditional, so just
-			// note it for the latter.
-			auto lhs_et = ZAM_EXPR_TYPE_INT;
-			eval_instances.emplace_back(lhs_et, et1, et2,
-			                            em2.second, false);
+				// For the LHS, either its expression type is
+				// ignored, or if it's a conditional, so just
+				// note it for the latter.
+				auto lhs_et = ZAM_EXPR_TYPE_INT;
+				eval_instances.emplace_back(lhs_et, et1, et2,
+							    em2.second, false);
+				}
 			}
-		}
 
 	for ( auto& ei : eval_instances )
 		{
@@ -1268,13 +1304,17 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 			{
 			string dispatch_params = "frame[z.v1].vector_val, frame[z.v2].vector_val";
 
+			string type_arg;
 			if ( Arity() == 2 )
+				{
 				dispatch_params += ", frame[z.v3].vector_val";
+				type_arg = ", z.t";
+				}
 
 			auto op_code = g->GenOpCode(this, "_" + full_suffix,
 			                            false);
-			auto dispatch = "vec_exec(" + op_code + ", z.t, " +
-					dispatch_params + ");";
+			auto dispatch = "vec_exec(" + op_code + type_arg +
+					", " + dispatch_params + ");";
 
 			ZAM_OpTemplate::InstantiateEval(Eval, full_suffix,
 							dispatch, false);
@@ -1503,6 +1543,43 @@ void ZAM_InternalBinaryOpTemplate::Parse(const string& attr, const string& line,
 
 	else
 		ZAM_BinaryExprOpTemplate::Parse(attr, line, words);
+	}
+
+void ZAM_InternalBinaryOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
+                                                   const string& suffix,
+                                                   bool is_field, bool is_vec,
+                                                   bool is_cond)
+	{
+	assert(ot.size() == 3);
+
+	auto op1_const = ot[1] == ZAM_OT_CONSTANT;
+	auto op2_const = ot[2] == ZAM_OT_CONSTANT;
+
+	string op1 = op1_const ? "z.c" : "frame[z.v2]";
+	string op2 = op2_const ? "z.c" :
+	                         (op1_const ? "frame[z.v2]" : "frame[z.v3]");
+
+	string prelude = "auto op1 = " + op1 + "." + op1_accessor + ";\n";
+	prelude += "auto op2 = " + op2 + "." + op2_accessor + ";\n";
+
+	auto eval = prelude + GetEval();
+
+	auto& ets = ExprTypes();
+	if ( ets.size() > 0 )
+		{
+		if ( ets.size() != 1 )
+			g->Gripe("internal-binary-op's can have at most one op-type", op_loc);
+
+		for ( auto& et : ets )
+			{
+			auto acc = find_type_info(et).accessor;
+			auto lhs = "frame[z.v1]." + acc + "_val";
+			eval = regex_replace(eval, regex("\\$\\$"), lhs);
+			}
+		}
+
+	ZAM_OpTemplate::InstantiateEval(Eval, OpString(ot) + suffix, eval,
+	                                is_field);
 	}
 
 

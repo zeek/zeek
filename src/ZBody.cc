@@ -351,6 +351,27 @@ IntrusivePtr<Val> ZBody::DoExec(Frame* f, int start_pc,
 
 #define AssignV1(v) AssignV1T(v, z.t)
 
+#define SUB_BYTES(arg1, arg2, arg3) \
+	{ \
+	auto sv = ZAM_sub_bytes(arg1.string_val, arg2, arg3); \
+	Unref(frame[z.v1].string_val); \
+	frame[z.v1].string_val = sv; \
+	}
+
+#define BRANCH(target_slot) { pc = z.target_slot; continue; }
+
+#define SWITCH_BODY(cases, postscript) \
+	{ \
+	auto t = cases[z.v2]; \
+	if ( t.find(v) == t.end() ) \
+		pc = z.v3; \
+	else \
+		pc = t[v]; \
+	postscript \
+	continue; \
+	}
+
+
 	// Return value, or nil if none.
 	const ZAMValUnion* ret_u;
 

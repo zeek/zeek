@@ -443,6 +443,10 @@ public:
 protected:
 	void Parse(const string& attr, const string& line, const Words& words) override;
 
+	void InstantiateEval(const vector<ZAM_OperandType>& ot,
+	                     const string& suffix, bool is_field,
+	                     bool is_vec, bool is_cond) override;
+
 private:
 	string op1_accessor;
 	string op2_accessor;

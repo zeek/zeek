@@ -1,3 +1,26 @@
+4.1.0-dev.576 | 2021-04-30 09:40:18 -0700
+
+  * Fixes to `decode_netbios_name` and `decode_netbios_name_type` BIFs
+
+    Fixes to `decode_netbios_name`:
+
+    * Improve validation that input string is a NetBIOS encoding
+      (32 bytes, with characters ranging from 'A' to 'P').  This helps
+      prevent Undefined Behavior of left-shifting negative values.
+      Invalid encodings now cause a return-value of an empty string.
+
+    * More liberal in what decoded characters are allowed.  Namely,
+      spaces are now allowed (but any trailing null-bytes and spaces
+      are trimmed, similar to before).
+
+    Fixes to `decode_netbios_name_type`:
+
+    * Improve validation that input string is a NetBIOS encoding
+      (32 bytes, with characters ranging from 'A' to 'P').  This helps
+      prevent Undefined Behavior of left-shifting negative values and
+      a heap-buffer-overread when the input string is too small.
+      Invalid encodings now cause a return-value of 256. (Jon Siwek, Corelight)
+
 4.1.0-dev.573 | 2021-04-29 11:29:39 -0700
 
   * Rename ConnID and ConnIDKey (Tim Wojtulewicz, Corelight)

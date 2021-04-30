@@ -192,6 +192,7 @@ private:
 	                           TypePtr n2_type, const ListExpr* l);
 
 
+#include "zeek/script_opt/ZAM/Inst-Gen.h"
 #include "zeek/script_opt/ZAM/BuiltIn.h"
 
 	// A bit weird, but handy for switch statements used in built-in

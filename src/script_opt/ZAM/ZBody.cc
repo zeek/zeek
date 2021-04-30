@@ -59,31 +59,6 @@ void report_ZOP_profile()
 	}
 
 
-void ZAM_run_time_error(const char* msg)
-	{
-	fprintf(stderr, "%s\n", msg);
-	ZAM_error = true;
-	}
-
-void ZAM_run_time_error(const Location* loc, const char* msg)
-	{
-	reporter->RuntimeError(loc, "%s", msg);
-	ZAM_error = true;
-	}
-
-void ZAM_run_time_error(const char* msg, const BroObj* o)
-	{
-	fprintf(stderr, "%s: %s\n", msg, obj_desc(o));
-	ZAM_error = true;
-	}
-
-void ZAM_run_time_error(const Location* loc, const char* msg, const BroObj* o)
-	{
-	reporter->RuntimeError(loc, "%s (%s)", msg, obj_desc(o));
-	ZAM_error = true;
-	}
-
-
 // Unary vector operations never work on managed types, so no need
 // to pass in the type ...  However, the RHS, which normally would
 // be const, needs to be non-const so we can use its Type() method
@@ -122,55 +97,6 @@ double curr_CPU_time()
 	struct timespec ts;
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
 	return double(ts.tv_sec) + double(ts.tv_nsec) / 1e9;
-	}
-
-
-bool IsAny(const BroType* t)
-	{
-	return t->Tag() == TYPE_ANY;
-	}
-
-bool IsAnyVec(const BroType* t)
-	{
-	if ( t->Tag() != TYPE_VECTOR )
-		return false;
-
-	auto vt = t->AsVectorType();
-	auto yt = vt->YieldType();
-
-	return yt->Tag() == TYPE_ANY;
-	}
-
-
-StringVal* ZAM_to_lower(const StringVal* sv)
-	{
-	auto bs = sv->AsString();
-	const u_char* s = bs->Bytes();
-	int n = bs->Len();
-	u_char* lower_s = new u_char[n + 1];
-	u_char* ls = lower_s;
-
-	for ( int i = 0; i < n; ++i )
-		{
-		if ( isascii(s[i]) && isupper(s[i]) )
-			*ls++ = tolower(s[i]);
-		else
-			*ls++ = s[i];
-		}
-
-	*ls++ = '\0';
-		
-	return new StringVal(new BroString(1, lower_s, n));
-	}
-
-StringVal* ZAM_sub_bytes(const StringVal* s, bro_uint_t start, bro_int_t n)
-	{
-        if ( start > 0 )
-                --start;        // make it 0-based
-
-        BroString* ss = s->AsString()->GetSubstring(start, n);
-
-	return new StringVal(ss ? ss : new BroString(""));
 	}
 
 

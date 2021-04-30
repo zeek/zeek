@@ -412,6 +412,4 @@ extern std::unordered_map<ZOp, ZOp> assignmentless_op;
 // counterpart uses.
 extern std::unordered_map<ZOp, ZAMOpType> assignmentless_op_type;
 
-extern bool ZAM_error;
-
 } // namespace zeek::detail

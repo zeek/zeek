@@ -35,11 +35,11 @@ extern TypePtr log_ID_enum_type;
 // Needed for a slight performance gain when dealing with "any" types.
 extern TypePtr any_base_type;
 
-extern void report_ZOP_profile();
-
 extern void ZAM_run_time_error(const char* msg);
 extern void ZAM_run_time_error(const Stmt* stmt, const char* msg);
 extern void ZAM_run_time_error(const char* msg, const Obj* o);
+
+extern bool ZAM_error;
 
 extern StringVal* ZAM_to_lower(const StringVal* sv);
 extern StringVal* ZAM_sub_bytes(const StringVal* s, bro_uint_t start, bro_int_t n);

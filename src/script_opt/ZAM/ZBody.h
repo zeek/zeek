@@ -140,4 +140,6 @@ protected:
 };
 
 
+extern void report_ZOP_profile();
+
 } // namespace zeek::detail

@@ -4,7 +4,7 @@
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <string.h>
+#include <cstring>
 #include <string>
 #include <memory>
 
@@ -43,13 +43,7 @@ struct ConnKey {
 	bool operator>=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) >= 0; }
 	bool operator>(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) > 0; }
 
-	ConnKey& operator=(const ConnKey& rhs)
-		{
-		if ( this != &rhs )
-			memcpy(this, &rhs, sizeof(ConnKey));
-
-		return *this;
-		}
+	ConnKey& operator=(const ConnKey& rhs);
 };
 
 using ConnIDKey [[deprecated("Remove in v5.1. Use zeek::detail::ConnKey.")]] = ConnKey;

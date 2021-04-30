@@ -44,10 +44,24 @@ ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port,
 		}
 	}
 
-detail::ConnKey::ConnKey(const ConnTuple& id)
+ConnKey::ConnKey(const ConnTuple& id)
 	: ConnKey(id.src_addr, id.dst_addr, id.src_port, id.dst_port,
 	          id.proto, id.is_one_way)
 	{
+	}
+
+ConnKey& ConnKey::operator=(const ConnKey& rhs)
+	{
+	if ( this == &rhs )
+		return *this;
+
+	memcpy(&ip1, &rhs.ip1, sizeof(in6_addr));
+	memcpy(&ip2, &rhs.ip2, sizeof(in6_addr));
+	port1 = rhs.port1;
+	port2 = rhs.port2;
+	transport = rhs.transport;
+
+	return *this;
 	}
 
 } // namespace detail

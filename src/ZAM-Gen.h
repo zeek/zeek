@@ -200,9 +200,10 @@ protected:
 	void InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 				   string suffix,
 	                           bool is_field, bool is_vec, bool is_cond);
-	virtual void BuildInstruction(const string& op,
-			              const vector<ZAM_OperandType>& ot,
-	                              const string& params, bool is_cond);
+	virtual void BuildInstruction(const vector<ZAM_OperandType>& ot,
+	                              const string& params,
+	                              const string& suffix,
+	                              bool is_cond, bool is_field);
 
 	virtual void InstantiateEval(const vector<ZAM_OperandType>& ot,
 	                             const string& suffix,
@@ -336,7 +337,8 @@ protected:
 
 	void DoVectorCase(const string& m, const string& args);
 
-	void BuildInstructionCore(const string& op, const string& params);
+	void BuildInstructionCore(const string& params, const string& suffix,
+	                          bool is_field);
 
 	void InstantiateEval(const vector<ZAM_OperandType>& ot,
 	                     const string& suffix, bool is_field,
@@ -374,9 +376,9 @@ protected:
 	void Parse(const string& attr, const string& line, const Words& words) override;
 	void Instantiate() override;
 
-	void BuildInstruction(const string& op,
-			      const vector<ZAM_OperandType>& ot,
-	                      const string& params, bool is_cond) override;
+	void BuildInstruction(const vector<ZAM_OperandType>& ot,
+	                      const string& params, const string& suffix,
+	                      bool is_cond, bool is_field) override;
 };
 
 class ZAM_AssignOpTemplate : public ZAM_UnaryExprOpTemplate {
@@ -420,9 +422,9 @@ public:
 protected:
 	void Instantiate() override;
 
-	void BuildInstruction(const string& op,
-			      const vector<ZAM_OperandType>& ot,
-	                      const string& params, bool is_cond) override;
+	void BuildInstruction(const vector<ZAM_OperandType>& ot,
+	                      const string& params, const string& suffix,
+	                      bool is_cond, bool is_field) override;
 };
 
 class ZAM_InternalBinaryOpTemplate : public ZAM_BinaryExprOpTemplate {

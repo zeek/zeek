@@ -485,24 +485,27 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 
 	assert(ot.size() > 0);
 
-	auto op = g->GenOpCode(this, "_" + OpString(ot) + suffix, is_field);
+	string full_suffix = "_" + OpString(ot) + suffix;
 
 	Emit("ZInstI z;");
 
 	if ( ot[0] == ZAM_OT_AUX )
 		{
+		auto op = g->GenOpCode(this, full_suffix, is_field);
                 Emit("z = ZInstI(" + op + ");");
 		return;
 		}
 
 	if ( ot[0] == ZAM_OT_NONE )
 		{
+		auto op = g->GenOpCode(this, full_suffix, is_field);
 		Emit("z = GenInst(this, " + op + ");");
 		return;
 		}
 
 	if ( ot.size() > 1 && ot[1] == ZAM_OT_AUX )
                 {
+		auto op = g->GenOpCode(this, full_suffix, is_field);
                 Emit("z = ZInstI(" + op + ", Frame1Slot(n, " + op + "));");
 		return;
                 }
@@ -514,7 +517,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 	if ( is_field )
 		params += ", i";
 
-	BuildInstruction(op, ot, params, is_cond);
+	BuildInstruction(ot, params, suffix, is_cond, is_field);
 
 	auto tp = GetTypeParam();
 	if ( tp > 0 )
@@ -525,10 +528,12 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 		Emit("z.t2 = " + args.NthParam(tp2 - 1) + "->Type();");
 	}
 
-void ZAM_OpTemplate::BuildInstruction(const string& op,
-			              const vector<ZAM_OperandType>& ot,
-                                      const string& params, bool is_cond)
+void ZAM_OpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot,
+                                      const string& params,
+                                      const string& suffix,
+                                      bool is_cond, bool is_field)
 	{
+	auto op = g->GenOpCode(this, suffix, is_field);
 	Emit("z = GenInst(this, " + op + ", " + params + ");");
 	}
 
@@ -1040,8 +1045,9 @@ void ZAM_ExprOpTemplate::DoVectorCase(const string& m, const string& args)
 	IndentDown();
 	}
 
-void ZAM_ExprOpTemplate::BuildInstructionCore(const string& op,
-                                              const string& params)
+void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
+                                              const string& suffix,
+	                                      bool is_field)
 	{
 	const auto& ets = ExprTypes();
 
@@ -1086,13 +1092,15 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& op,
 
 		Emit(if_stmt);
 
-		auto inst = op + "_" + expr_name_types[et];
-		EmitUp("z = GenInst(this, " + inst + ", " + params + ");");
+		auto op_suffix = suffix + "_" + expr_name_types[et];
+		auto op = g->GenOpCode(this, op_suffix, is_field);
+		EmitUp("z = GenInst(this, " + op + ", " + params + ");");
 		}
 
 	if ( do_default )
 		{
 		Emit("else");
+		auto op = g->GenOpCode(this, suffix, is_field);
 		EmitUp("z = GenInst(this, " + op + ", " + params + ");");
 		}
 	}
@@ -1357,16 +1365,17 @@ void ZAM_UnaryExprOpTemplate::Instantiate()
 	InstantiateV(ots);
 	}
 
-void ZAM_UnaryExprOpTemplate::BuildInstruction(const string& op,
-			                       const vector<ZAM_OperandType>& ot,
+void ZAM_UnaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot,
                                                const string& params,
-                                               bool is_cond)
+					       const string& suffix,
+                                               bool is_cond, bool is_field)
 	{
 	const auto& ets = ExprTypes();
 
 	if ( ets.size() == 1 && ets.count(ZAM_EXPR_TYPE_NONE) == 1 )
 		{
-		ZAM_ExprOpTemplate::BuildInstruction(op, ot, params, is_cond);
+		ZAM_ExprOpTemplate::BuildInstruction(ot, params, suffix,
+		                                     is_cond, is_field);
 		return;
 		}
 
@@ -1386,7 +1395,7 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const string& op,
 	else
 		Emit("auto t = " + operand + "->Type();");
 
-	BuildInstructionCore(op, params);
+	BuildInstructionCore(params, suffix, is_field);
 	}
 
 
@@ -1506,14 +1515,14 @@ void ZAM_RelationalExprOpTemplate::Instantiate()
 	NL();
 	}
 
-void ZAM_RelationalExprOpTemplate::BuildInstruction(const string& op,
-			                            const vector<ZAM_OperandType>& ot,
+void ZAM_RelationalExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot,
                                                     const string& params,
-						    bool is_cond)
+                                                    const string& suffix,
+						    bool is_cond, bool is_field)
 	{
 	string op1 = is_cond ? "n" : "n2";
 	Emit("auto t = " + op1 + "->Type();");
-	BuildInstructionCore(op, params);
+	BuildInstructionCore(params, suffix, is_field);
 	}
 
 

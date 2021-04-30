@@ -1421,7 +1421,7 @@ eval	HashKey* k;
 		IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)};
 		auto t = ii->loop_var_types[i];
 		auto& var = frame[ii->loop_vars[i]];
-		if ( IsManagedType(t) )
+		if ( ZVal::IsManagedType(t) )
 			DeleteManagedType(var);
 		var = BuildVal(ind_lv_p, ii->loop_var_types[i]);
 		}
@@ -1458,7 +1458,7 @@ eval	HashKey* k;
 		IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)};
 		auto ind = ii->loop_vars[i];
 		auto loop_var_t = ii->loop_var_types[i];
-		if ( IsManagedType(loop_var_t) )
+		if ( ZVal::IsManagedType(loop_var_t) )
 			DeleteManagedType(frame[ind]);
 		frame[ind] = BuildVal(ind_lv_p, loop_var_t);
 		}

@@ -57,8 +57,7 @@ struct InputLoc {
 
 enum EmitTarget {
 	None,
-	BaseDecl,
-	SubDecl,
+	MethodDecl,
 	MethodDef,
 	DirectDef,
 	C1Def,
@@ -218,8 +217,8 @@ protected:
 			     bool is_managed);
 
 	string MethodName(const vector<ZAM_OperandType>& ot) const;
-	string MethodDecl(const vector<ZAM_OperandType>& ot,
-	                  bool is_field, bool is_cond);
+	string MethodDeclare(const vector<ZAM_OperandType>& ot,
+	                     bool is_field, bool is_cond);
 	string OpString(const vector<ZAM_OperandType>& ot) const;
 
 	string SkipWS(const string& s) const;

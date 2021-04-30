@@ -120,7 +120,7 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	rc->SetDefSetsMgr(reduced_rds.GetDefSetsMgr());
 
-	auto ud = std::make_unique<UseDefs>(body, rc);
+	auto ud = std::make_shared<UseDefs>(body, rc);
 	ud->Analyze();
 
 	if ( analysis_options.dump_uds )

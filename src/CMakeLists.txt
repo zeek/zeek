@@ -219,26 +219,26 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
 
 # define a command that's used to run the gen-compiler-templates.sh script
 # building the bro binary depends on the outputs of this script
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CompilerBaseDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsDirectDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsC1.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsC2.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsC3.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsV.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsFieldsDefsC1.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsFieldsDefsC2.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsFieldsDefsV.h
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDecl.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-AssignFlavorsDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Conds.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-SubDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenDirectDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenExprsDefsC1.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenExprsDefsC2.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenExprsDefsC3.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenExprsDefsV.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenFieldsDefsC1.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenFieldsDefsC2.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenFieldsDefsV.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Op1FlavorsDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpSideEffects.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsNamesDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsEvalDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsMethodsDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsNamesDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-SubDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Vec1EvalDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Vec2EvalDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsMethodsDefs.h
                    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/Gen-ZAM
                    ARGS ${CMAKE_CURRENT_SOURCE_DIR}/script_opt/ZAM/Ops.in
                    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Gen-ZAM
@@ -370,6 +370,11 @@ set(MAIN_SRCS
     script_opt/TempVar.cc
     script_opt/UseDefs.cc
 
+    script_opt/ZAM/BuiltIn.cc
+    script_opt/ZAM/Compile.cc
+    script_opt/ZAM/ZBody.cc
+    script_opt/ZAM/ZInst.cc
+
     nb_dns.c
     digest.h
 )
@@ -448,7 +453,7 @@ set(zeek_SRCS
     ${FLEX_Scanner_INPUT}
     ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
-    ${CMAKE_CURRENT_BINARY_DIR}/CompilerBaseDefs.h
+    ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDecl.h
     ${THIRD_PARTY_SRCS}
     ${HH_SRCS}
     ${MAIN_SRCS}

@@ -448,17 +448,13 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m, const string& suffix,
 	if ( IsInternalOp() )
 		return;
 
-	auto decls = MethodDecl(ot, is_field, is_cond);
+	auto decls = MethodDeclare(ot, is_field, is_cond);
 
-	EmitTo(BaseDecl);
-	Emit("virtual const CompiledStmt " + m + suffix + "(" + decls +
-	     ") = 0;");
-
-	EmitTo(SubDecl);
-	Emit("const CompiledStmt " + m + suffix + "(" + decls + ") override;");
+	EmitTo(MethodDecl);
+	Emit("const ZAMStmt " + m + suffix + "(" + decls + ");");
 
 	EmitTo(MethodDef);
-	Emit("const CompiledStmt ZAM::" + m + suffix + "(" + decls + ")");
+	Emit("const ZAMStmt ZAM::" + m + suffix + "(" + decls + ")");
 	BeginBlock();
 
 	InstantiateMethodCore(ot, suffix, is_field, is_vec, is_cond);
@@ -723,8 +719,8 @@ string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const
 	return base_name + OpString(ot);
 	}
 
-string ZAM_OpTemplate::MethodDecl(const vector<ZAM_OperandType>& ot_orig,
-                                  bool is_field, bool is_cond)
+string ZAM_OpTemplate::MethodDeclare(const vector<ZAM_OperandType>& ot_orig,
+                                     bool is_field, bool is_cond)
 	{
 	auto ot = ot_orig;
 	if ( is_field )
@@ -1716,23 +1712,22 @@ void ZAMGen::InitEmitTargets()
 	static const unordered_map<EmitTarget, const char*> gen_file_names = {
 		{ None, nullptr },
 		{ AssignFlavor, "ZAM-AssignFlavorsDefs.h" },
-		{ BaseDecl, "CompilerBaseDefs.h" },
-		{ C1Def, "CompilerOpsExprsDefsC1.h" },
-		{ C1FieldDef, "CompilerOpsFieldsDefsC1.h" },
-		{ C2Def, "CompilerOpsExprsDefsC2.h" },
-		{ C2FieldDef, "CompilerOpsFieldsDefsC2.h" },
-		{ C3Def, "CompilerOpsExprsDefsC3.h" },
+		{ C1Def, "ZAM-GenExprsDefsC1.h" },
+		{ C1FieldDef, "ZAM-GenFieldsDefsC1.h" },
+		{ C2Def, "ZAM-GenExprsDefsC2.h" },
+		{ C2FieldDef, "ZAM-GenFieldsDefsC2.h" },
+		{ C3Def, "ZAM-GenExprsDefsC3.h" },
 		{ Cond, "ZAM-Conds.h" },
-		{ DirectDef, "CompilerOpsDirectDefs.h" },
+		{ DirectDef, "ZAM-GenDirectDefs.h" },
 		{ Eval, "ZAM-OpsEvalDefs.h" },
+		{ MethodDecl, "ZAM-MethodDecl.h" },
 		{ MethodDef, "ZAM-OpsMethodsDefs.h" },
 		{ Op1Flavor, "ZAM-Op1FlavorsDefs.h" },
 		{ OpDef, "ZAM-OpsDefs.h" },
 		{ OpName, "ZAM-OpsNamesDefs.h" },
 		{ OpSideEffects, "ZAM-OpSideEffects.h" },
-		{ SubDecl, "ZAM-SubDefs.h" },
-		{ VDef, "CompilerOpsExprsDefsV.h" },
-		{ VFieldDef, "CompilerOpsFieldsDefsV.h" },
+		{ VDef, "ZAM-GenExprsDefsV.h" },
+		{ VFieldDef, "ZAM-GenFieldsDefsV.h" },
 		{ Vec1Eval, "ZAM-Vec1EvalDefs.h" },
 		{ Vec2Eval, "ZAM-Vec2EvalDefs.h" },
 	};

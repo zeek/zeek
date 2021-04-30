@@ -10,7 +10,7 @@
 
 #include "zeek/threading/SerialTypes.h"
 
-typedef in_addr in4_addr;
+using in4_addr = in_addr;
 
 namespace zeek {
 
@@ -29,12 +29,9 @@ struct ConnKey {
 	TransportProto transport;
 
 	ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port,
-	          uint16_t dst_port, TransportProto t, bool one_way);
+	        uint16_t dst_port, TransportProto t, bool one_way);
 	ConnKey(const ConnTuple& conn);
-	ConnKey(const ConnKey& rhs)
-		{
-		*this = rhs;
-		}
+	ConnKey(const ConnKey& rhs)	{ *this = rhs; }
 
 	bool operator<(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) < 0; }
 	bool operator<=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) <= 0; }
@@ -58,7 +55,7 @@ public:
 	/**
 	 * Address family.
 	 */
-	typedef IPFamily Family;
+	using Family = IPFamily;
 
 	/**
 	 * Byte order.
@@ -381,9 +378,10 @@ public:
 		return ! ( addr1 <= addr2 );
 		}
 
-	/** Converts the address into the type used internally by the
-	  * inter-thread communication.
-	  */
+	/**
+	 * Converts the address into the type used internally by the
+	 * inter-thread communication.
+	 */
 	void ConvertToThreadingValue(threading::Value::addr_t* v) const;
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
@@ -601,7 +599,8 @@ public:
 	 */
 	uint8_t LengthIPv6() const { return length; }
 
-	/** Returns true if the given address is part of the prefix.
+	/**
+	 * Returns true if the given address is part of the prefix.
 	 *
 	 * @param addr The address to test.
 	 */
@@ -637,9 +636,10 @@ public:
 	 */
 	std::unique_ptr<detail::HashKey> MakeHashKey() const;
 
-	/** Converts the prefix into the type used internally by the
-	  * inter-thread communication.
-	  */
+	/**
+	 * Converts the prefix into the type used internally by the
+	 * inter-thread communication.
+	 */
 	void ConvertToThreadingValue(threading::Value::subnet_t* v) const
 		{
 		v->length = length;

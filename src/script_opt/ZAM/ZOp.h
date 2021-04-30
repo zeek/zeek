@@ -59,4 +59,7 @@ typedef enum {
 // Maps an operand to its flavor.
 extern ZAMOp1Flavor op1_flavor[];
 
+// Maps an operand to whether it has side effects.
+extern bool op_side_effects[];
+
 } // namespace zeek::detail

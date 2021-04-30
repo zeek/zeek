@@ -1,11 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/Desc.h"
+#include "zeek/Reporter.h"
+#include "zeek/Func.h"
 #include "zeek/script_opt/ZAM/ZInst.h"
 
-#if 0
-#include "Desc.h"
-#include "Reporter.h"
 
+namespace zeek::detail {
 
 void ZInst::Dump(int inst_num, const FrameReMap* mappings) const
 	{
@@ -54,19 +55,19 @@ void ZInst::Dump(const char* id1, const char* id2, const char* id3,
 		break;
 
 	case OP_VVVC:
-		printf("%s, %s, %s, %s", id1, id2, id3, ConstDump());
+		printf("%s, %s, %s, %s", id1, id2, id3, ConstDump().c_str());
 		break;
 
 	case OP_C:
-		printf("%s", ConstDump());
+		printf("%s", ConstDump().c_str());
 		break;
 
 	case OP_VC:
-		printf("%s, %s", id1, ConstDump());
+		printf("%s, %s", id1, ConstDump().c_str());
 		break;
 
 	case OP_VVC:
-		printf("%s, %s, %s", id1, id2, ConstDump());
+		printf("%s, %s, %s", id1, id2, ConstDump().c_str());
 		break;
 
 	case OP_V_I1:
@@ -74,7 +75,7 @@ void ZInst::Dump(const char* id1, const char* id2, const char* id3,
 		break;
 
 	case OP_VC_I1:
-		printf("%d %s", v1, ConstDump());
+		printf("%d %s", v1, ConstDump().c_str());
 		break;
 
 	case OP_VV_FRAME:
@@ -90,7 +91,7 @@ void ZInst::Dump(const char* id1, const char* id2, const char* id3,
 		break;
 
 	case OP_VVC_I2:
-		printf("%s, %d, %s", id1, v2, ConstDump());
+		printf("%s, %d, %s", id1, v2, ConstDump().c_str());
 		break;
 
 	case OP_VVV_I3:
@@ -114,15 +115,15 @@ void ZInst::Dump(const char* id1, const char* id2, const char* id3,
 		break;
 
 	case OP_VVVC_I3:
-		printf("%s, %s, %d, %s", id1, id2, v3, ConstDump());
+		printf("%s, %s, %d, %s", id1, id2, v3, ConstDump().c_str());
 		break;
 
 	case OP_VVVC_I2_I3:
-		printf("%s, %d, %d, %s", id1, v2, v3, ConstDump());
+		printf("%s, %d, %d, %s", id1, v2, v3, ConstDump().c_str());
 		break;
 
 	case OP_VVVC_I1_I2_I3:
-		printf("%d, %d, %d, %s", v1, v2, v3, ConstDump());
+		printf("%d, %d, %d, %s", v1, v2, v3, ConstDump().c_str());
 		break;
 	}
 
@@ -230,10 +231,10 @@ const char* ZInst::VName(int max_n, int n, int inst_num,
 
 	auto id = map.names.size() > 0 ? map.names[i-1] : map.ids[i-1]->Name();
 
-	return copy_string(fmt("%d (%s)", slot, id));
+	return util::copy_string(util::fmt("%d (%s)", slot, id));
 	}
 
-IntrusivePtr<Val> ZInst::ConstVal() const
+ValPtr ZInst::ConstVal() const
 	{
 	switch ( op_type ) {
 	case OP_C:
@@ -339,7 +340,7 @@ const char* ZInstI::VName(int max_n, int n, const FrameMap* frame_ids,
 	else
 		id = (*frame_ids)[slot];
 
-	return copy_string(fmt("%d (%s)", slot, id->Name()));
+	return util::copy_string(util::fmt("%d (%s)", slot, id->Name()));
 	}
 
 bool ZInstI::DoesNotContinue() const
@@ -363,19 +364,19 @@ bool ZInstI::IsDirectAssignment() const
 		return false;
 
 	switch ( op ) {
-	case OP_ASSIGN_VVi_N:
-	case OP_ASSIGN_VVi_A:
-	case OP_ASSIGN_VVi_O:
-	case OP_ASSIGN_VVi_P:
-	case OP_ASSIGN_VVi_R:
-	case OP_ASSIGN_VVi_S:
-	case OP_ASSIGN_VVi_F:
-	case OP_ASSIGN_VVi_T:
-	case OP_ASSIGN_VVi_V:
-	case OP_ASSIGN_VVi_L:
-	case OP_ASSIGN_VVi_f:
-	case OP_ASSIGN_VVi_t:
-	case OP_ASSIGN_VVi:
+	case OP_ASSIGN_VV_N:
+	case OP_ASSIGN_VV_A:
+	case OP_ASSIGN_VV_O:
+	case OP_ASSIGN_VV_P:
+	case OP_ASSIGN_VV_R:
+	case OP_ASSIGN_VV_S:
+	case OP_ASSIGN_VV_F:
+	case OP_ASSIGN_VV_T:
+	case OP_ASSIGN_VV_V:
+	case OP_ASSIGN_VV_L:
+	case OP_ASSIGN_VV_f:
+	case OP_ASSIGN_VV_t:
+	case OP_ASSIGN_VV:
 		return true;
 
 	default:
@@ -609,10 +610,11 @@ bool ZInstI::IsGlobalLoad() const
 void ZInstI::InitConst(const ConstExpr* ce)
 	{
 	auto v = ce->ValuePtr();
-	t = ce->Type();
-	c = ZAMValUnion(v, t);
+	t = ce->GetType();
+	c = ZVal(v, t);
 
 	if ( ZAM_error )
 		reporter->InternalError("bad value compiling code");
 	}
-#endif
+
+} // zeek::detail

@@ -1245,8 +1245,7 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 	// into the Exec method).  But that seems like a lot of
 	// code bloat for only a very modest gain.
 
-	auto vec2_ptr = v2->RawVec();
-	auto& vec2 = *vec2_ptr;
+	auto& vec2 = *v2->RawVec();
 	auto n = vec2.size();
 	auto vec1_ptr = new vector<std::optional<ZVal>>(n);
 	auto& vec1 = *vec1_ptr;
@@ -1266,35 +1265,31 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 	Unref(old_v1);
 	}
 
-#if 0
 // Binary vector operation of v1 = v2 <vec-op> v3.
 static void vec_exec(ZOp op, const TypePtr& yt, VectorVal*& v1,
-			VectorVal* v2, const VectorVal* v3)
+                     VectorVal* v2, const VectorVal* v3)
 	{
 	// See comment above re further speed-up.
 
-	auto old_v1 = v1;
-	auto& vec2 = v2->RawVector()->ConstVec();
-	auto& vec3 = v3->RawVector()->ConstVec();
-
-	auto vt = new VectorType(yt);
-	v1 = new VectorVal(vt);
-
-	v1->RawVector()->Resize(vec2.size());
-
-	auto& vec1 = v1->RawVector()->ModVec();
+	auto& vec2 = *v2->RawVec();
+	auto& vec3 = *v3->RawVec();
+	auto n = vec2.size();
+	auto vec1_ptr = new vector<std::optional<ZVal>>(n);
+	auto& vec1 = *vec1_ptr;
 
 	for ( unsigned int i = 0; i < vec2.size(); ++i )
 		switch ( op ) {
 
-// #include "ZAM-Vec2EvalDefs.h"
+#include "ZAM-Vec2EvalDefs.h"
 
 		default:
 			reporter->InternalError("bad invocation of VecExec");
 		}
 
+	auto vt = cast_intrusive<VectorType>(v2->GetType());
+	auto old_v1 = v1;
+	v1 = new VectorVal(vt, vec1_ptr);
 	Unref(old_v1);
 	}
-#endif
 
 } // zeek::detail

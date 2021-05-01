@@ -22,6 +22,18 @@ class VectorVal;
 class Type;
 class Val;
 
+using AddrValPtr = IntrusivePtr<AddrVal>;
+using EnumValPtr = IntrusivePtr<EnumVal>;
+using ListValPtr = IntrusivePtr<ListVal>;
+using OpaqueValPtr = IntrusivePtr<OpaqueVal>;
+using PatternValPtr = IntrusivePtr<PatternVal>;
+using RecordValPtr = IntrusivePtr<RecordVal>;
+using StringValPtr = IntrusivePtr<StringVal>;
+using SubNetValPtr = IntrusivePtr<SubNetVal>;
+using TableValPtr = IntrusivePtr<TableVal>;
+using ValPtr = IntrusivePtr<Val>;
+using VectorValPtr = IntrusivePtr<VectorVal>;
+
 namespace detail {
 	class ZBody;
 }
@@ -51,6 +63,7 @@ union ZVal {
 	ZVal(bro_int_t v)	{ int_val = v; }
 	ZVal(bro_uint_t v)	{ uint_val = v; }
 	ZVal(double v)		{ double_val = v; }
+
 	ZVal(StringVal* v)	{ string_val = v; }
 	ZVal(AddrVal* v)	{ addr_val = v; }
 	ZVal(SubNetVal* v)	{ subnet_val = v; }
@@ -63,6 +76,17 @@ union ZVal {
 	ZVal(RecordVal* v)	{ record_val = v; }
 	ZVal(VectorVal* v)	{ vector_val = v; }
 	ZVal(Type* v)		{ type_val = v; }
+
+	ZVal(StringValPtr v)	{ string_val = v.release(); }
+	ZVal(AddrValPtr v)	{ addr_val = v.release(); }
+	ZVal(SubNetValPtr v)	{ subnet_val = v.release(); }
+	ZVal(ListValPtr v)	{ list_val = v.release(); }
+	ZVal(OpaqueValPtr v)	{ opaque_val = v.release(); }
+	ZVal(PatternValPtr v)	{ re_val = v.release(); }
+	ZVal(TableValPtr v)	{ table_val = v.release(); }
+	ZVal(RecordValPtr v)	{ record_val = v.release(); }
+	ZVal(VectorValPtr v)	{ vector_val = v.release(); }
+	ZVal(TypePtr v)		{ type_val = v.release(); }
 
 	// Convert to a higher-level script value.  The caller needs to
 	// ensure that they're providing the correct type.

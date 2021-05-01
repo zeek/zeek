@@ -136,7 +136,7 @@ binary-expr-op Add
 op-type I U D S
 vector
 eval $1 + $2
-eval-type S	vector<const BroString*> strings;
+eval-type S	vector<const String*> strings;
 		strings.push_back($1->AsString());
 		strings.push_back($2->AsString());
 		auto res = new StringVal(concatenate(strings));
@@ -191,12 +191,12 @@ eval $1 % $2
 binary-expr-op And-And
 op-type I
 vector
-eval $1 && $2
+eval bro_int_t($1 && $2)
 
 binary-expr-op Or-Or
 op-type I
 vector
-eval $1 || $2
+eval bro_int_t($1 || $2)
 
 binary-expr-op And
 op-type U P T
@@ -205,7 +205,7 @@ eval $1 & $2
 #
 eval-type P	$$ = new PatternVal(RE_Matcher_conjunction($1->AsPattern(), $2->AsPattern()));
 #
-eval-type T	$$ = $1->Intersect($2);
+eval-type T	$$ = $1->Intersection(*$2);
 
 binary-expr-op Or
 op-type U P T
@@ -231,7 +231,7 @@ op-type I U D S T A
 vector
 eval $1 < $2
 eval-type S	Bstr_cmp($1->AsString(), $2->AsString()) < 0
-eval-type T	$1->IsSubsetOf($2) && $1->Size() < $2->Size()
+eval-type T	$1->IsSubsetOf(*$2) && $1->Size() < $2->Size()
 eval-type A	$1->AsAddr() < $2->AsAddr()
 
 rel-expr-op LE
@@ -239,7 +239,7 @@ op-type I U D S T A
 vector
 eval $1 <= $2
 eval-type S	Bstr_cmp($1->AsString(), $2->AsString()) <= 0
-eval-type T	$1->IsSubsetOf($2)
+eval-type T	$1->IsSubsetOf(*$2)
 eval-type A	$1->AsAddr() < $2->AsAddr() || $1->AsAddr() == $2->AsAddr()
 
 rel-expr-op EQ
@@ -247,7 +247,7 @@ op-type I U D S T A N
 vector
 eval $1 == $2
 eval-type S	Bstr_cmp($1->AsString(), $2->AsString()) == 0
-eval-type T	$1->EqualTo($2)
+eval-type T	$1->EqualTo(*$2)
 eval-type A	$1->AsAddr() == $2->AsAddr()
 eval-type N	$1->AsSubNet() == $2->AsSubNet()
 eval-mixed P S	$1->AsPattern()->MatchExactly($2->AsString())
@@ -257,7 +257,7 @@ op-type I U D S T A N
 vector
 eval $1 != $2
 eval-type S	Bstr_cmp($1->AsString(), $2->AsString()) != 0
-eval-type T	! $1->EqualTo($2)
+eval-type T	! $1->EqualTo(*$2)
 eval-type A	$1->AsAddr() != $2->AsAddr()
 eval-type N	$1->AsSubNet() != $2->AsSubNet()
 eval-mixed P S	! $1->AsPattern()->MatchExactly($2->AsString())
@@ -723,7 +723,7 @@ eval	auto str = frame[z.v2].string_val->AsString();
 		idx += len;
 	auto v = str->GetSubstring(idx, 1);
 	Unref(frame[z.v1].string_val);
-	frame[z.v1].string_val = new StringVal(v ? v : new BroString(""));
+	frame[z.v1].string_val = new StringVal(v ? v : new String(""));
 
 # This version is for a constant v3.
 internal-op Index-StringC
@@ -735,7 +735,7 @@ eval	auto str = frame[z.v2].string_val->AsString();
 		idx += len;
 	auto v = str->GetSubstring(idx, 1);
 	Unref(frame[z.v1].string_val);
-	frame[z.v1].string_val = new StringVal(v ? v : new BroString(""));
+	frame[z.v1].string_val = new StringVal(v ? v : new String(""));
 
 internal-op Index-String-Slice
 type VV

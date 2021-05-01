@@ -1192,10 +1192,8 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 			is_def = _is_def;
 			}
 
-		string LHSAccessor() const
-			{
-			return Accessor(lhs_et);
-			}
+		string LHSAccessor(bool is_ptr = false) const
+			{ return Accessor(lhs_et, is_ptr); }
 		string Op1Accessor(bool is_ptr = false) const
 			{ return Accessor(op1_et, is_ptr); }
 		string Op2Accessor(bool is_ptr = false) const
@@ -1268,8 +1266,20 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 
 		auto eval = SkipWS(ei.eval);
 
+		auto has_target = eval.find("$$") != string::npos;
+
 		if ( is_vec )
-			eval = regex_replace(eval, regex("^[^;\n]*"), "ZVal($&)");
+			{
+			const char* rhs;
+			if ( has_target )
+				rhs = "\\$\\$ = ([^;\n]*)";
+			else
+				rhs = "^[^;\n]*";
+
+			auto replacement = Repl(has_target);
+
+			eval = regex_replace(eval, regex(rhs), replacement);
+			}
 
 		auto is_none = ei.lhs_et == ZAM_EXPR_TYPE_NONE;
 		auto is_default = ei.lhs_et == ZAM_EXPR_TYPE_DEFAULT;
@@ -1278,7 +1288,10 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		     find_type_info(ei.lhs_et).is_managed &&
 		     ! HasExplicitResultType() )
 			{
-			auto pre = "auto hold_lhs = " + lhs_ei + ";\n\t";
+			auto hold_val = lhs_ei;
+			if ( is_vec )
+				hold_val += ei.LHSAccessor(is_vec);
+			auto pre = "auto hold_lhs = " + hold_val + ";\n\t";
 			auto post = "\tUnref(hold_lhs);";
 			eval = pre + eval + post;
 			}
@@ -1286,7 +1299,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		eval = regex_replace(eval, regex("\\$1"), op1_ei);
 		eval = regex_replace(eval, regex("\\$2"), op2_ei);
 
-		if ( eval.find("$$") != string::npos )
+		if ( has_target )
 			eval = regex_replace(eval, regex("\\$\\$"), lhs_ei);
 
 		else if ( is_cond )

@@ -302,6 +302,10 @@ public:
 	ZAM_ExprOpTemplate(ZAMGen* _g, string _base_name);
 
 	virtual int Arity() const			{ return 0; }
+	virtual const char* Repl(bool have_target) const
+		{
+		return have_target ? "$$$$ = ZVal($1)" : "ZVal($&)";
+		}
 
 	int HasExplicitResultType() const	{ return explicit_res_type; }
 	void SetHasExplicitResultType()		{ explicit_res_type = true; }
@@ -417,6 +421,14 @@ public:
 
 	bool IncludesFieldOp() const override		{ return false; }
 	bool IsConditional() const override		{ return true; }
+
+	const char* Repl(bool have_target) const override
+		{
+		if ( have_target )
+			return "$$$$ = ZVal(bro_int_t($1))";
+		else
+			return "ZVal(bro_int_t($&))";
+		}
 
 protected:
 	void Instantiate() override;

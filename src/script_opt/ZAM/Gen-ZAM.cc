@@ -26,28 +26,28 @@ struct TypeInfo {
 	string tag;
 	ZAM_ExprType et;
 	string suffix;
-	string accessor;	// doesn't include "_val"
+	string accessor;	// doesn't include "As" prefix or "()" suffix
 	bool is_managed;
 };
 
 static vector<TypeInfo> ZAM_type_info = {
-	{ "TYPE_ADDR",		ZAM_EXPR_TYPE_ADDR,	"A", "addr", true },
-	{ "TYPE_ANY",		ZAM_EXPR_TYPE_ANY,	"any", "any", true },
-	{ "TYPE_COUNT",		ZAM_EXPR_TYPE_UINT,	"U", "uint", false },
-	{ "TYPE_DOUBLE",	ZAM_EXPR_TYPE_DOUBLE,	"D", "double", false },
-	{ "TYPE_INT",		ZAM_EXPR_TYPE_INT,	"I", "int", false },
-	{ "TYPE_PATTERN",	ZAM_EXPR_TYPE_PATTERN,	"P", "re", true },
-	{ "TYPE_STRING",	ZAM_EXPR_TYPE_STRING,	"S", "string", true },
-	{ "TYPE_SUBNET",	ZAM_EXPR_TYPE_SUBNET,	"N", "subnet", true },
-	{ "TYPE_TABLE",		ZAM_EXPR_TYPE_TABLE,	"T", "table", true },
-	{ "TYPE_VECTOR",	ZAM_EXPR_TYPE_VECTOR,	"V", "vector", true },
+	{ "TYPE_ADDR",		ZAM_EXPR_TYPE_ADDR,	"A", "Addr", true },
+	{ "TYPE_ANY",		ZAM_EXPR_TYPE_ANY,	"any", "Any", true },
+	{ "TYPE_COUNT",		ZAM_EXPR_TYPE_UINT,	"U", "Count", false },
+	{ "TYPE_DOUBLE",	ZAM_EXPR_TYPE_DOUBLE,	"D", "Double", false },
+	{ "TYPE_INT",		ZAM_EXPR_TYPE_INT,	"I", "Int", false },
+	{ "TYPE_PATTERN",	ZAM_EXPR_TYPE_PATTERN,	"P", "Pattern", true },
+	{ "TYPE_STRING",	ZAM_EXPR_TYPE_STRING,	"S", "String", true },
+	{ "TYPE_SUBNET",	ZAM_EXPR_TYPE_SUBNET,	"N", "SubNet", true },
+	{ "TYPE_TABLE",		ZAM_EXPR_TYPE_TABLE,	"T", "Table", true },
+	{ "TYPE_VECTOR",	ZAM_EXPR_TYPE_VECTOR,	"V", "Vector", true },
 
-	{ "TYPE_FILE",		ZAM_EXPR_TYPE_NONE, "f", "file", true },
-	{ "TYPE_FUNC",		ZAM_EXPR_TYPE_NONE, "F", "func", true },
-	{ "TYPE_LIST",		ZAM_EXPR_TYPE_NONE, "L", "list", true },
-	{ "TYPE_OPAQUE",	ZAM_EXPR_TYPE_NONE, "O", "opaque", true },
-	{ "TYPE_RECORD",	ZAM_EXPR_TYPE_NONE, "R", "record", true },
-	{ "TYPE_TYPE",		ZAM_EXPR_TYPE_NONE, "t", "type", true },
+	{ "TYPE_FILE",		ZAM_EXPR_TYPE_NONE, "f", "File", true },
+	{ "TYPE_FUNC",		ZAM_EXPR_TYPE_NONE, "F", "Func", true },
+	{ "TYPE_LIST",		ZAM_EXPR_TYPE_NONE, "L", "List", true },
+	{ "TYPE_OPAQUE",	ZAM_EXPR_TYPE_NONE, "O", "Opaque", true },
+	{ "TYPE_RECORD",	ZAM_EXPR_TYPE_NONE, "R", "Record", true },
+	{ "TYPE_TYPE",		ZAM_EXPR_TYPE_NONE, "t", "Type", true },
 };
 
 const TypeInfo& find_type_info(ZAM_ExprType et)
@@ -613,7 +613,7 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
                                      const string& eval,
                                      const string& accessor, bool is_managed)
 	{
-	auto acc = "." + accessor + "_val";
+	auto acc = ".As" + accessor + "()";
 
 	if ( HasAssignVal() )
 		{
@@ -1196,16 +1196,19 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 			{
 			return Accessor(lhs_et);
 			}
-		string Op1Accessor() const	{ return Accessor(op1_et); }
-		string Op2Accessor() const	{ return Accessor(op2_et); }
+		string Op1Accessor(bool is_ptr = false) const
+			{ return Accessor(op1_et, is_ptr); }
+		string Op2Accessor(bool is_ptr = false) const
+			{ return Accessor(op2_et, is_ptr); }
 
-		string Accessor(ZAM_ExprType et) const
+		string Accessor(ZAM_ExprType et, bool is_ptr = false) const
 			{
 			if ( et == ZAM_EXPR_TYPE_NONE ||
 			     et == ZAM_EXPR_TYPE_DEFAULT)
 				return "";
-			else
-				return "." + find_type_info(et).accessor + "_val";
+
+			string deref = is_ptr ? "->" : ".";
+			return deref + "As" + find_type_info(et).accessor + "()";
 			}
 
 		string OpMarker() const
@@ -1259,11 +1262,14 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		if ( HasExplicitResultType() )
 			lhs_accessor = "";
 
-		auto lhs_ei = lhs + lhs_accessor;
-		auto op1_ei = op1 + ei.Op1Accessor();
-		auto op2_ei = op2 + ei.Op2Accessor();
+		auto lhs_ei = lhs + (is_vec ? "" : lhs_accessor);
+		auto op1_ei = op1 + ei.Op1Accessor(is_vec);
+		auto op2_ei = op2 + ei.Op2Accessor(is_vec);
 
 		auto eval = SkipWS(ei.eval);
+
+		if ( is_vec )
+			eval = regex_replace(eval, regex("^[^;\n]*"), "ZVal($&)");
 
 		auto is_none = ei.lhs_et == ZAM_EXPR_TYPE_NONE;
 		auto is_default = ei.lhs_et == ZAM_EXPR_TYPE_DEFAULT;
@@ -1306,12 +1312,12 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 
 		if ( is_vec )
 			{
-			string dispatch_params = "frame[z.v1].vector_val, frame[z.v2].vector_val";
+			string dispatch_params = "frame[z.v1].AsVector(), frame[z.v2].AsVector()";
 
 			string type_arg;
 			if ( Arity() == 2 )
 				{
-				dispatch_params += ", frame[z.v3].vector_val";
+				dispatch_params += ", frame[z.v3].AsVector()";
 				type_arg = ", z.t";
 				}
 
@@ -1581,7 +1587,7 @@ void ZAM_InternalBinaryOpTemplate::InstantiateEval(const vector<ZAM_OperandType>
 		for ( auto& et : ets )
 			{
 			auto acc = find_type_info(et).accessor;
-			auto lhs = "frame[z.v1]." + acc + "_val";
+			auto lhs = "frame[z.v1].As" + acc + "()";
 			eval = regex_replace(eval, regex("\\$\\$"), lhs);
 			}
 		}
@@ -1644,7 +1650,7 @@ void ZAM_InternalOpTemplate::Parse(const string& attr, const string& line,
 				{
 				func = "func";
 				eval += "auto func = frame[z.v";
-				eval += to_string(arg_slot) + "].func_val;\n";
+				eval += to_string(arg_slot) + "].AsFunc();\n";
 				}
 
 			eval += "auto n = aux->n;\n";

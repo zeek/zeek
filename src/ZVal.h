@@ -47,6 +47,23 @@ union ZVal {
 	// Construct an empty value compatible with the given type.
 	ZVal(const TypePtr& t);
 
+	// Construct directly.
+	ZVal(bro_int_t v)	{ int_val = v; }
+	ZVal(bro_uint_t v)	{ uint_val = v; }
+	ZVal(double v)		{ double_val = v; }
+	ZVal(StringVal* v)	{ string_val = v; }
+	ZVal(AddrVal* v)	{ addr_val = v; }
+	ZVal(SubNetVal* v)	{ subnet_val = v; }
+	ZVal(File* v)		{ file_val = v; }
+	ZVal(Func* v)		{ func_val = v; }
+	ZVal(ListVal* v)	{ list_val = v; }
+	ZVal(OpaqueVal* v)	{ opaque_val = v; }
+	ZVal(PatternVal* v)	{ re_val = v; }
+	ZVal(TableVal* v)	{ table_val = v; }
+	ZVal(RecordVal* v)	{ record_val = v; }
+	ZVal(VectorVal* v)	{ vector_val = v; }
+	ZVal(Type* v)		{ type_val = v; }
+
 	// Convert to a higher-level script value.  The caller needs to
 	// ensure that they're providing the correct type.
 	ValPtr ToVal(const TypePtr& t) const;
@@ -96,25 +113,6 @@ union ZVal {
 		if ( IsManagedType(t) )
 			DeleteManagedType(v);
 		}
-
-protected:
-	friend detail::ZBody;
-
-	ZVal(bro_int_t v)	{ int_val = v; }
-	ZVal(bro_uint_t v)	{ uint_val = v; }
-	ZVal(double v)		{ double_val = v; }
-	ZVal(StringVal* v)	{ string_val = v; }
-	ZVal(AddrVal* v)	{ addr_val = v; }
-	ZVal(SubNetVal* v)	{ subnet_val = v; }
-	ZVal(File* v)		{ file_val = v; }
-	ZVal(Func* v)		{ func_val = v; }
-	ZVal(ListVal* v)	{ list_val = v; }
-	ZVal(OpaqueVal* v)	{ opaque_val = v; }
-	ZVal(PatternVal* v)	{ re_val = v; }
-	ZVal(TableVal* v)	{ table_val = v; }
-	ZVal(RecordVal* v)	{ record_val = v; }
-	ZVal(VectorVal* v)	{ vector_val = v; }
-	ZVal(Type* v)		{ type_val = v; }
 
 private:
 	friend class RecordVal;

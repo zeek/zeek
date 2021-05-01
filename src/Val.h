@@ -45,6 +45,8 @@ class PrefixTable;
 class CompositeHash;
 class HashKey;
 
+class ZBody;
+
 } // namespace detail
 
 namespace run_state {
@@ -1492,6 +1494,8 @@ protected:
 class VectorVal final : public Val, public notifier::detail::Modifiable {
 public:
 	explicit VectorVal(VectorTypePtr t);
+	VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals);
+
 	~VectorVal() override;
 
 	ValPtr SizeVal() const override;
@@ -1592,6 +1596,9 @@ public:
 		{ return (*vector_val)[index]->string_val; }
 	const String* StringAt(unsigned int index) const
 		{ return StringValAt(index)->AsString(); }
+
+	// Intended for low-level access by compiled code.
+	const auto RawVec() const	{ return vector_val; }
 
 protected:
 	/**

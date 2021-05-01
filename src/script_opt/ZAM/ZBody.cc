@@ -138,7 +138,7 @@ ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 		fixed_frame = new ZVal[frame_size];
 
 		for ( unsigned int i = 0; i < managed_slots.size(); ++i )
-			fixed_frame[managed_slots[i]].managed_val = nullptr;
+			fixed_frame[managed_slots[i]].ClearManagedVal();
 		}
 
 	// It's a little weird doing this in the constructor, but unless
@@ -316,7 +316,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc,
 		frame = new ZVal[frame_size];
 		// Clear slots for which we do explicit memory management.
 		for ( auto s : managed_slots )
-			frame[s].managed_val = nullptr;
+			frame[s].ClearManagedVal();
 
 		if ( num_iters > 0 )
 			iters = new vector<IterInfo>(num_iters);
@@ -1236,7 +1236,6 @@ TraversalCode ZAMResumption::Traverse(TraversalCallback* cb) const
 	}
 
 
-#if 0
 // Unary vector operation of v1 <vec-op> v2.
 static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 	{
@@ -1246,29 +1245,28 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 	// into the Exec method).  But that seems like a lot of
 	// code bloat for only a very modest gain.
 
-	auto old_v1 = v1;
-	auto& vec2 = v2->RawVector()->ConstVec();
-	auto vt = v2->GetType()->AsVectorType();
+	auto vec2_ptr = v2->RawVec();
+	auto& vec2 = *vec2_ptr;
+	auto n = vec2.size();
+	auto vec1_ptr = new vector<std::optional<ZVal>>(n);
+	auto& vec1 = *vec1_ptr;
 
-	::Ref(vt);
-	v1 = new VectorVal(vt);
-
-	v1->RawVector()->Resize(vec2.size());
-
-	auto& vec1 = v1->RawVector()->ModVec();
-
-	for ( unsigned int i = 0; i < vec2.size(); ++i )
+	for ( unsigned int i = 0; i < n; ++i )
 		switch ( op ) {
 
-// #include "ZAM-Vec1EvalDefs.h"
+#include "ZAM-Vec1EvalDefs.h"
 
 		default:
 			reporter->InternalError("bad invocation of VecExec");
 		}
 
+	auto vt = cast_intrusive<VectorType>(v2->GetType());
+	auto old_v1 = v1;
+	v1 = new VectorVal(vt, vec1_ptr);
 	Unref(old_v1);
 	}
 
+#if 0
 // Binary vector operation of v1 = v2 <vec-op> v3.
 static void vec_exec(ZOp op, const TypePtr& yt, VectorVal*& v1,
 			VectorVal* v2, const VectorVal* v3)

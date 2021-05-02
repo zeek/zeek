@@ -2846,10 +2846,8 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields)
 
 	int n = rt->NumFields();
 
-	record_val = new std::vector<ZVal>;
+	record_val = new std::vector<std::optional<ZVal>>;
 	record_val->reserve(n);
-
-	is_in_record = new std::vector<bool>(n, false);
 
 	if ( run_state::is_parsing )
 		parse_time_records[rt.get()].emplace_back(NewRef{}, this);
@@ -2876,7 +2874,6 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields)
 					parse_time_records[rt.get()].pop_back();
 
 				delete record_val;
-				delete is_in_record;
 				throw;
 				}
 
@@ -2908,15 +2905,9 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields)
 			}
 
 		if ( def )
-			{
 			record_val->emplace_back(ZVal(def, def->GetType()));
-			(*is_in_record)[i] = true;
-			}
 		else
-			{
-			record_val->emplace_back(ZVal());
-			(*is_in_record)[i] = false;
-			}
+			record_val->emplace_back(std::nullopt);
 		}
 	}
 
@@ -2926,10 +2917,9 @@ RecordVal::~RecordVal()
 
 	for ( unsigned int i = 0; i < n; ++i )
 		if ( HasField(i) && IsManaged(i) )
-			ZVal::DeleteManagedType((*record_val)[i]);
+			ZVal::DeleteManagedType(*(*record_val)[i]);
 
 	delete record_val;
-	delete is_in_record;
 	}
 
 ValPtr RecordVal::SizeVal() const
@@ -2945,7 +2935,6 @@ void RecordVal::Assign(int field, ValPtr new_val)
 
 		auto t = rt->GetFieldType(field);
 		(*record_val)[field] = ZVal(new_val, t);
-		(*is_in_record)[field] = true;
 		Modified();
 		}
 	else
@@ -2957,10 +2946,9 @@ void RecordVal::Remove(int field)
 	if ( HasField(field) )
 		{
 		if ( IsManaged(field) )
-			ZVal::DeleteManagedType((*record_val)[field]);
+			ZVal::DeleteManagedType(*(*record_val)[field]);
 
-		(*record_val)[field] = ZVal();
-		(*is_in_record)[field] = false;
+		(*record_val)[field] = std::nullopt;
 
 		Modified();
 		}
@@ -2992,8 +2980,6 @@ void RecordVal::ResizeParseTimeRecords(RecordType* revised_rt)
 
 		if ( required_length > current_length )
 			{
-			rv->Reserve(required_length);
-
 			for ( auto i = current_length; i < required_length; ++i )
 				rv->AppendField(revised_rt->FieldDefault(i));
 			}
@@ -3202,13 +3188,6 @@ unsigned int RecordVal::MemoryAllocation() const
 
 	size += util::pad_size(record_val->capacity() * sizeof(ZVal));
 	size += padded_sizeof(*record_val);
-
-	// It's tricky sizing is_in_record since it's a std::vector
-	// specialization.  We approximate this by not scaling capacity()
-	// by sizeof(bool) but just using its raw value.  That's still
-	// presumably going to be an overestimate.
-	size += util::pad_size(is_in_record->capacity());
-	size += padded_sizeof(*is_in_record);
 
 	return size + padded_sizeof(*this);
 	}

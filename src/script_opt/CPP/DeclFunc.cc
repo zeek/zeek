@@ -19,7 +19,7 @@ void CPPCompile::DeclareFunc(const FuncInfo& func)
 	auto fname = Canonicalize(BodyName(func).c_str()) + "_zf";
 	auto pf = func.Profile();
 	auto f = func.Func();
-	auto body = func.Body();
+	const auto& body = func.Body();
 	auto priority = func.Priority();
 
 	DeclareSubclass(f->GetType(), pf, fname, body, priority, nullptr,
@@ -133,7 +133,7 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf,
 	body_hashes[fname] = h;
 	body_priorities[fname] = priority;
 	body_names.emplace(body.get(), fname);
-	names_to_bodies.emplace(move(fname), body.get());
+	names_to_bodies.emplace(fname, body.get());
 
 	total_hash = merge_p_hashes(total_hash, h);
 	}

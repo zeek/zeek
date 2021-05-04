@@ -4,6 +4,8 @@
 
 %%{ // C segment
 
+#include <cinttypes>
+#
 #include "zeek/Reporter.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/CPP/Func.h"
@@ -22,7 +24,7 @@ function load_CPP%(h: count%): bool
 
 	if ( cb == detail::standalone_callbacks.end() )
 		{
-		reporter->Error("load of non-existing C++ code (%llu)", h);
+		reporter->Error("load of non-existing C++ code (%" PRIu64 ")", h);
 		return zeek::val_mgr->False();
 		}
 

@@ -233,14 +233,14 @@ void CPPCompile::AddRecordConstant(const ValPtr& v, string& const_name)
 	auto r = cast_intrusive<RecordVal>(v);
 	auto n = r->NumFields();
 
-	for ( auto i = 0; i < n; ++i )
+	for ( auto i = 0u; i < n; ++i )
 		{
 		const auto& r_i = r->GetField(i);
 
 		if ( r_i )
 			{
 			auto r_i_c = BuildConstant(v, r_i);
-			AddInit(v, const_name + "->Assign(" + Fmt(i) +
+			AddInit(v, const_name + "->Assign(" + Fmt(static_cast<int>(i)) +
 			        ", " + r_i_c + ");");
 			}
 		}
@@ -282,7 +282,7 @@ void CPPCompile::AddVectorConstant(const ValPtr& v, string& const_name)
 	auto vv = cast_intrusive<VectorVal>(v);
 	auto n = vv->Size();
 
-	for ( auto i = 0; i < n; ++i )
+	for ( auto i = 0u; i < n; ++i )
 		{
 		const auto& v_i = vv->ValAt(i);
 		auto v_i_c = BuildConstant(v, v_i);

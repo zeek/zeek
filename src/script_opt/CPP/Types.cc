@@ -140,10 +140,10 @@ void CPPCompile::ExpandTypeVar(const TypePtr& t)
 
 void CPPCompile::ExpandListTypeVar(const TypePtr& t, string& tn)
 	{
-	auto tl = t->AsTypeList()->GetTypes();
+	const auto& tl = t->AsTypeList()->GetTypes();
 	auto t_name = tn + "->AsTypeList()";
 
-	for ( auto i = 0; i < tl.size(); ++i )
+	for ( auto i = 0u; i < tl.size(); ++i )
 		AddInit(t, t_name + "->Append(" +
 			GenTypeName(tl[i]) + ");");
 	}
@@ -208,7 +208,7 @@ void CPPCompile::ExpandFuncTypeVar(const TypePtr& t, string& tn)
 	auto f = t->AsFuncType();
 
 	auto args_type_accessor = GenTypeName(f->Params());
-	auto yt = f->Yield();
+	const auto& yt = f->Yield();
 
 	string yield_type_accessor;
 
@@ -447,9 +447,9 @@ void CPPCompile::RegisterType(const TypePtr& tp)
 
 void CPPCompile::RegisterListType(const TypePtr& t)
 	{
-	auto tl = t->AsTypeList()->GetTypes();
+	const auto& tl = t->AsTypeList()->GetTypes();
 
-	for ( auto i = 0; i < tl.size(); ++i )
+	for ( auto i = 0u; i < tl.size(); ++i )
 		{
 		NoteNonRecordInitDependency(t, tl[i]);
 		RegisterType(tl[i]);

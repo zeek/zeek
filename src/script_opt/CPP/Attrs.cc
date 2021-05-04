@@ -86,9 +86,8 @@ void CPPCompile::GenAttrs(const AttributesPtr& attrs)
 
 	AddInit(attrs);
 
-	for ( auto i = 0; i < avec.size(); ++i )
+	for ( const auto& attr : avec )
 		{
-		const auto& attr = avec[i];
 		const auto& e = attr->GetExpr();
 
 		if ( ! e )
@@ -171,7 +170,7 @@ const char* CPPCompile::AttrName(const AttrPtr& attr)
 	case ATTR_IS_ASSIGNED:	return "ATTR_IS_ASSIGNED";
 	case ATTR_IS_USED:	return "ATTR_IS_USED";
 
-	case NUM_ATTRS:	return "<busted>";
+	default:	return "<busted>";
 	}
 	}
 

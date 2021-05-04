@@ -63,7 +63,9 @@ void CPPCompile::Compile()
 	// as a way to identify this compilation.  Only germane when doing
 	// incremental compilation (particularly of the test suite).
 	char buf[8192];
-	getcwd(buf, sizeof buf);
+	if ( ! getcwd(buf, sizeof buf) )
+		reporter->FatalError("getcwd failed: %s", strerror(errno));
+
 	working_dir = buf;
 
 	if ( update && addl_tag > 0 && CheckForCollisions() )
@@ -212,7 +214,7 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 	// Build up an initializer of the events relevant to the function.
 	string events;
 	if ( body_events.count(f) > 0 )
-		for ( auto e : body_events[f] )
+		for ( const auto& e : body_events[f] )
 			{
 			if ( events.size() > 0 )
 				events += ", ";

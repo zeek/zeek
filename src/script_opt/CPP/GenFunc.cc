@@ -19,7 +19,7 @@ void CPPCompile::CompileFunc(const FuncInfo& func)
 	auto fname = Canonicalize(BodyName(func).c_str()) + "_zf";
 	auto pf = func.Profile();
 	auto f = func.Func();
-	auto body = func.Body();
+	const auto& body = func.Body();
 
 	DefineBody(f->GetType(), pf, fname, body, nullptr, f->Flavor());
 	}
@@ -223,7 +223,7 @@ string CPPCompile::BodyName(const FuncInfo& func)
 
 	// Make the name distinct-per-body.
 
-	int i;
+	size_t i;
 	for ( i = 0; i < bodies.size(); ++i )
 		if ( bodies[i].stmts == body )
 			break;
@@ -231,7 +231,7 @@ string CPPCompile::BodyName(const FuncInfo& func)
 	if ( i >= bodies.size() )
 		reporter->InternalError("can't find body in CPPCompile::BodyName");
 
-	return fname + "__" + Fmt(i);
+	return fname + "__" + Fmt(static_cast<int>(i));
 	}
 
 string CPPCompile::GenArgs(const RecordTypePtr& params, const Expr* e)
@@ -258,7 +258,7 @@ string CPPCompile::GenArgs(const RecordTypePtr& params, const Expr* e)
 		if ( ! param_any && arg_any )
 			expr_gen = GenericValPtrToGT(expr_gen, param_t, GEN_NATIVE);
 
-		gen = gen + expr_gen;
+		gen += expr_gen;
 		if ( i < n - 1 )
 			gen += ", ";
 		}

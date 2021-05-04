@@ -638,7 +638,7 @@ string CPPCompile::GenSetConstructorExpr(const Expr* e)
 	{
 	auto sc = static_cast<const SetConstructorExpr*>(e);
 	const auto& t = sc->GetType();
-	auto attrs = sc->GetAttrs();
+	const auto& attrs = sc->GetAttrs();
 
 	string attr_tags;
 	string attr_vals;
@@ -654,7 +654,7 @@ string CPPCompile::GenTableConstructorExpr(const Expr* e)
 	{
 	auto tc = static_cast<const TableConstructorExpr*>(e);
 	const auto& t = tc->GetType();
-	auto attrs = tc->GetAttrs();
+	const auto& attrs = tc->GetAttrs();
 
 	string attr_tags;
 	string attr_vals;
@@ -1126,7 +1126,7 @@ string CPPCompile::GenIntVector(const vector<int>& vec)
 	{
 	string res("{ ");
 
-	for ( auto i = 0; i < vec.size(); ++i )
+	for ( auto i = 0u; i < vec.size(); ++i )
 		{
 		res += Fmt(vec[i]);
 

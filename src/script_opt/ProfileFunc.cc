@@ -483,7 +483,7 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf)
 			(void) HashType(t->AsTypeType()->GetType());
 
 		auto& init_exprs = g->GetInitExprs();
-		for ( auto i_e : init_exprs )
+		for ( const auto& i_e : init_exprs )
 			if ( i_e )
 				{
 				pending_exprs.push_back(i_e.get());
@@ -550,7 +550,7 @@ void ProfileFuncs::TraverseValue(const ValPtr& v)
 		auto r = cast_intrusive<RecordVal>(v);
 		auto n = r->NumFields();
 
-		for ( auto i = 0; i < n; ++i )
+		for ( auto i = 0u; i < n; ++i )
 			TraverseValue(r->GetField(i));
 		}
 		break;
@@ -583,7 +583,7 @@ void ProfileFuncs::TraverseValue(const ValPtr& v)
 		auto vv = cast_intrusive<VectorVal>(v);
 		auto n = vv->Size();
 
-		for ( auto i = 0; i < n; ++i )
+		for ( auto i = 0u; i < n; ++i )
 			TraverseValue(vv->ValAt(i));
 		}
 		break;

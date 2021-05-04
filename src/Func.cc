@@ -322,7 +322,7 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft,
 	auto n = bs.size();
 	ASSERT(n == priorities.size());
 
-	for ( auto i = 0; i < n; ++i )
+	for ( auto i = 0u; i < n; ++i )
 		{
 		Body b;
 		b.stmts = std::move(bs[i]);

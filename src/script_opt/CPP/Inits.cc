@@ -161,7 +161,7 @@ void CPPCompile::GenFuncVarInits()
 
 		string hashes = "{";
 
-		for ( auto b : bodies )
+		for ( const auto& b : bodies )
 			{
 			auto body = b.stmts.get();
 

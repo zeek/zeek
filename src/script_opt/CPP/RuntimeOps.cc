@@ -31,7 +31,7 @@ ListValPtr index_val__CPP(vector<ValPtr> indices)
 
 	// In the future, we could provide N versions of this that
 	// unroll the loop.
-	for ( auto i : indices )
+	for ( const auto& i : indices )
 		ind_v->Append(i);
 
 	return ind_v;
@@ -61,7 +61,7 @@ ValPtr index_string__CPP(const StringValPtr& svp, vector<ValPtr> indices)
 
 ValPtr set_event__CPP(IDPtr g, ValPtr v, EventHandlerPtr& gh)
 	{
-	g->SetVal(move(v));
+	g->SetVal(v);
 	gh = event_registry->Register(g->Name());
 	return v;
 	}
@@ -116,15 +116,15 @@ ValPtr assign_to_index__CPP(T v1, ValPtr v2, ValPtr v3)
 
 ValPtr assign_to_index__CPP(TableValPtr v1, ValPtr v2, ValPtr v3)
 	{
-	return assign_to_index__CPP<TableValPtr>(v1, v2, v3);
+	return assign_to_index__CPP<TableValPtr>(std::move(v1), std::move(v2), std::move(v3));
 	}
 ValPtr assign_to_index__CPP(VectorValPtr v1, ValPtr v2, ValPtr v3)
 	{
-	return assign_to_index__CPP<VectorValPtr>(v1, v2, v3);
+	return assign_to_index__CPP<VectorValPtr>(std::move(v1), std::move(v2), std::move(v3));
 	}
 ValPtr assign_to_index__CPP(StringValPtr v1, ValPtr v2, ValPtr v3)
 	{
-	return assign_to_index__CPP<StringValPtr>(v1, v2, v3);
+	return assign_to_index__CPP<StringValPtr>(std::move(v1), std::move(v2), std::move(v3));
 	}
 
 void add_element__CPP(TableValPtr aggr, ListValPtr indices)
@@ -172,7 +172,7 @@ TableValPtr set_constructor__CPP(vector<ValPtr> elements, TableTypePtr t,
 	auto attrs = build_attrs__CPP(move(attr_tags), move(attr_vals));
 	auto aggr = make_intrusive<TableVal>(move(t), move(attrs));
 
-	for ( const auto& elem : elements )
+	for ( auto& elem : elements )
 		aggr->Assign(move(elem), nullptr);
 
 	return aggr;
@@ -188,7 +188,7 @@ TableValPtr table_constructor__CPP(vector<ValPtr> indices, vector<ValPtr> vals,
 	auto attrs = build_attrs__CPP(move(attr_tags), move(attr_vals));
 	auto aggr = make_intrusive<TableVal>(move(t), move(attrs));
 
-	for ( auto i = 0; i < n; ++i )
+	for ( auto i = 0u; i < n; ++i )
 		{
 		auto v = check_and_promote(vals[i], yt, true);
 		if ( v )
@@ -205,7 +205,7 @@ RecordValPtr record_constructor__CPP(vector<ValPtr> vals, RecordTypePtr t)
 
 	rv->Reserve(n);
 
-	for ( auto i = 0; i < n; ++i )
+	for ( auto i = 0u; i < n; ++i )
 		rv->Assign(i, vals[i]);
 
 	return rv;
@@ -216,7 +216,7 @@ VectorValPtr vector_constructor__CPP(vector<ValPtr> vals, VectorTypePtr t)
 	auto vv = make_intrusive<VectorVal>(move(t));
 	auto n = vals.size();
 
-	for ( auto i = 0; i < n; ++i )
+	for ( auto i = 0u; i < n; ++i )
 		vv->Assign(i, vals[i]);
 
 	return vv;

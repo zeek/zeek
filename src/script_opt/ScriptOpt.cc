@@ -334,7 +334,7 @@ void analyze_scripts()
 
 		printf("\nAdditional C++ script bodies available:\n");
 		int addl = 0;
-		for ( auto s : compiled_scripts )
+		for ( const auto& s : compiled_scripts )
 			if ( already_reported.count(s.first) == 0 )
 				{
 				printf("%s body (hash %llu)\n",

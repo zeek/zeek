@@ -36,9 +36,8 @@ broker::expected<broker::data> CPPLambdaFunc::SerializeClosure() const
 
 	broker::vector body;
 
-	for ( int i = 0; i < vals.size(); ++i )
+	for ( const auto& val : vals )
 		{
-		const auto& val = vals[i];
 		auto expected = Broker::detail::val_to_data(val.get());
 		if ( ! expected )
 			return broker::ec::invalid_data;

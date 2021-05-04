@@ -241,7 +241,7 @@ string CPPCompile::Canonicalize(const char* name) const
 		if ( c == ':' || c == '-' )
 			c = '_';
 
-		cname = cname + c;
+		cname += c;
 		}
 
 	// Add a trailing '_' to avoid conflicts with C++ keywords.

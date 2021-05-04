@@ -214,7 +214,7 @@ protected:
 	                         const string& suffix);
 	void GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 	                     const string& eval, const string& accessor,
-			     bool is_managed);
+	                     bool is_managed);
 
 	string MethodName(const vector<ZAM_OperandType>& ot) const;
 	string MethodDeclare(const vector<ZAM_OperandType>& ot,

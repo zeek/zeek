@@ -661,6 +661,7 @@ const CompiledStmt ZAM::RecordCoerce(const NameExpr* n, const Expr* e)
 	z.SetType(e->Type());
 	z.op_type = OP_VV;
 
+	### fix me
 	auto map = r->Map();
 	auto map_size = r->MapSize();
 	z.aux = new ZInstAux(map_size);
@@ -2284,12 +2285,9 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 
 	auto aggr = n2 ? (Expr*) n2 : (Expr*) c;
 
-	ZOp op;
+	ASSERT(aggr->Type()->Tag() != TYPE_VECTOR);
 
-	if ( aggr->Type()->Tag() == TYPE_VECTOR )
-		op = n2 ? OP_INDEX_IS_IN_VECTOR_VV : OP_INDEX_IS_IN_VECTOR_VC;
-	else
-		op = n2 ? OP_LIST_IS_IN_TABLE_VV : OP_LIST_IS_IN_TABLE_VC;
+	ZOp op = n2 ? OP_LIST_IS_IN_TABLE_VV : OP_LIST_IS_IN_TABLE_VC;
 
 	ZInstI z;
 

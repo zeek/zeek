@@ -98,15 +98,44 @@ protected:
 	double time;
 };
 
-Trigger::Trigger(Expr* arg_cond, Stmt* arg_body,
-                 Stmt* arg_timeout_stmts,
-                 Expr* arg_timeout, Frame* arg_frame,
-                 bool arg_is_return, const Location* arg_location)
+Trigger::Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts,
+                 Expr* timeout_expr, Frame* frame,
+                 bool is_return, const Location* location)
+	{
+	timeout_value = -1;
+
+	if ( timeout_expr )
+		{
+		ValPtr timeout_val;
+
+		try
+			{
+			timeout_val = timeout_expr->Eval(frame);
+			}
+		catch ( InterpreterException& )
+			{ /* Already reported */ }
+
+		timeout_value = timeout_val->AsInterval();
+		}
+
+	Init(cond, body, timeout_stmts, frame, is_return, location);
+	}
+
+Trigger::Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts,
+                 double timeout, Frame* frame,
+                 bool is_return, const Location* location)
+	{
+	timeout_value = timeout;
+	Init(cond, body, timeout_stmts, frame, is_return, location);
+	}
+
+void Trigger::Init(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
+                   Frame* arg_frame, bool arg_is_return,
+                   const Location* arg_location)
 	{
 	cond = arg_cond;
 	body = arg_body;
 	timeout_stmts = arg_timeout_stmts;
-	timeout = arg_timeout;
 	frame = arg_frame->Clone();
 	timer = nullptr;
 	delayed = false;
@@ -114,7 +143,6 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body,
 	attached = nullptr;
 	is_return = arg_is_return;
 	location = arg_location;
-	timeout_value = -1;
 
 	DBG_LOG(DBG_NOTIFIERS, "%s: instantiating", Name());
 
@@ -130,23 +158,6 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body,
 
 		parent->Attach(this);
 		arg_frame->SetDelayed();
-		}
-
-	ValPtr timeout_val;
-
-	if ( arg_timeout )
-		{
-		try
-			{
-			timeout_val = arg_timeout->Eval(arg_frame);
-			}
-		catch ( InterpreterException& )
-			{ /* Already reported */ }
-		}
-
-	if ( timeout_val )
-		{
-		timeout_value = timeout_val->AsInterval();
 		}
 
 	// Make sure we don't get deleted if somebody calls a method like
@@ -198,7 +209,7 @@ Trigger::~Trigger()
 	// point.
 	}
 
-void Trigger::Init(std::vector<ValPtr> index_expr_results)
+void Trigger::ReInit(std::vector<ValPtr> index_expr_results)
 	{
 	assert(! disabled);
 	UnregisterAll();
@@ -276,7 +287,7 @@ bool Trigger::Eval()
 		// Not true. Perhaps next time...
 		DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is false", Name());
 		Unref(f);
-		Init(std::move(index_expr_results));
+		ReInit(std::move(index_expr_results));
 		return false;
 		}
 

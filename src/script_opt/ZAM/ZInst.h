@@ -12,7 +12,6 @@ namespace zeek::detail {
 
 class Expr;
 class ConstExpr;
-class EventHandler;
 class Attributes;
 class Stmt;
 
@@ -376,7 +375,7 @@ public:
 
 	// The following is only used for OP_CONSTRUCT_KNOWN_RECORD_V,
 	// to map elements in slots/constants/types to record field offsets.
-	const int* map = nullptr;
+	std::vector<int> map;
 
 	// If non-nil, then iteration information for a loop.
 	IterInfo* iter_info = nullptr;

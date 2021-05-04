@@ -1105,13 +1105,13 @@ public:
 	// The following provide efficient record field assignments.
 	void Assign(int field, bool new_val)
 		{
-		(*record_val)[field].int_val = int(new_val);
+		(*record_val)[field] = ZVal(bro_int_t(new_val));
 		AddedField(field);
 		}
 
 	void Assign(int field, int new_val)
 		{
-		(*record_val)[field].int_val = new_val;
+		(*record_val)[field] = ZVal(bro_int_t(new_val));
 		AddedField(field);
 		}
 
@@ -1120,18 +1120,18 @@ public:
 	// than the other.
 	void Assign(int field, uint32_t new_val)
 		{
-		(*record_val)[field].uint_val = new_val;
+		(*record_val)[field] = ZVal(bro_uint_t(new_val));
 		AddedField(field);
 		}
 	void Assign(int field, uint64_t new_val)
 		{
-		(*record_val)[field].uint_val = new_val;
+		(*record_val)[field] = ZVal(bro_uint_t(new_val));
 		AddedField(field);
 		}
 
 	void Assign(int field, double new_val)
 		{
-		(*record_val)[field].double_val = new_val;
+		(*record_val)[field] = ZVal(new_val);
 		AddedField(field);
 		}
 
@@ -1146,8 +1146,9 @@ public:
 
 	void Assign(int field, StringVal* new_val)
 		{
-		ZVal::DeleteManagedType((*record_val)[field]);
-		(*record_val)[field].string_val = new_val;
+		if ( HasField(field) )
+			ZVal::DeleteManagedType(*(*record_val)[field]);
+		(*record_val)[field] = ZVal(new_val);
 		AddedField(field);
 		}
 	void Assign(int field, const char* new_val)
@@ -1179,29 +1180,9 @@ public:
 	void AppendField(ValPtr v)
 		{
 		if ( v )
-			{
-			(*is_in_record)[record_val->size()] = true;
 			record_val->emplace_back(ZVal(v, v->GetType()));
-			}
 		else
-			{
-			(*is_in_record)[record_val->size()] = false;
-			record_val->emplace_back(ZVal());
-			}
-		}
-
-	/**
-	 * Ensures that the record has enough internal storage for the
-	 * given number of fields.
-	 * @param n  The number of fields.
-	 */
-	void Reserve(unsigned int n)
-		{
-		record_val->reserve(n);
-		is_in_record->reserve(n);
-
-		for ( auto i = is_in_record->size(); i < n; ++i )
-			is_in_record->emplace_back(false);
+			record_val->emplace_back(std::nullopt);
 		}
 
 	/**
@@ -1219,7 +1200,7 @@ public:
 	 */
 	bool HasField(int field) const
 		{
-		return (*is_in_record)[field];
+		return (*record_val)[field] ? true : false;
 		}
 
 	/**
@@ -1232,7 +1213,7 @@ public:
 		if ( ! HasField(field) )
 			return nullptr;
 
-		return (*record_val)[field].ToVal(rt->GetFieldType(field));
+		return (*record_val)[field]->ToVal(rt->GetFieldType(field));
 		}
 
 	/**
@@ -1306,33 +1287,33 @@ public:
 		if constexpr ( std::is_same_v<T, BoolVal> ||
 		               std::is_same_v<T, IntVal> ||
 		               std::is_same_v<T, EnumVal> )
-			return record_val->operator[](field).int_val;
+			return record_val->operator[](field)->int_val;
 		else if constexpr ( std::is_same_v<T, CountVal> )
-			return record_val->operator[](field).uint_val;
+			return record_val->operator[](field)->uint_val;
 		else if constexpr ( std::is_same_v<T, DoubleVal> ||
 		                    std::is_same_v<T, TimeVal> ||
 		                    std::is_same_v<T, IntervalVal> )
-			return record_val->operator[](field).double_val;
+			return record_val->operator[](field)->double_val;
 		else if constexpr ( std::is_same_v<T, PortVal> )
-			return val_mgr->Port(record_val->at(field).uint_val);
+			return val_mgr->Port(record_val->at(field)->uint_val);
 		else if constexpr ( std::is_same_v<T, StringVal> )
-			return record_val->operator[](field).string_val->Get();
+			return record_val->operator[](field)->string_val->Get();
 		else if constexpr ( std::is_same_v<T, AddrVal> )
-			return record_val->operator[](field).addr_val->Get();
+			return record_val->operator[](field)->addr_val->Get();
 		else if constexpr ( std::is_same_v<T, SubNetVal> )
-			return record_val->operator[](field).subnet_val->Get();
+			return record_val->operator[](field)->subnet_val->Get();
 		else if constexpr ( std::is_same_v<T, File> )
-			return *(record_val->operator[](field).file_val);
+			return *(record_val->operator[](field)->file_val);
 		else if constexpr ( std::is_same_v<T, Func> )
-			return *(record_val->operator[](field).func_val);
+			return *(record_val->operator[](field)->func_val);
 		else if constexpr ( std::is_same_v<T, PatternVal> )
-			return record_val->operator[](field).re_val->Get();
+			return record_val->operator[](field)->re_val->Get();
 		else if constexpr ( std::is_same_v<T, RecordVal> )
-			return record_val->operator[](field).record_val;
+			return record_val->operator[](field)->record_val;
 		else if constexpr ( std::is_same_v<T, VectorVal> )
-			return record_val->operator[](field).vector_val;
+			return record_val->operator[](field)->vector_val;
 		else if constexpr ( std::is_same_v<T, TableVal> )
-			return record_val->operator[](field).table_val->Get();
+			return record_val->operator[](field)->table_val->Get();
 		else
 			{
 			// It's an error to reach here, although because of
@@ -1347,12 +1328,12 @@ public:
 	T GetFieldAs(int field) const
 		{
 		if constexpr ( std::is_integral_v<T> && std::is_signed_v<T> )
-			return record_val->operator[](field).int_val;
+			return record_val->operator[](field)->int_val;
 		else if constexpr ( std::is_integral_v<T> &&
 					std::is_unsigned_v<T> )
-			return record_val->operator[](field).uint_val;
+			return record_val->operator[](field)->uint_val;
 		else if constexpr ( std::is_floating_point_v<T> )
-			return record_val->operator[](field).double_val;
+			return record_val->operator[](field)->double_val;
 
 		// Note: we could add other types here using type traits,
 		// such as is_same_v<T, std::string>, etc.
@@ -1413,11 +1394,27 @@ public:
 	static void DoneParsing();
 
 protected:
+	friend class zeek::detail::ZBody;
+
+	// For use by low-level ZAM instructions.  Caller assumes
+	// responsibility for memory management.  The first version
+	// allows manipulation of whether the field is present at all.
+	// The second version ensures that the optional value is present.
+	std::optional<ZVal>& RawOptField(int field)
+		{ return (*record_val)[field]; }
+
+	ZVal& RawField(int field)
+		{
+		auto& f = RawOptField(field);
+		if ( ! f )
+			f = ZVal();
+		return *f;
+		}
+
 	ValPtr DoClone(CloneState* state) override;
 
 	void AddedField(int field)
 		{
-		(*is_in_record)[field] = true;
 		Modified();
 		}
 
@@ -1430,7 +1427,7 @@ private:
 	void DeleteFieldIfManaged(unsigned int field)
 		{
 		if ( HasField(field) && IsManaged(field) )
-			ZVal::DeleteManagedType((*record_val)[field]);
+			ZVal::DeleteManagedType(*(*record_val)[field]);
 		}
 
 	bool IsManaged(unsigned int offset) const
@@ -1443,12 +1440,7 @@ private:
 	RecordTypePtr rt;
 
 	// Low-level values of each of the fields.
-	std::vector<ZVal>* record_val;
-
-	// Whether a given field exists - for optional fields, and because
-	// Zeek does not enforce that non-optional fields are actually
-	// present.
-	std::vector<bool>* is_in_record;
+	std::vector<std::optional<ZVal>>* record_val;
 
 	// Whether a given field requires explicit memory management.
 	const std::vector<bool>& is_managed;
@@ -1597,8 +1589,9 @@ public:
 	const String* StringAt(unsigned int index) const
 		{ return StringValAt(index)->AsString(); }
 
-	// Intended for low-level access by compiled code.
-	const auto RawVec() const	{ return vector_val; }
+	// Only intended for low-level access by compiled code.
+	const auto& RawVec() const	{ return vector_val; }
+	auto& RawVec()			{ return vector_val; }
 
 protected:
 	/**

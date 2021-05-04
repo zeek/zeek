@@ -3,6 +3,7 @@
 #include "zeek/Desc.h"
 #include "zeek/RE.h"
 #include "zeek/Frame.h"
+#include "zeek/EventHandler.h"
 #include "zeek/Trigger.h"
 #include "zeek/Traverse.h"
 #include "zeek/Reporter.h"
@@ -58,6 +59,40 @@ void report_ZOP_profile()
 	}
 
 
+// Sets the given element to a copy of an existing (not newly constructed)
+// ZVal, including underlying memory management.  Returns false if the
+// assigned value was missing (which we can only tell for managed types),
+// true otherwise.
+
+static bool copy_vec_elem(VectorVal* vv, int ind, ZVal zv, const TypePtr& t)
+	{
+	if ( vv->Size() <= ind )
+		vv->Resize(ind + 1);
+
+	auto& elem = (*vv->RawVec())[ind];
+
+	if ( ! ZVal::IsManagedType(t) )
+		{
+		elem = zv;
+		return true;
+		}
+
+	if ( elem )
+		ZVal::DeleteManagedType(*elem);
+
+	elem = zv;
+	auto managed_elem = elem->ManagedVal();
+
+	if ( ! managed_elem )
+		{
+		elem = std::nullopt;
+		return false;
+		}
+
+	zeek::Ref(managed_elem);
+	return true;
+	}
+
 // Unary vector operations never work on managed types, so no need
 // to pass in the type ...  However, the RHS, which normally would
 // be const, needs to be non-const so we can use its Type() method
@@ -66,32 +101,34 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2);
 
 // Binary ones *can* have managed types (strings).
 static void vec_exec(ZOp op, const TypePtr& t,
-			VectorVal*& v1, VectorVal* v2, const VectorVal* v3);
+                     VectorVal*& v1, VectorVal* v2, const VectorVal* v3);
 
-#if 0
 // Vector coercion.
 //
 // ### Should check for underflow/overflow.
-#define VEC_COERCE(tag, lhs_type, lhs_accessor, cast, rhs_accessor) \
+#define VEC_COERCE(tag, lhs_type, cast, rhs_accessor) \
 	static VectorVal* vec_coerce_##tag(VectorVal* vec) \
 		{ \
-		auto& v = vec->RawVector()->ConstVec(); \
-		auto yt = new VectorType(base_type(lhs_type)); \
+		auto& v = *vec->RawVec(); \
+		auto yt = make_intrusive<VectorType>(base_type(lhs_type)); \
 		auto res_zv = new VectorVal(yt); \
 		auto n = v.size(); \
-		auto& res = res_zv->RawVector()->InitVec(n); \
+		res_zv->Resize(n); \
+		auto& res = *res_zv->RawVec(); \
 		for ( unsigned int i = 0; i < n; ++i ) \
-			res[i].lhs_accessor = cast(v[i].rhs_accessor); \
+			if ( v[i] ) \
+				res[i] = ZVal(cast((*v[i]).rhs_accessor)); \
+			else \
+				res[i] = std::nullopt; \
 		return res_zv; \
 		}
 
-VEC_COERCE(IU, TYPE_INT, int_val, bro_int_t, uint_val)
-VEC_COERCE(ID, TYPE_INT, int_val, bro_int_t, double_val)
-VEC_COERCE(UI, TYPE_COUNT, uint_val, bro_int_t, int_val)
-VEC_COERCE(UD, TYPE_COUNT, uint_val, bro_uint_t, double_val)
-VEC_COERCE(DI, TYPE_DOUBLE, double_val, double, int_val)
-VEC_COERCE(DU, TYPE_DOUBLE, double_val, double, uint_val)
-#endif
+VEC_COERCE(IU, TYPE_INT, bro_int_t, AsCount())
+VEC_COERCE(ID, TYPE_INT, bro_int_t, AsDouble())
+VEC_COERCE(UI, TYPE_COUNT, bro_int_t, AsInt())
+VEC_COERCE(UD, TYPE_COUNT, bro_uint_t, AsDouble())
+VEC_COERCE(DI, TYPE_DOUBLE, double, AsInt())
+VEC_COERCE(DU, TYPE_DOUBLE, double, AsCount())
 
 double curr_CPU_time()
 	{
@@ -250,7 +287,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc,
 	int end_pc = ninst;
 
 #define BuildVal(v, t) ZVal(v, t)
-#define CopyVal(v) (ZVal::IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t) : v)
+#define CopyVal(v) (ZVal::IsManagedType(z.t) ? BuildVal((v).ToVal(z.t), z.t) : (v))
 
 // Managed assignments to frame[s.v1].
 #define AssignV1T(v, t) { \
@@ -345,7 +382,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc,
 		case OP_NOP:
 			break;
 
-// #include "ZAM-OpsEvalDefs.h"
+#include "ZAM-OpsEvalDefs.h"
 		}
 
 #ifdef DEBUG
@@ -1084,7 +1121,7 @@ void ZBody::ProfileExecution() const
 		}
 	}
 
-bool ZBody::CheckAnyType(const Type* any_type, const Type* expected_type,
+bool ZBody::CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,
 			const Location* loc) const
 	{
 	if ( IsAny(expected_type) )

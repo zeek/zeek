@@ -8,19 +8,19 @@
 
 namespace zeek {
 
-class StringVal;
 class AddrVal;
-class SubNetVal;
 class File;
 class Func;
 class ListVal;
 class OpaqueVal;
 class PatternVal;
-class TableVal;
 class RecordVal;
-class VectorVal;
+class StringVal;
+class SubNetVal;
+class TableVal;
 class Type;
 class Val;
+class VectorVal;
 
 using AddrValPtr = IntrusivePtr<AddrVal>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
@@ -36,6 +36,7 @@ using VectorValPtr = IntrusivePtr<VectorVal>;
 
 namespace detail {
 	class ZBody;
+	class IterInfo;
 }
 
 // Note that a ZVal by itself is ambiguous: it doesn't track its type.
@@ -76,6 +77,7 @@ union ZVal {
 	ZVal(RecordVal* v)	{ record_val = v; }
 	ZVal(VectorVal* v)	{ vector_val = v; }
 	ZVal(Type* v)		{ type_val = v; }
+	ZVal(Val* v)		{ any_val = v; }
 
 	ZVal(StringValPtr v)	{ string_val = v.release(); }
 	ZVal(AddrValPtr v)	{ addr_val = v.release(); }
@@ -120,6 +122,29 @@ union ZVal {
 	Obj* ManagedVal() const		{ return managed_val; }
 	void ClearManagedVal()		{ managed_val = nullptr; }
 
+	// The following return references that can be used to
+	// populate the ZVal.  Handy for compiled ZAM code.
+	bro_int_t& AsIntRef()		{ return int_val; }
+	bro_uint_t& AsCountRef()	{ return uint_val; }
+	double& AsDoubleRef()		{ return double_val; }
+	StringVal*& AsStringRef()	{ return string_val; }
+	AddrVal*& AsAddrRef()		{ return addr_val; }
+	SubNetVal*& AsSubNetRef()	{ return subnet_val; }
+	File*& AsFileRef()		{ return file_val; }
+	Func*& AsFuncRef()		{ return func_val; }
+	ListVal*& AsListRef()		{ return list_val; }
+	OpaqueVal*& AsOpaqueRef()	{ return opaque_val; }
+	PatternVal*& AsPatternRef()	{ return re_val; }
+	TableVal*& AsTableRef()		{ return table_val; }
+	RecordVal*& AsRecordRef()	{ return record_val; }
+	VectorVal*& AsVectorRef()	{ return vector_val; }
+	Type*& AsTypeRef()		{ return type_val; }
+	Val*& AsAnyRef()		{ return any_val; }
+	Obj*& ManagedValRef()		{ return managed_val; }
+
+	ZVal(detail::IterInfo* v)		{ iter_info = v; }
+	detail::IterInfo* AsIterInfo() const	{ return iter_info; }
+
 	// True if a given type is one for which we manage the associated
 	// memory internally.
 	static bool IsManagedType(const TypePtr& t);
@@ -141,6 +166,7 @@ union ZVal {
 private:
 	friend class RecordVal;
 	friend class VectorVal;
+	friend class zeek::detail::ZBody;
 
 	// Used for bool, int, enum.
 	bro_int_t int_val;
@@ -173,6 +199,9 @@ private:
 
 	// Used for generic access to managed (derived-from-Obj) objects.
 	Obj* managed_val;
+
+	// Used for ZAM looping ###.
+	detail::IterInfo* iter_info;
 
 	// A class-wide status variable set to true when a missing
 	// value was accessed.  Only germane for managed types, since

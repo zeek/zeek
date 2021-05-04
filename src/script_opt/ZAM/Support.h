@@ -36,6 +36,9 @@ extern TypePtr log_ID_enum_type;
 extern TypePtr any_base_type;
 
 extern void ZAM_run_time_error(const char* msg);
+extern void ZAM_run_time_error(const Location* loc, const char* msg);
+extern void ZAM_run_time_error(const Location* loc, const char* msg,
+                               const Obj* o);
 extern void ZAM_run_time_error(const Stmt* stmt, const char* msg);
 extern void ZAM_run_time_error(const char* msg, const Obj* o);
 

@@ -61,7 +61,7 @@ protected:
 
 	// Run-time checking for "any" type being consistent with
 	// expected typed.  Returns true if the type match is okay.
-	bool CheckAnyType(const Type* any_type, const Type* expected_type,
+	bool CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,
 	                  const Location* loc) const;
 
 #if 0

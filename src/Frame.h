@@ -262,6 +262,8 @@ public:
 	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
 	void ClearCall()			{ call = nullptr; }
 	const CallExpr* GetCall() const		{ return call; }
+
+	void SetCallLoc(const Location* loc)	{ call_loc = loc; }
 	const detail::Location* GetCallLocation() const;
 
 	void SetDelayed()	{ delayed = true; }
@@ -390,6 +392,7 @@ private:
 
 	trigger::TriggerPtr trigger;
 	const CallExpr* call;
+        const Location* call_loc = nullptr;	// only needed if call is nil
 
 	std::unique_ptr<std::vector<ScriptFunc*>> functions_with_closure_frame_reference;
 };

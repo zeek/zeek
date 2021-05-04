@@ -13,7 +13,6 @@ namespace zeek::detail {
 class IterInfo {
 public:
 	IterInfo()	{ c = nullptr;	/* clear the cookie */ }
-	~IterInfo()	{ if ( c ) loop_vals->StopIteration(c); }
 
 	// If we're looping over a table:
 	const TableVal* tv = nullptr;
@@ -38,7 +37,7 @@ public:
 	TypePtr value_var_type = nullptr;
 
 	// If we're iterating over a vector, points to it.
-	VectorValPtr vv = nullptr;
+	std::vector<std::optional<ZVal>>* vv = nullptr;
 
 	// The vector's type & yield.
 	VectorTypePtr vec_type = nullptr;

@@ -1,4 +1,10 @@
 
+4.1.0-dev.583 | 2021-05-03 18:21:33 -0700
+
+  * switched RecordVal's to use std::optional for tracking missing fields (Vern Paxson, Corelight)
+
+  * added constructors for directly building ZVal's (Vern Paxson, Corelight)
+
 4.1.0-dev.580 | 2021-04-30 18:29:22 -0700
 
   * Add missing zeek/ prefix to a telemetry header's includes (Jon Siwek, Corelight)

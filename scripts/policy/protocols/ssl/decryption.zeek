@@ -51,7 +51,7 @@ event zeek_init()
 		Input::add_table([$name=input_stream_name, $source=keylog_file, $destination=secrets, $idx=Idx, $val=Val, $want_record=F]);
 		Input::remove(input_stream_name);
 		}
-}
+	}
 
 event SSL::add_keys(client_random: string, val: string)
 	{

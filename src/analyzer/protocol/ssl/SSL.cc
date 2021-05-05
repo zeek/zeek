@@ -27,45 +27,6 @@ static void print_hex(std::string name, u_char* data, int len)
 	printf("\n");
 	}
 
-static bool tls1_prf(const u_char *secret, int secret_len, const char* label,
-		const u_char* rnd1, int rnd1_len, const u_char* rnd2, int rnd2_len, u_char* out, size_t out_len)
-	{
-	// alloc buffers
-	EVP_PKEY_CTX *pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_TLS1_PRF, NULL);
-	size_t seed_len = strlen(label) + rnd1_len + rnd2_len;
-	u_char *seed = (u_char*) malloc(seed_len);
-	u_char *ptr = seed;
-
-	// seed = label + rnd1 + rnd2
-	memcpy(ptr, label, strlen(label));
-	ptr += strlen(label);
-	memcpy(ptr, rnd1, rnd1_len);
-	ptr += rnd1_len;
-	memcpy(ptr, rnd2, rnd2_len);
-	ptr += rnd2_len;
-
-	if (EVP_PKEY_derive_init(pctx) <= 0)
-		goto abort; /* Error */
-	// FIXME: sha384 should not be hardcoded
-	if (EVP_PKEY_CTX_set_tls1_prf_md(pctx, EVP_sha384()) <= 0)
-		goto abort; /* Error */
-	if (EVP_PKEY_CTX_set1_tls1_prf_secret(pctx, secret, secret_len) <= 0)
-		goto abort; /* Error */
-	if (EVP_PKEY_CTX_add1_tls1_prf_seed(pctx, seed, seed_len) <= 0)
-		goto abort; /* Error */
-	if (EVP_PKEY_derive(pctx, out, &out_len) <= 0)
-		goto abort; /* Error */
-
-	EVP_PKEY_CTX_free(pctx);
-	free(seed);
-	return true;
-
-abort:
-	EVP_PKEY_CTX_free(pctx);
-	free(seed);
-	return false;
-	}
-
 namespace zeek::analyzer::ssl {
 
 #define MSB(a) ((a>>8)&0xff)
@@ -87,8 +48,8 @@ SSL_Analyzer::SSL_Analyzer(Connection* c)
 	c_seq = 0;
 	s_seq = 0;
 	// FIXME: should this be initialized to nullptr?
-	secret = new zeek::StringVal(0, "");
-	keys = new zeek::StringVal(0, "");
+	secret = nullptr;
+	keys = nullptr;
 	pia = nullptr;
 	}
 
@@ -96,8 +57,6 @@ SSL_Analyzer::~SSL_Analyzer()
 	{
 	delete interp;
 	delete handshake_interp;
-	delete secret;
-	delete keys;
 	}
 
 void SSL_Analyzer::Done()
@@ -176,15 +135,48 @@ void SSL_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 
 void SSL_Analyzer::SetSecret(const u_char* data, int len)
 	{
-	// FIXME: Is this the proper way to initialize a zeek::StringVal?
-	//        the alternative requires a cast: new zeek::StringVal(len, data)
-	secret = new zeek::StringVal(new zeek::String(data, len, true));
+	secret = make_intrusive<zeek::StringVal>(len, (const char*)data);
 	}
 
 void SSL_Analyzer::SetKeys(const u_char* data, int len)
 	{
-	keys = new zeek::StringVal(new zeek::String(data, len, true));
+	keys = make_intrusive<zeek::StringVal>(len, (const char*)data);
 	}
+
+bool SSL_Analyzer::TLS12_PRF(const std::string& secret, const std::string& label,
+		const char* rnd1, size_t rnd1_len, const char* rnd2, size_t rnd2_len, u_char* out, size_t out_len)
+	{
+	// alloc buffers
+	EVP_PKEY_CTX *pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_TLS1_PRF, NULL);
+	size_t seed_len = label.length() + rnd1_len + rnd2_len;
+	std::string seed{};
+	seed.reserve(seed_len);
+
+	// seed = label + rnd1 + rnd2
+	seed.append(label);
+	seed.append(rnd1, rnd1_len);
+	seed.append(rnd2, rnd2_len);
+
+	if (EVP_PKEY_derive_init(pctx) <= 0)
+		goto abort; /* Error */
+	// FIXME: sha384 should not be hardcoded
+	if (EVP_PKEY_CTX_set_tls1_prf_md(pctx, EVP_sha384()) <= 0)
+		goto abort; /* Error */
+	if (EVP_PKEY_CTX_set1_tls1_prf_secret(pctx, secret.data(), secret.length()) <= 0)
+		goto abort; /* Error */
+	if (EVP_PKEY_CTX_add1_tls1_prf_seed(pctx, seed.data(), seed.length()) <= 0)
+		goto abort; /* Error */
+	if (EVP_PKEY_derive(pctx, out, &out_len) <= 0)
+		goto abort; /* Error */
+
+	EVP_PKEY_CTX_free(pctx);
+	return true;
+
+abort:
+	EVP_PKEY_CTX_free(pctx);
+	return false;
+	}
+
 
 bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool is_orig, uint8_t content_type, uint16_t raw_tls_version)
 	{
@@ -198,19 +190,20 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 		}
 
 	// Neither secret or key present: abort
-	if ( secret->Len() == 0 && keys->Len() == 0 )
+	if ( ( secret == nullptr || secret->Len() == 0 ) && ( keys == nullptr || keys->Len() == 0 ) )
 		{
-		DBG_LOG(DBG_ANALYZER, "Could not decrypt packet due to missing key\n");
-		print_hex("->client_random:", handshake_interp->client_random().data(), handshake_interp->client_random().length());
+		DBG_LOG(DBG_ANALYZER, "Could not decrypt packet due to missing keys/secret.\n");
+		// FIXME: change util function to return a printably std::string for DBG_LOG
+		//print_hex("->client_random:", handshake_interp->client_random().data(), handshake_interp->client_random().length());
 		return false;
 		}
 
 	// Secret present, but no keys derived yet: derive keys
-	if ( secret->Len() != 0 && keys->Len() == 0 )
+	if ( secret != nullptr && secret->Len() != 0 && ( keys == nullptr || keys->Len() == 0 ) )
 		{
 		uint32_t ts = htonl((uint32_t) handshake_interp->gmt_unix_time());
 
-		u_char crand[32] = {0x00};
+		char crand[32] = {0x00};
 		u_char keybuf[72];
 
 		auto c_rnd = handshake_interp->client_random();
@@ -218,15 +211,20 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 		memcpy(crand, &(ts), 4);
 		memcpy(crand + 4, c_rnd.data(), c_rnd.length());
 
-		tls1_prf(secret->Bytes(), secret->Len(), "key expansion", s_rnd.data(), s_rnd.length(),
-				crand, sizeof(crand), keybuf, sizeof(keybuf));
+		auto res = TLS12_PRF(secret->ToStdString(), "key expansion",
+				(char*)s_rnd.data(), s_rnd.length(), crand, sizeof(crand), keybuf, sizeof(keybuf));
+		if ( !res )
+			{
+			DBG_LOG(DBG_ANALYZER, "TLS PRF failed. Aborting.\n");
+			return false;
+			}
 
 		// save derived keys
 		SetKeys(keybuf, sizeof(keybuf));
 	}
 
 	// Keys present: decrypt TLS application data
-	if ( keys->Len() != 0 )
+	if ( keys != nullptr && keys->Len() != 0 )
 		{
 		// session keys & AEAD data
 		u_char c_wk[32];
@@ -266,6 +264,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 		encrypted_len -= 8;
 		encrypted_len -= 16;
 
+		// FIXME: aes_256_gcm should not be hardcoded here ;)
 		if (is_orig)
 			EVP_DecryptInit(ctx, EVP_aes_256_gcm(), c_wk, s_aead_nonce);
 		else
@@ -283,7 +282,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 		s_aead_tag[11] = MSB(encrypted_len);
 		s_aead_tag[12] = LSB(encrypted_len);
 
-		u_char *decrypted = (u_char*)malloc(encrypted_len);
+		u_char *decrypted = new u_char[ encrypted_len ];
 		int decrypted_len = 0;
 
 		EVP_DecryptUpdate(ctx, NULL, &decrypted_len, s_aead_tag, 13);
@@ -294,14 +293,14 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 			{
 			DBG_LOG(DBG_ANALYZER, "Decryption failed with return code: %d. Invalid key?\n", res);
 			EVP_CIPHER_CTX_free(ctx);
-			free(decrypted);
+			delete [] decrypted;
 			return false;
 			}
 
 		EVP_CIPHER_CTX_free(ctx);
 		ForwardDecryptedData(decrypted_len, reinterpret_cast<const u_char*>(decrypted), is_orig);
 
-		free(decrypted);
+		delete [] decrypted;
 		return true;
 	}
 

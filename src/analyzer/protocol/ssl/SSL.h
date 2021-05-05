@@ -39,6 +39,7 @@ public:
 	void SetKeys(const u_char* data, int len);
 
 	bool TryDecryptApplicationData(int len, const u_char* data, bool is_orig, uint8_t content_type, uint16_t raw_tls_version);
+	bool TLS12_PRF(const std::string& secret, const std::string& label, const char* rnd1, size_t rnd1_len, const char* rnd2, size_t rnd2_len, u_char* out, size_t out_len);
 	void ForwardDecryptedData(int len, const u_char* data, bool is_orig);
 
 protected:
@@ -49,8 +50,8 @@ protected:
 	// FIXME: should this be moved into the connection?
 	int c_seq;
 	int s_seq;
-	zeek::StringVal *secret;
-	zeek::StringVal *keys;
+	StringValPtr secret;
+	StringValPtr keys;
 	zeek::analyzer::pia::PIA_TCP *pia;
 };
 

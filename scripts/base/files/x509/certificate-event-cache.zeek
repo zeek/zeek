@@ -8,6 +8,8 @@
 ##! the parsing of certificate information in the core is disabled. Instead, the cached events
 ##! and data structures from the previous certificates are used.
 
+@load ./main
+
 module X509;
 
 export {

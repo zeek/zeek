@@ -349,6 +349,8 @@ scripts/base/init-default.zeek
             scripts/base/files/x509/main.zeek
               scripts/base/files/hash/__load__.zeek
                 scripts/base/files/hash/main.zeek
+            scripts/base/files/x509/certificate-event-cache.zeek
+            scripts/base/files/x509/log-ocsp.zeek
   scripts/base/protocols/http/__load__.zeek
     scripts/base/protocols/http/main.zeek
     scripts/base/protocols/http/entities.zeek

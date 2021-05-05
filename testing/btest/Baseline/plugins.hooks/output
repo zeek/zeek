@@ -176,6 +176,7 @@
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/pkix-cert)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/x-x509-ca-cert)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/x-x509-user-cert)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_OCSP_REPLY, application/ocsp-response)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_PE, application/x-dosexec)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/pkix-cert)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/x-x509-ca-cert)) -> <no result>
@@ -220,6 +221,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (NetControl::SHUNT, [name=default, writer=Log::WRITER_ASCII, path=netcontrol_shunt, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, path=notice_alarm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=notice, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (OCSP::LOG, [name=default, writer=Log::WRITER_ASCII, path=ocsp, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (OpenFlow::LOG, [name=default, writer=Log::WRITER_ASCII, path=openflow, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (PE::LOG, [name=default, writer=Log::WRITER_ASCII, path=pe, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
@@ -265,6 +267,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt, policy=NetControl::log_policy_shunt])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (OCSP::LOG, [columns=OCSP::Info, ev=OCSP::log_ocsp, path=ocsp, policy=OCSP::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (OpenFlow::LOG, [columns=OpenFlow::Info, ev=OpenFlow::log_openflow, path=openflow, policy=OpenFlow::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (PE::LOG, [columns=PE::Info, ev=PE::log_pe, path=pe, policy=PE::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (PacketFilter::LOG, [columns=PacketFilter::Info, ev=<uninitialized>, path=packet_filter, policy=PacketFilter::log_policy])) -> <no result>
@@ -311,6 +314,7 @@
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (NetControl::SHUNT)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Notice::ALARM_LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Notice::LOG)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (OCSP::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (OpenFlow::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (PE::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (PacketFilter::LOG)) -> <no result>
@@ -356,6 +360,7 @@
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (NetControl::SHUNT, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (OCSP::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (OpenFlow::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (PE::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
@@ -401,6 +406,7 @@
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (NetControl::SHUNT, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Notice::ALARM_LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Notice::LOG, default)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (OCSP::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (OpenFlow::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (PE::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (PacketFilter::LOG, default)) -> <no result>
@@ -446,6 +452,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt, policy=NetControl::log_policy_shunt])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (OCSP::LOG, [columns=OCSP::Info, ev=OCSP::log_ocsp, path=ocsp, policy=OCSP::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (OpenFlow::LOG, [columns=OpenFlow::Info, ev=OpenFlow::log_openflow, path=openflow, policy=OpenFlow::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (PE::LOG, [columns=PE::Info, ev=PE::log_pe, path=pe, policy=PE::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (PacketFilter::LOG, [columns=PacketFilter::Info, ev=<uninitialized>, path=packet_filter, policy=PacketFilter::log_policy])) -> <no result>
@@ -778,6 +785,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./bloom-filter.bif.zeek, <...>/bloom-filter.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./broker, <...>/broker.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./certificate-event-cache, <...>/certificate-event-cache.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./comm.bif.zeek, <...>/comm.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./const-dos-error, <...>/const-dos-error.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./const-nt-status, <...>/const-nt-status.zeek) -> -1
@@ -804,6 +812,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./input.bif.zeek, <...>/input.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./last, <...>/last.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./log, <...>/log.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./log-ocsp, <...>/log-ocsp.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./logging.bif.zeek, <...>/logging.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./magic, <...>/magic) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./main, <...>/main.zeek) -> -1
@@ -1184,6 +1193,7 @@
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/pkix-cert))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/x-x509-ca-cert))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/x-x509-user-cert))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_OCSP_REPLY, application/ocsp-response))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_PE, application/x-dosexec))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/pkix-cert))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/x-x509-ca-cert))
@@ -1228,6 +1238,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (NetControl::SHUNT, [name=default, writer=Log::WRITER_ASCII, path=netcontrol_shunt, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, path=notice_alarm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=notice, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
+0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (OCSP::LOG, [name=default, writer=Log::WRITER_ASCII, path=ocsp, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (OpenFlow::LOG, [name=default, writer=Log::WRITER_ASCII, path=openflow, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (PE::LOG, [name=default, writer=Log::WRITER_ASCII, path=pe, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
@@ -1273,6 +1284,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt, policy=NetControl::log_policy_shunt]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (OCSP::LOG, [columns=OCSP::Info, ev=OCSP::log_ocsp, path=ocsp, policy=OCSP::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (OpenFlow::LOG, [columns=OpenFlow::Info, ev=OpenFlow::log_openflow, path=openflow, policy=OpenFlow::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (PE::LOG, [columns=PE::Info, ev=PE::log_pe, path=pe, policy=PE::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (PacketFilter::LOG, [columns=PacketFilter::Info, ev=<uninitialized>, path=packet_filter, policy=PacketFilter::log_policy]))
@@ -1319,6 +1331,7 @@
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (NetControl::SHUNT))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Notice::ALARM_LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Notice::LOG))
+0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (OCSP::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (OpenFlow::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (PE::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (PacketFilter::LOG))
@@ -1364,6 +1377,7 @@
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (NetControl::SHUNT, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
+0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (OCSP::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (OpenFlow::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (PE::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
@@ -1409,6 +1423,7 @@
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (NetControl::SHUNT, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Notice::ALARM_LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Notice::LOG, default))
+0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (OCSP::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (OpenFlow::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (PE::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (PacketFilter::LOG, default))
@@ -1454,6 +1469,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt, policy=NetControl::log_policy_shunt]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (OCSP::LOG, [columns=OCSP::Info, ev=OCSP::log_ocsp, path=ocsp, policy=OCSP::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (OpenFlow::LOG, [columns=OpenFlow::Info, ev=OpenFlow::log_openflow, path=openflow, policy=OpenFlow::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (PE::LOG, [columns=PE::Info, ev=PE::log_pe, path=pe, policy=PE::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (PacketFilter::LOG, [columns=PacketFilter::Info, ev=<uninitialized>, path=packet_filter, policy=PacketFilter::log_policy]))
@@ -1786,6 +1802,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./bloom-filter.bif.zeek, <...>/bloom-filter.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./broker, <...>/broker.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./certificate-event-cache, <...>/certificate-event-cache.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./comm.bif.zeek, <...>/comm.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./const-dos-error, <...>/const-dos-error.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./const-nt-status, <...>/const-nt-status.zeek)
@@ -1812,6 +1829,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./input.bif.zeek, <...>/input.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./last, <...>/last.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./log, <...>/log.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./log-ocsp, <...>/log-ocsp.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./logging.bif.zeek, <...>/logging.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./magic, <...>/magic)
 0.000000   MetaHookPre   LoadFile(0, ./main, <...>/main.zeek)
@@ -2191,6 +2209,7 @@
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_MD5, application/pkix-cert)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_MD5, application/x-x509-ca-cert)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_MD5, application/x-x509-user-cert)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_OCSP_REPLY, application/ocsp-response)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_PE, application/x-dosexec)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_SHA1, application/pkix-cert)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_SHA1, application/x-x509-ca-cert)
@@ -2235,6 +2254,7 @@
 0.000000 | HookCallFunction Log::__add_filter(NetControl::SHUNT, [name=default, writer=Log::WRITER_ASCII, path=netcontrol_shunt, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, path=notice_alarm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=notice, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
+0.000000 | HookCallFunction Log::__add_filter(OCSP::LOG, [name=default, writer=Log::WRITER_ASCII, path=ocsp, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(OpenFlow::LOG, [name=default, writer=Log::WRITER_ASCII, path=openflow, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(PE::LOG, [name=default, writer=Log::WRITER_ASCII, path=pe, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
@@ -2280,6 +2300,7 @@
 0.000000 | HookCallFunction Log::__create_stream(NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt, policy=NetControl::log_policy_shunt])
 0.000000 | HookCallFunction Log::__create_stream(Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm])
 0.000000 | HookCallFunction Log::__create_stream(Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy])
+0.000000 | HookCallFunction Log::__create_stream(OCSP::LOG, [columns=OCSP::Info, ev=OCSP::log_ocsp, path=ocsp, policy=OCSP::log_policy])
 0.000000 | HookCallFunction Log::__create_stream(OpenFlow::LOG, [columns=OpenFlow::Info, ev=OpenFlow::log_openflow, path=openflow, policy=OpenFlow::log_policy])
 0.000000 | HookCallFunction Log::__create_stream(PE::LOG, [columns=PE::Info, ev=PE::log_pe, path=pe, policy=PE::log_policy])
 0.000000 | HookCallFunction Log::__create_stream(PacketFilter::LOG, [columns=PacketFilter::Info, ev=<uninitialized>, path=packet_filter, policy=PacketFilter::log_policy])
@@ -2326,6 +2347,7 @@
 0.000000 | HookCallFunction Log::add_default_filter(NetControl::SHUNT)
 0.000000 | HookCallFunction Log::add_default_filter(Notice::ALARM_LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Notice::LOG)
+0.000000 | HookCallFunction Log::add_default_filter(OCSP::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(OpenFlow::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(PE::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(PacketFilter::LOG)
@@ -2371,6 +2393,7 @@
 0.000000 | HookCallFunction Log::add_filter(NetControl::SHUNT, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
+0.000000 | HookCallFunction Log::add_filter(OCSP::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(OpenFlow::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(PE::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
@@ -2416,6 +2439,7 @@
 0.000000 | HookCallFunction Log::add_stream_filters(NetControl::SHUNT, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Notice::ALARM_LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Notice::LOG, default)
+0.000000 | HookCallFunction Log::add_stream_filters(OCSP::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(OpenFlow::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(PE::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(PacketFilter::LOG, default)
@@ -2461,6 +2485,7 @@
 0.000000 | HookCallFunction Log::create_stream(NetControl::SHUNT, [columns=NetControl::ShuntInfo, ev=NetControl::log_netcontrol_shunt, path=netcontrol_shunt, policy=NetControl::log_policy_shunt])
 0.000000 | HookCallFunction Log::create_stream(Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm])
 0.000000 | HookCallFunction Log::create_stream(Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy])
+0.000000 | HookCallFunction Log::create_stream(OCSP::LOG, [columns=OCSP::Info, ev=OCSP::log_ocsp, path=ocsp, policy=OCSP::log_policy])
 0.000000 | HookCallFunction Log::create_stream(OpenFlow::LOG, [columns=OpenFlow::Info, ev=OpenFlow::log_openflow, path=openflow, policy=OpenFlow::log_policy])
 0.000000 | HookCallFunction Log::create_stream(PE::LOG, [columns=PE::Info, ev=PE::log_pe, path=pe, policy=PE::log_policy])
 0.000000 | HookCallFunction Log::create_stream(PacketFilter::LOG, [columns=PacketFilter::Info, ev=<uninitialized>, path=packet_filter, policy=PacketFilter::log_policy])
@@ -2795,6 +2820,7 @@
 0.000000 | HookLoadFile  ./bloom-filter.bif.zeek <...>/bloom-filter.bif.zeek
 0.000000 | HookLoadFile  ./broker <...>/broker.zeek
 0.000000 | HookLoadFile  ./cardinality-counter.bif.zeek <...>/cardinality-counter.bif.zeek
+0.000000 | HookLoadFile  ./certificate-event-cache <...>/certificate-event-cache.zeek
 0.000000 | HookLoadFile  ./comm.bif.zeek <...>/comm.bif.zeek
 0.000000 | HookLoadFile  ./const-dos-error <...>/const-dos-error.zeek
 0.000000 | HookLoadFile  ./const-nt-status <...>/const-nt-status.zeek
@@ -2828,6 +2854,7 @@
 0.000000 | HookLoadFile  ./last <...>/last.zeek
 0.000000 | HookLoadFile  ./libmagic <...>/libmagic.sig
 0.000000 | HookLoadFile  ./log <...>/log.zeek
+0.000000 | HookLoadFile  ./log-ocsp <...>/log-ocsp.zeek
 0.000000 | HookLoadFile  ./logging.bif.zeek <...>/logging.bif.zeek
 0.000000 | HookLoadFile  ./magic <...>/magic
 0.000000 | HookLoadFile  ./main <...>/main.zeek

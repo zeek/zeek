@@ -116,15 +116,15 @@ ValPtr assign_to_index__CPP(T v1, ValPtr v2, ValPtr v3)
 
 ValPtr assign_to_index__CPP(TableValPtr v1, ValPtr v2, ValPtr v3)
 	{
-	return assign_to_index__CPP<TableValPtr>(std::move(v1), std::move(v2), std::move(v3));
+	return assign_to_index__CPP<TableValPtr>(move(v1), move(v2), move(v3));
 	}
 ValPtr assign_to_index__CPP(VectorValPtr v1, ValPtr v2, ValPtr v3)
 	{
-	return assign_to_index__CPP<VectorValPtr>(std::move(v1), std::move(v2), std::move(v3));
+	return assign_to_index__CPP<VectorValPtr>(move(v1), move(v2), move(v3));
 	}
 ValPtr assign_to_index__CPP(StringValPtr v1, ValPtr v2, ValPtr v3)
 	{
-	return assign_to_index__CPP<StringValPtr>(std::move(v1), std::move(v2), std::move(v3));
+	return assign_to_index__CPP<StringValPtr>(move(v1), move(v2), move(v3));
 	}
 
 void add_element__CPP(TableValPtr aggr, ListValPtr indices)

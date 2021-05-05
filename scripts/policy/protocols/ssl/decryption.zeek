@@ -7,8 +7,25 @@
 
 module SSL;
 
-# Local
-const input_stream_name = "input-tls-keylog-file";
+export {
+	const keylog_file = getenv("ZEEK_TLS_KEYLOG_FILE") &redef;
+
+	global secrets: table[string] of string = {} &redef;
+	global keys: table[string] of string = {} &redef;
+
+	global add_keys: event(client_random: string, keys: string);
+
+	global add_secret: event(client_random: string, secret: string);
+}
+
+# Do not disable analyzers after detection - otherwise we will not receive
+# encrypted packets.
+redef SSL::disable_analyzer_after_detection=F;
+
+redef record SSL::Info += {
+    # Decryption uses client_random as identifier
+    client_random: string &log &optional;
+};
 
 type Idx: record {
 	client_random: string;
@@ -18,29 +35,33 @@ type Val: record {
 	secret: string;
 };
 
-global randoms: table[string] of string = {};
+const input_stream_name = "input-tls-keylog-file";
 
-export {
-	redef record Info += {
-		# decryption uses client_random as identifier
-		client_random: string &log &optional;
-	};
-
-	const keylog_file = getenv("ZEEK_TLS_KEYLOG_FILE") &redef;
-
-	global secrets: table[string] of string = {} &redef;
-	global keys: table[string] of string = {} &redef;
-
-	event SSL::add_keys(client_random: string, val: string)
+event zeek_init()
 	{
-		SSL::keys[client_random] = val;
-	}
+	# listen for secrets
+	Broker::subscribe("/zeek/tls/decryption");
 
-	event SSL::add_secret(client_random: string, val: string)
-	{
-		SSL::secrets[client_random] = val;
-	}
+	# FIXME: is such a functionality helpful?
+	# ingest keylog file if the environment is set
+	if ( keylog_file != "" )
+		{
+		suspend_processing();
+
+		Input::add_table([$name=input_stream_name, $source=keylog_file, $destination=secrets, $idx=Idx, $val=Val, $want_record=F]);
+		Input::remove(input_stream_name);
+		}
 }
+
+event SSL::add_keys(client_random: string, keys: string)
+	{
+    SSL::keys[client_random] = keys;
+	}
+
+event SSL::add_secret(client_random: string, secret: string)
+	{
+    SSL::secrets[client_random] = secret;
+	}
 
 event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec)
 	{
@@ -70,8 +91,8 @@ event ssl_encrypted_data(c: connection, is_orig: bool, record_version: count, co
 			}
 		else
 			{
-			# FIXME: should this be moved to reporter.log or removed completely?
-			#print "No suitable key or secret found for random:", randoms[c$uid];
+			# FIXME: replace with @if gated reporter
+			#print "No suitable key or secret found for random:", c$ssl$client_random;
 			}
 		}
 	}
@@ -84,23 +105,7 @@ event SSL::tls_input_done()
 event Input::end_of_data(name: string, source: string)
 	{
 	if ( name == input_stream_name )
-	{
-		event SSL::tls_input_done();
-	}
-}
-
-event zeek_init()
-	{
-	# listen for secrets
-	Broker::subscribe("/zeek/tls/decryption");
-
-	# FIXME: is such a functionality helpful?
-	# ingest keylog file if the environment is set
-	if ( keylog_file != "" )
 		{
-		suspend_processing();
-
-		Input::add_table([$name=input_stream_name, $source=keylog_file, $destination=secrets, $idx=Idx, $val=Val, $want_record=F]);
-		Input::remove(input_stream_name);
+		event SSL::tls_input_done();
 		}
-}
+	}

@@ -92,7 +92,6 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 	if ( analysis_options.optimize_AST )
 		{
 		pf = std::make_shared<ProfileFunc>(f, body, true);
-		body->Traverse(pf.get());
 
 		RD_Decorate reduced_rds(pf);
 		reduced_rds.TraverseFunction(f, scope, body);
@@ -122,7 +121,6 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	// Profile the new body.
 	pf = std::make_shared<ProfileFunc>(f, body, true);
-	body->Traverse(pf.get());
 
 	pf = std::make_shared<ProfileFunc>(f, body, true);
 	// Compute its reaching definitions.

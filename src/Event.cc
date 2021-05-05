@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <sys/sdt.h>
+
 #include "zeek-config.h"
 
 #include "zeek/Event.h"
@@ -126,6 +128,7 @@ void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl,
                        util::detail::SourceID src,
                        analyzer::ID aid, Obj* obj)
 	{
+	DTRACE_PROBE1(zeek, eventmgr_enqueue, h->Name());
 	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
 	}
 

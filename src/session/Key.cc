@@ -7,8 +7,11 @@ namespace zeek::session::detail {
 Key::Key(const void* session, size_t size, bool copy) : size(size)
 	{
 	data = reinterpret_cast<const uint8_t*>(session);
+
 	if ( copy )
 		CopyData();
+
+	copied = copy;
 	}
 
 Key::Key(Key&& rhs)

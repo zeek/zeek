@@ -1,3 +1,20 @@
+4.1.0-dev.587 | 2021-05-05 14:05:51 +0000
+
+  * Merge remote-tracking branch 'origin/topic/timw/session-coverity'
+
+    * origin/topic/timw/session-coverity:
+      Minor cleanup in IPAddr.h
+      Fix a few Coverity warnings from the session manager work (Tim Wojtulewicz)
+
+  * Minor cleanup in IPAddr.h (Tim Wojtulewicz, Corelight)
+
+  * Fix a few Coverity warnings from the session manager work
+
+    - Be explicit about setting the copied flag in session::Key. Coverity seems
+      confused about when that flag is set if it gets set by default
+      initialization. This should fix 1452757 and 1452759.
+    - Explicitly copy the fields in ConnKey instead of using memcpy. Fixes
+      1452758. (Tim Wojtulewicz, Corelight)
 
 4.1.0-dev.583 | 2021-05-03 18:21:33 -0700
 

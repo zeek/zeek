@@ -53,14 +53,14 @@ event zeek_init()
 		}
 }
 
-event SSL::add_keys(client_random: string, keys: string)
+event SSL::add_keys(client_random: string, val: string)
 	{
-    SSL::keys[client_random] = keys;
+    SSL::keys[client_random] = val;
 	}
 
-event SSL::add_secret(client_random: string, secret: string)
+event SSL::add_secret(client_random: string, val: string)
 	{
-    SSL::secrets[client_random] = secret;
+    SSL::secrets[client_random] = val;
 	}
 
 event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec)

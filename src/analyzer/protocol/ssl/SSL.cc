@@ -13,16 +13,6 @@
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
 
-#define MSB(a) ((a>>8)&0xff)
-#define LSB(a) (a&0xff)
-
-static void fmt_seq(uint32_t num, u_char* buf)
-	{
-	memset(buf, 0, 8);
-	uint32_t netnum = htonl(num);
-	memcpy(buf+4, &netnum, 4);
-	}
-
 static void print_hex(std::string name, u_char* data, int len)
 	{
 	int i = 0;
@@ -77,6 +67,16 @@ abort:
 	}
 
 namespace zeek::analyzer::ssl {
+
+#define MSB(a) ((a>>8)&0xff)
+#define LSB(a) (a&0xff)
+
+static void fmt_seq(uint32_t num, u_char* buf)
+	{
+	memset(buf, 0, 8);
+	uint32_t netnum = htonl(num);
+	memcpy(buf+4, &netnum, 4);
+	}
 
 SSL_Analyzer::SSL_Analyzer(Connection* c)
 : analyzer::tcp::TCP_ApplicationAnalyzer("SSL", c)
@@ -193,15 +193,14 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 	auto cipher = handshake_interp->chosen_cipher();
 	if ( cipher != 0xC030 )
 		{
-		//printf("Unsupported cipher suite: %d\n", cipher);
+		DBG_LOG(DBG_ANALYZER, "Unsupported cipher suite: %d\n", cipher);
 		return false;
 		}
 
 	// Neither secret or key present: abort
 	if ( secret->Len() == 0 && keys->Len() == 0 )
 		{
-		// FIXME: this is just for debugging
-		printf("Could not decrypt packet (missing key):\n");
+		DBG_LOG(DBG_ANALYZER, "Could not decrypt packet due to missing key\n");
 		print_hex("->client_random:", handshake_interp->client_random().data(), handshake_interp->client_random().length());
 		return false;
 		}
@@ -293,7 +292,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 		int res = 0;
 		if ( ! (res = EVP_DecryptFinal(ctx, NULL, &res)) )
 			{
-			printf("Decryption failed with return code %d. Invalid key?\n", res);
+			DBG_LOG(DBG_ANALYZER, "Decryption failed with return code: %d. Invalid key?\n", res);
 			EVP_CIPHER_CTX_free(ctx);
 			free(decrypted);
 			return false;

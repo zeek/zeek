@@ -54,11 +54,8 @@ public:
 		{ }
 
 	// Traverses the given function body, using the first two
-	// arguments for context.  "scope" is a Scope* rather than
-	// a ScopePtr because the various scope management functions
-	// (e.g., push_existing_scope(), current_scope()) traffic in
-	// Scope*'s.
-	void TraverseFunction(const Func* f, Scope* scope, StmtPtr body);
+	// arguments for context.
+	void TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body);
 
 	TraversalCode PreStmt(const Stmt*) override;
 	TraversalCode PostStmt(const Stmt*) override;

@@ -199,8 +199,8 @@ void Func::DescribeDebug(ODesc* d, const Args* args) const
 detail::TraversalCode Func::Traverse(detail::TraversalCallback* cb) const
 	{
 	// FIXME: Make a fake scope for builtins?
-	detail::Scope* old_scope = cb->current_scope;
-	cb->current_scope = scope.get();
+	auto old_scope = cb->current_scope;
+	cb->current_scope = scope;
 
 	detail::TraversalCode tc = cb->PreFunction(this);
 	HANDLE_TC_STMT_PRE(tc);

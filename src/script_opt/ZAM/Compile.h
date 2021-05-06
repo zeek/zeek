@@ -351,7 +351,7 @@ private:
 
 	ScriptFunc* func;
 	std::shared_ptr<ProfileFunc> pf;
-	std::shared_ptr<Scope> scope;
+	ScopePtr scope;
 	StmtPtr body;
 	std::shared_ptr<UseDefs> ud;
 	std::shared_ptr<Reducer> reducer;

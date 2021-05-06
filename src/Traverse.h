@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "zeek/Scope.h"
 #include "zeek/TraverseTypes.h"
 
 namespace zeek {
@@ -10,7 +11,6 @@ class Func;
 
 namespace detail {
 
-class Scope;
 class Stmt;
 class Expr;
 class ID;
@@ -38,7 +38,7 @@ public:
 	virtual TraversalCode PreDecl(const ID*) { return TC_CONTINUE; }
 	virtual TraversalCode PostDecl(const ID*) { return TC_CONTINUE; }
 
-	Scope* current_scope;
+	ScopePtr current_scope;
 };
 
 TraversalCode traverse_all(TraversalCallback* cb);

@@ -10,7 +10,7 @@
 namespace zeek::detail {
 
 
-void RD_Decorate::TraverseFunction(const Func* f, Scope* scope, StmtPtr body)
+void RD_Decorate::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body)
 	{
 	func_flavor = f->Flavor();
 

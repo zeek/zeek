@@ -24,7 +24,7 @@ static std::vector<FuncInfo> funcs;
 
 
 void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
-			ScopePtr scope_ptr, StmtPtr& body,
+			ScopePtr scope, StmtPtr& body,
 			AnalyOpt& analysis_options)
 	{
 	if ( reporter->Errors() > 0 )
@@ -47,7 +47,6 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 		return;
 		}
 
-	auto scope = scope_ptr.release();
 	push_existing_scope(scope);
 
 	auto rc = std::make_shared<Reducer>();
@@ -169,7 +168,7 @@ void analyze_func(ScriptFuncPtr f)
 	     *analysis_options.only_func != f->Name() )
 		return;
 
-	funcs.emplace_back(f, ScopePtr{NewRef{}, f->GetScope()}, f->CurrentBody());
+	funcs.emplace_back(f, f->GetScope(), f->CurrentBody());
 	}
 
 const FuncInfo* analyze_global_stmts(Stmt* stmts)
@@ -188,7 +187,7 @@ const FuncInfo* analyze_global_stmts(Stmt* stmts)
 	StmtPtr stmts_p{NewRef{}, stmts};
 	auto sf = make_intrusive<ScriptFunc>(id, stmts_p, empty_inits, sc->Length(), 0);
 
-	funcs.emplace_back(sf, ScopePtr{NewRef{}, sc}, stmts_p);
+	funcs.emplace_back(sf, sc, stmts_p);
 
 	return &funcs.back();
 	}

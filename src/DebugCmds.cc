@@ -61,7 +61,7 @@ static void lookup_global_symbols_regex(const string& orig_regex, vector<ID*>& m
 		return;
 		}
 
-	Scope* global = global_scope();
+	auto global = global_scope();
 	const auto& syms = global->Vars();
 
 	ID* nextid;

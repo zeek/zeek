@@ -4571,9 +4571,9 @@ void LambdaExpr::CheckCaptures()
 		}
 	}
 
-Scope* LambdaExpr::GetScope() const
+ScopePtr LambdaExpr::GetScope() const
 	{
-	return ingredients->scope.get();
+	return ingredients->scope;
 	}
 
 ValPtr LambdaExpr::Eval(Frame* f) const

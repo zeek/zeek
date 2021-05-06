@@ -313,7 +313,7 @@ void CPPCompile::GenEpilog()
 	if ( addl_tag > 0 )
 		return;
 
-	Emit("#include \"zeek/script_opt/CPP/CPP-gen-addl.h\"\n");
+	Emit("#include \"CPP-gen-addl.h\"\n");
 	Emit("} // zeek::detail");
 	}
 

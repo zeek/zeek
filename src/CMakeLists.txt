@@ -220,6 +220,10 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+set(_gen_zeek_script_cpp ${CMAKE_CURRENT_BINARY_DIR}/../CPP-gen.cc)
+add_custom_command(OUTPUT ${_gen_zeek_script_cpp}
+		    COMMAND ${CMAKE_COMMAND} -E touch ${_gen_zeek_script_cpp})
+
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
@@ -349,7 +353,7 @@ set(MAIN_SRCS
     script_opt/CPP/Util.cc
     script_opt/CPP/Vars.cc
 
-    script_opt/CPP/CPP-gen.cc
+    ${_gen_zeek_script_cpp}
 
     script_opt/DefItem.cc
     script_opt/DefSetsMgr.cc

@@ -13,8 +13,6 @@ public:
 	TCPAnalyzer();
 	~TCPAnalyzer() override;
 
-	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
-
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
 		{
 		return std::make_shared<TCPAnalyzer>();
@@ -24,6 +22,12 @@ public:
 	                             analyzer::pia::PIA*& pia, bool& check_port) override;
 
 protected:
+
+	/**
+	 * Parse the header from the packet into a ConnTuple object.
+	 */
+	bool BuildConnTuple(size_t len, const uint8_t* data, Packet* packet,
+	                    ConnTuple& tuple) override;
 
 	/**
 	 * Upon seeing the first packet of a connection, checks whether we want

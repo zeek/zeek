@@ -13,8 +13,6 @@ public:
 	UDPAnalyzer();
 	~UDPAnalyzer() override;
 
-	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
-
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
 		{
 		return std::make_shared<UDPAnalyzer>();
@@ -33,6 +31,15 @@ public:
 protected:
 
 	/**
+	 * Parse the header from the packet into a ConnTuple object.
+	 */
+	bool BuildConnTuple(size_t len, const uint8_t* data, Packet* packet,
+	                    ConnTuple& tuple) override;
+
+	void DeliverPacket(Connection* c, double t, bool is_orig, int remaining,
+	                        Packet* pkt) override;
+
+	/**
 	 * Upon seeing the first packet of a connection, checks whether we want
 	 * to analyze it (e.g. we may not want to look at partial connections)
 	 * and, if yes, whether we should flip the roles of originator and
@@ -46,9 +53,6 @@ protected:
 	 */
 	bool WantConnection(uint16_t src_port, uint16_t dst_port,
 	                    const u_char* data, bool& flip_roles) const override;
-
-	void ContinueProcessing(Connection* c, double t, bool is_orig, int remaining,
-	                        Packet* pkt) override;
 
 private:
 

@@ -14,25 +14,23 @@ TCPAnalyzer::~TCPAnalyzer()
 	{
 	}
 
-bool TCPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
+bool TCPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet,
+                                 ConnTuple& tuple)
 	{
 	uint32_t min_hdr_len = sizeof(struct tcphdr);
 	if ( ! CheckHeaderTrunc(min_hdr_len, len, packet) )
 		return false;
 
-	ConnTuple id;
-	id.src_addr = packet->ip_hdr->SrcAddr();
-	id.dst_addr = packet->ip_hdr->DstAddr();
+	tuple.src_addr = packet->ip_hdr->SrcAddr();
+	tuple.dst_addr = packet->ip_hdr->DstAddr();
 
 	data = packet->ip_hdr->Payload();
 
 	const struct tcphdr* tp = (const struct tcphdr *) data;
-	id.src_port = tp->th_sport;
-	id.dst_port = tp->th_dport;
-	id.is_one_way = false;
-	id.proto = TRANSPORT_TCP;
-
-	ProcessConnection(id, packet, len);
+	tuple.src_port = tp->th_sport;
+	tuple.dst_port = tp->th_dport;
+	tuple.is_one_way = false;
+	tuple.proto = TRANSPORT_TCP;
 
 	return true;
 	}

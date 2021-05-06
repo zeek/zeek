@@ -33,26 +33,6 @@ UDPAnalyzer::~UDPAnalyzer()
 	{
 	}
 
-bool UDPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
-	{
-	uint32_t min_hdr_len = sizeof(struct udphdr);
-	if ( ! CheckHeaderTrunc(min_hdr_len, len, packet) )
-		return false;
-
-	ConnTuple id;
-	id.src_addr = packet->ip_hdr->SrcAddr();
-	id.dst_addr = packet->ip_hdr->DstAddr();
-	const struct udphdr* up = (const struct udphdr *) packet->ip_hdr->Payload();
-	id.src_port = up->uh_sport;
-	id.dst_port = up->uh_dport;
-	id.is_one_way = false;
-	id.proto = TRANSPORT_UDP;
-
-	ProcessConnection(id, packet, len);
-
-	return true;
-	}
-
 void UDPAnalyzer::CreateTransportAnalyzer(Connection* conn, IPBasedTransportAnalyzer*& root,
                                           analyzer::pia::PIA*& pia, bool& check_port)
 	{
@@ -89,7 +69,26 @@ bool UDPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port,
 	return true;
 	}
 
-void UDPAnalyzer::ContinueProcessing(Connection* c, double t, bool is_orig, int remaining, Packet* pkt)
+bool UDPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet,
+                                 ConnTuple& tuple)
+	{
+	uint32_t min_hdr_len = sizeof(struct udphdr);
+	if ( ! CheckHeaderTrunc(min_hdr_len, len, packet) )
+		return false;
+
+	tuple.src_addr = packet->ip_hdr->SrcAddr();
+	tuple.dst_addr = packet->ip_hdr->DstAddr();
+
+	const struct udphdr* up = (const struct udphdr *) packet->ip_hdr->Payload();
+	tuple.src_port = up->uh_sport;
+	tuple.dst_port = up->uh_dport;
+	tuple.is_one_way = false;
+	tuple.proto = TRANSPORT_UDP;
+
+	return true;
+	}
+
+void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remaining, Packet* pkt)
 	{
 	conn = c;
 

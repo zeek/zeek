@@ -35,33 +35,31 @@ ICMPAnalyzer::~ICMPAnalyzer()
 	{
 	}
 
-bool ICMPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
+bool ICMPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet,
+                                  ConnTuple& tuple)
 	{
 	if ( ! CheckHeaderTrunc(ICMP_MINLEN, len, packet) )
 		return false;
 
-	ConnTuple id;
-	id.src_addr = packet->ip_hdr->SrcAddr();
-	id.dst_addr = packet->ip_hdr->DstAddr();
-	id.proto = TRANSPORT_ICMP;
+	tuple.src_addr = packet->ip_hdr->SrcAddr();
+	tuple.dst_addr = packet->ip_hdr->DstAddr();
+	tuple.proto = TRANSPORT_ICMP;
 
 	const struct icmp* icmpp = (const struct icmp *) data;
-	id.src_port = htons(icmpp->icmp_type);
+	tuple.src_port = htons(icmpp->icmp_type);
 
 	if ( packet->proto == IPPROTO_ICMP )
-		id.dst_port = htons(ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code, id.is_one_way));
+		tuple.dst_port = htons(ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code, tuple.is_one_way));
 	else if ( packet->proto == IPPROTO_ICMPV6 )
-		id.dst_port = htons(ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code, id.is_one_way));
+		tuple.dst_port = htons(ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code, tuple.is_one_way));
 	else
 		reporter->InternalError("Reached ICMP packet analyzer with unknown packet protocol %x",
 		                        packet->proto);
 
-	ProcessConnection(id, packet, len);
-
 	return true;
 	}
 
-void ICMPAnalyzer::ContinueProcessing(Connection* c, double t, bool is_orig, int remaining, Packet* pkt)
+void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remaining, Packet* pkt)
 	{
 	auto* ta = static_cast<ICMPTransportAnalyzer*>(c->GetRootAnalyzer());
 

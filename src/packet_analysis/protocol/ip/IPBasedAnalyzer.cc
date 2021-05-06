@@ -22,16 +22,20 @@ IPBasedAnalyzer::~IPBasedAnalyzer()
 	{
 	}
 
-void IPBasedAnalyzer::ProcessConnection(const ConnTuple& conn_id, Packet* pkt, size_t remaining)
+bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt)
 	{
+	ConnTuple tuple;
+	if ( ! BuildConnTuple(len, data, pkt, tuple) )
+		return false;
+
 	const std::unique_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;
-	detail::ConnKey key(conn_id);
+	detail::ConnKey key(tuple);
 
 	Connection* conn = session_mgr->FindConnection(key);
 
 	if ( ! conn )
 		{
-		conn = NewConn(&conn_id, key, pkt);
+		conn = NewConn(&tuple, key, pkt);
 		if ( conn )
 			session_mgr->Insert(conn, false);
 		}
@@ -42,7 +46,7 @@ void IPBasedAnalyzer::ProcessConnection(const ConnTuple& conn_id, Packet* pkt, s
 			conn->Event(connection_reused, nullptr);
 
 			session_mgr->Remove(conn);
-			conn = NewConn(&conn_id, key, pkt);
+			conn = NewConn(&tuple, key, pkt);
 			if ( conn )
 				session_mgr->Insert(conn, false);
 			}
@@ -53,10 +57,10 @@ void IPBasedAnalyzer::ProcessConnection(const ConnTuple& conn_id, Packet* pkt, s
 		}
 
 	if ( ! conn )
-		return;
+		return false;
 
-	bool is_orig = (conn_id.src_addr == conn->OrigAddr()) &&
-		(conn_id.src_port == conn->OrigPort());
+	bool is_orig = (tuple.src_addr == conn->OrigAddr()) &&
+	               (tuple.src_port == conn->OrigPort());
 
 	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
 
@@ -85,9 +89,9 @@ void IPBasedAnalyzer::ProcessConnection(const ConnTuple& conn_id, Packet* pkt, s
 
 		// TODO: Does this actually mean anything?
 		if ( conn->Skipping() )
-			return;
+			return true;
 
-		ContinueProcessing(conn, run_state::processing_start_time, is_orig, remaining, pkt);
+		DeliverPacket(conn, run_state::processing_start_time, is_orig, len, pkt);
 
 		run_state::current_timestamp = 0;
 		run_state::current_pkt = nullptr;
@@ -114,7 +118,7 @@ void IPBasedAnalyzer::ProcessConnection(const ConnTuple& conn_id, Packet* pkt, s
 		const u_char* data = pkt->ip_hdr->Payload();
 
 		conn->NextPacket(run_state::processing_start_time, is_orig, ip_hdr.get(), ip_hdr->PayloadLen(),
-		                 remaining, data, record_packet, record_content, pkt);
+		                 len, data, record_packet, record_content, pkt);
 
 		// If the packet is reassembled, disable packet dumping because the
 		// pointer math to dump the data wouldn't work.
@@ -130,6 +134,8 @@ void IPBasedAnalyzer::ProcessConnection(const ConnTuple& conn_id, Packet* pkt, s
 				pkt->dump_size = data - pkt->data;
 			}
 		}
+
+	return true;
 	}
 
 bool IPBasedAnalyzer::CheckHeaderTrunc(size_t min_hdr_len, size_t remaining, Packet* packet)

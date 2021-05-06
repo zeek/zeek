@@ -80,18 +80,11 @@ event handler pulled in by `target.zeek` replaced with its compiled version.
 
 Instead of the last line above, you can use the following variants:
 
-5. `./src/zeek -O force-use-C++ target.zeek`  
-Same as `use-C++`, but also
-warns about any `target.zeek` functions that didn't have corresponding
-compiled-to-C++ versions.
-
-Or:
-
 5. `./src/zeek -O report-C++ target.zeek`  
 For each function body in
 `target.zeek`, reports which ones have compiled-to-C++ bodies available,
 and also any compiled-to-C++ bodies present in the `zeek` binary that
-`target.zeek` does not use.
+`target.zeek` does not use.  Useful for debugging.
 
 The above workflows require the subsequent `zeek` execution to include
 the `target.zeek` script.  You can avoid this by replacing the first step with:

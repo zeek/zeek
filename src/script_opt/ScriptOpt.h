@@ -61,9 +61,6 @@ struct AnalyOpt {
 	// If true, use C++ bodies if available.
 	bool use_CPP = false;
 
-	// Same, but complain about missing bodies.
-	bool force_use_CPP = false;
-
 	// If true, report on available C++ bodies.
 	bool report_CPP = false;
 

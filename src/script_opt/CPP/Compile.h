@@ -63,14 +63,12 @@
 // the test suite.
 //
 // Zeek invocations specifying "-O use-C++" will activate any code compiled
-// into the zeek binary; otherwise, the code lies dormant.  "-O force-use-C++"
-// does the same but generates warnings for script functions not found in
-// compiled in.  This is useful for debugging the compiled code, to ensure
-// that it's indeed being run.
+// into the zeek binary; otherwise, the code lies dormant.
 //
 // "-O report-C++" reports on which compiled functions will/won't be used
 // (including ones that are available but not relevant to the scripts loaded
-// on the command line).
+// on the command line).  This can be useful when debugging to make sure
+// that you're indeed running compiled code when you expect to be.
 //
 // We partition the methods of the compiler into a number of groups,
 // the definitions of each having their own source file:

@@ -162,7 +162,6 @@ static void set_analysis_option(const char* opt, Options& opts)
 		fprintf(stderr, "    add-C++	generate private C++ for any missing script bodies\n");
 		fprintf(stderr, "    dump-uds	dump use-defs to stdout; implies xform\n");
 		fprintf(stderr, "    dump-xform	dump transformed scripts to stdout; implies xform\n");
-		fprintf(stderr, "    force-use-C++	use available C++ script bodies, warning about missing ones\n");
 		fprintf(stderr, "    gen-C++	generate C++ script bodies\n");
 		fprintf(stderr, "    gen-standalone-C++	generate \"standalone\" C++ script bodies\n");
 		fprintf(stderr, "    help	print this list\n");
@@ -184,8 +183,6 @@ static void set_analysis_option(const char* opt, Options& opts)
 		a_o.activate = a_o.dump_uds = true;
 	else if ( util::streq(opt, "dump-xform") )
 		a_o.activate = a_o.dump_xform = true;
-	else if ( util::streq(opt, "force-use-C++") )
-		a_o.force_use_CPP = true;
 	else if ( util::streq(opt, "gen-C++") )
 		a_o.gen_CPP = true;
 	else if ( util::streq(opt, "gen-standalone-C++") )

@@ -620,11 +620,11 @@ string CPPCompile::GenRecordConstructorExpr(const Expr* e)
 
 	for ( auto i = 0; i < n; ++i )
 		{
-		const auto& e = exprs[i];
+		const auto& expr = exprs[i];
 
-		ASSERT(e->Tag() == EXPR_FIELD_ASSIGN);
+		ASSERT(expr->Tag() == EXPR_FIELD_ASSIGN);
 
-		vals += GenExpr(e->GetOp1(), GEN_VAL_PTR);
+		vals += GenExpr(expr->GetOp1(), GEN_VAL_PTR);
 
 		if ( i < n - 1 )
 			vals += ", ";
@@ -668,12 +668,12 @@ string CPPCompile::GenTableConstructorExpr(const Expr* e)
 
 	for ( auto i = 0; i < n; ++i )
 		{
-		const auto& e = exprs[i];
+		const auto& expr = exprs[i];
 
-		ASSERT(e->Tag() == EXPR_ASSIGN);
+		ASSERT(expr->Tag() == EXPR_ASSIGN);
 
-		auto index = e->GetOp1();
-		auto v = e->GetOp2();
+		auto index = expr->GetOp1();
+		auto v = expr->GetOp2();
 
 		if ( index->Tag() == EXPR_LIST )
 			// Multiple indices.

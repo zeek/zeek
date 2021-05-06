@@ -44,6 +44,7 @@ bool CPPCompile::IsNativeType(const TypePtr& t) const
 
 	default:
 		reporter->InternalError("bad type in CPPCompile::IsNativeType");
+		return false;
 	}
 	}
 
@@ -287,6 +288,7 @@ const char* CPPCompile::TypeTagName(TypeTag tag) const
 
 	default:
 		reporter->InternalError("bad type in CPPCompile::TypeTagName");
+		return nullptr;
 	}
 	}
 
@@ -318,6 +320,7 @@ const char* CPPCompile::TypeName(const TypePtr& t)
 
 	default:
 		reporter->InternalError("bad type in CPPCompile::TypeName");
+		return nullptr;
 	}
 	}
 
@@ -353,6 +356,7 @@ const char* CPPCompile::FullTypeName(const TypePtr& t)
 
 	default:
 		reporter->InternalError("bad type in CPPCompile::FullTypeName");
+		return nullptr;
 	}
 	}
 
@@ -365,6 +369,7 @@ const char* CPPCompile::TypeType(const TypePtr& t)
 
 	default:
 		reporter->InternalError("bad type in CPPCompile::TypeType");
+		return nullptr;
 	}
 	}
 
@@ -542,6 +547,7 @@ const char* CPPCompile::NativeAccessor(const TypePtr& t)
 
 	default:
 		reporter->InternalError("bad type in CPPCompile::NativeAccessor");
+		return nullptr;
 	}
 	}
 
@@ -572,6 +578,7 @@ const char* CPPCompile::IntrusiveVal(const TypePtr& t)
 
 	default:
 		reporter->InternalError("bad type in CPPCompile::IntrusiveVal");
+		return nullptr;
 	}
 	}
 

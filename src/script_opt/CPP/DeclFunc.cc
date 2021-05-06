@@ -219,12 +219,12 @@ string CPPCompile::BindArgs(const FuncTypePtr& ft, const IDPList* lambda_ids)
 	for ( auto i = 0; i < n; ++i )
 		{
 		auto arg_i = string("f->GetElement(") + Fmt(i) + ")";
-		const auto& ft = params->GetFieldType(i);
+		const auto& pt = params->GetFieldType(i);
 
-		if ( IsNativeType(ft) )
-			res += arg_i + NativeAccessor(ft);
+		if ( IsNativeType(pt) )
+			res += arg_i + NativeAccessor(pt);
 		else
-			res += GenericValPtrToGT(arg_i, ft, GEN_VAL_PTR);
+			res += GenericValPtrToGT(arg_i, pt, GEN_VAL_PTR);
 
 		res += ", ";
 		}

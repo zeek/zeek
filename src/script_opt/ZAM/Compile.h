@@ -49,20 +49,14 @@ public:
 	            ScopePtr scope, StmtPtr body, std::shared_ptr<UseDefs> ud,
 	            std::shared_ptr<Reducer> rd);
 
-	~ZAMCompiler();
-
 	StmtPtr CompileBody();
 
 	void Dump();
 
-	// Public so that GenInst flavors can get to it.
-	int FrameSlot(const NameExpr* id)
-		{ return FrameSlot(id->AsNameExpr()->Id()); }
-	int Frame1Slot(const NameExpr* id, ZOp op)
-		{ return Frame1Slot(id->AsNameExpr()->Id(), op); }
-
 private:
 	void Init();
+
+	void CompileAST();
 
 	void SetCurrStmt(const Stmt* stmt)	{ curr_stmt = stmt; }
 
@@ -287,6 +281,11 @@ private:
 		return n ? FrameSlot(n->Id()) : 0;
 		}
 
+	int FrameSlot(const NameExpr* id)
+		{ return FrameSlot(id->AsNameExpr()->Id()); }
+	int Frame1Slot(const NameExpr* id, ZOp op)
+		{ return Frame1Slot(id->AsNameExpr()->Id(), op); }
+
 	int ConvertToInt(const Expr* e)
 		{
 		if ( e->Tag() == EXPR_NAME )
@@ -323,8 +322,9 @@ private:
 
 	void SyncGlobals(std::unordered_set<ID*>& g, const Obj* o);
 
-
-// #include "zeek/ZOpt.h"
+#if 0
+#include "zeek/ZOpt.h"
+#endif
 
 	// The first of these is used as we compile down to ZInstI's.
 	// The second is the final intermediary code.  They're separate

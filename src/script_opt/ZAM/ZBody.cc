@@ -115,7 +115,7 @@ static void vec_exec(ZOp op, const TypePtr& t,
 		auto n = v.size(); \
 		res_zv->Resize(n); \
 		auto& res = *res_zv->RawVec(); \
-		for ( unsigned int i = 0; i < n; ++i ) \
+		for ( auto i = 0U; i < n; ++i ) \
 			if ( v[i] ) \
 				res[i] = ZVal(cast((*v[i]).rhs_accessor)); \
 			else \
@@ -155,7 +155,7 @@ ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 
 	// Concretize the names of the frame denizens.
 	for ( auto& f : frame_denizens )
-		for ( unsigned int i = 0; i < f.ids.size(); ++i )
+		for ( auto i = 0U; i < f.ids.size(); ++i )
 			f.names.push_back(f.ids[i]->Name());
 
 	managed_slots = _managed_slots;
@@ -174,7 +174,7 @@ ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 		{
 		fixed_frame = new ZVal[frame_size];
 
-		for ( unsigned int i = 0; i < managed_slots.size(); ++i )
+		for ( auto i = 0U; i < managed_slots.size(); ++i )
 			fixed_frame[managed_slots[i]].ClearManagedVal();
 		}
 
@@ -198,7 +198,7 @@ ZBody::~ZBody()
 	if ( fixed_frame )
 		{
 		// Free slots with explicit memory management.
-		for ( unsigned int i = 0; i < managed_slots.size(); ++i )
+		for ( auto i = 0U; i < managed_slots.size(); ++i )
 			{
 			auto& v = fixed_frame[managed_slots[i]];
 			ZVal::DeleteManagedType(v);
@@ -402,7 +402,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc,
 	if ( ! fixed_frame )
 		{
 		// Free those slots for which we do explicit memory management.
-		for ( unsigned int i = 0; i < managed_slots.size(); ++i )
+		for ( auto i = 0U; i < managed_slots.size(); ++i )
 			{
 			auto& v = frame[managed_slots[i]];
 			ZVal::DeleteManagedType(v);
@@ -1113,7 +1113,7 @@ void ZBody::ProfileExecution() const
 
 	printf("%s CPU time: %.06f\n", func_name, *CPU_time);
 
-	for ( unsigned int i = 0; i < inst_count->size(); ++i )
+	for ( auto i = 0U; i < inst_count->size(); ++i )
 		{
 		printf("%s %d %d %.06f ", func_name, i,
 			(*inst_count)[i], (*inst_CPU)[i]);
@@ -1287,7 +1287,7 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 	auto vec1_ptr = new vector<std::optional<ZVal>>(n);
 	auto& vec1 = *vec1_ptr;
 
-	for ( unsigned int i = 0; i < n; ++i )
+	for ( auto i = 0U; i < n; ++i )
 		switch ( op ) {
 
 #include "ZAM-Vec1EvalDefs.h"
@@ -1314,7 +1314,7 @@ static void vec_exec(ZOp op, const TypePtr& yt, VectorVal*& v1,
 	auto vec1_ptr = new vector<std::optional<ZVal>>(n);
 	auto& vec1 = *vec1_ptr;
 
-	for ( unsigned int i = 0; i < vec2.size(); ++i )
+	for ( auto i = 0U; i < vec2.size(); ++i )
 		switch ( op ) {
 
 #include "ZAM-Vec2EvalDefs.h"

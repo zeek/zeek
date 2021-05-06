@@ -1,25 +1,23 @@
-#include "zeek/script_opt/ZAM/Compile.h"
-
-#if 0
 // See the file "COPYING" in the main distribution directory for copyright.
 
 // This file includes the ZAM methods associated with generating an
 // initial, complete intermediary ZAM body for a given function.
-// Optimization of that ZAM body is factored out into ZOpt.cc.
+// Optimization of that ZAM body, leading to ultimate code generation,
+// is factored out into Opt.cc.
 
-#include "ZAM.h"
-#include "ZGen.h"
-#include "ZIterInfo.h"
-#include "CompHash.h"
-#include "RE.h"
-#include "Frame.h"
-#include "Reduce.h"
-#include "Scope.h"
-#include "ProfileFunc.h"
-#include "ScriptAnaly.h"
-#include "BroString.h"
-#include "Reporter.h"
+#include "zeek/CompHash.h"
+#include "zeek/RE.h"
+#include "zeek/Frame.h"
+#include "zeek/Scope.h"
+#include "zeek/ZeekString.h"
+#include "zeek/Reporter.h"
+#include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/script_opt/Reduce.h"
+#include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/script_opt/ZAM/Compile.h"
 
+
+namespace zeek::detail {
 
 class OpaqueVals {
 public:
@@ -29,37 +27,30 @@ public:
 };
 
 
-ZAM::ZAM(BroFunc* f, Scope* _scope, Stmt* _body,
-		UseDefs* _ud, Reducer* _rd, ProfileFunc* _pf)
+ZAMCompile::ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
+                        ScopePtr scope, StmtPtr body,
+                        std::shared_ptr<UseDefs> ud,
+                        std::shared_ptr<Reducer> rd);
 	{
 	func = f;
-	scope = _scope;
-	body = _body;
-	body->Ref();
-	ud = _ud;
-	reducer = _rd;
-	pf = _pf;
+	pf = std::move(_pf);
+	scope = std::move(_scope);
+	body = std::move(_body);
+	ud = std::move(_ud);
+	reducer = std::move(_rd);
 	frame_sizeI = 0;
 
 	Init();
 	}
 
-ZAM::~ZAM()
-	{
-	Unref(body);
-	delete ud;
-	delete reducer;
-	delete pf;
-	}
-
-Stmt* ZAM::CompileBody()
+StmtPtr ZAMCompile::CompileBody()
 	{
 	curr_stmt = nullptr;
 
 	if ( func->Flavor() == FUNC_FLAVOR_HOOK )
 		PushBreaks();
 
-	(void) body->Compile(this);
+	CompileAST();
 
 	if ( reporter->Errors() > 0 )
 		return nullptr;
@@ -74,7 +65,7 @@ Stmt* ZAM::CompileBody()
 		if ( func->Flavor() == FUNC_FLAVOR_HOOK )
 			{
 			// Rewrite the breaks.
-			for ( auto b : breaks[0] )
+			for ( auto& b : breaks[0] )
 				{
 				auto& i = insts1[b.stmt_num];
 				delete i;
@@ -102,7 +93,7 @@ Stmt* ZAM::CompileBody()
 
 	// Concretize instruction numbers in inst1 so we can
 	// easily move through the code.
-	for ( unsigned int i = 0; i < insts1.size(); ++i )
+	for ( auto i = 0U; i < insts1.size(); ++i )
 		insts1[i]->inst_num = i;
 
 	// Compute which instructions are inside loops.
@@ -129,7 +120,7 @@ Stmt* ZAM::CompileBody()
 				// its current end.
 				auto depth = t->loop_depth;
 				while ( j < i &&
-					insts1[j]->loop_depth == depth )
+				        insts1[j]->loop_depth == depth )
 					++j;
 
 				ASSERT(insts1[j]->loop_depth == depth - 1);
@@ -147,11 +138,13 @@ Stmt* ZAM::CompileBody()
 		ASSERT(! inst->target2 || inst->target2->inst_num > i);
 		}
 
+#if 0
 	if ( ! analysis_options.no_ZAM_opt )
 		OptimizeInsts();
+#endif
 
 	// Move branches to dead code forward to their successor live code.
-	for ( unsigned int i = 0; i < insts1.size(); ++i )
+	for ( auto i = 0U; i < insts1.size(); ++i )
 		{
 		auto inst = insts1[i];
 		if ( ! inst->live )
@@ -171,8 +164,7 @@ Stmt* ZAM::CompileBody()
 	// Construct the final program with the dead code eliminated
 	// and branches resolved.
 
-	// Make sure we don't include the empty pending-instruction,
-	// if any.
+	// Make sure we don't include the empty pending-instruction, if any.
 	if ( pending_inst )
 		pending_inst->live = false;
 
@@ -180,7 +172,7 @@ Stmt* ZAM::CompileBody()
 	// Dead instructions map to -1.
 	std::vector<int> inst1_to_inst2;
 
-	for ( unsigned int i = 0; i < insts1.size(); ++i )
+	for ( auto i = 0U; i < insts1.size(); ++i )
 		{
 		if ( insts1[i]->live )
 			{
@@ -192,10 +184,10 @@ Stmt* ZAM::CompileBody()
 		}
 
 	// Re-concretize instruction numbers, and concretize GoTo's.
-	for ( unsigned int i = 0; i < insts2.size(); ++i )
+	for ( auto i = 0U; i < insts2.size(); ++i )
 		insts2[i]->inst_num = i;
 
-	for ( unsigned int i = 0; i < insts2.size(); ++i )
+	for ( auto i = 0U; i < insts2.size(); ++i )
 		{
 		auto inst = insts2[i];
 
@@ -205,7 +197,7 @@ Stmt* ZAM::CompileBody()
 
 			if ( inst->target2 )
 				RetargetBranch(inst, inst->target2,
-						inst->target2_slot);
+				               inst->target2_slot);
 			}
 		}
 
@@ -213,7 +205,7 @@ Stmt* ZAM::CompileBody()
 	// create them.
 	if ( shared_frame_denizens.size() > 0 )
 		{ // update
-		for ( unsigned int i = 0; i < shared_frame_denizens.size(); ++i )
+		for ( auto i = 0U; i < shared_frame_denizens.size(); ++i )
 			{
 			auto& info = shared_frame_denizens[i];
 
@@ -226,7 +218,7 @@ Stmt* ZAM::CompileBody()
 				// case, look forward for the next viable
 				// instruction.
 				while ( start < int(insts1.size()) &&
-					inst1_to_inst2[start] == -1 )
+				        inst1_to_inst2[start] == -1 )
 					++start;
 
 				ASSERT(start < insts1.size());
@@ -239,7 +231,7 @@ Stmt* ZAM::CompileBody()
 
 	else
 		{ // create
-		for ( unsigned int i = 0; i < frame_denizens.size(); ++i )
+		for ( auto i = 0U; i < frame_denizens.size(); ++i )
 			{
 			FrameSharingInfo info;
 			info.ids.push_back(frame_denizens[i]);
@@ -284,15 +276,14 @@ Stmt* ZAM::CompileBody()
 		func->UseStaticFrame();
 
 	auto zb = new ZBody(func->Name(), shared_frame_denizens_final,
-				managed_slotsI, globalsI,
-				num_iters, non_recursive,
-				int_cases, uint_cases, double_cases, str_cases);
+			    managed_slotsI, globalsI, num_iters, non_recursive,
+			    int_cases, uint_cases, double_cases, str_cases);
 	zb->SetInsts(insts2);
 
 	return zb;
 	}
 
-void ZAM::Init()
+void ZAMCompile::Init()
 	{
 	auto uds = ud->HasUsage(body) ? ud->GetUsage(body) : nullptr;
 	auto args = scope->OrderedVars();
@@ -307,7 +298,6 @@ void ZAM::Init()
 		globalsI.push_back(info);
 		}
 
-	::Ref(scope);
 	push_existing_scope(scope);
 
 	for ( auto a : args )
@@ -361,7 +351,7 @@ void ZAM::Init()
 
 #include "ZAM-OpsMethodsDefs.h"
 
-bro_uint_t ZAM::ConstArgsMask(const ExprPList& args, int nargs) const
+bro_uint_t ZAMCompile::ConstArgsMask(const ExprPList& args, int nargs) const
 	{
 	ASSERT(args.length() == nargs);
 
@@ -377,7 +367,7 @@ bro_uint_t ZAM::ConstArgsMask(const ExprPList& args, int nargs) const
 	return mask;
 	}
 
-const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
+const CompiledStmt ZAMCompile::DoCall(const CallExpr* c, const NameExpr* n)
 	{
 	SyncGlobals(c);
 
@@ -393,7 +383,7 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 	if ( indirect )
 		call_case = -1;	// force default of CallN
 
-	auto nt = n ? n->Type()->Tag() : TYPE_VOID;
+	auto nt = n ? n->GetType()->Tag() : TYPE_VOID;
 	auto n_slot = n ? Frame1Slot(n, OP1_WRITE) : -1;
 
 	ZInstI z;
@@ -409,19 +399,17 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 	else if ( call_case == 1 )
 		{
 		auto arg0 = args[0];
-		auto n0 = arg0->Tag() == EXPR_NAME ?
-						arg0->AsNameExpr() : nullptr;
-		auto c0 = arg0->Tag() == EXPR_CONST ?
-						arg0->AsConstExpr() : nullptr;
+		auto n0 = arg0->Tag() == EXPR_NAME ? arg0->AsNameExpr() : nullptr;
+		auto c0 = arg0->Tag() == EXPR_CONST ? arg0->AsConstExpr() : nullptr;
 
 		if ( n )
 			{
 			if ( n0 )
 				z = ZInstI(AssignmentFlavor(OP_CALL1_VV, nt),
-						n_slot, FrameSlot(n0));
+				           n_slot, FrameSlot(n0));
 			else
 				z = ZInstI(AssignmentFlavor(OP_CALL1_VC, nt),
-						n_slot, c0);
+				           n_slot, c0);
 			}
 		else
 			{
@@ -431,7 +419,7 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 				z = ZInstI(OP_CALL1_C, c0);
 			}
 
-		z.t = arg0->Type();
+		z.t = arg0->GetType();
 		}
 
 	else
@@ -441,7 +429,7 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 		for ( int i = 0; i < nargs; ++i )
 			{
 			auto ai = args[i];
-			auto ai_t = ai->Type();
+			auto ai_t = ai->GetType();
 			if ( ai->Tag() == EXPR_NAME )
 				aux->Add(i, FrameSlot(ai->AsNameExpr()), ai_t);
 			else
@@ -521,35 +509,35 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n)
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::ConstructTable(const NameExpr* n, const Expr* e)
+const CompiledStmt ZAMCompile::ConstructTable(const NameExpr* n, const Expr* e)
 	{
 	auto con = e->GetOp1()->AsListExpr();
-	auto tt = n->Type()->AsTableType();
+	auto tt = n->GetType()->AsTableType();
 	auto width = tt->Indices()->Types()->length();
 
 	auto z = GenInst(this, OP_CONSTRUCT_TABLE_VV, n, width);
 	z.aux = InternalBuildVals(con, width + 1);
-	z.t = {NewRef{}, tt};
+	z.t = tt;
 	z.attrs = e->AsTableConstructorExpr()->Attrs();
 
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::ConstructSet(const NameExpr* n, const Expr* e)
+const CompiledStmt ZAMCompile::ConstructSet(const NameExpr* n, const Expr* e)
 	{
 	auto con = e->GetOp1()->AsListExpr();
-	auto tt = n->Type()->AsTableType();
+	auto tt = n->GetType()->AsTableType();
 	auto width = tt->Indices()->Types()->length();
 
 	auto z = GenInst(this, OP_CONSTRUCT_SET_VV, n, width);
 	z.aux = InternalBuildVals(con, width);
-	z.t = e->Type();
+	z.t = e->GetType();
 	z.attrs = e->AsSetConstructorExpr()->Attrs();
 
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::ConstructRecord(const NameExpr* n, const Expr* e)
+const CompiledStmt ZAMCompile::ConstructRecord(const NameExpr* n, const Expr* e)
 	{
 	auto con = e->GetOp1()->AsListExpr();
 	auto rc = e->AsRecordConstructorExpr();
@@ -569,32 +557,32 @@ const CompiledStmt ZAM::ConstructRecord(const NameExpr* n, const Expr* e)
 		z.aux = InternalBuildVals(con);
 		}
 
-	z.t = e->Type();
+	z.t = e->GetType();
 
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::ConstructVector(const NameExpr* n, const Expr* e)
+const CompiledStmt ZAMCompile::ConstructVector(const NameExpr* n, const Expr* e)
 	{
 	auto con = e->GetOp1()->AsListExpr();
 
 	auto z = GenInst(this, OP_CONSTRUCT_VECTOR_V, n);
 	z.aux = InternalBuildVals(con);
-	z.t = e->Type();
+	z.t = e->GetType();
 
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::ArithCoerce(const NameExpr* n, const Expr* e)
+const CompiledStmt ZAMCompile::ArithCoerce(const NameExpr* n, const Expr* e)
 	{
-	auto nt = n->Type();
+	auto nt = n->GetType();
 	auto nt_is_vec = nt->Tag() == TYPE_VECTOR;
 
 	auto op = e->GetOp1();
-	auto op_t = op->Type().get();
+	auto op_t = op->GetType().get();
 	auto op_is_vec = op_t->Tag() == TYPE_VECTOR;
 
-	auto e_t = e->Type().get();
+	auto e_t = e->GetType().get();
 	auto et_is_vec = e_t->Tag() == TYPE_VECTOR;
 
 	if ( nt_is_vec || op_is_vec || et_is_vec )
@@ -602,8 +590,8 @@ const CompiledStmt ZAM::ArithCoerce(const NameExpr* n, const Expr* e)
 		if ( ! (nt_is_vec && op_is_vec && et_is_vec) )
 			reporter->InternalError("vector confusion compiling coercion");
 
-		op_t = op_t->AsVectorType()->YieldType();
-		e_t = e_t->AsVectorType()->YieldType();
+		op_t = op_t->AsVectorType()->Yield();
+		e_t = e_t->AsVectorType()->Yield();
 		}
 
 	auto targ_it = e_t->InternalType();
@@ -620,25 +608,28 @@ const CompiledStmt ZAM::ArithCoerce(const NameExpr* n, const Expr* e)
 	switch ( targ_it ) {
 	case TYPE_INTERNAL_DOUBLE:
 		{
-		a = op_it == TYPE_INTERNAL_INT ?
-			(nt_is_vec ? OP_COERCE_DI_VEC_VV : OP_COERCE_DI_VV) :
-			(nt_is_vec ? OP_COERCE_DU_VEC_VV : OP_COERCE_DU_VV);
+		if ( op_it == TYPE_INTERNAL_INT )
+			a = nt_is_vec ? OP_COERCE_DI_VEC_VV : OP_COERCE_DI_VV;
+		else
+			a = nt_is_vec ? OP_COERCE_DU_VEC_VV : OP_COERCE_DU_VV;
 		break;
 		}
 
 	case TYPE_INTERNAL_INT:
 		{
-		a = op_it == TYPE_INTERNAL_UNSIGNED ?
-			(nt_is_vec ? OP_COERCE_IU_VEC_VV : OP_COERCE_IU_VV) :
-			(nt_is_vec ? OP_COERCE_ID_VEC_VV : OP_COERCE_ID_VV);
+		if ( op_it == TYPE_INTERNAL_UNSIGNED )
+			a = nt_is_vec ? OP_COERCE_IU_VEC_VV : OP_COERCE_IU_VV;
+		else
+			n = t_is_vec ? OP_COERCE_ID_VEC_VV : OP_COERCE_ID_VV;
 		break;
 		}
 
 	case TYPE_INTERNAL_UNSIGNED:
 		{
-		a = op_it == TYPE_INTERNAL_INT ?
-			(nt_is_vec ? OP_COERCE_UI_VEC_VV : OP_COERCE_UI_VV) :
-			(nt_is_vec ? OP_COERCE_UD_VEC_VV : OP_COERCE_UD_VV);
+		if ( op_it == TYPE_INTERNAL_INT )
+			a = nt_is_vec ? OP_COERCE_UI_VEC_VV : OP_COERCE_UI_VV;
+		else
+			a = nt_is_vec ? OP_COERCE_UD_VEC_VV : OP_COERCE_UD_VV;
 		break;
 		}
 
@@ -649,7 +640,7 @@ const CompiledStmt ZAM::ArithCoerce(const NameExpr* n, const Expr* e)
 	return AddInst(GenInst(this, a, n, op->AsNameExpr()));
 	}
 
-const CompiledStmt ZAM::RecordCoerce(const NameExpr* n, const Expr* e)
+const CompiledStmt ZAMCompile::RecordCoerce(const NameExpr* n, const Expr* e)
 	{
 	auto r = e->AsRecordCoerceExpr();
 	auto op = r->GetOp1()->AsNameExpr();
@@ -658,7 +649,7 @@ const CompiledStmt ZAM::RecordCoerce(const NameExpr* n, const Expr* e)
 	auto zop = OP_RECORD_COERCE_VV;
 	ZInstI z(zop, Frame1Slot(n, zop), op_slot);
 
-	z.SetType(e->Type());
+	z.SetType(e->GetType());
 	z.op_type = OP_VV;
 
 	### fix me
@@ -675,44 +666,45 @@ const CompiledStmt ZAM::RecordCoerce(const NameExpr* n, const Expr* e)
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::TableCoerce(const NameExpr* n, const Expr* e)
+const CompiledStmt ZAMCompile::TableCoerce(const NameExpr* n, const Expr* e)
 	{
 	auto op = e->GetOp1()->AsNameExpr();
 
 	int op_slot = FrameSlot(op);
 	auto zop = OP_TABLE_COERCE_VV;
 	ZInstI z(zop, Frame1Slot(n, zop), op_slot);
-	z.SetType(e->Type());
+	z.SetType(e->GetType());
 
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::VectorCoerce(const NameExpr* n, const Expr* e)
+const CompiledStmt ZAMCompile::VectorCoerce(const NameExpr* n, const Expr* e)
 	{
 	auto op = e->GetOp1()->AsNameExpr();
 	int op_slot = FrameSlot(op);
 
 	auto zop = OP_VECTOR_COERCE_VV;
 	ZInstI z(zop, Frame1Slot(n, zop), op_slot);
-	z.SetType(e->Type());
+	z.SetType(e->GetType());
 
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::Is(const NameExpr* n, const Expr* e)
+const CompiledStmt ZAMCompile::Is(const NameExpr* n, const Expr* e)
 	{
 	auto is = e->AsIsExpr();
 	auto op = e->GetOp1()->AsNameExpr();
 	int op_slot = FrameSlot(op);
 
 	ZInstI z(OP_IS_VV, Frame1Slot(n, OP_IS_VV), op_slot);
-	z.t2 = op->Type();
+	z.t2 = op->GetType();
 	z.SetType(is->TestType());
 
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
+const CompiledStmt ZAMCompile::IfElse(const Expr* e,
+                                      const Stmt* s1, const Stmt* s2)
 	{
 	CompiledStmt cond_stmt = EmptyStmt();
 	int branch_v;
@@ -721,8 +713,8 @@ const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 		{
 		auto n = e->AsNameExpr();
 
-		ZOp op = (s1 && s2) ?
-			OP_IF_ELSE_VV : (s1 ? OP_IF_VV : OP_IF_NOT_VV);
+		ZOp op = (s1 && s2) ? OP_IF_ELSE_VV :
+		                      (s1 ? OP_IF_VV : OP_IF_NOT_VV);
 
 		ZInstI cond(op, FrameSlot(n), 0);
 		cond_stmt = AddInst(cond);
@@ -739,7 +731,7 @@ const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 			auto branch_after_s1 = GoToStub();
 			auto s2_end = s2->Compile(this);
 			SetV(cond_stmt, GoToTargetBeyond(branch_after_s1),
-				branch_v);
+			     branch_v);
 			SetGoTo(branch_after_s1, GoToTargetBeyond(s2_end));
 
 			return s2_end;
@@ -752,74 +744,72 @@ const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 			}
 		}
 
-	else
-		{
-		auto s2_end = s2->Compile(this);
+	// Only the else clause is non-empty.
+	auto s2_end = s2->Compile(this);
 
-		// For complex conditionals, we need to invert their
-		// sense since we're switching to "if ( ! cond ) s2".
-		auto z = insts1[cond_stmt.stmt_num];
+	// For complex conditionals, we need to invert their sense since
+	// we're switching to "if ( ! cond ) s2".
+	auto z = insts1[cond_stmt.stmt_num];
 
-		switch ( z->op ) {
-		case OP_IF_ELSE_VV:
-		case OP_IF_VV:
-		case OP_IF_NOT_VV:
-			// These are generated correctly above, no need
-			// to fix up.
-			break;
+	switch ( z->op ) {
+	case OP_IF_ELSE_VV:
+	case OP_IF_VV:
+	case OP_IF_NOT_VV:
+		// These are generated correctly above, no need
+		// to fix up.
+		break;
 
-		case OP_HAS_FIELD_COND_VVV:
-			z->op = OP_NOT_HAS_FIELD_COND_VVV;
-			break;
-		case OP_NOT_HAS_FIELD_COND_VVV:
-			z->op = OP_HAS_FIELD_COND_VVV;
-			break;
+	case OP_HAS_FIELD_COND_VVV:
+		z->op = OP_NOT_HAS_FIELD_COND_VVV;
+		break;
+	case OP_NOT_HAS_FIELD_COND_VVV:
+		z->op = OP_HAS_FIELD_COND_VVV;
+		break;
 
-		case OP_VAL_IS_IN_TABLE_COND_VVV:
-			z->op = OP_VAL_IS_NOT_IN_TABLE_COND_VVV;
-			break;
-		case OP_VAL_IS_NOT_IN_TABLE_COND_VVV:
-			z->op = OP_VAL_IS_IN_TABLE_COND_VVV;
-			break;
+	case OP_VAL_IS_IN_TABLE_COND_VVV:
+		z->op = OP_VAL_IS_NOT_IN_TABLE_COND_VVV;
+		break;
+	case OP_VAL_IS_NOT_IN_TABLE_COND_VVV:
+		z->op = OP_VAL_IS_IN_TABLE_COND_VVV;
+		break;
 
-		case OP_CONST_IS_IN_TABLE_COND_VVC:
-			z->op = OP_CONST_IS_NOT_IN_TABLE_COND_VVC;
-			break;
-		case OP_CONST_IS_NOT_IN_TABLE_COND_VVC:
-			z->op = OP_CONST_IS_IN_TABLE_COND_VVC;
-			break;
+	case OP_CONST_IS_IN_TABLE_COND_VVC:
+		z->op = OP_CONST_IS_NOT_IN_TABLE_COND_VVC;
+		break;
+	case OP_CONST_IS_NOT_IN_TABLE_COND_VVC:
+		z->op = OP_CONST_IS_IN_TABLE_COND_VVC;
+		break;
 
-		case OP_VAL2_IS_IN_TABLE_COND_VVVV:
-			z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVV;
-			break;
-		case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVV:
-			z->op = OP_VAL2_IS_IN_TABLE_COND_VVVV;
-			break;
+	case OP_VAL2_IS_IN_TABLE_COND_VVVV:
+		z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVV;
+		break;
+	case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVV:
+		z->op = OP_VAL2_IS_IN_TABLE_COND_VVVV;
+		break;
 
-		case OP_VAL2_IS_IN_TABLE_COND_VVVC:
-			z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVC;
-			break;
-		case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVC:
-			z->op = OP_VAL2_IS_IN_TABLE_COND_VVVC;
-			break;
+	case OP_VAL2_IS_IN_TABLE_COND_VVVC:
+		z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVC;
+		break;
+	case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVC:
+		z->op = OP_VAL2_IS_IN_TABLE_COND_VVVC;
+		break;
 
-		case OP_VAL2_IS_IN_TABLE_COND_VVCV:
-			z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVCV;
-			break;
-		case OP_VAL2_IS_NOT_IN_TABLE_COND_VVCV:
-			z->op = OP_VAL2_IS_IN_TABLE_COND_VVCV;
-			break;
+	case OP_VAL2_IS_IN_TABLE_COND_VVCV:
+		z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVCV;
+		break;
+	case OP_VAL2_IS_NOT_IN_TABLE_COND_VVCV:
+		z->op = OP_VAL2_IS_IN_TABLE_COND_VVCV;
+		break;
 
-		default:
-			reporter->InternalError("inconsistency in ZAM::IfElse");
-		}
-
-		SetV(cond_stmt, GoToTargetBeyond(s2_end), branch_v);
-		return s2_end;
-		}
+	default:
+		reporter->InternalError("inconsistency in ZAMCompile::IfElse");
 	}
 
-const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
+	SetV(cond_stmt, GoToTargetBeyond(s2_end), branch_v);
+	return s2_end;
+	}
+
+const CompiledStmt ZAMCompile::GenCond(const Expr* e, int& branch_v)
 	{
 	auto op1 = e->GetOp1();
 	auto op2 = e->GetOp2();
@@ -832,7 +822,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 		{
 		auto hf = e->AsHasFieldExpr();
 		auto z = GenInst(this, OP_HAS_FIELD_COND_VVV, op1->AsNameExpr(),
-					hf->Field());
+		                 hf->Field());
 		z.op_type = OP_VVV_I2_I3;
 		branch_v = 3;
 		return AddInst(z);
@@ -848,14 +838,14 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 			{
 			auto& ind = op1->AsListExpr()->Exprs();
 			if ( ind.length() == 1 )
-				op1 = {NewRef{}, ind[0]};
+				op1 = ind[0];
 			}
 
 		if ( op1->Tag() == EXPR_NAME )
 			{
 			auto z = GenInst(this, OP_VAL_IS_IN_TABLE_COND_VVV,
-						op1->AsNameExpr(), op2, 0);
-			z.t = op1->Type();
+			                 op1->AsNameExpr(), op2, 0);
+			z.t = op1->GetType();
 			branch_v = 3;
 			return AddInst(z);
 			}
@@ -863,8 +853,8 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 		if ( op1->Tag() == EXPR_CONST )
 			{
 			auto z = GenInst(this, OP_CONST_IS_IN_TABLE_COND_VVC,
-						op2, op1->AsConstExpr(), 0);
-			z.t = op1->Type();
+			                 op2, op1->AsConstExpr(), 0);
+			z.t = op1->GetType();
 			branch_v = 2;
 			return AddInst(z);
 			}
@@ -893,25 +883,25 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 		if ( name0 && name1 )
 			{
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_COND_VVVV,
-					n0, n1, op2, 0);
+			            n0, n1, op2, 0);
 			branch_v = 4;
-			z.t2 = n0->Type();
+			z.t2 = n0->GetType();
 			}
 
 		else if ( name0 )
 			{
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_COND_VVVC,
-					n0, op2, c1, 0);
+			            n0, op2, c1, 0);
 			branch_v = 3;
-			z.t2 = n0->Type();
+			z.t2 = n0->GetType();
 			}
 
 		else if ( name1 )
 			{
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_COND_VVCV,
-					n1, op2, c0, 0);
+			            n1, op2, c0, 0);
 			branch_v = 3;
-			z.t2 = n1->Type();
+			z.t2 = n1->GetType();
 			}
 
 		else
@@ -919,10 +909,10 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 			auto slot = TempForConst(c0);
 
 			z = ZInstI(OP_VAL2_IS_IN_TABLE_COND_VVVC,
-					slot, FrameSlot(op2), 0, c1);
+			           slot, FrameSlot(op2), 0, c1);
 			z.op_type = OP_VVVC_I3;
 			branch_v = 3;
-			z.t2 = c0->Type();
+			z.t2 = c0->GetType();
 			}
 
 		return AddInst(z);
@@ -953,14 +943,14 @@ const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 #include "ZAM-Conds.h"
 
 	default:
-		reporter->InternalError("bad expression type in ZAM::GenCond");
+		reporter->InternalError("bad expression type in ZAMCompile::GenCond");
 	}
 
 	// Not reached.
 	}
 
-const CompiledStmt ZAM::While(const Stmt* cond_stmt, const Expr* cond,
-				const Stmt* body)
+const CompiledStmt ZAMCompile::While(const Stmt* cond_stmt, const Expr* cond,
+                                     const Stmt* body)
 	{
 	auto head = StartingBlock();
 
@@ -996,7 +986,7 @@ const CompiledStmt ZAM::While(const Stmt* cond_stmt, const Expr* cond,
 	return tail;
 	}
 
-const CompiledStmt ZAM::Loop(const Stmt* body)
+const CompiledStmt ZAMCompile::Loop(const Stmt* body)
 	{
 	PushNexts();
 	PushBreaks();
@@ -1011,9 +1001,9 @@ const CompiledStmt ZAM::Loop(const Stmt* body)
 	return tail;
 	}
 
-const CompiledStmt ZAM::When(Expr* cond, const Stmt* body,
-				const Expr* timeout, const Stmt* timeout_body,
-				bool is_return)
+const CompiledStmt ZAMCompile::When(Expr* cond, const Stmt* body,
+                                    const Expr* timeout,
+                                    const Stmt* timeout_body, bool is_return)
 	{
 	// ### Flush locals on eval, and also on exit
 	ZInstI z;
@@ -1082,14 +1072,14 @@ const CompiledStmt ZAM::When(Expr* cond, const Stmt* body,
 		}
 	}
 
-const CompiledStmt ZAM::Switch(const SwitchStmt* sw)
+const CompiledStmt ZAMCompile::Switch(const SwitchStmt* sw)
 	{
 	auto e = sw->StmtExpr();
 
 	const NameExpr* n = e->Tag() == EXPR_NAME ? e->AsNameExpr() : nullptr;
 	const ConstExpr* c = e->Tag() == EXPR_CONST ? e->AsConstExpr() : nullptr;
 
-	auto t = e->Type()->Tag();
+	auto t = e->GetType()->Tag();
 
 	PushBreaks();
 
@@ -1101,8 +1091,9 @@ const CompiledStmt ZAM::Switch(const SwitchStmt* sw)
 		return ValueSwitch(sw, n, c);
 	}
 
-const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
-					const ConstExpr* c)
+const CompiledStmt ZAMCompile::ValueSwitch(const SwitchStmt* sw,
+                                           const NameExpr* v,
+                                           const ConstExpr* c)
 	{
 	int slot = v ? FrameSlot(v) : 0;
 
@@ -1112,7 +1103,7 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 		slot = TempForConst(c);
 
 	// Figure out which jump table we're using.
-	auto t = v ? v->Type() : c->Type();
+	auto t = v ? v->GetType() : c->GetType();
 	int tbl = 0;
 	ZOp op;
 
@@ -1213,7 +1204,7 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 		auto cv = (*case_vals)[0];
 		auto case_body_start = case_start[*index];
 
-		switch ( cv->Type()->InternalType() ) {
+		switch ( cv->GetType()->InternalType() ) {
 		case TYPE_INTERNAL_INT:
 			new_int_cases[cv->InternalInt()] = case_body_start;
 			break;
@@ -1284,8 +1275,8 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 	return body_end;
 	}
 
-const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
-					const ConstExpr* c)
+const CompiledStmt ZAMCompile::TypeSwitch(const SwitchStmt* sw,
+                                          const NameExpr* v, const ConstExpr* c)
 	{
 	auto cases = sw->Cases();
 	auto type_map = sw->TypeMap();
@@ -1296,7 +1287,7 @@ const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 
 	int slot = v ? FrameSlot(v) : 0;
 
-	if ( v && v->Type()->Tag() != TYPE_ANY )
+	if ( v && v->GetType()->Tag() != TYPE_ANY )
 		{
 		auto z = ZInstI(OP_ASSIGN_ANY_VV, tmp, slot);
 		body_end = AddInst(z);
@@ -1318,7 +1309,7 @@ const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 	for ( auto& i : *type_map )
 		{
 		auto id = i.first;
-		IntrusivePtr<BroType> type = {NewRef{}, id->Type()};
+		auto type = id->GetType();
 
 		ZInstI z;
 
@@ -1371,11 +1362,11 @@ const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 	return body_end;
 	}
 
-const CompiledStmt ZAM::For(const ForStmt* f)
+const CompiledStmt ZAMCompile::For(const ForStmt* f)
 	{
 	auto e = f->LoopExpr();
 	auto val = e->AsNameExpr();
-	auto et = e->Type()->Tag();
+	auto et = e->GetType()->Tag();
 
 	PushNexts();
 	PushBreaks();
@@ -1393,16 +1384,15 @@ const CompiledStmt ZAM::For(const ForStmt* f)
 		reporter->InternalError("bad \"for\" loop-over value when compiling");
 	}
 
-const CompiledStmt ZAM::Call(const ExprStmt* e)
+const CompiledStmt ZAMCompile::Call(const ExprStmt* e)
 	{
 	if ( IsZAM_BuiltIn(e->StmtExpr()) )
 		return LastInst();
 
-	auto call = e->StmtExpr()->AsCallExpr();
-	return DoCall(call, nullptr);
+	return DoCall(e->StmtExpr()->AsCallExpr(), nullptr);
 	}
 
-const CompiledStmt ZAM::AssignToCall(const ExprStmt* e)
+const CompiledStmt ZAMCompile::AssignToCall(const ExprStmt* e)
 	{
 	if ( IsZAM_BuiltIn(e->StmtExpr()) )
 		return LastInst();
@@ -1414,16 +1404,16 @@ const CompiledStmt ZAM::AssignToCall(const ExprStmt* e)
 	return DoCall(call, n);
 	}
 
-const CompiledStmt ZAM::AssignVecElems(const Expr* e)
+const CompiledStmt ZAMCompile::AssignVecElems(const Expr* e)
 	{
 	auto index_assign = e->AsIndexAssignExpr();
 
 	auto op1 = index_assign->GetOp1();
 	auto op3 = index_assign->GetOp3();
-	auto any_val = IsAny(op3->Type());
+	auto any_val = IsAny(op3->GetType());
 
 	auto lhs = op1->AsNameExpr();
-	auto lt = lhs->Type();
+	auto lt = lhs->GetType();
 
 	if ( IsAnyVec(lt) )
 		{
@@ -1433,11 +1423,11 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 			// No need to set the type, as it's retrieved
 			// dynamically.
 			z = GenInst(this, OP_TRANSFORM_ANY_VEC2_VV, lhs,
-					op3->AsNameExpr());
+			            op3->AsNameExpr());
 		else
 			{
 			z = GenInst(this, OP_TRANSFORM_ANY_VEC_V, lhs);
-			z.SetType(op3->Type());
+			z.SetType(op3->GetType());
 			}
 
 		AddInst(z);
@@ -1450,11 +1440,11 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		{ // Vector slice assignment.
 		ASSERT(op1->Tag() == EXPR_NAME);
 		ASSERT(op3->Tag() == EXPR_NAME);
-		ASSERT(op1->Type()->Tag() == TYPE_VECTOR);
-		ASSERT(op3->Type()->Tag() == TYPE_VECTOR);
+		ASSERT(op1->GetType()->Tag() == TYPE_VECTOR);
+		ASSERT(op3->GetType()->Tag() == TYPE_VECTOR);
 
 		auto z = GenInst(this, OP_VECTOR_SLICE_ASSIGN_VV,
-					op1->AsNameExpr(), op3->AsNameExpr());
+		                 op1->AsNameExpr(), op3->AsNameExpr());
 
 		z.aux = InternalBuildVals(indexes_expr);
 
@@ -1473,7 +1463,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		auto zop = OP_VECTOR_ELEM_ASSIGN_VVC;
 
 		return AddInst(ZInstI(zop, Frame1Slot(lhs, zop), tmp,
-					op3->AsConstExpr()));
+		                      op3->AsConstExpr()));
 		}
 
 	if ( op2->Tag() == EXPR_NAME )
@@ -1481,17 +1471,17 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		CompiledStmt inst(0);
 
 		if ( op3->Tag() == EXPR_NAME )
-			inst = any_val ? Vector_Elem_Assign_AnyVVV(lhs,
-							op2->AsNameExpr(),
-							op3->AsNameExpr()) :
-					Vector_Elem_AssignVVV(lhs,
-							op2->AsNameExpr(),
-							op3->AsNameExpr());
-		else
-			inst = Vector_Elem_AssignVVC(lhs, op2->AsNameExpr(),
-							op3->AsConstExpr());
+			{
+			if ( any_val )
+				inst = Vector_Elem_Assign_AnyVVV(lhs, op2->AsNameExpr(), op3->AsNameExpr());
+			else
+				inst = Vector_Elem_AssignVVV(lhs, op2->AsNameExpr(), op3->AsNameExpr());
+			}
 
-		TopMainInst()->t = op3->Type();
+		else
+			inst = Vector_Elem_AssignVVC(lhs, op2->AsNameExpr(), op3->AsConstExpr());
+
+		TopMainInst()->t = op3->GetType();
 		return inst;
 		}
 
@@ -1500,17 +1490,21 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		auto c = op2->AsConstExpr();
 		auto index = c->Value()->AsCount();
 
-		auto inst = any_val ? Vector_Elem_Assign_AnyVVi(lhs,
-						op3->AsNameExpr(), index) :
-					Vector_Elem_AssignVVi(lhs,
-						op3->AsNameExpr(), index);
+		ZAMStmt inst;
 
-		TopMainInst()->t = op3->Type();
+		if ( any_val )
+			inst = Vector_Elem_Assign_AnyVVi(lhs, op3->AsNameExpr(),
+			                                 index);
+		else
+			inst = Vector_Elem_AssignVVi(lhs, op3->AsNameExpr(),
+			                             index);
+
+		TopMainInst()->t = op3->GetType();
 		return inst;
 		}
 	}
 
-const CompiledStmt ZAM::AssignTableElem(const Expr* e)
+const CompiledStmt ZAMCompile::AssignTableElem(const Expr* e)
 	{
 	auto index_assign = e->AsIndexAssignExpr();
 
@@ -1522,26 +1516,27 @@ const CompiledStmt ZAM::AssignTableElem(const Expr* e)
 
 	if ( op3->Tag() == EXPR_NAME )
 		z = GenInst(this, OP_TABLE_ELEM_ASSIGN_VV,
-				op1, op3->AsNameExpr());
+		            op1, op3->AsNameExpr());
 	else
 		z = GenInst(this, OP_TABLE_ELEM_ASSIGN_VC,
-				op1, op3->AsConstExpr());
+		            op1, op3->AsConstExpr());
 
 	z.aux = InternalBuildVals(op2);
-	z.t = op3->Type();
+	z.t = op3->GetType();
 
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::AppendToField(const NameExpr* n1, const NameExpr* n2,
-					const ConstExpr* c, int offset)
+const CompiledStmt ZAMCompile::AppendToField(const NameExpr* n1,
+                                             const NameExpr* n2,
+                                             const ConstExpr* c, int offset)
 	{
 	ZInstI z;
 
 	if ( n2 )
 		{
 		z = ZInstI(OP_APPENDTOFIELD_VVi, FrameSlot(n1), FrameSlot(n2),
-				offset);
+		           offset);
 		z.op_type = OP_VVV_I3;
 		}
 	else
@@ -1550,12 +1545,13 @@ const CompiledStmt ZAM::AppendToField(const NameExpr* n1, const NameExpr* n2,
 		z.op_type = OP_VVC_I2;
 		}
 
-	z.SetType(n2 ? n2->Type() : c->Type());
+	z.SetType(n2 ? n2->GetType() : c->GetType());
 
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
+const CompiledStmt ZAMCompile::LoopOverTable(const ForStmt* f,
+                                             const NameExpr* val)
 	{
 	auto loop_vars = f->LoopVars();
 	auto value_var = f->ValueVar();
@@ -1581,7 +1577,7 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 			++num_unused;
 
 		ii->loop_vars.push_back(FrameSlot(id));
-		ii->loop_var_types.push_back({NewRef{}, id->Type()});
+		ii->loop_var_types.push_back(id->GetType());
 		}
 
 	bool no_loop_vars = (num_unused == loop_vars->length());
@@ -1607,11 +1603,11 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	else
 		{
 		z = ZInstI(OP_INIT_TABLE_LOOP_RECURSIVE_VVV, info,
-				FrameSlot(val), num_iters++);
+		           FrameSlot(val), num_iters++);
 		z.op_type = OP_VVV_I3;
 		}
 
-	z.SetType({NewRef{}, value_var ? value_var->Type() : nullptr});
+	z.SetType(value_var ? value_var->GetType() : nullptr);
 	z.aux = aux;
 
 	auto init_end = AddInst(z);
@@ -1620,7 +1616,7 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	if ( value_var )
 		{
 		ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV :
-					OP_NEXT_TABLE_ITER_VAL_VAR_VVV;
+		                        OP_NEXT_TABLE_ITER_VAL_VAR_VVV;
 		z = ZInstI(op, FrameSlot(value_var), info, 0);
 		z.CheckIfManaged(value_var->TypePtr());
 		z.op_type = OP_VVV_I3;
@@ -1629,7 +1625,7 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	else
 		{
 		ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_NO_VARS_VV :
-					OP_NEXT_TABLE_ITER_VV;
+		                        OP_NEXT_TABLE_ITER_VV;
 		z = ZInstI(op, info, 0);
 		z.op_type = OP_VV_I2;
 		z.aux = aux;	// so ZOpt.cc can get to it
@@ -1638,14 +1634,15 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	return FinishLoop(iter_head, z, body, info);
 	}
 
-const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
+const CompiledStmt ZAMCompile::LoopOverVector(const ForStmt* f,
+                                              const NameExpr* val)
 	{
 	auto loop_vars = f->LoopVars();
 	auto loop_var = (*loop_vars)[0];
 
 	auto ii = new IterInfo();
-	ii->vec_type = {NewRef{}, val->Type()->AsVectorType()};
-	ii->yield_type = {NewRef{}, ii->vec_type->YieldType()};
+	ii->vec_type = cast_intrusive<VectorType>(val->GetType());
+	ii->yield_type = ii->vec_type->Yield();
 
 	auto info = NewSlot(false);
 
@@ -1659,7 +1656,7 @@ const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	else
 		{
 		z = ZInstI(OP_INIT_VECTOR_LOOP_RECURSIVE_VVV, info,
-				FrameSlot(val), num_iters++);
+		           FrameSlot(val), num_iters++);
 		z.op_type = OP_VVV_I3;
 		}
 
@@ -1676,7 +1673,8 @@ const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	return FinishLoop(iter_head, z, f->LoopBody(), info);
 	}
 
-const CompiledStmt ZAM::LoopOverString(const ForStmt* f, const NameExpr* val)
+const CompiledStmt ZAMCompile::LoopOverString(const ForStmt* f,
+                                              const NameExpr* val)
 	{
 	auto loop_vars = f->LoopVars();
 	auto loop_var = (*loop_vars)[0];
@@ -1693,7 +1691,7 @@ const CompiledStmt ZAM::LoopOverString(const ForStmt* f, const NameExpr* val)
 	else
 		{
 		z = ZInstI(OP_INIT_STRING_LOOP_RECURSIVE_VVV, info,
-				FrameSlot(val), num_iters++);
+		           FrameSlot(val), num_iters++);
 		z.op_type = OP_VVV_I3;
 		}
 
@@ -1711,9 +1709,9 @@ const CompiledStmt ZAM::LoopOverString(const ForStmt* f, const NameExpr* val)
 	return FinishLoop(iter_head, z, f->LoopBody(), info);
 	}
 
-const CompiledStmt ZAM::FinishLoop(const CompiledStmt iter_head,
-					ZInstI iter_stmt, const Stmt* body,
-					int info_slot)
+const CompiledStmt ZAMCompile::FinishLoop(const CompiledStmt iter_head,
+                                          ZInstI iter_stmt, const Stmt* body,
+                                          int info_slot)
 	{
 	auto loop_iter = AddInst(iter_stmt);
 	auto body_end = body->Compile(this);
@@ -1732,29 +1730,30 @@ const CompiledStmt ZAM::FinishLoop(const CompiledStmt iter_head,
 	return final_stmt;
 	}
 
-const CompiledStmt ZAM::InitRecord(ID* id, RecordType* rt)
+const CompiledStmt ZAMCompile::InitRecord(ID* id, RecordType* rt)
 	{
 	auto z = ZInstI(OP_INIT_RECORD_V, FrameSlot(id));
-	z.SetType({NewRef{}, rt});
+	z.SetType(rt);
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::InitVector(ID* id, VectorType* vt)
+const CompiledStmt ZAMCompile::InitVector(ID* id, VectorType* vt)
 	{
 	auto z = ZInstI(OP_INIT_VECTOR_V, FrameSlot(id));
-	z.SetType({NewRef{}, vt});
+	z.SetType(vt);
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::InitTable(ID* id, TableType* tt, Attributes* attrs)
+const CompiledStmt ZAMCompile::InitTable(ID* id, TableType* tt,
+                                         Attributes* attrs)
 	{
 	auto z = ZInstI(OP_INIT_TABLE_V, FrameSlot(id));
-	z.SetType({NewRef{}, tt});
+	z.SetType(tt);
 	z.attrs = attrs;
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::Return(const ReturnStmt* r)
+const CompiledStmt ZAMCompile::Return(const ReturnStmt* r)
 	{
 	auto e = r->StmtExpr();
 
@@ -1803,7 +1802,7 @@ const CompiledStmt ZAM::Return(const ReturnStmt* r)
 	return CatchReturn();
 	}
 
-const CompiledStmt ZAM::CatchReturn(const CatchReturnStmt* cr)
+const CompiledStmt ZAMCompile::CatchReturn(const CatchReturnStmt* cr)
 	{
 	retvars.push_back(cr->RetVar());
 
@@ -1826,38 +1825,38 @@ const CompiledStmt ZAM::CatchReturn(const CatchReturnStmt* cr)
 	return top_main_inst;
 	}
 
-const CompiledStmt ZAM::StartingBlock()
+const CompiledStmt ZAMCompile::StartingBlock()
 	{
 	return CompiledStmt(insts1.size());
 	}
 
-const CompiledStmt ZAM::FinishBlock(const CompiledStmt /* start */)
+const CompiledStmt ZAMCompile::FinishBlock(const CompiledStmt /* start */)
 	{
 	return CompiledStmt(insts1.size() - 1);
 	}
 
-bool ZAM::NullStmtOK() const
+bool ZAMCompile::NullStmtOK() const
 	{
 	// They're okay iff they're the entire statement body.
 	return insts1.size() == 0;
 	}
 
-const CompiledStmt ZAM::EmptyStmt()
+const CompiledStmt ZAMCompile::EmptyStmt()
 	{
 	return CompiledStmt(insts1.size() - 1);
 	}
 
-const CompiledStmt ZAM::LastInst()
+const CompiledStmt ZAMCompile::LastInst()
 	{
 	return CompiledStmt(insts1.size() - 1);
 	}
 
-const CompiledStmt ZAM::ErrorStmt()
+const CompiledStmt ZAMCompile::ErrorStmt()
 	{
 	return CompiledStmt(0);
 	}
 
-bool ZAM::IsUnused(const ID* id, const Stmt* where) const
+bool ZAMCompile::IsUnused(const ID* id, const Stmt* where) const
 	{
 	if ( ! ud->HasUsage(where) )
 		return true;
@@ -1869,12 +1868,12 @@ bool ZAM::IsUnused(const ID* id, const Stmt* where) const
 	return ! usage || ! usage->HasID(id);
 	}
 
-OpaqueVals* ZAM::BuildVals(const IntrusivePtr<ListExpr>& l)
+OpaqueVals* ZAMCompile::BuildVals(const ListExprPtr& l)
 	{
 	return new OpaqueVals(InternalBuildVals(l.get()));
 	}
 
-ZInstAux* ZAM::InternalBuildVals(const ListExpr* l, int stride)
+ZInstAux* ZAMCompile::InternalBuildVals(const ListExpr* l, int stride)
 	{
 	auto exprs = l->Exprs();
 	int n = exprs.length();
@@ -1893,7 +1892,7 @@ ZInstAux* ZAM::InternalBuildVals(const ListExpr* l, int stride)
 	return aux;
 	}
 
-int ZAM::InternalAddVal(ZInstAux* zi, int i, Expr* e)
+int ZAMCompile::InternalAddVal(ZInstAux* zi, int i, Expr* e)
 	{
 	if ( e->Tag() == EXPR_ASSIGN )
 		{ // We're building up a table constructor
@@ -1927,7 +1926,7 @@ int ZAM::InternalAddVal(ZInstAux* zi, int i, Expr* e)
 		auto fa = e->AsFieldAssignExpr();
 		e = fa->GetOp1().get();
 
-		if ( e->Type()->Tag() == TYPE_TYPE )
+		if ( e->GetType()->Tag() == TYPE_TYPE )
 			{
 			// Ugh - we actually need a "type" constant.
 			auto v = e->Eval(nullptr);
@@ -1940,7 +1939,7 @@ int ZAM::InternalAddVal(ZInstAux* zi, int i, Expr* e)
 		}
 
 	if ( e->Tag() == EXPR_NAME )
-		zi->Add(i, FrameSlot(e->AsNameExpr()), e->Type());
+		zi->Add(i, FrameSlot(e->AsNameExpr()), e->GetType());
 
 	else
 		zi->Add(i, e->AsConstExpr()->ValuePtr());
@@ -1948,7 +1947,7 @@ int ZAM::InternalAddVal(ZInstAux* zi, int i, Expr* e)
 	return 1;
 	}
 
-const CompiledStmt ZAM::AddInst(const ZInstI& inst)
+const CompiledStmt ZAMCompile::AddInst(const ZInstI& inst)
 	{
 	ZInstI* i;
 
@@ -1978,7 +1977,7 @@ const CompiledStmt ZAM::AddInst(const ZInstI& inst)
 	return AddInst(dirty_inst);
 	}
 
-const Stmt* ZAM::LastStmt(const Stmt* s) const
+const Stmt* ZAMCompile::LastStmt(const Stmt* s) const
 	{
 	if ( s->Tag() == STMT_LIST )
 		{
@@ -1990,27 +1989,27 @@ const Stmt* ZAM::LastStmt(const Stmt* s) const
 		return s;
 	}
 
-void ZAM::LoadParam(ID* id)
+void ZAMCompile::LoadParam(ID* id)
 	{
 	if ( id->AsType() )
 		reporter->InternalError("don't know how to compile local variable that's a type not a value");
 
-	bool is_any = IsAny(id->Type());
+	bool is_any = IsAny(id->GetType());
 
 	ZOp op;
 
-	op = AssignmentFlavor(OP_LOAD_VAL_VV, id->Type()->Tag());
+	op = AssignmentFlavor(OP_LOAD_VAL_VV, id->GetType()->Tag());
 
 	int slot = AddToFrame(id);
 
 	ZInstI z(op, slot, id->Offset());
-	z.SetType({NewRef{}, id->Type()});
+	z.SetType(id->GetType());
 	z.op_type = OP_VV_FRAME;
 
 	(void) AddInst(z);
 	}
 
-const CompiledStmt ZAM::LoadGlobal(ID* id)
+const CompiledStmt ZAMCompile::LoadGlobal(ID* id)
 	{
 	ZOp op;
 
@@ -2019,12 +2018,12 @@ const CompiledStmt ZAM::LoadGlobal(ID* id)
 		// with the usual template.
 		op = OP_LOAD_GLOBAL_TYPE_VV;
 	else
-		op = AssignmentFlavor(OP_LOAD_GLOBAL_VV, id->Type()->Tag());
+		op = AssignmentFlavor(OP_LOAD_GLOBAL_VV, id->GetType()->Tag());
 
 	auto slot = RawSlot(id);
 
 	ZInstI z(op, slot, global_id_to_info[id]);
-	z.SetType({NewRef{}, id->Type()});
+	z.SetType(id->GetType());
 	z.op_type = OP_VV_I2;
 
 	z.aux = new ZInstAux(0);
@@ -2033,14 +2032,14 @@ const CompiledStmt ZAM::LoadGlobal(ID* id)
 	return AddInst(z);
 	}
 
-int ZAM::AddToFrame(ID* id)
+int ZAMCompile::AddToFrame(ID* id)
 	{
 	frame_layout1[id] = frame_sizeI;
 	frame_denizens.push_back(id);
 	return frame_sizeI++;
 	}
 
-void ZAM::Dump()
+void ZAMCompile::Dump()
 	{
 	bool remapped_frame = ! analysis_options.no_ZAM_opt;
 
@@ -2054,7 +2053,7 @@ void ZAM::Dump()
 		{
 		printf("Final frame:\n");
 
-		for ( unsigned int i = 0; i < shared_frame_denizens.size(); ++i )
+		for ( auto i = 0U; i < shared_frame_denizens.size(); ++i )
 			{
 			printf("frame2[%d] =", i);
 			for ( auto& id : shared_frame_denizens[i].ids )
@@ -2068,12 +2067,12 @@ void ZAM::Dump()
 
 	auto remappings = remapped_frame ? &shared_frame_denizens : nullptr;
 
-	for ( unsigned int i = 0; i < insts1.size(); ++i )
+	for ( auto i = 0U; i < insts1.size(); ++i )
 		{
 		auto& inst = insts1[i];
 		auto depth = inst->loop_depth;
 		printf("%d%s%s: ", i, inst->live ? "" : " (dead)",
-			depth ? fmt(" (loop %d)", depth) : "");
+		       depth ? fmt(" (loop %d)", depth) : "");
 		inst->Dump(&frame_denizens, remappings);
 		}
 
@@ -2082,36 +2081,36 @@ void ZAM::Dump()
 
 	remappings = remapped_frame ? &shared_frame_denizens_final : nullptr;
 
-	for ( unsigned int i = 0; i < insts2.size(); ++i )
+	for ( auto i = 0U; i < insts2.size(); ++i )
 		{
 		auto& inst = insts2[i];
 		auto depth = inst->loop_depth;
 		printf("%d%s%s: ", i, inst->live ? "" : " (dead)",
-			depth ? fmt(" (loop %d)", depth) : "");
+		       depth ? fmt(" (loop %d)", depth) : "");
 		inst->Dump(&frame_denizens, remappings);
 		}
 
 	if ( insts2.size() > 0 )
 		printf("Final code:\n");
 
-	for ( unsigned int i = 0; i < insts2.size(); ++i )
+	for ( auto i = 0U; i < insts2.size(); ++i )
 		{
 		auto& inst = insts2[i];
 		printf("%d: ", i);
 		inst->Dump(&frame_denizens, remappings);
 		}
 
-	for ( unsigned int i = 0; i < int_casesI.size(); ++i )
+	for ( auto i = 0U; i < int_casesI.size(); ++i )
 		DumpIntCases(i);
-	for ( unsigned int i = 0; i < uint_casesI.size(); ++i )
+	for ( auto i = 0U; i < uint_casesI.size(); ++i )
 		DumpUIntCases(i);
-	for ( unsigned int i = 0; i < double_casesI.size(); ++i )
+	for ( auto i = 0U; i < double_casesI.size(); ++i )
 		DumpDoubleCases(i);
-	for ( unsigned int i = 0; i < str_casesI.size(); ++i )
+	for ( auto i = 0U; i < str_casesI.size(); ++i )
 		DumpStrCases(i);
 	}
 
-void ZAM::DumpIntCases(int i) const
+void ZAMCompile::DumpIntCases(int i) const
 	{
 	printf("int switch table #%d:", i);
 	for ( auto& m : int_casesI[i] )
@@ -2119,7 +2118,7 @@ void ZAM::DumpIntCases(int i) const
 	printf("\n");
 	}
 
-void ZAM::DumpUIntCases(int i) const
+void ZAMCompile::DumpUIntCases(int i) const
 	{
 	printf("uint switch table #%d:", i);
 	for ( auto& m : uint_casesI[i] )
@@ -2127,7 +2126,7 @@ void ZAM::DumpUIntCases(int i) const
 	printf("\n");
 	}
 
-void ZAM::DumpDoubleCases(int i) const
+void ZAMCompile::DumpDoubleCases(int i) const
 	{
 	printf("double switch table #%d:", i);
 	for ( auto& m : double_casesI[i] )
@@ -2135,7 +2134,7 @@ void ZAM::DumpDoubleCases(int i) const
 	printf("\n");
 	}
 
-void ZAM::DumpStrCases(int i) const
+void ZAMCompile::DumpStrCases(int i) const
 	{
 	printf("str switch table #%d:", i);
 	for ( auto& m : str_casesI[i] )
@@ -2143,26 +2142,28 @@ void ZAM::DumpStrCases(int i) const
 	printf("\n");
 	}
 
-const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1,
-				const NameExpr* n2, const ConstExpr* c2,
-				const NameExpr* n3, const ConstExpr* c3)
+const CompiledStmt ZAMCompile::CompileInExpr(const NameExpr* n1,
+                                             const NameExpr* n2,
+                                             const ConstExpr* c2,
+                                             const NameExpr* n3,
+                                             const ConstExpr* c3)
 	{
-	auto op2 = n2 ? (Expr*) n2 : (Expr*) c2;
-	auto op3 = n3 ? (Expr*) n3 : (Expr*) c3;
+	const Expr* op2 = n2 ? n2 : c2;
+	const Expr* op3 = n3 ? n3 : c3;
 
 	ZOp a;
 
-	if ( op2->Type()->Tag() == TYPE_PATTERN )
+	if ( op2->GetType()->Tag() == TYPE_PATTERN )
 		a = n2 ? (n3 ? OP_P_IN_S_VVV : OP_P_IN_S_VVC) : OP_P_IN_S_VCV;
 
-	else if ( op2->Type()->Tag() == TYPE_STRING )
+	else if ( op2->GetType()->Tag() == TYPE_STRING )
 		a = n2 ? (n3 ? OP_S_IN_S_VVV : OP_S_IN_S_VVC) : OP_S_IN_S_VCV;
 
-	else if ( op2->Type()->Tag() == TYPE_ADDR &&
-		  op3->Type()->Tag() == TYPE_SUBNET )
+	else if ( op2->GetType()->Tag() == TYPE_ADDR &&
+	          op3->GetType()->Tag() == TYPE_SUBNET )
 		a = n2 ? (n3 ? OP_A_IN_S_VVV : OP_A_IN_S_VVC) : OP_A_IN_S_VCV;
 
-	else if ( op3->Type()->Tag() == TYPE_TABLE )
+	else if ( op3->GetType()->Tag() == TYPE_TABLE )
 		a = n2 ? OP_VAL_IS_IN_TABLE_VVV : OP_CONST_IS_IN_TABLE_VCV;
 
 	else
@@ -2184,22 +2185,24 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1,
 	else
 		z = ZInstI(a, s1, s3, c2);
 
-	IntrusivePtr<BroType> zt;
+	TypePtr zt;
 
 	if ( c2 )
-		zt = c2->Type();
+		zt = c2->GetType();
 	else if ( c3 )
-		zt = c3->Type();
+		zt = c3->GetType();
 	else
-		zt = n2->Type();
+		zt = n2->GetType();
 
 	z.SetType(zt);
 
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
-					const NameExpr* n2, const ConstExpr* c)
+const CompiledStmt ZAMCompile::CompileInExpr(const NameExpr* n1,
+                                             const ListExpr* l,
+                                             const NameExpr* n2,
+                                             const ConstExpr* c)
 	{
 	auto& l_e = l->Exprs();
 	int n = l_e.length();
@@ -2209,13 +2212,13 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 	if ( n == 1 && n2 )
 		{
 		ZInstI z;
-		bool is_vec = n2->Type()->Tag() == TYPE_VECTOR;
+		bool is_vec = n2->GetType()->Tag() == TYPE_VECTOR;
 
 		if ( l_e[0]->Tag() == EXPR_NAME )
 			{
 			auto l_e0_n = l_e[0]->AsNameExpr();
 			ZOp op = is_vec ? OP_VAL_IS_IN_VECTOR_VVV :
-						OP_VAL_IS_IN_TABLE_VVV;
+			                  OP_VAL_IS_IN_TABLE_VVV;
 			z = GenInst(this, op, n1, l_e0_n, n2);
 			}
 
@@ -2223,11 +2226,11 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 			{
 			auto l_e0_c = l_e[0]->AsConstExpr();
 			ZOp op = is_vec ? OP_CONST_IS_IN_VECTOR_VCV :
-						OP_CONST_IS_IN_TABLE_VCV;
+			                  OP_CONST_IS_IN_TABLE_VCV;
 			z = GenInst(this, op, n1, l_e0_c, n2);
 			}
 
-		z.t = l_e[0]->Type();
+		z.t = l_e[0]->GetType();
 		return AddInst(z);
 		}
 
@@ -2251,22 +2254,22 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 		if ( l_e0_n && l_e1_n )
 			{
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVVV,
-					n1, l_e0_n, l_e1_n, n2);
-			z.t2 = l_e0_n->Type();
+			            n1, l_e0_n, l_e1_n, n2);
+			z.t2 = l_e0_n->GetType();
 			}
 
 		else if ( l_e0_n )
 			{
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVVC,
-					n1, l_e0_n, n2, l_e1_c);
-			z.t2 = l_e0_n->Type();
+			            n1, l_e0_n, n2, l_e1_c);
+			z.t2 = l_e0_n->GetType();
 			}
 
 		else if ( l_e1_n )
 			{
 			z = GenInst(this, OP_VAL2_IS_IN_TABLE_VVCV,
-					n1, l_e1_n, n2, l_e0_c);
-			z.t2 = l_e1_n->Type();
+			            n1, l_e1_n, n2, l_e0_c);
+			z.t2 = l_e1_n->GetType();
 			}
 
 		else
@@ -2275,9 +2278,9 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 			// a temporary. 
 			auto slot = TempForConst(l_e0_c);
 			z = ZInstI(OP_VAL2_IS_IN_TABLE_VVVC, FrameSlot(n1),
-					slot, FrameSlot(n2), l_e1_c);
+			           slot, FrameSlot(n2), l_e1_c);
 			z.op_type = OP_VVVC;
-			z.t2 = l_e0_c->Type();
+			z.t2 = l_e0_c->GetType();
 			}
 
 		return AddInst(z);
@@ -2285,7 +2288,7 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 
 	auto aggr = n2 ? (Expr*) n2 : (Expr*) c;
 
-	ASSERT(aggr->Type()->Tag() != TYPE_VECTOR);
+	ASSERT(aggr->GetType()->Tag() != TYPE_VECTOR);
 
 	ZOp op = n2 ? OP_LIST_IS_IN_TABLE_VV : OP_LIST_IS_IN_TABLE_VC;
 
@@ -2301,22 +2304,24 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
-					const ListExpr* l)
+const CompiledStmt ZAMCompile::CompileIndex(const NameExpr* n1,
+                                            const NameExpr* n2,
+                                            const ListExpr* l)
 	{
-	return CompileIndex(n1, FrameSlot(n2), n2->Type(), l);
+	return CompileIndex(n1, FrameSlot(n2), n2->GetType(), l);
 	}
 
-const CompiledStmt ZAM::CompileIndex(const NameExpr* n, const ConstExpr* c,
-					const ListExpr* l)
+const CompiledStmt ZAMCompile::CompileIndex(const NameExpr* n,
+                                            const ConstExpr* c,
+                                            const ListExpr* l)
 	{
 	auto tmp = TempForConst(c);
-	return CompileIndex(n, tmp, c->Type(), l);
+	return CompileIndex(n, tmp, c->GetType(), l);
 	}
 
-const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, int n2_slot,
-					IntrusivePtr<BroType> n2t,
-					const ListExpr* l)
+const CompiledStmt ZAMCompile::CompileIndex(const NameExpr* n1, int n2_slot,
+                                            const TypePtr& n2t,
+                                            const ListExpr* l)
 	{
 	ZInstI z;
 
@@ -2333,9 +2338,9 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, int n2_slot,
 
 		if ( ! var_ind )
 			{
-			if ( ind->Type()->Tag() == TYPE_COUNT )
+			if ( ind->GetType()->Tag() == TYPE_COUNT )
 				c = c3->Value()->AsCount();
-			else if ( ind->Type()->Tag() == TYPE_INT )
+			else if ( ind->GetType()->Tag() == TYPE_INT )
 				c = c3->Value()->AsInt();
 			}
 
@@ -2346,12 +2351,13 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, int n2_slot,
 				int n3_slot = FrameSlot(n3);
 				auto zop = OP_INDEX_STRING_VVV;
 				z = ZInstI(zop, Frame1Slot(n1, zop),
-						n2_slot, n3_slot);
+				           n2_slot, n3_slot);
 				}
 			else
 				{
 				auto zop = OP_INDEX_STRINGC_VVV;
-				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c);
+				z = ZInstI(zop, Frame1Slot(n1, zop),
+				           n2_slot, c);
 				z.op_type = OP_VVV_I3;
 				}
 
@@ -2360,26 +2366,26 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, int n2_slot,
 
 		if ( n2tag == TYPE_VECTOR )
 			{
-			auto n2_yt = n2t->AsVectorType()->YieldType();
+			auto n2_yt = n2t->AsVectorType()->Yield();
 			bool is_any = n2_yt->Tag() == TYPE_ANY;
 
 			if ( n3 )
 				{
 				int n3_slot = FrameSlot(n3);
 				auto zop = is_any ? OP_INDEX_ANY_VEC_VVV :
-							OP_INDEX_VEC_VVV;
+				                    OP_INDEX_VEC_VVV;
 				z = ZInstI(zop, Frame1Slot(n1, zop),
-						n2_slot, n3_slot);
+				           n2_slot, n3_slot);
 				}
 			else
 				{
 				auto zop = is_any ? OP_INDEX_ANY_VECC_VVV :
-							OP_INDEX_VECC_VVV;
+				                    OP_INDEX_VECC_VVV;
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c);
 				z.op_type = OP_VVV_I3;
 				}
 
-			z.SetType(n1->Type());
+			z.SetType(n1->GetType());
 			return AddInst(z);
 			}
 
@@ -2389,18 +2395,18 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, int n2_slot,
 				{
 				int n3_slot = FrameSlot(n3);
 				auto zop = AssignmentFlavor(OP_TABLE_INDEX1_VVV,
-							n1->Type()->Tag());
+				                            n1->GetType()->Tag());
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot,
-						n3_slot);
-				z.SetType(n3->Type());
+				           n3_slot);
+				z.SetType(n3->GetType());
 				}
 
 			else
 				{
 				auto zop = AssignmentFlavor(OP_TABLE_INDEX1_VVC,
-							n1->Type()->Tag());
+				                            n1->GetType()->Tag());
 				z = ZInstI(zop, Frame1Slot(n1, zop),
-							n2_slot, c3);
+				           n2_slot, c3);
 				}
 
 			return AddInst(z);
@@ -2421,13 +2427,13 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, int n2_slot,
 	case TYPE_TABLE:
 		op = OP_TABLE_INDEX_VV;
 		z = ZInstI(op, Frame1Slot(n1, op), n2_slot);
-		z.SetType(n1->Type());
+		z.SetType(n1->GetType());
 		break;
 
 	case TYPE_STRING:
 		op = OP_INDEX_STRING_SLICE_VV;
 		z = ZInstI(op, Frame1Slot(n1, op), n2_slot);
-		z.SetType(n1->Type());
+		z.SetType(n1->GetType());
 		break;
 
 	default:
@@ -2435,14 +2441,16 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, int n2_slot,
 	}
 
 	z.aux = InternalBuildVals(l);
-	z.CheckIfManaged(n1->Type());
+	z.CheckIfManaged(n1->GetType());
 
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::CompileSchedule(const NameExpr* n, const ConstExpr* c,
-					int is_interval, EventHandler* h,
-					const ListExpr* l)
+const CompiledStmt ZAMCompile::CompileSchedule(const NameExpr* n,
+                                                const ConstExpr* c,
+                                                int is_interval,
+                                                EventHandler* h,
+                                                const ListExpr* l)
 	{
 	int len = l->Exprs().length();
 	ZInstI z;
@@ -2450,7 +2458,7 @@ const CompiledStmt ZAM::CompileSchedule(const NameExpr* n, const ConstExpr* c,
 	if ( len == 0 )
 		{
 		z = n ? ZInstI(OP_SCHEDULE0_ViH, FrameSlot(n), is_interval) :
-			ZInstI(OP_SCHEDULE0_CiH, is_interval, c);
+		        ZInstI(OP_SCHEDULE0_CiH, is_interval, c);
 		z.op_type = n ? OP_VV_I2 : OP_VC_I1;
 		}
 
@@ -2475,13 +2483,13 @@ const CompiledStmt ZAM::CompileSchedule(const NameExpr* n, const ConstExpr* c,
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::CompileEvent(EventHandler* h, const ListExpr* l)
+const CompiledStmt ZAMCompile::CompileEvent(EventHandler* h, const ListExpr* l)
 	{
 	auto exprs = l->Exprs();
 	unsigned int n = exprs.length();
 
 	bool all_vars = true;
-	for ( unsigned int i = 0; i < n; ++i )
+	for ( auto i = 0U; i < n; ++i )
 		if ( exprs[i]->Tag() == EXPR_CONST )
 			{
 			all_vars = false;
@@ -2509,7 +2517,7 @@ const CompiledStmt ZAM::CompileEvent(EventHandler* h, const ListExpr* l)
 		{
 		auto n0 = exprs[0]->AsNameExpr();
 		z.v1 = FrameSlot(n0);
-		z.t = n0->Type();
+		z.t = n0->GetType();
 
 		if ( n == 1 )
 			{
@@ -2521,7 +2529,7 @@ const CompiledStmt ZAM::CompileEvent(EventHandler* h, const ListExpr* l)
 			{
 			auto n1 = exprs[1]->AsNameExpr();
 			z.v2 = FrameSlot(n1);
-			z.t2 = n1->Type();
+			z.t2 = n1->GetType();
 
 			if ( n == 2 )
 				{
@@ -2557,18 +2565,18 @@ const CompiledStmt ZAM::CompileEvent(EventHandler* h, const ListExpr* l)
 	return AddInst(z);
 	}
 
-void ZAM::SyncGlobals(const BroObj* o)
+void ZAMCompile::SyncGlobals(const BroObj* o)
 	{
 	SyncGlobals(pf->globals, o);
 	}
 
-void ZAM::SyncGlobals(std::unordered_set<ID*>& globals, const BroObj* o)
+void ZAMCompile::SyncGlobals(std::unordered_set<ID*>& globals, const BroObj* o)
 	{
 	auto mgr = reducer->GetDefSetsMgr();
 	auto entry_rds = mgr->GetPreMaxRDs(body);
 
-	auto curr_rds = o ?
-		mgr->GetPreMaxRDs(o) : mgr->GetPostMaxRDs(LastStmt(body));
+	auto curr_rds = o ? mgr->GetPreMaxRDs(o) :
+	                    mgr->GetPostMaxRDs(LastStmt(body));
 
 	if ( ! curr_rds )
 		// This can happen for functions that only access (but
@@ -2595,31 +2603,23 @@ void ZAM::SyncGlobals(std::unordered_set<ID*>& globals, const BroObj* o)
 		(void) AddInst(ZInstI(OP_SYNC_GLOBALS_X));
 	}
 
-const CompiledStmt  ZAM::AssignedToGlobal(const ID* global_id)
-	{
-	// We used to need this before adding ZAMOp1Flavor.  We keep
-	// it as a structure since it potentially could be needed
-	// in the future.
-	return EmptyStmt();
-	}
-
-void ZAM::PushGoTos(GoToSets& gotos)
+void ZAMCompile::PushGoTos(GoToSets& gotos)
 	{
 	vector<CompiledStmt> vi;
 	gotos.push_back(vi);
 	}
 
-void ZAM::ResolveGoTos(GoToSets& gotos, const InstLabel l)
+void ZAMCompile::ResolveGoTos(GoToSets& gotos, const InstLabel l)
 	{
 	auto& g = gotos.back();
 
-	for ( unsigned int i = 0; i < g.size(); ++i )
+	for ( auto i = 0U; i < g.size(); ++i )
 		SetGoTo(g[i], l);
 
 	gotos.pop_back();
 	}
 
-CompiledStmt ZAM::GenGoTo(GoToSet& v)
+CompiledStmt ZAMCompile::GenGoTo(GoToSet& v)
 	{
 	auto g = GoToStub();
 	v.push_back(g.stmt_num);
@@ -2627,14 +2627,14 @@ CompiledStmt ZAM::GenGoTo(GoToSet& v)
 	return g;
 	}
 
-CompiledStmt ZAM::GoToStub()
+CompiledStmt ZAMCompile::GoToStub()
 	{
 	ZInstI z(OP_GOTO_V, 0);
 	z.op_type = OP_V_I1;
 	return AddInst(z);
 	}
 
-CompiledStmt ZAM::GoTo(const InstLabel l)
+CompiledStmt ZAMCompile::GoTo(const InstLabel l)
 	{
 	ZInstI inst(OP_GOTO_V, 0);
 	inst.target = l;
@@ -2643,12 +2643,12 @@ CompiledStmt ZAM::GoTo(const InstLabel l)
 	return AddInst(inst);
 	}
 
-InstLabel ZAM::GoToTarget(const CompiledStmt s)
+InstLabel ZAMCompile::GoToTarget(const CompiledStmt s)
 	{
 	return insts1[s.stmt_num];
 	}
 
-InstLabel ZAM::GoToTargetBeyond(const CompiledStmt s)
+InstLabel ZAMCompile::GoToTargetBeyond(const CompiledStmt s)
 	{
 	int n = s.stmt_num;
 
@@ -2663,12 +2663,12 @@ InstLabel ZAM::GoToTargetBeyond(const CompiledStmt s)
 	return insts1[n+1];
 	}
 
-CompiledStmt ZAM::PrevStmt(const CompiledStmt s)
+CompiledStmt ZAMCompile::PrevStmt(const CompiledStmt s)
 	{
 	return CompiledStmt(s.stmt_num - 1);
 	}
 
-void ZAM::SetTarget(ZInstI* inst, const InstLabel l, int slot)
+void ZAMCompile::SetTarget(ZInstI* inst, const InstLabel l, int slot)
 	{
 	if ( inst->target )
 		{
@@ -2683,7 +2683,7 @@ void ZAM::SetTarget(ZInstI* inst, const InstLabel l, int slot)
 		}
 	}
 
-void ZAM::SetV1(CompiledStmt s, const InstLabel l)
+void ZAMCompile::SetV1(CompiledStmt s, const InstLabel l)
 	{
 	auto inst = insts1[s.stmt_num];
 	SetTarget(inst, l, 1);
@@ -2691,7 +2691,7 @@ void ZAM::SetV1(CompiledStmt s, const InstLabel l)
 	inst->op_type = OP_V_I1;
 	}
 
-void ZAM::SetV2(CompiledStmt s, const InstLabel l)
+void ZAMCompile::SetV2(CompiledStmt s, const InstLabel l)
 	{
 	auto inst = insts1[s.stmt_num];
 	SetTarget(inst, l, 2);
@@ -2706,7 +2706,7 @@ void ZAM::SetV2(CompiledStmt s, const InstLabel l)
 		ASSERT(inst->op_type == OP_VV_I2 || inst->op_type == OP_VVC_I2);
 	}
 
-void ZAM::SetV3(CompiledStmt s, const InstLabel l)
+void ZAMCompile::SetV3(CompiledStmt s, const InstLabel l)
 	{
 	auto inst = insts1[s.stmt_num];
 	SetTarget(inst, l, 3);
@@ -2720,7 +2720,7 @@ void ZAM::SetV3(CompiledStmt s, const InstLabel l)
 	inst->op_type = OP_VVV_I3;
 	}
 
-void ZAM::SetV4(CompiledStmt s, const InstLabel l)
+void ZAMCompile::SetV4(CompiledStmt s, const InstLabel l)
 	{
 	auto inst = insts1[s.stmt_num];
 	SetTarget(inst, l, 4);
@@ -2733,7 +2733,7 @@ void ZAM::SetV4(CompiledStmt s, const InstLabel l)
 	}
 
 
-int ZAM::FrameSlot(const ID* id)
+int ZAMCompile::FrameSlot(const ID* id)
 	{
 	auto slot = RawSlot(id);
 
@@ -2743,7 +2743,7 @@ int ZAM::FrameSlot(const ID* id)
 	return slot;
 	}
 
-int ZAM::Frame1Slot(const ID* id, ZAMOp1Flavor fl)
+int ZAMCompile::Frame1Slot(const ID* id, ZAMOp1Flavor fl)
 	{
 	auto slot = RawSlot(id);
 
@@ -2773,7 +2773,7 @@ int ZAM::Frame1Slot(const ID* id, ZAMOp1Flavor fl)
 	return slot;
 	}
 
-int ZAM::RawSlot(const ID* id)
+int ZAMCompile::RawSlot(const ID* id)
 	{
 	auto id_slot = frame_layout1.find(id);
 
@@ -2783,12 +2783,12 @@ int ZAM::RawSlot(const ID* id)
 	return id_slot->second;
 	}
 
-bool ZAM::HasFrameSlot(const ID* id) const
+bool ZAMCompile::HasFrameSlot(const ID* id) const
 	{
 	return frame_layout1.find(id) != frame_layout1.end();
 	}
 
-int ZAM::NewSlot(bool is_managed)
+int ZAMCompile::NewSlot(bool is_managed)
 	{
 	char buf[8192];
 	snprintf(buf, sizeof buf, "#internal-%d#", frame_sizeI);
@@ -2804,14 +2804,14 @@ int ZAM::NewSlot(bool is_managed)
 	return AddToFrame(internal_reg);
 	}
 
-int ZAM::TempForConst(const ConstExpr* c)
+int ZAMCompile::TempForConst(const ConstExpr* c)
 	{
-	auto slot = NewSlot(c->Type());
+	auto slot = NewSlot(c->GetType());
 	auto z = ZInstI(OP_ASSIGN_CONST_VC, slot, c);
-	z.CheckIfManaged(c->Type());
+	z.CheckIfManaged(c->GetType());
 	(void) AddInst(z);
 
 	return slot;
 	}
 
-#endif
+} // zeek::detail

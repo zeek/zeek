@@ -18,6 +18,7 @@ ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2,
                const NameExpr* v3, const NameExpr* v4);
 ZInstI GenInst(ZOp op, const ConstExpr* ce);
 ZInstI GenInst(ZOp op, const NameExpr* v1, const ConstExpr* ce);
+ZInstI GenInst(ZOp op, const ConstExpr* ce, const NameExpr* v1);
 ZInstI GenInst(ZOp op, const NameExpr* v1, const ConstExpr* ce,
                const NameExpr* v2);
 ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2,

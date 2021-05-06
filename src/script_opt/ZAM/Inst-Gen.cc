@@ -65,6 +65,11 @@ ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const ConstExpr* ce)
 	return ZInstI(op, Frame1Slot(v1, op), ce);
 	}
 
+ZInstI ZAMCompiler::GenInst(ZOp op, const ConstExpr* ce, const NameExpr* v1)
+	{
+	return ZInstI(op, Frame1Slot(v1, op), ce);
+	}
+
 ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const ConstExpr* ce,
                             const NameExpr* v2)
 	{

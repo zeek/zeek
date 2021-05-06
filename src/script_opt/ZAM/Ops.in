@@ -6,6 +6,10 @@
 assign-op Assign
 type V
 
+assign-op Field-LHS-Assign
+op1-read
+type F
+
 unary-expr-op Clone
 no-const
 op-type X
@@ -1058,11 +1062,6 @@ eval	auto indices = z.aux->ToListVal(frame);
 	auto val = z.c.ToVal(z.t);
 	frame[z.v1].table_val->Assign(indices, val);
 
-
-### Move up
-assign-op Field-LHS-Assign
-op1-read
-type F
 
 ########## Function Calls ##########
 

@@ -57,9 +57,12 @@ public:
 	// True if we've computed use-defs for the given statement.
 	bool HasUsage(const Stmt* s) const
 		{ return use_defs_map.find(s) != use_defs_map.end(); }
+	bool HasUsage(const StmtPtr& s) const
+		{ return HasUsage(s.get()); }
 
 	// Returns the use-defs for the given statement.
 	UDs GetUsage(const Stmt* s) const	{ return FindUsage(s); }
+	UDs GetUsage(const StmtPtr& s) const	{ return FindUsage(s.get()); }
 
 	// Removes assignments corresponding to unused temporaries.
 	// In the process, reports on locals that are assigned

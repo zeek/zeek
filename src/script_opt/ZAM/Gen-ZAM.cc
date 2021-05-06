@@ -463,11 +463,15 @@ void ZAM_OpTemplate::InstantiateOp(const string& method,
 	}
 
 void ZAM_OpTemplate::InstantiateMethod(const string& m, const string& suffix,
-                                       const vector<ZAM_OperandType>& ot,
+                                       const vector<ZAM_OperandType>& ot_orig,
                                        bool is_field, bool is_vec, bool is_cond)
 	{
 	if ( IsInternalOp() )
 		return;
+
+	auto ot = ot_orig;
+	if ( is_field )
+		ot.emplace_back(ZAM_OT_INT);
 
 	auto decls = MethodDeclare(ot, is_field, is_cond);
 
@@ -475,7 +479,7 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m, const string& suffix,
 	Emit("const ZAMStmt " + m + suffix + "(" + decls + ");");
 
 	EmitTo(MethodDef);
-	Emit("const ZAMStmt ZAM::" + m + suffix + "(" + decls + ")");
+	Emit("const ZAMStmt ZAMCompiler::" + m + suffix + "(" + decls + ")");
 	BeginBlock();
 
 	InstantiateMethodCore(ot, suffix, is_field, is_vec, is_cond);
@@ -516,7 +520,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 	if ( ot[0] == ZAM_OT_NONE )
 		{
 		auto op = g->GenOpCode(this, full_suffix, is_field);
-		Emit("z = GenInst(this, " + op + ");");
+		Emit("z = GenInst(" + op + ");");
 		return;
 		}
 
@@ -530,9 +534,6 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 	ArgsManager args(ot, is_cond);
 
 	auto params = args.Params();
-
-	if ( is_field )
-		params += ", i";
 
 	BuildInstruction(ot, params, suffix, is_cond, is_field);
 
@@ -551,7 +552,7 @@ void ZAM_OpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot,
                                       bool is_cond, bool is_field)
 	{
 	auto op = g->GenOpCode(this, suffix, is_field);
-	Emit("z = GenInst(this, " + op + ", " + params + ");");
+	Emit("z = GenInst(" + op + ", " + params + ");");
 	}
 
 void ZAM_OpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
@@ -752,13 +753,9 @@ string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const
 	return base_name + OpString(ot);
 	}
 
-string ZAM_OpTemplate::MethodDeclare(const vector<ZAM_OperandType>& ot_orig,
+string ZAM_OpTemplate::MethodDeclare(const vector<ZAM_OperandType>& ot,
                                      bool is_field, bool is_cond)
 	{
-	auto ot = ot_orig;
-	if ( is_field )
-		ot.emplace_back(ZAM_OT_INT);
-
 	ArgsManager args(ot, is_cond);
 	return args.Decls();
 	}
@@ -1123,14 +1120,14 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
 
 		auto op_suffix = suffix + "_" + expr_name_types[et];
 		auto op = g->GenOpCode(this, op_suffix, is_field);
-		EmitUp("z = GenInst(this, " + op + ", " + params + ");");
+		EmitUp("z = GenInst(" + op + ", " + params + ");");
 		}
 
 	if ( do_default )
 		{
 		Emit("else");
 		auto op = g->GenOpCode(this, suffix, is_field);
-		EmitUp("z = GenInst(this, " + op + ", " + params + ");");
+		EmitUp("z = GenInst(" + op + ", " + params + ");");
 		}
 	}
 
@@ -1438,7 +1435,7 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot
 		return;
 		}
 
-	auto constant_op = ot.back() == ZAM_OT_CONSTANT;
+	auto constant_op = ot[1] == ZAM_OT_CONSTANT;
 	string operand = constant_op ? "c" : "n2";
 
 	if ( ot[0] == ZAM_OT_FIELD )
@@ -1505,20 +1502,18 @@ void ZAM_AssignOpTemplate::Instantiate()
 	ots[1] = ZAM_OT_VAR;
 	InstantiateOp(ots, false);
 
-	if ( ots[0] != ZAM_OT_FIELD )
-		InstantiateV(ots);
-
 	// ... and for assignments to fields, additional field versions.
 	if ( ots[0] == ZAM_OT_FIELD )
 		{
-		ots[1] = ZAM_OT_FIELD;
-
-		ots.push_back(ZAM_OT_CONSTANT);
+		ots.push_back(ZAM_OT_INT);
 		InstantiateOp(ots, false);
 
-		ots[2] = ZAM_OT_VAR;
+		ots[1] = ZAM_OT_CONSTANT;
 		InstantiateOp(ots, false);
 		}
+
+	else
+		InstantiateV(ots);
 	}
 
 
@@ -1579,7 +1574,18 @@ void ZAM_RelationalExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType
                                                     const string& suffix,
 						    bool is_cond, bool is_field)
 	{
-	string op1 = is_cond ? "n" : "n2";
+	string op1;
+
+	if ( is_cond )
+		{
+		if ( ot[1] == ZAM_OT_CONSTANT || ot[2] == ZAM_OT_CONSTANT )
+			op1 = "n";
+		else
+			op1 = "n1";
+		}
+	else
+		op1 = "n2";
+
 	Emit("auto t = " + op1 + "->GetType();");
 	BuildInstructionCore(params, suffix, is_field);
 	}

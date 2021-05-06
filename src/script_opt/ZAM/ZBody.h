@@ -14,7 +14,7 @@ namespace zeek::detail {
 // dynamically tracks whether a global is loaded, clean, or dirty.
 class GlobalInfo {
 public:
-	ID* id;
+	IDPtr id;
 	int slot;
 };
 

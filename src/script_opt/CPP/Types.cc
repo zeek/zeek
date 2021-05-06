@@ -151,6 +151,10 @@ void CPPCompile::ExpandListTypeVar(const TypePtr& t, string& tn)
 void CPPCompile::ExpandRecordTypeVar(const TypePtr& t, string& tn)
 	{
 	auto r = t->AsRecordType()->Types();
+
+	if ( ! r )
+		return;
+
 	auto t_name = tn + "->AsRecordType()";
 
 	AddInit(t, string("if ( ") + t_name + "->NumFields() == 0 )");
@@ -475,6 +479,9 @@ void CPPCompile::RegisterTableType(const TypePtr& t)
 void CPPCompile::RegisterRecordType(const TypePtr& t)
 	{
 	auto r = t->AsRecordType()->Types();
+
+	if ( ! r )
+		return;
 
 	for ( auto i = 0; i < r->length(); ++i )
 		{

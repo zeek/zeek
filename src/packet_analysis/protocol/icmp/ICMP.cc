@@ -35,6 +35,15 @@ ICMPAnalyzer::~ICMPAnalyzer()
 	{
 	}
 
+IPBasedTransportAnalyzer* ICMPAnalyzer::MakeTransportAnalyzer(Connection* conn)
+	{
+	auto* root = new ICMPTransportAnalyzer(conn);
+	root->SetParent(this);
+	conn->SetInactivityTimeout(zeek::detail::icmp_inactivity_timeout);
+
+	return root;
+	}
+
 bool ICMPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet,
                                   ConnTuple& tuple)
 	{
@@ -856,17 +865,6 @@ int ICMPAnalyzer::ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_w
 
 	default:			is_one_way = true; return icmp_code;
 	}
-	}
-
-void ICMPAnalyzer::CreateTransportAnalyzer(Connection* conn, IPBasedTransportAnalyzer*& root,
-                                           analyzer::pia::PIA*& pia, bool& check_port)
-	{
-	root = new ICMPTransportAnalyzer(conn);
-	root->SetParent(this);
-	conn->SetInactivityTimeout(zeek::detail::icmp_inactivity_timeout);
-
-	pia = nullptr;
-	check_port = false;
 	}
 
 void ICMPTransportAnalyzer::AddExtraAnalyzers(Connection* conn)

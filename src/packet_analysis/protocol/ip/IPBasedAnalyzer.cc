@@ -7,6 +7,8 @@
 #include "zeek/Val.h"
 #include "zeek/session/Manager.h"
 #include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/plugin/Manager.h"
 
 using namespace zeek;
 using namespace zeek::packet_analysis::IP;
@@ -201,7 +203,7 @@ zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const detail::Co
 			return nullptr;
 			}
 		}
-	else if ( ! analyzer_mgr->BuildSessionAnalyzerTree(conn, this) )
+	else if ( ! BuildSessionAnalyzerTree(conn) )
 		{
 		conn->Done();
 		Unref(conn);
@@ -212,4 +214,60 @@ zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const detail::Co
 		conn->Event(new_connection, nullptr);
 
 	return conn;
+	}
+
+bool IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
+	{
+	packet_analysis::IP::IPBasedTransportAnalyzer* root = MakeTransportAnalyzer(conn);
+	analyzer::pia::PIA* pia = MakePIA(conn);
+
+	// TODO: temporary, can be replaced when the port lookup stuff is moved from analyzer_mgr
+	bool check_port = conn->ConnTransport() != TRANSPORT_ICMP;
+
+	bool scheduled = analyzer_mgr->ApplyScheduledAnalyzers(conn, false, root);
+
+	// Hmm... Do we want *just* the expected analyzer, or all
+	// other potential analyzers as well?  For now we only take
+	// the scheduled ones.
+	if ( ! scheduled )
+		{ // Let's see if it's a port we know.
+		if ( check_port && ! zeek::detail::dpd_ignore_ports )
+			{
+			// TODO: ideally this lookup would be local to the packet analyzer instead of
+			// calling out to the analyzer manager. This code can move once the TCP work
+			// is in progress so that it doesn't have to be done piecemeal.
+			//
+			int resp_port = ntohs(conn->RespPort());
+			std::set<analyzer::Tag>* ports = analyzer_mgr->LookupPort(conn->ConnTransport(), resp_port, false);
+
+			if ( ports )
+				{
+				for ( const auto& port : *ports )
+					{
+					analyzer::Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(port, conn);
+
+					if ( ! analyzer )
+						continue;
+
+					root->AddChildAnalyzer(analyzer, false);
+					DBG_ANALYZER_ARGS(conn, "activated %s analyzer due to port %d",
+					                  analyzer_mgr->GetComponentName(port).c_str(), resp_port);
+					}
+				}
+			}
+		}
+
+	root->AddExtraAnalyzers(conn);
+
+	if ( pia )
+		root->AddChildAnalyzer(pia->AsAnalyzer());
+
+	conn->SetRootAnalyzer(root, pia);
+	root->Init();
+	root->InitChildren();
+
+	PLUGIN_HOOK_VOID(HOOK_SETUP_ANALYZER_TREE, HookSetupAnalyzerTree(conn));
+
+	// TODO: temporary
+	return true;
 	}

@@ -33,12 +33,6 @@ public:
 	 */
 	virtual bool IsReuse(double t, const u_char* pkt) { return false; }
 
-	/**
-	 * TODO: comment
-	 */
-	virtual void CreateTransportAnalyzer(Connection* conn, IPBasedTransportAnalyzer*& root,
-	                                     analyzer::pia::PIA*& pia, bool& check_port) = 0;
-
 protected:
 
 	/**
@@ -97,6 +91,17 @@ protected:
 		}
 
 	/**
+	 * Returns a transport analyzer appropriate for this IP-based analyzer. This
+	 * can also be used to do any extra initialization of connection timers, etc.
+	 */
+	virtual IPBasedTransportAnalyzer* MakeTransportAnalyzer(Connection* conn) { return nullptr; }
+
+	/**
+	 * Returns a PIA appropriate for this IP-based analyzer.
+	 */
+	virtual analyzer::pia::PIA* MakePIA(Connection* conn) { return nullptr; }
+
+	/**
 	 * Verifies that there is enough data in the packet to process the header
 	 * length requested.
 	 *
@@ -133,6 +138,8 @@ private:
 	 */
 	zeek::Connection* NewConn(const ConnTuple* id, const detail::ConnKey& key,
 	                          const Packet* pkt);
+
+	bool BuildSessionAnalyzerTree(Connection* conn);
 
 	TransportProto transport;
 	uint32_t server_port_mask;

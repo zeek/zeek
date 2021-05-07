@@ -25,6 +25,7 @@ using FilePtr = zeek::IntrusivePtr<File>;
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 
 namespace detail { class Rule; }
+namespace packet_analysis::IP { class IPBasedAnalyzer; }
 
 } // namespace zeek
 
@@ -601,6 +602,7 @@ protected:
 	friend class Manager;
 	friend class zeek::Connection;
 	friend class zeek::analyzer::tcp::TCP_ApplicationAnalyzer;
+	friend class zeek::packet_analysis::IP::IPBasedAnalyzer;
 
 	/**
 	 * Return a string represantation of an analyzer, containing its name

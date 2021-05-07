@@ -29,8 +29,7 @@ public:
 		return std::make_shared<ICMPAnalyzer>();
 		}
 
-	void CreateTransportAnalyzer(Connection* conn, IP::IPBasedTransportAnalyzer*& root,
-	                             analyzer::pia::PIA*& pia, bool& check_port) override;
+	packet_analysis::IP::IPBasedTransportAnalyzer* MakeTransportAnalyzer(Connection* conn) override;
 
 protected:
 

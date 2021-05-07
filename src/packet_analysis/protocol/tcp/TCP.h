@@ -18,9 +18,6 @@ public:
 		return std::make_shared<TCPAnalyzer>();
 		}
 
-	void CreateTransportAnalyzer(Connection* conn, IP::IPBasedTransportAnalyzer*& root,
-	                             analyzer::pia::PIA*& pia, bool& check_port) override;
-
 protected:
 
 	/**

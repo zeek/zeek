@@ -33,17 +33,20 @@ UDPAnalyzer::~UDPAnalyzer()
 	{
 	}
 
-void UDPAnalyzer::CreateTransportAnalyzer(Connection* conn, IPBasedTransportAnalyzer*& root,
-                                          analyzer::pia::PIA*& pia, bool& check_port)
+IPBasedTransportAnalyzer* UDPAnalyzer::MakeTransportAnalyzer(Connection* conn)
 	{
-	root = new UDPTransportAnalyzer(conn);
+	auto* root = new UDPTransportAnalyzer(conn);
 	root->SetParent(this);
 
 	conn->EnableStatusUpdateTimer();
 	conn->SetInactivityTimeout(zeek::detail::udp_inactivity_timeout);
 
-	pia = new analyzer::pia::PIA_UDP(conn);
-	check_port = true;
+	return root;
+	}
+
+zeek::analyzer::pia::PIA* UDPAnalyzer::MakePIA(Connection* conn)
+	{
+	return new analyzer::pia::PIA_UDP(conn);
 	}
 
 void UDPAnalyzer::Initialize()

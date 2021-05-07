@@ -18,9 +18,6 @@ public:
 		return std::make_shared<UDPAnalyzer>();
 		}
 
-	void CreateTransportAnalyzer(Connection* conn, IP::IPBasedTransportAnalyzer*& root,
-	                             analyzer::pia::PIA*& pia, bool& check_port) override;
-
 	/**
 	 * Initialize the analyzer. This method is called after the configuration
 	 * was read. Derived classes can override this method to implement custom
@@ -53,6 +50,9 @@ protected:
 	 */
 	bool WantConnection(uint16_t src_port, uint16_t dst_port,
 	                    const u_char* data, bool& flip_roles) const override;
+
+	packet_analysis::IP::IPBasedTransportAnalyzer* MakeTransportAnalyzer(Connection* conn) override;
+	analyzer::pia::PIA* MakePIA(Connection* conn) override;
 
 private:
 

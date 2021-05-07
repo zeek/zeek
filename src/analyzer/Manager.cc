@@ -353,11 +353,6 @@ Manager::tag_set* Manager::LookupPort(TransportProto proto, uint32_t port, bool 
 	return l;
 	}
 
-Manager::tag_set* Manager::LookupPort(PortVal* val, bool add_if_not_found)
-	{
-	return LookupPort(val->PortType(), val->Port(), add_if_not_found);
-	}
-
 bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	{
 	analyzer::tcp::TCP_Analyzer* tcp = nullptr;
@@ -471,57 +466,6 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 			// Add ConnSize analyzer. Needs to see packets, not stream.
 			root->AddChildAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn));
 		}
-
-	if ( pia )
-		root->AddChildAnalyzer(pia->AsAnalyzer());
-
-	conn->SetRootAnalyzer(root, pia);
-	root->Init();
-	root->InitChildren();
-
-	PLUGIN_HOOK_VOID(HOOK_SETUP_ANALYZER_TREE, HookSetupAnalyzerTree(conn));
-
-	return true;
-	}
-
-bool Manager::BuildSessionAnalyzerTree(Connection* conn, packet_analysis::IP::IPBasedAnalyzer* analyzer)
-	{
-	packet_analysis::IP::IPBasedTransportAnalyzer* root = nullptr;
-	analyzer::pia::PIA* pia = nullptr;
-	bool check_port = false;
-
-	analyzer->CreateTransportAnalyzer(conn, root, pia, check_port);
-
-	bool scheduled = ApplyScheduledAnalyzers(conn, false, root);
-
-	// Hmm... Do we want *just* the expected analyzer, or all
-	// other potential analyzers as well?  For now we only take
-	// the scheduled ones.
-	if ( ! scheduled )
-		{ // Let's see if it's a port we know.
-		if ( check_port && ! zeek::detail::dpd_ignore_ports )
-			{
-			int resp_port = ntohs(conn->RespPort());
-			tag_set* ports = LookupPort(conn->ConnTransport(), resp_port, false);
-
-			if ( ports )
-				{
-				for ( tag_set::const_iterator j = ports->begin(); j != ports->end(); ++j )
-					{
-					Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(*j, conn);
-
-					if ( ! analyzer )
-						continue;
-
-					root->AddChildAnalyzer(analyzer, false);
-					DBG_ANALYZER_ARGS(conn, "activated %s analyzer due to port %d",
-					                  analyzer_mgr->GetComponentName(*j).c_str(), resp_port);
-					}
-				}
-			}
-		}
-
-	root->AddExtraAnalyzers(conn);
 
 	if ( pia )
 		root->AddChildAnalyzer(pia->AsAnalyzer());

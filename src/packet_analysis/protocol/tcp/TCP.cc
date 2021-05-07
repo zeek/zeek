@@ -74,8 +74,3 @@ bool TCPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port,
 
 	return true;
 	}
-
-void TCPAnalyzer::CreateTransportAnalyzer(Connection* conn, IPBasedTransportAnalyzer*& root,
-                                          analyzer::pia::PIA*& pia, bool& check_port)
-	{
-	}

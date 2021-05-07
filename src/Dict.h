@@ -24,6 +24,7 @@ extern void generic_delete_func(void*);
 namespace detail {
 
 class DictEntry;
+class IterInfo;
 
 // Default number of hash buckets in dictionary.  The dictionary will increase the size
 // of the hash table as needed.
@@ -172,6 +173,7 @@ public:
 
 private:
 	friend class Dictionary;
+	friend class detail::IterInfo;
 
 	DictIterator() = default;
 	DictIterator(const Dictionary* d, detail::DictEntry* begin, detail::DictEntry* end);

@@ -1361,9 +1361,11 @@ eval	auto v = frame[z.v1].any_val;
 internal-op Init-Table-Loop
 type VV
 eval	auto ii = z.aux->iter_info;
-	ii->tv = frame[z.v2].table_val;
-	ii->loop_vals = ii->tv->AsTable();
-	ii->c = ii->loop_vals->InitForIteration();
+	auto tv = frame[z.v2].table_val;
+	auto tvd = tv->AsTable();
+	ii->tv = tv;
+	ii->tbl_iter = tvd->begin();
+	ii->tbl_end = tvd->end();
 	ii->value_var_type = z.t;
 	frame[z.v1].iter_info = ii;
 
@@ -1374,9 +1376,11 @@ eval	auto ii = z.aux->iter_info;
 	nii.loop_vars = ii->loop_vars;
 	nii.loop_var_types = ii->loop_var_types;
 	ii = &nii;
-	ii->tv = frame[z.v2].table_val;
-	ii->loop_vals = ii->tv->AsTable();
-	ii->c = ii->loop_vals->InitForIteration();
+	auto tv = frame[z.v2].table_val;
+	auto tvd = tv->AsTable();
+	ii->tv = tv;
+	ii->tbl_iter = tvd->begin();
+	ii->tbl_end = tvd->end();
 	ii->value_var_type = z.t;
 	frame[z.v1].iter_info = ii;
 
@@ -1385,14 +1389,12 @@ op1-read
 # v1 = iteration info
 # v2 = branch target if loop done
 type VV
-eval	HashKey* k;
-	auto ii = frame[z.v1].iter_info;
-	TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c);
-	if ( ! current_tev )
+eval	auto ii = frame[z.v1].iter_info;
+	auto current_tev = ++ii->tbl_iter;
+	if ( current_tev == ii->tbl_end )
 		BRANCH(v2)
-	auto ind_lv = ii->tv->RecreateIndex(*k);
-	delete k;
-	for ( int i = 0; i < ind_lv->Length(); i++ )
+	auto ind_lv = ii->tv->RecreateIndex(*current_tev->GetHashKey());
+	for ( int i = 0; i < ind_lv->Length(); ++i )
 		{
 		ValPtr ind_lv_p = ind_lv->Idx(i);
 		auto t = ii->loop_var_types[i];
@@ -1408,8 +1410,8 @@ op1-read
 # v2 = branch target if loop done
 type VV
 eval	auto ii = frame[z.v1].iter_info;
-	TableEntryVal* current_tev = ii->loop_vals->NextEntry(ii->c);
-	if ( ! current_tev )
+	auto current_tev = ++ii->tbl_iter;
+	if ( current_tev == ii->tbl_end )
 		BRANCH(v2)
 
 internal-op Next-Table-Iter-Val-Var
@@ -1417,14 +1419,12 @@ internal-op Next-Table-Iter-Val-Var
 # v2 = iteration info
 # v3 = branch target if loop done
 type VVV
-eval	HashKey* k;
-	auto ii = frame[z.v2].iter_info;
-	TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c);
-	if ( ! current_tev )
+eval	auto ii = frame[z.v2].iter_info;
+	auto current_tev = ++ii->tbl_iter;
+	if ( current_tev == ii->tbl_end )
 		BRANCH(v3)
-	auto ind_lv = ii->tv->RecreateIndex(*k);
-	delete k;
-	ValPtr tev_p = current_tev->GetVal();
+	auto ind_lv = ii->tv->RecreateIndex(*current_tev->GetHashKey());
+	ValPtr tev_p = {NewRef{}, current_tev->GetValue<Val*>()};
 	auto val_var_t = ii->value_var_type;
 	if ( z.is_managed )
 		ZVal::DeleteManagedType(frame[z.v1]);
@@ -1445,10 +1445,10 @@ internal-op Next-Table-Iter-Val-Var-No-Vars
 # v3 = branch target if loop done
 type VVV
 eval	auto ii = frame[z.v2].iter_info;
-	TableEntryVal* current_tev = ii->loop_vals->NextEntry(ii->c);
-	if ( ! current_tev )
+	auto current_tev = ++ii->tbl_iter;
+	if ( current_tev == ii->tbl_end )
 		BRANCH(v3)
-	ValPtr tev_p = current_tev->GetVal();
+	ValPtr tev_p = {NewRef{}, current_tev->GetValue<Val*>()};
 	auto val_var_t = ii->value_var_type;
 	if ( z.is_managed )
 		ZVal::DeleteManagedType(frame[z.v1]);
@@ -1526,9 +1526,7 @@ eval	auto ii = frame[z.v2].iter_info;
 internal-op End-Loop
 op1-read
 type V
-eval	auto ii = frame[z.v1].iter_info;
-	ii->c = nullptr;
-	ii->vv = nullptr;
+eval	frame[z.v1].iter_info->vv = nullptr;
 
 
 op When

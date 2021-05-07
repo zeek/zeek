@@ -12,17 +12,12 @@ namespace zeek::detail {
 // type of aggregate & loop.
 class IterInfo {
 public:
-	IterInfo()	{ c = nullptr;	/* clear the cookie */ }
+	IterInfo()	{ }
 
 	// If we're looping over a table:
 	const TableVal* tv = nullptr;
-
-	// The raw values being looped over.
-	const PDict<TableEntryVal>* loop_vals = nullptr;
-
-	// Iterator status.  Always gets deleted, so non-table/set
-	// iteration instructions need to set it to nil.
-	IterCookie* c = nullptr;
+	DictIterator tbl_iter;
+	DictIterator tbl_end;
 
 	// Frame slots of iteration variables, such as "[v1, v2, v3] in aggr".
 	// These are used for iterating over vectors and strings, too

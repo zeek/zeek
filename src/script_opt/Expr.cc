@@ -73,6 +73,48 @@ const IsExpr* Expr::AsIsExpr() const
 	return (const IsExpr*) this;
 	}
 
+CallExpr* Expr::AsCallExpr()
+	{
+	CHECK_TAG(tag, EXPR_CALL, "ExprVal::AsCallExpr", expr_name)
+	return (CallExpr*) this;
+	}
+
+FieldAssignExpr* Expr::AsFieldAssignExpr()
+	{
+	CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
+	return (FieldAssignExpr*) this;
+	}
+
+const RecordCoerceExpr* Expr::AsRecordCoerceExpr() const
+	{
+	CHECK_TAG(tag, EXPR_RECORD_COERCE, "ExprVal::AsRecordCoerceExpr", expr_name)
+	return (const RecordCoerceExpr*) this;
+	}
+
+const RecordConstructorExpr* Expr::AsRecordConstructorExpr() const
+	{
+	CHECK_TAG(tag, EXPR_RECORD_CONSTRUCTOR, "ExprVal::AsRecordConstructorExpr", expr_name)
+	return (const RecordConstructorExpr*) this;
+	}
+
+const TableConstructorExpr* Expr::AsTableConstructorExpr() const
+	{
+	CHECK_TAG(tag, EXPR_TABLE_CONSTRUCTOR, "ExprVal::AsTableConstructorExpr", expr_name)
+	return (const TableConstructorExpr*) this;
+	}
+
+const SetConstructorExpr* Expr::AsSetConstructorExpr() const
+	{
+	CHECK_TAG(tag, EXPR_SET_CONSTRUCTOR, "ExprVal::AsSetConstructorExpr", expr_name)
+	return (const SetConstructorExpr*) this;
+	}
+
+RefExpr* Expr::AsRefExpr()
+	{
+	CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
+	return (RefExpr*) this;
+	}
+
 const InlineExpr* Expr::AsInlineExpr() const
 	{
 	CHECK_TAG(tag, EXPR_INLINE, "ExprVal::AsInlineExpr", expr_name)

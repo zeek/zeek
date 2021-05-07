@@ -370,6 +370,7 @@ set(MAIN_SRCS
     script_opt/TempVar.cc
     script_opt/UseDefs.cc
 
+    script_opt/ZAM/AST.cc
     script_opt/ZAM/BuiltIn.cc
     script_opt/ZAM/Compile.cc
     script_opt/ZAM/Inst-Gen.cc

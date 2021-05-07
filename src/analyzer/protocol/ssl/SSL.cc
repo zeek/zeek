@@ -11,7 +11,10 @@
 
 #include <arpa/inet.h>
 #include <openssl/evp.h>
-#include <openssl/kdf.h>
+
+#ifdef OPENSSL_HAVE_KDF_H
+    #include <openssl/kdf.h>
+#endif
 
 static void print_hex(std::string name, u_char* data, int len)
 	{
@@ -146,6 +149,7 @@ void SSL_Analyzer::SetKeys(const u_char* data, int len)
 bool SSL_Analyzer::TLS12_PRF(const std::string& secret, const std::string& label,
 		const char* rnd1, size_t rnd1_len, const char* rnd2, size_t rnd2_len, u_char* out, size_t out_len)
 	{
+#ifdef OPENSSL_HAVE_KDF_H
 	// alloc buffers
 	EVP_PKEY_CTX *pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_TLS1_PRF, NULL);
 	size_t seed_len = label.length() + rnd1_len + rnd2_len;
@@ -174,6 +178,7 @@ bool SSL_Analyzer::TLS12_PRF(const std::string& secret, const std::string& label
 
 abort:
 	EVP_PKEY_CTX_free(pctx);
+#endif
 	return false;
 	}
 
@@ -201,6 +206,8 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 	// Secret present, but no keys derived yet: derive keys
 	if ( secret != nullptr && secret->Len() != 0 && ( keys == nullptr || keys->Len() == 0 ) )
 		{
+#ifdef OPENSSL_HAVE_KDF_H
+		DBG_LOG(DBG_ANALYZER, "Deriving TLS keys for connection foo");
 		uint32_t ts = htonl((uint32_t) handshake_interp->gmt_unix_time());
 
 		char crand[32] = {0x00};
@@ -221,7 +228,8 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 
 		// save derived keys
 		SetKeys(keybuf, sizeof(keybuf));
-	}
+#endif
+		}
 
 	// Keys present: decrypt TLS application data
 	if ( keys != nullptr && keys->Len() != 0 )
@@ -302,9 +310,9 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 
 		delete [] decrypted;
 		return true;
-	}
+		}
 
-	// This is only reached if key derivation somehow failed
+	// This is only reached if key derivation fails or is unsupported
 	return false;
 	}
 

@@ -85,6 +85,12 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields)
 		e->Traverse(this);
 	}
 
+ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields)
+	{
+	abs_rec_fields = _abs_rec_fields;
+	s->Traverse(this);
+	}
+
 void ProfileFunc::Profile(const FuncType* ft, const StmtPtr& body)
 	{
 	num_params = ft->Params()->NumFields();

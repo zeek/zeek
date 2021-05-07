@@ -757,8 +757,7 @@ direct-unary-op Table-Constructor ConstructTable
 internal-op Construct-Table
 type VV
 eval	auto tt = cast_intrusive<TableType>(z.t);
-	AttributesPtr attrs = {NewRef{}, z.attrs};
-	auto new_t = new TableVal(tt, attrs);
+	auto new_t = new TableVal(tt, z.attrs);
 	auto aux = z.aux;
 	auto n = aux->n;
 	auto ind_width = z.v2;
@@ -778,8 +777,7 @@ direct-unary-op Set-Constructor ConstructSet
 internal-op Construct-Set
 type VV
 eval	auto tt = cast_intrusive<TableType>(z.t);
-	AttributesPtr attrs = {NewRef{}, z.attrs};
-	auto new_s = new TableVal(tt, attrs);
+	auto new_s = new TableVal(tt, z.attrs);
 	auto aux = z.aux;
 	auto n = aux->n;
 	auto ind_width = z.v2;
@@ -1647,8 +1645,7 @@ eval	auto vt = make_intrusive<VectorType>(z.t);
 internal-op Init-Table
 type V
 eval	auto tt = cast_intrusive<TableType>(z.t);
-	AttributesPtr attrs = {NewRef{}, z.attrs};
-	auto t = new TableVal(tt, attrs);
+	auto t = new TableVal(tt, z.attrs);
 	Unref(frame[z.v1].table_val);
 	frame[z.v1].table_val = t;
 

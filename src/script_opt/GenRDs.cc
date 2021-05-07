@@ -1073,7 +1073,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		{
 		auto r = static_cast<const RecordConstructorExpr*>(e);
 		auto l = r->Op();
-		mgr.SetPreFromPre(l, e);
+		mgr.SetPreFromPre(l.get(), e);
 		break;
 		}
 

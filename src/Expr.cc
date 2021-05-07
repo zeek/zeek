@@ -3208,11 +3208,15 @@ void HasFieldExpr::ExprDescribe(ODesc* d) const
 		d->Add(field);
 	}
 
+
 RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
-	: Expr(EXPR_RECORD_CONSTRUCTOR), op(std::move(constructor_list))
+	: Expr(EXPR_RECORD_CONSTRUCTOR)
 	{
 	if ( IsError() )
 		return;
+
+	map = std::nullopt;
+	op = std::move(constructor_list);
 
 	// Spin through the list, which should be comprised only of
 	// record-field-assign expressions, and build up a
@@ -3236,6 +3240,48 @@ RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
 		}
 
 	SetType(make_intrusive<RecordType>(record_types));
+	}
+
+RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt,
+                                             ListExprPtr constructor_list)
+: Expr(EXPR_RECORD_CONSTRUCTOR)
+	{
+	if ( IsError() )
+		return;
+
+	SetType(known_rt);
+	op = std::move(constructor_list);
+
+	const auto& exprs = op->AsListExpr()->Exprs();
+	map = std::vector<int>(exprs.length());
+
+	int i = 0;
+	for ( const auto& e : exprs )
+		{
+		if ( e->Tag() != EXPR_FIELD_ASSIGN )
+			{
+			Error("bad type in record constructor", e);
+			SetError();
+			continue;
+			}
+
+		auto field = e->AsFieldAssignExpr();
+		int index = known_rt->FieldOffset(field->FieldName());
+
+		if ( index < 0 )
+			{
+			Error("no such field in record", e);
+			SetError();
+			continue;
+			}
+
+		auto known_ft = known_rt->GetFieldType(index);
+
+		if ( ! field->PromoteTo(known_ft) )
+			SetError();
+
+		(*map)[i++] = index;
+		}
 	}
 
 RecordConstructorExpr::~RecordConstructorExpr()
@@ -3685,6 +3731,12 @@ FieldAssignExpr::FieldAssignExpr(const char* arg_field_name, ExprPtr value)
 	: UnaryExpr(EXPR_FIELD_ASSIGN, std::move(value)), field_name(arg_field_name)
 	{
 	SetType(op->GetType());
+	}
+
+bool FieldAssignExpr::PromoteTo(TypePtr t)
+	{
+	op = check_and_promote_expr(op.get(), t.get());
+	return op != nullptr;
 	}
 
 void FieldAssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f)

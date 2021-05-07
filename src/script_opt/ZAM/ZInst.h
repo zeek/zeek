@@ -15,6 +15,8 @@ class ConstExpr;
 class Attributes;
 class Stmt;
 
+using AttributesPtr = IntrusivePtr<Attributes>;
+
 // Maps ZAM frame slots to associated identifiers.   
 typedef std::vector<ID*> FrameMap;
 
@@ -99,7 +101,7 @@ public:
 	Expr* e = nullptr;	// only needed for "when" expressions
 	Func* func = nullptr;	// used for calls
 	EventHandler* event_handler = nullptr;
-	Attributes* attrs = nullptr;
+	AttributesPtr attrs = nullptr;
 
 	// Auxiliary information.  We could in principle use this to
 	// consolidate a bunch of the above, though at the cost of

@@ -9,13 +9,16 @@
 #include "zeek/script_opt/UseDefs.h"
 #include "zeek/script_opt/ZAM/ZBody.h"
 
+namespace zeek {
+class EventHandler;
+}
+
 namespace zeek::detail {
 
 class NameExpr;
 class ConstExpr;
 class FieldExpr;
 class ListExpr;
-class EventHandler;
 
 class Stmt;
 class SwitchStmt;
@@ -33,6 +36,7 @@ class ZAMStmt {
 protected:
 	friend class ZAMCompiler;
 
+	ZAMStmt()	{ stmt_num = -1; /* flag that it needs to be set */ }
 	ZAMStmt(int _stmt_num)	{ stmt_num = _stmt_num; }
 
 	int stmt_num;
@@ -56,7 +60,9 @@ public:
 private:
 	void Init();
 
-	void CompileAST();
+	const ZAMStmt CompileAST(const StmtPtr& body)
+		{ return CompileAST(body.get()); }
+	const ZAMStmt CompileAST(const Stmt* body);
 
 	void SetCurrStmt(const Stmt* stmt)	{ curr_stmt = stmt; }
 
@@ -183,7 +189,7 @@ private:
 	const ZAMStmt CompileIndex(const NameExpr* n1, const ConstExpr* c,
 	                           const ListExpr* l);
 	const ZAMStmt CompileIndex(const NameExpr* n1, int n2_slot,
-	                           TypePtr n2_type, const ListExpr* l);
+	                           const TypePtr& n2_type, const ListExpr* l);
 
 
 #include "zeek/script_opt/ZAM/Inst-Gen.h"
@@ -272,8 +278,9 @@ private:
 	void LoadParam(ID* id);
 	const ZAMStmt LoadGlobal(ID* id);
 
-	int AddToFrame(const ID*);
+	int AddToFrame(ID*);
 
+	int FrameSlot(const IDPtr& id)		{ return FrameSlot(id.get()); }
 	int FrameSlot(const ID* id);
 	int FrameSlotIfName(const Expr* e)
 		{
@@ -320,7 +327,7 @@ private:
 
 	int TempForConst(const ConstExpr* c);
 
-	void SyncGlobals(std::unordered_set<const ID*>& g, const Obj* o);
+	void SyncGlobals(const std::unordered_set<const ID*>& g, const Obj* o);
 
 #if 0
 #include "zeek/ZOpt.h"

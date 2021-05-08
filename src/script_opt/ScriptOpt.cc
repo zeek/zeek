@@ -10,6 +10,7 @@
 #include "zeek/script_opt/Reduce.h"
 #include "zeek/script_opt/GenRDs.h"
 #include "zeek/script_opt/UseDefs.h"
+#include "zeek/script_opt/ZAM/Compile.h"
 
 
 namespace zeek::detail {
@@ -21,6 +22,8 @@ std::unordered_set<const Func*> non_recursive_funcs;
 
 // Tracks all of the loaded functions (including event handlers and hooks).
 static std::vector<FuncInfo> funcs;
+
+static std::optional<ZAMCompiler> ZAM;
 
 
 void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
@@ -129,20 +132,18 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	if ( analysis_options.gen_ZAM )
 		{
-#if 0
-		auto zam = new ZAM(f, scope, new_body, ud, rc, pf_red);
-		new_body = zam->CompileBody();
+		ZAM = ZAMCompiler(f, pf, scope, new_body, ud, rc);
+
+		new_body = ZAM->CompileBody();
 
 		if ( reporter->Errors() > 0 )
 			return;
 
 		if ( analysis_options.only_func || analysis_options.dump_ZAM )
-			zam->Dump();
+			ZAM->Dump();
 
-		new_body_ptr = {AdoptRef{}, new_body};
-		f->ReplaceBody(body, new_body_ptr);
-		body = new_body_ptr;
-#endif
+		f->ReplaceBody(body, new_body);
+		body = new_body;
 		}
 
 	int new_frame_size =
@@ -233,6 +234,12 @@ void analyze_scripts()
 		     analysis_options.gen_ZAM ||
 		     analysis_options.usage_issues > 0 )
 			analysis_options.activate = true;
+
+		if ( 0 && analysis_options.gen_ZAM )
+			{
+			analysis_options.inliner = true;
+			analysis_options.optimize_AST = true;
+			}
 
 		did_init = true;
 		}

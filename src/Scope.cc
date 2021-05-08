@@ -12,9 +12,7 @@
 
 namespace zeek::detail {
 
-using scope_list = List<ScopePtr>;
-
-static scope_list scopes;
+static std::vector<ScopePtr> scopes;
 static ScopePtr top_scope;
 
 Scope::Scope(IDPtr id,
@@ -117,7 +115,7 @@ const IDPtr& lookup_ID(const char* name, const char* curr_module,
 	bool need_export = check_export && (ID_module != GLOBAL_MODULE_NAME &&
 	                                    ID_module != curr_module);
 
-	for ( int i = scopes.length() - 1; i >= 0; --i )
+	for ( int i = scopes.size() - 1; i >= 0; --i )
 		{
 		const auto& id = scopes[i]->Find(fullname);
 

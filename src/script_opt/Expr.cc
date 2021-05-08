@@ -127,6 +127,12 @@ const InlineExpr* Expr::AsInlineExpr() const
 	return (const InlineExpr*) this;
 	}
 
+AnyIndexExpr* Expr::AsAnyIndexExpr()
+	{
+	CHECK_TAG(tag, EXPR_ANY_INDEX, "ExprVal::AsAnyIndexExpr", expr_name)
+	return (AnyIndexExpr*) this;
+	}
+
 const AnyIndexExpr* Expr::AsAnyIndexExpr() const
 	{
 	CHECK_TAG(tag, EXPR_ANY_INDEX, "ExprVal::AsAnyIndexExpr", expr_name)

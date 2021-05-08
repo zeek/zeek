@@ -109,7 +109,7 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e)
 #include "ZAM-GenDirectDefs.h"
 
 	default:
-		reporter->InternalError("bad assignment in ZAMCompile::CompileAssignExpr");
+		break;
 	}
 
 	auto rt = rhs->GetType();

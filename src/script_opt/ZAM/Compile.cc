@@ -2699,7 +2699,7 @@ void ZAMCompiler::SetV3(ZAMStmt s, const InstLabel l)
 	if ( ot == OP_VVV_I2_I3 || ot == OP_VVVC_I3 )
 		return;
 
-	ASSERT(ot == OP_VVV || ot == OP_VVV_I3);
+	ASSERT(ot == OP_VV || ot == OP_VVV || ot == OP_VVV_I3);
 	inst->op_type = OP_VVV_I3;
 	}
 

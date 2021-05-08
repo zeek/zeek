@@ -35,6 +35,7 @@ static vector<TypeInfo> ZAM_type_info = {
 	{ "TYPE_ANY",		ZAM_EXPR_TYPE_ANY,	"any", "Any", true },
 	{ "TYPE_COUNT",		ZAM_EXPR_TYPE_UINT,	"U", "Count", false },
 	{ "TYPE_DOUBLE",	ZAM_EXPR_TYPE_DOUBLE,	"D", "Double", false },
+	{ "TYPE_FUNC",		ZAM_EXPR_TYPE_FUNC,	"F", "Func", true },
 	{ "TYPE_INT",		ZAM_EXPR_TYPE_INT,	"I", "Int", false },
 	{ "TYPE_PATTERN",	ZAM_EXPR_TYPE_PATTERN,	"P", "Pattern", true },
 	{ "TYPE_STRING",	ZAM_EXPR_TYPE_STRING,	"S", "String", true },
@@ -43,7 +44,6 @@ static vector<TypeInfo> ZAM_type_info = {
 	{ "TYPE_VECTOR",	ZAM_EXPR_TYPE_VECTOR,	"V", "Vector", true },
 
 	{ "TYPE_FILE",		ZAM_EXPR_TYPE_NONE, "f", "File", true },
-	{ "TYPE_FUNC",		ZAM_EXPR_TYPE_NONE, "F", "Func", true },
 	{ "TYPE_LIST",		ZAM_EXPR_TYPE_NONE, "L", "List", true },
 	{ "TYPE_OPAQUE",	ZAM_EXPR_TYPE_NONE, "O", "Opaque", true },
 	{ "TYPE_RECORD",	ZAM_EXPR_TYPE_NONE, "R", "Record", true },
@@ -815,6 +815,7 @@ static unordered_map<char, ZAM_ExprType> expr_type_names = {
 	{ '*', ZAM_EXPR_TYPE_DEFAULT },
 	{ 'A', ZAM_EXPR_TYPE_ADDR },
 	{ 'D', ZAM_EXPR_TYPE_DOUBLE },
+	{ 'F', ZAM_EXPR_TYPE_FUNC },
 	{ 'I', ZAM_EXPR_TYPE_INT },
 	{ 'N', ZAM_EXPR_TYPE_SUBNET },
 	{ 'P', ZAM_EXPR_TYPE_PATTERN },
@@ -1080,6 +1081,7 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
 	static map<ZAM_ExprType, pair<string, string>> if_tests = {
 		{ ZAM_EXPR_TYPE_ADDR, { "i_t", "TYPE_INTERNAL_ADDR" } },
 		{ ZAM_EXPR_TYPE_DOUBLE, { "i_t", "TYPE_INTERNAL_DOUBLE" } },
+		{ ZAM_EXPR_TYPE_FUNC, { "tag", "TYPE_FUNC" } },
 		{ ZAM_EXPR_TYPE_INT, { "i_t", "TYPE_INTERNAL_INT" } },
 		{ ZAM_EXPR_TYPE_UINT, { "i_t", "TYPE_INTERNAL_UNSIGNED" } },
 		{ ZAM_EXPR_TYPE_PATTERN, { "tag", "TYPE_PATTERN" } },
@@ -1120,12 +1122,16 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
 		EmitUp("z = GenInst(" + op + ", " + params + ");");
 		}
 
+	Emit("else");
+
 	if ( do_default )
 		{
-		Emit("else");
 		auto op = g->GenOpCode(this, suffix, is_field);
 		EmitUp("z = GenInst(" + op + ", " + params + ");");
 		}
+
+	else
+		EmitUp("reporter->InternalError(\"bad tag when generating method core\");");
 	}
 
 struct EvalInstance {

@@ -512,21 +512,21 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 
 	if ( ot[0] == ZAM_OT_AUX )
 		{
-		auto op = g->GenOpCode(this, full_suffix, is_field);
+		auto op = g->GenOpCode(this, full_suffix, is_field || is_cond);
                 Emit("z = ZInstI(" + op + ");");
 		return;
 		}
 
 	if ( ot[0] == ZAM_OT_NONE )
 		{
-		auto op = g->GenOpCode(this, full_suffix, is_field);
+		auto op = g->GenOpCode(this, full_suffix, is_field || is_cond);
 		Emit("z = GenInst(" + op + ");");
 		return;
 		}
 
 	if ( ot.size() > 1 && ot[1] == ZAM_OT_AUX )
                 {
-		auto op = g->GenOpCode(this, full_suffix, is_field);
+		auto op = g->GenOpCode(this, full_suffix, is_field || is_cond);
                 Emit("z = ZInstI(" + op + ", Frame1Slot(n, " + op + "));");
 		return;
                 }
@@ -535,7 +535,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 
 	auto params = args.Params();
 
-	BuildInstruction(ot, params, suffix, is_cond, is_field);
+	BuildInstruction(ot, params, suffix, is_field, is_cond);
 
 	auto tp = GetTypeParam();
 	if ( tp > 0 )
@@ -549,9 +549,9 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 void ZAM_OpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot,
                                       const string& params,
                                       const string& suffix,
-                                      bool is_cond, bool is_field)
+                                      bool is_field, bool is_cond)
 	{
-	auto op = g->GenOpCode(this, suffix, is_field);
+	auto op = g->GenOpCode(this, suffix, is_field || is_cond);
 	Emit("z = GenInst(" + op + ", " + params + ");");
 	}
 
@@ -572,13 +572,13 @@ void ZAM_OpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		eval = regex_replace(eval, regex("\\$1"), op1);
 		}
 
-	InstantiateEval(Eval, OpString(ot) + suffix, eval, is_field);
+	InstantiateEval(Eval, OpString(ot) + suffix, eval, is_field || is_cond);
 	}
 
 void ZAM_OpTemplate::InstantiateEval(EmitTarget et, const string& op_suffix,
-                                     const string& eval, bool is_field)
+                                     const string& eval, bool op1_always_read)
 	{
-	auto op_code = g->GenOpCode(this, "_" + op_suffix, is_field);
+	auto op_code = g->GenOpCode(this, "_" + op_suffix, op1_always_read);
 
 	EmitTo(et);
 	Emit("case " + op_code + ":");
@@ -1071,7 +1071,7 @@ void ZAM_ExprOpTemplate::DoVectorCase(const string& m, const string& args)
 
 void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
                                               const string& suffix,
-	                                      bool is_field)
+	                                      bool op1_always_read)
 	{
 	const auto& ets = ExprTypes();
 
@@ -1118,7 +1118,7 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
 		Emit(if_stmt);
 
 		auto op_suffix = suffix + "_" + expr_name_types[et];
-		auto op = g->GenOpCode(this, op_suffix, is_field);
+		auto op = g->GenOpCode(this, op_suffix, op1_always_read);
 		EmitUp("z = GenInst(" + op + ", " + params + ");");
 		}
 
@@ -1126,7 +1126,7 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
 
 	if ( do_default )
 		{
-		auto op = g->GenOpCode(this, suffix, is_field);
+		auto op = g->GenOpCode(this, suffix, op1_always_read);
 		EmitUp("z = GenInst(" + op + ", " + params + ");");
 		}
 
@@ -1365,7 +1365,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		auto full_suffix = ot_str + ei.OpMarker() + suffix;
 
 		ZAM_OpTemplate::InstantiateEval(emit_target, full_suffix,
-		                                eval, is_field);
+		                                eval, is_field || is_cond);
 
 		if ( is_vec )
 			{
@@ -1427,14 +1427,14 @@ void ZAM_UnaryExprOpTemplate::Instantiate()
 void ZAM_UnaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot,
                                                const string& params,
 					       const string& suffix,
-                                               bool is_cond, bool is_field)
+                                               bool is_field, bool is_cond)
 	{
 	const auto& ets = ExprTypes();
 
 	if ( ets.size() == 1 && ets.count(ZAM_EXPR_TYPE_NONE) == 1 )
 		{
 		ZAM_ExprOpTemplate::BuildInstruction(ot, params, suffix,
-		                                     is_cond, is_field);
+		                                     is_field, is_cond);
 		return;
 		}
 
@@ -1454,7 +1454,7 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot
 	else
 		Emit("auto t = " + operand + "->GetType();");
 
-	BuildInstructionCore(params, suffix, is_field);
+	BuildInstructionCore(params, suffix, is_field || is_cond);
 	}
 
 
@@ -1576,7 +1576,7 @@ void ZAM_RelationalExprOpTemplate::Instantiate()
 void ZAM_RelationalExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot,
                                                     const string& params,
                                                     const string& suffix,
-						    bool is_cond, bool is_field)
+						    bool is_field, bool is_cond)
 	{
 	string op1;
 
@@ -1591,7 +1591,7 @@ void ZAM_RelationalExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType
 		op1 = "n2";
 
 	Emit("auto t = " + op1 + "->GetType();");
-	BuildInstructionCore(params, suffix, is_field);
+	BuildInstructionCore(params, suffix, is_field || is_cond);
 	}
 
 
@@ -1660,7 +1660,7 @@ void ZAM_InternalBinaryOpTemplate::InstantiateEval(const vector<ZAM_OperandType>
 		}
 
 	ZAM_OpTemplate::InstantiateEval(Eval, OpString(ot) + suffix, eval,
-	                                is_field);
+	                                is_field || is_cond);
 	}
 
 
@@ -1956,7 +1956,7 @@ void ZAMGen::Emit(EmitTarget et, const string& s)
 	}
 
 string ZAMGen::GenOpCode(const ZAM_OpTemplate* ot, const string& suffix,
-                         bool is_field)
+                         bool op1_always_read)
 	{
 	auto op = "OP_" + ot->CanonicalName() + suffix;
 
@@ -1972,7 +1972,7 @@ string ZAMGen::GenOpCode(const ZAM_OpTemplate* ot, const string& suffix,
 	Emit(OpDef, op + ",");
 
 	auto op_comment = ",\t// " + op;
-	auto flavor = is_field ? "OP1_READ" : ot->GetOp1Flavor();
+	auto flavor = op1_always_read ? "OP1_READ" : ot->GetOp1Flavor();
 	Emit(Op1Flavor, flavor + op_comment);
 
 	auto se = ot->HasSideEffects() ? "true" : "false";

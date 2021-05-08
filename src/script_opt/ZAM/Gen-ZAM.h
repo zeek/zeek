@@ -203,13 +203,13 @@ protected:
 	virtual void BuildInstruction(const vector<ZAM_OperandType>& ot,
 	                              const string& params,
 	                              const string& suffix,
-	                              bool is_cond, bool is_field);
+	                              bool is_field, bool is_cond);
 
 	virtual void InstantiateEval(const vector<ZAM_OperandType>& ot,
 	                             const string& suffix,
 	                             bool is_field, bool is_vec, bool is_cond);
 	void InstantiateEval(EmitTarget et, const string& op_suffix,
-	                     const string& eval, bool is_field);
+	                     const string& eval, bool op1_always_read);
 
 	void InstantiateAssignOp(const vector<ZAM_OperandType>& ot,
 	                         const string& suffix);
@@ -342,7 +342,7 @@ protected:
 	void DoVectorCase(const string& m, const string& args);
 
 	void BuildInstructionCore(const string& params, const string& suffix,
-	                          bool is_field);
+	                          bool op1_always_read);
 
 	void InstantiateEval(const vector<ZAM_OperandType>& ot,
 	                     const string& suffix, bool is_field,
@@ -382,7 +382,7 @@ protected:
 
 	void BuildInstruction(const vector<ZAM_OperandType>& ot,
 	                      const string& params, const string& suffix,
-	                      bool is_cond, bool is_field) override;
+	                      bool is_field, bool is_cond) override;
 };
 
 class ZAM_AssignOpTemplate : public ZAM_UnaryExprOpTemplate {
@@ -436,7 +436,7 @@ protected:
 
 	void BuildInstruction(const vector<ZAM_OperandType>& ot,
 	                      const string& params, const string& suffix,
-	                      bool is_cond, bool is_field) override;
+	                      bool is_field, bool is_cond) override;
 };
 
 class ZAM_InternalBinaryOpTemplate : public ZAM_BinaryExprOpTemplate {
@@ -532,7 +532,7 @@ public:
 	void PutBack(const string& line)	{ ti->PutBack(line); }
 
 	string GenOpCode(const ZAM_OpTemplate* ot, const string& suffix,
-	                 bool is_field = false);
+	                 bool op1_always_read = false);
 
 	void Emit(EmitTarget et, const string& s);
 	void IndentUp()			{ ++indent_level; }

@@ -64,9 +64,7 @@ private:
 		{ return CompileStmt(body.get()); }
 	const ZAMStmt CompileStmt(const Stmt* body);
 
-	const ZAMStmt CompileExpr(const ExprPtr& e)
-		{ return CompileExpr(e.get()); }
-	const ZAMStmt CompileExpr(const Expr* body);
+	void SetCurrStmt(const Stmt* stmt)	{ curr_stmt = stmt; }
 
 	const ZAMStmt CompilePrintStmt(const PrintStmt* ps);
 	const ZAMStmt CompileExprStmt(const ExprStmt* es);
@@ -77,7 +75,17 @@ private:
 	const ZAMStmt CompileStmtList(const StmtList* sl);
 	const ZAMStmt CompileInitStmt(const InitStmt* is);
 
-	void SetCurrStmt(const Stmt* stmt)	{ curr_stmt = stmt; }
+	const ZAMStmt CompileExpr(const ExprPtr& e)
+		{ return CompileExpr(e.get()); }
+	const ZAMStmt CompileExpr(const Expr* body);
+
+	const ZAMStmt CompileIncrExpr(const IncrExpr* e);
+	const ZAMStmt CompileAppendToExpr(const AppendToExpr* e);
+	const ZAMStmt CompileAssignExpr(const AssignExpr* e);
+	const ZAMStmt CompileAssignToIndex(const NameExpr* lhs,
+	                                   const IndexExpr* rhs);
+	const ZAMStmt CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e);
+	const ZAMStmt CompileScheduleExpr(const ScheduleExpr* e);
 
 #include "zeek/ZAM-MethodDecl.h"
 

@@ -55,6 +55,12 @@ const FieldLHSAssignExpr* Expr::AsFieldLHSAssignExpr() const
 	return (const FieldLHSAssignExpr*) this;
 	}
 
+HasFieldExpr* Expr::AsHasFieldExpr()
+	{
+	CHECK_TAG(tag, EXPR_HAS_FIELD, "ExprVal::AsHasFieldExpr", expr_name)
+	return (HasFieldExpr*) this;
+	}
+
 const HasFieldExpr* Expr::AsHasFieldExpr() const
 	{
 	CHECK_TAG(tag, EXPR_HAS_FIELD, "ExprVal::AsHasFieldExpr", expr_name)

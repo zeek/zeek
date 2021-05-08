@@ -808,7 +808,7 @@ void ZAM_UnaryOpTemplate::Instantiate()
 void ZAM_DirectUnaryOpTemplate::Instantiate()
 	{
 	EmitTo(DirectDef);
-	Emit("case EXPR_" + cname + ":\treturn c->" + direct + "(lhs, rhs);");
+	Emit("case EXPR_" + cname + ":\treturn " + direct + "(lhs, rhs);");
 	}
 
 static unordered_map<char, ZAM_ExprType> expr_type_names = {
@@ -985,12 +985,12 @@ void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots,
 	if ( do_vec )
 		DoVectorCase(m, args);
 	else
-		EmitUp("return c->" + m + "(" + args + ");");
+		EmitUp("return " + m + "(" + args + ");");
 
 	if ( IncludesFieldOp() )
 		{
 		EmitTo(C1FieldDef);
-		Emit("case EXPR_" + cname + ":\treturn c->" + m +
+		Emit("case EXPR_" + cname + ":\treturn " + m +
 		     "_field(" + args + ", field);");
 		}
 	}
@@ -1007,12 +1007,12 @@ void ZAM_ExprOpTemplate::InstantiateC2(const vector<ZAM_OperandType>& ots,
 	auto m = method.c_str();
 
 	EmitTo(C2Def);
-	Emit("case EXPR_" + cname + ":\treturn c->" + m + "(" + args + ");");
+	Emit("case EXPR_" + cname + ":\treturn " + m + "(" + args + ");");
 
 	if ( IncludesFieldOp() )
 		{
 		EmitTo(C2FieldDef);
-		Emit("case EXPR_" + cname + ":\treturn c->" +
+		Emit("case EXPR_" + cname + ":\treturn " +
 		     m + "_field(" + args + ", field);");
 		}
 	}
@@ -1020,7 +1020,7 @@ void ZAM_ExprOpTemplate::InstantiateC2(const vector<ZAM_OperandType>& ots,
 void ZAM_ExprOpTemplate::InstantiateC3(const vector<ZAM_OperandType>& ots)
 	{
 	EmitTo(C3Def);
-	Emit("case EXPR_" + cname + ":\treturn c->" + MethodName(ots) +
+	Emit("case EXPR_" + cname + ":\treturn " + MethodName(ots) +
 	     "(lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsConstExpr());");
 	}
 
@@ -1050,12 +1050,12 @@ void ZAM_ExprOpTemplate::InstantiateV(const vector<ZAM_OperandType>& ots)
 	if ( IncludesVectorOp() )
 		DoVectorCase(m, args);
 	else
-		EmitUp("return c->" + m + "(" + args + ");");
+		EmitUp("return " + m + "(" + args + ");");
 
 	if ( IncludesFieldOp() )
 		{
 		EmitTo(VFieldDef);
-		Emit("case EXPR_" + cname + ":\treturn c->" + m + "_field(" +
+		Emit("case EXPR_" + cname + ":\treturn " + m + "_field(" +
 		     args + ", field);");
 		}
 	}
@@ -1065,9 +1065,9 @@ void ZAM_ExprOpTemplate::DoVectorCase(const string& m, const string& args)
 	NL();
 	IndentUp();
 	Emit("if ( rt->Tag() == TYPE_VECTOR )");
-	EmitUp("return c->" + m + "_vec(" + args + ");");
+	EmitUp("return " + m + "_vec(" + args + ");");
 	Emit("else");
-	EmitUp("return c->" + m + "(" + args + ");");
+	EmitUp("return " + m + "(" + args + ");");
 	IndentDown();
 	}
 
@@ -1497,7 +1497,6 @@ void ZAM_AssignOpTemplate::Instantiate()
 		ots.push_back(ZAM_OT_INT);
 
 	InstantiateOp(ots, false);
-	InstantiateC1(ots, 1);
 
 	ots[1] = ZAM_OT_VAR;
 	InstantiateOp(ots, false);
@@ -1511,9 +1510,6 @@ void ZAM_AssignOpTemplate::Instantiate()
 		ots[1] = ZAM_OT_CONSTANT;
 		InstantiateOp(ots, false);
 		}
-
-	else
-		InstantiateV(ots);
 	}
 
 
@@ -1853,7 +1849,7 @@ void ZAMGen::FinishSwitches()
 		Emit(et, "default:");
 		IndentUp();
 		Emit(et, "reporter->InternalError(\"inconsistency in " + desc +
-			 ": %s\", obj_desc(rhs));");
+			 ": %s\", obj_desc(rhs).c_str());");
 		IndentDown();
 		Emit(et, "}");
 		Emit(et, "}");

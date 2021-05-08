@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-// Methods for traversing ASTs to generate ZAM code.
+// Methods for traversing Stmt AST nodes to generate ZAM code.
 
 #include "zeek/script_opt/ZAM/Compile.h"
 #include "zeek/Reporter.h"
@@ -79,7 +79,7 @@ const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* body)
 		}
 
 	default:
-		reporter->InternalError("bad statement type in ZAMCompile::CompileAST");
+		reporter->InternalError("bad statement type in ZAMCompile::CompileStmt");
 	}
 	}
 

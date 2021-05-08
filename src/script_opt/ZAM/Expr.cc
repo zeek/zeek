@@ -174,7 +174,7 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e)
 
 		if ( v1 != v2 && rhs->Tag() != EXPR_IN )
 			{
-			reporter->Error("deprecated mixed vector/scalar operation not supported for compiling");
+			reporter->Error("deprecated mixed vector/scalar operation not supported for ZAM compiling");
 			return ErrorStmt();
 			}
 		}
@@ -210,7 +210,7 @@ const ZAMStmt ZAMCompiler::CompileAssignToIndex(const NameExpr* lhs,
 		auto index1 = indexes[0];
 		if ( index1->Tag() == EXPR_CONST )
 			{
-			reporter->Error("constant vector indexes not supported for compiling");
+			reporter->Error("constant vector indexes not supported for ZAM compiling");
 			return ErrorStmt();
 			}
 

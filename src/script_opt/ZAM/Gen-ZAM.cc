@@ -535,7 +535,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 
 	auto params = args.Params();
 
-	BuildInstruction(ot, params, suffix, is_field, is_cond);
+	BuildInstruction(ot, params, full_suffix, is_field, is_cond);
 
 	auto tp = GetTypeParam();
 	if ( tp > 0 )

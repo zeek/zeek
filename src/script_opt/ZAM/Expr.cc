@@ -24,7 +24,7 @@ const ZAMStmt ZAMCompiler::CompileExpr(const Expr* e)
 	case EXPR_INDEX_ASSIGN:
 		{
 		auto iae = static_cast<const IndexAssignExpr*>(e);
-		auto t = iae->GetType()->Tag();
+		auto t = iae->GetOp1()->GetType()->Tag();
 		if ( t == TYPE_VECTOR )
 			return AssignVecElems(iae);
 

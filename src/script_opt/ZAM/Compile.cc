@@ -549,22 +549,20 @@ const ZAMStmt ZAMCompiler::ConstructSet(const NameExpr* n, const Expr* e)
 
 const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e)
 	{
-	auto con = e->GetOp1()->AsListExpr();
 	auto rc = e->AsRecordConstructorExpr();
-	auto map = rc->Map();
 
 	ZInstI z;
 
-	if ( map )
+	if ( rc->Map() )
 		{
 		z = GenInst(OP_CONSTRUCT_KNOWN_RECORD_V, n);
-		z.aux = InternalBuildVals(con);
-		z.aux->map = *map;
+		z.aux = InternalBuildVals(rc->Op().get());
+		z.aux->map = *rc->Map();
 		}
 	else
 		{
 		z = GenInst(OP_CONSTRUCT_RECORD_V, n);
-		z.aux = InternalBuildVals(con);
+		z.aux = InternalBuildVals(rc->Op().get());
 		}
 
 	z.t = e->GetType();

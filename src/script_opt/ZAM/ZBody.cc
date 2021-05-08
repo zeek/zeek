@@ -383,6 +383,8 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc,
 			break;
 
 #include "ZAM-OpsEvalDefs.h"
+		default:
+			reporter->InternalError("bad ZAM opcode");
 		}
 
 #ifdef DEBUG

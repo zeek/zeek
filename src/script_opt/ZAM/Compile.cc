@@ -52,7 +52,7 @@ StmtPtr ZAMCompiler::CompileBody()
 	if ( func->Flavor() == FUNC_FLAVOR_HOOK )
 		PushBreaks();
 
-	(void) CompileAST(body);
+	(void) CompileStmt(body);
 
 	if ( reporter->Errors() > 0 )
 		return nullptr;
@@ -733,11 +733,11 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 
 	if ( s1 )
 		{
-		auto s1_end = CompileAST(s1);
+		auto s1_end = CompileStmt(s1);
 		if ( s2 )
 			{
 			auto branch_after_s1 = GoToStub();
-			auto s2_end = CompileAST(s2);
+			auto s2_end = CompileStmt(s2);
 			SetV(cond_stmt, GoToTargetBeyond(branch_after_s1),
 			     branch_v);
 			SetGoTo(branch_after_s1, GoToTargetBeyond(s2_end));
@@ -753,7 +753,7 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 		}
 
 	// Only the else clause is non-empty.
-	auto s2_end = CompileAST(s2);
+	auto s2_end = CompileStmt(s2);
 
 	// For complex conditionals, we need to invert their sense since
 	// we're switching to "if ( ! cond ) s2".
@@ -963,7 +963,7 @@ const ZAMStmt ZAMCompiler::While(const Stmt* cond_stmt, const Expr* cond,
 	auto head = StartingBlock();
 
 	if ( cond_stmt )
-		(void) CompileAST(cond_stmt);
+		(void) CompileStmt(cond_stmt);
 
 	ZAMStmt cond_IF = EmptyStmt();
 	int branch_v;
@@ -981,7 +981,7 @@ const ZAMStmt ZAMCompiler::While(const Stmt* cond_stmt, const Expr* cond,
 	PushBreaks();
 
 	if ( body && body->Tag() != STMT_NULL )
-		(void) CompileAST(body);
+		(void) CompileStmt(body);
 
 	auto tail = GoTo(GoToTarget(head));
 
@@ -1000,7 +1000,7 @@ const ZAMStmt ZAMCompiler::Loop(const Stmt* body)
 	PushBreaks();
 
 	auto head = StartingBlock();
-	(void) CompileAST(body);
+	(void) CompileStmt(body);
 	auto tail = GoTo(GoToTarget(head));
 
 	ResolveNexts(GoToTarget(head));
@@ -1009,10 +1009,14 @@ const ZAMStmt ZAMCompiler::Loop(const Stmt* body)
 	return tail;
 	}
 
-const ZAMStmt ZAMCompiler::When(Expr* cond, const Stmt* body,
-                                const Expr* timeout, const Stmt* timeout_body,
-                                bool is_return)
+const ZAMStmt ZAMCompiler::When(const WhenStmt* ws)
 	{
+	auto cond = ws->Cond();
+	auto body = ws->Body();
+	auto timeout = ws->TimeoutExpr();
+	auto timeout_body = ws->TimeoutBody();
+	auto is_return = ws->IsReturn();
+
 	// ### Flush locals on eval, and also on exit
 	ZInstI z;
 
@@ -1047,12 +1051,12 @@ const ZAMStmt ZAMCompiler::When(Expr* cond, const Stmt* body,
 
 	auto branch_past_blocks = GoToStub();
 
-	auto when_body = CompileAST(body);
+	auto when_body = CompileStmt(body);
 	auto when_done = ReturnX();
 
 	if ( timeout )
 		{
-		auto t_body = CompileAST(timeout_body);
+		auto t_body = CompileStmt(timeout_body);
 		auto t_done = ReturnX();
 
 		if ( timeout->Tag() == EXPR_CONST )
@@ -1167,7 +1171,7 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 		ResolveFallThroughs(start);
 		case_start.push_back(start);
 		PushFallThroughs();
-		body_end = CompileAST(c->Body());
+		body_end = CompileStmt(c->Body());
 		}
 
 	auto sw_end = GoToTargetBeyond(body_end);
@@ -1318,7 +1322,7 @@ const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 			body_end = case_test;
 
 		ResolveFallThroughs(GoToTargetBeyond(body_end));
-		body_end = CompileAST((*cases)[i.second]->Body());
+		body_end = CompileStmt((*cases)[i.second]->Body());
 		SetV2(case_test, GoToTargetBeyond(body_end));
 
 		if ( def_ind >= 0 && i.second == def_ind + 1 )
@@ -1336,7 +1340,7 @@ const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 		{
 		PushFallThroughs();
 
-		body_end = CompileAST((*sw->Cases())[def_ind]->Body());
+		body_end = CompileStmt((*sw->Cases())[def_ind]->Body());
 
 		// Now resolve any fallthrough's in the default.
 		if ( saw_def_succ )
@@ -1694,7 +1698,7 @@ const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head, ZInstI iter_stmt,
                                       const Stmt* body, int info_slot)
 	{
 	auto loop_iter = AddInst(iter_stmt);
-	auto body_end = CompileAST(body);
+	auto body_end = CompileStmt(body);
 
 	auto loop_end = GoTo(GoToTarget(iter_head));
 	auto final_stmt = AddInst(ZInstI(OP_END_LOOP_V, info_slot));
@@ -1710,21 +1714,21 @@ const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head, ZInstI iter_stmt,
 	return final_stmt;
 	}
 
-const ZAMStmt ZAMCompiler::InitRecord(ID* id, RecordType* rt)
+const ZAMStmt ZAMCompiler::InitRecord(IDPtr id, RecordType* rt)
 	{
 	auto z = ZInstI(OP_INIT_RECORD_V, FrameSlot(id));
 	z.SetType({NewRef{}, rt});
 	return AddInst(z);
 	}
 
-const ZAMStmt ZAMCompiler::InitVector(ID* id, VectorType* vt)
+const ZAMStmt ZAMCompiler::InitVector(IDPtr id, VectorType* vt)
 	{
 	auto z = ZInstI(OP_INIT_VECTOR_V, FrameSlot(id));
 	z.SetType({NewRef{}, vt});
 	return AddInst(z);
 	}
 
-const ZAMStmt ZAMCompiler::InitTable(ID* id, TableType* tt, Attributes* attrs)
+const ZAMStmt ZAMCompiler::InitTable(IDPtr id, TableType* tt, Attributes* attrs)
 	{
 	auto z = ZInstI(OP_INIT_TABLE_V, FrameSlot(id));
 	z.SetType({NewRef{}, tt});
@@ -1788,7 +1792,7 @@ const ZAMStmt ZAMCompiler::CatchReturn(const CatchReturnStmt* cr)
 	PushCatchReturns();
 
 	auto block = cr->Block();
-	auto block_end = CompileAST(block);
+	auto block_end = CompileStmt(block);
 	retvars.pop_back();
 
 	ResolveCatchReturns(GoToTargetBeyond(block_end));
@@ -1835,7 +1839,7 @@ const ZAMStmt ZAMCompiler::ErrorStmt()
 	return ZAMStmt(0);
 	}
 
-bool ZAMCompiler::IsUnused(const ID* id, const Stmt* where) const
+bool ZAMCompiler::IsUnused(const IDPtr& id, const Stmt* where) const
 	{
 	if ( ! ud->HasUsage(where) )
 		return true;
@@ -1844,7 +1848,7 @@ bool ZAMCompiler::IsUnused(const ID* id, const Stmt* where) const
 	// usage can be nil if due to constant propagation we've prune
 	// all of the uses of the given identifier.
 
-	return ! usage || ! usage->HasID(id);
+	return ! usage || ! usage->HasID(id.get());
 	}
 
 OpaqueVals* ZAMCompiler::BuildVals(const ListExprPtr& l)

@@ -98,7 +98,7 @@ public:
 	// Type, usually for interpreting the constant.
 	TypePtr t = nullptr;
 	TypePtr t2 = nullptr;	// just a few ops need two types
-	Expr* e = nullptr;	// only needed for "when" expressions
+	const Expr* e = nullptr;	// only needed for "when" expressions
 	Func* func = nullptr;	// used for calls
 	EventHandler* event_handler = nullptr;
 	AttributesPtr attrs = nullptr;

@@ -38,9 +38,9 @@ public:
 	// instantiation.  Note that if the condition is already true, the
 	// statements are executed immediately and the object is deleted
 	// right away.
-	Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeout,
+	Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeout,
 		Frame* f, bool is_return, const Location* loc);
-	Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts, double timeout,
+	Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts, double timeout,
 		Frame* f, bool is_return, const Location* loc);
 	~Trigger() override;
 
@@ -97,7 +97,7 @@ private:
 	friend class TriggerTraversalCallback;
 	friend class TriggerTimer;
 
-	void Init(Expr* cond, Stmt* body, Stmt* timeout_stmts, Frame* frame,
+	void Init(const Expr* cond, Stmt* body, Stmt* timeout_stmts, Frame* frame,
 	          bool is_return, const Location* location);
 
 	void ReInit(std::vector<IntrusivePtr<Val>> index_expr_results);
@@ -106,7 +106,7 @@ private:
 	void Register(Val* val);
 	void UnregisterAll();
 
-	Expr* cond;
+	const Expr* cond;
 	Stmt* body;
 	Stmt* timeout_stmts;
 	Expr* timeout;

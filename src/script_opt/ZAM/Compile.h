@@ -60,9 +60,22 @@ public:
 private:
 	void Init();
 
-	const ZAMStmt CompileAST(const StmtPtr& body)
-		{ return CompileAST(body.get()); }
-	const ZAMStmt CompileAST(const Stmt* body);
+	const ZAMStmt CompileStmt(const StmtPtr& body)
+		{ return CompileStmt(body.get()); }
+	const ZAMStmt CompileStmt(const Stmt* body);
+
+	const ZAMStmt CompileExpr(const ExprPtr& e)
+		{ return CompileExpr(e.get()); }
+	const ZAMStmt CompileExpr(const Expr* body);
+
+	const ZAMStmt CompilePrintStmt(const PrintStmt* ps);
+	const ZAMStmt CompileExprStmt(const ExprStmt* es);
+	const ZAMStmt CompileIfStmt(const IfStmt* is);
+	const ZAMStmt CompileAddStmt(const AddStmt* as);
+	const ZAMStmt CompileDelStmt(const DelStmt* ds);
+	const ZAMStmt CompileWhileStmt(const WhileStmt* ws);
+	const ZAMStmt CompileStmtList(const StmtList* sl);
+	const ZAMStmt CompileInitStmt(const InitStmt* is);
 
 	void SetCurrStmt(const Stmt* stmt)	{ curr_stmt = stmt; }
 
@@ -88,8 +101,7 @@ private:
 	const ZAMStmt GenCond(const Expr* e, int& branch_v);
 	const ZAMStmt Loop(const Stmt* body);
 
-	const ZAMStmt When(Expr* cond, const Stmt* body, const Expr* timeout,
-	                   const Stmt* timeout_body, bool is_return);
+	const ZAMStmt When(const WhenStmt* ws);
 
 	const ZAMStmt Switch(const SwitchStmt* sw);
 
@@ -105,9 +117,9 @@ private:
 	const ZAMStmt AppendToField(const NameExpr* n1, const NameExpr* n2,
 	                            const ConstExpr* c, int offset);
 
-	const ZAMStmt InitRecord(ID* id, RecordType* rt);
-	const ZAMStmt InitVector(ID* id, VectorType* vt);
-	const ZAMStmt InitTable(ID* id, TableType* tt, Attributes* attrs);
+	const ZAMStmt InitRecord(IDPtr id, RecordType* rt);
+	const ZAMStmt InitVector(IDPtr id, VectorType* vt);
+	const ZAMStmt InitTable(IDPtr id, TableType* tt, Attributes* attrs);
 
 	const ZAMStmt Return(const ReturnStmt* r);
 	const ZAMStmt CatchReturn(const CatchReturnStmt* cr);
@@ -266,7 +278,7 @@ private:
 	// added for bookkeeping (like dirtying globals);
 	ZInstI* TopMainInst()	{ return insts1[top_main_inst]; }
 
-	bool IsUnused(const ID* id, const Stmt* where) const;
+	bool IsUnused(const IDPtr& id, const Stmt* where) const;
 
 	// Called to synchronize any globals that have been modified
 	// prior to switching to execution out of the current function

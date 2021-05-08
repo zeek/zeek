@@ -98,7 +98,7 @@ protected:
 	double time;
 };
 
-Trigger::Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts,
+Trigger::Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts,
                  Expr* timeout_expr, Frame* frame,
                  bool is_return, const Location* location)
 	{
@@ -121,7 +121,7 @@ Trigger::Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts,
 	Init(cond, body, timeout_stmts, frame, is_return, location);
 	}
 
-Trigger::Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts,
+Trigger::Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts,
                  double timeout, Frame* frame,
                  bool is_return, const Location* location)
 	{
@@ -129,7 +129,7 @@ Trigger::Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts,
 	Init(cond, body, timeout_stmts, frame, is_return, location);
 	}
 
-void Trigger::Init(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
+void Trigger::Init(const Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
                    Frame* arg_frame, bool arg_is_return,
                    const Location* arg_location)
 	{

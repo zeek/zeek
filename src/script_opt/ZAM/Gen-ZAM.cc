@@ -964,14 +964,14 @@ void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots,
 	string args = "lhs, r1->AsConstExpr()";
 
 	if ( arity == 1 && ots[0] == ZAM_OT_RECORD_FIELD )
-		args += ", rhs->AsFieldExpr()";
+		args += ", rhs->AsFieldExpr()->Field()";
 
 	else if ( arity > 1 )
 		{
 		args += ", ";
 
 		if ( ots[2] == ZAM_OT_RECORD_FIELD )
-			args += "rhs->AsFieldExpr()";
+			args += "rhs->AsFieldExpr()->Field()";
 		else
 			args += "r2->AsNameExpr()";
 		}
@@ -1030,13 +1030,10 @@ void ZAM_ExprOpTemplate::InstantiateV(const vector<ZAM_OperandType>& ots)
 
 	string args = "lhs, r1->AsNameExpr()";
 
-	if ( ots[0] == ZAM_OT_RECORD_FIELD )
-		args += ", rhs->AsFieldExpr()";
-
 	if ( ots.size() >= 3 )
 		{
 		if ( ots[2] == ZAM_OT_INT )
-			args += ", rhs->AsHasFieldExpr()->Field()";
+			args += ", rhs->AsFieldExpr()->Field()";
 		else
 			args += ", r2->AsNameExpr()";
 
@@ -1497,6 +1494,8 @@ void ZAM_AssignOpTemplate::Instantiate()
 		ots.push_back(ZAM_OT_INT);
 
 	InstantiateOp(ots, false);
+	if ( IsFieldOp() )
+		InstantiateC1(ots, 1);
 
 	ots[1] = ZAM_OT_VAR;
 	InstantiateOp(ots, false);
@@ -1510,6 +1509,9 @@ void ZAM_AssignOpTemplate::Instantiate()
 		ots[1] = ZAM_OT_CONSTANT;
 		InstantiateOp(ots, false);
 		}
+
+	else if ( IsFieldOp() )
+		InstantiateV(ots);
 	}
 
 

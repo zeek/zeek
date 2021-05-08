@@ -2679,14 +2679,16 @@ void ZAMCompiler::SetV2(ZAMStmt s, const InstLabel l)
 	auto inst = insts1[s.stmt_num];
 	SetTarget(inst, l, 2);
 
-	if ( inst->op_type == OP_VV )
-		inst->op_type = OP_VV_I2;
+	auto& ot = inst->op_type;
 
-	else if ( inst->op_type == OP_VVC )
-		inst->op_type = OP_VVC_I2;
+	if ( ot == OP_VV )
+		ot = OP_VV_I2;
+
+	else if ( ot == OP_VC || ot == OP_VVC )
+		ot = OP_VVC_I2;
 
 	else
-		ASSERT(inst->op_type == OP_VV_I2 || inst->op_type == OP_VVC_I2);
+		ASSERT(ot == OP_VV_I2 || ot == OP_VVC_I2);
 	}
 
 void ZAMCompiler::SetV3(ZAMStmt s, const InstLabel l)

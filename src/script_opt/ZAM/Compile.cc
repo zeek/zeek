@@ -143,6 +143,7 @@ StmtPtr ZAMCompiler::CompileBody()
 #if 0
 	if ( ! analysis_options.no_ZAM_opt )
 		OptimizeInsts();
+#endif
 
 	// Move branches to dead code forward to their successor live code.
 	for ( auto i = 0U; i < insts1.size(); ++i )
@@ -161,7 +162,6 @@ StmtPtr ZAMCompiler::CompileBody()
 		if ( inst->target2 )
 			inst->target2 = FindLiveTarget(inst->target2);
 		}
-#endif
 
 	// Construct the final program with the dead code eliminated
 	// and branches resolved.
@@ -189,7 +189,6 @@ StmtPtr ZAMCompiler::CompileBody()
 	for ( auto i = 0U; i < insts2.size(); ++i )
 		insts2[i]->inst_num = i;
 
-#if 0
 	for ( auto i = 0U; i < insts2.size(); ++i )
 		{
 		auto inst = insts2[i];
@@ -203,7 +202,6 @@ StmtPtr ZAMCompiler::CompileBody()
 				               inst->target2_slot);
 			}
 		}
-#endif
 
 	// If we have remapped frame denizens, update them.  If not,
 	// create them.
@@ -2795,6 +2793,43 @@ int ZAMCompiler::TempForConst(const ConstExpr* c)
 	(void) AddInst(z);
 
 	return slot;
+	}
+
+ZInstI* ZAMCompiler::FindLiveTarget(ZInstI* goto_target)
+	{
+	if ( goto_target == pending_inst )
+		return goto_target;
+
+	int idx = goto_target->inst_num;
+	ASSERT(idx >= 0 && idx <= insts1.size());
+
+	while ( idx < int(insts1.size()) && ! insts1[idx]->live )
+		++idx;
+
+	if ( idx == int(insts1.size()) )
+		return pending_inst;
+	else
+		return insts1[idx];
+	}
+
+void ZAMCompiler::RetargetBranch(ZInstI* inst, ZInstI* target, int target_slot)
+	{
+	int t;	// instruction number of target
+
+	if ( target == pending_inst )
+		t = insts2.size();
+	else
+		t = target->inst_num;
+
+	switch ( target_slot ) {
+	case 1:	inst->v1 = t; break;
+	case 2:	inst->v2 = t; break;
+	case 3:	inst->v3 = t; break;
+	case 4:	inst->v4 = t; break;
+
+	default:
+		reporter->InternalError("bad GoTo target");
+	}
 	}
 
 } // zeek::detail

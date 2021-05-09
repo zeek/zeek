@@ -350,8 +350,17 @@ private:
 	void SyncGlobals(const std::unordered_set<const ID*>& g, const Obj* o);
 
 #if 0
-#include "zeek/ZOpt.h"
+#include "zeek/script_opt/ZAM/Opt.h"
 #endif
+
+	// Given a GoTo target, find its live equivalent (first instruction
+	// at that location or beyond that's live).
+	ZInstI* FindLiveTarget(ZInstI* goto_target);
+
+	// Given an instruction that has a slot associated with the
+	// given target, updates the slot to correspond with the current
+	// (final) location of the target.
+	void RetargetBranch(ZInstI* inst, ZInstI* target, int target_slot);
 
 	// The first of these is used as we compile down to ZInstI's.
 	// The second is the final intermediary code.  They're separate

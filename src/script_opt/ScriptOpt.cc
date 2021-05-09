@@ -122,7 +122,6 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 	// Profile the new body.
 	pf = std::make_shared<ProfileFunc>(f, body, true);
 
-	pf = std::make_shared<ProfileFunc>(f, body, true);
 	// Compute its reaching definitions.
 	RD_Decorate reduced_rds(pf);
 

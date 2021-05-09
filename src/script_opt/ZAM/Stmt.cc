@@ -138,23 +138,24 @@ const ZAMStmt ZAMCompiler::CompileIfStmt(const IfStmt* is)
 		// on the type of their operands, so it's much simpler to
 		// deal with them now.
 
-		bool did_swap = false;
+		bool do_swap = false;
 		BroExprTag t = e->Tag();
 
 		switch ( t ) {
-		case EXPR_EQ:	t = EXPR_NE; did_swap = true; break;
-		case EXPR_NE:	t = EXPR_EQ; did_swap = true; break;
-		case EXPR_LT:	t = EXPR_GE; did_swap = true; break;
-		case EXPR_LE:	t = EXPR_GT; did_swap = true; break;
-		case EXPR_GE:	t = EXPR_LT; did_swap = true; break;
-		case EXPR_GT:	t = EXPR_LE; did_swap = true; break;
+		case EXPR_EQ:
+		case EXPR_NE:
+		case EXPR_LT:
+		case EXPR_LE:
+		case EXPR_GE:
+		case EXPR_GT:
+			do_swap = true;
 
 		default: break;
 		}
 
-		if ( did_swap )
+		if ( do_swap )
 			{
-			e = make_intrusive<RelExpr>(t, e->GetOp1(), e->GetOp2());
+			e->InvertSense();
 			block1 = block2;
 			block2 = nullptr;
 			}

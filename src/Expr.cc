@@ -211,6 +211,11 @@ ExprPtr Expr::MakeLvalue()
 	return {NewRef{}, this};
 	}
 
+void Expr::InvertSense()
+	{
+	reporter->InternalError("bad call to Expr::InvertSense");
+	}
+
 void Expr::EvalIntoAggregate(const zeek::Type* /* t */, Val* /* aggr */,
                              Frame* /* f */) const
 	{
@@ -2043,6 +2048,11 @@ ValPtr EqExpr::Fold(Val* v1, Val* v2) const
 		return BinaryExpr::Fold(v1, v2);
 	}
 
+void EqExpr::InvertSense()
+	{
+	tag = (tag == EXPR_EQ ? EXPR_NE : EXPR_EQ);
+	}
+
 RelExpr::RelExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
@@ -2098,6 +2108,19 @@ void RelExpr::Canonicize()
 		SwapOps();
 		tag = EXPR_LE;
 		}
+	}
+
+void RelExpr::InvertSense()
+	{
+	switch ( tag ) {
+	case EXPR_LT:   tag = EXPR_GE; break;
+	case EXPR_LE:   tag = EXPR_GT; break;
+	case EXPR_GE:   tag = EXPR_LT; break;
+	case EXPR_GT:   tag = EXPR_LE; break;
+
+	default:
+		reporter->InternalError("bad tag in RelExpr::InvertSense");
+	}
 	}
 
 CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)

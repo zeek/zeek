@@ -197,6 +197,10 @@ public:
 	// the current value of expr (this is the default method).
 	virtual ExprPtr MakeLvalue();
 
+	// Invert the sense of the operation.  Currently only makes sense
+	// for relational/equality expressions.
+	virtual void InvertSense();
+
 	// Marks the expression as one requiring (or at least appearing
 	// with) parentheses.  Used for pretty-printing.
 	void MarkParen()		{ paren = true; }
@@ -791,6 +795,7 @@ public:
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+	void InvertSense() override;
 
 protected:
 	ValPtr Fold(Val* v1, Val* v2) const override;
@@ -805,6 +810,7 @@ public:
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+	void InvertSense() override;
 };
 
 class CondExpr final : public Expr {

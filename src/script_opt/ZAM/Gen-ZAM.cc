@@ -1037,7 +1037,10 @@ void ZAM_ExprOpTemplate::InstantiateV(const vector<ZAM_OperandType>& ots)
 	if ( ots.size() >= 3 )
 		{
 		if ( ots[2] == ZAM_OT_INT )
-			args += ", rhs->AsFieldExpr()->Field()";
+			{
+			string acc_flav = IncludesFieldOp() ? "Has" : "";
+			args += ", rhs->As" + acc_flav + "FieldExpr()->Field()";
+			}
 		else
 			args += ", r2->AsNameExpr()";
 

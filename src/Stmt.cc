@@ -1110,7 +1110,10 @@ WhileStmt::~WhileStmt() = default;
 
 bool WhileStmt::IsPure() const
 	{
-	return loop_condition->IsPure() && body->IsPure();
+	if ( loop_condition->IsPure() && body->IsPure() )
+		return ! loop_cond_pred_stmt || loop_cond_pred_stmt->IsPure();
+	else
+		return false;
 	}
 
 void WhileStmt::StmtDescribe(ODesc* d) const
@@ -1119,6 +1122,13 @@ void WhileStmt::StmtDescribe(ODesc* d) const
 
 	if ( d->IsReadable() )
 		d->Add("(");
+
+	if ( loop_cond_pred_stmt )
+		{
+		d->Add(" {");
+		loop_cond_pred_stmt->Describe(d);
+		d->Add("} ");
+		}
 
 	loop_condition->Describe(d);
 
@@ -1136,6 +1146,12 @@ TraversalCode WhileStmt::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
+
+	if ( loop_cond_pred_stmt )
+		{
+		tc = loop_cond_pred_stmt->Traverse(cb);
+		HANDLE_TC_STMT_PRE(tc);
+		}
 
 	tc = loop_condition->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);

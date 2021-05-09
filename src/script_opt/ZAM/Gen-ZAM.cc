@@ -915,6 +915,9 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 		auto et1 = expr_type_names[type_c1];
 		auto et2 = expr_type_names[type_c2];
 
+		if ( eval_set.count(et1) > 0 )
+			g->Gripe("eval-mixed uses type also included in op-type", line);
+
 		auto eval = g->SkipWords(line, 3);
 		eval += GatherEval();
 		AddEvalSet(et1, et2, eval);
@@ -1073,11 +1076,38 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
                                               const string& suffix,
 	                                      bool op1_always_read)
 	{
-	const auto& ets = ExprTypes();
-
 	Emit("auto tag = t->Tag();");
 	Emit("auto i_t = t->InternalType();");
 
+	bool do_default = false;
+	int ncases = 0;
+
+	for ( auto& [et1, et2_map] : eval_mixed_set )
+		if ( ! GenMethodTest(et1, params, suffix, ++ncases > 1,
+				     op1_always_read) )
+			do_default = true;
+
+	for ( auto et : ExprTypes() )
+		if ( ! GenMethodTest(et, params, suffix, ++ncases > 1,
+		                     op1_always_read) )
+			do_default = true;
+
+	Emit("else");
+
+	if ( do_default )
+		{
+		auto op = g->GenOpCode(this, suffix, op1_always_read);
+		EmitUp("z = GenInst(" + op + ", " + params + ");");
+		}
+
+	else
+		EmitUp("reporter->InternalError(\"bad tag when generating method core\");");
+	}
+
+bool ZAM_ExprOpTemplate::GenMethodTest(ZAM_ExprType et, const string& params,
+                                       const string& suffix, bool do_else,
+	                               bool op1_always_read)
+	{
 	static map<ZAM_ExprType, pair<string, string>> if_tests = {
 		{ ZAM_EXPR_TYPE_ADDR, { "i_t", "TYPE_INTERNAL_ADDR" } },
 		{ ZAM_EXPR_TYPE_DOUBLE, { "i_t", "TYPE_INTERNAL_DOUBLE" } },
@@ -1093,45 +1123,27 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
 		{ ZAM_EXPR_TYPE_DEFAULT, { "", "" } },
 	};
 
-	bool do_default = false;
-	int ncases = 0;
+	if ( if_tests.count(et) == 0 )
+		g->Gripe("bad op-type", op_loc);
 
-	for ( auto et : ets )
-		{
-		if ( if_tests.count(et) == 0 )
-			g->Gripe("bad op-type", op_loc);
+	auto if_test = if_tests[et];
+	auto if_var = if_test.first;
+	auto if_val = if_test.second;
 
-		auto if_test = if_tests[et];
-		auto if_var = if_test.first;
-		auto if_val = if_test.second;
+	if ( if_var.size() == 0 )
+		return false;
 
-		if ( if_var.size() == 0 )
-			{
-			do_default = true;
-			continue;
-			}
+	string test = "if ( " + if_var + " == " + if_val + " )";
+	if ( do_else )
+		test = "else " + test;
 
-		auto if_stmt = "if ( " + if_var + " == " + if_val + " )";
-		if ( ++ncases > 1 )
-			if_stmt = "else " + if_stmt;
+	Emit(test);
 
-		Emit(if_stmt);
+	auto op_suffix = suffix + "_" + expr_name_types[et];
+	auto op = g->GenOpCode(this, op_suffix, op1_always_read);
+	EmitUp("z = GenInst(" + op + ", " + params + ");");
 
-		auto op_suffix = suffix + "_" + expr_name_types[et];
-		auto op = g->GenOpCode(this, op_suffix, op1_always_read);
-		EmitUp("z = GenInst(" + op + ", " + params + ");");
-		}
-
-	Emit("else");
-
-	if ( do_default )
-		{
-		auto op = g->GenOpCode(this, suffix, op1_always_read);
-		EmitUp("z = GenInst(" + op + ", " + params + ");");
-		}
-
-	else
-		EmitUp("reporter->InternalError(\"bad tag when generating method core\");");
+	return true;
 	}
 
 struct EvalInstance {

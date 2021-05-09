@@ -221,7 +221,7 @@ const ZAMStmt ZAMCompiler::CompileWhileStmt(const WhileStmt* ws)
 		}
 
 	auto cond_pred = ws->CondPredStmt();
-	return While(cond_pred.get(), loop_condition.get(), body.get());
+	return While(cond_pred.get(), loop_condition.get(), ws->Body().get());
 	}
 
 const ZAMStmt ZAMCompiler::CompileStmtList(const StmtList* ws)

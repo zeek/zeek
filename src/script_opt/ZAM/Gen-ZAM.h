@@ -347,6 +347,9 @@ protected:
 	void InstantiateEval(const vector<ZAM_OperandType>& ot,
 	                     const string& suffix, bool is_field,
 	                     bool is_vec, bool is_cond) override;
+	bool GenMethodTest(ZAM_ExprType et, const string& params,
+	                   const string& suffix, bool do_else,
+	                   bool op1_always_read);
 
 private:
 	std::unordered_set<ZAM_ExprType> expr_types;

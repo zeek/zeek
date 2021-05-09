@@ -1366,8 +1366,8 @@ eval	auto ii = z.aux->iter_info;
 	auto tv = frame[z.v2].table_val;
 	auto tvd = tv->AsTable();
 	ii->tv = tv;
-	ii->tbl_iter = tvd->begin();
-	ii->tbl_end = tvd->end();
+	ii->tbl_iter = tvd->begin_hack();
+	ii->tbl_end = tvd->end_hack();
 	ii->value_var_type = z.t;
 	frame[z.v1].iter_info = ii;
 
@@ -1381,8 +1381,8 @@ eval	auto ii = z.aux->iter_info;
 	auto tv = frame[z.v2].table_val;
 	auto tvd = tv->AsTable();
 	ii->tv = tv;
-	ii->tbl_iter = tvd->begin();
-	ii->tbl_end = tvd->end();
+	ii->tbl_iter = tvd->begin_hack();
+	ii->tbl_end = tvd->end_hack();
 	ii->value_var_type = z.t;
 	frame[z.v1].iter_info = ii;
 
@@ -1392,8 +1392,8 @@ op1-read
 # v2 = branch target if loop done
 type VV
 eval	auto ii = frame[z.v1].iter_info;
-	auto& current_tev = ii->tbl_iter;
-	if ( current_tev == ii->tbl_end )
+	auto& current_tev = *ii->tbl_iter;
+	if ( current_tev == *ii->tbl_end )
 		BRANCH(v2)
 	auto ind_lv = ii->tv->RecreateIndex(*current_tev->GetHashKey());
 	for ( int i = 0; i < ind_lv->Length(); ++i )
@@ -1405,7 +1405,7 @@ eval	auto ii = frame[z.v1].iter_info;
 			ZVal::DeleteManagedType(var);
 		var = BuildVal(ind_lv_p, ii->loop_var_types[i]);
 		}
-	++ii->tbl_iter;
+	++current_tev;
 
 internal-op Next-Table-Iter-No-Vars
 op1-read
@@ -1413,10 +1413,10 @@ op1-read
 # v2 = branch target if loop done
 type VV
 eval	auto ii = frame[z.v1].iter_info;
-	auto& current_tev = ii->tbl_iter;
-	if ( current_tev == ii->tbl_end )
+	auto& current_tev = *ii->tbl_iter;
+	if ( current_tev == *ii->tbl_end )
 		BRANCH(v2)
-	++ii->tbl_iter;
+	++current_tev;
 
 internal-op Next-Table-Iter-Val-Var
 # v1 = slot of the "ValueVar"
@@ -1424,8 +1424,8 @@ internal-op Next-Table-Iter-Val-Var
 # v3 = branch target if loop done
 type VVV
 eval	auto ii = frame[z.v2].iter_info;
-	auto& current_tev = ii->tbl_iter;
-	if ( current_tev == ii->tbl_end )
+	auto& current_tev = *ii->tbl_iter;
+	if ( current_tev == *ii->tbl_end )
 		BRANCH(v3)
 	auto ind_lv = ii->tv->RecreateIndex(*current_tev->GetHashKey());
 	ValPtr tev_p = {NewRef{}, current_tev->GetValue<Val*>()};
@@ -1442,7 +1442,7 @@ eval	auto ii = frame[z.v2].iter_info;
 			ZVal::DeleteManagedType(frame[ind]);
 		frame[ind] = BuildVal(ind_lv_p, loop_var_t);
 		}
-	++ii->tbl_iter;
+	++current_tev;
 
 internal-op Next-Table-Iter-Val-Var-No-Vars
 # v1 = slot of the "ValueVar"
@@ -1450,15 +1450,15 @@ internal-op Next-Table-Iter-Val-Var-No-Vars
 # v3 = branch target if loop done
 type VVV
 eval	auto ii = frame[z.v2].iter_info;
-	auto& current_tev = ii->tbl_iter;
-	if ( current_tev == ii->tbl_end )
+	auto& current_tev = *ii->tbl_iter;
+	if ( current_tev == *ii->tbl_end )
 		BRANCH(v3)
 	ValPtr tev_p = {NewRef{}, current_tev->GetValue<Val*>()};
 	auto val_var_t = ii->value_var_type;
 	if ( z.is_managed )
 		ZVal::DeleteManagedType(frame[z.v1]);
 	frame[z.v1] = BuildVal(tev_p, val_var_t);
-	++ii->tbl_iter;
+	++current_tev;
 
 internal-op Init-Vector-Loop
 type VV
@@ -1532,7 +1532,10 @@ eval	auto ii = frame[z.v2].iter_info;
 internal-op End-Loop
 op1-read
 type V
-eval	frame[z.v1].iter_info->vv = nullptr;
+eval	auto& ii = frame[z.v1].iter_info;
+	ii->vv = nullptr;
+	ii->tbl_iter = nullptr;
+	ii->tbl_end = nullptr;
 
 
 op When

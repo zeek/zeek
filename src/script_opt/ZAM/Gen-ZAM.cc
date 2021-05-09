@@ -1745,7 +1745,7 @@ void ZAM_InternalOpTemplate::Parse(const string& attr, const string& line,
 				{
 				eval += "args.push_back(aux->ToVal(frame, ";
 				eval += to_string(i);
-				eval += "));";
+				eval += "));\n";
 				}
 		}
 

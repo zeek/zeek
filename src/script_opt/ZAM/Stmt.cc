@@ -137,25 +137,8 @@ const ZAMStmt ZAMCompiler::CompileIfStmt(const IfStmt* is)
 		// up into zillions of different operators depending
 		// on the type of their operands, so it's much simpler to
 		// deal with them now.
-
-		bool do_swap = false;
-		BroExprTag t = e->Tag();
-
-		switch ( t ) {
-		case EXPR_EQ:
-		case EXPR_NE:
-		case EXPR_LT:
-		case EXPR_LE:
-		case EXPR_GE:
-		case EXPR_GT:
-			do_swap = true;
-
-		default: break;
-		}
-
-		if ( do_swap )
+		if ( e->InvertSense() )
 			{
-			e->InvertSense();
 			block1 = block2;
 			block2 = nullptr;
 			}

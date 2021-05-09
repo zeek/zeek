@@ -23,7 +23,7 @@ std::unordered_set<const Func*> non_recursive_funcs;
 // Tracks all of the loaded functions (including event handlers and hooks).
 static std::vector<FuncInfo> funcs;
 
-static std::optional<ZAMCompiler> ZAM;
+static ZAMCompiler* ZAM = nullptr;
 
 
 void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
@@ -132,7 +132,7 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	if ( analysis_options.gen_ZAM )
 		{
-		ZAM = ZAMCompiler(f, pf, scope, new_body, ud, rc);
+		ZAM = new ZAMCompiler(f, pf, scope, new_body, ud, rc);
 
 		new_body = ZAM->CompileBody();
 

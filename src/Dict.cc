@@ -265,6 +265,9 @@ TEST_CASE("dict new iteration")
 		count++;
 		}
 
+	PDict<uint32_t>::iterator it;
+	it = dict.begin();
+
 	CHECK(count == 2);
 
 	delete key;
@@ -1558,8 +1561,11 @@ DictIterator::DictIterator(const Dictionary* d, detail::DictEntry* begin, detail
 
 DictIterator::~DictIterator()
 	{
-	assert(dict->num_iterators > 0);
-	dict->num_iterators--;
+	if ( dict )
+		{
+		assert(dict->num_iterators > 0);
+		dict->num_iterators--;
+		}
 	}
 
 DictIterator& DictIterator::operator++()
@@ -1570,6 +1576,56 @@ DictIterator& DictIterator::operator++()
 		++curr;
 		}
 	while ( curr != end && curr->Empty() );
+
+	return *this;
+	}
+
+DictIterator::DictIterator(const DictIterator& that)
+	{
+	if ( this == &that )
+		return;
+
+	dict = that.dict;
+	curr = that.curr;
+	end = that.end;
+	dict->num_iterators++;
+	}
+
+DictIterator& DictIterator::operator=(const DictIterator& that)
+	{
+	if ( this == &that )
+		return *this;
+
+	dict = that.dict;
+	curr = that.curr;
+	end = that.end;
+	dict->num_iterators++;
+
+	return *this;
+	}
+
+DictIterator::DictIterator(DictIterator&& that)
+	{
+	if ( this == &that )
+		return;
+
+	dict = that.dict;
+	curr = that.curr;
+	end = that.end;
+
+	that.dict = nullptr;
+	}
+
+DictIterator& DictIterator::operator=(DictIterator&& that)
+	{
+	if ( this == &that )
+		return *this;
+
+	dict = that.dict;
+	curr = that.curr;
+	end = that.end;
+
+	that.dict = nullptr;
 
 	return *this;
 	}

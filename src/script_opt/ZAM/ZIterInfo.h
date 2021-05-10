@@ -17,9 +17,8 @@ public:
 	// If we're looping over a table:
 	const TableVal* tv = nullptr;
 
-	// ###
-	DictIterator* tbl_iter;
-	DictIterator* tbl_end;
+	DictIterator tbl_iter;
+	DictIterator tbl_end;
 
 	// Frame slots of iteration variables, such as "[v1, v2, v3] in aggr".
 	// These are used for iterating over vectors and strings, too

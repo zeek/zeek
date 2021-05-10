@@ -35,19 +35,18 @@ static vector<TypeInfo> ZAM_type_info = {
 	{ "TYPE_ANY",		ZAM_EXPR_TYPE_ANY,	"any", "Any", true },
 	{ "TYPE_COUNT",		ZAM_EXPR_TYPE_UINT,	"U", "Count", false },
 	{ "TYPE_DOUBLE",	ZAM_EXPR_TYPE_DOUBLE,	"D", "Double", false },
+	{ "TYPE_FILE",		ZAM_EXPR_TYPE_FILE,	"f", "File", true },
 	{ "TYPE_FUNC",		ZAM_EXPR_TYPE_FUNC,	"F", "Func", true },
 	{ "TYPE_INT",		ZAM_EXPR_TYPE_INT,	"I", "Int", false },
+	{ "TYPE_LIST",		ZAM_EXPR_TYPE_LIST,	"L", "List", true },
+	{ "TYPE_OPAQUE",	ZAM_EXPR_TYPE_OPAQUE,	"O", "Opaque", true },
 	{ "TYPE_PATTERN",	ZAM_EXPR_TYPE_PATTERN,	"P", "Pattern", true },
+	{ "TYPE_RECORD",	ZAM_EXPR_TYPE_RECORD,	"R", "Record", true },
 	{ "TYPE_STRING",	ZAM_EXPR_TYPE_STRING,	"S", "String", true },
 	{ "TYPE_SUBNET",	ZAM_EXPR_TYPE_SUBNET,	"N", "SubNet", true },
 	{ "TYPE_TABLE",		ZAM_EXPR_TYPE_TABLE,	"T", "Table", true },
+	{ "TYPE_TYPE",		ZAM_EXPR_TYPE_TYPE,	"t", "Type", true },
 	{ "TYPE_VECTOR",	ZAM_EXPR_TYPE_VECTOR,	"V", "Vector", true },
-
-	{ "TYPE_FILE",		ZAM_EXPR_TYPE_NONE, "f", "File", true },
-	{ "TYPE_LIST",		ZAM_EXPR_TYPE_NONE, "L", "List", true },
-	{ "TYPE_OPAQUE",	ZAM_EXPR_TYPE_NONE, "O", "Opaque", true },
-	{ "TYPE_RECORD",	ZAM_EXPR_TYPE_NONE, "R", "Record", true },
-	{ "TYPE_TYPE",		ZAM_EXPR_TYPE_NONE, "t", "Type", true },
 };
 
 const TypeInfo& find_type_info(ZAM_ExprType et)
@@ -814,16 +813,22 @@ void ZAM_DirectUnaryOpTemplate::Instantiate()
 static unordered_map<char, ZAM_ExprType> expr_type_names = {
 	{ '*', ZAM_EXPR_TYPE_DEFAULT },
 	{ 'A', ZAM_EXPR_TYPE_ADDR },
+	{ 'a', ZAM_EXPR_TYPE_ANY },
 	{ 'D', ZAM_EXPR_TYPE_DOUBLE },
+	{ 'f', ZAM_EXPR_TYPE_FILE },
 	{ 'F', ZAM_EXPR_TYPE_FUNC },
 	{ 'I', ZAM_EXPR_TYPE_INT },
-	{ 'N', ZAM_EXPR_TYPE_SUBNET },
+	{ 'L', ZAM_EXPR_TYPE_LIST },
+	{ 'X', ZAM_EXPR_TYPE_NONE },
+	{ 'O', ZAM_EXPR_TYPE_OPAQUE },
 	{ 'P', ZAM_EXPR_TYPE_PATTERN },
+	{ 'R', ZAM_EXPR_TYPE_RECORD },
 	{ 'S', ZAM_EXPR_TYPE_STRING },
+	{ 'N', ZAM_EXPR_TYPE_SUBNET },
 	{ 'T', ZAM_EXPR_TYPE_TABLE },
+	{ 't', ZAM_EXPR_TYPE_TYPE },
 	{ 'U', ZAM_EXPR_TYPE_UINT },
 	{ 'V', ZAM_EXPR_TYPE_VECTOR },
-	{ 'X', ZAM_EXPR_TYPE_NONE },
 };
 
 // Inverse of the above.
@@ -1082,18 +1087,22 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
 	Emit("auto tag = t->Tag();");
 	Emit("auto i_t = t->InternalType();");
 
-	bool do_default = false;
 	int ncases = 0;
 
 	for ( auto& [et1, et2_map] : eval_mixed_set )
-		if ( ! GenMethodTest(et1, params, suffix, ++ncases > 1,
-				     op1_always_read) )
-			do_default = true;
+		GenMethodTest(et1, params, suffix, ++ncases > 1,
+		              op1_always_read);
+
+	bool do_default = false;
 
 	for ( auto et : ExprTypes() )
-		if ( ! GenMethodTest(et, params, suffix, ++ncases > 1,
-		                     op1_always_read) )
+		{
+		if ( et == ZAM_EXPR_TYPE_DEFAULT )
 			do_default = true;
+		else
+			GenMethodTest(et, params, suffix, ++ncases > 1,
+		                      op1_always_read);
+		}
 
 	Emit("else");
 
@@ -1107,23 +1116,27 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
 		EmitUp("reporter->InternalError(\"bad tag when generating method core\");");
 	}
 
-bool ZAM_ExprOpTemplate::GenMethodTest(ZAM_ExprType et, const string& params,
+void ZAM_ExprOpTemplate::GenMethodTest(ZAM_ExprType et, const string& params,
                                        const string& suffix, bool do_else,
 	                               bool op1_always_read)
 	{
 	static map<ZAM_ExprType, pair<string, string>> if_tests = {
 		{ ZAM_EXPR_TYPE_ADDR, { "i_t", "TYPE_INTERNAL_ADDR" } },
+		{ ZAM_EXPR_TYPE_ANY, { "tag", "TYPE_ANY" } },
 		{ ZAM_EXPR_TYPE_DOUBLE, { "i_t", "TYPE_INTERNAL_DOUBLE" } },
+		{ ZAM_EXPR_TYPE_FILE, { "tag", "TYPE_FILE" } },
 		{ ZAM_EXPR_TYPE_FUNC, { "tag", "TYPE_FUNC" } },
 		{ ZAM_EXPR_TYPE_INT, { "i_t", "TYPE_INTERNAL_INT" } },
-		{ ZAM_EXPR_TYPE_UINT, { "i_t", "TYPE_INTERNAL_UNSIGNED" } },
+		{ ZAM_EXPR_TYPE_LIST, { "tag", "TYPE_LIST" } },
+		{ ZAM_EXPR_TYPE_OPAQUE, { "tag", "TYPE_OPAQUE" } },
 		{ ZAM_EXPR_TYPE_PATTERN, { "tag", "TYPE_PATTERN" } },
+		{ ZAM_EXPR_TYPE_RECORD, { "tag", "TYPE_RECORD" } },
 		{ ZAM_EXPR_TYPE_STRING, { "i_t", "TYPE_INTERNAL_STRING" } },
 		{ ZAM_EXPR_TYPE_SUBNET, { "i_t", "TYPE_INTERNAL_SUBNET" } },
 		{ ZAM_EXPR_TYPE_TABLE, { "tag", "TYPE_TABLE" } },
+		{ ZAM_EXPR_TYPE_TYPE, { "tag", "TYPE_TYPE" } },
+		{ ZAM_EXPR_TYPE_UINT, { "i_t", "TYPE_INTERNAL_UNSIGNED" } },
 		{ ZAM_EXPR_TYPE_VECTOR, { "tag", "TYPE_VECTOR" } },
-
-		{ ZAM_EXPR_TYPE_DEFAULT, { "", "" } },
 	};
 
 	if ( if_tests.count(et) == 0 )
@@ -1132,9 +1145,6 @@ bool ZAM_ExprOpTemplate::GenMethodTest(ZAM_ExprType et, const string& params,
 	auto if_test = if_tests[et];
 	auto if_var = if_test.first;
 	auto if_val = if_test.second;
-
-	if ( if_var.size() == 0 )
-		return false;
 
 	string test = "if ( " + if_var + " == " + if_val + " )";
 	if ( do_else )
@@ -1145,8 +1155,6 @@ bool ZAM_ExprOpTemplate::GenMethodTest(ZAM_ExprType et, const string& params,
 	auto op_suffix = suffix + "_" + expr_name_types[et];
 	auto op = g->GenOpCode(this, op_suffix, op1_always_read);
 	EmitUp("z = GenInst(" + op + ", " + params + ");");
-
-	return true;
 	}
 
 struct EvalInstance {
@@ -1454,12 +1462,12 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot
 		}
 
 	auto constant_op = ot[1] == ZAM_OT_CONSTANT;
-	string operand = constant_op ? "c" : "n2";
+	string type_src = constant_op ? "c" : "n2";
 
 	if ( ot[0] == ZAM_OT_FIELD )
 		{
-		operand = constant_op ? "n" : "n1";
-		Emit("auto " + operand + " = flhs->GetOp1()->AsNameExpr();");
+		type_src = constant_op ? "n" : "n1";
+		Emit("auto " + type_src + " = flhs->GetOp1()->AsNameExpr();");
 		Emit("auto t = flhs->GetType();");
 
 		string f = ot[1] == ZAM_OT_FIELD ? "field1" : "field";
@@ -1467,7 +1475,12 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot
 		}
 
 	else
-		Emit("auto t = " + operand + "->GetType();");
+		{
+		if ( IsAssignOp() )
+			type_src = constant_op ? "n" : "n1";
+
+		Emit("auto t = " + type_src + "->GetType();");
+		}
 
 	BuildInstructionCore(params, suffix, is_field || is_cond);
 	}
@@ -1480,7 +1493,7 @@ ZAM_AssignOpTemplate::ZAM_AssignOpTemplate(ZAMGen* _g, string _base_name)
 	for ( auto& etn : expr_type_names )
 		{
 		auto et = etn.second;
-		if ( et != ZAM_EXPR_TYPE_NONE )
+		if ( et != ZAM_EXPR_TYPE_NONE && et != ZAM_EXPR_TYPE_DEFAULT )
 			AddExprType(et);
 		}
 	}

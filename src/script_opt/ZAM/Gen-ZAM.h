@@ -33,11 +33,16 @@ enum ZAM_ExprType {
 	ZAM_EXPR_TYPE_FUNC,
 	ZAM_EXPR_TYPE_INT,
 	ZAM_EXPR_TYPE_PATTERN,
+	ZAM_EXPR_TYPE_RECORD,
 	ZAM_EXPR_TYPE_STRING,
 	ZAM_EXPR_TYPE_SUBNET,
 	ZAM_EXPR_TYPE_TABLE,
 	ZAM_EXPR_TYPE_UINT,
 	ZAM_EXPR_TYPE_VECTOR,
+	ZAM_EXPR_TYPE_FILE,
+	ZAM_EXPR_TYPE_OPAQUE,
+	ZAM_EXPR_TYPE_LIST,
+	ZAM_EXPR_TYPE_TYPE,
 
 	ZAM_EXPR_TYPE_DEFAULT,
 
@@ -347,7 +352,7 @@ protected:
 	void InstantiateEval(const vector<ZAM_OperandType>& ot,
 	                     const string& suffix, bool is_field,
 	                     bool is_vec, bool is_cond) override;
-	bool GenMethodTest(ZAM_ExprType et, const string& params,
+	void GenMethodTest(ZAM_ExprType et, const string& params,
 	                   const string& suffix, bool do_else,
 	                   bool op1_always_read);
 

@@ -685,20 +685,24 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 		}
 
 	auto lhs_field = (ot[0] == ZAM_OT_FIELD);
-	auto rhs_field = lhs_field && (ot[1] == ZAM_OT_FIELD);
-
-	int op2_offset = rhs_field ? 2 : 1;
-	auto constant_op = (ot[op2_offset] == ZAM_OT_CONSTANT);
+	auto rhs_field = lhs_field && ot.size() > 2 && (ot[2] == ZAM_OT_INT);
+	auto constant_op = (ot[1] == ZAM_OT_CONSTANT);
 
 	string rhs = constant_op ? "z.c" : "frame[z.v2]";
 
 	if ( rhs_field )
 		{
-		auto lhs_offset = constant_op ? 2 : 3;
-		auto rhs_offset = lhs_offset + 1;
+		// The following is counter-intuitive, but comes from the
+		// fact that we build out the instruction parameters as
+		// an echo of the method parameters, and for this case that
+		// means that the RHS field offset comes *before*, not after,
+		// the LHS field offset.
+		auto lhs_offset = constant_op ? 3 : 4;
+		auto rhs_offset = lhs_offset - 1;
 
 		Emit("auto v = " + rhs + ".AsRecord()->RawOptField(z.v" +
-		     to_string(rhs_offset) + ");");
+		     to_string(rhs_offset) +
+		     "); // note, RHS field before LHS field");
 
 		Emit("if ( ! v )");
 		EmitUp("ZAM_run_time_error(z.loc, \"field value missing\");");
@@ -707,7 +711,7 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 		BeginBlock();
 		auto slot = "z.v" + to_string(lhs_offset);
 		Emit("auto& f = frame[z.v1].AsRecord()->RawField(" +
-		     slot + ");");
+		     slot + "); // note, LHS field after RHS field");
 
 		if ( is_managed )
 			{
@@ -1469,9 +1473,7 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot
 		type_src = constant_op ? "n" : "n1";
 		Emit("auto " + type_src + " = flhs->GetOp1()->AsNameExpr();");
 		Emit("auto t = flhs->GetType();");
-
-		string f = ot[1] == ZAM_OT_FIELD ? "field1" : "field";
-		Emit("int " + f + " = flhs->Field();");
+		Emit("int field = flhs->Field();");
 		}
 
 	else

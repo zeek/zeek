@@ -359,8 +359,6 @@ public:
 
 	iterator begin() { return { this, table, table + Capacity() }; }
 	iterator end() { return { this, table + Capacity(), table + Capacity() }; }
-	iterator* begin_hack() const { return new iterator(this, table, table + Capacity()); }
-	iterator* end_hack() const { return new iterator(this, table + Capacity(), table + Capacity()); }
 	const_iterator begin() const { return { this, table, table + Capacity() }; }
 	const_iterator end() const { return { this, table + Capacity(), table + Capacity() }; }
 	const_iterator cbegin() { return { this, table, table + Capacity() }; }

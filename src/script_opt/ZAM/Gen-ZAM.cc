@@ -1389,7 +1389,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 			eval = regex_replace(eval, regex(";*\n"), ";\n");
 			}
 
-		auto full_suffix = ot_str + ei.OpMarker() + suffix;
+		auto full_suffix = ot_str + suffix + ei.OpMarker();
 
 		ZAM_OpTemplate::InstantiateEval(emit_target, full_suffix,
 		                                eval, is_field || is_cond);

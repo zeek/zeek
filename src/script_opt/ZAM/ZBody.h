@@ -83,7 +83,7 @@ protected:
 private:
 	const char* func_name;
 
-	const ZInst* insts;
+	const ZInst* insts = nullptr;
 	unsigned int ninst;
 
 	FrameReMap frame_denizens;

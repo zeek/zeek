@@ -207,7 +207,7 @@ ZBody::~ZBody()
 		delete[] fixed_frame;
 		}
 
-	delete insts;
+	delete[] insts;
 	delete inst_count;
 	delete CPU_time;
 	}

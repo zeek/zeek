@@ -1249,7 +1249,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		{
 		lhs = "frame[z.v1]";
 
-		auto op2_offset = 3;
+		auto op2_offset = is_cond ? 2 : 3;
 		bool ot1_const = ot[1] == ZAM_OT_CONSTANT;
 		bool ot2_const = Arity() >= 2 && ot[2] == ZAM_OT_CONSTANT;
 

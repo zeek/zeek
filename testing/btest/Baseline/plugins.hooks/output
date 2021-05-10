@@ -648,6 +648,7 @@
 0.000000   MetaHookPost  DrainEvents() -> <void>
 0.000000   MetaHookPost  LoadFile(0, ../main, <...>/main.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ../plugin, <...>/plugin.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./CPP-load.bif.zeek, <...>/CPP-load.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_ARP.events.bif.zeek, <...>/Zeek_ARP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_AsciiReader.ascii.bif.zeek, <...>/Zeek_AsciiReader.ascii.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_AsciiWriter.ascii.bif.zeek, <...>/Zeek_AsciiWriter.ascii.bif.zeek) -> -1
@@ -872,6 +873,7 @@
 0.000000   MetaHookPost  LoadFile(0, base/init-default, <...>/init-default.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base/packet-protocols, <...>/packet-protocols) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/Zeek_SNMP.types.bif, <...>/Zeek_SNMP.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/active-http, <...>/active-http.zeek) -> -1
@@ -1656,6 +1658,7 @@
 0.000000   MetaHookPre   DrainEvents()
 0.000000   MetaHookPre   LoadFile(0, ../main, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFile(0, ../plugin, <...>/plugin.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./CPP-load.bif.zeek, <...>/CPP-load.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_ARP.events.bif.zeek, <...>/Zeek_ARP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_AsciiReader.ascii.bif.zeek, <...>/Zeek_AsciiReader.ascii.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_AsciiWriter.ascii.bif.zeek, <...>/Zeek_AsciiWriter.ascii.bif.zeek)
@@ -1880,6 +1883,7 @@
 0.000000   MetaHookPre   LoadFile(0, base/init-default, <...>/init-default.zeek)
 0.000000   MetaHookPre   LoadFile(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek)
 0.000000   MetaHookPre   LoadFile(0, base/packet-protocols, <...>/packet-protocols)
+0.000000   MetaHookPre   LoadFile(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/Zeek_SNMP.types.bif, <...>/Zeek_SNMP.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/active-http, <...>/active-http.zeek)
@@ -2663,6 +2667,7 @@
 0.000000 | HookDrainEvents
 0.000000 | HookLoadFile  ../main <...>/main.zeek
 0.000000 | HookLoadFile  ../plugin <...>/plugin.zeek
+0.000000 | HookLoadFile  ./CPP-load.bif.zeek <...>/CPP-load.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_ARP.events.bif.zeek <...>/Zeek_ARP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_AsciiReader.ascii.bif.zeek <...>/Zeek_AsciiReader.ascii.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_AsciiWriter.ascii.bif.zeek <...>/Zeek_AsciiWriter.ascii.bif.zeek
@@ -2899,6 +2904,7 @@
 0.000000 | HookLoadFile  base/init-default <...>/init-default.zeek
 0.000000 | HookLoadFile  base/init-frameworks-and-bifs.zeek <...>/init-frameworks-and-bifs.zeek
 0.000000 | HookLoadFile  base/packet-protocols <...>/packet-protocols
+0.000000 | HookLoadFile  base<...>/CPP-load.bif <...>/CPP-load.bif.zeek
 0.000000 | HookLoadFile  base<...>/Zeek_KRB.types.bif <...>/Zeek_KRB.types.bif.zeek
 0.000000 | HookLoadFile  base<...>/Zeek_SNMP.types.bif <...>/Zeek_SNMP.types.bif.zeek
 0.000000 | HookLoadFile  base<...>/active-http <...>/active-http.zeek

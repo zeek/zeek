@@ -187,6 +187,21 @@ void Reporter::RuntimeError(const detail::Location* location, const char* fmt, .
 	throw InterpreterException();
 	}
 
+void Reporter::CPPRuntimeError(const char* fmt, ...)
+	{
+	++errors;
+	va_list ap;
+	va_start(ap, fmt);
+	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+	DoLog("runtime error in compiled code", reporter_error, out, nullptr, nullptr, true, true, "", fmt, ap);
+	va_end(ap);
+
+	if ( abort_on_scripting_errors )
+		abort();
+
+	throw InterpreterException();
+	}
+
 void Reporter::InternalError(const char* fmt, ...)
 	{
 	va_list ap;

@@ -158,26 +158,45 @@ static void set_analysis_option(const char* opt, Options& opts)
 	if ( util::streq(opt, "help") )
 		{
 		fprintf(stderr, "--optimize options:\n");
+		fprintf(stderr, "    all	equivalent to \"inline\" and \"activate\"\n");
+		fprintf(stderr, "    add-C++	generate private C++ for any missing script bodies\n");
 		fprintf(stderr, "    dump-uds	dump use-defs to stdout; implies xform\n");
 		fprintf(stderr, "    dump-xform	dump transformed scripts to stdout; implies xform\n");
+		fprintf(stderr, "    gen-C++	generate C++ script bodies\n");
+		fprintf(stderr, "    gen-standalone-C++	generate \"standalone\" C++ script bodies\n");
 		fprintf(stderr, "    help	print this list\n");
 		fprintf(stderr, "    inline	inline function calls\n");
 		fprintf(stderr, "    optimize-AST	optimize the (transformed) AST; implies xform\n");
 		fprintf(stderr, "    recursive	report on recursive functions and exit\n");
+		fprintf(stderr, "    report-C++	report available C++ script bodies and exit\n");
+		fprintf(stderr, "    update-C++	generate reusable C++ for any missing script bodies\n");
+		fprintf(stderr, "    use-C++	use available C++ script bodies\n");
 		fprintf(stderr, "    xform	tranform scripts to \"reduced\" form\n");
 		exit(0);
 		}
 
 	auto& a_o = opts.analysis_options;
 
-	if ( util::streq(opt, "dump-uds") )
+	if ( util::streq(opt, "add-C++") )
+		a_o.add_CPP = true;
+	else if ( util::streq(opt, "dump-uds") )
 		a_o.activate = a_o.dump_uds = true;
 	else if ( util::streq(opt, "dump-xform") )
 		a_o.activate = a_o.dump_xform = true;
+	else if ( util::streq(opt, "gen-C++") )
+		a_o.gen_CPP = true;
+	else if ( util::streq(opt, "gen-standalone-C++") )
+		a_o.gen_standalone_CPP = true;
 	else if ( util::streq(opt, "inline") )
 		a_o.inliner = true;
 	else if ( util::streq(opt, "recursive") )
 		a_o.inliner = a_o.report_recursive = true;
+	else if ( util::streq(opt, "report-C++") )
+		a_o.report_CPP = true;
+	else if ( util::streq(opt, "update-C++") )
+		a_o.update_CPP = true;
+	else if ( util::streq(opt, "use-C++") )
+		a_o.use_CPP = true;
 	else if ( util::streq(opt, "xform") )
 		a_o.activate = true;
 	else if ( util::streq(opt, "optimize-AST") )

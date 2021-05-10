@@ -1,0 +1,33 @@
+conditional code:
+	- top-level conditionals okay due to hash protection
+	- but lower-level, directly called, won't translate
+
+	possible approaches:
+		- warn when compiling such functions
+		- an option to always do Invoke's rather than direct calls
+		- rewrite scripts to use run-time conditionals
+			(in base scripts, it's almost all regarding clusters)
+
+lambdas: not supported if they refer to events that are otherwise not registered
+	(not all that hard to fix)
+
+standalone code won't execute global statements
+
+standalone code needs to deal with field_mapping initializations the
+same as enum_mapping
+
+type switches:
+	- easy to support by some sort of hash on the type
+
+when's:
+	- need to understand "return when" semantics
+
+slow compilation:
+	- analyze whether there's a bunch of unneeded stuff (e.g. orphan types)
+
+efficiency:
+	- leverage ZVal's directly
+	- directly calling BiFs
+		- best done by supplanting bifcl
+	- event handlers directly called, using vector<ZVal> arguments
+	- import custom BiFs (e.g. network_time()) from ZAM

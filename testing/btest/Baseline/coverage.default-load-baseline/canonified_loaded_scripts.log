@@ -18,6 +18,7 @@ scripts/base/init-bare.zeek
   scripts/base/frameworks/supervisor/api.zeek
   build/scripts/base/bif/supervisor.bif.zeek
   build/scripts/base/bif/packet_analysis.bif.zeek
+  build/scripts/base/bif/CPP-load.bif.zeek
   build/scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek
   build/scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek
   build/scripts/base/bif/event.bif.zeek

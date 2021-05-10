@@ -111,8 +111,8 @@ export {
 	## record as it is sent on to the logging framework.
 	global log_ssl: event(rec: Info);
 
-	# Hook that can be used to perform actions right before the log record
-	# is written.
+	## Hook that can be used to perform actions right before the log record
+	## is written.
 	global ssl_finishing: hook(c: connection);
 
 	## SSL finalization hook.  Remaining SSL info may get logged when it's called.

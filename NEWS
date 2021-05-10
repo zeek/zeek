@@ -49,6 +49,11 @@ New Functionality
 - A Telemetry API was added to assist in gathering arbitrary runtime metrics
   and allows potential export to Prometheus.
 
+- Experimental support for translating Zeek scripts to equivalent C++.
+  The generated C++ can then be compiled directly into the `zeek` binary,
+  replacing use of the interpreter and producing better runtime performance.
+  See `src/script_opt/CPP/README.md` for a guide on how to use this feature.
+
 Changed Functionality
 ---------------------
 

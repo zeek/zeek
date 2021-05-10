@@ -8,6 +8,12 @@
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 
+####
+# NOTE: for "use-C++", this test performs differently depending on whether
+# send.zeek and recv.zeek are compiled together (in which case the lambda
+# still works), or separately.
+####
+
 @TEST-START-FILE send.zeek
 
 redef exit_only_after_terminate = T;

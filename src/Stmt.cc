@@ -34,6 +34,7 @@ const char* stmt_name(StmtTag t)
 		"<init>", "fallthrough", "while",
 		"catch-return",
 		"check-any-length",
+		"compiled-C++",
 		"null",
 	};
 

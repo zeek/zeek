@@ -1,0 +1,7 @@
+#! /bin/sh
+
+base=../../..
+so=$base/src/script_opt/CPP
+echo > $so/CPP-gen.cc
+cd $base/build
+ninja || echo Non-embedded build failed

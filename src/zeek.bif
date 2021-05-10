@@ -2232,10 +2232,21 @@ function backtrace%(%): Backtrace
 
 	auto rval = make_intrusive<VectorVal>(backtrace_type);
 
-	for ( auto it = call_stack.rbegin(); it != call_stack.rend(); ++it )
+	// The body of the following loop can wind up adding items to
+	// the call stack (because MakeCallArgumentVector() evaluates
+	// default arguments, which can in turn involve calls to script
+	// functions), so we work from a copy of the current call stack
+	// to prevent problems with iterator invalidation.
+	auto cs_copy = call_stack;
+
+	for ( auto it = cs_copy.rbegin(); it != cs_copy.rend(); ++it )
 		{
-		auto elem = make_intrusive<RecordVal>(elem_type);
 		const auto& ci = *it;
+		if ( ! ci.func )
+			// This happens for compiled code.
+			continue;
+
+		auto elem = make_intrusive<RecordVal>(elem_type);
 
 		const auto& params = ci.func->GetType()->Params();
 		auto args = MakeCallArgumentVector(ci.args, params);

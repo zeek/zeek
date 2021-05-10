@@ -1,4 +1,18 @@
 
+4.1.0-dev.628 | 2021-05-10 12:44:25 -0700
+
+  * Add experimental support for translating Zeek scripts to equivalent C++ (Vern Paxson, Corelight)
+
+    The generated C++ can then be compiled directly into the `zeek` binary,
+    replacing use of the interpreter and producing better runtime performance.
+    See `src/script_opt/CPP/README.md` for a guide on how to use this feature.
+
+  * Add new "-a cpp" btest alternative (Vern Paxson, Corelight)
+
+  * Add VectorVal methods to leverage ZVal representation (Vern Paxson, Corelight)
+
+  * Fix backtrace BiF to avoid iterator invalidation & support compiled code (Vern Paxson, Corelight)
+
 4.1.0-dev.593 | 2021-05-10 10:17:34 +0100
 
   * Explain zeek-config options in help output (Christian Kreibich, Corelight)

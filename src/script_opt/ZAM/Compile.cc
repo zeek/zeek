@@ -661,6 +661,7 @@ const ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e)
 	auto map = r->Map();
 	auto map_size = map.size();
 	z.aux = new ZInstAux(map_size);
+	z.aux->map = map;
 
 	for ( auto i = 0; i < map_size; ++i )
 		z.aux->Add(i, map[i], nullptr);

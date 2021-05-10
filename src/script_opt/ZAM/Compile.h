@@ -163,7 +163,7 @@ private:
 	const ZAMStmt LoopOverString(const ForStmt* f, const NameExpr* val);
 
 	const ZAMStmt FinishLoop(const ZAMStmt iter_head, ZInstI iter_stmt,
-	                         const Stmt* body, int info_slot);
+	                         const Stmt* body, int info_slot, bool is_table);
 
 	const ZAMStmt Next()
 		{ return GenGoTo(nexts.back()); }

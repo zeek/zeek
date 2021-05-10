@@ -1615,7 +1615,7 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val)
 		z.aux = aux;	// so ZOpt.cc can get to it
 		}
 
-	return FinishLoop(iter_head, z, body, info);
+	return FinishLoop(iter_head, z, body, info, true);
 	}
 
 const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
@@ -1653,7 +1653,7 @@ const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	z = ZInstI(OP_NEXT_VECTOR_ITER_VVV, FrameSlot(loop_var), info, 0);
 	z.op_type = OP_VVV_I3;
 
-	return FinishLoop(iter_head, z, f->LoopBody(), info);
+	return FinishLoop(iter_head, z, f->LoopBody(), info, false);
 	}
 
 const ZAMStmt ZAMCompiler::LoopOverString(const ForStmt* f, const NameExpr* val)
@@ -1688,17 +1688,19 @@ const ZAMStmt ZAMCompiler::LoopOverString(const ForStmt* f, const NameExpr* val)
 	z.CheckIfManaged(loop_var->GetType());
 	z.op_type = OP_VVV_I3;
 
-	return FinishLoop(iter_head, z, f->LoopBody(), info);
+	return FinishLoop(iter_head, z, f->LoopBody(), info, false);
 	}
 
 const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head, ZInstI iter_stmt,
-                                      const Stmt* body, int info_slot)
+                                      const Stmt* body, int info_slot,
+                                      bool is_table)
 	{
 	auto loop_iter = AddInst(iter_stmt);
 	auto body_end = CompileStmt(body);
 
+	auto op = is_table ? OP_END_TABLE_LOOP_V : OP_END_LOOP_V;
 	auto loop_end = GoTo(GoToTarget(iter_head));
-	auto final_stmt = AddInst(ZInstI(OP_END_LOOP_V, info_slot));
+	auto final_stmt = AddInst(ZInstI(op, info_slot));
 
 	if ( iter_stmt.op_type == OP_VVV_I3 )
 		SetV3(loop_iter, GoToTarget(final_stmt));

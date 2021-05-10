@@ -421,6 +421,10 @@ public:
 
 protected:
 	void Instantiate() override;
+
+	void BuildInstruction(const vector<ZAM_OperandType>& ot,
+	                      const string& params, const string& suffix,
+	                      bool is_field, bool is_cond) override;
 };
 
 class ZAM_RelationalExprOpTemplate : public ZAM_BinaryExprOpTemplate {

@@ -1230,7 +1230,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 	auto ot_str = OpString(ot);
 
 	// Some of these might not wind up being used, but no harm in
-	// initializing them in cse they are.
+	// initializing them in case they are.
 	string lhs, op1, op2;
 	string branch_target = "z.v";
 
@@ -1249,7 +1249,8 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 		{
 		lhs = "frame[z.v1]";
 
-		auto op2_offset = is_cond ? 2 : 3;
+		auto op1_offset = is_cond ? 1 : 2;
+		auto op2_offset = op1_offset + 1;
 		bool ot1_const = ot[1] == ZAM_OT_CONSTANT;
 		bool ot2_const = Arity() >= 2 && ot[2] == ZAM_OT_CONSTANT;
 
@@ -1261,7 +1262,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
 			}
 		else
 			{
-			op1 = "frame[z.v2]";
+			op1 = "frame[z.v" + to_string(op1_offset) + "]";
 
 			if ( Arity() > 1 && ot[2] == ZAM_OT_VAR )
 				branch_target += "3";
@@ -1582,6 +1583,17 @@ void ZAM_BinaryExprOpTemplate::Instantiate()
 
 	if ( ! IsInternalOp() )
 		InstantiateV(ots);
+	}
+
+void ZAM_BinaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot,
+                                                const string& params,
+					        const string& suffix,
+                                                bool is_field, bool is_cond)
+	{
+	auto constant_op = ot[1] == ZAM_OT_CONSTANT;
+	string type_src = constant_op ? "c" : "n2";
+	Emit("auto t = " + type_src + "->GetType();");
+	BuildInstructionCore(params, suffix, is_field || is_cond);
 	}
 
 

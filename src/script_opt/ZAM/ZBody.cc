@@ -344,10 +344,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc,
 	vector<IterInfo>* iters = nullptr;
 
 	if ( fixed_frame )
-		{
 		frame = fixed_frame;
-		iters = nullptr;
-		}
 	else
 		{
 		frame = new ZVal[frame_size];

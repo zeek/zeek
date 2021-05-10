@@ -1392,8 +1392,8 @@ op1-read
 # v2 = branch target if loop done
 type VV
 eval	auto ii = frame[z.v1].iter_info;
-	auto& current_tev = ii->tbl_iter;
-	if ( current_tev == ii->tbl_end )
+	auto& current_tev = *ii->tbl_iter;
+	if ( current_tev == *ii->tbl_end )
 		BRANCH(v2)
 	auto ind_lv = ii->tv->RecreateIndex(*current_tev->GetHashKey());
 	for ( int i = 0; i < ind_lv->Length(); ++i )
@@ -1413,8 +1413,8 @@ op1-read
 # v2 = branch target if loop done
 type VV
 eval	auto ii = frame[z.v1].iter_info;
-	auto& current_tev = ii->tbl_iter;
-	if ( current_tev == ii->tbl_end )
+	auto& current_tev = *ii->tbl_iter;
+	if ( current_tev == *ii->tbl_end )
 		BRANCH(v2)
 	++current_tev;
 
@@ -1424,15 +1424,15 @@ internal-op Next-Table-Iter-Val-Var
 # v3 = branch target if loop done
 type VVV
 eval	auto ii = frame[z.v2].iter_info;
-	auto& current_tev = ii->tbl_iter;
-	if ( current_tev == ii->tbl_end )
+	auto& current_tev = *ii->tbl_iter;
+	if ( current_tev == *ii->tbl_end )
 		BRANCH(v3)
 	auto ind_lv = ii->tv->RecreateIndex(*current_tev->GetHashKey());
-	ValPtr tev_p = {NewRef{}, current_tev->GetValue<Val*>()};
+	auto tev = current_tev->GetValue<TableEntryVal*>();
 	auto val_var_t = ii->value_var_type;
 	if ( z.is_managed )
 		ZVal::DeleteManagedType(frame[z.v1]);
-	frame[z.v1] = BuildVal(tev_p, val_var_t);
+	frame[z.v1] = BuildVal(tev->GetVal(), val_var_t);
 	for ( int i = 0; i < ind_lv->Length(); i++ )
 		{
 		ValPtr ind_lv_p = ind_lv->Idx(i);
@@ -1450,14 +1450,14 @@ internal-op Next-Table-Iter-Val-Var-No-Vars
 # v3 = branch target if loop done
 type VVV
 eval	auto ii = frame[z.v2].iter_info;
-	auto& current_tev = ii->tbl_iter;
-	if ( current_tev == ii->tbl_end )
+	auto& current_tev = *ii->tbl_iter;
+	if ( current_tev == *ii->tbl_end )
 		BRANCH(v3)
-	ValPtr tev_p = {NewRef{}, current_tev->GetValue<Val*>()};
+	auto tev = current_tev->GetValue<TableEntryVal*>();
 	auto val_var_t = ii->value_var_type;
 	if ( z.is_managed )
 		ZVal::DeleteManagedType(frame[z.v1]);
-	frame[z.v1] = BuildVal(tev_p, val_var_t);
+	frame[z.v1] = BuildVal(tev->GetVal(), val_var_t);
 	++current_tev;
 
 internal-op Init-Vector-Loop
@@ -1533,7 +1533,14 @@ internal-op End-Loop
 op1-read
 type V
 eval	auto& ii = frame[z.v1].iter_info;
-	ii->vv = nullptr;
+	ii->vv = nullptr;	// not strictly needed
+
+internal-op End-Table-Loop
+op1-read
+type V
+eval	auto& ii = frame[z.v1].iter_info;
+	ii->tbl_iter = std::nullopt;
+	ii->tbl_end = std::nullopt;
 
 
 op When

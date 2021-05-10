@@ -1,3 +1,21 @@
+
+4.1.0-dev.593 | 2021-05-10 10:17:34 +0100
+
+  * Explain zeek-config options in help output (Christian Kreibich, Corelight)
+
+  * Sort variables at top of zeek-config alphabetically (Christian Kreibich, Corelight)
+
+  * Install Zeek's btest tooling with the distribution
+
+    This creates $PREFIX/share/btest in the install tree, with the
+    following folders:
+
+    - scripts/ for the canonifiers
+    - data/ for random.seed
+    - data/pcaps for the test pcaps
+
+    The pcaps can be skipped by configuring with --disable-btest-pcaps. (Christian Kreibich, Corelight)
+
 4.1.0-dev.587 | 2021-05-05 14:05:51 +0000
 
   * Merge remote-tracking branch 'origin/topic/timw/session-coverity'

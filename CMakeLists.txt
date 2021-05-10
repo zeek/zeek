@@ -539,6 +539,9 @@ if ( GooglePerftools_INCLUDE_DIR )
     set(ZEEK_CONFIG_GooglePerftools_INCLUDE_DIR ${GooglePerftools_INCLUDE_DIR})
 endif ()
 
+set(ZEEK_CONFIG_BTEST_TOOLS_DIR ${ZEEK_ROOT_DIR}/share/btest)
+install(DIRECTORY DESTINATION ${ZEEK_CONFIG_BTEST_TOOLS_DIR})
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config @ONLY)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/zeek-config DESTINATION bin)
@@ -576,6 +579,7 @@ endif ()
 add_subdirectory(src)
 add_subdirectory(scripts)
 add_subdirectory(man)
+add_subdirectory(testing)
 
 include(CheckOptionalBuildSources)
 
@@ -608,6 +612,12 @@ if (CMAKE_BUILD_TYPE)
     string(TOUPPER ${CMAKE_BUILD_TYPE} BuildType)
 endif ()
 
+if ( INSTALL_BTEST_PCAPS )
+    set(_install_btest_tools_msg "all")
+else ()
+    set(_install_btest_tools_msg "no pcaps")
+endif ()
+
 message(
     "\n====================|  Zeek Build Summary  |===================="
     "\n"
@@ -629,6 +639,7 @@ message(
     "\nZeekControl:       ${INSTALL_ZEEKCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\nBTest:             ${INSTALL_BTEST}"
+    "\nBTest tooling:     ${_install_btest_tools_msg}"
     "\nzkg:               ${INSTALL_ZKG}"
     "\n"
     "\nlibmaxminddb:      ${USE_GEOIP}"

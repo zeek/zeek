@@ -130,6 +130,12 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	ud->RemoveUnused();
 
+	int new_frame_size =
+		scope->Length() + rc->NumTemps() + rc->NumNewLocals();
+
+	if ( new_frame_size > f->FrameSize() )
+		f->SetFrameSize(new_frame_size);
+
 	if ( analysis_options.gen_ZAM )
 		{
 		ZAM = new ZAMCompiler(f, pf, scope, new_body, ud, rc);
@@ -145,12 +151,6 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 		f->ReplaceBody(body, new_body);
 		body = new_body;
 		}
-
-	int new_frame_size =
-		scope->Length() + rc->NumTemps() + rc->NumNewLocals();
-
-	if ( new_frame_size > f->FrameSize() )
-		f->SetFrameSize(new_frame_size);
 
 	pop_scope();
 	}

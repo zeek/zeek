@@ -1475,7 +1475,8 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot
 		if ( IsAssignOp() )
 			type_src = constant_op ? "n" : "n1";
 
-		Emit("auto t = " + type_src + "->GetType();");
+		auto type_suffix = zc == ZIC_VEC ? "->Yield();" : ";";
+		Emit("auto t = " + type_src + "->GetType()" + type_suffix);
 		}
 
 	BuildInstructionCore(params, suffix, zc);
@@ -1585,8 +1586,12 @@ void ZAM_BinaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& o
 	{
 	auto constant_op = ot[1] == ZAM_OT_CONSTANT;
 	string type_src = constant_op ? "c" : "n2";
-	Emit("auto t = " + type_src + "->GetType();");
+	auto type_suffix = zc == ZIC_VEC ? "->Yield();" : ";";
+	Emit("auto t = " + type_src + "->GetType()" + type_suffix);
 	BuildInstructionCore(params, suffix, zc);
+
+	if ( zc == ZIC_VEC )
+		Emit("z.t = n1->GetType();");
 	}
 
 
@@ -1625,8 +1630,12 @@ void ZAM_RelationalExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType
 	else
 		op1 = "n2";
 
-	Emit("auto t = " + op1 + "->GetType();");
+	auto type_suffix = zc == ZIC_VEC ? "->Yield();" : ";";
+	Emit("auto t = " + op1 + "->GetType()" + type_suffix);
 	BuildInstructionCore(params, suffix, zc);
+
+	if ( zc == ZIC_VEC )
+		Emit("z.t = n1->GetType();");
 	}
 
 

@@ -100,7 +100,7 @@ static bool copy_vec_elem(VectorVal* vv, int ind, ZVal zv, const TypePtr& t)
 static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2);
 
 // Binary ones *can* have managed types (strings).
-static void vec_exec(ZOp op, const TypePtr& t,
+static void vec_exec(ZOp op, TypePtr t,
                      VectorVal*& v1, VectorVal* v2, const VectorVal* v3);
 
 // Vector coercion.
@@ -1297,12 +1297,12 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 
 	auto vt = cast_intrusive<VectorType>(v2->GetType());
 	auto old_v1 = v1;
-	v1 = new VectorVal(vt, vec1_ptr);
+	v1 = new VectorVal(std::move(vt), vec1_ptr);
 	Unref(old_v1);
 	}
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
-static void vec_exec(ZOp op, const TypePtr& yt, VectorVal*& v1,
+static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1,
                      VectorVal* v2, const VectorVal* v3)
 	{
 	// See comment above re further speed-up.
@@ -1322,9 +1322,9 @@ static void vec_exec(ZOp op, const TypePtr& yt, VectorVal*& v1,
 			reporter->InternalError("bad invocation of VecExec");
 		}
 
-	auto vt = cast_intrusive<VectorType>(v2->GetType());
+	auto vt = cast_intrusive<VectorType>(std::move(t));
 	auto old_v1 = v1;
-	v1 = new VectorVal(vt, vec1_ptr);
+	v1 = new VectorVal(std::move(vt), vec1_ptr);
 	Unref(old_v1);
 	}
 

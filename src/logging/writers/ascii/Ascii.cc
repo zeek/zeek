@@ -203,7 +203,7 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	formatter = nullptr;
 	gzip_level = 0;
 	gzfile = nullptr;
-  logdir = nullptr;
+  // logdir = nullptr;
 
 	InitConfigOptions();
 	init_options = InitFilterOptions();
@@ -458,11 +458,9 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 			ext += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
 			}
 
-		fprintf(stderr,"Inside Ascii.cc logdir is now %s", logdir.c_str());
 		if ( ! logdir.empty() )
 			{
 			fname = logdir.empty() ? fname : logdir + "/" + fname;
-			fprintf(stderr,"Inside Ascii.cc fname is now %s", fname.c_str());
 			}
 
 		fname += ext;

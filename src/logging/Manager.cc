@@ -153,18 +153,14 @@ void Manager::InitPostScript()
 WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, EnumVal* tag)
 	{
 	Component* c = Lookup(tag);
-	fprintf(stderr,"Back in Manager.cc inside CreateBackend 1\n");
 	if ( ! c )
 		{
 		reporter->Error("unknown writer type requested");
 		return nullptr;
 		}
-	fprintf(stderr,"Back in Manager.cc inside CreateBackend 2\n");
 
 	WriterBackend* backend = (*c->Factory())(frontend);
-	fprintf(stderr,"Back in Manager.cc inside CreateBackend 2.8\n");
 	assert(backend);
-	fprintf(stderr,"Back in Manager.cc inside CreateBackend 3\n");
 
 	return backend;
 	}
@@ -889,7 +885,6 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				}
 
 			// CreateWriter() will set the other fields in info.
-      fprintf(stderr,"Inside Manager.cc call CreateWriter\n");
 			writer = CreateWriter(stream->id, filter->writer,
 					      info, filter->num_fields, arg_fields, filter->local,
 					      filter->remote, false, filter->name);
@@ -1230,11 +1225,8 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 	winfo->info->rotation_interval = winfo->interval;
 	winfo->info->rotation_base = util::detail::parse_rotate_base_time(base_time);
 
-	fprintf(stderr,"Inside Manager.cc inside CreateWriter 2.7\n");
 	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote);
-	fprintf(stderr,"Inside Manager.cc inside CreateWriter 2.75\n");
 	winfo->writer->Init(num_fields, fields);
-	fprintf(stderr,"Inside Manager.cc inside CreateWriter 2.8\n");
 
 	if ( ! from_remote )
 		{
@@ -1244,9 +1236,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 		                             instantiating_filter, local, remote,
 		                             *winfo->info, num_fields, fields));
 		}
-	fprintf(stderr,"Inside Manager.cc inside CreateWriter 2.9\n");
 	InstallRotationTimer(winfo);
-	fprintf(stderr,"Inside Manager.cc inside CreateWriter 3\n");
 	return winfo->writer;
 	}
 

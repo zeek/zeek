@@ -1648,8 +1648,7 @@ eval	auto r = new RecordVal(cast_intrusive<RecordType>(z.t));
 
 internal-op Init-Vector
 type V
-eval	auto vt = make_intrusive<VectorType>(z.t);
-	auto yt = vt->Yield();
+eval	auto vt = cast_intrusive<VectorType>(z.t);
 	auto vec = new VectorVal(vt);
 	Unref(frame[z.v1].vector_val);
 	frame[z.v1].vector_val = vec;

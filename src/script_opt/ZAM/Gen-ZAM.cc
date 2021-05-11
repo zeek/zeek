@@ -1110,7 +1110,8 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
 	int ncases = 0;
 
 	for ( auto& [et1, et2_map] : eval_mixed_set )
-		GenMethodTest(et1, params, suffix, ++ncases > 1, zc);
+		for ( auto& [et2, eval] : et2_map )
+			GenMethodTest(et1, et2, params, suffix, ++ncases > 1, zc);
 
 	bool do_default = false;
 
@@ -1119,7 +1120,7 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
 		if ( et == ZAM_EXPR_TYPE_DEFAULT )
 			do_default = true;
 		else
-			GenMethodTest(et, params, suffix, ++ncases > 1, zc);
+			GenMethodTest(et, et, params, suffix, ++ncases > 1, zc);
 		}
 
 	Emit("else");
@@ -1134,7 +1135,8 @@ void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params,
 		EmitUp("reporter->InternalError(\"bad tag when generating method core\");");
 	}
 
-void ZAM_ExprOpTemplate::GenMethodTest(ZAM_ExprType et, const string& params,
+void ZAM_ExprOpTemplate::GenMethodTest(ZAM_ExprType et1, ZAM_ExprType et2,
+                                       const string& params,
                                        const string& suffix, bool do_else,
 	                               ZAM_InstClass zc)
 	{
@@ -1157,10 +1159,10 @@ void ZAM_ExprOpTemplate::GenMethodTest(ZAM_ExprType et, const string& params,
 		{ ZAM_EXPR_TYPE_VECTOR, { "tag", "TYPE_VECTOR" } },
 	};
 
-	if ( if_tests.count(et) == 0 )
+	if ( if_tests.count(et1) == 0 )
 		g->Gripe("bad op-type", op_loc);
 
-	auto if_test = if_tests[et];
+	auto if_test = if_tests[et1];
 	auto if_var = if_test.first;
 	auto if_val = if_test.second;
 
@@ -1170,7 +1172,10 @@ void ZAM_ExprOpTemplate::GenMethodTest(ZAM_ExprType et, const string& params,
 
 	Emit(test);
 
-	auto op_suffix = suffix + "_" + expr_name_types[et];
+	auto op_suffix = suffix + "_" + expr_name_types[et1];
+	if ( et2 != et1 )
+		op_suffix += expr_name_types[et2];
+
 	auto op = g->GenOpCode(this, op_suffix, zc);
 	EmitUp("z = GenInst(" + op + ", " + params + ");");
 	}

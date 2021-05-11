@@ -153,6 +153,7 @@ void Manager::InitPostScript()
 WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, EnumVal* tag)
 	{
 	Component* c = Lookup(tag);
+
 	if ( ! c )
 		{
 		reporter->Error("unknown writer type requested");
@@ -885,6 +886,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				}
 
 			// CreateWriter() will set the other fields in info.
+
 			writer = CreateWriter(stream->id, filter->writer,
 					      info, filter->num_fields, arg_fields, filter->local,
 					      filter->remote, false, filter->name);
@@ -1174,7 +1176,6 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 	bool found_filter_match = false;
 	list<Filter*>::const_iterator it;
 
-
 	for ( it = stream->filters.begin(); it != stream->filters.end(); ++it )
 		{
 		Filter* f = *it;
@@ -1213,6 +1214,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 				                        winfo->info->post_proc_func);
 			}
 		}
+
 	stream->writers.insert(
 		Stream::WriterMap::value_type(Stream::WriterPathPair(writer->AsEnum(), info->path),
 		winfo));
@@ -1236,7 +1238,9 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 		                             instantiating_filter, local, remote,
 		                             *winfo->info, num_fields, fields));
 		}
+
 	InstallRotationTimer(winfo);
+
 	return winfo->writer;
 	}
 

@@ -203,7 +203,6 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	formatter = nullptr;
 	gzip_level = 0;
 	gzfile = nullptr;
-  // logdir = nullptr;
 
 	InitConfigOptions();
 	init_options = InitFilterOptions();

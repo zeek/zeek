@@ -54,6 +54,11 @@ export {
 	## This option is also available as a per-filter ``$config`` option.
 	const gzip_file_extension = "gz" &redef;
 
+  ## Default logs to current directory
+	## Can be redefined to send files into logging directory
+	##
+	const logdir = "hey" &redef;
+
 	## Format of timestamps when writing out JSON. By default, the JSON
 	## formatter will use double values for timestamps which represent the
 	## number of seconds from the UNIX epoch.

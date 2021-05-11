@@ -13,6 +13,13 @@
 using std::string;
 using std::vector;
 
+enum ZAM_InstClass {
+	ZIC_REGULAR,
+	ZIC_COND,
+	ZIC_VEC,
+	ZIC_FIELD,
+};
+
 enum ZAM_OperandType {
 	ZAM_OT_AUX,
 	ZAM_OT_CONSTANT,
@@ -87,7 +94,7 @@ enum EmitTarget {
 // Helper class.
 class ArgsManager {
 public:
-	ArgsManager(const vector<ZAM_OperandType>& ot, bool is_cond);
+	ArgsManager(const vector<ZAM_OperandType>& ot, ZAM_InstClass ic);
 
 	string Decls()			{ return full_decl; }
 	string Params()			{ return full_params; }
@@ -196,25 +203,21 @@ protected:
 
 	void UnaryInstantiate();
 	void InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_vec);
-	void InstantiateOp(const string& m,
-	                   const vector<ZAM_OperandType>& ot,
-	                   bool is_field, bool is_vec, bool is_cond);
+	void InstantiateOp(const string& m, const vector<ZAM_OperandType>& ot,
+	                   ZAM_InstClass zc);
 	void InstantiateMethod(const string& m, const string& suffix,
 	                       const vector<ZAM_OperandType>& ot,
-	                       bool is_field, bool is_vec, bool is_cond);
+	                       ZAM_InstClass zc);
 	void InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
-				   string suffix,
-	                           bool is_field, bool is_vec, bool is_cond);
+				   string suffix, ZAM_InstClass zc);
 	virtual void BuildInstruction(const vector<ZAM_OperandType>& ot,
 	                              const string& params,
-	                              const string& suffix,
-	                              bool is_field, bool is_cond);
+	                              const string& suffix, ZAM_InstClass zc);
 
 	virtual void InstantiateEval(const vector<ZAM_OperandType>& ot,
-	                             const string& suffix,
-	                             bool is_field, bool is_vec, bool is_cond);
+	                             const string& suffix, ZAM_InstClass zc);
 	void InstantiateEval(EmitTarget et, const string& op_suffix,
-	                     const string& eval, bool op1_always_read);
+	                     const string& eval, ZAM_InstClass zc);
 
 	void InstantiateAssignOp(const vector<ZAM_OperandType>& ot,
 	                         const string& suffix);
@@ -224,7 +227,7 @@ protected:
 
 	string MethodName(const vector<ZAM_OperandType>& ot) const;
 	string MethodDeclare(const vector<ZAM_OperandType>& ot,
-	                     bool is_field, bool is_cond);
+	                     ZAM_InstClass zc);
 	string OpString(const vector<ZAM_OperandType>& ot) const;
 
 	string SkipWS(const string& s) const;
@@ -347,14 +350,12 @@ protected:
 	void DoVectorCase(const string& m, const string& args);
 
 	void BuildInstructionCore(const string& params, const string& suffix,
-	                          bool op1_always_read);
+	                          ZAM_InstClass zc);
 
 	void InstantiateEval(const vector<ZAM_OperandType>& ot,
-	                     const string& suffix, bool is_field,
-	                     bool is_vec, bool is_cond) override;
+	                     const string& suffix, ZAM_InstClass zc) override;
 	void GenMethodTest(ZAM_ExprType et, const string& params,
-	                   const string& suffix, bool do_else,
-	                   bool op1_always_read);
+	                   const string& suffix, bool do_else, ZAM_InstClass zc);
 
 private:
 	std::unordered_set<ZAM_ExprType> expr_types;
@@ -390,7 +391,7 @@ protected:
 
 	void BuildInstruction(const vector<ZAM_OperandType>& ot,
 	                      const string& params, const string& suffix,
-	                      bool is_field, bool is_cond) override;
+	                      ZAM_InstClass zc) override;
 };
 
 class ZAM_AssignOpTemplate : public ZAM_UnaryExprOpTemplate {
@@ -424,7 +425,7 @@ protected:
 
 	void BuildInstruction(const vector<ZAM_OperandType>& ot,
 	                      const string& params, const string& suffix,
-	                      bool is_field, bool is_cond) override;
+	                      ZAM_InstClass zc) override;
 };
 
 class ZAM_RelationalExprOpTemplate : public ZAM_BinaryExprOpTemplate {
@@ -448,7 +449,7 @@ protected:
 
 	void BuildInstruction(const vector<ZAM_OperandType>& ot,
 	                      const string& params, const string& suffix,
-	                      bool is_field, bool is_cond) override;
+	                      ZAM_InstClass zc) override;
 };
 
 class ZAM_InternalBinaryOpTemplate : public ZAM_BinaryExprOpTemplate {
@@ -470,8 +471,7 @@ protected:
 	void Parse(const string& attr, const string& line, const Words& words) override;
 
 	void InstantiateEval(const vector<ZAM_OperandType>& ot,
-	                     const string& suffix, bool is_field,
-	                     bool is_vec, bool is_cond) override;
+	                     const string& suffix, ZAM_InstClass zc) override;
 
 private:
 	string op1_accessor;
@@ -544,7 +544,7 @@ public:
 	void PutBack(const string& line)	{ ti->PutBack(line); }
 
 	string GenOpCode(const ZAM_OpTemplate* ot, const string& suffix,
-	                 bool op1_always_read = false);
+	                 ZAM_InstClass zc = ZIC_REGULAR);
 
 	void Emit(EmitTarget et, const string& s);
 	void IndentUp()			{ ++indent_level; }

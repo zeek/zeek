@@ -32,7 +32,7 @@ struct TypeInfo {
 
 static vector<TypeInfo> ZAM_type_info = {
 	{ "TYPE_ADDR",		ZAM_EXPR_TYPE_ADDR,	"A", "Addr", true },
-	{ "TYPE_ANY",		ZAM_EXPR_TYPE_ANY,	"any", "Any", true },
+	{ "TYPE_ANY",		ZAM_EXPR_TYPE_ANY,	"a", "Any", true },
 	{ "TYPE_COUNT",		ZAM_EXPR_TYPE_UINT,	"U", "Count", false },
 	{ "TYPE_DOUBLE",	ZAM_EXPR_TYPE_DOUBLE,	"D", "Double", false },
 	{ "TYPE_FILE",		ZAM_EXPR_TYPE_FILE,	"f", "File", true },
@@ -687,7 +687,26 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 
 	string rhs = constant_op ? "z.c" : "frame[z.v2]";
 
-	if ( rhs_field )
+	if ( accessor == "Any" && constant_op && ! rhs_field )
+		{
+		// "any_val = constant" or "x$any_val = constant".
+		//
+		// These require special-casing, because to avoid going
+		// through a CoerceToAny operation, we allow expressing
+		// these directly.  They don't fit with the usual assignment
+		// paradigm since the RHS differs in type from the LHS.
+		Emit("auto v = z.c.ToVal(z.t);");
+
+		if ( lhs_field )
+			Emit("auto& f = frame[z.v1].AsRecord()->RawField(z.v2);");
+		else
+			Emit("auto& f = frame[z.v1];");
+
+		Emit("zeek::Unref(f.AsAny());");
+		Emit("f = ZVal(v.release());");
+		}
+
+	else if ( rhs_field )
 		{
 		// The following is counter-intuitive, but comes from the
 		// fact that we build out the instruction parameters as

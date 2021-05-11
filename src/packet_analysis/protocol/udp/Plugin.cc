@@ -13,7 +13,7 @@ public:
 		AddComponent(new zeek::packet_analysis::Component("UDP",
 		                 zeek::packet_analysis::UDP::UDPAnalyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component("UDP",
-		                 zeek::packet_analysis::UDP::UDPTransportAnalyzer::Instantiate));
+		                 zeek::packet_analysis::UDP::UDPSessionAdapter::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::UDP";

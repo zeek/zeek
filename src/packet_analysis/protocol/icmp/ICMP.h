@@ -17,7 +17,7 @@ using RecordValPtr = IntrusivePtr<RecordVal>;
 
 namespace packet_analysis::ICMP {
 
-class ICMPTransportAnalyzer;
+class ICMPSessionAdapter;
 
 class ICMPAnalyzer final : public IP::IPBasedAnalyzer {
 public:
@@ -29,7 +29,7 @@ public:
 		return std::make_shared<ICMPAnalyzer>();
 		}
 
-	packet_analysis::IP::IPBasedTransportAnalyzer* MakeTransportAnalyzer(Connection* conn) override;
+	packet_analysis::IP::SessionAdapter* MakeSessionAdapter(Connection* conn) override;
 
 protected:
 
@@ -46,34 +46,34 @@ private:
 
 	void NextICMP4(double t, const struct icmp* icmpp, int len, int caplen,
 	               const u_char*& data, const IP_Hdr* ip_hdr,
-	               ICMPTransportAnalyzer* analyzer);
+	               ICMPSessionAdapter* adapter);
 
 	void NextICMP6(double t, const struct icmp* icmpp, int len, int caplen,
 	               const u_char*& data, const IP_Hdr* ip_hdr,
-	               ICMPTransportAnalyzer* analyzer);
+	               ICMPSessionAdapter* adapter);
 
 	void ICMP_Sent(const struct icmp* icmpp, int len, int caplen, int icmpv6,
 	               const u_char* data, const IP_Hdr* ip_hdr,
-	               ICMPTransportAnalyzer* analyzer);
+	               ICMPSessionAdapter* adapter);
 
 	void Echo(double t, const struct icmp* icmpp, int len,
 	          int caplen, const u_char*& data, const IP_Hdr* ip_hdr,
-	          ICMPTransportAnalyzer* analyzer);
+	          ICMPSessionAdapter* adapter);
 	void Redirect(double t, const struct icmp* icmpp, int len,
 	              int caplen, const u_char*& data, const IP_Hdr* ip_hdr,
-	              ICMPTransportAnalyzer* analyzer);
+	              ICMPSessionAdapter* adapter);
 	void RouterAdvert(double t, const struct icmp* icmpp, int len,
 	                  int caplen, const u_char*& data, const IP_Hdr* ip_hdr,
-	                  ICMPTransportAnalyzer* analyzer);
+	                  ICMPSessionAdapter* adapter);
 	void NeighborAdvert(double t, const struct icmp* icmpp, int len,
 	                    int caplen, const u_char*& data, const IP_Hdr* ip_hdr,
-	                    ICMPTransportAnalyzer* analyzer);
+	                    ICMPSessionAdapter* adapter);
 	void NeighborSolicit(double t, const struct icmp* icmpp, int len,
 	                     int caplen, const u_char*& data, const IP_Hdr* ip_hdr,
-	                     ICMPTransportAnalyzer* analyzer);
+	                     ICMPSessionAdapter* adapter);
 	void RouterSolicit(double t, const struct icmp* icmpp, int len,
 	                   int caplen, const u_char*& data, const IP_Hdr* ip_hdr,
-	                   ICMPTransportAnalyzer* analyzer);
+	                   ICMPSessionAdapter* adapter);
 
 	RecordValPtr BuildInfo(const struct icmp* icmpp, int len,
 	                       bool icmpv6, const IP_Hdr* ip_hdr);
@@ -82,7 +82,7 @@ private:
 
 	void Context4(double t, const struct icmp* icmpp, int len, int caplen,
 	              const u_char*& data, const IP_Hdr* ip_hdr,
-	              ICMPTransportAnalyzer* analyzer);
+	              ICMPSessionAdapter* adapter);
 
 	TransportProto GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t* src_port,
 	                                  uint32_t* dst_port);
@@ -91,11 +91,11 @@ private:
 
 	void Context6(double t, const struct icmp* icmpp, int len, int caplen,
 	              const u_char*& data, const IP_Hdr* ip_hdr,
-	              ICMPTransportAnalyzer* analyzer);
+	              ICMPSessionAdapter* adapter);
 
 	// RFC 4861 Neighbor Discover message options
 	VectorValPtr BuildNDOptionsVal(int caplen, const u_char* data,
-	                               ICMPTransportAnalyzer* analyzer);
+	                               ICMPSessionAdapter* adapter);
 
 	void UpdateEndpointVal(const ValPtr& endp, bool is_orig);
 
@@ -105,16 +105,16 @@ private:
 	int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 	};
 
-class ICMPTransportAnalyzer final : public IP::IPBasedTransportAnalyzer {
+class ICMPSessionAdapter final : public IP::SessionAdapter {
 
 public:
 
-	ICMPTransportAnalyzer(Connection* conn) :
-		IP::IPBasedTransportAnalyzer("ICMP", conn) { }
+	ICMPSessionAdapter(Connection* conn) :
+		IP::SessionAdapter("ICMP", conn) { }
 
 	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{
-		return new ICMPTransportAnalyzer(conn);
+		return new ICMPSessionAdapter(conn);
 		}
 
 	void AddExtraAnalyzers(Connection* conn) override;

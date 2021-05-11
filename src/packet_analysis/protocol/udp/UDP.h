@@ -51,7 +51,7 @@ protected:
 	bool WantConnection(uint16_t src_port, uint16_t dst_port,
 	                    const u_char* data, bool& flip_roles) const override;
 
-	packet_analysis::IP::IPBasedTransportAnalyzer* MakeTransportAnalyzer(Connection* conn) override;
+	packet_analysis::IP::SessionAdapter* MakeSessionAdapter(Connection* conn) override;
 	analyzer::pia::PIA* MakePIA(Connection* conn) override;
 
 private:
@@ -67,16 +67,16 @@ private:
 	std::vector<uint16_t> vxlan_ports;
 };
 
-class UDPTransportAnalyzer final : public IP::IPBasedTransportAnalyzer {
+class UDPSessionAdapter final : public IP::SessionAdapter {
 
 public:
 
-	UDPTransportAnalyzer(Connection* conn) :
-		IP::IPBasedTransportAnalyzer("UDP", conn) { }
+	UDPSessionAdapter(Connection* conn) :
+		IP::SessionAdapter("UDP", conn) { }
 
 	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
 		{
-		return new UDPTransportAnalyzer(conn);
+		return new UDPSessionAdapter(conn);
 		}
 
 	void AddExtraAnalyzers(Connection* conn) override;
@@ -85,8 +85,7 @@ public:
 	void UpdateLength(bool is_orig, int len);
 
 	// For tracking checksum history. These are connection-specific so they
-	// need to be stored in the transport analyzer created for each
-	// connection.
+	// need to be stored in the session adapter created for each connection.
 	uint32_t req_chk_cnt = 0;
 	uint32_t req_chk_thresh = 1;
 	uint32_t rep_chk_cnt = 0;

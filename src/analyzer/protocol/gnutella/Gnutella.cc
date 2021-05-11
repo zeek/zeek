@@ -129,7 +129,7 @@ bool Gnutella_Analyzer::IsHTTP(std::string header)
 		if ( Parent()->IsAnalyzer("TCP") )
 			{
 			// Replay buffered data.
-			analyzer::pia::PIA* pia = static_cast<analyzer::TransportLayerAnalyzer *>(Parent())->GetPIA();
+			analyzer::pia::PIA* pia = static_cast<packet_analysis::IP::SessionAdapter*>(Parent())->GetPIA();
 			if ( pia )
 				static_cast<analyzer::pia::PIA_TCP *>(pia)->ReplayStreamBuffer(a);
 			}

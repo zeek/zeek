@@ -18,6 +18,15 @@ public:
 		return std::make_shared<TCPAnalyzer>();
 		}
 
+	/**
+	 * Returns an adapter appropriate for this IP-based analyzer. This adapter is used to
+	 * hook into the session analyzer framework. This function can also be used to do any
+	 * extra initialization of connection timers, etc.
+	 *
+	 * TODO: this is a stub until the TCP analyzer moves to the packet analysis framework.
+	 */
+	IP::SessionAdapter* MakeSessionAdapter(Connection* conn) override { return nullptr; }
+
 protected:
 
 	/**

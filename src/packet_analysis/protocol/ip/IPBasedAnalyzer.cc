@@ -218,7 +218,7 @@ zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const detail::Co
 
 bool IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 	{
-	packet_analysis::IP::IPBasedTransportAnalyzer* root = MakeTransportAnalyzer(conn);
+	SessionAdapter* root = MakeSessionAdapter(conn);
 	analyzer::pia::PIA* pia = MakePIA(conn);
 
 	// TODO: temporary, can be replaced when the port lookup stuff is moved from analyzer_mgr
@@ -262,7 +262,7 @@ bool IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 	if ( pia )
 		root->AddChildAnalyzer(pia->AsAnalyzer());
 
-	conn->SetRootAnalyzer(root, pia);
+	conn->SetSessionAdapter(root, pia);
 	root->Init();
 	root->InitChildren();
 

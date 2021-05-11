@@ -4,6 +4,7 @@
 
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 
@@ -11,11 +12,9 @@ namespace zeek::analyzer::pia { class PIA; }
 
 namespace zeek::packet_analysis::IP {
 
-class IPBasedTransportAnalyzer;
-
 /**
- * A base class for any packet analyzer based on IP. This is used by default by
- * the TCP, UDP, and ICMP analyzers to reduce a large amount of duplicated code
+ * A base class for reuse by packet analyzers based on IP. This is used by default
+ * by the TCP, UDP, and ICMP analyzers to reduce a large amount of duplicated code
  * that those plugins have in common.
  */
 class IPBasedAnalyzer : public Analyzer {
@@ -91,13 +90,15 @@ protected:
 		}
 
 	/**
-	 * Returns a transport analyzer appropriate for this IP-based analyzer. This
-	 * can also be used to do any extra initialization of connection timers, etc.
+	 * Returns an analyzer adapter appropriate for this IP-based analyzer. This adapter
+	 * is used to hook into the session analyzer framework. This function can also be used
+	 * to do any extra initialization of connection timers, etc.
 	 */
-	virtual IPBasedTransportAnalyzer* MakeTransportAnalyzer(Connection* conn) { return nullptr; }
+	virtual SessionAdapter* MakeSessionAdapter(Connection* conn) = 0;
 
 	/**
-	 * Returns a PIA appropriate for this IP-based analyzer.
+	 * Returns a PIA appropriate for this IP-based analyzer. This method is optional to
+	 * override in child classes, as not all analyzers need a PIA.
 	 */
 	virtual analyzer::pia::PIA* MakePIA(Connection* conn) { return nullptr; }
 
@@ -143,46 +144,6 @@ private:
 
 	TransportProto transport;
 	uint32_t server_port_mask;
-};
-
-/**
- * This class represents the interface between the packet analysis framework and
- * the session analysis framework. One of these should be implemented for each
- * packet analyzer that intends to forward into the session analysis.
- */
-class IPBasedTransportAnalyzer : public zeek::analyzer::TransportLayerAnalyzer {
-
-public:
-
-	IPBasedTransportAnalyzer(const char* name, Connection* conn)
-		: TransportLayerAnalyzer(name, conn) { }
-
-	/**
-	 * Sets the parent packet analyzer for this transport analyzer. This can't be passed to
-	 * the constructor due to the way that TransportLayerAnalyzer gets instantiated.
-	 *
-	 * @param p The parent packet analyzer to store
-	 */
-	void SetParent(IPBasedAnalyzer* p) { parent = p; }
-
-	/**
-	 * Returns true if the analyzer determines that in fact a new connection has started
-	 * without the connection statement having terminated the previous one, i.e., the new
-	 * data is arriving at what's the analyzer for the previous instance. This is used only
-	 * for TCP.
-	 */
-	bool IsReuse(double t, const u_char* pkt) override { return parent->IsReuse(t, pkt); }
-
-	/**
-	 * Pure virtual method to allow extra session analzyers to be added to this analyzer's
-	 * tree of children. This is used by analyzer::Manager when creating the session analyzer
-	 * tree.
-	 */
-	virtual void AddExtraAnalyzers(Connection* conn) = 0;
-
-protected:
-
-	IPBasedAnalyzer* parent;
 };
 
 }

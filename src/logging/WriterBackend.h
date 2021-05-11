@@ -60,6 +60,7 @@ public:
 		 */
 		const char* path;
 
+		const char* logdir;
 		/**
 		 * The name of the postprocessor function that will be called
 		 * upon the logging manager processing the "rotation finished"

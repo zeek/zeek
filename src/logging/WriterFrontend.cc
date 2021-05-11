@@ -114,6 +114,8 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 	const char* w = arg_writer->GetType()->AsEnumType()->Lookup(arg_writer->InternalInt());
 	name = util::copy_string(util::fmt("%s/%s", arg_info.path, w));
 
+	fprintf(stderr,"Inside WriterFrontend.cc call CreateBackend 2.5\n");
+
 	if ( local )
 		{
 		backend = log_mgr->CreateBackend(this, writer);

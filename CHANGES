@@ -1,3 +1,6 @@
+4.1.0-dev.631 | 2021-05-11 09:26:37 -0700
+
+  * Add unit tests to ZeekString.cc (Tim Wojtulewicz)
 
 4.1.0-dev.628 | 2021-05-10 12:44:25 -0700
 

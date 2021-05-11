@@ -334,6 +334,7 @@ void ZAMCompiler::Init()
 			(void) AddToFrame(non_const_l);
 		}
 
+#if 0
 	// Complain about unused aggregates ... but not if we're inlining,
 	// as that can lead to optimizations where they wind up being unused
 	// but the original logic for using them was sound.
@@ -343,6 +344,7 @@ void ZAMCompiler::Init()
 			if ( pf->Locals().find(a) == pf->Locals().end() )
 				reporter->Warning("%s unused", a->Name());
 			}
+#endif
 
 	for ( auto& slot : frame_layout1 )
 		{

@@ -44,12 +44,12 @@ op-type U
 eval ~ $1
 
 unary-expr-op Positive
-op-type I D
+op-type I U D
 vector
 eval $1
 
 unary-expr-op Negate
-op-type I D
+op-type I U D
 vector
 eval -$1
 

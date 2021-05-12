@@ -690,7 +690,7 @@ eval	auto vec = frame[z.v2].vector_val;
 internal-op Table-Index
 type VV
 eval	auto v2 = z.aux->ToListVal(frame);
-	auto v = frame[z.v2].table_val->Find(v2);
+	auto v = frame[z.v2].table_val->FindOrDefault(v2);
 	if ( ! v )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(BuildVal(v, z.t))
@@ -699,7 +699,7 @@ internal-assignment-op Table-Index1
 type VVV
 assign-val v
 eval	auto v2 = frame[z.v3].ToVal(z.t);
-	auto v = frame[z.v2].table_val->Find(v2);
+	auto v = frame[z.v2].table_val->FindOrDefault(v2);
 	if ( ! v )
 		ZAM_run_time_error(z.loc, "no such index");
 
@@ -707,7 +707,7 @@ internal-assignment-op Table-Index1
 type VVC
 assign-val v
 eval	auto v2 = z.c.ToVal(z.t);
-	auto v = frame[z.v2].table_val->Find(v2);
+	auto v = frame[z.v2].table_val->FindOrDefault(v2);
 	if ( ! v )
 		ZAM_run_time_error(z.loc, "no such index");
 

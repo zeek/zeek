@@ -290,11 +290,18 @@ assign-op Field
 type R
 field-op
 assign-val v
-eval	auto rv = frame[z.v2].record_val->RawOptField(z.v3);
+eval	auto r = frame[z.v2].record_val;
+	auto rv = r->RawOptField(z.v3);
 	if ( ! rv )
 		{
-		ZAM_run_time_error(z.loc, util::fmt("field value missing: $%s", frame[z.v2].record_val->GetType()->AsRecordType()->FieldName(z.v3)));
-		break;
+		auto def = r->GetType<RecordType>()->FieldDefault(z.v3);
+		if ( def )
+			rv = ZVal(def, z.t);
+		else
+			{
+			ZAM_run_time_error(z.loc, util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName(z.v3)));
+			break;
+			}
 		}
 	auto v = *rv;
 

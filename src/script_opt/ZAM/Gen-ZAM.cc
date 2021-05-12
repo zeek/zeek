@@ -1504,6 +1504,9 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot
 		}
 
 	BuildInstructionCore(params, suffix, zc);
+
+	if ( IsAssignOp() )
+		Emit("z.t = t;");
 	}
 
 

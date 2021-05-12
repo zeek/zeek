@@ -663,17 +663,6 @@ eval	auto vv = frame[z.v2].vector_val->RawVec();
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(CopyVal(*vec[ind]))
 
-internal-op Index-Any-Vec
-type VVV
-eval	auto vv = frame[z.v2].vector_val;
-	const auto& vec = *vv->RawVec();
-	auto ind = frame[z.v3].uint_val;
-	if ( ind >= vec.size() )
-		ZAM_run_time_error(z.loc, "no such index");
-	auto v = vec[ind]->ToVal(vv->GetType()->Yield());
-	Unref(frame[z.v1].any_val);
-	frame[z.v1].any_val = v.release();
-
 internal-op Index-VecC
 type VVV
 eval	auto vv = frame[z.v2].vector_val->RawVec();
@@ -682,17 +671,6 @@ eval	auto vv = frame[z.v2].vector_val->RawVec();
 	if ( ind >= vv->size() )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(CopyVal(*vec[ind]))
-
-internal-op Index-Any-VecC
-type VVV
-eval	auto vv = frame[z.v2].vector_val;
-	const auto& vec = *vv->RawVec();
-	unsigned int ind = z.v3;
-	if ( ind >= vec.size() )
-		ZAM_run_time_error(z.loc, "no such index");
-	auto v = vec[ind]->ToVal(vv->GetType()->Yield());
-	Unref(frame[z.v1].any_val);
-	frame[z.v1].any_val = v.release();
 
 internal-op Index-Vec-Slice
 type VV
@@ -994,25 +972,7 @@ unary-expr-op From-Any-Coerce
 op-type X
 set-type $1
 eval	auto v = frame[z.v2].any_val;
-	if ( z.t->Tag() == TYPE_VECTOR )
-		{
-		auto t = v->GetType();
-		if ( t->Tag() != TYPE_VECTOR )
-			{
-			ZAM_run_time_error(z.loc, "RHS is not a vector");
-			break;
-			}
-		if ( ! same_type(z.t, t) )
-			{
-			ZAM_run_time_error(z.loc, "incompatible vectors");
-			break;
-			}
-		zeek::Ref(v);
-		Unref(frame[z.v1].vector_val);
-		frame[z.v1].vector_val = v->AsVectorVal();
-		}
-	else
-		AssignV1(ZVal({NewRef{}, v}, z.t))
+	AssignV1(ZVal({NewRef{}, v}, z.t))
 
 
 ########## Aggregate Assignments ##########
@@ -1032,7 +992,8 @@ type VVV
 eval	auto ind = frame[z.v2].uint_val;
 	auto vv = frame[z.v1].vector_val;
 	auto any_v = frame[z.v3].any_val;
-	vv->Assign(ind, {NewRef{}, any_v});
+	if ( ! vv->Assign(ind, {NewRef{}, any_v}) )
+		ZAM_run_time_error(z.loc, "vector index assignment failed for invalid type");
 
 op Vector-Elem-Assign
 op1-read
@@ -1782,52 +1743,6 @@ type X
 eval	flow = FLOW_BREAK;
 	pc = end_pc;
 	continue;
-
-
-# Make sure that the given vector-of-any is either empty or in fact
-# has the expected concrete internal type.
-internal-op Check-Any-Vec
-op1-read
-type V
-eval	auto any_vec = frame[z.v1].vector_val;
-	auto at = any_vec->GetType()->Yield();
-	if ( ! at )
-		break;
-	if ( at->Tag() == TYPE_ANY && any_vec->Size() > 0 )
-		reporter->InternalError("non-concrete vector-of-any");
-	if ( ! CheckAnyType(at, z.t, z.loc) )
-		ZAM_error = true;
-
-# Transform the given vector-of-any to a concrete internal type.
-internal-op Transform-Any-Vec
-op1-read-write
-type V
-eval	auto any_vec = frame[z.v1].vector_val;
-	auto at = any_vec->GetType()->Yield();
-	if ( ! at || at->Tag() == TYPE_ANY )
-		{
-		if ( at && any_vec->Size() > 0 )
-			reporter->InternalError("concretizing non-empty vector-of-any");
-		}
-
-# Transform the given vector-of-any (v1) to be compatible with having one of
-# its elements assigned to the dynamic type of the "any" value (v2).
-internal-op Transform-Any-Vec2
-op1-read-write
-type VV
-eval	auto vt = frame[z.v2].any_val->GetType();
-	auto any_vec = frame[z.v1].vector_val;
-	auto at = any_vec->GetType()->Yield();
-	if ( ! at || at->Tag() == TYPE_ANY )
-		{
-		if ( at && any_vec->Size() > 0 )
-			reporter->InternalError("concretizing non-empty vector-of-any");
-		}
-	else if ( ! same_type(at, vt) )
-		{
-		reporter->Error("inconsistent types for vector-of-any: %s vs. %s", type_name(at->Tag()), type_name(vt->Tag()));
-		ZAM_error = true;
-		}
 
 
 ########################################

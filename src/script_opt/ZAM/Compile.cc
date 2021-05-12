@@ -1406,24 +1406,6 @@ const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e)
 	auto lhs = op1->AsNameExpr();
 	auto lt = lhs->GetType();
 
-	if ( IsAnyVec(lt) )
-		{
-		ZInstI z;
-
-		if ( any_val )
-			// No need to set the type, as it's retrieved
-			// dynamically.
-			z = GenInst(OP_TRANSFORM_ANY_VEC2_VV, lhs,
-			            op3->AsNameExpr());
-		else
-			{
-			z = GenInst(OP_TRANSFORM_ANY_VEC_V, lhs);
-			z.SetType(op3->GetType());
-			}
-
-		AddInst(z);
-		}
-
 	auto indexes_expr = index_assign->GetOp2()->AsListExpr();
 	auto indexes = indexes_expr->Exprs();
 
@@ -2352,20 +2334,17 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot,
 		if ( n2tag == TYPE_VECTOR )
 			{
 			auto n2_yt = n2t->AsVectorType()->Yield();
-			bool is_any = n2_yt->Tag() == TYPE_ANY;
 
 			if ( n3 )
 				{
 				int n3_slot = FrameSlot(n3);
-				auto zop = is_any ? OP_INDEX_ANY_VEC_VVV :
-				                    OP_INDEX_VEC_VVV;
+				auto zop = OP_INDEX_VEC_VVV;
 				z = ZInstI(zop, Frame1Slot(n1, zop),
 				           n2_slot, n3_slot);
 				}
 			else
 				{
-				auto zop = is_any ? OP_INDEX_ANY_VECC_VVV :
-				                    OP_INDEX_VECC_VVV;
+				auto zop = OP_INDEX_VECC_VVV;
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c);
 				z.op_type = OP_VVV_I3;
 				}

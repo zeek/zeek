@@ -1649,7 +1649,9 @@ void ZAM_RelationalExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType
 
 	if ( zc == ZIC_COND )
 		{
-		if ( ot[1] == ZAM_OT_CONSTANT || ot[2] == ZAM_OT_CONSTANT )
+		if ( ot[1] == ZAM_OT_CONSTANT )
+			op1 = "c";
+		else if ( ot[2] == ZAM_OT_CONSTANT )
 			op1 = "n";
 		else
 			op1 = "n1";

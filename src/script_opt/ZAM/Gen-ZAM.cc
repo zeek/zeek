@@ -1785,8 +1785,12 @@ void ZAM_InternalOpTemplate::Parse(const string& attr, const string& line,
 			if ( is_indirect_call )
 				{
 				func = "func";
-				eval += "auto func = frame[z.v";
-				eval += to_string(arg_slot) + "].AsFunc();\n";
+
+				eval += "auto sel = z.v" + to_string(arg_slot) +
+				        ";\n";
+				eval += "auto func = (sel < 0) ? ";
+				eval += "aux->id_val->GetVal()->AsFunc() : ";
+				eval += "frame[sel].AsFunc();\n";
 				}
 
 			eval += "auto n = aux->n;\n";

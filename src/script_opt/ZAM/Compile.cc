@@ -388,7 +388,7 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 	int nargs = args.length();
 	int call_case = nargs;
 
-	bool indirect = ! func_id->IsGlobal();
+	bool indirect = ! func_id->IsGlobal() || ! func_id->GetVal();
 
 	if ( indirect )
 		call_case = -1;	// force default of CallN
@@ -467,9 +467,12 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 			op = AssignmentFlavor(op, nt);
 			auto n_slot = Frame1Slot(n, OP1_WRITE);
 
-			if ( indirect)
+			if ( indirect )
 				{
-				z = ZInstI(op, n_slot, FrameSlot(func));
+				if ( func_id->IsGlobal() )
+					z = ZInstI(op, n_slot, -1);
+				else
+					z = ZInstI(op, n_slot, FrameSlot(func));
 				z.op_type = OP_VV;
 				}
 
@@ -483,7 +486,10 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 			{
 			if ( indirect )
 				{
-				z = ZInstI(op, FrameSlot(func));
+				if ( func_id->IsGlobal() )
+					z = ZInstI(op, -1);
+				else
+					z = ZInstI(op, FrameSlot(func));
 				z.op_type = OP_V;
 				}
 			else
@@ -496,13 +502,15 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 		z.aux = aux;
 		}
 
-	if ( ! indirect )
+	if ( ! indirect || func_id->IsGlobal() )
 		{
 		if ( ! z.aux )
 			z.aux = new ZInstAux(0);
 
-		z.aux->id_val = func_id;	// remember for save file
-		z.func = func_id->GetVal()->AsFunc();
+		z.aux->id_val = func_id;
+
+		if ( ! indirect )
+			z.func = func_id->GetVal()->AsFunc();
 		}
 
 	if ( n )

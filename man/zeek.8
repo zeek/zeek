@@ -16,6 +16,8 @@ tasks, including detecting malware by interfacing to external registries,
 reporting vulnerable versions of software seen on the network, identifying
 popular web applications, detecting SSH brute-forcing, validating SSL
 certificate chains, among others.
+
+You must have read access to the files or interfaces specified.
 .SH OPTIONS
 .TP
 .B <file>
@@ -148,6 +150,28 @@ Output file for script execution statistics
 .TP
 .B ZEEK_DISABLE_ZEEKYGEN
 Disable Zeekygen (Broxygen) documentation support
+.SH OUTPUT FORMAT
+Output is written in multiple files depending on configuration. Default
+location is the current directory. Packets can be written to a tcpdump file.
+
+The output written by Zeek can be formatted in multiple ways using the
+logging framework.
+.PP
+The default are files in human-readable (ASCII) format and data is organized
+into columns (tab-delimited), They can be processed by the \fBzeek-cut\fR tool.
+
+
+.SH EXAMPLES
+Read a capture file:
+.br
+    # zeek -r test-capture.pcap
+.PP
+Usually Zeek is started by running \fBzeekctl\fR. To configure Zeek with an initial
+configuration, install, and restart:
+.br
+    # zeekctl deploy
+.SH SEE ALSO
+zeekctl(8) zeek-cut(1)
 .SH AUTHOR
 .B zeek
 was written by The Zeek Project <info@zeek.org>.

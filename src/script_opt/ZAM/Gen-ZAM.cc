@@ -1236,14 +1236,18 @@ struct EvalInstance {
 	bool is_def;
 };
 
-void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot,
+void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot_orig,
                                          const string& suffix, ZAM_InstClass zc)
 	{
 	if ( expr_types.size() == 0 )
 		{ // No operand types to expand over.
-		ZAM_OpTemplate::InstantiateEval(ot, suffix, zc);
+		ZAM_OpTemplate::InstantiateEval(ot_orig, suffix, zc);
 		return;
 		}
+
+	auto ot = ot_orig;
+	if ( zc == ZIC_FIELD )
+		ot.emplace_back(ZAM_OT_INT);
 
 	auto ot_str = OpString(ot);
 

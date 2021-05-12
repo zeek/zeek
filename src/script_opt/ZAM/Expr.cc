@@ -156,6 +156,10 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e)
 		return AnyIndexVVi(lhs, r1->AsNameExpr(),
 		                   rhs->AsAnyIndexExpr()->Index());
 
+	if ( rhs->Tag() == EXPR_COND && r1->GetType()->Tag() == TYPE_VECTOR )
+		return Bool_Vec_CondVVVV(lhs, r1->AsNameExpr(), r2->AsNameExpr(),
+		                         r3->AsNameExpr());
+
 	if ( rhs->Tag() == EXPR_COND && r2->IsConst() && r3->IsConst() )
 		{
 		// Split into two statement, given we don't support

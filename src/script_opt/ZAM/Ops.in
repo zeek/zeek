@@ -564,6 +564,21 @@ type VVCV
 set-type $3
 eval	AssignV1(frame[z.v2].int_val ? CopyVal(z.c) : CopyVal(frame[z.v3]))
 
+op Bool-Vec-Cond
+type VVVV
+set-type $3
+eval	auto& vsel = *frame[z.v2].vector_val->RawVec();
+	auto& v1 = *frame[z.v3].vector_val->RawVec();
+	auto& v2 = *frame[z.v4].vector_val->RawVec();
+	auto n = v1.size();
+	auto res = new vector<std::optional<ZVal>>(n);
+	for ( auto i = 0U; i < n; ++i )
+		if ( vsel[i] )
+			(*res)[i] = vsel[i]->int_val ? v1[i] : v2[i];
+	auto& full_res = frame[z.v1].vector_val;
+	Unref(full_res);
+	full_res = new VectorVal(cast_intrusive<VectorType>(z.t), res); 
+
 # Our statement structure doesn't accommodate two constants, so for
 # the singular case of a V ? C1 : C2 conditional, we split it into
 # two operations, V ? C1 and !V ? C2.

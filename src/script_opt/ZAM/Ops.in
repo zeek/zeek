@@ -986,6 +986,15 @@ eval	auto ind = frame[z.v2].uint_val;
 	if ( ! copy_vec_elem(vv, ind, frame[z.v3], z.t) )
 		ZAM_run_time_error(z.loc, "value used but not set");
 
+op Any-Vector-Elem-Assign
+op1-read
+set-type $2
+type VVV
+eval	auto ind = frame[z.v2].uint_val;
+	auto vv = frame[z.v1].vector_val;
+	if ( ! vv->Assign(ind, frame[z.v3].ToVal(z.t)) )
+		ZAM_run_time_error(z.loc, "vector index assignment failed for invalid type");
+
 op Vector-Elem-Assign-Any
 op1-read
 type VVV
@@ -1003,6 +1012,15 @@ eval	auto ind = frame[z.v2].uint_val;
 	auto vv = frame[z.v1].vector_val;
 	(void) copy_vec_elem(vv, ind, z.c, z.t);
 
+op Any-Vector-Elem-Assign
+op1-read
+set-type $2
+type VVC
+eval	auto ind = frame[z.v2].uint_val;
+	auto vv = frame[z.v1].vector_val;
+	if ( ! vv->Assign(ind, z.c.ToVal(z.t)) )
+		ZAM_run_time_error(z.loc, "vector index assignment failed for invalid type");
+
 # These versions are used when the constant is the index, not the new value.
 op Vector-Elem-Assign
 op1-read
@@ -1010,6 +1028,14 @@ set-type $2
 type VVi
 eval	auto vv = frame[z.v1].vector_val;
 	if ( ! copy_vec_elem(vv, z.v3, frame[z.v2], z.t) )
+		ZAM_run_time_error(z.loc, "value used but not set");
+
+op Any-Vector-Elem-Assign
+op1-read
+set-type $2
+type VVi
+eval	auto vv = frame[z.v1].vector_val;
+	if ( ! vv->Assign(z.v3, frame[z.v2].ToVal(z.t)) )
 		ZAM_run_time_error(z.loc, "value used but not set");
 
 op Vector-Elem-Assign-Any

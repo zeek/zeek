@@ -17,15 +17,10 @@ extern const Stmt* curr_stmt;
 
 // True if a given type is one that we treat internally as an "any" type.
 extern bool IsAny(const Type* t);
-// Same for vector-of-any.
-extern bool IsAnyVec(const Type* t);
 
 // Convenience functions for getting to these.
 inline bool IsAny(const TypePtr& t) { return IsAny(t.get()); }
 inline bool IsAny(const Expr* e) { return IsAny(e->GetType()); }
-
-inline bool IsAnyVec(const TypePtr& t) { return IsAnyVec(t.get()); }
-inline bool IsAnyVec(const Expr* e) { return IsAnyVec(e->GetType()); }
 
 
 // Needed for the logging built-in.  Exported so that ZAM can make sure it's

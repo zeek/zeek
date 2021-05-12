@@ -1400,8 +1400,10 @@ const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e)
 	auto index_assign = e->AsIndexAssignExpr();
 
 	auto op1 = index_assign->GetOp1();
+	const auto& t1 = op1->GetType();
+
 	auto op3 = index_assign->GetOp3();
-	auto any_val = IsAny(op3->GetType());
+	const auto& t3 = op3->GetType();
 
 	auto lhs = op1->AsNameExpr();
 	auto lt = lhs->GetType();
@@ -1413,16 +1415,20 @@ const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e)
 		{ // Vector slice assignment.
 		ASSERT(op1->Tag() == EXPR_NAME);
 		ASSERT(op3->Tag() == EXPR_NAME);
-		ASSERT(op1->GetType()->Tag() == TYPE_VECTOR);
-		ASSERT(op3->GetType()->Tag() == TYPE_VECTOR);
+		ASSERT(t1->Tag() == TYPE_VECTOR);
+		ASSERT(t3->Tag() == TYPE_VECTOR);
 
 		auto z = GenInst(OP_VECTOR_SLICE_ASSIGN_VV,
-		                 op1->AsNameExpr(), op3->AsNameExpr());
+		                 lhs, op3->AsNameExpr());
 
 		z.aux = InternalBuildVals(indexes_expr);
 
 		return AddInst(z);
 		}
+
+	const auto& yt1 = t1->Yield();
+	auto any_vec = yt1->Tag() == TYPE_VOID || yt1->Tag() == TYPE_ANY;
+	auto any_val = IsAny(t3);
 
 	auto op2 = indexes[0];
 
@@ -1433,7 +1439,8 @@ const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e)
 		auto c = op2->AsConstExpr();
 		auto tmp = TempForConst(c);
 
-		auto zop = OP_VECTOR_ELEM_ASSIGN_VVC;
+		auto zop = any_vec ? OP_ANY_VECTOR_ELEM_ASSIGN_VVC :
+		                     OP_VECTOR_ELEM_ASSIGN_VVC;
 
 		return AddInst(ZInstI(zop, Frame1Slot(lhs, zop), tmp,
 		                      op3->AsConstExpr()));
@@ -1445,36 +1452,37 @@ const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e)
 
 		if ( op3->Tag() == EXPR_NAME )
 			{
-			if ( any_val )
+			if ( any_vec )
+				inst = Any_Vector_Elem_AssignVVV(lhs, op2->AsNameExpr(), op3->AsNameExpr());
+			else if ( any_val )
 				inst = Vector_Elem_Assign_AnyVVV(lhs, op2->AsNameExpr(), op3->AsNameExpr());
 			else
 				inst = Vector_Elem_AssignVVV(lhs, op2->AsNameExpr(), op3->AsNameExpr());
 			}
 
+		else if ( any_vec )
+			inst = Any_Vector_Elem_AssignVVC(lhs, op2->AsNameExpr(), op3->AsConstExpr());
 		else
 			inst = Vector_Elem_AssignVVC(lhs, op2->AsNameExpr(), op3->AsConstExpr());
 
-		TopMainInst()->t = op3->GetType();
+		TopMainInst()->t = t3;
 		return inst;
 		}
 
+	auto c = op2->AsConstExpr();
+	auto index = c->Value()->AsCount();
+
+	ZAMStmt inst;
+
+	if ( any_vec )
+		inst = Any_Vector_Elem_AssignVVi(lhs, op3->AsNameExpr(), index);
+	else if ( any_val )
+		inst = Vector_Elem_Assign_AnyVVi(lhs, op3->AsNameExpr(), index);
 	else
-		{
-		auto c = op2->AsConstExpr();
-		auto index = c->Value()->AsCount();
+		inst = Vector_Elem_AssignVVi(lhs, op3->AsNameExpr(), index);
 
-		ZAMStmt inst;
-
-		if ( any_val )
-			inst = Vector_Elem_Assign_AnyVVi(lhs, op3->AsNameExpr(),
-			                                 index);
-		else
-			inst = Vector_Elem_AssignVVi(lhs, op3->AsNameExpr(),
-			                             index);
-
-		TopMainInst()->t = op3->GetType();
-		return inst;
-		}
+	TopMainInst()->t = t3;
+	return inst;
 	}
 
 const ZAMStmt ZAMCompiler::AssignTableElem(const Expr* e)

@@ -19,17 +19,6 @@ bool IsAny(const Type* t)
 	return t->Tag() == TYPE_ANY;
 	}
 
-bool IsAnyVec(const Type* t)
-	{
-	if ( t->Tag() != TYPE_VECTOR )
-		return false;
-
-	auto vt = t->AsVectorType();
-	auto yt = vt->Yield();
-
-	return yt->Tag() == TYPE_ANY;
-	}
-
 
 StringVal* ZAM_to_lower(const StringVal* sv)
 	{

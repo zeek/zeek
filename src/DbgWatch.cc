@@ -1,6 +1,6 @@
 // Implementation of watches
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/DbgWatch.h"
 
 #include "zeek/Debug.h"

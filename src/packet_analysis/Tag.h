@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/Tag.h"
 
 namespace zeek::plugin {

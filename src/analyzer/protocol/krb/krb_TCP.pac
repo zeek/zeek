@@ -6,7 +6,7 @@ namespace zeek::analyzer::krb_tcp { class KRB_Analyzer; }
 namespace binpac { namespace KRB_TCP { class KRB_Conn; } }
 using KRBTCPAnalyzer = zeek::analyzer::krb_tcp::KRB_Analyzer*;
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/krb/KRB_TCP.h"
 
 #include "analyzer/protocol/krb/types.bif.h"

@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/dce-rpc/DCE_RPC.h"
 
 #include <stdlib.h>

@@ -2,7 +2,7 @@
  * See the file "COPYING" in the main distribution directory for copyright.
  */
 
-#include "zeek-config.h"			/* must appear before first ifdef */
+#include "zeek/zeek-config.h"			/* must appear before first ifdef */
 
 #include <sys/types.h>
 

@@ -1,4 +1,4 @@
-#include "zeek-config.h"
+#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
 
 #include "zeek/NetVar.h"

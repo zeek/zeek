@@ -18,7 +18,7 @@
 
 namespace zeek::analyzer::tcp {
 
-TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, bool arg_is_orig)
+TCP_Endpoint::TCP_Endpoint(packet_analysis::TCP::TCPSessionAdapter* arg_analyzer, bool arg_is_orig)
 	{
 	contents_processor = nullptr;
 	prev_state = state = TCP_ENDPOINT_INACTIVE;

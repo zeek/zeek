@@ -68,12 +68,6 @@ public:
 	~Manager();
 
 	/**
-	 * First-stage initializion of the manager. This is called early on
-	 * during Bro's initialization, before any scripts are processed.
-	 */
-	void InitPreScript();
-
-	/**
 	 * Second-stage initialization of the manager. This is called late
 	 * during Bro's initialization after any scripts are processed.
 	 */
@@ -247,17 +241,6 @@ public:
 	Analyzer* InstantiateAnalyzer(const char* name, Connection* c);
 
 	/**
-	 * Given the first packet of a connection, builds its initial
-	 * analyzer tree.
-	 *
-	 * @param conn The connection to add the initial set of analyzers to.
-	 *
-	 * @return False if the tree cannot be built; that's usually an
-	 * internal error.
-	 */
-	bool BuildInitialAnalyzerTree(Connection* conn);
-
-	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
 	 * the connection is seen, BuildInitAnalyzerTree() will add the
 	 * specified analyzer to its tree.
@@ -365,10 +348,6 @@ private:
 
 	analyzer_map_by_port analyzers_by_port_tcp;
 	analyzer_map_by_port analyzers_by_port_udp;
-
-	Tag analyzer_connsize;
-	Tag analyzer_stepping;
-	Tag analyzer_tcpstats;
 
 	//// Data structures to track analyzed scheduled for future connections.
 

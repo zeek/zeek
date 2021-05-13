@@ -194,16 +194,7 @@ zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const detail::Co
 	if ( flip )
 		conn->FlipRoles();
 
-	if ( ! new_plugin )
-		{
-		if ( ! analyzer_mgr->BuildInitialAnalyzerTree(conn) )
-			{
-			conn->Done();
-			Unref(conn);
-			return nullptr;
-			}
-		}
-	else if ( ! BuildSessionAnalyzerTree(conn) )
+	if ( ! BuildSessionAnalyzerTree(conn) )
 		{
 		conn->Done();
 		Unref(conn);

@@ -6,6 +6,7 @@
 #include "zeek/File.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 #include "zeek/ZeekString.h"
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
@@ -21,7 +22,7 @@ constexpr bool DEBUG_tcp_connection_close = false;
 constexpr bool DEBUG_tcp_match_undelivered = false;
 
 TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
-                                 TCP_Analyzer* arg_tcp_analyzer,
+                                 packet_analysis::TCP::TCPSessionAdapter* arg_tcp_analyzer,
                                  TCP_Reassembler::Type arg_type,
                                  TCP_Endpoint* arg_endp)
 	: Reassembler(1, REASSEM_TCP)

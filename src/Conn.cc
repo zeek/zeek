@@ -130,7 +130,7 @@ void Connection::Done()
 	// somewhere, but it's session-related, so maybe not?
 	if ( ConnTransport() == TRANSPORT_TCP )
 		{
-		auto ta = static_cast<analyzer::tcp::TCP_Analyzer*>(adapter);
+		auto* ta = static_cast<packet_analysis::TCP::TCPSessionAdapter*>(adapter);
 		assert(ta->IsAnalyzer("TCP"));
 		analyzer::tcp::TCP_Endpoint* to = ta->Orig();
 		analyzer::tcp::TCP_Endpoint* tr = ta->Resp();

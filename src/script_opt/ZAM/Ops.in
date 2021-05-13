@@ -663,6 +663,14 @@ eval	auto vv = frame[z.v2].vector_val->RawVec();
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(CopyVal(*vec[ind]))
 
+internal-op Index-Any-Vec
+type VVV
+eval	auto vv = frame[z.v2].vector_val;
+	auto ind = frame[z.v3].uint_val;
+	if ( ind >= vv->Size() )
+		ZAM_run_time_error(z.loc, "no such index");
+	AssignV1(ZVal(vv->ValAt(ind).release()))
+
 internal-op Index-VecC
 type VVV
 eval	auto vv = frame[z.v2].vector_val->RawVec();
@@ -671,6 +679,14 @@ eval	auto vv = frame[z.v2].vector_val->RawVec();
 	if ( ind >= vv->size() )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(CopyVal(*vec[ind]))
+
+internal-op Index-Any-VecC
+type VVV
+eval	auto vv = frame[z.v2].vector_val;
+	auto ind = z.v3;
+	if ( ind >= vv->Size() )
+		ZAM_run_time_error(z.loc, "no such index");
+	AssignV1(ZVal(vv->ValAt(ind).release()))
 
 internal-op Index-Vec-Slice
 type VV

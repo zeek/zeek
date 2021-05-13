@@ -2350,17 +2350,20 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot,
 		if ( n2tag == TYPE_VECTOR )
 			{
 			auto n2_yt = n2t->AsVectorType()->Yield();
+			bool is_any = n2_yt->Tag() == TYPE_ANY;
 
 			if ( n3 )
 				{
 				int n3_slot = FrameSlot(n3);
-				auto zop = OP_INDEX_VEC_VVV;
+				auto zop = is_any ? OP_INDEX_ANY_VEC_VVV :
+				                    OP_INDEX_VEC_VVV;
 				z = ZInstI(zop, Frame1Slot(n1, zop),
 				           n2_slot, n3_slot);
 				}
 			else
 				{
-				auto zop = OP_INDEX_VECC_VVV;
+				auto zop = is_any ? OP_INDEX_ANY_VECC_VVV :
+				                    OP_INDEX_VECC_VVV;
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c);
 				z.op_type = OP_VVV_I3;
 				}

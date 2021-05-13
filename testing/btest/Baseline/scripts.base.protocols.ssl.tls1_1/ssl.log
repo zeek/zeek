@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.17.58	62987	216.58.192.14	443	TLSv11	TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA	secp256r1	-	F	-	-	T	FLBUwc2aH4D4Ird86,FSOqRY3TrLkXCO9iE7,FhWKUbxdmkyBVLdX5	(empty)	CN=*.google.com,O=Google Inc,L=Mountain View,ST=California,C=US	CN=Google Internet Authority G2,O=Google Inc,C=US	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.17.58	62987	216.58.192.14	443	TLSv11	TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA	secp256r1	-	F	-	-	T	22a920a5ec03c819b569ed0fa8b7df258e3e7ea11fdd15b83b6fa45f3e863036,9b759d41e3de30f9d2f902027d792b65d950a98bbb6d6d56be7f2528453bf8e9,3c35cc963eb004451323d3275d05b353235053490d9cd83729a2faf5e7ca1cc0	(empty)	CN=*.google.com,O=Google Inc,L=Mountain View,ST=California,C=US	CN=Google Internet Authority G2,O=Google Inc,C=US
 #close XXXX-XX-XX-XX-XX-XX

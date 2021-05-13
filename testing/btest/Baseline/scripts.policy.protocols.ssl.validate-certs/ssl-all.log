@@ -5,10 +5,10 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	validation_status
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.4.149	60539	87.98.220.10	443	TLSv10	TLS_DHE_RSA_WITH_AES_256_CBC_SHA	-	-	F	-	-	T	FDiucV3BOTYQ5gNgwb,FTPh424fA9xdnuZxAc	(empty)	+	+	-	-	certificate has expired
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.4.149	60540	122.1.240.204	443	TLSv10	TLS_RSA_WITH_AES_256_CBC_SHA	-	-	F	-	-	T	FxC5Iy4Ds1GrAC8Wi4,F6YkXn4Y0xbz0wwKwl,FWt5HI2RSOSYsS8kFh	(empty)	+	+	-	-	ok
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer	validation_status
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.4.149	60539	87.98.220.10	443	TLSv10	TLS_DHE_RSA_WITH_AES_256_CBC_SHA	-	-	F	-	-	T	7920ebd7acfb8c3c569b83db76e7e61b8a0a5bcdf55bdee5519f838f73732173,179b3b8dc791ebfc5fe5f22dae1f713ac18fd8bc696f17e90ded680faa12f8ef	(empty)	+	+	certificate has expired
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.4.149	60540	122.1.240.204	443	TLSv10	TLS_RSA_WITH_AES_256_CBC_SHA	-	-	F	-	-	T	5ae785be7cd11ea631e165d516cf455ccd62ab4fd908d9d2f664d4d11fa24c4c,64903546a58058d1e6f1bead1134ede66a6831d231f0df8d4e28535d7a300496,8420dfbe376f414bf4c0a81e6936d24ccc03f304835b86c7a39142fca723a689	(empty)	+	+	ok
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09
 #set_separator	,
@@ -16,9 +16,9 @@ XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.4.149	60540	122.1.240.204	443	TLSv1
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	validation_status
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.4.149	58529	128.32.169.140	443	TLSv10	TLS_RSA_WITH_RC4_128_MD5	-	-	F	-	-	T	FFYN6Z2x1v8O31tYAe	(empty)	+	+	-	-	unable to get local issuer certificate
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.4.149	58530	72.167.102.91	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	FMuqCx3vT83dl6KvOh,FkDg8kz9rRmVb8o63,Fl5AIC1EFNQx61M777	(empty)	+	+	-	-	ok
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	192.168.4.149	58532	128.32.169.140	443	TLSv10	TLS_RSA_WITH_RC4_128_MD5	-	-	F	-	-	T	FZ7lQU7QXB55vSCfb	(empty)	+	+	-	-	ok
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer	validation_status
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.4.149	58529	128.32.169.140	443	TLSv10	TLS_RSA_WITH_RC4_128_MD5	-	-	F	-	-	T	611101252cfd5bd2a7d2a1ffa2751106edeb29a98d1991d41986d39ae1742da9	(empty)	+	+	unable to get local issuer certificate
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.4.149	58530	72.167.102.91	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	b2e802a12cf20c0c3ad57e74c489c2cbb569de829c18257795a47fdcefc97ba3,93a07898d89b2cca166ba6f1f8a14138ce43828e491b831926bc8247d391cc72,2ce1cb0bf9d2f9e102993fbe215152c3b2dd0cabde1c68e5319b839154dbb7f5	(empty)	+	+	ok
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	192.168.4.149	58532	128.32.169.140	443	TLSv10	TLS_RSA_WITH_RC4_128_MD5	-	-	F	-	-	T	611101252cfd5bd2a7d2a1ffa2751106edeb29a98d1991d41986d39ae1742da9	(empty)	+	+	ok
 #close XXXX-XX-XX-XX-XX-XX

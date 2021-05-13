@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	184.73.173.246	1193	104.236.167.107	5269	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	secp384r1	-	F	-	-	T	FAHgbUHB5t3l9Wm96,F6kAap3SUswOyZOR9,Fvwipv38sBhQVtyIvf	FBYldY171VAwKyQK85,FzebwsuBE6r00p6Aj,FzQO6T3RjPFdAyOQAc,FgzZMl23Ex1raeFIH1	CN=www.0xxon.net,OU=Free SSL,OU=Domain Control Validated	CN=COMODO RSA Domain Validation Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	CN=*.hosted.im,OU=Domain Control Validated	CN=Go Daddy Secure Certificate Authority - G2,OU=http://certs.godaddy.com/repository/,O=GoDaddy.com\\, Inc.,L=Scottsdale,ST=Arizona,C=US
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	184.73.173.246	1193	104.236.167.107	5269	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	secp384r1	-	F	-	-	T	a9fe6fe31272268b3245c130a086531e056a8b463eae2b81200ca07def26a8a8,02ab57e4e67a0cb48dd2ff34830e8ac40f4476fb08ca6be3f5cd846f646840f0,4f32d5dc00f715250abcc486511e37f501a899deb3bf7ea8adbbd3aef1c412da	573a503f5361eec2f4642c8b230212c5e8af96632bcd6904cef5771c6c56ebcf,973a41276ffd01e027a2aad49e34c37846d3e976ff6a620b6712e33832041aa6,3a2fbe92891e57fe05d57087f48e730f17e5a5f53ef403d618e5b74d7a7e6ecb,c3846bf24b9e93ca64274c0ec67c1ecc5e024ffcacd2d74019350e81fe546ae4	CN=www.0xxon.net,OU=Free SSL,OU=Domain Control Validated	CN=COMODO RSA Domain Validation Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB
 #close XXXX-XX-XX-XX-XX-XX

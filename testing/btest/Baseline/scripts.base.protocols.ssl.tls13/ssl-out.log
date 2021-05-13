@@ -5,10 +5,10 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.6.203	53226	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.6.203	53227	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.6.203	53226	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.6.203	53227	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09
 #set_separator	,
@@ -16,10 +16,10 @@ XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.6.203	53227	52.32.149.186	443	-	-	-
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.6.203	53994	138.68.41.77	443	TLSv13-draft14	TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256	x25519	-	F	-	-	T	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.6.203	53996	138.68.41.77	443	TLSv13-draft14	TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256	x25519	-	F	-	-	T	-	-	-	-	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.6.203	53994	138.68.41.77	443	TLSv13-draft14	TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256	x25519	-	F	-	-	T	-	-	-	-
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.6.203	53996	138.68.41.77	443	TLSv13-draft14	TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256	x25519	-	F	-	-	T	-	-	-	-
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09
 #set_separator	,
@@ -27,10 +27,10 @@ XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.6.203	53996	138.68.41.77	443	TLSv13
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.150.187.20	54980	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.150.187.20	54982	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.150.187.20	54980	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.150.187.20	54982	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09
 #set_separator	,
@@ -38,10 +38,10 @@ XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.150.187.20	54982	52.32.149.186	443	-	-	
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.150.187.20	36778	138.68.41.77	443	TLSv13-draft16	TLS_CHACHA20_POLY1305_SHA256	secp384r1	-	F	unknown_ca	-	F	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.150.187.20	36782	138.68.41.77	443	TLSv13-draft16	TLS_CHACHA20_POLY1305_SHA256	secp384r1	-	F	-	-	T	-	-	-	-	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.150.187.20	36778	138.68.41.77	443	TLSv13-draft16	TLS_CHACHA20_POLY1305_SHA256	secp384r1	-	F	unknown_ca	-	F	-	-	-	-
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.150.187.20	36782	138.68.41.77	443	TLSv13-draft16	TLS_CHACHA20_POLY1305_SHA256	secp384r1	-	F	-	-	T	-	-	-	-
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09
 #set_separator	,
@@ -49,9 +49,9 @@ XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.150.187.20	36782	138.68.41.77	443	TLSv1
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.178.80	54220	174.138.9.219	443	TLSv13	TLS_CHACHA20_POLY1305_SHA256	x25519	-	T	-	-	T	-	-	-	-	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.178.80	54220	174.138.9.219	443	TLSv13	TLS_CHACHA20_POLY1305_SHA256	x25519	-	T	-	-	T	-	-	-	-
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09
 #set_separator	,
@@ -59,7 +59,7 @@ XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.178.80	54220	174.138.9.219	443	TLSv1
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.192.48.168	63564	64.233.185.139	443	TLSv13	TLS_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	-	-	-	-	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.192.48.168	63564	64.233.185.139	443	TLSv13	TLS_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	-	-	-	-
 #close XXXX-XX-XX-XX-XX-XX

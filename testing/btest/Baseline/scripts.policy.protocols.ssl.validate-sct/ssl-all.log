@@ -5,9 +5,9 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	validation_status	valid_ct_logs	valid_ct_operators
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string	count	count
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.178.73	60640	97.107.139.108	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	secp256r1	ritter.vg	F	-	http/1.1	T	FMfTKt3991jevcFVy9,Fzd7k11I3eVjUARGIi,FI3kIg49AiJ7EJRA	(empty)	+	+	-	-	ok	3	1
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer	validation_status	valid_ct_logs	valid_ct_operators
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	count	count
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.178.73	60640	97.107.139.108	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	secp256r1	ritter.vg	F	-	http/1.1	T	4c3fbfbac7589ee68d753f806acc822cbd5082c735fdc3fce3924dc32959288f,02ab57e4e67a0cb48dd2ff34830e8ac40f4476fb08ca6be3f5cd846f646840f0,4f32d5dc00f715250abcc486511e37f501a899deb3bf7ea8adbbd3aef1c412da	(empty)	+	+	ok	3	1
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09
 #set_separator	,
@@ -15,7 +15,7 @@ XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.178.73	60640	97.107.139.108	443	TLSv
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	validation_status	valid_ct_logs	valid_ct_operators
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string	count	count
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.17.58	51995	97.107.139.108	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	secp256r1	ritter.vg	F	-	h2	T	FYwgMKTbBzuV2gfy3,F4TF3q12eVBWYI1mV6	(empty)	+	+	-	-	ok	6	3
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer	validation_status	valid_ct_logs	valid_ct_operators
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	count	count
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.17.58	51995	97.107.139.108	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	secp256r1	ritter.vg	F	-	h2	T	18af57b6b32c469416486571d629fa396e096615782132c5fe8e30b0a520e123,403e062a2653059113285baf80a0d4ae422c848c9f78fad01fc94bc5b87fef1a	(empty)	+	+	ok	6	3
 #close XXXX-XX-XX-XX-XX-XX

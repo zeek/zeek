@@ -165,14 +165,14 @@ event ssl_established(c: connection) &priority=3
 	{
 	if ( ! c$ssl?$cert_chain )
 		return;
-	
+
 	if ( |c$ssl$cert_chain| < 1 )
 		return;
-	
+
 	if ( ! c$ssl$cert_chain[0]?$x509 )
 		return;
 
-	local fuid = c$ssl$cert_chain_fuids[0];
+	local fuid = c$ssl$cert_chain[0]$fuid;
 
 	if ( ! c$ssl$cert_chain[0]?$sha1 )
 		{

@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.4.149	49422	23.92.19.75	443	TLSv12	TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256	secp384r1	-	F	-	-	T	FMSZyB2PMaf4sHLjE1,FIc15qZguv5S0Mlna	(empty)	CN=pantz.org,OU=PositiveSSL,OU=Domain Control Validated	CN=COMODO ECC Domain Validation Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.4.149	49422	23.92.19.75	443	TLSv12	TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256	secp384r1	-	F	-	-	T	11db6d4f6e4df14cec874b9d4a306c64c282dacbd479788ee0510b2c99382dc4,7e32368e24a2cc48d3d29e883b260e40ceda22af97189c78fc5b928484e9a010	(empty)	CN=pantz.org,OU=PositiveSSL,OU=Domain Control Validated	CN=COMODO ECC Domain Validation Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB
 #close XXXX-XX-XX-XX-XX-XX

@@ -5,8 +5,8 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.1.200	49206	192.168.1.150	3389	TLSv10	TLS_RSA_WITH_AES_128_CBC_SHA	-	192.168.1.150	F	-	-	T	FD3Z4ql82LNfussAf	(empty)	CN=WIN2K8R2.awakecoding.ath.cx	CN=WIN2K8R2.awakecoding.ath.cx	-	-
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.1.200	49207	192.168.1.150	3389	TLSv10	TLS_RSA_WITH_AES_128_CBC_SHA	-	192.168.1.150	F	-	-	T	FCsHch2NvQTl3wSQZk	(empty)	CN=WIN2K8R2.awakecoding.ath.cx	CN=WIN2K8R2.awakecoding.ath.cx	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.1.200	49206	192.168.1.150	3389	TLSv10	TLS_RSA_WITH_AES_128_CBC_SHA	-	192.168.1.150	F	-	-	T	a5b05d2ae076130aa41060f53ecd72bdf864ea0179250e927549c94d5ab2499a	(empty)	CN=WIN2K8R2.awakecoding.ath.cx	CN=WIN2K8R2.awakecoding.ath.cx
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.1.200	49207	192.168.1.150	3389	TLSv10	TLS_RSA_WITH_AES_128_CBC_SHA	-	192.168.1.150	F	-	-	T	a5b05d2ae076130aa41060f53ecd72bdf864ea0179250e927549c94d5ab2499a	(empty)	CN=WIN2K8R2.awakecoding.ath.cx	CN=WIN2K8R2.awakecoding.ath.cx
 #close XXXX-XX-XX-XX-XX-XX

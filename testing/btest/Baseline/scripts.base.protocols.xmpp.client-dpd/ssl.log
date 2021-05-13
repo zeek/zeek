@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	198.128.203.95	56048	146.255.57.229	5222	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	FnsG1E2sIRVp2Vpd55,FkUKQQ3EnnGycSSbf	(empty)	CN=jabber.ccc.de,O=Chaos Computer Club e.V.,L=Hamburg,ST=Hamburg,C=DE	emailAddress=support@cacert.org,CN=CA Cert Signing Authority,OU=http://www.cacert.org,O=Root CA	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	198.128.203.95	56048	146.255.57.229	5222	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	630ff62f262e2ed3524e031f391b7296fd099eca1064768874c449526f94a541,ff2a65cff1149c7430101e0f65a07ec19183a3b633ef4a6510890dad18316b3a	(empty)	CN=jabber.ccc.de,O=Chaos Computer Club e.V.,L=Hamburg,ST=Hamburg,C=DE	emailAddress=support@cacert.org,CN=CA Cert Signing Authority,OU=http://www.cacert.org,O=Root CA
 #close XXXX-XX-XX-XX-XX-XX

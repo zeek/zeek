@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer	client_subject	client_issuer
 #types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.6.82	51462	74.201.205.9	43044	DTLSv10	TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA	secp256r1	-	F	-	-	T	FVs2rdZM9gwWRYkPj	F82olM1docw7F681c7	CN=mantis.tokbox.com,O=Tokbox,L=San Francisco,ST=California,C=US	CN=mantis.tokbox.com,O=Tokbox,L=San Francisco,ST=California,C=US	CN=a	CN=a
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.6.82	51462	74.201.205.9	43044	DTLSv10	TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA	secp256r1	-	F	-	-	T	d0f7ee6396c98da4e74888006af667bfeaecc8cd1babb67e900558a9bd649b9f	968126882d68eb80b03392edb9cce7260eec15a04b206ddfb5231449b5aaaa2f	CN=mantis.tokbox.com,O=Tokbox,L=San Francisco,ST=California,C=US	CN=mantis.tokbox.com,O=Tokbox,L=San Francisco,ST=California,C=US	CN=a	CN=a
 #close XXXX-XX-XX-XX-XX-XX

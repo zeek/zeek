@@ -5,7 +5,7 @@
 #unset_field	-
 #path	x509
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
-#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
-XXXXXXXXXX.XXXXXX	F9SU1s24sf1PTQnPOg	3	87AAFFBCA26E44BF	O=Internet Widgits Pty Ltd,ST=Some-State,C=AU	O=Internet Widgits Pty Ltd,ST=Some-State,C=AU	XXXXXXXXXX.XXXXXX	XXXXXXXXXX.XXXXXX	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	-
+#fields	ts	fp	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
+XXXXXXXXXX.XXXXXX	6f5446a5b23f4e73925de5e6629c09b1c61ed66537d6d8a7818750c9cd0a67d7	3	87AAFFBCA26E44BF	O=Internet Widgits Pty Ltd,ST=Some-State,C=AU	O=Internet Widgits Pty Ltd,ST=Some-State,C=AU	XXXXXXXXXX.XXXXXX	XXXXXXXXXX.XXXXXX	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	-	T	F
 #close XXXX-XX-XX-XX-XX-XX

@@ -20,7 +20,7 @@ event ssl_established(c: connection)
 	if ( c$ssl$cert_chain[0]$x509?$certificate && c$ssl$cert_chain[0]$x509$certificate?$cn )
 		Intel::seen([$indicator=c$ssl$cert_chain[0]$x509$certificate$cn,
 			$indicator_type=Intel::DOMAIN,
-			$fuid=c$ssl$cert_chain_fuids[0],
+			$fuid=c$ssl$cert_chain[0]$fuid,
 			$conn=c,
 			$where=X509::IN_CERT]);
 	}

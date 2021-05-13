@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.17.53	49640	212.227.17.186	143	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	FnTdv13VPaQJ9ggGWc,FfuxJB2xxRqUGn95Uf,FiuziV1H97yM2ooWD3	(empty)	CN=imap.gmx.net,emailAddress=server-certs@1und1.de,L=Montabaur,ST=Rhineland-Palatinate,O=1&1 Mail & Media GmbH,C=DE	CN=TeleSec ServerPass DE-1,street=Untere Industriestr. 20,L=Netphen,postalCode=57250,ST=NRW,OU=T-Systems Trust Center,O=T-Systems International GmbH,C=DE	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.17.53	49640	212.227.17.186	143	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	e0129ac9d82beb2ad399c85a2d246c0a5376e1094a5410ba9157cc42c3d514c1,3c80fe6e6a70e12fae2e7c7b289420f10a69e80dcc88847bb9836ff14a20f872,b6191a50d0c3977f7da99bcdaac86a227daeb9679ec70ba3b0c9d92271c170d3	(empty)	CN=imap.gmx.net,emailAddress=server-certs@1und1.de,L=Montabaur,ST=Rhineland-Palatinate,O=1&1 Mail & Media GmbH,C=DE	CN=TeleSec ServerPass DE-1,street=Untere Industriestr. 20,L=Netphen,postalCode=57250,ST=NRW,OU=T-Systems Trust Center,O=T-Systems International GmbH,C=DE
 #close XXXX-XX-XX-XX-XX-XX

@@ -6,6 +6,8 @@
 
 @load base/protocols/ssl
 
+redef SSL::log_include_client_certificate_subject_issuer = T;
+
 # Certificate has 10,000 alternative names :)
 event x509_ext_subject_alternative_name(f: fa_file, ext: X509::SubjectAlternativeName)
 	{

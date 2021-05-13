@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.18.50	62277	162.219.2.166	443	TLSv12	TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA	-	-	F	-	-	T	FmFGtr3wNWQWvnwCwj,FR6dZX1ZogBkdGLQD1	(empty)	emailAddress=denicadmmail@arcor.de,CN=www.lilawelt.net,C=US	CN=StartCom Class 1 Primary Intermediate Server CA,OU=Secure Digital Certificate Signing,O=StartCom Ltd.,C=IL	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.18.50	62277	162.219.2.166	443	TLSv12	TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA	-	-	F	-	-	T	b706ad178447821cc60aca1e0cd59697333a6178fd1c73f839fbdfb5b76bc507,cb2db573610f401e8d602917bbbe6ab4162255f208efad909d5440691aa0203c	(empty)	emailAddress=denicadmmail@arcor.de,CN=www.lilawelt.net,C=US	CN=StartCom Class 1 Primary Intermediate Server CA,OU=Secure Digital Certificate Signing,O=StartCom Ltd.,C=IL
 #close XXXX-XX-XX-XX-XX-XX

@@ -107,7 +107,7 @@ event ssl_established(c: connection) &priority=5
 
 function data_channel_initial_criteria(c: connection): bool
 	{
-	return ( c?$ssl && c$ssl?$client_subject && c$ssl?$subject &&
+	return ( c?$ssl && |c$ssl$cert_chain| > 0 && |c$ssl$client_cert_chain| > 0 &&
 	         c$ssl?$cipher && /WITH_NULL/ in c$ssl$cipher );
 	}
 

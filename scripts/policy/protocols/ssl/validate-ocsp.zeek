@@ -26,7 +26,7 @@ export {
 
 }
 
-# MD5 hash values for recently validated chains along with the OCSP validation
+# SHA256 hash values for recently validated chains along with the OCSP validation
 # status are kept in this table to avoid constant validation every time the same
 # certificate chain is seen.
 global recently_ocsp_validated: table[string] of string = table() &read_expire=5mins;
@@ -49,7 +49,11 @@ event ssl_established(c: connection) &priority=3
 			chain[i] = c$ssl$cert_chain[i]$x509$handle;
 		}
 
-	local reply_id = cat(md5_hash(c$ssl$ocsp_response), join_string_vec(c$ssl$cert_chain_fuids, "."));
+	local chain_fuids = "";
+	for ( i in c$ssl$cert_chain )
+		chain_fuids += cat(c$ssl$cert_chain[i]$fuid, ",");
+
+	local reply_id = cat(sha256_hash(c$ssl$ocsp_response), chain_fuids);
 
 	if ( reply_id in recently_ocsp_validated )
 		{

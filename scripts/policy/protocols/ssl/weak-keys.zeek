@@ -55,7 +55,7 @@ event ssl_established(c: connection) &priority=3
 	     ! c$ssl$cert_chain[0]?$x509 )
 		return;
 
-	local fuid = c$ssl$cert_chain_fuids[0];
+	local fuid = c$ssl$cert_chain[0]$fuid;
 	local cert = c$ssl$cert_chain[0]$x509$certificate;
 	local hash = c$ssl$cert_chain[0]$sha1;
 

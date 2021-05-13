@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer	client_subject	client_issuer
 #types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.6.86	61454	104.236.167.107	4433	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384	secp256r1	104.236.167.107	F	-	-	F	FIZJd734MoIimmbIH9	(empty)	-	-	-	-
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.6.86	61454	104.236.167.107	4433	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384	secp256r1	104.236.167.107	F	-	-	F	af4a46e989dc24078ee2a205490856e059e7f2f9d2114cec4d4c44974add9d34	(empty)	CN=Bro	CN=Bro	-	-
 #close XXXX-XX-XX-XX-XX-XX

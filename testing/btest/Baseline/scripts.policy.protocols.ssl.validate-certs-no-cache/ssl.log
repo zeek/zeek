@@ -5,9 +5,9 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	validation_status
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.4.149	58529	128.32.169.140	443	TLSv10	TLS_RSA_WITH_RC4_128_MD5	-	-	F	-	-	T	FFYN6Z2x1v8O31tYAe	(empty)	+	+	-	-	unable to get local issuer certificate
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.4.149	58530	72.167.102.91	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	FMuqCx3vT83dl6KvOh,FkDg8kz9rRmVb8o63,Fl5AIC1EFNQx61M777	(empty)	+	+	-	-	ok
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	192.168.4.149	58532	128.32.169.140	443	TLSv10	TLS_RSA_WITH_RC4_128_MD5	-	-	F	-	-	T	FZ7lQU7QXB55vSCfb	(empty)	+	+	-	-	unable to get local issuer certificate
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer	validation_status
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.4.149	58529	128.32.169.140	443	TLSv10	TLS_RSA_WITH_RC4_128_MD5	-	-	F	-	-	T	611101252cfd5bd2a7d2a1ffa2751106edeb29a98d1991d41986d39ae1742da9	(empty)	+	+	unable to get local issuer certificate
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.4.149	58530	72.167.102.91	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	b2e802a12cf20c0c3ad57e74c489c2cbb569de829c18257795a47fdcefc97ba3,93a07898d89b2cca166ba6f1f8a14138ce43828e491b831926bc8247d391cc72,2ce1cb0bf9d2f9e102993fbe215152c3b2dd0cabde1c68e5319b839154dbb7f5	(empty)	+	+	ok
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	192.168.4.149	58532	128.32.169.140	443	TLSv10	TLS_RSA_WITH_RC4_128_MD5	-	-	F	-	-	T	611101252cfd5bd2a7d2a1ffa2751106edeb29a98d1991d41986d39ae1742da9	(empty)	+	+	unable to get local issuer certificate
 #close XXXX-XX-XX-XX-XX-XX

@@ -6,27 +6,37 @@
 module SSL;
 
 export {
+	## Set this to false to remove the server certificate subject and
+	## issuer from the SSL log file. This information is still available
+	## in x509.log.
+	const log_include_server_certificate_subject_issuer = T &redef;
+
+	## Set this to true to include the client certificate subject
+	## and issuer in the SSL logfile. This information is rarely present
+	## and probably only interesting in very specific circumstances
+	const log_include_client_certificate_subject_issuer = F &redef;
+
 	redef record Info += {
 		## Chain of certificates offered by the server to validate its
 		## complete signing chain.
 		cert_chain: vector of Files::Info &optional;
 
-		## An ordered vector of all certificate file unique IDs for the
+		## An ordered vector of all certificate fingerprints for the
 		## certificates offered by the server.
-		cert_chain_fuids: vector of string &optional &log;
+		cert_chain_fps: vector of string &optional &log;
 
 		## Chain of certificates offered by the client to validate its
 		## complete signing chain.
 		client_cert_chain: vector of Files::Info &optional;
 
-		## An ordered vector of all certificate file unique IDs for the
+		## An ordered vector of all certificate fingerprints for the
 		## certificates offered by the client.
-		client_cert_chain_fuids: vector of string &optional &log;
+		client_cert_chain_fps: vector of string &optional &log;
 
 		## Subject of the X.509 certificate offered by the server.
 		subject: string &log &optional;
 
-		## Subject of the signer of the X.509 certificate offered by the
+		## Issuer of the signer of the X.509 certificate offered by the
 		## server.
 		issuer: string &log &optional;
 
@@ -88,6 +98,25 @@ event zeek_init() &priority=5
 	Files::register_protocol(Analyzer::ANALYZER_DTLS,
 	                         [$get_file_handle = SSL::get_file_handle,
 	                          $describe        = SSL::describe_file]);
+
+
+	local ssl_filter = Log::get_filter(SSL::LOG, "default");
+	if ( ssl_filter$name != "<not found>" )
+		{
+		if ( ! ssl_filter?$exclude )
+			ssl_filter$exclude = set();
+		if ( ! log_include_server_certificate_subject_issuer )
+			{
+			add ssl_filter$exclude["subject"];
+			add ssl_filter$exclude["isser"];
+			}
+		if ( ! log_include_client_certificate_subject_issuer )
+			{
+			add ssl_filter$exclude["client_subject"];
+			add ssl_filter$exclude["client_issuer"];
+			}
+		Log::add_filter(SSL::LOG, ssl_filter);
+		}
 	}
 
 event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
@@ -114,25 +143,28 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 		{
 		c$ssl$cert_chain = vector();
 		c$ssl$client_cert_chain = vector();
-		c$ssl$cert_chain_fuids = string_vec();
-		c$ssl$client_cert_chain_fuids = string_vec();
+		c$ssl$cert_chain_fps = string_vec();
+		c$ssl$client_cert_chain_fps = string_vec();
 		}
 
 	if ( f$is_orig )
-		{
 		c$ssl$client_cert_chain += f$info;
-		c$ssl$client_cert_chain_fuids += f$id;
-		}
 	else
-		{
 		c$ssl$cert_chain += f$info;
-		c$ssl$cert_chain_fuids += f$id;
-		}
 	}
 
-event ssl_established(c: connection) &priority=6
+hook ssl_finishing(c: connection) &priority=20
 	{
-	# update subject and issuer information
+	if ( c$ssl?$cert_chain)
+		for ( i in c$ssl$cert_chain )
+			if ( c$ssl$cert_chain[i]?$x509 && c$ssl$cert_chain[i]$x509?$fp )
+				c$ssl$cert_chain_fps += c$ssl$cert_chain[i]$x509$fp;
+
+	if ( c$ssl?$client_cert_chain )
+		for ( i in c$ssl$client_cert_chain )
+			if ( c$ssl$client_cert_chain[i]?$x509 && c$ssl$client_cert_chain[i]$x509?$fp )
+				c$ssl$client_cert_chain_fps += c$ssl$client_cert_chain[i]$x509$fp;
+
 	if ( c$ssl?$cert_chain && |c$ssl$cert_chain| > 0 &&
 	     c$ssl$cert_chain[0]?$x509 )
 		{

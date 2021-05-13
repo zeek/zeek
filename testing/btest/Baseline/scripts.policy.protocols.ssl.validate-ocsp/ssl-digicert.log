@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	ocsp_status
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.4.149	51293	72.21.91.29	443	TLSv10	TLS_ECDHE_RSA_WITH_RC4_128_SHA	secp256r1	-	F	-	-	T	FbZbD7JJEce0qG4ac,F47w5K3LAukOzGZXVk	(empty)	+	+	-	-	good
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer	ocsp_status
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.4.149	51293	72.21.91.29	443	TLSv10	TLS_ECDHE_RSA_WITH_RC4_128_SHA	secp256r1	-	F	-	-	T	077437619abb5f4e0892188660d94f6ba2bdc32eb106c954cb2de8b0beb9895c,403e062a2653059113285baf80a0d4ae422c848c9f78fad01fc94bc5b87fef1a	(empty)	+	+	good
 #close XXXX-XX-XX-XX-XX-XX

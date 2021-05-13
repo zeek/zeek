@@ -9,12 +9,21 @@ export {
 
 	global log_policy: Log::PolicyHook;
 
+	## The hash function used for certificate hashes. By default this is sha256; you can use
+	## any other hash function and the hashes will change in ssl.log and in x509.log.
+	option hash_function: function(cert: string): string = sha256_hash;
+
+	## This option specifies if X.509 certificates are logged in file.log. Typically, there
+	## is not much value to having the entry in files.log - especially since, by default, the
+	## file ID is not present in the X509 log.
+	option log_x509_in_files_log: bool = F;
+
 	## The record type which contains the fields of the X.509 log.
 	type Info: record {
 		## Current timestamp.
 		ts: time &log;
-		## File id of this certificate.
-		id: string &log;
+		## Fingerprint of the certificate - uses chosen algorithm.
+		fp: string &log;
 		## Basic information about the certificate.
 		certificate: X509::Certificate &log;
 		## The opaque wrapping the certificate. Mainly used
@@ -30,6 +39,10 @@ export {
 		## This is used for caching certificates that are commonly
 		## encountered and should not be relied on in user scripts.
 		extensions_cache: vector of any &default=vector();
+		## Indicates if this certificate was a end-host certificate, or sent as part of a chain
+		host_cert: bool &log &default=F;
+		## Indicates if this certificate was sent from the client
+		client_cert: bool &log &default=F;
 	};
 
 	## This record is used to store information about the SCTs that are
@@ -90,9 +103,21 @@ event zeek_init() &priority=5
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/pkix-cert");
 	}
 
+hook Files::log_policy(rec: Files::Info, id: Log::ID, filter: Log::Filter) &priority=5
+	{
+	if ( ( log_x509_in_files_log == F ) && ( "X509" in rec$analyzers ) )
+		break;
+	}
+
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate) &priority=5
 	{
-	f$info$x509 = [$ts=f$info$ts, $id=f$id, $certificate=cert, $handle=cert_ref];
+	local der_cert = x509_get_certificate_string(cert_ref);
+	local fp = hash_function(der_cert);
+	f$info$x509 = [$ts=f$info$ts, $fp=fp, $certificate=cert, $handle=cert_ref];
+	if ( f$info$mime_type == "application/x-x509-user-cert" )
+		f$info$x509$host_cert = T;
+	if ( f$is_orig )
+		f$info$x509$client_cert = T;
 	}
 
 event x509_extension(f: fa_file, ext: X509::Extension) &priority=5

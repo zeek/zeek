@@ -2620,12 +2620,13 @@ void ZAMCompiler::SyncGlobals(const std::unordered_set<const ID*>& globals,
 		{
 		auto uds = ud->GetUsage(s);
 
-		for ( auto g : globals )
-			if ( uds->HasID(g) )
-				{
-				need_sync = true;
-				break;
-				}
+		if ( uds )
+			for ( auto g : globals )
+				if ( uds->HasID(g) )
+					{
+					need_sync = true;
+					break;
+					}
 		}
 
 	if ( need_sync )

@@ -291,9 +291,9 @@ private:
 	// Called to synchronize any globals that have been modified
 	// prior to switching to execution out of the current function
 	// body (for a call or a return).  The argument is a statement
-	// or expression, used to find reaching-defs.  A nil value
-	// corresponds to "running off the end" (no explicit return).
-	void SyncGlobals(const Obj* o);
+	// used to find use-defs.  A nil value corresponds to "running
+	// off the end" (no explicit return).
+	void SyncGlobals(const Stmt* s = nullptr);
 
 	void LoadParam(ID* id);
 	const ZAMStmt LoadGlobal(ID* id);
@@ -347,7 +347,7 @@ private:
 
 	int TempForConst(const ConstExpr* c);
 
-	void SyncGlobals(const std::unordered_set<const ID*>& g, const Obj* o);
+	void SyncGlobals(const std::unordered_set<const ID*>& g, const Stmt* s);
 
 #if 0
 #include "zeek/script_opt/ZAM/Opt.h"
@@ -443,6 +443,10 @@ private:
 
 	// Which globals are potentially ever modified.
 	std::unordered_set<const ID*> modified_globals;
+
+	// Whether so far we've generated a load of a global.  Used
+	// in SyncGlobals() to avoid work if we haven't done so.
+	bool did_global_load = false;
 
 	// The following are used for switch statements, mapping the
 	// switch value (which can be any atomic type) to a branch target.

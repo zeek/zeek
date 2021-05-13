@@ -58,7 +58,7 @@ StmtPtr ZAMCompiler::CompileBody()
 		return nullptr;
 
 	if ( LastStmt(body.get())->Tag() != STMT_RETURN )
-		SyncGlobals(nullptr);
+		SyncGlobals();
 
 	if ( breaks.size() > 0 )
 		{
@@ -379,7 +379,7 @@ bro_uint_t ZAMCompiler::ConstArgsMask(const ExprPList& args, int nargs) const
 
 const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 	{
-	SyncGlobals(c);
+	SyncGlobals(curr_stmt);
 
 	auto func = c->Func()->AsNameExpr();
 	auto func_id = func->Id();
@@ -1744,7 +1744,7 @@ const ZAMStmt ZAMCompiler::Return(const ReturnStmt* r)
 	// would require propagating the "dirty" status of globals
 	// modified inside an inlined function.  These changes aren't
 	// visible because RDs don't propagate across return's, even
-	// inlined ones.  See the coment in for STMT_RETURN's in
+	// inlined ones.  See the comment in for STMT_RETURN's in
 	// RD_Decorate::PostStmt for why we can't simply propagate
 	// RDs in this case.
 	//
@@ -2010,6 +2010,8 @@ const ZAMStmt ZAMCompiler::LoadGlobal(ID* id)
 
 	z.aux = new ZInstAux(0);
 	z.aux->id_val = id;
+
+	did_global_load = true;
 
 	return AddInst(z);
 	}
@@ -2546,42 +2548,87 @@ const ZAMStmt ZAMCompiler::CompileEvent(EventHandler* h, const ListExpr* l)
 	return AddInst(z);
 	}
 
-void ZAMCompiler::SyncGlobals(const Obj* o)
+void ZAMCompiler::SyncGlobals(const Stmt* s)
 	{
-	SyncGlobals(pf->Globals(), o);
+	SyncGlobals(pf->Globals(), s);
 	}
 
 void ZAMCompiler::SyncGlobals(const std::unordered_set<const ID*>& globals,
-                              const Obj* o)
+                              const Stmt* s)
 	{
-	auto mgr = reducer->GetDefSetsMgr();
-	auto entry_rds = mgr->GetPreMaxRDs(body.get());
+	// We're at a point where we need to ensure that any cached
+	// value we have of a global is synchronized with external uses
+	// (such as by the interpreter).
+	//
+	// We need to check for two situations.  (1) A modification to
+	// a global makes it to this point, so we need to synchronize
+	// globals in order to flush that modification.  (2) A global
+	// whose value we've used (not necessarily modified) previously
+	// will also be used after this point, and thus we should
+	// synchronize in order to return it to the "unloaded" state
+	// in case it's modified by whatever is leading us to decide
+	// to synchronize globals here.  (Note that if this call is
+	// happening due to finishing a function's execution, then there
+	// won't be any subsequent use, and we won't bother flushing
+	// unless we have a modified global.)
+	//
+	// We can determine the first case using reaching-defs: is
+	// there a modification to a global that reaches this point?
+	//
+	// The second case is harder to do with full precision.  Ideally
+	// we'd like to know whether there's a reference to a global
+	// between this point and all previous possible global synchronization
+	// points (including function entry), and then for that global
+	// seeing whether there's a UseDef for it at this point, indicating
+	// it'll be used subsequently.  We don't have the data structures
+	// built up to do this.  However, can approximate the notion by
+	// (1) tracking whether *any* LoadGlobal has happened so far,
+	// and (2) seeing whether *any* global has a UseDef at this point.
 
-	auto curr_rds = o ? mgr->GetPreMaxRDs(o) :
+	bool need_sync = false;
+
+	// First case: look for modifications that reach this point.
+	auto mgr = reducer->GetDefSetsMgr();
+	auto curr_rds = s ? mgr->GetPreMaxRDs(s) :
 	                    mgr->GetPostMaxRDs(LastStmt(body.get()));
 
-	if ( ! curr_rds )
-		// This can happen for functions that only access (but
-		// don't modify) globals, with no modified locals, at
-		// the point of interest.
-		return;
+	// Note that curr_rds might be nil, for functions that only access
+	// (but don't modify) globals, and have no modified locals, at the
+	// point of interest.
 
-	bool could_be_dirty = false;
-
-	for ( auto g : globals )
+	if ( curr_rds )
 		{
-		auto g_di = mgr->GetConstID_DI(g);
-		auto entry_dps = entry_rds->GetDefPoints(g_di);
-		auto curr_dps = curr_rds->GetDefPoints(g_di);
+		auto entry_rds = mgr->GetPreMaxRDs(body.get());
 
-		if ( ! entry_rds->SameDefPoints(entry_dps, curr_dps) )
+		for ( auto g : globals )
 			{
-			modified_globals.insert(g);
-			could_be_dirty = true;
+			auto g_di = mgr->GetConstID_DI(g);
+			auto entry_dps = entry_rds->GetDefPoints(g_di);
+			auto curr_dps = curr_rds->GetDefPoints(g_di);
+
+			if ( ! entry_rds->SameDefPoints(entry_dps, curr_dps) )
+				{
+				modified_globals.insert(g);
+				need_sync = true;
+				}
 			}
 		}
 
-	if ( could_be_dirty )
+	// Second case: we've already loaded some globals, and there are
+	// globals used after this point.
+	if ( did_global_load && s )
+		{
+		auto uds = ud->GetUsage(s);
+
+		for ( auto g : globals )
+			if ( uds->HasID(g) )
+				{
+				need_sync = true;
+				break;
+				}
+		}
+
+	if ( need_sync )
 		(void) AddInst(ZInstI(OP_SYNC_GLOBALS_X));
 	}
 

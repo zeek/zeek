@@ -7,41 +7,41 @@
 
 namespace zeek::detail {
 
-const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* body)
+const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s)
 	{
-	SetCurrStmt(body);
+	SetCurrStmt(s);
 
-	switch ( body->Tag() ) {
+	switch ( s->Tag() ) {
 	case STMT_PRINT:
-		return CompilePrintStmt(static_cast<const PrintStmt*>(body));
+		return CompilePrintStmt(static_cast<const PrintStmt*>(s));
 
 	case STMT_EXPR:
-		return CompileExprStmt(static_cast<const ExprStmt*>(body));
+		return CompileExprStmt(static_cast<const ExprStmt*>(s));
 
 	case STMT_IF:
-		return CompileIfStmt(static_cast<const IfStmt*>(body));
+		return CompileIfStmt(static_cast<const IfStmt*>(s));
 
 	case STMT_SWITCH:
-		return Switch(static_cast<const SwitchStmt*>(body));
+		return Switch(static_cast<const SwitchStmt*>(s));
 
 	case STMT_ADD:
-		return CompileAddStmt(static_cast<const AddStmt*>(body));
+		return CompileAddStmt(static_cast<const AddStmt*>(s));
 
 	case STMT_DELETE:
-		return CompileDelStmt(static_cast<const DelStmt*>(body));
+		return CompileDelStmt(static_cast<const DelStmt*>(s));
 
 	case STMT_EVENT:
 		{
-		auto es = static_cast<const EventStmt*>(body);
+		auto es = static_cast<const EventStmt*>(s);
 		auto e = static_cast<const EventExpr*>(es->StmtExpr());
 		return CompileExpr(e);
 		}
 
 	case STMT_WHILE:
-		return CompileWhileStmt(static_cast<const WhileStmt*>(body));
+		return CompileWhileStmt(static_cast<const WhileStmt*>(s));
 
 	case STMT_FOR:
-		return For(static_cast<const ForStmt*>(body));
+		return For(static_cast<const ForStmt*>(s));
 
 	case STMT_NEXT:
 		return Next();
@@ -53,26 +53,26 @@ const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* body)
 		return FallThrough();
 
 	case STMT_RETURN:
-		return Return(static_cast<const ReturnStmt*>(body));
+		return Return(static_cast<const ReturnStmt*>(s));
 
 	case STMT_CATCH_RETURN:
-		return CatchReturn(static_cast<const CatchReturnStmt*>(body));
+		return CatchReturn(static_cast<const CatchReturnStmt*>(s));
 
 	case STMT_LIST:
-		return CompileStmtList(static_cast<const StmtList*>(body));
+		return CompileStmtList(static_cast<const StmtList*>(s));
 
 	case STMT_INIT:
-		return CompileInitStmt(static_cast<const InitStmt*>(body));
+		return CompileInitStmt(static_cast<const InitStmt*>(s));
 
 	case STMT_NULL:
 		return EmptyStmt();
 
 	case STMT_WHEN:
-		return When(static_cast<const WhenStmt*>(body));
+		return When(static_cast<const WhenStmt*>(s));
 
 	case STMT_CHECK_ANY_LEN:
 		{
-		auto cs = static_cast<const CheckAnyLenStmt*>(body);
+		auto cs = static_cast<const CheckAnyLenStmt*>(s);
 		auto n = cs->StmtExpr()->AsNameExpr();
 		auto expected_len = cs->ExpectedLen();
 		return CheckAnyLenVi(n, expected_len);

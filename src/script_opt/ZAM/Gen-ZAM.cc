@@ -1393,6 +1393,10 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot_orig,
 		eval = regex_replace(eval, regex("\\$1"), op1_ei);
 		eval = regex_replace(eval, regex("\\$2"), op2_ei);
 
+		string pre = GetPreEval();
+		pre = regex_replace(pre, regex("\\$1"), op1_ei);
+		pre = regex_replace(pre, regex("\\$2"), op2_ei);
+
 		if ( has_target )
 			eval = regex_replace(eval, regex("\\$\\$"), lhs_ei);
 
@@ -1412,6 +1416,8 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot_orig,
 			eval = regex_replace(eval, regex(";*\n"), ";\n");
 			}
 
+		eval = pre + eval;
+
 		auto full_suffix = ot_str + suffix + ei.OpMarker();
 
 		ZAM_OpTemplate::InstantiateEval(emit_target, full_suffix,
@@ -1430,7 +1436,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot_orig,
 
 			auto op_code = g->GenOpCode(this, "_" + full_suffix);
 			auto dispatch = "vec_exec(" + op_code + type_arg +
-					", " + dispatch_params + ");";
+					", " + dispatch_params + ", z);";
 
 			ZAM_OpTemplate::InstantiateEval(Eval, full_suffix,
 							dispatch, zc);

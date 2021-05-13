@@ -97,11 +97,11 @@ static bool copy_vec_elem(VectorVal* vv, int ind, ZVal zv, const TypePtr& t)
 // to pass in the type ...  However, the RHS, which normally would
 // be const, needs to be non-const so we can use its Type() method
 // to get at a shareable VectorType.
-static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2);
+static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2, const ZInst& z);
 
 // Binary ones *can* have managed types (strings).
-static void vec_exec(ZOp op, TypePtr t,
-                     VectorVal*& v1, VectorVal* v2, const VectorVal* v3);
+static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, VectorVal* v2,
+                     const VectorVal* v3, const ZInst& z);
 
 // Vector coercion.
 //
@@ -1273,7 +1273,7 @@ TraversalCode ZAMResumption::Traverse(TraversalCallback* cb) const
 
 
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
+static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2, const ZInst& z)
 	{
 	// We could speed this up further still by gen'ing up an
 	// instance of the loop inside each switch case (in which
@@ -1303,7 +1303,7 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
 static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1,
-                     VectorVal* v2, const VectorVal* v3)
+                     VectorVal* v2, const VectorVal* v3, const ZInst& z)
 	{
 	// See comment above re further speed-up.
 

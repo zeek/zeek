@@ -1238,7 +1238,7 @@ void ZBody::Dump() const
 
 void ZBody::StmtDescribe(ODesc* d) const
 	{
-	d->AddSP("compiled");
+	d->AddSP("ZAM-code");
 	d->AddSP(func_name);
 	}
 

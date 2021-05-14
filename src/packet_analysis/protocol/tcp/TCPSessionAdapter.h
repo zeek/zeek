@@ -18,6 +18,9 @@ class TCP_Reassembler;
 
 namespace zeek::packet_analysis::TCP {
 
+constexpr bool DEBUG_tcp_data_sent = false;
+constexpr bool DEBUG_tcp_connection_close = false;
+
 class TCPAnalyzer;
 
 class TCPSessionAdapter final : public packet_analysis::IP::SessionAdapter {
@@ -65,8 +68,6 @@ public:
 	// From Analyzer.h
 	void UpdateConnVal(RecordVal *conn_val) override;
 
-	int ParseTCPOptions(const struct tcphdr* tcp, bool is_orig);
-
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new TCPSessionAdapter(conn); }
 
@@ -87,17 +88,6 @@ protected:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void FlipRoles() override;
 	bool IsReuse(double t, const u_char* pkt) override;
-
-	// Returns the TCP header pointed to by data (which we assume is
-	// aligned), updating data, len & caplen.  Returns nil if the header
-	// isn't fully present.
-	const struct tcphdr* ExtractTCP_Header(const u_char*& data, int& len,
-						int& caplen);
-
-	// Returns true if the checksum is valid, false if not (and in which
-	// case also updates the status history of the endpoint).
-	bool ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp, analyzer::tcp::TCP_Endpoint* endpoint,
-				int len, int caplen);
 
 	void SetPartialStatus(analyzer::tcp::TCP_Flags flags, bool is_orig);
 
@@ -141,7 +131,6 @@ protected:
 	                 analyzer::tcp::TCP_Endpoint* endpoint, uint64_t rel_data_seq,
 	                 bool is_orig, analyzer::tcp::TCP_Flags flags);
 
-	void CheckRecording(bool need_contents, analyzer::tcp::TCP_Flags flags);
 	void CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip);
 
 	friend class session::detail::Timer;
@@ -161,16 +150,9 @@ protected:
 
 	void SetReassembler(analyzer::tcp::TCP_Reassembler* rorig, analyzer::tcp::TCP_Reassembler* rresp);
 
-	// A couple utility functions that may also be useful to derived analyzers.
-	static uint64_t get_relative_seq(const analyzer::tcp::TCP_Endpoint* endpoint,
-	                               uint32_t cur_base, uint32_t last,
-	                               uint32_t wraps, bool* underflow = nullptr);
-
-	static int get_segment_len(int payload_len, analyzer::tcp::TCP_Flags flags);
+	bool HasPacketChildren() const	 { return ! packet_children.empty(); }
 
 private:
-
-	void SynWeirds(analyzer::tcp::TCP_Flags flags, analyzer::tcp::TCP_Endpoint* endpoint, int data_len) const;
 
 	analyzer::tcp::TCP_Endpoint* orig;
 	analyzer::tcp::TCP_Endpoint* resp;

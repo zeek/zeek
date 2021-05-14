@@ -5,8 +5,13 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
+
+namespace zeek::analyzer::tcp { class TCP_Endpoint; }
 
 namespace zeek::packet_analysis::TCP {
+
+class TCPSessionAdapter;
 
 class TCPAnalyzer final : public IP::IPBasedAnalyzer {
 public:
@@ -63,6 +68,27 @@ protected:
 	 * override in child classes, as not all analyzers need a PIA.
 	 */
 	analyzer::pia::PIA* MakePIA(Connection* conn) override;
+
+private:
+
+	const struct tcphdr* ExtractTCP_Header(const u_char*& data, int& len, int& remaining,
+	                                       TCPSessionAdapter* adapter);
+
+	void SynWeirds(analyzer::tcp::TCP_Flags flags, analyzer::tcp::TCP_Endpoint* endpoint,
+	               int data_len) const;
+
+	int ParseTCPOptions(TCPSessionAdapter* adapter, const struct tcphdr* tcp,
+	                    bool is_orig) const;
+
+	void CheckRecording(Connection* c, bool need_contents, analyzer::tcp::TCP_Flags flags);
+
+	// Returns true if the checksum is valid, false if not (and in which
+	// case also updates the status history of the endpoint).
+	bool ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp,
+	                      analyzer::tcp::TCP_Endpoint* endpoint,
+	                      int len, int caplen, TCPSessionAdapter* adapter);
+
+	TableValPtr ignored_nets;
 };
 
 }

@@ -6,6 +6,7 @@
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 #include "zeek/fuzzers/FuzzBuffer.h"

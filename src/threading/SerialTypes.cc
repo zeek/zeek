@@ -519,7 +519,8 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 		case TYPE_TABLE:
 			{
 			TypeListPtr set_index;
-			if ( val->val.set_val.size == 0 && val->subtype == TYPE_VOID )
+			if ( val->val.set_val.size == 0 &&
+			     ( val->subtype == TYPE_VOID || val->subtype == TYPE_ENUM ) )
 				// don't know type - unspecified table.
 				set_index = make_intrusive<TypeList>();
 			else

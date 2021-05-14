@@ -5,6 +5,7 @@
 
 @TEST-START-FILE configfile
 mycolors Red,asdf,Blue
+nocolors 
 @TEST-END-FILE
 
 @load base/frameworks/config
@@ -12,9 +13,14 @@ mycolors Red,asdf,Blue
 type Color: enum { Red, Green, Blue, };
 
 option mycolors = set(Red, Green);
+option nocolors = set(Red, Green);
 
 event zeek_init()
 	{ Config::read_config("../configfile"); }
 
 event Input::end_of_data(name: string, source:string)
-	{ print mycolors; terminate(); }
+	{
+	print mycolors;
+	print nocolors;
+	terminate();
+	}

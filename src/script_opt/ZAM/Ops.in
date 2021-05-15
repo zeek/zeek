@@ -107,6 +107,8 @@ eval	auto copy = CopyVal($1);
 internal-op AppendToField
 type VVi
 op1-read
+eval	EvalAppendToField(frame[z.v2], v3)
+
 macro EvalAppendToField(val, f)
 	auto v = CopyVal(val);
 	auto fvv = frame[z.v1].record_val->GetField(z.f)->AsVectorVal();
@@ -114,8 +116,6 @@ macro EvalAppendToField(val, f)
 		fvv->RawVec()->push_back(v);
 	else
 		ZAM_run_time_error(z.loc, util::fmt("field value missing: $%s", frame[z.v1].record_val->GetType()->AsRecordType()->FieldName(z.f)));
-#
-eval	EvalAppendToField(frame[z.v2], v3)
 
 internal-op AppendToField
 type VCi
@@ -126,6 +126,8 @@ unary-expr-op Cast
 op-type X
 set-type $1
 set-type2 $2
+eval	EvalCast(frame[z.v2].ToVal(z.t2))
+
 macro EvalCast(rhs)
 	std::string error;
 	auto res = cast_value(rhs, z.t, error);
@@ -133,8 +135,6 @@ macro EvalCast(rhs)
 		AssignV1(BuildVal(res, z.t))
 	else
 		ZAM_run_time_error(z.loc, error.c_str());
-#
-eval	EvalCast(frame[z.v2].ToVal(z.t2))
 
 # Cast an "any" type to the given type.  Only needed for type-based swith
 # statements.
@@ -353,11 +353,11 @@ type VVC
 custom-method return CompileInExpr(n1, n2, c);
 no-eval
 
-internal-op P-In-S
-type VVV
 macro EvalPInS(op1, op2)
 	frame[z.v1].int_val = op1.re_val->MatchAnywhere(op2.string_val->AsString()) != 0;
-#
+
+internal-op P-In-S
+type VVV
 eval	EvalPInS(frame[z.v2], frame[z.v3])
 
 internal-op P-In-S
@@ -430,31 +430,33 @@ eval	auto op1 = frame[z.v1].ToVal(z.t);
 # out of the table's type.  For a constant in either position, we use
 # the main instruction type, as always.
 
-internal-op Val2-Is-In-Table
-type VVVV
 macro EvalVal2InTableCore(op1, op2)
 	ListVal lv(TYPE_ANY);
 	lv.Append(op1);
 	lv.Append(op2);
 	ListValPtr lvp = {NewRef{}, &lv};
+
 macro EvalVal2InTableAssignCore(slot)
 	frame[z.v1].int_val = frame[z.slot].table_val->Find(lvp) != nullptr;
-#
+
 macro EvalVal2InTablePre(op1, op2, op3)
 	auto& tt_ind = frame[z.op3].table_val->GetType()->AsTableType()->GetIndexTypes();
 	EvalVal2InTableCore(frame[z.op1].ToVal(z.t2), frame[z.op2].ToVal(tt_ind[1]))
-#
+
+internal-op Val2-Is-In-Table
+type VVVV
 eval	EvalVal2InTablePre(v2,v3,v4)
 	EvalVal2InTableAssignCore(v4)
 
 internal-op Val2-Is-In-Table-Cond
 op1-read
 type VVVV
+eval	EvalVal2InTablePre(v1,v2,v3)
+	EvalVal2InTableCond(v3, lvp, v4, !)
+
 macro EvalVal2InTableCond(cond, op, target, negate)
 	if ( negate frame[z.cond].table_val->Find(op) )
 		BRANCH(target)
-eval	EvalVal2InTablePre(v1,v2,v3)
-	EvalVal2InTableCond(v3, lvp, v4, !)
 
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
@@ -590,6 +592,8 @@ eval	if ( ! frame[z.v2].int_val )
 op IndexVecBoolSelect
 type VVV
 set-type $1
+eval	EvalIndexVecBoolSelect(frame[z.v2], frame[z.v3])
+
 macro EvalIndexVecBoolSelect(op1, op2)
 	if ( op1.vector_val->Size() != op2.vector_val->Size() )
 		{
@@ -602,8 +606,6 @@ macro EvalIndexVecBoolSelect(op1, op2)
 	auto v = vector_bool_select(vt, v2, v3);
 	Unref(frame[z.v1].vector_val);
 	frame[z.v1].vector_val = v.release();
-#
-eval	EvalIndexVecBoolSelect(frame[z.v2], frame[z.v3])
 
 op IndexVecBoolSelect
 type VCV
@@ -613,6 +615,8 @@ eval	EvalIndexVecBoolSelect(z.c, frame[z.v2])
 op IndexVecIntSelect
 type VVV
 set-type $1
+eval	EvalIndexVecIntSelect(frame[z.v2], frame[z.v3])
+
 macro EvalIndexVecIntSelect(op1, op2)
 	auto vt = cast_intrusive<VectorType>(z.t);
 	auto v2 = op1.vector_val;
@@ -620,8 +624,6 @@ macro EvalIndexVecIntSelect(op1, op2)
 	auto v = vector_int_select(vt, v2, v3);
 	Unref(frame[z.v1].vector_val);
 	frame[z.v1].vector_val = v.release();
-#
-eval	EvalIndexVecIntSelect(frame[z.v2], frame[z.v3])
 
 op IndexVecIntSelect
 type VCV
@@ -638,6 +640,8 @@ custom-method return CompileIndex(n, c, l);
 
 internal-op Index-Vec
 type VVV
+eval	EvalIndexVec(frame[z.v3].uint_val)
+
 macro EvalIndexVec(index)
 	auto vv = frame[z.v2].vector_val->RawVec();
 	const auto& vec = *vv;
@@ -645,8 +649,6 @@ macro EvalIndexVec(index)
 	if ( ind >= vv->size() )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(CopyVal(*vec[ind]))
-#
-eval	EvalIndexVec(frame[z.v3].uint_val)
 
 internal-op Index-VecC
 type VVV
@@ -654,14 +656,14 @@ eval	EvalIndexVec(z.v3)
 
 internal-op Index-Any-Vec
 type VVV
+eval	EvalIndexAnyVec(frame[z.v3].uint_val)
+
 macro EvalIndexAnyVec(index)
 	auto vv = frame[z.v2].vector_val;
 	auto ind = index;
 	if ( ind >= vv->Size() )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(ZVal(vv->ValAt(ind).release()))
-#
-eval	EvalIndexAnyVec(frame[z.v3].uint_val)
 
 internal-op Index-Any-VecC
 type VVV
@@ -677,13 +679,14 @@ eval	auto vec = frame[z.v2].vector_val;
 
 internal-op Table-Index
 type VV
+eval	EvalTableIndex(z.aux->ToListVal(frame))
+	AssignV1(BuildVal(v, z.t))
+
 macro EvalTableIndex(index)
 	auto v2 = index;
 	auto v = frame[z.v2].table_val->FindOrDefault(v2);
 	if ( ! v )
 		ZAM_run_time_error(z.loc, "no such index");
-eval	EvalTableIndex(z.aux->ToListVal(frame))
-	AssignV1(BuildVal(v, z.t))
 
 internal-assignment-op Table-Index1
 type VVV
@@ -699,6 +702,8 @@ eval	EvalTableIndex(z.c.ToVal(z.t))
 # This version is for a variable v3.
 internal-op Index-String
 type VVV
+eval	EvalIndexString(frame[z.v3].int_val)
+
 macro EvalIndexString(index)
 	auto str = frame[z.v2].string_val->AsString();
 	auto len = str->Len();
@@ -708,8 +713,6 @@ macro EvalIndexString(index)
 	auto v = str->GetSubstring(idx, 1);
 	Unref(frame[z.v1].string_val);
 	frame[z.v1].string_val = new StringVal(v ? v : new String(""));
-#
-eval	EvalIndexString(frame[z.v3].int_val)
 
 # This version is for a constant v3.
 internal-op Index-StringC
@@ -744,19 +747,20 @@ eval	auto lv = frame[z.v2].any_val->AsListVal();
 # back to the interpreter.
 direct-unary-op Table-Constructor ConstructTable
 
-internal-op Construct-Table
-type VV
 macro ConstructTableOrSetPre()
 	auto tt = cast_intrusive<TableType>(z.t);
 	auto new_t = new TableVal(tt, z.attrs);
 	auto aux = z.aux;
 	auto n = aux->n;
 	auto ind_width = z.v2;
+
 macro ConstructTableOrSetPost()
 	auto& t = frame[z.v1].table_val;
 	Unref(t);
 	t = new_t;
-#
+
+internal-op Construct-Table
+type VV
 eval	ConstructTableOrSetPre()
 	for ( auto i = 0; i < n; ++i )
 		{
@@ -783,6 +787,8 @@ direct-unary-op Record-Constructor ConstructRecord
 
 internal-op Construct-Record
 type V
+eval	EvalConstructRecord(, i)
+
 macro EvalConstructRecord(map_init, map_accessor)
 	auto rt = cast_intrusive<RecordType>(z.t);
 	auto new_r = new RecordVal(rt);
@@ -794,8 +800,6 @@ macro EvalConstructRecord(map_init, map_accessor)
 	auto& r = frame[z.v1].record_val;
 	Unref(r);
 	r = new_r;
-#
-eval	EvalConstructRecord(, i)
 
 internal-op Construct-Known-Record
 type V
@@ -959,19 +963,20 @@ eval	auto v = frame[z.v2].any_val;
 
 ########## Aggregate Assignments ##########
 
-op Vector-Elem-Assign
-op1-read
-set-type $2
-type VVV
 macro VectorElemAssignPre()
 	auto ind = frame[z.v2].uint_val;
 	auto vv = frame[z.v1].vector_val;
+
 macro EvalVectorElemAssign(val_setup, assign_op)
 	VectorElemAssignPre()
 	val_setup
 	if ( ! assign_op )
 		ZAM_run_time_error(z.loc, "value used but not set");
-#
+
+op Vector-Elem-Assign
+op1-read
+set-type $2
+type VVV
 eval	EvalVectorElemAssign(, copy_vec_elem(vv, ind, frame[z.v3], z.t))
 
 op Any-Vector-Elem-Assign
@@ -1039,12 +1044,12 @@ eval	ValPtr vec = {NewRef{}, frame[z.v1].vector_val};
 internal-op Table-Elem-Assign
 op1-read
 type VV
+eval	EvalTableElemAssign(frame[z.v2])
+
 macro EvalTableElemAssign(value)
 	auto indices = z.aux->ToListVal(frame);
 	auto val = value.ToVal(z.t);
 	frame[z.v1].table_val->Assign(indices, val);
-#
-eval	EvalTableElemAssign(frame[z.v2])
 
 internal-op Table-Elem-Assign
 op1-read
@@ -1175,10 +1180,6 @@ num-call-args n
 
 ########## Statements ##########
 
-op Schedule
-type ViHL
-op1-read
-custom-method return CompileSchedule(n, nullptr, i, h, l);
 macro EvalScheduleArgs(time, is_delta, build_args)
 	if ( run_state::terminating )
 		break;
@@ -1190,9 +1191,14 @@ macro EvalScheduleArgs(time, is_delta, build_args)
 	build_args
 	auto timer = new ScheduleTimer(handler, std::move(args), dt);
 	timer_mgr->Add(timer);
+
 macro EvalSchedule(time, is_delta)
 	EvalScheduleArgs(time, is_delta, z.aux->FillValVec(args, frame);)
-#
+
+op Schedule
+type ViHL
+op1-read
+custom-method return CompileSchedule(n, nullptr, i, h, l);
 eval	EvalSchedule(frame[z.v1], z.v2)
 
 op Schedule
@@ -1264,13 +1270,13 @@ eval	val_vec args(4);
 
 op Return
 type X
+eval	EvalReturn(nullptr,)
+
 macro EvalReturn(val, type)
 	ret_u = val;
 	type
 	pc = end_pc;
 	continue;
-#
-eval	EvalReturn(nullptr,)
 
 op Return
 op1-read
@@ -1345,6 +1351,9 @@ eval	auto v = frame[z.v1].any_val;
 
 internal-op Init-Table-Loop
 type VV
+eval	auto ii = z.aux->iter_info;
+	InitTableLoopPost()
+
 macro InitTableLoopPost()
 	auto tv = frame[z.v2].table_val;
 	auto tvd = tv->AsTable();
@@ -1353,9 +1362,6 @@ macro InitTableLoopPost()
 	ii->tbl_end = tvd->end();
 	ii->value_var_type = z.t;
 	frame[z.v1].iter_info = ii;
-#
-eval	auto ii = z.aux->iter_info;
-	InitTableLoopPost()
 
 internal-op Init-Table-Loop-Recursive
 type VVV
@@ -1371,12 +1377,6 @@ op1-read
 # v1 = iteration info
 # v2 = branch target if loop done
 type VV
-macro NextTableIterPre(branch)
-	auto ii = frame[z.v1].iter_info;
-	auto& current_tev = *ii->tbl_iter;
-	if ( current_tev == *ii->tbl_end )
-		BRANCH(branch)
-#
 eval	NextTableIterPre(v2)
 	auto ind_lv = ii->tv->RecreateIndex(*current_tev->GetHashKey());
 	for ( int i = 0; i < ind_lv->Length(); ++i )
@@ -1389,6 +1389,12 @@ eval	NextTableIterPre(v2)
 		var = BuildVal(ind_lv_p, ii->loop_var_types[i]);
 		}
 	++current_tev;
+
+macro NextTableIterPre(branch)
+	auto ii = frame[z.v1].iter_info;
+	auto& current_tev = *ii->tbl_iter;
+	if ( current_tev == *ii->tbl_end )
+		BRANCH(branch)
 
 internal-op Next-Table-Iter-No-Vars
 op1-read
@@ -1403,14 +1409,6 @@ internal-op Next-Table-Iter-Val-Var
 # v2 = iteration info
 # v3 = branch target if loop done
 type VVV
-macro NextTableIterPost()
-	auto tev = current_tev->GetValue<TableEntryVal*>();
-	auto val_var_t = ii->value_var_type;
-	if ( z.is_managed )
-		ZVal::DeleteManagedType(frame[z.v1]);
-	frame[z.v1] = BuildVal(tev->GetVal(), val_var_t);
-	++current_tev;
-#
 eval	NextTableIterPre(v3)
 	auto ind_lv = ii->tv->RecreateIndex(*current_tev->GetHashKey());
 	NextTableIterPost()
@@ -1424,6 +1422,14 @@ eval	NextTableIterPre(v3)
 		frame[ind] = BuildVal(ind_lv_p, loop_var_t);
 		}
 
+macro NextTableIterPost()
+	auto tev = current_tev->GetValue<TableEntryVal*>();
+	auto val_var_t = ii->value_var_type;
+	if ( z.is_managed )
+		ZVal::DeleteManagedType(frame[z.v1]);
+	frame[z.v1] = BuildVal(tev->GetVal(), val_var_t);
+	++current_tev;
+
 internal-op Next-Table-Iter-Val-Var-No-Vars
 # v1 = slot of the "ValueVar"
 # v2 = iteration info
@@ -1434,14 +1440,14 @@ eval	NextTableIterPre(v3)
 
 internal-op Init-Vector-Loop
 type VV
+eval	auto ii = z.aux->iter_info;
+	InitVectorPost()
+
 macro InitVectorPost()
 	ii->vv = frame[z.v2].vector_val->RawVec();
 	ii->n = ii->vv->size();
 	ii->iter = 0;
 	frame[z.v1].iter_info = ii;
-#
-eval	auto ii = z.aux->iter_info;
-	InitVectorPost()
 
 internal-op Init-Vector-Loop-Recursive
 type VVV
@@ -1472,14 +1478,14 @@ eval	auto ii = frame[z.v2].iter_info;
 
 internal-op Init-String-Loop
 type VV
+eval	auto ii = z.aux->iter_info;
+	InitStringLoopPost()
+
 macro InitStringLoopPost()
 	ii->s = frame[z.v2].string_val->AsString();
 	ii->iter = 0;
 	ii->n = ii->s->Len();
 	frame[z.v1].iter_info = ii;
-#
-eval	auto ii = z.aux->iter_info;
-	InitStringLoopPost()
 
 internal-op Init-String-Loop-Recursive
 type VVV
@@ -1549,12 +1555,12 @@ op Print1
 op1-read
 type V
 set-type $1
+eval	EvalPrint1(frame[z.v1])
+
 macro EvalPrint1(value)
 	std::vector<ValPtr> vals;
 	vals.push_back(value.ToVal(z.t));
 	do_print_stmt(vals);
-#
-eval	EvalPrint1(frame[z.v1])
 
 op Print1
 op1-read
@@ -1662,11 +1668,11 @@ eval	global_state[z.v1] = GS_DIRTY;
 op Assign-Any
 type VV
 set-type $2
+eval	EvalAssignAny(frame[z.v2])
+
 macro EvalAssignAny(value)
 	auto v = value.ToVal(z.t);
 	frame[z.v1].any_val = v.release();
-#
-eval	EvalAssignAny(frame[z.v2])
 
 op Assign-Any
 type VC
@@ -1799,18 +1805,20 @@ eval	auto sv = ZAM_to_lower(frame[z.v2].string_val);
 # take the raw enum value, as it appears that that's all that's ever
 # actually used.
 
-internal-op Log-Write
-side-effects
-type VVV
 macro LogWritePre(id_val, columns_slot)
 	auto id = id_val;
 	auto columns = frame[z.columns_slot].ToVal(z.t);
+
 macro LogWriteResPost()
 	bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
 	frame[z.v1].int_val = result;
+
 macro LogWriteNoResPost()
 	(void) log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
-#
+
+internal-op Log-Write
+side-effects
+type VVV
 eval	LogWritePre(frame[z.v2].ToVal(log_ID_enum_type), v3)
 	LogWriteResPost()
 
@@ -1875,12 +1883,12 @@ eval	frame[z.v1].int_val = run_state::reading_traces;
 
 internal-op StrStr
 type VVV
+eval	EvalStrStr(frame[z.v2], frame[z.v3])
+
 macro EvalStrStr(big_value, little_value)
 	auto big = big_value.string_val;
 	auto little = little_value.string_val;
 	frame[z.v1].int_val = 1 + big->AsString()->FindSubstring(little->AsString());
-#
-eval	EvalStrStr(frame[z.v2], frame[z.v3])
 
 internal-op StrStr
 type VCV

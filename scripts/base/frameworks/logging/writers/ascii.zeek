@@ -57,7 +57,7 @@ export {
   ## Default logs to current directory
 	## Can be redefined to send files into logging directory
 	##
-	const logdir = "." &redef;
+	const logdir = "" &redef;
 
 	## Format of timestamps when writing out JSON. By default, the JSON
 	## formatter will use double values for timestamps which represent the

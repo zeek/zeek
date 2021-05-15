@@ -457,10 +457,17 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 			ext += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
 			}
 
-		if ( ! logdir.empty() )
+		if ( fname.front() != '/' && ! logdir.empty() )
 			{
-			fname = logdir.empty() ? fname : logdir + "/" + fname;
-			}
+			string path = logdir;
+			std::size_t last = path.find_last_not_of('/');
+
+			if ( last == string::npos ) // Nothing but slashes -- weird but ok...
+				path = "/";
+			else
+				path.erase(last + 1);
+		fname = path + "/" + fname;
+		}
 
 		fname += ext;
 

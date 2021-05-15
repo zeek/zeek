@@ -82,6 +82,7 @@ enum EmitTarget {
 	VFieldDef,
 	Cond,
 	Eval,
+	EvalMacros,
 	Vec1Eval,
 	Vec2Eval,
 	AssignFlavor,
@@ -544,6 +545,9 @@ public:
 		{ return ti->SkipWords(line, n); }
 	void PutBack(const string& line)	{ ti->PutBack(line); }
 
+	void ReadMacro(const string& line);
+	void GenMacros();
+
 	string GenOpCode(const ZAM_OpTemplate* ot, const string& suffix,
 	                 ZAM_InstClass zc = ZIC_REGULAR);
 
@@ -571,6 +575,8 @@ private:
 
 	std::unique_ptr<TemplateInput> ti;
 	vector<std::unique_ptr<ZAM_OpTemplate>> templates;
+
+	vector<vector<string>> macros;
 
 	int indent_level = 0;
 	bool no_NL = false;

@@ -234,6 +234,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDecl.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpSideEffects.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsEvalDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsEvalMacros.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsMethodsDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsNamesDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-SubDefs.h

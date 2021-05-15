@@ -375,6 +375,9 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
 			AddEval(addl);
 		}
 
+	else if ( attr == "macro" )
+		g->ReadMacro(line);
+
 	else
 		g->Gripe("unknown template attribute", attr);
 
@@ -1862,6 +1865,8 @@ ZAMGen::ZAMGen(int argc, char** argv)
 	for ( auto& t : templates )
 		t->Instantiate();
 
+	GenMacros();
+
 	CloseEmitTargets();
 	}
 
@@ -1878,6 +1883,7 @@ void ZAMGen::InitEmitTargets()
 		{ Cond, "ZAM-Conds.h" },
 		{ DirectDef, "ZAM-GenDirectDefs.h" },
 		{ Eval, "ZAM-OpsEvalDefs.h" },
+		{ EvalMacros, "ZAM-OpsEvalMacros.h" },
 		{ MethodDecl, "ZAM-MethodDecl.h" },
 		{ MethodDef, "ZAM-OpsMethodsDefs.h" },
 		{ Op1Flavor, "ZAM-Op1FlavorsDefs.h" },
@@ -1966,6 +1972,13 @@ bool ZAMGen::ParseTemplate()
 		Gripe("too few words at start of template", line);
 
 	auto op = words[0];
+
+	if ( op == "macro" )
+		{
+		ReadMacro(line);
+		return true;
+		}
+
 	auto op_name = words[1];
 
 	// We track issues with the wrong number of template arguments
@@ -1979,6 +1992,7 @@ bool ZAMGen::ParseTemplate()
 		if ( words.size() != 3 )
 			args_mismatch = "direct-unary-op takes 2 arguments";
 		}
+
 	else if ( words.size() != 2 )
 		args_mismatch = "templates take 1 argument";
 
@@ -2038,6 +2052,46 @@ void ZAMGen::Emit(EmitTarget et, const string& s)
 
 	if ( s.back() != '\n' && ! no_NL )
 		fputs("\n", f);
+	}
+
+void ZAMGen::ReadMacro(const string& line)
+	{
+	vector<string> mac;
+	mac.emplace_back(SkipWords(line, 1));
+
+	string s;
+	while ( ScanLine(s) )
+		{
+		if ( s.size() <= 1 || ! isspace(s.c_str()[0]) )
+			{
+			PutBack(s);
+			break;
+			}
+
+		mac.push_back(s);
+		}
+
+	macros.emplace_back(move(mac));
+	}
+
+void ZAMGen::GenMacros()
+	{
+	for ( auto& m : macros )
+		{
+		for ( auto i = 0U; i < m.size(); ++i )
+			{
+			auto ms = m[i];
+			if ( i == 0 )
+				ms = "#define " + ms;
+
+			if ( i < m.size() - 1 )
+				ms = regex_replace(ms, regex("\n"), " \\\n");
+
+			Emit(EvalMacros, ms);
+			}
+
+		Emit(EvalMacros, "\n");
+		}
 	}
 
 string ZAMGen::GenOpCode(const ZAM_OpTemplate* ot, const string& suffix,

@@ -286,45 +286,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc,
 	int pc = start_pc;
 	int end_pc = ninst;
 
-#define BuildVal(v, t) ZVal(v, t)
-#define CopyVal(v) (ZVal::IsManagedType(z.t) ? BuildVal((v).ToVal(z.t), z.t) : (v))
-
-// Managed assignments to frame[s.v1].
-#define AssignV1T(v, t) { \
-	if ( z.is_managed ) \
-		{ \
-		/* It's important to hold a reference to v here prior \
-		   to the deletion in case frame[z.v1] points to v. */ \
-		auto v2 = v; \
-		ZVal::DeleteManagedType(frame[z.v1]); \
-		frame[z.v1] = v2; \
-		} \
-	else \
-		frame[z.v1] = v; \
-	}
-
-#define AssignV1(v) AssignV1T(v, z.t)
-
-#define SUB_BYTES(arg1, arg2, arg3) \
-	{ \
-	auto sv = ZAM_sub_bytes(arg1.AsString(), arg2, arg3); \
-	Unref(frame[z.v1].AsString()); \
-	frame[z.v1].string_val = sv; \
-	}
-
-#define BRANCH(target_slot) { pc = z.target_slot; continue; }
-
-#define SWITCH_BODY(cases, postscript) \
-	{ \
-	auto t = cases[z.v2]; \
-	if ( t.find(v) == t.end() ) \
-		pc = z.v3; \
-	else \
-		pc = t[v]; \
-	postscript \
-	continue; \
-	}
-
+#include "ZAM-OpsEvalMacros.h"
 
 	// Return value, or nil if none.
 	const ZVal* ret_u;

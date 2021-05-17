@@ -39,6 +39,8 @@ extern void ZAM_run_time_error(const char* msg, const Obj* o);
 
 extern bool ZAM_error;
 
+extern void ZAM_run_time_warning(const Location* loc, const char* msg);
+
 extern StringVal* ZAM_to_lower(const StringVal* sv);
 extern StringVal* ZAM_sub_bytes(const StringVal* s, bro_uint_t start, bro_int_t n);
 

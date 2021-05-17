@@ -1039,6 +1039,8 @@ eval	ValPtr vec = {NewRef{}, frame[z.v1].vector_val};
 	auto error = assign_to_index(vec, slice, vals, iterators_invalidated);
 	if ( error )
 		ZAM_run_time_error(z.loc, error);
+	if ( iterators_invalidated )
+		ZAM_run_time_warning(z.loc, "possible loop/iterator invalidation");
 
 
 internal-op Table-Elem-Assign
@@ -1049,7 +1051,10 @@ eval	EvalTableElemAssign(frame[z.v2])
 macro EvalTableElemAssign(value)
 	auto indices = z.aux->ToListVal(frame);
 	auto val = value.ToVal(z.t);
-	frame[z.v1].table_val->Assign(indices, val);
+	bool iterators_invalidated = false;
+	frame[z.v1].table_val->Assign(indices, val, true, &iterators_invalidated);
+	if ( iterators_invalidated )
+		ZAM_run_time_warning(z.loc, "possible loop/iterator invalidation");
 
 internal-op Table-Elem-Assign
 op1-read
@@ -1588,29 +1593,36 @@ eval	if ( frame[z.v1].int_val ) BRANCH(v2)
 op AddStmt
 op1-read
 type VO
-eval	auto index = z.aux->ToListVal(frame);
-	frame[z.v1].table_val->Assign(index, nullptr);
+eval	EvalAddStmt(z.aux->ToListVal(frame))
 method-post z.aux = v->aux;
+
+macro EvalAddStmt(ind)
+	auto index = ind;
+	bool iterators_invalidated = false;
+	frame[z.v1].table_val->Assign(index, nullptr, true, &iterators_invalidated);
+	if ( iterators_invalidated )
+		ZAM_run_time_warning(z.loc, "possible loop/iterator invalidation");
 
 op AddStmt1
 op1-read
 set-type $2
 type VV
-eval	auto index = frame[z.v2].ToVal(z.t);
-	frame[z.v1].table_val->Assign(index, nullptr);
+eval	EvalAddStmt(frame[z.v2].ToVal(z.t))
 
 op AddStmt1
 op1-read
 type VC
-eval	auto index = z.c.ToVal(z.t);
-	frame[z.v1].table_val->Assign(index, nullptr);
+eval	EvalAddStmt(z.c.ToVal(z.t))
 
 
 op DelTable
 op1-read
 type VO
 eval	auto index = z.aux->ToListVal(frame);
-	frame[z.v1].table_val->Remove(*index);
+	bool iterators_invalidated = false;
+	frame[z.v1].table_val->Remove(*index, true, &iterators_invalidated);
+	if ( iterators_invalidated )
+		ZAM_run_time_warning(z.loc, "possible loop/iterator invalidation");
 method-post z.aux = v->aux;
 
 op DelField

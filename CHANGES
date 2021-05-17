@@ -1,4 +1,10 @@
 
+4.1.0-dev.641 | 2021-05-17 11:28:11 -0700
+
+  * GH-1558: Fix reading `vector of enum` types from config files (Jon Siwek, Corelight)
+
+  * GH-1555: Fix reading empty set[enum] values from config files (Jon Siwek, Corelight)
+
 4.1.0-dev.638 | 2021-05-17 13:08:28 +0100
 
   * Manual page updates (Henrik Kramselund Jereminsen)

@@ -66,14 +66,28 @@ private:
 
 	void SetCurrStmt(const Stmt* stmt)	{ curr_stmt = stmt; }
 
-	const ZAMStmt CompilePrintStmt(const PrintStmt* ps);
-	const ZAMStmt CompileExprStmt(const ExprStmt* es);
-	const ZAMStmt CompileIfStmt(const IfStmt* is);
-	const ZAMStmt CompileAddStmt(const AddStmt* as);
-	const ZAMStmt CompileDelStmt(const DelStmt* ds);
-	const ZAMStmt CompileWhileStmt(const WhileStmt* ws);
-	const ZAMStmt CompileStmtList(const StmtList* sl);
-	const ZAMStmt CompileInitStmt(const InitStmt* is);
+	const ZAMStmt CompilePrint(const PrintStmt* ps);
+	const ZAMStmt CompileExpr(const ExprStmt* es);
+	const ZAMStmt CompileIf(const IfStmt* is);
+	const ZAMStmt CompileSwitch(const SwitchStmt* sw);
+	const ZAMStmt CompileAdd(const AddStmt* as);
+	const ZAMStmt CompileDel(const DelStmt* ds);
+	const ZAMStmt CompileWhile(const WhileStmt* ws);
+	const ZAMStmt CompileFor(const ForStmt* f);
+	const ZAMStmt CompileReturn(const ReturnStmt* r);
+	const ZAMStmt CompileCatchReturn(const CatchReturnStmt* cr);
+	const ZAMStmt CompileStmts(const StmtList* sl);
+	const ZAMStmt CompileInit(const InitStmt* is);
+	const ZAMStmt CompileWhen(const WhenStmt* ws);
+
+	const ZAMStmt CompileNext()
+		{ return GenGoTo(nexts.back()); }
+	const ZAMStmt CompileBreak()
+		{ return GenGoTo(breaks.back()); }
+	const ZAMStmt CompileFallThrough()
+		{ return GenGoTo(fallthroughs.back()); }
+	const ZAMStmt CompileCatchReturn()
+		{ return GenGoTo(catches.back()); }
 
 	const ZAMStmt CompileExpr(const ExprPtr& e)
 		{ return CompileExpr(e.get()); }
@@ -109,12 +123,6 @@ private:
 	const ZAMStmt GenCond(const Expr* e, int& branch_v);
 	const ZAMStmt Loop(const Stmt* body);
 
-	const ZAMStmt When(const WhenStmt* ws);
-
-	const ZAMStmt Switch(const SwitchStmt* sw);
-
-	const ZAMStmt For(const ForStmt* f);
-
 	const ZAMStmt Call(const ExprStmt* e);
 	const ZAMStmt AssignToCall(const ExprStmt* e);
 	const ZAMStmt DoCall(const CallExpr* c, const NameExpr* n);
@@ -128,9 +136,6 @@ private:
 	const ZAMStmt InitRecord(IDPtr id, RecordType* rt);
 	const ZAMStmt InitVector(IDPtr id, VectorType* vt);
 	const ZAMStmt InitTable(IDPtr id, TableType* tt, Attributes* attrs);
-
-	const ZAMStmt Return(const ReturnStmt* r);
-	const ZAMStmt CatchReturn(const CatchReturnStmt* cr);
 
 	const ZAMStmt CompileSchedule(const NameExpr* n,
 					const ConstExpr* c, int is_interval,
@@ -164,15 +169,6 @@ private:
 
 	const ZAMStmt FinishLoop(const ZAMStmt iter_head, ZInstI iter_stmt,
 	                         const Stmt* body, int info_slot, bool is_table);
-
-	const ZAMStmt Next()
-		{ return GenGoTo(nexts.back()); }
-	const ZAMStmt Break()
-		{ return GenGoTo(breaks.back()); }
-	const ZAMStmt FallThrough()
-		{ return GenGoTo(fallthroughs.back()); }
-	const ZAMStmt CatchReturn()
-		{ return GenGoTo(catches.back()); }
 
 
 	const ZAMStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2,

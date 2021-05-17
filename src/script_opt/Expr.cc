@@ -1562,15 +1562,20 @@ bool AssignExpr::IsReduced(Reducer* c) const
 		// Cascaded assignments are never reduced.
 		return false;
 
-	auto lhs_is_any = op1->GetType()->Tag() == TYPE_ANY;
-	auto rhs_is_any = op2->GetType()->Tag() == TYPE_ANY;
+	const auto& t1 = op1->GetType();
+	const auto& t2 = op2->GetType();
+
+	auto lhs_is_any = t1->Tag() == TYPE_ANY;
+	auto rhs_is_any = t2->Tag() == TYPE_ANY;
 
 	if ( lhs_is_any != rhs_is_any && op2->Tag() != EXPR_CONST )
 		return NonReduced(this);
 
-	auto t1 = op1->Tag();
+	if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY &&
+	     t2->Yield()->Tag() == TYPE_ANY )
+		return NonReduced(this);
 
-	if ( t1 == EXPR_REF &&
+	if ( op1->Tag() == EXPR_REF &&
 	     op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
 		// We are not reduced because we should instead
 		// be folded.
@@ -1612,8 +1617,11 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		// These are generated for reduced expressions.
 		return ThisPtr();
 
-	auto lhs_is_any = op1->GetType()->Tag() == TYPE_ANY;
-	auto rhs_is_any = op2->GetType()->Tag() == TYPE_ANY;
+	auto& t1 = op1->GetType();
+	auto& t2 = op2->GetType();
+
+	auto lhs_is_any = t1->Tag() == TYPE_ANY;
+	auto rhs_is_any = t2->Tag() == TYPE_ANY;
 
 	StmtPtr rhs_reduce;
 
@@ -1631,9 +1639,17 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 				op2 = make_intrusive<CoerceToAnyExpr>(red_rhs);
 			}
 		else
-			op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs,
-								op1->GetType());
+			op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs, t1);
 
+		op2->SetLocationInfo(op2_loc);
+		}
+
+	if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY &&
+	     t2->Yield()->Tag() == TYPE_ANY )
+		{
+		auto op2_loc = op2->GetLocationInfo();
+		ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
+		op2 = make_intrusive<CoerceFromAnyVecExpr>(red_rhs, t1);
 		op2->SetLocationInfo(op2_loc);
 		}
 
@@ -2862,7 +2878,7 @@ ExprPtr CoerceToAnyExpr::Duplicate()
 CoerceFromAnyExpr::CoerceFromAnyExpr(ExprPtr arg_op, TypePtr to_type)
 	: UnaryExpr(EXPR_FROM_ANY_COERCE, std::move(arg_op))
 	{
-	type = to_type;
+	type = std::move(to_type);
 	}
 
 ValPtr CoerceFromAnyExpr::Fold(Val* v) const
@@ -2879,6 +2895,27 @@ ValPtr CoerceFromAnyExpr::Fold(Val* v) const
 ExprPtr CoerceFromAnyExpr::Duplicate()
 	{
 	return SetSucc(new CoerceFromAnyExpr(op->Duplicate(), type));
+	}
+
+
+CoerceFromAnyVecExpr::CoerceFromAnyVecExpr(ExprPtr arg_op, TypePtr to_type)
+	: UnaryExpr(EXPR_FROM_ANY_VEC_COERCE, std::move(arg_op))
+	{
+	type = std::move(to_type);
+	}
+
+ValPtr CoerceFromAnyVecExpr::Fold(Val* v) const
+	{
+	auto vv = v->AsVectorVal();
+	if ( ! vv->Concretize(type->Yield()) )
+		RuntimeError("incompatible \"vector of any\" type");
+
+	return {NewRef{}, v};
+	}
+
+ExprPtr CoerceFromAnyVecExpr::Duplicate()
+	{
+	return SetSucc(new CoerceFromAnyVecExpr(op->Duplicate(), type));
 	}
 
 

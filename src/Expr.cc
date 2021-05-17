@@ -55,7 +55,7 @@ const char* expr_name(BroExprTag t)
 		"inline()",
 		"[]=", "$=",
 		"vec+=",
-		"to_any_coerce", "from_any_coerce",
+		"to_any_coerce", "from_any_coerce", "from_any_vec_coerce",
 		"any[]",
 		"nop",
 

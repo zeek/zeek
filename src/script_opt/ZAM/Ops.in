@@ -960,6 +960,18 @@ set-type $1
 eval	auto v = frame[z.v2].any_val;
 	AssignV1(ZVal({NewRef{}, v}, z.t))
 
+unary-expr-op From-Any-Vec-Coerce
+op-type X
+set-type $1
+eval	auto vv = frame[z.v2].vector_val;
+	if ( ! vv->Concretize(z.t->Yield()) )
+		{
+		ZAM_run_time_error(z.loc, "incompatible vector-of-any");
+		break;
+		}
+	zeek::Ref(vv);
+	AssignV1(ZVal(vv))
+
 
 ########## Aggregate Assignments ##########
 

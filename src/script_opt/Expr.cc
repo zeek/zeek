@@ -1572,7 +1572,7 @@ bool AssignExpr::IsReduced(Reducer* c) const
 		return NonReduced(this);
 
 	if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY &&
-	     t2->Yield()->Tag() == TYPE_ANY )
+	     t2->Yield() && t2->Yield()->Tag() == TYPE_ANY )
 		return NonReduced(this);
 
 	if ( op1->Tag() == EXPR_REF &&
@@ -1645,7 +1645,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		}
 
 	if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY &&
-	     t2->Yield()->Tag() == TYPE_ANY )
+	     t2->Yield() && t2->Yield()->Tag() == TYPE_ANY )
 		{
 		auto op2_loc = op2->GetLocationInfo();
 		ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);

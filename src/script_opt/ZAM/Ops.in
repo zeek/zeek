@@ -101,8 +101,9 @@ unary-op AppendTo
 op1-read
 set-type $2
 eval	auto copy = CopyVal($1);
-	auto& vv = frame[z.v1].vector_val->RawVec();
-	vv->push_back(copy);
+	auto vv = frame[z.v1].vector_val;
+	vv->RawVec()->push_back(copy);
+	vv->Modified();
 
 internal-op AppendToField
 type VVi
@@ -113,7 +114,10 @@ macro EvalAppendToField(val, f)
 	auto v = CopyVal(val);
 	auto fvv = frame[z.v1].record_val->GetField(z.f)->AsVectorVal();
 	if ( fvv )
+		{
 		fvv->RawVec()->push_back(v);
+		fvv->Modified();
+		}
 	else
 		ZAM_run_time_error(z.loc, util::fmt("field value missing: $%s", frame[z.v1].record_val->GetType()->AsRecordType()->FieldName(z.f)));
 
@@ -1394,7 +1398,7 @@ op1-read
 # v1 = iteration info
 # v2 = branch target if loop done
 type VV
-eval	NextTableIterPre(v2)
+eval	NextTableIterPre(v1, v2)
 	auto ind_lv = ii->tv->RecreateIndex(*current_tev->GetHashKey());
 	for ( int i = 0; i < ind_lv->Length(); ++i )
 		{
@@ -1407,8 +1411,8 @@ eval	NextTableIterPre(v2)
 		}
 	++current_tev;
 
-macro NextTableIterPre(branch)
-	auto ii = frame[z.v1].iter_info;
+macro NextTableIterPre(iter, branch)
+	auto ii = frame[z.iter].iter_info;
 	auto& current_tev = *ii->tbl_iter;
 	if ( current_tev == *ii->tbl_end )
 		BRANCH(branch)
@@ -1418,7 +1422,7 @@ op1-read
 # v1 = iteration info
 # v2 = branch target if loop done
 type VV
-eval	NextTableIterPre(v2)
+eval	NextTableIterPre(v1, v2)
 	++current_tev;
 
 internal-op Next-Table-Iter-Val-Var
@@ -1426,7 +1430,7 @@ internal-op Next-Table-Iter-Val-Var
 # v2 = iteration info
 # v3 = branch target if loop done
 type VVV
-eval	NextTableIterPre(v3)
+eval	NextTableIterPre(v2, v3)
 	auto ind_lv = ii->tv->RecreateIndex(*current_tev->GetHashKey());
 	NextTableIterPost()
 	for ( int i = 0; i < ind_lv->Length(); i++ )
@@ -1452,7 +1456,7 @@ internal-op Next-Table-Iter-Val-Var-No-Vars
 # v2 = iteration info
 # v3 = branch target if loop done
 type VVV
-eval	NextTableIterPre(v3)
+eval	NextTableIterPre(v2, v3)
 	NextTableIterPost()
 
 internal-op Init-Vector-Loop

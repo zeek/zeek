@@ -701,7 +701,10 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 		Emit("auto v = z.c.ToVal(z.t);");
 
 		if ( lhs_field )
-			Emit("auto& f = frame[z.v1].AsRecord()->RawField(z.v2);");
+			{
+			Emit("auto r = frame[z.v1].AsRecord();");
+			Emit("auto& f = r->RawField(z.v2);");
+			}
 		else
 			Emit("auto& f = frame[z.v1];");
 
@@ -724,12 +727,14 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 		     "); // note, RHS field before LHS field");
 
 		Emit("if ( ! v )");
-		EmitUp("ZAM_run_time_error(z.loc, \"field value missing\");");
-		Emit("else");
-
 		BeginBlock();
+		Emit("ZAM_run_time_error(z.loc, \"field value missing\");");
+		Emit("break;");
+		EndBlock();
+
 		auto slot = "z.v" + to_string(lhs_offset);
-		Emit("auto& f = frame[z.v1].AsRecord()->RawField(" +
+		Emit("auto r = frame[z.v1].AsRecord();");
+		Emit("auto& f = r->RawField(" +
 		     slot + "); // note, LHS field after RHS field");
 
 		if ( is_managed )
@@ -739,7 +744,6 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 			}
 
 		Emit("f = *v;");
-		EndBlock();
 		}
 
 	else
@@ -751,8 +755,8 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 			{
 			auto lhs_offset = constant_op ? 2 : 3;
 			auto slot = "z.v" + to_string(lhs_offset);
-			Emit("auto& f = frame[z.v1].AsRecord()->RawField(" +
-			     slot + ");");
+			Emit("auto r = frame[z.v1].AsRecord();");
+			Emit("auto& f = r->RawField(" + slot + ");");
 
 			if ( is_managed )
 				Emit("zeek::Unref(f" + acc + ");");
@@ -768,6 +772,9 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 			Emit("frame[z.v1] = ZVal(" + rhs + acc + ");");
 			}
 		}
+
+	if ( lhs_field )
+		Emit("r->Modified();");
 	}
 
 string ZAM_OpTemplate::MethodName(const vector<ZAM_OperandType>& ot) const

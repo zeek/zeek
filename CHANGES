@@ -1,3 +1,8 @@
+
+4.1.0-dev.638 | 2021-05-17 13:08:28 +0100
+
+  * Manual page updates (Henrik Kramselund Jereminsen)
+
 4.1.0-dev.631 | 2021-05-11 09:26:37 -0700
 
   * Add unit tests to ZeekString.cc (Tim Wojtulewicz)

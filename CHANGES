@@ -1,3 +1,6 @@
+4.1.0-dev.643 | 2021-05-17 11:57:58 -0700
+
+  * GH-1546: Make DictIterator() public, add copy/move operators (Tim Wojtulewicz, Corelight)
 
 4.1.0-dev.641 | 2021-05-17 11:28:11 -0700
 

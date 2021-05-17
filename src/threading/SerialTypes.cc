@@ -519,7 +519,8 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 		case TYPE_TABLE:
 			{
 			TypeListPtr set_index;
-			if ( val->val.set_val.size == 0 && val->subtype == TYPE_VOID )
+			if ( val->val.set_val.size == 0 &&
+			     ( val->subtype == TYPE_VOID || val->subtype == TYPE_ENUM ) )
 				// don't know type - unspecified table.
 				set_index = make_intrusive<TypeList>();
 			else
@@ -574,7 +575,8 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			{
 			TypePtr type;
 
-			if ( val->val.vector_val.size == 0  && val->subtype == TYPE_VOID )
+			if ( val->val.vector_val.size == 0 &&
+			     ( val->subtype == TYPE_VOID || val->subtype == TYPE_ENUM ) )
 				// don't know type - unspecified table.
 				type = base_type(TYPE_ANY);
 			else
@@ -582,6 +584,24 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				// all entries have to have the same type...
 				if ( val->subtype == TYPE_VOID )
 					type = base_type(val->val.vector_val.vals[0]->type);
+				else if ( val->subtype == TYPE_ENUM )
+					{
+					// Enums are not a base-type, so need to look it up.
+					const auto& sv = val->val.vector_val.vals[0]->val.string_val;
+					std::string enum_name(sv.data, sv.length);
+					const auto& enum_id = detail::global_scope()->Find(enum_name);
+
+					if ( ! enum_id )
+						{
+						reporter->Warning("Value '%s' of source '%s' is not a valid enum.",
+						                  enum_name.data(), source.c_str());
+
+						have_error = true;
+						return nullptr;
+						}
+
+					type = enum_id->GetType();
+					}
 				else
 					type = base_type(val->subtype);
 				}

@@ -1,4 +1,5 @@
-# @TEST-EXEC: zeek -b %INPUT >output 2>err
+# Use -D so that the induced FPs checked for below are consistent.
+# @TEST-EXEC: zeek -D -b %INPUT >output 2>err
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff err
 
@@ -40,10 +41,6 @@ function test_basic_bloom_filter()
   local bf_edge2 = bloomfilter_basic_init(0.9999999, 1);
   local bf_edge3 = bloomfilter_basic_init(0.9999999, 100000000000);
 
-  # Invalid parameters.
-  local bf_bug0 = bloomfilter_basic_init(-0.5, 42);
-  local bf_bug1 = bloomfilter_basic_init(1.1, 42);
-
   # Merging
   local bf_cnt2 = bloomfilter_basic_init(0.1, 1000);
   bloomfilter_add(bf_cnt2, 42);
@@ -59,6 +56,19 @@ function test_basic_bloom_filter()
   print bloomfilter_lookup(bf_empty, 42);
   local bf_empty_merged = bloomfilter_merge(bf_merged, bf_empty);
   print bloomfilter_lookup(bf_empty_merged, 42);
+  }
+
+# We split off the following into their own tests because ZAM error handling
+# needs to terminate the current function's execution when these generate
+# run-time errors.
+function test_bad_param1()
+  {
+  local bf_bug0 = bloomfilter_basic_init(-0.5, 42);
+  }
+
+function test_bad_param2()
+  {
+  local bf_bug1 = bloomfilter_basic_init(1.1, 42);
   }
 
 function test_counting_bloom_filter()
@@ -93,5 +103,7 @@ function test_counting_bloom_filter()
 event zeek_init()
   {
   test_basic_bloom_filter();
+  test_bad_param1();
+  test_bad_param2();
   test_counting_bloom_filter();
   }

@@ -38,7 +38,7 @@ export {
 	## written into logs.
 	##
 	## This option is also available as a per-filter ``$config`` option.
-	const enable_utf_8 = F &redef;
+	const enable_utf_8 = T &redef;
 
 	## Define the gzip level to compress the logs.  If 0, then no gzip
 	## compression is performed. Enabling compression also changes

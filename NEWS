@@ -57,6 +57,8 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The traditional TSV Zeek logs are now valid UTF8 by default.
+
 Removed Functionality
 ---------------------
 

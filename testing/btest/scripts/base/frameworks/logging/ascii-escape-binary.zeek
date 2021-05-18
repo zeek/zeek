@@ -2,6 +2,8 @@
 # @TEST-EXEC: btest-diff test.log
 # @TEST-EXEC: btest-diff output
 
+redef LogAscii::enable_utf_8 = F;
+
 module Test;
 
 export {

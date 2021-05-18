@@ -1,3 +1,16 @@
+
+4.1.0-dev.646 | 2021-05-18 11:47:25 -0700
+
+  * Omit unneeded decimal points in modp_dtoa2() scientific notation output (Jon Siwek, Corelight)
+
+    For example, "1e-13" is now used instead of "1.e-13".
+
+  * GH-1244: Change modp_dtoa2() to use scientific notation for small values (Jon Siwek, Corelight)
+
+    This fixes problems where printing floating point numbers less than
+    10^-6 output as "0.0".  Such numbers now use using scientific notation
+    and preserve the value's actual floating point representation.
+
 4.1.0-dev.643 | 2021-05-17 11:57:58 -0700
 
   * GH-1546: Make DictIterator() public, add copy/move operators (Tim Wojtulewicz, Corelight)

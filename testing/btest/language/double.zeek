@@ -75,5 +75,40 @@ event zeek_init()
 	local str1 = fmt("max double value = %.16e", d19);
 	test_case( str1, str1 == "max double value = 1.7976931348623157e+308" );
 
+	# Printing small numbers: default precision is 6 with values smaller than
+	# 10^-6 rendered in scientific notation, preserving exact floating point
+	# representation.
+	print "";
+	print 0.0000000000005;
+	print 0.000000000005;
+	print 0.00000000005;
+	print 0.0000000005;
+	print 0.000000005;
+	print 0.00000005;
+	print 0.0000005;
+	print "";
+	print 0.000005;
+	print 0.00005;
+	print 0.0005;
+	print 0.005;
+	print 0.05;
+	print 0.5;
+	print 5.0;
+	print "";
+	print 0.0000000000001;
+	print 0.000000000001;
+	print 0.00000000001;
+	print 0.0000000001;
+	print 0.000000001;
+	print 0.00000001;
+	print 0.0000001;
+	print "";
+	print 0.000001;
+	print 0.00001;
+	print 0.0001;
+	print 0.001;
+	print 0.01;
+	print 0.1;
+	print 1.0;
 }
 

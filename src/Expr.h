@@ -1633,9 +1633,11 @@ public:
 	// to_type is yield type, not VectorType.
 	CoerceFromAnyVecExpr(ExprPtr op, TypePtr to_type);
 
-protected:
-	ValPtr Fold(Val* v) const override;
+	// Can't use UnaryExpr's Eval() because it will do folding
+	// over the individual vector elements.
+	ValPtr Eval(Frame* f) const override;
 
+protected:
 	ExprPtr Duplicate() override;
 };
 

@@ -2904,13 +2904,21 @@ CoerceFromAnyVecExpr::CoerceFromAnyVecExpr(ExprPtr arg_op, TypePtr to_type)
 	type = std::move(to_type);
 	}
 
-ValPtr CoerceFromAnyVecExpr::Fold(Val* v) const
+ValPtr CoerceFromAnyVecExpr::Eval(Frame* f) const
 	{
+	if ( IsError() )
+		return nullptr;
+
+	auto v = op->Eval(f);
+
+	if ( ! v )
+		return nullptr;
+
 	auto vv = v->AsVectorVal();
 	if ( ! vv->Concretize(type->Yield()) )
 		RuntimeError("incompatible \"vector of any\" type");
 
-	return {NewRef{}, v};
+	return v;
 	}
 
 ExprPtr CoerceFromAnyVecExpr::Duplicate()

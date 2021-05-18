@@ -60,10 +60,6 @@ private:
 	static bool ValidateChecksum(const IP_Hdr* ip, const struct udphdr* up,
 	                             int len);
 
-	void ChecksumEvent(bool is_orig, uint32_t threshold);
-
-	Connection* conn;
-
 	std::vector<uint16_t> vxlan_ports;
 };
 
@@ -83,6 +79,7 @@ public:
 	void UpdateConnVal(RecordVal* conn_val) override;
 
 	void UpdateLength(bool is_orig, int len);
+	void HandleBadChecksum(bool is_orig);
 
 	// For tracking checksum history. These are connection-specific so they
 	// need to be stored in the session adapter created for each connection.
@@ -94,6 +91,7 @@ public:
 private:
 
 	void UpdateEndpointVal(const ValPtr& endp_arg, bool is_orig);
+	void ChecksumEvent(bool is_orig, uint32_t threshold);
 
 	bro_int_t request_len = -1;
 	bro_int_t reply_len = -1;

@@ -93,9 +93,7 @@ bool UDPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet
 
 void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remaining, Packet* pkt)
 	{
-	conn = c;
-
-	auto* adapter = static_cast<UDPSessionAdapter*>(conn->GetSessionAdapter());
+	auto* adapter = static_cast<UDPSessionAdapter*>(c->GetSessionAdapter());
 
 	const u_char* data = pkt->ip_hdr->Payload();
 	int len = pkt->ip_hdr->PayloadLen();
@@ -159,27 +157,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 		if ( bad )
 			{
-			adapter->Weird("bad_UDP_checksum");
-
-			if ( is_orig )
-				{
-				uint32_t t = adapter->req_chk_thresh;
-
-				if ( conn->ScaledHistoryEntry('C',
-				                              adapter->req_chk_cnt,
-				                              adapter->req_chk_thresh) )
-					ChecksumEvent(is_orig, t);
-				}
-			else
-				{
-				uint32_t t = adapter->rep_chk_thresh;
-
-				if ( conn->ScaledHistoryEntry('c',
-				                              adapter->rep_chk_cnt,
-				                              adapter->rep_chk_thresh) )
-					ChecksumEvent(is_orig, t);
-				}
-
+			adapter->HandleBadChecksum(is_orig);
 			return;
 			}
 		}
@@ -192,7 +170,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	ulen -= sizeof(struct udphdr);
 	remaining -= sizeof(struct udphdr);
 
-	conn->SetLastTime(run_state::current_timestamp);
+	c->SetLastTime(run_state::current_timestamp);
 
 	if ( udp_contents )
 		{
@@ -208,7 +186,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 			do_udp_contents = true;
 		else
 			{
-			uint16_t p = zeek::detail::udp_content_delivery_ports_use_resp ? conn->RespPort()
+			uint16_t p = zeek::detail::udp_content_delivery_ports_use_resp ? c->RespPort()
 			                                                               : up->uh_dport;
 			const auto& port_val = zeek::val_mgr->Port(ntohs(p), TRANSPORT_UDP);
 
@@ -237,13 +215,13 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 	if ( is_orig )
 		{
-		conn->CheckHistory(HIST_ORIG_DATA_PKT, 'D');
+		c->CheckHistory(HIST_ORIG_DATA_PKT, 'D');
 		adapter->UpdateLength(is_orig, ulen);
 		adapter->Event(udp_request);
 		}
 	else
 		{
-		conn->CheckHistory(HIST_RESP_DATA_PKT, 'd');
+		c->CheckHistory(HIST_RESP_DATA_PKT, 'd');
 		adapter->UpdateLength(is_orig, ulen);
 		adapter->Event(udp_reply);
 		}
@@ -254,8 +232,6 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	// Also try sending it into session analysis.
 	if ( remaining >= len )
 		adapter->ForwardPacket(len, data, is_orig, -1, ip.get(), remaining);
-
-	conn = nullptr;
 	}
 
 bool UDPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
@@ -265,11 +241,6 @@ bool UDPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
 	                               reinterpret_cast<const uint8_t*>(up), len);
 
 	return sum == 0xffff;
-	}
-
-void UDPAnalyzer::ChecksumEvent(bool is_orig, uint32_t threshold)
-	{
-	conn->HistoryThresholdEvent(udp_multiple_checksum_errors, is_orig, threshold);
 	}
 
 void UDPSessionAdapter::AddExtraAnalyzers(Connection* conn)
@@ -339,4 +310,29 @@ void UDPSessionAdapter::UpdateLength(bool is_orig, int len)
 #endif
 			}
 		}
+	}
+
+void UDPSessionAdapter::HandleBadChecksum(bool is_orig)
+	{
+	Weird("bad_UDP_checksum");
+
+	if ( is_orig )
+		{
+		uint32_t t = req_chk_thresh;
+
+		if ( Conn()->ScaledHistoryEntry('C', req_chk_cnt, req_chk_thresh) )
+			ChecksumEvent(is_orig, t);
+		}
+	else
+		{
+		uint32_t t = rep_chk_thresh;
+
+		if ( Conn()->ScaledHistoryEntry('c', rep_chk_cnt, rep_chk_thresh) )
+			ChecksumEvent(is_orig, t);
+		}
+	}
+
+void UDPSessionAdapter::ChecksumEvent(bool is_orig, uint32_t threshold)
+	{
+	Conn()->HistoryThresholdEvent(udp_multiple_checksum_errors, is_orig, threshold);
 	}

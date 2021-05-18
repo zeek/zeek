@@ -16,6 +16,7 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GENEVE, 6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2152/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp)) -> <no result>
@@ -82,6 +83,7 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GENEVE, 6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2152/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp)) -> <no result>
@@ -138,6 +140,7 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DNS, {5353<...>/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DTLS, {443/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_FTP, {2811<...>/tcp})) -> <no result>
+0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_GENEVE, {6081/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_GTPV1, {2152<...>/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_IMAP, {143/tcp})) -> <no result>
@@ -615,14 +618,14 @@
 0.000000   MetaHookPost  CallFunction(SumStats::add_observe_plugin_dependency, <frame>, (SumStats::VARIANCE, SumStats::AVERAGE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::AVERAGE, lambda_<3452231521688988155>{ if (!SumStats::rv?$average) SumStats::rv$average = SumStats::valelseSumStats::rv$average += (SumStats::val - SumStats::rv$average) / (coerce SumStats::rv$num to double)})) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::HLL_UNIQUE, lambda_<943258244234523627>{ if (!SumStats::rv?$card) { SumStats::rv$card = hll_cardinality_init(SumStats::r$hll_error_margin, SumStats::r$hll_confidence)SumStats::rv$hll_error_margin = SumStats::r$hll_error_marginSumStats::rv$hll_confidence = SumStats::r$hll_confidence}hll_cardinality_add(SumStats::rv$card, SumStats::obs)SumStats::rv$hll_unique = double_to_count(hll_cardinality_estimate(SumStats::rv$card))})) -> <no result>
-0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::LAST, lambda_<14831357773699754131>{ if (0 < SumStats::r$num_last_elements) { if (!SumStats::rv?$last_elements) SumStats::rv$last_elements = Queue::init((coerce [$max_len=SumStats::r$num_last_elements] to Queue::Settings))Queue::put(SumStats::rv$last_elements, SumStats::obs)}})) -> <no result>
+0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::LAST, lambda_<6246854644409869026>{ if (0 < SumStats::r$num_last_elements) { if (!SumStats::rv?$last_elements) SumStats::rv$last_elements = Queue::init((coerce [$max_len=SumStats::r$num_last_elements] to Queue::Settings))Queue::put(SumStats::rv$last_elements, SumStats::obs)}})) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::MAX, lambda_<9734000075919044397>{ if (!SumStats::rv?$max) SumStats::rv$max = SumStats::valelseif (SumStats::rv$max < SumStats::val) SumStats::rv$max = SumStats::val})) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::MIN, lambda_<2451066605226214733>{ if (!SumStats::rv?$min) SumStats::rv$min = SumStats::valelseif (SumStats::val < SumStats::rv$min) SumStats::rv$min = SumStats::val})) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::SAMPLE, lambda_<11888441397542569241>{ SumStats::sample_add_sample(SumStats::obs, SumStats::rv)})) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::STD_DEV, lambda_<5704045257244168718>{ SumStats::calc_std_dev(SumStats::rv)})) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::SUM, lambda_<6958532551242393774>{ SumStats::rv$sum += SumStats::val})) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::TOPK, lambda_<2861372781530360365>{ topk_add(SumStats::rv$topk, SumStats::obs)})) -> <no result>
-0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::UNIQUE, lambda_<10387912117292132662>{ if (!SumStats::rv?$unique_vals) SumStats::rv$unique_vals = (coerce set() to set[SumStats::Observation])if (SumStats::r?$unique_max) SumStats::rv$unique_max = SumStats::r$unique_maxif (!SumStats::r?$unique_max || sizeofSumStats::rv$unique_vals <= SumStats::r$unique_max) add SumStats::rv$unique_vals[SumStats::obs]SumStats::rv$unique = sizeofSumStats::rv$unique_vals})) -> <no result>
+0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::UNIQUE, lambda_<14393221830775341876>{ if (!SumStats::rv?$unique_vals) SumStats::rv$unique_vals = (coerce set() to set[SumStats::Observation])if (SumStats::r?$unique_max) SumStats::rv$unique_max = SumStats::r$unique_maxif (!SumStats::r?$unique_max || sizeofSumStats::rv$unique_vals <= SumStats::r$unique_max) add SumStats::rv$unique_vals[SumStats::obs]SumStats::rv$unique = sizeofSumStats::rv$unique_vals})) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::VARIANCE, lambda_<6557258612059469785>{ if (1 < SumStats::rv$num) SumStats::rv$var_s += ((SumStats::val - SumStats::rv$prev_avg) * (SumStats::val - SumStats::rv$average))SumStats::calc_variance(SumStats::rv)SumStats::rv$prev_avg = SumStats::rv$average})) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(__init_primary_bifs, <null>, ()) -> <no result>
@@ -671,6 +674,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Finger.events.bif.zeek, <...>/Zeek_Finger.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_GSSAPI.events.bif.zeek, <...>/Zeek_GSSAPI.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_GTPv1.events.bif.zeek, <...>/Zeek_GTPv1.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_Geneve.events.bif.zeek, <...>/Zeek_Geneve.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Gnutella.events.bif.zeek, <...>/Zeek_Gnutella.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_HTTP.events.bif.zeek, <...>/Zeek_HTTP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_HTTP.functions.bif.zeek, <...>/Zeek_HTTP.functions.bif.zeek) -> -1
@@ -837,6 +841,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./strings.bif.zeek, <...>/strings.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./sum, <...>/sum.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./telemetry.bif.zeek, <...>/telemetry.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./thresholds, <...>/thresholds.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./top-k.bif.zeek, <...>/top-k.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./topk, <...>/topk.zeek) -> -1
@@ -1019,6 +1024,7 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp))
+0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GENEVE, 6081/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2123/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2152/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp))
@@ -1085,6 +1091,7 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp))
+0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GENEVE, 6081/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2123/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2152/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp))
@@ -1141,6 +1148,7 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DNS, {5353<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DTLS, {443/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_FTP, {2811<...>/tcp}))
+0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_GENEVE, {6081/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_GTPV1, {2152<...>/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_IMAP, {143/tcp}))
@@ -1618,14 +1626,14 @@
 0.000000   MetaHookPre   CallFunction(SumStats::add_observe_plugin_dependency, <frame>, (SumStats::VARIANCE, SumStats::AVERAGE))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::AVERAGE, lambda_<3452231521688988155>{ if (!SumStats::rv?$average) SumStats::rv$average = SumStats::valelseSumStats::rv$average += (SumStats::val - SumStats::rv$average) / (coerce SumStats::rv$num to double)}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::HLL_UNIQUE, lambda_<943258244234523627>{ if (!SumStats::rv?$card) { SumStats::rv$card = hll_cardinality_init(SumStats::r$hll_error_margin, SumStats::r$hll_confidence)SumStats::rv$hll_error_margin = SumStats::r$hll_error_marginSumStats::rv$hll_confidence = SumStats::r$hll_confidence}hll_cardinality_add(SumStats::rv$card, SumStats::obs)SumStats::rv$hll_unique = double_to_count(hll_cardinality_estimate(SumStats::rv$card))}))
-0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::LAST, lambda_<14831357773699754131>{ if (0 < SumStats::r$num_last_elements) { if (!SumStats::rv?$last_elements) SumStats::rv$last_elements = Queue::init((coerce [$max_len=SumStats::r$num_last_elements] to Queue::Settings))Queue::put(SumStats::rv$last_elements, SumStats::obs)}}))
+0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::LAST, lambda_<6246854644409869026>{ if (0 < SumStats::r$num_last_elements) { if (!SumStats::rv?$last_elements) SumStats::rv$last_elements = Queue::init((coerce [$max_len=SumStats::r$num_last_elements] to Queue::Settings))Queue::put(SumStats::rv$last_elements, SumStats::obs)}}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::MAX, lambda_<9734000075919044397>{ if (!SumStats::rv?$max) SumStats::rv$max = SumStats::valelseif (SumStats::rv$max < SumStats::val) SumStats::rv$max = SumStats::val}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::MIN, lambda_<2451066605226214733>{ if (!SumStats::rv?$min) SumStats::rv$min = SumStats::valelseif (SumStats::val < SumStats::rv$min) SumStats::rv$min = SumStats::val}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::SAMPLE, lambda_<11888441397542569241>{ SumStats::sample_add_sample(SumStats::obs, SumStats::rv)}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::STD_DEV, lambda_<5704045257244168718>{ SumStats::calc_std_dev(SumStats::rv)}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::SUM, lambda_<6958532551242393774>{ SumStats::rv$sum += SumStats::val}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::TOPK, lambda_<2861372781530360365>{ topk_add(SumStats::rv$topk, SumStats::obs)}))
-0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::UNIQUE, lambda_<10387912117292132662>{ if (!SumStats::rv?$unique_vals) SumStats::rv$unique_vals = (coerce set() to set[SumStats::Observation])if (SumStats::r?$unique_max) SumStats::rv$unique_max = SumStats::r$unique_maxif (!SumStats::r?$unique_max || sizeofSumStats::rv$unique_vals <= SumStats::r$unique_max) add SumStats::rv$unique_vals[SumStats::obs]SumStats::rv$unique = sizeofSumStats::rv$unique_vals}))
+0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::UNIQUE, lambda_<14393221830775341876>{ if (!SumStats::rv?$unique_vals) SumStats::rv$unique_vals = (coerce set() to set[SumStats::Observation])if (SumStats::r?$unique_max) SumStats::rv$unique_max = SumStats::r$unique_maxif (!SumStats::r?$unique_max || sizeofSumStats::rv$unique_vals <= SumStats::r$unique_max) add SumStats::rv$unique_vals[SumStats::obs]SumStats::rv$unique = sizeofSumStats::rv$unique_vals}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::VARIANCE, lambda_<6557258612059469785>{ if (1 < SumStats::rv$num) SumStats::rv$var_s += ((SumStats::val - SumStats::rv$prev_avg) * (SumStats::val - SumStats::rv$average))SumStats::calc_variance(SumStats::rv)SumStats::rv$prev_avg = SumStats::rv$average}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(__init_primary_bifs, <null>, ())
@@ -1674,6 +1682,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Finger.events.bif.zeek, <...>/Zeek_Finger.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_GSSAPI.events.bif.zeek, <...>/Zeek_GSSAPI.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_GTPv1.events.bif.zeek, <...>/Zeek_GTPv1.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_Geneve.events.bif.zeek, <...>/Zeek_Geneve.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Gnutella.events.bif.zeek, <...>/Zeek_Gnutella.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_HTTP.events.bif.zeek, <...>/Zeek_HTTP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_HTTP.functions.bif.zeek, <...>/Zeek_HTTP.functions.bif.zeek)
@@ -1840,6 +1849,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./strings.bif.zeek, <...>/strings.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./sum, <...>/sum.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./telemetry.bif.zeek, <...>/telemetry.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./thresholds, <...>/thresholds.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./top-k.bif.zeek, <...>/top-k.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./topk, <...>/topk.zeek)
@@ -2022,6 +2032,7 @@
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DTLS, 443/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_FTP, 21/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_FTP, 2811/tcp)
+0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_GENEVE, 6081/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_GTPV1, 2123/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_GTPV1, 2152/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_HTTP, 1080/tcp)
@@ -2088,6 +2099,7 @@
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DTLS, 443/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_FTP, 21/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_FTP, 2811/tcp)
+0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_GENEVE, 6081/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_GTPV1, 2123/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_GTPV1, 2152/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 1080/tcp)
@@ -2144,6 +2156,7 @@
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, {5353<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, {443/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, {2811<...>/tcp})
+0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_GENEVE, {6081/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_GTPV1, {2152<...>/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, {80<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_IMAP, {143/tcp})
@@ -2620,14 +2633,14 @@
 0.000000 | HookCallFunction SumStats::add_observe_plugin_dependency(SumStats::VARIANCE, SumStats::AVERAGE)
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::AVERAGE, lambda_<3452231521688988155>{ if (!SumStats::rv?$average) SumStats::rv$average = SumStats::valelseSumStats::rv$average += (SumStats::val - SumStats::rv$average) / (coerce SumStats::rv$num to double)})
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::HLL_UNIQUE, lambda_<943258244234523627>{ if (!SumStats::rv?$card) { SumStats::rv$card = hll_cardinality_init(SumStats::r$hll_error_margin, SumStats::r$hll_confidence)SumStats::rv$hll_error_margin = SumStats::r$hll_error_marginSumStats::rv$hll_confidence = SumStats::r$hll_confidence}hll_cardinality_add(SumStats::rv$card, SumStats::obs)SumStats::rv$hll_unique = double_to_count(hll_cardinality_estimate(SumStats::rv$card))})
-0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::LAST, lambda_<14831357773699754131>{ if (0 < SumStats::r$num_last_elements) { if (!SumStats::rv?$last_elements) SumStats::rv$last_elements = Queue::init((coerce [$max_len=SumStats::r$num_last_elements] to Queue::Settings))Queue::put(SumStats::rv$last_elements, SumStats::obs)}})
+0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::LAST, lambda_<6246854644409869026>{ if (0 < SumStats::r$num_last_elements) { if (!SumStats::rv?$last_elements) SumStats::rv$last_elements = Queue::init((coerce [$max_len=SumStats::r$num_last_elements] to Queue::Settings))Queue::put(SumStats::rv$last_elements, SumStats::obs)}})
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::MAX, lambda_<9734000075919044397>{ if (!SumStats::rv?$max) SumStats::rv$max = SumStats::valelseif (SumStats::rv$max < SumStats::val) SumStats::rv$max = SumStats::val})
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::MIN, lambda_<2451066605226214733>{ if (!SumStats::rv?$min) SumStats::rv$min = SumStats::valelseif (SumStats::val < SumStats::rv$min) SumStats::rv$min = SumStats::val})
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::SAMPLE, lambda_<11888441397542569241>{ SumStats::sample_add_sample(SumStats::obs, SumStats::rv)})
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::STD_DEV, lambda_<5704045257244168718>{ SumStats::calc_std_dev(SumStats::rv)})
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::SUM, lambda_<6958532551242393774>{ SumStats::rv$sum += SumStats::val})
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::TOPK, lambda_<2861372781530360365>{ topk_add(SumStats::rv$topk, SumStats::obs)})
-0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::UNIQUE, lambda_<10387912117292132662>{ if (!SumStats::rv?$unique_vals) SumStats::rv$unique_vals = (coerce set() to set[SumStats::Observation])if (SumStats::r?$unique_max) SumStats::rv$unique_max = SumStats::r$unique_maxif (!SumStats::r?$unique_max || sizeofSumStats::rv$unique_vals <= SumStats::r$unique_max) add SumStats::rv$unique_vals[SumStats::obs]SumStats::rv$unique = sizeofSumStats::rv$unique_vals})
+0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::UNIQUE, lambda_<14393221830775341876>{ if (!SumStats::rv?$unique_vals) SumStats::rv$unique_vals = (coerce set() to set[SumStats::Observation])if (SumStats::r?$unique_max) SumStats::rv$unique_max = SumStats::r$unique_maxif (!SumStats::r?$unique_max || sizeofSumStats::rv$unique_vals <= SumStats::r$unique_max) add SumStats::rv$unique_vals[SumStats::obs]SumStats::rv$unique = sizeofSumStats::rv$unique_vals})
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::VARIANCE, lambda_<6557258612059469785>{ if (1 < SumStats::rv$num) SumStats::rv$var_s += ((SumStats::val - SumStats::rv$prev_avg) * (SumStats::val - SumStats::rv$average))SumStats::calc_variance(SumStats::rv)SumStats::rv$prev_avg = SumStats::rv$average})
 0.000000 | HookCallFunction SumStats::register_observe_plugins()
 0.000000 | HookCallFunction __init_primary_bifs()
@@ -2676,6 +2689,7 @@
 0.000000 | HookLoadFile  ./Zeek_Finger.events.bif.zeek <...>/Zeek_Finger.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_GSSAPI.events.bif.zeek <...>/Zeek_GSSAPI.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_GTPv1.events.bif.zeek <...>/Zeek_GTPv1.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_Geneve.events.bif.zeek <...>/Zeek_Geneve.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Gnutella.events.bif.zeek <...>/Zeek_Gnutella.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_HTTP.events.bif.zeek <...>/Zeek_HTTP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_HTTP.functions.bif.zeek <...>/Zeek_HTTP.functions.bif.zeek
@@ -2853,6 +2867,7 @@
 0.000000 | HookLoadFile  ./strings.bif.zeek <...>/strings.bif.zeek
 0.000000 | HookLoadFile  ./sum <...>/sum.zeek
 0.000000 | HookLoadFile  ./supervisor.bif.zeek <...>/supervisor.bif.zeek
+0.000000 | HookLoadFile  ./telemetry.bif.zeek <...>/telemetry.bif.zeek
 0.000000 | HookLoadFile  ./thresholds <...>/thresholds.zeek
 0.000000 | HookLoadFile  ./top-k.bif.zeek <...>/top-k.bif.zeek
 0.000000 | HookLoadFile  ./topk <...>/topk.zeek

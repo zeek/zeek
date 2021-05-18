@@ -12,6 +12,18 @@
 #include "zeek/IPAddr.h"
 #include "zeek/IP.h"
 
+const char* transport_proto_string(TransportProto proto)
+	{
+	switch (proto)
+		{
+		case TRANSPORT_TCP: return "tcp";
+		case TRANSPORT_UDP: return "udp";
+		case TRANSPORT_ICMP: return "icmp";
+		case TRANSPORT_UNKNOWN:
+		default: return "unknown";
+		}
+	}
+
 namespace zeek {
 
 uint16_t detail::ip4_in_cksum(const IPAddr& src, const IPAddr& dst,

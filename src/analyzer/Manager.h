@@ -339,15 +339,9 @@ private:
 	friend class packet_analysis::IP::IPBasedAnalyzer;
 
 	using tag_set = std::set<Tag>;
-	using analyzer_map_by_port = std::map<uint32_t, tag_set*>;
-
-	tag_set* LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found);
 
 	tag_set GetScheduled(const Connection* conn);
 	void ExpireScheduledAnalyzers();
-
-	analyzer_map_by_port analyzers_by_port_tcp;
-	analyzer_map_by_port analyzers_by_port_udp;
 
 	//// Data structures to track analyzed scheduled for future connections.
 

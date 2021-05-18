@@ -22,6 +22,8 @@ IPBasedAnalyzer::IPBasedAnalyzer(const char* name, TransportProto proto, uint32_
 
 IPBasedAnalyzer::~IPBasedAnalyzer()
 	{
+	for ( const auto& mapping : analyzers_by_port )
+		delete mapping.second;
 	}
 
 bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt)
@@ -212,9 +214,6 @@ bool IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 	SessionAdapter* root = MakeSessionAdapter(conn);
 	analyzer::pia::PIA* pia = MakePIA(conn);
 
-	// TODO: temporary, can be replaced when the port lookup stuff is moved from analyzer_mgr
-	bool check_port = conn->ConnTransport() != TRANSPORT_ICMP;
-
 	bool scheduled = analyzer_mgr->ApplyScheduledAnalyzers(conn, false, root);
 
 	// Hmm... Do we want *just* the expected analyzer, or all
@@ -222,14 +221,10 @@ bool IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 	// the scheduled ones.
 	if ( ! scheduled )
 		{ // Let's see if it's a port we know.
-		if ( check_port && ! zeek::detail::dpd_ignore_ports )
+		if ( ! analyzers_by_port.empty() && ! zeek::detail::dpd_ignore_ports )
 			{
-			// TODO: ideally this lookup would be local to the packet analyzer instead of
-			// calling out to the analyzer manager. This code can move once the TCP work
-			// is in progress so that it doesn't have to be done piecemeal.
-			//
 			int resp_port = ntohs(conn->RespPort());
-			std::set<analyzer::Tag>* ports = analyzer_mgr->LookupPort(conn->ConnTransport(), resp_port, false);
+			std::set<analyzer::Tag>* ports = LookupPort(resp_port, false);
 
 			if ( ports )
 				{
@@ -261,4 +256,64 @@ bool IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 
 	// TODO: temporary
 	return true;
+	}
+
+bool IPBasedAnalyzer::RegisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port)
+	{
+	tag_set* l = LookupPort(port, true);
+
+	if ( ! l )
+		return false;
+
+#ifdef DEBUG
+	const char* name = analyzer_mgr->GetComponentName(tag).c_str();
+	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name, port, transport);
+#endif
+
+	l->insert(tag);
+	return true;
+	}
+
+bool IPBasedAnalyzer::UnregisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port)
+	{
+	tag_set* l = LookupPort(port, true);
+
+	if ( ! l )
+		return true;  // still a "successful" unregistration
+
+#ifdef DEBUG
+	const char* name = analyzer_mgr->GetComponentName(tag).c_str();
+	DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port, transport);
+#endif
+
+	l->erase(tag);
+	return true;
+	}
+
+IPBasedAnalyzer::tag_set* IPBasedAnalyzer::LookupPort(uint32_t port, bool add_if_not_found)
+	{
+	analyzer_map_by_port::const_iterator i = analyzers_by_port.find(port);
+
+	if ( i != analyzers_by_port.end() )
+		return i->second;
+
+	if ( ! add_if_not_found )
+		return nullptr;
+
+	tag_set* l = new tag_set{};
+	analyzers_by_port.insert(std::make_pair(port, l));
+	return l;
+	}
+
+void IPBasedAnalyzer::DumpPortDebug()
+	{
+	for ( const auto& mapping : analyzers_by_port )
+		{
+		std::string s;
+
+		for ( const auto& tag : *(mapping.second) )
+			s += std::string(analyzer_mgr->GetComponentName(tag)) + " ";
+
+		DBG_LOG(DBG_ANALYZER, "    %d/%s: %s", mapping.first, transport_proto_string(transport), s.c_str());
+		}
 	}

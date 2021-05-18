@@ -66,12 +66,6 @@ Manager::Manager()
 
 Manager::~Manager()
 	{
-	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_tcp.begin(); i != analyzers_by_port_tcp.end(); i++ )
-		delete i->second;
-
-	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_udp.begin(); i != analyzers_by_port_udp.end(); i++ )
-		delete i->second;
-
 	// Clean up expected-connection table.
 	while ( conns_by_timeout.size() )
 		{
@@ -107,24 +101,16 @@ void Manager::DumpDebug()
 	DBG_LOG(DBG_ANALYZER, " ");
 	DBG_LOG(DBG_ANALYZER, "Analyzers by port:");
 
-	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_tcp.begin(); i != analyzers_by_port_tcp.end(); i++ )
+	if ( packet_analysis::AnalyzerPtr tcp = packet_mgr->GetAnalyzer("TCP") )
 		{
-		std::string s;
-
-		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
-			s += std::string(GetComponentName(*j)) + " ";
-
-		DBG_LOG(DBG_ANALYZER, "    %d/tcp: %s", i->first, s.c_str());
+		auto* ipba = static_cast<packet_analysis::IP::IPBasedAnalyzer*>(tcp.get());
+		ipba->DumpPortDebug();
 		}
 
-	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_udp.begin(); i != analyzers_by_port_udp.end(); i++ )
+	if ( packet_analysis::AnalyzerPtr udp = packet_mgr->GetAnalyzer("UDP") )
 		{
-		std::string s;
-
-		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
-			s += std::string(GetComponentName(*j)) + " ";
-
-		DBG_LOG(DBG_ANALYZER, "    %d/udp: %s", i->first, s.c_str());
+		auto* ipba = static_cast<packet_analysis::IP::IPBasedAnalyzer*>(udp.get());
+		ipba->DumpPortDebug();
 		}
 
 #endif
@@ -246,34 +232,38 @@ bool Manager::UnregisterAnalyzerForPort(EnumVal* val, PortVal* port)
 
 bool Manager::RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port)
 	{
-	tag_set* l = LookupPort(proto, port, true);
+	// TODO: this class is becoming more generic and removing a lot of the
+	// checks for protocols, but this part might need to stay like this.
+	packet_analysis::AnalyzerPtr analyzer;
+	if ( proto == TRANSPORT_TCP )
+		analyzer = packet_mgr->GetAnalyzer("TCP");
+	else if ( proto == TRANSPORT_UDP )
+		analyzer = packet_mgr->GetAnalyzer("UDP");
 
-	if ( ! l )
+	if ( ! analyzer )
 		return false;
 
-#ifdef DEBUG
-	const char* name = GetComponentName(tag).c_str();
-	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
-#endif
+	auto* ipba = static_cast<packet_analysis::IP::IPBasedAnalyzer*>(analyzer.get());
 
-	l->insert(tag);
-	return true;
+	return ipba->RegisterAnalyzerForPort(tag, port);
 	}
 
 bool Manager::UnregisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port)
 	{
-	tag_set* l = LookupPort(proto, port, true);
+	// TODO: this class is becoming more generic and removing a lot of the
+	// checks for protocols, but this part might need to stay like this.
+	packet_analysis::AnalyzerPtr analyzer;
+	if ( proto == TRANSPORT_TCP )
+		analyzer = packet_mgr->GetAnalyzer("TCP");
+	else if ( proto == TRANSPORT_UDP )
+		analyzer = packet_mgr->GetAnalyzer("UDP");
 
-	if ( ! l )
-		return true;  // still a "successful" unregistration
+	if ( ! analyzer )
+		return false;
 
-#ifdef DEBUG
-	const char* name = GetComponentName(tag).c_str();
-	DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
-#endif
+	auto* ipba = static_cast<packet_analysis::IP::IPBasedAnalyzer*>(analyzer.get());
 
-	l->erase(tag);
-	return true;
+	return ipba->UnregisterAnalyzerForPort(tag, port);
 	}
 
 Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, Connection* conn)
@@ -313,37 +303,6 @@ Analyzer* Manager::InstantiateAnalyzer(const char* name, Connection* conn)
 	{
 	Tag tag = GetComponentTag(name);
 	return tag ? InstantiateAnalyzer(tag, conn) : nullptr;
-	}
-
-Manager::tag_set* Manager::LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found)
-	{
-	analyzer_map_by_port* m = nullptr;
-
-	switch ( proto ) {
-	case TRANSPORT_TCP:
-		m = &analyzers_by_port_tcp;
-		break;
-
-	case TRANSPORT_UDP:
-		m = &analyzers_by_port_udp;
-		break;
-
-	default:
-		reporter->InternalWarning("unsupported transport protocol in analyzer::Manager::LookupPort");
-		return nullptr;
-	}
-
-	analyzer_map_by_port::const_iterator i = m->find(port);
-
-	if ( i != m->end() )
-		return i->second;
-
-	if ( ! add_if_not_found )
-		return nullptr;
-
-	tag_set* l = new tag_set;
-	m->insert(std::make_pair(port, l));
-	return l;
 	}
 
 void Manager::ExpireScheduledAnalyzers()

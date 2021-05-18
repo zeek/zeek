@@ -5,6 +5,7 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/RuleMatcher.h"
 

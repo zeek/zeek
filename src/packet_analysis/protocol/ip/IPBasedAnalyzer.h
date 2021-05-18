@@ -2,15 +2,17 @@
 
 #pragma once
 
+#include <map>
+#include <set>
+
 #include "zeek/packet_analysis/Analyzer.h"
-#include "zeek/packet_analysis/Component.h"
-#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
-#include "zeek/analyzer/Analyzer.h"
-#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/Tag.h"
 
 namespace zeek::analyzer::pia { class PIA; }
 
 namespace zeek::packet_analysis::IP {
+
+class SessionAdapter;
 
 /**
  * A base class for reuse by packet analyzers based on IP. This is used by default
@@ -31,6 +33,33 @@ public:
 	 * for TCP.
 	 */
 	virtual bool IsReuse(double t, const u_char* pkt) { return false; }
+
+	/**
+	 * Registers a well-known port for an analyzer. Once registered,
+	 * connection on that port will start with a corresponding analyzer
+	 * assigned.
+	 *
+	 * @param tag The analyzer's tag.
+	 * @param port The port's number.
+	 * @return True if successful.
+	 */
+	bool RegisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port);
+
+	/**
+	 * Unregisters a well-known port for an analyzer.
+	 *
+	 * @param tag The analyzer's tag.
+	 * @param port The port's number.
+	 * @param tag The analyzer's tag as an enum of script type \c
+	 * Analyzer::Tag.
+	 */
+	bool UnregisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port);
+
+	/**
+	 * Dumps information about the registered session analyzers per port.
+	 * Used by analyzer::Manager.
+	 */
+	void DumpPortDebug();
 
 protected:
 
@@ -128,6 +157,15 @@ protected:
 	bool new_plugin = false;
 
 private:
+
+	// While this is storing session analyzer tags, we store it here since packet analyzers
+	// are persitent objects. We can't do this in the adapters because those get created
+	// and destroyed for each connection.
+	using tag_set = std::set<analyzer::Tag>;
+	using analyzer_map_by_port = std::map<uint32_t, tag_set*>;
+	analyzer_map_by_port analyzers_by_port;
+
+	tag_set* LookupPort(uint32_t port, bool add_if_not_found);
 
 	/**
 	 * Creates a new Connection object from data gleaned from the current packet.

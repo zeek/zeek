@@ -55,6 +55,7 @@ static void sn_strip_trailing_zeros(char* str)
 	if ( ! frac )
 		return;
 
+	char* start_dec = frac;
 	char* exp = 0;
 	char* trailing_zeros = 0;
 
@@ -79,6 +80,9 @@ static void sn_strip_trailing_zeros(char* str)
 
 		++frac;
 		}
+
+	if ( trailing_zeros == start_dec )
+		--trailing_zeros;
 
 	if ( trailing_zeros && exp )
 		{

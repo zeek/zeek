@@ -12,6 +12,7 @@
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
+#include "zeek/packet_analysis/protocol/tcp/TCP.h"
 
 #include "zeek/analyzer/protocol/tcp/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/types.bif.h"
@@ -536,7 +537,7 @@ void TCPSessionAdapter::FlipRoles()
 	{
 	Analyzer::FlipRoles();
 
-	session_mgr->tcp_stats.FlipState(orig->state, resp->state);
+	TCPAnalyzer::GetStats().FlipState(orig->state, resp->state);
 	analyzer::tcp::TCP_Endpoint* tmp_ep = resp;
 	resp = orig;
 	orig = tmp_ep;

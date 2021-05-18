@@ -5,6 +5,7 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
+#include "zeek/packet_analysis/protocol/tcp/Stats.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
 
 namespace zeek::analyzer::tcp { class TCP_Endpoint; }
@@ -29,6 +30,12 @@ public:
 	 * initialization.
 	 */
 	void Initialize() override;
+
+	static TCPStateStats& GetStats()
+		{
+		static TCPStateStats stats;
+		return stats;
+		}
 
 protected:
 

@@ -7,14 +7,10 @@
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/session/Manager.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 
 namespace zeek::analyzer::pia { class PIA_TCP; }
-namespace zeek::analyzer::tcp {
-
-class TCP_Endpoint;
-class TCP_Reassembler;
-
-}
+namespace zeek::analyzer::tcp { class TCP_Reassembler; }
 
 namespace zeek::packet_analysis::TCP {
 

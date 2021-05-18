@@ -91,6 +91,10 @@ void modp_dtoa(double value, char* buf, int precision);
  * will be switched exponential format and include as many precision digits
  * as needed to preserve information.
  *
+ * If a non-zero input value is less than 10^(-precision), the output format
+ * will be switched exponential format and include as many precision digits
+ * as needed to preserve information.
+ *
  * \param[in] value
  * \param[out] buf  The allocated output buffer.  Should be 32 chars or more.
  * \param[in] precision  Number of digits to the right of the decimal point.

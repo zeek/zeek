@@ -1287,8 +1287,10 @@ const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	return FinishLoop(iter_head, z, f->LoopBody(), info, false);
 	}
 
-const ZAMStmt ZAMCompiler::LoopOverString(const ForStmt* f, const NameExpr* val)
+const ZAMStmt ZAMCompiler::LoopOverString(const ForStmt* f, const Expr* e)
 	{
+	auto n = e->Tag() == EXPR_NAME ? e->AsNameExpr() : nullptr;
+	auto c = e->Tag() == EXPR_CONST ? e->AsConstExpr() : nullptr;
 	auto loop_vars = f->LoopVars();
 	auto loop_var = (*loop_vars)[0];
 
@@ -1298,14 +1300,31 @@ const ZAMStmt ZAMCompiler::LoopOverString(const ForStmt* f, const NameExpr* val)
 
 	if ( non_recursive )
 		{
-		z = ZInstI(OP_INIT_STRING_LOOP_VV, info, FrameSlot(val));
-		z.op_type = OP_VV;
+		if ( n )
+			{
+			z = ZInstI(OP_INIT_STRING_LOOP_VV, info, FrameSlot(n));
+			z.op_type = OP_VV;
+			}
+		else
+			{
+			z = ZInstI(OP_INIT_STRING_LOOP_VC, info, c);
+			z.op_type = OP_VC;
+			}
 		}
 	else
 		{
-		z = ZInstI(OP_INIT_STRING_LOOP_RECURSIVE_VVV, info,
-		           FrameSlot(val), num_iters++);
-		z.op_type = OP_VVV_I3;
+		if ( n )
+			{
+			z = ZInstI(OP_INIT_STRING_LOOP_RECURSIVE_VVV, info,
+				   FrameSlot(n), num_iters++);
+			z.op_type = OP_VVV_I3;
+			}
+		else
+			{
+			z = ZInstI(OP_INIT_STRING_LOOP_RECURSIVE_VVC, info,
+				   num_iters++, c);
+			z.op_type = OP_VVC_I2;
+			}
 		}
 
 	z.aux = new ZInstAux(0);

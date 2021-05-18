@@ -1500,18 +1500,28 @@ eval	auto ii = frame[z.v2].iter_info;
 internal-op Init-String-Loop
 type VV
 eval	auto ii = z.aux->iter_info;
-	InitStringLoopPost()
+	InitStringLoopPost(frame[z.v2])
 
-macro InitStringLoopPost()
-	ii->s = frame[z.v2].string_val->AsString();
+macro InitStringLoopPost(val)
+	ii->s = val.string_val->AsString();
 	ii->iter = 0;
 	ii->n = ii->s->Len();
 	frame[z.v1].iter_info = ii;
 
+internal-op Init-String-Loop
+type VC
+eval	auto ii = z.aux->iter_info;
+	InitStringLoopPost(z.c)
+
 internal-op Init-String-Loop-Recursive
 type VVV
 eval	auto ii = &(*iters)[z.v3];
-	InitStringLoopPost()
+	InitStringLoopPost(frame[z.v2])
+
+internal-op Init-String-Loop-Recursive
+type VVC
+eval	auto ii = &(*iters)[z.v2];
+	InitStringLoopPost(z.c)
 
 internal-op Next-String-Iter
 # v1 = iteration variable

@@ -483,7 +483,7 @@ const ZAMStmt ZAMCompiler::CompileWhile(const WhileStmt* ws)
 const ZAMStmt ZAMCompiler::CompileFor(const ForStmt* f)
 	{
 	auto e = f->LoopExpr();
-	auto val = e->AsNameExpr();
+	auto val = e->Tag() == EXPR_NAME ? e->AsNameExpr() : nullptr;
 	auto et = e->GetType()->Tag();
 
 	PushNexts();
@@ -496,7 +496,7 @@ const ZAMStmt ZAMCompiler::CompileFor(const ForStmt* f)
 		return LoopOverVector(f, val);
 
 	else if ( et == TYPE_STRING )
-		return LoopOverString(f, val);
+		return LoopOverString(f, e);
 
 	else
 		reporter->InternalError("bad \"for\" loop-over value when compiling");

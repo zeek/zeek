@@ -410,7 +410,8 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const
 	//   must not be any assignments to aggregates of the same
 	//   type(s).  This is to deal with possible aliases.
 	//
-	// * Same goes to modifications of aggregates via "add" or "delete".
+	// * Same goes to modifications of aggregates via "add" or "delete"
+	//   or "+=" append.
 	//
 	// * No propagation of expressions that are based on aggregates
 	//   across function calls.
@@ -944,6 +945,15 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
 			return TC_ABORTALL;
 			}
 		}
+
+	case EXPR_APPEND_TO:
+		// This doesn't directly change any identifiers, but does
+		// alter an aggregate.
+		if ( CheckAggrMod(ids, e) )
+			{
+			is_valid = false;
+			return TC_ABORTALL;
+			}
 		break;
 
 	case EXPR_CALL:

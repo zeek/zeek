@@ -235,9 +235,9 @@ void analyze_scripts()
 		     analysis_options.usage_issues > 0 )
 			analysis_options.activate = true;
 
-		if ( 0 && analysis_options.gen_ZAM )
+		if ( analysis_options.gen_ZAM )
 			{
-			analysis_options.inliner = true;
+			// analysis_options.inliner = true;
 			analysis_options.optimize_AST = true;
 			}
 

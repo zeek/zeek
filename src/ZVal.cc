@@ -9,7 +9,7 @@
 using namespace zeek;
 
 
-bool ZVal::zval_was_nil = false;
+bool* ZVal::zval_was_nil_addr = nullptr;
 
 
 ZVal::ZVal(ValPtr v, const TypePtr& t)
@@ -271,7 +271,8 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 	if ( v )
 		return {NewRef{}, v};
 
-	zval_was_nil = true;
+	if ( zval_was_nil_addr )
+		*zval_was_nil_addr = true;
 
 	return nullptr;
 	}

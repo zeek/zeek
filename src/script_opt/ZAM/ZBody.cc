@@ -189,6 +189,8 @@ ZBody::ZBody(const char* _func_name, FrameReMap& _frame_denizens,
 
 		any_base_type = base_type(TYPE_ANY);
 
+		ZVal::SetZValNilStatusAddr(&ZAM_error);
+
 		did_init = false;
 		}
 	}

@@ -84,6 +84,7 @@ CONVERTERS(TYPE_STRING, StringVal*, Val::AsStringVal)
 CONVERTERS(TYPE_VECTOR, VectorVal*, Val::AsVectorVal)
 CONVERTERS(TYPE_ENUM, EnumVal*, Val::AsEnumVal)
 CONVERTERS(TYPE_OPAQUE, OpaqueVal*, Val::AsOpaqueVal)
+CONVERTERS(TYPE_TYPE, TypeVal*, Val::AsTypeVal)
 
 ValPtr Val::CloneState::NewClone(Val* src, ValPtr dst)
 	{
@@ -2979,7 +2980,8 @@ void RecordVal::ResizeParseTimeRecords(RecordType* revised_rt)
 		if ( required_length > current_length )
 			{
 			for ( auto i = current_length; i < required_length; ++i )
-				rv->AppendField(revised_rt->FieldDefault(i));
+				rv->AppendField(revised_rt->FieldDefault(i),
+				                revised_rt->GetFieldType(i));
 			}
 		}
 	}
@@ -3157,7 +3159,7 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	// record. As we cannot guarantee that it will ber zeroed out at the
 	// approproate time (as it seems to be guaranteed for the original record)
 	// we don't touch it.
-	auto rv = make_intrusive<RecordVal>(GetType<RecordType>(), false);
+	auto rv = make_intrusive<RecordVal>(rt, false);
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
@@ -3166,7 +3168,7 @@ ValPtr RecordVal::DoClone(CloneState* state)
 		{
 		auto f_i = GetField(i);
 		auto v = f_i ? f_i->Clone(state) : nullptr;
-  		rv->AppendField(std::move(v));
+		rv->AppendField(std::move(v), rt->GetFieldType(i));
 		}
 
 	return rv;

@@ -188,6 +188,9 @@ UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
 	OpaqueVal* AsOpaqueVal();
 	const OpaqueVal* AsOpaqueVal() const;
 
+	TypeVal* AsTypeVal();
+	const TypeVal* AsTypeVal() const;
+
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
 
@@ -1172,20 +1175,6 @@ public:
 		}
 
 	/**
-	 * Appends a value to the record's fields.  The caller is responsible
-	 * for ensuring that fields are appended in the correct order and
-	 * with the correct type.
-	 * @param v  The value to append.
-	 */
-	void AppendField(ValPtr v)
-		{
-		if ( v )
-			record_val->emplace_back(ZVal(v, v->GetType()));
-		else
-			record_val->emplace_back(std::nullopt);
-		}
-
-	/**
 	 * Returns the number of fields in the record.
 	 * @return  The number of fields in the record.
 	 */
@@ -1412,6 +1401,22 @@ protected:
 		}
 
 	ValPtr DoClone(CloneState* state) override;
+
+	/**
+	 * Appends a value to the record's fields.  The caller is responsible
+	 * for ensuring that fields are appended in the correct order and
+	 * with the correct type.  The type needs to be passsed in because
+	 * it's unsafe to take it from v when the field's type is "any" while
+	 * v is a concrete type.
+	 * @param v  The value to append.
+	 */
+	void AppendField(ValPtr v, const TypePtr& t)
+		{
+		if ( v )
+			record_val->emplace_back(ZVal(v, t));
+		else
+			record_val->emplace_back(std::nullopt);
+		}
 
 	void AddedField(int field)
 		{

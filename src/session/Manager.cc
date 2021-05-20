@@ -149,23 +149,17 @@ Connection* Manager::FindConnection(Val* v)
 	                                 htons((unsigned short) resp_portv->Port()),
 	                                 orig_portv->PortType(), false);
 
-	detail::Key key(&conn_key, sizeof(conn_key), false);
-
-	Connection* conn = nullptr;
-	auto it = session_map.find(key);
-	if ( it != session_map.end() )
-		conn = static_cast<Connection*>(it->second);
-
-	return conn;
+	return FindConnection(conn_key);
 	}
 
 Connection* Manager::FindConnection(const zeek::detail::ConnKey& conn_key)
 	{
-	detail::Key key(&conn_key, sizeof(conn_key), false);
+	detail::Key key(&conn_key, sizeof(conn_key),
+	                detail::Key::CONNECTION_KEY_TYPE, false);
 
 	auto it = session_map.find(key);
 	if ( it != session_map.end() )
-		return dynamic_cast<Connection*>(it->second);
+		return static_cast<Connection*>(it->second);
 
 	return nullptr;
 	}

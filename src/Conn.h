@@ -113,7 +113,10 @@ public:
 	// should be marked invalid.
 	const detail::ConnKey& Key() const	{ return key; }
 	session::detail::Key SessionKey(bool copy) const override
-		{ return session::detail::Key{&key, sizeof(key), copy}; }
+		{
+		return session::detail::Key{
+			&key, sizeof(key), session::detail::Key::CONNECTION_KEY_TYPE, copy};
+		}
 
 	const IPAddr& OrigAddr() const		{ return orig_addr; }
 	const IPAddr& RespAddr() const		{ return resp_addr; }

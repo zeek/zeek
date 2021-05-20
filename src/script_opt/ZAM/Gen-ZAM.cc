@@ -658,7 +658,7 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 			{ "List", "->AsListVal()" },
 			{ "Opaque", "->AsOpaqueVal()" },
 			{ "Record", "->AsRecordVal()" },
-			{ "Type", "->AsType()" },
+			{ "Type", "->AsTypeVal()" },
 		};
 
 		auto val_accessor = val_accessors[accessor];

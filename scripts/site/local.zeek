@@ -67,10 +67,6 @@ redef digest_salt = "Please change this value.";
 # This script prevents the logging of SSL CA certificates in x509.log
 @load protocols/ssl/log-hostcerts-only
 
-# Uncomment the following line to check each SSL certificate hash against the ICSI
-# certificate notary service; see http://notary.icsi.berkeley.edu .
-# @load protocols/ssl/notary
-
 # If you have GeoIP support built in, do some geographic detections and
 # logging for SSH traffic.
 @load protocols/ssh/geo-data

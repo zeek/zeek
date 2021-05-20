@@ -3,3 +3,5 @@
 warning in <...>/log-ocsp.zeek, line 1: deprecated script loaded from <...>/test-all-policy.zeek:44 ("Remove in v5.1. OCSP logging is now disabled by default")
 warning in <...>/log-ocsp.zeek, line 1: deprecated script loaded from <...>/test-all-policy.zeek:44 ("Remove in v5.1. OCSP logging is now disabled by default")
 warning in <...>/log-ocsp.zeek, line 1: deprecated script loaded from command line arguments ("Remove in v5.1. OCSP logging is now disabled by default")
+warning in <...>/notary.zeek, line 1: deprecated script loaded from <...>/__load__.zeek:4 ("Remove in v5.1. Please switch to other more modern approaches like SCT validation (validate-sct.zeek).")
+warning in <...>/notary.zeek, line 1: deprecated script loaded from command line arguments ("Remove in v5.1. Please switch to other more modern approaches like SCT validation (validate-sct.zeek).")

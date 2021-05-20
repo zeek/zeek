@@ -1,3 +1,5 @@
+@deprecated("Remove in v5.1. Please switch to other more modern approaches like SCT validation (validate-sct.zeek).")
+
 @load base/protocols/ssl
 
 module CertNotary;

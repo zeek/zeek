@@ -5290,17 +5290,29 @@ ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init)
 
 ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 	{
+	ExprPtr e_ptr{NewRef{}, e};
 	const auto& et = e->GetType();
 	TypeTag e_tag = et->Tag();
 	TypeTag t_tag = t->Tag();
 
-	if ( t->Tag() == TYPE_ANY )
-		return {NewRef{}, e};
+	if ( t_tag == TYPE_ANY )
+		{
+		if ( e_tag != TYPE_ANY )
+			e_ptr = make_intrusive<CoerceToAnyExpr>(e_ptr);
+
+		return e_ptr;
+		}
+
+	if ( e_tag == TYPE_ANY )
+		{
+		TypePtr t_ptr{NewRef{}, t};
+		return make_intrusive<CoerceFromAnyExpr>(e_ptr, t_ptr);
+		}
 
 	if ( EitherArithmetic(t_tag, e_tag) )
 		{
 		if ( e_tag == t_tag )
-			return {NewRef{}, e};
+			return e_ptr;
 
 		if ( ! BothArithmetic(t_tag, e_tag) )
 			{
@@ -5315,7 +5327,7 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 			return nullptr;
 			}
 
-		return make_intrusive<ArithCoerceExpr>(IntrusivePtr{NewRef{}, e}, t_tag);
+		return make_intrusive<ArithCoerceExpr>(e_ptr, t_tag);
 		}
 
 	if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
@@ -5324,11 +5336,10 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		RecordType* et_r = et->AsRecordType();
 
 		if ( same_type(t, et) )
-			return {NewRef{}, e};
+			return e_ptr;
 
 		if ( record_promotion_compatible(t_r, et_r) )
-			return make_intrusive<RecordCoerceExpr>(
-				IntrusivePtr{NewRef{}, e},
+			return make_intrusive<RecordCoerceExpr>(e_ptr,
 				IntrusivePtr{NewRef{}, t_r});
 
 		t->Error("incompatible record types", e);
@@ -5340,14 +5351,12 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		{
 		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
 			  et->AsTableType()->IsUnspecifiedTable() )
-			return make_intrusive<TableCoerceExpr>(
-				IntrusivePtr{NewRef{}, e},
+			return make_intrusive<TableCoerceExpr>(e_ptr,
 				IntrusivePtr{NewRef{}, t->AsTableType()});
 
 		if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR &&
 		     et->AsVectorType()->IsUnspecifiedVector() )
-			return make_intrusive<VectorCoerceExpr>(
-				IntrusivePtr{NewRef{}, e},
+			return make_intrusive<VectorCoerceExpr>(e_ptr,
 				IntrusivePtr{NewRef{}, t->AsVectorType()});
 
 		if ( t->Tag() != TYPE_ERROR && et->Tag() != TYPE_ERROR )
@@ -5356,7 +5365,7 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		return nullptr;
 		}
 
-	return {NewRef{}, e};
+	return e_ptr;
 	}
 
 bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)

@@ -322,11 +322,16 @@ IntrusivePtr<Case> Case::Duplicate()
 	if ( expr_cases )
 		{
 		auto new_exprs = expr_cases->Duplicate()->AsListExprPtr();
-		return make_intrusive<Case>(new_exprs, type_cases, s->Duplicate());
+		return make_intrusive<Case>(new_exprs, nullptr, s->Duplicate());
 		}
 
-	else
-		return make_intrusive<Case>(nullptr, type_cases, s->Duplicate());
+	if ( type_cases )
+		{
+		loop_over_list(*type_cases, i)
+			zeek::Ref((*type_cases)[i]);
+		}
+
+	return make_intrusive<Case>(nullptr, type_cases, s->Duplicate());
 	}
 
 

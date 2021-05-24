@@ -5,7 +5,7 @@
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager-1 zeek -b %INPUT"
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek -b --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
 
-# @TEST-EXEC: $SCRIPTS/wait-for-file manager-1/lost 15 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file manager-1/lost 45 || (btest-bg-wait -k 1 && false)
 
 # @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-2 zeek -b --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
 # This timeout needs to be large to accommodate ZAM compilation delays.

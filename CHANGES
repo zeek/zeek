@@ -1,4 +1,8 @@
 
+4.1.0-dev.661 | 2021-05-24 15:03:54 -0700
+
+  * Update Broker submodule for bump of embedded CAF to 0.18.3 (Jon Siwek, Corelight)
+
 4.1.0-dev.660 | 2021-05-24 12:38:44 -0700
 
   * Add type field to session::Key to help avoid collisions in map (Tim Wojtulewicz, Corelight)

@@ -103,7 +103,7 @@ function test_counting_bloom_filter()
 event zeek_init()
   {
   test_basic_bloom_filter();
+  test_counting_bloom_filter();
   test_bad_param1();
   test_bad_param2();
-  test_counting_bloom_filter();
   }

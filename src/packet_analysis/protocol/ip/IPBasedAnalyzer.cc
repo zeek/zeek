@@ -90,7 +90,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 	run_state::current_pkt = pkt;
 
 	// TODO: Does this actually mean anything?
-	if ( conn->Skipping() )
+	if ( conn->GetSessionAdapter()->Skipping() )
 		return true;
 
 	DeliverPacket(conn, run_state::processing_start_time, is_orig, len, pkt);

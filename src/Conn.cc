@@ -56,7 +56,6 @@ Connection::Connection(const detail::ConnKey& k, double t,
 	vlan = pkt->vlan;
 	inner_vlan = pkt->inner_vlan;
 
-	skip = 0;
 	weird = 0;
 
 	suppress_event = 0;
@@ -155,11 +154,11 @@ void Connection::NextPacket(double t, bool is_orig,
 	run_state::current_timestamp = t;
 	run_state::current_pkt = pkt;
 
-	if ( Skipping() )
-		return;
-
 	if ( adapter )
 		{
+		if ( adapter->Skipping() )
+			return;
+
 		record_current_packet = record_packet;
 		record_current_content = record_content;
 		adapter->NextPacket(len, data, is_orig, -1, ip, caplen);

@@ -3,6 +3,41 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 4.0.2 (in progress)
+========================
+
+This release fixes the following bugs:
+
+- Fix heap-use-after-free after clear_table() on a table that uses expiration
+  attributes.
+
+  https://github.com/zeek/zeek/commit/d51bd4bc4675d4d7234da0d11e31dbede5efe17c
+
+- Add fatal error for if table/Dictionary state ever becomes invalid since
+  the behavior becomes unexpected/unclear at that point (e.g. when table
+  bucket positions become large enough to overflow their 16-bit storage due
+  to aggressive expiration-check settings preventing the re-positioning items)
+
+  https://github.com/zeek/zeek/commit/292e3e18a3691d835b2d52ab8462a90ae47b0ae7
+
+- Add missing "zeek/" to header includes, which can prevent external plugins
+  from compiling against Zeek source-tree (e.g. via ./configure --zeek-dist=)
+
+  https://github.com/zeek/zeek/issues/1547
+  https://github.com/zeek/zeek/pull/1549
+
+- Fix reading empty set[enum] values and any vector of enum values from config
+  files
+
+  https://github.com/zeek/zeek/issues/1555
+  https://github.com/zeek/zeek/issues/1558
+  https://github.com/zeek/zeek/pull/1559
+
+- Fix type-checks related to list-type equality
+
+  https://github.com/zeek/zeek/issues/1296
+  https://github.com/zeek/zeek/pull/1358
+
 Zeek 4.0.1
 ==========
 

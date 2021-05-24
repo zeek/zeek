@@ -25,12 +25,6 @@ enum UDP_EndpointState {
 
 UDPAnalyzer::UDPAnalyzer() : IPBasedAnalyzer("UDP", TRANSPORT_UDP, UDP_PORT_MASK, false)
 	{
-	// TODO: remove once the other plugins are done
-	new_plugin = true;
-	}
-
-UDPAnalyzer::~UDPAnalyzer()
-	{
 	}
 
 SessionAdapter* UDPAnalyzer::MakeSessionAdapter(Connection* conn)

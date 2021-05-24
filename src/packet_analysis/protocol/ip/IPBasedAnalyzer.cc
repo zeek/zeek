@@ -81,62 +81,35 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 		conn->EnqueueEvent(new_packet, nullptr, conn->GetVal(),
 		                   pkt_hdr_val ? std::move(pkt_hdr_val) : ip_hdr->ToPktHdrVal());
 
-	if ( new_plugin )
+	conn->SetRecordPackets(true);
+	conn->SetRecordContents(true);
+
+	const u_char* payload = pkt->ip_hdr->Payload();
+
+	run_state::current_timestamp = run_state::processing_start_time;
+	run_state::current_pkt = pkt;
+
+	// TODO: Does this actually mean anything?
+	if ( conn->Skipping() )
+		return true;
+
+	DeliverPacket(conn, run_state::processing_start_time, is_orig, len, pkt);
+
+	run_state::current_timestamp = 0;
+	run_state::current_pkt = nullptr;
+
+	// If the packet is reassembled, disable packet dumping because the
+	// pointer math to dump the data wouldn't work.
+	if ( pkt->ip_hdr->reassembled )
+		pkt->dump_packet = false;
+	else if ( conn->RecordPackets() )
 		{
-		conn->SetRecordPackets(true);
-		conn->SetRecordContents(true);
+		pkt->dump_packet = true;
 
-		const u_char* data = pkt->ip_hdr->Payload();
-
-		run_state::current_timestamp = run_state::processing_start_time;
-		run_state::current_pkt = pkt;
-
-		// TODO: Does this actually mean anything?
-		if ( conn->Skipping() )
-			return true;
-
-		DeliverPacket(conn, run_state::processing_start_time, is_orig, len, pkt);
-
-		run_state::current_timestamp = 0;
-		run_state::current_pkt = nullptr;
-
-		// If the packet is reassembled, disable packet dumping because the
-		// pointer math to dump the data wouldn't work.
-		if ( pkt->ip_hdr->reassembled )
-			pkt->dump_packet = false;
-		else if ( conn->RecordPackets() )
-			{
-			pkt->dump_packet = true;
-
-			// If we don't want the content, set the dump size to include just
-			// the header.
-			if ( ! conn->RecordContents() )
-				pkt->dump_size = data - pkt->data;
-			}
-		}
-	else
-		{
-		int record_packet = 1;	// whether to record the packet at all
-		int record_content = 1;	// whether to record its data
-
-		const u_char* data = pkt->ip_hdr->Payload();
-
-		conn->NextPacket(run_state::processing_start_time, is_orig, ip_hdr.get(), ip_hdr->PayloadLen(),
-		                 len, data, record_packet, record_content, pkt);
-
-		// If the packet is reassembled, disable packet dumping because the
-		// pointer math to dump the data wouldn't work.
-		if ( ip_hdr->reassembled )
-			pkt->dump_packet = false;
-		else if ( record_packet )
-			{
-			pkt->dump_packet = true;
-
-			// If we don't want the content, set the dump size to include just
-			// the header.
-			if ( ! record_content )
-				pkt->dump_size = data - pkt->data;
-			}
+		// If we don't want the content, set the dump size to include just
+		// the header.
+		if ( ! conn->RecordContents() )
+			pkt->dump_size = payload - pkt->data;
 		}
 
 	return true;
@@ -196,12 +169,7 @@ zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const detail::Co
 	if ( flip )
 		conn->FlipRoles();
 
-	if ( ! BuildSessionAnalyzerTree(conn) )
-		{
-		conn->Done();
-		Unref(conn);
-		return nullptr;
-		}
+	BuildSessionAnalyzerTree(conn);
 
 	if ( new_connection )
 		conn->Event(new_connection, nullptr);
@@ -209,7 +177,7 @@ zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const detail::Co
 	return conn;
 	}
 
-bool IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
+void IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 	{
 	SessionAdapter* root = MakeSessionAdapter(conn);
 	analyzer::pia::PIA* pia = MakePIA(conn);
@@ -253,9 +221,6 @@ bool IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 	root->InitChildren();
 
 	PLUGIN_HOOK_VOID(HOOK_SETUP_ANALYZER_TREE, HookSetupAnalyzerTree(conn));
-
-	// TODO: temporary
-	return true;
 	}
 
 bool IPBasedAnalyzer::RegisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port)

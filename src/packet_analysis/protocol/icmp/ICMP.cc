@@ -27,12 +27,6 @@ using namespace zeek::packet_analysis::IP;
 
 ICMPAnalyzer::ICMPAnalyzer() : IPBasedAnalyzer("ICMP", TRANSPORT_ICMP, ICMP_PORT_MASK, false)
 	{
-	// TODO: remove once the other plugins are done
-	new_plugin = true;
-	}
-
-ICMPAnalyzer::~ICMPAnalyzer()
-	{
 	}
 
 SessionAdapter* ICMPAnalyzer::MakeSessionAdapter(Connection* conn)

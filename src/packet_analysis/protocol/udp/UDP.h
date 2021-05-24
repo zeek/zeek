@@ -12,7 +12,7 @@ namespace zeek::packet_analysis::UDP {
 class UDPAnalyzer final : public IP::IPBasedAnalyzer {
 public:
 	UDPAnalyzer();
-	~UDPAnalyzer() override;
+	~UDPAnalyzer() override = default;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
 		{

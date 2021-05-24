@@ -16,12 +16,6 @@ constexpr int32_t TOO_LARGE_SEQ_DELTA = 1048576;
 
 TCPAnalyzer::TCPAnalyzer() : IPBasedAnalyzer("TCP", TRANSPORT_TCP, TCP_PORT_MASK, false)
 	{
-	// TODO: remove once the other plugins are done
-	new_plugin = true;
-	}
-
-TCPAnalyzer::~TCPAnalyzer()
-	{
 	}
 
 void TCPAnalyzer::Initialize()

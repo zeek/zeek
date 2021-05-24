@@ -152,10 +152,6 @@ protected:
 	 */
 	bool IsLikelyServerPort(uint32_t port) const;
 
-
-	// TODO: temporary, until all of the plugins are implemented
-	bool new_plugin = false;
-
 private:
 
 	// While this is storing session analyzer tags, we store it here since packet analyzers
@@ -178,7 +174,7 @@ private:
 	zeek::Connection* NewConn(const ConnTuple* id, const detail::ConnKey& key,
 	                          const Packet* pkt);
 
-	bool BuildSessionAnalyzerTree(Connection* conn);
+	void BuildSessionAnalyzerTree(Connection* conn);
 
 	TransportProto transport;
 	uint32_t server_port_mask;

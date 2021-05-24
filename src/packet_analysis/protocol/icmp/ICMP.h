@@ -23,7 +23,7 @@ class ICMPSessionAdapter;
 class ICMPAnalyzer final : public IP::IPBasedAnalyzer {
 public:
 	ICMPAnalyzer();
-	~ICMPAnalyzer() override;
+	~ICMPAnalyzer() override = default;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
 		{

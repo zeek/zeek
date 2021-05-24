@@ -360,6 +360,35 @@ public:
 	};
 
 	/**
+	 * Changes the frequency for publishing scraped metrics to the target topic.
+	 * Passing a zero-length interval has no effect.
+	 * @param value Interval between two scrapes in seconds.
+	 */
+	void SetMetricsExporterInterval(double value);
+
+	/**
+	 * Sets a new target topic for the metrics. Passing an empty string has no
+	 * effect.
+	 * @param value The new topic for publishing local metrics to.
+	 */
+	void SetMetricsExporterTarget(std::string value);
+
+	/**
+	 * Sets a new ID for the metrics exporter. Passing an empty string has no
+	 * effect.
+	 * @param value The new ID of the exporter in published metrics.
+	 */
+	void SetMetricsExporterId(std::string value);
+
+	/**
+	 * Sets a prefix selection for the metrics exporter. An empty vector selects
+	 * *all* metrics.
+	 * @param filter List of selected metric prefixes or an empty vector for
+	 *               selecting all metrics.
+	 */
+	void SetMetricsExporterPrefixes(std::vector<std::string> filter);
+
+	/**
 	 * Allocates a new manager for telemetry data.
 	 */
 	std::unique_ptr<telemetry::Manager> NewTelemetryManager();

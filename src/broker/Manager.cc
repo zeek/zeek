@@ -1807,6 +1807,28 @@ void Manager::PrepareForwarding(const std::string &name)
 	DBG_LOG(DBG_BROKER, "Resolved table forward for data store %s", name.c_str());
 	}
 
+void Manager::SetMetricsExporterInterval(double value)
+	{
+	broker::timespan ts;
+	if ( broker::convert(value, ts) )
+		bstate->endpoint.metrics_exporter().set_interval(ts);
+	}
+
+void Manager::SetMetricsExporterTarget(std::string value)
+	{
+	bstate->endpoint.metrics_exporter().set_target(std::move(value));
+	}
+
+void Manager::SetMetricsExporterId(std::string value)
+	{
+	bstate->endpoint.metrics_exporter().set_id(std::move(value));
+	}
+
+void Manager::SetMetricsExporterPrefixes(std::vector<std::string> filter)
+	{
+	bstate->endpoint.metrics_exporter().set_prefixes(std::move(filter));
+	}
+
 std::unique_ptr<telemetry::Manager> Manager::NewTelemetryManager()
 	{
 	// The telemetry Manager actually only has a dependency on the actor system,

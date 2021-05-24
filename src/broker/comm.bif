@@ -145,3 +145,35 @@ function Broker::__node_id%(%): string
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	return zeek::make_intrusive<zeek::StringVal>(broker_mgr->NodeID());
 	%}
+
+function Broker::__set_metrics_exporter_interval%(value: interval%): bool
+	%{
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	broker_mgr->SetMetricsExporterInterval(value);
+	return zeek::val_mgr->True();
+	%}
+
+function Broker::__set_metrics_exporter_target%(value: string%): bool
+	%{
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	broker_mgr->SetMetricsExporterTarget(value->ToStdString());
+	return zeek::val_mgr->True();
+	%}
+
+function Broker::__set_metrics_exporter_id%(value: string%): bool
+	%{
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	broker_mgr->SetMetricsExporterId(value->ToStdString());
+	return zeek::val_mgr->True();
+	%}
+
+function Broker::__set_metrics_exporter_prefixes%(filter: string_vec%): bool
+	%{
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	std::vector<std::string> slist;
+	auto* vval = filter->AsVectorVal();
+	for ( unsigned index = 0; index < vval->Size(); ++index )
+		slist.emplace_back(vval->StringValAt(index)->ToStdString());
+	broker_mgr->SetMetricsExporterPrefixes(std::move(slist));
+	return zeek::val_mgr->True();
+	%}

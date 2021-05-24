@@ -128,7 +128,13 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 	if ( analysis_options.dump_uds )
 		ud->Dump();
 
-	ud->RemoveUnused();
+	new_body = ud->RemoveUnused();
+
+	if ( new_body != body )
+		{
+		f->ReplaceBody(body, new_body);
+		body = new_body;
+		}
 
 	int new_frame_size =
 		scope->Length() + rc->NumTemps() + rc->NumNewLocals();
@@ -238,7 +244,7 @@ void analyze_scripts()
 		if ( analysis_options.gen_ZAM )
 			{
 			// analysis_options.inliner = true;
-			analysis_options.optimize_AST = true;
+			// analysis_options.optimize_AST = true;
 			}
 
 		did_init = true;

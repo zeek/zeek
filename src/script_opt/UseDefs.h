@@ -66,8 +66,9 @@ public:
 
 	// Removes assignments corresponding to unused temporaries.
 	// In the process, reports on locals that are assigned
-	// but never used.
-	void RemoveUnused();
+	// but never used.  Returns the body, which may have been
+	// changed if the original first statement has been pruned.
+	StmtPtr RemoveUnused();
 
 	void Dump();
 

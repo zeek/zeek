@@ -4,7 +4,8 @@
 
 namespace zeek::session::detail {
 
-Key::Key(const void* session, size_t size, bool copy) : size(size)
+Key::Key(const void* session, size_t size, size_t type, bool copy) :
+	size(size), type(type)
 	{
 	data = reinterpret_cast<const uint8_t*>(session);
 
@@ -63,6 +64,8 @@ bool Key::operator<(const Key& rhs) const
 	{
 	if ( size != rhs.size )
 		return size < rhs.size;
+	else if ( type != rhs.type )
+		return type < rhs.type;
 
 	return memcmp(data, rhs.data, size) < 0;
 	}

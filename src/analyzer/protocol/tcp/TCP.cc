@@ -123,7 +123,7 @@ static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
 
 
 TCP_Analyzer::TCP_Analyzer(Connection* conn)
-: TransportLayerAnalyzer("TCP", conn)
+	: packet_analysis::IP::SessionAdapter("TCP", conn)
 	{
 	// Set a timer to eventually time out this connection.
 	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
@@ -180,7 +180,7 @@ void TCP_Analyzer::Done()
 
 analyzer::Analyzer* TCP_Analyzer::FindChild(analyzer::ID arg_id)
 	{
-	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_id);
+	analyzer::Analyzer* child = packet_analysis::IP::SessionAdapter::FindChild(arg_id);
 
 	if ( child )
 		return child;
@@ -197,7 +197,7 @@ analyzer::Analyzer* TCP_Analyzer::FindChild(analyzer::ID arg_id)
 
 analyzer::Analyzer* TCP_Analyzer::FindChild(analyzer::Tag arg_tag)
 	{
-	analyzer::Analyzer* child = analyzer::TransportLayerAnalyzer::FindChild(arg_tag);
+	analyzer::Analyzer* child = packet_analysis::IP::SessionAdapter::FindChild(arg_tag);
 
 	if ( child )
 		return child;
@@ -214,7 +214,7 @@ analyzer::Analyzer* TCP_Analyzer::FindChild(analyzer::Tag arg_tag)
 
 bool TCP_Analyzer::RemoveChildAnalyzer(analyzer::ID id)
 	{
-	auto rval = analyzer::TransportLayerAnalyzer::RemoveChildAnalyzer(id);
+	auto rval = packet_analysis::IP::SessionAdapter::RemoveChildAnalyzer(id);
 
 	if ( rval )
 		return rval;
@@ -1048,7 +1048,7 @@ static int32_t update_last_seq(TCP_Endpoint* endpoint, uint32_t last_seq,
 void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
-	TransportLayerAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+	packet_analysis::IP::SessionAdapter::DeliverPacket(len, data, orig, seq, ip, caplen);
 
 	const struct tcphdr* tp = ExtractTCP_Header(data, len, caplen);
 	if ( ! tp )

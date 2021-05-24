@@ -41,7 +41,7 @@ static zeek::analyzer::Analyzer* add_analyzer(zeek::Connection* conn)
 	auto a = zeek::analyzer_mgr->InstantiateAnalyzer(ZEEK_FUZZ_ANALYZER, conn);
 	tcp->AddChildAnalyzer(a);
 	tcp->AddChildAnalyzer(pia->AsAnalyzer());
-	conn->SetRootAnalyzer(tcp, pia);
+	conn->SetSessionAdapter(tcp, pia);
 	return a;
 	}
 

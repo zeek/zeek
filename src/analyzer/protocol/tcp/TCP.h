@@ -6,6 +6,7 @@
 #include "zeek/IPAddr.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/Conn.h"
 
 // We define two classes here:
@@ -22,7 +23,7 @@ class TCP_Endpoint;
 class TCP_Reassembler;
 class TCP_ApplicationAnalyzer;
 
-class TCP_Analyzer final : public analyzer::TransportLayerAnalyzer {
+class TCP_Analyzer final : public packet_analysis::IP::SessionAdapter {
 public:
 	explicit TCP_Analyzer(Connection* conn);
 	~TCP_Analyzer() override;
@@ -71,6 +72,8 @@ public:
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new TCP_Analyzer(conn); }
+
+	void AddExtraAnalyzers(Connection* conn) override {}
 
 protected:
 	friend class TCP_ApplicationAnalyzer;

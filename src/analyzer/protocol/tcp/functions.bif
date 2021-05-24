@@ -101,7 +101,7 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	if ( ! c )
 		return zeek::val_mgr->False();
 
-	c->GetRootAnalyzer()->SetContentsFile(direction, {zeek::NewRef{}, f});
+	c->GetSessionAdapter()->SetContentsFile(direction, {zeek::NewRef{}, f});
 	return zeek::val_mgr->True();
 	%}
 
@@ -124,7 +124,7 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 
 	if ( c )
 		{
-		auto cf = c->GetRootAnalyzer()->GetContentsFile(direction);
+		auto cf = c->GetSessionAdapter()->GetContentsFile(direction);
 
 		if ( cf )
 			return zeek::make_intrusive<zeek::FileVal>(std::move(cf));

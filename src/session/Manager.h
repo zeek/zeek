@@ -60,14 +60,13 @@ public:
 	/**
 	 * Looks up the connection referred to by a given key.
 	 *
-	 * @param key The key for the connection to search for.
-	 * @param proto The transport protocol for the connection.
+	 * @param conn_key The key for the connection to search for.
 	 * @return The connection, or nullptr if one doesn't exist.
 	 */
-	Connection* FindConnection(const zeek::detail::ConnKey& key, TransportProto proto);
+	Connection* FindConnection(const zeek::detail::ConnKey& conn_key);
 
 	void Remove(Session* s);
-	void Insert(Session* c);
+	void Insert(Session* c, bool remove_existing=true);
 
 	// Generating connection_pending events for all connections
 	// that are still active.
@@ -94,43 +93,6 @@ public:
 	[[deprecated("Remove in v5.1. Use CurrentSessions().")]]
 	unsigned int CurrentConnections() { return CurrentSessions(); }
 
-	/**
-	 * Main entry point for processing packets destined for session analyzers. This
-	 * method is called by the packet analysis manager when after it has processed
-	 * an IP-based packet, and shouldn't be called directly from other places.
-	 *
-	 * @param t The timestamp for this packet.
-	 * @param pkt The packet being processed.
-	 * @param len The number of bytes that haven't been processed yet by packet
-	 * analysis.
-	 */
-	void ProcessTransportLayer(double t, const Packet *pkt, size_t len);
-
-	/**
-	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
-	 * or IPv6 header based on whether it's long enough to contain such a header,
-	 * if version given in the header matches the proto argument, and also checks
-	 * that the payload length field of that header matches the actual
-	 * length of \a pkt given by \a caplen.
-	 *
-	 * @param caplen The length of \a pkt in bytes.
-	 * @param pkt The inner IP packet data.
-	 * @param proto Either IPPROTO_IPV6 or IPPROTO_IPV4 to indicate which IP
-	 *        protocol \a pkt corresponds to.
-	 * @param inner The inner IP packet wrapper pointer to be allocated/assigned
-	 *        if \a pkt looks like a valid IP packet or at least long enough
-	 *        to hold an IP header.
-	 * @return 0 If the inner IP packet appeared valid, else -1 if \a caplen
-	 *         is greater than the supposed IP packet's payload length field, -2
-	 *         if the version of the inner header does not match proto or
-	 *         1 if \a caplen is less than the supposed packet's payload length.
-	 *         In the -1 case, \a inner may still be non-null if \a caplen was
-	 *         long enough to be an IP header, and \a inner is always non-null
-	 *         for other return values.
-	 */
-	int ParseIPPacket(int caplen, const u_char* const pkt, int proto,
-	                  IP_Hdr*& inner);
-
 	unsigned int SessionMemoryUsage();
 	unsigned int SessionMemoryUsageVals();
 
@@ -147,32 +109,6 @@ public:
 private:
 
 	using SessionMap = std::map<detail::Key, Session*>;
-
-	Connection* NewConn(const zeek::detail::ConnKey& k, double t, const ConnTuple* id,
-	                    const u_char* data, int proto, uint32_t flow_label,
-	                    const Packet* pkt);
-
-	// Returns true if the port corresonds to an application
-	// for which there's a Bro analyzer (even if it might not
-	// be used by the present policy script), or it's more
-	// generally a likely server port, false otherwise.
-	//
-	// Note, port is in host order.
-	bool IsLikelyServerPort(uint32_t port, TransportProto transport_proto) const;
-
-	// Upon seeing the first packet of a connection, checks whether
-	// we want to analyze it (e.g., we may not want to look at partial
-	// connections), and, if yes, whether we should flip the roles of
-	// originator and responder (based on known ports or such).
-	// Use tcp_flags=0 for non-TCP.
-	bool WantConnection(uint16_t src_port, uint16_t dest_port,
-	                    TransportProto transport_proto,
-	                    uint8_t tcp_flags, bool& flip_roles);
-
-	// For a given protocol, checks whether the header's length as derived
-	// from lower-level headers or the length actually captured is less
-	// than that protocol's minimum header size.
-	bool CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen, const Packet *pkt);
 
 	// Inserts a new connection into the sessions map. If a connection with
 	// the same key already exists in the map, it will be overwritten by

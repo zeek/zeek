@@ -19,6 +19,7 @@
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/iosource/IOSource.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 
 namespace zeek {
 
@@ -64,7 +65,7 @@ Connection::Connection(const detail::ConnKey& k, double t,
 	hist_seen = 0;
 	history = "";
 
-	root_analyzer = nullptr;
+	adapter = nullptr;
 	primary_PIA = nullptr;
 
 	++current_connections;
@@ -83,7 +84,7 @@ Connection::~Connection()
 	if ( conn_val )
 		conn_val->SetOrigin(nullptr);
 
-	delete root_analyzer;
+	delete adapter;
 
 	--current_connections;
 	}
@@ -129,7 +130,7 @@ void Connection::Done()
 	// somewhere, but it's session-related, so maybe not?
 	if ( ConnTransport() == TRANSPORT_TCP )
 		{
-		auto ta = static_cast<analyzer::tcp::TCP_Analyzer*>(GetRootAnalyzer());
+		auto ta = static_cast<analyzer::tcp::TCP_Analyzer*>(adapter);
 		assert(ta->IsAnalyzer("TCP"));
 		analyzer::tcp::TCP_Endpoint* to = ta->Orig();
 		analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
@@ -139,8 +140,8 @@ void Connection::Done()
 
 	finished = 1;
 
-	if ( root_analyzer && ! root_analyzer->IsFinished() )
-		root_analyzer->Done();
+	if ( adapter && ! adapter->IsFinished() )
+		adapter->Done();
 	}
 
 void Connection::NextPacket(double t, bool is_orig,
@@ -156,11 +157,11 @@ void Connection::NextPacket(double t, bool is_orig,
 	if ( Skipping() )
 		return;
 
-	if ( root_analyzer )
+	if ( adapter )
 		{
 		record_current_packet = record_packet;
 		record_current_content = record_content;
-		root_analyzer->NextPacket(len, data, is_orig, -1, ip, caplen);
+		adapter->NextPacket(len, data, is_orig, -1, ip, caplen);
 		record_packet = record_current_packet;
 		record_content = record_current_content;
 		}
@@ -173,7 +174,7 @@ void Connection::NextPacket(double t, bool is_orig,
 
 bool Connection::IsReuse(double t, const u_char* pkt)
 	{
-	return root_analyzer && root_analyzer->IsReuse(t, pkt);
+	return adapter && adapter->IsReuse(t, pkt);
 	}
 
 bool Connection::ScaledHistoryEntry(char code, uint32_t& counter,
@@ -275,8 +276,8 @@ const RecordValPtr& Connection::GetVal()
 
 		}
 
-	if ( root_analyzer )
-		root_analyzer->UpdateConnVal(conn_val.get());
+	if ( adapter )
+		adapter->UpdateConnVal(conn_val.get());
 
 	conn_val->AssignTime(3, start_time);	// ###
 	conn_val->AssignInterval(4, last_time - start_time);
@@ -289,17 +290,17 @@ const RecordValPtr& Connection::GetVal()
 
 analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id)
 	{
-	return root_analyzer ? root_analyzer->FindChild(id) : nullptr;
+	return adapter ? adapter->FindChild(id) : nullptr;
 	}
 
 analyzer::Analyzer* Connection::FindAnalyzer(const analyzer::Tag& tag)
 	{
-	return root_analyzer ? root_analyzer->FindChild(tag) : nullptr;
+	return adapter ? adapter->FindChild(tag) : nullptr;
 	}
 
 analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
 	{
-	return root_analyzer->FindChild(name);
+	return adapter->FindChild(name);
 	}
 
 void Connection::AppendAddl(const char* str)
@@ -370,8 +371,8 @@ void Connection::FlipRoles()
 
 	conn_val = nullptr;
 
-	if ( root_analyzer )
-		root_analyzer->FlipRoles();
+	if ( adapter )
+		adapter->FlipRoles();
 
 	analyzer_mgr->ApplyScheduledAnalyzers(this);
 
@@ -383,7 +384,7 @@ unsigned int Connection::MemoryAllocation() const
 	return session::Session::MemoryAllocation() + padded_sizeof(*this)
 		+ (timers.MemoryAllocation() - padded_sizeof(timers))
 		+ (conn_val ? conn_val->MemoryAllocation() : 0)
-		+ (root_analyzer ? root_analyzer->MemoryAllocation(): 0)
+		+ (adapter ? adapter->MemoryAllocation(): 0)
 		// primary_PIA is already contained in the analyzer tree.
 		;
 	}
@@ -448,10 +449,10 @@ void Connection::IDString(ODesc* d) const
 	d->Add(ntohs(resp_port));
 	}
 
-void Connection::SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer,
-                                 analyzer::pia::PIA* pia)
+void Connection::SetSessionAdapter(packet_analysis::IP::SessionAdapter* aa,
+                                   analyzer::pia::PIA* pia)
 	{
-	root_analyzer = analyzer;
+	adapter = aa;
 	primary_PIA = pia;
 	}
 

@@ -1,4 +1,32 @@
 
+4.1.0-dev.660 | 2021-05-24 12:38:44 -0700
+
+  * Add type field to session::Key to help avoid collisions in map (Tim Wojtulewicz, Corelight)
+
+  * Move bad UDP checksum handling into adapter object (Tim Wojtulewicz, Corelight)
+
+  * Rename IPBasedTransportAnalyzer to SessionAdapter (Tim Wojtulewicz, Corelight)
+
+    This also also combines the old TransportLayerAnalyzer class into
+    SessionAdapter, and removes the old class. This requires naming changes
+    in a few places but no functionality changes.
+
+  * Move building session analyzer tree out of analyzer::Manager (Tim Wojtulewicz, Corelight)
+
+  * Rework the packet flow through the IP-based analyzers (Tim Wojtulewicz, Corelight)
+
+  * Add new UDP packet analyzer, remove old one (Tim Wojtulewicz, Corelight)
+
+  * Add new ICMP packet analyzer, remove old one (Tim Wojtulewicz, Corelight)
+
+  * Add base class for IP-based packet analyzers (Tim Wojtulewicz, Corelight)
+
+  * Move SessionManager::ParseIPPacket to IP analyzer's namespace (Tim Wojtulewicz, Corelight)
+
+  * Added skeletons for TCP/UDP/ICMP packet analysis plugins. (Tim Wojtulewicz, Corelight)
+
+    This includes integration into the IP plugin and calling of the sessions code from each plugin. 
+
 4.1.0-dev.646 | 2021-05-18 11:47:25 -0700
 
   * Omit unneeded decimal points in modp_dtoa2() scientific notation output (Jon Siwek, Corelight)

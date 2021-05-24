@@ -1,7 +1,5 @@
 #pragma once
 
-#include "zeek/analyzer/protocol/udp/UDP.h"
-
 #include "zeek/analyzer/protocol/ssl/events.bif.h"
 
 namespace binpac { namespace DTLS { class SSL_Conn; } }

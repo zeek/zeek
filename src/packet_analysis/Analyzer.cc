@@ -10,7 +10,8 @@
 
 namespace zeek::packet_analysis {
 
-Analyzer::Analyzer(std::string name)
+Analyzer::Analyzer(std::string name, bool report_unknown_protocols) :
+	report_unknown_protocols(report_unknown_protocols)
 	{
 	Tag t = packet_mgr->GetComponentTag(name);
 
@@ -80,10 +81,15 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
 
 	if ( inner_analyzer == nullptr )
 		{
-		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s failed, could not find analyzer for identifier %#x.",
-				GetAnalyzerName(), identifier);
-		packet_mgr->ReportUnknownProtocol(GetAnalyzerName(), identifier, data, len);
-		return false;
+		if ( report_unknown_protocols )
+			{
+			DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s failed, could not find analyzer for identifier %#x.",
+			        GetAnalyzerName(), identifier);
+			packet_mgr->ReportUnknownProtocol(GetAnalyzerName(), identifier, data, len);
+			return false;
+			}
+		else
+			return true;
 		}
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
@@ -99,7 +105,9 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) co
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s stopped, no default analyzer available.",
 			GetAnalyzerName());
 
-	Weird("no_suitable_analyzer_found", packet);
+	if ( report_unknown_protocols )
+		Weird("no_suitable_analyzer_found", packet);
+
 	return true;
 	}
 

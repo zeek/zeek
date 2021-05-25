@@ -217,6 +217,7 @@ void analyze_scripts()
 		check_env_opt("ZEEK_OPT", analysis_options.optimize_AST);
 		check_env_opt("ZEEK_XFORM", analysis_options.activate);
 		check_env_opt("ZEEK_ZAM", analysis_options.gen_ZAM);
+		check_env_opt("ZEEK_NO_ZAM_OPT", analysis_options.no_ZAM_opt);
 		check_env_opt("ZEEK_DUMP_ZAM", analysis_options.dump_ZAM);
 		check_env_opt("ZEEK_PROFILE", analysis_options.profile_ZAM);
 
@@ -342,6 +343,8 @@ void analyze_scripts()
 				new_body, analysis_options);
 		f.SetBody(new_body);
 		}
+
+	finalize_functions(funcs);
 	}
 
 

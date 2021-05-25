@@ -371,6 +371,7 @@ set(MAIN_SRCS
     script_opt/TempVar.cc
     script_opt/UseDefs.cc
 
+    script_opt/ZAM/AM-Opt.cc
     script_opt/ZAM/BuiltIn.cc
     script_opt/ZAM/Compile.cc
     script_opt/ZAM/Expr.cc

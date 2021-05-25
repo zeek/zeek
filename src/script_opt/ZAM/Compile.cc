@@ -138,10 +138,8 @@ StmtPtr ZAMCompiler::CompileBody()
 		ASSERT(! inst->target2 || inst->target2->inst_num > i);
 		}
 
-#if 0
 	if ( ! analysis_options.no_ZAM_opt )
 		OptimizeInsts();
-#endif
 
 	// Move branches to dead code forward to their successor live code.
 	for ( auto i = 0U; i < insts1.size(); ++i )
@@ -1603,10 +1601,7 @@ int ZAMCompiler::AddToFrame(ID* id)
 
 void ZAMCompiler::Dump()
 	{
-#if 0
 	bool remapped_frame = ! analysis_options.no_ZAM_opt;
-#endif
-	bool remapped_frame = false;
 
 	if ( remapped_frame )
 		printf("Original frame:\n");

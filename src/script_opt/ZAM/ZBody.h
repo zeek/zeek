@@ -64,17 +64,6 @@ protected:
 	bool CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,
 	                  const Location* loc) const;
 
-#if 0
-	template<class T> void SaveCaseMap(FILE* f, const T& val) const;
-	void SaveCaseMap(FILE* f, const bro_int_t& val) const;
-	void SaveCaseMap(FILE* f, const bro_uint_t& val) const;
-	void SaveCaseMap(FILE* f, const double& val) const;
-	void SaveCaseMap(FILE* f, const std::string& val) const;
-
-	template<class T> void SaveCaseMaps(FILE* f, const CaseMaps<T>& cms,
-	                                    const char* cms_name) const;
-#endif
-
 	StmtPtr Duplicate() override	{ return {NewRef{}, this}; }
 
 	void StmtDescribe(ODesc* d) const override;

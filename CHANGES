@@ -1,4 +1,9 @@
 
+4.1.0-dev.665 | 2021-05-26 08:07:26 +0200
+
+  * Extend the file analyzer API to set source manually. (Robin
+    Sommer, Corelight)
+
 4.1.0-dev.661 | 2021-05-24 15:03:54 -0700
 
   * Update Broker submodule for bump of embedded CAF to 0.18.3 (Jon Siwek, Corelight)

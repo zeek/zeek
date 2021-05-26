@@ -6,6 +6,7 @@
 
 #include "zeek/input.h"
 #include "zeek/Reporter.h"
+#include "zeek/Desc.h"
 #include "zeek/script_opt/Reduce.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
@@ -730,6 +731,13 @@ void ZAMCompiler::CheckSlotUse(int slot, const ZInstI* inst)
 		return;
 
 	ASSERT(slot < frame_denizens.size());
+
+	if ( denizen_beginning.count(slot) == 0 )
+		{
+		ODesc d;
+		inst->stmt->GetLocationInfo()->Describe(&d);
+		reporter->Error("%s: value used but not set: %s", d.Description(), frame_denizens[slot]->Name());
+		}
 
 	// See comment above about temporaries not having their values
 	// extend around loop bodies.  HOWEVER if a temporary is

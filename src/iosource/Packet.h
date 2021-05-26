@@ -189,6 +189,13 @@ public:
 	 */
 	mutable bool dump_packet;
 
+	/**
+	 * Indicates the amount of data to be dumped. If only a header is needed,
+	 * set this to the size of the header. Setting it to zero will dump the
+	 * entire packet.
+	 */
+	mutable int dump_size = 0;
+
 	// These are fields passed between various packet analyzers. They're best
 	// stored with the packet so they stay available as the packet is passed
 	// around.

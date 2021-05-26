@@ -35,6 +35,14 @@
 #include "zeek/analyzer/analyzer.bif.h"
 
 namespace zeek {
+
+namespace packet_analysis::IP {
+
+class IPBasedAnalyzer;
+class SessionAdapter;
+
+} // namespace packet_analysis::IP
+
 namespace analyzer {
 
 /**
@@ -244,8 +252,8 @@ public:
 	 *
 	 * @param conn The connection to add the initial set of analyzers to.
 	 *
-	 * @return False if the tree cannot be build; that's usually an
-	 * internally error.
+	 * @return False if the tree cannot be built; that's usually an
+	 * internal error.
 	 */
 	bool BuildInitialAnalyzerTree(Connection* conn);
 
@@ -313,7 +321,7 @@ public:
 	 * @return True if at least one scheduled analyzer was found.
 	 */
 	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true,
-	                             TransportLayerAnalyzer* parent = nullptr);
+	                             packet_analysis::IP::SessionAdapter* parent = nullptr);
 
 	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
@@ -345,10 +353,11 @@ public:
 
 private:
 
+	friend class packet_analysis::IP::IPBasedAnalyzer;
+
 	using tag_set = std::set<Tag>;
 	using analyzer_map_by_port = std::map<uint32_t, tag_set*>;
 
-	tag_set* LookupPort(PortVal* val, bool add_if_not_found);
 	tag_set* LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found);
 
 	tag_set GetScheduled(const Connection* conn);

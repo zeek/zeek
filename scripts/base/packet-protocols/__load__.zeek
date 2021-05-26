@@ -15,3 +15,6 @@
 @load base/packet-protocols/gre
 @load base/packet-protocols/iptunnel
 @load base/packet-protocols/vntag
+@load base/packet-protocols/udp
+@load base/packet-protocols/tcp
+@load base/packet-protocols/icmp

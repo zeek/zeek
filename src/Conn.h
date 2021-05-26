@@ -41,12 +41,8 @@ class RuleHdrTest;
 
 } // namespace detail
 
-namespace analyzer {
-
-class TransportLayerAnalyzer;
-class Analyzer;
-
-} // namespace analyzer
+namespace analyzer { class Analyzer; }
+namespace packet_analysis::IP { class SessionAdapter; }
 
 enum ConnEventToFlag {
 	NUL_IN_LINE,
@@ -117,7 +113,10 @@ public:
 	// should be marked invalid.
 	const detail::ConnKey& Key() const	{ return key; }
 	session::detail::Key SessionKey(bool copy) const override
-		{ return session::detail::Key{&key, sizeof(key), copy}; }
+		{
+		return session::detail::Key{
+			&key, sizeof(key), session::detail::Key::CONNECTION_KEY_TYPE, copy};
+		}
 
 	const IPAddr& OrigAddr() const		{ return orig_addr; }
 	const IPAddr& RespAddr() const		{ return resp_addr; }
@@ -231,8 +230,8 @@ public:
 	void AddHistory(char code)	{ history += code; }
 
 	// Sets the root of the analyzer tree as well as the primary PIA.
-	void SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia);
-	analyzer::TransportLayerAnalyzer* GetRootAnalyzer()	{ return root_analyzer; }
+	void SetSessionAdapter(packet_analysis::IP::SessionAdapter* aa, analyzer::pia::PIA* pia);
+	packet_analysis::IP::SessionAdapter* GetSessionAdapter()	{ return adapter; }
 	analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
 
 	// Sets the transport protocol in use.
@@ -279,7 +278,7 @@ private:
 	uint32_t hist_seen;
 	std::string history;
 
-	analyzer::TransportLayerAnalyzer* root_analyzer;
+	packet_analysis::IP::SessionAdapter* adapter;
 	analyzer::pia::PIA* primary_PIA;
 
 	UID uid;	// Globally unique connection ID.

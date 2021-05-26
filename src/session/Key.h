@@ -20,16 +20,22 @@ namespace zeek::session::detail {
 class Key final {
 public:
 
+	const static size_t CONNECTION_KEY_TYPE=0;
+
 	/**
 	 * Create a new session key from a data pointer.
 	 *
 	 * @param session A pointer to the data for the key.
 	 * @param size The size of the key data, in bytes.
+	 * @param type An identifier for the type of this key. The value used should be
+	 * unique across all types of session keys. CONNECTION_KEY_TYPE (0) is used by
+	 * Connection sessions and is reserved. This value is used to avoid collisions
+	 * when doing comparisons of the memory stored by keys.
 	 * @param copy Flag for whether the data should be copied into the Key
 	 * during construction. This defaults to false because normally the only time
 	 * data is copied into the key is when it's inserted into the session map.
 	 */
-	Key(const void* key_data, size_t size, bool copy=false);
+	Key(const void* key_data, size_t size, size_t type, bool copy=false);
 
 	~Key();
 
@@ -55,6 +61,7 @@ public:
 private:
 	const uint8_t* data = nullptr;
 	size_t size = 0;
+	size_t type = CONNECTION_KEY_TYPE;
 	bool copied = false;
 };
 

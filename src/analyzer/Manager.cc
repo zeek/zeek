@@ -8,11 +8,11 @@
 #include "zeek/RunState.h"
 
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
-#include "zeek/analyzer/protocol/icmp/ICMP.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/analyzer/protocol/udp/UDP.h"
+#include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 
 #include "zeek/plugin/Manager.h"
 
@@ -354,15 +354,10 @@ Manager::tag_set* Manager::LookupPort(TransportProto proto, uint32_t port, bool 
 	return l;
 	}
 
-Manager::tag_set* Manager::LookupPort(PortVal* val, bool add_if_not_found)
-	{
-	return LookupPort(val->PortType(), val->Port(), add_if_not_found);
-	}
-
 bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	{
 	analyzer::tcp::TCP_Analyzer* tcp = nullptr;
-	TransportLayerAnalyzer* root = nullptr;
+	packet_analysis::IP::SessionAdapter* root = nullptr;
 	analyzer::pia::PIA* pia = nullptr;
 	bool check_port = false;
 
@@ -374,19 +369,6 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 		check_port = true;
 		DBG_ANALYZER(conn, "activated TCP analyzer");
 		break;
-
-	case TRANSPORT_UDP:
-		root = new analyzer::udp::UDP_Analyzer(conn);
-		pia = new analyzer::pia::PIA_UDP(conn);
-		check_port = true;
-		DBG_ANALYZER(conn, "activated UDP analyzer");
-		break;
-
-	case TRANSPORT_ICMP: {
-		root = new analyzer::icmp::ICMP_Analyzer(conn);
-		DBG_ANALYZER(conn, "activated ICMP analyzer");
-		break;
-		}
 
 	default:
 		reporter->InternalWarning("unknown protocol can't build analyzer tree");
@@ -489,7 +471,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	if ( pia )
 		root->AddChildAnalyzer(pia->AsAnalyzer());
 
-	conn->SetRootAnalyzer(root, pia);
+	conn->SetSessionAdapter(root, pia);
 	root->Init();
 	root->InitChildren();
 
@@ -607,10 +589,11 @@ Manager::tag_set Manager::GetScheduled(const Connection* conn)
 	return result;
 	}
 
-bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, TransportLayerAnalyzer* parent)
+bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init,
+                                      packet_analysis::IP::SessionAdapter* parent)
 	{
 	if ( ! parent )
-		parent = conn->GetRootAnalyzer();
+		parent = conn->GetSessionAdapter();
 
 	if ( ! parent )
 		return false;

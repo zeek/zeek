@@ -25,12 +25,12 @@ namespace zeek::detail {
 bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
 					const u_char* data, int len)
 	{
-	analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
+	auto* adapter = state->GetAnalyzer()->Conn()->GetSessionAdapter();
 
-	if ( ! root || ! root->IsAnalyzer("TCP") )
+	if ( ! adapter || ! adapter->IsAnalyzer("TCP") )
 		return false;
 
-	auto* ta = static_cast<analyzer::tcp::TCP_Analyzer*>(root);
+	auto* ta = static_cast<analyzer::tcp::TCP_Analyzer*>(adapter);
 
 	if ( tcpstates & RULE_STATE_STATELESS )
 		return true;
@@ -57,9 +57,9 @@ void RuleConditionTCPState::PrintDebug()
 bool RuleConditionUDPState::DoMatch(Rule* rule, RuleEndpointState* state,
                                     const u_char* data, int len)
 	{
-	analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
+	auto* adapter = state->GetAnalyzer()->Conn()->GetSessionAdapter();
 
-	if ( ! root || ! root->IsAnalyzer("UDP") )
+	if ( ! adapter || ! adapter->IsAnalyzer("UDP") )
 		return false;
 
 	if ( states & RULE_STATE_STATELESS )

@@ -17,8 +17,11 @@ public:
 	 *
 	 * @param name The name for the type of analyzer. The name must match
 	 * the one the corresponding Component registers.
+	 * @param report_unknown_protocols Flag for whether to report unknown
+	 * protocols during packet forwarding. This should generally always be
+	 * set to true.
 	 */
-	explicit Analyzer(std::string name);
+	explicit Analyzer(std::string name, bool report_unknown_protocols=true);
 
 	/**
 	 * Constructor.
@@ -164,6 +167,11 @@ private:
 	Tag tag;
 	Dispatcher dispatcher;
 	AnalyzerPtr default_analyzer = nullptr;
+
+	/**
+	 * Flag for whether to report unknown protocols in ForwardPacket.
+	 */
+	bool report_unknown_protocols = true;
 
 	void Init(const Tag& tag);
 };

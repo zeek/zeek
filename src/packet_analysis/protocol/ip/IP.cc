@@ -10,6 +10,7 @@
 #include "zeek/Frag.h"
 #include "zeek/Event.h"
 #include "zeek/TunnelEncapsulation.h"
+#include "zeek/IPAddr.h"
 
 using namespace zeek::packet_analysis::IP;
 
@@ -235,14 +236,6 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	packet->proto = proto;
 
 	switch ( proto ) {
-	case IPPROTO_TCP:
-	case IPPROTO_UDP:
-	case IPPROTO_ICMP:
-	case IPPROTO_ICMPV6:
-		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
-		        GetAnalyzerName(), proto);
-		session_mgr->ProcessTransportLayer(run_state::processing_start_time, packet, len);
-		break;
 	case IPPROTO_NONE:
 		// If the packet is encapsulated in Teredo, then it was a bubble and
 		// the Teredo analyzer may have raised an event for that, else we're
@@ -267,4 +260,41 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		f->DeleteTimer();
 
 	return return_val;
+	}
+
+int zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* const pkt, int proto,
+                                           std::unique_ptr<zeek::IP_Hdr>& inner)
+	{
+	if ( proto == IPPROTO_IPV6 )
+		{
+		if ( caplen < (int)sizeof(struct ip6_hdr) )
+			return -1;
+
+		const struct ip6_hdr* ip6 = (const struct ip6_hdr*) pkt;
+		inner = std::make_unique<zeek::IP_Hdr>(ip6, false, caplen);
+		if ( ( ip6->ip6_ctlun.ip6_un2_vfc & 0xF0 ) != 0x60 )
+			return -2;
+		}
+
+	else if ( proto == IPPROTO_IPV4 )
+		{
+		if ( caplen < (int)sizeof(struct ip) )
+			return -1;
+
+		const struct ip* ip4 = (const struct ip*) pkt;
+		inner = std::make_unique<zeek::IP_Hdr>(ip4, false);
+		if ( ip4->ip_v != 4 )
+			return -2;
+		}
+
+	else
+		{
+		zeek::reporter->InternalWarning("Bad IP protocol version in IP::ParsePacket");
+		return -1;
+		}
+
+	if ( (uint32_t)caplen != inner->TotalLen() )
+		return (uint32_t)caplen < inner->TotalLen() ? -1 : 1;
+
+	return 0;
 	}

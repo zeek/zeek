@@ -112,6 +112,7 @@ public:
 	virtual ValPtr SizeVal() const;
 
 	// Bytes in total value object.
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	virtual unsigned int MemoryAllocation() const;
 
 	// Add this value to the given value (if appropriate).
@@ -486,6 +487,7 @@ public:
 
 	const IPAddr& Get() const	{ return *addr_val; }
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation() const override;
 
 protected:
@@ -515,6 +517,7 @@ public:
 
 	const IPPrefix& Get() const	{ return *subnet_val; }
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation() const override;
 
 protected:
@@ -549,6 +552,7 @@ public:
 
 	const String* Get() const	{ return string_val; }
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation() const override;
 
 	StringValPtr Replace(RE_Matcher* re, const String& repl,
@@ -610,6 +614,7 @@ public:
 
 	const RE_Matcher* Get() const	{ return re_val; }
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation() const override;
 
 protected:
@@ -659,6 +664,7 @@ public:
 
 	void Describe(ODesc* d) const override;
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation() const override;
 
 protected:
@@ -932,6 +938,7 @@ public:
 	// the function in the frame allowing it to capture its closure.
 	void InitDefaultFunc(detail::Frame* f);
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation() const override;
 
 	void ClearTimer(detail::Timer* t)
@@ -1399,6 +1406,7 @@ public:
 	RecordValPtr CoerceTo(RecordTypePtr other,
 	                      bool allow_orphaning = false);
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
 

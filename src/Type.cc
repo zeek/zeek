@@ -335,6 +335,8 @@ unsigned int TypeList::MemoryAllocation() const
 	{
 	unsigned int size = 0;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	for ( const auto& t : types )
 		size += t->MemoryAllocation();
 
@@ -343,6 +345,7 @@ unsigned int TypeList::MemoryAllocation() const
 	return Type::MemoryAllocation()
 		+ padded_sizeof(*this) - padded_sizeof(Type)
 		+ size;
+#pragma GCC diagnostic pop
 	}
 
 int IndexType::MatchesIndex(detail::ListExpr* const index) const

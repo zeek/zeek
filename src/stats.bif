@@ -220,10 +220,13 @@ function get_reassembler_stats%(%): ReassemblerStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(ReassemblerStats);
 	int n = 0;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	r->Assign(n++, Reassembler::MemoryAllocation(zeek::REASSEM_FILE));
 	r->Assign(n++, Reassembler::MemoryAllocation(zeek::REASSEM_FRAG));
 	r->Assign(n++, Reassembler::MemoryAllocation(zeek::REASSEM_TCP));
 	r->Assign(n++, Reassembler::MemoryAllocation(zeek::REASSEM_UNKNOWN));
+#pragma GCC diagnostic pop
 
 	return r;
 	%}

@@ -30,6 +30,7 @@ public:
 	// Given a hash key, recover the values used to create it.
 	ListValPtr RecoverVals(const HashKey& k) const;
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this) + util::pad_size(size); }
 
 protected:

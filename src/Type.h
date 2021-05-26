@@ -250,6 +250,7 @@ public:
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	virtual unsigned MemoryAllocation() const;
 
 	void SetName(const std::string& arg_name) { name = arg_name; }
@@ -347,6 +348,7 @@ public:
 
 	void Describe(ODesc* d) const override;
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation() const override;
 
 protected:

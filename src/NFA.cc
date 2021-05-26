@@ -157,9 +157,12 @@ void NFA_State::Dump(FILE* f)
 
 unsigned int NFA_State::TotalMemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return padded_sizeof(*this)
 		+ xtions.MemoryAllocation() - padded_sizeof(xtions)
 		+ (epsclosure ? epsclosure->MemoryAllocation() : 0);
+#pragma GCC diagnostic pop
 	}
 
 NFA_Machine::NFA_Machine(NFA_State* first, NFA_State* final)

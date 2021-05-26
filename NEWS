@@ -113,6 +113,11 @@ Deprecated Functionality
 
 - ``supervisor_rotation_format_func`` is renamed to ``archiver_rotation_format_func``
 
+- The ```MemoryAllocation()``` function implemented by a number of interfaces
+  is now deprecated. In testing we found that the values returned were mostly
+  incorrect and weren't useful. The ```val_size``` and ```global_sizes``` BIF
+  methods have also both been marked deprecated.
+
 Zeek 4.0.0
 ==========
 

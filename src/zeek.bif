@@ -1256,9 +1256,12 @@ function same_object%(o1: any, o2: any%): bool
 ## v: The value
 ##
 ## Returns: The number of bytes that *v* occupies.
-function val_size%(v: any%): count
+function val_size%(v: any%): count &deprecated="Remove in v5.1. MemoryAllocation() is deprecated and will be removed."
 	%{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return zeek::val_mgr->Count(v->MemoryAllocation());
+#pragma GCC diagnostic pop
 	%}
 
 ## Resizes a vector.
@@ -1946,7 +1949,7 @@ function packet_source%(%): PacketSource
 ## Returns: A table that maps variable names to their sizes.
 ##
 ## .. zeek:see:: global_ids
-function global_sizes%(%): var_sizes
+function global_sizes%(%): var_sizes &deprecated="Remove in v5.1. MemoryAllocation() is deprecated and will be removed."
 	%{
 	auto sizes = zeek::make_intrusive<zeek::TableVal>(IntrusivePtr{zeek::NewRef{}, var_sizes});
 	const auto& globals = zeek::detail::global_scope()->Vars();
@@ -1957,7 +1960,10 @@ function global_sizes%(%): var_sizes
 		if ( id->HasVal() )
 			{
 			auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 			auto id_size = zeek::val_mgr->Count(id->GetVal()->MemoryAllocation());
+#pragma GCC diagnostic pop
 			sizes->Assign(std::move(id_name), std::move(id_size));
 			}
 		}

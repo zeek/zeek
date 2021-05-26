@@ -26,6 +26,7 @@ public:
 	void ReplaceSyms(int_list* new_syms)
 				{ delete syms; syms = new_syms; }
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation() const;
 
 protected:

@@ -92,14 +92,29 @@ public:
 	[[deprecated("Remove in v5.1. Use CurrentSessions().")]]
 	unsigned int CurrentConnections() { return CurrentSessions(); }
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int SessionMemoryUsage();
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int SessionMemoryUsageVals();
 
 	[[deprecated("Remove in v5.1. Use SessionMemoryUsage().")]]
-	unsigned int ConnectionMemoryUsage() { return SessionMemoryUsage(); }
+	unsigned int ConnectionMemoryUsage()
+		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		return SessionMemoryUsage();
+#pragma GCC diagnostic pop
+		}
 	[[deprecated("Remove in v5.1. Use SessionMemoryUsageVals().")]]
-	unsigned int ConnectionMemoryUsageConnVals() { return SessionMemoryUsageVals(); }
+	unsigned int ConnectionMemoryUsageConnVals()
+		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		return SessionMemoryUsageVals();
+#pragma GCC diagnostic pop
+		}
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation();
 
 private:

@@ -99,11 +99,6 @@ private:
 	                               ICMPSessionAdapter* adapter);
 
 	void UpdateEndpointVal(const ValPtr& endp, bool is_orig);
-
-	// Returns the counterpart type to the given type (e.g., the counterpart
-	// to ICMP_ECHOREPLY is ICMP_ECHO).
-	int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
-	int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 	};
 
 class ICMPSessionAdapter final : public IP::SessionAdapter {
@@ -134,6 +129,11 @@ private:
 	int request_len = -1;
 	int reply_len = -1;
 };
+
+// Returns the counterpart type to the given type (e.g., the counterpart
+// to ICMP_ECHOREPLY is ICMP_ECHO).
+extern int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
+extern int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 
 } // namespace packet_analysis::ICMP
 } // namespace zeek

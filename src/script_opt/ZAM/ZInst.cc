@@ -5,6 +5,7 @@
 #include "zeek/Func.h"
 #include "zeek/script_opt/ZAM/ZInst.h"
 
+using std::string;
 
 namespace zeek::detail {
 
@@ -19,15 +20,10 @@ void ZInst::Dump(int inst_num, const FrameReMap* mappings) const
 	auto id4 = VName(n, 4, inst_num, mappings);
 
 	Dump(id1, id2, id3, id4);
-
-	delete id1;
-	delete id2;
-	delete id3;
-	delete id4;
 	}
 
-void ZInst::Dump(const char* id1, const char* id2, const char* id3,
-			const char* id4) const
+void ZInst::Dump(const string& id1, const string& id2, const string& id3,
+                 const string& id4) const
 	{
 	printf("%s ", ZOP_name(op));
 	// printf("(%s) ", op_type_name(op_type));
@@ -39,23 +35,25 @@ void ZInst::Dump(const char* id1, const char* id2, const char* id3,
 		break;
 
 	case OP_V:
-		printf("%s", id1);
+		printf("%s", id1.c_str());
 		break;
 
 	case OP_VV:
-		printf("%s, %s", id1, id2);
+		printf("%s, %s", id1.c_str(), id2.c_str());
 		break;
 
 	case OP_VVV:
-		printf("%s, %s, %s", id1, id2, id3);
+		printf("%s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str());
 		break;
 
 	case OP_VVVV:
-		printf("%s, %s, %s, %s", id1, id2, id3, id4);
+		printf("%s, %s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str(),
+	 	       id4.c_str());
 		break;
 
 	case OP_VVVC:
-		printf("%s, %s, %s, %s", id1, id2, id3, ConstDump().c_str());
+		printf("%s, %s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str(),
+		       ConstDump().c_str());
 		break;
 
 	case OP_C:
@@ -63,11 +61,12 @@ void ZInst::Dump(const char* id1, const char* id2, const char* id3,
 		break;
 
 	case OP_VC:
-		printf("%s, %s", id1, ConstDump().c_str());
+		printf("%s, %s", id1.c_str(), ConstDump().c_str());
 		break;
 
 	case OP_VVC:
-		printf("%s, %s, %s", id1, id2, ConstDump().c_str());
+		printf("%s, %s, %s", id1.c_str(), id2.c_str(),
+		       ConstDump().c_str());
 		break;
 
 	case OP_V_I1:
@@ -79,11 +78,11 @@ void ZInst::Dump(const char* id1, const char* id2, const char* id3,
 		break;
 
 	case OP_VV_FRAME:
-		printf("%s, interpreter frame[%d]", id1, v2);
+		printf("%s, interpreter frame[%d]", id1.c_str(), v2);
 		break;
 
 	case OP_VV_I2:
-		printf("%s, %d", id1, v2);
+		printf("%s, %d", id1.c_str(), v2);
 		break;
 
 	case OP_VV_I1_I2:
@@ -91,35 +90,38 @@ void ZInst::Dump(const char* id1, const char* id2, const char* id3,
 		break;
 
 	case OP_VVC_I2:
-		printf("%s, %d, %s", id1, v2, ConstDump().c_str());
+		printf("%s, %d, %s", id1.c_str(), v2, ConstDump().c_str());
 		break;
 
 	case OP_VVV_I3:
-		printf("%s, %s, %d", id1, id2, v3);
+		printf("%s, %s, %d", id1.c_str(), id2.c_str(), v3);
 		break;
 
 	case OP_VVV_I2_I3:
-		printf("%s, %d, %d", id1, v2, v3);
+		printf("%s, %d, %d", id1.c_str(), v2, v3);
 		break;
 
 	case OP_VVVV_I4:
-		printf("%s, %s, %s, %d", id1, id2, id3, v4);
+		printf("%s, %s, %s, %d", id1.c_str(), id2.c_str(), id3.c_str(),
+		       v4);
 		break;
 
 	case OP_VVVV_I3_I4:
-		printf("%s, %s, %d, %d", id1, id2, v3, v4);
+		printf("%s, %s, %d, %d", id1.c_str(), id2.c_str(), v3, v4);
 		break;
 
 	case OP_VVVV_I2_I3_I4:
-		printf("%s, %d, %d, %d", id1, v2, v3, v4);
+		printf("%s, %d, %d, %d", id1.c_str(), v2, v3, v4);
 		break;
 
 	case OP_VVVC_I3:
-		printf("%s, %s, %d, %s", id1, id2, v3, ConstDump().c_str());
+		printf("%s, %s, %d, %s", id1.c_str(), id2.c_str(), v3,
+		       ConstDump().c_str());
 		break;
 
 	case OP_VVVC_I2_I3:
-		printf("%s, %d, %d, %s", id1, v2, v3, ConstDump().c_str());
+		printf("%s, %d, %d, %s", id1.c_str(), v2, v3,
+		       ConstDump().c_str());
 		break;
 
 	case OP_VVVC_I1_I2_I3:
@@ -197,13 +199,16 @@ int ZInst::NumSlots() const
 	}
 	}
 
-const char* ZInst::VName(int max_n, int n, int inst_num,
-				const FrameReMap* mappings) const
+string ZInst::VName(int max_n, int n, int inst_num,
+                    const FrameReMap* mappings) const
 	{
 	if ( n > max_n )
-		return nullptr;
+		return "";
 
 	int slot = n == 1 ? v1 : (n == 2 ? v2 : (n == 3 ? v3 : v4));
+
+	if ( slot < 0 )
+		return "<special>";
 
 	// Find which identifier manifests at this instruction.
 	ASSERT(slot >= 0 && slot < mappings->size());
@@ -231,7 +236,7 @@ const char* ZInst::VName(int max_n, int n, int inst_num,
 
 	auto id = map.names.size() > 0 ? map.names[i-1] : map.ids[i-1]->Name();
 
-	return util::copy_string(util::fmt("%d (%s)", slot, id));
+	return util::fmt("%d (%s)", slot, id);
 	}
 
 ValPtr ZInst::ConstVal() const
@@ -266,7 +271,7 @@ ValPtr ZInst::ConstVal() const
 	}
 	}
 
-std::string ZInst::ConstDump() const
+string ZInst::ConstDump() const
 	{
 	auto v = ConstVal();
 
@@ -291,20 +296,18 @@ void ZInstI::Dump(const FrameMap* frame_ids, const FrameReMap* remappings)
 	auto id4 = VName(n, 4, frame_ids, remappings);
 
 	ZInst::Dump(id1, id2, id3, id4);
-
-	delete id1;
-	delete id2;
-	delete id3;
-	delete id4;
 	}
 
-const char* ZInstI::VName(int max_n, int n, const FrameMap* frame_ids,
-				const FrameReMap* remappings) const
+string ZInstI::VName(int max_n, int n, const FrameMap* frame_ids,
+                     const FrameReMap* remappings) const
 	{
 	if ( n > max_n )
-		return nullptr;
+		return "";
 
 	int slot = n == 1 ? v1 : (n == 2 ? v2 : (n == 3 ? v3 : v4));
+
+	if ( slot < 0 )
+		return "<special>";
 
 	const ID* id;
 
@@ -340,7 +343,7 @@ const char* ZInstI::VName(int max_n, int n, const FrameMap* frame_ids,
 	else
 		id = (*frame_ids)[slot];
 
-	return util::copy_string(util::fmt("%d (%s)", slot, id->Name()));
+	return util::fmt("%d (%s)", slot, id->Name());
 	}
 
 bool ZInstI::DoesNotContinue() const
@@ -578,7 +581,7 @@ void ZInstI::UpdateSlots(std::vector<int>& slot_mapping)
 	// Note, unlike for UsesSlots we do *not* include OP1_READ_WRITE
 	// here, because such instructions will already have v1 remapped
 	// given it's an assignment target.
-	if ( op1_flavor[op] == OP1_READ )
+	if ( op1_flavor[op] == OP1_READ && v1 >= 0 )
 		v1 = slot_mapping[v1];
 	}
 

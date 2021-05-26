@@ -66,10 +66,10 @@ public:
 	virtual ~ZInst()	{ }
 
 	void Dump(int inst_num, const FrameReMap* mappings) const;
-	void Dump(const char* id1, const char* id2, const char* id3,
-	          const char* id4) const;
+	void Dump(const std::string& id1, const std::string& id2,
+	          const std::string& id3, const std::string& id4) const;
 
-	const char* VName(int max_n, int n, int inst_num,
+	std::string VName(int max_n, int n, int inst_num,
 	                  const FrameReMap* mappings) const;
 
 	// Number of slots that refer to a frame element.  These always
@@ -187,7 +187,7 @@ public:
 	// If "remappings" is non-nil, then it is used instead of frame_ids.
 	void Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const;
 
-	const char* VName(int max_n, int n, const FrameMap* frame_ids,
+	std::string VName(int max_n, int n, const FrameMap* frame_ids,
 	                  const FrameReMap* remappings) const;
 
 	// True if this instruction definitely won't proceed to the one

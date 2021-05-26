@@ -95,8 +95,8 @@ public:
 
 protected:
 
-	IPBasedAnalyzer* parent;
-	analyzer::pia::PIA* pia;
+	IPBasedAnalyzer* parent = nullptr;
+	analyzer::pia::PIA* pia = nullptr;
 };
 
 } // namespace zeek::packet_analysis::IP

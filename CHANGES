@@ -1,3 +1,8 @@
+4.1.0-dev.666 | 2021-05-26 10:51:51 -0700
+
+  * Ensure SessionAdapter members are initialized (Tim Wojtulewicz, Corelight)
+
+    Fixes Coverity #1453273
 
 4.1.0-dev.665 | 2021-05-26 08:07:26 +0200
 

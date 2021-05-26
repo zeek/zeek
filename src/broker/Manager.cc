@@ -76,6 +76,7 @@ static inline void set_option(const char* option, const T& value)
 		auto ptr = make_intrusive<VectorVal>(zeek::id::string_vec);
 		for ( const auto& str : value )
 			ptr->Append(make_intrusive<StringVal>(str));
+		id->SetVal(std::move(ptr));
 		}
 	else
 		{

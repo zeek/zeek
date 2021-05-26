@@ -382,8 +382,11 @@ void ZAMCompiler::ComputeFrameLifetimes()
 			break;
 
 		case OP_INIT_TABLE_LOOP_VV:
+		case OP_INIT_TABLE_LOOP_RECURSIVE_VVV:
 		case OP_INIT_VECTOR_LOOP_VV:
+		case OP_INIT_VECTOR_LOOP_RECURSIVE_VVV:
 		case OP_INIT_STRING_LOOP_VV:
+		case OP_INIT_STRING_LOOP_RECURSIVE_VVV:
 			{
 			// For all of these, the scope of the aggregate
 			// being looped over is the entire loop, even

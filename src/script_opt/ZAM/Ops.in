@@ -690,7 +690,10 @@ macro EvalTableIndex(index)
 	auto v2 = index;
 	auto v = frame[z.v2].table_val->FindOrDefault(v2);
 	if ( ! v )
+		{
 		ZAM_run_time_error(z.loc, "no such index");
+		break;
+		}
 
 internal-assignment-op Table-Index1
 type VVV

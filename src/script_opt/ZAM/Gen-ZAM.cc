@@ -669,17 +669,17 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 		else
 			rhs = v + acc;
 
-		auto assignment = "frame[z.v1] = ZVal(" + rhs + ");";
-
 		if ( is_managed )
 			{
+			Emit("auto rhs = " + rhs + ";");
+			Emit("zeek::Ref(rhs);");
+
 			auto lhs_acc = "frame[z.v1]" + acc;
 			Emit("Unref(" + lhs_acc + ");");
-			Emit(assignment);
-			Emit("zeek::Ref(" + lhs_acc + ");");
+			Emit("frame[z.v1] = ZVal(rhs);");
 			}
 		else
-			Emit(assignment);
+			Emit("frame[z.v1] = ZVal(" + rhs + ");");
 
 		return;
 		}

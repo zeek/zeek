@@ -235,6 +235,13 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	packet->proto = proto;
 
+	// Double check the lengths one more time before forwarding this on.
+	if ( packet->ip_hdr->TotalLen() < packet->ip_hdr->HdrLen() )
+		{
+		Weird("bogus_IP_header_lengths", packet);
+		return false;
+		}
+
 	switch ( proto ) {
 	case IPPROTO_NONE:
 		// If the packet is encapsulated in Teredo, then it was a bubble and

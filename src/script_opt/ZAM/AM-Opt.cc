@@ -560,9 +560,19 @@ void ZAMCompiler::ReMapFrame()
 				auto& slot = aux->slots[j];
 
 				if ( slot < 0 )
+					// This is instead a constant.
 					continue;
 
-				slot = frame1_to_frame2[slot];
+				auto new_slot = frame1_to_frame2[slot];
+
+				if ( new_slot < 0 )
+					{
+					ODesc d;
+					inst->stmt->GetLocationInfo()->Describe(&d);
+					reporter->Error("%s: value used but not set: %s", d.Description(), frame_denizens[slot]->Name());
+					}
+
+				slot = new_slot;
 				}
 			break;
 		}

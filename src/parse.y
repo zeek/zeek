@@ -679,10 +679,8 @@ expr:
 				switch ( ctor_type->Tag() ) {
 				case TYPE_RECORD:
 					{
-					auto rce = make_intrusive<RecordConstructorExpr>(
-						ListExprPtr{AdoptRef{}, $4});
 					auto rt = cast_intrusive<RecordType>(ctor_type);
-					$$ = new RecordCoerceExpr(std::move(rce), std::move(rt));
+					$$ = new RecordConstructorExpr(rt, ListExprPtr{AdoptRef{}, $4});
 					}
 					break;
 

@@ -1076,8 +1076,6 @@ public:
 	explicit RecordConstructorExpr(RecordTypePtr known_rt,
 	                               ListExprPtr constructor_list);
 
-	~RecordConstructorExpr() override;
-
 	ListExprPtr Op() const    { return op; }
 	const auto& Map() const	{ return map; }
 
@@ -1215,7 +1213,7 @@ public:
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
-	ValPtr FoldSingleVal(Val* v, InternalTypeTag t) const;
+	ValPtr FoldSingleVal(ValPtr v, const TypePtr& t) const;
 	ValPtr Fold(Val* v) const override;
 };
 
@@ -1693,20 +1691,16 @@ ExprPtr get_assign_expr(
 	ExprPtr op1,
 	ExprPtr op2, bool is_init);
 
-// Type-check the given expression(s) against the given type(s).  Complain
-// if the expression cannot match the given type, returning 0.  If it can
-// match, promote it as necessary (modifying the ref parameter accordingly)
-// and return 1.
-//
-// The second, third, and fourth forms are for promoting a list of
-// expressions (which is updated in place) to either match a list of
-// types or a single type.
-//
-// Note, the type is not "const" because it can be ref'd.
-
 /**
- * Returns nullptr if the expression cannot match or a promoted
- * expression.
+ * Type-check the given expression(s) against the given type(s).  Complain
+ * if the expression cannot match the given type, returning nullptr;
+ * otherwise, returns an expression reflecting the promotion.
+ *
+ * The second, third, and fourth forms are for promoting a list of
+ * expressions (which is updated in place) to either match a list of
+ * types or a single type.
+ *
+ * Note, the type is not "const" because it can be ref'd.
  */
 extern ExprPtr check_and_promote_expr(Expr* e, Type* t);
 

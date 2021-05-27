@@ -2096,10 +2096,10 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 	if ( op->Tag() == EXPR_CONST )
 		{
-		auto cv = op->AsConstExpr()->Value();
-		auto tag = cv->GetType()->Tag();
+		auto cv = op->AsConstExpr()->ValuePtr();
+		const auto& t = cv->GetType();
 
-		if ( IsArithmetic(tag) )
+		if ( IsArithmetic(t->Tag()) )
 			return make_intrusive<ConstExpr>(FoldSingleVal(cv, t));
 		}
 

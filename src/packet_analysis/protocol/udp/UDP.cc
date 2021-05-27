@@ -7,6 +7,7 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
+#include "zeek/packet_analysis/protocol/udp/UDPSessionAdapter.h"
 
 #include "zeek/packet_analysis/protocol/udp/events.bif.h"
 
@@ -17,11 +18,6 @@ constexpr uint32_t HIST_ORIG_DATA_PKT = 0x1;
 constexpr uint32_t HIST_RESP_DATA_PKT = 0x2;
 constexpr uint32_t HIST_ORIG_CORRUPT_PKT = 0x4;
 constexpr uint32_t HIST_RESP_CORRUPT_PKT = 0x8;
-
-enum UDP_EndpointState {
-	UDP_INACTIVE,	// no packet seen
-	UDP_ACTIVE,		// packets seen
-};
 
 UDPAnalyzer::UDPAnalyzer() : IPBasedAnalyzer("UDP", TRANSPORT_UDP, UDP_PORT_MASK, false)
 	{
@@ -235,98 +231,4 @@ bool UDPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
 	                               reinterpret_cast<const uint8_t*>(up), len);
 
 	return sum == 0xffff;
-	}
-
-void UDPSessionAdapter::AddExtraAnalyzers(Connection* conn)
-	{
-	static analyzer::Tag analyzer_connsize = analyzer_mgr->GetComponentTag("CONNSIZE");
-
-	if ( analyzer_mgr->IsEnabled(analyzer_connsize) )
-		// Add ConnSize analyzer. Needs to see packets, not stream.
-		AddChildAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn));
-	}
-
-void UDPSessionAdapter::UpdateConnVal(RecordVal* conn_val)
-	{
-	auto orig_endp = conn_val->GetField("orig");
-	auto resp_endp = conn_val->GetField("resp");
-
-	UpdateEndpointVal(orig_endp, true);
-	UpdateEndpointVal(resp_endp, false);
-
-	// Call children's UpdateConnVal
-	Analyzer::UpdateConnVal(conn_val);
-	}
-
-void UDPSessionAdapter::UpdateEndpointVal(const ValPtr& endp_arg, bool is_orig)
-	{
-	bro_int_t size = is_orig ? request_len : reply_len;
-	auto endp = endp_arg->AsRecordVal();
-
-	if ( size < 0 )
-		{
-		endp->Assign(0, val_mgr->Count(0));
-		endp->Assign(1, UDP_INACTIVE);
-		}
-
-	else
-		{
-		endp->Assign(0, static_cast<uint64_t>(size));
-		endp->Assign(1, UDP_ACTIVE);
-		}
-	}
-
-void UDPSessionAdapter::UpdateLength(bool is_orig, int len)
-	{
-	if ( is_orig )
-		{
-		if ( request_len < 0 )
-			request_len = len;
-		else
-			{
-			request_len += len;
-#ifdef DEBUG
-			if ( request_len < 0 )
-				reporter->Warning("wrapping around for UDP request length");
-#endif
-			}
-		}
-	else
-		{
-		if ( reply_len < 0 )
-			reply_len = len;
-		else
-			{
-			reply_len += len;
-#ifdef DEBUG
-			if ( reply_len < 0 )
-				reporter->Warning("wrapping around for UDP reply length");
-#endif
-			}
-		}
-	}
-
-void UDPSessionAdapter::HandleBadChecksum(bool is_orig)
-	{
-	Weird("bad_UDP_checksum");
-
-	if ( is_orig )
-		{
-		uint32_t t = req_chk_thresh;
-
-		if ( Conn()->ScaledHistoryEntry('C', req_chk_cnt, req_chk_thresh) )
-			ChecksumEvent(is_orig, t);
-		}
-	else
-		{
-		uint32_t t = rep_chk_thresh;
-
-		if ( Conn()->ScaledHistoryEntry('c', rep_chk_cnt, rep_chk_thresh) )
-			ChecksumEvent(is_orig, t);
-		}
-	}
-
-void UDPSessionAdapter::ChecksumEvent(bool is_orig, uint32_t threshold)
-	{
-	Conn()->HistoryThresholdEvent(udp_multiple_checksum_errors, is_orig, threshold);
 	}

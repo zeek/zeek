@@ -81,14 +81,6 @@ private:
 	const struct tcphdr* ExtractTCP_Header(const u_char*& data, int& len, int& remaining,
 	                                       TCPSessionAdapter* adapter);
 
-	void SynWeirds(analyzer::tcp::TCP_Flags flags, analyzer::tcp::TCP_Endpoint* endpoint,
-	               int data_len) const;
-
-	int ParseTCPOptions(TCPSessionAdapter* adapter, const struct tcphdr* tcp,
-	                    bool is_orig) const;
-
-	void CheckRecording(Connection* c, bool need_contents, analyzer::tcp::TCP_Flags flags);
-
 	// Returns true if the checksum is valid, false if not (and in which
 	// case also updates the status history of the endpoint).
 	bool ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp,

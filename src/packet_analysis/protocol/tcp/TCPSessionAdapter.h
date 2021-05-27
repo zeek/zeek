@@ -21,8 +21,13 @@ class TCPAnalyzer;
 
 class TCPSessionAdapter final : public packet_analysis::IP::SessionAdapter {
 public:
+
 	explicit TCPSessionAdapter(Connection* conn);
 	~TCPSessionAdapter() override;
+
+	void Process(bool is_orig, const struct tcphdr* tp, int len,
+	             const std::unique_ptr<IP_Hdr>& ip, const u_char* data,
+	             int remaining);
 
 	void EnableReassembly();
 
@@ -70,6 +75,7 @@ public:
 	void AddExtraAnalyzers(Connection* conn) override;
 
 protected:
+
 	friend class analyzer::tcp::TCP_ApplicationAnalyzer;
 	friend class analyzer::tcp::TCP_Reassembler;
 	friend class analyzer::pia::PIA_TCP;
@@ -146,14 +152,22 @@ protected:
 
 	void SetReassembler(analyzer::tcp::TCP_Reassembler* rorig, analyzer::tcp::TCP_Reassembler* rresp);
 
-	bool HasPacketChildren() const	 { return ! packet_children.empty(); }
+	uint64_t LastRelDataSeq() const	{ return rel_data_seq; }
 
 private:
+
+	void SynWeirds(analyzer::tcp::TCP_Flags flags, analyzer::tcp::TCP_Endpoint* endpoint,
+	               int data_len) const;
+
+	int ParseTCPOptions(const struct tcphdr* tcp, bool is_orig);
+
+	void CheckRecording(bool need_contents, analyzer::tcp::TCP_Flags flags);
 
 	analyzer::tcp::TCP_Endpoint* orig;
 	analyzer::tcp::TCP_Endpoint* resp;
 
 	analyzer::analyzer_list packet_children;
+	uint64_t rel_data_seq = 0;
 
 	unsigned int first_packet_seen: 2;
 	unsigned int reassembling: 1;

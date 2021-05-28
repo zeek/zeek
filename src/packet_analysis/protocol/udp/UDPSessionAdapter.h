@@ -13,11 +13,6 @@ public:
 	UDPSessionAdapter(Connection* conn) :
 		IP::SessionAdapter("UDP", conn) { }
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
-		{
-		return new UDPSessionAdapter(conn);
-		}
-
 	void AddExtraAnalyzers(Connection* conn) override;
 	void UpdateConnVal(RecordVal* conn_val) override;
 

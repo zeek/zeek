@@ -53,12 +53,16 @@ public:
 	 * manager, including from script-land.
 	 *
 	 * @param partial If true, the analyzer can deal with payload from
-	 * partial connections, i.e., when Bro enters the stream mid-way
+	 * partial connections, i.e., when Zeek enters the stream mid-way
 	 * after not seeing the beginning. Note that handling of partial
 	 * connections has generally not seen much testing yet as virtually
 	 * no existing analyzer supports it.
+	 *
+	 * @param adapter If true, this analyzer is a session adapter from
+	 * the packet analyzer framework.
 	 */
-	Component(const std::string& name, factory_callback factory, Tag::subtype_t subtype = 0, bool enabled = true, bool partial = false);
+	Component(const std::string& name, factory_callback factory, Tag::subtype_t subtype = 0,
+	          bool enabled = true, bool partial = false, bool adapter = false);
 
 	/**
 	 * Destructor.

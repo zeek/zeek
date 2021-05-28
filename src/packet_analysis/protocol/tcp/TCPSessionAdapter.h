@@ -69,9 +69,6 @@ public:
 	// From Analyzer.h
 	void UpdateConnVal(RecordVal *conn_val) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new TCPSessionAdapter(conn); }
-
 	void AddExtraAnalyzers(Connection* conn) override;
 
 protected:

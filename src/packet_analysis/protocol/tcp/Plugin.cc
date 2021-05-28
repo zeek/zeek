@@ -14,8 +14,7 @@ public:
 		{
 		AddComponent(new zeek::packet_analysis::Component("TCP",
 		                 zeek::packet_analysis::TCP::TCPAnalyzer::Instantiate));
-		AddComponent(new zeek::analyzer::Component("TCP",
-		                 zeek::packet_analysis::TCP::TCPSessionAdapter::Instantiate));
+		AddComponent(new zeek::analyzer::Component("TCP", nullptr, 0, true, false, true));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::TCP_PKT";

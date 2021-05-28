@@ -14,11 +14,6 @@ public:
 	ICMPSessionAdapter(Connection* conn) :
 		IP::SessionAdapter("ICMP", conn) { }
 
-	static zeek::analyzer::Analyzer* Instantiate(Connection* conn)
-		{
-		return new ICMPSessionAdapter(conn);
-		}
-
 	void AddExtraAnalyzers(Connection* conn) override;
 	void UpdateConnVal(RecordVal* conn_val) override;
 	void UpdateEndpointVal(const ValPtr& endp, bool is_orig);

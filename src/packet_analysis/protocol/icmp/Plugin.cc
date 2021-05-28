@@ -14,8 +14,7 @@ public:
 		{
 		AddComponent(new zeek::packet_analysis::Component("ICMP",
 		                 zeek::packet_analysis::ICMP::ICMPAnalyzer::Instantiate));
-		AddComponent(new zeek::analyzer::Component("ICMP",
-		                 zeek::packet_analysis::ICMP::ICMPSessionAdapter::Instantiate));
+		AddComponent(new zeek::analyzer::Component("ICMP", nullptr, 0, true, false, true));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::ICMP";

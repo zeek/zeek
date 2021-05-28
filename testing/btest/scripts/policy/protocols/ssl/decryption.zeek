@@ -1,5 +1,6 @@
-# @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls12-decryption.pcap %INPUT
+# @TEST-REQUIRES: grep -q "#define OPENSSL_HAVE_KDF_H" $BUILD/zeek-config.h
 
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls12-decryption.pcap %INPUT
 # @TEST-EXEC: btest-diff http.log
 
 @load protocols/ssl/decryption

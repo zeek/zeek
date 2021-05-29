@@ -2097,7 +2097,7 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	if ( op->Tag() == EXPR_CONST )
 		{
 		auto cv = op->AsConstExpr()->ValuePtr();
-		const auto& t = cv->GetType();
+		const auto& t = GetType();
 
 		if ( IsArithmetic(t->Tag()) )
 			return make_intrusive<ConstExpr>(FoldSingleVal(cv, t));

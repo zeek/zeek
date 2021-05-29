@@ -18,11 +18,7 @@ class Reducer {
 public:
 	Reducer()	{ }
 
-	StmtPtr Reduce(StmtPtr s)
-		{
-		reduction_root = std::move(s);
-		return reduction_root->Reduce(this);
-		}
+	StmtPtr Reduce(StmtPtr s);
 
 	const DefSetsMgr* GetDefSetsMgr() const		{ return mgr; }
 	void SetDefSetsMgr(const DefSetsMgr* _mgr)	{ mgr = _mgr; }

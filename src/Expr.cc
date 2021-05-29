@@ -2975,7 +2975,7 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 		break;
 
 	case TYPE_TABLE:
-		v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2}); // Then, we jump into the TableVal here.
+		v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2});
 		break;
 
 	case TYPE_STRING:

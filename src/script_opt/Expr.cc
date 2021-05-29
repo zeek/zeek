@@ -2078,8 +2078,13 @@ ExprPtr ArithCoerceExpr::Duplicate()
 
 bool ArithCoerceExpr::WillTransform(Reducer* c) const
 	{
-	return op->Tag() == EXPR_CONST &&
-		IsArithmetic(op->AsConstExpr()->Value()->GetType()->Tag());
+	if ( op->Tag() != EXPR_CONST )
+		return false;
+
+	if ( IsArithmetic(GetType()->Tag()) )
+		return true;
+
+	return IsArithmetic(op->AsConstExpr()->Value()->GetType()->Tag());
 	}
 
 ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
@@ -2096,10 +2101,11 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 	if ( op->Tag() == EXPR_CONST )
 		{
-		auto cv = op->AsConstExpr()->ValuePtr();
 		const auto& t = GetType();
+		auto cv = op->AsConstExpr()->ValuePtr();
+		const auto& ct = cv->GetType();
 
-		if ( IsArithmetic(t->Tag()) )
+		if ( IsArithmetic(t->Tag()) || IsArithmetic(ct->Tag()) )
 			return make_intrusive<ConstExpr>(FoldSingleVal(cv, t));
 		}
 

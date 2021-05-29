@@ -1329,6 +1329,7 @@ public:
 
 	Expr* Func() const	{ return func.get(); }
 	ListExpr* Args() const	{ return args.get(); }
+	ListExprPtr ArgsPtr() const	{ return args; }
 
 	bool IsPure() const override;
 
@@ -1480,7 +1481,7 @@ public:
 	ExprPtr Duplicate() override;
 
 protected:
-	ValPtr Eval(Frame* f) const override;
+	ValPtr Fold(Val* v) const override;
 	void ExprDescribe(ODesc* d) const override;
 };
 
@@ -1705,7 +1706,7 @@ ExprPtr get_assign_expr(
 extern ExprPtr check_and_promote_expr(Expr* e, Type* t);
 
 extern bool check_and_promote_exprs(ListExpr* elements, TypeList* types);
-extern bool check_and_promote_args(ListExpr* args, RecordType* types);
+extern bool check_and_promote_args(ListExpr* args, const RecordType* types);
 extern bool check_and_promote_exprs_to_type(ListExpr* elements, Type* type);
 
 // Returns a ListExpr simplified down to a list a values, or nil

@@ -5198,18 +5198,10 @@ CastExpr::CastExpr(ExprPtr arg_op, TypePtr t)
 		ExprError("cast not supported");
 	}
 
-ValPtr CastExpr::Eval(Frame* f) const
+ValPtr CastExpr::Fold(Val* v) const
 	{
-	if ( IsError() )
-		return nullptr;
-
-	auto v = op->Eval(f);
-
-	if ( ! v )
-		return nullptr;
-
 	std::string error;
-	auto res = cast_value(v,GetType(), error);
+	auto res = cast_value({NewRef{}, v}, GetType(), error);
 
 	if ( ! res )
 		RuntimeError(error.c_str());
@@ -5399,7 +5391,7 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	return true;
 	}
 
-bool check_and_promote_args(ListExpr* const args, RecordType* types)
+bool check_and_promote_args(ListExpr* const args, const RecordType* types)
 	{
 	ExprPList& el = args->Exprs();
 	int ntypes = types->NumFields();
@@ -5416,7 +5408,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 		// arguments using &default expressions.
 		for ( int i = ntypes - 1; i >= el.length(); --i )
 			{
-			TypeDecl* td = types->FieldDecl(i);
+			auto td = types->FieldDecl(i);
 			const auto& def_attr = td->attrs ? td->attrs->Find(ATTR_DEFAULT).get() : nullptr;
 
 			if ( ! def_attr )

@@ -52,6 +52,7 @@ struct AnalyOpt {
 	int usage_issues = 0;
 
 	bool gen_ZAM = false;
+	bool compile_all = false;
 	bool gen_ZAM_code = false;
 	bool no_ZAM_opt = false;
 	bool dump_ZAM = false;

@@ -170,6 +170,7 @@ static void set_analysis_option(const char* opt, Options& opts)
 		fprintf(stderr, "    no-ZAM-opt	omit low-level ZAM optimization\n");
 		fprintf(stderr, "    dump-ZAM	dump generated ZAM code; implies gen-ZAM-code\n");
 		fprintf(stderr, "    profile-ZAM	generate to stdout a ZAM execution profile\n");
+		fprintf(stderr, "    compile-all	*if* compiling, compile all scripts, even inlined ones\n");
 		exit(0);
 		}
 
@@ -197,6 +198,8 @@ static void set_analysis_option(const char* opt, Options& opts)
 		a_o.activate = a_o.dump_ZAM = true;
 	else if ( util::streq(opt, "profile-ZAM") )
 		a_o.activate = a_o.profile_ZAM = true;
+	else if ( util::streq(opt, "compile-all") )
+		a_o.activate = a_o.compile_all = true;
 
 	else
 		{

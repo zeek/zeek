@@ -217,6 +217,7 @@ void analyze_scripts()
 		check_env_opt("ZEEK_OPT", analysis_options.optimize_AST);
 		check_env_opt("ZEEK_XFORM", analysis_options.activate);
 		check_env_opt("ZEEK_ZAM", analysis_options.gen_ZAM);
+		check_env_opt("ZEEK_COMPILE_ALL", analysis_options.compile_all);
 		check_env_opt("ZEEK_ZAM_CODE", analysis_options.gen_ZAM_code);
 		check_env_opt("ZEEK_NO_ZAM_OPT", analysis_options.no_ZAM_opt);
 		check_env_opt("ZEEK_DUMP_ZAM", analysis_options.dump_ZAM);
@@ -360,7 +361,8 @@ void analyze_scripts()
 		{
 		auto func = f.Func();
 
-		if ( inl && inl->WasInlined(func) &&
+		if ( ! analysis_options.compile_all &&
+		     inl && inl->WasInlined(func) &&
 		     func_used_indirectly.count(func) == 0 )
 			// No need to compile as it won't be
 			// called directly.

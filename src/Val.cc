@@ -84,6 +84,7 @@ CONVERTERS(TYPE_STRING, StringVal*, Val::AsStringVal)
 CONVERTERS(TYPE_VECTOR, VectorVal*, Val::AsVectorVal)
 CONVERTERS(TYPE_ENUM, EnumVal*, Val::AsEnumVal)
 CONVERTERS(TYPE_OPAQUE, OpaqueVal*, Val::AsOpaqueVal)
+CONVERTERS(TYPE_TYPE, TypeVal*, Val::AsTypeVal)
 
 ValPtr Val::CloneState::NewClone(Val* src, ValPtr dst)
 	{

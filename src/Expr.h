@@ -94,12 +94,16 @@ class ForExpr;
 class HasFieldExpr;
 class IndexAssignExpr;
 class IndexExpr;
-class IsExpr;
 class InlineExpr;
+class IsExpr;
 class LambdaExpr;
 class ListExpr;
 class NameExpr;
+class RecordCoerceExpr;
+class RecordConstructorExpr;
 class RefExpr;
+class SetConstructorExpr;
+class TableConstructorExpr;
 
 class Expr;
 using CallExprPtr = IntrusivePtr<CallExpr>;
@@ -215,12 +219,16 @@ public:
 	ZEEK_EXPR_ACCESSOR_DECLS(HasFieldExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(IndexAssignExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(IndexExpr)
-	ZEEK_EXPR_ACCESSOR_DECLS(IsExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(InlineExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(IsExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(LambdaExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(ListExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(NameExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(RecordCoerceExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(RecordConstructorExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(RefExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(SetConstructorExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(TableConstructorExpr)
 
 	void Describe(ODesc* d) const override final;
 
@@ -1291,6 +1299,7 @@ public:
 
 	Expr* Func() const	{ return func.get(); }
 	ListExpr* Args() const	{ return args.get(); }
+	ListExprPtr ArgsPtr() const	{ return args; }
 
 	bool IsPure() const override;
 

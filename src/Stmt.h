@@ -16,9 +16,12 @@ class CompositeHash;
 class NameExpr;
 using NameExprPtr = IntrusivePtr<zeek::detail::NameExpr>;
 
+class ZAMCompiler;	// for "friend" declarations
+
 class ExprListStmt : public Stmt {
 public:
 	const ListExpr* ExprList() const	{ return l.get(); }
+	const ListExprPtr& ExprListPtr() const	{ return l; }
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -523,6 +526,7 @@ public:
 	const Stmt* Body() const	{ return s1.get(); }
 	const Expr* TimeoutExpr() const	{ return timeout.get(); }
 	const Stmt* TimeoutBody() const	{ return s2.get(); }
+	bool IsReturn() const		{ return is_return; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -596,6 +600,8 @@ protected:
 class CheckAnyLenStmt : public ExprStmt {
 public:
 	explicit CheckAnyLenStmt(ExprPtr e, int expected_len);
+
+	int ExpectedLen() const		{ return expected_len; }
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 

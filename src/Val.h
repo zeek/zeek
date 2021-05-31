@@ -186,6 +186,9 @@ UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
 	OpaqueVal* AsOpaqueVal();
 	const OpaqueVal* AsOpaqueVal() const;
 
+	TypeVal* AsTypeVal();
+	const TypeVal* AsTypeVal() const;
+
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
 

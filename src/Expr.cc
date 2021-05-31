@@ -573,10 +573,16 @@ void NameExpr::ExprDescribe(ODesc* d) const
 ConstExpr::ConstExpr(ValPtr arg_val)
 	: Expr(EXPR_CONST), val(std::move(arg_val))
 	{
-	if ( val->GetType()->Tag() == TYPE_LIST && val->AsListVal()->Length() == 1 )
-		val = val->AsListVal()->Idx(0);
+	if ( val )
+		{
+		if ( val->GetType()->Tag() == TYPE_LIST &&
+		     val->AsListVal()->Length() == 1 )
+			val = val->AsListVal()->Idx(0);
 
-	SetType(val->GetType());
+		SetType(val->GetType());
+		}
+	else
+		SetError();
 	}
 
 void ConstExpr::ExprDescribe(ODesc* d) const
@@ -3785,7 +3791,11 @@ void FieldAssignExpr::ExprDescribe(ODesc* d) const
 	d->Add("$");
 	d->Add(FieldName());
 	d->Add("=");
-	op->Describe(d);
+
+	if ( op )
+		op->Describe(d);
+	else
+		d->Add("<error>");
 	}
 
 ArithCoerceExpr::ArithCoerceExpr(ExprPtr arg_op, TypeTag t)

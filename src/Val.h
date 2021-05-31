@@ -1601,6 +1601,10 @@ public:
 	const String* StringAt(unsigned int index) const
 		{ return StringValAt(index)->AsString(); }
 
+	// Only intended for low-level access by compiled code.
+	const auto& RawVec() const	{ return vector_val; }
+	auto& RawVec()			{ return vector_val; }
+
 protected:
 	/**
 	 * Returns the element at a given index or nullptr if it does not exist.

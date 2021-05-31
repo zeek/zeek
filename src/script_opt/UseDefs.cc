@@ -482,7 +482,7 @@ UDs UseDefs::ExprUDs(const Expr* e)
 	case EXPR_RECORD_CONSTRUCTOR:
 		{
 		auto r = static_cast<const RecordConstructorExpr*>(e);
-		AddInExprUDs(uds, r->Op());
+		AddInExprUDs(uds, r->Op().get());
 		break;
 		}
 

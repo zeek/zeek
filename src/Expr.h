@@ -1062,9 +1062,13 @@ protected:
 class RecordConstructorExpr final : public Expr {
 public:
 	explicit RecordConstructorExpr(ListExprPtr constructor_list);
-	~RecordConstructorExpr() override;
 
-	ListExpr* Op() const	{ return op.get(); }
+        // This form is used to construct records of a known (ultimate) type.
+	explicit RecordConstructorExpr(RecordTypePtr known_rt,
+	                               ListExprPtr constructor_list);
+
+	ListExprPtr Op() const    { return op; }
+	const auto& Map() const	{ return map; }
 
 	ValPtr Eval(Frame* f) const override;
 
@@ -1085,6 +1089,7 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 	ListExprPtr op;
+	std::optional<std::vector<int>> map;
 };
 
 class TableConstructorExpr final : public UnaryExpr {
@@ -1164,6 +1169,14 @@ public:
 	FieldAssignExpr(const char* field_name, ExprPtr value);
 
 	const char* FieldName() const	{ return field_name.c_str(); }
+
+	// When these are first constructed, we don't know the type.
+	// The following method coerces/promotes the assignment expression
+	// as needed, once we do know the type.
+	//
+	// Returns true on success, false if the types were incompatible
+	// (in which case an error is reported).
+	bool PromoteTo(TypePtr t);
 
 	void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const override;
 	bool IsRecordElement(TypeDecl* td) const override;

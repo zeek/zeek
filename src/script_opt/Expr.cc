@@ -1827,7 +1827,14 @@ ExprPtr HasFieldExpr::Duplicate()
 ExprPtr RecordConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
-	return SetSucc(new RecordConstructorExpr(op_l));
+
+	if ( map )
+		{
+		auto rt = cast_intrusive<RecordType>(type);
+		return SetSucc(new RecordConstructorExpr(rt, op_l));
+		}
+	else
+		return SetSucc(new RecordConstructorExpr(op_l));
 	}
 
 bool RecordConstructorExpr::HasReducedOps(Reducer* c) const

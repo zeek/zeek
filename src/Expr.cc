@@ -55,7 +55,7 @@ const char* expr_name(BroExprTag t)
 		"inline()",
 		"[]=", "$=",
 		"vec+=",
-		"to_any_coerce", "from_any_coerce",
+		"to_any_coerce", "from_any_coerce", "from_any_vec_coerce",
 		"any[]",
 		"nop",
 
@@ -5274,17 +5274,29 @@ ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init)
 
 ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 	{
+	ExprPtr e_ptr{NewRef{}, e};
 	const auto& et = e->GetType();
 	TypeTag e_tag = et->Tag();
 	TypeTag t_tag = t->Tag();
 
-	if ( t->Tag() == TYPE_ANY )
-		return {NewRef{}, e};
+	if ( t_tag == TYPE_ANY )
+		{
+		if ( e_tag != TYPE_ANY )
+			e_ptr = make_intrusive<CoerceToAnyExpr>(e_ptr);
+
+		return e_ptr;
+		}
+
+	if ( e_tag == TYPE_ANY )
+		{
+		TypePtr t_ptr{NewRef{}, t};
+		return make_intrusive<CoerceFromAnyExpr>(e_ptr, t_ptr);
+		}
 
 	if ( EitherArithmetic(t_tag, e_tag) )
 		{
 		if ( e_tag == t_tag )
-			return {NewRef{}, e};
+			return e_ptr;
 
 		if ( ! BothArithmetic(t_tag, e_tag) )
 			{

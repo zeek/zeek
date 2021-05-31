@@ -72,7 +72,7 @@ enum BroExprTag : int {
 	// ASTs produced by parsing .zeek script files.
 	EXPR_INDEX_ASSIGN, EXPR_FIELD_LHS_ASSIGN,
 	EXPR_APPEND_TO,
-	EXPR_TO_ANY_COERCE, EXPR_FROM_ANY_COERCE,
+	EXPR_TO_ANY_COERCE, EXPR_FROM_ANY_COERCE, EXPR_FROM_ANY_VEC_COERCE,
 	EXPR_ANY_INDEX,
 
 	EXPR_NOP,
@@ -1619,6 +1619,20 @@ public:
 protected:
 	ValPtr Fold(Val* v) const override;
 
+	ExprPtr Duplicate() override;
+};
+
+// ... and for conversion from a "vector of any" type.
+class CoerceFromAnyVecExpr : public UnaryExpr {
+public:
+	// to_type is yield type, not VectorType.
+	CoerceFromAnyVecExpr(ExprPtr op, TypePtr to_type);
+
+	// Can't use UnaryExpr's Eval() because it will do folding
+	// over the individual vector elements.
+	ValPtr Eval(Frame* f) const override;
+
+protected:
 	ExprPtr Duplicate() override;
 };
 

@@ -2954,7 +2954,7 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 		break;
 
 	case TYPE_TABLE:
-		v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2}); // Then, we jump into the TableVal here.
+		v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2});
 		break;
 
 	case TYPE_STRING:
@@ -5286,7 +5286,7 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	return true;
 	}
 
-bool check_and_promote_args(ListExpr* const args, RecordType* types)
+bool check_and_promote_args(ListExpr* const args, const RecordType* types)
 	{
 	ExprPList& el = args->Exprs();
 	int ntypes = types->NumFields();
@@ -5303,7 +5303,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 		// arguments using &default expressions.
 		for ( int i = ntypes - 1; i >= el.length(); --i )
 			{
-			TypeDecl* td = types->FieldDecl(i);
+			auto td = types->FieldDecl(i);
 			const auto& def_attr = td->attrs ? td->attrs->Find(ATTR_DEFAULT).get() : nullptr;
 
 			if ( ! def_attr )

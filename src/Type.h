@@ -33,7 +33,7 @@ using ListExprPtr = IntrusivePtr<ListExpr>;
 
 } // namespace detail
 
-// BRO types.
+// Zeek types.
 enum TypeTag {
 	TYPE_VOID,      // 0
 	TYPE_BOOL,      // 1
@@ -171,7 +171,7 @@ public:
 
 	explicit Type(TypeTag tag, bool base_type = false);
 
-	// Performs a shallow clone operation of the Bro type.
+	// Performs a shallow clone operation of the Zeek type.
 	// This especially means that especially for tables the types
 	// are not recursively cloned; altering one type will in this case
 	// alter one of them.

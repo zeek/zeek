@@ -231,8 +231,6 @@ ValPtr Val::SizeVal() const
 	{
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_INT:
-		// Return abs value. However abs() only works on ints and llabs
-		// doesn't work on Mac OS X 10.5. So we do it by hand
 		if ( AsInt() < 0 )
 			return val_mgr->Count(-AsInt());
 		else

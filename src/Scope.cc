@@ -12,10 +12,8 @@
 
 namespace zeek::detail {
 
-using scope_list = PList<Scope>;
-
-static scope_list scopes;
-static Scope* top_scope;
+static std::vector<ScopePtr> scopes;
+static ScopePtr top_scope;
 
 Scope::Scope(IDPtr id,
              std::unique_ptr<std::vector<AttrPtr>> al)
@@ -117,7 +115,7 @@ const IDPtr& lookup_ID(const char* name, const char* curr_module,
 	bool need_export = check_export && (ID_module != GLOBAL_MODULE_NAME &&
 	                                    ID_module != curr_module);
 
-	for ( int i = scopes.length() - 1; i >= 0; --i )
+	for ( int i = scopes.size() - 1; i >= 0; --i )
 		{
 		const auto& id = scopes[i]->Find(fullname);
 
@@ -172,16 +170,15 @@ IDPtr install_ID(const char* name, const char* module_name,
 	return id;
 	}
 
-void push_existing_scope(Scope* scope)
+void push_existing_scope(ScopePtr scope)
 	{
 	top_scope = scope;
 	scopes.push_back(scope);
 	}
 
-void push_scope(IDPtr id,
-                std::unique_ptr<std::vector<AttrPtr>> attrs)
+void push_scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> attrs)
 	{
-	top_scope = new Scope(std::move(id), std::move(attrs));
+	top_scope = make_intrusive<Scope>(std::move(id), std::move(attrs));
 	scopes.push_back(top_scope);
 	}
 
@@ -191,19 +188,19 @@ ScopePtr pop_scope()
 		reporter->InternalError("scope underflow");
 	scopes.pop_back();
 
-	Scope* old_top = top_scope;
+	auto old_top = top_scope;
 
 	top_scope = scopes.empty() ? nullptr : scopes.back();
 
-	return {AdoptRef{}, old_top};
+	return old_top;
 	}
 
-Scope* current_scope()
+ScopePtr current_scope()
 	{
 	return top_scope;
 	}
 
-Scope* global_scope()
+ScopePtr global_scope()
 	{
 	return scopes.empty() ? 0 : scopes.front();
 	}

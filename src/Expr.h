@@ -27,6 +27,7 @@ class Frame;
 class Scope;
 struct function_ingredients;
 using IDPtr = IntrusivePtr<ID>;
+using ScopePtr = IntrusivePtr<Scope>;
 
 enum BroExprTag : int {
 	EXPR_ANY = -1,
@@ -1341,7 +1342,7 @@ public:
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
-	Scope* GetScope() const;
+	ScopePtr GetScope() const;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;

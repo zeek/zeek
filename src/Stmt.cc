@@ -1514,7 +1514,7 @@ TraversalCode FallthroughStmt::Traverse(TraversalCallback* cb) const
 ReturnStmt::ReturnStmt(ExprPtr arg_e)
 	: ExprStmt(STMT_RETURN, std::move(arg_e))
 	{
-	Scope* s = current_scope();
+	auto s = current_scope();
 
 	if ( ! s || ! s->GetID() )
 		{

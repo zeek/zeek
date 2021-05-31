@@ -1473,6 +1473,8 @@ protected:
 class VectorVal final : public Val, public notifier::detail::Modifiable {
 public:
 	explicit VectorVal(VectorTypePtr t);
+	VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals);
+
 	~VectorVal() override;
 
 	ValPtr SizeVal() const override;

@@ -3223,9 +3223,15 @@ ValPtr TypeVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-VectorVal::VectorVal(VectorTypePtr t) : Val(t)
+VectorVal::VectorVal(VectorTypePtr t) :
+VectorVal(t, new vector<std::optional<ZVal>>())
 	{
-	vector_val = new vector<std::optional<ZVal>>();
+	}
+
+VectorVal::VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals)
+: Val(t)
+	{
+	vector_val = vals;
 	yield_type = t->Yield();
 
 	auto y_tag = yield_type->Tag();

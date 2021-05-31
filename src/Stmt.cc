@@ -710,7 +710,7 @@ void SwitchStmt::Init()
 	t->Append(e->GetType());
 	comp_hash = new CompositeHash(std::move(t));
 
-	case_label_value_map.SetDeleteFunc(int_del_func);
+	case_label_hash_map.SetDeleteFunc(int_del_func);
 	}
 
 SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
@@ -855,12 +855,13 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 		                        type_name(e->GetType()->Tag()));
 		}
 
-	int* label_idx = case_label_value_map.Lookup(hk.get());
+	int* label_idx = case_label_hash_map.Lookup(hk.get());
 
 	if ( label_idx )
 		return false;
 
-	case_label_value_map.Insert(hk.get(), new int(idx));
+	case_label_value_map[v] = idx;
+	case_label_hash_map.Insert(hk.get(), new int(idx));
 	return true;
 	}
 
@@ -884,7 +885,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 	ID* label_id = nullptr;
 
 	// Find matching expression cases.
-	if ( case_label_value_map.Length() )
+	if ( case_label_hash_map.Length() )
 		{
 		auto hk = comp_hash->MakeHashKey(*v, true);
 
@@ -897,7 +898,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 			return std::make_pair(-1, nullptr);
 			}
 
-		if ( auto i = case_label_value_map.Lookup(hk.get()) )
+		if ( auto i = case_label_hash_map.Lookup(hk.get()) )
 			label_idx = *i;
 		}
 

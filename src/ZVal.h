@@ -18,7 +18,7 @@ class RecordVal;
 class StringVal;
 class SubNetVal;
 class TableVal;
-class Type;
+class TypeVal;
 class Val;
 class VectorVal;
 
@@ -31,6 +31,7 @@ using RecordValPtr = IntrusivePtr<RecordVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
 using SubNetValPtr = IntrusivePtr<SubNetVal>;
 using TableValPtr = IntrusivePtr<TableVal>;
+using TypeValPtr = IntrusivePtr<TypeVal>;
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
 
@@ -69,9 +70,9 @@ union ZVal {
 	ZVal(OpaqueVal* v)	{ opaque_val = v; }
 	ZVal(PatternVal* v)	{ re_val = v; }
 	ZVal(TableVal* v)	{ table_val = v; }
+	ZVal(TypeVal* v)	{ type_val = v; }
 	ZVal(RecordVal* v)	{ record_val = v; }
 	ZVal(VectorVal* v)	{ vector_val = v; }
-	ZVal(Type* v)		{ type_val = v; }
 
 	ZVal(StringValPtr v)	{ string_val = v.release(); }
 	ZVal(AddrValPtr v)	{ addr_val = v.release(); }
@@ -80,9 +81,9 @@ union ZVal {
 	ZVal(OpaqueValPtr v)	{ opaque_val = v.release(); }
 	ZVal(PatternValPtr v)	{ re_val = v.release(); }
 	ZVal(TableValPtr v)	{ table_val = v.release(); }
+	ZVal(TypeValPtr v)	{ type_val = v.release(); }
 	ZVal(RecordValPtr v)	{ record_val = v.release(); }
 	ZVal(VectorValPtr v)	{ vector_val = v.release(); }
-	ZVal(TypePtr v)		{ type_val = v.release(); }
 
 	// Convert to a higher-level script value.  The caller needs to
 	// ensure that they're providing the correct type.
@@ -103,7 +104,7 @@ union ZVal {
 	TableVal* AsTable() const	{ return table_val; }
 	RecordVal* AsRecord() const	{ return record_val; }
 	VectorVal* AsVector() const	{ return vector_val; }
-	Type* AsType() const		{ return type_val; }
+	TypeVal* AsType() const		{ return type_val; }
 	Val* AsAny() const		{ return any_val; }
 
 	Obj* ManagedVal() const		{ return managed_val; }
@@ -162,7 +163,7 @@ private:
 	TableVal* table_val;
 	RecordVal* record_val;
 	VectorVal* vector_val;
-	Type* type_val;
+	TypeVal* type_val;
 
 	// Used for "any" values.
 	Val* any_val;

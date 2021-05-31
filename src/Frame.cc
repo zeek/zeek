@@ -619,7 +619,7 @@ void Frame::CaptureClosure(Frame* c, IDPList arg_outer_ids)
 
 const detail::Location* Frame::GetCallLocation() const
 	{
-	return call ? call->GetLocationInfo() : nullptr;
+	return call ? call->GetLocationInfo() : call_loc;
 	}
 
 void Frame::SetTrigger(trigger::TriggerPtr arg_trigger)

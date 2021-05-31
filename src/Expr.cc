@@ -211,6 +211,11 @@ ExprPtr Expr::MakeLvalue()
 	return {NewRef{}, this};
 	}
 
+bool Expr::InvertSense()
+	{
+	return false;
+	}
+
 void Expr::EvalIntoAggregate(const zeek::Type* /* t */, Val* /* aggr */,
                              Frame* /* f */) const
 	{
@@ -2043,6 +2048,12 @@ ValPtr EqExpr::Fold(Val* v1, Val* v2) const
 		return BinaryExpr::Fold(v1, v2);
 	}
 
+bool EqExpr::InvertSense()
+	{
+	tag = (tag == EXPR_EQ ? EXPR_NE : EXPR_EQ);
+	return true;
+	}
+
 RelExpr::RelExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
@@ -2098,6 +2109,19 @@ void RelExpr::Canonicize()
 		SwapOps();
 		tag = EXPR_LE;
 		}
+	}
+
+bool RelExpr::InvertSense()
+	{
+	switch ( tag ) {
+	case EXPR_LT:   tag = EXPR_GE; return true;
+	case EXPR_LE:   tag = EXPR_GT; return true;
+	case EXPR_GE:   tag = EXPR_LT; return true;
+	case EXPR_GT:   tag = EXPR_LE; return true;
+
+	default:
+		return false;
+	}
 	}
 
 CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)

@@ -1553,6 +1553,22 @@ public:
 	 */
 	VectorValPtr Order(Func* cmp_func = nullptr);
 
+	/**
+	 * Ensures that the vector can be used as a "vector of t".  In
+	 * general, this is only relevant for objects that are typed as
+	 * "vector of any", making sure that each element is in fact
+	 * of type "t", and is internally represented as such so that
+	 * this object can be used directly without any special-casing.
+	 *
+	 * Returns true if the object is compatible with "vector of t"
+	 * (including if it's not a vector-of-any but instead already a
+	 * vector-of-t), false if not compatible.
+	 * @param t  The yield type to concretize to.
+	 * @return  True if the object is compatible with vector-of-t, false
+	 * if not.
+	 */
+	bool Concretize(const TypePtr& t);
+
 	ValPtr ValAt(unsigned int index) const	{ return At(index); }
 
 	bool Has(unsigned int index) const

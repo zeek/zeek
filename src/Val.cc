@@ -3653,6 +3653,50 @@ VectorValPtr VectorVal::Order(Func* cmp_func)
 	return result_v;
 	}
 
+bool VectorVal::Concretize(const TypePtr& t)
+	{
+	if ( ! any_yield )
+		// Could do a same_type() call here, but really this case
+		// shouldn't happen in any case.
+		return yield_type->Tag() == t->Tag();
+
+	if ( ! vector_val )
+		// Trivially concretized.
+		return true;
+
+	auto n = vector_val->size();
+	for ( auto i = 0U; i < n; ++i )
+		{
+		auto& v = (*vector_val)[i];
+		if ( ! v )
+			// Vector hole does not require concretization.
+			continue;
+
+		auto& vt_i = yield_types ? (*yield_types)[i] : yield_type;
+		if ( vt_i->Tag() == TYPE_ANY )
+			{ // Do the concretization.
+			ValPtr any_v = {NewRef{}, v->AsAny()};
+			auto& vt = any_v->GetType();
+			if ( vt->Tag() != t->Tag() )
+				return false;
+
+			v = ZVal(any_v, t);
+			}
+
+		else if ( vt_i->Tag() != t->Tag() )
+			return false;
+		}
+
+	// Require that this vector be treated consistently in the future.
+	yield_type = t;
+	managed_yield = ZVal::IsManagedType(yield_type);
+	delete yield_types;
+	yield_types = nullptr;
+	any_yield = false;
+
+	return true;
+	}
+
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
 	{
 	unsigned int oldsize = vector_val->size();

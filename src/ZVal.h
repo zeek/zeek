@@ -73,6 +73,7 @@ union ZVal {
 	ZVal(TypeVal* v)	{ type_val = v; }
 	ZVal(RecordVal* v)	{ record_val = v; }
 	ZVal(VectorVal* v)	{ vector_val = v; }
+	ZVal(Val* v)		{ any_val = v; }
 
 	ZVal(StringValPtr v)	{ string_val = v.release(); }
 	ZVal(AddrValPtr v)	{ addr_val = v.release(); }
@@ -108,6 +109,27 @@ union ZVal {
 	Val* AsAny() const		{ return any_val; }
 
 	Obj* ManagedVal() const		{ return managed_val; }
+	void ClearManagedVal()		{ managed_val = nullptr; }
+
+	// The following return references that can be used to
+	// populate the ZVal.  Handy for compiled ZAM code.
+	bro_int_t& AsIntRef()		{ return int_val; }
+	bro_uint_t& AsCountRef()	{ return uint_val; }
+	double& AsDoubleRef()		{ return double_val; }
+	StringVal*& AsStringRef()	{ return string_val; }
+	AddrVal*& AsAddrRef()		{ return addr_val; }
+	SubNetVal*& AsSubNetRef()	{ return subnet_val; }
+	File*& AsFileRef()		{ return file_val; }
+	Func*& AsFuncRef()		{ return func_val; }
+	ListVal*& AsListRef()		{ return list_val; }
+	OpaqueVal*& AsOpaqueRef()	{ return opaque_val; }
+	PatternVal*& AsPatternRef()	{ return re_val; }
+	TableVal*& AsTableRef()		{ return table_val; }
+	RecordVal*& AsRecordRef()	{ return record_val; }
+	VectorVal*& AsVectorRef()	{ return vector_val; }
+	TypeVal*& AsTypeRef()		{ return type_val; }
+	Val*& AsAnyRef()		{ return any_val; }
+	Obj*& ManagedValRef()		{ return managed_val; }
 
 	// True if a given type is one for which we manage the associated
 	// memory internally.

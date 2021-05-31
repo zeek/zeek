@@ -14,6 +14,20 @@
 
 namespace zeek::detail {
 
+StmtPtr Reducer::Reduce(StmtPtr s)
+	{
+	reduction_root = std::move(s);
+
+	try
+		{
+		return reduction_root->Reduce(this);
+		}
+	catch ( InterpreterException& e )
+		{
+		/* Already reported. */
+		return reduction_root;
+		}
+	}
 
 ExprPtr Reducer::GenTemporaryExpr(const TypePtr& t, ExprPtr rhs)
 	{

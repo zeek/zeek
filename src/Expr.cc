@@ -3844,49 +3844,36 @@ ArithCoerceExpr::ArithCoerceExpr(ExprPtr arg_op, TypeTag t)
 		ExprError("bad coercion value");
 	}
 
-ValPtr ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) const
+ValPtr ArithCoerceExpr::FoldSingleVal(ValPtr v, const TypePtr& t) const
 	{
-	switch ( t ) {
-	case TYPE_INTERNAL_DOUBLE:
-		return make_intrusive<DoubleVal>(v->CoerceToDouble());
-
-	case TYPE_INTERNAL_INT:
-		return val_mgr->Int(v->CoerceToInt());
-
-	case TYPE_INTERNAL_UNSIGNED:
-		return val_mgr->Count(v->CoerceToUnsigned());
-
-	default:
-		RuntimeErrorWithCallStack("bad type in CoerceExpr::Fold");
-		return nullptr;
-	}
+	return check_and_promote(v, t.get(), false, location);
 	}
 
 ValPtr ArithCoerceExpr::Fold(Val* v) const
 	{
-	InternalTypeTag t = type->InternalType();
+	auto t = GetType();
 
 	if ( ! is_vector(v) )
 		{
 		// Our result type might be vector, in which case this
 		// invocation is being done per-element rather than on
-		// the whole vector.  Correct the type tag if necessary.
+		// the whole vector.  Correct the type if so.
 		if ( type->Tag() == TYPE_VECTOR )
-			t = GetType()->AsVectorType()->Yield()->InternalType();
+			t = t->AsVectorType()->Yield();
 
-		return FoldSingleVal(v, t);
+		return FoldSingleVal({NewRef{}, v}, t);
 		}
 
-	t = GetType()->AsVectorType()->Yield()->InternalType();
-
 	VectorVal* vv = v->AsVectorVal();
-	auto result = make_intrusive<VectorVal>(GetType<VectorType>());
+	auto result = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
+
+	auto yt = t->AsVectorType()->Yield();
 
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
 		auto elt = vv->ValAt(i);
 		if ( elt )
-			result->Assign(i, FoldSingleVal(elt.get(), t));
+			result->Assign(i, FoldSingleVal(elt, yt));
 		else
 			result->Assign(i, nullptr);
 		}

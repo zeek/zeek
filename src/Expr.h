@@ -1213,7 +1213,7 @@ public:
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
-	ValPtr FoldSingleVal(Val* v, InternalTypeTag t) const;
+	ValPtr FoldSingleVal(ValPtr v, const TypePtr& t) const;
 	ValPtr Fold(Val* v) const override;
 };
 

@@ -88,13 +88,6 @@ union ZVal {
 	// ensure that they're providing the correct type.
 	ValPtr ToVal(const TypePtr& t) const;
 
-	// Whether a ZVal was accessed that was missing (a nil pointer).
-	// Used to generate run-time error messages.
-	static bool ZValNilStatus()		{ return zval_was_nil; }
-
-	// Resets the notion of low-level-error-occurred.
-	static void ClearZValNilStatus()	{ zval_was_nil = false; }
-
 	bro_int_t AsInt() const		{ return int_val; }
 	bro_uint_t AsCount() const	{ return uint_val; }
 	double AsDouble() const		{ return double_val; }
@@ -132,6 +125,14 @@ union ZVal {
 		if ( IsManagedType(t) )
 			DeleteManagedType(v);
 		}
+
+	// Specifies the address of a flag to set if a ZVal is accessed
+	// that was missing (a nil pointer).  Used to generate run-time
+	// error messages.  We use an address-based interface so that
+	// this flag can be combined with a general-purpose error flag,
+	// allowing inner loops to only have to test a single flag.
+	static void SetZValNilStatusAddr(bool* _zval_was_nil_addr)
+		{ zval_was_nil_addr = _zval_was_nil_addr; }
 
 private:
 	friend class RecordVal;
@@ -175,7 +176,7 @@ private:
 	// because often the caller won't have direct access to the
 	// particular ZVal that produces the issue, and just wants to
 	// know whether it occurred at some point.
-	static bool zval_was_nil;
+	static bool* zval_was_nil_addr;
 };
 
 } // zeek

@@ -1391,9 +1391,12 @@ SizeExpr::SizeExpr(ExprPtr arg_op)
 	if ( IsError() )
 		return;
 
-	if ( op->GetType()->Tag() == TYPE_ANY )
+	auto& t = op->GetType();
+
+	if ( t->Tag() == TYPE_ANY )
 		SetType(base_type(TYPE_ANY));
-	else if ( op->GetType()->InternalType() == TYPE_INTERNAL_DOUBLE )
+	else if ( t->Tag() == TYPE_FILE || t->Tag() == TYPE_SUBNET ||
+	          t->InternalType() == TYPE_INTERNAL_DOUBLE )
 		SetType(base_type(TYPE_DOUBLE));
 	else
 		SetType(base_type(TYPE_COUNT));

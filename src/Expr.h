@@ -1481,9 +1481,13 @@ public:
 	ExprPtr Duplicate() override;
 
 protected:
-	ValPtr Eval(Frame* f) const override;
+	ValPtr Fold(Val* v) const override;
 	void ExprDescribe(ODesc* d) const override;
 };
+
+// Returns the value 'v' cast to type 't'.  On an error, returns nil
+// and populates "error" with an error message.
+extern ValPtr cast_value(ValPtr v, const TypePtr& t, std::string& error);
 
 class IsExpr final : public UnaryExpr {
 public:

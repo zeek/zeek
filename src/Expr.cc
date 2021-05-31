@@ -5198,34 +5198,38 @@ CastExpr::CastExpr(ExprPtr arg_op, TypePtr t)
 		ExprError("cast not supported");
 	}
 
-ValPtr CastExpr::Eval(Frame* f) const
+ValPtr CastExpr::Fold(Val* v) const
 	{
-	if ( IsError() )
-		return nullptr;
+	std::string error;
+	auto res = cast_value({NewRef{}, v}, GetType(), error);
 
-	auto v = op->Eval(f);
+	if ( ! res )
+		RuntimeError(error.c_str());
 
-	if ( ! v )
-		return nullptr;
+	return res;
+	}
 
-	auto nv = cast_value_to_type(v.get(), GetType().get());
+ValPtr cast_value(ValPtr v, const TypePtr& t, std::string& error)
+	{
+	auto nv = cast_value_to_type(v.get(), t.get());
 
 	if ( nv )
 		return nv;
 
 	ODesc d;
+
 	d.Add("invalid cast of value with type '");
 	v->GetType()->Describe(&d);
 	d.Add("' to type '");
-	GetType()->Describe(&d);
+	t->Describe(&d);
 	d.Add("'");
 
 	if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) &&
-		 ! v->AsRecordVal()->HasField(0) )
+	     ! v->AsRecordVal()->HasField(0) )
 		d.Add(" (nil $data field)");
 
-	RuntimeError(d.Description());
-	return nullptr;  // not reached.
+	error = d.Description();
+	return nullptr;
 	}
 
 void CastExpr::ExprDescribe(ODesc* d) const

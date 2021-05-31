@@ -130,13 +130,19 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	rc->SetDefSetsMgr(reduced_rds.GetDefSetsMgr());
 
-	auto ud = std::make_unique<UseDefs>(body, rc);
+	auto ud = std::make_shared<UseDefs>(body, rc);
 	ud->Analyze();
 
 	if ( analysis_options.dump_uds )
 		ud->Dump();
 
-	ud->RemoveUnused();
+	new_body = ud->RemoveUnused();
+
+	if ( new_body != body )
+		{
+		f->ReplaceBody(body, new_body);
+		body = new_body;
+		}
 
 	int new_frame_size =
 		scope->Length() + rc->NumTemps() + rc->NumNewLocals();

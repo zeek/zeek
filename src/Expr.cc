@@ -2933,7 +2933,7 @@ ValPtr IndexExpr::Eval(Frame* f) const
 		{
 		VectorVal* v_v1 = v1->AsVectorVal();
 		VectorVal* v_v2 = indv->AsVectorVal();
-		auto v_result = make_intrusive<VectorVal>(GetType<VectorType>());
+		auto vt = cast_intrusive<VectorType>(GetType());
 
 		// Booleans select each element (or not).
 		if ( IsBool(v_v2->GetType()->Yield()->Tag()) )
@@ -2944,23 +2944,11 @@ ValPtr IndexExpr::Eval(Frame* f) const
 				return nullptr;
 				}
 
-			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
-				{
-				if ( v_v2->BoolAt(i) )
-					v_result->Assign(v_result->Size() + 1, v_v1->ValAt(i));
-				}
+			return vector_bool_select(vt, v_v1, v_v2);
 			}
 		else
-			{ // The elements are indices.
-			// ### Should handle negative indices here like
-			// S does, i.e., by excluding those elements.
-			// Probably only do this if *all* are negative.
-			v_result->Resize(v_v2->Size());
-			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
-				v_result->Assign(i, v_v1->ValAt(v_v2->ValAt(i)->CoerceToInt()));
-			}
-
-		return v_result;
+			// Elements are indices.
+			return vector_int_select(vt, v_v1, v_v2);
 		}
 	else
 		return Fold(v1.get(), v2.get());
@@ -3060,6 +3048,35 @@ VectorValPtr index_slice(VectorVal* vect, int _first, int _last)
 		}
 
 	return result;
+	}
+
+VectorValPtr vector_bool_select(VectorTypePtr vt, const VectorVal* v1,
+                                const VectorVal* v2)
+	{
+	auto v_result = make_intrusive<VectorVal>(std::move(vt));
+
+	for ( unsigned int i = 0; i < v2->Size(); ++i )
+		if ( v2->BoolAt(i) )
+			v_result->Assign(v_result->Size() + 1, v1->ValAt(i));
+
+	return v_result;
+	}
+
+VectorValPtr vector_int_select(VectorTypePtr vt, const VectorVal* v1,
+                               const VectorVal* v2)
+	{
+	auto v_result = make_intrusive<VectorVal>(std::move(vt));
+
+	// The elements are indices.
+	//
+	// ### Should handle negative indices here like S does, i.e.,
+	// by excluding those elements.  Probably only do this if *all*
+	// are negative.
+	v_result->Resize(v2->Size());
+	for ( unsigned int i = 0; i < v2->Size(); ++i )
+		v_result->Assign(i, v1->ValAt(v2->ValAt(i)->CoerceToInt()));
+
+	return v_result;
 	}
 
 void IndexExpr::Assign(Frame* f, ValPtr v)

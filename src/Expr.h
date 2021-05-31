@@ -973,6 +973,15 @@ extern VectorValPtr index_slice(VectorVal* vect, int first, int last);
 // (exactly) two values.
 extern StringValPtr index_string(const String* s, const ListVal* lv);
 
+// Returns a vector indexed by a boolean vector.
+extern VectorValPtr vector_bool_select(VectorTypePtr vt, const VectorVal* v1,
+                                       const VectorVal* v2);
+
+// Returns a vector indexed by a numeric vector (which specifies the
+// indices to select).
+extern VectorValPtr vector_int_select(VectorTypePtr vt, const VectorVal* v1,
+                                      const VectorVal* v2);
+
 class IndexExprWhen final : public IndexExpr {
 public:
 	static inline std::vector<ValPtr> results = {};

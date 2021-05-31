@@ -2851,62 +2851,18 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields)
 	if ( run_state::is_parsing )
 		parse_time_records[rt.get()].emplace_back(NewRef{}, this);
 
-	if ( ! init_fields )
-		return;
-
-	// Initialize to default values from RecordType (which are nil
-	// by default).
-	for ( int i = 0; i < n; ++i )
+	if ( init_fields )
 		{
-		detail::Attributes* a = rt->FieldDecl(i)->attrs.get();
-		detail::Attr* def_attr = a ? a->Find(detail::ATTR_DEFAULT).get() : nullptr;
-		ValPtr def;
-
-		if ( def_attr )
-			try
-				{
-				def = def_attr->GetExpr()->Eval(nullptr);
-				}
-			catch ( InterpreterException& )
-				{
-				if ( run_state::is_parsing )
-					parse_time_records[rt.get()].pop_back();
-
-				delete record_val;
-				throw;
-				}
-
-		const auto& type = rt->FieldDecl(i)->type;
-
-		if ( def && type->Tag() == TYPE_RECORD &&
-		     def->GetType()->Tag() == TYPE_RECORD &&
-		     ! same_type(def->GetType(), type) )
+		try
 			{
-			auto tmp = def->AsRecordVal()->CoerceTo(cast_intrusive<RecordType>(type));
-
-			if ( tmp )
-				def = std::move(tmp);
+			rt->Create(*record_val);
 			}
-
-		if ( ! def && ! (a && a->Find(detail::ATTR_OPTIONAL)) )
+		catch ( InterpreterException& e )
 			{
-			TypeTag tag = type->Tag();
-
-			if ( tag == TYPE_RECORD )
-				def = make_intrusive<RecordVal>(cast_intrusive<RecordType>(type));
-
-			else if ( tag == TYPE_TABLE )
-				def = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()},
-				                                     IntrusivePtr{NewRef{}, a});
-
-			else if ( tag == TYPE_VECTOR )
-				def = make_intrusive<VectorVal>(cast_intrusive<VectorType>(type));
+			if ( run_state::is_parsing )
+				parse_time_records[rt.get()].pop_back();
+			throw;
 			}
-
-		if ( def )
-			record_val->emplace_back(ZVal(def, def->GetType()));
-		else
-			record_val->emplace_back(std::nullopt);
 		}
 	}
 
@@ -3158,7 +3114,7 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	// record. As we cannot guarantee that it will ber zeroed out at the
 	// approproate time (as it seems to be guaranteed for the original record)
 	// we don't touch it.
-	auto rv = make_intrusive<RecordVal>(GetType<RecordType>(), false);
+	auto rv = make_intrusive<RecordVal>(rt, false);
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
@@ -3167,7 +3123,7 @@ ValPtr RecordVal::DoClone(CloneState* state)
 		{
 		auto f_i = GetField(i);
 		auto v = f_i ? f_i->Clone(state) : nullptr;
-  		rv->AppendField(std::move(v));
+		rv->AppendField(std::move(v));
 		}
 
 	return rv;

@@ -1,3 +1,11 @@
+4.1.0-dev.676 | 2021-06-01 10:19:19 -0700
+
+  * Integrate review feedback (Dominik Charousset, Corelight)
+
+  * Sync new broker options, fix name inconsistencies (Dominik Charousset, Corelight)
+
+  * Integrate new Broker metric exporter parameters (Dominik Charousset, Corelight)
+
 4.1.0-dev.671 | 2021-06-01 09:51:38 -0700
 
   * Update detect-MHR.zeek (Chris C)

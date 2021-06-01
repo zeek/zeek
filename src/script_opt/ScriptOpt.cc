@@ -223,6 +223,7 @@ void analyze_scripts()
 		check_env_opt("ZEEK_GEN_CPP", analysis_options.gen_CPP);
 		check_env_opt("ZEEK_GEN_STANDALONE_CPP",
 		              analysis_options.gen_standalone_CPP);
+		check_env_opt("ZEEK_COMPILE_ALL", analysis_options.compile_all);
 		check_env_opt("ZEEK_REPORT_CPP", analysis_options.report_CPP);
 		check_env_opt("ZEEK_USE_CPP", analysis_options.use_CPP);
 
@@ -523,7 +524,8 @@ void analyze_scripts()
 		{
 		auto func = f.Func();
 
-		if ( inl && inl->WasInlined(func) &&
+		if ( ! analysis_options.compile_all &&
+		     inl && inl->WasInlined(func) &&
 		     func_used_indirectly.count(func) == 0 )
 			// No need to compile as it won't be
 			// called directly.

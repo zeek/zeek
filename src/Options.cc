@@ -160,6 +160,7 @@ static void set_analysis_option(const char* opt, Options& opts)
 		fprintf(stderr, "--optimize options:\n");
 		fprintf(stderr, "    all	equivalent to \"inline\" and \"activate\"\n");
 		fprintf(stderr, "    add-C++	generate private C++ for any missing script bodies\n");
+		fprintf(stderr, "    compile-all	*if* compiling, compile all scripts, even inlined ones\n");
 		fprintf(stderr, "    dump-uds	dump use-defs to stdout; implies xform\n");
 		fprintf(stderr, "    dump-xform	dump transformed scripts to stdout; implies xform\n");
 		fprintf(stderr, "    gen-C++	generate C++ script bodies\n");
@@ -179,6 +180,8 @@ static void set_analysis_option(const char* opt, Options& opts)
 
 	if ( util::streq(opt, "add-C++") )
 		a_o.add_CPP = true;
+	else if ( util::streq(opt, "compile-all") )
+		a_o.activate = a_o.compile_all = true;
 	else if ( util::streq(opt, "dump-uds") )
 		a_o.activate = a_o.dump_uds = true;
 	else if ( util::streq(opt, "dump-xform") )
@@ -189,6 +192,8 @@ static void set_analysis_option(const char* opt, Options& opts)
 		a_o.gen_standalone_CPP = true;
 	else if ( util::streq(opt, "inline") )
 		a_o.inliner = true;
+	else if ( util::streq(opt, "optimize-AST") )
+		a_o.activate = a_o.optimize_AST = true;
 	else if ( util::streq(opt, "recursive") )
 		a_o.inliner = a_o.report_recursive = true;
 	else if ( util::streq(opt, "report-C++") )
@@ -199,8 +204,6 @@ static void set_analysis_option(const char* opt, Options& opts)
 		a_o.use_CPP = true;
 	else if ( util::streq(opt, "xform") )
 		a_o.activate = true;
-	else if ( util::streq(opt, "optimize-AST") )
-		a_o.activate = a_o.optimize_AST = true;
 
 	else
 		{

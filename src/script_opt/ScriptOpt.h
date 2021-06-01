@@ -61,6 +61,11 @@ struct AnalyOpt {
 	// If true, use C++ bodies if available.
 	bool use_CPP = false;
 
+	// If true, compile all compileable functions, even those that
+	// are inlined.  Mainly useful for ensuring compatibility for
+	// some tests in the test suite.
+	bool compile_all = false;
+
 	// If true, report on available C++ bodies.
 	bool report_CPP = false;
 

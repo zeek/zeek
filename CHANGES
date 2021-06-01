@@ -1,3 +1,10 @@
+4.1.0-dev.671 | 2021-06-01 09:51:38 -0700
+
+  * Update detect-MHR.zeek (Chris C)
+
+    Update Virustotal URL to current
+    option match_sub_url = "https://www.virustotal.com/gui/search/%s"
+
 4.1.0-dev.669 | 2021-06-01 09:39:30 -0700
 
   * GH-839: Fix use of &optional sub-records within table/set indices (Jon Siwek, Corelight)

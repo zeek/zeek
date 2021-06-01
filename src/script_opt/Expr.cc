@@ -2119,7 +2119,12 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		const auto& ct = cv->GetType();
 
 		if ( IsArithmetic(t->Tag()) || IsArithmetic(ct->Tag()) )
-			return make_intrusive<ConstExpr>(FoldSingleVal(cv, t));
+			{
+			auto v = FoldSingleVal(cv, t);
+			if ( v )
+				return make_intrusive<ConstExpr>(v);
+			// else there was a coercion error, fall through
+			}
 		}
 
 	if ( c->Optimizing() )

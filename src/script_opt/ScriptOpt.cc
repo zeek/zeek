@@ -492,20 +492,50 @@ void analyze_scripts()
 	if ( ! analysis_options.activate )
 		return;
 
+	// The following tracks inlined functions that are also used
+	// indirectly, and thus should be compiled even if they were
+	// inlined.  We don't bother populating this if we're not inlining,
+	// since it won't be consulted in that case.
+	std::unordered_set<Func*> func_used_indirectly;
+
+	if ( inl )
+		{
+		for ( auto& f : funcs )
+			{
+			for ( const auto& g : f.Profile()->Globals() )
+				{
+				if ( g->GetType()->Tag() != TYPE_FUNC )
+					continue;
+
+				auto v = g->GetVal();
+				if ( ! v )
+					continue;
+
+				auto func = v->AsFunc();
+
+				if ( inl->WasInlined(func) )
+					func_used_indirectly.insert(func);
+				}
+			}
+		}
+
 	for ( auto& f : funcs )
 		{
-		if ( inl && inl->WasInlined(f.Func()) )
+		auto func = f.Func();
+
+		if ( inl && inl->WasInlined(func) &&
+		     func_used_indirectly.count(func) == 0 )
 			// No need to compile as it won't be
 			// called directly.
 			continue;
 
-		if ( when_funcs.count(f.Func()) > 0 )
+		if ( when_funcs.count(func) > 0 )
 			// We don't try to compile these.
 			continue;
 
 		auto new_body = f.Body();
-		optimize_func(f.Func(), f.ProfilePtr(), f.Scope(),
-				new_body, analysis_options);
+		optimize_func(func, f.ProfilePtr(), f.Scope(), new_body,
+		              analysis_options);
 		f.SetBody(new_body);
 		}
 	}

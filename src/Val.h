@@ -45,6 +45,8 @@ class PrefixTable;
 class CompositeHash;
 class HashKey;
 
+class ZBody;
+
 } // namespace detail
 
 namespace run_state {
@@ -1398,6 +1400,23 @@ public:
 	static void DoneParsing();
 
 protected:
+	friend class zeek::detail::ZBody;
+
+	// For use by low-level ZAM instructions.  Caller assumes
+	// responsibility for memory management.  The first version
+	// allows manipulation of whether the field is present at all.
+	// The second version ensures that the optional value is present.
+	std::optional<ZVal>& RawOptField(int field)
+		{ return (*record_val)[field]; }
+
+	ZVal& RawField(int field)
+		{
+		auto& f = RawOptField(field);
+		if ( ! f )
+			f = ZVal();
+		return *f;
+		}
+
 	ValPtr DoClone(CloneState* state) override;
 
 	void AddedField(int field)

@@ -2936,7 +2936,8 @@ void RecordVal::ResizeParseTimeRecords(RecordType* revised_rt)
 		if ( required_length > current_length )
 			{
 			for ( auto i = current_length; i < required_length; ++i )
-				rv->AppendField(revised_rt->FieldDefault(i));
+				rv->AppendField(revised_rt->FieldDefault(i),
+				                revised_rt->GetFieldType(i));
 			}
 		}
 	}
@@ -3123,7 +3124,7 @@ ValPtr RecordVal::DoClone(CloneState* state)
 		{
 		auto f_i = GetField(i);
 		auto v = f_i ? f_i->Clone(state) : nullptr;
-		rv->AppendField(std::move(v));
+		rv->AppendField(std::move(v), rt->GetFieldType(i));
 		}
 
 	return rv;

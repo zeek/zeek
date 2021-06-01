@@ -54,8 +54,19 @@ New Functionality
   replacing use of the interpreter and producing better runtime performance.
   See `src/script_opt/CPP/README.md` for a guide on how to use this feature.
 
+- Support for more generic session management. The NetSessions class has been
+  renamed to SessionMgr (with the old name marked deprecated). The new
+  class allows plugins to take advantage of session management similar to how
+  Connection objects were handled previously, but without the need to be based
+  on IP-based protocols.
+
 Changed Functionality
 ---------------------
+
+- The default IP-based transport protocols (UDP, TCP, and ICMP) have been
+  moved to the packet analysis framework. This change allows us to move other
+  analyzers in the future that better align with the packet analysis framework
+  than they do with session analysis.
 
 Removed Functionality
 ---------------------

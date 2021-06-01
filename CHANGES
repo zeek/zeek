@@ -1,3 +1,7 @@
+4.1.0-dev.669 | 2021-06-01 09:39:30 -0700
+
+  * GH-839: Fix use of &optional sub-records within table/set indices (Jon Siwek, Corelight)
+
 4.1.0-dev.666 | 2021-05-26 10:51:51 -0700
 
   * Ensure SessionAdapter members are initialized (Tim Wojtulewicz, Corelight)

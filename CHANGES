@@ -1,3 +1,10 @@
+
+4.1.0-dev.697 | 2021-06-02 15:08:12 -0700
+
+  * Add FreeBSD 13 to CI (Christian Kreibich, Corelight)
+
+  * Add Fedora 34 to CI (Christian Kreibich, Corelight)
+
 4.1.0-dev.693 | 2021-06-02 13:22:09 -0700
 
   * Label session adapters in the output of zeek -NN (Tim Wojtulewicz, Corelight)

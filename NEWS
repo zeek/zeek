@@ -3,8 +3,21 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
-Zeek 4.0.2 (in progress)
-========================
+Zeek 4.0.2
+==========
+
+This release fixes the following security issues:
+
+- Fix potential Undefined Behavior in decode_netbios_name() and
+  decode_netbios_name_type() BIFs. The latter has a possibility of a remote
+  heap-buffer-overread, making this a potential DoS vulnerability.
+
+  https://github.com/zeek/zeek/pull/1533
+  https://github.com/zeek/zeek/pull/1563
+
+- Add some extra length checking when parsing mobile ipv6 packets. Due to the
+  possibility of reading invalid headers from remote sources, this is a
+  potential DoS vulnerability.
 
 This release fixes the following bugs:
 

@@ -1,3 +1,11 @@
+4.1.0-dev.681 | 2021-06-02 09:57:41 -0700
+
+  * Add some extra length checking when parsing mobile ipv6 packets
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=34263
+    (Link to details becomes public 30 days after patch release) (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.679 | 2021-06-01 19:11:40 -0700
 
   * Replace toupper() usages in netbios decoding BIFs (Jon Siwek, Corelight)

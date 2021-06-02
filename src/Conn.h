@@ -143,14 +143,6 @@ public:
 			return "unknown";
 		}
 
-	// FIXME: Now this is in Analyzer and should eventually be removed here.
-	//
-	// If true, skip processing of remainder of connection.  Note
-	// that this does not in itself imply that record_packets is false;
-	// we might want instead to process the connection off-line.
-	void SetSkip(bool do_skip)		{ skip = do_skip ? 1 : 0; }
-	bool Skipping() const			{ return skip; }
-
 	// Returns true if the packet reflects a reuse of this
 	// connection (i.e., not a continuation but the beginning of
 	// a new connection).
@@ -270,7 +262,6 @@ private:
 
 	detail::ConnKey key;
 
-	unsigned int skip:1;
 	unsigned int weird:1;
 	unsigned int finished:1;
 	unsigned int saw_first_orig_packet:1, saw_first_resp_packet:1;

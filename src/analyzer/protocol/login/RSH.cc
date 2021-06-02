@@ -35,7 +35,7 @@ Contents_Rsh_Analyzer::~Contents_Rsh_Analyzer()
 
 void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 	{
-	analyzer::tcp::TCP_Analyzer* tcp = static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
+	auto* tcp = static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 	assert(tcp);
 
 	int endp_state = IsOrig() ? tcp->OrigState() : tcp->RespState();

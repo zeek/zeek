@@ -5,9 +5,11 @@
 #include "zeek/zeek-config.h"
 
 // Define first.
-typedef enum {
+enum TransportProto {
 	TRANSPORT_UNKNOWN, TRANSPORT_TCP, TRANSPORT_UDP, TRANSPORT_ICMP,
-} TransportProto;
+};
+
+extern const char* transport_proto_string(TransportProto proto);
 
 typedef enum { IPv4, IPv6 } IPFamily;
 

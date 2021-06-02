@@ -10,9 +10,13 @@ namespace zeek {
 class Connection;
 class IP_Hdr;
 
+namespace packet_analysis::TCP { class TCPSessionAdapter; }
+
 namespace analyzer::tcp {
 
-class TCP_Analyzer;
+using TCP_Analyzer [[deprecated("Remove in v5.1. Use zeek::packet_analysis::TCP::TCPSessionAdapter.")]] =
+	zeek::packet_analysis::TCP::TCPSessionAdapter;
+
 class TCP_Reassembler;
 
 enum EndpointState {
@@ -29,12 +33,12 @@ enum EndpointState {
 // One endpoint of a TCP connection.
 class TCP_Endpoint {
 public:
-	TCP_Endpoint(TCP_Analyzer* analyzer, bool is_orig);
+	TCP_Endpoint(packet_analysis::TCP::TCPSessionAdapter* analyzer, bool is_orig);
 	~TCP_Endpoint();
 
 	void Done();
 
-	TCP_Analyzer* TCP()	{ return tcp_analyzer; }
+	packet_analysis::TCP::TCPSessionAdapter* TCP()	{ return tcp_analyzer; }
 
 	void SetPeer(TCP_Endpoint* p);
 
@@ -212,7 +216,7 @@ public:
 	EndpointState state, prev_state;
 	TCP_Endpoint* peer;
 	TCP_Reassembler* contents_processor;
-	TCP_Analyzer* tcp_analyzer;
+	packet_analysis::TCP::TCPSessionAdapter* tcp_analyzer;
 	FilePtr contents_file;
 
 	double start_time, last_time;

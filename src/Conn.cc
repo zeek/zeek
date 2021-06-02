@@ -20,6 +20,7 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
+#include "zeek/packet_analysis/protocol/tcp/TCP.h"
 
 namespace zeek {
 
@@ -55,7 +56,6 @@ Connection::Connection(const detail::ConnKey& k, double t,
 	vlan = pkt->vlan;
 	inner_vlan = pkt->inner_vlan;
 
-	skip = 0;
 	weird = 0;
 
 	suppress_event = 0;
@@ -125,23 +125,23 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
 
 void Connection::Done()
 	{
-	// TODO: this still doesn't feel like the right place to do this, but it's better
-	// here than in SessionManager. This really should be down in the TCP analyzer
-	// somewhere, but it's session-related, so maybe not?
-	if ( ConnTransport() == TRANSPORT_TCP )
-		{
-		auto ta = static_cast<analyzer::tcp::TCP_Analyzer*>(adapter);
-		assert(ta->IsAnalyzer("TCP"));
-		analyzer::tcp::TCP_Endpoint* to = ta->Orig();
-		analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
-
-		session_mgr->tcp_stats.StateLeft(to->state, tr->state);
-		}
-
 	finished = 1;
 
-	if ( adapter && ! adapter->IsFinished() )
-		adapter->Done();
+	if ( adapter )
+		{
+		if ( ConnTransport() == TRANSPORT_TCP )
+			{
+			auto* ta = static_cast<packet_analysis::TCP::TCPSessionAdapter*>(adapter);
+			assert(ta->IsAnalyzer("TCP"));
+			analyzer::tcp::TCP_Endpoint* to = ta->Orig();
+			analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
+
+			packet_analysis::TCP::TCPAnalyzer::GetStats().StateLeft(to->state, tr->state);
+			}
+
+		if ( ! adapter->IsFinished() )
+			adapter->Done();
+		}
 	}
 
 void Connection::NextPacket(double t, bool is_orig,
@@ -154,11 +154,11 @@ void Connection::NextPacket(double t, bool is_orig,
 	run_state::current_timestamp = t;
 	run_state::current_pkt = pkt;
 
-	if ( Skipping() )
-		return;
-
 	if ( adapter )
 		{
+		if ( adapter->Skipping() )
+			return;
+
 		record_current_packet = record_packet;
 		record_current_content = record_content;
 		adapter->NextPacket(len, data, is_orig, -1, ip, caplen);

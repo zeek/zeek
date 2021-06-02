@@ -22,6 +22,8 @@ IPBasedAnalyzer::IPBasedAnalyzer(const char* name, TransportProto proto, uint32_
 
 IPBasedAnalyzer::~IPBasedAnalyzer()
 	{
+	for ( const auto& mapping : analyzers_by_port )
+		delete mapping.second;
 	}
 
 bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt)
@@ -79,62 +81,35 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 		conn->EnqueueEvent(new_packet, nullptr, conn->GetVal(),
 		                   pkt_hdr_val ? std::move(pkt_hdr_val) : ip_hdr->ToPktHdrVal());
 
-	if ( new_plugin )
+	conn->SetRecordPackets(true);
+	conn->SetRecordContents(true);
+
+	const u_char* payload = pkt->ip_hdr->Payload();
+
+	run_state::current_timestamp = run_state::processing_start_time;
+	run_state::current_pkt = pkt;
+
+	// TODO: Does this actually mean anything?
+	if ( conn->GetSessionAdapter()->Skipping() )
+		return true;
+
+	DeliverPacket(conn, run_state::processing_start_time, is_orig, len, pkt);
+
+	run_state::current_timestamp = 0;
+	run_state::current_pkt = nullptr;
+
+	// If the packet is reassembled, disable packet dumping because the
+	// pointer math to dump the data wouldn't work.
+	if ( pkt->ip_hdr->reassembled )
+		pkt->dump_packet = false;
+	else if ( conn->RecordPackets() )
 		{
-		conn->SetRecordPackets(true);
-		conn->SetRecordContents(true);
+		pkt->dump_packet = true;
 
-		const u_char* data = pkt->ip_hdr->Payload();
-
-		run_state::current_timestamp = run_state::processing_start_time;
-		run_state::current_pkt = pkt;
-
-		// TODO: Does this actually mean anything?
-		if ( conn->Skipping() )
-			return true;
-
-		DeliverPacket(conn, run_state::processing_start_time, is_orig, len, pkt);
-
-		run_state::current_timestamp = 0;
-		run_state::current_pkt = nullptr;
-
-		// If the packet is reassembled, disable packet dumping because the
-		// pointer math to dump the data wouldn't work.
-		if ( pkt->ip_hdr->reassembled )
-			pkt->dump_packet = false;
-		else if ( conn->RecordPackets() )
-			{
-			pkt->dump_packet = true;
-
-			// If we don't want the content, set the dump size to include just
-			// the header.
-			if ( ! conn->RecordContents() )
-				pkt->dump_size = data - pkt->data;
-			}
-		}
-	else
-		{
-		int record_packet = 1;	// whether to record the packet at all
-		int record_content = 1;	// whether to record its data
-
-		const u_char* data = pkt->ip_hdr->Payload();
-
-		conn->NextPacket(run_state::processing_start_time, is_orig, ip_hdr.get(), ip_hdr->PayloadLen(),
-		                 len, data, record_packet, record_content, pkt);
-
-		// If the packet is reassembled, disable packet dumping because the
-		// pointer math to dump the data wouldn't work.
-		if ( ip_hdr->reassembled )
-			pkt->dump_packet = false;
-		else if ( record_packet )
-			{
-			pkt->dump_packet = true;
-
-			// If we don't want the content, set the dump size to include just
-			// the header.
-			if ( ! record_content )
-				pkt->dump_size = data - pkt->data;
-			}
+		// If we don't want the content, set the dump size to include just
+		// the header.
+		if ( ! conn->RecordContents() )
+			pkt->dump_size = payload - pkt->data;
 		}
 
 	return true;
@@ -194,21 +169,7 @@ zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const detail::Co
 	if ( flip )
 		conn->FlipRoles();
 
-	if ( ! new_plugin )
-		{
-		if ( ! analyzer_mgr->BuildInitialAnalyzerTree(conn) )
-			{
-			conn->Done();
-			Unref(conn);
-			return nullptr;
-			}
-		}
-	else if ( ! BuildSessionAnalyzerTree(conn) )
-		{
-		conn->Done();
-		Unref(conn);
-		return nullptr;
-		}
+	BuildSessionAnalyzerTree(conn);
 
 	if ( new_connection )
 		conn->Event(new_connection, nullptr);
@@ -216,13 +177,10 @@ zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const detail::Co
 	return conn;
 	}
 
-bool IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
+void IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 	{
 	SessionAdapter* root = MakeSessionAdapter(conn);
 	analyzer::pia::PIA* pia = MakePIA(conn);
-
-	// TODO: temporary, can be replaced when the port lookup stuff is moved from analyzer_mgr
-	bool check_port = conn->ConnTransport() != TRANSPORT_ICMP;
 
 	bool scheduled = analyzer_mgr->ApplyScheduledAnalyzers(conn, false, root);
 
@@ -231,14 +189,10 @@ bool IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 	// the scheduled ones.
 	if ( ! scheduled )
 		{ // Let's see if it's a port we know.
-		if ( check_port && ! zeek::detail::dpd_ignore_ports )
+		if ( ! analyzers_by_port.empty() && ! zeek::detail::dpd_ignore_ports )
 			{
-			// TODO: ideally this lookup would be local to the packet analyzer instead of
-			// calling out to the analyzer manager. This code can move once the TCP work
-			// is in progress so that it doesn't have to be done piecemeal.
-			//
 			int resp_port = ntohs(conn->RespPort());
-			std::set<analyzer::Tag>* ports = analyzer_mgr->LookupPort(conn->ConnTransport(), resp_port, false);
+			std::set<analyzer::Tag>* ports = LookupPort(resp_port, false);
 
 			if ( ports )
 				{
@@ -267,7 +221,64 @@ bool IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 	root->InitChildren();
 
 	PLUGIN_HOOK_VOID(HOOK_SETUP_ANALYZER_TREE, HookSetupAnalyzerTree(conn));
+	}
 
-	// TODO: temporary
+bool IPBasedAnalyzer::RegisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port)
+	{
+	tag_set* l = LookupPort(port, true);
+
+	if ( ! l )
+		return false;
+
+#ifdef DEBUG
+	const char* name = analyzer_mgr->GetComponentName(tag).c_str();
+	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name, port, transport);
+#endif
+
+	l->insert(tag);
 	return true;
+	}
+
+bool IPBasedAnalyzer::UnregisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port)
+	{
+	tag_set* l = LookupPort(port, true);
+
+	if ( ! l )
+		return true;  // still a "successful" unregistration
+
+#ifdef DEBUG
+	const char* name = analyzer_mgr->GetComponentName(tag).c_str();
+	DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port, transport);
+#endif
+
+	l->erase(tag);
+	return true;
+	}
+
+IPBasedAnalyzer::tag_set* IPBasedAnalyzer::LookupPort(uint32_t port, bool add_if_not_found)
+	{
+	analyzer_map_by_port::const_iterator i = analyzers_by_port.find(port);
+
+	if ( i != analyzers_by_port.end() )
+		return i->second;
+
+	if ( ! add_if_not_found )
+		return nullptr;
+
+	tag_set* l = new tag_set{};
+	analyzers_by_port.insert(std::make_pair(port, l));
+	return l;
+	}
+
+void IPBasedAnalyzer::DumpPortDebug()
+	{
+	for ( const auto& mapping : analyzers_by_port )
+		{
+		std::string s;
+
+		for ( const auto& tag : *(mapping.second) )
+			s += std::string(analyzer_mgr->GetComponentName(tag)) + " ";
+
+		DBG_LOG(DBG_ANALYZER, "    %d/%s: %s", mapping.first, transport_proto_string(transport), s.c_str());
+		}
 	}

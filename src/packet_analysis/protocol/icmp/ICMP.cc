@@ -12,6 +12,7 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/session/Manager.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
+#include "zeek/packet_analysis/protocol/icmp/ICMPSessionAdapter.h"
 
 #include "zeek/ZeekString.h"
 
@@ -26,12 +27,6 @@ using namespace zeek::packet_analysis::ICMP;
 using namespace zeek::packet_analysis::IP;
 
 ICMPAnalyzer::ICMPAnalyzer() : IPBasedAnalyzer("ICMP", TRANSPORT_ICMP, ICMP_PORT_MASK, false)
-	{
-	// TODO: remove once the other plugins are done
-	new_plugin = true;
-	}
-
-ICMPAnalyzer::~ICMPAnalyzer()
 	{
 	}
 
@@ -807,7 +802,9 @@ zeek::VectorValPtr ICMPAnalyzer::BuildNDOptionsVal(int caplen, const u_char* dat
 	return vv;
 	}
 
-int ICMPAnalyzer::ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
+namespace zeek::packet_analysis::ICMP {
+
+int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
 	{
 	is_one_way = false;
 
@@ -835,7 +832,7 @@ int ICMPAnalyzer::ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_w
 	}
 	}
 
-int ICMPAnalyzer::ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
+int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
 	{
 	is_one_way = false;
 
@@ -867,72 +864,4 @@ int ICMPAnalyzer::ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_w
 	}
 	}
 
-void ICMPSessionAdapter::AddExtraAnalyzers(Connection* conn)
-	{
-	static analyzer::Tag analyzer_connsize = analyzer_mgr->GetComponentTag("CONNSIZE");
-
-	if ( analyzer_mgr->IsEnabled(analyzer_connsize) )
-		// Add ConnSize analyzer. Needs to see packets, not stream.
-		AddChildAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn));
-	}
-
-void ICMPSessionAdapter::UpdateConnVal(zeek::RecordVal* conn_val)
-	{
-	const auto& orig_endp = conn_val->GetField("orig");
-	const auto& resp_endp = conn_val->GetField("resp");
-
-	UpdateEndpointVal(orig_endp, true);
-	UpdateEndpointVal(resp_endp, false);
-
-	analyzer::Analyzer::UpdateConnVal(conn_val);
-	}
-
-void ICMPSessionAdapter::UpdateEndpointVal(const ValPtr& endp_arg, bool is_orig)
-	{
-	Conn()->EnableStatusUpdateTimer();
-
-	int size = is_orig ? request_len : reply_len;
-	auto endp = endp_arg->AsRecordVal();
-
-	if ( size < 0 )
-		{
-		endp->Assign(0, val_mgr->Count(0));
-		endp->Assign(1, val_mgr->Count(int(ICMP_INACTIVE)));
-		}
-	else
-		{
-		endp->Assign(0, val_mgr->Count(size));
-		endp->Assign(1, val_mgr->Count(int(ICMP_ACTIVE)));
-		}
-	}
-
-void ICMPSessionAdapter::UpdateLength(bool is_orig, int len)
-	{
-	int& len_stat = is_orig ? request_len : reply_len;
-	if ( len_stat < 0 )
-		len_stat = len;
-	else
-		len_stat += len;
-	}
-
-void ICMPSessionAdapter::InitEndpointMatcher(const IP_Hdr* ip_hdr, int len, bool is_orig)
-	{
-	if ( zeek::detail::rule_matcher )
-		{
-		if ( ! matcher_state.MatcherInitialized(is_orig) )
-			matcher_state.InitEndpointMatcher(this, ip_hdr, len, is_orig, nullptr);
-		}
-	}
-
-void ICMPSessionAdapter::MatchEndpoint(const u_char* data, int len, bool is_orig)
-	{
-	if ( zeek::detail::rule_matcher )
-		matcher_state.Match(zeek::detail::Rule::PAYLOAD, data, len, is_orig,
-		                    false, false, true);
-	}
-
-void ICMPSessionAdapter::Done()
-	{
-	SessionAdapter::Done();
-	matcher_state.FinishEndpointMatcher();
-	}
+} // namespace zeek::packet_analysis::ICMP

@@ -30,7 +30,7 @@ bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
 	if ( ! adapter || ! adapter->IsAnalyzer("TCP") )
 		return false;
 
-	auto* ta = static_cast<analyzer::tcp::TCP_Analyzer*>(adapter);
+	auto* ta = static_cast<packet_analysis::TCP::TCPSessionAdapter*>(adapter);
 
 	if ( tcpstates & RULE_STATE_STATELESS )
 		return true;

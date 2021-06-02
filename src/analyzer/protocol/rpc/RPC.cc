@@ -456,8 +456,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 		// is fully established we are in sync (since it's the first chunk
 		// of data after the SYN if its not established we need to
 		// resync.
-		analyzer::tcp::TCP_Analyzer* tcp =
-			static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
+		auto* tcp = static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 		assert(tcp);
 
 		if ( (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=

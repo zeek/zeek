@@ -2,7 +2,13 @@
 
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
 #include "zeek/RunState.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 
+#include "zeek/analyzer/protocol/tcp/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/types.bif.h"
+
+using namespace zeek;
 using namespace zeek::packet_analysis::TCP;
 using namespace zeek::packet_analysis::IP;
 
@@ -10,8 +16,25 @@ TCPAnalyzer::TCPAnalyzer() : IPBasedAnalyzer("TCP", TRANSPORT_TCP, TCP_PORT_MASK
 	{
 	}
 
-TCPAnalyzer::~TCPAnalyzer()
+void TCPAnalyzer::Initialize()
 	{
+	ignored_nets = zeek::id::find_val<TableVal>("ignore_checksums_nets");
+	}
+
+SessionAdapter* TCPAnalyzer::MakeSessionAdapter(Connection* conn)
+	{
+	auto* root = new TCPSessionAdapter(conn);
+	root->SetParent(this);
+
+	conn->EnableStatusUpdateTimer();
+	conn->SetInactivityTimeout(zeek::detail::udp_inactivity_timeout);
+
+	return root;
+	}
+
+zeek::analyzer::pia::PIA* TCPAnalyzer::MakePIA(Connection* conn)
+	{
+	return new analyzer::pia::PIA_TCP(conn);
 	}
 
 bool TCPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet,
@@ -73,4 +96,81 @@ bool TCPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port,
 		}
 
 	return true;
+	}
+
+void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remaining, Packet* pkt)
+	{
+	const u_char* data = pkt->ip_hdr->Payload();
+	int len = pkt->ip_hdr->PayloadLen();
+	auto* adapter = static_cast<TCPSessionAdapter*>(c->GetSessionAdapter());
+
+	const struct tcphdr* tp = ExtractTCP_Header(data, len, remaining, adapter);
+	if ( ! tp )
+		return;
+
+	// We need the min() here because Ethernet frame padding can lead to
+	// remaining > len.
+	if ( packet_contents )
+		adapter->PacketContents(data, std::min(len, remaining));
+
+	analyzer::tcp::TCP_Endpoint* endpoint = is_orig ? adapter->orig : adapter->resp;
+	analyzer::tcp::TCP_Endpoint* peer = endpoint->peer;
+	const std::unique_ptr<IP_Hdr>& ip = pkt->ip_hdr;
+
+	if ( ! ValidateChecksum(ip.get(), tp, endpoint, len, remaining, adapter) )
+		return;
+
+	adapter->Process(is_orig, tp, len, ip, data, remaining);
+
+	// Send the packet back into the packet analysis framework.
+	ForwardPacket(len, data, pkt);
+
+	// Call DeliverPacket on the adapter directly here. Normally we'd call ForwardPacket
+	// but this adapter does some other things in its DeliverPacket with the packet children
+	// analyzers.
+	adapter->DeliverPacket(len, data, is_orig, adapter->LastRelDataSeq(), ip.get(), remaining);
+	}
+
+const struct tcphdr* TCPAnalyzer::ExtractTCP_Header(const u_char*& data, int& len, int& remaining,
+                                                    TCPSessionAdapter* adapter)
+	{
+	const struct tcphdr* tp = (const struct tcphdr*) data;
+	uint32_t tcp_hdr_len = tp->th_off * 4;
+
+	if ( tcp_hdr_len < sizeof(struct tcphdr) )
+		{
+		adapter->Weird("bad_TCP_header_len");
+		return nullptr;
+		}
+
+	if ( tcp_hdr_len > uint32_t(len) ||
+	     tcp_hdr_len > uint32_t(remaining) )
+		{
+		// This can happen even with the above test, due to TCP options.
+		adapter->Weird("truncated_header");
+		return nullptr;
+		}
+
+	len -= tcp_hdr_len;	// remove TCP header
+	remaining -= tcp_hdr_len;
+	data += tcp_hdr_len;
+
+	return tp;
+	}
+
+bool TCPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp,
+                                   analyzer::tcp::TCP_Endpoint* endpoint, int len, int caplen,
+                                   TCPSessionAdapter* adapter)
+	{
+	if ( ! run_state::current_pkt->l3_checksummed &&
+	     ! detail::ignore_checksums &&
+	     ! ignored_nets->Contains(ip->IPHeaderSrcAddr()) &&
+	     caplen >= len && ! endpoint->ValidChecksum(tp, len, ip->IP4_Hdr()) )
+		{
+		adapter->Weird("bad_TCP_checksum");
+		endpoint->ChecksumError();
+		return false;
+		}
+	else
+		return true;
 	}

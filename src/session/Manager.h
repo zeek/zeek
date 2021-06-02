@@ -8,7 +8,6 @@
 
 #include "zeek/Frag.h"
 #include "zeek/NetVar.h"
-#include "zeek/analyzer/protocol/tcp/Stats.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/Hash.h"
 #include "zeek/session/Session.h"
@@ -102,9 +101,6 @@ public:
 	unsigned int ConnectionMemoryUsageConnVals() { return SessionMemoryUsageVals(); }
 
 	unsigned int MemoryAllocation();
-
-	// TODO: should this move somewhere else?
-	analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
 
 private:
 

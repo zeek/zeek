@@ -1,3 +1,29 @@
+4.1.0-dev.693 | 2021-06-02 13:22:09 -0700
+
+  * Label session adapters in the output of zeek -NN (Tim Wojtulewicz, Corelight)
+
+  * Split session adapter code into separate files from the analyzers (Tim Wojtulewicz, Corelight)
+
+  * Move adapter-specific code back into the adapter (Tim Wojtulewicz, Corelight)
+
+  * Move ICMP counterpart methods outside of ICMPAnalyzer class
+
+    These were previously global methods in the old analyzer, and moving them
+    to be private members of ICMPAnalyzer broke the usage of them by at least
+    one external plugin. (Tim Wojtulewicz, Corelight)
+
+  * Remove obsolete Skipping()/SetSkip() from Connection (Tim Wojtulewicz, Corelight)
+
+  * Remove some code from IPBasedAnalyzer and children that was waiting for TCP to be implemented (Tim Wojtulewicz, Corelight)
+
+  * Move TCPStateStats object out of session_mgr (Tim Wojtulewicz, Corelight)
+
+  * Move analyzer-to-port mapping out of analyzer::Manager into packet analyzers (Tim Wojtulewicz, Corelight)
+
+  * Move packet parsing code out of adapter into analyzer (Tim Wojtulewicz, Corelight)
+
+  * Move old TCP analyzer into analyzer adapter in packet analysis tree (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.681 | 2021-06-02 09:57:41 -0700
 
   * Add some extra length checking when parsing mobile ipv6 packets

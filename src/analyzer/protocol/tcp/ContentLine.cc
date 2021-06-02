@@ -85,8 +85,7 @@ void ContentLine_Analyzer::DeliverStream(int len, const u_char* data,
 
 	if ( skip_partial )
 		{
-		TCP_Analyzer* tcp =
-			static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
+		auto* tcp = static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
 
 		if ( tcp && tcp->IsPartial() )
 			return;
@@ -300,8 +299,7 @@ void ContentLine_Analyzer::CheckNUL()
 	// had been an initial SYN, so we check for whether
 	// the connection has at most two bytes so far.
 
-	TCP_Analyzer* tcp =
-		static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
+	auto* tcp = static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
 
 	if ( tcp )
 		{

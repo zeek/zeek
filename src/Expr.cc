@@ -3375,9 +3375,21 @@ bool RecordConstructorExpr::IsPure() const
 
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const
 	{
-	d->Add("[");
-	op->Describe(d);
-	d->Add("]");
+	auto& tn = type->GetName();
+
+	if ( tn.size() > 0 )
+		{
+		d->Add(tn);
+		d->Add("(");
+		op->Describe(d);
+		d->Add(")");
+		}
+	else
+		{
+		d->Add("[");
+		op->Describe(d);
+		d->Add("]");
+		}
 	}
 
 TraversalCode RecordConstructorExpr::Traverse(TraversalCallback* cb) const

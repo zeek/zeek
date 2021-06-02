@@ -1,3 +1,10 @@
+4.1.0-dev.679 | 2021-06-01 19:11:40 -0700
+
+  * Replace toupper() usages in netbios decoding BIFs (Jon Siwek, Corelight)
+
+    This avoids potential for locale-dependent results of toupper() by
+    instead using a function that simply maps ASCII characters a-z to A-Z.
+
 4.1.0-dev.676 | 2021-06-01 10:19:19 -0700
 
   * Integrate review feedback (Dominik Charousset, Corelight)

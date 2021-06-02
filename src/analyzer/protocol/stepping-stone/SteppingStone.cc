@@ -218,9 +218,10 @@ void SteppingStone_Analyzer::Done()
 
 SteppingStoneManager* SteppingStoneManager::Get()
 	{
-	if ( ! instance && stp_correlate_pair )
+	if ( ! instance )
 		instance = new SteppingStoneManager();
 
+	assert(instance);
 	return instance;
 	}
 

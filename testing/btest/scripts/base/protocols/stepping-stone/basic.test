@@ -1,0 +1,30 @@
+# @TEST-EXEC: zeek -r $TRACES/ssh/ssh.trace %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+redef Analyzer::disabled_analyzers -= {Analyzer::ANALYZER_STEPPINGSTONE};
+
+event stp_create_endp(c: connection, e: int, is_orig: bool)
+	{
+	print "stp_create_endp", c$id$orig_h, e, is_orig;
+	}
+
+event stp_resume_endp(e: int)
+	{
+	print "stp_resume_endp", e;
+	}
+
+event stp_correlate_pair(e1: int, e2: int)
+	{
+	print "stp_correlate_pair", e1, e2;
+	}
+
+event stp_remove_pair(e1: int, e2: int)
+	{
+	print "stp_remove_pair", e1, e2;
+	}
+
+event stp_remove_endp(e: int)
+	{
+	print "stp_remove_endp", e;
+	}
+

@@ -9,7 +9,6 @@
 
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
-#include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"

@@ -1,3 +1,6 @@
+4.1.0-dev.700 | 2021-06-03 09:27:57 -0700
+
+  * Make update-traces fail when the curl invocation fails (Christian Kreibich, Corelight)
 
 4.1.0-dev.697 | 2021-06-02 15:08:12 -0700
 

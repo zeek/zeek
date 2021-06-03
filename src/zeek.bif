@@ -4441,7 +4441,7 @@ function skip_further_processing%(cid: conn_id%): bool
 	if ( ! c )
 		return zeek::val_mgr->False();
 
-	c->SetSkip(1);
+	c->GetSessionAdapter()->SetSkip(1);
 	return zeek::val_mgr->True();
 	%}
 

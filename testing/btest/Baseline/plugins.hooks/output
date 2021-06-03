@@ -164,8 +164,16 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_TEREDO, {3544/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_VXLAN, {4789/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_XMPP, {5222<...>/tcp})) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_endpoint_name, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_interval, <frame>, (1.0 sec)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_prefixes, <frame>, ([])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_topic, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Broker::__subscribe, <frame>, (zeek/supervisor)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Broker::subscribe, <frame>, (zeek/supervisor)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::update_metrics_export_endpoint_name, <frame>, (Broker::metrics_export_endpoint_name, )) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::update_metrics_export_interval, <frame>, (Broker::metrics_export_interval, 1.0 sec)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::update_metrics_export_prefixes, <frame>, (Broker::metrics_export_prefixes, [])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::update_metrics_export_topic, <frame>, (Broker::metrics_export_topic, )) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::local_node_type, <null>, ()) -> <no result>
@@ -1181,8 +1189,16 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_TEREDO, {3544/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_VXLAN, {4789/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_XMPP, {5222<...>/tcp}))
+0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_endpoint_name, <frame>, ())
+0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_interval, <frame>, (1.0 sec))
+0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_prefixes, <frame>, ([]))
+0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_topic, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Broker::__subscribe, <frame>, (zeek/supervisor))
 0.000000   MetaHookPre   CallFunction(Broker::subscribe, <frame>, (zeek/supervisor))
+0.000000   MetaHookPre   CallFunction(Broker::update_metrics_export_endpoint_name, <frame>, (Broker::metrics_export_endpoint_name, ))
+0.000000   MetaHookPre   CallFunction(Broker::update_metrics_export_interval, <frame>, (Broker::metrics_export_interval, 1.0 sec))
+0.000000   MetaHookPre   CallFunction(Broker::update_metrics_export_prefixes, <frame>, (Broker::metrics_export_prefixes, []))
+0.000000   MetaHookPre   CallFunction(Broker::update_metrics_export_topic, <frame>, (Broker::metrics_export_topic, ))
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <null>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::local_node_type, <null>, ())
@@ -2198,8 +2214,16 @@
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_TEREDO, {3544/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_VXLAN, {4789/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_XMPP, {5222<...>/tcp})
+0.000000 | HookCallFunction Broker::__set_metrics_export_endpoint_name()
+0.000000 | HookCallFunction Broker::__set_metrics_export_interval(1.0 sec)
+0.000000 | HookCallFunction Broker::__set_metrics_export_prefixes([])
+0.000000 | HookCallFunction Broker::__set_metrics_export_topic()
 0.000000 | HookCallFunction Broker::__subscribe(zeek/supervisor)
 0.000000 | HookCallFunction Broker::subscribe(zeek/supervisor)
+0.000000 | HookCallFunction Broker::update_metrics_export_endpoint_name(Broker::metrics_export_endpoint_name, )
+0.000000 | HookCallFunction Broker::update_metrics_export_interval(Broker::metrics_export_interval, 1.0 sec)
+0.000000 | HookCallFunction Broker::update_metrics_export_prefixes(Broker::metrics_export_prefixes, [])
+0.000000 | HookCallFunction Broker::update_metrics_export_topic(Broker::metrics_export_topic, )
 0.000000 | HookCallFunction Cluster::is_enabled()
 0.000000 | HookCallFunction Cluster::local_node_type()
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])

@@ -13,12 +13,14 @@
 #include "zeek/Event.h"
 #include "zeek/File.h"
 #include "zeek/Val.h"
+#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/protocol/tcp/TCP.h"
 
 #include "zeek/analyzer/protocol/tcp/events.bif.h"
 
 namespace zeek::analyzer::tcp {
 
-TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, bool arg_is_orig)
+TCP_Endpoint::TCP_Endpoint(packet_analysis::TCP::TCPSessionAdapter* arg_analyzer, bool arg_is_orig)
 	{
 	contents_processor = nullptr;
 	prev_state = state = TCP_ENDPOINT_INACTIVE;
@@ -65,8 +67,10 @@ void TCP_Endpoint::SetPeer(TCP_Endpoint* p)
 	{
 	peer = p;
 	if ( IsOrig() )
+		{
 		// Only one Endpoint adds the initial state to the counter.
-		session_mgr->tcp_stats.StateEntered(state, peer->state);
+		packet_analysis::TCP::TCPAnalyzer::GetStats().StateEntered(state, peer->state);
+		}
 	}
 
 bool TCP_Endpoint::HadGap() const
@@ -144,12 +148,13 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 
 		prev_state = state;
 		state = new_state;
+
 		if ( IsOrig() )
-			session_mgr->tcp_stats.ChangeState(prev_state, state,
-			                                   peer->state, peer->state);
+			packet_analysis::TCP::TCPAnalyzer::GetStats().ChangeState(prev_state, state,
+			                                                          peer->state, peer->state);
 		else
-			session_mgr->tcp_stats.ChangeState(peer->state, peer->state,
-			                                   prev_state, state);
+			packet_analysis::TCP::TCPAnalyzer::GetStats().ChangeState(peer->state, peer->state,
+			                                                          prev_state, state);
 		}
 	}
 

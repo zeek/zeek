@@ -619,6 +619,12 @@ void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t le
 #ifdef ENABLE_MOBILE_IPV6
 void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16_t len)
 	{
+	// Skip two bytes to get the beginning of the first option structure. These
+	// two bytes are the protocol for the next header and extension header length,
+	// already known to exist before calling this method.  See header format:
+	// https://datatracker.ietf.org/doc/html/rfc8200#section-4.6
+	assert(len >= 2);
+
 	const u_char* data = (const u_char*) d;
 	len -= 2 * sizeof(uint8_t);
 	data += 2* sizeof(uint8_t);
@@ -627,33 +633,44 @@ void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16_t len)
 		{
 		const struct ip6_opt* opt = (const struct ip6_opt*) data;
 		switch ( opt->ip6o_type ) {
-		case 201: // Home Address Option, Mobile IPv6 RFC 6275 section 6.3
-			{
-			if ( opt->ip6o_len == 16 )
-				if ( homeAddr )
-					reporter->Weird(SrcAddr(), DstAddr(), "multiple_home_addr_opts");
-				else
-					homeAddr = new IPAddr(*((const in6_addr*)(data + 2)));
-			else
-				reporter->Weird(SrcAddr(), DstAddr(), "bad_home_addr_len");
-			}
-			break;
-
-		default:
-			break;
-		}
-
-		if ( opt->ip6o_type == 0 )
-			{
+		case 0:
+			// If option type is zero, it's a Pad0 and can be just a single
+			// byte in width. Skip over it.
 			data += sizeof(uint8_t);
 			len -= sizeof(uint8_t);
-			}
-		else
+			break;
+		default:
 			{
-			data += 2 * sizeof(uint8_t) + opt->ip6o_len;
-			len -= 2 * sizeof(uint8_t) + opt->ip6o_len;
+			// Double-check that the len can hold the whole option structure.
+			// Otherwise we get a buffer-overflow when we check the option_len.
+			// Also check that it holds everything for the option itself.
+			if ( len < sizeof(struct ip6_opt) ||
+			     len < sizeof(struct ip6_opt) + opt->ip6o_len )
+				{
+				reporter->Weird(SrcAddr(), DstAddr(), "bad_ipv6_dest_opt_len");
+				len = 0;
+				break;
+				}
+
+			if ( opt->ip6o_type == 201 ) // Home Address Option, Mobile IPv6 RFC 6275 section 6.3
+				{
+				if ( opt->ip6o_len == sizeof(struct in6_addr) )
+					{
+					if ( homeAddr )
+						reporter->Weird(SrcAddr(), DstAddr(), "multiple_home_addr_opts");
+					else
+						homeAddr = new IPAddr(*((const in6_addr*)(data + sizeof(struct ip6_opt))));
+					}
+				else
+					reporter->Weird(SrcAddr(), DstAddr(), "bad_home_addr_len");
+				}
+
+			data += sizeof(struct ip6_opt) + opt->ip6o_len;
+			len -= sizeof(struct ip6_opt) + opt->ip6o_len;
 			}
+			break;
 		}
+	}
 	}
 #endif
 

@@ -1,5 +1,13 @@
 %%{
 #include "zeek/Reporter.h"
+
+// Like toupper(), but avoid potential for locale-dependence.
+static char netbios_toupper(char c)
+	{
+	if ( c >= 'a' && c <= 'z' )
+		return c - 32;
+	return c;
+	}
 %%}
 
 ## Decode a NetBIOS name.  See https://jeffpar.github.io/kbarchive/kb/194/Q194203/.
@@ -24,8 +32,8 @@ function decode_netbios_name%(name: string%): string
 
 	for ( i = 0, j = 0; i < 16; ++i )
 		{
-		char c0 = toupper(s[j++]);
-		char c1 = toupper(s[j++]);
+		char c0 = netbios_toupper(s[j++]);
+		char c1 = netbios_toupper(s[j++]);
 
 		if ( c0 < 'A' || c0 > 'P' || c1 < 'A' || c1 > 'P' )
 			return val_mgr->EmptyString();
@@ -80,7 +88,7 @@ function decode_netbios_name_type%(name: string%): count
 
 	for ( auto i = 0; i < 32; ++i )
 		{
-		char c = toupper(s[i]);
+		char c = netbios_toupper(s[i]);
 
 		if ( c < 'A' || c > 'P' )
 			return val_mgr->Count(256);

@@ -595,7 +595,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	trigger_mgr = new trigger::Manager();
 
 	plugin_mgr->InitPreScript();
-	analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
 	zeekygen_mgr->InitPreScript();
 

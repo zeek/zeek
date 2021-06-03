@@ -1,3 +1,70 @@
+
+4.1.0-dev.697 | 2021-06-02 15:08:12 -0700
+
+  * Add FreeBSD 13 to CI (Christian Kreibich, Corelight)
+
+  * Add Fedora 34 to CI (Christian Kreibich, Corelight)
+
+4.1.0-dev.693 | 2021-06-02 13:22:09 -0700
+
+  * Label session adapters in the output of zeek -NN (Tim Wojtulewicz, Corelight)
+
+  * Split session adapter code into separate files from the analyzers (Tim Wojtulewicz, Corelight)
+
+  * Move adapter-specific code back into the adapter (Tim Wojtulewicz, Corelight)
+
+  * Move ICMP counterpart methods outside of ICMPAnalyzer class
+
+    These were previously global methods in the old analyzer, and moving them
+    to be private members of ICMPAnalyzer broke the usage of them by at least
+    one external plugin. (Tim Wojtulewicz, Corelight)
+
+  * Remove obsolete Skipping()/SetSkip() from Connection (Tim Wojtulewicz, Corelight)
+
+  * Remove some code from IPBasedAnalyzer and children that was waiting for TCP to be implemented (Tim Wojtulewicz, Corelight)
+
+  * Move TCPStateStats object out of session_mgr (Tim Wojtulewicz, Corelight)
+
+  * Move analyzer-to-port mapping out of analyzer::Manager into packet analyzers (Tim Wojtulewicz, Corelight)
+
+  * Move packet parsing code out of adapter into analyzer (Tim Wojtulewicz, Corelight)
+
+  * Move old TCP analyzer into analyzer adapter in packet analysis tree (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.681 | 2021-06-02 09:57:41 -0700
+
+  * Add some extra length checking when parsing mobile ipv6 packets
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=34263
+    (Link to details becomes public 30 days after patch release) (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.679 | 2021-06-01 19:11:40 -0700
+
+  * Replace toupper() usages in netbios decoding BIFs (Jon Siwek, Corelight)
+
+    This avoids potential for locale-dependent results of toupper() by
+    instead using a function that simply maps ASCII characters a-z to A-Z.
+
+4.1.0-dev.676 | 2021-06-01 10:19:19 -0700
+
+  * Integrate review feedback (Dominik Charousset, Corelight)
+
+  * Sync new broker options, fix name inconsistencies (Dominik Charousset, Corelight)
+
+  * Integrate new Broker metric exporter parameters (Dominik Charousset, Corelight)
+
+4.1.0-dev.671 | 2021-06-01 09:51:38 -0700
+
+  * Update detect-MHR.zeek (Chris C)
+
+    Update Virustotal URL to current
+    option match_sub_url = "https://www.virustotal.com/gui/search/%s"
+
+4.1.0-dev.669 | 2021-06-01 09:39:30 -0700
+
+  * GH-839: Fix use of &optional sub-records within table/set indices (Jon Siwek, Corelight)
+
 4.1.0-dev.666 | 2021-05-26 10:51:51 -0700
 
   * Ensure SessionAdapter members are initialized (Tim Wojtulewicz, Corelight)

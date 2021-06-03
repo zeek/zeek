@@ -15,6 +15,7 @@
 #include "zeek/broker/Manager.h"
 #include "zeek/input.h"
 #include "zeek/Func.h"
+#include "zeek/packet_analysis/protocol/tcp/TCP.h"
 
 uint64_t zeek::detail::killed_by_inactivity = 0;
 uint64_t& killed_by_inactivity = zeek::detail::killed_by_inactivity;
@@ -155,7 +156,7 @@ void ProfileLogger::Log()
 		s.num_ICMP_conns, s.max_ICMP_conns
 		));
 
-	session_mgr->tcp_stats.PrintStats(file,
+	packet_analysis::TCP::TCPAnalyzer::GetStats().PrintStats(file,
 			util::fmt("%.06f TCP-States:", run_state::network_time));
 
 	// Alternatively, if you prefer more compact output...

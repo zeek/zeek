@@ -483,12 +483,6 @@ string CPPCompile::GenSizeExpr(const Expr* e, GenType gt)
 	else if ( it == TYPE_INTERNAL_DOUBLE )
 		gen = string("fabs__CPP(") + gen + ")";
 
-	else if ( it == TYPE_INTERNAL_INT || it == TYPE_INTERNAL_DOUBLE )
-		{
-		auto cast = (it == TYPE_INTERNAL_INT) ? "bro_int_t" : "double";
-		gen = string("abs__CPP(") + cast + "(" + gen + "))";
-		}
-
 	else
 		return GenericValPtrToGT(gen + "->SizeVal()", t, gt);
 

@@ -237,10 +237,16 @@ public:
 	             const std::vector<IDPtr>& new_inits,
 	             size_t new_frame_size, int priority) override;
 
-	// Replace the given current instance of a function body with
-	// a new one.
+	/**
+	 * Replaces the given current instance of a function body with
+	 * a new one.  If new_body is nil then the current instance is
+	 * deleted with no replacement.
+	 *
+	 * @param old_body  Body to replace.
+	 * @param new_body  New body to use; can be nil.
+	 */
 	void ReplaceBody(const detail::StmtPtr& old_body,
-				detail::StmtPtr new_body);
+	                 detail::StmtPtr new_body);
 
 	StmtPtr CurrentBody() const		{ return current_body; }
 	int CurrentPriority() const		{ return current_priority; }
@@ -316,7 +322,7 @@ private:
 	StmtPtr current_body;
 
 	// ... and its priority.
-	int current_priority;
+	int current_priority = 0;
 };
 
 using built_in_func = BifReturnVal (*)(Frame* frame, const Args* args);

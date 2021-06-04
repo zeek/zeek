@@ -10,7 +10,6 @@
 #include "zeek/Conn.h"
 
 namespace zeek::analyzer::pia { class PIA_TCP; }
-namespace zeek::packet_analysis::TCP { class TCPSessionAdapter; }
 
 namespace zeek::analyzer::tcp {
 

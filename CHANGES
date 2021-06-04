@@ -1,3 +1,13 @@
+4.1.0-dev.704 | 2021-06-04 08:29:18 -0700
+
+  * Add deprecated headers for UDP and ICMP analyzers (Tim Wojtulewicz, Corelight)
+
+  * Fix handling of IP packets with bogus IP header lengths
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=34711
+    (Link to details becomes public 30 days after patch release) (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.700 | 2021-06-03 09:27:57 -0700
 
   * Make update-traces fail when the curl invocation fails (Christian Kreibich, Corelight)

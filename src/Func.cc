@@ -1059,6 +1059,7 @@ void init_primary_bifs()
 #include "option.bif.func_init"
 #include "supervisor.bif.func_init"
 #include "packet_analysis.bif.func_init"
+#include "CPP-load.bif.func_init"
 
 	init_builtin_types();
 	did_builtin_init = true;

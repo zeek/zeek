@@ -24,6 +24,7 @@ AnalyOpt analysis_options;
 std::unordered_set<const Func*> non_recursive_funcs;
 
 void (*CPP_init_hook)() = nullptr;
+void (*CPP_activation_hook)() = nullptr;
 
 // Tracks all of the loaded functions (including event handlers and hooks).
 static std::vector<FuncInfo> funcs;
@@ -354,8 +355,21 @@ void analyze_scripts()
 				{
 				auto b = s->second.body;
 				b->SetHash(hash);
-				f.Func()->ReplaceBody(f.Body(), b);
-				f.SetBody(b);
+
+				// We may have already updated the body if
+				// we're using code compiled for standalone.
+				if ( f.Body()->Tag() != STMT_CPP )
+					{
+					auto func = f.Func();
+					if ( added_bodies[func->Name()].count(hash) > 0 )
+						// We've already added the
+						// replacement.  Delete orig.
+						func->ReplaceBody(f.Body(), nullptr);
+					else
+						func->ReplaceBody(f.Body(), b);
+
+					f.SetBody(b);
+					}
 
 				for ( auto& e : s->second.events )
 					{

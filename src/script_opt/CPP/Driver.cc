@@ -303,6 +303,9 @@ void CPPCompile::GenEpilog()
 	CheckInitConsistency(to_do);
 	auto nc = GenDependentInits(to_do);
 
+	if ( standalone )
+		GenStandaloneActivation();
+
 	NL();
 	Emit("void init__CPP()");
 
@@ -318,6 +321,9 @@ void CPPCompile::GenEpilog()
 	// Populate mappings for dynamic offsets.
 	NL();
 	InitializeFieldMappings();
+
+	if ( standalone )
+		Emit("standalone_init__CPP();");
 
 	EndBlock(true);
 

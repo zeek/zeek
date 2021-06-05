@@ -849,6 +849,9 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		// we don't have any other source for it.
 		run_state::detail::update_network_time(util::current_time());
 
+	if ( CPP_activation_hook )
+		(*CPP_activation_hook)();
+
 	if ( zeek_init )
 		event_mgr.Enqueue(zeek_init, Args{});
 

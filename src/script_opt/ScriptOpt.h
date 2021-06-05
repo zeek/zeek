@@ -147,5 +147,9 @@ extern void analyze_scripts();
 // to a non-empty value.
 extern void (*CPP_init_hook)();
 
+// Used for "standalone" C++-compiled scripts to complete their activation;
+// called after parsing and BiF initialization, but before zeek_init.
+extern void (*CPP_activation_hook)();
+
 
 } // namespace zeek::detail

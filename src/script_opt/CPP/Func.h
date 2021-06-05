@@ -108,6 +108,14 @@ struct CompiledScript {
 // Maps hashes to compiled information.
 extern std::unordered_map<p_hash_type, CompiledScript> compiled_scripts;
 
+// When using standalone-code, tracks which function bodies have had
+// compiled versions added to them.  Needed so that we don't replace
+// the body twice, leading to two copies.  Indexed first by the name
+// of the function, and then via the hash of the body that has been
+// added to it.
+extern std::unordered_map<std::string, std::unordered_set<p_hash_type>>
+ added_bodies;
+
 // Maps hashes to standalone script initialization callbacks.
 extern std::unordered_map<p_hash_type, void (*)()> standalone_callbacks;
 

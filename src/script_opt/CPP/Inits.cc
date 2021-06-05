@@ -460,9 +460,6 @@ void CPPCompile::GenInitHook()
 	{
 	NL();
 
-	if ( standalone )
-		GenStandaloneActivation();
-
 	Emit("int hook_in_init()");
 
 	StartBlock();
@@ -482,6 +479,15 @@ void CPPCompile::GenInitHook()
 
 void CPPCompile::GenStandaloneActivation()
 	{
+	NL();
+
+	Emit("void standalone_activation__CPP()");
+	StartBlock();
+	for ( auto& a : activations )
+		Emit(a);
+	EndBlock();
+
+	NL();
 	Emit("void standalone_init__CPP()");
 	StartBlock();
 
@@ -497,11 +503,6 @@ void CPPCompile::GenStandaloneActivation()
 	for ( const auto& func : funcs )
 		{
 		auto f = func.Func();
-
-		if ( f->Flavor() == FUNC_FLAVOR_FUNCTION )
-			// No need to explicitly add bodies.
-			continue;
-
 		auto fname = BodyName(func);
 		auto bname = Canonicalize(fname.c_str()) + "_zf";
 
@@ -534,8 +535,11 @@ void CPPCompile::GenStandaloneActivation()
 		     fn, GenTypeName(ft), hashes);
 		}
 
-	EndBlock();
 	NL();
+	Emit("CPP_activation_funcs.push_back(standalone_activation__CPP);");
+	Emit("CPP_activation_hook = activate__CPPs;");
+
+	EndBlock();
 	}
 
 void CPPCompile::GenLoad()

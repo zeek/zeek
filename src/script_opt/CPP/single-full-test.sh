@@ -4,11 +4,8 @@ echo $1
 
 base=../../..
 test=$base/testing/btest
-so=$base/src/script_opt/CPP
 build=$base/build
-gen=CPP-gen-addl.h
-
-echo >$gen
+gen=CPP-gen.cc
 
 ./non-embedded-build >$build/errs 2>&1 || echo non-embedded build failed
 
@@ -17,7 +14,7 @@ export ZEEK_HASH_DIR=$test ZEEK_GEN_CPP=
 cd $test
 ../../auxil/btest/btest $1 >jbuild-$1.out 2>&1
 grep -c '^namespace' $gen
-mv $gen $so/CPP-gen.cc
+mv $gen $build/
 cd $build
 ninja >& errs || echo build for $1 failed
 

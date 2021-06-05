@@ -280,9 +280,6 @@ void analyze_scripts()
 		// Avoid profiling overhead.
 		return;
 
-	const auto hash_name = hash_dir + "CPP-hashes";
-	const auto gen_name = hash_dir + "CPP-gen-addl.h";
-
 	// Now that everything's parsed and BiF's have been initialized,
 	// profile the functions.
 	auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
@@ -376,6 +373,8 @@ void analyze_scripts()
 
 	if ( generating_CPP )
 		{
+		const auto hash_name = hash_dir + "CPP-hashes";
+
 		auto hm = std::make_unique<CPPHashManager>(hash_name.c_str(),
 						analysis_options.add_CPP);
 
@@ -394,7 +393,10 @@ void analyze_scripts()
 			pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
 			}
 
-		CPPCompile cpp(funcs, *pfs, gen_name.c_str(), *hm,
+		const auto gen_name = hash_dir + "CPP-gen.cc";
+		const auto addl_name = hash_dir + "CPP-gen-addl.h";
+
+		CPPCompile cpp(funcs, *pfs, gen_name, addl_name, *hm,
 			       analysis_options.gen_CPP ||
 			       analysis_options.update_CPP,
 			       analysis_options.gen_standalone_CPP);

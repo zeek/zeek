@@ -24,6 +24,9 @@ void CPPCompile::DeclareFunc(const FuncInfo& func)
 
 	DeclareSubclass(f->GetType(), pf, fname, body, priority, nullptr,
 	                f->Flavor());
+
+	if ( f->GetBodies().size() == 1 )
+		compiled_simple_funcs[f->Name()] = fname;
 	}
 
 void CPPCompile::DeclareLambda(const LambdaExpr* l, const ProfileFunc* pf)

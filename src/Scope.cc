@@ -115,9 +115,9 @@ const IDPtr& lookup_ID(const char* name, const char* curr_module,
 	bool need_export = check_export && (ID_module != GLOBAL_MODULE_NAME &&
 	                                    ID_module != curr_module);
 
-	for ( int i = scopes.size() - 1; i >= 0; --i )
+	for ( auto s_i = scopes.rbegin(); s_i != scopes.rend(); ++s_i )
 		{
-		const auto& id = scopes[i]->Find(fullname);
+		const auto& id = (*s_i)->Find(fullname);
 
 		if ( id )
 			{

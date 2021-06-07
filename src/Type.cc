@@ -239,7 +239,7 @@ int Type::MatchesIndex(detail::ListExpr* const index) const
 		if ( index->Exprs().length() != 1 && index->Exprs().length() != 2 )
 			return DOES_NOT_MATCH_INDEX;
 
-		if ( check_and_promote_exprs_to_type(index, zeek::base_type(TYPE_INT).get()) )
+		if ( check_and_promote_exprs_to_type(index, zeek::base_type(TYPE_INT)) )
 			return MATCHES_INDEX_SCALAR;
 		}
 

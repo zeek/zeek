@@ -391,7 +391,7 @@ private:
 	Stmt* next_stmt;
 
 	trigger::TriggerPtr trigger;
-	const CallExpr* call;
+	const CallExpr* call = nullptr;
 	const Location* call_loc = nullptr;	// only needed if call is nil
 
 	std::unique_ptr<std::vector<ScriptFunc*>> functions_with_closure_frame_reference;

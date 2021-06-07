@@ -359,7 +359,7 @@ void Attributes::CheckAttr(Attr* a)
 				// Ok.
 				break;
 
-			auto e = check_and_promote_expr(a->GetExpr().get(), type.get());
+			auto e = check_and_promote_expr(a->GetExpr(), type);
 
 			if ( e )
 				{
@@ -399,7 +399,7 @@ void Attributes::CheckAttr(Attr* a)
 					// Ok.
 					break;
 
-				auto e = check_and_promote_expr(a->GetExpr().get(), ytype.get());
+				auto e = check_and_promote_expr(a->GetExpr(), ytype);
 
 				if ( e )
 					{
@@ -425,7 +425,7 @@ void Attributes::CheckAttr(Attr* a)
 
 			if ( (atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
 				{
-				auto e = check_and_promote_expr(a->GetExpr().get(), type.get());
+				auto e = check_and_promote_expr(a->GetExpr(), type);
 
 				if ( e )
 					{

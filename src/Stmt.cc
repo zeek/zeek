@@ -1565,7 +1565,7 @@ ReturnStmt::ReturnStmt(ExprPtr arg_e)
 
 	else
 		{
-		auto promoted_e = check_and_promote_expr(e.get(), yt.get());
+		auto promoted_e = check_and_promote_expr(e, yt);
 
 		if ( promoted_e )
 			e = std::move(promoted_e);

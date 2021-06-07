@@ -327,8 +327,8 @@ IntrusivePtr<Case> Case::Duplicate()
 
 	if ( type_cases )
 		{
-		loop_over_list(*type_cases, i)
-			zeek::Ref((*type_cases)[i]);
+		for ( auto tc : *type_cases )
+			zeek::Ref(tc);
 		}
 
 	return make_intrusive<Case>(nullptr, type_cases, s->Duplicate());

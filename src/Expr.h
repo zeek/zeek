@@ -1703,11 +1703,11 @@ ExprPtr get_assign_expr(
  *
  * Note, the type is not "const" because it can be ref'd.
  */
-extern ExprPtr check_and_promote_expr(Expr* e, Type* t);
+extern ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t);
 
 extern bool check_and_promote_exprs(ListExpr* elements, TypeList* types);
 extern bool check_and_promote_args(ListExpr* args, const RecordType* types);
-extern bool check_and_promote_exprs_to_type(ListExpr* elements, Type* type);
+extern bool check_and_promote_exprs_to_type(ListExpr* elements, TypePtr type);
 
 // Returns a ListExpr simplified down to a list a values, or nil
 // if they couldn't all be reduced.

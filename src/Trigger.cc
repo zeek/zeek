@@ -115,7 +115,8 @@ Trigger::Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts,
 		catch ( InterpreterException& )
 			{ /* Already reported */ }
 
-		timeout_value = timeout_val->AsInterval();
+		if ( timeout_val )
+			timeout_value = timeout_val->AsInterval();
 		}
 
 	Init(cond, body, timeout_stmts, frame, is_return, location);

@@ -3243,13 +3243,11 @@ void HasFieldExpr::ExprDescribe(ODesc* d) const
 
 
 RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
-	: Expr(EXPR_RECORD_CONSTRUCTOR)
+	: Expr(EXPR_RECORD_CONSTRUCTOR), op(std::move(constructor_list)),
+	  map(std::nullopt)
 	{
 	if ( IsError() )
 		return;
-
-	map = std::nullopt;
-	op = std::move(constructor_list);
 
 	// Spin through the list, which should be comprised only of
 	// record-field-assign expressions, and build up a
@@ -3277,13 +3275,12 @@ RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
 
 RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt,
                                              ListExprPtr constructor_list)
-: Expr(EXPR_RECORD_CONSTRUCTOR)
+: Expr(EXPR_RECORD_CONSTRUCTOR), op(std::move(constructor_list))
 	{
 	if ( IsError() )
 		return;
 
 	SetType(known_rt);
-	op = std::move(constructor_list);
 
 	const auto& exprs = op->AsListExpr()->Exprs();
 	map = std::vector<int>(exprs.length());
@@ -3455,9 +3452,9 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 		if ( expr->Tag() != EXPR_ASSIGN )
 			continue;
 
-		auto idx_expr = expr->AsAssignExpr()->Op1();
-		auto val_expr = expr->AsAssignExpr()->Op2();
-		auto yield_type = GetType()->AsTableType()->Yield().get();
+		auto idx_expr = expr->AsAssignExpr()->GetOp1();
+		auto val_expr = expr->AsAssignExpr()->GetOp2();
+		auto yield_type = GetType()->AsTableType()->Yield();
 
 		// Promote LHS
 		assert(idx_expr->Tag() == EXPR_LIST);
@@ -3468,17 +3465,14 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 
 		loop_over_list(idx_exprs, j)
 			{
-			Expr* idx = idx_exprs[j];
+			ExprPtr idx = {NewRef{}, idx_exprs[j]};
 
-			auto promoted_idx = check_and_promote_expr(idx, indices[j].get());
+			auto promoted_idx = check_and_promote_expr(idx, indices[j]);
 
 			if ( promoted_idx )
 				{
-				if ( promoted_idx.get() != idx )
-					{
-					Unref(idx);
-					idx_exprs.replace(j, promoted_idx.release());
-					}
+				if ( promoted_idx != idx )
+					Unref(idx_exprs.replace(j, promoted_idx.release()));
 
 				continue;
 				}
@@ -3590,7 +3584,7 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 	if ( indices.size() == 1 )
 		{
 		if ( ! check_and_promote_exprs_to_type(op->AsListExpr(),
-		                                       indices[0].get()) )
+		                                       indices[0]) )
 			ExprError("inconsistent type in set constructor");
 		}
 
@@ -3709,7 +3703,7 @@ VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list,
 		}
 
 	if ( ! check_and_promote_exprs_to_type(op->AsListExpr(),
-					       type->AsVectorType()->Yield().get()) )
+					       type->AsVectorType()->Yield()) )
 		ExprError("inconsistent types in vector constructor");
 	}
 
@@ -3779,7 +3773,7 @@ FieldAssignExpr::FieldAssignExpr(const char* arg_field_name, ExprPtr value)
 
 bool FieldAssignExpr::PromoteTo(TypePtr t)
 	{
-	op = check_and_promote_expr(op.get(), t.get());
+	op = check_and_promote_expr(op, t);
 	return op != nullptr;
 	}
 
@@ -4983,12 +4977,12 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 		loop_over_list(exprs, i)
 			{
-			Expr* e = exprs[i];
+			ExprPtr e = {NewRef{}, exprs[i]};
 			const auto& vyt = vec->GetType()->AsVectorType()->Yield();
-			auto promoted_e = check_and_promote_expr(e, vyt.get());
+			auto promoted_e = check_and_promote_expr(e, vyt);
 
 			if ( promoted_e )
-				e = promoted_e.get();
+				e = promoted_e;
 
 			if ( ! vec->Assign(i, e->Eval(nullptr)) )
 				{
@@ -5288,9 +5282,8 @@ ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init)
 			std::move(op1), std::move(op2), is_init);
 	}
 
-ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
+ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t)
 	{
-	ExprPtr e_ptr{NewRef{}, e};
 	const auto& et = e->GetType();
 	TypeTag e_tag = et->Tag();
 	TypeTag t_tag = t->Tag();
@@ -5298,36 +5291,33 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 	if ( t_tag == TYPE_ANY )
 		{
 		if ( e_tag != TYPE_ANY )
-			e_ptr = make_intrusive<CoerceToAnyExpr>(e_ptr);
+			return make_intrusive<CoerceToAnyExpr>(e);
 
-		return e_ptr;
+		return e;
 		}
 
 	if ( e_tag == TYPE_ANY )
-		{
-		TypePtr t_ptr{NewRef{}, t};
-		return make_intrusive<CoerceFromAnyExpr>(e_ptr, t_ptr);
-		}
+		return make_intrusive<CoerceFromAnyExpr>(e, t);
 
 	if ( EitherArithmetic(t_tag, e_tag) )
 		{
 		if ( e_tag == t_tag )
-			return e_ptr;
+			return e;
 
 		if ( ! BothArithmetic(t_tag, e_tag) )
 			{
-			t->Error("arithmetic mixed with non-arithmetic", e);
+			t->Error("arithmetic mixed with non-arithmetic", e.get());
 			return nullptr;
 			}
 
 		TypeTag mt = max_type(t_tag, e_tag);
 		if ( mt != t_tag )
 			{
-			t->Error("over-promotion of arithmetic value", e);
+			t->Error("over-promotion of arithmetic value", e.get());
 			return nullptr;
 			}
 
-		return make_intrusive<ArithCoerceExpr>(e_ptr, t_tag);
+		return make_intrusive<ArithCoerceExpr>(e, t_tag);
 		}
 
 	if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
@@ -5336,13 +5326,13 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		RecordType* et_r = et->AsRecordType();
 
 		if ( same_type(t, et) )
-			return e_ptr;
+			return e;
 
 		if ( record_promotion_compatible(t_r, et_r) )
-			return make_intrusive<RecordCoerceExpr>(e_ptr,
+			return make_intrusive<RecordCoerceExpr>(e,
 				IntrusivePtr{NewRef{}, t_r});
 
-		t->Error("incompatible record types", e);
+		t->Error("incompatible record types", e.get());
 		return nullptr;
 		}
 
@@ -5351,21 +5341,21 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		{
 		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
 			  et->AsTableType()->IsUnspecifiedTable() )
-			return make_intrusive<TableCoerceExpr>(e_ptr,
+			return make_intrusive<TableCoerceExpr>(e,
 				IntrusivePtr{NewRef{}, t->AsTableType()});
 
 		if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR &&
 		     et->AsVectorType()->IsUnspecifiedVector() )
-			return make_intrusive<VectorCoerceExpr>(e_ptr,
+			return make_intrusive<VectorCoerceExpr>(e,
 				IntrusivePtr{NewRef{}, t->AsVectorType()});
 
 		if ( t->Tag() != TYPE_ERROR && et->Tag() != TYPE_ERROR )
-			t->Error("type clash", e);
+			t->Error("type clash", e.get());
 
 		return nullptr;
 		}
 
-	return e_ptr;
+	return e;
 	}
 
 bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
@@ -5384,8 +5374,8 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 
 	loop_over_list(el, i)
 		{
-		Expr* e = el[i];
-		auto promoted_e = check_and_promote_expr(e, tl[i].get());
+		ExprPtr e = {NewRef{}, el[i]};
+		auto promoted_e = check_and_promote_expr(e, tl[i]);
 
 		if ( ! promoted_e )
 			{
@@ -5393,11 +5383,8 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 			return false;
 			}
 
-		if ( promoted_e.get() != e )
-			{
-			Unref(e);
-			el.replace(i, promoted_e.release());
-			}
+		if ( promoted_e != e )
+			Unref(el.replace(i, promoted_e.release()));
 		}
 
 	return true;
@@ -5457,29 +5444,26 @@ bool check_and_promote_args(ListExpr* const args, const RecordType* types)
 	return rval;
 	}
 
-bool check_and_promote_exprs_to_type(ListExpr* const elements, zeek::Type* type)
+bool check_and_promote_exprs_to_type(ListExpr* const elements, TypePtr t)
 	{
 	ExprPList& el = elements->Exprs();
 
-	if ( type->Tag() == TYPE_ANY )
+	if ( t->Tag() == TYPE_ANY )
 		return true;
 
 	loop_over_list(el, i)
 		{
-		Expr* e = el[i];
-		auto promoted_e = check_and_promote_expr(e, type);
+		ExprPtr e = {NewRef{}, el[i]};
+		auto promoted_e = check_and_promote_expr(e, t);
 
 		if ( ! promoted_e )
 			{
-			e->Error("type mismatch", type);
+			e->Error("type mismatch", t.get());
 			return false;
 			}
 
-		if ( promoted_e.get() != e )
-			{
-			Unref(e);
-			el.replace(i, promoted_e.release());
-			}
+		if ( promoted_e != e )
+			Unref(el.replace(i, promoted_e.release()));
 		}
 
 	return true;

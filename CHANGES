@@ -1,3 +1,10 @@
+
+4.1.0-dev.708 | 2021-06-07 09:22:36 +0200
+
+  * Improve assignment operators for IntrusivePtr. (Dominik Charousset, Corelight)
+
+  * Fix docs for `ProcStats`: `mem` is in bytes, not KB. (Arne Welzel, Corelight)
+
 4.1.0-dev.704 | 2021-06-04 08:29:18 -0700
 
   * Add deprecated headers for UDP and ICMP analyzers (Tim Wojtulewicz, Corelight)

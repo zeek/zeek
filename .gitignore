@@ -11,3 +11,6 @@ cmake-build-*
 
 # ignore pyenv local settings
 .python-version
+
+# clangd
+.cache

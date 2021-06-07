@@ -1,5 +1,5 @@
 
-4.1.0-dev.708 | 2021-06-07 09:22:36 +0200
+4.1.0-dev.709 | 2021-06-07 09:41:28 +0200
 
   * Improve assignment operators for IntrusivePtr. (Dominik Charousset, Corelight)
 

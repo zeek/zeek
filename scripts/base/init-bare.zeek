@@ -635,7 +635,7 @@ type ProcStats: record {
 	real_time: interval;          ##< Elapsed real time since Zeek started running.
 	user_time: interval;          ##< User CPU seconds.
 	system_time: interval;        ##< System CPU seconds.
-	mem: count;                   ##< Maximum memory consumed, in KB.
+	mem: count;                   ##< Maximum memory consumed, in bytes.
 	minor_faults: count;          ##< Page faults not requiring actual I/O.
 	major_faults: count;          ##< Page faults requiring actual I/O.
 	num_swap: count;              ##< Times swapped out.

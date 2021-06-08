@@ -1,4 +1,8 @@
 
+4.1.0-dev.713 | 2021-06-08 13:54:28 -0700
+
+  * Add OpenSUSE Leap 15.3 to testing (Johanna Amann, Corelight)
+
 4.1.0-dev.709 | 2021-06-07 09:41:28 +0200
 
   * Improve assignment operators for IntrusivePtr. (Dominik Charousset, Corelight)

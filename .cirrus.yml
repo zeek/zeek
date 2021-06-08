@@ -176,6 +176,13 @@ opensuse_leap_15_2_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+opensuse_leap_15_3_task:
+  container:
+    # Opensuse Leap 15.3 EOL: TBD
+    dockerfile: ci/opensuse-leap-15.3/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 ubuntu20_task:
   container:
     # Ubuntu 20.04 EOL: April 2025

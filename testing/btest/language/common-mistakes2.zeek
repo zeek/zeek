@@ -1,15 +1,14 @@
-# A companion tonguage/common-mistakes.zeek.  Split off because we skip this
-# test when using ZAM, since it employs a type-checking violation via
+# A companion to language/common-mistakes.zeek.  Split off because we skip
+# this test when using ZAM, since it employs a type-checking violation via
 # vector-of-any, which doesn't seem worth going out of our way to support
 # in ZAM (and it isn't dead simple to do so).
 
 # @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
 
-# @TEST-EXEC: zeek -b 3.zeek >3.out 2>3.err
-# @TEST-EXEC: btest-diff 3.out
-# @TEST-EXEC: btest-diff 3.err
+# @TEST-EXEC: zeek -b %INPUT >out 2>err
+# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff err
 
-@TEST-START-FILE 3.zeek
 function foo(v: vector of any)
 	{
 	print "in foo";
@@ -27,4 +26,3 @@ event zeek_init()
 	# Unreachable
 	print "zeek_init done", v;
 	}
-@TEST-END-FILE

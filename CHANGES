@@ -1,3 +1,13 @@
+4.1.0-dev.715 | 2021-06-09 09:12:26 -0700
+
+  * Fix macOS Big Sur builds on Cirrus
+
+    - Upgrade the Big Sur VM to use the Xcode 12.5 version. This has a newer
+      version of brew installed on it that fixes an issue with an EOL package host
+      that finally shut down for good recently.
+    - Use 'brew upgrade' for openssl and cmake, since those are both present on the
+      base VM. This prevents 'brew install' from printing an error if the package
+      exists but is out of date. (Tim Wojtulewicz, Corelight)
 
 4.1.0-dev.713 | 2021-06-08 13:54:28 -0700
 

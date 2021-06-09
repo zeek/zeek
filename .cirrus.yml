@@ -219,7 +219,7 @@ alpine_task:
 # We aim to support both the current and previous macOS release.
 macos_big_sur_task:
   macos_instance:
-    image: big-sur-base
+    image: big-sur-xcode-12.5
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_RESOURCES_TEMPLATE

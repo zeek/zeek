@@ -78,20 +78,33 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
 	{
 	auto inner_analyzer = Lookup(identifier);
 	if ( ! inner_analyzer )
+		{
+		for ( const auto& child : analyzers_to_detect )
+			{
+			if ( child->DetectProtocol(len, data, packet) )
+				{
+				DBG_LOG(DBG_PACKET_ANALYSIS,
+				        "Protocol detection in %s succeeded, next layer analyzer is %s",
+				        GetAnalyzerName(), child->GetAnalyzerName());
+				inner_analyzer = child;
+				break;
+				}
+			}
+		}
+
+	if ( ! inner_analyzer )
 		inner_analyzer = default_analyzer;
 
-	if ( inner_analyzer == nullptr )
+	if ( ! inner_analyzer )
 		{
+		DBG_LOG(DBG_PACKET_ANALYSIS,
+		        "Analysis in %s failed, could not find analyzer for identifier %#x.",
+		        GetAnalyzerName(), identifier);
+
 		if ( report_unknown_protocols )
-			{
-			DBG_LOG(DBG_PACKET_ANALYSIS,
-			        "Analysis in %s failed, could not find analyzer for identifier %#x.",
-			        GetAnalyzerName(), identifier);
 			packet_mgr->ReportUnknownProtocol(GetAnalyzerName(), identifier, data, len);
-			return false;
-			}
-		else
-			return true;
+
+		return false;
 		}
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
@@ -101,16 +114,35 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
 
 bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const
 	{
-	if ( default_analyzer )
-		return default_analyzer->AnalyzePacket(len, data, packet);
+	AnalyzerPtr inner_analyzer = nullptr;
 
-	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s stopped, no default analyzer available.",
-	        GetAnalyzerName());
+	for ( const auto& child : analyzers_to_detect )
+		{
+		if ( child->DetectProtocol(len, data, packet) )
+			{
+			DBG_LOG(DBG_PACKET_ANALYSIS,
+			        "Protocol detection in %s succeeded, next layer analyzer is %s",
+			        GetAnalyzerName(), child->GetAnalyzerName());
+			inner_analyzer = child;
+			break;
+			}
+		}
 
-	if ( report_unknown_protocols )
-		Weird("no_suitable_analyzer_found", packet);
+	if ( ! inner_analyzer )
+		inner_analyzer = default_analyzer;
 
-	return true;
+	if ( ! inner_analyzer )
+		{
+		DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s stopped, no default analyzer available.",
+		        GetAnalyzerName());
+
+		if ( report_unknown_protocols )
+			Weird("no_suitable_analyzer_found", packet);
+
+		return false;
+		}
+
+	return inner_analyzer->AnalyzePacket(len, data, packet);
 	}
 
 void Analyzer::DumpDebug() const

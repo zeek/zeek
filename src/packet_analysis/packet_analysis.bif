@@ -28,8 +28,8 @@ function register_packet_analyzer%(parent: PacketAnalyzer::Tag, identifier: coun
 	return zeek::val_mgr->True();
 	%}
 
-## Attempts to add an entry to `parent`'s dispatcher that maps a protocol/index to a next-stage `child` analyzer.
-## This may fail if either of the two names does not respond to a known analyzer.
+## Attempts to add an entry to `parent`'s dispatcher that maps a protocol/index to a next-stage `child`
+## analyzer. This may fail if either of the two names does not respond to a known analyzer.
 ##
 ## parent: The parent analyzer being modified
 ## identifier: The identifier for the protocol being registered
@@ -56,5 +56,24 @@ function PacketAnalyzer::__set_ignore_checksums_nets%(v: subnet_set%) : bool
 		zeek::emit_builtin_error("update_ignore_checksums_net() requires a table/set argument");
 
 	zeek::packet_analysis::IP::IPBasedAnalyzer::SetIgnoreChecksumsNets(zeek::IntrusivePtr{zeek::NewRef{}, v->AsTableVal()});
+	return zeek::val_mgr->True();
+	%}
+
+## Registers a child analyzer with a parent analyzer to perform packet detection when determining whether
+## to forward from parent to child.
+##
+## parent: The parent analyzer being modified
+## child: The analyzer that will use protocol detection
+function register_protocol_detection%(parent: PacketAnalyzer::Tag, child: PacketAnalyzer::Tag%): bool
+	%{
+	packet_analysis::AnalyzerPtr parent_analyzer = packet_mgr->GetAnalyzer(parent->AsEnumVal());
+	if ( ! parent_analyzer )
+		return zeek::val_mgr->False();
+
+	packet_analysis::AnalyzerPtr child_analyzer = packet_mgr->GetAnalyzer(child->AsEnumVal());
+	if ( ! child_analyzer )
+		return zeek::val_mgr->False();
+
+	parent_analyzer->RegisterProtocolDetection(child_analyzer);
 	return zeek::val_mgr->True();
 	%}

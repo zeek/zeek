@@ -1,6 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 #pragma once
 
+#include <set>
+
 #include "zeek/Tag.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/Manager.h"
@@ -98,6 +100,32 @@ public:
 	 */
 	void RegisterProtocol(uint32_t identifier, AnalyzerPtr child);
 
+	/**
+	 * Registers an analyzer to use for protocol detection if identifier
+	 * matching fails. This will also be preferred over the default analyzer
+	 * if one exists.
+	 *
+	 * @param child The analyzer that will be called for protocol detection.
+	 */
+	void RegisterProtocolDetection(AnalyzerPtr child) { analyzers_to_detect.insert(child); }
+
+	/**
+	 * Detects whether the protocol for an analyzer can be found in the packet
+	 * data. Packet analyzers can overload this method to provide any sort of
+	 * pattern-matching or byte-value detection against the packet data to
+	 * determine whether the packet contains the analyzer's protocol. The
+	 * analyzer must also register for the detection in script-land using the
+	 * PacketAnalyzer::register_protocol_detection bif method.
+	 *
+	 * @param len The number of bytes passed in. As we move along the chain of
+	 * analyzers, this is the number of bytes we have left of the packet to
+	 * process.
+	 * @param data Pointer to the input to process.
+	 * @param packet Object that maintains the packet's meta data.
+	 * @return true if the protocol is detected in the packet data.
+	 */
+	virtual bool DetectProtocol(size_t len, const uint8_t* data, Packet* packet) { return false; }
+
 protected:
 	friend class Manager;
 
@@ -173,6 +201,8 @@ private:
 	 * Flag for whether to report unknown protocols in ForwardPacket.
 	 */
 	bool report_unknown_protocols = true;
+
+	std::set<AnalyzerPtr> analyzers_to_detect;
 
 	void Init(const zeek::Tag& tag);
 	};

@@ -60,6 +60,9 @@ New Functionality
   Connection objects were handled previously, but without the need to be based
   on IP-based protocols.
 
+- The ASCII writer gained a new option LogAscii::logdir, which can be used to
+  change the logging output directory.
+
 Changed Functionality
 ---------------------
 

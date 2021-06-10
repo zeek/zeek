@@ -1,3 +1,9 @@
+
+4.1.0-dev.720 | 2021-06-10 11:29:19 +0100
+
+  * Introduce script-land option LogAscii::logdir that can be used to set
+    the logging directory. (Henrik Kramselund Jereminsen)
+
 4.1.0-dev.715 | 2021-06-09 09:12:26 -0700
 
   * Fix macOS Big Sur builds on Cirrus

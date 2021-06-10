@@ -1,3 +1,6 @@
+4.1.0-dev.722 | 2021-06-10 10:42:57 -0700
+
+  * Added --include-plugins configure argument (Seth Hall, Corelight)
 
 4.1.0-dev.720 | 2021-06-10 11:29:19 +0100
 
@@ -146,7 +149,7 @@
 
   * Added skeletons for TCP/UDP/ICMP packet analysis plugins. (Tim Wojtulewicz, Corelight)
 
-    This includes integration into the IP plugin and calling of the sessions code from each plugin. 
+    This includes integration into the IP plugin and calling of the sessions code from each plugin.
 
 4.1.0-dev.646 | 2021-05-18 11:47:25 -0700
 

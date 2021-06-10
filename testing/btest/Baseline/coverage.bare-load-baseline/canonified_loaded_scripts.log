@@ -231,6 +231,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_AsciiWriter.ascii.bif.zeek
     build/scripts/base/bif/plugins/Zeek_NoneWriter.none.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SQLiteWriter.sqlite.bif.zeek
+build/scripts/builtin-plugins/__load__.zeek
 scripts/policy/misc/loaded-scripts.zeek
   scripts/base/utils/paths.zeek
 #close XXXX-XX-XX-XX-XX-XX

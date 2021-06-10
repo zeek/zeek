@@ -63,6 +63,10 @@ New Functionality
 - The ASCII writer gained a new option LogAscii::logdir, which can be used to
   change the logging output directory.
 
+- Added a ``--include-plugins`` argument to ``configure``. This argument
+  takes a semicolon separated list of paths containing plugins that will be
+  statically built into Zeek.
+
 Changed Functionality
 ---------------------
 

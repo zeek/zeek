@@ -415,21 +415,28 @@ void Manager::RegisterBifFile(const char* plugin, bif_init_func c)
 
 void Manager::ExtendZeekPathForPlugins()
 	{
+	// Extend the path outside of the loop to avoid looking through a longer path for each plugin
+	vector<string> path_additions;
+
 	for ( const auto& p : Manager::ActivePlugins() )
 		{
 		if ( p->DynamicPlugin() || p->Name().empty() )
 			continue;
 
 		string canon = std::regex_replace(p->Name(), std::regex("::"), "_");
-		string dir = "plugins/" + canon + "/";
+		string dir = "builtin-plugins/" + canon;
+
 		// Use find_file to find the directory in the path.
 		string script_dir = util::find_file(dir, util::zeek_path());
-		if ( ! util::is_dir(script_dir) )
+		if ( script_dir.empty() || ! util::is_dir(script_dir) )
 			continue;
 
 		DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", script_dir.c_str());
-		util::detail::add_to_zeek_path(script_dir);
+		path_additions.push_back(script_dir);
 		}
+
+	for ( const auto& plugin_path : path_additions )
+		util::detail::add_to_zeek_path(plugin_path);
 	}
 
 void Manager::InitPreScript()

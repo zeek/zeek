@@ -601,13 +601,14 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	// manager will be missing the plugins we want to try to add to the path.
 	plugin_mgr->ExtendZeekPathForPlugins();
 
-	if ( options.print_usage )
-		usage(argv[0], 0);
-
 	for ( const auto& x : requested_plugins )
 		plugin_mgr->ActivateDynamicPlugin(std::move(x));
 
 	plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
+
+	// Print usage after plugins load so that any path extensions are properly shown.
+	if ( options.print_usage )
+		usage(argv[0], 0);
 
 	init_event_handlers();
 

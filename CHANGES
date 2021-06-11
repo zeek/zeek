@@ -1,3 +1,7 @@
+4.1.0-dev.725 | 2021-06-11 11:54:30 -0700
+
+  * Fixes for the builtin plugin functionality (Seth Hall, Corelight)
+
 4.1.0-dev.722 | 2021-06-10 10:42:57 -0700
 
   * Added --include-plugins configure argument (Seth Hall, Corelight)

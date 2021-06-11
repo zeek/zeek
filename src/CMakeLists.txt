@@ -194,20 +194,10 @@ foreach (plugin_dir ${BUILTIN_PLUGIN_LIST})
                         ${CMAKE_CURRENT_BINARY_DIR}/builtin-plugins/${plugin_name})
 
     add_subdirectory(${plugin_dir} ${CMAKE_CURRENT_BINARY_DIR}/builtin-plugins/${plugin_name})
-
-    set(preload_script ${plugin_dir}/scripts/__preload__.zeek)
-    if (EXISTS ${plugin_dir}/scripts/__preload__.zeek)
-        file(APPEND ${CMAKE_BINARY_DIR}/scripts/builtin-plugins/__preload__.zeek "\n@load ${preload_script}")
-    endif()
-    set(load_script ${plugin_dir}/scripts/__load__.zeek)
-    if (EXISTS ${plugin_dir}/scripts/__load__.zeek)
-        file(APPEND ${CMAKE_BINARY_DIR}/scripts/builtin-plugins/__load__.zeek "\n@load ${load_script}")
-    endif()
 endforeach()
 
 install(FILES ${PRELOAD_SCRIPT} DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins/)
 install(FILES ${LOAD_SCRIPT} DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins/)
-
 
 ########################################################################
 ## bro target

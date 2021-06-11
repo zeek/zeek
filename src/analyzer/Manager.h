@@ -35,6 +35,14 @@
 #include "zeek/analyzer/analyzer.bif.h"
 
 namespace zeek {
+
+namespace packet_analysis::IP {
+
+class IPBasedAnalyzer;
+class SessionAdapter;
+
+} // namespace packet_analysis::IP
+
 namespace analyzer {
 
 /**
@@ -58,12 +66,6 @@ public:
 	 * Destructor.
 	 */
 	~Manager();
-
-	/**
-	 * First-stage initializion of the manager. This is called early on
-	 * during Bro's initialization, before any scripts are processed.
-	 */
-	void InitPreScript();
 
 	/**
 	 * Second-stage initialization of the manager. This is called late
@@ -239,17 +241,6 @@ public:
 	Analyzer* InstantiateAnalyzer(const char* name, Connection* c);
 
 	/**
-	 * Given the first packet of a connection, builds its initial
-	 * analyzer tree.
-	 *
-	 * @param conn The connection to add the initial set of analyzers to.
-	 *
-	 * @return False if the tree cannot be build; that's usually an
-	 * internally error.
-	 */
-	bool BuildInitialAnalyzerTree(Connection* conn);
-
-	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
 	 * the connection is seen, BuildInitAnalyzerTree() will add the
 	 * specified analyzer to its tree.
@@ -313,7 +304,7 @@ public:
 	 * @return True if at least one scheduled analyzer was found.
 	 */
 	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true,
-	                             TransportLayerAnalyzer* parent = nullptr);
+	                             packet_analysis::IP::SessionAdapter* parent = nullptr);
 
 	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
@@ -345,21 +336,12 @@ public:
 
 private:
 
-	using tag_set = std::set<Tag>;
-	using analyzer_map_by_port = std::map<uint32_t, tag_set*>;
+	friend class packet_analysis::IP::IPBasedAnalyzer;
 
-	tag_set* LookupPort(PortVal* val, bool add_if_not_found);
-	tag_set* LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found);
+	using tag_set = std::set<Tag>;
 
 	tag_set GetScheduled(const Connection* conn);
 	void ExpireScheduledAnalyzers();
-
-	analyzer_map_by_port analyzers_by_port_tcp;
-	analyzer_map_by_port analyzers_by_port_udp;
-
-	Tag analyzer_connsize;
-	Tag analyzer_stepping;
-	Tag analyzer_tcpstats;
 
 	//// Data structures to track analyzed scheduled for future connections.
 

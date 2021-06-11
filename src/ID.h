@@ -112,6 +112,10 @@ public:
 
 	const AttrPtr& GetAttr(AttrTag t) const;
 
+	void AddInitExpr(ExprPtr init_expr);
+	const std::vector<ExprPtr>& GetInitExprs() const
+		{ return init_exprs; }
+
 	bool IsDeprecated() const;
 
 	void MakeDeprecated(ExprPtr deprecation);
@@ -156,6 +160,13 @@ protected:
 	int offset;
 	ValPtr val;
 	AttributesPtr attrs;
+
+	// Expressions used to initialize the identifier, for use by
+	// the scripts-to-C++ compiler.  We need to track all of them
+	// because it's possible that a global value gets created using
+	// one of the earlier instances rather than the last one.
+	std::vector<ExprPtr> init_exprs;
+
 	// contains list of functions that are called when an option changes
 	std::multimap<int, FuncPtr> option_handlers;
 

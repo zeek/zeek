@@ -85,6 +85,12 @@ const AnyIndexExpr* Expr::AsAnyIndexExpr() const
 	return (const AnyIndexExpr*) this;
 	}
 
+LambdaExpr* Expr::AsLambdaExpr()
+	{
+	CHECK_TAG(tag, EXPR_LAMBDA, "ExprVal::AsLambdaExpr", expr_name)
+	return (LambdaExpr*) this;
+	}
+
 const LambdaExpr* Expr::AsLambdaExpr() const
 	{
 	CHECK_TAG(tag, EXPR_LAMBDA, "ExprVal::AsLambdaExpr", expr_name)

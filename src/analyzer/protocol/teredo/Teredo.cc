@@ -4,10 +4,10 @@
 #include "zeek/Conn.h"
 #include "zeek/IP.h"
 #include "zeek/Reporter.h"
-#include "zeek/Sessions.h"
 #include "zeek/ZeekString.h"
 #include "zeek/RunState.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
+#include "zeek/packet_analysis/protocol/ip/IP.h"
 
 #include "zeek/analyzer/protocol/teredo/events.bif.h"
 
@@ -94,7 +94,7 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 	return false;
 	}
 
-RecordValPtr TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
+RecordValPtr TeredoEncapsulation::BuildVal(const std::unique_ptr<IP_Hdr>& inner) const
 	{
 	static auto teredo_hdr_type = id::find_type<RecordType>("teredo_hdr");
 	static auto teredo_auth_type = id::find_type<RecordType>("teredo_auth");
@@ -164,8 +164,8 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	IP_Hdr* inner = nullptr;
-	int rslt = sessions->ParseIPPacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
+	std::unique_ptr<IP_Hdr> inner = nullptr;
+	int rslt = packet_analysis::IP::ParsePacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
 
 	if ( rslt > 0 )
 		{
@@ -175,7 +175,6 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 			Weird("Teredo_bubble_with_payload", true);
 		else
 			{
-			delete inner;
 			ProtocolViolation("Teredo payload length", (const char*) data, len);
 			return;
 			}
@@ -193,7 +192,6 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	else
 		{
-		delete inner;
 		ProtocolViolation("Truncated Teredo or invalid inner IP version", (const char*) data, len);
 		return;
 		}

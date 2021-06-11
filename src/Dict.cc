@@ -265,6 +265,11 @@ TEST_CASE("dict new iteration")
 		count++;
 		}
 
+	PDict<uint32_t>::iterator it;
+	it = dict.begin();
+	it = dict.end();
+	PDict<uint32_t>::iterator it2 = it;
+
 	CHECK(count == 2);
 
 	delete key;
@@ -1027,7 +1032,13 @@ int Dictionary::LookupIndex(const void* key, int key_size, detail::hash_t hash, 
 		*insert_position = i;
 
 	if ( insert_distance )
+		{
 		*insert_distance = i - bucket;
+
+		if ( *insert_distance >= detail::TOO_FAR_TO_REACH )
+			reporter->FatalErrorWithCore("Dictionary (size %d) insertion distance too far: %d",
+			                             Length(), *insert_distance);
+		}
 
 	return -1;
 	}
@@ -1552,8 +1563,11 @@ DictIterator::DictIterator(const Dictionary* d, detail::DictEntry* begin, detail
 
 DictIterator::~DictIterator()
 	{
-	assert(dict->num_iterators > 0);
-	dict->num_iterators--;
+	if ( dict )
+		{
+		assert(dict->num_iterators > 0);
+		dict->num_iterators--;
+		}
 	}
 
 DictIterator& DictIterator::operator++()
@@ -1564,6 +1578,80 @@ DictIterator& DictIterator::operator++()
 		++curr;
 		}
 	while ( curr != end && curr->Empty() );
+
+	return *this;
+	}
+
+DictIterator::DictIterator(const DictIterator& that)
+	{
+	if ( this == &that )
+		return;
+
+	if ( dict )
+		{
+		assert(dict->num_iterators > 0);
+		dict->num_iterators--;
+		}
+
+	dict = that.dict;
+	curr = that.curr;
+	end = that.end;
+	dict->num_iterators++;
+	}
+
+DictIterator& DictIterator::operator=(const DictIterator& that)
+	{
+	if ( this == &that )
+		return *this;
+
+	if ( dict )
+		{
+		assert(dict->num_iterators > 0);
+		dict->num_iterators--;
+		}
+
+	dict = that.dict;
+	curr = that.curr;
+	end = that.end;
+	dict->num_iterators++;
+
+	return *this;
+	}
+
+DictIterator::DictIterator(DictIterator&& that)
+	{
+	if ( this == &that )
+		return;
+
+	if ( dict )
+		{
+		assert(dict->num_iterators > 0);
+		dict->num_iterators--;
+		}
+
+	dict = that.dict;
+	curr = that.curr;
+	end = that.end;
+
+	that.dict = nullptr;
+	}
+
+DictIterator& DictIterator::operator=(DictIterator&& that)
+	{
+	if ( this == &that )
+		return *this;
+
+	if ( dict )
+		{
+		assert(dict->num_iterators > 0);
+		dict->num_iterators--;
+		}
+
+	dict = that.dict;
+	curr = that.curr;
+	end = that.end;
+
+	that.dict = nullptr;
 
 	return *this;
 	}

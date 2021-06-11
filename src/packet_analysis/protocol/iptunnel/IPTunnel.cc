@@ -4,10 +4,10 @@
 
 #include <pcap.h> // For DLT_ constants
 
-#include "zeek/Sessions.h"
 #include "zeek/RunState.h"
 #include "zeek/IP.h"
 #include "zeek/TunnelEncapsulation.h"
+#include "zeek/packet_analysis/protocol/ip/IP.h"
 
 namespace zeek::packet_analysis::IPTunnel {
 
@@ -45,12 +45,12 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 	BifEnum::Tunnel::Type tunnel_type = packet->tunnel_type;
 	int gre_link_type = packet->gre_link_type;
 
-	IP_Hdr* inner = nullptr;
+	std::unique_ptr<IP_Hdr> inner = nullptr;
 
 	if ( gre_version != 0 )
 		{
 		// Check for a valid inner packet first.
-		int result = sessions->ParseIPPacket(len, data, proto, inner);
+		int result = packet_analysis::IP::ParsePacket(len, data, proto, inner);
 		if ( result == -2 )
 			Weird("invalid_inner_IP_version", packet);
 		else if ( result < 0 )
@@ -59,10 +59,7 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 			Weird("inner_IP_payload_length_mismatch", packet);
 
 		if ( result != 0 )
-			{
-			delete inner;
 			return false;
-			}
 		}
 
 	// Look up to see if we've already seen this IP tunnel, identified
@@ -100,7 +97,7 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
  * Handles a packet that contains an IP header directly after the tunnel header.
  */
 bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
-                                                 const IP_Hdr* inner,
+                                                 const std::unique_ptr<IP_Hdr>& inner,
                                                  std::shared_ptr<EncapsulationStack> prev,
                                                  const EncapsulatingConn& ec)
 	{
@@ -137,8 +134,6 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
 
 	// Forward the packet back to the IP analyzer.
 	bool return_val = ForwardPacket(len, data, &p);
-
-	delete inner;
 
 	return return_val;
 	}

@@ -339,6 +339,10 @@ protected:
 	// Incorporate the given function profile into the global profile.
 	void MergeInProfile(ProfileFunc* pf);
 
+	// Recursively traverse a (possibly aggregate) value to extract
+	// all of the types its elements use.
+	void TraverseValue(const ValPtr& v);
+
 	// When traversing types, Zeek records can have attributes that in
 	// turn have expressions associated with them.  The expressions can
 	// in turn have types, which might be records with further attribute
@@ -396,8 +400,9 @@ protected:
 
 	// Maps script functions to associated profiles.  This isn't
 	// actually well-defined in the case of event handlers and hooks,
-	// which can have multiple bodies.  However, this is only used
-	// in the context of analyzing a single-bodied function.
+	// which can have multiple bodies.  However, the need for this
+	// is temporary (it's for skipping compilation of functions that
+	// appear in "when" clauses), and in that context it suffices.
 	std::unordered_map<const ScriptFunc*, std::shared_ptr<ProfileFunc>> func_profs;
 
 	// Maps expressions to their profiles.  This is only germane

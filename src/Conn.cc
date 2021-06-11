@@ -10,7 +10,7 @@
 #include "zeek/RunState.h"
 #include "zeek/NetVar.h"
 #include "zeek/Event.h"
-#include "zeek/Sessions.h"
+#include "zeek/session/Manager.h"
 #include "zeek/Reporter.h"
 #include "zeek/Timer.h"
 #include "zeek/iosource/IOSource.h"
@@ -19,56 +19,20 @@
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/iosource/IOSource.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
+#include "zeek/packet_analysis/protocol/tcp/TCP.h"
 
 namespace zeek {
-namespace detail {
-
-void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
-                           bool arg_do_expire)
-	{
-	conn = arg_conn;
-	timer = arg_timer;
-	do_expire = arg_do_expire;
-	Ref(conn);
-	}
-
-ConnectionTimer::~ConnectionTimer()
-	{
-	if ( conn->RefCnt() < 1 )
-		reporter->InternalError("reference count inconsistency in ~ConnectionTimer");
-
-	conn->RemoveTimer(this);
-	Unref(conn);
-	}
-
-void ConnectionTimer::Dispatch(double t, bool is_expire)
-	{
-	if ( is_expire && ! do_expire )
-		return;
-
-	// Remove ourselves from the connection's set of timers so
-	// it doesn't try to cancel us.
-	conn->RemoveTimer(this);
-
-	(conn->*timer)(t);
-
-	if ( conn->RefCnt() < 1 )
-		reporter->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
-	}
-
-} // namespace detail
 
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
-Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t,
-                       const ConnID* id, uint32_t flow, const Packet* pkt)
+Connection::Connection(const detail::ConnKey& k, double t,
+                       const ConnTuple* id, uint32_t flow, const Packet* pkt)
+	: Session(t, connection_timeout, connection_status_update,
+	          detail::connection_status_update_interval),
+	  key(k)
 	{
-	sessions = s;
-	key = k;
-	key_valid = true;
-	start_time = last_time = t;
-
 	orig_addr = id->src_addr;
 	resp_addr = id->dst_addr;
 	orig_port = id->src_port;
@@ -92,25 +56,16 @@ Connection::Connection(NetSessions* s, const detail::ConnIDKey& k, double t,
 	vlan = pkt->vlan;
 	inner_vlan = pkt->inner_vlan;
 
-	is_active = 1;
-	skip = 0;
 	weird = 0;
 
 	suppress_event = 0;
-
-	record_contents = record_packets = 1;
-	record_current_packet = record_current_content = 0;
-
-	timers_canceled = 0;
-	inactivity_timeout = 0;
-	installed_status_timer = 0;
 
 	finished = 0;
 
 	hist_seen = 0;
 	history = "";
 
-	root_analyzer = nullptr;
+	adapter = nullptr;
 	primary_PIA = nullptr;
 
 	++current_connections;
@@ -129,7 +84,7 @@ Connection::~Connection()
 	if ( conn_val )
 		conn_val->SetOrigin(nullptr);
 
-	delete root_analyzer;
+	delete adapter;
 
 	--current_connections;
 	}
@@ -141,7 +96,7 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
 		if ( *encapsulation != *arg_encap )
 			{
 			if ( tunnel_changed )
-				EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
+				EnqueueEvent(tunnel_changed, nullptr, GetVal(),
 				             arg_encap->ToVal());
 
 			encapsulation = std::make_shared<EncapsulationStack>(*arg_encap);
@@ -153,7 +108,7 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
 		if ( tunnel_changed )
 			{
 			EncapsulationStack empty;
-			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), empty.ToVal());
+			EnqueueEvent(tunnel_changed, nullptr, GetVal(), empty.ToVal());
 			}
 
 		encapsulation = nullptr;
@@ -162,7 +117,7 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
 	else if ( arg_encap )
 		{
 		if ( tunnel_changed )
-			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), arg_encap->ToVal());
+			EnqueueEvent(tunnel_changed, nullptr, GetVal(), arg_encap->ToVal());
 
 		encapsulation = std::make_shared<EncapsulationStack>(*arg_encap);
 		}
@@ -172,8 +127,21 @@ void Connection::Done()
 	{
 	finished = 1;
 
-	if ( root_analyzer && ! root_analyzer->IsFinished() )
-		root_analyzer->Done();
+	if ( adapter )
+		{
+		if ( ConnTransport() == TRANSPORT_TCP )
+			{
+			auto* ta = static_cast<packet_analysis::TCP::TCPSessionAdapter*>(adapter);
+			assert(ta->IsAnalyzer("TCP"));
+			analyzer::tcp::TCP_Endpoint* to = ta->Orig();
+			analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
+
+			packet_analysis::TCP::TCPAnalyzer::GetStats().StateLeft(to->state, tr->state);
+			}
+
+		if ( ! adapter->IsFinished() )
+			adapter->Done();
+		}
 	}
 
 void Connection::NextPacket(double t, bool is_orig,
@@ -186,14 +154,14 @@ void Connection::NextPacket(double t, bool is_orig,
 	run_state::current_timestamp = t;
 	run_state::current_pkt = pkt;
 
-	if ( Skipping() )
-		return;
-
-	if ( root_analyzer )
+	if ( adapter )
 		{
+		if ( adapter->Skipping() )
+			return;
+
 		record_current_packet = record_packet;
 		record_current_content = record_content;
-		root_analyzer->NextPacket(len, data, is_orig, -1, ip, caplen);
+		adapter->NextPacket(len, data, is_orig, -1, ip, caplen);
 		record_packet = record_current_packet;
 		record_content = record_current_content;
 		}
@@ -204,15 +172,9 @@ void Connection::NextPacket(double t, bool is_orig,
 	run_state::current_pkt = nullptr;
 	}
 
-void Connection::SetLifetime(double lifetime)
-	{
-	ADD_TIMER(&Connection::DeleteTimer, run_state::network_time + lifetime, 0,
-	          detail::TIMER_CONN_DELETE);
-	}
-
 bool Connection::IsReuse(double t, const u_char* pkt)
 	{
-	return root_analyzer && root_analyzer->IsReuse(t, pkt);
+	return adapter && adapter->IsReuse(t, pkt);
 	}
 
 bool Connection::ScaledHistoryEntry(char code, uint32_t& counter,
@@ -252,83 +214,13 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 		return;
 
 	EnqueueEvent(e, nullptr,
-		ConnVal(),
+		GetVal(),
 		val_mgr->Bool(is_orig),
 		val_mgr->Count(threshold)
 	);
 	}
 
-void Connection::DeleteTimer(double /* t */)
-	{
-	if ( is_active )
-		Event(connection_timeout, nullptr);
-
-	sessions->Remove(this);
-	}
-
-void Connection::InactivityTimer(double t)
-	{
-	if ( last_time + inactivity_timeout <= t )
-		{
-		Event(connection_timeout, nullptr);
-		sessions->Remove(this);
-		++detail::killed_by_inactivity;
-		}
-	else
-		ADD_TIMER(&Connection::InactivityTimer,
-		          last_time + inactivity_timeout, 0,
-		          detail::TIMER_CONN_INACTIVITY);
-	}
-
-void Connection::RemoveConnectionTimer(double t)
-	{
-	RemovalEvent();
-	sessions->Remove(this);
-	}
-
-void Connection::SetInactivityTimeout(double timeout)
-	{
-	if ( timeout == inactivity_timeout )
-		return;
-
-	// First cancel and remove any existing inactivity timer.
-	for ( const auto& timer : timers )
-		if ( timer->Type() == detail::TIMER_CONN_INACTIVITY )
-			{
-			detail::timer_mgr->Cancel(timer);
-			break;
-			}
-
-	if ( timeout )
-		ADD_TIMER(&Connection::InactivityTimer,
-		          last_time + timeout, 0, detail::TIMER_CONN_INACTIVITY);
-
-	inactivity_timeout = timeout;
-	}
-
-void Connection::EnableStatusUpdateTimer()
-	{
-	if ( installed_status_timer )
-		return;
-
-	if ( connection_status_update && zeek::detail::connection_status_update_interval )
-		{
-		ADD_TIMER(&Connection::StatusUpdateTimer,
-		          run_state::network_time + detail::connection_status_update_interval, 0,
-		          detail::TIMER_CONN_STATUS_UPDATE);
-		installed_status_timer = 1;
-		}
-	}
-
-void Connection::StatusUpdateTimer(double t)
-	{
-	EnqueueEvent(connection_status_update, nullptr, ConnVal());
-	ADD_TIMER(&Connection::StatusUpdateTimer,
-	          run_state::network_time + detail::connection_status_update_interval, 0,
-	          detail::TIMER_CONN_STATUS_UPDATE);
-	}
-
-const RecordValPtr& Connection::ConnVal()
+const RecordValPtr& Connection::GetVal()
 	{
 	if ( ! conn_val )
 		{
@@ -384,8 +276,8 @@ const RecordValPtr& Connection::ConnVal()
 
 		}
 
-	if ( root_analyzer )
-		root_analyzer->UpdateConnVal(conn_val.get());
+	if ( adapter )
+		adapter->UpdateConnVal(conn_val.get());
 
 	conn_val->AssignTime(3, start_time);	// ###
 	conn_val->AssignInterval(4, last_time - start_time);
@@ -398,22 +290,22 @@ const RecordValPtr& Connection::ConnVal()
 
 analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id)
 	{
-	return root_analyzer ? root_analyzer->FindChild(id) : nullptr;
+	return adapter ? adapter->FindChild(id) : nullptr;
 	}
 
 analyzer::Analyzer* Connection::FindAnalyzer(const analyzer::Tag& tag)
 	{
-	return root_analyzer ? root_analyzer->FindChild(tag) : nullptr;
+	return adapter ? adapter->FindChild(tag) : nullptr;
 	}
 
 analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
 	{
-	return root_analyzer->FindChild(name);
+	return adapter->FindChild(name);
 	}
 
 void Connection::AppendAddl(const char* str)
 	{
-	const auto& cv = ConnVal();
+	const auto& cv = GetVal();
 
 	const char* old = cv->GetFieldAs<StringVal>(6)->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
@@ -444,69 +336,13 @@ void Connection::Match(detail::Rule::PatternType type, const u_char* data, int l
 void Connection::RemovalEvent()
 	{
 	if ( connection_state_remove )
-		EnqueueEvent(connection_state_remove, nullptr, ConnVal());
-	}
-
-void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name)
-	{
-	if ( ! f )
-		return;
-
-	if ( name )
-		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), ConnVal());
-	else
-		EnqueueEvent(f, analyzer, ConnVal());
-	}
-
-void Connection::EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* a,
-                              Args args)
-	{
-	// "this" is passed as a cookie for the event
-	event_mgr.Enqueue(f, std::move(args), util::detail::SOURCE_LOCAL, a ? a->GetID() : 0, this);
+		EnqueueEvent(connection_state_remove, nullptr, GetVal());
 	}
 
 void Connection::Weird(const char* name, const char* addl, const char* source)
 	{
 	weird = 1;
 	reporter->Weird(this, name, addl ? addl : "", source ? source : "");
-	}
-
-void Connection::AddTimer(timer_func timer, double t, bool do_expire,
-                          detail::TimerType type)
-	{
-	if ( timers_canceled )
-		return;
-
-	// If the key is cleared, the connection isn't stored in the connection
-	// table anymore and will soon be deleted. We're not installing new
-	// timers anymore then.
-	if ( ! key_valid )
-		return;
-
-	detail::Timer* conn_timer = new detail::ConnectionTimer(this, timer, t, do_expire, type);
-	detail::timer_mgr->Add(conn_timer);
-	timers.push_back(conn_timer);
-	}
-
-void Connection::RemoveTimer(detail::Timer* t)
-	{
-	timers.remove(t);
-	}
-
-void Connection::CancelTimers()
-	{
-	// We are going to cancel our timers which, in turn, may cause them to
-	// call RemoveTimer(), which would then modify the list we're just
-	// traversing. Thus, we first make a copy of the list which we then
-	// iterate through.
-	TimerPList tmp(timers.length());
-	std::copy(timers.begin(), timers.end(), std::back_inserter(tmp));
-
-	for ( const auto& timer : tmp )
-		detail::timer_mgr->Cancel(timer);
-
-	timers_canceled = 1;
-	timers.clear();
 	}
 
 void Connection::FlipRoles()
@@ -535,8 +371,8 @@ void Connection::FlipRoles()
 
 	conn_val = nullptr;
 
-	if ( root_analyzer )
-		root_analyzer->FlipRoles();
+	if ( adapter )
+		adapter->FlipRoles();
 
 	analyzer_mgr->ApplyScheduledAnalyzers(this);
 
@@ -545,25 +381,22 @@ void Connection::FlipRoles()
 
 unsigned int Connection::MemoryAllocation() const
 	{
-	return padded_sizeof(*this)
+	return session::Session::MemoryAllocation() + padded_sizeof(*this)
 		+ (timers.MemoryAllocation() - padded_sizeof(timers))
 		+ (conn_val ? conn_val->MemoryAllocation() : 0)
-		+ (root_analyzer ? root_analyzer->MemoryAllocation(): 0)
+		+ (adapter ? adapter->MemoryAllocation(): 0)
 		// primary_PIA is already contained in the analyzer tree.
 		;
 	}
 
-unsigned int Connection::MemoryAllocationConnVal() const
+unsigned int Connection::MemoryAllocationVal() const
 	{
 	return conn_val ? conn_val->MemoryAllocation() : 0;
 	}
 
 void Connection::Describe(ODesc* d) const
 	{
-	d->Add(start_time);
-	d->Add("(");
-	d->Add(last_time);
-	d->AddSP(")");
+	session::Session::Describe(d);
 
 	switch ( proto ) {
 		case TRANSPORT_TCP:
@@ -616,10 +449,10 @@ void Connection::IDString(ODesc* d) const
 	d->Add(ntohs(resp_port));
 	}
 
-void Connection::SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer,
-                                 analyzer::pia::PIA* pia)
+void Connection::SetSessionAdapter(packet_analysis::IP::SessionAdapter* aa,
+                                   analyzer::pia::PIA* pia)
 	{
-	root_analyzer = analyzer;
+	adapter = aa;
 	primary_PIA = pia;
 	}
 
@@ -639,7 +472,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
 			{
 			EnqueueEvent(connection_flow_label_changed, nullptr,
-				ConnVal(),
+				GetVal(),
 				val_mgr->Bool(is_orig),
 				val_mgr->Count(my_flow_label),
 				val_mgr->Count(flow_label)

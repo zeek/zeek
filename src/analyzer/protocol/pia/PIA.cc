@@ -199,7 +199,7 @@ void PIA_TCP::Init()
 
 	if ( Parent()->IsAnalyzer("TCP") )
 		{
-		tcp::TCP_Analyzer* tcp = static_cast<tcp::TCP_Analyzer*>(Parent());
+		auto* tcp = static_cast<packet_analysis::TCP::TCPSessionAdapter*>(Parent());
 		SetTCP(tcp);
 		tcp->SetPIA(this);
 		}
@@ -375,15 +375,13 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule
 		return;
 		}
 
-	tcp::TCP_Analyzer* tcp = (tcp::TCP_Analyzer*) Parent();
+	auto* tcp = static_cast<packet_analysis::TCP::TCPSessionAdapter*>(Parent());
 
-	tcp::TCP_Reassembler* reass_orig =
-		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
-					tcp->Orig());
+	auto* reass_orig = new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
+	                                            tcp->Orig());
 
-	tcp::TCP_Reassembler* reass_resp =
-		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
-					tcp->Resp());
+	auto* reass_resp = new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
+	                                            tcp->Resp());
 
 	uint64_t orig_seq = 0;
 	uint64_t resp_seq = 0;

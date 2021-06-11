@@ -5,9 +5,9 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <deque>
 
 #include "zeek/Obj.h"
-#include "zeek/Queue.h"
 #include "zeek/StmtEnums.h"
 #include "zeek/util.h"
 
@@ -38,7 +38,7 @@ public:
 };
 
 class StmtLocMapping;
-using Filemap = PQueue<StmtLocMapping>; // mapping for a single file
+using Filemap = std::deque<StmtLocMapping*>; // mapping for a single file
 
 using BPIDMapType = std::map<int, DbgBreakpoint*>;
 using BPMapType = std::multimap<const Stmt*, DbgBreakpoint*>;

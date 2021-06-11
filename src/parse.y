@@ -244,6 +244,8 @@ static void build_global(ID* id, Type* t, InitClass ic, Expr* e,
 
 	add_global(id_ptr, std::move(t_ptr), ic, e_ptr, std::move(attrs_ptr), dt);
 
+	id->AddInitExpr(e_ptr);
+
 	if ( dt == VAR_REDEF )
 		zeekygen_mgr->Redef(id, ::filename, ic, std::move(e_ptr));
 	else
@@ -261,7 +263,9 @@ static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
 	auto attrs_ptr = attrs ? std::make_unique<std::vector<AttrPtr>>(*attrs) : nullptr;
 
 	auto init = add_local(std::move(id_ptr), std::move(t_ptr), ic,
-	                      std::move(e_ptr), std::move(attrs_ptr), dt);
+	                      e_ptr, std::move(attrs_ptr), dt);
+
+	id->AddInitExpr(std::move(e_ptr));
 
 	if ( do_coverage )
 		script_coverage_mgr.AddStmt(init.get());
@@ -769,6 +773,13 @@ expr:
 
 				else if ( id->IsEnumConst() )
 					{
+					if ( IsErrorType(id->GetType()->Tag()) )
+						{
+						// The most-relevant error message should already be reported, so
+						// just bail out.
+						YYERROR;
+						}
+
 					EnumType* t = id->GetType()->AsEnumType();
 					auto intval = t->Lookup(id->ModuleName(), id->Name());
 					if ( intval < 0 )

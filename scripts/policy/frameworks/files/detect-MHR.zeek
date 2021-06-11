@@ -26,7 +26,7 @@ export {
 	## The Match notice has a sub message with a URL where you can get more
 	## information about the file. The %s will be replaced with the SHA-1
 	## hash of the file.
-	option match_sub_url = "https://www.virustotal.com/en/search/?query=%s";
+	option match_sub_url = "https://www.virustotal.com/gui/search/%s";
 
 	## The malware hash registry runs each malware sample through several
 	## A/V engines.  Team Cymru returns a percentage to indicate how

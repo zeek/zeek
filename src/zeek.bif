@@ -28,6 +28,7 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/input.h"
 #include "zeek/Hash.h"
+#include "zeek/packet_analysis/Manager.h"
 
 using namespace std;
 
@@ -2231,10 +2232,21 @@ function backtrace%(%): Backtrace
 
 	auto rval = make_intrusive<VectorVal>(backtrace_type);
 
-	for ( auto it = call_stack.rbegin(); it != call_stack.rend(); ++it )
+	// The body of the following loop can wind up adding items to
+	// the call stack (because MakeCallArgumentVector() evaluates
+	// default arguments, which can in turn involve calls to script
+	// functions), so we work from a copy of the current call stack
+	// to prevent problems with iterator invalidation.
+	auto cs_copy = call_stack;
+
+	for ( auto it = cs_copy.rbegin(); it != cs_copy.rend(); ++it )
 		{
-		auto elem = make_intrusive<RecordVal>(elem_type);
 		const auto& ci = *it;
+		if ( ! ci.func )
+			// This happens for compiled code.
+			continue;
+
+		auto elem = make_intrusive<RecordVal>(elem_type);
 
 		const auto& params = ci.func->GetType()->Params();
 		auto args = MakeCallArgumentVector(ci.args, params);
@@ -3051,7 +3063,7 @@ function decode_base64%(s: string, a: string &default=""%): string
 ## .. zeek:see:: decode_base64
 function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): string
 	%{
-	Connection* conn = sessions->FindConnection(cid);
+	Connection* conn = session_mgr->FindConnection(cid);
 	if ( ! conn )
 		{
 		zeek::emit_builtin_error("connection ID not a known connection", cid);
@@ -3352,7 +3364,7 @@ static zeek::EnumValPtr map_conn_type(TransportProto tp)
 ##              get_orig_seq get_resp_seq
 function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		{
 		zeek::emit_builtin_error("unknown connection id in get_conn_transport_proto()", cid);
@@ -3384,7 +3396,7 @@ function get_port_transport_proto%(p: port%): transport_proto
 ## .. zeek:see:: lookup_connection
 function connection_exists%(c: conn_id%): bool
 	%{
-	if ( sessions->FindConnection(c) )
+	if ( session_mgr->FindConnection(c) )
 		return zeek::val_mgr->True();
 	else
 		return zeek::val_mgr->False();
@@ -3401,9 +3413,9 @@ function connection_exists%(c: conn_id%): bool
 ## .. zeek:see:: connection_exists
 function lookup_connection%(cid: conn_id%): connection
 	%{
-	Connection* conn = sessions->FindConnection(cid);
+	Connection* conn = session_mgr->FindConnection(cid);
 	if ( conn )
-		return conn->ConnVal();
+		return conn->GetVal();
 
 	zeek::emit_builtin_error("connection ID not a known connection", cid);
 
@@ -4387,7 +4399,7 @@ function file_mode%(mode: count%): string
 ## .. zeek:see:: Analyzer::schedule_analyzer Analyzer::name
 function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &default=T, prevent: bool &default=F%) : bool
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		{
 		zeek::reporter->Error("cannot find connection");
@@ -4425,11 +4437,11 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 ##     :zeek:id:`connection_finished`.
 function skip_further_processing%(cid: conn_id%): bool
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 
-	c->SetSkip(1);
+	c->GetSessionAdapter()->SetSkip(1);
 	return zeek::val_mgr->True();
 	%}
 
@@ -4455,7 +4467,7 @@ function skip_further_processing%(cid: conn_id%): bool
 ## .. zeek:see:: get_contents_file set_contents_file
 function set_record_packets%(cid: conn_id, do_record: bool%): bool
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 
@@ -4473,7 +4485,7 @@ function set_record_packets%(cid: conn_id, do_record: bool%): bool
 ## Returns: The previous timeout interval.
 function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 	%{
-	Connection* c = sessions->FindConnection(cid);
+	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::make_intrusive<zeek::IntervalVal>(0.0);
 
@@ -4878,7 +4890,7 @@ function enable_raw_output%(f: file%): any
 ## .. todo:: The return value should be changed to any.
 function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
 	%{
-	sessions->GetPacketFilter()->AddSrc(ip->AsAddr(), tcp_flags, prob);
+	packet_mgr->GetPacketFilter()->AddSrc(ip->AsAddr(), tcp_flags, prob);
 	return zeek::val_mgr->True();
 	%}
 
@@ -4908,7 +4920,7 @@ function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 ## .. todo:: The return value should be changed to any.
 function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
 	%{
-	sessions->GetPacketFilter()->AddSrc(snet, tcp_flags, prob);
+	packet_mgr->GetPacketFilter()->AddSrc(snet, tcp_flags, prob);
 	return zeek::val_mgr->True();
 	%}
 
@@ -4930,7 +4942,7 @@ function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##              Pcap::error
 function uninstall_src_addr_filter%(ip: addr%) : bool
 	%{
-	return zeek::val_mgr->Bool(sessions->GetPacketFilter()->RemoveSrc(ip->AsAddr()));
+	return zeek::val_mgr->Bool(packet_mgr->GetPacketFilter()->RemoveSrc(ip->AsAddr()));
 	%}
 
 ## Removes a source subnet filter.
@@ -4951,7 +4963,7 @@ function uninstall_src_addr_filter%(ip: addr%) : bool
 ##              Pcap::error
 function uninstall_src_net_filter%(snet: subnet%) : bool
 	%{
-	return zeek::val_mgr->Bool(sessions->GetPacketFilter()->RemoveSrc(snet));
+	return zeek::val_mgr->Bool(packet_mgr->GetPacketFilter()->RemoveSrc(snet));
 	%}
 
 ## Installs a filter to drop packets destined to a given IP address with
@@ -4983,7 +4995,7 @@ function uninstall_src_net_filter%(snet: subnet%) : bool
 ## .. todo:: The return value should be changed to any.
 function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
 	%{
-	sessions->GetPacketFilter()->AddDst(ip->AsAddr(), tcp_flags, prob);
+	packet_mgr->GetPacketFilter()->AddDst(ip->AsAddr(), tcp_flags, prob);
 	return zeek::val_mgr->True();
 	%}
 
@@ -5013,7 +5025,7 @@ function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 ## .. todo:: The return value should be changed to any.
 function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
 	%{
-	sessions->GetPacketFilter()->AddDst(snet, tcp_flags, prob);
+	packet_mgr->GetPacketFilter()->AddDst(snet, tcp_flags, prob);
 	return zeek::val_mgr->True();
 	%}
 
@@ -5035,7 +5047,7 @@ function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##              Pcap::error
 function uninstall_dst_addr_filter%(ip: addr%) : bool
 	%{
-	return zeek::val_mgr->Bool(sessions->GetPacketFilter()->RemoveDst(ip->AsAddr()));
+	return zeek::val_mgr->Bool(packet_mgr->GetPacketFilter()->RemoveDst(ip->AsAddr()));
 	%}
 
 ## Removes a destination subnet filter.
@@ -5056,7 +5068,7 @@ function uninstall_dst_addr_filter%(ip: addr%) : bool
 ##              Pcap::error
 function uninstall_dst_net_filter%(snet: subnet%) : bool
 	%{
-	return zeek::val_mgr->Bool(sessions->GetPacketFilter()->RemoveDst(snet));
+	return zeek::val_mgr->Bool(packet_mgr->GetPacketFilter()->RemoveDst(snet));
 	%}
 
 ## Checks whether the last raised event came from a remote peer.

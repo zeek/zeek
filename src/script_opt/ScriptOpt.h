@@ -39,6 +39,31 @@ struct AnalyOpt {
 	// If true, do global inlining.
 	bool inliner = false;
 
+	// If true, generate C++;
+	bool gen_CPP = false;
+
+	// If true, the C++ should be standalone (not require the presence
+	// of the corresponding script, and not activated by default).
+	bool gen_standalone_CPP = false;
+
+	// If true, generate C++ for those script bodies that don't already
+	// have generated code, in a form that enables later compiles to
+	// take advantage of the newly-added elements.  Only use for generating
+	// a zeek that will always include the associated scripts.
+	bool update_CPP = false;
+
+	// If true, generate C++ for those script bodies that don't already
+	// have generated code.  The added C++ is not made available for
+	// later generated code, and will work for a generated zeek that
+	// runs without including the associated scripts.
+	bool add_CPP = false;
+
+	// If true, use C++ bodies if available.
+	bool use_CPP = false;
+
+	// If true, report on available C++ bodies.
+	bool report_CPP = false;
+
 	// If true, report which functions are directly and indirectly
 	// recursive, and exit.  Only germane if running the inliner.
 	bool report_recursive = false;
@@ -62,13 +87,15 @@ using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
 // Info we need for tracking an instance of a function.
 class FuncInfo {
 public:
-	FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body);
+	FuncInfo(ScriptFuncPtr func, ScopePtr scope, StmtPtr body, int priority);
 
-	ScriptFunc* Func() const	{ return func.get(); }
-	ScriptFuncPtr FuncPtr() const	{ return func; }
-	ScopePtr Scope() const		{ return scope; }
-	StmtPtr Body() const		{ return body; }
-	std::shared_ptr<ProfileFunc> Profile() const	{ return pf; }
+	ScriptFunc* Func() const		{ return func.get(); }
+	const ScriptFuncPtr& FuncPtr() const	{ return func; }
+	const ScopePtr& Scope() const		{ return scope; }
+	const StmtPtr& Body() const		{ return body; }
+	int Priority() const			{ return priority; }
+	const ProfileFunc* Profile() const	{ return pf.get(); }
+	std::shared_ptr<ProfileFunc> ProfilePtr() const	{ return pf; }
 	const std::string& SaveFile() const	{ return save_file; }
 
 	void SetBody(StmtPtr new_body)	{ body = std::move(new_body); }
@@ -87,6 +114,7 @@ protected:
 	ScopePtr scope;
 	StmtPtr body;
 	std::shared_ptr<ProfileFunc> pf;
+	int priority;
 
 	// If we're saving this function in a file, this is the name
 	// of the file to use.
@@ -113,6 +141,11 @@ extern const FuncInfo* analyze_global_stmts(Stmt* stmts);
 
 // Analyze all of the parsed scripts collectively for optimization.
 extern void analyze_scripts();
+
+
+// Used for C++-compiled scripts to signal their presence, by setting this
+// to a non-empty value.
+extern void (*CPP_init_hook)();
 
 
 } // namespace zeek::detail

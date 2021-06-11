@@ -4,60 +4,46 @@
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <string.h>
+#include <cstring>
 #include <string>
 #include <memory>
 
 #include "zeek/threading/SerialTypes.h"
 
-typedef in_addr in4_addr;
+using in4_addr = in_addr;
 
 namespace zeek {
 
 class String;
-struct ConnID;
+struct ConnTuple;
 
 namespace detail {
 
 class HashKey;
 
-struct ConnIDKey {
+struct ConnKey {
 	in6_addr ip1;
 	in6_addr ip2;
 	uint16_t port1;
 	uint16_t port2;
+	TransportProto transport;
 
-	ConnIDKey() : port1(0), port2(0)
-		{
-		memset(&ip1, 0, sizeof(in6_addr));
-		memset(&ip2, 0, sizeof(in6_addr));
-		}
+	ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port,
+	        uint16_t dst_port, TransportProto t, bool one_way);
+	ConnKey(const ConnTuple& conn);
+	ConnKey(const ConnKey& rhs)	{ *this = rhs; }
 
-	ConnIDKey(const ConnIDKey& rhs)
-		{
-		*this = rhs;
-		}
+	bool operator<(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) < 0; }
+	bool operator<=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) <= 0; }
+	bool operator==(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) == 0; }
+	bool operator!=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) != 0; }
+	bool operator>=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) >= 0; }
+	bool operator>(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) > 0; }
 
-	bool operator<(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) < 0; }
-	bool operator<=(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) <= 0; }
-	bool operator==(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) == 0; }
-	bool operator!=(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) != 0; }
-	bool operator>=(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) >= 0; }
-	bool operator>(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) > 0; }
-
-	ConnIDKey& operator=(const ConnIDKey& rhs)
-		{
-		if ( this != &rhs )
-			memcpy(this, &rhs, sizeof(ConnIDKey));
-
-		return *this;
-		}
+	ConnKey& operator=(const ConnKey& rhs);
 };
 
-/**
- * Returns a map key for a given ConnID.
- */
-ConnIDKey BuildConnIDKey(const ConnID& id);
+using ConnIDKey [[deprecated("Remove in v5.1. Use zeek::detail::ConnKey.")]] = ConnKey;
 
 } // namespace detail
 
@@ -69,7 +55,7 @@ public:
 	/**
 	 * Address family.
 	 */
-	typedef IPFamily Family;
+	using Family = IPFamily;
 
 	/**
 	 * Byte order.
@@ -392,12 +378,11 @@ public:
 		return ! ( addr1 <= addr2 );
 		}
 
-	/** Converts the address into the type used internally by the
-	  * inter-thread communication.
-	  */
+	/**
+	 * Converts the address into the type used internally by the
+	 * inter-thread communication.
+	 */
 	void ConvertToThreadingValue(threading::Value::addr_t* v) const;
-
-	friend detail::ConnIDKey detail::BuildConnIDKey(const ConnID& id);
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
@@ -450,6 +435,7 @@ public:
 	static const IPAddr v6_unspecified;
 
 private:
+	friend struct detail::ConnKey;
 	friend class IPPrefix;
 
 	/**
@@ -613,7 +599,8 @@ public:
 	 */
 	uint8_t LengthIPv6() const { return length; }
 
-	/** Returns true if the given address is part of the prefix.
+	/**
+	 * Returns true if the given address is part of the prefix.
 	 *
 	 * @param addr The address to test.
 	 */
@@ -649,9 +636,10 @@ public:
 	 */
 	std::unique_ptr<detail::HashKey> MakeHashKey() const;
 
-	/** Converts the prefix into the type used internally by the
-	  * inter-thread communication.
-	  */
+	/**
+	 * Converts the prefix into the type used internally by the
+	 * inter-thread communication.
+	 */
 	void ConvertToThreadingValue(threading::Value::subnet_t* v) const
 		{
 		v->length = length;

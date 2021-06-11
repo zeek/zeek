@@ -24,6 +24,18 @@
 
 namespace zeek::detail {
 
+static bool init_tag_check(const Expr* expr, const char* name,
+                           TypeTag expect_tag, TypeTag init_tag)
+	{
+	if ( expect_tag == init_tag )
+		return true;
+
+	auto msg = util::fmt("unexpected use of %s in '%s' initialization",
+	                     name, type_name(init_tag));
+	expr->Error(msg);
+	return false;
+	}
+
 const char* expr_name(BroExprTag t)
 	{
 	static const char* expr_names[int(NUM_EXPRS)] = {
@@ -3215,6 +3227,15 @@ RecordConstructorExpr::~RecordConstructorExpr()
 
 ValPtr RecordConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
+	if ( IsError() )
+		{
+		Error("bad record initializer");
+		return nullptr;
+		}
+
+	if ( ! init_tag_check(this, "record constructor", TYPE_RECORD, t->Tag()) )
+		return nullptr;
+
 	auto v = Eval(nullptr);
 
 	if ( v )
@@ -3394,6 +3415,9 @@ ValPtr TableConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	if ( IsError() )
 		return nullptr;
 
+	if ( ! init_tag_check(this, "table constructor", TYPE_TABLE, t->Tag()) )
+		return nullptr;
+
 	auto tt = GetType<TableType>();
 
 	auto tval = aggr ?
@@ -3508,6 +3532,9 @@ ValPtr SetConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	if ( IsError() )
 		return nullptr;
 
+	if ( ! init_tag_check(this, "set constructor", TYPE_TABLE, t->Tag()) )
+		return nullptr;
+
 	const auto& index_type = t->AsTableType()->GetIndices();
 	auto tt = GetType<TableType>();
 	auto tval = aggr ?
@@ -3604,6 +3631,9 @@ ValPtr VectorConstructorExpr::Eval(Frame* f) const
 ValPtr VectorConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
 	if ( IsError() )
+		return nullptr;
+
+	if ( ! init_tag_check(this, "vector constructor", TYPE_VECTOR, t->Tag()) )
 		return nullptr;
 
 	auto vt = GetType<VectorType>();
@@ -3864,6 +3894,15 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 
 ValPtr RecordCoerceExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
+	if ( IsError() )
+		{
+		Error("bad record initializer");
+		return nullptr;
+		}
+
+	if ( ! init_tag_check(this, "record", TYPE_RECORD, t->Tag()) )
+		return nullptr;
+
 	if ( auto v = Eval(nullptr) )
 		{
 		RecordVal* rv = v->AsRecordVal();

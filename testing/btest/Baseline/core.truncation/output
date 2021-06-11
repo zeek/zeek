@@ -37,8 +37,8 @@ XXXXXXXXXX.XXXXXX	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:4f8:4:7:2e0:81ff:fe52
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
-XXXXXXXXXX.XXXXXX	-	10.0.0.1	0	192.0.43.10	0	internally_truncated_header	-	F	zeek	-
-XXXXXXXXXX.XXXXXX	-	192.0.43.10	0	10.0.0.1	0	internally_truncated_header	-	F	zeek	-
+XXXXXXXXXX.XXXXXX	-	10.0.0.1	0	192.0.43.10	0	internally_truncated_header	-	F	zeek	ICMP
+XXXXXXXXXX.XXXXXX	-	192.0.43.10	0	10.0.0.1	0	internally_truncated_header	-	F	zeek	ICMP
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09
 #set_separator	,

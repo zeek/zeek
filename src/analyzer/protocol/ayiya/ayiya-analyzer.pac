@@ -1,5 +1,4 @@
 %extern{
-#include "zeek/Sessions.h"
 #include "zeek/Conn.h"
 #include "zeek/analyzer/protocol/ayiya/AYIYA.h"
 %}

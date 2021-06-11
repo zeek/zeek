@@ -44,8 +44,8 @@
 #include "zeek/File.h"
 #include "zeek/Frame.h"
 #include "zeek/Var.h"
-#include "zeek/analyzer/protocol/login/Login.h"
-#include "zeek/Sessions.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/session/Manager.h"
 #include "zeek/RE.h"
 #include "zeek/Event.h"
 #include "zeek/Traverse.h"
@@ -62,6 +62,7 @@
 #include "option.bif.func_h"
 #include "supervisor.bif.func_h"
 #include "packet_analysis.bif.func_h"
+#include "CPP-load.bif.func_h"
 
 #include "zeek.bif.func_def"
 #include "stats.bif.func_def"
@@ -70,6 +71,7 @@
 #include "option.bif.func_def"
 #include "supervisor.bif.func_def"
 #include "packet_analysis.bif.func_def"
+#include "CPP-load.bif.func_def"
 
 extern	RETSIGTYPE sig_handler(int signo);
 
@@ -305,9 +307,33 @@ ScriptFunc::ScriptFunc(const IDPtr& arg_id, StmtPtr arg_body,
 		Body b;
 		b.stmts = AddInits(std::move(arg_body), aggr_inits);
 		current_body = b.stmts;
-		b.priority = priority;
+		current_priority = b.priority = priority;
 		bodies.push_back(b);
 		}
+	}
+
+ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft,
+	               std::vector<StmtPtr> bs, std::vector<int> priorities)
+	{
+	name = std::move(_name);
+	frame_size = ft->ParamList()->GetTypes().size();
+	type = std::move(ft);
+
+	auto n = bs.size();
+	ASSERT(n == priorities.size());
+
+	for ( auto i = 0u; i < n; ++i )
+		{
+		Body b;
+		b.stmts = std::move(bs[i]);
+		b.priority = priorities[i];
+		bodies.push_back(b);
+		}
+
+	sort(bodies.begin(), bodies.end());
+
+	current_body = bodies[0].stmts;
+	current_priority = bodies[0].priority;
 	}
 
 ScriptFunc::~ScriptFunc()
@@ -542,9 +568,8 @@ void ScriptFunc::AddBody(StmtPtr new_body,
 
 	Body b;
 	b.stmts = new_body;
-	b.priority = priority;
-
 	current_body = new_body;
+	current_priority = b.priority = priority;
 
 	bodies.push_back(b);
 	sort(bodies.begin(), bodies.end());
@@ -558,6 +583,7 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body)
 		if ( body.stmts.get() == old_body.get() )
 			{
 			body.stmts = new_body;
+			current_priority = body.priority;
 			found_it = true;
 			}
 

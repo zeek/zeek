@@ -2,12 +2,11 @@
 
 #pragma once
 
-#include "zeek/Queue.h"
+#include <deque>
+
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek {
-
-class NetSessions;
 
 namespace analyzer::stepping_stone {
 
@@ -72,15 +71,20 @@ protected:
 class SteppingStoneManager {
 public:
 
-	PQueue<SteppingStoneEndpoint>& OrderedEndpoints()
-		{ return ordered_endps; }
+	using EndpointQueue = std::deque<SteppingStoneEndpoint*>;
+
+	EndpointQueue& OrderedEndpoints()	{ return ordered_endps; }
 
 	// Use postfix ++, since the first ID needs to be even.
-	int NextID()			{ return endp_cnt++; }
+	int NextID()	{ return endp_cnt++; }
+
+	static SteppingStoneManager* Get();
 
 protected:
-	PQueue<SteppingStoneEndpoint> ordered_endps;
+	EndpointQueue ordered_endps;
 	int endp_cnt = 0;
+
+	static SteppingStoneManager* instance;
 };
 
 } // namespace analyzer::stepping_stone

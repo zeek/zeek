@@ -635,7 +635,7 @@ type ProcStats: record {
 	real_time: interval;          ##< Elapsed real time since Zeek started running.
 	user_time: interval;          ##< User CPU seconds.
 	system_time: interval;        ##< System CPU seconds.
-	mem: count;                   ##< Maximum memory consumed, in KB.
+	mem: count;                   ##< Maximum memory consumed, in bytes.
 	minor_faults: count;          ##< Page faults not requiring actual I/O.
 	major_faults: count;          ##< Page faults requiring actual I/O.
 	num_swap: count;              ##< Times swapped out.
@@ -1933,6 +1933,7 @@ type gtp_delete_pdp_ctx_response_elements: record {
 @load base/frameworks/supervisor/api
 @load base/bif/supervisor.bif
 @load base/bif/packet_analysis.bif
+@load base/bif/CPP-load.bif
 
 ## Internal function.
 function add_interface(iold: string, inew: string): string
@@ -5029,6 +5030,12 @@ export {
 	## if you customize this, you may still want to manually ensure that
 	## :zeek:see:`likely_server_ports` also gets populated accordingly.
 	const vxlan_ports: set[port] = { 4789/udp } &redef;
+
+	## The set of UDP ports used for Geneve traffic.  Traffic using this
+	## UDP destination port will attempt to be decapsulated.  Note that if
+	## if you customize this, you may still want to manually ensure that
+	## :zeek:see:`likely_server_ports` also gets populated accordingly.
+	const geneve_ports: set[port] = { 6081/udp } &redef;
 } # end export
 
 module Reporter;

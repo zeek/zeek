@@ -187,6 +187,21 @@ void Reporter::RuntimeError(const detail::Location* location, const char* fmt, .
 	throw InterpreterException();
 	}
 
+void Reporter::CPPRuntimeError(const char* fmt, ...)
+	{
+	++errors;
+	va_list ap;
+	va_start(ap, fmt);
+	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+	DoLog("runtime error in compiled code", reporter_error, out, nullptr, nullptr, true, true, "", fmt, ap);
+	va_end(ap);
+
+	if ( abort_on_scripting_errors )
+		abort();
+
+	throw InterpreterException();
+	}
+
 void Reporter::InternalError(const char* fmt, ...)
 	{
 	va_list ap;
@@ -439,7 +454,7 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl, const
 			return;
 	}
 
-	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new StringVal(addl), new StringVal(source)},
+	WeirdHelper(conn_weird, {conn->GetVal()->Ref(), new StringVal(addl), new StringVal(source)},
 	            "%s", name);
 	}
 
@@ -601,7 +616,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			vl.emplace_back(make_intrusive<StringVal>(loc_str.c_str()));
 
 		if ( conn )
-			vl.emplace_back(conn->ConnVal());
+			vl.emplace_back(conn->GetVal());
 
 		if ( addl )
 			for ( auto v : *addl )

@@ -6,8 +6,7 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
-
-#include "zeek/Queue.h"
+#include <deque>
 
 // This file is generated during the build.
 #include "DebugCmdConstants.h"
@@ -45,11 +44,12 @@ protected:
 	bool repeatable;
 };
 
-extern PQueue<DebugCmdInfo> g_DebugCmdInfos;
+using DebugCmdInfoQueue = std::deque<DebugCmdInfo*>;
+extern DebugCmdInfoQueue g_DebugCmdInfos;
 
 void init_global_dbg_constants ();
 
-#define num_debug_cmds() (g_DebugCmdInfos.length())
+#define num_debug_cmds() (static_cast<int>(g_DebugCmdInfos.size()))
 
 // Looks up the info record and returns it; if cmd is not found returns 0.
 const DebugCmdInfo* get_debug_cmd_info(DebugCmd cmd);

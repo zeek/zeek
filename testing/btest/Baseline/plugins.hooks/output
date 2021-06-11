@@ -16,6 +16,7 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GENEVE, 6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2152/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp)) -> <no result>
@@ -82,6 +83,7 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GENEVE, 6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2152/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp)) -> <no result>
@@ -138,6 +140,7 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DNS, {5353<...>/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DTLS, {443/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_FTP, {2811<...>/tcp})) -> <no result>
+0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_GENEVE, {6081/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_GTPV1, {2152<...>/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_IMAP, {143/tcp})) -> <no result>
@@ -161,8 +164,16 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_TEREDO, {3544/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_VXLAN, {4789/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_XMPP, {5222<...>/tcp})) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_endpoint_name, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_interval, <frame>, (1.0 sec)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_prefixes, <frame>, ([])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_topic, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Broker::__subscribe, <frame>, (zeek/supervisor)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Broker::subscribe, <frame>, (zeek/supervisor)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::update_metrics_export_endpoint_name, <frame>, (Broker::metrics_export_endpoint_name, )) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::update_metrics_export_interval, <frame>, (Broker::metrics_export_interval, 1.0 sec)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::update_metrics_export_prefixes, <frame>, (Broker::metrics_export_prefixes, [])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::update_metrics_export_topic, <frame>, (Broker::metrics_export_topic, )) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::local_node_type, <null>, ()) -> <no result>
@@ -471,6 +482,14 @@
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (ActiveHTTP::default_max_time, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (ActiveHTTP::default_method, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Broker::update_metrics_export_endpoint_name{ Broker::__set_metrics_export_endpoint_name(Broker::val)return (Broker::val)}, 0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_interval, Broker::update_metrics_export_interval{ Broker::__set_metrics_export_interval(Broker::val)return (Broker::val)}, 0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_interval, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_prefixes, Broker::update_metrics_export_prefixes{ Broker::__set_metrics_export_prefixes(Broker::filter)return (Broker::filter)}, 0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_prefixes, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_topic, Broker::update_metrics_export_topic{ Broker::__set_metrics_export_topic(Broker::val)return (Broker::val)}, 0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_topic, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::peer_counts_as_iosource, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Conn::analyzer_inactivity_timeouts, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Conn::default_extract, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
@@ -569,9 +588,13 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 32821, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 34525, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11_RADIO, 105, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 1, PacketAnalyzer::ANALYZER_ICMP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 17, PacketAnalyzer::ANALYZER_UDP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPTUNNEL)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPTUNNEL)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 47, PacketAnalyzer::ANALYZER_GRE)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 58, PacketAnalyzer::ANALYZER_ICMP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 6, PacketAnalyzer::ANALYZER_TCP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2048, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2054, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 32821, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
@@ -645,6 +668,7 @@
 0.000000   MetaHookPost  DrainEvents() -> <void>
 0.000000   MetaHookPost  LoadFile(0, ../main, <...>/main.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ../plugin, <...>/plugin.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./CPP-load.bif.zeek, <...>/CPP-load.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_ARP.events.bif.zeek, <...>/Zeek_ARP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_AsciiReader.ascii.bif.zeek, <...>/Zeek_AsciiReader.ascii.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_AsciiWriter.ascii.bif.zeek, <...>/Zeek_AsciiWriter.ascii.bif.zeek) -> -1
@@ -671,6 +695,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Finger.events.bif.zeek, <...>/Zeek_Finger.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_GSSAPI.events.bif.zeek, <...>/Zeek_GSSAPI.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_GTPv1.events.bif.zeek, <...>/Zeek_GTPv1.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_Geneve.events.bif.zeek, <...>/Zeek_Geneve.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Gnutella.events.bif.zeek, <...>/Zeek_Gnutella.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_HTTP.events.bif.zeek, <...>/Zeek_HTTP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_HTTP.functions.bif.zeek, <...>/Zeek_HTTP.functions.bif.zeek) -> -1
@@ -868,6 +893,7 @@
 0.000000   MetaHookPost  LoadFile(0, base/init-default, <...>/init-default.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base/packet-protocols, <...>/packet-protocols) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/Zeek_SNMP.types.bif, <...>/Zeek_SNMP.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/active-http, <...>/active-http.zeek) -> -1
@@ -909,6 +935,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/hash, <...>/hash) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/hash_hrw, <...>/hash_hrw.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/http, <...>/http) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/icmp, <...>/icmp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ieee802_11, <...>/ieee802_11) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ieee802_11_radio, <...>/ieee802_11_radio) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/imap, <...>/imap) -> -1
@@ -973,10 +1000,12 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/supervisor, <...>/supervisor) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/syslog, <...>/syslog) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/tcp, <...>/tcp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/thresholds, <...>/thresholds.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/time, <...>/time.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/tunnels, <...>/tunnels) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/types.bif, <...>/types.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/udp, <...>/udp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/urls, <...>/urls.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/utils, <...>/utils.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/version, <...>/version.zeek) -> -1
@@ -986,6 +1015,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/x509, <...>/x509) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/xmpp, <...>/xmpp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/zeek.bif, <...>/zeek.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./archive, <...>/archive.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./audio, <...>/audio.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./dpd.sig, <...>/dpd.sig) -> -1
@@ -1020,6 +1050,7 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp))
+0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GENEVE, 6081/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2123/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2152/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp))
@@ -1086,6 +1117,7 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp))
+0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GENEVE, 6081/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2123/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2152/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp))
@@ -1142,6 +1174,7 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DNS, {5353<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DTLS, {443/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_FTP, {2811<...>/tcp}))
+0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_GENEVE, {6081/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_GTPV1, {2152<...>/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_IMAP, {143/tcp}))
@@ -1165,8 +1198,16 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_TEREDO, {3544/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_VXLAN, {4789/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_XMPP, {5222<...>/tcp}))
+0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_endpoint_name, <frame>, ())
+0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_interval, <frame>, (1.0 sec))
+0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_prefixes, <frame>, ([]))
+0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_topic, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Broker::__subscribe, <frame>, (zeek/supervisor))
 0.000000   MetaHookPre   CallFunction(Broker::subscribe, <frame>, (zeek/supervisor))
+0.000000   MetaHookPre   CallFunction(Broker::update_metrics_export_endpoint_name, <frame>, (Broker::metrics_export_endpoint_name, ))
+0.000000   MetaHookPre   CallFunction(Broker::update_metrics_export_interval, <frame>, (Broker::metrics_export_interval, 1.0 sec))
+0.000000   MetaHookPre   CallFunction(Broker::update_metrics_export_prefixes, <frame>, (Broker::metrics_export_prefixes, []))
+0.000000   MetaHookPre   CallFunction(Broker::update_metrics_export_topic, <frame>, (Broker::metrics_export_topic, ))
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <null>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::local_node_type, <null>, ())
@@ -1475,6 +1516,14 @@
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (ActiveHTTP::default_max_time, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (ActiveHTTP::default_method, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Broker::update_metrics_export_endpoint_name{ Broker::__set_metrics_export_endpoint_name(Broker::val)return (Broker::val)}, 0))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_interval, Broker::update_metrics_export_interval{ Broker::__set_metrics_export_interval(Broker::val)return (Broker::val)}, 0))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_interval, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_prefixes, Broker::update_metrics_export_prefixes{ Broker::__set_metrics_export_prefixes(Broker::filter)return (Broker::filter)}, 0))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_prefixes, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_topic, Broker::update_metrics_export_topic{ Broker::__set_metrics_export_topic(Broker::val)return (Broker::val)}, 0))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_topic, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::peer_counts_as_iosource, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Conn::analyzer_inactivity_timeouts, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Conn::default_extract, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
@@ -1573,9 +1622,13 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 32821, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 34525, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11_RADIO, 105, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 1, PacketAnalyzer::ANALYZER_ICMP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 17, PacketAnalyzer::ANALYZER_UDP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPTUNNEL))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPTUNNEL))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 47, PacketAnalyzer::ANALYZER_GRE))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 58, PacketAnalyzer::ANALYZER_ICMP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 6, PacketAnalyzer::ANALYZER_TCP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2048, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2054, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 32821, PacketAnalyzer::ANALYZER_ARP))
@@ -1649,6 +1702,7 @@
 0.000000   MetaHookPre   DrainEvents()
 0.000000   MetaHookPre   LoadFile(0, ../main, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFile(0, ../plugin, <...>/plugin.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./CPP-load.bif.zeek, <...>/CPP-load.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_ARP.events.bif.zeek, <...>/Zeek_ARP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_AsciiReader.ascii.bif.zeek, <...>/Zeek_AsciiReader.ascii.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_AsciiWriter.ascii.bif.zeek, <...>/Zeek_AsciiWriter.ascii.bif.zeek)
@@ -1675,6 +1729,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Finger.events.bif.zeek, <...>/Zeek_Finger.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_GSSAPI.events.bif.zeek, <...>/Zeek_GSSAPI.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_GTPv1.events.bif.zeek, <...>/Zeek_GTPv1.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_Geneve.events.bif.zeek, <...>/Zeek_Geneve.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Gnutella.events.bif.zeek, <...>/Zeek_Gnutella.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_HTTP.events.bif.zeek, <...>/Zeek_HTTP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_HTTP.functions.bif.zeek, <...>/Zeek_HTTP.functions.bif.zeek)
@@ -1872,6 +1927,7 @@
 0.000000   MetaHookPre   LoadFile(0, base/init-default, <...>/init-default.zeek)
 0.000000   MetaHookPre   LoadFile(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek)
 0.000000   MetaHookPre   LoadFile(0, base/packet-protocols, <...>/packet-protocols)
+0.000000   MetaHookPre   LoadFile(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/Zeek_SNMP.types.bif, <...>/Zeek_SNMP.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/active-http, <...>/active-http.zeek)
@@ -1913,6 +1969,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/hash, <...>/hash)
 0.000000   MetaHookPre   LoadFile(0, base<...>/hash_hrw, <...>/hash_hrw.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/http, <...>/http)
+0.000000   MetaHookPre   LoadFile(0, base<...>/icmp, <...>/icmp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ieee802_11, <...>/ieee802_11)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ieee802_11_radio, <...>/ieee802_11_radio)
 0.000000   MetaHookPre   LoadFile(0, base<...>/imap, <...>/imap)
@@ -1977,10 +2034,12 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/supervisor, <...>/supervisor)
 0.000000   MetaHookPre   LoadFile(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/syslog, <...>/syslog)
+0.000000   MetaHookPre   LoadFile(0, base<...>/tcp, <...>/tcp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/thresholds, <...>/thresholds.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/time, <...>/time.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/tunnels, <...>/tunnels)
 0.000000   MetaHookPre   LoadFile(0, base<...>/types.bif, <...>/types.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/udp, <...>/udp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/urls, <...>/urls.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/utils, <...>/utils.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/version, <...>/version.zeek)
@@ -1990,6 +2049,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/x509, <...>/x509)
 0.000000   MetaHookPre   LoadFile(0, base<...>/xmpp, <...>/xmpp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/zeek.bif, <...>/zeek.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek)
 0.000000   MetaHookPre   LoadFile(1, ./archive, <...>/archive.sig)
 0.000000   MetaHookPre   LoadFile(1, ./audio, <...>/audio.sig)
 0.000000   MetaHookPre   LoadFile(1, ./dpd.sig, <...>/dpd.sig)
@@ -2024,6 +2084,7 @@
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DTLS, 443/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_FTP, 21/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_FTP, 2811/tcp)
+0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_GENEVE, 6081/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_GTPV1, 2123/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_GTPV1, 2152/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_HTTP, 1080/tcp)
@@ -2090,6 +2151,7 @@
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DTLS, 443/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_FTP, 21/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_FTP, 2811/tcp)
+0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_GENEVE, 6081/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_GTPV1, 2123/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_GTPV1, 2152/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 1080/tcp)
@@ -2146,6 +2208,7 @@
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, {5353<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, {443/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, {2811<...>/tcp})
+0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_GENEVE, {6081/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_GTPV1, {2152<...>/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, {80<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_IMAP, {143/tcp})
@@ -2169,8 +2232,16 @@
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_TEREDO, {3544/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_VXLAN, {4789/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_XMPP, {5222<...>/tcp})
+0.000000 | HookCallFunction Broker::__set_metrics_export_endpoint_name()
+0.000000 | HookCallFunction Broker::__set_metrics_export_interval(1.0 sec)
+0.000000 | HookCallFunction Broker::__set_metrics_export_prefixes([])
+0.000000 | HookCallFunction Broker::__set_metrics_export_topic()
 0.000000 | HookCallFunction Broker::__subscribe(zeek/supervisor)
 0.000000 | HookCallFunction Broker::subscribe(zeek/supervisor)
+0.000000 | HookCallFunction Broker::update_metrics_export_endpoint_name(Broker::metrics_export_endpoint_name, )
+0.000000 | HookCallFunction Broker::update_metrics_export_interval(Broker::metrics_export_interval, 1.0 sec)
+0.000000 | HookCallFunction Broker::update_metrics_export_prefixes(Broker::metrics_export_prefixes, [])
+0.000000 | HookCallFunction Broker::update_metrics_export_topic(Broker::metrics_export_topic, )
 0.000000 | HookCallFunction Cluster::is_enabled()
 0.000000 | HookCallFunction Cluster::local_node_type()
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])
@@ -2478,6 +2549,14 @@
 0.000000 | HookCallFunction Notice::want_pp()
 0.000000 | HookCallFunction Option::set_change_handler(ActiveHTTP::default_max_time, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(ActiveHTTP::default_method, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_endpoint_name, Broker::update_metrics_export_endpoint_name{ Broker::__set_metrics_export_endpoint_name(Broker::val)return (Broker::val)}, 0)
+0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_endpoint_name, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_interval, Broker::update_metrics_export_interval{ Broker::__set_metrics_export_interval(Broker::val)return (Broker::val)}, 0)
+0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_interval, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_prefixes, Broker::update_metrics_export_prefixes{ Broker::__set_metrics_export_prefixes(Broker::filter)return (Broker::filter)}, 0)
+0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_prefixes, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_topic, Broker::update_metrics_export_topic{ Broker::__set_metrics_export_topic(Broker::val)return (Broker::val)}, 0)
+0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_topic, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Broker::peer_counts_as_iosource, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Conn::analyzer_inactivity_timeouts, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Conn::default_extract, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
@@ -2576,9 +2655,13 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11, 32821, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11, 34525, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11_RADIO, 105, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 1, PacketAnalyzer::ANALYZER_ICMP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 17, PacketAnalyzer::ANALYZER_UDP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPTUNNEL)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPTUNNEL)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 47, PacketAnalyzer::ANALYZER_GRE)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 58, PacketAnalyzer::ANALYZER_ICMP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 6, PacketAnalyzer::ANALYZER_TCP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL, 2048, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL, 2054, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL, 32821, PacketAnalyzer::ANALYZER_ARP)
@@ -2652,6 +2735,7 @@
 0.000000 | HookDrainEvents
 0.000000 | HookLoadFile  ../main <...>/main.zeek
 0.000000 | HookLoadFile  ../plugin <...>/plugin.zeek
+0.000000 | HookLoadFile  ./CPP-load.bif.zeek <...>/CPP-load.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_ARP.events.bif.zeek <...>/Zeek_ARP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_AsciiReader.ascii.bif.zeek <...>/Zeek_AsciiReader.ascii.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_AsciiWriter.ascii.bif.zeek <...>/Zeek_AsciiWriter.ascii.bif.zeek
@@ -2678,6 +2762,7 @@
 0.000000 | HookLoadFile  ./Zeek_Finger.events.bif.zeek <...>/Zeek_Finger.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_GSSAPI.events.bif.zeek <...>/Zeek_GSSAPI.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_GTPv1.events.bif.zeek <...>/Zeek_GTPv1.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_Geneve.events.bif.zeek <...>/Zeek_Geneve.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Gnutella.events.bif.zeek <...>/Zeek_Gnutella.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_HTTP.events.bif.zeek <...>/Zeek_HTTP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_HTTP.functions.bif.zeek <...>/Zeek_HTTP.functions.bif.zeek
@@ -2887,6 +2972,7 @@
 0.000000 | HookLoadFile  base/init-default <...>/init-default.zeek
 0.000000 | HookLoadFile  base/init-frameworks-and-bifs.zeek <...>/init-frameworks-and-bifs.zeek
 0.000000 | HookLoadFile  base/packet-protocols <...>/packet-protocols
+0.000000 | HookLoadFile  base<...>/CPP-load.bif <...>/CPP-load.bif.zeek
 0.000000 | HookLoadFile  base<...>/Zeek_KRB.types.bif <...>/Zeek_KRB.types.bif.zeek
 0.000000 | HookLoadFile  base<...>/Zeek_SNMP.types.bif <...>/Zeek_SNMP.types.bif.zeek
 0.000000 | HookLoadFile  base<...>/active-http <...>/active-http.zeek
@@ -2928,6 +3014,7 @@
 0.000000 | HookLoadFile  base<...>/hash <...>/hash
 0.000000 | HookLoadFile  base<...>/hash_hrw <...>/hash_hrw.zeek
 0.000000 | HookLoadFile  base<...>/http <...>/http
+0.000000 | HookLoadFile  base<...>/icmp <...>/icmp
 0.000000 | HookLoadFile  base<...>/ieee802_11 <...>/ieee802_11
 0.000000 | HookLoadFile  base<...>/ieee802_11_radio <...>/ieee802_11_radio
 0.000000 | HookLoadFile  base<...>/imap <...>/imap
@@ -2992,10 +3079,12 @@
 0.000000 | HookLoadFile  base<...>/supervisor <...>/supervisor
 0.000000 | HookLoadFile  base<...>/supervisor.bif <...>/supervisor.bif.zeek
 0.000000 | HookLoadFile  base<...>/syslog <...>/syslog
+0.000000 | HookLoadFile  base<...>/tcp <...>/tcp
 0.000000 | HookLoadFile  base<...>/thresholds <...>/thresholds.zeek
 0.000000 | HookLoadFile  base<...>/time <...>/time.zeek
 0.000000 | HookLoadFile  base<...>/tunnels <...>/tunnels
 0.000000 | HookLoadFile  base<...>/types.bif <...>/types.bif.zeek
+0.000000 | HookLoadFile  base<...>/udp <...>/udp
 0.000000 | HookLoadFile  base<...>/urls <...>/urls.zeek
 0.000000 | HookLoadFile  base<...>/utils <...>/utils.zeek
 0.000000 | HookLoadFile  base<...>/version <...>/version.zeek
@@ -3005,6 +3094,7 @@
 0.000000 | HookLoadFile  base<...>/x509 <...>/x509
 0.000000 | HookLoadFile  base<...>/xmpp <...>/xmpp
 0.000000 | HookLoadFile  base<...>/zeek.bif <...>/zeek.bif.zeek
+0.000000 | HookLoadFile  builtin-plugins/__load__.zeek <...>/__load__.zeek
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
 0.000000 | HookLogWrite  packet_filter [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()

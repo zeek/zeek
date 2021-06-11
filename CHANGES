@@ -1,3 +1,410 @@
+4.1.0-dev.722 | 2021-06-10 10:42:57 -0700
+
+  * Added --include-plugins configure argument (Seth Hall, Corelight)
+
+4.1.0-dev.720 | 2021-06-10 11:29:19 +0100
+
+  * Introduce script-land option LogAscii::logdir that can be used to set
+    the logging directory. (Henrik Kramselund Jereminsen)
+
+4.1.0-dev.715 | 2021-06-09 09:12:26 -0700
+
+  * Fix macOS Big Sur builds on Cirrus
+
+    - Upgrade the Big Sur VM to use the Xcode 12.5 version. This has a newer
+      version of brew installed on it that fixes an issue with an EOL package host
+      that finally shut down for good recently.
+    - Use 'brew upgrade' for openssl and cmake, since those are both present on the
+      base VM. This prevents 'brew install' from printing an error if the package
+      exists but is out of date. (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.713 | 2021-06-08 13:54:28 -0700
+
+  * Add OpenSUSE Leap 15.3 to testing (Johanna Amann, Corelight)
+
+4.1.0-dev.709 | 2021-06-07 09:41:28 +0200
+
+  * Improve assignment operators for IntrusivePtr. (Dominik Charousset, Corelight)
+
+  * Fix docs for `ProcStats`: `mem` is in bytes, not KB. (Arne Welzel, Corelight)
+
+4.1.0-dev.704 | 2021-06-04 08:29:18 -0700
+
+  * Add deprecated headers for UDP and ICMP analyzers (Tim Wojtulewicz, Corelight)
+
+  * Fix handling of IP packets with bogus IP header lengths
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=34711
+    (Link to details becomes public 30 days after patch release) (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.700 | 2021-06-03 09:27:57 -0700
+
+  * Make update-traces fail when the curl invocation fails (Christian Kreibich, Corelight)
+
+4.1.0-dev.697 | 2021-06-02 15:08:12 -0700
+
+  * Add FreeBSD 13 to CI (Christian Kreibich, Corelight)
+
+  * Add Fedora 34 to CI (Christian Kreibich, Corelight)
+
+4.1.0-dev.693 | 2021-06-02 13:22:09 -0700
+
+  * Label session adapters in the output of zeek -NN (Tim Wojtulewicz, Corelight)
+
+  * Split session adapter code into separate files from the analyzers (Tim Wojtulewicz, Corelight)
+
+  * Move adapter-specific code back into the adapter (Tim Wojtulewicz, Corelight)
+
+  * Move ICMP counterpart methods outside of ICMPAnalyzer class
+
+    These were previously global methods in the old analyzer, and moving them
+    to be private members of ICMPAnalyzer broke the usage of them by at least
+    one external plugin. (Tim Wojtulewicz, Corelight)
+
+  * Remove obsolete Skipping()/SetSkip() from Connection (Tim Wojtulewicz, Corelight)
+
+  * Remove some code from IPBasedAnalyzer and children that was waiting for TCP to be implemented (Tim Wojtulewicz, Corelight)
+
+  * Move TCPStateStats object out of session_mgr (Tim Wojtulewicz, Corelight)
+
+  * Move analyzer-to-port mapping out of analyzer::Manager into packet analyzers (Tim Wojtulewicz, Corelight)
+
+  * Move packet parsing code out of adapter into analyzer (Tim Wojtulewicz, Corelight)
+
+  * Move old TCP analyzer into analyzer adapter in packet analysis tree (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.681 | 2021-06-02 09:57:41 -0700
+
+  * Add some extra length checking when parsing mobile ipv6 packets
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=34263
+    (Link to details becomes public 30 days after patch release) (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.679 | 2021-06-01 19:11:40 -0700
+
+  * Replace toupper() usages in netbios decoding BIFs (Jon Siwek, Corelight)
+
+    This avoids potential for locale-dependent results of toupper() by
+    instead using a function that simply maps ASCII characters a-z to A-Z.
+
+4.1.0-dev.676 | 2021-06-01 10:19:19 -0700
+
+  * Integrate review feedback (Dominik Charousset, Corelight)
+
+  * Sync new broker options, fix name inconsistencies (Dominik Charousset, Corelight)
+
+  * Integrate new Broker metric exporter parameters (Dominik Charousset, Corelight)
+
+4.1.0-dev.671 | 2021-06-01 09:51:38 -0700
+
+  * Update detect-MHR.zeek (Chris C)
+
+    Update Virustotal URL to current
+    option match_sub_url = "https://www.virustotal.com/gui/search/%s"
+
+4.1.0-dev.669 | 2021-06-01 09:39:30 -0700
+
+  * GH-839: Fix use of &optional sub-records within table/set indices (Jon Siwek, Corelight)
+
+4.1.0-dev.666 | 2021-05-26 10:51:51 -0700
+
+  * Ensure SessionAdapter members are initialized (Tim Wojtulewicz, Corelight)
+
+    Fixes Coverity #1453273
+
+4.1.0-dev.665 | 2021-05-26 08:07:26 +0200
+
+  * Extend the file analyzer API to set source manually. (Robin
+    Sommer, Corelight)
+
+4.1.0-dev.661 | 2021-05-24 15:03:54 -0700
+
+  * Update Broker submodule for bump of embedded CAF to 0.18.3 (Jon Siwek, Corelight)
+
+4.1.0-dev.660 | 2021-05-24 12:38:44 -0700
+
+  * Add type field to session::Key to help avoid collisions in map (Tim Wojtulewicz, Corelight)
+
+  * Move bad UDP checksum handling into adapter object (Tim Wojtulewicz, Corelight)
+
+  * Rename IPBasedTransportAnalyzer to SessionAdapter (Tim Wojtulewicz, Corelight)
+
+    This also also combines the old TransportLayerAnalyzer class into
+    SessionAdapter, and removes the old class. This requires naming changes
+    in a few places but no functionality changes.
+
+  * Move building session analyzer tree out of analyzer::Manager (Tim Wojtulewicz, Corelight)
+
+  * Rework the packet flow through the IP-based analyzers (Tim Wojtulewicz, Corelight)
+
+  * Add new UDP packet analyzer, remove old one (Tim Wojtulewicz, Corelight)
+
+  * Add new ICMP packet analyzer, remove old one (Tim Wojtulewicz, Corelight)
+
+  * Add base class for IP-based packet analyzers (Tim Wojtulewicz, Corelight)
+
+  * Move SessionManager::ParseIPPacket to IP analyzer's namespace (Tim Wojtulewicz, Corelight)
+
+  * Added skeletons for TCP/UDP/ICMP packet analysis plugins. (Tim Wojtulewicz, Corelight)
+
+    This includes integration into the IP plugin and calling of the sessions code from each plugin.
+
+4.1.0-dev.646 | 2021-05-18 11:47:25 -0700
+
+  * Omit unneeded decimal points in modp_dtoa2() scientific notation output (Jon Siwek, Corelight)
+
+    For example, "1e-13" is now used instead of "1.e-13".
+
+  * GH-1244: Change modp_dtoa2() to use scientific notation for small values (Jon Siwek, Corelight)
+
+    This fixes problems where printing floating point numbers less than
+    10^-6 output as "0.0".  Such numbers now use using scientific notation
+    and preserve the value's actual floating point representation.
+
+4.1.0-dev.643 | 2021-05-17 11:57:58 -0700
+
+  * GH-1546: Make DictIterator() public, add copy/move operators (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.641 | 2021-05-17 11:28:11 -0700
+
+  * GH-1558: Fix reading `vector of enum` types from config files (Jon Siwek, Corelight)
+
+  * GH-1555: Fix reading empty set[enum] values from config files (Jon Siwek, Corelight)
+
+4.1.0-dev.638 | 2021-05-17 13:08:28 +0100
+
+  * Manual page updates (Henrik Kramselund Jereminsen)
+
+4.1.0-dev.631 | 2021-05-11 09:26:37 -0700
+
+  * Add unit tests to ZeekString.cc (Tim Wojtulewicz)
+
+4.1.0-dev.628 | 2021-05-10 12:44:25 -0700
+
+  * Add experimental support for translating Zeek scripts to equivalent C++ (Vern Paxson, Corelight)
+
+    The generated C++ can then be compiled directly into the `zeek` binary,
+    replacing use of the interpreter and producing better runtime performance.
+    See `src/script_opt/CPP/README.md` for a guide on how to use this feature.
+
+  * Add new "-a cpp" btest alternative (Vern Paxson, Corelight)
+
+  * Add VectorVal methods to leverage ZVal representation (Vern Paxson, Corelight)
+
+  * Fix backtrace BiF to avoid iterator invalidation & support compiled code (Vern Paxson, Corelight)
+
+4.1.0-dev.593 | 2021-05-10 10:17:34 +0100
+
+  * Explain zeek-config options in help output (Christian Kreibich, Corelight)
+
+  * Sort variables at top of zeek-config alphabetically (Christian Kreibich, Corelight)
+
+  * Install Zeek's btest tooling with the distribution
+
+    This creates $PREFIX/share/btest in the install tree, with the
+    following folders:
+
+    - scripts/ for the canonifiers
+    - data/ for random.seed
+    - data/pcaps for the test pcaps
+
+    The pcaps can be skipped by configuring with --disable-btest-pcaps. (Christian Kreibich, Corelight)
+
+4.1.0-dev.587 | 2021-05-05 14:05:51 +0000
+
+  * Merge remote-tracking branch 'origin/topic/timw/session-coverity'
+
+    * origin/topic/timw/session-coverity:
+      Minor cleanup in IPAddr.h
+      Fix a few Coverity warnings from the session manager work (Tim Wojtulewicz)
+
+  * Minor cleanup in IPAddr.h (Tim Wojtulewicz, Corelight)
+
+  * Fix a few Coverity warnings from the session manager work
+
+    - Be explicit about setting the copied flag in session::Key. Coverity seems
+      confused about when that flag is set if it gets set by default
+      initialization. This should fix 1452757 and 1452759.
+    - Explicitly copy the fields in ConnKey instead of using memcpy. Fixes
+      1452758. (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.583 | 2021-05-03 18:21:33 -0700
+
+  * switched RecordVal's to use std::optional for tracking missing fields (Vern Paxson, Corelight)
+
+  * added constructors for directly building ZVal's (Vern Paxson, Corelight)
+
+4.1.0-dev.580 | 2021-04-30 18:29:22 -0700
+
+  * Add missing zeek/ prefix to a telemetry header's includes (Jon Siwek, Corelight)
+
+4.1.0-dev.578 | 2021-04-30 09:42:26 -0700
+
+  * GH-1534: Fix excessive coredump for duplicate enum definitions
+
+    An adequate error message was previously reported for duplicate enum
+    definitions, this just now prevents trying to access it as a constant in
+    subsequent parsing and further generating a coredump. (Jon Siwek, Corelight)
+
+4.1.0-dev.576 | 2021-04-30 09:40:18 -0700
+
+  * Fixes to `decode_netbios_name` and `decode_netbios_name_type` BIFs
+
+    Fixes to `decode_netbios_name`:
+
+    * Improve validation that input string is a NetBIOS encoding
+      (32 bytes, with characters ranging from 'A' to 'P').  This helps
+      prevent Undefined Behavior of left-shifting negative values.
+      Invalid encodings now cause a return-value of an empty string.
+
+    * More liberal in what decoded characters are allowed.  Namely,
+      spaces are now allowed (but any trailing null-bytes and spaces
+      are trimmed, similar to before).
+
+    Fixes to `decode_netbios_name_type`:
+
+    * Improve validation that input string is a NetBIOS encoding
+      (32 bytes, with characters ranging from 'A' to 'P').  This helps
+      prevent Undefined Behavior of left-shifting negative values and
+      a heap-buffer-overread when the input string is too small.
+      Invalid encodings now cause a return-value of 256. (Jon Siwek, Corelight)
+
+4.1.0-dev.573 | 2021-04-29 11:29:39 -0700
+
+  * Rename ConnID and ConnIDKey (Tim Wojtulewicz, Corelight)
+
+  * Remove Session prefix from some session-related classes and files (Tim Wojtulewicz, Corelight)
+
+  * Move session code into new directory and into zeek::session namespace (Tim Wojtulewicz, Corelight)
+
+  * Move SessionKey into a separate file, added comments (Tim Wojtulewicz, Corelight)
+
+  * Review cleanup
+
+    - Add constructors for ConnIDKey, remove BuildConnIDKey()
+    - Rename protocol stats classes and move to implementation file
+    - Rename "num" field of protocol stats to "active"
+    - Explicitly delete copy operations for SessionKey
+    - Change argument for ProtocolStats methods to const-reference
+    - Make key validity methods in Session not be virtual
+    - Rename Session::ClearKey and Session::IsKeyValid (Tim Wojtulewicz, Corelight)
+
+  * Rework stats to store handles to the counters (Tim Wojtulewicz, Corelight)
+
+  * Rename some connection-specific methods in Session and SessionManager (Tim Wojtulewicz, Corelight)
+
+  * Add deprecated version of Sessions.h (Tim Wojtulewicz, Corelight)
+
+  * Rename NetSessions to SessionManager
+
+    This also includes:
+    - Deprecating the NetSessions name.
+    - Renaming the zeek::sessions global to zeek::session_mgr and deprecating the old name.
+    - Renaming Sessions.{h,cc} to SessionManager.{h,cc}. (Tim Wojtulewicz, Corelight)
+
+  * Store a single map of Sessions instead of split maps of Connections.
+
+    This commit also includes:
+    - Storing the transport protocol in ConnID and ConnIDKey to allow tcp and
+      udp connections from the same IP/Port combinations. This happens in the
+      core.cisco-fabric-path test, for example.
+    - Lots of test updates. The reasons for these are two fold. First, with
+      the change to only store a single map means that TCP, UDP, and ICMP
+      connections are now mixed. When Zeek drains the map at shutdown, it drains
+      each of those protocols together instead of separately. The second is
+      because of how Sessions are stored in the map. We're now storing them
+      keyed by the hash of the key stored by the Session objects, which causes
+      them to again be in the map in a different order. (Tim Wojtulewicz, Corelight)
+
+  * Convert session stats to use the new telemetry API (Tim Wojtulewicz, Corelight)
+
+  * Add test for get_conn_stats BIF before reworking session stats (Tim Wojtulewicz, Corelight)
+
+  * Add new Session base class
+
+    This is mostly code copied from the existing Connection class, as that class now
+    inherits from Session. (Tim Wojtulewicz, Corelight)
+
+  * Move packet filter out of NetSessions (Tim Wojtulewicz, Corelight)
+
+  * Move some code out of NetSessions
+
+    - TCPStateStats update when a session is removed was moved to Connection
+    - Stepping Stone manager moved to a singleton object in SteppingStoneManager (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.557 | 2021-04-29 09:00:51 -0700
+
+  * Add basic testing for Geneve protocol analyzer
+
+    The added pcap file was downloaded from an attachment to
+    https://gitlab.com/wireshark/wireshark/-/issues/10193 without explicit
+    license. (Benjamin Bannier, Corelight)
+
+  * GH-1517: Add Geneve decap support
+
+    This patch adds the ability to decap Geneve packets to process the inner
+    payload. The structure of the analyzer borrows heavily from the VXLAN
+    analyzer. (Benjamin Bannier, Corelight)
+
+4.1.0-dev.554 | 2021-04-28 13:45:53 -0700
+
+  * Add a fatal error condition for invalid Dictionary insertion distances (Jon Siwek, Corelight)
+
+    When choosing poor/aggressive values for `table_expire_interval`,
+    `table_expire_delay`, and/or `table_incremental_step` that tend to
+    leave tables in state of constant table-expiry-iteration, the underlying
+    Dictionary is never allowed the chance to complete remapping operations
+    which re-position entries to more ideal locations (e.g. after
+    reallocating the table to be able to store more entries).
+
+    That situation not only leads to the Dictionary generally having a less
+    efficient structure, but eventually, the lack of re-positioning may
+    cause an insertion to calculate the new entry's
+    distance-from-ideal-position to be a value requiring a full 16-bits or
+    more (>=65535), but an entry only allows storing 16-bit distance values,
+    with 65535 being a sentinel value that is supposed to indicate an empty
+    entry.  Dictionary operations may start misbehaving if that's allowed to
+    happen.
+
+  * Fix using clear_table() within an &expire_func (Jon Siwek, Corelight)
+
+    This previously crashed since clear_table()/TableVal::RemoveAll() left
+    behind a stale iterator to the old table causing a heap-use-after-free
+    when resuming table expiry iteration in TableVal::DoExpire().
+
+  * Remove saving/restoring of value pointer after calling expire_func (Jon Siwek, Corelight)
+
+    It's no longer used for anything.  Previously, it was used to detect
+    whether the expiry batch finished iterating the entire table or not, but
+    that's now determined by directly checking if the iterator itself
+    signifies the end of the table.
+
+  * Avoid allocating a HashKey for no-op table expiry iterations (Jon Siwek, Corelight)
+
+4.1.0-dev.549 | 2021-04-28 13:09:30 -0700
+
+  * Fix -Wsign-compare warnings in Debug{Cmds}.cc (Jon Siwek, Corelight)
+
+4.1.0-dev.547 | 2021-04-28 09:27:15 -0700
+
+  * GH-1528: Remove broken Queue/PQueue class, replace with std::deque (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.545 | 2021-04-26 11:14:49 -0700
+
+  * GH-1483: Improve error for mismatched container initialization types (Jon Siwek, Corelight)
+
+    For example, trying to assign a vector, table, set, or record
+    constructor expression to a global variable of a different type now
+    provides a more explanatory error message than the previous
+    "Val::CONVERTER" fatal-error and coredump.
+
+4.1.0-dev.543 | 2021-04-26 09:53:53 -0700
+
+  * Update btest baselines for --enable-mobile-ipv6 builds (Tim Wojtulewicz, Corelight)
+
+  * Build ubuntu18 on CI with --enable-mobile-ipv6 (Tim Wojtulewicz, Corelight)
 
 4.1.0-dev.539 | 2021-04-20 15:21:03 -0700
 

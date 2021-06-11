@@ -34,6 +34,7 @@ const char* stmt_name(StmtTag t)
 		"<init>", "fallthrough", "while",
 		"catch-return",
 		"check-any-length",
+		"compiled-C++",
 		"null",
 	};
 
@@ -150,7 +151,7 @@ bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 	// Optimistically just put it at the end.
 	map.push_back(new_mapping);
 
-	int curr_idx = map.length() - 1;
+	size_t curr_idx = map.size() - 1;
 	if ( curr_idx == 0 )
 		return true;
 

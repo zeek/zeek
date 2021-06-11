@@ -8,11 +8,11 @@
 #include "zeek/RunState.h"
 
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
-#include "zeek/analyzer/protocol/icmp/ICMP.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/analyzer/protocol/udp/UDP.h"
+#include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 
 #include "zeek/plugin/Manager.h"
 
@@ -66,12 +66,6 @@ Manager::Manager()
 
 Manager::~Manager()
 	{
-	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_tcp.begin(); i != analyzers_by_port_tcp.end(); i++ )
-		delete i->second;
-
-	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_udp.begin(); i != analyzers_by_port_udp.end(); i++ )
-		delete i->second;
-
 	// Clean up expected-connection table.
 	while ( conns_by_timeout.size() )
 		{
@@ -79,14 +73,6 @@ Manager::~Manager()
 		conns_by_timeout.pop();
 		delete a;
 		}
-	}
-
-void Manager::InitPreScript()
-	{
-	// Cache these tags.
-	analyzer_connsize = GetComponentTag("CONNSIZE");
-	analyzer_stepping = GetComponentTag("STEPPINGSTONE");
-	analyzer_tcpstats = GetComponentTag("TCPSTATS");
 	}
 
 void Manager::InitPostScript()
@@ -115,24 +101,16 @@ void Manager::DumpDebug()
 	DBG_LOG(DBG_ANALYZER, " ");
 	DBG_LOG(DBG_ANALYZER, "Analyzers by port:");
 
-	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_tcp.begin(); i != analyzers_by_port_tcp.end(); i++ )
+	if ( packet_analysis::AnalyzerPtr tcp = packet_mgr->GetAnalyzer("TCP") )
 		{
-		std::string s;
-
-		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
-			s += std::string(GetComponentName(*j)) + " ";
-
-		DBG_LOG(DBG_ANALYZER, "    %d/tcp: %s", i->first, s.c_str());
+		auto* ipba = static_cast<packet_analysis::IP::IPBasedAnalyzer*>(tcp.get());
+		ipba->DumpPortDebug();
 		}
 
-	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_udp.begin(); i != analyzers_by_port_udp.end(); i++ )
+	if ( packet_analysis::AnalyzerPtr udp = packet_mgr->GetAnalyzer("UDP") )
 		{
-		std::string s;
-
-		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
-			s += std::string(GetComponentName(*j)) + " ";
-
-		DBG_LOG(DBG_ANALYZER, "    %d/udp: %s", i->first, s.c_str());
+		auto* ipba = static_cast<packet_analysis::IP::IPBasedAnalyzer*>(udp.get());
+		ipba->DumpPortDebug();
 		}
 
 #endif
@@ -254,34 +232,38 @@ bool Manager::UnregisterAnalyzerForPort(EnumVal* val, PortVal* port)
 
 bool Manager::RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port)
 	{
-	tag_set* l = LookupPort(proto, port, true);
+	// TODO: this class is becoming more generic and removing a lot of the
+	// checks for protocols, but this part might need to stay like this.
+	packet_analysis::AnalyzerPtr analyzer;
+	if ( proto == TRANSPORT_TCP )
+		analyzer = packet_mgr->GetAnalyzer("TCP");
+	else if ( proto == TRANSPORT_UDP )
+		analyzer = packet_mgr->GetAnalyzer("UDP");
 
-	if ( ! l )
+	if ( ! analyzer )
 		return false;
 
-#ifdef DEBUG
-	const char* name = GetComponentName(tag).c_str();
-	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
-#endif
+	auto* ipba = static_cast<packet_analysis::IP::IPBasedAnalyzer*>(analyzer.get());
 
-	l->insert(tag);
-	return true;
+	return ipba->RegisterAnalyzerForPort(tag, port);
 	}
 
 bool Manager::UnregisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port)
 	{
-	tag_set* l = LookupPort(proto, port, true);
+	// TODO: this class is becoming more generic and removing a lot of the
+	// checks for protocols, but this part might need to stay like this.
+	packet_analysis::AnalyzerPtr analyzer;
+	if ( proto == TRANSPORT_TCP )
+		analyzer = packet_mgr->GetAnalyzer("TCP");
+	else if ( proto == TRANSPORT_UDP )
+		analyzer = packet_mgr->GetAnalyzer("UDP");
 
-	if ( ! l )
-		return true;  // still a "successful" unregistration
+	if ( ! analyzer )
+		return false;
 
-#ifdef DEBUG
-	const char* name = GetComponentName(tag).c_str();
-	DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
-#endif
+	auto* ipba = static_cast<packet_analysis::IP::IPBasedAnalyzer*>(analyzer.get());
 
-	l->erase(tag);
-	return true;
+	return ipba->UnregisterAnalyzerForPort(tag, port);
 	}
 
 Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, Connection* conn)
@@ -321,181 +303,6 @@ Analyzer* Manager::InstantiateAnalyzer(const char* name, Connection* conn)
 	{
 	Tag tag = GetComponentTag(name);
 	return tag ? InstantiateAnalyzer(tag, conn) : nullptr;
-	}
-
-Manager::tag_set* Manager::LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found)
-	{
-	analyzer_map_by_port* m = nullptr;
-
-	switch ( proto ) {
-	case TRANSPORT_TCP:
-		m = &analyzers_by_port_tcp;
-		break;
-
-	case TRANSPORT_UDP:
-		m = &analyzers_by_port_udp;
-		break;
-
-	default:
-		reporter->InternalWarning("unsupported transport protocol in analyzer::Manager::LookupPort");
-		return nullptr;
-	}
-
-	analyzer_map_by_port::const_iterator i = m->find(port);
-
-	if ( i != m->end() )
-		return i->second;
-
-	if ( ! add_if_not_found )
-		return nullptr;
-
-	tag_set* l = new tag_set;
-	m->insert(std::make_pair(port, l));
-	return l;
-	}
-
-Manager::tag_set* Manager::LookupPort(PortVal* val, bool add_if_not_found)
-	{
-	return LookupPort(val->PortType(), val->Port(), add_if_not_found);
-	}
-
-bool Manager::BuildInitialAnalyzerTree(Connection* conn)
-	{
-	analyzer::tcp::TCP_Analyzer* tcp = nullptr;
-	TransportLayerAnalyzer* root = nullptr;
-	analyzer::pia::PIA* pia = nullptr;
-	bool check_port = false;
-
-	switch ( conn->ConnTransport() ) {
-
-	case TRANSPORT_TCP:
-		root = tcp = new analyzer::tcp::TCP_Analyzer(conn);
-		pia = new analyzer::pia::PIA_TCP(conn);
-		check_port = true;
-		DBG_ANALYZER(conn, "activated TCP analyzer");
-		break;
-
-	case TRANSPORT_UDP:
-		root = new analyzer::udp::UDP_Analyzer(conn);
-		pia = new analyzer::pia::PIA_UDP(conn);
-		check_port = true;
-		DBG_ANALYZER(conn, "activated UDP analyzer");
-		break;
-
-	case TRANSPORT_ICMP: {
-		root = new analyzer::icmp::ICMP_Analyzer(conn);
-		DBG_ANALYZER(conn, "activated ICMP analyzer");
-		break;
-		}
-
-	default:
-		reporter->InternalWarning("unknown protocol can't build analyzer tree");
-		return false;
-	}
-
-	bool scheduled = ApplyScheduledAnalyzers(conn, false, root);
-
-	// Hmm... Do we want *just* the expected analyzer, or all
-	// other potential analyzers as well?  For now we only take
-	// the scheduled ones.
-	if ( ! scheduled )
-		{ // Let's see if it's a port we know.
-		if ( check_port && ! zeek::detail::dpd_ignore_ports )
-			{
-			int resp_port = ntohs(conn->RespPort());
-			tag_set* ports = LookupPort(conn->ConnTransport(), resp_port, false);
-
-			if ( ports )
-				{
-				for ( tag_set::const_iterator j = ports->begin(); j != ports->end(); ++j )
-					{
-					Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(*j, conn);
-
-					if ( ! analyzer )
-						continue;
-
-					root->AddChildAnalyzer(analyzer, false);
-					DBG_ANALYZER_ARGS(conn, "activated %s analyzer due to port %d",
-					                  analyzer_mgr->GetComponentName(*j).c_str(), resp_port);
-					}
-				}
-			}
-		}
-
-	if ( tcp )
-		{
-		// We have to decide whether to reassamble the stream.
-		// We turn it on right away if we already have an app-layer
-		// analyzer, reassemble_first_packets is true, or the user
-		// asks us to do so.  In all other cases, reassembly may
-		// be turned on later by the TCP PIA.
-
-		bool reass = root->GetChildren().size() ||
-				zeek::detail::dpd_reassemble_first_packets ||
-				zeek::detail::tcp_content_deliver_all_orig ||
-				zeek::detail::tcp_content_deliver_all_resp;
-
-		if ( tcp_contents && ! reass )
-			{
-			static auto tcp_content_delivery_ports_orig = id::find_val<TableVal>("tcp_content_delivery_ports_orig");
-			static auto tcp_content_delivery_ports_resp = id::find_val<TableVal>("tcp_content_delivery_ports_resp");
-			const auto& dport = val_mgr->Port(ntohs(conn->RespPort()), TRANSPORT_TCP);
-
-			if ( ! reass )
-				reass = (bool)tcp_content_delivery_ports_orig->FindOrDefault(dport);
-
-			if ( ! reass )
-				reass = (bool)tcp_content_delivery_ports_resp->FindOrDefault(dport);
-			}
-
-		if ( reass )
-			tcp->EnableReassembly();
-
-		if ( IsEnabled(analyzer_stepping) )
-			{
-			// Add a SteppingStone analyzer if requested.  The port
-			// should really not be hardcoded here, but as it can
-			// handle non-reassembled data, it doesn't really fit into
-			// our general framing ...  Better would be to turn it
-			// on *after* we discover we have interactive traffic.
-			uint16_t resp_port = ntohs(conn->RespPort());
-			if ( resp_port == 22 || resp_port == 23 || resp_port == 513 )
-				{
-				static auto stp_skip_src = id::find_val<TableVal>("stp_skip_src");
-				auto src = make_intrusive<AddrVal>(conn->OrigAddr());
-
-				if ( ! stp_skip_src->FindOrDefault(src) )
-					tcp->AddChildAnalyzer(new analyzer::stepping_stone::SteppingStone_Analyzer(conn), false);
-				}
-			}
-
-		if ( IsEnabled(analyzer_tcpstats) )
-			// Add TCPStats analyzer. This needs to see packets so
-			// we cannot add it as a normal child.
-			tcp->AddChildPacketAnalyzer(new analyzer::tcp::TCPStats_Analyzer(conn));
-
-		if ( IsEnabled(analyzer_connsize) )
-			// Add ConnSize analyzer. Needs to see packets, not stream.
-			tcp->AddChildPacketAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn));
-		}
-
-	else
-		{
-		if ( IsEnabled(analyzer_connsize) )
-			// Add ConnSize analyzer. Needs to see packets, not stream.
-			root->AddChildAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn));
-		}
-
-	if ( pia )
-		root->AddChildAnalyzer(pia->AsAnalyzer());
-
-	conn->SetRootAnalyzer(root, pia);
-	root->Init();
-	root->InitChildren();
-
-	PLUGIN_HOOK_VOID(HOOK_SETUP_ANALYZER_TREE, HookSetupAnalyzerTree(conn));
-
-	return true;
 	}
 
 void Manager::ExpireScheduledAnalyzers()
@@ -607,10 +414,11 @@ Manager::tag_set Manager::GetScheduled(const Connection* conn)
 	return result;
 	}
 
-bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, TransportLayerAnalyzer* parent)
+bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init,
+                                      packet_analysis::IP::SessionAdapter* parent)
 	{
 	if ( ! parent )
-		parent = conn->GetRootAnalyzer();
+		parent = conn->GetSessionAdapter();
 
 	if ( ! parent )
 		return false;
@@ -628,7 +436,7 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, TransportLaye
 
 		if ( scheduled_analyzer_applied )
 			conn->EnqueueEvent(scheduled_analyzer_applied, nullptr,
-			                   conn->ConnVal(), it->AsVal());
+			                   conn->GetVal(), it->AsVal());
 
 		DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
 		                  analyzer_mgr->GetComponentName(*it).c_str());

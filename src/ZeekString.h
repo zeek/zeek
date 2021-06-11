@@ -19,6 +19,12 @@ class VectorVal;
 
 typedef u_char* byte_vec;
 
+/**
+ * A container type for holding blocks of byte data. This can be used for
+ * character strings, but is not limited to that alone. This class provides
+ * methods for rendering byte data into character strings, including
+ * conversions of non-printable characters into other representations.
+ */
 class String {
 public:
 	typedef std::vector<String*> Vec;
@@ -49,6 +55,7 @@ public:
 	const String& operator=(const String& bs);
 	bool operator==(const String& bs) const;
 	bool operator<(const String& bs) const;
+	bool operator==(std::string_view s) const;
 
 	byte_vec Bytes() const	{ return b; }
 	int Len() const	{ return n; }
@@ -71,6 +78,13 @@ public:
 	void SetUseFreeToDelete(int use_it)
 		{ use_free_to_delete = use_it; }
 
+	/**
+	 * Returns a character-string representation of the stored bytes. This
+	 * method doesn't do any extra rendering or character conversions. If
+	 * null characters are found in the middle of the data or if the data
+	 * is missing a closing null character, an error string is returned and
+	 * a error is reported.
+	 */
 	const char* CheckString() const;
 
 	enum render_style {

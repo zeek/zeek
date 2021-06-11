@@ -150,9 +150,34 @@ public:
 	 * @param source uniquely identifies the file and should also describe
 	 *        in human-readable form where the file input is coming from (e.g.
 	 *        a local file path).
+	 * @param mime_type may be set to the mime type of the file, if already known due
+	 *        to the protocol. This is, e.g., the case in TLS connections where X.509
+	 *        certificates are passed as files; here the type of the file is set by
+	 *        the protocol. If this parameter is give, mime type detection will be
+	 *        disabled.
+	 *        This parameter is only used for the first bit of data for each file.
 	 */
 	void DataIn(const u_char* data, uint64_t len, const std::string& file_id,
-	            const std::string& source);
+	            const std::string& source, const std::string& mime_type = "");
+
+	/**
+	 * Pass in sequential file data from external source (e.g. input framework).
+	 * @param data pointer to start of a chunk of file data.
+	 * @param len number of bytes in the data chunk.
+	 * @param offset number of bytes from start of file that data chunk occurs.
+	 * @param file_id an identifier for the file (usually a hash of \a source).
+	 * @param source uniquely identifies the file and should also describe
+	 *        in human-readable form where the file input is coming from (e.g.
+	 *        a local file path).
+	 * @param mime_type may be set to the mime type of the file, if already known due
+	 *        to the protocol. This is, e.g., the case in TLS connections where X.509
+	 *        certificates are passed as files; here the type of the file is set by
+	 *        the protocol. If this parameter is give, mime type detection will be
+	 *        disabled.
+	 *        This parameter is only used for the first bit of data for each file.
+	 */
+	void DataIn(const u_char* data, uint64_t len, uint64_t offset, const std::string& file_id,
+	            const std::string& source, const std::string& mime_type = "");
 
 	/**
 	 * Signal the end of file data regardless of which direction it is being

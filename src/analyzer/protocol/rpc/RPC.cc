@@ -9,7 +9,7 @@
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/rpc/XDR.h"
 #include "zeek/Reporter.h"
-#include "zeek/Sessions.h"
+#include "zeek/session/Manager.h"
 #include "zeek/RunState.h"
 
 #include "zeek/analyzer/protocol/rpc/events.bif.h"
@@ -456,8 +456,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 		// is fully established we are in sync (since it's the first chunk
 		// of data after the SYN if its not established we need to
 		// resync.
-		analyzer::tcp::TCP_Analyzer* tcp =
-			static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
+		auto* tcp = static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 		assert(tcp);
 
 		if ( (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
@@ -766,7 +765,7 @@ void RPC_Analyzer::Done()
 void RPC_Analyzer::ExpireTimer(double /* t */)
 	{
 	Event(connection_timeout);
-	sessions->Remove(Conn());
+	session_mgr->Remove(Conn());
 	}
 
 } // namespace zeek::analyzer::rpc

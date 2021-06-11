@@ -187,6 +187,11 @@ private:
 	// Maps functions (not hooks or events) to upstream compiled names.
 	std::unordered_map<std::string, std::string> hashed_funcs;
 
+	// Tracks all of the module names used in activate_bodies__CPP()
+	// calls, to ensure all of the global names of compiled-to-standalone
+	// functions are available to subsequent scripts.
+	std::unordered_set<std::string> module_names;
+
 	// If non-zero, provides a tag used for auxiliary/additional
 	// compilation units.
 	int addl_tag = 0;
@@ -1004,6 +1009,16 @@ private:
 		Indent();
 		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(),
 		        arg3.c_str(), arg4.c_str());
+		NL();
+		}
+
+	void Emit(const std::string& fmt, const std::string& arg1,
+	          const std::string& arg2, const std::string& arg3,
+	          const std::string& arg4, const std::string& arg5) const
+		{
+		Indent();
+		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(),
+		        arg3.c_str(), arg4.c_str(), arg5.c_str());
 		NL();
 		}
 

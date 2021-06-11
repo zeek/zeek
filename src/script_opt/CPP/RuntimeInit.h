@@ -47,15 +47,17 @@ extern void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash,
 // the given hash.
 extern void register_scripts__CPP(p_hash_type h, void (*callback)());
 
-// Activates the event handler/hook with the given name (which is created
-// if it doesn't exist) and type, using (at least) the bodies associated
-// with the given hashes.
-extern void activate_bodies__CPP(const char* fn, TypePtr t,
+// Activates the function/event handler/hook with the given name and in
+// the given module, using (at least) the bodies associated with the
+// given hashes.  Creates the identifier using the given module and
+// export setting if it doesn't already exist.
+extern void activate_bodies__CPP(const char* fn, const char* module,
+                                 bool exported, TypePtr t,
                                  std::vector<p_hash_type> hashes);
 
 // Looks for a global with the given name.  If not present, creates it
-// with the given type.
-extern IDPtr lookup_global__CPP(const char* g, const TypePtr& t);
+// with the given type and export setting.
+extern IDPtr lookup_global__CPP(const char* g, const TypePtr& t, bool exported);
 
 // Looks for a BiF with the given name.  Returns nil if not present.
 extern Func* lookup_bif__CPP(const char* bif);

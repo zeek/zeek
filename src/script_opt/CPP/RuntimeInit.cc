@@ -98,14 +98,15 @@ void register_scripts__CPP(p_hash_type h, void (*callback)())
 	standalone_callbacks[h] = callback;
 	}
 
-void activate_bodies__CPP(const char* fn, TypePtr t, vector<p_hash_type> hashes)
+void activate_bodies__CPP(const char* fn, const char* module, bool exported,
+                          TypePtr t, vector<p_hash_type> hashes)
 	{
 	auto ft = cast_intrusive<FuncType>(t);
-	auto fg = lookup_ID(fn, GLOBAL_MODULE_NAME, false, false, false);
+	auto fg = lookup_ID(fn, module, false, false, false);
 
 	if ( ! fg )
 		{
-		fg = install_ID(fn, GLOBAL_MODULE_NAME, true, false);
+		fg = install_ID(fn, module, true, exported);
 		fg->SetType(ft);
 		}
 
@@ -170,13 +171,13 @@ void activate_bodies__CPP(const char* fn, TypePtr t, vector<p_hash_type> hashes)
 		}
 	}
 
-IDPtr lookup_global__CPP(const char* g, const TypePtr& t)
+IDPtr lookup_global__CPP(const char* g, const TypePtr& t, bool exported)
 	{
 	auto gl = lookup_ID(g, GLOBAL_MODULE_NAME, false, false, false);
 
 	if ( ! gl )
 		{
-		gl = install_ID(g, GLOBAL_MODULE_NAME, true, false);
+		gl = install_ID(g, GLOBAL_MODULE_NAME, true, exported);
 		gl->SetType(t);
 		}
 

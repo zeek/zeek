@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+#include "zeek/module_util.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/CPP/Compile.h"
 
@@ -516,10 +517,6 @@ void CPPCompile::GenStandaloneActivation()
 
 	for ( auto& fb : func_bodies )
 		{
-		auto f = fb.first;
-		const auto fn = f->Name();
-		const auto& ft = f->GetType();
-
 		string hashes;
 		for ( auto h : fb.second )
 			{
@@ -531,8 +528,23 @@ void CPPCompile::GenStandaloneActivation()
 
 		hashes = "{" + hashes + "}";
 
-		Emit("activate_bodies__CPP(\"%s\", %s, %s);",
-		     fn, GenTypeName(ft), hashes);
+		auto f = fb.first;
+		auto fn = f->Name();
+		const auto& ft = f->GetType();
+
+		auto var = extract_var_name(fn);
+		auto mod = extract_module_name(fn);
+		module_names.insert(mod);
+
+		auto fid = lookup_ID(var.c_str(), mod.c_str(),
+		                     false, true, false);
+		if ( ! fid )
+			reporter->InternalError("can't find identifier %s", fn);
+
+		auto exported = fid->IsExport() ? "true" : "false";
+
+		Emit("activate_bodies__CPP(\"%s\", \"%s\", %s, %s, %s);",
+		     var, mod, exported, GenTypeName(ft), hashes);
 		}
 
 	NL();
@@ -552,7 +564,15 @@ void CPPCompile::GenLoad()
 
 	Emit("register_scripts__CPP(%s, standalone_init__CPP);", Fmt(total_hash));
 
-	// Spit out the placeholder script.
+	// Spit out the placeholder script, and any associated module
+	// definitions.
+	for ( auto& m : module_names )
+		if ( m != "GLOBAL" )
+			printf("module %s;\n", m.c_str());
+
+	if ( module_names.size() > 0 )
+		printf("module GLOBAL;\n\n");
+
 	printf("global init_CPP_%llu = load_CPP(%llu);\n",
 	       total_hash, total_hash);
 	}

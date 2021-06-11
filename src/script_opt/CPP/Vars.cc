@@ -109,9 +109,11 @@ void CPPCompile::CreateGlobal(const ID* g)
 		const auto& t = g->GetType();
 		NoteInitDependency(g, TypeRep(t));
 
+		auto exported = g->IsExport() ? "true" : "false";
+
 		AddInit(g, globals[gn],
 		        string("lookup_global__CPP(\"") + gn + "\", " +
-		        GenTypeName(t) + ")");
+		        GenTypeName(t) + ", " + exported + ")");
 		}
 
 	if ( is_bif )

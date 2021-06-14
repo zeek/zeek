@@ -1,3 +1,8 @@
+
+4.1.0-dev.727 | 2021-06-14 16:19:34 -0700
+
+  * Bump Highwayhash submodule to pull in fix for FreeBSD (Christian Kreibich, Corelight)
+
 4.1.0-dev.725 | 2021-06-11 11:54:30 -0700
 
   * Fixes for the builtin plugin functionality (Seth Hall, Corelight)

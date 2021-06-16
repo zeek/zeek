@@ -1935,6 +1935,12 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 			// Better check that it really is optional. Uou never know.
 			assert(request_type->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL));
 			}
+		else if ( ! vals[*position]->present &&
+			  ! request_type->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) )
+			{
+			Warning(stream, "Skipping input with missing non-optional value");
+			have_error = true;
+			}
 		else
 			{
 			fieldVal = ValueToVal(stream, vals[*position], request_type->GetFieldType(i).get(), have_error);

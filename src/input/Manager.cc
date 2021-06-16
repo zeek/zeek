@@ -1073,7 +1073,21 @@ Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType 
 				}
 			else
 				{
+				// Bail early here if we already have an error. ValueToVal() won't do
+				// anything in that case, and by checking first we know that if
+				// ValueToVal() returns nullptr, there is a new problem.
+				if ( have_error )
+					break;
+
 				auto v = ValueToVal(i, vals[position], type->GetFieldType(j).get(), have_error);
+				if ( ! v )
+					{
+					// Since we're building a (list) value for indexing into
+					// a table, it is for sure an error to miss a value.
+					Warning(i, "Skipping input with missing non-optional value");
+					have_error = true;
+					}
+
 				if ( have_error )
 					break;
 

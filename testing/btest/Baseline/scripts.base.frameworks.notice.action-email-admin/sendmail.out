@@ -18,3 +18,22 @@ Email Extensions
 --
 [Automatically generated]
 
+------- cmdline args -----------
+-t -oi
+----------- stdin --------------
+From: Zeek <zeek@localhost>
+Subject: [Zeek] Test_Notice
+To: 2_dot@example.net
+User-Agent: Zeek/$zeek_version()
+
+Message: test
+
+Address: 1.1.1.1
+
+Email Extensions
+----------------
+
+
+--
+[Automatically generated]
+

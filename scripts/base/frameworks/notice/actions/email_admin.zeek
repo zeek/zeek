@@ -25,16 +25,8 @@ hook notice(n: Notice::Info)
 		{
 		local email = "";
 		if ( n?$src && |Site::get_emails(n$src)| > 0 )
-			email = Site::get_emails(n$src);
+			add n$email_dest[Site::get_emails(n$src)];
 		if ( n?$dst && |Site::get_emails(n$dst)| > 0 )
-			{
-			if ( email != "" )
-				email = fmt("%s, %s", email, Site::get_emails(n$dst));
-			else
-				email = Site::get_emails(n$dst);
-			}
-
-		if ( email != "" )
-			add n$email_dest[email];
+			add n$email_dest[Site::get_emails(n$dst)];
 		}
 	}

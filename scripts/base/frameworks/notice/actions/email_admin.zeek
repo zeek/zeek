@@ -35,11 +35,6 @@ hook notice(n: Notice::Info)
 			}
 
 		if ( email != "" )
-			{
-			if ( ! n?$email_dest )
-				n$email_dest = set();
-
 			add n$email_dest[email];
-			}
 		}
 	}

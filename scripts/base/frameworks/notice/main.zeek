@@ -137,7 +137,7 @@ export {
 		actions:        ActionSet      &log &default=ActionSet();
 
 		## The email address(es) where to send this notice
-		email_dest:     set[string]    &log &optional;
+		email_dest:     set[string]    &log &default=set();
 
 		## By adding chunks of text into this element, other scripts
 		## can expand on notices that are being emailed.  The normal
@@ -516,19 +516,13 @@ hook Notice::policy(n: Notice::Info) &priority=10
 hook Notice::notice(n: Notice::Info)
 	{
 	if ( ACTION_EMAIL in n$actions )
-		{
-		if ( ! n?$email_dest )
-			n$email_dest = set();
-
 		add n$email_dest[mail_dest];
-		}
 	}
 
 hook Notice::notice(n: Notice::Info) &priority=-5
 	{
-	if ( n?$email_dest )
-		for ( dest in n$email_dest )
-			email_notice_to(n, dest, T);
+	for ( dest in n$email_dest )
+		email_notice_to(n, dest, T);
 
 	if ( ACTION_LOG in n$actions )
 		Log::write(Notice::LOG, n);

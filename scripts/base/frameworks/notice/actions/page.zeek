@@ -20,10 +20,5 @@ export {
 hook notice(n: Notice::Info)
 	{
 	if ( ACTION_PAGE in n$actions )
-		{
-		if ( ! n?$email_dest )
-			n$email_dest = set();
-
 		add n$email_dest[mail_page_dest];
-		}
 	}

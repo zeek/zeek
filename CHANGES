@@ -1,4 +1,16 @@
 
+4.1.0-dev.731 | 2021-06-17 10:40:58 +0100
+
+  * Change SSH version field to be `&optional`.
+
+    In version 3.3.0-dev.537 we added handling for SSH version 1.99 which
+    used a SSH version of 0 to indicate weird cases where no version could be
+    determined.
+
+    This patch is a fixup for that patch. We now use an `&optional` version value.
+    If no SSH version can be eixtracted the version will be unset; additionally a
+    `conn_weird` event will be raised. See GH-1590. (Benjamin Bannier, Corelight)
+
 4.1.0-dev.727 | 2021-06-14 16:19:34 -0700
 
   * Bump Highwayhash submodule to pull in fix for FreeBSD (Christian Kreibich, Corelight)

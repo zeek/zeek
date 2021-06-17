@@ -75,6 +75,10 @@ Changed Functionality
   analyzers in the future that better align with the packet analysis framework
   than they do with session analysis.
 
+
+- The version field in ssh.log is now optional and will not be set if we cannot
+  determine the version that was negotiated by the client and server.
+
 Removed Functionality
 ---------------------
 

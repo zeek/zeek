@@ -20,8 +20,12 @@ export {
 		uid:             string       &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:              conn_id      &log;
-		## SSH major version (1 or 2)
-		version:         count        &log;
+		## SSH major version (1, 2, or unset). The version can be unset if the
+		## client and server version strings are unset, malformed or incompatible
+		## so no common version can be extracted. If no version can be extracted
+		## even though both client and server versions are set a weird
+		## will be generated.
+		version:         count        &log &optional;
 		## Authentication result (T=success, F=failure, unset=unknown)
 		auth_success:    bool         &log &optional;
 		## The number of authentication attemps we observed. There's always
@@ -155,65 +159,82 @@ function set_session(c: connection)
 		}
 	}
 
-function set_version(c: connection, version: string)
-    {
-    if ( c$ssh?$server && c$ssh?$client && |c$ssh$client| > 4 && |c$ssh$server| > 4 )
-        {
-        if ( c$ssh$client[4] == "1" && c$ssh$server[4] == "2" )
-            {
-            # SSH199 vs SSH2 -> 2
-            if ( ( |c$ssh$client| > 7 ) && ( c$ssh$client[6] == "9" ) && ( c$ssh$client[7] == "9" ) )
-                c$ssh$version = 2;
-            # SSH1 vs SSH2 -> Undefined
-            else
-                c$ssh$version = 0;
-            }
-        else if ( c$ssh$client[4] == "2" && c$ssh$server[4] == "1" )
-            {
-            # SSH2 vs SSH199 -> 2
-            if ( ( |c$ssh$server| > 7 ) && ( c$ssh$server[6] == "9" ) && ( c$ssh$server[7] == "9" ) )
-                c$ssh$version = 2;
-            else
-            # SSH2 vs SSH1 -> Undefined
-                c$ssh$version = 0;
-            }
-        else if ( c$ssh$client[4] == "1" && c$ssh$server[4] == "1" )
-            {
-            # SSH1 vs SSH199 -> 1
-            if ( ( |c$ssh$server| > 7 ) && ( c$ssh$server[6] == "9" ) && ( c$ssh$server[7] == "9" ) )
-                {
-                # SSH199 vs SSH199
-                if (( |c$ssh$client| > 7 ) && ( c$ssh$client[6] == "9" ) && ( c$ssh$client[7] == "9" ))
-                    c$ssh$version = 2;
-                else
-                    c$ssh$version = 1;
-                }
-            else
-                {
-                # SSH1 vs SSH1 -> 1
-                c$ssh$version = 1;
-                }
-            }
-        # SSH2 vs SSH2
-        else if (c$ssh$client[4] == "2" && c$ssh$server[4] == "2" )
-            {
-            c$ssh$version = 2;
-            }
-        }
-    }
+function set_version(c: connection)
+	{
+	# We always either set the version field to a concrete value, or unset it.
+	delete c$ssh$version;
+
+	# If either the client or server string is unset we cannot compute a
+	# version and return early. We do not raise a weird in this case as we
+	# might arrive here while having only seen one side of the handshake.
+	const has_server = c$ssh?$server && |c$ssh$server| > 0;
+	const has_client = c$ssh?$client && |c$ssh$client| > 0;
+	if ( ! ( has_server && has_client ) )
+		return;
+
+	if ( |c$ssh$client| > 4 && |c$ssh$server| > 4 )
+		{
+		if ( c$ssh$client[4] == "1" && c$ssh$server[4] == "2" )
+			{
+			# SSH199 vs SSH2 -> 2
+			if ( ( |c$ssh$client| > 7 ) && ( c$ssh$client[6] == "9" ) && ( c$ssh$client[7] == "9" ) )
+				c$ssh$version = 2;
+			# SSH1 vs SSH2 -> Undefined
+			else
+				Reporter::conn_weird("SSH_version_mismatch", c, fmt("%s vs %s", c$ssh$server, c$ssh$client));
+				return;
+			}
+		else if ( c$ssh$client[4] == "2" && c$ssh$server[4] == "1" )
+			{
+			# SSH2 vs SSH199 -> 2
+			if ( ( |c$ssh$server| > 7 ) && ( c$ssh$server[6] == "9" ) && ( c$ssh$server[7] == "9" ) )
+				c$ssh$version = 2;
+			else
+				# SSH2 vs SSH1 -> Undefined
+				Reporter::conn_weird("SSH_version_mismatch", c, fmt("%s vs %s", c$ssh$server, c$ssh$client));
+				return;
+			}
+		else if ( c$ssh$client[4] == "1" && c$ssh$server[4] == "1" )
+			{
+			# SSH1 vs SSH199 -> 1
+			if ( ( |c$ssh$server| > 7 ) && ( c$ssh$server[6] == "9" ) && ( c$ssh$server[7] == "9" ) )
+				{
+				# SSH199 vs SSH199
+				if (( |c$ssh$client| > 7 ) && ( c$ssh$client[6] == "9" ) && ( c$ssh$client[7] == "9" ))
+					c$ssh$version = 2;
+				else
+					c$ssh$version = 1;
+				}
+			else
+				{
+				# SSH1 vs SSH1 -> 1
+				c$ssh$version = 1;
+				}
+			}
+		# SSH2 vs SSH2
+		else if (c$ssh$client[4] == "2" && c$ssh$server[4] == "2" )
+			{
+			c$ssh$version = 2;
+			}
+
+		return;
+		}
+
+	Reporter::conn_weird("SSH_cannot_determine_version", c, fmt("%s vs %s", c$ssh$server, c$ssh$client));
+	}
 
 event ssh_server_version(c: connection, version: string)
 	{
 	set_session(c);
 	c$ssh$server = version;
-	set_version(c, version);
+	set_version(c);
 	}
 
 event ssh_client_version(c: connection, version: string)
 	{
 	set_session(c);
 	c$ssh$client = version;
-	set_version(c, version);
+	set_version(c);
 	}
 
 event ssh_auth_attempted(c: connection, authenticated: bool) &priority=5

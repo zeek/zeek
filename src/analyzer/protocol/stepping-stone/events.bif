@@ -1,17 +1,17 @@
 ## Deprecated. Will be removed.
-event stp_create_endp%(c: connection, e: int, is_orig: bool%);
+event stp_create_endp%(c: connection, e: int, is_orig: bool%) &deprecated="Remove in v4.1. The stepping-stone analyzer has been unmaintained for a long time and will be removed. See ticket 1573 for details";
 
 # ##### Internal events. Not further documented.
 
 ## Event internal to the stepping stone detector.
-event stp_resume_endp%(e: int%);
+event stp_resume_endp%(e: int%) &deprecated="Remove in v4.1. The stepping-stone analyzer has been unmaintained for a long time and will be removed. See ticket 1573 for details";
 
 ## Event internal to the stepping stone detector.
-event stp_correlate_pair%(e1: int, e2: int%);
+event stp_correlate_pair%(e1: int, e2: int%) &deprecated="Remove in v4.1. The stepping-stone analyzer has been unmaintained for a long time and will be removed. See ticket 1573 for details";
 
 ## Event internal to the stepping stone detector.
-event stp_remove_pair%(e1: int, e2: int%);
+event stp_remove_pair%(e1: int, e2: int%) &deprecated="Remove in v4.1. The stepping-stone analyzer has been unmaintained for a long time and will be removed. See ticket 1573 for details";
 
 ## Event internal to the stepping stone detector.
-event stp_remove_endp%(e: int%);
+event stp_remove_endp%(e: int%) &deprecated="Remove in v4.1. The stepping-stone analyzer has been unmaintained for a long time and will be removed. See ticket 1573 for details";
 

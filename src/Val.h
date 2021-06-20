@@ -1203,6 +1203,18 @@ public:
 		}
 
 	/**
+	 * Returns true if the given field is in the record, false if
+	 * it's missing.
+	 * @param field  The field name to retrieve.
+	 * @return  Whether there's a value for the given field name.
+	 */
+	bool HasField(const char *field) const
+		{
+		int idx = GetType()->AsRecordType()->FieldOffset(field);
+		return HasField(idx);
+		}
+
+	/**
 	 * Returns the value of a given field index.
 	 * @param field  The field index to retrieve.
 	 * @return  The value at the given field index.

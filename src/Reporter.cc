@@ -380,6 +380,10 @@ bool Reporter::PermitFlowWeird(const char* name,
 
 bool Reporter::PermitExpiredConnWeird(const char* name, const RecordVal& conn_id)
 	{
+	if ( !conn_id.HasField("orig_h") || !conn_id.HasField("resp_h") ||
+	     !conn_id.HasField("orig_p") || !conn_id.HadField("resp_p") )
+		return false;
+
 	auto conn_tuple = std::make_tuple(conn_id.GetFieldAs<AddrVal>("orig_h"),
 	                                  conn_id.GetFieldAs<AddrVal>("resp_h"),
 	                                  conn_id.GetFieldAs<PortVal>("orig_p")->Port(),

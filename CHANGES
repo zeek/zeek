@@ -1,4 +1,10 @@
 
+4.1.0-dev.748 | 2021-06-21 15:41:29 -0700
+
+  * Drop Fedora 32 from CI, now past EOL (Christian Kreibich, Corelight)
+
+  * Remove a double-defined TLS cert from a Broker btest (Christian Kreibich, Corelight)
+
 4.1.0-dev.744 | 2021-06-21 09:17:36 +0200
 
   * Add a new field `email_dest` to NOTICEs, which defines where to

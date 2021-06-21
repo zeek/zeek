@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+#
+# Just writes the arguments and stdin to a file, to compare with diff
+
+echo "------- cmdline args -----------" >> sendmail.out
+echo "$*" >> sendmail.out
+echo "----------- stdin --------------" >> sendmail.out
+while IFS= read -r line; do
+    # Strip out the user agent, which is version dependent
+    if [[ $line == "User-Agent: Zeek/"* ]]; then
+        printf 'User-Agent: Zeek/$zeek_version()\n' >> sendmail.out
+    else
+        printf '%s\n' "$line" >> sendmail.out
+    fi
+done

@@ -75,9 +75,16 @@ Changed Functionality
   analyzers in the future that better align with the packet analysis framework
   than they do with session analysis.
 
-
 - The version field in ssh.log is now optional and will not be set if we cannot
   determine the version that was negotiated by the client and server.
+
+- Add a new field `email_dest` to NOTICEs, which defines where to
+  send email to. The email-related NOTICE actions fill this now, and
+  then emails will be sent to all recorded addresses at the end of
+  NOTICE processing. This makes email generation more consistent and
+  extensible.
+
+- Add page and email administrator to mails processed by hostnames extension.
 
 Removed Functionality
 ---------------------

@@ -13,13 +13,14 @@ module Notice;
 # reference to the original notice)
 global tmp_notice_storage: table[string] of Notice::Info &create_expire=max_email_delay+10secs;
 
-hook notice(n: Notice::Info) &priority=10
+# Run after e-mail address is set, but before e-mail is sent.
+hook notice(n: Notice::Info) &priority=-1
 	{
 	if ( ! n?$src && ! n?$dst )
 		return;
 
 	# This should only be done for notices that are being sent to email.
-	if ( ACTION_EMAIL !in n$actions )
+	if ( ! n?$email_dest )
 		return;
 
 	# I'm not recovering gracefully from the when statements because I want

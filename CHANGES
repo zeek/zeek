@@ -1,4 +1,15 @@
 
+4.1.0-dev.744 | 2021-06-21 09:17:36 +0200
+
+  * Add a new field `email_dest` to NOTICEs, which defines where to
+    send email to. The email-related NOTICE actions fill this now, and
+    then emails will be sent to all recorded addresses at the end of
+    NOTICE processing. This makes email generation more consistent and
+    extensible. (Vlad Grigorescu)
+
+  * Add page and email administrator to mails processed by hostnames
+    extension. (Vlad Grigorescu)
+
 4.1.0-dev.731 | 2021-06-17 10:40:58 +0100
 
   * Change SSH version field to be `&optional`.

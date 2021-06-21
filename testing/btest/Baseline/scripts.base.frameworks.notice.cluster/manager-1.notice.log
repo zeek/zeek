@@ -5,7 +5,7 @@
 #unset_field	-
 #path	notice
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	suppress_for	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
-#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	set[enum]	interval	string	string	string	double	double
-XXXXXXXXXX.XXXXXX	-	-	-	-	-	-	-	-	-	Test_Notice	test notice!	-	-	-	-	-	worker-1	Notice::ACTION_LOG	3600.000000	-	-	-	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	email_dest	suppress_for	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
+#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	set[enum]	set[string]	interval	string	string	string	double	double
+XXXXXXXXXX.XXXXXX	-	-	-	-	-	-	-	-	-	Test_Notice	test notice!	-	-	-	-	-	worker-1	Notice::ACTION_LOG	(empty)	3600.000000	-	-	-	-	-
 #close XXXX-XX-XX-XX-XX-XX

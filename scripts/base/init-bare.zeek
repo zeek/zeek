@@ -4118,15 +4118,6 @@ type PE::SectionHeader: record {
 }
 module GLOBAL;
 
-## Internal to the stepping stone detector.
-const stp_delta: interval &redef;
-
-## Internal to the stepping stone detector.
-const stp_idle_min: interval &redef;
-
-## Internal to the stepping stone detector.
-global stp_skip_src: set[addr] &redef;
-
 ## Description of a signature match.
 ##
 ## .. zeek:see:: signature_match

@@ -1,3 +1,12 @@
+4.1.0-dev.750 | 2021-06-21 16:14:03 -0700
+
+  * Remove the Stepping Stone analyzer
+
+    This commit removes the stepping stone analyzer. It has been deactivated
+    by default since at least Zeek 2.0, is dysfunctional in cluster settings
+    and has a bunch of other issued.
+
+    Relates to GH-1573 (Johanna Amann, Corelight)
 
 4.1.0-dev.748 | 2021-06-21 15:41:29 -0700
 

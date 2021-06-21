@@ -157,9 +157,6 @@ int dns_skip_all_auth;
 int dns_skip_all_addl;
 int dns_max_queries;
 
-double stp_delta;
-double stp_idle_min;
-
 double table_expire_interval;
 double table_expire_delay;
 int table_incremental_step;
@@ -311,11 +308,6 @@ void init_net_var()
 	dns_skip_all_auth = id::find_val("dns_skip_all_auth")->AsBool();
 	dns_skip_all_addl = id::find_val("dns_skip_all_addl")->AsBool();
 	dns_max_queries = id::find_val("dns_max_queries")->AsCount();
-
-	stp_delta = 0.0;
-	if ( const auto& v = id::find_val("stp_delta") ) stp_delta = v->AsInterval();
-	stp_idle_min = 0.0;
-	if ( const auto& v = id::find_val("stp_idle_min") ) stp_delta = v->AsInterval();
 
 	orig_addr_anonymization = 0;
 	if ( const auto& id = id::find("orig_addr_anonymization") )

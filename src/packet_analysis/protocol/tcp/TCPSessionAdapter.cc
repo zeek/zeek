@@ -10,7 +10,6 @@
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
-#include "zeek/analyzer/protocol/stepping-stone/SteppingStone.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
 
@@ -1604,7 +1603,6 @@ bool TCPSessionAdapter::IsReuse(double t, const u_char* pkt)
 void TCPSessionAdapter::AddExtraAnalyzers(Connection* conn)
 	{
 	static analyzer::Tag analyzer_connsize = analyzer_mgr->GetComponentTag("CONNSIZE");
-	static analyzer::Tag analyzer_stepping = analyzer_mgr->GetComponentTag("STEPPINGSTONE");
 	static analyzer::Tag analyzer_tcpstats = analyzer_mgr->GetComponentTag("TCPSTATS");
 
 	// We have to decide whether to reassamble the stream.
@@ -1633,24 +1631,6 @@ void TCPSessionAdapter::AddExtraAnalyzers(Connection* conn)
 
 	if ( reass )
 		EnableReassembly();
-
-	if ( analyzer_mgr->IsEnabled(analyzer_stepping) )
-		{
-		// Add a SteppingStone analyzer if requested.  The port
-		// should really not be hardcoded here, but as it can
-		// handle non-reassembled data, it doesn't really fit into
-		// our general framing ...  Better would be to turn it
-		// on *after* we discover we have interactive traffic.
-		uint16_t resp_port = ntohs(Conn()->RespPort());
-		if ( resp_port == 22 || resp_port == 23 || resp_port == 513 )
-			{
-			static auto stp_skip_src = id::find_val<TableVal>("stp_skip_src");
-			auto src = make_intrusive<AddrVal>(Conn()->OrigAddr());
-
-			if ( ! stp_skip_src->FindOrDefault(src) )
-				AddChildAnalyzer(new analyzer::stepping_stone::SteppingStone_Analyzer(conn), false);
-			}
-		}
 
 	if ( analyzer_mgr->IsEnabled(analyzer_tcpstats) )
 		// Add TCPStats analyzer. This needs to see packets so

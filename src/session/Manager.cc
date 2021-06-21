@@ -26,8 +26,6 @@
 #include "zeek/iosource/IOSource.h"
 #include "zeek/packet_analysis/Manager.h"
 
-#include "zeek/analyzer/protocol/stepping-stone/events.bif.h"
-
 zeek::session::Manager* zeek::session_mgr = nullptr;
 zeek::session::Manager*& zeek::sessions = zeek::session_mgr;
 

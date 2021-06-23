@@ -493,7 +493,7 @@ set(ZEEK_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 set(DEFAULT_ZEEKPATH .:${ZEEK_SCRIPT_INSTALL_PATH}:${ZEEK_SCRIPT_INSTALL_PATH}/policy:${ZEEK_SCRIPT_INSTALL_PATH}/site:${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins)
 
 if ( NOT BINARY_PACKAGING_MODE )
-    set(ZEEK_DIST ${CMAKE_SOURCE_DIR})
+    set(ZEEK_DIST ${PROJECT_SOURCE_DIR})
 endif ()
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
@@ -650,7 +650,7 @@ message(
     "\n====================|  Zeek Build Summary  |===================="
     "\n"
     "\nBuild type:        ${CMAKE_BUILD_TYPE}"
-    "\nBuild dir:         ${CMAKE_BINARY_DIR}"
+    "\nBuild dir:         ${PROJECT_BINARY_DIR}"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
     "\nPlugin dir:        ${BRO_PLUGIN_INSTALL_PATH}"
     "\nPython module dir: ${PY_MOD_INSTALL_DIR}"

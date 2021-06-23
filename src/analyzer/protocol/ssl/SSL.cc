@@ -228,12 +228,16 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 
 		// save derived keys
 		SetKeys(keybuf, sizeof(keybuf));
+#else
+		DBG_LOG(DBG_ANALYZER, "Cannot derive TLS keys as Zeek was compiled without <openssl/kdf.h>");
 #endif
 		}
 
 	// Keys present: decrypt TLS application data
-	if ( keys != nullptr && keys->Len() != 0 )
+	if ( keys != nullptr && keys->Len() == 72 )
 		{
+		// FIXME: could also print keys or conn id here
+		DBG_LOG(DBG_ANALYZER, "Decrypting application data");
 		// session keys & AEAD data
 		u_char c_wk[32];
 		u_char s_wk[32];
@@ -305,6 +309,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 			return false;
 			}
 
+		DBG_LOG(DBG_ANALYZER, "Successfully decrypted %d bytes.", decrypted_len);
 		EVP_CIPHER_CTX_free(ctx);
 		ForwardDecryptedData(decrypted_len, reinterpret_cast<const u_char*>(decrypted), is_orig);
 

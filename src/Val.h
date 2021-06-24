@@ -1176,22 +1176,6 @@ public:
 		}
 
 	/**
-	 * Appends a value to the record's fields.  The caller is responsible
-	 * for ensuring that fields are appended in the correct order and
-	 * with the correct type.  The type needs to be passed in because
-	 * it's unsafe to take it from v when the field's type is "any" while
-	 * v is a concrete type.
-	 * @param v  The value to append.
-	 */
-	void AppendField(ValPtr v, const TypePtr& t)
-		{
-		if ( v )
-			record_val->emplace_back(ZVal(v, t));
-		else
-			record_val->emplace_back(std::nullopt);
-		}
-
-	/**
 	 * Returns the number of fields in the record.
 	 * @return  The number of fields in the record.
 	 */
@@ -1401,6 +1385,23 @@ public:
 
 protected:
 	friend class zeek::detail::ZBody;
+
+	/**
+	 * Appends a value to the record's fields.  The caller is responsible
+	 * for ensuring that fields are appended in the correct order and
+	 * with the correct type.  The type needs to be passed in because
+	 * it's unsafe to take it from v when the field's type is "any" while
+	 * v is a concrete type.
+	 * @param v  The value to append.
+	 * @param t  The type associated with the field.
+	 */
+	void AppendField(ValPtr v, const TypePtr& t)
+		{
+		if ( v )
+			record_val->emplace_back(ZVal(v, t));
+		else
+			record_val->emplace_back(std::nullopt);
+		}
 
 	// For use by low-level ZAM instructions.  Caller assumes
 	// responsibility for memory management.  The first version

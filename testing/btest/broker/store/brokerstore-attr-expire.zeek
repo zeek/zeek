@@ -8,8 +8,8 @@
 
 # @TEST-PORT: BROKER_PORT
 
-# @TEST-EXEC: btest-bg-run master "zeek -B broker -b ../common.zeek ../master.zeek >../master.out"
-# @TEST-EXEC: btest-bg-run clone "zeek -B broker -b ../common.zeek ../clone.zeek >../clone.out"
+# @TEST-EXEC: btest-bg-run master "zeek -b ../common.zeek ../master.zeek >../master.out"
+# @TEST-EXEC: btest-bg-run clone "zeek -b ../common.zeek ../clone.zeek >../clone.out"
 # @TEST-EXEC: btest-bg-wait 20
 #
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff clone.out

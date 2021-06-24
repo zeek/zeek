@@ -272,3 +272,19 @@ extern const char* BRO_VERSION_FUNCTION();
 	#define ZEEK_LSAN_DISABLE(x)
 	#define ZEEK_LSAN_DISABLE_SCOPE(x)
 #endif
+
+#if defined(__SANITIZE_THREAD__)
+	#define ZEEK_TSAN
+#endif
+
+#if defined(__has_feature)
+	#if __has_feature(thread_sanitizer)
+		#define ZEEK_TSAN
+	#endif
+#endif
+
+#if defined(ZEEK_TSAN)
+	#define ZEEK_DISABLE_TSAN __attribute__((no_sanitize("thread")))
+#else
+	#define ZEEK_DISABLE_TSAN
+#endif

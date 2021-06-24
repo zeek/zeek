@@ -22,7 +22,7 @@ function set_secret%(c: connection, secret: string%): bool
 	analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
 	if ( sa )
 	{
-		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->SetSecret(secret->Bytes(), secret->Len());
+		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->SetSecret(secret);
 		return zeek::val_mgr->True();
 	}
 	return zeek::val_mgr->False();
@@ -33,7 +33,7 @@ function set_keys%(c: connection, keys: string%): bool
 	analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
 	if ( sa )
 	{
-		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->SetKeys(keys->Bytes(), keys->Len());
+		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->SetKeys(keys);
 		return zeek::val_mgr->True();
 	}
 	return zeek::val_mgr->False();

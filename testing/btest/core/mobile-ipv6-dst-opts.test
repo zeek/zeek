@@ -1,4 +1,2 @@
-# @TEST-REQUIRES: grep -q "#define ENABLE_MOBILE_IPV6" $BUILD/zeek-config.h
-#
 # @TEST-EXEC: zeek -C -r $TRACES/ipv6-mobility-dst-opts.trace
 # @TEST-EXEC: btest-diff weird.log

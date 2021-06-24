@@ -157,7 +157,6 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 		}
 		break;
 
-#ifdef ENABLE_MOBILE_IPV6
 	case IPPROTO_MOBILITY:
 		{
 		static auto ip6_mob_type = id::find_type<RecordType>("ip6_mobility_hdr");
@@ -290,7 +289,6 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 		rv->Assign(5, std::move(msg));
 		}
 		break;
-#endif //ENABLE_MOBILE_IPV6
 
 	default:
 		break;
@@ -445,9 +443,7 @@ static inline bool isIPv6ExtHeader(uint8_t type)
 	case IPPROTO_FRAGMENT:
 	case IPPROTO_AH:
 	case IPPROTO_ESP:
-#ifdef ENABLE_MOBILE_IPV6
 	case IPPROTO_MOBILITY:
-#endif
 		return true;
 	default:
 		return false;
@@ -457,9 +453,7 @@ static inline bool isIPv6ExtHeader(uint8_t type)
 IPv6_Hdr_Chain::~IPv6_Hdr_Chain()
 	{
 	for ( size_t i = 0; i < chain.size(); ++i ) delete chain[i];
-#ifdef ENABLE_MOBILE_IPV6
 	delete homeAddr;
-#endif
 	delete finalDst;
 	}
 
@@ -509,11 +503,9 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len,
 		if ( current_type == IPPROTO_ROUTING )
 			ProcessRoutingHeader((const struct ip6_rthdr*) hdrs, cur_len);
 
-#ifdef ENABLE_MOBILE_IPV6
 		// Only Mobile IPv6 has a destination option we care about right now.
 		if ( current_type == IPPROTO_DSTOPTS )
 			ProcessDstOpts((const struct ip6_dest*) hdrs, cur_len);
-#endif
 
 		hdrs += cur_len;
 		length += cur_len;
@@ -521,9 +513,7 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len,
 
 		} while ( current_type != IPPROTO_FRAGMENT &&
 				  current_type != IPPROTO_ESP &&
-#ifdef ENABLE_MOBILE_IPV6
 				  current_type != IPPROTO_MOBILITY &&
-#endif
 				  isIPv6ExtHeader(next_type) );
 	}
 
@@ -540,10 +530,8 @@ bool IPv6_Hdr_Chain::IsFragment() const
 
 IPAddr IPv6_Hdr_Chain::SrcAddr() const
 	{
-#ifdef ENABLE_MOBILE_IPV6
 	if ( homeAddr )
 		return IPAddr(*homeAddr);
-#endif
 	if ( chain.empty() )
 		{
 		reporter->InternalWarning("empty IPv6 header chain");
@@ -595,7 +583,6 @@ void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t le
 		}
 		break;
 
-#ifdef ENABLE_MOBILE_IPV6
 	case 2: // Defined by Mobile IPv6 RFC 6275.
 		{
 		if ( r->ip6r_segleft > 0 )
@@ -607,7 +594,6 @@ void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t le
 			}
 		}
 		break;
-#endif
 
 	default:
 		reporter->Weird(SrcAddr(), DstAddr(), "unknown_routing_type",
@@ -616,7 +602,6 @@ void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t le
 	}
 	}
 
-#ifdef ENABLE_MOBILE_IPV6
 void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16_t len)
 	{
 	// Skip two bytes to get the beginning of the first option structure. These
@@ -672,7 +657,6 @@ void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16_t len)
 		}
 	}
 	}
-#endif
 
 VectorValPtr IPv6_Hdr_Chain::ToVal() const
 	{
@@ -712,11 +696,9 @@ VectorValPtr IPv6_Hdr_Chain::ToVal() const
 		case IPPROTO_ESP:
 			ext_hdr->Assign(6, std::move(v));
 			break;
-#ifdef ENABLE_MOBILE_IPV6
 		case IPPROTO_MOBILITY:
 			ext_hdr->Assign(7, std::move(v));
 			break;
-#endif
 		default:
 			reporter->InternalWarning("IPv6_Hdr_Chain bad header %d", type);
 			continue;
@@ -749,10 +731,8 @@ IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
 	IPv6_Hdr_Chain* rval = new IPv6_Hdr_Chain;
 	rval->length = length;
 
-#ifdef ENABLE_MOBILE_IPV6
 	if ( homeAddr )
 		rval->homeAddr = new IPAddr(*homeAddr);
-#endif
 
 	if ( finalDst )
 		rval->finalDst = new IPAddr(*finalDst);

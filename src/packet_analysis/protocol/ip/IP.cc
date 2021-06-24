@@ -196,7 +196,6 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		return true;
 		}
 
-#ifdef ENABLE_MOBILE_IPV6
 	// We stop building the chain when seeing IPPROTO_MOBILITY so it's always
 	// last if present.
 	if ( packet->ip_hdr->LastHeader() == IPPROTO_MOBILITY )
@@ -217,7 +216,6 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 		return true;
 		}
-#endif
 
 	// Set the data pointer to match the payload from the IP header. This makes sure that it's also pointing
 	// at the reassembled data for a fragmented packet.

@@ -1,3 +1,7 @@
+4.1.0-dev.823 | 2021-06-29 10:24:08 -0700
+
+  * made RecordVal::AppendField protected: it's low-level & requires knowledge of internals (Vern Paxson, Corelight)
+
 4.1.0-dev.821 | 2021-06-29 08:38:37 -0700
 
   * Fix package name for CMake on CentOS 8 (Dominik Charousset, Corelight)

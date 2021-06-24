@@ -219,7 +219,7 @@ macos_big_sur_task:
 
 macos_catalina_task:
   macos_instance:
-    image: catalina-xcode-11.6
+    image: catalina-xcode
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_RESOURCES_TEMPLATE

@@ -1,3 +1,13 @@
+4.1.0-dev.755 | 2021-06-23 13:53:54 -0700
+
+  * Call brew update-reset in ci/macos/prepare.sh
+
+    This fixes some issues with the Catalina builds when it prepares the image
+    and the base Cirrus image has old recipes for Homebrew. The VM then has
+    to build a bunch of packages it shouldn't need to. (Tim Wojtulewicz, Corelight)
+
+  * GH-1368: Use --osx-sysroot for macOS CI builds (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.750 | 2021-06-21 16:14:03 -0700
 
   * Remove the Stepping Stone analyzer

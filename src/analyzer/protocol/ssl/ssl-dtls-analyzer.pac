@@ -43,7 +43,7 @@ refine connection SSL_Conn += {
 		return true;
 		%}
 
-	function proc_ciphertext_record(rec : SSLRecord) : bool
+	function proc_ciphertext_record(rec : SSLRecord, cont: bytestring) : bool
 		%{
 		if ( established_ == false && determine_tls13() == 1 )
 			{
@@ -62,8 +62,15 @@ refine connection SSL_Conn += {
 			}
 
 		if ( ssl_encrypted_data )
+			{
 			zeek::BifEvent::enqueue_ssl_encrypted_data(zeek_analyzer(),
-				zeek_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
+				zeek_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length},
+				zeek::make_intrusive<zeek::StringVal>(cont.length(), (const char*) cont.data()));
+			if (rec->content_type() == APPLICATION_DATA)
+				{
+				zeek_analyzer()->TryDecryptApplicationData(cont.length(), cont.data(), rec->is_orig(), rec->content_type(), rec->raw_tls_version());
+				}
+			}
 
 		return true;
 		%}
@@ -123,7 +130,7 @@ refine typeattr UnknownRecord += &let {
 };
 
 refine typeattr CiphertextRecord += &let {
-	proc : bool = $context.connection.proc_ciphertext_record(rec);
+	proc : bool = $context.connection.proc_ciphertext_record(rec, cont);
 }
 
 refine typeattr PlaintextRecord += &let {

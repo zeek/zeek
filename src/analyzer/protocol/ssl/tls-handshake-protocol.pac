@@ -959,6 +959,11 @@ refine connection Handshake_Conn += {
 		gmt_unix_time_ = 0;
 	%}
 
+	%cleanup{
+		client_random_.free();
+		server_random_.free();
+	%}
+
 	function chosen_cipher() : int %{ return chosen_cipher_; %}
 
 	function set_cipher(cipher: uint32) : bool
@@ -995,6 +1000,7 @@ refine connection Handshake_Conn += {
 
 	function set_client_random(client_random: bytestring) : bool
 		%{
+		client_random_.free();
 		client_random_.init(client_random.data(), client_random.length());
 		return true;
 		%}
@@ -1003,6 +1009,7 @@ refine connection Handshake_Conn += {
 
 	function set_server_random(server_random: bytestring) : bool
 		%{
+		server_random_.free();
 		server_random_.init(server_random.data(), server_random.length());
 		return true;
 		%}

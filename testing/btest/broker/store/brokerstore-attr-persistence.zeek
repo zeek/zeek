@@ -1,5 +1,5 @@
-# @TEST-EXEC: zeek -B broker -b %DIR/sort-stuff.zeek common.zeek one.zeek > output1
-# @TEST-EXEC: zeek -B broker -b %DIR/sort-stuff.zeek common.zeek two.zeek > output2
+# @TEST-EXEC: zeek -b %DIR/sort-stuff.zeek common.zeek one.zeek > output1
+# @TEST-EXEC: zeek -b %DIR/sort-stuff.zeek common.zeek two.zeek > output2
 # @TEST-EXEC: btest-diff output1
 # @TEST-EXEC: btest-diff output2
 # @TEST-EXEC: diff output1 output2

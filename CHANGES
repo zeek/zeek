@@ -1,3 +1,23 @@
+4.1.0-dev.764 | 2021-06-27 10:50:19 -0700
+
+  * Remove unnecessary -B arguments from Zeek invocations in testsuite
+
+    Now that Zeek no longer silently accepts -B when not compiled in debug
+    mode, these tests were failing. (Christian Kreibich, Corelight)
+
+  * Fix perftools-enabled build (Christian Kreibich, Corelight)
+
+  * Minor tweaks to single-character command line option handling
+
+    - Use of "-B" now triggers usage output and errors out when Zeek
+      wasn't built with debugging support.
+
+    - Always keep the perftools options (-m, -M) in the optparse string,
+      for consistency with other flags dependent on configuration. We
+      still fall through to usage and erroring out as before.
+
+    - Minor indentation fix. (Christian Kreibich, Corelight)
+
 4.1.0-dev.760 | 2021-06-27 10:46:01 -0700
 
   * Add btest test case (Luke Cesarz)

@@ -2,9 +2,9 @@
 
 # @TEST-PORT: BROKER_PORT
 
-# @TEST-EXEC: btest-bg-run master "zeek -B broker -b %DIR/sort-stuff.zeek ../common.zeek ../master.zeek >../master.out"
-# @TEST-EXEC: btest-bg-run cloneone "zeek -B broker -b %DIR/sort-stuff.zeek ../common.zeek ../cloneone.zeek >../cloneone.out"
-# @TEST-EXEC: btest-bg-run clonetwo "zeek -B broker -b %DIR/sort-stuff.zeek ../common.zeek ../clonetwo.zeek >../clonetwo.out"
+# @TEST-EXEC: btest-bg-run master "zeek -b %DIR/sort-stuff.zeek ../common.zeek ../master.zeek >../master.out"
+# @TEST-EXEC: btest-bg-run cloneone "zeek -b %DIR/sort-stuff.zeek ../common.zeek ../cloneone.zeek >../cloneone.out"
+# @TEST-EXEC: btest-bg-run clonetwo "zeek -b %DIR/sort-stuff.zeek ../common.zeek ../clonetwo.zeek >../clonetwo.out"
 # @TEST-EXEC: btest-bg-wait 20
 #
 # @TEST-EXEC: btest-diff master.out

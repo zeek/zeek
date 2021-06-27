@@ -350,12 +350,8 @@ Options parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:o:p:r:s:T:t:U:w:X:CDFNPQSWabdhuv",
+	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuv",
 	                         sizeof(opts));
-
-#ifdef USE_PERFTOOLS_DEBUG
-	strncat(opts, "mM", 2);
-#endif
 
 	int op;
 	int long_optsind;
@@ -444,15 +440,19 @@ Options parse_cmdline(int argc, char** argv)
 		case 'w':
 			rval.pcap_output_file = optarg;
 			break;
+
+#ifdef DEBUG
 		case 'B':
 			rval.debug_log_streams = optarg;
 			break;
+#endif
+
 		case 'C':
 			rval.ignore_checksums = true;
 			break;
 		case 'D':
-		    rval.deterministic_mode = true;
-		    break;
+			rval.deterministic_mode = true;
+			break;
 		case 'E':
 			rval.pseudo_realtime = 1.0;
 			if ( optarg )

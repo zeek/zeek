@@ -325,6 +325,13 @@ bool BinarySerializationFormat::Write(uint32_t v, const char* tag)
 	return WriteData(&v, sizeof(v));
 	}
 
+#if defined(_MSC_VER)
+bool BinarySerializationFormat::Write(u_long v, const char* tag)
+	{
+	return Write((uint32_t) v, tag);
+	}
+#endif
+
 bool BinarySerializationFormat::Write(int v, const char* tag)
 	{
 	DBG_LOG(DBG_SERIAL, "Write int %d [%s]", v, tag);
@@ -386,7 +393,7 @@ bool BinarySerializationFormat::Write(const IPAddr& addr, const char* tag)
 
 	for ( int i = 0; i < n; ++i )
 		{
-		if ( ! Write(ntohl(raw[i]), "addr-part") )
+		if ( ! Write(static_cast<uint32_t>(ntohl(raw[i])), "addr-part") )
 			return false;
 		}
 
@@ -402,7 +409,7 @@ bool BinarySerializationFormat::Write(const struct in_addr& addr, const char* ta
 	{
 	const uint32_t* bytes = (uint32_t*)&addr.s_addr;
 
-	if ( ! Write(ntohl(bytes[0]), "addr4") )
+	if ( ! Write(static_cast<uint32_t>(ntohl(bytes[0])), "addr4") )
 		return false;
 
 	return true;
@@ -414,7 +421,7 @@ bool BinarySerializationFormat::Write(const struct in6_addr& addr, const char* t
 
 	for ( int i = 0; i < 4; ++i )
 		{
-		if ( ! Write(ntohl(bytes[i]), "addr6-part") )
+		if ( ! Write(static_cast<uint32_t>(ntohl(bytes[i])), "addr6-part") )
 			return false;
 		}
 

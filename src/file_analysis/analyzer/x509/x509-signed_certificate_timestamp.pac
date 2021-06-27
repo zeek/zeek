@@ -1,1 +1,1 @@
-../../../analyzer/protocol/ssl/tls-handshake-signed_certificate_timestamp.pac
+%include ../../../analyzer/protocol/ssl/tls-handshake-signed_certificate_timestamp.pac

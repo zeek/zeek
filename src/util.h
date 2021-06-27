@@ -15,6 +15,8 @@
 #endif
 
 #include <libgen.h>
+#include <unistd.h>
+
 #include <array>
 #include <cinttypes>
 #include <cstdarg>
@@ -38,19 +40,23 @@
 #endif
 #endif
 
+#ifdef _MSC_VER
+#include <pthread.h>
+#endif
+
 #ifdef DEBUG
 
 #include <cassert>
 
 #define ASSERT(x) assert(x)
-#define DEBUG_MSG(x...) fprintf(stderr, x)
+#define DEBUG_MSG(...) fprintf(stderr, __VA_ARGS__)
 #define DEBUG_fputs fputs
 
 #else
 
 #define ASSERT(x)
-#define DEBUG_MSG(x...)
-#define DEBUG_fputs(x...)
+#define DEBUG_MSG(...)
+#define DEBUG_fputs(...)
 
 #endif
 
@@ -60,9 +66,10 @@
 extern HeapLeakChecker* heap_checker;
 #endif
 
-#include <pthread.h>
+#include <stdint.h>
 
 #ifdef HAVE_LINUX
+#include <pthread.h>
 #include <sys/prctl.h>
 #endif
 
@@ -70,12 +77,22 @@ extern HeapLeakChecker* heap_checker;
 #include <pthread_np.h>
 #endif
 
+#if defined(_MSC_VER)
+const char path_list_separator = ';';
+#else
+const char path_list_separator = ':';
+#endif
+
 extern "C"
 	{
 #include "zeek/3rdparty/modp_numtoa.h"
 	}
 
+#if defined(_MSC_VER)
+#include <filesystem>
+#else
 #include "zeek/3rdparty/ghc/filesystem.hpp"
+#endif
 
 using zeek_int_t = int64_t;
 using zeek_uint_t = uint64_t;
@@ -96,8 +113,12 @@ class ODesc;
 class RecordVal;
 
 // Expose ghc::filesystem as zeek::filesystem until we can
-// switch to std::filesystem.
+// switch to std::filesystem on all platforms.
+#if defined(_MSC_VER)
+namespace filesystem = std::filesystem;
+#else
 namespace filesystem = ghc::filesystem;
+#endif
 
 namespace util
 	{

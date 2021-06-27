@@ -1,0 +1,9 @@
+[requires]
+openssl/1.1.1i
+zlib/1.2.11
+libpcap/1.10.1
+c-ares/1.18.1
+
+[generators]
+cmake_find_package
+cmake

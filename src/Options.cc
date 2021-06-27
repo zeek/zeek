@@ -6,7 +6,10 @@
 
 #include <unistd.h>
 
-#ifdef HAVE_GETOPT_H
+#include "zeek/ScriptProfile.h"
+#include "zeek/script_opt/ScriptOpt.h"
+
+#if defined(HAVE_GETOPT_H) && ! defined(_MSC_VER)
 #include <getopt.h>
 #endif
 
@@ -15,7 +18,6 @@
 #include <cstdlib>
 #include <sstream>
 
-#include "zeek/ScriptProfile.h"
 #include "zeek/logging/writers/ascii/Ascii.h"
 #include "zeek/script_opt/ScriptOpt.h"
 

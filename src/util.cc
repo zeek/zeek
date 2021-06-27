@@ -42,6 +42,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <filesystem>
+#include <iostream>
+#include <random>
 
 #include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/3rdparty/doctest.h"
@@ -51,6 +54,7 @@
 #include "zeek/Obj.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
+#include "zeek/ScannedFile.h"
 #include "zeek/Val.h"
 #include "zeek/digest.h"
 #include "zeek/input.h"
@@ -67,6 +71,7 @@ static bool can_read(const string& path)
 	}
 
 static string zeek_path_value;
+const string zeek_path_list_separator(1, path_list_separator);
 
 namespace zeek::util
 	{
@@ -254,6 +259,16 @@ const char* fmt_access_time(double t)
 	time_t time = (time_t)t;
 	struct tm ts;
 
+	if (!time)
+	{
+		// Use wall clock.
+		struct timeval tv = { 0 };
+		if (gettimeofday(&tv, 0) < 0)
+			reporter->InternalError("unable to gettimeofday");
+		else
+			time = tv.tv_sec;
+	}
+
 	if ( ! localtime_r(&time, &ts) )
 		{
 		reporter->InternalError("unable to get time");
@@ -432,6 +447,7 @@ void init_random_seed(const char* read_file, const char* write_file, bool use_em
 		pos += sizeof(struct timeval) / sizeof(uint32_t);
 
 		// use urandom. For reasons see e.g. http://www.2uo.de/myths-about-urandom/
+#ifndef _MSC_VER
 #if defined(O_NONBLOCK)
 		int fd = open("/dev/urandom", O_RDONLY | O_NONBLOCK);
 #elif defined(O_NDELAY)
@@ -453,6 +469,12 @@ void init_random_seed(const char* read_file, const char* write_file, bool use_em
 				// systems due to a lack of entropy.
 				errno = 0;
 			}
+#endif
+		// C++ random device implementation in MSVC is sufficient for this purpose.
+		thread_local std::mt19937 gen(std::random_device{}());
+		while ( pos < zeek::detail::KeyedHash::SEED_INIT_SIZE ) {
+			buf[pos++] = (uint32_t)gen();
+		}
 #endif
 
 		if ( pos < zeek::detail::KeyedHash::SEED_INIT_SIZE )
@@ -554,7 +576,7 @@ void add_to_zeek_path(const string& dir)
 	// Make sure path is initialized.
 	zeek_path();
 
-	zeek_path_value += string(":") + dir;
+	zeek_path_value += string(zeek_path_list_separator) + dir;
 	}
 
 FILE* open_package(string& path, const string& mode)
@@ -649,6 +671,12 @@ TEST_CASE("util normalize_path")
 
 string normalize_path(std::string_view path)
 	{
+#ifdef _MSC_VER
+	if (0 == path.compare(zeek::detail::ScannedFile::canonical_stdin_path)) {
+		return string(path);
+	}
+	return std::filesystem::canonical(path).string();
+#else
 	if ( path.find("/.") == std::string_view::npos && path.find("//") == std::string_view::npos )
 		{
 		// no need to normalize anything
@@ -713,13 +741,14 @@ string normalize_path(std::string_view path)
 		new_path.erase(new_path.size() - 1);
 
 	return new_path;
+#endif
 	}
 
 string without_zeekpath_component(std::string_view path)
 	{
 	string rval = normalize_path(path);
 
-	const auto paths = tokenize_string(zeek_path(), ':');
+	const auto paths = tokenize_string(zeek_path(), path_list_separator);
 
 	for ( size_t i = 0; i < paths.size(); ++i )
 		{
@@ -746,12 +775,13 @@ std::string get_exe_path(const std::string& invocation)
 	{
 	if ( invocation.empty() )
 		return "";
+	std::filesystem::path invocation_path(invocation);
 
-	if ( invocation[0] == '/' || invocation[0] == '~' )
+	if ( invocation_path.is_absolute() || invocation_path.root_directory() == "~" )
 		// Absolute path
 		return invocation;
 
-	if ( invocation.find('/') != std::string::npos )
+	if ( invocation_path.is_relative() )
 		{
 		// Relative path
 		char cwd[PATH_MAX];
@@ -762,7 +792,7 @@ std::string get_exe_path(const std::string& invocation)
 			exit(1);
 			}
 
-		return std::string(cwd) + "/" + invocation;
+		return (std::filesystem::path(cwd) / invocation_path).string();
 		}
 
 	auto path = getenv("PATH");
@@ -1576,7 +1606,7 @@ const char* fmt_bytes(const char* data, int len)
 
 	for ( int i = 0; i < len && p - buf < int(sizeof(buf)); ++i )
 		{
-		if ( isprint(data[i]) )
+		if ( isprint((unsigned char)(data[i])) )
 			*p++ = data[i];
 		else
 			p += snprintf(p, sizeof(buf) - (p - buf), "\\x%02x", (unsigned char)data[i]);
@@ -1756,7 +1786,7 @@ string zeek_prefixes()
 	for ( const auto& prefix : zeek::detail::zeek_script_prefixes )
 		{
 		if ( ! rval.empty() )
-			rval.append(":");
+			rval.append(zeek_path_list_separator);
 		rval.append(prefix);
 		}
 
@@ -1937,8 +1967,10 @@ static string find_file_in_path(const string& filename, const string& path,
 	if ( filename.empty() )
 		return string();
 
+	std::filesystem::path filepath(filename);
+
 	// If file name is an absolute path, searching within *path* is pointless.
-	if ( filename[0] == '/' )
+	if ( filepath.is_absolute() )
 		{
 		if ( can_read(filename) )
 			return filename;
@@ -1946,7 +1978,7 @@ static string find_file_in_path(const string& filename, const string& path,
 			return string();
 		}
 
-	string abs_path = path + '/' + filename;
+	auto abs_path = (std::filesystem::path(path) / filepath).string();
 
 	if ( ! opt_ext.empty() )
 		{
@@ -1968,7 +2000,7 @@ static string find_file_in_path(const string& filename, const string& path,
 string find_file(const string& filename, const string& path_set, const string& opt_ext)
 	{
 	vector<string> paths;
-	tokenize_string(path_set, ":", &paths);
+	tokenize_string(path_set, zeek_path_list_separator, &paths);
 
 	vector<string> ext;
 	if ( ! opt_ext.empty() )
@@ -1988,7 +2020,7 @@ string find_file(const string& filename, const string& path_set, const string& o
 string find_script_file(const string& filename, const string& path_set)
 	{
 	vector<string> paths;
-	tokenize_string(path_set, ":", &paths);
+	tokenize_string(path_set, zeek_path_list_separator, &paths);
 
 	vector<string> ext = {".zeek"};
 

@@ -61,10 +61,14 @@ Obj::~Obj()
 	{
 	if ( notify_plugins )
 		{
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 		PLUGIN_HOOK_VOID(HOOK_BRO_OBJ_DTOR, HookBroObjDtor(this));
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 		PLUGIN_HOOK_VOID(HOOK_OBJ_DTOR, HookObjDtor(this));
 		}
 

@@ -345,7 +345,7 @@ void HashKey::Reserve(const char* tag, size_t addl_size, size_t alignment)
 
 void HashKey::Allocate()
 	{
-	if ( key != nullptr and key != reinterpret_cast<char*>(&key_u) )
+	if ( key != nullptr && key != reinterpret_cast<char*>(&key_u) )
 		{
 		reporter->InternalWarning("usage error in HashKey::Allocate(): already allocated");
 		return;

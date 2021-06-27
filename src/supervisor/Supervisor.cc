@@ -41,7 +41,7 @@ extern "C"
 #include "zeek/zeek-affinity.h"
 
 #ifdef DEBUG
-#define DBG_STEM(args...) stem->LogDebug(args);
+#define DBG_STEM(...) stem->LogDebug(__VA_ARGS__);
 #else
 #define DBG_STEM
 #endif
@@ -990,6 +990,7 @@ std::optional<SupervisedNode> Stem::Poll()
 	pfds[pfd_idx++] = {pipe->InFD(), POLLIN, 0};
 	pfds[pfd_idx++] = {signal_flare->FD(), POLLIN, 0};
 
+#if !defined(_MSC_VER)
 	for ( const auto& [name, node] : nodes )
 		{
 		node_pollfd_indices[name] = pfd_idx;
@@ -1004,6 +1005,7 @@ std::optional<SupervisedNode> Stem::Poll()
 		else
 			pfds[pfd_idx++] = {-1, POLLIN, 0};
 		}
+#endif
 
 	// Note: the poll timeout here is for periodically checking if the parent
 	// process died (see below).
@@ -1277,10 +1279,14 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	for ( auto i = 0u; i < scripts_val->Size(); ++i )
 		{
 		auto script = scripts_val->StringValAt(i)->ToStdString();
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 		rval.scripts.emplace_back(std::move(script));
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 		}
 
 	auto env_table_val = node->GetField("env")->AsTableVal();
@@ -1364,10 +1370,14 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json)
 	auto& scripts = j["scripts"];
 
 	for ( auto it = scripts.Begin(); it != scripts.End(); ++it )
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 		rval.scripts.emplace_back(it->GetString());
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
 	auto& env = j["env"];
 
@@ -1447,10 +1457,14 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 	auto st = rt->GetFieldType<VectorType>("scripts");
 	auto scripts_val = make_intrusive<VectorVal>(std::move(st));
 
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	for ( const auto& s : scripts )
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 		scripts_val->Assign(scripts_val->Size(), make_intrusive<StringVal>(s));
 
 	rval->AssignField("scripts", std::move(scripts_val));
@@ -1656,10 +1670,14 @@ void SupervisedNode::Init(Options* options) const
 
 	stl.insert(stl.begin(), config.addl_base_scripts.begin(), config.addl_base_scripts.end());
 	stl.insert(stl.end(), config.addl_user_scripts.begin(), config.addl_user_scripts.end());
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	stl.insert(stl.end(), config.scripts.begin(), config.scripts.end());
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 	}
 
 RecordValPtr Supervisor::Status(std::string_view node_name)

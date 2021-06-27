@@ -2,7 +2,9 @@
 
 #pragma once
 
-#include "zeek/Pipe.h"
+#if ! defined(_MSC_VER)
+#include "Pipe.h"
+#endif
 
 namespace zeek::detail
 	{
@@ -22,7 +24,12 @@ public:
 	 * @return a file descriptor that will become ready if the flare has been
 	 *         Fire()'d and not yet Extinguished()'d.
 	 */
-	int FD() const { return pipe.ReadFD(); }
+	int FD() const
+#if ! defined(_MSC_VER)
+		{ return pipe.ReadFD(); }
+#else
+		{ return recvfd; }
+#endif
 
 	/**
 	 * Put the object in the "ready" state.
@@ -41,7 +48,11 @@ public:
 	int Extinguish(bool signal_safe = false);
 
 private:
+#if ! defined(_MSC_VER)
 	Pipe pipe;
+#else
+	int sendfd, recvfd;
+#endif
 	};
 
 	} // namespace zeek::detail

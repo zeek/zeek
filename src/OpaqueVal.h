@@ -2,6 +2,10 @@
 
 #pragma once
 
+#ifdef _MSC_VER
+#include <unistd.h>
+#endif
+
 #include <broker/expected.hh>
 #if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
 #include <openssl/md5.h>

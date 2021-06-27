@@ -184,6 +184,7 @@
 #define DLT_NFLOG @DLT_NFLOG@
 #endif
 
+#ifndef _MSC_VER
 /* IPv6 Next Header values defined by RFC 3542 */
 #cmakedefine HAVE_IPPROTO_HOPOPTS
 #ifndef HAVE_IPPROTO_HOPOPTS
@@ -225,7 +226,7 @@
 #ifndef HAVE_IPPROTO_DSTOPTS
 #define IPPROTO_DSTOPTS 60
 #endif
-
+#endif
 /* IPv6 options structure defined by RFC 3542 */
 #cmakedefine HAVE_IP6_OPT
 

@@ -17,3 +17,10 @@ cmake-build-*
 
 # clangd
 .cache
+
+out/
+
+# Visual Studio
+.vs/
+.vscode/
+CMakeSettings.json

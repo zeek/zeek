@@ -279,7 +279,7 @@ void X509Common::ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bo
 	auto pX509Ext = make_intrusive<RecordVal>(BifType::Record::X509::Extension);
 	pX509Ext->Assign(0, name);
 
-	if ( short_name and strlen(short_name) > 0 )
+	if ( short_name && strlen(short_name) > 0 )
 		pX509Ext->Assign(1, short_name);
 
 	pX509Ext->Assign(2, oid);

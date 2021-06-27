@@ -2226,7 +2226,7 @@ function is_local_interface%(ip: addr%) : bool
 	%{
 	if ( ip->AsAddr().IsLoopback() )
 		return zeek::val_mgr->True();
-
+#ifndef _MSC_VER
 	list<zeek::IPAddr> addrs;
 
 	char host[MAXHOSTNAMELEN];
@@ -2259,7 +2259,7 @@ function is_local_interface%(ip: addr%) : bool
 		if ( *it == ip->AsAddr() )
 			return zeek::val_mgr->True();
 		}
-
+#endif
 	return zeek::val_mgr->False();
 	%}
 

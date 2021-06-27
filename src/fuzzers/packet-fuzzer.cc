@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#include <unistd.h>
+#endif
+
 extern "C"
 	{
 #include <pcap.h>

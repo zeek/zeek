@@ -126,6 +126,9 @@ public:
 	bool Write(int v, const char* tag) override;
 	bool Write(uint16_t v, const char* tag) override;
 	bool Write(uint32_t v, const char* tag) override;
+#if defined(_MSC_VER)
+	bool Write(u_long v, const char* tag);
+#endif
 	bool Write(int64_t v, const char* tag) override;
 	bool Write(uint64_t v, const char* tag) override;
 	bool Write(char v, const char* tag) override;

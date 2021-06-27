@@ -384,8 +384,10 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v)
 // from "ZAM-Conds.h".  It really shouldn't worry about indentation mismatches
 // across included files since those are not indicative of possible
 // logic errors, but Oh Well.
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmisleading-indentation"
+#endif
 	switch ( e->Tag() )
 		{
 #include "ZAM-Conds.h"
@@ -393,7 +395,9 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v)
 		default:
 			reporter->InternalError("bad expression type in ZAMCompiler::GenCond");
 		}
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
 	// Not reached.
 	}

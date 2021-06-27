@@ -49,6 +49,7 @@
 #include "zeek/Traverse.h"
 #include "zeek/Trigger.h"
 #include "zeek/Var.h"
+
 #include "zeek/analyzer/Manager.h"
 #include "zeek/binpac_zeek.h"
 #include "zeek/broker/Manager.h"
@@ -63,6 +64,7 @@
 #include "zeek/plugin/Manager.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/session/Manager.h"
+#include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/supervisor/Supervisor.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/threading/Manager.h"
@@ -200,7 +202,11 @@ std::shared_ptr<zeek::detail::SampleLogger> zeek::detail::sample_logger;
 zeek::detail::FragmentManager* zeek::detail::fragment_mgr = nullptr;
 
 int signal_val = 0;
+#ifdef _MSC_VER
+char version[] = VERSION;
+#else
 extern char version[];
+#endif
 const char* zeek::detail::command_line_policy = nullptr;
 vector<string> zeek::detail::params;
 set<string> requested_plugins;
@@ -235,6 +241,9 @@ char** zeek::detail::zeek_argv;
 
 namespace zeek
 	{
+
+// Define zeek version explicitly for MSVC
+
 
 const char* zeek_version()
 	{

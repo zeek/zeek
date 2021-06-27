@@ -1,3 +1,13 @@
+4.1.0-dev.760 | 2021-06-27 10:46:01 -0700
+
+  * Add btest test case (Luke Cesarz)
+
+  * Fix typo (Luke Cesarz)
+
+  * Fix segfault with incomplete connection
+
+    Add required HasField check before GetFieldAs call (Luke Cesarz)
+
 4.1.0-dev.755 | 2021-06-23 13:53:54 -0700
 
   * Call brew update-reset in ci/macos/prepare.sh

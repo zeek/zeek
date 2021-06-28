@@ -12,12 +12,6 @@
 #include <list>
 #include <optional>
 
-#ifdef USE_IDMEF
-extern "C" {
-#include <libidmef/idmefxml.h>
-}
-#endif
-
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
@@ -528,14 +522,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	if ( r != SQLITE_OK )
 		reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
-
-#ifdef USE_IDMEF
-	char* libidmef_dtd_path_cstr = new char[options.libidmef_dtd_file.size() + 1];
-	safe_strncpy(libidmef_dtd_path_cstr, options.libidmef_dtd_file.data(),
-	             options.libidmef_dtd_file.size());
-	globalsInit(libidmef_dtd_path_cstr);	// Init LIBIDMEF globals
-	createCurrentDoc("1.0");		// Set a global XML document
-#endif
 
 	timer_mgr = new PQ_TimerMgr();
 

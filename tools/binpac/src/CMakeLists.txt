@@ -104,5 +104,5 @@ install(TARGETS binpac DESTINATION bin)
 
 # This is set to assist superprojects that want to build BinPac
 # from source and rely on it as a target
-set(BinPAC_EXE ${BinPAC_BINARY_DIR}/${CMAKE_CFG_INTDIR}/binpac
+set(BinPAC_EXE binpac
     CACHE STRING "BinPAC executable" FORCE)

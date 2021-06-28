@@ -1,13 +1,13 @@
-bison_target(PACParser pac_parse.yy ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.cc
-             HEADER ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.h
-             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.output
+bison_target(PACParser pac_parse.yy ${BinPAC_BINARY_DIR}/src/pac_parse.cc
+	     HEADER ${BinPAC_BINARY_DIR}/src/pac_parse.h
+	     VERBOSE ${BinPAC_BINARY_DIR}/src/pac_parse.output
              COMPILE_FLAGS "--debug")
-flex_target(PACScanner pac_scan.ll ${CMAKE_CURRENT_BINARY_DIR}/pac_scan.cc)
+flex_target(PACScanner pac_scan.ll ${BinPAC_BINARY_DIR}/pac_scan.cc)
 add_flex_bison_dependency(PACScanner PACParser)
 set_property(SOURCE pac_scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}
-                    ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/src
+                    ${PROJECT_BINARY_DIR}/src)
 
 set(binpac_SRCS
     ${BISON_PACParser_INPUT}
@@ -104,5 +104,5 @@ install(TARGETS binpac DESTINATION bin)
 
 # This is set to assist superprojects that want to build BinPac
 # from source and rely on it as a target
-set(BinPAC_EXE ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/binpac
+set(BinPAC_EXE ${BinPAC_BINARY_DIR}/${CMAKE_CFG_INTDIR}/binpac
     CACHE STRING "BinPAC executable" FORCE)

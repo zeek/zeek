@@ -100,7 +100,6 @@ int icmp_checksum(const struct icmp* icmpp, int len)
 	return detail::in_cksum(reinterpret_cast<const uint8_t*>(icmpp), len);
 	}
 
-#ifdef ENABLE_MOBILE_IPV6
 int mobility_header_checksum(const IP_Hdr* ip)
 	{
 	const ip6_mobility* mh = ip->MobilityHeader();
@@ -124,7 +123,6 @@ int mobility_header_checksum(const IP_Hdr* ip)
 
 	return sum;
 	}
-#endif
 
 int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len)
 	{

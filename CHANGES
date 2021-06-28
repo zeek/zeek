@@ -1,3 +1,10 @@
+4.1.0-dev.818 | 2021-06-28 13:50:13 -0700
+
+  * GH-1216: Enable Mobile IPv6 support by default (Tim Wojtulewicz, Corelight)
+
+    This removes the ENABLE_MOBILE_IPV6 #define variable. It also marks the
+    --enable-mobile-ipv6 configure argument as deprecated.
+
 4.1.0-dev.816 | 2021-06-28 11:08:29 -0700
 
   * GH-572: Mark MemoryAllocation() and related methods deprecated (Tim Wojtulewicz, Corelight)

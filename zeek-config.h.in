@@ -116,9 +116,6 @@
 /* Use Google's perftools */
 #cmakedefine USE_PERFTOOLS_DEBUG
 
-/* Analyze Mobile IPv6 traffic */
-#cmakedefine ENABLE_MOBILE_IPV6
-
 /* Use libCurl. */
 #cmakedefine USE_CURL
 

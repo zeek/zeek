@@ -1,6 +1,7 @@
 
 @load base/frameworks/files
 @load base/files/hash
+@load base/frameworks/cluster
 
 module X509;
 
@@ -17,6 +18,17 @@ export {
 	## is not much value to having the entry in files.log - especially since, by default, the
 	## file ID is not present in the X509 log.
 	option log_x509_in_files_log: bool = F;
+
+	## Type that is used to decide which certificates are duplicates for loggign purposes.
+	## When adding entries to this, also change the create_deduplication_index to update them.
+	type LogCertHash: record {
+		## Certificate fingerprint
+		fp: string;
+		## Indicates if this certificate was a end-host certificate, or sent as part of a chain
+		host_cert: bool;
+		## Indicates if this certificate was sent from the client
+		client_cert: bool;
+	};
 
 	## The record type which contains the fields of the X.509 log.
 	type Info: record {
@@ -43,7 +55,12 @@ export {
 		host_cert: bool &log &default=F;
 		## Indicates if this certificate was sent from the client
 		client_cert: bool &log &default=F;
+		## Record that is used to deduplicate log entries.
+		deduplication_index: LogCertHash &optional;
 	};
+
+	## Hook that is used to create the index value used for log deduplication.
+	global create_deduplication_index: hook(c: X509::Info);
 
 	## This record is used to store information about the SCTs that are
 	## encountered in Certificates.
@@ -65,9 +82,32 @@ export {
 		signature: string;
 	};
 
+	## By default, x509 certificates are deduplicated. This configuration option configures
+	## the maximum time after which certificates are re-logged. Note - depending on other configuration
+	## options, this setting might only apply on a per-worker basis and you still might see certificates
+	## logged several times.
+	##
+	## To disable deduplication completely, set this to 0secs.
+	option relog_known_certificates_after = 1day;
+
+	## The set that stores information about certificates that already have been logged and should
+	## not be logged again.
+	global known_log_certs: set[LogCertHash] &create_expire=relog_known_certificates_after;
+
+	## Maximum size of the known_log_certs table
+	option known_log_certs_maximum_size = 1000000;
+
+	## Use broker stores to deduplicate certificates across the whole cluster. This will cause log-deduplication
+	## to work cluster wide, but come at a slightly higher cost of memory and inter-node-communication.
+	##
+	## This setting is ignored if Zeek is run in standalone mode.
+	global known_log_certs_use_broker: bool = T;
+
 	## Event for accessing logged records.
 	global log_x509: event(rec: Info);
 }
+
+global known_log_certs_with_broker: set[LogCertHash] &create_expire=relog_known_certificates_after &backend=Broker::MEMORY;
 
 redef record Files::Info += {
 	## Information about X509 certificates. This is used to keep
@@ -96,17 +136,28 @@ event zeek_init() &priority=5
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/x-x509-user-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/x-x509-ca-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/pkix-cert");
-
-	# SHA256 is used by us to determine which certificates to cache.
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/x-x509-user-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/x-x509-ca-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/pkix-cert");
+
+@if ( Cluster::is_enabled() )
+	if ( known_log_certs_use_broker )
+		known_log_certs = known_log_certs_with_broker;
+@endif
 	}
 
 hook Files::log_policy(rec: Files::Info, id: Log::ID, filter: Log::Filter) &priority=5
 	{
 	if ( ( log_x509_in_files_log == F ) && ( "X509" in rec$analyzers ) )
 		break;
+	}
+
+hook create_deduplication_index(i: X509::Info)
+	{
+	if ( i?$deduplication_index || relog_known_certificates_after == 0secs )
+		return;
+
+	i$deduplication_index = LogCertHash($fp=i$fp, $host_cert=i$host_cert, $client_cert=i$client_cert);
 	}
 
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate) &priority=5
@@ -157,6 +208,17 @@ event file_state_remove(f: fa_file) &priority=5
 	{
 	if ( ! f$info?$x509 )
 		return;
+
+	if ( ! f$info$x509?$deduplication_index )
+		hook create_deduplication_index(f$info$x509);
+
+	if ( f$info$x509?$deduplication_index )
+		{
+		if ( f$info$x509$deduplication_index in known_log_certs )
+			return;
+		else if ( |known_log_certs| < known_log_certs_maximum_size )
+			add known_log_certs[f$info$x509$deduplication_index];
+		}
 
 	Log::write(LOG, f$info$x509);
 	}

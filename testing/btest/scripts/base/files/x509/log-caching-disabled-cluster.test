@@ -1,0 +1,65 @@
+# Test that certificate log deduplication can be disabled in clustered mode.
+#
+# @TEST-PORT: BROKER_PORT1
+# @TEST-PORT: BROKER_PORT2
+# @TEST-PORT: BROKER_PORT3
+#
+# @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager-1 zeek -b %INPUT"
+# @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek -b --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
+
+# @TEST-EXEC: $SCRIPTS/wait-for-file manager-1/lost 15 || (btest-bg-wait -k 1 && false)
+
+# @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-2 zeek -b --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
+# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-diff manager-1/x509.log
+
+@TEST-START-FILE cluster-layout.zeek
+redef Cluster::nodes = {
+	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
+	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1", $interface="eth0"],
+	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1", $interface="eth0"],
+};
+@TEST-END-FILE
+
+@load base/protocols/ssl
+@load base/frameworks/cluster
+@load base/frameworks/logging
+
+redef Log::default_rotation_interval = 0secs;
+redef Log::default_rotation_postprocessor_cmd = "echo";
+redef exit_only_after_terminate = T;
+
+redef X509::relog_known_certificates_after = 0secs;
+
+event terminate_me() {
+	terminate();
+}
+
+@if ( Cluster::local_node_type() == Cluster::WORKER )
+event zeek_init()
+	{
+	suspend_processing();
+	}
+
+event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	continue_processing();
+	}
+@endif
+
+event SSL::log_ssl(i: SSL::Info)
+	{
+	print "log_line";
+	schedule 2secs { terminate_me() };
+	}
+
+global peers_lost = 0;
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	++peers_lost;
+	system("touch lost");
+
+	if ( peers_lost == 2 )
+		schedule 2sec { terminate_me() };
+	}

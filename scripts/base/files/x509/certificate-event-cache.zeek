@@ -14,17 +14,17 @@ module X509;
 
 export {
 	## How often do you have to encounter a certificate before
-	## caching it. Set to 0 to disable caching of certificates.
+	## caching the events for it. Set to 0 to disable caching of certificates.
 	option caching_required_encounters : count = 10;
 
 	## The timespan over which caching_required_encounters has to be reached
 	option caching_required_encounters_interval : interval = 62 secs;
 
 	## After a certificate has not been encountered for this time, it
-	## may be evicted from the certificate cache.
+	## may be evicted from the certificate event cache.
 	option certificate_cache_minimum_eviction_interval : interval = 62 secs;
 
-	## Maximum size of the certificate cache
+	## Maximum size of the certificate event cache
 	option certificate_cache_max_entries : count = 10000;
 
 	## This hook performs event-replays in case a certificate that already

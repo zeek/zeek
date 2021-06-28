@@ -19,19 +19,19 @@ endif ()
 include(RequireCXX17)
 
 include_directories(BEFORE
-                    ${CMAKE_CURRENT_SOURCE_DIR}/include
-                    ${CMAKE_CURRENT_BINARY_DIR}
+                    ${BifCl_SOURCE_DIR}/include
+                    ${BifCl_BINARY_DIR}
 )
 
 set(BISON_FLAGS "--debug")
 
 # BIF parser/scanner
 bison_target(BIFParser builtin-func.y
-             ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.cc
-             HEADER ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.h
-             #VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.output
+             ${BifCl_BINARY_DIR}/bif_parse.cc
+             HEADER ${BifCl_BINARY_DIR}/bif_parse.h
+             #VERBOSE ${BifCl_BINARY_DIR}/bif_parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
-flex_target(BIFScanner builtin-func.l ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
+flex_target(BIFScanner builtin-func.l ${BifCl_BINARY_DIR}/bif_lex.cc)
 add_flex_bison_dependency(BIFScanner BIFParser)
 set_property(SOURCE bif_lex.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 
@@ -58,7 +58,7 @@ message(
     "\n====================|  Bifcl Build Summary  |====================="
     "\n"
     "\nBuild type:        ${CMAKE_BUILD_TYPE}"
-    "\nBuild dir:         ${CMAKE_BINARY_DIR}"
+    "\nBuild dir:         ${PROJECT_BINARY_DIR}"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\n"

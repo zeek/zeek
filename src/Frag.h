@@ -83,6 +83,7 @@ public:
 
 	size_t Size() const	{ return fragments.size(); }
 	size_t MaxFragments() const 	{ return max_fragments; }
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	uint32_t MemoryAllocation() const;
 
 private:

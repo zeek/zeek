@@ -381,17 +381,23 @@ void Connection::FlipRoles()
 
 unsigned int Connection::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return session::Session::MemoryAllocation() + padded_sizeof(*this)
 		+ (timers.MemoryAllocation() - padded_sizeof(timers))
 		+ (conn_val ? conn_val->MemoryAllocation() : 0)
 		+ (adapter ? adapter->MemoryAllocation(): 0)
 		// primary_PIA is already contained in the analyzer tree.
 		;
+#pragma GCC diagnostic pop
 	}
 
 unsigned int Connection::MemoryAllocationVal() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return conn_val ? conn_val->MemoryAllocation() : 0;
+#pragma GCC diagnostic pop
 	}
 
 void Connection::Describe(ODesc* d) const

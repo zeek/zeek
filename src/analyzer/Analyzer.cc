@@ -764,6 +764,8 @@ void Analyzer::AppendNewChildren()
 
 unsigned int Analyzer::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	unsigned int mem = padded_sizeof(*this)
 		+ (timers.MemoryAllocation() - padded_sizeof(timers));
 
@@ -777,6 +779,7 @@ unsigned int Analyzer::MemoryAllocation() const
 		mem += a->MemoryAllocation();
 
 	return mem;
+#pragma GCC diagnostic pop
 	}
 
 void Analyzer::UpdateConnVal(RecordVal *conn_val)

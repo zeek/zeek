@@ -1,3 +1,7 @@
+4.1.0-dev.816 | 2021-06-28 11:08:29 -0700
+
+  * GH-572: Mark MemoryAllocation() and related methods deprecated (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.814 | 2021-06-28 11:06:39 -0700
 
   * Check for -1 return from FieldOffset() in Val::HasField()

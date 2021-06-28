@@ -816,7 +816,10 @@ AddrVal::~AddrVal()
 
 unsigned int AddrVal::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return padded_sizeof(*this) + addr_val->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 ValPtr AddrVal::SizeVal() const
@@ -881,7 +884,10 @@ int SubNetVal::Width() const
 
 unsigned int SubNetVal::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return padded_sizeof(*this) + subnet_val->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 ValPtr SubNetVal::SizeVal() const
@@ -1003,7 +1009,10 @@ void StringVal::ValDescribe(ODesc* d) const
 
 unsigned int StringVal::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return padded_sizeof(*this) + string_val->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 StringValPtr StringVal::Replace(
@@ -1213,7 +1222,10 @@ void PatternVal::ValDescribe(ODesc* d) const
 
 unsigned int PatternVal::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return padded_sizeof(*this) + re_val->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 ValPtr PatternVal::DoClone(CloneState* state)
@@ -1326,12 +1338,15 @@ ValPtr ListVal::DoClone(CloneState* state)
 
 unsigned int ListVal::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	unsigned int size = 0;
 	for ( const auto& val : vals )
 		size += val->MemoryAllocation();
 
 	size += util::pad_size(vals.capacity() * sizeof(decltype(vals)::value_type));
 	return size + padded_sizeof(*this) + type->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 TableEntryVal* TableEntryVal::Clone(Val::CloneState* state)
@@ -2764,6 +2779,8 @@ unsigned int TableVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	for ( const auto& ve : *table_val )
 		{
 		auto* tv = ve.GetValue<TableEntryVal*>();
@@ -2774,6 +2791,7 @@ unsigned int TableVal::MemoryAllocation() const
 
 	return size + padded_sizeof(*this) + table_val->MemoryAllocation()
 		+ table_hash->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 std::unique_ptr<detail::HashKey> TableVal::MakeHashKey(const Val& index) const
@@ -3139,7 +3157,10 @@ unsigned int RecordVal::MemoryAllocation() const
 		{
 		auto f_i = GetField(i);
 		if ( f_i )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 			size += f_i->MemoryAllocation();
+#pragma GCC diagnostic pop
 		}
 
 	size += util::pad_size(record_val->capacity() * sizeof(ZVal));

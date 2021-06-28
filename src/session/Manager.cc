@@ -293,7 +293,10 @@ unsigned int Manager::SessionMemoryUsage()
 		return 0;
 
 	for ( const auto& entry : session_map )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		mem += entry.second->MemoryAllocation();
+#pragma GCC diagnostic pop
 
 	return mem;
 	}
@@ -307,7 +310,10 @@ unsigned int Manager::SessionMemoryUsageVals()
 		return 0;
 
 	for ( const auto& entry : session_map )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		mem += entry.second->MemoryAllocationVal();
+#pragma GCC diagnostic pop
 
 	return mem;
 	}
@@ -318,12 +324,15 @@ unsigned int Manager::MemoryAllocation()
 		// Connections have been flushed already.
 		return 0;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return SessionMemoryUsage()
 		+ padded_sizeof(*this)
 		+ (session_map.size() * (sizeof(SessionMap::key_type) + sizeof(SessionMap::value_type)))
 		+ zeek::detail::fragment_mgr->MemoryAllocation();
 		// FIXME: MemoryAllocation() not implemented for rest.
 		;
+#pragma GCC diagnostic pop
 	}
 
 void Manager::InsertSession(detail::Key key, Session* session)

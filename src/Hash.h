@@ -261,6 +261,7 @@ public:
 	int Size() const	{ return size; }
 	hash_t Hash() const	{ return hash; }
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation() const	{ return padded_sizeof(*this) + util::pad_size(size); }
 
 	static hash_t HashBytes(const void* bytes, int size);

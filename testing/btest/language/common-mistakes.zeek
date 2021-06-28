@@ -10,10 +10,6 @@
 # @TEST-EXEC: btest-diff 2.out
 # @TEST-EXEC: btest-diff 2.err
 
-# @TEST-EXEC: zeek -b 3.zeek >3.out 2>3.err
-# @TEST-EXEC: btest-diff 3.out
-# @TEST-EXEC: btest-diff 3.err
-
 @TEST-START-FILE 1.zeek
 type myrec: record {
 	f: string &optional;
@@ -75,24 +71,4 @@ event zeek_init()
 	print "zeek_init done";
 	}
 
-@TEST-END-FILE
-
-@TEST-START-FILE 3.zeek
-function foo(v: vector of any)
-	{
-	print "in foo";
-	# Vector append incompatible element type
-	v += "ok";
-	# Unreachable
-	print "foo done";
-	}
-
-event zeek_init()
-	{
-	local v: vector of count;
-	v += 1;
-	foo(v);
-	# Unreachable
-	print "zeek_init done", v;
-	}
 @TEST-END-FILE

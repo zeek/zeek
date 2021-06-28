@@ -55,6 +55,12 @@ const FieldLHSAssignExpr* Expr::AsFieldLHSAssignExpr() const
 	return (const FieldLHSAssignExpr*) this;
 	}
 
+HasFieldExpr* Expr::AsHasFieldExpr()
+	{
+	CHECK_TAG(tag, EXPR_HAS_FIELD, "ExprVal::AsHasFieldExpr", expr_name)
+	return (HasFieldExpr*) this;
+	}
+
 const HasFieldExpr* Expr::AsHasFieldExpr() const
 	{
 	CHECK_TAG(tag, EXPR_HAS_FIELD, "ExprVal::AsHasFieldExpr", expr_name)
@@ -73,10 +79,58 @@ const IsExpr* Expr::AsIsExpr() const
 	return (const IsExpr*) this;
 	}
 
+CallExpr* Expr::AsCallExpr()
+	{
+	CHECK_TAG(tag, EXPR_CALL, "ExprVal::AsCallExpr", expr_name)
+	return (CallExpr*) this;
+	}
+
+FieldAssignExpr* Expr::AsFieldAssignExpr()
+	{
+	CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
+	return (FieldAssignExpr*) this;
+	}
+
+const RecordCoerceExpr* Expr::AsRecordCoerceExpr() const
+	{
+	CHECK_TAG(tag, EXPR_RECORD_COERCE, "ExprVal::AsRecordCoerceExpr", expr_name)
+	return (const RecordCoerceExpr*) this;
+	}
+
+const RecordConstructorExpr* Expr::AsRecordConstructorExpr() const
+	{
+	CHECK_TAG(tag, EXPR_RECORD_CONSTRUCTOR, "ExprVal::AsRecordConstructorExpr", expr_name)
+	return (const RecordConstructorExpr*) this;
+	}
+
+const TableConstructorExpr* Expr::AsTableConstructorExpr() const
+	{
+	CHECK_TAG(tag, EXPR_TABLE_CONSTRUCTOR, "ExprVal::AsTableConstructorExpr", expr_name)
+	return (const TableConstructorExpr*) this;
+	}
+
+const SetConstructorExpr* Expr::AsSetConstructorExpr() const
+	{
+	CHECK_TAG(tag, EXPR_SET_CONSTRUCTOR, "ExprVal::AsSetConstructorExpr", expr_name)
+	return (const SetConstructorExpr*) this;
+	}
+
+RefExpr* Expr::AsRefExpr()
+	{
+	CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
+	return (RefExpr*) this;
+	}
+
 const InlineExpr* Expr::AsInlineExpr() const
 	{
 	CHECK_TAG(tag, EXPR_INLINE, "ExprVal::AsInlineExpr", expr_name)
 	return (const InlineExpr*) this;
+	}
+
+AnyIndexExpr* Expr::AsAnyIndexExpr()
+	{
+	CHECK_TAG(tag, EXPR_ANY_INDEX, "ExprVal::AsAnyIndexExpr", expr_name)
+	return (AnyIndexExpr*) this;
 	}
 
 const AnyIndexExpr* Expr::AsAnyIndexExpr() const
@@ -1514,15 +1568,20 @@ bool AssignExpr::IsReduced(Reducer* c) const
 		// Cascaded assignments are never reduced.
 		return false;
 
-	auto lhs_is_any = op1->GetType()->Tag() == TYPE_ANY;
-	auto rhs_is_any = op2->GetType()->Tag() == TYPE_ANY;
+	const auto& t1 = op1->GetType();
+	const auto& t2 = op2->GetType();
+
+	auto lhs_is_any = t1->Tag() == TYPE_ANY;
+	auto rhs_is_any = t2->Tag() == TYPE_ANY;
 
 	if ( lhs_is_any != rhs_is_any && op2->Tag() != EXPR_CONST )
 		return NonReduced(this);
 
-	auto t1 = op1->Tag();
+	if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY &&
+	     t2->Yield() && t2->Yield()->Tag() == TYPE_ANY )
+		return NonReduced(this);
 
-	if ( t1 == EXPR_REF &&
+	if ( op1->Tag() == EXPR_REF &&
 	     op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
 		// We are not reduced because we should instead
 		// be folded.
@@ -1564,8 +1623,11 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		// These are generated for reduced expressions.
 		return ThisPtr();
 
-	auto lhs_is_any = op1->GetType()->Tag() == TYPE_ANY;
-	auto rhs_is_any = op2->GetType()->Tag() == TYPE_ANY;
+	auto& t1 = op1->GetType();
+	auto& t2 = op2->GetType();
+
+	auto lhs_is_any = t1->Tag() == TYPE_ANY;
+	auto rhs_is_any = t2->Tag() == TYPE_ANY;
 
 	StmtPtr rhs_reduce;
 
@@ -1583,9 +1645,17 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 				op2 = make_intrusive<CoerceToAnyExpr>(red_rhs);
 			}
 		else
-			op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs,
-								op1->GetType());
+			op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs, t1);
 
+		op2->SetLocationInfo(op2_loc);
+		}
+
+	if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY &&
+	     t2->Yield() && t2->Yield()->Tag() == TYPE_ANY )
+		{
+		auto op2_loc = op2->GetLocationInfo();
+		ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
+		op2 = make_intrusive<CoerceFromAnyVecExpr>(red_rhs, t1);
 		op2->SetLocationInfo(op2_loc);
 		}
 
@@ -1773,7 +1843,14 @@ ExprPtr HasFieldExpr::Duplicate()
 ExprPtr RecordConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
-	return SetSucc(new RecordConstructorExpr(op_l));
+
+	if ( map )
+		{
+		auto rt = cast_intrusive<RecordType>(type);
+		return SetSucc(new RecordConstructorExpr(rt, op_l));
+		}
+	else
+		return SetSucc(new RecordConstructorExpr(op_l));
 	}
 
 bool RecordConstructorExpr::HasReducedOps(Reducer* c) const
@@ -2014,8 +2091,13 @@ ExprPtr ArithCoerceExpr::Duplicate()
 
 bool ArithCoerceExpr::WillTransform(Reducer* c) const
 	{
-	return op->Tag() == EXPR_CONST &&
-		IsArithmetic(op->AsConstExpr()->Value()->GetType()->Tag());
+	if ( op->Tag() != EXPR_CONST )
+		return false;
+
+	if ( IsArithmetic(GetType()->Tag()) )
+		return true;
+
+	return IsArithmetic(op->AsConstExpr()->Value()->GetType()->Tag());
 	}
 
 ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
@@ -2032,11 +2114,16 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 	if ( op->Tag() == EXPR_CONST )
 		{
-		auto cv = op->AsConstExpr()->Value();
-		auto tag = cv->GetType()->Tag();
+		const auto& t = GetType();
+		auto cv = op->AsConstExpr()->ValuePtr();
+		const auto& ct = cv->GetType();
 
-		if ( IsArithmetic(tag) )
-			return make_intrusive<ConstExpr>(FoldSingleVal(cv, t));
+		if ( IsArithmetic(t->Tag()) || IsArithmetic(ct->Tag()) )
+			{
+			if ( auto v = FoldSingleVal(cv, t) )
+				return make_intrusive<ConstExpr>(v);
+			// else there was a coercion error, fall through
+			}
 		}
 
 	if ( c->Optimizing() )
@@ -2814,7 +2901,7 @@ ExprPtr CoerceToAnyExpr::Duplicate()
 CoerceFromAnyExpr::CoerceFromAnyExpr(ExprPtr arg_op, TypePtr to_type)
 	: UnaryExpr(EXPR_FROM_ANY_COERCE, std::move(arg_op))
 	{
-	type = to_type;
+	type = std::move(to_type);
 	}
 
 ValPtr CoerceFromAnyExpr::Fold(Val* v) const
@@ -2831,6 +2918,35 @@ ValPtr CoerceFromAnyExpr::Fold(Val* v) const
 ExprPtr CoerceFromAnyExpr::Duplicate()
 	{
 	return SetSucc(new CoerceFromAnyExpr(op->Duplicate(), type));
+	}
+
+
+CoerceFromAnyVecExpr::CoerceFromAnyVecExpr(ExprPtr arg_op, TypePtr to_type)
+	: UnaryExpr(EXPR_FROM_ANY_VEC_COERCE, std::move(arg_op))
+	{
+	type = std::move(to_type);
+	}
+
+ValPtr CoerceFromAnyVecExpr::Eval(Frame* f) const
+	{
+	if ( IsError() )
+		return nullptr;
+
+	auto v = op->Eval(f);
+
+	if ( ! v )
+		return nullptr;
+
+	auto vv = v->AsVectorVal();
+	if ( ! vv->Concretize(type->Yield()) )
+		RuntimeError("incompatible \"vector of any\" type");
+
+	return v;
+	}
+
+ExprPtr CoerceFromAnyVecExpr::Duplicate()
+	{
+	return SetSucc(new CoerceFromAnyVecExpr(op->Duplicate(), type));
 	}
 
 

@@ -55,7 +55,7 @@ const char* expr_name(BroExprTag t)
 		"inline()",
 		"[]=", "$=",
 		"vec+=",
-		"to_any_coerce", "from_any_coerce",
+		"to_any_coerce", "from_any_coerce", "from_any_vec_coerce",
 		"any[]",
 		"nop",
 
@@ -209,6 +209,11 @@ ExprPtr Expr::MakeLvalue()
 		ExprError("can't be assigned to");
 
 	return {NewRef{}, this};
+	}
+
+bool Expr::InvertSense()
+	{
+	return false;
 	}
 
 void Expr::EvalIntoAggregate(const zeek::Type* /* t */, Val* /* aggr */,
@@ -568,10 +573,16 @@ void NameExpr::ExprDescribe(ODesc* d) const
 ConstExpr::ConstExpr(ValPtr arg_val)
 	: Expr(EXPR_CONST), val(std::move(arg_val))
 	{
-	if ( val->GetType()->Tag() == TYPE_LIST && val->AsListVal()->Length() == 1 )
-		val = val->AsListVal()->Idx(0);
+	if ( val )
+		{
+		if ( val->GetType()->Tag() == TYPE_LIST &&
+		     val->AsListVal()->Length() == 1 )
+			val = val->AsListVal()->Idx(0);
 
-	SetType(val->GetType());
+		SetType(val->GetType());
+		}
+	else
+		SetError();
 	}
 
 void ConstExpr::ExprDescribe(ODesc* d) const
@@ -1386,9 +1397,12 @@ SizeExpr::SizeExpr(ExprPtr arg_op)
 	if ( IsError() )
 		return;
 
-	if ( op->GetType()->Tag() == TYPE_ANY )
+	auto& t = op->GetType();
+
+	if ( t->Tag() == TYPE_ANY )
 		SetType(base_type(TYPE_ANY));
-	else if ( op->GetType()->InternalType() == TYPE_INTERNAL_DOUBLE )
+	else if ( t->Tag() == TYPE_FILE || t->Tag() == TYPE_SUBNET ||
+	          t->InternalType() == TYPE_INTERNAL_DOUBLE )
 		SetType(base_type(TYPE_DOUBLE));
 	else
 		SetType(base_type(TYPE_COUNT));
@@ -2043,6 +2057,12 @@ ValPtr EqExpr::Fold(Val* v1, Val* v2) const
 		return BinaryExpr::Fold(v1, v2);
 	}
 
+bool EqExpr::InvertSense()
+	{
+	tag = (tag == EXPR_EQ ? EXPR_NE : EXPR_EQ);
+	return true;
+	}
+
 RelExpr::RelExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
@@ -2098,6 +2118,19 @@ void RelExpr::Canonicize()
 		SwapOps();
 		tag = EXPR_LE;
 		}
+	}
+
+bool RelExpr::InvertSense()
+	{
+	switch ( tag ) {
+	case EXPR_LT:   tag = EXPR_GE; return true;
+	case EXPR_LE:   tag = EXPR_GT; return true;
+	case EXPR_GE:   tag = EXPR_LT; return true;
+	case EXPR_GT:   tag = EXPR_LE; return true;
+
+	default:
+		return false;
+	}
 	}
 
 CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)
@@ -2900,7 +2933,7 @@ ValPtr IndexExpr::Eval(Frame* f) const
 		{
 		VectorVal* v_v1 = v1->AsVectorVal();
 		VectorVal* v_v2 = indv->AsVectorVal();
-		auto v_result = make_intrusive<VectorVal>(GetType<VectorType>());
+		auto vt = cast_intrusive<VectorType>(GetType());
 
 		// Booleans select each element (or not).
 		if ( IsBool(v_v2->GetType()->Yield()->Tag()) )
@@ -2911,23 +2944,11 @@ ValPtr IndexExpr::Eval(Frame* f) const
 				return nullptr;
 				}
 
-			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
-				{
-				if ( v_v2->BoolAt(i) )
-					v_result->Assign(v_result->Size() + 1, v_v1->ValAt(i));
-				}
+			return vector_bool_select(vt, v_v1, v_v2);
 			}
 		else
-			{ // The elements are indices.
-			// ### Should handle negative indices here like
-			// S does, i.e., by excluding those elements.
-			// Probably only do this if *all* are negative.
-			v_result->Resize(v_v2->Size());
-			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
-				v_result->Assign(i, v_v1->ValAt(v_v2->ValAt(i)->CoerceToInt()));
-			}
-
-		return v_result;
+			// Elements are indices.
+			return vector_int_select(vt, v_v1, v_v2);
 		}
 	else
 		return Fold(v1.get(), v2.get());
@@ -2954,7 +2975,7 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 		break;
 
 	case TYPE_TABLE:
-		v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2}); // Then, we jump into the TableVal here.
+		v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2});
 		break;
 
 	case TYPE_STRING:
@@ -3027,6 +3048,35 @@ VectorValPtr index_slice(VectorVal* vect, int _first, int _last)
 		}
 
 	return result;
+	}
+
+VectorValPtr vector_bool_select(VectorTypePtr vt, const VectorVal* v1,
+                                const VectorVal* v2)
+	{
+	auto v_result = make_intrusive<VectorVal>(std::move(vt));
+
+	for ( unsigned int i = 0; i < v2->Size(); ++i )
+		if ( v2->BoolAt(i) )
+			v_result->Assign(v_result->Size() + 1, v1->ValAt(i));
+
+	return v_result;
+	}
+
+VectorValPtr vector_int_select(VectorTypePtr vt, const VectorVal* v1,
+                               const VectorVal* v2)
+	{
+	auto v_result = make_intrusive<VectorVal>(std::move(vt));
+
+	// The elements are indices.
+	//
+	// ### Should handle negative indices here like S does, i.e.,
+	// by excluding those elements.  Probably only do this if *all*
+	// are negative.
+	v_result->Resize(v2->Size());
+	for ( unsigned int i = 0; i < v2->Size(); ++i )
+		v_result->Assign(i, v1->ValAt(v2->ValAt(i)->CoerceToInt()));
+
+	return v_result;
 	}
 
 void IndexExpr::Assign(Frame* f, ValPtr v)
@@ -3191,8 +3241,10 @@ void HasFieldExpr::ExprDescribe(ODesc* d) const
 		d->Add(field);
 	}
 
+
 RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
-	: Expr(EXPR_RECORD_CONSTRUCTOR), op(std::move(constructor_list))
+	: Expr(EXPR_RECORD_CONSTRUCTOR), op(std::move(constructor_list)),
+	  map(std::nullopt)
 	{
 	if ( IsError() )
 		return;
@@ -3221,8 +3273,45 @@ RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
 	SetType(make_intrusive<RecordType>(record_types));
 	}
 
-RecordConstructorExpr::~RecordConstructorExpr()
+RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt,
+                                             ListExprPtr constructor_list)
+: Expr(EXPR_RECORD_CONSTRUCTOR), op(std::move(constructor_list))
 	{
+	if ( IsError() )
+		return;
+
+	SetType(known_rt);
+
+	const auto& exprs = op->AsListExpr()->Exprs();
+	map = std::vector<int>(exprs.length());
+
+	int i = 0;
+	for ( const auto& e : exprs )
+		{
+		if ( e->Tag() != EXPR_FIELD_ASSIGN )
+			{
+			Error("bad type in record constructor", e);
+			SetError();
+			continue;
+			}
+
+		auto field = e->AsFieldAssignExpr();
+		int index = known_rt->FieldOffset(field->FieldName());
+
+		if ( index < 0 )
+			{
+			Error("no such field in record", e);
+			SetError();
+			continue;
+			}
+
+		auto known_ft = known_rt->GetFieldType(index);
+
+		if ( ! field->PromoteTo(known_ft) )
+			SetError();
+
+		(*map)[i++] = index;
+		}
 	}
 
 ValPtr RecordConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
@@ -3262,13 +3351,16 @@ ValPtr RecordConstructorExpr::Eval(Frame* f) const
 	const auto& exprs = op->Exprs();
 	auto rt = cast_intrusive<RecordType>(type);
 
-	if ( exprs.length() != rt->NumFields() )
+	if ( ! map && exprs.length() != rt->NumFields() )
 		RuntimeErrorWithCallStack("inconsistency evaluating record constructor");
 
 	auto rv = make_intrusive<RecordVal>(std::move(rt));
 
 	for ( int i = 0; i < exprs.length(); ++i )
-		rv->Assign(i, exprs[i]->Eval(f));
+		{
+		int ind = map ? (*map)[i] : i;
+		rv->Assign(ind, exprs[i]->Eval(f));
+		}
 
 	return rv;
 	}
@@ -3280,9 +3372,21 @@ bool RecordConstructorExpr::IsPure() const
 
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const
 	{
-	d->Add("[");
-	op->Describe(d);
-	d->Add("]");
+	auto& tn = type->GetName();
+
+	if ( tn.size() > 0 )
+		{
+		d->Add(tn);
+		d->Add("(");
+		op->Describe(d);
+		d->Add(")");
+		}
+	else
+		{
+		d->Add("[");
+		op->Describe(d);
+		d->Add("]");
+		}
 	}
 
 TraversalCode RecordConstructorExpr::Traverse(TraversalCallback* cb) const
@@ -3348,9 +3452,9 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 		if ( expr->Tag() != EXPR_ASSIGN )
 			continue;
 
-		auto idx_expr = expr->AsAssignExpr()->Op1();
-		auto val_expr = expr->AsAssignExpr()->Op2();
-		auto yield_type = GetType()->AsTableType()->Yield().get();
+		auto idx_expr = expr->AsAssignExpr()->GetOp1();
+		auto val_expr = expr->AsAssignExpr()->GetOp2();
+		auto yield_type = GetType()->AsTableType()->Yield();
 
 		// Promote LHS
 		assert(idx_expr->Tag() == EXPR_LIST);
@@ -3361,17 +3465,14 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 
 		loop_over_list(idx_exprs, j)
 			{
-			Expr* idx = idx_exprs[j];
+			ExprPtr idx = {NewRef{}, idx_exprs[j]};
 
-			auto promoted_idx = check_and_promote_expr(idx, indices[j].get());
+			auto promoted_idx = check_and_promote_expr(idx, indices[j]);
 
 			if ( promoted_idx )
 				{
-				if ( promoted_idx.get() != idx )
-					{
-					Unref(idx);
-					idx_exprs.replace(j, promoted_idx.release());
-					}
+				if ( promoted_idx != idx )
+					Unref(idx_exprs.replace(j, promoted_idx.release()));
 
 				continue;
 				}
@@ -3483,7 +3584,7 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 	if ( indices.size() == 1 )
 		{
 		if ( ! check_and_promote_exprs_to_type(op->AsListExpr(),
-		                                       indices[0].get()) )
+		                                       indices[0]) )
 			ExprError("inconsistent type in set constructor");
 		}
 
@@ -3602,7 +3703,7 @@ VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list,
 		}
 
 	if ( ! check_and_promote_exprs_to_type(op->AsListExpr(),
-					       type->AsVectorType()->Yield().get()) )
+					       type->AsVectorType()->Yield()) )
 		ExprError("inconsistent types in vector constructor");
 	}
 
@@ -3670,6 +3771,12 @@ FieldAssignExpr::FieldAssignExpr(const char* arg_field_name, ExprPtr value)
 	SetType(op->GetType());
 	}
 
+bool FieldAssignExpr::PromoteTo(TypePtr t)
+	{
+	op = check_and_promote_expr(op, t);
+	return op != nullptr;
+	}
+
 void FieldAssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f)
 	const
 	{
@@ -3707,7 +3814,11 @@ void FieldAssignExpr::ExprDescribe(ODesc* d) const
 	d->Add("$");
 	d->Add(FieldName());
 	d->Add("=");
-	op->Describe(d);
+
+	if ( op )
+		op->Describe(d);
+	else
+		d->Add("<error>");
 	}
 
 ArithCoerceExpr::ArithCoerceExpr(ExprPtr arg_op, TypeTag t)
@@ -3739,49 +3850,36 @@ ArithCoerceExpr::ArithCoerceExpr(ExprPtr arg_op, TypeTag t)
 		ExprError("bad coercion value");
 	}
 
-ValPtr ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) const
+ValPtr ArithCoerceExpr::FoldSingleVal(ValPtr v, const TypePtr& t) const
 	{
-	switch ( t ) {
-	case TYPE_INTERNAL_DOUBLE:
-		return make_intrusive<DoubleVal>(v->CoerceToDouble());
-
-	case TYPE_INTERNAL_INT:
-		return val_mgr->Int(v->CoerceToInt());
-
-	case TYPE_INTERNAL_UNSIGNED:
-		return val_mgr->Count(v->CoerceToUnsigned());
-
-	default:
-		RuntimeErrorWithCallStack("bad type in CoerceExpr::Fold");
-		return nullptr;
-	}
+	return check_and_promote(v, t.get(), false, location);
 	}
 
 ValPtr ArithCoerceExpr::Fold(Val* v) const
 	{
-	InternalTypeTag t = type->InternalType();
+	auto t = GetType();
 
 	if ( ! is_vector(v) )
 		{
 		// Our result type might be vector, in which case this
 		// invocation is being done per-element rather than on
-		// the whole vector.  Correct the type tag if necessary.
+		// the whole vector.  Correct the type if so.
 		if ( type->Tag() == TYPE_VECTOR )
-			t = GetType()->AsVectorType()->Yield()->InternalType();
+			t = t->AsVectorType()->Yield();
 
-		return FoldSingleVal(v, t);
+		return FoldSingleVal({NewRef{}, v}, t);
 		}
 
-	t = GetType()->AsVectorType()->Yield()->InternalType();
-
 	VectorVal* vv = v->AsVectorVal();
-	auto result = make_intrusive<VectorVal>(GetType<VectorType>());
+	auto result = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
+
+	auto yt = t->AsVectorType()->Yield();
 
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
 		auto elt = vv->ValAt(i);
 		if ( elt )
-			result->Assign(i, FoldSingleVal(elt.get(), t));
+			result->Assign(i, FoldSingleVal(elt, yt));
 		else
 			result->Assign(i, nullptr);
 		}
@@ -4554,9 +4652,9 @@ void LambdaExpr::CheckCaptures()
 		}
 	}
 
-Scope* LambdaExpr::GetScope() const
+ScopePtr LambdaExpr::GetScope() const
 	{
-	return ingredients->scope.get();
+	return ingredients->scope;
 	}
 
 ValPtr LambdaExpr::Eval(Frame* f) const
@@ -4879,12 +4977,12 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 		loop_over_list(exprs, i)
 			{
-			Expr* e = exprs[i];
+			ExprPtr e = {NewRef{}, exprs[i]};
 			const auto& vyt = vec->GetType()->AsVectorType()->Yield();
-			auto promoted_e = check_and_promote_expr(e, vyt.get());
+			auto promoted_e = check_and_promote_expr(e, vyt);
 
 			if ( promoted_e )
-				e = promoted_e.get();
+				e = promoted_e;
 
 			if ( ! vec->Assign(i, e->Eval(nullptr)) )
 				{
@@ -5106,34 +5204,38 @@ CastExpr::CastExpr(ExprPtr arg_op, TypePtr t)
 		ExprError("cast not supported");
 	}
 
-ValPtr CastExpr::Eval(Frame* f) const
+ValPtr CastExpr::Fold(Val* v) const
 	{
-	if ( IsError() )
-		return nullptr;
+	std::string error;
+	auto res = cast_value({NewRef{}, v}, GetType(), error);
 
-	auto v = op->Eval(f);
+	if ( ! res )
+		RuntimeError(error.c_str());
 
-	if ( ! v )
-		return nullptr;
+	return res;
+	}
 
-	auto nv = cast_value_to_type(v.get(), GetType().get());
+ValPtr cast_value(ValPtr v, const TypePtr& t, std::string& error)
+	{
+	auto nv = cast_value_to_type(v.get(), t.get());
 
 	if ( nv )
 		return nv;
 
 	ODesc d;
+
 	d.Add("invalid cast of value with type '");
 	v->GetType()->Describe(&d);
 	d.Add("' to type '");
-	GetType()->Describe(&d);
+	t->Describe(&d);
 	d.Add("'");
 
 	if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) &&
-		 ! v->AsRecordVal()->HasField(0) )
+	     ! v->AsRecordVal()->HasField(0) )
 		d.Add(" (nil $data field)");
 
-	RuntimeError(d.Description());
-	return nullptr;  // not reached.
+	error = d.Description();
+	return nullptr;
 	}
 
 void CastExpr::ExprDescribe(ODesc* d) const
@@ -5180,34 +5282,42 @@ ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init)
 			std::move(op1), std::move(op2), is_init);
 	}
 
-ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
+ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t)
 	{
 	const auto& et = e->GetType();
 	TypeTag e_tag = et->Tag();
 	TypeTag t_tag = t->Tag();
 
-	if ( t->Tag() == TYPE_ANY )
-		return {NewRef{}, e};
+	if ( t_tag == TYPE_ANY )
+		{
+		if ( e_tag != TYPE_ANY )
+			return make_intrusive<CoerceToAnyExpr>(e);
+
+		return e;
+		}
+
+	if ( e_tag == TYPE_ANY )
+		return make_intrusive<CoerceFromAnyExpr>(e, t);
 
 	if ( EitherArithmetic(t_tag, e_tag) )
 		{
 		if ( e_tag == t_tag )
-			return {NewRef{}, e};
+			return e;
 
 		if ( ! BothArithmetic(t_tag, e_tag) )
 			{
-			t->Error("arithmetic mixed with non-arithmetic", e);
+			t->Error("arithmetic mixed with non-arithmetic", e.get());
 			return nullptr;
 			}
 
 		TypeTag mt = max_type(t_tag, e_tag);
 		if ( mt != t_tag )
 			{
-			t->Error("over-promotion of arithmetic value", e);
+			t->Error("over-promotion of arithmetic value", e.get());
 			return nullptr;
 			}
 
-		return make_intrusive<ArithCoerceExpr>(IntrusivePtr{NewRef{}, e}, t_tag);
+		return make_intrusive<ArithCoerceExpr>(e, t_tag);
 		}
 
 	if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
@@ -5216,14 +5326,13 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		RecordType* et_r = et->AsRecordType();
 
 		if ( same_type(t, et) )
-			return {NewRef{}, e};
+			return e;
 
 		if ( record_promotion_compatible(t_r, et_r) )
-			return make_intrusive<RecordCoerceExpr>(
-				IntrusivePtr{NewRef{}, e},
+			return make_intrusive<RecordCoerceExpr>(e,
 				IntrusivePtr{NewRef{}, t_r});
 
-		t->Error("incompatible record types", e);
+		t->Error("incompatible record types", e.get());
 		return nullptr;
 		}
 
@@ -5232,23 +5341,21 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		{
 		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
 			  et->AsTableType()->IsUnspecifiedTable() )
-			return make_intrusive<TableCoerceExpr>(
-				IntrusivePtr{NewRef{}, e},
+			return make_intrusive<TableCoerceExpr>(e,
 				IntrusivePtr{NewRef{}, t->AsTableType()});
 
 		if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR &&
 		     et->AsVectorType()->IsUnspecifiedVector() )
-			return make_intrusive<VectorCoerceExpr>(
-				IntrusivePtr{NewRef{}, e},
+			return make_intrusive<VectorCoerceExpr>(e,
 				IntrusivePtr{NewRef{}, t->AsVectorType()});
 
 		if ( t->Tag() != TYPE_ERROR && et->Tag() != TYPE_ERROR )
-			t->Error("type clash", e);
+			t->Error("type clash", e.get());
 
 		return nullptr;
 		}
 
-	return {NewRef{}, e};
+	return e;
 	}
 
 bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
@@ -5267,8 +5374,8 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 
 	loop_over_list(el, i)
 		{
-		Expr* e = el[i];
-		auto promoted_e = check_and_promote_expr(e, tl[i].get());
+		ExprPtr e = {NewRef{}, el[i]};
+		auto promoted_e = check_and_promote_expr(e, tl[i]);
 
 		if ( ! promoted_e )
 			{
@@ -5276,17 +5383,14 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 			return false;
 			}
 
-		if ( promoted_e.get() != e )
-			{
-			Unref(e);
-			el.replace(i, promoted_e.release());
-			}
+		if ( promoted_e != e )
+			Unref(el.replace(i, promoted_e.release()));
 		}
 
 	return true;
 	}
 
-bool check_and_promote_args(ListExpr* const args, RecordType* types)
+bool check_and_promote_args(ListExpr* const args, const RecordType* types)
 	{
 	ExprPList& el = args->Exprs();
 	int ntypes = types->NumFields();
@@ -5303,7 +5407,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 		// arguments using &default expressions.
 		for ( int i = ntypes - 1; i >= el.length(); --i )
 			{
-			TypeDecl* td = types->FieldDecl(i);
+			auto td = types->FieldDecl(i);
 			const auto& def_attr = td->attrs ? td->attrs->Find(ATTR_DEFAULT).get() : nullptr;
 
 			if ( ! def_attr )
@@ -5340,29 +5444,26 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 	return rval;
 	}
 
-bool check_and_promote_exprs_to_type(ListExpr* const elements, zeek::Type* type)
+bool check_and_promote_exprs_to_type(ListExpr* const elements, TypePtr t)
 	{
 	ExprPList& el = elements->Exprs();
 
-	if ( type->Tag() == TYPE_ANY )
+	if ( t->Tag() == TYPE_ANY )
 		return true;
 
 	loop_over_list(el, i)
 		{
-		Expr* e = el[i];
-		auto promoted_e = check_and_promote_expr(e, type);
+		ExprPtr e = {NewRef{}, el[i]};
+		auto promoted_e = check_and_promote_expr(e, t);
 
 		if ( ! promoted_e )
 			{
-			e->Error("type mismatch", type);
+			e->Error("type mismatch", t.get());
 			return false;
 			}
 
-		if ( promoted_e.get() != e )
-			{
-			Unref(e);
-			el.replace(i, promoted_e.release());
-			}
+		if ( promoted_e != e )
+			Unref(el.replace(i, promoted_e.release()));
 		}
 
 	return true;

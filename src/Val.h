@@ -45,6 +45,8 @@ class PrefixTable;
 class CompositeHash;
 class HashKey;
 
+class ZBody;
+
 } // namespace detail
 
 namespace run_state {
@@ -185,6 +187,9 @@ UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
 
 	OpaqueVal* AsOpaqueVal();
 	const OpaqueVal* AsOpaqueVal() const;
+
+	TypeVal* AsTypeVal();
+	const TypeVal* AsTypeVal() const;
 
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
@@ -1173,13 +1178,15 @@ public:
 	/**
 	 * Appends a value to the record's fields.  The caller is responsible
 	 * for ensuring that fields are appended in the correct order and
-	 * with the correct type.
+	 * with the correct type.  The type needs to be passed in because
+	 * it's unsafe to take it from v when the field's type is "any" while
+	 * v is a concrete type.
 	 * @param v  The value to append.
 	 */
-	void AppendField(ValPtr v)
+	void AppendField(ValPtr v, const TypePtr& t)
 		{
 		if ( v )
-			record_val->emplace_back(ZVal(v, v->GetType()));
+			record_val->emplace_back(ZVal(v, t));
 		else
 			record_val->emplace_back(std::nullopt);
 		}
@@ -1405,6 +1412,23 @@ public:
 	static void DoneParsing();
 
 protected:
+	friend class zeek::detail::ZBody;
+
+	// For use by low-level ZAM instructions.  Caller assumes
+	// responsibility for memory management.  The first version
+	// allows manipulation of whether the field is present at all.
+	// The second version ensures that the optional value is present.
+	std::optional<ZVal>& RawOptField(int field)
+		{ return (*record_val)[field]; }
+
+	ZVal& RawField(int field)
+		{
+		auto& f = RawOptField(field);
+		if ( ! f )
+			f = ZVal();
+		return *f;
+		}
+
 	ValPtr DoClone(CloneState* state) override;
 
 	void AddedField(int field)
@@ -1482,6 +1506,8 @@ protected:
 class VectorVal final : public Val, public notifier::detail::Modifiable {
 public:
 	explicit VectorVal(VectorTypePtr t);
+	VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals);
+
 	~VectorVal() override;
 
 	ValPtr SizeVal() const override;
@@ -1562,6 +1588,22 @@ public:
 	 */
 	VectorValPtr Order(Func* cmp_func = nullptr);
 
+	/**
+	 * Ensures that the vector can be used as a "vector of t".  In
+	 * general, this is only relevant for objects that are typed as
+	 * "vector of any", making sure that each element is in fact
+	 * of type "t", and is internally represented as such so that
+	 * this object can be used directly without any special-casing.
+	 *
+	 * Returns true if the object is compatible with "vector of t"
+	 * (including if it's not a vector-of-any but instead already a
+	 * vector-of-t), false if not compatible.
+	 * @param t  The yield type to concretize to.
+	 * @return  True if the object is compatible with vector-of-t, false
+	 * if not.
+	 */
+	bool Concretize(const TypePtr& t);
+
 	ValPtr ValAt(unsigned int index) const	{ return At(index); }
 
 	bool Has(unsigned int index) const
@@ -1591,6 +1633,10 @@ public:
 		{ return (*vector_val)[index]->string_val; }
 	const String* StringAt(unsigned int index) const
 		{ return StringValAt(index)->AsString(); }
+
+	// Only intended for low-level access by compiled code.
+	const auto& RawVec() const	{ return vector_val; }
+	auto& RawVec()			{ return vector_val; }
 
 protected:
 	/**

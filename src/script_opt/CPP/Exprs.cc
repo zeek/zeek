@@ -126,6 +126,22 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level)
 			GenTypeName(e->GetType()) + ")";
 		return GenericValPtrToGT(gen, e->GetType(), gt);
 
+	case EXPR_TO_ANY_COERCE:
+		return GenExpr(e->GetOp1(), GEN_VAL_PTR);
+
+	case EXPR_FROM_ANY_COERCE:
+		gen = string("from_any__CPP(") +
+			GenExpr(e->GetOp1(), GEN_VAL_PTR) + ", " +
+			GenTypeName(e->GetType()) + ")";
+		return GenericValPtrToGT(gen, e->GetType(), gt);
+
+	case EXPR_FROM_ANY_VEC_COERCE:
+		gen = string("from_any_vec__CPP(") +
+			GenExpr(e->GetOp1(), GEN_VAL_PTR) + ", " +
+			GenTypeName(e->GetType()->Yield()) + ")";
+		return GenericValPtrToGT(gen, e->GetType(), gt);
+
+
 	case EXPR_FIELD_ASSIGN:
 	case EXPR_INDEX_SLICE_ASSIGN:
 	case EXPR_INLINE:

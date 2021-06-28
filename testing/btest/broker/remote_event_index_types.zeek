@@ -1,6 +1,6 @@
 # @TEST-PORT: BROKER_PORT
 #
-# @TEST-EXEC: btest-bg-run recv "zeek -b ../recv.zeek >recv.out"
+# @TEST-EXEC: btest-bg-run recv "ZEEK_COMPILE_ALL=1 zeek -b ../recv.zeek >recv.out"
 # @TEST-EXEC: btest-bg-run send "zeek -b ../send.zeek >send.out"
 #
 # @TEST-EXEC: btest-bg-wait 45

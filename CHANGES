@@ -1,3 +1,99 @@
+4.1.0-dev.812 | 2021-06-28 11:02:46 -0700
+
+  * whoops overlooked the need to canonicalize filenames (Vern Paxson, Corelight)
+
+  * another set of tweaks per review comments (Vern Paxson, Corelight)
+
+  * addressed a number of code review comments (Vern Paxson, Corelight)
+
+  * baseline updates for merge (Vern Paxson, Corelight)
+
+  * Merge remote-tracking branch 'origin/master' into topic/vern/ZAM-prep (Vern Paxson, Corelight)
+
+  * support "any" coercions for "-O gen-C++" (Vern Paxson, Corelight)
+
+  * better descriptions for named record constructors (Vern Paxson, Corelight)
+
+  * test suite baseline updates for "-a opt" optimize-AST alternative (Vern Paxson, Corelight)
+
+  * test suite baseline updates for "-a xform" alternative / AST transformation (Vern Paxson, Corelight)
+
+  * error propagation fix for AST reduction (Vern Paxson, Corelight)
+
+  * updates to "-a inline" test suite alternative baseline (Vern Paxson, Corelight)
+
+  * updates for the main test suite baseline (Vern Paxson, Corelight)
+
+  * updates to test suite tests for compatibility with upcoming ZAM functionality (Vern Paxson, Corelight)
+
+  * "-O compile-all" option to specify compilation of inlined functions (Vern Paxson, Corelight)
+
+  * compile inlined functions if they're also used indirectly (Vern Paxson, Corelight)
+
+  * provide ZAM-generated code with low-level access to record fields (Vern Paxson, Corelight)
+
+  * fix for cloning records with fields of type "any" (Vern Paxson, Corelight)
+
+  * direct access for ZAM to VectorVal internal vector (Vern Paxson, Corelight)
+
+  * ZVal constructors, accessors & methods in support of ZAM (Vern Paxson, Corelight)
+
+  * switch ZVal representation of types from Type objects to TypeVal's (Vern Paxson, Corelight)
+
+  * revised error-reporting interface for ZVal's, to accommodate ZAM inner loop (Vern Paxson, Corelight)
+
+  * faster construction of records by factoring static decisions into RecordType's (Vern Paxson, Corelight)
+
+  * make "switch" internals accessible to ZAM; tidying of same (Vern Paxson, Corelight)
+
+  * factor out "cast" functionality to make available to lower-level ZAM access (Vern Paxson, Corelight)
+
+  * tidying for check_and_promote_expr (Vern Paxson, Corelight)
+
+  * employ explicit conversions to/from "any" and "vector of any" types (Vern Paxson, Corelight)
+
+  * more robust treatment of arithmetic coercions (Vern Paxson, Corelight)
+
+  * support for constructing VectorVal's directly from underlying ZVal vectors (Vern Paxson, Corelight)
+
+  * support for ensuring that a vector can be treated as having a homogeneous type (Vern Paxson, Corelight)
+
+  * factoring out of low-level vector indexing to make available to ZAM (Vern Paxson, Corelight)
+
+  * minor changes for more robust behavior in the face of errors (Vern Paxson, Corelight)
+
+  * gracefully deal with "eval" exceptions that occur during AST reduction (Vern Paxson, Corelight)
+
+  * directly construct records of known types, rather than requiring coercion (Vern Paxson, Corelight)
+
+  * fixes for treating WhileStmt's "loop_cond_pred_stmt" as a first-class citizen (Vern Paxson, Corelight)
+
+  * support for profiling function bodies w/o needing accompanying ScriptFunc object (Vern Paxson, Corelight)
+
+  * support for Frame's having call locations even if no associated CallExpr (Vern Paxson, Corelight)
+
+  * fix for AST optimization altering top-level body statement (Vern Paxson, Corelight)
+
+  * fix for analyzing variable usage inside of table initializers (Vern Paxson, Corelight)
+
+  * fix for inlining type-based switch statements (Vern Paxson, Corelight)
+
+  * fix for computing |size| of files and subnets (Vern Paxson, Corelight)
+
+  * fix for tracking the effects of += operations (Vern Paxson, Corelight)
+
+  * Expr method to invert the sense of a relational (Vern Paxson, Corelight)
+
+  * Trigger constructor (and factoring) to support lower-level constructions (Vern Paxson, Corelight)
+
+  * fixed / removed out-of-date comments, tidied check_and_promote_args() interface (Vern Paxson, Corelight)
+
+  * convert scopes to be managed using IntrusivePtr's (Vern Paxson, Corelight)
+
+  * various accessors used by ZAM compiler (Vern Paxson, Corelight)
+
+  * Update submodule(s) [nomail] (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.764 | 2021-06-27 10:50:19 -0700
 
   * Remove unnecessary -B arguments from Zeek invocations in testsuite

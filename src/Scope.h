@@ -96,12 +96,12 @@ extern IDPtr install_ID(
 	bool is_global, bool is_export);
 
 extern void push_scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> attrs);
-extern void push_existing_scope(Scope* scope);
+extern void push_existing_scope(ScopePtr scope);
 
 // Returns the one popped off.
 extern ScopePtr pop_scope();
-extern Scope* current_scope();
-extern Scope* global_scope();
+extern ScopePtr current_scope();
+extern ScopePtr global_scope();
 
 // Current module (identified by its name).
 extern std::string current_module;

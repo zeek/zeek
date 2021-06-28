@@ -86,11 +86,12 @@ public:
 	// function and one of its bodies.
 	ProfileFunc(const Func* func, const StmtPtr& body, bool abs_rec_fields);
 
-	// Constructor for profiling an AST expression.  This exists
-	// to support (1) profiling lambda expressions, and (2) traversing
-	// attribute expressions (such as &default=expr) to discover what
-	// components they include.
-	ProfileFunc(const Expr* func, bool abs_rec_fields);
+	// Constructors for profiling an AST statement expression.  These exist
+	// to support (1) profiling lambda expressions and loop bodies, and
+	// (2) traversing attribute expressions (such as &default=expr)
+	// to discover what components they include.
+	ProfileFunc(const Stmt* body, bool abs_rec_fields = false);
+	ProfileFunc(const Expr* func, bool abs_rec_fields = false);
 
 	// See the comments for the associated member variables for each
 	// of these accessors.

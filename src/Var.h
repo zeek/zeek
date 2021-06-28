@@ -20,6 +20,7 @@ class Expr;
 class Scope;
 class Stmt;
 using StmtPtr = IntrusivePtr<Stmt>;
+using ScopePtr = IntrusivePtr<Scope>;
 
 enum DeclType { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, };
 
@@ -41,7 +42,7 @@ extern void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor,
 extern void end_func(StmtPtr body);
 
 // Gather all IDs referenced inside a body that aren't part of a given scope.
-extern IDPList gather_outer_ids(Scope* scope, Stmt* body);
+extern IDPList gather_outer_ids(ScopePtr scope, StmtPtr body);
 
 } // namespace detail
 } // namespace zeek

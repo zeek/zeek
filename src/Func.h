@@ -12,7 +12,7 @@
 #include "zeek/ZeekList.h"
 #include "zeek/Stmt.h"
 #include "zeek/Obj.h"
-#include "zeek/IntrusivePtr.h"
+#include "zeek/Scope.h"
 #include "zeek/Type.h" /* for function_flavor */
 #include "zeek/TraverseTypes.h"
 #include "zeek/ZeekArgs.h"
@@ -103,7 +103,7 @@ public:
 	                     size_t new_frame_size, int priority = 0);
 
 	virtual void SetScope(detail::ScopePtr newscope);
-	virtual detail::Scope* GetScope() const		{ return scope.get(); }
+	virtual detail::ScopePtr GetScope() const	{ return scope; }
 
 	const FuncTypePtr& GetType() const
 		{ return type; }

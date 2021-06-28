@@ -972,10 +972,7 @@ ValPtr dbg_eval_expr(const char* expr)
 
 	const ScriptFunc* func = frame->GetFunction();
 	if ( func )
-		{
-		Ref(func->GetScope());
 		push_existing_scope(func->GetScope());
-		}
 
 	// ### Possibly push a debugger-local scope?
 

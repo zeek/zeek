@@ -28,9 +28,11 @@ void (*CPP_init_hook)() = nullptr;
 // Tracks all of the loaded functions (including event handlers and hooks).
 static std::vector<FuncInfo> funcs;
 
+static ZAMCompiler* ZAM = nullptr;
+
 
 void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
-			ScopePtr scope_ptr, StmtPtr& body,
+			ScopePtr scope, StmtPtr& body,
 			AnalyOpt& analysis_options)
 	{
 	if ( reporter->Errors() > 0 )
@@ -57,7 +59,6 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 		return;
 		}
 
-	auto scope = scope_ptr.release();
 	push_existing_scope(scope);
 
 	auto rc = std::make_shared<Reducer>();
@@ -129,13 +130,19 @@ void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	rc->SetDefSetsMgr(reduced_rds.GetDefSetsMgr());
 
-	auto ud = std::make_unique<UseDefs>(body, rc);
+	auto ud = std::make_shared<UseDefs>(body, rc);
 	ud->Analyze();
 
 	if ( analysis_options.dump_uds )
 		ud->Dump();
 
-	ud->RemoveUnused();
+	new_body = ud->RemoveUnused();
+
+	if ( new_body != body )
+		{
+		f->ReplaceBody(body, new_body);
+		body = new_body;
+		}
 
 	int new_frame_size =
 		scope->Length() + rc->NumTemps() + rc->NumNewLocals();
@@ -162,8 +169,8 @@ void analyze_func(ScriptFuncPtr f)
 	     *analysis_options.only_func != f->Name() )
 		return;
 
-	funcs.emplace_back(f, ScopePtr{NewRef{}, f->GetScope()},
-	                   f->CurrentBody(), f->CurrentPriority());
+	funcs.emplace_back(f, f->GetScope(), f->CurrentBody(),
+	                   f->CurrentPriority());
 	}
 
 const FuncInfo* analyze_global_stmts(Stmt* stmts)
@@ -182,7 +189,7 @@ const FuncInfo* analyze_global_stmts(Stmt* stmts)
 	StmtPtr stmts_p{NewRef{}, stmts};
 	auto sf = make_intrusive<ScriptFunc>(id, stmts_p, empty_inits, sc->Length(), 0);
 
-	funcs.emplace_back(sf, ScopePtr{NewRef{}, sc}, stmts_p, 0);
+	funcs.emplace_back(sf, sc, stmts_p, 0);
 
 	return &funcs.back();
 	}
@@ -216,6 +223,7 @@ void analyze_scripts()
 		check_env_opt("ZEEK_GEN_CPP", analysis_options.gen_CPP);
 		check_env_opt("ZEEK_GEN_STANDALONE_CPP",
 		              analysis_options.gen_standalone_CPP);
+		check_env_opt("ZEEK_COMPILE_ALL", analysis_options.compile_all);
 		check_env_opt("ZEEK_REPORT_CPP", analysis_options.report_CPP);
 		check_env_opt("ZEEK_USE_CPP", analysis_options.use_CPP);
 
@@ -485,20 +493,51 @@ void analyze_scripts()
 	if ( ! analysis_options.activate )
 		return;
 
+	// The following tracks inlined functions that are also used
+	// indirectly, and thus should be compiled even if they were
+	// inlined.  We don't bother populating this if we're not inlining,
+	// since it won't be consulted in that case.
+	std::unordered_set<Func*> func_used_indirectly;
+
+	if ( inl )
+		{
+		for ( auto& f : funcs )
+			{
+			for ( const auto& g : f.Profile()->Globals() )
+				{
+				if ( g->GetType()->Tag() != TYPE_FUNC )
+					continue;
+
+				auto v = g->GetVal();
+				if ( ! v )
+					continue;
+
+				auto func = v->AsFunc();
+
+				if ( inl->WasInlined(func) )
+					func_used_indirectly.insert(func);
+				}
+			}
+		}
+
 	for ( auto& f : funcs )
 		{
-		if ( inl && inl->WasInlined(f.Func()) )
+		auto func = f.Func();
+
+		if ( ! analysis_options.compile_all &&
+		     inl && inl->WasInlined(func) &&
+		     func_used_indirectly.count(func) == 0 )
 			// No need to compile as it won't be
 			// called directly.
 			continue;
 
-		if ( when_funcs.count(f.Func()) > 0 )
+		if ( when_funcs.count(func) > 0 )
 			// We don't try to compile these.
 			continue;
 
 		auto new_body = f.Body();
-		optimize_func(f.Func(), f.ProfilePtr(), f.Scope(),
-				new_body, analysis_options);
+		optimize_func(func, f.ProfilePtr(), f.Scope(), new_body,
+		              analysis_options);
 		f.SetBody(new_body);
 		}
 	}

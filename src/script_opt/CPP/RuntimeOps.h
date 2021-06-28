@@ -55,6 +55,14 @@ extern ValPtr set_event__CPP(IDPtr g, ValPtr v, EventHandlerPtr& gh);
 // A separate function in order to package up the error handling.
 extern ValPtr cast_value_to_type__CPP(const ValPtr& v, const TypePtr& t);
 
+// Convert a value of type "any" to the given concrete type.  A separate
+// function in order to package up the error handling.
+extern ValPtr from_any__CPP(const ValPtr& v, const TypePtr& t);
+
+// Convert a vector-of-any to a vector-of-t.  A separate function in order
+// to package up the error handling.
+extern ValPtr from_any_vec__CPP(const ValPtr& v, const TypePtr& t);
+
 // Returns the subnet corresponding to the given mask of the given address.
 // A separate function in order to package up the error handling.
 extern SubNetValPtr addr_mask__CPP(const IPAddr& a, uint32_t mask);

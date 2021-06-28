@@ -18,6 +18,7 @@
 namespace zeek {
 
 class Val;
+union ZVal;
 class EnumVal;
 class TableVal;
 using ValPtr = IntrusivePtr<Val>;
@@ -33,7 +34,7 @@ using ListExprPtr = IntrusivePtr<ListExpr>;
 
 } // namespace detail
 
-// BRO types.
+// Zeek types.
 enum TypeTag {
 	TYPE_VOID,      // 0
 	TYPE_BOOL,      // 1
@@ -171,7 +172,7 @@ public:
 
 	explicit Type(TypeTag tag, bool base_type = false);
 
-	// Performs a shallow clone operation of the Bro type.
+	// Performs a shallow clone operation of the Zeek type.
 	// This especially means that especially for tables the types
 	// are not recursively cloned; altering one type will in this case
 	// alter one of them.
@@ -559,6 +560,11 @@ public:
 
 using type_decl_list = PList<TypeDecl>;
 
+// The following tracks how to initialize a given field.  We don't define
+// it here because it requires pulling in a bunch of low-level headers that
+// would be nice to avoid.
+class FieldInit;
+
 class RecordType final : public Type {
 public:
 	explicit RecordType(type_decl_list* types);
@@ -636,6 +642,13 @@ public:
 	void AddFieldsDirectly(const type_decl_list& types,
 				bool add_log_attr = false);
 
+	/**
+	 *
+	 * Populates a new instance of the record with its initial values.
+	 * @param r  The record's underlying value vector.
+	 */
+	void Create(std::vector<std::optional<ZVal>>& r) const;
+
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 	void DescribeFields(ODesc* d) const;
@@ -659,6 +672,10 @@ protected:
 	RecordType() { types = nullptr; }
 
 	void AddField(unsigned int field, const TypeDecl* td);
+
+	// Maps each field to how to initialize it.  Uses pointers due to
+	// keeping the FieldInit definition private to Type.cc (see above).
+	std::vector<FieldInit*> field_inits;
 
 	// If we were willing to bound the size of records, then we could
 	// use std::bitset here instead.

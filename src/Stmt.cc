@@ -710,7 +710,7 @@ void SwitchStmt::Init()
 	t->Append(e->GetType());
 	comp_hash = new CompositeHash(std::move(t));
 
-	case_label_value_map.SetDeleteFunc(int_del_func);
+	case_label_hash_map.SetDeleteFunc(int_del_func);
 	}
 
 SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
@@ -855,12 +855,13 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 		                        type_name(e->GetType()->Tag()));
 		}
 
-	int* label_idx = case_label_value_map.Lookup(hk.get());
+	int* label_idx = case_label_hash_map.Lookup(hk.get());
 
 	if ( label_idx )
 		return false;
 
-	case_label_value_map.Insert(hk.get(), new int(idx));
+	case_label_value_map[v] = idx;
+	case_label_hash_map.Insert(hk.get(), new int(idx));
 	return true;
 	}
 
@@ -884,7 +885,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 	ID* label_id = nullptr;
 
 	// Find matching expression cases.
-	if ( case_label_value_map.Length() )
+	if ( case_label_hash_map.Length() )
 		{
 		auto hk = comp_hash->MakeHashKey(*v, true);
 
@@ -897,7 +898,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 			return std::make_pair(-1, nullptr);
 			}
 
-		if ( auto i = case_label_value_map.Lookup(hk.get()) )
+		if ( auto i = case_label_hash_map.Lookup(hk.get()) )
 			label_idx = *i;
 		}
 
@@ -1109,7 +1110,10 @@ WhileStmt::~WhileStmt() = default;
 
 bool WhileStmt::IsPure() const
 	{
-	return loop_condition->IsPure() && body->IsPure();
+	if ( loop_condition->IsPure() && body->IsPure() )
+		return ! loop_cond_pred_stmt || loop_cond_pred_stmt->IsPure();
+	else
+		return false;
 	}
 
 void WhileStmt::StmtDescribe(ODesc* d) const
@@ -1118,6 +1122,13 @@ void WhileStmt::StmtDescribe(ODesc* d) const
 
 	if ( d->IsReadable() )
 		d->Add("(");
+
+	if ( loop_cond_pred_stmt )
+		{
+		d->Add(" {");
+		loop_cond_pred_stmt->Describe(d);
+		d->Add("} ");
+		}
 
 	loop_condition->Describe(d);
 
@@ -1135,6 +1146,12 @@ TraversalCode WhileStmt::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
+
+	if ( loop_cond_pred_stmt )
+		{
+		tc = loop_cond_pred_stmt->Traverse(cb);
+		HANDLE_TC_STMT_PRE(tc);
+		}
 
 	tc = loop_condition->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);
@@ -1514,7 +1531,7 @@ TraversalCode FallthroughStmt::Traverse(TraversalCallback* cb) const
 ReturnStmt::ReturnStmt(ExprPtr arg_e)
 	: ExprStmt(STMT_RETURN, std::move(arg_e))
 	{
-	Scope* s = current_scope();
+	auto s = current_scope();
 
 	if ( ! s || ! s->GetID() )
 		{
@@ -1548,7 +1565,7 @@ ReturnStmt::ReturnStmt(ExprPtr arg_e)
 
 	else
 		{
-		auto promoted_e = check_and_promote_expr(e.get(), yt.get());
+		auto promoted_e = check_and_promote_expr(e, yt);
 
 		if ( promoted_e )
 			e = std::move(promoted_e);

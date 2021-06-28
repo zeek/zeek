@@ -75,6 +75,25 @@ ValPtr cast_value_to_type__CPP(const ValPtr& v, const TypePtr& t)
 	return result;
 	}
 
+ValPtr from_any__CPP(const ValPtr& v, const TypePtr& t)
+	{
+	auto vt = v->GetType()->Tag();
+
+	if ( vt != t->Tag() && vt != TYPE_ERROR )
+		reporter->CPPRuntimeError("incompatible \"any\" type (%s vs. %s)",
+			type_name(vt), type_name(t->Tag()));
+
+	return v;
+	}
+
+ValPtr from_any_vec__CPP(const ValPtr& v, const TypePtr& t)
+	{
+	if ( ! v->AsVectorVal()->Concretize(t) )
+		reporter->CPPRuntimeError("incompatible \"vector of any\" type");
+
+	return v;
+	}
+
 SubNetValPtr addr_mask__CPP(const IPAddr& a, uint32_t mask)
 	{
         if ( a.GetFamily() == IPv4 )

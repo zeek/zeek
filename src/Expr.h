@@ -27,6 +27,7 @@ class Frame;
 class Scope;
 struct function_ingredients;
 using IDPtr = IntrusivePtr<ID>;
+using ScopePtr = IntrusivePtr<Scope>;
 
 enum BroExprTag : int {
 	EXPR_ANY = -1,
@@ -71,7 +72,7 @@ enum BroExprTag : int {
 	// ASTs produced by parsing .zeek script files.
 	EXPR_INDEX_ASSIGN, EXPR_FIELD_LHS_ASSIGN,
 	EXPR_APPEND_TO,
-	EXPR_TO_ANY_COERCE, EXPR_FROM_ANY_COERCE,
+	EXPR_TO_ANY_COERCE, EXPR_FROM_ANY_COERCE, EXPR_FROM_ANY_VEC_COERCE,
 	EXPR_ANY_INDEX,
 
 	EXPR_NOP,
@@ -94,12 +95,16 @@ class ForExpr;
 class HasFieldExpr;
 class IndexAssignExpr;
 class IndexExpr;
-class IsExpr;
 class InlineExpr;
+class IsExpr;
 class LambdaExpr;
 class ListExpr;
 class NameExpr;
+class RecordCoerceExpr;
+class RecordConstructorExpr;
 class RefExpr;
+class SetConstructorExpr;
+class TableConstructorExpr;
 
 class Expr;
 using CallExprPtr = IntrusivePtr<CallExpr>;
@@ -192,6 +197,11 @@ public:
 	// the current value of expr (this is the default method).
 	virtual ExprPtr MakeLvalue();
 
+	// Invert the sense of the operation.  Returns true if the expression
+	// was invertible (currently only true for relational/equality
+	// expressions), false otherwise.
+	virtual bool InvertSense();
+
 	// Marks the expression as one requiring (or at least appearing
 	// with) parentheses.  Used for pretty-printing.
 	void MarkParen()		{ paren = true; }
@@ -215,12 +225,16 @@ public:
 	ZEEK_EXPR_ACCESSOR_DECLS(HasFieldExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(IndexAssignExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(IndexExpr)
-	ZEEK_EXPR_ACCESSOR_DECLS(IsExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(InlineExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(IsExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(LambdaExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(ListExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(NameExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(RecordCoerceExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(RecordConstructorExpr)
 	ZEEK_EXPR_ACCESSOR_DECLS(RefExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(SetConstructorExpr)
+	ZEEK_EXPR_ACCESSOR_DECLS(TableConstructorExpr)
 
 	void Describe(ODesc* d) const override final;
 
@@ -782,6 +796,7 @@ public:
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+	bool InvertSense() override;
 
 protected:
 	ValPtr Fold(Val* v1, Val* v2) const override;
@@ -796,6 +811,7 @@ public:
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+	bool InvertSense() override;
 };
 
 class CondExpr final : public Expr {
@@ -957,6 +973,15 @@ extern VectorValPtr index_slice(VectorVal* vect, int first, int last);
 // (exactly) two values.
 extern StringValPtr index_string(const String* s, const ListVal* lv);
 
+// Returns a vector indexed by a boolean vector.
+extern VectorValPtr vector_bool_select(VectorTypePtr vt, const VectorVal* v1,
+                                       const VectorVal* v2);
+
+// Returns a vector indexed by a numeric vector (which specifies the
+// indices to select).
+extern VectorValPtr vector_int_select(VectorTypePtr vt, const VectorVal* v1,
+                                      const VectorVal* v2);
+
 class IndexExprWhen final : public IndexExpr {
 public:
 	static inline std::vector<ValPtr> results = {};
@@ -1046,9 +1071,13 @@ protected:
 class RecordConstructorExpr final : public Expr {
 public:
 	explicit RecordConstructorExpr(ListExprPtr constructor_list);
-	~RecordConstructorExpr() override;
 
-	ListExpr* Op() const	{ return op.get(); }
+        // This form is used to construct records of a known (ultimate) type.
+	explicit RecordConstructorExpr(RecordTypePtr known_rt,
+	                               ListExprPtr constructor_list);
+
+	ListExprPtr Op() const    { return op; }
+	const auto& Map() const	{ return map; }
 
 	ValPtr Eval(Frame* f) const override;
 
@@ -1069,6 +1098,7 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 	ListExprPtr op;
+	std::optional<std::vector<int>> map;
 };
 
 class TableConstructorExpr final : public UnaryExpr {
@@ -1149,6 +1179,14 @@ public:
 
 	const char* FieldName() const	{ return field_name.c_str(); }
 
+	// When these are first constructed, we don't know the type.
+	// The following method coerces/promotes the assignment expression
+	// as needed, once we do know the type.
+	//
+	// Returns true on success, false if the types were incompatible
+	// (in which case an error is reported).
+	bool PromoteTo(TypePtr t);
+
 	void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const override;
 	bool IsRecordElement(TypeDecl* td) const override;
 
@@ -1175,7 +1213,7 @@ public:
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
-	ValPtr FoldSingleVal(Val* v, InternalTypeTag t) const;
+	ValPtr FoldSingleVal(ValPtr v, const TypePtr& t) const;
 	ValPtr Fold(Val* v) const override;
 };
 
@@ -1291,6 +1329,7 @@ public:
 
 	Expr* Func() const	{ return func.get(); }
 	ListExpr* Args() const	{ return args.get(); }
+	ListExprPtr ArgsPtr() const	{ return args; }
 
 	bool IsPure() const override;
 
@@ -1332,7 +1371,7 @@ public:
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
-	Scope* GetScope() const;
+	ScopePtr GetScope() const;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -1442,9 +1481,13 @@ public:
 	ExprPtr Duplicate() override;
 
 protected:
-	ValPtr Eval(Frame* f) const override;
+	ValPtr Fold(Val* v) const override;
 	void ExprDescribe(ODesc* d) const override;
 };
+
+// Returns the value 'v' cast to type 't'.  On an error, returns nil
+// and populates "error" with an error message.
+extern ValPtr cast_value(ValPtr v, const TypePtr& t, std::string& error);
 
 class IsExpr final : public UnaryExpr {
 public:
@@ -1583,6 +1626,20 @@ protected:
 	ExprPtr Duplicate() override;
 };
 
+// ... and for conversion from a "vector of any" type.
+class CoerceFromAnyVecExpr : public UnaryExpr {
+public:
+	// to_type is yield type, not VectorType.
+	CoerceFromAnyVecExpr(ExprPtr op, TypePtr to_type);
+
+	// Can't use UnaryExpr's Eval() because it will do folding
+	// over the individual vector elements.
+	ValPtr Eval(Frame* f) const override;
+
+protected:
+	ExprPtr Duplicate() override;
+};
+
 // Expression used to explicitly capture [a, b, c, ...] = x assignments.
 class AnyIndexExpr : public UnaryExpr {
 public:
@@ -1635,26 +1692,22 @@ ExprPtr get_assign_expr(
 	ExprPtr op1,
 	ExprPtr op2, bool is_init);
 
-// Type-check the given expression(s) against the given type(s).  Complain
-// if the expression cannot match the given type, returning 0.  If it can
-// match, promote it as necessary (modifying the ref parameter accordingly)
-// and return 1.
-//
-// The second, third, and fourth forms are for promoting a list of
-// expressions (which is updated in place) to either match a list of
-// types or a single type.
-//
-// Note, the type is not "const" because it can be ref'd.
-
 /**
- * Returns nullptr if the expression cannot match or a promoted
- * expression.
+ * Type-check the given expression(s) against the given type(s).  Complain
+ * if the expression cannot match the given type, returning nullptr;
+ * otherwise, returns an expression reflecting the promotion.
+ *
+ * The second, third, and fourth forms are for promoting a list of
+ * expressions (which is updated in place) to either match a list of
+ * types or a single type.
+ *
+ * Note, the type is not "const" because it can be ref'd.
  */
-extern ExprPtr check_and_promote_expr(Expr* e, Type* t);
+extern ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t);
 
 extern bool check_and_promote_exprs(ListExpr* elements, TypeList* types);
-extern bool check_and_promote_args(ListExpr* args, RecordType* types);
-extern bool check_and_promote_exprs_to_type(ListExpr* elements, Type* type);
+extern bool check_and_promote_args(ListExpr* args, const RecordType* types);
+extern bool check_and_promote_exprs_to_type(ListExpr* elements, TypePtr type);
 
 // Returns a ListExpr simplified down to a list a values, or nil
 // if they couldn't all be reduced.

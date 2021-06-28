@@ -1218,7 +1218,7 @@ public:
 	bool HasField(const char *field) const
 		{
 		int idx = GetType()->AsRecordType()->FieldOffset(field);
-		return HasField(idx);
+		return (idx != -1) && HasField(idx);
 		}
 
 	/**

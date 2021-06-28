@@ -1,3 +1,5 @@
+@deprecated "Remove in v5.1. Use log-certs-base64.zeek instead."
+
 ##! This script is used to extract host certificates seen on the wire to disk
 ##! after being converted to PEM files.  The certificates will be stored in
 ##! a single file, one for local certificates and one for remote certificates.

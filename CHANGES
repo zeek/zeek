@@ -1,3 +1,7 @@
+4.1.0-dev.828 | 2021-06-29 11:11:22 -0700
+
+  * Remove remaining vestigial IDMEF support code (Christian Kreibich, Corelight)
+
 4.1.0-dev.826 | 2021-06-29 10:39:18 -0700
 
   * made RecordVal::AppendField protected: it's low-level & requires knowledge of internals (Vern Paxson, Corelight)

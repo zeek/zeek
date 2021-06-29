@@ -986,6 +986,12 @@ string StringVal::ToStdString() const
 	return string((char*)bs->Bytes(), bs->Len());
 	}
 
+string_view StringVal::ToStdStringView() const
+	{
+	auto* bs = AsString();
+	return string_view((char*)bs->Bytes(), bs->Len());
+	}
+
 StringVal* StringVal::ToUpper()
 	{
 	string_val->ToUpper();

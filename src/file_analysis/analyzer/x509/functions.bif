@@ -134,6 +134,54 @@ const EVP_MD* hash_to_evp(int hash)
 		}
 	}
 
+// Check a given hostname against a name given in a cert (SAN, CN) and
+// return if they match.
+bool check_hostname(std::string_view hostname, std::string_view certname)
+	{
+	// let's start with the easy one
+	if ( hostname == certname )
+		return true;
+
+	// ok, now there is still the chance that it is a wildcard cert.
+	// We go according to RFC6128 here:
+	// * wildcards are allowed in the leftmost label
+	// * wildcards are only compared against the leftmost label
+	// * the wildcard character may not be the only part of the label (so abc* is ok)
+	// * we don't accept wildcards in anything lower than the 3rd level, so *.a.top
+	//   Certificates that use something else cannot legitimately be issued and this
+	//   seems to match other implementations.
+
+	// first - let's see if the certname contains a wildcard character.
+	auto wildpos = certname.find('*');
+	if ( wildpos == std::string::npos )
+		return false;
+
+	// then let's see if certname contains at least two dots, for three levels of domains
+	auto firstpos = certname.find('.');
+	if ( firstpos == std::string::npos || certname.find('.', firstpos+1) == std::string::npos)
+		return false;
+
+	// let's see if the wildcard is directly before the first label separator
+	if ( wildpos + 1 != firstpos )
+		return false;
+
+	// ok, we have chances. Let's see if the hostname portions match
+	auto host_firstpos = hostname.find('.');
+	if ( host_firstpos == std::string::npos )
+		return false;
+
+	if ( hostname.substr(host_firstpos) != certname.substr(firstpos) )
+		return false;
+
+	// ok, the hostnames match and we have a wildcard. Let's see if the characters
+	// before the wildcard do match. If they do - yup, it is a match. If they don't,
+	// it is not.
+	if ( wildpos && hostname.substr(0, wildpos) != certname.substr(0, wildpos) )
+		return false;
+
+	return true;
+	}
+
 %%}
 
 ## Parses a certificate into an X509::Certificate structure.
@@ -923,4 +971,126 @@ function x509_set_certificate_cache_hit_callback%(f: string_any_file_hook%) : bo
 	zeek::file_analysis::detail::X509::SetCertificateCacheHitCallback({zeek::NewRef{}, f->AsFunc()});
 
 	return zeek::val_mgr->True();
+	%}
+
+## This function checks a hostname against the name given in a certificate subject/SAN, including
+## our interpretation of RFC6128 wildcard expansions. This specifically means that wildcards are
+## only allowed in the leftmost label, wildcards only span one label, the wildcard has to be the
+## last character before the label-separator, but additional characters are allowed before it, and
+## the wildcard has to be at least at the third level (so *.a.b).
+##
+## hostname: Hostname to test
+##
+## certname: Name given in the CN/SAN of a certificate; wildcards will be expanded
+##
+## Returns: True if the hostname matches.
+##
+## .. zeek:see:: x509_check_cert_hostname
+function x509_check_hostname%(hostname: string, certname: string%): bool
+	%{
+	if ( check_hostname(hostname->ToStdStringView(), certname->ToStdStringView()) )
+		return zeek::val_mgr->True();
+
+	return zeek::val_mgr->False();
+	%}
+
+## This function checks if a hostname matches one of the hostnames given in the certificate.
+##
+## For our matching we adhere to RFC6128 for the labels (see :zeek:id:`x509_check_hostname`).
+## Furthermore we adhere to RFC2818 and check only the names given in the SAN, if a SAN is present,
+## ignoring CNs in the Subject. If no SAN is present, we will use the last CN in the subject
+## for our tests.
+##
+## cert: The X509 certificate opaque handle.
+##
+## hostname: Hostname to check
+##
+## Returns: empty string if the hostname does not match; matched name (which can contain wildcards)
+##          if it did.
+##
+## .. zeek:see:: x509_check_hostname
+function x509_check_cert_hostname%(cert_opaque: opaque of x509, hostname: string%): string
+	%{
+	auto* cert_handle = (zeek::file_analysis::detail::X509Val *) cert_opaque;
+	std::string_view hostview = hostname->ToStdStringView();
+
+	X509* cert = cert_handle->GetCertificate();
+	if ( ! cert )
+		{
+		zeek::emit_builtin_error(zeek::util::fmt("No certificate in opaque"));
+		return zeek::make_intrusive<zeek::StringVal>("");
+		}
+
+	// According to RFC5280 (4.2.1.6) and RFC2818 (3.1), if the SAN is present, the subject
+	// of the certificate is ignored. Let's start by looking at the SAN.
+	auto sanpos = X509_get_ext_by_NID(cert, NID_subject_alt_name, -1);
+	if ( sanpos > -1 )
+		{
+		auto* ex = X509_get_ext(cert, sanpos);
+		if ( ! ex )
+			{
+			zeek::emit_builtin_error(zeek::util::fmt("Could not get SAN from cert"));
+			return zeek::make_intrusive<zeek::StringVal>("");
+			}
+
+		auto *altname = reinterpret_cast<GENERAL_NAMES*>(X509V3_EXT_d2i(ex));
+		if ( ! altname )
+			{
+			zeek::emit_builtin_error(zeek::util::fmt("Could not get names from SAN ext"));
+			return zeek::make_intrusive<zeek::StringVal>("");
+			}
+
+		auto num_names = sk_GENERAL_NAME_num(altname);
+		for ( int i = 0; i < num_names; i++ )
+			{
+			auto *gen = sk_GENERAL_NAME_value(altname, i);
+			assert(gen);
+
+			if ( gen->type != GEN_DNS )
+				continue;
+
+			if ( ASN1_STRING_type(gen->d.ia5) != V_ASN1_IA5STRING )
+				continue;
+
+			std::size_t len = ASN1_STRING_length(gen->d.ia5);
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
+			auto* name = reinterpret_cast<const char*>(ASN1_STRING_data(gen->d.ia5));
+#else
+			auto* name = reinterpret_cast<const char*>(ASN1_STRING_get0_data(gen->d.ia5));
+#endif
+			std::string_view nameview {name, len};
+			if ( check_hostname(hostview, nameview) )
+				return zeek::make_intrusive<zeek::StringVal>(len, name);
+			}
+		}
+	else
+		{
+		// ok, we have to get the last CN from the Subject. Let's do that.
+		auto* subject = X509_get_subject_name(cert);
+		if ( ! subject )
+			{
+			zeek::emit_builtin_error(zeek::util::fmt("Could not get certificate subject"));
+			return zeek::make_intrusive<zeek::StringVal>("");
+			}
+
+		int lastpos = -1;
+		int found_nid = -1;
+		while ( ( lastpos = X509_NAME_get_index_by_NID(subject, NID_commonName, lastpos) ) >= 0 )
+			found_nid = lastpos;
+
+		// found CN
+		if ( found_nid >= 0 )
+			{
+			char buf[2048];
+			BIO *bio = BIO_new(BIO_s_mem());
+			ASN1_STRING_print(bio, X509_NAME_ENTRY_get_data(X509_NAME_get_entry(subject, found_nid)));
+			size_t len = BIO_gets(bio, buf, sizeof(buf));
+			BIO_free(bio);
+			std::string_view cn {buf, len};
+			if ( check_hostname(hostview, cn) )
+				return zeek::make_intrusive<zeek::StringVal>(len, buf);
+			}
+		}
+
+	return zeek::make_intrusive<zeek::StringVal>("");
 	%}

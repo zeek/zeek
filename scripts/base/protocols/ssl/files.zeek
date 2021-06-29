@@ -6,10 +6,10 @@
 module SSL;
 
 export {
-	## Set this to false to remove the server certificate subject and
+	## Set this to true to includd the server certificate subject and
 	## issuer from the SSL log file. This information is still available
 	## in x509.log.
-	const log_include_server_certificate_subject_issuer = T &redef;
+	const log_include_server_certificate_subject_issuer = F &redef;
 
 	## Set this to true to include the client certificate subject
 	## and issuer in the SSL logfile. This information is rarely present
@@ -46,6 +46,11 @@ export {
 		## Subject of the signer of the X.509 certificate offered by the
 		## client.
 		client_issuer: string &log &optional;
+
+		## Set to true if the hostname sent in the SNI matches the certificate.
+		## Set to false if they do not match. Unset if the client did not send
+		## an SNI.
+		sni_matches_cert: bool &log &optional;
 
 		## Current number of certificates seen from either side. Used
 		## to create file handles.
@@ -108,7 +113,7 @@ event zeek_init() &priority=5
 		if ( ! log_include_server_certificate_subject_issuer )
 			{
 			add ssl_filter$exclude["subject"];
-			add ssl_filter$exclude["isser"];
+			add ssl_filter$exclude["issuer"];
 			}
 		if ( ! log_include_client_certificate_subject_issuer )
 			{
@@ -168,6 +173,14 @@ hook ssl_finishing(c: connection) &priority=20
 	if ( c$ssl?$cert_chain && |c$ssl$cert_chain| > 0 &&
 	     c$ssl$cert_chain[0]?$x509 )
 		{
+		if ( c$ssl?$server_name )
+			{
+			if ( x509_check_cert_hostname(c$ssl$cert_chain[0]$x509$handle, c$ssl$server_name) != "" )
+				c$ssl$sni_matches_cert = T;
+			else
+				c$ssl$sni_matches_cert = F;
+			}
+
 		c$ssl$subject = c$ssl$cert_chain[0]$x509$certificate$subject;
 		c$ssl$issuer = c$ssl$cert_chain[0]$x509$certificate$issuer;
 		}

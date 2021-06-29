@@ -332,7 +332,7 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft,
 
 	sort(bodies.begin(), bodies.end());
 
-	if ( bodies.size() > 0 )
+	if ( ! bodies.empty() )
 		{
 		current_body = bodies[0].stmts;
 		current_priority = bodies[0].priority;
@@ -597,7 +597,6 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body)
 			break;
 			}
 
-	// ASSERT(found_it);
 	current_body = new_body;
 	}
 

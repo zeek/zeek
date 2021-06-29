@@ -566,7 +566,7 @@ void CPPCompile::GenLoad()
 
 	// Spit out the placeholder script, and any associated module
 	// definitions.
-	for ( auto& m : module_names )
+	for ( const auto& m : module_names )
 		if ( m != "GLOBAL" )
 			printf("module %s;\n", m.c_str());
 

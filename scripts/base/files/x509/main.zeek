@@ -136,6 +136,9 @@ event zeek_init() &priority=5
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/x-x509-user-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/x-x509-ca-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/pkix-cert");
+
+	# Please note that SHA256 caching is required to be enabled for the certificate event
+	# caching that is set up in certificate-event-cache.zeek to work.
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/x-x509-user-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/x-x509-ca-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/pkix-cert");

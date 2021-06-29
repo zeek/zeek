@@ -1,3 +1,7 @@
+4.1.0-dev.821 | 2021-06-29 08:38:37 -0700
+
+  * Fix package name for CMake on CentOS 8 (Dominik Charousset, Corelight)
+
 4.1.0-dev.818 | 2021-06-28 13:50:13 -0700
 
   * GH-1216: Enable Mobile IPv6 support by default (Tim Wojtulewicz, Corelight)

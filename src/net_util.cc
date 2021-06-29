@@ -12,6 +12,18 @@
 #include "zeek/IPAddr.h"
 #include "zeek/IP.h"
 
+const char* transport_proto_string(TransportProto proto)
+	{
+	switch (proto)
+		{
+		case TRANSPORT_TCP: return "tcp";
+		case TRANSPORT_UDP: return "udp";
+		case TRANSPORT_ICMP: return "icmp";
+		case TRANSPORT_UNKNOWN:
+		default: return "unknown";
+		}
+	}
+
 namespace zeek {
 
 uint16_t detail::ip4_in_cksum(const IPAddr& src, const IPAddr& dst,
@@ -88,7 +100,6 @@ int icmp_checksum(const struct icmp* icmpp, int len)
 	return detail::in_cksum(reinterpret_cast<const uint8_t*>(icmpp), len);
 	}
 
-#ifdef ENABLE_MOBILE_IPV6
 int mobility_header_checksum(const IP_Hdr* ip)
 	{
 	const ip6_mobility* mh = ip->MobilityHeader();
@@ -112,7 +123,6 @@ int mobility_header_checksum(const IP_Hdr* ip)
 
 	return sum;
 	}
-#endif
 
 int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len)
 	{

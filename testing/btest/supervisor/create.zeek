@@ -19,6 +19,12 @@ event zeek_init()
 		print supervisor_output_file, "supervisor zeek_init()";
 		local f = open(pid_file);
 		print f, getpid();
+
+		# The following is needed for ZAM code, which will otherwise
+		# keep the file open until the corresponding frame slot
+		# is reused or (finally) goes out of scope.
+		close(f);
+
 		local sn = Supervisor::NodeConfig($name="grault");
 		local res = Supervisor::create(sn);
 

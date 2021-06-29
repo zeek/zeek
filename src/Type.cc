@@ -239,7 +239,7 @@ int Type::MatchesIndex(detail::ListExpr* const index) const
 		if ( index->Exprs().length() != 1 && index->Exprs().length() != 2 )
 			return DOES_NOT_MATCH_INDEX;
 
-		if ( check_and_promote_exprs_to_type(index, zeek::base_type(TYPE_INT).get()) )
+		if ( check_and_promote_exprs_to_type(index, zeek::base_type(TYPE_INT)) )
 			return MATCHES_INDEX_SCALAR;
 		}
 
@@ -335,6 +335,8 @@ unsigned int TypeList::MemoryAllocation() const
 	{
 	unsigned int size = 0;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	for ( const auto& t : types )
 		size += t->MemoryAllocation();
 
@@ -343,6 +345,7 @@ unsigned int TypeList::MemoryAllocation() const
 	return Type::MemoryAllocation()
 		+ padded_sizeof(*this) - padded_sizeof(Type)
 		+ size;
+#pragma GCC diagnostic pop
 	}
 
 int IndexType::MatchesIndex(detail::ListExpr* const index) const
@@ -892,6 +895,39 @@ void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
+
+// The following tracks how to initialize a given field, for fast execution
+// of Create().
+
+class FieldInit {
+public:
+	// The type of initialization for the field.
+	enum {
+		R_INIT_NONE,	// skip this entry
+
+		R_INIT_DIRECT,	// look in direct_init for raw value
+		R_INIT_DIRECT_MANAGED,	// same, but managed type
+
+		R_INIT_DEF,	// look in def_expr for expression
+
+		R_INIT_RECORD,	// field requires a new record
+		R_INIT_TABLE,	// field requires a new table/set
+		R_INIT_VECTOR,	// field requires a new vector
+	} init_type;
+
+	// For R_INIT_DIRECT/R_INIT_DIRECT_MANAGED:
+	ZVal direct_init;
+
+	detail::ExprPtr def_expr;
+	TypePtr def_type;
+	bool def_coerce = false;	// whether coercion's required
+
+	RecordTypePtr r_type;	// for R_INIT_RECORD
+	TableTypePtr t_type;	// for R_INIT_TABLE
+	detail::AttributesPtr attrs;	// attributes for R_INIT_TABLE
+	VectorTypePtr v_type;	// for R_INIT_VECTOR
+};
+
 RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 	{
 	types = arg_types;
@@ -928,13 +964,81 @@ RecordType::~RecordType()
 
 		delete types;
 		}
+
+	for ( auto fi : field_inits )
+		delete fi;
 	}
 
 void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	{
+	ASSERT(field == field_inits.size());
 	ASSERT(field == managed_fields.size());
 
 	managed_fields.push_back(ZVal::IsManagedType(td->type));
+
+	auto init = new FieldInit();
+	init->init_type = FieldInit::R_INIT_NONE;
+
+	init->attrs = td->attrs;
+	auto a = init->attrs;
+
+	auto type = td->type;
+
+	auto def_attr = a ? a->Find(detail::ATTR_DEFAULT) : nullptr;
+	auto def_expr = def_attr ? def_attr->GetExpr() : nullptr;
+
+	if ( def_expr )
+		{
+		if ( type->Tag() == TYPE_RECORD &&
+		     def_expr->GetType()->Tag() == TYPE_RECORD &&
+		     ! same_type(def_expr->GetType(), type) )
+			init->def_coerce = true;
+
+		if ( def_expr->Tag() == detail::EXPR_CONST )
+			{
+			auto v = def_expr->Eval(nullptr);
+
+			if ( ZVal::IsManagedType(type) )
+				init->init_type =
+					FieldInit::R_INIT_DIRECT_MANAGED;
+			else
+				init->init_type = FieldInit::R_INIT_DIRECT;
+
+			init->direct_init = ZVal(v, type);
+			}
+
+		else
+			{
+			init->init_type = FieldInit::R_INIT_DEF;
+			init->def_expr = def_expr;
+			init->def_type = def_expr->GetType();
+			}
+		}
+
+	else if ( ! (a && a->Find(detail::ATTR_OPTIONAL)) )
+		{
+		TypeTag tag = type->Tag();
+
+		if ( tag == TYPE_RECORD )
+			{
+			init->init_type = FieldInit::R_INIT_RECORD;
+			init->r_type = cast_intrusive<RecordType>(type);
+			}
+
+		else if ( tag == TYPE_TABLE )
+			{
+			init->init_type = FieldInit::R_INIT_TABLE;
+			init->t_type = cast_intrusive<TableType>(type);
+			}
+
+		else if ( tag == TYPE_VECTOR )
+			{
+			init->init_type = FieldInit::R_INIT_VECTOR;
+			init->v_type = cast_intrusive<VectorType>(type);
+			}
+		}
+
+	field_inits.push_back(init);
 	}
 
 bool RecordType::HasField(const char* field) const
@@ -1127,6 +1231,67 @@ void RecordType::AddFieldsDirectly(const type_decl_list& others,
 		}
 
 	num_fields = types->length();
+	}
+
+void RecordType::Create(std::vector<std::optional<ZVal>>& r) const
+	{
+	int n = NumFields();
+
+	for ( int i = 0; i < n; ++i )
+		{
+		auto& init = field_inits[i];
+
+		ZVal r_i;
+
+		switch ( init->init_type ) {
+		case FieldInit::R_INIT_NONE:
+			r.push_back(std::nullopt);
+			continue;
+
+		case FieldInit::R_INIT_DIRECT:
+			r_i = init->direct_init;
+			break;
+
+		case FieldInit::R_INIT_DIRECT_MANAGED:
+			r_i = init->direct_init;
+			zeek::Ref(r_i.ManagedVal());
+			break;
+
+		case FieldInit::R_INIT_DEF:
+			{
+			auto v = init->def_expr->Eval(nullptr);
+			if ( v )
+				{
+				const auto& t = init->def_type;
+
+				if ( init->def_coerce )
+					{
+					auto rt = cast_intrusive<RecordType>(t);
+					v = v->AsRecordVal()->CoerceTo(rt);
+					}
+
+				r_i = ZVal(v, t);
+				}
+			else
+				reporter->Error("failed &default in record creation");
+			}
+			break;
+
+		case FieldInit::R_INIT_RECORD:
+			r_i = ZVal(new RecordVal(init->r_type));
+			break;
+
+		case FieldInit::R_INIT_TABLE:
+			r_i = ZVal(new TableVal(init->t_type, init->attrs));
+			break;
+
+		case FieldInit::R_INIT_VECTOR:
+			r_i = ZVal(new VectorVal(init->v_type));
+			break;
+		}
+
+		r.push_back(r_i);
+		}
 	}
 
 void RecordType::DescribeFields(ODesc* d) const

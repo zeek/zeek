@@ -1,21 +1,22 @@
 #!/bin/sh
 
-version=@VERSION@
+binpac_root=@ZEEK_CONFIG_BINPAC_ROOT_DIR@
+broker_root=@ZEEK_CONFIG_BROKER_ROOT_DIR@
+btest_tools_dir=@ZEEK_CONFIG_BTEST_TOOLS_DIR@
 build_type=@CMAKE_BUILD_TYPE_LOWER@
-prefix=@CMAKE_INSTALL_PREFIX@
-script_dir=@ZEEK_SCRIPT_INSTALL_PATH@
-site_dir=@ZEEK_SCRIPT_INSTALL_PATH@/site
+caf_root=@ZEEK_CONFIG_CAF_ROOT_DIR@
+cmake_dir=@CMAKE_INSTALL_PREFIX@/share/zeek/cmake
+config_dir=@ZEEK_ETC_INSTALL_DIR@
+include_dir=@CMAKE_INSTALL_PREFIX@/include
 lib_dir=@CMAKE_INSTALL_FULL_LIBDIR@
 plugin_dir=@BRO_PLUGIN_INSTALL_PATH@
-config_dir=@ZEEK_ETC_INSTALL_DIR@
+prefix=@CMAKE_INSTALL_PREFIX@
 python_dir=@PY_MOD_INSTALL_DIR@
-cmake_dir=@CMAKE_INSTALL_PREFIX@/share/zeek/cmake
-include_dir=@CMAKE_INSTALL_PREFIX@/include
-zeekpath=@DEFAULT_ZEEKPATH@
+script_dir=@ZEEK_SCRIPT_INSTALL_PATH@
+site_dir=@ZEEK_SCRIPT_INSTALL_PATH@/site
+version=@VERSION@
 zeek_dist=@ZEEK_DIST@
-binpac_root=@ZEEK_CONFIG_BINPAC_ROOT_DIR@
-caf_root=@ZEEK_CONFIG_CAF_ROOT_DIR@
-broker_root=@ZEEK_CONFIG_BROKER_ROOT_DIR@
+zeekpath=@DEFAULT_ZEEKPATH@
 
 add_path() {
     # $1: existing path
@@ -37,11 +38,39 @@ include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_OPENSSL_INCLUDE_DIR@")
 include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_LibKrb5_INCLUDE_DIR@")
 include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_GooglePerftools_INCLUDE_DIR@")
 
-usage="\
-Usage: zeek-config [--version] [--build_type] [--prefix] [--lib_dir] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--zeekpath] [--zeek_dist] [--binpac_root] [--caf_root] [--broker_root]"
+usage() {
+    echo "Usage: zeek-config [OPTIONS]
+
+Basic options:
+
+  --build_type          Zeek build type as per cmake, lower case (e.g. 'relwithdebinfo')
+  --prefix              Toplevel Zeek distribution installation directory
+  --version             Zeek version number
+  --zeek_dist           Toplevel directory of source tree the distribution built from
+  --zeekpath            ZEEKPATH environment variable paths for this distribution
+
+Specific directories in the Zeek distribution:
+
+  --btest_tools_dir     Zeek-related BTest tooling
+  --cmake_dir           Zeek's cmake modules
+  --config_dir          Configuration files for cluster topology, zkg, etc
+  --include_dir         C/C++ header folders for Zeek and related components, colon-separated
+  --lib_dir             Toplevel folder for shared libraries, Python packages, etc
+  --plugin_dir          Native-code Zeek plugins
+  --python_dir          Python packages (Broker, ZeekControl, zkg, etc)
+  --script_dir          Toplevel folder for Zeek scripts
+  --site_dir            Site-specific Zeek scripts
+
+Toplevel installation directories for third-party components:
+
+  --binpac_root         BinPAC compiler
+  --broker_root         Broker communication framework
+  --caf_root            C++ Actor Framework
+"
+}
 
 if [ $# -eq 0 ] ; then
-      echo "${usage}" 1>&2
+      usage 1>&2
       exit 1
 fi
 
@@ -63,6 +92,9 @@ while [ $# -ne 0 ]; do
       ;;
     --bropath)   # For compatibility with legacy Bro plugins.
       echo $zeekpath
+      ;;
+    --btest_tools_dir)
+      echo $btest_tools_dir
       ;;
     --build_type)
       echo $build_type
@@ -107,7 +139,7 @@ while [ $# -ne 0 ]; do
       echo $zeekpath
       ;;
     *)
-      echo "${usage}" 1>&2
+      usage 1>&2
       exit 1
       ;;
   esac

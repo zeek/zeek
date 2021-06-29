@@ -426,10 +426,13 @@ unsigned int DFA_Machine::MemoryAllocation() const
 	dfa_state_cache->GetStats(&s);
 
 	// FIXME: Count *ec?
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return padded_sizeof(*this)
 		+ s.mem
 		+ padded_sizeof(*start_state)
 		+ nfa->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 bool DFA_Machine::StateSetToDFA_State(NFA_state_list* state_set,

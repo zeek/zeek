@@ -26,8 +26,6 @@ using VectorValPtr = IntrusivePtr<VectorVal>;
 
 namespace detail { class FragReassembler; }
 
-#ifdef ENABLE_MOBILE_IPV6
-
 #ifndef IPPROTO_MOBILITY
 #define IPPROTO_MOBILITY 135
 #endif
@@ -39,8 +37,6 @@ struct ip6_mobility {
 	uint8_t ip6mob_rsv;
 	uint16_t ip6mob_chksum;
 };
-
-#endif //ENABLE_MOBILE_IPV6
 
 /**
  * Base class for IPv6 header/extensions.
@@ -66,9 +62,7 @@ public:
 		case IPPROTO_ROUTING:
 		case IPPROTO_FRAGMENT:
 		case IPPROTO_AH:
-#ifdef ENABLE_MOBILE_IPV6
 		case IPPROTO_MOBILITY:
-#endif
 			((ip6_ext*)data)->ip6e_nxt = next_type;
 			break;
 		case IPPROTO_ESP:
@@ -93,9 +87,7 @@ public:
 		case IPPROTO_ROUTING:
 		case IPPROTO_FRAGMENT:
 		case IPPROTO_AH:
-#ifdef ENABLE_MOBILE_IPV6
 		case IPPROTO_MOBILITY:
-#endif
 			return ((ip6_ext*)data)->ip6e_nxt;
 		case IPPROTO_ESP:
 		default:
@@ -114,9 +106,7 @@ public:
 		case IPPROTO_HOPOPTS:
 		case IPPROTO_DSTOPTS:
 		case IPPROTO_ROUTING:
-#ifdef ENABLE_MOBILE_IPV6
 		case IPPROTO_MOBILITY:
-#endif
 			return 8 + 8 * ((ip6_ext*)data)->ip6e_len;
 		case IPPROTO_FRAGMENT:
 			return 8;
@@ -262,13 +252,11 @@ protected:
 	 */
 	void ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t len);
 
-#ifdef ENABLE_MOBILE_IPV6
 	/**
 	 * Inspect a Destination Option header's options for things we need to
 	 * remember, such as the Home Address option from Mobile IPv6.
 	 */
 	void ProcessDstOpts(const struct ip6_dest* d, uint16_t len);
-#endif
 
 	std::vector<IPv6_Hdr*> chain;
 
@@ -277,12 +265,10 @@ protected:
 	 */
 	uint16_t length = 0;
 
-#ifdef ENABLE_MOBILE_IPV6
 	/**
 	 * Home Address of the packet's source as defined by Mobile IPv6 (RFC 6275).
 	 */
 	IPAddr* homeAddr = nullptr;
-#endif
 
 	/**
 	 * The final destination address in chain's first Routing header that has
@@ -394,7 +380,6 @@ public:
 		return ((const u_char*) ip6) + ip6_hdrs->TotalLength();
 		}
 
-#ifdef ENABLE_MOBILE_IPV6
 	/**
 	 * Returns a pointer to the mobility header of the IP packet, if present,
 	 * else a null pointer.
@@ -408,7 +393,6 @@ public:
 		else
 			return (const ip6_mobility*)(*ip6_hdrs)[ip6_hdrs->Size()-1]->Data();
 		}
-#endif
 
 	/**
 	 * Returns the length of the IP packet's payload (length of packet minus

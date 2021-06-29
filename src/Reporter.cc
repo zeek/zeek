@@ -187,6 +187,21 @@ void Reporter::RuntimeError(const detail::Location* location, const char* fmt, .
 	throw InterpreterException();
 	}
 
+void Reporter::CPPRuntimeError(const char* fmt, ...)
+	{
+	++errors;
+	va_list ap;
+	va_start(ap, fmt);
+	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+	DoLog("runtime error in compiled code", reporter_error, out, nullptr, nullptr, true, true, "", fmt, ap);
+	va_end(ap);
+
+	if ( abort_on_scripting_errors )
+		abort();
+
+	throw InterpreterException();
+	}
+
 void Reporter::InternalError(const char* fmt, ...)
 	{
 	va_list ap;
@@ -365,6 +380,10 @@ bool Reporter::PermitFlowWeird(const char* name,
 
 bool Reporter::PermitExpiredConnWeird(const char* name, const RecordVal& conn_id)
 	{
+	if ( !conn_id.HasField("orig_h") || !conn_id.HasField("resp_h") ||
+	     !conn_id.HasField("orig_p") || !conn_id.HasField("resp_p") )
+		return false;
+
 	auto conn_tuple = std::make_tuple(conn_id.GetFieldAs<AddrVal>("orig_h"),
 	                                  conn_id.GetFieldAs<AddrVal>("resp_h"),
 	                                  conn_id.GetFieldAs<PortVal>("orig_p")->Port(),

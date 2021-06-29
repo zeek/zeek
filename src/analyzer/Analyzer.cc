@@ -764,6 +764,8 @@ void Analyzer::AppendNewChildren()
 
 unsigned int Analyzer::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	unsigned int mem = padded_sizeof(*this)
 		+ (timers.MemoryAllocation() - padded_sizeof(timers));
 
@@ -777,6 +779,7 @@ unsigned int Analyzer::MemoryAllocation() const
 		mem += a->MemoryAllocation();
 
 	return mem;
+#pragma GCC diagnostic pop
 	}
 
 void Analyzer::UpdateConnVal(RecordVal *conn_val)
@@ -879,32 +882,5 @@ void SupportAnalyzer::ForwardUndelivered(uint64_t seq, int len, bool is_orig)
 		Parent()->Undelivered(seq, len, is_orig);
 	}
 
-
-void TransportLayerAnalyzer::Done()
-	{
-	Analyzer::Done();
-	}
-
-void TransportLayerAnalyzer::SetContentsFile(unsigned int /* direction */,
-                                             FilePtr /* f */)
-	{
-	reporter->Error("analyzer type does not support writing to a contents file");
-	}
-
-FilePtr TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
-	{
-	reporter->Error("analyzer type does not support writing to a contents file");
-	return nullptr;
-	}
-
-void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)
-	{
-	if ( packet_contents && len > 0 )
-		{
-		String* cbs = new String(data, len, true);
-		auto contents = make_intrusive<StringVal>(cbs);
-		EnqueueConnEvent(packet_contents, ConnVal(), std::move(contents));
-		}
-	}
 
 } // namespace zeek::analyzer

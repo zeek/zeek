@@ -109,8 +109,8 @@ void Inliner::Analyze()
 		}
 
 	for ( auto& f : funcs )
-		// Candidates are non-event, non-hook, non-recursive
-		// functions ... that don't use lambdas or when's,
+		// Candidates are non-event, non-hook, non-recursive,
+		// non-compiled functions ... that don't use lambdas or when's,
 		// since we don't currently compute the closures/frame
 		// sizes for them correctly, and more fundamentally since
 		// we don't compile them and hence inlining them will
@@ -118,7 +118,8 @@ void Inliner::Analyze()
 		if ( f.Func()->Flavor() == FUNC_FLAVOR_FUNCTION &&
 		     non_recursive_funcs.count(f.Func()) > 0 &&
 		     f.Profile()->NumLambdas() == 0 &&
-		     f.Profile()->NumWhenStmts() == 0 )
+		     f.Profile()->NumWhenStmts() == 0 &&
+		     f.Body()->Tag() != STMT_CPP )
 			inline_ables.insert(f.Func());
 
 	for ( auto& f : funcs )

@@ -159,7 +159,13 @@ public:
 	using difference_type = std::ptrdiff_t;
 	using iterator_category = std::forward_iterator_tag;
 
+	DictIterator() = default;
 	~DictIterator();
+
+	DictIterator(const DictIterator& that);
+	DictIterator& operator=(const DictIterator& that);
+	DictIterator(DictIterator&& that);
+	DictIterator& operator=(DictIterator&& that);
 
 	reference operator*() { return *curr; }
 	pointer operator->() { return curr; }
@@ -171,9 +177,9 @@ public:
 	bool operator!=( const DictIterator& that ) const { return !(*this == that); }
 
 private:
+
 	friend class Dictionary;
 
-	DictIterator() = default;
 	DictIterator(const Dictionary* d, detail::DictEntry* begin, detail::DictEntry* end);
 
 	Dictionary* dict = nullptr;
@@ -331,6 +337,7 @@ public:
 	// Remove all entries.
 	void Clear();
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	size_t MemoryAllocation() const;
 
 	/// The capacity of the table, Buckets + Overflow Size.

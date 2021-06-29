@@ -5,9 +5,11 @@
 #include "zeek/zeek-config.h"
 
 // Define first.
-typedef enum {
+enum TransportProto {
 	TRANSPORT_UNKNOWN, TRANSPORT_TCP, TRANSPORT_UDP, TRANSPORT_ICMP,
-} TransportProto;
+};
+
+extern const char* transport_proto_string(TransportProto proto);
 
 typedef enum { IPv4, IPv6 } IPFamily;
 
@@ -176,9 +178,7 @@ extern int ones_complement_checksum(const IPAddr& a, uint32_t sum);
 extern int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len);
 extern int icmp_checksum(const struct icmp* icmpp, int len);
 
-#ifdef ENABLE_MOBILE_IPV6
 extern int mobility_header_checksum(const IP_Hdr* ip);
-#endif
 
 // True if sequence # a is between b and c (b <= a <= c).  It must be true
 // that b <= c in the sequence space.

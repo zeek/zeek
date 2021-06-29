@@ -9,7 +9,7 @@
 using namespace zeek;
 
 
-bool ZVal::zval_was_nil = false;
+bool* ZVal::zval_was_nil_addr = nullptr;
 
 
 ZVal::ZVal(ValPtr v, const TypePtr& t)
@@ -24,7 +24,7 @@ ZVal::ZVal(ValPtr v, const TypePtr& t)
 		return;
 		}
 
-	auto vt = v->GetType();
+	const auto& vt = v->GetType();
 
 	if ( vt->Tag() != t->Tag() && t->Tag() != TYPE_ANY )
 		{
@@ -102,7 +102,7 @@ ZVal::ZVal(ValPtr v, const TypePtr& t)
 		break;
 
 	case TYPE_TYPE:
-		type_val = t->Ref();
+		type_val = v.release()->AsTypeVal();
 		break;
 
 	case TYPE_ERROR:
@@ -222,15 +222,6 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 	case TYPE_ENUM:
 		return t->AsEnumType()->GetEnumVal(int_val);
 
-	case TYPE_ANY:
-		return {NewRef{}, any_val};
-
-	case TYPE_TYPE:
-		{
-		TypePtr tp = {NewRef{}, type_val};
-		return make_intrusive<TypeVal>(tp);
-		}
-
 	case TYPE_FUNC:
 		if ( func_val )
 			{
@@ -258,6 +249,8 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 	case TYPE_RECORD:	v = record_val; break;
 	case TYPE_VECTOR:	v = vector_val; break;
 	case TYPE_PATTERN:	v = re_val; break;
+	case TYPE_ANY:		v = any_val; break;
+	case TYPE_TYPE:		v = type_val; break;
 
 	case TYPE_ERROR:
 	case TYPE_TIMER:
@@ -271,7 +264,8 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 	if ( v )
 		return {NewRef{}, v};
 
-	zval_was_nil = true;
+	if ( zval_was_nil_addr )
+		*zval_was_nil_addr = true;
 
 	return nullptr;
 	}

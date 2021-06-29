@@ -2,9 +2,9 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 
-# @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b -B broker %DIR/sort-stuff.zeek ../common.zeek ../master.zeek >../master.out"
-# @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b -B broker %DIR/sort-stuff.zeek ../common.zeek ../clone.zeek >../clone.out"
-# @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b -B broker %DIR/sort-stuff.zeek ../common.zeek ../clone2.zeek >../clone2.out"
+# @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b %DIR/sort-stuff.zeek ../common.zeek ../master.zeek >../master.out"
+# @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %DIR/sort-stuff.zeek ../common.zeek ../clone.zeek >../clone.out"
+# @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b %DIR/sort-stuff.zeek ../common.zeek ../clone2.zeek >../clone2.out"
 # @TEST-EXEC: btest-bg-wait 40
 #
 # @TEST-EXEC: btest-diff master.out

@@ -252,6 +252,12 @@ void Ascii::InitConfigOptions()
 		(const char*) BifConst::LogAscii::gzip_file_extension->Bytes(),
 		BifConst::LogAscii::gzip_file_extension->Len()
 		);
+
+	logdir.assign(
+		(const char*) BifConst::LogAscii::logdir->Bytes(),
+		BifConst::LogAscii::logdir->Len()
+		);
+
 	}
 
 bool Ascii::InitFilterOptions()
@@ -344,6 +350,9 @@ bool Ascii::InitFilterOptions()
 
 		else if ( strcmp(i->first, "gzip_file_extension") == 0 )
 			gzip_file_extension.assign(i->second);
+
+		else if ( strcmp(i->first, "logdir") == 0 )
+			logdir.assign(i->second);
 		}
 
 	if ( ! InitFormatter() )
@@ -446,6 +455,19 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 			{
 			ext += ".";
 			ext += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
+			}
+
+		if ( fname.front() != '/' && ! logdir.empty() )
+			{
+			string path = logdir;
+			std::size_t last = path.find_last_not_of('/');
+
+			if ( last == string::npos ) // Nothing but slashes -- weird but ok...
+				path = "/";
+			else
+				path.erase(last + 1);
+
+			fname = path + "/" + fname;
 			}
 
 		fname += ext;

@@ -244,6 +244,8 @@ static void build_global(ID* id, Type* t, InitClass ic, Expr* e,
 
 	add_global(id_ptr, std::move(t_ptr), ic, e_ptr, std::move(attrs_ptr), dt);
 
+	id->AddInitExpr(e_ptr);
+
 	if ( dt == VAR_REDEF )
 		zeekygen_mgr->Redef(id, ::filename, ic, std::move(e_ptr));
 	else
@@ -261,7 +263,9 @@ static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
 	auto attrs_ptr = attrs ? std::make_unique<std::vector<AttrPtr>>(*attrs) : nullptr;
 
 	auto init = add_local(std::move(id_ptr), std::move(t_ptr), ic,
-	                      std::move(e_ptr), std::move(attrs_ptr), dt);
+	                      e_ptr, std::move(attrs_ptr), dt);
+
+	id->AddInitExpr(std::move(e_ptr));
 
 	if ( do_coverage )
 		script_coverage_mgr.AddStmt(init.get());
@@ -679,10 +683,8 @@ expr:
 				switch ( ctor_type->Tag() ) {
 				case TYPE_RECORD:
 					{
-					auto rce = make_intrusive<RecordConstructorExpr>(
-						ListExprPtr{AdoptRef{}, $4});
 					auto rt = cast_intrusive<RecordType>(ctor_type);
-					$$ = new RecordCoerceExpr(std::move(rce), std::move(rt));
+					$$ = new RecordConstructorExpr(rt, ListExprPtr{AdoptRef{}, $4});
 					}
 					break;
 
@@ -1323,9 +1325,8 @@ lambda_body:
 			// Gather the ingredients for a Func from the
 			// current scope.
 			auto ingredients = std::make_unique<function_ingredients>(
-				IntrusivePtr{NewRef{}, current_scope()},
-				IntrusivePtr{AdoptRef{}, $3});
-			IDPList outer_ids = gather_outer_ids(pop_scope().get(), ingredients->body.get());
+				current_scope(), IntrusivePtr{AdoptRef{}, $3});
+			auto outer_ids = gather_outer_ids(pop_scope(), ingredients->body);
 
 			$$ = new LambdaExpr(std::move(ingredients), std::move(outer_ids));
 			}

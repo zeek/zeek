@@ -149,7 +149,7 @@ string Manager::DataIn(const u_char* data, uint64_t len, const analyzer::Tag& ta
 	}
 
 void Manager::DataIn(const u_char* data, uint64_t len, const string& file_id,
-                     const string& source)
+                     const string& source, const string& mime_type)
 	{
 	File* file = GetFile(file_id, nullptr, analyzer::Tag::Error, false, false,
 	                     source.c_str());
@@ -157,7 +157,29 @@ void Manager::DataIn(const u_char* data, uint64_t len, const string& file_id,
 	if ( ! file )
 		return;
 
+	if ( ! mime_type.empty() )
+		file->SetMime(mime_type);
+
 	file->DataIn(data, len);
+
+	if ( file->IsComplete() )
+		RemoveFile(file->GetID());
+	}
+
+void Manager::DataIn(const u_char* data, uint64_t len, uint64_t offset,
+					 const string& file_id, const string& source,
+					 const string& mime_type)
+	{
+	File* file = GetFile(file_id, nullptr, analyzer::Tag::Error, false, false,
+	                     source.c_str());
+
+	if ( ! file )
+		return;
+
+	if ( ! mime_type.empty() )
+		file->SetMime(mime_type);
+
+	file->DataIn(data, len, offset);
 
 	if ( file->IsComplete() )
 		RemoveFile(file->GetID());

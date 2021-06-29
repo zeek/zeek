@@ -13,21 +13,23 @@ usage="\
 Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Build Options:
-    --cmake=PATH           custom path to a CMake binary
-    --builddir=DIR         place build files in directory [build]
-    --build-dir=DIR        alias for --builddir
-    --build-type=TYPE      set CMake build type [RelWithDebInfo]:
-                             - Debug: optimizations off, debug symbols + flags
-                             - MinSizeRel: size optimizations, debugging off
-                             - Release: optimizations on, debugging off
-                             - RelWithDebInfo: optimizations on,
-                                   debug symbols on, debug flags off
-    --generator=GENERATOR  CMake generator to use (see cmake --help)
-    --ccache               use ccache to speed up recompilation (requires
-                           ccache installation and CMake 3.10+)
-    --toolchain=PATH       path to a CMAKE_TOOLCHAIN_FILE
-                           (useful for cross-compiling)
-    --sanitizers=LIST      comma-separated list of sanitizer names to enable
+    --cmake=PATH                custom path to a CMake binary
+    --builddir=DIR              place build files in directory [build]
+    --build-dir=DIR             alias for --builddir
+    --build-type=TYPE           set CMake build type [RelWithDebInfo]:
+                                  - Debug: optimizations off, debug symbols + flags
+                                  - MinSizeRel: size optimizations, debugging off
+                                  - Release: optimizations on, debugging off
+                                  - RelWithDebInfo: optimizations on,
+                                        debug symbols on, debug flags off
+    --generator=GENERATOR       CMake generator to use (see cmake --help)
+    --ccache                    use ccache to speed up recompilation (requires
+                                ccache installation and CMake 3.10+)
+    --toolchain=PATH            path to a CMAKE_TOOLCHAIN_FILE
+                                (useful for cross-compiling)
+    --sanitizers=LIST           comma-separated list of sanitizer names to enable
+    --include-plugins=PATHS     paths containing plugins to build directly into Zeek
+                                (semicolon delimited and quoted when multiple)
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/zeek]
@@ -66,6 +68,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-auxtools     don't build or install auxiliary tools
     --disable-archiver     don't build or install zeek-archiver tool
     --disable-btest        don't install BTest
+    --disable-btest-pcaps  don't install Zeek's BTest input pcaps
     --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
     --disable-zkg          don't install zkg
@@ -162,12 +165,15 @@ append_cache_entry ENABLE_JEMALLOC      BOOL   false
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_BTEST        BOOL   true
+append_cache_entry INSTALL_BTEST_PCAPS  BOOL   true
 append_cache_entry INSTALL_ZEEK_ARCHIVER BOOL  true
 append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry INSTALL_ZKG          BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
-append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 append_cache_entry ZEEK_SANITIZERS      STRING ""
+append_cache_entry ZEEK_INCLUDE_PLUGINS STRING ""
+
+has_enable_mobile_ipv6=0
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -205,6 +211,9 @@ while [ $# -ne 0 ]; do
             ;;
         --toolchain=*)
             append_cache_entry CMAKE_TOOLCHAIN_FILE  PATH   $optarg
+            ;;
+        --include-plugins=*)
+            append_cache_entry ZEEK_INCLUDE_PLUGINS  STRING   $optarg
             ;;
         --prefix=*)
             prefix=$optarg
@@ -257,7 +266,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;
         --enable-mobile-ipv6)
-            append_cache_entry ENABLE_MOBILE_IPV6         BOOL   true
+            has_enable_mobile_ipv6=1
             ;;
         --enable-perftools)
             append_cache_entry ENABLE_PERFTOOLS     BOOL   true
@@ -292,6 +301,9 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-btest)
             append_cache_entry INSTALL_BTEST BOOL false
+            ;;
+        --disable-btest-pcaps)
+            append_cache_entry INSTALL_BTEST_PCAPS BOOL false
             ;;
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
@@ -429,3 +441,8 @@ fi
 echo "# This is the command used to configure this build" > config.status
 echo $command >> config.status
 chmod u+x config.status
+
+if [ $has_enable_mobile_ipv6 -eq 1 ]; then
+    echo
+    echo "NOTE: The --enable-mobile-ipv6 argument no longer has any effect and will be removed in v5.1."
+fi

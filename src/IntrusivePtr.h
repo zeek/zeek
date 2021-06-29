@@ -137,9 +137,26 @@ public:
 		return std::exchange(ptr_, nullptr);
 		}
 
-	IntrusivePtr& operator=(IntrusivePtr other) noexcept
+	IntrusivePtr& operator=(const IntrusivePtr& other) noexcept
+		{
+		IntrusivePtr tmp{other};
+		swap(tmp);
+		return *this;
+		}
+
+	IntrusivePtr& operator=(IntrusivePtr&& other) noexcept
 		{
 		swap(other);
+		return *this;
+		}
+
+	IntrusivePtr& operator=(std::nullptr_t) noexcept
+		{
+		if ( ptr_ )
+			{
+			Unref(ptr_);
+			ptr_ = nullptr;
+			}
 		return *this;
 		}
 

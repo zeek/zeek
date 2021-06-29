@@ -59,8 +59,6 @@ extern int dns_skip_all_auth;
 extern int dns_skip_all_addl;
 extern int dns_max_queries;
 
-extern double stp_delta;
-extern double stp_idle_min;
 extern double table_expire_interval;
 extern double table_expire_delay;
 extern int table_incremental_step;

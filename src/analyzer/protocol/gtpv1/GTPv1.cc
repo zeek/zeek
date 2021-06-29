@@ -2,8 +2,8 @@
 
 #include "zeek/analyzer/protocol/gtpv1/GTPv1.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
+#include "zeek/packet_analysis/protocol/ip/IP.h"
 
-#include "zeek/session/Manager.h"
 #include "zeek/analyzer/protocol/gtpv1/events.bif.h"
 
 namespace zeek::analyzer::gtpv1 {
@@ -47,8 +47,8 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 	caplen -= inner_packet_offset;
 	inner_packet_offset = -1;
 
-	IP_Hdr* inner = nullptr;
-	int result = session_mgr->ParseIPPacket(len, data, next_header, inner);
+	std::unique_ptr<IP_Hdr> inner = nullptr;
+	int result = packet_analysis::IP::ParsePacket(len, data, next_header, inner);
 
 	if ( result == 0 )
 		{
@@ -77,9 +77,6 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 	else
 		ProtocolViolation("GTPv1 payload length",
 		                  reinterpret_cast<const char*>(odata), olen);
-
-	if ( result != 0 )
-		delete inner;
 	}
 
 } // namespace zeek::analyzer::gtpv1

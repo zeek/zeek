@@ -10,7 +10,7 @@
 namespace zeek::detail {
 
 
-void RD_Decorate::TraverseFunction(const Func* f, Scope* scope, StmtPtr body)
+void RD_Decorate::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body)
 	{
 	func_flavor = f->Flavor();
 
@@ -812,6 +812,17 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		auto lhs = a->Op1();
 		auto rhs = a->Op2();
 
+		if ( lhs->Tag() == EXPR_LIST &&
+		     rhs->GetType()->Tag() != TYPE_ANY )
+			{
+			// This combination occurs only for assignments used
+			// to initialize table entries.  Treat it as references
+			// to both the lhs and the rhs, not as an assignment.
+			mgr.SetPreFromPre(a->GetOp1().get(), a);
+			mgr.SetPreFromPre(a->GetOp2().get(), a);
+			return TC_CONTINUE;
+			}
+
 		bool rhs_aggr = IsAggr(rhs);
 
 		mgr.SetPreFromPre(lhs, a);
@@ -1073,7 +1084,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		{
 		auto r = static_cast<const RecordConstructorExpr*>(e);
 		auto l = r->Op();
-		mgr.SetPreFromPre(l, e);
+		mgr.SetPreFromPre(l.get(), e);
 		break;
 		}
 

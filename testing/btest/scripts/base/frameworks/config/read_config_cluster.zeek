@@ -1,3 +1,8 @@
+# Don't run the test for compiled scripts.  To work, they need separate
+# compilation of the manager and worker parts, and that also leads to
+# lines (and sets) being displayed in a different order due to different
+# hash function seedings (though probably -D would control for that).
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-PORT: BROKER_PORT1
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3

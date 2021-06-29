@@ -41,12 +41,8 @@ class RuleHdrTest;
 
 } // namespace detail
 
-namespace analyzer {
-
-class TransportLayerAnalyzer;
-class Analyzer;
-
-} // namespace analyzer
+namespace analyzer { class Analyzer; }
+namespace packet_analysis::IP { class SessionAdapter; }
 
 enum ConnEventToFlag {
 	NUL_IN_LINE,
@@ -117,7 +113,10 @@ public:
 	// should be marked invalid.
 	const detail::ConnKey& Key() const	{ return key; }
 	session::detail::Key SessionKey(bool copy) const override
-		{ return session::detail::Key{&key, sizeof(key), copy}; }
+		{
+		return session::detail::Key{
+			&key, sizeof(key), session::detail::Key::CONNECTION_KEY_TYPE, copy};
+		}
 
 	const IPAddr& OrigAddr() const		{ return orig_addr; }
 	const IPAddr& RespAddr() const		{ return resp_addr; }
@@ -143,14 +142,6 @@ public:
 		else
 			return "unknown";
 		}
-
-	// FIXME: Now this is in Analyzer and should eventually be removed here.
-	//
-	// If true, skip processing of remainder of connection.  Note
-	// that this does not in itself imply that record_packets is false;
-	// we might want instead to process the connection off-line.
-	void SetSkip(bool do_skip)		{ skip = do_skip ? 1 : 0; }
-	bool Skipping() const			{ return skip; }
 
 	// Returns true if the packet reflects a reuse of this
 	// connection (i.e., not a continuation but the beginning of
@@ -196,7 +187,9 @@ public:
 	// Statistics.
 
 	// Just a lower bound.
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocation() const override;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	unsigned int MemoryAllocationVal() const override;
 
 	static uint64_t TotalConnections()
@@ -231,8 +224,8 @@ public:
 	void AddHistory(char code)	{ history += code; }
 
 	// Sets the root of the analyzer tree as well as the primary PIA.
-	void SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia);
-	analyzer::TransportLayerAnalyzer* GetRootAnalyzer()	{ return root_analyzer; }
+	void SetSessionAdapter(packet_analysis::IP::SessionAdapter* aa, analyzer::pia::PIA* pia);
+	packet_analysis::IP::SessionAdapter* GetSessionAdapter()	{ return adapter; }
 	analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
 
 	// Sets the transport protocol in use.
@@ -271,7 +264,6 @@ private:
 
 	detail::ConnKey key;
 
-	unsigned int skip:1;
 	unsigned int weird:1;
 	unsigned int finished:1;
 	unsigned int saw_first_orig_packet:1, saw_first_resp_packet:1;
@@ -279,7 +271,7 @@ private:
 	uint32_t hist_seen;
 	std::string history;
 
-	analyzer::TransportLayerAnalyzer* root_analyzer;
+	packet_analysis::IP::SessionAdapter* adapter;
 	analyzer::pia::PIA* primary_PIA;
 
 	UID uid;	// Globally unique connection ID.

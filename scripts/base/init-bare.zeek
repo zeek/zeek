@@ -635,7 +635,7 @@ type ProcStats: record {
 	real_time: interval;          ##< Elapsed real time since Zeek started running.
 	user_time: interval;          ##< User CPU seconds.
 	system_time: interval;        ##< System CPU seconds.
-	mem: count;                   ##< Maximum memory consumed, in KB.
+	mem: count;                   ##< Maximum memory consumed, in bytes.
 	minor_faults: count;          ##< Page faults not requiring actual I/O.
 	major_faults: count;          ##< Page faults requiring actual I/O.
 	num_swap: count;              ##< Times swapped out.
@@ -1933,6 +1933,7 @@ type gtp_delete_pdp_ctx_response_elements: record {
 @load base/frameworks/supervisor/api
 @load base/bif/supervisor.bif
 @load base/bif/packet_analysis.bif
+@load base/bif/CPP-load.bif
 
 ## Internal function.
 function add_interface(iold: string, inew: string): string
@@ -4116,15 +4117,6 @@ type PE::SectionHeader: record {
 };
 }
 module GLOBAL;
-
-## Internal to the stepping stone detector.
-const stp_delta: interval &redef;
-
-## Internal to the stepping stone detector.
-const stp_idle_min: interval &redef;
-
-## Internal to the stepping stone detector.
-global stp_skip_src: set[addr] &redef;
 
 ## Description of a signature match.
 ##

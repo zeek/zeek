@@ -158,6 +158,7 @@ public:
 		return max_entries;
 		}
 
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	int MemoryAllocation() const
 		{ return padded_sizeof(*this) + util::pad_size(max_entries * sizeof(T)); }
 

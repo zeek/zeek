@@ -6,6 +6,7 @@
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 #include "zeek/fuzzers/FuzzBuffer.h"
@@ -36,12 +37,12 @@ static zeek::Connection* add_connection()
 
 static zeek::analyzer::Analyzer* add_analyzer(zeek::Connection* conn)
 	{
-	auto* tcp = new zeek::analyzer::tcp::TCP_Analyzer(conn);
+	auto* tcp = new zeek::packet_analysis::TCP::TCPSessionAdapter(conn);
 	auto* pia = new zeek::analyzer::pia::PIA_TCP(conn);
 	auto a = zeek::analyzer_mgr->InstantiateAnalyzer(ZEEK_FUZZ_ANALYZER, conn);
 	tcp->AddChildAnalyzer(a);
 	tcp->AddChildAnalyzer(pia->AsAnalyzer());
-	conn->SetRootAnalyzer(tcp, pia);
+	conn->SetSessionAdapter(tcp, pia);
 	return a;
 	}
 

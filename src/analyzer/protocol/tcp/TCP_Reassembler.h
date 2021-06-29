@@ -6,6 +6,7 @@
 #include "zeek/File.h"
 
 namespace zeek {
+namespace packet_analysis::TCP { class TCPSessionAdapter; }
 
 class Connection;
 
@@ -15,7 +16,8 @@ class Analyzer;
 
 namespace tcp {
 
-class TCP_Analyzer;
+using TCP_Analyzer [[deprecated("Remove in v5.1. Use zeek::packet_analysis::TCP::TCPSessionAdapter.")]] =
+	zeek::packet_analysis::TCP::TCPSessionAdapter;
 
 class TCP_Reassembler final : public Reassembler {
 public:
@@ -25,7 +27,7 @@ public:
 	};
 
 	TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
-	                TCP_Analyzer* arg_tcp_analyzer,
+	                packet_analysis::TCP::TCPSessionAdapter* arg_tcp_analyzer,
 	                Type arg_type, TCP_Endpoint* arg_endp);
 
 	void Done();
@@ -33,7 +35,7 @@ public:
 	void SetDstAnalyzer(analyzer::Analyzer* analyzer)	{ dst_analyzer = analyzer; }
 	void SetType(Type arg_type)	{ type = arg_type; }
 
-	TCP_Analyzer* GetTCPAnalyzer()	{ return tcp_analyzer; }
+	packet_analysis::TCP::TCPSessionAdapter* GetTCPAnalyzer()	{ return tcp_analyzer; }
 
 	// Returns the volume of data buffered in the reassembler.
 	// First parameter returns data that is above a hole, and thus is
@@ -66,7 +68,7 @@ public:
 	void AckReceived(uint64_t seq);
 
 	// Checks if we have delivered all contents that we can possibly
-	// deliver for this endpoint.  Calls TCP_Analyzer::EndpointEOF()
+	// deliver for this endpoint.  Calls TCPSessionAdapter::EndpointEOF()
 	// when so.
 	void CheckEOF();
 
@@ -113,7 +115,7 @@ private:
 	FilePtr record_contents_file;	// file on which to reassemble contents
 
 	analyzer::Analyzer* dst_analyzer;
-	TCP_Analyzer* tcp_analyzer;
+	packet_analysis::TCP::TCPSessionAdapter* tcp_analyzer;
 
 	Type type;
 };

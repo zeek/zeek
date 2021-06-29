@@ -1,3 +1,434 @@
+4.1.0-dev.818 | 2021-06-28 13:50:13 -0700
+
+  * GH-1216: Enable Mobile IPv6 support by default (Tim Wojtulewicz, Corelight)
+
+    This removes the ENABLE_MOBILE_IPV6 #define variable. It also marks the
+    --enable-mobile-ipv6 configure argument as deprecated.
+
+4.1.0-dev.816 | 2021-06-28 11:08:29 -0700
+
+  * GH-572: Mark MemoryAllocation() and related methods deprecated (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.814 | 2021-06-28 11:06:39 -0700
+
+  * Check for -1 return from FieldOffset() in Val::HasField()
+
+    Fixes Coverity 1457804 (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.812 | 2021-06-28 11:02:46 -0700
+
+  * whoops overlooked the need to canonicalize filenames (Vern Paxson, Corelight)
+
+  * another set of tweaks per review comments (Vern Paxson, Corelight)
+
+  * addressed a number of code review comments (Vern Paxson, Corelight)
+
+  * baseline updates for merge (Vern Paxson, Corelight)
+
+  * Merge remote-tracking branch 'origin/master' into topic/vern/ZAM-prep (Vern Paxson, Corelight)
+
+  * support "any" coercions for "-O gen-C++" (Vern Paxson, Corelight)
+
+  * better descriptions for named record constructors (Vern Paxson, Corelight)
+
+  * test suite baseline updates for "-a opt" optimize-AST alternative (Vern Paxson, Corelight)
+
+  * test suite baseline updates for "-a xform" alternative / AST transformation (Vern Paxson, Corelight)
+
+  * error propagation fix for AST reduction (Vern Paxson, Corelight)
+
+  * updates to "-a inline" test suite alternative baseline (Vern Paxson, Corelight)
+
+  * updates for the main test suite baseline (Vern Paxson, Corelight)
+
+  * updates to test suite tests for compatibility with upcoming ZAM functionality (Vern Paxson, Corelight)
+
+  * "-O compile-all" option to specify compilation of inlined functions (Vern Paxson, Corelight)
+
+  * compile inlined functions if they're also used indirectly (Vern Paxson, Corelight)
+
+  * provide ZAM-generated code with low-level access to record fields (Vern Paxson, Corelight)
+
+  * fix for cloning records with fields of type "any" (Vern Paxson, Corelight)
+
+  * direct access for ZAM to VectorVal internal vector (Vern Paxson, Corelight)
+
+  * ZVal constructors, accessors & methods in support of ZAM (Vern Paxson, Corelight)
+
+  * switch ZVal representation of types from Type objects to TypeVal's (Vern Paxson, Corelight)
+
+  * revised error-reporting interface for ZVal's, to accommodate ZAM inner loop (Vern Paxson, Corelight)
+
+  * faster construction of records by factoring static decisions into RecordType's (Vern Paxson, Corelight)
+
+  * make "switch" internals accessible to ZAM; tidying of same (Vern Paxson, Corelight)
+
+  * factor out "cast" functionality to make available to lower-level ZAM access (Vern Paxson, Corelight)
+
+  * tidying for check_and_promote_expr (Vern Paxson, Corelight)
+
+  * employ explicit conversions to/from "any" and "vector of any" types (Vern Paxson, Corelight)
+
+  * more robust treatment of arithmetic coercions (Vern Paxson, Corelight)
+
+  * support for constructing VectorVal's directly from underlying ZVal vectors (Vern Paxson, Corelight)
+
+  * support for ensuring that a vector can be treated as having a homogeneous type (Vern Paxson, Corelight)
+
+  * factoring out of low-level vector indexing to make available to ZAM (Vern Paxson, Corelight)
+
+  * minor changes for more robust behavior in the face of errors (Vern Paxson, Corelight)
+
+  * gracefully deal with "eval" exceptions that occur during AST reduction (Vern Paxson, Corelight)
+
+  * directly construct records of known types, rather than requiring coercion (Vern Paxson, Corelight)
+
+  * fixes for treating WhileStmt's "loop_cond_pred_stmt" as a first-class citizen (Vern Paxson, Corelight)
+
+  * support for profiling function bodies w/o needing accompanying ScriptFunc object (Vern Paxson, Corelight)
+
+  * support for Frame's having call locations even if no associated CallExpr (Vern Paxson, Corelight)
+
+  * fix for AST optimization altering top-level body statement (Vern Paxson, Corelight)
+
+  * fix for analyzing variable usage inside of table initializers (Vern Paxson, Corelight)
+
+  * fix for inlining type-based switch statements (Vern Paxson, Corelight)
+
+  * fix for computing |size| of files and subnets (Vern Paxson, Corelight)
+
+  * fix for tracking the effects of += operations (Vern Paxson, Corelight)
+
+  * Expr method to invert the sense of a relational (Vern Paxson, Corelight)
+
+  * Trigger constructor (and factoring) to support lower-level constructions (Vern Paxson, Corelight)
+
+  * fixed / removed out-of-date comments, tidied check_and_promote_args() interface (Vern Paxson, Corelight)
+
+  * convert scopes to be managed using IntrusivePtr's (Vern Paxson, Corelight)
+
+  * various accessors used by ZAM compiler (Vern Paxson, Corelight)
+
+  * Update submodule(s) [nomail] (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.764 | 2021-06-27 10:50:19 -0700
+
+  * Remove unnecessary -B arguments from Zeek invocations in testsuite
+
+    Now that Zeek no longer silently accepts -B when not compiled in debug
+    mode, these tests were failing. (Christian Kreibich, Corelight)
+
+  * Fix perftools-enabled build (Christian Kreibich, Corelight)
+
+  * Minor tweaks to single-character command line option handling
+
+    - Use of "-B" now triggers usage output and errors out when Zeek
+      wasn't built with debugging support.
+
+    - Always keep the perftools options (-m, -M) in the optparse string,
+      for consistency with other flags dependent on configuration. We
+      still fall through to usage and erroring out as before.
+
+    - Minor indentation fix. (Christian Kreibich, Corelight)
+
+4.1.0-dev.760 | 2021-06-27 10:46:01 -0700
+
+  * Add btest test case (Luke Cesarz)
+
+  * Fix typo (Luke Cesarz)
+
+  * Fix segfault with incomplete connection
+
+    Add required HasField check before GetFieldAs call (Luke Cesarz)
+
+4.1.0-dev.755 | 2021-06-23 13:53:54 -0700
+
+  * Call brew update-reset in ci/macos/prepare.sh
+
+    This fixes some issues with the Catalina builds when it prepares the image
+    and the base Cirrus image has old recipes for Homebrew. The VM then has
+    to build a bunch of packages it shouldn't need to. (Tim Wojtulewicz, Corelight)
+
+  * GH-1368: Use --osx-sysroot for macOS CI builds (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.750 | 2021-06-21 16:14:03 -0700
+
+  * Remove the Stepping Stone analyzer
+
+    This commit removes the stepping stone analyzer. It has been deactivated
+    by default since at least Zeek 2.0, is dysfunctional in cluster settings
+    and has a bunch of other issued.
+
+    Relates to GH-1573 (Johanna Amann, Corelight)
+
+4.1.0-dev.748 | 2021-06-21 15:41:29 -0700
+
+  * Drop Fedora 32 from CI, now past EOL (Christian Kreibich, Corelight)
+
+  * Remove a double-defined TLS cert from a Broker btest (Christian Kreibich, Corelight)
+
+4.1.0-dev.744 | 2021-06-21 09:17:36 +0200
+
+  * Add a new field `email_dest` to NOTICEs, which defines where to
+    send email to. The email-related NOTICE actions fill this now, and
+    then emails will be sent to all recorded addresses at the end of
+    NOTICE processing. This makes email generation more consistent and
+    extensible. (Vlad Grigorescu)
+
+  * Add page and email administrator to mails processed by hostnames
+    extension. (Vlad Grigorescu)
+
+4.1.0-dev.731 | 2021-06-17 10:40:58 +0100
+
+  * Change SSH version field to be `&optional`.
+
+    In version 3.3.0-dev.537 we added handling for SSH version 1.99 which
+    used a SSH version of 0 to indicate weird cases where no version could be
+    determined.
+
+    This patch is a fixup for that patch. We now use an `&optional` version value.
+    If no SSH version can be eixtracted the version will be unset; additionally a
+    `conn_weird` event will be raised. See GH-1590. (Benjamin Bannier, Corelight)
+
+4.1.0-dev.727 | 2021-06-14 16:19:34 -0700
+
+  * Bump Highwayhash submodule to pull in fix for FreeBSD (Christian Kreibich, Corelight)
+
+4.1.0-dev.725 | 2021-06-11 11:54:30 -0700
+
+  * Fixes for the builtin plugin functionality (Seth Hall, Corelight)
+
+4.1.0-dev.722 | 2021-06-10 10:42:57 -0700
+
+  * Added --include-plugins configure argument (Seth Hall, Corelight)
+
+4.1.0-dev.720 | 2021-06-10 11:29:19 +0100
+
+  * Introduce script-land option LogAscii::logdir that can be used to set
+    the logging directory. (Henrik Kramselund Jereminsen)
+
+4.1.0-dev.715 | 2021-06-09 09:12:26 -0700
+
+  * Fix macOS Big Sur builds on Cirrus
+
+    - Upgrade the Big Sur VM to use the Xcode 12.5 version. This has a newer
+      version of brew installed on it that fixes an issue with an EOL package host
+      that finally shut down for good recently.
+    - Use 'brew upgrade' for openssl and cmake, since those are both present on the
+      base VM. This prevents 'brew install' from printing an error if the package
+      exists but is out of date. (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.713 | 2021-06-08 13:54:28 -0700
+
+  * Add OpenSUSE Leap 15.3 to testing (Johanna Amann, Corelight)
+
+4.1.0-dev.709 | 2021-06-07 09:41:28 +0200
+
+  * Improve assignment operators for IntrusivePtr. (Dominik Charousset, Corelight)
+
+  * Fix docs for `ProcStats`: `mem` is in bytes, not KB. (Arne Welzel, Corelight)
+
+4.1.0-dev.704 | 2021-06-04 08:29:18 -0700
+
+  * Add deprecated headers for UDP and ICMP analyzers (Tim Wojtulewicz, Corelight)
+
+  * Fix handling of IP packets with bogus IP header lengths
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=34711
+    (Link to details becomes public 30 days after patch release) (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.700 | 2021-06-03 09:27:57 -0700
+
+  * Make update-traces fail when the curl invocation fails (Christian Kreibich, Corelight)
+
+4.1.0-dev.697 | 2021-06-02 15:08:12 -0700
+
+  * Add FreeBSD 13 to CI (Christian Kreibich, Corelight)
+
+  * Add Fedora 34 to CI (Christian Kreibich, Corelight)
+
+4.1.0-dev.693 | 2021-06-02 13:22:09 -0700
+
+  * Label session adapters in the output of zeek -NN (Tim Wojtulewicz, Corelight)
+
+  * Split session adapter code into separate files from the analyzers (Tim Wojtulewicz, Corelight)
+
+  * Move adapter-specific code back into the adapter (Tim Wojtulewicz, Corelight)
+
+  * Move ICMP counterpart methods outside of ICMPAnalyzer class
+
+    These were previously global methods in the old analyzer, and moving them
+    to be private members of ICMPAnalyzer broke the usage of them by at least
+    one external plugin. (Tim Wojtulewicz, Corelight)
+
+  * Remove obsolete Skipping()/SetSkip() from Connection (Tim Wojtulewicz, Corelight)
+
+  * Remove some code from IPBasedAnalyzer and children that was waiting for TCP to be implemented (Tim Wojtulewicz, Corelight)
+
+  * Move TCPStateStats object out of session_mgr (Tim Wojtulewicz, Corelight)
+
+  * Move analyzer-to-port mapping out of analyzer::Manager into packet analyzers (Tim Wojtulewicz, Corelight)
+
+  * Move packet parsing code out of adapter into analyzer (Tim Wojtulewicz, Corelight)
+
+  * Move old TCP analyzer into analyzer adapter in packet analysis tree (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.681 | 2021-06-02 09:57:41 -0700
+
+  * Add some extra length checking when parsing mobile ipv6 packets
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=34263
+    (Link to details becomes public 30 days after patch release) (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.679 | 2021-06-01 19:11:40 -0700
+
+  * Replace toupper() usages in netbios decoding BIFs (Jon Siwek, Corelight)
+
+    This avoids potential for locale-dependent results of toupper() by
+    instead using a function that simply maps ASCII characters a-z to A-Z.
+
+4.1.0-dev.676 | 2021-06-01 10:19:19 -0700
+
+  * Integrate review feedback (Dominik Charousset, Corelight)
+
+  * Sync new broker options, fix name inconsistencies (Dominik Charousset, Corelight)
+
+  * Integrate new Broker metric exporter parameters (Dominik Charousset, Corelight)
+
+4.1.0-dev.671 | 2021-06-01 09:51:38 -0700
+
+  * Update detect-MHR.zeek (Chris C)
+
+    Update Virustotal URL to current
+    option match_sub_url = "https://www.virustotal.com/gui/search/%s"
+
+4.1.0-dev.669 | 2021-06-01 09:39:30 -0700
+
+  * GH-839: Fix use of &optional sub-records within table/set indices (Jon Siwek, Corelight)
+
+4.1.0-dev.666 | 2021-05-26 10:51:51 -0700
+
+  * Ensure SessionAdapter members are initialized (Tim Wojtulewicz, Corelight)
+
+    Fixes Coverity #1453273
+
+4.1.0-dev.665 | 2021-05-26 08:07:26 +0200
+
+  * Extend the file analyzer API to set source manually. (Robin
+    Sommer, Corelight)
+
+4.1.0-dev.661 | 2021-05-24 15:03:54 -0700
+
+  * Update Broker submodule for bump of embedded CAF to 0.18.3 (Jon Siwek, Corelight)
+
+4.1.0-dev.660 | 2021-05-24 12:38:44 -0700
+
+  * Add type field to session::Key to help avoid collisions in map (Tim Wojtulewicz, Corelight)
+
+  * Move bad UDP checksum handling into adapter object (Tim Wojtulewicz, Corelight)
+
+  * Rename IPBasedTransportAnalyzer to SessionAdapter (Tim Wojtulewicz, Corelight)
+
+    This also also combines the old TransportLayerAnalyzer class into
+    SessionAdapter, and removes the old class. This requires naming changes
+    in a few places but no functionality changes.
+
+  * Move building session analyzer tree out of analyzer::Manager (Tim Wojtulewicz, Corelight)
+
+  * Rework the packet flow through the IP-based analyzers (Tim Wojtulewicz, Corelight)
+
+  * Add new UDP packet analyzer, remove old one (Tim Wojtulewicz, Corelight)
+
+  * Add new ICMP packet analyzer, remove old one (Tim Wojtulewicz, Corelight)
+
+  * Add base class for IP-based packet analyzers (Tim Wojtulewicz, Corelight)
+
+  * Move SessionManager::ParseIPPacket to IP analyzer's namespace (Tim Wojtulewicz, Corelight)
+
+  * Added skeletons for TCP/UDP/ICMP packet analysis plugins. (Tim Wojtulewicz, Corelight)
+
+    This includes integration into the IP plugin and calling of the sessions code from each plugin.
+
+4.1.0-dev.646 | 2021-05-18 11:47:25 -0700
+
+  * Omit unneeded decimal points in modp_dtoa2() scientific notation output (Jon Siwek, Corelight)
+
+    For example, "1e-13" is now used instead of "1.e-13".
+
+  * GH-1244: Change modp_dtoa2() to use scientific notation for small values (Jon Siwek, Corelight)
+
+    This fixes problems where printing floating point numbers less than
+    10^-6 output as "0.0".  Such numbers now use using scientific notation
+    and preserve the value's actual floating point representation.
+
+4.1.0-dev.643 | 2021-05-17 11:57:58 -0700
+
+  * GH-1546: Make DictIterator() public, add copy/move operators (Tim Wojtulewicz, Corelight)
+
+4.1.0-dev.641 | 2021-05-17 11:28:11 -0700
+
+  * GH-1558: Fix reading `vector of enum` types from config files (Jon Siwek, Corelight)
+
+  * GH-1555: Fix reading empty set[enum] values from config files (Jon Siwek, Corelight)
+
+4.1.0-dev.638 | 2021-05-17 13:08:28 +0100
+
+  * Manual page updates (Henrik Kramselund Jereminsen)
+
+4.1.0-dev.631 | 2021-05-11 09:26:37 -0700
+
+  * Add unit tests to ZeekString.cc (Tim Wojtulewicz)
+
+4.1.0-dev.628 | 2021-05-10 12:44:25 -0700
+
+  * Add experimental support for translating Zeek scripts to equivalent C++ (Vern Paxson, Corelight)
+
+    The generated C++ can then be compiled directly into the `zeek` binary,
+    replacing use of the interpreter and producing better runtime performance.
+    See `src/script_opt/CPP/README.md` for a guide on how to use this feature.
+
+  * Add new "-a cpp" btest alternative (Vern Paxson, Corelight)
+
+  * Add VectorVal methods to leverage ZVal representation (Vern Paxson, Corelight)
+
+  * Fix backtrace BiF to avoid iterator invalidation & support compiled code (Vern Paxson, Corelight)
+
+4.1.0-dev.593 | 2021-05-10 10:17:34 +0100
+
+  * Explain zeek-config options in help output (Christian Kreibich, Corelight)
+
+  * Sort variables at top of zeek-config alphabetically (Christian Kreibich, Corelight)
+
+  * Install Zeek's btest tooling with the distribution
+
+    This creates $PREFIX/share/btest in the install tree, with the
+    following folders:
+
+    - scripts/ for the canonifiers
+    - data/ for random.seed
+    - data/pcaps for the test pcaps
+
+    The pcaps can be skipped by configuring with --disable-btest-pcaps. (Christian Kreibich, Corelight)
+
+4.1.0-dev.587 | 2021-05-05 14:05:51 +0000
+
+  * Merge remote-tracking branch 'origin/topic/timw/session-coverity'
+
+    * origin/topic/timw/session-coverity:
+      Minor cleanup in IPAddr.h
+      Fix a few Coverity warnings from the session manager work (Tim Wojtulewicz)
+
+  * Minor cleanup in IPAddr.h (Tim Wojtulewicz, Corelight)
+
+  * Fix a few Coverity warnings from the session manager work
+
+    - Be explicit about setting the copied flag in session::Key. Coverity seems
+      confused about when that flag is set if it gets set by default
+      initialization. This should fix 1452757 and 1452759.
+    - Explicitly copy the fields in ConnKey instead of using memcpy. Fixes
+      1452758. (Tim Wojtulewicz, Corelight)
 
 4.1.0-dev.583 | 2021-05-03 18:21:33 -0700
 

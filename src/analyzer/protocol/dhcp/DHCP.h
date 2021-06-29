@@ -1,7 +1,5 @@
 #pragma once
 
-#include "zeek/analyzer/protocol/udp/UDP.h"
-
 #include "analyzer/protocol/dhcp/dhcp_pac.h"
 
 namespace zeek::analyzer::dhcp {

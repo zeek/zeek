@@ -136,6 +136,9 @@ export {
 		## The actions which have been applied to this notice.
 		actions:        ActionSet      &log &default=ActionSet();
 
+		## The email address(es) where to send this notice
+		email_dest:     set[string]    &log &default=set();
+
 		## By adding chunks of text into this element, other scripts
 		## can expand on notices that are being emailed.  The normal
 		## way to add text is to extend the vector by handling the
@@ -510,10 +513,17 @@ hook Notice::policy(n: Notice::Info) &priority=10
 	add n$actions[ACTION_LOG];
 	}
 
-hook Notice::notice(n: Notice::Info) &priority=-5
+hook Notice::notice(n: Notice::Info)
 	{
 	if ( ACTION_EMAIL in n$actions )
-		email_notice_to(n, mail_dest, T);
+		add n$email_dest[mail_dest];
+	}
+
+hook Notice::notice(n: Notice::Info) &priority=-5
+	{
+	for ( dest in n$email_dest )
+		email_notice_to(n, dest, T);
+
 	if ( ACTION_LOG in n$actions )
 		Log::write(Notice::LOG, n);
 	if ( ACTION_ALARM in n$actions )

@@ -26,10 +26,10 @@ int main(int argc, char** argv)
 			zeek::detail::profiling_logger->Log();
 
 #ifdef USE_PERFTOOLS_DEBUG
-		if ( perftools_leaks )
+		if ( options.perftools_check_leaks )
 			heap_checker = new HeapLeakChecker("net_run");
 
-		if ( perftools_profile )
+		if ( options.perftools_profile )
 			{
 			HeapProfilerStart("heap");
 			HeapProfilerDump("pre net_run");

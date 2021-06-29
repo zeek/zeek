@@ -282,9 +282,11 @@ public:
 	void Describe(ODesc* d) const override;
 
 	// Sum over all data buffered in some reassembler.
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	static uint64_t TotalMemoryAllocation()	{ return total_size; }
 
 	// Data buffered by type of reassembler.
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	static uint64_t MemoryAllocation(ReassemblerType rtype);
 
 	void SetMaxOldBlocks(uint32_t count)	{ max_old_blocks = count; }

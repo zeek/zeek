@@ -37,7 +37,7 @@ void UseDefs::Analyze()
 	(void) PropagateUDs(body, nullptr, nullptr, false);
 	}
 
-void UseDefs::RemoveUnused()
+StmtPtr UseDefs::RemoveUnused()
 	{
 	int iter = 0;
 	while ( RemoveUnused(++iter) )
@@ -48,6 +48,8 @@ void UseDefs::RemoveUnused()
 		if ( reporter->Errors() > 0 )
 			break;
 		}
+
+	return body;
 	}
 
 void UseDefs::Dump()
@@ -480,7 +482,7 @@ UDs UseDefs::ExprUDs(const Expr* e)
 	case EXPR_RECORD_CONSTRUCTOR:
 		{
 		auto r = static_cast<const RecordConstructorExpr*>(e);
-		AddInExprUDs(uds, r->Op());
+		AddInExprUDs(uds, r->Op().get());
 		break;
 		}
 

@@ -1,12 +1,18 @@
 # @TEST-PORT: BROKER_PORT
 #
-# @TEST-EXEC: btest-bg-run recv "zeek -D -B broker -b ../recv.zeek >recv.out 2>recv.error"
-# @TEST-EXEC: btest-bg-run send "zeek -D -B broker -b ../send.zeek >send.out"
+# @TEST-EXEC: btest-bg-run recv "zeek -D -b ../recv.zeek >recv.out 2>recv.error"
+# @TEST-EXEC: btest-bg-run send "zeek -D -b ../send.zeek >send.out"
 #
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff recv/recv.error
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
+
+####
+# NOTE: for "use-C++", this test performs differently depending on whether
+# send.zeek and recv.zeek are compiled together (in which case the lambda
+# still works), or separately.
+####
 
 @TEST-START-FILE send.zeek
 

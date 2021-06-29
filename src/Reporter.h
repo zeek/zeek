@@ -100,6 +100,10 @@ public:
 	// function will not return but raise an InterpreterException.
 	[[noreturn]] void RuntimeError(const detail::Location* location, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
+	// Report a runtime error in executing a compiled script. This
+	// function will not return but raise an InterpreterException.
+	[[noreturn]] void CPPRuntimeError(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
+
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
 	// that may lead to incorrectly processing a connnection.
 	void Weird(const char* name, const char* addl = "", const char* source = "");	// Raises net_weird().

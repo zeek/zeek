@@ -84,6 +84,7 @@ CONVERTERS(TYPE_STRING, StringVal*, Val::AsStringVal)
 CONVERTERS(TYPE_VECTOR, VectorVal*, Val::AsVectorVal)
 CONVERTERS(TYPE_ENUM, EnumVal*, Val::AsEnumVal)
 CONVERTERS(TYPE_OPAQUE, OpaqueVal*, Val::AsOpaqueVal)
+CONVERTERS(TYPE_TYPE, TypeVal*, Val::AsTypeVal)
 
 ValPtr Val::CloneState::NewClone(Val* src, ValPtr dst)
 	{
@@ -230,8 +231,6 @@ ValPtr Val::SizeVal() const
 	{
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_INT:
-		// Return abs value. However abs() only works on ints and llabs
-		// doesn't work on Mac OS X 10.5. So we do it by hand
 		if ( AsInt() < 0 )
 			return val_mgr->Count(-AsInt());
 		else
@@ -817,7 +816,10 @@ AddrVal::~AddrVal()
 
 unsigned int AddrVal::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return padded_sizeof(*this) + addr_val->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 ValPtr AddrVal::SizeVal() const
@@ -882,7 +884,10 @@ int SubNetVal::Width() const
 
 unsigned int SubNetVal::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return padded_sizeof(*this) + subnet_val->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 ValPtr SubNetVal::SizeVal() const
@@ -1010,7 +1015,10 @@ void StringVal::ValDescribe(ODesc* d) const
 
 unsigned int StringVal::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return padded_sizeof(*this) + string_val->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 StringValPtr StringVal::Replace(
@@ -1220,7 +1228,10 @@ void PatternVal::ValDescribe(ODesc* d) const
 
 unsigned int PatternVal::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return padded_sizeof(*this) + re_val->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 ValPtr PatternVal::DoClone(CloneState* state)
@@ -1333,12 +1344,15 @@ ValPtr ListVal::DoClone(CloneState* state)
 
 unsigned int ListVal::MemoryAllocation() const
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	unsigned int size = 0;
 	for ( const auto& val : vals )
 		size += val->MemoryAllocation();
 
 	size += util::pad_size(vals.capacity() * sizeof(decltype(vals)::value_type));
 	return size + padded_sizeof(*this) + type->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 TableEntryVal* TableEntryVal::Clone(Val::CloneState* state)
@@ -2771,6 +2785,8 @@ unsigned int TableVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	for ( const auto& ve : *table_val )
 		{
 		auto* tv = ve.GetValue<TableEntryVal*>();
@@ -2781,6 +2797,7 @@ unsigned int TableVal::MemoryAllocation() const
 
 	return size + padded_sizeof(*this) + table_val->MemoryAllocation()
 		+ table_hash->MemoryAllocation();
+#pragma GCC diagnostic pop
 	}
 
 std::unique_ptr<detail::HashKey> TableVal::MakeHashKey(const Val& index) const
@@ -2858,62 +2875,18 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields)
 	if ( run_state::is_parsing )
 		parse_time_records[rt.get()].emplace_back(NewRef{}, this);
 
-	if ( ! init_fields )
-		return;
-
-	// Initialize to default values from RecordType (which are nil
-	// by default).
-	for ( int i = 0; i < n; ++i )
+	if ( init_fields )
 		{
-		detail::Attributes* a = rt->FieldDecl(i)->attrs.get();
-		detail::Attr* def_attr = a ? a->Find(detail::ATTR_DEFAULT).get() : nullptr;
-		ValPtr def;
-
-		if ( def_attr )
-			try
-				{
-				def = def_attr->GetExpr()->Eval(nullptr);
-				}
-			catch ( InterpreterException& )
-				{
-				if ( run_state::is_parsing )
-					parse_time_records[rt.get()].pop_back();
-
-				delete record_val;
-				throw;
-				}
-
-		const auto& type = rt->FieldDecl(i)->type;
-
-		if ( def && type->Tag() == TYPE_RECORD &&
-		     def->GetType()->Tag() == TYPE_RECORD &&
-		     ! same_type(def->GetType(), type) )
+		try
 			{
-			auto tmp = def->AsRecordVal()->CoerceTo(cast_intrusive<RecordType>(type));
-
-			if ( tmp )
-				def = std::move(tmp);
+			rt->Create(*record_val);
 			}
-
-		if ( ! def && ! (a && a->Find(detail::ATTR_OPTIONAL)) )
+		catch ( InterpreterException& e )
 			{
-			TypeTag tag = type->Tag();
-
-			if ( tag == TYPE_RECORD )
-				def = make_intrusive<RecordVal>(cast_intrusive<RecordType>(type));
-
-			else if ( tag == TYPE_TABLE )
-				def = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()},
-				                                     IntrusivePtr{NewRef{}, a});
-
-			else if ( tag == TYPE_VECTOR )
-				def = make_intrusive<VectorVal>(cast_intrusive<VectorType>(type));
+			if ( run_state::is_parsing )
+				parse_time_records[rt.get()].pop_back();
+			throw;
 			}
-
-		if ( def )
-			record_val->emplace_back(ZVal(def, def->GetType()));
-		else
-			record_val->emplace_back(std::nullopt);
 		}
 	}
 
@@ -2987,7 +2960,8 @@ void RecordVal::ResizeParseTimeRecords(RecordType* revised_rt)
 		if ( required_length > current_length )
 			{
 			for ( auto i = current_length; i < required_length; ++i )
-				rv->AppendField(revised_rt->FieldDefault(i));
+				rv->AppendField(revised_rt->FieldDefault(i),
+				                revised_rt->GetFieldType(i));
 			}
 		}
 	}
@@ -3165,7 +3139,7 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	// record. As we cannot guarantee that it will ber zeroed out at the
 	// approproate time (as it seems to be guaranteed for the original record)
 	// we don't touch it.
-	auto rv = make_intrusive<RecordVal>(GetType<RecordType>(), false);
+	auto rv = make_intrusive<RecordVal>(rt, false);
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
@@ -3174,7 +3148,7 @@ ValPtr RecordVal::DoClone(CloneState* state)
 		{
 		auto f_i = GetField(i);
 		auto v = f_i ? f_i->Clone(state) : nullptr;
-  		rv->AppendField(std::move(v));
+		rv->AppendField(std::move(v), rt->GetFieldType(i));
 		}
 
 	return rv;
@@ -3189,7 +3163,10 @@ unsigned int RecordVal::MemoryAllocation() const
 		{
 		auto f_i = GetField(i);
 		if ( f_i )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 			size += f_i->MemoryAllocation();
+#pragma GCC diagnostic pop
 		}
 
 	size += util::pad_size(record_val->capacity() * sizeof(ZVal));
@@ -3230,9 +3207,15 @@ ValPtr TypeVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-VectorVal::VectorVal(VectorTypePtr t) : Val(t)
+VectorVal::VectorVal(VectorTypePtr t) :
+VectorVal(t, new vector<std::optional<ZVal>>())
 	{
-	vector_val = new vector<std::optional<ZVal>>();
+	}
+
+VectorVal::VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals)
+: Val(t)
+	{
+	vector_val = vals;
 	yield_type = t->Yield();
 
 	auto y_tag = yield_type->Tag();
@@ -3658,6 +3641,50 @@ VectorValPtr VectorVal::Order(Func* cmp_func)
 		}
 
 	return result_v;
+	}
+
+bool VectorVal::Concretize(const TypePtr& t)
+	{
+	if ( ! any_yield )
+		// Could do a same_type() call here, but really this case
+		// shouldn't happen in any case.
+		return yield_type->Tag() == t->Tag();
+
+	if ( ! vector_val )
+		// Trivially concretized.
+		return true;
+
+	auto n = vector_val->size();
+	for ( auto i = 0U; i < n; ++i )
+		{
+		auto& v = (*vector_val)[i];
+		if ( ! v )
+			// Vector hole does not require concretization.
+			continue;
+
+		auto& vt_i = yield_types ? (*yield_types)[i] : yield_type;
+		if ( vt_i->Tag() == TYPE_ANY )
+			{ // Do the concretization.
+			ValPtr any_v = {NewRef{}, v->AsAny()};
+			auto& vt = any_v->GetType();
+			if ( vt->Tag() != t->Tag() )
+				return false;
+
+			v = ZVal(any_v, t);
+			}
+
+		else if ( vt_i->Tag() != t->Tag() )
+			return false;
+		}
+
+	// Require that this vector be treated consistently in the future.
+	yield_type = t;
+	managed_yield = ZVal::IsManagedType(yield_type);
+	delete yield_types;
+	yield_types = nullptr;
+	any_yield = false;
+
+	return true;
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)

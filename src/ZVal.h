@@ -18,7 +18,7 @@ class RecordVal;
 class StringVal;
 class SubNetVal;
 class TableVal;
-class Type;
+class TypeVal;
 class Val;
 class VectorVal;
 
@@ -31,6 +31,7 @@ using RecordValPtr = IntrusivePtr<RecordVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
 using SubNetValPtr = IntrusivePtr<SubNetVal>;
 using TableValPtr = IntrusivePtr<TableVal>;
+using TypeValPtr = IntrusivePtr<TypeVal>;
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
 
@@ -69,9 +70,10 @@ union ZVal {
 	ZVal(OpaqueVal* v)	{ opaque_val = v; }
 	ZVal(PatternVal* v)	{ re_val = v; }
 	ZVal(TableVal* v)	{ table_val = v; }
+	ZVal(TypeVal* v)	{ type_val = v; }
 	ZVal(RecordVal* v)	{ record_val = v; }
 	ZVal(VectorVal* v)	{ vector_val = v; }
-	ZVal(Type* v)		{ type_val = v; }
+	ZVal(Val* v)		{ any_val = v; }
 
 	ZVal(StringValPtr v)	{ string_val = v.release(); }
 	ZVal(AddrValPtr v)	{ addr_val = v.release(); }
@@ -80,20 +82,13 @@ union ZVal {
 	ZVal(OpaqueValPtr v)	{ opaque_val = v.release(); }
 	ZVal(PatternValPtr v)	{ re_val = v.release(); }
 	ZVal(TableValPtr v)	{ table_val = v.release(); }
+	ZVal(TypeValPtr v)	{ type_val = v.release(); }
 	ZVal(RecordValPtr v)	{ record_val = v.release(); }
 	ZVal(VectorValPtr v)	{ vector_val = v.release(); }
-	ZVal(TypePtr v)		{ type_val = v.release(); }
 
 	// Convert to a higher-level script value.  The caller needs to
 	// ensure that they're providing the correct type.
 	ValPtr ToVal(const TypePtr& t) const;
-
-	// Whether a ZVal was accessed that was missing (a nil pointer).
-	// Used to generate run-time error messages.
-	static bool ZValNilStatus()		{ return zval_was_nil; }
-
-	// Resets the notion of low-level-error-occurred.
-	static void ClearZValNilStatus()	{ zval_was_nil = false; }
 
 	bro_int_t AsInt() const		{ return int_val; }
 	bro_uint_t AsCount() const	{ return uint_val; }
@@ -110,10 +105,31 @@ union ZVal {
 	TableVal* AsTable() const	{ return table_val; }
 	RecordVal* AsRecord() const	{ return record_val; }
 	VectorVal* AsVector() const	{ return vector_val; }
-	Type* AsType() const		{ return type_val; }
+	TypeVal* AsType() const		{ return type_val; }
 	Val* AsAny() const		{ return any_val; }
 
 	Obj* ManagedVal() const		{ return managed_val; }
+	void ClearManagedVal()		{ managed_val = nullptr; }
+
+	// The following return references that can be used to
+	// populate the ZVal.  Handy for compiled ZAM code.
+	bro_int_t& AsIntRef()		{ return int_val; }
+	bro_uint_t& AsCountRef()	{ return uint_val; }
+	double& AsDoubleRef()		{ return double_val; }
+	StringVal*& AsStringRef()	{ return string_val; }
+	AddrVal*& AsAddrRef()		{ return addr_val; }
+	SubNetVal*& AsSubNetRef()	{ return subnet_val; }
+	File*& AsFileRef()		{ return file_val; }
+	Func*& AsFuncRef()		{ return func_val; }
+	ListVal*& AsListRef()		{ return list_val; }
+	OpaqueVal*& AsOpaqueRef()	{ return opaque_val; }
+	PatternVal*& AsPatternRef()	{ return re_val; }
+	TableVal*& AsTableRef()		{ return table_val; }
+	RecordVal*& AsRecordRef()	{ return record_val; }
+	VectorVal*& AsVectorRef()	{ return vector_val; }
+	TypeVal*& AsTypeRef()		{ return type_val; }
+	Val*& AsAnyRef()		{ return any_val; }
+	Obj*& ManagedValRef()		{ return managed_val; }
 
 	// True if a given type is one for which we manage the associated
 	// memory internally.
@@ -132,6 +148,14 @@ union ZVal {
 		if ( IsManagedType(t) )
 			DeleteManagedType(v);
 		}
+
+	// Specifies the address of a flag to set if a ZVal is accessed
+	// that was missing (a nil pointer).  Used to generate run-time
+	// error messages.  We use an address-based interface so that
+	// this flag can be combined with a general-purpose error flag,
+	// allowing inner loops to only have to test a single flag.
+	static void SetZValNilStatusAddr(bool* _zval_was_nil_addr)
+		{ zval_was_nil_addr = _zval_was_nil_addr; }
 
 private:
 	friend class RecordVal;
@@ -161,7 +185,7 @@ private:
 	TableVal* table_val;
 	RecordVal* record_val;
 	VectorVal* vector_val;
-	Type* type_val;
+	TypeVal* type_val;
 
 	// Used for "any" values.
 	Val* any_val;
@@ -175,7 +199,7 @@ private:
 	// because often the caller won't have direct access to the
 	// particular ZVal that produces the issue, and just wants to
 	// know whether it occurred at some point.
-	static bool zval_was_nil;
+	static bool* zval_was_nil_addr;
 };
 
 } // zeek

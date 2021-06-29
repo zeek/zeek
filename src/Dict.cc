@@ -265,6 +265,11 @@ TEST_CASE("dict new iteration")
 		count++;
 		}
 
+	PDict<uint32_t>::iterator it;
+	it = dict.begin();
+	it = dict.end();
+	PDict<uint32_t>::iterator it2 = it;
+
 	CHECK(count == 2);
 
 	delete key;
@@ -767,7 +772,10 @@ void Dictionary::DumpKeys() const
 	if ( binary )
 		{
 		char key = char(random() % 26) + 'A';
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		sprintf(key_file, "%d.%d.%zu-%c.key", Length(), max_distance, MemoryAllocation()/Length(), key);
+#pragma GCC diagnostic pop
 		std::ofstream f(key_file, std::ios::binary|std::ios::out|std::ios::trunc);
 		for ( int idx = 0; idx < Capacity(); idx++ )
 			if ( ! table[idx].Empty() )
@@ -780,7 +788,10 @@ void Dictionary::DumpKeys() const
 	else
 		{
 		char key = char(random() % 26) + 'A';
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		sprintf(key_file, "%d.%d.%zu-%d.ckey",Length(), max_distance, MemoryAllocation()/Length(), key);
+#pragma GCC diagnostic pop
 		std::ofstream f(key_file, std::ios::out|std::ios::trunc);
 		for ( int idx = 0; idx < Capacity(); idx++ )
 			if ( ! table[idx].Empty() )
@@ -828,10 +839,13 @@ void Dictionary::Dump(int level) const
 	int distances[DICT_NUM_DISTANCES];
 	int max_distance = 0;
 	DistanceStats(max_distance, distances, DICT_NUM_DISTANCES);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	printf("cap %'7d ent %'7d %'-7d load %.2f max_dist %2d mem %10zu mem/ent %3zu key/ent %3d lg %2d remaps %1d remap_end %4d ",
 		Capacity(), Length(), MaxLength(), (double)Length()/(table? Capacity() : 1),
 		max_distance, MemoryAllocation(), (MemoryAllocation())/(Length()?Length():1), key_size / (Length()?Length():1),
 		log2_buckets, remaps, remap_end);
+#pragma GCC diagnostic pop
 	if ( Length() > 0 )
 		{
 		for (int i = 0; i < DICT_NUM_DISTANCES-1; i++)
@@ -1558,8 +1572,11 @@ DictIterator::DictIterator(const Dictionary* d, detail::DictEntry* begin, detail
 
 DictIterator::~DictIterator()
 	{
-	assert(dict->num_iterators > 0);
-	dict->num_iterators--;
+	if ( dict )
+		{
+		assert(dict->num_iterators > 0);
+		dict->num_iterators--;
+		}
 	}
 
 DictIterator& DictIterator::operator++()
@@ -1570,6 +1587,80 @@ DictIterator& DictIterator::operator++()
 		++curr;
 		}
 	while ( curr != end && curr->Empty() );
+
+	return *this;
+	}
+
+DictIterator::DictIterator(const DictIterator& that)
+	{
+	if ( this == &that )
+		return;
+
+	if ( dict )
+		{
+		assert(dict->num_iterators > 0);
+		dict->num_iterators--;
+		}
+
+	dict = that.dict;
+	curr = that.curr;
+	end = that.end;
+	dict->num_iterators++;
+	}
+
+DictIterator& DictIterator::operator=(const DictIterator& that)
+	{
+	if ( this == &that )
+		return *this;
+
+	if ( dict )
+		{
+		assert(dict->num_iterators > 0);
+		dict->num_iterators--;
+		}
+
+	dict = that.dict;
+	curr = that.curr;
+	end = that.end;
+	dict->num_iterators++;
+
+	return *this;
+	}
+
+DictIterator::DictIterator(DictIterator&& that)
+	{
+	if ( this == &that )
+		return;
+
+	if ( dict )
+		{
+		assert(dict->num_iterators > 0);
+		dict->num_iterators--;
+		}
+
+	dict = that.dict;
+	curr = that.curr;
+	end = that.end;
+
+	that.dict = nullptr;
+	}
+
+DictIterator& DictIterator::operator=(DictIterator&& that)
+	{
+	if ( this == &that )
+		return *this;
+
+	if ( dict )
+		{
+		assert(dict->num_iterators > 0);
+		dict->num_iterators--;
+		}
+
+	dict = that.dict;
+	curr = that.curr;
+	end = that.end;
+
+	that.dict = nullptr;
 
 	return *this;
 	}

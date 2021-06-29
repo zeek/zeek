@@ -12,7 +12,7 @@
 #include "zeek/ZeekList.h"
 #include "zeek/Stmt.h"
 #include "zeek/Obj.h"
-#include "zeek/IntrusivePtr.h"
+#include "zeek/Scope.h"
 #include "zeek/Type.h" /* for function_flavor */
 #include "zeek/TraverseTypes.h"
 #include "zeek/ZeekArgs.h"
@@ -103,7 +103,7 @@ public:
 	                     size_t new_frame_size, int priority = 0);
 
 	virtual void SetScope(detail::ScopePtr newscope);
-	virtual detail::Scope* GetScope() const		{ return scope.get(); }
+	virtual detail::ScopePtr GetScope() const	{ return scope; }
 
 	const FuncTypePtr& GetType() const
 		{ return type; }
@@ -150,6 +150,10 @@ public:
 	ScriptFunc(const IDPtr& id, StmtPtr body,
 	        const std::vector<IDPtr>& inits,
 	        size_t frame_size, int priority);
+
+	// For compiled scripts.
+	ScriptFunc(std::string name, FuncTypePtr ft,
+	           std::vector<StmtPtr> bodies, std::vector<int> priorities);
 
 	~ScriptFunc() override;
 
@@ -239,6 +243,7 @@ public:
 				detail::StmtPtr new_body);
 
 	StmtPtr CurrentBody() const		{ return current_body; }
+	int CurrentPriority() const		{ return current_priority; }
 
 	/**
 	 * Returns the function's frame size.
@@ -307,8 +312,11 @@ private:
 
 	OffsetMap* captures_offset_mapping = nullptr;
 
-	// The most recently added/updated body.
+	// The most recently added/updated body ...
 	StmtPtr current_body;
+
+	// ... and its priority.
+	int current_priority;
 };
 
 using built_in_func = BifReturnVal (*)(Frame* frame, const Args* args);

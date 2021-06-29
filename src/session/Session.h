@@ -105,14 +105,22 @@ public:
 	 * Return the memory allocation required by the session record. This requires at
 	 * least one call to Get() first in order to setup the record object.
 	 */
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	virtual unsigned int MemoryAllocationVal() const = 0;
 
 	[[deprecated("Remove in v5.1. Use MemoryAllocationVal().")]]
-	unsigned int MemoryAllocationConnVal() const { return MemoryAllocationVal(); }
+	unsigned int MemoryAllocationConnVal() const
+		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		return MemoryAllocationVal();
+#pragma GCC diagnostic pop
+		}
 
 	/**
 	 * A lower-bound calculation of how much memory a session object is using.
 	 */
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
 	virtual unsigned int MemoryAllocation() const;
 
 	/**

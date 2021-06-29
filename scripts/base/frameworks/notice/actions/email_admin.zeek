@@ -18,18 +18,15 @@ export {
 	};
 }
 
-hook notice(n: Notice::Info) &priority=-5
+hook notice(n: Notice::Info)
 	{
 	if ( |Site::local_admins| > 0 &&
 	     ACTION_EMAIL_ADMIN in n$actions )
 		{
 		local email = "";
 		if ( n?$src && |Site::get_emails(n$src)| > 0 )
-			email = fmt("%s, %s", email, Site::get_emails(n$src));
+			add n$email_dest[Site::get_emails(n$src)];
 		if ( n?$dst && |Site::get_emails(n$dst)| > 0 )
-			email = fmt("%s, %s", email, Site::get_emails(n$dst));
-		
-		if ( email != "" )
-			email_notice_to(n, email, T);
+			add n$email_dest[Site::get_emails(n$dst)];
 		}
 	}

@@ -15,6 +15,7 @@
 #include "zeek/broker/Manager.h"
 #include "zeek/input.h"
 #include "zeek/Func.h"
+#include "zeek/packet_analysis/protocol/tcp/TCP.h"
 
 uint64_t zeek::detail::killed_by_inactivity = 0;
 uint64_t& killed_by_inactivity = zeek::detail::killed_by_inactivity;
@@ -126,7 +127,10 @@ void ProfileLogger::Log()
 		run_state::network_time, (utime + stime) - (first_utime + first_stime),
 		utime - first_utime, stime - first_stime, rtime - first_rtime));
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	int conn_mem_use = expensive ? session_mgr->SessionMemoryUsage() : 0;
+#pragma GCC diagnostic pop
 	double avg_conn_mem_use = 0;
 
 	if ( expensive && session_mgr->CurrentSessions() != 0 )
@@ -134,6 +138,8 @@ void ProfileLogger::Log()
 
 	// TODO: This previously output the number of connections, but now that we're storing sessions
 	// as well as connections, this might need to be renamed.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	file->Write(util::fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
 		run_state::network_time,
 		Connection::TotalConnections(),
@@ -144,6 +150,7 @@ void ProfileLogger::Log()
 		expensive ? session_mgr->MemoryAllocation() / 1024 : 0,
 		expensive ? session_mgr->SessionMemoryUsageVals() / 1024 : 0
 		));
+#pragma GCC diagnostic pop
 
 	session::Stats s;
 	session_mgr->GetStats(s);
@@ -155,7 +162,7 @@ void ProfileLogger::Log()
 		s.num_ICMP_conns, s.max_ICMP_conns
 		));
 
-	session_mgr->tcp_stats.PrintStats(file,
+	packet_analysis::TCP::TCPAnalyzer::GetStats().PrintStats(file,
 			util::fmt("%.06f TCP-States:", run_state::network_time));
 
 	// Alternatively, if you prefer more compact output...
@@ -177,8 +184,11 @@ void ProfileLogger::Log()
 	file->Write(util::fmt("%.06f Connections expired due to inactivity: %" PRIu64 "\n",
 	                      run_state::network_time, killed_by_inactivity));
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	file->Write(util::fmt("%.06f Total reassembler data: %" PRIu64 "K\n", run_state::network_time,
 	                      Reassembler::TotalMemoryAllocation() / 1024));
+#pragma GCC diagnostic pop
 
 	// Signature engine.
 	if ( expensive && rule_matcher )
@@ -273,7 +283,10 @@ void ProfileLogger::Log()
 				{
 				const auto& v = id->GetVal();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 				size = v->MemoryAllocation();
+#pragma GCC diagnostic pop
 				mem += size;
 
 				bool print = false;

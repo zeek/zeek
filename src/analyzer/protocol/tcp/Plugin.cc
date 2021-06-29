@@ -10,7 +10,6 @@ class Plugin : public zeek::plugin::Plugin {
 public:
 	zeek::plugin::Configuration Configure() override
 		{
-		AddComponent(new zeek::analyzer::Component("TCP", zeek::analyzer::tcp::TCP_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component("TCPStats", zeek::analyzer::tcp::TCPStats_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component("CONTENTLINE", nullptr));
 		AddComponent(new zeek::analyzer::Component("Contents", nullptr));

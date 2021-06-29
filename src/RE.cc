@@ -416,14 +416,20 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 	{
 	unsigned int size = 0;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	for ( int i = 0; i < ccl_list.length(); ++i )
 		size += ccl_list[i]->MemoryAllocation();
+#pragma GCC diagnostic pop
 
 	size += util::pad_size(sizeof(CCL*) * ccl_dict.size());
 	for ( const auto& entry : ccl_dict )
 		{
 		size += padded_sizeof(std::string) + util::pad_size(sizeof(std::string::value_type) * entry.first.size());
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		size += entry.second->MemoryAllocation();
+#pragma GCC diagnostic pop
 		}
 
 	for ( const auto& entry : defs )
@@ -432,6 +438,8 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 		size += padded_sizeof(std::string) + util::pad_size(sizeof(std::string::value_type) * entry.second.size());
 		}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	return size + padded_sizeof(*this)
 		+ (pattern_text ? util::pad_size(strlen(pattern_text) + 1) : 0)
 		+ ccl_list.MemoryAllocation() - padded_sizeof(ccl_list)
@@ -440,6 +448,7 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 		+ padded_sizeof(*any_ccl)
 		+ padded_sizeof(*accepted) // NOLINT(bugprone-sizeof-container)
 		+ accepted->size() * padded_sizeof(AcceptingSet::key_type);
+#pragma GCC diagnostic pop
 	}
 
 static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2,

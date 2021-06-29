@@ -672,7 +672,7 @@ void begin_func(IDPtr id, const char* module_name,
 
 class OuterIDBindingFinder : public TraversalCallback {
 public:
-	OuterIDBindingFinder(Scope* s)
+	OuterIDBindingFinder(ScopePtr s)
 		{
 		scopes.emplace_back(s);
 		}
@@ -680,7 +680,7 @@ public:
 	TraversalCode PreExpr(const Expr*) override;
 	TraversalCode PostExpr(const Expr*) override;
 
-	std::vector<Scope*> scopes;
+	std::vector<ScopePtr> scopes;
 	std::unordered_set<ID*> outer_id_references;
 };
 
@@ -766,7 +766,7 @@ void end_func(StmtPtr body)
 	ingredients.release();
 	}
 
-IDPList gather_outer_ids(Scope* scope, Stmt* body)
+IDPList gather_outer_ids(ScopePtr scope, StmtPtr body)
 	{
 	OuterIDBindingFinder cb(scope);
 	body->Traverse(&cb);

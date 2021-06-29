@@ -16,9 +16,12 @@ class CompositeHash;
 class NameExpr;
 using NameExprPtr = IntrusivePtr<zeek::detail::NameExpr>;
 
+class ZAMCompiler;	// for "friend" declarations
+
 class ExprListStmt : public Stmt {
 public:
 	const ListExpr* ExprList() const	{ return l.get(); }
+	const ListExprPtr& ExprListPtr() const	{ return l; }
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -180,15 +183,24 @@ public:
 	bool NoFlowAfter(bool ignore_break) const override;
 
 protected:
+	friend class ZAMCompiler;
+
+	int DefaultCaseIndex() const	{ return default_case_idx; }
+	const auto& ValueMap() const	{ return case_label_value_map; }
+	const std::vector<std::pair<ID*, int>>* TypeMap() const
+		{ return &case_label_type_list; }
+	const CompositeHash* CompHash() const   { return comp_hash; }
+
 	ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) override;
 	bool IsPure() const override;
 
 	// Initialize composite hash and case label map.
 	void Init();
 
-	// Adds an entry in case_label_value_map for the given value to associate it
-	// with the given index in the cases list.  If the entry already exists,
-	// returns false, else returns true.
+	// Adds entries in case_label_value_map and case_label_hash_map
+	// for the given value to associate it with the given index in
+	// the cases list.  If the entry already exists, returns false,
+	// else returns true.
 	bool AddCaseLabelValueMapping(const Val* v, int idx);
 
 	// Adds an entry in case_label_type_map for the given type (w/ ID) to
@@ -205,7 +217,8 @@ protected:
 	case_list* cases;
 	int default_case_idx;
 	CompositeHash* comp_hash;
-	PDict<int> case_label_value_map;
+	std::unordered_map<const Val*, int> case_label_value_map;
+	PDict<int> case_label_hash_map;
 	std::vector<std::pair<ID*, int>> case_label_type_list;
 };
 
@@ -523,6 +536,7 @@ public:
 	const Stmt* Body() const	{ return s1.get(); }
 	const Expr* TimeoutExpr() const	{ return timeout.get(); }
 	const Stmt* TimeoutBody() const	{ return s2.get(); }
+	bool IsReturn() const		{ return is_return; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -596,6 +610,8 @@ protected:
 class CheckAnyLenStmt : public ExprStmt {
 public:
 	explicit CheckAnyLenStmt(ExprPtr e, int expected_len);
+
+	int ExpectedLen() const		{ return expected_len; }
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 

@@ -410,6 +410,12 @@ public:
 	 */
 	static void RegisterBifFile(const char* plugin, bif_init_func c);
 
+	/**
+	 * Adds the paths from built-in plugins (e.g. from --include-plugins)
+	 * to ZEEKPATH so they are loaded correctly.
+	 */
+	void ExtendZeekPathForPlugins();
+
 private:
 	bool ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found, std::vector<std::string>* errors);
 	void UpdateInputFiles();

@@ -86,11 +86,12 @@ public:
 	// function and one of its bodies.
 	ProfileFunc(const Func* func, const StmtPtr& body, bool abs_rec_fields);
 
-	// Constructor for profiling an AST expression.  This exists
-	// to support (1) profiling lambda expressions, and (2) traversing
-	// attribute expressions (such as &default=expr) to discover what
-	// components they include.
-	ProfileFunc(const Expr* func, bool abs_rec_fields);
+	// Constructors for profiling an AST statement expression.  These exist
+	// to support (1) profiling lambda expressions and loop bodies, and
+	// (2) traversing attribute expressions (such as &default=expr)
+	// to discover what components they include.
+	ProfileFunc(const Stmt* body, bool abs_rec_fields = false);
+	ProfileFunc(const Expr* func, bool abs_rec_fields = false);
 
 	// See the comments for the associated member variables for each
 	// of these accessors.
@@ -339,6 +340,10 @@ protected:
 	// Incorporate the given function profile into the global profile.
 	void MergeInProfile(ProfileFunc* pf);
 
+	// Recursively traverse a (possibly aggregate) value to extract
+	// all of the types its elements use.
+	void TraverseValue(const ValPtr& v);
+
 	// When traversing types, Zeek records can have attributes that in
 	// turn have expressions associated with them.  The expressions can
 	// in turn have types, which might be records with further attribute
@@ -396,8 +401,9 @@ protected:
 
 	// Maps script functions to associated profiles.  This isn't
 	// actually well-defined in the case of event handlers and hooks,
-	// which can have multiple bodies.  However, this is only used
-	// in the context of analyzing a single-bodied function.
+	// which can have multiple bodies.  However, the need for this
+	// is temporary (it's for skipping compilation of functions that
+	// appear in "when" clauses), and in that context it suffices.
 	std::unordered_map<const ScriptFunc*, std::shared_ptr<ProfileFunc>> func_profs;
 
 	// Maps expressions to their profiles.  This is only germane

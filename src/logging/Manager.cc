@@ -148,6 +148,7 @@ Manager::~Manager()
 void Manager::InitPostScript()
 	{
 	rotation_format_func = id::find_func("Log::rotation_format_func");
+	log_stream_policy_hook = id::find_func("Log::log_stream_policy");
 	}
 
 WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, EnumVal* tag)
@@ -722,6 +723,21 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 	if ( stream->event )
 		event_mgr.Enqueue(stream->event, columns);
 
+	bool stream_veto = false;
+
+	if ( log_stream_policy_hook )
+		{
+		auto v = log_stream_policy_hook->Invoke(columns, IntrusivePtr{NewRef{}, id});
+		if ( v && ! v->AsBool() )
+			{
+			// We recod the fact that this hook is vetoing
+			// the write, but continue on to the filter-
+			// level hooks to allow them to run anyway.
+			// They cannot "un-veto".
+			stream_veto = true;
+			}
+		}
+
 	// Send to each of our filters.
 	for ( list<Filter*>::iterator i = stream->filters.begin();
 	      i != stream->filters.end(); ++i )
@@ -742,6 +758,9 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			if ( v  && ! v->AsBool() )
 				continue;
 			}
+
+		if ( stream_veto )
+			continue;
 
 		if ( filter->path_func )
 			{

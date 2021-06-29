@@ -3,13 +3,14 @@
 # @TEST-EXEC: zeek -b test.zeek %INPUT
 # @TEST-EXEC: btest-diff test.log
 # @TEST-EXEC: test -f other.log && btest-diff other.log || true
+# @TEST-EXEC: test -f output && btest-diff output || true
 
 @TEST-START-FILE test.zeek
 # This provides a simple test module harness, used by all of the individual tests below.
 module Test;
 
 export {
-	# Create a new ID for our log stream
+	# Create new IDs for our log streams
 	redef enum Log::ID += { LOG, LOG_OTHER };
 
 	# Create a corresponding policy hook:
@@ -167,3 +168,126 @@ event zeek_init()
 	Log::write(Test::LOG_OTHER, [$t=network_time(), $status="foo"]);
 	Log::write(Test::LOG_OTHER, [$t=network_time(), $status="bar"]);
 	}
+
+@TEST-START-NEXT
+
+# Verify that the global policy hook is effective. We have no
+# filter-specific hook handlers, only the global one is vetoing
+# some entries.
+
+hook Log::log_stream_policy(rec: any, id: Log::ID)
+	{
+	if ( id == Test::LOG )
+		{
+		local r: Test::Info = rec;
+
+		if ( r$status == "foo" )
+			break;
+		}
+	}
+
+event zeek_init()
+	{
+	Log::write(Test::LOG, [$t=network_time(), $status="foo"]);
+	Log::write(Test::LOG, [$t=network_time(), $status="bar"]);
+	}
+
+@TEST-START-NEXT
+
+# Verify the combination of global and filter-specific policy hooks.
+# The former get invoked first.
+
+hook Log::log_stream_policy(rec: any, id: Log::ID)
+	{
+	if ( id == Test::LOG )
+		{
+		local r: Test::Info = rec;
+
+		if ( r$status == "foo" )
+			break;
+		}
+	}
+
+hook Test::log_policy(rec: Test::Info, id: Log::ID, filter: Log::Filter)
+	{
+	# Test::log_policy should have blocked this one
+	if ( rec$status == "foo" )
+		rec$status = "foobar";
+
+	# This just verifies the hook can mod entries.
+	# It should make it into the log.
+	if ( rec$status == "bar" )
+		rec$status = "barbaz";
+	}
+
+event zeek_init()
+	{
+	Log::write(Test::LOG, [$t=network_time(), $status="foo"]);
+	Log::write(Test::LOG, [$t=network_time(), $status="bar"]);
+	}
+
+@TEST-START-NEXT
+
+# Verify that per write, the global hook gets invoked once and the
+# filter-level hooks once per filter, that filter hooks get
+# invoked even when the global hook already vetoed, and that they
+# do not "un-veto".
+
+global output = open("output");
+
+hook Log::log_stream_policy(rec: any, id: Log::ID)
+	{
+	print output, "Log::log_stream_policy";
+
+	if ( id == Test::LOG )
+		{
+		local r: Test::Info = rec;
+
+		if ( r$status == "foo" )
+			break;
+		}
+	}
+
+hook Test::log_policy(rec: Test::Info, id: Log::ID, filter: Log::Filter)
+	{
+	print output, rec$status;
+	}
+
+event zeek_init()
+	{
+	local filter: Log::Filter = [$name="other"];
+	Log::add_filter(Test::LOG, filter);
+
+	Log::write(Test::LOG, [$t=network_time(), $status="foo"]);
+	Log::write(Test::LOG, [$t=network_time(), $status="bar"]);
+	}
+
+@TEST-START-NEXT
+
+# Verify the global policy works on streams with no per-filter hooks, since
+# their logic is a bit intertwined.
+
+module Test;
+
+export {
+	redef enum Log::ID += { LOG2 };
+}
+
+hook Log::log_stream_policy(rec: any, id: Log::ID)
+	{
+	if ( id == Test::LOG2 )
+		{
+		local r: Test::Info = rec;
+
+		if ( r$status == "foo" )
+			break;
+		}
+	}
+
+event zeek_init() &priority=2
+	{
+	Log::create_stream(Test::LOG2, [$columns=Info, $path="test"]);
+
+	Log::write(Test::LOG2, [$t=network_time(), $status="foo"]);
+	Log::write(Test::LOG2, [$t=network_time(), $status="bar"]);
+}

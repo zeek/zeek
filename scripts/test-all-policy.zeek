@@ -106,6 +106,7 @@
 @load protocols/ssl/heartbleed.zeek
 @load protocols/ssl/known-certs.zeek
 @load protocols/ssl/log-certs-base64.zeek
+@load protocols/ssl/ssl-log-ext.zeek
 @load protocols/ssl/log-hostcerts-only.zeek
 #@load protocols/ssl/notary.zeek
 @load protocols/ssl/validate-certs.zeek

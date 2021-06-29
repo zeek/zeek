@@ -7,6 +7,7 @@
 @load base/frameworks/dpd
 
 redef SSL::log_include_client_certificate_subject_issuer = T;
+redef SSL::log_include_server_certificate_subject_issuer = T;
 
 event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec)
 	{

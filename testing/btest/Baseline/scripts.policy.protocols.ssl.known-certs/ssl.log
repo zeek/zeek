@@ -5,8 +5,8 @@
 #unset_field	-
 #path	ssl
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fps	client_cert_chain_fps	subject	issuer
-#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.4.149	60623	74.125.239.129	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	secp256r1	-	F	-	-	T	6bacfa4536150ed996f2b0c05ab6e345a257225f449aeb9d2018ccd88f4ede43,a047a37fa2d2e118a4f5095fe074d6cfe0e352425a7632bf8659c03919a6c81d,3c35cc963eb004451323d3275d05b353235053490d9cd83729a2faf5e7ca1cc0	(empty)	CN=*.google.com,O=Google Inc,L=Mountain View,ST=California,C=US	CN=Google Internet Authority G2,O=Google Inc,C=US
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.4.149	60624	74.125.239.129	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	secp256r1	-	F	-	-	T	6bacfa4536150ed996f2b0c05ab6e345a257225f449aeb9d2018ccd88f4ede43,a047a37fa2d2e118a4f5095fe074d6cfe0e352425a7632bf8659c03919a6c81d,3c35cc963eb004451323d3275d05b353235053490d9cd83729a2faf5e7ca1cc0	(empty)	CN=*.google.com,O=Google Inc,L=Mountain View,ST=California,C=US	CN=Google Internet Authority G2,O=Google Inc,C=US
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	ssl_history	cert_chain_fps	client_cert_chain_fps	sni_matches_cert
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	string	vector[string]	vector[string]	bool
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.4.149	60623	74.125.239.129	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	secp256r1	-	F	-	-	T	CsxknGIti	6bacfa4536150ed996f2b0c05ab6e345a257225f449aeb9d2018ccd88f4ede43,a047a37fa2d2e118a4f5095fe074d6cfe0e352425a7632bf8659c03919a6c81d,3c35cc963eb004451323d3275d05b353235053490d9cd83729a2faf5e7ca1cc0	(empty)	-
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.4.149	60624	74.125.239.129	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	secp256r1	-	F	-	-	T	CsxknGIti	6bacfa4536150ed996f2b0c05ab6e345a257225f449aeb9d2018ccd88f4ede43,a047a37fa2d2e118a4f5095fe074d6cfe0e352425a7632bf8659c03919a6c81d,3c35cc963eb004451323d3275d05b353235053490d9cd83729a2faf5e7ca1cc0	(empty)	-
 #close XXXX-XX-XX-XX-XX-XX

@@ -1060,8 +1060,13 @@ function x509_check_cert_hostname%(cert_opaque: opaque of x509, hostname: string
 #endif
 			std::string_view nameview {name, len};
 			if ( check_hostname(hostview, nameview) )
-				return zeek::make_intrusive<zeek::StringVal>(len, name);
+				{
+				auto retval = zeek::make_intrusive<zeek::StringVal>(len, name);
+				GENERAL_NAMES_free(altname);
+				return retval;
+				}
 			}
+		GENERAL_NAMES_free(altname);
 		}
 	else
 		{

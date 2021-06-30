@@ -1,3 +1,11 @@
+4.1.0-dev.833 | 2021-06-30 08:50:39 -0700
+
+  * GH-1500: Mark BasicThread::Done to be ignored by ThreadSanitizer (Tim Wojtulewicz, Corelight)
+
+    There's a known false positive with the atomic variables in this method
+    that triggers a complaint from ThreadSanitizer. Marking it as ignored
+    avoids the warning.
+
 4.1.0-dev.831 | 2021-06-30 13:17:01 +0100
 
   * Update the bundled SQLite to 3.36.0 (Johanna Amann, Corelight)

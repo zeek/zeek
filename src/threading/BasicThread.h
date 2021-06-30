@@ -191,7 +191,7 @@ protected:
 	void Kill();
 
 	/** Called by child thread's launcher when it's done processing. */
-	void Done();
+    ZEEK_DISABLE_TSAN void Done();
 
 private:
 	// thread entry function.

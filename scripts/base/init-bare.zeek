@@ -2789,14 +2789,22 @@ export {
 	## .. zeek:see:: smb1_nt_create_andx_response smb2_create_response
 	type SMB::MACTimes: record {
 		## The time when data was last written to the file.
-		modified : time &log;
+		modified 	: time &log;
+		## Same as `modified` but in SMB's original `FILETIME` integer format.
+		modified_raw: count;
 		## The time when the file was last accessed.
-		accessed : time &log;
+		accessed 	: time &log;
+		## Same as `accessed` but in SMB's original `FILETIME` integer format.
+		accessed_raw: count;
 		## The time the file was created.
-		created  : time &log;
+		created  	: time &log;
+		## Same as `created` but in SMB's original `FILETIME` integer format.
+		created_raw : count;
 		## The time when the file was last modified.
-		changed  : time &log;
-	} &log;
+		changed  	: time &log;
+		## Same as `changed` but in SMB's original `FILETIME` integer format.
+		changed_raw : count;
+	};
 
 	## A set of file names used as named pipes over SMB. This
 	## only comes into play as a heuristic to identify named

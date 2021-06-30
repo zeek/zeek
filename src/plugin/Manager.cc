@@ -281,15 +281,6 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		scripts_to_load.push_back(init);
 		}
 
-	// First load {scripts}/__preload__.zeek automatically.
-	init = dir + "builtin-plugins/__preload__.zeek";
-
-	if ( util::is_file(init) )
-		{
-		DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
-		scripts_to_load.push_back(init);
-		}
-
 	// Load {bif,scripts}/__load__.zeek automatically.
 	init = dir + "lib/bif/__load__.zeek";
 

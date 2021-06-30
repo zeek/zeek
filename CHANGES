@@ -1,3 +1,11 @@
+4.1.0-dev.837 | 2021-06-30 14:10:58 -0700
+
+  * Fix tests (Seth Hall, Corelight)
+
+  * Removed a non-functional builtin plugin preload loading mechanism (Seth Hall, Corelight)
+
+  * Load the builtin-plugin preload files and fix the dev path. (Seth Hall, Corelight)
+
 4.1.0-dev.833 | 2021-06-30 08:50:39 -0700
 
   * GH-1500: Mark BasicThread::Done to be ignored by ThreadSanitizer (Tim Wojtulewicz, Corelight)

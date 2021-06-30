@@ -534,6 +534,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	if ( ! options.bare_mode )
 		add_input_file("base/init-default.zeek");
 
+	add_input_file("builtin-plugins/__preload__.zeek");
 	add_input_file("builtin-plugins/__load__.zeek");
 
 	plugin_mgr->SearchDynamicPlugins(util::zeek_plugin_path());

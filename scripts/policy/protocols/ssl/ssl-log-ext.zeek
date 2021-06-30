@@ -56,7 +56,7 @@ event ssl_client_hello(c: connection, version: count, record_version: count, pos
 	c$ssl$client_comp_methods = comp_methods;
 	}
 
-	event ssl_server_hello(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count)
+event ssl_server_hello(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count)
 	{
 	if ( ! c?$ssl )
 		return;
@@ -65,7 +65,7 @@ event ssl_client_hello(c: connection, version: count, record_version: count, pos
 	c$ssl$comp_method = comp_method;
 	}
 
-	event ssl_session_ticket_handshake(c: connection, ticket_lifetime_hint: count, ticket: string)
+event ssl_session_ticket_handshake(c: connection, ticket_lifetime_hint: count, ticket: string)
 	{
 	if ( ! c?$ssl )
 		return;
@@ -73,7 +73,7 @@ event ssl_client_hello(c: connection, version: count, record_version: count, pos
 	c$ssl$ticket_lifetime_hint = ticket_lifetime_hint;
 	}
 
-	event ssl_extension(c: connection, is_orig: bool, code: count, val: string)
+event ssl_extension(c: connection, is_orig: bool, code: count, val: string)
 	{
 	if ( ! c?$ssl )
 		return;
@@ -108,7 +108,7 @@ event ssl_extension_elliptic_curves(c: connection, is_orig: bool, curves: index_
 	c$ssl$client_curves = curves;
 	}
 
-	event ssl_extension_application_layer_protocol_negotiation(c: connection, is_orig: bool, names: string_vec)
+event ssl_extension_application_layer_protocol_negotiation(c: connection, is_orig: bool, names: string_vec)
 	{
 	if ( ! c?$ssl )
 		return;
@@ -117,7 +117,7 @@ event ssl_extension_elliptic_curves(c: connection, is_orig: bool, curves: index_
 		c$ssl$orig_alpn = names;
 	}
 
-	event ssl_dh_server_params(c: connection, p: string, q: string, Ys: string)
+event ssl_dh_server_params(c: connection, p: string, q: string, Ys: string)
 	{
 	if ( ! c?$ssl )
 		return;
@@ -126,7 +126,7 @@ event ssl_extension_elliptic_curves(c: connection, is_orig: bool, curves: index_
 	c$ssl$dh_param_size = key_length;
 	}
 
-	event ssl_extension_supported_versions(c: connection, is_orig: bool, versions: index_vec)
+event ssl_extension_supported_versions(c: connection, is_orig: bool, versions: index_vec)
 	{
 	if ( ! c?$ssl )
 		return;

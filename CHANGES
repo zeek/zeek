@@ -1,3 +1,7 @@
+4.1.0-dev.831 | 2021-06-30 13:17:01 +0100
+
+  * Update the bundled SQLite to 3.36.0 (Johanna Amann, Corelight)
+
 4.1.0-dev.830 | 2021-06-30 07:51:08 +0200
 
   * GH-1406: Fix SMB tests on Apple M1. (Robin Sommer, Corelight)

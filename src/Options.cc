@@ -122,11 +122,6 @@ void usage(const char* prog, int code)
 #endif
 	fprintf(stderr, "    --pseudo-realtime[=<speedup>]  | enable pseudo-realtime for performance evaluation (default 1)\n");
 	fprintf(stderr, "    -j|--jobs                      | enable supervisor mode\n");
-
-#ifdef USE_IDMEF
-	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
-#endif
-
 	fprintf(stderr, "    --test                         | run unit tests ('--test -h' for help, only when compiling with ENABLE_ZEEK_UNIT_TESTS)\n");
 	fprintf(stderr, "    $ZEEKPATH                      | file search path (%s)\n", util::zeek_path().c_str());
 	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n", util::zeek_plugin_path());
@@ -337,9 +332,7 @@ Options parse_cmdline(int argc, char** argv)
 #ifdef	DEBUG
 		{"debug",		required_argument,	nullptr,	'B'},
 #endif
-#ifdef	USE_IDMEF
-		{"idmef-dtd",		required_argument,	nullptr,	'n'},
-#endif
+
 #ifdef	USE_PERFTOOLS_DEBUG
 		{"mem-leaks",	no_argument,		nullptr,	'm'},
 		{"mem-profile",	no_argument,		nullptr,	'M'},
@@ -514,12 +507,6 @@ Options parse_cmdline(int argc, char** argv)
 			break;
 		case 'M':
 			rval.perftools_profile = 1;
-			break;
-#endif
-
-#ifdef USE_IDMEF
-		case 'n':
-			rval.libidmef_dtd_path = optarg;
 			break;
 #endif
 

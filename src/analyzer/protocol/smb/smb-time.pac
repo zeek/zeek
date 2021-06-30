@@ -32,9 +32,13 @@ zeek::RecordValPtr SMB_BuildMACTimes(uint64_t modify, uint64_t access,
 	{
 	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SMB::MACTimes);
 	r->Assign(0, filetime2zeektime(modify));
-	r->Assign(1, filetime2zeektime(access));
-	r->Assign(2, filetime2zeektime(create));
-	r->Assign(3, filetime2zeektime(change));
+	r->Assign(1, modify);
+	r->Assign(2, filetime2zeektime(access));
+	r->Assign(3, access);
+	r->Assign(4, filetime2zeektime(create));
+	r->Assign(5, create);
+	r->Assign(6, filetime2zeektime(change));
+	r->Assign(7, change);
 	return r;
 	}
 %}

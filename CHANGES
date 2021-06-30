@@ -1,3 +1,19 @@
+4.1.0-dev.830 | 2021-06-30 07:51:08 +0200
+
+  * GH-1406: Fix SMB tests on Apple M1. (Robin Sommer, Corelight)
+
+4.1.0-dev.828 | 2021-06-29 11:11:22 -0700
+
+  * Remove remaining vestigial IDMEF support code (Christian Kreibich, Corelight)
+
+4.1.0-dev.826 | 2021-06-29 10:39:18 -0700
+
+  * made RecordVal::AppendField protected: it's low-level & requires knowledge of internals (Vern Paxson, Corelight)
+
+4.1.0-dev.821 | 2021-06-29 08:38:37 -0700
+
+  * Fix package name for CMake on CentOS 8 (Dominik Charousset, Corelight)
+
 4.1.0-dev.818 | 2021-06-28 13:50:13 -0700
 
   * GH-1216: Enable Mobile IPv6 support by default (Tim Wojtulewicz, Corelight)

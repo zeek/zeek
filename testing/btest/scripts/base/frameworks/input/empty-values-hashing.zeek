@@ -11,15 +11,18 @@
 #separator \x09
 #fields	i	s	ss
 #types	int	sting	string
-1	-	TEST
-2	-	-
+1	-	-
+2	-	TEST
+3	TEST	-
+4	TEST	TEST
 @TEST-END-FILE
 @TEST-START-FILE input2.log
 #separator \x09
 #fields	i	s	ss
 #types	int	sting	string
-1	TEST	-
-2	TEST	TEST
+1	TEST2	-
+4	TEST2	TEST2
+5	-	TEST2
 @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
@@ -32,7 +35,7 @@ type Idx: record {
 
 type Val: record {
 	s: string;
-	ss: string;
+	ss: string &optional;
 };
 
 type servers_type: table[int] of Val;

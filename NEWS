@@ -75,6 +75,17 @@ Changed Functionality
   analyzers in the future that better align with the packet analysis framework
   than they do with session analysis.
 
+- The input framework's handling of unset fields (commonly expressed as "-")
+  in ingested data is now safer and more consistent. When reading data into
+  records, Zeek now accepts unset fields in the input data only when the
+  corresponding record field is ``&optional``. Unset fields for non-optional
+  fields cause the input line to be skipped. Reading data into tables with complex
+  index types (such as ``table[count, count] of string``) now also skips lines
+  with unset fields, since such indexes require fields to be present.
+
+  Note that this may change the behavior of existing scripts if you have unset
+  fields in your input data.
+
 - The version field in ssh.log is now optional and will not be set if we cannot
   determine the version that was negotiated by the client and server.
 

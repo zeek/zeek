@@ -1,3 +1,19 @@
+4.1.0-dev.842 | 2021-06-30 20:32:37 -0700
+
+  * Skip input framework entries with missing but non-optional fields (Christian Kreibich, Corelight)
+
+    The framework so far populated data structures with missing fields
+    even when those fields are defined without the &optional
+    attribute. When using the attribute, such entries continue to get
+    populated.
+
+    Update tests to reflect focus on unset fields.
+
+  * Fix segfault in input framework when reading unset fields (Christian Kreibich, Corelight)
+
+    Unset fields could trigger unexpected null pointers in the input
+    manager. This also adds a warning such fields come up.
+
 4.1.0-dev.837 | 2021-06-30 14:10:58 -0700
 
   * Fix tests (Seth Hall, Corelight)

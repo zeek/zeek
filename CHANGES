@@ -1,3 +1,23 @@
+4.1.0-dev.852 | 2021-07-01 08:46:41 -0700
+
+  * low-level coding style fixes (Vern Paxson, Corelight)
+
+  * support for standalone compiled scripts to export globals with module qualifiers (Vern Paxson, Corelight)
+
+  * updates for documentation of functionality for compiling scripts to C++ (Vern Paxson, Corelight)
+
+  * fixes for standalone C++ scripts making types & variables/functions available (Vern Paxson, Corelight)
+
+  * fixed bug limiting availability of load_CPP() BiF (Vern Paxson, Corelight)
+
+  * updates to development helper scripts to support new workflow (Vern Paxson, Corelight)
+
+  * simpler workflow for -O gen-C++ ; also some hooks for -O gen-standalone-C++ (Vern Paxson, Corelight)
+
+  * ReplaceBody now deletes a body if the replacement is nil (Vern Paxson, Corelight)
+
+  * removal of can't-actually-be-executed code (Vern Paxson, Corelight)
+
 4.1.0-dev.842 | 2021-06-30 20:32:37 -0700
 
   * Skip input framework entries with missing but non-optional fields (Christian Kreibich, Corelight)

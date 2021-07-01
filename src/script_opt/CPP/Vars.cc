@@ -109,9 +109,11 @@ void CPPCompile::CreateGlobal(const ID* g)
 		const auto& t = g->GetType();
 		NoteInitDependency(g, TypeRep(t));
 
+		auto exported = g->IsExport() ? "true" : "false";
+
 		AddInit(g, globals[gn],
 		        string("lookup_global__CPP(\"") + gn + "\", " +
-		        GenTypeName(t) + ")");
+		        GenTypeName(t) + ", " + exported + ")");
 		}
 
 	if ( is_bif )
@@ -168,7 +170,12 @@ void CPPCompile::AddBiF(const ID* b, bool is_var)
 	if ( AddGlobal(n, "bif", true) )
 		Emit("Func* %s;", globals[n]);
 
-	AddInit(b, globals[n], string("lookup_bif__CPP(\"") + bn + "\")");
+	auto lookup = string("lookup_bif__CPP(\"") + bn + "\")";
+
+	if ( standalone )
+		AddActivation(globals[n] + " = " + lookup + ";");
+	else
+		AddInit(b, globals[n], lookup);
 	}
 
 bool CPPCompile::AddGlobal(const string& g, const char* suffix, bool track)

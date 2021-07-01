@@ -20,6 +20,15 @@ typedef void (*CPP_init_func)();
 // Tracks the initialization hooks for different compilation runs.
 extern std::vector<CPP_init_func> CPP_init_funcs;
 
+// Tracks the activation hooks for different "standalone" compilations.
+extern std::vector<CPP_init_func> CPP_activation_funcs;
+
+// Activates all previously registered standalone code.
+extern void activate__CPPs();
+
+// Registers the given global type, if not already present.
+extern void register_type__CPP(TypePtr t, const std::string& name);
+
 // Registers the given compiled function body as associated with the
 // given priority and hash.  "events" is a list of event handlers
 // relevant for the function body, which should be registered if the
@@ -38,15 +47,17 @@ extern void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash,
 // the given hash.
 extern void register_scripts__CPP(p_hash_type h, void (*callback)());
 
-// Activates the event handler/hook with the given name (which is created
-// if it doesn't exist) and type, using (at least) the bodies associated
-// with the given hashes.
-extern void activate_bodies__CPP(const char* fn, TypePtr t,
+// Activates the function/event handler/hook with the given name and in
+// the given module, using (at least) the bodies associated with the
+// given hashes.  Creates the identifier using the given module and
+// export setting if it doesn't already exist.
+extern void activate_bodies__CPP(const char* fn, const char* module,
+                                 bool exported, TypePtr t,
                                  std::vector<p_hash_type> hashes);
 
 // Looks for a global with the given name.  If not present, creates it
-// with the given type.
-extern IDPtr lookup_global__CPP(const char* g, const TypePtr& t);
+// with the given type and export setting.
+extern IDPtr lookup_global__CPP(const char* g, const TypePtr& t, bool exported);
 
 // Looks for a BiF with the given name.  Returns nil if not present.
 extern Func* lookup_bif__CPP(const char* bif);

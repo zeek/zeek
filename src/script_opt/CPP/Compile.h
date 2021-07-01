@@ -134,8 +134,8 @@ namespace zeek::detail {
 class CPPCompile {
 public:
 	CPPCompile(std::vector<FuncInfo>& _funcs, ProfileFuncs& pfs,
-	           const char* gen_name, CPPHashManager& hm,
-	           bool update, bool standalone);
+	           const std::string& gen_name, const std::string& addl_name,
+	           CPPHashManager& _hm, bool _update, bool _standalone);
 	~CPPCompile();
 
 private:
@@ -186,6 +186,11 @@ private:
 
 	// Maps functions (not hooks or events) to upstream compiled names.
 	std::unordered_map<std::string, std::string> hashed_funcs;
+
+	// Tracks all of the module names used in activate_bodies__CPP()
+	// calls, to ensure all of the global names of compiled-to-standalone
+	// functions are available to subsequent scripts.
+	std::unordered_set<std::string> module_names;
 
 	// If non-zero, provides a tag used for auxiliary/additional
 	// compilation units.
@@ -390,8 +395,13 @@ private:
 	// function.
 	std::string GenArgs(const RecordTypePtr& params, const Expr* e);
 
-	// Functions that we've declared/compiled.
+	// Functions that we've declared/compiled.  Indexed by full C++ name.
 	std::unordered_set<std::string> compiled_funcs;
+
+	// "Simple" functions that we've compiled, i.e., those that have
+	// a single body and thus can be called dirctly.  Indexed by
+	// function name, and maps to the C++ name.
+	std::unordered_map<std::string, std::string> compiled_simple_funcs;
 
 	// Maps those to their associated files - used to make add-C++ body
 	// hashes distinct.
@@ -858,6 +868,12 @@ private:
 	void AddInit(const IntrusivePtr<Obj>& o)	{ AddInit(o.get()); }
 	void AddInit(const Obj* o);
 
+	// This is akin to an initialization, but done separately
+	// (upon "activation") so it can include initializations that
+	// rely on parsing having finished (in particular, BiFs having
+	// been registered).  Only used when generating  standalone code.
+	void AddActivation(std::string a)	{ activations.emplace_back(a); }
+
 	// Records the fact that the initialization of object o1 depends
 	// on that of object o2.
 	void NoteInitDependency(const IntrusivePtr<Obj>& o1,
@@ -921,6 +937,10 @@ private:
 	// A list of pre-initializations (those potentially required by
 	// other initializations, and that themselves have no dependencies).
 	std::vector<std::string> pre_inits;
+
+	// A list of "activations" (essentially, post-initializations).
+	// See AddActivation() above.
+	std::vector<std::string> activations;
 
 	// Expressions for which we need to generate initialization-time
 	// code.  Currently, these are only expressions appearing in
@@ -992,6 +1012,16 @@ private:
 		NL();
 		}
 
+	void Emit(const std::string& fmt, const std::string& arg1,
+	          const std::string& arg2, const std::string& arg3,
+	          const std::string& arg4, const std::string& arg5) const
+		{
+		Indent();
+		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(),
+		        arg3.c_str(), arg4.c_str(), arg5.c_str());
+		NL();
+		}
+
 	// Returns an expression for constructing a Zeek String object
 	// corresponding to the given byte array.
 	std::string GenString(const char* b, int len) const;
@@ -1009,6 +1039,9 @@ private:
 
 	// File to which we're generating code.
 	FILE* write_file;
+
+	// Name of file holding potential "additional" code.
+	std::string addl_name;
 
 	// Indentation level.
 	int block_level = 0;

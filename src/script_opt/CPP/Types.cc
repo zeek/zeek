@@ -134,7 +134,8 @@ void CPPCompile::ExpandTypeVar(const TypePtr& t)
 
 	auto& script_type_name = t->GetName();
 	if ( script_type_name.size() > 0 )
-		AddInit(t, tn + "->SetName(\"" + script_type_name + "\");");
+		AddInit(t, "register_type__CPP(" + tn + ", \"" +
+		           script_type_name + "\");");
 
 	AddInit(t);
 	}

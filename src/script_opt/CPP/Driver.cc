@@ -13,20 +13,24 @@ using namespace std;
 
 
 CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs,
-                       const char* gen_name, CPPHashManager& _hm,
-                       bool _update, bool _standalone)
-: funcs(_funcs), pfs(_pfs), hm(_hm), update(_update), standalone(_standalone)
+                       const string& gen_name, const string& _addl_name,
+                       CPPHashManager& _hm, bool _update, bool _standalone)
+: funcs(_funcs), pfs(_pfs), hm(_hm),
+  update(_update), standalone(_standalone)
 	{
-	auto mode = hm.IsAppend() ? "a" : "w";
+	addl_name = _addl_name;
+	bool is_addl = hm.IsAppend();
+	auto target_name = is_addl ? addl_name.c_str() : gen_name.c_str();
+	auto mode = is_addl ? "a" : "w";
 
-	write_file = fopen(gen_name, mode);
+	write_file = fopen(target_name, mode);
 	if ( ! write_file )
 		{
-		reporter->Error("can't open C++ target file %s", gen_name);
+		reporter->Error("can't open C++ target file %s", target_name);
 		exit(1);
 		}
 
-	if ( hm.IsAppend() )
+	if ( is_addl )
 		{
 		// We need a unique number to associate with the name
 		// space for the code we're adding.  A convenient way to
@@ -39,7 +43,7 @@ CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs,
 			{
 			char buf[256];
 			util::zeek_strerror_r(errno, buf, sizeof(buf));
-			reporter->Error("fstat failed on %s: %s", gen_name, buf);
+			reporter->Error("fstat failed on %s: %s", target_name, buf);
 			exit(1);
 			}
 
@@ -47,6 +51,20 @@ CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs,
 		// we're generating from scratch", so make sure we're
 		// distinct from that.
 		addl_tag = st.st_size + 1;
+		}
+
+	else
+		{
+		// Create an empty "additional" file.
+		auto addl_f = fopen(addl_name.c_str(), "w");
+		if ( ! addl_f )
+			{
+			reporter->Error("can't open C++ additional file %s",
+			                addl_name.c_str());
+			exit(1);
+			}
+
+		fclose(addl_f);
 		}
 
 	Compile();
@@ -285,6 +303,9 @@ void CPPCompile::GenEpilog()
 	CheckInitConsistency(to_do);
 	auto nc = GenDependentInits(to_do);
 
+	if ( standalone )
+		GenStandaloneActivation();
+
 	NL();
 	Emit("void init__CPP()");
 
@@ -301,6 +322,9 @@ void CPPCompile::GenEpilog()
 	NL();
 	InitializeFieldMappings();
 
+	if ( standalone )
+		Emit("standalone_init__CPP();");
+
 	EndBlock(true);
 
 	GenInitHook();
@@ -313,7 +337,7 @@ void CPPCompile::GenEpilog()
 	if ( addl_tag > 0 )
 		return;
 
-	Emit("#include \"CPP-gen-addl.h\"\n");
+	Emit("#include \"" + addl_name + "\"\n");
 	Emit("} // zeek::detail");
 	}
 

@@ -262,15 +262,18 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt)
 		auto f_id = f->AsNameExpr()->Id();
 		const auto& params = f_id->GetType()->AsFuncType()->Params();
 		auto id_name = f_id->Name();
-		auto fname = Canonicalize(id_name) + "_zf";
 
-		bool is_compiled = compiled_funcs.count(fname) > 0;
+		bool is_compiled = compiled_simple_funcs.count(id_name) > 0;
 		bool was_compiled = hashed_funcs.count(id_name) > 0;
 
 		if ( is_compiled || was_compiled )
 			{
+			string fname;
+
 			if ( was_compiled )
 				fname = hashed_funcs[id_name];
+			else
+				fname = compiled_simple_funcs[id_name];
 
 			if ( args_l->Exprs().length() > 0 )
 				gen = fname + "(" + GenArgs(params, args_l) +
@@ -498,12 +501,6 @@ string CPPCompile::GenSizeExpr(const Expr* e, GenType gt)
 
 	else if ( it == TYPE_INTERNAL_DOUBLE )
 		gen = string("fabs__CPP(") + gen + ")";
-
-	else if ( it == TYPE_INTERNAL_INT || it == TYPE_INTERNAL_DOUBLE )
-		{
-		auto cast = (it == TYPE_INTERNAL_INT) ? "bro_int_t" : "double";
-		gen = string("abs__CPP(") + cast + "(" + gen + "))";
-		}
 
 	else
 		return GenericValPtrToGT(gen + "->SizeVal()", t, gt);

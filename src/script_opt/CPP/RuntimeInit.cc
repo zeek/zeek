@@ -9,12 +9,30 @@ namespace zeek::detail {
 using namespace std;
 
 vector<CPP_init_func> CPP_init_funcs;
+vector<CPP_init_func> CPP_activation_funcs;
 
 // Calls all of the initialization hooks, in the order they were added.
 void init_CPPs()
 	{
-	for ( auto f : CPP_init_funcs )
-		f();
+	static bool need_init = true;
+
+	if ( need_init )
+		for ( auto f : CPP_init_funcs )
+			f();
+
+	need_init = false;
+	}
+
+// Calls all of the registered activation hooks for standalone code.
+void activate__CPPs()
+	{
+	static bool need_init = true;
+
+	if ( need_init )
+		for ( auto f : CPP_activation_funcs )
+			f();
+
+	need_init = false;
 	}
 
 // This is a trick used to register the presence of compiled code.
@@ -29,6 +47,19 @@ static int flag_init_CPP()
 
 static int dummy = flag_init_CPP();
 
+
+void register_type__CPP(TypePtr t, const std::string& name)
+	{
+	if ( t->GetName().size() > 0 )
+		// Already registered.
+		return;
+
+	t->SetName(name);
+
+	auto id = install_ID(name.c_str(), GLOBAL_MODULE_NAME, true, false);
+	id->SetType(t);
+	id->MakeType();
+	}
 
 void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash,
                         vector<string> events)
@@ -67,18 +98,31 @@ void register_scripts__CPP(p_hash_type h, void (*callback)())
 	standalone_callbacks[h] = callback;
 	}
 
-void activate_bodies__CPP(const char* fn, TypePtr t, vector<p_hash_type> hashes)
+void activate_bodies__CPP(const char* fn, const char* module, bool exported,
+                          TypePtr t, vector<p_hash_type> hashes)
 	{
 	auto ft = cast_intrusive<FuncType>(t);
-	auto fg = lookup_ID(fn, GLOBAL_MODULE_NAME, false, false, false);
+	auto fg = lookup_ID(fn, module, false, false, false);
 
 	if ( ! fg )
 		{
-		fg = install_ID(fn, GLOBAL_MODULE_NAME, true, false);
+		fg = install_ID(fn, module, true, exported);
 		fg->SetType(ft);
 		}
 
-	auto f = fg->GetVal()->AsFunc();
+	auto v = fg->GetVal();
+	if ( ! v )
+		{ // Create it.
+		std::vector<StmtPtr> no_bodies;
+		std::vector<int> no_priorities;
+		auto sf = make_intrusive<ScriptFunc>(fn, ft, no_bodies,
+		                                     no_priorities);
+
+		v = make_intrusive<FuncVal>(move(sf));
+		fg->SetVal(v);
+		}
+
+	auto f = v->AsFunc();
 	const auto& bodies = f->GetBodies();
 
 	// Track hashes of compiled bodies already associated with f.
@@ -115,6 +159,7 @@ void activate_bodies__CPP(const char* fn, TypePtr t, vector<p_hash_type> hashes)
 		auto cs = compiled_scripts[h];
 
 		f->AddBody(cs.body, no_inits, num_params, cs.priority);
+		added_bodies[fn].insert(h);
 
 		events.insert(cs.events.begin(), cs.events.end());
 		}
@@ -126,13 +171,13 @@ void activate_bodies__CPP(const char* fn, TypePtr t, vector<p_hash_type> hashes)
 		}
 	}
 
-IDPtr lookup_global__CPP(const char* g, const TypePtr& t)
+IDPtr lookup_global__CPP(const char* g, const TypePtr& t, bool exported)
 	{
 	auto gl = lookup_ID(g, GLOBAL_MODULE_NAME, false, false, false);
 
 	if ( ! gl )
 		{
-		gl = install_ID(g, GLOBAL_MODULE_NAME, true, false);
+		gl = install_ID(g, GLOBAL_MODULE_NAME, true, exported);
 		gl->SetType(t);
 		}
 

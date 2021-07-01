@@ -22,7 +22,8 @@ function load_CPP%(h: count%): bool
 	%{
 	auto cb = detail::standalone_callbacks.find(h);
 
-	if ( cb == detail::standalone_callbacks.end() )
+	if ( cb == detail::standalone_callbacks.end() ||
+	     ! detail::CPP_init_hook )
 		{
 		reporter->Error("load of non-existing C++ code (%" PRIu64 ")", h);
 		return zeek::val_mgr->False();
@@ -37,6 +38,9 @@ function load_CPP%(h: count%): bool
 	// Mark this script as one we should activate after loading
 	// compiled scripts.
 	detail::standalone_activations.push_back(cb->second);
+
+	// Proceed with activation.
+	(*detail::CPP_init_hook)();
 
 	return zeek::val_mgr->True();
 	%}

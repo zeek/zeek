@@ -332,8 +332,11 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft,
 
 	sort(bodies.begin(), bodies.end());
 
-	current_body = bodies[0].stmts;
-	current_priority = bodies[0].priority;
+	if ( ! bodies.empty() )
+		{
+		current_body = bodies[0].stmts;
+		current_priority = bodies[0].priority;
+		}
 	}
 
 ScriptFunc::~ScriptFunc()
@@ -579,15 +582,21 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body)
 	{
 	bool found_it = false;
 
-	for ( auto& body : bodies )
-		if ( body.stmts.get() == old_body.get() )
+	for ( auto body = bodies.begin(); body != bodies.end(); ++body )
+		if ( body->stmts.get() == old_body.get() )
 			{
-			body.stmts = new_body;
-			current_priority = body.priority;
+			if ( new_body )
+				{
+				body->stmts = new_body;
+				current_priority = body->priority;
+				}
+			else
+				bodies.erase(body);
+
 			found_it = true;
+			break;
 			}
 
-	ASSERT(found_it);
 	current_body = new_body;
 	}
 
@@ -1049,6 +1058,7 @@ void init_primary_bifs()
 #include "option.bif.func_init"
 #include "supervisor.bif.func_init"
 #include "packet_analysis.bif.func_init"
+#include "CPP-load.bif.func_init"
 
 	init_builtin_types();
 	did_builtin_init = true;

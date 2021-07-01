@@ -24,6 +24,7 @@ AnalyOpt analysis_options;
 std::unordered_set<const Func*> non_recursive_funcs;
 
 void (*CPP_init_hook)() = nullptr;
+void (*CPP_activation_hook)() = nullptr;
 
 // Tracks all of the loaded functions (including event handlers and hooks).
 static std::vector<FuncInfo> funcs;
@@ -288,9 +289,6 @@ void analyze_scripts()
 		// Avoid profiling overhead.
 		return;
 
-	const auto hash_name = hash_dir + "CPP-hashes";
-	const auto gen_name = hash_dir + "CPP-gen-addl.h";
-
 	// Now that everything's parsed and BiF's have been initialized,
 	// profile the functions.
 	auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
@@ -365,8 +363,21 @@ void analyze_scripts()
 				{
 				auto b = s->second.body;
 				b->SetHash(hash);
-				f.Func()->ReplaceBody(f.Body(), b);
-				f.SetBody(b);
+
+				// We may have already updated the body if
+				// we're using code compiled for standalone.
+				if ( f.Body()->Tag() != STMT_CPP )
+					{
+					auto func = f.Func();
+					if ( added_bodies[func->Name()].count(hash) > 0 )
+						// We've already added the
+						// replacement.  Delete orig.
+						func->ReplaceBody(f.Body(), nullptr);
+					else
+						func->ReplaceBody(f.Body(), b);
+
+					f.SetBody(b);
+					}
 
 				for ( auto& e : s->second.events )
 					{
@@ -384,6 +395,8 @@ void analyze_scripts()
 
 	if ( generating_CPP )
 		{
+		const auto hash_name = hash_dir + "CPP-hashes";
+
 		auto hm = std::make_unique<CPPHashManager>(hash_name.c_str(),
 						analysis_options.add_CPP);
 
@@ -402,7 +415,10 @@ void analyze_scripts()
 			pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
 			}
 
-		CPPCompile cpp(funcs, *pfs, gen_name.c_str(), *hm,
+		const auto gen_name = hash_dir + "CPP-gen.cc";
+		const auto addl_name = hash_dir + "CPP-gen-addl.h";
+
+		CPPCompile cpp(funcs, *pfs, gen_name, addl_name, *hm,
 			       analysis_options.gen_CPP ||
 			       analysis_options.update_CPP,
 			       analysis_options.gen_standalone_CPP);

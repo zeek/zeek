@@ -162,13 +162,13 @@ hook ssl_finishing(c: connection) &priority=20
 	{
 	if ( c$ssl?$cert_chain)
 		for ( i in c$ssl$cert_chain )
-			if ( c$ssl$cert_chain[i]?$x509 && c$ssl$cert_chain[i]$x509?$fp )
-				c$ssl$cert_chain_fps += c$ssl$cert_chain[i]$x509$fp;
+			if ( c$ssl$cert_chain[i]?$x509 && c$ssl$cert_chain[i]$x509?$fingerprint )
+				c$ssl$cert_chain_fps += c$ssl$cert_chain[i]$x509$fingerprint;
 
 	if ( c$ssl?$client_cert_chain )
 		for ( i in c$ssl$client_cert_chain )
-			if ( c$ssl$client_cert_chain[i]?$x509 && c$ssl$client_cert_chain[i]$x509?$fp )
-				c$ssl$client_cert_chain_fps += c$ssl$client_cert_chain[i]$x509$fp;
+			if ( c$ssl$client_cert_chain[i]?$x509 && c$ssl$client_cert_chain[i]$x509?$fingerprint )
+				c$ssl$client_cert_chain_fps += c$ssl$client_cert_chain[i]$x509$fingerprint;
 
 	if ( c$ssl?$cert_chain && |c$ssl$cert_chain| > 0 &&
 	     c$ssl$cert_chain[0]?$x509 )

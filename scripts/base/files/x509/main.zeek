@@ -19,11 +19,11 @@ export {
 	## file ID is not present in the X509 log.
 	option log_x509_in_files_log: bool = F;
 
-	## Type that is used to decide which certificates are duplicates for loggign purposes.
+	## Type that is used to decide which certificates are duplicates for logging purposes.
 	## When adding entries to this, also change the create_deduplication_index to update them.
 	type LogCertHash: record {
 		## Certificate fingerprint
-		fp: string;
+		fingerprint: string;
 		## Indicates if this certificate was a end-host certificate, or sent as part of a chain
 		host_cert: bool;
 		## Indicates if this certificate was sent from the client
@@ -35,7 +35,7 @@ export {
 		## Current timestamp.
 		ts: time &log;
 		## Fingerprint of the certificate - uses chosen algorithm.
-		fp: string &log;
+		fingerprint: string &log;
 		## Basic information about the certificate.
 		certificate: X509::Certificate &log;
 		## The opaque wrapping the certificate. Mainly used
@@ -160,14 +160,14 @@ hook create_deduplication_index(i: X509::Info)
 	if ( i?$deduplication_index || relog_known_certificates_after == 0secs )
 		return;
 
-	i$deduplication_index = LogCertHash($fp=i$fp, $host_cert=i$host_cert, $client_cert=i$client_cert);
+	i$deduplication_index = LogCertHash($fingerprint=i$fingerprint, $host_cert=i$host_cert, $client_cert=i$client_cert);
 	}
 
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate) &priority=5
 	{
 	local der_cert = x509_get_certificate_string(cert_ref);
 	local fp = hash_function(der_cert);
-	f$info$x509 = [$ts=f$info$ts, $fp=fp, $certificate=cert, $handle=cert_ref];
+	f$info$x509 = [$ts=f$info$ts, $fingerprint=fp, $certificate=cert, $handle=cert_ref];
 	if ( f$info$mime_type == "application/x-x509-user-cert" )
 		f$info$x509$host_cert = T;
 	if ( f$is_orig )

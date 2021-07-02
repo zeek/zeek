@@ -1,3 +1,15 @@
+4.1.0-dev.864 | 2021-07-02 12:50:40 -0700
+
+  * Add a global log policy hook to the logging framework (Christian Kreibich, Corelight)
+
+    This addresses the need for a central hook on any log write, which
+    wasn't previously doable without a lot of effort. The log manager
+    invokes the new Log::log_stream_policy hook prior to any filter-specific
+    hooks. Like filter-level hooks, it may veto a log write. Even when
+    it does, filter-level hooks still get invoked, but cannot "un-veto".
+
+    Includes test cases.
+
 4.1.0-dev.861 | 2021-07-02 11:58:01 -0700
 
   * Use mallinfo2() instead of mallinfo() when available (Christian Kreibich, Corelight)

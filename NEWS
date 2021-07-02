@@ -60,6 +60,12 @@ New Functionality
   Connection objects were handled previously, but without the need to be based
   on IP-based protocols.
 
+- The logging framework now provides a global policy hook, ``Log::log_stream_policy``.
+  Like the existing filter-level hooks, handlers for the new hook can provide
+  additional processing and veto the log write. The new hook runs once per
+  write, prior to any filter-level policy hooks. Even when it vetoes,
+  filter-level policy hooks still run, but cannot "un-veto" the write.
+
 - The ASCII writer gained a new option LogAscii::logdir, which can be used to
   change the logging output directory.
 

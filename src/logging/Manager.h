@@ -299,6 +299,7 @@ private:
 	std::vector<Stream *> streams;	// Indexed by stream enum.
 	int rotations_pending;	// Number of rotations not yet finished.
 	FuncPtr rotation_format_func;
+	FuncPtr log_stream_policy_hook;
 };
 
 } // namespace logging;

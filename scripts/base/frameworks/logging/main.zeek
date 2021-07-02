@@ -298,10 +298,25 @@ export {
 		config: table[string] of string &default=table();
 	};
 
-	## A hook type to implement filtering policy. Hook handlers can
-	## veto the logging of a record or alter it prior to logging.
-	## You can pass arbitrary state into the hook via the
-	## filter argument and its config member.
+	## A hook type to implement filtering policy. Hook handlers run
+	## on each log record. They can implement arbitrary per-record
+	## processing, alter the log record, or veto the writing of the
+	## given record by breaking from the hook handler.
+	##
+	## rec: An instance of the stream's ``columns`` type with its
+	##      fields set to the values to be logged.
+	##
+	## id: The ID associated with the logging stream the filter
+	##     belongs to.
+	type StreamPolicyHook: hook(rec: any, id: ID);
+
+	## A hook type to implement filtering policy at log filter
+	## granularity. Like :zeek:see:`StreamPolicyHook`, these can
+	## implement added functionality, alter it prior to logging, or
+	## veto the write. These hooks run at log filter granularity,
+	## so get a :zeek:see:`Log::Filter` instance as additional
+	## argument. You can pass additional state into the hook via the
+	## the filter$config table.
 	##
 	## rec: An instance of the stream's ``columns`` type with its
 	##      fields set to the values to be logged.
@@ -309,8 +324,8 @@ export {
 	## id: The ID associated with the logging stream the filter
 	##     belongs to.
 	##
-	## filter: The :zeek:type:`Log::Filter` instance that controls
-	##         the fate of the given log record.
+	## filter: The :zeek:type:`Log::Filter` instance that steers
+	##         the output of the given log record.
 	type PolicyHook: hook(rec: any, id: ID, filter: Filter);
 
 	# To allow Filters to have a policy hook that refers to
@@ -551,6 +566,13 @@ export {
 	## This table is not meant to be modified by users!  Only use it for
 	## examining which streams are active.
 	global active_streams: table[ID] of Stream = table();
+
+	## The global log policy hook. The framework invokes this hook for any
+	## log write, prior to iterating over the stream's associated filters.
+	## As with filter-specific hooks, breaking from the hook vetoes writing
+	## of the given log record. Note that filter-level policy hooks still get
+	## invoked after the global hook vetos, but they cannot "un-veto" the write.
+	global log_stream_policy: Log::StreamPolicyHook;
 }
 
 global all_streams: table[ID] of Stream = table();

@@ -1,3 +1,7 @@
+4.1.0-dev.859 | 2021-07-02 10:16:25 -0700
+
+  * Update Broker submodule (Dominik Charousset, Corelight)
+
 4.1.0-dev.856 | 2021-07-02 13:01:05 +0100
 
   * Update Mozilla CA list and CT anchors. (Johanna Amann, Corelight)

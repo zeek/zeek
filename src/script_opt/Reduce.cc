@@ -959,6 +959,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
 			return TC_ABORTALL;
 			}
 		}
+		break;
 
 	case EXPR_APPEND_TO:
 		// This doesn't directly change any identifiers, but does

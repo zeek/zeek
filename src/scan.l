@@ -106,9 +106,9 @@ public:
 
 	YY_BUFFER_STATE buffer_state;
 	std::string restore_module;
-	const char* name;
-	int line;
-	int level;
+	const char* name = nullptr;
+	int line = 0;
+	int level = 0;
 };
 
 // A stack of input buffers we're scanning.  file_stack[len-1] is the

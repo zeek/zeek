@@ -169,15 +169,16 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 			}
 
 		create += fieldname;
-		sqlite3_free(fieldname);
 
 		string type = GetTableType(field->type, field->subtype);
 		if ( type == "" )
 			{
 			InternalError(Fmt("Could not determine type for field %u:%s", i, fieldname));
+			sqlite3_free(fieldname);
 			return false;
 			}
 
+		sqlite3_free(fieldname);
 		create += " " + type;
 
 		/* if ( !field->optional ) {

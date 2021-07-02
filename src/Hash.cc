@@ -67,7 +67,7 @@ void KeyedHash::Hash256(const void* bytes, uint64_t size, hash256_t* result)
 
 hash64_t KeyedHash::StaticHash64(const void* bytes, uint64_t size)
 	{
-	hash64_t result;
+	hash64_t result = 0;
 	highwayhash::InstructionSets::Run<highwayhash::HighwayHash>(cluster_highwayhash_key, reinterpret_cast<const char *>(bytes), size, &result);
 	return result;
 	}

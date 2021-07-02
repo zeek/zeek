@@ -1,3 +1,10 @@
+4.1.0-dev.861 | 2021-07-02 11:58:01 -0700
+
+  * Use mallinfo2() instead of mallinfo() when available (Christian Kreibich, Corelight)
+
+    glibc 2.33 deprecates mallinfo in favor of a struct that returns
+    its members as size_ts instead of ints.
+
 4.1.0-dev.859 | 2021-07-02 10:16:25 -0700
 
   * Update Broker submodule (Dominik Charousset, Corelight)

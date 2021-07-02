@@ -25,7 +25,7 @@
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 
-#ifdef HAVE_MALLINFO
+#if defined(HAVE_MALLINFO) || defined(HAVE_MALLINFO2)
 # include <malloc.h>
 #endif
 
@@ -2188,9 +2188,12 @@ void get_memory_usage(uint64_t* total, uint64_t* malloced)
 	{
 	uint64_t ret_total;
 
-#ifdef HAVE_MALLINFO
+#if defined(HAVE_MALLINFO2) || defined(HAVE_MALLINFO)
+#ifdef HAVE_MALLINFO2
+	struct mallinfo2 mi = mallinfo2();
+#else
 	struct mallinfo mi = mallinfo();
-
+#endif
 	if ( malloced )
 		*malloced = mi.uordblks;
 #endif

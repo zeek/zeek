@@ -1,3 +1,15 @@
+4.1.0-dev.856 | 2021-07-02 13:01:05 +0100
+
+  * Update Mozilla CA list and CT anchors. (Johanna Amann, Corelight)
+
+    This commit switches to only allowing the CT logs that are currently
+    accepted by Google Chrome - which makes much more sense for us since
+    this is (potentially) used for validation.
+
+    Additional CT logs can be added in user-scripts.
+
+  * Minor NEWS formatting fixes (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.852 | 2021-07-01 08:46:41 -0700
 
   * low-level coding style fixes (Vern Paxson, Corelight)

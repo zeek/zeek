@@ -97,6 +97,16 @@ Changed Functionality
 
 - Add page and email administrator to mails processed by hostnames extension.
 
+- The CT logs listed in ``ct-list.zeek`` are now derived from the list of CT
+  logs thar are accepted by Google Chrome. In the past, we allowed the list
+  of all known CT logs. This no longer makes sense since nowadays logs exist that
+  contain, e.g., only outdated or invalid certificates. If the old behavior is
+  desired, you can re-add Logs to ``SSL::ct_logs``.
+
+- The Mozilla CA list was updated to the state of NSS 3.67.
+
+- SQLite was updated to 3.36.0.
+
 Removed Functionality
 ---------------------
 

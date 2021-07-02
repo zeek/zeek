@@ -416,13 +416,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		}
 
 	if ( options.run_unit_tests )
-		{
-		doctest::Context context;
-		auto dargs = to_cargs(options.doctest_args);
-		context.applyCommandLine(dargs.size(), dargs.data());
-		ZEEK_LSAN_ENABLE();
-		exit(context.run());
-		}
+		options.deterministic_mode = true;
 
 	auto stem = Supervisor::CreateStem(options.supervisor_mode);
 
@@ -600,6 +594,16 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		plugin_mgr->ActivateDynamicPlugin(std::move(x));
 
 	plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
+
+	// Delay the unit test until here so that plugins have been loaded.
+	if ( options.run_unit_tests )
+		{
+		doctest::Context context;
+		auto dargs = to_cargs(options.doctest_args);
+		context.applyCommandLine(dargs.size(), dargs.data());
+		ZEEK_LSAN_ENABLE();
+		exit(context.run());
+		}
 
 	// Print usage after plugins load so that any path extensions are properly shown.
 	if ( options.print_usage )

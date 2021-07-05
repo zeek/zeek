@@ -1088,6 +1088,11 @@ function x509_check_cert_hostname%(cert_opaque: opaque of x509, hostname: string
 			{
 			char buf[2048];
 			BIO *bio = BIO_new(BIO_s_mem());
+			if ( ! bio )
+			{
+			zeek::emit_builtin_error(zeek::util::fmt("Could create bio"));
+			return zeek::make_intrusive<zeek::StringVal>("");
+			}
 			ASN1_STRING_print(bio, X509_NAME_ENTRY_get_data(X509_NAME_get_entry(subject, found_nid)));
 			size_t len = BIO_gets(bio, buf, sizeof(buf));
 			BIO_free(bio);

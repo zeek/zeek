@@ -1,6 +1,7 @@
 
 @load base/frameworks/files
 @load base/files/hash
+@load base/frameworks/cluster
 
 module X509;
 
@@ -9,26 +10,32 @@ export {
 
 	global log_policy: Log::PolicyHook;
 
-	## How often do you have to encounter a certificate before
-	## caching it. Set to 0 to disable caching of certificates.
-	option caching_required_encounters : count = 10;
+	## The hash function used for certificate hashes. By default this is sha256; you can use
+	## any other hash function and the hashes will change in ssl.log and in x509.log.
+	option hash_function: function(cert: string): string = sha256_hash;
 
-	## The timespan over which caching_required_encounters has to be reached
-	option caching_required_encounters_interval : interval = 62 secs;
+	## This option specifies if X.509 certificates are logged in file.log. Typically, there
+	## is not much value to having the entry in files.log - especially since, by default, the
+	## file ID is not present in the X509 log.
+	option log_x509_in_files_log: bool = F;
 
-	## After a certificate has not been encountered for this time, it
-	## may be evicted from the certificate cache.
-	option certificate_cache_minimum_eviction_interval : interval = 62 secs;
-
-	## Maximum size of the certificate cache
-	option certificate_cache_max_entries : count = 10000;
+	## Type that is used to decide which certificates are duplicates for logging purposes.
+	## When adding entries to this, also change the create_deduplication_index to update them.
+	type LogCertHash: record {
+		## Certificate fingerprint
+		fingerprint: string;
+		## Indicates if this certificate was a end-host certificate, or sent as part of a chain
+		host_cert: bool;
+		## Indicates if this certificate was sent from the client
+		client_cert: bool;
+	};
 
 	## The record type which contains the fields of the X.509 log.
 	type Info: record {
 		## Current timestamp.
 		ts: time &log;
-		## File id of this certificate.
-		id: string &log;
+		## Fingerprint of the certificate - uses chosen algorithm.
+		fingerprint: string &log;
 		## Basic information about the certificate.
 		certificate: X509::Certificate &log;
 		## The opaque wrapping the certificate. Mainly used
@@ -44,7 +51,16 @@ export {
 		## This is used for caching certificates that are commonly
 		## encountered and should not be relied on in user scripts.
 		extensions_cache: vector of any &default=vector();
+		## Indicates if this certificate was a end-host certificate, or sent as part of a chain
+		host_cert: bool &log &default=F;
+		## Indicates if this certificate was sent from the client
+		client_cert: bool &log &default=F;
+		## Record that is used to deduplicate log entries.
+		deduplication_index: LogCertHash &optional;
 	};
+
+	## Hook that is used to create the index value used for log deduplication.
+	global create_deduplication_index: hook(c: X509::Info);
 
 	## This record is used to store information about the SCTs that are
 	## encountered in Certificates.
@@ -66,25 +82,32 @@ export {
 		signature: string;
 	};
 
-	## This hook performs event-replays in case a certificate that already
-	## is in the cache is encountered.
+	## By default, x509 certificates are deduplicated. This configuration option configures
+	## the maximum time after which certificates are re-logged. Note - depending on other configuration
+	## options, this setting might only apply on a per-worker basis and you still might see certificates
+	## logged several times.
 	##
-	## It is possible to change this behavior/skip sending the events by
-	## installing a higher priority hook instead.
-	global x509_certificate_cache_replay: hook(f: fa_file, e: X509::Info, sha256: string);
+	## To disable deduplication completely, set this to 0secs.
+	option relog_known_certificates_after = 1day;
+
+	## The set that stores information about certificates that already have been logged and should
+	## not be logged again.
+	global known_log_certs: set[LogCertHash] &create_expire=relog_known_certificates_after;
+
+	## Maximum size of the known_log_certs table
+	option known_log_certs_maximum_size = 1000000;
+
+	## Use broker stores to deduplicate certificates across the whole cluster. This will cause log-deduplication
+	## to work cluster wide, but come at a slightly higher cost of memory and inter-node-communication.
+	##
+	## This setting is ignored if Zeek is run in standalone mode.
+	global known_log_certs_use_broker: bool = T;
 
 	## Event for accessing logged records.
 	global log_x509: event(rec: Info);
 }
 
-# Table tracking potential certificates to cache - indexed by the SHA256 of the
-# raw on-the-wire representation (DER).
-global certificates_encountered: table[string] of count &create_expire=caching_required_encounters_interval;
-
-# Table caching the output of the X509 analyzer for commonly seen certificates.
-# This is indexed by SHA256 and contains the Info record of the first certificate
-# encountered. We use this info record to re-play the events.
-global certificate_cache: table[string] of X509::Info &read_expire=certificate_cache_minimum_eviction_interval;
+global known_log_certs_with_broker: set[LogCertHash] &create_expire=relog_known_certificates_after &backend=Broker::MEMORY;
 
 redef record Files::Info += {
 	## Information about X509 certificates. This is used to keep
@@ -114,49 +137,41 @@ event zeek_init() &priority=5
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/x-x509-ca-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/pkix-cert");
 
-	# SHA256 is used by us to determine which certificates to cache.
+	# Please note that SHA256 caching is required to be enabled for the certificate event
+	# caching that is set up in certificate-event-cache.zeek to work.
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/x-x509-user-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/x-x509-ca-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/pkix-cert");
 
-	x509_set_certificate_cache(certificate_cache);
-	x509_set_certificate_cache_hit_callback(x509_certificate_cache_replay);
+@if ( Cluster::is_enabled() )
+	if ( known_log_certs_use_broker )
+		known_log_certs = known_log_certs_with_broker;
+@endif
 	}
 
-hook x509_certificate_cache_replay(f: fa_file, e: X509::Info, sha256: string)
+hook Files::log_policy(rec: Files::Info, id: Log::ID, filter: Log::Filter) &priority=5
 	{
-	# we encountered a cached cert. The X509 analyzer will skip it. Let's raise all the events that it typically
-	# raises by ourselfes.
+	if ( ( log_x509_in_files_log == F ) && ( "X509" in rec$analyzers ) )
+		break;
+	}
 
-	# first - let's checked if it already has an x509 record. That would mean that someone raised the file_hash event
-	# several times for the certificate - in which case we bail out.
-	if ( f$info?$x509 )
+hook create_deduplication_index(i: X509::Info)
+	{
+	if ( i?$deduplication_index || relog_known_certificates_after == 0secs )
 		return;
 
-	event x509_certificate(f, e$handle, e$certificate);
-	for ( i in e$extensions_cache )
-		{
-		local ext = e$extensions_cache[i];
-
-		if ( ext is X509::Extension )
-			event x509_extension(f, (ext as X509::Extension));
-		else if ( ext is X509::BasicConstraints )
-			event x509_ext_basic_constraints(f, (ext as X509::BasicConstraints));
-		else if ( ext is X509::SubjectAlternativeName )
-			event x509_ext_subject_alternative_name(f, (ext as X509::SubjectAlternativeName));
-		else if ( ext is X509::SctInfo )
-			{
-			local s = ( ext as X509::SctInfo);
-			event x509_ocsp_ext_signed_certificate_timestamp(f, s$version, s$logid, s$timestamp, s$hash_alg, s$sig_alg, s$signature);
-			}
-		else
-			Reporter::error(fmt("Encountered unknown extension while replaying certificate with fuid %s", f$id)); 
-		}
+	i$deduplication_index = LogCertHash($fingerprint=i$fingerprint, $host_cert=i$host_cert, $client_cert=i$client_cert);
 	}
 
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate) &priority=5
 	{
-	f$info$x509 = [$ts=f$info$ts, $id=f$id, $certificate=cert, $handle=cert_ref];
+	local der_cert = x509_get_certificate_string(cert_ref);
+	local fp = hash_function(der_cert);
+	f$info$x509 = [$ts=f$info$ts, $fingerprint=fp, $certificate=cert, $handle=cert_ref];
+	if ( f$info$mime_type == "application/x-x509-user-cert" )
+		f$info$x509$host_cert = T;
+	if ( f$is_orig )
+		f$info$x509$client_cert = T;
 	}
 
 event x509_extension(f: fa_file, ext: X509::Extension) &priority=5
@@ -197,30 +212,17 @@ event file_state_remove(f: fa_file) &priority=5
 	if ( ! f$info?$x509 )
 		return;
 
-	Log::write(LOG, f$info$x509);
+	if ( ! f$info$x509?$deduplication_index )
+		hook create_deduplication_index(f$info$x509);
 
-	if ( f$info?$sha256 && f$info$sha256 !in certificate_cache &&
-		caching_required_encounters > 0 &&
-		f$info$sha256 in certificates_encountered &&
-		certificates_encountered[f$info$sha256] >= caching_required_encounters &&
-		|certificate_cache| < certificate_cache_max_entries )
+	if ( f$info$x509?$deduplication_index )
 		{
-		delete certificates_encountered[f$info$sha256];
-		certificate_cache[f$info$sha256] = f$info$x509;
+		if ( f$info$x509$deduplication_index in known_log_certs )
+			return;
+		else if ( |known_log_certs| < known_log_certs_maximum_size )
+			add known_log_certs[f$info$x509$deduplication_index];
 		}
 
+	Log::write(LOG, f$info$x509);
 	}
 
-event file_hash(f: fa_file, kind: string, hash: string)
-	{
-	if ( ! f?$info || "X509" !in f$info$analyzers || kind != "sha256" )
-		return;
-
-	if ( caching_required_encounters == 0 || hash in certificate_cache )
-		return;
-
-	if ( hash !in certificates_encountered )
-		certificates_encountered[hash] = 1;
-	else
-		certificates_encountered[hash] += 1;
-	}

@@ -548,6 +548,7 @@ public:
 	// 	{ return AsString()->ExpandedString(format); }
 
 	std::string ToStdString() const;
+	std::string_view ToStdStringView() const;
 	StringVal* ToUpper();
 
 	const String* Get() const	{ return string_val; }

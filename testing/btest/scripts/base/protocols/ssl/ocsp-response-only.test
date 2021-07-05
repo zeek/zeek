@@ -4,8 +4,6 @@
 # @TEST-EXEC: btest-diff ocsp.log
 # @TEST-EXEC: btest-diff .stdout
 
-@load files/x509/log-ocsp
-
 event zeek_init()
 	{
 	Files::register_for_mime_type(Files::ANALYZER_OCSP_REQUEST, "application/ocsp-request");

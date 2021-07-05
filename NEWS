@@ -73,6 +73,12 @@ New Functionality
   takes a semicolon separated list of paths containing plugins that will be
   statically built into Zeek.
 
+- The X509 analyzer now can check if a specific hostname is valid for a
+  certificate. Two new BIFs were added for this, ``x509_check_hostname`` and
+  ``x509_check_cert_hostname``. A new field ``sni_matches_cert`` that tracks
+  this information was added to ``ssl.log``.
+
+
 Changed Functionality
 ---------------------
 
@@ -103,8 +109,67 @@ Changed Functionality
 
 - Add page and email administrator to mails processed by hostnames extension.
 
+- SSL and X509 handling was significantly overhauled with the goal to make
+  the data that is logged by Zeek more helpful and compact.
+
+  This change means that there are significant changes to the default log files,
+  as well as changes to functionality:
+
+  - ``x509.log`` is now indexed by the sha256 of the certificate, with deduplication
+    being automatically performed. By default, the same certificate is only logged
+    once per day.
+
+    This also means that the file ID is no longer present in X509 log. Similarly,
+    ``ssl.log`` now contains hashes for X509 certificates.
+
+    The hash function that is used for indexing the certificates is changeable by
+    changing the ``X509::hash_function`` option.
+
+    The time period after which a certificate is logged again can be configured by
+    changing ``X509::relog_known_certificates_after``.
+
+    By default deduplication of certificates is done across the entire cluster using
+    broker. If this is not desired due to the higher communication overhead, this
+    behavior can be disabled using ``X509::known_log_certs_use_broker``.
+
+  - X509 certificates are, by default, no longer logged into files.log. This
+    behavior is configurable and the previous default can be restored by changing
+    the ``X509::log_x509_in_files_log`` option.
+
+  - ``x509.log`` now tracks if a certificate was encountered as a end-host certificate
+    or as a client certificate.
+
+  - OCSP logging is now enabled by default.
+
+  - ``ssl.log`` now no longer includes information about the certificate issuer and
+    subject. This information is still available in X509.log. If you need this
+    information in ``ssl.log``, the old behavior can be restored by changing the
+    ``SSL::log_include_server_certificate_subject_issuer`` and
+    ``SSL::log_include_client_certificate_subject_issuer`` configuration options.
+
+  - ``ssl.log`` now contains a ``ssl_history`` field, which tracks which protocol
+    messages were seen in an SSL/TLS connection.
+
+  - We added a policy script ``ssl-log-ext.zeek`` which greatly extends the amount
+    of protocol information logged to SSL.log. The script is not loaded by default.
+
+  - We added a ``disable-certificate-events-known-certs.zeek`` policy script. This script
+    will completely disable X509 events for known certificates over SSL/TLS connections.
+
+    For Zeek installations in settings where you encounter a lot of certificates,
+    this could improve the performance of your installation. Before enabling this
+    script, make sure that you do not use any third-party scripts that depend on the
+    X509 events. The script is not loaded by default.
+
+  - The ICSI SSL Notary script was deprecated. This functionality is superseeded by newer
+    approaches, like SCT validation (which is supported by Zeek).
+
+  - ``extract-certs-pem.zeek`` was deprecated - it never really worked in cluster modes.
+    A new policy script, ``log-certs-base64.zeek`` that can be used to log raw certificates
+    was added instead.
+
 - The CT logs listed in ``ct-list.zeek`` are now derived from the list of CT
-  logs thar are accepted by Google Chrome. In the past, we allowed the list
+  logs that are accepted by Google Chrome. In the past, we allowed the list
   of all known CT logs. This no longer makes sense since nowadays logs exist that
   contain, e.g., only outdated or invalid certificates. If the old behavior is
   desired, you can re-add Logs to ``SSL::ct_logs``.

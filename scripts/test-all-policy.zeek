@@ -41,6 +41,7 @@
 @load frameworks/notice/extend-email/hostnames.zeek
 @load files/unified2/__load__.zeek
 @load files/unified2/main.zeek
+@load files/x509/disable-certificate-events-known-certs.zeek
 @load files/x509/log-ocsp.zeek
 @load frameworks/packet-filter/shunt.zeek
 @load frameworks/software/version-changes.zeek
@@ -102,9 +103,11 @@
 @load protocols/ssh/interesting-hostnames.zeek
 @load protocols/ssh/software.zeek
 @load protocols/ssl/expiring-certs.zeek
-@load protocols/ssl/extract-certs-pem.zeek
+# @load protocols/ssl/extract-certs-pem.zeek
 @load protocols/ssl/heartbleed.zeek
 @load protocols/ssl/known-certs.zeek
+@load protocols/ssl/log-certs-base64.zeek
+@load protocols/ssl/ssl-log-ext.zeek
 @load protocols/ssl/log-hostcerts-only.zeek
 #@load protocols/ssl/notary.zeek
 @load protocols/ssl/validate-certs.zeek

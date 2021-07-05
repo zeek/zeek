@@ -1,3 +1,97 @@
+4.1.0-dev.884 | 2021-07-05 10:06:59 +0100
+
+  * Add ability to check if hostname is valid for a specific cert (Johanna Amann, Corelight)
+
+    This commit adds two new bifs, x509_check_hostname and
+    x509_check_cert_hostname. These bifs can be used to check if a given
+    hostname which can, e.g., be sent in a SNI is valid for a specific
+    certificate.
+
+    This PR furthermore modifies the ssl logs again, and adds information
+    about this to the log-file. Furthermore we now by default remove the
+    server certificate information from ssl.log - I doubt that this is often
+    looked at, it is not present in TLS 1.3, we do still have the SNI, and
+    if you need it you have the information in x509.log.
+
+    This also fixes a small potential problem in X509.cc assuming there
+    might be SAN-entries that contain null-bytes.
+
+  * Add ssl_history field to ssl.log (Johanna Amann)
+
+    This is the equivalent to a connection history for SSL - and contains
+    information about which protocol messages were exchanged in which order.
+
+  * Add policy script suppressing certificate events (Johanna Amann, Corelight)
+
+    The added disable-certificate-events-known-certs.zeek disables repeated
+    X509 events in SSL connections, given that the connection terminates at
+    the same server and used the samt SNI as a previously seen connection
+    with the same certificate.
+
+    For people that see significant amounts of TLS 1.2 traffic, this could
+    reduce the amount of raised events significantly - especially when a
+    lot of connections are repeat connections to the same servers.
+
+    The practical impact of not raising these events is actually very little
+    - unless a script directly interacts with the x509 events, everything
+    works as before - the x509 variables in the connection records are still
+    being set (from the cache).
+
+  * Add new ssl-log-ext policy script (Johanna Amann, Corelight)
+
+    This policy script significantly extends the details that are logged
+    about SSL/TLS handshakes.
+
+  * Deprecate extract-certs-pem.zeek and add log-certs-base64.zeek (Johanna Amann, Corelight)
+
+    Extract-certs-pem writes pem files to a dedicated file; since it does
+    not really work in cluster-environments it was never super helpful.
+
+    This commit deprecates this file and, instead, adds
+    log-certs-base64.zeek, which adds the base64-encoded certificate (which
+    is basically equivalent with a PEM) to the log-file. Since, nowadays,
+    the log-files are deduplicates this should not add a huge overhead.
+
+  * Implement X509 certificate log caching (Johanna Amann, Corelight)
+
+    By default, each certificate is now output only once per hour. This also
+    should work in cluster mode, where we use the net broker-table-syncing
+    feature to distribute the information about already seen certificates
+    across the entire cluster.
+
+    Log caching is also pretty configureable and can be changed using a
+    range of confiuration options and hooks.
+
+    Note that this is currently completely separate from X509 events
+    caching, which prevents duplicate parsing of X509 certificates.
+
+  * Deprecate ICSI SSL notary script. (Johanna Amann, Corelight)
+
+    The ICSI notary is pretty much inactive. Furthermore - this approach
+    does no longer make much sense at this point of time - performing, e.g.,
+    signed certificate timestamp validation is much more worthwhile.
+
+  * Change SSL and X.509 logging format (Johanna Amann, Corelight)
+
+    This commit changes the SSL and X.509 logging formats. Logs are
+    now indexed by their hash and no longer by the file ID.
+
+    This commit introduces two new options, which determine if certificate
+    issuers and subjects are still logged in ssl.log. The default is to have
+    the host subject/issuer logged, but to remove client-certificate
+    information. Client-certificates are not a typically used feature
+    nowadays.
+
+  * Enable OCSP logging by default. (Johanna Amann, Corelight)
+
+    It turns out that this can actually contain a slew of interesting
+    information - like operating systems querying for the revocation of
+    software signing certificates, e.g.
+
+  * Split the code that handles X509 event hashing into its own file (Johanna Amann, Corelight)
+
+    This also improves documentation of this feature.
+
 4.1.0-dev.864 | 2021-07-02 12:50:40 -0700
 
   * Add a global log policy hook to the logging framework (Christian Kreibich, Corelight)

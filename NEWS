@@ -22,6 +22,26 @@ This release fixes the following bugs:
 - The version field in ssh.log is now optional and will not be set if we cannot
   determine the version that was negotiated by the client and server.
 
+  https://github.com/zeek/zeek/pull/1605
+
+- Zeekctl could crash at startup on certain compilers and platforms due to a
+  memory corruption issue in the Broker python bindings.
+
+  https://github.com/zeek/broker/issues/187
+
+- The highwayhash submodule was updated to fix a build failure on FreeBSD for
+  PowerPC.
+
+  https://github.com/zeek/zeek/issues/1591
+
+This release deprecates the following functionality:
+
+- The stepping-stone analyzer is marked as deprecated. It was partially marked
+  as deprecated in 2.0, and will be fully removed in v4.1.
+
+  https://github.com/zeek/zeek/issues/1573
+  https://github.com/zeek/zeek/pull/1604
+
 Zeek 4.0.2
 ==========
 

@@ -10,4 +10,4 @@
 #     ZEEKPATH=`./zeek-path-dev` ./src/zeek
 #
 
-echo .:${CMAKE_SOURCE_DIR}/scripts:${CMAKE_SOURCE_DIR}/scripts/policy:${CMAKE_SOURCE_DIR}/scripts/site:${CMAKE_BINARY_DIR}/scripts:${CMAKE_BINARY_DIR}/scripts/builtin-plugins
+echo .:${PROJECT_SOURCE_DIR}/scripts:${PROJECT_SOURCE_DIR}/scripts/policy:${PROJECT_SOURCE_DIR}/scripts/site:${PROJECT_BINARY_DIR}/scripts:${PROJECT_BINARY_DIR}/scripts/builtin-plugins

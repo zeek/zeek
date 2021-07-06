@@ -1,3 +1,26 @@
+4.1.0-dev.900 | 2021-07-06 08:58:48 -0700
+
+  * Removing a fix from another branch (Seth Hall, Corelight)
+
+  * Update binpac pointer (Seth Hall, Corelight)
+
+  * Update bifcl and binpac for building Zeek as a submodule (Seth Hall, Corelight)
+
+  * Updated the cmake pointer (Seth Hall, Corelight)
+
+  * Fix the builtin plugin preload mechanism (Seth Hall, Corelight)
+
+  * Update submodule pointer for cmake to point at the appropriate branch (Seth Hall, Corelight)
+
+  * Switch to more accurate source and binary references in cmake (Seth Hall, Corelight)
+
+    This is mostly involved with moving CMAKE_SOURCE_DIR and
+    CMAKE_BINARY_DIR to PROJECT_SOURCE_DIR and PROJECT_BINARY_DIR because it
+    enables zeek to be built as a subproject of another.
+
+    There is another branch in the cmake repository with the same name that
+    is also required for this to fully work.
+
 4.1.0-dev.891 | 2021-07-06 08:49:50 -0700
 
   * Fix a number of Coverity findings (Tim Wojtulewicz, Corelight)

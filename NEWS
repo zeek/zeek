@@ -19,6 +19,9 @@ New Functionality
   skips past the VN-Tag header, allowing for further analysis of subsequent
   packet contents.
 
+- Support for decapsulating Geneve packets to process the inner
+  payload, similar in operation to the existing VXLAN support.
+
 - Support for Zeek script "Reaching Definitions" (RD) analysis: tracking the
   extent to which a given variable definition (assignment) can be visible
   elsewhere in the Zeek script.  The analysis works on local variables in
@@ -46,13 +49,15 @@ New Functionality
   variable or a record field to inform Zeek's analysis that the script writer
   asserts the value will be set, suppressing the associated warnings.
 
-- A Telemetry API was added to assist in gathering arbitrary runtime metrics
-  and allows potential export to Prometheus.
+- A Telemetry API was added to assist in gathering arbitrary runtime
+  metrics and allows export to Prometheus. This is still
+  work-in-progress, preliminary documentation for current, low-level
+  API lives at https://github.com/zeek/zeek/wiki/Telemetry for now.
 
 - Experimental support for translating Zeek scripts to equivalent C++.
-  The generated C++ can then be compiled directly into the `zeek` binary,
+  The generated C++ can then be compiled directly into the ``zeek`` binary,
   replacing use of the interpreter and producing better runtime performance.
-  See `src/script_opt/CPP/README.md` for a guide on how to use this feature.
+  See ``src/script_opt/CPP/README.md`` for a guide on how to use this feature.
 
 - Support for more generic session management. The NetSessions class has been
   renamed to SessionMgr (with the old name marked deprecated). The new
@@ -77,6 +82,15 @@ New Functionality
   certificate. Two new BIFs were added for this, ``x509_check_hostname`` and
   ``x509_check_cert_hostname``. A new field ``sni_matches_cert`` that tracks
   this information was added to ``ssl.log``.
+
+- Added a ``--plugindir`` argument to ``configure`` to set the
+  installation path for plugins.
+
+- Added new functions to dynamically enable/disable file analyzers:
+
+  - ``global enable_analyzer: function(tag: Files::Tag): bool;``
+  - ``global disable_analyzer: function(tag: Files::Tag): bool;``
+  - ``global analyzer_enabled: function(tag: Files::Tag): bool;``
 
 
 Changed Functionality

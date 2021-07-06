@@ -63,15 +63,22 @@ export {
 		[50] = "NSEC3",
 		[51] = "NSEC3PARAM",
 		[52] = "TLSA",
+		[53] = "SMIMEA",
 		[55] = "HIP",
 		[59] = "CDS",
 		[60] = "CDNSKEY",
 		[61] = "OPENPGPKEY",
+		[62] = "CSYNC",
+		[63] = "ZONEMD",
+		[64] = "SVCB",
+		[65] = "HTTPS",
 		[99] = "SPF",
 		[100] = "UINFO",
 		[101] = "UID",
 		[102] = "GID",
 		[103] = "UNSPEC",
+		[108] = "EUI48",
+		[109] = "EUI64",
 		[249] = "TKEY",
 		[250] = "TSIG",
 		[251] = "IXFR",
@@ -83,6 +90,7 @@ export {
 		[257] = "CAA",
 		[32768] = "TA",
 		[32769] = "DLV",
+		[65521] = "INTEGRITY", # google: https://docs.google.com/document/d/14eCqVyT_3MSj7ydqNFl1Yl0yg1fs6g24qmYUUdi5V-k/edit
 	} &default = function(n: count): string { return fmt("query-%d", n); };
 
 	## Errors used for non-TSIG/EDNS types.

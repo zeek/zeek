@@ -1,3 +1,7 @@
+4.1.0-dev.889 | 2021-07-06 08:48:50 -0700
+
+  * Add a few DNS query types. (Johanna Amann, Corelight)
+
 4.1.0-dev.887 | 2021-07-06 08:47:22 +0200
 
   * Add some more items to NEWS. (Robin Sommer, Corelight)

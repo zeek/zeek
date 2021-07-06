@@ -1,3 +1,26 @@
+4.0.3 | 2021-07-06 12:20:34 -0700
+
+  * Skip input framework entries with missing but non-optional fields (Christian Kreibich, Corelight)
+
+  * Fix segfault in input framework when reading unset fields (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 181063634df7081a907a09bc0bf277209104dce0)
+
+  * Bump Highwayhash submodule to pull in fix for FreeBSD (Christian Kreibich, Corelight)
+
+    (cherry picked from commit a82fe94bcca06252d846239372da578605bae35e)
+
+  * Change the port used on the benchmark host, per request by Cirrus (Tim Wojtulewicz, Corelight)
+
+  * Deprecate stepping-stone analyzer events. (Johanna Amann, Corelight)
+
+    The analyzer will be removed for 4.1.
+
+    Relates to GH-1573
+
+  * Bump Broker submodule to get fix for memory corruption crash with python bindings (Dominik Charousset, Corelight)
+
+    (cherry picked from commit 7dd18ec90623db97861e986de202264515966dfd)
 
 4.0.2 | 2021-06-02 10:25:30 -0700
 

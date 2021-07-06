@@ -1,3 +1,13 @@
+4.1.0-dev.891 | 2021-07-06 08:49:50 -0700
+
+  * Fix a number of Coverity findings (Tim Wojtulewicz, Corelight)
+
+    - 1458048: Use-after-free in the SQLite logger
+    - 1457823: Missing a break statement in script-opt reduction
+    - 1453966: Dead code in CompHash
+    - 1445417: Unintialized variable in StaticHash64
+    - 1437716: Unintialized variables in FileInfo in scan.l
+
 4.1.0-dev.889 | 2021-07-06 08:48:50 -0700
 
   * Add a few DNS query types. (Johanna Amann, Corelight)

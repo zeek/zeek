@@ -512,7 +512,7 @@ int CompositeHash::SingleTypeKeySize(Type* bt, const Val* v,
 			if ( ! v )
 				return (optional && ! calc_static_size) ? sz : 0;
 
-			const RecordVal* rv = v ? v->AsRecordVal() : nullptr;
+			const RecordVal* rv = v->AsRecordVal();
 			RecordType* rt = bt->AsRecordType();
 			int num_fields = rt->NumFields();
 

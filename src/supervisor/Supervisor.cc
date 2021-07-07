@@ -1251,6 +1251,11 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	if ( affinity_val )
 		rval.cpu_affinity = affinity_val->AsInt();
 
+	const auto& bare_mode_val = node->GetField("bare_mode");
+
+	if ( bare_mode_val )
+		rval.bare_mode = bare_mode_val->AsBool();
+
 	auto scripts_val = node->GetField("scripts")->AsVectorVal();
 
 	for ( auto i = 0u; i < scripts_val->Size(); ++i )
@@ -1324,6 +1329,9 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json)
 	if ( auto it = j.FindMember("cpu_affinity"); it != j.MemberEnd() )
 		rval.cpu_affinity = it->value.GetInt();
 
+	if ( auto it = j.FindMember("bare_mode"); it != j.MemberEnd() )
+		rval.bare_mode = it->value.GetBool();
+
 	auto& scripts = j["scripts"];
 
 	for ( auto it = scripts.Begin(); it != scripts.End(); ++it )
@@ -1384,6 +1392,9 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 
 	if ( cpu_affinity )
 		rval->AssignField("cpu_affinity", *cpu_affinity);
+
+	if ( bare_mode )
+		rval->AssignField("bare_mode", *bare_mode);
 
 	auto st = rt->GetFieldType<VectorType>("scripts");
 	auto scripts_val = make_intrusive<VectorVal>(std::move(st));
@@ -1589,6 +1600,9 @@ void SupervisedNode::Init(Options* options) const
 		}
 
 	options->filter_supervised_node_options();
+
+	if ( config.bare_mode )
+		options->bare_mode = *config.bare_mode;
 
 	if ( config.interface )
 		options->interface = *config.interface;

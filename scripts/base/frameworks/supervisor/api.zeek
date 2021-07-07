@@ -42,6 +42,9 @@ export {
 		stdout_file: string &optional;
 		## The filename/path to which the node's stderr will be redirected.
 		stderr_file: string &optional;
+		## Whether to start the node in bare mode. When left out, the node
+		## inherits the bare-mode status the supervisor itself runs with.
+		bare_mode: bool &optional;
 		## Additional script filenames/paths that the node should load.
 		scripts: vector of string &default = vector();
 		## Environment variables to define in the supervised node.

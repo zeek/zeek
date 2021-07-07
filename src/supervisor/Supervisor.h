@@ -187,6 +187,11 @@ public:
 		 */
 		std::optional<int> cpu_affinity;
 		/**
+		 * Whether to start the node in bare mode. When not present, the
+		 * node inherits the bare-mode status of the supervisor.
+		 */
+		std::optional<bool> bare_mode;
+		/**
 		 * Additional script filename/paths that the node should load.
 		 */
 		std::vector<std::string> scripts;

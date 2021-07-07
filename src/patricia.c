@@ -273,7 +273,7 @@ New_Prefix2 (int family, void *dest, int bitlen, prefix_t *prefix)
     if (family == AF_INET) {
 		if (prefix == NULL) {
 #ifndef NT
-            prefix = calloc(1, sizeof (prefix4_t));
+            prefix = calloc(1, sizeof (prefix_t));
             if (prefix == NULL)
                 out_of_memory("patricia/new_prefix2: unable to allocate memory");
 #else

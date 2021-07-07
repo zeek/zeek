@@ -1,3 +1,9 @@
+4.1.0-dev.903 | 2021-07-07 10:10:26 -0700
+
+  * GH-1644: Pass a larger structure to be calloc'd in patricia.c (Tim Wojtulewicz, Corelight)
+
+  * Fix multiple spelling errors in debug output (Tim Wojtulewicz, Corelight)
+
 4.1.0-dev.900 | 2021-07-06 08:58:48 -0700
 
   * Removing a fix from another branch (Seth Hall, Corelight)

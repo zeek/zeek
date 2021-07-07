@@ -64,6 +64,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
     --enable-cpp-tests     build Zeek's C++ unit tests
+    --enable-zeek-client   install the Zeek cluster management client (experimental)
     --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-archiver     don't build or install zeek-archiver tool
@@ -289,6 +290,9 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-cpp-tests)
             append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL    true
+            ;;
+        --enable-zeek-client)
+            append_cache_entry INSTALL_ZEEK_CLIENT    BOOL    true
             ;;
         --disable-zeekctl)
             append_cache_entry INSTALL_ZEEKCTL       BOOL   false

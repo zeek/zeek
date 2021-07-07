@@ -46,3 +46,6 @@
 [submodule "auxil/package-manager"]
 	path = auxil/package-manager
 	url = https://github.com/zeek/package-manager
+[submodule "auxil/zeek-client"]
+	path = auxil/zeek-client
+	url = https://github.com/zeek/zeek-client

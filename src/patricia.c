@@ -263,7 +263,7 @@ New_Prefix2 (int family, void *dest, int bitlen, prefix_t *prefix)
 	if (prefix == NULL) {
             prefix = calloc(1, sizeof (prefix_t));
             if (prefix == NULL)
-                out_of_memory("patrica/new_prefix2: unable to allocate memory");
+                out_of_memory("patricia/new_prefix2: unable to allocate memory");
 
 	    dynamic_allocated++;
 	}
@@ -275,13 +275,13 @@ New_Prefix2 (int family, void *dest, int bitlen, prefix_t *prefix)
 #ifndef NT
             prefix = calloc(1, sizeof (prefix4_t));
             if (prefix == NULL)
-                out_of_memory("patrica/new_prefix2: unable to allocate memory");
+                out_of_memory("patricia/new_prefix2: unable to allocate memory");
 #else
 			//for some reason, compiler is getting
 			//prefix4_t size incorrect on NT
 			prefix = calloc(1, sizeof (prefix_t));
                         if (prefix == NULL)
-                            out_of_memory("patrica/new_prefix2: unable to allocate memory");
+                            out_of_memory("patricia/new_prefix2: unable to allocate memory");
 #endif /* NT */
 
 			dynamic_allocated++;
@@ -415,7 +415,7 @@ New_Patricia (int maxbits)
 {
     patricia_tree_t *patricia = calloc(1, sizeof *patricia);
     if (patricia == NULL)
-        out_of_memory("patrica/new_patricia: unable to allocate memory");
+        out_of_memory("patricia/new_patricia: unable to allocate memory");
 
     patricia->maxbits = maxbits;
     patricia->head = NULL;
@@ -649,7 +649,7 @@ patricia_search_all (patricia_tree_t *patricia, prefix_t *prefix, patricia_node_
 	// ok, now we have an upper bound of how much we can return. Let's just alloc that...
 	patricia_node_t **outlist = calloc(cnt, sizeof(patricia_node_t*));
 	if (outlist == NULL)
-		out_of_memory("patrica/patricia_search_all: unable to allocate memory");
+		out_of_memory("patricia/patricia_search_all: unable to allocate memory");
 
 	while (--cnt >= 0) {
 		node = stack[cnt];
@@ -787,7 +787,7 @@ patricia_lookup (patricia_tree_t *patricia, prefix_t *prefix)
     if (patricia->head == NULL) {
 	node = calloc(1, sizeof *node);
         if (node == NULL)
-            out_of_memory("patrica/patrica_lookup: unable to allocate memory");
+            out_of_memory("patricia/patricia_lookup: unable to allocate memory");
 
 	node->bit = prefix->bitlen;
 	node->prefix = Ref_Prefix (prefix);
@@ -901,7 +901,7 @@ patricia_lookup (patricia_tree_t *patricia, prefix_t *prefix)
 
     new_node = calloc(1, sizeof *new_node);
     if (new_node == NULL)
-        out_of_memory("patrica/patrica_lookup: unable to allocate memory");
+        out_of_memory("patricia/patricia_lookup: unable to allocate memory");
 
     new_node->bit = prefix->bitlen;
     new_node->prefix = Ref_Prefix (prefix);
@@ -956,7 +956,7 @@ patricia_lookup (patricia_tree_t *patricia, prefix_t *prefix)
     else {
         glue = calloc(1, sizeof *glue);
         if (glue == NULL)
-            out_of_memory("patrica/patrica_lookup: unable to allocate memory");
+            out_of_memory("patricia/patricia_lookup: unable to allocate memory");
 
         glue->bit = differ_bit;
         glue->prefix = NULL;

@@ -191,6 +191,10 @@ public:
 		 */
 		std::vector<std::string> scripts;
 		/**
+		 * Environment variables and values  to define in the node.
+		 */
+		std::map<std::string, std::string> env;
+		/**
 		 * The Cluster Layout definition.  Each node in the Cluster Framework
 		 * knows about the full, static cluster topology to which it belongs.
 		 * Entries in the map use node names for keys.

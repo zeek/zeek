@@ -44,6 +44,8 @@ export {
 		stderr_file: string &optional;
 		## Additional script filenames/paths that the node should load.
 		scripts: vector of string &default = vector();
+		## Environment variables to define in the supervised node.
+		env: table[string] of string &default=table();
 		## A cpu/core number to which the node will try to pin itself.
 		cpu_affinity: int &optional;
 		## The Cluster Layout definition.  Each node in the Cluster Framework

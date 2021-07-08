@@ -1,3 +1,8 @@
+
+4.1.0-dev.907 | 2021-07-08 16:00:06 -0700
+
+  * Fix reference in the logging framework docs re. Log::StreamPolicyHook (Christian Kreibich, Corelight)
+
 4.1.0-dev.905 | 2021-07-08 12:59:01 -0700
 
   * Update broker submodule for process metrics (Tim Wojtulewicz, Corelight)

@@ -14,33 +14,75 @@ export {
 	option private_address_space: set[subnet] = {
 		## "This network", see :rfc:`791`
 		0.0.0.0/8,
+		## 0.0.0.0/8 as a 6to4 address, see :rfc:`791` and :rfc:`3056`
+		[2002::]/24,
+
 		## Private-Use, see :rfc:`1918`
 		10.0.0.0/8,
+		## 10.0.0.0/8 as a 6to4 address, see :rfc:`1918` and :rfc:`3056`
+		[2002:a00::]/24,
+
 		## Shared Address Space (also known as Carrier-grade NAT), see :rfc:`6598`
 		100.64.0.0/10,
+		## 100.64.0.0/10 as a 6to4 address, see :rfc:`6598` and :rfc:`3056`
+		[2002:6440::]/26,
+
 		## Loopback, see :rfc:`1122`
 		127.0.0.0/8,
+		## 127.0.0.0/8 as a 6to4 address, see :rfc:`1122` and :rfc:`3056`
+		[2002:7f00::]/24,
+
 		## Link Local, see :rfc:`3927`
 		169.254.0.0/16,
+		## 169.254.0.0/16 as a 6to4 address, see :rfc:`3927` and :rfc:`3056`
+		[2002:a9fe::]/32,
+
 		## Private-Use, see :rfc:`1918`
 		172.16.0.0/12,
+		## 172.16.0.0/12 as a 6to4 address, see :rfc:`1918` and :rfc:`3056`
+		[2002:ac10::]/28,
+
 		## IETF Protocol Assignments, see :rfc:`6890`
 		192.0.0.0/24,
+		## 192.0.0.0/24 as a 6to4 address, see :rfc:`6890` and :rfc:`3056`
+		[2002:c000::]/40,
+
 		## Documentation (TEST-NET-1), see :rfc:`5737`
 		192.0.2.0/24,
+		## 192.0.2.0/24 as a 6to4 address, see :rfc:`5737` and :rfc:`3056`
+		[2002:c000:200::]/40,
+
 		## Private-Use, see :rfc:`1918`
 		192.168.0.0/16,
+		## 192.168.0.0/16 as a 6to4 address, see :rfc:`1918` and :rfc:`3056`
+		[2002:c0a8::]/32,
+
 		## Benchmarking, see :rfc:`2544`
 		198.18.0.0/15,
+		## 198.18.0.0/15 as a 6to4 address, see :rfc:`2544` and :rfc:`3056`
+		[2002:c612::]/31,
+
 		## Documentation (TEST-NET-2), see :rfc:`5737`
 		198.51.100.0/24,
+		## 198.51.100.0/24 as a 6to4 address, see :rfc:`5737` and :rfc:`3056`
+		[2002:c633:6400::]/40,
+
 		## Documentation (TEST-NET-3), see :rfc:`5737`
 		203.0.113.0/24,
+		## 203.0.113.0/24 as a 6to4 address, see :rfc:`5737` and :rfc:`3056`
+		[2002:cb00:7100::]/40,
+
 		## Reserved, see :rfc:`1112`
 		240.0.0.0/4,
+		## 240.0.0.0/4 as a 6to4 address, see :rfc:`1112` and :rfc:`3056`
+		[2002:f000::]/20,
+
 		## Limited Broadcast, see :rfc:`919` and :rfc:`8190`
 		255.255.255.255/32,
-		
+		## 255.255.255.255/32 as a 6to4 address, see :rfc:`8190` and :rfc:`3056`
+		[2002:ffff:ffff::]/48,
+
+
 		## Unspecified Address, see :rfc:`4291`
 		[::]/128,
 		## Loopback Address, see :rfc:`4291`

@@ -202,11 +202,12 @@ export {
 	##
 	## Note that this is overridden by the ZeekControl SendMail option.
 	option sendmail            = "/usr/sbin/sendmail";
-	## Email address to send notices with the
+	## The default email address to send notices with the
 	## :zeek:enum:`Notice::ACTION_EMAIL` action or to send bulk alarm logs
 	## on rotation with :zeek:enum:`Notice::ACTION_ALARM`.
 	##
-	## Note that this is overridden by the ZeekControl MailTo option.
+	## Note that this is overridden by the ZeekControl MailTo option or by
+	## the `email_dest` field in the :zeek:see:`Notice::Info` record.
 	const mail_dest           = ""                   &redef;
 
 	## Address that emails will be from.

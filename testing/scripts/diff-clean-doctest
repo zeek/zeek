@@ -1,0 +1,17 @@
+#! /usr/bin/env bash
+#
+# doctest's console reports contain several aspects that change over time:
+# - The total number of tests, which we replace with "XX"
+# - The version number, which becomes "x.y.z"
+# - Spacing in the report, which we normalize to single spaces
+
+# Get us "modern" regexps with sed.
+if [ $(uname) == "Linux" ]; then
+    sed="sed -r"
+else
+    sed="sed -E"
+fi
+
+$sed -e 's/[0-9]+ skipped/XX skipped/g' |
+    $sed -e 's/"[0-9]+\.[0-9]+\.[0-9]+"/"x.y.z"/g' |
+    $sed -e 's/ {2,}/ /g'

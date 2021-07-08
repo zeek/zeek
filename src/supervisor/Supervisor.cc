@@ -1251,12 +1251,32 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	if ( affinity_val )
 		rval.cpu_affinity = affinity_val->AsInt();
 
+	const auto& bare_mode_val = node->GetField("bare_mode");
+
+	if ( bare_mode_val )
+		rval.bare_mode = bare_mode_val->AsBool();
+
 	auto scripts_val = node->GetField("scripts")->AsVectorVal();
 
 	for ( auto i = 0u; i < scripts_val->Size(); ++i )
 		{
 		auto script = scripts_val->StringValAt(i)->ToStdString();
 		rval.scripts.emplace_back(std::move(script));
+		}
+
+	auto env_table_val = node->GetField("env")->AsTableVal();
+	auto env_table = env_table_val->AsTable();
+
+	for ( const auto& ee : *env_table )
+		{
+		auto k = ee.GetHashKey();
+		auto* v = ee.GetValue<TableEntryVal*>();
+
+		auto key = env_table_val->RecreateIndex(*k);
+		auto name = key->Idx(0)->AsStringVal()->ToStdString();
+		auto val = v->GetVal()->AsStringVal()->ToStdString();
+
+		rval.env[name] = val;
 		}
 
 	auto cluster_table_val = node->GetField("cluster")->AsTableVal();
@@ -1309,10 +1329,18 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json)
 	if ( auto it = j.FindMember("cpu_affinity"); it != j.MemberEnd() )
 		rval.cpu_affinity = it->value.GetInt();
 
+	if ( auto it = j.FindMember("bare_mode"); it != j.MemberEnd() )
+		rval.bare_mode = it->value.GetBool();
+
 	auto& scripts = j["scripts"];
 
 	for ( auto it = scripts.Begin(); it != scripts.End(); ++it )
 		rval.scripts.emplace_back(it->GetString());
+
+	auto& env = j["env"];
+
+	for ( auto it = env.MemberBegin(); it != env.MemberEnd(); ++it )
+		rval.env[it->name.GetString()] = it->value.GetString();
 
 	auto& cluster = j["cluster"];
 
@@ -1365,6 +1393,9 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 	if ( cpu_affinity )
 		rval->AssignField("cpu_affinity", *cpu_affinity);
 
+	if ( bare_mode )
+		rval->AssignField("bare_mode", *bare_mode);
+
 	auto st = rt->GetFieldType<VectorType>("scripts");
 	auto scripts_val = make_intrusive<VectorVal>(std::move(st));
 
@@ -1372,6 +1403,17 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 		scripts_val->Assign(scripts_val->Size(), make_intrusive<StringVal>(s));
 
 	rval->AssignField("scripts", std::move(scripts_val));
+
+	auto et = rt->GetFieldType<TableType>("env");
+	auto env_val = make_intrusive<TableVal>(std::move(et));
+	rval->AssignField("env", env_val);
+
+	for ( const auto& e : env )
+		{
+		auto name = make_intrusive<StringVal>(e.first);
+		auto val = make_intrusive<StringVal>(e.second);
+		env_val->Assign(std::move(name), std::move(val));
+		}
 
 	auto tt = rt->GetFieldType<TableType>("cluster");
 	auto cluster_val = make_intrusive<TableVal>(std::move(tt));
@@ -1454,6 +1496,7 @@ bool SupervisedNode::InitCluster() const
 		{
 		const auto& node_name = e.first;
 		const auto& ep = e.second;
+
 		auto key = make_intrusive<StringVal>(node_name);
 		auto val = make_intrusive<RecordVal>(cluster_node_type);
 
@@ -1533,6 +1576,19 @@ void SupervisedNode::Init(Options* options) const
 			        node_name.data(), strerror(errno));
 		}
 
+	if ( ! config.env.empty() )
+		{
+		for ( const auto& e : config.env )
+			{
+			if ( setenv(e.first.c_str(), e.second.c_str(), true) == -1 )
+				{
+				fprintf(stderr, "node '%s' failed to setenv: %s\n",
+					node_name.data(), strerror(errno));
+				exit(1);
+				}
+			}
+		}
+
 	if ( ! config.cluster.empty() )
 		{
 		if ( setenv("CLUSTER_NODE", node_name.data(), true) == -1 )
@@ -1544,6 +1600,9 @@ void SupervisedNode::Init(Options* options) const
 		}
 
 	options->filter_supervised_node_options();
+
+	if ( config.bare_mode )
+		options->bare_mode = *config.bare_mode;
 
 	if ( config.interface )
 		options->interface = *config.interface;

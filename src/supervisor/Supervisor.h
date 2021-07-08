@@ -187,9 +187,18 @@ public:
 		 */
 		std::optional<int> cpu_affinity;
 		/**
+		 * Whether to start the node in bare mode. When not present, the
+		 * node inherits the bare-mode status of the supervisor.
+		 */
+		std::optional<bool> bare_mode;
+		/**
 		 * Additional script filename/paths that the node should load.
 		 */
 		std::vector<std::string> scripts;
+		/**
+		 * Environment variables and values  to define in the node.
+		 */
+		std::map<std::string, std::string> env;
 		/**
 		 * The Cluster Layout definition.  Each node in the Cluster Framework
 		 * knows about the full, static cluster topology to which it belongs.

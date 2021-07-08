@@ -10,3 +10,4 @@
 -./frameworks/openflow/cluster.zeek
 -./frameworks/packet-filter/cluster.zeek
 -./frameworks/sumstats/cluster.zeek
+-./init-supervisor.zeek

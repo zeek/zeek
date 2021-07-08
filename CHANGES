@@ -1,4 +1,74 @@
 
+4.1.0-dev.916 | 2021-07-08 16:49:55 -0700
+
+  * Add a cluster controller testcase for agent-controller checkin (Christian Kreibich, Corelight)
+
+    This verifies that in a setup with the supervisor creating both controller and
+    agent, the agent successfully checks in with the controller.
+
+  * Add zeek-client via new submodule (Christian Kreibich, Corelight)
+
+    The new module resides in auxil/zeek-client. It does not get installed unless
+    one configures with --enable-zeek-client.
+
+  * Introduce cluster controller and cluster agent scripting (Christian Kreibich, Corelight)
+
+    This is a preliminary implementation of a subset of the functionality set out in
+    our cluster controller architecture. The controller is the central management
+    node, existing once in any Zeek cluster. The agent is a node that runs once per
+    instance, where an instance will commonly be a physical machine. The agent in
+    turn manages the "data cluster", i.e. the traditional notion of a Zeek cluster
+    with manager, worker nodes, etc.
+
+    Agent and controller live in the policy folder, and are activated when loading
+    policy/frameworks/cluster/agent and policy/frameworks/cluster/controller,
+    respectively. Both run in nodes forked by the supervisor. When Zeek doesn't use
+    the supervisor, they do nothing. Otherwise, boot.zeek instructs the supervisor
+    to create the respective node, running main.zeek.
+
+    Both controller and agent have their own config.zeek with relevant knobs. For
+    both, controller/types.zeek provides common data types, and controller/log.zeek
+    provides basic logging (without logger communication -- no such node might
+    exist).
+
+    A primitive request-tracking abstraction can be found in controller/request.zeek
+    to track outstanding request events and their subsequent responses.
+
+  * Establish a separate init script when using the supervisor (Christian Kreibich, Corelight)
+
+    The supervisor does not require the full weight of scripts that
+    init-default.zeek brings with it. The new file, init-supervisor.zeek, contains
+    only what's required by the supervisor in addition to the other always-loaded
+    init files.
+
+  * Add optional bare-mode boolean flag to Supervisor's node configuration (Christian Kreibich, Corelight)
+
+    When omitted, the node inherits the Supervisor's bare-mode
+    status. When true/false, the new Zeek node will enable/disable bare
+    mode, respectively. It continues to load any scripts passed at the
+    command line and in the additional scripts list already provided in
+    the node configuration.
+
+    Includes testcase.
+
+  * Add support for making the supervisor listen for requests (Christian Kreibich, Corelight)
+
+    The supervisor now starts listening on the configured Broker default address and
+    port when the new boolean SupervisorControl::enable_listen is T. Listening
+    remains disabled by default. Listening allows nodes to communicate with the
+    supervisor via the events laid out in control.zeek, to conduct further node
+    management.
+
+  * Add support for setting environment variables via supervisor (Christian Kreibich, Corelight)
+
+    The NodeConfig record now has a table for specifying environment variable names
+    and values, which the supervisor sets in the created node.
+
+    This also repositions the cpu_affinity member to keep the order the same in
+    the corresponding script-layer and in-core types.
+
+    Includes testcase.
+
 4.1.0-dev.907 | 2021-07-08 16:00:06 -0700
 
   * Fix reference in the logging framework docs re. Log::StreamPolicyHook (Christian Kreibich, Corelight)

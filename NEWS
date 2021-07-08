@@ -92,6 +92,27 @@ New Functionality
   - ``global disable_analyzer: function(tag: Files::Tag): bool;``
   - ``global analyzer_enabled: function(tag: Files::Tag): bool;``
 
+- The Supervisor now defaults to starting with a minimal set of Zeek
+  scripts controlled by a new init file, ``base/init-supervisor.zeek``.
+  One may still run it with a larger configuration by loading additional
+  scripts, including ``init-default.zeek``, as always. (Bare mode continues
+  to work as usual, reducing the configuration to a minimum.)
+
+  The ``NodeConfig`` record has two new members, providing additional
+  control over launched nodes.  The ``env`` member allows setting environment
+  variables in the launched process.  The ``bare_mode`` member, an optional
+  boolean, provides control over the bare-mode state of the new node.
+  When not provided, the node inherits the bare-mode status of the
+  Supervisor, and setting the variable enables/disables bare mode.
+
+- Zeek now includes an incomplete, preliminary version of the future
+  cluster controller framework.  Loading ``policy/frameworks/cluster/agent``
+  and/or ``policy/frameworks/cluster/agent`` in a Zeek running with the
+  Supervisor will launch the corresponding cluster management node(s).
+  An experimental management client, `zeek-client`, connects to the
+  controller and lets you issue commands. It requires configuration with
+  ``--enable-zeek-client``.  This does not yet provide a functional
+  substitute for ``zeekctl``, which users should continue to use for now.
 
 Changed Functionality
 ---------------------

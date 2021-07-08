@@ -532,7 +532,14 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	add_essential_input_file("base/init-frameworks-and-bifs.zeek");
 
 	if ( ! options.bare_mode )
-		add_input_file("base/init-default.zeek");
+		{
+		// The supervisor only needs to load a limited set of
+		// scripts, since it won't be doing traffic processing.
+		if ( options.supervisor_mode )
+			add_input_file("base/init-supervisor.zeek");
+		else
+			add_input_file("base/init-default.zeek");
+		}
 
 	add_input_file("builtin-plugins/__preload__.zeek");
 	add_input_file("builtin-plugins/__load__.zeek");

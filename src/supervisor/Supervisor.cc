@@ -766,7 +766,9 @@ void Stem::Destroy(SupervisorNode* node) const
 		usleep(10);
 
 		if ( Wait(node, WNOHANG) )
+			{
 			break;
+			}
 
 		DBG_STEM("Stem waiting to destroy node: %s (PID %d)",
 		         node->Name().data(), node->pid);
@@ -900,7 +902,9 @@ void Stem::Shutdown(int exit_code)
 		auto nodes_alive = AliveNodeCount();
 
 		if ( nodes_alive == 0 )
+			{
 			exit(exit_code);
+			}
 
 		DBG_STEM("Stem nodes still alive %d, sleeping for %d seconds",
 		         nodes_alive, kill_delay);

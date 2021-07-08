@@ -977,7 +977,7 @@ function x509_set_certificate_cache_hit_callback%(f: string_any_file_hook%) : bo
 ## our interpretation of RFC6128 wildcard expansions. This specifically means that wildcards are
 ## only allowed in the leftmost label, wildcards only span one label, the wildcard has to be the
 ## last character before the label-separator, but additional characters are allowed before it, and
-## the wildcard has to be at least at the third level (so *.a.b).
+## the wildcard has to be at least at the third level (so \*.a.b).
 ##
 ## hostname: Hostname to test
 ##

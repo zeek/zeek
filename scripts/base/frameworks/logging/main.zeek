@@ -311,7 +311,7 @@ export {
 	type StreamPolicyHook: hook(rec: any, id: ID);
 
 	## A hook type to implement filtering policy at log filter
-	## granularity. Like :zeek:see:`StreamPolicyHook`, these can
+	## granularity. Like :zeek:see:`Log::StreamPolicyHook`, these can
 	## implement added functionality, alter it prior to logging, or
 	## veto the write. These hooks run at log filter granularity,
 	## so get a :zeek:see:`Log::Filter` instance as additional

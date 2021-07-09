@@ -1,3 +1,10 @@
+
+4.1.0-dev.921 | 2021-07-09 12:01:40 -0700
+
+  * docs: escape * in documentation (Vlad Grigorescu)
+
+  * Update the mail_dest documentation with the new email_dest field (Vlad Grigorescu)
+
 4.1.0-dev.918 | 2021-07-08 18:00:26 -0700
 
   * Fix a compile warning on FreeBSD (Tim Wojtulewicz, Corelight)

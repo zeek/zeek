@@ -1,3 +1,7 @@
+4.1.0-dev.918 | 2021-07-08 18:00:26 -0700
+
+  * Fix a compile warning on FreeBSD (Tim Wojtulewicz, Corelight)
+
 
 4.1.0-dev.916 | 2021-07-08 16:49:55 -0700
 

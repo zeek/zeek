@@ -219,9 +219,10 @@ Removed Functionality
 - Support for the RocksDB Broker data store was previously broken and unusable,
   so all code/options related to it are now removed.
 
-- Support for the ENABLE_MOBILE_IPV6 compiler variable has been removed. Mobile
-  IPv6 is now enabled by default. The --enable-mobile-ipv6 returns a warning
-  that it will be removed in v5.1 and no longer has any effect.
+- Support for the ``ENABLE_MOBILE_IPV6`` compiler variable has been removed. Mobile
+  IPv6 is now enabled by default. The ``--enable-mobile-ipv6`` option for
+  ``configure`` now returns a warning that it will be removed in v5.1 and no
+  longer has any effect.
 
 Deprecated Functionality
 ------------------------

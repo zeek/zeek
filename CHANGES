@@ -1,3 +1,10 @@
+4.2.0-dev.7 | 2021-07-13 12:23:14 -0700
+
+  * Zeekygen doesn't support comments on set members (Vlad Grigorescu)
+
+  * Add 6to4 addresses, if the matching IPv4 address is private (Vlad Grigorescu)
+
+  * Update Site::private_address_space to latest IANA networks (Vlad Grigorescu)
 
 4.1.0-dev.921 | 2021-07-09 12:01:40 -0700
 

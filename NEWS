@@ -213,6 +213,10 @@ Changed Functionality
 
 - SQLite was updated to 3.36.0.
 
+- The list of subnets that are considered private addresses was updated to mostly
+  match IANA's list unroutable addresses. This brings it in line with Chrome, the
+  W3C spec, and Python's ipaddress module.
+
 Removed Functionality
 ---------------------
 

@@ -200,17 +200,16 @@ protected:
 	bool is_short;
 	bool want_quotes;
 	bool want_determinism;
+	bool do_flush;
+	bool include_stats;
 
 	int indent_with_spaces;
+	int indent_level;
 
 	using escape_set = std::set<std::string>;
 	escape_set escape_sequences; // additional sequences of chars to escape
 
 	File* f;	// or the file we're using.
-
-	int indent_level;
-	bool do_flush;
-	bool include_stats;
 
 	std::set<const Type*> encountered_types;
 };

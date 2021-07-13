@@ -915,12 +915,13 @@ public:
 		R_INIT_VECTOR,	// field requires a new vector
 	} init_type;
 
+	bool def_coerce = false;	// whether coercion's required
+
 	// For R_INIT_DIRECT/R_INIT_DIRECT_MANAGED:
 	ZVal direct_init;
 
 	detail::ExprPtr def_expr;
 	TypePtr def_type;
-	bool def_coerce = false;	// whether coercion's required
 
 	RecordTypePtr r_type;	// for R_INIT_RECORD
 	TableTypePtr t_type;	// for R_INIT_TABLE

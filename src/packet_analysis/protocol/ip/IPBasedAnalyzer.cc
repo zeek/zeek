@@ -100,7 +100,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 
 	// If the packet is reassembled, disable packet dumping because the
 	// pointer math to dump the data wouldn't work.
-	if ( pkt->ip_hdr->reassembled )
+	if ( pkt->ip_hdr->Reassembled() )
 		pkt->dump_packet = false;
 	else if ( conn->RecordPackets() )
 		{

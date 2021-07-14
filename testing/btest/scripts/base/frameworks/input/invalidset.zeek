@@ -50,12 +50,18 @@ event zeek_init()
 	outfile = open("../out");
 	# first read in the old stuff into the table...
 	Input::add_table([$source="../input.log", $name="ssh", $error_ev=handle_our_errors, $idx=Idx, $val=Val, $destination=servers]);
-	Input::add_event([$source="../input.log", $name="sshevent", $error_ev=handle_our_errors_event, $fields=Val, $want_record=T, $ev=line]);
 	}
 
 event Input::end_of_data(name: string, source:string)
 	{
 	++endcount;
+
+	# ... and when we're done, move to reading via events.
+	# This makes the reads sequential, avoding races in the output.
+	if ( endcount == 1 )
+		{
+		Input::add_event([$source="../input.log", $name="sshevent", $error_ev=handle_our_errors_event, $fields=Val, $want_record=T, $ev=line]);
+		}
 
 	if ( endcount == 2 )
 		{

@@ -114,7 +114,7 @@ event Input::end_of_data(name: string, source: string)
 	{
 	print fin_out, "==========SERVERS============";
 	#print fin_out, servers;
-	
+
 	try = try + 1;
 	if ( try == 2 )
 		system("touch got2");

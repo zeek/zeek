@@ -1,5 +1,24 @@
 4.1.0-beta | 2021-07-09 12:57:12 -0700
 
+  * Fix race conditions in scripts.base.frameworks.input.reread (Christian Kreibich, Corelight)
+
+    On FreeBSD, this test showed two problems: (1) reordering problems
+    based on writing the predicate, event, and end-of-data updates into a
+    single file, (2) a race condition based on printing the entirety of
+    the table description argument in update events. The description
+    contains the destination table, and its content at the time an update
+    event gets processed isn't deterministic: depending on the number
+    of updates the reader thread has sent, the table will contain a
+    varying number of entries.
+
+  * Fix race condition in scripts.base.frameworks.input.invalid* (Christian Kreibich, Corelight)
+
+    The invalidset and invalidtext tests loaded an input file via table
+    and event reads, in parallel. On FreeBSD this triggers an occasional
+    reordering of messages coming out of the reader thread vs the input
+    managers. This commit makes the table and event reads sequential,
+    avoiding the race.
+
   * Reorder fields in some classes for more compact memory layout (Tim Wojtulewicz)
 
   * Redo how reassembled flag is accessed in IP_Hdr, filling in a memory hole (Tim Wojtulewicz)

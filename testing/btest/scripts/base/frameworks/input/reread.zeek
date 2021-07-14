@@ -1,3 +1,6 @@
+# This test verifies update events, predicates, and multiple data
+# updates when using Input::REREAD mode.
+
 # @TEST-EXEC: mv input1.log input.log
 # @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got1 15 || (btest-bg-wait -k 1 && false)
@@ -9,7 +12,9 @@
 # @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got4 15 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: mv input5.log input.log
 # @TEST-EXEC: btest-bg-wait 30
-# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff servers.out
+# @TEST-EXEC: btest-diff events.out
+# @TEST-EXEC: btest-diff preds.out
 
 @TEST-START-FILE input1.log
 #separator \x09
@@ -84,47 +89,59 @@ type Val: record {
 	ve: vector of int;
 };
 
-global servers: table[int] of Val = table();
+type servers_type: table[int] of Val;
+global servers: servers_type = table();
 
-global outfile: file;
+global events_file = open("../events.out");
+global predicates_file = open("../preds.out");
+global servers_file = open("../servers.out");
 
 global try: count;
 
 event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, right: Val)
 	{
-	print outfile, "============EVENT============";
-	print outfile, "Description";
-	print outfile, description;
-	print outfile, "Type";
-	print outfile, tpe;
-	print outfile, "Left";
-	print outfile, left;
-	print outfile, "Right";
-	print outfile, right;
+	# Printing description details here avoids printing the
+	# destination table itself. Its content is not deterministic
+	# at the time this event handler runs: it depends on how many
+	# entries the reader backend thread has sent over.
+	print events_file, "============EVENT============";
+	print events_file, "Description";
+	print events_file, "  source", description$source;
+	print events_file, "  reader", description$reader;
+	print events_file, "  mode", description$mode;
+	print events_file, "  name", description$name;
+	print events_file, fmt("  destination[left = %s]", left$i),
+	    (description$destination as servers_type)[left$i];
+	print events_file, "  idx", description$idx;
+	print events_file, "  val", description$val;
+	print events_file, "  want_record", description$want_record;
+	print events_file, "Type", tpe;
+	print events_file, "Left", left;
+	print events_file, "Right", right;
 	}
 
 event zeek_init()
 	{
-	outfile = open("../out");
 	try = 0;
 	# first read in the old stuff into the table...
-	Input::add_table([$source="../input.log", $mode=Input::REREAD, $name="ssh", $idx=Idx, $val=Val, $destination=servers, $ev=line,
-	$pred(typ: Input::Event, left: Idx, right: Val) = { 
-	print outfile, "============PREDICATE============";
-	print outfile, typ;
-	print outfile, left;
-	print outfile, right;
-	return T;
-	}
+	Input::add_table([$source="../input.log", $mode=Input::REREAD, $name="ssh",
+	                  $idx=Idx, $val=Val, $destination=servers, $ev=line,
+	                  $pred(typ: Input::Event, left: Idx, right: Val) = {
+	                      print predicates_file, "============PREDICATE============";
+	                      print predicates_file, typ;
+	                      print predicates_file, left;
+	                      print predicates_file, right;
+	                      return T;
+	                      }
 	]);
 	}
 
 
 event Input::end_of_data(name: string, source: string)
 	{
-	print outfile, "==========SERVERS============";
-	print outfile, servers;
-	
+	print servers_file, "==========SERVERS============";
+	print servers_file, servers;
+
 	try = try + 1;
 
 	if ( try == 1 )
@@ -137,8 +154,10 @@ event Input::end_of_data(name: string, source: string)
 		system("touch got4");
 	else if ( try == 5 )
 		{
-		print outfile, "done";
-		close(outfile);
+		print servers_file, "done";
+		close(events_file);
+		close(predicates_file);
+		close(servers_file);
 		Input::remove("input");
 		terminate();
 		}

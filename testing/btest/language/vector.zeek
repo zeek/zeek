@@ -173,6 +173,26 @@ event zeek_init()
 	test_case( "/ operator", v10[0] == 10 && v10[1] == 10 && v10[2] == 10 );
 	test_case( "% operator", v11[0] == 0 && v11[1] == 0 && v11[2] == 0 );
 
+	local vs1: vector of string = vector( "foo", "bar" );
+	local vs2: vector of string = vector( "xxx", "yyy" );
+	local vs3: vector of string = vector( "xxx", "bar" );
+
+	local vss = vs1 + vs2;
+	test_case( "+ operator [string]", vss[0] == "fooxxx" && vss[1] == "baryyy" );
+
+	local vss2 = vs1 + "@";
+	test_case( "+ operator [string]", vss2[0] == "foo@" && vss2[1] == "bar@" );
+
+	local vss3 = (vs1 == vs3);
+	test_case( "== operator [string]", vss3[0] == F && vss3[1] == T );
+
+	local vss4 = (vs1 == "bar");
+	test_case( "== operator [string]", vss4[0] == F && vss4[1] == T );
+
+	local vss5 = ("bar" == vs1);
+	test_case( "== operator [string]", vss5[0] == F && vss5[1] == T );
+		# !=, <, >, <=, >= are handled the same as ==, skipping tests
+
 	# Test &&,|| of two vectors
 
 	test_case( "&& operator", v14[0] == F && v14[1] == F && v14[2] == T );

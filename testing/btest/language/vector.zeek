@@ -154,17 +154,6 @@ event zeek_init()
 	test_case( "overwrite element", |vg1| == 3 );
 	test_case( "access element", vg1[1] == "new5" );
 
-	# Test increment/decrement operators
-
-	++v5;
-	test_case( "++ operator", |v5| == 11 && v5[0] == 1 && v5[1] == 3
-			 && v5[2] == 4 && v5[3] == 78 && v5[10] == 11
-			 && 4 !in v5 );
-	--v5;
-	test_case( "-- operator", |v5| == 11 && v5[0] == 0 && v5[1] == 2
-			 && v5[2] == 3 && v5[3] == 77 && v5[10] == 10
-			 && 4 !in v5 );
-
 	# Test +,-,*,/,% of two vectors
 
 	test_case( "+ operator", v7[0] == 11 && v7[1] == 22 && v7[2] == 33 );

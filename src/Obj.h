@@ -153,8 +153,8 @@ private:
 	friend inline void Ref(Obj* o);
 	friend inline void Unref(Obj* o);
 
-	bool notify_plugins = false;
 	int ref_cnt = 1;
+	bool notify_plugins = false;
 
 	// If non-zero, do not print runtime errors.  Useful for
 	// speculative evaluation.

@@ -288,9 +288,10 @@ public:
 	 * already checked that the header is not truncated.
 	 * @param arg_ip4 pointer to memory containing an IPv4 packet.
 	 * @param arg_del whether to take ownership of \a arg_ip4 pointer's memory.
+	 * @param reassembled whether this header is for a reassembled packet.
 	 */
-	IP_Hdr(const struct ip* arg_ip4, bool arg_del)
-		: ip4(arg_ip4), del(arg_del)
+	IP_Hdr(const struct ip* arg_ip4, bool arg_del, bool reassembled=false)
+		: ip4(arg_ip4), del(arg_del), reassembled(reassembled)
 		{
 		}
 
@@ -304,11 +305,12 @@ public:
 	 * @param arg_del whether to take ownership of \a arg_ip6 pointer's memory.
 	 * @param len the packet's length in bytes.
 	 * @param c an already-constructed header chain to take ownership of.
+	 * @param reassembled whether this header is for a reassembled packet.
 	 */
 	IP_Hdr(const struct ip6_hdr* arg_ip6, bool arg_del, int len,
-	       const IPv6_Hdr_Chain* c = nullptr)
+	       const IPv6_Hdr_Chain* c = nullptr, bool reassembled=false)
 		: ip6(arg_ip6), ip6_hdrs(c ? c : new IPv6_Hdr_Chain(ip6, len)),
-		  del(arg_del)
+		  del(arg_del), reassembled(reassembled)
 		{
 		}
 
@@ -524,16 +526,14 @@ public:
 	 */
 	RecordValPtr ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const;
 
-	/**
-	 * Denotes whether this header is from a set of packet fragments.
-	 */
-	bool reassembled = false;
+	bool Reassembled() const { return reassembled; }
 
 private:
 	const struct ip* ip4 = nullptr;
 	const struct ip6_hdr* ip6 = nullptr;
 	const IPv6_Hdr_Chain* ip6_hdrs = nullptr;
-	bool del;
+	bool del = false;
+	bool reassembled = false;
 };
 
 } // namespace zeek

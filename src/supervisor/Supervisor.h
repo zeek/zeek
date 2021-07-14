@@ -119,13 +119,13 @@ public:
 		 */
 		BifEnum::Supervisor::ClusterRole role;
 		/**
-		 * The host/IP at which the cluster node is listening for connections.
-		 */
-		std::string host;
-		/**
 		 * The TCP port number at which the cluster node listens for connections.
 		 */
 		int port;
+		/**
+		 * The host/IP at which the cluster node is listening for connections.
+		 */
+		std::string host;
 		/**
 		 * The interface name from which the node read/analyze packets.
 		 * Typically used by worker nodes.
@@ -324,10 +324,10 @@ private:
 
 	Config config;
 	pid_t stem_pid;
+	int last_signal = -1;
 	std::unique_ptr<detail::PipePair> stem_pipe;
 	detail::LineBufferedPipe stem_stdout;
 	detail::LineBufferedPipe stem_stderr;
-	int last_signal = -1;
 	detail::Flare signal_flare;
 	NodeMap nodes;
 	std::string msg_buffer;

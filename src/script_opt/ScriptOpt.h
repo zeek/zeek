@@ -121,12 +121,12 @@ protected:
 	std::shared_ptr<ProfileFunc> pf;
 	int priority;
 
+	// Whether to skip optimizing this function.
+	bool skip = false;
+
 	// If we're saving this function in a file, this is the name
 	// of the file to use.
 	std::string save_file;
-
-	// Whether to skip optimizing this function.
-	bool skip = false;
 };
 
 

@@ -1,5 +1,9 @@
 4.1.0-beta | 2021-07-09 12:57:12 -0700
 
+  * Reorder fields in some classes for more compact memory layout (Tim Wojtulewicz)
+
+  * Redo how reassembled flag is accessed in IP_Hdr, filling in a memory hole (Tim Wojtulewicz)
+
   * Zeekygen doesn't support comments on set members (Vlad Grigorescu)
 
   * Add 6to4 addresses, if the matching IPv4 address is private (Vlad Grigorescu)

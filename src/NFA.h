@@ -67,14 +67,13 @@ public:
 
 protected:
 	int sym;	// if SYM_CCL, then use ccl
+	int id;	// number that uniquely identifies this state
 	CCL* ccl;	// if nil, then use sym
 	int accept;
 
 	// Whether the first transition points backwards.  Used
 	// to avoid reference-counting loops.
 	bool first_trans_is_back_ref;
-
-	int id;	// number that uniquely identifies this state
 
 	NFA_state_list xtions;
 	NFA_state_list* epsclosure;

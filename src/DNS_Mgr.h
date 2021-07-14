@@ -159,6 +159,7 @@ protected:
 	char* dir;	// directory in which cache_name resides
 
 	bool did_init;
+	int asyncs_pending;
 
 	RecordTypePtr dm_rec;
 
@@ -235,8 +236,6 @@ protected:
 
 	typedef std::priority_queue<AsyncRequest*, std::vector<AsyncRequest*>, AsyncRequestCompare> TimeoutQueue;
 	TimeoutQueue asyncs_timeouts;
-
-	int asyncs_pending;
 
 	unsigned long num_requests;
 	unsigned long successful;

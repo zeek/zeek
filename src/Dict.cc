@@ -28,8 +28,8 @@ class [[deprecated("Remove in v5.1. Use the standard-library-compatible version 
 public:
 	IterCookie(Dictionary* d) : d(d) {}
 
-	bool robust = false;
 	Dictionary* d = nullptr;
+	bool robust = false;
 
 	// Index for the next valid entry. -1 is the default, meaning we haven't started
 	// iterating yet.

@@ -411,8 +411,8 @@ protected:
 	[[noreturn]] void RuntimeErrorWithCallStack(const std::string& msg) const;
 
 	BroExprTag tag;
-	TypePtr type;
 	bool paren;
+	TypePtr type;
 
 	// The original expression from which this statement was
 	// derived, if any.  Used as an aid for generating meaningful
@@ -907,10 +907,10 @@ protected:
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
 	bool is_init;
+	bool is_temp = false; // Optimization related
+
 	ValPtr val;	// optional
 
-	// Optimization-related:
-	bool is_temp = false;
 };
 
 class IndexSliceAssignExpr final : public AssignExpr {

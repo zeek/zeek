@@ -204,8 +204,8 @@ private:
 	bool killed;	// Set to true once forcefully killed.
 
 	// For implementing Fmt().
+	uint32_t buf_len;
 	char* buf;
-	unsigned int buf_len;
 
 	// For implementating Strerror().
 	char* strerr_buffer;

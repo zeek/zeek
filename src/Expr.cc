@@ -76,7 +76,7 @@ const char* expr_name(BroExprTag t)
 	return expr_names[int(t)];
 	}
 
-Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), type(nullptr), paren(false)
+Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), paren(false), type(nullptr)
 	{
 	SetLocationInfo(&start_location, &end_location);
 	}

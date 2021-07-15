@@ -1,5 +1,9 @@
 4.1.0-beta | 2021-07-09 12:57:12 -0700
 
+  * Remove tests for deprecated operators. (Robin Sommer, Corelight)
+
+  * Add tests for operations on vectors of string. (Robin Sommer, Corelight)
+
   * Fix race conditions in scripts.base.frameworks.input.reread (Christian Kreibich, Corelight)
 
     On FreeBSD, this test showed two problems: (1) reordering problems

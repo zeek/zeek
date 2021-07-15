@@ -3,7 +3,7 @@ name: Generate Documentation
 on:
   schedule:
     - cron: '0 0 * * *'
-  pull_request:
+  push:
     branches:
       - topic/timw/send-email-on-docs-action-failure
 

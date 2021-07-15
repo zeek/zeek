@@ -1702,12 +1702,11 @@ bool DNS_Interpreter::ParseRR_HINFO(detail::DNS_MsgInfo* msg,
 	auto cpu = extract_char_string(analyzer, data, len, rdlength);
 	auto os = extract_char_string(analyzer, data, len, rdlength);
 
-	if ( dns_HINFO_reply )
-		analyzer->EnqueueConnEvent(dns_HINFO_reply,
-			analyzer->ConnVal(),
-			msg->BuildHdrVal(),
-			msg->BuildAnswerVal(),
-			cpu, os);
+	analyzer->EnqueueConnEvent(dns_HINFO_reply,
+		analyzer->ConnVal(),
+		msg->BuildHdrVal(),
+		msg->BuildAnswerVal(),
+		cpu, os);
 
 	return rdlength == 0;
 	}

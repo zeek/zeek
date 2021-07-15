@@ -335,6 +335,8 @@ public:
 		{ return vxlan_ports; }
 
 private:
+	// Internal version that must be used only once InitPostScript has completed.
+	bool RegisterAnalyzerForPort(const std::tuple<Tag, TransportProto, uint32_t>& p);
 
 	friend class packet_analysis::IP::IPBasedAnalyzer;
 
@@ -372,10 +374,15 @@ private:
 		};
 	};
 
+
+	using protocol_analyzers = std::set<std::tuple<Tag, TransportProto, uint32_t>>;
 	using conns_map = std::multimap<ConnIndex, ScheduledAnalyzer*>;
 	using conns_queue = std::priority_queue<ScheduledAnalyzer*,
 	                                        std::vector<ScheduledAnalyzer*>,
 	                                        ScheduledAnalyzer::Comparator>;
+
+	bool initialized = false;
+	protocol_analyzers pending_analyzers_for_ports;
 
 	conns_map conns;
 	conns_queue conns_by_timeout;

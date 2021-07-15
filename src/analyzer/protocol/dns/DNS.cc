@@ -1658,6 +1658,7 @@ bool DNS_Interpreter::ParseRR_WKS(detail::DNS_MsgInfo* msg,
 		msg->BuildAnswerVal()
 	);
 
+	// TODO: Return a status which reflects if the port parameters were successfully parsed
 	return true;
 	}
 

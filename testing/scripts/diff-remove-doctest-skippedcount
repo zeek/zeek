@@ -1,0 +1,13 @@
+#! /usr/bin/env bash
+#
+# doctest's console reports contain the number of tests, which will vary over time.
+# This replaces that number with "XX".
+
+# Get us "modern" regexps with sed.
+if [ `uname` == "Linux" ]; then
+   sed="sed -r"
+else
+   sed="sed -E"
+fi
+
+$sed -e 's/([0-9]+ skipped)/XX skipped/g'

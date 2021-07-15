@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# Hooks to add custom options to the configure script.
+#
+
+plugin_usage()
+{
+    cat <<EOF
+    --enable-cpp-tests         Build unit tests
+EOF
+}
+
+plugin_option()
+{
+    case "$1" in
+        --enable-cpp-tests)
+            append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL    true
+            ;;
+        *)
+            return 1;
+            ;;
+    esac
+}

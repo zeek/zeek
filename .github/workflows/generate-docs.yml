@@ -3,9 +3,6 @@ name: Generate Documentation
 on:
   schedule:
     - cron: '0 0 * * *'
-  push:
-    branches:
-      - topic/timw/send-email-on-docs-action-failure
 
 jobs:
   generate:
@@ -95,3 +92,16 @@ jobs:
           git add doc
           git status
           git commit -m 'Update doc submodule [nomail] [skip ci]' && git push auth master || /bin/true
+
+      - name: Send email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3.4.1
+        with:
+          server_address: ${{secrets.SMTP_HOST}}
+          server_port: ${{secrets.SMTP_PORT}}
+          username: ${{secrets.SMTP_USER}}
+          password: ${{secrets.SMTP_PASS}}
+          subject: generate-docs Github Action failed!
+          body: generate-docs job of ${{github.repository}} Failed! See https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} for details.
+          to: ${{secrets.MAIL_TO}}
+          from: Github Actions <${{secrets.MAIL_FROM}}>

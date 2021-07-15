@@ -1,6 +1,7 @@
 
 #include "Plugin.h"
 #include "analyzer/Component.h"
+#include "analyzer/Manager.h"
 
 #include "Foo.h"
 
@@ -19,4 +20,14 @@ zeek::plugin::Configuration Plugin::Configure()
 	config.version.minor = 0;
 	config.version.patch = 0;
 	return config;
+	}
+
+
+void Plugin::InitPostScript()
+	{
+		auto tag = ::zeek::analyzer_mgr->GetAnalyzerTag("Foo");
+		if ( ! tag )
+			::zeek::reporter->FatalError("cannot get analyzer Tag");
+
+		zeek::analyzer_mgr->RegisterAnalyzerForPort(tag, TransportProto::TRANSPORT_TCP, 4243);
 	}

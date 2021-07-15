@@ -334,7 +334,8 @@ event dns_WKS_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 ##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
 ##    dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_HINFO_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
+event dns_HINFO_reply%(c: connection, msg: dns_msg, ans: dns_answer, cpu: string, os: string%);
+event dns_HINFO_reply%(c: connection, msg: dns_msg, ans: dns_answer%) &deprecated="Remove in v5.2. Use the definition with the extra parameters for cpu and os.";
 
 ## Generated for DNS replies of type *MX*. For replies with multiple answers, an
 ## individual event of the corresponding type is raised for each.

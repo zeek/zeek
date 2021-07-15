@@ -1644,18 +1644,21 @@ bool DNS_Interpreter::ParseRR_AAAA(detail::DNS_MsgInfo* msg,
 bool DNS_Interpreter::ParseRR_WKS(detail::DNS_MsgInfo* msg,
                                   const u_char*& data, int& len, int rdlength)
 	{
-	data += rdlength;
-	len -= rdlength;
+	if ( ! dns_WKS_reply || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return true;
+		}
 
-	return true;
-	}
+	// TODO: Pass the ports as parameters to the event
+	analyzer->EnqueueConnEvent(dns_WKS_reply,
+		analyzer->ConnVal(),
+		msg->BuildHdrVal(),
+		msg->BuildAnswerVal()
+	);
 
-bool DNS_Interpreter::ParseRR_HINFO(detail::DNS_MsgInfo* msg,
-                                    const u_char*& data, int& len, int rdlength)
-	{
-	data += rdlength;
-	len -= rdlength;
-
+	// TODO: Return a status which reflects if the port parameters were successfully parsed
 	return true;
 	}
 
@@ -1685,6 +1688,28 @@ extract_char_string(analyzer::Analyzer* analyzer,
 	data += str_size;
 
 	return rval;
+	}
+
+bool DNS_Interpreter::ParseRR_HINFO(detail::DNS_MsgInfo* msg,
+                                    const u_char*& data, int& len, int rdlength)
+	{
+	if ( ! dns_HINFO_reply || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return true;
+		}
+
+	auto cpu = extract_char_string(analyzer, data, len, rdlength);
+	auto os = extract_char_string(analyzer, data, len, rdlength);
+
+	analyzer->EnqueueConnEvent(dns_HINFO_reply,
+		analyzer->ConnVal(),
+		msg->BuildHdrVal(),
+		msg->BuildAnswerVal(),
+		cpu, os);
+
+	return rdlength == 0;
 	}
 
 bool DNS_Interpreter::ParseRR_TXT(detail::DNS_MsgInfo* msg,

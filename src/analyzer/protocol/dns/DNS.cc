@@ -1644,8 +1644,19 @@ bool DNS_Interpreter::ParseRR_AAAA(detail::DNS_MsgInfo* msg,
 bool DNS_Interpreter::ParseRR_WKS(detail::DNS_MsgInfo* msg,
                                   const u_char*& data, int& len, int rdlength)
 	{
-	data += rdlength;
-	len -= rdlength;
+	if ( ! dns_WKS_reply || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return true;
+		}
+
+	// TODO: Pass the ports as parameters to the event
+	analyzer->EnqueueConnEvent(dns_WKS_reply,
+		analyzer->ConnVal(),
+		msg->BuildHdrVal(),
+		msg->BuildAnswerVal()
+	);
 
 	return true;
 	}

@@ -109,13 +109,6 @@ jobs:
           username: ${{secrets.SMTP_USER}}
           password: ${{secrets.SMTP_PASS}}
           subject: generate-docs Github Action failed!
-          # Literal body:
           body: generate-docs job of $GITHUB_REPOSITORY Failed! See $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID for details.
-          # Read file contents as body:
-          # body: file://README.md
           to: tim@corelight.com
-          from: Github Actions # <${{secrets.MAIL_FROM}}>
-          # Optional content type (defaults to text/plain):
-          # content_type: text/html
-          # Optional attachments:
-          # attachments: attachments.zip,git.diff,./dist/static/main.js
+          from: Github Actions <${{secrets.MAIL_FROM}}>

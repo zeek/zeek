@@ -18,6 +18,8 @@ mobile_ipv6_config: &MOBILE_IPV6_CONFIG --build-type=release --enable-cpp-tests 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
   memory: *MEMORY
+  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
+  greedy: true
 
 macos_resources_template: &MACOS_RESOURCES_TEMPLATE
   # https://medium.com/cirruslabs/new-macos-task-execution-architecture-for-cirrus-ci-604250627c94

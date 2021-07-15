@@ -14,6 +14,10 @@ jobs:
         with:
           token: ${{ secrets.ZEEK_BOT_TOKEN }}
 
+      - name: intentional failure
+        run: |
+          exit 1
+
       - name: Sync Submodules
         shell: bash
         run: |
@@ -92,3 +96,23 @@ jobs:
           git add doc
           git status
           git commit -m 'Update doc submodule [nomail] [skip ci]' && git push auth master || /bin/true
+
+      - name: Send email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3.4.1
+        with:
+          server_address: ${{secrets.SMTP_HOST}}
+          server_port: ${{secrets.SMTP_PORT}}
+          username: ${{secrets.SMTP_USER}}
+          password: ${{secrets.SMTP_PASS}}
+          subject: generate-docs Github Action failed!
+          # Literal body:
+          body: generate-docs job of $GITHUB_REPOSITORY Failed! See $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID for details.
+          # Read file contents as body:
+          # body: file://README.md
+          to: tim@corelight.com
+          from: ${{secrets.MAIL_FROM}}
+          # Optional content type (defaults to text/plain):
+          # content_type: text/html
+          # Optional attachments:
+          # attachments: attachments.zip,git.diff,./dist/static/main.js

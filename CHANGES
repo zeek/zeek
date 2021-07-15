@@ -1,3 +1,9 @@
+4.2.0-dev.18 | 2021-07-15 09:50:25 -0700
+
+  * Remove tests for deprecated operators. (Robin Sommer, Corelight)
+
+  * Add tests for operations on vectors of string. (Robin Sommer, Corelight)
+
 4.2.0-dev.14 | 2021-07-14 15:01:20 -0700
 
   * Fix race conditions in scripts.base.frameworks.input.reread (Christian Kreibich, Corelight)

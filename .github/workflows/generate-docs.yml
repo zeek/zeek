@@ -3,6 +3,9 @@ name: Generate Documentation
 on:
   schedule:
     - cron: '0 0 * * *'
+  pull_request:
+    branches:
+      - topic/timw/send-email-on-docs-action-failure
 
 jobs:
   generate:
@@ -99,6 +102,7 @@ jobs:
 
       - name: Send email
         if: failure()
+        uses: zeek/ci-email-action@master
         uses: dawidd6/action-send-mail@v3.4.1
         with:
           server_address: ${{secrets.SMTP_HOST}}

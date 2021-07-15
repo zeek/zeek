@@ -114,7 +114,7 @@ jobs:
           # Read file contents as body:
           # body: file://README.md
           to: tim@corelight.com
-          from: ${{secrets.MAIL_FROM}}
+          from: Github Actions # <${{secrets.MAIL_FROM}}>
           # Optional content type (defaults to text/plain):
           # content_type: text/html
           # Optional attachments:

@@ -1,3 +1,9 @@
+4.2.0-dev.28 | 2021-07-16 22:43:35 -0700
+
+  * Update broker submodule for new CAF version (Tim Wojtulewicz, Corelight)
+
+  * Setup generate-docs workflow to run on push to test branch (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.24 | 2021-07-15 11:33:31 -0700
 
   * Add a TODO to return a correct status for ParseRR_WKS (Vlad Grigorescu)

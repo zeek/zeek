@@ -1,5 +1,7 @@
 4.1.0-beta | 2021-07-09 12:57:12 -0700
 
+  * Update broker submodule for new CAF version (Tim Wojtulewicz, Corelight)
+
   * Add a TODO to return a correct status for ParseRR_WKS (Vlad Grigorescu)
 
   * Update scripts/site/local-compat test for 4.2 cycle (Tim Wojtulewicz)

@@ -1,3 +1,9 @@
+4.2.0-dev.32 | 2021-07-19 08:55:06 -0700
+
+  * Update 3rdparty submodule to pull in doctest to 2.4.6. (Robin Sommer, Corelight)
+
+    Our old version didn't support compilation on Apple's M1 yet.
+
 4.2.0-dev.30 | 2021-07-19 08:54:30 -0700
 
   * Fix registration of protocol analyzers from inside plugins. (Robin Sommer, Corelight)

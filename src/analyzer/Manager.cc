@@ -86,6 +86,15 @@ void Manager::InitPostScript()
 
 	for ( auto i = 0; i < port_list->Length(); ++i )
 		vxlan_ports.emplace_back(port_list->Idx(i)->AsPortVal()->Port());
+
+	for ( const auto& p : pending_analyzers_for_ports ) {
+		if ( ! RegisterAnalyzerForPort(p) )
+			reporter->Warning("cannot register analyzer for port %u", std::get<2>(p));
+	}
+
+	pending_analyzers_for_ports.clear();
+
+	initialized = true;
 	}
 
 void Manager::DumpDebug()
@@ -231,6 +240,22 @@ bool Manager::UnregisterAnalyzerForPort(EnumVal* val, PortVal* port)
 
 bool Manager::RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port)
 	{
+	if ( initialized )
+		return RegisterAnalyzerForPort(std::make_tuple(tag, proto, port));
+	else
+		{
+		// Cannot register these before PostScriptInit() has run because we
+		// depend on packet analyis having been set up. That also means we don't have
+		// a reliable return value, for now we just assume it's working.
+		pending_analyzers_for_ports.emplace(tag, proto, port);
+		return true;
+		}
+	}
+
+bool Manager::RegisterAnalyzerForPort(const std::tuple<Tag, TransportProto, uint32_t>& p)
+	{
+	const auto& [tag, proto, port] = p;
+
 	// TODO: this class is becoming more generic and removing a lot of the
 	// checks for protocols, but this part might need to stay like this.
 	packet_analysis::AnalyzerPtr analyzer;
@@ -249,6 +274,9 @@ bool Manager::RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint
 
 bool Manager::UnregisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port)
 	{
+	if ( auto i = pending_analyzers_for_ports.find(std::make_tuple(tag, proto, port)); i != pending_analyzers_for_ports.end() )
+		pending_analyzers_for_ports.erase(i);
+
 	// TODO: this class is becoming more generic and removing a lot of the
 	// checks for protocols, but this part might need to stay like this.
 	packet_analysis::AnalyzerPtr analyzer;

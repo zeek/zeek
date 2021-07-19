@@ -1,5 +1,24 @@
 4.1.0-beta | 2021-07-09 12:57:12 -0700
 
+  * Fix registration of protocol analyzers from inside plugins. (Robin Sommer, Corelight)
+
+    With the recent packet manager work, it broke to register a protocol
+    analyzer for a specific port from inside a plugin's initialization code.
+    That's because that registration now depends on the packet manager being
+    set up, which isn't case at that time a plugin's `InitPostInit()` runs.
+    This fix contains two parts:
+
+        - Initialize the packet manager before the analyzer manager, so that
+          the latter's `InitPostScript()` can rely on the former being
+          ready.
+
+        - Change the analyzer manager to (only) record port registrations
+          happening before it's fully initialized. Its `InitPostScript()`
+          then performs the actual registrations, knowing it can use the
+          packet manager now.
+
+    This comes with a `cmake/` to add a missing include directory.
+
   * Update broker submodule for new CAF version (Tim Wojtulewicz, Corelight)
 
   * Add a TODO to return a correct status for ParseRR_WKS (Vlad Grigorescu)

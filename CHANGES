@@ -1,5 +1,11 @@
 4.1.0-beta | 2021-07-09 12:57:12 -0700
 
+  * Bump highwayhash to pull in FreeBSD 14 fix (Christian Kreibich, Corelight)
+
+  * Update 3rdparty submodule to pull in doctest to 2.4.6. (Robin Sommer, Corelight)
+
+    Our old version didn't support compilation on Apple's M1 yet.
+
   * Fix registration of protocol analyzers from inside plugins. (Robin Sommer, Corelight)
 
     With the recent packet manager work, it broke to register a protocol

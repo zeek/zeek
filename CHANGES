@@ -1,3 +1,7 @@
+4.2.0-dev.34 | 2021-07-19 08:56:45 -0700
+
+  * Bump highwayhash to pull in FreeBSD 14 fix (Christian Kreibich, Corelight)
+
 4.2.0-dev.32 | 2021-07-19 08:55:06 -0700
 
   * Update 3rdparty submodule to pull in doctest to 2.4.6. (Robin Sommer, Corelight)

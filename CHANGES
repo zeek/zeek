@@ -1,3 +1,9 @@
+4.2.0-dev.40 | 2021-07-20 09:58:14 -0700
+
+  * Cover in NEWS the inclusion of btest tooling in the installation (Christian Kreibich, Corelight)
+
+    [skip ci]
+
 4.2.0-dev.38 | 2021-07-20 09:55:59 -0700
 
   * Fix generate-docs github action to send email when it fails (Tim Wojtulewicz, Corelight)

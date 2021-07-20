@@ -78,19 +78,30 @@ New Functionality
   takes a semicolon separated list of paths containing plugins that will be
   statically built into Zeek.
 
+- Added a ``--plugindir`` argument to ``configure`` to set the
+  installation path for plugins.
+
 - The X509 analyzer now can check if a specific hostname is valid for a
   certificate. Two new BIFs were added for this, ``x509_check_hostname`` and
   ``x509_check_cert_hostname``. A new field ``sni_matches_cert`` that tracks
   this information was added to ``ssl.log``.
-
-- Added a ``--plugindir`` argument to ``configure`` to set the
-  installation path for plugins.
 
 - Added new functions to dynamically enable/disable file analyzers:
 
   - ``global enable_analyzer: function(tag: Files::Tag): bool;``
   - ``global disable_analyzer: function(tag: Files::Tag): bool;``
   - ``global analyzer_enabled: function(tag: Files::Tag): bool;``
+
+- Zeek now includes its own BTest tooling in the distribution, enabling other
+  tests (e.g. in Zeek packages) to use it. The ``$PREFIX/share/btest folder``,
+  reported via ``zeek-config --btest_tools_dir``, includes:
+
+  - ``scripts/`` for ``btest-diff`` canonifiers
+  - ``data/`` for data files, including ``random.seed``
+  - ``data/pcaps`` for the test pcaps
+
+  Configuring with ``--disable-btest-pcaps`` suppresses installation of the
+  test pcaps.
 
 - The Supervisor now defaults to starting with a minimal set of Zeek
   scripts controlled by a new init file, ``base/init-supervisor.zeek``.

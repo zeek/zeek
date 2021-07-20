@@ -1,5 +1,9 @@
 4.1.0-beta | 2021-07-09 12:57:12 -0700
 
+  * Cover in NEWS the inclusion of btest tooling in the installation (Christian Kreibich, Corelight)
+
+    [skip ci]
+
   * Bump highwayhash to pull in FreeBSD 14 fix (Christian Kreibich, Corelight)
 
   * Update 3rdparty submodule to pull in doctest to 2.4.6. (Robin Sommer, Corelight)

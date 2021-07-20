@@ -5,7 +5,9 @@ param(
 )
 
 $SourceDirectory = (Convert-Path "$PSScriptRoot/../").Replace("\", "/")
-$WorkingDirectory = $pwd.Path
+$WorkingDirectory = "$pwd"
+$BuildOutputDirectory = "$SourceDirectory/out/build/x64/$BuildType"
+$InstallDirectory = "$SourceDirectory/out/install/x64/$BuildType"
 
 $commands = @()
 if (!(Get-Command cl)) {
@@ -18,7 +20,7 @@ cmake.exe
     -S "$SourceDirectory"
     -B "$WorkingDirectory"
     -DCMAKE_BUILD_TYPE:STRING=$BuildType
-    -DCMAKE_INSTALL_PREFIX:PATH="$SourceDirectory/out/install/$BuildType"
+    -DCMAKE_INSTALL_PREFIX:PATH="$InstallDirectory"
     -DDISABLE_PYTHON_BINDINGS=1 `
     2>&1
 "@.Replace("`r`n", "")
@@ -31,3 +33,13 @@ $commands += @"
 cmake.exe --install $WorkingDirectory
 "@
 cmd /c ($commands -join " && ")
+
+Write-Host "Copying build output to $BuildOutputDirectory..."
+mkdir $BuildOutputDirectory -Force | Out-Null
+Get-ChildItem $WorkingDirectory -Recurse -Attributes !ReparsePoint | foreach { 
+    $path = $_.FullName.Replace("$pwd", $BuildOutputDirectory)
+    $parent = Split-Path -Parent $path
+    mkdir $parent -Force | Out-Null
+    Copy-Item $_.FullName -Destination $path -Force
+}
+Write-Host "Done."

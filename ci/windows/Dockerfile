@@ -42,6 +42,7 @@ RUN choco install python -y
 # Can't install a proper msys2 because it caused console hanging in the container during docker build.
 RUN choco install msysgit -y
 RUN choco install sed -y
+RUN choco install powershell-core -y
 
 # Set working environment.
 RUN setx /M PATH "%PATH%;C:\\Program Files\\Git\\bin"
@@ -53,4 +54,4 @@ ADD default C:\Users\ContainerAdministrator\.conan\profiles\default
 
 # Define the entry point for the docker container.
 # This entry point starts the developer command prompt and launches the PowerShell shell.
-ENTRYPOINT ["C:\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat", "&&", "powershell.exe", "-NoLogo", "-ExecutionPolicy", "Unrestricted"]
+ENTRYPOINT ["C:\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat", "&&", "pwsh.exe", "-NoLogo", "-ExecutionPolicy", "Unrestricted"]

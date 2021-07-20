@@ -35,6 +35,7 @@ if ( MSVC )
                                 openssl/1.1.1i
                                 winflexbison/2.5.24
                                 npcap-wpcap/1.31
+                                kqueue/2.3.2
                               GENERATORS cmake_find_package)
 
         # Install packages from conanfile
@@ -53,6 +54,12 @@ if ( MSVC )
     # Set ZLib to point at the right variable.
     find_package(ZLIB)
     set(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
+
+    # Set Kqueue to point at the right variable.
+    find_package(kqueue)
+    set(LIBKQUEUE_ROOT_DIR "${kqueue_INCLUDES}/../")
+    set(LIBKQUEUE_INCLUDE_DIRS ${kqueue_INCLUDES})
+    set(LIBKQUEUE_LIBRARIES ${kqueue_LIBS})
 
     add_subdirectory(auxil/libunistd)
     set(UNISTD_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd ${CMAKE_SOURCE_DIR}/auxil/libunistd/regex)

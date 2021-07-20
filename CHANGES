@@ -1,3 +1,15 @@
+4.2.0-dev.38 | 2021-07-20 09:55:59 -0700
+
+  * Fix generate-docs github action to send email when it fails (Tim Wojtulewicz, Corelight)
+
+  * Use Cirrus's new greedy mode for parallelizing builds and tests (Christian Kreibich, Corelight)
+
+    This oversubscribes our cores 2x, which testing shows we actually
+    run with at times: speedup is around a third on average for builds,
+    and a bit more than that for testing.
+
+    Also some light Bashification in ci/build.sh, for consistency.
+
 4.2.0-dev.34 | 2021-07-19 08:56:45 -0700
 
   * Bump highwayhash to pull in FreeBSD 14 fix (Christian Kreibich, Corelight)

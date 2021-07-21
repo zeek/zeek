@@ -5,6 +5,11 @@ include_directories(BEFORE
                     ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
+# Force creation of includes symlink
+execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
+                ".."
+                "${CMAKE_CURRENT_SOURCE_DIR}/include/zeek")
+
 # Allows header file inclusion via zeek/ within the build tree
 execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory
                 "${CMAKE_CURRENT_BINARY_DIR}/include")

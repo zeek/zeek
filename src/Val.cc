@@ -2768,8 +2768,8 @@ ValPtr TableVal::DoClone(CloneState* state)
 
 		// As network_time is not necessarily initialized yet, we set
 		// a timer which fires immediately.
-		timer = new TableValTimer(this, 1);
-		detail::timer_mgr->Add(timer);
+		tv->timer = new TableValTimer(tv.get(), 1);
+		detail::timer_mgr->Add(tv->timer);
 		}
 
 	if ( expire_func )

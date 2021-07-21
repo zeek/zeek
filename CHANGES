@@ -1,5 +1,15 @@
 4.1.0-beta | 2021-07-09 12:57:12 -0700
 
+  * Fix handling of timers when cloning TableVals (Johanna Amann, Corelight)
+
+    When cloning TableVals, a new timer was created for the wrong object
+    (the existing TableVal, not the clone). This lead to the already
+    existing timer being no longer accessible. Which, in turn, leads to an
+    abandoned timer reading into no longer allocated data when the original
+    TableVal is deleted.
+
+    Fixes GH-1687
+
   * Cover in NEWS the inclusion of btest tooling in the installation (Christian Kreibich, Corelight)
 
     [skip ci]

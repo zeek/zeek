@@ -1,4 +1,4 @@
-4.1.0-beta | 2021-07-09 12:57:12 -0700
+4.1.0-rc1 | 2021-07-21 12:20:26 -0700
 
   * Fix handling of timers when cloning TableVals (Johanna Amann, Corelight)
 
@@ -10,15 +10,21 @@
 
     Fixes GH-1687
 
+    (cherry-picked from 87f939fb463112e2582e52f76bfc05ebd648b70a)
+
   * Cover in NEWS the inclusion of btest tooling in the installation (Christian Kreibich, Corelight)
 
-    [skip ci]
+    (cherry-picked from 79f6bab96ca81ecd6db8b2a2adad2e2bf4ff1a84)
 
   * Bump highwayhash to pull in FreeBSD 14 fix (Christian Kreibich, Corelight)
+
+    (cherry-picked from ca2c3cdc99b082fac27deee02a79c3c0f0a09a63)
 
   * Update 3rdparty submodule to pull in doctest to 2.4.6. (Robin Sommer, Corelight)
 
     Our old version didn't support compilation on Apple's M1 yet.
+
+    (cherry-picked from 8ea5be71e516678da70066f467b2326f5c8f3cb2)
 
   * Fix registration of protocol analyzers from inside plugins. (Robin Sommer, Corelight)
 
@@ -39,15 +45,27 @@
 
     This comes with a `cmake/` to add a missing include directory.
 
+    (cherry-picked from 609332fa41a6c23a4d5744f8c4548deb40801a73)
+
   * Update broker submodule for new CAF version (Tim Wojtulewicz, Corelight)
 
-  * Add a TODO to return a correct status for ParseRR_WKS (Vlad Grigorescu)
+    (cherry-picked from 8d4dafdcb4a083c1aa930d0b201f835c72af2ea7)
 
-  * Update scripts/site/local-compat test for 4.2 cycle (Tim Wojtulewicz)
+  * Generate dns_WKS_reply event (Vlad Grigorescu)
+
+    (cherry-picked from 8d4dafdcb4a083c1aa930d0b201f835c72af2ea7)
+
+  * dns_HINFO_reply event was never being generated. (Vlad Grigorescu)
+
+    (cherry-picked from 8d4dafdcb4a083c1aa930d0b201f835c72af2ea7)
 
   * Remove tests for deprecated operators. (Robin Sommer, Corelight)
 
+    (cherry-picked from ef18c9c0c8086802899c802d9ac3ba79bd0dfc25)
+
   * Add tests for operations on vectors of string. (Robin Sommer, Corelight)
+
+    (cherry-picked from ef18c9c0c8086802899c802d9ac3ba79bd0dfc25)
 
   * Fix race conditions in scripts.base.frameworks.input.reread (Christian Kreibich, Corelight)
 
@@ -60,6 +78,8 @@
     of updates the reader thread has sent, the table will contain a
     varying number of entries.
 
+    (cherry-picked from ef18c9c0c8086802899c802d9ac3ba79bd0dfc25)
+
   * Fix race condition in scripts.base.frameworks.input.invalid* (Christian Kreibich, Corelight)
 
     The invalidset and invalidtext tests loaded an input file via table
@@ -68,15 +88,27 @@
     managers. This commit makes the table and event reads sequential,
     avoiding the race.
 
+    (cherry-picked from ef18c9c0c8086802899c802d9ac3ba79bd0dfc25)
+
   * Reorder fields in some classes for more compact memory layout (Tim Wojtulewicz)
+
+    (cherry-picked from d57b6e1106ec5bef2e8267327670172577904578)
 
   * Redo how reassembled flag is accessed in IP_Hdr, filling in a memory hole (Tim Wojtulewicz)
 
+    (cherry-picked from d57b6e1106ec5bef2e8267327670172577904578)
+
   * Zeekygen doesn't support comments on set members (Vlad Grigorescu)
+
+    (cherry-picked from 867bc5e14bd07c4a86a83c20c1923f7ec3bed8d9)
 
   * Add 6to4 addresses, if the matching IPv4 address is private (Vlad Grigorescu)
 
+    (cherry-picked from 867bc5e14bd07c4a86a83c20c1923f7ec3bed8d9)
+
   * Update Site::private_address_space to latest IANA networks (Vlad Grigorescu)
+
+    (cherry-picked from 867bc5e14bd07c4a86a83c20c1923f7ec3bed8d9)
 
 4.1.0-dev.921 | 2021-07-09 12:01:40 -0700
 

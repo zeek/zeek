@@ -1,3 +1,13 @@
+4.2.0-dev.45 | 2021-07-23 09:28:49 -0700
+
+  * GH-1684: Ensure that the time gets updated every pass if we're reading live traffic (Tim Wojtulewicz, Corelight)
+
+    This is necessary for e.g. packet sources that don't have a selectable
+    file descriptor. They'll always be ready on a very short timeout, but
+    won't necessarily have a packet to process. In these case, sometimes
+    the time won't get updated for a long time and timers don't function
+    correctly.
+
 4.2.0-dev.43 | 2021-07-21 11:41:19 -0700
 
   * Fix handling of timers when cloning TableVals (Johanna Amann, Corelight)

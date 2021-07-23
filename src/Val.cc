@@ -2009,7 +2009,7 @@ bool TableVal::Contains(const IPAddr& addr) const
 		return false;
 		}
 
-	return (subnets->Lookup(addr, true) != 0);
+	return (subnets->Lookup(addr, 128, false) != 0);
 	}
 
 Val* TableVal::Lookup(Val* index, bool use_default_val)

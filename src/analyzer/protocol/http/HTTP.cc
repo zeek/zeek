@@ -166,6 +166,7 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 		if ( expect_data_length <= 0 )
 			{
 			SetPlainDelivery(0);
+			http_message->SetDeliverySize(-1);
 			EndOfData();
 			}
 		}
@@ -510,6 +511,9 @@ void HTTP_Entity::SubmitAllHeaders()
 	// in_header should be set to false when SubmitAllHeaders() is called.
 	ASSERT(! in_header);
 
+	if (content_length >= 0 )
+		http_message->SetDeliverySize(content_length);
+
 	if ( DEBUG_http )
 		DEBUG_MSG("%.6f end of headers\n", run_state::network_time);
 
@@ -823,6 +827,11 @@ void HTTP_Message::SetPlainDelivery(int64_t length)
 
 	if ( length > 0 && BifConst::skip_http_data )
 		content_line->SkipBytesAfterThisLine(length);
+	}
+
+void HTTP_Message::SetDeliverySize(int64_t length)
+	{
+	content_line->SetDeliverySize(length);
 	}
 
 void HTTP_Message::SkipEntityData()

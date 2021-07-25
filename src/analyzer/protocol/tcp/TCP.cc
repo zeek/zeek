@@ -277,7 +277,7 @@ bool TCP_Analyzer::ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp,
 	{
 	if ( ! run_state::current_pkt->l3_checksummed &&
 	     ! detail::ignore_checksums &&
-	     ! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(ip->IPHeaderSrcAddr()) &&
+	     ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) &&
 	     caplen >= len && ! endpoint->ValidChecksum(tp, len, ip->IP4_Hdr()) )
 		{
 		Weird("bad_TCP_checksum");

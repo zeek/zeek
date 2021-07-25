@@ -133,6 +133,14 @@ export {
 
 global ports: table[Analyzer::Tag] of set[port];
 
+function analyzer_option_change_ignore_checksums_nets(ID: string, new_value: set[subnet], location: string) : set[subnet]
+	{
+	if ( ID == "ignore_checksums_nets" )
+		__set_ignore_checksums_nets(new_value);
+
+	return new_value;
+	}
+
 event zeek_init() &priority=5
 	{
 	if ( disable_all )
@@ -140,6 +148,8 @@ event zeek_init() &priority=5
 
 	for ( a in disabled_analyzers )
 		disable_analyzer(a);
+
+	Option::set_change_handler("ignore_checksums_nets", analyzer_option_change_ignore_checksums_nets, 5);
 	}
 
 function enable_analyzer(tag: Analyzer::Tag) : bool

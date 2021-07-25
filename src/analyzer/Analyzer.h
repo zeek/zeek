@@ -11,6 +11,7 @@
 
 #include "zeek/analyzer/Tag.h"
 
+#include "zeek/ID.h"
 #include "zeek/Obj.h"
 #include "zeek/EventHandler.h"
 #include "zeek/Timer.h"
@@ -626,6 +627,9 @@ public:
 	 */
 	virtual unsigned int MemoryAllocation() const;
 
+	static void SetIgnoreChecksumsNets(TableValPtr t);
+	static TableValPtr GetIgnoreChecksumsNets(void);
+
 protected:
 	friend class AnalyzerTimer;
 	friend class Manager;
@@ -750,6 +754,7 @@ private:
 	bool removing;
 
 	static ID id_counter;
+	static TableValPtr ignore_checksums_nets_table;
 };
 
 /**

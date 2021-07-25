@@ -49,3 +49,12 @@ function __tag%(name: string%) : Analyzer::Tag
 	analyzer::Tag t = zeek::analyzer_mgr->GetComponentTag(name->CheckString());
 	return t.AsVal();
 	%}
+
+function Analyzer::__set_ignore_checksums_nets%(v: any%) : bool
+	%{
+	if ( v->GetType()->Tag() != zeek::TYPE_TABLE )
+		zeek::emit_builtin_error("update_ignore_checksums_net() requires a table/set argument");
+
+	zeek::analyzer::Analyzer::SetIgnoreChecksumsNets(zeek::IntrusivePtr{zeek::NewRef{}, v->AsTableVal()});
+	return zeek::val_mgr->True();
+	%}

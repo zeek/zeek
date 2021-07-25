@@ -11,6 +11,10 @@
 #include "zeek/Event.h"
 #include "zeek/TunnelEncapsulation.h"
 
+// XXX: This is only for zeek::analyzer::Analyzer::GetIgnoreChecksumsNets()
+#include "zeek/analyzer/Analyzer.h"
+
+
 using namespace zeek::packet_analysis::IP;
 
 IPAnalyzer::IPAnalyzer()
@@ -126,7 +130,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		 return false;
 
 	if ( ! packet->l2_checksummed && ! detail::ignore_checksums && ip4 &&
-	     ! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
+	     ! zeek::analyzer::Analyzer::GetIgnoreChecksumsNets()->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
 	     detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff )
 		{
 		Weird("bad_IP_checksum", packet);

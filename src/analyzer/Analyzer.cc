@@ -69,6 +69,20 @@ void AnalyzerTimer::Init(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
 
 analyzer::ID Analyzer::id_counter = 0;
 
+TableValPtr Analyzer::ignore_checksums_nets_table;
+
+void Analyzer::SetIgnoreChecksumsNets(TableValPtr t)
+	{
+	Analyzer::ignore_checksums_nets_table = t;
+	}
+
+TableValPtr Analyzer::GetIgnoreChecksumsNets(void)
+	{
+	if ( ! Analyzer::ignore_checksums_nets_table )
+		Analyzer::ignore_checksums_nets_table = zeek::id::find_val<TableVal>("ignore_checksums_nets");
+	return Analyzer::ignore_checksums_nets_table;
+	}
+
 const char* Analyzer::GetAnalyzerName() const
 	{
 	assert(tag);

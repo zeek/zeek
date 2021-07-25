@@ -125,8 +125,10 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	if ( packet_filter && packet_filter->Match(packet->ip_hdr, total_len, len) )
 		 return false;
 
+	static TableValPtr ignore_checksums_nets_table = zeek::id::find_val<TableVal>("ignore_checksums_nets");
+
 	if ( ! packet->l2_checksummed && ! detail::ignore_checksums && ip4 &&
-	     ! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
+	     ! ignore_checksums_nets_table->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
 	     detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff )
 		{
 		Weird("bad_IP_checksum", packet);

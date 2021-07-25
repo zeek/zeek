@@ -62,10 +62,12 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	int chksum = up->uh_sum;
 
+	static TableValPtr ignore_checksums_nets_table = zeek::id::find_val<TableVal>("ignore_checksums_nets");
+
 	auto validate_checksum =
 		! run_state::current_pkt->l3_checksummed &&
 		! zeek::detail::ignore_checksums &&
-		! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(ip->IPHeaderSrcAddr()) &&
+		! ignore_checksums_nets_table->Contains(ip->IPHeaderSrcAddr()) &&
 		caplen >=len;
 
 	constexpr auto vxlan_len = 8;

@@ -461,6 +461,71 @@ TEST_CASE("dict new robust iteration")
 	delete key3;
 	}
 
+class DictTestDummy
+	{
+public:
+	DictTestDummy(int v) : v(v) {}
+	~DictTestDummy() {}
+	int v = 0;
+	};
+
+TEST_CASE("dict robust iteration replacement")
+	{
+	PDict<DictTestDummy> dict;
+
+	DictTestDummy* val1 = new DictTestDummy(15);
+	uint32_t key_val1 = 5;
+	detail::HashKey* key1 = new detail::HashKey(key_val1);
+
+	DictTestDummy* val2 = new DictTestDummy(10);
+	uint32_t key_val2 = 25;
+	detail::HashKey* key2 = new detail::HashKey(key_val2);
+
+	DictTestDummy* val3 = new DictTestDummy(20);
+	uint32_t key_val3 = 35;
+	detail::HashKey* key3 = new detail::HashKey(key_val3);
+
+	dict.Insert(key1, val1);
+	dict.Insert(key2, val2);
+	dict.Insert(key3, val3);
+
+	int count = 0;
+	auto it = dict.begin_robust();
+
+	// Iterate past the first couple of elements so we're not done, but the
+	// iterator is still pointing at a valid element.
+	for ( ; count != 2 && it != dict.end_robust(); ++count, ++it )
+		{
+		}
+
+	// Store off the value at this iterator index
+	auto* v = it->GetValue<DictTestDummy*>();
+
+	// Replace it with something else
+	auto k = it->GetHashKey();
+	DictTestDummy* val4 = new DictTestDummy(50);
+	dict.Insert(k.get(), val4);
+
+	// Delete the original element
+	delete val2;
+
+	// This shouldn't crash with AddressSanitizer
+	for ( ; it != dict.end_robust(); ++it )
+		{
+		uint64_t k = *(uint32_t*) it->GetKey();
+		auto* v = it->GetValue<DictTestDummy*>();
+		CHECK(v->v == 50);
+		}
+
+	delete key1;
+	delete key2;
+	delete key3;
+
+	delete val1;
+	delete val3;
+	delete val4;
+	}
+
 TEST_CASE("dict iterator invalidation")
 	{
 	PDict<uint32_t> dict;
@@ -1066,8 +1131,10 @@ void* Dictionary::Insert(void* key, int key_size, detail::hash_t hash, void* val
 		Init();
 
 	void* v = nullptr;
-	//if found. i is the position
-	//if not found, i is the insert position, d is the distance of key on position i.
+
+	// Look to see if this key is already in the table. If found, insert_position is the
+	// position of the existing element. If not, insert_position is where it'll be inserted
+	// and insert_distance is the distance of the key for the position.
 	int insert_position = -1, insert_distance = -1;
 	int position = LookupIndex(key, key_size, hash, &insert_position, &insert_distance);
 	if ( position >= 0 )
@@ -1099,6 +1166,13 @@ void* Dictionary::Insert(void* key, int key_size, detail::hash_t hash, void* val
 			//need to set new v for iterators too.
 			for ( auto c: *iterators )
 				{
+				// Check to see if this iterator points at the entry we're replacing. The iterator
+				// keeps a copy of the element, so we need to update it too.
+				if ( **c == table[position] )
+					(*c)->value = val;
+
+				// Check if any of the inserted elements in this iterator point at the entry being
+				// replaced. Update those too.
 				auto it = std::find(c->inserted->begin(), c->inserted->end(), table[position]);
 				if ( it != c->inserted->end() )
 					it->value = val;

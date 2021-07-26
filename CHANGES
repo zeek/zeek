@@ -1,5 +1,9 @@
 4.1.0-rc1 | 2021-07-21 12:20:26 -0700
 
+  * GH-1693: Fix potential crash with elements being modified during robust iteration (Tim Wojtulewicz, Corelight)
+
+    (cherry-picked from 6acc3418e07fedc1dda0807af12be8a4623e2cfb)
+
   * Fix handling of timers when cloning TableVals (Johanna Amann, Corelight)
 
     When cloning TableVals, a new timer was created for the wrong object

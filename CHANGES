@@ -1,3 +1,9 @@
+4.2.0-dev.48 | 2021-07-26 13:03:01 -0700
+
+  * GH-1693: Fix potential crash with elements being modified during robust iteration (Tim Wojtulewicz, Corelight)
+
+  * Update HMAC key used for benchmarking service (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.45 | 2021-07-23 09:28:49 -0700
 
   * GH-1684: Ensure that the time gets updated every pass if we're reading live traffic (Tim Wojtulewicz, Corelight)

@@ -422,8 +422,6 @@ void delete_run()
 	{
 	util::detail::set_processing_status("TERMINATING", "delete_run");
 
-	delete session_mgr;
-
 	for ( int i = 0; i < zeek::detail::NUM_ADDR_ANONYMIZATION_METHODS; ++i )
 		delete zeek::detail::ip_anonymizer[i];
 	}

@@ -64,6 +64,7 @@
 #include "zeek/iosource/Manager.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/telemetry/Manager.h"
+#include "zeek/session/Manager.h"
 
 #include "zeek/binpac_zeek.h"
 #include "zeek/module_util.h"
@@ -334,6 +335,7 @@ static void terminate_bro()
 	delete reporter;
 	delete plugin_mgr;
 	delete val_mgr;
+	delete session_mgr;
 	delete fragment_mgr;
 	delete telemetry_mgr;
 

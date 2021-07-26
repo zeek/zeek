@@ -537,30 +537,39 @@ if (ZEEK_STANDALONE)
         set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif ()
 
-    install(TARGETS zeek RUNTIME DESTINATION bin ARCHIVE DESTINATION lib)
+    install(TARGETS zeek RUNTIME DESTINATION bin)
 
     set(BRO_EXE zeek
         CACHE STRING "Zeek executable binary" FORCE)
 
     set(BRO_EXE_PATH ${CMAKE_CURRENT_BINARY_DIR}/zeek
         CACHE STRING "Path to Zeek executable binary" FORCE)
+endif()
 
-else()
-    add_library(zeek STATIC $<TARGET_OBJECTS:zeek_objs> ${zeek_HEADERS})
+if (NOT ZEEK_STANDALONE OR CONAN_EXPORTED)
+    add_library(libzeek STATIC $<TARGET_OBJECTS:zeek_objs>
+                                ${zeek_HEADERS}
+                                ${bro_SUBDIR_LIBS}
+                                ${bro_PLUGIN_LIBS})
 
-    target_link_libraries(zeek PUBLIC ${zeekdeps}
+    target_link_libraries(libzeek PUBLIC ${zeekdeps}
                                       ${CMAKE_THREAD_LIBS_INIT}
                                       ${CMAKE_DL_LIBS}
                                       ${bro_SUBDIR_LIBS}
                                       ${bro_PLUGIN_LIBS})
 
-    target_include_directories(zeek PUBLIC
+    target_include_directories(libzeek PUBLIC
                                     ${CMAKE_SOURCE_DIR}/zeek/src
                                     ${CMAKE_SOURCE_DIR}/zeek/src/include
                                     ${CMAKE_BINARY_DIR}
                                     ${CMAKE_BINARY_DIR}/zeek/src
-                                    ${CMAKE_BINARY_DIR}/zeek/src/include
-                                    ${CMAKE_SOURCE_DIR}/zeek/src/windows/usr.include)
+                                    ${CMAKE_BINARY_DIR}/zeek/src/include)
+
+    if ( WIN32 )
+        target_include_directories(libzeek PUBLIC ${CMAKE_SOURCE_DIR}/zeek/src/windows/usr.include)
+    endif()
+
+    install(TARGETS libzeek LIBRARY DESTINATION lib)
 endif()
 
 if ( NOT WIN32 )
@@ -621,7 +630,16 @@ install(CODE "
 
 # Make sure to escape a bunch of special characters in the path before trying to use it as a
 # regular expression below.
-string(REGEX REPLACE "([][+.*()^])" "\\\\\\1" escaped_path "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
+string(REGEX REPLACE "([][+.*()^])" "\\\\\\1" escaped_include_path "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
+string(REGEX REPLACE "([][+.*()^])" "\\\\\\1" escaped_windows_path "${CMAKE_CURRENT_SOURCE_DIR}/windows/*")
+
+if (WIN32)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/windows/usr.include/
+            DESTINATION include/
+            FILES_MATCHING
+            PATTERN "*.h"
+    )
+endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/zeek
@@ -630,7 +648,9 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         PATTERN "*.pac"
         PATTERN "3rdparty/*" EXCLUDE
         # The "zeek -> ." symlink isn't needed in the install-tree
-        REGEX "^${escaped_path}$" EXCLUDE
+        REGEX "${escaped_include_path}$" EXCLUDE
+        # Windows headers are already installed if needed
+        REGEX "${escaped_windows_path}$" EXCLUDE
 
 	# FILES_MATCHING creates empty directories:
 	# https://gitlab.kitware.com/cmake/cmake/-/issues/17122

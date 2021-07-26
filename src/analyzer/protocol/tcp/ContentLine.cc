@@ -99,10 +99,14 @@ void ContentLine_Analyzer::DeliverStream(int len, const u_char* data,
 
 	// If we have parsed all the data of the packet but there is no CRLF at the end
 	// Force the process by flushing buffer
-	if ( delivery_length == 0 && HasPartialLine() )
+	if ( delivery_length == 0 )
 		{
-		Weird("No CRLF at the end of the packet");
-		DoDeliver(2, (const u_char*) "\r\n");
+		if (HasPartialLine())
+			{
+				Weird("line_terminated_without_CRLF");
+				DoDeliver(2, (const u_char*) "\r\n");
+			}
+			delivery_length = -1;
 		}
 
 	seq += len;

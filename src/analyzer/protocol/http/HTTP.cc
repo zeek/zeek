@@ -511,9 +511,6 @@ void HTTP_Entity::SubmitAllHeaders()
 	// in_header should be set to false when SubmitAllHeaders() is called.
 	ASSERT(! in_header);
 
-	if (content_length >= 0 )
-		http_message->SetDeliverySize(content_length);
-
 	if ( DEBUG_http )
 		DEBUG_MSG("%.6f end of headers\n", run_state::network_time);
 
@@ -530,6 +527,9 @@ void HTTP_Entity::SubmitAllHeaders()
 		http_message->content_line->SupressWeirds(true);
 		http_message->content_line->SetCRLFAsEOL(0);
 		}
+
+		if (content_length >= 0 )
+			http_message->SetDeliverySize(content_length);
 
 	// The presence of a message-body in a request is signaled by
 	// the inclusion of a Content-Length or Transfer-Encoding

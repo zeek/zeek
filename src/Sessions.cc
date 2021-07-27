@@ -6,8 +6,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <algorithm>
 #include <stdlib.h>
 #include <unistd.h>
+#include <vector>
 
 #include <pcap.h>
 
@@ -481,27 +483,26 @@ void NetSessions::Insert(Connection* c)
 		}
 	}
 
+// Sort the connection maps by ConnIDKey during draining for determinism.
 void NetSessions::Drain()
 	{
-	for ( const auto& entry : tcp_conns )
+	ConnectionMap *conn_maps[] = {&tcp_conns, &udp_conns, &icmp_conns};
+	for ( auto map : conn_maps )
 		{
-		Connection* tc = entry.second;
-		tc->Done();
-		tc->RemovalEvent();
-		}
+		std::vector<zeek::detail::ConnIDKey> keys;
+		keys.reserve(map->size());
 
-	for ( const auto& entry : udp_conns )
-		{
-		Connection* uc = entry.second;
-		uc->Done();
-		uc->RemovalEvent();
-		}
+		for ( const auto& entry: *map )
+			keys.push_back(entry.first);
 
-	for ( const auto& entry : icmp_conns )
-		{
-		Connection* ic = entry.second;
-		ic->Done();
-		ic->RemovalEvent();
+		std::sort(keys.begin(), keys.end());
+
+		for ( const auto& k : keys )
+			{
+			Connection *c = (*map)[k];
+			c->Done();
+			c->RemovalEvent();
+			}
 		}
 	}
 

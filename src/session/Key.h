@@ -4,8 +4,11 @@
 
 #include <cstddef>
 #include <cstdint>
+#include "zeek/Hash.h"
 
 namespace zeek::session::detail {
+
+struct KeyHash;
 
 /**
  * This type is used as the key for the map in SessionManager. It represents a
@@ -57,12 +60,23 @@ public:
 	void CopyData();
 
 	bool operator<(const Key& rhs) const;
+	bool operator==(const Key& rhs) const;
+
+	std::size_t Hash() const {
+		return zeek::detail::HashKey::HashBytes(data, size);
+	}
 
 private:
+	friend struct KeyHash;
+
 	const uint8_t* data = nullptr;
 	size_t size = 0;
 	size_t type = CONNECTION_KEY_TYPE;
 	bool copied = false;
+};
+
+struct KeyHash {
+	std::size_t operator()(const Key& k) const { return k.Hash(); }
 };
 
 } // namespace zeek::session::detail

@@ -218,9 +218,17 @@ void Manager::Insert(Session* s, bool remove_existing)
 
 void Manager::Drain()
 	{
-	for ( const auto& entry : session_map )
+	std::vector<const detail::Key*> keys;
+	keys.reserve(session_map.size());
+
+	for ( auto& entry : session_map )
+		keys.push_back(&(entry.first));
+	std::sort(keys.begin(), keys.end(), [](const detail::Key* a, const detail::Key* b) {
+		                                    return *a < *b; });
+
+	for ( const auto* k : keys )
 		{
-		Session* tc = entry.second;
+		Session* tc = session_map.at(*k);
 		tc->Done();
 		tc->RemovalEvent();
 		}

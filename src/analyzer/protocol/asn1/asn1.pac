@@ -87,9 +87,17 @@ type Array = record {
 
 ############################## ASN.1 Conversion Functions
 
+# Converts an 8-byte string into an int64. If this string is longer than
+# 8 bytes, it reports a weird and returns zero.
 function binary_to_int64(bs: bytestring): int64
 	%{
 	int64 rval = 0;
+
+	if ( bs.length() > 8 )
+		{
+		zeek::reporter->Weird("asn_binary_to_int64_shift_too_large", zeek::util::fmt("%d", bs.length()));
+		return 0;
+		}
 
 	for ( int i = 0; i < bs.length(); ++i )
 		{

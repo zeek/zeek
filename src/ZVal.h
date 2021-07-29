@@ -35,6 +35,10 @@ using TypeValPtr = IntrusivePtr<TypeVal>;
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
 
+namespace detail {
+	class ZBody;
+}
+
 // Note that a ZVal by itself is ambiguous: it doesn't track its type.
 // This makes them consume less memory and cheaper to copy.  It does
 // however require a separate way to determine the type.  Generally
@@ -160,6 +164,7 @@ union ZVal {
 private:
 	friend class RecordVal;
 	friend class VectorVal;
+	friend class zeek::detail::ZBody;
 
 	// Used for bool, int, enum.
 	bro_int_t int_val;

@@ -135,7 +135,8 @@ class CPPCompile {
 public:
 	CPPCompile(std::vector<FuncInfo>& _funcs, ProfileFuncs& pfs,
 	           const std::string& gen_name, const std::string& addl_name,
-	           CPPHashManager& _hm, bool _update, bool _standalone);
+	           CPPHashManager& _hm, bool _update, bool _standalone,
+	           bool report_uncompilable);
 	~CPPCompile();
 
 private:
@@ -145,7 +146,7 @@ private:
 	//
 
 	// Main driver, invoked by constructor.
-	void Compile();
+	void Compile(bool report_uncompilable);
 
 	// Generate the beginning of the compiled code: run-time functions,
 	// namespace, auxiliary globals.
@@ -161,8 +162,11 @@ private:
 	void GenEpilog();
 
 	// True if the given function (plus body and profile) is one 
-	// that should be compiled.
-	bool IsCompilable(const FuncInfo& func);
+	// that should be compiled.  If non-nil, sets reason to the
+	// the reason why, if there's a fundamental problem.  If however
+	// the function should be skipped for other reasons, then sets
+	// it to nil.
+	bool IsCompilable(const FuncInfo& func, const char** reason = nullptr);
 
 	// The set of functions/bodies we're compiling.
 	std::vector<FuncInfo>& funcs;

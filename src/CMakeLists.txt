@@ -200,7 +200,7 @@ install(FILES ${PRELOAD_SCRIPT} DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/builtin-
 install(FILES ${LOAD_SCRIPT} DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins/)
 
 ########################################################################
-## bro target
+## zeek target
 
 find_package (Threads)
 
@@ -234,7 +234,7 @@ endmacro(COLLECT_HEADERS _var)
 cmake_policy(POP)
 
 # define a command that's used to run the make_dbg_constants.py script
-# building the bro binary depends on the outputs of this script
+# building the zeek binary depends on the outputs of this script
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                           ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc
                    COMMAND ${PYTHON_EXECUTABLE}

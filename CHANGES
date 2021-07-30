@@ -1,3 +1,7 @@
+4.2.0-dev.56 | 2021-07-30 08:52:49 -0700
+
+  * GH-1654: Exclude the .git directory when installing cmake files (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.54 | 2021-07-29 13:23:51 -0700
 
   * GH-1692: Add some safety to ASN's binary_to_int64 to avoid bad shifts (Tim Wojtulewicz, Corelight)

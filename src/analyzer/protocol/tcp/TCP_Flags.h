@@ -1,5 +1,9 @@
 #pragma once
 
+#include <sys/types.h>
+#include <netinet/tcp.h>
+#include <string>
+
 namespace zeek::analyzer::tcp {
 
 class TCP_Flags {

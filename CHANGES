@@ -1,3 +1,9 @@
+4.2.0-dev.59 | 2021-08-02 11:10:04 -0700
+
+  * Fix failing test due to patricia change (Tim Wojtulewicz, Corelight)
+
+  * Rebase patricia code on upstream version (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.56 | 2021-07-30 08:52:49 -0700
 
   * GH-1654: Exclude the .git directory when installing cmake files (Tim Wojtulewicz, Corelight)

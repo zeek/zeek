@@ -152,7 +152,7 @@ void PQ_TimerMgr::Expire()
 int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
 	{
 	Timer* timer = Top();
-	for ( num_expired = 0; (num_expired < max_expire || max_expire == 0) &&
+	for ( num_expired = 0; (num_expired < max_expire ) &&
 		     timer && timer->Time() <= new_t; ++num_expired )
 		{
 		last_timestamp = timer->Time();

@@ -166,6 +166,7 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 		if ( expect_data_length <= 0 )
 			{
 			SetPlainDelivery(0);
+			http_message->SetDeliverySize(-1);
 			EndOfData();
 			}
 		}
@@ -527,6 +528,9 @@ void HTTP_Entity::SubmitAllHeaders()
 		http_message->content_line->SetCRLFAsEOL(0);
 		}
 
+		if (content_length >= 0 )
+			http_message->SetDeliverySize(content_length);
+
 	// The presence of a message-body in a request is signaled by
 	// the inclusion of a Content-Length or Transfer-Encoding
 	// header field in the request's message-headers.
@@ -823,6 +827,11 @@ void HTTP_Message::SetPlainDelivery(int64_t length)
 
 	if ( length > 0 && BifConst::skip_http_data )
 		content_line->SkipBytesAfterThisLine(length);
+	}
+
+void HTTP_Message::SetDeliverySize(int64_t length)
+	{
+	content_line->SetDeliverySize(length);
 	}
 
 void HTTP_Message::SkipEntityData()

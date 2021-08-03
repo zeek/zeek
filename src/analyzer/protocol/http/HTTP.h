@@ -120,6 +120,7 @@ public:
 
 	void SubmitTrailingHeaders(analyzer::mime::MIME_HeaderList& /* hlist */);
 	void SetPlainDelivery(int64_t length);
+	void SetDeliverySize(int64_t length);
 	void SkipEntityData();
 
 	HTTP_Analyzer* MyHTTP_Analyzer() const

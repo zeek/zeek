@@ -1,3 +1,9 @@
+4.2.0-dev.64 | 2021-08-03 10:23:41 +0100
+
+  * Under certain circumstances, Zeek processes could get into an infinite looping state inside RotationTimer.
+    This is fixed by handling special cases of rotation happening exactly on the time boundary, and fixing
+    a special case of timer expiration. Fixes GH-1689. (Sowmya Ramapatruni, Corelight)
+
 4.2.0-dev.62 | 2021-08-03 10:21:18 +0100
 
   * Fix some HTTP evasions. Now HTTP packets are correctly parsed, when CRLF is missing on a multipart

@@ -1,5 +1,10 @@
 4.1.0-rc1 | 2021-07-21 12:20:26 -0700
 
+  * Fix some HTTP evasions. Now HTTP packets are correctly parsed, when CRLF is missing on a multipart
+    boundary / at packet boundaries. Fixes GH-1598 (jerome Grandvalet)
+
+    (cherry-picked from 8b506ca113928334b6dadf4ff5f721ab093083d4)
+
   * Under certain circumstances, Zeek processes could get into an infinite looping state inside RotationTimer.
     This is fixed by handling special cases of rotation happening exactly on the time boundary, and fixing
     a special case of timer expiration. Fixes GH-1689. (Sowmya Ramapatruni, Corelight)

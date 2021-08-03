@@ -31,6 +31,7 @@ void ContentLine_Analyzer::InitState()
 	seq = 0;
 	seq_to_skip = 0;
 	plain_delivery_length = 0;
+	delivery_length = -1;
 	is_plain = false;
 	suppress_weirds = false;
 
@@ -91,7 +92,22 @@ void ContentLine_Analyzer::DeliverStream(int len, const u_char* data,
 			return;
 		}
 
+	if ( delivery_length > 0 )
+			delivery_length -= len;
+
 	DoDeliver(len, data);
+
+	// If we have parsed all the data of the packet but there is no CRLF at the end
+	// Force the process by flushing buffer
+	if ( delivery_length == 0 )
+		{
+		if (HasPartialLine())
+			{
+			Weird("line_terminated_without_CRLF");
+			DoDeliver(2, (const u_char*) "\r\n");
+			}
+		delivery_length = -1;
+		}
 
 	seq += len;
 	}
@@ -117,6 +133,18 @@ void ContentLine_Analyzer::SetPlainDelivery(int64_t length)
 		}
 
 	plain_delivery_length = length;
+	}
+
+void ContentLine_Analyzer::SetDeliverySize(int64_t length)
+	{
+	// Length can be unset with -1 value, all other negative length will be rejected
+	if ( length < -1 )
+		{
+		reporter->AnalyzerError( this, "negative length for delivery size");
+		return;
+		}
+
+	delivery_length = length;
 	}
 
 void ContentLine_Analyzer::DoDeliver(int len, const u_char* data)

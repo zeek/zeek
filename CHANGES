@@ -1,6 +1,14 @@
 4.1.0-rc1 | 2021-07-21 12:20:26 -0700
 
+  * Under certain circumstances, Zeek processes could get into an infinite looping state inside RotationTimer.
+    This is fixed by handling special cases of rotation happening exactly on the time boundary, and fixing
+    a special case of timer expiration. Fixes GH-1689. (Sowmya Ramapatruni, Corelight)
+
+    (cherry-picked from ec6b954499dedad6808b7343aee9a19ebd50de1d)
+
   * GH-1692: Add some safety to ASN's binary_to_int64 to avoid bad shifts (Tim Wojtulewicz, Corelight)
+
+    (cherry-picked from 830ddec9375059f131235a2e4099597827fc480e)
 
   * GH-1693: Fix potential crash with elements being modified during robust iteration (Tim Wojtulewicz, Corelight)
 

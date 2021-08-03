@@ -885,9 +885,10 @@ double calc_next_rotate(double current, double interval, double base)
 	double startofday = mktime(&t);
 
 	// current < startofday + base + i * interval <= current + interval
-	return startofday + base +
+	double delta_t = startofday + base +
 		ceil((current - startofday - base) / interval) * interval -
 			current;
+	return delta_t > 0.0 ? delta_t: interval;
 	}
 
 void terminate_processing()

@@ -1,3 +1,8 @@
+4.2.0-dev.62 | 2021-08-03 10:21:18 +0100
+
+  * Fix some HTTP evasions. Now HTTP packets are correctly parsed, when CRLF is missing on a multipart
+    boundary / at packet boundaries. Fixes GH-1598 (jerome Grandvalet)
+
 4.2.0-dev.59 | 2021-08-02 11:10:04 -0700
 
   * Fix failing test due to patricia change (Tim Wojtulewicz, Corelight)

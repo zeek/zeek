@@ -1,3 +1,8 @@
+4.2.0-dev.68 | 2021-08-04 09:57:32 +0100
+
+  * Use unordered_map to store sessions for performance reasons. This might lead to an 8-9% speedup of Zeek.
+    See GH-1706 for details. (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.64 | 2021-08-03 10:23:41 +0100
 
   * Under certain circumstances, Zeek processes could get into an infinite looping state inside RotationTimer.

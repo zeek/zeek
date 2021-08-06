@@ -86,8 +86,6 @@ private:
 	bool ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp,
 	                      analyzer::tcp::TCP_Endpoint* endpoint,
 	                      int len, int caplen, TCPSessionAdapter* adapter);
-
-	TableValPtr ignored_nets;
 };
 
 }

@@ -282,3 +282,18 @@ void IPBasedAnalyzer::DumpPortDebug()
 		DBG_LOG(DBG_ANALYZER, "    %d/%s: %s", mapping.first, transport_proto_string(transport), s.c_str());
 		}
 	}
+
+TableValPtr IPBasedAnalyzer::ignore_checksums_nets_table = nullptr;
+
+void IPBasedAnalyzer::SetIgnoreChecksumsNets(TableValPtr t)
+	{
+	IPBasedAnalyzer::ignore_checksums_nets_table = t;
+	}
+
+TableValPtr IPBasedAnalyzer::GetIgnoreChecksumsNets()
+	{
+	if ( ! IPBasedAnalyzer::ignore_checksums_nets_table )
+		IPBasedAnalyzer::ignore_checksums_nets_table = zeek::id::find_val<TableVal>("ignore_checksums_nets");
+	return IPBasedAnalyzer::ignore_checksums_nets_table;
+	}
+

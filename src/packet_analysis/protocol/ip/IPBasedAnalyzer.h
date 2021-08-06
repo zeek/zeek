@@ -7,6 +7,7 @@
 
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/analyzer/Tag.h"
+#include "zeek/ID.h"
 
 namespace zeek::analyzer::pia { class PIA; }
 
@@ -60,6 +61,25 @@ public:
 	 * Used by analyzer::Manager.
 	 */
 	void DumpPortDebug();
+
+	/**
+	 * Updates the internal pointer to the script-level variable `ignore_checksums_nets`.
+	 * This is used to prevent repeated (costly) lookup of the script-level variable
+	 * by IP-based analyzers.
+	 *
+	 * @param t New value of ignore_checksums_nets
+	 */
+	static void SetIgnoreChecksumsNets(TableValPtr t);
+
+
+  /**
+	 * Gets the interpal pointer to the script-level variable `ignore_checksums_nets`.
+	 * This is used to prevent repeated (costly) lookup of the script-level variable
+	 * by IP-based analyzers.
+	 *
+	 * @return Current value of `ignore_checksums_nets`.
+	 */
+	static TableValPtr GetIgnoreChecksumsNets();
 
 protected:
 
@@ -178,6 +198,7 @@ private:
 
 	TransportProto transport;
 	uint32_t server_port_mask;
+	static TableValPtr ignore_checksums_nets_table;
 };
 
 }

@@ -25,6 +25,13 @@ type string_any_table: table[string] of any;
 ##    directly and then remove this alias.
 type string_set: set[string];
 
+## A set of subnets.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type subnet_set: set[subnet];
+
 ## A set of addresses.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions

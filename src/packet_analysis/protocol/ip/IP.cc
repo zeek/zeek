@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/packet_analysis/protocol/ip/IP.h"
+#include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 #include "zeek/NetVar.h"
 #include "zeek/IP.h"
 #include "zeek/Discard.h"
@@ -128,7 +129,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		 return false;
 
 	if ( ! packet->l2_checksummed && ! detail::ignore_checksums && ip4 &&
-	     ! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
+	     ! IPBasedAnalyzer::GetIgnoreChecksumsNets()->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
 	     detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff )
 		{
 		Weird("bad_IP_checksum", packet);

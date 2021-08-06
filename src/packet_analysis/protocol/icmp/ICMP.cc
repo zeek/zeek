@@ -77,7 +77,7 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
 	const std::unique_ptr<IP_Hdr>& ip = pkt->ip_hdr;
 
 	if ( ! zeek::detail::ignore_checksums &&
-	     ! zeek::id::find_val<TableVal>("ignore_checksums_nets")->Contains(ip->IPHeaderSrcAddr()) &&
+	     ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) &&
 	     remaining >= len )
 		{
 		int chksum = 0;

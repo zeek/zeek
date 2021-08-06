@@ -1,3 +1,15 @@
+4.2.0-dev.70 | 2021-08-06 13:29:30 -0700
+
+  * Do not lookup ignore_checksums_nets for every packet (Johanna Amann, Corelight)
+
+    This could lead to a noticeable (single-percent) performance
+    improvement.
+
+    Most of the functionality for this is in the packet analyzers that now
+    cache ignore_chesksums_nets.
+
+    Based on a patch by Arne Welzel (Corelight).
+
 4.2.0-dev.68 | 2021-08-04 09:57:32 +0100
 
   * Use unordered_map to store sessions for performance reasons. This might lead to an 8-9% speedup of Zeek.

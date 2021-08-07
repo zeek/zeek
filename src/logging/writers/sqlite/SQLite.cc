@@ -122,7 +122,9 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 
 	// Allow connections to same DB to use single data/schema cache. Also
 	// allows simultaneous writes to one file.
+#ifndef ZEEK_TSAN
 	sqlite3_enable_shared_cache(1);
+#endif
 
 	num_fields = arg_num_fields;
 	fields = arg_fields;

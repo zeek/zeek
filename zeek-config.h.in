@@ -276,13 +276,17 @@ extern const char* BRO_VERSION_FUNCTION();
 	#define ZEEK_LSAN_DISABLE_SCOPE(x)
 #endif
 
+// This part is dependent on calling configure with '--sanitizers=thread'
+// and not manually setting CFLAGS/CXXFLAGS to include --fsanitize=thread.
+// This is because some of the unit tests only work when built without
+// TSan, at least until SQLite opts to fix their problems with atomics.
 #if defined(__SANITIZE_THREAD__)
-	#define ZEEK_TSAN
+	#cmakedefine ZEEK_TSAN
 #endif
 
 #if defined(__has_feature)
 	#if __has_feature(thread_sanitizer)
-		#define ZEEK_TSAN
+		#cmakedefine ZEEK_TSAN
 	#endif
 #endif
 

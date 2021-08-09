@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "zeek/DebugLogger.h"
 #include "zeek/threading/BasicThread.h"
 #include "zeek/threading/Queue.h"
@@ -335,8 +337,8 @@ private:
 	Queue<BasicInputMessage *> queue_in;
 	Queue<BasicOutputMessage *> queue_out;
 
-	uint64_t cnt_sent_in;	// Counts message sent to child.
-	uint64_t cnt_sent_out;	// Counts message sent by child.
+	std::atomic<uint64_t> cnt_sent_in;	// Counts message sent to child.
+	std::atomic<uint64_t> cnt_sent_out;	// Counts message sent by child.
 
 	bool main_finished;	// Main thread is finished, meaning child_finished propagated back through message queue.
 	bool child_finished;	// Child thread is finished.

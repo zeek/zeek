@@ -202,7 +202,9 @@ Message::~Message()
 
 MsgThread::MsgThread() : BasicThread(), queue_in(this, nullptr), queue_out(nullptr, this)
 	{
-	cnt_sent_in = cnt_sent_out = 0;
+	cnt_sent_in.store(0);
+	cnt_sent_out.store(0);
+
 	main_finished = false;
 	child_finished = false;
 	child_sent_finish = false;
@@ -457,8 +459,8 @@ void MsgThread::Run()
 
 void MsgThread::GetStats(Stats* stats)
 	{
-	stats->sent_in = cnt_sent_in;
-	stats->sent_out = cnt_sent_out;
+	stats->sent_in = cnt_sent_in.load();
+	stats->sent_out = cnt_sent_out.load();
 	stats->pending_in = queue_in.Size();
 	stats->pending_out = queue_out.Size();
 	queue_in.GetStats(&stats->queue_in_stats);

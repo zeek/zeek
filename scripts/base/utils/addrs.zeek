@@ -83,8 +83,12 @@ function has_valid_octets(octets: string_vec): bool
 ##
 ## input: a string that may contain an IP address anywhere within it.
 ##
+## check_wrapping: if true, will only return IP addresses that are wrapped in matching
+## pairs of spaces, square brackets, curly braces, or parens. This can be used to avoid
+## extracting strings that look like IPs from innocuous strings, such as SMTP headers.
+##
 ## Returns: an array containing all valid IP address strings found in *input*.
-function extract_ip_addresses(input: string): string_vec
+function extract_ip_addresses(input: string, check_wrapping: bool &default=F): string_vec
 	{
 	local parts = split_string_all(input, ip_addr_regex);
 	local output: string_vec;
@@ -92,7 +96,24 @@ function extract_ip_addresses(input: string): string_vec
 	for ( i in parts )
 		{
 		if ( i % 2 == 1 && is_valid_ip(parts[i]) )
-			output += parts[i];
+			{
+			if ( ! check_wrapping )
+				{
+				output += parts[i];
+				}
+			else if ( i > 0 && i < |parts| - 1 )
+				{
+				local p1 = parts[i-1];
+				local p3 = parts[i+1];
+
+				if ( ( |p1| == 0 && |p3| == 0 ) ||
+				     ( p1[-1] == "\[" && p3[0] == "\]" ) ||
+			             ( p1[-1] == "\(" && p3[0] == "\)" ) ||
+			             ( p1[-1] == "\{" && p3[0] == "\}" ) ||
+			             ( p1[-1] == " " && p3[0] == " " ) )
+					output += parts[i];
+				}
+			}
 		}
 	return output;
 	}

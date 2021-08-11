@@ -1,4 +1,6 @@
-4.1.0-rc2 | 2021-08-04 15:10:58 -0700
+4.1.0 | 2021-08-04 15:13:39 -0700
+
+  * Release 4.1.0.
 
   * Fix some HTTP evasions. Now HTTP packets are correctly parsed, when CRLF is missing on a multipart
     boundary / at packet boundaries. Fixes GH-1598 (jerome Grandvalet)

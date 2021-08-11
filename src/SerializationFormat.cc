@@ -82,10 +82,18 @@ bool SerializationFormat::ReadData(void* b, size_t count)
 bool SerializationFormat::WriteData(const void* b, size_t count)
 	{
 	// Increase buffer if necessary.
+	bool size_changed = false;
 	while ( output_pos + count > output_size )
+		{
 		output_size *= GROWTH_FACTOR;
+		size_changed = true;
+		}
 
-	output = (char*)util::safe_realloc(output, output_size);
+	// The glibc standard states explicitly that calling realloc with the same
+	// size is a no-op, but the same claim can't be made on other platforms.
+	// There's really no reason to do that though.
+	if ( size_changed )
+		output = (char*)util::safe_realloc(output, output_size);
 
 	memcpy(output + output_pos, b, count);
 	output_pos += count;

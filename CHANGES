@@ -1,3 +1,7 @@
+4.2.0-dev.73 | 2021-08-12 09:57:59 -0700
+
+  * GH-1713: Avoid unneeded reallocs in SerializationFormat::WriteData (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.70 | 2021-08-06 13:29:30 -0700
 
   * Do not lookup ignore_checksums_nets for every packet (Johanna Amann, Corelight)

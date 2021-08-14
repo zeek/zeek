@@ -93,7 +93,7 @@ broker::backend to_backend_type(BifEnum::Broker::BackendType type)
 		return broker::backend::sqlite;
 
 	case BifEnum::Broker::ROCKSDB:
-		return broker::backend::rocksdb;
+		throw std::runtime_error("rocksdb backend no longer supported");
 	}
 
 	throw std::runtime_error("unknown broker backend");
@@ -106,13 +106,6 @@ broker::backend_options to_backend_options(broker::backend backend,
 	case broker::backend::sqlite:
 		{
 		auto path = options->GetField(0)->AsRecordVal()
-			->GetField(0)->AsStringVal()->CheckString();
-		return {{"path", path}};
-		}
-
-	case broker::backend::rocksdb:
-		{
-		auto path = options->GetField(1)->AsRecordVal()
 			->GetField(0)->AsStringVal()->CheckString();
 		return {{"path", path}};
 		}

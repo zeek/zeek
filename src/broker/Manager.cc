@@ -79,8 +79,8 @@ class BrokerState {
 public:
 	BrokerState(BrokerConfig config, size_t congestion_queue_size)
 		: endpoint(std::move(config)),
-		  subscriber(endpoint.make_subscriber({broker::topics::statuses,
-		                                       broker::topics::errors},
+		  subscriber(endpoint.make_subscriber({broker::topic::statuses(),
+		                                       broker::topic::errors()},
 		                                      congestion_queue_size))
 		{
 		}
@@ -238,7 +238,7 @@ void Manager::InitPostScript()
 	if ( ! iosource_mgr->RegisterFd(bstate->subscriber.fd(), this) )
 		reporter->FatalError("Failed to register broker subscriber with iosource_mgr");
 
-	bstate->subscriber.add_topic(broker::topics::store_events, true);
+	bstate->subscriber.add_topic(broker::topic::store_events(), true);
 
 	InitializeBrokerStoreForwarding();
 	}
@@ -272,9 +272,6 @@ void Manager::InitializeBrokerStoreForwarding()
 			switch ( backend ) {
 			case broker::backend::sqlite:
 				suffix = ".sqlite";
-				break;
-			case broker::backend::rocksdb:
-				suffix = ".rocksdb";
 				break;
 			default:
 				break;
@@ -953,7 +950,7 @@ void Manager::Process()
 		{
 		auto& topic = broker::get_topic(message);
 
-		if ( broker::topics::statuses.prefix_of(topic) )
+		if ( broker::is_prefix(topic, broker::topic::statuses_str) )
 			{
 			if ( auto stat = broker::make_status_view(get_data(message)) )
 				{
@@ -968,7 +965,7 @@ void Manager::Process()
 			continue;
 			}
 
-		if ( broker::topics::errors.prefix_of(topic) )
+		if ( broker::is_prefix(topic, broker::topic::errors_str) )
 			{
 			if ( auto err = broker::make_error_view(get_data(message)) )
 				{
@@ -983,7 +980,7 @@ void Manager::Process()
 			continue;
 			}
 
-		if ( broker::topics::store_events.prefix_of(topic) )
+		if ( broker::is_prefix(topic, broker::topic::store_events_str) )
 			{
 			ProcessStoreEvent(broker::move_data(message));
 			continue;
@@ -1624,9 +1621,6 @@ detail::StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend 
 		switch ( type ) {
 		case broker::backend::sqlite:
 			suffix = ".sqlite";
-			break;
-		case broker::backend::rocksdb:
-			suffix = ".rocksdb";
 			break;
 		default:
 			break;

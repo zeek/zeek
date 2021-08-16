@@ -413,7 +413,7 @@ bool GenIDDefs::IsAggr(const Expr* e) const
 
 void GenIDDefs::CheckVarUsage(const Expr* e, const ID* id)
 	{
-	if ( analysis_options.usage_issues == 0 || id->IsGlobal() ||
+	if ( analysis_options.usage_issues != 1 || id->IsGlobal() ||
 	     suppress_usage > 0 )
 		return;
 

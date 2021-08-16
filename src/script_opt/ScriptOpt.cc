@@ -78,7 +78,6 @@ static bool optimize_AST(ScriptFunc* f, std::shared_ptr<ProfileFunc>& pf,
 	{
 	pf = std::make_shared<ProfileFunc>(f, body, true);
 
-	// RD_Decorate reduced_rds(pf, f, scope, body);
 	GenIDDefs ID_defs(pf, f, scope, body);
 
 	if ( reporter->Errors() > 0 )
@@ -153,6 +152,12 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 	f->ReplaceBody(body, new_body);
 	body = new_body;
 
+	if ( analysis_options.usage_issues > 1 )
+		{
+		// Use the old-school approach for this.
+		RD_Decorate reduced_rds(pf, f, scope, body);
+		}
+
 	if ( analysis_options.optimize_AST &&
 	     ! optimize_AST(f, pf, rc, scope, body) )
 		{
@@ -164,7 +169,6 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 	pf = std::make_shared<ProfileFunc>(f, body, true);
 
 	// Compute its reaching definitions.
-	// RD_Decorate reduced_rds(pf, f, scope, body);
 	GenIDDefs ID_defs(pf, f, scope, body);
 
 	rc->SetReadyToOptimize();

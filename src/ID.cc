@@ -20,6 +20,7 @@
 #include "zeek/zeekygen/ScriptInfo.h"
 #include "zeek/zeekygen/utils.h"
 #include "zeek/module_util.h"
+#include "zeek/script_opt/IDOptInfo.h"
 
 namespace zeek {
 
@@ -119,6 +120,8 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	is_type = false;
 	offset = 0;
 
+	opt_info = new IDOptInfo(this);
+
 	infer_return_type = false;
 
 	SetLocationInfo(&start_location, &end_location);
@@ -127,6 +130,7 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 ID::~ID()
 	{
 	delete [] name;
+	delete opt_info;
 	}
 
 std::string ID::ModuleName() const
@@ -283,11 +287,6 @@ void ID::UpdateValAttrs()
 const AttrPtr& ID::GetAttr(AttrTag t) const
 	{
 	return attrs ? attrs->Find(t) : Attr::nil;
-	}
-
-void ID::AddInitExpr(ExprPtr init_expr)
-	{
-	init_exprs.emplace_back(std::move(init_expr));
 	}
 
 bool ID::IsDeprecated() const
@@ -674,6 +673,12 @@ std::vector<Func*> ID::GetOptionHandlers() const
 	for ( auto& element : option_handlers )
 		v.push_back(element.second.get());
 	return v;
+	}
+
+
+void IDOptInfo::AddInitExpr(ExprPtr init_expr)
+	{
+	init_exprs.emplace_back(std::move(init_expr));
 	}
 
 } // namespace detail

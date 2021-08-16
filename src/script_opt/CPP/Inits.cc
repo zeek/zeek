@@ -6,6 +6,7 @@
 
 #include "zeek/module_util.h"
 #include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/CPP/Compile.h"
 
 
@@ -122,7 +123,7 @@ void CPPCompile::GenGlobalInit(const ID* g, string& gl, const ValPtr& v)
 		// expression anyway.)
 
 		// Use the final initialization expression.
-		auto& init_exprs = g->GetInitExprs();
+		auto& init_exprs = g->GetOptInfo()->GetInitExprs();
 		init_val = GenExpr(init_exprs.back(), GEN_VAL_PTR, false);
 		}
 	else

@@ -4,6 +4,7 @@
 #include <cerrno>
 
 #include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/Desc.h"
 #include "zeek/Stmt.h"
 #include "zeek/Func.h"
@@ -500,7 +501,7 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf)
 		if ( t->Tag() == TYPE_TYPE )
 			(void) HashType(t->AsTypeType()->GetType());
 
-		auto& init_exprs = g->GetInitExprs();
+		auto& init_exprs = g->GetOptInfo()->GetInitExprs();
 		for ( const auto& i_e : init_exprs )
 			if ( i_e )
 				{

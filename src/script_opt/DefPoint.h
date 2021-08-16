@@ -17,7 +17,7 @@ enum DefPointType {
 	// Used to capture the notion "the variable may have no definition
 	// at this point" (or "has no definition", depending on whether we're
 	// concerned with minimal or maximal RDs).
-	NO_DEF,
+	NO_DEF_POINT,
 
 	// Assigned at the given statement.
 	STMT_DEF,
@@ -49,7 +49,7 @@ public:
 	DefinitionPoint()
 		{
 		o = nullptr;
-		t = NO_DEF;
+		t = NO_DEF_POINT;
 		}
 
 	DefinitionPoint(const Stmt* s)

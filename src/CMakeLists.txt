@@ -385,6 +385,8 @@ set(MAIN_SRCS
     script_opt/DefSetsMgr.cc
     script_opt/Expr.cc
     script_opt/GenRDs.cc
+    script_opt/GenIDDefs.cc
+    script_opt/IDOptInfo.cc
     script_opt/Inline.cc
     script_opt/ProfileFunc.cc
     script_opt/ReachingDefs.cc

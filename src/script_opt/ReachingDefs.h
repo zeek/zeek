@@ -190,7 +190,7 @@ public:
 		if ( ! dps || dps->length() != 1 )
 			return false;
 
-		return (*dps)[0].Tag() != NO_DEF;
+		return (*dps)[0].Tag() != NO_DEF_POINT;
 		}
 
 	// Whether the given definition item has an RD at the given

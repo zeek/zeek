@@ -70,9 +70,9 @@ union ZVal {
 	ZVal(OpaqueVal* v)	{ opaque_val = v; }
 	ZVal(PatternVal* v)	{ re_val = v; }
 	ZVal(TableVal* v)	{ table_val = v; }
-	ZVal(TypeVal* v)	{ type_val = v; }
 	ZVal(RecordVal* v)	{ record_val = v; }
 	ZVal(VectorVal* v)	{ vector_val = v; }
+	ZVal(TypeVal* v)	{ type_val = v; }
 	ZVal(Val* v)		{ any_val = v; }
 
 	ZVal(StringValPtr v)	{ string_val = v.release(); }
@@ -82,9 +82,9 @@ union ZVal {
 	ZVal(OpaqueValPtr v)	{ opaque_val = v.release(); }
 	ZVal(PatternValPtr v)	{ re_val = v.release(); }
 	ZVal(TableValPtr v)	{ table_val = v.release(); }
-	ZVal(TypeValPtr v)	{ type_val = v.release(); }
 	ZVal(RecordValPtr v)	{ record_val = v.release(); }
 	ZVal(VectorValPtr v)	{ vector_val = v.release(); }
+	ZVal(TypeValPtr v)	{ type_val = v.release(); }
 
 	// Convert to a higher-level script value.  The caller needs to
 	// ensure that they're providing the correct type.
@@ -170,8 +170,8 @@ private:
 	// Used for double, time, interval.
 	double double_val;
 
-	// The types are all variants of Val, Type, or more fundamentally
-	// Obj.  They are raw pointers rather than IntrusivePtr's because
+	// The types are all variants of Val, or more fundamentally Obj.
+	// They are raw pointers rather than IntrusivePtr's because
 	// unions can't contain the latter.  For memory management, we use
 	// Ref/Unref.
 	StringVal* string_val;

@@ -634,7 +634,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 		for ( const auto& expr : l->Exprs() )
 			{
 			if ( expr->Tag() != EXPR_NAME )
-				// This will happen for table initialiers,
+				// This will happen for table initializers,
 				// for example.
 				return false;
 

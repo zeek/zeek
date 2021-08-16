@@ -78,8 +78,8 @@ a file `CPP-hashes.dat`, for use by an advanced feature, and an
 empty `CPP-gen-addl.h` file (same).
 2. `ninja` or `make` to recompile Zeek
 3. `./src/zeek -O use-C++ target.zeek`  
-Executes with each function/hook/
-event handler pulled in by `target.zeek` replaced with its compiled version.
+Executes with each function/hook/event
+handler pulled in by `target.zeek` replaced with its compiled version.
 
 Instead of the last line above, you can use the following variants:
 

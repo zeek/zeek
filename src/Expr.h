@@ -117,6 +117,8 @@ using RefExprPtr = IntrusivePtr<RefExpr>;
 class Stmt;
 using StmtPtr = IntrusivePtr<Stmt>;
 
+class ExprOptInfo;
+
 class Expr : public Obj {
 public:
 	const TypePtr& GetType() const
@@ -389,6 +391,12 @@ public:
 			return Obj::GetLocationInfo();
 		}
 
+	// Access script optimization information associated with
+	// this statement.
+	ExprOptInfo* GetOptInfo() const		{ return opt_info; }
+
+	~Expr() override;
+
 protected:
 	Expr() = default;
 	explicit Expr(BroExprTag arg_tag);
@@ -418,6 +426,10 @@ protected:
 	// derived, if any.  Used as an aid for generating meaningful
 	// and correctly-localized error messages.
 	ExprPtr original = nullptr;
+
+	// Information associated with the Expr for purposes of
+	// script optimization.
+	ExprOptInfo* opt_info;
 };
 
 class NameExpr final : public Expr {

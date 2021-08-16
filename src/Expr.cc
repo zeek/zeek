@@ -19,6 +19,7 @@
 #include "zeek/module_util.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/Hash.h"
+#include "zeek/script_opt/ExprOptInfo.h"
 
 #include "zeek/broker/Data.h"
 
@@ -79,6 +80,12 @@ const char* expr_name(BroExprTag t)
 Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), paren(false), type(nullptr)
 	{
 	SetLocationInfo(&start_location, &end_location);
+	opt_info = new ExprOptInfo();
+	}
+
+Expr::~Expr()
+	{
+	delete opt_info;
 	}
 
 const ListExpr* Expr::AsListExpr() const

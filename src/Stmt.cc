@@ -35,6 +35,7 @@ const char* stmt_name(StmtTag t)
 		"catch-return",
 		"check-any-length",
 		"compiled-C++",
+		"ZAM", "ZAM-resumption",
 		"null",
 	};
 

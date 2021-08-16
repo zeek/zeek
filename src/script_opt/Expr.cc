@@ -1427,6 +1427,19 @@ ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		return op2;
 		}
 
+	if ( op2->IsConst() && op3->IsConst() && GetType()->Tag() == TYPE_BOOL )
+		{
+		auto op2_t = op2->IsOne();
+		ASSERT(op2_t != op3->IsOne());
+
+		if ( op2_t )
+			// This is "var ? T : F", which can be replaced by var.
+			return op1;
+
+		// Instead we have "var ? F : T".
+		return make_intrusive<NotExpr>(op1);
+		}
+
 	if ( c->Optimizing() )
 		return ThisPtr();
 

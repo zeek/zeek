@@ -477,6 +477,9 @@ private:
 	RobustDictIterator MakeRobustIterator();
 	detail::DictEntry GetNextRobustIteration(RobustDictIterator* iter);
 
+	void IncrIters()	{ ++num_iterators; }
+	void DecrIters()	{ --num_iterators; }
+
 	//alligned on 8-bytes with 4-leading bytes. 7*8=56 bytes a dictionary.
 
 	// when sizeup but the current mapping is in progress. the current mapping will be ignored

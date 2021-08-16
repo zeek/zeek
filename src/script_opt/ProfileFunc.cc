@@ -261,13 +261,17 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 			}
 		break;
 
+	case EXPR_INCR:
+	case EXPR_DECR:
+	case EXPR_ADD_TO:
+	case EXPR_REMOVE_FROM:
 	case EXPR_ASSIGN:
 		{
 		if ( e->GetOp1()->Tag() == EXPR_REF )
 			{
 			auto lhs = e->GetOp1()->GetOp1();
 			if ( lhs->Tag() == EXPR_NAME )
-				assignees.insert(lhs->AsNameExpr()->Id());
+				TrackAssignment(lhs->AsNameExpr()->Id());
 			}
 		// else this isn't a direct assignment.
 		break;
@@ -430,6 +434,14 @@ void ProfileFunc::TrackID(const ID* id)
 		return;
 
 	ordered_ids.push_back(id);
+	}
+
+void ProfileFunc::TrackAssignment(const ID* id)
+	{
+	if ( assignees.count(id) > 0 )
+		++assignees[id];
+	else
+		assignees[id] = 1;
 	}
 
 

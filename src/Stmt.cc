@@ -19,6 +19,7 @@
 #include "zeek/Trigger.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/logging/Manager.h"
+#include "zeek/script_opt/StmtOptInfo.h"
 
 #include "zeek/logging/logging.bif.h"
 
@@ -49,11 +50,14 @@ Stmt::Stmt(StmtTag arg_tag)
 	last_access = 0;
 	access_count = 0;
 
+	opt_info = new StmtOptInfo();
+
 	SetLocationInfo(&start_location, &end_location);
 	}
 
 Stmt::~Stmt()
 	{
+	delete opt_info;
 	}
 
 StmtList* Stmt::AsStmtList()

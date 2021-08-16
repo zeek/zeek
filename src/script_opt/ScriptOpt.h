@@ -125,7 +125,11 @@ using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
 // Info we need for tracking an instance of a function.
 class FuncInfo {
 public:
-	FuncInfo(ScriptFuncPtr func, ScopePtr scope, StmtPtr body, int priority);
+	FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body,
+	         int _priority)
+	: func(std::move(_func)), scope(std::move(_scope)),
+	  body(std::move(_body)), priority(_priority)
+		{}
 
 	ScriptFunc* Func() const		{ return func.get(); }
 	const ScriptFuncPtr& FuncPtr() const	{ return func; }
@@ -134,11 +138,11 @@ public:
 	int Priority() const			{ return priority; }
 	const ProfileFunc* Profile() const	{ return pf.get(); }
 	std::shared_ptr<ProfileFunc> ProfilePtr() const	{ return pf; }
-	const std::string& SaveFile() const	{ return save_file; }
 
 	void SetBody(StmtPtr new_body)	{ body = std::move(new_body); }
-	void SetProfile(std::shared_ptr<ProfileFunc> _pf);
-	void SetSaveFile(std::string _sf)	{ save_file = std::move(_sf); }
+	// void SetProfile(std::shared_ptr<ProfileFunc> _pf);
+	void SetProfile(std::shared_ptr<ProfileFunc> _pf)
+		{ pf = std::move(_pf); }
 
 	// The following provide a way of marking FuncInfo's as
 	// should-be-skipped for script optimization, generally because
@@ -156,10 +160,6 @@ protected:
 
 	// Whether to skip optimizing this function.
 	bool skip = false;
-
-	// If we're saving this function in a file, this is the name
-	// of the file to use.
-	std::string save_file;
 };
 
 

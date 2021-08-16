@@ -14,28 +14,15 @@ TempVar::TempVar(int num, const TypePtr& t, ExprPtr _rhs) : type(t)
 	rhs = std::move(_rhs);
 	}
 
-void TempVar::SetAlias(IDPtr _alias, const DefPoints* _dps)
+void TempVar::SetAlias(IDPtr _alias)
 	{
 	if ( alias )
 		reporter->InternalError("Re-aliasing a temporary");
-
-	if ( ! _dps )
-		{
-		printf("trying to alias %s to %s\n", name.c_str(), _alias->Name());
-		reporter->InternalError("Empty dps for alias");
-		}
 
 	if ( alias == id )
 		reporter->InternalError("Creating alias loop");
 
 	alias = std::move(_alias);
-	dps = _dps;
-	}
-
-void TempVar::SetDPs(const DefPoints* _dps)
-	{
-	ASSERT(_dps->length() == 1);
-	dps = _dps;
 	}
 
 } // zeek::detail

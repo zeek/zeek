@@ -10,6 +10,13 @@
 namespace zeek::detail {
 
 
+RD_Decorate::RD_Decorate(std::shared_ptr<ProfileFunc> _pf, const Func* f,
+	                 ScopePtr scope, StmtPtr body)
+: pf(std::move(_pf))
+	{
+	TraverseFunction(f, scope, body);
+	}
+
 void RD_Decorate::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body)
 	{
 	func_flavor = f->Flavor();

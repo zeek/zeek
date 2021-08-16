@@ -50,9 +50,12 @@ private:
 
 class RD_Decorate : public TraversalCallback {
 public:
-	RD_Decorate(std::shared_ptr<ProfileFunc> _pf) : pf(std::move(_pf))
-		{ }
+	RD_Decorate(std::shared_ptr<ProfileFunc> _pf, const Func* f,
+	            ScopePtr scope, StmtPtr body);
 
+	const DefSetsMgr* GetDefSetsMgr() const	{ return &mgr; }
+
+private:
 	// Traverses the given function body, using the first two
 	// arguments for context.
 	void TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body);
@@ -62,9 +65,6 @@ public:
 	TraversalCode PreExpr(const Expr*) override;
 	TraversalCode PostExpr(const Expr*) override;
 
-	const DefSetsMgr* GetDefSetsMgr() const	{ return &mgr; }
-
-private:
 	// The following implement various types of "confluence", i.e.,
 	// situations in which control flow merges from multiple possible
 	// paths to a given point.

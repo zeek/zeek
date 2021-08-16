@@ -281,7 +281,7 @@ protected:
 // profile is compilable.  Alternatively we could derive subclasses
 // from ProfileFuncs and use a virtual method for this, but that seems
 // heavier-weight for what's really a simple notion.
-typedef bool (*is_compilable_pred)(const ProfileFunc*);
+typedef bool (*is_compilable_pred)(const ProfileFunc*, const char** reason);
 
 // Collectively profile an entire collection of functions.
 class ProfileFuncs {

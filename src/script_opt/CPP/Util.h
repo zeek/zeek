@@ -19,8 +19,11 @@ extern std::string scope_prefix(const std::string& scope);
 // Same, but for scopes identified with numbers.
 extern std::string scope_prefix(int scope);
 
-// True if the given function is compilable to C++.
-extern bool is_CPP_compilable(const ProfileFunc* pf);
+// True if the given function is compilable to C++.  If it isn't, and
+// the second argument is non-nil, then on return it points to text
+// explaining why not.
+extern bool is_CPP_compilable(const ProfileFunc* pf,
+                              const char** reason = nullptr);
 
 // Helper utilities for file locking, to ensure that hash files
 // don't receive conflicting writes due to concurrent compilations.

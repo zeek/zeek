@@ -459,7 +459,7 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs,
 		auto pf = std::make_unique<ProfileFunc>(f.Func(), f.Body(),
 		                                        full_record_hashes);
 
-		if ( ! pred || (*pred)(pf.get()) )
+		if ( ! pred || (*pred)(pf.get(), nullptr) )
 			MergeInProfile(pf.get());
 		else
 			f.SetSkip(true);

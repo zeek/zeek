@@ -6,13 +6,11 @@
 #include "zeek/Expr.h"
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
-#include "zeek/script_opt/DefSetsMgr.h"
 
 namespace zeek::detail {
 
 class Expr;
 class TempVar;
-class ProfileFunc;
 
 class Reducer {
 public:
@@ -20,8 +18,9 @@ public:
 
 	StmtPtr Reduce(StmtPtr s);
 
-	const DefSetsMgr* GetDefSetsMgr() const		{ return mgr; }
-	void SetDefSetsMgr(const DefSetsMgr* _mgr)	{ mgr = _mgr; }
+	void SetReadyToOptimize()	{ opt_ready = true; }
+
+	void SetCurrStmt(const Stmt* stmt)      { curr_stmt = stmt; }
 
 	ExprPtr GenTemporaryExpr(const TypePtr& t, ExprPtr rhs);
 
@@ -76,7 +75,7 @@ public:
 	// True if the Reducer is being used in the context of a second
 	// pass over for AST optimization.
 	bool Optimizing() const
-		{ return ! IsPruning() && mgr != nullptr; }
+		{ return ! IsPruning() && opt_ready; }
 
 	// A predicate that indicates whether a given reduction pass
 	// is being made to prune unused statements.
@@ -126,6 +125,14 @@ public:
 	// already been applied.
 	bool IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs);
 
+	// Returns a constant representing folding of the given expression
+	// (which must have constant operands).
+	ConstExprPtr Fold(ExprPtr e);
+
+	// Notes that the given expression has been folded to the
+	// given constant.
+	void FoldedTo(ExprPtr orig, ConstExprPtr c);
+
 	// Given an lhs=rhs statement followed by succ_stmt, returns
 	// a (new) merge of the two if they're of the form tmp=rhs, var=tmp;
 	// otherwise, nil.
@@ -150,23 +157,13 @@ protected:
 	// are in fact equivalent.)
 	bool SameVal(const Val* v1, const Val* v2) const;
 
-	// Track that the variable "var", which has the given set of
-	// definition points, will be a replacement for the "orig"
-	// expression.  Returns the replacement expression (which is
-	// is just a NameExpr referring to "var").
-	ExprPtr NewVarUsage(IDPtr var, const DefPoints* dps, const Expr* orig);
+	// Track that the variable "var" will be a replacement for
+	// the "orig" expression.  Returns the replacement expression
+	// (which is is just a NameExpr referring to "var").
+	ExprPtr NewVarUsage(IDPtr var, const Expr* orig);
 
-	// Returns the definition points associated with "var".  If none
-	// exist in our cache, then populates the cache.
-	const DefPoints* GetDefPoints(const NameExpr* var);
-
-	// Retrieve the definition points associated in our cache with the
-	// given variable, if any.
-	const DefPoints* FindDefPoints(const NameExpr* var) const;
-
-	// Adds a mapping in our cache of the given variable to the given
-	// set of definition points.
-	void SetDefPoints(const NameExpr* var, const DefPoints* dps);
+	void BindExprToCurrStmt(const ExprPtr& e);
+	void BindStmtToCurrStmt(const StmtPtr& s);
 
 	// Returns true if op1 and op2 represent the same operand, given
 	// the reaching definitions available at their usages (e1 and e2).
@@ -216,23 +213,10 @@ protected:
 	// for the current function.
 	IDPtr GenLocal(const IDPtr& orig);
 
-	// This is the heart of constant propagation.  Given an identifier
-	// and a set of definition points for it, if its value is constant
-	// then returns the corresponding ConstExpr with the value.
-	const ConstExpr* CheckForConst(const IDPtr& id,
-					const DefPoints* dps) const;
-
-	// Track that we're replacing instances of "orig" with a new
-	// expression.  This allows us to locate the RDs associated
-	// with "orig" in the context of the new expression, without
-	// requiring an additional RD propagation pass.
-	void TrackExprReplacement(const Expr* orig, const Expr* e);
-
-	// Returns the object we should use to look up RD's associated
-	// with 'e'.  (This isn't necessarily 'e' itself because we
-	// may have decided to replace it with a different expression,
-	// per TrackExprReplacement().)
-	const Obj* GetRDLookupObj(const Expr* e) const;
+	// This is the heart of constant propagation.  Given an identifier,
+	// if its value is constant at the given location then returns
+	// the corresponding ConstExpr with the value.
+	const ConstExpr* CheckForConst(const IDPtr& id, int stmt_num) const;
 
 	// Tracks the temporary variables created during the reduction/
 	// optimization process.
@@ -253,6 +237,14 @@ protected:
 	// rename local variables when inlining.
 	std::unordered_map<const ID*, IDPtr> orig_to_new_locals;
 
+	// Tracks expressions we've folded, so that we can recognize them
+	// for constant propagation.
+	std::unordered_map<const Expr*, ConstExprPtr> constant_exprs;
+
+	// Holds onto those expressions so they don't become invalid
+	// due to memory management.
+	std::vector<ExprPtr> folded_exprs;
+
 	// Which statements to elide from the AST (because optimization
 	// has determined they're no longer needed).
 	std::unordered_set<const Stmt*> omitted_stmts;
@@ -270,25 +262,17 @@ protected:
 	// exponentially.
 	int bifurcation_level = 0;
 
-	// For a given usage of a variable's value, return the definition
-	// points associated with its use at that point.  We use this
-	// both as a cache (populating it every time we do a more laborious
-	// lookup), and proactively when creating new references to variables.
-	std::unordered_map<const NameExpr*, const DefPoints*> var_usage_to_DPs;
-
 	// Tracks which (non-temporary) variables had constant
 	// values used for constant propagation.
 	std::unordered_set<const ID*> constant_vars;
 
-	// For a new expression we've created, map it to the expression
-	// it's replacing.  This allows us to locate the RDs associated
-	// with the usage.
-	std::unordered_map<const Expr*, const Expr*> new_expr_to_orig;
-
 	// Statement at which the current reduction started.
 	StmtPtr reduction_root = nullptr;
 
-	const DefSetsMgr* mgr = nullptr;
+	// Statement we're currently working on.
+	const Stmt* curr_stmt = nullptr;
+
+	bool opt_ready = false;
 };
 
 
@@ -363,8 +347,6 @@ protected:
 	bool in_aggr_mod_stmt = false;
 };
 
-
-extern bool same_DPs(const DefPoints* dp1, const DefPoints* dp2);
 
 // Used for debugging, to communicate which expression wasn't
 // reduced when we expected them all to be.

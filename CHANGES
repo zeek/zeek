@@ -1,3 +1,15 @@
+4.2.0-dev.76 | 2021-08-18 08:40:41 -0700
+
+  * Fix option length computation in Geneve analyzer. (Benjamin Bannier, Corelight)
+
+    We previously computed the length of the Geneve options field
+    incorrectly which lead to us passing data at an incorrect offset to
+    inner analyzers. With this patch we now interpret the length field
+    correctly, according the the spec
+    https://datatracker.ietf.org/doc/html/rfc8926#section-3.4.
+
+    Closes #1726.
+
 4.2.0-dev.73 | 2021-08-12 09:57:59 -0700
 
   * GH-1713: Avoid unneeded reallocs in SerializationFormat::WriteData (Tim Wojtulewicz, Corelight)

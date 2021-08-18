@@ -47,7 +47,7 @@ void Geneve_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	EncapsulatingConn inner(Conn(), BifEnum::Tunnel::GENEVE);
 	outer->Add(inner);
 
-	auto tunnel_opt_len = data[0] << 1;
+	uint8_t tunnel_opt_len = (data[0] & 0x3F) * 4;
 	auto vni = (data[4] << 16) + (data[5] << 8) + (data[6] << 0);
 
 	if ( len < tunnel_header_len  + tunnel_opt_len )

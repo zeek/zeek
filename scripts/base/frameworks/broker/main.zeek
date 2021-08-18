@@ -286,6 +286,7 @@ export {
 	global listen: function(a: string &default = default_listen_address,
 	                        p: port &default = default_port,
 	                        retry: interval &default = default_listen_retry): port;
+
 	## Initiate a remote connection.
 	##
 	## a: an address to connect to, e.g. "localhost" or "127.0.0.1".

@@ -11,7 +11,7 @@ namespace zeek::detail {
 
 
 RD_Decorate::RD_Decorate(std::shared_ptr<ProfileFunc> _pf, const Func* f,
-	                 ScopePtr scope, StmtPtr body)
+                         ScopePtr scope, StmtPtr body)
 : pf(std::move(_pf))
 	{
 	TraverseFunction(f, scope, body);

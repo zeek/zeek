@@ -15,7 +15,7 @@ using namespace std;
 CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs,
                        const string& gen_name, const string& _addl_name,
                        CPPHashManager& _hm, bool _update, bool _standalone,
-		       bool report_uncompilable)
+                       bool report_uncompilable)
 : funcs(_funcs), pfs(_pfs), hm(_hm),
   update(_update), standalone(_standalone)
 	{

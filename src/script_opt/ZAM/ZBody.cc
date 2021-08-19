@@ -316,7 +316,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 		if ( do_profile )
 			{
 			double dt = curr_CPU_time() - profile_CPU;
-			(*inst_CPU)[profile_pc] += dt;
+			inst_CPU->at(profile_pc) += dt;
 			ZOP_CPU[z.op] += dt;
 			}
 #endif

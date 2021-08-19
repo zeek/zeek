@@ -257,8 +257,7 @@ void IDOptInfo::StartConfluenceBlock(const Stmt* s)
 			}
 		}
 
-	ConfluenceSet empty_set;
-	pending_confluences[s] = empty_set;
+	pending_confluences[s] = {};
 	confluence_stmts.push_back(s);
 	block_has_orig_flow.push_back(s_oi->contains_branch_beyond);
 

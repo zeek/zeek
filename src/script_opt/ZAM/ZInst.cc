@@ -137,64 +137,76 @@ void ZInst::Dump(const string& id1, const string& id2, const string& id3,
 int ZInst::NumFrameSlots() const
 	{
 	switch ( op_type ) {
-	case OP_X:	return 0;
-	case OP_V:	return 1;
-	case OP_VV:	return 2;
-	case OP_VVV:	return 3;
-	case OP_VVVV:	return 4;
-	case OP_VVVC:	return 3;
-	case OP_C:	return 0;
-	case OP_VC:	return 1;
-	case OP_VVC:	return 2;
+	case OP_X:
+	case OP_C:
+	case OP_V_I1:
+	case OP_VC_I1:
+	case OP_VV_I1_I2:
+	case OP_VVVC_I1_I2_I3:
+		return 0;
 
-	case OP_V_I1:	return 0;
-	case OP_VC_I1:	return 0;
-	case OP_VV_I1_I2:	return 0;
-	case OP_VV_FRAME:	return 1;
-	case OP_VV_I2:	return 1;
-	case OP_VVC_I2:	return 1;
-	case OP_VVV_I3:	return 2;
-	case OP_VVV_I2_I3:	return 1;
+	case OP_V:
+	case OP_VC:
+	case OP_VV_FRAME:
+	case OP_VV_I2:
+	case OP_VVC_I2:
+	case OP_VVV_I2_I3:
+	case OP_VVVC_I2_I3:
+	case OP_VVVV_I2_I3_I4:
+		return 1;
 
-	case OP_VVVV_I4:	return 3;
-	case OP_VVVV_I3_I4:	return 2;
-	case OP_VVVV_I2_I3_I4:	return 1;
-	case OP_VVVC_I3:	return 2;
-	case OP_VVVC_I2_I3:	return 1;
-	case OP_VVVC_I1_I2_I3:	return 0;
+	case OP_VV:
+	case OP_VVC:
+	case OP_VVV_I3:
+	case OP_VVVC_I3:
+	case OP_VVVV_I3_I4:
+		return 2;
+
+	case OP_VVV:
+	case OP_VVVC:
+	case OP_VVVV_I4:
+		return 3;
+
+	case OP_VVVV:
+		return 4;
 	}
 	}
 
 int ZInst::NumSlots() const
 	{
 	switch ( op_type ) {
-	case OP_X:	return 0;
-	case OP_C:	return 0;
-	case OP_V:	return 1;
-	case OP_VC:	return 1;
-	case OP_VV:	return 2;
-	case OP_VVC:	return 2;
-	case OP_VVV:	return 3;
-	case OP_VVVC:	return 3;
-	case OP_VVVV:	return 4;
+	case OP_C:
+	case OP_X:
+		return 0;
 
-	case OP_V_I1:	return 1;
-	case OP_VC_I1:	return 1;
+	case OP_V:
+	case OP_V_I1:
+	case OP_VC:
+	case OP_VC_I1:
+		return 1;
 
-	case OP_VV_I1_I2:	return 2;
-	case OP_VV_FRAME:	return 2;
-	case OP_VV_I2:	return 2;
-	case OP_VVC_I2:	return 2;
+	case OP_VV:
+	case OP_VVC:
+	case OP_VV_FRAME:
+	case OP_VV_I2:
+	case OP_VVC_I2:
+	case OP_VV_I1_I2:
+		return 2;
 
-	case OP_VVV_I3:	return 3;
-	case OP_VVV_I2_I3:	return 3;
-	case OP_VVVC_I3:	return 3;
-	case OP_VVVC_I2_I3:	return 3;
-	case OP_VVVC_I1_I2_I3:	return 3;
+	case OP_VVV:
+	case OP_VVV_I3:
+	case OP_VVV_I2_I3:
+	case OP_VVVC:
+	case OP_VVVC_I3:
+	case OP_VVVC_I2_I3:
+	case OP_VVVC_I1_I2_I3:
+		return 3;
 
-	case OP_VVVV_I4:	return 4;
-	case OP_VVVV_I3_I4:	return 4;
-	case OP_VVVV_I2_I3_I4:	return 4;
+	case OP_VVVV:
+	case OP_VVVV_I4:
+	case OP_VVVV_I3_I4:
+	case OP_VVVV_I2_I3_I4:
+		return 4;
 	}
 	}
 

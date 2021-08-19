@@ -79,7 +79,7 @@ void ZAMCompiler::InitArgs()
 
 	push_existing_scope(scope);
 
-	for ( auto a : args )
+	for ( auto& a : args )
 		{
 		if ( --nparam < 0 )
 			break;
@@ -369,7 +369,7 @@ void ZAMCompiler::ConcretizeSwitchTables(const CaseMapsI<T>& abstract_cases,
 		CaseMap<T> cm;
 		for ( auto& targ : targs )
 			cm[targ.first] = targ.second->inst_num;
-		concrete_cases.push_back(cm);
+		concrete_cases.emplace_back(cm);
 		}
 	}
 

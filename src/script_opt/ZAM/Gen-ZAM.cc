@@ -109,7 +109,7 @@ ArgsManager::ArgsManager(const vector<ZAM_OperandType>& ot, ZAM_InstClass zc)
 	int n = 0;
 	bool add_field = false;
 
-	for ( auto ot_i : ot )
+	for ( const auto& ot_i : ot )
 		{
 		if ( ot_i == ZAM_OT_NONE )
 			{ // it had better be the only operand type
@@ -421,11 +421,10 @@ int ZAM_OpTemplate::ExtractTypeParam(const string& arg)
 	if ( arg == "$$" )
 		return 1;
 
-	auto param_str = arg.c_str();
-	if ( *param_str != '$' )
+	if ( arg[0] != '$' )
 		g->Gripe("bad set-type parameter, should be $n", arg);
 
-	int param = atoi(&param_str[1]);
+	int param = atoi(&arg[1]);
 
 	if ( param <= 0 || param > 2 )
 		g->Gripe("bad set-type parameter, should be $1 or $2", arg);
@@ -571,10 +570,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
                 }
 
 	ArgsManager args(ot, zc);
-
-	auto params = args.Params();
-
-	BuildInstruction(ot, params, full_suffix, zc);
+	BuildInstruction(ot, args.Params(), full_suffix, zc);
 
 	auto tp = GetTypeParam();
 	if ( tp > 0 )

@@ -280,10 +280,7 @@ void CPPCompile::AddInit(const Obj* o, const string& init)
 void CPPCompile::AddInit(const Obj* o)
 	{
 	if ( obj_inits.count(o) == 0 )
-		{
-		vector<string> empty;
-		obj_inits[o] = empty;
-		}
+		obj_inits[o] = {};
 	}
 
 void CPPCompile::NoteInitDependency(const Obj* o1, const Obj* o2)

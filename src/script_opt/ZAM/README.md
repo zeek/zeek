@@ -13,8 +13,7 @@ ZAM Optimization: User's Guide
 
 <br>
 
-Overview
---------
+## Overview
 
 Zeek's _ZAM optimization_ is an experimental feature that changes the
 basic execution model for Zeek scripts in an effort to gain higher
@@ -49,8 +48,8 @@ scripts, you won't see much in the way of gains.
 
 <br>
 
-Known Issues
-------------
+## Known Issues
+
 
 Here we list various issues with using script optimization, including both
 deficiencies (problems to eventually fix) and incompatibilities (differences
@@ -103,8 +102,7 @@ alternative optimization, `-O gen-C++`).
 <br>
 
 
-Script Optimization Options
----------------------------
+## Script Optimization Options
 
 Users will generally simply use `-O ZAM` to invoke the script optimizer.
 There are, however, a number of additional options, nearly all of which

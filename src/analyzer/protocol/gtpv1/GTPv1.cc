@@ -48,7 +48,7 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 	caplen -= inner_packet_offset;
 	inner_packet_offset = -1;
 
-	std::unique_ptr<IP_Hdr> inner = nullptr;
+	std::shared_ptr<IP_Hdr> inner = nullptr;
 	int result = packet_analysis::IP::ParsePacket(len, data, next_header, inner);
 
 	if ( result == 0 )

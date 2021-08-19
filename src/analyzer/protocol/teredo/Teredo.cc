@@ -94,7 +94,7 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len, bool found_origi
 	return false;
 	}
 
-RecordValPtr TeredoEncapsulation::BuildVal(const std::unique_ptr<IP_Hdr>& inner) const
+RecordValPtr TeredoEncapsulation::BuildVal(const std::shared_ptr<IP_Hdr>& inner) const
 	{
 	static auto teredo_hdr_type = id::find_type<RecordType>("teredo_hdr");
 	static auto teredo_auth_type = id::find_type<RecordType>("teredo_auth");
@@ -164,7 +164,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 		return;
 		}
 
-	std::unique_ptr<IP_Hdr> inner = nullptr;
+	std::shared_ptr<IP_Hdr> inner = nullptr;
 	int rslt = packet_analysis::IP::ParsePacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
 
 	if ( rslt > 0 )

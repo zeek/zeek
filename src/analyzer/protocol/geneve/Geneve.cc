@@ -46,6 +46,7 @@ void Geneve_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 
 	EncapsulatingConn inner(Conn(), BifEnum::Tunnel::GENEVE);
 	outer->Add(inner);
+	int encap_index = outer->Depth();
 
 	uint8_t tunnel_opt_len = (data[0] & 0x3F) * 4;
 	auto vni = (data[4] << 16) + (data[5] << 8) + (data[6] << 0);
@@ -83,8 +84,12 @@ void Geneve_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 	ProtocolConfirmation();
 
 	if ( geneve_packet )
-		Conn()->EnqueueEvent(geneve_packet, nullptr, ConnVal(), pkt.ip_hdr->ToPktHdrVal(),
-		                     val_mgr->Count(vni));
+		{
+		EncapsulatingConn* ec = pkt.encap->At(encap_index);
+		if ( ec && ec->ip_hdr )
+			Conn()->EnqueueEvent(geneve_packet, nullptr, ConnVal(), pkt.ip_hdr->ToPktHdrVal(),
+			                     val_mgr->Count(vni));
+		}
 	}
 
 	} // namespace zeek::analyzer::geneve

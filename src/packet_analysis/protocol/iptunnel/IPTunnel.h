@@ -44,7 +44,7 @@ public:
 	 * @param ec The most-recently found depth of encapsulation.
 	 */
 	bool ProcessEncapsulatedPacket(double t, const Packet* pkt,
-	                               const std::unique_ptr<IP_Hdr>& inner,
+	                               const std::shared_ptr<IP_Hdr>& inner,
 	                               std::shared_ptr<EncapsulationStack> prev,
 	                               const EncapsulatingConn& ec);
 

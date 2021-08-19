@@ -113,7 +113,7 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 	analyzer::tcp::TCP_Endpoint* endpoint = is_orig ? adapter->orig : adapter->resp;
 	analyzer::tcp::TCP_Endpoint* peer = endpoint->peer;
-	const std::unique_ptr<IP_Hdr>& ip = pkt->ip_hdr;
+	const std::shared_ptr<IP_Hdr>& ip = pkt->ip_hdr;
 
 	if ( ! ValidateChecksum(ip.get(), tp, endpoint, len, remaining, adapter) )
 		return;

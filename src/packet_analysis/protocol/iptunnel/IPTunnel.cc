@@ -44,7 +44,7 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 	BifEnum::Tunnel::Type tunnel_type = packet->tunnel_type;
 	int gre_link_type = packet->gre_link_type;
 
-	std::unique_ptr<IP_Hdr> inner = nullptr;
+	std::shared_ptr<IP_Hdr> inner = nullptr;
 
 	if ( gre_version != 0 )
 		{
@@ -96,7 +96,7 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
  * Handles a packet that contains an IP header directly after the tunnel header.
  */
 bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
-                                                 const std::unique_ptr<IP_Hdr>& inner,
+                                                 const std::shared_ptr<IP_Hdr>& inner,
                                                  std::shared_ptr<EncapsulationStack> prev,
                                                  const EncapsulatingConn& ec)
 	{

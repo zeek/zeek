@@ -218,7 +218,7 @@ public:
 	 * The IP header for this packet. This is filled in by the IP analyzer
 	 * during processing if the packet contains an IP header.
 	 */
-	std::unique_ptr<IP_Hdr> ip_hdr = nullptr;
+	std::shared_ptr<IP_Hdr> ip_hdr = nullptr;
 
 	/**
 	 * The protocol of the packet. This is used by the tunnel analyzers to

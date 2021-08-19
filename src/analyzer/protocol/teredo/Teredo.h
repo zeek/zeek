@@ -75,7 +75,7 @@ public:
 
 	const u_char* Authentication() const { return auth; }
 
-	RecordValPtr BuildVal(const std::unique_ptr<IP_Hdr>& inner) const;
+	RecordValPtr BuildVal(const std::shared_ptr<IP_Hdr>& inner) const;
 
 protected:
 	bool DoParse(const u_char* data, int& len, bool found_orig, bool found_au);

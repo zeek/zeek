@@ -72,7 +72,7 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
 		adapter->PacketContents(data + 8, std::min(len, remaining) - 8);
 
 	const struct icmp* icmpp = (const struct icmp*)data;
-	const std::unique_ptr<IP_Hdr>& ip = pkt->ip_hdr;
+	const std::shared_ptr<IP_Hdr>& ip = pkt->ip_hdr;
 
 	if ( ! zeek::detail::ignore_checksums &&
 	     ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) && remaining >= len )

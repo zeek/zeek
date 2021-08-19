@@ -188,12 +188,12 @@ void ArgsManager::Differentiate()
 
 	for ( auto& arg : args )
 		{
-		if ( full_decl.size() > 0 )
+		if ( ! full_decl.empty() )
 			full_decl += ", ";
 
 		full_decl += arg.decl_type + " " + arg.decl_name;
 
-		if ( full_params.size() > 0 )
+		if ( ! full_params.empty() )
 			full_params += ", ";
 
 		full_params += arg.param_name;
@@ -238,7 +238,7 @@ void ZAM_OpTemplate::Build()
 			break;
 
 		auto words = g->SplitIntoWords(line);
-		if ( words.size() == 0 )
+		if ( words.empty() )
 			break;
 
 		Parse(words[0], line, words);
@@ -384,7 +384,7 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line,
 		AddEval(g->SkipWords(line, 1));
 
 		auto addl = GatherEval();
-		if ( addl.size() > 0 )
+		if ( ! addl.empty() )
 			AddEval(addl);
 		}
 
@@ -543,7 +543,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot,
 		return;
 		}
 
-	assert(ot.size() > 0);
+	assert(! ot.empty());
 
 	string full_suffix = "_" + OpSuffix(ot) + suffix;
 
@@ -673,7 +673,7 @@ void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot,
 		return;
 		}
 
-	if ( eval.size() != 0)
+	if ( ! eval.empty() )
 		g->Gripe("assign-op should not have an \"eval\"", eval);
 
 	auto lhs_field = (ot[0] == ZAM_OT_ASSIGN_FIELD);
@@ -1284,7 +1284,7 @@ string EvalInstance::OpMarker() const
 void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot_orig,
                                          const string& suffix, ZAM_InstClass zc)
 	{
-	if ( expr_types.size() == 0 )
+	if ( expr_types.empty() )
 		{ // No operand types to expand over.
 		ZAM_OpTemplate::InstantiateEval(ot_orig, suffix, zc);
 		return;
@@ -1775,7 +1775,7 @@ void ZAM_InternalBinaryOpTemplate::InstantiateEval(const vector<ZAM_OperandType>
 	auto eval = prelude + GetEval();
 
 	auto& ets = ExprTypes();
-	if ( ets.size() > 0 )
+	if ( ! ets.empty() )
 		{
 		if ( ets.size() != 1 )
 			g->Gripe("internal-binary-op's can have at most one op-type", op_loc);
@@ -1882,7 +1882,7 @@ void ZAM_InternalOpTemplate::Parse(const string& attr, const string& line,
 
 bool TemplateInput::ScanLine(string& line)
 	{
-	if ( put_back.size() > 0 )
+	if ( ! put_back.empty() )
 		{
 		line = put_back;
 		put_back.clear();

@@ -133,7 +133,7 @@ void CPPCompile::ExpandTypeVar(const TypePtr& t)
 	}
 
 	auto& script_type_name = t->GetName();
-	if ( script_type_name.size() > 0 )
+	if ( ! script_type_name.empty() )
 		AddInit(t, "register_type__CPP(" + tn + ", \"" +
 		           script_type_name + "\");");
 
@@ -181,7 +181,7 @@ void CPPCompile::ExpandEnumTypeVar(const TypePtr& t, string& tn)
 	auto names = et->Names();
 
 	AddInit(t, "{ auto et = " + e_name + ";");
-	AddInit(t, "if ( et->Names().size() == 0 ) {");
+	AddInit(t, "if ( et->Names().empty() ) {");
 
 	for ( const auto& name_pair : et->Names() )
 		AddInit(t, string("\tet->AddNameInternal(\"") +

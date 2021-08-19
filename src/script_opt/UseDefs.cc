@@ -94,7 +94,7 @@ bool UseDefs::RemoveUnused(int iter)
 				     ! CheckIfUnused(s, id.get(), false) )
 					used_ids.emplace_back(id);
 
-			if ( used_ids.size() == 0 )
+			if ( used_ids.empty() )
 				{ // There aren't any ID's to keep.
 				rc->AddStmtToOmit(s);
 				continue;

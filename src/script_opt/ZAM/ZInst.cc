@@ -231,7 +231,7 @@ string ZInst::VName(int n, int inst_num, const FrameReMap* mappings) const
 		ASSERT(i > 0);
 		}
 
-	auto id = map.names.size() > 0 ? map.names[i-1] : map.ids[i-1]->Name();
+	auto id = map.names.empty() ? map.ids[i-1]->Name() : map.names[i-1];
 
 	return util::fmt("%d (%s)", slot, id);
 	}
@@ -586,7 +586,7 @@ bool ZInstI::IsGlobalLoad() const
 
 	static std::unordered_set<ZOp> global_ops;
 
-	if ( global_ops.size() == 0 )
+	if ( global_ops.empty() )
 		{ // Initialize the set.
 		for ( int t = 0; t < NUM_TYPES; ++t )
 			{

@@ -518,7 +518,7 @@ void GenIDDefs::TrackID(const ID* id, const ExprPtr& e)
 	{
 	auto oi = id->GetOptInfo();
 
-	ASSERT(barrier_blocks.size() > 0);
+	ASSERT(! barrier_blocks.empty());
 	oi->DefinedAfter(curr_stmt, e,
 	                 confluence_blocks, barrier_blocks.back());
 
@@ -529,7 +529,7 @@ void GenIDDefs::TrackID(const ID* id, const ExprPtr& e)
 		// block.
 		modified_IDs[i+1].insert(id);
 
-	if ( confluence_blocks.size() == 0 )
+	if ( confluence_blocks.empty() )
 		// This is a definition at the outermost level.
 		modified_IDs[0].insert(id);
 	}

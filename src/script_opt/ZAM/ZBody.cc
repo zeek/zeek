@@ -273,7 +273,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 		for ( auto s : managed_slots )
 			frame[s].ClearManagedVal();
 
-		if ( table_iters.size() > 0 )
+		if ( ! table_iters.empty() )
 			{
 			local_table_iters =
 			    std::make_unique<TableIterVec>(table_iters.size());
@@ -363,7 +363,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 
 void ZBody::ProfileExecution() const
 	{
-	if ( inst_count->size() == 0 )
+	if ( inst_count->empty() )
 		{
 		printf("%s has an empty body\n", func_name);
 		return;
@@ -426,12 +426,12 @@ void ZBody::Dump() const
 
 		printf("frame[%d] =", i);
 
-		if ( d.names.size() > 0 )
-			for ( auto& n : d.names )
-				printf(" %s", n);
-		else
+		if ( d.names.empty() )
 			for ( auto& id : d.ids )
 				printf(" %s", id->Name());
+		else
+			for ( auto& n : d.names )
+				printf(" %s", n);
 		printf("\n");
 		}
 

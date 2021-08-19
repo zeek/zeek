@@ -150,7 +150,7 @@ void ZAMCompiler::TallySwitchTargets(const CaseMapsI<T>& switches)
 
 bool ZAMCompiler::RemoveDeadCode()
 	{
-	if ( insts1.size() == 0 )
+	if ( insts1.empty() )
 		return false;
 
 	bool did_removal = false;

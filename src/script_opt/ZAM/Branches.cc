@@ -99,7 +99,7 @@ void ZAMCompiler::ConcretizeBranch(ZInstI* inst, ZInstI* target,
 
 	if ( target == pending_inst )
 		{
-		if ( insts2.size() == 0 )
+		if ( insts2.empty() )
 			// We're doing this in the context of concretizing
 			// intermediary instructions for dumping them out.
 			t = insts1.size();

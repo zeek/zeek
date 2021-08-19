@@ -959,7 +959,7 @@ const ZAMStmt ZAMCompiler::CompileReturn(const ReturnStmt* r)
 	{
 	auto e = r->StmtExpr();
 
-	if ( retvars.size() == 0 )
+	if ( retvars.empty() )
 		{ // a "true" return
 		if ( e )
 			{

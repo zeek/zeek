@@ -78,7 +78,7 @@ void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
 
 	if ( ! s )
 		{ // This is a definition-upon-entry
-		ASSERT(usage_regions.size() == 0);
+		ASSERT(usage_regions.empty());
 		usage_regions.emplace_back(0, 0, true, 0);
 		if ( tracing )
 			DumpBlocks();
@@ -88,12 +88,12 @@ void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
 	auto s_oi = s->GetOptInfo();
 	auto stmt_num = s_oi->stmt_num;
 
-	if ( usage_regions.size() == 0 )
+	if ( usage_regions.empty() )
 		{
 		// We're seeing this identifier for the first time,
 		// so we don't have any context or confluence
 		// information for it.  Create its "backstory" region.
-		ASSERT(confluence_stmts.size() == 0);
+		ASSERT(confluence_stmts.empty());
 		usage_regions.emplace_back(0, 0, false, NO_DEF);
 		}
 
@@ -300,7 +300,7 @@ void IDOptInfo::ConfluenceBlockEndsAfter(const Stmt* s, bool no_orig_flow)
 	{
 	auto stmt_num = s->GetOptInfo()->stmt_num;
 
-	ASSERT(confluence_stmts.size() > 0);
+	ASSERT(! confluence_stmts.empty());
 	auto cs = confluence_stmts.back();
 	auto& pc = pending_confluences[cs];
 
@@ -434,7 +434,7 @@ ExprPtr IDOptInfo::DefExprBefore(const Stmt* s)
 
 bool IDOptInfo::IsPossiblyDefinedBefore(int stmt_num)
 	{
-	if ( usage_regions.size() == 0 )
+	if ( usage_regions.empty() )
 		return false;
 
 	return FindRegionBefore(stmt_num).MaybeDefined();
@@ -442,7 +442,7 @@ bool IDOptInfo::IsPossiblyDefinedBefore(int stmt_num)
 
 bool IDOptInfo::IsDefinedBefore(int stmt_num)
 	{
-	if ( usage_regions.size() == 0 )
+	if ( usage_regions.empty() )
 		return false;
 
 	return FindRegionBefore(stmt_num).DefinedAfter() != NO_DEF;
@@ -450,7 +450,7 @@ bool IDOptInfo::IsDefinedBefore(int stmt_num)
 
 int IDOptInfo::DefinitionBefore(int stmt_num)
 	{
-	if ( usage_regions.size() == 0 )
+	if ( usage_regions.empty() )
 		return NO_DEF;
 
 	return FindRegionBefore(stmt_num).DefinedAfter();
@@ -458,7 +458,7 @@ int IDOptInfo::DefinitionBefore(int stmt_num)
 
 ExprPtr IDOptInfo::DefExprBefore(int stmt_num)
 	{
-	if ( usage_regions.size() == 0 )
+	if ( usage_regions.empty() )
 		return nullptr;
 
 	return FindRegionBefore(stmt_num).DefExprAfter();

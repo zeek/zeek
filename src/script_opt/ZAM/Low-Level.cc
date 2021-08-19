@@ -23,7 +23,7 @@ const ZAMStmt ZAMCompiler::FinishBlock(const ZAMStmt /* start */)
 bool ZAMCompiler::NullStmtOK() const
 	{
 	// They're okay iff they're the entire statement body.
-	return insts1.size() == 0;
+	return insts1.empty();
 	}
 
 const ZAMStmt ZAMCompiler::EmptyStmt()

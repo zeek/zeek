@@ -357,7 +357,7 @@ void RD_Decorate::TraverseSwitch(const SwitchStmt* sw)
 		bd->Clear();
 		body->Traverse(this);
 
-		if ( bd->PreRDs().size() > 0 )
+		if ( ! bd->PreRDs().empty() )
 			reporter->InternalError("mispropagation of switch body defs");
 
 		if ( body->NoFlowAfter(true) )
@@ -544,7 +544,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		break;
 
 	case STMT_BREAK:
-		if ( block_defs.size() == 0 )
+		if ( block_defs.empty() )
 			{
 			if ( func_flavor == FUNC_FLAVOR_HOOK )
 				// Treat as a return.

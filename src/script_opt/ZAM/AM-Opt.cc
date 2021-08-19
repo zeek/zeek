@@ -155,8 +155,11 @@ bool ZAMCompiler::RemoveDeadCode()
 
 	bool did_removal = false;
 
-	for ( auto& i0 : insts1 )
+	// Note, loops up to the last instruction but not including it.
+	for ( unsigned int i = 0; i < insts1.size() - 1; ++i )
 		{
+		auto& i0 = insts1[i];
+
 		if ( ! i0->live )
 			continue;
 

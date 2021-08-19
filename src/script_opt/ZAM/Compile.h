@@ -419,7 +419,7 @@ private:
 	// Optimizing the low-level compiled instructions.
 	void OptimizeInsts();
 
-        // Tracks which instructions can be branched to via the given
+	// Tracks which instructions can be branched to via the given
 	// set of switches.
 	template<typename T>
 	void TallySwitchTargets(const CaseMapsI<T>& switches);

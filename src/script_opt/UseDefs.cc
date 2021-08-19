@@ -79,10 +79,8 @@ bool UseDefs::RemoveUnused(int iter)
 
 	bool did_omission = false;
 
-	for ( unsigned int i = 0; i < stmts.size(); ++i )
+	for ( const auto& s : stmts )
 		{
-		const auto& s = stmts[i];
-
 		if ( s->Tag() == STMT_INIT )
 			{
 			auto init = s->AsInitStmt();

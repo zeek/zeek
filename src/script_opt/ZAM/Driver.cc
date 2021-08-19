@@ -173,12 +173,12 @@ StmtPtr ZAMCompiler::CompileBody()
 	// Dead instructions map to -1.
 	std::vector<int> inst1_to_inst2;
 
-	for ( auto i = 0U; i < insts1.size(); ++i )
+	for ( auto& i1 : insts1 )
 		{
-		if ( insts1[i]->live )
+		if ( i1->live )
 			{
 			inst1_to_inst2.push_back(insts2.size());
-			insts2.push_back(insts1[i]);
+			insts2.push_back(i1);
 			}
 		else
 			inst1_to_inst2.push_back(-1);
@@ -284,9 +284,8 @@ void ZAMCompiler::ComputeLoopLevels()
 void ZAMCompiler::AdjustBranches()
 	{
 	// Move branches to dead code forward to their successor live code.
-	for ( auto i = 0U; i < insts1.size(); ++i )
+	for ( auto& inst : insts1 )
 		{
-		auto inst = insts1[i];
 		if ( ! inst->live )
 			continue;
 
@@ -301,9 +300,8 @@ void ZAMCompiler::AdjustBranches()
 
 void ZAMCompiler::RetargetBranches()
 	{
-	for ( auto i = 0U; i < insts2.size(); ++i )
+	for ( auto& inst : insts2 )
 		{
-		auto inst = insts2[i];
 		if ( ! inst->target )
 			continue;
 
@@ -313,10 +311,8 @@ void ZAMCompiler::RetargetBranches()
 
 void ZAMCompiler::RemapFrameDenizens(const std::vector<int>& inst1_to_inst2)
 	{
-	for ( auto i = 0U; i < shared_frame_denizens.size(); ++i )
+	for ( auto& info : shared_frame_denizens )
 		{
-		auto& info = shared_frame_denizens[i];
-
 		for ( auto& start : info.id_start )
 			{
 			// It can happen that the identifier's
@@ -339,10 +335,10 @@ void ZAMCompiler::RemapFrameDenizens(const std::vector<int>& inst1_to_inst2)
 
 void ZAMCompiler::CreateSharedFrameDenizens()
 	{
-	for ( auto i = 0U; i < frame_denizens.size(); ++i )
+	for ( auto& fd : frame_denizens )
 		{
 		FrameSharingInfo info;
-		info.ids.push_back(frame_denizens[i]);
+		info.ids.push_back(fd);
 		info.id_start.push_back(0);
 		info.scope_end = insts2.size();
 

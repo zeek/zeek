@@ -155,9 +155,8 @@ bool ZAMCompiler::RemoveDeadCode()
 
 	bool did_removal = false;
 
-	for ( unsigned int i = 0; i < insts1.size() - 1; ++i )
+	for ( auto& i0 : insts1 )
 		{
-		auto i0 = insts1[i];
 		if ( ! i0->live )
 			continue;
 
@@ -205,9 +204,8 @@ bool ZAMCompiler::CollapseGoTos()
 	{
 	bool did_change = false;
 
-	for ( unsigned int i = 0; i < insts1.size(); ++i )
+	for ( auto& i0 : insts1 )
 		{
-		auto i0 = insts1[i];
 		auto orig_t = i0->target;
 
 		if ( ! i0->live || ! orig_t || orig_t == pending_inst )
@@ -524,9 +522,8 @@ void ZAMCompiler::ReMapFrame()
 	std::vector<GlobalInfo> used_globals;
 	std::vector<int> remapped_globals;
 
-	for ( unsigned int i = 0; i < globalsI.size(); ++i )
+	for ( auto& g : globalsI )
 		{
-		auto& g = globalsI[i];
 		g.slot = frame1_to_frame2[g.slot];
 		if ( g.slot >= 0 )
 			{
@@ -890,12 +887,9 @@ const ZInstI* ZAMCompiler::EndOfLoop(const ZInstI* inst, int depth) const
 
 bool ZAMCompiler::VarIsAssigned(int slot) const
 	{
-	for ( unsigned int i = 0; i < insts1.size(); ++i )
-		{
-		auto& inst = insts1[i];
+	for ( auto& inst : insts1 )
 		if ( inst->live && VarIsAssigned(slot, inst) )
 			return true;
-		}
 
 	return false;
 	}
@@ -932,9 +926,8 @@ bool ZAMCompiler::VarIsAssigned(int slot, const ZInstI* i) const
 
 bool ZAMCompiler::VarIsUsed(int slot) const
 	{
-	for ( unsigned int i = 0; i < insts1.size(); ++i )
+	for ( auto& inst : insts1 )
 		{
-		auto& inst = insts1[i];
 		if ( inst->live && inst->UsesSlot(slot) )
 			return true;
 

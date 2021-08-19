@@ -514,8 +514,8 @@ int IDOptInfo::ActiveRegionIndex()
 
 void IDOptInfo::DumpBlocks() const
 	{
-	for ( auto i = 0; i < usage_regions.size(); ++i )
-		usage_regions[i].Dump();
+	for ( auto& ur : usage_regions )
+		ur.Dump();
 
 	printf("<end>\n");
 	}

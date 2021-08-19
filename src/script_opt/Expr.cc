@@ -1107,8 +1107,8 @@ static ExprPtr build_disjunction(std::vector<ConstExprPtr>& patterns)
 
 	ExprPtr e = patterns[0];
 
-	for ( unsigned int i = 1; i < patterns.size(); ++i )
-		e = make_intrusive<BitExpr>(EXPR_OR, e, patterns[i]);
+	for ( auto& p : patterns )
+		e = make_intrusive<BitExpr>(EXPR_OR, e, p);
 
 	return e;
 	}

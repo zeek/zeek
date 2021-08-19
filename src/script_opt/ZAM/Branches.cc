@@ -17,10 +17,8 @@ void ZAMCompiler::PushGoTos(GoToSets& gotos)
 
 void ZAMCompiler::ResolveGoTos(GoToSets& gotos, const InstLabel l)
 	{
-	auto& g = gotos.back();
-
-	for ( auto i = 0U; i < g.size(); ++i )
-		SetGoTo(g[i], l);
+	for ( auto& gi : gotos.back() )
+		SetGoTo(gi, l);
 
 	gotos.pop_back();
 	}

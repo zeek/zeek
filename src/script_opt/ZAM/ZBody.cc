@@ -132,8 +132,8 @@ ZBody::ZBody(const char* _func_name, const ZAMCompiler* zc)
 
 	// Concretize the names of the frame denizens.
 	for ( auto& f : frame_denizens )
-		for ( auto i = 0U; i < f.ids.size(); ++i )
-			f.names.push_back(f.ids[i]->Name());
+		for ( auto& id : f.ids )
+			f.names.push_back(id->Name());
 
 	managed_slots = zc->ManagedSlots();
 
@@ -149,8 +149,8 @@ ZBody::ZBody(const char* _func_name, const ZAMCompiler* zc)
 		{
 		fixed_frame = new ZVal[frame_size];
 
-		for ( auto i = 0U; i < managed_slots.size(); ++i )
-			fixed_frame[managed_slots[i]].ClearManagedVal();
+		for ( auto& ms : managed_slots )
+			fixed_frame[ms].ClearManagedVal();
 		}
 
 	table_iters = zc->GetTableIters();
@@ -334,9 +334,9 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 
 		// Free slots for which we do explicit memory management,
 		// preparing them for reuse.
-		for ( auto i = 0U; i < managed_slots.size(); ++i )
+		for ( auto& ms : managed_slots )
 			{
-			auto& v = frame[managed_slots[i]];
+			auto& v = frame[ms];
 			ZVal::DeleteManagedType(v);
 			v.ClearManagedVal();
 			}
@@ -346,9 +346,9 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 		// Free those slots for which we do explicit memory management.
 		// No need to then clear them, as we're about to throw away
 		// the entire frame.
-		for ( auto i = 0U; i < managed_slots.size(); ++i )
+		for ( auto& ms : managed_slots )
 			{
-			auto& v = frame[managed_slots[i]];
+			auto& v = frame[ms];
 			ZVal::DeleteManagedType(v);
 			}
 

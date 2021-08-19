@@ -2352,7 +2352,7 @@ TEST_CASE("util json_escape_utf8")
 	CHECK(json_escape_utf8("string") == "string");
 	CHECK(json_escape_utf8("string\n") == "string\n");
 	CHECK(json_escape_utf8("string\x82") == "string\\x82");
-	CHECK(json_escape_utf8("\x07\xd4\xb7o") == "\\x07Էo");
+	CHECK(json_escape_utf8("\x07\xd4\xb7o") == "\\x07\\xd4\\xb7o");
 
 	// These strings are duplicated from the scripts.base.frameworks.logging.ascii-json-utf8 btest
 
@@ -2406,6 +2406,38 @@ TEST_CASE("util json_escape_utf8")
 	// Invalid 4 Octet Sequence (too short)
 	CHECK(json_escape_utf8("\xf4\x80\x8c") == "\\xf4\\x80\\x8c");
 	CHECK(json_escape_utf8("\xf0") == "\\xf0");
+
+	// Private Use Area (E000-F8FF) are always invalid
+	CHECK(json_escape_utf8("\xee\x8b\xa0") == "\\xee\\x8b\\xa0");
+
+	// Valid UTF-8 character followed by an invalid one
+	CHECK(json_escape_utf8("\xc3\xb1\xc0\x81") == "\\xc3\\xb1\\xc0\\x81");
+	}
+
+static bool check_ok_utf8(const unsigned char* start, const unsigned char* end)
+	{
+	// There's certain blocks of UTF-8 that we don't want, but the easiest way to find
+	// them is to convert to UTF-32 and then compare. This is annoying, but it also calls
+	// isLegalUTF8Sequence along the way so go with it.
+	std::array<UTF32, 2> output;
+	UTF32* output2 = output.data();
+	auto result = ConvertUTF8toUTF32(&start, end, &output2, output2+1, strictConversion);
+	if ( result != conversionOK )
+		return false;
+
+	if ( ( output[0] >= 0x0000 && output[0] <= 0x001F ) ||
+	     ( output[0] == 0x007F ) ||
+	     ( output[0] >= 0x0080 && output[0] <= 0x009F ) )
+		// Control characters
+		return false;
+	else if ( output[0] >= 0xE000 && output[0] <= 0xF8FF )
+		// Private Use Area
+		return false;
+	else if ( output[0] >= 0xFFF0 && output[0] <= 0xFFFF )
+		// Specials Characters
+		return false;
+
+	return true;
 	}
 
 string json_escape_utf8(const string& val)
@@ -2414,52 +2446,75 @@ string json_escape_utf8(const string& val)
 	auto val_size = val.length();
 
 	// Reserve at least the size of the existing string to avoid resizing the string in the best-case
-	// scenario where we don't have any multi-byte characters.
-	string result;
-	result.reserve(val_size);
+	// scenario where we don't have any multi-byte characters. We keep two versions of this string:
+	// one that has a valid utf8 string and one that has a fully-escaped version. The utf8 string gets
+	// returned if all of the characters were valid utf8 sequences, but it will fall back to the
+	// escaped version otherwise. This uses slightly more memory but it avoids looping through all
+	// of the characters a second time in the case of a bad utf8 sequence.
+	string utf_result;
+	utf_result.reserve(val_size);
+	string escaped_result;
+	escaped_result.reserve(val_size);
 
-	size_t idx;
-	for ( idx = 0; idx < val_size; )
+	bool found_bad = false;
+	size_t idx = 0;
+	while ( idx < val_size )
 		{
 		const char ch = val[idx];
 
 		// Normal ASCII characters plus a few of the control characters can be inserted directly. The
 		// rest of the control characters should be escaped as regular bytes.
-		if ( ( ch >= 32 && ch <= 127 ) ||
+		if ( ( ch >= 32 && ch < 127 ) ||
 		       ch == '\b' || ch == '\f' || ch == '\n' || ch == '\r' || ch == '\t' )
 			{
-			result.push_back(ch);
+			if ( ! found_bad )
+				utf_result.push_back(ch);
+
+			escaped_result.push_back(ch);
 			++idx;
 			continue;
 			}
-		else if ( ch >= 0 && ch < 32 )
+		else if ( found_bad )
 			{
-			result.append(json_escape_byte(ch));
+			// If we already found a bad UTF8 character (see check_ok_utf8) just insert the bytes
+			// as escaped characters into the escaped result and move on.
+			escaped_result.append(json_escape_byte(ch));
 			++idx;
 			continue;
 			}
 
-		// Find out how long the next character should be.
-		unsigned int char_size = getNumBytesForUTF8(ch);
-
-		// If it says that it's a single character or it's not an valid string UTF8 sequence, insert
-		// the one escaped byte into the string, step forward one, and go to the next character.
-		if ( char_size == 0 || idx+char_size > val_size || isLegalUTF8Sequence(val_data+idx, val_data+idx+char_size) == 0 )
+		// If we haven't found a bad UTF-8 character yet, check to see if the next one starts a
+		// UTF-8 character. If not, we'll mark that we're on a bad result. Otherwise we'll go
+		// ahead and insert this character and continue.
+		if ( ! found_bad )
 			{
-			result.append(json_escape_byte(ch));
-			++idx;
-			continue;
-			}
+			// Find out how long the next character should be.
+			unsigned int char_size = getNumBytesForUTF8(ch);
 
-		result.append(val, idx, char_size);
-		idx += char_size;
+			// If we don't have enough data for this character or it's an invalid sequence,
+			// insert the one escaped byte into the string and go to the next character.
+			if ( idx+char_size > val_size ||
+			     ! check_ok_utf8(val_data + idx, val_data + idx + char_size) )
+				{
+				found_bad = true;
+				escaped_result.append(json_escape_byte(ch));
+				++idx;
+				continue;
+				}
+			else
+				{
+				for ( int i = 0; i < char_size; i++ )
+					escaped_result.append(json_escape_byte(val[idx+i]));
+				utf_result.append(val, idx, char_size);
+				idx += char_size;
+				}
+			}
 		}
 
-	// Insert any of the remaining bytes into the string as escaped bytes
-	for ( ; idx < val_size; ++idx )
-		result.append(json_escape_byte(val[idx]));
-
-	return result;
+	if ( found_bad )
+		return escaped_result;
+	else
+		return utf_result;
 	}
 
 } // namespace zeek::util

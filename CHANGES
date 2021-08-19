@@ -1,3 +1,11 @@
+4.2.0-dev.78 | 2021-08-19 09:39:23 -0700
+
+  * Return fully-escaped string if utf8 conversion fails (Tim Wojtulewicz, Corelight)
+
+    This adds a new function for validating UTF-8 sequences by converting to
+    UTF-32. This allows us to also check for various blocks of codepointsi
+    that we consider invalid while checking for valid sequences in general.
+
 4.2.0-dev.76 | 2021-08-18 08:40:41 -0700
 
   * Fix option length computation in Geneve analyzer. (Benjamin Bannier, Corelight)

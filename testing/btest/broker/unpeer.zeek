@@ -43,6 +43,7 @@ event zeek_init()
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
     {
+    print fmt("peered, now %d peer(s)", |Broker::peers()|);
     schedule 2secs { print_something(1) };
     schedule 4secs { unpeer(endpoint) };
     }

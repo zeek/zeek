@@ -55,12 +55,12 @@ const TypeInfo& find_type_info(ZAM_ExprType et)
 	{
 	assert(et != ZAM_EXPR_TYPE_NONE);
 
-	for ( auto& ti : ZAM_type_info )
-		if ( ti.et == et )
-			return ti;
+	auto pred = [et] (const TypeInfo& ti) -> bool { return ti.et == et; };
+	auto ti = std::find_if(ZAM_type_info.begin(), ZAM_type_info.end(),
+	                       pred);
 
-	assert(false);
-	return ZAM_type_info[0];
+	assert(ti != ZAM_type_info.end());
+	return *ti;
 	}
 
 // Given a ZAM_ExprType, return its ZVal accessor.  Takes into account

@@ -1,0 +1,37 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+# This file contains a test configuration for
+# https://github.com/GoogleContainerTools/container-structure-test.
+
+schemaVersion: 2.0.0
+
+commandTests:
+  - name: zeek can be run
+    command: zeek
+    args: ["-v"]
+    expectedOutput: ["^zeek version .*"]
+
+  - name: is release build
+    command: zeek-config
+    args: ["--build_type"]
+    expectedOutput: ["release"]
+
+  - name: btest can be run
+    command: btest
+    args: ["--version"]
+    expectedOutput: ["\\d\\.\\d"]
+
+  - name: valid zkg config
+    command: zkg
+    args: ["config"]
+    # Just validate that we some some valid entry here.
+    expectedOutput: ["state_dir = /usr/local/zeek/var/lib/zkg"]
+
+  - name: plugin can be installed
+    command: zkg
+    # We pick any plugin with minimal deps here.
+    args: ["install", "--force", "sethhall/domain-tld"]
+    expectedOutput:
+      - "Installing \"zeek/sethhall/domain-tld\""
+      - "Installed \"zeek/sethhall/domain-tld\" (.*)"
+      - "Loaded \"zeek/sethhall/domain-tld\""

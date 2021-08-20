@@ -69,7 +69,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-auxtools     don't build or install auxiliary tools
     --disable-archiver     don't build or install zeek-archiver tool
     --disable-btest        don't install BTest
-    --disable-btest-pcaps  don't install Zeek's BTest input pcaps
+    --disable-btest-pcaps  don't install Zeek's BTest input pcaps. Redundant if --disable-btest is given
     --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
     --disable-zkg          don't install zkg

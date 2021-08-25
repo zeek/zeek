@@ -133,22 +133,29 @@ centos7_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+debian11_task:
+  container:
+    # Debian 11 EOL: June 2026
+    dockerfile: ci/debian-11/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
+debian11_static_task:
+  container:
+    # Just use a recent/common distro to run a static compile test.
+    # Debian 11 EOL: June 2026
+    dockerfile: ci/debian-11/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *STATIC_CONFIG
+
 debian10_task:
   container:
     # Debian 10 EOL: June 2024
     dockerfile: ci/debian-10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-
-debian10_static_task:
-  container:
-    # Just uses a recent/common distro to run a static compile test.
-    # Debian 10 EOL: June 2024
-    dockerfile: ci/debian-10/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *STATIC_CONFIG
 
 debian9_task:
   container:
@@ -193,13 +200,6 @@ ubuntu18_task:
   << : *CI_TEMPLATE
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *MOBILE_IPV6_CONFIG
-
-ubuntu16_task:
-  container:
-    # Ubuntu 16.04 EOL: April 2021
-    dockerfile: ci/ubuntu-16.04/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
 
 alpine_task:
   container:

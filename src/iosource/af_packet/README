@@ -5,17 +5,6 @@ Zeek::AF_Packet
 This plugin provides native AF_Packet support for Zeek
 (http://man7.org/linux/man-pages/man7/packet.7.html).
 
-Upgrade to Zeek
----------------
-
-In the context of the transition from Bro to Zeek, the plugin has been renamed. To upgrade from the Bro-version of the plugin, just remove the old version and then install the renamed one. Using the package manager the following will uninstall the old version of the plugin::
-
-    # zkg remove bro-af_packet-plugin
-
-For manually installed plugins, remove the corresponding plugin directory::
-
-    # rm -rf <path_to_zeek>/lib/bro/plugins/Bro_AF_Packet/
-
 Installation
 ------------
 
@@ -57,6 +46,17 @@ everything built and installed correctly, you should see this::
    that prevents the required symmetric hashing. The script available at
    https://github.com/JustinAzoff/can-i-use-afpacket-fanout can be used to
    verify whether PACKET_FANOUT works as expected.
+
+Upgrade from Bro to Zeek
+------------------------
+
+In the context of the transition from Bro to Zeek, the plugin has been renamed. To upgrade from the Bro-version of the plugin, just remove the old version and then install the renamed one. Using the package manager the following will uninstall the old version of the plugin::
+
+    # zkg remove bro-af_packet-plugin
+
+For manually installed plugins, remove the corresponding plugin directory::
+
+    # rm -rf <path_to_zeek>/lib/bro/plugins/Bro_AF_Packet/
 
 Usage
 -----

@@ -23,3 +23,4 @@
 @load base/packet-protocols/iptunnel
 @load base/packet-protocols/ayiya
 @load base/packet-protocols/geneve
+@load base/packet-protocols/vxlan

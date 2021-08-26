@@ -41,10 +41,10 @@ void UDPAnalyzer::Initialize()
 	{
 	IPBasedAnalyzer::Initialize();
 
-	const auto& id = detail::global_scope()->Find("Tunnel::vxlan_ports");
+	const auto& id = detail::global_scope()->Find("PacketAnalyzer::VXLAN::vxlan_ports");
 
 	if ( ! (id && id->GetVal()) )
-		reporter->FatalError("Tunnel::vxlan_ports not defined");
+		reporter->FatalError("PacketAnalyzer::VXLAN::vxlan_ports not defined");
 
 	auto table_val = id->GetVal()->AsTableVal();
 	auto port_list = table_val->ToPureListVal();

@@ -14,9 +14,11 @@
 @load base/packet-protocols/pppoe
 @load base/packet-protocols/vlan
 @load base/packet-protocols/mpls
-@load base/packet-protocols/gre
-@load base/packet-protocols/iptunnel
 @load base/packet-protocols/vntag
 @load base/packet-protocols/udp
 @load base/packet-protocols/tcp
 @load base/packet-protocols/icmp
+
+@load base/packet-protocols/gre
+@load base/packet-protocols/iptunnel
+@load base/packet-protocols/ayiya

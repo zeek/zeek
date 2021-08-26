@@ -1,5 +1,4 @@
-
-add_subdirectory(ayiya)
+#add_subdirectory(ayiya)
 add_subdirectory(bittorrent)
 add_subdirectory(conn-size)
 add_subdirectory(dce-rpc)

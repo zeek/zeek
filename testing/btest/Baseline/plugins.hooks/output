@@ -14,7 +14,6 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GENEVE, 6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2152/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp)) -> <no result>
@@ -79,7 +78,6 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GENEVE, 6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2152/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp)) -> <no result>
@@ -135,7 +133,6 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DNS, {5353<...>/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DTLS, {443/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_FTP, {2811<...>/tcp})) -> <no result>
-0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_GENEVE, {6081/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_GTPV1, {2152<...>/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_IMAP, {143/tcp})) -> <no result>
@@ -585,7 +582,9 @@
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (udp_content_delivery_ports_use_resp, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (udp_content_ports, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, 5072/udp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, 6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, {5072/udp})) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, {6081/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_AYIYA, 4, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_AYIYA, 41, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 2048, PacketAnalyzer::ANALYZER_IP)) -> <no result>
@@ -598,6 +597,7 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 34984, PacketAnalyzer::ANALYZER_VLAN)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 35110, PacketAnalyzer::ANALYZER_VNTAG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 37120, PacketAnalyzer::ANALYZER_VLAN)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GENEVE, 25944, PacketAnalyzer::ANALYZER_ETHERNET)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 2048, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 2054, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 32821, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
@@ -634,6 +634,7 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 239, PacketAnalyzer::ANALYZER_NFLOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 50, PacketAnalyzer::ANALYZER_PPPSERIAL)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 5072, PacketAnalyzer::ANALYZER_AYIYA)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 6081, PacketAnalyzer::ANALYZER_GENEVE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VLAN, 2048, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VLAN, 2054, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VLAN, 32821, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
@@ -676,6 +677,7 @@
 0.000000   MetaHookPost  CallFunction(global_ids, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(network_time, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (5072/udp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_live_traffic, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_traces, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$)) -> <no result>
@@ -953,6 +955,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/find-checksum-offloading, <...>/find-checksum-offloading.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/find-filtered-trace, <...>/find-filtered-trace.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ftp, <...>/ftp) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/geneve, <...>/geneve) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/geoip-distance, <...>/geoip-distance.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/gre, <...>/gre) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/hash, <...>/hash) -> -1
@@ -1322,6 +1325,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/find-checksum-offloading, <...>/find-checksum-offloading.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/find-filtered-trace, <...>/find-filtered-trace.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ftp, <...>/ftp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/geneve, <...>/geneve) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/geoip-distance, <...>/geoip-distance.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/gre, <...>/gre) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/hash, <...>/hash) -> (-1, <no content>)
@@ -1444,7 +1448,6 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp))
-0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GENEVE, 6081/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2123/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2152/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp))
@@ -1509,7 +1512,6 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp))
-0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GENEVE, 6081/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2123/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_GTPV1, 2152/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp))
@@ -1565,7 +1567,6 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DNS, {5353<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DTLS, {443/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_FTP, {2811<...>/tcp}))
-0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_GENEVE, {6081/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_GTPV1, {2152<...>/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_IMAP, {143/tcp}))
@@ -2015,7 +2016,9 @@
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (udp_content_delivery_ports_use_resp, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (udp_content_ports, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, 5072/udp))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, 6081/udp))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, {5072/udp}))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, {6081/udp}))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_AYIYA, 4, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_AYIYA, 41, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 2048, PacketAnalyzer::ANALYZER_IP))
@@ -2028,6 +2031,7 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 34984, PacketAnalyzer::ANALYZER_VLAN))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 35110, PacketAnalyzer::ANALYZER_VNTAG))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 37120, PacketAnalyzer::ANALYZER_VLAN))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GENEVE, 25944, PacketAnalyzer::ANALYZER_ETHERNET))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 2048, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 2054, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 32821, PacketAnalyzer::ANALYZER_ARP))
@@ -2064,6 +2068,7 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 239, PacketAnalyzer::ANALYZER_NFLOG))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 50, PacketAnalyzer::ANALYZER_PPPSERIAL))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 5072, PacketAnalyzer::ANALYZER_AYIYA))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 6081, PacketAnalyzer::ANALYZER_GENEVE))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VLAN, 2048, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VLAN, 2054, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VLAN, 32821, PacketAnalyzer::ANALYZER_ARP))
@@ -2106,6 +2111,7 @@
 0.000000   MetaHookPre   CallFunction(global_ids, <frame>, ())
 0.000000   MetaHookPre   CallFunction(network_time, <frame>, ())
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (5072/udp))
+0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (6081/udp))
 0.000000   MetaHookPre   CallFunction(reading_live_traffic, <frame>, ())
 0.000000   MetaHookPre   CallFunction(reading_traces, <frame>, ())
 0.000000   MetaHookPre   CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$))
@@ -2383,6 +2389,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/find-checksum-offloading, <...>/find-checksum-offloading.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/find-filtered-trace, <...>/find-filtered-trace.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ftp, <...>/ftp)
+0.000000   MetaHookPre   LoadFile(0, base<...>/geneve, <...>/geneve)
 0.000000   MetaHookPre   LoadFile(0, base<...>/geoip-distance, <...>/geoip-distance.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/gre, <...>/gre)
 0.000000   MetaHookPre   LoadFile(0, base<...>/hash, <...>/hash)
@@ -2752,6 +2759,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/find-checksum-offloading, <...>/find-checksum-offloading.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/find-filtered-trace, <...>/find-filtered-trace.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ftp, <...>/ftp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/geneve, <...>/geneve)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/geoip-distance, <...>/geoip-distance.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/gre, <...>/gre)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/hash, <...>/hash)
@@ -2874,7 +2882,6 @@
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DTLS, 443/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_FTP, 21/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_FTP, 2811/tcp)
-0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_GENEVE, 6081/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_GTPV1, 2123/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_GTPV1, 2152/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_HTTP, 1080/tcp)
@@ -2939,7 +2946,6 @@
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DTLS, 443/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_FTP, 21/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_FTP, 2811/tcp)
-0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_GENEVE, 6081/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_GTPV1, 2123/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_GTPV1, 2152/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 1080/tcp)
@@ -2995,7 +3001,6 @@
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, {5353<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, {443/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, {2811<...>/tcp})
-0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_GENEVE, {6081/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_GTPV1, {2152<...>/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, {80<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_IMAP, {143/tcp})
@@ -3444,7 +3449,9 @@
 0.000000 | HookCallFunction Option::set_change_handler(udp_content_delivery_ports_use_resp, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(udp_content_ports, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, 5072/udp)
+0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, 6081/udp)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, {5072/udp})
+0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, {6081/udp})
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_AYIYA, 4, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_AYIYA, 41, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 2048, PacketAnalyzer::ANALYZER_IP)
@@ -3457,6 +3464,7 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 34984, PacketAnalyzer::ANALYZER_VLAN)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 35110, PacketAnalyzer::ANALYZER_VNTAG)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 37120, PacketAnalyzer::ANALYZER_VLAN)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 25944, PacketAnalyzer::ANALYZER_ETHERNET)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11, 2048, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11, 2054, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11, 32821, PacketAnalyzer::ANALYZER_ARP)
@@ -3493,6 +3501,7 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 239, PacketAnalyzer::ANALYZER_NFLOG)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 50, PacketAnalyzer::ANALYZER_PPPSERIAL)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 5072, PacketAnalyzer::ANALYZER_AYIYA)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 6081, PacketAnalyzer::ANALYZER_GENEVE)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VLAN, 2048, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VLAN, 2054, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VLAN, 32821, PacketAnalyzer::ANALYZER_ARP)
@@ -3535,6 +3544,7 @@
 0.000000 | HookCallFunction global_ids()
 0.000000 | HookCallFunction network_time()
 0.000000 | HookCallFunction port_to_count(5072/udp)
+0.000000 | HookCallFunction port_to_count(6081/udp)
 0.000000 | HookCallFunction reading_live_traffic()
 0.000000 | HookCallFunction reading_traces()
 0.000000 | HookCallFunction set_to_regex({}, (^\.?|\.)(~~)$)
@@ -3824,6 +3834,7 @@
 0.000000 | HookLoadFile  base<...>/find-checksum-offloading <...>/find-checksum-offloading.zeek
 0.000000 | HookLoadFile  base<...>/find-filtered-trace <...>/find-filtered-trace.zeek
 0.000000 | HookLoadFile  base<...>/ftp <...>/ftp
+0.000000 | HookLoadFile  base<...>/geneve <...>/geneve
 0.000000 | HookLoadFile  base<...>/geoip-distance <...>/geoip-distance.zeek
 0.000000 | HookLoadFile  base<...>/gre <...>/gre
 0.000000 | HookLoadFile  base<...>/hash <...>/hash
@@ -4193,6 +4204,7 @@
 0.000000 | HookLoadFileExtended base<...>/find-checksum-offloading <...>/find-checksum-offloading.zeek
 0.000000 | HookLoadFileExtended base<...>/find-filtered-trace <...>/find-filtered-trace.zeek
 0.000000 | HookLoadFileExtended base<...>/ftp <...>/ftp
+0.000000 | HookLoadFileExtended base<...>/geneve <...>/geneve
 0.000000 | HookLoadFileExtended base<...>/geoip-distance <...>/geoip-distance.zeek
 0.000000 | HookLoadFileExtended base<...>/gre <...>/gre
 0.000000 | HookLoadFileExtended base<...>/hash <...>/hash

@@ -92,7 +92,7 @@ export {
 
 const teredo_ports = { 3544/udp };
 const gtpv1_ports = { 2152/udp, 2123/udp };
-redef likely_server_ports += { teredo_ports, gtpv1_ports, vxlan_ports, geneve_ports };
+redef likely_server_ports += { teredo_ports, gtpv1_ports, vxlan_ports };
 
 event zeek_init() &priority=5
 	{
@@ -101,7 +101,6 @@ event zeek_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_TEREDO, teredo_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_GTPV1, gtpv1_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_VXLAN, vxlan_ports);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_GENEVE, geneve_ports);
 	}
 
 function register_all(ecv: EncapsulatingConnVector)

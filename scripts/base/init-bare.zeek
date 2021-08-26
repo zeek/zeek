@@ -5065,12 +5065,6 @@ export {
 	## if you customize this, you may still want to manually ensure that
 	## :zeek:see:`likely_server_ports` also gets populated accordingly.
 	const vxlan_ports: set[port] = { 4789/udp } &redef;
-
-	## The set of UDP ports used for Geneve traffic.  Traffic using this
-	## UDP destination port will attempt to be decapsulated.  Note that if
-	## if you customize this, you may still want to manually ensure that
-	## :zeek:see:`likely_server_ports` also gets populated accordingly.
-	const geneve_ports: set[port] = { 6081/udp } &redef;
 } # end export
 
 module Reporter;

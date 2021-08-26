@@ -211,8 +211,11 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 		adapter->Event(udp_reply);
 		}
 
-	// Send the packet back into the packet analysis framework.
-	ForwardPacket(len, data, pkt);
+	// Send the packet back into the packet analysis framework. We only check the response
+	// port here because the orig/resp should have already swapped around based on
+	// likely_server_ports. This also prevents us from processing things twice if protocol
+	// detection has to be used.
+	ForwardPacket(len, data, pkt, ntohs(c->RespPort()));
 
 	// Also try sending it into session analysis.
 	if ( remaining >= len )

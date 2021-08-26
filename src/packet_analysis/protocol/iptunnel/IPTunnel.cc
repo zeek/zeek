@@ -23,7 +23,7 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 	{
 	if ( ! packet->ip_hdr )
 		{
-		reporter->InternalError("IPTunnelAnalyzer: ip_hdr not found in packet keystore");
+		reporter->InternalError("IPTunnelAnalyzer: null ip_hdr in packet");
 		return false;
 		}
 

@@ -4,6 +4,7 @@
 
 #include <pcap.h> // For DLT_ constants
 
+#include "zeek/Conn.h"
 #include "zeek/IP.h"
 #include "zeek/RunState.h"
 #include "zeek/TunnelEncapsulation.h"
@@ -168,6 +169,37 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt, ui
 	bool return_val = packet_mgr->ProcessInnerPacket(&p);
 
 	return return_val;
+	}
+
+std::unique_ptr<Packet> build_inner_packet(Packet* outer_pkt, int* encap_index,
+                                           std::shared_ptr<EncapsulationStack> encap_stack,
+                                           uint32_t len, const u_char* data, int link_type,
+                                           BifEnum::Tunnel::Type tunnel_type,
+                                           const Tag& analyzer_tag)
+	{
+	auto inner_pkt = std::make_unique<Packet>();
+
+	pkt_timeval ts;
+	ts.tv_sec = static_cast<time_t>(run_state::current_timestamp);
+	ts.tv_usec = static_cast<suseconds_t>(
+		(run_state::current_timestamp - static_cast<double>(ts.tv_sec)) * 1000000);
+	inner_pkt->Init(link_type, &ts, len, len, data);
+
+	*encap_index = 0;
+	if ( outer_pkt->session )
+		{
+		EncapsulatingConn inner(static_cast<Connection*>(outer_pkt->session), tunnel_type);
+
+		if ( ! outer_pkt->encap )
+			outer_pkt->encap = encap_stack != nullptr ? encap_stack
+			                                          : std::make_shared<EncapsulationStack>();
+
+		outer_pkt->encap->Add(inner);
+		inner_pkt->encap = outer_pkt->encap;
+		*encap_index = outer_pkt->encap->Depth();
+		}
+
+	return inner_pkt;
 	}
 
 namespace detail

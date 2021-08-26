@@ -121,6 +121,10 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
 		return;
 		}
 
+	// Store the session in the packet in case we get an encapsulation here. We need it for
+	// handling those properly.
+	pkt->session = c;
+
 	ForwardPacket(len, data, pkt);
 
 	if ( remaining >= len )

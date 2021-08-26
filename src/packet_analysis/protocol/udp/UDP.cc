@@ -211,6 +211,10 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 		adapter->Event(udp_reply);
 		}
 
+	// Store the session in the packet in case we get an encapsulation here. We need it for
+	// handling those properly.
+	pkt->session = c;
+
 	// Send the packet back into the packet analysis framework. We only check the response
 	// port here because the orig/resp should have already swapped around based on
 	// likely_server_ports. This also prevents us from processing things twice if protocol

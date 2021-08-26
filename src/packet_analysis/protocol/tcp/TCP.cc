@@ -120,6 +120,10 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 	adapter->Process(is_orig, tp, len, ip, data, remaining);
 
+	// Store the session in the packet in case we get an encapsulation here. We need it for
+	// handling those properly.
+	pkt->session = c;
+
 	// Send the packet back into the packet analysis framework.
 	ForwardPacket(len, data, pkt);
 

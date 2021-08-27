@@ -109,6 +109,7 @@ public:
 	// in an attempt to match at least one character.
 	int Match(const char* s);
 	int Match(const String* s);
+	int Match(const u_char* bv, int n);
 
 	int LongestMatch(const char* s);
 	int LongestMatch(const String* s);
@@ -136,7 +137,6 @@ protected:
 	void AddPat(const char* pat, const char* orig_fmt, const char* app_fmt);
 
 	bool MatchAll(const u_char* bv, int n);
-	int Match(const u_char* bv, int n);
 
 	match_type mt;
 	int multiline;
@@ -227,6 +227,8 @@ public:
 	int MatchPrefix(const char* s) { return re_exact->LongestMatch(s); }
 	int MatchPrefix(const String* s) { return re_exact->LongestMatch(s); }
 	int MatchPrefix(const u_char* s, int n) { return re_exact->LongestMatch(s, n); }
+
+	bool Match(const u_char* s, int n) { return re_anywhere->Match(s, n); }
 
 	const char* PatternText() const { return re_exact->PatternText(); }
 	const char* AnywherePatternText() const { return re_anywhere->PatternText(); }

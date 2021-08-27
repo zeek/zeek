@@ -24,3 +24,4 @@
 @load base/packet-protocols/ayiya
 @load base/packet-protocols/geneve
 @load base/packet-protocols/vxlan
+@load base/packet-protocols/teredo

@@ -59,7 +59,6 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_SSL, 993/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_SSL, 995/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_SYSLOG, 514/udp)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_TEREDO, 3544/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_XMPP, 5222/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_XMPP, 5269/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::disable_analyzer, <frame>, (Analyzer::ANALYZER_TCPSTATS)) -> <no result>
@@ -122,7 +121,6 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_SSL, 993/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_SSL, 995/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_SYSLOG, 514/udp)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_TEREDO, 3544/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_XMPP, 5222/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_XMPP, 5269/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DCE_RPC, {135/tcp})) -> <no result>
@@ -151,7 +149,6 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_SSH, {22/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_SSL, {563<...>/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_SYSLOG, {514/udp})) -> <no result>
-0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_TEREDO, {3544/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_XMPP, {5222<...>/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_endpoint_name, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_interval, <frame>, (1.0 sec)) -> <no result>
@@ -580,9 +577,11 @@
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (udp_content_ports, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, 5072/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, 6081/udp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO, 3544/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, 4789/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, {5072/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, {6081/udp})) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO, {3544/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, {4789/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_AYIYA, 4, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_AYIYA, 41, PacketAnalyzer::ANALYZER_IP)) -> <no result>
@@ -632,6 +631,7 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 127, PacketAnalyzer::ANALYZER_IEEE802_11_RADIO)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 239, PacketAnalyzer::ANALYZER_NFLOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 50, PacketAnalyzer::ANALYZER_PPPSERIAL)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 3544, PacketAnalyzer::ANALYZER_TEREDO)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 4789, PacketAnalyzer::ANALYZER_VXLAN)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 5072, PacketAnalyzer::ANALYZER_AYIYA)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 6081, PacketAnalyzer::ANALYZER_GENEVE)) -> <no result>
@@ -646,6 +646,7 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VNTAG, 34984, PacketAnalyzer::ANALYZER_VLAN)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VNTAG, 37120, PacketAnalyzer::ANALYZER_VLAN)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_protocol_detection, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_protocol_detection, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::build, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::combine_filters, <frame>, (ip or not ip, and, )) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::install, <frame>, ()) -> <no result>
@@ -676,6 +677,7 @@
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(global_ids, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(network_time, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (3544/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (4789/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (5072/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (6081/udp)) -> <no result>
@@ -804,6 +806,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Teredo.events.bif.zeek, <...>/Zeek_Teredo.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Unified2.events.bif.zeek, <...>/Zeek_Unified2.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Unified2.types.bif.zeek, <...>/Zeek_Unified2.types.bif.zeek) -> -1
@@ -921,6 +924,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/Zeek_SNMP.types.bif, <...>/Zeek_SNMP.types.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/Zeek_Teredo.functions.bif, <...>/Zeek_Teredo.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/active-http, <...>/active-http.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/addrs, <...>/addrs.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/analyzer, <...>/analyzer) -> -1
@@ -1029,6 +1033,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/syslog, <...>/syslog) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/tcp, <...>/tcp) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/teredo, <...>/teredo) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/thresholds, <...>/thresholds.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/time, <...>/time.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/tunnels, <...>/tunnels) -> -1
@@ -1175,6 +1180,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Teredo.events.bif.zeek, <...>/Zeek_Teredo.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Unified2.events.bif.zeek, <...>/Zeek_Unified2.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Unified2.types.bif.zeek, <...>/Zeek_Unified2.types.bif.zeek) -> (-1, <no content>)
@@ -1292,6 +1298,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/Zeek_SNMP.types.bif, <...>/Zeek_SNMP.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/Zeek_Teredo.functions.bif, <...>/Zeek_Teredo.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/active-http, <...>/active-http.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/addrs, <...>/addrs.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/analyzer, <...>/analyzer) -> (-1, <no content>)
@@ -1400,6 +1407,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/syslog, <...>/syslog) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/tcp, <...>/tcp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/teredo, <...>/teredo) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/thresholds, <...>/thresholds.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/time, <...>/time.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/tunnels, <...>/tunnels) -> (-1, <no content>)
@@ -1496,7 +1504,6 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_SSL, 993/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_SSL, 995/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_SYSLOG, 514/udp))
-0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_TEREDO, 3544/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_XMPP, 5222/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_XMPP, 5269/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::disable_analyzer, <frame>, (Analyzer::ANALYZER_TCPSTATS))
@@ -1559,7 +1566,6 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_SSL, 993/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_SSL, 995/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_SYSLOG, 514/udp))
-0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_TEREDO, 3544/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_XMPP, 5222/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_XMPP, 5269/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DCE_RPC, {135/tcp}))
@@ -1588,7 +1594,6 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_SSH, {22/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_SSL, {563<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_SYSLOG, {514/udp}))
-0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_TEREDO, {3544/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_XMPP, {5222<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_endpoint_name, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_interval, <frame>, (1.0 sec))
@@ -2017,9 +2022,11 @@
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (udp_content_ports, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, 5072/udp))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, 6081/udp))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO, 3544/udp))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, 4789/udp))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, {5072/udp}))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, {6081/udp}))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO, {3544/udp}))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, {4789/udp}))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_AYIYA, 4, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_AYIYA, 41, PacketAnalyzer::ANALYZER_IP))
@@ -2069,6 +2076,7 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 127, PacketAnalyzer::ANALYZER_IEEE802_11_RADIO))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 239, PacketAnalyzer::ANALYZER_NFLOG))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 50, PacketAnalyzer::ANALYZER_PPPSERIAL))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 3544, PacketAnalyzer::ANALYZER_TEREDO))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 4789, PacketAnalyzer::ANALYZER_VXLAN))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 5072, PacketAnalyzer::ANALYZER_AYIYA))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 6081, PacketAnalyzer::ANALYZER_GENEVE))
@@ -2083,6 +2091,7 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VNTAG, 34984, PacketAnalyzer::ANALYZER_VLAN))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VNTAG, 37120, PacketAnalyzer::ANALYZER_VLAN))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_protocol_detection, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_protocol_detection, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO))
 0.000000   MetaHookPre   CallFunction(PacketFilter::build, <frame>, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::combine_filters, <frame>, (ip or not ip, and, ))
 0.000000   MetaHookPre   CallFunction(PacketFilter::install, <frame>, ())
@@ -2113,6 +2122,7 @@
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS))
 0.000000   MetaHookPre   CallFunction(global_ids, <frame>, ())
 0.000000   MetaHookPre   CallFunction(network_time, <frame>, ())
+0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (3544/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (4789/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (5072/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (6081/udp))
@@ -2241,6 +2251,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Teredo.events.bif.zeek, <...>/Zeek_Teredo.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Unified2.events.bif.zeek, <...>/Zeek_Unified2.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Unified2.types.bif.zeek, <...>/Zeek_Unified2.types.bif.zeek)
@@ -2358,6 +2369,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/Zeek_SNMP.types.bif, <...>/Zeek_SNMP.types.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/Zeek_Teredo.functions.bif, <...>/Zeek_Teredo.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/active-http, <...>/active-http.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/addrs, <...>/addrs.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/analyzer, <...>/analyzer)
@@ -2466,6 +2478,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/syslog, <...>/syslog)
 0.000000   MetaHookPre   LoadFile(0, base<...>/tcp, <...>/tcp)
+0.000000   MetaHookPre   LoadFile(0, base<...>/teredo, <...>/teredo)
 0.000000   MetaHookPre   LoadFile(0, base<...>/thresholds, <...>/thresholds.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/time, <...>/time.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/tunnels, <...>/tunnels)
@@ -2612,6 +2625,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Teredo.events.bif.zeek, <...>/Zeek_Teredo.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Unified2.events.bif.zeek, <...>/Zeek_Unified2.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Unified2.types.bif.zeek, <...>/Zeek_Unified2.types.bif.zeek)
@@ -2729,6 +2743,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/Zeek_SNMP.types.bif, <...>/Zeek_SNMP.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/Zeek_Teredo.functions.bif, <...>/Zeek_Teredo.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/active-http, <...>/active-http.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/addrs, <...>/addrs.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/analyzer, <...>/analyzer)
@@ -2837,6 +2852,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/syslog, <...>/syslog)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/tcp, <...>/tcp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/teredo, <...>/teredo)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/thresholds, <...>/thresholds.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/time, <...>/time.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/tunnels, <...>/tunnels)
@@ -2933,7 +2949,6 @@
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_SSL, 993/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_SSL, 995/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_SYSLOG, 514/udp)
-0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_TEREDO, 3544/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_XMPP, 5222/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_XMPP, 5269/tcp)
 0.000000 | HookCallFunction Analyzer::disable_analyzer(Analyzer::ANALYZER_TCPSTATS)
@@ -2996,7 +3011,6 @@
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_SSL, 993/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_SSL, 995/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_SYSLOG, 514/udp)
-0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_TEREDO, 3544/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_XMPP, 5222/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_XMPP, 5269/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DCE_RPC, {135/tcp})
@@ -3025,7 +3039,6 @@
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, {22/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, {563<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_SYSLOG, {514/udp})
-0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_TEREDO, {3544/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_XMPP, {5222<...>/tcp})
 0.000000 | HookCallFunction Broker::__set_metrics_export_endpoint_name()
 0.000000 | HookCallFunction Broker::__set_metrics_export_interval(1.0 sec)
@@ -3453,9 +3466,11 @@
 0.000000 | HookCallFunction Option::set_change_handler(udp_content_ports, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, 5072/udp)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, 6081/udp)
+0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO, 3544/udp)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, 4789/udp)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, {5072/udp})
 0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, {6081/udp})
+0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO, {3544/udp})
 0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, {4789/udp})
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_AYIYA, 4, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_AYIYA, 41, PacketAnalyzer::ANALYZER_IP)
@@ -3505,6 +3520,7 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 127, PacketAnalyzer::ANALYZER_IEEE802_11_RADIO)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 239, PacketAnalyzer::ANALYZER_NFLOG)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 50, PacketAnalyzer::ANALYZER_PPPSERIAL)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 3544, PacketAnalyzer::ANALYZER_TEREDO)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 4789, PacketAnalyzer::ANALYZER_VXLAN)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 5072, PacketAnalyzer::ANALYZER_AYIYA)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 6081, PacketAnalyzer::ANALYZER_GENEVE)
@@ -3519,6 +3535,7 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VNTAG, 34984, PacketAnalyzer::ANALYZER_VLAN)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VNTAG, 37120, PacketAnalyzer::ANALYZER_VLAN)
 0.000000 | HookCallFunction PacketAnalyzer::register_protocol_detection(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA)
+0.000000 | HookCallFunction PacketAnalyzer::register_protocol_detection(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO)
 0.000000 | HookCallFunction PacketFilter::build()
 0.000000 | HookCallFunction PacketFilter::combine_filters(ip or not ip, and, )
 0.000000 | HookCallFunction PacketFilter::install()
@@ -3549,6 +3566,7 @@
 0.000000 | HookCallFunction getenv(ZEEK_DEFAULT_LISTEN_ADDRESS)
 0.000000 | HookCallFunction global_ids()
 0.000000 | HookCallFunction network_time()
+0.000000 | HookCallFunction port_to_count(3544/udp)
 0.000000 | HookCallFunction port_to_count(4789/udp)
 0.000000 | HookCallFunction port_to_count(5072/udp)
 0.000000 | HookCallFunction port_to_count(6081/udp)
@@ -3677,6 +3695,7 @@
 0.000000 | HookLoadFile  ./Zeek_TCP.functions.bif.zeek <...>/Zeek_TCP.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_TCP.types.bif.zeek <...>/Zeek_TCP.types.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Teredo.events.bif.zeek <...>/Zeek_Teredo.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_Teredo.functions.bif.zeek <...>/Zeek_Teredo.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_UDP.events.bif.zeek <...>/Zeek_UDP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Unified2.events.bif.zeek <...>/Zeek_Unified2.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Unified2.types.bif.zeek <...>/Zeek_Unified2.types.bif.zeek
@@ -3806,6 +3825,7 @@
 0.000000 | HookLoadFile  base<...>/CPP-load.bif <...>/CPP-load.bif.zeek
 0.000000 | HookLoadFile  base<...>/Zeek_KRB.types.bif <...>/Zeek_KRB.types.bif.zeek
 0.000000 | HookLoadFile  base<...>/Zeek_SNMP.types.bif <...>/Zeek_SNMP.types.bif.zeek
+0.000000 | HookLoadFile  base<...>/Zeek_Teredo.functions.bif <...>/Zeek_Teredo.functions.bif.zeek
 0.000000 | HookLoadFile  base<...>/active-http <...>/active-http.zeek
 0.000000 | HookLoadFile  base<...>/addrs <...>/addrs.zeek
 0.000000 | HookLoadFile  base<...>/analyzer <...>/analyzer
@@ -3914,6 +3934,7 @@
 0.000000 | HookLoadFile  base<...>/supervisor.bif <...>/supervisor.bif.zeek
 0.000000 | HookLoadFile  base<...>/syslog <...>/syslog
 0.000000 | HookLoadFile  base<...>/tcp <...>/tcp
+0.000000 | HookLoadFile  base<...>/teredo <...>/teredo
 0.000000 | HookLoadFile  base<...>/thresholds <...>/thresholds.zeek
 0.000000 | HookLoadFile  base<...>/time <...>/time.zeek
 0.000000 | HookLoadFile  base<...>/tunnels <...>/tunnels
@@ -4048,6 +4069,7 @@
 0.000000 | HookLoadFileExtended ./Zeek_TCP.functions.bif.zeek <...>/Zeek_TCP.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_TCP.types.bif.zeek <...>/Zeek_TCP.types.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_Teredo.events.bif.zeek <...>/Zeek_Teredo.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Teredo.functions.bif.zeek <...>/Zeek_Teredo.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_UDP.events.bif.zeek <...>/Zeek_UDP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_Unified2.events.bif.zeek <...>/Zeek_Unified2.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_Unified2.types.bif.zeek <...>/Zeek_Unified2.types.bif.zeek
@@ -4177,6 +4199,7 @@
 0.000000 | HookLoadFileExtended base<...>/CPP-load.bif <...>/CPP-load.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/Zeek_KRB.types.bif <...>/Zeek_KRB.types.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/Zeek_SNMP.types.bif <...>/Zeek_SNMP.types.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/Zeek_Teredo.functions.bif <...>/Zeek_Teredo.functions.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/active-http <...>/active-http.zeek
 0.000000 | HookLoadFileExtended base<...>/addrs <...>/addrs.zeek
 0.000000 | HookLoadFileExtended base<...>/analyzer <...>/analyzer
@@ -4285,6 +4308,7 @@
 0.000000 | HookLoadFileExtended base<...>/supervisor.bif <...>/supervisor.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/syslog <...>/syslog
 0.000000 | HookLoadFileExtended base<...>/tcp <...>/tcp
+0.000000 | HookLoadFileExtended base<...>/teredo <...>/teredo
 0.000000 | HookLoadFileExtended base<...>/thresholds <...>/thresholds.zeek
 0.000000 | HookLoadFileExtended base<...>/time <...>/time.zeek
 0.000000 | HookLoadFileExtended base<...>/tunnels <...>/tunnels
@@ -4782,6 +4806,7 @@ XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(HTTP::get_file_handle, <frame>, (
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(Log::__write, <frame>, (Conn::LOG, [ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=http, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>])) -> <no result>
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(Log::log_stream_policy, <null>, ([ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=http, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>], Conn::LOG)) -> <no result>
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(Log::write, <frame>, (Conn::LOG, [ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=http, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>])) -> <no result>
+XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(PacketAnalyzer::TEREDO::remove_teredo_connection, <frame>, ([orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp])) -> <no result>
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(cat, <frame>, (Analyzer::ANALYZER_HTTP, XXXXXXXXXX.XXXXXX, T, 1, 1, 141.142.228.5:59856 > 192.150.187.43:80)) -> <no result>
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(connection_state_remove, <null>, ([id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=XXXXXXXXXX.XXXXXX, duration=211.0 msecs 483.955383 usecs, service={HTTP}, history=ShADadFf, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, dpd_state=<uninitialized>, removal_hooks={HTTP::finalize_http{ <init> HTTP::r, HTTP::info{ if (HTTP::c?$http_state) { for ([HTTP::r] in HTTP::c$http_state$pending) { if (0 == HTTP::r) next Log::write(HTTP::LOG, to_any_coerceHTTP::info)}}}}}, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dce_rpc=<uninitialized>, dce_rpc_state=<uninitialized>, dce_rpc_backing=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=[ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], trans_depth=1, method=GET, host=bro.org, uri=<...>/CHANGES.bro-aux.txt, referrer=<uninitialized>, version=1.1, user_agent=Wget/1.14 (darwin12.2.0), origin=<uninitialized>, request_body_len=0, response_body_len=4705, status_code=200, status_msg=OK, info_code=<uninitialized>, info_msg=<uninitialized>, tags={}, username=<uninitialized>, password=<uninitialized>, capture_password=F, proxied=<uninitialized>, range_request=F, orig_fuids=<uninitialized>, orig_filenames=<uninitialized>, orig_mime_types=<uninitialized>, resp_fuids=[FMnxxt3xjVcWNS2141], resp_filenames=<uninitialized>, resp_mime_types=[text/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])) -> <no result>
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(filter_change_tracking, <null>, ()) -> <no result>
@@ -4819,6 +4844,7 @@ XXXXXXXXXX.XXXXXX   MetaHookPre   CallFunction(HTTP::get_file_handle, <frame>, (
 XXXXXXXXXX.XXXXXX   MetaHookPre   CallFunction(Log::__write, <frame>, (Conn::LOG, [ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=http, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>]))
 XXXXXXXXXX.XXXXXX   MetaHookPre   CallFunction(Log::log_stream_policy, <null>, ([ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=http, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>], Conn::LOG))
 XXXXXXXXXX.XXXXXX   MetaHookPre   CallFunction(Log::write, <frame>, (Conn::LOG, [ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=http, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>]))
+XXXXXXXXXX.XXXXXX   MetaHookPre   CallFunction(PacketAnalyzer::TEREDO::remove_teredo_connection, <frame>, ([orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]))
 XXXXXXXXXX.XXXXXX   MetaHookPre   CallFunction(cat, <frame>, (Analyzer::ANALYZER_HTTP, XXXXXXXXXX.XXXXXX, T, 1, 1, 141.142.228.5:59856 > 192.150.187.43:80))
 XXXXXXXXXX.XXXXXX   MetaHookPre   CallFunction(connection_state_remove, <null>, ([id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=XXXXXXXXXX.XXXXXX, duration=211.0 msecs 483.955383 usecs, service={HTTP}, history=ShADadFf, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, dpd_state=<uninitialized>, removal_hooks={HTTP::finalize_http{ <init> HTTP::r, HTTP::info{ if (HTTP::c?$http_state) { for ([HTTP::r] in HTTP::c$http_state$pending) { if (0 == HTTP::r) next Log::write(HTTP::LOG, to_any_coerceHTTP::info)}}}}}, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dce_rpc=<uninitialized>, dce_rpc_state=<uninitialized>, dce_rpc_backing=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=[ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], trans_depth=1, method=GET, host=bro.org, uri=<...>/CHANGES.bro-aux.txt, referrer=<uninitialized>, version=1.1, user_agent=Wget/1.14 (darwin12.2.0), origin=<uninitialized>, request_body_len=0, response_body_len=4705, status_code=200, status_msg=OK, info_code=<uninitialized>, info_msg=<uninitialized>, tags={}, username=<uninitialized>, password=<uninitialized>, capture_password=F, proxied=<uninitialized>, range_request=F, orig_fuids=<uninitialized>, orig_filenames=<uninitialized>, orig_mime_types=<uninitialized>, resp_fuids=[FMnxxt3xjVcWNS2141], resp_filenames=<uninitialized>, resp_mime_types=[text/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>]))
 XXXXXXXXXX.XXXXXX   MetaHookPre   CallFunction(filter_change_tracking, <null>, ())
@@ -4857,6 +4883,7 @@ XXXXXXXXXX.XXXXXX | HookCallFunction HTTP::get_file_handle([id=[orig_h=141.142.2
 XXXXXXXXXX.XXXXXX | HookCallFunction Log::__write(Conn::LOG, [ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=http, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>])
 XXXXXXXXXX.XXXXXX | HookCallFunction Log::log_stream_policy([ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=http, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>], Conn::LOG)
 XXXXXXXXXX.XXXXXX | HookCallFunction Log::write(Conn::LOG, [ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=http, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>])
+XXXXXXXXXX.XXXXXX | HookCallFunction PacketAnalyzer::TEREDO::remove_teredo_connection([orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp])
 XXXXXXXXXX.XXXXXX | HookCallFunction cat(Analyzer::ANALYZER_HTTP, XXXXXXXXXX.XXXXXX, T, 1, 1, 141.142.228.5:59856 > 192.150.187.43:80)
 XXXXXXXXXX.XXXXXX | HookCallFunction connection_state_remove([id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=XXXXXXXXXX.XXXXXX, duration=211.0 msecs 483.955383 usecs, service={HTTP}, history=ShADadFf, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, dpd_state=<uninitialized>, removal_hooks={HTTP::finalize_http{ <init> HTTP::r, HTTP::info{ if (HTTP::c?$http_state) { for ([HTTP::r] in HTTP::c$http_state$pending) { if (0 == HTTP::r) next Log::write(HTTP::LOG, to_any_coerceHTTP::info)}}}}}, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dce_rpc=<uninitialized>, dce_rpc_state=<uninitialized>, dce_rpc_backing=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=[ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], trans_depth=1, method=GET, host=bro.org, uri=<...>/CHANGES.bro-aux.txt, referrer=<uninitialized>, version=1.1, user_agent=Wget/1.14 (darwin12.2.0), origin=<uninitialized>, request_body_len=0, response_body_len=4705, status_code=200, status_msg=OK, info_code=<uninitialized>, info_msg=<uninitialized>, tags={}, username=<uninitialized>, password=<uninitialized>, capture_password=F, proxied=<uninitialized>, range_request=F, orig_fuids=<uninitialized>, orig_filenames=<uninitialized>, orig_mime_types=<uninitialized>, resp_fuids=[FMnxxt3xjVcWNS2141], resp_filenames=<uninitialized>, resp_mime_types=[text/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])
 XXXXXXXXXX.XXXXXX | HookCallFunction filter_change_tracking()

@@ -17,24 +17,28 @@ namespace zeek
 
 class String;
 struct ConnTuple;
+class Val;
 
 namespace detail
 	{
 
 class HashKey;
 
-struct ConnKey
+class ConnKey
 	{
+public:
 	in6_addr ip1;
 	in6_addr ip2;
-	uint16_t port1;
-	uint16_t port2;
-	TransportProto transport;
+	uint16_t port1 = 0;
+	uint16_t port2 = 0;
+	TransportProto transport = TRANSPORT_UNKNOWN;
+	bool valid = true;
 
 	ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port,
 	        TransportProto t, bool one_way);
 	ConnKey(const ConnTuple& conn);
 	ConnKey(const ConnKey& rhs) { *this = rhs; }
+	ConnKey(Val* v);
 
 	bool operator<(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) < 0; }
 	bool operator<=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) <= 0; }
@@ -44,6 +48,10 @@ struct ConnKey
 	bool operator>(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) > 0; }
 
 	ConnKey& operator=(const ConnKey& rhs);
+
+private:
+	void Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port,
+	          TransportProto t, bool one_way);
 	};
 
 using ConnIDKey [[deprecated("Remove in v5.1. Use zeek::detail::ConnKey.")]] = ConnKey;
@@ -430,7 +438,7 @@ public:
 	static const IPAddr v6_unspecified;
 
 private:
-	friend struct detail::ConnKey;
+	friend class detail::ConnKey;
 	friend class IPPrefix;
 
 	/**

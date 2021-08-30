@@ -161,9 +161,8 @@ zeek::StringValPtr asn1_oid_to_val(const ASN1Encoding* oid)
 		// Underflow.
 		return zeek::val_mgr->EmptyString();
 
-	for ( size_t i = 0; i < subidentifiers.size(); ++i )
+	for ( auto subidentifier : subidentifiers )
 		{
-		subidentifier = subidentifiers[i];
 		uint64 value = 0;
 
 		for ( size_t j = 0; j < subidentifier.size(); ++j )

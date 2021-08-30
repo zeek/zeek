@@ -251,11 +251,8 @@ size_t ODesc::StartsWithEscapeSequence(const char* start, const char* end)
 	if ( escape_sequences.empty() )
 		return 0;
 
-	escape_set::const_iterator it;
-
-	for ( it = escape_sequences.begin(); it != escape_sequences.end(); ++it )
+	for ( const auto& esc_str : escape_sequences )
 		{
-		const std::string& esc_str = *it;
 		size_t esc_len = esc_str.length();
 
 		if ( start + esc_len > end )
@@ -289,33 +286,9 @@ std::pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n
 
 		if ( len )
 			return escape_pos(bytes + i, len);
-
-		if ( ! printable && utf8 )
-			{
-			size_t utf_found = getNumBytesForUTF8(bytes[i]);
-
-			if ( utf_found == 1 )
-				return escape_pos(bytes + i, 1);
-
-			if ( i + utf_found > n )
-				// Don't know if this is even meant to be a utf8 encoding,
-				// since there's not enough bytes left to check it's a valid
-				// sequence, so maybe safest to just move up by one instead
-				// of escaping the entire remainder.
-				return escape_pos(bytes + i, 1);
-
-			if ( isLegalUTF8Sequence(reinterpret_cast<const unsigned char *>(bytes + i),
-			                         reinterpret_cast<const unsigned char *>(bytes + i + utf_found)) )
-				{
-				i += utf_found - 1;
-				continue;
-				}
-
-			return escape_pos(bytes + i, 1);
-			}
 		}
 
-	return escape_pos(0, 0);
+	return escape_pos(nullptr, 0);
 	}
 
 void ODesc::AddBytes(const void* bytes, unsigned int n)
@@ -331,17 +304,31 @@ void ODesc::AddBytes(const void* bytes, unsigned int n)
 
 	while ( s < e )
 		{
-		std::pair<const char*, size_t> p = FirstEscapeLoc(s, e - s);
+		auto [ esc_start, esc_len ] = FirstEscapeLoc(s, e - s);
 
-		if ( p.first )
+		if ( esc_start != nullptr )
 			{
-			AddBytesRaw(s, p.first - s);
-			util::get_escaped_string(this, p.first, p.second, true);
-			s = p.first + p.second;
+			if ( utf8 )
+				{
+				std::string result = util::json_escape_utf8(s, esc_start - s, false);
+				AddBytesRaw(result.c_str(), result.size());
+				}
+			else
+				AddBytesRaw(s, esc_start - s);
+
+			util::get_escaped_string(this, esc_start, esc_len, true);
+			s = esc_start + esc_len;
 			}
 		else
 			{
-			AddBytesRaw(s, e - s);
+			if ( utf8 )
+				{
+				std::string result = util::json_escape_utf8(s, e - s, false);
+				AddBytesRaw(result.c_str(), result.size());
+				}
+			else
+				AddBytesRaw(s, e - s);
+
 			break;
 			}
 		}

@@ -35,3 +35,9 @@ event zeek_init() &priority=-10
 	data[0] = "some data";
 	schedule 4sec { do_it() };
 	}
+
+# Test that re-defing a table with an expiry in a specific way
+# does not crash Zeek; see GH-1687.
+
+global hosts: set[addr] &create_expire=1day &redef;
+redef hosts: set[addr] = {};

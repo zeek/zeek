@@ -3,7 +3,7 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
-#include <map>
+#include <unordered_map>
 #include <utility>
 
 #include "zeek/Frag.h"
@@ -119,7 +119,7 @@ public:
 
 private:
 
-	using SessionMap = std::map<detail::Key, Session*>;
+	using SessionMap = std::unordered_map<detail::Key, Session*, detail::KeyHash>;
 
 	// Inserts a new connection into the sessions map. If a connection with
 	// the same key already exists in the map, it will be overwritten by

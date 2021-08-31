@@ -18,7 +18,6 @@ TCPAnalyzer::TCPAnalyzer() : IPBasedAnalyzer("TCP", TRANSPORT_TCP, TCP_PORT_MASK
 
 void TCPAnalyzer::Initialize()
 	{
-	ignored_nets = zeek::id::find_val<TableVal>("ignore_checksums_nets");
 	}
 
 SessionAdapter* TCPAnalyzer::MakeSessionAdapter(Connection* conn)
@@ -164,7 +163,7 @@ bool TCPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp,
 	{
 	if ( ! run_state::current_pkt->l3_checksummed &&
 	     ! detail::ignore_checksums &&
-	     ! ignored_nets->Contains(ip->IPHeaderSrcAddr()) &&
+	     ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) &&
 	     caplen >= len && ! endpoint->ValidChecksum(tp, len, ip->IP4_Hdr()) )
 		{
 		adapter->Weird("bad_TCP_checksum");

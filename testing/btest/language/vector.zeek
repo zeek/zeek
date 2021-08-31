@@ -154,17 +154,6 @@ event zeek_init()
 	test_case( "overwrite element", |vg1| == 3 );
 	test_case( "access element", vg1[1] == "new5" );
 
-	# Test increment/decrement operators
-
-	++v5;
-	test_case( "++ operator", |v5| == 11 && v5[0] == 1 && v5[1] == 3
-			 && v5[2] == 4 && v5[3] == 78 && v5[10] == 11
-			 && 4 !in v5 );
-	--v5;
-	test_case( "-- operator", |v5| == 11 && v5[0] == 0 && v5[1] == 2
-			 && v5[2] == 3 && v5[3] == 77 && v5[10] == 10
-			 && 4 !in v5 );
-
 	# Test +,-,*,/,% of two vectors
 
 	test_case( "+ operator", v7[0] == 11 && v7[1] == 22 && v7[2] == 33 );
@@ -172,6 +161,26 @@ event zeek_init()
 	test_case( "* operator", v9[0] == 10 && v9[1] == 40 && v9[2] == 90 );
 	test_case( "/ operator", v10[0] == 10 && v10[1] == 10 && v10[2] == 10 );
 	test_case( "% operator", v11[0] == 0 && v11[1] == 0 && v11[2] == 0 );
+
+	local vs1: vector of string = vector( "foo", "bar" );
+	local vs2: vector of string = vector( "xxx", "yyy" );
+	local vs3: vector of string = vector( "xxx", "bar" );
+
+	local vss = vs1 + vs2;
+	test_case( "+ operator [string]", vss[0] == "fooxxx" && vss[1] == "baryyy" );
+
+	local vss2 = vs1 + "@";
+	test_case( "+ operator [string]", vss2[0] == "foo@" && vss2[1] == "bar@" );
+
+	local vss3 = (vs1 == vs3);
+	test_case( "== operator [string]", vss3[0] == F && vss3[1] == T );
+
+	local vss4 = (vs1 == "bar");
+	test_case( "== operator [string]", vss4[0] == F && vss4[1] == T );
+
+	local vss5 = ("bar" == vs1);
+	test_case( "== operator [string]", vss5[0] == F && vss5[1] == T );
+		# !=, <, >, <=, >= are handled the same as ==, skipping tests
 
 	# Test &&,|| of two vectors
 

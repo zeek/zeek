@@ -57,6 +57,7 @@ double first_timestamp = 0.0;
 double current_wallclock = 0.0;
 double current_pseudo = 0.0;
 bool zeek_init_done = false;
+bool time_updated = false;
 
 RETSIGTYPE watchdog(int /* signo */)
 	{
@@ -133,6 +134,7 @@ RETSIGTYPE watchdog(int /* signo */)
 
 void update_network_time(double new_network_time)
 	{
+	time_updated = true;
 	network_time = new_network_time;
 	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
 	}
@@ -287,6 +289,7 @@ void run_loop()
 	while ( iosource_mgr->Size() ||
 		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
+		time_updated = false;
 		iosource_mgr->FindReadySources(&ready);
 
 #ifdef DEBUG
@@ -323,6 +326,18 @@ void run_loop()
 			// date on timers and events.  Because we only
 			// have timers as sources, going to sleep here
 			// doesn't risk blocking on other inputs.
+			update_network_time(util::current_time());
+			expire_timers();
+			}
+
+		// Ensure that the time gets updated every pass if we're reading live.
+		// This is necessary for e.g. packet sources that don't have a selectable
+		// file descriptor. They'll always be ready on a very short timeout, but
+		// won't necessarily have a packet to process. In these case, sometimes
+		// the time won't get updated for a long time and timers don't function
+		// correctly.
+		if ( (! time_updated && reading_live) )
+			{
 			update_network_time(util::current_time());
 			expire_timers();
 			}
@@ -406,8 +421,6 @@ void finish_run(int drain_events)
 void delete_run()
 	{
 	util::detail::set_processing_status("TERMINATING", "delete_run");
-
-	delete session_mgr;
 
 	for ( int i = 0; i < zeek::detail::NUM_ADDR_ANONYMIZATION_METHODS; ++i )
 		delete zeek::detail::ip_anonymizer[i];

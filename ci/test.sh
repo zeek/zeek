@@ -16,6 +16,9 @@ if [[ -z "${CIRRUS_CI}" ]]; then
     ZEEK_CI_BTEST_RETRIES=2
 fi
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+. ${SCRIPT_DIR}/common.sh
+
 function pushd
     {
     command pushd "$@" > /dev/null || exit 1

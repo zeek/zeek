@@ -70,4 +70,14 @@ bool Key::operator<(const Key& rhs) const
 	return memcmp(data, rhs.data, size) < 0;
 	}
 
+bool Key::operator==(const Key& rhs) const
+	{
+	if ( size != rhs.size )
+		return false;
+	else if ( type != rhs.type )
+		return false;
+
+	return memcmp(data, rhs.data, size) == 0;
+	}
+
 } // namespace zeek::session::detail

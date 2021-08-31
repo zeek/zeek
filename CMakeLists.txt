@@ -547,7 +547,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.in
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/zeek-config DESTINATION bin)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake DESTINATION share/zeek
-        USE_SOURCE_PERMISSIONS)
+        USE_SOURCE_PERMISSIONS
+        PATTERN ".git" EXCLUDE)
 
 # Install wrapper script for Bro-to-Zeek renaming.
 include(InstallShellScript)

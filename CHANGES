@@ -1,3 +1,172 @@
+4.2.0-dev.78 | 2021-08-19 09:39:23 -0700
+
+  * Return fully-escaped string if utf8 conversion fails (Tim Wojtulewicz, Corelight)
+
+    This adds a new function for validating UTF-8 sequences by converting to
+    UTF-32. This allows us to also check for various blocks of codepointsi
+    that we consider invalid while checking for valid sequences in general.
+
+4.2.0-dev.76 | 2021-08-18 08:40:41 -0700
+
+  * Fix option length computation in Geneve analyzer. (Benjamin Bannier, Corelight)
+
+    We previously computed the length of the Geneve options field
+    incorrectly which lead to us passing data at an incorrect offset to
+    inner analyzers. With this patch we now interpret the length field
+    correctly, according the the spec
+    https://datatracker.ietf.org/doc/html/rfc8926#section-3.4.
+
+    Closes #1726.
+
+4.2.0-dev.73 | 2021-08-12 09:57:59 -0700
+
+  * GH-1713: Avoid unneeded reallocs in SerializationFormat::WriteData (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.70 | 2021-08-06 13:29:30 -0700
+
+  * Do not lookup ignore_checksums_nets for every packet (Johanna Amann, Corelight)
+
+    This could lead to a noticeable (single-percent) performance
+    improvement.
+
+    Most of the functionality for this is in the packet analyzers that now
+    cache ignore_chesksums_nets.
+
+    Based on a patch by Arne Welzel (Corelight).
+
+4.2.0-dev.68 | 2021-08-04 09:57:32 +0100
+
+  * Use unordered_map to store sessions for performance reasons. This might lead to an 8-9% speedup of Zeek.
+    See GH-1706 for details. (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.64 | 2021-08-03 10:23:41 +0100
+
+  * Under certain circumstances, Zeek processes could get into an infinite looping state inside RotationTimer.
+    This is fixed by handling special cases of rotation happening exactly on the time boundary, and fixing
+    a special case of timer expiration. Fixes GH-1689. (Sowmya Ramapatruni, Corelight)
+
+4.2.0-dev.62 | 2021-08-03 10:21:18 +0100
+
+  * Fix some HTTP evasions. Now HTTP packets are correctly parsed, when CRLF is missing on a multipart
+    boundary / at packet boundaries. Fixes GH-1598 (jerome Grandvalet)
+
+4.2.0-dev.59 | 2021-08-02 11:10:04 -0700
+
+  * Fix failing test due to patricia change (Tim Wojtulewicz, Corelight)
+
+  * Rebase patricia code on upstream version (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.56 | 2021-07-30 08:52:49 -0700
+
+  * GH-1654: Exclude the .git directory when installing cmake files (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.54 | 2021-07-29 13:23:51 -0700
+
+  * GH-1692: Add some safety to ASN's binary_to_int64 to avoid bad shifts (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.50 | 2021-07-27 09:36:13 -0700
+
+  * Fix a use-after-free during shutdown (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.48 | 2021-07-26 13:03:01 -0700
+
+  * GH-1693: Fix potential crash with elements being modified during robust iteration (Tim Wojtulewicz, Corelight)
+
+  * Update HMAC key used for benchmarking service (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.45 | 2021-07-23 09:28:49 -0700
+
+  * GH-1684: Ensure that the time gets updated every pass if we're reading live traffic (Tim Wojtulewicz, Corelight)
+
+    This is necessary for e.g. packet sources that don't have a selectable
+    file descriptor. They'll always be ready on a very short timeout, but
+    won't necessarily have a packet to process. In these case, sometimes
+    the time won't get updated for a long time and timers don't function
+    correctly.
+
+4.2.0-dev.43 | 2021-07-21 11:41:19 -0700
+
+  * Fix handling of timers when cloning TableVals (Johanna Amann, Corelight)
+
+    When cloning TableVals, a new timer was created for the wrong object
+    (the existing TableVal, not the clone). This lead to the already
+    existing timer being no longer accessible. Which, in turn, leads to an
+    abandoned timer reading into no longer allocated data when the original
+    TableVal is deleted.
+
+    Fixes GH-1687
+
+4.2.0-dev.40 | 2021-07-20 09:58:14 -0700
+
+  * Cover in NEWS the inclusion of btest tooling in the installation (Christian Kreibich, Corelight)
+
+    [skip ci]
+
+4.2.0-dev.38 | 2021-07-20 09:55:59 -0700
+
+  * Fix generate-docs github action to send email when it fails (Tim Wojtulewicz, Corelight)
+
+  * Use Cirrus's new greedy mode for parallelizing builds and tests (Christian Kreibich, Corelight)
+
+    This oversubscribes our cores 2x, which testing shows we actually
+    run with at times: speedup is around a third on average for builds,
+    and a bit more than that for testing.
+
+    Also some light Bashification in ci/build.sh, for consistency.
+
+4.2.0-dev.34 | 2021-07-19 08:56:45 -0700
+
+  * Bump highwayhash to pull in FreeBSD 14 fix (Christian Kreibich, Corelight)
+
+4.2.0-dev.32 | 2021-07-19 08:55:06 -0700
+
+  * Update 3rdparty submodule to pull in doctest to 2.4.6. (Robin Sommer, Corelight)
+
+    Our old version didn't support compilation on Apple's M1 yet.
+
+4.2.0-dev.30 | 2021-07-19 08:54:30 -0700
+
+  * Fix registration of protocol analyzers from inside plugins. (Robin Sommer, Corelight)
+
+    With the recent packet manager work, it broke to register a protocol
+    analyzer for a specific port from inside a plugin's initialization code.
+    That's because that registration now depends on the packet manager being
+    set up, which isn't case at that time a plugin's `InitPostInit()` runs.
+    This fix contains two parts:
+
+        - Initialize the packet manager before the analyzer manager, so that
+          the latter's `InitPostScript()` can rely on the former being
+          ready.
+
+        - Change the analyzer manager to (only) record port registrations
+          happening before it's fully initialized. Its `InitPostScript()`
+          then performs the actual registrations, knowing it can use the
+          packet manager now.
+
+    This comes with a `cmake/` to add a missing include directory.
+
+4.2.0-dev.28 | 2021-07-16 22:43:35 -0700
+
+  * Update broker submodule for new CAF version (Tim Wojtulewicz, Corelight)
+
+  * Setup generate-docs workflow to run on push to test branch (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.24 | 2021-07-15 11:33:31 -0700
+
+  * Add a TODO to return a correct status for ParseRR_WKS (Vlad Grigorescu)
+
+  * Update scripts/site/local-compat test for 4.2 cycle (Tim Wojtulewicz)
+
+  * Remove tests for deprecated operators. (Robin Sommer, Corelight)
+
+  * Add tests for operations on vectors of string. (Robin Sommer, Corelight)
+
+4.2.0-dev.18 | 2021-07-15 09:50:25 -0700
+
+  * Remove tests for deprecated operators. (Robin Sommer, Corelight)
+
+  * Add tests for operations on vectors of string. (Robin Sommer, Corelight)
+
 4.2.0-dev.14 | 2021-07-14 15:01:20 -0700
 
   * Fix race conditions in scripts.base.frameworks.input.reread (Christian Kreibich, Corelight)

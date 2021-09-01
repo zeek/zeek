@@ -1,3 +1,31 @@
+
+4.2.0-dev.94 | 2021-08-31 15:58:00 +0200
+
+  * GH-1709: Fix signed integer overflow in PIA on big sequence number
+    holes. (Johanna Amann, Corelight)
+
+4.2.0-dev.92 | 2021-08-31 15:55:29 +0200
+
+  * Allow `-B` flag in non-debug builds, but ignore it (unless it's
+    `help`). (Benjamin Bannier, Corelight)
+
+4.2.0-dev.89 | 2021-08-26 14:35:28 -0700
+
+  * CI support refresh. (Christian Kreibich, Corelight)
+    - Add Debian 11 (Bullseye)
+    - Drop Ubuntu 16.04
+
+  * Remove unneccessary >= 0 check in a UTF32 comparison Resolves
+    Coverity CID 1461523. (Christian Kreibich, Corelight)
+
+  * Trivial signedness warning fix. (Christian Kreibich, Corelight)
+
+  * Fix addr/string type confusion in Broker::peers(). (Christian
+    Kreibich, Corelight)
+
+  * Simplify the supervisor's listen() on default address/port.
+    (Christian Kreibich, Corelight)
+
 4.2.0-dev.78 | 2021-08-19 09:39:23 -0700
 
   * Return fully-escaped string if utf8 conversion fails (Tim Wojtulewicz, Corelight)

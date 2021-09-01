@@ -64,7 +64,8 @@ void PIA::AddToBuffer(Buffer* buffer, uint64_t seq, int len, const u_char* data,
 	else
 		buffer->head = buffer->tail = b;
 
-	buffer->size += len;
+	if ( data )
+		buffer->size += len;
 	}
 
 void PIA::AddToBuffer(Buffer* buffer, int len, const u_char* data, bool is_orig,

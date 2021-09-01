@@ -12,6 +12,8 @@
 #endif
 
 #include <algorithm>
+#include <cstdio>
+#include <cstdlib>
 #include <sstream>
 
 #include "zeek/bsd-getopt-long.h"
@@ -328,10 +330,7 @@ Options parse_cmdline(int argc, char** argv)
 		{"watchdog",		no_argument,		nullptr,	'W'},
 		{"print-id",		required_argument,	nullptr,	'I'},
 		{"status-file",		required_argument,	nullptr,	'U'},
-
-#ifdef	DEBUG
 		{"debug",		required_argument,	nullptr,	'B'},
-#endif
 
 #ifdef	USE_PERFTOOLS_DEBUG
 		{"mem-leaks",	no_argument,		nullptr,	'm'},
@@ -437,11 +436,17 @@ Options parse_cmdline(int argc, char** argv)
 			rval.pcap_output_file = optarg;
 			break;
 
-#ifdef DEBUG
 		case 'B':
+#ifdef DEBUG
 			rval.debug_log_streams = optarg;
-			break;
+#else
+			if ( util::streq(optarg, "help") )
+				{
+					fprintf(stderr,"debug streams unavailable\n");
+					exit(1);
+				}
 #endif
+			break;
 
 		case 'C':
 			rval.ignore_checksums = true;

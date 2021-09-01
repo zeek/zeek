@@ -33,7 +33,7 @@ instead of looking for the headers matching the running kernel's version. If
 everything built and installed correctly, you should see this::
 
     # zeek -NN Zeek::AF_Packet
-    Zeek::AF_Packet - Packet acquisition via AF_Packet (dynamic, version 3.0.0)
+    Zeek::AF_Packet - Packet acquisition via AF_Packet (dynamic, version 3.0.1)
     [Packet Source] AF_PacketReader (interface prefix "af_packet"; supports live input)
     [Type] AF_Packet::FanoutMode
     [Constant] AF_Packet::buffer_size

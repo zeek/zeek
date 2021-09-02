@@ -1,0 +1,77 @@
+From cbd1d6e9a8f92f9c08605c74ac9ae11c4b6ec8f0 Mon Sep 17 00:00:00 2001
+From: abdelsatd <tarnagda@etud.insa-toulouse.fr>
+Date: Thu, 2 Sep 2021 20:54:12 +0200
+Subject: [PATCH] case-insensitive search features for do_find_str, find_str,
+ and rfind_str
+
+---
+ src/strings.bif | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
+
+diff --git a/src/strings.bif b/src/strings.bif
+index 0d3812f26..f4d20dc2c 100644
+--- a/src/strings.bif
++++ b/src/strings.bif
+@@ -1145,7 +1145,7 @@ function count_substr%(str: string, sub: string%) : count
+ 
+ %%{
+ 
+-static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t start, int64_t end, bool rfind)
++static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t start, int64_t end, bool rfind, bool case_sensitive)
+ 	{
+ 	// Don't bother if the start is after the end of the string.
+ 	if ( start > str->Len() )
+@@ -1168,11 +1168,19 @@ static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t s
+ 		return -1;
+ 
+ 	string s = str->ToStdString().substr(start, end_pos);
++	string sb = sub->ToStdString();
+ 	size_t pos = string::npos;
++
++	if ( !case_sensitive )
++	{
++		transform(s.begin(), s.end(), s.begin(), ::tolower);
++		transform(sb.begin(), sb.end(), sb.begin(), ::tolower);
++	}
++
+ 	if ( rfind )
+-		pos = s.rfind(sub->ToStdString());
++		pos = s.rfind(sb);
+ 	else
+-		pos = s.find(sub->ToStdString());
++		pos = s.find(sb);
+ 
+ 	if ( pos == string::npos )
+ 		return -1;
+@@ -1193,13 +1201,14 @@ static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t s
+ ## end: An optional position for the end of the substring. A value less than
+ ##      zero (such as the default -1) means a search until the end of the
+ ##      string.
++## case_sensitive: An optional position for search case insensitively
+ ##
+ ## Returns: The position of the substring. Returns -1 if the string wasn't
+ ##          found. Prints an error if the starting position is after the ending
+ ##          position.
+-function find_str%(str: string, sub: string, start: count &default=0, end: int &default=-1%) : int
++function find_str%(str: string, sub: string, start: count &default=0, end: int &default=-1, case_sensitive: bool &default=T%) : int
+ 	%{
+-	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, false));
++	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, false, case_sensitive));
+ 	%}
+ 
+ ## The same as :zeek:see:`find_str`, but returns the highest index matching
+@@ -1214,9 +1223,9 @@ function find_str%(str: string, sub: string, start: count &default=0, end: int &
+ ## Returns: The position of the substring. Returns -1 if the string wasn't
+ ##          found. Prints an error if the starting position is after the ending
+ ##          position.
+-function rfind_str%(str: string, sub: string, start: count &default=0, end: int &default=-1%) : int
++function rfind_str%(str: string, sub: string, start: count &default=0, end: int &default=-1, case_sensitive: bool &default=T%) : int
+ 	%{
+-	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, true));
++	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, true, case_sensitive));
+ 	%}
+ 
+ ## Returns whether a string starts with a substring.
+-- 
+2.27.0
+

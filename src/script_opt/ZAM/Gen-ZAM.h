@@ -292,27 +292,27 @@ protected:
 	// Tracking of assignment values (C++ variables that hold the
 	// value that should be assigned to usual frame slot).
 	void SetAssignVal(string _av)		{ av = _av; }
-	bool HasAssignVal() const		{ return av.size() > 0; }
+	bool HasAssignVal() const		{ return ! av.empty(); }
 	const string& GetAssignVal() const	{ return av; }
 
 	// Management of C++ evaluation blocks.  These are built up
 	// line-by-line.
 	void AddEval(string line)		{ eval += line; }
-	bool HasEval() const			{ return eval.size() > 0; }
+	bool HasEval() const			{ return ! eval.empty(); }
 	const string& GetEval() const		{ return eval; }
 
 	// Management of custom methods to be used rather than generating
 	// a method.
 	void SetCustomMethod(string cm)		{ custom_method = SkipWS(cm); }
 	bool HasCustomMethod() const
-		{ return custom_method.size() > 0; }
+		{ return ! custom_method.empty(); }
 	const string& GetCustomMethod() const
 		{ return custom_method; }
 
 	// Management of code to execute at the end of a generated method.
 	void SetPostMethod(string cm)		{ post_method = SkipWS(cm); }
 	bool HasPostMethod() const
-		{ return post_method.size() > 0; }
+		{ return ! post_method.empty(); }
 	const string& GetPostMethod() const
 		{ return post_method; }
 
@@ -352,7 +352,7 @@ protected:
 	// is used in a dead assignment, should be converted to a different
 	// operation that explictly omits any assignment.
 	bool HasAssignmentLess() const
-		{ return assignment_less_op.size() > 0; }
+		{ return ! assignment_less_op.empty(); }
 	void SetAssignmentLess(string op, string op_type)
 		{
 		assignment_less_op = op;
@@ -651,7 +651,7 @@ public:
 	bool IncludesFieldOp() const override	{ return includes_field_op; }
 	void SetIncludesFieldOp()		{ includes_field_op = true; }
 
-	bool HasPreEval() const			{ return pre_eval.size() > 0; }
+	bool HasPreEval() const			{ return ! pre_eval.empty(); }
 	void SetPreEval(string pe)		{ pre_eval = SkipWS(pe); }
 	const string& GetPreEval() const	{ return pre_eval; }
 

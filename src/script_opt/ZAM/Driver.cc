@@ -136,13 +136,13 @@ StmtPtr ZAMCompiler::CompileBody()
 
 	ResolveHookBreaks();
 
-	if ( nexts.size() > 0 )
+	if ( ! nexts.empty() )
 		reporter->Error("\"next\" used without an enclosing \"for\"");
 
-	if ( fallthroughs.size() > 0 )
+	if ( ! fallthroughs.empty() )
 		reporter->Error("\"fallthrough\" used without an enclosing \"switch\"");
 
-	if ( catches.size() > 0 )
+	if ( ! catches.empty() )
 		reporter->InternalError("untargeted inline return");
 
 	// Make sure we have a (pseudo-)instruction at the end so we
@@ -192,7 +192,7 @@ StmtPtr ZAMCompiler::CompileBody()
 
 	// If we have remapped frame denizens, update them.  If not,
 	// create them.
-	if ( shared_frame_denizens.size() > 0 )
+	if ( ! shared_frame_denizens.empty() )
 		RemapFrameDenizens(inst1_to_inst2);
 
 	else
@@ -218,7 +218,7 @@ StmtPtr ZAMCompiler::CompileBody()
 
 void ZAMCompiler::ResolveHookBreaks()
 	{
-	if ( breaks.size() > 0 )
+	if ( ! breaks.empty() )
 		{
 		ASSERT(breaks.size() == 1);
 
@@ -400,14 +400,14 @@ void ZAMCompiler::Dump()
 			}
 		}
 
-	if ( insts2.size() > 0 )
+	if ( ! insts2.empty() )
 		printf("Pre-removal of dead code for %s:\n", func->Name());
 
 	auto remappings = remapped_frame ? &shared_frame_denizens : nullptr;
 
 	DumpInsts1(remappings);
 
-	if ( insts2.size() > 0 )
+	if ( ! insts2.empty() )
 		printf("Final intermediary code for %s:\n", func->Name());
 
 	remappings = remapped_frame ? &shared_frame_denizens_final : nullptr;
@@ -430,7 +430,7 @@ void ZAMCompiler::Dump()
 		inst->Dump(&frame_denizens, remappings);
 		}
 
-	if ( insts2.size() > 0 )
+	if ( ! insts2.empty() )
 		printf("Final code for %s:\n", func->Name());
 
 	for ( auto i = 0U; i < insts2.size(); ++i )

@@ -753,12 +753,9 @@ void ZAMCompiler::SetLifetimeStart(int slot, const ZInstI* inst)
 		denizen_beginning[slot] = inst;
 
 		if ( inst_beginnings.count(inst) == 0 )
-			{
 			// Need to create a set to track the denizens
 			// beginning at the instruction.
-			std::unordered_set<ID*> denizens;
-			inst_beginnings[inst] = denizens;
-			}
+			inst_beginnings[inst] = {};
 
 		inst_beginnings[inst].insert(frame_denizens[slot]);
 		}
@@ -826,10 +823,7 @@ void ZAMCompiler::ExtendLifetime(int slot, const ZInstI* inst)
 			inst_endings[old_inst].erase(frame_denizens[slot]);
 
 			if ( inst_endings.count(inst) == 0 )
-				{
-				std::unordered_set<ID*> denizens;
-				inst_endings[inst] = denizens;
-				}
+				inst_endings[inst] = {};
 
 			inst_endings[inst].insert(frame_denizens[slot]);
 			denizen_ending.at(slot) = inst;

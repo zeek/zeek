@@ -17,7 +17,7 @@ class Stmt;
 using AttributesPtr = IntrusivePtr<Attributes>;
 
 // Maps ZAM frame slots to associated identifiers.   
-typedef std::vector<ID*> FrameMap;
+using FrameMap = std::vector<ID*>;
 
 // Maps ZAM frame slots to information for sharing the slot across
 // multiple script variables.
@@ -45,7 +45,7 @@ public:
 	bool is_managed;
 };
 
-typedef std::vector<FrameSharingInfo> FrameReMap;
+using FrameReMap = std::vector<FrameSharingInfo>;
 
 class ZInstAux;
 
@@ -358,7 +358,7 @@ public:
 		}
 
 	// Returns the parallel arrays converted to a vector of ValPtr's.
-	const val_vec& ToValVec(const ZVal* frame)
+	const ValVec& ToValVec(const ZVal* frame)
 		{
 		vv.clear();
 		FillValVec(vv, frame);
@@ -367,7 +367,7 @@ public:
 
 	// Populates the given vector of ValPtr's with the conversion
 	// of the parallel arrays.
-	void FillValVec(val_vec& vec, const ZVal* frame) const
+	void FillValVec(ValVec& vec, const ZVal* frame) const
 		{
 		for ( auto i = 0; i < n; ++i )
 			vec.push_back(ToVal(frame, i));
@@ -439,7 +439,7 @@ public:
 	//
 	// If we cared about memory penny-pinching, we could make this
 	// a pointer and only instantiate as needed.
-	val_vec vv;
+	ValVec vv;
 };
 
 // Returns a human-readable version of the given ZAM op-code.

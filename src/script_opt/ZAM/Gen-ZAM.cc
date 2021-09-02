@@ -8,12 +8,12 @@
 using namespace std;
 
 // Helper functions to convert dashes to underscores or vice versa.
-char dash_to_under(char c)
+static char dash_to_under(char c)
 	{
 	return c == '-' ? '_' : c;
 	}
 
-char under_to_dash(char c)
+static char under_to_dash(char c)
 	{
 	return c == '_' ? '-' : c;
 	}
@@ -1944,7 +1944,7 @@ string TemplateInput::SkipWords(const string& line, int n) const
 	return string(s);
 	}
 
-void TemplateInput::Gripe(const char* msg, const string& input)
+void TemplateInput::Gripe(const char* msg, const string& input) const
 	{
 	auto input_s = input.c_str();
 	int n = strlen(input_s);
@@ -1957,7 +1957,7 @@ void TemplateInput::Gripe(const char* msg, const string& input)
 	exit(1);
 	}
 
-void TemplateInput::Gripe(const char* msg, const InputLoc& l)
+void TemplateInput::Gripe(const char* msg, const InputLoc& l) const
 	{
 	fprintf(stderr, "%s, line %d: %s\n", l.file_name, l.line_num, msg);
 	exit(1);

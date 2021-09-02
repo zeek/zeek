@@ -58,8 +58,6 @@ const ZAMStmt ZAMCompiler::CompileIncrExpr(const IncrExpr* e)
 	{
 	auto target = e->Op()->AsRefExpr()->GetOp1()->AsNameExpr();
 
-	auto s = EmptyStmt();
-
 	if ( target->GetType()->Tag() == TYPE_INT )
 		{
 		if ( e->Tag() == EXPR_INCR )
@@ -301,16 +299,16 @@ const ZAMStmt ZAMCompiler::CompileScheduleExpr(const ScheduleExpr* e)
 	auto when = e->When();
 
 	auto event_args = event->Args();
-        auto handler = event->Handler();
+	auto handler = event->Handler();
 
-        bool is_interval = when->GetType()->Tag() == TYPE_INTERVAL;
+	bool is_interval = when->GetType()->Tag() == TYPE_INTERVAL;
 
-        if ( when->Tag() == EXPR_NAME )
-                return ScheduleViHL(when->AsNameExpr(), is_interval,
-		                    handler.Ptr(), event_args);
-        else
-                return ScheduleCiHL(when->AsConstExpr(), is_interval,
-		                    handler.Ptr(), event_args);
+	if ( when->Tag() == EXPR_NAME )
+		return ScheduleViHL(when->AsNameExpr(), is_interval,
+				    handler.Ptr(), event_args);
+	else
+		return ScheduleCiHL(when->AsConstExpr(), is_interval,
+				    handler.Ptr(), event_args);
 	}
 
 const ZAMStmt ZAMCompiler::CompileSchedule(const NameExpr* n,

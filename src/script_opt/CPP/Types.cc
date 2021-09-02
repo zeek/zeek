@@ -145,7 +145,7 @@ void CPPCompile::ExpandListTypeVar(const TypePtr& t, string& tn)
 	const auto& tl = t->AsTypeList()->GetTypes();
 	auto t_name = tn + "->AsTypeList()";
 
-	for ( auto& tl_i : tl )
+	for ( const auto& tl_i : tl )
 		AddInit(t, t_name + "->Append(" + GenTypeName(tl_i) + ");");
 	}
 

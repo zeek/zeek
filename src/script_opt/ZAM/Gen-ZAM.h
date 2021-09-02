@@ -183,15 +183,15 @@ public:
 	// Returns a string defining the parameters for a declaration;
 	// these have full C++ type information along with the parameter
 	// name.
-	string Decls()			{ return full_decl; }
+	string Decls() const			{ return full_decl; }
 
 	// Returns a string for passing the parameters in a function
 	// call.  This is a comma-separated list of the parameter names,
 	// with no associated C++ types.
-	string Params()			{ return full_params; }
+	string Params() const			{ return full_params; }
 
 	// Returns the name of the given parameter, indexed starting with 0.
-	const string& NthParam(int n)	{ return params[n]; }
+	const string& NthParam(int n) const	{ return params[n]; }
 
 private:
 	// Makes sure that each parameter has a unique name.  For any
@@ -894,8 +894,8 @@ public:
 	void PutBack(const string& line)	{ put_back = line; }
 
 	// Report an error and exit.
-	void Gripe(const char* msg, const string& input);
-	void Gripe(const char* msg, const InputLoc& loc);
+	[[noreturn]] void Gripe(const char* msg, const string& input) const;
+	[[noreturn]] void Gripe(const char* msg, const InputLoc& loc) const;
 
 private:
 	string put_back;	// if non-empty, use this for the next ScanLine
@@ -943,9 +943,9 @@ public:
 	void IndentDown()		{ --indent_level; }
 	void SetNoNL(bool _no_NL)	{ no_NL = _no_NL; }
 
-	void Gripe(const char* msg, const string& input)
+	[[noreturn]] void Gripe(const char* msg, const string& input) const
 		{ ti->Gripe(msg, input); }
-	void Gripe(const char* msg, const InputLoc& loc)
+	[[noreturn]] void Gripe(const char* msg, const InputLoc& loc) const
 		{ ti->Gripe(msg, loc); }
 
 private:

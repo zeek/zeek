@@ -25,7 +25,7 @@ class CatchReturnStmt;
 
 class ProfileFunc;
 
-typedef ZInstI* InstLabel;
+using InstLabel = ZInstI*;
 
 // Class representing a single compiled statement.  (This is different from,
 // but related to, the ZAM instruction(s) generated for that compilation.)
@@ -296,8 +296,8 @@ private:
 		}
 
 
-	typedef std::vector<ZAMStmt> GoToSet;
-	typedef std::vector<GoToSet> GoToSets;
+	using GoToSet = std::vector<ZAMStmt>;
+	using GoToSets = std::vector<GoToSet>;
 
 	void PushGoTos(GoToSets& gotos);
 	void ResolveGoTos(GoToSets& gotos, const InstLabel l);
@@ -569,8 +569,8 @@ private:
 
 	// A type for mapping an instruction to a set of locals associated
 	// with it.
-	typedef std::unordered_map<const ZInstI*, std::unordered_set<ID*>>
-	        AssociatedLocals;
+	using AssociatedLocals =
+	      std::unordered_map<const ZInstI*, std::unordered_set<ID*>>;
 
 	// Maps (live) instructions to which frame denizens begin their
 	// lifetime via an initialization at that instruction, if any ...
@@ -584,7 +584,7 @@ private:
 	AssociatedLocals inst_endings;
 
 	// A type for inverse mappings.
-	typedef std::unordered_map<int, const ZInstI*> AssociatedInsts;
+	using AssociatedInsts = std::unordered_map<int, const ZInstI*>;
 
 	// Inverse mappings: for a given frame denizen's slot, where its
 	// lifetime begins and ends.

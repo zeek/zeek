@@ -98,6 +98,7 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, VectorVal* v2,
 		auto res_zv = new VectorVal(yt); \
 		auto n = v.size(); \
 		res_zv->Resize(n); \
+		ASSERT(0); \
 		auto& res = *res_zv->RawVec(); \
 		for ( auto i = 0U; i < n; ++i ) \
 			if ( v[i] ) \
@@ -284,7 +285,8 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 
 	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
 
-	while ( pc < end_pc && ! ZAM_error ) {
+	while ( pc < end_pc && ! ZAM_error )
+		{
 		auto& z = insts[pc];
 
 #ifdef DEBUG

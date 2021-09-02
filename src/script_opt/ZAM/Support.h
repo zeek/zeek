@@ -9,7 +9,7 @@
 
 namespace zeek::detail {
 
-typedef std::vector<ValPtr> val_vec;
+using ValVec = std::vector<ValPtr>;
 
 // The (reduced) statement currently being compiled.  Used for both
 // tracking "use" and "reaching" definitions, and for error messages.

@@ -63,10 +63,10 @@ StringVal* ZAM_to_lower(const StringVal* sv)
 
 StringVal* ZAM_sub_bytes(const StringVal* s, bro_uint_t start, bro_int_t n)
 	{
-        if ( start > 0 )
-                --start;        // make it 0-based
+	if ( start > 0 )
+		--start;        // make it 0-based
 
-        auto ss = s->AsString()->GetSubstring(start, n);
+	auto ss = s->AsString()->GetSubstring(start, n);
 
 	return new StringVal(ss ? ss : new String(""));
 	}

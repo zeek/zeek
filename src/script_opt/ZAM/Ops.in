@@ -1463,7 +1463,7 @@ macro EvalScheduleArgs(time, is_delta, build_args)
 	if ( is_delta )
 		dt += run_state::network_time;
 	auto handler = EventHandlerPtr(z.event_handler);
-	val_vec args;
+	ValVec args;
 	build_args
 	auto timer = new ScheduleTimer(handler, std::move(args), dt);
 	timer_mgr->Add(timer);
@@ -1498,26 +1498,26 @@ op Event
 type HL
 op1-read
 custom-method return CompileEvent(h, l);
-eval	val_vec args;
+eval	ValVec args;
 	z.aux->FillValVec(args, frame);
 	event_mgr.Enqueue(z.event_handler, std::move(args));
 
 internal-op Event0
 type X
-eval	val_vec args(0);
+eval	ValVec args(0);
 	event_mgr.Enqueue(z.event_handler, std::move(args));
 
 internal-op Event1
 type V
 op1-read
-eval	val_vec args(1);
+eval	ValVec args(1);
 	args[0] = frame[z.v1].ToVal(z.t);
 	event_mgr.Enqueue(z.event_handler, std::move(args));
 
 internal-op Event2
 type VV
 op1-read
-eval	val_vec args(2);
+eval	ValVec args(2);
 	args[0] = frame[z.v1].ToVal(z.t);
 	args[1] = frame[z.v2].ToVal(z.t2);
 	event_mgr.Enqueue(z.event_handler, std::move(args));
@@ -1525,7 +1525,7 @@ eval	val_vec args(2);
 internal-op Event3
 type VVV
 op1-read
-eval	val_vec args(3);
+eval	ValVec args(3);
 	args[0] = frame[z.v1].ToVal(z.t);
 	args[1] = frame[z.v2].ToVal(z.t2);
 	auto types = z.aux->types;
@@ -1535,7 +1535,7 @@ eval	val_vec args(3);
 internal-op Event4
 type VVVV
 op1-read
-eval	val_vec args(4);
+eval	ValVec args(4);
 	args[0] = frame[z.v1].ToVal(z.t);
 	args[1] = frame[z.v2].ToVal(z.t2);
 	auto types = z.aux->types;

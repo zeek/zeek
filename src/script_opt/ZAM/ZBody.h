@@ -121,11 +121,8 @@ private:
 class ZAMResumption : public Stmt {
 public:
 	ZAMResumption(ZBody* _am, int _xfer_pc)
-	: Stmt(STMT_ZAM_RESUMPTION)
-		{
-		am = _am;
-		xfer_pc = _xfer_pc;
-		}
+	: Stmt(STMT_ZAM_RESUMPTION), am(_am), xfer_pc(_xfer_pc)
+		{ }
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 

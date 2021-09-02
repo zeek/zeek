@@ -102,9 +102,11 @@ void ZAMCompiler::InitLocals()
 	for ( auto l : pf->Locals() )
 		{
 		auto non_const_l = const_cast<ID*>(l);
-		// ### should check for unused variables.
 		// Don't add locals that were already added because they're
 		// parameters.
+		//
+		// Don't worry about unused variables, those will get
+		// removed during low-level ZAM optimization.
 		if ( ! HasFrameSlot(non_const_l) )
 			(void) AddToFrame(non_const_l);
 		}
@@ -289,24 +291,16 @@ void ZAMCompiler::AdjustBranches()
 		if ( ! inst->live )
 			continue;
 
-		auto t = inst->target;
-
-		if ( ! t )
-			continue;
-
-		inst->target = FindLiveTarget(t);
+		if ( auto t = inst->target )
+			inst->target = FindLiveTarget(t);
 		}
 	}
 
 void ZAMCompiler::RetargetBranches()
 	{
 	for ( auto& inst : insts2 )
-		{
-		if ( ! inst->target )
-			continue;
-
-		ConcretizeBranch(inst, inst->target, inst->target_slot);
-		}
+		if ( inst->target )
+			ConcretizeBranch(inst, inst->target, inst->target_slot);
 	}
 
 void ZAMCompiler::RemapFrameDenizens(const std::vector<int>& inst1_to_inst2)

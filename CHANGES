@@ -1,3 +1,13 @@
+4.2.0-dev.99 | 2021-09-03 17:36:09 +0000
+
+  * GH-1589: Avoid extracting IP-like strings from SMTP headers (Tim Wojtulewicz, Corelight)
+
+  * Minor updates to the external-testsuite scripts (Christian Kreibich, Corelight)
+
+    Delete the unused Baseline folder, remove a Bro-era name from gitignore,
+    change create-new-repo to work with a second argument that is actually
+    a URL, and tweak whitespace. Expand description in README and update the
+    explanation of OPENSSL_ENABLE_MD5_VERIFY in subdir-btest.cfg.
 
 4.2.0-dev.94 | 2021-08-31 15:58:00 +0200
 

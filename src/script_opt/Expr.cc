@@ -2134,8 +2134,6 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	if ( ! op->IsReduced(c) )
 		op = op->ReduceToSingleton(c, red_stmt);
 
-	auto t = type->InternalType();
-
 	if ( op->Tag() == EXPR_CONST )
 		{
 		const auto& t = GetType();
@@ -2153,9 +2151,18 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	if ( c->Optimizing() )
 		return ThisPtr();
 
-	auto bt = op->GetType()->InternalType();
+	const auto& ot = op->GetType();
+	auto bt = ot->InternalType();
+	auto tt = type->InternalType();
 
-	if ( t == bt )
+	if ( ot->Tag() == TYPE_VECTOR )
+		{
+		bt = ot->Yield()->InternalType();
+		tt = type->Yield()->InternalType();
+		}
+
+	if ( bt == tt )
+		// Can drop the conversion.
 		return op;
 
 	return AssignToTemporary(c, red_stmt);

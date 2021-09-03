@@ -98,7 +98,6 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, VectorVal* v2,
 		auto res_zv = new VectorVal(yt); \
 		auto n = v.size(); \
 		res_zv->Resize(n); \
-		ASSERT(0); \
 		auto& res = *res_zv->RawVec(); \
 		for ( auto i = 0U; i < n; ++i ) \
 			if ( v[i] ) \

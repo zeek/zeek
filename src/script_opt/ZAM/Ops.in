@@ -1141,8 +1141,9 @@ eval	frame[z.v1].double_val = double(frame[z.v2].uint_val);
 
 
 macro EvalCoerceVec(coercer)
-	Unref(frame[z.v1].vector_val);
+	auto old_v1 = frame[z.v1].vector_val;
 	frame[z.v1].vector_val = coercer(frame[z.v2].vector_val);
+	Unref(old_v1);	// delayed to allow for same value on both sides
 
 internal-op Coerce-UI-Vec
 type VV

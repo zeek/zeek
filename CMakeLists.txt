@@ -147,6 +147,10 @@ if ( ZEEK_SANITIZERS )
             set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS},")
         endif ()
 
+        if ( _sanitizer STREQUAL "thread" )
+            set(ZEEK_TSAN true)
+        endif ()
+
         if ( NOT _sanitizer STREQUAL "undefined" )
             set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS}${_sanitizer}")
             continue()

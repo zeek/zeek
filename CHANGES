@@ -1,3 +1,19 @@
+4.2.0-dev.103 | 2021-09-03 18:08:57 +0000
+
+  * Disable the scripts.base.frameworks.logging.sqlite.simultaneous-writes test under TSan (Tim Wojtulewicz, Corelight)
+
+    Due to a bug (or intentional code) in SQLite, we disabled enabling the shared cache
+    in sqlite3 if running under ThreadSanitizer (see cf1fefbe0b0a6163b389cc92b5a6878c7fc95f1f).
+    Unfortunately, this has the side-effect of breaking the simultaneous-writes test because
+    the shared cache is disabled. This is hopefully a temporary fix until SQLite fixes the
+    issue on their side.
+
+  * Mark MsgThread::cnt_sent_{in,out} as atomic to avoid a data race (Tim Wojtulewicz, Corelight)
+
+  * Disable call to sqlite3_enable_shared_cache under ThreadSanitizer (Tim Wojtulewicz, Corelight)
+
+    See https://sqlite.org/forum/forumpost/54424d80ee for details.
+
 4.2.0-dev.99 | 2021-09-03 17:36:09 +0000
 
   * GH-1589: Avoid extracting IP-like strings from SMTP headers (Tim Wojtulewicz, Corelight)

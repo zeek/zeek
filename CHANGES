@@ -1,3 +1,9 @@
+4.2.0-dev.106 | 2021-09-03 18:10:31 +0000
+
+  * Code modernization: use ranged-based for loop where possible (Vlad Grigorescu)
+
+  * Improve performance of asn1_oid_to_val string conversions. (Vlad Grigorescu)
+
 4.2.0-dev.103 | 2021-09-03 18:08:57 +0000
 
   * Disable the scripts.base.frameworks.logging.sqlite.simultaneous-writes test under TSan (Tim Wojtulewicz, Corelight)

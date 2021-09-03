@@ -161,9 +161,8 @@ zeek::StringValPtr asn1_oid_to_val(const ASN1Encoding* oid)
 		// Underflow.
 		return zeek::val_mgr->EmptyString();
 
-	for ( size_t i = 0; i < subidentifiers.size(); ++i )
+	for ( auto subidentifier : subidentifiers )
 		{
-		subidentifier = subidentifiers[i];
 		uint64 value = 0;
 
 		for ( size_t j = 0; j < subidentifier.size(); ++j )
@@ -183,17 +182,13 @@ zeek::StringValPtr asn1_oid_to_val(const ASN1Encoding* oid)
 
 		if ( i > 0 )
 			{
-			rval += ".";
-			snprintf(tmp, sizeof(tmp), "%" PRIu64, subidentifier_values[i]);
+			snprintf(tmp, sizeof(tmp), ".%" PRIu64, subidentifier_values[i]);
 			rval += tmp;
 			}
 		else
 			{
 			std::div_t result = std::div(subidentifier_values[i], 40);
-			snprintf(tmp, sizeof(tmp), "%d", result.quot);
-			rval += tmp;
-			rval += ".";
-			snprintf(tmp, sizeof(tmp), "%d", result.rem);
+			snprintf(tmp, sizeof(tmp), "%d.%d", result.quot, result.rem);
 			rval += tmp;
 			}
 		}

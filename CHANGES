@@ -1,3 +1,11 @@
+4.2.0-dev.112 | 2021-09-03 18:12:12 +0000
+
+  * Add btests for DNS WKS and BINDS (Vlad Grigorescu)
+
+  * Add btest for DNS WKS RR. (Vlad Grigorescu)
+
+  * Add btest for DNS NSEC3PARAM RR. (Vlad Grigorescu)
+
 4.2.0-dev.106 | 2021-09-03 18:10:31 +0000
 
   * Code modernization: use ranged-based for loop where possible (Vlad Grigorescu)

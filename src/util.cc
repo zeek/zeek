@@ -2508,7 +2508,7 @@ string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_
 				{
 				for ( unsigned int i = 0; i < char_size; i++ )
 					escaped_result.append(json_escape_byte(val[idx+i]));
-				utf_result.append(val, idx, char_size);
+				utf_result.append(val+idx, char_size);
 				idx += char_size;
 				}
 			}

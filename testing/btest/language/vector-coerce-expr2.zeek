@@ -32,7 +32,7 @@ event zeek_init()
 
 	print v1 + v2;
 
-	# Make sure that holes get relected in unary operations,
+	# Make sure that holes get reflected in unary operations,
 	# and also that vectors of count are properly coerced to
 	# vectors of int.
 	local v3: vector of int;

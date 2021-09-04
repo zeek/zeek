@@ -39,3 +39,14 @@ event zeek_init()
 	v3 = -v1;
 	print v3;
 	}
+
+event zeek_init()
+	{
+	local b = vector(2, -4, 6, 8);
+	local c = vector(0xffffffffffffffff, 3, 5, 7);
+	local d: vector of int;
+
+	d = b + c;
+
+	print d;
+	}

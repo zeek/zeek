@@ -1468,16 +1468,12 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot_orig,
 			{
 			string dispatch_params = "frame[z.v1].AsVectorRef(), frame[z.v2].AsVector()";
 
-			string type_arg;
 			if ( Arity() == 2 )
-				{
 				dispatch_params += ", frame[z.v3].AsVector()";
-				type_arg = ", z.t";
-				}
 
 			auto op_code = g->GenOpCode(this, "_" + full_suffix);
-			auto dispatch = "vec_exec(" + op_code + type_arg +
-					", " + dispatch_params + ", z);";
+			auto dispatch = "vec_exec(" + op_code + ", z.t, " +
+					dispatch_params + ", z);";
 
 			ZAM_OpTemplate::InstantiateEval(Eval, full_suffix,
 							dispatch, zc);
@@ -1560,6 +1556,14 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot
 		// These can't take the type from the LHS variable, since
 		// that's the enclosing record and not the field within it.
 		Emit("z.t = t;");
+
+	else if ( zc == ZIC_VEC )
+		{
+		if ( constant_op )
+			Emit("z.t = n->GetType();");
+		else
+			Emit("z.t = n1->GetType();");
+		}
 	}
 
 

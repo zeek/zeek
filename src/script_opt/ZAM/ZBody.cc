@@ -6,6 +6,7 @@
 #include "zeek/EventHandler.h"
 #include "zeek/Trigger.h"
 #include "zeek/Traverse.h"
+#include "zeek/Overflow.h"
 #include "zeek/Reporter.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
@@ -77,21 +78,18 @@ static bool copy_vec_elem(VectorVal* vv, int ind, ZVal zv, const TypePtr& t)
 	return true;
 	}
 
-// Unary vector operations never work on managed types, so no need
-// to pass in the type ...  However, the RHS, which normally would
-// be const, needs to be non-const so we can use its Type() method
-// to get at a shareable VectorType.
-static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2, const ZInst& z);
+// Unary and binary element-by-element vector operations, yielding a new
+// VectorVal with a yield type of 't'.  'z' is passed in only for localizing
+// errors.
+static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2,
+                     const ZInst& z);
 
-// Binary operations *can* have managed types (strings).
-static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, VectorVal* v2,
+static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2,
                      const VectorVal* v3, const ZInst& z);
 
 // Vector coercion.
-//
-// ### Should check for underflow/overflow.
-#define VEC_COERCE(tag, lhs_type, cast, rhs_accessor) \
-	static VectorVal* vec_coerce_##tag(VectorVal* vec) \
+#define VEC_COERCE(tag, lhs_type, cast, rhs_accessor, ov_check, ov_err) \
+	static VectorVal* vec_coerce_##tag(VectorVal* vec, const ZInst& z) \
 		{ \
 		auto& v = *vec->RawVec(); \
 		auto yt = make_intrusive<VectorType>(base_type(lhs_type)); \
@@ -101,18 +99,32 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, VectorVal* v2,
 		auto& res = *res_zv->RawVec(); \
 		for ( auto i = 0U; i < n; ++i ) \
 			if ( v[i] ) \
-				res[i] = ZVal(cast((*v[i]).rhs_accessor)); \
+				{ \
+				auto vi = (*v[i]).rhs_accessor; \
+				if ( ov_check(vi) ) \
+					{ \
+					std::string err = "overflow promoting from "; \
+					err += ov_err; \
+					err += " arithmetic value"; \
+					ZAM_run_time_error(z.loc, err.c_str()); \
+					res[i] = std::nullopt; \
+					} \
+				else \
+					res[i] = ZVal(cast(vi)); \
+				} \
 			else \
 				res[i] = std::nullopt; \
 		return res_zv; \
 		}
 
-VEC_COERCE(IU, TYPE_INT, bro_int_t, AsCount())
-VEC_COERCE(ID, TYPE_INT, bro_int_t, AsDouble())
-VEC_COERCE(UI, TYPE_COUNT, bro_int_t, AsInt())
-VEC_COERCE(UD, TYPE_COUNT, bro_uint_t, AsDouble())
-VEC_COERCE(DI, TYPE_DOUBLE, double, AsInt())
-VEC_COERCE(DU, TYPE_DOUBLE, double, AsCount())
+#define false_func(x) false
+
+VEC_COERCE(DI, TYPE_DOUBLE, double, AsInt(), false_func, "")
+VEC_COERCE(DU, TYPE_DOUBLE, double, AsCount(), false_func, "")
+VEC_COERCE(ID, TYPE_INT, bro_int_t, AsDouble(), double_to_int_would_overflow, "double to signed")
+VEC_COERCE(IU, TYPE_INT, bro_int_t, AsCount(), count_to_int_would_overflow, "unsigned to signed")
+VEC_COERCE(UD, TYPE_COUNT, bro_uint_t, AsDouble(), double_to_count_would_overflow, "double to unsigned")
+VEC_COERCE(UI, TYPE_COUNT, bro_int_t, AsInt(), int_to_count_would_overflow, "signed to unsigned")
 
 double curr_CPU_time()
 	{
@@ -483,7 +495,8 @@ TraversalCode ZAMResumption::Traverse(TraversalCallback* cb) const
 
 
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2, const ZInst& z)
+static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2,
+                     const ZInst& z)
 	{
 	// We could speed this up further still by gen'ing up an instance
 	// of the loop inside each switch case (in which case we might as
@@ -496,15 +509,20 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2, const ZInst& z)
 	auto& vec1 = *vec1_ptr;
 
 	for ( auto i = 0U; i < n; ++i )
-		switch ( op ) {
+		{
+		if ( vec2[i] )
+			switch ( op ) {
 
 #include "ZAM-Vec1EvalDefs.h"
 
-		default:
-			reporter->InternalError("bad invocation of VecExec");
+			default:
+				reporter->InternalError("bad invocation of VecExec");
+			}
+		else
+			vec1[i] = std::nullopt;
 		}
 
-	auto vt = cast_intrusive<VectorType>(v2->GetType());
+	auto vt = cast_intrusive<VectorType>(std::move(t));
 	auto old_v1 = v1;
 	v1 = new VectorVal(std::move(vt), vec1_ptr);
 	Unref(old_v1);
@@ -512,7 +530,7 @@ static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2, const ZInst& z)
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
 static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1,
-                     VectorVal* v2, const VectorVal* v3, const ZInst& z)
+                     const VectorVal* v2, const VectorVal* v3, const ZInst& z)
 	{
 	// See comment above re further speed-up.
 
@@ -523,12 +541,17 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1,
 	auto& vec1 = *vec1_ptr;
 
 	for ( auto i = 0U; i < vec2.size(); ++i )
-		switch ( op ) {
+		{
+		if ( vec2[i] && vec3[i] )
+			switch ( op ) {
 
 #include "ZAM-Vec2EvalDefs.h"
 
-		default:
-			reporter->InternalError("bad invocation of VecExec");
+			default:
+				reporter->InternalError("bad invocation of VecExec");
+			}
+		else
+			vec1[i] = std::nullopt;
 		}
 
 	auto vt = cast_intrusive<VectorType>(std::move(t));

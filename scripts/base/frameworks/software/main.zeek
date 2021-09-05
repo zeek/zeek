@@ -238,6 +238,18 @@ function parse(unparsed_version: string): Description
 	return [$version=v, $unparsed_version=unparsed_version, $name=alternate_names[software_name]];
 	}
 
+global parse_cache: table[string] of Description &read_expire=65secs;
+
+# Call parse, but cache results in the parse_cache table
+function parse_with_cache(unparsed_version: string): Description
+	{
+	if (unparsed_version in parse_cache)
+		return parse_cache[unparsed_version];
+	
+	local res = parse(unparsed_version);
+	parse_cache[unparsed_version] = res;
+	return res;
+	}
 
 function parse_mozilla(unparsed_version: string): Description
 	{
@@ -466,6 +478,15 @@ function software_fmt(i: Info): string
 
 event Software::register(info: Info)
 	{
+
+	if ( ! info?$version )
+		{
+		local sw = parse_with_cache(info$unparsed_version);
+		info$unparsed_version = sw$unparsed_version;
+		info$name = sw$name;
+		info$version = sw$version;
+		}
+
 	local ts: SoftwareSet;
 
 	if ( info$host in tracked )
@@ -514,17 +535,8 @@ function found(id: conn_id, info: Info): bool
 		return F;
 		}
 
-	if ( ! info?$version )
-		{
-		local sw = parse(info$unparsed_version);
-		info$unparsed_version = sw$unparsed_version;
-		info$name = sw$name;
-		info$version = sw$version;
-		}
-
 	@if ( Cluster::is_enabled() )
-		Cluster::publish_hrw(Cluster::proxy_pool, info$host, Software::register,
-		                     info);
+		Cluster::publish_hrw(Cluster::proxy_pool, info$host, Software::register, info);
 	@else
 		event Software::register(info);
 	@endif

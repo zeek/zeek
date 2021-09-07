@@ -1344,9 +1344,13 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow)
 	else if ( v->GetType()->Tag() == TYPE_VECTOR )
 		{
 		VectorVal* vv = v->AsVectorVal();
+		const auto& raw_vv = *vv->RawVec();
 
 		for ( auto i = 0u; i < vv->Size(); ++i )
 			{
+			if ( ! raw_vv[i] )
+				continue;
+
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
 			f->SetElement((*loop_vars)[0], val_mgr->Count(i));

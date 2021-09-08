@@ -1,3 +1,13 @@
+4.2.0-dev.154 | 2021-09-08 12:03:51 -0700
+
+  * Fix mis-usage of string::append that leads to an overflow (Tim Wojtulewicz, Corelight)
+
+  * Use json_escape_utf8 for all utf8 data in ODesc (Tim Wojtulewicz, Corelight)
+
+  * Switch the TSV Zeek logs to be UTF8 by default. (Seth Hall, Corelight)
+
+    There is a paired zeek-testing branch for some updates there.
+
 4.2.0-dev.150 | 2021-09-08 11:44:15 -0700
 
   * fix race condition in btest output ordering (Vern Paxson, Corelight)

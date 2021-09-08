@@ -2439,10 +2439,14 @@ static bool check_ok_utf8(const unsigned char* start, const unsigned char* end)
 	return true;
 	}
 
-string json_escape_utf8(const string& val)
+string json_escape_utf8(const string& val, bool escape_printable_controls)
 	{
-	auto val_data = reinterpret_cast<const unsigned char*>(val.c_str());
-	auto val_size = val.length();
+	return json_escape_utf8(val.c_str(), val.size(), escape_printable_controls);
+	}
+
+string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls)
+	{
+	auto val_data = reinterpret_cast<const unsigned char*>(val);
 
 	// Reserve at least the size of the existing string to avoid resizing the string in the best-case
 	// scenario where we don't have any multi-byte characters. We keep two versions of this string:
@@ -2464,7 +2468,7 @@ string json_escape_utf8(const string& val)
 		// Normal ASCII characters plus a few of the control characters can be inserted directly. The
 		// rest of the control characters should be escaped as regular bytes.
 		if ( ( ch >= 32 && ch < 127 ) ||
-		       ch == '\b' || ch == '\f' || ch == '\n' || ch == '\r' || ch == '\t' )
+		     ( escape_printable_controls && ( ch == '\b' || ch == '\f' || ch == '\n' || ch == '\r' || ch == '\t' ) ) )
 			{
 			if ( ! found_bad )
 				utf_result.push_back(ch);
@@ -2504,7 +2508,7 @@ string json_escape_utf8(const string& val)
 				{
 				for ( unsigned int i = 0; i < char_size; i++ )
 					escaped_result.append(json_escape_byte(val[idx+i]));
-				utf_result.append(val, idx, char_size);
+				utf_result.append(val+idx, char_size);
 				idx += char_size;
 				}
 			}

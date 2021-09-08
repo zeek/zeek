@@ -12,6 +12,10 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The traditional TSV Zeek logs are now valid UTF8 by default. It's possible
+  to revert to the previous behavior by setting ``LogAscii::enable_utf_8`` to
+  false.
+
 Removed Functionality
 ---------------------
 

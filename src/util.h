@@ -550,7 +550,16 @@ char* zeekenv(const char* name);
  * @param val the input string to be escaped
  * @return the escaped string
  */
-std::string json_escape_utf8(const std::string& val);
+std::string json_escape_utf8(const std::string& val, bool escape_printable_controls=true);
+
+/**
+ * Escapes bytes in a string that are not valid UTF8 characters with \xYY format. Used
+ * by the JSON writer and BIF methods.
+ * @param val the character data to be escaped
+ * @param val_size the length of the character data
+ * @return the escaped string
+ */
+std::string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls=true);
 
 } // namespace util
 } // namespace zeek

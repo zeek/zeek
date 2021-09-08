@@ -4,6 +4,7 @@
 #include <cerrno>
 
 #include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/Desc.h"
 #include "zeek/Stmt.h"
 #include "zeek/Func.h"
@@ -261,13 +262,17 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 			}
 		break;
 
+	case EXPR_INCR:
+	case EXPR_DECR:
+	case EXPR_ADD_TO:
+	case EXPR_REMOVE_FROM:
 	case EXPR_ASSIGN:
 		{
 		if ( e->GetOp1()->Tag() == EXPR_REF )
 			{
 			auto lhs = e->GetOp1()->GetOp1();
 			if ( lhs->Tag() == EXPR_NAME )
-				assignees.insert(lhs->AsNameExpr()->Id());
+				TrackAssignment(lhs->AsNameExpr()->Id());
 			}
 		// else this isn't a direct assignment.
 		break;
@@ -432,6 +437,14 @@ void ProfileFunc::TrackID(const ID* id)
 	ordered_ids.push_back(id);
 	}
 
+void ProfileFunc::TrackAssignment(const ID* id)
+	{
+	if ( assignees.count(id) > 0 )
+		++assignees[id];
+	else
+		assignees[id] = 1;
+	}
+
 
 ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs,
                            is_compilable_pred pred, bool _full_record_hashes)
@@ -446,7 +459,7 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs,
 		auto pf = std::make_unique<ProfileFunc>(f.Func(), f.Body(),
 		                                        full_record_hashes);
 
-		if ( ! pred || (*pred)(pf.get()) )
+		if ( ! pred || (*pred)(pf.get(), nullptr) )
 			MergeInProfile(pf.get());
 		else
 			f.SetSkip(true);
@@ -488,7 +501,7 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf)
 		if ( t->Tag() == TYPE_TYPE )
 			(void) HashType(t->AsTypeType()->GetType());
 
-		auto& init_exprs = g->GetInitExprs();
+		auto& init_exprs = g->GetOptInfo()->GetInitExprs();
 		for ( const auto& i_e : init_exprs )
 			if ( i_e )
 				{

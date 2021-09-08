@@ -10,6 +10,13 @@
 namespace zeek::detail {
 
 
+RD_Decorate::RD_Decorate(std::shared_ptr<ProfileFunc> _pf, const Func* f,
+                         ScopePtr scope, StmtPtr body)
+: pf(std::move(_pf))
+	{
+	TraverseFunction(f, scope, body);
+	}
+
 void RD_Decorate::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body)
 	{
 	func_flavor = f->Flavor();
@@ -350,7 +357,7 @@ void RD_Decorate::TraverseSwitch(const SwitchStmt* sw)
 		bd->Clear();
 		body->Traverse(this);
 
-		if ( bd->PreRDs().size() > 0 )
+		if ( ! bd->PreRDs().empty() )
 			reporter->InternalError("mispropagation of switch body defs");
 
 		if ( body->NoFlowAfter(true) )
@@ -537,7 +544,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		break;
 
 	case STMT_BREAK:
-		if ( block_defs.size() == 0 )
+		if ( block_defs.empty() )
 			{
 			if ( func_flavor == FUNC_FLAVOR_HOOK )
 				// Treat as a return.
@@ -634,7 +641,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 		for ( const auto& expr : l->Exprs() )
 			{
 			if ( expr->Tag() != EXPR_NAME )
-				// This will happen for table initialiers,
+				// This will happen for table initializers,
 				// for example.
 				return false;
 

@@ -2,6 +2,7 @@
 
 #include "zeek/zeek-config.h"
 #include "zeek/Val.h"
+#include "zeek/Overflow.h"
 
 #include <sys/types.h>
 #include <sys/param.h>
@@ -349,33 +350,6 @@ void Val::SetID(detail::ID* id)
 	}
 #endif
 
-bool Val::WouldOverflow(const zeek::Type* from_type, const zeek::Type* to_type, const Val* val)
-	{
-	if ( !to_type || !from_type )
-		return true;
-	else if ( same_type(to_type, from_type) )
-		return false;
-
-	if ( to_type->InternalType() == TYPE_INTERNAL_DOUBLE )
-		return false;
-	else if ( to_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		{
-		if ( from_type->InternalType() == TYPE_INTERNAL_DOUBLE )
-			return (val->InternalDouble() < 0.0 || val->InternalDouble() > static_cast<double>(UINT64_MAX));
-		else if ( from_type->InternalType() == TYPE_INTERNAL_INT )
-			return (val->InternalInt() < 0);
-		}
-	else if ( to_type->InternalType() == TYPE_INTERNAL_INT )
-		{
-		if ( from_type->InternalType() == TYPE_INTERNAL_DOUBLE )
-			return (val->InternalDouble() < static_cast<double>(INT64_MIN) ||
-			        val->InternalDouble() > static_cast<double>(INT64_MAX));
-		else if ( from_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-			return (val->InternalUnsigned() > INT64_MAX);
-		}
-
-	return false;
-	}
 
 TableValPtr Val::GetRecordFields()
 	{
@@ -3825,7 +3799,7 @@ ValPtr check_and_promote(ValPtr v,
 
 	switch ( it ) {
 	case TYPE_INTERNAL_INT:
-		if ( ( vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE ) && Val::WouldOverflow(vt, t, v.get()) )
+		if ( ( vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE ) && detail::would_overflow(vt, t, v.get()) )
 			{
 			t->Error("overflow promoting from unsigned/double to signed arithmetic value", v.get(), false, expr_location);
 			return nullptr;
@@ -3841,7 +3815,7 @@ ValPtr check_and_promote(ValPtr v,
 		break;
 
 	case TYPE_INTERNAL_UNSIGNED:
-		if ( ( vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) && Val::WouldOverflow(vt, t, v.get()) )
+		if ( ( vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) && detail::would_overflow(vt, t, v.get()) )
 			{
 			t->Error("overflow promoting from signed/double to unsigned arithmetic value", v.get(), false, expr_location);
 			return nullptr;

@@ -14,7 +14,8 @@ using namespace std;
 
 CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs,
                        const string& gen_name, const string& _addl_name,
-                       CPPHashManager& _hm, bool _update, bool _standalone)
+                       CPPHashManager& _hm, bool _update, bool _standalone,
+                       bool report_uncompilable)
 : funcs(_funcs), pfs(_pfs), hm(_hm),
   update(_update), standalone(_standalone)
 	{
@@ -67,7 +68,7 @@ CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs,
 		fclose(addl_f);
 		}
 
-	Compile();
+	Compile(report_uncompilable);
 	}
 
 CPPCompile::~CPPCompile()
@@ -75,7 +76,7 @@ CPPCompile::~CPPCompile()
 	fclose(write_file);
 	}
 
-void CPPCompile::Compile()
+void CPPCompile::Compile(bool report_uncompilable)
 	{
 	// Get the working directory so we can use it in diagnostic messages
 	// as a way to identify this compilation.  Only germane when doing
@@ -100,8 +101,13 @@ void CPPCompile::Compile()
 			// Can't be called directly.
 			continue;
 
-		if ( IsCompilable(func) )
+		const char* reason;
+		if ( IsCompilable(func, &reason) )
 			compilable_funcs.insert(BodyName(func));
+		else if ( reason && report_uncompilable )
+			fprintf(stderr,
+			        "%s cannot be compiled to C++ due to %s\n",
+				func.Func()->Name(), reason);
 
 		auto h = func.Profile()->HashVal();
 		if ( hm.HasHash(h) )
@@ -341,17 +347,24 @@ void CPPCompile::GenEpilog()
 	Emit("} // zeek::detail");
 	}
 
-bool CPPCompile::IsCompilable(const FuncInfo& func)
+bool CPPCompile::IsCompilable(const FuncInfo& func, const char** reason)
 	{
+	if ( ! is_CPP_compilable(func.Profile(), reason) )
+		return false;
+
+	if ( reason )
+		// Indicate that there's no fundamental reason it can't be
+		// compiled.
+		*reason = nullptr;
+
 	if ( func.ShouldSkip() )
-		// Caller marked this function as one to skip.
 		return false;
 
 	if ( hm.HasHash(func.Profile()->HashVal()) )
 		// We've already compiled it.
 		return false;
 
-	return is_CPP_compilable(func.Profile());
+	return true;
 	}
 
 } // zeek::detail

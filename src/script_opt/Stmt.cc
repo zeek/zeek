@@ -8,6 +8,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/Desc.h"
 #include "zeek/Traverse.h"
+#include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/Reduce.h"
 
 
@@ -33,6 +34,8 @@ StmtPtr Stmt::Reduce(Reducer* c)
 		null->SetOriginal(this_ptr);
 		return null;
 		}
+
+	c->SetCurrStmt(this);
 
 	return DoReduce(c);
 	}
@@ -846,7 +849,9 @@ bool StmtList::ReduceStmt(int& s_i, StmtPList* f_stmts, Reducer* c)
 			auto& s_i_succ = Stmts()[s_i + 1];
 
 			// Don't reduce s_i_succ.  If it's what we're
-			// looking for, it's already reduced.
+			// looking for, it's already reduced.  Plus
+			// that's what Reducer::MergeStmts (not that
+			// it really matters, per the comment there).
 			auto merge = c->MergeStmts(var, rhs, s_i_succ);
 			if ( merge )
 				{
@@ -1014,10 +1019,19 @@ StmtPtr CatchReturnStmt::DoReduce(Reducer* c)
 			return make_intrusive<NullStmt>();
 			}
 
-		auto assign = make_intrusive<AssignExpr>(ret_var->Duplicate(),
-							ret_e->Duplicate(),
+		auto rv_dup = ret_var->Duplicate();
+		auto ret_e_dup = ret_e->Duplicate();
+
+		auto assign = make_intrusive<AssignExpr>(rv_dup, ret_e_dup,
 							false);
 		assign_stmt = make_intrusive<ExprStmt>(assign);
+
+		if ( ret_e_dup->Tag() == EXPR_CONST )
+			{
+			auto c = ret_e_dup->AsConstExpr();
+			rv_dup->AsNameExpr()->Id()->GetOptInfo()->SetConst(c);
+			}
+
 		return assign_stmt;
 		}
 

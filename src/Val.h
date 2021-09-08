@@ -207,8 +207,6 @@ UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
 	void SetID(detail::ID* id);
 #endif
 
-	static bool WouldOverflow(const zeek::Type* from_type, const zeek::Type* to_type, const Val* val);
-
 	TableValPtr GetRecordFields();
 
 	StringValPtr ToJSON(bool only_loggable=false, RE_Matcher* re=nullptr);

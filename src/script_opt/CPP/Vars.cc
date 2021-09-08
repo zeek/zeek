@@ -54,7 +54,7 @@ bool CPPCompile::CheckForCollisions()
 		// the name either (1) wasn't previously used, or (2) if it
 		// was, it was likewise for an enum or a record.
 		const auto& tn = t->GetName();
-		if ( tn.size() == 0 || ! hm.HasGlobal(tn) )
+		if ( tn.empty() || ! hm.HasGlobal(tn) )
 			// No concern of collision since the type name
 			// wasn't previously compiled.
 			continue;

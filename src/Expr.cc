@@ -19,6 +19,7 @@
 #include "zeek/module_util.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/Hash.h"
+#include "zeek/script_opt/ExprOptInfo.h"
 
 #include "zeek/broker/Data.h"
 
@@ -79,107 +80,113 @@ const char* expr_name(BroExprTag t)
 Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), paren(false), type(nullptr)
 	{
 	SetLocationInfo(&start_location, &end_location);
+	opt_info = new ExprOptInfo();
+	}
+
+Expr::~Expr()
+	{
+	delete opt_info;
 	}
 
 const ListExpr* Expr::AsListExpr() const
 	{
-	CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
+	CHECK_TAG(tag, EXPR_LIST, "Expr::AsListExpr", expr_name)
 	return (const ListExpr*) this;
 	}
 
 ListExpr* Expr::AsListExpr()
 	{
-	CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
+	CHECK_TAG(tag, EXPR_LIST, "Expr::AsListExpr", expr_name)
 	return (ListExpr*) this;
 	}
 
 ListExprPtr Expr::AsListExprPtr()
 	{
-	CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
+	CHECK_TAG(tag, EXPR_LIST, "Expr::AsListExpr", expr_name)
 	return {NewRef{}, (ListExpr*) this};
 	}
 
 const NameExpr* Expr::AsNameExpr() const
 	{
-	CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
+	CHECK_TAG(tag, EXPR_NAME, "Expr::AsNameExpr", expr_name)
 	return (const NameExpr*) this;
 	}
 
 NameExpr* Expr::AsNameExpr()
 	{
-	CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
+	CHECK_TAG(tag, EXPR_NAME, "Expr::AsNameExpr", expr_name)
 	return (NameExpr*) this;
 	}
 
 NameExprPtr Expr::AsNameExprPtr()
 	{
-	CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
+	CHECK_TAG(tag, EXPR_NAME, "Expr::AsNameExpr", expr_name)
 	return {NewRef{}, (NameExpr*) this};
 	}
 
 const ConstExpr* Expr::AsConstExpr() const
 	{
-	CHECK_TAG(tag, EXPR_CONST, "ExprVal::AsConstExpr", expr_name)
+	CHECK_TAG(tag, EXPR_CONST, "Expr::AsConstExpr", expr_name)
 	return (const ConstExpr*) this;
 	}
 
 ConstExprPtr Expr::AsConstExprPtr()
 	{
-	CHECK_TAG(tag, EXPR_CONST, "ExprVal::AsConstExpr", expr_name)
+	CHECK_TAG(tag, EXPR_CONST, "Expr::AsConstExpr", expr_name)
 	return {NewRef{}, (ConstExpr*) this};
 	}
 
 const CallExpr* Expr::AsCallExpr() const
 	{
-	CHECK_TAG(tag, EXPR_CALL, "ExprVal::AsCallExpr", expr_name)
+	CHECK_TAG(tag, EXPR_CALL, "Expr::AsCallExpr", expr_name)
 	return (const CallExpr*) this;
 	}
 
 const AssignExpr* Expr::AsAssignExpr() const
 	{
-	CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
+	CHECK_TAG(tag, EXPR_ASSIGN, "Expr::AsAssignExpr", expr_name)
 	return (const AssignExpr*) this;
 	}
 
 AssignExpr* Expr::AsAssignExpr()
 	{
-	CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
+	CHECK_TAG(tag, EXPR_ASSIGN, "Expr::AsAssignExpr", expr_name)
 	return (AssignExpr*) this;
 	}
 
 const IndexExpr* Expr::AsIndexExpr() const
 	{
-	CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
+	CHECK_TAG(tag, EXPR_INDEX, "Expr::AsIndexExpr", expr_name)
 	return (const IndexExpr*) this;
 	}
 
 IndexExpr* Expr::AsIndexExpr()
 	{
-	CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
+	CHECK_TAG(tag, EXPR_INDEX, "Expr::AsIndexExpr", expr_name)
 	return (IndexExpr*) this;
 	}
 
 const EventExpr* Expr::AsEventExpr() const
 	{
-	CHECK_TAG(tag, EXPR_EVENT, "ExprVal::AsEventExpr", expr_name)
+	CHECK_TAG(tag, EXPR_EVENT, "Expr::AsEventExpr", expr_name)
 	return (const EventExpr*) this;
 	}
 
 EventExprPtr Expr::AsEventExprPtr()
 	{
-	CHECK_TAG(tag, EXPR_EVENT, "ExprVal::AsEventExpr", expr_name)
+	CHECK_TAG(tag, EXPR_EVENT, "Expr::AsEventExpr", expr_name)
 	return {NewRef{}, (EventExpr*) this};
 	}
 
 const RefExpr* Expr::AsRefExpr() const
 	{
-	CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
+	CHECK_TAG(tag, EXPR_REF, "Expr::AsRefExpr", expr_name)
 	return (const RefExpr*) this;
 	}
 
 RefExprPtr Expr::AsRefExprPtr()
 	{
-	CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
+	CHECK_TAG(tag, EXPR_REF, "Expr::AsRefExpr", expr_name)
 	return {NewRef{}, (RefExpr*) this};
 	}
 

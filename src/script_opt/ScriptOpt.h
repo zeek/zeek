@@ -19,11 +19,49 @@ namespace zeek::detail {
 // Flags controlling what sorts of analysis to do.
 
 struct AnalyOpt {
+
+	// If non-nil, then only analyze the given function/event/hook.
+	// Applies to both ZAM and C++.
+	std::optional<std::string> only_func;
+
+	// For a given compilation target, report functions that can't
+	// be compiled.
+	bool report_uncompilable = false;
+
+
+	////// Options relating to ZAM:
+
 	// Whether to analyze scripts.
 	bool activate = false;
 
+	// If true, compile all compileable functions, even those that
+	// are inlined.  Mainly useful for ensuring compatibility for
+	// some tests in the test suite.
+	bool compile_all = false;
+
 	// Whether to optimize the AST.
 	bool optimize_AST = false;
+
+	// If true, do global inlining.
+	bool inliner = false;
+
+	// If true, report which functions are directly and indirectly
+	// recursive, and exit.  Only germane if running the inliner.
+	bool report_recursive = false;
+
+	// If true, generate ZAM code for applicable function bodies,
+	// activating all optimizations.
+	bool gen_ZAM = false;
+
+	// Generate ZAM code, but do not turn on optimizations unless
+	// specified.
+	bool gen_ZAM_code = false;
+
+	// Deactivate the low-level ZAM optimizer.
+	bool no_ZAM_opt = false;
+
+	// Produce a profile of ZAM execution.
+	bool profile_ZAM = false;
 
 	// If true, dump out transformed code: the results of reducing
 	// interpreted scripts, and, if optimize is set, of then optimizing
@@ -33,11 +71,23 @@ struct AnalyOpt {
 	// If true, dump out the use-defs for each analyzed function.
 	bool dump_uds = false;
 
-	// If non-nil, then only analyze the given function/event/hook.
-	std::optional<std::string> only_func;
+	// If true, dump out generated ZAM code.
+	bool dump_ZAM = false;
 
-	// If true, do global inlining.
-	bool inliner = false;
+	// If non-zero, looks for variables that are used-but-possibly-not-set,
+	// or set-but-not-used.
+	//
+	// If > 1, also reports on uses of uninitialized record fields and
+	// analyzes nested records in depth.  Warning: with the current
+	// data structures this greatly increases analysis time.
+	//
+	// Included here with other ZAM-related options since conducting
+	// the analysis requires activating some of the machinery used
+	// for ZAM.
+	int usage_issues = 0;
+
+
+	////// Options relating to C++:
 
 	// If true, generate C++;
 	bool gen_CPP = false;
@@ -61,25 +111,8 @@ struct AnalyOpt {
 	// If true, use C++ bodies if available.
 	bool use_CPP = false;
 
-	// If true, compile all compileable functions, even those that
-	// are inlined.  Mainly useful for ensuring compatibility for
-	// some tests in the test suite.
-	bool compile_all = false;
-
 	// If true, report on available C++ bodies.
 	bool report_CPP = false;
-
-	// If true, report which functions are directly and indirectly
-	// recursive, and exit.  Only germane if running the inliner.
-	bool report_recursive = false;
-
-	// If non-zero, looks for variables that are used-but-possibly-not-set,
-	// or set-but-not-used.
-	//
-	// If > 1, also reports on uses of uninitialized record fields and
-	// analyzes nested records in depth.  Warning: with the current
-	// data structures this greatly increases analysis time.
-	int usage_issues = 0;
 };
 
 extern AnalyOpt analysis_options;
@@ -92,7 +125,11 @@ using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
 // Info we need for tracking an instance of a function.
 class FuncInfo {
 public:
-	FuncInfo(ScriptFuncPtr func, ScopePtr scope, StmtPtr body, int priority);
+	FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body,
+	         int _priority)
+	: func(std::move(_func)), scope(std::move(_scope)),
+	  body(std::move(_body)), priority(_priority)
+		{}
 
 	ScriptFunc* Func() const		{ return func.get(); }
 	const ScriptFuncPtr& FuncPtr() const	{ return func; }
@@ -101,11 +138,11 @@ public:
 	int Priority() const			{ return priority; }
 	const ProfileFunc* Profile() const	{ return pf.get(); }
 	std::shared_ptr<ProfileFunc> ProfilePtr() const	{ return pf; }
-	const std::string& SaveFile() const	{ return save_file; }
 
 	void SetBody(StmtPtr new_body)	{ body = std::move(new_body); }
-	void SetProfile(std::shared_ptr<ProfileFunc> _pf);
-	void SetSaveFile(std::string _sf)	{ save_file = std::move(_sf); }
+	// void SetProfile(std::shared_ptr<ProfileFunc> _pf);
+	void SetProfile(std::shared_ptr<ProfileFunc> _pf)
+		{ pf = std::move(_pf); }
 
 	// The following provide a way of marking FuncInfo's as
 	// should-be-skipped for script optimization, generally because
@@ -123,10 +160,6 @@ protected:
 
 	// Whether to skip optimizing this function.
 	bool skip = false;
-
-	// If we're saving this function in a file, this is the name
-	// of the file to use.
-	std::string save_file;
 };
 
 

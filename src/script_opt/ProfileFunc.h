@@ -103,7 +103,7 @@ public:
 		{ return locals; }
 	const std::unordered_set<const ID*>& Params() const
 		{ return params; }
-	const std::unordered_set<const ID*>& Assignees() const
+	const std::unordered_map<const ID*, int>& Assignees() const
 		{ return assignees; }
 	const std::unordered_set<const ID*>& Inits() const
 		{ return inits; }
@@ -166,6 +166,9 @@ protected:
 	// Take note of the presence of an identifier.
 	void TrackID(const ID* id);
 
+	// Take note of an assignment to an identifier.
+	void TrackAssignment(const ID* id);
+
 	// Globals seen in the function.
 	//
 	// Does *not* include globals solely seen as the function being
@@ -187,10 +190,11 @@ protected:
 	// function.
 	int num_params = -1;
 
-	// Identifiers (globals, locals, parameters) that are assigned to.
-	// Does not include implicit assignments due to initializations,
-	// which are instead captured in "inits".
-	std::unordered_set<const ID*> assignees;
+	// Maps identifiers (globals, locals, parameters) to how often
+	// they are assigned to (no entry if never).  Does not include
+	// implicit assignments due to initializations, which are instead
+	// captured in "inits".
+	std::unordered_map<const ID*, int> assignees;
 
 	// Same for locals seen in initializations, so we can find,
 	// for example, unused aggregates.
@@ -277,7 +281,7 @@ protected:
 // profile is compilable.  Alternatively we could derive subclasses
 // from ProfileFuncs and use a virtual method for this, but that seems
 // heavier-weight for what's really a simple notion.
-typedef bool (*is_compilable_pred)(const ProfileFunc*);
+using is_compilable_pred = bool (*)(const ProfileFunc*, const char** reason);
 
 // Collectively profile an entire collection of functions.
 class ProfileFuncs {

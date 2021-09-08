@@ -7,6 +7,8 @@
 #include "zeek/Stmt.h"
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
+#include "zeek/script_opt/ExprOptInfo.h"
+#include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/Reduce.h"
 #include "zeek/script_opt/TempVar.h"
@@ -33,6 +35,10 @@ ExprPtr Reducer::GenTemporaryExpr(const TypePtr& t, ExprPtr rhs)
 	{
 	auto e = make_intrusive<NameExpr>(GenTemporary(t, rhs));
 	e->SetLocationInfo(rhs->GetLocationInfo());
+
+	// No need to associate with current statement, since these
+	// are not generated during optimization.
+
 	return e;
 	}
 
@@ -41,7 +47,13 @@ NameExprPtr Reducer::UpdateName(NameExprPtr n)
 	if ( NameIsReduced(n.get()) )
 		return n;
 
-	return make_intrusive<NameExpr>(FindNewLocal(n));
+	auto ne = make_intrusive<NameExpr>(FindNewLocal(n));
+
+	// This name can be used by follow-on optimization analysis,
+	// so need to associate it with its statement.
+	BindExprToCurrStmt(ne);
+
+	return ne;
 	}
 
 bool Reducer::NameIsReduced(const NameExpr* n) const
@@ -106,6 +118,8 @@ bool Reducer::ID_IsReduced(const ID* id) const
 
 NameExprPtr Reducer::GenInlineBlockName(const IDPtr& id)
 	{
+	// We do this during reduction, not optimization, so no need
+	// to associate with curr_stmt.
 	return make_intrusive<NameExpr>(GenLocal(id));
 	}
 
@@ -118,6 +132,7 @@ NameExprPtr Reducer::PushInlineBlock(TypePtr type)
 
 	IDPtr ret_id = install_ID("@retvar", "<internal>", false, false);
 	ret_id->SetType(type);
+	ret_id->GetOptInfo()->SetTemp();
 
 	// Track this as a new local *if* we're in the outermost inlining
 	// block.  If we're recursively deeper into inlining, then this
@@ -141,48 +156,22 @@ bool Reducer::SameVal(const Val* v1, const Val* v2) const
 		return v1 == v2;
 	}
 
-ExprPtr Reducer::NewVarUsage(IDPtr var, const DefPoints* dps, const Expr* orig)
+ExprPtr Reducer::NewVarUsage(IDPtr var, const Expr* orig)
 	{
-	if ( ! dps )
-		reporter->InternalError("null defpoints in NewVarUsage");
-
 	auto var_usage = make_intrusive<NameExpr>(var);
-	SetDefPoints(var_usage.get(), dps);
-	TrackExprReplacement(orig, var_usage.get());
+	BindExprToCurrStmt(var_usage);
 
 	return var_usage;
 	}
 
-const DefPoints* Reducer::GetDefPoints(const NameExpr* var)
+void Reducer::BindExprToCurrStmt(const ExprPtr& e)
 	{
-	auto dps = FindDefPoints(var);
-
-	if ( ! dps )
-		{
-		auto id = var->Id();
-		auto di = mgr->GetConstID_DI(id);
-		auto rds = mgr->GetPreMaxRDs(GetRDLookupObj(var));
-
-		dps = rds->GetDefPoints(di);
-
-		SetDefPoints(var, dps);
-		}
-
-	return dps;
+	e->GetOptInfo()->stmt_num = curr_stmt->GetOptInfo()->stmt_num;
 	}
 
-const DefPoints* Reducer::FindDefPoints(const NameExpr* var) const
+void Reducer::BindStmtToCurrStmt(const StmtPtr& s)
 	{
-	auto dps = var_usage_to_DPs.find(var);
-	if ( dps == var_usage_to_DPs.end() )
-		return nullptr;
-	else
-		return dps->second;
-	}
-
-void Reducer::SetDefPoints(const NameExpr* var, const DefPoints* dps)
-	{
-	var_usage_to_DPs[var] = dps;
+	s->GetOptInfo()->stmt_num = curr_stmt->GetOptInfo()->stmt_num;
 	}
 
 bool Reducer::SameOp(const Expr* op1, const Expr* op2)
@@ -196,7 +185,7 @@ bool Reducer::SameOp(const Expr* op1, const Expr* op2)
 	if ( op1->Tag() == EXPR_NAME )
 		{
 		// Needs to be both the same identifier and in contexts
-		// where the identifier has the same definition points.
+		// where the identifier has the same definitions.
 		auto op1_n = op1->AsNameExpr();
 		auto op2_n = op2->AsNameExpr();
 
@@ -206,10 +195,13 @@ bool Reducer::SameOp(const Expr* op1, const Expr* op2)
 		if ( op1_id != op2_id )
 			return false;
 
-		auto op1_dps = GetDefPoints(op1_n);
-		auto op2_dps = GetDefPoints(op2_n);
+		auto e_stmt_1 = op1->GetOptInfo()->stmt_num;
+		auto e_stmt_2 = op2->GetOptInfo()->stmt_num;
 
-		return same_DPs(op1_dps, op2_dps);
+		auto def_1 = op1_id->GetOptInfo()->DefinitionBefore(e_stmt_1);
+		auto def_2 = op2_id->GetOptInfo()->DefinitionBefore(e_stmt_2);
+
+		return def_1 == def_2 && def_1 != NO_DEF;
 		}
 
 	else if ( op1->Tag() == EXPR_CONST )
@@ -391,11 +383,10 @@ IDPtr Reducer::FindExprTmp(const Expr* rhs, const Expr* a,
 			// always makes it here.
 			auto id = et_i->Id().get();
 
-			// We use 'a' in the following rather than rhs
-			// because the RHS can get rewritten (for example,
-			// due to folding) after we generate RDs, and
-			// thus might not have any.
-			if ( ! mgr->HasSinglePreMinRD(a, id) )
+			auto stmt_num = a->GetOptInfo()->stmt_num;
+			auto def = id->GetOptInfo()->DefinitionBefore(stmt_num);
+
+			if ( def == NO_DEF )
 				// The temporary's value isn't guaranteed
 				// to make it here.
 				continue;
@@ -470,8 +461,6 @@ void Reducer::CheckIDs(const Expr* e, std::vector<const ID*>& ids) const
 
 bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
 	{
-	auto a_max_rds = mgr->GetPostMaxRDs(GetRDLookupObj(a));
-
 	auto lhs_id = lhs->Id();
 	auto lhs_tmp = FindTemporary(lhs_id);	// nil if LHS not a temporary
 	auto rhs_tmp = FindExprTmp(rhs, a, lhs_tmp);
@@ -479,9 +468,7 @@ bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
 	ExprPtr new_rhs;
 	if ( rhs_tmp )
 		{ // We already have a temporary
-		auto tmp_di = mgr->GetConstID_DI(rhs_tmp.get());
-		auto dps = a_max_rds->GetDefPoints(tmp_di);
-		new_rhs = NewVarUsage(rhs_tmp, dps, rhs);
+		new_rhs = NewVarUsage(rhs_tmp, rhs);
 		rhs = new_rhs.get();
 		}
 
@@ -507,26 +494,16 @@ bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
 			// Treat the LHS as either an alias for the RHS,
 			// or as a constant if the RHS is a constant in
 			// this context.
-			auto rhs_di = mgr->GetConstID_DI(rhs_id.get());
-			auto dps = a_max_rds->GetDefPoints(rhs_di);
+			auto stmt_num = a->GetOptInfo()->stmt_num;
+			auto rhs_const = CheckForConst(rhs_id, stmt_num);
 
-			auto rhs_const = CheckForConst(rhs_id, dps);
 			if ( rhs_const )
 				lhs_tmp->SetConst(rhs_const);
 			else
-				lhs_tmp->SetAlias(rhs_id, dps);
+				lhs_tmp->SetAlias(rhs_id);
 
 			return true;
 			}
-
-		// Track where we define the temporary.
-		auto lhs_di = mgr->GetConstID_DI(lhs_id);
-		auto dps = a_max_rds->GetDefPoints(lhs_di);
-		if ( lhs_tmp->DPs() && ! same_DPs(lhs_tmp->DPs(), dps) )
-			reporter->InternalError("double DPs for temporary");
-
-		lhs_tmp->SetDPs(dps);
-		SetDefPoints(lhs, dps);
 
 		expr_temps.emplace_back(lhs_tmp);
 		}
@@ -534,77 +511,56 @@ bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
 	return false;
 	}
 
-const ConstExpr* Reducer::CheckForConst(const IDPtr& id,
-					const DefPoints* dps) const
+const ConstExpr* Reducer::CheckForConst(const IDPtr& id, int stmt_num) const
 	{
-	if ( ! dps || dps->length() == 0 )
-		// This can happen for access to uninitialized values.
+	if ( id->GetType()->Tag() == TYPE_ANY )
+		// Don't propagate identifiers of type "any" as constants.
+		// This is because the identifier might be used in some
+		// context that's dynamically unreachable due to the type
+		// of its value (such as via a type-switch), but for which
+		// constant propagation of the constant value to that
+		// context can result in compile-time errors when folding
+		// expressions in which the identifier appears (and is
+		// in that context presumed to have a different type).
 		return nullptr;
 
-	if ( dps->length() != 1 )
-		// Multiple definitions of the variable reach to this
-		// location.  In theory we could check whether they *all*
-		// provide the same constant, but that hardly seems likely.
-		return nullptr;
+	auto oi = id->GetOptInfo();
+	auto c = oi->Const();
 
-	// Identifier has a unique definition.
-	auto dp = (*dps)[0];
-	const Expr* e = nullptr;
+	if ( c )
+		return c;
 
-	if ( dp.Tag() == STMT_DEF )
+	auto e = id->GetOptInfo()->DefExprBefore(stmt_num);
+	if ( e )
 		{
-		auto s = dp.StmtVal();
+		auto ce = constant_exprs.find(e.get());
+		if ( ce != constant_exprs.end() )
+			e = ce->second;
 
-		if ( s->Tag() == STMT_CATCH_RETURN )
-			{
-			// Change 's' to refer to the associated assignment
-			// statement, if any.
-			auto cr = s->AsCatchReturnStmt();
-			s = cr->AssignStmt().get();
+		if ( e->Tag() == EXPR_CONST )
+			return e->AsConstExpr();
 
-			if ( ! s )
-				return nullptr;
-			}
-
-		if ( s->Tag() != STMT_EXPR )
-			// Defined in a statement other than an assignment.
+		// Follow aliases.
+		if ( e->Tag() != EXPR_NAME )
 			return nullptr;
 
-		e = s->AsExprStmt()->StmtExpr();
+		return CheckForConst(e->AsNameExpr()->IdPtr(), stmt_num);
 		}
 
-	else if ( dp.Tag() == EXPR_DEF )
-		e = dp.ExprVal();
-
-	else
-		return nullptr;
-
-	if ( e->Tag() != EXPR_ASSIGN )
-		// Not sure why this would happen, other than EXPR_APPEND_TO,
-		// but in any case not an expression we can mine for a
-		// constant.
-		return nullptr;
-
-	auto rhs = e->GetOp2();
-
-	if ( rhs->Tag() != EXPR_CONST )
-		return nullptr;
-
-	return rhs->AsConstExpr();
+	return nullptr;
 	}
 
-void Reducer::TrackExprReplacement(const Expr* orig, const Expr* e)
+ConstExprPtr Reducer::Fold(ExprPtr e)
 	{
-	new_expr_to_orig[e] = orig;
+	auto c = make_intrusive<ConstExpr>(e->Eval(nullptr));
+	FoldedTo(e, c);
+	return c;
 	}
 
-const Obj* Reducer::GetRDLookupObj(const Expr* e) const
+void Reducer::FoldedTo(ExprPtr e, ConstExprPtr c)
 	{
-	auto orig_e = new_expr_to_orig.find(e);
-	if ( orig_e == new_expr_to_orig.end() )
-		return e;
-	else
-		return orig_e->second;
+	constant_exprs[e.get()] = std::move(c);
+	folded_exprs.push_back(std::move(e));
 	}
 
 ExprPtr Reducer::OptExpr(Expr* e)
@@ -635,13 +591,10 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e)
 	auto tmp_var = FindTemporary(id);
 	if ( ! tmp_var )
 		{
-		auto max_rds = mgr->GetPreMaxRDs(GetRDLookupObj(n));
-
 		IDPtr id_ptr = {NewRef{}, id};
-		auto di = mgr->GetConstID_DI(id);
-		auto dps = max_rds->GetDefPoints(di);
+		auto stmt_num = e->GetOptInfo()->stmt_num;
+		auto is_const = CheckForConst(id_ptr, stmt_num);
 
-		auto is_const = CheckForConst(id_ptr, dps);
 		if ( is_const )
 			{
 			// Remember this variable as one whose value
@@ -662,36 +615,33 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e)
 	auto alias = tmp_var->Alias();
 	if ( alias )
 		{
-		// Make sure that the definition points for the
-		// alias here are the same as when the alias
-		// was created.
+		// Make sure that the definitions for the alias here are
+		// the same as when the alias was created.
 		auto alias_tmp = FindTemporary(alias.get());
 
-		if ( alias_tmp )
+		// Resolve any alias chains.
+		while ( alias_tmp && alias_tmp->Alias() )
 			{
-			while ( alias_tmp->Alias() )
-				{
-				// Alias chains can occur due to
-				// re-reduction while optimizing.
-				auto a_id = alias_tmp->Id();
-				if ( a_id == id )
-					return e;
+			alias = alias_tmp->Alias();
+			alias_tmp = FindTemporary(alias.get());
+			}
 
-				alias_tmp = FindTemporary(alias_tmp->Id().get());
-				}
-
-			// Temporaries always have only one definition point,
+		if ( alias->GetOptInfo()->IsTemp() )
+			{
+			// Temporaries always have only one definition,
 			// so no need to check for consistency.
-			auto new_usage = NewVarUsage(alias, alias_tmp->DPs(), e.get());
+			auto new_usage = NewVarUsage(alias, e.get());
 			return new_usage;
 			}
 
-		auto e_max_rds = mgr->GetPreMaxRDs(GetRDLookupObj(e.get()));
-		auto alias_di = mgr->GetConstID_DI(alias.get());
-		auto alias_dps = e_max_rds->GetDefPoints(alias_di);
+		auto e_stmt_1 = e->GetOptInfo()->stmt_num;
+		auto e_stmt_2 = tmp_var->RHS()->GetOptInfo()->stmt_num;
 
-		if ( same_DPs(alias_dps, tmp_var->DPs()) )
-			return NewVarUsage(alias, alias_dps, e.get());
+		auto def_1 = alias->GetOptInfo()->DefinitionBefore(e_stmt_1);
+		auto def_2 = tmp_var->Id()->GetOptInfo()->DefinitionBefore(e_stmt_2);
+
+		if ( def_1 == def_2 && def_1 != NO_DEF )
+			return NewVarUsage(alias, e.get());
 		else
 			return e;
 		}
@@ -758,9 +708,17 @@ StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, Stmt* succ_stmt)
 	lhs_tmp->Deactivate();
 	auto merge_e = make_intrusive<AssignExpr>(a_lhs_deref, rhs, false,
 						nullptr, nullptr, false);
-	TrackExprReplacement(rhs.get(), merge_e.get());
+	auto merge_e_stmt = make_intrusive<ExprStmt>(merge_e);
 
-	return make_intrusive<ExprStmt>(merge_e);
+	// Update the associated stmt_num's.  For strict correctness, we
+	// want both of these bound to the earlier of the two statements
+	// we're merging (though in practice, either will work, since
+	// we're eliding the only difference between the two).  Our
+	// caller ensures this.
+	BindExprToCurrStmt(merge_e);
+	BindStmtToCurrStmt(merge_e_stmt);
+
+	return merge_e_stmt;
 	}
 
 IDPtr Reducer::GenTemporary(const TypePtr& t, ExprPtr rhs)
@@ -808,6 +766,9 @@ IDPtr Reducer::GenLocal(const IDPtr& orig)
 	IDPtr local_id = install_ID(buf, "<internal>", false, false);
 	local_id->SetType(orig->GetType());
 	local_id->SetAttrs(orig->GetAttrs());
+
+	if ( orig->GetOptInfo()->IsTemp() )
+		local_id->GetOptInfo()->SetTemp();
 
 	new_locals.insert(local_id.get());
 	orig_to_new_locals[orig.get()] = local_id;
@@ -1037,27 +998,6 @@ bool CSE_ValidityChecker::CheckAggrMod(const std::vector<const ID*>& ids,
 		}
 
 	return false;
-	}
-
-
-bool same_DPs(const DefPoints* dp1, const DefPoints* dp2)
-	{
-	if ( dp1 == dp2 )
-		return true;
-
-	if ( ! dp1 || ! dp2 )
-		return false;
-
-	// Given how we construct DPs, they should be element-by-element
-	// equivalent; we don't have to worry about reordering.
-	if ( dp1->length() != dp2->length() )
-		return false;
-
-	for ( auto i = 0; i < dp1->length(); ++i )
-		if ( ! (*dp1)[i].SameAs((*dp2)[i]) )
-			return false;
-
-	return true;
 	}
 
 

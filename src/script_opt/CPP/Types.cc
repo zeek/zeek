@@ -133,7 +133,7 @@ void CPPCompile::ExpandTypeVar(const TypePtr& t)
 	}
 
 	auto& script_type_name = t->GetName();
-	if ( script_type_name.size() > 0 )
+	if ( ! script_type_name.empty() )
 		AddInit(t, "register_type__CPP(" + tn + ", \"" +
 		           script_type_name + "\");");
 
@@ -145,9 +145,8 @@ void CPPCompile::ExpandListTypeVar(const TypePtr& t, string& tn)
 	const auto& tl = t->AsTypeList()->GetTypes();
 	auto t_name = tn + "->AsTypeList()";
 
-	for ( auto i = 0u; i < tl.size(); ++i )
-		AddInit(t, t_name + "->Append(" +
-			GenTypeName(tl[i]) + ");");
+	for ( const auto& tl_i : tl )
+		AddInit(t, t_name + "->Append(" + GenTypeName(tl_i) + ");");
 	}
 
 void CPPCompile::ExpandRecordTypeVar(const TypePtr& t, string& tn)
@@ -181,7 +180,7 @@ void CPPCompile::ExpandEnumTypeVar(const TypePtr& t, string& tn)
 	auto names = et->Names();
 
 	AddInit(t, "{ auto et = " + e_name + ";");
-	AddInit(t, "if ( et->Names().size() == 0 ) {");
+	AddInit(t, "if ( et->Names().empty() ) {");
 
 	for ( const auto& name_pair : et->Names() )
 		AddInit(t, string("\tet->AddNameInternal(\"") +
@@ -459,10 +458,10 @@ void CPPCompile::RegisterListType(const TypePtr& t)
 	{
 	const auto& tl = t->AsTypeList()->GetTypes();
 
-	for ( auto i = 0u; i < tl.size(); ++i )
+	for ( auto& tl_i : tl )
 		{
-		NoteNonRecordInitDependency(t, tl[i]);
-		RegisterType(tl[i]);
+		NoteNonRecordInitDependency(t, tl_i);
+		RegisterType(tl_i);
 		}
 	}
 
@@ -489,10 +488,8 @@ void CPPCompile::RegisterRecordType(const TypePtr& t)
 	if ( ! r )
 		return;
 
-	for ( auto i = 0; i < r->length(); ++i )
+	for ( const auto& r_i : *r )
 		{
-		const auto& r_i = (*r)[i];
-
 		NoteNonRecordInitDependency(t, r_i->type);
 		RegisterType(r_i->type);
 

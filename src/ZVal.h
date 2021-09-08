@@ -35,6 +35,10 @@ using TypeValPtr = IntrusivePtr<TypeVal>;
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
 
+namespace detail {
+	class ZBody;
+}
+
 // Note that a ZVal by itself is ambiguous: it doesn't track its type.
 // This makes them consume less memory and cheaper to copy.  It does
 // however require a separate way to determine the type.  Generally
@@ -70,9 +74,9 @@ union ZVal {
 	ZVal(OpaqueVal* v)	{ opaque_val = v; }
 	ZVal(PatternVal* v)	{ re_val = v; }
 	ZVal(TableVal* v)	{ table_val = v; }
-	ZVal(TypeVal* v)	{ type_val = v; }
 	ZVal(RecordVal* v)	{ record_val = v; }
 	ZVal(VectorVal* v)	{ vector_val = v; }
+	ZVal(TypeVal* v)	{ type_val = v; }
 	ZVal(Val* v)		{ any_val = v; }
 
 	ZVal(StringValPtr v)	{ string_val = v.release(); }
@@ -82,9 +86,9 @@ union ZVal {
 	ZVal(OpaqueValPtr v)	{ opaque_val = v.release(); }
 	ZVal(PatternValPtr v)	{ re_val = v.release(); }
 	ZVal(TableValPtr v)	{ table_val = v.release(); }
-	ZVal(TypeValPtr v)	{ type_val = v.release(); }
 	ZVal(RecordValPtr v)	{ record_val = v.release(); }
 	ZVal(VectorValPtr v)	{ vector_val = v.release(); }
+	ZVal(TypeValPtr v)	{ type_val = v.release(); }
 
 	// Convert to a higher-level script value.  The caller needs to
 	// ensure that they're providing the correct type.
@@ -160,6 +164,7 @@ union ZVal {
 private:
 	friend class RecordVal;
 	friend class VectorVal;
+	friend class zeek::detail::ZBody;
 
 	// Used for bool, int, enum.
 	bro_int_t int_val;
@@ -170,8 +175,8 @@ private:
 	// Used for double, time, interval.
 	double double_val;
 
-	// The types are all variants of Val, Type, or more fundamentally
-	// Obj.  They are raw pointers rather than IntrusivePtr's because
+	// The types are all variants of Val, or more fundamentally Obj.
+	// They are raw pointers rather than IntrusivePtr's because
 	// unions can't contain the latter.  For memory management, we use
 	// Ref/Unref.
 	StringVal* string_val;

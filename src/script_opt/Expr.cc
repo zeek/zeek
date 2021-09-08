@@ -1015,9 +1015,10 @@ ExprPtr TimesExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	if ( (op1->IsZero() || op2->IsZero()) &&
 	     GetType()->Tag() != TYPE_DOUBLE )
 		{
-		auto zero_val = op1->IsZero() ?
-				op1->Eval(nullptr) : op2->Eval(nullptr);
-		return make_intrusive<ConstExpr>(zero_val);
+		if ( op1->IsZero() )
+			return c->Fold(op1);
+		else
+			return c->Fold(op2);
 		}
 
 	return BinaryExpr::Reduce(c, red_stmt);
@@ -1106,8 +1107,8 @@ static ExprPtr build_disjunction(std::vector<ConstExprPtr>& patterns)
 
 	ExprPtr e = patterns[0];
 
-	for ( unsigned int i = 1; i < patterns.size(); ++i )
-		e = make_intrusive<BitExpr>(EXPR_OR, e, patterns[i]);
+	for ( auto& p : patterns )
+		e = make_intrusive<BitExpr>(EXPR_OR, e, p);
 
 	return e;
 	}
@@ -1427,6 +1428,19 @@ ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		return op2;
 		}
 
+	if ( op2->IsConst() && op3->IsConst() && GetType()->Tag() == TYPE_BOOL )
+		{
+		auto op2_t = op2->IsOne();
+		ASSERT(op2_t != op3->IsOne());
+
+		if ( op2_t )
+			// This is "var ? T : F", which can be replaced by var.
+			return op1;
+
+		// Instead we have "var ? F : T".
+		return make_intrusive<NotExpr>(op1);
+		}
+
 	if ( c->Optimizing() )
 		return ThisPtr();
 
@@ -1610,12 +1624,22 @@ bool AssignExpr::HasReducedOps(Reducer* c) const
 ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	{
 	// Yields a fully reduced assignment expression.
-
 	if ( c->Optimizing() )
 		{
 		// Don't update the LHS, it's already in reduced form
 		// and it doesn't make sense to expand aliases or such.
+		auto orig_op2 = op2;
 		op2 = c->UpdateExpr(op2);
+
+		if ( op2 != orig_op2 && op2->Tag() == EXPR_CONST &&
+		     op1->Tag() == EXPR_REF )
+			{
+			auto lhs = op1->GetOp1();
+			auto op2_c = cast_intrusive<ConstExpr>(op2);
+			if ( lhs->Tag() == EXPR_NAME )
+				c->FoldedTo(orig_op2, op2_c);
+			}
+
 		return ThisPtr();
 		}
 
@@ -1738,7 +1762,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	red_stmt = op2->ReduceToSingletons(c);
 
 	if ( op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
-		op2 = make_intrusive<ConstExpr>(op2->Eval(nullptr));
+		op2 = c->Fold(op2);
 
 	// Check once again for transformation, this time made possible
 	// because the operands have been reduced.  We don't simply
@@ -2110,8 +2134,6 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	if ( ! op->IsReduced(c) )
 		op = op->ReduceToSingleton(c, red_stmt);
 
-	auto t = type->InternalType();
-
 	if ( op->Tag() == EXPR_CONST )
 		{
 		const auto& t = GetType();
@@ -2129,9 +2151,18 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	if ( c->Optimizing() )
 		return ThisPtr();
 
-	auto bt = op->GetType()->InternalType();
+	const auto& ot = op->GetType();
+	auto bt = ot->InternalType();
+	auto tt = type->InternalType();
 
-	if ( t == bt )
+	if ( ot->Tag() == TYPE_VECTOR )
+		{
+		bt = ot->Yield()->InternalType();
+		tt = type->Yield()->InternalType();
+		}
+
+	if ( bt == tt )
+		// Can drop the conversion.
 		return op;
 
 	return AssignToTemporary(c, red_stmt);

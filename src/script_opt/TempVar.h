@@ -9,6 +9,7 @@
 
 #include "zeek/ID.h"
 #include "zeek/Expr.h"
+#include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/ReachingDefs.h"
 
 namespace zeek::detail {
@@ -22,21 +23,24 @@ public:
 	const Expr* RHS() const		{ return rhs.get(); }
 
 	IDPtr Id() const	{ return id; }
-	void SetID(IDPtr _id)	{ id = std::move(_id); }
+	void SetID(IDPtr _id)
+		{
+		id = std::move(_id);
+		id->GetOptInfo()->SetTemp();
+		}
 	void Deactivate()	{ active = false; }
 	bool IsActive() const	{ return active; }
 
 	// Associated constant expression, if any.
-	const ConstExpr* Const() const	{ return const_expr; }
+	const ConstExpr* Const() const	{ return id->GetOptInfo()->Const(); }
 
 	// The most use of "const" in any single line in the Zeek
 	// codebase :-P ... though only by one!
-	void SetConst(const ConstExpr* _const) { const_expr = _const; }
+	void SetConst(const ConstExpr* _const)
+		{ id->GetOptInfo()->SetConst(_const); }
 
 	IDPtr Alias() const			{ return alias; }
-	const DefPoints* DPs() const		{ return dps; }
-	void SetAlias(IDPtr id, const DefPoints* dps);
-	void SetDPs(const DefPoints* _dps);
+	void SetAlias(IDPtr id);
 
 	const RDPtr& MaxRDs() const	{ return max_rds; }
 	void SetMaxRDs(RDPtr rds)	{ max_rds = std::move(rds); }
@@ -47,9 +51,7 @@ protected:
 	const TypePtr& type;
 	ExprPtr rhs;
 	bool active = true;
-	const ConstExpr* const_expr = nullptr;
 	IDPtr alias;
-	const DefPoints* dps = nullptr;
 	RDPtr max_rds;
 };
 

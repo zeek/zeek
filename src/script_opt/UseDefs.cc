@@ -79,10 +79,8 @@ bool UseDefs::RemoveUnused(int iter)
 
 	bool did_omission = false;
 
-	for ( unsigned int i = 0; i < stmts.size(); ++i )
+	for ( const auto& s : stmts )
 		{
-		const auto& s = stmts[i];
-
 		if ( s->Tag() == STMT_INIT )
 			{
 			auto init = s->AsInitStmt();
@@ -94,7 +92,7 @@ bool UseDefs::RemoveUnused(int iter)
 				     ! CheckIfUnused(s, id.get(), false) )
 					used_ids.emplace_back(id);
 
-			if ( used_ids.size() == 0 )
+			if ( used_ids.empty() )
 				{ // There aren't any ID's to keep.
 				rc->AddStmtToOmit(s);
 				continue;

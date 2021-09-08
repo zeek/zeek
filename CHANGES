@@ -1,3 +1,9 @@
+4.2.0-dev.157 | 2021-09-08 12:04:45 -0700
+
+  * fix for looping over vectors with holes per https://github.com/zeek/zeek/issues/1763 (Vern Paxson, Corelight)
+
+  * btest for https://github.com/zeek/zeek/issues/1763 (Vern Paxson, Corelight)
+
 4.2.0-dev.154 | 2021-09-08 12:03:51 -0700
 
   * Fix mis-usage of string::append that leads to an overflow (Tim Wojtulewicz, Corelight)

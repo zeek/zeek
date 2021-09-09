@@ -675,7 +675,15 @@ string normalize_path(std::string_view path)
 	if (0 == path.compare(zeek::detail::ScannedFile::canonical_stdin_path)) {
 		return string(path);
 	}
-	return std::filesystem::canonical(path).string();
+	string stringPath = string(path);
+
+	// "//" interferes with std::weakly_canonical
+	if (stringPath._Starts_with("//"))
+	{
+		stringPath.erase(0, 2);
+	}
+
+	return std::filesystem::weakly_canonical(path).string();
 #else
 	if ( path.find("/.") == std::string_view::npos && path.find("//") == std::string_view::npos )
 		{

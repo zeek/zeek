@@ -331,6 +331,8 @@ static zeek::RecordValPtr build_syn_packet_val(bool is_orig, const zeek::IP_Hdr*
 	int winscale = -1;
 	int MSS = 0;
 	int SACK = 0;
+	int64_t TSval = -1;
+	int64_t TSecr = -1;
 
 	// Parse TCP options.
 	u_char* options = (u_char*)tcp + sizeof(struct tcphdr);
@@ -384,6 +386,14 @@ static zeek::RecordValPtr build_syn_packet_val(bool is_orig, const zeek::IP_Hdr*
 				winscale = options[2];
 				break;
 
+			case 8:  // TCPOPT_TIMESTAMP
+				if (opt_len < 10 )
+					break;  // bad length
+
+				TSval = (((((options[2] << 8) | options[3]) << 8) | options[4]) << 8) | options[5];
+				TSecr = (((((options[6] << 8) | options[7]) << 8) | options[8]) << 8) | options[9];
+				break;
+
 			default: // just skip over
 				break;
 			}
@@ -402,7 +412,10 @@ static zeek::RecordValPtr build_syn_packet_val(bool is_orig, const zeek::IP_Hdr*
 	v->Assign(5, winscale);
 	v->Assign(6, MSS);
 	v->Assign(7, static_cast<bool>(SACK));
-
+	if(TSval >= 0)
+		v->Assign(8, (uint32_t) TSval);
+	if(TSval >= 0)
+		v->Assign(9, (uint32_t) TSecr);
 	return v;
 	}
 

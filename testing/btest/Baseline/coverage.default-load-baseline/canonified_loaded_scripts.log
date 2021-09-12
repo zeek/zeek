@@ -125,6 +125,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/telemetry.bif.zeek
     build/scripts/base/bif/zeekygen.bif.zeek
     build/scripts/base/bif/pcap.bif.zeek
+    build/scripts/base/bif/statistics.bif.zeek
     build/scripts/base/bif/bloom-filter.bif.zeek
     build/scripts/base/bif/cardinality-counter.bif.zeek
     build/scripts/base/bif/top-k.bif.zeek

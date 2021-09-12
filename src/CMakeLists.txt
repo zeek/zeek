@@ -192,6 +192,7 @@ add_subdirectory(file_analysis)
 add_subdirectory(input)
 add_subdirectory(iosource)
 add_subdirectory(logging)
+add_subdirectory(statistics)
 add_subdirectory(probabilistic)
 add_subdirectory(session)
 

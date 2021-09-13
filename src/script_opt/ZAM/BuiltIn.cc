@@ -371,21 +371,25 @@ bool ZAMCompiler::BuiltIn_sub_bytes(const NameExpr* n, const ExprPList& args)
 		break;
 
 	case 0x4:	// first argument a constant
+		ASSERT(c);
 		z = ZInstI(OP_SUB_BYTES_VVVC, nslot, v3, v4, c);
 		z.op_type = OP_VVVC;
 		break;
 
 	case 0x5:	// first and third constant
+		ASSERT(c);
 		z = ZInstI(OP_SUB_BYTES_VViC, nslot, v3, v4, c);
 		z.op_type = OP_VVVC_I3;
 		break;
 
 	case 0x6:	// first and second constant - flip!
+		ASSERT(c);
 		z = ZInstI(OP_SUB_BYTES_ViVC, nslot, v4, v3, c);
 		z.op_type = OP_VVVC_I3;
 		break;
 
 	case 0x7:	// whole shebang
+		ASSERT(c);
 		z = ZInstI(OP_SUB_BYTES_ViiC, nslot, v3, v4, c);
 		z.op_type = OP_VVVC_I2_I3;
 		break;

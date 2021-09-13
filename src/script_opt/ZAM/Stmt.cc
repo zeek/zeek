@@ -530,6 +530,7 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 			auto sv = cv->AsString()->Render();
 			std::string s(sv);
 			new_str_cases[s] = case_body_start;
+			delete[] sv;
 			break;
 			}
 
@@ -897,6 +898,7 @@ const ZAMStmt ZAMCompiler::LoopOverString(const ForStmt* f, const Expr* e)
 		}
 	else
 		{
+		ASSERT(c);
 		z = ZInstI(OP_INIT_STRING_LOOP_VC, iter_slot, c);
 		z.op_type = OP_VC_I1;
 		}
@@ -926,9 +928,9 @@ const ZAMStmt ZAMCompiler::Loop(const Stmt* body)
 	return tail;
 	}
 
-const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head, ZInstI iter_stmt,
-                                      const Stmt* body, int iter_slot,
-                                      bool is_table)
+const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head,
+                                      ZInstI& iter_stmt, const Stmt* body,
+                                      int iter_slot, bool is_table)
 	{
 	auto loop_iter = AddInst(iter_stmt);
 	auto body_end = CompileStmt(body);

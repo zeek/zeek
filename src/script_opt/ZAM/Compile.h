@@ -183,7 +183,7 @@ private:
 	const ZAMStmt LoopOverVector(const ForStmt* f, const NameExpr* val);
 	const ZAMStmt LoopOverString(const ForStmt* f, const Expr* e);
 
-	const ZAMStmt FinishLoop(const ZAMStmt iter_head, ZInstI iter_stmt,
+	const ZAMStmt FinishLoop(const ZAMStmt iter_head, ZInstI& iter_stmt,
 	                         const Stmt* body, int iter_slot,
 	                         bool is_table);
 

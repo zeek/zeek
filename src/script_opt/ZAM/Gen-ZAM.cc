@@ -2272,6 +2272,15 @@ bool ZAMGen::ParseTemplate()
 
 int main(int argc, char** argv)
 	{
-	ZAMGen(argc, argv);
-	exit(0);
+	try
+		{
+		ZAMGen zg(argc, argv);
+		exit(0);
+		}
+	catch ( const std::regex_error& e )
+		{
+		fprintf(stderr, "%s: regular expression error - %s\n",
+		        argv[0], e.what());
+		exit(1);
+		}
 	}

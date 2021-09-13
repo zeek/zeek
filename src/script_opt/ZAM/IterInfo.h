@@ -90,7 +90,7 @@ private:
 	const TableVal* tv = nullptr;
 
 	// Associated auxiliary information.
-	ZInstAux* aux;
+	ZInstAux* aux = nullptr;
 
 	std::optional<DictIterator> tbl_iter;
 	std::optional<DictIterator> tbl_end;

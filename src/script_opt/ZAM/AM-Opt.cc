@@ -1007,6 +1007,8 @@ void ZAMCompiler::KillInst(int i)
 
 	if ( inst->IsUnconditionalBranch() )
 		{
+		ASSERT(t);
+
 		// No direct flow after this point ... unless we're
 		// branching to the next immediate live instruction.
 		auto after_inst = NextLiveInst(inst, true);

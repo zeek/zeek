@@ -39,10 +39,10 @@ public:
 
 	// The current end of the frame slot's scope.  Gets updated as
 	// new IDs are added to share the slot.
-	int scope_end;
+	int scope_end = -1;
 
 	// Whether this is a managed slot.
-	bool is_managed;
+	bool is_managed = false;
 };
 
 using FrameReMap = std::vector<FrameSharingInfo>;
@@ -98,7 +98,9 @@ public:
 	// When an instruction has both frame slots and integer constants,
 	// the former always come first, even if conceptually in the operation
 	// the constant is an "earlier" operand.
-	int v1, v2, v3, v4;
+	//
+	// Initialized here to keep Coverity happy.
+	int v1 = -1, v2 = -1, v3 = -1, v4 = -1;
 
 	ZVal c;	// constant associated with instruction, if any
 

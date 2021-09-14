@@ -2101,7 +2101,7 @@ void ZAMGen::Emit(EmitTarget et, const string& s)
 
 	fputs(s.c_str(), f);
 
-	if ( s.back() != '\n' && ! no_NL )
+	if ( ! no_NL && (s.empty() || s.back() != '\n') )
 		fputs("\n", f);
 	}
 

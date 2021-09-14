@@ -2197,6 +2197,12 @@ export {
 		["5422fd3a-d4b8-4cef-a12e-e87d4ca22e90",0x08] = "GetCAPropertyInfo",
 		["5422fd3a-d4b8-4cef-a12e-e87d4ca22e90",0x09] = "Ping2",
 
+        # IDispatch - MSDN Ref: OLE Automation Protocol [ms-oaut]
+        ["00020400-0000-0000-c000-000000000046",0x03] = "GetTypeInfoCount",
+        ["00020400-0000-0000-c000-000000000046",0x04] = "GetTypeInfo",
+        ["00020400-0000-0000-c000-000000000046",0x05] = "GetIDsOfNames",
+        ["00020400-0000-0000-c000-000000000046",0x06] = "Invoke",
+
 		# IDMNotify - MSDN Ref: Disk Mgmt Remote Protocol [ms-dmrp]
 		["d2d79df7-3400-11d0-b40b-00aa005ff586",0x00] = "ObjectsChanged",
 

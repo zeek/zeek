@@ -689,7 +689,7 @@ void ZAMCompiler::ReMapVar(ID* id, int slot, bro_uint_t inst)
 		if ( s.scope_end <= static_cast<int>(inst) &&
 		     s.is_managed == is_managed )
 			{ // It's compatible.
-			if ( s.scope_end == inst )
+			if ( s.scope_end == static_cast<int>(inst) )
 				{ // It ends right on the money.
 				apt_slot = i;
 				break;

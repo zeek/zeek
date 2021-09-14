@@ -315,7 +315,7 @@ void ZAMCompiler::RemapFrameDenizens(const std::vector<int>& inst1_to_inst2)
 			// the form "slotX = slotX".  In that
 			// case, look forward for the next viable
 			// instruction.
-			while ( start < int(insts1.size()) &&
+			while ( start < insts1.size() &&
 				inst1_to_inst2[start] == -1 )
 				++start;
 

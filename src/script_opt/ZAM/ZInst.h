@@ -66,7 +66,7 @@ public:
 	virtual ~ZInst()	{ }
 
 	// Methods for printing out the instruction for debugging/maintenance.
-	void Dump(int inst_num, const FrameReMap* mappings) const;
+	void Dump(bro_uint_t inst_num, const FrameReMap* mappings) const;
 	void Dump(const std::string& id1, const std::string& id2,
 	          const std::string& id3, const std::string& id4) const;
 
@@ -75,7 +75,7 @@ public:
 	// by its number within a larger set.  "mappings" provides the
 	// mappings used to translate raw slots to the corresponding
 	// script variable(s).
-	std::string VName(int n, int inst_num,
+	std::string VName(int n, bro_uint_t inst_num,
 	                  const FrameReMap* mappings) const;
 
 	// Number of slots that refer to a frame element.  These always

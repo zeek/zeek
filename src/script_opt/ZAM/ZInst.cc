@@ -9,7 +9,7 @@ using std::string;
 
 namespace zeek::detail {
 
-void ZInst::Dump(int inst_num, const FrameReMap* mappings) const
+void ZInst::Dump(bro_uint_t inst_num, const FrameReMap* mappings) const
 	{
 	// printf("v%d ", n);
 
@@ -214,7 +214,7 @@ int ZInst::NumSlots() const
 	return -1;
 	}
 
-string ZInst::VName(int n, int inst_num, const FrameReMap* mappings) const
+string ZInst::VName(int n, bro_uint_t inst_num, const FrameReMap* mappings) const
 	{
 	if ( n > NumFrameSlots() )
 		return "";
@@ -333,11 +333,12 @@ string ZInstI::VName(int n, const FrameMap* frame_ids,
 		auto& map = (*remappings)[slot];
 
 		unsigned int i;
+		auto inst_num_u = static_cast<bro_uint_t>(inst_num);
 		for ( i = 0; i < map.id_start.size(); ++i )
 			{
 			// See discussion for ZInst::VName.
-			if ( (n == 1 && map.id_start[i] > inst_num) ||
-			     (n > 1 && map.id_start[i] >= inst_num) )
+			if ( (n == 1 && map.id_start[i] > inst_num_u) ||
+			     (n > 1 && map.id_start[i] >= inst_num_u) )
 				// Went too far.
 				break;
 			}

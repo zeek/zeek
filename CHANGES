@@ -1,3 +1,9 @@
+4.2.0-dev.159 | 2021-09-14 13:00:50 -0700
+
+  * ignore_checksums_nets: Add test for multiple subnets (Arne Welzel, Corelight)
+
+    This test fails with Zeek 4.1 and Zeek 4.0.3.
+
 4.2.0-dev.157 | 2021-09-08 12:04:45 -0700
 
   * fix for looping over vectors with holes per https://github.com/zeek/zeek/issues/1763 (Vern Paxson, Corelight)

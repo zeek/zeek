@@ -170,6 +170,8 @@ int ZInst::NumFrameSlots() const
 	case OP_VVVV:
 		return 4;
 	}
+
+	return -1;
 	}
 
 int ZInst::NumSlots() const
@@ -208,6 +210,8 @@ int ZInst::NumSlots() const
 	case OP_VVVV_I2_I3_I4:
 		return 4;
 	}
+
+	return -1;
 	}
 
 string ZInst::VName(int n, int inst_num, const FrameReMap* mappings) const
@@ -278,6 +282,8 @@ ValPtr ZInst::ConstVal() const
 	case OP_VVVV_I2_I3_I4:
 		return nullptr;
 	}
+
+	return nullptr;
 	}
 
 string ZInst::ConstDump() const
@@ -431,6 +437,8 @@ bool ZInstI::AssignsToSlot1() const
 		auto fl = op1_flavor[op];
 		return fl == OP1_WRITE || fl == OP1_READ_WRITE;
 	}
+
+	return false;
 	}
 
 bool ZInstI::UsesSlot(int slot) const
@@ -473,6 +481,8 @@ bool ZInstI::UsesSlot(int slot) const
 	case OP_VVVV:
 		return v1_match || v2 == slot || v3 == slot || v4 == slot;
 	}
+
+	return false;
 	}
 
 bool ZInstI::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
@@ -538,6 +548,8 @@ bool ZInstI::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
 
 		return true;
 	}
+
+	return false;
 	}
 
 void ZInstI::UpdateSlots(std::vector<int>& slot_mapping)

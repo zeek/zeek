@@ -450,7 +450,7 @@ void GenIDDefs::EndConfluenceBlock(bool no_orig)
 
 	confluence_blocks.pop_back();
 
-	int bb = barrier_blocks.back();
+	auto bb = barrier_blocks.back();
 	if ( bb > 0 && confluence_blocks.size() == bb )
 		barrier_blocks.pop_back();
 
@@ -520,7 +520,7 @@ void GenIDDefs::TrackID(const ID* id, const ExprPtr& e)
 
 	// Ensure we track this identifier across all relevant
 	// confluence regions.
-	for ( int i = barrier_blocks.back(); i < confluence_blocks.size(); ++i )
+	for ( auto i = barrier_blocks.back(); i < confluence_blocks.size(); ++i )
 		// Add one because modified_IDs includes outer non-confluence
 		// block.
 		modified_IDs[i+1].insert(id);

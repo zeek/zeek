@@ -1186,7 +1186,7 @@ const ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e)
 	z.aux = new ZInstAux(map_size);
 	z.aux->map = map;
 
-	for ( auto i = 0; i < map_size; ++i )
+	for ( auto i = 0U; i < map_size; ++i )
 		z.aux->Add(i, map[i], nullptr);
 
 	// Mark the integer entries in z.aux as not being frame slots as usual.

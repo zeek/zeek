@@ -142,7 +142,7 @@ public:
 	// conf_blocks may be empty).
 	void DefinedAfter(const Stmt* s, const ExprPtr& e,
 	                  const std::vector<const Stmt*>& conf_blocks,
-	                  int conf_start);
+	                  bro_uint_t conf_start);
 
 	// Called upon encountering a "return" statement.
 	void ReturnAt(const Stmt* s);

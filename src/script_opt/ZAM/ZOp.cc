@@ -12,6 +12,8 @@ const char* ZOP_name(ZOp op)
 #include "zeek/ZAM-OpsNamesDefs.h"
 	case OP_NOP:	return "nop";
 	}
+
+	return "<error>";
 	}
 
 static const char* op_type_name(ZAMOpType ot)
@@ -41,6 +43,8 @@ static const char* op_type_name(ZAMOpType ot)
 		case OP_VVVV_I3_I4:	return "VVVV_I3_I4";
 		case OP_VVVV_I2_I3_I4:	return "VVVV_I2_I3_I4";
 	}
+
+	return "<error>";
 	}
 
 

@@ -791,13 +791,13 @@ internal-op Val-Is-In-Vector
 type VVV
 eval	auto& vec = frame[z.v3].vector_val;
 	auto ind = frame[z.v2].int_val;
-	frame[z.v1].int_val = ind >= 0 && ind < vec->Size();
+	frame[z.v1].int_val = ind >= 0 && static_cast<bro_uint_t>(ind) < vec->Size();
 
 internal-op Const-Is-In-Vector
 type VCV
 eval	auto& vec = frame[z.v2].vector_val;
 	auto ind = z.c.int_val;
-	frame[z.v1].int_val = ind >= 0 && ind < vec->Size();
+	frame[z.v1].int_val = ind >= 0 && static_cast<bro_uint_t>(ind) < vec->Size();
 
 expr-op Cond
 type VVVV
@@ -902,7 +902,7 @@ eval	EvalIndexVec(frame[z.v3].uint_val)
 macro EvalIndexVec(index)
 	auto vv = frame[z.v2].vector_val->RawVec();
 	const auto& vec = *vv;
-	auto ind = index;
+	bro_uint_t ind = index;
 	if ( ind >= vv->size() )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(CopyVal(*vec[ind]))
@@ -917,7 +917,7 @@ eval	EvalIndexAnyVec(frame[z.v3].uint_val)
 
 macro EvalIndexAnyVec(index)
 	auto vv = frame[z.v2].vector_val;
-	auto ind = index;
+	bro_uint_t ind = index;
 	if ( ind >= vv->Size() )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(ZVal(vv->ValAt(ind).release()))
@@ -1749,7 +1749,7 @@ op CheckAnyLen
 op1-read
 type Vi
 eval	auto v = frame[z.v1].list_val;
-	if ( v->Vals().size() != z.v2 )
+	if ( v->Vals().size() != static_cast<bro_uint_t>(z.v2) )
 		ZAM_run_time_error(z.loc, "mismatch in list lengths");
 
 op Print

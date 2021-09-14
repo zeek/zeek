@@ -71,7 +71,7 @@ void IDOptInfo::Clear()
 
 void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
                              const std::vector<const Stmt*>& conf_blocks,
-                             int conf_start)
+                             bro_uint_t conf_start)
 	{
 	if ( tracing )
 		printf("ID %s defined at %d: %s\n", trace_ID, s ? s->GetOptInfo()->stmt_num : NO_DEF, s ? obj_desc(s).c_str() : "<entry>");
@@ -174,7 +174,7 @@ void IDOptInfo::BranchBackTo(const Stmt* from, const Stmt* to, bool close_all)
 	auto from_reg = ActiveRegion();
 	auto f_oi = from->GetOptInfo();
 	auto t_oi = to->GetOptInfo();
-	auto t_r_ind = FindRegionBeforeIndex(t_oi->stmt_num);
+	bro_uint_t t_r_ind = FindRegionBeforeIndex(t_oi->stmt_num);
 	auto& t_r = usage_regions[t_r_ind];
 
 	if ( from_reg && from_reg->DefinedAfter() != t_r.DefinedAfter() &&
@@ -327,7 +327,7 @@ void IDOptInfo::ConfluenceBlockEndsAfter(const Stmt* s, bool no_orig_flow)
 
 	int num_regions = 0;
 
-	for ( auto i = 0; i < usage_regions.size(); ++i )
+	for ( auto i = 0U; i < usage_regions.size(); ++i )
 		{
 		auto& ur = usage_regions[i];
 
@@ -480,7 +480,7 @@ void IDOptInfo::EndRegionsAfter(int stmt_num, int level)
 int IDOptInfo::FindRegionBeforeIndex(int stmt_num)
 	{
 	int region_ind = NO_DEF;
-	for ( auto i = 0; i < usage_regions.size(); ++i )
+	for ( auto i = 0U; i < usage_regions.size(); ++i )
 		{
 		auto ur = usage_regions[i];
 

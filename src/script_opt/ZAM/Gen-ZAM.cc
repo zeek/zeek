@@ -923,7 +923,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line,
 		if ( words.size() == 1 )
 			g->Gripe("op-type needs arguments", line);
 
-		for ( auto i = 1; i < words.size(); ++i )
+		for ( auto i = 1U; i < words.size(); ++i )
 			{
 			auto& w_i = words[i];
 			if ( w_i.size() != 1 )
@@ -1023,7 +1023,7 @@ void ZAM_ExprOpTemplate::Instantiate()
 		InstantiateC3(op_types);
 
 	bool all_var = true;
-	for ( auto i = 1; i < op_types.size(); ++i )
+	for ( auto i = 1U; i < op_types.size(); ++i )
 		if ( op_types[i] != ZAM_OT_VAR )
 			all_var = false;
 

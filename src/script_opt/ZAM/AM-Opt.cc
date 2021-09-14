@@ -952,9 +952,9 @@ ZInstI* ZAMCompiler::FirstLiveInst(ZInstI* i, bool follow_gotos)
 		return nullptr;
 	}
 
-int ZAMCompiler::FirstLiveInst(int i, bool follow_gotos)
+bro_uint_t ZAMCompiler::FirstLiveInst(bro_uint_t i, bool follow_gotos)
 	{
-	int num_inspected = 0;
+	bro_uint_t num_inspected = 0;
 	while ( i < insts1.size() )
 		{
 		auto i0 = insts1[i];
@@ -982,7 +982,7 @@ int ZAMCompiler::FirstLiveInst(int i, bool follow_gotos)
 	return i;
 	}
 
-void ZAMCompiler::KillInst(int i)
+void ZAMCompiler::KillInst(bro_uint_t i)
 	{
 	auto inst = insts1[i];
 
@@ -1037,7 +1037,7 @@ void ZAMCompiler::KillInst(int i)
 		}
 	}
 
-void ZAMCompiler::KillInsts(int i)
+void ZAMCompiler::KillInsts(bro_uint_t i)
 	{
 	auto inst = insts1[i];
 

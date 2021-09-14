@@ -807,7 +807,7 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val)
 
 	auto aux = new ZInstAux(0);
 
-	for ( auto i = 0U; i < loop_vars->length(); ++i )
+	for ( auto i = 0; i < loop_vars->length(); ++i )
 		{
 		auto id = (*loop_vars)[i];
 

@@ -225,7 +225,7 @@ string ZInst::VName(int n, int inst_num, const FrameReMap* mappings) const
 		return "<special>";
 
 	// Find which identifier manifests at this instruction.
-	ASSERT(slot >= 0 && slot < mappings->size());
+	ASSERT(slot >= 0 && static_cast<bro_uint_t>(slot) < mappings->size());
 
 	auto& map = (*mappings)[slot];
 
@@ -327,7 +327,8 @@ string ZInstI::VName(int n, const FrameMap* frame_ids,
 
 	if ( remappings && live )
 		{ // Find which identifier manifests at this instruction.
-		ASSERT(slot >= 0 && slot < remappings->size());
+		ASSERT(slot >= 0 &&
+		       static_cast<bro_uint_t>(slot) < remappings->size());
 
 		auto& map = (*remappings)[slot];
 

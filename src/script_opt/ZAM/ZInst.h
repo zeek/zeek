@@ -35,7 +35,7 @@ public:
 
 	// The ZAM instruction number where a given identifier starts its
 	// scope, parallel to "ids".
-	std::vector<int> id_start;
+	std::vector<bro_uint_t> id_start;
 
 	// The current end of the frame slot's scope.  Gets updated as
 	// new IDs are added to share the slot.

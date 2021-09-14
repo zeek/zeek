@@ -450,7 +450,7 @@ private:
 
 	// Computes the remapping for a variable currently in the given slot,
 	// whose scope begins at the given instruction.
-	void ReMapVar(ID* id, int slot, int inst);
+	void ReMapVar(ID* id, int slot, bro_uint_t inst);
 
 	// Look to initialize the beginning of local lifetime based on slot
 	// assignment at instruction inst.

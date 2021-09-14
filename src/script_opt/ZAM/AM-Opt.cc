@@ -484,7 +484,7 @@ void ZAMCompiler::ReMapFrame()
 	frame1_to_frame2.resize(frame_layout1.size(), -1);
 	managed_slotsI.clear();
 
-	for ( unsigned int i = 0; i < insts1.size(); ++i )
+	for ( bro_uint_t i = 0; i < insts1.size(); ++i )
 		{
 		auto inst = insts1[i];
 
@@ -659,7 +659,7 @@ void ZAMCompiler::ReMapInterpreterFrame()
 		remapped_intrp_frame_sizes[func] = next_interp_slot;
 	}
 
-void ZAMCompiler::ReMapVar(ID* id, int slot, int inst)
+void ZAMCompiler::ReMapVar(ID* id, int slot, bro_uint_t inst)
 	{
 	// A greedy algorithm for this is to simply find the first suitable
 	// frame slot.  We do that with one twist: we also look for a
@@ -686,7 +686,8 @@ void ZAMCompiler::ReMapVar(ID* id, int slot, int inst)
 		// ZAM instructions are careful to allow operands and
 		// assignment destinations to refer to the same slot.
 
-		if ( s.scope_end <= inst && s.is_managed == is_managed )
+		if ( s.scope_end <= static_cast<int>(inst) &&
+		     s.is_managed == is_managed )
 			{ // It's compatible.
 			if ( s.scope_end == inst )
 				{ // It ends right on the money.
@@ -727,7 +728,8 @@ void ZAMCompiler::ReMapVar(ID* id, int slot, int inst)
 
 void ZAMCompiler::CheckSlotAssignment(int slot, const ZInstI* inst)
 	{
-	ASSERT(slot >= 0 && slot < frame_denizens.size());
+	ASSERT(slot >= 0 &&
+	       static_cast<bro_uint_t>(slot) < frame_denizens.size());
 
 	// We construct temporaries such that their values are never used
 	// earlier than their definitions in loop bodies.  For other
@@ -766,7 +768,7 @@ void ZAMCompiler::CheckSlotUse(int slot, const ZInstI* inst)
 	if ( slot < 0 )
 		return;
 
-	ASSERT(slot < frame_denizens.size());
+	ASSERT(static_cast<bro_uint_t>(slot) < frame_denizens.size());
 
 	if ( denizen_beginning.count(slot) == 0 )
 		{

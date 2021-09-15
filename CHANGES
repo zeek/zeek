@@ -1,3 +1,15 @@
+4.2.0-dev.165 | 2021-09-14 18:39:34 -0700
+
+  * still more nit-squashing (Vern Paxson, Corelight)
+
+  * avoiding using back() for an empty std::string (Vern Paxson, Corelight)
+
+  * additional tweaks to address some compiler warnings (Vern Paxson, Corelight)
+
+  * tweaks to address some compiler warnings (Vern Paxson, Corelight)
+
+  * tweaks to address concerns flagged by Coverity (Vern Paxson, Corelight)
+
 4.2.0-dev.159 | 2021-09-14 13:00:50 -0700
 
   * ignore_checksums_nets: Add test for multiple subnets (Arne Welzel, Corelight)

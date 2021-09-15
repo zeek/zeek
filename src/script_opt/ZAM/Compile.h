@@ -183,7 +183,7 @@ private:
 	const ZAMStmt LoopOverVector(const ForStmt* f, const NameExpr* val);
 	const ZAMStmt LoopOverString(const ForStmt* f, const Expr* e);
 
-	const ZAMStmt FinishLoop(const ZAMStmt iter_head, ZInstI iter_stmt,
+	const ZAMStmt FinishLoop(const ZAMStmt iter_head, ZInstI& iter_stmt,
 	                         const Stmt* body, int iter_slot,
 	                         bool is_table);
 
@@ -450,7 +450,7 @@ private:
 
 	// Computes the remapping for a variable currently in the given slot,
 	// whose scope begins at the given instruction.
-	void ReMapVar(ID* id, int slot, int inst);
+	void ReMapVar(ID* id, int slot, bro_uint_t inst);
 
 	// Look to initialize the beginning of local lifetime based on slot
 	// assignment at instruction inst.
@@ -494,12 +494,12 @@ private:
 	// First form returns nil if there's nothing live after i.
 	// Second form returns insts1.size() in that case.
 	ZInstI* FirstLiveInst(ZInstI* i, bool follow_gotos = false);
-	int FirstLiveInst(int i, bool follow_gotos = false);
+	bro_uint_t FirstLiveInst(bro_uint_t i, bool follow_gotos = false);
 
 	// Same, but not including i.
 	ZInstI* NextLiveInst(ZInstI* i, bool follow_gotos = false)
 		{
-		if ( i->inst_num == insts1.size() - 1 )
+		if ( i->inst_num == static_cast<int>(insts1.size()) - 1 )
 			return nullptr;
 		return FirstLiveInst(insts1[i->inst_num + 1], follow_gotos);
 		}
@@ -511,12 +511,12 @@ private:
 	// into insts1; any labels associated with it are transferred
 	// to its next live successor, if any.
 	void KillInst(ZInstI* i)	{ KillInst(i->inst_num); }
-	void KillInst(int i);
+	void KillInst(bro_uint_t i);
 
 	// The same, but kills any successor instructions until finding
 	// one that's labeled.
 	void KillInsts(ZInstI* i)	{ KillInsts(i->inst_num); }
-	void KillInsts(int i);
+	void KillInsts(bro_uint_t i);
 
 	// The first of these is used as we compile down to ZInstI's.
 	// The second is the final intermediary code.  They're separate

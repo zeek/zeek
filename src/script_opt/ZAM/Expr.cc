@@ -105,6 +105,7 @@ const ZAMStmt ZAMCompiler::AppendToField(const NameExpr* n1, const NameExpr* n2,
 		}
 	else
 		{
+		ASSERT(c);
 		z = ZInstI(OP_APPENDTOFIELD_VCi, FrameSlot(n1), offset, c);
 		z.op_type = OP_VVC_I2;
 		}
@@ -547,6 +548,8 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 
 		else if ( l_e0_n )
 			{
+			ASSERT(l_e1_c);
+
 			z = GenInst(OP_VAL2_IS_IN_TABLE_VVVC,
 			            n1, l_e0_n, n2, l_e1_c);
 			z.t2 = l_e0_n->GetType();
@@ -554,6 +557,8 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 
 		else if ( l_e1_n )
 			{
+			ASSERT(l_e0_c);
+
 			z = GenInst(OP_VAL2_IS_IN_TABLE_VVCV,
 			            n1, l_e1_n, n2, l_e0_c);
 			z.t2 = l_e1_n->GetType();
@@ -563,6 +568,9 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 			{
 			// Ugh, both are constants.  Assign first to
 			// a temporary. 
+			ASSERT(l_e0_c);
+			ASSERT(l_e1_c);
+
 			auto slot = TempForConst(l_e0_c);
 			z = ZInstI(OP_VAL2_IS_IN_TABLE_VVVC, FrameSlot(n1),
 			           slot, FrameSlot(n2), l_e1_c);
@@ -687,6 +695,8 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot,
 
 			else
 				{
+				ASSERT(c3);
+
 				auto zop = AssignmentFlavor(OP_TABLE_INDEX1_VVC,
 				                            n1->GetType()->Tag());
 				z = ZInstI(zop, Frame1Slot(n1, zop),
@@ -911,15 +921,21 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 				z = ZInstI(AssignmentFlavor(OP_CALL1_VV, nt),
 				           n_slot, FrameSlot(n0));
 			else
+				{
+				ASSERT(c0);
 				z = ZInstI(AssignmentFlavor(OP_CALL1_VC, nt),
 				           n_slot, c0);
+				}
 			}
 		else
 			{
 			if ( n0 )
 				z = ZInstI(OP_CALL1_V, FrameSlot(n0));
 			else
+				{
+				ASSERT(c0);
 				z = ZInstI(OP_CALL1_C, c0);
+				}
 			}
 
 		z.t = arg0->GetType();
@@ -1170,7 +1186,7 @@ const ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e)
 	z.aux = new ZInstAux(map_size);
 	z.aux->map = map;
 
-	for ( auto i = 0; i < map_size; ++i )
+	for ( auto i = 0U; i < map_size; ++i )
 		z.aux->Add(i, map[i], nullptr);
 
 	// Mark the integer entries in z.aux as not being frame slots as usual.

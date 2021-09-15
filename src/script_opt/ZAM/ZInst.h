@@ -35,14 +35,14 @@ public:
 
 	// The ZAM instruction number where a given identifier starts its
 	// scope, parallel to "ids".
-	std::vector<int> id_start;
+	std::vector<bro_uint_t> id_start;
 
 	// The current end of the frame slot's scope.  Gets updated as
 	// new IDs are added to share the slot.
-	int scope_end;
+	int scope_end = -1;
 
 	// Whether this is a managed slot.
-	bool is_managed;
+	bool is_managed = false;
 };
 
 using FrameReMap = std::vector<FrameSharingInfo>;
@@ -66,7 +66,7 @@ public:
 	virtual ~ZInst()	{ }
 
 	// Methods for printing out the instruction for debugging/maintenance.
-	void Dump(int inst_num, const FrameReMap* mappings) const;
+	void Dump(bro_uint_t inst_num, const FrameReMap* mappings) const;
 	void Dump(const std::string& id1, const std::string& id2,
 	          const std::string& id3, const std::string& id4) const;
 
@@ -75,7 +75,7 @@ public:
 	// by its number within a larger set.  "mappings" provides the
 	// mappings used to translate raw slots to the corresponding
 	// script variable(s).
-	std::string VName(int n, int inst_num,
+	std::string VName(int n, bro_uint_t inst_num,
 	                  const FrameReMap* mappings) const;
 
 	// Number of slots that refer to a frame element.  These always
@@ -98,7 +98,9 @@ public:
 	// When an instruction has both frame slots and integer constants,
 	// the former always come first, even if conceptually in the operation
 	// the constant is an "earlier" operand.
-	int v1, v2, v3, v4;
+	//
+	// Initialized here to keep Coverity happy.
+	int v1 = -1, v2 = -1, v3 = -1, v4 = -1;
 
 	ZVal c;	// constant associated with instruction, if any
 

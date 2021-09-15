@@ -49,7 +49,8 @@ void report_ZOP_profile()
 // assigned value was missing (which we can only tell for managed types),
 // true otherwise.
 
-static bool copy_vec_elem(VectorVal* vv, int ind, ZVal zv, const TypePtr& t)
+static bool copy_vec_elem(VectorVal* vv, bro_uint_t ind, ZVal zv,
+                          const TypePtr& t)
 	{
 	if ( vv->Size() <= ind )
 		vv->Resize(ind + 1);
@@ -263,7 +264,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 	const int end_pc = ninst;
 
 	// Return value, or nil if none.
-	const ZVal* ret_u;
+	const ZVal* ret_u = nullptr;
 
 	// Type of the return value.  If nil, then we don't have a value.
 	TypePtr ret_type;

@@ -78,7 +78,7 @@ ZInstI* ZAMCompiler::FindLiveTarget(ZInstI* goto_target)
 		return goto_target;
 
 	int idx = goto_target->inst_num;
-	ASSERT(idx >= 0 && idx <= insts1.size());
+	ASSERT(idx >= 0 && idx <= int(insts1.size()));
 
 	while ( idx < int(insts1.size()) && ! insts1[idx]->live )
 		++idx;

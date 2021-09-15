@@ -83,9 +83,7 @@ function has_valid_octets(octets: string_vec): bool
 ##
 ## input: a string that may contain an IP address anywhere within it.
 ##
-## check_wrapping: if true, will only return IP addresses that are wrapped in matching
-## pairs of spaces, square brackets, curly braces, or parens. This can be used to avoid
-## extracting strings that look like IPs from innocuous strings, such as SMTP headers.
+## check_wrapping: if true, will only return IP addresses that are wrapped in matching pairs of spaces, square brackets, curly braces, or parens. This can be used to avoid extracting strings that look like IPs from innocuous strings, such as SMTP headers.
 ##
 ## Returns: an array containing all valid IP address strings found in *input*.
 function extract_ip_addresses(input: string, check_wrapping: bool &default=F): string_vec

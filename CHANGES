@@ -1,3 +1,11 @@
+
+4.2.0-dev.169 | 2021-09-16 11:15:14 +0200
+
+  * Added four new opnum mappings for MS-OAUT IDispatch methods. (FOX-DS)
+
+  * Reformat docs in addrs.zeek to fix doc generation. (Tim
+    Wojtulewicz, Corelight)
+
 4.2.0-dev.165 | 2021-09-14 18:39:34 -0700
 
   * still more nit-squashing (Vern Paxson, Corelight)

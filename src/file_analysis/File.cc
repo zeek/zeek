@@ -4,29 +4,27 @@
 
 #include <utility>
 
-#include "zeek/file_analysis/FileReassembler.h"
-#include "zeek/file_analysis/FileTimer.h"
-#include "zeek/file_analysis/Analyzer.h"
-#include "zeek/file_analysis/Manager.h"
-#include "zeek/Reporter.h"
-#include "zeek/Val.h"
-#include "zeek/Type.h"
 #include "zeek/Event.h"
+#include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
-
+#include "zeek/Type.h"
+#include "zeek/Val.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
-
+#include "zeek/file_analysis/Analyzer.h"
+#include "zeek/file_analysis/FileReassembler.h"
+#include "zeek/file_analysis/FileTimer.h"
+#include "zeek/file_analysis/Manager.h"
 #include "zeek/file_analysis/analyzer/extract/Extract.h"
 
-namespace zeek::file_analysis {
+namespace zeek::file_analysis
+	{
 
 static TableValPtr empty_connection_table()
 	{
 	auto tbl_index = make_intrusive<TypeList>(id::conn_id);
 	tbl_index->Append(id::conn_id);
-	auto tbl_type = make_intrusive<TableType>(std::move(tbl_index),
-	                                          id::connection);
+	auto tbl_type = make_intrusive<TableType>(std::move(tbl_index), id::connection);
 	return make_intrusive<TableVal>(std::move(tbl_type));
 	}
 
@@ -83,9 +81,8 @@ void File::StaticInit()
 File::File(const std::string& file_id, const std::string& source_name, Connection* conn,
            analyzer::Tag tag, bool is_orig)
 	: id(file_id), val(nullptr), file_reassembler(nullptr), stream_offset(0),
-	  reassembly_max_buffer(0), did_metadata_inference(false),
-	  reassembly_enabled(false), postpone_timeout(false), done(false),
-	  analyzers(this)
+	  reassembly_max_buffer(0), did_metadata_inference(false), reassembly_enabled(false),
+	  postpone_timeout(false), done(false), analyzers(this)
 	{
 	StaticInit();
 
@@ -151,10 +148,10 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 	if ( conn && FileEventAvailable(file_over_new_connection) )
 		{
 		FileEvent(file_over_new_connection, {
-			val,
-			conn->GetVal(),
-			val_mgr->Bool(is_orig),
-		});
+												val,
+												conn->GetVal(),
+												val_mgr->Bool(is_orig),
+											});
 		}
 	}
 
@@ -175,8 +172,7 @@ int File::Idx(const std::string& field, const RecordType* type)
 	int rval = type->FieldOffset(field.c_str());
 
 	if ( rval < 0 )
-		reporter->InternalError("Unknown %s field: %s", type->GetName().c_str(),
-		                        field.c_str());
+		reporter->InternalError("Unknown %s field: %s", type->GetName().c_str(), field.c_str());
 
 	return rval;
 	}
@@ -205,8 +201,7 @@ void File::SetTimeoutInterval(double interval)
 
 bool File::SetExtractionLimit(RecordValPtr args, uint64_t bytes)
 	{
-	Analyzer* a = analyzers.Find(file_mgr->GetComponentTag("EXTRACT"),
-	                             std::move(args));
+	Analyzer* a = analyzers.Find(file_mgr->GetComponentTag("EXTRACT"), std::move(args));
 
 	if ( ! a )
 		return false;
@@ -247,13 +242,14 @@ bool File::IsComplete() const
 
 void File::ScheduleInactivityTimer() const
 	{
-	zeek::detail::timer_mgr->Add(new detail::FileTimer(run_state::network_time, id, GetTimeoutInterval()));
+	zeek::detail::timer_mgr->Add(
+		new detail::FileTimer(run_state::network_time, id, GetTimeoutInterval()));
 	}
 
 bool File::AddAnalyzer(file_analysis::Tag tag, RecordValPtr args)
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing addition of %s analyzer",
-		id.c_str(), file_mgr->GetComponentName(tag).c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing addition of %s analyzer", id.c_str(),
+	        file_mgr->GetComponentName(tag).c_str());
 
 	if ( done )
 		return false;
@@ -263,8 +259,8 @@ bool File::AddAnalyzer(file_analysis::Tag tag, RecordValPtr args)
 
 bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordValPtr args)
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing remove of %s analyzer",
-		id.c_str(), file_mgr->GetComponentName(tag).c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing remove of %s analyzer", id.c_str(),
+	        file_mgr->GetComponentName(tag).c_str());
 
 	return done ? false : analyzers.QueueRemove(tag, std::move(args));
 	}
@@ -334,10 +330,8 @@ void File::InferMetadata()
 
 	if ( ! matches.empty() )
 		{
-		meta->Assign(meta_mime_type_idx,
-		                        *(matches.begin()->second.begin()));
-		meta->Assign(meta_mime_types_idx,
-		             file_analysis::GenMIMEMatchesVal(matches));
+		meta->Assign(meta_mime_type_idx, *(matches.begin()->second.begin()));
+		meta->Assign(meta_mime_types_idx, file_analysis::GenMIMEMatchesVal(matches));
 		}
 
 	FileEvent(file_sniff, {val, std::move(meta)});
@@ -377,21 +371,20 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 	     LookupFieldDefaultCount(missing_bytes_idx) == 0 )
 		InferMetadata();
 
-	DBG_LOG(DBG_FILE_ANALYSIS,
-	        "[%s] %" PRIu64 " stream bytes in at offset %" PRIu64 "; %s [%s%s]",
-	        id.c_str(), len, stream_offset,
-	        IsComplete() ? "complete" : "incomplete",
-	        util::fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
-	        len > 40 ? "..." : "");
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] %" PRIu64 " stream bytes in at offset %" PRIu64 "; %s [%s%s]",
+	        id.c_str(), len, stream_offset, IsComplete() ? "complete" : "incomplete",
+	        util::fmt_bytes((const char*)data, std::min((uint64_t)40, len)), len > 40 ? "..." : "");
 
 	for ( const auto& entry : analyzers )
 		{
 		auto* a = entry.GetValue<file_analysis::Analyzer*>();
 
-		DBG_LOG(DBG_FILE_ANALYSIS, "stream delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
+		DBG_LOG(DBG_FILE_ANALYSIS, "stream delivery to analyzer %s",
+		        file_mgr->GetComponentName(a->Tag()).c_str());
 		if ( ! a->GotStreamDelivery() )
 			{
-			DBG_LOG(DBG_FILE_ANALYSIS, "skipping stream delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
+			DBG_LOG(DBG_FILE_ANALYSIS, "skipping stream delivery to analyzer %s",
+			        file_mgr->GetComponentName(a->Tag()).c_str());
 			int num_bof_chunks_behind = bof_buffer.chunks.size();
 
 			if ( ! bof_was_full )
@@ -407,7 +400,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 				if ( ! a->Skipping() )
 					{
 					if ( ! a->DeliverStream(bof_buffer.chunks[i]->Bytes(),
-								bof_buffer.chunks[i]->Len()) )
+					                        bof_buffer.chunks[i]->Len()) )
 						{
 						a->SetSkip(true);
 						analyzers.QueueRemove(a->Tag(), a->GetArgs());
@@ -441,8 +434,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	// Potentially handle reassembly and deliver to the stream analyzers.
 	if ( file_reassembler )
 		{
-		if ( reassembly_max_buffer > 0 &&
-		     reassembly_max_buffer < file_reassembler->TotalSize() )
+		if ( reassembly_max_buffer > 0 && reassembly_max_buffer < file_reassembler->TotalSize() )
 			{
 			uint64_t current_offset = stream_offset;
 			uint64_t gap_bytes = file_reassembler->Flush();
@@ -450,11 +442,8 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 
 			if ( FileEventAvailable(file_reassembly_overflow) )
 				{
-				FileEvent(file_reassembly_overflow, {
-					val,
-					val_mgr->Count(current_offset),
-					val_mgr->Count(gap_bytes)
-				});
+				FileEvent(file_reassembly_overflow,
+				          {val, val_mgr->Count(current_offset), val_mgr->Count(gap_bytes)});
 				}
 			}
 
@@ -480,18 +469,16 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 		IncrementByteCount(len, overflow_bytes_idx);
 		}
 
-	DBG_LOG(DBG_FILE_ANALYSIS,
-	        "[%s] %" PRIu64 " chunk bytes in at offset %" PRIu64 "; %s [%s%s]",
-	        id.c_str(), len, offset,
-	        IsComplete() ? "complete" : "incomplete",
-	        util::fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
-	        len > 40 ? "..." : "");
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] %" PRIu64 " chunk bytes in at offset %" PRIu64 "; %s [%s%s]",
+	        id.c_str(), len, offset, IsComplete() ? "complete" : "incomplete",
+	        util::fmt_bytes((const char*)data, std::min((uint64_t)40, len)), len > 40 ? "..." : "");
 
 	for ( const auto& entry : analyzers )
 		{
 		auto* a = entry.GetValue<file_analysis::Analyzer*>();
 
-		DBG_LOG(DBG_FILE_ANALYSIS, "chunk delivery to analyzer %s", file_mgr->GetComponentName(a->Tag()).c_str());
+		DBG_LOG(DBG_FILE_ANALYSIS, "chunk delivery to analyzer %s",
+		        file_mgr->GetComponentName(a->Tag()).c_str());
 		if ( ! a->Skipping() )
 			{
 			if ( ! a->DeliverChunk(data, len, offset) )
@@ -544,7 +531,7 @@ void File::EndOfFile()
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] File over but bof_buffer not full.", id.c_str());
 		bof_buffer.full = true;
-		DeliverStream((const u_char*) "", 0);
+		DeliverStream((const u_char*)"", 0);
 		}
 	analyzers.DrainModifications();
 
@@ -565,8 +552,8 @@ void File::EndOfFile()
 
 void File::Gap(uint64_t offset, uint64_t len)
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Gap of size %" PRIu64 " at offset %" PRIu64,
-		id.c_str(), len, offset);
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Gap of size %" PRIu64 " at offset %" PRIu64, id.c_str(), len,
+	        offset);
 
 	if ( file_reassembler && ! file_reassembler->IsCurrentlyFlushing() )
 		{
@@ -577,9 +564,12 @@ void File::Gap(uint64_t offset, uint64_t len)
 
 	if ( ! bof_buffer.full )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] File gap before bof_buffer filled, continued without attempting to fill bof_buffer.", id.c_str());
+		DBG_LOG(DBG_FILE_ANALYSIS,
+		        "[%s] File gap before bof_buffer filled, continued without attempting to fill "
+		        "bof_buffer.",
+		        id.c_str());
 		bof_buffer.full = true;
-		DeliverStream((const u_char*) "", 0);
+		DeliverStream((const u_char*)"", 0);
 		}
 
 	for ( const auto& entry : analyzers )
@@ -616,9 +606,8 @@ void File::FileEvent(EventHandlerPtr h, Args args)
 	{
 	event_mgr.Enqueue(h, std::move(args));
 
-	if ( h == file_new || h == file_over_new_connection ||
-	     h == file_sniff ||
-	     h == file_timeout || h == file_extraction_limit )
+	if ( h == file_new || h == file_over_new_connection || h == file_sniff || h == file_timeout ||
+	     h == file_extraction_limit )
 		{
 		// immediate feedback is required for these events.
 		event_mgr.Drain();
@@ -626,10 +615,9 @@ void File::FileEvent(EventHandlerPtr h, Args args)
 		}
 	}
 
-bool File::PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
-                       double duration)
+bool File::PermitWeird(const char* name, uint64_t threshold, uint64_t rate, double duration)
 	{
 	return zeek::detail::PermitWeird(weird_state, name, threshold, rate, duration);
 	}
 
-} // namespace zeek::file_analysis
+	} // namespace zeek::file_analysis

@@ -8,12 +8,13 @@
 #include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/ProfileFunc.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
-class GenIDDefs : public TraversalCallback {
+class GenIDDefs : public TraversalCallback
+	{
 public:
-	GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const Func* f,
-	          ScopePtr scope, StmtPtr body);
+	GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const Func* f, ScopePtr scope, StmtPtr body);
 
 private:
 	// Traverses the given function body, using the first two
@@ -33,7 +34,7 @@ private:
 	bool CheckLHS(const ExprPtr& lhs, const ExprPtr& rhs = nullptr);
 
 	// True if the given expression directly represents an aggregate.
-	bool IsAggr(const ExprPtr& e) const	{ return IsAggr(e.get()); }
+	bool IsAggr(const ExprPtr& e) const { return IsAggr(e.get()); }
 	bool IsAggr(const Expr* e) const;
 
 	// If -u is active, checks for whether the given identifier present
@@ -69,8 +70,7 @@ private:
 	// statement in the current confluence block.  'e' is the
 	// expression used to define the identifier, for simple direct
 	// assignments.
-	void TrackID(const IDPtr& id, const ExprPtr& e = nullptr)
-		{ TrackID(id.get(), e); }
+	void TrackID(const IDPtr& id, const ExprPtr& e = nullptr) { TrackID(id.get(), e); }
 	void TrackID(const ID* id, const ExprPtr& e = nullptr);
 
 	// Profile for the function.  Currently, all we actually need from
@@ -111,6 +111,6 @@ private:
 	// of usage errors.  A counter rather than a boolean because
 	// such situations might nest.
 	int suppress_usage = 0;
-};
+	};
 
-} // zeek::detail
+	} // zeek::detail

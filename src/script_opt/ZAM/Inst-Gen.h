@@ -12,28 +12,22 @@ ZInstI GenInst(ZOp op, const NameExpr* v1);
 ZInstI GenInst(ZOp op, const NameExpr* v1, int i);
 ZInstI GenInst(ZOp op, const ConstExpr* c, const NameExpr* v1, int i);
 ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2);
-ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2,
-               const NameExpr* v3);
-ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2,
-               const NameExpr* v3, const NameExpr* v4);
+ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, const NameExpr* v3);
+ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, const NameExpr* v3,
+               const NameExpr* v4);
 ZInstI GenInst(ZOp op, const ConstExpr* ce);
 ZInstI GenInst(ZOp op, const NameExpr* v1, const ConstExpr* ce);
 ZInstI GenInst(ZOp op, const ConstExpr* ce, const NameExpr* v1);
-ZInstI GenInst(ZOp op, const NameExpr* v1, const ConstExpr* ce,
-               const NameExpr* v2);
-ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2,
+ZInstI GenInst(ZOp op, const NameExpr* v1, const ConstExpr* ce, const NameExpr* v2);
+ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, const ConstExpr* ce);
+ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, const NameExpr* v3,
                const ConstExpr* ce);
-ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2,
-               const NameExpr* v3, const ConstExpr* ce);
-ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2,
-               const ConstExpr* ce, const NameExpr* v3);
+ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, const ConstExpr* ce,
+               const NameExpr* v3);
 ZInstI GenInst(ZOp op, const NameExpr* v1, const ConstExpr* c, int i);
 ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, int i);
 ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, int i1, int i2);
 ZInstI GenInst(ZOp op, const NameExpr* v, const ConstExpr* c, int i1, int i2);
-ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2,
-               const NameExpr* v3, int i);
-ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2,
-               const ConstExpr* c, int i);
-ZInstI GenInst(ZOp op, const NameExpr* v1, const ConstExpr* c,
-               const NameExpr* v2, int i);
+ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, const NameExpr* v3, int i);
+ZInstI GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, const ConstExpr* c, int i);
+ZInstI GenInst(ZOp op, const NameExpr* v1, const ConstExpr* c, const NameExpr* v2, int i);

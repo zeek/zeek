@@ -1,32 +1,33 @@
 
-#include "zeek/zeek-config.h"
 #include "zeek/RuleMatcher.h"
 
 #include <algorithm>
 #include <functional>
 
-#include "zeek/RuleAction.h"
-#include "zeek/RuleCondition.h"
-#include "zeek/ZeekString.h"
-#include "zeek/ID.h"
-#include "zeek/IntrusivePtr.h"
-#include "zeek/IntSet.h"
-#include "zeek/IP.h"
-#include "zeek/analyzer/Analyzer.h"
 #include "zeek/DFA.h"
 #include "zeek/DebugLogger.h"
-#include "zeek/NetVar.h"
-#include "zeek/Scope.h"
 #include "zeek/File.h"
-#include "zeek/Reporter.h"
-#include "zeek/module_util.h"
-#include "zeek/Var.h"
+#include "zeek/ID.h"
+#include "zeek/IP.h"
 #include "zeek/IPAddr.h"
+#include "zeek/IntSet.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/NetVar.h"
+#include "zeek/Reporter.h"
+#include "zeek/RuleAction.h"
+#include "zeek/RuleCondition.h"
 #include "zeek/RunState.h"
+#include "zeek/Scope.h"
+#include "zeek/Var.h"
+#include "zeek/ZeekString.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/module_util.h"
+#include "zeek/zeek-config.h"
 
 using namespace std;
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 // FIXME: Things that are not fully implemented/working yet:
 //
@@ -47,8 +48,8 @@ static bool is_member_of(const int_list& l, int_list::value_type v)
 	return std::find(l.begin(), l.end(), v) != l.end();
 	}
 
-RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
-                         Comp arg_comp, maskedvalue_list* arg_vals)
+RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size, Comp arg_comp,
+                         maskedvalue_list* arg_vals)
 	{
 	prot = arg_prot;
 	offset = arg_offset;
@@ -81,8 +82,7 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v)
 	level = 0;
 	}
 
-Val* RuleMatcher::BuildRuleStateValue(const Rule* rule,
-                                      const RuleEndpointState* state) const
+Val* RuleMatcher::BuildRuleStateValue(const Rule* rule, const RuleEndpointState* state) const
 	{
 	static auto signature_state = id::find_type<RecordType>("signature_state");
 	auto* val = new RecordVal(signature_state);
@@ -150,14 +150,12 @@ RuleHdrTest::~RuleHdrTest()
 
 bool RuleHdrTest::operator==(const RuleHdrTest& h)
 	{
-	if ( prot != h.prot || offset != h.offset || size != h.size ||
-	     comp != h.comp || vals->length() != h.vals->length() )
+	if ( prot != h.prot || offset != h.offset || size != h.size || comp != h.comp ||
+	     vals->length() != h.vals->length() )
 		return false;
 
-	loop_over_list(*vals, i)
-		if ( (*vals)[i]->val != (*h.vals)[i]->val ||
-		     (*vals)[i]->mask != (*h.vals)[i]->mask )
-			return false;
+	loop_over_list(*vals, i) if ( (*vals)[i]->val != (*h.vals)[i]->val ||
+	                              (*vals)[i]->mask != (*h.vals)[i]->mask ) return false;
 
 	for ( size_t i = 0; i < prefix_vals.size(); ++i )
 		if ( ! (prefix_vals[i] == h.prefix_vals[i]) )
@@ -168,15 +166,14 @@ bool RuleHdrTest::operator==(const RuleHdrTest& h)
 
 void RuleHdrTest::PrintDebug()
 	{
-	static const char* str_comp[] = { "<=", ">=", "<", ">", "==", "!=" };
-	static const char* str_prot[] = { "", "ip", "ipv6", "icmp", "icmpv6", "tcp", "udp", "next", "ipsrc", "ipdst" };
+	static const char* str_comp[] = {"<=", ">=", "<", ">", "==", "!="};
+	static const char* str_prot[] = {"",    "ip",  "ipv6", "icmp",  "icmpv6",
+	                                 "tcp", "udp", "next", "ipsrc", "ipdst"};
 
-	fprintf(stderr, "	RuleHdrTest %s[%d:%d] %s",
-			str_prot[prot], offset, size, str_comp[comp]);
+	fprintf(stderr, "	RuleHdrTest %s[%d:%d] %s", str_prot[prot], offset, size, str_comp[comp]);
 
 	for ( const auto& val : *vals )
-		fprintf(stderr, " 0x%08x/0x%08x",
-				val->val, val->mask);
+		fprintf(stderr, " 0x%08x/0x%08x", val->val, val->mask);
 
 	for ( const auto& prefix : prefix_vals )
 		fprintf(stderr, " %s", prefix.AsString().c_str());
@@ -185,8 +182,7 @@ void RuleHdrTest::PrintDebug()
 	}
 
 RuleEndpointState::RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
-                                     RuleEndpointState* arg_opposite,
-                                     analyzer::pia::PIA* arg_PIA)
+                                     RuleEndpointState* arg_opposite, analyzer::pia::PIA* arg_PIA)
 	{
 	payload_size = -1;
 	analyzer = arg_analyzer;
@@ -222,8 +218,7 @@ RuleFileMagicState::~RuleFileMagicState()
 
 RuleMatcher::RuleMatcher(int arg_RE_level)
 	{
-	root = new RuleHdrTest(RuleHdrTest::NOPROT, 0, 0, RuleHdrTest::EQ,
-				new maskedvalue_list);
+	root = new RuleHdrTest(RuleHdrTest::NOPROT, 0, 0, RuleHdrTest::EQ, new maskedvalue_list);
 	RE_level = arg_RE_level;
 	parse_error = false;
 	has_non_file_magic_rule = false;
@@ -331,8 +326,7 @@ void RuleMatcher::BuildRulesTree()
 		}
 	}
 
-void RuleMatcher::InsertRuleIntoTree(Rule* r, int testnr,
-                                     RuleHdrTest* dest, int level)
+void RuleMatcher::InsertRuleIntoTree(Rule* r, int testnr, RuleHdrTest* dest, int level)
 	{
 	// Initiliaze the preconditions
 	for ( const auto& pc : r->preconds )
@@ -383,8 +377,7 @@ void RuleMatcher::InsertRuleIntoTree(Rule* r, int testnr,
 	InsertRuleIntoTree(r, testnr + 1, newtest, level + 1);
 	}
 
-void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs,
-                             int_list* ids)
+void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs, int_list* ids)
 	{
 	// For each type, get all patterns on this node.
 	for ( Rule* r = hdr_test->pattern_rules; r; r = r->next )
@@ -434,8 +427,8 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs,
 	// If we're below the RE_level, the regexprs remains empty.
 	}
 
-void RuleMatcher::BuildPatternSets(RuleHdrTest::pattern_set_list* dst,
-                                   const string_list& exprs, const int_list& ids)
+void RuleMatcher::BuildPatternSets(RuleHdrTest::pattern_set_list* dst, const string_list& exprs,
+                                   const int_list& ids)
 	{
 	assert(static_cast<size_t>(exprs.length()) == ids.size());
 
@@ -452,11 +445,9 @@ void RuleMatcher::BuildPatternSets(RuleHdrTest::pattern_set_list* dst,
 			group_ids.push_back(ids[i]);
 			}
 
-		if ( group_exprs.length() > sig_max_group_size ||
-		     i == exprs.length() )
+		if ( group_exprs.length() > sig_max_group_size || i == exprs.length() )
 			{
-			RuleHdrTest::PatternSet* set =
-				new RuleHdrTest::PatternSet;
+			RuleHdrTest::PatternSet* set = new RuleHdrTest::PatternSet;
 			set->re = new Specific_RE_Matcher(MATCH_EXACTLY, 1);
 			set->re->CompileSet(group_exprs, group_ids);
 			set->patterns = group_exprs;
@@ -472,24 +463,24 @@ void RuleMatcher::BuildPatternSets(RuleHdrTest::pattern_set_list* dst,
 // Get a 8/16/32-bit value from the given position in the packet header
 static inline uint32_t getval(const u_char* data, int size)
 	{
-	switch ( size ) {
-	case 1:
-		return *(uint8_t*) data;
+	switch ( size )
+		{
+		case 1:
+			return *(uint8_t*)data;
 
-	case 2:
-		return ntohs(*(uint16_t*) data);
+		case 2:
+			return ntohs(*(uint16_t*)data);
 
-	case 4:
-		return ntohl(*(uint32_t*) data);
+		case 4:
+			return ntohl(*(uint32_t*)data);
 
-	default:
-		reporter->InternalError("illegal HdrTest size");
-	}
+		default:
+			reporter->InternalError("illegal HdrTest size");
+		}
 
 	// Should not be reached.
 	return 0;
 	}
-
 
 // Evaluate a value list (matches if at least one value matches).
 template <typename FuncT>
@@ -506,8 +497,7 @@ static inline bool match_or(const maskedvalue_list& mvals, uint32_t v, FuncT com
 
 // Evaluate a prefix list (matches if at least one value matches).
 template <typename FuncT>
-static inline bool match_or(const vector<IPPrefix>& prefixes, const IPAddr& a,
-                            FuncT comp)
+static inline bool match_or(const vector<IPPrefix>& prefixes, const IPAddr& a, FuncT comp)
 	{
 	for ( size_t i = 0; i < prefixes.size(); ++i )
 		{
@@ -521,8 +511,7 @@ static inline bool match_or(const vector<IPPrefix>& prefixes, const IPAddr& a,
 
 // Evaluate a value list (doesn't match if any value matches).
 template <typename FuncT>
-static inline bool match_not_and(const maskedvalue_list& mvals, uint32_t v,
-                                 FuncT comp)
+static inline bool match_not_and(const maskedvalue_list& mvals, uint32_t v, FuncT comp)
 	{
 	// TODO: this could be a find_if
 	for ( const auto& val : mvals )
@@ -535,8 +524,7 @@ static inline bool match_not_and(const maskedvalue_list& mvals, uint32_t v,
 
 // Evaluate a prefix list (doesn't match if any value matches).
 template <typename FuncT>
-static inline bool match_not_and(const vector<IPPrefix>& prefixes,
-                                 const IPAddr& a, FuncT comp)
+static inline bool match_not_and(const vector<IPPrefix>& prefixes, const IPAddr& a, FuncT comp)
 	{
 	for ( size_t i = 0; i < prefixes.size(); ++i )
 		{
@@ -548,10 +536,10 @@ static inline bool match_not_and(const vector<IPPrefix>& prefixes,
 	return true;
 	}
 
-static inline bool compare(const maskedvalue_list& mvals, uint32_t v,
-                           RuleHdrTest::Comp comp)
+static inline bool compare(const maskedvalue_list& mvals, uint32_t v, RuleHdrTest::Comp comp)
 	{
-	switch ( comp ) {
+	switch ( comp )
+		{
 		case RuleHdrTest::EQ:
 			return match_or(mvals, v, std::equal_to<uint32_t>());
 			break;
@@ -579,14 +567,15 @@ static inline bool compare(const maskedvalue_list& mvals, uint32_t v,
 		default:
 			reporter->InternalError("unknown RuleHdrTest comparison type");
 			break;
-	}
+		}
 	return false;
 	}
 
 static inline bool compare(const vector<IPPrefix>& prefixes, const IPAddr& a,
                            RuleHdrTest::Comp comp)
 	{
-	switch ( comp ) {
+	switch ( comp )
+		{
 		case RuleHdrTest::EQ:
 			return match_or(prefixes, a, std::equal_to<IPAddr>());
 			break;
@@ -614,7 +603,7 @@ static inline bool compare(const vector<IPPrefix>& prefixes, const IPAddr& a,
 		default:
 			reporter->InternalError("unknown RuleHdrTest comparison type");
 			break;
-	}
+		}
 	return false;
 	}
 
@@ -658,9 +647,8 @@ bool RuleMatcher::AllRulePatternsMatched(const Rule* r, MatchPos matchpos,
 	return true;
 	}
 
-RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
-                                              const u_char* data, uint64_t len,
-                                              MIME_Matches* rval) const
+RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state, const u_char* data,
+                                              uint64_t len, MIME_Matches* rval) const
 	{
 	if ( ! rval )
 		rval = new MIME_Matches();
@@ -674,10 +662,9 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 #ifdef DEBUG
 	if ( debug_logger.IsEnabled(DBG_RULES) )
 		{
-		const char* s = util::fmt_bytes(reinterpret_cast<const char*>(data),
-		                                      min(40, static_cast<int>(len)));
-		DBG_LOG(DBG_RULES, "Matching %s rules on |%s%s|",
-		        Rule::TypeToString(Rule::FILE_MAGIC), s,
+		const char* s =
+			util::fmt_bytes(reinterpret_cast<const char*>(data), min(40, static_cast<int>(len)));
+		DBG_LOG(DBG_RULES, "Matching %s rules on |%s%s|", Rule::TypeToString(Rule::FILE_MAGIC), s,
 		        len > 40 ? "..." : "");
 		}
 #endif
@@ -718,15 +705,13 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 			rule_matches.insert(r);
 		}
 
-	for ( set<Rule*>::const_iterator it = rule_matches.begin();
-	      it != rule_matches.end(); ++it )
+	for ( set<Rule*>::const_iterator it = rule_matches.begin(); it != rule_matches.end(); ++it )
 		{
 		Rule* r = *it;
 
 		for ( const auto& action : r->actions )
 			{
-			const RuleActionMIME* ram =
-				dynamic_cast<const RuleActionMIME*>(action);
+			const RuleActionMIME* ram = dynamic_cast<const RuleActionMIME*>(action);
 
 			if ( ! ram )
 				continue;
@@ -739,13 +724,11 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 	return rval;
 	}
 
-RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
-                                             const IP_Hdr* ip, int caplen,
-                                             RuleEndpointState* opposite,
+RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
+                                             int caplen, RuleEndpointState* opposite,
                                              bool from_orig, analyzer::pia::PIA* pia)
 	{
-	RuleEndpointState* state =
-		new RuleEndpointState(analyzer, from_orig, opposite, pia);
+	RuleEndpointState* state = new RuleEndpointState(analyzer, from_orig, opposite, pia);
 
 	rule_hdr_test_list tests;
 	tests.push_back(root);
@@ -755,8 +738,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 		RuleHdrTest* hdr_test = tests[h];
 
 		DBG_LOG(DBG_RULES, "HdrTest %d matches (%s%s)", hdr_test->id,
-				hdr_test->pattern_rules ? "+" : "-",
-				hdr_test->pure_rules ? "+" : "-");
+		        hdr_test->pattern_rules ? "+" : "-", hdr_test->pure_rules ? "+" : "-");
 
 		// Current HdrTest node matches the packet, so remember it
 		// if we have any rules on it.
@@ -781,7 +763,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 
 					auto* m = new RuleEndpointState::Matcher;
 					m->state = new RE_Match_State(set->re);
-					m->type = (Rule::PatternType) i;
+					m->type = (Rule::PatternType)i;
 					state->matchers.push_back(m);
 					}
 				}
@@ -790,50 +772,55 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 		if ( ip )
 			{
 			// Descend the RuleHdrTest tree further.
-			for ( RuleHdrTest* h = hdr_test->child; h;
-			      h = h->sibling )
+			for ( RuleHdrTest* h = hdr_test->child; h; h = h->sibling )
 				{
 				bool match = false;
 
 				// Evaluate the header test.
-				switch ( h->prot ) {
-				case RuleHdrTest::NEXT:
-					match = compare(*h->vals, ip->NextProto(), h->comp);
-					break;
+				switch ( h->prot )
+					{
+					case RuleHdrTest::NEXT:
+						match = compare(*h->vals, ip->NextProto(), h->comp);
+						break;
 
-				case RuleHdrTest::IP:
-					if ( ! ip->IP4_Hdr() )
-						continue;
+					case RuleHdrTest::IP:
+						if ( ! ip->IP4_Hdr() )
+							continue;
 
-					match = compare(*h->vals, getval((const u_char*)ip->IP4_Hdr() + h->offset, h->size), h->comp);
-					break;
+						match = compare(*h->vals,
+						                getval((const u_char*)ip->IP4_Hdr() + h->offset, h->size),
+						                h->comp);
+						break;
 
-				case RuleHdrTest::IPv6:
-					if ( ! ip->IP6_Hdr() )
-						continue;
+					case RuleHdrTest::IPv6:
+						if ( ! ip->IP6_Hdr() )
+							continue;
 
-					match = compare(*h->vals, getval((const u_char*)ip->IP6_Hdr() + h->offset, h->size), h->comp);
-					break;
+						match = compare(*h->vals,
+						                getval((const u_char*)ip->IP6_Hdr() + h->offset, h->size),
+						                h->comp);
+						break;
 
-				case RuleHdrTest::ICMP:
-				case RuleHdrTest::ICMPv6:
-				case RuleHdrTest::TCP:
-				case RuleHdrTest::UDP:
-					match = compare(*h->vals, getval(ip->Payload() + h->offset, h->size), h->comp);
-					break;
+					case RuleHdrTest::ICMP:
+					case RuleHdrTest::ICMPv6:
+					case RuleHdrTest::TCP:
+					case RuleHdrTest::UDP:
+						match =
+							compare(*h->vals, getval(ip->Payload() + h->offset, h->size), h->comp);
+						break;
 
-				case RuleHdrTest::IPSrc:
-					match = compare(h->prefix_vals, ip->IPHeaderSrcAddr(), h->comp);
-					break;
+					case RuleHdrTest::IPSrc:
+						match = compare(h->prefix_vals, ip->IPHeaderSrcAddr(), h->comp);
+						break;
 
-				case RuleHdrTest::IPDst:
-					match = compare(h->prefix_vals, ip->IPHeaderDstAddr(), h->comp);
-					break;
+					case RuleHdrTest::IPDst:
+						match = compare(h->prefix_vals, ip->IPHeaderDstAddr(), h->comp);
+						break;
 
-				default:
-					reporter->InternalError("unknown RuleHdrTest protocol type");
-					break;
-				}
+					default:
+						reporter->InternalError("unknown RuleHdrTest protocol type");
+						break;
+					}
 
 				if ( match )
 					tests.push_back(h);
@@ -845,14 +832,13 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 	state->matchers.resize(0);
 
 	// Send BOL to payload matchers.
-	Match(state, Rule::PAYLOAD, (const u_char *) "", 0, true, false, false);
+	Match(state, Rule::PAYLOAD, (const u_char*)"", 0, true, false, false);
 
 	return state;
 	}
 
-void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
-                        const u_char* data, int data_len,
-                        bool bol, bool eol, bool clear)
+void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const u_char* data,
+                        int data_len, bool bol, bool eol, bool clear)
 	{
 	if ( ! state )
 		{
@@ -870,12 +856,10 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 #ifdef DEBUG
 	if ( debug_logger.IsEnabled(DBG_RULES) )
 		{
-		const char* s =
-			util::fmt_bytes((const char *) data, min(40, data_len));
+		const char* s = util::fmt_bytes((const char*)data, min(40, data_len));
 
-		DBG_LOG(DBG_RULES, "Matching %s rules [%d,%d] on |%s%s|",
-				Rule::TypeToString(type), bol, eol, s,
-				data_len > 40 ? "..." : "");
+		DBG_LOG(DBG_RULES, "Matching %s rules [%d,%d] on |%s%s|", Rule::TypeToString(type), bol,
+		        eol, s, data_len > 40 ? "..." : "");
 		}
 #endif
 
@@ -894,9 +878,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 	// Feed data into all relevant matchers.
 	for ( const auto& m : state->matchers )
 		{
-		if ( m->type == type &&
-		     m->state->Match((const u_char*) data, data_len,
-					bol, eol, clear) )
+		if ( m->type == type && m->state->Match((const u_char*)data, data_len, bol, eol, clear) )
 			newmatch = true;
 		}
 
@@ -935,8 +917,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 
 	// Check which of the matching rules really belong to any of our nodes.
 
-	for ( set<Rule*>::const_iterator it = rule_matches.begin();
-	      it != rule_matches.end(); ++it )
+	for ( set<Rule*>::const_iterator it = rule_matches.begin(); it != rule_matches.end(); ++it )
 		{
 		Rule* r = *it;
 
@@ -978,7 +959,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 void RuleMatcher::FinishEndpoint(RuleEndpointState* state)
 	{
 	// Send EOL to payload matchers.
-	Match(state, Rule::PAYLOAD, (const u_char *) "", 0, false, true, false);
+	Match(state, Rule::PAYLOAD, (const u_char*)"", 0, false, true, false);
 
 	// Some of the pure rules may match at the end of the connection,
 	// although they have not matched at the beginning. So, we have
@@ -987,8 +968,7 @@ void RuleMatcher::FinishEndpoint(RuleEndpointState* state)
 	ExecPureRules(state, true);
 
 	loop_over_list(state->matched_by_patterns, i)
-		ExecRulePurely(state->matched_by_patterns[i],
-				state->matched_text[i], state, true);
+		ExecRulePurely(state->matched_by_patterns[i], state->matched_text[i], state, true);
 	}
 
 void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos)
@@ -1000,8 +980,7 @@ void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos)
 		}
 	}
 
-bool RuleMatcher::ExecRulePurely(Rule* r, String* s,
-				 RuleEndpointState* state, bool eos)
+bool RuleMatcher::ExecRulePurely(Rule* r, String* s, RuleEndpointState* state, bool eos)
 	{
 	if ( is_member_of(state->matched_rules, r->Index()) )
 		return false;
@@ -1023,8 +1002,8 @@ bool RuleMatcher::ExecRulePurely(Rule* r, String* s,
 	return false;
 	}
 
-bool RuleMatcher::EvalRuleConditions(Rule* r, RuleEndpointState* state,
-		const u_char* data, int len, bool eos)
+bool RuleMatcher::EvalRuleConditions(Rule* r, RuleEndpointState* state, const u_char* data, int len,
+                                     bool eos)
 	{
 	DBG_LOG(DBG_RULES, "Evaluating conditions for rule %s", r->ID());
 
@@ -1067,11 +1046,10 @@ bool RuleMatcher::EvalRuleConditions(Rule* r, RuleEndpointState* state,
 	return true;
 	}
 
-void RuleMatcher::ExecRuleActions(Rule* r, RuleEndpointState* state,
-				const u_char* data, int len, bool eos)
+void RuleMatcher::ExecRuleActions(Rule* r, RuleEndpointState* state, const u_char* data, int len,
+                                  bool eos)
 	{
-	if ( state->opposite &&
-		 is_member_of(state->opposite->matched_rules, r->Index()) )
+	if ( state->opposite && is_member_of(state->opposite->matched_rules, r->Index()) )
 		// We have already executed the actions.
 		return;
 
@@ -1161,11 +1139,8 @@ void RuleMatcher::PrintTreeDebug(RuleHdrTest* node)
 			{
 			RuleHdrTest::PatternSet* set = node->psets[i][j];
 
-			fprintf(stderr,
-				"[%d patterns in %s group %d from %zu rules]\n",
-				set->patterns.length(),
-				Rule::TypeToString((Rule::PatternType) i), j,
-				set->ids.size());
+			fprintf(stderr, "[%d patterns in %s group %d from %zu rules]\n", set->patterns.length(),
+			        Rule::TypeToString((Rule::PatternType)i), j, set->ids.size());
 			}
 		}
 
@@ -1173,14 +1148,14 @@ void RuleMatcher::PrintTreeDebug(RuleHdrTest* node)
 		{
 		indent(node->level);
 		fprintf(stderr, "Pattern rule %s (%d/%d)\n", r->id, r->idx,
-				node->ruleset->Contains(r->Index()));
+		        node->ruleset->Contains(r->Index()));
 		}
 
 	for ( Rule* r = node->pure_rules; r; r = r->next )
 		{
 		indent(node->level);
 		fprintf(stderr, "Pure rule %s (%d/%d)\n", r->id, r->idx,
-				node->ruleset->Contains(r->Index()));
+		        node->ruleset->Contains(r->Index()));
 		}
 
 	for ( RuleHdrTest* h = node->child; h; h = h->sibling )
@@ -1235,11 +1210,11 @@ void RuleMatcher::DumpStats(File* f)
 	GetStats(&stats);
 
 	f->Write(util::fmt("%.6f computed dfa states = %d; classes = ??; "
-	                         "computed trans. = %d; matchers = %d; mem = %d\n",
-	                         run_state::network_time, stats.dfa_states, stats.computed,
-	                         stats.matchers, stats.mem));
+	                   "computed trans. = %d; matchers = %d; mem = %d\n",
+	                   run_state::network_time, stats.dfa_states, stats.computed, stats.matchers,
+	                   stats.mem));
 	f->Write(util::fmt("%.6f DFA cache hits = %d; misses = %d\n", run_state::network_time,
-	                         stats.hits, stats.misses));
+	                   stats.hits, stats.misses));
 
 	DumpStateStats(f, root);
 	}
@@ -1257,8 +1232,7 @@ void RuleMatcher::DumpStateStats(File* f, RuleHdrTest* hdr_test)
 			assert(set->re);
 
 			f->Write(util::fmt("%.6f %d DFA states in %s group %d from sigs ",
-			                   run_state::network_time,
-			                   set->re->DFA()->NumStates(),
+			                   run_state::network_time, set->re->DFA()->NumStates(),
 			                   Rule::TypeToString((Rule::PatternType)i), j));
 
 			for ( const auto& id : set->ids )
@@ -1287,16 +1261,15 @@ static Val* get_bro_val(const char* label)
 	return id->GetVal().get();
 	}
 
-
 // Converts an atomic Val and appends it to the list.  For subnet types,
 // if the prefix_vector param isn't null, appending to that is preferred
 // over appending to the masked val list.
-static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
-                             vector<IPPrefix>* prefix_vector)
+static bool val_to_maskedval(Val* v, maskedvalue_list* append_to, vector<IPPrefix>* prefix_vector)
 	{
 	MaskedValue* mval = new MaskedValue;
 
-	switch ( v->GetType()->Tag() ) {
+	switch ( v->GetType()->Tag() )
+		{
 		case TYPE_PORT:
 			mval->val = v->AsPortVal()->Port();
 			mval->mask = 0xffffffff;
@@ -1311,47 +1284,45 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
 			break;
 
 		case TYPE_SUBNET:
-			{
-			if ( prefix_vector )
 				{
-				prefix_vector->push_back(v->AsSubNet());
-				delete mval;
-				return true;
-				}
-			else
-				{
-				const uint32_t* n;
-				uint32_t m[4];
-				v->AsSubNet().Prefix().GetBytes(&n);
-				v->AsSubNetVal()->Mask().CopyIPv6(m);
-
-				for ( unsigned int i = 0; i < 4; ++i )
-					m[i] = ntohl(m[i]);
-
-				bool is_v4_mask = m[0] == 0xffffffff &&
-				                          m[1] == m[0] && m[2] == m[0];
-
-
-				if ( v->AsSubNet().Prefix().GetFamily() == IPv4 && is_v4_mask )
+				if ( prefix_vector )
 					{
-					mval->val = ntohl(*n);
-					mval->mask = m[3];
+					prefix_vector->push_back(v->AsSubNet());
+					delete mval;
+					return true;
 					}
 				else
 					{
-					rules_error("IPv6 subnets not supported");
-					mval->val = 0;
-					mval->mask = 0;
+					const uint32_t* n;
+					uint32_t m[4];
+					v->AsSubNet().Prefix().GetBytes(&n);
+					v->AsSubNetVal()->Mask().CopyIPv6(m);
+
+					for ( unsigned int i = 0; i < 4; ++i )
+						m[i] = ntohl(m[i]);
+
+					bool is_v4_mask = m[0] == 0xffffffff && m[1] == m[0] && m[2] == m[0];
+
+					if ( v->AsSubNet().Prefix().GetFamily() == IPv4 && is_v4_mask )
+						{
+						mval->val = ntohl(*n);
+						mval->mask = m[3];
+						}
+					else
+						{
+						rules_error("IPv6 subnets not supported");
+						mval->val = 0;
+						mval->mask = 0;
+						}
 					}
 				}
-			}
 			break;
 
 		default:
 			rules_error("Wrong type of identifier");
 			delete mval;
 			return false;
-	}
+		}
 
 	append_to->push_back(mval);
 
@@ -1394,9 +1365,9 @@ char* id_to_str(const char* id)
 		}
 
 	src = v->AsString();
-	dst = new char[src->Len()+1];
+	dst = new char[src->Len() + 1];
 	memcpy(dst, src->Bytes(), src->Len());
-	*(dst+src->Len()) = '\0';
+	*(dst + src->Len()) = '\0';
 	return dst;
 
 error:
@@ -1412,8 +1383,7 @@ uint32_t id_to_uint(const char* id)
 
 	TypeTag t = v->GetType()->Tag();
 
-	if ( t == TYPE_BOOL || t == TYPE_COUNT || t == TYPE_ENUM ||
-	     t == TYPE_INT || t == TYPE_PORT )
+	if ( t == TYPE_BOOL || t == TYPE_COUNT || t == TYPE_ENUM || t == TYPE_INT || t == TYPE_PORT )
 		return v->CoerceToUnsigned();
 
 	rules_error("Identifier must refer to integer");
@@ -1435,21 +1405,19 @@ void RuleMatcherState::InitEndpointMatcher(analyzer::Analyzer* analyzer, const I
 			}
 
 		orig_match_state =
-			rule_matcher->InitEndpoint(analyzer, ip, caplen,
-					resp_match_state, from_orig, pia);
+			rule_matcher->InitEndpoint(analyzer, ip, caplen, resp_match_state, from_orig, pia);
 		}
 
 	else
 		{
 		if ( resp_match_state )
 			{
-			rule_matcher->FinishEndpoint( resp_match_state );
+			rule_matcher->FinishEndpoint(resp_match_state);
 			delete resp_match_state;
 			}
 
 		resp_match_state =
-			rule_matcher->InitEndpoint(analyzer, ip, caplen,
-					orig_match_state, from_orig, pia);
+			rule_matcher->InitEndpoint(analyzer, ip, caplen, orig_match_state, from_orig, pia);
 		}
 	}
 
@@ -1470,15 +1438,14 @@ void RuleMatcherState::FinishEndpointMatcher()
 	orig_match_state = resp_match_state = nullptr;
 	}
 
-	void RuleMatcherState::Match(Rule::PatternType type, const u_char* data,
-	                             int data_len, bool from_orig,
-	                             bool bol, bool eol, bool clear)
+void RuleMatcherState::Match(Rule::PatternType type, const u_char* data, int data_len,
+                             bool from_orig, bool bol, bool eol, bool clear)
 	{
 	if ( ! rule_matcher )
 		return;
 
-	rule_matcher->Match(from_orig ? orig_match_state : resp_match_state,
-					type, data, data_len, bol, eol, clear);
+	rule_matcher->Match(from_orig ? orig_match_state : resp_match_state, type, data, data_len, bol,
+	                    eol, clear);
 	}
 
 void RuleMatcherState::ClearMatchState(bool orig)
@@ -1496,4 +1463,4 @@ void RuleMatcherState::ClearMatchState(bool orig)
 		rule_matcher->ClearEndpointState(resp_match_state);
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

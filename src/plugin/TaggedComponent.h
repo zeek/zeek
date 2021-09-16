@@ -2,17 +2,17 @@
 
 #include <cassert>
 
-namespace zeek::plugin {
+namespace zeek::plugin
+	{
 
 /**
  * A class which has a tag of a given type associated with it.
  *
  * @tparam T A ::Tag type or derivative.
  */
-template <class T>
-class TaggedComponent {
+template <class T> class TaggedComponent
+	{
 public:
-
 	/**
 	 * Constructor for TaggedComponend. Note that a unique value
 	 * for this component is only created when InitializeTag is
@@ -43,31 +43,28 @@ private:
 	bool initialized;
 	static typename T::type_t type_counter; /**< Used to generate globally
 	                                             unique tags. */
-};
+	};
 
-template <class T>
-TaggedComponent<T>::TaggedComponent(typename T::subtype_t subtype)
+template <class T> TaggedComponent<T>::TaggedComponent(typename T::subtype_t subtype)
 	{
-	tag = T(1,0);
+	tag = T(1, 0);
 	this->subtype = subtype;
 	initialized = false;
 	}
 
-template <class T>
-void TaggedComponent<T>::InitializeTag()
+template <class T> void TaggedComponent<T>::InitializeTag()
 	{
-	assert( initialized == false );
+	assert(initialized == false);
 	initialized = true;
 	tag = T(++type_counter, subtype);
 	}
 
-template <class T>
-T TaggedComponent<T>::Tag() const
+template <class T> T TaggedComponent<T>::Tag() const
 	{
-	assert( initialized );
+	assert(initialized);
 	return tag;
 	}
 
 template <class T> typename T::type_t TaggedComponent<T>::type_counter(0);
 
-} // namespace zeek::plugin
+	} // namespace zeek::plugin

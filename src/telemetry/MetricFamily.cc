@@ -4,9 +4,11 @@
 
 #include "caf/telemetry/metric_family.hpp"
 
-namespace zeek::telemetry {
+namespace zeek::telemetry
+	{
 
-namespace {
+namespace
+	{
 
 namespace ct = caf::telemetry;
 
@@ -17,7 +19,7 @@ auto& deref(MetricFamily::Impl* ptr)
 	return *reinterpret_cast<NativeMetricFamily*>(ptr);
 	}
 
-} // namespace
+	} // namespace
 
 std::string_view MetricFamily::Prefix() const noexcept
 	{
@@ -49,4 +51,4 @@ bool MetricFamily::IsSum() const noexcept
 	return deref(pimpl).is_sum();
 	}
 
-} // namespace zeek::telemetry
+	} // namespace zeek::telemetry

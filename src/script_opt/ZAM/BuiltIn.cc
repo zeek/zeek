@@ -7,7 +7,8 @@
 #include "zeek/Reporter.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e)
 	{
@@ -36,44 +37,36 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e)
 
 	auto& args = c->Args()->Exprs();
 
-	const NameExpr* n = nullptr;	// name to assign to, if any
+	const NameExpr* n = nullptr; // name to assign to, if any
 
 	if ( e->Tag() != EXPR_CALL )
 		n = e->GetOp1()->AsRefExpr()->GetOp1()->AsNameExpr();
 
-	using GenBuiltIn = bool (ZAMCompiler::*)(const NameExpr* n,
-	                                         const ExprPList& args);
+	using GenBuiltIn = bool (ZAMCompiler::*)(const NameExpr* n, const ExprPList& args);
 	static std::vector<std::pair<const char*, GenBuiltIn>> builtins = {
-		{ "Analyzer::__name", &ZAMCompiler::BuiltIn_Analyzer__name },
-		{ "Broker::__flush_logs",
-		  &ZAMCompiler::BuiltIn_Broker__flush_logs },
-		{ "Files::__enable_reassembly",
-		  &ZAMCompiler::BuiltIn_Files__enable_reassembly },
-		{ "Files::__set_reassembly_buffer",
-		  &ZAMCompiler::BuiltIn_Files__set_reassembly_buffer },
-		{ "Log::__write", &ZAMCompiler::BuiltIn_Log__write },
-		{ "current_time", &ZAMCompiler::BuiltIn_current_time },
-		{ "get_port_transport_proto",
-		  &ZAMCompiler::BuiltIn_get_port_etc },
-		{ "network_time", &ZAMCompiler::BuiltIn_network_time },
-		{ "reading_live_traffic",
-		  &ZAMCompiler::BuiltIn_reading_live_traffic },
-		{ "reading_traces", &ZAMCompiler::BuiltIn_reading_traces },
-		{ "strstr", &ZAMCompiler::BuiltIn_strstr },
-		{ "sub_bytes", &ZAMCompiler::BuiltIn_sub_bytes },
-		{ "to_lower", &ZAMCompiler::BuiltIn_to_lower },
+		{"Analyzer::__name", &ZAMCompiler::BuiltIn_Analyzer__name},
+		{"Broker::__flush_logs", &ZAMCompiler::BuiltIn_Broker__flush_logs},
+		{"Files::__enable_reassembly", &ZAMCompiler::BuiltIn_Files__enable_reassembly},
+		{"Files::__set_reassembly_buffer", &ZAMCompiler::BuiltIn_Files__set_reassembly_buffer},
+		{"Log::__write", &ZAMCompiler::BuiltIn_Log__write},
+		{"current_time", &ZAMCompiler::BuiltIn_current_time},
+		{"get_port_transport_proto", &ZAMCompiler::BuiltIn_get_port_etc},
+		{"network_time", &ZAMCompiler::BuiltIn_network_time},
+		{"reading_live_traffic", &ZAMCompiler::BuiltIn_reading_live_traffic},
+		{"reading_traces", &ZAMCompiler::BuiltIn_reading_traces},
+		{"strstr", &ZAMCompiler::BuiltIn_strstr},
+		{"sub_bytes", &ZAMCompiler::BuiltIn_sub_bytes},
+		{"to_lower", &ZAMCompiler::BuiltIn_to_lower},
 	};
 
 	for ( auto& b : builtins )
 		if ( util::streq(func->Name(), b.first) )
-			return (this->*(b.second))(n ,args);
+			return (this->*(b.second))(n, args);
 
 	return false;
 	}
 
-
-bool ZAMCompiler::BuiltIn_Analyzer__name(const NameExpr* n,
-                                         const ExprPList& args)
+bool ZAMCompiler::BuiltIn_Analyzer__name(const NameExpr* n, const ExprPList& args)
 	{
 	if ( ! n )
 		{
@@ -97,20 +90,17 @@ bool ZAMCompiler::BuiltIn_Analyzer__name(const NameExpr* n,
 	return true;
 	}
 
-bool ZAMCompiler::BuiltIn_Broker__flush_logs(const NameExpr* n,
-                                             const ExprPList& args)
+bool ZAMCompiler::BuiltIn_Broker__flush_logs(const NameExpr* n, const ExprPList& args)
 	{
 	if ( n )
-		AddInst(ZInstI(OP_BROKER_FLUSH_LOGS_V,
-		               Frame1Slot(n, OP1_WRITE)));
+		AddInst(ZInstI(OP_BROKER_FLUSH_LOGS_V, Frame1Slot(n, OP1_WRITE)));
 	else
 		AddInst(ZInstI(OP_BROKER_FLUSH_LOGS_X));
 
 	return true;
 	}
 
-bool ZAMCompiler::BuiltIn_Files__enable_reassembly(const NameExpr* n,
-                                                   const ExprPList& args)
+bool ZAMCompiler::BuiltIn_Files__enable_reassembly(const NameExpr* n, const ExprPList& args)
 	{
 	if ( n )
 		// While this built-in nominally returns a value, existing
@@ -129,8 +119,7 @@ bool ZAMCompiler::BuiltIn_Files__enable_reassembly(const NameExpr* n,
 	return true;
 	}
 
-bool ZAMCompiler::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n,
-                                                       const ExprPList& args)
+bool ZAMCompiler::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, const ExprPList& args)
 	{
 	if ( n )
 		// See above for enable_reassembly
@@ -151,8 +140,7 @@ bool ZAMCompiler::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n,
 		z.op_type = OP_VV_I2;
 		}
 	else
-		z = ZInstI(OP_FILES__SET_REASSEMBLY_BUFFER_VV, arg_f,
-		           FrameSlot(args[1]->AsNameExpr()));
+		z = ZInstI(OP_FILES__SET_REASSEMBLY_BUFFER_VV, arg_f, FrameSlot(args[1]->AsNameExpr()));
 
 	AddInst(z);
 
@@ -191,8 +179,7 @@ bool ZAMCompiler::BuiltIn_Log__write(const NameExpr* n, const ExprPList& args)
 			z.aux = aux;
 			}
 		else
-			z = ZInstI(OP_LOG_WRITE_VVV, nslot,
-			           FrameSlot(id->AsNameExpr()), col_slot);
+			z = ZInstI(OP_LOG_WRITE_VVV, nslot, FrameSlot(id->AsNameExpr()), col_slot);
 		}
 	else
 		{
@@ -202,8 +189,7 @@ bool ZAMCompiler::BuiltIn_Log__write(const NameExpr* n, const ExprPList& args)
 			z.aux = aux;
 			}
 		else
-			z = ZInstI(OP_LOG_WRITE_VV, FrameSlot(id->AsNameExpr()),
-			           col_slot);
+			z = ZInstI(OP_LOG_WRITE_VV, FrameSlot(id->AsNameExpr()), col_slot);
 		}
 
 	z.SetType(columns_n->GetType());
@@ -264,8 +250,7 @@ bool ZAMCompiler::BuiltIn_network_time(const NameExpr* n, const ExprPList& args)
 	return true;
 	}
 
-bool ZAMCompiler::BuiltIn_reading_live_traffic(const NameExpr* n,
-                                               const ExprPList& args)
+bool ZAMCompiler::BuiltIn_reading_live_traffic(const NameExpr* n, const ExprPList& args)
 	{
 	if ( ! n )
 		{
@@ -280,8 +265,7 @@ bool ZAMCompiler::BuiltIn_reading_live_traffic(const NameExpr* n,
 	return true;
 	}
 
-bool ZAMCompiler::BuiltIn_reading_traces(const NameExpr* n,
-                                         const ExprPList& args)
+bool ZAMCompiler::BuiltIn_reading_traces(const NameExpr* n, const ExprPList& args)
 	{
 	if ( ! n )
 		{
@@ -308,8 +292,7 @@ bool ZAMCompiler::BuiltIn_strstr(const NameExpr* n, const ExprPList& args)
 	auto little = args[1];
 
 	auto big_n = big->Tag() == EXPR_NAME ? big->AsNameExpr() : nullptr;
-	auto little_n = little->Tag() == EXPR_NAME ?
-	                little->AsNameExpr() : nullptr;
+	auto little_n = little->Tag() == EXPR_NAME ? little->AsNameExpr() : nullptr;
 
 	ZInstI z;
 
@@ -349,54 +332,55 @@ bool ZAMCompiler::BuiltIn_sub_bytes(const NameExpr* n, const ExprPList& args)
 
 	ZInstI z;
 
-	switch ( ConstArgsMask(args, 3) ) {
-	case 0x0:	// all variable
-		z = ZInstI(OP_SUB_BYTES_VVVV, nslot, v2, v3, v4);
-		z.op_type = OP_VVVV;
-		break;
+	switch ( ConstArgsMask(args, 3) )
+		{
+		case 0x0: // all variable
+			z = ZInstI(OP_SUB_BYTES_VVVV, nslot, v2, v3, v4);
+			z.op_type = OP_VVVV;
+			break;
 
-	case 0x1:	// last argument a constant
-		z = ZInstI(OP_SUB_BYTES_VVVi, nslot, v2, v3, v4);
-		z.op_type = OP_VVVV_I4;
-		break;
+		case 0x1: // last argument a constant
+			z = ZInstI(OP_SUB_BYTES_VVVi, nslot, v2, v3, v4);
+			z.op_type = OP_VVVV_I4;
+			break;
 
-	case 0x2:	// 2nd argument a constant; flip!
-		z = ZInstI(OP_SUB_BYTES_VViV, nslot, v2, v4, v3);
-		z.op_type = OP_VVVV_I4;
-		break;
+		case 0x2: // 2nd argument a constant; flip!
+			z = ZInstI(OP_SUB_BYTES_VViV, nslot, v2, v4, v3);
+			z.op_type = OP_VVVV_I4;
+			break;
 
-	case 0x3:	// both 2nd and third are constants
-		z = ZInstI(OP_SUB_BYTES_VVii, nslot, v2, v3, v4);
-		z.op_type = OP_VVVV_I3_I4;
-		break;
+		case 0x3: // both 2nd and third are constants
+			z = ZInstI(OP_SUB_BYTES_VVii, nslot, v2, v3, v4);
+			z.op_type = OP_VVVV_I3_I4;
+			break;
 
-	case 0x4:	// first argument a constant
-		ASSERT(c);
-		z = ZInstI(OP_SUB_BYTES_VVVC, nslot, v3, v4, c);
-		z.op_type = OP_VVVC;
-		break;
+		case 0x4: // first argument a constant
+			ASSERT(c);
+			z = ZInstI(OP_SUB_BYTES_VVVC, nslot, v3, v4, c);
+			z.op_type = OP_VVVC;
+			break;
 
-	case 0x5:	// first and third constant
-		ASSERT(c);
-		z = ZInstI(OP_SUB_BYTES_VViC, nslot, v3, v4, c);
-		z.op_type = OP_VVVC_I3;
-		break;
+		case 0x5: // first and third constant
+			ASSERT(c);
+			z = ZInstI(OP_SUB_BYTES_VViC, nslot, v3, v4, c);
+			z.op_type = OP_VVVC_I3;
+			break;
 
-	case 0x6:	// first and second constant - flip!
-		ASSERT(c);
-		z = ZInstI(OP_SUB_BYTES_ViVC, nslot, v4, v3, c);
-		z.op_type = OP_VVVC_I3;
-		break;
+		case 0x6: // first and second constant - flip!
+			ASSERT(c);
+			z = ZInstI(OP_SUB_BYTES_ViVC, nslot, v4, v3, c);
+			z.op_type = OP_VVVC_I3;
+			break;
 
-	case 0x7:	// whole shebang
-		ASSERT(c);
-		z = ZInstI(OP_SUB_BYTES_ViiC, nslot, v3, v4, c);
-		z.op_type = OP_VVVC_I2_I3;
-		break;
+		case 0x7: // whole shebang
+			ASSERT(c);
+			z = ZInstI(OP_SUB_BYTES_ViiC, nslot, v3, v4, c);
+			z.op_type = OP_VVVC_I2_I3;
+			break;
 
-	default:
-		reporter->InternalError("bad constant mask");
-	}
+		default:
+			reporter->InternalError("bad constant mask");
+		}
 
 	AddInst(z);
 
@@ -448,4 +432,4 @@ bro_uint_t ZAMCompiler::ConstArgsMask(const ExprPList& args, int nargs) const
 	return mask;
 	}
 
-} // zeek::detail
+	} // zeek::detail

@@ -1,15 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <errno.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "zeek/RE.h"
-#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/CPP/Compile.h"
+#include "zeek/script_opt/ProfileFunc.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 using namespace std;
 
@@ -53,107 +53,149 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level)
 	{
 	string gen;
 
-	switch ( e->Tag() ) {
-	case EXPR_NAME:		return GenNameExpr(e->AsNameExpr(), gt);
-	case EXPR_CONST:	return GenConstExpr(e->AsConstExpr(), gt);
+	switch ( e->Tag() )
+		{
+		case EXPR_NAME:
+			return GenNameExpr(e->AsNameExpr(), gt);
+		case EXPR_CONST:
+			return GenConstExpr(e->AsConstExpr(), gt);
 
-	case EXPR_CLONE:
-		gen = GenExpr(e->GetOp1(), GEN_VAL_PTR) + "->Clone()";
-		return GenericValPtrToGT(gen, e->GetType(), gt);
+		case EXPR_CLONE:
+			gen = GenExpr(e->GetOp1(), GEN_VAL_PTR) + "->Clone()";
+			return GenericValPtrToGT(gen, e->GetType(), gt);
 
-	case EXPR_INCR:
-	case EXPR_DECR:
-		return GenIncrExpr(e, gt, e->Tag() == EXPR_INCR, top_level);
+		case EXPR_INCR:
+		case EXPR_DECR:
+			return GenIncrExpr(e, gt, e->Tag() == EXPR_INCR, top_level);
 
-	case EXPR_NOT:		return GenUnary(e, gt, "!", "not");
-	case EXPR_COMPLEMENT:	return GenUnary(e, gt, "~", "comp");
-	case EXPR_POSITIVE:	return GenUnary(e, gt, "+", "pos");
-	case EXPR_NEGATE:	return GenUnary(e, gt, "-", "neg");
+		case EXPR_NOT:
+			return GenUnary(e, gt, "!", "not");
+		case EXPR_COMPLEMENT:
+			return GenUnary(e, gt, "~", "comp");
+		case EXPR_POSITIVE:
+			return GenUnary(e, gt, "+", "pos");
+		case EXPR_NEGATE:
+			return GenUnary(e, gt, "-", "neg");
 
-	case EXPR_ADD:		return GenBinary(e, gt, "+", "add");
-	case EXPR_SUB:		return GenBinary(e, gt, "-", "sub");
-	case EXPR_REMOVE_FROM:	return GenBinary(e, gt, "-=");
-	case EXPR_TIMES:	return GenBinary(e, gt, "*", "mul");
-	case EXPR_DIVIDE:	return GenBinary(e, gt, "/", "div");
-	case EXPR_MOD:		return GenBinary(e, gt, "%", "mod");
-	case EXPR_AND:		return GenBinary(e, gt, "&", "and");
-	case EXPR_OR:		return GenBinary(e, gt, "|", "or");
-	case EXPR_XOR:		return GenBinary(e, gt, "^", "xor");
-	case EXPR_AND_AND:	return GenBinary(e, gt, "&&", "andand");
-	case EXPR_OR_OR:	return GenBinary(e, gt, "||", "oror");
-	case EXPR_LT:		return GenBinary(e, gt, "<", "lt");
-	case EXPR_LE:		return GenBinary(e, gt, "<=", "le");
-	case EXPR_GE:		return GenBinary(e, gt, ">=","ge");
-	case EXPR_GT:		return GenBinary(e, gt, ">", "gt");
+		case EXPR_ADD:
+			return GenBinary(e, gt, "+", "add");
+		case EXPR_SUB:
+			return GenBinary(e, gt, "-", "sub");
+		case EXPR_REMOVE_FROM:
+			return GenBinary(e, gt, "-=");
+		case EXPR_TIMES:
+			return GenBinary(e, gt, "*", "mul");
+		case EXPR_DIVIDE:
+			return GenBinary(e, gt, "/", "div");
+		case EXPR_MOD:
+			return GenBinary(e, gt, "%", "mod");
+		case EXPR_AND:
+			return GenBinary(e, gt, "&", "and");
+		case EXPR_OR:
+			return GenBinary(e, gt, "|", "or");
+		case EXPR_XOR:
+			return GenBinary(e, gt, "^", "xor");
+		case EXPR_AND_AND:
+			return GenBinary(e, gt, "&&", "andand");
+		case EXPR_OR_OR:
+			return GenBinary(e, gt, "||", "oror");
+		case EXPR_LT:
+			return GenBinary(e, gt, "<", "lt");
+		case EXPR_LE:
+			return GenBinary(e, gt, "<=", "le");
+		case EXPR_GE:
+			return GenBinary(e, gt, ">=", "ge");
+		case EXPR_GT:
+			return GenBinary(e, gt, ">", "gt");
 
-	case EXPR_EQ:		return GenEQ(e, gt, "==", "eq");
-	case EXPR_NE:		return GenEQ(e, gt, "!=", "ne");
+		case EXPR_EQ:
+			return GenEQ(e, gt, "==", "eq");
+		case EXPR_NE:
+			return GenEQ(e, gt, "!=", "ne");
 
-	case EXPR_COND:		return GenCondExpr(e, gt);
-	case EXPR_CALL:		return GenCallExpr(e->AsCallExpr(), gt);
-	case EXPR_LIST:		return GenListExpr(e, gt, false);
-	case EXPR_IN:		return GenInExpr(e, gt);
-	case EXPR_FIELD:	return GenFieldExpr(e->AsFieldExpr(), gt);
-	case EXPR_HAS_FIELD:	return GenHasFieldExpr(e->AsHasFieldExpr(), gt);
-	case EXPR_INDEX:	return GenIndexExpr(e, gt);
-	case EXPR_ASSIGN:	return GenAssignExpr(e, gt, top_level);
-	case EXPR_ADD_TO:	return GenAddToExpr(e, gt, top_level);
-	case EXPR_REF:		return GenExpr(e->GetOp1(), gt);
-	case EXPR_SIZE:		return GenSizeExpr(e, gt);
-	case EXPR_SCHEDULE:	return GenScheduleExpr(e);
-	case EXPR_LAMBDA:	return GenLambdaExpr(e);
-	case EXPR_IS:		return GenIsExpr(e, gt);
+		case EXPR_COND:
+			return GenCondExpr(e, gt);
+		case EXPR_CALL:
+			return GenCallExpr(e->AsCallExpr(), gt);
+		case EXPR_LIST:
+			return GenListExpr(e, gt, false);
+		case EXPR_IN:
+			return GenInExpr(e, gt);
+		case EXPR_FIELD:
+			return GenFieldExpr(e->AsFieldExpr(), gt);
+		case EXPR_HAS_FIELD:
+			return GenHasFieldExpr(e->AsHasFieldExpr(), gt);
+		case EXPR_INDEX:
+			return GenIndexExpr(e, gt);
+		case EXPR_ASSIGN:
+			return GenAssignExpr(e, gt, top_level);
+		case EXPR_ADD_TO:
+			return GenAddToExpr(e, gt, top_level);
+		case EXPR_REF:
+			return GenExpr(e->GetOp1(), gt);
+		case EXPR_SIZE:
+			return GenSizeExpr(e, gt);
+		case EXPR_SCHEDULE:
+			return GenScheduleExpr(e);
+		case EXPR_LAMBDA:
+			return GenLambdaExpr(e);
+		case EXPR_IS:
+			return GenIsExpr(e, gt);
 
-	case EXPR_ARITH_COERCE:		return GenArithCoerceExpr(e, gt);
-	case EXPR_RECORD_COERCE:	return GenRecordCoerceExpr(e);
-	case EXPR_TABLE_COERCE:		return GenTableCoerceExpr(e);
-	case EXPR_VECTOR_COERCE:	return GenVectorCoerceExpr(e);
+		case EXPR_ARITH_COERCE:
+			return GenArithCoerceExpr(e, gt);
+		case EXPR_RECORD_COERCE:
+			return GenRecordCoerceExpr(e);
+		case EXPR_TABLE_COERCE:
+			return GenTableCoerceExpr(e);
+		case EXPR_VECTOR_COERCE:
+			return GenVectorCoerceExpr(e);
 
-	case EXPR_RECORD_CONSTRUCTOR:	return GenRecordConstructorExpr(e);
-	case EXPR_SET_CONSTRUCTOR:	return GenSetConstructorExpr(e);
-	case EXPR_TABLE_CONSTRUCTOR:	return GenTableConstructorExpr(e);
-	case EXPR_VECTOR_CONSTRUCTOR:	return GenVectorConstructorExpr(e);
+		case EXPR_RECORD_CONSTRUCTOR:
+			return GenRecordConstructorExpr(e);
+		case EXPR_SET_CONSTRUCTOR:
+			return GenSetConstructorExpr(e);
+		case EXPR_TABLE_CONSTRUCTOR:
+			return GenTableConstructorExpr(e);
+		case EXPR_VECTOR_CONSTRUCTOR:
+			return GenVectorConstructorExpr(e);
 
-	case EXPR_EVENT:
-		// These should not wind up being directly generated,
-		// but instead deconstructed in the context of either
-		// a "schedule" expression or an "event" statement.
-		ASSERT(0);
+		case EXPR_EVENT:
+			// These should not wind up being directly generated,
+			// but instead deconstructed in the context of either
+			// a "schedule" expression or an "event" statement.
+			ASSERT(0);
 
-	case EXPR_CAST:
-		gen = string("cast_value_to_type__CPP(") +
-			GenExpr(e->GetOp1(), GEN_VAL_PTR) + ", " +
-			GenTypeName(e->GetType()) + ")";
-		return GenericValPtrToGT(gen, e->GetType(), gt);
+		case EXPR_CAST:
+			gen = string("cast_value_to_type__CPP(") + GenExpr(e->GetOp1(), GEN_VAL_PTR) + ", " +
+			      GenTypeName(e->GetType()) + ")";
+			return GenericValPtrToGT(gen, e->GetType(), gt);
 
-	case EXPR_TO_ANY_COERCE:
-		return GenExpr(e->GetOp1(), GEN_VAL_PTR);
+		case EXPR_TO_ANY_COERCE:
+			return GenExpr(e->GetOp1(), GEN_VAL_PTR);
 
-	case EXPR_FROM_ANY_COERCE:
-		gen = string("from_any__CPP(") +
-			GenExpr(e->GetOp1(), GEN_VAL_PTR) + ", " +
-			GenTypeName(e->GetType()) + ")";
-		return GenericValPtrToGT(gen, e->GetType(), gt);
+		case EXPR_FROM_ANY_COERCE:
+			gen = string("from_any__CPP(") + GenExpr(e->GetOp1(), GEN_VAL_PTR) + ", " +
+			      GenTypeName(e->GetType()) + ")";
+			return GenericValPtrToGT(gen, e->GetType(), gt);
 
-	case EXPR_FROM_ANY_VEC_COERCE:
-		gen = string("from_any_vec__CPP(") +
-			GenExpr(e->GetOp1(), GEN_VAL_PTR) + ", " +
-			GenTypeName(e->GetType()->Yield()) + ")";
-		return GenericValPtrToGT(gen, e->GetType(), gt);
+		case EXPR_FROM_ANY_VEC_COERCE:
+			gen = string("from_any_vec__CPP(") + GenExpr(e->GetOp1(), GEN_VAL_PTR) + ", " +
+			      GenTypeName(e->GetType()->Yield()) + ")";
+			return GenericValPtrToGT(gen, e->GetType(), gt);
 
+		case EXPR_FIELD_ASSIGN:
+		case EXPR_INDEX_SLICE_ASSIGN:
+		case EXPR_INLINE:
+			// These are only generated for reduced ASTs, which
+			// we shouldn't be compiling.
+			ASSERT(0);
 
-	case EXPR_FIELD_ASSIGN:
-	case EXPR_INDEX_SLICE_ASSIGN:
-	case EXPR_INLINE:
-		// These are only generated for reduced ASTs, which
-		// we shouldn't be compiling.
-		ASSERT(0);
-
-	default:
-		// Intended to catch errors in overlooking the possible
-		// expressions that might appear.
-		return string("EXPR");
-	}
+		default:
+			// Intended to catch errors in overlooking the possible
+			// expressions that might appear.
+			return string("EXPR");
+		}
 	}
 
 string CPPCompile::GenNameExpr(const NameExpr* ne, GenType gt)
@@ -165,8 +207,7 @@ string CPPCompile::GenNameExpr(const NameExpr* ne, GenType gt)
 	if ( t->Tag() == TYPE_FUNC && ! is_global_var )
 		{
 		auto func = n->Name();
-		if ( globals.count(func) > 0 &&
-		     pfs.BiFGlobals().count(n) == 0 )
+		if ( globals.count(func) > 0 && pfs.BiFGlobals().count(n) == 0 )
 			return GenericValPtrToGT(IDNameStr(n), t, gt);
 		}
 
@@ -175,9 +216,7 @@ string CPPCompile::GenNameExpr(const NameExpr* ne, GenType gt)
 		string gen;
 
 		if ( n->IsType() )
-			gen = string("make_intrusive<TypeVal>(") +
-						globals[n->Name()] +
-						"->GetType(), true)";
+			gen = string("make_intrusive<TypeVal>(") + globals[n->Name()] + "->GetType(), true)";
 
 		else
 			gen = globals[n->Name()] + "->GetVal()";
@@ -205,8 +244,8 @@ string CPPCompile::GenIncrExpr(const Expr* e, GenType gt, bool is_incr, bool top
 	// twice, so easiest is to just transform this node
 	// into the expanded equivalent.
 	auto op = e->GetOp1();
-	auto one = e->GetType()->InternalType() == TYPE_INTERNAL_INT ?
-			val_mgr->Int(1) : val_mgr->Count(1);
+	auto one =
+		e->GetType()->InternalType() == TYPE_INTERNAL_INT ? val_mgr->Int(1) : val_mgr->Count(1);
 	auto one_e = make_intrusive<ConstExpr>(one);
 
 	ExprPtr rhs;
@@ -215,14 +254,13 @@ string CPPCompile::GenIncrExpr(const Expr* e, GenType gt, bool is_incr, bool top
 	else
 		rhs = make_intrusive<SubExpr>(op, one_e);
 
-	auto assign = make_intrusive<AssignExpr>(op, rhs, false,
-					nullptr, nullptr, false);
+	auto assign = make_intrusive<AssignExpr>(op, rhs, false, nullptr, nullptr, false);
 
 	// Make sure any newly created types are known to
 	// the profiler.
-	(void) pfs.HashType(one_e->GetType());
-	(void) pfs.HashType(rhs->GetType());
-	(void) pfs.HashType(assign->GetType());
+	(void)pfs.HashType(one_e->GetType());
+	(void)pfs.HashType(rhs->GetType());
+	(void)pfs.HashType(assign->GetType());
 
 	auto gen = GenExpr(assign, GEN_DONT_CARE, top_level);
 
@@ -243,8 +281,7 @@ string CPPCompile::GenCondExpr(const Expr* e, GenType gt)
 	auto gen3 = GenExpr(op3, gt);
 
 	if ( op1->GetType()->Tag() == TYPE_VECTOR )
-		return string("vector_select__CPP(") +
-		       gen1 + ", " + gen2 + ", " + gen3 + ")";
+		return string("vector_select__CPP(") + gen1 + ", " + gen2 + ", " + gen3 + ")";
 
 	return string("(") + gen1 + ") ? (" + gen2 + ") : (" + gen3 + ")";
 	}
@@ -276,8 +313,7 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt)
 				fname = compiled_simple_funcs[id_name];
 
 			if ( args_l->Exprs().length() > 0 )
-				gen = fname + "(" + GenArgs(params, args_l) +
-					", f__CPP)";
+				gen = fname + "(" + GenArgs(params, args_l) + ", f__CPP)";
 			else
 				gen = fname + "(f__CPP)";
 
@@ -291,7 +327,7 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt)
 		// If it is a BiF *that's also a global variable*, then
 		// we need to look up the BiF version of the global.
 		if ( pfs.BiFGlobals().count(f_id) == 0 )
-			gen += + "->AsFunc()";
+			gen += +"->AsFunc()";
 
 		else if ( pfs.Globals().count(f_id) > 0 )
 			// The BiF version has an extra "_", per
@@ -323,27 +359,23 @@ string CPPCompile::GenInExpr(const Expr* e, GenType gt)
 	string gen;
 
 	if ( t1->Tag() == TYPE_PATTERN )
-		gen = string("(") + GenExpr(op1, GEN_DONT_CARE) +
-			")->MatchAnywhere(" +
-			GenExpr(op2, GEN_DONT_CARE) + "->AsString())";
+		gen = string("(") + GenExpr(op1, GEN_DONT_CARE) + ")->MatchAnywhere(" +
+		      GenExpr(op2, GEN_DONT_CARE) + "->AsString())";
 
 	else if ( t2->Tag() == TYPE_STRING )
-		gen = string("str_in__CPP(") +
-			GenExpr(op1, GEN_DONT_CARE) + "->AsString(), " +
-			GenExpr(op2, GEN_DONT_CARE) + "->AsString())";
+		gen = string("str_in__CPP(") + GenExpr(op1, GEN_DONT_CARE) + "->AsString(), " +
+		      GenExpr(op2, GEN_DONT_CARE) + "->AsString())";
 
 	else if ( t1->Tag() == TYPE_ADDR && t2->Tag() == TYPE_SUBNET )
-		gen = string("(") + GenExpr(op2, GEN_DONT_CARE) +
-			")->Contains(" + GenExpr(op1, GEN_VAL_PTR) + "->Get())";
+		gen = string("(") + GenExpr(op2, GEN_DONT_CARE) + ")->Contains(" +
+		      GenExpr(op1, GEN_VAL_PTR) + "->Get())";
 
 	else if ( t2->Tag() == TYPE_VECTOR )
-		gen = GenExpr(op2, GEN_DONT_CARE) + "->Has(" +
-		      GenExpr(op1, GEN_NATIVE) + ")";
+		gen = GenExpr(op2, GEN_DONT_CARE) + "->Has(" + GenExpr(op1, GEN_NATIVE) + ")";
 
 	else
-		gen = string("(") + GenExpr(op2, GEN_DONT_CARE) +
-		      "->Find(index_val__CPP({" + GenExpr(op1, GEN_VAL_PTR) +
-		      "})) ? true : false)";
+		gen = string("(") + GenExpr(op2, GEN_DONT_CARE) + "->Find(index_val__CPP({" +
+		      GenExpr(op1, GEN_VAL_PTR) + "})) ? true : false)";
 
 	return NativeToGT(gen, e->GetType(), gt);
 	}
@@ -354,8 +386,7 @@ string CPPCompile::GenFieldExpr(const FieldExpr* fe, GenType gt)
 	auto f = fe->Field();
 	auto f_s = GenField(r, f);
 
-	auto gen = string("field_access__CPP(") + GenExpr(r, GEN_VAL_PTR) +
-	                  ", " + f_s + ")";
+	auto gen = string("field_access__CPP(") + GenExpr(r, GEN_VAL_PTR) + ", " + f_s + ")";
 
 	return GenericValPtrToGT(gen, fe->GetType(), gt);
 	}
@@ -367,8 +398,7 @@ string CPPCompile::GenHasFieldExpr(const HasFieldExpr* hfe, GenType gt)
 	auto f_s = GenField(r, f);
 
 	// Need to use accessors for native types.
-	auto gen = string("(") + GenExpr(r, GEN_DONT_CARE) +
-	           "->GetField(" + f_s + ") != nullptr)";
+	auto gen = string("(") + GenExpr(r, GEN_DONT_CARE) + "->GetField(" + f_s + ") != nullptr)";
 
 	return NativeToGT(gen, hfe->GetType(), gt);
 	}
@@ -381,9 +411,8 @@ string CPPCompile::GenIndexExpr(const Expr* e, GenType gt)
 	string gen;
 
 	if ( aggr_t->Tag() == TYPE_TABLE )
-		gen = string("index_table__CPP(") +
-			GenExpr(aggr, GEN_NATIVE) + ", {" +
-			GenExpr(e->GetOp2(), GEN_VAL_PTR) + "})";
+		gen = string("index_table__CPP(") + GenExpr(aggr, GEN_NATIVE) + ", {" +
+		      GenExpr(e->GetOp2(), GEN_VAL_PTR) + "})";
 
 	else if ( aggr_t->Tag() == TYPE_VECTOR )
 		{
@@ -391,27 +420,22 @@ string CPPCompile::GenIndexExpr(const Expr* e, GenType gt)
 		const auto& t2 = op2->GetType();
 		ASSERT(t2->Tag() == TYPE_LIST);
 
-		if ( t2->Tag() == TYPE_LIST &&
-		     t2->AsTypeList()->GetTypes().size() == 2 )
+		if ( t2->Tag() == TYPE_LIST && t2->AsTypeList()->GetTypes().size() == 2 )
 			{
 			auto& inds = op2->AsListExpr()->Exprs();
 			auto first = inds[0];
 			auto last = inds[1];
-			gen = string("index_slice(") +
-				GenExpr(aggr, GEN_VAL_PTR) + ".get(), " +
-				GenExpr(first, GEN_NATIVE) + ", " +
-				GenExpr(last, GEN_NATIVE) + ")";
+			gen = string("index_slice(") + GenExpr(aggr, GEN_VAL_PTR) + ".get(), " +
+			      GenExpr(first, GEN_NATIVE) + ", " + GenExpr(last, GEN_NATIVE) + ")";
 			}
 		else
-			gen = string("index_vec__CPP(") +
-				GenExpr(aggr, GEN_NATIVE) + ", " +
-				GenExpr(e->GetOp2(), GEN_NATIVE) + ")";
+			gen = string("index_vec__CPP(") + GenExpr(aggr, GEN_NATIVE) + ", " +
+			      GenExpr(e->GetOp2(), GEN_NATIVE) + ")";
 		}
 
 	else if ( aggr_t->Tag() == TYPE_STRING )
-		gen = string("index_string__CPP(") +
-			GenExpr(aggr, GEN_NATIVE) + ", {" +
-			GenExpr(e->GetOp2(), GEN_VAL_PTR) + "})";
+		gen = string("index_string__CPP(") + GenExpr(aggr, GEN_NATIVE) + ", {" +
+		      GenExpr(e->GetOp2(), GEN_VAL_PTR) + "})";
 
 	return GenericValPtrToGT(gen, e->GetType(), gt);
 	}
@@ -434,8 +458,7 @@ string CPPCompile::GenAssignExpr(const Expr* e, GenType gt, bool top_level)
 		rhs_native = rhs_val_ptr;
 
 	if ( rhs_is_any && ! lhs_is_any && t1->Tag() != TYPE_LIST )
-		rhs_native = rhs_val_ptr =
-			GenericValPtrToGT(rhs_val_ptr, t1, GEN_NATIVE);
+		rhs_native = rhs_val_ptr = GenericValPtrToGT(rhs_val_ptr, t1, GEN_NATIVE);
 
 	return GenAssign(op1, op2, rhs_native, rhs_val_ptr, gt, top_level);
 	}
@@ -446,9 +469,8 @@ string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level)
 
 	if ( t->Tag() == TYPE_VECTOR )
 		{
-		auto gen = string("vector_append__CPP(") +
-		           GenExpr(e->GetOp1(), GEN_VAL_PTR) +
-		           ", " + GenExpr(e->GetOp2(), GEN_VAL_PTR) + ")";
+		auto gen = string("vector_append__CPP(") + GenExpr(e->GetOp1(), GEN_VAL_PTR) + ", " +
+		           GenExpr(e->GetOp2(), GEN_VAL_PTR) + ")";
 		return GenericValPtrToGT(gen, t, gt);
 		}
 
@@ -472,8 +494,8 @@ string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level)
 
 		// Make sure any newly created types are known to
 		// the profiler.
-		(void) pfs.HashType(rhs->GetType());
-		(void) pfs.HashType(assign->GetType());
+		(void)pfs.HashType(rhs->GetType());
+		(void)pfs.HashType(assign->GetType());
 
 		return GenExpr(assign, gt, top_level);
 		}
@@ -521,9 +543,8 @@ string CPPCompile::GenScheduleExpr(const Expr* e)
 	if ( when->GetType()->Tag() == TYPE_INTERVAL )
 		when_s += " + run_state::network_time";
 
-	return string("schedule__CPP(") + when_s +
-		", " + globals[event_name] + "_ev, { " +
-		GenExpr(event->Args(), GEN_VAL_PTR) + " })";
+	return string("schedule__CPP(") + when_s + ", " + globals[event_name] + "_ev, { " +
+	       GenExpr(event->Args(), GEN_VAL_PTR) + " })";
 	}
 
 string CPPCompile::GenLambdaExpr(const Expr* e)
@@ -536,17 +557,15 @@ string CPPCompile::GenLambdaExpr(const Expr* e)
 		cl_args = cl_args + GenLambdaClone(l, false);
 
 	auto body = string("make_intrusive<") + name + ">(" + cl_args + ")";
-	auto func = string("make_intrusive<CPPLambdaFunc>(\"") +
-			l->Name() + "\", cast_intrusive<FuncType>(" +
-			GenTypeName(l->GetType()) + "), " + body + ")";
+	auto func = string("make_intrusive<CPPLambdaFunc>(\"") + l->Name() +
+	            "\", cast_intrusive<FuncType>(" + GenTypeName(l->GetType()) + "), " + body + ")";
 	return string("make_intrusive<FuncVal>(") + func + ")";
 	}
 
 string CPPCompile::GenIsExpr(const Expr* e, GenType gt)
 	{
 	auto ie = static_cast<const IsExpr*>(e);
-	auto gen = string("can_cast_value_to_type(") +
-	           GenExpr(ie->GetOp1(), GEN_VAL_PTR) + ".get(), " +
+	auto gen = string("can_cast_value_to_type(") + GenExpr(ie->GetOp1(), GEN_VAL_PTR) + ".get(), " +
 	           GenTypeName(ie->TestType()) + ".get())";
 
 	return NativeToGT(gen, ie->GetType(), gt);
@@ -566,19 +585,25 @@ string CPPCompile::GenArithCoerceExpr(const Expr* e, GenType gt)
 
 	string cast_name;
 
-	switch ( coerce_t->InternalType() ) {
-	case TYPE_INTERNAL_INT:		cast_name = "bro_int_t"; break;
-	case TYPE_INTERNAL_UNSIGNED:	cast_name = "bro_uint_t"; break;
-	case TYPE_INTERNAL_DOUBLE:	cast_name = "double"; break;
+	switch ( coerce_t->InternalType() )
+		{
+		case TYPE_INTERNAL_INT:
+			cast_name = "bro_int_t";
+			break;
+		case TYPE_INTERNAL_UNSIGNED:
+			cast_name = "bro_uint_t";
+			break;
+		case TYPE_INTERNAL_DOUBLE:
+			cast_name = "double";
+			break;
 
-	default:
-		reporter->InternalError("bad type in arithmetic coercion");
-	}
+		default:
+			reporter->InternalError("bad type in arithmetic coercion");
+		}
 
 	if ( is_vec )
-		return string("vec_coerce_") + cast_name +
-			"__CPP(" + GenExpr(op, GEN_NATIVE) +
-			", " + GenTypeName(t) + ")";
+		return string("vec_coerce_") + cast_name + "__CPP(" + GenExpr(op, GEN_NATIVE) + ", " +
+		       GenTypeName(t) + ")";
 
 	return NativeToGT(cast_name + "(" + GenExpr(op, GEN_NATIVE) + ")", t, gt);
 	}
@@ -597,9 +622,8 @@ string CPPCompile::GenRecordCoerceExpr(const Expr* e)
 	const auto& map = rc->Map();
 	auto type_var = GenTypeName(to_type);
 
-	return string("coerce_to_record(cast_intrusive<RecordType>(") +
-	       type_var + "), " + GenExpr(op1, GEN_VAL_PTR) + ".get(), " +
-	       GenIntVector(map) + ")";
+	return string("coerce_to_record(cast_intrusive<RecordType>(") + type_var + "), " +
+	       GenExpr(op1, GEN_VAL_PTR) + ".get(), " + GenIntVector(map) + ")";
 	}
 
 string CPPCompile::GenTableCoerceExpr(const Expr* e)
@@ -608,8 +632,7 @@ string CPPCompile::GenTableCoerceExpr(const Expr* e)
 	const auto& t = tc->GetType();
 	auto op1 = tc->GetOp1();
 
-	return string("table_coerce__CPP(") + GenExpr(op1, GEN_VAL_PTR) +
-	       ", " + GenTypeName(t) + ")";
+	return string("table_coerce__CPP(") + GenExpr(op1, GEN_VAL_PTR) + ", " + GenTypeName(t) + ")";
 	}
 
 string CPPCompile::GenVectorCoerceExpr(const Expr* e)
@@ -618,8 +641,7 @@ string CPPCompile::GenVectorCoerceExpr(const Expr* e)
 	const auto& op = vc->GetOp1();
 	const auto& t = vc->GetType<VectorType>();
 
-	return string("vector_coerce__CPP(" + GenExpr(op, GEN_VAL_PTR) +
-	       ", " + GenTypeName(t) + ")");
+	return string("vector_coerce__CPP(" + GenExpr(op, GEN_VAL_PTR) + ", " + GenTypeName(t) + ")");
 	}
 
 string CPPCompile::GenRecordConstructorExpr(const Expr* e)
@@ -643,8 +665,8 @@ string CPPCompile::GenRecordConstructorExpr(const Expr* e)
 			vals += ", ";
 		}
 
-	return string("record_constructor__CPP({") + vals + "}, " +
-	       "cast_intrusive<RecordType>(" + GenTypeName(t) + "))";
+	return string("record_constructor__CPP({") + vals + "}, " + "cast_intrusive<RecordType>(" +
+	       GenTypeName(t) + "))";
 	}
 
 string CPPCompile::GenSetConstructorExpr(const Expr* e)
@@ -657,10 +679,9 @@ string CPPCompile::GenSetConstructorExpr(const Expr* e)
 	string attr_vals;
 	BuildAttrs(attrs, attr_tags, attr_vals);
 
-	return string("set_constructor__CPP(") +
-		GenExprs(sc->GetOp1().get()) + ", " +
-		"cast_intrusive<TableType>(" + GenTypeName(t) + "), " +
-		attr_tags + ", " + attr_vals + ")";
+	return string("set_constructor__CPP(") + GenExprs(sc->GetOp1().get()) + ", " +
+	       "cast_intrusive<TableType>(" + GenTypeName(t) + "), " + attr_tags + ", " + attr_vals +
+	       ")";
 	}
 
 string CPPCompile::GenTableConstructorExpr(const Expr* e)
@@ -690,8 +711,7 @@ string CPPCompile::GenTableConstructorExpr(const Expr* e)
 
 		if ( index->Tag() == EXPR_LIST )
 			// Multiple indices.
-			indices += "index_val__CPP({" +
-				GenExpr(index, GEN_VAL_PTR) + "})";
+			indices += "index_val__CPP({" + GenExpr(index, GEN_VAL_PTR) + "})";
 		else
 			indices += GenExpr(index, GEN_VAL_PTR);
 
@@ -704,10 +724,9 @@ string CPPCompile::GenTableConstructorExpr(const Expr* e)
 			}
 		}
 
-	return string("table_constructor__CPP({") +
-		indices + "}, {" + vals + "}, " +
-		"cast_intrusive<TableType>(" + GenTypeName(t) + "), " +
-		attr_tags + ", " + attr_vals + ")";
+	return string("table_constructor__CPP({") + indices + "}, {" + vals + "}, " +
+	       "cast_intrusive<TableType>(" + GenTypeName(t) + "), " + attr_tags + ", " + attr_vals +
+	       ")";
 	}
 
 string CPPCompile::GenVectorConstructorExpr(const Expr* e)
@@ -715,9 +734,8 @@ string CPPCompile::GenVectorConstructorExpr(const Expr* e)
 	auto vc = static_cast<const VectorConstructorExpr*>(e);
 	const auto& t = vc->GetType();
 
-	return string("vector_constructor__CPP({") +
-		GenExpr(vc->GetOp1(), GEN_VAL_PTR) + "}, " +
-		"cast_intrusive<VectorType>(" + GenTypeName(t) + "))";
+	return string("vector_constructor__CPP({") + GenExpr(vc->GetOp1(), GEN_VAL_PTR) + "}, " +
+	       "cast_intrusive<VectorType>(" + GenTypeName(t) + "))";
 	}
 
 string CPPCompile::GenVal(const ValPtr& v)
@@ -744,19 +762,15 @@ string CPPCompile::GenVal(const ValPtr& v)
 	return d.Description();
 	}
 
-string CPPCompile::GenUnary(const Expr* e, GenType gt,
-                                 const char* op, const char* vec_op)
+string CPPCompile::GenUnary(const Expr* e, GenType gt, const char* op, const char* vec_op)
 	{
 	if ( e->GetType()->Tag() == TYPE_VECTOR )
 		return GenVectorOp(e, GenExpr(e->GetOp1(), GEN_NATIVE), vec_op);
 
-	return NativeToGT(string(op) + "(" +
-		          GenExpr(e->GetOp1(), GEN_NATIVE) + ")",
-		          e->GetType(), gt);
+	return NativeToGT(string(op) + "(" + GenExpr(e->GetOp1(), GEN_NATIVE) + ")", e->GetType(), gt);
 	}
 
-string CPPCompile::GenBinary(const Expr* e, GenType gt,
-                                  const char* op, const char* vec_op)
+string CPPCompile::GenBinary(const Expr* e, GenType gt, const char* op, const char* vec_op)
 	{
 	const auto& op1 = e->GetOp1();
 	const auto& op2 = e->GetOp2();
@@ -767,11 +781,9 @@ string CPPCompile::GenBinary(const Expr* e, GenType gt,
 		auto gen1 = GenExpr(op1, GEN_NATIVE);
 		auto gen2 = GenExpr(op2, GEN_NATIVE);
 
-		if ( t->Tag() == TYPE_VECTOR &&
-		     t->Yield()->Tag() == TYPE_STRING &&
+		if ( t->Tag() == TYPE_VECTOR && t->Yield()->Tag() == TYPE_STRING &&
 		     op2->GetType()->Tag() == TYPE_VECTOR )
-			return string("vec_str_op_") + vec_op + "__CPP(" +
-			       gen1 + ", " + gen2 + ")";
+			return string("vec_str_op_") + vec_op + "__CPP(" + gen1 + ", " + gen2 + ")";
 
 		return GenVectorOp(e, gen1, gen2, vec_op);
 		}
@@ -785,20 +797,30 @@ string CPPCompile::GenBinary(const Expr* e, GenType gt,
 	// employed to support an operation.
 	string flavor;
 
-	switch ( t->InternalType() ) {
-	case TYPE_INTERNAL_INT:		flavor = "i"; break;
-	case TYPE_INTERNAL_UNSIGNED:	flavor = "u"; break;
-	case TYPE_INTERNAL_DOUBLE:	flavor = "f"; break;
+	switch ( t->InternalType() )
+		{
+		case TYPE_INTERNAL_INT:
+			flavor = "i";
+			break;
+		case TYPE_INTERNAL_UNSIGNED:
+			flavor = "u";
+			break;
+		case TYPE_INTERNAL_DOUBLE:
+			flavor = "f";
+			break;
 
-	case TYPE_INTERNAL_STRING:	return GenBinaryString(e, gt, op);
-	case TYPE_INTERNAL_ADDR:	return GenBinaryAddr(e, gt, op);
-	case TYPE_INTERNAL_SUBNET:	return GenBinarySubNet(e, gt, op);
+		case TYPE_INTERNAL_STRING:
+			return GenBinaryString(e, gt, op);
+		case TYPE_INTERNAL_ADDR:
+			return GenBinaryAddr(e, gt, op);
+		case TYPE_INTERNAL_SUBNET:
+			return GenBinarySubNet(e, gt, op);
 
-	default:
-		if ( t->Tag() == TYPE_PATTERN )
-			return GenBinaryPattern(e, gt, op);
-		break;
-	}
+		default:
+			if ( t->Tag() == TYPE_PATTERN )
+				return GenBinaryPattern(e, gt, op);
+			break;
+		}
 
 	auto g1 = GenExpr(e->GetOp1(), GEN_NATIVE);
 	auto g2 = GenExpr(e->GetOp2(), GEN_NATIVE);
@@ -824,45 +846,45 @@ string CPPCompile::GenBinarySet(const Expr* e, GenType gt, const char* op)
 
 	string res;
 
-	switch ( e->Tag() ) {
-	case EXPR_AND:
-		res = v1 + "->Intersection(*" + v2 + ")";
-		break;
+	switch ( e->Tag() )
+		{
+		case EXPR_AND:
+			res = v1 + "->Intersection(*" + v2 + ")";
+			break;
 
-	case EXPR_OR:
-		res = v1 + "->Union(" + v2 + ")";
-		break;
+		case EXPR_OR:
+			res = v1 + "->Union(" + v2 + ")";
+			break;
 
-	case EXPR_SUB:
-		res = v1 + "->TakeOut(" + v2 + ")";
-		break;
+		case EXPR_SUB:
+			res = v1 + "->TakeOut(" + v2 + ")";
+			break;
 
-	case EXPR_EQ:
-		res = v1 + "->EqualTo(*" + v2 + ")";
-		break;
+		case EXPR_EQ:
+			res = v1 + "->EqualTo(*" + v2 + ")";
+			break;
 
-	case EXPR_NE:
-		res = string("! ") + v1 + "->EqualTo(*" + v2 + ")";
-		break;
+		case EXPR_NE:
+			res = string("! ") + v1 + "->EqualTo(*" + v2 + ")";
+			break;
 
-	case EXPR_LE:
-		res = v1 + "->IsSubsetOf(*" + v2 + ")";
-		break;
+		case EXPR_LE:
+			res = v1 + "->IsSubsetOf(*" + v2 + ")";
+			break;
 
-	case EXPR_LT:
-		res = string("(") + v1 + "->IsSubsetOf(*" + v2 + ") &&" +
-		      v1 + "->Size() < " + v2 + "->Size())";
-		break;
+		case EXPR_LT:
+			res = string("(") + v1 + "->IsSubsetOf(*" + v2 + ") &&" + v1 + "->Size() < " + v2 +
+			      "->Size())";
+			break;
 
-	default:
-		reporter->InternalError("bad type in CPPCompile::GenBinarySet");
-	}
+		default:
+			reporter->InternalError("bad type in CPPCompile::GenBinarySet");
+		}
 
 	return NativeToGT(res, e->GetType(), gt);
 	}
 
-string CPPCompile::GenBinaryString(const Expr* e, GenType gt,
-                                        const char* op)
+string CPPCompile::GenBinaryString(const Expr* e, GenType gt, const char* op)
 	{
 	auto v1 = GenExpr(e->GetOp1(), GEN_DONT_CARE) + "->AsString()";
 	auto v2 = GenExpr(e->GetOp2(), GEN_DONT_CARE) + "->AsString()";
@@ -877,17 +899,15 @@ string CPPCompile::GenBinaryString(const Expr* e, GenType gt,
 	return NativeToGT(res, e->GetType(), gt);
 	}
 
-string CPPCompile::GenBinaryPattern(const Expr* e, GenType gt,
-                                         const char* op)
+string CPPCompile::GenBinaryPattern(const Expr* e, GenType gt, const char* op)
 	{
 	auto v1 = GenExpr(e->GetOp1(), GEN_DONT_CARE) + "->AsPattern()";
 	auto v2 = GenExpr(e->GetOp2(), GEN_DONT_CARE) + "->AsPattern()";
 
-	auto func = e->Tag() == EXPR_AND ?
-	            "RE_Matcher_conjunction" : "RE_Matcher_disjunction";
+	auto func = e->Tag() == EXPR_AND ? "RE_Matcher_conjunction" : "RE_Matcher_disjunction";
 
-	return NativeToGT(string("make_intrusive<PatternVal>(") +
-	                  func + "(" + v1 + ", " + v2 + "))", e->GetType(), gt);
+	return NativeToGT(string("make_intrusive<PatternVal>(") + func + "(" + v1 + ", " + v2 + "))",
+	                  e->GetType(), gt);
 	}
 
 string CPPCompile::GenBinaryAddr(const Expr* e, GenType gt, const char* op)
@@ -896,8 +916,7 @@ string CPPCompile::GenBinaryAddr(const Expr* e, GenType gt, const char* op)
 
 	if ( e->Tag() == EXPR_DIVIDE )
 		{
-		auto gen = string("addr_mask__CPP(") + v1 + ", " +
-		           GenExpr(e->GetOp2(), GEN_NATIVE) + ")";
+		auto gen = string("addr_mask__CPP(") + v1 + ", " + GenExpr(e->GetOp2(), GEN_NATIVE) + ")";
 
 		return NativeToGT(gen, e->GetType(), gt);
 		}
@@ -915,8 +934,7 @@ string CPPCompile::GenBinarySubNet(const Expr* e, GenType gt, const char* op)
 	return NativeToGT(v1 + op + v2, e->GetType(), gt);
 	}
 
-string CPPCompile::GenEQ(const Expr* e, GenType gt,
-                         const char* op, const char* vec_op)
+string CPPCompile::GenEQ(const Expr* e, GenType gt, const char* op, const char* vec_op)
 	{
 	auto op1 = e->GetOp1();
 	auto op2 = e->GetOp2();
@@ -932,9 +950,8 @@ string CPPCompile::GenEQ(const Expr* e, GenType gt,
 	string negated(e->Tag() == EXPR_EQ ? "" : "! ");
 
 	if ( tag == TYPE_PATTERN )
-		return NativeToGT(negated + GenExpr(op1, GEN_DONT_CARE) +
-		                  "->MatchExactly(" +
-		                  GenExpr(op2, GEN_DONT_CARE) + "->AsString())",
+		return NativeToGT(negated + GenExpr(op1, GEN_DONT_CARE) + "->MatchExactly(" +
+		                      GenExpr(op2, GEN_DONT_CARE) + "->AsString())",
 		                  e->GetType(), gt);
 
 	if ( tag == TYPE_FUNC )
@@ -953,33 +970,31 @@ string CPPCompile::GenEQ(const Expr* e, GenType gt,
 	return GenBinary(e, gt, op, vec_op);
 	}
 
-string CPPCompile::GenAssign(const ExprPtr& lhs, const ExprPtr& rhs,
-                             const string& rhs_native,
-                             const string& rhs_val_ptr,
-                             GenType gt, bool top_level)
+string CPPCompile::GenAssign(const ExprPtr& lhs, const ExprPtr& rhs, const string& rhs_native,
+                             const string& rhs_val_ptr, GenType gt, bool top_level)
 	{
-	switch ( lhs->Tag() ) {
-	case EXPR_NAME:
-		return GenDirectAssign(lhs, rhs_native, rhs_val_ptr, gt, top_level);
+	switch ( lhs->Tag() )
+		{
+		case EXPR_NAME:
+			return GenDirectAssign(lhs, rhs_native, rhs_val_ptr, gt, top_level);
 
-	case EXPR_INDEX:
-		return GenIndexAssign(lhs, rhs, rhs_val_ptr, gt, top_level);
+		case EXPR_INDEX:
+			return GenIndexAssign(lhs, rhs, rhs_val_ptr, gt, top_level);
 
-	case EXPR_FIELD:
-		return GenFieldAssign(lhs, rhs, rhs_val_ptr, gt, top_level);
+		case EXPR_FIELD:
+			return GenFieldAssign(lhs, rhs, rhs_val_ptr, gt, top_level);
 
-	case EXPR_LIST:
-		return GenListAssign(lhs, rhs);
+		case EXPR_LIST:
+			return GenListAssign(lhs, rhs);
 
-	default:
-		reporter->InternalError("bad assigment node in CPPCompile::GenExpr");
-		return "XXX";
-	}
+		default:
+			reporter->InternalError("bad assigment node in CPPCompile::GenExpr");
+			return "XXX";
+		}
 	}
 
 string CPPCompile::GenDirectAssign(const ExprPtr& lhs, const string& rhs_native,
-                                   const string& rhs_val_ptr, GenType gt,
-                                   bool top_level)
+                                   const string& rhs_val_ptr, GenType gt, bool top_level)
 	{
 	auto n = lhs->AsNameExpr()->Id();
 	auto name = IDNameStr(n);
@@ -991,11 +1006,9 @@ string CPPCompile::GenDirectAssign(const ExprPtr& lhs, const string& rhs_native,
 		const auto& t = n->GetType();
 		auto gn = globals[n->Name()];
 
-		if ( t->Tag() == TYPE_FUNC &&
-		     t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
+		if ( t->Tag() == TYPE_FUNC && t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
 			{
-			gen = string("set_event__CPP(") + gn + ", " +
-			      rhs_val_ptr + ", " + gn + "_ev)";
+			gen = string("set_event__CPP(") + gn + ", " + rhs_val_ptr + ", " + gn + "_ev)";
 
 			if ( ! top_level )
 				gen = GenericValPtrToGT(gen, n->GetType(), gt);
@@ -1006,8 +1019,7 @@ string CPPCompile::GenDirectAssign(const ExprPtr& lhs, const string& rhs_native,
 
 		else
 			{
-			gen = string("set_global__CPP(") +
-			      gn + ", " + rhs_val_ptr + ")";
+			gen = string("set_global__CPP(") + gn + ", " + rhs_val_ptr + ")";
 			gen = GenericValPtrToGT(gen, n->GetType(), gt);
 			}
 		}
@@ -1017,8 +1029,7 @@ string CPPCompile::GenDirectAssign(const ExprPtr& lhs, const string& rhs_native,
 	return gen;
 	}
 
-string CPPCompile::GenIndexAssign(const ExprPtr& lhs, const ExprPtr& rhs,
-                                  const string& rhs_val_ptr,
+string CPPCompile::GenIndexAssign(const ExprPtr& lhs, const ExprPtr& rhs, const string& rhs_val_ptr,
                                   GenType gt, bool top_level)
 	{
 	auto gen = string("assign_to_index__CPP(");
@@ -1032,9 +1043,8 @@ string CPPCompile::GenIndexAssign(const ExprPtr& lhs, const ExprPtr& rhs,
 	return gen;
 	}
 
-string CPPCompile::GenFieldAssign(const ExprPtr& lhs, const ExprPtr& rhs,
-                                  const string& rhs_val_ptr, GenType gt,
-                                  bool top_level)
+string CPPCompile::GenFieldAssign(const ExprPtr& lhs, const ExprPtr& rhs, const string& rhs_val_ptr,
+                                  GenType gt, bool top_level)
 	{
 	auto rec = lhs->GetOp1();
 	auto rec_gen = GenExpr(rec, GEN_VAL_PTR);
@@ -1044,8 +1054,7 @@ string CPPCompile::GenFieldAssign(const ExprPtr& lhs, const ExprPtr& rhs,
 		return rec_gen + "->Assign(" + field + ", " + rhs_val_ptr + ")";
 	else
 		{
-		auto gen = string("assign_field__CPP(") + rec_gen +
-		           ", " + field + ", " + rhs_val_ptr + ")";
+		auto gen = string("assign_field__CPP(") + rec_gen + ", " + field + ", " + rhs_val_ptr + ")";
 		return GenericValPtrToGT(gen, rhs->GetType(), gt);
 		}
 	}
@@ -1086,14 +1095,12 @@ string CPPCompile::GenVectorOp(const Expr* e, string op, const char* vec_op)
 	auto gen = string("vec_op_") + vec_op + "__CPP(" + op + ")";
 
 	if ( ! IsArithmetic(e->GetType()->Yield()->Tag()) )
-		gen = string("vector_coerce_to__CPP(") + gen + ", " +
-			GenTypeName(e->GetType()) + ")";
+		gen = string("vector_coerce_to__CPP(") + gen + ", " + GenTypeName(e->GetType()) + ")";
 
 	return gen;
 	}
 
-string CPPCompile::GenVectorOp(const Expr* e, string op1, string op2,
-                               const char* vec_op)
+string CPPCompile::GenVectorOp(const Expr* e, string op1, string op2, const char* vec_op)
 	{
 	auto invoke = string(vec_op) + "__CPP(" + op1 + ", " + op2 + ")";
 
@@ -1104,8 +1111,7 @@ string CPPCompile::GenVectorOp(const Expr* e, string op1, string op2,
 
 	auto yt = e->GetType()->Yield()->Tag();
 	if ( ! IsArithmetic(yt) && yt != TYPE_STRING )
-		gen = string("vector_coerce_to__CPP(") + gen + ", " +
-		      GenTypeName(e->GetType()) + ")";
+		gen = string("vector_coerce_to__CPP(") + gen + ", " + GenTypeName(e->GetType()) + ")";
 
 	return gen;
 	}
@@ -1162,8 +1168,7 @@ string CPPCompile::GenField(const ExprPtr& rec, int field)
 	// Need to dynamically map the field.
 	int mapping_slot;
 
-	if ( record_field_mappings.count(rt) > 0 &&
-	     record_field_mappings[rt].count(field) > 0 )
+	if ( record_field_mappings.count(rt) > 0 && record_field_mappings[rt].count(field) > 0 )
 		// We're already tracking this field.
 		mapping_slot = record_field_mappings[rt][field];
 
@@ -1202,8 +1207,7 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev)
 	// Need to dynamically map the access.
 	int mapping_slot;
 
-	if ( enum_val_mappings.count(et) > 0 &&
-	     enum_val_mappings[et].count(v) > 0 )
+	if ( enum_val_mappings.count(et) > 0 && enum_val_mappings[et].count(v) > 0 )
 		// We're already tracking this value.
 		mapping_slot = enum_val_mappings[et][v];
 
@@ -1232,4 +1236,4 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev)
 	return string("enum_mapping[") + Fmt(mapping_slot) + "]";
 	}
 
-} // zeek::detail
+	} // zeek::detail

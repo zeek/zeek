@@ -8,18 +8,21 @@
 #include "zeek/Func.h"
 #include "zeek/script_opt/ProfileFunc.h"
 
-namespace zeek {
+namespace zeek
+	{
 
-namespace detail {
+namespace detail
+	{
 
 // A subclass of Func used for lambdas that the compiler creates for
 // complex initializations (expressions used in type attributes).
 // The usage is via derivation from this class, rather than direct
 // use of it.
 
-class CPPFunc : public Func {
+class CPPFunc : public Func
+	{
 public:
-	bool IsPure() const override	{ return is_pure; }
+	bool IsPure() const override { return is_pure; }
 
 	void Describe(ODesc* d) const override;
 
@@ -33,57 +36,56 @@ protected:
 
 	std::string name;
 	bool is_pure;
-};
-
+	};
 
 // A subclass of Stmt used to replace a function/event handler/hook body.
 
-class CPPStmt : public Stmt {
+class CPPStmt : public Stmt
+	{
 public:
-	CPPStmt(const char* _name) : Stmt(STMT_CPP), name(_name)	{ }
+	CPPStmt(const char* _name) : Stmt(STMT_CPP), name(_name) { }
 
-	const std::string& Name()	{ return name; }
+	const std::string& Name() { return name; }
 
 	// Sets/returns a hash associated with this statement.  A value
 	// of 0 means "not set".
-	p_hash_type GetHash() const	{ return hash; }
-	void SetHash(p_hash_type h)	{ hash = h; }
+	p_hash_type GetHash() const { return hash; }
+	void SetHash(p_hash_type h) { hash = h; }
 
 	// The following only get defined by lambda bodies.
-	virtual void SetLambdaCaptures(Frame* f)	{ }
-	virtual std::vector<ValPtr> SerializeLambdaCaptures() const
-		{ return std::vector<ValPtr>{}; }
+	virtual void SetLambdaCaptures(Frame* f) { }
+	virtual std::vector<ValPtr> SerializeLambdaCaptures() const { return std::vector<ValPtr>{}; }
 
-	virtual IntrusivePtr<CPPStmt> Clone()	
-		{
-		return {NewRef{}, this};
-		}
+	virtual IntrusivePtr<CPPStmt> Clone() { return {NewRef{}, this}; }
 
 protected:
 	// This method being called means that the inliner is running
 	// on compiled code, which shouldn't happen.
-	StmtPtr Duplicate() override	{ ASSERT(0); return ThisPtr(); }
+	StmtPtr Duplicate() override
+		{
+		ASSERT(0);
+		return ThisPtr();
+		}
 
-	TraversalCode Traverse(TraversalCallback* cb) const override
-		{ return TC_CONTINUE; }
+	TraversalCode Traverse(TraversalCallback* cb) const override { return TC_CONTINUE; }
 
 	std::string name;
 	p_hash_type hash = 0ULL;
-};
+	};
 
 using CPPStmtPtr = IntrusivePtr<CPPStmt>;
-
 
 // For script-level lambdas, a ScriptFunc subclass that knows how to
 // deal with its captures for serialization.  Different from CPPFunc in
 // that CPPFunc is for lambdas generated directly by the compiler,
 // rather than those explicitly present in scripts.
 
-class CPPLambdaFunc : public ScriptFunc {
+class CPPLambdaFunc : public ScriptFunc
+	{
 public:
 	CPPLambdaFunc(std::string name, FuncTypePtr ft, CPPStmtPtr l_body);
 
-	bool HasCopySemantics() const override	{ return true; }
+	bool HasCopySemantics() const override { return true; }
 
 protected:
 	// Methods related to sending lambdas via Broker.
@@ -93,17 +95,17 @@ protected:
 	FuncPtr DoClone() override;
 
 	CPPStmtPtr l_body;
-};
-
+	};
 
 // Information associated with a given compiled script body: its
 // Stmt subclass, priority, and any events that should be registered
 // upon instantiating the body.
-struct CompiledScript {
-	CPPStmtPtr body; 
+struct CompiledScript
+	{
+	CPPStmtPtr body;
 	int priority;
 	std::vector<std::string> events;
-};
+	};
 
 // Maps hashes to compiled information.
 extern std::unordered_map<p_hash_type, CompiledScript> compiled_scripts;
@@ -113,8 +115,7 @@ extern std::unordered_map<p_hash_type, CompiledScript> compiled_scripts;
 // the body twice, leading to two copies.  Indexed first by the name
 // of the function, and then via the hash of the body that has been
 // added to it.
-extern std::unordered_map<std::string, std::unordered_set<p_hash_type>>
- added_bodies;
+extern std::unordered_map<std::string, std::unordered_set<p_hash_type>> added_bodies;
 
 // Maps hashes to standalone script initialization callbacks.
 extern std::unordered_map<p_hash_type, void (*)()> standalone_callbacks;
@@ -123,6 +124,6 @@ extern std::unordered_map<p_hash_type, void (*)()> standalone_callbacks;
 // load_CPP() BiF.
 extern std::vector<void (*)()> standalone_activations;
 
-} // namespace detail
+	} // namespace detail
 
-} // namespace zeek
+	} // namespace zeek

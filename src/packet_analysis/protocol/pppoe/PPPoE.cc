@@ -4,10 +4,7 @@
 
 using namespace zeek::packet_analysis::PPPoE;
 
-PPPoEAnalyzer::PPPoEAnalyzer()
-	: zeek::packet_analysis::Analyzer("PPPoE")
-	{
-	}
+PPPoEAnalyzer::PPPoEAnalyzer() : zeek::packet_analysis::Analyzer("PPPoE") { }
 
 bool PPPoEAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{

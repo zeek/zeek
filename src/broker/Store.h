@@ -1,17 +1,17 @@
 #pragma once
 
-#include <broker/store.hh>
-#include <broker/store_event.hh>
 #include <broker/backend.hh>
 #include <broker/backend_options.hh>
+#include <broker/store.hh>
+#include <broker/store_event.hh>
 
 #include "zeek/OpaqueVal.h"
 #include "zeek/Trigger.h"
-
-#include "zeek/broker/store.bif.h"
 #include "zeek/broker/data.bif.h"
+#include "zeek/broker/store.bif.h"
 
-namespace zeek::Broker::detail {
+namespace zeek::Broker::detail
+	{
 
 extern OpaqueTypePtr opaque_of_store_handle;
 
@@ -69,19 +69,17 @@ static broker::optional<broker::timespan> convert_expiry(double e)
 /**
  * Used for asynchronous data store queries which use "when" statements.
  */
-class StoreQueryCallback {
+class StoreQueryCallback
+	{
 public:
-	StoreQueryCallback(zeek::detail::trigger::Trigger* arg_trigger, const zeek::detail::CallExpr* arg_call,
-	                   broker::store store)
+	StoreQueryCallback(zeek::detail::trigger::Trigger* arg_trigger,
+	                   const zeek::detail::CallExpr* arg_call, broker::store store)
 		: trigger(arg_trigger), call(arg_call), store(std::move(store))
 		{
 		Ref(trigger);
 		}
 
-	~StoreQueryCallback()
-		{
-		Unref(trigger);
-		}
+	~StoreQueryCallback() { Unref(trigger); }
 
 	void Result(const RecordValPtr& result)
 		{
@@ -96,31 +94,29 @@ public:
 		trigger->Release();
 		}
 
-	bool Disabled() const
-		{ return trigger->Disabled(); }
+	bool Disabled() const { return trigger->Disabled(); }
 
-	const broker::store& Store() const
-		{ return store; }
+	const broker::store& Store() const { return store; }
 
 private:
-
 	zeek::detail::trigger::Trigger* trigger;
 	const zeek::detail::CallExpr* call;
 	broker::store store;
-};
+	};
 
 /**
  * An opaque handle which wraps a Broker data store.
  */
-class StoreHandleVal : public OpaqueVal {
+class StoreHandleVal : public OpaqueVal
+	{
 public:
-	StoreHandleVal()
-		: OpaqueVal(Broker::detail::opaque_of_store_handle)
-		{}
+	StoreHandleVal() : OpaqueVal(Broker::detail::opaque_of_store_handle) { }
 
 	StoreHandleVal(broker::store s)
-		: OpaqueVal(Broker::detail::opaque_of_store_handle), store{std::move(s)}, proxy{store}, store_pid{store.frontend_id()}, forward_to{}, have_store{true}
-		{ }
+		: OpaqueVal(Broker::detail::opaque_of_store_handle), store{std::move(s)}, proxy{store},
+		  store_pid{store.frontend_id()}, forward_to{}, have_store{true}
+		{
+		}
 
 	void ValDescribe(ODesc* d) const override;
 
@@ -132,18 +128,15 @@ public:
 	bool have_store = false;
 
 protected:
-
-	IntrusivePtr<Val> DoClone(CloneState* state) override
-		{ return { NewRef{}, this }; }
+	IntrusivePtr<Val> DoClone(CloneState* state) override { return {NewRef{}, this}; }
 
 	DECLARE_OPAQUE_VALUE(StoreHandleVal)
-};
+	};
 
 // Helper function to construct a broker backend type from script land.
 broker::backend to_backend_type(BifEnum::Broker::BackendType type);
 
 // Helper function to construct broker backend options from script land.
-broker::backend_options to_backend_options(broker::backend backend,
-                                           RecordVal* options);
+broker::backend_options to_backend_options(broker::backend backend, RecordVal* options);
 
-} // namespace zeek::Broker::detail
+	} // namespace zeek::Broker::detail

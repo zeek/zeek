@@ -2,29 +2,39 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
-#include <memory>
-#include <vector>
-#include <string>
-
 #include <broker/expected.hh>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "zeek/probabilistic/BitVector.h"
 #include "zeek/probabilistic/Hasher.h"
+#include "zeek/zeek-config.h"
 
-namespace broker { class data; }
+namespace broker
+	{
+class data;
+	}
 
-namespace zeek::probabilistic {
-namespace detail { class CounterVector; }
+namespace zeek::probabilistic
+	{
+namespace detail
+	{
+class CounterVector;
+	}
 
 /** Types of derived BloomFilter classes. */
-enum BloomFilterType { Basic, Counting };
+enum BloomFilterType
+	{
+	Basic,
+	Counting
+	};
 
 /**
  * The abstract base class for Bloom filters.
  */
-class BloomFilter {
+class BloomFilter
+	{
 public:
 	/**
 	 * Destructor.
@@ -102,12 +112,13 @@ protected:
 	virtual BloomFilterType Type() const = 0;
 
 	const detail::Hasher* hasher;
-};
+	};
 
 /**
  * A basic Bloom filter.
  */
-class BasicBloomFilter : public BloomFilter {
+class BasicBloomFilter : public BloomFilter
+	{
 public:
 	/**
 	 * Constructs a basic Bloom filter with a given number of cells. The
@@ -173,17 +184,17 @@ protected:
 	size_t Count(const zeek::detail::HashKey* key) const override;
 	broker::expected<broker::data> DoSerialize() const override;
 	bool DoUnserialize(const broker::data& data) override;
-	BloomFilterType Type() const override
-		{ return BloomFilterType::Basic; }
+	BloomFilterType Type() const override { return BloomFilterType::Basic; }
 
 private:
 	detail::BitVector* bits;
-};
+	};
 
 /**
  * A counting Bloom filter.
  */
-class CountingBloomFilter : public BloomFilter {
+class CountingBloomFilter : public BloomFilter
+	{
 public:
 	/**
 	 * Constructs a counting Bloom filter.
@@ -222,11 +233,10 @@ protected:
 	size_t Count(const zeek::detail::HashKey* key) const override;
 	broker::expected<broker::data> DoSerialize() const override;
 	bool DoUnserialize(const broker::data& data) override;
-	BloomFilterType Type() const override
-		{ return BloomFilterType::Counting; }
+	BloomFilterType Type() const override { return BloomFilterType::Counting; }
 
 private:
 	detail::CounterVector* cells;
-};
+	};
 
-} // namespace zeek::probabilistic
+	} // namespace zeek::probabilistic

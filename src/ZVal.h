@@ -6,7 +6,8 @@
 
 #include "zeek/zeek-config.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class AddrVal;
 class File;
@@ -35,9 +36,10 @@ using TypeValPtr = IntrusivePtr<TypeVal>;
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
 
-namespace detail {
-	class ZBody;
-}
+namespace detail
+	{
+class ZBody;
+	}
 
 // Note that a ZVal by itself is ambiguous: it doesn't track its type.
 // This makes them consume less memory and cheaper to copy.  It does
@@ -50,7 +52,7 @@ namespace detail {
 // to the managed_val member, which both simplifies memory management
 // and is also required for sharing of ZAM frame slots.
 
-union ZVal {
+	union ZVal {
 	// Constructor for hand-populating the values.
 	ZVal() { managed_val = nullptr; }
 
@@ -61,79 +63,79 @@ union ZVal {
 	ZVal(const TypePtr& t);
 
 	// Construct directly.
-	ZVal(bro_int_t v)	{ int_val = v; }
-	ZVal(bro_uint_t v)	{ uint_val = v; }
-	ZVal(double v)		{ double_val = v; }
+	ZVal(bro_int_t v) { int_val = v; }
+	ZVal(bro_uint_t v) { uint_val = v; }
+	ZVal(double v) { double_val = v; }
 
-	ZVal(StringVal* v)	{ string_val = v; }
-	ZVal(AddrVal* v)	{ addr_val = v; }
-	ZVal(SubNetVal* v)	{ subnet_val = v; }
-	ZVal(File* v)		{ file_val = v; }
-	ZVal(Func* v)		{ func_val = v; }
-	ZVal(ListVal* v)	{ list_val = v; }
-	ZVal(OpaqueVal* v)	{ opaque_val = v; }
-	ZVal(PatternVal* v)	{ re_val = v; }
-	ZVal(TableVal* v)	{ table_val = v; }
-	ZVal(RecordVal* v)	{ record_val = v; }
-	ZVal(VectorVal* v)	{ vector_val = v; }
-	ZVal(TypeVal* v)	{ type_val = v; }
-	ZVal(Val* v)		{ any_val = v; }
+	ZVal(StringVal* v) { string_val = v; }
+	ZVal(AddrVal* v) { addr_val = v; }
+	ZVal(SubNetVal* v) { subnet_val = v; }
+	ZVal(File* v) { file_val = v; }
+	ZVal(Func* v) { func_val = v; }
+	ZVal(ListVal* v) { list_val = v; }
+	ZVal(OpaqueVal* v) { opaque_val = v; }
+	ZVal(PatternVal* v) { re_val = v; }
+	ZVal(TableVal* v) { table_val = v; }
+	ZVal(RecordVal* v) { record_val = v; }
+	ZVal(VectorVal* v) { vector_val = v; }
+	ZVal(TypeVal* v) { type_val = v; }
+	ZVal(Val* v) { any_val = v; }
 
-	ZVal(StringValPtr v)	{ string_val = v.release(); }
-	ZVal(AddrValPtr v)	{ addr_val = v.release(); }
-	ZVal(SubNetValPtr v)	{ subnet_val = v.release(); }
-	ZVal(ListValPtr v)	{ list_val = v.release(); }
-	ZVal(OpaqueValPtr v)	{ opaque_val = v.release(); }
-	ZVal(PatternValPtr v)	{ re_val = v.release(); }
-	ZVal(TableValPtr v)	{ table_val = v.release(); }
-	ZVal(RecordValPtr v)	{ record_val = v.release(); }
-	ZVal(VectorValPtr v)	{ vector_val = v.release(); }
-	ZVal(TypeValPtr v)	{ type_val = v.release(); }
+	ZVal(StringValPtr v) { string_val = v.release(); }
+	ZVal(AddrValPtr v) { addr_val = v.release(); }
+	ZVal(SubNetValPtr v) { subnet_val = v.release(); }
+	ZVal(ListValPtr v) { list_val = v.release(); }
+	ZVal(OpaqueValPtr v) { opaque_val = v.release(); }
+	ZVal(PatternValPtr v) { re_val = v.release(); }
+	ZVal(TableValPtr v) { table_val = v.release(); }
+	ZVal(RecordValPtr v) { record_val = v.release(); }
+	ZVal(VectorValPtr v) { vector_val = v.release(); }
+	ZVal(TypeValPtr v) { type_val = v.release(); }
 
 	// Convert to a higher-level script value.  The caller needs to
 	// ensure that they're providing the correct type.
 	ValPtr ToVal(const TypePtr& t) const;
 
-	bro_int_t AsInt() const		{ return int_val; }
-	bro_uint_t AsCount() const	{ return uint_val; }
-	double AsDouble() const		{ return double_val; }
+	bro_int_t AsInt() const { return int_val; }
+	bro_uint_t AsCount() const { return uint_val; }
+	double AsDouble() const { return double_val; }
 
-	StringVal* AsString() const	{ return string_val; }
-	AddrVal* AsAddr() const		{ return addr_val; }
-	SubNetVal* AsSubNet() const	{ return subnet_val; }
-	File* AsFile() const		{ return file_val; }
-	Func* AsFunc() const		{ return func_val; }
-	ListVal* AsList() const		{ return list_val; }
-	OpaqueVal* AsOpaque() const	{ return opaque_val; }
-	PatternVal* AsPattern() const	{ return re_val; }
-	TableVal* AsTable() const	{ return table_val; }
-	RecordVal* AsRecord() const	{ return record_val; }
-	VectorVal* AsVector() const	{ return vector_val; }
-	TypeVal* AsType() const		{ return type_val; }
-	Val* AsAny() const		{ return any_val; }
+	StringVal* AsString() const { return string_val; }
+	AddrVal* AsAddr() const { return addr_val; }
+	SubNetVal* AsSubNet() const { return subnet_val; }
+	File* AsFile() const { return file_val; }
+	Func* AsFunc() const { return func_val; }
+	ListVal* AsList() const { return list_val; }
+	OpaqueVal* AsOpaque() const { return opaque_val; }
+	PatternVal* AsPattern() const { return re_val; }
+	TableVal* AsTable() const { return table_val; }
+	RecordVal* AsRecord() const { return record_val; }
+	VectorVal* AsVector() const { return vector_val; }
+	TypeVal* AsType() const { return type_val; }
+	Val* AsAny() const { return any_val; }
 
-	Obj* ManagedVal() const		{ return managed_val; }
-	void ClearManagedVal()		{ managed_val = nullptr; }
+	Obj* ManagedVal() const { return managed_val; }
+	void ClearManagedVal() { managed_val = nullptr; }
 
 	// The following return references that can be used to
 	// populate the ZVal.  Handy for compiled ZAM code.
-	bro_int_t& AsIntRef()		{ return int_val; }
-	bro_uint_t& AsCountRef()	{ return uint_val; }
-	double& AsDoubleRef()		{ return double_val; }
-	StringVal*& AsStringRef()	{ return string_val; }
-	AddrVal*& AsAddrRef()		{ return addr_val; }
-	SubNetVal*& AsSubNetRef()	{ return subnet_val; }
-	File*& AsFileRef()		{ return file_val; }
-	Func*& AsFuncRef()		{ return func_val; }
-	ListVal*& AsListRef()		{ return list_val; }
-	OpaqueVal*& AsOpaqueRef()	{ return opaque_val; }
-	PatternVal*& AsPatternRef()	{ return re_val; }
-	TableVal*& AsTableRef()		{ return table_val; }
-	RecordVal*& AsRecordRef()	{ return record_val; }
-	VectorVal*& AsVectorRef()	{ return vector_val; }
-	TypeVal*& AsTypeRef()		{ return type_val; }
-	Val*& AsAnyRef()		{ return any_val; }
-	Obj*& ManagedValRef()		{ return managed_val; }
+	bro_int_t& AsIntRef() { return int_val; }
+	bro_uint_t& AsCountRef() { return uint_val; }
+	double& AsDoubleRef() { return double_val; }
+	StringVal*& AsStringRef() { return string_val; }
+	AddrVal*& AsAddrRef() { return addr_val; }
+	SubNetVal*& AsSubNetRef() { return subnet_val; }
+	File*& AsFileRef() { return file_val; }
+	Func*& AsFuncRef() { return func_val; }
+	ListVal*& AsListRef() { return list_val; }
+	OpaqueVal*& AsOpaqueRef() { return opaque_val; }
+	PatternVal*& AsPatternRef() { return re_val; }
+	TableVal*& AsTableRef() { return table_val; }
+	RecordVal*& AsRecordRef() { return record_val; }
+	VectorVal*& AsVectorRef() { return vector_val; }
+	TypeVal*& AsTypeRef() { return type_val; }
+	Val*& AsAnyRef() { return any_val; }
+	Obj*& ManagedValRef() { return managed_val; }
 
 	// True if a given type is one for which we manage the associated
 	// memory internally.
@@ -141,10 +143,7 @@ union ZVal {
 
 	// Deletes a managed value.  Caller needs to ensure that the ZVal
 	// indeed holds such.
-	static void DeleteManagedType(ZVal& v)
-		{
-		Unref(v.ManagedVal());
-		}
+	static void DeleteManagedType(ZVal& v) { Unref(v.ManagedVal()); }
 
 	// Deletes a possibly-managed value.
 	static void DeleteIfManaged(ZVal& v, const TypePtr& t)
@@ -159,7 +158,9 @@ union ZVal {
 	// this flag can be combined with a general-purpose error flag,
 	// allowing inner loops to only have to test a single flag.
 	static void SetZValNilStatusAddr(bool* _zval_was_nil_addr)
-		{ zval_was_nil_addr = _zval_was_nil_addr; }
+		{
+		zval_was_nil_addr = _zval_was_nil_addr;
+		}
 
 private:
 	friend class RecordVal;
@@ -205,6 +206,6 @@ private:
 	// particular ZVal that produces the issue, and just wants to
 	// know whether it occurred at some point.
 	static bool* zval_was_nil_addr;
-};
+	};
 
-} // zeek
+	} // zeek

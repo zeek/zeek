@@ -4,8 +4,8 @@
 #include "zeek/RE.h"
 #include "zeek/script_opt/CPP/Compile.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 using namespace std;
 
@@ -99,72 +99,72 @@ bool CPPCompile::AddConstant(const ValPtr& vp)
 
 	auto tag = t->Tag();
 
-	switch ( tag ) {
-	case TYPE_STRING:
-		AddStringConstant(vp, const_name);
-		break;
-
-	case TYPE_PATTERN:
-		AddPatternConstant(vp, const_name);
-		break;
-
-	case TYPE_LIST:
-		AddListConstant(vp, const_name);
-		break;
-
-	case TYPE_RECORD:
-		AddRecordConstant(vp, const_name);
-		break;
-
-	case TYPE_TABLE:
-		AddTableConstant(vp, const_name);
-		break;
-
-	case TYPE_VECTOR:
-		AddVectorConstant(vp, const_name);
-		break;
-
-	case TYPE_ADDR:
-	case TYPE_SUBNET:
+	switch ( tag )
 		{
-		auto prefix = (tag == TYPE_ADDR) ? "Addr" : "SubNet";
+		case TYPE_STRING:
+			AddStringConstant(vp, const_name);
+			break;
 
-		Emit("%sValPtr %s;", prefix, const_name);
+		case TYPE_PATTERN:
+			AddPatternConstant(vp, const_name);
+			break;
 
-		ODesc d;
-		v->Describe(&d);
+		case TYPE_LIST:
+			AddListConstant(vp, const_name);
+			break;
 
-		AddInit(v, const_name,
-			string("make_intrusive<") + prefix +
-			"Val>(\"" + d.Description() + "\")");
+		case TYPE_RECORD:
+			AddRecordConstant(vp, const_name);
+			break;
+
+		case TYPE_TABLE:
+			AddTableConstant(vp, const_name);
+			break;
+
+		case TYPE_VECTOR:
+			AddVectorConstant(vp, const_name);
+			break;
+
+		case TYPE_ADDR:
+		case TYPE_SUBNET:
+				{
+				auto prefix = (tag == TYPE_ADDR) ? "Addr" : "SubNet";
+
+				Emit("%sValPtr %s;", prefix, const_name);
+
+				ODesc d;
+				v->Describe(&d);
+
+				AddInit(v, const_name,
+				        string("make_intrusive<") + prefix + "Val>(\"" + d.Description() + "\")");
+				}
+			break;
+
+		case TYPE_FUNC:
+			Emit("FuncValPtr %s;", const_name);
+
+			// We can't generate the initialization now because it
+			// depends on first having compiled the associated body,
+			// so we know its hash.  So for now we just note it
+			// to deal with later.
+			func_vars[v->AsFuncVal()] = const_name;
+			break;
+
+		case TYPE_FILE:
+				{
+				Emit("FileValPtr %s;", const_name);
+
+				auto f = cast_intrusive<FileVal>(vp)->Get();
+
+				AddInit(v, const_name,
+				        string("make_intrusive<FileVal>(") + "make_intrusive<File>(\"" + f->Name() +
+				            "\", \"w\"))");
+				}
+			break;
+
+		default:
+			reporter->InternalError("bad constant type in CPPCompile::AddConstant");
 		}
-		break;
-
-	case TYPE_FUNC:
-		Emit("FuncValPtr %s;", const_name);
-
-		// We can't generate the initialization now because it
-		// depends on first having compiled the associated body,
-		// so we know its hash.  So for now we just note it
-		// to deal with later.
-		func_vars[v->AsFuncVal()] = const_name;
-		break;
-
-	case TYPE_FILE:
-		{
-		Emit("FileValPtr %s;", const_name);
-
-		auto f = cast_intrusive<FileVal>(vp)->Get();
-
-		AddInit(v, const_name,
-			string("make_intrusive<FileVal>(") +
-			"make_intrusive<File>(\"" + f->Name() + "\", \"w\"))");
-		}
-		break;
-
-	default:
-		reporter->InternalError("bad constant type in CPPCompile::AddConstant");
-	}
 
 	return true;
 	}
@@ -186,8 +186,7 @@ void CPPCompile::AddPatternConstant(const ValPtr& v, string& const_name)
 
 	auto re = v->AsPatternVal()->Get();
 
-	AddInit(v, string("{ auto re = new RE_Matcher(") +
-	        CPPEscape(re->OrigText()) + ");");
+	AddInit(v, string("{ auto re = new RE_Matcher(") + CPPEscape(re->OrigText()) + ");");
 
 	if ( re->IsCaseInsensitive() )
 		AddInit(v, "re->MakeCaseInsensitive();");
@@ -227,8 +226,9 @@ void CPPCompile::AddRecordConstant(const ValPtr& v, string& const_name)
 
 	NoteInitDependency(v, TypeRep(t));
 
-	AddInit(v, const_name, string("make_intrusive<RecordVal>(") +
-	        "cast_intrusive<RecordType>(" + GenTypeName(t) + "))");
+	AddInit(v, const_name,
+	        string("make_intrusive<RecordVal>(") + "cast_intrusive<RecordType>(" + GenTypeName(t) +
+	            "))");
 
 	auto r = cast_intrusive<RecordVal>(v);
 	auto n = r->NumFields();
@@ -240,8 +240,7 @@ void CPPCompile::AddRecordConstant(const ValPtr& v, string& const_name)
 		if ( r_i )
 			{
 			auto r_i_c = BuildConstant(v, r_i);
-			AddInit(v, const_name + "->Assign(" + Fmt(static_cast<int>(i)) +
-			        ", " + r_i_c + ");");
+			AddInit(v, const_name + "->Assign(" + Fmt(static_cast<int>(i)) + ", " + r_i_c + ");");
 			}
 		}
 	}
@@ -254,8 +253,9 @@ void CPPCompile::AddTableConstant(const ValPtr& v, string& const_name)
 
 	NoteInitDependency(v, TypeRep(t));
 
-	AddInit(v, const_name, string("make_intrusive<TableVal>(") +
-	        "cast_intrusive<TableType>(" + GenTypeName(t) + "))");
+	AddInit(v, const_name,
+	        string("make_intrusive<TableVal>(") + "cast_intrusive<TableType>(" + GenTypeName(t) +
+	            "))");
 
 	auto tv = cast_intrusive<TableVal>(v);
 	auto tv_map = tv->ToMap();
@@ -276,8 +276,9 @@ void CPPCompile::AddVectorConstant(const ValPtr& v, string& const_name)
 
 	NoteInitDependency(v, TypeRep(t));
 
-	AddInit(v, const_name, string("make_intrusive<VectorVal>(") +
-	        "cast_intrusive<VectorType>(" + GenTypeName(t) + "))");
+	AddInit(v, const_name,
+	        string("make_intrusive<VectorVal>(") + "cast_intrusive<VectorType>(" + GenTypeName(t) +
+	            "))");
 
 	auto vv = cast_intrusive<VectorVal>(v);
 	auto n = vv->Size();
@@ -290,4 +291,4 @@ void CPPCompile::AddVectorConstant(const ValPtr& v, string& const_name)
 		}
 	}
 
-} // zeek::detail
+	} // zeek::detail

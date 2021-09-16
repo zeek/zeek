@@ -6,19 +6,16 @@
 #include "zeek/DebugLogger.h"
 #include "zeek/Reporter.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 std::list<ScannedFile> files_scanned;
 std::vector<std::string> sig_files;
 
-ScannedFile::ScannedFile(int arg_include_level,
-                         std::string arg_name,
-                         bool arg_skipped,
+ScannedFile::ScannedFile(int arg_include_level, std::string arg_name, bool arg_skipped,
                          bool arg_prefixes_checked)
-	: include_level(arg_include_level),
-	  skipped(arg_skipped),
-	  prefixes_checked(arg_prefixes_checked),
-	  name(std::move(arg_name))
+	: include_level(arg_include_level), skipped(arg_skipped),
+	  prefixes_checked(arg_prefixes_checked), name(std::move(arg_name))
 	{
 	if ( name == canonical_stdin_path )
 		canonical_path = canonical_stdin_path;
@@ -28,8 +25,8 @@ ScannedFile::ScannedFile(int arg_include_level,
 		auto res = realpath(name.data(), buf);
 
 		if ( ! res )
-			zeek::reporter->FatalError("failed to get realpath() of %s: %s",
-			                           name.data(), strerror(errno));
+			zeek::reporter->FatalError("failed to get realpath() of %s: %s", name.data(),
+			                           strerror(errno));
 
 		canonical_path = res;
 		}
@@ -50,4 +47,4 @@ bool ScannedFile::AlreadyScanned() const
 	return rval;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

@@ -2,17 +2,18 @@
 
 #include "zeek/packet_analysis/Manager.h"
 
+#include "zeek/RunState.h"
+#include "zeek/Stats.h"
+#include "zeek/iosource/PktDumper.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Dispatcher.h"
 #include "zeek/zeek-bif.h"
-#include "zeek/Stats.h"
-#include "zeek/RunState.h"
-#include "zeek/iosource/PktDumper.h"
 
 using namespace zeek::packet_analysis;
 
 Manager::Manager()
-	: plugin::ComponentManager<packet_analysis::Tag, packet_analysis::Component>("PacketAnalyzer", "Tag")
+	: plugin::ComponentManager<packet_analysis::Tag, packet_analysis::Component>("PacketAnalyzer",
+                                                                                 "Tag")
 	{
 	}
 
@@ -40,9 +41,8 @@ void Manager::InitPostScript()
 	auto pkt_profile_file = id::find_val("pkt_profile_file");
 
 	if ( detail::pkt_profile_mode && detail::pkt_profile_freq > 0 && pkt_profile_file )
-		pkt_profiler = new detail::PacketProfiler(detail::pkt_profile_mode,
-		                                          detail::pkt_profile_freq,
-		                                          pkt_profile_file->AsFile());
+		pkt_profiler = new detail::PacketProfiler(
+			detail::pkt_profile_mode, detail::pkt_profile_freq, pkt_profile_file->AsFile());
 
 	unknown_sampling_rate = id::find_val("UnknownProtocol::sampling_rate")->AsCount();
 	unknown_sampling_threshold = id::find_val("UnknownProtocol::sampling_threshold")->AsCount();
@@ -50,9 +50,7 @@ void Manager::InitPostScript()
 	unknown_first_bytes_count = id::find_val("UnknownProtocol::first_bytes_count")->AsCount();
 	}
 
-void Manager::Done()
-	{
-	}
+void Manager::Done() { }
 
 void Manager::DumpDebug()
 	{
@@ -67,7 +65,7 @@ void Manager::DumpDebug()
 #endif
 	}
 
-AnalyzerPtr Manager::GetAnalyzer(EnumVal *val)
+AnalyzerPtr Manager::GetAnalyzer(EnumVal* val)
 	{
 	auto analyzer_comp = Lookup(val);
 	if ( ! analyzer_comp )
@@ -106,8 +104,7 @@ void Manager::ProcessPacket(Packet* packet)
 		}
 
 	// Start packet analysis
-	root_analyzer->ForwardPacket(packet->cap_len, packet->data,
-	                             packet, packet->link_type);
+	root_analyzer->ForwardPacket(packet->cap_len, packet->data, packet, packet->link_type);
 
 	if ( raw_packet )
 		event_mgr.Enqueue(raw_packet, packet->ToRawPktHdrVal());
@@ -134,7 +131,8 @@ AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag)
 
 	if ( ! c->Factory() )
 		{
-		reporter->InternalWarning("analyzer %s cannot be instantiated dynamically", GetComponentName(tag).c_str());
+		reporter->InternalWarning("analyzer %s cannot be instantiated dynamically",
+		                          GetComponentName(tag).c_str());
 		return nullptr;
 		}
 
@@ -148,8 +146,10 @@ AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag)
 
 	if ( tag != a->GetAnalyzerTag() )
 		{
-		reporter->InternalError("Mismatch of requested analyzer %s and instantiated analyzer %s. This usually means that the plugin author made a mistake.",
-								GetComponentName(tag).c_str(), GetComponentName(a->GetAnalyzerTag()).c_str());
+		reporter->InternalError("Mismatch of requested analyzer %s and instantiated analyzer %s. "
+		                        "This usually means that the plugin author made a mistake.",
+		                        GetComponentName(tag).c_str(),
+		                        GetComponentName(a->GetAnalyzerTag()).c_str());
 		}
 
 	return a;
@@ -161,7 +161,7 @@ AnalyzerPtr Manager::InstantiateAnalyzer(const std::string& name)
 	return tag ? InstantiateAnalyzer(tag) : nullptr;
 	}
 
-void Manager::DumpPacket(const Packet *pkt, int len)
+void Manager::DumpPacket(const Packet* pkt, int len)
 	{
 	if ( ! run_state::detail::pkt_dumper )
 		return;
@@ -171,28 +171,33 @@ void Manager::DumpPacket(const Packet *pkt, int len)
 		if ( (uint32_t)len > pkt->cap_len )
 			reporter->Warning("bad modified caplen");
 		else
-			const_cast<Packet *>(pkt)->cap_len = len;
+			const_cast<Packet*>(pkt)->cap_len = len;
 		}
 
 	run_state::detail::pkt_dumper->Dump(pkt);
 	}
 
-class UnknownProtocolTimer final : public zeek::detail::Timer {
+class UnknownProtocolTimer final : public zeek::detail::Timer
+	{
 public:
-	// Represents a combination of an analyzer name and protocol identifier, where the identifier was
-	// reported as unknown by the analyzer.
+	// Represents a combination of an analyzer name and protocol identifier, where the identifier
+	// was reported as unknown by the analyzer.
 	using UnknownProtocolPair = std::pair<std::string, uint32_t>;
 
 	UnknownProtocolTimer(double t, UnknownProtocolPair p, double timeout)
 		: zeek::detail::Timer(t + timeout, zeek::detail::TIMER_UNKNOWN_PROTOCOL_EXPIRE),
 		  unknown_protocol(std::move(p))
-		{}
+		{
+		}
 
 	void Dispatch(double t, bool is_expire) override
-		{ zeek::packet_mgr->ResetUnknownProtocolTimer(unknown_protocol.first, unknown_protocol.second); }
+		{
+		zeek::packet_mgr->ResetUnknownProtocolTimer(unknown_protocol.first,
+		                                            unknown_protocol.second);
+		}
 
 	UnknownProtocolPair unknown_protocol;
-};
+	};
 
 void Manager::ResetUnknownProtocolTimer(const std::string& analyzer, uint32_t protocol)
 	{
@@ -206,8 +211,8 @@ bool Manager::PermitUnknownProtocol(const std::string& analyzer, uint32_t protoc
 	++count;
 
 	if ( count == 1 )
-		detail::timer_mgr->Add(new UnknownProtocolTimer(run_state::network_time, p,
-		                                                unknown_sampling_duration));
+		detail::timer_mgr->Add(
+			new UnknownProtocolTimer(run_state::network_time, p, unknown_sampling_duration));
 
 	if ( count < unknown_sampling_threshold )
 		return true;
@@ -224,14 +229,13 @@ void Manager::ReportUnknownProtocol(const std::string& analyzer, uint32_t protoc
 	{
 	if ( unknown_protocol )
 		{
-		if ( PermitUnknownProtocol(analyzer, protocol ) )
+		if ( PermitUnknownProtocol(analyzer, protocol) )
 			{
 			int bytes_len = std::min(unknown_first_bytes_count, static_cast<uint64_t>(len));
 
-			event_mgr.Enqueue(unknown_protocol,
-			                  make_intrusive<StringVal>(analyzer),
+			event_mgr.Enqueue(unknown_protocol, make_intrusive<StringVal>(analyzer),
 			                  val_mgr->Count(protocol),
-			                  make_intrusive<StringVal>(bytes_len, (const char*) data));
+			                  make_intrusive<StringVal>(bytes_len, (const char*)data));
 			}
 		}
 	}

@@ -2,16 +2,17 @@
 
 #include "zeek/packet_analysis/Analyzer.h"
 
-#include "zeek/Dict.h"
 #include "zeek/DebugLogger.h"
+#include "zeek/Dict.h"
 #include "zeek/RunState.h"
 #include "zeek/session/Manager.h"
 #include "zeek/util.h"
 
-namespace zeek::packet_analysis {
+namespace zeek::packet_analysis
+	{
 
-Analyzer::Analyzer(std::string name, bool report_unknown_protocols) :
-	report_unknown_protocols(report_unknown_protocols)
+Analyzer::Analyzer(std::string name, bool report_unknown_protocols)
+	: report_unknown_protocols(report_unknown_protocols)
 	{
 	Tag t = packet_mgr->GetComponentTag(name);
 
@@ -36,7 +37,7 @@ void Analyzer::Initialize()
 	default_analyzer = LoadAnalyzer("default_analyzer");
 	}
 
-zeek::packet_analysis::AnalyzerPtr Analyzer::LoadAnalyzer(const std::string &name)
+zeek::packet_analysis::AnalyzerPtr Analyzer::LoadAnalyzer(const std::string& name)
 	{
 	auto& analyzer = zeek::id::find(GetModuleName() + name);
 	if ( ! analyzer )
@@ -83,7 +84,8 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
 		{
 		if ( report_unknown_protocols )
 			{
-			DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s failed, could not find analyzer for identifier %#x.",
+			DBG_LOG(DBG_PACKET_ANALYSIS,
+			        "Analysis in %s failed, could not find analyzer for identifier %#x.",
 			        GetAnalyzerName(), identifier);
 			packet_mgr->ReportUnknownProtocol(GetAnalyzerName(), identifier, data, len);
 			return false;
@@ -93,7 +95,7 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
 		}
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
-			GetAnalyzerName(), identifier);
+	        GetAnalyzerName(), identifier);
 	return inner_analyzer->AnalyzePacket(len, data, packet);
 	}
 
@@ -103,7 +105,7 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) co
 		return default_analyzer->AnalyzePacket(len, data, packet);
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s stopped, no default analyzer available.",
-			GetAnalyzerName());
+	        GetAnalyzerName());
 
 	if ( report_unknown_protocols )
 		Weird("no_suitable_analyzer_found", packet);
@@ -132,4 +134,4 @@ void Analyzer::Weird(const char* name, Packet* packet, const char* addl) const
 	session_mgr->Weird(name, packet, addl, GetAnalyzerName());
 	}
 
-} // namespace zeek::packet_analysis
+	} // namespace zeek::packet_analysis

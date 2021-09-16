@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
-#include <sys/types.h> // for u_char
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <sys/types.h> // for u_char
+
+#include "zeek/zeek-config.h"
 
 #ifdef HAVE_NETINET_IP6_H
 #include <netinet/ip6.h>
@@ -16,7 +16,8 @@
 
 #include "zeek/IntrusivePtr.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class IPAddr;
 class RecordVal;
@@ -24,54 +25,60 @@ class VectorVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
 
-namespace detail { class FragReassembler; }
+namespace detail
+	{
+class FragReassembler;
+	}
 
 #ifndef IPPROTO_MOBILITY
 #define IPPROTO_MOBILITY 135
 #endif
 
-struct ip6_mobility {
+struct ip6_mobility
+	{
 	uint8_t ip6mob_payload;
 	uint8_t ip6mob_len;
 	uint8_t ip6mob_type;
 	uint8_t ip6mob_rsv;
 	uint16_t ip6mob_chksum;
-};
+	};
 
 /**
  * Base class for IPv6 header/extensions.
  */
-class IPv6_Hdr {
+class IPv6_Hdr
+	{
 public:
 	/**
 	 * Construct an IPv6 header or extension header from assigned type number.
 	 */
-	IPv6_Hdr(uint8_t t, const u_char* d) : type(t), data(d) {}
+	IPv6_Hdr(uint8_t t, const u_char* d) : type(t), data(d) { }
 
 	/**
 	 * Replace the value of the next protocol field.
 	 */
 	void ChangeNext(uint8_t next_type)
 		{
-		switch ( type ) {
-		case IPPROTO_IPV6:
-			((ip6_hdr*)data)->ip6_nxt = next_type;
-			break;
-		case IPPROTO_HOPOPTS:
-		case IPPROTO_DSTOPTS:
-		case IPPROTO_ROUTING:
-		case IPPROTO_FRAGMENT:
-		case IPPROTO_AH:
-		case IPPROTO_MOBILITY:
-			((ip6_ext*)data)->ip6e_nxt = next_type;
-			break;
-		case IPPROTO_ESP:
-		default:
-			break;
-		}
+		switch ( type )
+			{
+			case IPPROTO_IPV6:
+				((ip6_hdr*)data)->ip6_nxt = next_type;
+				break;
+			case IPPROTO_HOPOPTS:
+			case IPPROTO_DSTOPTS:
+			case IPPROTO_ROUTING:
+			case IPPROTO_FRAGMENT:
+			case IPPROTO_AH:
+			case IPPROTO_MOBILITY:
+				((ip6_ext*)data)->ip6e_nxt = next_type;
+				break;
+			case IPPROTO_ESP:
+			default:
+				break;
+			}
 		}
 
-	~IPv6_Hdr() {}
+	~IPv6_Hdr() { }
 
 	/**
 	 * Returns the assigned IPv6 extension header type number of the header
@@ -79,20 +86,21 @@ public:
 	 */
 	uint8_t NextHdr() const
 		{
-		switch ( type ) {
-		case IPPROTO_IPV6:
-			return ((ip6_hdr*)data)->ip6_nxt;
-		case IPPROTO_HOPOPTS:
-		case IPPROTO_DSTOPTS:
-		case IPPROTO_ROUTING:
-		case IPPROTO_FRAGMENT:
-		case IPPROTO_AH:
-		case IPPROTO_MOBILITY:
-			return ((ip6_ext*)data)->ip6e_nxt;
-		case IPPROTO_ESP:
-		default:
-			return IPPROTO_NONE;
-		}
+		switch ( type )
+			{
+			case IPPROTO_IPV6:
+				return ((ip6_hdr*)data)->ip6_nxt;
+			case IPPROTO_HOPOPTS:
+			case IPPROTO_DSTOPTS:
+			case IPPROTO_ROUTING:
+			case IPPROTO_FRAGMENT:
+			case IPPROTO_AH:
+			case IPPROTO_MOBILITY:
+				return ((ip6_ext*)data)->ip6e_nxt;
+			case IPPROTO_ESP:
+			default:
+				return IPPROTO_NONE;
+			}
 		}
 
 	/**
@@ -100,23 +108,24 @@ public:
 	 */
 	uint16_t Length() const
 		{
-		switch ( type ) {
-		case IPPROTO_IPV6:
-			return 40;
-		case IPPROTO_HOPOPTS:
-		case IPPROTO_DSTOPTS:
-		case IPPROTO_ROUTING:
-		case IPPROTO_MOBILITY:
-			return 8 + 8 * ((ip6_ext*)data)->ip6e_len;
-		case IPPROTO_FRAGMENT:
-			return 8;
-		case IPPROTO_AH:
-			return 8 + 4 * ((ip6_ext*)data)->ip6e_len;
-		case IPPROTO_ESP:
-			return 8; //encrypted payload begins after 8 bytes
-		default:
-			return 0;
-		}
+		switch ( type )
+			{
+			case IPPROTO_IPV6:
+				return 40;
+			case IPPROTO_HOPOPTS:
+			case IPPROTO_DSTOPTS:
+			case IPPROTO_ROUTING:
+			case IPPROTO_MOBILITY:
+				return 8 + 8 * ((ip6_ext*)data)->ip6e_len;
+			case IPPROTO_FRAGMENT:
+				return 8;
+			case IPPROTO_AH:
+				return 8 + 4 * ((ip6_ext*)data)->ip6e_len;
+			case IPPROTO_ESP:
+				return 8; // encrypted payload begins after 8 bytes
+			default:
+				return 0;
+			}
 		}
 
 	/**
@@ -138,15 +147,15 @@ public:
 protected:
 	uint8_t type;
 	const u_char* data;
-};
+	};
 
-class IPv6_Hdr_Chain {
+class IPv6_Hdr_Chain
+	{
 public:
 	/**
 	 * Initializes the header chain from an IPv6 header structure.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, int len)
-		{ Init(ip6, len, false); }
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, int len) { Init(ip6, len, false); }
 
 	~IPv6_Hdr_Chain();
 
@@ -180,29 +189,28 @@ public:
 	 * Returns pointer to fragment header structure if the chain contains one.
 	 */
 	const struct ip6_frag* GetFragHdr() const
-		{ return IsFragment() ?
-				(const struct ip6_frag*)chain[chain.size()-1]->Data(): nullptr; }
+		{
+		return IsFragment() ? (const struct ip6_frag*)chain[chain.size() - 1]->Data() : nullptr;
+		}
 
 	/**
 	 * If the header chain is a fragment, returns the offset in number of bytes
 	 * relative to the start of the Fragmentable Part of the original packet.
 	 */
 	uint16_t FragOffset() const
-		{ return IsFragment() ?
-				(ntohs(GetFragHdr()->ip6f_offlg) & 0xfff8) : 0; }
+		{
+		return IsFragment() ? (ntohs(GetFragHdr()->ip6f_offlg) & 0xfff8) : 0;
+		}
 
 	/**
 	 * If the header chain is a fragment, returns the identification field.
 	 */
-	uint32_t ID() const
-		{ return IsFragment() ?	ntohl(GetFragHdr()->ip6f_ident) : 0; }
+	uint32_t ID() const { return IsFragment() ? ntohl(GetFragHdr()->ip6f_ident) : 0; }
 
 	/**
 	 * If the header chain is a fragment, returns the M (more fragments) flag.
 	 */
-	int MF() const
-		{ return IsFragment() ?
-				(ntohs(GetFragHdr()->ip6f_offlg) & 0x0001) != 0 : 0; }
+	int MF() const { return IsFragment() ? (ntohs(GetFragHdr()->ip6f_offlg) & 0x0001) != 0 : 0; }
 
 	/**
 	 * If the chain contains a Destination Options header with a Home Address
@@ -236,15 +244,16 @@ protected:
 	 * the first next protocol pointer field that points to a fragment header.
 	 */
 	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16_t next, int len)
-		{ Init(ip6, len, true, next); }
+		{
+		Init(ip6, len, true, next);
+		}
 
 	/**
 	 * Initializes the header chain from an IPv6 header structure of a given
 	 * length, possibly setting the first next protocol pointer field that
 	 * points to a fragment header.
 	 */
-	void Init(const struct ip6_hdr* ip6, int total_len, bool set_next,
-	          uint16_t next = 0);
+	void Init(const struct ip6_hdr* ip6, int total_len, bool set_next, uint16_t next = 0);
 
 	/**
 	 * Process a routing header and allocate/remember the final destination
@@ -275,13 +284,14 @@ protected:
 	 * non-zero segments left.
 	 */
 	IPAddr* finalDst = nullptr;
-};
+	};
 
 /**
  * A class that wraps either an IPv4 or IPv6 packet and abstracts methods
  * for inquiring about common features between the two.
  */
-class IP_Hdr {
+class IP_Hdr
+	{
 public:
 	/**
 	 * Construct the header wrapper from an IPv4 packet.  Caller must have
@@ -290,7 +300,7 @@ public:
 	 * @param arg_del whether to take ownership of \a arg_ip4 pointer's memory.
 	 * @param reassembled whether this header is for a reassembled packet.
 	 */
-	IP_Hdr(const struct ip* arg_ip4, bool arg_del, bool reassembled=false)
+	IP_Hdr(const struct ip* arg_ip4, bool arg_del, bool reassembled = false)
 		: ip4(arg_ip4), del(arg_del), reassembled(reassembled)
 		{
 		}
@@ -307,10 +317,10 @@ public:
 	 * @param c an already-constructed header chain to take ownership of.
 	 * @param reassembled whether this header is for a reassembled packet.
 	 */
-	IP_Hdr(const struct ip6_hdr* arg_ip6, bool arg_del, int len,
-	       const IPv6_Hdr_Chain* c = nullptr, bool reassembled=false)
-		: ip6(arg_ip6), ip6_hdrs(c ? c : new IPv6_Hdr_Chain(ip6, len)),
-		  del(arg_del), reassembled(reassembled)
+	IP_Hdr(const struct ip6_hdr* arg_ip6, bool arg_del, int len, const IPv6_Hdr_Chain* c = nullptr,
+	       bool reassembled = false)
+		: ip6(arg_ip6), ip6_hdrs(c ? c : new IPv6_Hdr_Chain(ip6, len)), del(arg_del),
+		  reassembled(reassembled)
 		{
 		}
 
@@ -330,20 +340,20 @@ public:
 
 		if ( del )
 			{
-			delete [] (struct ip*) ip4;
-			delete [] (struct ip6_hdr*) ip6;
+			delete[](struct ip*) ip4;
+			delete[](struct ip6_hdr*) ip6;
 			}
 		}
 
 	/**
 	 * If an IPv4 packet is wrapped, return a pointer to it, else null.
 	 */
-	const struct ip* IP4_Hdr() const	{ return ip4; }
+	const struct ip* IP4_Hdr() const { return ip4; }
 
 	/**
 	 * If an IPv6 packet is wrapped, return a pointer to it, else null.
 	 */
-	const struct ip6_hdr* IP6_Hdr() const	{ return ip6; }
+	const struct ip6_hdr* IP6_Hdr() const { return ip6; }
 
 	/**
 	 * Returns the source address held in the IP header.
@@ -377,9 +387,9 @@ public:
 	const u_char* Payload() const
 		{
 		if ( ip4 )
-			return ((const u_char*) ip4) + ip4->ip_hl * 4;
+			return ((const u_char*)ip4) + ip4->ip_hl * 4;
 
-		return ((const u_char*) ip6) + ip6_hdrs->TotalLength();
+		return ((const u_char*)ip6) + ip6_hdrs->TotalLength();
 		}
 
 	/**
@@ -390,10 +400,10 @@ public:
 		{
 		if ( ip4 )
 			return nullptr;
-		else if ( (*ip6_hdrs)[ip6_hdrs->Size()-1]->Type() != IPPROTO_MOBILITY )
+		else if ( (*ip6_hdrs)[ip6_hdrs->Size() - 1]->Type() != IPPROTO_MOBILITY )
 			return nullptr;
 		else
-			return (const ip6_mobility*)(*ip6_hdrs)[ip6_hdrs->Size()-1]->Data();
+			return (const ip6_mobility*)(*ip6_hdrs)[ip6_hdrs->Size() - 1]->Data();
 		}
 
 	/**
@@ -422,8 +432,7 @@ public:
 	/**
 	 * Returns length of IP packet header (includes extension headers for IPv6).
 	 */
-	uint16_t HdrLen() const
-		{ return ip4 ? ip4->ip_hl * 4 : ip6_hdrs->TotalLength(); }
+	uint16_t HdrLen() const { return ip4 ? ip4->ip_hl * 4 : ip6_hdrs->TotalLength(); }
 
 	/**
 	 * For IPv6 header chains, returns the type of the last header in the chain.
@@ -435,7 +444,7 @@ public:
 
 		size_t i = ip6_hdrs->Size();
 		if ( i > 0 )
-			return (*ip6_hdrs)[i-1]->Type();
+			return (*ip6_hdrs)[i - 1]->Type();
 
 		return IPPROTO_NONE;
 		}
@@ -452,7 +461,7 @@ public:
 
 		size_t i = ip6_hdrs->Size();
 		if ( i > 0 )
-			return (*ip6_hdrs)[i-1]->NextHdr();
+			return (*ip6_hdrs)[i - 1]->NextHdr();
 
 		return IPPROTO_NONE;
 		}
@@ -460,54 +469,50 @@ public:
 	/**
 	 * Returns the IPv4 Time to Live or IPv6 Hop Limit field.
 	 */
-	unsigned char TTL() const
-		{ return ip4 ? ip4->ip_ttl : ip6->ip6_hlim; }
+	unsigned char TTL() const { return ip4 ? ip4->ip_ttl : ip6->ip6_hlim; }
 
 	/**
 	 * Returns whether the IP header indicates this packet is a fragment.
 	 */
 	bool IsFragment() const
-		{ return ip4 ? (ntohs(ip4->ip_off) & 0x3fff) != 0 :
-				ip6_hdrs->IsFragment(); }
+		{
+		return ip4 ? (ntohs(ip4->ip_off) & 0x3fff) != 0 : ip6_hdrs->IsFragment();
+		}
 
 	/**
 	 * Returns the fragment packet's offset in relation to the original
 	 * packet in bytes.
 	 */
 	uint16_t FragOffset() const
-		{ return ip4 ? (ntohs(ip4->ip_off) & 0x1fff) * 8 :
-				ip6_hdrs->FragOffset(); }
+		{
+		return ip4 ? (ntohs(ip4->ip_off) & 0x1fff) * 8 : ip6_hdrs->FragOffset();
+		}
 
 	/**
 	 * Returns the fragment packet's identification field.
 	 */
-	uint32_t ID() const
-		{ return ip4 ? ntohs(ip4->ip_id) : ip6_hdrs->ID(); }
+	uint32_t ID() const { return ip4 ? ntohs(ip4->ip_id) : ip6_hdrs->ID(); }
 
 	/**
 	 * Returns whether a fragment packet's "More Fragments" field is set.
 	 */
-	int MF() const
-		{ return ip4 ? (ntohs(ip4->ip_off) & 0x2000) != 0 : ip6_hdrs->MF(); }
+	int MF() const { return ip4 ? (ntohs(ip4->ip_off) & 0x2000) != 0 : ip6_hdrs->MF(); }
 
 	/**
 	 * Returns whether a fragment packet's "Don't Fragment" field is set.
 	 * Note that IPv6 has no such field.
 	 */
-	int DF() const
-		{ return ip4 ? ((ntohs(ip4->ip_off) & 0x4000) != 0) : 0; }
+	int DF() const { return ip4 ? ((ntohs(ip4->ip_off) & 0x4000) != 0) : 0; }
 
 	/**
 	 * Returns value of an IPv6 header's flow label field or 0 if it's IPv4.
 	 */
-	uint32_t FlowLabel() const
-		{ return ip4 ? 0 : (ntohl(ip6->ip6_flow) & 0x000fffff); }
+	uint32_t FlowLabel() const { return ip4 ? 0 : (ntohl(ip6->ip6_flow) & 0x000fffff); }
 
 	/**
 	 * Returns number of IP headers in packet (includes IPv6 extension headers).
 	 */
-	size_t NumHeaders() const
-		{ return ip4 ? 1 : ip6_hdrs->Size(); }
+	size_t NumHeaders() const { return ip4 ? 1 : ip6_hdrs->Size(); }
 
 	/**
 	 * Returns an ip_hdr or ip6_hdr_chain RecordVal.
@@ -534,6 +539,6 @@ private:
 	const IPv6_Hdr_Chain* ip6_hdrs = nullptr;
 	bool del = false;
 	bool reassembled = false;
-};
+	};
 
-} // namespace zeek
+	} // namespace zeek

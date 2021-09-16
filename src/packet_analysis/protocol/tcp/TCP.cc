@@ -1,24 +1,20 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
+
 #include "zeek/RunState.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
-#include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
-
 #include "zeek/analyzer/protocol/tcp/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/types.bif.h"
+#include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 
 using namespace zeek;
 using namespace zeek::packet_analysis::TCP;
 using namespace zeek::packet_analysis::IP;
 
-TCPAnalyzer::TCPAnalyzer() : IPBasedAnalyzer("TCP", TRANSPORT_TCP, TCP_PORT_MASK, false)
-	{
-	}
+TCPAnalyzer::TCPAnalyzer() : IPBasedAnalyzer("TCP", TRANSPORT_TCP, TCP_PORT_MASK, false) { }
 
-void TCPAnalyzer::Initialize()
-	{
-	}
+void TCPAnalyzer::Initialize() { }
 
 SessionAdapter* TCPAnalyzer::MakeSessionAdapter(Connection* conn)
 	{
@@ -36,8 +32,7 @@ zeek::analyzer::pia::PIA* TCPAnalyzer::MakePIA(Connection* conn)
 	return new analyzer::pia::PIA_TCP(conn);
 	}
 
-bool TCPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet,
-                                 ConnTuple& tuple)
+bool TCPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple)
 	{
 	uint32_t min_hdr_len = sizeof(struct tcphdr);
 	if ( ! CheckHeaderTrunc(min_hdr_len, len, packet) )
@@ -48,7 +43,7 @@ bool TCPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet
 
 	data = packet->ip_hdr->Payload();
 
-	const struct tcphdr* tp = (const struct tcphdr *) data;
+	const struct tcphdr* tp = (const struct tcphdr*)data;
 	tuple.src_port = tp->th_sport;
 	tuple.dst_port = tp->th_dport;
 	tuple.is_one_way = false;
@@ -57,11 +52,11 @@ bool TCPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet
 	return true;
 	}
 
-bool TCPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port,
-                                 const u_char* data, bool& flip_roles) const
+bool TCPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port, const u_char* data,
+                                 bool& flip_roles) const
 	{
 	flip_roles = false;
-	const struct tcphdr* tp = (const struct tcphdr*) data;
+	const struct tcphdr* tp = (const struct tcphdr*)data;
 	uint8_t tcp_flags = tp->th_flags;
 
 	if ( ! (tcp_flags & TH_SYN) || (tcp_flags & TH_ACK) )
@@ -133,7 +128,7 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 const struct tcphdr* TCPAnalyzer::ExtractTCP_Header(const u_char*& data, int& len, int& remaining,
                                                     TCPSessionAdapter* adapter)
 	{
-	const struct tcphdr* tp = (const struct tcphdr*) data;
+	const struct tcphdr* tp = (const struct tcphdr*)data;
 	uint32_t tcp_hdr_len = tp->th_off * 4;
 
 	if ( tcp_hdr_len < sizeof(struct tcphdr) )
@@ -142,15 +137,14 @@ const struct tcphdr* TCPAnalyzer::ExtractTCP_Header(const u_char*& data, int& le
 		return nullptr;
 		}
 
-	if ( tcp_hdr_len > uint32_t(len) ||
-	     tcp_hdr_len > uint32_t(remaining) )
+	if ( tcp_hdr_len > uint32_t(len) || tcp_hdr_len > uint32_t(remaining) )
 		{
 		// This can happen even with the above test, due to TCP options.
 		adapter->Weird("truncated_header");
 		return nullptr;
 		}
 
-	len -= tcp_hdr_len;	// remove TCP header
+	len -= tcp_hdr_len; // remove TCP header
 	remaining -= tcp_hdr_len;
 	data += tcp_hdr_len;
 
@@ -161,10 +155,9 @@ bool TCPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp,
                                    analyzer::tcp::TCP_Endpoint* endpoint, int len, int caplen,
                                    TCPSessionAdapter* adapter)
 	{
-	if ( ! run_state::current_pkt->l3_checksummed &&
-	     ! detail::ignore_checksums &&
-	     ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) &&
-	     caplen >= len && ! endpoint->ValidChecksum(tp, len, ip->IP4_Hdr()) )
+	if ( ! run_state::current_pkt->l3_checksummed && ! detail::ignore_checksums &&
+	     ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) && caplen >= len &&
+	     ! endpoint->ValidChecksum(tp, len, ip->IP4_Hdr()) )
 		{
 		adapter->Weird("bad_TCP_checksum");
 		endpoint->ChecksumError();

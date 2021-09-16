@@ -2,16 +2,17 @@
 
 #include "zeek/probabilistic/Hasher.h"
 
-#include <typeinfo>
-#include <openssl/evp.h>
 #include <broker/data.hh>
 #include <highwayhash/sip_hash.h>
+#include <openssl/evp.h>
+#include <typeinfo>
 
 #include "zeek/NetVar.h"
 #include "zeek/Var.h"
 #include "zeek/digest.h"
 
-namespace zeek::probabilistic::detail {
+namespace zeek::probabilistic::detail
+	{
 
 Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size)
 	{
@@ -53,9 +54,8 @@ Hasher::Hasher(size_t arg_k, seed_t arg_seed)
 
 broker::expected<broker::data> Hasher::Serialize() const
 	{
-	return {broker::vector{
-		static_cast<uint64_t>(Type()), static_cast<uint64_t>(k),
-		seed.h[0], seed.h[1] }};
+	return {broker::vector{static_cast<uint64_t>(Type()), static_cast<uint64_t>(k), seed.h[0],
+	                       seed.h[1]}};
 	}
 
 std::unique_ptr<Hasher> Hasher::Unserialize(const broker::data& data)
@@ -75,15 +75,16 @@ std::unique_ptr<Hasher> Hasher::Unserialize(const broker::data& data)
 
 	std::unique_ptr<Hasher> hasher;
 
-	switch ( *type ) {
-	case Default:
-		hasher = std::unique_ptr<Hasher>(new DefaultHasher(*k, {*h1, *h2}));
-		break;
+	switch ( *type )
+		{
+		case Default:
+			hasher = std::unique_ptr<Hasher>(new DefaultHasher(*k, {*h1, *h2}));
+			break;
 
-	case Double:
-		hasher = std::unique_ptr<Hasher>(new DoubleHasher(*k, {*h1, *h2}));
-		break;
-	}
+		case Double:
+			hasher = std::unique_ptr<Hasher>(new DoubleHasher(*k, {*h1, *h2}));
+			break;
+		}
 
 	// Note that the derived classed don't hold any further state of
 	// their own. They reconstruct all their information from their
@@ -107,12 +108,12 @@ UHF::UHF(Hasher::seed_t arg_seed)
 // times.
 Hasher::digest UHF::hash(const void* x, size_t n) const
 	{
-	static_assert(std::is_same<highwayhash::SipHashState::Key, decltype(seed.h)>::value, "Seed value is not the same type as highwayhash key");
+	static_assert(std::is_same<highwayhash::SipHashState::Key, decltype(seed.h)>::value,
+	              "Seed value is not the same type as highwayhash key");
 	return highwayhash::SipHash(seed.h, reinterpret_cast<const char*>(x), n);
 	}
 
-DefaultHasher::DefaultHasher(size_t k, Hasher::seed_t seed)
-	: Hasher(k, seed)
+DefaultHasher::DefaultHasher(size_t k, Hasher::seed_t seed) : Hasher(k, seed)
 	{
 	for ( size_t i = 1; i <= k; ++i )
 		{
@@ -177,4 +178,4 @@ bool DoubleHasher::Equals(const Hasher* other) const
 	return h1 == o->h1 && h2 == o->h2;
 	}
 
-} // namespace zeek::probabilistic::detail
+	} // namespace zeek::probabilistic::detail

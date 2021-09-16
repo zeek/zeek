@@ -24,7 +24,8 @@
 //    be long (>255 bytes), it may be trunkcated and carried in different
 //    DNP3 Application Layer of more than one DNP3 packets.
 //
-//    So we may find a long DNP3 Application Layer Fragment to be transmitted in the following format
+//    So we may find a long DNP3 Application Layer Fragment to be transmitted in the following
+//    format
 //
 //        DNP3 Packet #1 : DNP3 Link Layer | DNP3 Transport Layer | DNP3 Application Layer #1
 //        DNP3 Packet #2 : DNP3 Link Layer | DNP3 Transport Layer | DNP3 Application Layer #2
@@ -46,10 +47,12 @@
 // For a long DNP3 application layer fragment, we may find it tramistted
 // over IP network in the following format:
 //
-//     Network Packet #1 : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer #1
-//     Network Packet #2 : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer #2
+//     Network Packet #1 : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3
+//     Pseudo Application Layer #1 Network Packet #2 : TCP Header | DNP3 Pseudo Link Layer | DNP3
+//     Pseudo Transport Layer | DNP3 Pseudo Application Layer #2
 //     ....
-//     Network Packet #n : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer #n
+//     Network Packet #n : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3
+//     Pseudo Application Layer #n
 //
 // === Challenges of Writing DNP3 Analyzer on Binpac ===
 //
@@ -87,29 +90,35 @@
 //
 // Graphically, the procedure is:
 //
-// DNP3 Packet :  DNP3 Pseudo Data Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
+// DNP3 Packet :  DNP3 Pseudo Data Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo
+// Application Layer
 //                                   ||                                    ||
-//                                   || (length field)                     || (original paylad byte stream)
+//                                   || (length field)                     || (original paylad byte
+//                                   stream)
 //                                   \/                                    \/
-//                DNP3 Additional Header              :                  Reassembled DNP3 Pseudo Application Layer Data
+//                DNP3 Additional Header              :                  Reassembled DNP3 Pseudo
+//                Application Layer Data
 //                                                   ||
 //                                                   \/
 //                                            Binpac DNP3 Analyzer
 
 #include "zeek/analyzer/protocol/dnp3/DNP3.h"
-#include "zeek/Reporter.h"
 
+#include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/dnp3/events.bif.h"
 
-constexpr unsigned int PSEUDO_LENGTH_INDEX = 2;		// index of len field of DNP3 Pseudo Link Layer
-constexpr unsigned int PSEUDO_CONTROL_FIELD_INDEX = 3;	// index of ctrl field of DNP3 Pseudo Link Layer
-constexpr unsigned int PSEUDO_TRANSPORT_INDEX = 10;		// index of DNP3 Pseudo Transport Layer
-constexpr unsigned int PSEUDO_APP_LAYER_INDEX = 11;		// index of first DNP3 app-layer byte.
-constexpr unsigned int PSEUDO_TRANSPORT_LEN = 1;		// length of DNP3 Transport Layer
-constexpr unsigned int PSEUDO_LINK_LAYER_LEN = 8;		// length of DNP3 Pseudo Link Layer
+constexpr unsigned int PSEUDO_LENGTH_INDEX = 2; // index of len field of DNP3 Pseudo Link Layer
+constexpr unsigned int PSEUDO_CONTROL_FIELD_INDEX =
+	3; // index of ctrl field of DNP3 Pseudo Link Layer
+constexpr unsigned int PSEUDO_TRANSPORT_INDEX = 10; // index of DNP3 Pseudo Transport Layer
+constexpr unsigned int PSEUDO_APP_LAYER_INDEX = 11; // index of first DNP3 app-layer byte.
+constexpr unsigned int PSEUDO_TRANSPORT_LEN = 1; // length of DNP3 Transport Layer
+constexpr unsigned int PSEUDO_LINK_LAYER_LEN = 8; // length of DNP3 Pseudo Link Layer
 
-namespace zeek::analyzer::dnp3 {
-namespace detail {
+namespace zeek::analyzer::dnp3
+	{
+namespace detail
+	{
 
 bool DNP3_Base::crc_table_initialized = false;
 unsigned int DNP3_Base::crc_table[256];
@@ -149,14 +158,15 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 				return false;
 
 			// The first two bytes must always be 0x0564.
-			if( endp->buffer[0] != 0x05 || endp->buffer[1] != 0x64 )
+			if ( endp->buffer[0] != 0x05 || endp->buffer[1] != 0x64 )
 				{
 				analyzer->Weird("dnp3_header_lacks_magic");
 				return false;
 				}
 
 			// Make sure header checksum is correct.
-			if ( ! CheckCRC(PSEUDO_LINK_LAYER_LEN, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN, "header") )
+			if ( ! CheckCRC(PSEUDO_LINK_LAYER_LEN, endp->buffer,
+			                endp->buffer + PSEUDO_LINK_LAYER_LEN, "header") )
 				{
 				analyzer->ProtocolViolation("broken_checksum");
 				return false;
@@ -167,7 +177,7 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 
 			// DNP3 packets without transport and application
 			// layers can happen, we ignore them.
-			if ( (endp->buffer[PSEUDO_LENGTH_INDEX] + 3) == (char)PSEUDO_LINK_LAYER_LEN  )
+			if ( (endp->buffer[PSEUDO_LENGTH_INDEX] + 3) == (char)PSEUDO_LINK_LAYER_LEN )
 				{
 				ClearEndpointState(orig);
 				return true;
@@ -205,8 +215,9 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 			// the packet length by determining how much 16-byte
 			// chunks fit in there, and then add 2 bytes CRC for
 			// each.
-			int n = PSEUDO_APP_LAYER_INDEX + (endp->pkt_length - 5) + ((endp->pkt_length - 5) / 16) * 2
-					+ 2 * ( ((endp->pkt_length - 5) % 16 == 0) ? 0 : 1) - 1 ;
+			int n = PSEUDO_APP_LAYER_INDEX + (endp->pkt_length - 5) +
+			        ((endp->pkt_length - 5) / 16) * 2 +
+			        2 * (((endp->pkt_length - 5) % 16 == 0) ? 0 : 1) - 1;
 
 			int res = AddToBuffer(endp, n, &data, &len);
 
@@ -242,8 +253,8 @@ int DNP3_Base::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, 
 
 	if ( target_len < endp->buffer_len )
 		{
-		reporter->AnalyzerError(analyzer, "dnp3 invalid target length: %d - %d",
-		                        target_len, endp->buffer_len);
+		reporter->AnalyzerError(analyzer, "dnp3 invalid target length: %d - %d", target_len,
+		                        endp->buffer_len);
 		return -1;
 		}
 
@@ -251,8 +262,8 @@ int DNP3_Base::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, 
 
 	if ( endp->buffer_len + to_copy > MAX_BUFFER_SIZE )
 		{
-		reporter->AnalyzerError(analyzer, "dnp3 buffer length exceeded: %d + %d",
-		                        endp->buffer_len, to_copy);
+		reporter->AnalyzerError(analyzer, "dnp3 buffer length exceeded: %d + %d", endp->buffer_len,
+		                        to_copy);
 		return -1;
 		}
 
@@ -272,14 +283,15 @@ bool DNP3_Base::ParseAppLayer(Endpoint* endp)
 	bool orig = (endp == &orig_state);
 	binpac::DNP3::DNP3_Flow* flow = orig ? interp->upflow() : interp->downflow();
 
-	u_char* data = endp->buffer + PSEUDO_TRANSPORT_INDEX; // The transport layer byte counts as app-layer it seems.
+	u_char* data = endp->buffer +
+	               PSEUDO_TRANSPORT_INDEX; // The transport layer byte counts as app-layer it seems.
 	int len = endp->pkt_length - 5;
 
-	// DNP3 Packet :  DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer
-	// DNP3 Serial Transport Layer data is always 1 byte.
-	// Get FIN FIR seq field in transport header.
-	// FIR indicate whether the following DNP3 Serial Application Layer is first chunk of bytes or not.
-	// FIN indicate whether the following DNP3 Serial Application Layer is last chunk of bytes or not.
+	// DNP3 Packet :  DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application
+	// Layer DNP3 Serial Transport Layer data is always 1 byte. Get FIN FIR seq field in transport
+	// header. FIR indicate whether the following DNP3 Serial Application Layer is first chunk of
+	// bytes or not. FIN indicate whether the following DNP3 Serial Application Layer is last chunk
+	// of bytes or not.
 
 	int is_first = (endp->tpflags & 0x40) >> 6; // Initial chunk of data in this packet.
 	int is_last = (endp->tpflags & 0x80) >> 7; // Last chunk of data in this packet.
@@ -297,8 +309,7 @@ bool DNP3_Base::ParseAppLayer(Endpoint* endp)
 
 		if ( data + n >= endp->buffer + endp->buffer_len )
 			{
-			reporter->AnalyzerError(analyzer,
-			                        "dnp3 app layer parsing overflow %d - %d",
+			reporter->AnalyzerError(analyzer, "dnp3 app layer parsing overflow %d - %d",
 			                        endp->buffer_len, n);
 			return false;
 			}
@@ -357,7 +368,7 @@ bool DNP3_Base::CheckCRC(int len, const u_char* data, const u_char* crc16, const
 
 void DNP3_Base::PrecomputeCRCTable()
 	{
-	for( unsigned int i = 0; i < 256; i++)
+	for ( unsigned int i = 0; i < 256; i++ )
 		{
 		unsigned int crc = i;
 
@@ -386,15 +397,13 @@ unsigned int DNP3_Base::CalcCRC(int len, const u_char* data)
 	return ~crc & 0xFFFF;
 	}
 
-} // namespace detail
+	} // namespace detail
 DNP3_TCP_Analyzer::DNP3_TCP_Analyzer(Connection* c)
 	: DNP3_Base(this), TCP_ApplicationAnalyzer("DNP3_TCP", c)
 	{
 	}
 
-DNP3_TCP_Analyzer::~DNP3_TCP_Analyzer()
-	{
-	}
+DNP3_TCP_Analyzer::~DNP3_TCP_Analyzer() { }
 
 void DNP3_TCP_Analyzer::Done()
 	{
@@ -433,16 +442,12 @@ void DNP3_TCP_Analyzer::EndpointEOF(bool is_orig)
 	Interpreter()->FlowEOF(is_orig);
 	}
 
-DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(Connection* c)
-	: DNP3_Base(this), Analyzer("DNP3_UDP", c)
-	{
-	}
+DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(Connection* c) : DNP3_Base(this), Analyzer("DNP3_UDP", c) { }
 
-DNP3_UDP_Analyzer::~DNP3_UDP_Analyzer()
-	{
-	}
+DNP3_UDP_Analyzer::~DNP3_UDP_Analyzer() { }
 
-void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+                                      const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -459,4 +464,4 @@ void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, ui
 		}
 	}
 
-} // namespace zeek::analyzer::dnp3
+	} // namespace zeek::analyzer::dnp3

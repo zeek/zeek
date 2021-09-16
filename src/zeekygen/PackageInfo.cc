@@ -2,19 +2,18 @@
 
 #include "zeek/zeekygen/PackageInfo.h"
 
-#include <fstream>
 #include <errno.h>
+#include <fstream>
 
-#include "zeek/zeekygen/utils.h"
 #include "zeek/Reporter.h"
+#include "zeek/zeekygen/utils.h"
 
 using namespace std;
 
-namespace zeek::zeekygen::detail {
+namespace zeek::zeekygen::detail
+	{
 
-PackageInfo::PackageInfo(const string& arg_name)
-    : Info(),
-      pkg_name(arg_name), readme()
+PackageInfo::PackageInfo(const string& arg_name) : Info(), pkg_name(arg_name), readme()
 	{
 	string readme_file = util::find_file(pkg_name + "/README", util::zeek_path());
 
@@ -24,8 +23,8 @@ PackageInfo::PackageInfo(const string& arg_name)
 	ifstream f(readme_file.c_str());
 
 	if ( ! f.is_open() )
-		reporter->InternalWarning("Zeekygen failed to open '%s': %s",
-		                          readme_file.c_str(), strerror(errno));
+		reporter->InternalWarning("Zeekygen failed to open '%s': %s", readme_file.c_str(),
+		                          strerror(errno));
 
 	string line;
 
@@ -33,14 +32,14 @@ PackageInfo::PackageInfo(const string& arg_name)
 		readme.push_back(line);
 
 	if ( f.bad() )
-		reporter->InternalWarning("Zeekygen error reading '%s': %s",
-		                          readme_file.c_str(), strerror(errno));
+		reporter->InternalWarning("Zeekygen error reading '%s': %s", readme_file.c_str(),
+		                          strerror(errno));
 	}
 
 string PackageInfo::DoReStructuredText(bool roles_only) const
 	{
-	string rval = util::fmt(":doc:`%s </scripts/%s/index>`\n\n", pkg_name.c_str(),
-	                        pkg_name.c_str());
+	string rval =
+		util::fmt(":doc:`%s </scripts/%s/index>`\n\n", pkg_name.c_str(), pkg_name.c_str());
 
 	for ( size_t i = 0; i < readme.size(); ++i )
 		rval += "   " + readme[i] + "\n";
@@ -58,4 +57,4 @@ time_t PackageInfo::DoGetModificationTime() const
 	return get_mtime(readme_file);
 	}
 
-} // namespace zeek::zeekygen::detail
+	} // namespace zeek::zeekygen::detail

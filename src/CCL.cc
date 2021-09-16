@@ -1,14 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/CCL.h"
 
 #include <algorithm>
 
-#include "zeek/RE.h"
 #include "zeek/DFA.h"
+#include "zeek/RE.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 CCL::CCL()
 	{
@@ -48,7 +49,8 @@ void CCL::Sort()
 
 unsigned int CCL::MemoryAllocation() const
 	{
-	return padded_sizeof(*this) + padded_sizeof(*syms) + util::pad_size(syms->size() * sizeof(int_list::value_type));
+	return padded_sizeof(*this) + padded_sizeof(*syms) +
+	       util::pad_size(syms->size() * sizeof(int_list::value_type));
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

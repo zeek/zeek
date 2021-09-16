@@ -3,16 +3,17 @@
 #include "zeek/zeekygen/Configuration.h"
 
 #include <errno.h>
+#include <algorithm>
 #include <fstream>
 #include <vector>
-#include <algorithm>
 
-#include "zeek/zeekygen/utils.h"
 #include "zeek/Reporter.h"
+#include "zeek/zeekygen/utils.h"
 
 using namespace std;
 
-namespace zeek::zeekygen::detail {
+namespace zeek::zeekygen::detail
+	{
 
 static TargetFactory create_target_factory()
 	{
@@ -38,8 +39,8 @@ Config::Config(const string& arg_file, const string& delim)
 	ifstream f(file.c_str());
 
 	if ( ! f.is_open() )
-		reporter->FatalError("failed to open Zeekygen config file '%s': %s",
-		                     file.c_str(), strerror(errno));
+		reporter->FatalError("failed to open Zeekygen config file '%s': %s", file.c_str(),
+		                     strerror(errno));
 
 	string line;
 	unsigned int line_number = 0;
@@ -60,21 +61,20 @@ Config::Config(const string& arg_file, const string& delim)
 			continue;
 
 		if ( tokens.size() != 3 )
-			reporter->FatalError("malformed Zeekygen target in %s:%u: %s",
-			                     file.c_str(), line_number, line.c_str());
+			reporter->FatalError("malformed Zeekygen target in %s:%u: %s", file.c_str(),
+			                     line_number, line.c_str());
 
 		Target* target = target_factory.Create(tokens[0], tokens[2], tokens[1]);
 
 		if ( ! target )
-			reporter->FatalError("unknown Zeekygen target type: %s",
-			                     tokens[0].c_str());
+			reporter->FatalError("unknown Zeekygen target type: %s", tokens[0].c_str());
 
 		targets.push_back(target);
 		}
 
 	if ( f.bad() )
-		reporter->InternalError("error reading Zeekygen config file '%s': %s",
-		                        file.c_str(), strerror(errno));
+		reporter->InternalError("error reading Zeekygen config file '%s': %s", file.c_str(),
+		                        strerror(errno));
 	}
 
 Config::~Config()
@@ -103,4 +103,4 @@ time_t Config::GetModificationTime() const
 	return get_mtime(file);
 	}
 
-} // namespace zeek::zeekygen::detail
+	} // namespace zeek::zeekygen::detail

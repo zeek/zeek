@@ -2,11 +2,12 @@
 
 #pragma once
 
+#include "zeek/input/Tag.h"
 #include "zeek/plugin/Component.h"
 #include "zeek/plugin/TaggedComponent.h"
-#include "zeek/input/Tag.h"
 
-namespace zeek::input {
+namespace zeek::input
+	{
 
 class ReaderFrontend;
 class ReaderBackend;
@@ -14,8 +15,8 @@ class ReaderBackend;
 /**
  * Component description for plugins providing log readers.
  */
-class Component : public plugin::Component,
-                  public plugin::TaggedComponent<Tag> {
+class Component : public plugin::Component, public plugin::TaggedComponent<Tag>
+	{
 public:
 	typedef ReaderBackend* (*factory_callback)(ReaderFrontend* frontend);
 
@@ -48,16 +49,16 @@ public:
 	/**
 	 * Returns the reader's factory function.
 	 */
-	factory_callback Factory() const	{ return factory; }
+	factory_callback Factory() const { return factory; }
 
 protected:
 	/**
-	  * Overriden from plugin::Component.
-	  */
+	 * Overriden from plugin::Component.
+	 */
 	void DoDescribe(ODesc* d) const override;
 
 private:
 	factory_callback factory;
-};
+	};
 
-} // namespace zeek::input
+	} // namespace zeek::input

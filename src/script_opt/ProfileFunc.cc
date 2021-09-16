@@ -1,17 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/script_opt/ProfileFunc.h"
+
 #include <unistd.h>
 #include <cerrno>
 
-#include "zeek/script_opt/ProfileFunc.h"
-#include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/Desc.h"
-#include "zeek/Stmt.h"
 #include "zeek/Func.h"
+#include "zeek/Stmt.h"
+#include "zeek/script_opt/IDOptInfo.h"
 
-
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 // Computes the profiling hash of a Obj based on its (deterministic)
 // description.
@@ -32,8 +32,7 @@ std::string script_specific_filename(const StmtPtr& body)
 	ASSERT(bl_f != nullptr);
 
 	if ( (bl_f[0] != '.' && bl_f[0] != '/') ||
-	     (bl_f[0] == '.' && (bl_f[1] == '/' ||
-	                         (bl_f[1] == '.' && bl_f[2] == '/'))) )
+	     (bl_f[0] == '.' && (bl_f[1] == '/' || (bl_f[1] == '.' && bl_f[2] == '/'))) )
 		{
 		// Add working directory to avoid collisions over the
 		// same relative name.
@@ -58,7 +57,6 @@ p_hash_type script_specific_hash(const StmtPtr& body, p_hash_type generic_hash)
 	auto bl_f = script_specific_filename(body);
 	return merge_p_hashes(generic_hash, p_hash(bl_f));
 	}
-
 
 ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fields)
 	{
@@ -103,81 +101,82 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 	{
 	stmts.push_back(s);
 
-	switch ( s->Tag() ) {
-	case STMT_INIT:
-		for ( const auto& id : s->AsInitStmt()->Inits() )
-			{
-			inits.insert(id.get());
-			TrackType(id->GetType());
-			}
-
-		// Don't traverse further into the statement, since we
-		// don't want to view the identifiers as locals unless
-		// they're also used elsewhere.
-		return TC_ABORTSTMT;
-
-	case STMT_WHEN:
-		++num_when_stmts;
-
-		in_when = true;
-		s->AsWhenStmt()->Cond()->Traverse(this);
-		in_when = false;
-
-		// It doesn't do any harm for us to re-traverse the
-		// conditional, so we don't bother hand-traversing the
-		// rest of the "when", but just let the usual processing
-		// do it.
-		break;
-
-	case STMT_FOR:
+	switch ( s->Tag() )
 		{
-		auto sf = s->AsForStmt();
-		auto loop_vars = sf->LoopVars();
-		auto value_var = sf->ValueVar();
-
-		for ( auto id : *loop_vars )
-			locals.insert(id);
-
-		if ( value_var )
-			locals.insert(value_var.get());
-		}
-		break;
-
-	case STMT_SWITCH:
-		{
-		// If this is a type-case switch statement, then find the
-		// identifiers created so we can add them to our list of
-		// locals.  Ideally this wouldn't be necessary since *surely*
-		// if one bothers to define such an identifier then it'll be
-		// subsequently used, and we'll pick up the local that way ...
-		// but if for some reason it's not, then we would have an
-		// incomplete list of locals that need to be tracked.
-
-		auto sw = s->AsSwitchStmt();
-		bool is_type_switch = false;
-
-		for ( auto& c : *sw->Cases() )
-			{
-			auto idl = c->TypeCases();
-			if ( idl )
+		case STMT_INIT:
+			for ( const auto& id : s->AsInitStmt()->Inits() )
 				{
-				for ( auto id : *idl )
+				inits.insert(id.get());
+				TrackType(id->GetType());
+				}
+
+			// Don't traverse further into the statement, since we
+			// don't want to view the identifiers as locals unless
+			// they're also used elsewhere.
+			return TC_ABORTSTMT;
+
+		case STMT_WHEN:
+			++num_when_stmts;
+
+			in_when = true;
+			s->AsWhenStmt()->Cond()->Traverse(this);
+			in_when = false;
+
+			// It doesn't do any harm for us to re-traverse the
+			// conditional, so we don't bother hand-traversing the
+			// rest of the "when", but just let the usual processing
+			// do it.
+			break;
+
+		case STMT_FOR:
+				{
+				auto sf = s->AsForStmt();
+				auto loop_vars = sf->LoopVars();
+				auto value_var = sf->ValueVar();
+
+				for ( auto id : *loop_vars )
 					locals.insert(id);
 
-				is_type_switch = true;
+				if ( value_var )
+					locals.insert(value_var.get());
 				}
-			}
+			break;
 
-		if ( is_type_switch )
-			type_switches.insert(sw);
-		else
-			expr_switches.insert(sw);
+		case STMT_SWITCH:
+				{
+				// If this is a type-case switch statement, then find the
+				// identifiers created so we can add them to our list of
+				// locals.  Ideally this wouldn't be necessary since *surely*
+				// if one bothers to define such an identifier then it'll be
+				// subsequently used, and we'll pick up the local that way ...
+				// but if for some reason it's not, then we would have an
+				// incomplete list of locals that need to be tracked.
+
+				auto sw = s->AsSwitchStmt();
+				bool is_type_switch = false;
+
+				for ( auto& c : *sw->Cases() )
+					{
+					auto idl = c->TypeCases();
+					if ( idl )
+						{
+						for ( auto id : *idl )
+							locals.insert(id);
+
+						is_type_switch = true;
+						}
+					}
+
+				if ( is_type_switch )
+					type_switches.insert(sw);
+				else
+					expr_switches.insert(sw);
+				}
+			break;
+
+		default:
+			break;
 		}
-		break;
-
-	default:
-		break;
-	}
 
 	return TC_CONTINUE;
 	}
@@ -188,215 +187,213 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 
 	TrackType(e->GetType());
 
-	switch ( e->Tag() ) {
-	case EXPR_CONST:
-		constants.push_back(e->AsConstExpr());
-		break;
-
-	case EXPR_NAME:
+	switch ( e->Tag() )
 		{
-		auto n = e->AsNameExpr();
-		auto id = n->Id();
+		case EXPR_CONST:
+			constants.push_back(e->AsConstExpr());
+			break;
 
-		if ( id->IsGlobal() )
-			{
-			globals.insert(id);
-			all_globals.insert(id);
-
-			const auto& t = id->GetType();
-			if ( t->Tag() == TYPE_FUNC &&
-			     t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
-				events.insert(id->Name());
-			}
-
-		else
-			{
-			// This is a tad ugly.  Unfortunately due to the
-			// weird way that Zeek function *declarations* work,
-			// there's no reliable way to get the list of
-			// parameters for a function *definition*, since
-			// they can have different names than what's present
-			// in the declaration.  So we identify them directly,
-			// by knowing that they come at the beginning of the
-			// frame ... and being careful to avoid misconfusing
-			// a lambda capture with a low frame offset as a
-			// parameter.
-			if ( captures.count(id) == 0 &&
-			     id->Offset() < num_params )
-				params.insert(id);
-
-			locals.insert(id);
-			}
-
-		// Turns out that NameExpr's can be constructed using a
-		// different Type* than that of the identifier itself,
-		// so be sure we track the latter too.
-		TrackType(id->GetType());
-
-		break;
-		}
-
-	case EXPR_FIELD:
-		if ( abs_rec_fields )
-			{
-			auto f = e->AsFieldExpr()->Field();
-			addl_hashes.push_back(p_hash(f));
-			}
-		else
-			{
-			auto fn = e->AsFieldExpr()->FieldName();
-			addl_hashes.push_back(p_hash(fn));
-			}
-		break;
-
-	case EXPR_HAS_FIELD:
-		if ( abs_rec_fields )
-			{
-			auto f = e->AsHasFieldExpr()->Field();
-			addl_hashes.push_back(std::hash<int>{}(f));
-			}
-		else
-			{
-			auto fn = e->AsHasFieldExpr()->FieldName();
-			addl_hashes.push_back(std::hash<std::string>{}(fn));
-			}
-		break;
-
-	case EXPR_INCR:
-	case EXPR_DECR:
-	case EXPR_ADD_TO:
-	case EXPR_REMOVE_FROM:
-	case EXPR_ASSIGN:
-		{
-		if ( e->GetOp1()->Tag() == EXPR_REF )
-			{
-			auto lhs = e->GetOp1()->GetOp1();
-			if ( lhs->Tag() == EXPR_NAME )
-				TrackAssignment(lhs->AsNameExpr()->Id());
-			}
-		// else this isn't a direct assignment.
-		break;
-		}
-
-	case EXPR_CALL:
-		{
-		auto c = e->AsCallExpr();
-		auto f = c->Func();
-
-		if ( f->Tag() != EXPR_NAME )
-			{
-			does_indirect_calls = true;
-			return TC_CONTINUE;
-			}
-
-		auto n = f->AsNameExpr();
-		auto func = n->Id();
-
-		if ( ! func->IsGlobal() )
-			{
-			does_indirect_calls = true;
-			return TC_CONTINUE;
-			}
-
-		all_globals.insert(func);
-
-		auto func_v = func->GetVal();
-		if ( func_v )
-			{
-			auto func_vf = func_v->AsFunc();
-
-			if ( func_vf->GetKind() == Func::SCRIPT_FUNC )
+		case EXPR_NAME:
 				{
-				auto bf = static_cast<ScriptFunc*>(func_vf);
-				script_calls.insert(bf);
+				auto n = e->AsNameExpr();
+				auto id = n->Id();
 
-				if ( in_when )
-					when_calls.insert(bf);
+				if ( id->IsGlobal() )
+					{
+					globals.insert(id);
+					all_globals.insert(id);
+
+					const auto& t = id->GetType();
+					if ( t->Tag() == TYPE_FUNC && t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
+						events.insert(id->Name());
+					}
+
+				else
+					{
+					// This is a tad ugly.  Unfortunately due to the
+					// weird way that Zeek function *declarations* work,
+					// there's no reliable way to get the list of
+					// parameters for a function *definition*, since
+					// they can have different names than what's present
+					// in the declaration.  So we identify them directly,
+					// by knowing that they come at the beginning of the
+					// frame ... and being careful to avoid misconfusing
+					// a lambda capture with a low frame offset as a
+					// parameter.
+					if ( captures.count(id) == 0 && id->Offset() < num_params )
+						params.insert(id);
+
+					locals.insert(id);
+					}
+
+				// Turns out that NameExpr's can be constructed using a
+				// different Type* than that of the identifier itself,
+				// so be sure we track the latter too.
+				TrackType(id->GetType());
+
+				break;
+				}
+
+		case EXPR_FIELD:
+			if ( abs_rec_fields )
+				{
+				auto f = e->AsFieldExpr()->Field();
+				addl_hashes.push_back(p_hash(f));
 				}
 			else
-				BiF_globals.insert(func);
-			}
-		else
-			{
-			// We could complain, but for now we don't, because
-			// if we're invoked prior to full Zeek initialization,
-			// the value might indeed not there yet.
-			// printf("no function value for global %s\n", func->Name());
-			}
+				{
+				auto fn = e->AsFieldExpr()->FieldName();
+				addl_hashes.push_back(p_hash(fn));
+				}
+			break;
 
-		// Recurse into the arguments.
-		auto args = c->Args();
-		args->Traverse(this);
+		case EXPR_HAS_FIELD:
+			if ( abs_rec_fields )
+				{
+				auto f = e->AsHasFieldExpr()->Field();
+				addl_hashes.push_back(std::hash<int>{}(f));
+				}
+			else
+				{
+				auto fn = e->AsHasFieldExpr()->FieldName();
+				addl_hashes.push_back(std::hash<std::string>{}(fn));
+				}
+			break;
 
-		// Do the following explicitly, since we won't be recursing
-		// into the LHS global.
+		case EXPR_INCR:
+		case EXPR_DECR:
+		case EXPR_ADD_TO:
+		case EXPR_REMOVE_FROM:
+		case EXPR_ASSIGN:
+				{
+				if ( e->GetOp1()->Tag() == EXPR_REF )
+					{
+					auto lhs = e->GetOp1()->GetOp1();
+					if ( lhs->Tag() == EXPR_NAME )
+						TrackAssignment(lhs->AsNameExpr()->Id());
+					}
+				// else this isn't a direct assignment.
+				break;
+				}
 
-		// Note that the type of the expression and the type of the
-		// function can actually be *different* due to the NameExpr
-		// being constructed based on a forward reference and then
-		// the global getting a different (constructed) type when
-		// the function is actually declared.  Geez.  So hedge our
-		// bets.
-		TrackType(n->GetType());
-		TrackType(func->GetType());
+		case EXPR_CALL:
+				{
+				auto c = e->AsCallExpr();
+				auto f = c->Func();
 
-		TrackID(func);
+				if ( f->Tag() != EXPR_NAME )
+					{
+					does_indirect_calls = true;
+					return TC_CONTINUE;
+					}
 
-		return TC_ABORTSTMT;
+				auto n = f->AsNameExpr();
+				auto func = n->Id();
+
+				if ( ! func->IsGlobal() )
+					{
+					does_indirect_calls = true;
+					return TC_CONTINUE;
+					}
+
+				all_globals.insert(func);
+
+				auto func_v = func->GetVal();
+				if ( func_v )
+					{
+					auto func_vf = func_v->AsFunc();
+
+					if ( func_vf->GetKind() == Func::SCRIPT_FUNC )
+						{
+						auto bf = static_cast<ScriptFunc*>(func_vf);
+						script_calls.insert(bf);
+
+						if ( in_when )
+							when_calls.insert(bf);
+						}
+					else
+						BiF_globals.insert(func);
+					}
+				else
+					{
+					// We could complain, but for now we don't, because
+					// if we're invoked prior to full Zeek initialization,
+					// the value might indeed not there yet.
+					// printf("no function value for global %s\n", func->Name());
+					}
+
+				// Recurse into the arguments.
+				auto args = c->Args();
+				args->Traverse(this);
+
+				// Do the following explicitly, since we won't be recursing
+				// into the LHS global.
+
+				// Note that the type of the expression and the type of the
+				// function can actually be *different* due to the NameExpr
+				// being constructed based on a forward reference and then
+				// the global getting a different (constructed) type when
+				// the function is actually declared.  Geez.  So hedge our
+				// bets.
+				TrackType(n->GetType());
+				TrackType(func->GetType());
+
+				TrackID(func);
+
+				return TC_ABORTSTMT;
+				}
+
+		case EXPR_EVENT:
+				{
+				auto ev = e->AsEventExpr()->Name();
+				events.insert(ev);
+				addl_hashes.push_back(p_hash(ev));
+				}
+			break;
+
+		case EXPR_LAMBDA:
+				{
+				auto l = e->AsLambdaExpr();
+				lambdas.push_back(l);
+
+				for ( const auto& i : l->OuterIDs() )
+					{
+					locals.insert(i);
+					TrackID(i);
+
+					// See above re EXPR_NAME regarding the following
+					// logic.
+					if ( captures.count(i) == 0 && i->Offset() < num_params )
+						params.insert(i);
+					}
+
+				// Avoid recursing into the body.
+				return TC_ABORTSTMT;
+				}
+
+		case EXPR_SET_CONSTRUCTOR:
+				{
+				auto sc = static_cast<const SetConstructorExpr*>(e);
+				const auto& attrs = sc->GetAttrs();
+
+				if ( attrs )
+					constructor_attrs.insert(attrs.get());
+				}
+			break;
+
+		case EXPR_TABLE_CONSTRUCTOR:
+				{
+				auto tc = static_cast<const TableConstructorExpr*>(e);
+				const auto& attrs = tc->GetAttrs();
+
+				if ( attrs )
+					constructor_attrs.insert(attrs.get());
+				}
+			break;
+
+		default:
+			break;
 		}
-
-	case EXPR_EVENT:
-		{
-		auto ev = e->AsEventExpr()->Name();
-		events.insert(ev);
-		addl_hashes.push_back(p_hash(ev));
-		}
-		break;
-
-	case EXPR_LAMBDA:
-		{
-		auto l = e->AsLambdaExpr();
-		lambdas.push_back(l);
-
-		for ( const auto& i : l->OuterIDs() )
-			{
-			locals.insert(i);
-			TrackID(i);
-
-			// See above re EXPR_NAME regarding the following
-			// logic.
-			if ( captures.count(i) == 0 &&
-			     i->Offset() < num_params )
-				params.insert(i);
-			}
-
-		// Avoid recursing into the body.
-		return TC_ABORTSTMT;
-		}
-
-	case EXPR_SET_CONSTRUCTOR:
-		{
-		auto sc = static_cast<const SetConstructorExpr*>(e);
-		const auto& attrs = sc->GetAttrs();
-
-		if ( attrs )
-			constructor_attrs.insert(attrs.get());
-		}
-		break;
-
-	case EXPR_TABLE_CONSTRUCTOR:
-		{
-		auto tc = static_cast<const TableConstructorExpr*>(e);
-		const auto& attrs = tc->GetAttrs();
-
-		if ( attrs )
-			constructor_attrs.insert(attrs.get());
-		}
-		break;
-
-	default:
-		break;
-	}
 
 	return TC_CONTINUE;
 	}
@@ -445,9 +442,8 @@ void ProfileFunc::TrackAssignment(const ID* id)
 		assignees[id] = 1;
 	}
 
-
-ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs,
-                           is_compilable_pred pred, bool _full_record_hashes)
+ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred,
+                           bool _full_record_hashes)
 	{
 	full_record_hashes = _full_record_hashes;
 
@@ -456,8 +452,7 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs,
 		if ( f.ShouldSkip() )
 			continue;
 
-		auto pf = std::make_unique<ProfileFunc>(f.Func(), f.Body(),
-		                                        full_record_hashes);
+		auto pf = std::make_unique<ProfileFunc>(f.Func(), f.Body(), full_record_hashes);
 
 		if ( ! pred || (*pred)(pf.get(), nullptr) )
 			MergeInProfile(pf.get());
@@ -499,7 +494,7 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf)
 
 		const auto& t = g->GetType();
 		if ( t->Tag() == TYPE_TYPE )
-			(void) HashType(t->AsTypeType()->GetType());
+			(void)HashType(t->AsTypeType()->GetType());
 
 		auto& init_exprs = g->GetOptInfo()->GetInitExprs();
 		for ( const auto& i_e : init_exprs )
@@ -517,8 +512,7 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf)
 		}
 
 	constants.insert(pf->Constants().begin(), pf->Constants().end());
-	main_types.insert(main_types.end(),
-	                  pf->OrderedTypes().begin(), pf->OrderedTypes().end());
+	main_types.insert(main_types.end(), pf->OrderedTypes().begin(), pf->OrderedTypes().end());
 	script_calls.insert(pf->ScriptCalls().begin(), pf->ScriptCalls().end());
 	BiF_globals.insert(pf->BiFGlobals().begin(), pf->BiFGlobals().end());
 	events.insert(pf->Events().begin(), pf->Events().end());
@@ -539,78 +533,79 @@ void ProfileFuncs::TraverseValue(const ValPtr& v)
 		return;
 
 	const auto& t = v->GetType();
-	(void) HashType(t);
+	(void)HashType(t);
 
-	switch ( t->Tag() ) {
-	case TYPE_ADDR:
-	case TYPE_ANY:
-	case TYPE_BOOL:
-	case TYPE_COUNT:
-	case TYPE_DOUBLE:
-	case TYPE_ENUM:
-	case TYPE_ERROR:
-	case TYPE_FILE:
-	case TYPE_FUNC:
-	case TYPE_INT:
-	case TYPE_INTERVAL:
-	case TYPE_OPAQUE:
-	case TYPE_PATTERN:
-	case TYPE_PORT:
-	case TYPE_STRING:
-	case TYPE_SUBNET:
-	case TYPE_TIME:
-	case TYPE_TIMER:
-	case TYPE_UNION:
-	case TYPE_VOID:
-		break;
-
-	case TYPE_RECORD:
+	switch ( t->Tag() )
 		{
-		auto r = cast_intrusive<RecordVal>(v);
-		auto n = r->NumFields();
+		case TYPE_ADDR:
+		case TYPE_ANY:
+		case TYPE_BOOL:
+		case TYPE_COUNT:
+		case TYPE_DOUBLE:
+		case TYPE_ENUM:
+		case TYPE_ERROR:
+		case TYPE_FILE:
+		case TYPE_FUNC:
+		case TYPE_INT:
+		case TYPE_INTERVAL:
+		case TYPE_OPAQUE:
+		case TYPE_PATTERN:
+		case TYPE_PORT:
+		case TYPE_STRING:
+		case TYPE_SUBNET:
+		case TYPE_TIME:
+		case TYPE_TIMER:
+		case TYPE_UNION:
+		case TYPE_VOID:
+			break;
 
-		for ( auto i = 0u; i < n; ++i )
-			TraverseValue(r->GetField(i));
+		case TYPE_RECORD:
+				{
+				auto r = cast_intrusive<RecordVal>(v);
+				auto n = r->NumFields();
+
+				for ( auto i = 0u; i < n; ++i )
+					TraverseValue(r->GetField(i));
+				}
+			break;
+
+		case TYPE_TABLE:
+				{
+				auto tv = cast_intrusive<TableVal>(v);
+				auto tv_map = tv->ToMap();
+
+				for ( auto& tv_i : tv_map )
+					{
+					TraverseValue(tv_i.first);
+					TraverseValue(tv_i.second);
+					}
+				}
+			break;
+
+		case TYPE_LIST:
+				{
+				auto lv = cast_intrusive<ListVal>(v);
+				auto n = lv->Length();
+
+				for ( auto i = 0; i < n; ++i )
+					TraverseValue(lv->Idx(i));
+				}
+			break;
+
+		case TYPE_VECTOR:
+				{
+				auto vv = cast_intrusive<VectorVal>(v);
+				auto n = vv->Size();
+
+				for ( auto i = 0u; i < n; ++i )
+					TraverseValue(vv->ValAt(i));
+				}
+			break;
+
+		case TYPE_TYPE:
+			(void)HashType(t->AsTypeType()->GetType());
+			break;
 		}
-		break;
-
-	case TYPE_TABLE:
-		{
-		auto tv = cast_intrusive<TableVal>(v);
-		auto tv_map = tv->ToMap();
-
-		for ( auto& tv_i : tv_map )
-			{
-			TraverseValue(tv_i.first);
-			TraverseValue(tv_i.second);
-			}
-		}
-		break;
-
-	case TYPE_LIST:
-		{
-		auto lv = cast_intrusive<ListVal>(v);
-		auto n = lv->Length();
-
-		for ( auto i = 0; i < n; ++i )
-			TraverseValue(lv->Idx(i));
-		}
-		break;
-
-	case TYPE_VECTOR:
-		{
-		auto vv = cast_intrusive<VectorVal>(v);
-		auto n = vv->Size();
-
-		for ( auto i = 0u; i < n; ++i )
-			TraverseValue(vv->ValAt(i));
-		}
-		break;
-
-	case TYPE_TYPE:
-		(void) HashType(t->AsTypeType()->GetType());
-		break;
-	}
 	}
 
 void ProfileFuncs::DrainPendingExprs()
@@ -645,7 +640,7 @@ void ProfileFuncs::DrainPendingExprs()
 void ProfileFuncs::ComputeTypeHashes(const std::vector<const Type*>& types)
 	{
 	for ( auto t : types )
-		(void) HashType(t);
+		(void)HashType(t);
 	}
 
 void ProfileFuncs::ComputeBodyHashes(std::vector<FuncInfo>& funcs)
@@ -740,122 +735,123 @@ p_hash_type ProfileFuncs::HashType(const Type* t)
 	// to differentiate its hash.
 	type_hashes[t] = h;
 
-	switch ( t->Tag() ) {
-	case TYPE_ADDR:
-	case TYPE_ANY:
-	case TYPE_BOOL:
-	case TYPE_COUNT:
-	case TYPE_DOUBLE:
-	case TYPE_ENUM:
-	case TYPE_ERROR:
-	case TYPE_INT:
-	case TYPE_INTERVAL:
-	case TYPE_OPAQUE:
-	case TYPE_PATTERN:
-	case TYPE_PORT:
-	case TYPE_STRING:
-	case TYPE_SUBNET:
-	case TYPE_TIME:
-	case TYPE_TIMER:
-	case TYPE_UNION:
-	case TYPE_VOID:
-		h = merge_p_hashes(h, p_hash(t));
-		break;
-
-	case TYPE_RECORD:
+	switch ( t->Tag() )
 		{
-		const auto& ft = t->AsRecordType();
-		auto n = ft->NumFields();
-		auto orig_n = ft->NumOrigFields();
+		case TYPE_ADDR:
+		case TYPE_ANY:
+		case TYPE_BOOL:
+		case TYPE_COUNT:
+		case TYPE_DOUBLE:
+		case TYPE_ENUM:
+		case TYPE_ERROR:
+		case TYPE_INT:
+		case TYPE_INTERVAL:
+		case TYPE_OPAQUE:
+		case TYPE_PATTERN:
+		case TYPE_PORT:
+		case TYPE_STRING:
+		case TYPE_SUBNET:
+		case TYPE_TIME:
+		case TYPE_TIMER:
+		case TYPE_UNION:
+		case TYPE_VOID:
+			h = merge_p_hashes(h, p_hash(t));
+			break;
 
-		h = merge_p_hashes(h, p_hash("record"));
-
-		if ( full_record_hashes )
-			h = merge_p_hashes(h, p_hash(n));
-		else
-			h = merge_p_hashes(h, p_hash(orig_n));
-
-		for ( auto i = 0; i < n; ++i )
-			{
-			bool do_hash = full_record_hashes;
-			if ( ! do_hash )
-				do_hash = (i < orig_n);
-
-			const auto& f = ft->FieldDecl(i);
-			auto type_h = HashType(f->type);
-
-			if ( do_hash )
+		case TYPE_RECORD:
 				{
-				h = merge_p_hashes(h, p_hash(f->id));
-				h = merge_p_hashes(h, type_h);
+				const auto& ft = t->AsRecordType();
+				auto n = ft->NumFields();
+				auto orig_n = ft->NumOrigFields();
+
+				h = merge_p_hashes(h, p_hash("record"));
+
+				if ( full_record_hashes )
+					h = merge_p_hashes(h, p_hash(n));
+				else
+					h = merge_p_hashes(h, p_hash(orig_n));
+
+				for ( auto i = 0; i < n; ++i )
+					{
+					bool do_hash = full_record_hashes;
+					if ( ! do_hash )
+						do_hash = (i < orig_n);
+
+					const auto& f = ft->FieldDecl(i);
+					auto type_h = HashType(f->type);
+
+					if ( do_hash )
+						{
+						h = merge_p_hashes(h, p_hash(f->id));
+						h = merge_p_hashes(h, type_h);
+						}
+
+					h = merge_p_hashes(h, p_hash(f->id));
+					h = merge_p_hashes(h, HashType(f->type));
+
+					// We don't hash the field name, as in some contexts
+					// those are ignored.
+
+					if ( f->attrs )
+						{
+						if ( do_hash )
+							h = merge_p_hashes(h, HashAttrs(f->attrs));
+						AnalyzeAttrs(f->attrs.get());
+						}
+					}
 				}
+			break;
 
-			h = merge_p_hashes(h, p_hash(f->id));
-			h = merge_p_hashes(h, HashType(f->type));
-
-			// We don't hash the field name, as in some contexts
-			// those are ignored.
-
-			if ( f->attrs )
+		case TYPE_TABLE:
 				{
-				if ( do_hash )
-					h = merge_p_hashes(h, HashAttrs(f->attrs));
-				AnalyzeAttrs(f->attrs.get());
+				auto tbl = t->AsTableType();
+				h = merge_p_hashes(h, p_hash("table"));
+				h = merge_p_hashes(h, p_hash("indices"));
+				h = merge_p_hashes(h, HashType(tbl->GetIndices()));
+				h = merge_p_hashes(h, p_hash("tbl-yield"));
+				h = merge_p_hashes(h, HashType(tbl->Yield()));
 				}
-			}
+			break;
+
+		case TYPE_FUNC:
+				{
+				auto ft = t->AsFuncType();
+				auto flv = ft->FlavorString();
+				h = merge_p_hashes(h, p_hash(flv));
+				h = merge_p_hashes(h, p_hash("params"));
+				h = merge_p_hashes(h, HashType(ft->Params()));
+				h = merge_p_hashes(h, p_hash("func-yield"));
+				h = merge_p_hashes(h, HashType(ft->Yield()));
+				}
+			break;
+
+		case TYPE_LIST:
+				{
+				auto& tl = t->AsTypeList()->GetTypes();
+
+				h = merge_p_hashes(h, p_hash("list"));
+				h = merge_p_hashes(h, p_hash(tl.size()));
+
+				for ( const auto& tl_i : tl )
+					h = merge_p_hashes(h, HashType(tl_i));
+				}
+			break;
+
+		case TYPE_VECTOR:
+			h = merge_p_hashes(h, p_hash("vec"));
+			h = merge_p_hashes(h, HashType(t->AsVectorType()->Yield()));
+			break;
+
+		case TYPE_FILE:
+			h = merge_p_hashes(h, p_hash("file"));
+			h = merge_p_hashes(h, HashType(t->AsFileType()->Yield()));
+			break;
+
+		case TYPE_TYPE:
+			h = merge_p_hashes(h, p_hash("type"));
+			h = merge_p_hashes(h, HashType(t->AsTypeType()->GetType()));
+			break;
 		}
-		break;
-
-	case TYPE_TABLE:
-		{
-		auto tbl = t->AsTableType();
-		h = merge_p_hashes(h, p_hash("table"));
-		h = merge_p_hashes(h, p_hash("indices"));
-		h = merge_p_hashes(h, HashType(tbl->GetIndices()));
-		h = merge_p_hashes(h, p_hash("tbl-yield"));
-		h = merge_p_hashes(h, HashType(tbl->Yield()));
-		}
-		break;
-
-	case TYPE_FUNC:
-		{
-		auto ft = t->AsFuncType();
-		auto flv = ft->FlavorString();
-		h = merge_p_hashes(h, p_hash(flv));
-		h = merge_p_hashes(h, p_hash("params"));
-		h = merge_p_hashes(h, HashType(ft->Params()));
-		h = merge_p_hashes(h, p_hash("func-yield"));
-		h = merge_p_hashes(h, HashType(ft->Yield()));
-		}
-		break;
-
-	case TYPE_LIST:
-		{
-		auto& tl = t->AsTypeList()->GetTypes();
-
-		h = merge_p_hashes(h, p_hash("list"));
-		h = merge_p_hashes(h, p_hash(tl.size()));
-
-		for ( const auto& tl_i : tl )
-			h = merge_p_hashes(h, HashType(tl_i));
-		}
-		break;
-
-	case TYPE_VECTOR:
-		h = merge_p_hashes(h, p_hash("vec"));
-		h = merge_p_hashes(h, HashType(t->AsVectorType()->Yield()));
-		break;
-
-	case TYPE_FILE:
-		h = merge_p_hashes(h, p_hash("file"));
-		h = merge_p_hashes(h, HashType(t->AsFileType()->Yield()));
-		break;
-
-	case TYPE_TYPE:
-		h = merge_p_hashes(h, p_hash("type"));
-		h = merge_p_hashes(h, HashType(t->AsTypeType()->GetType()));
-		break;
-	}
 
 	type_hashes[t] = h;
 
@@ -915,4 +911,4 @@ void ProfileFuncs::AnalyzeAttrs(const Attributes* Attrs)
 		}
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

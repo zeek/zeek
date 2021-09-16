@@ -1,34 +1,34 @@
-#include "zeek/zeek-config.h"
 #include "zeek/RuleAction.h"
 
 #include <string>
 
-#include "zeek/RuleMatcher.h"
 #include "zeek/Conn.h"
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
-#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/RuleMatcher.h"
 #include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/zeek-config.h"
 
 using std::string;
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 RuleActionEvent::RuleActionEvent(const char* arg_msg)
 	{
 	msg = util::copy_string(arg_msg);
 	}
 
-void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state,
-                               const u_char* data, int len)
+void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state, const u_char* data,
+                               int len)
 	{
 	if ( signature_match )
 		event_mgr.Enqueue(
 			signature_match,
 			IntrusivePtr{AdoptRef{}, rule_matcher->BuildRuleStateValue(parent, state)},
 			make_intrusive<StringVal>(msg),
-			data ? make_intrusive<StringVal>(len, (const char*)data) : val_mgr->EmptyString()
-		);
+			data ? make_intrusive<StringVal>(len, (const char*)data) : val_mgr->EmptyString());
 	}
 
 void RuleActionEvent::PrintDebug()
@@ -74,14 +74,12 @@ void RuleActionAnalyzer::PrintDebug()
 	if ( ! child_analyzer )
 		fprintf(stderr, "|%s|\n", analyzer_mgr->GetComponentName(analyzer).c_str());
 	else
-		fprintf(stderr, "|%s:%s|\n",
-		        analyzer_mgr->GetComponentName(analyzer).c_str(),
+		fprintf(stderr, "|%s:%s|\n", analyzer_mgr->GetComponentName(analyzer).c_str(),
 		        analyzer_mgr->GetComponentName(child_analyzer).c_str());
 	}
 
-
-void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state,
-                                const u_char* data, int len)
+void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state, const u_char* data,
+                                int len)
 	{
 	if ( ! ChildAnalyzer() )
 		{
@@ -98,7 +96,10 @@ void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state,
 
 		// This is ugly and works only if there exists only one
 		// analyzer of each type.
-		state->PIA()->AsAnalyzer()->Conn()->FindAnalyzer(Analyzer())
+		state->PIA()
+			->AsAnalyzer()
+			->Conn()
+			->FindAnalyzer(Analyzer())
 			->AddChildAnalyzer(ChildAnalyzer());
 		}
 	}
@@ -109,8 +110,8 @@ void RuleActionEnable::PrintDebug()
 	RuleActionAnalyzer::PrintDebug();
 	}
 
-void RuleActionDisable::DoAction(const Rule* parent, RuleEndpointState* state,
-                                 const u_char* data, int len)
+void RuleActionDisable::DoAction(const Rule* parent, RuleEndpointState* state, const u_char* data,
+                                 int len)
 	{
 	if ( ! ChildAnalyzer() )
 		{
@@ -118,8 +119,7 @@ void RuleActionDisable::DoAction(const Rule* parent, RuleEndpointState* state,
 			state->PIA()->DeactivateAnalyzer(Analyzer());
 		}
 	else
-		state->GetAnalyzer()->AddChildAnalyzer(
-			state->GetAnalyzer()->FindChild(ChildAnalyzer()));
+		state->GetAnalyzer()->AddChildAnalyzer(state->GetAnalyzer()->FindChild(ChildAnalyzer()));
 	}
 
 void RuleActionDisable::PrintDebug()
@@ -128,4 +128,4 @@ void RuleActionDisable::PrintDebug()
 	RuleActionAnalyzer::PrintDebug();
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

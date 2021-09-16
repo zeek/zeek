@@ -6,14 +6,16 @@
 #include "zeek/Func.h"
 #include "zeek/Stmt.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 // A DefinitionPoint is a location where a variable, or possibly a record
 // field, is defined (i.e., assigned to).  The class tracks the type of
 // definition (a statement, inside an expression, an aggregate passed to
 // a function or hook, or at the start of a function).
 
-enum DefPointType {
+enum DefPointType
+	{
 	// Used to capture the notion "the variable may have no definition
 	// at this point" (or "has no definition", depending on whether we're
 	// concerned with minimal or maximal RDs).
@@ -42,9 +44,10 @@ enum DefPointType {
 	// it's a function parameter.
 	FUNC_DEF,
 
-};
+	};
 
-class DefinitionPoint {
+class DefinitionPoint
+	{
 public:
 	DefinitionPoint()
 		{
@@ -70,26 +73,26 @@ public:
 		t = FUNC_DEF;
 		}
 
-	DefPointType Tag() const	{ return t; }
+	DefPointType Tag() const { return t; }
 
-	const Obj* OpaqueVal() const	{ return o; }
+	const Obj* OpaqueVal() const { return o; }
 
 	const Stmt* StmtVal() const
-		{ 
+		{
 		ASSERT(t == STMT_DEF);
-		return (const Stmt*) o;
+		return (const Stmt*)o;
 		}
 
 	const Expr* ExprVal() const
 		{
 		ASSERT(t == EXPR_DEF);
-		return (const Expr*) o;
+		return (const Expr*)o;
 		}
 
 	const Func* FuncVal() const
 		{
 		ASSERT(t == FUNC_DEF);
-		return (const Func*) o;
+		return (const Func*)o;
 		}
 
 	bool SameAs(const DefinitionPoint& dp) const
@@ -100,6 +103,6 @@ public:
 protected:
 	DefPointType t;
 	const Obj* o;
-};
+	};
 
-} // zeek::detail
+	} // zeek::detail

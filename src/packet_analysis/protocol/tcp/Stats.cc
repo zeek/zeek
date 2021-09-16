@@ -3,10 +3,10 @@
 #include "zeek/packet_analysis/protocol/tcp/Stats.h"
 
 #include "zeek/File.h"
-
 #include "zeek/analyzer/protocol/tcp/events.bif.h"
 
-namespace zeek::packet_analysis::TCP {
+namespace zeek::packet_analysis::TCP
+	{
 
 TCPStateStats::TCPStateStats()
 	{
@@ -15,8 +15,10 @@ TCPStateStats::TCPStateStats()
 			state_cnt[i][j] = 0;
 	}
 
-void TCPStateStats::ChangeState(analyzer::tcp::EndpointState o_prev, analyzer::tcp::EndpointState o_now,
-                                analyzer::tcp::EndpointState r_prev, analyzer::tcp::EndpointState r_now)
+void TCPStateStats::ChangeState(analyzer::tcp::EndpointState o_prev,
+                                analyzer::tcp::EndpointState o_now,
+                                analyzer::tcp::EndpointState r_prev,
+                                analyzer::tcp::EndpointState r_now)
 	{
 	--state_cnt[o_prev][r_prev];
 	++state_cnt[o_now][r_now];
@@ -49,21 +51,21 @@ void TCPStateStats::PrintStats(File* file, const char* prefix)
 		{
 		file->Write(prefix);
 
-		switch ( i ) {
-#define STATE_STRING(state, str) \
-	case state: \
-		file->Write(str); \
+		switch ( i )
+			{
+#define STATE_STRING(state, str)                                                                   \
+	case state:                                                                                    \
+		file->Write(str);                                                                          \
 		break;
 
-		STATE_STRING(analyzer::tcp::TCP_ENDPOINT_INACTIVE, "Inact.");
-		STATE_STRING(analyzer::tcp::TCP_ENDPOINT_SYN_SENT, "Syn.  ");
-		STATE_STRING(analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT, "SA    ");
-		STATE_STRING(analyzer::tcp::TCP_ENDPOINT_PARTIAL, "Part. ");
-		STATE_STRING(analyzer::tcp::TCP_ENDPOINT_ESTABLISHED, "Est.  ");
-		STATE_STRING(analyzer::tcp::TCP_ENDPOINT_CLOSED, "Fin.  ");
-		STATE_STRING(analyzer::tcp::TCP_ENDPOINT_RESET, "Rst.  ");
-
-		}
+			STATE_STRING(analyzer::tcp::TCP_ENDPOINT_INACTIVE, "Inact.");
+			STATE_STRING(analyzer::tcp::TCP_ENDPOINT_SYN_SENT, "Syn.  ");
+			STATE_STRING(analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT, "SA    ");
+			STATE_STRING(analyzer::tcp::TCP_ENDPOINT_PARTIAL, "Part. ");
+			STATE_STRING(analyzer::tcp::TCP_ENDPOINT_ESTABLISHED, "Est.  ");
+			STATE_STRING(analyzer::tcp::TCP_ENDPOINT_CLOSED, "Fin.  ");
+			STATE_STRING(analyzer::tcp::TCP_ENDPOINT_RESET, "Rst.  ");
+			}
 
 		file->Write("  ");
 
@@ -84,4 +86,4 @@ void TCPStateStats::PrintStats(File* file, const char* prefix)
 		}
 	}
 
-} // namespace zeek::packet_analysis::TCP
+	} // namespace zeek::packet_analysis::TCP

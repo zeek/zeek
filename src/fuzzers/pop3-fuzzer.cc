@@ -1,16 +1,15 @@
 #include <binpac.h>
 
-#include "zeek/RunState.h"
 #include "zeek/Conn.h"
-#include "zeek/session/Manager.h"
+#include "zeek/RunState.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
-#include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
-
 #include "zeek/fuzzers/FuzzBuffer.h"
 #include "zeek/fuzzers/fuzzer-setup.h"
+#include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
+#include "zeek/session/Manager.h"
 
 static constexpr auto ZEEK_FUZZ_ANALYZER = "pop3";
 
@@ -28,8 +27,7 @@ static zeek::Connection* add_connection()
 	conn_id.is_one_way = false;
 	conn_id.proto = TRANSPORT_TCP;
 	zeek::detail::ConnKey key(conn_id);
-	zeek::Connection* conn = new zeek::Connection(key, network_time_start,
-	                                              &conn_id, 1, &p);
+	zeek::Connection* conn = new zeek::Connection(key, network_time_start, &conn_id, 1, &p);
 	conn->SetTransport(TRANSPORT_TCP);
 	zeek::session_mgr->Insert(conn);
 	return conn;
@@ -56,7 +54,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	auto conn = add_connection();
 	auto a = add_analyzer(conn);
 
-	for ( ; ;  )
+	for ( ;; )
 		{
 		auto chunk = fb.Next();
 

@@ -2,25 +2,25 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include <time.h> // for time_t
-#include <set>
 #include <list>
+#include <map>
+#include <set>
 #include <string>
 #include <vector>
-#include <map>
 
+#include "zeek/zeek-config.h"
 #include "zeek/zeekygen/Info.h"
 
-namespace zeek::zeekygen::detail {
+namespace zeek::zeekygen::detail
+	{
 
 class IdentifierInfo;
 
-struct IdInfoComp {
-	bool operator() (const IdentifierInfo* lhs,
-	                 const IdentifierInfo* rhs) const;
-};
+struct IdInfoComp
+	{
+	bool operator()(const IdentifierInfo* lhs, const IdentifierInfo* rhs) const;
+	};
 
 using id_info_set = std::set<IdentifierInfo*, IdInfoComp>;
 using id_info_list = std::list<IdentifierInfo*>;
@@ -28,10 +28,10 @@ using id_info_list = std::list<IdentifierInfo*>;
 /**
  * Information about a Bro script.
  */
-class ScriptInfo : public Info {
+class ScriptInfo : public Info
+	{
 
 public:
-
 	/**
 	 * Ctor.
 	 * @param name Name of script: a path relative to a component in ZEEKPATH.
@@ -43,24 +43,21 @@ public:
 	 * Associate a Zeekygen summary comment ("##!") with the script.
 	 * @param comment String extracted from the comment.
 	 */
-	void AddComment(const std::string& comment)
-		{ comments.push_back(comment); }
+	void AddComment(const std::string& comment) { comments.push_back(comment); }
 
 	/**
 	 * Register a dependency on another script.
 	 * @param name Name of a script with this one @loads.  This is the
 	 * "normalized" name (a path relative to a component in ZEEKPATH).
 	 */
-	void AddDependency(const std::string& name)
-		{ dependencies.insert(name); }
+	void AddDependency(const std::string& name) { dependencies.insert(name); }
 
 	/**
 	 * Register a module usage (signifying the script may export identifiers
 	 * into that modules namespace).
 	 * @param name The name of the module.
 	 */
-	void AddModule(const std::string& name)
-		{ module_usages.insert(name); }
+	void AddModule(const std::string& name) { module_usages.insert(name); }
 
 	/**
 	 * Register an identifier declared by this script.
@@ -74,14 +71,12 @@ public:
 	 * @param info The identifier info object associated with the script-level
 	 * identifier redef'd by the script.
 	 */
-	void AddRedef(IdentifierInfo* info)
-		{ redefs.insert(info); }
+	void AddRedef(IdentifierInfo* info) { redefs.insert(info); }
 
 	/**
 	 * @return Whether the script is a package loader (i.e. "__load__.zeek").
 	 */
-	bool IsPkgLoader() const
-		{ return is_pkg_loader; }
+	bool IsPkgLoader() const { return is_pkg_loader; }
 
 	/**
 	 * @return All the scripts Zeekygen summary comments.
@@ -89,14 +84,12 @@ public:
 	std::vector<std::string> GetComments() const;
 
 private:
-
 	typedef std::map<std::string, IdentifierInfo*> id_info_map;
 	typedef std::set<std::string> string_set;
 
 	time_t DoGetModificationTime() const override;
 
-	std::string DoName() const override
-		{ return name; }
+	std::string DoName() const override { return name; }
 
 	std::string DoReStructuredText(bool roles_only) const override;
 
@@ -118,6 +111,6 @@ private:
 	id_info_list hooks;
 	id_info_list functions;
 	id_info_set redefs;
-};
+	};
 
-} // namespace zeek::zeekygen::detail
+	} // namespace zeek::zeekygen::detail

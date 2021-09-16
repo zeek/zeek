@@ -7,9 +7,11 @@
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 
-namespace zeek::packet_analysis::UDP {
+namespace zeek::packet_analysis::UDP
+	{
 
-class UDPAnalyzer final : public IP::IPBasedAnalyzer {
+class UDPAnalyzer final : public IP::IPBasedAnalyzer
+	{
 public:
 	UDPAnalyzer();
 	~UDPAnalyzer() override = default;
@@ -27,15 +29,12 @@ public:
 	void Initialize() override;
 
 protected:
-
 	/**
 	 * Parse the header from the packet into a ConnTuple object.
 	 */
-	bool BuildConnTuple(size_t len, const uint8_t* data, Packet* packet,
-	                    ConnTuple& tuple) override;
+	bool BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) override;
 
-	void DeliverPacket(Connection* c, double t, bool is_orig, int remaining,
-	                        Packet* pkt) override;
+	void DeliverPacket(Connection* c, double t, bool is_orig, int remaining, Packet* pkt) override;
 
 	/**
 	 * Upon seeing the first packet of a connection, checks whether we want
@@ -49,19 +48,17 @@ protected:
 	 * @param flip_roles Return value if the roles should be flipped.
 	 * @return True if the connection is wanted. False otherwise.
 	 */
-	bool WantConnection(uint16_t src_port, uint16_t dst_port,
-	                    const u_char* data, bool& flip_roles) const override;
+	bool WantConnection(uint16_t src_port, uint16_t dst_port, const u_char* data,
+	                    bool& flip_roles) const override;
 
 	packet_analysis::IP::SessionAdapter* MakeSessionAdapter(Connection* conn) override;
 	analyzer::pia::PIA* MakePIA(Connection* conn) override;
 
 private:
-
 	// Returns true if the checksum is valid, false if not
-	static bool ValidateChecksum(const IP_Hdr* ip, const struct udphdr* up,
-	                             int len);
+	static bool ValidateChecksum(const IP_Hdr* ip, const struct udphdr* up, int len);
 
 	std::vector<uint16_t> vxlan_ports;
-};
+	};
 
-}
+	}

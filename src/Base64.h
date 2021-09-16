@@ -1,17 +1,21 @@
 #pragma once
 
-#include "zeek/zeek-config.h"
 #include <string>
 
-namespace zeek {
+#include "zeek/zeek-config.h"
+
+namespace zeek
+	{
 
 class String;
 class Connection;
 
-namespace detail {
+namespace detail
+	{
 
 // Maybe we should have a base class for generic decoders?
-class Base64Converter {
+class Base64Converter
+	{
 public:
 	// <conn> is used for error reporting. If it is set to zero (as,
 	// e.g., done by the built-in functions decode_base64() and
@@ -38,9 +42,9 @@ public:
 	bool HasData() const { return base64_group_next != 0; }
 
 	// True if an error has occurred.
-	int Errored() const	{ return errored; }
+	int Errored() const { return errored; }
 
-	const char* ErrorMsg() const	{ return error_msg; }
+	const char* ErrorMsg() const { return error_msg; }
 	void IllegalEncoding(const char* msg);
 
 protected:
@@ -57,13 +61,12 @@ protected:
 	int base64_padding;
 	int base64_after_padding;
 	int* base64_table;
-	int errored;	// if true, we encountered an error - skip further processing
+	int errored; // if true, we encountered an error - skip further processing
 	Connection* conn;
-
-};
+	};
 
 String* decode_base64(const String* s, const String* a = nullptr, Connection* conn = nullptr);
 String* encode_base64(const String* s, const String* a = nullptr, Connection* conn = nullptr);
 
-} // namespace detail
-} // namespace zeek
+	} // namespace detail
+	} // namespace zeek

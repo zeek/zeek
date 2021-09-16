@@ -2,15 +2,19 @@
 
 #pragma once
 
+#include <time.h> // for time_t
+#include <optional>
+#include <string>
+
 #include "zeek/zeek-config.h"
 
-#include <time.h> // for time_t
-#include <string>
-#include <optional>
+namespace zeek::detail
+	{
+class ID;
+	}
 
-namespace zeek::detail { class ID; }
-
-namespace zeek::zeekygen::detail {
+namespace zeek::zeekygen::detail
+	{
 
 /**
  * Transform content of a Zeekygen comment which may contain function
@@ -89,4 +93,4 @@ std::string normalize_script_path(std::string_view path);
  */
 std::optional<std::string> source_code_range(const zeek::detail::ID* id);
 
-} // namespace zeek::zeekygen::detail
+	} // namespace zeek::zeekygen::detail

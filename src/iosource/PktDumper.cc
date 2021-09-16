@@ -1,12 +1,13 @@
 
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/iosource/PktDumper.h"
+
+#include "zeek/DebugLogger.h"
 #include "zeek/zeek-config.h"
 
-#include "zeek/iosource/PktDumper.h"
-#include "zeek/DebugLogger.h"
-
-namespace zeek::iosource {
+namespace zeek::iosource
+	{
 
 PktDumper::PktDumper()
 	{
@@ -14,9 +15,7 @@ PktDumper::PktDumper()
 	errmsg = "";
 	}
 
-PktDumper::~PktDumper()
-	{
-	}
+PktDumper::~PktDumper() { }
 
 void PktDumper::Init()
 	{
@@ -71,9 +70,8 @@ void PktDumper::Error(const std::string& msg)
 	{
 	errmsg = msg;
 
-	DBG_LOG(DBG_PKTIO, "Error with dumper %s: %s",
-		IsOpen() ? props.path.c_str() : "<not open>",
-		msg.c_str());
+	DBG_LOG(DBG_PKTIO, "Error with dumper %s: %s", IsOpen() ? props.path.c_str() : "<not open>",
+	        msg.c_str());
 	}
 
-} // namespace zeek::iosource
+	} // namespace zeek::iosource

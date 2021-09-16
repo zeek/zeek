@@ -2,13 +2,12 @@
 
 #include "zeek/input/readers/raw/Plugin.h"
 
-namespace zeek::plugin::detail::Zeek_RawReader {
+namespace zeek::plugin::detail::Zeek_RawReader
+	{
 
 Plugin plugin;
 
-Plugin::Plugin()
-	{
-	}
+Plugin::Plugin() { }
 
 zeek::plugin::Configuration Plugin::Configure()
 	{
@@ -20,17 +19,13 @@ zeek::plugin::Configuration Plugin::Configure()
 	return config;
 	}
 
-void Plugin::InitPreScript()
-	{
-	}
+void Plugin::InitPreScript() { }
 
-void Plugin::Done()
-	{
-	}
+void Plugin::Done() { }
 
 std::unique_lock<std::mutex> Plugin::ForkMutex()
 	{
 	return std::unique_lock<std::mutex>(fork_mutex, std::defer_lock);
 	}
 
-} // namespace zeek::plugin::detail::Zeek_RawReader
+	} // namespace zeek::plugin::detail::Zeek_RawReader

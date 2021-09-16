@@ -5,11 +5,11 @@
 #include "zeek/Conn.h"
 #include "zeek/IP.h"
 #include "zeek/RunState.h"
+#include "zeek/analyzer/protocol/geneve/events.bif.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
-#include "zeek/analyzer/protocol/geneve/events.bif.h"
-
-namespace zeek::analyzer::geneve {
+namespace zeek::analyzer::geneve
+	{
 
 void Geneve_Analyzer::Done()
 	{
@@ -17,8 +17,8 @@ void Geneve_Analyzer::Done()
 	Event(udp_session_done);
 	}
 
-void Geneve_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                    uint64_t seq, const IP_Hdr* ip, int caplen)
+void Geneve_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+                                    const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -50,9 +50,10 @@ void Geneve_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	uint8_t tunnel_opt_len = (data[0] & 0x3F) * 4;
 	auto vni = (data[4] << 16) + (data[5] << 8) + (data[6] << 0);
 
-	if ( len < tunnel_header_len  + tunnel_opt_len )
+	if ( len < tunnel_header_len + tunnel_opt_len )
 		{
-		ProtocolViolation("Geneve option header truncation", reinterpret_cast<const char*>(data), len);
+		ProtocolViolation("Geneve option header truncation", reinterpret_cast<const char*>(data),
+		                  len);
 		return;
 		}
 
@@ -63,7 +64,8 @@ void Geneve_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	pkt_timeval ts;
 	ts.tv_sec = static_cast<time_t>(run_state::current_timestamp);
-	ts.tv_usec = static_cast<suseconds_t>((run_state::current_timestamp - static_cast<double>(ts.tv_sec)) * 1000000);
+	ts.tv_usec = static_cast<suseconds_t>(
+		(run_state::current_timestamp - static_cast<double>(ts.tv_sec)) * 1000000);
 	Packet pkt(DLT_EN10MB, &ts, caplen, len, data);
 	pkt.encap = outer;
 
@@ -81,8 +83,8 @@ void Geneve_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	ProtocolConfirmation();
 
 	if ( geneve_packet )
-		Conn()->EnqueueEvent(geneve_packet, nullptr, ConnVal(),
-		                     pkt.ip_hdr->ToPktHdrVal(), val_mgr->Count(vni));
+		Conn()->EnqueueEvent(geneve_packet, nullptr, ConnVal(), pkt.ip_hdr->ToPktHdrVal(),
+		                     val_mgr->Count(vni));
 	}
 
-} // namespace zeek::analyzer::geneve
+	} // namespace zeek::analyzer::geneve

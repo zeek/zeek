@@ -1,14 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/Expr.h"
 #include "zeek/script_opt/DefItem.h"
 
+#include "zeek/Expr.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
-
-DefinitionItem::DefinitionItem(const ID* _id)
-: name(_id->Name())
+DefinitionItem::DefinitionItem(const ID* _id) : name(_id->Name())
 	{
 	is_id = true;
 	id = _id;
@@ -20,8 +19,7 @@ DefinitionItem::DefinitionItem(const ID* _id)
 	CheckForRecord();
 	}
 
-DefinitionItem::DefinitionItem(const DefinitionItem* _di,
-				const char* _field_name, TypePtr _t)
+DefinitionItem::DefinitionItem(const DefinitionItem* _di, const char* _field_name, TypePtr _t)
 	{
 	is_id = false;
 	id = nullptr;
@@ -37,8 +35,7 @@ DefinitionItem::DefinitionItem(const DefinitionItem* _di,
 	CheckForRecord();
 	}
 
-std::shared_ptr<DefinitionItem>
-DefinitionItem::FindField(const char* field) const
+std::shared_ptr<DefinitionItem> DefinitionItem::FindField(const char* field) const
 	{
 	if ( ! IsRecord() )
 		return nullptr;
@@ -56,30 +53,26 @@ std::shared_ptr<DefinitionItem> DefinitionItem::FindField(int offset) const
 	return (*fields)[offset];
 	}
 
-std::shared_ptr<DefinitionItem>
-DefinitionItem::CreateField(const char* field, TypePtr t)
+std::shared_ptr<DefinitionItem> DefinitionItem::CreateField(const char* field, TypePtr t)
 	{
 	auto offset = rt->FieldOffset(field);
 
 	if ( (*fields)[offset] )
 		return (*fields)[offset];
 
-	(*fields)[offset] =
-		std::make_shared<DefinitionItem>(this, field, std::move(t));
+	(*fields)[offset] = std::make_shared<DefinitionItem>(this, field, std::move(t));
 
 	return (*fields)[offset];
 	}
 
-std::shared_ptr<DefinitionItem>
-DefinitionItem::CreateField(int offset, TypePtr t)
+std::shared_ptr<DefinitionItem> DefinitionItem::CreateField(int offset, TypePtr t)
 	{
 	if ( (*fields)[offset] )
 		return (*fields)[offset];
 
 	auto field = rt->FieldName(offset);
 
-	(*fields)[offset] =
-		std::make_shared<DefinitionItem>(this, field, std::move(t));
+	(*fields)[offset] = std::make_shared<DefinitionItem>(this, field, std::move(t));
 
 	return (*fields)[offset];
 	}
@@ -96,7 +89,6 @@ void DefinitionItem::CheckForRecord()
 	num_fields = rt->NumFields();
 	fields = std::vector<std::shared_ptr<DefinitionItem>>(num_fields);
 	}
-
 
 std::shared_ptr<DefinitionItem> DefItemMap::GetExprDI(const Expr* expr)
 	{
@@ -145,10 +137,9 @@ const DefinitionItem* DefItemMap::GetConstID_DI(const ID* id) const
 	}
 
 const DefinitionItem* DefItemMap::GetConstID_DI(const DefinitionItem* di,
-						const char* field_name) const
+                                                const char* field_name) const
 	{
 	return di->FindField(field_name).get();
 	}
 
-
-} // zeek::detail
+	} // zeek::detail

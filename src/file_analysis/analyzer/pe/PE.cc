@@ -1,12 +1,12 @@
 #include "zeek/file_analysis/analyzer/pe/PE.h"
+
 #include "zeek/file_analysis/Manager.h"
 
-namespace zeek::file_analysis::detail {
+namespace zeek::file_analysis::detail
+	{
 
 PE::PE(RecordValPtr args, file_analysis::File* file)
-	: file_analysis::Analyzer(file_mgr->GetComponentTag("PE"),
-	                          std::move(args),
-	                          file)
+	: file_analysis::Analyzer(file_mgr->GetComponentTag("PE"), std::move(args), file)
 	{
 	conn = new binpac::PE::MockConnection(this);
 	interp = new binpac::PE::File(conn);
@@ -41,4 +41,4 @@ bool PE::EndOfFile()
 	return false;
 	}
 
-} // namespace zeek::file_analysis::detail
+	} // namespace zeek::file_analysis::detail

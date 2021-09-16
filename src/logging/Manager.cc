@@ -2,37 +2,35 @@
 
 #include "zeek/logging/Manager.h"
 
+#include <broker/endpoint_info.hh>
 #include <utility>
 
-#include <broker/endpoint_info.hh>
-
+#include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/EventHandler.h"
+#include "zeek/File.h"
+#include "zeek/Func.h"
+#include "zeek/IntrusivePtr.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
 #include "zeek/Type.h"
-#include "zeek/File.h"
-#include "zeek/input.h"
-#include "zeek/IntrusivePtr.h"
-#include "zeek/Func.h"
-#include "zeek/Desc.h"
-
 #include "zeek/broker/Manager.h"
+#include "zeek/input.h"
+#include "zeek/logging/WriterBackend.h"
+#include "zeek/logging/WriterFrontend.h"
+#include "zeek/logging/logging.bif.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/plugin/Plugin.h"
 #include "zeek/threading/Manager.h"
 #include "zeek/threading/SerialTypes.h"
 
-#include "zeek/logging/WriterFrontend.h"
-#include "zeek/logging/WriterBackend.h"
-#include "zeek/plugin/Plugin.h"
-#include "zeek/plugin/Manager.h"
-
-#include "zeek/logging/logging.bif.h"
-
 using namespace std;
 
-namespace zeek::logging {
+namespace zeek::logging
+	{
 
-struct Manager::Filter {
+struct Manager::Filter
+	{
 	Val* fval;
 	string name;
 	EnumVal* id;
@@ -58,12 +56,13 @@ struct Manager::Filter {
 	// Vector indexed by field number. Each element is a list of record
 	// indices defining a path leading to the value across potential
 	// sub-records.
-	vector<list<int> > indices;
+	vector<list<int>> indices;
 
 	~Filter();
-};
+	};
 
-struct Manager::WriterInfo {
+struct Manager::WriterInfo
+	{
 	EnumVal* type;
 	double open_time;
 	detail::Timer* rotation_timer;
@@ -76,8 +75,9 @@ struct Manager::WriterInfo {
 	string instantiating_filter;
 	};
 
-struct Manager::Stream {
- 	EnumVal* id;
+struct Manager::Stream
+	{
+	EnumVal* id;
 	bool enabled;
 	string name;
 	RecordType* columns;
@@ -89,7 +89,7 @@ struct Manager::Stream {
 
 	typedef map<WriterPathPair, WriterInfo*> WriterMap;
 
-	WriterMap writers;	// Writers indexed by id/path pair.
+	WriterMap writers; // Writers indexed by id/path pair.
 
 	bool enable_remote;
 
@@ -133,15 +133,14 @@ Manager::Stream::~Stream()
 		delete *f;
 	}
 
-Manager::Manager()
-	: plugin::ComponentManager<logging::Tag, logging::Component>("Log", "Writer")
+Manager::Manager() : plugin::ComponentManager<logging::Tag, logging::Component>("Log", "Writer")
 	{
 	rotations_pending = 0;
 	}
 
 Manager::~Manager()
 	{
-	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
+	for ( vector<Stream*>::iterator s = streams.begin(); s != streams.end(); ++s )
 		delete *s;
 	}
 
@@ -179,7 +178,7 @@ Manager::Stream* Manager::FindStream(EnumVal* id)
 
 Manager::WriterInfo* Manager::FindWriter(WriterFrontend* writer)
 	{
-	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
+	for ( vector<Stream*>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
 		if ( ! *s )
 			continue;
@@ -201,7 +200,7 @@ bool Manager::CompareFields(const Filter* filter, const WriterFrontend* writer)
 	if ( filter->num_fields != writer->NumFields() )
 		return false;
 
-	for ( int i = 0; i < filter->num_fields; ++ i)
+	for ( int i = 0; i < filter->num_fields; ++i )
 		if ( filter->fields[i]->type != writer->Fields()[i]->type )
 			return false;
 
@@ -245,20 +244,20 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		return false;
 		}
 
-	RecordType* columns = sval->GetField("columns")
-		->AsType()->AsTypeType()->GetType()->AsRecordType();
+	RecordType* columns =
+		sval->GetField("columns")->AsType()->AsTypeType()->GetType()->AsRecordType();
 
 	bool log_attr_present = false;
 
 	for ( int i = 0; i < columns->NumFields(); i++ )
 		{
 		if ( ! (columns->FieldDecl(i)->GetAttr(zeek::detail::ATTR_LOG)) )
-		    continue;
+			continue;
 
 		if ( ! threading::Value::IsCompatibleType(columns->GetFieldType(i).get()) )
 			{
 			reporter->Error("type of field '%s' is not support for logging output",
-			                      columns->FieldName(i));
+			                columns->FieldName(i));
 
 			return false;
 			}
@@ -328,7 +327,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	streams[idx]->enable_remote = id::find_val("Log::enable_remote_logging")->AsBool();
 
 	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s",
-		streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
+	        streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
 
 	return true;
 	}
@@ -349,8 +348,8 @@ bool Manager::RemoveStream(EnumVal* id)
 		{
 		WriterInfo* winfo = i->second;
 
-		DBG_LOG(DBG_LOGGING, "Removed writer '%s' from stream '%s'",
-			winfo->writer->Name(), stream->name.c_str());
+		DBG_LOG(DBG_LOGGING, "Removed writer '%s' from stream '%s'", winfo->writer->Name(),
+		        stream->name.c_str());
 
 		winfo->writer->Stop();
 		delete winfo->writer;
@@ -399,9 +398,8 @@ bool Manager::DisableStream(EnumVal* id)
 	}
 
 // Helper for recursive record field unrolling.
-bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
-                             TableVal* include, TableVal* exclude,
-                             const string& path, const list<int>& indices)
+bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, TableVal* include,
+                             TableVal* exclude, const string& path, const list<int>& indices)
 	{
 	// Only include extensions for the outer record.
 	int num_ext_fields = (indices.size() == 0) ? filter->num_ext_fields : 0;
@@ -448,19 +446,14 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			if ( t->Tag() == TYPE_RECORD )
 				{
 				// Recurse.
-				if ( ! TraverseRecord(stream, filter,
-						      t->AsRecordType(),
-						      include,
-						      exclude,
-						      new_path,
-						      new_indices) )
+				if ( ! TraverseRecord(stream, filter, t->AsRecordType(), include, exclude, new_path,
+				                      new_indices) )
 					return false;
 
 				continue;
 				}
 
-			else if ( t->Tag() == TYPE_TABLE &&
-				  t->AsTableType()->IsSet() )
+			else if ( t->Tag() == TYPE_TABLE && t->AsTableType()->IsSet() )
 				{
 				// That's ok, we handle it below.
 				}
@@ -512,9 +505,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		// Alright, we want this field.
 		filter->indices.push_back(new_indices);
 
-		void* tmp =
-			realloc(filter->fields,
-				sizeof(threading::Field*) * (filter->num_fields + 1));
+		void* tmp = realloc(filter->fields, sizeof(threading::Field*) * (filter->num_fields + 1));
 
 		if ( ! tmp )
 			{
@@ -523,7 +514,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			}
 
 		++filter->num_fields;
-		filter->fields = (threading::Field**) tmp;
+		filter->fields = (threading::Field**)tmp;
 
 		TypeTag st = TYPE_VOID;
 
@@ -535,7 +526,8 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 
 		bool optional = (bool)rtype->FieldDecl(i)->GetAttr(detail::ATTR_OPTIONAL);
 
-		filter->fields[filter->num_fields - 1] = new threading::Field(new_path.c_str(), nullptr, t->Tag(), st, optional);
+		filter->fields[filter->num_fields - 1] =
+			new threading::Field(new_path.c_str(), nullptr, t->Tag(), st, optional);
 		}
 
 	return true;
@@ -598,7 +590,8 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		{
 		if ( filter->ext_func->GetType()->Yield()->Tag() == TYPE_RECORD )
 			{
-			filter->num_ext_fields = filter->ext_func->GetType()->Yield()->AsRecordType()->NumFields();
+			filter->num_ext_fields =
+				filter->ext_func->GetType()->Yield()->AsRecordType()->NumFields();
 			}
 		else if ( filter->ext_func->GetType()->Yield()->Tag() == TYPE_VOID )
 			{
@@ -608,7 +601,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		else
 			{
 			reporter->Error("Return value of log_ext is not a record (got %s)",
-			                      type_name(filter->ext_func->GetType()->Yield()->Tag()));
+			                type_name(filter->ext_func->GetType()->Yield()->Tag()));
 			delete filter;
 			return false;
 			}
@@ -617,9 +610,8 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->num_fields = 0;
 	filter->fields = nullptr;
 	if ( ! TraverseRecord(stream, filter, stream->columns,
-			      include ? include->AsTableVal() : nullptr,
-			      exclude ? exclude->AsTableVal() : nullptr,
-			      "", list<int>()) )
+	                      include ? include->AsTableVal() : nullptr,
+	                      exclude ? exclude->AsTableVal() : nullptr, "", list<int>()) )
 		{
 		delete filter;
 		return false;
@@ -651,8 +643,8 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	ODesc desc;
 	writer->Describe(&desc);
 
-	DBG_LOG(DBG_LOGGING, "Created new filter '%s' for stream '%s'",
-		filter->name.c_str(), stream->name.c_str());
+	DBG_LOG(DBG_LOGGING, "Created new filter '%s' for stream '%s'", filter->name.c_str(),
+	        stream->name.c_str());
 
 	DBG_LOG(DBG_LOGGING, "   writer    : %s", desc.Description());
 	DBG_LOG(DBG_LOGGING, "   path      : %s", filter->path.c_str());
@@ -662,8 +654,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	for ( int i = 0; i < filter->num_fields; i++ )
 		{
 		threading::Field* field = filter->fields[i];
-		DBG_LOG(DBG_LOGGING, "   field %10s: %s",
-			field->name, type_name(field->type));
+		DBG_LOG(DBG_LOGGING, "   field %10s: %s", field->name, type_name(field->type));
 		}
 #endif
 
@@ -681,23 +672,22 @@ bool Manager::RemoveFilter(EnumVal* id, const string& name)
 	if ( ! stream )
 		return false;
 
-	for ( list<Filter*>::iterator i = stream->filters.begin();
-	      i != stream->filters.end(); ++i )
+	for ( list<Filter*>::iterator i = stream->filters.begin(); i != stream->filters.end(); ++i )
 		{
 		if ( (*i)->name == name )
 			{
 			Filter* filter = *i;
 			stream->filters.erase(i);
-			DBG_LOG(DBG_LOGGING, "Removed filter '%s' from stream '%s'",
-				filter->name.c_str(), stream->name.c_str());
+			DBG_LOG(DBG_LOGGING, "Removed filter '%s' from stream '%s'", filter->name.c_str(),
+			        stream->name.c_str());
 			delete filter;
 			return true;
 			}
 		}
 
 	// If we don't find the filter, we don't treat that as an error.
-	DBG_LOG(DBG_LOGGING, "No filter '%s' for removing from stream '%s'",
-		name.c_str(), stream->name.c_str());
+	DBG_LOG(DBG_LOGGING, "No filter '%s' for removing from stream '%s'", name.c_str(),
+	        stream->name.c_str());
 
 	return true;
 	}
@@ -739,8 +729,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 		}
 
 	// Send to each of our filters.
-	for ( list<Filter*>::iterator i = stream->filters.begin();
-	      i != stream->filters.end(); ++i )
+	for ( list<Filter*>::iterator i = stream->filters.begin(); i != stream->filters.end(); ++i )
 		{
 		Filter* filter = *i;
 		string path = filter->path;
@@ -752,10 +741,9 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 		// plugin hooks, though, so for now we do invoke.
 		if ( filter->policy )
 			{
-			auto v = filter->policy->Invoke(columns,
-							IntrusivePtr{NewRef{}, id},
-							IntrusivePtr{NewRef{}, filter->fval});
-			if ( v  && ! v->AsBool() )
+			auto v = filter->policy->Invoke(columns, IntrusivePtr{NewRef{}, id},
+			                                IntrusivePtr{NewRef{}, filter->fval});
+			if ( v && ! v->AsBool() )
 				continue;
 			}
 
@@ -780,8 +768,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				// Can be TYPE_ANY here.
 				rec_arg = columns;
 
-			auto v = filter->path_func->Invoke(IntrusivePtr{NewRef{}, id},
-			                                   std::move(path_arg),
+			auto v = filter->path_func->Invoke(IntrusivePtr{NewRef{}, id}, std::move(path_arg),
 			                                   std::move(rec_arg));
 
 			if ( ! v )
@@ -803,7 +790,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 
 #ifdef DEBUG
 			DBG_LOG(DBG_LOGGING, "Path function for filter '%s' on stream '%s' return '%s'",
-				filter->name.c_str(), stream->name.c_str(), path.c_str());
+			        filter->name.c_str(), stream->name.c_str(), path.c_str());
 #endif
 			}
 
@@ -812,31 +799,30 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 		// See if we already have a writer for this path.
 		Stream::WriterMap::iterator w = stream->writers.find(wpp);
 
-		if ( w != stream->writers.end() &&
-		     CheckFilterWriterConflict(w->second, filter) )
+		if ( w != stream->writers.end() && CheckFilterWriterConflict(w->second, filter) )
 			{
 			// Auto-correct path due to conflict over the writer/path pairs.
 			string instantiator = w->second->instantiating_filter;
 			string new_path;
 			unsigned int i = 2;
 
-			do {
+			do
+				{
 				char num[32];
 				snprintf(num, sizeof(num), "-%u", i++);
 				new_path = path + num;
 				wpp.second = new_path;
 				w = stream->writers.find(wpp);
-			} while ( w != stream->writers.end() &&
-			          CheckFilterWriterConflict(w->second, filter) );
+				} while ( w != stream->writers.end() &&
+				          CheckFilterWriterConflict(w->second, filter) );
 
 			Unref(filter->path_val);
 			filter->path_val = new StringVal(new_path.c_str());
 
-			reporter->Warning(
-				"Write using filter '%s' on path '%s' changed to"
-				" use new path '%s' to avoid conflict with filter '%s'",
-				filter->name.c_str(), path.c_str(), new_path.c_str(),
-				instantiator.c_str());
+			reporter->Warning("Write using filter '%s' on path '%s' changed to"
+			                  " use new path '%s' to avoid conflict with filter '%s'",
+			                  filter->name.c_str(), path.c_str(), new_path.c_str(),
+			                  instantiator.c_str());
 
 			path = filter->path = filter->path_val->AsString()->CheckString();
 			}
@@ -855,10 +841,10 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				auto wi = w->second;
 				wi->hook_initialized = true;
 				PLUGIN_HOOK_VOID(HOOK_LOG_INIT,
-				                 HookLogInit(filter->writer->GetType()->AsEnumType()->Lookup(filter->writer->InternalInt()),
+				                 HookLogInit(filter->writer->GetType()->AsEnumType()->Lookup(
+												 filter->writer->InternalInt()),
 				                             wi->instantiating_filter, filter->local,
-				                             filter->remote, *wi->info,
-				                             filter->num_fields,
+				                             filter->remote, *wi->info, filter->num_fields,
 				                             filter->fields));
 				}
 			}
@@ -881,8 +867,9 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 
 					if ( const auto& val = filter->field_name_map->Find(fn) )
 						{
-						delete [] filter->fields[j]->name;
-						filter->fields[j]->name = util::copy_string(val->AsStringVal()->CheckString());
+						delete[] filter->fields[j]->name;
+						filter->fields[j]->name =
+							util::copy_string(val->AsStringVal()->CheckString());
 						}
 					}
 				arg_fields[j] = new threading::Field(*filter->fields[j]);
@@ -901,14 +888,14 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				auto index = filter->config->RecreateIndex(*k);
 				string key = index->Idx(0)->AsString()->CheckString();
 				string value = v->GetVal()->AsString()->CheckString();
-				info->config.insert(std::make_pair(util::copy_string(key.c_str()), util::copy_string(value.c_str())));
+				info->config.insert(std::make_pair(util::copy_string(key.c_str()),
+				                                   util::copy_string(value.c_str())));
 				}
 
 			// CreateWriter() will set the other fields in info.
 
-			writer = CreateWriter(stream->id, filter->writer,
-					      info, filter->num_fields, arg_fields, filter->local,
-					      filter->remote, false, filter->name);
+			writer = CreateWriter(stream->id, filter->writer, info, filter->num_fields, arg_fields,
+			                      filter->local, filter->remote, false, filter->name);
 
 			if ( ! writer )
 				return false;
@@ -918,18 +905,18 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 
 		threading::Value** vals = RecordToFilterVals(stream, filter, columns.get());
 
-		if ( ! PLUGIN_HOOK_WITH_RESULT(HOOK_LOG_WRITE,
-		                               HookLogWrite(filter->writer->GetType()->AsEnumType()->Lookup(filter->writer->InternalInt()),
-		                                            filter->name, *info,
-		                                            filter->num_fields,
-		                                            filter->fields, vals),
-		                               true) )
+		if ( ! PLUGIN_HOOK_WITH_RESULT(
+				 HOOK_LOG_WRITE,
+				 HookLogWrite(
+					 filter->writer->GetType()->AsEnumType()->Lookup(filter->writer->InternalInt()),
+					 filter->name, *info, filter->num_fields, filter->fields, vals),
+				 true) )
 			{
 			DeleteVals(filter->num_fields, vals);
 
 #ifdef DEBUG
 			DBG_LOG(DBG_LOGGING, "Hook prevented writing to filter '%s' on stream '%s'",
-				filter->name.c_str(), stream->name.c_str());
+			        filter->name.c_str(), stream->name.c_str());
 #endif
 			return true;
 			}
@@ -939,8 +926,8 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 		writer->Write(filter->num_fields, vals);
 
 #ifdef DEBUG
-		DBG_LOG(DBG_LOGGING, "Wrote record to filter '%s' on stream '%s'",
-			filter->name.c_str(), stream->name.c_str());
+		DBG_LOG(DBG_LOGGING, "Wrote record to filter '%s' on stream '%s'", filter->name.c_str(),
+		        stream->name.c_str());
 #endif
 		}
 
@@ -957,129 +944,126 @@ threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
 
 	threading::Value* lval = new threading::Value(ty->Tag());
 
-	switch ( lval->type ) {
-	case TYPE_BOOL:
-	case TYPE_INT:
-		lval->val.int_val = val->InternalInt();
-		break;
-
-	case TYPE_ENUM:
+	switch ( lval->type )
 		{
-		const char* s =
-			val->GetType()->AsEnumType()->Lookup(val->InternalInt());
+		case TYPE_BOOL:
+		case TYPE_INT:
+			lval->val.int_val = val->InternalInt();
+			break;
 
-		if ( s )
-			{
-			lval->val.string_val.data = util::copy_string(s);
-			lval->val.string_val.length = strlen(s);
-			}
+		case TYPE_ENUM:
+				{
+				const char* s = val->GetType()->AsEnumType()->Lookup(val->InternalInt());
 
-		else
-			{
-			val->GetType()->Error("enum type does not contain value", val);
-			lval->val.string_val.data = util::copy_string("");
-			lval->val.string_val.length = 0;
-			}
-		break;
+				if ( s )
+					{
+					lval->val.string_val.data = util::copy_string(s);
+					lval->val.string_val.length = strlen(s);
+					}
+
+				else
+					{
+					val->GetType()->Error("enum type does not contain value", val);
+					lval->val.string_val.data = util::copy_string("");
+					lval->val.string_val.length = 0;
+					}
+				break;
+				}
+
+		case TYPE_COUNT:
+			lval->val.uint_val = val->InternalUnsigned();
+			break;
+
+		case TYPE_PORT:
+			lval->val.port_val.port = val->AsPortVal()->Port();
+			lval->val.port_val.proto = val->AsPortVal()->PortType();
+			break;
+
+		case TYPE_SUBNET:
+			val->AsSubNet().ConvertToThreadingValue(&lval->val.subnet_val);
+			break;
+
+		case TYPE_ADDR:
+			val->AsAddr().ConvertToThreadingValue(&lval->val.addr_val);
+			break;
+
+		case TYPE_DOUBLE:
+		case TYPE_TIME:
+		case TYPE_INTERVAL:
+			lval->val.double_val = val->InternalDouble();
+			break;
+
+		case TYPE_STRING:
+				{
+				const String* s = val->AsString();
+				char* buf = new char[s->Len()];
+				memcpy(buf, s->Bytes(), s->Len());
+
+				lval->val.string_val.data = buf;
+				lval->val.string_val.length = s->Len();
+				break;
+				}
+
+		case TYPE_FILE:
+				{
+				const File* f = val->AsFile();
+				string s = f->Name();
+				lval->val.string_val.data = util::copy_string(s.c_str());
+				lval->val.string_val.length = s.size();
+				break;
+				}
+
+		case TYPE_FUNC:
+				{
+				ODesc d;
+				const Func* f = val->AsFunc();
+				f->Describe(&d);
+				const char* s = d.Description();
+				lval->val.string_val.data = util::copy_string(s);
+				lval->val.string_val.length = strlen(s);
+				break;
+				}
+
+		case TYPE_TABLE:
+				{
+				auto set = val->AsTableVal()->ToPureListVal();
+				if ( ! set )
+					// ToPureListVal has reported an internal warning
+					// already. Just keep going by making something up.
+					set = make_intrusive<ListVal>(TYPE_INT);
+
+				lval->val.set_val.size = set->Length();
+				lval->val.set_val.vals = new threading::Value*[lval->val.set_val.size];
+
+				for ( bro_int_t i = 0; i < lval->val.set_val.size; i++ )
+					lval->val.set_val.vals[i] = ValToLogVal(set->Idx(i).get());
+
+				break;
+				}
+
+		case TYPE_VECTOR:
+				{
+				VectorVal* vec = val->AsVectorVal();
+				lval->val.vector_val.size = vec->Size();
+				lval->val.vector_val.vals = new threading::Value*[lval->val.vector_val.size];
+
+				for ( bro_int_t i = 0; i < lval->val.vector_val.size; i++ )
+					{
+					lval->val.vector_val.vals[i] =
+						ValToLogVal(vec->ValAt(i).get(), vec->GetType()->Yield().get());
+					}
+
+				break;
+				}
+
+		default:
+			reporter->InternalError("unsupported type %s for log_write", type_name(lval->type));
 		}
-
-	case TYPE_COUNT:
-		lval->val.uint_val = val->InternalUnsigned();
-		break;
-
-	case TYPE_PORT:
-		lval->val.port_val.port = val->AsPortVal()->Port();
-		lval->val.port_val.proto = val->AsPortVal()->PortType();
-		break;
-
-	case TYPE_SUBNET:
-		val->AsSubNet().ConvertToThreadingValue(&lval->val.subnet_val);
-		break;
-
-	case TYPE_ADDR:
-		val->AsAddr().ConvertToThreadingValue(&lval->val.addr_val);
-		break;
-
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-		lval->val.double_val = val->InternalDouble();
-		break;
-
-	case TYPE_STRING:
-		{
-		const String* s = val->AsString();
-		char* buf = new char[s->Len()];
-		memcpy(buf, s->Bytes(), s->Len());
-
-		lval->val.string_val.data = buf;
-		lval->val.string_val.length = s->Len();
-		break;
-		}
-
-	case TYPE_FILE:
-		{
-		const File* f = val->AsFile();
-		string s = f->Name();
-		lval->val.string_val.data = util::copy_string(s.c_str());
-		lval->val.string_val.length = s.size();
-		break;
-		}
-
-	case TYPE_FUNC:
-		{
-		ODesc d;
-		const Func* f = val->AsFunc();
-		f->Describe(&d);
-		const char* s = d.Description();
-		lval->val.string_val.data = util::copy_string(s);
-		lval->val.string_val.length = strlen(s);
-		break;
-		}
-
-	case TYPE_TABLE:
-		{
-		auto set = val->AsTableVal()->ToPureListVal();
-		if ( ! set )
-			// ToPureListVal has reported an internal warning
-			// already. Just keep going by making something up.
-			set = make_intrusive<ListVal>(TYPE_INT);
-
-		lval->val.set_val.size = set->Length();
-		lval->val.set_val.vals = new threading::Value* [lval->val.set_val.size];
-
-		for ( bro_int_t i = 0; i < lval->val.set_val.size; i++ )
-			lval->val.set_val.vals[i] = ValToLogVal(set->Idx(i).get());
-
-		break;
-		}
-
-	case TYPE_VECTOR:
-		{
-		VectorVal* vec = val->AsVectorVal();
-		lval->val.vector_val.size = vec->Size();
-		lval->val.vector_val.vals =
-			new threading::Value* [lval->val.vector_val.size];
-
-		for ( bro_int_t i = 0; i < lval->val.vector_val.size; i++ )
-			{
-			lval->val.vector_val.vals[i] =
-				ValToLogVal(vec->ValAt(i).get(),
-					    vec->GetType()->Yield().get());
-			}
-
-		break;
-		}
-
-	default:
-		reporter->InternalError("unsupported type %s for log_write", type_name(lval->type));
-	}
 
 	return lval;
 	}
 
-threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
-                                               RecordVal* columns)
+threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter, RecordVal* columns)
 	{
 	RecordValPtr ext_rec;
 
@@ -1136,24 +1120,27 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	return vals;
 	}
 
-bool Manager::CreateWriterForRemoteLog(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
-                                       int num_fields, const threading::Field* const* fields)
+bool Manager::CreateWriterForRemoteLog(EnumVal* id, EnumVal* writer,
+                                       WriterBackend::WriterInfo* info, int num_fields,
+                                       const threading::Field* const* fields)
 	{
 	return CreateWriter(id, writer, info, num_fields, fields, true, false, true);
 	}
 
-static void delete_info_and_fields(WriterBackend::WriterInfo* info, int num_fields, const threading::Field* const* fields)
+static void delete_info_and_fields(WriterBackend::WriterInfo* info, int num_fields,
+                                   const threading::Field* const* fields)
 	{
 	for ( int i = 0; i < num_fields; i++ )
 		delete fields[i];
 
-	delete [] fields;
+	delete[] fields;
 	delete info;
 	}
 
 WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
-                                      int num_fields, const threading::Field* const* fields, bool local,
-                                      bool remote, bool from_remote, const string& instantiating_filter)
+                                      int num_fields, const threading::Field* const* fields,
+                                      bool local, bool remote, bool from_remote,
+                                      const string& instantiating_filter)
 	{
 	WriterFrontend* result = nullptr;
 
@@ -1198,8 +1185,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 	for ( it = stream->filters.begin(); it != stream->filters.end(); ++it )
 		{
 		Filter* f = *it;
-		if ( f->writer->AsEnum() == writer->AsEnum() &&
-		     f->path == info->path )
+		if ( f->writer->AsEnum() == writer->AsEnum() && f->path == info->path )
 			{
 			found_filter_match = true;
 			winfo->interval = f->interval;
@@ -1207,7 +1193,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 
 			if ( f->postprocessor )
 				{
-				delete [] winfo->info->post_proc_func;
+				delete[] winfo->info->post_proc_func;
 				winfo->info->post_proc_func = util::copy_string(f->postprocessor->Name());
 				}
 
@@ -1221,8 +1207,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 		assert(id);
 		winfo->interval = id->GetVal()->AsInterval();
 
-		if ( winfo->info->post_proc_func &&
-		     strlen(winfo->info->post_proc_func) )
+		if ( winfo->info->post_proc_func && strlen(winfo->info->post_proc_func) )
 			{
 			auto func = id::find_func(winfo->info->post_proc_func);
 
@@ -1230,13 +1215,12 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 				winfo->postprocessor = func.get();
 			else
 				reporter->Warning("failed log postprocessor function lookup: %s\n",
-				                        winfo->info->post_proc_func);
+				                  winfo->info->post_proc_func);
 			}
 		}
 
 	stream->writers.insert(
-		Stream::WriterMap::value_type(Stream::WriterPathPair(writer->AsEnum(), info->path),
-		winfo));
+		Stream::WriterMap::value_type(Stream::WriterPathPair(writer->AsEnum(), info->path), winfo));
 
 	// Still need to set the WriterInfo's rotation parameters, which we
 	// computed above.
@@ -1254,8 +1238,8 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 		winfo->hook_initialized = true;
 		PLUGIN_HOOK_VOID(HOOK_LOG_INIT,
 		                 HookLogInit(writer->GetType()->AsEnumType()->Lookup(writer->InternalInt()),
-		                             instantiating_filter, local, remote,
-		                             *winfo->info, num_fields, fields));
+		                             instantiating_filter, local, remote, *winfo->info, num_fields,
+		                             fields));
 		}
 
 	InstallRotationTimer(winfo);
@@ -1269,7 +1253,7 @@ void Manager::DeleteVals(int num_fields, threading::Value** vals)
 	for ( int i = 0; i < num_fields; i++ )
 		delete vals[i];
 
-	delete [] vals;
+	delete[] vals;
 	}
 
 bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, int num_fields,
@@ -1279,12 +1263,11 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
 
 	if ( ! stream )
 		{
-		// Don't know this stream.
+			// Don't know this stream.
 #ifdef DEBUG
 		ODesc desc;
 		id->Describe(&desc);
-		DBG_LOG(DBG_LOGGING, "unknown stream %s in Manager::Write()",
-			desc.Description());
+		DBG_LOG(DBG_LOGGING, "unknown stream %s in Manager::Write()", desc.Description());
 #endif
 		DeleteVals(num_fields, vals);
 		return false;
@@ -1301,12 +1284,11 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
 
 	if ( w == stream->writers.end() )
 		{
-		// Don't know this writer.
+			// Don't know this writer.
 #ifdef DEBUG
 		ODesc desc;
 		id->Describe(&desc);
-		DBG_LOG(DBG_LOGGING, "unknown writer %s in Manager::Write()",
-			desc.Description());
+		DBG_LOG(DBG_LOGGING, "unknown writer %s in Manager::Write()", desc.Description());
 #endif
 		DeleteVals(num_fields, vals);
 		return false;
@@ -1314,9 +1296,8 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
 
 	w->second->writer->Write(num_fields, vals);
 
-	DBG_LOG(DBG_LOGGING,
-		"Wrote pre-filtered record to path '%s' on stream '%s'",
-		path.c_str(), stream->name.c_str());
+	DBG_LOG(DBG_LOGGING, "Wrote pre-filtered record to path '%s' on stream '%s'", path.c_str(),
+	        stream->name.c_str());
 
 	return true;
 	}
@@ -1325,25 +1306,20 @@ void Manager::SendAllWritersTo(const broker::endpoint_info& ei)
 	{
 	auto et = id::find_type("Log::Writer")->AsEnumType();
 
-	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
+	for ( vector<Stream*>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
 		Stream* stream = (*s);
 
 		if ( ! (stream && stream->enable_remote) )
 			continue;
 
-
-		for ( Stream::WriterMap::iterator i = stream->writers.begin();
-		      i != stream->writers.end(); i++ )
+		for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end();
+		      i++ )
 			{
 			WriterFrontend* writer = i->second->writer;
 			const auto& writer_val = et->GetEnumVal(i->first.first);
-			broker_mgr->PublishLogCreate((*s)->id,
-						     writer_val.get(),
-						     *i->second->info,
-						     writer->NumFields(),
-						     writer->Fields(),
-						     ei);
+			broker_mgr->PublishLogCreate((*s)->id, writer_val.get(), *i->second->info,
+			                             writer->NumFields(), writer->Fields(), ei);
 			}
 		}
 	}
@@ -1354,8 +1330,7 @@ bool Manager::SetBuf(EnumVal* id, bool enabled)
 	if ( ! stream )
 		return false;
 
-	for ( Stream::WriterMap::iterator i = stream->writers.begin();
-	      i != stream->writers.end(); i++ )
+	for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ )
 		i->second->writer->SetBuf(enabled);
 
 	RemoveDisabledWriters(stream);
@@ -1372,8 +1347,7 @@ bool Manager::Flush(EnumVal* id)
 	if ( ! stream->enabled )
 		return true;
 
-	for ( Stream::WriterMap::iterator i = stream->writers.begin();
-	      i != stream->writers.end(); i++ )
+	for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ )
 		i->second->writer->Flush(run_state::network_time);
 
 	RemoveDisabledWriters(stream);
@@ -1383,13 +1357,12 @@ bool Manager::Flush(EnumVal* id)
 
 void Manager::Terminate()
 	{
-	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
+	for ( vector<Stream*>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
 		if ( ! *s )
 			continue;
 
-		for ( Stream::WriterMap::iterator i = (*s)->writers.begin();
-		      i != (*s)->writers.end(); i++ )
+		for ( Stream::WriterMap::iterator i = (*s)->writers.begin(); i != (*s)->writers.end(); i++ )
 			i->second->writer->Stop();
 		}
 	}
@@ -1437,14 +1410,15 @@ RecordType* Manager::StreamColumns(EnumVal* stream_id)
 	}
 
 // Timer which on dispatching rotates the filter.
-class RotationTimer final : public zeek::detail::Timer {
+class RotationTimer final : public zeek::detail::Timer
+	{
 public:
 	RotationTimer(double t, Manager::WriterInfo* arg_winfo, bool arg_rotate)
 		: zeek::detail::Timer(t, zeek::detail::TIMER_ROTATE)
-			{
-			winfo = arg_winfo;
-			rotate = arg_rotate;
-			}
+		{
+		winfo = arg_winfo;
+		rotate = arg_rotate;
+		}
 
 	~RotationTimer() override;
 
@@ -1453,7 +1427,7 @@ public:
 protected:
 	Manager::WriterInfo* winfo;
 	bool rotate;
-};
+	};
 
 RotationTimer::~RotationTimer()
 	{
@@ -1513,8 +1487,8 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 
 		zeek::detail::timer_mgr->Add(winfo->rotation_timer);
 
-		DBG_LOG(DBG_LOGGING, "Scheduled rotation timer for %s to %.6f",
-		        winfo->writer->Name(), winfo->rotation_timer->Time());
+		DBG_LOG(DBG_LOGGING, "Scheduled rotation timer for %s to %.6f", winfo->writer->Name(),
+		        winfo->rotation_timer->Time());
 		}
 	}
 
@@ -1528,10 +1502,8 @@ static std::string format_rotation_time_fallback(time_t t)
 	return buf;
 	}
 
-std::string Manager::FormatRotationPath(EnumValPtr writer,
-                                        std::string_view path, double open,
-                                        double close, bool terminating,
-                                        FuncPtr postprocessor)
+std::string Manager::FormatRotationPath(EnumValPtr writer, std::string_view path, double open,
+                                        double close, bool terminating, FuncPtr postprocessor)
 	{
 	auto ri = make_intrusive<RecordVal>(BifType::Record::Log::RotationFmtInfo);
 	ri->Assign(0, std::move(writer));
@@ -1555,8 +1527,7 @@ std::string Manager::FormatRotationPath(EnumValPtr writer,
 			{
 			reporter->Error("Failed to create dir '%s' returned by "
 			                "Log::rotation_format_func for path %.*s: %s",
-			                dir, static_cast<int>(path.size()), path.data(),
-			                strerror(errno));
+			                dir, static_cast<int>(path.size()), path.data(), strerror(errno));
 			dir = "";
 			}
 
@@ -1564,13 +1535,11 @@ std::string Manager::FormatRotationPath(EnumValPtr writer,
 			rval = prefix;
 		else
 			rval = util::fmt("%s/%s", dir, prefix);
-
 		}
 	catch ( InterpreterException& e )
 		{
 		auto rot_str = format_rotation_time_fallback((time_t)open);
-		rval = util::fmt("%.*s-%s", static_cast<int>(path.size()), path.data(),
-		                 rot_str.data());
+		rval = util::fmt("%.*s-%s", static_cast<int>(path.size()), path.data(), rot_str.data());
 		reporter->Error("Failed to call Log::rotation_format_func for path %.*s "
 		                "continuing with rotation to: ./%s",
 		                static_cast<int>(path.size()), path.data(), rval.data());
@@ -1581,8 +1550,7 @@ std::string Manager::FormatRotationPath(EnumValPtr writer,
 
 void Manager::Rotate(WriterInfo* winfo)
 	{
-	DBG_LOG(DBG_LOGGING, "Rotating %s at %.6f",
-		winfo->writer->Name(), run_state::network_time);
+	DBG_LOG(DBG_LOGGING, "Rotating %s at %.6f", winfo->writer->Name(), run_state::network_time);
 
 	static auto default_ppf = id::find_func("Log::__default_rotation_postprocessor");
 
@@ -1593,19 +1561,18 @@ void Manager::Rotate(WriterInfo* winfo)
 	else
 		ppf = default_ppf;
 
-	auto rotation_path = FormatRotationPath({NewRef{}, winfo->type},
-	                                        winfo->writer->Info().path,
-	                                        winfo->open_time, run_state::network_time,
-	                                        run_state::terminating,
-	                                        std::move(ppf));
+	auto rotation_path =
+		FormatRotationPath({NewRef{}, winfo->type}, winfo->writer->Info().path, winfo->open_time,
+	                       run_state::network_time, run_state::terminating, std::move(ppf));
 
-	winfo->writer->Rotate(rotation_path.data(), winfo->open_time, run_state::network_time, run_state::terminating);
+	winfo->writer->Rotate(rotation_path.data(), winfo->open_time, run_state::network_time,
+	                      run_state::terminating);
 
 	++rotations_pending;
 	}
 
 bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name,
-		      double open, double close, bool success, bool terminating)
+                               double open, double close, bool success, bool terminating)
 	{
 	assert(writer);
 
@@ -1618,8 +1585,8 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 		return true;
 		}
 
-	DBG_LOG(DBG_LOGGING, "Finished rotating %s at %.6f, new name %s",
-	        writer->Name(), run_state::network_time, new_name);
+	DBG_LOG(DBG_LOGGING, "Finished rotating %s at %.6f, new name %s", writer->Name(),
+	        run_state::network_time, new_name);
 
 	WriterInfo* winfo = FindWriter(writer);
 	if ( ! winfo )
@@ -1652,4 +1619,4 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	return result;
 	}
 
-} // namespace zeek::logging
+	} // namespace zeek::logging

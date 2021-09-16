@@ -1,13 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/Desc.h"
-#include "zeek/Reporter.h"
-#include "zeek/Func.h"
 #include "zeek/script_opt/ZAM/ZInst.h"
+
+#include "zeek/Desc.h"
+#include "zeek/Func.h"
+#include "zeek/Reporter.h"
 
 using std::string;
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 void ZInst::Dump(bro_uint_t inst_num, const FrameReMap* mappings) const
 	{
@@ -21,112 +23,106 @@ void ZInst::Dump(bro_uint_t inst_num, const FrameReMap* mappings) const
 	Dump(id1, id2, id3, id4);
 	}
 
-void ZInst::Dump(const string& id1, const string& id2, const string& id3,
-                 const string& id4) const
+void ZInst::Dump(const string& id1, const string& id2, const string& id3, const string& id4) const
 	{
 	printf("%s ", ZOP_name(op));
 	// printf("(%s) ", op_type_name(op_type));
 	if ( t && 0 )
 		printf("(%s) ", type_name(t->Tag()));
 
-	switch ( op_type ) {
-	case OP_X:
-		break;
+	switch ( op_type )
+		{
+		case OP_X:
+			break;
 
-	case OP_V:
-		printf("%s", id1.c_str());
-		break;
+		case OP_V:
+			printf("%s", id1.c_str());
+			break;
 
-	case OP_VV:
-		printf("%s, %s", id1.c_str(), id2.c_str());
-		break;
+		case OP_VV:
+			printf("%s, %s", id1.c_str(), id2.c_str());
+			break;
 
-	case OP_VVV:
-		printf("%s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str());
-		break;
+		case OP_VVV:
+			printf("%s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str());
+			break;
 
-	case OP_VVVV:
-		printf("%s, %s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str(),
-	 	       id4.c_str());
-		break;
+		case OP_VVVV:
+			printf("%s, %s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str(), id4.c_str());
+			break;
 
-	case OP_VVVC:
-		printf("%s, %s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str(),
-		       ConstDump().c_str());
-		break;
+		case OP_VVVC:
+			printf("%s, %s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str(), ConstDump().c_str());
+			break;
 
-	case OP_C:
-		printf("%s", ConstDump().c_str());
-		break;
+		case OP_C:
+			printf("%s", ConstDump().c_str());
+			break;
 
-	case OP_VC:
-		printf("%s, %s", id1.c_str(), ConstDump().c_str());
-		break;
+		case OP_VC:
+			printf("%s, %s", id1.c_str(), ConstDump().c_str());
+			break;
 
-	case OP_VVC:
-		printf("%s, %s, %s", id1.c_str(), id2.c_str(),
-		       ConstDump().c_str());
-		break;
+		case OP_VVC:
+			printf("%s, %s, %s", id1.c_str(), id2.c_str(), ConstDump().c_str());
+			break;
 
-	case OP_V_I1:
-		printf("%d", v1);
-		break;
+		case OP_V_I1:
+			printf("%d", v1);
+			break;
 
-	case OP_VC_I1:
-		printf("%d %s", v1, ConstDump().c_str());
-		break;
+		case OP_VC_I1:
+			printf("%d %s", v1, ConstDump().c_str());
+			break;
 
-	case OP_VV_FRAME:
-		printf("%s, interpreter frame[%d]", id1.c_str(), v2);
-		break;
+		case OP_VV_FRAME:
+			printf("%s, interpreter frame[%d]", id1.c_str(), v2);
+			break;
 
-	case OP_VV_I2:
-		printf("%s, %d", id1.c_str(), v2);
-		break;
+		case OP_VV_I2:
+			printf("%s, %d", id1.c_str(), v2);
+			break;
 
-	case OP_VV_I1_I2:
-		printf("%d, %d", v1, v2);
-		break;
+		case OP_VV_I1_I2:
+			printf("%d, %d", v1, v2);
+			break;
 
-	case OP_VVC_I2:
-		printf("%s, %d, %s", id1.c_str(), v2, ConstDump().c_str());
-		break;
+		case OP_VVC_I2:
+			printf("%s, %d, %s", id1.c_str(), v2, ConstDump().c_str());
+			break;
 
-	case OP_VVV_I3:
-		printf("%s, %s, %d", id1.c_str(), id2.c_str(), v3);
-		break;
+		case OP_VVV_I3:
+			printf("%s, %s, %d", id1.c_str(), id2.c_str(), v3);
+			break;
 
-	case OP_VVV_I2_I3:
-		printf("%s, %d, %d", id1.c_str(), v2, v3);
-		break;
+		case OP_VVV_I2_I3:
+			printf("%s, %d, %d", id1.c_str(), v2, v3);
+			break;
 
-	case OP_VVVV_I4:
-		printf("%s, %s, %s, %d", id1.c_str(), id2.c_str(), id3.c_str(),
-		       v4);
-		break;
+		case OP_VVVV_I4:
+			printf("%s, %s, %s, %d", id1.c_str(), id2.c_str(), id3.c_str(), v4);
+			break;
 
-	case OP_VVVV_I3_I4:
-		printf("%s, %s, %d, %d", id1.c_str(), id2.c_str(), v3, v4);
-		break;
+		case OP_VVVV_I3_I4:
+			printf("%s, %s, %d, %d", id1.c_str(), id2.c_str(), v3, v4);
+			break;
 
-	case OP_VVVV_I2_I3_I4:
-		printf("%s, %d, %d, %d", id1.c_str(), v2, v3, v4);
-		break;
+		case OP_VVVV_I2_I3_I4:
+			printf("%s, %d, %d, %d", id1.c_str(), v2, v3, v4);
+			break;
 
-	case OP_VVVC_I3:
-		printf("%s, %s, %d, %s", id1.c_str(), id2.c_str(), v3,
-		       ConstDump().c_str());
-		break;
+		case OP_VVVC_I3:
+			printf("%s, %s, %d, %s", id1.c_str(), id2.c_str(), v3, ConstDump().c_str());
+			break;
 
-	case OP_VVVC_I2_I3:
-		printf("%s, %d, %d, %s", id1.c_str(), v2, v3,
-		       ConstDump().c_str());
-		break;
+		case OP_VVVC_I2_I3:
+			printf("%s, %d, %d, %s", id1.c_str(), v2, v3, ConstDump().c_str());
+			break;
 
-	case OP_VVVC_I1_I2_I3:
-		printf("%d, %d, %d, %s", v1, v2, v3, ConstDump().c_str());
-		break;
-	}
+		case OP_VVVC_I1_I2_I3:
+			printf("%d, %d, %d, %s", v1, v2, v3, ConstDump().c_str());
+			break;
+		}
 
 	if ( func )
 		printf(" (func %s)", func->Name());
@@ -136,80 +132,82 @@ void ZInst::Dump(const string& id1, const string& id2, const string& id3,
 
 int ZInst::NumFrameSlots() const
 	{
-	switch ( op_type ) {
-	case OP_X:
-	case OP_C:
-	case OP_V_I1:
-	case OP_VC_I1:
-	case OP_VV_I1_I2:
-	case OP_VVVC_I1_I2_I3:
-		return 0;
+	switch ( op_type )
+		{
+		case OP_X:
+		case OP_C:
+		case OP_V_I1:
+		case OP_VC_I1:
+		case OP_VV_I1_I2:
+		case OP_VVVC_I1_I2_I3:
+			return 0;
 
-	case OP_V:
-	case OP_VC:
-	case OP_VV_FRAME:
-	case OP_VV_I2:
-	case OP_VVC_I2:
-	case OP_VVV_I2_I3:
-	case OP_VVVC_I2_I3:
-	case OP_VVVV_I2_I3_I4:
-		return 1;
+		case OP_V:
+		case OP_VC:
+		case OP_VV_FRAME:
+		case OP_VV_I2:
+		case OP_VVC_I2:
+		case OP_VVV_I2_I3:
+		case OP_VVVC_I2_I3:
+		case OP_VVVV_I2_I3_I4:
+			return 1;
 
-	case OP_VV:
-	case OP_VVC:
-	case OP_VVV_I3:
-	case OP_VVVC_I3:
-	case OP_VVVV_I3_I4:
-		return 2;
+		case OP_VV:
+		case OP_VVC:
+		case OP_VVV_I3:
+		case OP_VVVC_I3:
+		case OP_VVVV_I3_I4:
+			return 2;
 
-	case OP_VVV:
-	case OP_VVVC:
-	case OP_VVVV_I4:
-		return 3;
+		case OP_VVV:
+		case OP_VVVC:
+		case OP_VVVV_I4:
+			return 3;
 
-	case OP_VVVV:
-		return 4;
-	}
+		case OP_VVVV:
+			return 4;
+		}
 
 	return -1;
 	}
 
 int ZInst::NumSlots() const
 	{
-	switch ( op_type ) {
-	case OP_C:
-	case OP_X:
-		return 0;
+	switch ( op_type )
+		{
+		case OP_C:
+		case OP_X:
+			return 0;
 
-	case OP_V:
-	case OP_V_I1:
-	case OP_VC:
-	case OP_VC_I1:
-		return 1;
+		case OP_V:
+		case OP_V_I1:
+		case OP_VC:
+		case OP_VC_I1:
+			return 1;
 
-	case OP_VV:
-	case OP_VVC:
-	case OP_VV_FRAME:
-	case OP_VV_I2:
-	case OP_VVC_I2:
-	case OP_VV_I1_I2:
-		return 2;
+		case OP_VV:
+		case OP_VVC:
+		case OP_VV_FRAME:
+		case OP_VV_I2:
+		case OP_VVC_I2:
+		case OP_VV_I1_I2:
+			return 2;
 
-	case OP_VVV:
-	case OP_VVV_I3:
-	case OP_VVV_I2_I3:
-	case OP_VVVC:
-	case OP_VVVC_I3:
-	case OP_VVVC_I2_I3:
-	case OP_VVVC_I1_I2_I3:
-		return 3;
+		case OP_VVV:
+		case OP_VVV_I3:
+		case OP_VVV_I2_I3:
+		case OP_VVVC:
+		case OP_VVVC_I3:
+		case OP_VVVC_I2_I3:
+		case OP_VVVC_I1_I2_I3:
+			return 3;
 
-	case OP_VVVV:
-	case OP_VVVV_I4:
-	case OP_VVVV_I3_I4:
-	case OP_VVVV_I2_I3_I4:
-		return 4;
-	}
+		case OP_VVVV:
+		case OP_VVVV_I4:
+		case OP_VVVV_I3_I4:
+		case OP_VVVV_I2_I3_I4:
+			return 4;
+		}
 
 	return -1;
 	}
@@ -236,8 +234,7 @@ string ZInst::VName(int n, bro_uint_t inst_num, const FrameReMap* mappings) cons
 		// identifiers, then it matters whether this is slot 1
 		// (starts right here) vs. slot > 1 (ignore change right
 		// at the boundary and stick with older value).
-		if ( (n == 1 && map.id_start[i] > inst_num) ||
-		     (n > 1 && map.id_start[i] >= inst_num) )
+		if ( (n == 1 && map.id_start[i] > inst_num) || (n > 1 && map.id_start[i] >= inst_num) )
 			// Went too far.
 			break;
 		}
@@ -247,41 +244,42 @@ string ZInst::VName(int n, bro_uint_t inst_num, const FrameReMap* mappings) cons
 		ASSERT(i > 0);
 		}
 
-	auto id = map.names.empty() ? map.ids[i-1]->Name() : map.names[i-1];
+	auto id = map.names.empty() ? map.ids[i - 1]->Name() : map.names[i - 1];
 
 	return util::fmt("%d (%s)", slot, id);
 	}
 
 ValPtr ZInst::ConstVal() const
 	{
-	switch ( op_type ) {
-	case OP_C:
-	case OP_VC:
-	case OP_VC_I1:
-	case OP_VVC:
-	case OP_VVC_I2:
-	case OP_VVVC:
-	case OP_VVVC_I3:
-	case OP_VVVC_I2_I3:
-	case OP_VVVC_I1_I2_I3:
-		return c.ToVal(t);
+	switch ( op_type )
+		{
+		case OP_C:
+		case OP_VC:
+		case OP_VC_I1:
+		case OP_VVC:
+		case OP_VVC_I2:
+		case OP_VVVC:
+		case OP_VVVC_I3:
+		case OP_VVVC_I2_I3:
+		case OP_VVVC_I1_I2_I3:
+			return c.ToVal(t);
 
-	case OP_X:
-	case OP_V:
-	case OP_VV:
-	case OP_VVV:
-	case OP_VVVV:
-	case OP_V_I1:
-	case OP_VV_FRAME:
-	case OP_VV_I2:
-	case OP_VV_I1_I2:
-	case OP_VVV_I3:
-	case OP_VVV_I2_I3:
-	case OP_VVVV_I4:
-	case OP_VVVV_I3_I4:
-	case OP_VVVV_I2_I3_I4:
-		return nullptr;
-	}
+		case OP_X:
+		case OP_V:
+		case OP_VV:
+		case OP_VVV:
+		case OP_VVVV:
+		case OP_V_I1:
+		case OP_VV_FRAME:
+		case OP_VV_I2:
+		case OP_VV_I1_I2:
+		case OP_VVV_I3:
+		case OP_VVV_I2_I3:
+		case OP_VVVV_I4:
+		case OP_VVVV_I3_I4:
+		case OP_VVVV_I2_I3_I4:
+			return nullptr;
+		}
 
 	return nullptr;
 	}
@@ -298,7 +296,6 @@ string ZInst::ConstDump() const
 	return d.Description();
 	}
 
-
 void ZInstI::Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const
 	{
 	int n = NumFrameSlots();
@@ -312,8 +309,7 @@ void ZInstI::Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const
 	ZInst::Dump(id1, id2, id3, id4);
 	}
 
-string ZInstI::VName(int n, const FrameMap* frame_ids,
-                     const FrameReMap* remappings) const
+string ZInstI::VName(int n, const FrameMap* frame_ids, const FrameReMap* remappings) const
 	{
 	if ( n > NumFrameSlots() )
 		return "";
@@ -327,8 +323,7 @@ string ZInstI::VName(int n, const FrameMap* frame_ids,
 
 	if ( remappings && live )
 		{ // Find which identifier manifests at this instruction.
-		ASSERT(slot >= 0 &&
-		       static_cast<bro_uint_t>(slot) < remappings->size());
+		ASSERT(slot >= 0 && static_cast<bro_uint_t>(slot) < remappings->size());
 
 		auto& map = (*remappings)[slot];
 
@@ -349,7 +344,7 @@ string ZInstI::VName(int n, const FrameMap* frame_ids,
 			}
 
 		// For ZInstI's, map.ids is always populated.
-		id = map.ids[i-1];
+		id = map.ids[i - 1];
 		}
 
 	else
@@ -360,17 +355,18 @@ string ZInstI::VName(int n, const FrameMap* frame_ids,
 
 bool ZInstI::DoesNotContinue() const
 	{
-	switch ( op ) {
-	case OP_GOTO_V:
-	case OP_HOOK_BREAK_X:
-	case OP_RETURN_C:
-	case OP_RETURN_V:
-	case OP_RETURN_X:
-		return true;
+	switch ( op )
+		{
+		case OP_GOTO_V:
+		case OP_HOOK_BREAK_X:
+		case OP_RETURN_C:
+		case OP_RETURN_V:
+		case OP_RETURN_X:
+			return true;
 
-	default:
-		return false;
-	}
+		default:
+			return false;
+		}
 	}
 
 bool ZInstI::IsDirectAssignment() const
@@ -378,25 +374,26 @@ bool ZInstI::IsDirectAssignment() const
 	if ( op_type != OP_VV )
 		return false;
 
-	switch ( op ) {
-	case OP_ASSIGN_VV_N:
-	case OP_ASSIGN_VV_A:
-	case OP_ASSIGN_VV_O:
-	case OP_ASSIGN_VV_P:
-	case OP_ASSIGN_VV_R:
-	case OP_ASSIGN_VV_S:
-	case OP_ASSIGN_VV_F:
-	case OP_ASSIGN_VV_T:
-	case OP_ASSIGN_VV_V:
-	case OP_ASSIGN_VV_L:
-	case OP_ASSIGN_VV_f:
-	case OP_ASSIGN_VV_t:
-	case OP_ASSIGN_VV:
-		return true;
+	switch ( op )
+		{
+		case OP_ASSIGN_VV_N:
+		case OP_ASSIGN_VV_A:
+		case OP_ASSIGN_VV_O:
+		case OP_ASSIGN_VV_P:
+		case OP_ASSIGN_VV_R:
+		case OP_ASSIGN_VV_S:
+		case OP_ASSIGN_VV_F:
+		case OP_ASSIGN_VV_T:
+		case OP_ASSIGN_VV_V:
+		case OP_ASSIGN_VV_L:
+		case OP_ASSIGN_VV_f:
+		case OP_ASSIGN_VV_t:
+		case OP_ASSIGN_VV:
+			return true;
 
-	default:
-		return false;
-	}
+		default:
+			return false;
+		}
 	}
 
 bool ZInstI::HasSideEffects() const
@@ -406,39 +403,40 @@ bool ZInstI::HasSideEffects() const
 
 bool ZInstI::AssignsToSlot1() const
 	{
-	switch ( op_type ) {
-	case OP_X:
-	case OP_C:
-	case OP_V_I1:
-	case OP_VC_I1:
-	case OP_VV_I1_I2:
-	case OP_VVVC_I1_I2_I3:
-		return false;
+	switch ( op_type )
+		{
+		case OP_X:
+		case OP_C:
+		case OP_V_I1:
+		case OP_VC_I1:
+		case OP_VV_I1_I2:
+		case OP_VVVC_I1_I2_I3:
+			return false;
 
-	// We use this ginormous set of cases rather than "default" so
-	// that when we add a new operand type, we have to consider
-	// its behavior here.  (Same for many of the other switch's
-	// used for ZInst/ZinstI.)
-	case OP_V:
-	case OP_VC:
-	case OP_VV_FRAME:
-	case OP_VV_I2:
-	case OP_VVC_I2:
-	case OP_VVV_I2_I3:
-	case OP_VVVC_I2_I3:
-	case OP_VVVV_I2_I3_I4:
-	case OP_VV:
-	case OP_VVC:
-	case OP_VVV_I3:
-	case OP_VVVV_I3_I4:
-	case OP_VVVC_I3:
-	case OP_VVV:
-	case OP_VVVC:
-	case OP_VVVV_I4:
-	case OP_VVVV:
-		auto fl = op1_flavor[op];
-		return fl == OP1_WRITE || fl == OP1_READ_WRITE;
-	}
+		// We use this ginormous set of cases rather than "default" so
+		// that when we add a new operand type, we have to consider
+		// its behavior here.  (Same for many of the other switch's
+		// used for ZInst/ZinstI.)
+		case OP_V:
+		case OP_VC:
+		case OP_VV_FRAME:
+		case OP_VV_I2:
+		case OP_VVC_I2:
+		case OP_VVV_I2_I3:
+		case OP_VVVC_I2_I3:
+		case OP_VVVV_I2_I3_I4:
+		case OP_VV:
+		case OP_VVC:
+		case OP_VVV_I3:
+		case OP_VVVV_I3_I4:
+		case OP_VVVC_I3:
+		case OP_VVV:
+		case OP_VVVC:
+		case OP_VVVV_I4:
+		case OP_VVVV:
+			auto fl = op1_flavor[op];
+			return fl == OP1_WRITE || fl == OP1_READ_WRITE;
+		}
 
 	return false;
 	}
@@ -449,40 +447,41 @@ bool ZInstI::UsesSlot(int slot) const
 	auto v1_relevant = fl == OP1_READ || fl == OP1_READ_WRITE;
 	auto v1_match = v1_relevant && v1 == slot;
 
-	switch ( op_type ) {
-	case OP_X:
-	case OP_C:
-	case OP_V_I1:
-	case OP_VC_I1:
-	case OP_VV_I1_I2:
-	case OP_VVVC_I1_I2_I3:
-		return false;
+	switch ( op_type )
+		{
+		case OP_X:
+		case OP_C:
+		case OP_V_I1:
+		case OP_VC_I1:
+		case OP_VV_I1_I2:
+		case OP_VVVC_I1_I2_I3:
+			return false;
 
-	case OP_V:
-	case OP_VC:
-	case OP_VV_FRAME:
-	case OP_VV_I2:
-	case OP_VVC_I2:
-	case OP_VVV_I2_I3:
-	case OP_VVVC_I2_I3:
-	case OP_VVVV_I2_I3_I4:
-		return v1_match;
+		case OP_V:
+		case OP_VC:
+		case OP_VV_FRAME:
+		case OP_VV_I2:
+		case OP_VVC_I2:
+		case OP_VVV_I2_I3:
+		case OP_VVVC_I2_I3:
+		case OP_VVVV_I2_I3_I4:
+			return v1_match;
 
-	case OP_VV:
-	case OP_VVC:
-	case OP_VVV_I3:
-	case OP_VVVV_I3_I4:
-	case OP_VVVC_I3:
-		return v1_match || v2 == slot;
+		case OP_VV:
+		case OP_VVC:
+		case OP_VVV_I3:
+		case OP_VVVV_I3_I4:
+		case OP_VVVC_I3:
+			return v1_match || v2 == slot;
 
-	case OP_VVV:
-	case OP_VVVC:
-	case OP_VVVV_I4:
-		return v1_match || v2 == slot || v3 == slot;
+		case OP_VVV:
+		case OP_VVVC:
+		case OP_VVVV_I4:
+			return v1_match || v2 == slot || v3 == slot;
 
-	case OP_VVVV:
-		return v1_match || v2 == slot || v3 == slot || v4 == slot;
-	}
+		case OP_VVVV:
+			return v1_match || v2 == slot || v3 == slot || v4 == slot;
+		}
 
 	return false;
 	}
@@ -494,108 +493,110 @@ bool ZInstI::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
 	auto fl = op1_flavor[op];
 	auto v1_relevant = fl == OP1_READ || fl == OP1_READ_WRITE;
 
-	switch ( op_type ) {
-	case OP_X:
-	case OP_C:
-	case OP_V_I1:
-	case OP_VC_I1:
-	case OP_VV_I1_I2:
-	case OP_VVVC_I1_I2_I3:
-		return false;
-
-	case OP_V:
-	case OP_VC:
-	case OP_VV_FRAME:
-	case OP_VV_I2:
-	case OP_VVC_I2:
-	case OP_VVV_I2_I3:
-	case OP_VVVC_I2_I3:
-	case OP_VVVV_I2_I3_I4:
-		if ( ! v1_relevant )
+	switch ( op_type )
+		{
+		case OP_X:
+		case OP_C:
+		case OP_V_I1:
+		case OP_VC_I1:
+		case OP_VV_I1_I2:
+		case OP_VVVC_I1_I2_I3:
 			return false;
 
-		s1 = v1;
-		return true;
+		case OP_V:
+		case OP_VC:
+		case OP_VV_FRAME:
+		case OP_VV_I2:
+		case OP_VVC_I2:
+		case OP_VVV_I2_I3:
+		case OP_VVVC_I2_I3:
+		case OP_VVVV_I2_I3_I4:
+			if ( ! v1_relevant )
+				return false;
 
-	case OP_VV:
-	case OP_VVC:
-	case OP_VVV_I3:
-	case OP_VVVV_I3_I4:
-	case OP_VVVC_I3:
-		s1 = v2;
+			s1 = v1;
+			return true;
 
-		if ( v1_relevant )
-			s2 = v1;
+		case OP_VV:
+		case OP_VVC:
+		case OP_VVV_I3:
+		case OP_VVVV_I3_I4:
+		case OP_VVVC_I3:
+			s1 = v2;
 
-		return true;
+			if ( v1_relevant )
+				s2 = v1;
 
-	case OP_VVV:
-	case OP_VVVC:
-	case OP_VVVV_I4:
-		s1 = v2;
-		s2 = v3;
+			return true;
 
-		if ( v1_relevant )
-			s3 = v1;
+		case OP_VVV:
+		case OP_VVVC:
+		case OP_VVVV_I4:
+			s1 = v2;
+			s2 = v3;
 
-		return true;
+			if ( v1_relevant )
+				s3 = v1;
 
-	case OP_VVVV:
-		s1 = v2;
-		s2 = v3;
-		s3 = v4;
+			return true;
 
-		if ( v1_relevant )
-			s4 = v1;
+		case OP_VVVV:
+			s1 = v2;
+			s2 = v3;
+			s3 = v4;
 
-		return true;
-	}
+			if ( v1_relevant )
+				s4 = v1;
+
+			return true;
+		}
 
 	return false;
 	}
 
 void ZInstI::UpdateSlots(std::vector<int>& slot_mapping)
 	{
-	switch ( op_type ) {
-	case OP_X:
-	case OP_C:
-	case OP_V_I1:
-	case OP_VC_I1:
-	case OP_VV_I1_I2:
-	case OP_VVVC_I1_I2_I3:
-		return;	// so we don't do any v1 remapping.
+	switch ( op_type )
+		{
+		case OP_X:
+		case OP_C:
+		case OP_V_I1:
+		case OP_VC_I1:
+		case OP_VV_I1_I2:
+		case OP_VVVC_I1_I2_I3:
+			return; // so we don't do any v1 remapping.
 
-	case OP_V:
-	case OP_VC:
-	case OP_VV_FRAME:
-	case OP_VV_I2:
-	case OP_VVC_I2:
-	case OP_VVV_I2_I3:
-	case OP_VVVC_I2_I3:
-	case OP_VVVV_I2_I3_I4:
-		break;
+		case OP_V:
+		case OP_VC:
+		case OP_VV_FRAME:
+		case OP_VV_I2:
+		case OP_VVC_I2:
+		case OP_VVV_I2_I3:
+		case OP_VVVC_I2_I3:
+		case OP_VVVV_I2_I3_I4:
+			break;
 
-	case OP_VV:
-	case OP_VVC:
-	case OP_VVV_I3:
-	case OP_VVVV_I3_I4:
-	case OP_VVVC_I3:
-		v2 = slot_mapping[v2];
-		break;
+		case OP_VV:
+		case OP_VVC:
+		case OP_VVV_I3:
+		case OP_VVVV_I3_I4:
+		case OP_VVVC_I3:
+			v2 = slot_mapping[v2];
+			break;
 
-	case OP_VVV:
-	case OP_VVVC:
-	case OP_VVVV_I4:
-		v2 = slot_mapping[v2];
-		v3 = slot_mapping[v3];
-		break;
+		case OP_VVV:
+		case OP_VVVC:
+		case OP_VVVV_I4:
+			v2 = slot_mapping[v2];
+			v3 = slot_mapping[v3];
+			break;
 
-	case OP_VVVV:
-		v2 = slot_mapping[v2];
-		v3 = slot_mapping[v3];
-		v4 = slot_mapping[v4];
-		break;
-	}
+		case OP_VVVV:
+			v2 = slot_mapping[v2];
+			v3 = slot_mapping[v3];
+			v4 = slot_mapping[v4];
+			break;
+		}
 
 	// Note, unlike for UsesSlots() we do *not* include OP1_READ_WRITE
 	// here, because such instructions will already have v1 remapped
@@ -617,8 +618,7 @@ bool ZInstI::IsGlobalLoad() const
 		for ( int t = 0; t < NUM_TYPES; ++t )
 			{
 			TypeTag tag = TypeTag(t);
-			ZOp global_op_flavor =
-			        AssignmentFlavor(OP_LOAD_GLOBAL_VV, tag, false);
+			ZOp global_op_flavor = AssignmentFlavor(OP_LOAD_GLOBAL_VV, tag, false);
 
 			if ( global_op_flavor != OP_NOP )
 				global_ops.insert(global_op_flavor);
@@ -638,4 +638,4 @@ void ZInstI::InitConst(const ConstExpr* ce)
 		reporter->InternalError("bad value compiling code");
 	}
 
-} // zeek::detail
+	} // zeek::detail

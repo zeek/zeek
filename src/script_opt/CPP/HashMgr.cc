@@ -1,10 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/script_opt/CPP/HashMgr.h"
+
 #include "zeek/script_opt/CPP/Func.h"
 #include "zeek/script_opt/CPP/Util.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 using namespace std;
 
@@ -21,8 +23,7 @@ CPPHashManager::CPPHashManager(const char* hash_name_base, bool _append)
 		hf_r = fopen(hash_name.c_str(), "r");
 		if ( ! hf_r )
 			{
-			reporter->Error("can't open auxiliary C++ hash file %s for reading",
-				hash_name.c_str());
+			reporter->Error("can't open auxiliary C++ hash file %s for reading", hash_name.c_str());
 			exit(1);
 			}
 
@@ -35,8 +36,7 @@ CPPHashManager::CPPHashManager(const char* hash_name_base, bool _append)
 	hf_w = fopen(hash_name.c_str(), mode);
 	if ( ! hf_w )
 		{
-		reporter->Error("can't open auxiliary C++ hash file %s for writing",
-				hash_name.c_str());
+		reporter->Error("can't open auxiliary C++ hash file %s for writing", hash_name.c_str());
 		exit(1);
 		}
 	}
@@ -87,8 +87,7 @@ void CPPHashManager::LoadHashes(FILE* f)
 			RequireLine(f, line);
 
 			p_hash_type gl_t_h, gl_v_h;
-			if ( sscanf(line.c_str(), "%llu %llu",
-                                    &gl_t_h, &gl_v_h) != 2 )
+			if ( sscanf(line.c_str(), "%llu %llu", &gl_t_h, &gl_v_h) != 2 )
 				BadLine(line);
 
 			gl_type_hashes[gl] = gl_t_h;
@@ -97,7 +96,7 @@ void CPPHashManager::LoadHashes(FILE* f)
 			// Eat the location info.  It's there just for
 			// maintainers to be able to track down peculiarities
 			// in the hash file.
-			(void) RequireLine(f, line);
+			(void)RequireLine(f, line);
 			}
 
 		else if ( key == "global-var" )
@@ -118,8 +117,7 @@ void CPPHashManager::LoadHashes(FILE* f)
 			int index;
 			int scope;
 
-			if ( sscanf(line.c_str(), "%llu %d %d", &hash, &index,
-				    &scope) != 3 || hash == 0 )
+			if ( sscanf(line.c_str(), "%llu %d %d", &hash, &index, &scope) != 3 || hash == 0 )
 				BadLine(line);
 
 			compiled_items[hash] = CompiledItemPair{index, scope};
@@ -151,8 +149,8 @@ bool CPPHashManager::GetLine(FILE* f, string& line)
 		return false;
 
 	int n = strlen(buf);
-	if ( n > 0 && buf[n-1] == '\n' )
-		buf[n-1] = '\0';
+	if ( n > 0 && buf[n - 1] == '\n' )
+		buf[n - 1] = '\0';
 
 	line = buf;
 	return true;
@@ -160,9 +158,8 @@ bool CPPHashManager::GetLine(FILE* f, string& line)
 
 void CPPHashManager::BadLine(string& line)
 	{
-	reporter->Error("bad %s hash file entry: %s",
-                        hash_name.c_str(), line.c_str());
+	reporter->Error("bad %s hash file entry: %s", hash_name.c_str(), line.c_str());
 	exit(1);
 	}
 
-} // zeek::detail
+	} // zeek::detail

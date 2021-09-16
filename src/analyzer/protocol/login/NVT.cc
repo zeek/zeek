@@ -1,17 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/login/NVT.h"
 
 #include <stdlib.h>
 
-#include "zeek/ZeekString.h"
-#include "zeek/NetVar.h"
 #include "zeek/Event.h"
+#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
-#include "zeek/analyzer/protocol/tcp/TCP.h"
-
+#include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/login/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/zeek-config.h"
 
 #define IS_3_BYTE_OPTION(c) (c >= 251 && c <= 254)
 
@@ -28,7 +27,8 @@
 
 #define TELNET_IAC 255
 
-namespace zeek::analyzer::login {
+namespace zeek::analyzer::login
+	{
 
 TelnetOption::TelnetOption(NVT_Analyzer* arg_endp, unsigned int arg_code)
 	{
@@ -44,63 +44,60 @@ void TelnetOption::RecvOption(unsigned int type)
 
 	if ( ! peer )
 		{
-		reporter->AnalyzerError(
-			endp, "option peer missing in TelnetOption::RecvOption");
+		reporter->AnalyzerError(endp, "option peer missing in TelnetOption::RecvOption");
 		return;
 		}
 
 	// WILL/WONT/DO/DONT are messages we've *received* from our peer.
-	switch ( type ) {
-	case TELNET_OPT_WILL:
-		if ( SaidDont() || peer->SaidWont() || peer->IsActive() )
-			InconsistentOption(type);
+	switch ( type )
+		{
+		case TELNET_OPT_WILL:
+			if ( SaidDont() || peer->SaidWont() || peer->IsActive() )
+				InconsistentOption(type);
 
-		peer->SetWill();
+			peer->SetWill();
 
-		if ( SaidDo() )
-			peer->SetActive(true);
-		break;
+			if ( SaidDo() )
+				peer->SetActive(true);
+			break;
 
-	case TELNET_OPT_WONT:
-		if ( peer->SaidWill() && ! SaidDont() )
-			InconsistentOption(type);
+		case TELNET_OPT_WONT:
+			if ( peer->SaidWill() && ! SaidDont() )
+				InconsistentOption(type);
 
-		peer->SetWont();
+			peer->SetWont();
 
-		if ( SaidDont() )
-			peer->SetActive(false);
-		break;
+			if ( SaidDont() )
+				peer->SetActive(false);
+			break;
 
-	case TELNET_OPT_DO:
-		if ( SaidWont() || peer->SaidDont() || IsActive() )
-			InconsistentOption(type);
+		case TELNET_OPT_DO:
+			if ( SaidWont() || peer->SaidDont() || IsActive() )
+				InconsistentOption(type);
 
-		peer->SetDo();
+			peer->SetDo();
 
-		if ( SaidWill() )
-			SetActive(true);
-		break;
+			if ( SaidWill() )
+				SetActive(true);
+			break;
 
-	case TELNET_OPT_DONT:
-		if ( peer->SaidDo() && ! SaidWont() )
-			InconsistentOption(type);
+		case TELNET_OPT_DONT:
+			if ( peer->SaidDo() && ! SaidWont() )
+				InconsistentOption(type);
 
-		peer->SetDont();
+			peer->SetDont();
 
-		if ( SaidWont() )
-			SetActive(false);
-		break;
+			if ( SaidWont() )
+				SetActive(false);
+			break;
 
-	default:
-		reporter->AnalyzerError(
-			endp, "bad option type in TelnetOption::RecvOption");
-		return;
+		default:
+			reporter->AnalyzerError(endp, "bad option type in TelnetOption::RecvOption");
+			return;
+		}
 	}
-	}
 
-void TelnetOption::RecvSubOption(u_char* /* data */, int /* len */)
-	{
-	}
+void TelnetOption::RecvSubOption(u_char* /* data */, int /* len */) { }
 
 void TelnetOption::SetActive(bool is_active)
 	{
@@ -117,7 +114,8 @@ void TelnetOption::BadOption()
 	endp->Event(bad_option);
 	}
 
-namespace detail {
+namespace detail
+	{
 
 void TelnetTerminalOption::RecvSubOption(u_char* data, int len)
 	{
@@ -138,7 +136,6 @@ void TelnetTerminalOption::RecvSubOption(u_char* data, int len)
 
 	endp->SetTerminal(data + 1, len - 1);
 	}
-
 
 #define ENCRYPT_SET_ALGORITHM 0
 #define ENCRYPT_SUPPORT_ALGORITM 1
@@ -171,13 +168,12 @@ void TelnetEncryptOption::RecvSubOption(u_char* data, int len)
 
 	else if ( opt == ENCRYPT_STARTING_TO_ENCRYPT )
 		{
-		TelnetEncryptOption* peer =
-			(TelnetEncryptOption*) endp->FindPeerOption(code);
+		TelnetEncryptOption* peer = (TelnetEncryptOption*)endp->FindPeerOption(code);
 
 		if ( ! peer )
 			{
-			reporter->AnalyzerError(
-				endp, "option peer missing in TelnetEncryptOption::RecvSubOption");
+			reporter->AnalyzerError(endp,
+			                        "option peer missing in TelnetEncryptOption::RecvSubOption");
 			return;
 			}
 
@@ -208,57 +204,58 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
 		return;
 		}
 
-	switch ( data[0] ) {
-	case HERE_IS_AUTHENTICATION:
+	switch ( data[0] )
 		{
-		TelnetAuthenticateOption* peer =
-			(TelnetAuthenticateOption*) endp->FindPeerOption(code);
+		case HERE_IS_AUTHENTICATION:
+				{
+				TelnetAuthenticateOption* peer =
+					(TelnetAuthenticateOption*)endp->FindPeerOption(code);
 
-		if ( ! peer )
-			{
-			reporter->AnalyzerError(
-				endp, "option peer missing in TelnetAuthenticateOption::RecvSubOption");
-			return;
-			}
+				if ( ! peer )
+					{
+					reporter->AnalyzerError(
+						endp, "option peer missing in TelnetAuthenticateOption::RecvSubOption");
+					return;
+					}
 
-		if ( ! peer->DidRequestAuthentication() )
-			InconsistentOption(0);
-		}
-		break;
+				if ( ! peer->DidRequestAuthentication() )
+					InconsistentOption(0);
+				}
+			break;
 
-	case SEND_ME_AUTHENTICATION:
-		++authentication_requested;
-		break;
+		case SEND_ME_AUTHENTICATION:
+			++authentication_requested;
+			break;
 
-	case AUTHENTICATION_STATUS:
-		if ( len <= 1 )
-			{
+		case AUTHENTICATION_STATUS:
+			if ( len <= 1 )
+				{
+				BadOption();
+				return;
+				}
+
+			if ( data[1] == AUTH_REJECT )
+				endp->AuthenticationRejected();
+			else if ( data[1] == AUTH_ACCEPT )
+				endp->AuthenticationAccepted();
+			else
+				{
+				// Don't complain, there may be replies we don't
+				// know about.
+				}
+			break;
+
+		case AUTHENTICATION_NAME:
+				{
+				char* auth_name = new char[len];
+				util::safe_strncpy(auth_name, (char*)data + 1, len);
+				endp->SetAuthName(auth_name);
+				}
+			break;
+
+		default:
 			BadOption();
-			return;
-			}
-
-		if ( data[1] == AUTH_REJECT )
-			endp->AuthenticationRejected();
-		else if ( data[1] == AUTH_ACCEPT )
-			endp->AuthenticationAccepted();
-		else
-			{
-			// Don't complain, there may be replies we don't
-			// know about.
-			}
-		break;
-
-	case AUTHENTICATION_NAME:
-		{
-		char* auth_name = new char[len];
-		util::safe_strncpy(auth_name, (char*) data + 1, len);
-		endp->SetAuthName(auth_name);
 		}
-		break;
-
-	default:
-		BadOption();
-	}
 	}
 
 #define ENVIRON_IS 0
@@ -288,7 +285,7 @@ void TelnetEnvironmentOption::RecvSubOption(u_char* data, int len)
 		return;
 		}
 
-	--len;	// Discard code.
+	--len; // Discard code.
 	++data;
 
 	while ( len > 0 )
@@ -297,21 +294,19 @@ void TelnetEnvironmentOption::RecvSubOption(u_char* data, int len)
 		char* var_name = ExtractEnv(data, len, code1);
 		char* var_val = ExtractEnv(data, len, code2);
 
-		if ( ! var_name || ! var_val ||
-		     (code1 != ENVIRON_VAR && code1 != ENVIRON_USERVAR) ||
+		if ( ! var_name || ! var_val || (code1 != ENVIRON_VAR && code1 != ENVIRON_USERVAR) ||
 		     code2 != ENVIRON_VAL )
 			{
 			// One of var_name/var_val might be set; avoid leak.
-			delete [] var_name;
-			delete [] var_val;
+			delete[] var_name;
+			delete[] var_val;
 
 			BadOption();
 			break;
 			}
 
-		static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>
-			(endp->Parent())->SetEnv(endp->IsOrig(),
-							var_name, var_val);
+		static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(endp->Parent())
+			->SetEnv(endp->IsOrig(), var_name, var_val);
 		}
 	}
 
@@ -319,8 +314,7 @@ char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, int& len, int& code)
 	{
 	code = data[0];
 
-	if ( code != ENVIRON_VAR && code != ENVIRON_VAL &&
-	     code != ENVIRON_USERVAR )
+	if ( code != ENVIRON_VAR && code != ENVIRON_VAL && code != ENVIRON_USERVAR )
 		return nullptr;
 
 	// Move past code.
@@ -337,7 +331,7 @@ char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, int& len, int& code)
 
 		if ( *d == ENVIRON_ESC )
 			{
-			++d;	// move past ESC
+			++d; // move past ESC
 			if ( d >= data_end )
 				return nullptr;
 			break;
@@ -345,7 +339,7 @@ char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, int& len, int& code)
 		}
 
 	int size = d - data;
-	char* env = new char[size+1];
+	char* env = new char[size + 1];
 
 	// Now copy into env.
 	int d_ind = 0;
@@ -380,7 +374,7 @@ void TelnetBinaryOption::InconsistentOption(unsigned int /* type */)
 	// in ex/redund-binary-opt.trace.
 	}
 
-} // namespace detail
+	} // namespace detail
 
 NVT_Analyzer::NVT_Analyzer(Connection* conn, bool orig)
 	: analyzer::tcp::ContentLine_Analyzer("NVT", conn, orig), options()
@@ -392,7 +386,7 @@ NVT_Analyzer::~NVT_Analyzer()
 	for ( int i = 0; i < num_options; ++i )
 		delete options[i];
 
-	delete [] auth_name;
+	delete[] auth_name;
 	}
 
 TelnetOption* NVT_Analyzer::FindOption(unsigned int code)
@@ -405,27 +399,28 @@ TelnetOption* NVT_Analyzer::FindOption(unsigned int code)
 	TelnetOption* opt = nullptr;
 	if ( i < NUM_TELNET_OPTIONS )
 		{ // Maybe we haven't created this option yet.
-		switch ( code ) {
-		case TELNET_OPTION_BINARY:
-			opt = new detail::TelnetBinaryOption(this);
-			break;
+		switch ( code )
+			{
+			case TELNET_OPTION_BINARY:
+				opt = new detail::TelnetBinaryOption(this);
+				break;
 
-		case TELNET_OPTION_TERMINAL:
-			opt = new detail::TelnetTerminalOption(this);
-			break;
+			case TELNET_OPTION_TERMINAL:
+				opt = new detail::TelnetTerminalOption(this);
+				break;
 
-		case TELNET_OPTION_ENCRYPT:
-			opt = new detail::TelnetEncryptOption(this);
-			break;
+			case TELNET_OPTION_ENCRYPT:
+				opt = new detail::TelnetEncryptOption(this);
+				break;
 
-		case TELNET_OPTION_AUTHENTICATE:
-			opt = new detail::TelnetAuthenticateOption(this);
-			break;
+			case TELNET_OPTION_AUTHENTICATE:
+				opt = new detail::TelnetAuthenticateOption(this);
+				break;
 
-		case TELNET_OPTION_ENVIRON:
-			opt = new detail::TelnetEnvironmentOption(this);
-			break;
-		}
+			case TELNET_OPTION_ENVIRON:
+				opt = new detail::TelnetEnvironmentOption(this);
+				break;
+			}
 		}
 
 	if ( opt )
@@ -461,10 +456,8 @@ const char* NVT_Analyzer::PeerAuthName() const
 void NVT_Analyzer::SetTerminal(const u_char* terminal, int len)
 	{
 	if ( login_terminal )
-		EnqueueConnEvent(login_terminal,
-			ConnVal(),
-			make_intrusive<StringVal>(new String(terminal, len, false))
-		);
+		EnqueueConnEvent(login_terminal, ConnVal(),
+		                 make_intrusive<StringVal>(new String(terminal, len, false)));
 	}
 
 void NVT_Analyzer::SetEncrypting(int mode)
@@ -505,76 +498,76 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data)
 		if ( binary_mode && c != TELNET_IAC )
 			c &= 0x7f;
 
-#define EMIT_LINE \
-	{ \
-	buf[offset] = '\0'; \
-	ForwardStream(offset, buf, IsOrig()); \
-	offset = 0; \
-	}
-
-		switch ( c ) {
-		case '\r':
-			if ( CRLFAsEOL() & CR_as_EOL )
-				EMIT_LINE
-			else
-				buf[offset++] = c;
-			break;
-
-		case '\n':
-			if ( last_char == '\r' )
-				{
-				if ( CRLFAsEOL() & CR_as_EOL )
-					// we already emited, skip
-					;
-				else
-					{
-					--offset; // remove '\r'
-					EMIT_LINE
-					}
-				}
-
-			else if ( CRLFAsEOL() & LF_as_EOL )
-				EMIT_LINE
-
-			else
-				{
-				if ( Conn()->FlagEvent(SINGULAR_LF) )
-					Weird("line_terminated_with_single_LF");
-				buf[offset++] = c;
-				}
-			break;
-
-		case '\0':
-			if ( last_char == '\r' )
-				// Allow a NUL just after a \r - Solaris
-				// Telnet servers generate these, and they
-				// appear harmless.
-				;
-
-			else if ( flag_NULs )
-				CheckNUL();
-
-			else
-				buf[offset++] = c;
-			break;
-
-		case TELNET_IAC:
-			pending_IAC = true;
-			IAC_pos = offset;
-			is_suboption = false;
-			buf[offset++] = c;
-			--len;
-			++data;
-			ScanOption(len, data);
-			return;
-
-		default:
-			buf[offset++] = c;
-			break;
+#define EMIT_LINE                                                                                  \
+		{                                                                                          \
+		buf[offset] = '\0';                                                                        \
+		ForwardStream(offset, buf, IsOrig());                                                      \
+		offset = 0;                                                                                \
 		}
 
-		if ( ! (CRLFAsEOL() & CR_as_EOL) &&
-		     last_char == '\r' && c != '\n' && c != '\0' )
+		switch ( c )
+			{
+			case '\r':
+				if ( CRLFAsEOL() & CR_as_EOL )
+					EMIT_LINE
+				else
+					buf[offset++] = c;
+				break;
+
+			case '\n':
+				if ( last_char == '\r' )
+					{
+					if ( CRLFAsEOL() & CR_as_EOL )
+						// we already emited, skip
+						;
+					else
+						{
+						--offset; // remove '\r'
+						EMIT_LINE
+						}
+					}
+
+				else if ( CRLFAsEOL() & LF_as_EOL )
+					EMIT_LINE
+
+				else
+					{
+					if ( Conn()->FlagEvent(SINGULAR_LF) )
+						Weird("line_terminated_with_single_LF");
+					buf[offset++] = c;
+					}
+				break;
+
+			case '\0':
+				if ( last_char == '\r' )
+					// Allow a NUL just after a \r - Solaris
+					// Telnet servers generate these, and they
+					// appear harmless.
+					;
+
+				else if ( flag_NULs )
+					CheckNUL();
+
+				else
+					buf[offset++] = c;
+				break;
+
+			case TELNET_IAC:
+				pending_IAC = true;
+				IAC_pos = offset;
+				is_suboption = false;
+				buf[offset++] = c;
+				--len;
+				++data;
+				ScanOption(len, data);
+				return;
+
+			default:
+				buf[offset++] = c;
+				break;
+			}
+
+		if ( ! (CRLFAsEOL() & CR_as_EOL) && last_char == '\r' && c != '\n' && c != '\0' )
 			{
 			if ( Conn()->FlagEvent(SINGULAR_CR) )
 				Weird("line_terminated_with_single_CR");
@@ -640,10 +633,10 @@ void NVT_Analyzer::ScanOption(int& len, const u_char*& data)
 	if ( ! is_suboption )
 		{
 		// We now have the full 3-byte option.
-		SawOption(u_char(buf[offset-1]), data[0]);
+		SawOption(u_char(buf[offset - 1]), data[0]);
 
 		// Delete the option.
-		offset -= 2;	// code + IAC
+		offset -= 2; // code + IAC
 		pending_IAC = false;
 
 		--len;
@@ -709,9 +702,7 @@ void NVT_Analyzer::ScanOption(int& len, const u_char*& data)
 		}
 	}
 
-void NVT_Analyzer::SawOption(unsigned int /* code */)
-	{
-	}
+void NVT_Analyzer::SawOption(unsigned int /* code */) { }
 
 void NVT_Analyzer::SawOption(unsigned int code, unsigned int subcode)
 	{
@@ -729,7 +720,7 @@ void NVT_Analyzer::SawSubOption(const char* subopt, int len)
 
 	TelnetOption* opt = FindOption(subcode);
 	if ( opt )
-		opt->RecvSubOption((u_char*) subopt, len);
+		opt->RecvSubOption((u_char*)subopt, len);
 	}
 
 void NVT_Analyzer::BadOptionTermination(unsigned int /* code */)
@@ -737,4 +728,4 @@ void NVT_Analyzer::BadOptionTermination(unsigned int /* code */)
 	Event(bad_option_termination);
 	}
 
-} // namespace zeek::analyzer::login
+	} // namespace zeek::analyzer::login

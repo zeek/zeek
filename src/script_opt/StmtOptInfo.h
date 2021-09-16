@@ -5,12 +5,14 @@
 
 #pragma once
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
-class StmtOptInfo {
+class StmtOptInfo
+	{
 public:
 	// We number statements by their traversal order in the AST.
-	int stmt_num = -1;	// -1 = not assigned yet
+	int stmt_num = -1; // -1 = not assigned yet
 
 	// The confluence block nesting associated with the statement.
 	// We number these using 0 for the outermost block of a function
@@ -20,6 +22,6 @@ public:
 	// True if we observe that there is a branch out of the statement
 	// to just beyond its extent, such as due to a "break".
 	bool contains_branch_beyond = false;
-};
+	};
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

@@ -6,9 +6,8 @@
 
 #include "zeek/script_opt/DefItem.h"
 
-
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 // Maps a DefinitionItem (i.e., a variable or a record field within a
 // DefinitionItem) to a list of all the points where the item is defined.
@@ -24,7 +23,6 @@ namespace zeek::detail {
 typedef List<DefinitionPoint> DefPoints;
 typedef std::unordered_map<const DefinitionItem*, std::unique_ptr<DefPoints>> ReachingDefsMap;
 
-
 // The ReachingDefs class tracks all of the RDs associated with a given
 // AST node.  Often these are the same as for the node's predecessor, so
 // the class allows for either have a distinct set of RDs or instead
@@ -35,7 +33,8 @@ class ReachingDefSet;
 using RDPtr = IntrusivePtr<ReachingDefs>;
 using RDSetPtr = IntrusivePtr<ReachingDefSet>;
 
-class ReachingDefs : public Obj {
+class ReachingDefs : public Obj
+	{
 public:
 	// Create a new object from scratch.
 	ReachingDefs();
@@ -45,7 +44,7 @@ public:
 
 	// Add in all the definition points from rd into our set, if
 	// we don't already have them.
-	void AddRDs(const RDPtr& rd)	{ AddRDs(rd->RDMap()); }
+	void AddRDs(const RDPtr& rd) { AddRDs(rd->RDMap()); }
 
 	// Add in a single definition pair, creating the entry for
 	// the item if necessary.
@@ -53,8 +52,7 @@ public:
 
 	// Add a single definition pair, if missing.  If present,
 	// replace everything currently associated with new definition.
-	void AddOrFullyReplace(const DefinitionItem* di,
-				const DefinitionPoint& dp);
+	void AddOrFullyReplace(const DefinitionItem* di, const DefinitionPoint& dp);
 
 	// True if the given definition item is present in our RDs.
 	bool HasDI(const DefinitionItem* di) const
@@ -112,10 +110,9 @@ public:
 	// example, computing them correctly for "for" loop bodies is
 	// messy, and irrevant in terms of actually having the correct
 	// values for them.)
-	RDPtr IntersectWithConsolidation(const RDPtr& r,
-					const DefinitionPoint& di) const;
+	RDPtr IntersectWithConsolidation(const RDPtr& r, const DefinitionPoint& di) const;
 
-	int Size() const	{ return RDMap()->size(); }
+	int Size() const { return RDMap()->size(); }
 
 	// Print out the RDs, for debugging purposes.
 	void Dump() const;
@@ -134,12 +131,17 @@ protected:
 	void AddRDs(const std::shared_ptr<ReachingDefsMap>& rd_m);
 
 	const std::shared_ptr<ReachingDefsMap>& RDMap() const
-		{ return my_rd_map ? my_rd_map : const_rd_map; }
+		{
+		return my_rd_map ? my_rd_map : const_rd_map;
+		}
 
 	// If we don't already have our own map, copy the one we're using
 	// so that we then do.
 	void CopyMapIfNeeded()
-		{ if ( ! my_rd_map ) CopyMap(); }
+		{
+		if ( ! my_rd_map )
+			CopyMap();
+		}
 	void CopyMap();
 
 	void PrintRD(const DefinitionItem* di, const DefPoints* dp) const;
@@ -151,8 +153,7 @@ protected:
 	// that map.
 	std::shared_ptr<ReachingDefsMap> my_rd_map;
 	std::shared_ptr<ReachingDefsMap> const_rd_map;
-};
-
+	};
 
 // Maps script locations (which are represented by their underlying Obj
 // pointers) to the reaching definitions for that particular point.
@@ -160,21 +161,19 @@ protected:
 // In spirit, the inverse of ReachingDefsMap.
 typedef std::unordered_map<const Obj*, RDPtr> AnalyInfo;
 
-
 // Reaching definitions associated with a collection of Obj's.
-class ReachingDefSet : public Obj {
+class ReachingDefSet : public Obj
+	{
 public:
-	ReachingDefSet(DefItemMap& _item_map) : item_map(_item_map)
-		{ }
+	ReachingDefSet(DefItemMap& _item_map) : item_map(_item_map) { }
 
 	// Whether in our collection we have RDs associated with the
 	// given AST node.
-	bool HasRDs(const Obj* o) const	{ return a_i.count(o) > 0; }
+	bool HasRDs(const Obj* o) const { return a_i.count(o) > 0; }
 
 	// Whether in our collection we have RDs associated with the
 	// given variable.
-	bool HasRD(const Obj* o, const ID* id) const
-		{ return HasRD(o, item_map.GetConstID_DI(id)); }
+	bool HasRD(const Obj* o, const ID* id) const { return HasRD(o, item_map.GetConstID_DI(id)); }
 
 	// Whether the given variable has a single = unambiguous RD
 	// at the given AST node.
@@ -218,8 +217,7 @@ public:
 	// If the given di is new, add this definition.  If it
 	// already exists, replace *all* of its reaching definitions
 	// with this new one.
-	void AddOrReplace(const Obj* o, const DefinitionItem* di,
-				const DefinitionPoint& dp);
+	void AddOrReplace(const Obj* o, const DefinitionItem* di, const DefinitionPoint& dp);
 
 	// Add the given RDs to those associated with the AST node 'o'.
 	void AddRDs(const Obj* o, const RDPtr& rd)
@@ -243,7 +241,6 @@ protected:
 
 	AnalyInfo a_i;
 	DefItemMap& item_map;
-};
+	};
 
-
-} // zeek::detail
+	} // zeek::detail

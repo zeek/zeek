@@ -7,7 +7,8 @@
 #include "zeek/script_opt/ZAM/Support.h"
 #include "zeek/script_opt/ZAM/ZOp.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 class Expr;
 class ConstExpr;
@@ -16,12 +17,13 @@ class Stmt;
 
 using AttributesPtr = IntrusivePtr<Attributes>;
 
-// Maps ZAM frame slots to associated identifiers.   
+// Maps ZAM frame slots to associated identifiers.
 using FrameMap = std::vector<ID*>;
 
 // Maps ZAM frame slots to information for sharing the slot across
 // multiple script variables.
-class FrameSharingInfo {
+class FrameSharingInfo
+	{
 public:
 	// The variables sharing the slot.  ID's need to be non-const so we
 	// can manipulate them, for example by changing their interpreter
@@ -43,7 +45,7 @@ public:
 
 	// Whether this is a managed slot.
 	bool is_managed = false;
-};
+	};
 
 using FrameReMap = std::vector<FrameSharingInfo>;
 
@@ -52,7 +54,8 @@ class ZInstAux;
 // A ZAM instruction.  This base class has all the information for
 // execution, but omits information and methods only necessary for
 // compiling.
-class ZInst {
+class ZInst
+	{
 public:
 	ZInst(ZOp _op, ZAMOpType _op_type)
 		{
@@ -61,22 +64,21 @@ public:
 		}
 
 	// Create a stub instruction that will be populated later.
-	ZInst()	{ }
+	ZInst() { }
 
-	virtual ~ZInst()	{ }
+	virtual ~ZInst() { }
 
 	// Methods for printing out the instruction for debugging/maintenance.
 	void Dump(bro_uint_t inst_num, const FrameReMap* mappings) const;
-	void Dump(const std::string& id1, const std::string& id2,
-	          const std::string& id3, const std::string& id4) const;
+	void Dump(const std::string& id1, const std::string& id2, const std::string& id3,
+	          const std::string& id4) const;
 
 	// Returns the name to use in identifying one of the slots/integer
 	// values (designated by "n").  "inst_num" identifes the instruction
 	// by its number within a larger set.  "mappings" provides the
 	// mappings used to translate raw slots to the corresponding
 	// script variable(s).
-	std::string VName(int n, bro_uint_t inst_num,
-	                  const FrameReMap* mappings) const;
+	std::string VName(int n, bro_uint_t inst_num, const FrameReMap* mappings) const;
 
 	// Number of slots that refer to a frame element.  These always
 	// come first, if we use additional slots.
@@ -102,17 +104,17 @@ public:
 	// Initialized here to keep Coverity happy.
 	int v1 = -1, v2 = -1, v3 = -1, v4 = -1;
 
-	ZVal c;	// constant associated with instruction, if any
+	ZVal c; // constant associated with instruction, if any
 
 	// Meta-data associated with the execution.
 
 	// Type, usually for interpreting the constant.
 	TypePtr t = nullptr;
-	TypePtr t2 = nullptr;	// just a few ops need two types
-	const Expr* e = nullptr;	// only needed for "when" expressions
-	Func* func = nullptr;	// used for calls
-	EventHandler* event_handler = nullptr;	// used for referring to events
-	AttributesPtr attrs = nullptr;	// used for things like constructors
+	TypePtr t2 = nullptr; // just a few ops need two types
+	const Expr* e = nullptr; // only needed for "when" expressions
+	Func* func = nullptr; // used for calls
+	EventHandler* event_handler = nullptr; // used for referring to events
+	AttributesPtr attrs = nullptr; // used for things like constructors
 
 	// Auxiliary information.  We could in principle use this to
 	// consolidate a bunch of the above, though at the cost of
@@ -126,13 +128,14 @@ public:
 	// Whether v1 represents a frame slot type for which we
 	// explicitly manage the memory.
 	bool is_managed = false;
-};
+	};
 
 // A intermediary ZAM instruction, one that includes information/methods
 // needed for compiling.  Intermediate instructions use pointers to other
 // such instructions for branches, rather than concrete instruction
 // numbers.  This allows the AM optimizer to easily prune instructions.
-class ZInstI : public ZInst {
+class ZInstI : public ZInst
+	{
 public:
 	// These constructors can be used directly, but often instead
 	// they'll be generated via the use of Inst-Gen methods.
@@ -142,10 +145,7 @@ public:
 		op_type = OP_X;
 		}
 
-	ZInstI(ZOp _op, int _v1) : ZInst(_op, OP_V)
-		{
-		v1 = _v1;
-		}
+	ZInstI(ZOp _op, int _v1) : ZInst(_op, OP_V) { v1 = _v1; }
 
 	ZInstI(ZOp _op, int _v1, int _v2) : ZInst(_op, OP_VV)
 		{
@@ -160,8 +160,7 @@ public:
 		v3 = _v3;
 		}
 
-	ZInstI(ZOp _op, int _v1, int _v2, int _v3, int _v4)
-	: ZInst(_op, OP_VVVV)
+	ZInstI(ZOp _op, int _v1, int _v2, int _v3, int _v4) : ZInst(_op, OP_VVVV)
 		{
 		v1 = _v1;
 		v2 = _v2;
@@ -169,10 +168,7 @@ public:
 		v4 = _v4;
 		}
 
-	ZInstI(ZOp _op, const ConstExpr* ce) : ZInst(_op, OP_C)
-		{
-		InitConst(ce);
-		}
+	ZInstI(ZOp _op, const ConstExpr* ce) : ZInst(_op, OP_C) { InitConst(ce); }
 
 	ZInstI(ZOp _op, int _v1, const ConstExpr* ce) : ZInst(_op, OP_VC)
 		{
@@ -180,16 +176,14 @@ public:
 		InitConst(ce);
 		}
 
-	ZInstI(ZOp _op, int _v1, int _v2, const ConstExpr* ce)
-	: ZInst(_op, OP_VVC)
+	ZInstI(ZOp _op, int _v1, int _v2, const ConstExpr* ce) : ZInst(_op, OP_VVC)
 		{
 		v1 = _v1;
 		v2 = _v2;
 		InitConst(ce);
 		}
 
-	ZInstI(ZOp _op, int _v1, int _v2, int _v3, const ConstExpr* ce)
-	: ZInst(_op, OP_VVVC)
+	ZInstI(ZOp _op, int _v1, int _v2, int _v3, const ConstExpr* ce) : ZInst(_op, OP_VVVC)
 		{
 		v1 = _v1;
 		v2 = _v2;
@@ -206,8 +200,7 @@ public:
 	// Note that this is *not* an override of the base class's VName
 	// but instead a method with similar functionality but somewhat
 	// different behavior (namely, being cognizant of frame_ids).
-	std::string VName(int n, const FrameMap* frame_ids,
-	                  const FrameReMap* remappings) const;
+	std::string VName(int n, const FrameMap* frame_ids, const FrameReMap* remappings) const;
 
 	// True if this instruction definitely won't proceed to the one
 	// after it.
@@ -216,7 +209,7 @@ public:
 	// True if this instruction always branches elsewhere.  Different
 	// from DoesNotContinue() in that returns & hook breaks do not
 	// continue, but they are not branches.
-	bool IsUnconditionalBranch() const	{ return op == OP_GOTO_V; }
+	bool IsUnconditionalBranch() const { return op == OP_GOTO_V; }
 
 	// True if this instruction is of the form "v1 = v2".
 	bool IsDirectAssignment() const;
@@ -246,19 +239,16 @@ public:
 
 	// True if the instruction corresponds to some sort of load,
 	// either from the interpreter frame or of a global.
-	bool IsLoad() const
-		{
-		return op_type == OP_VV_FRAME || IsGlobalLoad();
-		}
+	bool IsLoad() const { return op_type == OP_VV_FRAME || IsGlobalLoad(); }
 
 	// True if the instruction corresponds to storing a global.
-	bool IsGlobalStore() const
-		{
-		return op == OP_STORE_GLOBAL_V;
-		}
+	bool IsGlobalStore() const { return op == OP_STORE_GLOBAL_V; }
 
 	void CheckIfManaged(const TypePtr& t)
-		{ if ( ZVal::IsManagedType(t) ) is_managed = true; }
+		{
+		if ( ZVal::IsManagedType(t) )
+			is_managed = true;
+		}
 
 	void SetType(TypePtr _t)
 		{
@@ -283,7 +273,7 @@ public:
 
 	// Branch target, prior to concretizing into PC target.
 	ZInstI* target = nullptr;
-	int target_slot = 0;	// which of v1/v2/v3 should hold the target
+	int target_slot = 0; // which of v1/v2/v3 should hold the target
 
 	// The final PC location of the statement.  -1 indicates not
 	// yet assigned.
@@ -299,12 +289,13 @@ public:
 private:
 	// Initialize 'c' from the given ConstExpr.
 	void InitConst(const ConstExpr* ce);
-};
+	};
 
 // Auxiliary information, used when the fixed ZInst layout lacks
 // sufficient expressiveness to represent all of the elements that
 // an instruction needs.
-class ZInstAux {
+class ZInstAux
+	{
 public:
 	// if n is positive then it gives the size of parallel arrays
 	// tracking slots, constants, and types.
@@ -321,9 +312,9 @@ public:
 
 	~ZInstAux()
 		{
-		delete [] ints;
-		delete [] constants;
-		delete [] types;
+		delete[] ints;
+		delete[] constants;
+		delete[] types;
 		}
 
 	// Returns the i'th element of the parallel arrays as a ValPtr.
@@ -392,7 +383,6 @@ public:
 		types[i] = nullptr;
 		}
 
-
 	// Member variables.  We could add accessors for manipulating
 	// these (and make the variables private), but for convenience we
 	// make them directly available.
@@ -405,8 +395,8 @@ public:
 	// We track associated types, too, enabling us to use
 	// ZVal::ToVal to convert frame slots or constants to ValPtr's.
 
-	int n;	// size of arrays
-	int* slots = nullptr;	// either nil or points to ints
+	int n; // size of arrays
+	int* slots = nullptr; // either nil or points to ints
 	int* ints = nullptr;
 	ValPtr* constants = nullptr;
 	TypePtr* types = nullptr;
@@ -435,14 +425,13 @@ public:
 	// iteration.
 	TypePtr value_var_type;
 
-
 	// This is only used to return values stored elsewhere in this
 	// object - it's not set directly.
 	//
 	// If we cared about memory penny-pinching, we could make this
 	// a pointer and only instantiate as needed.
 	ValVec vv;
-};
+	};
 
 // Returns a human-readable version of the given ZAM op-code.
 extern const char* ZOP_name(ZOp op);
@@ -451,14 +440,13 @@ extern const char* ZOP_name(ZOp op);
 // The third argument governs what to do if the given type has no assignment
 // flavor.  If true, this leads to an assertion failure.  If false, and
 // if there's no flavor for the type, then OP_NOP is returned.
-extern ZOp AssignmentFlavor(ZOp orig, TypeTag tag, bool strict=true);
-
+extern ZOp AssignmentFlavor(ZOp orig, TypeTag tag, bool strict = true);
 
 // The following all use initializations produced by Gen-ZAM.
 
 // Maps first operands, and then type tags, to operands.
 extern std::unordered_map<ZOp, std::unordered_map<TypeTag, ZOp>> assignment_flavor;
-        
+
 // Maps flavorful assignments to their non-assignment counterpart.
 // Used for optimization when we determine that the assigned-to
 // value is superfluous.
@@ -468,4 +456,4 @@ extern std::unordered_map<ZOp, ZOp> assignmentless_op;
 // counterpart uses.
 extern std::unordered_map<ZOp, ZAMOpType> assignmentless_op_type;
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

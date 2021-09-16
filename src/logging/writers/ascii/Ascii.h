@@ -6,33 +6,36 @@
 
 #include <zlib.h>
 
+#include "zeek/Desc.h"
 #include "zeek/logging/WriterBackend.h"
 #include "zeek/threading/formatters/Ascii.h"
 #include "zeek/threading/formatters/JSON.h"
-#include "zeek/Desc.h"
 
-namespace zeek::plugin::detail::Zeek_AsciiWriter { class Plugin; }
+namespace zeek::plugin::detail::Zeek_AsciiWriter
+	{
+class Plugin;
+	}
 
-namespace zeek::logging::writer::detail {
+namespace zeek::logging::writer::detail
+	{
 
-class Ascii : public WriterBackend {
+class Ascii : public WriterBackend
+	{
 public:
 	explicit Ascii(WriterFrontend* frontend);
 	~Ascii() override;
 
 	static std::string LogExt();
 
-	static WriterBackend* Instantiate(WriterFrontend* frontend)
-		{ return new Ascii(frontend); }
+	static WriterBackend* Instantiate(WriterFrontend* frontend) { return new Ascii(frontend); }
 
 protected:
 	bool DoInit(const WriterInfo& info, int num_fields,
 	            const threading::Field* const* fields) override;
 	bool DoWrite(int num_fields, const threading::Field* const* fields,
-			     threading::Value** vals) override;
+	             threading::Value** vals) override;
 	bool DoSetBuf(bool enabled) override;
-	bool DoRotate(const char* rotated_path, double open,
-			      double close, bool terminating) override;
+	bool DoRotate(const char* rotated_path, double open, double close, bool terminating) override;
 	bool DoFlush(double network_time) override;
 	bool DoFinish(double network_time) override;
 	bool DoHeartbeat(double network_time, double current_time) override;
@@ -42,7 +45,7 @@ private:
 
 	static void RotateLeftoverLogs();
 
-	bool IsSpecial(const std::string &path) 	{ return path.find("/dev/") == 0; }
+	bool IsSpecial(const std::string& path) { return path.find("/dev/") == 0; }
 	bool WriteHeader(const std::string& path);
 	bool WriteHeaderField(const std::string& key, const std::string& value);
 	void CloseFile(double t);
@@ -76,9 +79,9 @@ private:
 	bool enable_utf_8;
 	std::string json_timestamps;
 	std::string logdir;
-	
+
 	threading::Formatter* formatter;
 	bool init_options;
-};
+	};
 
-} // namespace zeek::logging::writer::detail
+	} // namespace zeek::logging::writer::detail

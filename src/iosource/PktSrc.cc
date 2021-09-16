@@ -1,22 +1,22 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/iosource/PktSrc.h"
 
 #include <sys/stat.h>
 
-#include "zeek/util.h"
 #include "zeek/Hash.h"
 #include "zeek/RunState.h"
-#include "zeek/session/Manager.h"
 #include "zeek/broker/Manager.h"
-#include "zeek/iosource/Manager.h"
-#include "zeek/packet_analysis/Manager.h"
 #include "zeek/iosource/BPF_Program.h"
-
+#include "zeek/iosource/Manager.h"
 #include "zeek/iosource/pcap/pcap.bif.h"
+#include "zeek/packet_analysis/Manager.h"
+#include "zeek/session/Manager.h"
+#include "zeek/util.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek::iosource {
+namespace zeek::iosource
+	{
 
 PktSrc::Properties::Properties()
 	{
@@ -81,7 +81,6 @@ void PktSrc::Opened(const Properties& arg_props)
 		return;
 		}
 
-
 	if ( props.is_live )
 		{
 		Info(util::fmt("listening on %s\n", props.path.c_str()));
@@ -113,9 +112,8 @@ void PktSrc::Error(const std::string& msg)
 	// We don't report this immediately, Bro will ask us for the error
 	// once it notices we aren't open.
 	errbuf = msg;
-	DBG_LOG(DBG_PKTIO, "Error with source %s: %s",
-		IsOpen() ? props.path.c_str() : "<not open>",
-		msg.c_str());
+	DBG_LOG(DBG_PKTIO, "Error with source %s: %s", IsOpen() ? props.path.c_str() : "<not open>",
+	        msg.c_str());
 	}
 
 void PktSrc::Info(const std::string& msg)
@@ -212,7 +210,8 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	// Compile filter.
 	auto* code = new detail::BPF_Program();
 
-	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
+	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf,
+	                     sizeof(errbuf)) )
 		{
 		std::string msg = util::fmt("cannot compile BPF filter \"%s\"", filter.c_str());
 
@@ -245,7 +244,7 @@ detail::BPF_Program* PktSrc::GetBPFFilter(int index)
 	return (static_cast<int>(filters.size()) > index ? filters[index] : nullptr);
 	}
 
-bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)
+bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr* hdr, const u_char* pkt)
 	{
 	detail::BPF_Program* code = GetBPFFilter(index);
 
@@ -295,8 +294,9 @@ double PktSrc::GetNextTimeout()
 
 	// This duplicates the calculation used in run_state::check_pseudo_time().
 	double pseudo_time = current_packet.time - run_state::detail::first_timestamp;
-	double ct = (util::current_time(true) - run_state::detail::first_wallclock) * run_state::pseudo_realtime;
+	double ct = (util::current_time(true) - run_state::detail::first_wallclock) *
+	            run_state::pseudo_realtime;
 	return std::max(0.0, pseudo_time - ct);
 	}
 
-} // namespace zeek::iosource
+	} // namespace zeek::iosource

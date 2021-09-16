@@ -5,9 +5,11 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::VLAN {
+namespace zeek::packet_analysis::VLAN
+	{
 
-class VLANAnalyzer : public Analyzer {
+class VLANAnalyzer : public Analyzer
+	{
 public:
 	VLANAnalyzer();
 	~VLANAnalyzer() override = default;
@@ -18,6 +20,6 @@ public:
 		{
 		return std::make_shared<VLANAnalyzer>();
 		}
-};
+	};
 
-}
+	}

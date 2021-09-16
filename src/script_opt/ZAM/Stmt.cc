@@ -8,82 +8,84 @@
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s)
 	{
 	SetCurrStmt(s);
 
-	switch ( s->Tag() ) {
-	case STMT_PRINT:
-		return CompilePrint(static_cast<const PrintStmt*>(s));
-
-	case STMT_EXPR:
-		return CompileExpr(static_cast<const ExprStmt*>(s));
-
-	case STMT_IF:
-		return CompileIf(static_cast<const IfStmt*>(s));
-
-	case STMT_SWITCH:
-		return CompileSwitch(static_cast<const SwitchStmt*>(s));
-
-	case STMT_ADD:
-		return CompileAdd(static_cast<const AddStmt*>(s));
-
-	case STMT_DELETE:
-		return CompileDel(static_cast<const DelStmt*>(s));
-
-	case STMT_EVENT:
+	switch ( s->Tag() )
 		{
-		auto es = static_cast<const EventStmt*>(s);
-		auto e = static_cast<const EventExpr*>(es->StmtExpr());
-		return CompileExpr(e);
+		case STMT_PRINT:
+			return CompilePrint(static_cast<const PrintStmt*>(s));
+
+		case STMT_EXPR:
+			return CompileExpr(static_cast<const ExprStmt*>(s));
+
+		case STMT_IF:
+			return CompileIf(static_cast<const IfStmt*>(s));
+
+		case STMT_SWITCH:
+			return CompileSwitch(static_cast<const SwitchStmt*>(s));
+
+		case STMT_ADD:
+			return CompileAdd(static_cast<const AddStmt*>(s));
+
+		case STMT_DELETE:
+			return CompileDel(static_cast<const DelStmt*>(s));
+
+		case STMT_EVENT:
+				{
+				auto es = static_cast<const EventStmt*>(s);
+				auto e = static_cast<const EventExpr*>(es->StmtExpr());
+				return CompileExpr(e);
+				}
+
+		case STMT_WHILE:
+			return CompileWhile(static_cast<const WhileStmt*>(s));
+
+		case STMT_FOR:
+			return CompileFor(static_cast<const ForStmt*>(s));
+
+		case STMT_RETURN:
+			return CompileReturn(static_cast<const ReturnStmt*>(s));
+
+		case STMT_CATCH_RETURN:
+			return CompileCatchReturn(static_cast<const CatchReturnStmt*>(s));
+
+		case STMT_LIST:
+			return CompileStmts(static_cast<const StmtList*>(s));
+
+		case STMT_INIT:
+			return CompileInit(static_cast<const InitStmt*>(s));
+
+		case STMT_NULL:
+			return EmptyStmt();
+
+		case STMT_WHEN:
+			return CompileWhen(static_cast<const WhenStmt*>(s));
+
+		case STMT_CHECK_ANY_LEN:
+				{
+				auto cs = static_cast<const CheckAnyLenStmt*>(s);
+				auto n = cs->StmtExpr()->AsNameExpr();
+				auto expected_len = cs->ExpectedLen();
+				return CheckAnyLenVi(n, expected_len);
+				}
+
+		case STMT_NEXT:
+			return CompileNext();
+
+		case STMT_BREAK:
+			return CompileBreak();
+
+		case STMT_FALLTHROUGH:
+			return CompileFallThrough();
+
+		default:
+			reporter->InternalError("bad statement type in ZAMCompile::CompileStmt");
 		}
-
-	case STMT_WHILE:
-		return CompileWhile(static_cast<const WhileStmt*>(s));
-
-	case STMT_FOR:
-		return CompileFor(static_cast<const ForStmt*>(s));
-
-	case STMT_RETURN:
-		return CompileReturn(static_cast<const ReturnStmt*>(s));
-
-	case STMT_CATCH_RETURN:
-		return CompileCatchReturn(static_cast<const CatchReturnStmt*>(s));
-
-	case STMT_LIST:
-		return CompileStmts(static_cast<const StmtList*>(s));
-
-	case STMT_INIT:
-		return CompileInit(static_cast<const InitStmt*>(s));
-
-	case STMT_NULL:
-		return EmptyStmt();
-
-	case STMT_WHEN:
-		return CompileWhen(static_cast<const WhenStmt*>(s));
-
-	case STMT_CHECK_ANY_LEN:
-		{
-		auto cs = static_cast<const CheckAnyLenStmt*>(s);
-		auto n = cs->StmtExpr()->AsNameExpr();
-		auto expected_len = cs->ExpectedLen();
-		return CheckAnyLenVi(n, expected_len);
-		}
-
-	case STMT_NEXT:
-		return CompileNext();
-
-	case STMT_BREAK:
-		return CompileBreak();
-
-	case STMT_FALLTHROUGH:
-		return CompileFallThrough();
-
-	default:
-		reporter->InternalError("bad statement type in ZAMCompile::CompileStmt");
-	}
 	}
 
 const ZAMStmt ZAMCompiler::CompilePrint(const PrintStmt* ps)
@@ -159,8 +161,7 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 		{
 		auto n = e->AsNameExpr();
 
-		ZOp op = (s1 && s2) ? OP_IF_ELSE_VV :
-		                      (s1 ? OP_IF_VV : OP_IF_NOT_VV);
+		ZOp op = (s1 && s2) ? OP_IF_ELSE_VV : (s1 ? OP_IF_VV : OP_IF_NOT_VV);
 
 		ZInstI cond(op, FrameSlot(n), 0);
 		cond_stmt = AddInst(cond);
@@ -176,8 +177,7 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 			{
 			auto branch_after_s1 = GoToStub();
 			auto s2_end = CompileStmt(s2);
-			SetV(cond_stmt, GoToTargetBeyond(branch_after_s1),
-			     branch_v);
+			SetV(cond_stmt, GoToTargetBeyond(branch_after_s1), branch_v);
 			SetGoTo(branch_after_s1, GoToTargetBeyond(s2_end));
 
 			return s2_end;
@@ -197,59 +197,60 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 	// we're switching to "if ( ! cond ) s2".
 	auto z = insts1[cond_stmt.stmt_num];
 
-	switch ( z->op ) {
-	case OP_IF_ELSE_VV:
-	case OP_IF_VV:
-	case OP_IF_NOT_VV:
-		// These are generated correctly above, no need
-		// to fix up.
-		break;
+	switch ( z->op )
+		{
+		case OP_IF_ELSE_VV:
+		case OP_IF_VV:
+		case OP_IF_NOT_VV:
+			// These are generated correctly above, no need
+			// to fix up.
+			break;
 
-	case OP_HAS_FIELD_COND_VVV:
-		z->op = OP_NOT_HAS_FIELD_COND_VVV;
-		break;
-	case OP_NOT_HAS_FIELD_COND_VVV:
-		z->op = OP_HAS_FIELD_COND_VVV;
-		break;
+		case OP_HAS_FIELD_COND_VVV:
+			z->op = OP_NOT_HAS_FIELD_COND_VVV;
+			break;
+		case OP_NOT_HAS_FIELD_COND_VVV:
+			z->op = OP_HAS_FIELD_COND_VVV;
+			break;
 
-	case OP_VAL_IS_IN_TABLE_COND_VVV:
-		z->op = OP_VAL_IS_NOT_IN_TABLE_COND_VVV;
-		break;
-	case OP_VAL_IS_NOT_IN_TABLE_COND_VVV:
-		z->op = OP_VAL_IS_IN_TABLE_COND_VVV;
-		break;
+		case OP_VAL_IS_IN_TABLE_COND_VVV:
+			z->op = OP_VAL_IS_NOT_IN_TABLE_COND_VVV;
+			break;
+		case OP_VAL_IS_NOT_IN_TABLE_COND_VVV:
+			z->op = OP_VAL_IS_IN_TABLE_COND_VVV;
+			break;
 
-	case OP_CONST_IS_IN_TABLE_COND_VVC:
-		z->op = OP_CONST_IS_NOT_IN_TABLE_COND_VVC;
-		break;
-	case OP_CONST_IS_NOT_IN_TABLE_COND_VVC:
-		z->op = OP_CONST_IS_IN_TABLE_COND_VVC;
-		break;
+		case OP_CONST_IS_IN_TABLE_COND_VVC:
+			z->op = OP_CONST_IS_NOT_IN_TABLE_COND_VVC;
+			break;
+		case OP_CONST_IS_NOT_IN_TABLE_COND_VVC:
+			z->op = OP_CONST_IS_IN_TABLE_COND_VVC;
+			break;
 
-	case OP_VAL2_IS_IN_TABLE_COND_VVVV:
-		z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVV;
-		break;
-	case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVV:
-		z->op = OP_VAL2_IS_IN_TABLE_COND_VVVV;
-		break;
+		case OP_VAL2_IS_IN_TABLE_COND_VVVV:
+			z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVV;
+			break;
+		case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVV:
+			z->op = OP_VAL2_IS_IN_TABLE_COND_VVVV;
+			break;
 
-	case OP_VAL2_IS_IN_TABLE_COND_VVVC:
-		z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVC;
-		break;
-	case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVC:
-		z->op = OP_VAL2_IS_IN_TABLE_COND_VVVC;
-		break;
+		case OP_VAL2_IS_IN_TABLE_COND_VVVC:
+			z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVC;
+			break;
+		case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVC:
+			z->op = OP_VAL2_IS_IN_TABLE_COND_VVVC;
+			break;
 
-	case OP_VAL2_IS_IN_TABLE_COND_VVCV:
-		z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVCV;
-		break;
-	case OP_VAL2_IS_NOT_IN_TABLE_COND_VVCV:
-		z->op = OP_VAL2_IS_IN_TABLE_COND_VVCV;
-		break;
+		case OP_VAL2_IS_IN_TABLE_COND_VVCV:
+			z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVCV;
+			break;
+		case OP_VAL2_IS_NOT_IN_TABLE_COND_VVCV:
+			z->op = OP_VAL2_IS_IN_TABLE_COND_VVCV;
+			break;
 
-	default:
-		reporter->InternalError("inconsistency in ZAMCompiler::IfElse");
-	}
+		default:
+			reporter->InternalError("inconsistency in ZAMCompiler::IfElse");
+		}
 
 	SetV(cond_stmt, GoToTargetBeyond(s2_end), branch_v);
 	return s2_end;
@@ -267,8 +268,7 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v)
 	if ( e->Tag() == EXPR_HAS_FIELD )
 		{
 		auto hf = e->AsHasFieldExpr();
-		auto z = GenInst(OP_HAS_FIELD_COND_VVV, op1->AsNameExpr(),
-		                 hf->Field());
+		auto z = GenInst(OP_HAS_FIELD_COND_VVV, op1->AsNameExpr(), hf->Field());
 		z.op_type = OP_VVV_I2_I3;
 		branch_v = 3;
 		return AddInst(z);
@@ -289,8 +289,7 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v)
 
 		if ( op1->Tag() == EXPR_NAME )
 			{
-			auto z = GenInst(OP_VAL_IS_IN_TABLE_COND_VVV,
-			                 op1->AsNameExpr(), op2, 0);
+			auto z = GenInst(OP_VAL_IS_IN_TABLE_COND_VVV, op1->AsNameExpr(), op2, 0);
 			z.t = op1->GetType();
 			branch_v = 3;
 			return AddInst(z);
@@ -298,8 +297,7 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v)
 
 		if ( op1->Tag() == EXPR_CONST )
 			{
-			auto z = GenInst(OP_CONST_IS_IN_TABLE_COND_VVC,
-			                 op2, op1->AsConstExpr(), 0);
+			auto z = GenInst(OP_CONST_IS_IN_TABLE_COND_VVC, op2, op1->AsConstExpr(), 0);
 			z.t = op1->GetType();
 			branch_v = 2;
 			return AddInst(z);
@@ -328,24 +326,21 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v)
 
 		if ( name0 && name1 )
 			{
-			z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVVV,
-			            n0, n1, op2, 0);
+			z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVVV, n0, n1, op2, 0);
 			branch_v = 4;
 			z.t2 = n0->GetType();
 			}
 
 		else if ( name0 )
 			{
-			z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVVC,
-			            n0, op2, c1, 0);
+			z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVVC, n0, op2, c1, 0);
 			branch_v = 3;
 			z.t2 = n0->GetType();
 			}
 
 		else if ( name1 )
 			{
-			z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVCV,
-			            n1, op2, c0, 0);
+			z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVCV, n1, op2, c0, 0);
 			branch_v = 3;
 			z.t2 = n1->GetType();
 			}
@@ -354,8 +349,7 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v)
 			{ // Both are constants, assign first to temporary.
 			auto slot = TempForConst(c0);
 
-			z = ZInstI(OP_VAL2_IS_IN_TABLE_COND_VVVC,
-			           slot, FrameSlot(op2), 0, c1);
+			z = ZInstI(OP_VAL2_IS_IN_TABLE_COND_VVVC, slot, FrameSlot(op2), 0, c1);
 			z.op_type = OP_VVVC_I3;
 			branch_v = 3;
 			z.t2 = c0->GetType();
@@ -385,12 +379,13 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v)
 	else
 		branch_v = 2;
 
-	switch ( e->Tag() ) {
+	switch ( e->Tag() )
+		{
 #include "ZAM-Conds.h"
 
-	default:
-		reporter->InternalError("bad expression type in ZAMCompiler::GenCond");
-	}
+		default:
+			reporter->InternalError("bad expression type in ZAMCompiler::GenCond");
+		}
 
 	// Not reached.
 	}
@@ -415,8 +410,7 @@ const ZAMStmt ZAMCompiler::CompileSwitch(const SwitchStmt* sw)
 		return ValueSwitch(sw, n, c);
 	}
 
-const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
-                                       const ConstExpr* c)
+const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, const ConstExpr* c)
 	{
 	int slot = v ? FrameSlot(v) : -1;
 
@@ -432,40 +426,41 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 	int tbl = 0;
 	ZOp op;
 
-	switch ( t->InternalType() ) {
-	case TYPE_INTERNAL_INT:
-		op = OP_SWITCHI_VVV;
-		tbl = int_casesI.size();
-		break;
+	switch ( t->InternalType() )
+		{
+		case TYPE_INTERNAL_INT:
+			op = OP_SWITCHI_VVV;
+			tbl = int_casesI.size();
+			break;
 
-	case TYPE_INTERNAL_UNSIGNED:
-		op = OP_SWITCHU_VVV;
-		tbl = uint_casesI.size();
-		break;
+		case TYPE_INTERNAL_UNSIGNED:
+			op = OP_SWITCHU_VVV;
+			tbl = uint_casesI.size();
+			break;
 
-	case TYPE_INTERNAL_DOUBLE:
-		op = OP_SWITCHD_VVV;
-		tbl = double_casesI.size();
-		break;
+		case TYPE_INTERNAL_DOUBLE:
+			op = OP_SWITCHD_VVV;
+			tbl = double_casesI.size();
+			break;
 
-	case TYPE_INTERNAL_STRING:
-		op = OP_SWITCHS_VVV;
-		tbl = str_casesI.size();
-		break;
+		case TYPE_INTERNAL_STRING:
+			op = OP_SWITCHS_VVV;
+			tbl = str_casesI.size();
+			break;
 
-	case TYPE_INTERNAL_ADDR:
-		op = OP_SWITCHA_VVV;
-		tbl = str_casesI.size();
-		break;
+		case TYPE_INTERNAL_ADDR:
+			op = OP_SWITCHA_VVV;
+			tbl = str_casesI.size();
+			break;
 
-	case TYPE_INTERNAL_SUBNET:
-		op = OP_SWITCHN_VVV;
-		tbl = str_casesI.size();
-		break;
+		case TYPE_INTERNAL_SUBNET:
+			op = OP_SWITCHN_VVV;
+			tbl = str_casesI.size();
+			break;
 
-	default:
-		reporter->InternalError("bad switch type");
-	}
+		default:
+			reporter->InternalError("bad switch type");
+		}
 
 	// Add the "head", i.e., the execution of the jump table.
 	auto sw_head_op = ZInstI(op, slot, tbl, 0);
@@ -510,87 +505,88 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 		{
 		auto case_body_start = case_start[index];
 
-		switch ( cv->GetType()->InternalType() ) {
-		case TYPE_INTERNAL_INT:
-			new_int_cases[cv->InternalInt()] = case_body_start;
-			break;
-
-		case TYPE_INTERNAL_UNSIGNED:
-			new_uint_cases[cv->InternalUnsigned()] = case_body_start;
-			break;
-
-		case TYPE_INTERNAL_DOUBLE:
-			new_double_cases[cv->InternalDouble()] = case_body_start;
-			break;
-
-		case TYPE_INTERNAL_STRING:
+		switch ( cv->GetType()->InternalType() )
 			{
-			// This leaks, but only statically so not worth
-			// tracking the value for ultimate deletion.
-			auto sv = cv->AsString()->Render();
-			std::string s(sv);
-			new_str_cases[s] = case_body_start;
-			delete[] sv;
-			break;
-			}
+			case TYPE_INTERNAL_INT:
+				new_int_cases[cv->InternalInt()] = case_body_start;
+				break;
 
-		case TYPE_INTERNAL_ADDR:
-			{
-			auto a = cv->AsAddr().AsString();
-			new_str_cases[a] = case_body_start;
-			break;
-			}
+			case TYPE_INTERNAL_UNSIGNED:
+				new_uint_cases[cv->InternalUnsigned()] = case_body_start;
+				break;
 
-		case TYPE_INTERNAL_SUBNET:
-			{
-			auto n = cv->AsSubNet().AsString();
-			new_str_cases[n] = case_body_start;
-			break;
-			}
+			case TYPE_INTERNAL_DOUBLE:
+				new_double_cases[cv->InternalDouble()] = case_body_start;
+				break;
 
-		default:
-			reporter->InternalError("bad recovered type when compiling switch");
-		}
+			case TYPE_INTERNAL_STRING:
+					{
+					// This leaks, but only statically so not worth
+					// tracking the value for ultimate deletion.
+					auto sv = cv->AsString()->Render();
+					std::string s(sv);
+					new_str_cases[s] = case_body_start;
+					delete[] sv;
+					break;
+					}
+
+			case TYPE_INTERNAL_ADDR:
+					{
+					auto a = cv->AsAddr().AsString();
+					new_str_cases[a] = case_body_start;
+					break;
+					}
+
+			case TYPE_INTERNAL_SUBNET:
+					{
+					auto n = cv->AsSubNet().AsString();
+					new_str_cases[n] = case_body_start;
+					break;
+					}
+
+			default:
+				reporter->InternalError("bad recovered type when compiling switch");
+			}
 		}
 
 	// Now add the jump table to the set we're keeping for the
 	// corresponding type.
 
-	switch ( t->InternalType() ) {
-	case TYPE_INTERNAL_INT:
-		int_casesI.push_back(new_int_cases);
-		break;
+	switch ( t->InternalType() )
+		{
+		case TYPE_INTERNAL_INT:
+			int_casesI.push_back(new_int_cases);
+			break;
 
-	case TYPE_INTERNAL_UNSIGNED:
-		uint_casesI.push_back(new_uint_cases);
-		break;
+		case TYPE_INTERNAL_UNSIGNED:
+			uint_casesI.push_back(new_uint_cases);
+			break;
 
-	case TYPE_INTERNAL_DOUBLE:
-		double_casesI.push_back(new_double_cases);
-		break;
+		case TYPE_INTERNAL_DOUBLE:
+			double_casesI.push_back(new_double_cases);
+			break;
 
-	case TYPE_INTERNAL_STRING:
-	case TYPE_INTERNAL_ADDR:
-	case TYPE_INTERNAL_SUBNET:
-		str_casesI.push_back(new_str_cases);
-		break;
+		case TYPE_INTERNAL_STRING:
+		case TYPE_INTERNAL_ADDR:
+		case TYPE_INTERNAL_SUBNET:
+			str_casesI.push_back(new_str_cases);
+			break;
 
-	default:
-		reporter->InternalError("bad switch type");
-	}
+		default:
+			reporter->InternalError("bad switch type");
+		}
 
 	return body_end;
 	}
 
-const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
-                                      const ConstExpr* c)
+const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v, const ConstExpr* c)
 	{
 	auto cases = sw->Cases();
 	auto type_map = sw->TypeMap();
 
 	auto body_end = EmptyStmt();
 
-	auto tmp = NewSlot(true);	// true since we know "any" is managed
+	auto tmp = NewSlot(true); // true since we know "any" is managed
 
 	int slot = v ? FrameSlot(v) : 0;
 
@@ -609,8 +605,8 @@ const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 		}
 
 	int def_ind = sw->DefaultCaseIndex();
-	ZAMStmt def_succ(0);	// successor to default, if any
-	bool saw_def_succ = false;	// whether def_succ is meaningful
+	ZAMStmt def_succ(0); // successor to default, if any
+	bool saw_def_succ = false; // whether def_succ is meaningful
 
 	PushFallThroughs();
 	for ( auto& i : *type_map )
@@ -731,13 +727,12 @@ const ZAMStmt ZAMCompiler::CompileWhile(const WhileStmt* ws)
 	return While(cond_pred.get(), loop_condition.get(), ws->Body().get());
 	}
 
-const ZAMStmt ZAMCompiler::While(const Stmt* cond_stmt, const Expr* cond,
-                                 const Stmt* body)
+const ZAMStmt ZAMCompiler::While(const Stmt* cond_stmt, const Expr* cond, const Stmt* body)
 	{
 	auto head = StartingBlock();
 
 	if ( cond_stmt )
-		(void) CompileStmt(cond_stmt);
+		(void)CompileStmt(cond_stmt);
 
 	ZAMStmt cond_IF = EmptyStmt();
 	int branch_v;
@@ -755,7 +750,7 @@ const ZAMStmt ZAMCompiler::While(const Stmt* cond_stmt, const Expr* cond,
 	PushBreaks();
 
 	if ( body && body->Tag() != STMT_NULL )
-		(void) CompileStmt(body);
+		(void)CompileStmt(body);
 
 	auto tail = GoTo(GoToTarget(head));
 
@@ -842,21 +837,20 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val)
 
 	if ( value_var )
 		{
-		ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV :
-		                        OP_NEXT_TABLE_ITER_VAL_VAR_VVV;
+		ZOp op =
+			no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV : OP_NEXT_TABLE_ITER_VAL_VAR_VVV;
 		z = ZInstI(op, FrameSlot(value_var), iter_slot, 0);
 		z.CheckIfManaged(value_var->GetType());
 		z.op_type = OP_VVV_I2_I3;
 		}
 	else
 		{
-		ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_NO_VARS_VV :
-		                        OP_NEXT_TABLE_ITER_VV;
+		ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_NO_VARS_VV : OP_NEXT_TABLE_ITER_VV;
 		z = ZInstI(op, iter_slot, 0);
 		z.op_type = OP_VV_I1_I2;
 		}
 
-	z.aux = aux;	// so ZOpt.cc can get to it
+	z.aux = aux; // so ZOpt.cc can get to it
 
 	return FinishLoop(iter_head, z, body, iter_slot, true);
 	}
@@ -919,7 +913,7 @@ const ZAMStmt ZAMCompiler::Loop(const Stmt* body)
 	PushBreaks();
 
 	auto head = StartingBlock();
-	(void) CompileStmt(body);
+	(void)CompileStmt(body);
 	auto tail = GoTo(GoToTarget(head));
 
 	ResolveNexts(GoToTarget(head));
@@ -928,8 +922,7 @@ const ZAMStmt ZAMCompiler::Loop(const Stmt* body)
 	return tail;
 	}
 
-const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head,
-                                      ZInstI& iter_stmt, const Stmt* body,
+const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head, ZInstI& iter_stmt, const Stmt* body,
                                       int iter_slot, bool is_table)
 	{
 	auto loop_iter = AddInst(iter_stmt);
@@ -946,7 +939,7 @@ const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head,
 	auto final_stmt = AddInst(z);
 
 	auto ot = iter_stmt.op_type;
-	if ( ot == OP_VVV_I3 || ot == OP_VVV_I2_I3)
+	if ( ot == OP_VVV_I3 || ot == OP_VVV_I2_I3 )
 		SetV3(loop_iter, GoToTarget(final_stmt));
 	else
 		SetV2(loop_iter, GoToTarget(final_stmt));
@@ -984,9 +977,9 @@ const ZAMStmt ZAMCompiler::CompileReturn(const ReturnStmt* r)
 	if ( e )
 		{
 		if ( e->Tag() == EXPR_NAME )
-			(void) AssignVV(rv, e->AsNameExpr());
+			(void)AssignVV(rv, e->AsNameExpr());
 		else
-			(void) AssignVC(rv, e->AsConstExpr());
+			(void)AssignVC(rv, e->AsConstExpr());
 		}
 
 	return CompileCatchReturn();
@@ -1035,23 +1028,23 @@ const ZAMStmt ZAMCompiler::CompileInit(const InitStmt* is)
 
 		auto& t = aggr->GetType();
 
-		switch ( t->Tag() ) {
-		case TYPE_RECORD:
-			last = InitRecord(aggr, t->AsRecordType());
-			break;
+		switch ( t->Tag() )
+			{
+			case TYPE_RECORD:
+				last = InitRecord(aggr, t->AsRecordType());
+				break;
 
-		case TYPE_VECTOR:
-			last = InitVector(aggr, t->AsVectorType());
-			break;
+			case TYPE_VECTOR:
+				last = InitVector(aggr, t->AsVectorType());
+				break;
 
-		case TYPE_TABLE:
-			last = InitTable(aggr, t->AsTableType(),
-			                 aggr->GetAttrs().get());
-			break;
+			case TYPE_TABLE:
+				last = InitTable(aggr, t->AsTableType(), aggr->GetAttrs().get());
+				break;
 
-		default:
-			break;
-		}
+			default:
+				break;
+			}
 		}
 
 	return last;
@@ -1153,4 +1146,4 @@ const ZAMStmt ZAMCompiler::CompileWhen(const WhenStmt* ws)
 		}
 	}
 
-} // zeek::detail
+	} // zeek::detail

@@ -2,25 +2,26 @@
 
 #include "zeek/iosource/Manager.h"
 
-#include <sys/types.h>
+#include <assert.h>
 #include <sys/event.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <assert.h>
 
-#include "zeek/iosource/Component.h"
-#include "zeek/iosource/IOSource.h"
-#include "zeek/iosource/PktSrc.h"
-#include "zeek/iosource/PktDumper.h"
-#include "zeek/plugin/Manager.h"
-#include "zeek/broker/Manager.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
+#include "zeek/broker/Manager.h"
+#include "zeek/iosource/Component.h"
+#include "zeek/iosource/IOSource.h"
+#include "zeek/iosource/PktDumper.h"
+#include "zeek/iosource/PktSrc.h"
+#include "zeek/plugin/Manager.h"
 #include "zeek/util.h"
 
 #define DEFAULT_PREFIX "pcap"
 
-namespace zeek::iosource {
+namespace zeek::iosource
+	{
 
 Manager::WakeupHandler::WakeupHandler()
 	{
@@ -115,7 +116,7 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 
 	// If there aren't any sources and exit_only_after_terminate is false, just
 	// return an empty set of sources. We want the main loop to end.
-	if ( Size() == 0 && ( ! BifConst::exit_only_after_terminate || run_state::terminating ) )
+	if ( Size() == 0 && (! BifConst::exit_only_after_terminate || run_state::terminating) )
 		return;
 
 	double timeout = -1;
@@ -138,7 +139,7 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 			double next = iosource->GetNextTimeout();
 			bool added = false;
 
-			if ( timeout == -1 || ( next >= 0.0 && next < timeout ) )
+			if ( timeout == -1 || (next >= 0.0 && next < timeout) )
 				{
 				timeout = next;
 				timeout_src = iosource;
@@ -174,8 +175,8 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 			}
 		}
 
-	DBG_LOG(DBG_MAINLOOP, "timeout: %f   ready size: %zu   time_to_poll: %d\n",
-		timeout, ready->size(), time_to_poll);
+	DBG_LOG(DBG_MAINLOOP, "timeout: %f   ready size: %zu   time_to_poll: %d\n", timeout,
+	        ready->size(), time_to_poll);
 
 	// If we didn't find any IOSources with zero timeouts or it's time to
 	// force a poll, do that and return. Otherwise return the set of ready
@@ -273,7 +274,8 @@ bool Manager::UnregisterFd(int fd, IOSource* src)
 		}
 	else
 		{
-		reporter->Error("Attempted to unregister an unknown file descriptor %d from %s", fd, src->Tag());
+		reporter->Error("Attempted to unregister an unknown file descriptor %d from %s", fd,
+		                src->Tag());
 		return false;
 		}
 	}
@@ -335,7 +337,7 @@ static std::pair<std::string, std::string> split_prefix(std::string path)
 		}
 
 	else
-		prefix= DEFAULT_PREFIX;
+		prefix = DEFAULT_PREFIX;
 
 	return std::make_pair(prefix, path);
 	}
@@ -354,29 +356,28 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
 	for ( const auto& c : all_components )
 		{
 		if ( c->HandlesPrefix(prefix) &&
-		     ((  is_live && c->DoesLive() ) ||
-		      (! is_live && c->DoesTrace())) )
+		     ((is_live && c->DoesLive()) || (! is_live && c->DoesTrace())) )
 			{
 			component = c;
 			break;
 			}
 		}
 
-
 	if ( ! component )
-		reporter->FatalError("type of packet source '%s' not recognized, or mode not supported", prefix.c_str());
+		reporter->FatalError("type of packet source '%s' not recognized, or mode not supported",
+		                     prefix.c_str());
 
 	// Instantiate packet source.
 
 	PktSrc* ps = (*component->Factory())(npath, is_live);
 	assert(ps);
 
-	DBG_LOG(DBG_PKTIO, "Created packet source of type %s for %s", component->Name().c_str(), npath.c_str());
+	DBG_LOG(DBG_PKTIO, "Created packet source of type %s for %s", component->Name().c_str(),
+	        npath.c_str());
 
 	Register(ps);
 	return ps;
 	}
-
 
 PktDumper* Manager::OpenPktDumper(const std::string& path, bool append)
 	{
@@ -410,7 +411,8 @@ PktDumper* Manager::OpenPktDumper(const std::string& path, bool append)
 		// Set an error message if it didn't open successfully.
 		pd->Error("could not open");
 
-	DBG_LOG(DBG_PKTIO, "Created packer dumper of type %s for %s", component->Name().c_str(), npath.c_str());
+	DBG_LOG(DBG_PKTIO, "Created packer dumper of type %s for %s", component->Name().c_str(),
+	        npath.c_str());
 
 	pd->Init();
 	pkt_dumpers.push_back(pd);
@@ -418,4 +420,4 @@ PktDumper* Manager::OpenPktDumper(const std::string& path, bool append)
 	return pd;
 	}
 
-} // namespace zeek::iosource
+	} // namespace zeek::iosource

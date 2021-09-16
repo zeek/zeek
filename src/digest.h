@@ -6,12 +6,11 @@
 
 #pragma once
 
-#include <sys/types.h> // for u_char
-#include <cstdint>
-
+#include <openssl/evp.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
-#include <openssl/evp.h>
+#include <sys/types.h> // for u_char
+#include <cstdint>
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 #define EVP_MD_CTX_new EVP_MD_CTX_create
@@ -23,11 +22,20 @@ inline void* EVP_MD_CTX_md_data(const EVP_MD_CTX* ctx)
 	}
 #endif
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 // if you add something here, note that you might have to make sure that the
 // static_out member in calculate_digest is still long enough.
-enum HashAlgorithm { Hash_MD5, Hash_SHA1, Hash_SHA224, Hash_SHA256, Hash_SHA384, Hash_SHA512 };
+enum HashAlgorithm
+	{
+	Hash_MD5,
+	Hash_SHA1,
+	Hash_SHA224,
+	Hash_SHA256,
+	Hash_SHA384,
+	Hash_SHA512
+	};
 
 inline const char* digest_print(const u_char* digest, size_t n)
 	{
@@ -68,6 +76,7 @@ unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsign
  * @param out Buffer to write data to. If set to nullptr, a static buffer will be used
  * @return Buffer that the hash was written to. Length is deoendent on the chosen hash function.
  */
-unsigned char* calculate_digest(HashAlgorithm Alg, const unsigned char* data, uint64_t len, unsigned char* out);
+unsigned char* calculate_digest(HashAlgorithm Alg, const unsigned char* data, uint64_t len,
+                                unsigned char* out);
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

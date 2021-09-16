@@ -1,52 +1,57 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/RunState.h"
 
 #include <sys/types.h>
+
+#include "zeek/zeek-config.h"
 #ifdef TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
+#include <sys/time.h>
+#include <time.h>
 #else
-# ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
 #endif
 
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-extern "C" {
+extern "C"
+	{
 #include "zeek/setsignal.h"
-};
+	};
 
-#include "zeek/NetVar.h"
-#include "zeek/session/Manager.h"
+#include "zeek/Anon.h"
 #include "zeek/Event.h"
-#include "zeek/Timer.h"
 #include "zeek/ID.h"
+#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
-#include "zeek/Anon.h"
-#include "zeek/iosource/Manager.h"
-#include "zeek/iosource/PktSrc.h"
-#include "zeek/iosource/PktDumper.h"
-#include "zeek/plugin/Manager.h"
+#include "zeek/Timer.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/iosource/PktDumper.h"
+#include "zeek/iosource/PktSrc.h"
 #include "zeek/packet_analysis/Manager.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/session/Manager.h"
 
-extern "C" {
-extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
-}
+extern "C"
+	{
+	extern int select(int, fd_set*, fd_set*, fd_set*, struct timeval*);
+	}
 
-static double last_watchdog_proc_time = 0.0;	// value of above during last watchdog
+static double last_watchdog_proc_time = 0.0; // value of above during last watchdog
 extern int signal_val;
 
-namespace zeek::run_state {
-namespace detail {
+namespace zeek::run_state
+	{
+namespace detail
+	{
 
 iosource::PktDumper* pkt_dumper = nullptr;
 iosource::PktSrc* current_pktsrc = nullptr;
@@ -92,8 +97,7 @@ RETSIGTYPE watchdog(int /* signo */)
 			int frac_ct = int((ct - int_ct) * 1e6);
 
 			int int_pst = int(processing_start_time);
-			int frac_pst =
-				int((processing_start_time - int_pst) * 1e6);
+			int frac_pst = int((processing_start_time - int_pst) * 1e6);
 
 			if ( current_pkt )
 				{
@@ -113,22 +117,20 @@ RETSIGTYPE watchdog(int /* signo */)
 
 				if ( pkt_dumper )
 					pkt_dumper->Dump(current_pkt);
-
 				}
 
 			get_final_stats();
 			finish_run(0);
 
 			reporter->FatalErrorWithCore(
-				"**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d",
-				int_ct, frac_ct, int_pst, frac_pst,
-				current_dispatched);
+				"**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d", int_ct,
+				frac_ct, int_pst, frac_pst, current_dispatched);
 			}
 		}
 
 	last_watchdog_proc_time = processing_start_time;
 
-	(void) alarm(zeek::detail::watchdog_interval);
+	(void)alarm(zeek::detail::watchdog_interval);
 	return RETSIGVAL;
 	}
 
@@ -141,8 +143,7 @@ void update_network_time(double new_network_time)
 
 void init_run(const std::optional<std::string>& interface,
               const std::optional<std::string>& pcap_input_file,
-              const std::optional<std::string>& pcap_output_file,
-              bool do_watchdog)
+              const std::optional<std::string>& pcap_output_file, bool do_watchdog)
 	{
 	if ( pcap_input_file )
 		{
@@ -153,8 +154,8 @@ void init_run(const std::optional<std::string>& interface,
 		assert(ps);
 
 		if ( ! ps->IsOpen() )
-			reporter->FatalError("problem with trace file %s (%s)",
-			                     pcap_input_file->c_str(), ps->ErrorMsg());
+			reporter->FatalError("problem with trace file %s (%s)", pcap_input_file->c_str(),
+			                     ps->ErrorMsg());
 		}
 	else if ( interface )
 		{
@@ -165,8 +166,8 @@ void init_run(const std::optional<std::string>& interface,
 		assert(ps);
 
 		if ( ! ps->IsOpen() )
-			reporter->FatalError("problem with interface %s (%s)",
-			                           interface->c_str(), ps->ErrorMsg());
+			reporter->FatalError("problem with interface %s (%s)", interface->c_str(),
+			                     ps->ErrorMsg());
 		}
 
 	else
@@ -183,8 +184,8 @@ void init_run(const std::optional<std::string>& interface,
 		assert(pkt_dumper);
 
 		if ( ! pkt_dumper->IsOpen() )
-			reporter->FatalError("problem opening dump file %s (%s)",
-			                           writefile, pkt_dumper->ErrorMsg());
+			reporter->FatalError("problem opening dump file %s (%s)", writefile,
+			                     pkt_dumper->ErrorMsg());
 
 		if ( const auto& id = zeek::detail::global_scope()->Find("trace_output_file") )
 			id->SetVal(make_intrusive<StringVal>(writefile));
@@ -199,8 +200,8 @@ void init_run(const std::optional<std::string>& interface,
 	if ( do_watchdog )
 		{
 		// Set up the watchdog to make sure we don't wedge.
-		(void) setsignal(SIGALRM, watchdog);
-		(void) alarm(zeek::detail::watchdog_interval);
+		(void)setsignal(SIGALRM, watchdog);
+		(void)alarm(zeek::detail::watchdog_interval);
 		}
 	}
 
@@ -208,9 +209,8 @@ void expire_timers()
 	{
 	zeek::detail::SegmentProfiler prof(zeek::detail::segment_logger, "expiring-timers");
 
-	current_dispatched +=
-		zeek::detail::timer_mgr->Advance(network_time,
-			zeek::detail::max_timer_expires - current_dispatched);
+	current_dispatched += zeek::detail::timer_mgr->Advance(
+		network_time, zeek::detail::max_timer_expires - current_dispatched);
 	}
 
 void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src)
@@ -266,7 +266,7 @@ void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src)
 		zeek::detail::sample_logger = nullptr;
 		}
 
-	processing_start_time = 0.0;	// = "we're not processing now"
+	processing_start_time = 0.0; // = "we're not processing now"
 	current_dispatched = 0;
 
 	if ( pseudo_realtime && ! first_wallclock )
@@ -286,8 +286,7 @@ void run_loop()
 	std::vector<iosource::IOSource*> ready;
 	ready.reserve(iosource_mgr->TotalSize());
 
-	while ( iosource_mgr->Size() ||
-		(BifConst::exit_only_after_terminate && ! terminating) )
+	while ( iosource_mgr->Size() || (BifConst::exit_only_after_terminate && ! terminating) )
 		{
 		time_updated = false;
 		iosource_mgr->FindReadySources(&ready);
@@ -299,8 +298,8 @@ void run_loop()
 		// starting with the first.
 		if ( ! ready.empty() || loop_counter++ % 100 == 0 )
 			{
-			DBG_LOG(DBG_MAINLOOP, "realtime=%.6f ready_count=%zu",
-			        util::current_time(), ready.size());
+			DBG_LOG(DBG_MAINLOOP, "realtime=%.6f ready_count=%zu", util::current_time(),
+			        ready.size());
 
 			if ( ! ready.empty() )
 				loop_counter = 0;
@@ -344,7 +343,7 @@ void run_loop()
 
 		event_mgr.Drain();
 
-		processing_start_time = 0.0;	// = "we're not processing now"
+		processing_start_time = 0.0; // = "we're not processing now"
 		current_dispatched = 0;
 		current_iosrc = nullptr;
 
@@ -367,7 +366,7 @@ void run_loop()
 			if ( ps && ps->IsOpen() )
 				have_active_packet_source = true;
 
-			if (  ! have_active_packet_source )
+			if ( ! have_active_packet_source )
 				// Can turn off pseudo realtime now
 				pseudo_realtime = 0.0;
 			}
@@ -387,9 +386,11 @@ void get_final_stats()
 		{
 		iosource::PktSrc::Stats s;
 		ps->Statistics(&s);
-		double dropped_pct = s.dropped > 0.0 ? ((double)s.dropped / ((double)s.received + (double)s.dropped)) * 100.0 : 0.0;
+		double dropped_pct =
+			s.dropped > 0.0 ? ((double)s.dropped / ((double)s.received + (double)s.dropped)) * 100.0
+							: 0.0;
 		reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " (%.2f%%) dropped",
-		                     s.received, ps->Path().c_str(), s.dropped, dropped_pct);
+		               s.received, ps->Path().c_str(), s.dropped, dropped_pct);
 		}
 	}
 
@@ -440,7 +441,7 @@ iosource::PktSrc* current_packet_source()
 	return dynamic_cast<iosource::PktSrc*>(current_iosrc);
 	}
 
-} // namespace detail
+	} // namespace detail
 
 double current_packet_timestamp()
 	{
@@ -459,15 +460,15 @@ double current_packet_wallclock()
 bool reading_live = false;
 bool reading_traces = false;
 double pseudo_realtime = 0.0;
-double network_time = 0.0;	// time according to last packet timestamp
-                            // (or current time)
-double processing_start_time = 0.0;	// time started working on current pkt
+double network_time = 0.0; // time according to last packet timestamp
+                           // (or current time)
+double processing_start_time = 0.0; // time started working on current pkt
 double zeek_start_time = 0.0; // time Bro started.
-double zeek_start_network_time;	// timestamp of first packet
-bool terminating = false;	// whether we're done reading and finishing up
+double zeek_start_network_time; // timestamp of first packet
+bool terminating = false; // whether we're done reading and finishing up
 bool is_parsing = false;
 
-const Packet *current_pkt = nullptr;
+const Packet* current_pkt = nullptr;
 int current_dispatched = 0;
 double current_timestamp = 0.0;
 
@@ -492,6 +493,9 @@ void continue_processing()
 	--_processing_suspended;
 	}
 
-bool is_processing_suspended()	{ return _processing_suspended; }
+bool is_processing_suspended()
+	{
+	return _processing_suspended;
+	}
 
-} // namespace zeek::run_state
+	} // namespace zeek::run_state

@@ -1,12 +1,14 @@
-#include "zeek/zeek-config.h"
 #include "zeek/IntSet.h"
+
+#include "zeek/zeek-config.h"
 
 #ifdef HAVE_MEMORY_H
 #include <memory.h>
 #endif
 #include <stdlib.h>
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 void IntSet::Expand(unsigned int i)
 	{
@@ -16,9 +18,9 @@ void IntSet::Expand(unsigned int i)
 	memset(newset, 0, newsize);
 	memcpy(newset, set, size);
 
-	delete [] set;
+	delete[] set;
 	size = newsize;
 	set = newset;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

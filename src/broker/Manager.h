@@ -1,28 +1,28 @@
 #pragma once
 
+#include <broker/backend.hh>
+#include <broker/backend_options.hh>
+#include <broker/data.hh>
+#include <broker/detail/hash.hh>
+#include <broker/endpoint.hh>
+#include <broker/endpoint_info.hh>
+#include <broker/error.hh>
+#include <broker/peer_info.hh>
+#include <broker/publisher_id.hh>
+#include <broker/status.hh>
+#include <broker/store.hh>
+#include <broker/topic.hh>
+#include <broker/zeek.hh>
 #include <memory>
 #include <string>
 #include <unordered_map>
-
-#include <broker/topic.hh>
-#include <broker/data.hh>
-#include <broker/store.hh>
-#include <broker/status.hh>
-#include <broker/error.hh>
-#include <broker/endpoint.hh>
-#include <broker/endpoint_info.hh>
-#include <broker/peer_info.hh>
-#include <broker/publisher_id.hh>
-#include <broker/backend.hh>
-#include <broker/backend_options.hh>
-#include <broker/detail/hash.hh>
-#include <broker/zeek.hh>
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/logging/WriterBackend.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class Func;
 class VectorType;
@@ -30,23 +30,32 @@ class TableVal;
 using VectorTypePtr = IntrusivePtr<VectorType>;
 using TableValPtr = IntrusivePtr<TableVal>;
 
-namespace telemetry { class Manager; }
+namespace telemetry
+	{
+class Manager;
+	}
 
-namespace detail { class Frame; }
+namespace detail
+	{
+class Frame;
+	}
 
-namespace Broker {
+namespace Broker
+	{
 
-namespace detail {
+namespace detail
+	{
 class StoreHandleVal;
 class StoreQueryCallback;
-};
+	};
 
 class BrokerState;
 
 /**
  * Communication statistics.
  */
-struct Stats {
+struct Stats
+	{
 	// Number of active peer connections.
 	size_t num_peers = 0;
 	// Number of active data stores.
@@ -65,15 +74,16 @@ struct Stats {
 	size_t num_ids_incoming = 0;
 	// Number of total identifiers sent.
 	size_t num_ids_outgoing = 0;
-};
+	};
 
 /**
  * Manages various forms of communication between peer Bro processes
  * or other external applications via use of the Broker messaging library.
  */
-class Manager : public iosource::IOSource {
+class Manager : public iosource::IOSource
+	{
 public:
-    static const broker::endpoint_info NoPeer;
+	static const broker::endpoint_info NoPeer;
 
 	/**
 	 * Constructor.
@@ -189,9 +199,8 @@ public:
 	 * @return true if the message is sent successfully.
 	 */
 	bool PublishLogCreate(EnumVal* stream, EnumVal* writer,
-	                      const logging::WriterBackend::WriterInfo& info,
-	                      int num_fields,
-	                      const threading::Field* const * fields,
+	                      const logging::WriterBackend::WriterInfo& info, int num_fields,
+	                      const threading::Field* const* fields,
 	                      const broker::endpoint_info& peer = NoPeer);
 
 	/**
@@ -205,9 +214,8 @@ public:
 	 * See the Broker::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
-	bool PublishLogWrite(EnumVal* stream, EnumVal* writer,
-	                     std::string path, int num_vals,
-	                     const threading::Value* const * vals);
+	bool PublishLogWrite(EnumVal* stream, EnumVal* writer, std::string path, int num_vals,
+	                     const threading::Value* const* vals);
 
 	/**
 	 * Automatically send an event to any interested peers whenever it is
@@ -294,8 +302,7 @@ public:
 	 * the master.  A negative/zero value indicates to never buffer commands.
 	 * @return a pointer to the newly created store a nullptr on failure.
 	 */
-	detail::StoreHandleVal* MakeClone(const std::string& name,
-	                                  double resync_interval = 10.0,
+	detail::StoreHandleVal* MakeClone(const std::string& name, double resync_interval = 10.0,
 	                                  double stale_interval = 300.0,
 	                                  double mutation_buffer_interval = 120.0);
 
@@ -354,10 +361,11 @@ public:
 	 * keep track of whether calls into its API are coming from script
 	 * layer BIFs so that error messages can emit useful call site info.
 	 */
-	struct ScriptScopeGuard {
+	struct ScriptScopeGuard
+		{
 		ScriptScopeGuard() { ++script_scope; }
 		~ScriptScopeGuard() { --script_scope; }
-	};
+		};
 
 	/**
 	 * Changes the frequency for publishing scraped metrics to the target topic.
@@ -394,12 +402,13 @@ public:
 	std::unique_ptr<telemetry::Manager> NewTelemetryManager();
 
 private:
-
 	void DispatchMessage(const broker::topic& topic, broker::data msg);
 	// Process events used for Broker store backed zeek tables
 	void ProcessStoreEvent(broker::data msg);
 	// Common functionality for processing insert and update events.
-	void ProcessStoreEventInsertUpdate(const TableValPtr& table, const std::string& store_id, const broker::data& key, const broker::data& data, const broker::data& old_value, bool insert);
+	void ProcessStoreEventInsertUpdate(const TableValPtr& table, const std::string& store_id,
+	                                   const broker::data& key, const broker::data& data,
+	                                   const broker::data& old_value, bool insert);
 	void ProcessEvent(const broker::topic& topic, broker::zeek::Event ev);
 	bool ProcessLogCreate(broker::zeek::LogCreate lc);
 	bool ProcessLogWrite(broker::zeek::LogWrite lw);
@@ -416,26 +425,27 @@ private:
 	// when a master/clone is created.
 	void BrokerStoreToZeekTable(const std::string& name, const detail::StoreHandleVal* handle);
 
-	void Error(const char* format, ...)
-		__attribute__((format (printf, 2, 3)));
+	void Error(const char* format, ...) __attribute__((format(printf, 2, 3)));
 
 	// IOSource interface overrides:
 	void Process() override;
-	const char* Tag() override	{ return "Broker::Manager"; }
-	double GetNextTimeout() override	{ return -1; }
+	const char* Tag() override { return "Broker::Manager"; }
+	double GetNextTimeout() override { return -1; }
 
-	struct LogBuffer {
+	struct LogBuffer
+		{
 		// Indexed by topic string.
 		std::unordered_map<std::string, broker::vector> msgs;
 		size_t message_count;
 
 		size_t Flush(broker::endpoint& endpoint, size_t batch_size);
-	};
+		};
 
 	// Data stores
 	using query_id = std::pair<broker::request_id, detail::StoreHandleVal*>;
 
-	struct query_id_hasher {
+	struct query_id_hasher
+		{
 		size_t operator()(const query_id& qid) const
 			{
 			size_t rval = 0;
@@ -443,15 +453,14 @@ private:
 			broker::detail::hash_combine(rval, qid.second);
 			return rval;
 			}
-	};
+		};
 
 	std::vector<LogBuffer> log_buffers; // Indexed by stream ID enum.
 	std::string default_log_topic_prefix;
 	std::shared_ptr<BrokerState> bstate;
 	std::unordered_map<std::string, detail::StoreHandleVal*> data_stores;
 	std::unordered_map<std::string, TableValPtr> forwarded_stores;
-	std::unordered_map<query_id, detail::StoreQueryCallback*,
-	                   query_id_hasher> pending_queries;
+	std::unordered_map<query_id, detail::StoreQueryCallback*, query_id_hasher> pending_queries;
 	std::vector<std::string> forwarded_prefixes;
 
 	Stats statistics;
@@ -469,10 +478,10 @@ private:
 	std::string zeek_table_db_directory;
 
 	static int script_scope;
-};
+	};
 
-} // namespace Broker
+	} // namespace Broker
 
 extern Broker::Manager* broker_mgr;
 
-} // namespace zeek
+	} // namespace zeek

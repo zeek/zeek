@@ -2,17 +2,17 @@
 
 #include "zeek/probabilistic/BloomFilter.h"
 
+#include <broker/data.hh>
+#include <broker/error.hh>
 #include <cmath>
 #include <limits>
 
-#include <broker/data.hh>
-#include <broker/error.hh>
-
+#include "zeek/Reporter.h"
 #include "zeek/probabilistic/CounterVector.h"
 #include "zeek/util.h"
-#include "zeek/Reporter.h"
 
-namespace zeek::probabilistic {
+namespace zeek::probabilistic
+	{
 
 BloomFilter::BloomFilter()
 	{
@@ -61,15 +61,16 @@ std::unique_ptr<BloomFilter> BloomFilter::Unserialize(const broker::data& data)
 
 	std::unique_ptr<BloomFilter> bf;
 
-	switch ( *type ) {
-	case Basic:
-		bf = std::unique_ptr<BloomFilter>(new BasicBloomFilter());
-		break;
+	switch ( *type )
+		{
+		case Basic:
+			bf = std::unique_ptr<BloomFilter>(new BasicBloomFilter());
+			break;
 
-	case Counting:
-		bf = std::unique_ptr<BloomFilter>(new CountingBloomFilter());
-		break;
-	}
+		case Counting:
+			bf = std::unique_ptr<BloomFilter>(new CountingBloomFilter());
+			break;
+		}
 
 	if ( ! bf->DoUnserialize((*v)[2]) )
 		return nullptr;
@@ -144,8 +145,7 @@ BasicBloomFilter::BasicBloomFilter()
 	bits = nullptr;
 	}
 
-BasicBloomFilter::BasicBloomFilter(const detail::Hasher* hasher, size_t cells)
-	: BloomFilter(hasher)
+BasicBloomFilter::BasicBloomFilter(const detail::Hasher* hasher, size_t cells) : BloomFilter(hasher)
 	{
 	bits = new detail::BitVector(cells);
 	}
@@ -197,8 +197,8 @@ CountingBloomFilter::CountingBloomFilter()
 	cells = nullptr;
 	}
 
-CountingBloomFilter::CountingBloomFilter(const detail::Hasher* hasher,
-                                         size_t arg_cells, size_t width)
+CountingBloomFilter::CountingBloomFilter(const detail::Hasher* hasher, size_t arg_cells,
+                                         size_t width)
 	: BloomFilter(hasher)
 	{
 	cells = new detail::CounterVector(width, arg_cells);
@@ -277,7 +277,7 @@ size_t CountingBloomFilter::Count(const zeek::detail::HashKey* key) const
 	for ( size_t i = 0; i < h.size(); ++i )
 		{
 		detail::CounterVector::size_type cnt = cells->Count(h[i] % cells->Size());
-		if ( cnt  < min )
+		if ( cnt < min )
 			min = cnt;
 		}
 
@@ -300,4 +300,4 @@ bool CountingBloomFilter::DoUnserialize(const broker::data& data)
 	return true;
 	}
 
-} // namespace zeek::probabilistic
+	} // namespace zeek::probabilistic

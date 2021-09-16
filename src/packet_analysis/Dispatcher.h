@@ -2,12 +2,13 @@
 
 #pragma once
 
-#include <memory>
-#include <map>
 #include <cstdint>
+#include <map>
+#include <memory>
 #include <vector>
 
-namespace zeek::packet_analysis {
+namespace zeek::packet_analysis
+	{
 
 class Analyzer; // Forward declaration for Value
 using AnalyzerPtr = std::shared_ptr<zeek::packet_analysis::Analyzer>;
@@ -15,9 +16,10 @@ using AnalyzerPtr = std::shared_ptr<zeek::packet_analysis::Analyzer>;
 /**
  * The Dispatcher class manages identifier-to-analyzer mappings.
  */
-class Dispatcher {
+class Dispatcher
+	{
 public:
-	Dispatcher() : table(std::vector<AnalyzerPtr>(1, nullptr)) { };
+	Dispatcher() : table(std::vector<AnalyzerPtr>(1, nullptr)){};
 	~Dispatcher();
 
 	/**
@@ -59,10 +61,7 @@ private:
 
 	void FreeValues();
 
-	inline uint32_t GetHighestIdentifier() const
-		{
-		return lowest_identifier + table.size() - 1;
-		}
-};
+	inline uint32_t GetHighestIdentifier() const { return lowest_identifier + table.size() - 1; }
+	};
 
-}
+	}

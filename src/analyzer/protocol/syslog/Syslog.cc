@@ -1,16 +1,16 @@
 #include "zeek/analyzer/protocol/syslog/Syslog.h"
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "zeek/analyzer/protocol/syslog/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-namespace zeek::analyzer::syslog {
+namespace zeek::analyzer::syslog
+	{
 
-Syslog_Analyzer::Syslog_Analyzer(Connection* conn)
-: Analyzer("SYSLOG", conn)
+Syslog_Analyzer::Syslog_Analyzer(Connection* conn) : Analyzer("SYSLOG", conn)
 	{
 	interp = new binpac::Syslog::Syslog_Conn(this);
 	did_session_done = 0;
-	//ADD_ANALYZER_TIMER(&Syslog_Analyzer::ExpireTimer,
+	// ADD_ANALYZER_TIMER(&Syslog_Analyzer::ExpireTimer,
 	//		network_time + Syslog_session_timeout, true, TIMER_Syslog_EXPIRE);
 	}
 
@@ -27,13 +27,14 @@ void Syslog_Analyzer::Done()
 		Event(udp_session_done);
 	}
 
-void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+                                    const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	interp->NewData(orig, data, data + len);
 	}
 
-//void Syslog_Analyzer::ExpireTimer(double t)
+// void Syslog_Analyzer::ExpireTimer(double t)
 //	{
 //	// The - 1.0 in the following is to allow 1 second for the
 //	// common case of a single request followed by a single reply,
@@ -48,18 +49,18 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //				t + Syslog_session_timeout, true, TIMER_Syslog_EXPIRE);
 //	}
 
-//Syslog_tcp::TCP_Analyzer::Syslog_tcp::TCP_Analyzer(Connection* conn)
+// Syslog_tcp::TCP_Analyzer::Syslog_tcp::TCP_Analyzer(Connection* conn)
 //: analyzer::tcp::TCP_ApplicationAnalyzer(conn)
 //	{
 //	interp = new binpac::Syslog_on_TCP::Syslog_TCP_Conn(this);
 //	}
 
-//Syslog_tcp::TCP_Analyzer::~Syslog_tcp::TCP_Analyzer()
+// Syslog_tcp::TCP_Analyzer::~Syslog_tcp::TCP_Analyzer()
 //	{
 //	delete interp;
 //	}
 
-//void Syslog_tcp::TCP_Analyzer::Done()
+// void Syslog_tcp::TCP_Analyzer::Done()
 //	{
 //	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 //
@@ -67,13 +68,13 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //	interp->FlowEOF(false);
 //	}
 
-//void Syslog_tcp::TCP_Analyzer::EndpointEOF(tcp::TCP_Reassembler* endp)
+// void Syslog_tcp::TCP_Analyzer::EndpointEOF(tcp::TCP_Reassembler* endp)
 //	{
 //	analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(endp);
 //	interp->FlowEOF(endp->IsOrig());
 //	}
 
-//void Syslog_tcp::TCP_Analyzer::DeliverStream(int len, const u_char* data,
+// void Syslog_tcp::TCP_Analyzer::DeliverStream(int len, const u_char* data,
 //						bool orig)
 //	{
 //	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
@@ -87,10 +88,10 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //	interp->NewData(orig, data, data + len);
 //	}
 
-//void Syslog_tcp::TCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
+// void Syslog_tcp::TCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 //	{
 //	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 //	interp->NewGap(orig, len);
 //	}
 
-} // namespace zeek::analyzer::syslog
+	} // namespace zeek::analyzer::syslog

@@ -4,16 +4,17 @@
 
 #include <broker/error.hh>
 
-#include "zeek/broker/Data.h"
-#include "zeek/Func.h"
 #include "zeek/Desc.h"
+#include "zeek/Func.h"
+#include "zeek/ID.h"
 #include "zeek/Trigger.h"
 #include "zeek/Val.h"
-#include "zeek/ID.h"
+#include "zeek/broker/Data.h"
 
 std::vector<zeek::detail::Frame*> g_frame_stack;
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args)
 	{
@@ -37,8 +38,7 @@ Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args)
 	// go away until the function itself goes away, which can only be
 	// after this frame does.
 	captures = function ? function->GetCapturesFrame() : nullptr;
-	captures_offset_map =
-		function ? function->GetCapturesOffsetMap() : nullptr;
+	captures_offset_map = function ? function->GetCapturesOffsetMap() : nullptr;
 	current_offset = 0;
 	}
 
@@ -178,10 +178,10 @@ void Frame::Describe(ODesc* d) const
 		d->Add(size);
 
 		for ( int i = 0; i < size; ++i )
-			 {
-			 d->Add(frame[i].val != nullptr);
-			 d->SP();
-			 }
+			{
+			d->Add(frame[i].val != nullptr);
+			d->SP();
+			}
 		}
 
 	for ( int i = 0; i < size; ++i )
@@ -270,7 +270,8 @@ Frame* Frame::SelectiveClone(const IDPList& selection, ScriptFunc* func) const
 			}
 
 		if ( ! frame[id->Offset() + current_offset].val )
-			reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
+			reporter->InternalError("Attempted to clone an id ('%s') with no associated value.",
+			                        id->Name());
 
 		CloneNonFuncElement(id->Offset(), func, other);
 		}
@@ -334,7 +335,8 @@ broker::expected<broker::data> Frame::SerializeClosureFrame(const IDPList& selec
 	if ( them.length() )
 		{
 		if ( ! closure )
-			reporter->InternalError("Attempting to serialize values from a frame that does not exist.");
+			reporter->InternalError(
+				"Attempting to serialize values from a frame that does not exist.");
 
 		rval.emplace_back(std::string("ClosureFrame"));
 
@@ -380,7 +382,7 @@ broker::expected<broker::data> Frame::SerializeClosureFrame(const IDPList& selec
 		if ( ! expected )
 			return broker::ec::invalid_data;
 
-		broker::vector val_tuple {std::move(*expected), static_cast<broker::integer>(tag)};
+		broker::vector val_tuple{std::move(*expected), static_cast<broker::integer>(tag)};
 		body[location] = val_tuple;
 		}
 
@@ -404,8 +406,7 @@ broker::expected<broker::data> Frame::SerializeCopyFrame()
 			return broker::ec::invalid_data;
 
 		TypeTag tag = val->GetType()->Tag();
-		broker::vector val_tuple {std::move(*expected),
-				static_cast<broker::integer>(tag)};
+		broker::vector val_tuple{std::move(*expected), static_cast<broker::integer>(tag)};
 		body.emplace_back(std::move(val_tuple));
 		}
 
@@ -415,7 +416,7 @@ broker::expected<broker::data> Frame::SerializeCopyFrame()
 	}
 
 std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data,
-				const std::optional<FuncType::CaptureList>& captures)
+                                             const std::optional<FuncType::CaptureList>& captures)
 	{
 	if ( data.size() == 0 )
 		return std::make_pair(true, nullptr);
@@ -458,7 +459,7 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data,
 				return std::make_pair(false, nullptr);
 
 			broker::integer g = *has_type;
-			Type t( static_cast<TypeTag>(g) );
+			Type t(static_cast<TypeTag>(g));
 
 			auto val = Broker::detail::data_to_val(std::move(val_tuple[0]), &t);
 			if ( ! val )
@@ -469,7 +470,6 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data,
 
 		return std::make_pair(true, std::move(rf));
 		}
-
 
 	// Code to support deprecated semantics:
 
@@ -572,7 +572,7 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data,
 			return std::make_pair(false, nullptr);
 
 		broker::integer g = *has_type;
-		Type t( static_cast<TypeTag>(g) );
+		Type t(static_cast<TypeTag>(g));
 
 		auto val = Broker::detail::data_to_val(std::move(val_tuple[0]), &t);
 		if ( ! val )
@@ -590,10 +590,10 @@ void Frame::AddKnownOffsets(const IDPList& ids)
 		offset_map = std::make_unique<OffsetMap>();
 
 	std::transform(ids.begin(), ids.end(), std::inserter(*offset_map, offset_map->end()),
-		       [] (const ID* id) -> std::pair<std::string, int>
-		       {
-		       return std::make_pair(std::string(id->Name()), id->Offset());
-		       });
+	               [](const ID* id) -> std::pair<std::string, int>
+	               {
+					   return std::make_pair(std::string(id->Name()), id->Offset());
+				   });
 	}
 
 void Frame::CaptureClosure(Frame* c, IDPList arg_outer_ids)
@@ -643,7 +643,10 @@ void Frame::ClearElement(int n)
 bool Frame::IsOuterID(const ID* in) const
 	{
 	return std::any_of(outer_ids.begin(), outer_ids.end(),
-		[&in](ID* id)-> bool { return strcmp(id->Name(), in->Name()) == 0; });
+	                   [&in](ID* id) -> bool
+	                   {
+						   return strcmp(id->Name(), in->Name()) == 0;
+					   });
 	}
 
 broker::expected<broker::data> Frame::SerializeIDList(const IDPList& in)
@@ -661,20 +664,21 @@ broker::expected<broker::data> Frame::SerializeIDList(const IDPList& in)
 	return {std::move(rval)};
 	}
 
-broker::expected<broker::data>
-Frame::SerializeOffsetMap(const OffsetMap& in)
+broker::expected<broker::data> Frame::SerializeOffsetMap(const OffsetMap& in)
 	{
 	broker::vector rval;
 
 	std::for_each(in.begin(), in.end(),
-		[&rval] (const std::pair<std::string, int>& e)
-			{ rval.emplace_back(e.first); rval.emplace_back(e.second);});
+	              [&rval](const std::pair<std::string, int>& e)
+	              {
+					  rval.emplace_back(e.first);
+					  rval.emplace_back(e.second);
+				  });
 
 	return {std::move(rval)};
 	}
 
-std::pair<bool, IDPList>
-Frame::UnserializeIDList(const broker::vector& data)
+std::pair<bool, IDPList> Frame::UnserializeIDList(const broker::vector& data)
 	{
 	IDPList rval;
 	if ( data.size() % 2 != 0 )
@@ -725,14 +729,14 @@ Frame::UnserializeOffsetMap(const broker::vector& data)
 		if ( ! key )
 			return std::make_pair(false, std::move(rval));
 
-		auto offset = broker::get_if<broker::integer>(data[i+1]);
+		auto offset = broker::get_if<broker::integer>(data[i + 1]);
 		if ( ! offset )
 			return std::make_pair(false, std::move(rval));
 
-		rval.insert( {std::move(*key), std::move(*offset)} );
+		rval.insert({std::move(*key), std::move(*offset)});
 		}
 
 	return std::make_pair(true, std::move(rval));
 	}
 
-}
+	}

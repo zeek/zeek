@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/script_opt/Inline.h"
-#include "zeek/script_opt/ScriptOpt.h"
-#include "zeek/script_opt/ProfileFunc.h"
+
 #include "zeek/Desc.h"
+#include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/script_opt/ScriptOpt.h"
 
-
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 void Inliner::Analyze()
 	{
@@ -33,8 +33,7 @@ void Inliner::Analyze()
 			if ( func == f.Func() )
 				{
 				if ( report_recursive )
-					printf("%s is directly recursive\n",
-						func->Name());
+					printf("%s is directly recursive\n", func->Name());
 
 				non_recursive_funcs.erase(func);
 				}
@@ -89,9 +88,8 @@ void Inliner::Analyze()
 						continue;
 
 					if ( report_recursive )
-						printf("%s is indirectly recursive, called by %s\n",
-							c.first->Name(),
-							cc->Name());
+						printf("%s is indirectly recursive, called by %s\n", c.first->Name(),
+						       cc->Name());
 
 					non_recursive_funcs.erase(c.first);
 					non_recursive_funcs.erase(cc);
@@ -116,10 +114,8 @@ void Inliner::Analyze()
 		// we don't compile them and hence inlining them will
 		// make the parent non-compilable.
 		if ( f.Func()->Flavor() == FUNC_FLAVOR_FUNCTION &&
-		     non_recursive_funcs.count(f.Func()) > 0 &&
-		     f.Profile()->NumLambdas() == 0 &&
-		     f.Profile()->NumWhenStmts() == 0 &&
-		     f.Body()->Tag() != STMT_CPP )
+		     non_recursive_funcs.count(f.Func()) > 0 && f.Profile()->NumLambdas() == 0 &&
+		     f.Profile()->NumWhenStmts() == 0 && f.Body()->Tag() != STMT_CPP )
 			inline_ables.insert(f.Func());
 
 	for ( auto& f : funcs )
@@ -184,7 +180,7 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 		return c;
 
 	ListExprPtr args = {NewRef{}, c->Args()};
-	auto body = func_vf->GetBodies()[0].stmts;	// there's only 1 body
+	auto body = func_vf->GetBodies()[0].stmts; // there's only 1 body
 	auto t = c->GetType();
 
 	// Getting the names of the parameters is tricky.  It's tempting
@@ -229,12 +225,10 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 	else
 		max_inlined_frame_size = hold_max_inlined_frame_size;
 
-	auto ie = make_intrusive<InlineExpr>(args, std::move(params), body_dup,
-	                                     curr_frame_size, t);
+	auto ie = make_intrusive<InlineExpr>(args, std::move(params), body_dup, curr_frame_size, t);
 	ie->SetOriginal(c);
 
 	return ie;
 	}
 
-
-} // namespace zeek::detail
+	} // namespace zeek::detail

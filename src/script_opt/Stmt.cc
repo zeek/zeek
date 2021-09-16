@@ -3,17 +3,17 @@
 // Optimization-related methods for Stmt classes.
 
 #include "zeek/Stmt.h"
+
+#include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/Frame.h"
 #include "zeek/Reporter.h"
-#include "zeek/Desc.h"
 #include "zeek/Traverse.h"
 #include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/Reduce.h"
 
-
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 bool Stmt::IsReduced(Reducer* c) const
 	{
@@ -49,7 +49,6 @@ StmtPtr Stmt::TransformMe(StmtPtr new_me, Reducer* c)
 	new_me->SetOriginal(ThisPtr());
 	return new_me->Reduce(c);
 	}
-
 
 void ExprListStmt::Inline(Inliner* inl)
 	{
@@ -109,7 +108,6 @@ StmtPtr ExprListStmt::DoReduce(Reducer* c)
 		}
 	}
 
-
 StmtPtr PrintStmt::Duplicate()
 	{
 	return SetSucc(new PrintStmt(l->Duplicate()->AsListExprPtr()));
@@ -121,7 +119,6 @@ StmtPtr PrintStmt::DoSubclassReduce(ListExprPtr singletons, Reducer* c)
 	new_me->SetOriginal(ThisPtr());
 	return new_me;
 	}
-
 
 StmtPtr ExprStmt::Duplicate()
 	{
@@ -163,9 +160,8 @@ StmtPtr ExprStmt::DoReduce(Reducer* c)
 		// No point evaluating.
 		return TransformMe(make_intrusive<NullStmt>(), c);
 
-	if ( (t == EXPR_ASSIGN || t == EXPR_CALL ||
-	      t == EXPR_INDEX_ASSIGN || t == EXPR_FIELD_LHS_ASSIGN ||
-	      t == EXPR_APPEND_TO) &&
+	if ( (t == EXPR_ASSIGN || t == EXPR_CALL || t == EXPR_INDEX_ASSIGN ||
+	      t == EXPR_FIELD_LHS_ASSIGN || t == EXPR_APPEND_TO) &&
 	     e->IsReduced(c) )
 		return ThisPtr();
 
@@ -189,11 +185,9 @@ StmtPtr ExprStmt::DoReduce(Reducer* c)
 		return ThisPtr();
 	}
 
-
 StmtPtr IfStmt::Duplicate()
 	{
-	return SetSucc(new IfStmt(e->Duplicate(), s1->Duplicate(),
-					s2->Duplicate()));
+	return SetSucc(new IfStmt(e->Duplicate(), s1->Duplicate(), s2->Duplicate()));
 	}
 
 void IfStmt::Inline(Inliner* inl)
@@ -281,8 +275,7 @@ StmtPtr IfStmt::DoReduce(Reducer* c)
 		e = e->ReduceToConditional(c, cond_red_stmt);
 
 		if ( red_e_stmt && cond_red_stmt )
-			red_e_stmt = make_intrusive<StmtList>(red_e_stmt,
-								cond_red_stmt);
+			red_e_stmt = make_intrusive<StmtList>(red_e_stmt, cond_red_stmt);
 		else if ( cond_red_stmt )
 			red_e_stmt = cond_red_stmt;
 		}
@@ -310,15 +303,13 @@ StmtPtr IfStmt::DoReduce(Reducer* c)
 bool IfStmt::NoFlowAfter(bool ignore_break) const
 	{
 	if ( s1 && s2 )
-		return s1->NoFlowAfter(ignore_break) &&
-			s2->NoFlowAfter(ignore_break);
+		return s1->NoFlowAfter(ignore_break) && s2->NoFlowAfter(ignore_break);
 
 	// Assuming the test isn't constant, the non-existent branch
 	// could be picked, so flow definitely continues afterwards.
 	// (Constant branches will be pruned during reduciton.)
 	return false;
 	}
-
 
 IntrusivePtr<Case> Case::Duplicate()
 	{
@@ -337,13 +328,11 @@ IntrusivePtr<Case> Case::Duplicate()
 	return make_intrusive<Case>(nullptr, type_cases, s->Duplicate());
 	}
 
-
 StmtPtr SwitchStmt::Duplicate()
 	{
 	auto new_cases = new case_list;
 
-	loop_over_list(*cases, i)
-		new_cases->append((*cases)[i]->Duplicate().release());
+	loop_over_list(*cases, i) new_cases->append((*cases)[i]->Duplicate().release());
 
 	return SetSucc(new SwitchStmt(e->Duplicate(), new_cases));
 	}
@@ -440,10 +429,8 @@ bool SwitchStmt::NoFlowAfter(bool ignore_break) const
 		if ( ! c->Body()->NoFlowAfter(true) )
 			return false;
 
-		if ( (! c->ExprCases() ||
-		      c->ExprCases()->Exprs().length() == 0) &&
-		     (! c->TypeCases() ||
-		      c->TypeCases()->length() == 0) )
+		if ( (! c->ExprCases() || c->ExprCases()->Exprs().length() == 0) &&
+		     (! c->TypeCases() || c->TypeCases()->length() == 0) )
 			// We saw the default, and the test before this
 			// one established that it has no flow after it.
 			default_seen_with_no_flow_after = true;
@@ -451,7 +438,6 @@ bool SwitchStmt::NoFlowAfter(bool ignore_break) const
 
 	return default_seen_with_no_flow_after;
 	}
-
 
 bool AddDelStmt::IsReduced(Reducer* c) const
 	{
@@ -481,18 +467,15 @@ StmtPtr AddDelStmt::DoReduce(Reducer* c)
 		return ThisPtr();
 	}
 
-
 StmtPtr AddStmt::Duplicate()
 	{
 	return SetSucc(new AddStmt(e->Duplicate()));
 	}
 
-
 StmtPtr DelStmt::Duplicate()
 	{
 	return SetSucc(new DelStmt(e->Duplicate()));
 	}
-
 
 StmtPtr EventStmt::Duplicate()
 	{
@@ -525,11 +508,9 @@ StmtPtr EventStmt::DoReduce(Reducer* c)
 	return ThisPtr();
 	}
 
-
 StmtPtr WhileStmt::Duplicate()
 	{
-	return SetSucc(new WhileStmt(loop_condition->Duplicate(),
-					body->Duplicate()));
+	return SetSucc(new WhileStmt(loop_condition->Duplicate(), body->Duplicate()));
 	}
 
 void WhileStmt::Inline(Inliner* inl)
@@ -560,15 +541,12 @@ StmtPtr WhileStmt::DoReduce(Reducer* c)
 				{
 				// See comment below for the particulars
 				// of this constructor.
-				stmt_loop_condition =
-					make_intrusive<ExprStmt>(STMT_EXPR,
-								loop_condition);
+				stmt_loop_condition = make_intrusive<ExprStmt>(STMT_EXPR, loop_condition);
 				return ThisPtr();
 				}
 			}
 		else
-			loop_condition = loop_condition->ReduceToConditional(c,
-							loop_cond_pred_stmt);
+			loop_condition = loop_condition->ReduceToConditional(c, loop_cond_pred_stmt);
 		}
 
 	body = body->Reduce(c);
@@ -576,15 +554,13 @@ StmtPtr WhileStmt::DoReduce(Reducer* c)
 	// We use the more involved ExprStmt constructor here to bypass
 	// its check for whether the expression is being ignored, since
 	// we're not actually creating an ExprStmt for execution.
-	stmt_loop_condition =
-		make_intrusive<ExprStmt>(STMT_EXPR, loop_condition);
+	stmt_loop_condition = make_intrusive<ExprStmt>(STMT_EXPR, loop_condition);
 
 	if ( loop_cond_pred_stmt )
 		loop_cond_pred_stmt = loop_cond_pred_stmt->Reduce(c);
 
 	return ThisPtr();
 	}
-
 
 StmtPtr ForStmt::Duplicate()
 	{
@@ -655,16 +631,12 @@ StmtPtr ForStmt::DoReduce(Reducer* c)
 	return ThisPtr();
 	}
 
-
 StmtPtr ReturnStmt::Duplicate()
 	{
 	return SetSucc(new ReturnStmt(e ? e->Duplicate() : nullptr, true));
 	}
 
-ReturnStmt::ReturnStmt(ExprPtr arg_e, bool ignored)
-	: ExprStmt(STMT_RETURN, std::move(arg_e))
-	{
-	}
+ReturnStmt::ReturnStmt(ExprPtr arg_e, bool ignored) : ExprStmt(STMT_RETURN, std::move(arg_e)) { }
 
 StmtPtr ReturnStmt::DoReduce(Reducer* c)
 	{
@@ -691,7 +663,6 @@ StmtPtr ReturnStmt::DoReduce(Reducer* c)
 
 	return ThisPtr();
 	}
-
 
 StmtList::StmtList(StmtPtr s1, Stmt* s2) : Stmt(STMT_LIST)
 	{
@@ -915,7 +886,6 @@ bool StmtList::NoFlowAfter(bool ignore_break) const
 	return false;
 	}
 
-
 StmtPtr InitStmt::Duplicate()
 	{
 	// Need to duplicate the initializer list since later reductions
@@ -937,7 +907,6 @@ StmtPtr InitStmt::DoReduce(Reducer* c)
 	c->UpdateIDs(inits);
 	return ThisPtr();
 	}
-
 
 StmtPtr WhenStmt::Duplicate()
 	{
@@ -962,9 +931,7 @@ bool WhenStmt::IsReduced(Reducer* c) const
 	return true;
 	}
 
-
-CatchReturnStmt::CatchReturnStmt(StmtPtr _block, NameExprPtr _ret_var)
-	: Stmt(STMT_CATCH_RETURN)
+CatchReturnStmt::CatchReturnStmt(StmtPtr _block, NameExprPtr _ret_var) : Stmt(STMT_CATCH_RETURN)
 	{
 	block = _block;
 	ret_var = _ret_var;
@@ -1022,8 +989,7 @@ StmtPtr CatchReturnStmt::DoReduce(Reducer* c)
 		auto rv_dup = ret_var->Duplicate();
 		auto ret_e_dup = ret_e->Duplicate();
 
-		auto assign = make_intrusive<AssignExpr>(rv_dup, ret_e_dup,
-							false);
+		auto assign = make_intrusive<AssignExpr>(rv_dup, ret_e_dup, false);
 		assign_stmt = make_intrusive<ExprStmt>(assign);
 
 		if ( ret_e_dup->Tag() == EXPR_CONST )
@@ -1058,7 +1024,6 @@ TraversalCode CatchReturnStmt::Traverse(TraversalCallback* cb) const
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
 	}
-
 
 CheckAnyLenStmt::CheckAnyLenStmt(ExprPtr arg_e, int _expected_len)
 	: ExprStmt(STMT_CHECK_ANY_LEN, std::move(arg_e))
@@ -1108,5 +1073,4 @@ void CheckAnyLenStmt::StmtDescribe(ODesc* d) const
 	DescribeDone(d);
 	}
 
-
-} // namespace zeek::detail
+	} // namespace zeek::detail

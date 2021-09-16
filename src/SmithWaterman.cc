@@ -1,20 +1,20 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
+#include "zeek/SmithWaterman.h"
 
 #include <ctype.h>
 #include <algorithm>
 
-#include "zeek/SmithWaterman.h"
-#include "zeek/Var.h"
-#include "zeek/util.h"
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
+#include "zeek/Var.h"
+#include "zeek/util.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
-Substring::Substring(const Substring& bst)
-: String((const String&) bst), _num(), _new(bst._new)
+Substring::Substring(const Substring& bst) : String((const String&)bst), _num(), _new(bst._new)
 	{
 	for ( const auto& align : bst._aligns )
 		_aligns.push_back(align);
@@ -51,7 +51,7 @@ bool Substring::DoesCover(const Substring* bst) const
 		const BSSAlign& a = *it;
 		const BSSAlign& a_bst = *it_bst;
 
-		if (a.index > a_bst.index || a.index + Len() < a_bst.index + bst->Len())
+		if ( a.index > a_bst.index || a.index + Len() < a_bst.index + bst->Len() )
 			return false;
 		}
 
@@ -163,19 +163,15 @@ String::IdxVec* Substring::GetOffsetsVec(const Vec* vec, unsigned int index)
 	return result;
 	}
 
-
-bool SubstringCmp::operator()(const Substring* bst1,
-				 const Substring* bst2) const
+bool SubstringCmp::operator()(const Substring* bst1, const Substring* bst2) const
 	{
-	if ( _index >= bst1->GetNumAlignments() ||
-	     _index >= bst2->GetNumAlignments() )
+	if ( _index >= bst1->GetNumAlignments() || _index >= bst2->GetNumAlignments() )
 		{
 		reporter->Warning("SubstringCmp::operator(): invalid index for input strings.\n");
 		return false;
 		}
 
-	if ( bst1->GetAlignments()[_index].index <=
-	     bst2->GetAlignments()[_index].index )
+	if ( bst1->GetAlignments()[_index].index <= bst2->GetAlignments()[_index].index )
 		return true;
 
 	return false;
@@ -187,7 +183,8 @@ bool SubstringCmp::operator()(const Substring* bst1,
 // one up and left in case of a match, or a jump somewhere above and
 // left in case of a gap.
 //
-struct SWNode {
+struct SWNode
+	{
 	// ID field for the cell, for debugging purposes.
 	int id;
 
@@ -201,20 +198,21 @@ struct SWNode {
 
 	// Pointer to previous match, walking back yields subsequence.
 	SWNode* swn_prev;
-};
+	};
 
 // A matrix of Smith-Waterman nodes.
 //
-class SWNodeMatrix {
+class SWNodeMatrix
+	{
 public:
 	SWNodeMatrix(const String* s1, const String* s2)
-	: _s1(s1), _s2(s2), _rows(s1->Len() + 1), _cols(s2->Len() + 1)
+		: _s1(s1), _s2(s2), _rows(s1->Len() + 1), _cols(s2->Len() + 1)
 		{
 		_nodes = new SWNode[_cols * _rows];
 		memset(_nodes, 0, sizeof(SWNode) * _cols * _rows);
 		}
 
-	~SWNodeMatrix()	{ delete [] _nodes; }
+	~SWNodeMatrix() { delete[] _nodes; }
 
 	SWNode* operator()(int row, int col)
 		{
@@ -227,11 +225,11 @@ public:
 		return &(_nodes[row * _cols + col]);
 		}
 
-	const String* GetRowsString() const	{ return _s1; }
-	const String* GetColsString() const	{ return _s2; }
+	const String* GetRowsString() const { return _s1; }
+	const String* GetColsString() const { return _s2; }
 
-	int GetHeight() const	{ return _rows; }
-	int GetWidth() const	{ return _cols; }
+	int GetHeight() const { return _rows; }
+	int GetWidth() const { return _cols; }
 
 	// Quick helper function that calculates the coordinates of a
 	// node in the matrix via pointer arithmetic.
@@ -250,7 +248,7 @@ private:
 
 	int _rows, _cols;
 	SWNode* _nodes;
-};
+	};
 
 // Returns the common subsequence starting from a given node.
 // @result: vector holding results on return.
@@ -258,15 +256,15 @@ private:
 // @node: starting node.
 // @params: SW parameters.
 //
-static void sw_collect_single(Substring::Vec* result, SWNodeMatrix& matrix,
-			      SWNode* node, SWParams& params)
+static void sw_collect_single(Substring::Vec* result, SWNodeMatrix& matrix, SWNode* node,
+                              SWParams& params)
 	{
 	std::string substring("");
 	int row = 0, col = 0;
 
 	while ( node )
 		{
-//		printf("NODE: %i\n", node->id);
+		//		printf("NODE: %i\n", node->id);
 		node->swn_visited = true;
 
 		// Once we hit a gap, terminate the string and prepend
@@ -277,17 +275,17 @@ static void sw_collect_single(Substring::Vec* result, SWNodeMatrix& matrix,
 			{
 			matrix.GetNodeIndices(node, row, col);
 			substring += node->swn_byte;
-//			printf("SUBSTRING: %s\n", substring.c_str());
+			//			printf("SUBSTRING: %s\n", substring.c_str());
 			}
 		else
 			{
-//			printf("GAP\n");
+			//			printf("GAP\n");
 			if ( substring.size() >= params._min_toklen )
 				{
 				reverse(substring.begin(), substring.end());
 				auto* bst = new Substring(substring);
-				bst->AddAlignment(matrix.GetRowsString(), row-1);
-				bst->AddAlignment(matrix.GetColsString(), col-1);
+				bst->AddAlignment(matrix.GetRowsString(), row - 1);
+				bst->AddAlignment(matrix.GetColsString(), col - 1);
 				result->push_back(bst);
 				}
 
@@ -304,8 +302,8 @@ static void sw_collect_single(Substring::Vec* result, SWNodeMatrix& matrix,
 		{
 		reverse(substring.begin(), substring.end());
 		auto* bst = new Substring(substring);
-		bst->AddAlignment(matrix.GetRowsString(), row-1);
-		bst->AddAlignment(matrix.GetColsString(), col-1);
+		bst->AddAlignment(matrix.GetRowsString(), row - 1);
+		bst->AddAlignment(matrix.GetColsString(), col - 1);
 		result->push_back(bst);
 		}
 
@@ -322,8 +320,7 @@ static void sw_collect_single(Substring::Vec* result, SWNodeMatrix& matrix,
 // common subsequences while tracking which nodes were visited earlier and which
 // substrings are redundant (i.e., fully covered by a larger common substring).
 //
-static void sw_collect_multiple(Substring::Vec* result,
-                                SWNodeMatrix& matrix, SWParams& params)
+static void sw_collect_multiple(Substring::Vec* result, SWNodeMatrix& matrix, SWParams& params)
 	{
 	std::vector<Substring::Vec*> als;
 
@@ -367,7 +364,7 @@ static void sw_collect_multiple(Substring::Vec* result,
 					}
 				}
 
-end_loop:
+		end_loop:
 			if ( new_al )
 				als.push_back(new_al);
 			}
@@ -387,13 +384,12 @@ end_loop:
 
 // The main Smith-Waterman algorithm.
 //
-Substring::Vec* smith_waterman(const String* s1, const String* s2,
-					SWParams& params)
+Substring::Vec* smith_waterman(const String* s1, const String* s2, SWParams& params)
 	{
 	auto* result = new Substring::Vec();
 
-	if ( ! s1 || s1->Len() < int(params._min_toklen) ||
-	     ! s2 || s2->Len() < int(params._min_toklen) )
+	if ( ! s1 || s1->Len() < int(params._min_toklen) || ! s2 ||
+	     s2->Len() < int(params._min_toklen) )
 		return result;
 
 	// Length of both strings, plus one because SW needs
@@ -407,9 +403,9 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2,
 	byte_vec string1 = s1->Bytes();
 	byte_vec string2 = s2->Bytes();
 
-	SWNodeMatrix matrix(s1, s2);	// dynamic programming matrix.
-	SWNode* node_max = nullptr;	// pointer to the best score's node
-	SWNode* node_br_max = nullptr;	// pointer to lowest-right matching node
+	SWNodeMatrix matrix(s1, s2); // dynamic programming matrix.
+	SWNode* node_max = nullptr; // pointer to the best score's node
+	SWNode* node_br_max = nullptr; // pointer to lowest-right matching node
 
 	// The highest score in the matrix, globally.  We initialize to 1
 	// because we are only interested in real scores (initializing to
@@ -419,7 +415,6 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2,
 	int matrix_max = 1;
 	int br_max_r = 0;
 	int br_max_b = 0;
-
 
 	// Matrix initialization ----------------------------------------------
 
@@ -441,9 +436,9 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2,
 			// Current node, top/left neighbours.
 			//
 			SWNode* current = matrix(i, j);
-			SWNode* node_tl = matrix(i-1, j-1);
-			SWNode* node_l  = matrix(i, j-1);
-			SWNode* node_t  = matrix(i-1, j);
+			SWNode* node_tl = matrix(i - 1, j - 1);
+			SWNode* node_l = matrix(i, j - 1);
+			SWNode* node_t = matrix(i - 1, j);
 
 			// Scores of neighbouring nodes.
 			//
@@ -456,7 +451,7 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2,
 			// are necessary since matrix has one extra
 			// row + column.
 			//
-			if ( string1[i-1] == string2[j-1] )
+			if ( string1[i - 1] == string2[j - 1] )
 				{
 				// We have a match: improve previous score.
 				//
@@ -472,7 +467,7 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2,
 				// Store the byte we've matched in the node for
 				// easier access.
 				//
-				current->swn_byte = string1[i-1];
+				current->swn_byte = string1[i - 1];
 				current->swn_byte_assigned = true;
 				}
 
@@ -487,8 +482,7 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2,
 			// Establish predecessor chain according to neighbor
 			// with best score.
 			//
-			if ( current->swn_score == score_tl &&
-			     current->swn_byte_assigned )
+			if ( current->swn_score == score_tl && current->swn_byte_assigned )
 				{
 				// If we had matched bytes (*and* it's the
 				// best neighbor), marke the node accordingly
@@ -526,7 +520,7 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2,
 		 		current->swn_prev ? current->swn_prev->id : 0,
 			       string1[i-1], string2[j-1]);
 #endif
-			//printf("%.5i ", current->swn_score);
+			// printf("%.5i ", current->swn_score);
 			}
 
 #if 0
@@ -554,4 +548,4 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2,
 	return result;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

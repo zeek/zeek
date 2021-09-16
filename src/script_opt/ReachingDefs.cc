@@ -1,11 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/script_opt/ReachingDefs.h"
+
 #include "zeek/Desc.h"
 
-
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 ReachingDefs::ReachingDefs()
 	{
@@ -38,8 +38,7 @@ void ReachingDefs::AddRD(const DefinitionItem* di, const DefinitionPoint& dp)
 		my_rd_map->emplace(di, std::make_unique<DefPoints>(&dp, 1));
 	}
 
-void ReachingDefs::AddOrFullyReplace(const DefinitionItem* di,
-					const DefinitionPoint& dp)
+void ReachingDefs::AddOrFullyReplace(const DefinitionItem* di, const DefinitionPoint& dp)
 	{
 	CopyMapIfNeeded();
 
@@ -90,8 +89,7 @@ RDPtr ReachingDefs::Union(const RDPtr& r) const
 	return res;
 	}
 
-RDPtr ReachingDefs::IntersectWithConsolidation(const RDPtr& r,
-						const DefinitionPoint& di) const
+RDPtr ReachingDefs::IntersectWithConsolidation(const RDPtr& r, const DefinitionPoint& di) const
 	{
 	// Same notion as for the Intersect method.
 	static DefinitionPoint multi_dps;
@@ -115,8 +113,7 @@ RDPtr ReachingDefs::IntersectWithConsolidation(const RDPtr& r,
 	return res;
 	}
 
-bool ReachingDefs::HasPair(const DefinitionItem* di, const DefinitionPoint& dp)
-const
+bool ReachingDefs::HasPair(const DefinitionItem* di, const DefinitionPoint& dp) const
 	{
 	auto points = FindItem(di);
 	return points && HasPoint(dp, *points);
@@ -186,12 +183,11 @@ void ReachingDefs::PrintRD(const DefinitionItem* di, const DefPoints* dps) const
 		{
 		if ( i > 0 )
 			printf(",");
-		printf("%lx", (unsigned long) (*dps)[i].OpaqueVal());
+		printf("%lx", (unsigned long)(*dps)[i].OpaqueVal());
 		}
 
 	printf(")");
 	}
-
 
 const RDPtr& ReachingDefSet::FindRDs(const Obj* o) const
 	{
@@ -205,13 +201,11 @@ const RDPtr& ReachingDefSet::FindRDs(const Obj* o) const
 	return rd->second;
 	}
 
-void ReachingDefSet::AddOrReplace(const Obj* o, const DefinitionItem* di,
-					const DefinitionPoint& dp)
+void ReachingDefSet::AddOrReplace(const Obj* o, const DefinitionItem* di, const DefinitionPoint& dp)
 	{
 	auto rd = a_i.find(o);
 	ASSERT(rd != a_i.end());
 	rd->second->AddOrFullyReplace(di, dp);
 	}
 
-
-} // zeek::detail
+	} // zeek::detail

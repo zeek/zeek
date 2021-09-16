@@ -4,7 +4,8 @@
 
 #include "zeek/logging/WriterBackend.h"
 
-namespace zeek::logging  {
+namespace zeek::logging
+	{
 
 class Manager;
 
@@ -17,7 +18,8 @@ class Manager;
  * correspond to method called by the manager.
  *
  */
-class WriterFrontend {
+class WriterFrontend
+	{
 public:
 	/**
 	 * Constructor.
@@ -38,8 +40,8 @@ public:
 	 *
 	 * Frontends must only be instantiated by the main thread.
 	 */
-	WriterFrontend(const WriterBackend::WriterInfo& info, EnumVal* stream,
-	               EnumVal* writer, bool local, bool remote);
+	WriterFrontend(const WriterBackend::WriterInfo& info, EnumVal* stream, EnumVal* writer,
+	               bool local, bool remote);
 
 	/**
 	 * Destructor.
@@ -69,7 +71,7 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void Init(int num_fields, const threading::Field* const*  fields);
+	void Init(int num_fields, const threading::Field* const* fields);
 
 	/**
 	 * Write out a record.
@@ -153,22 +155,22 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void SetDisable()	{ disabled = true; }
+	void SetDisable() { disabled = true; }
 
 	/**
 	 * Returns true if the writer frontend has been disabled with SetDisable().
 	 */
-	bool Disabled()	{ return disabled; }
+	bool Disabled() { return disabled; }
 
 	/**
 	 * Returns the additional writer information as passed into the constructor.
 	 */
-	const WriterBackend::WriterInfo& Info() const	{ return *info; }
+	const WriterBackend::WriterInfo& Info() const { return *info; }
 
 	/**
 	 * Returns the number of log fields as passed into the constructor.
 	 */
-	int NumFields() const	{ return num_fields; }
+	int NumFields() const { return num_fields; }
 
 	/**
 	 * Returns a descriptive name for the writer, including the type of
@@ -176,12 +178,12 @@ public:
 	 *
 	 * This method is safe to call from any thread.
 	 */
-	const char* Name() const	{ return name; }
+	const char* Name() const { return name; }
 
 	/**
 	 * Returns the log fields as passed into the constructor.
 	 */
-	const threading::Field* const * Fields() const	{ return fields; }
+	const threading::Field* const* Fields() const { return fields; }
 
 protected:
 	friend class Manager;
@@ -191,22 +193,22 @@ protected:
 	EnumVal* stream;
 	EnumVal* writer;
 
-	WriterBackend* backend;	// The backend we have instantiated.
-	bool disabled;	// True if disabled.
-	bool initialized;	// True if initialized.
-	bool buf;	// True if buffering is enabled (default).
-	bool local;	// True if logging locally.
-	bool remote;	// True if loggin remotely.
+	WriterBackend* backend; // The backend we have instantiated.
+	bool disabled; // True if disabled.
+	bool initialized; // True if initialized.
+	bool buf; // True if buffering is enabled (default).
+	bool local; // True if logging locally.
+	bool remote; // True if loggin remotely.
 
-	const char* name;	// Descriptive name of the
-	WriterBackend::WriterInfo* info;	// The writer information.
-	int num_fields;	// The number of log fields.
-	const threading::Field* const*  fields;	// The log fields.
+	const char* name; // Descriptive name of the
+	WriterBackend::WriterInfo* info; // The writer information.
+	int num_fields; // The number of log fields.
+	const threading::Field* const* fields; // The log fields.
 
 	// Buffer for bulk writes.
 	static const int WRITER_BUFFER_SIZE = 1000;
-	int write_buffer_pos;	// Position of next write in buffer.
-	threading::Value*** write_buffer;	// Buffer of size WRITER_BUFFER_SIZE.
-};
+	int write_buffer_pos; // Position of next write in buffer.
+	threading::Value*** write_buffer; // Buffer of size WRITER_BUFFER_SIZE.
+	};
 
-} // namespace zeek::logging
+	} // namespace zeek::logging

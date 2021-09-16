@@ -1,9 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/ZeekString.h"
 #include "zeek/script_opt/CPP/RuntimeVec.h"
 
-namespace zeek::detail {
+#include "zeek/ZeekString.h"
+
+namespace zeek::detail
+	{
 
 using namespace std;
 
@@ -25,27 +27,28 @@ static bool check_vec_sizes__CPP(const VectorValPtr& v1, const VectorValPtr& v2)
 // convert the vector to the high-level representation if needed.
 static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt)
 	{
-	switch ( vt->Yield()->InternalType() ) {
-	case TYPE_INTERNAL_INT:
-		return make_intrusive<VectorType>(base_type(TYPE_INT));
+	switch ( vt->Yield()->InternalType() )
+		{
+		case TYPE_INTERNAL_INT:
+			return make_intrusive<VectorType>(base_type(TYPE_INT));
 
-	case TYPE_INTERNAL_UNSIGNED:
-		return make_intrusive<VectorType>(base_type(TYPE_COUNT));
+		case TYPE_INTERNAL_UNSIGNED:
+			return make_intrusive<VectorType>(base_type(TYPE_COUNT));
 
-	case TYPE_INTERNAL_DOUBLE:
-		return make_intrusive<VectorType>(base_type(TYPE_DOUBLE));
+		case TYPE_INTERNAL_DOUBLE:
+			return make_intrusive<VectorType>(base_type(TYPE_DOUBLE));
 
-	default:
-		return nullptr;
-	}
+		default:
+			return nullptr;
+		}
 	}
 
 // The kernel used for unary vector operations.
-#define VEC_OP1_KERNEL(accessor, type, op) \
-	for ( unsigned int i = 0; i < v->Size(); ++i ) \
-		{ \
-		auto v_i = v->ValAt(i)->accessor(); \
-		v_result->Assign(i, make_intrusive<type>(op v_i)); \
+#define VEC_OP1_KERNEL(accessor, type, op)                                                         \
+	for ( unsigned int i = 0; i < v->Size(); ++i )                                                 \
+		{                                                                                          \
+		auto v_i = v->ValAt(i)->accessor();                                                        \
+		v_result->Assign(i, make_intrusive<type>(op v_i));                                         \
 		}
 
 // A macro (since it's beyond my templating skillz to deal with the
@@ -54,145 +57,156 @@ static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt)
 // is an optional kernel to use for vectors whose underlying type
 // is "double".  It needs to be optional because C++ will (rightfully)
 // complain about applying certain C++ unary operations to doubles.
-#define VEC_OP1(name, op, double_kernel) \
-VectorValPtr vec_op_ ## name ## __CPP(const VectorValPtr& v) \
-	{ \
-	auto vt = base_vector_type__CPP(v->GetType<VectorType>()); \
-	auto v_result = make_intrusive<VectorVal>(vt); \
- \
-	switch ( vt->Yield()->InternalType() ) { \
-	case TYPE_INTERNAL_INT: \
-		{ \
-		VEC_OP1_KERNEL(AsInt, IntVal, op) \
-		break; \
-		} \
- \
-	case TYPE_INTERNAL_UNSIGNED: \
-		{ \
-		VEC_OP1_KERNEL(AsCount, CountVal, op) \
-		break; \
-		} \
- \
-	double_kernel \
- \
-	default: \
-		break; \
-	} \
- \
-	return v_result; \
-	}
+#define VEC_OP1(name, op, double_kernel)                                                           \
+	VectorValPtr vec_op_##name##__CPP(const VectorValPtr& v)                                       \
+		{                                                                                          \
+		auto vt = base_vector_type__CPP(v->GetType<VectorType>());                                 \
+		auto v_result = make_intrusive<VectorVal>(vt);                                             \
+                                                                                                   \
+		switch ( vt->Yield()->InternalType() )                                                     \
+			{                                                                                      \
+			case TYPE_INTERNAL_INT:                                                                \
+					{                                                                              \
+					VEC_OP1_KERNEL(AsInt, IntVal, op)                                              \
+					break;                                                                         \
+					}                                                                              \
+                                                                                                   \
+			case TYPE_INTERNAL_UNSIGNED:                                                           \
+					{                                                                              \
+					VEC_OP1_KERNEL(AsCount, CountVal, op)                                          \
+					break;                                                                         \
+					}                                                                              \
+                                                                                                   \
+				double_kernel                                                                      \
+                                                                                                   \
+					default : break;                                                               \
+			}                                                                                      \
+                                                                                                   \
+		return v_result;                                                                           \
+		}
 
 // Instantiates a double_kernel for a given operation.
-#define VEC_OP1_WITH_DOUBLE(name, op) \
-	VEC_OP1(name, op, case TYPE_INTERNAL_DOUBLE: { VEC_OP1_KERNEL(AsDouble, DoubleVal, op) break; })
+#define VEC_OP1_WITH_DOUBLE(name, op)                                                              \
+	VEC_OP1(                                                                                       \
+		name, op, case TYPE_INTERNAL_DOUBLE                                                        \
+		:                                                                                          \
+		{                                                                                          \
+			VEC_OP1_KERNEL(AsDouble, DoubleVal, op) break;                                         \
+		})
 
 // The unary operations supported for vectors.
 VEC_OP1_WITH_DOUBLE(pos, +)
 VEC_OP1_WITH_DOUBLE(neg, -)
-VEC_OP1(not, !,)
-VEC_OP1(comp, ~,)
+VEC_OP1(not, !, )
+VEC_OP1(comp, ~, )
 
 // A kernel for applying a binary operation element-by-element to two
 // vectors of a given low-level type.
-#define VEC_OP2_KERNEL(accessor, type, op) \
-	for ( unsigned int i = 0; i < v1->Size(); ++i ) \
-		{ \
-		auto v1_i = v1->ValAt(i)->accessor(); \
-		auto v2_i = v2->ValAt(i)->accessor(); \
-		v_result->Assign(i, make_intrusive<type>(v1_i op v2_i)); \
+#define VEC_OP2_KERNEL(accessor, type, op)                                                         \
+	for ( unsigned int i = 0; i < v1->Size(); ++i )                                                \
+		{                                                                                          \
+		auto v1_i = v1->ValAt(i)->accessor();                                                      \
+		auto v2_i = v2->ValAt(i)->accessor();                                                      \
+		v_result->Assign(i, make_intrusive<type>(v1_i op v2_i));                                   \
 		}
 
 // Analogous to VEC_OP1, instantiates a function for a given binary operation,
 // which might-or-might-not be supported for low-level "double" types.
 // This version is for operations whose result type is the same as the
 // operand type.
-#define VEC_OP2(name, op, double_kernel) \
-VectorValPtr vec_op_ ## name ## __CPP(const VectorValPtr& v1, const VectorValPtr& v2) \
-	{ \
-	if ( ! check_vec_sizes__CPP(v1, v2) ) \
-		return nullptr; \
- \
-	auto vt = base_vector_type__CPP(v1->GetType<VectorType>()); \
-	auto v_result = make_intrusive<VectorVal>(vt); \
- \
-	switch ( vt->Yield()->InternalType() ) { \
-	case TYPE_INTERNAL_INT: \
-		{ \
-		if ( vt->Yield()->Tag() == TYPE_BOOL ) \
-			VEC_OP2_KERNEL(AsBool, BoolVal, op) \
-		else \
-			VEC_OP2_KERNEL(AsInt, IntVal, op) \
-		break; \
-		} \
- \
-	case TYPE_INTERNAL_UNSIGNED: \
-		{ \
-		VEC_OP2_KERNEL(AsCount, CountVal, op) \
-		break; \
-		} \
- \
-	double_kernel \
- \
-	default: \
-		break; \
-	} \
- \
-	return v_result; \
-	}
+#define VEC_OP2(name, op, double_kernel)                                                           \
+	VectorValPtr vec_op_##name##__CPP(const VectorValPtr& v1, const VectorValPtr& v2)              \
+		{                                                                                          \
+		if ( ! check_vec_sizes__CPP(v1, v2) )                                                      \
+			return nullptr;                                                                        \
+                                                                                                   \
+		auto vt = base_vector_type__CPP(v1->GetType<VectorType>());                                \
+		auto v_result = make_intrusive<VectorVal>(vt);                                             \
+                                                                                                   \
+		switch ( vt->Yield()->InternalType() )                                                     \
+			{                                                                                      \
+			case TYPE_INTERNAL_INT:                                                                \
+					{                                                                              \
+					if ( vt->Yield()->Tag() == TYPE_BOOL )                                         \
+						VEC_OP2_KERNEL(AsBool, BoolVal, op)                                        \
+					else                                                                           \
+						VEC_OP2_KERNEL(AsInt, IntVal, op)                                          \
+					break;                                                                         \
+					}                                                                              \
+                                                                                                   \
+			case TYPE_INTERNAL_UNSIGNED:                                                           \
+					{                                                                              \
+					VEC_OP2_KERNEL(AsCount, CountVal, op)                                          \
+					break;                                                                         \
+					}                                                                              \
+                                                                                                   \
+				double_kernel                                                                      \
+                                                                                                   \
+					default : break;                                                               \
+			}                                                                                      \
+                                                                                                   \
+		return v_result;                                                                           \
+		}
 
 // Instantiates a double_kernel for a binary operation.
-#define VEC_OP2_WITH_DOUBLE(name, op) \
-	VEC_OP2(name, op, case TYPE_INTERNAL_DOUBLE: { VEC_OP2_KERNEL(AsDouble, DoubleVal, op) break; })
+#define VEC_OP2_WITH_DOUBLE(name, op)                                                              \
+	VEC_OP2(                                                                                       \
+		name, op, case TYPE_INTERNAL_DOUBLE                                                        \
+		:                                                                                          \
+		{                                                                                          \
+			VEC_OP2_KERNEL(AsDouble, DoubleVal, op) break;                                         \
+		})
 
 // The binary operations supported for vectors.
 VEC_OP2_WITH_DOUBLE(add, +)
 VEC_OP2_WITH_DOUBLE(sub, -)
 VEC_OP2_WITH_DOUBLE(mul, *)
 VEC_OP2_WITH_DOUBLE(div, /)
-VEC_OP2(mod, %,)
-VEC_OP2(and, &,)
-VEC_OP2(or, |,)
-VEC_OP2(xor, ^,)
-VEC_OP2(andand, &&,)
-VEC_OP2(oror, ||,)
+VEC_OP2(mod, %, )
+VEC_OP2(and, &, )
+VEC_OP2(or, |, )
+VEC_OP2(xor, ^, )
+VEC_OP2(andand, &&, )
+VEC_OP2(oror, ||, )
 
 // A version of VEC_OP2 that instead supports relational operations, so
 // the result type is always vector-of-bool.
-#define VEC_REL_OP(name, op) \
-VectorValPtr vec_op_ ## name ## __CPP(const VectorValPtr& v1, const VectorValPtr& v2) \
-	{ \
-	if ( ! check_vec_sizes__CPP(v1, v2) ) \
-		return nullptr; \
- \
-	auto vt = v1->GetType<VectorType>(); \
-	auto res_type = make_intrusive<VectorType>(base_type(TYPE_BOOL)); \
-	auto v_result = make_intrusive<VectorVal>(res_type); \
- \
-	switch ( vt->Yield()->InternalType() ) { \
-	case TYPE_INTERNAL_INT: \
-		{ \
-		VEC_OP2_KERNEL(AsInt, BoolVal, op) \
-		break; \
-		} \
- \
-	case TYPE_INTERNAL_UNSIGNED: \
-		{ \
-		VEC_OP2_KERNEL(AsCount, BoolVal, op) \
-		break; \
-		} \
- \
-	case TYPE_INTERNAL_DOUBLE: \
-		{ \
-		VEC_OP2_KERNEL(AsDouble, BoolVal, op) \
-		break; \
-		} \
- \
-	default: \
-		break; \
-	} \
- \
-	return v_result; \
-	}
+#define VEC_REL_OP(name, op)                                                                       \
+	VectorValPtr vec_op_##name##__CPP(const VectorValPtr& v1, const VectorValPtr& v2)              \
+		{                                                                                          \
+		if ( ! check_vec_sizes__CPP(v1, v2) )                                                      \
+			return nullptr;                                                                        \
+                                                                                                   \
+		auto vt = v1->GetType<VectorType>();                                                       \
+		auto res_type = make_intrusive<VectorType>(base_type(TYPE_BOOL));                          \
+		auto v_result = make_intrusive<VectorVal>(res_type);                                       \
+                                                                                                   \
+		switch ( vt->Yield()->InternalType() )                                                     \
+			{                                                                                      \
+			case TYPE_INTERNAL_INT:                                                                \
+					{                                                                              \
+					VEC_OP2_KERNEL(AsInt, BoolVal, op)                                             \
+					break;                                                                         \
+					}                                                                              \
+                                                                                                   \
+			case TYPE_INTERNAL_UNSIGNED:                                                           \
+					{                                                                              \
+					VEC_OP2_KERNEL(AsCount, BoolVal, op)                                           \
+					break;                                                                         \
+					}                                                                              \
+                                                                                                   \
+			case TYPE_INTERNAL_DOUBLE:                                                             \
+					{                                                                              \
+					VEC_OP2_KERNEL(AsDouble, BoolVal, op)                                          \
+					break;                                                                         \
+					}                                                                              \
+                                                                                                   \
+			default:                                                                               \
+				break;                                                                             \
+			}                                                                                      \
+                                                                                                   \
+		return v_result;                                                                           \
+		}
 
 // The relational operations supported for vectors.
 VEC_REL_OP(lt, <)
@@ -233,9 +247,8 @@ VectorValPtr vec_op_sub__CPP(VectorValPtr v, int i)
 // are applied as though they appeared left-to-right in a statement
 // "s1 + v2 + v3 + s4".  For any invocation, v2 will always be
 // non-nil, and one-and-only-one of s1, v3, or s4 will be non-nil.
-static VectorValPtr str_vec_op_str_vec_add__CPP(const StringValPtr& s1,
-                        const VectorValPtr& v2, const VectorValPtr& v3,
-                        const StringValPtr& s4)
+static VectorValPtr str_vec_op_str_vec_add__CPP(const StringValPtr& s1, const VectorValPtr& v2,
+                                                const VectorValPtr& v3, const StringValPtr& s4)
 	{
 	auto vt = v2->GetType<VectorType>();
 	auto v_result = make_intrusive<VectorVal>(vt);
@@ -260,10 +273,13 @@ static VectorValPtr str_vec_op_str_vec_add__CPP(const StringValPtr& s1,
 			s3 = v3_i->AsString();
 			}
 
-		if ( s1 ) strings.push_back(s1->AsString());
+		if ( s1 )
+			strings.push_back(s1->AsString());
 		strings.push_back(s2);
-		if ( s3 ) strings.push_back(s3);
-		if ( s4 ) strings.push_back(s4->AsString());
+		if ( s3 )
+			strings.push_back(s3);
+		if ( s4 )
+			strings.push_back(s4->AsString());
 
 		auto res = make_intrusive<StringVal>(concatenate(strings));
 		v_result->Assign(i, res);
@@ -290,9 +306,8 @@ VectorValPtr str_vec_op_add__CPP(const StringValPtr& s1, const VectorValPtr& v2)
 // Kernel for element-by-element string relationals.  "rel1" and "rel2"
 // codify which relational (</<=/==/!=/>=/>) we're aiming to support,
 // in terms of how a Bstr_cmp() comparison should be assessed.
-static VectorValPtr str_vec_op_kernel__CPP(const VectorValPtr& v1,
-                                           const VectorValPtr& v2,
-                                           int rel1, int rel2)
+static VectorValPtr str_vec_op_kernel__CPP(const VectorValPtr& v1, const VectorValPtr& v2, int rel1,
+                                           int rel2)
 	{
 	auto res_type = make_intrusive<VectorType>(base_type(TYPE_BOOL));
 	auto v_result = make_intrusive<VectorVal>(res_type);
@@ -342,8 +357,7 @@ VectorValPtr str_vec_op_ge__CPP(const VectorValPtr& v1, const VectorValPtr& v2)
 	return str_vec_op_kernel__CPP(v1, v2, 0, 1);
 	}
 
-VectorValPtr vector_select__CPP(const VectorValPtr& v1, VectorValPtr v2,
-                                VectorValPtr v3)
+VectorValPtr vector_select__CPP(const VectorValPtr& v1, VectorValPtr v2, VectorValPtr v3)
 	{
 	auto vt = v2->GetType<VectorType>();
 	auto v_result = make_intrusive<VectorVal>(vt);
@@ -374,30 +388,31 @@ VectorValPtr vector_coerce_to__CPP(const VectorValPtr& v, const TypePtr& targ)
 		{
 		ValPtr v_i = v->ValAt(i);
 		ValPtr r_i;
-		switch ( ytag ) {
-		case TYPE_BOOL:
-			r_i = val_mgr->Bool(v_i->AsBool());
-			break;
+		switch ( ytag )
+			{
+			case TYPE_BOOL:
+				r_i = val_mgr->Bool(v_i->AsBool());
+				break;
 
-		case TYPE_ENUM:
-			r_i = yt->AsEnumType()->GetEnumVal(v_i->AsInt());
-			break;
+			case TYPE_ENUM:
+				r_i = yt->AsEnumType()->GetEnumVal(v_i->AsInt());
+				break;
 
-		case TYPE_PORT:
-			r_i = make_intrusive<PortVal>(v_i->AsCount());
-			break;
+			case TYPE_PORT:
+				r_i = make_intrusive<PortVal>(v_i->AsCount());
+				break;
 
-		case TYPE_INTERVAL:
-			r_i = make_intrusive<IntervalVal>(v_i->AsDouble());
-			break;
+			case TYPE_INTERVAL:
+				r_i = make_intrusive<IntervalVal>(v_i->AsDouble());
+				break;
 
-		case TYPE_TIME:
-			r_i = make_intrusive<TimeVal>(v_i->AsDouble());
-			break;
+			case TYPE_TIME:
+				r_i = make_intrusive<TimeVal>(v_i->AsDouble());
+				break;
 
-		default:
-			reporter->InternalError("bad vector type in vector_coerce_to__CPP");
-		}
+			default:
+				reporter->InternalError("bad vector type in vector_coerce_to__CPP");
+			}
 
 		v_result->Assign(i, move(r_i));
 		}
@@ -441,4 +456,4 @@ VectorValPtr vec_coerce_to_double__CPP(const VectorValPtr& v, TypePtr targ)
 	return v_result;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

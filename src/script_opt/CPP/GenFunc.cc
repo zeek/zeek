@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <errno.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "zeek/script_opt/CPP/Compile.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 using namespace std;
 
@@ -31,12 +31,10 @@ void CPPCompile::CompileLambda(const LambdaExpr* l, const ProfileFunc* pf)
 	auto l_id = l->Ingredients().id;
 	auto& ids = l->OuterIDs();
 
-	DefineBody(l_id->GetType<FuncType>(), pf, lname, body, &ids,
-	           FUNC_FLAVOR_FUNCTION);
+	DefineBody(l_id->GetType<FuncType>(), pf, lname, body, &ids, FUNC_FLAVOR_FUNCTION);
 	}
 
-void CPPCompile::GenInvokeBody(const string& fname, const TypePtr& t,
-                               const string& args)
+void CPPCompile::GenInvokeBody(const string& fname, const TypePtr& t, const string& args)
 	{
 	auto call = fname + "(" + args + ")";
 
@@ -49,9 +47,8 @@ void CPPCompile::GenInvokeBody(const string& fname, const TypePtr& t,
 		Emit("return %s;", NativeToGT(call, t, GEN_VAL_PTR));
 	}
 
-void CPPCompile::DefineBody(const FuncTypePtr& ft, const ProfileFunc* pf,
-                            const string& fname, const StmtPtr& body,
-                            const IDPList* lambda_ids, FunctionFlavor flavor)
+void CPPCompile::DefineBody(const FuncTypePtr& ft, const ProfileFunc* pf, const string& fname,
+                            const StmtPtr& body, const IDPList* lambda_ids, FunctionFlavor flavor)
 	{
 	locals.clear();
 	params.clear();
@@ -207,8 +204,10 @@ string CPPCompile::BodyName(const FuncInfo& func)
 		while ( *fn == '.' || *fn == '/' )
 			++fn;
 
-		auto canonicalize =
-			[](char c) -> char { return isalnum(c) ? c : '_'; };
+		auto canonicalize = [](char c) -> char
+		{
+			return isalnum(c) ? c : '_';
+		};
 
 		string fns = fn;
 		transform(fns.begin(), fns.end(), fns.begin(), canonicalize);
@@ -266,4 +265,4 @@ string CPPCompile::GenArgs(const RecordTypePtr& params, const Expr* e)
 	return gen;
 	}
 
-} // zeek::detail
+	} // zeek::detail

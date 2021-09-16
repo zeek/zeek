@@ -4,21 +4,21 @@
 
 #include <string>
 
-#include "zeek/Val.h"
 #include "zeek/OpaqueVal.h"
-#include "zeek/file_analysis/File.h"
+#include "zeek/Val.h"
 #include "zeek/file_analysis/Analyzer.h"
-
+#include "zeek/file_analysis/File.h"
 #include "zeek/file_analysis/analyzer/entropy/events.bif.h"
 
-namespace zeek::file_analysis::detail {
+namespace zeek::file_analysis::detail
+	{
 
 /**
  * An analyzer to produce entropy of file contents.
  */
-class Entropy : public file_analysis::Analyzer {
+class Entropy : public file_analysis::Analyzer
+	{
 public:
-
 	/**
 	 * Destructor.
 	 */
@@ -31,8 +31,7 @@ public:
 	 * @return the new Entropy analyzer instance or a null pointer if the
 	 *         the "extraction_file" field of \a args wasn't set.
 	 */
-	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
-	                                            file_analysis::File* file);
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file);
 
 	/**
 	 * Calculate entropy of next chunk of file contents.
@@ -58,7 +57,6 @@ public:
 	bool Undelivered(uint64_t offset, uint64_t len) override;
 
 protected:
-
 	/**
 	 * Constructor.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
@@ -77,6 +75,6 @@ protected:
 private:
 	EntropyVal* entropy;
 	bool fed;
-};
+	};
 
-} // namespace zeek::file_analysis::detail
+	} // namespace zeek::file_analysis::detail

@@ -2,13 +2,12 @@
 
 #pragma once
 
-#include "zeek/script_opt/DefPoint.h"
 #include "zeek/ID.h"
 #include "zeek/Type.h"
+#include "zeek/script_opt/DefPoint.h"
 
-
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 // A definition item is a Zeek script entity that can be assigned to.
 // Currently, we track variables and record fields; the latter can
@@ -23,7 +22,8 @@ namespace zeek::detail {
 // will be used without first having been set, hence we go the more
 // complicated route here.
 
-class DefinitionItem {
+class DefinitionItem
+	{
 public:
 	// Constructor for the simple case of tracking assignments to
 	// a variable.
@@ -31,16 +31,15 @@ public:
 
 	// The more complicated case of assigning to a field in a record
 	// (which itself might be a field in a record).
-	DefinitionItem(const DefinitionItem* _di, const char* _field_name,
-			TypePtr _t);
+	DefinitionItem(const DefinitionItem* _di, const char* _field_name, TypePtr _t);
 
-	const char* Name() const	{ return name.c_str(); }
+	const char* Name() const { return name.c_str(); }
 
-	TypePtr GetType() const		{ return t; }
-	bool IsRecord() const		{ return t->Tag() == TYPE_RECORD; }
+	TypePtr GetType() const { return t; }
+	bool IsRecord() const { return t->Tag() == TYPE_RECORD; }
 
 	// The identifier to which this item ultimately belongs.
-	const ID* RootID() const	{ return di ? di->RootID() : id; }
+	const ID* RootID() const { return di ? di->RootID() : id; }
 
 	// For this definition item, look for a field corresponding
 	// to the given name or offset.  Nil if the field has not (yet)
@@ -52,8 +51,7 @@ public:
 	// given name or offset, returning the associated item.
 	//
 	// If the field already exists, then it's simply returned.
-	std::shared_ptr<DefinitionItem> CreateField(const char* field,
-							TypePtr t);
+	std::shared_ptr<DefinitionItem> CreateField(const char* field, TypePtr t);
 	std::shared_ptr<DefinitionItem> CreateField(int offset, TypePtr t);
 
 protected:
@@ -73,14 +71,14 @@ protected:
 	// these are seen (i.e., as they are entered via CreateField()).
 	std::optional<std::vector<std::shared_ptr<DefinitionItem>>> fields;
 	int num_fields;
-};
+	};
 
 // For a given identifier, locates its associated definition item.
-typedef std::unordered_map<const ID*, std::shared_ptr<DefinitionItem>>
-		ID_to_DI_Map;
+typedef std::unordered_map<const ID*, std::shared_ptr<DefinitionItem>> ID_to_DI_Map;
 
 // Class for managing a set of IDs and their associated definition items.
-class DefItemMap {
+class DefItemMap
+	{
 public:
 	// Gets the definition for either a name or a record field reference.
 	// Returns nil if "expr" lacks such a form, or if there isn't
@@ -96,12 +94,10 @@ public:
 	const DefinitionItem* GetConstID_DI(const ID* id) const;
 
 	// The same for a record field for a given definition item.
-	const DefinitionItem* GetConstID_DI(const DefinitionItem* di,
-						const char* field_name) const;
+	const DefinitionItem* GetConstID_DI(const DefinitionItem* di, const char* field_name) const;
 
 protected:
 	ID_to_DI_Map i2d;
-};
+	};
 
-
-} // zeek::detail
+	} // zeek::detail

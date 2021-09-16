@@ -4,16 +4,16 @@
 
 #include <string>
 
-#include "zeek/util.h"
 #include "zeek/Event.h"
 #include "zeek/file_analysis/Manager.h"
+#include "zeek/util.h"
 
-namespace zeek::file_analysis::detail {
+namespace zeek::file_analysis::detail
+	{
 
-Hash::Hash(RecordValPtr args, file_analysis::File* file,
-           HashVal* hv, const char* arg_kind)
+Hash::Hash(RecordValPtr args, file_analysis::File* file, HashVal* hv, const char* arg_kind)
 	: file_analysis::Analyzer(file_mgr->GetComponentTag(util::to_upper(arg_kind).c_str()),
-	                                std::move(args), file),
+                              std::move(args), file),
 	  hash(hv), fed(false), kind(arg_kind)
 	{
 	hash->Init();
@@ -55,11 +55,7 @@ void Hash::Finalize()
 	if ( ! file_hash )
 		return;
 
-	event_mgr.Enqueue(file_hash,
-	                  GetFile()->ToVal(),
-	                  make_intrusive<StringVal>(kind),
-	                  hash->Get()
-	);
+	event_mgr.Enqueue(file_hash, GetFile()->ToVal(), make_intrusive<StringVal>(kind), hash->Get());
 	}
 
-} // namespace zeek::file_analysis::detail
+	} // namespace zeek::file_analysis::detail

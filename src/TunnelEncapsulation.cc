@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/TunnelEncapsulation.h"
-#include "zeek/util.h"
-#include "zeek/Conn.h"
 
-namespace zeek {
+#include "zeek/Conn.h"
+#include "zeek/util.h"
+
+namespace zeek
+	{
 
 EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
-		: src_addr(c->OrigAddr()), dst_addr(c->RespAddr()),
-		  src_port(c->OrigPort()), dst_port(c->RespPort()),
-		  proto(c->ConnTransport()), type(t), uid(c->GetUID())
+	: src_addr(c->OrigAddr()), dst_addr(c->RespAddr()), src_port(c->OrigPort()),
+	  dst_port(c->RespPort()), proto(c->ConnTransport()), type(t), uid(c->GetUID())
 	{
 	if ( ! uid )
 		{
@@ -55,4 +56,4 @@ bool operator==(const EncapsulationStack& e1, const EncapsulationStack& e2)
 	return true;
 	}
 
-} // namespace zeek
+	} // namespace zeek

@@ -7,15 +7,17 @@
 
 #pragma once
 
-#include <unordered_map>
 #include <cstdint>
+#include <unordered_map>
 
-namespace zeek::notifier::detail  {
+namespace zeek::notifier::detail
+	{
 
 class Modifiable;
 
 /** Interface class for receivers of notifications. */
-class Receiver {
+class Receiver
+	{
 public:
 	Receiver();
 	virtual ~Receiver();
@@ -32,10 +34,11 @@ public:
 	 * no further modifications can possibly occur.
 	 */
 	virtual void Terminate() { }
-};
+	};
 
 /** Singleton class tracking all notification requests globally. */
-class Registry {
+class Registry
+	{
 public:
 	~Registry();
 
@@ -86,7 +89,7 @@ private:
 
 	typedef std::unordered_multimap<Modifiable*, Receiver*> ModifiableMap;
 	ModifiableMap registrations;
-};
+	};
 
 /**
  * Singleton object tracking all global notification requests.
@@ -97,7 +100,8 @@ extern Registry registry;
  * Base class for objects that can trigger notifications to receivers when
  * modified.
  */
-class Modifiable {
+class Modifiable
+	{
 public:
 	/**
 	 * Calling this method signals to all registered receivers that the
@@ -116,6 +120,6 @@ protected:
 
 	// Number of currently registered receivers.
 	uint64_t num_receivers = 0;
-};
+	};
 
-} // namespace zeek::notifier::detail
+	} // namespace zeek::notifier::detail

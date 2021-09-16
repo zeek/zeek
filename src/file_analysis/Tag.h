@@ -2,19 +2,22 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
 #include "zeek/Tag.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek::plugin {
-	template <class T> class TaggedComponent;
-	template <class T, class C> class ComponentManager;
-}
+namespace zeek::plugin
+	{
+template <class T> class TaggedComponent;
+template <class T, class C> class ComponentManager;
+	}
 
-namespace zeek {
+namespace zeek
+	{
 
 class EnumVal;
 
-namespace file_analysis {
+namespace file_analysis
+	{
 
 class Component;
 
@@ -23,29 +26,30 @@ class Component;
  *
  * The script-layer analogue is Files::Tag.
  */
-class Tag : public zeek::Tag {
+class Tag : public zeek::Tag
+	{
 public:
 	/*
 	 * Copy constructor.
 	 */
-	Tag(const Tag& other) : zeek::Tag(other) {}
+	Tag(const Tag& other) : zeek::Tag(other) { }
 
 	/**
 	 * Default constructor. This initializes the tag with an error value
 	 * that will make \c operator \c bool return false.
 	 */
-	Tag() : zeek::Tag() {}
+	Tag() : zeek::Tag() { }
 
 	/**
 	 * Destructor.
 	 */
-	~Tag() {}
+	~Tag() { }
 
 	/**
 	 * Returns false if the tag represents an error value rather than a
 	 * legal analyzer type.
 	 */
-	explicit operator bool() const	{ return *this != Error; }
+	explicit operator bool() const { return *this != Error; }
 
 	/**
 	 * Assignment operator.
@@ -55,26 +59,17 @@ public:
 	/**
 	 * Compares two tags for equality.
 	 */
-	bool operator==(const Tag& other) const
-		{
-		return zeek::Tag::operator==(other);
-		}
+	bool operator==(const Tag& other) const { return zeek::Tag::operator==(other); }
 
 	/**
 	 * Compares two tags for inequality.
 	 */
-	bool operator!=(const Tag& other) const
-		{
-		return zeek::Tag::operator!=(other);
-		}
+	bool operator!=(const Tag& other) const { return zeek::Tag::operator!=(other); }
 
 	/**
 	 * Compares two tags for less-than relationship.
 	 */
-	bool operator<(const Tag& other) const
-		{
-		return zeek::Tag::operator<(other);
-		}
+	bool operator<(const Tag& other) const { return zeek::Tag::operator<(other); }
 
 	/**
 	 * Returns the \c Files::Tag enum that corresponds to this tag.
@@ -108,7 +103,7 @@ protected:
 	 * @param val An enum value of script type \c Files::Tag.
 	 */
 	explicit Tag(EnumValPtr val);
-};
+	};
 
-} // namespace file_analysis
-} // namespace zeek
+	} // namespace file_analysis
+	} // namespace zeek

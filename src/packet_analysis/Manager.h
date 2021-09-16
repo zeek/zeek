@@ -2,23 +2,29 @@
 
 #pragma once
 
-#include "zeek/packet_analysis/Tag.h"
-#include "zeek/packet_analysis/Component.h"
-#include "zeek/plugin/ComponentManager.h"
-#include "zeek/iosource/Packet.h"
-#include "zeek/packet_analysis/Dispatcher.h"
 #include "zeek/PacketFilter.h"
+#include "zeek/iosource/Packet.h"
+#include "zeek/packet_analysis/Component.h"
+#include "zeek/packet_analysis/Dispatcher.h"
+#include "zeek/packet_analysis/Tag.h"
+#include "zeek/plugin/ComponentManager.h"
 
-namespace zeek {
+namespace zeek
+	{
 
-namespace detail { class PacketProfiler; }
+namespace detail
+	{
+class PacketProfiler;
+	}
 
-namespace packet_analysis {
+namespace packet_analysis
+	{
 
 class Analyzer;
 using AnalyzerPtr = std::shared_ptr<Analyzer>;
 
-class Manager : public plugin::ComponentManager<Tag, Component> {
+class Manager : public plugin::ComponentManager<Tag, Component>
+	{
 public:
 	/**
 	 * Constructor.
@@ -55,7 +61,7 @@ public:
 	 *
 	 * @return The analyzer instance or nullptr if no instance is found.
 	 */
-	AnalyzerPtr GetAnalyzer(EnumVal *val);
+	AnalyzerPtr GetAnalyzer(EnumVal* val);
 
 	/**
 	 * Looks up an analyzer instance.
@@ -83,7 +89,7 @@ public:
 	 */
 	bool ProcessInnerPacket(Packet* packet);
 
-	uint64_t PacketsProcessed() const	{ return num_packets_processed; }
+	uint64_t PacketsProcessed() const { return num_packets_processed; }
 
 	/**
 	 * Records the given packet if a dumper is active.
@@ -92,7 +98,7 @@ public:
 	 * @param len The number of bytes to record. If set to zero, the whole
 	 * packet is recorded.
 	 */
-	void DumpPacket(const Packet *pkt, int len=0);
+	void DumpPacket(const Packet* pkt, int len = 0);
 
 	/**
 	 * Attempts to write an entry to unknown_protocols.log, rate-limited to avoid
@@ -105,7 +111,7 @@ public:
 	 * @param len The remaining length of the data in the packet being processed.
 	 */
 	void ReportUnknownProtocol(const std::string& analyzer, uint32_t protocol,
-	                           const uint8_t* data=nullptr, size_t len=0);
+	                           const uint8_t* data = nullptr, size_t len = 0);
 
 	/**
 	 * Callback method for UnknownProtocolTimer to remove an analyzer/protocol
@@ -113,7 +119,7 @@ public:
 	 */
 	void ResetUnknownProtocolTimer(const std::string& analyzer, uint32_t protocol);
 
-	detail::PacketFilter* GetPacketFilter(bool init=true)
+	detail::PacketFilter* GetPacketFilter(bool init = true)
 		{
 		if ( ! pkt_filter && init )
 			pkt_filter = new detail::PacketFilter(detail::packet_filter_default);
@@ -157,10 +163,10 @@ private:
 	uint64_t unknown_sampling_rate = 0;
 	double unknown_sampling_duration = 0;
 	uint64_t unknown_first_bytes_count = 0;
-};
+	};
 
-} // namespace packet_analysis
+	} // namespace packet_analysis
 
 extern zeek::packet_analysis::Manager* packet_mgr;
 
-} // namespace zeek
+	} // namespace zeek

@@ -2,20 +2,24 @@
 
 #pragma once
 
+#include <broker/expected.hh>
 #include <iterator>
 #include <memory>
 #include <vector>
 
-#include <broker/expected.hh>
+namespace broker
+	{
+class data;
+	}
 
-namespace broker { class data; }
-
-namespace zeek::probabilistic::detail {
+namespace zeek::probabilistic::detail
+	{
 
 /**
  * A vector of bits.
  */
-class BitVector {
+class BitVector
+	{
 public:
 	typedef uint64_t block_type;
 	typedef size_t size_type;
@@ -27,7 +31,8 @@ public:
 	/**
 	 * An lvalue proxy for individual bits.
 	 */
-	class Reference {
+	class Reference
+		{
 	public:
 		/**
 		 * Inverts the bits' values.
@@ -51,7 +56,7 @@ public:
 
 		block_type& block;
 		const block_type mask;
-	};
+		};
 
 	/**
 	 * Default-constructs an empty bit vector.
@@ -72,8 +77,7 @@ public:
 	 * @param last End of range.
 	 *
 	 */
-	template <typename InputIterator>
-	BitVector(InputIterator first, InputIterator last)
+	template <typename InputIterator> BitVector(InputIterator first, InputIterator last)
 		{
 		bits.insert(bits.end(), first, last);
 		num_bits = bits.size() * bits_per_block;
@@ -125,8 +129,7 @@ public:
 	 * @param last An iterator pointing to one past the last element of the
 	 * sequence.
 	 */
-	template <typename ForwardIterator>
-	void Append(ForwardIterator first, ForwardIterator last)
+	template <typename ForwardIterator> void Append(ForwardIterator first, ForwardIterator last)
 		{
 		if ( first == last )
 			return;
@@ -141,11 +144,11 @@ public:
 			{
 			bits.back() |= (*first << excess);
 
-			do {
+			do
+				{
 				block_type b = *first++ >> (bits_per_block - excess);
 				bits.push_back(b | (first == last ? 0 : *first << excess));
-			} while (first != last);
-
+				} while ( first != last );
 			}
 
 		else
@@ -279,10 +282,10 @@ public:
 	size_type FindNext(size_type i) const;
 
 	/** Computes a hash value of the internal representation.
-	  * This is mainly for debugging/testing purposes.
-	  *
-	  * @return The hash.
-	  */
+	 * This is mainly for debugging/testing purposes.
+	 *
+	 * @return The hash.
+	 */
 	uint64_t Hash() const;
 
 	broker::expected<broker::data> Serialize() const;
@@ -312,26 +315,17 @@ private:
 	/**
 	 * Computes the block index for a given bit position.
 	 */
-	static size_type block_index(size_type i)
-		{
-		return i / bits_per_block;
-		}
+	static size_type block_index(size_type i) { return i / bits_per_block; }
 
 	/**
 	 * Computes the bit index within a given block for a given bit position.
 	 */
-	static block_type bit_index(size_type i)
-		{
-		return i % bits_per_block;
-		}
+	static block_type bit_index(size_type i) { return i % bits_per_block; }
 
 	/**
 	 * Computes the bitmask block to extract a bit a given bit position.
 	 */
-	static block_type bit_mask(size_type i)
-		{
-		return block_type(1) << bit_index(i);
-		}
+	static block_type bit_mask(size_type i) { return block_type(1) << bit_index(i); }
 
 	/**
 	 * Computes the number of blocks needed to represent a given number of
@@ -341,8 +335,7 @@ private:
 	 */
 	static size_type bits_to_blocks(size_type bits)
 		{
-		return bits / bits_per_block
-			+ static_cast<size_type>(bits % bits_per_block != 0);
+		return bits / bits_per_block + static_cast<size_type>(bits % bits_per_block != 0);
 		}
 
 	/**
@@ -354,6 +347,6 @@ private:
 
 	std::vector<block_type> bits;
 	size_type num_bits;
-};
+	};
 
-} // namespace zeek::probabilistic::detail
+	} // namespace zeek::probabilistic::detail

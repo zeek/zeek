@@ -2,27 +2,27 @@
 
 #include "zeek/zeekygen/Target.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fts.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
-#include "zeek/zeekygen/Manager.h"
+#include "zeek/Reporter.h"
+#include "zeek/analyzer/Component.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/packet_analysis/Manager.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/util.h"
 #include "zeek/zeekygen/IdentifierInfo.h"
+#include "zeek/zeekygen/Manager.h"
 #include "zeek/zeekygen/PackageInfo.h"
 #include "zeek/zeekygen/ScriptInfo.h"
 
-#include "zeek/util.h"
-#include "zeek/Reporter.h"
-#include "zeek/plugin/Manager.h"
-#include "zeek/analyzer/Manager.h"
-#include "zeek/analyzer/Component.h"
-#include "zeek/file_analysis/Manager.h"
-#include "zeek/packet_analysis/Manager.h"
-
 using namespace std;
 
-namespace zeek::zeekygen::detail {
+namespace zeek::zeekygen::detail
+	{
 
 static void write_plugin_section_heading(FILE* f, const plugin::Plugin* p)
 	{
@@ -78,57 +78,57 @@ static void write_plugin_components(FILE* f, const plugin::Plugin* p)
 
 	for ( const auto& component : components )
 		{
-		switch ( component->Type() ) {
-		case plugin::component::ANALYZER:
+		switch ( component->Type() )
 			{
-			const analyzer::Component* c =
-				dynamic_cast<const analyzer::Component*>(component);
+			case plugin::component::ANALYZER:
+					{
+					const analyzer::Component* c =
+						dynamic_cast<const analyzer::Component*>(component);
 
-			if ( c )
-				write_analyzer_component(f, c);
-			else
-				reporter->InternalError("component type mismatch");
+					if ( c )
+						write_analyzer_component(f, c);
+					else
+						reporter->InternalError("component type mismatch");
+					}
+				break;
+
+			case plugin::component::PACKET_ANALYZER:
+					{
+					const packet_analysis::Component* c =
+						dynamic_cast<const packet_analysis::Component*>(component);
+
+					if ( c )
+						write_analyzer_component(f, c);
+					else
+						reporter->InternalError("component type mismatch");
+					}
+				break;
+
+			case plugin::component::FILE_ANALYZER:
+					{
+					const auto* c = dynamic_cast<const file_analysis::Component*>(component);
+
+					if ( c )
+						write_analyzer_component(f, c);
+					else
+						reporter->InternalError("component type mismatch");
+					}
+				break;
+
+			case plugin::component::READER:
+				reporter->InternalError("docs for READER component unimplemented");
+
+			case plugin::component::WRITER:
+				reporter->InternalError("docs for WRITER component unimplemented");
+
+			default:
+				reporter->InternalError("docs for unknown component unimplemented");
 			}
-			break;
-
-		case plugin::component::PACKET_ANALYZER:
-			{
-			const packet_analysis::Component* c =
-				dynamic_cast<const packet_analysis::Component*>(component);
-
-			if ( c )
-				write_analyzer_component(f, c);
-			else
-				reporter->InternalError("component type mismatch");
-			}
-			break;
-
-		case plugin::component::FILE_ANALYZER:
-			{
-			const auto* c =
-				dynamic_cast<const file_analysis::Component*>(component);
-
-			if ( c )
-				write_analyzer_component(f, c);
-			else
-				reporter->InternalError("component type mismatch");
-			}
-			break;
-
- 		case plugin::component::READER:
-			reporter->InternalError("docs for READER component unimplemented");
-
-		case plugin::component::WRITER:
-			reporter->InternalError("docs for WRITER component unimplemented");
-
-		default:
-			reporter->InternalError("docs for unknown component unimplemented");
-		}
 		}
 	}
 
-static void write_plugin_bif_items(FILE* f, const plugin::Plugin* p,
-                                   plugin::BifItem::Type t, const string& heading)
+static void write_plugin_bif_items(FILE* f, const plugin::Plugin* p, plugin::BifItem::Type t,
+                                   const string& heading)
 	{
 	plugin::Plugin::bif_item_list bifitems = p->BifItems();
 	plugin::Plugin::bif_item_list::iterator it = bifitems.begin();
@@ -151,14 +151,12 @@ static void write_plugin_bif_items(FILE* f, const plugin::Plugin* p,
 
 	for ( it = bifitems.begin(); it != bifitems.end(); ++it )
 		{
-		IdentifierInfo* doc = zeek::detail::zeekygen_mgr->GetIdentifierInfo(
-			it->GetID());
+		IdentifierInfo* doc = zeek::detail::zeekygen_mgr->GetIdentifierInfo(it->GetID());
 
 		if ( doc )
 			fprintf(f, "%s\n\n", doc->ReStructuredText().c_str());
 		else
-			reporter->InternalWarning("Zeekygen ID lookup failed: %s\n",
-			                          it->GetID().c_str());
+			reporter->InternalWarning("Zeekygen ID lookup failed: %s\n", it->GetID().c_str());
 		}
 	}
 
@@ -169,8 +167,7 @@ static void WriteAnalyzerTagDefn(FILE* f, const string& module)
 	IdentifierInfo* doc = zeek::detail::zeekygen_mgr->GetIdentifierInfo(tag_id);
 
 	if ( ! doc )
-		reporter->InternalError("Zeekygen failed analyzer tag lookup: %s",
-		                        tag_id.c_str());
+		reporter->InternalError("Zeekygen failed analyzer tag lookup: %s", tag_id.c_str());
 
 	fprintf(f, "%s\n", doc->ReStructuredText().c_str());
 	}
@@ -191,8 +188,7 @@ static bool ComponentsMatch(const plugin::Plugin* p, plugin::component::Type t,
 	return true;
 	}
 
-template<class T>
-static vector<T*> filter_matches(const vector<Info*>& from, Target* t)
+template <class T> static vector<T*> filter_matches(const vector<Info*>& from, Target* t)
 	{
 	vector<T*> rval;
 
@@ -205,8 +201,8 @@ static vector<T*> filter_matches(const vector<Info*>& from, Target* t)
 
 		if ( t->MatchesPattern(d) )
 			{
-			DBG_LOG(DBG_ZEEKYGEN, "'%s' matched pattern for target '%s'",
-			        d->Name().c_str(), t->Name().c_str());
+			DBG_LOG(DBG_ZEEKYGEN, "'%s' matched pattern for target '%s'", d->Name().c_str(),
+			        t->Name().c_str());
 			rval.push_back(d);
 			}
 		}
@@ -214,23 +210,21 @@ static vector<T*> filter_matches(const vector<Info*>& from, Target* t)
 	return rval;
 	}
 
-TargetFile::TargetFile(const string& arg_name)
-	: name(arg_name), f()
+TargetFile::TargetFile(const string& arg_name) : name(arg_name), f()
 	{
 	if ( name.find('/') != string::npos )
 		{
 		string dir = util::SafeDirname(name).result;
 
 		if ( ! util::detail::ensure_intermediate_dirs(dir.c_str()) )
-			reporter->FatalError("Zeekygen failed to make dir %s",
-			                     dir.c_str());
+			reporter->FatalError("Zeekygen failed to make dir %s", dir.c_str());
 		}
 
 	f = fopen(name.c_str(), "w");
 
 	if ( ! f )
-		reporter->FatalError("Zeekygen failed to open '%s' for writing: %s",
-		                     name.c_str(), strerror(errno));
+		reporter->FatalError("Zeekygen failed to open '%s' for writing: %s", name.c_str(),
+		                     strerror(errno));
 	}
 
 TargetFile::~TargetFile()
@@ -241,9 +235,8 @@ TargetFile::~TargetFile()
 	DBG_LOG(DBG_ZEEKYGEN, "Wrote out-of-date target '%s'", name.c_str());
 	}
 
-
 Target::Target(const string& arg_name, const string& arg_pattern)
-    : name(arg_name), pattern(arg_pattern), prefix()
+	: name(arg_name), pattern(arg_pattern), prefix()
 	{
 	size_t pos = pattern.find('*');
 
@@ -264,7 +257,7 @@ bool Target::MatchesPattern(Info* info) const
 	return ! strncmp(info->Name().c_str(), prefix.c_str(), prefix.size());
 	}
 
-void AnalyzerTarget::DoFindDependencies(const std::vector<Info *>& infos)
+void AnalyzerTarget::DoFindDependencies(const std::vector<Info*>& infos)
 	{
 	// TODO: really should add to dependency list the tag type's ID and
 	// all bif items for matching analyzer plugins, but that's all dependent
@@ -301,8 +294,7 @@ void ProtoAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 
 		write_plugin_section_heading(f, *it);
 		write_plugin_components(f, *it);
-		write_plugin_bif_items(f, *it, plugin::BifItem::CONSTANT,
-		                       "Options/Constants");
+		write_plugin_bif_items(f, *it, plugin::BifItem::CONSTANT, "Options/Constants");
 		write_plugin_bif_items(f, *it, plugin::BifItem::GLOBAL, "Globals");
 		write_plugin_bif_items(f, *it, plugin::BifItem::TYPE, "Types");
 		write_plugin_bif_items(f, *it, plugin::BifItem::EVENT, "Events");
@@ -327,8 +319,7 @@ void PacketAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 
 		write_plugin_section_heading(f, *it);
 		write_plugin_components(f, *it);
-		write_plugin_bif_items(f, *it, plugin::BifItem::CONSTANT,
-		                       "Options/Constants");
+		write_plugin_bif_items(f, *it, plugin::BifItem::CONSTANT, "Options/Constants");
 		write_plugin_bif_items(f, *it, plugin::BifItem::GLOBAL, "Globals");
 		write_plugin_bif_items(f, *it, plugin::BifItem::TYPE, "Types");
 		write_plugin_bif_items(f, *it, plugin::BifItem::EVENT, "Events");
@@ -353,8 +344,7 @@ void FileAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 
 		write_plugin_section_heading(f, *it);
 		write_plugin_components(f, *it);
-		write_plugin_bif_items(f, *it, plugin::BifItem::CONSTANT,
-		                       "Options/Constants");
+		write_plugin_bif_items(f, *it, plugin::BifItem::CONSTANT, "Options/Constants");
 		write_plugin_bif_items(f, *it, plugin::BifItem::GLOBAL, "Globals");
 		write_plugin_bif_items(f, *it, plugin::BifItem::TYPE, "Types");
 		write_plugin_bif_items(f, *it, plugin::BifItem::EVENT, "Events");
@@ -367,8 +357,8 @@ void PackageTarget::DoFindDependencies(const vector<Info*>& infos)
 	pkg_deps = filter_matches<PackageInfo>(infos, this);
 
 	if ( pkg_deps.empty() )
-		reporter->FatalError("No match for Zeekygen target '%s' pattern '%s'",
-		                     Name().c_str(), Pattern().c_str());
+		reporter->FatalError("No match for Zeekygen target '%s' pattern '%s'", Name().c_str(),
+		                     Pattern().c_str());
 
 	for ( size_t i = 0; i < infos.size(); ++i )
 		{
@@ -380,11 +370,11 @@ void PackageTarget::DoFindDependencies(const vector<Info*>& infos)
 		for ( size_t j = 0; j < pkg_deps.size(); ++j )
 			{
 			if ( strncmp(script->Name().c_str(), pkg_deps[j]->Name().c_str(),
-			             pkg_deps[j]->Name().size()))
+			             pkg_deps[j]->Name().size()) )
 				continue;
 
-			DBG_LOG(DBG_ZEEKYGEN, "Script %s associated with package %s",
-			        script->Name().c_str(), pkg_deps[j]->Name().c_str());
+			DBG_LOG(DBG_ZEEKYGEN, "Script %s associated with package %s", script->Name().c_str(),
+			        pkg_deps[j]->Name().c_str());
 			pkg_manifest[pkg_deps[j]].push_back(script);
 			script_deps.push_back(script);
 			}
@@ -401,8 +391,7 @@ void PackageTarget::DoGenerate() const
 
 	fprintf(file.f, ":orphan:\n\n");
 
-	for ( manifest_t::const_iterator it = pkg_manifest.begin();
-	      it != pkg_manifest.end(); ++it )
+	for ( manifest_t::const_iterator it = pkg_manifest.begin(); it != pkg_manifest.end(); ++it )
 		{
 		string header = util::fmt("Package: %s", it->first->Name().c_str());
 		header += "\n" + string(header.size(), '=');
@@ -418,8 +407,7 @@ void PackageTarget::DoGenerate() const
 
 		for ( size_t i = 0; i < it->second.size(); ++i )
 			{
-			fprintf(file.f, ":doc:`/scripts/%s`\n\n",
-			        it->second[i]->Name().c_str());
+			fprintf(file.f, ":doc:`/scripts/%s`\n\n", it->second[i]->Name().c_str());
 
 			vector<string> cmnts = it->second[i]->GetComments();
 
@@ -436,8 +424,8 @@ void PackageIndexTarget::DoFindDependencies(const vector<Info*>& infos)
 	pkg_deps = filter_matches<PackageInfo>(infos, this);
 
 	if ( pkg_deps.empty() )
-		reporter->FatalError("No match for Zeekygen target '%s' pattern '%s'",
-		                     Name().c_str(), Pattern().c_str());
+		reporter->FatalError("No match for Zeekygen target '%s' pattern '%s'", Name().c_str(),
+		                     Pattern().c_str());
 	}
 
 void PackageIndexTarget::DoGenerate() const
@@ -452,12 +440,12 @@ void PackageIndexTarget::DoGenerate() const
 	}
 
 void ScriptTarget::DoFindDependencies(const vector<Info*>& infos)
-    {
+	{
 	script_deps = filter_matches<ScriptInfo>(infos, this);
 
 	if ( script_deps.empty() )
-		reporter->FatalError("No match for Zeekygen target '%s' pattern '%s'",
-		                     Name().c_str(), Pattern().c_str());
+		reporter->FatalError("No match for Zeekygen target '%s' pattern '%s'", Name().c_str(),
+		                     Pattern().c_str());
 
 	if ( ! IsDir() )
 		return;
@@ -496,8 +484,8 @@ vector<string> dir_contents_recursive(string dir)
 	if ( ! fts )
 		{
 		reporter->Error("fts_open failure: %s", strerror(errno));
-		delete [] scan_path;
-		delete [] dir_copy;
+		delete[] scan_path;
+		delete[] dir_copy;
 		return rval;
 		}
 
@@ -515,13 +503,13 @@ vector<string> dir_contents_recursive(string dir)
 	if ( fts_close(fts) < 0 )
 		reporter->Error("fts_close failure: %s", strerror(errno));
 
-	delete [] scan_path;
-	delete [] dir_copy;
+	delete[] scan_path;
+	delete[] dir_copy;
 	return rval;
 	}
 
 void ScriptTarget::DoGenerate() const
-    {
+	{
 	if ( IsDir() )
 		{
 		// Target name is a dir, matching scripts are written within that dir
@@ -559,8 +547,7 @@ void ScriptTarget::DoGenerate() const
 				continue;
 
 			if ( unlink(f.c_str()) < 0 )
-				reporter->Warning("Failed to unlink %s: %s", f.c_str(),
-				                  strerror(errno));
+				reporter->Warning("Failed to unlink %s: %s", f.c_str(), strerror(errno));
 
 			DBG_LOG(DBG_ZEEKYGEN, "Delete stale script file %s", f.c_str());
 			}
@@ -621,8 +608,7 @@ void ScriptIndexTarget::DoGenerate() const
 		if ( ! d )
 			continue;
 
-		fprintf(file.f, "   %s </scripts/%s>\n", d->Name().c_str(),
-		        d->Name().c_str());
+		fprintf(file.f, "   %s </scripts/%s>\n", d->Name().c_str(), d->Name().c_str());
 		}
 	}
 
@@ -631,8 +617,8 @@ void IdentifierTarget::DoFindDependencies(const vector<Info*>& infos)
 	id_deps = filter_matches<IdentifierInfo>(infos, this);
 
 	if ( id_deps.empty() )
-		reporter->FatalError("No match for Zeekygen target '%s' pattern '%s'",
-		                           Name().c_str(), Pattern().c_str());
+		reporter->FatalError("No match for Zeekygen target '%s' pattern '%s'", Name().c_str(),
+		                     Pattern().c_str());
 	}
 
 void IdentifierTarget::DoGenerate() const
@@ -646,4 +632,4 @@ void IdentifierTarget::DoGenerate() const
 		fprintf(file.f, "%s\n\n", id_deps[i]->ReStructuredText().c_str());
 	}
 
-} // namespace zeek::zeekygen::detail
+	} // namespace zeek::zeekygen::detail

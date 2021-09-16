@@ -1,20 +1,20 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/finger/Finger.h"
 
 #include <ctype.h>
 
-#include "zeek/NetVar.h"
 #include "zeek/Event.h"
-#include "zeek/analyzer/protocol/tcp/ContentLine.h"
-
+#include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/finger/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/ContentLine.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek::analyzer::finger {
+namespace zeek::analyzer::finger
+	{
 
 Finger_Analyzer::Finger_Analyzer(Connection* conn)
-: analyzer::tcp::TCP_ApplicationAnalyzer("FINGER", conn)
+	: analyzer::tcp::TCP_ApplicationAnalyzer("FINGER", conn)
 	{
 	did_deliver = 0;
 	content_line_orig = new analyzer::tcp::ContentLine_Analyzer(conn, true, 1000);
@@ -38,7 +38,7 @@ void Finger_Analyzer::Done()
 
 void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 	{
-	const char* line = (const char*) data;
+	const char* line = (const char*)data;
 	const char* end_of_line = line + length;
 
 	if ( length == 0 )
@@ -55,10 +55,11 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		// Check for /W.
 		int long_cnt = (line + 2 <= end_of_line && line[0] == '/' && toupper(line[1]) == 'W');
 		if ( long_cnt )
-			line = util::skip_whitespace(line+2, end_of_line);
+			line = util::skip_whitespace(line + 2, end_of_line);
 
 		assert(line <= end_of_line);
-		size_t n = end_of_line >= line ? end_of_line - line : 0; // just to be sure if assertions aren't on.
+		size_t n = end_of_line >= line ? end_of_line - line
+		                               : 0; // just to be sure if assertions aren't on.
 		const char* at = reinterpret_cast<const char*>(memchr(line, '@', n));
 		const char* host = nullptr;
 		if ( ! at )
@@ -67,15 +68,12 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 			host = at + 1;
 
 		if ( finger_request )
-			EnqueueConnEvent(finger_request,
-				ConnVal(),
-				val_mgr->Bool(long_cnt),
-				make_intrusive<StringVal>(at - line, line),
-				make_intrusive<StringVal>(end_of_line - host, host)
-			);
+			EnqueueConnEvent(finger_request, ConnVal(), val_mgr->Bool(long_cnt),
+			                 make_intrusive<StringVal>(at - line, line),
+			                 make_intrusive<StringVal>(end_of_line - host, host));
 
-		Conn()->Match(zeek::detail::Rule::FINGER, (const u_char *) line,
-		              end_of_line - line, true, true, true, true);
+		Conn()->Match(zeek::detail::Rule::FINGER, (const u_char*)line, end_of_line - line, true,
+		              true, true, true);
 
 		did_deliver = 1;
 		}
@@ -85,11 +83,9 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		if ( ! finger_reply )
 			return;
 
-		EnqueueConnEvent(finger_reply,
-			ConnVal(),
-			make_intrusive<StringVal>(end_of_line - line, line)
-		);
+		EnqueueConnEvent(finger_reply, ConnVal(),
+		                 make_intrusive<StringVal>(end_of_line - line, line));
 		}
 	}
 
-} // namespace zeek::analyzer::finger
+	} // namespace zeek::analyzer::finger

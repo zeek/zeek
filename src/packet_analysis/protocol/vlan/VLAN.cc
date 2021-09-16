@@ -4,10 +4,7 @@
 
 using namespace zeek::packet_analysis::VLAN;
 
-VLANAnalyzer::VLANAnalyzer()
-	: zeek::packet_analysis::Analyzer("VLAN")
-	{
-	}
+VLANAnalyzer::VLANAnalyzer() : zeek::packet_analysis::Analyzer("VLAN") { }
 
 bool VLANAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{

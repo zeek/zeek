@@ -9,12 +9,13 @@
  * We use these kinds of hashes heavily internally - e.g. for scriptland hash generation.
  * It is important that these hashes are not easily guessable to prevent complexity attacks.
  *
- * The HashKey class is the actual class that is used to generate Hash keys that are used internally,
- * e.g. for lookups in hash-tables; the Hashes are also used for connection ID generation.
+ * The HashKey class is the actual class that is used to generate Hash keys that are used
+ * internally, e.g. for lookups in hash-tables; the Hashes are also used for connection ID
+ * generation.
  *
- * This means that the hashes created by most functions in this file will be different each run, unless
- * a seed file is used. There are a few functions that create hashes that are static over runs
- * and use an installation-wide seed value; these are specifically called out.
+ * This means that the hashes created by most functions in this file will be different each run,
+ * unless a seed file is used. There are a few functions that create hashes that are static over
+ * runs and use an installation-wide seed value; these are specifically called out.
  */
 
 #pragma once
@@ -26,26 +27,33 @@
 // to allow bro_md5_hmac access to the hmac seed
 #include "zeek/ZeekArgs.h"
 
-namespace zeek { class String; }
-namespace zeek::detail {
+namespace zeek
+	{
+class String;
+	}
+namespace zeek::detail
+	{
 
 class Frame;
 class BifReturnVal;
 
-}
+	}
 
-namespace zeek::BifFunc {
-	extern zeek::detail::BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
-}
+namespace zeek::BifFunc
+	{
+extern zeek::detail::BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
+	}
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 typedef uint64_t hash_t;
 typedef uint64_t hash64_t;
 typedef uint64_t hash128_t[2];
 typedef uint64_t hash256_t[4];
 
-class KeyedHash {
+class KeyedHash
+	{
 public:
 	/**
 	 * Generate a 64 bit digest hash.
@@ -193,19 +201,23 @@ public:
 private:
 	// actually HHKey. This key changes each start (unless a seed is specified)
 	alignas(32) static uint64_t shared_highwayhash_key[4];
-	// actually HHKey. This key is installation specific and sourced from the digest_salt script-level const.
+	// actually HHKey. This key is installation specific and sourced from the digest_salt
+	// script-level const.
 	alignas(32) static uint64_t cluster_highwayhash_key[4];
-	// actually HH_U64, which has the same type. This key changes each start (unless a seed is specified)
+	// actually HH_U64, which has the same type. This key changes each start (unless a seed is
+	// specified)
 	alignas(16) static unsigned long long shared_siphash_key[2];
 	// This key changes each start (unless a seed is specified)
 	inline static uint8_t shared_hmac_md5_key[16];
 	inline static bool seeds_initialized = false;
 
-	friend void util::detail::hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
+	friend void util::detail::hmac_md5(size_t size, const unsigned char* bytes,
+	                                   unsigned char digest[16]);
 	friend BifReturnVal BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const Args*);
-};
+	};
 
-typedef enum {
+typedef enum
+{
 	HASH_KEY_INT,
 	HASH_KEY_DOUBLE,
 	HASH_KEY_STRING
@@ -213,7 +225,8 @@ typedef enum {
 
 constexpr int NUM_HASH_KEYS = HASH_KEY_STRING + 1;
 
-class HashKey {
+class HashKey
+	{
 public:
 	explicit HashKey(bro_int_t i);
 	explicit HashKey(bro_uint_t u);
@@ -226,7 +239,7 @@ public:
 	~HashKey()
 		{
 		if ( is_our_dynamic )
-			delete [] (char *) key;
+			delete[](char*) key;
 		}
 
 	// Create a HashKey given all of its components.  "key" is assumed
@@ -257,30 +270,35 @@ public:
 	// we give them a copy of it.
 	void* TakeKey();
 
-	const void* Key() const	{ return key; }
-	int Size() const	{ return size; }
-	hash_t Hash() const	{ return hash; }
+	const void* Key() const { return key; }
+	int Size() const { return size; }
+	hash_t Hash() const { return hash; }
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
-	unsigned int MemoryAllocation() const	{ return padded_sizeof(*this) + util::pad_size(size); }
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	MemoryAllocation() const
+		{
+		return padded_sizeof(*this) + util::pad_size(size);
+		}
 
 	static hash_t HashBytes(const void* bytes, int size);
+
 protected:
 	void* CopyKey(const void* key, int size) const;
 
-	union {
+		union {
 		bro_int_t i;
 		uint32_t u32;
 		double d;
 		const void* p;
-	} key_u;
+		} key_u;
 
 	void* key;
 	hash_t hash;
 	int size;
 	bool is_our_dynamic = false;
-};
+	};
 
 extern void init_hash_function();
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

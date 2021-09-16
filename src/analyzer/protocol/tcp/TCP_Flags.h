@@ -1,28 +1,30 @@
 #pragma once
 
-#include <sys/types.h>
 #include <netinet/tcp.h>
+#include <sys/types.h>
 #include <string>
 
-namespace zeek::analyzer::tcp {
+namespace zeek::analyzer::tcp
+	{
 
-class TCP_Flags {
+class TCP_Flags
+	{
 public:
-	TCP_Flags(const struct tcphdr* tp)	{ flags = tp->th_flags; }
-	TCP_Flags()	{ flags = 0; }
+	TCP_Flags(const struct tcphdr* tp) { flags = tp->th_flags; }
+	TCP_Flags() { flags = 0; }
 
-	bool SYN() const	{ return flags & TH_SYN; }
-	bool FIN() const	{ return flags & TH_FIN; }
-	bool RST() const	{ return flags & TH_RST; }
-	bool ACK() const	{ return flags & TH_ACK; }
-	bool URG() const	{ return flags & TH_URG; }
-	bool PUSH() const	{ return flags & TH_PUSH; }
+	bool SYN() const { return flags & TH_SYN; }
+	bool FIN() const { return flags & TH_FIN; }
+	bool RST() const { return flags & TH_RST; }
+	bool ACK() const { return flags & TH_ACK; }
+	bool URG() const { return flags & TH_URG; }
+	bool PUSH() const { return flags & TH_PUSH; }
 
 	std::string AsString() const;
 
 protected:
 	u_char flags;
-};
+	};
 
 inline std::string TCP_Flags::AsString() const
 	{
@@ -51,4 +53,4 @@ inline std::string TCP_Flags::AsString() const
 	return tcp_flags;
 	}
 
-} // namespace zeek::analyzer::tcp
+	} // namespace zeek::analyzer::tcp

@@ -2,11 +2,12 @@
 
 #pragma once
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
-class Pipe {
+class Pipe
+	{
 public:
-
 	/**
 	 * Create a pair of file descriptors via pipe(), or aborts if it cannot.
 	 * @param flags0 file descriptor flags to set on read end of pipe.
@@ -17,12 +18,12 @@ public:
 	 * than create ones from a new pipe.  Should point to memory containing
 	 * two consecutive file descriptors, the "read" one and then the "write" one.
 	 */
-	explicit Pipe(int flags0 = 0, int flags1 = 0, int status_flags0 = 0,
-	              int status_flags1 = 0, int* fds = nullptr);
+	explicit Pipe(int flags0 = 0, int flags1 = 0, int status_flags0 = 0, int status_flags1 = 0,
+	              int* fds = nullptr);
 
 	/**
-	  * Close the pair of file descriptors owned by the object.
-	  */
+	 * Close the pair of file descriptors owned by the object.
+	 */
 	~Pipe();
 
 	/**
@@ -39,14 +40,12 @@ public:
 	/**
 	 * @return the file descriptor associated with the read-end of the pipe.
 	 */
-	int ReadFD() const
-		{ return fds[0]; }
+	int ReadFD() const { return fds[0]; }
 
 	/**
 	 * @return the file descriptor associated with the write-end of the pipe.
 	 */
-	int WriteFD() const
-		{ return fds[1]; }
+	int WriteFD() const { return fds[1]; }
 
 	/**
 	 * Sets the given file descriptor flags for both the read and write end
@@ -64,14 +63,14 @@ private:
 	int fds[2];
 	int flags[2];
 	int status_flags[2];
-};
+	};
 
 /**
  * A pair of pipes that can be used for bi-directinoal IPC.
  */
-class PipePair {
+class PipePair
+	{
 public:
-
 	/**
 	 * Create a pair of pipes
 	 * @param flags  file descriptor flags to set on pipes
@@ -87,53 +86,45 @@ public:
 	/**
 	 * @return the pipe used for receiving input
 	 */
-	Pipe& In()
-		{ return pipes[swapped]; }
+	Pipe& In() { return pipes[swapped]; }
 
 	/**
 	 * @return the pipe used for sending output
 	 */
-	Pipe& Out()
-		{ return pipes[!swapped]; }
+	Pipe& Out() { return pipes[! swapped]; }
 
 	/**
 	 * @return the pipe used for receiving input
 	 */
-	const Pipe& In() const
-		{ return pipes[swapped]; }
+	const Pipe& In() const { return pipes[swapped]; }
 
 	/**
 	 * @return the pipe used for sending output
 	 */
-	const Pipe& Out() const
-		{ return pipes[!swapped]; }
+	const Pipe& Out() const { return pipes[! swapped]; }
 
 	/**
 	 * @return a file descriptor that may used for receiving messages by
 	 * polling/reading it.
 	 */
-	int InFD() const
-		{ return In().ReadFD(); }
+	int InFD() const { return In().ReadFD(); }
 
 	/**
 	 * @return a file descriptor that may be used for sending messages by
 	 * writing to it.
 	 */
-	int OutFD() const
-		{ return Out().WriteFD(); }
+	int OutFD() const { return Out().WriteFD(); }
 
 	/**
 	 * Swaps the meaning of the pipes in the pair.  E.g. call this after
 	 * fork()'ing so that the child process uses the right pipe for
 	 * reading/writing.
 	 */
-	void Swap()
-		{ swapped = ! swapped; }
+	void Swap() { swapped = ! swapped; }
 
 private:
-
 	Pipe pipes[2];
 	bool swapped = false;
-};
+	};
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

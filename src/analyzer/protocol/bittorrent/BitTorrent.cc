@@ -1,14 +1,15 @@
 // This code contributed by Nadi Sarrar.
 
 #include "zeek/analyzer/protocol/bittorrent/BitTorrent.h"
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "zeek/analyzer/protocol/bittorrent/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-namespace zeek::analyzer::bittorrent {
+namespace zeek::analyzer::bittorrent
+	{
 
 BitTorrent_Analyzer::BitTorrent_Analyzer(Connection* c)
-: analyzer::tcp::TCP_ApplicationAnalyzer("BITTORRENT", c)
+	: analyzer::tcp::TCP_ApplicationAnalyzer("BITTORRENT", c)
 	{
 	interp = new binpac::BitTorrent::BitTorrent_Conn(this);
 	stop_orig = stop_resp = false;
@@ -50,7 +51,7 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		{
 		interp->NewData(orig, data, data + len);
 		}
-	catch ( binpac::Exception const &e )
+	catch ( binpac::Exception const& e )
 		{
 		const char except[] = "binpac exception: invalid handshake";
 		if ( ! strncmp(e.c_msg(), except, strlen(except)) )
@@ -59,8 +60,9 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			Parent()->RemoveChildAnalyzer(this);
 		else
 			{
-			DeliverWeird(util::fmt("Stopping BitTorrent analysis: protocol violation (%s)",
-			                             e.c_msg()), orig);
+			DeliverWeird(
+				util::fmt("Stopping BitTorrent analysis: protocol violation (%s)", e.c_msg()),
+				orig);
 			this_stop = true;
 			if ( stop_orig && stop_resp )
 				ProtocolViolation("BitTorrent: content gap and/or protocol violation");
@@ -77,22 +79,22 @@ void BitTorrent_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	// The way it's currently tracking the next message offset isn't
 	// compatible with new 64bit int support in binpac either.
 
-	//uint64_t entry_offset = orig ?
+	// uint64_t entry_offset = orig ?
 	//	*interp->upflow()->next_message_offset() :
 	//	*interp->downflow()->next_message_offset();
-	//uint64_t& this_stream_len = orig ? stream_len_orig : stream_len_resp;
-	//bool& this_stop = orig ? stop_orig : stop_resp;
+	// uint64_t& this_stream_len = orig ? stream_len_orig : stream_len_resp;
+	// bool& this_stop = orig ? stop_orig : stop_resp;
 	//
-	//this_stream_len += len;
+	// this_stream_len += len;
 	//
-	//if ( entry_offset < this_stream_len )
+	// if ( entry_offset < this_stream_len )
 	//	{ // entry point is somewhere in the gap
 	//	DeliverWeird("Stopping BitTorrent analysis: cannot recover from content gap", orig);
 	//	this_stop = true;
 	//	if ( stop_orig && stop_resp )
 	//		ProtocolViolation("BitTorrent: content gap and/or protocol violation");
 	//	}
-	//else
+	// else
 	//	{ // fill the gap
 	//	try
 	//		{
@@ -121,10 +123,8 @@ void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)
 	if ( bittorrent_peer_weird )
 
 		// TODO: why does bittorrent have a different set of weirds?
-		EnqueueConnEvent(bittorrent_peer_weird,
-		                 ConnVal(),
-		                 val_mgr->Bool(orig),
+		EnqueueConnEvent(bittorrent_peer_weird, ConnVal(), val_mgr->Bool(orig),
 		                 make_intrusive<StringVal>(msg));
 	}
 
-} // namespace zeek::analyzer::bittorrent
+	} // namespace zeek::analyzer::bittorrent

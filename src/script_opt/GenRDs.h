@@ -7,53 +7,56 @@
 
 #include <memory>
 
-#include "zeek/script_opt/ReachingDefs.h"
 #include "zeek/script_opt/DefSetsMgr.h"
 #include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/script_opt/ReachingDefs.h"
 
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 // Helper class that tracks definitions gathered in a block that either
 // need to be propagated to the beginning of the block or to the end.
 // Used for RD propagation due to altered control flow (next/break/fallthrough).
 // Managed as a stack (vector) to deal with nested loops, switches, etc.
 // Only applies to gathering maximum RDs.
-class BlockDefs {
+class BlockDefs
+	{
 public:
-	BlockDefs(bool _is_case)
-		{ is_case = _is_case; }
+	BlockDefs(bool _is_case) { is_case = _is_case; }
 
-	void AddPreRDs(RDPtr RDs)	{ pre_RDs.push_back(std::move(RDs)); }
-	void AddPostRDs(RDPtr RDs)	{ post_RDs.push_back(std::move(RDs)); }
-	void AddFutureRDs(RDPtr RDs)	{ future_RDs.push_back(std::move(RDs)); }
+	void AddPreRDs(RDPtr RDs) { pre_RDs.push_back(std::move(RDs)); }
+	void AddPostRDs(RDPtr RDs) { post_RDs.push_back(std::move(RDs)); }
+	void AddFutureRDs(RDPtr RDs) { future_RDs.push_back(std::move(RDs)); }
 
-	const std::vector<RDPtr>& PreRDs() const	{ return pre_RDs; }
-	const std::vector<RDPtr>& PostRDs() const	{ return post_RDs; }
-	const std::vector<RDPtr>& FutureRDs() const	{ return future_RDs; }
+	const std::vector<RDPtr>& PreRDs() const { return pre_RDs; }
+	const std::vector<RDPtr>& PostRDs() const { return post_RDs; }
+	const std::vector<RDPtr>& FutureRDs() const { return future_RDs; }
 
 	void Clear()
-		{ pre_RDs.clear(); post_RDs.clear(); future_RDs.clear(); }
+		{
+		pre_RDs.clear();
+		post_RDs.clear();
+		future_RDs.clear();
+		}
 
-	bool IsCase() const	{ return is_case; }
+	bool IsCase() const { return is_case; }
 
 private:
 	std::vector<RDPtr> pre_RDs;
 	std::vector<RDPtr> post_RDs;
-	std::vector<RDPtr> future_RDs;	// RDs for next case block
+	std::vector<RDPtr> future_RDs; // RDs for next case block
 
 	// Whether this block is for a switch case.  If not,
 	// it's for a loop body.
 	bool is_case;
-};
+	};
 
-
-class RD_Decorate : public TraversalCallback {
+class RD_Decorate : public TraversalCallback
+	{
 public:
-	RD_Decorate(std::shared_ptr<ProfileFunc> _pf, const Func* f,
-	            ScopePtr scope, StmtPtr body);
+	RD_Decorate(std::shared_ptr<ProfileFunc> _pf, const Func* f, ScopePtr scope, StmtPtr body);
 
-	const DefSetsMgr* GetDefSetsMgr() const	{ return &mgr; }
+	const DefSetsMgr* GetDefSetsMgr() const { return &mgr; }
 
 private:
 	// Traverses the given function body, using the first two
@@ -90,27 +93,23 @@ private:
 	// The following enable tracking of either identifiers or
 	// record fields before/after the given definition point.
 	void CreateInitPreDef(const ID* id, DefinitionPoint dp);
-	void CreateInitPostDef(const ID* id, DefinitionPoint dp,
-				bool assume_full, const Expr* rhs);
-	void CreateInitPostDef(std::shared_ptr<DefinitionItem> di,
-				DefinitionPoint dp, bool assume_full,
-				const Expr* rhs);
-	void CreateInitDef(std::shared_ptr<DefinitionItem> di,
-				DefinitionPoint dp, bool is_pre,
-				bool assume_full, const Expr* rhs);
+	void CreateInitPostDef(const ID* id, DefinitionPoint dp, bool assume_full, const Expr* rhs);
+	void CreateInitPostDef(std::shared_ptr<DefinitionItem> di, DefinitionPoint dp, bool assume_full,
+	                       const Expr* rhs);
+	void CreateInitDef(std::shared_ptr<DefinitionItem> di, DefinitionPoint dp, bool is_pre,
+	                   bool assume_full, const Expr* rhs);
 
 	// Helper functions for generating RDs associated with record
 	// fields.
-	void CreateRecordRDs(std::shared_ptr<DefinitionItem> di,
-				DefinitionPoint dp, bool assume_full,
-				const DefinitionItem* rhs_di)
-		{ CreateRecordRDs(std::move(di), dp, false, assume_full, rhs_di); }
-	void CreateRecordRDs(std::shared_ptr<DefinitionItem> di,
-				DefinitionPoint dp, bool is_pre,
-				bool assume_full, const DefinitionItem* rhs_di);
-	void CheckRecordRDs(std::shared_ptr<DefinitionItem> di,
-					DefinitionPoint dp,
-					const RDPtr& pre_rds, const Obj* o);
+	void CreateRecordRDs(std::shared_ptr<DefinitionItem> di, DefinitionPoint dp, bool assume_full,
+	                     const DefinitionItem* rhs_di)
+		{
+		CreateRecordRDs(std::move(di), dp, false, assume_full, rhs_di);
+		}
+	void CreateRecordRDs(std::shared_ptr<DefinitionItem> di, DefinitionPoint dp, bool is_pre,
+	                     bool assume_full, const DefinitionItem* rhs_di);
+	void CheckRecordRDs(std::shared_ptr<DefinitionItem> di, DefinitionPoint dp,
+	                    const RDPtr& pre_rds, const Obj* o);
 
 	void CreateEmptyPostRDs(const Stmt* s);
 
@@ -125,8 +124,7 @@ private:
 	//
 	// is_case specifies whether we are adding definitions associated
 	// with a switch case.
-	void AddBlockDefs(const Stmt* s,
-				bool is_pre, bool is_future, bool is_case);
+	void AddBlockDefs(const Stmt* s, bool is_pre, bool is_future, bool is_case);
 
 	// Profile for the function.  Currently, all we actually need from
 	// this is the list of globals.
@@ -143,6 +141,6 @@ private:
 	// A stack of definitions associated with (potentially nested) loop
 	// and switch blocks.
 	std::vector<std::unique_ptr<BlockDefs>> block_defs;
-};
+	};
 
-} // zeek::detail
+	} // zeek::detail

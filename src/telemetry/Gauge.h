@@ -9,7 +9,8 @@
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 
-namespace zeek::telemetry {
+namespace zeek::telemetry
+	{
 
 class DblGaugeFamily;
 class IntGaugeFamily;
@@ -19,7 +20,8 @@ class Manager;
  * A handle to a metric that represents an integer value. Gauges are less
  * permissive than counters and also allow decrementing the value.
  */
-class IntGauge {
+class IntGauge
+	{
 public:
 	friend class IntGaugeFamily;
 
@@ -71,18 +73,13 @@ public:
 	/**
 	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool IsSameAs(IntGauge other) const noexcept
-		{
-		return pimpl == other.pimpl;
-		}
+	constexpr bool IsSameAs(IntGauge other) const noexcept { return pimpl == other.pimpl; }
 
 private:
-	explicit IntGauge(Impl* ptr) noexcept : pimpl(ptr)
-		{
-		}
+	explicit IntGauge(Impl* ptr) noexcept : pimpl(ptr) { }
 
 	Impl* pimpl;
-};
+	};
 
 /**
  * Checks whether two @ref IntGauge handles are identical.
@@ -97,13 +94,14 @@ constexpr bool operator==(IntGauge lhs, IntGauge rhs) noexcept
 /// @relates IntGauge
 constexpr bool operator!=(IntGauge lhs, IntGauge rhs) noexcept
 	{
-	return !(lhs == rhs);
+	return ! (lhs == rhs);
 	}
 
 /**
  * Manages a collection of IntGauge metrics.
  */
-class IntGaugeFamily : public MetricFamily {
+class IntGaugeFamily : public MetricFamily
+	{
 public:
 	friend class Manager;
 
@@ -132,14 +130,15 @@ public:
 
 private:
 	explicit IntGaugeFamily(Impl* ptr);
-};
+	};
 
 /**
  * A handle to a metric that represents a floating point value. Gauges are less
  * permissive than counters and also allow decrementing the value.
  * up.
  */
-class DblGauge {
+class DblGauge
+	{
 public:
 	friend class DblGaugeFamily;
 
@@ -179,18 +178,13 @@ public:
 	/**
 	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool IsSameAs(DblGauge other) const noexcept
-		{
-		return pimpl == other.pimpl;
-		}
+	constexpr bool IsSameAs(DblGauge other) const noexcept { return pimpl == other.pimpl; }
 
 private:
-	explicit DblGauge(Impl* ptr) noexcept : pimpl(ptr)
-		{
-		}
+	explicit DblGauge(Impl* ptr) noexcept : pimpl(ptr) { }
 
 	Impl* pimpl;
-};
+	};
 
 /**
  * Checks whether two @ref DblGauge handles are identical.
@@ -205,13 +199,14 @@ constexpr bool operator==(DblGauge lhs, DblGauge rhs) noexcept
 /// @relates DblGauge
 constexpr bool operator!=(DblGauge lhs, DblGauge rhs) noexcept
 	{
-	return !(lhs == rhs);
+	return ! (lhs == rhs);
 	}
 
 /**
  * Manages a collection of DblGauge metrics.
  */
-class DblGaugeFamily : public MetricFamily {
+class DblGaugeFamily : public MetricFamily
+	{
 public:
 	friend class Manager;
 
@@ -240,26 +235,25 @@ public:
 
 private:
 	explicit DblGaugeFamily(Impl* ptr);
-};
+	};
 
-namespace detail {
+namespace detail
+	{
 
-template <class T>
-struct GaugeOracle {
-	static_assert(std::is_same<T, int64_t>::value,
-	              "Gauge<T> only supports int64_t and double");
+template <class T> struct GaugeOracle
+	{
+	static_assert(std::is_same<T, int64_t>::value, "Gauge<T> only supports int64_t and double");
 
 	using type = IntGauge;
-};
+	};
 
-template <>
-struct GaugeOracle<double> {
+template <> struct GaugeOracle<double>
+	{
 	using type = DblGauge;
-};
+	};
 
-} // namespace detail
+	} // namespace detail
 
-template <class T>
-using Gauge = typename detail::GaugeOracle<T>::type;
+template <class T> using Gauge = typename detail::GaugeOracle<T>::type;
 
-} // namespace zeek::telemetry
+	} // namespace zeek::telemetry

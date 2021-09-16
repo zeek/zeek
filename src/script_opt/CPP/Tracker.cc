@@ -1,17 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/Desc.h"
 #include "zeek/script_opt/CPP/Tracker.h"
+
+#include "zeek/Desc.h"
 #include "zeek/script_opt/CPP/Util.h"
 #include "zeek/script_opt/ProfileFunc.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 using namespace std;
 
-template<class T>
-void CPPTracker<T>::AddKey(IntrusivePtr<T> key, p_hash_type h)
+template <class T> void CPPTracker<T>::AddKey(IntrusivePtr<T> key, p_hash_type h)
 	{
 	if ( HasKey(key) )
 		return;
@@ -39,13 +39,12 @@ void CPPTracker<T>::AddKey(IntrusivePtr<T> key, p_hash_type h)
 		reps[h] = key.get();
 		}
 
-	ASSERT(h != 0);	// check for hash botches
+	ASSERT(h != 0); // check for hash botches
 
 	map[key.get()] = h;
 	}
 
-template<class T>
-string CPPTracker<T>::KeyName(const T* key)
+template <class T> string CPPTracker<T>::KeyName(const T* key)
 	{
 	ASSERT(HasKey(key));
 
@@ -61,8 +60,7 @@ string CPPTracker<T>::KeyName(const T* key)
 	return scope + string(base_name) + "_" + Fmt(index) + "__CPP";
 	}
 
-template<class T>
-void CPPTracker<T>::LogIfNew(IntrusivePtr<T> key, int scope, FILE* log_file)
+template <class T> void CPPTracker<T>::LogIfNew(IntrusivePtr<T> key, int scope, FILE* log_file)
 	{
 	if ( IsInherited(key) )
 		return;
@@ -73,8 +71,7 @@ void CPPTracker<T>::LogIfNew(IntrusivePtr<T> key, int scope, FILE* log_file)
 	fprintf(log_file, "hash\n%llu %d %d\n", hash, index, scope);
 	}
 
-template<class T>
-p_hash_type CPPTracker<T>::Hash(IntrusivePtr<T> key) const
+template <class T> p_hash_type CPPTracker<T>::Hash(IntrusivePtr<T> key) const
 	{
 	ODesc d;
 	d.SetDeterminism(true);
@@ -84,10 +81,9 @@ p_hash_type CPPTracker<T>::Hash(IntrusivePtr<T> key) const
 	return p_hash_type(h);
 	}
 
-
 // Instantiate the templates we'll need.
 template class CPPTracker<Type>;
 template class CPPTracker<Attributes>;
 template class CPPTracker<Expr>;
 
-} // zeek::detail
+	} // zeek::detail

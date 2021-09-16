@@ -5,9 +5,11 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::Wrapper {
+namespace zeek::packet_analysis::Wrapper
+	{
 
-class WrapperAnalyzer : public Analyzer {
+class WrapperAnalyzer : public Analyzer
+	{
 public:
 	WrapperAnalyzer();
 	~WrapperAnalyzer() override = default;
@@ -18,6 +20,6 @@ public:
 		{
 		return std::make_shared<WrapperAnalyzer>();
 		}
-};
+	};
 
-}
+	}

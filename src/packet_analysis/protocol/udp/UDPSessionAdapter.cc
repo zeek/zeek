@@ -9,10 +9,11 @@
 using namespace zeek::packet_analysis::UDP;
 using namespace zeek::packet_analysis::IP;
 
-enum UDP_EndpointState {
-	UDP_INACTIVE,	// no packet seen
-	UDP_ACTIVE,		// packets seen
-};
+enum UDP_EndpointState
+	{
+	UDP_INACTIVE, // no packet seen
+	UDP_ACTIVE, // packets seen
+	};
 
 void UDPSessionAdapter::AddExtraAnalyzers(Connection* conn)
 	{

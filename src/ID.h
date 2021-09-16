@@ -7,12 +7,13 @@
 #include <string_view>
 #include <vector>
 
-#include "zeek/Obj.h"
 #include "zeek/Attr.h"
 #include "zeek/Notifier.h"
+#include "zeek/Obj.h"
 #include "zeek/TraverseTypes.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class Func;
 class Val;
@@ -29,23 +30,36 @@ using EnumTypePtr = IntrusivePtr<EnumType>;
 using ValPtr = IntrusivePtr<Val>;
 using FuncPtr = IntrusivePtr<Func>;
 
-}
+	}
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 class Attributes;
 class Expr;
 using ExprPtr = IntrusivePtr<Expr>;
 
-enum InitClass { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, };
-enum IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
+enum InitClass
+	{
+	INIT_NONE,
+	INIT_FULL,
+	INIT_EXTRA,
+	INIT_REMOVE,
+	};
+enum IDScope
+	{
+	SCOPE_FUNCTION,
+	SCOPE_MODULE,
+	SCOPE_GLOBAL
+	};
 
 class ID;
 using IDPtr = IntrusivePtr<ID>;
 
 class IDOptInfo;
 
-class ID final : public Obj, public notifier::detail::Modifiable {
+class ID final : public Obj, public notifier::detail::Modifiable
+	{
 public:
 	static inline const IDPtr nil;
 
@@ -53,53 +67,48 @@ public:
 
 	~ID() override;
 
-	const char* Name() const	{ return name; }
+	const char* Name() const { return name; }
 
-	int Scope() const		{ return scope; }
-	bool IsGlobal() const           { return scope != SCOPE_FUNCTION; }
+	int Scope() const { return scope; }
+	bool IsGlobal() const { return scope != SCOPE_FUNCTION; }
 
-	bool IsExport() const           { return is_export; }
-	void SetExport()                { is_export = true; }
+	bool IsExport() const { return is_export; }
+	void SetExport() { is_export = true; }
 
 	std::string ModuleName() const;
 
 	void SetType(TypePtr t);
 
-	const TypePtr& GetType() const
-		{ return type; }
+	const TypePtr& GetType() const { return type; }
 
-	template <class T>
-	IntrusivePtr<T> GetType() const
-		{ return cast_intrusive<T>(type); }
+	template <class T> IntrusivePtr<T> GetType() const { return cast_intrusive<T>(type); }
 
-	bool IsType() const
-		{ return is_type; }
+	bool IsType() const { return is_type; }
 
-	void MakeType()			{ is_type = true; }
+	void MakeType() { is_type = true; }
 
 	void SetVal(ValPtr v);
 
 	void SetVal(ValPtr v, InitClass c);
 	void SetVal(ExprPtr ev, InitClass c);
 
-	bool HasVal() const		{ return val != nullptr; }
+	bool HasVal() const { return val != nullptr; }
 
-	const ValPtr& GetVal() const
-		{ return val; }
+	const ValPtr& GetVal() const { return val; }
 
 	void ClearVal();
 
-	void SetConst()			{ is_const = true; }
-	bool IsConst() const		{ return is_const; }
+	void SetConst() { is_const = true; }
+	bool IsConst() const { return is_const; }
 
 	void SetOption();
-	bool IsOption() const		{ return is_option; }
+	bool IsOption() const { return is_option; }
 
-	void SetEnumConst()		{ is_enum_const = true; }
-	bool IsEnumConst() const		{ return is_enum_const; }
+	void SetEnumConst() { is_enum_const = true; }
+	bool IsEnumConst() const { return is_enum_const; }
 
-	void SetOffset(int arg_offset)	{ offset = arg_offset; }
-	int Offset() const		{ return offset; }
+	void SetOffset(int arg_offset) { offset = arg_offset; }
+	int Offset() const { return offset; }
 
 	bool IsRedefinable() const;
 
@@ -108,8 +117,7 @@ public:
 	void RemoveAttr(AttrTag a);
 	void UpdateValAttrs();
 
-	const AttributesPtr& GetAttrs() const
-		{ return attrs; }
+	const AttributesPtr& GetAttrs() const { return attrs; }
 
 	const AttrPtr& GetAttr(AttrTag t) const;
 
@@ -128,20 +136,17 @@ public:
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 	void DescribeReSTShort(ODesc* d) const;
 
-	bool DoInferReturnType() const
-		{ return infer_return_type; }
-	void SetInferReturnType(bool infer)
-		{ infer_return_type = infer; }
+	bool DoInferReturnType() const { return infer_return_type; }
+	void SetInferReturnType(bool infer) { infer_return_type = infer; }
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
-	bool HasOptionHandlers() const
-		{ return !option_handlers.empty(); }
+	bool HasOptionHandlers() const { return ! option_handlers.empty(); }
 
 	void AddOptionHandler(FuncPtr callback, int priority);
 	std::vector<Func*> GetOptionHandlers() const;
 
-	IDOptInfo* GetOptInfo() const			{ return opt_info; }
+	IDOptInfo* GetOptInfo() const { return opt_info; }
 
 protected:
 	void EvalFunc(ExprPtr ef, ExprPtr ev);
@@ -168,12 +173,12 @@ protected:
 	// via the associated pointer, to allow it to be modified in
 	// contexts where the ID is itself "const".
 	IDOptInfo* opt_info;
+	};
 
-};
+	} // namespace zeek::detail
 
-} // namespace zeek::detail
-
-namespace zeek::id {
+namespace zeek::id
+	{
 
 /**
  * Lookup an ID in the global module and return it, if one exists;
@@ -197,9 +202,10 @@ const TypePtr& find_type(std::string_view name);
  * @param name  The identifier name to lookup
  * @return  The type of the identifier.
  */
-template<class T>
-IntrusivePtr<T> find_type(std::string_view name)
-	{ return cast_intrusive<T>(find_type(name)); }
+template <class T> IntrusivePtr<T> find_type(std::string_view name)
+	{
+	return cast_intrusive<T>(find_type(name));
+	}
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID
@@ -215,9 +221,10 @@ const ValPtr& find_val(std::string_view name);
  * @param name  The identifier name to lookup
  * @return  The current value of the identifier.
  */
-template<class T>
-IntrusivePtr<T> find_val(std::string_view name)
-	{ return cast_intrusive<T>(find_val(name)); }
+template <class T> IntrusivePtr<T> find_val(std::string_view name)
+	{
+	return cast_intrusive<T>(find_val(name));
+	}
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID
@@ -233,9 +240,10 @@ const ValPtr& find_const(std::string_view name);
  * @param name  The identifier name to lookup
  * @return  The current value of the identifier.
  */
-template<class T>
-IntrusivePtr<T> find_const(std::string_view name)
-	{ return cast_intrusive<T>(find_const(name)); }
+template <class T> IntrusivePtr<T> find_const(std::string_view name)
+	{
+	return cast_intrusive<T>(find_const(name));
+	}
 
 /**
  * Lookup an ID by its name and return the function it references.
@@ -257,9 +265,10 @@ extern TableTypePtr count_set;
 extern VectorTypePtr string_vec;
 extern VectorTypePtr index_vec;
 
-namespace detail {
+namespace detail
+	{
 
 void init_types();
 
-} // namespace detail
-} // namespace zeek::id
+	} // namespace detail
+	} // namespace zeek::id

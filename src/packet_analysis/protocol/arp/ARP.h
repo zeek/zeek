@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <net/if_arp.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
@@ -13,9 +13,11 @@
 #define arp_pkthdr arphdr
 #endif
 
-namespace zeek::packet_analysis::ARP {
+namespace zeek::packet_analysis::ARP
+	{
 
-class ARPAnalyzer : public Analyzer {
+class ARPAnalyzer : public Analyzer
+	{
 public:
 	ARPAnalyzer();
 	~ARPAnalyzer() override = default;
@@ -32,9 +34,9 @@ private:
 	zeek::StringValPtr ToEthAddrStr(const u_char* addr);
 
 	void BadARPEvent(const struct arp_pkthdr* hdr, const char* fmt, ...)
-			__attribute__((format(printf, 3, 4)));
-	void RequestReplyEvent(EventHandlerPtr e, const u_char* src, const u_char* dst,
-			const char* spa, const char* sha, const char* tpa, const char* tha);
-};
+		__attribute__((format(printf, 3, 4)));
+	void RequestReplyEvent(EventHandlerPtr e, const u_char* src, const u_char* dst, const char* spa,
+	                       const char* sha, const char* tpa, const char* tha);
+	};
 
-}
+	}

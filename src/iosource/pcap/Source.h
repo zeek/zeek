@@ -4,15 +4,18 @@
 
 #include <sys/types.h> // for u_char
 
-extern "C" {
+extern "C"
+	{
 #include <pcap.h>
-}
+	}
 
 #include "zeek/iosource/PktSrc.h"
 
-namespace zeek::iosource::pcap {
+namespace zeek::iosource::pcap
+	{
 
-class PcapSource : public PktSrc {
+class PcapSource : public PktSrc
+	{
 public:
 	PcapSource(const std::string& path, bool is_live);
 	~PcapSource() override;
@@ -37,7 +40,7 @@ private:
 	Properties props;
 	Stats stats;
 
-	pcap_t *pd;
-};
+	pcap_t* pd;
+	};
 
-} // namespace zeek::iosource::pcap
+	} // namespace zeek::iosource::pcap

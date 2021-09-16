@@ -1,59 +1,55 @@
 
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/Func.h"
 
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+
+#include "zeek/zeek-config.h"
 #ifdef TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
+#include <sys/time.h>
+#include <time.h>
 #else
-# ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
 #endif
-#include <sys/resource.h>
-
-#include <netinet/in.h>
-
-#include <stdlib.h>
-#include <errno.h>
-#include <ctype.h>
-
-#include <sys/param.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <signal.h>
-
-#include <algorithm>
-
+#endif
 #include <broker/error.hh>
+#include <ctype.h>
+#include <errno.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <sys/param.h>
+#include <sys/resource.h>
+#include <unistd.h>
+#include <algorithm>
 
 #include "zeek/Base64.h"
 #include "zeek/Debug.h"
 #include "zeek/Desc.h"
+#include "zeek/Event.h"
 #include "zeek/Expr.h"
-#include "zeek/Stmt.h"
-#include "zeek/Scope.h"
-#include "zeek/RunState.h"
-#include "zeek/NetVar.h"
 #include "zeek/File.h"
 #include "zeek/Frame.h"
+#include "zeek/NetVar.h"
+#include "zeek/RE.h"
+#include "zeek/Reporter.h"
+#include "zeek/RunState.h"
+#include "zeek/Scope.h"
+#include "zeek/Stmt.h"
+#include "zeek/Traverse.h"
 #include "zeek/Var.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/session/Manager.h"
-#include "zeek/RE.h"
-#include "zeek/Event.h"
-#include "zeek/Traverse.h"
-#include "zeek/Reporter.h"
-#include "zeek/plugin/Manager.h"
-#include "zeek/module_util.h"
-#include "zeek/iosource/PktSrc.h"
 #include "zeek/iosource/PktDumper.h"
+#include "zeek/iosource/PktSrc.h"
+#include "zeek/module_util.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/session/Manager.h"
 
 // Ignore clang-format's reordering of include files here so that it doesn't
 // break what symbols are available when, which keeps the build from breaking.
@@ -77,16 +73,18 @@
 #include "CPP-load.bif.func_def"
 // clang-format on
 
-extern	RETSIGTYPE sig_handler(int signo);
+extern RETSIGTYPE sig_handler(int signo);
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 std::vector<CallInfo> call_stack;
 bool did_builtin_init = false;
 std::vector<void (*)()> bif_initializers;
 static const std::pair<bool, zeek::ValPtr> empty_hook_result(false, nullptr);
-} // namespace zeek::detail
+	} // namespace zeek::detail
 
-namespace zeek {
+namespace zeek
+	{
 
 std::string render_call_stack()
 	{
@@ -149,8 +147,8 @@ Func::Func(Kind arg_kind) : kind(arg_kind)
 Func::~Func() = default;
 
 void Func::AddBody(detail::StmtPtr /* new_body */,
-                   const std::vector<detail::IDPtr>& /* new_inits */,
-                   size_t /* new_frame_size */, int /* priority */)
+                   const std::vector<detail::IDPtr>& /* new_inits */, size_t /* new_frame_size */,
+                   int /* priority */)
 	{
 	Internal("Func::AddBody called");
 	}
@@ -242,8 +240,7 @@ void Func::CopyStateInto(Func* other) const
 	other->unique_id = unique_id;
 	}
 
-void Func::CheckPluginResult(bool handled, const ValPtr& hook_result,
-                             FunctionFlavor flavor) const
+void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFlavor flavor) const
 	{
 	// Helper function factoring out this code from ScriptFunc:Call() for
 	// better readability.
@@ -251,54 +248,57 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result,
 	if ( ! handled )
 		{
 		if ( hook_result )
-			reporter->InternalError("plugin set processed flag to false but actually returned a value");
+			reporter->InternalError(
+				"plugin set processed flag to false but actually returned a value");
 
 		// The plugin result hasn't been processed yet (read: fall
 		// into ::Call method).
 		return;
 		}
 
-	switch ( flavor ) {
-	case FUNC_FLAVOR_EVENT:
-		if ( hook_result )
-			reporter->InternalError("plugin returned non-void result for event %s",
-			                              this->Name());
-
-		break;
-
-	case FUNC_FLAVOR_HOOK:
-		if ( hook_result->GetType()->Tag() != TYPE_BOOL )
-			reporter->InternalError("plugin returned non-bool for hook %s",
-			                              this->Name());
-
-		break;
-
-	case FUNC_FLAVOR_FUNCTION:
+	switch ( flavor )
 		{
-		const auto& yt = GetType()->Yield();
-
-		if ( (! yt) || yt->Tag() == TYPE_VOID )
-			{
+		case FUNC_FLAVOR_EVENT:
 			if ( hook_result )
-				reporter->InternalError("plugin returned non-void result for void method %s",
-				                              this->Name());
-			}
+				reporter->InternalError("plugin returned non-void result for event %s",
+				                        this->Name());
 
-		else if ( hook_result && hook_result->GetType()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY )
-			{
-			reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
-			                              hook_result->GetType()->Tag(), yt->Tag(), this->Name());
-			}
+			break;
 
-		break;
+		case FUNC_FLAVOR_HOOK:
+			if ( hook_result->GetType()->Tag() != TYPE_BOOL )
+				reporter->InternalError("plugin returned non-bool for hook %s", this->Name());
+
+			break;
+
+		case FUNC_FLAVOR_FUNCTION:
+				{
+				const auto& yt = GetType()->Yield();
+
+				if ( (! yt) || yt->Tag() == TYPE_VOID )
+					{
+					if ( hook_result )
+						reporter->InternalError(
+							"plugin returned non-void result for void method %s", this->Name());
+					}
+
+				else if ( hook_result && hook_result->GetType()->Tag() != yt->Tag() &&
+				          yt->Tag() != TYPE_ANY )
+					{
+					reporter->InternalError(
+						"plugin returned wrong type (got %d, expecting %d) for %s",
+						hook_result->GetType()->Tag(), yt->Tag(), this->Name());
+					}
+
+				break;
+				}
 		}
 	}
-	}
 
-namespace detail {
+namespace detail
+	{
 
-ScriptFunc::ScriptFunc(const IDPtr& arg_id, StmtPtr arg_body,
-                       const std::vector<IDPtr>& aggr_inits,
+ScriptFunc::ScriptFunc(const IDPtr& arg_id, StmtPtr arg_body, const std::vector<IDPtr>& aggr_inits,
                        size_t arg_frame_size, int priority)
 	: Func(SCRIPT_FUNC)
 	{
@@ -316,8 +316,8 @@ ScriptFunc::ScriptFunc(const IDPtr& arg_id, StmtPtr arg_body,
 		}
 	}
 
-ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft,
-	               std::vector<StmtPtr> bs, std::vector<int> priorities)
+ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> bs,
+                       std::vector<int> priorities)
 	{
 	name = std::move(_name);
 	frame_size = ft->ParamList()->GetTypes().size();
@@ -355,7 +355,10 @@ ScriptFunc::~ScriptFunc()
 bool ScriptFunc::IsPure() const
 	{
 	return std::all_of(bodies.begin(), bodies.end(),
-		[](const Body& b) { return b.stmts->IsPure(); });
+	                   [](const Body& b)
+	                   {
+						   return b.stmts->IsPure();
+					   });
 	}
 
 ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
@@ -368,9 +371,8 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	auto [handled, hook_result] = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION,
-	                                                      HookCallFunction(this, parent, args),
-	                                                      empty_hook_result);
+	auto [handled, hook_result] = PLUGIN_HOOK_WITH_RESULT(
+		HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
 	CheckPluginResult(handled, hook_result, Flavor());
 
@@ -396,7 +398,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 		f->SetCall(parent->GetCall());
 		}
 
-	g_frame_stack.push_back(f.get());	// used for backtracing
+	g_frame_stack.push_back(f.get()); // used for backtracing
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
 	call_stack.emplace_back(CallInfo{call_expr, this, *args});
 
@@ -405,8 +407,8 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 		ODesc d;
 		DescribeDebug(&d, args);
 
-		g_trace_state.LogTrace("%s called: %s\n",
-			GetType()->FlavorString().c_str(), d.Description());
+		g_trace_state.LogTrace("%s called: %s\n", GetType()->FlavorString().c_str(),
+		                       d.Description());
 		}
 
 	StmtFlowType flow = FLOW_NEXT;
@@ -483,11 +485,10 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 	// Warn if the function returns something, but we returned from
 	// the function without an explicit return, or without a value.
 	else if ( GetType()->Yield() && GetType()->Yield()->Tag() != TYPE_VOID &&
-		 (flow != FLOW_RETURN /* we fell off the end */ ||
-		  ! result /* explicit return with no result */) &&
-		 ! f->HasDelayed() )
-		reporter->Warning("non-void function returning without a value: %s",
-		                        Name());
+	          (flow != FLOW_RETURN /* we fell off the end */ ||
+	           ! result /* explicit return with no result */) &&
+	          ! f->HasDelayed() )
+		reporter->Warning("non-void function returning without a value: %s", Name());
 
 	if ( result && g_trace_state.DoTrace() )
 		{
@@ -552,8 +553,7 @@ void ScriptFunc::SetCaptures(Frame* f)
 		}
 	}
 
-void ScriptFunc::AddBody(StmtPtr new_body,
-                         const std::vector<IDPtr>& new_inits,
+void ScriptFunc::AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits,
                          size_t new_frame_size, int priority)
 	{
 	if ( new_frame_size > frame_size )
@@ -634,8 +634,7 @@ bool ScriptFunc::HasCopySemantics() const
 void ScriptFunc::SetClosureFrame(Frame* f)
 	{
 	if ( closure )
-		reporter->InternalError("Tried to override closure for ScriptFunc %s.",
-		                              Name());
+		reporter->InternalError("Tried to override closure for ScriptFunc %s.", Name());
 
 	// Have to use weak references initially because otherwise Ref'ing the
 	// original frame creates a circular reference: the function holds a
@@ -674,13 +673,12 @@ bool ScriptFunc::DeserializeCaptures(const broker::vector& data)
 	{
 	auto result = Frame::Unserialize(data, GetType()->GetCaptures());
 
-ASSERT(result.first);
+	ASSERT(result.first);
 
 	SetCaptures(result.second.release());
 
 	return true;
 	}
-
 
 FuncPtr ScriptFunc::DoClone()
 	{
@@ -726,9 +724,7 @@ void ScriptFunc::Describe(ODesc* d) const
 		}
 	}
 
-StmtPtr ScriptFunc::AddInits(
-	StmtPtr body,
-	const std::vector<IDPtr>& inits)
+StmtPtr ScriptFunc::AddInits(StmtPtr body, const std::vector<IDPtr>& inits)
 	{
 	if ( inits.empty() )
 		return body;
@@ -740,9 +736,8 @@ StmtPtr ScriptFunc::AddInits(
 	return stmt_series;
 	}
 
-BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
-                         bool arg_is_pure)
-: Func(BUILTIN_FUNC)
+BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name, bool arg_is_pure)
+	: Func(BUILTIN_FUNC)
 	{
 	func = arg_func;
 	name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
@@ -759,9 +754,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 	id->SetConst();
 	}
 
-BuiltinFunc::~BuiltinFunc()
-	{
-	}
+BuiltinFunc::~BuiltinFunc() { }
 
 bool BuiltinFunc::IsPure() const
 	{
@@ -778,9 +771,8 @@ ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	auto [handled, hook_result] = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION,
-	                                                      HookCallFunction(this, parent, args),
-	                                                      empty_hook_result);
+	auto [handled, hook_result] = PLUGIN_HOOK_WITH_RESULT(
+		HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
 	CheckPluginResult(handled, hook_result, FUNC_FLAVOR_FUNCTION);
 
@@ -819,7 +811,7 @@ void BuiltinFunc::Describe(ODesc* d) const
 
 bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 	{
-	if ( f->TheFunc() != BifFunc::fmt_bif)
+	if ( f->TheFunc() != BifFunc::fmt_bif )
 		return true;
 
 	const ExprPList& args = call->Args()->Exprs();
@@ -862,7 +854,8 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 
 		if ( args.length() != num_fmt + 1 )
 			{
-			call->Error("mismatch between format string to util::fmt() and number of arguments passed");
+			call->Error(
+				"mismatch between format string to util::fmt() and number of arguments passed");
 			return false;
 			}
 		}
@@ -924,7 +917,7 @@ function_ingredients::function_ingredients(ScopePtr scope, StmtPtr body)
 static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind)
 	{
 	auto emit = [=](const CallExpr* ce)
-		{
+	{
 		if ( ce )
 			{
 			if ( unwind )
@@ -933,8 +926,7 @@ static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind)
 					{
 					ODesc d;
 					arg->Describe(&d);
-					reporter->ExprRuntimeError(ce, "%s (%s), during call:", msg,
-					                                 d.Description());
+					reporter->ExprRuntimeError(ce, "%s (%s), during call:", msg, d.Description());
 					}
 				else
 					reporter->ExprRuntimeError(ce, "%s", msg);
@@ -959,8 +951,7 @@ static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind)
 					reporter->Error("%s", msg);
 				}
 			}
-		};
-
+	};
 
 	if ( call_stack.empty() )
 		{
@@ -980,7 +971,9 @@ static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind)
 		}
 
 	auto starts_with_double_underscore = [](const std::string& name) -> bool
-		{ return name.size() > 2 && name[0] == '_' && name[1] == '_'; };
+	{
+		return name.size() > 2 && name[0] == '_' && name[1] == '_';
+	};
 	std::string last_func = last_call.func->Name();
 
 	auto pos = last_func.find_first_of("::");
@@ -1055,21 +1048,20 @@ void init_primary_bifs()
 
 	var_sizes = id::find_type("var_sizes")->AsTableType();
 
-#include "zeek.bif.func_init"
-#include "stats.bif.func_init"
-#include "reporter.bif.func_init"
-#include "strings.bif.func_init"
-#include "option.bif.func_init"
-#include "supervisor.bif.func_init"
-#include "packet_analysis.bif.func_init"
 #include "CPP-load.bif.func_init"
+#include "option.bif.func_init"
+#include "packet_analysis.bif.func_init"
+#include "reporter.bif.func_init"
+#include "stats.bif.func_init"
+#include "strings.bif.func_init"
+#include "supervisor.bif.func_init"
+#include "zeek.bif.func_init"
 
 	init_builtin_types();
 	did_builtin_init = true;
 	}
 
-} // namespace detail
-
+	} // namespace detail
 
 void emit_builtin_error(const char* msg)
 	{
@@ -1086,4 +1078,4 @@ void emit_builtin_error(const char* msg, Obj* arg)
 	zeek::detail::emit_builtin_error_common(msg, arg, false);
 	}
 
-} // namespace zeek
+	} // namespace zeek

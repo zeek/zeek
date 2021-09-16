@@ -1,100 +1,113 @@
 #include "zeek/threading/MsgThread.h"
 
-#include <unistd.h>
-#include <signal.h>
 #include <fcntl.h>
+#include <signal.h>
+#include <unistd.h>
 
 #include "zeek/DebugLogger.h"
-#include "zeek/threading/Manager.h"
-#include "zeek/iosource/Manager.h"
 #include "zeek/RunState.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/threading/Manager.h"
 
 // Set by Zeek's main signal handler.
 extern int signal_val;
 
-namespace zeek::threading {
-namespace detail {
+namespace zeek::threading
+	{
+namespace detail
+	{
 
 ////// Messages.
 
 // Signals child thread to shutdown operation.
 class FinishMessage final : public InputMessage<MsgThread>
-{
+	{
 public:
-	FinishMessage(MsgThread* thread, double network_time) : InputMessage<MsgThread>("Finish", thread),
-		network_time(network_time) { }
+	FinishMessage(MsgThread* thread, double network_time)
+		: InputMessage<MsgThread>("Finish", thread), network_time(network_time)
+		{
+		}
 
-	bool Process() override	{
+	bool Process() override
+		{
 		if ( Object()->child_finished )
 			return true;
 		bool result = Object()->OnFinish(network_time);
 		Object()->Finished();
 		return result;
-	}
+		}
 
 private:
 	double network_time;
-};
+	};
 
 // Signals main thread that operations shut down.
 class FinishedMessage final : public OutputMessage<MsgThread>
-{
+	{
 public:
-	FinishedMessage(MsgThread* thread)
-		: OutputMessage<MsgThread>("FinishedMessage", thread)
-		{ }
+	FinishedMessage(MsgThread* thread) : OutputMessage<MsgThread>("FinishedMessage", thread) { }
 
-	bool Process() override {
+	bool Process() override
+		{
 		Object()->main_finished = true;
 		return true;
-	}
-};
+		}
+	};
 
 /// Sends a heartbeat to the child thread.
 class HeartbeatMessage final : public InputMessage<MsgThread>
-{
+	{
 public:
 	HeartbeatMessage(MsgThread* thread, double arg_network_time, double arg_current_time)
 		: InputMessage<MsgThread>("Heartbeat", thread)
-		{ network_time = arg_network_time; current_time = arg_current_time; }
+		{
+		network_time = arg_network_time;
+		current_time = arg_current_time;
+		}
 
-	bool Process() override	{
-		return Object()->OnHeartbeat(network_time, current_time);
-	}
+	bool Process() override { return Object()->OnHeartbeat(network_time, current_time); }
 
 private:
 	double network_time;
 	double current_time;
-};
+	};
 
 // A message from the child to be passed on to the Reporter.
 class ReporterMessage final : public OutputMessage<MsgThread>
-{
+	{
 public:
-	enum Type {
-		INFO, WARNING, ERROR, FATAL_ERROR, FATAL_ERROR_WITH_CORE,
-		INTERNAL_WARNING, INTERNAL_ERROR
-	};
+	enum Type
+		{
+		INFO,
+		WARNING,
+		ERROR,
+		FATAL_ERROR,
+		FATAL_ERROR_WITH_CORE,
+		INTERNAL_WARNING,
+		INTERNAL_ERROR
+		};
 
 	ReporterMessage(Type arg_type, MsgThread* thread, const char* arg_msg)
 		: OutputMessage<MsgThread>("ReporterMessage", thread)
-		{ type = arg_type; msg = util::copy_string(arg_msg); }
+		{
+		type = arg_type;
+		msg = util::copy_string(arg_msg);
+		}
 
-	~ReporterMessage() override 	 { delete [] msg; }
+	~ReporterMessage() override { delete[] msg; }
 
 	bool Process() override;
 
 private:
 	const char* msg;
 	Type type;
-};
+	};
 
 // A message from the the child to the main process, requesting suicide.
 class KillMeMessage final : public OutputMessage<MsgThread>
-{
+	{
 public:
-	KillMeMessage(MsgThread* thread)
-		: OutputMessage<MsgThread>("ReporterMessage", thread) 	{}
+	KillMeMessage(MsgThread* thread) : OutputMessage<MsgThread>("ReporterMessage", thread) { }
 
 	bool Process() override
 		{
@@ -103,38 +116,45 @@ public:
 		thread_mgr->KillThread(Object());
 		return true;
 		}
-};
+	};
 
 #ifdef DEBUG
 // A debug message from the child to be passed on to the DebugLogger.
 class DebugMessage final : public OutputMessage<MsgThread>
-{
+	{
 public:
 	DebugMessage(DebugStream arg_stream, MsgThread* thread, const char* arg_msg)
 		: OutputMessage<MsgThread>("DebugMessage", thread)
-		{ stream = arg_stream; msg = util::copy_string(arg_msg); }
+		{
+		stream = arg_stream;
+		msg = util::copy_string(arg_msg);
+		}
 
-	~DebugMessage() override	{ delete [] msg; }
+	~DebugMessage() override { delete[] msg; }
 
 	bool Process() override
 		{
 		zeek::detail::debug_logger.Log(stream, "%s: %s", Object()->Name(), msg);
 		return true;
 		}
+
 private:
 	const char* msg;
 	DebugStream stream;
-};
+	};
 #endif
 
 // An event that the child wants to pass into the main event queue
-class SendEventMessage final : public OutputMessage<MsgThread> {
+class SendEventMessage final : public OutputMessage<MsgThread>
+	{
 public:
-	SendEventMessage(MsgThread* thread, const char* name, const int num_vals, Value* *val)
-		: OutputMessage<MsgThread>("SendEvent", thread),
-	  name(util::copy_string(name)), num_vals(num_vals), val(val) {}
+	SendEventMessage(MsgThread* thread, const char* name, const int num_vals, Value** val)
+		: OutputMessage<MsgThread>("SendEvent", thread), name(util::copy_string(name)),
+		  num_vals(num_vals), val(val)
+		{
+		}
 
-	~SendEventMessage() override	{ delete [] name; }
+	~SendEventMessage() override { delete[] name; }
 
 	bool Process() override
 		{
@@ -149,55 +169,56 @@ public:
 private:
 	const char* name;
 	const int num_vals;
-	Value* *val;
-};
+	Value** val;
+	};
 
 bool ReporterMessage::Process()
 	{
-	switch ( type ) {
+	switch ( type )
+		{
 
-	case INFO:
-		reporter->Info("%s: %s", Object()->Name(), msg);
-		break;
+		case INFO:
+			reporter->Info("%s: %s", Object()->Name(), msg);
+			break;
 
-	case WARNING:
-		reporter->Warning("%s: %s", Object()->Name(), msg);
-		break;
+		case WARNING:
+			reporter->Warning("%s: %s", Object()->Name(), msg);
+			break;
 
-	case ERROR:
-		reporter->Error("%s: %s", Object()->Name(), msg);
-		break;
+		case ERROR:
+			reporter->Error("%s: %s", Object()->Name(), msg);
+			break;
 
-	case FATAL_ERROR:
-		reporter->FatalError("%s: %s", Object()->Name(), msg);
-		break;
+		case FATAL_ERROR:
+			reporter->FatalError("%s: %s", Object()->Name(), msg);
+			break;
 
-	case FATAL_ERROR_WITH_CORE:
-		reporter->FatalErrorWithCore("%s: %s", Object()->Name(), msg);
-		break;
+		case FATAL_ERROR_WITH_CORE:
+			reporter->FatalErrorWithCore("%s: %s", Object()->Name(), msg);
+			break;
 
-	case INTERNAL_WARNING:
-		reporter->InternalWarning("%s: %s", Object()->Name(), msg);
-		break;
+		case INTERNAL_WARNING:
+			reporter->InternalWarning("%s: %s", Object()->Name(), msg);
+			break;
 
-	case INTERNAL_ERROR :
-		reporter->InternalError("%s: %s", Object()->Name(), msg);
-		break;
+		case INTERNAL_ERROR:
+			reporter->InternalError("%s: %s", Object()->Name(), msg);
+			break;
 
-	default:
-		reporter->InternalError("unknown ReporterMessage type %d", type);
-	}
+		default:
+			reporter->InternalError("unknown ReporterMessage type %d", type);
+		}
 
 	return true;
 	}
 
-} // namespace detail
+	} // namespace detail
 
 ////// Methods.
 
 Message::~Message()
 	{
-	delete [] name;
+	delete[] name;
 	}
 
 MsgThread::MsgThread() : BasicThread(), queue_in(this, nullptr), queue_out(nullptr, this)
@@ -255,14 +276,18 @@ void MsgThread::OnWaitForStop()
 				{
 				// Abort all threads here so that we won't hang next
 				// on another one.
-				fprintf(stderr, "received signal while waiting for thread %s, aborting all ...\n", Name());
+				fprintf(stderr, "received signal while waiting for thread %s, aborting all ...\n",
+				        Name());
 				thread_mgr->KillThreads();
 				}
 			else
 				{
 				// More than one signal. Abort processing
 				// right away. on another one.
-				fprintf(stderr, "received another signal while waiting for thread %s, aborting processing\n", Name());
+				fprintf(
+					stderr,
+					"received another signal while waiting for thread %s, aborting processing\n",
+					Name());
 				exit(1);
 				}
 
@@ -275,7 +300,7 @@ void MsgThread::OnWaitForStop()
 		while ( HasOut() )
 			{
 			Message* msg = RetrieveOut();
-			assert ( msg );
+			assert(msg);
 
 			if ( ! msg->Process() )
 				reporter->Error("%s failed during thread termination", msg->Name());
@@ -374,7 +399,6 @@ void MsgThread::SendIn(BasicInputMessage* msg, bool force)
 	++cnt_sent_in;
 	}
 
-
 void MsgThread::SendOut(BasicOutputMessage* msg, bool force)
 	{
 	if ( Terminating() && ! force )
@@ -390,7 +414,7 @@ void MsgThread::SendOut(BasicOutputMessage* msg, bool force)
 	flare.Fire();
 	}
 
-void MsgThread::SendEvent(const char* name, const int num_vals, Value* *vals)
+void MsgThread::SendEvent(const char* name, const int num_vals, Value** vals)
 	{
 	SendOut(new detail::SendEventMessage(this, name, num_vals, vals));
 	}
@@ -401,7 +425,7 @@ BasicOutputMessage* MsgThread::RetrieveOut()
 	if ( ! msg )
 		return nullptr;
 
-	DBG_LOG(DBG_THREADING, "Retrieved '%s' from %s",  msg->Name(), Name());
+	DBG_LOG(DBG_THREADING, "Retrieved '%s' from %s", msg->Name(), Name());
 
 	return msg;
 	}
@@ -414,7 +438,7 @@ BasicInputMessage* MsgThread::RetrieveIn()
 		return nullptr;
 
 #ifdef DEBUG
-	std::string s = Fmt("Retrieved '%s' in %s",  msg->Name(), Name());
+	std::string s = Fmt("Retrieved '%s' in %s", msg->Name(), Name());
 	Debug(DBG_THREADING, s.c_str());
 #endif
 
@@ -423,7 +447,7 @@ BasicInputMessage* MsgThread::RetrieveIn()
 
 void MsgThread::Run()
 	{
-	while ( ! (child_finished || Killed() ) )
+	while ( ! (child_finished || Killed()) )
 		{
 		BasicInputMessage* msg = RetrieveIn();
 
@@ -486,4 +510,4 @@ void MsgThread::Process()
 		}
 	}
 
-} // namespace zeek::threading
+	} // namespace zeek::threading

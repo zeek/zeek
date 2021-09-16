@@ -4,19 +4,19 @@
 
 #include <sys/stat.h>
 
+#include "zeek/input/readers/binary/binary.bif.h"
 #include "zeek/threading/SerialTypes.h"
 
-#include "zeek/input/readers/binary/binary.bif.h"
-
 using namespace std;
-using zeek::threading::Value;
 using zeek::threading::Field;
+using zeek::threading::Value;
 
-namespace zeek::input::reader::detail {
+namespace zeek::input::reader::detail
+	{
 
 streamsize Binary::chunk_size = 0;
 
-Binary::Binary(ReaderFrontend *frontend)
+Binary::Binary(ReaderFrontend* frontend)
 	: ReaderBackend(frontend), in(nullptr), mtime(0), ino(0), firstrun(true)
 	{
 	if ( ! chunk_size )
@@ -56,8 +56,7 @@ bool Binary::CloseInput()
 	{
 	if ( ! in || ! in->is_open() )
 		{
-		InternalWarning(Fmt("Trying to close closed file for stream %s",
-		                    fname.c_str()));
+		InternalWarning(Fmt("Trying to close closed file for stream %s", fname.c_str()));
 		return false;
 		}
 
@@ -76,15 +75,14 @@ bool Binary::CloseInput()
 	return true;
 	}
 
-bool Binary::DoInit(const ReaderInfo& info, int num_fields,
-                    const Field* const* fields)
+bool Binary::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
 	in = nullptr;
 	mtime = 0;
 	ino = 0;
 	firstrun = true;
 
-	path_prefix.assign((const char*) BifConst::InputBinary::path_prefix->Bytes(),
+	path_prefix.assign((const char*)BifConst::InputBinary::path_prefix->Bytes(),
 	                   BifConst::InputBinary::path_prefix->Len());
 
 	if ( ! info.source || strlen(info.source) == 0 )
@@ -160,7 +158,7 @@ streamsize Binary::GetChunk(char** chunk)
 
 	if ( ! bytes_read )
 		{
-		delete [] *chunk;
+		delete[] * chunk;
 		*chunk = nullptr;
 		return 0;
 		}
@@ -198,47 +196,49 @@ bool Binary::DoUpdate()
 
 	else
 		{
-		switch ( Info().mode  ) {
-		case MODE_REREAD:
+		switch ( Info().mode )
 			{
-			switch ( UpdateModificationTime() ) {
-			case -1:
-				return false; // error
-			case 0:
-				return true; // no change
-			case 1:
-				break; // file changed. reread.
+			case MODE_REREAD:
+					{
+					switch ( UpdateModificationTime() )
+						{
+						case -1:
+							return false; // error
+						case 0:
+							return true; // no change
+						case 1:
+							break; // file changed. reread.
+						default:
+							assert(false);
+						}
+					// fallthrough
+					}
+
+			case MODE_MANUAL:
+			case MODE_STREAM:
+				if ( Info().mode == MODE_STREAM && in )
+					{
+					in->clear(); // remove end of file evil bits
+					break;
+					}
+
+				CloseInput();
+
+				if ( ! OpenInput() )
+					return false;
+
+				break;
+
 			default:
 				assert(false);
 			}
-			// fallthrough
-			}
-
-		case MODE_MANUAL:
-		case MODE_STREAM:
-			if ( Info().mode == MODE_STREAM && in )
-				{
-				in->clear(); // remove end of file evil bits
-				break;
-				}
-
-			CloseInput();
-
-			if ( ! OpenInput() )
-				return false;
-
-			break;
-
-		default:
-			assert(false);
-		}
 		}
 
 	char* chunk = nullptr;
 	streamsize size = 0;
 	while ( (size = GetChunk(&chunk)) )
 		{
-		assert (NumFields() == 1);
+		assert(NumFields() == 1);
 
 		Value** fields = new Value*[1];
 
@@ -266,7 +266,8 @@ bool Binary::DoUpdate()
 
 bool Binary::DoHeartbeat(double network_time, double current_time)
 	{
-	switch ( Info().mode ) {
+	switch ( Info().mode )
+		{
 		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
@@ -274,19 +275,19 @@ bool Binary::DoHeartbeat(double network_time, double current_time)
 		case MODE_REREAD:
 		case MODE_STREAM:
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Starting Heartbeat update");
+			Debug(DBG_INPUT, "Starting Heartbeat update");
 #endif
-			Update();	// call update and not DoUpdate, because update
-					// checks disabled.
+			Update(); // call update and not DoUpdate, because update
+			          // checks disabled.
 #ifdef DEBUG
-	Debug(DBG_INPUT, "Finished with heartbeat update");
+			Debug(DBG_INPUT, "Finished with heartbeat update");
 #endif
 			break;
 		default:
 			assert(false);
-	}
+		}
 
 	return true;
 	}
 
-} // namespace zeek::input::reader::detail
+	} // namespace zeek::input::reader::detail

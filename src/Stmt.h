@@ -4,24 +4,25 @@
 
 // Zeek statements.
 
-#include "zeek/StmtBase.h"
-
-#include "zeek/ZeekList.h"
 #include "zeek/Dict.h"
 #include "zeek/ID.h"
+#include "zeek/StmtBase.h"
+#include "zeek/ZeekList.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 class CompositeHash;
 class NameExpr;
 using NameExprPtr = IntrusivePtr<zeek::detail::NameExpr>;
 
-class ZAMCompiler;	// for "friend" declarations
+class ZAMCompiler; // for "friend" declarations
 
-class ExprListStmt : public Stmt {
+class ExprListStmt : public Stmt
+	{
 public:
-	const ListExpr* ExprList() const	{ return l.get(); }
-	const ListExprPtr& ExprListPtr() const	{ return l; }
+	const ListExpr* ExprList() const { return l.get(); }
+	const ListExprPtr& ExprListPtr() const { return l; }
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -48,12 +49,14 @@ protected:
 	// Returns a new version of the original derived object
 	// based on the given list of singleton expressions.
 	virtual StmtPtr DoSubclassReduce(ListExprPtr singletons, Reducer* c) = 0;
-};
+	};
 
-class PrintStmt final : public ExprListStmt {
+class PrintStmt final : public ExprListStmt
+	{
 public:
-	template<typename L>
-	explicit PrintStmt(L&& l) : ExprListStmt(STMT_PRINT, std::forward<L>(l)) { }
+	template <typename L> explicit PrintStmt(L&& l) : ExprListStmt(STMT_PRINT, std::forward<L>(l))
+		{
+		}
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
@@ -63,11 +66,12 @@ protected:
 
 	// Optimization-related:
 	StmtPtr DoSubclassReduce(ListExprPtr singletons, Reducer* c) override;
-};
+	};
 
 extern void do_print_stmt(const std::vector<ValPtr>& vals);
 
-class ExprStmt : public Stmt {
+class ExprStmt : public Stmt
+	{
 public:
 	explicit ExprStmt(ExprPtr e);
 	~ExprStmt() override;
@@ -79,7 +83,7 @@ public:
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
-	const Expr* StmtExpr() const	{ return e.get(); }
+	const Expr* StmtExpr() const { return e.get(); }
 	ExprPtr StmtExprPtr() const;
 
 	void StmtDescribe(ODesc* d) const override;
@@ -99,15 +103,16 @@ protected:
 	bool IsPure() const override;
 
 	ExprPtr e;
-};
+	};
 
-class IfStmt final : public ExprStmt {
+class IfStmt final : public ExprStmt
+	{
 public:
 	IfStmt(ExprPtr test, StmtPtr s1, StmtPtr s2);
 	~IfStmt() override;
 
-	const Stmt* TrueBranch() const	{ return s1.get(); }
-	const Stmt* FalseBranch() const	{ return s2.get(); }
+	const Stmt* TrueBranch() const { return s1.get(); }
+	const Stmt* FalseBranch() const { return s2.get(); }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -128,23 +133,24 @@ protected:
 
 	StmtPtr s1;
 	StmtPtr s2;
-};
+	};
 
-class Case final : public Obj {
+class Case final : public Obj
+	{
 public:
 	Case(ListExprPtr c, IDPList* types, StmtPtr arg_s);
 	~Case() override;
 
-	const ListExpr* ExprCases() const	{ return expr_cases.get(); }
-	ListExpr* ExprCases()		{ return expr_cases.get(); }
+	const ListExpr* ExprCases() const { return expr_cases.get(); }
+	ListExpr* ExprCases() { return expr_cases.get(); }
 
-	const IDPList* TypeCases() const	{ return type_cases; }
-	IDPList* TypeCases()		{ return type_cases; }
+	const IDPList* TypeCases() const { return type_cases; }
+	IDPList* TypeCases() { return type_cases; }
 
-	const Stmt* Body() const	{ return s.get(); }
-	Stmt* Body()			{ return s.get(); }
+	const Stmt* Body() const { return s.get(); }
+	Stmt* Body() { return s.get(); }
 
-	void UpdateBody(StmtPtr new_body)	{ s = std::move(new_body); }
+	void UpdateBody(StmtPtr new_body) { s = std::move(new_body); }
 
 	void Describe(ODesc* d) const override;
 
@@ -157,17 +163,18 @@ protected:
 	ListExprPtr expr_cases;
 	IDPList* type_cases;
 	StmtPtr s;
-};
+	};
 
 using case_list = PList<Case>;
 
-class SwitchStmt final : public ExprStmt {
+class SwitchStmt final : public ExprStmt
+	{
 public:
 	SwitchStmt(ExprPtr index, case_list* cases);
 	~SwitchStmt() override;
 
-	const case_list* Cases() const	{ return cases; }
-	bool HasDefault() const		{ return default_case_idx != -1; }
+	const case_list* Cases() const { return cases; }
+	bool HasDefault() const { return default_case_idx != -1; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -185,11 +192,10 @@ public:
 protected:
 	friend class ZAMCompiler;
 
-	int DefaultCaseIndex() const	{ return default_case_idx; }
-	const auto& ValueMap() const	{ return case_label_value_map; }
-	const std::vector<std::pair<ID*, int>>* TypeMap() const
-		{ return &case_label_type_list; }
-	const CompositeHash* CompHash() const   { return comp_hash; }
+	int DefaultCaseIndex() const { return default_case_idx; }
+	const auto& ValueMap() const { return case_label_value_map; }
+	const std::vector<std::pair<ID*, int>>* TypeMap() const { return &case_label_type_list; }
+	const CompositeHash* CompHash() const { return comp_hash; }
 
 	ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) override;
 	bool IsPure() const override;
@@ -220,11 +226,12 @@ protected:
 	std::unordered_map<const Val*, int> case_label_value_map;
 	PDict<int> case_label_hash_map;
 	std::vector<std::pair<ID*, int>> case_label_type_list;
-};
+	};
 
 // Helper class. Added for script optimization, but it makes sense
 // in terms of factoring even without.
-class AddDelStmt : public ExprStmt {
+class AddDelStmt : public ExprStmt
+	{
 public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -236,9 +243,10 @@ public:
 
 protected:
 	AddDelStmt(StmtTag t, ExprPtr arg_e);
-};
+	};
 
-class AddStmt final : public AddDelStmt {
+class AddStmt final : public AddDelStmt
+	{
 public:
 	explicit AddStmt(ExprPtr e);
 
@@ -246,9 +254,10 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
-};
+	};
 
-class DelStmt final : public AddDelStmt {
+class DelStmt final : public AddDelStmt
+	{
 public:
 	explicit DelStmt(ExprPtr e);
 
@@ -256,9 +265,10 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
-};
+	};
 
-class EventStmt final : public ExprStmt {
+class EventStmt final : public ExprStmt
+	{
 public:
 	explicit EventStmt(EventExprPtr e);
 
@@ -273,11 +283,11 @@ public:
 
 protected:
 	EventExprPtr event_expr;
-};
+	};
 
-class WhileStmt final : public Stmt {
+class WhileStmt final : public Stmt
+	{
 public:
-
 	WhileStmt(ExprPtr loop_condition, StmtPtr body);
 	~WhileStmt() override;
 
@@ -294,10 +304,10 @@ public:
 	bool IsReduced(Reducer* c) const override;
 	StmtPtr DoReduce(Reducer* c) override;
 
-	const ExprPtr& Condition() const	{ return loop_condition; }
-	StmtPtr CondPredStmt() const		{ return loop_cond_pred_stmt; }
-	const StmtPtr& Body() const		{ return body; }
-	const StmtPtr& ConditionAsStmt() const	{ return stmt_loop_condition; }
+	const ExprPtr& Condition() const { return loop_condition; }
+	StmtPtr CondPredStmt() const { return loop_cond_pred_stmt; }
+	const StmtPtr& Body() const { return body; }
+	const StmtPtr& ConditionAsStmt() const { return stmt_loop_condition; }
 
 	// Note, no need for a NoFlowAfter method because the loop might
 	// execute zero times, so it's always the default of "false".
@@ -319,21 +329,22 @@ protected:
 	// evaluating the reduced conditional, as well as the reduced
 	// expression.  This turns out to be useful in propagating RDs/UDs.
 	StmtPtr stmt_loop_condition = nullptr;
-};
+	};
 
-class ForStmt final : public ExprStmt {
+class ForStmt final : public ExprStmt
+	{
 public:
 	ForStmt(IDPList* loop_vars, ExprPtr loop_expr);
 	// Special constructor for key value for loop.
 	ForStmt(IDPList* loop_vars, ExprPtr loop_expr, IDPtr val_var);
 	~ForStmt() override;
 
-	void AddBody(StmtPtr arg_body)	{ body = std::move(arg_body); }
+	void AddBody(StmtPtr arg_body) { body = std::move(arg_body); }
 
-	const IDPList* LoopVars() const	{ return loop_vars; }
-	IDPtr ValueVar() const		{ return value_var; }
-	const Expr* LoopExpr() const	{ return e.get(); }
-	const Stmt* LoopBody() const	{ return body.get(); }
+	const IDPList* LoopVars() const { return loop_vars; }
+	IDPtr ValueVar() const { return value_var; }
+	const Expr* LoopExpr() const { return e.get(); }
+	const Stmt* LoopBody() const { return body.get(); }
 
 	bool IsPure() const override;
 
@@ -359,11 +370,12 @@ protected:
 	// Stores the value variable being used for a key value for loop.
 	// Always set to nullptr unless special constructor is called.
 	IDPtr value_var;
-};
+	};
 
-class NextStmt final : public Stmt {
+class NextStmt final : public Stmt
+	{
 public:
-	NextStmt() : Stmt(STMT_NEXT)	{ }
+	NextStmt() : Stmt(STMT_NEXT) { }
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 	bool IsPure() const override;
@@ -373,16 +385,17 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
-	StmtPtr Duplicate() override	{ return SetSucc(new NextStmt()); }
+	StmtPtr Duplicate() override { return SetSucc(new NextStmt()); }
 
-	bool NoFlowAfter(bool ignore_break) const override
-		{ return true; }
+	bool NoFlowAfter(bool ignore_break) const override { return true; }
+
 protected:
-};
+	};
 
-class BreakStmt final : public Stmt {
+class BreakStmt final : public Stmt
+	{
 public:
-	BreakStmt() : Stmt(STMT_BREAK)	{ }
+	BreakStmt() : Stmt(STMT_BREAK) { }
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 	bool IsPure() const override;
@@ -392,17 +405,17 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
-	StmtPtr Duplicate() override	{ return SetSucc(new BreakStmt()); }
+	StmtPtr Duplicate() override { return SetSucc(new BreakStmt()); }
 
-	bool NoFlowAfter(bool ignore_break) const override
-		{ return ! ignore_break; }
+	bool NoFlowAfter(bool ignore_break) const override { return ! ignore_break; }
 
 protected:
-};
+	};
 
-class FallthroughStmt final : public Stmt {
+class FallthroughStmt final : public Stmt
+	{
 public:
-	FallthroughStmt() : Stmt(STMT_FALLTHROUGH)	{ }
+	FallthroughStmt() : Stmt(STMT_FALLTHROUGH) { }
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 	bool IsPure() const override;
@@ -412,13 +425,13 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
-	StmtPtr Duplicate() override
-		{ return SetSucc(new FallthroughStmt()); }
+	StmtPtr Duplicate() override { return SetSucc(new FallthroughStmt()); }
 
 protected:
-};
+	};
 
-class ReturnStmt final : public ExprStmt {
+class ReturnStmt final : public ExprStmt
+	{
 public:
 	explicit ReturnStmt(ExprPtr e);
 
@@ -436,19 +449,19 @@ public:
 	// Optimization-related:
 	StmtPtr DoReduce(Reducer* c) override;
 
-	bool NoFlowAfter(bool ignore_break) const override
-		{ return true; }
-};
+	bool NoFlowAfter(bool ignore_break) const override { return true; }
+	};
 
-class StmtList : public Stmt {
+class StmtList : public Stmt
+	{
 public:
 	StmtList();
 	~StmtList() override;
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
-	const StmtPList& Stmts() const	{ return *stmts; }
-	StmtPList& Stmts()		{ return *stmts; }
+	const StmtPList& Stmts() const { return *stmts; }
+	StmtPList& Stmts() { return *stmts; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -481,16 +494,16 @@ protected:
 		delete stmts;
 		stmts = new_stmts;
 		}
-};
+	};
 
-class InitStmt final : public Stmt {
+class InitStmt final : public Stmt
+	{
 public:
 	explicit InitStmt(std::vector<IDPtr> arg_inits);
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
-	const std::vector<IDPtr>& Inits() const
-		{ return inits; }
+	const std::vector<IDPtr>& Inits() const { return inits; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -504,11 +517,12 @@ public:
 
 protected:
 	std::vector<IDPtr> inits;
-};
+	};
 
-class NullStmt final : public Stmt {
+class NullStmt final : public Stmt
+	{
 public:
-	NullStmt() : Stmt(STMT_NULL)	{ }
+	NullStmt() : Stmt(STMT_NULL) { }
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 	bool IsPure() const override;
@@ -518,25 +532,24 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
-	StmtPtr Duplicate() override	{ return SetSucc(new NullStmt()); }
-};
+	StmtPtr Duplicate() override { return SetSucc(new NullStmt()); }
+	};
 
-class WhenStmt final : public Stmt {
+class WhenStmt final : public Stmt
+	{
 public:
 	// s2 is null if no timeout block given.
-	WhenStmt(ExprPtr cond,
-	         StmtPtr s1, StmtPtr s2,
-	         ExprPtr timeout, bool is_return);
+	WhenStmt(ExprPtr cond, StmtPtr s1, StmtPtr s2, ExprPtr timeout, bool is_return);
 	~WhenStmt() override;
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 	bool IsPure() const override;
 
-	const Expr* Cond() const	{ return cond.get(); }
-	const Stmt* Body() const	{ return s1.get(); }
-	const Expr* TimeoutExpr() const	{ return timeout.get(); }
-	const Stmt* TimeoutBody() const	{ return s2.get(); }
-	bool IsReturn() const		{ return is_return; }
+	const Expr* Cond() const { return cond.get(); }
+	const Stmt* Body() const { return s1.get(); }
+	const Expr* TimeoutExpr() const { return timeout.get(); }
+	const Stmt* TimeoutBody() const { return s2.get(); }
+	bool IsReturn() const { return is_return; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -554,25 +567,25 @@ protected:
 	StmtPtr s2;
 	ExprPtr timeout;
 	bool is_return;
-};
-
+	};
 
 // Internal statement used for inlining.  Executes a block and stops
 // the propagation of any "return" inside the block.  Generated in
 // an already-reduced state.
-class CatchReturnStmt : public Stmt {
+class CatchReturnStmt : public Stmt
+	{
 public:
 	explicit CatchReturnStmt(StmtPtr block, NameExprPtr ret_var);
 
-	StmtPtr Block() const	{ return block; }
+	StmtPtr Block() const { return block; }
 
 	// This returns a bare pointer rather than a NameExprPtr only
 	// because we don't want to have to include Expr.h in this header.
-	const NameExpr* RetVar() const		{ return ret_var.get(); }
+	const NameExpr* RetVar() const { return ret_var.get(); }
 
 	// The assignment statement this statement transformed into,
 	// or nil if it hasn't (the common case).
-	StmtPtr AssignStmt() const	{ return assign_stmt; }
+	StmtPtr AssignStmt() const { return assign_stmt; }
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
@@ -602,16 +615,17 @@ protected:
 	// If this statement transformed into an assignment, that
 	// corresponding statement.
 	StmtPtr assign_stmt;
-};
+	};
 
 // Statement that makes sure at run-time that an "any" type has the
 // correct number of (list) entries to enable sub-assigning to it via
 // statements like "[a, b, c] = x;".  Generated in an already-reduced state.
-class CheckAnyLenStmt : public ExprStmt {
+class CheckAnyLenStmt : public ExprStmt
+	{
 public:
 	explicit CheckAnyLenStmt(ExprPtr e, int expected_len);
 
-	int ExpectedLen() const		{ return expected_len; }
+	int ExpectedLen() const { return expected_len; }
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
@@ -624,6 +638,6 @@ public:
 
 protected:
 	int expected_len;
-};
+	};
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

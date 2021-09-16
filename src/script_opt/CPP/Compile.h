@@ -3,11 +3,11 @@
 #pragma once
 
 #include "zeek/Desc.h"
-#include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/CPP/Func.h"
-#include "zeek/script_opt/CPP/Util.h"
-#include "zeek/script_opt/CPP/Tracker.h"
 #include "zeek/script_opt/CPP/HashMgr.h"
+#include "zeek/script_opt/CPP/Tracker.h"
+#include "zeek/script_opt/CPP/Util.h"
+#include "zeek/script_opt/ScriptOpt.h"
 
 // We structure the compiler for generating C++ versions of Zeek script
 // bodies as a single large class.  While we divide the compiler's
@@ -128,14 +128,14 @@
 // variables are used by multiple groups, which is why we haven't created
 // distinct per-group classes.
 
+namespace zeek::detail
+	{
 
-namespace zeek::detail {
-
-class CPPCompile {
+class CPPCompile
+	{
 public:
-	CPPCompile(std::vector<FuncInfo>& _funcs, ProfileFuncs& pfs,
-	           const std::string& gen_name, const std::string& addl_name,
-	           CPPHashManager& _hm, bool _update, bool _standalone,
+	CPPCompile(std::vector<FuncInfo>& _funcs, ProfileFuncs& pfs, const std::string& gen_name,
+	           const std::string& addl_name, CPPHashManager& _hm, bool _update, bool _standalone,
 	           bool report_uncompilable);
 	~CPPCompile();
 
@@ -161,7 +161,7 @@ private:
 	// run-time initialization of various dynamic values.
 	void GenEpilog();
 
-	// True if the given function (plus body and profile) is one 
+	// True if the given function (plus body and profile) is one
 	// that should be compiled.  If non-nil, sets reason to the
 	// the reason why, if there's a fundamental problem.  If however
 	// the function should be skipped for other reasons, then sets
@@ -221,7 +221,6 @@ private:
 	//
 	// End of methods related to script/C++ variables.
 
-
 	// Start of methods related to script variables and their C++
 	// counterparts.
 	// See Vars.cc for definitions.
@@ -246,7 +245,7 @@ private:
 	// then the BiF is also used in a non-call context.
 	void AddBiF(const ID* b, bool is_var);
 
-	// Register the given global name.  "suffix" distinguishs particular 
+	// Register the given global name.  "suffix" distinguishs particular
 	// types of globals, such as the names of bifs, global (non-function)
 	// variables, or compiled Zeek functions.  If "track" is true then
 	// if we're compiling incrementally, and this is a new global not
@@ -259,9 +258,9 @@ private:
 
 	// The following match various forms of identifiers to the
 	// name used for their C++ equivalent.
-	const char* IDName(const ID& id)	{ return IDName(&id); }
-	const char* IDName(const IDPtr& id)	{ return IDName(id.get()); }
-	const char* IDName(const ID* id)	{ return IDNameStr(id).c_str(); }
+	const char* IDName(const ID& id) { return IDName(&id); }
+	const char* IDName(const IDPtr& id) { return IDName(id.get()); }
+	const char* IDName(const ID* id) { return IDNameStr(id).c_str(); }
 	const std::string& IDNameStr(const ID* id) const;
 
 	// Returns a canonicalized version of a variant of a global made
@@ -274,8 +273,7 @@ private:
 	// Returns a canonicalized form of a local identifier's name,
 	// expanding its module prefix if needed.
 	std::string LocalName(const ID* l) const;
-	std::string LocalName(const IDPtr& l) const
-		{ return LocalName(l.get()); }
+	std::string LocalName(const IDPtr& l) const { return LocalName(l.get()); }
 
 	// Returns a canonicalized name, with various non-alphanumeric
 	// characters stripped or transformed, and guananteed not to
@@ -297,7 +295,6 @@ private:
 	//
 	// End of methods related to script/C++ variables.
 
-
 	// Start of methods related to declaring compiled script functions,
 	// including related classes.
 	// See DeclFunc.cc for definitions.
@@ -315,16 +312,14 @@ private:
 	// "fname" its C++ name, "body" its AST, "l" if non-nil its
 	// corresponding lambda expression, and "flavor" whether it's
 	// a hook/event/function.
-	void DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf,
-	                     const std::string& fname,
-	                     const StmtPtr& body, int priority,
-	                     const LambdaExpr* l, FunctionFlavor flavor);
+	void DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, const std::string& fname,
+	                     const StmtPtr& body, int priority, const LambdaExpr* l,
+	                     FunctionFlavor flavor);
 
 	// Generates the declarations (and in-line definitions) associated
 	// with compiling a lambda.
-	void BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf,
-	                 const std::string& fname, const StmtPtr& body,
-	                 const LambdaExpr* l, const IDPList* lambda_ids);
+	void BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf, const std::string& fname,
+	                 const StmtPtr& body, const LambdaExpr* l, const IDPList* lambda_ids);
 
 	// For a call to the C++ version of a function of type "ft" and
 	// with lambda captures lambda_ids (nil if not applicable), generates
@@ -334,8 +329,7 @@ private:
 
 	// Generates the declaration for the parameters for a function with
 	// the given type, lambda captures (if non-nil), and profile.
-	std::string ParamDecl(const FuncTypePtr& ft, const IDPList* lambda_ids,
-	                      const ProfileFunc* pf);
+	std::string ParamDecl(const FuncTypePtr& ft, const IDPList* lambda_ids, const ProfileFunc* pf);
 
 	// Inspects the given profile to find the i'th parameter (starting
 	// at 0).  Returns nil if the profile indicates that that parameter
@@ -356,7 +350,6 @@ private:
 	//
 	// End of methods related to declaring compiled script functions.
 
-
 	// Start of methods related to generating the bodies of compiled
 	// script functions.  Note that some of this sort of functionality is
 	// instead in CPPDeclFunc.cc, due to the presence of inlined methods.
@@ -370,15 +363,13 @@ private:
 
 	// Generates the body of the Invoke() method (which supplies the
 	// "glue" between for calling the C++-generated code).
-	void GenInvokeBody(const std::string& fname, const TypePtr& t,
-	                   const std::string& args);
+	void GenInvokeBody(const std::string& fname, const TypePtr& t, const std::string& args);
 
 	// Generates the code for the body of a script function with
 	// the given type, profile, C++ name, AST, lambda captures
 	// (if non-nil), and hook/event/function "flavor".
-	void DefineBody(const FuncTypePtr& ft, const ProfileFunc* pf,
-	                const std::string& fname, const StmtPtr& body,
-	                const IDPList* lambda_ids, FunctionFlavor flavor);
+	void DefineBody(const FuncTypePtr& ft, const ProfileFunc* pf, const std::string& fname,
+	                const StmtPtr& body, const IDPList* lambda_ids, FunctionFlavor flavor);
 
 	// Declare parameters that originate from a type signature of
 	// "any" but were concretized in this declaration.
@@ -435,7 +426,6 @@ private:
 	//
 	// End of methods related to generating compiled script bodies.
 
-
 	// Start of methods related to generating code for representing
 	// script constants as run-time values.
 	// See Consts.cc for definitions.
@@ -447,7 +437,9 @@ private:
 	// by the given "parent" object (which acquires an initialization
 	// dependency, if a C++ variable is needed).
 	std::string BuildConstant(IntrusivePtr<Obj> parent, const ValPtr& vp)
-		{ return BuildConstant(parent.get(), vp); }
+		{
+		return BuildConstant(parent.get(), vp);
+		}
 	std::string BuildConstant(const Obj* parent, const ValPtr& vp);
 
 	// Called to create a constant appropriate for the given expression
@@ -494,7 +486,6 @@ private:
 	//
 	// End of methods related to generating code for script constants.
 
-
 	// Start of methods related to generating code for AST Stmt's.
 	// For the most part, code generation is straightforward as
 	// it matches the Exec/DoExec methods of the corresponding
@@ -502,7 +493,7 @@ private:
 	// See Stmts.cc for definitions.
 	//
 
-	void GenStmt(const StmtPtr& s)	{ GenStmt(s.get()); }
+	void GenStmt(const StmtPtr& s) { GenStmt(s.get()); }
 	void GenStmt(const Stmt* s);
 	void GenInitStmt(const InitStmt* init);
 	void GenIfStmt(const IfStmt* i);
@@ -514,8 +505,7 @@ private:
 	void GenSwitchStmt(const SwitchStmt* sw);
 
 	void GenForStmt(const ForStmt* f);
-	void GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var,
-	                     const IDPList* loop_vars);
+	void GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var, const IDPList* loop_vars);
 	void GenForOverVector(const ExprPtr& tbl, const IDPList* loop_vars);
 	void GenForOverString(const ExprPtr& str, const IDPList* loop_vars);
 
@@ -525,7 +515,6 @@ private:
 
 	//
 	// End of methods related to generating code for AST Stmt's.
-
 
 	// Start of methods related to generating code for AST Expr's.
 	// See Exprs.cc for definitions.
@@ -545,11 +534,12 @@ private:
 	// form, (2) instead in ValPtr form, or (3) whichever is more
 	// convenient to generate (sometimes used when the caller knows
 	// that the value is non-native).
-	enum GenType {
+	enum GenType
+		{
 		GEN_NATIVE,
 		GEN_VAL_PTR,
 		GEN_DONT_CARE,
-	};
+		};
 
 	// Generate an expression for which we want the result embedded
 	// in {} initializers (generally to be used in calling a function
@@ -566,7 +556,9 @@ private:
 	// Per-Expr-subclass code generation.  The resulting code generally
 	// reflects the corresponding Eval() or Fold() methods.
 	std::string GenExpr(const ExprPtr& e, GenType gt, bool top_level = false)
-		{ return GenExpr(e.get(), gt, top_level); }
+		{
+		return GenExpr(e.get(), gt, top_level);
+		}
 	std::string GenExpr(const Expr* e, GenType gt, bool top_level = false);
 
 	std::string GenNameExpr(const NameExpr* ne, GenType gt);
@@ -600,39 +592,28 @@ private:
 	std::string GenVal(const ValPtr& v);
 
 	// Helper functions for particular Expr subclasses / flavors.
-	std::string GenUnary(const Expr* e, GenType gt,
-	                     const char* op, const char* vec_op = nullptr);
-	std::string GenBinary(const Expr* e, GenType gt,
-	                      const char* op, const char* vec_op = nullptr);
+	std::string GenUnary(const Expr* e, GenType gt, const char* op, const char* vec_op = nullptr);
+	std::string GenBinary(const Expr* e, GenType gt, const char* op, const char* vec_op = nullptr);
 	std::string GenBinarySet(const Expr* e, GenType gt, const char* op);
 	std::string GenBinaryString(const Expr* e, GenType gt, const char* op);
 	std::string GenBinaryPattern(const Expr* e, GenType gt, const char* op);
 	std::string GenBinaryAddr(const Expr* e, GenType gt, const char* op);
 	std::string GenBinarySubNet(const Expr* e, GenType gt, const char* op);
-	std::string GenEQ(const Expr* e, GenType gt,
-	                  const char* op, const char* vec_op);
+	std::string GenEQ(const Expr* e, GenType gt, const char* op, const char* vec_op);
 
-	std::string GenAssign(const ExprPtr& lhs, const ExprPtr& rhs,
-	                      const std::string& rhs_native,
-	                      const std::string& rhs_val_ptr,
-	                      GenType gt, bool top_level);
-	std::string GenDirectAssign(const ExprPtr& lhs,
-	                            const std::string& rhs_native,
-	                            const std::string& rhs_val_ptr,
-	                            GenType gt, bool top_level);
+	std::string GenAssign(const ExprPtr& lhs, const ExprPtr& rhs, const std::string& rhs_native,
+	                      const std::string& rhs_val_ptr, GenType gt, bool top_level);
+	std::string GenDirectAssign(const ExprPtr& lhs, const std::string& rhs_native,
+	                            const std::string& rhs_val_ptr, GenType gt, bool top_level);
 	std::string GenIndexAssign(const ExprPtr& lhs, const ExprPtr& rhs,
-	                           const std::string& rhs_val_ptr,
-	                           GenType gt, bool top_level);
+	                           const std::string& rhs_val_ptr, GenType gt, bool top_level);
 	std::string GenFieldAssign(const ExprPtr& lhs, const ExprPtr& rhs,
-	                           const std::string& rhs_val_ptr,
-	                           GenType gt, bool top_level);
+	                           const std::string& rhs_val_ptr, GenType gt, bool top_level);
 	std::string GenListAssign(const ExprPtr& lhs, const ExprPtr& rhs);
 
 	// Support for element-by-element vector operations.
-	std::string GenVectorOp(const Expr* e, std::string op,
-	                        const char* vec_op);
-	std::string GenVectorOp(const Expr* e, std::string op1,
-	                        std::string op2, const char* vec_op);
+	std::string GenVectorOp(const Expr* e, std::string op, const char* vec_op);
+	std::string GenVectorOp(const Expr* e, std::string op1, std::string op2, const char* vec_op);
 
 	// If "all_deep" is true, it means make all of the captures
 	// deep copies, not just the ones that were explicitly marked
@@ -662,8 +643,7 @@ private:
 	//
 	// So for each such record, there's a second map of
 	// field-in-the-record to offset-in-field_mapping.
-	std::unordered_map<const RecordType*, std::unordered_map<int, int>>
-		record_field_mappings;
+	std::unordered_map<const RecordType*, std::unordered_map<int, int>> record_field_mappings;
 
 	// Total number of such mappings (i.e., entries in the inner maps,
 	// not the outer map).
@@ -679,8 +659,7 @@ private:
 	//
 	// So for each such enum, there's a second map of
 	// value-during-compilation to offset-in-enum_mapping.
-	std::unordered_map<const EnumType*, std::unordered_map<int, int>>
-		enum_val_mappings;
+	std::unordered_map<const EnumType*, std::unordered_map<int, int>> enum_val_mappings;
 
 	// Total number of such mappings (i.e., entries in the inner maps,
 	// not the outer map).
@@ -692,7 +671,6 @@ private:
 
 	//
 	// End of methods related to generating code for AST Expr's.
-
 
 	// Start of methods related to managing script types.
 	// See Types.cc for definitions.
@@ -706,13 +684,11 @@ private:
 
 	// Given an expression corresponding to a native type (and with
 	// the given script type 't'), converts it to the given GenType.
-	std::string NativeToGT(const std::string& expr, const TypePtr& t,
-	                       GenType gt);
+	std::string NativeToGT(const std::string& expr, const TypePtr& t, GenType gt);
 
 	// Given an expression with a C++ type of generic "ValPtr", of the
 	// given script type 't', converts it as needed to the given GenType.
-	std::string GenericValPtrToGT(const std::string& expr, const TypePtr& t,
-	                              GenType gt);
+	std::string GenericValPtrToGT(const std::string& expr, const TypePtr& t, GenType gt);
 
 	// For a given type, generates the code necessary to initialize
 	// it at run time.  The term "expand" in the method's name refers
@@ -736,14 +712,13 @@ private:
 	// of the appropriate flavor.  't' does not need to be a type
 	// representative.
 	std::string GenTypeName(const Type* t);
-	std::string GenTypeName(const TypePtr& t)
-		{ return GenTypeName(t.get()); }
+	std::string GenTypeName(const TypePtr& t) { return GenTypeName(t.get()); }
 
 	// Returns the "representative" for a given type, used to ensure
 	// that we re-use the C++ variable corresponding to a type and
 	// don't instantiate redundant instances.
-	const Type* TypeRep(const Type* t)	{ return pfs.TypeRep(t); }
-	const Type* TypeRep(const TypePtr& t)	{ return TypeRep(t.get()); }
+	const Type* TypeRep(const Type* t) { return pfs.TypeRep(t); }
+	const Type* TypeRep(const TypePtr& t) { return TypeRep(t.get()); }
 
 	// Low-level C++ representations for types, of various flavors.
 	const char* TypeTagName(TypeTag tag) const;
@@ -778,7 +753,6 @@ private:
 	//
 	// End of methods related to managing script types.
 
-
 	// Start of methods related to managing script type attributes.
 	// Attributes arise mainly in the context of constructing types.
 	// See Attrs.cc for definitions.
@@ -792,8 +766,7 @@ private:
 	// Populates the 2nd and 3rd arguments with C++ representations
 	// of the tags and (optional) values/expressions associated with
 	// the set of attributes.
-	void BuildAttrs(const AttributesPtr& attrs, std::string& attr_tags,
-	                std::string& attr_vals);
+	void BuildAttrs(const AttributesPtr& attrs, std::string& attr_tags, std::string& attr_vals);
 
 	// Generates code to create the given attributes at run-time.
 	void GenAttrs(const AttributesPtr& attrs);
@@ -812,7 +785,6 @@ private:
 
 	//
 	// End of methods related to managing script type attributes.
-
 
 	// Start of methods related to run-time initialization.
 	// See Inits.cc for definitions.
@@ -854,14 +826,15 @@ private:
 	//
 	// Versions with "lhs" and "rhs" arguments provide an initialization
 	// of the form "lhs = rhs;", as a convenience.
-	void AddInit(const IntrusivePtr<Obj>& o,
-	const std::string& lhs, const std::string& rhs)
-		{ AddInit(o.get(), lhs + " = " + rhs + ";"); }
-	void AddInit(const Obj* o,
-			const std::string& lhs, const std::string& rhs)
-		{ AddInit(o, lhs + " = " + rhs + ";"); }
-	void AddInit(const IntrusivePtr<Obj>& o, const std::string& init)
-		{ AddInit(o.get(), init); }
+	void AddInit(const IntrusivePtr<Obj>& o, const std::string& lhs, const std::string& rhs)
+		{
+		AddInit(o.get(), lhs + " = " + rhs + ";");
+		}
+	void AddInit(const Obj* o, const std::string& lhs, const std::string& rhs)
+		{
+		AddInit(o, lhs + " = " + rhs + ";");
+		}
+	void AddInit(const IntrusivePtr<Obj>& o, const std::string& init) { AddInit(o.get(), init); }
 	void AddInit(const Obj* o, const std::string& init);
 
 	// We do consistency checking of initialization dependencies by
@@ -869,24 +842,29 @@ private:
 	// it's unclear whether the object will actually require
 	// initialization, in which case we add an empty initialization
 	// for it so that the consistency-checking is happy.
-	void AddInit(const IntrusivePtr<Obj>& o)	{ AddInit(o.get()); }
+	void AddInit(const IntrusivePtr<Obj>& o) { AddInit(o.get()); }
 	void AddInit(const Obj* o);
 
 	// This is akin to an initialization, but done separately
 	// (upon "activation") so it can include initializations that
 	// rely on parsing having finished (in particular, BiFs having
 	// been registered).  Only used when generating  standalone code.
-	void AddActivation(std::string a)	{ activations.emplace_back(a); }
+	void AddActivation(std::string a) { activations.emplace_back(a); }
 
 	// Records the fact that the initialization of object o1 depends
 	// on that of object o2.
-	void NoteInitDependency(const IntrusivePtr<Obj>& o1,
-	                        const IntrusivePtr<Obj>& o2)
-		{ NoteInitDependency(o1.get(), o2.get()); }
+	void NoteInitDependency(const IntrusivePtr<Obj>& o1, const IntrusivePtr<Obj>& o2)
+		{
+		NoteInitDependency(o1.get(), o2.get());
+		}
 	void NoteInitDependency(const IntrusivePtr<Obj>& o1, const Obj* o2)
-		{ NoteInitDependency(o1.get(), o2); }
+		{
+		NoteInitDependency(o1.get(), o2);
+		}
 	void NoteInitDependency(const Obj* o1, const IntrusivePtr<Obj>& o2)
-		{ NoteInitDependency(o1, o2.get()); }
+		{
+		NoteInitDependency(o1, o2.get());
+		}
 	void NoteInitDependency(const Obj* o1, const Obj* o2);
 
 	// Records an initialization dependency of the given object
@@ -899,7 +877,9 @@ private:
 			NoteInitDependency(o, TypeRep(t));
 		}
 	void NoteNonRecordInitDependency(const IntrusivePtr<Obj> o, const TypePtr& t)
-		{ NoteNonRecordInitDependency(o.get(), t); }
+		{
+		NoteNonRecordInitDependency(o.get(), t);
+		}
 
 	// Analyzes the initialization dependencies to ensure that they're
 	// consistent, i.e., every object that either depends on another,
@@ -924,8 +904,7 @@ private:
 	// Same, but for enum types.  The second form does a single
 	// initialization corresponding to the given index in the mapping.
 	void InitializeEnumMappings();
-	void InitializeEnumMappings(const EnumType* et,
-	                            const std::string& e_name, int index);
+	void InitializeEnumMappings(const EnumType* et, const std::string& e_name, int index);
 
 	// Generate the initialization hook for this set of compiled code.
 	void GenInitHook();
@@ -961,7 +940,6 @@ private:
 	//
 	// End of methods related to run-time initialization.
 
-
 	// Start of methods related to low-level code generation.
 	// See Emit.cc for definitions.
 	//
@@ -989,40 +967,35 @@ private:
 		NL();
 		}
 
-	void Emit(const std::string& fmt, const std::string& arg1,
-	          const std::string& arg2) const
+	void Emit(const std::string& fmt, const std::string& arg1, const std::string& arg2) const
 		{
 		Indent();
 		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str());
 		NL();
 		}
 
-	void Emit(const std::string& fmt, const std::string& arg1,
-	          const std::string& arg2, const std::string& arg3) const
+	void Emit(const std::string& fmt, const std::string& arg1, const std::string& arg2,
+	          const std::string& arg3) const
 		{
 		Indent();
-		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(),
-		        arg3.c_str());
+		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str());
 		NL();
 		}
 
-	void Emit(const std::string& fmt, const std::string& arg1,
-	          const std::string& arg2, const std::string& arg3,
-	          const std::string& arg4) const
+	void Emit(const std::string& fmt, const std::string& arg1, const std::string& arg2,
+	          const std::string& arg3, const std::string& arg4) const
 		{
 		Indent();
-		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(),
-		        arg3.c_str(), arg4.c_str());
+		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str(), arg4.c_str());
 		NL();
 		}
 
-	void Emit(const std::string& fmt, const std::string& arg1,
-	          const std::string& arg2, const std::string& arg3,
-	          const std::string& arg4, const std::string& arg5) const
+	void Emit(const std::string& fmt, const std::string& arg1, const std::string& arg2,
+	          const std::string& arg3, const std::string& arg4, const std::string& arg5) const
 		{
 		Indent();
-		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(),
-		        arg3.c_str(), arg4.c_str(), arg5.c_str());
+		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str(), arg4.c_str(),
+		        arg5.c_str());
 		NL();
 		}
 
@@ -1033,10 +1006,9 @@ private:
 	// For the given byte array / string, returns a version expanded
 	// with escape sequences in order to represent it as a C++ string.
 	std::string CPPEscape(const char* b, int len) const;
-	std::string CPPEscape(const char* s) const
-		{ return CPPEscape(s, strlen(s)); }
+	std::string CPPEscape(const char* s) const { return CPPEscape(s, strlen(s)); }
 
-	void NL() const	{ fputc('\n', write_file); }
+	void NL() const { fputc('\n', write_file); }
 
 	// Indents to the current indentation level.
 	void Indent() const;
@@ -1052,6 +1024,6 @@ private:
 
 	//
 	// End of methods related to run-time initialization.
-};
+	};
 
-} // zeek::detail
+	} // zeek::detail

@@ -2,41 +2,41 @@
 
 #include "zeek/logging/writers/ascii/Ascii.h"
 
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <dirent.h>
-
-#include <ctime>
 #include <cstdio>
-#include <string>
-#include <vector>
+#include <ctime>
 #include <memory>
 #include <optional>
+#include <string>
+#include <vector>
 
 #include "zeek/Func.h"
 #include "zeek/RunState.h"
 #include "zeek/logging/Manager.h"
+#include "zeek/logging/writers/ascii/ascii.bif.h"
 #include "zeek/threading/SerialTypes.h"
 
-#include "zeek/logging/writers/ascii/ascii.bif.h"
-
 using namespace std;
-using zeek::threading::Value;
 using zeek::threading::Field;
+using zeek::threading::Value;
 
 static constexpr auto shadow_file_prefix = ".shadow.";
 
-namespace zeek::logging::writer::detail {
+namespace zeek::logging::writer::detail
+	{
 
 /**
  * Information about an leftover log file: that is, one that a previous
  * process was in the middle of writing, but never completed a rotation
  * for whatever reason (prematurely crashed/killed).
  */
-struct LeftoverLog {
+struct LeftoverLog
+	{
 	/*
 	 * Name of leftover log, relative to working dir.
 	 */
@@ -85,15 +85,13 @@ struct LeftoverLog {
 	 * Return the "path" (logging framework parlance) of the log without the
 	 * file extension. E.g. the "path" of "conn.log" is just "conn".
 	 */
-	std::string Path() const
-		{ return filename.substr(0, filename.size() - extension.size()); }
+	std::string Path() const { return filename.substr(0, filename.size() - extension.size()); }
 
 	/**
 	 * Deletes the shadow file and returns whether it succeeded.
 	 */
-	bool DeleteShadow() const
-		{ return unlink(shadow_filename.data()) == 0; }
-};
+	bool DeleteShadow() const { return unlink(shadow_filename.data()) == 0; }
+	};
 
 static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	{
@@ -107,8 +105,8 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( ! sf_stream )
 		{
-		rval.error = util::fmt("Failed to open %s: %s",
-		                 rval.shadow_filename.data(), strerror(errno));
+		rval.error =
+			util::fmt("Failed to open %s: %s", rval.shadow_filename.data(), strerror(errno));
 		return rval;
 		}
 
@@ -116,8 +114,8 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( res == -1 )
 		{
-		rval.error = util::fmt("Failed to fseek(SEEK_END) on %s: %s",
-		                 rval.shadow_filename.data(), strerror(errno));
+		rval.error = util::fmt("Failed to fseek(SEEK_END) on %s: %s", rval.shadow_filename.data(),
+		                       strerror(errno));
 		fclose(sf_stream);
 		return rval;
 		}
@@ -126,8 +124,8 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( sf_len == -1 )
 		{
-		rval.error = util::fmt("Failed to ftell() on %s: %s",
-		                 rval.shadow_filename.data(), strerror(errno));
+		rval.error =
+			util::fmt("Failed to ftell() on %s: %s", rval.shadow_filename.data(), strerror(errno));
 		fclose(sf_stream);
 		return rval;
 		}
@@ -136,8 +134,8 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( res == -1 )
 		{
-		rval.error = util::fmt("Failed to fseek(SEEK_SET) on %s: %s",
-		                 rval.shadow_filename.data(), strerror(errno));
+		rval.error = util::fmt("Failed to fseek(SEEK_SET) on %s: %s", rval.shadow_filename.data(),
+		                       strerror(errno));
 		fclose(sf_stream);
 		return rval;
 		}
@@ -158,8 +156,8 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	if ( sf_lines.size() < 2 )
 		{
 		rval.error = util::fmt("Found leftover log, '%s', but the associated shadow "
-		                 " file, '%s', required to process it is invalid",
-		                 rval.filename.data(), rval.shadow_filename.data());
+		                       " file, '%s', required to process it is invalid",
+		                       rval.filename.data(), rval.shadow_filename.data());
 		return rval;
 		}
 
@@ -171,8 +169,8 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	// Use shadow file's modification time as creation time.
 	if ( stat(rval.shadow_filename.data(), &st) != 0 )
 		{
-		rval.error = util::fmt("Failed to stat %s: %s",
-		                 rval.shadow_filename.data(), strerror(errno));
+		rval.error =
+			util::fmt("Failed to stat %s: %s", rval.shadow_filename.data(), strerror(errno));
 		return rval;
 		}
 
@@ -181,8 +179,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	// Use log file's modification time for closing time.
 	if ( stat(rval.filename.data(), &st) != 0 )
 		{
-		rval.error = util::fmt("Failed to stat %s: %s",
-		                 rval.filename.data(), strerror(errno));
+		rval.error = util::fmt("Failed to stat %s: %s", rval.filename.data(), strerror(errno));
 		return rval;
 		}
 
@@ -216,48 +213,30 @@ void Ascii::InitConfigOptions()
 	enable_utf_8 = BifConst::LogAscii::enable_utf_8;
 	gzip_level = BifConst::LogAscii::gzip_level;
 
-	separator.assign(
-			(const char*) BifConst::LogAscii::separator->Bytes(),
-			BifConst::LogAscii::separator->Len()
-			);
+	separator.assign((const char*)BifConst::LogAscii::separator->Bytes(),
+	                 BifConst::LogAscii::separator->Len());
 
-	set_separator.assign(
-			(const char*) BifConst::LogAscii::set_separator->Bytes(),
-			BifConst::LogAscii::set_separator->Len()
-			);
+	set_separator.assign((const char*)BifConst::LogAscii::set_separator->Bytes(),
+	                     BifConst::LogAscii::set_separator->Len());
 
-	empty_field.assign(
-			(const char*) BifConst::LogAscii::empty_field->Bytes(),
-			BifConst::LogAscii::empty_field->Len()
-			);
+	empty_field.assign((const char*)BifConst::LogAscii::empty_field->Bytes(),
+	                   BifConst::LogAscii::empty_field->Len());
 
-	unset_field.assign(
-			(const char*) BifConst::LogAscii::unset_field->Bytes(),
-			BifConst::LogAscii::unset_field->Len()
-			);
+	unset_field.assign((const char*)BifConst::LogAscii::unset_field->Bytes(),
+	                   BifConst::LogAscii::unset_field->Len());
 
-	meta_prefix.assign(
-			(const char*) BifConst::LogAscii::meta_prefix->Bytes(),
-			BifConst::LogAscii::meta_prefix->Len()
-			);
+	meta_prefix.assign((const char*)BifConst::LogAscii::meta_prefix->Bytes(),
+	                   BifConst::LogAscii::meta_prefix->Len());
 
 	ODesc tsfmt;
 	BifConst::LogAscii::json_timestamps->Describe(&tsfmt);
-	json_timestamps.assign(
-			(const char*) tsfmt.Bytes(),
-			tsfmt.Len()
-			);
+	json_timestamps.assign((const char*)tsfmt.Bytes(), tsfmt.Len());
 
-	gzip_file_extension.assign(
-		(const char*) BifConst::LogAscii::gzip_file_extension->Bytes(),
-		BifConst::LogAscii::gzip_file_extension->Len()
-		);
+	gzip_file_extension.assign((const char*)BifConst::LogAscii::gzip_file_extension->Bytes(),
+	                           BifConst::LogAscii::gzip_file_extension->Len());
 
-	logdir.assign(
-		(const char*) BifConst::LogAscii::logdir->Bytes(),
-		BifConst::LogAscii::logdir->Len()
-		);
-
+	logdir.assign((const char*)BifConst::LogAscii::logdir->Bytes(),
+	              BifConst::LogAscii::logdir->Len());
 	}
 
 bool Ascii::InitFilterOptions()
@@ -265,8 +244,8 @@ bool Ascii::InitFilterOptions()
 	const WriterInfo& info = Info();
 
 	// Set per-filter configuration options.
-	for ( WriterInfo::config_map::const_iterator i = info.config.begin();
-	      i != info.config.end(); ++i )
+	for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end();
+	      ++i )
 		{
 		if ( strcmp(i->first, "tsv") == 0 )
 			{
@@ -281,7 +260,7 @@ bool Ascii::InitFilterOptions()
 				}
 			}
 
-		else if ( strcmp(i->first, "gzip_level" ) == 0 )
+		else if ( strcmp(i->first, "gzip_level") == 0 )
 			{
 			gzip_level = atoi(i->second);
 
@@ -312,7 +291,8 @@ bool Ascii::InitFilterOptions()
 				enable_utf_8 = false;
 			else
 				{
-				Error("invalid value for 'enable_utf_8', must be a string and either \"T\" or \"F\"");
+				Error(
+					"invalid value for 'enable_utf_8', must be a string and either \"T\" or \"F\"");
 				return false;
 				}
 			}
@@ -325,7 +305,8 @@ bool Ascii::InitFilterOptions()
 				output_to_stdout = false;
 			else
 				{
-				Error("invalid value for 'output_to_stdout', must be a string and either \"T\" or \"F\"");
+				Error("invalid value for 'output_to_stdout', must be a string and either \"T\" or "
+				      "\"F\"");
 				return false;
 				}
 			}
@@ -396,7 +377,8 @@ bool Ascii::InitFormatter()
 		// Use the default "Bro logs" format.
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(separator);
-		threading::formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
+		threading::formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field,
+		                                                    empty_field);
 		formatter = new threading::formatter::Ascii(this, sep_info);
 		}
 
@@ -433,7 +415,7 @@ void Ascii::CloseFile(double t)
 	gzfile = nullptr;
 	}
 
-bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const * fields)
+bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields)
 	{
 	assert(! fd);
 
@@ -472,7 +454,8 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 
 		fname += ext;
 
-		bool use_shadow = BifConst::LogAscii::enable_leftover_log_rotation && Info().rotation_interval > 0;
+		bool use_shadow =
+			BifConst::LogAscii::enable_leftover_log_rotation && Info().rotation_interval > 0;
 
 		if ( use_shadow )
 			{
@@ -500,9 +483,8 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 
 			if ( rename(tmp_sfname.data(), sfname.data()) == -1 )
 				{
-				Error(Fmt("Unable to rename %s to %s: %s",
-					  tmp_sfname.data(), sfname.data(),
-					  Strerror(errno)));
+				Error(Fmt("Unable to rename %s to %s: %s", tmp_sfname.data(), sfname.data(),
+				          Strerror(errno)));
 
 				unlink(tmp_sfname.data());
 
@@ -515,8 +497,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 
 	if ( fd < 0 )
 		{
-		Error(Fmt("cannot open %s: %s", fname.c_str(),
-			  Strerror(errno)));
+		Error(Fmt("cannot open %s: %s", fname.c_str(), Strerror(errno)));
 		fd = 0;
 		return false;
 		}
@@ -536,8 +517,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 
 		if ( gzfile == nullptr )
 			{
-			Error(Fmt("cannot gzip %s: %s", fname.c_str(),
-			                                Strerror(errno)));
+			Error(Fmt("cannot gzip %s: %s", fname.c_str(), Strerror(errno)));
 			return false;
 			}
 		}
@@ -585,10 +565,8 @@ bool Ascii::WriteHeader(const string& path)
 		return true;
 		}
 
-	string str = meta_prefix
-		+ "separator " // Always use space as separator here.
-		+ util::get_escaped_string(separator, false)
-		+ "\n";
+	string str = meta_prefix + "separator " // Always use space as separator here.
+	             + util::get_escaped_string(separator, false) + "\n";
 
 	if ( ! InternalWrite(fd, str.c_str(), str.length()) )
 		return false;
@@ -600,8 +578,7 @@ bool Ascii::WriteHeader(const string& path)
 	        WriteHeaderField("open", Timestamp(0))) )
 		return false;
 
-	if ( ! (WriteHeaderField("fields", names) &&
-	        WriteHeaderField("types", types)) )
+	if ( ! (WriteHeaderField("fields", names) && WriteHeaderField("types", types)) )
 		return false;
 
 	return true;
@@ -630,8 +607,7 @@ bool Ascii::DoFinish(double network_time)
 	return true;
 	}
 
-bool Ascii::DoWrite(int num_fields, const threading::Field* const * fields,
-                    threading::Value** vals)
+bool Ascii::DoWrite(int num_fields, const threading::Field* const* fields, threading::Value** vals)
 	{
 	if ( ! fd )
 		DoInit(Info(), NumFields(), Fields());
@@ -662,7 +638,7 @@ bool Ascii::DoWrite(int num_fields, const threading::Field* const * fields,
 	if ( ! InternalWrite(fd, bytes, len) )
 		goto write_error;
 
-        if ( ! IsBuf() )
+	if ( ! IsBuf() )
 		fsync(fd);
 
 	return true;
@@ -695,13 +671,13 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 		{
 		char buf[256];
 		util::zeek_strerror_r(errno, buf, sizeof(buf));
-		Error(Fmt("failed to rename %s to %s: %s", fname.c_str(),
-		          nname.c_str(), buf));
+		Error(Fmt("failed to rename %s to %s: %s", fname.c_str(), nname.c_str(), buf));
 		FinishedRotation();
 		return false;
 		}
 
-	bool use_shadow = BifConst::LogAscii::enable_leftover_log_rotation && Info().rotation_interval > 0;
+	bool use_shadow =
+		BifConst::LogAscii::enable_leftover_log_rotation && Info().rotation_interval > 0;
 
 	if ( use_shadow )
 		{
@@ -755,8 +731,8 @@ static std::vector<LeftoverLog> find_leftover_logs()
 			cwd[1] = '\0';
 			}
 
-		reporter->Error("failed to open directory '%s' in search of leftover logs: %s",
-		                cwd, strerror(errno));
+		reporter->Error("failed to open directory '%s' in search of leftover logs: %s", cwd,
+		                strerror(errno));
 		return rval;
 		}
 
@@ -774,8 +750,8 @@ static std::vector<LeftoverLog> find_leftover_logs()
 				if ( ll->error.empty() )
 					rval.emplace_back(std::move(*ll));
 				else
-					reporter->Error("failed to process leftover log '%s': %s",
-					                log_name.data(), ll->error.data());
+					reporter->Error("failed to process leftover log '%s': %s", log_name.data(),
+					                ll->error.data());
 				}
 			}
 		else
@@ -833,8 +809,8 @@ void Ascii::RotateLeftoverLogs()
 				                  ll.filename.data(), ll.post_proc_func.data());
 			}
 
-		auto rotation_path = log_mgr->FormatRotationPath(
-			writer_val, ll.Path(), ll.open_time, ll.close_time, false, ppf);
+		auto rotation_path = log_mgr->FormatRotationPath(writer_val, ll.Path(), ll.open_time,
+		                                                 ll.close_time, false, ppf);
 
 		rotation_path += ll.extension;
 
@@ -853,19 +829,19 @@ void Ascii::RotateLeftoverLogs()
 
 		if ( ! ll.DeleteShadow() )
 			// Unusual failure to report, but not strictly fatal.
-			reporter->Warning("Failed to unlink %s: %s",
-			                  ll.shadow_filename.data(), strerror(errno));
+			reporter->Warning("Failed to unlink %s: %s", ll.shadow_filename.data(),
+			                  strerror(errno));
 
 		try
 			{
 			ppf->Invoke(std::move(rot_info));
-			reporter->Info("Rotated/postprocessed leftover log '%s' -> '%s' ",
-			               ll.filename.data(), rotation_path.data());
+			reporter->Info("Rotated/postprocessed leftover log '%s' -> '%s' ", ll.filename.data(),
+			               rotation_path.data());
 			}
 		catch ( InterpreterException& e )
 			{
-			reporter->Warning("Postprocess function '%s' failed for leftover log '%s'",
-			                  ppf->Name(), ll.filename.data());
+			reporter->Warning("Postprocess function '%s' failed for leftover log '%s'", ppf->Name(),
+			                  ll.filename.data());
 			}
 		}
 	}
@@ -940,23 +916,24 @@ bool Ascii::InternalClose(int fd)
 	if ( res == Z_OK )
 		return true;
 
-	switch ( res ) {
-	case Z_STREAM_ERROR:
-		Error("Ascii::InternalClose gzclose error: invalid file stream");
-		break;
-	case Z_BUF_ERROR:
-		Error("Ascii::InternalClose gzclose error: "
-		      "no compression progress possible during buffer flush");
-		break;
-	case Z_ERRNO:
-		Error(Fmt("Ascii::InternalClose gzclose error: %s\n", Strerror(errno)));
-		break;
-	default:
-		Error("Ascii::InternalClose invalid gzclose result");
-		break;
-	}
+	switch ( res )
+		{
+		case Z_STREAM_ERROR:
+			Error("Ascii::InternalClose gzclose error: invalid file stream");
+			break;
+		case Z_BUF_ERROR:
+			Error("Ascii::InternalClose gzclose error: "
+			      "no compression progress possible during buffer flush");
+			break;
+		case Z_ERRNO:
+			Error(Fmt("Ascii::InternalClose gzclose error: %s\n", Strerror(errno)));
+			break;
+		default:
+			Error("Ascii::InternalClose invalid gzclose result");
+			break;
+		}
 
 	return false;
 	}
 
-} // namespace zeek::logging::writer::detail
+	} // namespace zeek::logging::writer::detail

@@ -1,16 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/analyzer/protocol/snmp/SNMP.h"
+
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
-
-#include "zeek/analyzer/protocol/snmp/types.bif.h"
 #include "zeek/analyzer/protocol/snmp/events.bif.h"
+#include "zeek/analyzer/protocol/snmp/types.bif.h"
 
-namespace zeek::analyzer::snmp {
+namespace zeek::analyzer::snmp
+	{
 
-SNMP_Analyzer::SNMP_Analyzer(Connection* conn)
-	: Analyzer("SNMP", conn)
+SNMP_Analyzer::SNMP_Analyzer(Connection* conn) : Analyzer("SNMP", conn)
 	{
 	interp = new binpac::SNMP::SNMP_Conn(this);
 	}
@@ -26,8 +26,8 @@ void SNMP_Analyzer::Done()
 	Event(udp_session_done);
 	}
 
-void SNMP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                  uint64_t seq, const IP_Hdr* ip, int caplen)
+void SNMP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+                                  const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -41,4 +41,4 @@ void SNMP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	}
 
-} // namespace zeek::analyzer::snmp
+	} // namespace zeek::analyzer::snmp

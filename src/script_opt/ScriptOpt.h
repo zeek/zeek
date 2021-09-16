@@ -4,21 +4,25 @@
 
 #pragma once
 
-#include <string>
 #include <optional>
+#include <string>
 
-#include "zeek/Func.h"
 #include "zeek/Expr.h"
+#include "zeek/Func.h"
 #include "zeek/Scope.h"
 
-namespace zeek { struct Options; }
+namespace zeek
+	{
+struct Options;
+	}
 
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 // Flags controlling what sorts of analysis to do.
 
-struct AnalyOpt {
+struct AnalyOpt
+	{
 
 	// If non-nil, then only analyze the given function/event/hook.
 	// Applies to both ZAM and C++.
@@ -27,7 +31,6 @@ struct AnalyOpt {
 	// For a given compilation target, report functions that can't
 	// be compiled.
 	bool report_uncompilable = false;
-
 
 	////// Options relating to ZAM:
 
@@ -86,7 +89,6 @@ struct AnalyOpt {
 	// for ZAM.
 	int usage_issues = 0;
 
-
 	////// Options relating to C++:
 
 	// If true, generate C++;
@@ -113,43 +115,42 @@ struct AnalyOpt {
 
 	// If true, report on available C++ bodies.
 	bool report_CPP = false;
-};
+	};
 
 extern AnalyOpt analysis_options;
-
 
 class ProfileFunc;
 
 using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
 
 // Info we need for tracking an instance of a function.
-class FuncInfo {
+class FuncInfo
+	{
 public:
-	FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body,
-	         int _priority)
-	: func(std::move(_func)), scope(std::move(_scope)),
-	  body(std::move(_body)), priority(_priority)
-		{}
+	FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body, int _priority)
+		: func(std::move(_func)), scope(std::move(_scope)), body(std::move(_body)),
+		  priority(_priority)
+		{
+		}
 
-	ScriptFunc* Func() const		{ return func.get(); }
-	const ScriptFuncPtr& FuncPtr() const	{ return func; }
-	const ScopePtr& Scope() const		{ return scope; }
-	const StmtPtr& Body() const		{ return body; }
-	int Priority() const			{ return priority; }
-	const ProfileFunc* Profile() const	{ return pf.get(); }
-	std::shared_ptr<ProfileFunc> ProfilePtr() const	{ return pf; }
+	ScriptFunc* Func() const { return func.get(); }
+	const ScriptFuncPtr& FuncPtr() const { return func; }
+	const ScopePtr& Scope() const { return scope; }
+	const StmtPtr& Body() const { return body; }
+	int Priority() const { return priority; }
+	const ProfileFunc* Profile() const { return pf.get(); }
+	std::shared_ptr<ProfileFunc> ProfilePtr() const { return pf; }
 
-	void SetBody(StmtPtr new_body)	{ body = std::move(new_body); }
+	void SetBody(StmtPtr new_body) { body = std::move(new_body); }
 	// void SetProfile(std::shared_ptr<ProfileFunc> _pf);
-	void SetProfile(std::shared_ptr<ProfileFunc> _pf)
-		{ pf = std::move(_pf); }
+	void SetProfile(std::shared_ptr<ProfileFunc> _pf) { pf = std::move(_pf); }
 
 	// The following provide a way of marking FuncInfo's as
 	// should-be-skipped for script optimization, generally because
 	// the function body has a property that a given script optimizer
 	// doesn't know how to deal with.  Defaults to don't-skip.
-	bool ShouldSkip() const		{ return skip; }
-	void SetSkip(bool should_skip)	{ skip = should_skip; }
+	bool ShouldSkip() const { return skip; }
+	void SetSkip(bool should_skip) { skip = should_skip; }
 
 protected:
 	ScriptFuncPtr func;
@@ -160,8 +161,7 @@ protected:
 
 	// Whether to skip optimizing this function.
 	bool skip = false;
-};
-
+	};
 
 // We track which functions are definitely not recursive.  We do this
 // as the negative, rather than tracking functions known to be recursive,
@@ -180,7 +180,6 @@ extern const FuncInfo* analyze_global_stmts(Stmt* stmts);
 // Analyze all of the parsed scripts collectively for optimization.
 extern void analyze_scripts();
 
-
 // Used for C++-compiled scripts to signal their presence, by setting this
 // to a non-empty value.
 extern void (*CPP_init_hook)();
@@ -189,5 +188,4 @@ extern void (*CPP_init_hook)();
 // called after parsing and BiF initialization, but before zeek_init.
 extern void (*CPP_activation_hook)();
 
-
-} // namespace zeek::detail
+	} // namespace zeek::detail

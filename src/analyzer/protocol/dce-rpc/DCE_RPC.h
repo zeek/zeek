@@ -2,16 +2,17 @@
 
 #pragma once
 
-#include "zeek/NetVar.h"
-#include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/IPAddr.h"
-
-#include "zeek/analyzer/protocol/dce-rpc/events.bif.h"
+#include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/dce-rpc/dce_rpc_pac.h"
+#include "zeek/analyzer/protocol/dce-rpc/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
-namespace zeek::analyzer::dce_rpc {
+namespace zeek::analyzer::dce_rpc
+	{
 
-class DCE_RPC_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class DCE_RPC_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 public:
 	explicit DCE_RPC_Analyzer(Connection* conn);
 	~DCE_RPC_Analyzer() override;
@@ -22,14 +23,16 @@ public:
 	void EndpointEOF(bool is_orig) override;
 
 	bool SetFileID(uint64_t fid_in)
-		{ interp->set_file_id(fid_in); return true; }
+		{
+		interp->set_file_id(fid_in);
+		return true;
+		}
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new DCE_RPC_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new DCE_RPC_Analyzer(conn); }
 
 protected:
 	bool had_gap;
 	binpac::DCE_RPC::DCE_RPC_Conn* interp;
-};
+	};
 
-} // namespace zeek::analyzer::dce_rpc
+	} // namespace zeek::analyzer::dce_rpc

@@ -2,34 +2,37 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "zeek/zeek-config.h"
 
-#include <string>
-#include <optional>
-
-namespace zeek {
+namespace zeek
+	{
 
 class Packet;
 
-namespace iosource {
+namespace iosource
+	{
 
 class IOSource;
 class PktSrc;
 class PktDumper;
 
-} // namespace iosource
+	} // namespace iosource
 
-namespace run_state {
-namespace detail {
+namespace run_state
+	{
+namespace detail
+	{
 
 extern void init_run(const std::optional<std::string>& interfaces,
                      const std::optional<std::string>& pcap_input_file,
-                     const std::optional<std::string>& pcap_output_file,
-                     bool do_watchdog);
+                     const std::optional<std::string>& pcap_output_file, bool do_watchdog);
 extern void run_loop();
 extern void get_final_stats();
 extern void finish_run(int drain_events);
-extern void delete_run();	// Reclaim all memory, etc.
+extern void delete_run(); // Reclaim all memory, etc.
 extern void update_network_time(double new_network_time);
 extern void dispatch_packet(zeek::Packet* pkt, zeek::iosource::PktSrc* pkt_src);
 extern void expire_timers();
@@ -41,10 +44,10 @@ extern void zeek_terminate_loop(const char* reason);
  */
 extern zeek::iosource::PktSrc* current_packet_source();
 
-extern double check_pseudo_time(const Packet *pkt);
+extern double check_pseudo_time(const Packet* pkt);
 
 extern zeek::iosource::IOSource* current_iosrc;
-extern zeek::iosource::PktDumper* pkt_dumper;	// where to save packets
+extern zeek::iosource::PktDumper* pkt_dumper; // where to save packets
 
 // True if we have timers scheduled for the future on which we need
 // to wait.  "Need to wait" here means that we're running live (though
@@ -62,7 +65,7 @@ extern double current_pseudo;
 
 extern bool zeek_init_done;
 
-} // namespace detail
+	} // namespace detail
 
 // Functions to temporarily suspend processing of live input (network packets
 // and remote events/state). Turning this is on is sure to lead to data loss!
@@ -110,5 +113,5 @@ extern const zeek::Packet* current_pkt;
 extern int current_dispatched;
 extern double current_timestamp;
 
-} // namespace run_state
-} // namespace zeek
+	} // namespace run_state
+	} // namespace zeek

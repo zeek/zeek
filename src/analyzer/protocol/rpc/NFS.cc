@@ -1,20 +1,21 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/rpc/NFS.h"
 
 #include <utility>
 #include <vector>
 
-#include "zeek/ZeekString.h"
-#include "zeek/NetVar.h"
-#include "zeek/analyzer/protocol/rpc/XDR.h"
 #include "zeek/Event.h"
-
+#include "zeek/NetVar.h"
+#include "zeek/ZeekString.h"
+#include "zeek/analyzer/protocol/rpc/XDR.h"
 #include "zeek/analyzer/protocol/rpc/events.bif.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek::analyzer::rpc {
-namespace detail {
+namespace zeek::analyzer::rpc
+	{
+namespace detail
+	{
 
 bool NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
@@ -25,91 +26,92 @@ bool NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	// The call arguments, depends on the call type obviously ...
 	ValPtr callarg;
 
-	switch ( proc ) {
-	case BifEnum::NFS3::PROC_NULL:
-		break;
+	switch ( proc )
+		{
+		case BifEnum::NFS3::PROC_NULL:
+			break;
 
-	case BifEnum::NFS3::PROC_GETATTR:
-		callarg = nfs3_fh(buf, n);
-		break;
+		case BifEnum::NFS3::PROC_GETATTR:
+			callarg = nfs3_fh(buf, n);
+			break;
 
-	case BifEnum::NFS3::PROC_SETATTR:
-		callarg = nfs3_sattrargs(buf, n);
-		break;
+		case BifEnum::NFS3::PROC_SETATTR:
+			callarg = nfs3_sattrargs(buf, n);
+			break;
 
-	case BifEnum::NFS3::PROC_LOOKUP:
-		callarg = nfs3_diropargs(buf, n);
-		break;
+		case BifEnum::NFS3::PROC_LOOKUP:
+			callarg = nfs3_diropargs(buf, n);
+			break;
 
-	case BifEnum::NFS3::PROC_READ:
-		callarg = nfs3_readargs(buf, n);
-		break;
+		case BifEnum::NFS3::PROC_READ:
+			callarg = nfs3_readargs(buf, n);
+			break;
 
-	case BifEnum::NFS3::PROC_READLINK:
-		callarg = nfs3_fh(buf, n);
-		break;
+		case BifEnum::NFS3::PROC_READLINK:
+			callarg = nfs3_fh(buf, n);
+			break;
 
-	case BifEnum::NFS3::PROC_SYMLINK:
-		callarg = nfs3_symlinkargs(buf, n);
-		break;
+		case BifEnum::NFS3::PROC_SYMLINK:
+			callarg = nfs3_symlinkargs(buf, n);
+			break;
 
-	case BifEnum::NFS3::PROC_LINK:
-		callarg = nfs3_linkargs(buf, n);
-		break;
+		case BifEnum::NFS3::PROC_LINK:
+			callarg = nfs3_linkargs(buf, n);
+			break;
 
-	case BifEnum::NFS3::PROC_WRITE:
-		callarg = nfs3_writeargs(buf, n);
-		break;
+		case BifEnum::NFS3::PROC_WRITE:
+			callarg = nfs3_writeargs(buf, n);
+			break;
 
-	case BifEnum::NFS3::PROC_CREATE:
-		callarg = nfs3_diropargs(buf, n);
-		// TODO: implement create attributes. For now we just skip
-		// over them.
-		n = 0;
-		break;
-
-	case BifEnum::NFS3::PROC_MKDIR:
-		callarg = nfs3_diropargs(buf, n);
-		// TODO: implement mkdir attributes. For now we just skip
-		// over them.
-		n = 0;
-		break;
-
-	case BifEnum::NFS3::PROC_REMOVE:
-		callarg = nfs3_diropargs(buf, n);
-		break;
-
-	case BifEnum::NFS3::PROC_RMDIR:
-		callarg = nfs3_diropargs(buf, n);
-		break;
-
-	case BifEnum::NFS3::PROC_RENAME:
-		callarg = nfs3_renameopargs(buf, n);
-		break;
-
-	case BifEnum::NFS3::PROC_READDIR:
-		callarg = nfs3_readdirargs(false, buf, n);
-		break;
-
-	case BifEnum::NFS3::PROC_READDIRPLUS:
-		callarg = nfs3_readdirargs(true, buf, n);
-		break;
-
-	default:
-		if ( proc < BifEnum::NFS3::PROC_END_OF_PROCS )
-			{
-			// We know the procedure but haven't implemented it.
-			// Otherwise DeliverRPC would complain about
-			// excess_RPC.
+		case BifEnum::NFS3::PROC_CREATE:
+			callarg = nfs3_diropargs(buf, n);
+			// TODO: implement create attributes. For now we just skip
+			// over them.
 			n = 0;
-			}
-		else
-			Weird("unknown_NFS_request", util::fmt("%u", proc));
+			break;
 
-		// Return 1 so that replies to unprocessed calls will still
-		// be processed, and the return status extracted.
-		return true;
-	}
+		case BifEnum::NFS3::PROC_MKDIR:
+			callarg = nfs3_diropargs(buf, n);
+			// TODO: implement mkdir attributes. For now we just skip
+			// over them.
+			n = 0;
+			break;
+
+		case BifEnum::NFS3::PROC_REMOVE:
+			callarg = nfs3_diropargs(buf, n);
+			break;
+
+		case BifEnum::NFS3::PROC_RMDIR:
+			callarg = nfs3_diropargs(buf, n);
+			break;
+
+		case BifEnum::NFS3::PROC_RENAME:
+			callarg = nfs3_renameopargs(buf, n);
+			break;
+
+		case BifEnum::NFS3::PROC_READDIR:
+			callarg = nfs3_readdirargs(false, buf, n);
+			break;
+
+		case BifEnum::NFS3::PROC_READDIRPLUS:
+			callarg = nfs3_readdirargs(true, buf, n);
+			break;
+
+		default:
+			if ( proc < BifEnum::NFS3::PROC_END_OF_PROCS )
+				{
+				// We know the procedure but haven't implemented it.
+				// Otherwise DeliverRPC would complain about
+				// excess_RPC.
+				n = 0;
+				}
+			else
+				Weird("unknown_NFS_request", util::fmt("%u", proc));
+
+			// Return 1 so that replies to unprocessed calls will still
+			// be processed, and the return status extracted.
+			return true;
+		}
 
 	if ( ! buf )
 		// There was a parse error while trying to extract the call arguments.
@@ -120,14 +122,13 @@ bool NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	return true;
 	}
 
-bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
-			       const u_char*& buf, int& n, double start_time,
-			       double last_time, int reply_len)
+bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status, const u_char*& buf,
+                                int& n, double start_time, double last_time, int reply_len)
 	{
 	EventHandlerPtr event = nullptr;
 	ValPtr reply;
 	BifEnum::NFS3::status_t nfs_status = BifEnum::NFS3::NFS3ERR_OK;
-	bool rpc_success = ( rpc_status == BifEnum::RPC_SUCCESS );
+	bool rpc_success = (rpc_status == BifEnum::RPC_SUCCESS);
 
 	// Reply always starts with the NFS status.
 	if ( rpc_success )
@@ -140,8 +141,7 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 
 	if ( nfs_reply_status )
 		{
-		auto vl = event_common_vl(c, rpc_status, nfs_status,
-					       start_time, last_time, reply_len, 0);
+		auto vl = event_common_vl(c, rpc_status, nfs_status, start_time, last_time, reply_len, 0);
 		analyzer->EnqueueConnEvent(nfs_reply_status, std::move(vl));
 		}
 
@@ -154,101 +154,102 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		n = 0;
 		}
 
-	switch ( c->Proc() ) {
-	case BifEnum::NFS3::PROC_NULL:
-		event = nfs_proc_null;
-		break;
+	switch ( c->Proc() )
+		{
+		case BifEnum::NFS3::PROC_NULL:
+			event = nfs_proc_null;
+			break;
 
-	case BifEnum::NFS3::PROC_GETATTR:
-		reply = nfs3_fattr(buf, n);
-		event = nfs_proc_getattr;
-		break;
+		case BifEnum::NFS3::PROC_GETATTR:
+			reply = nfs3_fattr(buf, n);
+			event = nfs_proc_getattr;
+			break;
 
-	case BifEnum::NFS3::PROC_SETATTR:
-		reply = nfs3_sattr_reply(buf, n, nfs_status);
-		event = nfs_proc_sattr;
-		break;
+		case BifEnum::NFS3::PROC_SETATTR:
+			reply = nfs3_sattr_reply(buf, n, nfs_status);
+			event = nfs_proc_sattr;
+			break;
 
-	case BifEnum::NFS3::PROC_LOOKUP:
-		reply = nfs3_lookup_reply(buf, n, nfs_status);
-		event = nfs_proc_lookup;
-		break;
+		case BifEnum::NFS3::PROC_LOOKUP:
+			reply = nfs3_lookup_reply(buf, n, nfs_status);
+			event = nfs_proc_lookup;
+			break;
 
-	case BifEnum::NFS3::PROC_READ:
-		bro_uint_t offset;
-		offset = c->RequestVal()->AsRecordVal()->GetFieldAs<CountVal>(1);
-		reply = nfs3_read_reply(buf, n, nfs_status, offset);
-		event = nfs_proc_read;
-		break;
+		case BifEnum::NFS3::PROC_READ:
+			bro_uint_t offset;
+			offset = c->RequestVal()->AsRecordVal()->GetFieldAs<CountVal>(1);
+			reply = nfs3_read_reply(buf, n, nfs_status, offset);
+			event = nfs_proc_read;
+			break;
 
-	case BifEnum::NFS3::PROC_READLINK:
-		reply = nfs3_readlink_reply(buf, n, nfs_status);
-		event = nfs_proc_readlink;
-		break;
+		case BifEnum::NFS3::PROC_READLINK:
+			reply = nfs3_readlink_reply(buf, n, nfs_status);
+			event = nfs_proc_readlink;
+			break;
 
-	case BifEnum::NFS3::PROC_SYMLINK:
-		reply = nfs3_newobj_reply(buf, n, nfs_status);
-		event = nfs_proc_symlink;
-		break;
+		case BifEnum::NFS3::PROC_SYMLINK:
+			reply = nfs3_newobj_reply(buf, n, nfs_status);
+			event = nfs_proc_symlink;
+			break;
 
-	case BifEnum::NFS3::PROC_LINK:
-		reply = nfs3_link_reply(buf, n, nfs_status);
-		event = nfs_proc_link;
-		break;
+		case BifEnum::NFS3::PROC_LINK:
+			reply = nfs3_link_reply(buf, n, nfs_status);
+			event = nfs_proc_link;
+			break;
 
-	case BifEnum::NFS3::PROC_WRITE:
-		reply = nfs3_write_reply(buf, n, nfs_status);
-		event = nfs_proc_write;
-		break;
+		case BifEnum::NFS3::PROC_WRITE:
+			reply = nfs3_write_reply(buf, n, nfs_status);
+			event = nfs_proc_write;
+			break;
 
-	case BifEnum::NFS3::PROC_CREATE:
-		reply = nfs3_newobj_reply(buf, n, nfs_status);
-		event = nfs_proc_create;
-		break;
+		case BifEnum::NFS3::PROC_CREATE:
+			reply = nfs3_newobj_reply(buf, n, nfs_status);
+			event = nfs_proc_create;
+			break;
 
-	case BifEnum::NFS3::PROC_MKDIR:
-		reply = nfs3_newobj_reply(buf, n, nfs_status);
-		event = nfs_proc_mkdir;
-		break;
+		case BifEnum::NFS3::PROC_MKDIR:
+			reply = nfs3_newobj_reply(buf, n, nfs_status);
+			event = nfs_proc_mkdir;
+			break;
 
-	case BifEnum::NFS3::PROC_REMOVE:
-		reply = nfs3_delobj_reply(buf, n);
-		event = nfs_proc_remove;
-		break;
+		case BifEnum::NFS3::PROC_REMOVE:
+			reply = nfs3_delobj_reply(buf, n);
+			event = nfs_proc_remove;
+			break;
 
-	case BifEnum::NFS3::PROC_RMDIR:
-		reply = nfs3_delobj_reply(buf, n);
-		event = nfs_proc_rmdir;
-		break;
+		case BifEnum::NFS3::PROC_RMDIR:
+			reply = nfs3_delobj_reply(buf, n);
+			event = nfs_proc_rmdir;
+			break;
 
-	case BifEnum::NFS3::PROC_RENAME:
-		reply = nfs3_renameobj_reply(buf, n);
-		event = nfs_proc_rename;
-		break;
+		case BifEnum::NFS3::PROC_RENAME:
+			reply = nfs3_renameobj_reply(buf, n);
+			event = nfs_proc_rename;
+			break;
 
-	case BifEnum::NFS3::PROC_READDIR:
-		reply = nfs3_readdir_reply(false, buf, n, nfs_status);
-		event = nfs_proc_readdir;
-		break;
+		case BifEnum::NFS3::PROC_READDIR:
+			reply = nfs3_readdir_reply(false, buf, n, nfs_status);
+			event = nfs_proc_readdir;
+			break;
 
-	case BifEnum::NFS3::PROC_READDIRPLUS:
-		reply = nfs3_readdir_reply(true, buf, n, nfs_status);
-		event = nfs_proc_readdir;
-		break;
+		case BifEnum::NFS3::PROC_READDIRPLUS:
+			reply = nfs3_readdir_reply(true, buf, n, nfs_status);
+			event = nfs_proc_readdir;
+			break;
 
-	default:
-		if ( c->Proc() < BifEnum::NFS3::PROC_END_OF_PROCS )
-			{
-			// We know the procedure but haven't implemented it.
-			// Otherwise DeliverRPC would complain about
-			// excess_RPC.
-			n = 0;
-			reply = BifType::Enum::NFS3::proc_t->GetEnumVal(c->Proc());
-			event = nfs_proc_not_implemented;
-			}
-		else
-			return false;
-	}
+		default:
+			if ( c->Proc() < BifEnum::NFS3::PROC_END_OF_PROCS )
+				{
+				// We know the procedure but haven't implemented it.
+				// Otherwise DeliverRPC would complain about
+				// excess_RPC.
+				n = 0;
+				reply = BifType::Enum::NFS3::proc_t->GetEnumVal(c->Proc());
+				event = nfs_proc_not_implemented;
+				}
+			else
+				return false;
+		}
 
 	if ( rpc_success && ! buf )
 		// There was a parse error.
@@ -264,8 +265,8 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		{
 		auto request = c->TakeRequestVal();
 
-		auto vl = event_common_vl(c, rpc_status, nfs_status,
-					start_time, last_time, reply_len, (bool)request + (bool)reply);
+		auto vl = event_common_vl(c, rpc_status, nfs_status, start_time, last_time, reply_len,
+		                          (bool)request + (bool)reply);
 
 		if ( request )
 			vl.emplace_back(std::move(request));
@@ -284,7 +285,7 @@ StringValPtr NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t off
 	int data_n;
 
 	// extract the data, move buf and n
-	const u_char *data = extract_XDR_opaque(buf, n, data_n, 1 << 30, true);
+	const u_char* data = extract_XDR_opaque(buf, n, data_n, 1 << 30, true);
 
 	// check whether we have to deliver data to the event
 	if ( ! BifConst::NFS3::return_data )
@@ -303,10 +304,9 @@ StringValPtr NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t off
 	return nullptr;
 	}
 
-Args NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status,
-				      BifEnum::NFS3::status_t nfs_status,
-				      double rep_start_time,
-				      double rep_last_time, int reply_len, int extra_elements)
+Args NFS_Interp::event_common_vl(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
+                                 BifEnum::NFS3::status_t nfs_status, double rep_start_time,
+                                 double rep_last_time, int reply_len, int extra_elements)
 	{
 	// Returns a new val_list that already has a conn_val, and nfs3_info.
 	// These are the first parameters for each nfs_* event ...
@@ -322,10 +322,10 @@ Args NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status
 	info->Assign(0, BifType::Enum::rpc_status->GetEnumVal(rpc_status));
 	info->Assign(1, BifType::Enum::NFS3::status_t->GetEnumVal(nfs_status));
 	info->AssignTime(2, c->StartTime());
-	info->AssignInterval(3, c->LastTime()-c->StartTime());
+	info->AssignInterval(3, c->LastTime() - c->StartTime());
 	info->Assign(4, c->RPCLen());
 	info->AssignTime(5, rep_start_time);
-	info->AssignInterval(6, rep_last_time-rep_start_time);
+	info->AssignInterval(6, rep_last_time - rep_start_time);
 	info->Assign(7, reply_len);
 	info->Assign(8, c->Uid());
 	info->Assign(9, c->Gid());
@@ -348,26 +348,25 @@ StringValPtr NFS_Interp::nfs3_fh(const u_char*& buf, int& n)
 	return make_intrusive<StringVal>(new String(fh, fh_n, false));
 	}
 
-
 RecordValPtr NFS_Interp::nfs3_sattr(const u_char*& buf, int& n)
 	{
 	auto attrs = make_intrusive<RecordVal>(BifType::Record::NFS3::sattr_t);
 
-	int mode_set_it =  extract_XDR_uint32(buf, n);
+	int mode_set_it = extract_XDR_uint32(buf, n);
 	if ( mode_set_it )
 		attrs->Assign(0, ExtractUint32(buf, n)); // mode
 
-	int uid_set_it =  extract_XDR_uint32(buf, n);
+	int uid_set_it = extract_XDR_uint32(buf, n);
 	if ( uid_set_it )
 		attrs->Assign(1, ExtractUint32(buf, n)); // uid
 
-	int gid_set_it =  extract_XDR_uint32(buf, n);
+	int gid_set_it = extract_XDR_uint32(buf, n);
 	if ( gid_set_it )
 		attrs->Assign(2, ExtractUint32(buf, n)); // gid
 
-	int size_set_it =  extract_XDR_uint32(buf, n);
+	int size_set_it = extract_XDR_uint32(buf, n);
 	if ( size_set_it )
-		attrs->Assign(3, ExtractTime(buf, n));	 // size
+		attrs->Assign(3, ExtractTime(buf, n)); // size
 
 	attrs->Assign(4, nfs3_time_how(buf, n)); // time_how
 
@@ -376,7 +375,8 @@ RecordValPtr NFS_Interp::nfs3_sattr(const u_char*& buf, int& n)
 	return attrs;
 	}
 
-RecordValPtr NFS_Interp::nfs3_sattr_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
+RecordValPtr NFS_Interp::nfs3_sattr_reply(const u_char*& buf, int& n,
+                                          BifEnum::NFS3::status_t status)
 	{
 	auto rep = make_intrusive<RecordVal>(BifType::Record::NFS3::sattr_reply_t);
 
@@ -393,20 +393,20 @@ RecordValPtr NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 	{
 	auto attrs = make_intrusive<RecordVal>(BifType::Record::NFS3::fattr_t);
 
-	attrs->Assign(0, nfs3_ftype(buf, n));	// file type
-	attrs->Assign(1, ExtractUint32(buf, n));	// mode
-	attrs->Assign(2, ExtractUint32(buf, n));	// nlink
-	attrs->Assign(3, ExtractUint32(buf, n));	// uid
-	attrs->Assign(4, ExtractUint32(buf, n));	// gid
-	attrs->Assign(5, ExtractUint64(buf, n));	// size
-	attrs->Assign(6, ExtractUint64(buf, n));	// used
-	attrs->Assign(7, ExtractUint32(buf, n));	// rdev1
-	attrs->Assign(8, ExtractUint32(buf, n));	// rdev2
-	attrs->Assign(9, ExtractUint64(buf, n));	// fsid
-	attrs->Assign(10, ExtractUint64(buf, n));	// fileid
-	attrs->Assign(11, ExtractTime(buf, n));	// atime
-	attrs->Assign(12, ExtractTime(buf, n));	// mtime
-	attrs->Assign(13, ExtractTime(buf, n));	// ctime
+	attrs->Assign(0, nfs3_ftype(buf, n)); // file type
+	attrs->Assign(1, ExtractUint32(buf, n)); // mode
+	attrs->Assign(2, ExtractUint32(buf, n)); // nlink
+	attrs->Assign(3, ExtractUint32(buf, n)); // uid
+	attrs->Assign(4, ExtractUint32(buf, n)); // gid
+	attrs->Assign(5, ExtractUint64(buf, n)); // size
+	attrs->Assign(6, ExtractUint64(buf, n)); // used
+	attrs->Assign(7, ExtractUint32(buf, n)); // rdev1
+	attrs->Assign(8, ExtractUint32(buf, n)); // rdev2
+	attrs->Assign(9, ExtractUint64(buf, n)); // fsid
+	attrs->Assign(10, ExtractUint64(buf, n)); // fileid
+	attrs->Assign(11, ExtractTime(buf, n)); // atime
+	attrs->Assign(12, ExtractTime(buf, n)); // mtime
+	attrs->Assign(13, ExtractTime(buf, n)); // ctime
 
 	return attrs;
 	}
@@ -429,9 +429,9 @@ RecordValPtr NFS_Interp::nfs3_wcc_attr(const u_char*& buf, int& n)
 	{
 	auto attrs = make_intrusive<RecordVal>(BifType::Record::NFS3::wcc_attr_t);
 
-	attrs->Assign(0, ExtractUint64(buf, n));	// size
-	attrs->Assign(1, ExtractTime(buf, n));	// mtime
-	attrs->Assign(2, ExtractTime(buf, n));	// ctime
+	attrs->Assign(0, ExtractUint64(buf, n)); // size
+	attrs->Assign(1, ExtractTime(buf, n)); // mtime
+	attrs->Assign(2, ExtractTime(buf, n)); // ctime
 
 	return attrs;
 	}
@@ -515,13 +515,14 @@ EnumValPtr NFS_Interp::nfs3_stable_how(const u_char*& buf, int& n)
 	return rval;
 	}
 
-RecordValPtr NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
+RecordValPtr NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n,
+                                           BifEnum::NFS3::status_t status)
 	{
 	auto rep = make_intrusive<RecordVal>(BifType::Record::NFS3::lookup_reply_t);
 
 	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
-		rep->Assign(0, nfs3_fh(buf,n));
+		rep->Assign(0, nfs3_fh(buf, n));
 		rep->Assign(1, nfs3_post_op_attr(buf, n));
 		rep->Assign(2, nfs3_post_op_attr(buf, n));
 		}
@@ -537,18 +538,18 @@ RecordValPtr NFS_Interp::nfs3_readargs(const u_char*& buf, int& n)
 	auto readargs = make_intrusive<RecordVal>(BifType::Record::NFS3::readargs_t);
 
 	readargs->Assign(0, nfs3_fh(buf, n));
-	readargs->Assign(1, ExtractUint64(buf, n));  // offset
-	readargs->Assign(2, ExtractUint32(buf,n));   // size
+	readargs->Assign(1, ExtractUint64(buf, n)); // offset
+	readargs->Assign(2, ExtractUint32(buf, n)); // size
 
 	return readargs;
 	}
 
 RecordValPtr NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status,
-		bro_uint_t offset)
+                                         bro_uint_t offset)
 	{
 	auto rep = make_intrusive<RecordVal>(BifType::Record::NFS3::read_reply_t);
 
-	if (status == BifEnum::NFS3::NFS3ERR_OK)
+	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
 		uint32_t bytes_read;
 
@@ -566,14 +567,15 @@ RecordValPtr NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NF
 	return rep;
 	}
 
-RecordValPtr NFS_Interp::nfs3_readlink_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
+RecordValPtr NFS_Interp::nfs3_readlink_reply(const u_char*& buf, int& n,
+                                             BifEnum::NFS3::status_t status)
 	{
 	auto rep = make_intrusive<RecordVal>(BifType::Record::NFS3::readlink_reply_t);
 
-	if (status == BifEnum::NFS3::NFS3ERR_OK)
+	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
 		rep->Assign(0, nfs3_post_op_attr(buf, n));
-		rep->Assign(1, nfs3_nfspath(buf,n));
+		rep->Assign(1, nfs3_nfspath(buf, n));
 		}
 	else
 		{
@@ -637,9 +639,9 @@ RecordValPtr NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 
 	writeargs->Assign(0, nfs3_fh(buf, n));
 	offset = extract_XDR_uint64(buf, n);
-	writeargs->Assign(1, offset);  // offset
+	writeargs->Assign(1, offset); // offset
 	bytes = extract_XDR_uint32(buf, n);
-	writeargs->Assign(2, bytes);   // size
+	writeargs->Assign(2, bytes); // size
 
 	writeargs->Assign(3, nfs3_stable_how(buf, n));
 	writeargs->Assign(4, nfs3_file_data(buf, n, offset, bytes));
@@ -647,7 +649,8 @@ RecordValPtr NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 	return writeargs;
 	}
 
-RecordValPtr NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
+RecordValPtr NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n,
+                                          BifEnum::NFS3::status_t status)
 	{
 	auto rep = make_intrusive<RecordVal>(BifType::Record::NFS3::write_reply_t);
 
@@ -672,14 +675,15 @@ RecordValPtr NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BifEnum::N
 	return rep;
 	}
 
-RecordValPtr NFS_Interp::nfs3_newobj_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
+RecordValPtr NFS_Interp::nfs3_newobj_reply(const u_char*& buf, int& n,
+                                           BifEnum::NFS3::status_t status)
 	{
 	auto rep = make_intrusive<RecordVal>(BifType::Record::NFS3::newobj_reply_t);
 
-	if (status == BifEnum::NFS3::NFS3ERR_OK)
+	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
 		int i = 0;
-		rep->Assign(0, nfs3_post_op_fh(buf,n));
+		rep->Assign(0, nfs3_post_op_fh(buf, n));
 		rep->Assign(1, nfs3_post_op_attr(buf, n));
 		// wcc_data
 		rep->Assign(2, nfs3_pre_op_attr(buf, n));
@@ -718,24 +722,24 @@ RecordValPtr NFS_Interp::nfs3_renameobj_reply(const u_char*& buf, int& n)
 	return rep;
 	}
 
-RecordValPtr NFS_Interp::nfs3_readdirargs(bool isplus, const u_char*& buf, int&n)
+RecordValPtr NFS_Interp::nfs3_readdirargs(bool isplus, const u_char*& buf, int& n)
 	{
 	auto args = make_intrusive<RecordVal>(BifType::Record::NFS3::readdirargs_t);
 
 	args->Assign(0, isplus);
 	args->Assign(1, nfs3_fh(buf, n));
-	args->Assign(2, ExtractUint64(buf,n));	// cookie
-	args->Assign(3, ExtractUint64(buf,n));	// cookieverf
-	args->Assign(4, ExtractUint32(buf,n));	// dircount
+	args->Assign(2, ExtractUint64(buf, n)); // cookie
+	args->Assign(3, ExtractUint64(buf, n)); // cookieverf
+	args->Assign(4, ExtractUint32(buf, n)); // dircount
 
 	if ( isplus )
-		args->Assign(5, ExtractUint32(buf,n));
+		args->Assign(5, ExtractUint32(buf, n));
 
 	return args;
 	}
 
-RecordValPtr NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
-		int&n, BifEnum::NFS3::status_t status)
+RecordValPtr NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf, int& n,
+                                            BifEnum::NFS3::status_t status)
 	{
 	auto rep = make_intrusive<RecordVal>(BifType::Record::NFS3::readdir_reply_t);
 
@@ -746,22 +750,22 @@ RecordValPtr NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 		unsigned pos;
 		auto entries = make_intrusive<VectorVal>(BifType::Vector::NFS3::direntry_vec_t);
 
-		rep->Assign(1, nfs3_post_op_attr(buf,n));   // dir_attr
-		rep->Assign(2, ExtractUint64(buf,n));  // cookieverf
+		rep->Assign(1, nfs3_post_op_attr(buf, n)); // dir_attr
+		rep->Assign(2, ExtractUint64(buf, n)); // cookieverf
 
 		pos = 1;
 
-		while ( extract_XDR_uint32(buf,n) )
+		while ( extract_XDR_uint32(buf, n) )
 			{
 			auto entry = make_intrusive<RecordVal>(BifType::Record::NFS3::direntry_t);
-			entry->Assign(0, ExtractUint64(buf,n)); // fileid
-			entry->Assign(1, nfs3_filename(buf,n)); // fname
-			entry->Assign(2, ExtractUint64(buf,n)); // cookie
+			entry->Assign(0, ExtractUint64(buf, n)); // fileid
+			entry->Assign(1, nfs3_filename(buf, n)); // fname
+			entry->Assign(2, ExtractUint64(buf, n)); // cookie
 
 			if ( isplus )
 				{
-				entry->Assign(3, nfs3_post_op_attr(buf,n));
-				entry->Assign(4, nfs3_post_op_fh(buf,n));
+				entry->Assign(3, nfs3_post_op_attr(buf, n));
+				entry->Assign(4, nfs3_post_op_fh(buf, n));
 				}
 
 			entries->Assign(pos, std::move(entry));
@@ -769,11 +773,11 @@ RecordValPtr NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 			}
 
 		rep->Assign(3, entries);
-		rep->Assign(4, ExtractBool(buf,n));	// eof
+		rep->Assign(4, ExtractBool(buf, n)); // eof
 		}
 	else
 		{
-		rep->Assign(1, nfs3_post_op_attr(buf,n));
+		rep->Assign(1, nfs3_post_op_attr(buf, n));
 		}
 
 	return rep;
@@ -804,7 +808,7 @@ bool NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 	return extract_XDR_uint32(buf, n);
 	}
 
-} // namespace detail
+	} // namespace detail
 
 NFS_Analyzer::NFS_Analyzer(Connection* conn)
 	: RPC_Analyzer("NFS", conn, new detail::NFS_Interp(this))
@@ -825,4 +829,4 @@ void NFS_Analyzer::Init()
 		}
 	}
 
-} // namespace zeek::analyzer::rpc
+	} // namespace zeek::analyzer::rpc

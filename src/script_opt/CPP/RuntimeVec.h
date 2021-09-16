@@ -10,7 +10,8 @@
 
 #include "zeek/Val.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 // Appends v2 to the vector v1.  A separate function because of the
 // need to support assignment cascades.
@@ -52,45 +53,31 @@ extern VectorValPtr vec_op_sub__CPP(VectorValPtr v, int i);
 
 // ... and these for vector-plus-scalar and vector-plus-vector string
 // operations.
-extern VectorValPtr str_vec_op_add__CPP(const VectorValPtr& v1,
-                                        const VectorValPtr& v2);
-extern VectorValPtr str_vec_op_add__CPP(const VectorValPtr& v1,
-                                        const StringValPtr& v2);
-extern VectorValPtr str_vec_op_add__CPP(const StringValPtr& v1,
-                                        const VectorValPtr& v2);
+extern VectorValPtr str_vec_op_add__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
+extern VectorValPtr str_vec_op_add__CPP(const VectorValPtr& v1, const StringValPtr& v2);
+extern VectorValPtr str_vec_op_add__CPP(const StringValPtr& v1, const VectorValPtr& v2);
 
 // String vector relationals.
-extern VectorValPtr str_vec_op_lt__CPP(const VectorValPtr& v1,
-                                       const VectorValPtr& v2);
-extern VectorValPtr str_vec_op_le__CPP(const VectorValPtr& v1,
-                                       const VectorValPtr& v2);
-extern VectorValPtr str_vec_op_eq__CPP(const VectorValPtr& v1,
-                                       const VectorValPtr& v2);
-extern VectorValPtr str_vec_op_ne__CPP(const VectorValPtr& v1,
-                                       const VectorValPtr& v2);
-extern VectorValPtr str_vec_op_gt__CPP(const VectorValPtr& v1,
-                                       const VectorValPtr& v2);
-extern VectorValPtr str_vec_op_ge__CPP(const VectorValPtr& v1,
-                                       const VectorValPtr& v2);
+extern VectorValPtr str_vec_op_lt__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
+extern VectorValPtr str_vec_op_le__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
+extern VectorValPtr str_vec_op_eq__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
+extern VectorValPtr str_vec_op_ne__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
+extern VectorValPtr str_vec_op_gt__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
+extern VectorValPtr str_vec_op_ge__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
 
 // Support for vector conditional ('?:') expressions.  Using the boolean
 // vector v1 as a selector, returns a new vector populated with the
 // elements selected out of v2 and v3.
-extern VectorValPtr vector_select__CPP(const VectorValPtr& v1, VectorValPtr v2,
-                                       VectorValPtr v3);
+extern VectorValPtr vector_select__CPP(const VectorValPtr& v1, VectorValPtr v2, VectorValPtr v3);
 
 // Returns a new vector reflecting the given vector coerced to the given
 // type.  Assumes v already has the correct internal type.  This can go
 // away after we finish migrating to ZVal's.
-extern VectorValPtr vector_coerce_to__CPP(const VectorValPtr& v,
-                                          const TypePtr& targ);
+extern VectorValPtr vector_coerce_to__CPP(const VectorValPtr& v, const TypePtr& targ);
 
 // Similar coercion, but works for v having perhaps not the correct type.
-extern VectorValPtr vec_coerce_to_bro_int_t__CPP(const VectorValPtr& v,
-                                                 TypePtr targ);
-extern VectorValPtr vec_coerce_to_bro_uint_t__CPP(const VectorValPtr& v,
-                                                  TypePtr targ);
-extern VectorValPtr vec_coerce_to_double__CPP(const VectorValPtr& v,
-                                              TypePtr targ);
+extern VectorValPtr vec_coerce_to_bro_int_t__CPP(const VectorValPtr& v, TypePtr targ);
+extern VectorValPtr vec_coerce_to_bro_uint_t__CPP(const VectorValPtr& v, TypePtr targ);
+extern VectorValPtr vec_coerce_to_double__CPP(const VectorValPtr& v, TypePtr targ);
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

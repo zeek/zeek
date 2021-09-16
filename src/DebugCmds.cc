@@ -1,32 +1,32 @@
 // Support routines to help deal with Bro debugging commands and
 // implementation of most commands.
 
-#include "zeek/zeek-config.h"
 #include "zeek/DebugCmds.h"
 
-#include <sys/types.h>
-
+#include <assert.h>
 #include <regex.h>
 #include <string.h>
-#include <assert.h>
+#include <sys/types.h>
 
-#include "zeek/DebugCmdInfoConstants.cc"
-#include "zeek/Debug.h"
-#include "zeek/Desc.h"
 #include "zeek/DbgBreakpoint.h"
-#include "zeek/ID.h"
+#include "zeek/Debug.h"
+#include "zeek/DebugCmdInfoConstants.cc"
+#include "zeek/Desc.h"
 #include "zeek/Frame.h"
 #include "zeek/Func.h"
-#include "zeek/Stmt.h"
-#include "zeek/Scope.h"
-#include "zeek/Reporter.h"
+#include "zeek/ID.h"
 #include "zeek/PolicyFile.h"
+#include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/Stmt.h"
 #include "zeek/Val.h"
 #include "zeek/util.h"
+#include "zeek/zeek-config.h"
 
 using namespace std;
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 DebugCmdInfoQueue g_DebugCmdInfos;
 
@@ -55,7 +55,7 @@ static void lookup_global_symbols_regex(const string& orig_regex, vector<ID*>& m
 	regex.push_back('$');
 
 	regex_t re;
-	if ( regcomp(&re, regex.c_str(), REG_EXTENDED|REG_NOSUB) )
+	if ( regcomp(&re, regex.c_str(), REG_EXTENDED | REG_NOSUB) )
 		{
 		debug_msg("Invalid regular expression: %s\n", regex.c_str());
 		return;
@@ -69,7 +69,7 @@ static void lookup_global_symbols_regex(const string& orig_regex, vector<ID*>& m
 		{
 		ID* nextid = sym.second.get();
 		if ( ! func_only || nextid->GetType()->Tag() == TYPE_FUNC )
-			if ( ! regexec (&re, nextid->Name(), 0, 0, 0) )
+			if ( ! regexec(&re, nextid->Name(), 0, 0, 0) )
 				matches.push_back(nextid);
 		}
 	}
@@ -87,7 +87,7 @@ static void choose_global_symbols_regex(const string& regex, vector<ID*>& choice
 		debug_msg("There were multiple matches, please choose:\n");
 
 		for ( size_t i = 0; i < choices.size(); i++ )
-			debug_msg("[%zu] %s\n", i+1, choices[i]->Name());
+			debug_msg("[%zu] %s\n", i + 1, choices[i]->Name());
 
 		debug_msg("[a] All of the above\n");
 		debug_msg("[n] None of the above\n");
@@ -112,7 +112,7 @@ static void choose_global_symbols_regex(const string& regex, vector<ID*>& choice
 			return;
 			}
 		int option = atoi(input.c_str());
-		if ( option > 0 && option <= (int) choices.size() )
+		if ( option > 0 && option <= (int)choices.size() )
 			{
 			ID* choice = choices[option - 1];
 			choices.clear();
@@ -122,13 +122,11 @@ static void choose_global_symbols_regex(const string& regex, vector<ID*>& choice
 		}
 	}
 
-
 //
 // DebugCmdInfo implementation
 //
 
-DebugCmdInfo::DebugCmdInfo(const DebugCmdInfo& info)
-: cmd(info.cmd), helpstring(nullptr)
+DebugCmdInfo::DebugCmdInfo(const DebugCmdInfo& info) : cmd(info.cmd), helpstring(nullptr)
 	{
 	num_names = info.num_names;
 	names = info.names;
@@ -136,11 +134,10 @@ DebugCmdInfo::DebugCmdInfo(const DebugCmdInfo& info)
 	repeatable = info.repeatable;
 	}
 
-DebugCmdInfo::DebugCmdInfo(DebugCmd arg_cmd, const char* const* arg_names,
-				int arg_num_names, bool arg_resume_execution,
-				const char* const arg_helpstring,
-				bool arg_repeatable)
-: cmd(arg_cmd), helpstring(arg_helpstring)
+DebugCmdInfo::DebugCmdInfo(DebugCmd arg_cmd, const char* const* arg_names, int arg_num_names,
+                           bool arg_resume_execution, const char* const arg_helpstring,
+                           bool arg_repeatable)
+	: cmd(arg_cmd), helpstring(arg_helpstring)
 	{
 	num_names = arg_num_names;
 	resume_execution = arg_resume_execution;
@@ -150,11 +147,10 @@ DebugCmdInfo::DebugCmdInfo(DebugCmd arg_cmd, const char* const* arg_names,
 		names.push_back(arg_names[i]);
 	}
 
-
 const DebugCmdInfo* get_debug_cmd_info(DebugCmd cmd)
 	{
-	if ( (int) cmd < g_DebugCmdInfos.size() )
-		return g_DebugCmdInfos[(int) cmd];
+	if ( (int)cmd < g_DebugCmdInfos.size() )
+		return g_DebugCmdInfos[(int)cmd];
 	else
 		return nullptr;
 	}
@@ -198,13 +194,11 @@ int find_all_matching_cmds(const string& prefix, const char* array_of_matches[])
 // ------------------------------------------------------------
 // Implementation of some debugger commands
 
-
 // Start, end bounds of which frame numbers to print
 static int dbg_backtrace_internal(int start, int end)
 	{
-	if ( start < 0 || end < 0 ||
-	     (unsigned) start >= g_frame_stack.size() ||
-	     (unsigned) end >= g_frame_stack.size() )
+	if ( start < 0 || end < 0 || (unsigned)start >= g_frame_stack.size() ||
+	     (unsigned)end >= g_frame_stack.size() )
 		reporter->InternalError("Invalid stack frame index in DbgBacktraceInternal\n");
 
 	if ( start < end )
@@ -220,13 +214,11 @@ static int dbg_backtrace_internal(int start, int end)
 		const Stmt* stmt = f ? f->GetNextStmt() : nullptr;
 
 		string context = get_context_description(stmt, f);
-		debug_msg("#%d  %s\n",
-			 int(g_frame_stack.size() - 1 - i), context.c_str());
+		debug_msg("#%d  %s\n", int(g_frame_stack.size() - 1 - i), context.c_str());
 		};
 
 	return 1;
 	}
-
 
 // Returns 0 for illegal arguments, or 1 on success.
 int dbg_cmd_backtrace(DebugCmd cmd, const vector<string>& args)
@@ -239,7 +231,7 @@ int dbg_cmd_backtrace(DebugCmd cmd, const vector<string>& args)
 
 	if ( args.size() > 0 )
 		{
-		int how_many;	// determines how we traverse the frames
+		int how_many; // determines how we traverse the frames
 		int valid_arg = sscanf(args[0].c_str(), "%i", &how_many);
 		if ( ! valid_arg )
 			{
@@ -271,7 +263,6 @@ int dbg_cmd_backtrace(DebugCmd cmd, const vector<string>& args)
 	return dbg_backtrace_internal(start_iter, end_iter);
 	}
 
-
 // Returns 0 if invalid args, else 1.
 int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 	{
@@ -295,8 +286,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 				return 0;
 				}
 
-			if ( idx < 0 ||
-			     (unsigned int) idx >= g_frame_stack.size() )
+			if ( idx < 0 || (unsigned int)idx >= g_frame_stack.size() )
 				{
 				debug_msg("No frame %d", idx);
 				return 0;
@@ -319,8 +309,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 
 	else if ( cmd == dcUp )
 		{
-		if ( (unsigned int)(g_debugger_state.curr_frame_idx + 1) ==
-		     g_frame_stack.size() )
+		if ( (unsigned int)(g_debugger_state.curr_frame_idx + 1) == g_frame_stack.size() )
 			{
 			debug_msg("Outermost frame already selected\n");
 			return 0;
@@ -329,8 +318,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 		++g_debugger_state.curr_frame_idx;
 		}
 
-	int user_frame_number =
-		g_frame_stack.size() - 1 - g_debugger_state.curr_frame_idx;
+	int user_frame_number = g_frame_stack.size() - 1 - g_debugger_state.curr_frame_idx;
 
 	// Set the current location to the new frame being looked at
 	// for 'list', 'break', etc.
@@ -352,13 +340,12 @@ int dbg_cmd_help(DebugCmd cmd, const vector<string>& args)
 	debug_msg("Help summary: \n\n");
 	for ( int i = 1; i < num_debug_cmds(); ++i )
 		{
-		const DebugCmdInfo* info = get_debug_cmd_info (DebugCmd(i));
+		const DebugCmdInfo* info = get_debug_cmd_info(DebugCmd(i));
 		debug_msg("%s -- %s\n", info->Names()[0], info->Helpstring());
 		}
 
 	return -1;
 	}
-
 
 int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 	{
@@ -370,9 +357,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 
 	if ( args.empty() || args[0] == "if" )
 		{ // break on next stmt
-		int user_frame_number =
-			g_frame_stack.size() - 1 -
-				g_debugger_state.curr_frame_idx;
+		int user_frame_number = g_frame_stack.size() - 1 - g_debugger_state.curr_frame_idx;
 
 		Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 		if ( ! stmt )
@@ -407,13 +392,10 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 		else
 			locstrings.push_back(args[0].c_str());
 
-		for ( unsigned int strindex = 0; strindex < locstrings.size();
-		      ++strindex )
+		for ( unsigned int strindex = 0; strindex < locstrings.size(); ++strindex )
 			{
-			debug_msg("Setting breakpoint on %s:\n",
-				  locstrings[strindex].c_str());
-			vector<ParseLocationRec> plrs =
-				parse_location_string(locstrings[strindex]);
+			debug_msg("Setting breakpoint on %s:\n", locstrings[strindex].c_str());
+			vector<ParseLocationRec> plrs = parse_location_string(locstrings[strindex]);
 			for ( const auto& plr : plrs )
 				{
 				DbgBreakpoint* bp = new DbgBreakpoint();
@@ -482,9 +464,8 @@ int dbg_cmd_break_condition(DebugCmd cmd, const vector<string>& args)
 // Change the state of a breakpoint.
 int dbg_cmd_break_set_state(DebugCmd cmd, const vector<string>& args)
 	{
-	assert(cmd == dcDeleteBreak || cmd == dcClearBreak ||
-	       cmd == dcDisableBreak || cmd == dcEnableBreak ||
-	       cmd == dcIgnoreBreak);
+	assert(cmd == dcDeleteBreak || cmd == dcClearBreak || cmd == dcDisableBreak ||
+	       cmd == dcEnableBreak || cmd == dcIgnoreBreak);
 
 	if ( cmd == dcClearBreak || cmd == dcIgnoreBreak )
 		{
@@ -494,7 +475,7 @@ int dbg_cmd_break_set_state(DebugCmd cmd, const vector<string>& args)
 
 	if ( g_debugger_state.breakpoints.empty() )
 		{
-		debug_msg ("No breakpoints currently set.\n");
+		debug_msg("No breakpoints currently set.\n");
 		return -1;
 		}
 
@@ -516,31 +497,31 @@ int dbg_cmd_break_set_state(DebugCmd cmd, const vector<string>& args)
 
 	for ( auto bp_change : bps_to_change )
 		{
-		BPIDMapType::iterator result =
-			g_debugger_state.breakpoints.find(bp_change);
+		BPIDMapType::iterator result = g_debugger_state.breakpoints.find(bp_change);
 
 		if ( result != g_debugger_state.breakpoints.end() )
 			{
-			switch ( cmd ) {
-			case dcDisableBreak:
-				g_debugger_state.breakpoints[bp_change]->SetEnable(false);
-				debug_msg("Breakpoint %d disabled\n", bp_change);
-				break;
+			switch ( cmd )
+				{
+				case dcDisableBreak:
+					g_debugger_state.breakpoints[bp_change]->SetEnable(false);
+					debug_msg("Breakpoint %d disabled\n", bp_change);
+					break;
 
-			case dcEnableBreak:
-				g_debugger_state.breakpoints[bp_change]->SetEnable(true);
-				debug_msg("Breakpoint %d enabled\n", bp_change);
-				break;
+				case dcEnableBreak:
+					g_debugger_state.breakpoints[bp_change]->SetEnable(true);
+					debug_msg("Breakpoint %d enabled\n", bp_change);
+					break;
 
-			case dcDeleteBreak:
-				delete g_debugger_state.breakpoints[bp_change];
-				g_debugger_state.breakpoints.erase(bp_change);
-				debug_msg("Breakpoint %d deleted\n", bp_change);
-				break;
+				case dcDeleteBreak:
+					delete g_debugger_state.breakpoints[bp_change];
+					g_debugger_state.breakpoints.erase(bp_change);
+					debug_msg("Breakpoint %d deleted\n", bp_change);
+					break;
 
-			default:
-				reporter->InternalError("Invalid command in DbgCmdBreakSetState\n");
-			}
+				default:
+					reporter->InternalError("Invalid command in DbgCmdBreakSetState\n");
+				}
 			}
 
 		else
@@ -582,7 +563,6 @@ int dbg_cmd_print(DebugCmd cmd, const vector<string>& args)
 	return 1;
 	}
 
-
 // Get the debugger's state.
 // Allowed arguments are: break (breakpoints), watch, display, source.
 int dbg_cmd_info(DebugCmd cmd, const vector<string>& args)
@@ -604,16 +584,12 @@ int dbg_cmd_info(DebugCmd cmd, const vector<string>& args)
 
 		BPIDMapType::iterator iter;
 		for ( iter = g_debugger_state.breakpoints.begin();
-		      iter != g_debugger_state.breakpoints.end();
-		      ++iter )
+		      iter != g_debugger_state.breakpoints.end(); ++iter )
 			{
 			DbgBreakpoint* bp = (*iter).second;
-			debug_msg("%-4d%-15s%-5s%-4s%s\n",
-				bp->GetID(),
-				"breakpoint",
-				bp->IsTemporary() ? "del" : "keep",
-				bp->IsEnabled() ? "y" : "n",
-				bp->Description());
+			debug_msg("%-4d%-15s%-5s%-4s%s\n", bp->GetID(), "breakpoint",
+			          bp->IsTemporary() ? "del" : "keep", bp->IsEnabled() ? "y" : "n",
+			          bp->Description());
 			}
 		}
 
@@ -676,22 +652,18 @@ int dbg_cmd_list(DebugCmd cmd, const vector<string>& args)
 		pre_offset = 0;
 		}
 
-	if ( (int) pre_offset +
-	     (int) g_debugger_state.last_loc.first_line -
-	     (int) CENTER_IDX < 0 )
+	if ( (int)pre_offset + (int)g_debugger_state.last_loc.first_line - (int)CENTER_IDX < 0 )
 		pre_offset = CENTER_IDX - g_debugger_state.last_loc.first_line;
 
 	g_debugger_state.last_loc.first_line += pre_offset;
 
-	int last_line_in_file =
-		how_many_lines_in(g_debugger_state.last_loc.filename);
+	int last_line_in_file = how_many_lines_in(g_debugger_state.last_loc.filename);
 
 	if ( g_debugger_state.last_loc.first_line > last_line_in_file )
 		g_debugger_state.last_loc.first_line = last_line_in_file;
 
 	PrintLines(g_debugger_state.last_loc.filename,
-		   g_debugger_state.last_loc.first_line - CENTER_IDX,
-		   10, true);
+	           g_debugger_state.last_loc.first_line - CENTER_IDX, 10, true);
 
 	g_debugger_state.already_did_list = true;
 
@@ -704,8 +676,7 @@ int dbg_cmd_trace(DebugCmd cmd, const vector<string>& args)
 
 	if ( args.empty() )
 		{
-		debug_msg("Execution tracing is %s.\n",
-		g_trace_state.DoTrace() ? "on" : "off" );
+		debug_msg("Execution tracing is %s.\n", g_trace_state.DoTrace() ? "on" : "off");
 		return 1;
 		}
 
@@ -725,4 +696,4 @@ int dbg_cmd_trace(DebugCmd cmd, const vector<string>& args)
 	return 0;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

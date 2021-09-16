@@ -4,28 +4,36 @@
 
 #include <memory>
 
+#include "zeek/EventHandler.h"
 #include "zeek/Hash.h"
 #include "zeek/Obj.h"
-#include "zeek/EventHandler.h"
 #include "zeek/Timer.h"
 #include "zeek/session/Key.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
-namespace analyzer { class Analyzer; }
+namespace analyzer
+	{
+class Analyzer;
+	}
 
-namespace session {
-namespace detail { class Timer; }
+namespace session
+	{
+namespace detail
+	{
+class Timer;
+	}
 
 class Session;
 typedef void (Session::*timer_func)(double t);
 
-class Session : public Obj {
+class Session : public Obj
+	{
 public:
-
 	/**
 	 * Construct a new session.
 	 *
@@ -39,11 +47,10 @@ public:
 	 * @param status_update_interval The interval in seconds for the status update
 	 * event to be emitted. Setting this to zero disables the status update timer.
 	 */
-	Session(double t, EventHandlerPtr timeout_event,
-	        EventHandlerPtr status_update_event = nullptr,
+	Session(double t, EventHandlerPtr timeout_event, EventHandlerPtr status_update_event = nullptr,
 	        double status_update_interval = 0);
 
-	virtual ~Session() {}
+	virtual ~Session() { }
 
 	/**
 	 * Invoked when the session is about to be removed. Use Ref(this)
@@ -64,52 +71,53 @@ public:
 	/**
 	 * Set whether this session is in the session table.
 	 */
-	void SetInSessionTable(bool in_table)	{ in_session_table = in_table; }
+	void SetInSessionTable(bool in_table) { in_session_table = in_table; }
 
 	/**
 	 * Return whether this session is in the session table.
 	 */
-	bool IsInSessionTable() const 	{ return in_session_table; }
+	bool IsInSessionTable() const { return in_session_table; }
 
-	double StartTime() const		{ return start_time; }
-	void SetStartTime(double t)		{ start_time = t; }
-	double LastTime() const			{ return last_time; }
-	void SetLastTime(double t) 		{ last_time = t; }
+	double StartTime() const { return start_time; }
+	void SetStartTime(double t) { start_time = t; }
+	double LastTime() const { return last_time; }
+	void SetLastTime(double t) { last_time = t; }
 
 	// True if we should record subsequent packets (either headers or
 	// in their entirety, depending on record_contents).  We still
 	// record subsequent SYN/FIN/RST, regardless of how this is set.
-	bool RecordPackets() const		{ return record_packets; }
-	void SetRecordPackets(bool do_record)	{ record_packets = do_record ? 1 : 0; }
+	bool RecordPackets() const { return record_packets; }
+	void SetRecordPackets(bool do_record) { record_packets = do_record ? 1 : 0; }
 
 	// True if we should record full packets for this session,
 	// false if we should just record headers.
-	bool RecordContents() const		{ return record_contents; }
-	void SetRecordContents(bool do_record)	{ record_contents = do_record ? 1 : 0; }
+	bool RecordContents() const { return record_contents; }
+	void SetRecordContents(bool do_record) { record_contents = do_record ? 1 : 0; }
 
 	// Set whether to record *current* packet header/full.
-	void SetRecordCurrentPacket(bool do_record)
-		{ record_current_packet = do_record ? 1 : 0; }
-	void SetRecordCurrentContent(bool do_record)
-		{ record_current_content = do_record ? 1 : 0; }
+	void SetRecordCurrentPacket(bool do_record) { record_current_packet = do_record ? 1 : 0; }
+	void SetRecordCurrentContent(bool do_record) { record_current_content = do_record ? 1 : 0; }
 
 	/**
 	 * Returns the associated "session" record.
 	 */
 	virtual const RecordValPtr& GetVal() = 0;
 
-	[[deprecated("Remove in v5.1. Use GetVal().")]]
-	const RecordValPtr& ConnVal() { return GetVal(); }
+	[[deprecated("Remove in v5.1. Use GetVal().")]] const RecordValPtr& ConnVal()
+		{
+		return GetVal();
+		}
 
 	/**
 	 * Return the memory allocation required by the session record. This requires at
 	 * least one call to Get() first in order to setup the record object.
 	 */
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
-	virtual unsigned int MemoryAllocationVal() const = 0;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] virtual unsigned int
+	MemoryAllocationVal() const = 0;
 
-	[[deprecated("Remove in v5.1. Use MemoryAllocationVal().")]]
-	unsigned int MemoryAllocationConnVal() const
+	[[deprecated("Remove in v5.1. Use MemoryAllocationVal().")]] unsigned int
+	MemoryAllocationConnVal() const
 		{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -120,8 +128,9 @@ public:
 	/**
 	 * A lower-bound calculation of how much memory a session object is using.
 	 */
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
-	virtual unsigned int MemoryAllocation() const;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] virtual unsigned int
+	MemoryAllocation() const;
 
 	/**
 	 * Generates session removal event(s). Must be overridden by child classes to
@@ -151,13 +160,13 @@ public:
 	 * A version of EnqueueEvent() taking a variable number of arguments.
 	 */
 	template <class... Args>
-	std::enable_if_t<
-		std::is_convertible_v<
-			std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
+	std::enable_if_t<std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
 	EnqueueEvent(EventHandlerPtr h, analyzer::Analyzer* analyzer, Args&&... args)
-		{ return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...}); }
+		{
+		return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...});
+		}
 
-	virtual	void Describe(ODesc* d) const override;
+	virtual void Describe(ODesc* d) const override;
 
 	/**
 	 * Sets the session to expire after a given amount of time.
@@ -177,7 +186,7 @@ public:
 	/**
 	 * Returns the inactivity timeout for the session.
 	 */
-	double InactivityTimeout() const	{ return inactivity_timeout; }
+	double InactivityTimeout() const { return inactivity_timeout; }
 
 	/**
 	 * Activates the timer for the status update event.
@@ -206,7 +215,6 @@ public:
 	virtual std::string TransportIdentifier() const = 0;
 
 protected:
-
 	friend class detail::Timer;
 
 	/**
@@ -219,8 +227,7 @@ protected:
 	 * terminates.
 	 * @param type The type of timer being added.
 	 */
-	void AddTimer(timer_func timer, double t, bool do_expire,
-	              zeek::detail::TimerType type);
+	void AddTimer(timer_func timer, double t, bool do_expire, zeek::detail::TimerType type);
 
 	/**
 	 * Remove a specific timer from firing.
@@ -248,39 +255,40 @@ protected:
 	EventHandlerPtr session_status_update_event;
 	double session_status_update_interval;
 
-	unsigned int installed_status_timer:1;
-	unsigned int timers_canceled:1;
-	unsigned int is_active:1;
-	unsigned int record_packets:1, record_contents:1;
-	unsigned int record_current_packet:1, record_current_content:1;
+	unsigned int installed_status_timer : 1;
+	unsigned int timers_canceled : 1;
+	unsigned int is_active : 1;
+	unsigned int record_packets : 1, record_contents : 1;
+	unsigned int record_current_packet : 1, record_current_content : 1;
 	bool in_session_table;
-};
+	};
 
-namespace detail {
+namespace detail
+	{
 
-class Timer final : public zeek::detail::Timer {
+class Timer final : public zeek::detail::Timer
+	{
 public:
-	Timer(Session* arg_session, timer_func arg_timer,
-	             double arg_t, bool arg_do_expire,
-	             zeek::detail::TimerType arg_type)
+	Timer(Session* arg_session, timer_func arg_timer, double arg_t, bool arg_do_expire,
+	      zeek::detail::TimerType arg_type)
 		: zeek::detail::Timer(arg_t, arg_type)
-		{ Init(arg_session, arg_timer, arg_do_expire); }
+		{
+		Init(arg_session, arg_timer, arg_do_expire);
+		}
 	~Timer() override;
 
 	void Dispatch(double t, bool is_expire) override;
 
 protected:
-
 	void Init(Session* session, timer_func timer, bool do_expire);
 
 	Session* session;
 	timer_func timer;
 	bool do_expire;
-};
+	};
 
-} // namespace detail
-} // namespace session
-} // namespace zeek
+	} // namespace detail
+	} // namespace session
+	} // namespace zeek
 
-#define ADD_TIMER(timer, t, do_expire, type) \
-	AddTimer(timer_func(timer), (t), (do_expire), (type))
+#define ADD_TIMER(timer, t, do_expire, type) AddTimer(timer_func(timer), (t), (do_expire), (type))

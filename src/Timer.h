@@ -7,12 +7,17 @@
 #include "zeek/PriorityQueue.h"
 #include "zeek/iosource/IOSource.h"
 
-namespace zeek { class ODesc; }
+namespace zeek
+	{
+class ODesc;
+	}
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 // If you add a timer here, adjust TimerNames in Timer.cc.
-enum TimerType : uint8_t {
+enum TimerType : uint8_t
+	{
 	TIMER_BACKDOOR,
 	TIMER_BREAKPOINT,
 	TIMER_CONN_DELETE,
@@ -46,17 +51,18 @@ enum TimerType : uint8_t {
 	TIMER_TIMERMGR_EXPIRE,
 	TIMER_THREAD_HEARTBEAT,
 	TIMER_UNKNOWN_PROTOCOL_EXPIRE,
-};
+	};
 constexpr int NUM_TIMER_TYPES = int(TIMER_UNKNOWN_PROTOCOL_EXPIRE) + 1;
 
 extern const char* timer_type_to_string(TimerType type);
 
-class Timer : public PQ_Element {
+class Timer : public PQ_Element
+	{
 public:
-	Timer(double t, TimerType arg_type) : PQ_Element(t), type(arg_type) {}
+	Timer(double t, TimerType arg_type) : PQ_Element(t), type(arg_type) { }
 	~Timer() override { }
 
-	TimerType Type() const	{ return type; }
+	TimerType Type() const { return type; }
 
 	// t gives the dispatch time.  is_expire is true if the
 	// timer is being dispatched because we're expiring all
@@ -66,11 +72,11 @@ public:
 	void Describe(ODesc* d) const;
 
 protected:
-
 	TimerType type{};
-};
+	};
 
-class TimerMgr : public iosource::IOSource {
+class TimerMgr : public iosource::IOSource
+	{
 public:
 	virtual ~TimerMgr();
 
@@ -89,7 +95,7 @@ public:
 	 * Returns the number of timers expired (so far) during the current
 	 * or most recent advance.
 	 */
-	int NumExpiredDuringCurrentAdvance()	{ return num_expired; }
+	int NumExpiredDuringCurrentAdvance() { return num_expired; }
 
 	/**
 	 * Expire all timers.
@@ -105,22 +111,22 @@ public:
 	 *
 	 * @param timer the timer to cancel
 	 */
-	void Cancel(Timer* timer)	{ Remove(timer); }
+	void Cancel(Timer* timer) { Remove(timer); }
 
-	double Time() const		{ return t ? t : 1; }	// 1 > 0
+	double Time() const { return t ? t : 1; } // 1 > 0
 
 	virtual int Size() const = 0;
 	virtual int PeakSize() const = 0;
 	virtual uint64_t CumulativeNum() const = 0;
 
-	double LastTimestamp() const	{ return last_timestamp; }
+	double LastTimestamp() const { return last_timestamp; }
 
 	/**
 	 * Returns time of last advance in global network time
 	 */
-	double LastAdvance() const	{ return last_advance; }
+	double LastAdvance() const { return last_advance; }
 
-	static unsigned int* CurrentTimers()	{ return current_timers; }
+	static unsigned int* CurrentTimers() { return current_timers; }
 
 	// IOSource API methods
 	virtual double GetNextTimeout() override { return -1; }
@@ -146,9 +152,10 @@ protected:
 	int num_expired;
 
 	static unsigned int current_timers[NUM_TIMER_TYPES];
-};
+	};
 
-class PQ_TimerMgr : public TimerMgr {
+class PQ_TimerMgr : public TimerMgr
+	{
 public:
 	PQ_TimerMgr();
 	~PQ_TimerMgr() override;
@@ -165,12 +172,12 @@ protected:
 	int DoAdvance(double t, int max_expire) override;
 	void Remove(Timer* timer) override;
 
-	Timer* Remove()			{ return (Timer*) q->Remove(); }
-	Timer* Top()			{ return (Timer*) q->Top(); }
+	Timer* Remove() { return (Timer*)q->Remove(); }
+	Timer* Top() { return (Timer*)q->Top(); }
 
 	PriorityQueue* q;
-};
+	};
 
 extern TimerMgr* timer_mgr;
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

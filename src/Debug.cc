@@ -1,42 +1,41 @@
 // Debugging support for Bro policy files.
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Debug.h"
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <signal.h>
 #include <ctype.h>
-
+#include <signal.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <string>
 
+#include "zeek/zeek-config.h"
+
 #ifdef HAVE_READLINE
-#include <readline/readline.h>
 #include <readline/history.h>
+#include <readline/readline.h>
 #endif
 
-#include "zeek/util.h"
-#include "zeek/DebugCmds.h"
 #include "zeek/DbgBreakpoint.h"
-#include "zeek/ID.h"
-#include "zeek/IntrusivePtr.h"
+#include "zeek/DebugCmds.h"
+#include "zeek/Desc.h"
 #include "zeek/Expr.h"
-#include "zeek/Stmt.h"
 #include "zeek/Frame.h"
 #include "zeek/Func.h"
+#include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
-#include "zeek/Scope.h"
 #include "zeek/PolicyFile.h"
-#include "zeek/Desc.h"
 #include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/Stmt.h"
 #include "zeek/Val.h"
-#include "zeek/module_util.h"
 #include "zeek/input.h"
+#include "zeek/module_util.h"
+#include "zeek/util.h"
 
-extern "C" {
+extern "C"
+	{
 #include "zeek/setsignal.h"
-}
+	}
 
 using namespace std;
 
@@ -63,11 +62,12 @@ struct yy_buffer_state;
 typedef struct yy_buffer_state* YY_BUFFER_STATE;
 YY_BUFFER_STATE bro_scan_string(const char*);
 
-extern YYLTYPE yylloc;	// holds start line and column of token
+extern YYLTYPE yylloc; // holds start line and column of token
 extern int line_number;
 extern const char* filename;
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 DebuggerState::DebuggerState()
 	{
@@ -88,14 +88,12 @@ DebuggerState::~DebuggerState()
 
 bool StmtLocMapping::StartsAfter(const StmtLocMapping* m2)
 	{
-	if ( ! m2  )
+	if ( ! m2 )
 		reporter->InternalError("Assertion failed: m2 != 0");
 
 	return loc.first_line > m2->loc.first_line ||
-		(loc.first_line == m2->loc.first_line &&
-		 loc.first_column > m2->loc.first_column);
+	       (loc.first_line == m2->loc.first_line && loc.first_column > m2->loc.first_column);
 	}
-
 
 // Generic debug message output.
 int debug_msg(const char* fmt, ...)
@@ -109,7 +107,6 @@ int debug_msg(const char* fmt, ...)
 
 	return retval;
 	}
-
 
 // Trace message output
 
@@ -195,7 +192,6 @@ int TraceState::LogTrace(const char* fmt, ...)
 	return retval;
 	}
 
-
 // Helper functions.
 void get_first_statement(Stmt* list, Stmt*& first, Location& loc)
 	{
@@ -217,8 +213,8 @@ void get_first_statement(Stmt* list, Stmt*& first, Location& loc)
 	loc = *first->GetLocationInfo();
 	}
 
-static void parse_function_name(vector<ParseLocationRec>& result,
-                                ParseLocationRec& plr, const string& s)
+static void parse_function_name(vector<ParseLocationRec>& result, ParseLocationRec& plr,
+                                const string& s)
 	{ // function name
 	const auto& id = lookup_ID(s.c_str(), current_module.c_str());
 
@@ -254,7 +250,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		return;
 		}
 
-	Stmt* body = nullptr;	// the particular body we care about; 0 = all
+	Stmt* body = nullptr; // the particular body we care about; 0 = all
 
 	if ( bodies.size() == 1 )
 		body = bodies[0].stmts.get();
@@ -263,13 +259,13 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		while ( true )
 			{
 			debug_msg("There are multiple definitions of that event handler.\n"
-				 "Please choose one of the following options:\n");
+			          "Please choose one of the following options:\n");
 			for ( unsigned int i = 0; i < bodies.size(); ++i )
 				{
 				Stmt* first;
 				Location stmt_loc;
 				get_first_statement(bodies[i].stmts.get(), first, stmt_loc);
-				debug_msg("[%d] %s:%d\n", i+1, stmt_loc.filename, stmt_loc.first_line);
+				debug_msg("[%d] %s:%d\n", i + 1, stmt_loc.filename, stmt_loc.first_line);
 				}
 
 			debug_msg("[a] All of the above\n");
@@ -298,7 +294,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 				}
 
 			int option = atoi(input.c_str());
-			if ( option > 0 && option <= (int) bodies.size() )
+			if ( option > 0 && option <= (int)bodies.size() )
 				{
 				body = bodies[option - 1].stmts.get();
 				break;
@@ -394,7 +390,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 		auto iter = g_dbgfilemaps.find(loc_filename);
 		if ( iter == g_dbgfilemaps.end() )
 			reporter->InternalError("Policy file %s should have been loaded\n",
-			                              loc_filename.data());
+			                        loc_filename.data());
 
 		if ( plr.line > how_many_lines_in(loc_filename.data()) )
 			{
@@ -411,8 +407,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			if ( entry->Loc().first_line > plr.line )
 				break;
 
-			if ( plr.line >= entry->Loc().first_line &&
-			     plr.line <= entry->Loc().last_line )
+			if ( plr.line >= entry->Loc().first_line && plr.line <= entry->Loc().last_line )
 				{
 				hit = entry;
 				break;
@@ -427,7 +422,6 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 
 	return result;
 	}
-
 
 // Interactive debugging console.
 
@@ -458,7 +452,7 @@ void break_signal(int)
 int dbg_init_debugger(const char* cmdfile)
 	{
 	if ( ! g_policy_debug )
-		return 0;	// probably shouldn't have been called
+		return 0; // probably shouldn't have been called
 
 	init_global_dbg_constants();
 
@@ -469,7 +463,7 @@ int dbg_init_debugger(const char* cmdfile)
 		// ### Implement this
 		debug_msg("Command files not supported. Using interactive mode.\n");
 
-	// ### if ( interactive ) (i.e., not reading cmds from a file)
+		// ### if ( interactive ) (i.e., not reading cmds from a file)
 #ifdef HAVE_READLINE
 	init_readline();
 #endif
@@ -486,7 +480,6 @@ int dbg_shutdown_debugger()
 	return 1;
 	}
 
-
 // Umesh: I stole this code from libedit; I modified it here to use
 // <string>s to avoid memory management problems. The main command is returned
 // by the operation argument; the additional arguments are put in the
@@ -501,9 +494,9 @@ void tokenize(const char* cstr, string& operation, vector<string>& arguments)
 	char delim = '\0';
 	const string str(cstr);
 
-	for ( int i = 0; i < (signed int) str.length(); ++i )
+	for ( int i = 0; i < (signed int)str.length(); ++i )
 		{
-		while ( isspace((unsigned char) str[i]) )
+		while ( isspace((unsigned char)str[i]) )
 			++i;
 
 		int start = i;
@@ -512,7 +505,7 @@ void tokenize(const char* cstr, string& operation, vector<string>& arguments)
 			{
 			if ( str[i] == '\\' )
 				{
-				if ( i < (signed int) str.length() )
+				if ( i < (signed int)str.length() )
 					++i;
 				}
 
@@ -544,7 +537,6 @@ void tokenize(const char* cstr, string& operation, vector<string>& arguments)
 		}
 	}
 
-
 // Given a command string, parse it and send the command to be dispatched.
 int dbg_execute_command(const char* cmd)
 	{
@@ -563,8 +555,7 @@ int dbg_execute_command(const char* cmd)
 			if ( ! entry )
 				return 0;
 
-			const DebugCmdInfo* info =
-				(const DebugCmdInfo*) entry->data;
+			const DebugCmdInfo* info = (const DebugCmdInfo*)entry->data;
 
 			if ( info && info->Repeatable() )
 				{
@@ -585,7 +576,7 @@ int dbg_execute_command(const char* cmd)
 	vector<string> arguments;
 	tokenize(localcmd, opstring, arguments);
 
-	delete [] localcmd;
+	delete[] localcmd;
 
 	// Make sure we know this op name.
 	auto matching_cmds_buf = std::make_unique<const char*[]>(num_debug_cmds());
@@ -614,7 +605,7 @@ int dbg_execute_command(const char* cmd)
 	for ( int i = 0; i < num_debug_cmds(); ++i )
 		if ( matching_cmds[i] )
 			{
-			cmd_code = (DebugCmd) i;
+			cmd_code = (DebugCmd)i;
 			break;
 			}
 
@@ -628,9 +619,9 @@ int dbg_execute_command(const char* cmd)
 		 * http://tiswww.case.edu/php/chet/readline/history.html
 		 * suggests that it's safe to assume it's really const char*.
 		 */
-		add_history((char *) cmd);
+		add_history((char*)cmd);
 		HISTORY_STATE* state = history_get_history_state();
-		state->entries[state->length-1]->data = (histdata_t *) get_debug_cmd_info(cmd_code);
+		state->entries[state->length - 1]->data = (histdata_t*)get_debug_cmd_info(cmd_code);
 		}
 #endif
 
@@ -643,11 +634,11 @@ int dbg_execute_command(const char* cmd)
 		return retcode;
 
 	const DebugCmdInfo* info = get_debug_cmd_info(cmd_code);
-	if ( ! info  )
+	if ( ! info )
 		reporter->InternalError("Assertion failed: info");
 
 	if ( ! info )
-		return -2;	// ### yuck, why -2?
+		return -2; // ### yuck, why -2?
 
 	return info->ResumeExecution();
 	}
@@ -655,85 +646,86 @@ int dbg_execute_command(const char* cmd)
 // Call the appropriate function for the command.
 static int dbg_dispatch_cmd(DebugCmd cmd_code, const vector<string>& args)
 	{
-	switch ( cmd_code ) {
-	case dcHelp:
-		dbg_cmd_help(cmd_code, args);
-		break;
+	switch ( cmd_code )
+		{
+		case dcHelp:
+			dbg_cmd_help(cmd_code, args);
+			break;
 
-	case dcQuit:
-		debug_msg("Program Terminating\n");
-		exit(0);
+		case dcQuit:
+			debug_msg("Program Terminating\n");
+			exit(0);
 
-	case dcNext:
-		g_frame_stack.back()->BreakBeforeNextStmt(true);
-		step_or_next_pending = true;
-		last_frame = g_frame_stack.back();
-		break;
+		case dcNext:
+			g_frame_stack.back()->BreakBeforeNextStmt(true);
+			step_or_next_pending = true;
+			last_frame = g_frame_stack.back();
+			break;
 
-	case dcStep:
-		g_debugger_state.BreakBeforeNextStmt(true);
-		step_or_next_pending = true;
-		last_frame = g_frame_stack.back();
-		break;
+		case dcStep:
+			g_debugger_state.BreakBeforeNextStmt(true);
+			step_or_next_pending = true;
+			last_frame = g_frame_stack.back();
+			break;
 
-	case dcContinue:
-		g_debugger_state.BreakBeforeNextStmt(false);
-		debug_msg("Continuing.\n");
-		break;
+		case dcContinue:
+			g_debugger_state.BreakBeforeNextStmt(false);
+			debug_msg("Continuing.\n");
+			break;
 
-	case dcFinish:
-		g_frame_stack.back()->BreakOnReturn(true);
-		g_debugger_state.BreakBeforeNextStmt(false);
-		break;
+		case dcFinish:
+			g_frame_stack.back()->BreakOnReturn(true);
+			g_debugger_state.BreakBeforeNextStmt(false);
+			break;
 
-	case dcBreak:
-		dbg_cmd_break(cmd_code, args);
-		break;
+		case dcBreak:
+			dbg_cmd_break(cmd_code, args);
+			break;
 
-	case dcBreakCondition:
-		dbg_cmd_break_condition(cmd_code, args);
-		break;
+		case dcBreakCondition:
+			dbg_cmd_break_condition(cmd_code, args);
+			break;
 
-	case dcDeleteBreak:
-	case dcClearBreak:
-	case dcDisableBreak:
-	case dcEnableBreak:
-	case dcIgnoreBreak:
-		dbg_cmd_break_set_state(cmd_code, args);
-		break;
+		case dcDeleteBreak:
+		case dcClearBreak:
+		case dcDisableBreak:
+		case dcEnableBreak:
+		case dcIgnoreBreak:
+			dbg_cmd_break_set_state(cmd_code, args);
+			break;
 
-	case dcPrint:
-		dbg_cmd_print(cmd_code, args);
-		break;
+		case dcPrint:
+			dbg_cmd_print(cmd_code, args);
+			break;
 
-	case dcBacktrace:
-		return dbg_cmd_backtrace(cmd_code, args);
+		case dcBacktrace:
+			return dbg_cmd_backtrace(cmd_code, args);
 
-	case dcFrame:
-	case dcUp:
-	case dcDown:
-		return dbg_cmd_frame(cmd_code, args);
+		case dcFrame:
+		case dcUp:
+		case dcDown:
+			return dbg_cmd_frame(cmd_code, args);
 
-	case dcInfo:
-		return dbg_cmd_info(cmd_code, args);
+		case dcInfo:
+			return dbg_cmd_info(cmd_code, args);
 
-	case dcList:
-		return dbg_cmd_list(cmd_code, args);
+		case dcList:
+			return dbg_cmd_list(cmd_code, args);
 
-	case dcDisplay:
-	case dcUndisplay:
-		debug_msg("Command not yet implemented.\n");
-		break;
+		case dcDisplay:
+		case dcUndisplay:
+			debug_msg("Command not yet implemented.\n");
+			break;
 
-	case dcTrace:
-		return dbg_cmd_trace(cmd_code, args);
+		case dcTrace:
+			return dbg_cmd_trace(cmd_code, args);
 
-	default:
-		debug_msg("INTERNAL ERROR: "
-		"Got an unknown debugger command in DbgDispatchCmd: %d\n",
-		cmd_code);
-		return 0;
-	}
+		default:
+			debug_msg("INTERNAL ERROR: "
+			          "Got an unknown debugger command in DbgDispatchCmd: %d\n",
+			          cmd_code);
+			return 0;
+		}
 
 	return 0;
 	}
@@ -772,11 +764,10 @@ string get_context_description(const Stmt* stmt, const Frame* frame)
 
 	size_t buf_size = strlen(d.Description()) + strlen(loc.filename) + 1024;
 	char* buf = new char[buf_size];
-	snprintf(buf, buf_size, "In %s at %s:%d",
-		      d.Description(), loc.filename, loc.last_line);
+	snprintf(buf, buf_size, "In %s at %s:%d", d.Description(), loc.filename, loc.last_line);
 
 	string retval(buf);
-	delete [] buf;
+	delete[] buf;
 	return retval;
 	}
 
@@ -807,29 +798,27 @@ int dbg_handle_debug_input()
 
 	if ( ! step_or_next_pending || g_frame_stack.back() != last_frame )
 		{
-		string context =
-			get_context_description(stmt, g_frame_stack.back());
+		string context = get_context_description(stmt, g_frame_stack.back());
 		debug_msg("%s\n", context.c_str());
 		}
 
 	step_or_next_pending = false;
 
-	PrintLines(loc.filename, loc.first_line,
-			loc.last_line - loc.first_line + 1, true);
+	PrintLines(loc.filename, loc.first_line, loc.last_line - loc.first_line + 1, true);
 	g_debugger_state.last_loc = loc;
 
 	do
 		{
-		// readline returns a pointer to a buffer it allocates; it's
-		// freed at the bottom.
+			// readline returns a pointer to a buffer it allocates; it's
+			// freed at the bottom.
 #ifdef HAVE_READLINE
 		input_line = readline(get_prompt());
 #else
-		printf ("%s", get_prompt());
+		printf("%s", get_prompt());
 
 		// readline uses malloc, and we want to be consistent
 		// with it.
-		input_line = (char*) util::safe_malloc(1024);
+		input_line = (char*)util::safe_malloc(1024);
 		input_line[1023] = 0;
 		// ### Maybe it's not always stdin.
 		input_line = fgets(input_line, 1023, stdin);
@@ -843,13 +832,12 @@ int dbg_handle_debug_input()
 
 		if ( input_line )
 			{
-			free(input_line);	// this was malloc'ed
+			free(input_line); // this was malloc'ed
 			input_line = nullptr;
 			}
 		else
 			exit(0);
-		}
-	while ( status == 0 );
+		} while ( status == 0 );
 
 	// Clear out some state. ### Is there a better place?
 	g_debugger_state.curr_frame_idx = 0;
@@ -861,12 +849,10 @@ int dbg_handle_debug_input()
 	return 0;
 	}
 
-
 // Return true to continue execution, false to abort.
 bool pre_execute_stmt(Stmt* stmt, Frame* f)
 	{
-	if ( ! g_policy_debug ||
-	     stmt->Tag() == STMT_LIST || stmt->Tag() == STMT_NULL )
+	if ( ! g_policy_debug || stmt->Tag() == STMT_LIST || stmt->Tag() == STMT_NULL )
 		return true;
 
 	if ( g_trace_state.DoTrace() )
@@ -888,8 +874,7 @@ bool pre_execute_stmt(Stmt* stmt, Frame* f)
 
 	bool should_break = false;
 
-	if ( g_debugger_state.BreakBeforeNextStmt() ||
-	     f->BreakBeforeNextStmt() )
+	if ( g_debugger_state.BreakBeforeNextStmt() || f->BreakBeforeNextStmt() )
 		{
 		if ( g_debugger_state.BreakBeforeNextStmt() )
 			g_debugger_state.BreakBeforeNextStmt(false);
@@ -912,7 +897,7 @@ bool pre_execute_stmt(Stmt* stmt, Frame* f)
 		for ( BPMapType::iterator i = p.first; i != p.second; ++i )
 			{
 			int break_code = i->second->ShouldBreak(stmt);
-			if ( break_code == 2 )	// ### 2?
+			if ( break_code == 2 ) // ### 2?
 				{
 				i->second->SetEnable(false);
 				delete i->second;
@@ -960,14 +945,14 @@ ValPtr dbg_eval_expr(const char* expr)
 	// Push the current frame's associated scope.
 	// Note: g_debugger_state.curr_frame_idx is the user-visible number,
 	//       while the array index goes in the opposite direction
-	int frame_idx =
-		(g_frame_stack.size() - 1) - g_debugger_state.curr_frame_idx;
+	int frame_idx = (g_frame_stack.size() - 1) - g_debugger_state.curr_frame_idx;
 
-	if ( ! (frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size())  )
-		reporter->InternalError("Assertion failed: frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size()");
+	if ( ! (frame_idx >= 0 && (unsigned)frame_idx < g_frame_stack.size()) )
+		reporter->InternalError(
+			"Assertion failed: frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size()");
 
 	Frame* frame = g_frame_stack[frame_idx];
-	if ( ! (frame)  )
+	if ( ! (frame) )
 		reporter->InternalError("Assertion failed: frame");
 
 	const ScriptFunc* func = frame->GetFunction();
@@ -1009,11 +994,11 @@ ValPtr dbg_eval_expr(const char* expr)
 
 	delete g_curr_debug_expr;
 	g_curr_debug_expr = nullptr;
-	delete [] g_curr_debug_error;
+	delete[] g_curr_debug_error;
 	g_curr_debug_error = nullptr;
 	in_debug = false;
 
 	return result;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

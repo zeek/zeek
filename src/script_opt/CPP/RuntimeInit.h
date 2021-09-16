@@ -7,11 +7,13 @@
 #include "zeek/Val.h"
 #include "zeek/script_opt/CPP/Func.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 using FuncValPtr = IntrusivePtr<zeek::FuncVal>;
 
-namespace detail {
+namespace detail
+	{
 
 // An initialization hook for a collection of compiled-to-C++ functions
 // (the result of a single invocation of the compiler on a set of scripts).
@@ -39,8 +41,7 @@ extern void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash,
 // Registers a lambda body as associated with the given hash.  Includes
 // the name of the lambda (so it can be made available as a quasi-global
 // identifier), its type, and whether it needs captures.
-extern void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash,
-                                 const char* name, TypePtr t,
+extern void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, TypePtr t,
                                  bool has_captures);
 
 // Registers a callback for activating a set of scripts associated with
@@ -51,8 +52,7 @@ extern void register_scripts__CPP(p_hash_type h, void (*callback)());
 // the given module, using (at least) the bodies associated with the
 // given hashes.  Creates the identifier using the given module and
 // export setting if it doesn't already exist.
-extern void activate_bodies__CPP(const char* fn, const char* module,
-                                 bool exported, TypePtr t,
+extern void activate_bodies__CPP(const char* fn, const char* module, bool exported, TypePtr t,
                                  std::vector<p_hash_type> hashes);
 
 // Looks for a global with the given name.  If not present, creates it
@@ -66,8 +66,7 @@ extern Func* lookup_bif__CPP(const char* bif);
 // returns an associated FuncVal.  It's a fatal error for the hash
 // not to exist, because this function should only be called by compiled
 // code that has ensured its existence.
-extern FuncValPtr lookup_func__CPP(std::string name, std::vector<p_hash_type> h,
-                                   const TypePtr& t);
+extern FuncValPtr lookup_func__CPP(std::string name, std::vector<p_hash_type> h, const TypePtr& t);
 
 // Returns the record corresponding to the given name, as long as the
 // name is indeed a record type.  Otherwise (or if the name is nil)
@@ -83,5 +82,5 @@ extern EnumTypePtr get_enum_type__CPP(const std::string& enum_type_name);
 // in the context of the given enum type 't'.
 extern EnumValPtr make_enum__CPP(TypePtr t, int i);
 
-} // namespace zeek::detail
-} // namespace zeek
+	} // namespace zeek::detail
+	} // namespace zeek

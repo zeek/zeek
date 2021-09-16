@@ -1,26 +1,25 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/threading/Formatter.h"
 
 #include <errno.h>
 
-#include "zeek/threading/MsgThread.h"
 #include "zeek/bro_inet_ntop.h"
+#include "zeek/threading/MsgThread.h"
+#include "zeek/zeek-config.h"
 
-using zeek::threading::Value;
 using zeek::threading::Field;
+using zeek::threading::Value;
 
-namespace zeek::threading {
+namespace zeek::threading
+	{
 
 Formatter::Formatter(threading::MsgThread* t)
 	{
 	thread = t;
 	}
 
-Formatter::~Formatter()
-	{
-	}
+Formatter::~Formatter() { }
 
 std::string Formatter::Render(const threading::Value::addr_t& addr)
 	{
@@ -44,7 +43,7 @@ std::string Formatter::Render(const threading::Value::addr_t& addr)
 		}
 	}
 
-TransportProto Formatter::ParseProto(const std::string &proto) const
+TransportProto Formatter::ParseProto(const std::string& proto) const
 	{
 	if ( proto == "unknown" )
 		return TRANSPORT_UNKNOWN;
@@ -60,9 +59,8 @@ TransportProto Formatter::ParseProto(const std::string &proto) const
 	return TRANSPORT_UNKNOWN;
 	}
 
-
 // More or less verbose copy from IPAddr.cc -- which uses reporter.
-threading::Value::addr_t Formatter::ParseAddr(const std::string &s) const
+threading::Value::addr_t Formatter::ParseAddr(const std::string& s) const
 	{
 	threading::Value::addr_t val;
 
@@ -126,4 +124,4 @@ std::string Formatter::Render(TransportProto proto)
 		return "unknown";
 	}
 
-} // namespace zeek::threading::formatter
+	} // namespace zeek::threading::formatter

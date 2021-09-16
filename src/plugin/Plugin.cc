@@ -4,21 +4,22 @@
 
 #include <cassert>
 
-#include "zeek/plugin/Manager.h"
-#include "zeek/plugin/Component.h"
-#include "zeek/Val.h"
+#include "zeek/Conn.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/Func.h"
-#include "zeek/Conn.h"
+#include "zeek/Val.h"
 #include "zeek/input.h"
+#include "zeek/plugin/Component.h"
+#include "zeek/plugin/Manager.h"
 #include "zeek/threading/SerialTypes.h"
 
-namespace zeek::plugin {
+namespace zeek::plugin
+	{
 
 const char* hook_name(HookType h)
-{
-static constexpr const char* hook_names[int(NUM_HOOKS) + 1] = {
+	{
+	static constexpr const char* hook_names[int(NUM_HOOKS) + 1] = {
 		// Order must match that of HookType.
 		"LoadFile",
 		"CallFunction",
@@ -62,175 +63,174 @@ BifItem& BifItem::operator=(const BifItem& other)
 	return *this;
 	}
 
-BifItem::~BifItem()
-	{
-	}
+BifItem::~BifItem() { }
 
 void HookArgument::Describe(ODesc* d) const
 	{
-	switch ( type ) {
-	case BOOL:
-		d->Add(arg.bool_ ? "true" : "false");
-		break;
+	switch ( type )
+		{
+		case BOOL:
+			d->Add(arg.bool_ ? "true" : "false");
+			break;
 
-	case DOUBLE:
-		d->Add(arg.double_);
-		break;
+		case DOUBLE:
+			d->Add(arg.double_);
+			break;
 
-	case EVENT:
-		if ( arg.event )
-			{
-			d->Add(arg.event->Handler()->Name());
-			d->Add("(");
-			describe_vals(arg.event->Args(), d);
-			d->Add(")");
-			}
-		else
-			d->Add("<null>");
-		break;
-
-	case CONN:
-		if ( arg.conn )
-			arg.conn->Describe(d);
-		break;
-
-	case FUNC_RESULT:
-		if ( func_result.first )
-			{
-			if( func_result.second )
-				func_result.second->Describe(d);
+		case EVENT:
+			if ( arg.event )
+				{
+				d->Add(arg.event->Handler()->Name());
+				d->Add("(");
+				describe_vals(arg.event->Args(), d);
+				d->Add(")");
+				}
 			else
 				d->Add("<null>");
-			}
-		else
-			d->Add("<no result>");
+			break;
 
-		break;
+		case CONN:
+			if ( arg.conn )
+				arg.conn->Describe(d);
+			break;
 
-	case FRAME:
-		if ( arg.frame )
-			d->Add("<frame>");
-		else
-			d->Add("<null>");
-		break;
-
-	case FUNC:
-		if ( arg.func )
-			d->Add(arg.func->Name());
-		else
-			d->Add("<null>");
-		break;
-
-	case INT:
-		d->Add(arg.int_);
-		break;
-
-	case STRING:
-		d->Add(arg_string);
-		break;
-
-	case VAL:
-		if ( arg.val )
-			arg.val->Describe(d);
-
-		else
-			d->Add("<null>");
-		break;
-
-	case VAL_LIST:
-		if ( arg.vals )
-			{
-			d->Add("(");
-			describe_vals(arg.vals, d);
-			d->Add(")");
-			}
-		else
-			d->Add("<null>");
-		break;
-
-	case ARG_LIST:
-		if ( arg.args)
-			{
-			d->Add("(");
-			describe_vals(*arg.args, d);
-			d->Add(")");
-			}
-		else
-			d->Add("<null>");
-		break;
-
-	case VOID:
-		d->Add("<void>");
-		break;
-
-	case VOIDP:
-		d->Add("<void ptr>");
-		break;
-
-	case WRITER_INFO:
-		{
-		d->Add(arg.winfo->path);
-		d->Add("(");
-		d->Add(arg.winfo->network_time);
-		d->Add(",");
-		d->Add(arg.winfo->rotation_interval);
-		d->Add(",");
-		d->Add(arg.winfo->rotation_base);
-
-		if ( arg.winfo->config.size() > 0 )
-			{
-			bool first = true;
-			d->Add("config: {");
-
-			for ( auto& v: arg.winfo->config )
+		case FUNC_RESULT:
+			if ( func_result.first )
 				{
-				if ( ! first )
-					d->Add(", ");
-
-				d->Add(v.first);
-				d->Add(": ");
-				d->Add(v.second);
-				first = false;
+				if ( func_result.second )
+					func_result.second->Describe(d);
+				else
+					d->Add("<null>");
 				}
+			else
+				d->Add("<no result>");
 
-			d->Add("}");
-			}
+			break;
 
-		d->Add(")");
+		case FRAME:
+			if ( arg.frame )
+				d->Add("<frame>");
+			else
+				d->Add("<null>");
+			break;
+
+		case FUNC:
+			if ( arg.func )
+				d->Add(arg.func->Name());
+			else
+				d->Add("<null>");
+			break;
+
+		case INT:
+			d->Add(arg.int_);
+			break;
+
+		case STRING:
+			d->Add(arg_string);
+			break;
+
+		case VAL:
+			if ( arg.val )
+				arg.val->Describe(d);
+
+			else
+				d->Add("<null>");
+			break;
+
+		case VAL_LIST:
+			if ( arg.vals )
+				{
+				d->Add("(");
+				describe_vals(arg.vals, d);
+				d->Add(")");
+				}
+			else
+				d->Add("<null>");
+			break;
+
+		case ARG_LIST:
+			if ( arg.args )
+				{
+				d->Add("(");
+				describe_vals(*arg.args, d);
+				d->Add(")");
+				}
+			else
+				d->Add("<null>");
+			break;
+
+		case VOID:
+			d->Add("<void>");
+			break;
+
+		case VOIDP:
+			d->Add("<void ptr>");
+			break;
+
+		case WRITER_INFO:
+				{
+				d->Add(arg.winfo->path);
+				d->Add("(");
+				d->Add(arg.winfo->network_time);
+				d->Add(",");
+				d->Add(arg.winfo->rotation_interval);
+				d->Add(",");
+				d->Add(arg.winfo->rotation_base);
+
+				if ( arg.winfo->config.size() > 0 )
+					{
+					bool first = true;
+					d->Add("config: {");
+
+					for ( auto& v : arg.winfo->config )
+						{
+						if ( ! first )
+							d->Add(", ");
+
+						d->Add(v.first);
+						d->Add(": ");
+						d->Add(v.second);
+						first = false;
+						}
+
+					d->Add("}");
+					}
+
+				d->Add(")");
+				}
+			break;
+
+		case THREAD_FIELDS:
+				{
+				d->Add("{");
+
+				for ( int i = 0; i < tfields.first; i++ )
+					{
+					const threading::Field* f = tfields.second[i];
+
+					if ( i > 0 )
+						d->Add(", ");
+
+					d->Add(f->name);
+					d->Add(" (");
+					d->Add(f->TypeName());
+					d->Add(")");
+					}
+
+				d->Add("}");
+				}
+			break;
+
+		case LOCATION:
+			if ( arg.loc )
+				{
+				arg.loc->Describe(d);
+				}
+			else
+				{
+				d->Add("<no location>");
+				}
 		}
-		break;
-
-	case THREAD_FIELDS:
-		{
-		d->Add("{");
-
-		for ( int i=0; i < tfields.first; i++ )
-			{
-			const threading::Field* f = tfields.second[i];
-
-			if ( i > 0 )
-				d->Add(", ");
-
-			d->Add(f->name);
-			d->Add(" (");
-			d->Add(f->TypeName());
-			d->Add(")");
-			}
-
-		d->Add("}");
-		}
-		break;
-
-	case LOCATION:
-		if ( arg.loc )
-			{
-			arg.loc->Describe(d);
-			}
-		else
-		 {
-			d->Add("<no location>");
-		 }
-	}
 	}
 
 Plugin::Plugin()
@@ -290,13 +290,9 @@ void Plugin::SetDynamic(bool is_dynamic)
 	dynamic = is_dynamic;
 	}
 
-void Plugin::InitPreScript()
-	{
-	}
+void Plugin::InitPreScript() { }
 
-void Plugin::InitPostScript()
-	{
-	}
+void Plugin::InitPostScript() { }
 
 Plugin::bif_item_list Plugin::BifItems() const
 	{
@@ -372,9 +368,8 @@ int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std
 	return -1;
 	}
 
-std::pair<bool, ValPtr>
-Plugin::HookFunctionCall(const Func* func, zeek::detail::Frame* parent,
-                         Args* args)
+std::pair<bool, ValPtr> Plugin::HookFunctionCall(const Func* func, zeek::detail::Frame* parent,
+                                                 Args* args)
 	{
 	return {false, nullptr};
 	}
@@ -384,34 +379,23 @@ bool Plugin::HookQueueEvent(Event* event)
 	return false;
 	}
 
-void Plugin::HookDrainEvents()
-	{
-	}
+void Plugin::HookDrainEvents() { }
 
-void Plugin::HookUpdateNetworkTime(double network_time)
-	{
-	}
+void Plugin::HookUpdateNetworkTime(double network_time) { }
 
-void Plugin::HookSetupAnalyzerTree(Connection *conn)
-	{
-	}
+void Plugin::HookSetupAnalyzerTree(Connection* conn) { }
 
-void Plugin::HookBroObjDtor(void* obj)
-	{
-	}
+void Plugin::HookBroObjDtor(void* obj) { }
 
-void Plugin::HookLogInit(const std::string& writer,
-                         const std::string& instantiating_filter,
-                         bool local, bool remote,
-                         const logging::WriterBackend::WriterInfo& info,
+void Plugin::HookLogInit(const std::string& writer, const std::string& instantiating_filter,
+                         bool local, bool remote, const logging::WriterBackend::WriterInfo& info,
                          int num_fields, const threading::Field* const* fields)
 	{
 	}
 
 bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
-                          const logging::WriterBackend::WriterInfo& info,
-                          int num_fields, const threading::Field* const* fields,
-                          threading::Value** vals)
+                          const logging::WriterBackend::WriterInfo& info, int num_fields,
+                          const threading::Field* const* fields, threading::Value** vals)
 	{
 	return true;
 	}
@@ -419,19 +403,15 @@ bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
 bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event,
                           const Connection* conn, const ValPList* addl, bool location,
                           const zeek::detail::Location* location1,
-                          const zeek::detail::Location* location2,
-                          bool time, const std::string& message)
+                          const zeek::detail::Location* location2, bool time,
+                          const std::string& message)
 	{
 	return true;
 	}
 
-void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args)
-	{
-	}
+void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args) { }
 
-void Plugin::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result)
-	{
-	}
+void Plugin::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) { }
 
 void Plugin::InitializeComponents()
 	{
@@ -487,30 +467,31 @@ void Plugin::Describe(ODesc* d) const
 		{
 		const char* type = nullptr;
 
-		switch ( (*i).GetType() ) {
-		case BifItem::FUNCTION:
-			type = "Function";
-			break;
+		switch ( (*i).GetType() )
+			{
+			case BifItem::FUNCTION:
+				type = "Function";
+				break;
 
-		case BifItem::EVENT:
-			type = "Event";
-			break;
+			case BifItem::EVENT:
+				type = "Event";
+				break;
 
-		case BifItem::CONSTANT:
-			type = "Constant";
-			break;
+			case BifItem::CONSTANT:
+				type = "Constant";
+				break;
 
-		case BifItem::GLOBAL:
-			type = "Global";
-			break;
+			case BifItem::GLOBAL:
+				type = "Global";
+				break;
 
-		case BifItem::TYPE:
-			type = "Type";
-			break;
+			case BifItem::TYPE:
+				type = "Type";
+				break;
 
-		default:
-			type = "<unknown>";
-		}
+			default:
+				type = "<unknown>";
+			}
 
 		d->Add("    ");
 		d->Add("[");
@@ -535,4 +516,4 @@ void Plugin::Describe(ODesc* d) const
 		}
 	}
 
-} // namespace zeek::plugin
+	} // namespace zeek::plugin

@@ -1,15 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/dce-rpc/DCE_RPC.h"
 
 #include <stdlib.h>
-#include <string>
 #include <map>
+#include <string>
+
+#include "zeek/zeek-config.h"
 
 using namespace std;
 
-namespace zeek::analyzer::dce_rpc {
+namespace zeek::analyzer::dce_rpc
+	{
 
 DCE_RPC_Analyzer::DCE_RPC_Analyzer(Connection* conn)
 	: analyzer::tcp::TCP_ApplicationAnalyzer("DCE_RPC", conn)
@@ -65,4 +67,4 @@ void DCE_RPC_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-} // namespace zeek::analyzer::dce_rpc
+	} // namespace zeek::analyzer::dce_rpc

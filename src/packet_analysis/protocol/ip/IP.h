@@ -2,15 +2,20 @@
 
 #pragma once
 
+#include "zeek/Frag.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
-#include "zeek/Frag.h"
 
-namespace zeek::detail { class Discarder; }
+namespace zeek::detail
+	{
+class Discarder;
+	}
 
-namespace zeek::packet_analysis::IP {
+namespace zeek::packet_analysis::IP
+	{
 
-class IPAnalyzer : public Analyzer {
+class IPAnalyzer : public Analyzer
+	{
 public:
 	IPAnalyzer();
 	~IPAnalyzer() override;
@@ -23,14 +28,12 @@ public:
 		}
 
 private:
-
 	// Returns a reassembled packet, or nil if there are still
 	// some missing fragments.
-	zeek::detail::FragReassembler* NextFragment(double t, const IP_Hdr* ip,
-	                                            const u_char* pkt);
+	zeek::detail::FragReassembler* NextFragment(double t, const IP_Hdr* ip, const u_char* pkt);
 
 	zeek::detail::Discarder* discarder = nullptr;
-};
+	};
 
 /**
  * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
@@ -54,6 +57,5 @@ private:
  *         long enough to be an IP header, and \a inner is always non-null
  *         for other return values.
  */
-int ParsePacket(int caplen, const u_char* const pkt, int proto,
-                std::unique_ptr<IP_Hdr>& inner);
-}
+int ParsePacket(int caplen, const u_char* const pkt, int proto, std::unique_ptr<IP_Hdr>& inner);
+	}

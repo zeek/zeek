@@ -2,13 +2,15 @@
 
 // Low-level support utilities/globals for ZAM compilation.
 
-#include "zeek/Reporter.h"
-#include "zeek/Desc.h"
-#include "zeek/ZeekString.h"
-#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ZAM/Support.h"
 
-namespace zeek::detail {
+#include "zeek/Desc.h"
+#include "zeek/Reporter.h"
+#include "zeek/ZeekString.h"
+#include "zeek/script_opt/ProfileFunc.h"
+
+namespace zeek::detail
+	{
 
 const Stmt* curr_stmt;
 TypePtr log_ID_enum_type;
@@ -39,7 +41,6 @@ bool IsAny(const Type* t)
 	return t->Tag() == TYPE_ANY;
 	}
 
-
 StringVal* ZAM_to_lower(const StringVal* sv)
 	{
 	auto bs = sv->AsString();
@@ -57,14 +58,14 @@ StringVal* ZAM_to_lower(const StringVal* sv)
 		}
 
 	*ls++ = '\0';
-		
+
 	return new StringVal(new String(1, lower_s, n));
 	}
 
 StringVal* ZAM_sub_bytes(const StringVal* s, bro_uint_t start, bro_int_t n)
 	{
 	if ( start > 0 )
-		--start;        // make it 0-based
+		--start; // make it 0-based
 
 	auto ss = s->AsString()->GetSubstring(start, n);
 
@@ -103,4 +104,4 @@ void ZAM_run_time_warning(const Location* loc, const char* msg)
 	reporter->Warning("%s: %s", d.Description(), msg);
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

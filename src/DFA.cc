@@ -1,19 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/DFA.h"
+
+#include "zeek/Desc.h"
+#include "zeek/EquivClass.h"
+#include "zeek/Hash.h"
 #include "zeek/zeek-config.h"
 
-#include "zeek/DFA.h"
-#include "zeek/EquivClass.h"
-#include "zeek/Desc.h"
-#include "zeek/Hash.h"
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 unsigned int DFA_State::transition_counter = 0;
 
-DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
-			NFA_state_list* arg_nfa_states,
-			AcceptingSet* arg_accept)
+DFA_State::DFA_State(int arg_state_num, const EquivClass* ec, NFA_state_list* arg_nfa_states,
+                     AcceptingSet* arg_accept)
 	{
 	state_num = arg_state_num;
 	num_sym = ec->NumClasses();
@@ -31,7 +31,7 @@ DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
 
 DFA_State::~DFA_State()
 	{
-	delete [] xtions;
+	delete[] xtions;
 	delete nfa_states;
 	delete accept;
 	delete meta_ec;
@@ -98,7 +98,7 @@ DFA_State* DFA_State::ComputeXtion(int sym, DFA_Machine* machine)
 	else
 		{
 		delete ns;
-		next_d = nullptr;	// Jam
+		next_d = nullptr; // Jam
 		}
 
 	AddXtion(equiv_sym, next_d);
@@ -163,7 +163,7 @@ NFA_state_list* DFA_State::SymFollowSet(int ec_sym, const EquivClass* ec)
 					break;
 					}
 				}
- 			}
+			}
 
 		else if ( n->TransSym() == SYM_EPSILON )
 			{ // do nothing
@@ -241,15 +241,14 @@ void DFA_State::Dump(FILE* f, DFA_Machine* m)
 		if ( i == sym + 1 )
 			sprintf(xbuf, "'%c'", r);
 		else
-			sprintf(xbuf, "'%c'-'%c'", r, m->Rep(i-1));
+			sprintf(xbuf, "'%c'-'%c'", r, m->Rep(i - 1));
 
 		if ( s == DFA_UNCOMPUTED_STATE_PTR )
-			fprintf(f, "%stransition on %s to <uncomputed>",
-				++num_trans == 1 ? "\t" : "\n\t", xbuf);
+			fprintf(f, "%stransition on %s to <uncomputed>", ++num_trans == 1 ? "\t" : "\n\t",
+			        xbuf);
 		else
-			fprintf(f, "%stransition on %s to state %d",
-				++num_trans == 1 ? "\t" : "\n\t", xbuf,
-				s->StateNum());
+			fprintf(f, "%stransition on %s to state %d", ++num_trans == 1 ? "\t" : "\n\t", xbuf,
+			        s->StateNum());
 
 		sym = i - 1;
 		}
@@ -283,11 +282,10 @@ void DFA_State::Stats(unsigned int* computed, unsigned int* uncomputed)
 
 unsigned int DFA_State::Size()
 	{
-	return sizeof(*this)
-		+ util::pad_size(sizeof(DFA_State*) * num_sym)
-		+ (accept ? util::pad_size(sizeof(int) * accept->size()) : 0)
-		+ (nfa_states ? util::pad_size(sizeof(NFA_State*) * nfa_states->length()) : 0)
-		+ (meta_ec ? meta_ec->Size() : 0);
+	return sizeof(*this) + util::pad_size(sizeof(DFA_State*) * num_sym) +
+	       (accept ? util::pad_size(sizeof(int) * accept->size()) : 0) +
+	       (nfa_states ? util::pad_size(sizeof(NFA_State*) * nfa_states->length()) : 0) +
+	       (meta_ec ? meta_ec->Size() : 0);
 	}
 
 DFA_State_Cache::DFA_State_Cache()
@@ -324,8 +322,7 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas, DigestStr* digest
 				{
 				*p++ = '0' + (char)(id % 10);
 				id /= 10;
-				}
-			while ( id > 0 );
+				} while ( id > 0 );
 			*p++ = '&';
 			}
 		}
@@ -428,15 +425,12 @@ unsigned int DFA_Machine::MemoryAllocation() const
 	// FIXME: Count *ec?
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	return padded_sizeof(*this)
-		+ s.mem
-		+ padded_sizeof(*start_state)
-		+ nfa->MemoryAllocation();
+	return padded_sizeof(*this) + s.mem + padded_sizeof(*start_state) + nfa->MemoryAllocation();
 #pragma GCC diagnostic pop
 	}
 
-bool DFA_Machine::StateSetToDFA_State(NFA_state_list* state_set,
-				DFA_State*& d, const EquivClass* ec)
+bool DFA_Machine::StateSetToDFA_State(NFA_state_list* state_set, DFA_State*& d,
+                                      const EquivClass* ec)
 	{
 	DigestStr digest;
 	d = dfa_state_cache->Lookup(*state_set, &digest);
@@ -475,4 +469,4 @@ int DFA_Machine::Rep(int sym)
 	return -1;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

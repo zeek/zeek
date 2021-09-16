@@ -1,37 +1,39 @@
 // Implementation of breakpoints.
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/DbgBreakpoint.h"
 
 #include <assert.h>
 
-#include "zeek/Desc.h"
-#include "zeek/ID.h"
 #include "zeek/Debug.h"
-#include "zeek/Scope.h"
+#include "zeek/Desc.h"
 #include "zeek/Frame.h"
 #include "zeek/Func.h"
-#include "zeek/Val.h"
+#include "zeek/ID.h"
+#include "zeek/Reporter.h"
+#include "zeek/Scope.h"
 #include "zeek/Stmt.h"
 #include "zeek/Timer.h"
-#include "zeek/Reporter.h"
+#include "zeek/Val.h"
 #include "zeek/module_util.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 // BreakpointTimer used for time-based breakpoints
-class BreakpointTimer final : public Timer {
+class BreakpointTimer final : public Timer
+	{
 public:
-	BreakpointTimer(DbgBreakpoint* arg_bp, double arg_t)
-		: Timer(arg_t, TIMER_BREAKPOINT)
-			{ bp = arg_bp; }
+	BreakpointTimer(DbgBreakpoint* arg_bp, double arg_t) : Timer(arg_t, TIMER_BREAKPOINT)
+		{
+		bp = arg_bp;
+		}
 
 	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	DbgBreakpoint* bp;
-};
+	};
 
 void BreakpointTimer::Dispatch(double t, bool is_expire)
 	{
@@ -40,7 +42,6 @@ void BreakpointTimer::Dispatch(double t, bool is_expire)
 
 	bp->ShouldBreak(t);
 	}
-
 
 DbgBreakpoint::DbgBreakpoint()
 	{
@@ -61,7 +62,7 @@ DbgBreakpoint::DbgBreakpoint()
 
 DbgBreakpoint::~DbgBreakpoint()
 	{
-	SetEnable(false);	// clean up any active state
+	SetEnable(false); // clean up any active state
 	RemoveFromGlobalMap();
 	}
 
@@ -119,7 +120,6 @@ void DbgBreakpoint::RemoveFromStmt()
 		at_stmt->DecrBPCount();
 	}
 
-
 bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str)
 	{
 	if ( plr.type == PLR_UNKNOWN )
@@ -141,8 +141,7 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str)
 			}
 
 		at_stmt = plr.stmt;
-		snprintf(description, sizeof(description), "%s:%d",
-		         source_filename, source_line);
+		snprintf(description, sizeof(description), "%s:%d", source_filename, source_line);
 
 		debug_msg("Breakpoint %d set at %s\n", GetID(), Description());
 		}
@@ -151,12 +150,11 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str)
 		{
 		std::string loc_s(loc_str);
 		kind = BP_FUNC;
-		function_name = make_full_var_name(current_module.c_str(),
-		                                   loc_s.c_str());
+		function_name = make_full_var_name(current_module.c_str(), loc_s.c_str());
 		at_stmt = plr.stmt;
 		const Location* loc = at_stmt->GetLocationInfo();
-		snprintf(description, sizeof(description), "%s at %s:%d",
-		         function_name.c_str(), loc->filename, loc->last_line);
+		snprintf(description, sizeof(description), "%s at %s:%d", function_name.c_str(),
+		         loc->filename, loc->last_line);
 
 		debug_msg("Breakpoint %d set at %s\n", GetID(), Description());
 		}
@@ -178,8 +176,7 @@ bool DbgBreakpoint::SetLocation(Stmt* stmt)
 	AddToGlobalMap();
 
 	const Location* loc = stmt->GetLocationInfo();
-	snprintf(description, sizeof(description), "%s:%d",
-		      loc->filename, loc->last_line);
+	snprintf(description, sizeof(description), "%s:%d", loc->filename, loc->last_line);
 
 	debug_msg("Breakpoint %d set at %s\n", GetID(), Description());
 
@@ -204,19 +201,20 @@ bool DbgBreakpoint::Reset()
 	{
 	ParseLocationRec plr;
 
-	switch ( kind ) {
-	case BP_TIME:
-		debug_msg("Time-based breakpoints not yet supported.\n");
-		break;
+	switch ( kind )
+		{
+		case BP_TIME:
+			debug_msg("Time-based breakpoints not yet supported.\n");
+			break;
 
-	case BP_FUNC:
-	case BP_STMT:
-	case BP_LINE:
-		plr.type = PLR_FUNCTION;
-		//### How to deal with wildcards?
-		//### perhaps save user choices?--tough...
-		break;
-	}
+		case BP_FUNC:
+		case BP_STMT:
+		case BP_LINE:
+			plr.type = PLR_FUNCTION;
+			//### How to deal with wildcards?
+			//### perhaps save user choices?--tough...
+			break;
+		}
 
 	reporter->InternalError("DbgBreakpoint::Reset function incomplete.");
 
@@ -252,14 +250,13 @@ BreakCode DbgBreakpoint::HasHit()
 		if ( ! yes )
 			{
 			debug_msg("Breakpoint condition '%s' invalid, removing condition.\n",
-			condition.c_str());
+			          condition.c_str());
 			SetCondition("");
 			PrintHitMsg();
 			return BC_HIT;
 			}
 
-		if ( ! IsIntegral(yes->GetType()->Tag()) &&
-		     ! IsBool(yes->GetType()->Tag()) )
+		if ( ! IsIntegral(yes->GetType()->Tag()) && ! IsBool(yes->GetType()->Tag()) )
 			{
 			PrintHitMsg();
 			debug_msg("Breakpoint condition should return an integral type");
@@ -295,24 +292,25 @@ BreakCode DbgBreakpoint::ShouldBreak(Stmt* s)
 	if ( ! IsEnabled() )
 		return BC_NO_HIT;
 
-	switch ( kind ) {
-	case BP_STMT:
-	case BP_FUNC:
-		if ( at_stmt != s )
-			return BC_NO_HIT;
-		break;
+	switch ( kind )
+		{
+		case BP_STMT:
+		case BP_FUNC:
+			if ( at_stmt != s )
+				return BC_NO_HIT;
+			break;
 
-	case BP_LINE:
-		assert(s->GetLocationInfo()->first_line <= source_line &&
-		       s->GetLocationInfo()->last_line >= source_line);
-		break;
+		case BP_LINE:
+			assert(s->GetLocationInfo()->first_line <= source_line &&
+			       s->GetLocationInfo()->last_line >= source_line);
+			break;
 
-	case BP_TIME:
-		assert(false);
+		case BP_TIME:
+			assert(false);
 
-	default:
-		reporter->InternalError("Invalid breakpoint type in DbgBreakpoint::ShouldBreak");
-	}
+		default:
+			reporter->InternalError("Invalid breakpoint type in DbgBreakpoint::ShouldBreak");
+		}
 
 	// If we got here, that means that the breakpoint could hit,
 	// except potentially if it has a special condition or a repeat count.
@@ -323,7 +321,6 @@ BreakCode DbgBreakpoint::ShouldBreak(Stmt* s)
 
 	return code;
 	}
-
 
 BreakCode DbgBreakpoint::ShouldBreak(double t)
 	{
@@ -345,32 +342,32 @@ BreakCode DbgBreakpoint::ShouldBreak(double t)
 
 void DbgBreakpoint::PrintHitMsg()
 	{
-	switch ( kind ) {
-	case BP_STMT:
-	case BP_FUNC:
-	case BP_LINE:
+	switch ( kind )
 		{
-		ODesc d;
-		Frame* f = g_frame_stack.back();
-		const ScriptFunc* func = f->GetFunction();
+		case BP_STMT:
+		case BP_FUNC:
+		case BP_LINE:
+				{
+				ODesc d;
+				Frame* f = g_frame_stack.back();
+				const ScriptFunc* func = f->GetFunction();
 
-		if ( func )
-			func->DescribeDebug (&d, f->GetFuncArgs());
+				if ( func )
+					func->DescribeDebug(&d, f->GetFuncArgs());
 
-		const Location* loc = at_stmt->GetLocationInfo();
+				const Location* loc = at_stmt->GetLocationInfo();
 
-		debug_msg("Breakpoint %d, %s at %s:%d\n",
-			 GetID(), d.Description(),
-			 loc->filename, loc->first_line);
+				debug_msg("Breakpoint %d, %s at %s:%d\n", GetID(), d.Description(), loc->filename,
+				          loc->first_line);
+				}
+			return;
+
+		case BP_TIME:
+			assert(false);
+
+		default:
+			reporter->InternalError("Missed a case in DbgBreakpoint::PrintHitMsg\n");
 		}
-		return;
-
-	case BP_TIME:
-		assert(false);
-
-	default:
-		reporter->InternalError("Missed a case in DbgBreakpoint::PrintHitMsg\n");
-	}
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

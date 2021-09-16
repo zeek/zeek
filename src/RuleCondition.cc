@@ -1,13 +1,13 @@
-#include "zeek/zeek-config.h"
-
 #include "zeek/RuleCondition.h"
-#include "zeek/RuleMatcher.h"
-#include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/Reporter.h"
-#include "zeek/Scope.h"
+
 #include "zeek/Func.h"
 #include "zeek/ID.h"
+#include "zeek/Reporter.h"
+#include "zeek/RuleMatcher.h"
+#include "zeek/Scope.h"
 #include "zeek/Val.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/zeek-config.h"
 
 static inline bool is_established(const zeek::analyzer::tcp::TCP_Endpoint* e)
 	{
@@ -20,10 +20,11 @@ static inline bool is_established(const zeek::analyzer::tcp::TCP_Endpoint* e)
 	       e->state != zeek::analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT;
 	}
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
-bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
-					const u_char* data, int len)
+bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data,
+                                    int len)
 	{
 	auto* adapter = state->GetAnalyzer()->Conn()->GetSessionAdapter();
 
@@ -41,9 +42,8 @@ bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
 	if ( (tcpstates & RULE_STATE_RESP) && state->IsOrig() )
 		return false;
 
-	if ( (tcpstates & RULE_STATE_ESTABLISHED ) &&
-		! (is_established(ta->Orig()) &&
-		   is_established(ta->Resp())))
+	if ( (tcpstates & RULE_STATE_ESTABLISHED) &&
+	     ! (is_established(ta->Orig()) && is_established(ta->Resp())) )
 		return false;
 
 	return true;
@@ -54,8 +54,8 @@ void RuleConditionTCPState::PrintDebug()
 	fprintf(stderr, "	RuleConditionTCPState: 0x%x\n", tcpstates);
 	}
 
-bool RuleConditionUDPState::DoMatch(Rule* rule, RuleEndpointState* state,
-                                    const u_char* data, int len)
+bool RuleConditionUDPState::DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data,
+                                    int len)
 	{
 	auto* adapter = state->GetAnalyzer()->Conn()->GetSessionAdapter();
 
@@ -84,8 +84,8 @@ void RuleConditionIPOptions::PrintDebug()
 	fprintf(stderr, "	RuleConditionIPOptions: 0x%x\n", options);
 	}
 
-bool RuleConditionIPOptions::DoMatch(Rule* rule, RuleEndpointState* state,
-					const u_char* data, int len)
+bool RuleConditionIPOptions::DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data,
+                                     int len)
 	{
 	// FIXME: Not implemented yet
 	return false;
@@ -96,11 +96,9 @@ void RuleConditionSameIP::PrintDebug()
 	fprintf(stderr, "	RuleConditionSameIP\n");
 	}
 
-bool RuleConditionSameIP::DoMatch(Rule* rule, RuleEndpointState* state,
-					const u_char* data, int len)
+bool RuleConditionSameIP::DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data, int len)
 	{
-	return state->GetAnalyzer()->Conn()->OrigAddr() ==
-		state->GetAnalyzer()->Conn()->RespAddr();
+	return state->GetAnalyzer()->Conn()->OrigAddr() == state->GetAnalyzer()->Conn()->RespAddr();
 	}
 
 void RuleConditionPayloadSize::PrintDebug()
@@ -108,12 +106,12 @@ void RuleConditionPayloadSize::PrintDebug()
 	fprintf(stderr, "	RuleConditionPayloadSize %d\n", val);
 	}
 
-bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
-					const u_char* data, int len)
+bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data,
+                                       int len)
 	{
 #ifdef MATCHER_PRINT_DEBUG
-	fprintf(stderr, "%.06f PayloadSize check: val = %d, payload_size = %d\n",
-		network_time, val, state->PayloadSize());
+	fprintf(stderr, "%.06f PayloadSize check: val = %d, payload_size = %d\n", network_time, val,
+	        state->PayloadSize());
 #endif
 
 	if ( state->PayloadSize() < 0 )
@@ -127,28 +125,29 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
 
 	uint32_t payload_size = uint32_t(state->PayloadSize());
 
-	switch ( comp ) {
-	case RULE_EQ:
-		return payload_size == val;
+	switch ( comp )
+		{
+		case RULE_EQ:
+			return payload_size == val;
 
-	case RULE_NE:
-		return payload_size != val;
+		case RULE_NE:
+			return payload_size != val;
 
-	case RULE_LT:
-		return payload_size < val;
+		case RULE_LT:
+			return payload_size < val;
 
-	case RULE_GT:
-		return payload_size > val;
+		case RULE_GT:
+			return payload_size > val;
 
-	case RULE_LE:
-		return payload_size <= val;
+		case RULE_LE:
+			return payload_size <= val;
 
-	case RULE_GE:
-		return payload_size >= val;
+		case RULE_GE:
+			return payload_size >= val;
 
-	default:
-		reporter->InternalError("unknown comparison type");
-	}
+		default:
+			reporter->InternalError("unknown comparison type");
+		}
 
 	// Should not be reached
 	return false;
@@ -178,12 +177,12 @@ RuleConditionEval::RuleConditionEval(const char* func)
 
 		if ( ! f->CheckArgs(tl.GetTypes()) )
 			rules_error("eval function parameters must be a 'signature_state' "
-			            "and a 'string' type", func);
+			            "and a 'string' type",
+			            func);
 		}
 	}
 
-bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
-					const u_char* data, int len)
+bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data, int len)
 	{
 	if ( ! id->HasVal() )
 		{
@@ -200,7 +199,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	args.emplace_back(AdoptRef{}, rule_matcher->BuildRuleStateValue(rule, state));
 
 	if ( data )
-		args.emplace_back(make_intrusive<StringVal>(len, (const char*) data));
+		args.emplace_back(make_intrusive<StringVal>(len, (const char*)data));
 	else
 		args.emplace_back(val_mgr->EmptyString());
 
@@ -224,4 +223,4 @@ void RuleConditionEval::PrintDebug()
 	fprintf(stderr, "	RuleConditionEval: %s\n", id->Name());
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

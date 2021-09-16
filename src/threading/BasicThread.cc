@@ -1,13 +1,14 @@
-#include "zeek/zeek-config.h"
 #include "zeek/threading/BasicThread.h"
 
-#include <signal.h>
 #include <pthread.h>
+#include <signal.h>
 
 #include "zeek/threading/Manager.h"
 #include "zeek/util.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek::threading {
+namespace zeek::threading
+	{
 
 static const int STD_FMT_BUF_LEN = 2048;
 
@@ -20,7 +21,7 @@ BasicThread::BasicThread()
 	killed = false;
 
 	buf_len = STD_FMT_BUF_LEN;
-	buf = (char*) util::safe_malloc(buf_len);
+	buf = (char*)util::safe_malloc(buf_len);
 
 	strerr_buffer = nullptr;
 
@@ -34,19 +35,20 @@ BasicThread::~BasicThread()
 	if ( buf )
 		free(buf);
 
-	delete [] name;
-	delete [] strerr_buffer;
+	delete[] name;
+	delete[] strerr_buffer;
 	}
 
 void BasicThread::SetName(const char* arg_name)
 	{
-	delete [] name;
+	delete[] name;
 	name = util::copy_string(arg_name);
 	}
 
 void BasicThread::SetOSName(const char* arg_name)
 	{
-	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value, "libstdc++ doesn't use pthread_t");
+	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value,
+	              "libstdc++ doesn't use pthread_t");
 	util::detail::set_thread_name(arg_name, thread.native_handle());
 	}
 
@@ -55,7 +57,7 @@ const char* BasicThread::Fmt(const char* format, ...)
 	if ( buf_len > 10 * STD_FMT_BUF_LEN )
 		{
 		// Shrink back to normal.
-		buf = (char*) util::safe_realloc(buf, STD_FMT_BUF_LEN);
+		buf = (char*)util::safe_realloc(buf, STD_FMT_BUF_LEN);
 		buf_len = STD_FMT_BUF_LEN;
 		}
 
@@ -64,10 +66,10 @@ const char* BasicThread::Fmt(const char* format, ...)
 	int n = vsnprintf(buf, buf_len, format, al);
 	va_end(al);
 
-	if ( (unsigned int) n >= buf_len )
+	if ( (unsigned int)n >= buf_len )
 		{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
-		buf = (char*) util::safe_realloc(buf, buf_len);
+		buf = (char*)util::safe_realloc(buf, buf_len);
 
 		// Is it portable to restart?
 		va_start(al, format);
@@ -119,7 +121,8 @@ void BasicThread::WaitForStop()
 	if ( ! started )
 		return;
 
-	DBG_LOG(DBG_THREADING, "Waiting for thread %s to terminate and process last queue items...", name);
+	DBG_LOG(DBG_THREADING, "Waiting for thread %s to terminate and process last queue items...",
+	        name);
 
 	OnWaitForStop();
 
@@ -166,10 +169,11 @@ void BasicThread::Done()
 	killed = true;
 	}
 
-void* BasicThread::launcher(void *arg)
+void* BasicThread::launcher(void* arg)
 	{
-	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value, "libstdc++ doesn't use pthread_t");
-	BasicThread* thread = (BasicThread *)arg;
+	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value,
+	              "libstdc++ doesn't use pthread_t");
+	BasicThread* thread = (BasicThread*)arg;
 
 	// Block signals in thread. We handle signals only in the main
 	// process.
@@ -194,4 +198,4 @@ void* BasicThread::launcher(void *arg)
 	return nullptr;
 	}
 
-} // namespace zeek::threading
+	} // namespace zeek::threading

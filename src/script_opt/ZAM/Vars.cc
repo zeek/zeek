@@ -2,14 +2,14 @@
 
 // Methods for dealing with variables (both ZAM and script-level).
 
-#include "zeek/Reporter.h"
 #include "zeek/Desc.h"
+#include "zeek/Reporter.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/Reduce.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 bool ZAMCompiler::IsUnused(const IDPtr& id, const Stmt* where) const
 	{
@@ -27,7 +27,8 @@ bool ZAMCompiler::IsUnused(const IDPtr& id, const Stmt* where) const
 void ZAMCompiler::LoadParam(ID* id)
 	{
 	if ( id->IsType() )
-		reporter->InternalError("don't know how to compile local variable that's a type not a value");
+		reporter->InternalError(
+			"don't know how to compile local variable that's a type not a value");
 
 	bool is_any = IsAny(id->GetType());
 
@@ -41,7 +42,7 @@ void ZAMCompiler::LoadParam(ID* id)
 	z.SetType(id->GetType());
 	z.op_type = OP_VV_FRAME;
 
-	(void) AddInst(z);
+	(void)AddInst(z);
 	}
 
 const ZAMStmt ZAMCompiler::LoadGlobal(ID* id)
@@ -80,7 +81,7 @@ int ZAMCompiler::FrameSlot(const ID* id)
 	auto slot = RawSlot(id);
 
 	if ( id->IsGlobal() )
-		(void) LoadGlobal(frame_denizens[slot]);
+		(void)LoadGlobal(frame_denizens[slot]);
 
 	return slot;
 	}
@@ -89,28 +90,29 @@ int ZAMCompiler::Frame1Slot(const ID* id, ZAMOp1Flavor fl)
 	{
 	auto slot = RawSlot(id);
 
-	switch ( fl ) {
-	case OP1_READ:
-		if ( id->IsGlobal() )
-			(void) LoadGlobal(frame_denizens[slot]);
-		break;
+	switch ( fl )
+		{
+		case OP1_READ:
+			if ( id->IsGlobal() )
+				(void)LoadGlobal(frame_denizens[slot]);
+			break;
 
-	case OP1_WRITE:
-		if ( id->IsGlobal() )
-			pending_global_store = global_id_to_info[id];
-		break;
+		case OP1_WRITE:
+			if ( id->IsGlobal() )
+				pending_global_store = global_id_to_info[id];
+			break;
 
-        case OP1_READ_WRITE:
-		if ( id->IsGlobal() )
-			{
-			(void) LoadGlobal(frame_denizens[slot]);
-			pending_global_store = global_id_to_info[id];
-			}
-		break;
+		case OP1_READ_WRITE:
+			if ( id->IsGlobal() )
+				{
+				(void)LoadGlobal(frame_denizens[slot]);
+				pending_global_store = global_id_to_info[id];
+				}
+			break;
 
-	case OP1_INTERNAL:
-		break;
-	}
+		case OP1_INTERNAL:
+			break;
+		}
 
 	return slot;
 	}
@@ -152,9 +154,9 @@ int ZAMCompiler::TempForConst(const ConstExpr* c)
 
 	auto z = ZInstI(OP_ASSIGN_CONST_VC, slot, c);
 	z.CheckIfManaged(c->GetType());
-	(void) AddInst(z);
+	(void)AddInst(z);
 
 	return slot;
 	}
 
-} // zeek::detail
+	} // zeek::detail

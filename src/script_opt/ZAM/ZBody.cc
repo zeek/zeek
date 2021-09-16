@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/Desc.h"
-#include "zeek/RE.h"
-#include "zeek/Frame.h"
 #include "zeek/EventHandler.h"
-#include "zeek/Trigger.h"
-#include "zeek/Traverse.h"
+#include "zeek/Frame.h"
 #include "zeek/Overflow.h"
+#include "zeek/RE.h"
 #include "zeek/Reporter.h"
+#include "zeek/Traverse.h"
+#include "zeek/Trigger.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
@@ -22,8 +22,8 @@
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/logging/Manager.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 using std::vector;
 
@@ -31,26 +31,22 @@ static bool did_init = false;
 
 // Count of how often each type of ZOP executed, and how much CPU it
 // cumulatively took.
-int ZOP_count[OP_NOP+1];
-double ZOP_CPU[OP_NOP+1];
-
+int ZOP_count[OP_NOP + 1];
+double ZOP_CPU[OP_NOP + 1];
 
 void report_ZOP_profile()
 	{
 	for ( int i = 1; i <= OP_NOP; ++i )
 		if ( ZOP_count[i] > 0 )
-			printf("%s\t%d\t%.06f\n", ZOP_name(ZOp(i)),
-			       ZOP_count[i], ZOP_CPU[i]);
+			printf("%s\t%d\t%.06f\n", ZOP_name(ZOp(i)), ZOP_count[i], ZOP_CPU[i]);
 	}
-
 
 // Sets the given element to a copy of an existing (not newly constructed)
 // ZVal, including underlying memory management.  Returns false if the
 // assigned value was missing (which we can only tell for managed types),
 // true otherwise.
 
-static bool copy_vec_elem(VectorVal* vv, bro_uint_t ind, ZVal zv,
-                          const TypePtr& t)
+static bool copy_vec_elem(VectorVal* vv, bro_uint_t ind, ZVal zv, const TypePtr& t)
 	{
 	if ( vv->Size() <= ind )
 		vv->Resize(ind + 1);
@@ -82,40 +78,39 @@ static bool copy_vec_elem(VectorVal* vv, bro_uint_t ind, ZVal zv,
 // Unary and binary element-by-element vector operations, yielding a new
 // VectorVal with a yield type of 't'.  'z' is passed in only for localizing
 // errors.
-static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2,
+static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, const ZInst& z);
+
+static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, const VectorVal* v3,
                      const ZInst& z);
 
-static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2,
-                     const VectorVal* v3, const ZInst& z);
-
 // Vector coercion.
-#define VEC_COERCE(tag, lhs_type, cast, rhs_accessor, ov_check, ov_err) \
-	static VectorVal* vec_coerce_##tag(VectorVal* vec, const ZInst& z) \
-		{ \
-		auto& v = *vec->RawVec(); \
-		auto yt = make_intrusive<VectorType>(base_type(lhs_type)); \
-		auto res_zv = new VectorVal(yt); \
-		auto n = v.size(); \
-		res_zv->Resize(n); \
-		auto& res = *res_zv->RawVec(); \
-		for ( auto i = 0U; i < n; ++i ) \
-			if ( v[i] ) \
-				{ \
-				auto vi = (*v[i]).rhs_accessor; \
-				if ( ov_check(vi) ) \
-					{ \
-					std::string err = "overflow promoting from "; \
-					err += ov_err; \
-					err += " arithmetic value"; \
-					ZAM_run_time_error(z.loc, err.c_str()); \
-					res[i] = std::nullopt; \
-					} \
-				else \
-					res[i] = ZVal(cast(vi)); \
-				} \
-			else \
-				res[i] = std::nullopt; \
-		return res_zv; \
+#define VEC_COERCE(tag, lhs_type, cast, rhs_accessor, ov_check, ov_err)                            \
+	static VectorVal* vec_coerce_##tag(VectorVal* vec, const ZInst& z)                             \
+		{                                                                                          \
+		auto& v = *vec->RawVec();                                                                  \
+		auto yt = make_intrusive<VectorType>(base_type(lhs_type));                                 \
+		auto res_zv = new VectorVal(yt);                                                           \
+		auto n = v.size();                                                                         \
+		res_zv->Resize(n);                                                                         \
+		auto& res = *res_zv->RawVec();                                                             \
+		for ( auto i = 0U; i < n; ++i )                                                            \
+			if ( v[i] )                                                                            \
+				{                                                                                  \
+				auto vi = (*v[i]).rhs_accessor;                                                    \
+				if ( ov_check(vi) )                                                                \
+					{                                                                              \
+					std::string err = "overflow promoting from ";                                  \
+					err += ov_err;                                                                 \
+					err += " arithmetic value";                                                    \
+					ZAM_run_time_error(z.loc, err.c_str());                                        \
+					res[i] = std::nullopt;                                                         \
+					}                                                                              \
+				else                                                                               \
+					res[i] = ZVal(cast(vi));                                                       \
+				}                                                                                  \
+			else                                                                                   \
+				res[i] = std::nullopt;                                                             \
+		return res_zv;                                                                             \
 		}
 
 #define false_func(x) false
@@ -124,7 +119,8 @@ VEC_COERCE(DI, TYPE_DOUBLE, double, AsInt(), false_func, "")
 VEC_COERCE(DU, TYPE_DOUBLE, double, AsCount(), false_func, "")
 VEC_COERCE(ID, TYPE_INT, bro_int_t, AsDouble(), double_to_int_would_overflow, "double to signed")
 VEC_COERCE(IU, TYPE_INT, bro_int_t, AsCount(), count_to_int_would_overflow, "unsigned to signed")
-VEC_COERCE(UD, TYPE_COUNT, bro_uint_t, AsDouble(), double_to_count_would_overflow, "double to unsigned")
+VEC_COERCE(UD, TYPE_COUNT, bro_uint_t, AsDouble(), double_to_count_would_overflow,
+           "double to unsigned")
 VEC_COERCE(UI, TYPE_COUNT, bro_int_t, AsInt(), int_to_count_would_overflow, "signed to unsigned")
 
 double curr_CPU_time()
@@ -134,9 +130,7 @@ double curr_CPU_time()
 	return double(ts.tv_sec) + double(ts.tv_nsec) / 1e9;
 	}
 
-
-ZBody::ZBody(const char* _func_name, const ZAMCompiler* zc)
-: Stmt(STMT_ZAM)
+ZBody::ZBody(const char* _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM)
 	{
 	func_name = _func_name;
 
@@ -288,14 +282,13 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 
 		if ( ! table_iters.empty() )
 			{
-			local_table_iters =
-			    std::make_unique<TableIterVec>(table_iters.size());
+			local_table_iters = std::make_unique<TableIterVec>(table_iters.size());
 			*local_table_iters = table_iters;
 			tiv_ptr = &(*local_table_iters);
 			}
 		}
 
-	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
+	flow = FLOW_RETURN; // can be over-written by a Hook-Break
 
 	while ( pc < end_pc && ! ZAM_error )
 		{
@@ -315,16 +308,18 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 			}
 #endif
 
-		switch ( z.op ) {
-		case OP_NOP:
-			break;
+		switch ( z.op )
+			{
+			case OP_NOP:
+				break;
 
+// These must stay in this order or the build fails.
 #include "ZAM-EvalMacros.h"
 #include "ZAM-EvalDefs.h"
 
-		default:
-			reporter->InternalError("bad ZAM opcode");
-		}
+			default:
+				reporter->InternalError("bad ZAM opcode");
+			}
 
 #ifdef DEBUG
 		if ( do_profile )
@@ -366,7 +361,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 			ZVal::DeleteManagedType(v);
 			}
 
-		delete [] frame;
+		delete[] frame;
 		}
 
 	// Clear any error state.
@@ -393,8 +388,7 @@ void ZBody::ProfileExecution() const
 
 	for ( auto i = 0U; i < inst_count->size(); ++i )
 		{
-		printf("%s %d %d %.06f ", func_name, i,
-		       (*inst_count)[i], (*inst_CPU)[i]);
+		printf("%s %d %d %.06f ", func_name, i, (*inst_count)[i], (*inst_CPU)[i]);
 		insts[i].Dump(i, &frame_denizens);
 		}
 	}
@@ -420,8 +414,7 @@ bool ZBody::CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,
 			}
 
 		char buf[8192];
-		snprintf(buf, sizeof buf, "run-time type clash (%s/%s)",
-		         type_name(at), type_name(et));
+		snprintf(buf, sizeof buf, "run-time type clash (%s/%s)", type_name(at), type_name(et));
 
 		reporter->RuntimeError(loc, "%s", buf);
 		return false;
@@ -474,7 +467,6 @@ TraversalCode ZBody::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-
 ValPtr ZAMResumption::Exec(Frame* f, StmtFlowType& flow)
 	{
 	return am->DoExec(f, xfer_pc, flow);
@@ -494,10 +486,8 @@ TraversalCode ZAMResumption::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2,
-                     const ZInst& z)
+static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, const ZInst& z)
 	{
 	// We could speed this up further still by gen'ing up an instance
 	// of the loop inside each switch case (in which case we might as
@@ -512,13 +502,14 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2,
 	for ( auto i = 0U; i < n; ++i )
 		{
 		if ( vec2[i] )
-			switch ( op ) {
+			switch ( op )
+				{
 
 #include "ZAM-Vec1EvalDefs.h"
 
-			default:
-				reporter->InternalError("bad invocation of VecExec");
-			}
+				default:
+					reporter->InternalError("bad invocation of VecExec");
+				}
 		else
 			vec1[i] = std::nullopt;
 		}
@@ -530,8 +521,8 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2,
 	}
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
-static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1,
-                     const VectorVal* v2, const VectorVal* v3, const ZInst& z)
+static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, const VectorVal* v3,
+                     const ZInst& z)
 	{
 	// See comment above re further speed-up.
 
@@ -544,13 +535,14 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1,
 	for ( auto i = 0U; i < vec2.size(); ++i )
 		{
 		if ( vec2[i] && vec3[i] )
-			switch ( op ) {
+			switch ( op )
+				{
 
 #include "ZAM-Vec2EvalDefs.h"
 
-			default:
-				reporter->InternalError("bad invocation of VecExec");
-			}
+				default:
+					reporter->InternalError("bad invocation of VecExec");
+				}
 		else
 			vec1[i] = std::nullopt;
 		}
@@ -561,4 +553,4 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1,
 	Unref(old_v1);
 	}
 
-} // zeek::detail
+	} // zeek::detail

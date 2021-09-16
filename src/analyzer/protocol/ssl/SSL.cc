@@ -1,17 +1,16 @@
 #include "zeek/analyzer/protocol/ssl/SSL.h"
 
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/Reporter.h"
-#include "zeek/util.h"
-
 #include "zeek/analyzer/protocol/ssl/events.bif.h"
 #include "zeek/analyzer/protocol/ssl/ssl_pac.h"
 #include "zeek/analyzer/protocol/ssl/tls-handshake_pac.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/util.h"
 
-namespace zeek::analyzer::ssl {
+namespace zeek::analyzer::ssl
+	{
 
-SSL_Analyzer::SSL_Analyzer(Connection* c)
-: analyzer::tcp::TCP_ApplicationAnalyzer("SSL", c)
+SSL_Analyzer::SSL_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer("SSL", c)
 	{
 	interp = new binpac::SSL::SSL_Conn(this);
 	handshake_interp = new binpac::TLSHandshake::Handshake_Conn(this);
@@ -78,7 +77,8 @@ void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void SSL_Analyzer::SendHandshake(uint16_t raw_tls_version, const u_char* begin, const u_char* end, bool orig)
+void SSL_Analyzer::SendHandshake(uint16_t raw_tls_version, const u_char* begin, const u_char* end,
+                                 bool orig)
 	{
 	handshake_interp->set_record_version(raw_tls_version);
 	try
@@ -98,4 +98,4 @@ void SSL_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	interp->NewGap(orig, len);
 	}
 
-} // namespace zeek::analyzer::ssl
+	} // namespace zeek::analyzer::ssl

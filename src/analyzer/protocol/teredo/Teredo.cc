@@ -1,22 +1,22 @@
 #include "zeek/analyzer/protocol/teredo/Teredo.h"
 
-#include "zeek/TunnelEncapsulation.h"
 #include "zeek/Conn.h"
 #include "zeek/IP.h"
 #include "zeek/Reporter.h"
-#include "zeek/ZeekString.h"
 #include "zeek/RunState.h"
-#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
-#include "zeek/packet_analysis/protocol/ip/IP.h"
-
+#include "zeek/TunnelEncapsulation.h"
+#include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/teredo/events.bif.h"
+#include "zeek/packet_analysis/protocol/ip/IP.h"
+#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
-namespace zeek::analyzer::teredo {
+namespace zeek::analyzer::teredo
+	{
 
-namespace detail {
+namespace detail
+	{
 
-bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
-                                  bool found_origin, bool found_auth)
+bool TeredoEncapsulation::DoParse(const u_char* data, int& len, bool found_origin, bool found_auth)
 	{
 	if ( len < 2 )
 		{
@@ -75,7 +75,7 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 		return DoParse(data, len, found_origin, true);
 		}
 
-	else if ( ((tag & 0xf000)>>12) == 6 )
+	else if ( ((tag & 0xf000) >> 12) == 6 )
 		{
 		// IPv6
 		if ( len < 40 )
@@ -130,7 +130,7 @@ RecordValPtr TeredoEncapsulation::BuildVal(const std::unique_ptr<IP_Hdr>& inner)
 	return teredo_hdr;
 	}
 
-} // namespace detail
+	} // namespace detail
 
 void Teredo_Analyzer::Done()
 	{
@@ -138,8 +138,8 @@ void Teredo_Analyzer::Done()
 	Event(udp_session_done);
 	}
 
-void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                    uint64_t seq, const IP_Hdr* ip, int caplen)
+void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+                                    const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -152,7 +152,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( ! te.Parse(data, len) )
 		{
-		ProtocolViolation("Bad Teredo encapsulation", (const char*) data, len);
+		ProtocolViolation("Bad Teredo encapsulation", (const char*)data, len);
 		return;
 		}
 
@@ -175,7 +175,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 			Weird("Teredo_bubble_with_payload", true);
 		else
 			{
-			ProtocolViolation("Teredo payload length", (const char*) data, len);
+			ProtocolViolation("Teredo payload length", (const char*)data, len);
 			return;
 			}
 		}
@@ -192,7 +192,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	else
 		{
-		ProtocolViolation("Truncated Teredo or invalid inner IP version", (const char*) data, len);
+		ProtocolViolation("Truncated Teredo or invalid inner IP version", (const char*)data, len);
 		return;
 		}
 
@@ -234,4 +234,4 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		run_state::network_time, nullptr, inner, e, ec);
 	}
 
-} // namespace zeek::analyzer::teredo
+	} // namespace zeek::analyzer::teredo

@@ -1,21 +1,21 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/login/Login.h"
 
 #include <ctype.h>
 #include <stdlib.h>
 
-#include "zeek/ZeekString.h"
+#include "zeek/Event.h"
 #include "zeek/NetVar.h"
 #include "zeek/RE.h"
 #include "zeek/Reporter.h"
-#include "zeek/Event.h"
 #include "zeek/Var.h"
-
+#include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/login/events.bif.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek::analyzer::login {
+namespace zeek::analyzer::login
+	{
 
 static RE_Matcher* re_skip_authentication = nullptr;
 static RE_Matcher* re_direct_login_prompts;
@@ -28,7 +28,7 @@ static RE_Matcher* re_login_timeouts;
 static RE_Matcher* init_RE(ListVal* l);
 
 Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
-    : analyzer::tcp::TCP_ApplicationAnalyzer(name, conn), user_text()
+	: analyzer::tcp::TCP_ApplicationAnalyzer(name, conn), user_text()
 	{
 	state = LOGIN_STATE_AUTHENTICATE;
 	num_user_lines_seen = lines_scanned = 0;
@@ -45,12 +45,17 @@ Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
 
 	if ( ! re_skip_authentication )
 		{
-		ListValPtr skip_authentication = id::find_val("skip_authentication")->AsTableVal()->ToPureListVal();
-		ListValPtr direct_login_prompts = id::find_val("direct_login_prompts")->AsTableVal()->ToPureListVal();
+		ListValPtr skip_authentication =
+			id::find_val("skip_authentication")->AsTableVal()->ToPureListVal();
+		ListValPtr direct_login_prompts =
+			id::find_val("direct_login_prompts")->AsTableVal()->ToPureListVal();
 		ListValPtr login_prompts = id::find_val("login_prompts")->AsTableVal()->ToPureListVal();
-		ListValPtr login_non_failure_msgs = id::find_val("login_non_failure_msgs")->AsTableVal()->ToPureListVal();
-		ListValPtr login_failure_msgs = id::find_val("login_failure_msgs")->AsTableVal()->ToPureListVal();
-		ListValPtr login_success_msgs = id::find_val("login_success_msgs")->AsTableVal()->ToPureListVal();
+		ListValPtr login_non_failure_msgs =
+			id::find_val("login_non_failure_msgs")->AsTableVal()->ToPureListVal();
+		ListValPtr login_failure_msgs =
+			id::find_val("login_failure_msgs")->AsTableVal()->ToPureListVal();
+		ListValPtr login_success_msgs =
+			id::find_val("login_success_msgs")->AsTableVal()->ToPureListVal();
 		ListValPtr login_timeouts = id::find_val("login_timeouts")->AsTableVal()->ToPureListVal();
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -71,7 +76,7 @@ Login_Analyzer::~Login_Analyzer()
 	while ( num_user_text > 0 )
 		{
 		char* s = PopUserText();
-		delete [] s;
+		delete[] s;
 		}
 
 	Unref(username);
@@ -82,7 +87,7 @@ void Login_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
-	char* str = new char[length+1];
+	char* str = new char[length + 1];
 
 	// Eliminate NUL characters.
 	int i, j;
@@ -98,7 +103,7 @@ void Login_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	str[j] = '\0';
 
 	NewLine(orig, str);
-	delete [] str;
+	delete[] str;
 	}
 
 void Login_Analyzer::NewLine(bool orig, char* line)
@@ -119,7 +124,7 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 		{
 		if ( TCP()->OrigState() == analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
 		     TCP()->RespState() == analyzer::tcp::TCP_ENDPOINT_PARTIAL )
-			state = LOGIN_STATE_CONFUSED;	// unknown login state
+			state = LOGIN_STATE_CONFUSED; // unknown login state
 		else
 			{
 			AuthenticationDialog(orig, line);
@@ -129,8 +134,7 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 
 	if ( state != LOGIN_STATE_CONFUSED )
 		{
-		reporter->AnalyzerError(
-			this, "bad state in Login_Analyzer::NewLine");
+		reporter->AnalyzerError(this, "bad state in Login_Analyzer::NewLine");
 		return;
 		}
 
@@ -139,7 +143,7 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 	// other direction for evidence of successful login.
 	if ( orig )
 		{
-		(void) IsPloy(line);
+		(void)IsPloy(line);
 		ConfusionText(line);
 		}
 
@@ -170,7 +174,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 				// typed (which presumably is the password).
 				if ( username )
 					{
-					line = (char*) username->AsString()->Bytes();
+					line = (char*)username->AsString()->Bytes();
 					if ( strstr(line, VMS_REPEAT_SEQ) )
 						Confused("username_with_embedded_repeat", line);
 					else
@@ -196,8 +200,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 	if ( IsEmpty(line) )
 		return;
 
-	if ( ++lines_scanned > MAX_AUTHENTICATE_LINES &&
-	     login_prompt_line == 0 && failure_line == 0 )
+	if ( ++lines_scanned > MAX_AUTHENTICATE_LINES && login_prompt_line == 0 && failure_line == 0 )
 		Confused("no_login_prompt", line);
 
 	const char* prompt = IsLoginPrompt(line);
@@ -214,19 +217,17 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 		// enters a blank line or a line that wasn't accepted
 		// (e.g., "foo^C").
 
-		int multi_line_prompt =
-			(login_prompt_line == lines_scanned - 1 &&
-			 // if login_prompt_line is the same as failure_line,
-			 // then we didn't actually see a login prompt
-			 // there, we're just remembering that as the
-			 // prompt line so we can count typeahead with
-			 // respect to it (see below).
-			 login_prompt_line != failure_line);
+		int multi_line_prompt = (login_prompt_line == lines_scanned - 1 &&
+		                         // if login_prompt_line is the same as failure_line,
+		                         // then we didn't actually see a login prompt
+		                         // there, we're just remembering that as the
+		                         // prompt line so we can count typeahead with
+		                         // respect to it (see below).
+		                         login_prompt_line != failure_line);
 
 		const char* next_prompt = nullptr;
-		while ( (*prompt != '\0' &&
-			 (next_prompt = IsLoginPrompt(prompt + 1))) ||
-			multi_line_prompt )
+		while ( (*prompt != '\0' && (next_prompt = IsLoginPrompt(prompt + 1))) ||
+		        multi_line_prompt )
 			{
 			if ( ! HaveTypeahead() )
 				{
@@ -236,7 +237,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 
 			char* pop_str = PopUserText();
 			bool empty = IsEmpty(pop_str);
-			delete [] pop_str;
+			delete[] pop_str;
 
 			if ( multi_line_prompt )
 				break;
@@ -306,9 +307,8 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 		}
 
 	else if ( IsSuccessMsg(line) ||
-		  (login_prompt_line > 0 &&
-		   lines_scanned >
-		   login_prompt_line + MAX_LOGIN_LOOKAHEAD + num_user_text) )
+	          (login_prompt_line > 0 &&
+	           lines_scanned > login_prompt_line + MAX_LOGIN_LOOKAHEAD + num_user_text) )
 		{
 		LoginEvent(login_success, line);
 		state = LOGIN_STATE_LOGGED_IN;
@@ -329,7 +329,7 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 				{
 				const String* u = username->AsString();
 				const byte_vec ub = u->Bytes();
-				const char* us = (const char*) ub;
+				const char* us = (const char*)ub;
 				if ( ! util::streq(val, us) )
 					Confused("multiple_USERs", val);
 				Unref(username);
@@ -340,26 +340,17 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 			}
 
 		else if ( login_terminal && util::streq(name, "TERM") )
-			EnqueueConnEvent(login_terminal,
-				ConnVal(),
-				make_intrusive<StringVal>(val)
-			);
+			EnqueueConnEvent(login_terminal, ConnVal(), make_intrusive<StringVal>(val));
 
 		else if ( login_display && util::streq(name, "DISPLAY") )
-			EnqueueConnEvent(login_display,
-				ConnVal(),
-				make_intrusive<StringVal>(val)
-			);
+			EnqueueConnEvent(login_display, ConnVal(), make_intrusive<StringVal>(val));
 
 		else if ( login_prompt && util::streq(name, "TTYPROMPT") )
-			EnqueueConnEvent(login_prompt,
-				ConnVal(),
-				make_intrusive<StringVal>(val)
-			);
+			EnqueueConnEvent(login_prompt, ConnVal(), make_intrusive<StringVal>(val));
 		}
 
-	delete [] name;
-	delete [] val;
+	delete[] name;
+	delete[] val;
 	}
 
 void Login_Analyzer::EndpointEOF(bool orig)
@@ -373,8 +364,7 @@ void Login_Analyzer::EndpointEOF(bool orig)
 		}
 	}
 
-void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
-	bool no_user_okay)
+void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line, bool no_user_okay)
 	{
 	if ( ! f )
 		return;
@@ -425,17 +415,11 @@ void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
 			}
 		}
 
-	Val* password = HaveTypeahead() ?
-		PopUserTextVal() : new StringVal("<none>");
+	Val* password = HaveTypeahead() ? PopUserTextVal() : new StringVal("<none>");
 
-	EnqueueConnEvent(f,
-		ConnVal(),
-		IntrusivePtr{NewRef{}, username},
-		client_name ? IntrusivePtr{NewRef{}, client_name}
-		            : val_mgr->EmptyString(),
-		IntrusivePtr{AdoptRef{}, password},
-		make_intrusive<StringVal>(line)
-	);
+	EnqueueConnEvent(f, ConnVal(), IntrusivePtr{NewRef{}, username},
+	                 client_name ? IntrusivePtr{NewRef{}, client_name} : val_mgr->EmptyString(),
+	                 IntrusivePtr{AdoptRef{}, password}, make_intrusive<StringVal>(line));
 	}
 
 const char* Login_Analyzer::GetUsername(const char* line) const
@@ -451,23 +435,16 @@ void Login_Analyzer::LineEvent(EventHandlerPtr f, const char* line)
 	if ( ! f )
 		return;
 
-	EnqueueConnEvent(f,
-		ConnVal(),
-		make_intrusive<StringVal>(line)
-	);
+	EnqueueConnEvent(f, ConnVal(), make_intrusive<StringVal>(line));
 	}
-
 
 void Login_Analyzer::Confused(const char* msg, const char* line)
 	{
-	state = LOGIN_STATE_CONFUSED;	// to suppress further messages
+	state = LOGIN_STATE_CONFUSED; // to suppress further messages
 
 	if ( login_confused )
-		EnqueueConnEvent(login_confused,
-			ConnVal(),
-			make_intrusive<StringVal>(msg),
-			make_intrusive<StringVal>(line)
-		);
+		EnqueueConnEvent(login_confused, ConnVal(), make_intrusive<StringVal>(msg),
+		                 make_intrusive<StringVal>(line));
 
 	if ( login_confused_text )
 		{
@@ -477,7 +454,7 @@ void Login_Analyzer::Confused(const char* msg, const char* line)
 			{
 			char* s = PopUserText();
 			ConfusionText(s);
-			delete [] s;
+			delete[] s;
 			}
 
 		ConfusionText(line);
@@ -487,10 +464,7 @@ void Login_Analyzer::Confused(const char* msg, const char* line)
 void Login_Analyzer::ConfusionText(const char* line)
 	{
 	if ( login_confused_text )
-		EnqueueConnEvent(login_confused_text,
-			ConnVal(),
-			make_intrusive<StringVal>(line)
-		);
+		EnqueueConnEvent(login_confused_text, ConnVal(), make_intrusive<StringVal>(line));
 	}
 
 bool Login_Analyzer::IsPloy(const char* line)
@@ -529,7 +503,7 @@ bool Login_Analyzer::IsDirectLoginPrompt(const char* line) const
 bool Login_Analyzer::IsFailureMsg(const char* line) const
 	{
 	return re_login_failure_msgs->MatchAnywhere(line) &&
-		! re_login_non_failure_msgs->MatchAnywhere(line);
+	       ! re_login_non_failure_msgs->MatchAnywhere(line);
 	}
 
 bool Login_Analyzer::IsSuccessMsg(const char* line) const
@@ -572,8 +546,7 @@ char* Login_Analyzer::PeekUserText()
 	{
 	if ( num_user_text <= 0 )
 		{
-		reporter->AnalyzerError(
-			this, "underflow in Login_Analyzer::PeekUserText()");
+		reporter->AnalyzerError(this, "underflow in Login_Analyzer::PeekUserText()");
 		return nullptr;
 		}
 
@@ -622,7 +595,7 @@ bool Login_Analyzer::MatchesTypeahead(const char* line) const
 void Login_Analyzer::FlushEmptyTypeahead()
 	{
 	while ( HaveTypeahead() && IsEmpty(PeekUserText()) )
-		delete [] PopUserText();
+		delete[] PopUserText();
 	}
 
 RE_Matcher* init_RE(ListVal* l)
@@ -634,4 +607,4 @@ RE_Matcher* init_RE(ListVal* l)
 	return re;
 	}
 
-} // namespace zeek::analyzer::login
+	} // namespace zeek::analyzer::login

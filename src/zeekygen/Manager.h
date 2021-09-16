@@ -2,23 +2,25 @@
 
 #pragma once
 
-#include <sys/stat.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <ctime>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include <ctime>
 
-#include "zeek/zeekygen/Configuration.h"
-#include "zeek/Reporter.h"
 #include "zeek/ID.h"
+#include "zeek/Reporter.h"
 #include "zeek/util.h"
+#include "zeek/zeekygen/Configuration.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class TypeDecl;
 
-namespace zeekygen::detail {
+namespace zeekygen::detail
+	{
 
 class PackageInfo;
 class ScriptInfo;
@@ -28,8 +30,8 @@ class ScriptInfo;
  * readability (less typedefs for specific map types and not having to use
  * iterators directly to find a particular info object).
  */
-template<class T>
-struct InfoMap {
+template <class T> struct InfoMap
+	{
 	typedef std::map<std::string, T*> map_type;
 
 	/**
@@ -43,15 +45,15 @@ struct InfoMap {
 		}
 
 	map_type map;
-};
+	};
 
 /**
  * Manages all documentation tracking and generation.
  */
-class Manager {
+class Manager
+	{
 
 public:
-
 	/**
 	 * Ctor.
 	 * @param config Path to a Zeekygen config file if documentation is to be
@@ -131,8 +133,8 @@ public:
 	 * is declared due to redefs.
 	 * @param from_redef  The field is from a record redefinition.
 	 */
-	void RecordField(const zeek::detail::ID* id, const TypeDecl* field,
-	                 const std::string& path, bool from_redef);
+	void RecordField(const zeek::detail::ID* id, const TypeDecl* field, const std::string& path,
+	                 bool from_redef);
 
 	/**
 	 * Register a redefinition of a particular identifier.
@@ -141,8 +143,8 @@ public:
 	 * @param ic The initialization class that was used (e.g. =, +=, -=).
 	 * @param init_expr The intiialization expression that was used.
 	 */
-	void Redef(const zeek::detail::ID* id, const std::string& path,
-	           zeek::detail::InitClass ic, zeek::detail::ExprPtr init_expr);
+	void Redef(const zeek::detail::ID* id, const std::string& path, zeek::detail::InitClass ic,
+	           zeek::detail::ExprPtr init_expr);
 	void Redef(const zeek::detail::ID* id, const std::string& path,
 	           zeek::detail::InitClass ic = zeek::detail::INIT_NONE);
 
@@ -168,8 +170,7 @@ public:
 	 * @param identifier_hint Expected name of identifier with which to
 	 * associate \a comment.
 	 */
-	void PostComment(const std::string& comment,
-	                 const std::string& identifier_hint = "");
+	void PostComment(const std::string& comment, const std::string& identifier_hint = "");
 
 	/**
 	 * @param id Name of script-level enum identifier.
@@ -183,7 +184,9 @@ public:
 	 * pointer if it's not a known identifier.
 	 */
 	IdentifierInfo* GetIdentifierInfo(const std::string& name) const
-	    { return identifiers.GetInfo(name); }
+		{
+		return identifiers.GetInfo(name);
+		}
 
 	/**
 	 * @param name Name of a Zeek script ("normalized" to be a path relative
@@ -191,8 +194,7 @@ public:
 	 * @return a script info object associated with \a name or a null pointer
 	 * if it's not a known script name.
 	 */
-	ScriptInfo* GetScriptInfo(const std::string& name) const
-	    { return scripts.GetInfo(name); }
+	ScriptInfo* GetScriptInfo(const std::string& name) const { return scripts.GetInfo(name); }
 
 	/**
 	 * @param name Name of a Zeek script package ("normalized" to be a path
@@ -200,8 +202,7 @@ public:
 	 * @return a package info object assocated with \a name or a null pointer
 	 * if it's not a known package name.
 	 */
-	PackageInfo* GetPackageInfo(const std::string& name) const
-	    { return packages.GetInfo(name); }
+	PackageInfo* GetPackageInfo(const std::string& name) const { return packages.GetInfo(name); }
 
 	/**
 	 * Check if a Zeekygen target is up-to-date.
@@ -212,11 +213,9 @@ public:
 	 * dependencies, else false.
 	 */
 	template <class T>
-	bool IsUpToDate(const std::string& target_file,
-	                const std::vector<T*>& dependencies) const;
+	bool IsUpToDate(const std::string& target_file, const std::vector<T*>& dependencies) const;
 
 private:
-
 	typedef std::vector<std::string> comment_buffer_t;
 	typedef std::map<std::string, comment_buffer_t> comment_buffer_map_t;
 
@@ -235,11 +234,10 @@ private:
 	std::map<std::string, std::string> enum_mappings; // enum id -> enum type id
 	Config config;
 	time_t bro_mtime;
-};
+	};
 
 template <class T>
-bool Manager::IsUpToDate(const std::string& target_file,
-                         const std::vector<T*>& dependencies) const
+bool Manager::IsUpToDate(const std::string& target_file, const std::vector<T*>& dependencies) const
 	{
 	struct stat s;
 
@@ -249,8 +247,8 @@ bool Manager::IsUpToDate(const std::string& target_file,
 			// Doesn't exist.
 			return false;
 
-		reporter->InternalError("Zeekygen failed to stat target file '%s': %s",
-		                        target_file.c_str(), strerror(errno));
+		reporter->InternalError("Zeekygen failed to stat target file '%s': %s", target_file.c_str(),
+		                        strerror(errno));
 		}
 
 	if ( difftime(bro_mtime, s.st_mtime) > 0 )
@@ -266,11 +264,12 @@ bool Manager::IsUpToDate(const std::string& target_file,
 	return true;
 	}
 
-} // namespace zeekygen::detail
+	} // namespace zeekygen::detail
 
-namespace detail {
+namespace detail
+	{
 
 extern zeekygen::detail::Manager* zeekygen_mgr;
 
-} // namespace detail
-} // namespace zeek
+	} // namespace detail
+	} // namespace zeek

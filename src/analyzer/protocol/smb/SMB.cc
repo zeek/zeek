@@ -1,17 +1,17 @@
 #include "zeek/analyzer/protocol/smb/SMB.h"
 
-namespace zeek::analyzer::smb {
+namespace zeek::analyzer::smb
+	{
 
 // This was 1<<17 originally but was changed due to larger messages
 // being seen.
-#define SMB_MAX_LEN (1<<18)
+#define SMB_MAX_LEN (1 << 18)
 
-SMB_Analyzer::SMB_Analyzer(Connection* conn)
-: analyzer::tcp::TCP_ApplicationAnalyzer("SMB", conn)
+SMB_Analyzer::SMB_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer("SMB", conn)
 	{
-	chunks=0;
+	chunks = 0;
 	interp = new binpac::SMB::SMB_Conn(this);
-	need_sync=true;
+	need_sync = true;
 	}
 
 SMB_Analyzer::~SMB_Analyzer()
@@ -46,15 +46,15 @@ bool SMB_Analyzer::HasSMBHeader(int len, const u_char* data)
 	if ( len < 8 )
 		return false;
 
-	return (strncmp((const char*) data+4, "\xffSMB", 4) == 0 ||
-	        strncmp((const char*) data+4, "\xfeSMB", 4) == 0);
+	return (strncmp((const char*)data + 4, "\xffSMB", 4) == 0 ||
+	        strncmp((const char*)data + 4, "\xfeSMB", 4) == 0);
 	}
 
 void SMB_Analyzer::NeedResync()
 	{
 	interp->upflow()->flow_buffer()->DiscardData();
 	interp->downflow()->flow_buffer()->DiscardData();
-	need_sync=true;
+	need_sync = true;
 	}
 
 void SMB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
@@ -67,7 +67,7 @@ void SMB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	if ( need_sync && ! HasSMBHeader(len, data) )
 		return;
 	else
-		need_sync=false;
+		need_sync = false;
 
 	try
 		{
@@ -86,4 +86,4 @@ void SMB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-} // namespace zeek::analyzer::smb
+	} // namespace zeek::analyzer::smb

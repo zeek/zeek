@@ -1,0 +1,98 @@
+# Clang-format configuration for Zeek. This configuration requires
+# at least clang-format 12.0.1 to format correctly.
+#
+# The easiest way to run this from the command-line is using the
+# python script in auxil/run-clang-format:
+#
+# python3 auxil/run-clang-format/run-clang-format.py --clang-format-executable /path/to/clang-format -r src -i
+
+Language: Cpp
+Standard: c++17
+
+BreakBeforeBraces: Whitesmiths
+
+# BraceWrapping:
+#   AfterCaseLabel: true
+#   AfterClass: false
+#   AfterControlStatement: Always
+#   AfterEnum: false
+#   AfterFunction: true
+#   AfterNamespace: false
+#   AfterStruct: false
+#   AfterUnion: false
+#   AfterExternBlock: false
+#   BeforeCatch: true
+#   BeforeElse: true
+#   BeforeWhile: false
+#   IndentBraces: true
+#   SplitEmptyFunction: false
+#   SplitEmptyRecord: false
+#   SplitEmptyNamespace: false
+
+AccessModifierOffset: -4
+AlignAfterOpenBracket: true
+AlignTrailingComments: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortEnumsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLambdasOnASingleLine: Empty
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: None
+BinPackArguments: true
+BinPackParameters: true
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: BeforeColon
+ColumnLimit: 100
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+FixNamespaceComments: false
+IndentCaseLabels: true
+IndentCaseBlocks: true
+IndentExternBlock: NoIndent
+IndentPPDirectives: None
+IndentWidth: 4
+NamespaceIndentation: None
+PointerAlignment: Left
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyBlock: true
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInConditionalStatement: true
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+TabWidth: 4
+UseTab: AlignWithSpaces
+
+IncludeBlocks: Regroup
+
+# Include categories go like this:
+# 0: reserved, since this automatically is the primary header for any .cc file
+# 1: zeek-config.h
+# 2: any c-style header
+# 3: any c++-style header
+# 4: any header that starts with "zeek/"
+# 5: everything else, which should catch any of the auto-generated code from the
+#    build directory as well
+#
+# Sections 0-1 and 2-3 get group together in their respective blocks
+IncludeCategories:
+  - Regex: '^"zeek-config\.h"'
+    Priority: 0
+    SortPriority: 1
+  - Regex: '^<[[:print:]]+\.(h|hh)>'
+    Priority: 2
+    SortPriority: 2
+  - Regex: '^<[[:print:]]+>'
+    Priority: 2
+    SortPriority: 3
+  - Regex: '^"zeek/'
+    Priority: 4
+  - Regex: '.*'
+    Priority: 5

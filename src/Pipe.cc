@@ -2,14 +2,15 @@
 
 #include "zeek/Pipe.h"
 
-#include <unistd.h>
-#include <fcntl.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <cstdio>
 
 #include "zeek/Reporter.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 static void pipe_fail(int eno)
 	{
@@ -88,8 +89,7 @@ static int dup_or_fail(int fd, int flags, int status_flags)
 	return rval;
 	}
 
-Pipe::Pipe(int flags0, int flags1, int status_flags0, int status_flags1,
-           int* arg_fds)
+Pipe::Pipe(int flags0, int flags1, int status_flags0, int status_flags1, int* arg_fds)
 	{
 	if ( arg_fds )
 		{
@@ -155,8 +155,8 @@ Pipe& Pipe::operator=(const Pipe& other)
 
 PipePair::PipePair(int flags, int status_flags, int* fds)
 	: pipes{Pipe(flags, flags, status_flags, status_flags, fds ? fds + 0 : nullptr),
-	        Pipe(flags, flags, status_flags, status_flags, fds ? fds + 2 : nullptr)}
+            Pipe(flags, flags, status_flags, status_flags, fds ? fds + 2 : nullptr)}
 	{
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

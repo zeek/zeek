@@ -11,29 +11,17 @@
 zeek::detail::DebugLogger zeek::detail::debug_logger;
 zeek::detail::DebugLogger& debug_logger = zeek::detail::debug_logger;
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 // Same order here as in DebugStream.
 DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
-	{ "serial", 0, false },
-	{ "rules", 0, false },
-	{ "string", 0, false },
-	{ "notifiers", 0, false },
-	{ "main-loop", 0, false },
-	{ "dpd", 0, false },
-	{ "packet_analysis", 0, false },
-	{ "file_analysis", 0, false },
-	{ "tm", 0, false },
-	{ "logging", 0, false },
-	{ "input", 0, false },
-	{ "threading", 0, false },
-	{ "plugins", 0, false },
-	{ "zeekygen", 0, false },
-	{ "pktio", 0, false },
-	{ "broker", 0, false },
-	{ "scripts", 0, false },
-	{ "supervisor", 0, false }
-};
+	{"serial", 0, false},          {"rules", 0, false},         {"string", 0, false},
+	{"notifiers", 0, false},       {"main-loop", 0, false},     {"dpd", 0, false},
+	{"packet_analysis", 0, false}, {"file_analysis", 0, false}, {"tm", 0, false},
+	{"logging", 0, false},         {"input", 0, false},         {"threading", 0, false},
+	{"plugins", 0, false},         {"zeekygen", 0, false},      {"pktio", 0, false},
+	{"broker", 0, false},          {"scripts", 0, false},       {"supervisor", 0, false}};
 
 DebugLogger::DebugLogger()
 	{
@@ -81,10 +69,11 @@ void DebugLogger::ShowStreamsHelp()
 	fprintf(stderr, "Available streams:\n");
 
 	for ( int i = 0; i < NUM_DBGS; ++i )
-		fprintf(stderr,"  %s\n", streams[i].prefix);
+		fprintf(stderr, "  %s\n", streams[i].prefix);
 
 	fprintf(stderr, "\n");
-	fprintf(stderr, "  plugin-<plugin-name>   (replace '::' in name with '-'; e.g., '-B plugin-Zeek-Netmap')\n");
+	fprintf(stderr, "  plugin-<plugin-name>   (replace '::' in name with '-'; e.g., '-B "
+	                "plugin-Zeek-Netmap')\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Pseudo streams\n");
 	fprintf(stderr, "  verbose  Increase verbosity.\n");
@@ -146,11 +135,11 @@ void DebugLogger::EnableStreams(const char* s)
 
 		reporter->FatalError("unknown debug stream '%s', try -B help.\n", tok);
 
-next:
+	next:
 		tok = strtok(0, ",");
 		}
 
-	delete [] tmp;
+	delete[] tmp;
 	}
 
 void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
@@ -160,8 +149,8 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 	if ( ! g->enabled )
 		return;
 
-	fprintf(file, "%17.06f/%17.06f [%s] ",
-			run_state::network_time, util::current_time(true), g->prefix);
+	fprintf(file, "%17.06f/%17.06f [%s] ", run_state::network_time, util::current_time(true),
+	        g->prefix);
 
 	for ( int i = g->indent; i > 0; --i )
 		fputs("   ", file);
@@ -183,8 +172,8 @@ void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...)
 	if ( enabled_streams.find(tok) == enabled_streams.end() )
 		return;
 
-	fprintf(file, "%17.06f/%17.06f [plugin %s] ",
-	        run_state::network_time, util::current_time(true), plugin.Name().c_str());
+	fprintf(file, "%17.06f/%17.06f [plugin %s] ", run_state::network_time, util::current_time(true),
+	        plugin.Name().c_str());
 
 	va_list ap;
 	va_start(ap, fmt);
@@ -195,6 +184,6 @@ void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...)
 	fflush(file);
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail
 
 #endif

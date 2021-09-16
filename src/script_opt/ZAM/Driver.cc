@@ -3,23 +3,20 @@
 // Driver (and other high-level) methods for ZAM compilation.
 
 #include "zeek/CompHash.h"
-#include "zeek/RE.h"
 #include "zeek/Frame.h"
-#include "zeek/module_util.h"
-#include "zeek/Scope.h"
+#include "zeek/RE.h"
 #include "zeek/Reporter.h"
-#include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/Scope.h"
+#include "zeek/module_util.h"
 #include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
+namespace zeek::detail
+	{
 
-namespace zeek::detail {
-
-
-ZAMCompiler::ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> _pf,
-                         ScopePtr _scope, StmtPtr _body,
-                         std::shared_ptr<UseDefs> _ud,
-                         std::shared_ptr<Reducer> _rd)
+ZAMCompiler::ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> _pf, ScopePtr _scope,
+                         StmtPtr _body, std::shared_ptr<UseDefs> _ud, std::shared_ptr<Reducer> _rd)
 	{
 	func = f;
 	pf = std::move(_pf);
@@ -71,8 +68,7 @@ void ZAMCompiler::InitGlobals()
 
 void ZAMCompiler::InitArgs()
 	{
-	auto uds = ud->HasUsage(body.get()) ? ud->GetUsage(body.get()) :
-	                                      nullptr;
+	auto uds = ud->HasUsage(body.get()) ? ud->GetUsage(body.get()) : nullptr;
 
 	auto args = scope->OrderedVars();
 	int nparam = func->GetType()->Params()->NumFields();
@@ -108,7 +104,7 @@ void ZAMCompiler::InitLocals()
 		// Don't worry about unused variables, those will get
 		// removed during low-level ZAM optimization.
 		if ( ! HasFrameSlot(non_const_l) )
-			(void) AddToFrame(non_const_l);
+			(void)AddToFrame(non_const_l);
 		}
 	}
 
@@ -131,7 +127,7 @@ StmtPtr ZAMCompiler::CompileBody()
 	if ( func->Flavor() == FUNC_FLAVOR_HOOK )
 		PushBreaks();
 
-	(void) CompileStmt(body);
+	(void)CompileStmt(body);
 
 	if ( reporter->Errors() > 0 )
 		return nullptr;
@@ -265,8 +261,7 @@ void ZAMCompiler::ComputeLoopLevels()
 				// We're extending an existing loop.  Find
 				// its current end.
 				auto depth = t->loop_depth;
-				while ( j < i &&
-				        insts1[j]->loop_depth == depth )
+				while ( j < i && insts1[j]->loop_depth == depth )
 					++j;
 
 				ASSERT(insts1[j]->loop_depth == depth - 1);
@@ -315,8 +310,7 @@ void ZAMCompiler::RemapFrameDenizens(const std::vector<int>& inst1_to_inst2)
 			// the form "slotX = slotX".  In that
 			// case, look forward for the next viable
 			// instruction.
-			while ( start < insts1.size() &&
-				inst1_to_inst2[start] == -1 )
+			while ( start < insts1.size() && inst1_to_inst2[start] == -1 )
 				++start;
 
 			ASSERT(start < insts1.size());
@@ -356,7 +350,7 @@ void ZAMCompiler::ConcretizeSwitches()
 
 template <typename T>
 void ZAMCompiler::ConcretizeSwitchTables(const CaseMapsI<T>& abstract_cases,
-			                 CaseMaps<T>& concrete_cases)
+                                         CaseMaps<T>& concrete_cases)
 	{
 	for ( auto& targs : abstract_cases )
 		{
@@ -367,9 +361,7 @@ void ZAMCompiler::ConcretizeSwitchTables(const CaseMapsI<T>& abstract_cases,
 		}
 	}
 
-
 #include "ZAM-MethodDefs.h"
-
 
 void ZAMCompiler::Dump()
 	{
@@ -440,8 +432,7 @@ void ZAMCompiler::Dump()
 	DumpCases(str_casesI, "str");
 	}
 
-template <typename T>
-void ZAMCompiler::DumpCases(const T& cases, const char* type_name) const
+template <typename T> void ZAMCompiler::DumpCases(const T& cases, const char* type_name) const
 	{
 	for ( auto i = 0U; i < cases.size(); ++i )
 		{
@@ -451,8 +442,7 @@ void ZAMCompiler::DumpCases(const T& cases, const char* type_name) const
 			std::string case_val;
 			if constexpr ( std::is_same_v<T, std::string> )
 				case_val = m.first;
-			else if constexpr ( std::is_same_v<T, bro_int_t> ||
-			                    std::is_same_v<T, bro_uint_t> ||
+			else if constexpr ( std::is_same_v<T, bro_int_t> || std::is_same_v<T, bro_uint_t> ||
 			                    std::is_same_v<T, double> )
 				case_val = std::to_string(m.first);
 
@@ -471,7 +461,7 @@ void ZAMCompiler::DumpInsts1(const FrameReMap* remappings)
 		if ( inst->target )
 			// To get meaningful branch information in the dump,
 			// we need to concretize the branch slots
-                        ConcretizeBranch(inst, inst->target, inst->target_slot);
+			ConcretizeBranch(inst, inst->target, inst->target_slot);
 
 		std::string liveness, depth;
 
@@ -489,5 +479,4 @@ void ZAMCompiler::DumpInsts1(const FrameReMap* remappings)
 		}
 	}
 
-
-} // zeek::detail
+	} // zeek::detail

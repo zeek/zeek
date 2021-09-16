@@ -2,21 +2,21 @@
 
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 
-#include "zeek/RunState.h"
 #include "zeek/Conn.h"
+#include "zeek/RunState.h"
 #include "zeek/Val.h"
-#include "zeek/session/Manager.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/plugin/Manager.h"
+#include "zeek/session/Manager.h"
 
 using namespace zeek;
 using namespace zeek::packet_analysis::IP;
 
 IPBasedAnalyzer::IPBasedAnalyzer(const char* name, TransportProto proto, uint32_t mask,
                                  bool report_unknown_protocols)
-	: zeek::packet_analysis::Analyzer(name, report_unknown_protocols),
-	  transport(proto), server_port_mask(mask)
+	: zeek::packet_analysis::Analyzer(name, report_unknown_protocols), transport(proto),
+	  server_port_mask(mask)
 	{
 	}
 
@@ -63,8 +63,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 	if ( ! conn )
 		return false;
 
-	bool is_orig = (tuple.src_addr == conn->OrigAddr()) &&
-	               (tuple.src_port == conn->OrigPort());
+	bool is_orig = (tuple.src_addr == conn->OrigAddr()) && (tuple.src_port == conn->OrigPort());
 
 	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
 
@@ -73,8 +72,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
 		pkt_hdr_val = ip_hdr->ToPktHdrVal();
-		conn->EnqueueEvent(ipv6_ext_headers, nullptr, conn->GetVal(),
-		                   pkt_hdr_val);
+		conn->EnqueueEvent(ipv6_ext_headers, nullptr, conn->GetVal(), pkt_hdr_val);
 		}
 
 	if ( new_packet )
@@ -162,8 +160,8 @@ zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const detail::Co
 	if ( ! WantConnection(src_h, dst_h, pkt->ip_hdr->Payload(), flip) )
 		return nullptr;
 
-	Connection* conn = new Connection(key, run_state::processing_start_time,
-	                                  id, pkt->ip_hdr->FlowLabel(), pkt);
+	Connection* conn =
+		new Connection(key, run_state::processing_start_time, id, pkt->ip_hdr->FlowLabel(), pkt);
 	conn->SetTransport(transport);
 
 	if ( flip )
@@ -244,11 +242,12 @@ bool IPBasedAnalyzer::UnregisterAnalyzerForPort(const analyzer::Tag& tag, uint32
 	tag_set* l = LookupPort(port, true);
 
 	if ( ! l )
-		return true;  // still a "successful" unregistration
+		return true; // still a "successful" unregistration
 
 #ifdef DEBUG
 	const char* name = analyzer_mgr->GetComponentName(tag).c_str();
-	DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port, transport);
+	DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port,
+	        transport);
 #endif
 
 	l->erase(tag);
@@ -279,7 +278,8 @@ void IPBasedAnalyzer::DumpPortDebug()
 		for ( const auto& tag : *(mapping.second) )
 			s += std::string(analyzer_mgr->GetComponentName(tag)) + " ";
 
-		DBG_LOG(DBG_ANALYZER, "    %d/%s: %s", mapping.first, transport_proto_string(transport), s.c_str());
+		DBG_LOG(DBG_ANALYZER, "    %d/%s: %s", mapping.first, transport_proto_string(transport),
+		        s.c_str());
 		}
 	}
 
@@ -293,7 +293,7 @@ void IPBasedAnalyzer::SetIgnoreChecksumsNets(TableValPtr t)
 TableValPtr IPBasedAnalyzer::GetIgnoreChecksumsNets()
 	{
 	if ( ! IPBasedAnalyzer::ignore_checksums_nets_table )
-		IPBasedAnalyzer::ignore_checksums_nets_table = zeek::id::find_val<TableVal>("ignore_checksums_nets");
+		IPBasedAnalyzer::ignore_checksums_nets_table =
+			zeek::id::find_val<TableVal>("ignore_checksums_nets");
 	return IPBasedAnalyzer::ignore_checksums_nets_table;
 	}
-

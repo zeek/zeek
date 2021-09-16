@@ -1,17 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/Obj.h"
 
 #include <stdlib.h>
 
 #include "zeek/Desc.h"
-#include "zeek/Func.h"
 #include "zeek/File.h"
+#include "zeek/Func.h"
 #include "zeek/plugin/Manager.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek {
-namespace detail {
+namespace zeek
+	{
+namespace detail
+	{
 
 Location start_location("<start uninitialized>", 0, 0, 0, 0);
 Location end_location("<end uninitialized>", 0, 0, 0, 0);
@@ -44,14 +46,13 @@ void Location::Describe(ODesc* d) const
 
 bool Location::operator==(const Location& l) const
 	{
-	if ( filename == l.filename ||
-	     (filename && l.filename && util::streq(filename, l.filename)) )
+	if ( filename == l.filename || (filename && l.filename && util::streq(filename, l.filename)) )
 		return first_line == l.first_line && last_line == l.last_line;
 	else
 		return false;
 	}
 
-} // namespace detail
+	} // namespace detail
 
 int Obj::suppress_errors = 0;
 
@@ -63,7 +64,8 @@ Obj::~Obj()
 	delete location;
 	}
 
-void Obj::Warn(const char* msg, const Obj* obj2, bool pinpoint_only, const detail::Location* expr_location) const
+void Obj::Warn(const char* msg, const Obj* obj2, bool pinpoint_only,
+               const detail::Location* expr_location) const
 	{
 	ODesc d;
 	DoMsg(&d, msg, obj2, pinpoint_only, expr_location);
@@ -71,7 +73,8 @@ void Obj::Warn(const char* msg, const Obj* obj2, bool pinpoint_only, const detai
 	reporter->PopLocation();
 	}
 
-void Obj::Error(const char* msg, const Obj* obj2, bool pinpoint_only, const detail::Location* expr_location) const
+void Obj::Error(const char* msg, const Obj* obj2, bool pinpoint_only,
+                const detail::Location* expr_location) const
 	{
 	if ( suppress_errors )
 		return;
@@ -146,8 +149,7 @@ bool Obj::SetLocationInfo(const detail::Location* start, const detail::Location*
 
 	delete location;
 
-	location = new detail::Location(start->filename,
-	                                start->first_line, end->last_line,
+	location = new detail::Location(start->filename, start->first_line, end->last_line,
 	                                start->first_column, end->last_column);
 
 	return true;
@@ -162,8 +164,8 @@ void Obj::UpdateLocationEndInfo(const detail::Location& end)
 	location->last_column = end.last_column;
 	}
 
-void Obj::DoMsg(ODesc* d, const char s1[], const Obj* obj2,
-                bool pinpoint_only, const detail::Location* expr_location) const
+void Obj::DoMsg(ODesc* d, const char s1[], const Obj* obj2, bool pinpoint_only,
+                const detail::Location* expr_location) const
 	{
 	d->SetShort();
 
@@ -172,7 +174,7 @@ void Obj::DoMsg(ODesc* d, const char s1[], const Obj* obj2,
 
 	const detail::Location* loc2 = nullptr;
 	if ( obj2 && obj2->GetLocationInfo() != &detail::no_location &&
-		 *obj2->GetLocationInfo() != *GetLocationInfo() )
+	     *obj2->GetLocationInfo() != *GetLocationInfo() )
 		loc2 = obj2->GetLocationInfo();
 	else if ( expr_location )
 		loc2 = expr_location;
@@ -209,7 +211,7 @@ void bad_ref(int type)
 
 void obj_delete_func(void* v)
 	{
-	Unref((Obj*) v);
+	Unref((Obj*)v);
 	}
 
-} // namespace zeek
+	} // namespace zeek

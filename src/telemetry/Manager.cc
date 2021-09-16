@@ -2,115 +2,108 @@
 
 #include "zeek/telemetry/Manager.h"
 
-#include "caf/telemetry/metric_registry.hpp"
-
 #include <thread>
 
 #include "zeek/3rdparty/doctest.h"
-
 #include "zeek/telemetry/Detail.h"
 #include "zeek/telemetry/Timer.h"
 
-namespace zeek::telemetry {
+#include "caf/telemetry/metric_registry.hpp"
 
-Manager::~Manager()
+namespace zeek::telemetry
 	{
-	}
 
-void Manager::InitPostScript()
-	{
-	}
+Manager::~Manager() { }
 
-IntCounterFamily Manager::IntCounterFam(std::string_view prefix,
-                                        std::string_view name,
+void Manager::InitPostScript() { }
+
+IntCounterFamily Manager::IntCounterFam(std::string_view prefix, std::string_view name,
                                         Span<const std::string_view> labels,
-                                        std::string_view helptext,
-                                        std::string_view unit, bool is_sum)
+                                        std::string_view helptext, std::string_view unit,
+                                        bool is_sum)
 	{
-	return with_native_labels(labels, [&, this](auto xs)
-		{
-		auto ptr = deref(pimpl).counter_family(prefix, name, xs,
-		                                       helptext, unit, is_sum);
-		return IntCounterFamily{opaque(ptr)};
-		});
+	return with_native_labels(labels,
+	                          [&, this](auto xs)
+	                          {
+								  auto ptr = deref(pimpl).counter_family(prefix, name, xs, helptext,
+		                                                                 unit, is_sum);
+								  return IntCounterFamily{opaque(ptr)};
+							  });
 	}
 
-DblCounterFamily Manager::DblCounterFam(std::string_view prefix,
-                                        std::string_view name,
+DblCounterFamily Manager::DblCounterFam(std::string_view prefix, std::string_view name,
                                         Span<const std::string_view> labels,
-                                        std::string_view helptext,
-                                        std::string_view unit, bool is_sum)
+                                        std::string_view helptext, std::string_view unit,
+                                        bool is_sum)
 	{
-	return with_native_labels(labels, [&, this](auto xs)
-		{
-		auto ptr = deref(pimpl).counter_family<double>(prefix, name, xs,
-		                                               helptext, unit, is_sum);
-		return DblCounterFamily{opaque(ptr)};
-		});
+	return with_native_labels(labels,
+	                          [&, this](auto xs)
+	                          {
+								  auto ptr = deref(pimpl).counter_family<double>(
+									  prefix, name, xs, helptext, unit, is_sum);
+								  return DblCounterFamily{opaque(ptr)};
+							  });
 	}
 
-IntGaugeFamily Manager::IntGaugeFam(std::string_view prefix,
-                                    std::string_view name,
-                                    Span<const std::string_view> labels,
-                                    std::string_view helptext,
+IntGaugeFamily Manager::IntGaugeFam(std::string_view prefix, std::string_view name,
+                                    Span<const std::string_view> labels, std::string_view helptext,
                                     std::string_view unit, bool is_sum)
 	{
-	return with_native_labels(labels, [&, this](auto xs)
-		{
-		auto ptr = deref(pimpl).gauge_family(prefix, name, xs,
-		                                     helptext, unit, is_sum);
-		return IntGaugeFamily{opaque(ptr)};
-		});
+	return with_native_labels(labels,
+	                          [&, this](auto xs)
+	                          {
+								  auto ptr = deref(pimpl).gauge_family(prefix, name, xs, helptext,
+		                                                               unit, is_sum);
+								  return IntGaugeFamily{opaque(ptr)};
+							  });
 	}
 
-DblGaugeFamily Manager::DblGaugeFam(std::string_view prefix,
-                                    std::string_view name,
-                                    Span<const std::string_view> labels,
-                                    std::string_view helptext,
+DblGaugeFamily Manager::DblGaugeFam(std::string_view prefix, std::string_view name,
+                                    Span<const std::string_view> labels, std::string_view helptext,
                                     std::string_view unit, bool is_sum)
 	{
-	return with_native_labels(labels, [&, this](auto xs)
-		{
-		auto ptr = deref(pimpl).gauge_family<double>(prefix, name, xs,
-		                                             helptext, unit, is_sum);
-		return DblGaugeFamily{opaque(ptr)};
-		});
+	return with_native_labels(labels,
+	                          [&, this](auto xs)
+	                          {
+								  auto ptr = deref(pimpl).gauge_family<double>(
+									  prefix, name, xs, helptext, unit, is_sum);
+								  return DblGaugeFamily{opaque(ptr)};
+							  });
 	}
 
-IntHistogramFamily Manager::IntHistoFam(std::string_view prefix,
-                                        std::string_view name,
+IntHistogramFamily Manager::IntHistoFam(std::string_view prefix, std::string_view name,
                                         Span<const std::string_view> labels,
-                                        Span<const int64_t> ubounds,
-                                        std::string_view helptext,
+                                        Span<const int64_t> ubounds, std::string_view helptext,
                                         std::string_view unit, bool is_sum)
 	{
-	return with_native_labels(labels, [&, this](auto xs)
+	return with_native_labels(
+		labels,
+		[&, this](auto xs)
 		{
-		auto bounds = caf::span<const int64_t>{ubounds.data(), ubounds.size()};
-		auto ptr = deref(pimpl).histogram_family(prefix, name, xs, bounds,
-		                                         helptext, unit, is_sum);
-		return IntHistogramFamily{opaque(ptr)};
+			auto bounds = caf::span<const int64_t>{ubounds.data(), ubounds.size()};
+			auto ptr =
+				deref(pimpl).histogram_family(prefix, name, xs, bounds, helptext, unit, is_sum);
+			return IntHistogramFamily{opaque(ptr)};
 		});
 	}
 
-DblHistogramFamily Manager::DblHistoFam(std::string_view prefix,
-                                        std::string_view name,
+DblHistogramFamily Manager::DblHistoFam(std::string_view prefix, std::string_view name,
                                         Span<const std::string_view> labels,
-                                        Span<const double> ubounds,
-                                        std::string_view helptext,
+                                        Span<const double> ubounds, std::string_view helptext,
                                         std::string_view unit, bool is_sum)
 	{
-	return with_native_labels(labels, [&, this](auto xs)
+	return with_native_labels(
+		labels,
+		[&, this](auto xs)
 		{
-		auto bounds = caf::span<const double>{ubounds.data(), ubounds.size()};
-		auto ptr = deref(pimpl).histogram_family<double>(prefix, name, xs,
-		                                                 bounds, helptext,
-		                                                 unit, is_sum);
-		return DblHistogramFamily{opaque(ptr)};
+			auto bounds = caf::span<const double>{ubounds.data(), ubounds.size()};
+			auto ptr = deref(pimpl).histogram_family<double>(prefix, name, xs, bounds, helptext,
+		                                                     unit, is_sum);
+			return DblHistogramFamily{opaque(ptr)};
 		});
 	}
 
-} // namespace zeek::telemetry
+	} // namespace zeek::telemetry
 
 // -- unit tests ---------------------------------------------------------------
 
@@ -119,10 +112,10 @@ using namespace zeek::telemetry;
 
 using NativeManager = caf::telemetry::metric_registry;
 
-namespace {
+namespace
+	{
 
-template <class T>
-auto toVector(zeek::Span<T> xs)
+template <class T> auto toVector(zeek::Span<T> xs)
 	{
 	std::vector<std::remove_const_t<T>> result;
 	for ( auto&& x : xs )
@@ -130,8 +123,7 @@ auto toVector(zeek::Span<T> xs)
 	return result;
 	}
 
-
-} // namespace
+	} // namespace
 
 SCENARIO("telemetry managers provide access to counter singletons")
 	{
@@ -142,10 +134,7 @@ SCENARIO("telemetry managers provide access to counter singletons")
 		WHEN("retrieving an IntCounter singleton")
 			{
 			auto first = mgr.CounterSingleton("zeek", "int-count", "test");
-			THEN("its initial value is zero")
-				{
-				CHECK_EQ(first.Value(), 0);
-				}
+			THEN("its initial value is zero") { CHECK_EQ(first.Value(), 0); }
 			AND_THEN("calling Inc() or operator++ changes the value")
 				{
 				first.Inc();
@@ -169,10 +158,7 @@ SCENARIO("telemetry managers provide access to counter singletons")
 		WHEN("retrieving a DblCounter singleton")
 			{
 			auto first = mgr.CounterSingleton<double>("zeek", "dbl-count", "test");
-			THEN("its initial value is zero")
-				{
-				CHECK_EQ(first.Value(), 0.0);
-				}
+			THEN("its initial value is zero") { CHECK_EQ(first.Value(), 0.0); }
 			AND_THEN("calling Inc() changes the value")
 				{
 				first.Inc();
@@ -227,7 +213,8 @@ SCENARIO("telemetry managers provide access to counter families")
 			}
 		WHEN("retrieving a DblCounter family")
 			{
-			auto family = mgr.CounterFamily<double>("zeek", "runtime", {"query"}, "test", "seconds", true);
+			auto family =
+				mgr.CounterFamily<double>("zeek", "runtime", {"query"}, "test", "seconds", true);
 			THEN("the family object stores the parameters")
 				{
 				CHECK_EQ(family.Prefix(), "zeek"sv);
@@ -262,10 +249,7 @@ SCENARIO("telemetry managers provide access to gauge singletons")
 		WHEN("retrieving an IntGauge singleton")
 			{
 			auto first = mgr.GaugeSingleton("zeek", "int-gauge", "test");
-			THEN("its initial value is zero")
-				{
-				CHECK_EQ(first.Value(), 0);
-				}
+			THEN("its initial value is zero") { CHECK_EQ(first.Value(), 0); }
 			AND_THEN("calling Inc(), Dec(), operator++ or operator-- changes the value")
 				{
 				first.Inc();
@@ -295,10 +279,7 @@ SCENARIO("telemetry managers provide access to gauge singletons")
 		WHEN("retrieving a DblGauge singleton")
 			{
 			auto first = mgr.GaugeSingleton<double>("zeek", "dbl-gauge", "test");
-			THEN("its initial value is zero")
-				{
-				CHECK_EQ(first.Value(), 0.0);
-				}
+			THEN("its initial value is zero") { CHECK_EQ(first.Value(), 0.0); }
 			AND_THEN("calling Inc() or Dec() changes the value")
 				{
 				first.Inc();
@@ -357,7 +338,8 @@ SCENARIO("telemetry managers provide access to gauge families")
 			}
 		WHEN("retrieving a DblGauge family")
 			{
-			auto family = mgr.GaugeFamily<double>("zeek", "water-level", {"river"}, "test", "meters");
+			auto family =
+				mgr.GaugeFamily<double>("zeek", "water-level", {"river"}, "test", "meters");
 			THEN("the family object stores the parameters")
 				{
 				CHECK_EQ(family.Prefix(), "zeek"sv);
@@ -392,7 +374,7 @@ SCENARIO("telemetry managers provide access to histogram singletons")
 		WHEN("retrieving an IntHistogram singleton")
 			{
 			const auto max_int = std::numeric_limits<int64_t>::max();
-			int64_t buckets [] = { 10, 20 };
+			int64_t buckets[] = {10, 20};
 			auto first = mgr.HistogramSingleton("zeek", "int-hist", buckets, "test");
 			THEN("it initially has no observations")
 				{
@@ -432,7 +414,7 @@ SCENARIO("telemetry managers provide access to histogram singletons")
 			}
 		WHEN("retrieving a DblHistogram singleton")
 			{
-			double buckets [] = { 10.0, 20.0 };
+			double buckets[] = {10.0, 20.0};
 			auto first = mgr.HistogramSingleton<double>("zeek", "dbl-count", buckets, "test");
 			THEN("it initially has no observations")
 				{
@@ -478,8 +460,9 @@ SCENARIO("telemetry managers provide access to histogram families")
 		Manager mgr{opaque(&native_mgr)};
 		WHEN("retrieving an IntHistogram family")
 			{
-			int64_t buckets [] = { 10, 20 };
-			auto family = mgr.HistogramFamily("zeek", "payload-size", {"protocol"}, buckets, "test", "bytes");
+			int64_t buckets[] = {10, 20};
+			auto family =
+				mgr.HistogramFamily("zeek", "payload-size", {"protocol"}, buckets, "test", "bytes");
 			THEN("the family object stores the parameters")
 				{
 				CHECK_EQ(family.Prefix(), "zeek"sv);
@@ -504,8 +487,9 @@ SCENARIO("telemetry managers provide access to histogram families")
 			}
 		WHEN("retrieving a DblHistogram family")
 			{
-			double buckets [] = { 10.0, 20.0 };
-			auto family = mgr.HistogramFamily<double>("zeek", "parse-time", {"protocol"}, buckets, "test", "seconds");
+			double buckets[] = {10.0, 20.0};
+			auto family = mgr.HistogramFamily<double>("zeek", "parse-time", {"protocol"}, buckets,
+			                                          "test", "seconds");
 			THEN("the family object stores the parameters")
 				{
 				CHECK_EQ(family.Prefix(), "zeek"sv);
@@ -531,10 +515,10 @@ SCENARIO("telemetry managers provide access to histogram families")
 				{
 				auto hg = family.GetOrAdd({{"protocol", "tst"}});
 				CHECK_EQ(hg.Sum(), 0.0);
-				{
+					{
 					Timer observer{hg};
 					std::this_thread::sleep_for(1ms);
-				}
+					}
 				CHECK_NE(hg.Sum(), 0.0);
 				}
 			}

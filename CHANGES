@@ -1,3 +1,12 @@
+4.2.0-dev.174 | 2021-09-16 15:36:52 -0700
+
+  * Minor fixes for build problems after reformatting (Tim Wojtulewicz, Corelight)
+
+  * Reformat the world (Tim Wojtulewicz, Corelight)
+
+  * Fixes for includes ahead of reformatting (Tim Wojtulewicz, Corelight)
+
+  * GH-386: Add clang-format config and scripts (Tim Wojtulewicz, Corelight)
 
 4.2.0-dev.169 | 2021-09-16 11:15:14 +0200
 

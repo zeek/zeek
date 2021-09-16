@@ -1,50 +1,50 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/session/Manager.h"
 
-#include <netinet/in.h>
 #include <arpa/inet.h>
-
+#include <netinet/in.h>
+#include <pcap.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <pcap.h>
-
 #include "zeek/Desc.h"
-#include "zeek/RunState.h"
 #include "zeek/Event.h"
-#include "zeek/Timer.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
-#include "zeek/session/Session.h"
+#include "zeek/RunState.h"
+#include "zeek/Timer.h"
 #include "zeek/TunnelEncapsulation.h"
-#include "zeek/telemetry/Manager.h"
 #include "zeek/analyzer/Manager.h"
-
 #include "zeek/iosource/IOSource.h"
 #include "zeek/packet_analysis/Manager.h"
+#include "zeek/session/Session.h"
+#include "zeek/telemetry/Manager.h"
+#include "zeek/zeek-config.h"
 
 zeek::session::Manager* zeek::session_mgr = nullptr;
 zeek::session::Manager*& zeek::sessions = zeek::session_mgr;
 
-namespace zeek::session {
-namespace detail {
+namespace zeek::session
+	{
+namespace detail
+	{
 
-class ProtocolStats {
+class ProtocolStats
+	{
 
 public:
-
-	struct Protocol {
+	struct Protocol
+		{
 		telemetry::IntGauge active;
 		telemetry::IntCounter total;
 		ssize_t max = 0;
 
-		Protocol(telemetry::IntGaugeFamily active_family,
-		         telemetry::IntCounterFamily total_family,
-		         std::string protocol) : active(active_family.GetOrAdd({{"protocol", protocol}})),
-		                                 total(total_family.GetOrAdd({{"protocol", protocol}}))
+		Protocol(telemetry::IntGaugeFamily active_family, telemetry::IntCounterFamily total_family,
+		         std::string protocol)
+			: active(active_family.GetOrAdd({{"protocol", protocol}})),
+			  total(total_family.GetOrAdd({{"protocol", protocol}}))
 			{
 			}
 		};
@@ -56,11 +56,10 @@ public:
 		telemetry::IntGaugeFamily active_family = telemetry_mgr->GaugeFamily(
 			"zeek", "active-sessions", {"protocol"}, "Active Zeek Sessions");
 		telemetry::IntCounterFamily total_family = telemetry_mgr->CounterFamily(
-			"zeek", "total-sessions", {"protocol"},
-			"Total number of sessions", "1", true);
+			"zeek", "total-sessions", {"protocol"}, "Total number of sessions", "1", true);
 
-		auto [it, inserted] = entries.insert(
-			{protocol, Protocol{active_family, total_family, protocol}});
+		auto [it, inserted] =
+			entries.insert({protocol, Protocol{active_family, total_family, protocol}});
 
 		if ( inserted )
 			return it;
@@ -81,11 +80,10 @@ public:
 		}
 
 private:
-
 	ProtocolMap entries;
-};
+	};
 
-} // namespace detail
+	} // namespace detail
 
 Manager::Manager()
 	{
@@ -98,9 +96,7 @@ Manager::~Manager()
 	delete stats;
 	}
 
-void Manager::Done()
-	{
-	}
+void Manager::Done() { }
 
 Connection* Manager::FindConnection(Val* v)
 	{
@@ -111,7 +107,7 @@ Connection* Manager::FindConnection(Val* v)
 	RecordType* vr = vt->AsRecordType();
 	auto vl = v->As<RecordVal*>();
 
-	int orig_h, orig_p;	// indices into record's value list
+	int orig_h, orig_p; // indices into record's value list
 	int resp_h, resp_p;
 
 	if ( vr == id::conn_id )
@@ -142,18 +138,16 @@ Connection* Manager::FindConnection(Val* v)
 	auto orig_portv = vl->GetFieldAs<PortVal>(orig_p);
 	auto resp_portv = vl->GetFieldAs<PortVal>(resp_p);
 
-	zeek::detail::ConnKey conn_key(orig_addr, resp_addr,
-	                                 htons((unsigned short) orig_portv->Port()),
-	                                 htons((unsigned short) resp_portv->Port()),
-	                                 orig_portv->PortType(), false);
+	zeek::detail::ConnKey conn_key(orig_addr, resp_addr, htons((unsigned short)orig_portv->Port()),
+	                               htons((unsigned short)resp_portv->Port()),
+	                               orig_portv->PortType(), false);
 
 	return FindConnection(conn_key);
 	}
 
 Connection* Manager::FindConnection(const zeek::detail::ConnKey& conn_key)
 	{
-	detail::Key key(&conn_key, sizeof(conn_key),
-	                detail::Key::CONNECTION_KEY_TYPE, false);
+	detail::Key key(&conn_key, sizeof(conn_key), detail::Key::CONNECTION_KEY_TYPE, false);
 
 	auto it = session_map.find(key);
 	if ( it != session_map.end() )
@@ -228,8 +222,11 @@ void Manager::Drain()
 
 		for ( auto& entry : session_map )
 			keys.push_back(&(entry.first));
-		std::sort(keys.begin(), keys.end(), [](const detail::Key* a, const detail::Key* b) {
-			                                    return *a < *b; });
+		std::sort(keys.begin(), keys.end(),
+		          [](const detail::Key* a, const detail::Key* b)
+		          {
+					  return *a < *b;
+				  });
 
 		for ( const auto* k : keys )
 			{
@@ -294,7 +291,8 @@ void Manager::Weird(const char* name, const Packet* pkt, const char* addl, const
 
 		if ( pkt->ip_hdr )
 			{
-			reporter->Weird(pkt->ip_hdr->SrcAddr(), pkt->ip_hdr->DstAddr(), weird_name, addl, source);
+			reporter->Weird(pkt->ip_hdr->SrcAddr(), pkt->ip_hdr->DstAddr(), weird_name, addl,
+			                source);
 			return;
 			}
 		}
@@ -349,12 +347,11 @@ unsigned int Manager::MemoryAllocation()
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	return SessionMemoryUsage()
-		+ padded_sizeof(*this)
-		+ (session_map.size() * (sizeof(SessionMap::key_type) + sizeof(SessionMap::value_type)))
-		+ zeek::detail::fragment_mgr->MemoryAllocation();
-		// FIXME: MemoryAllocation() not implemented for rest.
-		;
+	return SessionMemoryUsage() + padded_sizeof(*this) +
+	       (session_map.size() * (sizeof(SessionMap::key_type) + sizeof(SessionMap::value_type))) +
+	       zeek::detail::fragment_mgr->MemoryAllocation();
+	// FIXME: MemoryAllocation() not implemented for rest.
+	;
 #pragma GCC diagnostic pop
 	}
 
@@ -381,4 +378,4 @@ zeek::detail::PacketFilter* Manager::GetPacketFilter(bool init)
 	return packet_mgr->GetPacketFilter(init);
 	}
 
-} // namespace zeek::session
+	} // namespace zeek::session

@@ -2,21 +2,24 @@
 
 #pragma once
 
+#include <broker/expected.hh>
 #include <stdint.h>
-
 #include <memory>
 #include <vector>
 
-#include <broker/expected.hh>
+namespace broker
+	{
+class data;
+	}
 
-namespace broker { class data; }
-
-namespace zeek::probabilistic::detail {
+namespace zeek::probabilistic::detail
+	{
 
 /**
  * A probabilistic cardinality counter using the HyperLogLog algorithm.
  */
-class CardinalityCounter {
+class CardinalityCounter
+	{
 public:
 	/**
 	 * Constructor.
@@ -184,6 +187,6 @@ private:
 	uint64_t V;
 	double alpha_m;
 	int p; // the log2 of m
-};
+	};
 
-} // namespace zeek::probabilistic::detail
+	} // namespace zeek::probabilistic::detail

@@ -5,13 +5,17 @@
 #include <map>
 #include <set>
 
-#include "zeek/packet_analysis/Analyzer.h"
-#include "zeek/analyzer/Tag.h"
 #include "zeek/ID.h"
+#include "zeek/analyzer/Tag.h"
+#include "zeek/packet_analysis/Analyzer.h"
 
-namespace zeek::analyzer::pia { class PIA; }
+namespace zeek::analyzer::pia
+	{
+class PIA;
+	}
 
-namespace zeek::packet_analysis::IP {
+namespace zeek::packet_analysis::IP
+	{
 
 class SessionAdapter;
 
@@ -20,7 +24,8 @@ class SessionAdapter;
  * by the TCP, UDP, and ICMP analyzers to reduce a large amount of duplicated code
  * that those plugins have in common.
  */
-class IPBasedAnalyzer : public Analyzer {
+class IPBasedAnalyzer : public Analyzer
+	{
 public:
 	~IPBasedAnalyzer() override;
 
@@ -71,8 +76,7 @@ public:
 	 */
 	static void SetIgnoreChecksumsNets(TableValPtr t);
 
-
-  /**
+	/**
 	 * Gets the interpal pointer to the script-level variable `ignore_checksums_nets`.
 	 * This is used to prevent repeated (costly) lookup of the script-level variable
 	 * by IP-based analyzers.
@@ -82,7 +86,6 @@ public:
 	static TableValPtr GetIgnoreChecksumsNets();
 
 protected:
-
 	/**
 	 * Construct a new IP-based analyzer.
 	 *
@@ -116,8 +119,9 @@ protected:
 	 * @param remaining The remaining about of data in the packet.
 	 * @param pkt The packet being processed.
 	 */
-	virtual void DeliverPacket(Connection* conn, double t, bool is_orig, int remaining,
-	                           Packet* pkt) {}
+	virtual void DeliverPacket(Connection* conn, double t, bool is_orig, int remaining, Packet* pkt)
+		{
+		}
 
 	/**
 	 * Upon seeing the first packet of a connection, checks whether we want
@@ -131,8 +135,8 @@ protected:
 	 * @param flip_roles Return value if the roles should be flipped.
 	 * @return True if the connection is wanted. False otherwise.
 	 */
-	virtual bool WantConnection(uint16_t src_port, uint16_t dst_port,
-	                            const u_char* data, bool& flip_roles) const
+	virtual bool WantConnection(uint16_t src_port, uint16_t dst_port, const u_char* data,
+	                            bool& flip_roles) const
 		{
 		flip_roles = false;
 		return true;
@@ -173,7 +177,6 @@ protected:
 	bool IsLikelyServerPort(uint32_t port) const;
 
 private:
-
 	// While this is storing session analyzer tags, we store it here since packet analyzers
 	// are persitent objects. We can't do this in the adapters because those get created
 	// and destroyed for each connection.
@@ -191,14 +194,13 @@ private:
 	 * @param key A connection ID key generated from the ID.
 	 * @param pkt The packet associated with the new connection.
 	 */
-	zeek::Connection* NewConn(const ConnTuple* id, const detail::ConnKey& key,
-	                          const Packet* pkt);
+	zeek::Connection* NewConn(const ConnTuple* id, const detail::ConnKey& key, const Packet* pkt);
 
 	void BuildSessionAnalyzerTree(Connection* conn);
 
 	TransportProto transport;
 	uint32_t server_port_mask;
 	static TableValPtr ignore_checksums_nets_table;
-};
+	};
 
-}
+	}

@@ -8,11 +8,13 @@
 #include "zeek/script_opt/UseDefs.h"
 #include "zeek/script_opt/ZAM/ZBody.h"
 
-namespace zeek {
+namespace zeek
+	{
 class EventHandler;
-}
+	}
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 class NameExpr;
 class ConstExpr;
@@ -31,50 +33,48 @@ using InstLabel = ZInstI*;
 // but related to, the ZAM instruction(s) generated for that compilation.)
 // Designed to be fully opaque, but also effective without requiring pointer
 // management.
-class ZAMStmt {
+class ZAMStmt
+	{
 protected:
 	friend class ZAMCompiler;
 
-	ZAMStmt()	{ stmt_num = -1; /* flag that it needs to be set */ }
-	ZAMStmt(int _stmt_num)	{ stmt_num = _stmt_num; }
+	ZAMStmt() { stmt_num = -1; /* flag that it needs to be set */ }
+	ZAMStmt(int _stmt_num) { stmt_num = _stmt_num; }
 
 	int stmt_num;
-};
+	};
 
 // Class that holds values that only have meaning to the ZAM compiler,
 // but that needs to be held (opaquely, via a pointer) by external
 // objects.
-class OpaqueVals {
+class OpaqueVals
+	{
 public:
-	OpaqueVals(ZInstAux* _aux)	{ aux = _aux; }
+	OpaqueVals(ZInstAux* _aux) { aux = _aux; }
 
 	ZInstAux* aux;
-};
+	};
 
-class ZAMCompiler {
+class ZAMCompiler
+	{
 public:
-	ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
-	            ScopePtr scope, StmtPtr body, std::shared_ptr<UseDefs> ud,
-	            std::shared_ptr<Reducer> rd);
+	ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopePtr scope, StmtPtr body,
+	            std::shared_ptr<UseDefs> ud, std::shared_ptr<Reducer> rd);
 
 	StmtPtr CompileBody();
 
-	const FrameReMap& FrameDenizens() const
-		{ return shared_frame_denizens_final; }
+	const FrameReMap& FrameDenizens() const { return shared_frame_denizens_final; }
 
-	const std::vector<int>& ManagedSlots() const
-		{ return managed_slotsI; }
+	const std::vector<int>& ManagedSlots() const { return managed_slotsI; }
 
-	const std::vector<GlobalInfo>& Globals() const
-		{ return globalsI; }
+	const std::vector<GlobalInfo>& Globals() const { return globalsI; }
 
-	bool NonRecursive() const	{ return non_recursive; }
+	bool NonRecursive() const { return non_recursive; }
 
-	const TableIterVec& GetTableIters() const	{ return table_iters; }
-	int NumStepIters() const	{ return num_step_iters; }
+	const TableIterVec& GetTableIters() const { return table_iters; }
+	int NumStepIters() const { return num_step_iters; }
 
-	template <typename T>
-	const CaseMaps<T>& GetCases() const
+	template <typename T> const CaseMaps<T>& GetCases() const
 		{
 		if constexpr ( std::is_same_v<T, bro_int_t> )
 			return int_cases;
@@ -109,24 +109,21 @@ private:
 	// switches.
 	// See ZBody.h for their concrete counterparts, which we've
 	// already #include'd.
-	template<typename T> using CaseMapI = std::map<T, InstLabel>;
-	template<typename T> using CaseMapsI = std::vector<CaseMapI<T>>;
+	template <typename T> using CaseMapI = std::map<T, InstLabel>;
+	template <typename T> using CaseMapsI = std::vector<CaseMapI<T>>;
 
 	template <typename T>
-	void ConcretizeSwitchTables(const CaseMapsI<T>& abstract_cases,
-	                            CaseMaps<T>& concrete_cases);
+	void ConcretizeSwitchTables(const CaseMapsI<T>& abstract_cases, CaseMaps<T>& concrete_cases);
 
-	template <typename T>
-	void DumpCases(const T& cases, const char* type_name) const;
+	template <typename T> void DumpCases(const T& cases, const char* type_name) const;
 	void DumpInsts1(const FrameReMap* remappings);
 
 #include "zeek/ZAM-MethodDecls.h"
 
-	const ZAMStmt CompileStmt(const StmtPtr& body)
-		{ return CompileStmt(body.get()); }
+	const ZAMStmt CompileStmt(const StmtPtr& body) { return CompileStmt(body.get()); }
 	const ZAMStmt CompileStmt(const Stmt* body);
 
-	void SetCurrStmt(const Stmt* stmt)	{ curr_stmt = stmt; }
+	void SetCurrStmt(const Stmt* stmt) { curr_stmt = stmt; }
 
 	const ZAMStmt CompilePrint(const PrintStmt* ps);
 	const ZAMStmt CompileExpr(const ExprStmt* es);
@@ -142,105 +139,89 @@ private:
 	const ZAMStmt CompileInit(const InitStmt* is);
 	const ZAMStmt CompileWhen(const WhenStmt* ws);
 
-	const ZAMStmt CompileNext()
-		{ return GenGoTo(nexts.back()); }
-	const ZAMStmt CompileBreak()
-		{ return GenGoTo(breaks.back()); }
-	const ZAMStmt CompileFallThrough()
-		{ return GenGoTo(fallthroughs.back()); }
-	const ZAMStmt CompileCatchReturn()
-		{ return GenGoTo(catches.back()); }
+	const ZAMStmt CompileNext() { return GenGoTo(nexts.back()); }
+	const ZAMStmt CompileBreak() { return GenGoTo(breaks.back()); }
+	const ZAMStmt CompileFallThrough() { return GenGoTo(fallthroughs.back()); }
+	const ZAMStmt CompileCatchReturn() { return GenGoTo(catches.back()); }
 
 	const ZAMStmt IfElse(const Expr* e, const Stmt* s1, const Stmt* s2);
-	const ZAMStmt While(const Stmt* cond_stmt, const Expr* cond,
-	                    const Stmt* body);
+	const ZAMStmt While(const Stmt* cond_stmt, const Expr* cond, const Stmt* body);
 
 	const ZAMStmt InitRecord(IDPtr id, RecordType* rt);
 	const ZAMStmt InitVector(IDPtr id, VectorType* vt);
 	const ZAMStmt InitTable(IDPtr id, TableType* tt, Attributes* attrs);
 
-	const ZAMStmt ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
-	                          const ConstExpr* c);
-	const ZAMStmt TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
-	                         const ConstExpr* c);
+	const ZAMStmt ValueSwitch(const SwitchStmt* sw, const NameExpr* v, const ConstExpr* c);
+	const ZAMStmt TypeSwitch(const SwitchStmt* sw, const NameExpr* v, const ConstExpr* c);
 
-	void PushNexts()		{ PushGoTos(nexts); }
-	void PushBreaks()		{ PushGoTos(breaks); }
-	void PushFallThroughs()		{ PushGoTos(fallthroughs); }
-	void PushCatchReturns()		{ PushGoTos(catches); }
+	void PushNexts() { PushGoTos(nexts); }
+	void PushBreaks() { PushGoTos(breaks); }
+	void PushFallThroughs() { PushGoTos(fallthroughs); }
+	void PushCatchReturns() { PushGoTos(catches); }
 
-	void ResolveNexts(const InstLabel l)
-		{ ResolveGoTos(nexts, l); }
-	void ResolveBreaks(const InstLabel l)
-		{ ResolveGoTos(breaks, l); }
-	void ResolveFallThroughs(const InstLabel l)
-		{ ResolveGoTos(fallthroughs, l); }
-	void ResolveCatchReturns(const InstLabel l)
-		{ ResolveGoTos(catches, l); }
-
+	void ResolveNexts(const InstLabel l) { ResolveGoTos(nexts, l); }
+	void ResolveBreaks(const InstLabel l) { ResolveGoTos(breaks, l); }
+	void ResolveFallThroughs(const InstLabel l) { ResolveGoTos(fallthroughs, l); }
+	void ResolveCatchReturns(const InstLabel l) { ResolveGoTos(catches, l); }
 
 	const ZAMStmt LoopOverTable(const ForStmt* f, const NameExpr* val);
 	const ZAMStmt LoopOverVector(const ForStmt* f, const NameExpr* val);
 	const ZAMStmt LoopOverString(const ForStmt* f, const Expr* e);
 
-	const ZAMStmt FinishLoop(const ZAMStmt iter_head, ZInstI& iter_stmt,
-	                         const Stmt* body, int iter_slot,
-	                         bool is_table);
+	const ZAMStmt FinishLoop(const ZAMStmt iter_head, ZInstI& iter_stmt, const Stmt* body,
+	                         int iter_slot, bool is_table);
 
 	const ZAMStmt Loop(const Stmt* body);
 
-
-	const ZAMStmt CompileExpr(const ExprPtr& e)
-		{ return CompileExpr(e.get()); }
+	const ZAMStmt CompileExpr(const ExprPtr& e) { return CompileExpr(e.get()); }
 	const ZAMStmt CompileExpr(const Expr* body);
 
 	const ZAMStmt CompileIncrExpr(const IncrExpr* e);
 	const ZAMStmt CompileAppendToExpr(const AppendToExpr* e);
 	const ZAMStmt CompileAssignExpr(const AssignExpr* e);
-	const ZAMStmt CompileAssignToIndex(const NameExpr* lhs,
-	                                   const IndexExpr* rhs);
+	const ZAMStmt CompileAssignToIndex(const NameExpr* lhs, const IndexExpr* rhs);
 	const ZAMStmt CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e);
 	const ZAMStmt CompileScheduleExpr(const ScheduleExpr* e);
-	const ZAMStmt CompileSchedule(const NameExpr* n, const ConstExpr* c,
-	                              int is_interval, EventHandler* h,
-	                              const ListExpr* l);
+	const ZAMStmt CompileSchedule(const NameExpr* n, const ConstExpr* c, int is_interval,
+	                              EventHandler* h, const ListExpr* l);
 	const ZAMStmt CompileEvent(EventHandler* h, const ListExpr* l);
 
-	const ZAMStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2,
-	                            const NameExpr* n3)
-		{ return CompileInExpr(n1, n2, nullptr, n3, nullptr); }
+	const ZAMStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2, const NameExpr* n3)
+		{
+		return CompileInExpr(n1, n2, nullptr, n3, nullptr);
+		}
 
-	const ZAMStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2,
-	                            const ConstExpr* c)
-		{ return CompileInExpr(n1, n2, nullptr, nullptr, c); }
+	const ZAMStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2, const ConstExpr* c)
+		{
+		return CompileInExpr(n1, n2, nullptr, nullptr, c);
+		}
 
-	const ZAMStmt CompileInExpr(const NameExpr* n1, const ConstExpr* c,
-	                            const NameExpr* n3)
-		{ return CompileInExpr(n1, nullptr, c, n3, nullptr); }
+	const ZAMStmt CompileInExpr(const NameExpr* n1, const ConstExpr* c, const NameExpr* n3)
+		{
+		return CompileInExpr(n1, nullptr, c, n3, nullptr);
+		}
 
 	// In the following, one of n2 or c2 (likewise, n3/c3) will be nil.
-	const ZAMStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2,
-	                            const ConstExpr* c2, const NameExpr* n3,
-	                            const ConstExpr* c3);
+	const ZAMStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2, const ConstExpr* c2,
+	                            const NameExpr* n3, const ConstExpr* c3);
 
-	const ZAMStmt CompileInExpr(const NameExpr* n1, const ListExpr* l,
-	                            const NameExpr* n2)
-		{ return CompileInExpr(n1, l, n2, nullptr); }
+	const ZAMStmt CompileInExpr(const NameExpr* n1, const ListExpr* l, const NameExpr* n2)
+		{
+		return CompileInExpr(n1, l, n2, nullptr);
+		}
 
-	const ZAMStmt CompileInExpr(const NameExpr* n, const ListExpr* l,
-	                            const ConstExpr* c)
-		{ return CompileInExpr(n, l, nullptr, c); }
+	const ZAMStmt CompileInExpr(const NameExpr* n, const ListExpr* l, const ConstExpr* c)
+		{
+		return CompileInExpr(n, l, nullptr, c);
+		}
 
-	const ZAMStmt CompileInExpr(const NameExpr* n1, const ListExpr* l,
-	                            const NameExpr* n2, const ConstExpr* c);
+	const ZAMStmt CompileInExpr(const NameExpr* n1, const ListExpr* l, const NameExpr* n2,
+	                            const ConstExpr* c);
 
-
-	const ZAMStmt CompileIndex(const NameExpr* n1, const NameExpr* n2,
+	const ZAMStmt CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l);
+	const ZAMStmt CompileIndex(const NameExpr* n1, const ConstExpr* c, const ListExpr* l);
+	const ZAMStmt CompileIndex(const NameExpr* n1, int n2_slot, const TypePtr& n2_type,
 	                           const ListExpr* l);
-	const ZAMStmt CompileIndex(const NameExpr* n1, const ConstExpr* c,
-	                           const ListExpr* l);
-	const ZAMStmt CompileIndex(const NameExpr* n1, int n2_slot,
-	                           const TypePtr& n2_type, const ListExpr* l);
 
 	// Second argument is which instruction slot holds the branch target.
 	const ZAMStmt GenCond(const Expr* e, int& branch_v);
@@ -252,8 +233,8 @@ private:
 	const ZAMStmt AssignVecElems(const Expr* e);
 	const ZAMStmt AssignTableElem(const Expr* e);
 
-	const ZAMStmt AppendToField(const NameExpr* n1, const NameExpr* n2,
-	                            const ConstExpr* c, int offset);
+	const ZAMStmt AppendToField(const NameExpr* n1, const NameExpr* n2, const ConstExpr* c,
+	                            int offset);
 
 	const ZAMStmt ConstructTable(const NameExpr* n, const Expr* e);
 	const ZAMStmt ConstructSet(const NameExpr* n, const Expr* e);
@@ -267,9 +248,8 @@ private:
 
 	const ZAMStmt Is(const NameExpr* n, const Expr* e);
 
-
-#include "zeek/script_opt/ZAM/Inst-Gen.h"
 #include "zeek/script_opt/ZAM/BuiltIn.h"
+#include "zeek/script_opt/ZAM/Inst-Gen.h"
 
 	// A bit weird, but handy for switch statements used in built-in
 	// operations: returns a bit mask of which of the arguments in the
@@ -294,7 +274,6 @@ private:
 		else
 			return e->AsConstExpr()->Value()->AsCount();
 		}
-
 
 	using GoToSet = std::vector<ZAMStmt>;
 	using GoToSets = std::vector<GoToSet>;
@@ -335,9 +314,7 @@ private:
 	void SetV2(ZAMStmt s, const InstLabel l);
 	void SetV3(ZAMStmt s, const InstLabel l);
 	void SetV4(ZAMStmt s, const InstLabel l);
-	void SetGoTo(ZAMStmt s, const InstLabel targ)
-		{ SetV1(s, targ); }
-
+	void SetGoTo(ZAMStmt s, const InstLabel targ) { SetV1(s, targ); }
 
 	const ZAMStmt StartingBlock();
 	const ZAMStmt FinishBlock(const ZAMStmt start);
@@ -368,8 +345,7 @@ private:
 
 	// Returns the most recent added instruction *other* than those
 	// added for bookkeeping.
-	ZInstI* TopMainInst()	{ return insts1[top_main_inst]; }
-
+	ZInstI* TopMainInst() { return insts1[top_main_inst]; }
 
 	bool IsUnused(const IDPtr& id, const Stmt* where) const;
 
@@ -378,7 +354,7 @@ private:
 
 	int AddToFrame(ID*);
 
-	int FrameSlot(const IDPtr& id)		{ return FrameSlot(id.get()); }
+	int FrameSlot(const IDPtr& id) { return FrameSlot(id.get()); }
 	int FrameSlot(const ID* id);
 	int FrameSlotIfName(const Expr* e)
 		{
@@ -386,25 +362,20 @@ private:
 		return n ? FrameSlot(n->Id()) : 0;
 		}
 
-	int FrameSlot(const NameExpr* id)
-		{ return FrameSlot(id->AsNameExpr()->Id()); }
-	int Frame1Slot(const NameExpr* id, ZOp op)
-		{ return Frame1Slot(id->AsNameExpr()->Id(), op); }
+	int FrameSlot(const NameExpr* id) { return FrameSlot(id->AsNameExpr()->Id()); }
+	int Frame1Slot(const NameExpr* id, ZOp op) { return Frame1Slot(id->AsNameExpr()->Id(), op); }
 
-	int Frame1Slot(const ID* id, ZOp op)
-		{ return Frame1Slot(id, op1_flavor[op]); }
-	int Frame1Slot(const NameExpr* n, ZAMOp1Flavor fl)
-		{ return Frame1Slot(n->Id(), fl); }
+	int Frame1Slot(const ID* id, ZOp op) { return Frame1Slot(id, op1_flavor[op]); }
+	int Frame1Slot(const NameExpr* n, ZAMOp1Flavor fl) { return Frame1Slot(n->Id(), fl); }
 	int Frame1Slot(const ID* id, ZAMOp1Flavor fl);
 
 	// The slot without doing any global-related checking.
-	int RawSlot(const NameExpr* n)	{ return RawSlot(n->Id()); }
+	int RawSlot(const NameExpr* n) { return RawSlot(n->Id()); }
 	int RawSlot(const ID* id);
 
 	bool HasFrameSlot(const ID* id) const;
 
-	int NewSlot(const TypePtr& t)
-		{ return NewSlot(ZVal::IsManagedType(t)); }
+	int NewSlot(const TypePtr& t) { return NewSlot(ZVal::IsManagedType(t)); }
 	int NewSlot(bool is_managed);
 
 	int TempForConst(const ConstExpr* c);
@@ -421,8 +392,7 @@ private:
 
 	// Tracks which instructions can be branched to via the given
 	// set of switches.
-	template<typename T>
-	void TallySwitchTargets(const CaseMapsI<T>& switches);
+	template <typename T> void TallySwitchTargets(const CaseMapsI<T>& switches);
 
 	// Remove code that can't be reached.  True if some removal happened.
 	bool RemoveDeadCode();
@@ -504,18 +474,20 @@ private:
 		return FirstLiveInst(insts1[i->inst_num + 1], follow_gotos);
 		}
 	int NextLiveInst(int i, bool follow_gotos = false)
-		{ return FirstLiveInst(i + 1, follow_gotos); }
+		{
+		return FirstLiveInst(i + 1, follow_gotos);
+		}
 
 	// Mark an instruction as unnecessary and remove its influence on
 	// other statements.  The instruction is indicated as an offset
 	// into insts1; any labels associated with it are transferred
 	// to its next live successor, if any.
-	void KillInst(ZInstI* i)	{ KillInst(i->inst_num); }
+	void KillInst(ZInstI* i) { KillInst(i->inst_num); }
 	void KillInst(bro_uint_t i);
 
 	// The same, but kills any successor instructions until finding
 	// one that's labeled.
-	void KillInsts(ZInstI* i)	{ KillInsts(i->inst_num); }
+	void KillInsts(ZInstI* i) { KillInsts(i->inst_num); }
 	void KillInsts(bro_uint_t i);
 
 	// The first of these is used as we compile down to ZInstI's.
@@ -569,8 +541,7 @@ private:
 
 	// A type for mapping an instruction to a set of locals associated
 	// with it.
-	using AssociatedLocals =
-	      std::unordered_map<const ZInstI*, std::unordered_set<ID*>>;
+	using AssociatedLocals = std::unordered_map<const ZInstI*, std::unordered_set<ID*>>;
 
 	// Maps (live) instructions to which frame denizens begin their
 	// lifetime via an initialization at that instruction, if any ...
@@ -595,7 +566,7 @@ private:
 	// values that get finalized when constructing the corresponding
 	// ZBody.
 	std::vector<GlobalInfo> globalsI;
-	std::unordered_map<const ID*, int> global_id_to_info;	// inverse
+	std::unordered_map<const ID*, int> global_id_to_info; // inverse
 
 	// Intermediary switch tables (branching to ZInst's rather
 	// than concrete instruction offsets).
@@ -629,11 +600,10 @@ private:
 	// AddInst.  If >= 0, then upon adding the next instruction,
 	// it should be followed by Store-Global for the given slot.
 	int pending_global_store = -1;
-};
-
+	};
 
 // Invokes after compiling all of the function bodies.
 class FuncInfo;
 extern void finalize_functions(const std::vector<FuncInfo>& funcs);
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

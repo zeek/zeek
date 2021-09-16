@@ -1,20 +1,21 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/ID.h"
-#include "zeek/Var.h"
-#include "zeek/Scope.h"
-#include "zeek/Expr.h"
-#include "zeek/Stmt.h"
-#include "zeek/Desc.h"
-#include "zeek/Reporter.h"
-#include "zeek/script_opt/ExprOptInfo.h"
-#include "zeek/script_opt/StmtOptInfo.h"
-#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/Reduce.h"
+
+#include "zeek/Desc.h"
+#include "zeek/Expr.h"
+#include "zeek/ID.h"
+#include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/Stmt.h"
+#include "zeek/Var.h"
+#include "zeek/script_opt/ExprOptInfo.h"
+#include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/TempVar.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 StmtPtr Reducer::Reduce(StmtPtr s)
 	{
@@ -59,8 +60,7 @@ NameExprPtr Reducer::UpdateName(NameExprPtr n)
 bool Reducer::NameIsReduced(const NameExpr* n) const
 	{
 	auto id = n->Id();
-	return inline_block_level == 0 || id->IsGlobal() || IsTemporary(id) ||
-		IsNewLocal(n);
+	return inline_block_level == 0 || id->IsGlobal() || IsTemporary(id) || IsNewLocal(n);
 	}
 
 void Reducer::UpdateIDs(IDPList* ids)
@@ -112,8 +112,7 @@ IDPtr Reducer::UpdateID(IDPtr id)
 
 bool Reducer::ID_IsReduced(const ID* id) const
 	{
-	return inline_block_level == 0 || id->IsGlobal() || IsTemporary(id) ||
-		IsNewLocal(id);
+	return inline_block_level == 0 || id->IsGlobal() || IsTemporary(id) || IsNewLocal(id);
 	}
 
 NameExprPtr Reducer::GenInlineBlockName(const IDPtr& id)
@@ -245,128 +244,129 @@ bool Reducer::SameExpr(const Expr* e1, const Expr* e2)
 	if ( ! same_type(e1->GetType(), e2->GetType()) )
 		return false;
 
-	switch ( e1->Tag() ) {
-	case EXPR_NAME:
-	case EXPR_CONST:
-		return SameOp(e1, e2);
-
-	case EXPR_CLONE:
-	case EXPR_RECORD_CONSTRUCTOR:
-	case EXPR_TABLE_CONSTRUCTOR:
-	case EXPR_SET_CONSTRUCTOR:
-	case EXPR_VECTOR_CONSTRUCTOR:
-	case EXPR_EVENT:
-	case EXPR_SCHEDULE:
-		// These always generate a new value.
-		return false;
-
-	case EXPR_INCR:
-	case EXPR_DECR:
-	case EXPR_AND_AND:
-	case EXPR_OR_OR:
-	case EXPR_ASSIGN:
-	case EXPR_FIELD_ASSIGN:
-	case EXPR_INDEX_SLICE_ASSIGN:
-		// All of these should have been translated into something
-		// else.
-		reporter->InternalError("Unexpected tag in Reducer::SameExpr");
-
-	case EXPR_ANY_INDEX:
+	switch ( e1->Tag() )
 		{
-		auto a1 = e1->AsAnyIndexExpr();
-		auto a2 = e2->AsAnyIndexExpr();
+		case EXPR_NAME:
+		case EXPR_CONST:
+			return SameOp(e1, e2);
 
-		if ( a1->Index() != a2->Index() )
+		case EXPR_CLONE:
+		case EXPR_RECORD_CONSTRUCTOR:
+		case EXPR_TABLE_CONSTRUCTOR:
+		case EXPR_SET_CONSTRUCTOR:
+		case EXPR_VECTOR_CONSTRUCTOR:
+		case EXPR_EVENT:
+		case EXPR_SCHEDULE:
+			// These always generate a new value.
 			return false;
 
-		return SameOp(a1->GetOp1(), a2->GetOp1());
-		}
+		case EXPR_INCR:
+		case EXPR_DECR:
+		case EXPR_AND_AND:
+		case EXPR_OR_OR:
+		case EXPR_ASSIGN:
+		case EXPR_FIELD_ASSIGN:
+		case EXPR_INDEX_SLICE_ASSIGN:
+			// All of these should have been translated into something
+			// else.
+			reporter->InternalError("Unexpected tag in Reducer::SameExpr");
 
-	case EXPR_FIELD:
-		{
-		auto f1 = e1->AsFieldExpr();
-		auto f2 = e2->AsFieldExpr();
+		case EXPR_ANY_INDEX:
+				{
+				auto a1 = e1->AsAnyIndexExpr();
+				auto a2 = e2->AsAnyIndexExpr();
 
-		if ( f1->Field() != f2->Field() )
+				if ( a1->Index() != a2->Index() )
+					return false;
+
+				return SameOp(a1->GetOp1(), a2->GetOp1());
+				}
+
+		case EXPR_FIELD:
+				{
+				auto f1 = e1->AsFieldExpr();
+				auto f2 = e2->AsFieldExpr();
+
+				if ( f1->Field() != f2->Field() )
+					return false;
+
+				return SameOp(f1->GetOp1(), f2->GetOp1());
+				}
+
+		case EXPR_HAS_FIELD:
+				{
+				auto f1 = e1->AsHasFieldExpr();
+				auto f2 = e2->AsHasFieldExpr();
+
+				if ( f1->Field() != f2->Field() )
+					return false;
+
+				return SameOp(f1->GetOp1(), f2->GetOp1());
+				}
+
+		case EXPR_LIST:
+				{
+				auto l1 = e1->AsListExpr()->Exprs();
+				auto l2 = e2->AsListExpr()->Exprs();
+
+				ASSERT(l1.length() == l2.length());
+
+				for ( int i = 0; i < l1.length(); ++i )
+					if ( ! SameExpr(l1[i], l2[i]) )
+						return false;
+
+				return true;
+				}
+
+		case EXPR_CALL:
+				{
+				auto c1 = e1->AsCallExpr();
+				auto c2 = e2->AsCallExpr();
+				auto f1 = c1->Func();
+				auto f2 = c2->Func();
+
+				if ( f1 != f2 )
+					return false;
+
+				if ( ! f1->IsPure() )
+					return false;
+
+				return SameExpr(c1->Args(), c2->Args());
+				}
+
+		case EXPR_LAMBDA:
 			return false;
 
-		return SameOp(f1->GetOp1(), f2->GetOp1());
-		}
+		case EXPR_IS:
+				{
+				if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
+					return false;
 
-	case EXPR_HAS_FIELD:
-		{
-		auto f1 = e1->AsHasFieldExpr();
-		auto f2 = e2->AsHasFieldExpr();
+				auto i1 = e1->AsIsExpr();
+				auto i2 = e2->AsIsExpr();
 
-		if ( f1->Field() != f2->Field() )
-			return false;
+				return same_type(i1->TestType(), i2->TestType());
+				}
 
-		return SameOp(f1->GetOp1(), f2->GetOp1());
-		}
+		default:
+			if ( ! e1->GetOp1() )
+				reporter->InternalError("Bad default in Reducer::SameExpr");
 
-	case EXPR_LIST:
-		{
-		auto l1 = e1->AsListExpr()->Exprs();
-		auto l2 = e2->AsListExpr()->Exprs();
-
-		ASSERT(l1.length() == l2.length());
-
-		for ( int i = 0; i < l1.length(); ++i )
-			if ( ! SameExpr(l1[i], l2[i]) )
+			if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
 				return false;
 
-		return true;
+			if ( e1->GetOp2() && ! SameOp(e1->GetOp2(), e2->GetOp2()) )
+				return false;
+
+			if ( e1->GetOp3() && ! SameOp(e1->GetOp3(), e2->GetOp3()) )
+				return false;
+
+			return true;
 		}
-
-	case EXPR_CALL:
-		{
-		auto c1 = e1->AsCallExpr();
-		auto c2 = e2->AsCallExpr();
-		auto f1 = c1->Func();
-		auto f2 = c2->Func();
-
-		if ( f1 != f2 )
-			return false;
-
-		if ( ! f1->IsPure() )
-			return false;
-
-		return SameExpr(c1->Args(), c2->Args());
-		}
-
-	case EXPR_LAMBDA:
-		return false;
-
-	case EXPR_IS:
-		{
-		if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
-			return false;
-
-		auto i1 = e1->AsIsExpr();
-		auto i2 = e2->AsIsExpr();
-
-		return same_type(i1->TestType(), i2->TestType());
-		}
-
-	default:
-		if ( ! e1->GetOp1() )
-			reporter->InternalError("Bad default in Reducer::SameExpr");
-
-		if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
-			return false;
-
-		if ( e1->GetOp2() && ! SameOp(e1->GetOp2(), e2->GetOp2()) )
-			return false;
-
-		if ( e1->GetOp3() && ! SameOp(e1->GetOp3(), e2->GetOp3()) )
-			return false;
-
-		return true;
-	}
 	}
 
 IDPtr Reducer::FindExprTmp(const Expr* rhs, const Expr* a,
-				const std::shared_ptr<const TempVar>& lhs_tmp)
+                           const std::shared_ptr<const TempVar>& lhs_tmp)
 	{
 	for ( const auto& et_i : expr_temps )
 		{
@@ -462,7 +462,7 @@ void Reducer::CheckIDs(const Expr* e, std::vector<const ID*>& ids) const
 bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
 	{
 	auto lhs_id = lhs->Id();
-	auto lhs_tmp = FindTemporary(lhs_id);	// nil if LHS not a temporary
+	auto lhs_tmp = FindTemporary(lhs_id); // nil if LHS not a temporary
 	auto rhs_tmp = FindExprTmp(rhs, a, lhs_tmp);
 
 	ExprPtr new_rhs;
@@ -706,8 +706,7 @@ StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, Stmt* succ_stmt)
 
 	// Got it.  Mark the original temporary as no longer relevant.
 	lhs_tmp->Deactivate();
-	auto merge_e = make_intrusive<AssignExpr>(a_lhs_deref, rhs, false,
-						nullptr, nullptr, false);
+	auto merge_e = make_intrusive<AssignExpr>(a_lhs_deref, rhs, false, nullptr, nullptr, false);
 	auto merge_e_stmt = make_intrusive<ExprStmt>(merge_e);
 
 	// Update the associated stmt_num's.  For strict correctness, we
@@ -778,7 +777,7 @@ IDPtr Reducer::GenLocal(const IDPtr& orig)
 
 bool Reducer::IsNewLocal(const ID* id) const
 	{
-	ID* non_const_ID = (ID*) id;	// I don't get why C++ requires this
+	ID* non_const_ID = (ID*)id; // I don't get why C++ requires this
 	return new_locals.count(non_const_ID) != 0;
 	}
 
@@ -791,10 +790,9 @@ std::shared_ptr<TempVar> Reducer::FindTemporary(const ID* id) const
 		return tmp->second;
 	}
 
-
-CSE_ValidityChecker::CSE_ValidityChecker(const std::vector<const ID*>& _ids,
-				const Expr* _start_e, const Expr* _end_e)
-: ids(_ids)
+CSE_ValidityChecker::CSE_ValidityChecker(const std::vector<const ID*>& _ids, const Expr* _start_e,
+                                         const Expr* _end_e)
+	: ids(_ids)
 	{
 	start_e = _start_e;
 	end_e = _end_e;
@@ -813,7 +811,7 @@ CSE_ValidityChecker::CSE_ValidityChecker(const std::vector<const ID*>& _ids,
 		}
 
 	else
-		field = -1;	// flags that there's no relevant field
+		field = -1; // flags that there's no relevant field
 	}
 
 TraversalCode CSE_ValidityChecker::PreStmt(const Stmt* s)
@@ -864,106 +862,106 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
 	// We have a starting point, and not yet an ending point.
 	auto t = e->Tag();
 
-	switch ( t ) {
-	case EXPR_ASSIGN:
+	switch ( t )
 		{
-		auto lhs_ref = e->GetOp1()->AsRefExprPtr();
-		auto lhs = lhs_ref->GetOp1()->AsNameExpr();
+		case EXPR_ASSIGN:
+				{
+				auto lhs_ref = e->GetOp1()->AsRefExprPtr();
+				auto lhs = lhs_ref->GetOp1()->AsNameExpr();
 
-		if ( CheckID(ids, lhs->Id(), false) )
-			{
-			is_valid = false;
-			return TC_ABORTALL;
-			}
+				if ( CheckID(ids, lhs->Id(), false) )
+					{
+					is_valid = false;
+					return TC_ABORTALL;
+					}
 
-		// Note, we don't use CheckAggrMod() because this
-		// is a plain assignment.  It might be changing a variable's
-		// binding to an aggregate, but it's not changing the
-		// aggregate itself.
-		}
-		break;
+				// Note, we don't use CheckAggrMod() because this
+				// is a plain assignment.  It might be changing a variable's
+				// binding to an aggregate, but it's not changing the
+				// aggregate itself.
+				}
+			break;
 
-	case EXPR_INDEX_ASSIGN:
-		{
-		auto lhs_aggr = e->GetOp1();
-		auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
+		case EXPR_INDEX_ASSIGN:
+				{
+				auto lhs_aggr = e->GetOp1();
+				auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
 
-		if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
-			{
-			is_valid = false;
-			return TC_ABORTALL;
-			}
-		}
-		break;
+				if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
+					{
+					is_valid = false;
+					return TC_ABORTALL;
+					}
+				}
+			break;
 
-	case EXPR_FIELD_LHS_ASSIGN:
-		{
-		auto lhs = e->GetOp1();
-		auto lhs_aggr_id = lhs->AsNameExpr()->Id();
-		auto lhs_field = e->AsFieldLHSAssignExpr()->Field();
+		case EXPR_FIELD_LHS_ASSIGN:
+				{
+				auto lhs = e->GetOp1();
+				auto lhs_aggr_id = lhs->AsNameExpr()->Id();
+				auto lhs_field = e->AsFieldLHSAssignExpr()->Field();
 
-		if ( lhs_field == field &&
-		     same_type(lhs_aggr_id->GetType(), field_type) )
-			{
-			// Potential assignment to the same field as for
-			// our expression of interest.  Even if the
-			// identifier involved is not one we have our eye
-			// on, due to aggregate aliasing this could be
-			// altering the value of our expression, so bail.
-			is_valid = false;
-			return TC_ABORTALL;
-			}
+				if ( lhs_field == field && same_type(lhs_aggr_id->GetType(), field_type) )
+					{
+					// Potential assignment to the same field as for
+					// our expression of interest.  Even if the
+					// identifier involved is not one we have our eye
+					// on, due to aggregate aliasing this could be
+					// altering the value of our expression, so bail.
+					is_valid = false;
+					return TC_ABORTALL;
+					}
 
-		if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
-			{
-			is_valid = false;
-			return TC_ABORTALL;
-			}
-		}
-		break;
+				if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
+					{
+					is_valid = false;
+					return TC_ABORTALL;
+					}
+				}
+			break;
 
-	case EXPR_APPEND_TO:
-		// This doesn't directly change any identifiers, but does
-		// alter an aggregate.
-		if ( CheckAggrMod(ids, e) )
-			{
-			is_valid = false;
-			return TC_ABORTALL;
-			}
-		break;
-
-	case EXPR_CALL:
-		{
-		for ( auto i : ids )
-			if ( i->IsGlobal() || IsAggr(i->GetType()) )
+		case EXPR_APPEND_TO:
+			// This doesn't directly change any identifiers, but does
+			// alter an aggregate.
+			if ( CheckAggrMod(ids, e) )
 				{
 				is_valid = false;
 				return TC_ABORTALL;
 				}
-		}
-		break;
+			break;
 
-	default:
-		if ( in_aggr_mod_stmt && (t == EXPR_INDEX || t == EXPR_FIELD) )
-			{
-			auto aggr = e->GetOp1();
-			auto aggr_id = aggr->AsNameExpr()->Id();
-
-			if ( CheckID(ids, aggr_id, true) )
+		case EXPR_CALL:
 				{
-				is_valid = false;
-				return TC_ABORTALL;
+				for ( auto i : ids )
+					if ( i->IsGlobal() || IsAggr(i->GetType()) )
+						{
+						is_valid = false;
+						return TC_ABORTALL;
+						}
 				}
-			}
+			break;
 
-		break;
-	}
+		default:
+			if ( in_aggr_mod_stmt && (t == EXPR_INDEX || t == EXPR_FIELD) )
+				{
+				auto aggr = e->GetOp1();
+				auto aggr_id = aggr->AsNameExpr()->Id();
+
+				if ( CheckID(ids, aggr_id, true) )
+					{
+					is_valid = false;
+					return TC_ABORTALL;
+					}
+				}
+
+			break;
+		}
 
 	return TC_CONTINUE;
 	}
 
-bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids,
-					const ID* id, bool ignore_orig) const
+bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids, const ID* id,
+                                  bool ignore_orig) const
 	{
 	// Only check type info for aggregates.
 	auto id_t = IsAggr(id->GetType()) ? id->GetType() : nullptr;
@@ -974,7 +972,7 @@ bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids,
 			continue;
 
 		if ( id == i )
-			return true;	// reassignment
+			return true; // reassignment
 
 		if ( id_t && same_type(id_t, i->GetType()) )
 			// Same-type aggregate.
@@ -984,8 +982,7 @@ bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids,
 	return false;
 	}
 
-bool CSE_ValidityChecker::CheckAggrMod(const std::vector<const ID*>& ids,
-					const Expr* e) const
+bool CSE_ValidityChecker::CheckAggrMod(const std::vector<const ID*>& ids, const Expr* e) const
 	{
 	const auto& e_i_t = e->GetType();
 	if ( IsAggr(e_i_t) )
@@ -1000,7 +997,6 @@ bool CSE_ValidityChecker::CheckAggrMod(const std::vector<const ID*>& ids,
 	return false;
 	}
 
-
 const Expr* non_reduced_perp;
 bool checking_reduction;
 
@@ -1012,5 +1008,4 @@ bool NonReduced(const Expr* perp)
 	return false;
 	}
 
-
-} // zeek::detail
+	} // zeek::detail

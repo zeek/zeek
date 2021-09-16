@@ -8,9 +8,11 @@
 
 #include <string.h>
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
-class IntSet {
+class IntSet
+	{
 public:
 	// n is a hint for the value of the largest integer.
 	explicit IntSet(unsigned int n = 1);
@@ -38,7 +40,7 @@ inline IntSet::IntSet(unsigned int n)
 
 inline IntSet::~IntSet()
 	{
-	delete [] set;
+	delete[] set;
 	}
 
 inline void IntSet::Insert(unsigned int i)
@@ -67,4 +69,4 @@ inline void IntSet::Clear()
 	memset(set, 0, size);
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

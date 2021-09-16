@@ -1,14 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <errno.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
-#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/CPP/Compile.h"
+#include "zeek/script_opt/ProfileFunc.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 using namespace std;
 
@@ -33,9 +33,9 @@ bool CPPCompile::CheckForCollisions()
 			if ( ht != ht_orig || hv != hv_orig )
 				{
 				fprintf(stderr, "%s: hash clash for global %s (%llu/%llu vs. %llu/%llu)\n",
-					working_dir.c_str(), gn.c_str(),
-					ht, hv, ht_orig, hv_orig);
-				fprintf(stderr, "val: %s\n", g->GetVal() ? obj_desc(g->GetVal().get()).c_str() : "<none>");
+				        working_dir.c_str(), gn.c_str(), ht, hv, ht_orig, hv_orig);
+				fprintf(stderr, "val: %s\n",
+				        g->GetVal() ? obj_desc(g->GetVal().get()).c_str() : "<none>");
 				return true;
 				}
 			}
@@ -67,8 +67,8 @@ bool CPPCompile::CheckForCollisions()
 			// No inconsistency.
 			continue;
 
-		fprintf(stderr, "%s: type \"%s\" collides with compiled global\n",
-			working_dir.c_str(), tn.c_str());
+		fprintf(stderr, "%s: type \"%s\" collides with compiled global\n", working_dir.c_str(),
+		        tn.c_str());
 		return true;
 		}
 
@@ -112,8 +112,8 @@ void CPPCompile::CreateGlobal(const ID* g)
 		auto exported = g->IsExport() ? "true" : "false";
 
 		AddInit(g, globals[gn],
-		        string("lookup_global__CPP(\"") + gn + "\", " +
-		        GenTypeName(t) + ", " + exported + ")");
+		        string("lookup_global__CPP(\"") + gn + "\", " + GenTypeName(t) + ", " + exported +
+		            ")");
 		}
 
 	if ( is_bif )
@@ -165,7 +165,7 @@ void CPPCompile::AddBiF(const ID* b, bool is_var)
 	auto bn = b->Name();
 	auto n = string(bn);
 	if ( is_var )
-		n = n + "_";	// make the name distinct
+		n = n + "_"; // make the name distinct
 
 	if ( AddGlobal(n, "bif", true) )
 		Emit("Func* %s;", globals[n]);
@@ -193,8 +193,7 @@ bool CPPCompile::AddGlobal(const string& g, const char* suffix, bool track)
 			new_var = true;
 
 			if ( track && update )
-				fprintf(hm.HashFile(), "global-var\n%s\n%d\n",
-					gn.c_str(), addl_tag);
+				fprintf(hm.HashFile(), "global-var\n%s\n%d\n", gn.c_str(), addl_tag);
 			}
 
 		globals.emplace(g, gn);
@@ -255,4 +254,4 @@ string CPPCompile::Canonicalize(const char* name) const
 	return cname + "_";
 	}
 
-} // zeek::detail
+	} // zeek::detail

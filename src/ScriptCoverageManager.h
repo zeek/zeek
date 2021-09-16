@@ -1,20 +1,22 @@
 #pragma once
 
-#include <map>
-#include <utility>
 #include <list>
+#include <map>
 #include <string>
+#include <utility>
 
 #include "zeek/util.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 class Stmt;
 
 /**
  * A simple class for managing stats of Bro script coverage across Bro runs.
  */
-class ScriptCoverageManager {
+class ScriptCoverageManager
+	{
 public:
 	ScriptCoverageManager();
 	virtual ~ScriptCoverageManager();
@@ -74,17 +76,20 @@ private:
 	 * A canonicalization routine for Stmt descriptions containing characters
 	 * that don't agree with the output format of ScriptCoverageManager.
 	 */
-	struct canonicalize_desc {
+	struct canonicalize_desc
+		{
 		char delim;
 
-		void operator() (char& c)
+		void operator()(char& c)
 			{
-			if ( c == '\n' ) c = ' ';
-			if ( c == delim ) c = ' ';
+			if ( c == '\n' )
+				c = ' ';
+			if ( c == delim )
+				c = ' ';
 			}
+		};
 	};
-};
 
 extern ScriptCoverageManager script_coverage_mgr;
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

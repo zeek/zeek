@@ -1,15 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/login/RSH.h"
 
-#include "zeek/NetVar.h"
 #include "zeek/Event.h"
+#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
-
 #include "zeek/analyzer/protocol/login/events.bif.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek::analyzer::login {
+namespace zeek::analyzer::login
+	{
 
 // FIXME: this code should probably be merged with Rlogin.cc.
 
@@ -29,9 +29,7 @@ Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(Connection* conn, bool orig,
 		}
 	}
 
-Contents_Rsh_Analyzer::~Contents_Rsh_Analyzer()
-	{
-	}
+Contents_Rsh_Analyzer::~Contents_Rsh_Analyzer() { }
 
 void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 	{
@@ -47,94 +45,93 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 
 		unsigned int c = data[0];
 
-		switch ( state ) {
-		case RSH_FIRST_NULL:
-			if ( endp_state == analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
-			     // We can be in closed if the data's due to
-			     // a dataful FIN being the first thing we see.
-			     endp_state == analyzer::tcp::TCP_ENDPOINT_CLOSED )
-				{
-				state = RSH_UNKNOWN;
-				++len, --data;	// put back c and reprocess
-				continue;
-				}
-
-			if ( c >= '0' && c <= '9' )
-				; // skip stderr port number
-			else if ( c == '\0' )
-				state = RSH_CLIENT_USER_NAME;
-			else
-				BadProlog();
-
-			break;
-
-		case RSH_CLIENT_USER_NAME:
-		case RSH_SERVER_USER_NAME:
-			buf[offset++] = c;
-			if ( c == '\0' )
-				{
-				if ( state == RSH_CLIENT_USER_NAME )
+		switch ( state )
+			{
+			case RSH_FIRST_NULL:
+				if ( endp_state == analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
+				     // We can be in closed if the data's due to
+				     // a dataful FIN being the first thing we see.
+				     endp_state == analyzer::tcp::TCP_ENDPOINT_CLOSED )
 					{
-					analyzer->ClientUserName((const char*) buf);
-					state = RSH_SERVER_USER_NAME;
+					state = RSH_UNKNOWN;
+					++len, --data; // put back c and reprocess
+					continue;
 					}
 
-				else if ( state == RSH_SERVER_USER_NAME &&
-					  offset > 1 )
-					{
-					analyzer->ServerUserName((const char*) buf);
-					save_state = state;
-					state = RSH_LINE_MODE;
-					}
-
-				offset = 0;
-				}
-			break;
-
-		case RSH_LINE_MODE:
-		case RSH_UNKNOWN:
-		case RSH_PRESUMED_REJECTED:
-			if ( state == RSH_PRESUMED_REJECTED )
-				{
-				Weird("rsh_text_after_rejected");
-				state = RSH_UNKNOWN;
-				}
-
-			if ( c == '\n' || c == '\r' )
-				{ // CR or LF (RFC 1282)
-				if ( c == '\n' && last_char == '\r' )
-					// Compress CRLF to just 1 termination.
-					;
+				if ( c >= '0' && c <= '9' )
+					; // skip stderr port number
+				else if ( c == '\0' )
+					state = RSH_CLIENT_USER_NAME;
 				else
+					BadProlog();
+
+				break;
+
+			case RSH_CLIENT_USER_NAME:
+			case RSH_SERVER_USER_NAME:
+				buf[offset++] = c;
+				if ( c == '\0' )
+					{
+					if ( state == RSH_CLIENT_USER_NAME )
+						{
+						analyzer->ClientUserName((const char*)buf);
+						state = RSH_SERVER_USER_NAME;
+						}
+
+					else if ( state == RSH_SERVER_USER_NAME && offset > 1 )
+						{
+						analyzer->ServerUserName((const char*)buf);
+						save_state = state;
+						state = RSH_LINE_MODE;
+						}
+
+					offset = 0;
+					}
+				break;
+
+			case RSH_LINE_MODE:
+			case RSH_UNKNOWN:
+			case RSH_PRESUMED_REJECTED:
+				if ( state == RSH_PRESUMED_REJECTED )
+					{
+					Weird("rsh_text_after_rejected");
+					state = RSH_UNKNOWN;
+					}
+
+				if ( c == '\n' || c == '\r' )
+					{ // CR or LF (RFC 1282)
+					if ( c == '\n' && last_char == '\r' )
+						// Compress CRLF to just 1 termination.
+						;
+					else
+						{
+						buf[offset] = '\0';
+						ForwardStream(offset, buf, IsOrig());
+						save_state = RSH_LINE_MODE;
+						offset = 0;
+						break;
+						}
+					}
+
+				if ( c == '\0' )
 					{
 					buf[offset] = '\0';
-					ForwardStream(offset, buf, IsOrig()); \
+					ForwardStream(offset, buf, IsOrig());
 					save_state = RSH_LINE_MODE;
 					offset = 0;
 					break;
 					}
-				}
 
-			if ( c == '\0' )
-				{
-				buf[offset] = '\0';
-				ForwardStream(offset, buf, IsOrig()); \
-				save_state = RSH_LINE_MODE;
-				offset = 0;
+				else
+					buf[offset++] = c;
+
+				last_char = c;
 				break;
-				}
 
-			else
-				buf[offset++] = c;
-
-			last_char = c;
-			break;
-
-		default:
-			reporter->AnalyzerError(
-				this, "bad state in Contents_Rsh_Analyzer::DoDeliver");
-			break;
-		}
+			default:
+				reporter->AnalyzerError(this, "bad state in Contents_Rsh_Analyzer::DoDeliver");
+				break;
+			}
 		}
 	}
 
@@ -144,8 +141,7 @@ void Contents_Rsh_Analyzer::BadProlog()
 	state = RSH_UNKNOWN;
 	}
 
-Rsh_Analyzer::Rsh_Analyzer(Connection* conn)
-: Login_Analyzer("RSH", conn)
+Rsh_Analyzer::Rsh_Analyzer(Connection* conn) : Login_Analyzer("RSH", conn)
 	{
 	contents_orig = new Contents_Rsh_Analyzer(conn, true, this);
 	contents_resp = new Contents_Rsh_Analyzer(conn, false, this);
@@ -170,7 +166,7 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	Args vl;
 	vl.reserve(4 + orig);
-	const char* line = (const char*) data;
+	const char* line = (const char*)data;
 	line = util::skip_whitespace(line);
 	vl.emplace_back(ConnVal());
 
@@ -223,4 +219,4 @@ void Rsh_Analyzer::ServerUserName(const char* s)
 	username = new StringVal(s);
 	}
 
-} // namespace zeek::analyzer::login
+	} // namespace zeek::analyzer::login

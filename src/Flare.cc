@@ -2,18 +2,16 @@
 
 #include "zeek/Flare.h"
 
-#include <unistd.h>
-#include <fcntl.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "zeek/Reporter.h"
 
-namespace zeek::detail {
-
-Flare::Flare()
-	: pipe(FD_CLOEXEC, FD_CLOEXEC, O_NONBLOCK, O_NONBLOCK)
+namespace zeek::detail
 	{
-	}
+
+Flare::Flare() : pipe(FD_CLOEXEC, FD_CLOEXEC, O_NONBLOCK, O_NONBLOCK) { }
 
 [[noreturn]] static void bad_pipe_op(const char* which, bool signal_safe)
 	{
@@ -36,7 +34,7 @@ void Flare::Fire(bool signal_safe)
 	{
 	char tmp = 0;
 
-	for ( ; ; )
+	for ( ;; )
 		{
 		int n = write(pipe.WriteFD(), &tmp, 1);
 
@@ -66,7 +64,7 @@ int Flare::Extinguish(bool signal_safe)
 	int rval = 0;
 	char tmp[256];
 
-	for ( ; ; )
+	for ( ;; )
 		{
 		int n = read(pipe.ReadFD(), &tmp, sizeof(tmp));
 
@@ -91,4 +89,4 @@ int Flare::Extinguish(bool signal_safe)
 	return rval;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

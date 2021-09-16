@@ -1,19 +1,23 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/input/ReaderBackend.h"
-#include "zeek/input/ReaderFrontend.h"
+
 #include "zeek/input/Manager.h"
+#include "zeek/input/ReaderFrontend.h"
 
-using zeek::threading::Value;
 using zeek::threading::Field;
+using zeek::threading::Value;
 
-namespace zeek::input {
+namespace zeek::input
+	{
 
-class PutMessage final : public threading::OutputMessage<ReaderFrontend> {
+class PutMessage final : public threading::OutputMessage<ReaderFrontend>
+	{
 public:
-	PutMessage(ReaderFrontend* reader, Value* *val)
-		: threading::OutputMessage<ReaderFrontend>("Put", reader),
-		val(val) {}
+	PutMessage(ReaderFrontend* reader, Value** val)
+		: threading::OutputMessage<ReaderFrontend>("Put", reader), val(val)
+		{
+		}
 
 	bool Process() override
 		{
@@ -22,28 +26,29 @@ public:
 		}
 
 private:
-	Value* *val;
-};
+	Value** val;
+	};
 
-class DeleteMessage final : public threading::OutputMessage<ReaderFrontend> {
+class DeleteMessage final : public threading::OutputMessage<ReaderFrontend>
+	{
 public:
-	DeleteMessage(ReaderFrontend* reader, Value* *val)
-		: threading::OutputMessage<ReaderFrontend>("Delete", reader),
-		val(val) {}
-
-	bool Process() override
+	DeleteMessage(ReaderFrontend* reader, Value** val)
+		: threading::OutputMessage<ReaderFrontend>("Delete", reader), val(val)
 		{
-		return input_mgr->Delete(Object(), val);
 		}
 
-private:
-	Value* *val;
-};
+	bool Process() override { return input_mgr->Delete(Object(), val); }
 
-class ClearMessage final : public threading::OutputMessage<ReaderFrontend> {
+private:
+	Value** val;
+	};
+
+class ClearMessage final : public threading::OutputMessage<ReaderFrontend>
+	{
 public:
-	ClearMessage(ReaderFrontend* reader)
-		: threading::OutputMessage<ReaderFrontend>("Clear", reader) {}
+	ClearMessage(ReaderFrontend* reader) : threading::OutputMessage<ReaderFrontend>("Clear", reader)
+		{
+		}
 
 	bool Process() override
 		{
@@ -52,33 +57,41 @@ public:
 		}
 
 private:
-};
+	};
 
 class ReaderErrorMessage final : public threading::OutputMessage<ReaderFrontend>
-{
+	{
 public:
-	enum Type {
-		INFO, WARNING, ERROR
-	};
+	enum Type
+		{
+		INFO,
+		WARNING,
+		ERROR
+		};
 
 	ReaderErrorMessage(ReaderFrontend* reader, Type arg_type, const char* arg_msg)
 		: threading::OutputMessage<ReaderFrontend>("ReaderErrorMessage", reader)
-		{ type = arg_type; msg = util::copy_string(arg_msg); }
+		{
+		type = arg_type;
+		msg = util::copy_string(arg_msg);
+		}
 
-	~ReaderErrorMessage() override 	 { delete [] msg; }
+	~ReaderErrorMessage() override { delete[] msg; }
 
 	bool Process() override;
 
 private:
 	const char* msg;
 	Type type;
-};
+	};
 
-class SendEntryMessage final : public threading::OutputMessage<ReaderFrontend> {
+class SendEntryMessage final : public threading::OutputMessage<ReaderFrontend>
+	{
 public:
-	SendEntryMessage(ReaderFrontend* reader, Value* *val)
-		: threading::OutputMessage<ReaderFrontend>("SendEntry", reader),
-		val(val) { }
+	SendEntryMessage(ReaderFrontend* reader, Value** val)
+		: threading::OutputMessage<ReaderFrontend>("SendEntry", reader), val(val)
+		{
+		}
 
 	bool Process() override
 		{
@@ -87,13 +100,16 @@ public:
 		}
 
 private:
-	Value* *val;
-};
+	Value** val;
+	};
 
-class EndCurrentSendMessage final : public threading::OutputMessage<ReaderFrontend> {
+class EndCurrentSendMessage final : public threading::OutputMessage<ReaderFrontend>
+	{
 public:
 	EndCurrentSendMessage(ReaderFrontend* reader)
-		: threading::OutputMessage<ReaderFrontend>("EndCurrentSend", reader) {}
+		: threading::OutputMessage<ReaderFrontend>("EndCurrentSend", reader)
+		{
+		}
 
 	bool Process() override
 		{
@@ -102,12 +118,15 @@ public:
 		}
 
 private:
-};
+	};
 
-class EndOfDataMessage final : public threading::OutputMessage<ReaderFrontend> {
+class EndOfDataMessage final : public threading::OutputMessage<ReaderFrontend>
+	{
 public:
 	EndOfDataMessage(ReaderFrontend* reader)
-		: threading::OutputMessage<ReaderFrontend>("EndOfData", reader) {}
+		: threading::OutputMessage<ReaderFrontend>("EndOfData", reader)
+		{
+		}
 
 	bool Process() override
 		{
@@ -116,12 +135,15 @@ public:
 		}
 
 private:
-};
+	};
 
-class ReaderClosedMessage final : public threading::OutputMessage<ReaderFrontend> {
+class ReaderClosedMessage final : public threading::OutputMessage<ReaderFrontend>
+	{
 public:
 	ReaderClosedMessage(ReaderFrontend* reader)
-		: threading::OutputMessage<ReaderFrontend>("ReaderClosed", reader) {}
+		: threading::OutputMessage<ReaderFrontend>("ReaderClosed", reader)
+		{
+		}
 
 	bool Process() override
 		{
@@ -130,13 +152,15 @@ public:
 		}
 
 private:
-};
+	};
 
 class DisableMessage final : public threading::OutputMessage<ReaderFrontend>
-{
+	{
 public:
 	DisableMessage(ReaderFrontend* writer)
-		: threading::OutputMessage<ReaderFrontend>("Disable", writer)	{}
+		: threading::OutputMessage<ReaderFrontend>("Disable", writer)
+		{
+		}
 
 	bool Process() override
 		{
@@ -149,28 +173,28 @@ public:
 		input_mgr->RemoveStream(Object());
 		return true;
 		}
-};
+	};
 
 bool ReaderErrorMessage::Process()
 	{
-	switch ( type ) {
+	switch ( type )
+		{
 
-	case INFO:
-		input_mgr->Info(Object(), msg);
-		break;
+		case INFO:
+			input_mgr->Info(Object(), msg);
+			break;
 
-	case WARNING:
-		input_mgr->Warning(Object(), msg);
-		break;
+		case WARNING:
+			input_mgr->Warning(Object(), msg);
+			break;
 
-	case ERROR:
-		input_mgr->Error(Object(), msg);
-		break;
-	}
+		case ERROR:
+			input_mgr->Error(Object(), msg);
+			break;
+		}
 
 	return true;
 	}
-
 
 using namespace input;
 
@@ -190,12 +214,12 @@ ReaderBackend::~ReaderBackend()
 	delete info;
 	}
 
-void ReaderBackend::Put(Value* *val)
+void ReaderBackend::Put(Value** val)
 	{
 	SendOut(new PutMessage(frontend, val));
 	}
 
-void ReaderBackend::Delete(Value* *val)
+void ReaderBackend::Delete(Value** val)
 	{
 	SendOut(new DeleteMessage(frontend, val));
 	}
@@ -215,13 +239,12 @@ void ReaderBackend::EndOfData()
 	SendOut(new EndOfDataMessage(frontend));
 	}
 
-void ReaderBackend::SendEntry(Value* *vals)
+void ReaderBackend::SendEntry(Value** vals)
 	{
 	SendOut(new SendEntryMessage(frontend, vals));
 	}
 
-bool ReaderBackend::Init(const int arg_num_fields,
-		         const threading::Field* const* arg_fields)
+bool ReaderBackend::Init(const int arg_num_fields, const threading::Field* const* arg_fields)
 	{
 	if ( Failed() )
 		return true;
@@ -256,9 +279,9 @@ bool ReaderBackend::OnFinish(double network_time)
 	if ( fields )
 		{
 		for ( unsigned int i = 0; i < num_fields; i++ )
-			delete(fields[i]);
+			delete (fields[i]);
 
-		delete [] (fields);
+		delete[](fields);
 		fields = nullptr;
 		}
 
@@ -307,7 +330,7 @@ void ReaderBackend::Info(const char* msg)
 	MsgThread::Info(msg);
 	}
 
-void ReaderBackend::FailWarn(bool is_error, const char *msg, bool suppress_future)
+void ReaderBackend::FailWarn(bool is_error, const char* msg, bool suppress_future)
 	{
 	if ( is_error )
 		Error(msg);
@@ -340,4 +363,4 @@ void ReaderBackend::Error(const char* msg)
 	DisableFrontend();
 	}
 
-} // namespace zeek::input
+	} // namespace zeek::input

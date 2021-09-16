@@ -3,9 +3,11 @@
 #pragma once
 
 #include <vector>
+
 #include "zeek/ZeekList.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class VectorVal;
 class RecordType;
@@ -37,4 +39,4 @@ Args val_list_to_args(const ValPList& vl);
  */
 VectorValPtr MakeCallArgumentVector(const Args& vals, const RecordTypePtr& types);
 
-} // namespace zeek
+	} // namespace zeek

@@ -2,35 +2,46 @@
 
 #pragma once
 
-#include <memory>
 #include <broker/expected.hh>
+#include <memory>
 
 #include "zeek/Hash.h"
 
-namespace broker { class data; }
+namespace broker
+	{
+class data;
+	}
 
-namespace zeek::probabilistic::detail {
+namespace zeek::probabilistic::detail
+	{
 
 /** Types of derived Hasher classes. */
-enum HasherType { Default, Double };
+enum HasherType
+	{
+	Default,
+	Double
+	};
 
 /**
  * Abstract base class for hashers. A hasher creates a family of hash
  * functions to hash an element *k* times.
  */
-class Hasher {
+class Hasher
+	{
 public:
 	typedef zeek::detail::hash_t digest;
 	typedef std::vector<digest> digest_vector;
-	struct seed_t {
+	struct seed_t
+		{
 		// actually HH_U64, which has the same type
 		alignas(16) unsigned long long h[2];
 
-		friend seed_t operator+(seed_t lhs, const uint64_t rhs) {
+		friend seed_t operator+(seed_t lhs, const uint64_t rhs)
+			{
 			lhs.h[0] += rhs;
 			return lhs;
-		}
-	};
+			}
+		};
 
 	/**
 	 * Creates a valid hasher seed from an arbitrary string.
@@ -58,11 +69,7 @@ public:
 	 *
 	 * @return Vector of *k* hash values.
 	 */
-	template <typename T>
-	digest_vector operator()(const T& x) const
-		{
-		return Hash(&x, sizeof(T));
-		}
+	template <typename T> digest_vector operator()(const T& x) const { return Hash(&x, sizeof(T)); }
 
 	/**
 	 * Computes hash values for an element.
@@ -98,12 +105,12 @@ public:
 	/**
 	 * Returns the number *k* of hash functions the hashers applies.
 	 */
-	size_t K() const	{ return k; }
+	size_t K() const { return k; }
 
 	/**
 	 * Returns the seed used to construct the hasher.
 	 */
-	seed_t Seed() const	{ return seed; }
+	seed_t Seed() const { return seed; }
 
 	broker::expected<broker::data> Serialize() const;
 	static std::unique_ptr<Hasher> Unserialize(const broker::data& data);
@@ -125,13 +132,14 @@ protected:
 private:
 	size_t k;
 	seed_t seed;
-};
+	};
 
 /**
  * A universal hash function family. This is a helper class that Hasher
  * implementations can use in their implementation.
  */
-class UHF {
+class UHF
+	{
 public:
 	/**
 	 * Default constructor with zero seed.
@@ -146,8 +154,7 @@ public:
 	 */
 	explicit UHF(Hasher::seed_t arg_seed);
 
-	template <typename T>
-	Hasher::digest operator()(const T& x) const
+	template <typename T> Hasher::digest operator()(const T& x) const
 		{
 		return hash(&x, sizeof(T));
 		}
@@ -159,10 +166,7 @@ public:
 	 *
 	 * @return Vector of *k* hash values.
 	 */
-	Hasher::digest operator()(const void* x, size_t n) const
-		{
-		return hash(x, n);
-		}
+	Hasher::digest operator()(const void* x, size_t n) const { return hash(x, n); }
 
 	/**
 	 * Computes the hashes for a set of bytes.
@@ -178,14 +182,10 @@ public:
 
 	friend bool operator==(const UHF& x, const UHF& y)
 		{
-		return (x.seed.h[0] == y.seed.h[0]) &&
-		       (x.seed.h[1] == y.seed.h[1]);
+		return (x.seed.h[0] == y.seed.h[0]) && (x.seed.h[1] == y.seed.h[1]);
 		}
 
-	friend bool operator!=(const UHF& x, const UHF& y)
-		{
-		return ! (x == y);
-		}
+	friend bool operator!=(const UHF& x, const UHF& y) { return ! (x == y); }
 
 	broker::expected<broker::data> Serialize() const;
 	static UHF Unserialize(const broker::data& data);
@@ -194,14 +194,14 @@ private:
 	static size_t compute_seed(Hasher::seed_t seed);
 
 	Hasher::seed_t seed;
-};
-
+	};
 
 /**
  * A hasher implementing the default hashing policy. Uses *k* separate hash
  * functions internally.
  */
-class DefaultHasher : public Hasher {
+class DefaultHasher : public Hasher
+	{
 public:
 	/**
 	 * Constructor for a hasher with *k* hash functions.
@@ -220,17 +220,17 @@ public:
 private:
 	DefaultHasher() { }
 
-	HasherType Type() const override
-		{ return HasherType::Default; }
+	HasherType Type() const override { return HasherType::Default; }
 
 	std::vector<UHF> hash_functions;
-};
+	};
 
 /**
  * The *double-hashing* policy. Uses a linear combination of two hash
  * functions.
  */
-class DoubleHasher : public Hasher {
+class DoubleHasher : public Hasher
+	{
 public:
 	/**
 	 * Constructor for a double hasher with *k* hash functions.
@@ -249,11 +249,10 @@ public:
 private:
 	DoubleHasher() { }
 
-	HasherType Type() const override
-		{ return HasherType::Double; }
+	HasherType Type() const override { return HasherType::Double; }
 
 	UHF h1;
 	UHF h2;
-};
+	};
 
-} // namespace zeek::probabilistic::detail
+	} // namespace zeek::probabilistic::detail

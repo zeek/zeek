@@ -5,10 +5,10 @@
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
 
-namespace zeek::iosource {
+namespace zeek::iosource
+	{
 
-Component::Component(const std::string& name)
-	: plugin::Component(plugin::component::IOSOURCE, name)
+Component::Component(const std::string& name) : plugin::Component(plugin::component::IOSOURCE, name)
 	{
 	}
 
@@ -17,11 +17,10 @@ Component::Component(plugin::component::Type type, const std::string& name)
 	{
 	}
 
-Component::~Component()
-	{
-	}
+Component::~Component() { }
 
-PktSrcComponent::PktSrcComponent(const std::string& arg_name, const std::string& arg_prefix, InputType arg_type, factory_callback arg_factory)
+PktSrcComponent::PktSrcComponent(const std::string& arg_name, const std::string& arg_prefix,
+                                 InputType arg_type, factory_callback arg_factory)
 	: Component(plugin::component::PKTSRC, arg_name)
 	{
 	util::tokenize_string(arg_prefix, ":", &prefixes);
@@ -29,9 +28,7 @@ PktSrcComponent::PktSrcComponent(const std::string& arg_name, const std::string&
 	factory = arg_factory;
 	}
 
-PktSrcComponent::~PktSrcComponent()
-	{
-	}
+PktSrcComponent::~PktSrcComponent() { }
 
 const std::vector<std::string>& PktSrcComponent::Prefixes() const
 	{
@@ -40,8 +37,7 @@ const std::vector<std::string>& PktSrcComponent::Prefixes() const
 
 bool PktSrcComponent::HandlesPrefix(const std::string& prefix) const
 	{
-	for ( std::vector<std::string>::const_iterator i = prefixes.begin();
-	      i != prefixes.end(); i++ )
+	for ( std::vector<std::string>::const_iterator i = prefixes.begin(); i != prefixes.end(); i++ )
 		{
 		if ( *i == prefix )
 			return true;
@@ -71,8 +67,7 @@ void PktSrcComponent::DoDescribe(ODesc* d) const
 
 	std::string prefs;
 
-	for ( std::vector<std::string>::const_iterator i = prefixes.begin();
-	      i != prefixes.end(); i++ )
+	for ( std::vector<std::string>::const_iterator i = prefixes.begin(); i != prefixes.end(); i++ )
 		{
 		if ( prefs.size() )
 			prefs += ", ";
@@ -88,35 +83,34 @@ void PktSrcComponent::DoDescribe(ODesc* d) const
 	d->Add(prefs);
 	d->Add("; supports ");
 
-	switch ( type ) {
-	case LIVE:
-		d->Add("live input");
-		break;
+	switch ( type )
+		{
+		case LIVE:
+			d->Add("live input");
+			break;
 
-	case TRACE:
-		d->Add("trace input");
-		break;
+		case TRACE:
+			d->Add("trace input");
+			break;
 
-	case BOTH:
-		d->Add("live and trace input");
-		break;
+		case BOTH:
+			d->Add("live and trace input");
+			break;
 
-	default:
-		reporter->InternalError("unknown PkrSrc type");
+		default:
+			reporter->InternalError("unknown PkrSrc type");
+		}
 	}
 
-	}
-
-PktDumperComponent::PktDumperComponent(const std::string& name, const std::string& arg_prefix, factory_callback arg_factory)
+PktDumperComponent::PktDumperComponent(const std::string& name, const std::string& arg_prefix,
+                                       factory_callback arg_factory)
 	: plugin::Component(plugin::component::PKTDUMPER, name)
 	{
 	util::tokenize_string(arg_prefix, ":", &prefixes);
 	factory = arg_factory;
 	}
 
-PktDumperComponent::~PktDumperComponent()
-	{
-	}
+PktDumperComponent::~PktDumperComponent() { }
 
 PktDumperComponent::factory_callback PktDumperComponent::Factory() const
 	{
@@ -130,8 +124,7 @@ const std::vector<std::string>& PktDumperComponent::Prefixes() const
 
 bool PktDumperComponent::HandlesPrefix(const std::string& prefix) const
 	{
-	for ( std::vector<std::string>::const_iterator i = prefixes.begin();
-	      i != prefixes.end(); i++ )
+	for ( std::vector<std::string>::const_iterator i = prefixes.begin(); i != prefixes.end(); i++ )
 		{
 		if ( *i == prefix )
 			return true;
@@ -146,8 +139,7 @@ void PktDumperComponent::DoDescribe(ODesc* d) const
 
 	std::string prefs;
 
-	for ( std::vector<std::string>::const_iterator i = prefixes.begin();
-	      i != prefixes.end(); i++ )
+	for ( std::vector<std::string>::const_iterator i = prefixes.begin(); i != prefixes.end(); i++ )
 		{
 		if ( prefs.size() )
 			prefs += ", ";
@@ -164,4 +156,4 @@ void PktDumperComponent::DoDescribe(ODesc* d) const
 	d->Add(prefs);
 	}
 
-} // namespace zeek::iosource
+	} // namespace zeek::iosource

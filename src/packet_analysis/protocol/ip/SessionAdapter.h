@@ -2,9 +2,13 @@
 
 #include "zeek/analyzer/Analyzer.h"
 
-namespace zeek::analyzer::pia { class PIA; }
+namespace zeek::analyzer::pia
+	{
+class PIA;
+	}
 
-namespace zeek::packet_analysis::IP {
+namespace zeek::packet_analysis::IP
+	{
 
 class IPBasedAnalyzer;
 
@@ -13,12 +17,11 @@ class IPBasedAnalyzer;
  * the session analysis framework. One of these should be implemented for each
  * packet analyzer that intends to forward into the session analysis.
  */
-class SessionAdapter : public analyzer::Analyzer {
+class SessionAdapter : public analyzer::Analyzer
+	{
 
 public:
-
-	SessionAdapter(const char* name, Connection* conn)
-		: analyzer::Analyzer(name, conn) { }
+	SessionAdapter(const char* name, Connection* conn) : analyzer::Analyzer(name, conn) { }
 
 	/**
 	 * Overridden from parent class.
@@ -76,13 +79,13 @@ public:
 	 * transport-layer input and determine which protocol analyzer(s) to
 	 * use for parsing it.
 	 */
-	void SetPIA(analyzer::pia::PIA* arg_PIA)	{ pia = arg_PIA; }
+	void SetPIA(analyzer::pia::PIA* arg_PIA) { pia = arg_PIA; }
 
 	/**
 	 * Returns the associated PIA, or null of none. Does not take
 	 * ownership.
 	 */
-	analyzer::pia::PIA* GetPIA() const		{ return pia; }
+	analyzer::pia::PIA* GetPIA() const { return pia; }
 
 	/**
 	 * Helper to raise a \c packet_contents event.
@@ -94,9 +97,8 @@ public:
 	void PacketContents(const u_char* data, int len);
 
 protected:
-
 	IPBasedAnalyzer* parent = nullptr;
 	analyzer::pia::PIA* pia = nullptr;
-};
+	};
 
-} // namespace zeek::packet_analysis::IP
+	} // namespace zeek::packet_analysis::IP

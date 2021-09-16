@@ -2,19 +2,23 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
 #include <string>
 
-namespace zeek {
+#include "zeek/zeek-config.h"
+
+namespace zeek
+	{
 
 class Packet;
 
-namespace iosource {
+namespace iosource
+	{
 
 /**
  * Base class for packet dumpers.
  */
-class PktDumper {
+class PktDumper
+	{
 public:
 	/**
 	 * Constructor.
@@ -92,10 +96,11 @@ protected:
 	 * Structure to pass back information about the packet dumper to the
 	 * base class. Derived class pass an instance of this to \a Opened().
 	 */
-	struct Properties {
+	struct Properties
+		{
 		std::string path;
 		double open_time;
-	};
+		};
 
 	/**
 	 * Called from the implementations of \a Open() to signal that the
@@ -133,7 +138,7 @@ private:
 	Properties props;
 
 	std::string errmsg;
-};
+	};
 
-} // namespace iosource
-} // namespace zeek
+	} // namespace iosource
+	} // namespace zeek

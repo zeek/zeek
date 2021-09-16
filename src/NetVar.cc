@@ -1,12 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/NetVar.h"
-#include "zeek/Var.h"
+
 #include "zeek/EventHandler.h"
-#include "zeek/Val.h"
 #include "zeek/ID.h"
+#include "zeek/Val.h"
+#include "zeek/Var.h"
+#include "zeek/zeek-config.h"
 
 zeek::RecordType* conn_id;
 zeek::RecordType* endpoint;
@@ -105,7 +105,8 @@ zeek::StringVal* cmd_line_bpf_filter;
 
 zeek::StringVal* global_hash_seed;
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 int watchdog_interval;
 
@@ -192,7 +193,8 @@ int record_all_packets;
 
 bro_uint_t bits_per_uid;
 
-} // namespace zeek::detail. The namespace has be closed here before we include the netvar_def files.
+	} // namespace zeek::detail. The namespace has be closed here before we include the netvar_def
+	  // files.
 
 // Because of how the BIF include files are built with namespaces already in them,
 // these files need to be included separately before the namespace is opened below.
@@ -205,9 +207,9 @@ static void bif_init_event_handlers()
 static void bif_init_net_var()
 	{
 #include "const.bif.netvar_init"
+#include "packet_analysis.bif.netvar_init"
 #include "reporter.bif.netvar_init"
 #include "supervisor.bif.netvar_init"
-#include "packet_analysis.bif.netvar_init"
 	}
 
 static void init_bif_types()
@@ -216,14 +218,15 @@ static void init_bif_types()
 	}
 
 #include "const.bif.netvar_def"
-#include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
+#include "packet_analysis.bif.netvar_def"
 #include "reporter.bif.netvar_def"
 #include "supervisor.bif.netvar_def"
-#include "packet_analysis.bif.netvar_def"
+#include "types.bif.netvar_def"
 
 // Re-open the namespace now that the bif headers are all included.
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 void init_event_handlers()
 	{
@@ -268,8 +271,10 @@ void init_net_var()
 	tcp_partial_close_delay = id::find_val("tcp_partial_close_delay")->AsInterval();
 
 	tcp_max_initial_window = id::find_val("tcp_max_initial_window")->AsCount();
-	tcp_max_above_hole_without_any_acks = id::find_val("tcp_max_above_hole_without_any_acks")->AsCount();
-	tcp_excessive_data_without_further_acks = id::find_val("tcp_excessive_data_without_further_acks")->AsCount();
+	tcp_max_above_hole_without_any_acks =
+		id::find_val("tcp_max_above_hole_without_any_acks")->AsCount();
+	tcp_excessive_data_without_further_acks =
+		id::find_val("tcp_excessive_data_without_further_acks")->AsCount();
 	tcp_max_old_segments = id::find_val("tcp_max_old_segments")->AsCount();
 
 	non_analyzed_lifetime = id::find_val("non_analyzed_lifetime")->AsInterval();
@@ -280,15 +285,11 @@ void init_net_var()
 	tcp_storm_thresh = id::find_val("tcp_storm_thresh")->AsCount();
 	tcp_storm_interarrival_thresh = id::find_val("tcp_storm_interarrival_thresh")->AsInterval();
 
-	tcp_content_deliver_all_orig =
-		bool(id::find_val("tcp_content_deliver_all_orig")->AsBool());
-	tcp_content_deliver_all_resp =
-		bool(id::find_val("tcp_content_deliver_all_resp")->AsBool());
+	tcp_content_deliver_all_orig = bool(id::find_val("tcp_content_deliver_all_orig")->AsBool());
+	tcp_content_deliver_all_resp = bool(id::find_val("tcp_content_deliver_all_resp")->AsBool());
 
-	udp_content_deliver_all_orig =
-		bool(id::find_val("udp_content_deliver_all_orig")->AsBool());
-	udp_content_deliver_all_resp =
-		bool(id::find_val("udp_content_deliver_all_resp")->AsBool());
+	udp_content_deliver_all_orig = bool(id::find_val("udp_content_deliver_all_orig")->AsBool());
+	udp_content_deliver_all_resp = bool(id::find_val("udp_content_deliver_all_resp")->AsBool());
 	udp_content_delivery_ports_use_resp =
 		bool(id::find_val("udp_content_delivery_ports_use_resp")->AsBool());
 
@@ -345,4 +346,4 @@ void init_net_var()
 	timer_mgr_inactivity_timeout = id::find_val("timer_mgr_inactivity_timeout")->AsInterval();
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

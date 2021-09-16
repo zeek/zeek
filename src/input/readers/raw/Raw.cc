@@ -2,33 +2,35 @@
 
 #include "zeek/input/readers/raw/Raw.h"
 
+#include <errno.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <signal.h>
-#include <stdlib.h>
 
 #include "zeek/input/readers/raw/Plugin.h"
+#include "zeek/input/readers/raw/raw.bif.h"
 #include "zeek/threading/SerialTypes.h"
 
-#include "zeek/input/readers/raw/raw.bif.h"
-
-extern "C" {
+extern "C"
+	{
 #include "zeek/setsignal.h"
-}
+	}
 
-using zeek::threading::Value;
 using zeek::threading::Field;
+using zeek::threading::Value;
 
-namespace zeek::input::reader::detail {
+namespace zeek::input::reader::detail
+	{
 
 const int Raw::block_size = 4096; // how big do we expect our chunks of data to be.
 
-Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend), file(nullptr, fclose), stderrfile(nullptr, fclose)
+Raw::Raw(ReaderFrontend* frontend)
+	: ReaderBackend(frontend), file(nullptr, fclose), stderrfile(nullptr, fclose)
 	{
 	execute = false;
 	firstrun = true;
@@ -36,8 +38,8 @@ Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend), file(nullptr, fclo
 	ino = 0;
 	forcekill = false;
 	offset = 0;
-	separator.assign( (const char*) BifConst::InputRaw::record_separator->Bytes(),
-			  BifConst::InputRaw::record_separator->Len());
+	separator.assign((const char*)BifConst::InputRaw::record_separator->Bytes(),
+	                 BifConst::InputRaw::record_separator->Len());
 
 	sep_length = BifConst::InputRaw::record_separator->Len();
 
@@ -98,7 +100,6 @@ bool Raw::SetFDFlags(int fd, int cmd, int flags)
 	return false;
 	}
 
-
 std::unique_lock<std::mutex> Raw::AcquireForkMutex()
 	{
 	auto lock = plugin::detail::Zeek_RawReader::plugin.ForkMutex();
@@ -128,7 +129,7 @@ bool Raw::Execute()
 	// w/ just 2 threads ~33% of the time).
 	auto lock = AcquireForkMutex();
 
-	if ( pipe(pipes) != 0 || pipe(pipes+2) || pipe(pipes+4) )
+	if ( pipe(pipes) != 0 || pipe(pipes + 2) || pipe(pipes + 4) )
 		{
 		Error(Fmt("Could not open pipe: %d", errno));
 		return false;
@@ -176,7 +177,7 @@ bool Raw::Execute()
 		// makes sense over pthread_sigmask() here.
 		sigprocmask(SIG_UNBLOCK, &mask, 0);
 
-		execl("/bin/sh", "sh", "-c", fname.c_str(), (char*) NULL);
+		execl("/bin/sh", "sh", "-c", fname.c_str(), (char*)NULL);
 		fprintf(stderr, "Exec failed :(......\n");
 		_exit(255);
 		}
@@ -243,7 +244,7 @@ bool Raw::Execute()
 		else
 			ClosePipeEnd(stderr_in);
 
-		file = std::unique_ptr<FILE, int(*)(FILE*)>(fdopen(pipes[stdout_in], "r"), fclose);
+		file = std::unique_ptr<FILE, int (*)(FILE*)>(fdopen(pipes[stdout_in], "r"), fclose);
 
 		if ( ! file )
 			{
@@ -255,7 +256,8 @@ bool Raw::Execute()
 
 		if ( use_stderr )
 			{
-			stderrfile = std::unique_ptr<FILE, int(*)(FILE*)>(fdopen(pipes[stderr_in], "r"), fclose);
+			stderrfile =
+				std::unique_ptr<FILE, int (*)(FILE*)>(fdopen(pipes[stderr_in], "r"), fclose);
 
 			if ( ! stderrfile )
 				{
@@ -277,7 +279,7 @@ bool Raw::OpenInput()
 
 	else
 		{
-		file = std::unique_ptr<FILE, int(*)(FILE*)>(fopen(fname.c_str(), "r"), fclose);
+		file = std::unique_ptr<FILE, int (*)(FILE*)>(fopen(fname.c_str(), "r"), fclose);
 		if ( ! file )
 			{
 			Error(Fmt("Init: cannot open %s", fname.c_str()));
@@ -288,18 +290,18 @@ bool Raw::OpenInput()
 			Warning(Fmt("Init: cannot set close-on-exec for %s", fname.c_str()));
 		}
 
-		if ( offset )
-			{
-			int whence = (offset >= 0) ? SEEK_SET : SEEK_END;
-			int64_t pos = (offset >= 0) ? offset : offset + 1; // we want -1 to be the end of the file
+	if ( offset )
+		{
+		int whence = (offset >= 0) ? SEEK_SET : SEEK_END;
+		int64_t pos = (offset >= 0) ? offset : offset + 1; // we want -1 to be the end of the file
 
-			if ( fseek(file.get(), pos, whence) < 0 )
-				{
-				char buf[256];
-				util::zeek_strerror_r(errno, buf, sizeof(buf));
-				Error(Fmt("Seek failed in init: %s", buf));
-				}
+		if ( fseek(file.get(), pos, whence) < 0 )
+			{
+			char buf[256];
+			util::zeek_strerror_r(errno, buf, sizeof(buf));
+			Error(Fmt("Seek failed in init: %s", buf));
 			}
+		}
 
 	return true;
 	}
@@ -308,8 +310,7 @@ bool Raw::CloseInput()
 	{
 	if ( ! file )
 		{
-		InternalWarning(Fmt("Trying to close closed file for stream %s",
-		                    fname.c_str()));
+		InternalWarning(Fmt("Trying to close closed file for stream %s", fname.c_str()));
 		return false;
 		}
 #ifdef DEBUG
@@ -323,7 +324,7 @@ bool Raw::CloseInput()
 
 	if ( execute )
 		{
-		for ( int i = 0; i < 6; i ++ )
+		for ( int i = 0; i < 6; i++ )
 			ClosePipeEnd(i);
 		}
 
@@ -358,7 +359,8 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		fname = source.substr(0, fname.length() - 1);
 		}
 
-	ReaderInfo::config_map::const_iterator it = info.config.find("stdin"); // data that is sent to the child process
+	ReaderInfo::config_map::const_iterator it =
+		info.config.find("stdin"); // data that is sent to the child process
 	if ( it != info.config.end() )
 		{
 		stdin_string = it->second;
@@ -379,23 +381,27 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		}
 
 	it = info.config.find("offset"); // we want to seek to a given offset inside the file
-	if ( it != info.config.end() && ! execute && (Info().mode == MODE_STREAM ||
-	                                              Info().mode == MODE_MANUAL) )
+	if ( it != info.config.end() && ! execute &&
+	     (Info().mode == MODE_STREAM || Info().mode == MODE_MANUAL) )
 		{
 		std::string offset_s = it->second;
 		offset = strtoll(offset_s.c_str(), 0, 10);
 		}
 	else if ( it != info.config.end() )
 		{
-		Error("Offset only is supported for MODE_STREAM and MODE_MANUAL; it is also not supported when executing a command");
+		Error("Offset only is supported for MODE_STREAM and MODE_MANUAL; it is also not supported "
+		      "when executing a command");
 		return false;
 		}
 
 	if ( num_fields != want_fields )
 		{
-		Error(Fmt("Filter for raw reader contains wrong number of fields -- got %d, expected %d. "
-		      "Filters for the raw reader contain one string field when used in normal mode and one string and one bool fields when using execute mode with stderr capuring. "
-		      "Filter ignored.", num_fields, want_fields));
+		Error(
+			Fmt("Filter for raw reader contains wrong number of fields -- got %d, expected %d. "
+		        "Filters for the raw reader contain one string field when used in normal mode and "
+		        "one string and one bool fields when using execute mode with stderr capuring. "
+		        "Filter ignored.",
+		        num_fields, want_fields));
 		return false;
 		}
 
@@ -416,7 +422,6 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		Error("Rereading only supported for files, not for executables.");
 		return false;
 		}
-
 
 	result = OpenInput();
 
@@ -449,9 +454,9 @@ int64_t Raw::GetLine(FILE* arg_file)
 
 	for ( ;; )
 		{
-		size_t readbytes = fread(buf.get()+bufpos+offset, 1, block_size-bufpos, arg_file);
+		size_t readbytes = fread(buf.get() + bufpos + offset, 1, block_size - bufpos, arg_file);
 		pos += bufpos + readbytes;
-		//printf("Pos: %d\n", pos);
+		// printf("Pos: %d\n", pos);
 		bufpos = offset = 0; // read full block size in next read...
 
 		if ( pos == 0 && errno != 0 )
@@ -460,8 +465,8 @@ int64_t Raw::GetLine(FILE* arg_file)
 		// researching everything each time is a bit... cpu-intensive. But otherwhise we have
 		// to deal with situations where the separator is multi-character and split over multiple
 		// reads...
-		int found = util::strstr_n(pos, (unsigned char*) buf.get(),
-		                           separator.size(), (unsigned char*) separator.c_str());
+		int found = util::strstr_n(pos, (unsigned char*)buf.get(), separator.size(),
+		                           (unsigned char*)separator.c_str());
 
 		if ( found == -1 )
 			{
@@ -479,11 +484,13 @@ int64_t Raw::GetLine(FILE* arg_file)
 				}
 
 			repeats++;
-			// bah, we cannot use realloc because we would have to change the delete in the manager to a free.
-			std::unique_ptr<char[]> newbuf = std::unique_ptr<char[]>(new char[block_size*repeats]);
-			memcpy(newbuf.get(), buf.get(), block_size*(repeats-1));
+			// bah, we cannot use realloc because we would have to change the delete in the manager
+			// to a free.
+			std::unique_ptr<char[]> newbuf =
+				std::unique_ptr<char[]>(new char[block_size * repeats]);
+			memcpy(newbuf.get(), buf.get(), block_size * (repeats - 1));
 			buf = std::move(newbuf);
-			offset = block_size*(repeats-1);
+			offset = block_size * (repeats - 1);
 			}
 		else
 			{
@@ -499,7 +506,6 @@ int64_t Raw::GetLine(FILE* arg_file)
 
 			return found;
 			}
-
 		}
 
 	if ( errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR )
@@ -525,7 +531,9 @@ void Raw::WriteToStdin()
 
 	if ( errno != 0 && errno != EAGAIN && errno != EWOULDBLOCK )
 		{
-		Error(Fmt("Writing to child process stdin failed: %d. Stopping writing at position %" PRIu64, errno, pos));
+		Error(
+			Fmt("Writing to child process stdin failed: %d. Stopping writing at position %" PRIu64,
+		        errno, pos));
 		stdin_towrite = 0;
 		}
 
@@ -534,10 +542,10 @@ void Raw::WriteToStdin()
 
 	if ( Info().mode == MODE_MANUAL && stdin_towrite != 0 )
 		{
-		Error(Fmt("Could not write whole string to stdin of child process in one go. Please use STREAM mode to pass more data to child."));
+		Error(Fmt("Could not write whole string to stdin of child process in one go. Please use "
+		          "STREAM mode to pass more data to child."));
 		}
 	}
-
 
 // read the entire file and send appropriate thingies back to InputMgr
 bool Raw::DoUpdate()
@@ -547,57 +555,58 @@ bool Raw::DoUpdate()
 
 	else
 		{
-		switch ( Info().mode  ) {
-		case MODE_REREAD:
+		switch ( Info().mode )
 			{
-			assert(childpid == -1); // mode may not be used to execute child programs
-			// check if the file has changed
-			struct stat sb;
-			if ( stat(fname.c_str(), &sb) == -1 )
-				{
-				Error(Fmt("Could not get stat for %s", fname.c_str()));
-				return false;
-				}
+			case MODE_REREAD:
+					{
+					assert(childpid == -1); // mode may not be used to execute child programs
+					// check if the file has changed
+					struct stat sb;
+					if ( stat(fname.c_str(), &sb) == -1 )
+						{
+						Error(Fmt("Could not get stat for %s", fname.c_str()));
+						return false;
+						}
 
-			if ( sb.st_ino == ino && sb.st_mtime == mtime )
-				// no change
-				return true;
+					if ( sb.st_ino == ino && sb.st_mtime == mtime )
+						// no change
+						return true;
 
-			mtime = sb.st_mtime;
-			ino = sb.st_ino;
-			// file changed. reread.
-			//
-			// fallthrough
-			}
+					mtime = sb.st_mtime;
+					ino = sb.st_ino;
+					// file changed. reread.
+					//
+					// fallthrough
+					}
 
-		case MODE_MANUAL:
-		case MODE_STREAM:
-			if ( Info().mode == MODE_STREAM && file )
-				{
-				clearerr(file.get());  // remove end of file evil bits
+			case MODE_MANUAL:
+			case MODE_STREAM:
+				if ( Info().mode == MODE_STREAM && file )
+					{
+					clearerr(file.get()); // remove end of file evil bits
+					break;
+					}
+
+				CloseInput();
+				if ( ! OpenInput() )
+					return false;
+
 				break;
-				}
 
-			CloseInput();
-			if ( ! OpenInput() )
-				return false;
-
-			break;
-
-		default:
-			assert(false);
-		}
+			default:
+				assert(false);
+			}
 		}
 
 	std::string line;
-	assert ( (NumFields() == 1 && !use_stderr) || (NumFields() == 2 && use_stderr));
+	assert((NumFields() == 1 && ! use_stderr) || (NumFields() == 2 && use_stderr));
 	for ( ;; )
 		{
 		if ( stdin_towrite > 0 )
 			WriteToStdin();
 
 		int64_t length = GetLine(file.get());
-		//printf("Read %lld bytes\n", length);
+		// printf("Read %lld bytes\n", length);
 
 		if ( length == -3 )
 			return false;
@@ -606,7 +615,8 @@ bool Raw::DoUpdate()
 			// no data ready or eof
 			break;
 
-		Value** fields = new Value*[2]; // just always reserve 2. This means that our [] is too long by a count of 1 if not using stderr. But who cares...
+		Value** fields = new Value*[2]; // just always reserve 2. This means that our [] is too long
+		                                // by a count of 1 if not using stderr. But who cares...
 
 		// filter has exactly one text field. convert to it.
 		Value* val = new Value(TYPE_STRING, true);
@@ -629,7 +639,7 @@ bool Raw::DoUpdate()
 		for ( ;; )
 			{
 			int64_t length = GetLine(stderrfile.get());
-			//printf("Read stderr %lld bytes\n", length);
+			// printf("Read stderr %lld bytes\n", length);
 			if ( length == -3 )
 				return false;
 
@@ -649,7 +659,7 @@ bool Raw::DoUpdate()
 			}
 		}
 
-	if ( ( Info().mode == MODE_MANUAL ) || ( Info().mode == MODE_REREAD ) )
+	if ( (Info().mode == MODE_MANUAL) || (Info().mode == MODE_REREAD) )
 		// done with the current data source
 		EndCurrentSend();
 
@@ -698,8 +708,6 @@ bool Raw::DoUpdate()
 		return false;
 		}
 
-
-
 #ifdef DEBUG
 	Debug(DBG_INPUT, "DoUpdate finished successfully");
 #endif
@@ -709,7 +717,8 @@ bool Raw::DoUpdate()
 
 bool Raw::DoHeartbeat(double network_time, double current_time)
 	{
-	switch ( Info().mode ) {
+	switch ( Info().mode )
+		{
 		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
@@ -719,17 +728,17 @@ bool Raw::DoHeartbeat(double network_time, double current_time)
 #ifdef DEBUG
 			Debug(DBG_INPUT, "Starting Heartbeat update");
 #endif
-			Update();	// call update and not DoUpdate, because update
-					// checks disabled.
+			Update(); // call update and not DoUpdate, because update
+			          // checks disabled.
 #ifdef DEBUG
 			Debug(DBG_INPUT, "Finished with heartbeat update");
 #endif
 			break;
 		default:
 			assert(false);
-	}
+		}
 
 	return true;
 	}
 
-} // namespace zeek::input::reader::detail
+	} // namespace zeek::input::reader::detail

@@ -1,11 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Options.h"
-#include "zeek/script_opt/ScriptOpt.h"
 
 #include <unistd.h>
+
+#include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/zeek-config.h"
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -19,7 +19,8 @@
 #include "zeek/bsd-getopt-long.h"
 #include "zeek/logging/writers/ascii/Ascii.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 void Options::filter_supervisor_options()
 	{
@@ -84,22 +85,30 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
 	fprintf(stderr, "usage: %s --test [doctest-options] -- [options] [file ...]\n", prog);
 	fprintf(stderr, "    <file>                         | Zeek script file, or read stdin\n");
-	fprintf(stderr, "    -a|--parse-only                | exit immediately after parsing scripts\n");
-	fprintf(stderr, "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
+	fprintf(stderr,
+	        "    -a|--parse-only                | exit immediately after parsing scripts\n");
+	fprintf(stderr,
+	        "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
 	fprintf(stderr, "    -d|--debug-script              | activate Zeek script debugging\n");
 	fprintf(stderr, "    -e|--exec <zeek code>          | augment loaded scripts by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
 	fprintf(stderr, "    -h|--help                      | command line help\n");
-	fprintf(stderr, "    -i|--iface <interface>         | read from given interface (only one allowed)\n");
-	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to Zeek script file resolution\n");
-	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file (only one allowed, pass '-' as the filename to read from stdin)\n");
+	fprintf(stderr,
+	        "    -i|--iface <interface>         | read from given interface (only one allowed)\n");
+	fprintf(
+		stderr,
+		"    -p|--prefix <prefix>           | add given prefix to Zeek script file resolution\n");
+	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file (only one "
+	                "allowed, pass '-' as the filename to read from stdin)\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
-	fprintf(stderr, "    -u|--usage-issues              | find variable usage issues and exit; use -uu for deeper/more expensive analysis\n");
+	fprintf(stderr, "    -u|--usage-issues              | find variable usage issues and exit; use "
+	                "-uu for deeper/more expensive analysis\n");
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
 	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
 #ifdef DEBUG
-	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams ('-B help' for help)\n");
+	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected "
+	                "streams ('-B help' for help)\n");
 #endif
 	fprintf(stderr, "    -C|--no-checksums              | ignore checksums\n");
 	fprintf(stderr, "    -D|--deterministic             | initialize random seeds to zero\n");
@@ -107,35 +116,57 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    -G|--load-seeds <file>         | load seeds from given file\n");
 	fprintf(stderr, "    -H|--save-seeds <file>         | save seeds to given file\n");
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
-	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
-	fprintf(stderr, "    -O|--optimize[=<option>]       | enable script optimization (use -O help for options)\n");
-	fprintf(stderr, "    -o|--optimize-only=<func>      | enable script optimization only for the given function\n");
+	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN "
+	                "for verbose)\n");
+	fprintf(stderr, "    -O|--optimize[=<option>]       | enable script optimization (use -O help "
+	                "for options)\n");
+	fprintf(stderr, "    -o|--optimize-only=<func>      | enable script optimization only for the "
+	                "given function\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
-	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
+	fprintf(stderr,
+	        "    -Q|--time                      | print execution time summary to stderr\n");
 	fprintf(stderr, "    -S|--debug-rules               | enable rule debugging\n");
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
-	fprintf(stderr, "    -X|--zeekygen <cfgfile>        | generate documentation based on config file\n");
+	fprintf(stderr,
+	        "    -X|--zeekygen <cfgfile>        | generate documentation based on config file\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
 	fprintf(stderr, "    -M|--mem-profile               | record heap [perftools]\n");
 #endif
-	fprintf(stderr, "    --pseudo-realtime[=<speedup>]  | enable pseudo-realtime for performance evaluation (default 1)\n");
+	fprintf(stderr, "    --pseudo-realtime[=<speedup>]  | enable pseudo-realtime for performance "
+	                "evaluation (default 1)\n");
 	fprintf(stderr, "    -j|--jobs                      | enable supervisor mode\n");
-	fprintf(stderr, "    --test                         | run unit tests ('--test -h' for help, only when compiling with ENABLE_ZEEK_UNIT_TESTS)\n");
-	fprintf(stderr, "    $ZEEKPATH                      | file search path (%s)\n", util::zeek_path().c_str());
-	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n", util::zeek_plugin_path());
-	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE          | plugins to always activate (%s)\n", util::zeek_plugin_activate());
-	fprintf(stderr, "    $ZEEK_PREFIXES                 | prefix list (%s)\n", util::zeek_prefixes().c_str());
-	fprintf(stderr, "    $ZEEK_DNS_FAKE                 | disable DNS lookups (%s)\n", fake_dns() ? "on" : "off");
+	fprintf(stderr, "    --test                         | run unit tests ('--test -h' for help, "
+	                "only when compiling with ENABLE_ZEEK_UNIT_TESTS)\n");
+	fprintf(stderr, "    $ZEEKPATH                      | file search path (%s)\n",
+	        util::zeek_path().c_str());
+	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n",
+	        util::zeek_plugin_path());
+	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE          | plugins to always activate (%s)\n",
+	        util::zeek_plugin_activate());
+	fprintf(stderr, "    $ZEEK_PREFIXES                 | prefix list (%s)\n",
+	        util::zeek_prefixes().c_str());
+	fprintf(stderr, "    $ZEEK_DNS_FAKE                 | disable DNS lookups (%s)\n",
+	        fake_dns() ? "on" : "off");
 	fprintf(stderr, "    $ZEEK_SEED_FILE                | file to load seeds from (not set)\n");
-	fprintf(stderr, "    $ZEEK_LOG_SUFFIX               | ASCII log file extension (.%s)\n", logging::writer::detail::Ascii::LogExt().c_str());
-	fprintf(stderr, "    $ZEEK_PROFILER_FILE            | Output file for script execution statistics (not set)\n");
-	fprintf(stderr, "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n", getenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
-	fprintf(stderr, "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n", getenv("ZEEK_DNS_RESOLVER") ? getenv("ZEEK_DNS_RESOLVER") : "not set, will use first IPv4 address from /etc/resolv.conf");
-	fprintf(stderr, "    $ZEEK_DEBUG_LOG_STDERR         | Use stderr for debug logs generated via the -B flag");
+	fprintf(stderr, "    $ZEEK_LOG_SUFFIX               | ASCII log file extension (.%s)\n",
+	        logging::writer::detail::Ascii::LogExt().c_str());
+	fprintf(stderr, "    $ZEEK_PROFILER_FILE            | Output file for script execution "
+	                "statistics (not set)\n");
+	fprintf(stderr,
+	        "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n",
+	        getenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
+	fprintf(stderr,
+	        "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n",
+	        getenv("ZEEK_DNS_RESOLVER")
+	            ? getenv("ZEEK_DNS_RESOLVER")
+	            : "not set, will use first IPv4 address from /etc/resolv.conf");
+	fprintf(
+		stderr,
+		"    $ZEEK_DEBUG_LOG_STDERR         | Use stderr for debug logs generated via the -B flag");
 
 	fprintf(stderr, "\n");
 
@@ -152,7 +183,8 @@ static void print_analysis_help()
 	fprintf(stderr, "    dump-uds	dump use-defs to stdout; implies xform\n");
 	fprintf(stderr, "    dump-xform	dump transformed scripts to stdout; implies xform\n");
 	fprintf(stderr, "    dump-ZAM	dump generated ZAM code; implies gen-ZAM-code\n");
-	fprintf(stderr, "    gen-ZAM-code	generate ZAM code (without turning on additional optimizations)\n");
+	fprintf(stderr,
+	        "    gen-ZAM-code	generate ZAM code (without turning on additional optimizations)\n");
 	fprintf(stderr, "    inline	inline function calls\n");
 	fprintf(stderr, "    no-ZAM-opt	omit low-level ZAM optimization\n");
 	fprintf(stderr, "    optimize-all	optimize all scripts, even inlined ones\n");
@@ -229,8 +261,7 @@ static void set_analysis_option(const char* opt, Options& opts)
 
 	else
 		{
-		fprintf(stderr,"zeek: unrecognized -O/--optimize option: %s\n\n",
-		        opt);
+		fprintf(stderr, "zeek: unrecognized -O/--optimize option: %s\n\n", opt);
 		print_analysis_help();
 		exit(1);
 		}
@@ -251,17 +282,17 @@ Options parse_cmdline(int argc, char** argv)
 
 	if ( argc > 1 && strcmp(argv[1], "--test") == 0 )
 		{
-		#ifdef DOCTEST_CONFIG_DISABLE
+#ifdef DOCTEST_CONFIG_DISABLE
 		fprintf(stderr, "ERROR: C++ unit tests are disabled for this build.\n"
 		                "       Please re-compile with ENABLE_ZEEK_UNIT_TESTS "
-		                       "to run the C++ unit tests.\n");
+		                "to run the C++ unit tests.\n");
 		usage(argv[0], 1);
-		#endif
+#endif
 
 		auto is_separator = [](const char* cstr)
-			{
+		{
 			return strcmp(cstr, "--") == 0;
-			};
+		};
 		auto first = argv;
 		auto last = argv + argc;
 		auto separator = std::find_if(first, last, is_separator);
@@ -285,9 +316,10 @@ Options parse_cmdline(int argc, char** argv)
 		if ( argc > 1 )
 			{
 			auto endsWith = [](const std::string& str, const std::string& suffix)
-				{
-				return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
-				};
+			{
+				return str.size() >= suffix.size() &&
+				       0 == str.compare(str.size() - suffix.size(), suffix.size(), suffix);
+			};
 
 			auto i = 0;
 			for ( ; i < argc && ! endsWith(argv[i], "--"); ++i )
@@ -327,53 +359,53 @@ Options parse_cmdline(int argc, char** argv)
 		}
 
 	constexpr struct option long_opts[] = {
-		{"parse-only",	no_argument,		nullptr,	'a'},
-		{"bare-mode",	no_argument,		nullptr,	'b'},
-		{"debug-script",	no_argument,		nullptr,	'd'},
-		{"exec",		required_argument,	nullptr,	'e'},
-		{"filter",		required_argument,	nullptr,	'f'},
-		{"help",		no_argument,		nullptr,	'h'},
-		{"iface",		required_argument,	nullptr,	'i'},
-		{"zeekygen",		required_argument,		nullptr,	'X'},
-		{"prefix",		required_argument,	nullptr,	'p'},
-		{"readfile",		required_argument,	nullptr,	'r'},
-		{"rulefile",		required_argument,	nullptr,	's'},
-		{"tracefile",		required_argument,	nullptr,	't'},
-		{"writefile",		required_argument,	nullptr,	'w'},
-		{"usage-issues",	no_argument,		nullptr,	'u'},
-		{"version",		no_argument,		nullptr,	'v'},
-		{"no-checksums",	no_argument,		nullptr,	'C'},
-		{"force-dns",		no_argument,		nullptr,	'F'},
-		{"deterministic",		no_argument,	nullptr,	'D'},
-		{"load-seeds",		required_argument,	nullptr,	'G'},
-		{"save-seeds",		required_argument,	nullptr,	'H'},
-		{"print-plugins",	no_argument,		nullptr,	'N'},
-		{"optimize",		required_argument,	nullptr,	'O'},
-		{"optimize-only",	required_argument,	nullptr,	'o'},
-		{"prime-dns",		no_argument,		nullptr,	'P'},
-		{"time",		no_argument,		nullptr,	'Q'},
-		{"debug-rules",		no_argument,		nullptr,	'S'},
-		{"re-level",		required_argument,	nullptr,	'T'},
-		{"watchdog",		no_argument,		nullptr,	'W'},
-		{"print-id",		required_argument,	nullptr,	'I'},
-		{"status-file",		required_argument,	nullptr,	'U'},
-		{"debug",		required_argument,	nullptr,	'B'},
+		{"parse-only", no_argument, nullptr, 'a'},
+		{"bare-mode", no_argument, nullptr, 'b'},
+		{"debug-script", no_argument, nullptr, 'd'},
+		{"exec", required_argument, nullptr, 'e'},
+		{"filter", required_argument, nullptr, 'f'},
+		{"help", no_argument, nullptr, 'h'},
+		{"iface", required_argument, nullptr, 'i'},
+		{"zeekygen", required_argument, nullptr, 'X'},
+		{"prefix", required_argument, nullptr, 'p'},
+		{"readfile", required_argument, nullptr, 'r'},
+		{"rulefile", required_argument, nullptr, 's'},
+		{"tracefile", required_argument, nullptr, 't'},
+		{"writefile", required_argument, nullptr, 'w'},
+		{"usage-issues", no_argument, nullptr, 'u'},
+		{"version", no_argument, nullptr, 'v'},
+		{"no-checksums", no_argument, nullptr, 'C'},
+		{"force-dns", no_argument, nullptr, 'F'},
+		{"deterministic", no_argument, nullptr, 'D'},
+		{"load-seeds", required_argument, nullptr, 'G'},
+		{"save-seeds", required_argument, nullptr, 'H'},
+		{"print-plugins", no_argument, nullptr, 'N'},
+		{"optimize", required_argument, nullptr, 'O'},
+		{"optimize-only", required_argument, nullptr, 'o'},
+		{"prime-dns", no_argument, nullptr, 'P'},
+		{"time", no_argument, nullptr, 'Q'},
+		{"debug-rules", no_argument, nullptr, 'S'},
+		{"re-level", required_argument, nullptr, 'T'},
+		{"watchdog", no_argument, nullptr, 'W'},
+		{"print-id", required_argument, nullptr, 'I'},
+		{"status-file", required_argument, nullptr, 'U'},
+		{"debug", required_argument, nullptr, 'B'},
 
-#ifdef	USE_PERFTOOLS_DEBUG
-		{"mem-leaks",	no_argument,		nullptr,	'm'},
-		{"mem-profile",	no_argument,		nullptr,	'M'},
+#ifdef USE_PERFTOOLS_DEBUG
+		{"mem-leaks", no_argument, nullptr, 'm'},
+		{"mem-profile", no_argument, nullptr, 'M'},
 #endif
 
-		{"pseudo-realtime",	optional_argument, nullptr,	'E'},
-		{"jobs",	optional_argument, nullptr,	'j'},
-		{"test",		no_argument,		nullptr,	'#'},
+		{"pseudo-realtime", optional_argument, nullptr, 'E'},
+		{"jobs", optional_argument, nullptr, 'j'},
+		{"test", no_argument, nullptr, '#'},
 
-		{nullptr,			0,			nullptr,	0},
+		{nullptr, 0, nullptr, 0},
 	};
 
 	char opts[256];
 	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuv",
-	                         sizeof(opts));
+	                   sizeof(opts));
 
 	int op;
 	int long_optsind;
@@ -385,178 +417,180 @@ Options parse_cmdline(int argc, char** argv)
 	for ( size_t i = 0; i < zeek_args.size(); ++i )
 		zargs[i] = zeek_args[i].data();
 
-	while ( (op = getopt_long(zeek_args.size(), zargs.get(), opts, long_opts, &long_optsind)) != EOF )
-		switch ( op ) {
-		case 'a':
-			rval.parse_only = true;
-			break;
-		case 'b':
-			rval.bare_mode = true;
-			break;
-		case 'd':
-			rval.debug_scripts = true;
-			break;
-		case 'e':
-			rval.script_code_to_exec = optarg;
-			break;
-		case 'f':
-			rval.pcap_filter = optarg;
-			break;
-		case 'h':
-			rval.print_usage = true;
-			break;
-		case 'i':
-			if ( rval.interface )
-				{
-				fprintf(stderr, "ERROR: Only a single interface option (-i) is allowed.\n");
-				exit(1);
-				}
-
-			if ( rval.pcap_file )
-				{
-				fprintf(stderr, "ERROR: Using -i is not allow when reading a pcap file.\n");
-				exit(1);
-				}
-
-			rval.interface = optarg;
-			break;
-		case 'j':
-			rval.supervisor_mode = true;
-			if ( optarg )
-				{
-				// TODO: for supervised offline pcap reading, the argument is
-				// expected to be number of workers like "-j 4" or possibly a
-				// list of worker/proxy/logger counts like "-j 4,2,1"
-				}
-			break;
-		case 'p':
-			rval.script_prefixes.emplace_back(optarg);
-			break;
-		case 'r':
-			if ( rval.pcap_file )
-				{
-				fprintf(stderr, "ERROR: Only a single readfile option (-r) is allowed.\n");
-				exit(1);
-				}
-
-			if ( rval.interface )
-				{
-				fprintf(stderr, "Using -r is not allowed when reading a live interface.\n");
-				exit(1);
-				}
-
-			rval.pcap_file = optarg;
-			break;
-		case 's':
-			rval.signature_files.emplace_back(optarg);
-			break;
-		case 't':
-			rval.debug_script_tracing_file = optarg;
-			break;
-		case 'u':
-			++rval.analysis_options.usage_issues;
-			break;
-		case 'v':
-			rval.print_version = true;
-			break;
-		case 'w':
-			rval.pcap_output_file = optarg;
-			break;
-
-		case 'B':
-#ifdef DEBUG
-			rval.debug_log_streams = optarg;
-#else
-			if ( util::streq(optarg, "help") )
-				{
-					fprintf(stderr,"debug streams unavailable\n");
+	while ( (op = getopt_long(zeek_args.size(), zargs.get(), opts, long_opts, &long_optsind)) !=
+	        EOF )
+		switch ( op )
+			{
+			case 'a':
+				rval.parse_only = true;
+				break;
+			case 'b':
+				rval.bare_mode = true;
+				break;
+			case 'd':
+				rval.debug_scripts = true;
+				break;
+			case 'e':
+				rval.script_code_to_exec = optarg;
+				break;
+			case 'f':
+				rval.pcap_filter = optarg;
+				break;
+			case 'h':
+				rval.print_usage = true;
+				break;
+			case 'i':
+				if ( rval.interface )
+					{
+					fprintf(stderr, "ERROR: Only a single interface option (-i) is allowed.\n");
 					exit(1);
-				}
-#endif
-			break;
+					}
 
-		case 'C':
-			rval.ignore_checksums = true;
-			break;
-		case 'D':
-			rval.deterministic_mode = true;
-			break;
-		case 'E':
-			rval.pseudo_realtime = 1.0;
-			if ( optarg )
-				rval.pseudo_realtime = atof(optarg);
-			break;
-		case 'F':
-			if ( rval.dns_mode != detail::DNS_DEFAULT )
-				usage(zargs[0], 1);
-			rval.dns_mode = detail::DNS_FORCE;
-			break;
-		case 'G':
-			rval.random_seed_input_file = optarg;
-			break;
-		case 'H':
-			rval.random_seed_output_file = optarg;
-			break;
-		case 'I':
-			rval.identifier_to_print = optarg;
-			break;
-		case 'N':
-			++rval.print_plugins;
-			break;
-		case 'O':
-			set_analysis_option(optarg, rval);
-			break;
-		case 'o':
-			rval.analysis_options.only_func = optarg;
-			break;
-		case 'P':
-			if ( rval.dns_mode != detail::DNS_DEFAULT )
-				usage(zargs[0], 1);
-			rval.dns_mode = detail::DNS_PRIME;
-			break;
-		case 'Q':
-			rval.print_execution_time = true;
-			break;
-		case 'S':
-			rval.print_signature_debug_info = true;
-			break;
-		case 'T':
-			rval.signature_re_level = atoi(optarg);
-			break;
-		case 'U':
-			rval.process_status_file = optarg;
-			break;
-		case 'W':
-			rval.use_watchdog = true;
-			break;
-		case 'X':
-			rval.zeekygen_config_file = optarg;
-			break;
+				if ( rval.pcap_file )
+					{
+					fprintf(stderr, "ERROR: Using -i is not allow when reading a pcap file.\n");
+					exit(1);
+					}
+
+				rval.interface = optarg;
+				break;
+			case 'j':
+				rval.supervisor_mode = true;
+				if ( optarg )
+					{
+					// TODO: for supervised offline pcap reading, the argument is
+					// expected to be number of workers like "-j 4" or possibly a
+					// list of worker/proxy/logger counts like "-j 4,2,1"
+					}
+				break;
+			case 'p':
+				rval.script_prefixes.emplace_back(optarg);
+				break;
+			case 'r':
+				if ( rval.pcap_file )
+					{
+					fprintf(stderr, "ERROR: Only a single readfile option (-r) is allowed.\n");
+					exit(1);
+					}
+
+				if ( rval.interface )
+					{
+					fprintf(stderr, "Using -r is not allowed when reading a live interface.\n");
+					exit(1);
+					}
+
+				rval.pcap_file = optarg;
+				break;
+			case 's':
+				rval.signature_files.emplace_back(optarg);
+				break;
+			case 't':
+				rval.debug_script_tracing_file = optarg;
+				break;
+			case 'u':
+				++rval.analysis_options.usage_issues;
+				break;
+			case 'v':
+				rval.print_version = true;
+				break;
+			case 'w':
+				rval.pcap_output_file = optarg;
+				break;
+
+			case 'B':
+#ifdef DEBUG
+				rval.debug_log_streams = optarg;
+#else
+				if ( util::streq(optarg, "help") )
+					{
+					fprintf(stderr, "debug streams unavailable\n");
+					exit(1);
+					}
+#endif
+				break;
+
+			case 'C':
+				rval.ignore_checksums = true;
+				break;
+			case 'D':
+				rval.deterministic_mode = true;
+				break;
+			case 'E':
+				rval.pseudo_realtime = 1.0;
+				if ( optarg )
+					rval.pseudo_realtime = atof(optarg);
+				break;
+			case 'F':
+				if ( rval.dns_mode != detail::DNS_DEFAULT )
+					usage(zargs[0], 1);
+				rval.dns_mode = detail::DNS_FORCE;
+				break;
+			case 'G':
+				rval.random_seed_input_file = optarg;
+				break;
+			case 'H':
+				rval.random_seed_output_file = optarg;
+				break;
+			case 'I':
+				rval.identifier_to_print = optarg;
+				break;
+			case 'N':
+				++rval.print_plugins;
+				break;
+			case 'O':
+				set_analysis_option(optarg, rval);
+				break;
+			case 'o':
+				rval.analysis_options.only_func = optarg;
+				break;
+			case 'P':
+				if ( rval.dns_mode != detail::DNS_DEFAULT )
+					usage(zargs[0], 1);
+				rval.dns_mode = detail::DNS_PRIME;
+				break;
+			case 'Q':
+				rval.print_execution_time = true;
+				break;
+			case 'S':
+				rval.print_signature_debug_info = true;
+				break;
+			case 'T':
+				rval.signature_re_level = atoi(optarg);
+				break;
+			case 'U':
+				rval.process_status_file = optarg;
+				break;
+			case 'W':
+				rval.use_watchdog = true;
+				break;
+			case 'X':
+				rval.zeekygen_config_file = optarg;
+				break;
 
 #ifdef USE_PERFTOOLS_DEBUG
-		case 'm':
-			rval.perftools_check_leaks = 1;
-			break;
-		case 'M':
-			rval.perftools_profile = 1;
-			break;
+			case 'm':
+				rval.perftools_check_leaks = 1;
+				break;
+			case 'M':
+				rval.perftools_profile = 1;
+				break;
 #endif
 
-		case '#':
-			fprintf(stderr, "ERROR: --test only allowed as first argument.\n");
-			usage(zargs[0], 1);
-			break;
+			case '#':
+				fprintf(stderr, "ERROR: --test only allowed as first argument.\n");
+				usage(zargs[0], 1);
+				break;
 
-		case 0:
-			// This happens for long options that don't have
-			// a short-option equivalent.
-			break;
+			case 0:
+				// This happens for long options that don't have
+				// a short-option equivalent.
+				break;
 
-		case '?':
-		default:
-			usage(zargs[0], 1);
-			break;
-		}
+			case '?':
+			default:
+				usage(zargs[0], 1);
+				break;
+			}
 
 	// Process remaining arguments. X=Y arguments indicate script
 	// variable/parameter assignments. X::Y arguments indicate plugins to
@@ -572,7 +606,7 @@ Options parse_cmdline(int argc, char** argv)
 		}
 
 	auto canonify_script_path = [](std::string* path)
-		{
+	{
 		if ( path->empty() )
 			return;
 
@@ -605,13 +639,12 @@ Options parse_cmdline(int argc, char** argv)
 
 		if ( ! getcwd(cwd, sizeof(cwd)) )
 			{
-			fprintf(stderr, "failed to get current directory: %s\n",
-			        strerror(errno));
+			fprintf(stderr, "failed to get current directory: %s\n", strerror(errno));
 			exit(1);
 			}
 
 		*path = std::string(cwd) + "/" + *path;
-		};
+	};
 
 	if ( rval.supervisor_mode )
 		{
@@ -625,4 +658,4 @@ Options parse_cmdline(int argc, char** argv)
 	return rval;
 	}
 
-} // namespace zeek
+	} // namespace zeek

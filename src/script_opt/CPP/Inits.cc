@@ -1,16 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <errno.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "zeek/module_util.h"
-#include "zeek/script_opt/ProfileFunc.h"
-#include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/CPP/Compile.h"
+#include "zeek/script_opt/IDOptInfo.h"
+#include "zeek/script_opt/ProfileFunc.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 using namespace std;
 
@@ -36,7 +36,9 @@ void CPPCompile::GenInitExpr(const ExprPtr& e)
 	Emit("%s_cl() : CPPFunc(\"%s\", %s)", name, name, e->IsPure() ? "true" : "false");
 
 	StartBlock();
-	Emit("type = make_intrusive<FuncType>(make_intrusive<RecordType>(new type_decl_list()), %s, FUNC_FLAVOR_FUNCTION);", GenTypeName(t));
+	Emit("type = make_intrusive<FuncType>(make_intrusive<RecordType>(new type_decl_list()), %s, "
+	     "FUNC_FLAVOR_FUNCTION);",
+	     GenTypeName(t));
 
 	NoteInitDependency(e, TypeRep(t));
 	EndBlock();
@@ -62,33 +64,36 @@ void CPPCompile::GenInitExpr(const ExprPtr& e)
 	Emit("CallExprPtr %s;", ename);
 
 	NoteInitDependency(e, TypeRep(t));
-	AddInit(e, ename, string("make_intrusive<CallExpr>(make_intrusive<ConstExpr>(make_intrusive<FuncVal>(make_intrusive<") +
-		name + "_cl>())), make_intrusive<ListExpr>(), false)");
+	AddInit(e, ename,
+	        string("make_intrusive<CallExpr>(make_intrusive<ConstExpr>(make_intrusive<FuncVal>("
+	               "make_intrusive<") +
+	            name + "_cl>())), make_intrusive<ListExpr>(), false)");
 	}
 
 bool CPPCompile::IsSimpleInitExpr(const ExprPtr& e) const
 	{
-	switch ( e->Tag() ) {
-	case EXPR_CONST:
-	case EXPR_NAME:
-		return true;
+	switch ( e->Tag() )
+		{
+		case EXPR_CONST:
+		case EXPR_NAME:
+			return true;
 
-	case EXPR_RECORD_COERCE:
-		{ // look for coercion of empty record
-		auto op = e->GetOp1();
+		case EXPR_RECORD_COERCE:
+				{ // look for coercion of empty record
+				auto op = e->GetOp1();
 
-		if ( op->Tag() != EXPR_RECORD_CONSTRUCTOR )
+				if ( op->Tag() != EXPR_RECORD_CONSTRUCTOR )
+					return false;
+
+				auto rc = static_cast<const RecordConstructorExpr*>(op.get());
+				const auto& exprs = rc->Op()->AsListExpr()->Exprs();
+
+				return exprs.length() == 0;
+				}
+
+		default:
 			return false;
-
-		auto rc = static_cast<const RecordConstructorExpr*>(op.get());
-		const auto& exprs = rc->Op()->AsListExpr()->Exprs();
-
-		return exprs.length() == 0;
 		}
-
-	default:
-		return false;
-	}
 	}
 
 string CPPCompile::InitExprName(const ExprPtr& e)
@@ -182,8 +187,8 @@ void CPPCompile::GenFuncVarInits()
 
 		hashes += "}";
 
-		auto init = string("lookup_func__CPP(\"") + fn +
-			    "\", " + hashes + ", " + GenTypeName(ft) + ")";
+		auto init =
+			string("lookup_func__CPP(\"") + fn + "\", " + hashes + ", " + GenTypeName(ft) + ")";
 
 		AddInit(fv, const_name, init);
 		}
@@ -193,70 +198,69 @@ void CPPCompile::GenPreInit(const Type* t)
 	{
 	string pre_init;
 
-	switch ( t->Tag() ) {
-	case TYPE_ADDR:
-	case TYPE_ANY:
-	case TYPE_BOOL:
-	case TYPE_COUNT:
-	case TYPE_DOUBLE:
-	case TYPE_ERROR:
-	case TYPE_INT:
-	case TYPE_INTERVAL:
-	case TYPE_PATTERN:
-	case TYPE_PORT:
-	case TYPE_STRING:
-	case TYPE_TIME:
-	case TYPE_TIMER:
-	case TYPE_VOID:
-		pre_init = string("base_type(") + TypeTagName(t->Tag()) + ")";
-		break;
-
-	case TYPE_ENUM:
-		pre_init = string("get_enum_type__CPP(\"") +
-		           t->GetName() + "\")";
-		break;
-
-	case TYPE_SUBNET:
-		pre_init = string("make_intrusive<SubNetType>()");
-		break;
-
-	case TYPE_FILE:
-		pre_init = string("make_intrusive<FileType>(") +
-		           GenTypeName(t->AsFileType()->Yield()) + ")";
-		break;
-
-	case TYPE_OPAQUE:
-		pre_init = string("make_intrusive<OpaqueType>(\"") +
-		           t->AsOpaqueType()->Name() + "\")";
-		break;
-
-	case TYPE_RECORD:
+	switch ( t->Tag() )
 		{
-		string name;
+		case TYPE_ADDR:
+		case TYPE_ANY:
+		case TYPE_BOOL:
+		case TYPE_COUNT:
+		case TYPE_DOUBLE:
+		case TYPE_ERROR:
+		case TYPE_INT:
+		case TYPE_INTERVAL:
+		case TYPE_PATTERN:
+		case TYPE_PORT:
+		case TYPE_STRING:
+		case TYPE_TIME:
+		case TYPE_TIMER:
+		case TYPE_VOID:
+			pre_init = string("base_type(") + TypeTagName(t->Tag()) + ")";
+			break;
 
-		if ( t->GetName() != "" )
-			name = string("\"") + t->GetName() + string("\"");
-		else
-			name = "nullptr";
+		case TYPE_ENUM:
+			pre_init = string("get_enum_type__CPP(\"") + t->GetName() + "\")";
+			break;
 
-		pre_init = string("get_record_type__CPP(") + name + ")";
+		case TYPE_SUBNET:
+			pre_init = string("make_intrusive<SubNetType>()");
+			break;
+
+		case TYPE_FILE:
+			pre_init =
+				string("make_intrusive<FileType>(") + GenTypeName(t->AsFileType()->Yield()) + ")";
+			break;
+
+		case TYPE_OPAQUE:
+			pre_init = string("make_intrusive<OpaqueType>(\"") + t->AsOpaqueType()->Name() + "\")";
+			break;
+
+		case TYPE_RECORD:
+				{
+				string name;
+
+				if ( t->GetName() != "" )
+					name = string("\"") + t->GetName() + string("\"");
+				else
+					name = "nullptr";
+
+				pre_init = string("get_record_type__CPP(") + name + ")";
+				}
+			break;
+
+		case TYPE_LIST:
+			pre_init = string("make_intrusive<TypeList>()");
+			break;
+
+		case TYPE_TYPE:
+		case TYPE_VECTOR:
+		case TYPE_TABLE:
+		case TYPE_FUNC:
+			// Nothing to do for these, pre-initialization-wise.
+			return;
+
+		default:
+			reporter->InternalError("bad type in CPPCompile::GenType");
 		}
-		break;
-
-	case TYPE_LIST:
-		pre_init = string("make_intrusive<TypeList>()");
-		break;
-
-	case TYPE_TYPE:
-	case TYPE_VECTOR:
-	case TYPE_TABLE:
-	case TYPE_FUNC:
-		// Nothing to do for these, pre-initialization-wise.
-		return;
-
-	default:
-		reporter->InternalError("bad type in CPPCompile::GenType");
-	}
 
 	pre_inits.emplace_back(GenTypeName(t) + " = " + pre_init + ";");
 	}
@@ -296,8 +300,7 @@ void CPPCompile::CheckInitConsistency(unordered_set<const Obj*>& to_do)
 
 		if ( to_do.count(o) == 0 )
 			{
-			fprintf(stderr, "object not in to_do: %s\n",
-				obj_desc(o).c_str());
+			fprintf(stderr, "object not in to_do: %s\n", obj_desc(o).c_str());
 			exit(1);
 			}
 
@@ -305,8 +308,8 @@ void CPPCompile::CheckInitConsistency(unordered_set<const Obj*>& to_do)
 			{
 			if ( to_do.count(d) == 0 )
 				{
-				fprintf(stderr, "dep object for %s not in to_do: %s\n",
-					obj_desc(o).c_str(), obj_desc(d).c_str());
+				fprintf(stderr, "dep object for %s not in to_do: %s\n", obj_desc(o).c_str(),
+				        obj_desc(d).c_str());
 				exit(1);
 				}
 			}
@@ -430,14 +433,12 @@ void CPPCompile::InitializeEnumMappings()
 		InitializeEnumMappings(mapping.first, mapping.second, n++);
 	}
 
-void CPPCompile::InitializeEnumMappings(const EnumType* et,
-                                        const string& e_name, int index)
+void CPPCompile::InitializeEnumMappings(const EnumType* et, const string& e_name, int index)
 	{
 	AddInit(et, "{");
 
 	auto et_name = GenTypeName(et) + "->AsEnumType()";
-	AddInit(et, "int em_offset = " + et_name +
-	            "->Lookup(\"" + e_name + "\");");
+	AddInit(et, "int em_offset = " + et_name + "->Lookup(\"" + e_name + "\");");
 	AddInit(et, "if ( em_offset < 0 )");
 
 	AddInit(et, "\t{");
@@ -445,9 +446,10 @@ void CPPCompile::InitializeEnumMappings(const EnumType* et,
 	// The following is to catch the case where the offset is already
 	// in use due to it being specified explicitly for an existing enum.
 	AddInit(et, "\tif ( " + et_name + "->Lookup(em_offset) )");
-	AddInit(et, "\t\treporter->InternalError(\"enum inconsistency while initializing compiled scripts\");");
-	AddInit(et, "\t" + et_name +
-	            "->AddNameInternal(\"" + e_name + "\", em_offset);");
+	AddInit(
+		et,
+		"\t\treporter->InternalError(\"enum inconsistency while initializing compiled scripts\");");
+	AddInit(et, "\t" + et_name + "->AddNameInternal(\"" + e_name + "\", em_offset);");
 	AddInit(et, "\t}");
 
 	AddInit(et, "enum_mapping[" + Fmt(index) + "] = em_offset;");
@@ -468,7 +470,7 @@ void CPPCompile::GenInitHook()
 	if ( standalone )
 		GenLoad();
 
-        Emit("return 0;");
+	Emit("return 0;");
 	EndBlock();
 
 	// Trigger the activation of the hook at run-time.
@@ -534,15 +536,14 @@ void CPPCompile::GenStandaloneActivation()
 		auto mod = extract_module_name(fn);
 		module_names.insert(mod);
 
-		auto fid = lookup_ID(var.c_str(), mod.c_str(),
-		                     false, true, false);
+		auto fid = lookup_ID(var.c_str(), mod.c_str(), false, true, false);
 		if ( ! fid )
 			reporter->InternalError("can't find identifier %s", fn);
 
 		auto exported = fid->IsExport() ? "true" : "false";
 
-		Emit("activate_bodies__CPP(\"%s\", \"%s\", %s, %s, %s);",
-		     var, mod, exported, GenTypeName(ft), hashes);
+		Emit("activate_bodies__CPP(\"%s\", \"%s\", %s, %s, %s);", var, mod, exported,
+		     GenTypeName(ft), hashes);
 		}
 
 	NL();
@@ -571,8 +572,7 @@ void CPPCompile::GenLoad()
 	if ( module_names.size() > 0 )
 		printf("module GLOBAL;\n\n");
 
-	printf("global init_CPP_%llu = load_CPP(%llu);\n",
-	       total_hash, total_hash);
+	printf("global init_CPP_%llu = load_CPP(%llu);\n", total_hash, total_hash);
 	}
 
-} // zeek::detail
+	} // zeek::detail

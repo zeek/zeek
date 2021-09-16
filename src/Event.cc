@@ -1,31 +1,27 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Event.h"
+
 #include "zeek/Desc.h"
 #include "zeek/Func.h"
 #include "zeek/NetVar.h"
+#include "zeek/RunState.h"
 #include "zeek/Trigger.h"
 #include "zeek/Val.h"
-#include "zeek/plugin/Manager.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
-#include "zeek/RunState.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/zeek-config.h"
 
 zeek::EventMgr zeek::event_mgr;
 zeek::EventMgr& mgr = zeek::event_mgr;
 
-namespace zeek {
+namespace zeek
+	{
 
-	Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
-             util::detail::SourceID arg_src, analyzer::ID arg_aid,
-             Obj* arg_obj)
-	: handler(arg_handler),
-	  args(std::move(arg_args)),
-	  src(arg_src),
-	  aid(arg_aid),
-	  obj(arg_obj),
+Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
+             analyzer::ID arg_aid, Obj* arg_obj)
+	: handler(arg_handler), args(std::move(arg_args)), src(arg_src), aid(arg_aid), obj(arg_obj),
 	  next_event(nullptr)
 	{
 	if ( obj )
@@ -94,8 +90,7 @@ EventMgr::~EventMgr()
 	Unref(src_val);
 	}
 
-void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl,
-                       util::detail::SourceID src,
+void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID src,
                        analyzer::ID aid, Obj* obj)
 	{
 	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
@@ -219,4 +214,4 @@ void EventMgr::InitPostScript()
 		reporter->FatalError("Failed to register event manager FD with iosource_mgr");
 	}
 
-} // namespace zeek
+	} // namespace zeek

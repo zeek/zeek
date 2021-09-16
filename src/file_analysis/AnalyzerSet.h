@@ -2,25 +2,31 @@
 
 #pragma once
 
-#include <queue>
 #include <memory>
+#include <queue>
 
 #include "zeek/Dict.h"
 #include "zeek/file_analysis/Tag.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
-namespace detail { class CompositeHash; }
+namespace detail
+	{
+class CompositeHash;
+	}
 
-namespace file_analysis {
+namespace file_analysis
+	{
 
 class Analyzer;
 class File;
 
-namespace detail {
+namespace detail
+	{
 
 /**
  * A set of file analysis analyzers indexed by an \c AnalyzerArgs (script-layer
@@ -28,9 +34,9 @@ namespace detail {
  * modifications can happen at well-defined times (e.g. to make sure a loop
  * iterator isn't invalidated).
  */
-class AnalyzerSet {
+class AnalyzerSet
+	{
 public:
-
 	/**
 	 * Constructor.  Nothing special.
 	 * @param arg_file the file to which all analyzers in the set are attached.
@@ -66,8 +72,7 @@ public:
 	 * @return if successful, a pointer to a newly instantiated analyzer else
 	 * a null pointer.  The caller does *not* take ownership of the memory.
 	 */
-	file_analysis::Analyzer* QueueAdd(const file_analysis::Tag& tag,
-	                                  RecordValPtr args);
+	file_analysis::Analyzer* QueueAdd(const file_analysis::Tag& tag, RecordValPtr args);
 
 	/**
 	 * Remove an analyzer from #file immediately.
@@ -95,8 +100,8 @@ public:
 	 * @see Dictionary#InitForIteration
 	 * @return an iterator that may be used to loop over analyzers in the set.
 	 */
-	[[deprecated("Remove in v5.1. Use standard-library compatible iteration.")]]
-	IterCookie* InitForIteration() const
+	[[deprecated("Remove in v5.1. Use standard-library compatible iteration.")]] IterCookie*
+	InitForIteration() const
 		{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -111,8 +116,9 @@ public:
 	 * @return the next analyzer in the set or a null pointer if there is no
 	 *         more left (in that case the cookie is also deleted).
 	 */
-	[[deprecated("Remove in v5.1. Use standard-library compatible iteration.")]]
-	file_analysis::Analyzer* NextEntry(IterCookie* c)
+	[[deprecated(
+		"Remove in v5.1. Use standard-library compatible iteration.")]] file_analysis::Analyzer*
+	NextEntry(IterCookie* c)
 		{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -134,7 +140,6 @@ public:
 	const_iterator cend() { return analyzer_map.cend(); }
 
 protected:
-
 	/**
 	 * Get a hash key which represents an analyzer instance.
 	 * @param tag the file analyzer tag.
@@ -169,17 +174,17 @@ protected:
 	bool Remove(const file_analysis::Tag& tag, std::unique_ptr<zeek::detail::HashKey> key);
 
 private:
-
-	File* file;                                  /**< File which owns the set */
-	zeek::detail::CompositeHash* analyzer_hash;  /**< AnalyzerArgs hashes. */
+	File* file; /**< File which owns the set */
+	zeek::detail::CompositeHash* analyzer_hash; /**< AnalyzerArgs hashes. */
 	PDict<file_analysis::Analyzer> analyzer_map; /**< Indexed by AnalyzerArgs. */
 
 	/**
 	 * Abstract base class for analyzer set modifications.
 	 */
-	class Modification {
+	class Modification
+		{
 	public:
-		virtual ~Modification() {}
+		virtual ~Modification() { }
 
 		/**
 		 * Perform the modification on an analyzer set.
@@ -192,12 +197,13 @@ private:
 		 * Don't perform the modification on the analyzer set and clean up.
 		 */
 		virtual void Abort() = 0;
-	};
+		};
 
 	/**
 	 * Represents a request to add an analyzer to an analyzer set.
 	 */
-	class AddMod final : public Modification {
+	class AddMod final : public Modification
+		{
 	public:
 		/**
 		 * Construct request which can add an analyzer to an analyzer set.
@@ -205,20 +211,23 @@ private:
 		 * @param arg_key hash key representing the analyzer's \c AnalyzerArgs.
 		 */
 		AddMod(file_analysis::Analyzer* arg_a, std::unique_ptr<zeek::detail::HashKey> arg_key)
-			: Modification(), a(arg_a), key(std::move(arg_key)) {}
-		~AddMod() override {}
+			: Modification(), a(arg_a), key(std::move(arg_key))
+			{
+			}
+		~AddMod() override { }
 		bool Perform(AnalyzerSet* set) override;
 		void Abort() override;
 
 	protected:
 		file_analysis::Analyzer* a;
 		std::unique_ptr<zeek::detail::HashKey> key;
-	};
+		};
 
 	/**
 	 * Represents a request to remove an analyzer from an analyzer set.
 	 */
-	class RemoveMod final : public Modification {
+	class RemoveMod final : public Modification
+		{
 	public:
 		/**
 		 * Construct request which can remove an analyzer from an analyzer set.
@@ -226,20 +235,22 @@ private:
 		 * @param arg_key hash key representing the analyzer's \c AnalyzerArgs.
 		 */
 		RemoveMod(const file_analysis::Tag& arg_tag, std::unique_ptr<zeek::detail::HashKey> arg_key)
-			: Modification(), tag(arg_tag), key(std::move(arg_key)) {}
-		~RemoveMod() override {}
+			: Modification(), tag(arg_tag), key(std::move(arg_key))
+			{
+			}
+		~RemoveMod() override { }
 		bool Perform(AnalyzerSet* set) override;
-		void Abort() override {}
+		void Abort() override { }
 
 	protected:
 		file_analysis::Tag tag;
 		std::unique_ptr<zeek::detail::HashKey> key;
-	};
+		};
 
 	using ModQueue = std::queue<Modification*>;
-	ModQueue mod_queue;	/**< A queue of analyzer additions/removals requests. */
-};
+	ModQueue mod_queue; /**< A queue of analyzer additions/removals requests. */
+	};
 
-} // namespace detail
-} // namespace file_analysis
-} // namespace zeek
+	} // namespace detail
+	} // namespace file_analysis
+	} // namespace zeek

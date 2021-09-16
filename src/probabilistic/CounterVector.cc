@@ -2,16 +2,16 @@
 
 #include "zeek/probabilistic/CounterVector.h"
 
-#include <cassert>
-#include <limits>
-
 #include <broker/data.hh>
 #include <broker/error.hh>
+#include <cassert>
+#include <limits>
 
 #include "zeek/probabilistic/BitVector.h"
 #include "zeek/util.h"
 
-namespace zeek::probabilistic::detail {
+namespace zeek::probabilistic::detail
+	{
 
 CounterVector::CounterVector(size_t arg_width, size_t cells)
 	{
@@ -43,7 +43,7 @@ bool CounterVector::Increment(size_type cell, count_type value)
 		bool b1 = (*bits)[lsb + i];
 		bool b2 = value & (1 << i);
 		(*bits)[lsb + i] = b1 ^ b2 ^ carry;
-		carry = ( b1 && b2 ) || ( carry && ( b1 != b2 ) );
+		carry = (b1 && b2) || (carry && (b1 != b2));
 		}
 
 	if ( carry )
@@ -69,7 +69,7 @@ bool CounterVector::Decrement(size_type cell, count_type value)
 		bool b1 = (*bits)[lsb + i];
 		bool b2 = value & (1 << i);
 		(*bits)[lsb + i] = b1 ^ b2 ^ carry;
-		carry = ( b1 && b2 ) || ( carry && ( b1 != b2 ) );
+		carry = (b1 && b2) || (carry && (b1 != b2));
 		}
 
 	return carry;
@@ -111,8 +111,7 @@ size_t CounterVector::Width() const
 
 size_t CounterVector::Max() const
 	{
-	return std::numeric_limits<size_t>::max()
-		>> (std::numeric_limits<size_t>::digits - width);
+	return std::numeric_limits<size_t>::max() >> (std::numeric_limits<size_t>::digits - width);
 	}
 
 CounterVector& CounterVector::Merge(const CounterVector& other)
@@ -130,7 +129,7 @@ CounterVector& CounterVector::Merge(const CounterVector& other)
 			bool b1 = (*bits)[lsb + i];
 			bool b2 = (*other.bits)[lsb + i];
 			(*bits)[lsb + i] = b1 ^ b2 ^ carry;
-			carry = ( b1 && b2 ) || ( carry && ( b1 != b2 ) );
+			carry = (b1 && b2) || (carry && (b1 != b2));
 			}
 
 		if ( carry )
@@ -186,4 +185,4 @@ std::unique_ptr<CounterVector> CounterVector::Unserialize(const broker::data& da
 	return cv;
 	}
 
-} // namespace zeek::probabilistic::detail
+	} // namespace zeek::probabilistic::detail

@@ -3,31 +3,33 @@
 #pragma once
 
 #include <time.h> // for time_t
-#include <string>
-#include <vector>
 #include <list>
 #include <map>
+#include <string>
+#include <vector>
 
-#include "zeek/zeekygen/Info.h"
-#include "zeek/IntrusivePtr.h"
 #include "zeek/ID.h"
+#include "zeek/IntrusivePtr.h"
 #include "zeek/util.h"
+#include "zeek/zeekygen/Info.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class TypeDecl;
 
-namespace zeekygen::detail {
+namespace zeekygen::detail
+	{
 
 class ScriptInfo;
 
 /**
  * Information regarding a script-level identifier and its documentation.
  */
-class IdentifierInfo : public Info {
+class IdentifierInfo : public Info
+	{
 
 public:
-
 	/**
 	 * Create a new identifier info object.
 	 * @param id The script-level identifier.
@@ -36,8 +38,7 @@ public:
 	 * @param from_redef  Whether the identifier was create as part of a
 	 * redefinition (e.g. an enum).
 	 */
-	IdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script,
-	               bool from_redef = false);
+	IdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script, bool from_redef = false);
 
 	/**
 	 * Dtor.  Releases any references to script-level objects.
@@ -47,8 +48,7 @@ public:
 	/**
 	 * Returns the initial value of the identifier.
 	 */
-	const ValPtr& InitialVal() const
-		{ return initial_val; }
+	const ValPtr& InitialVal() const { return initial_val; }
 
 	/**
 	 * Add a comment associated with the identifier.  If the identifier is a
@@ -57,8 +57,10 @@ public:
 	 * @param comment A string extracted from Zeekygen-style comment.
 	 */
 	void AddComment(const std::string& comment)
-		{ last_field_seen ? last_field_seen->comments.push_back(comment)
-		                  : comments.push_back(comment); }
+		{
+		last_field_seen ? last_field_seen->comments.push_back(comment)
+						: comments.push_back(comment);
+		}
 
 	/**
 	 * Associate several comments with the identifier.  They will be appended
@@ -66,7 +68,9 @@ public:
 	 * @param cmtns A vector of comments to associate.
 	 */
 	void AddComments(const std::vector<std::string>& cmtns)
-		{ comments.insert(comments.end(), cmtns.begin(), cmtns.end()); }
+		{
+		comments.insert(comments.end(), cmtns.begin(), cmtns.end());
+		}
 
 	/**
 	 * Register a redefinition of the identifier.
@@ -76,8 +80,7 @@ public:
 	 * @param comments Comments associated with the redef statement.
 	 */
 	void AddRedef(const std::string& from_script, zeek::detail::InitClass ic,
-	              zeek::detail::ExprPtr init_expr,
-	              const std::vector<std::string>& comments);
+	              zeek::detail::ExprPtr init_expr, const std::vector<std::string>& comments);
 
 	/**
 	 * Register a record field associated with the identifier
@@ -96,20 +99,17 @@ public:
 	 * internal tracking of the last record field seen so that "##<"-style
 	 * comments are correctly associated.
 	 */
-	void CompletedTypeDecl()
-		{ last_field_seen = nullptr; }
+	void CompletedTypeDecl() { last_field_seen = nullptr; }
 
 	/**
 	 * @return the script-level ID tracked by this info object.
 	 */
-	zeek::detail::ID* GetID() const
-		{ return id.get(); }
+	zeek::detail::ID* GetID() const { return id.get(); }
 
 	/**
 	 * @return The script which declared the script-level identifier.
 	 */
-	ScriptInfo* GetDeclaringScript() const
-	    { return declaring_script; }
+	ScriptInfo* GetDeclaringScript() const { return declaring_script; }
 
 	/**
 	 * @param field A record field name.
@@ -121,8 +121,7 @@ public:
 	 * @return True if the identifier was created as part of a redefinition
 	 * (e.g. an enum).
 	 */
-	bool IsFromRedef() const
-		{ return from_redef; }
+	bool IsFromRedef() const { return from_redef; }
 
 	/**
 	 * @param field A record field name.
@@ -144,18 +143,18 @@ public:
 	/**
 	 * Tracks useful information related to a redef.
 	 */
-	struct Redefinition {
+	struct Redefinition
+		{
 		std::string from_script; /**< Name of script doing the redef. */
 		zeek::detail::InitClass ic;
 		zeek::detail::ExprPtr init_expr;
 		std::vector<std::string> comments; /**< Zeekygen comments on redef. */
 
 		Redefinition(std::string arg_script, zeek::detail::InitClass arg_ic,
-		             zeek::detail::ExprPtr arg_expr,
-		             std::vector<std::string> arg_comments);
+		             zeek::detail::ExprPtr arg_expr, std::vector<std::string> arg_comments);
 
 		~Redefinition();
-	};
+		};
 
 	/**
 	 * Get a list of information about redefinitions of the identifier within
@@ -169,26 +168,24 @@ public:
 	 * Get a list of information about redefinitions of the identifier.
 	 * @return A list of redefs that occurred for the identifier.
 	 */
-	const std::list<Redefinition*>& GetRedefs() const
-		{ return redefs; }
+	const std::list<Redefinition*>& GetRedefs() const { return redefs; }
 
 private:
-
 	time_t DoGetModificationTime() const override;
 
-	std::string DoName() const override
-		{ return id->Name(); }
+	std::string DoName() const override { return id->Name(); }
 
 	std::string DoReStructuredText(bool roles_only) const override;
 
-	struct RecordField {
+	struct RecordField
+		{
 		~RecordField();
 
 		TypeDecl* field;
 		std::string from_script;
 		std::vector<std::string> comments;
 		bool from_redef;
-	};
+		};
 
 	typedef std::list<Redefinition*> redef_list;
 	typedef std::map<std::string, RecordField*> record_field_map;
@@ -201,7 +198,7 @@ private:
 	RecordField* last_field_seen;
 	ScriptInfo* declaring_script;
 	bool from_redef = false;
-};
+	};
 
-} // namespace zeekygen::detail
-} // namespace zeek
+	} // namespace zeekygen::detail
+	} // namespace zeek

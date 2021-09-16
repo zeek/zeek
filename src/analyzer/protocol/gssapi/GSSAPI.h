@@ -2,14 +2,15 @@
 
 #pragma once
 
-#include "zeek/analyzer/protocol/tcp/TCP.h"
-
 #include "zeek/analyzer/protocol/gssapi/events.bif.h"
 #include "zeek/analyzer/protocol/gssapi/gssapi_pac.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
-namespace zeek::analyzer::gssapi {
+namespace zeek::analyzer::gssapi
+	{
 
-class GSSAPI_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class GSSAPI_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 
 public:
 	explicit GSSAPI_Analyzer(Connection* conn);
@@ -24,11 +25,10 @@ public:
 	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new GSSAPI_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new GSSAPI_Analyzer(conn); }
 
 protected:
 	binpac::GSSAPI::GSSAPI_Conn* interp;
-};
+	};
 
-} // namespace zeek::analyzer::gssapi
+	} // namespace zeek::analyzer::gssapi

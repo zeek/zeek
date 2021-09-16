@@ -4,28 +4,26 @@
 
 #include <vector>
 
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
-#include "zeek/analyzer/protocol/pia/PIA.h"
-
-#include "zeek/IP.h"
-#include "zeek/RunState.h"
-#include "zeek/NetVar.h"
-#include "zeek/File.h"
-#include "zeek/Event.h"
-#include "zeek/Reporter.h"
-#include "zeek/session/Manager.h"
 #include "zeek/DebugLogger.h"
-
+#include "zeek/Event.h"
+#include "zeek/File.h"
+#include "zeek/IP.h"
+#include "zeek/NetVar.h"
+#include "zeek/Reporter.h"
+#include "zeek/RunState.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/analyzer/protocol/tcp/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/types.bif.h"
+#include "zeek/session/Manager.h"
 
-namespace zeek::analyzer::tcp {
+namespace zeek::analyzer::tcp
+	{
 
 packet_analysis::TCP::TCPSessionAdapter* TCP_ApplicationAnalyzer::TCP()
 	{
-	return tcp ?
-		tcp :
-		static_cast<packet_analysis::TCP::TCPSessionAdapter*>(Conn()->FindAnalyzer("TCP"));
+	return tcp ? tcp
+	           : static_cast<packet_analysis::TCP::TCPSessionAdapter*>(Conn()->FindAnalyzer("TCP"));
 	}
 
 void TCP_ApplicationAnalyzer::Init()
@@ -36,13 +34,11 @@ void TCP_ApplicationAnalyzer::Init()
 		SetTCP(static_cast<packet_analysis::TCP::TCPSessionAdapter*>(Parent()));
 	}
 
-void TCP_ApplicationAnalyzer::ProtocolViolation(const char* reason,
-						const char* data, int len)
+void TCP_ApplicationAnalyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	{
 	auto* tcp = TCP();
 
-	if ( tcp &&
-	     (tcp->IsPartial() || tcp->HadGap(false) || tcp->HadGap(true)) )
+	if ( tcp && (tcp->IsPartial() || tcp->HadGap(false) || tcp->HadGap(true)) )
 		// Filter out incomplete connections.  Parsing them is
 		// too unreliable.
 		return;
@@ -50,20 +46,20 @@ void TCP_ApplicationAnalyzer::ProtocolViolation(const char* reason,
 	Analyzer::ProtocolViolation(reason, data, len);
 	}
 
-void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
-						bool is_orig, uint64_t seq,
-						const IP_Hdr* ip, int caplen)
+void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
+                                            const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
-	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
-			len, is_orig ? "T" : "F", seq, ip, caplen,
-	        util::fmt_bytes((const char*) data, std::min(40, len)), len > 40 ? "..." : "");
+	DBG_LOG(DBG_ANALYZER,
+	        "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64 ", %p, %d) [%s%s]",
+	        len, is_orig ? "T" : "F", seq, ip, caplen,
+	        util::fmt_bytes((const char*)data, std::min(40, len)), len > 40 ? "..." : "");
 	}
 
 void TCP_ApplicationAnalyzer::SetEnv(bool /* is_orig */, char* name, char* val)
 	{
-	delete [] name;
-	delete [] val;
+	delete[] name;
+	delete[] val;
 	}
 
 void TCP_ApplicationAnalyzer::EndpointEOF(bool is_orig)
@@ -73,26 +69,22 @@ void TCP_ApplicationAnalyzer::EndpointEOF(bool is_orig)
 		static_cast<TCP_SupportAnalyzer*>(sa)->EndpointEOF(is_orig);
 	}
 
-void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint,
-					TCP_Endpoint* peer, bool gen_event)
+void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
+                                               bool gen_event)
 	{
-	analyzer::SupportAnalyzer* sa =
-		endpoint->IsOrig() ? orig_supporters : resp_supporters;
+	analyzer::SupportAnalyzer* sa = endpoint->IsOrig() ? orig_supporters : resp_supporters;
 
 	for ( ; sa; sa = sa->Sibling() )
-		static_cast<TCP_SupportAnalyzer*>(sa)
-			->ConnectionClosed(endpoint, peer, gen_event);
+		static_cast<TCP_SupportAnalyzer*>(sa)->ConnectionClosed(endpoint, peer, gen_event);
 	}
 
 void TCP_ApplicationAnalyzer::ConnectionFinished(bool half_finished)
 	{
 	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
-		static_cast<TCP_SupportAnalyzer*>(sa)
-			->ConnectionFinished(half_finished);
+		static_cast<TCP_SupportAnalyzer*>(sa)->ConnectionFinished(half_finished);
 
 	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
-		static_cast<TCP_SupportAnalyzer*>(sa)
-			->ConnectionFinished(half_finished);
+		static_cast<TCP_SupportAnalyzer*>(sa)->ConnectionFinished(half_finished);
 	}
 
 void TCP_ApplicationAnalyzer::ConnectionReset()
@@ -133,8 +125,8 @@ int endian_flip(int n)
 	}
 
 bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int caplen,
-			const u_char* /* data */,
-			const IP_Hdr* ip, const struct tcphdr* /* tp */)
+                                 const u_char* /* data */, const IP_Hdr* ip,
+                                 const struct tcphdr* /* tp */)
 	{
 	if ( ++num_pkts == 1 )
 		{ // First packet.
@@ -154,8 +146,7 @@ bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int capl
 	short id_endian_delta = endian_flip(id) - endian_flip(last_id);
 
 	int abs_id_delta = id_delta > 0 ? id_delta : -id_delta;
-	int abs_id_endian_delta =
-		id_endian_delta > 0 ? id_endian_delta : -id_endian_delta;
+	int abs_id_endian_delta = id_endian_delta > 0 ? id_endian_delta : -id_endian_delta;
 
 	int final_id_delta;
 
@@ -207,18 +198,14 @@ bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int capl
 			num_rxmit_bytes += len;
 			}
 
-		DEBUG_MSG("%.6f rexmit %" PRIu64" + %d <= %" PRIu64" data_in_flight = %d\n",
+		DEBUG_MSG("%.6f rexmit %" PRIu64 " + %d <= %" PRIu64 " data_in_flight = %d\n",
 		          run_state::network_time, seq, len, max_top_seq, data_in_flight);
 
 		if ( tcp_rexmit )
-			endp->TCP()->EnqueueConnEvent(tcp_rexmit,
-				endp->TCP()->ConnVal(),
-				val_mgr->Bool(endp->IsOrig()),
-				val_mgr->Count(seq),
-				val_mgr->Count(len),
-				val_mgr->Count(data_in_flight),
-				val_mgr->Count(endp->peer->window)
-			);
+			endp->TCP()->EnqueueConnEvent(tcp_rexmit, endp->TCP()->ConnVal(),
+			                              val_mgr->Bool(endp->IsOrig()), val_mgr->Count(seq),
+			                              val_mgr->Count(len), val_mgr->Count(data_in_flight),
+			                              val_mgr->Count(endp->peer->window));
 		}
 	else
 		max_top_seq = top_seq;
@@ -243,8 +230,7 @@ RecordVal* TCPStats_Endpoint::BuildStats()
 	}
 
 TCPStats_Analyzer::TCPStats_Analyzer(Connection* c)
-	: TCP_ApplicationAnalyzer("TCPSTATS", c),
-	  orig_stats(), resp_stats()
+	: TCP_ApplicationAnalyzer("TCPSTATS", c), orig_stats(), resp_stats()
 	{
 	}
 
@@ -267,14 +253,12 @@ void TCPStats_Analyzer::Done()
 	TCP_ApplicationAnalyzer::Done();
 
 	if ( conn_stats )
-		EnqueueConnEvent(conn_stats,
-			ConnVal(),
-			IntrusivePtr{AdoptRef{}, orig_stats->BuildStats()},
-			IntrusivePtr{AdoptRef{}, resp_stats->BuildStats()}
-		);
+		EnqueueConnEvent(conn_stats, ConnVal(), IntrusivePtr{AdoptRef{}, orig_stats->BuildStats()},
+		                 IntrusivePtr{AdoptRef{}, resp_stats->BuildStats()});
 	}
 
-void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
+                                      const IP_Hdr* ip, int caplen)
 	{
 	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
@@ -284,4 +268,4 @@ void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		resp_stats->DataSent(run_state::network_time, seq, len, caplen, data, ip, nullptr);
 	}
 
-} // namespace zeek::analyzer::tcp
+	} // namespace zeek::analyzer::tcp

@@ -2,10 +2,11 @@
 
 #include "zeek/analyzer/protocol/zip/ZIP.h"
 
-namespace zeek::analyzer::zip {
+namespace zeek::analyzer::zip
+	{
 
 ZIP_Analyzer::ZIP_Analyzer(Connection* conn, bool orig, Method arg_method)
-: analyzer::tcp::TCP_SupportAnalyzer("ZIP", conn, orig)
+	: analyzer::tcp::TCP_SupportAnalyzer("ZIP", conn, orig)
 	{
 	zip = nullptr;
 	zip_status = Z_OK;
@@ -55,10 +56,10 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	int allow_restart = 1;
 
-	zip->next_in = (Bytef*) data;
+	zip->next_in = (Bytef*)data;
 	zip->avail_in = len;
 
-	Bytef *orig_next_in = zip->next_in;
+	Bytef* orig_next_in = zip->next_in;
 	size_t orig_avail_in = zip->avail_in;
 
 	while ( true )
@@ -68,8 +69,7 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 		zip_status = inflate(zip, Z_SYNC_FLUSH);
 
-		if ( zip_status == Z_STREAM_END ||
-		     zip_status == Z_OK )
+		if ( zip_status == Z_STREAM_END || zip_status == Z_OK )
 			{
 			allow_restart = 0;
 
@@ -85,7 +85,6 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 			if ( zip->avail_in == 0 )
 				return;
-
 			}
 
 		else if ( allow_restart && zip_status == Z_DATA_ERROR )
@@ -114,4 +113,4 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-} // namespace zeek::analyzer::zip
+	} // namespace zeek::analyzer::zip

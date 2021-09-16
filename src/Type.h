@@ -2,20 +2,21 @@
 
 #pragma once
 
-#include <string>
-#include <set>
-#include <unordered_map>
-#include <map>
 #include <list>
+#include <map>
 #include <optional>
+#include <set>
+#include <string>
+#include <unordered_map>
 
-#include "zeek/Obj.h"
-#include "zeek/ID.h"
 #include "zeek/Attr.h"
-#include "zeek/ZeekList.h"
+#include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
+#include "zeek/Obj.h"
+#include "zeek/ZeekList.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class Val;
 union ZVal;
@@ -25,44 +26,46 @@ using ValPtr = IntrusivePtr<Val>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
 using TableValPtr = IntrusivePtr<TableVal>;
 
-namespace detail {
+namespace detail
+	{
 
 class Expr;
 class ListExpr;
 class Attributes;
 using ListExprPtr = IntrusivePtr<ListExpr>;
 
-} // namespace detail
+	} // namespace detail
 
 // Zeek types.
-enum TypeTag {
-	TYPE_VOID,      // 0
-	TYPE_BOOL,      // 1
-	TYPE_INT,       // 2
-	TYPE_COUNT,     // 3
-	TYPE_DOUBLE,    // 4
-	TYPE_TIME,      // 5
-	TYPE_INTERVAL,  // 6
-	TYPE_STRING,    // 7
-	TYPE_PATTERN,   // 8
-	TYPE_ENUM,      // 9
-	TYPE_TIMER,     // 10
-	TYPE_PORT,      // 11
-	TYPE_ADDR,      // 12
-	TYPE_SUBNET,    // 13
-	TYPE_ANY,       // 14
-	TYPE_TABLE,     // 15
-	TYPE_UNION,     // 16
-	TYPE_RECORD,    // 17
-	TYPE_LIST,      // 18
-	TYPE_FUNC,      // 19
-	TYPE_FILE,      // 20
-	TYPE_VECTOR,    // 21
-	TYPE_OPAQUE,    // 22
-	TYPE_TYPE,      // 23
-	TYPE_ERROR      // 24
+enum TypeTag
+	{
+	TYPE_VOID, // 0
+	TYPE_BOOL, // 1
+	TYPE_INT, // 2
+	TYPE_COUNT, // 3
+	TYPE_DOUBLE, // 4
+	TYPE_TIME, // 5
+	TYPE_INTERVAL, // 6
+	TYPE_STRING, // 7
+	TYPE_PATTERN, // 8
+	TYPE_ENUM, // 9
+	TYPE_TIMER, // 10
+	TYPE_PORT, // 11
+	TYPE_ADDR, // 12
+	TYPE_SUBNET, // 13
+	TYPE_ANY, // 14
+	TYPE_TABLE, // 15
+	TYPE_UNION, // 16
+	TYPE_RECORD, // 17
+	TYPE_LIST, // 18
+	TYPE_FUNC, // 19
+	TYPE_FILE, // 20
+	TYPE_VECTOR, // 21
+	TYPE_OPAQUE, // 22
+	TYPE_TYPE, // 23
+	TYPE_ERROR // 24
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
-};
+	};
 
 // Returns the name of the type.
 extern const char* type_name(TypeTag t);
@@ -72,65 +75,73 @@ constexpr bool is_network_order(TypeTag tag) noexcept
 	return tag == TYPE_PORT;
 	}
 
-enum FunctionFlavor {
+enum FunctionFlavor
+	{
 	FUNC_FLAVOR_FUNCTION,
 	FUNC_FLAVOR_EVENT,
 	FUNC_FLAVOR_HOOK
-};
+	};
 
-enum InternalTypeTag : uint16_t {
+enum InternalTypeTag : uint16_t
+	{
 	TYPE_INTERNAL_VOID,
-	TYPE_INTERNAL_INT, TYPE_INTERNAL_UNSIGNED, TYPE_INTERNAL_DOUBLE,
-	TYPE_INTERNAL_STRING, TYPE_INTERNAL_ADDR, TYPE_INTERNAL_SUBNET,
-	TYPE_INTERNAL_OTHER, TYPE_INTERNAL_ERROR
-};
+	TYPE_INTERNAL_INT,
+	TYPE_INTERNAL_UNSIGNED,
+	TYPE_INTERNAL_DOUBLE,
+	TYPE_INTERNAL_STRING,
+	TYPE_INTERNAL_ADDR,
+	TYPE_INTERNAL_SUBNET,
+	TYPE_INTERNAL_OTHER,
+	TYPE_INTERNAL_ERROR
+	};
 
 constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 	{
-	switch ( tag ) {
-	case TYPE_VOID:
-		return TYPE_INTERNAL_VOID;
+	switch ( tag )
+		{
+		case TYPE_VOID:
+			return TYPE_INTERNAL_VOID;
 
-	case TYPE_BOOL:
-	case TYPE_INT:
-	case TYPE_ENUM:
-		return TYPE_INTERNAL_INT;
+		case TYPE_BOOL:
+		case TYPE_INT:
+		case TYPE_ENUM:
+			return TYPE_INTERNAL_INT;
 
-	case TYPE_COUNT:
-	case TYPE_PORT:
-		return TYPE_INTERNAL_UNSIGNED;
+		case TYPE_COUNT:
+		case TYPE_PORT:
+			return TYPE_INTERNAL_UNSIGNED;
 
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-		return TYPE_INTERNAL_DOUBLE;
+		case TYPE_DOUBLE:
+		case TYPE_TIME:
+		case TYPE_INTERVAL:
+			return TYPE_INTERNAL_DOUBLE;
 
-	case TYPE_STRING:
-		return TYPE_INTERNAL_STRING;
+		case TYPE_STRING:
+			return TYPE_INTERNAL_STRING;
 
-	case TYPE_ADDR:
-		return TYPE_INTERNAL_ADDR;
+		case TYPE_ADDR:
+			return TYPE_INTERNAL_ADDR;
 
-	case TYPE_SUBNET:
-		return TYPE_INTERNAL_SUBNET;
+		case TYPE_SUBNET:
+			return TYPE_INTERNAL_SUBNET;
 
-	case TYPE_PATTERN:
-	case TYPE_TIMER:
-	case TYPE_ANY:
-	case TYPE_TABLE:
-	case TYPE_UNION:
-	case TYPE_RECORD:
-	case TYPE_LIST:
-	case TYPE_FUNC:
-	case TYPE_FILE:
-	case TYPE_OPAQUE:
-	case TYPE_VECTOR:
-	case TYPE_TYPE:
-		return TYPE_INTERNAL_OTHER;
+		case TYPE_PATTERN:
+		case TYPE_TIMER:
+		case TYPE_ANY:
+		case TYPE_TABLE:
+		case TYPE_UNION:
+		case TYPE_RECORD:
+		case TYPE_LIST:
+		case TYPE_FUNC:
+		case TYPE_FILE:
+		case TYPE_OPAQUE:
+		case TYPE_VECTOR:
+		case TYPE_TYPE:
+			return TYPE_INTERNAL_OTHER;
 
-	case TYPE_ERROR:
-		return TYPE_INTERNAL_ERROR;
-	}
+		case TYPE_ERROR:
+			return TYPE_INTERNAL_ERROR;
+		}
 
 	/* this should be unreachable */
 	return TYPE_INTERNAL_VOID;
@@ -166,7 +177,8 @@ constexpr int DOES_NOT_MATCH_INDEX = 0;
 constexpr int MATCHES_INDEX_SCALAR = 1;
 constexpr int MATCHES_INDEX_VECTOR = 2;
 
-class Type : public Obj {
+class Type : public Obj
+	{
 public:
 	static inline const TypePtr nil;
 
@@ -182,11 +194,11 @@ public:
 	// the script-level.
 	virtual TypePtr ShallowClone();
 
-	TypeTag Tag() const		{ return tag; }
-	InternalTypeTag InternalType() const	{ return internal_tag; }
+	TypeTag Tag() const { return tag; }
+	InternalTypeTag InternalType() const { return internal_tag; }
 
 	// Whether it's stored in network order.
-	bool IsNetworkOrder() const	{ return is_network_order; }
+	bool IsNetworkOrder() const { return is_network_order; }
 
 	// Type-checks the given expression list, returning
 	// MATCHES_INDEX_SCALAR = 1 if it matches this type's index
@@ -235,31 +247,30 @@ public:
 	const TypeType* AsTypeType() const;
 	TypeType* AsTypeType();
 
-	bool IsSet() const
-		{
-		return tag == TYPE_TABLE && ! Yield();
-		}
+	bool IsSet() const { return tag == TYPE_TABLE && ! Yield(); }
 
-	bool IsTable() const
-		{
-		return tag == TYPE_TABLE && Yield();
-		}
+	bool IsTable() const { return tag == TYPE_TABLE && Yield(); }
 
-	Type* Ref()		{ ::zeek::Ref(this); return this; }
+	Type* Ref()
+		{
+		::zeek::Ref(this);
+		return this;
+		}
 
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
-	virtual unsigned MemoryAllocation() const;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] virtual unsigned
+	MemoryAllocation() const;
 
 	void SetName(const std::string& arg_name) { name = arg_name; }
 	const std::string& GetName() const { return name; }
 
-	struct TypePtrComparer {
-		bool operator()(const TypePtr& a, const TypePtr& b) const
-			{ return a.get() < b.get(); }
-	};
+	struct TypePtrComparer
+		{
+		bool operator()(const TypePtr& a, const TypePtr& b) const { return a.get() < b.get(); }
+		};
 	using TypePtrSet = std::set<TypePtr, TypePtrComparer>;
 	using TypeAliasMap = std::map<std::string, TypePtrSet, std::less<>>;
 
@@ -267,14 +278,15 @@ public:
 	 * Returns a mapping of type-name to all other type names declared as
 	 * an alias to it.
 	 */
-	static const TypeAliasMap& GetAliasMap()
-		{ return type_aliases; }
+	static const TypeAliasMap& GetAliasMap() { return type_aliases; }
 
 	/**
 	 * Returns true if the given type name has any declared aliases
 	 */
 	static bool HasAliases(std::string_view type_name)
-		{ return Type::type_aliases.find(type_name) != Type::type_aliases.end(); }
+		{
+		return Type::type_aliases.find(type_name) != Type::type_aliases.end();
+		}
 
 	/**
 	 * Returns the set of all type names declared as an aliases to the given
@@ -315,9 +327,10 @@ private:
 	std::string name;
 
 	static TypeAliasMap type_aliases;
-};
+	};
 
-class TypeList final : public Type {
+class TypeList final : public Type
+	{
 public:
 	explicit TypeList(TypePtr arg_pure_type = nullptr)
 		: Type(TYPE_LIST), pure_type(std::move(arg_pure_type))
@@ -326,49 +339,44 @@ public:
 
 	~TypeList() override = default;
 
-	const std::vector<TypePtr>& GetTypes() const
-		{ return types; }
+	const std::vector<TypePtr>& GetTypes() const { return types; }
 
-	bool IsPure() const		{ return pure_type != nullptr; }
+	bool IsPure() const { return pure_type != nullptr; }
 
 	// Returns the underlying pure type, or nil if the list
 	// is not pure or is empty.
-	const TypePtr& GetPureType() const
-		{ return pure_type; }
+	const TypePtr& GetPureType() const { return pure_type; }
 
 	// True if all of the types match t, false otherwise.  If
 	// is_init is true, then the matching is done in the context
 	// of an initialization.
 	bool AllMatch(const Type* t, bool is_init) const;
-	bool AllMatch(const TypePtr& t, bool is_init) const
-		{ return AllMatch(t.get(), is_init); }
+	bool AllMatch(const TypePtr& t, bool is_init) const { return AllMatch(t.get(), is_init); }
 
 	void Append(TypePtr t);
 	void AppendEvenIfNotPure(TypePtr t);
 
 	void Describe(ODesc* d) const override;
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
-	unsigned int MemoryAllocation() const override;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	MemoryAllocation() const override;
 
 protected:
 	TypePtr pure_type;
 	std::vector<TypePtr> types;
-};
+	};
 
-class IndexType : public Type {
+class IndexType : public Type
+	{
 public:
-
 	int MatchesIndex(detail::ListExpr* index) const override;
 
-	const TypeListPtr& GetIndices() const
-		{ return indices; }
+	const TypeListPtr& GetIndices() const { return indices; }
 
-	const std::vector<TypePtr>& GetIndexTypes() const
-		{ return indices->GetTypes(); }
+	const std::vector<TypePtr>& GetIndexTypes() const { return indices->GetTypes(); }
 
-	const TypePtr& Yield() const override
-		{ return yield_type; }
+	const TypePtr& Yield() const override { return yield_type; }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
@@ -377,10 +385,8 @@ public:
 	bool IsSubNetIndex() const;
 
 protected:
-	IndexType(TypeTag t, TypeListPtr arg_indices,
-	          TypePtr arg_yield_type)
-		: Type(t), indices(std::move(arg_indices)),
-		  yield_type(std::move(arg_yield_type))
+	IndexType(TypeTag t, TypeListPtr arg_indices, TypePtr arg_yield_type)
+		: Type(t), indices(std::move(arg_indices)), yield_type(std::move(arg_yield_type))
 		{
 		}
 
@@ -388,9 +394,10 @@ protected:
 
 	TypeListPtr indices;
 	TypePtr yield_type;
-};
+	};
 
-class TableType : public IndexType {
+class TableType : public IndexType
+	{
 public:
 	TableType(TypeListPtr ind, TypePtr yield);
 
@@ -408,23 +415,24 @@ public:
 	// Returns true if this table type is "unspecified", which is
 	// what one gets using an empty "set()" or "table()" constructor.
 	bool IsUnspecifiedTable() const;
-};
+	};
 
-class SetType final : public TableType {
+class SetType final : public TableType
+	{
 public:
 	SetType(TypeListPtr ind, detail::ListExprPtr arg_elements);
 	~SetType() override;
 
 	TypePtr ShallowClone() override;
 
-	const detail::ListExprPtr& Elements() const
-		{ return elements; }
+	const detail::ListExprPtr& Elements() const { return elements; }
 
 protected:
 	detail::ListExprPtr elements;
-};
+	};
 
-class FuncType final : public Type {
+class FuncType final : public Type
+	{
 public:
 	static inline const FuncTypePtr nil;
 
@@ -433,42 +441,41 @@ public:
 	 * multiple signature prototypes that allow users to have handlers
 	 * with various argument permutations.
 	 */
-	struct Prototype {
+	struct Prototype
+		{
 		bool deprecated;
 		std::string deprecation_msg;
 		RecordTypePtr args;
 		// Maps from parameter index in canonical prototype to
 		// parameter index in this alternate prorotype.
 		std::map<int, int> offsets;
-	};
+		};
 
-	FuncType(RecordTypePtr args, TypePtr yield,
-	         FunctionFlavor f);
+	FuncType(RecordTypePtr args, TypePtr yield, FunctionFlavor f);
 
 	TypePtr ShallowClone() override;
 
-	const RecordTypePtr& Params() const
-		{ return args; }
+	const RecordTypePtr& Params() const { return args; }
 
-	const TypePtr& Yield() const override
-		{ return yield; }
+	const TypePtr& Yield() const override { return yield; }
 
-	void SetYieldType(TypePtr arg_yield)	{ yield = std::move(arg_yield); }
+	void SetYieldType(TypePtr arg_yield) { yield = std::move(arg_yield); }
 	FunctionFlavor Flavor() const { return flavor; }
 	std::string FlavorString() const;
 
 	// Used to convert a function type to an event or hook type.
 	void ClearYieldType(FunctionFlavor arg_flav)
-		{ yield = nullptr; flavor = arg_flav; }
+		{
+		yield = nullptr;
+		flavor = arg_flav;
+		}
 
 	int MatchesIndex(detail::ListExpr* index) const override;
-	bool CheckArgs(const TypePList* args, bool is_init = false,
-			bool do_warn = true) const;
-	bool CheckArgs(const std::vector<TypePtr>& args,
-	               bool is_init = false, bool do_warn = true) const;
+	bool CheckArgs(const TypePList* args, bool is_init = false, bool do_warn = true) const;
+	bool CheckArgs(const std::vector<TypePtr>& args, bool is_init = false,
+	               bool do_warn = true) const;
 
-	const TypeListPtr& ParamList() const
-		{ return arg_types; }
+	const TypeListPtr& ParamList() const { return arg_types; }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
@@ -486,16 +493,16 @@ public:
 	/**
 	 * Returns all allowed function prototypes.
 	 */
-	const std::vector<Prototype>& Prototypes() const
-		{ return prototypes; }
+	const std::vector<Prototype>& Prototypes() const { return prototypes; }
 
 	/**
 	 * A single lambda "capture" (outer variable used in a lambda's body).
 	 */
-	struct Capture {
+	struct Capture
+		{
 		detail::IDPtr id;
 		bool deep_copy;
-	};
+		};
 
 	using CaptureList = std::vector<Capture>;
 
@@ -511,8 +518,7 @@ public:
 	 *
 	 * @return a vector giving the captures
 	 */
-	const std::optional<CaptureList>& GetCaptures() const
-		{ return captures; }
+	const std::optional<CaptureList>& GetCaptures() const { return captures; }
 
 protected:
 	friend FuncTypePtr make_intrusive<FuncType>();
@@ -525,25 +531,24 @@ protected:
 	std::vector<Prototype> prototypes;
 
 	std::optional<CaptureList> captures; // if nil then no captures specified
-};
+	};
 
-class TypeType final : public Type {
+class TypeType final : public Type
+	{
 public:
-	explicit TypeType(TypePtr t) : zeek::Type(TYPE_TYPE), type(std::move(t)) {}
+	explicit TypeType(TypePtr t) : zeek::Type(TYPE_TYPE), type(std::move(t)) { }
 	TypePtr ShallowClone() override { return make_intrusive<TypeType>(type); }
 
-	const TypePtr& GetType() const
-		{ return type; }
+	const TypePtr& GetType() const { return type; }
 
-	template <class T>
-	IntrusivePtr<T> GetType() const
-		{ return cast_intrusive<T>(type); }
+	template <class T> IntrusivePtr<T> GetType() const { return cast_intrusive<T>(type); }
 
 protected:
 	TypePtr type;
-};
+	};
 
-class TypeDecl final {
+class TypeDecl final
+	{
 public:
 	TypeDecl() = default;
 	TypeDecl(const char* i, TypePtr t, detail::AttributesPtr attrs = nullptr);
@@ -551,14 +556,16 @@ public:
 	~TypeDecl();
 
 	const detail::AttrPtr& GetAttr(detail::AttrTag a) const
-		{ return attrs ? attrs->Find(a) : detail::Attr::nil; }
+		{
+		return attrs ? attrs->Find(a) : detail::Attr::nil;
+		}
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	TypePtr type;
 	detail::AttributesPtr attrs;
 	const char* id = nullptr;
-};
+	};
 
 using type_decl_list = PList<TypeDecl>;
 
@@ -567,7 +574,8 @@ using type_decl_list = PList<TypeDecl>;
 // would be nice to avoid.
 class FieldInit;
 
-class RecordType final : public Type {
+class RecordType final : public Type
+	{
 public:
 	explicit RecordType(type_decl_list* types);
 	TypePtr ShallowClone() override;
@@ -581,30 +589,33 @@ public:
 	 * field name is performed.
 	 */
 	const TypePtr& GetFieldType(const char* field_name) const
-		{ return GetFieldType(FieldOffset(field_name)); }
+		{
+		return GetFieldType(FieldOffset(field_name));
+		}
 
 	/**
 	 * Looks up a field by name and returns its type as cast to @c T.
 	 * No check for invalid field name is performed.
 	 */
-	template <class T>
-	IntrusivePtr<T> GetFieldType(const char* field_name) const
-		{ return cast_intrusive<T>(GetFieldType(field_name)); }
+	template <class T> IntrusivePtr<T> GetFieldType(const char* field_name) const
+		{
+		return cast_intrusive<T>(GetFieldType(field_name));
+		}
 
 	/**
 	 * Looks up a field by its index and returns its type.  No check for
 	 * invalid field offset is performed.
 	 */
-	const TypePtr& GetFieldType(int field_index) const
-		{ return (*types)[field_index]->type; }
+	const TypePtr& GetFieldType(int field_index) const { return (*types)[field_index]->type; }
 
 	/**
 	 * Looks up a field by its index and returns its type as cast to @c T.
 	 * No check for invalid field offset is performed.
 	 */
-	template <class T>
-	IntrusivePtr<T> GetFieldType(int field_index) const
-		{ return cast_intrusive<T>((*types)[field_index]->type); }
+	template <class T> IntrusivePtr<T> GetFieldType(int field_index) const
+		{
+		return cast_intrusive<T>((*types)[field_index]->type);
+		}
 
 	ValPtr FieldDefault(int field) const;
 
@@ -615,8 +626,8 @@ public:
 	// Given an offset, returns the field's name.
 	const char* FieldName(int field) const;
 
-	const type_decl_list* Types() const	{ return types; }
-	type_decl_list* Types()			{ return types; }
+	const type_decl_list* Types() const { return types; }
+	type_decl_list* Types() { return types; }
 
 	// Given an offset, returns the field's TypeDecl.
 	const TypeDecl* FieldDecl(int field) const;
@@ -624,11 +635,10 @@ public:
 
 	// Returns flags corresponding to which fields in the record
 	// have types requiring memory management (reference counting).
-	const std::vector<bool>& ManagedFields() const
-		{ return managed_fields; }
+	const std::vector<bool>& ManagedFields() const { return managed_fields; }
 
-	int NumFields() const			{ return num_fields; }
-	int NumOrigFields() const		{ return num_orig_fields; }
+	int NumFields() const { return num_fields; }
+	int NumOrigFields() const { return num_orig_fields; }
 
 	/**
 	 * Returns a "record_field_table" value for introspection purposes.
@@ -638,11 +648,9 @@ public:
 	TableValPtr GetRecordFieldsVal(const RecordVal* rv = nullptr) const;
 
 	// Returns null if all is ok, otherwise a pointer to an error message.
-	const char* AddFields(const type_decl_list& types,
-	                      bool add_log_attr = false);
+	const char* AddFields(const type_decl_list& types, bool add_log_attr = false);
 
-	void AddFieldsDirectly(const type_decl_list& types,
-				bool add_log_attr = false);
+	void AddFieldsDirectly(const type_decl_list& types, bool add_log_attr = false);
 
 	/**
 	 *
@@ -690,34 +698,36 @@ protected:
 	int num_orig_fields;
 
 	type_decl_list* types;
-};
+	};
 
-class SubNetType final : public Type {
+class SubNetType final : public Type
+	{
 public:
 	SubNetType();
 	void Describe(ODesc* d) const override;
-};
+	};
 
-class FileType final : public Type {
+class FileType final : public Type
+	{
 public:
 	explicit FileType(TypePtr yield_type);
 	TypePtr ShallowClone() override { return make_intrusive<FileType>(yield); }
 	~FileType() override;
 
-	const TypePtr& Yield() const override
-		{ return yield; }
+	const TypePtr& Yield() const override { return yield; }
 
 	void Describe(ODesc* d) const override;
 
 protected:
 	TypePtr yield;
-};
+	};
 
-class OpaqueType final : public Type {
+class OpaqueType final : public Type
+	{
 public:
 	explicit OpaqueType(const std::string& name);
 	TypePtr ShallowClone() override { return make_intrusive<OpaqueType>(name); }
-	~OpaqueType() override { };
+	~OpaqueType() override{};
 
 	const std::string& Name() const { return name; }
 
@@ -728,11 +738,12 @@ protected:
 	OpaqueType() { }
 
 	std::string name;
-};
+	};
 
-class EnumType final : public Type {
+class EnumType final : public Type
+	{
 public:
-	typedef std::list<std::pair<std::string, bro_int_t> > enum_name_list;
+	typedef std::list<std::pair<std::string, bro_int_t>> enum_name_list;
 
 	explicit EnumType(const EnumType* e);
 	explicit EnumType(const std::string& arg_name);
@@ -741,12 +752,14 @@ public:
 
 	// The value of this name is next internal counter value, starting
 	// with zero. The internal counter is incremented.
-	void AddName(const std::string& module_name, const char* name, bool is_export, detail::Expr* deprecation = nullptr, bool from_redef = false);
+	void AddName(const std::string& module_name, const char* name, bool is_export,
+	             detail::Expr* deprecation = nullptr, bool from_redef = false);
 
 	// The value of this name is set to val. Once a value has been
 	// explicitly assigned using this method, no further names can be
 	// added that aren't likewise explicitly initalized.
-	void AddName(const std::string& module_name, const char* name, bro_int_t val, bool is_export, detail::Expr* deprecation = nullptr, bool from_redef = false);
+	void AddName(const std::string& module_name, const char* name, bro_int_t val, bool is_export,
+	             detail::Expr* deprecation = nullptr, bool from_redef = false);
 
 	// -1 indicates not found.  Second version is for full names
 	// that already incorporate the module.
@@ -759,7 +772,7 @@ public:
 	// will be fully qualified with their module name.
 	enum_name_list Names() const;
 
-	bool HasRedefs() const		{ return has_redefs; }
+	bool HasRedefs() const { return has_redefs; }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
@@ -772,12 +785,11 @@ public:
 	void AddNameInternal(const std::string& full_name, bro_int_t val);
 
 protected:
-	void AddNameInternal(const std::string& module_name,
-	                     const char* name, bro_int_t val, bool is_export);
+	void AddNameInternal(const std::string& module_name, const char* name, bro_int_t val,
+	                     bool is_export);
 
-	void CheckAndAddName(const std::string& module_name,
-	                     const char* name, bro_int_t val, bool is_export,
-	                     detail::Expr* deprecation = nullptr,
+	void CheckAndAddName(const std::string& module_name, const char* name, bro_int_t val,
+	                     bool is_export, detail::Expr* deprecation = nullptr,
 	                     bool from_redef = false);
 
 	typedef std::map<std::string, bro_int_t> NameMap;
@@ -796,9 +808,10 @@ protected:
 	// as a flag to prevent mixing of auto-increment and explicit
 	// enumerator specifications.
 	bro_int_t counter;
-};
+	};
 
-class VectorType final : public Type {
+class VectorType final : public Type
+	{
 public:
 	explicit VectorType(TypePtr t);
 	TypePtr ShallowClone() override;
@@ -817,33 +830,40 @@ public:
 
 protected:
 	TypePtr yield_type;
-};
+	};
 
 // True if the two types are equivalent.  If is_init is true then the test is
 // done in the context of an initialization. If match_record_field_names is
 // true then for record types the field names have to match, too.
-extern bool same_type(const Type& t1, const Type& t2,
-                      bool is_init=false, bool match_record_field_names=true);
-inline bool same_type(const TypePtr& t1, const TypePtr& t2,
-                      bool is_init=false, bool match_record_field_names=true)
-    { return same_type(*t1, *t2, is_init, match_record_field_names); }
-inline bool same_type(const Type* t1, const Type* t2,
-                      bool is_init=false, bool match_record_field_names=true)
-    { return same_type(*t1, *t2, is_init, match_record_field_names); }
-inline bool same_type(const TypePtr& t1, const Type* t2,
-                      bool is_init=false, bool match_record_field_names=true)
-    { return same_type(*t1, *t2, is_init, match_record_field_names); }
-inline bool same_type(const Type* t1, const TypePtr& t2,
-                      bool is_init=false, bool match_record_field_names=true)
-    { return same_type(*t1, *t2, is_init, match_record_field_names); }
+extern bool same_type(const Type& t1, const Type& t2, bool is_init = false,
+                      bool match_record_field_names = true);
+inline bool same_type(const TypePtr& t1, const TypePtr& t2, bool is_init = false,
+                      bool match_record_field_names = true)
+	{
+	return same_type(*t1, *t2, is_init, match_record_field_names);
+	}
+inline bool same_type(const Type* t1, const Type* t2, bool is_init = false,
+                      bool match_record_field_names = true)
+	{
+	return same_type(*t1, *t2, is_init, match_record_field_names);
+	}
+inline bool same_type(const TypePtr& t1, const Type* t2, bool is_init = false,
+                      bool match_record_field_names = true)
+	{
+	return same_type(*t1, *t2, is_init, match_record_field_names);
+	}
+inline bool same_type(const Type* t1, const TypePtr& t2, bool is_init = false,
+                      bool match_record_field_names = true)
+	{
+	return same_type(*t1, *t2, is_init, match_record_field_names);
+	}
 
 // True if the two attribute lists are equivalent.
 extern bool same_attrs(const detail::Attributes* a1, const detail::Attributes* a2);
 
 // Returns true if the record sub_rec can be promoted to the record
 // super_rec.
-extern bool record_promotion_compatible(const RecordType* super_rec,
-					const RecordType* sub_rec);
+extern bool record_promotion_compatible(const RecordType* super_rec, const RecordType* sub_rec);
 
 // If the given Type is a TypeList with just one element, returns
 // that element, otherwise returns the type.
@@ -869,38 +889,68 @@ TypePtr init_type(detail::Expr* init);
 // Returns true if argument is an atomic type.
 bool is_atomic_type(const Type& t);
 inline bool is_atomic_type(const Type* t)
-	{ return is_atomic_type(*t); }
+	{
+	return is_atomic_type(*t);
+	}
 inline bool is_atomic_type(const TypePtr& t)
-	{ return is_atomic_type(*t); }
+	{
+	return is_atomic_type(*t);
+	}
 
 // True if the given type tag corresponds to type that can be assigned to.
 extern bool is_assignable(TypeTag t);
 inline bool is_assignable(Type* t)
-	{ return is_assignable(t->Tag()); }
+	{
+	return is_assignable(t->Tag());
+	}
 
 // True if the given type tag corresponds to an integral type.
-inline bool IsIntegral(TypeTag t) { return (t == TYPE_INT || t == TYPE_COUNT ); }
+inline bool IsIntegral(TypeTag t)
+	{
+	return (t == TYPE_INT || t == TYPE_COUNT);
+	}
 
 // True if the given type tag corresponds to an arithmetic type.
-inline bool IsArithmetic(TypeTag t)	{ return (IsIntegral(t) || t == TYPE_DOUBLE); }
+inline bool IsArithmetic(TypeTag t)
+	{
+	return (IsIntegral(t) || t == TYPE_DOUBLE);
+	}
 
 // True if the given type tag corresponds to a boolean type.
-inline bool IsBool(TypeTag t)	{ return (t == TYPE_BOOL); }
+inline bool IsBool(TypeTag t)
+	{
+	return (t == TYPE_BOOL);
+	}
 
 // True if the given type tag corresponds to an interval type.
-inline bool IsInterval(TypeTag t)	{ return (t == TYPE_INTERVAL); }
+inline bool IsInterval(TypeTag t)
+	{
+	return (t == TYPE_INTERVAL);
+	}
 
 // True if the given type tag corresponds to a record type.
-inline bool IsRecord(TypeTag t)	{ return (t == TYPE_RECORD || t == TYPE_UNION); }
+inline bool IsRecord(TypeTag t)
+	{
+	return (t == TYPE_RECORD || t == TYPE_UNION);
+	}
 
 // True if the given type tag corresponds to a function type.
-inline bool IsFunc(TypeTag t)	{ return (t == TYPE_FUNC); }
+inline bool IsFunc(TypeTag t)
+	{
+	return (t == TYPE_FUNC);
+	}
 
 // True if the given type type is a vector.
-inline bool IsVector(TypeTag t)	{ return (t == TYPE_VECTOR); }
+inline bool IsVector(TypeTag t)
+	{
+	return (t == TYPE_VECTOR);
+	}
 
 // True if the given type type is a string.
-inline bool IsString(TypeTag t)	{ return (t == TYPE_STRING); }
+inline bool IsString(TypeTag t)
+	{
+	return (t == TYPE_STRING);
+	}
 
 // True if the given type is a container aggregate.
 inline bool IsAggr(TypeTag tag)
@@ -917,36 +967,63 @@ inline bool IsAggr(const TypePtr& t)
 	}
 
 // True if the given type tag corresponds to the error type.
-inline bool IsErrorType(TypeTag t)	{ return (t == TYPE_ERROR); }
+inline bool IsErrorType(TypeTag t)
+	{
+	return (t == TYPE_ERROR);
+	}
 
 // True if both tags are integral types.
-inline bool BothIntegral(TypeTag t1, TypeTag t2) { return (IsIntegral(t1) && IsIntegral(t2)); }
+inline bool BothIntegral(TypeTag t1, TypeTag t2)
+	{
+	return (IsIntegral(t1) && IsIntegral(t2));
+	}
 
 // True if both tags are arithmetic types.
-inline bool BothArithmetic(TypeTag t1, TypeTag t2) { return (IsArithmetic(t1) && IsArithmetic(t2)); }
+inline bool BothArithmetic(TypeTag t1, TypeTag t2)
+	{
+	return (IsArithmetic(t1) && IsArithmetic(t2));
+	}
 
 // True if either tags is an arithmetic type.
-inline bool EitherArithmetic(TypeTag t1, TypeTag t2) { return (IsArithmetic(t1) || IsArithmetic(t2)); }
+inline bool EitherArithmetic(TypeTag t1, TypeTag t2)
+	{
+	return (IsArithmetic(t1) || IsArithmetic(t2));
+	}
 
 // True if both tags are boolean types.
-inline bool BothBool(TypeTag t1, TypeTag t2) { return (IsBool(t1) && IsBool(t2)); }
+inline bool BothBool(TypeTag t1, TypeTag t2)
+	{
+	return (IsBool(t1) && IsBool(t2));
+	}
 
 // True if both tags are interval types.
-inline bool BothInterval(TypeTag t1, TypeTag t2) { return (IsInterval(t1) && IsInterval(t2)); }
+inline bool BothInterval(TypeTag t1, TypeTag t2)
+	{
+	return (IsInterval(t1) && IsInterval(t2));
+	}
 
 // True if both tags are string types.
-inline bool BothString(TypeTag t1, TypeTag t2) { return (IsString(t1) && IsString(t2)); }
+inline bool BothString(TypeTag t1, TypeTag t2)
+	{
+	return (IsString(t1) && IsString(t2));
+	}
 
 // True if either tag is the error type.
-inline bool EitherError(TypeTag t1, TypeTag t2) { return (IsErrorType(t1) || IsErrorType(t2)); }
+inline bool EitherError(TypeTag t1, TypeTag t2)
+	{
+	return (IsErrorType(t1) || IsErrorType(t2));
+	}
 
 // Returns the basic (non-parameterized) type with the given type.
 const TypePtr& base_type(TypeTag tag);
 
 // Returns the basic error type.
-inline const TypePtr& error_type()       { return base_type(TYPE_ERROR); }
+inline const TypePtr& error_type()
+	{
+	return base_type(TYPE_ERROR);
+	}
 
-} // namespace zeek
+	} // namespace zeek
 
 extern zeek::OpaqueTypePtr md5_type;
 extern zeek::OpaqueTypePtr sha1_type;

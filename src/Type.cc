@@ -1,28 +1,29 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/Type.h"
 
-#include <string>
 #include <list>
 #include <map>
+#include <string>
 
 #include "zeek/Attr.h"
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
+#include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
-#include "zeek/Reporter.h"
-#include "zeek/zeekygen/Manager.h"
+#include "zeek/module_util.h"
+#include "zeek/zeek-config.h"
 #include "zeek/zeekygen/IdentifierInfo.h"
+#include "zeek/zeekygen/Manager.h"
 #include "zeek/zeekygen/ScriptInfo.h"
 #include "zeek/zeekygen/utils.h"
-#include "zeek/module_util.h"
 
 using namespace std;
 
-namespace zeek {
+namespace zeek
+	{
 
 Type::TypeAliasMap Type::type_aliases;
 
@@ -30,31 +31,31 @@ Type::TypeAliasMap Type::type_aliases;
 const char* type_name(TypeTag t)
 	{
 	static constexpr const char* type_names[int(NUM_TYPES)] = {
-		"void",      // 0
-		"bool",      // 1
-		"int",       // 2
-		"count",     // 3
-		"double",    // 4
-		"time",      // 5
-		"interval",  // 6
-		"string",    // 7
-		"pattern",   // 8
-		"enum",      // 9
-		"timer",     // 10
-		"port",      // 11
-		"addr",      // 12
-		"subnet",    // 13
-		"any",       // 14
-		"table",     // 15
-		"union",     // 16
-		"record",    // 17
-		"types",     // 18
-		"func",      // 19
-		"file",      // 20
-		"vector",    // 21
-		"opaque",    // 22
-		"type",      // 23
-		"error",     // 24
+		"void", // 0
+		"bool", // 1
+		"int", // 2
+		"count", // 3
+		"double", // 4
+		"time", // 5
+		"interval", // 6
+		"string", // 7
+		"pattern", // 8
+		"enum", // 9
+		"timer", // 10
+		"port", // 11
+		"addr", // 12
+		"subnet", // 13
+		"any", // 14
+		"table", // 15
+		"union", // 16
+		"record", // 17
+		"types", // 18
+		"func", // 19
+		"file", // 20
+		"vector", // 21
+		"opaque", // 22
+		"type", // 23
+		"error", // 24
 	};
 
 	if ( int(t) >= NUM_TYPES )
@@ -64,152 +65,151 @@ const char* type_name(TypeTag t)
 	}
 
 Type::Type(TypeTag t, bool arg_base_type)
-	: tag(t), internal_tag(to_internal_type_tag(tag)),
-	  is_network_order(zeek::is_network_order(t)),
+	: tag(t), internal_tag(to_internal_type_tag(tag)), is_network_order(zeek::is_network_order(t)),
 	  base_type(arg_base_type)
 	{
 	}
 
-#define CHECK_TYPE_TAG(tag_type, func_name) \
-	CHECK_TAG(tag, tag_type, func_name, type_name)
+#define CHECK_TYPE_TAG(tag_type, func_name) CHECK_TAG(tag, tag_type, func_name, type_name)
 
 const TypeList* Type::AsTypeList() const
 	{
 	CHECK_TYPE_TAG(TYPE_LIST, "Type::AsTypeList");
-	return (const TypeList*) this;
+	return (const TypeList*)this;
 	}
 
 TypeList* Type::AsTypeList()
 	{
 	CHECK_TYPE_TAG(TYPE_LIST, "Type::AsTypeList");
-	return (TypeList*) this;
+	return (TypeList*)this;
 	}
 
 const TableType* Type::AsTableType() const
 	{
 	CHECK_TYPE_TAG(TYPE_TABLE, "Type::AsTableType");
-	return (const TableType*) this;
+	return (const TableType*)this;
 	}
 
 TableType* Type::AsTableType()
 	{
 	CHECK_TYPE_TAG(TYPE_TABLE, "Type::AsTableType");
-	return (TableType*) this;
+	return (TableType*)this;
 	}
 
 const SetType* Type::AsSetType() const
 	{
 	if ( ! IsSet() )
 		BadTag("Type::AsSetType", type_name(tag));
-	return (const SetType*) this;
+	return (const SetType*)this;
 	}
 
 SetType* Type::AsSetType()
 	{
 	if ( ! IsSet() )
 		BadTag("Type::AsSetType", type_name(tag));
-	return (SetType*) this;
+	return (SetType*)this;
 	}
 
 const RecordType* Type::AsRecordType() const
 	{
 	CHECK_TYPE_TAG(TYPE_RECORD, "Type::AsRecordType");
-	return (const RecordType*) this;
+	return (const RecordType*)this;
 	}
 
 RecordType* Type::AsRecordType()
 	{
 	CHECK_TYPE_TAG(TYPE_RECORD, "Type::AsRecordType");
-	return (RecordType*) this;
+	return (RecordType*)this;
 	}
 
 const SubNetType* Type::AsSubNetType() const
 	{
 	CHECK_TYPE_TAG(TYPE_SUBNET, "Type::AsSubNetType");
-	return (const SubNetType*) this;
+	return (const SubNetType*)this;
 	}
 
 SubNetType* Type::AsSubNetType()
 	{
 	CHECK_TYPE_TAG(TYPE_SUBNET, "Type::AsSubNetType");
-	return (SubNetType*) this;
+	return (SubNetType*)this;
 	}
 
 const FuncType* Type::AsFuncType() const
 	{
 	CHECK_TYPE_TAG(TYPE_FUNC, "Type::AsFuncType");
-	return (const FuncType*) this;
+	return (const FuncType*)this;
 	}
 
 FuncType* Type::AsFuncType()
 	{
 	CHECK_TYPE_TAG(TYPE_FUNC, "Type::AsFuncType");
-	return (FuncType*) this;
+	return (FuncType*)this;
 	}
 
 const FileType* Type::AsFileType() const
 	{
 	CHECK_TYPE_TAG(TYPE_FILE, "Type::AsFileType");
-	return (const FileType*) this;
+	return (const FileType*)this;
 	}
 
 FileType* Type::AsFileType()
 	{
 	CHECK_TYPE_TAG(TYPE_FILE, "Type::AsFileType");
-	return (FileType*) this;
+	return (FileType*)this;
 	}
 
 const EnumType* Type::AsEnumType() const
 	{
 	CHECK_TYPE_TAG(TYPE_ENUM, "Type::AsEnumType");
-	return (const EnumType*) this;
+	return (const EnumType*)this;
 	}
 
 EnumType* Type::AsEnumType()
 	{
 	CHECK_TYPE_TAG(TYPE_ENUM, "Type::AsEnumType");
-	return (EnumType*) this;
+	return (EnumType*)this;
 	}
 
 const VectorType* Type::AsVectorType() const
 	{
 	CHECK_TYPE_TAG(TYPE_VECTOR, "Type::AsVectorType");
-	return (const VectorType*) this;
+	return (const VectorType*)this;
 	}
 
 VectorType* Type::AsVectorType()
 	{
 	CHECK_TYPE_TAG(TYPE_VECTOR, "Type::AsVectorType");
-	return (VectorType*) this;
+	return (VectorType*)this;
 	}
 
 const OpaqueType* Type::AsOpaqueType() const
 	{
 	CHECK_TYPE_TAG(TYPE_OPAQUE, "Type::AsOpaqueType");
-	return (const OpaqueType*) this;
+	return (const OpaqueType*)this;
 	}
 
 OpaqueType* Type::AsOpaqueType()
 	{
 	CHECK_TYPE_TAG(TYPE_OPAQUE, "Type::AsOpaqueType");
-	return (OpaqueType*) this;
+	return (OpaqueType*)this;
 	}
 
 const TypeType* Type::AsTypeType() const
 	{
 	CHECK_TYPE_TAG(TYPE_TYPE, "Type::AsTypeType");
-	return (const TypeType*) this;
+	return (const TypeType*)this;
 	}
 
 TypeType* Type::AsTypeType()
 	{
 	CHECK_TYPE_TAG(TYPE_TYPE, "Type::AsTypeType");
-	return (TypeType*) this;
+	return (TypeType*)this;
 	}
 
 TypePtr Type::ShallowClone()
 	{
-	switch ( tag ) {
+	switch ( tag )
+		{
 		case TYPE_VOID:
 		case TYPE_BOOL:
 		case TYPE_INT:
@@ -228,7 +228,7 @@ TypePtr Type::ShallowClone()
 
 		default:
 			reporter->InternalError("cloning illegal base Type");
-	}
+		}
 	return nullptr;
 	}
 
@@ -342,9 +342,7 @@ unsigned int TypeList::MemoryAllocation() const
 
 	size += util::pad_size(types.capacity() * sizeof(decltype(types)::value_type));
 
-	return Type::MemoryAllocation()
-		+ padded_sizeof(*this) - padded_sizeof(Type)
-		+ size;
+	return Type::MemoryAllocation() + padded_sizeof(*this) - padded_sizeof(Type) + size;
 #pragma GCC diagnostic pop
 	}
 
@@ -354,12 +352,12 @@ int IndexType::MatchesIndex(detail::ListExpr* const index) const
 	const auto& types = indices->GetTypes();
 	const ExprPList& exprs = index->Exprs();
 
-	if ( types.size() == 1 && types[0]->Tag() == TYPE_SUBNET &&
-	     exprs.length() == 1 && exprs[0]->GetType()->Tag() == TYPE_ADDR )
+	if ( types.size() == 1 && types[0]->Tag() == TYPE_SUBNET && exprs.length() == 1 &&
+	     exprs[0]->GetType()->Tag() == TYPE_ADDR )
 		return MATCHES_INDEX_SCALAR;
 
-	return check_and_promote_exprs(index, GetIndices().get()) ?
-			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
+	return check_and_promote_exprs(index, GetIndices().get()) ? MATCHES_INDEX_SCALAR
+	                                                          : DOES_NOT_MATCH_INDEX;
 	}
 
 void IndexType::Describe(ODesc* d) const
@@ -450,56 +448,57 @@ static bool is_supported_index_type(const TypePtr& t, const char** tname)
 
 	auto tag = t->Tag();
 
-	switch ( tag ) {
-	// Allow functions, since they can be compared for Func* pointer equality.
-	case TYPE_FUNC:
-		return true;
-
-	case TYPE_PATTERN:
-		return true;
-
-	case TYPE_RECORD:
+	switch ( tag )
 		{
-		auto rt = t->AsRecordType();
-
-		for ( auto i = 0; i < rt->NumFields(); ++i )
-			if ( ! is_supported_index_type(rt->GetFieldType(i), tname) )
-				return false;
-
-		return true;
-		}
-
-	case TYPE_LIST:
-		{
-		for ( const auto& type : t->AsTypeList()->GetTypes() )
-			if ( ! is_supported_index_type(type, tname) )
-				return false;
-
-		return true;
-		}
-
-	case TYPE_TABLE:
-		{
-		auto tt = t->AsTableType();
-
-		if ( ! is_supported_index_type(tt->GetIndices(), tname) )
-			return false;
-
-		const auto& yt = tt->Yield();
-
-		if ( ! yt )
+		// Allow functions, since they can be compared for Func* pointer equality.
+		case TYPE_FUNC:
 			return true;
 
-		return is_supported_index_type(yt, tname);
+		case TYPE_PATTERN:
+			return true;
+
+		case TYPE_RECORD:
+				{
+				auto rt = t->AsRecordType();
+
+				for ( auto i = 0; i < rt->NumFields(); ++i )
+					if ( ! is_supported_index_type(rt->GetFieldType(i), tname) )
+						return false;
+
+				return true;
+				}
+
+		case TYPE_LIST:
+				{
+				for ( const auto& type : t->AsTypeList()->GetTypes() )
+					if ( ! is_supported_index_type(type, tname) )
+						return false;
+
+				return true;
+				}
+
+		case TYPE_TABLE:
+				{
+				auto tt = t->AsTableType();
+
+				if ( ! is_supported_index_type(tt->GetIndices(), tname) )
+					return false;
+
+				const auto& yt = tt->Yield();
+
+				if ( ! yt )
+					return true;
+
+				return is_supported_index_type(yt, tname);
+				}
+
+		case TYPE_VECTOR:
+			return is_supported_index_type(t->AsVectorType()->Yield(), tname);
+
+		default:
+			*tname = type_name(tag);
+			return false;
 		}
-
-	case TYPE_VECTOR:
-		return is_supported_index_type(t->AsVectorType()->Yield(), tname);
-
-	default:
-		*tname = type_name(tag);
-		return false;
-	}
 	}
 
 TableType::TableType(TypeListPtr ind, TypePtr yield)
@@ -520,8 +519,8 @@ TableType::TableType(TypeListPtr ind, TypePtr yield)
 
 		if ( ! is_supported_index_type(tli, &unsupported_type_name) )
 			{
-			auto msg = util::fmt("index type containing '%s' is not supported",
-			                     unsupported_type_name);
+			auto msg =
+				util::fmt("index type containing '%s' is not supported", unsupported_type_name);
 			Error(msg, tli.get());
 			SetError();
 			break;
@@ -650,10 +649,9 @@ TypePtr SetType::ShallowClone()
 
 SetType::~SetType() = default;
 
-FuncType::FuncType(RecordTypePtr arg_args,
-                   TypePtr arg_yield, FunctionFlavor arg_flavor)
-	: Type(TYPE_FUNC), args(std::move(arg_args)),
-	  arg_types(make_intrusive<TypeList>()), yield(std::move(arg_yield))
+FuncType::FuncType(RecordTypePtr arg_args, TypePtr arg_yield, FunctionFlavor arg_flavor)
+	: Type(TYPE_FUNC), args(std::move(arg_args)), arg_types(make_intrusive<TypeList>()),
+	  yield(std::move(arg_yield))
 	{
 	flavor = arg_flavor;
 
@@ -670,7 +668,8 @@ FuncType::FuncType(RecordTypePtr arg_args,
 		else if ( has_default_arg )
 			{
 			const char* err_str = util::fmt("required parameter '%s' must precede "
-			                                "default parameters", td->id);
+			                                "default parameters",
+			                                td->id);
 			args->Error(err_str);
 			}
 
@@ -695,27 +694,27 @@ TypePtr FuncType::ShallowClone()
 
 string FuncType::FlavorString() const
 	{
-	switch ( flavor ) {
+	switch ( flavor )
+		{
 
-	case FUNC_FLAVOR_FUNCTION:
-		return "function";
+		case FUNC_FLAVOR_FUNCTION:
+			return "function";
 
-	case FUNC_FLAVOR_EVENT:
-		return "event";
+		case FUNC_FLAVOR_EVENT:
+			return "event";
 
-	case FUNC_FLAVOR_HOOK:
-		return "hook";
+		case FUNC_FLAVOR_HOOK:
+			return "hook";
 
-	default:
-		reporter->InternalError("Invalid function flavor");
-		return "invalid_func_flavor";
-	}
+		default:
+			reporter->InternalError("Invalid function flavor");
+			return "invalid_func_flavor";
+		}
 	}
 
 int FuncType::MatchesIndex(detail::ListExpr* const index) const
 	{
-	return check_and_promote_args(index, args.get()) ?
-			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
+	return check_and_promote_args(index, args.get()) ? MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
 bool FuncType::CheckArgs(const TypePList* args, bool is_init, bool do_warn) const
@@ -729,8 +728,7 @@ bool FuncType::CheckArgs(const TypePList* args, bool is_init, bool do_warn) cons
 	return CheckArgs(as, is_init, do_warn);
 	}
 
-bool FuncType::CheckArgs(const std::vector<TypePtr>& args,
-                         bool is_init, bool do_warn) const
+bool FuncType::CheckArgs(const std::vector<TypePtr>& args, bool is_init, bool do_warn) const
 	{
 	const auto& my_args = arg_types->GetTypes();
 
@@ -738,7 +736,7 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args,
 		{
 		if ( do_warn )
 			Warn(util::fmt("Wrong number of arguments for function. Expected %zu, got %zu.",
-				       args.size(), my_args.size()));
+			               args.size(), my_args.size()));
 		return false;
 		}
 
@@ -748,8 +746,8 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args,
 		if ( ! same_type(args[i], my_args[i], is_init) )
 			{
 			if ( do_warn )
-				Warn(util::fmt("Type mismatch in function argument #%zu. Expected %s, got %s.",
-					       i, type_name(args[i]->Tag()), type_name(my_args[i]->Tag())));
+				Warn(util::fmt("Type mismatch in function argument #%zu. Expected %s, got %s.", i,
+				               type_name(args[i]->Tag()), type_name(my_args[i]->Tag())));
 			success = false;
 			}
 
@@ -856,10 +854,9 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
 	}
 
 TypeDecl::TypeDecl(const char* i, TypePtr t, detail::AttributesPtr arg_attrs)
-	: type(std::move(t)),
-	  attrs(std::move(arg_attrs)),
-	  id(i)
-	{}
+	: type(std::move(t)), attrs(std::move(arg_attrs)), id(i)
+	{
+	}
 
 TypeDecl::TypeDecl(const TypeDecl& other)
 	{
@@ -871,7 +868,7 @@ TypeDecl::TypeDecl(const TypeDecl& other)
 
 TypeDecl::~TypeDecl()
 	{
-	delete [] id;
+	delete[] id;
 	}
 
 void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const
@@ -895,27 +892,28 @@ void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
-
 // The following tracks how to initialize a given field, for fast execution
 // of Create().
 
-class FieldInit {
+class FieldInit
+	{
 public:
 	// The type of initialization for the field.
-	enum {
-		R_INIT_NONE,	// skip this entry
+	enum
+		{
+		R_INIT_NONE, // skip this entry
 
-		R_INIT_DIRECT,	// look in direct_init for raw value
-		R_INIT_DIRECT_MANAGED,	// same, but managed type
+		R_INIT_DIRECT, // look in direct_init for raw value
+		R_INIT_DIRECT_MANAGED, // same, but managed type
 
-		R_INIT_DEF,	// look in def_expr for expression
+		R_INIT_DEF, // look in def_expr for expression
 
-		R_INIT_RECORD,	// field requires a new record
-		R_INIT_TABLE,	// field requires a new table/set
-		R_INIT_VECTOR,	// field requires a new vector
-	} init_type;
+		R_INIT_RECORD, // field requires a new record
+		R_INIT_TABLE, // field requires a new table/set
+		R_INIT_VECTOR, // field requires a new vector
+		} init_type;
 
-	bool def_coerce = false;	// whether coercion's required
+	bool def_coerce = false; // whether coercion's required
 
 	// For R_INIT_DIRECT/R_INIT_DIRECT_MANAGED:
 	ZVal direct_init;
@@ -923,11 +921,11 @@ public:
 	detail::ExprPtr def_expr;
 	TypePtr def_type;
 
-	RecordTypePtr r_type;	// for R_INIT_RECORD
-	TableTypePtr t_type;	// for R_INIT_TABLE
-	detail::AttributesPtr attrs;	// attributes for R_INIT_TABLE
-	VectorTypePtr v_type;	// for R_INIT_VECTOR
-};
+	RecordTypePtr r_type; // for R_INIT_RECORD
+	TableTypePtr t_type; // for R_INIT_TABLE
+	detail::AttributesPtr attrs; // attributes for R_INIT_TABLE
+	VectorTypePtr v_type; // for R_INIT_VECTOR
+	};
 
 RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 	{
@@ -937,8 +935,7 @@ RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 		{
 		num_fields = types->length();
 
-		loop_over_list(*types, i)
-			AddField(i, (*types)[i]);
+		loop_over_list(*types, i) AddField(i, (*types)[i]);
 		}
 	else
 		num_fields = 0;
@@ -990,8 +987,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 
 	if ( def_expr )
 		{
-		if ( type->Tag() == TYPE_RECORD &&
-		     def_expr->GetType()->Tag() == TYPE_RECORD &&
+		if ( type->Tag() == TYPE_RECORD && def_expr->GetType()->Tag() == TYPE_RECORD &&
 		     ! same_type(def_expr->GetType(), type) )
 			init->def_coerce = true;
 
@@ -1000,8 +996,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 			auto v = def_expr->Eval(nullptr);
 
 			if ( ZVal::IsManagedType(type) )
-				init->init_type =
-					FieldInit::R_INIT_DIRECT_MANAGED;
+				init->init_type = FieldInit::R_INIT_DIRECT_MANAGED;
 			else
 				init->init_type = FieldInit::R_INIT_DIRECT;
 
@@ -1139,7 +1134,7 @@ static string container_type_name(const Type* ft)
 		else
 			s = "table[";
 
-		const auto& tl = ((const IndexType*) ft)->GetIndexTypes();
+		const auto& tl = ((const IndexType*)ft)->GetIndexTypes();
 
 		for ( auto i = 0u; i < tl.size(); ++i )
 			{
@@ -1190,8 +1185,7 @@ TableValPtr RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 	return rval;
 	}
 
-const char* RecordType::AddFields(const type_decl_list& others,
-                                  bool add_log_attr)
+const char* RecordType::AddFields(const type_decl_list& others, bool add_log_attr)
 	{
 	assert(types);
 
@@ -1213,8 +1207,7 @@ const char* RecordType::AddFields(const type_decl_list& others,
 	return nullptr;
 	}
 
-void RecordType::AddFieldsDirectly(const type_decl_list& others,
-					bool add_log_attr)
+void RecordType::AddFieldsDirectly(const type_decl_list& others, bool add_log_attr)
 	{
 	for ( const auto& td : others )
 		{
@@ -1244,52 +1237,53 @@ void RecordType::Create(std::vector<std::optional<ZVal>>& r) const
 
 		ZVal r_i;
 
-		switch ( init->init_type ) {
-		case FieldInit::R_INIT_NONE:
-			r.push_back(std::nullopt);
-			continue;
-
-		case FieldInit::R_INIT_DIRECT:
-			r_i = init->direct_init;
-			break;
-
-		case FieldInit::R_INIT_DIRECT_MANAGED:
-			r_i = init->direct_init;
-			zeek::Ref(r_i.ManagedVal());
-			break;
-
-		case FieldInit::R_INIT_DEF:
+		switch ( init->init_type )
 			{
-			auto v = init->def_expr->Eval(nullptr);
-			if ( v )
-				{
-				const auto& t = init->def_type;
+			case FieldInit::R_INIT_NONE:
+				r.push_back(std::nullopt);
+				continue;
 
-				if ( init->def_coerce )
+			case FieldInit::R_INIT_DIRECT:
+				r_i = init->direct_init;
+				break;
+
+			case FieldInit::R_INIT_DIRECT_MANAGED:
+				r_i = init->direct_init;
+				zeek::Ref(r_i.ManagedVal());
+				break;
+
+			case FieldInit::R_INIT_DEF:
 					{
-					auto rt = cast_intrusive<RecordType>(t);
-					v = v->AsRecordVal()->CoerceTo(rt);
+					auto v = init->def_expr->Eval(nullptr);
+					if ( v )
+						{
+						const auto& t = init->def_type;
+
+						if ( init->def_coerce )
+							{
+							auto rt = cast_intrusive<RecordType>(t);
+							v = v->AsRecordVal()->CoerceTo(rt);
+							}
+
+						r_i = ZVal(v, t);
+						}
+					else
+						reporter->Error("failed &default in record creation");
 					}
+				break;
 
-				r_i = ZVal(v, t);
-				}
-			else
-				reporter->Error("failed &default in record creation");
+			case FieldInit::R_INIT_RECORD:
+				r_i = ZVal(new RecordVal(init->r_type));
+				break;
+
+			case FieldInit::R_INIT_TABLE:
+				r_i = ZVal(new TableVal(init->t_type, init->attrs));
+				break;
+
+			case FieldInit::R_INIT_VECTOR:
+				r_i = ZVal(new VectorVal(init->v_type));
+				break;
 			}
-			break;
-
-		case FieldInit::R_INIT_RECORD:
-			r_i = ZVal(new RecordVal(init->r_type));
-			break;
-
-		case FieldInit::R_INIT_TABLE:
-			r_i = ZVal(new TableVal(init->t_type, init->attrs));
-			break;
-
-		case FieldInit::R_INIT_VECTOR:
-			r_i = ZVal(new VectorVal(init->v_type));
-			break;
-		}
 
 		r.push_back(r_i);
 		}
@@ -1364,8 +1358,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 			d->Add("<recursion>");
 		else
 			{
-			if ( num_fields == 1 && util::streq(td->id, "va_args") &&
-			     td->type->Tag() == TYPE_ANY )
+			if ( num_fields == 1 && util::streq(td->id, "va_args") && td->type->Tag() == TYPE_ANY )
 				// This was a BIF using variable argument list
 				d->Add("...");
 			else
@@ -1379,8 +1372,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 
 		if ( ! doc )
 			{
-			reporter->InternalWarning("Failed to lookup record doc: %s",
-			                          GetName().c_str());
+			reporter->InternalWarning("Failed to lookup record doc: %s", GetName().c_str());
 			continue;
 			}
 
@@ -1390,8 +1382,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		if ( doc->GetDeclaringScript() )
 			type_from_script = doc->GetDeclaringScript()->Name();
 
-		if ( ! field_from_script.empty() &&
-		     field_from_script != type_from_script )
+		if ( ! field_from_script.empty() && field_from_script != type_from_script )
 			{
 			d->PushIndent();
 			d->Add(zeekygen::detail::redef_indication(field_from_script).c_str());
@@ -1433,7 +1424,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 	{
 	const TypeDecl* decl = FieldDecl(field);
-	if ( decl)
+	if ( decl )
 		{
 		string result;
 		if ( const auto& deprecation = decl->GetAttr(detail::ATTR_DEPRECATED) )
@@ -1450,9 +1441,7 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 	return "";
 	}
 
-SubNetType::SubNetType() : Type(TYPE_SUBNET)
-	{
-	}
+SubNetType::SubNetType() : Type(TYPE_SUBNET) { }
 
 void SubNetType::Describe(ODesc* d) const
 	{
@@ -1462,10 +1451,7 @@ void SubNetType::Describe(ODesc* d) const
 		d->Add(int(Tag()));
 	}
 
-FileType::FileType(TypePtr yield_type)
-	: Type(TYPE_FILE), yield(std::move(yield_type))
-	{
-	}
+FileType::FileType(TypePtr yield_type) : Type(TYPE_FILE), yield(std::move(yield_type)) { }
 
 FileType::~FileType() = default;
 
@@ -1503,15 +1489,13 @@ void OpaqueType::DescribeReST(ODesc* d, bool roles_only) const
 	d->Add(util::fmt(":zeek:type:`%s` of %s", type_name(Tag()), name.c_str()));
 	}
 
-EnumType::EnumType(const string& name)
-	: Type(TYPE_ENUM)
+EnumType::EnumType(const string& name) : Type(TYPE_ENUM)
 	{
 	counter = 0;
 	SetName(name);
 	}
 
-EnumType::EnumType(const EnumType* e)
-	: Type(TYPE_ENUM), names(e->names), vals(e->vals)
+EnumType::EnumType(const EnumType* e) : Type(TYPE_ENUM), names(e->names), vals(e->vals)
 	{
 	counter = e->counter;
 	SetName(e->GetName());
@@ -1534,7 +1518,7 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
                        detail::Expr* deprecation, bool from_redef)
 	{
 	/* implicit, auto-increment */
-	if ( counter < 0)
+	if ( counter < 0 )
 		{
 		reporter->Error("cannot mix explicit enumerator assignment and implicit auto-increment");
 		SetError();
@@ -1544,8 +1528,8 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 	counter++;
 	}
 
-void EnumType::AddName(const string& module_name, const char* name, bro_int_t val,
-                       bool is_export, detail::Expr* deprecation, bool from_redef)
+void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export,
+                       detail::Expr* deprecation, bool from_redef)
 	{
 	/* explicit value specified */
 	if ( counter > 0 )
@@ -1558,9 +1542,8 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 	CheckAndAddName(module_name, name, val, is_export, deprecation, from_redef);
 	}
 
-void EnumType::CheckAndAddName(const string& module_name, const char* name,
-                               bro_int_t val, bool is_export, detail::Expr* deprecation,
-                               bool from_redef)
+void EnumType::CheckAndAddName(const string& module_name, const char* name, bro_int_t val,
+                               bool is_export, detail::Expr* deprecation, bool from_redef)
 	{
 	if ( from_redef )
 		has_redefs = true;
@@ -1591,10 +1574,9 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		// We allow double-definitions if matching exactly. This is so that
 		// we can define an enum both in a *.bif and *.zeek for avoiding
 		// cyclic dependencies.
-		if ( ! id->IsEnumConst()
-		     || (id->HasVal() && val != id->GetVal()->AsEnum())
-		     || GetName() != id->GetType()->GetName()
-		     || (names.find(fullname) != names.end() && names[fullname] != val) )
+		if ( ! id->IsEnumConst() || (id->HasVal() && val != id->GetVal()->AsEnum()) ||
+		     GetName() != id->GetType()->GetName() ||
+		     (names.find(fullname) != names.end() && names[fullname] != val) )
 			{
 			auto cl = detail::GetCurrentLocation();
 			reporter->PushLocation(&cl, id->GetLocationInfo());
@@ -1618,8 +1600,8 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 			t->AsEnumType()->AddNameInternal(module_name, name, val, is_export);
 	}
 
-void EnumType::AddNameInternal(const string& module_name, const char* name,
-                               bro_int_t val, bool is_export)
+void EnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val,
+                               bool is_export)
 	{
 	string fullname = detail::make_full_var_name(module_name.c_str(), name);
 	names[fullname] = val;
@@ -1650,8 +1632,7 @@ bro_int_t EnumType::Lookup(const string& full_name) const
 
 const char* EnumType::Lookup(bro_int_t value) const
 	{
-	for ( NameMap::const_iterator iter = names.begin();
-	      iter != names.end(); ++iter )
+	for ( NameMap::const_iterator iter = names.begin(); iter != names.end(); ++iter )
 		if ( iter->second == value )
 			return iter->first.c_str();
 
@@ -1661,8 +1642,7 @@ const char* EnumType::Lookup(bro_int_t value) const
 EnumType::enum_name_list EnumType::Names() const
 	{
 	enum_name_list n;
-	for ( NameMap::const_iterator iter = names.begin();
-	      iter != names.end(); ++iter )
+	for ( NameMap::const_iterator iter = names.begin(); iter != names.end(); ++iter )
 		n.push_back(std::make_pair(iter->first, iter->second));
 
 	return n;
@@ -1729,8 +1709,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 
 		if ( ! doc )
 			{
-			reporter->InternalWarning("Enum %s documentation lookup failure",
-			                          it->second.c_str());
+			reporter->InternalWarning("Enum %s documentation lookup failure", it->second.c_str());
 			continue;
 			}
 
@@ -1740,13 +1719,13 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		if ( doc->GetDeclaringScript() )
 			enum_from_script = doc->GetDeclaringScript()->Name();
 
-		zeekygen::detail::IdentifierInfo* type_doc = detail::zeekygen_mgr->GetIdentifierInfo(GetName());
+		zeekygen::detail::IdentifierInfo* type_doc =
+			detail::zeekygen_mgr->GetIdentifierInfo(GetName());
 
 		if ( type_doc && type_doc->GetDeclaringScript() )
 			type_from_script = type_doc->GetDeclaringScript()->Name();
 
-		if ( ! enum_from_script.empty() &&
-		     enum_from_script != type_from_script )
+		if ( ! enum_from_script.empty() && enum_from_script != type_from_script )
 			{
 			d->NL();
 			d->PushIndent();
@@ -1806,19 +1785,20 @@ int VectorType::MatchesIndex(detail::ListExpr* const index) const
 	{
 	ExprPList& el = index->Exprs();
 
-	if ( el.length() != 1 && el.length() != 2)
+	if ( el.length() != 1 && el.length() != 2 )
 		return DOES_NOT_MATCH_INDEX;
 
 	if ( el.length() == 2 )
 		return MATCHES_INDEX_VECTOR;
 	else if ( el[0]->GetType()->Tag() == TYPE_VECTOR )
 		return (IsIntegral(el[0]->GetType()->Yield()->Tag()) ||
-			 IsBool(el[0]->GetType()->Yield()->Tag())) ?
-				MATCHES_INDEX_VECTOR : DOES_NOT_MATCH_INDEX;
+		        IsBool(el[0]->GetType()->Yield()->Tag()))
+		           ? MATCHES_INDEX_VECTOR
+		           : DOES_NOT_MATCH_INDEX;
 	else
-		return (IsIntegral(el[0]->GetType()->Tag()) ||
-			 IsBool(el[0]->GetType()->Tag())) ?
-				MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
+		return (IsIntegral(el[0]->GetType()->Tag()) || IsBool(el[0]->GetType()->Tag()))
+		           ? MATCHES_INDEX_SCALAR
+		           : DOES_NOT_MATCH_INDEX;
 	}
 
 bool VectorType::IsUnspecifiedVector() const
@@ -1867,12 +1847,9 @@ static bool is_init_compat(const Type& t1, const Type& t2)
 	return false;
 	}
 
-bool same_type(const Type& arg_t1, const Type& arg_t2,
-               bool is_init, bool match_record_field_names)
+bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_record_field_names)
 	{
-	if ( &arg_t1 == &arg_t2 ||
-	     arg_t1.Tag() == TYPE_ANY ||
-	     arg_t2.Tag() == TYPE_ANY )
+	if ( &arg_t1 == &arg_t2 || arg_t1.Tag() == TYPE_ANY || arg_t2.Tag() == TYPE_ANY )
 		return true;
 
 	auto t1 = &arg_t1;
@@ -1899,117 +1876,117 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 
 	// First do all checks that don't require any recursion.
 
-	switch ( t1->Tag() ) {
-	case TYPE_VOID:
-	case TYPE_BOOL:
-	case TYPE_INT:
-	case TYPE_COUNT:
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-	case TYPE_STRING:
-	case TYPE_PATTERN:
-	case TYPE_TIMER:
-	case TYPE_PORT:
-	case TYPE_ADDR:
-	case TYPE_SUBNET:
-	case TYPE_ANY:
-	case TYPE_ERROR:
-		return true;
-
-	case TYPE_ENUM:
-		// We should probably check to see whether all of the
-		// enumerations are present and in the same location.
-		// FIXME: Yes, but perhaps we should better return
-		// true per default?
-		return true;
-
-	case TYPE_OPAQUE:
+	switch ( t1->Tag() )
 		{
-		const OpaqueType* ot1 = (const OpaqueType*) t1;
-		const OpaqueType* ot2 = (const OpaqueType*) t2;
-		return ot1->Name() == ot2->Name();
+		case TYPE_VOID:
+		case TYPE_BOOL:
+		case TYPE_INT:
+		case TYPE_COUNT:
+		case TYPE_DOUBLE:
+		case TYPE_TIME:
+		case TYPE_INTERVAL:
+		case TYPE_STRING:
+		case TYPE_PATTERN:
+		case TYPE_TIMER:
+		case TYPE_PORT:
+		case TYPE_ADDR:
+		case TYPE_SUBNET:
+		case TYPE_ANY:
+		case TYPE_ERROR:
+			return true;
+
+		case TYPE_ENUM:
+			// We should probably check to see whether all of the
+			// enumerations are present and in the same location.
+			// FIXME: Yes, but perhaps we should better return
+			// true per default?
+			return true;
+
+		case TYPE_OPAQUE:
+				{
+				const OpaqueType* ot1 = (const OpaqueType*)t1;
+				const OpaqueType* ot2 = (const OpaqueType*)t2;
+				return ot1->Name() == ot2->Name();
+				}
+
+		case TYPE_TABLE:
+				{
+				const IndexType* it1 = (const IndexType*)t1;
+				const IndexType* it2 = (const IndexType*)t2;
+
+				const auto& tl1 = it1->GetIndices();
+				const auto& tl2 = it2->GetIndices();
+
+				if ( (tl1 || tl2) && ! (tl1 && tl2) )
+					return false;
+
+				const auto& y1 = t1->Yield();
+				const auto& y2 = t2->Yield();
+
+				if ( (y1 || y2) && ! (y1 && y2) )
+					return false;
+
+				break;
+				}
+
+		case TYPE_FUNC:
+				{
+				const FuncType* ft1 = (const FuncType*)t1;
+				const FuncType* ft2 = (const FuncType*)t2;
+
+				if ( ft1->Flavor() != ft2->Flavor() )
+					return false;
+
+				const auto& y1 = t1->Yield();
+				const auto& y2 = t2->Yield();
+				if ( (y1 || y2) && ! (y1 && y2) )
+					return false;
+
+				break;
+				}
+
+		case TYPE_RECORD:
+				{
+				const RecordType* rt1 = (const RecordType*)t1;
+				const RecordType* rt2 = (const RecordType*)t2;
+
+				if ( rt1->NumFields() != rt2->NumFields() )
+					return false;
+
+				for ( int i = 0; i < rt1->NumFields(); ++i )
+					{
+					const TypeDecl* td1 = rt1->FieldDecl(i);
+					const TypeDecl* td2 = rt2->FieldDecl(i);
+
+					if ( match_record_field_names && ! util::streq(td1->id, td2->id) )
+						return false;
+
+					if ( ! same_attrs(td1->attrs.get(), td2->attrs.get()) )
+						return false;
+					}
+
+				break;
+				}
+
+		case TYPE_LIST:
+				{
+				const auto& tl1 = t1->AsTypeList()->GetTypes();
+				const auto& tl2 = t2->AsTypeList()->GetTypes();
+
+				if ( tl1.size() != tl2.size() )
+					return false;
+
+				break;
+				}
+
+		case TYPE_VECTOR:
+		case TYPE_FILE:
+		case TYPE_TYPE:
+			break;
+
+		case TYPE_UNION:
+			reporter->Error("union type in same_type()");
 		}
-
-	case TYPE_TABLE:
-		{
-		const IndexType* it1 = (const IndexType*) t1;
-		const IndexType* it2 = (const IndexType*) t2;
-
-		const auto& tl1 = it1->GetIndices();
-		const auto& tl2 = it2->GetIndices();
-
-		if ( (tl1 || tl2) && ! (tl1 && tl2) )
-			return false;
-
-		const auto& y1 = t1->Yield();
-		const auto& y2 = t2->Yield();
-
-		if ( (y1 || y2) && ! (y1 && y2) )
-			return false;
-
-		break;
-		}
-
-	case TYPE_FUNC:
-		{
-		const FuncType* ft1 = (const FuncType*) t1;
-		const FuncType* ft2 = (const FuncType*) t2;
-
-		if ( ft1->Flavor() != ft2->Flavor() )
-			return false;
-
-		const auto& y1 = t1->Yield();
-		const auto& y2 = t2->Yield();
-		if ( (y1 || y2) && ! (y1 && y2) )
-			return false;
-
-		break;
-		}
-
-	case TYPE_RECORD:
-		{
-		const RecordType* rt1 = (const RecordType*) t1;
-		const RecordType* rt2 = (const RecordType*) t2;
-
-		if ( rt1->NumFields() != rt2->NumFields() )
-			return false;
-
-		for ( int i = 0; i < rt1->NumFields(); ++i )
-			{
-			const TypeDecl* td1 = rt1->FieldDecl(i);
-			const TypeDecl* td2 = rt2->FieldDecl(i);
-
-			if ( match_record_field_names &&
-			     ! util::streq(td1->id, td2->id) )
-				return false;
-
-			if ( ! same_attrs(td1->attrs.get(), td2->attrs.get()) )
-				return false;
-			}
-
-		break;
-		}
-
-	case TYPE_LIST:
-		{
-		const auto& tl1 = t1->AsTypeList()->GetTypes();
-		const auto& tl2 = t2->AsTypeList()->GetTypes();
-
-		if ( tl1.size() != tl2.size() )
-			return false;
-
-		break;
-		}
-
-	case TYPE_VECTOR:
-	case TYPE_FILE:
-	case TYPE_TYPE:
-		break;
-
-	case TYPE_UNION:
-		reporter->Error("union type in same_type()");
-	}
 
 	// If we get to here, then we're dealing with a type with
 	// subtypes, and thus potentially recursive.
@@ -2019,8 +1996,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 		// We've analyzed at least one of the types previously.
 		// Avoid infinite recursion.
 
-		if ( analyzed_types.count(t1) > 0 &&
-		     analyzed_types.count(t2) > 0 )
+		if ( analyzed_types.count(t1) > 0 && analyzed_types.count(t2) > 0 )
 			// We've analyzed them both.  In theory, this
 			// could happen while the types are still different.
 			// Checking for that is a pain - we could do so
@@ -2044,99 +2020,94 @@ bool same_type(const Type& arg_t1, const Type& arg_t2,
 
 	bool result;
 
-	switch ( t1->Tag() ) {
-	case TYPE_TABLE:
+	switch ( t1->Tag() )
 		{
-		const IndexType* it1 = (const IndexType*) t1;
-		const IndexType* it2 = (const IndexType*) t2;
-
-		const auto& tl1 = it1->GetIndices();
-		const auto& tl2 = it2->GetIndices();
-
-		if ( ! same_type(tl1, tl2, is_init, match_record_field_names) )
-			result = false;
-		else
-			{
-			const auto& y1 = t1->Yield();
-			const auto& y2 = t2->Yield();
-
-			result = same_type(y1, y2, is_init,
-						match_record_field_names);
-			}
-		break;
-		}
-
-	case TYPE_FUNC:
-		{
-		const FuncType* ft1 = (const FuncType*) t1;
-		const FuncType* ft2 = (const FuncType*) t2;
-
-		if ( ! same_type(t1->Yield(), t2->Yield(), is_init,
-					match_record_field_names) )
-			result = false;
-		else
-			result = ft1->CheckArgs(ft2->ParamList()->GetTypes(),
-						is_init, false);
-		break;
-		}
-
-	case TYPE_RECORD:
-		{
-		const RecordType* rt1 = (const RecordType*) t1;
-		const RecordType* rt2 = (const RecordType*) t2;
-
-		result = true;
-
-		for ( int i = 0; i < rt1->NumFields(); ++i )
-			{
-			const TypeDecl* td1 = rt1->FieldDecl(i);
-			const TypeDecl* td2 = rt2->FieldDecl(i);
-
-			if ( ! same_type(td1->type, td2->type, is_init,
-						match_record_field_names) )
+		case TYPE_TABLE:
 				{
-				result = false;
+				const IndexType* it1 = (const IndexType*)t1;
+				const IndexType* it2 = (const IndexType*)t2;
+
+				const auto& tl1 = it1->GetIndices();
+				const auto& tl2 = it2->GetIndices();
+
+				if ( ! same_type(tl1, tl2, is_init, match_record_field_names) )
+					result = false;
+				else
+					{
+					const auto& y1 = t1->Yield();
+					const auto& y2 = t2->Yield();
+
+					result = same_type(y1, y2, is_init, match_record_field_names);
+					}
 				break;
 				}
-			}
-		break;
-		}
 
-	case TYPE_LIST:
-		{
-		const auto& tl1 = t1->AsTypeList()->GetTypes();
-		const auto& tl2 = t2->AsTypeList()->GetTypes();
-
-		result = true;
-
-		for ( auto i = 0u; i < tl1.size(); ++i )
-			if ( ! same_type(tl1[i], tl2[i], is_init,
-						match_record_field_names) )
+		case TYPE_FUNC:
 				{
-				result = false;
+				const FuncType* ft1 = (const FuncType*)t1;
+				const FuncType* ft2 = (const FuncType*)t2;
+
+				if ( ! same_type(t1->Yield(), t2->Yield(), is_init, match_record_field_names) )
+					result = false;
+				else
+					result = ft1->CheckArgs(ft2->ParamList()->GetTypes(), is_init, false);
 				break;
 				}
-		break;
+
+		case TYPE_RECORD:
+				{
+				const RecordType* rt1 = (const RecordType*)t1;
+				const RecordType* rt2 = (const RecordType*)t2;
+
+				result = true;
+
+				for ( int i = 0; i < rt1->NumFields(); ++i )
+					{
+					const TypeDecl* td1 = rt1->FieldDecl(i);
+					const TypeDecl* td2 = rt2->FieldDecl(i);
+
+					if ( ! same_type(td1->type, td2->type, is_init, match_record_field_names) )
+						{
+						result = false;
+						break;
+						}
+					}
+				break;
+				}
+
+		case TYPE_LIST:
+				{
+				const auto& tl1 = t1->AsTypeList()->GetTypes();
+				const auto& tl2 = t2->AsTypeList()->GetTypes();
+
+				result = true;
+
+				for ( auto i = 0u; i < tl1.size(); ++i )
+					if ( ! same_type(tl1[i], tl2[i], is_init, match_record_field_names) )
+						{
+						result = false;
+						break;
+						}
+				break;
+				}
+
+		case TYPE_VECTOR:
+		case TYPE_FILE:
+			result = same_type(t1->Yield(), t2->Yield(), is_init, match_record_field_names);
+			break;
+
+		case TYPE_TYPE:
+				{
+				auto tt1 = t1->AsTypeType();
+				auto tt2 = t2->AsTypeType();
+				result =
+					same_type(tt1->GetType(), tt1->GetType(), is_init, match_record_field_names);
+				break;
+				}
+
+		default:
+			result = false;
 		}
-
-	case TYPE_VECTOR:
-	case TYPE_FILE:
-		result = same_type(t1->Yield(), t2->Yield(),
-					is_init, match_record_field_names);
-		break;
-
-	case TYPE_TYPE:
-		{
-		auto tt1 = t1->AsTypeType();
-		auto tt2 = t2->AsTypeType();
-		result = same_type(tt1->GetType(), tt1->GetType(),
-					 is_init, match_record_field_names);
-		break;
-		}
-
-	default:
-		result = false;
-	}
 
 	analyzed_types.erase(t1);
 	analyzed_types.erase(t2);
@@ -2155,8 +2126,7 @@ bool same_attrs(const detail::Attributes* a1, const detail::Attributes* a2)
 	return (*a1 == *a2);
 	}
 
-bool record_promotion_compatible(const RecordType* super_rec,
-				const RecordType* sub_rec)
+bool record_promotion_compatible(const RecordType* super_rec, const RecordType* sub_rec)
 	{
 	for ( int i = 0; i < sub_rec->NumFields(); ++i )
 		{
@@ -2211,51 +2181,52 @@ const Type* flatten_type(const Type* t)
 
 Type* flatten_type(Type* t)
 	{
-	return (Type*) flatten_type((const Type*) t);
+	return (Type*)flatten_type((const Type*)t);
 	}
 
 bool is_assignable(TypeTag t)
 	{
-	switch ( t ) {
-	case TYPE_BOOL:
-	case TYPE_INT:
-	case TYPE_COUNT:
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-	case TYPE_STRING:
-	case TYPE_PATTERN:
-	case TYPE_ENUM:
-	case TYPE_TIMER:
-	case TYPE_PORT:
-	case TYPE_ADDR:
-	case TYPE_SUBNET:
-	case TYPE_RECORD:
-	case TYPE_FUNC:
-	case TYPE_ANY:
-	case TYPE_ERROR:
-	case TYPE_LIST:
-		return true;
+	switch ( t )
+		{
+		case TYPE_BOOL:
+		case TYPE_INT:
+		case TYPE_COUNT:
+		case TYPE_DOUBLE:
+		case TYPE_TIME:
+		case TYPE_INTERVAL:
+		case TYPE_STRING:
+		case TYPE_PATTERN:
+		case TYPE_ENUM:
+		case TYPE_TIMER:
+		case TYPE_PORT:
+		case TYPE_ADDR:
+		case TYPE_SUBNET:
+		case TYPE_RECORD:
+		case TYPE_FUNC:
+		case TYPE_ANY:
+		case TYPE_ERROR:
+		case TYPE_LIST:
+			return true;
 
-	case TYPE_VECTOR:
-	case TYPE_FILE:
-	case TYPE_OPAQUE:
-	case TYPE_TABLE:
-	case TYPE_TYPE:
-		return true;
+		case TYPE_VECTOR:
+		case TYPE_FILE:
+		case TYPE_OPAQUE:
+		case TYPE_TABLE:
+		case TYPE_TYPE:
+			return true;
 
-	case TYPE_VOID:
-		return false;
+		case TYPE_VOID:
+			return false;
 
-	case TYPE_UNION:
-		reporter->Error("union type in is_assignable()");
-	}
+		case TYPE_UNION:
+			reporter->Error("union type in is_assignable()");
+		}
 
 	return false;
 	}
 
-#define CHECK_TYPE(t) \
-	if ( t1 == t || t2 == t ) \
+#define CHECK_TYPE(t)                                                                              \
+	if ( t1 == t || t2 == t )                                                                      \
 		return t;
 
 TypeTag max_type(TypeTag t1, TypeTag t2)
@@ -2280,8 +2251,7 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 		}
 	}
 
-TypePtr merge_types(const TypePtr& arg_t1,
-                    const TypePtr& arg_t2)
+TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2)
 	{
 	auto t1 = arg_t1.get();
 	auto t2 = arg_t2.get();
@@ -2300,224 +2270,222 @@ TypePtr merge_types(const TypePtr& arg_t1,
 		return nullptr;
 		}
 
-	switch ( tg1 ) {
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-	case TYPE_STRING:
-	case TYPE_PATTERN:
-	case TYPE_TIMER:
-	case TYPE_PORT:
-	case TYPE_ADDR:
-	case TYPE_SUBNET:
-	case TYPE_BOOL:
-	case TYPE_ANY:
-	case TYPE_ERROR:
-		return base_type(tg1);
-
-	case TYPE_ENUM:
+	switch ( tg1 )
 		{
-		// Could compare pointers t1 == t2, but maybe there's someone out
-		// there creating clones of the type, so safer to compare name.
-		if ( t1->GetName() != t2->GetName() )
-			{
-			std::string msg = util::fmt("incompatible enum types: '%s' and '%s'",
-			                            t1->GetName().data(), t2->GetName().data());
+		case TYPE_TIME:
+		case TYPE_INTERVAL:
+		case TYPE_STRING:
+		case TYPE_PATTERN:
+		case TYPE_TIMER:
+		case TYPE_PORT:
+		case TYPE_ADDR:
+		case TYPE_SUBNET:
+		case TYPE_BOOL:
+		case TYPE_ANY:
+		case TYPE_ERROR:
+			return base_type(tg1);
 
-			t1->Error(msg.data(), t2);
-			return nullptr;
-			}
+		case TYPE_ENUM:
+				{
+				// Could compare pointers t1 == t2, but maybe there's someone out
+				// there creating clones of the type, so safer to compare name.
+				if ( t1->GetName() != t2->GetName() )
+					{
+					std::string msg = util::fmt("incompatible enum types: '%s' and '%s'",
+					                            t1->GetName().data(), t2->GetName().data());
 
-		// Doing a lookup here as a roundabout way of ref-ing t1, without
-		// changing the function params which has t1 as const and also
-		// (potentially) avoiding a pitfall mentioned earlier about clones.
-		const auto& id = detail::global_scope()->Find(t1->GetName());
+					t1->Error(msg.data(), t2);
+					return nullptr;
+					}
 
-		if ( id && id->IsType() && id->GetType()->Tag() == TYPE_ENUM )
-			// It should make most sense to return the real type here rather
-			// than a copy since it may be redef'd later in parsing.  If we
-			// return a copy, then whoever is using this return value won't
-			// actually see those changes from the redef.
-			return id->GetType();
+				// Doing a lookup here as a roundabout way of ref-ing t1, without
+				// changing the function params which has t1 as const and also
+				// (potentially) avoiding a pitfall mentioned earlier about clones.
+				const auto& id = detail::global_scope()->Find(t1->GetName());
 
-		std::string msg = util::fmt("incompatible enum types: '%s' and '%s'"
-		                            " ('%s' enum type ID is invalid)",
-		                            t1->GetName().data(), t2->GetName().data(),
-		                            t1->GetName().data());
-		t1->Error(msg.data(), t2);
-		return nullptr;
-		}
+				if ( id && id->IsType() && id->GetType()->Tag() == TYPE_ENUM )
+					// It should make most sense to return the real type here rather
+					// than a copy since it may be redef'd later in parsing.  If we
+					// return a copy, then whoever is using this return value won't
+					// actually see those changes from the redef.
+					return id->GetType();
 
-	case TYPE_TABLE:
-		{
-		const IndexType* it1 = (const IndexType*) t1;
-		const IndexType* it2 = (const IndexType*) t2;
-
-		const auto& tl1 = it1->GetIndexTypes();
-		const auto& tl2 = it2->GetIndexTypes();
-		TypeListPtr tl3;
-
-		if ( tl1.size() != tl2.size() )
-			{
-			t1->Error("incompatible types", t2);
-			return nullptr;
-			}
-
-		tl3 = make_intrusive<TypeList>();
-
-		for ( auto i = 0u; i < tl1.size(); ++i )
-			{
-			auto tl3_i = merge_types(tl1[i], tl2[i]);
-			if ( ! tl3_i )
+				std::string msg =
+					util::fmt("incompatible enum types: '%s' and '%s'"
+				              " ('%s' enum type ID is invalid)",
+				              t1->GetName().data(), t2->GetName().data(), t1->GetName().data());
+				t1->Error(msg.data(), t2);
 				return nullptr;
+				}
 
-			tl3->Append(std::move(tl3_i));
-			}
+		case TYPE_TABLE:
+				{
+				const IndexType* it1 = (const IndexType*)t1;
+				const IndexType* it2 = (const IndexType*)t2;
 
-		const auto& y1 = t1->Yield();
-		const auto& y2 = t2->Yield();
-		TypePtr y3;
+				const auto& tl1 = it1->GetIndexTypes();
+				const auto& tl2 = it2->GetIndexTypes();
+				TypeListPtr tl3;
 
-		if ( y1 || y2 )
-			{
-			if ( ! y1 || ! y2 )
+				if ( tl1.size() != tl2.size() )
+					{
+					t1->Error("incompatible types", t2);
+					return nullptr;
+					}
+
+				tl3 = make_intrusive<TypeList>();
+
+				for ( auto i = 0u; i < tl1.size(); ++i )
+					{
+					auto tl3_i = merge_types(tl1[i], tl2[i]);
+					if ( ! tl3_i )
+						return nullptr;
+
+					tl3->Append(std::move(tl3_i));
+					}
+
+				const auto& y1 = t1->Yield();
+				const auto& y2 = t2->Yield();
+				TypePtr y3;
+
+				if ( y1 || y2 )
+					{
+					if ( ! y1 || ! y2 )
+						{
+						t1->Error("incompatible types", t2);
+						return nullptr;
+						}
+
+					y3 = merge_types(y1, y2);
+					if ( ! y3 )
+						return nullptr;
+					}
+
+				if ( t1->IsSet() )
+					return make_intrusive<SetType>(std::move(tl3), nullptr);
+				else
+					return make_intrusive<TableType>(std::move(tl3), std::move(y3));
+				}
+
+		case TYPE_FUNC:
+				{
+				if ( ! same_type(t1, t2) )
+					{
+					t1->Error("incompatible types", t2);
+					return nullptr;
+					}
+
+				const FuncType* ft1 = (const FuncType*)t1;
+				const FuncType* ft2 = (const FuncType*)t1;
+				auto args = cast_intrusive<RecordType>(merge_types(ft1->Params(), ft2->Params()));
+				auto yield = t1->Yield() ? merge_types(t1->Yield(), t2->Yield()) : nullptr;
+
+				return make_intrusive<FuncType>(std::move(args), std::move(yield), ft1->Flavor());
+				}
+
+		case TYPE_RECORD:
+				{
+				const RecordType* rt1 = (const RecordType*)t1;
+				const RecordType* rt2 = (const RecordType*)t2;
+
+				if ( rt1->NumFields() != rt2->NumFields() )
+					return nullptr;
+
+				type_decl_list* tdl3 = new type_decl_list(rt1->NumFields());
+
+				for ( int i = 0; i < rt1->NumFields(); ++i )
+					{
+					const TypeDecl* td1 = rt1->FieldDecl(i);
+					const TypeDecl* td2 = rt2->FieldDecl(i);
+					auto tdl3_i = merge_types(td1->type, td2->type);
+
+					if ( ! util::streq(td1->id, td2->id) || ! tdl3_i )
+						{
+						t1->Error("incompatible record fields", t2);
+						delete tdl3;
+						return nullptr;
+						}
+
+					tdl3->push_back(new TypeDecl(util::copy_string(td1->id), std::move(tdl3_i)));
+					}
+
+				return make_intrusive<RecordType>(tdl3);
+				}
+
+		case TYPE_LIST:
+				{
+				const TypeList* tl1 = t1->AsTypeList();
+				const TypeList* tl2 = t2->AsTypeList();
+
+				if ( tl1->IsPure() != tl2->IsPure() )
+					{
+					tl1->Error("incompatible lists", tl2);
+					return nullptr;
+					}
+
+				const auto& l1 = tl1->GetTypes();
+				const auto& l2 = tl2->GetTypes();
+
+				if ( l1.size() == 0 || l2.size() == 0 )
+					{
+					if ( l1.size() == 0 )
+						tl1->Error("empty list");
+					else
+						tl2->Error("empty list");
+					return nullptr;
+					}
+
+				if ( tl1->IsPure() )
+					{
+					// We will be expanding the pure list when converting
+					// the initialization expression into a set of values.
+					// So the merge type of the list is the type of one
+					// of the elements, providing they're consistent.
+					return merge_types(l1[0], l2[0]);
+					}
+
+				// Impure lists - must have the same size and match element
+				// by element.
+				if ( l1.size() != l2.size() )
+					{
+					tl1->Error("different number of indices", tl2);
+					return nullptr;
+					}
+
+				auto tl3 = make_intrusive<TypeList>();
+
+				for ( auto i = 0u; i < l1.size(); ++i )
+					tl3->Append(merge_types(l1[i], l2[i]));
+
+				return tl3;
+				}
+
+		case TYPE_VECTOR:
+			if ( ! same_type(t1->Yield(), t2->Yield()) )
 				{
 				t1->Error("incompatible types", t2);
 				return nullptr;
 				}
 
-			y3 = merge_types(y1, y2);
-			if ( ! y3 )
-				return nullptr;
-			}
+			return make_intrusive<VectorType>(merge_types(t1->Yield(), t2->Yield()));
 
-		if ( t1->IsSet() )
-			return make_intrusive<SetType>(std::move(tl3), nullptr);
-		else
-			return make_intrusive<TableType>(std::move(tl3), std::move(y3));
-		}
-
-	case TYPE_FUNC:
-		{
-		if ( ! same_type(t1, t2) )
-			{
-			t1->Error("incompatible types", t2);
-			return nullptr;
-			}
-
-		const FuncType* ft1 = (const FuncType*) t1;
-		const FuncType* ft2 = (const FuncType*) t1;
-		auto args = cast_intrusive<RecordType>(merge_types(ft1->Params(),
-		                                                   ft2->Params()));
-		auto yield = t1->Yield() ?
-			merge_types(t1->Yield(), t2->Yield()) : nullptr;
-
-		return make_intrusive<FuncType>(std::move(args), std::move(yield),
-		                                ft1->Flavor());
-		}
-
-	case TYPE_RECORD:
-		{
-		const RecordType* rt1 = (const RecordType*) t1;
-		const RecordType* rt2 = (const RecordType*) t2;
-
-		if ( rt1->NumFields() != rt2->NumFields() )
-			return nullptr;
-
-		type_decl_list* tdl3 = new type_decl_list(rt1->NumFields());
-
-		for ( int i = 0; i < rt1->NumFields(); ++i )
-			{
-			const TypeDecl* td1 = rt1->FieldDecl(i);
-			const TypeDecl* td2 = rt2->FieldDecl(i);
-			auto tdl3_i = merge_types(td1->type, td2->type);
-
-			if ( ! util::streq(td1->id, td2->id) || ! tdl3_i )
+		case TYPE_FILE:
+			if ( ! same_type(t1->Yield(), t2->Yield()) )
 				{
-				t1->Error("incompatible record fields", t2);
-				delete tdl3;
+				t1->Error("incompatible types", t2);
 				return nullptr;
 				}
 
-			tdl3->push_back(new TypeDecl(util::copy_string(td1->id), std::move(tdl3_i)));
-			}
+			return make_intrusive<FileType>(merge_types(t1->Yield(), t2->Yield()));
 
-		return make_intrusive<RecordType>(tdl3);
+		case TYPE_UNION:
+			reporter->InternalError("union type in merge_types()");
+			return nullptr;
+
+		default:
+			reporter->InternalError("bad type in merge_types()");
+			return nullptr;
 		}
-
-	case TYPE_LIST:
-		{
-		const TypeList* tl1 = t1->AsTypeList();
-		const TypeList* tl2 = t2->AsTypeList();
-
-		if ( tl1->IsPure() != tl2->IsPure() )
-			{
-			tl1->Error("incompatible lists", tl2);
-			return nullptr;
-			}
-
-		const auto& l1 = tl1->GetTypes();
-		const auto& l2 = tl2->GetTypes();
-
-		if ( l1.size() == 0 || l2.size() == 0 )
-			{
-			if ( l1.size() == 0 )
-				tl1->Error("empty list");
-			else
-				tl2->Error("empty list");
-			return nullptr;
-			}
-
-		if ( tl1->IsPure() )
-			{
-			// We will be expanding the pure list when converting
-			// the initialization expression into a set of values.
-			// So the merge type of the list is the type of one
-			// of the elements, providing they're consistent.
-			return merge_types(l1[0], l2[0]);
-			}
-
-		// Impure lists - must have the same size and match element
-		// by element.
-		if ( l1.size() != l2.size() )
-			{
-			tl1->Error("different number of indices", tl2);
-			return nullptr;
-			}
-
-		auto tl3 = make_intrusive<TypeList>();
-
-		for ( auto i = 0u; i < l1.size(); ++i )
-			tl3->Append(merge_types(l1[i], l2[i]));
-
-		return tl3;
-		}
-
-	case TYPE_VECTOR:
-		if ( ! same_type(t1->Yield(), t2->Yield()) )
-			{
-			t1->Error("incompatible types", t2);
-			return nullptr;
-			}
-
-		return make_intrusive<VectorType>(merge_types(t1->Yield(), t2->Yield()));
-
-	case TYPE_FILE:
-		if ( ! same_type(t1->Yield(), t2->Yield()) )
-			{
-			t1->Error("incompatible types", t2);
-			return nullptr;
-			}
-
-		return make_intrusive<FileType>(merge_types(t1->Yield(), t2->Yield()));
-
-	case TYPE_UNION:
-		reporter->InternalError("union type in merge_types()");
-		return nullptr;
-
-	default:
-		reporter->InternalError("bad type in merge_types()");
-		return nullptr;
-	}
 	}
 
 TypePtr merge_type_list(detail::ListExpr* elements)
@@ -2574,8 +2542,7 @@ TypePtr init_type(detail::Expr* init)
 		if ( ! t )
 			return nullptr;
 
-		if ( t->Tag() == TYPE_LIST &&
-		     t->AsTypeList()->GetTypes().size() != 1 )
+		if ( t->Tag() == TYPE_LIST && t->AsTypeList()->GetTypes().size() != 1 )
 			{
 			init->Error("list used in scalar initialization");
 			return nullptr;
@@ -2645,23 +2612,23 @@ TypePtr init_type(detail::Expr* init)
 		t = std::move(tl);
 		}
 
-	return make_intrusive<SetType>(cast_intrusive<TypeList>(std::move(t)),
-	                               nullptr);
+	return make_intrusive<SetType>(cast_intrusive<TypeList>(std::move(t)), nullptr);
 	}
 
 bool is_atomic_type(const Type& t)
 	{
-	switch ( t.InternalType() ) {
-	case TYPE_INTERNAL_INT:
-	case TYPE_INTERNAL_UNSIGNED:
-	case TYPE_INTERNAL_DOUBLE:
-	case TYPE_INTERNAL_STRING:
-	case TYPE_INTERNAL_ADDR:
-	case TYPE_INTERNAL_SUBNET:
-		return true;
-	default:
-		return false;
-	}
+	switch ( t.InternalType() )
+		{
+		case TYPE_INTERNAL_INT:
+		case TYPE_INTERNAL_UNSIGNED:
+		case TYPE_INTERNAL_DOUBLE:
+		case TYPE_INTERNAL_STRING:
+		case TYPE_INTERNAL_ADDR:
+		case TYPE_INTERNAL_SUBNET:
+			return true;
+		default:
+			return false;
+		}
 	}
 
 const TypePtr& base_type(TypeTag tag)
@@ -2680,5 +2647,4 @@ const TypePtr& base_type(TypeTag tag)
 	return base_types[tag];
 	}
 
-
-} // namespace zeek
+	} // namespace zeek

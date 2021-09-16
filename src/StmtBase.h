@@ -6,20 +6,25 @@
 // the bulk of Stmt.h to allow Expr.h to include it, necessary for
 // Expr.h to use StmtPtr.
 
-#include "zeek/Obj.h"
 #include "zeek/IntrusivePtr.h"
+#include "zeek/Obj.h"
 #include "zeek/StmtEnums.h"
 #include "zeek/TraverseTypes.h"
 #include "zeek/util.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class Val;
 using ValPtr = IntrusivePtr<Val>;
 
-namespace run_state { extern double network_time; }
+namespace run_state
+	{
+extern double network_time;
+	}
 
-namespace detail {
+namespace detail
+	{
 
 class CompositeHash;
 class Frame;
@@ -50,19 +55,23 @@ using StmtPtr = IntrusivePtr<Stmt>;
 
 class StmtOptInfo;
 
-class Stmt : public Obj {
+class Stmt : public Obj
+	{
 public:
-	StmtTag Tag() const	{ return tag; }
+	StmtTag Tag() const { return tag; }
 
 	~Stmt() override;
 
 	virtual ValPtr Exec(Frame* f, StmtFlowType& flow) = 0;
 
-	Stmt* Ref()			{ zeek::Ref(this); return this; }
-	StmtPtr ThisPtr()		{ return {NewRef{}, this}; }
+	Stmt* Ref()
+		{
+		zeek::Ref(this);
+		return this;
+		}
+	StmtPtr ThisPtr() { return {NewRef{}, this}; }
 
-	bool SetLocationInfo(const Location* loc) override
-		{ return Stmt::SetLocationInfo(loc, loc); }
+	bool SetLocationInfo(const Location* loc) override { return Stmt::SetLocationInfo(loc, loc); }
 	bool SetLocationInfo(const Location* start, const Location* end) override;
 
 	// True if the statement has no side effects, false otherwise.
@@ -84,16 +93,20 @@ public:
 	const WhenStmt* AsWhenStmt() const;
 	const SwitchStmt* AsSwitchStmt() const;
 
-	void RegisterAccess() const	{ last_access = run_state::network_time; access_count++; }
+	void RegisterAccess() const
+		{
+		last_access = run_state::network_time;
+		access_count++;
+		}
 	void AccessStats(ODesc* d) const;
 	uint32_t GetAccessCount() const { return access_count; }
 
 	void Describe(ODesc* d) const final;
 
-	virtual void IncrBPCount()	{ ++breakpoint_count; }
+	virtual void IncrBPCount() { ++breakpoint_count; }
 	virtual void DecrBPCount();
 
-	virtual unsigned int BPCount() const	{ return breakpoint_count; }
+	virtual unsigned int BPCount() const { return breakpoint_count; }
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
@@ -109,7 +122,7 @@ public:
 	virtual StmtPtr Duplicate() = 0;
 
 	// Recursively traverses the AST to inline eligible function calls.
-	virtual void Inline(Inliner* inl)	{ }
+	virtual void Inline(Inliner* inl) { }
 
 	// True if the statement is in reduced form.
 	virtual bool IsReduced(Reducer* c) const;
@@ -117,7 +130,7 @@ public:
 	// Returns a reduced version of the statement, as managed by
 	// the given Reducer.
 	StmtPtr Reduce(Reducer* c);
-	virtual StmtPtr DoReduce(Reducer* c)	{ return ThisPtr(); }
+	virtual StmtPtr DoReduce(Reducer* c) { return ThisPtr(); }
 
 	// True if there's definitely no control flow past the statement.
 	// The argument governs whether to ignore "break" statements, given
@@ -125,14 +138,12 @@ public:
 	// a loop or a switch.  Also, if we want to know whether flow reaches
 	// the *end* of a loop, then we also want to ignore break's, as
 	// in that case, they do lead to flow reaching the end.
-	virtual bool NoFlowAfter(bool ignore_break) const
-		{ return false; }
+	virtual bool NoFlowAfter(bool ignore_break) const { return false; }
 
 	// Access to the original statement from which this one is derived,
 	// or this one if we don't have an original.  Returns a bare pointer
 	// rather than a StmtPtr to emphasize that the access is read-only.
-	const Stmt* Original() const
-		{ return original ? original->Original() : this; }
+	const Stmt* Original() const { return original ? original->Original() : this; }
 
 	// Designate the given Stmt node as the original for this one.
 	void SetOriginal(StmtPtr _orig)
@@ -164,7 +175,7 @@ public:
 
 	// Access script optimization information associated with
 	// this statement.
-	StmtOptInfo* GetOptInfo() const		{ return opt_info; }
+	StmtOptInfo* GetOptInfo() const { return opt_info; }
 
 protected:
 	explicit Stmt(StmtTag arg_tag);
@@ -178,11 +189,11 @@ protected:
 	void DescribeDone(ODesc* d) const;
 
 	StmtTag tag;
-	int breakpoint_count;	// how many breakpoints on this statement
+	int breakpoint_count; // how many breakpoints on this statement
 
 	// FIXME: Learn the exact semantics of mutable.
-	mutable double last_access;	// time of last execution
-	mutable uint32_t access_count;	// number of executions
+	mutable double last_access; // time of last execution
+	mutable uint32_t access_count; // number of executions
 
 	// The original statement from which this statement was
 	// derived, if any.  Used as an aid for generating meaningful
@@ -192,7 +203,7 @@ protected:
 	// Information associated with the Stmt for purposes of
 	// script optimization.
 	StmtOptInfo* opt_info;
-};
+	};
 
-} // namespace detail
-} // namespace zeek
+	} // namespace detail
+	} // namespace zeek

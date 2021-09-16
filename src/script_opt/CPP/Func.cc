@@ -1,13 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/script_opt/CPP/Func.h"
+
 #include <broker/error.hh>
 
 #include "zeek/Desc.h"
 #include "zeek/broker/Data.h"
-#include "zeek/script_opt/CPP/Func.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 using namespace std;
 
@@ -23,7 +24,7 @@ void CPPFunc::Describe(ODesc* d) const
 	}
 
 CPPLambdaFunc::CPPLambdaFunc(string _name, FuncTypePtr ft, CPPStmtPtr _l_body)
-: ScriptFunc(move(_name), move(ft), {_l_body}, {0})
+	: ScriptFunc(move(_name), move(ft), {_l_body}, {0})
 	{
 	l_body = move(_l_body);
 	}
@@ -44,8 +45,7 @@ broker::expected<broker::data> CPPLambdaFunc::SerializeClosure() const
 			return broker::ec::invalid_data;
 
 		TypeTag tag = val->GetType()->Tag();
-		broker::vector val_tuple {move(*expected),
-		                          static_cast<broker::integer>(tag)};
+		broker::vector val_tuple{move(*expected), static_cast<broker::integer>(tag)};
 		body.emplace_back(move(val_tuple));
 		}
 
@@ -64,4 +64,4 @@ FuncPtr CPPLambdaFunc::DoClone()
 	return make_intrusive<CPPLambdaFunc>(name, type, l_body->Clone());
 	}
 
-} // zeek::detail
+	} // zeek::detail

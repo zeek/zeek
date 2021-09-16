@@ -3,20 +3,20 @@
 #pragma once
 
 #include "zeek/ZeekString.h"
-
-#include "zeek/threading/SerialTypes.h"
-#include "zeek/threading/MsgThread.h"
-
 #include "zeek/input/Component.h"
+#include "zeek/threading/MsgThread.h"
+#include "zeek/threading/SerialTypes.h"
 
-namespace zeek::input {
+namespace zeek::input
+	{
 
 class ReaderFrontend;
 
 /**
  * The modes a reader can be in.
  */
-enum ReaderMode {
+enum ReaderMode
+	{
 	/**
 	 * Manual refresh reader mode. The reader will read the file once,
 	 * and send all read data back to the manager. After that, no automatic
@@ -41,7 +41,7 @@ enum ReaderMode {
 
 	/** Internal dummy mode for initialization. */
 	MODE_NONE
-};
+	};
 
 /**
  * Base class for reader implementation. When the input:Manager creates a new
@@ -52,7 +52,8 @@ enum ReaderMode {
  * All methods must be called only from the corresponding child thread (the
  * constructor is the one exception.)
  */
-class ReaderBackend : public threading::MsgThread {
+class ReaderBackend : public threading::MsgThread
+	{
 public:
 	/**
 	 * Constructor.
@@ -115,23 +116,25 @@ public:
 			name = other.name ? util::copy_string(other.name) : nullptr;
 			mode = other.mode;
 
-			for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
-				config.insert(std::make_pair(util::copy_string(i->first), util::copy_string(i->second)));
+			for ( config_map::const_iterator i = other.config.begin(); i != other.config.end();
+			      i++ )
+				config.insert(
+					std::make_pair(util::copy_string(i->first), util::copy_string(i->second)));
 			}
 
 		~ReaderInfo()
 			{
-			delete [] source;
-			delete [] name;
+			delete[] source;
+			delete[] name;
 
 			for ( config_map::iterator i = config.begin(); i != config.end(); i++ )
 				{
-				delete [] i->first;
-				delete [] i->second;
+				delete[] i->first;
+				delete[] i->second;
 				}
 			}
 
-		private:
+	private:
 		const ReaderInfo& operator=(const ReaderInfo& other); // Disable.
 		};
 
@@ -172,17 +175,17 @@ public:
 	/**
 	 * Returns the log fields as passed into the constructor.
 	 */
-	const threading::Field* const * Fields() const	{ return fields; }
+	const threading::Field* const* Fields() const { return fields; }
 
 	/**
 	 * Returns the additional reader information into the constructor.
 	 */
-	const ReaderInfo& Info() const	{ return *info; }
+	const ReaderInfo& Info() const { return *info; }
 
 	/**
 	 * Returns the number of log fields as passed into the constructor.
 	 */
-	int NumFields() const	{ return num_fields; }
+	int NumFields() const { return num_fields; }
 
 	/**
 	 * Convenience function that calls Warning or Error, depending on the
@@ -198,7 +201,7 @@ public:
 	 * @param suppress_future If set to true, future warnings are suppressed
 	 *                        until StopWarningSuppression is called.
 	 */
-	void FailWarn(bool is_error, const char *msg, bool suppress_future = false);
+	void FailWarn(bool is_error, const char* msg, bool suppress_future = false);
 
 	inline void StopWarningSuppression() { suppress_warnings = false; };
 
@@ -246,7 +249,8 @@ protected:
 	 * provides accessor methods to get them later, and they are passed
 	 * in here only for convinience.
 	 */
-	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) = 0;
+	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields,
+	                    const threading::Field* const* fields) = 0;
 
 	/**
 	 * Reader-specific method implementing input finalization at
@@ -356,12 +360,12 @@ private:
 
 	ReaderInfo* info;
 	unsigned int num_fields;
-	const threading::Field* const * fields; // raw mapping
+	const threading::Field* const* fields; // raw mapping
 
 	bool disabled;
 	// this is an internal indicator in case the read is currently in a failed state
 	// it's used to suppress duplicate error messages.
 	bool suppress_warnings = false;
-};
+	};
 
-} // namespace zeek::input
+	} // namespace zeek::input

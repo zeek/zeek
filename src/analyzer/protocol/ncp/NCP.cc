@@ -1,28 +1,28 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/ncp/NCP.h"
 
 #include <stdlib.h>
-#include <string>
 #include <map>
+#include <string>
 
-#include "zeek/analyzer/protocol/ncp/events.bif.h"
 #include "zeek/analyzer/protocol/ncp/consts.bif.h"
+#include "zeek/analyzer/protocol/ncp/events.bif.h"
+#include "zeek/zeek-config.h"
 
 using namespace std;
 
-#define xbyte(b, n) (((const u_char*) (b))[n])
-#define extract_uint16(little_endian, bytes) \
-	((little_endian) ? \
-	 uint16(xbyte(bytes, 0)) | ((uint16(xbyte(bytes, 1))) << 8) : \
-	 uint16(xbyte(bytes, 1)) | ((uint16(xbyte(bytes, 0))) << 8))
+#define xbyte(b, n) (((const u_char*)(b))[n])
+#define extract_uint16(little_endian, bytes)                                                       \
+	((little_endian) ? uint16(xbyte(bytes, 0)) | ((uint16(xbyte(bytes, 1))) << 8)                  \
+	                 : uint16(xbyte(bytes, 1)) | ((uint16(xbyte(bytes, 0))) << 8))
 
-namespace zeek::analyzer::ncp {
-namespace detail {
+namespace zeek::analyzer::ncp
+	{
+namespace detail
+	{
 
-NCP_Session::NCP_Session(analyzer::Analyzer* a)
-: analyzer(a)
+NCP_Session::NCP_Session(analyzer::Analyzer* a) : analyzer(a)
 	{
 	req_frame_type = 0;
 	req_func = 0;
@@ -51,8 +51,7 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame)
 		req_func = frame->request()->function();
 		if ( req_func == 0x57 ) // enhanced FILE_DIR services
 			{
-			req_func = (req_func << 8) |
-					frame->request()->subfunction();
+			req_func = (req_func << 8) | frame->request()->subfunction();
 			}
 		}
 
@@ -60,21 +59,14 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame)
 	if ( f )
 		{
 		if ( frame->is_orig() )
-			analyzer->EnqueueConnEvent(f,
-				analyzer->ConnVal(),
-				val_mgr->Count(frame->frame_type()),
-				val_mgr->Count(frame->body_length()),
-				val_mgr->Count(req_func)
-			);
+			analyzer->EnqueueConnEvent(f, analyzer->ConnVal(), val_mgr->Count(frame->frame_type()),
+			                           val_mgr->Count(frame->body_length()),
+			                           val_mgr->Count(req_func));
 		else
-			analyzer->EnqueueConnEvent(f,
-				analyzer->ConnVal(),
-				val_mgr->Count(frame->frame_type()),
-				val_mgr->Count(frame->body_length()),
-				val_mgr->Count(req_frame_type),
-				val_mgr->Count(req_func),
-				val_mgr->Count(frame->reply()->completion_code())
-			);
+			analyzer->EnqueueConnEvent(f, analyzer->ConnVal(), val_mgr->Count(frame->frame_type()),
+			                           val_mgr->Count(frame->body_length()),
+			                           val_mgr->Count(req_frame_type), val_mgr->Count(req_func),
+			                           val_mgr->Count(frame->reply()->completion_code()));
 		}
 	}
 
@@ -88,7 +80,7 @@ FrameBuffer::FrameBuffer(size_t header_length)
 
 FrameBuffer::~FrameBuffer()
 	{
-	delete [] msg_buf;
+	delete[] msg_buf;
 	}
 
 void FrameBuffer::Reset()
@@ -104,7 +96,7 @@ void FrameBuffer::Reset()
 	msg_len = 0;
 	}
 
-int FrameBuffer::Deliver(int &len, const u_char* &data)
+int FrameBuffer::Deliver(int& len, const u_char*& data)
 	{
 	ASSERT(buf_len >= hdr_len);
 
@@ -117,7 +109,9 @@ int FrameBuffer::Deliver(int &len, const u_char* &data)
 			{
 			ASSERT(buf_n < buf_len);
 			msg_buf[buf_n] = *data;
-			++buf_n; ++data; --len;
+			++buf_n;
+			++data;
+			--len;
 			}
 
 		if ( buf_n < hdr_len )
@@ -133,7 +127,7 @@ int FrameBuffer::Deliver(int &len, const u_char* &data)
 			buf_len = msg_len;
 			u_char* new_buf = new u_char[buf_len];
 			memcpy(new_buf, msg_buf, buf_n);
-			delete [] msg_buf;
+			delete[] msg_buf;
 			msg_buf = new_buf;
 			}
 		}
@@ -141,7 +135,9 @@ int FrameBuffer::Deliver(int &len, const u_char* &data)
 	while ( buf_n < msg_len && len > 0 )
 		{
 		msg_buf[buf_n] = *data;
-		++buf_n; ++data; --len;
+		++buf_n;
+		++data;
+		--len;
 		}
 
 	if ( buf_n < msg_len )
@@ -158,22 +154,21 @@ void NCP_FrameBuffer::compute_msg_length()
 	const u_char* data = Data();
 	msg_len = 0;
 	for ( int i = 0; i < 4; ++i )
-		msg_len = (msg_len << 8) | data[4+i];
+		msg_len = (msg_len << 8) | data[4 + i];
 	}
 
-} // namespace detail
+	} // namespace detail
 
-Contents_NCP_Analyzer::Contents_NCP_Analyzer(Connection* conn, bool orig, detail::NCP_Session* arg_session)
-: analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_NCP", conn, orig)
+Contents_NCP_Analyzer::Contents_NCP_Analyzer(Connection* conn, bool orig,
+                                             detail::NCP_Session* arg_session)
+	: analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_NCP", conn, orig)
 	{
 	session = arg_session;
 	resync = true;
 	resync_set = false;
 	}
 
-Contents_NCP_Analyzer::~Contents_NCP_Analyzer()
-	{
-	}
+Contents_NCP_Analyzer::~Contents_NCP_Analyzer() { }
 
 void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
@@ -185,7 +180,7 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 		{
 		resync_set = true;
 		resync = (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
-			analyzer::tcp::TCP_ENDPOINT_ESTABLISHED;
+		         analyzer::tcp::TCP_ENDPOINT_ESTABLISHED;
 		}
 
 	if ( tcp && tcp->HadGap(orig) )
@@ -200,19 +195,17 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 			}
 
 		int frame_type_index = IsOrig() ? 16 : 8;
-		int frame_type = ((int) data[frame_type_index]) << 8 |
-					data[frame_type_index + 1];
+		int frame_type = ((int)data[frame_type_index]) << 8 | data[frame_type_index + 1];
 
-		if ( frame_type != 0x1111 && frame_type != 0x2222 &&
-		     frame_type != 0x3333 && frame_type != 0x5555 &&
-		     frame_type != 0x7777 && frame_type != 0x9999 )
+		if ( frame_type != 0x1111 && frame_type != 0x2222 && frame_type != 0x3333 &&
+		     frame_type != 0x5555 && frame_type != 0x7777 && frame_type != 0x9999 )
 			// Skip this packet
 			return;
 
 		resync = false;
 		}
 
-	for ( ; ; )
+	for ( ;; )
 		{
 		auto result = buffer.Deliver(len, data);
 
@@ -244,8 +237,7 @@ void Contents_NCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	resync = true;
 	}
 
-NCP_Analyzer::NCP_Analyzer(Connection* conn)
-: analyzer::tcp::TCP_ApplicationAnalyzer("NCP", conn)
+NCP_Analyzer::NCP_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer("NCP", conn)
 	{
 	session = new detail::NCP_Session(this);
 	o_ncp = new Contents_NCP_Analyzer(conn, true, session);
@@ -259,4 +251,4 @@ NCP_Analyzer::~NCP_Analyzer()
 	delete session;
 	}
 
-} // namespace zeek::analyzer::ncp
+	} // namespace zeek::analyzer::ncp

@@ -49,3 +49,6 @@
 [submodule "auxil/zeek-client"]
 	path = auxil/zeek-client
 	url = https://github.com/zeek/zeek-client
+[submodule "auxil/run-clang-format"]
+	path = auxil/run-clang-format
+	url = https://github.com/Sarcasm/run-clang-format

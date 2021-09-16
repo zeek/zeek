@@ -2,24 +2,28 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
+#include <broker/expected.hh>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
 
-#include <broker/expected.hh>
+#include "zeek/zeek-config.h"
 
-namespace broker { class data; }
+namespace broker
+	{
+class data;
+	}
 
-namespace zeek::probabilistic::detail {
+namespace zeek::probabilistic::detail
+	{
 
 class BitVector;
 
 /**
  * A vector of counters, each of which has a fixed number of bits.
  */
-class CounterVector {
+class CounterVector
+	{
 public:
 	typedef size_t size_type;
 	typedef uint64_t count_type;
@@ -134,18 +138,17 @@ public:
 	CounterVector& operator|=(const CounterVector& other);
 
 	/** Computes a hash value of the internal representation.
-	  * This is mainly for debugging/testing purposes.
-	  *
-	  * @return The hash.
-	  */
+	 * This is mainly for debugging/testing purposes.
+	 *
+	 * @return The hash.
+	 */
 	uint64_t Hash() const;
 
 	broker::expected<broker::data> Serialize() const;
 	static std::unique_ptr<CounterVector> Unserialize(const broker::data& data);
 
 protected:
-	friend CounterVector operator|(const CounterVector& x,
-				       const CounterVector& y);
+	friend CounterVector operator|(const CounterVector& x, const CounterVector& y);
 
 	CounterVector() { }
 
@@ -154,6 +157,6 @@ private:
 
 	BitVector* bits;
 	size_t width;
-};
+	};
 
-} // namespace zeek::probabilistic::detail
+	} // namespace zeek::probabilistic::detail

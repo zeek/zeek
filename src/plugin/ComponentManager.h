@@ -1,18 +1,19 @@
 #pragma once
 
-#include <map>
 #include <list>
+#include <map>
 #include <string>
 
-#include "zeek/Type.h"
-#include "zeek/Var.h" // for add_type()
-#include "zeek/Val.h"
+#include "zeek/DebugLogger.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
+#include "zeek/Type.h"
+#include "zeek/Val.h"
+#include "zeek/Var.h" // for add_type()
 #include "zeek/zeekygen/Manager.h"
-#include "zeek/DebugLogger.h"
 
-namespace zeek::plugin {
+namespace zeek::plugin
+	{
 
 /**
  * A class that manages tracking of plugin components (e.g. analyzers) and
@@ -22,10 +23,9 @@ namespace zeek::plugin {
  * @tparam T A ::Tag type or derivative.
  * @tparam C A plugin::TaggedComponent type derivative.
  */
-template <class T, class C>
-class ComponentManager {
+template <class T, class C> class ComponentManager
+	{
 public:
-
 	/**
 	 * Constructor creates a new enum type to associate with
 	 * a component.
@@ -125,44 +125,39 @@ private:
 	std::map<std::string, C*> components_by_name;
 	std::map<T, C*> components_by_tag;
 	std::map<int, C*> components_by_val;
-};
+	};
 
 template <class T, class C>
 ComponentManager<T, C>::ComponentManager(const std::string& arg_module, const std::string& local_id)
-	: module(arg_module),
-	  tag_enum_type(make_intrusive<EnumType>(module + "::" + local_id))
+	: module(arg_module), tag_enum_type(make_intrusive<EnumType>(module + "::" + local_id))
 	{
 	auto id = zeek::detail::install_ID(local_id.c_str(), module.c_str(), true, true);
 	zeek::detail::add_type(id.get(), tag_enum_type, nullptr);
 	zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 	}
 
-template <class T, class C>
-const std::string& ComponentManager<T, C>::GetModule() const
+template <class T, class C> const std::string& ComponentManager<T, C>::GetModule() const
 	{
 	return module;
 	}
 
-template <class T, class C>
-std::list<C*> ComponentManager<T, C>::GetComponents() const
+template <class T, class C> std::list<C*> ComponentManager<T, C>::GetComponents() const
 	{
 	std::list<C*> rval;
 	typename std::map<T, C*>::const_iterator i;
 
 	for ( i = components_by_tag.begin(); i != components_by_tag.end(); ++i )
-	      rval.push_back(i->second);
+		rval.push_back(i->second);
 
 	return rval;
 	}
 
-template <class T, class C>
-const EnumTypePtr& ComponentManager<T, C>::GetTagType() const
+template <class T, class C> const EnumTypePtr& ComponentManager<T, C>::GetTagType() const
 	{
 	return tag_enum_type;
 	}
 
-template <class T, class C>
-const std::string& ComponentManager<T, C>::GetComponentName(T tag) const
+template <class T, class C> const std::string& ComponentManager<T, C>::GetComponentName(T tag) const
 	{
 	static const std::string error = "<error>";
 
@@ -174,8 +169,7 @@ const std::string& ComponentManager<T, C>::GetComponentName(T tag) const
 	if ( c )
 		return c->CanonicalName();
 
-	reporter->InternalWarning("requested name of unknown component tag %s",
-		                      tag.AsString().c_str());
+	reporter->InternalWarning("requested name of unknown component tag %s", tag.AsString().c_str());
 	return error;
 	}
 
@@ -185,66 +179,57 @@ const std::string& ComponentManager<T, C>::GetComponentName(EnumValPtr val) cons
 	return GetComponentName(T(std::move(val)));
 	}
 
-template <class T, class C>
-T ComponentManager<T, C>::GetComponentTag(const std::string& name) const
+template <class T, class C> T ComponentManager<T, C>::GetComponentTag(const std::string& name) const
 	{
 	C* c = Lookup(name);
 	return c ? c->Tag() : T();
 	}
 
-template <class T, class C>
-T ComponentManager<T, C>::GetComponentTag(Val* v) const
+template <class T, class C> T ComponentManager<T, C>::GetComponentTag(Val* v) const
 	{
 	C* c = Lookup(v->AsEnumVal());
 	return c ? c->Tag() : T();
 	}
 
-template <class T, class C>
-C* ComponentManager<T, C>::Lookup(const std::string& name) const
+template <class T, class C> C* ComponentManager<T, C>::Lookup(const std::string& name) const
 	{
 	typename std::map<std::string, C*>::const_iterator i =
 		components_by_name.find(util::to_upper(name));
 	return i != components_by_name.end() ? i->second : 0;
 	}
 
-template <class T, class C>
-C* ComponentManager<T, C>::Lookup(const T& tag) const
+template <class T, class C> C* ComponentManager<T, C>::Lookup(const T& tag) const
 	{
 	typename std::map<T, C*>::const_iterator i = components_by_tag.find(tag);
 	return i != components_by_tag.end() ? i->second : 0;
 	}
 
-template <class T, class C>
-C* ComponentManager<T, C>::Lookup(EnumVal* val) const
+template <class T, class C> C* ComponentManager<T, C>::Lookup(EnumVal* val) const
 	{
-	typename std::map<int, C*>::const_iterator i =
-	        components_by_val.find(val->InternalInt());
+	typename std::map<int, C*>::const_iterator i = components_by_val.find(val->InternalInt());
 	return i != components_by_val.end() ? i->second : 0;
 	}
 
 template <class T, class C>
-void ComponentManager<T, C>::RegisterComponent(C* component,
-                                               const std::string& prefix)
+void ComponentManager<T, C>::RegisterComponent(C* component, const std::string& prefix)
 	{
 	std::string cname = component->CanonicalName();
 
 	if ( Lookup(cname) )
-		reporter->FatalError("Component '%s::%s' defined more than once",
-		                     module.c_str(), cname.c_str());
+		reporter->FatalError("Component '%s::%s' defined more than once", module.c_str(),
+		                     cname.c_str());
 
-	DBG_LOG(DBG_PLUGINS, "Registering component %s (tag %s)",
-	        component->Name().c_str(), component->Tag().AsString().c_str());
+	DBG_LOG(DBG_PLUGINS, "Registering component %s (tag %s)", component->Name().c_str(),
+	        component->Tag().AsString().c_str());
 
 	components_by_name.insert(std::make_pair(cname, component));
 	components_by_tag.insert(std::make_pair(component->Tag(), component));
-	components_by_val.insert(std::make_pair(
-	        component->Tag().AsVal()->InternalInt(), component));
+	components_by_val.insert(std::make_pair(component->Tag().AsVal()->InternalInt(), component));
 
 	// Install an identfier for enum value
 	std::string id = util::fmt("%s%s", prefix.c_str(), cname.c_str());
-	tag_enum_type->AddName(module, id.c_str(),
-	                       component->Tag().AsVal()->InternalInt(), true,
+	tag_enum_type->AddName(module, id.c_str(), component->Tag().AsVal()->InternalInt(), true,
 	                       nullptr);
 	}
 
-} // namespace zeek::plugin
+	} // namespace zeek::plugin

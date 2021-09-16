@@ -4,11 +4,12 @@
 
 #include "zeek/Pipe.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
-class Flare {
+class Flare
+	{
 public:
-
 	/**
 	 * Create a flare object that can be used to signal a "ready" status via
 	 * a file descriptor that may be integrated with select(), poll(), etc.
@@ -21,7 +22,7 @@ public:
 	 * @return a file descriptor that will become ready if the flare has been
 	 *         Fire()'d and not yet Extinguished()'d.
 	 */
-	int FD() const	{ return pipe.ReadFD(); }
+	int FD() const { return pipe.ReadFD(); }
 
 	/**
 	 * Put the object in the "ready" state.
@@ -41,6 +42,6 @@ public:
 
 private:
 	Pipe pipe;
-};
+	};
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

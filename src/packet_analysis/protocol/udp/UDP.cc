@@ -1,15 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/packet_analysis/protocol/udp/UDP.h"
-#include "zeek/RunState.h"
-#include "zeek/Conn.h"
-#include "zeek/session/Manager.h"
-#include "zeek/analyzer/Manager.h"
-#include "zeek/analyzer/protocol/pia/PIA.h"
-#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
-#include "zeek/packet_analysis/protocol/udp/UDPSessionAdapter.h"
 
+#include "zeek/Conn.h"
+#include "zeek/RunState.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/packet_analysis/protocol/udp/UDPSessionAdapter.h"
 #include "zeek/packet_analysis/protocol/udp/events.bif.h"
+#include "zeek/session/Manager.h"
 
 using namespace zeek::packet_analysis::UDP;
 using namespace zeek::packet_analysis::IP;
@@ -19,9 +19,7 @@ constexpr uint32_t HIST_RESP_DATA_PKT = 0x2;
 constexpr uint32_t HIST_ORIG_CORRUPT_PKT = 0x4;
 constexpr uint32_t HIST_RESP_CORRUPT_PKT = 0x8;
 
-UDPAnalyzer::UDPAnalyzer() : IPBasedAnalyzer("UDP", TRANSPORT_UDP, UDP_PORT_MASK, false)
-	{
-	}
+UDPAnalyzer::UDPAnalyzer() : IPBasedAnalyzer("UDP", TRANSPORT_UDP, UDP_PORT_MASK, false) { }
 
 SessionAdapter* UDPAnalyzer::MakeSessionAdapter(Connection* conn)
 	{
@@ -55,15 +53,14 @@ void UDPAnalyzer::Initialize()
 		vxlan_ports.emplace_back(port_list->Idx(i)->AsPortVal()->Port());
 	}
 
-bool UDPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port,
-                                 const u_char* data, bool& flip_roles) const
+bool UDPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port, const u_char* data,
+                                 bool& flip_roles) const
 	{
 	flip_roles = IsLikelyServerPort(src_port) && ! IsLikelyServerPort(dst_port);
 	return true;
 	}
 
-bool UDPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet,
-                                 ConnTuple& tuple)
+bool UDPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple)
 	{
 	uint32_t min_hdr_len = sizeof(struct udphdr);
 	if ( ! CheckHeaderTrunc(min_hdr_len, len, packet) )
@@ -72,7 +69,7 @@ bool UDPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet
 	tuple.src_addr = packet->ip_hdr->SrcAddr();
 	tuple.dst_addr = packet->ip_hdr->DstAddr();
 
-	const struct udphdr* up = (const struct udphdr *) packet->ip_hdr->Payload();
+	const struct udphdr* up = (const struct udphdr*)packet->ip_hdr->Payload();
 	tuple.src_port = up->uh_sport;
 	tuple.dst_port = up->uh_dport;
 	tuple.is_one_way = false;
@@ -88,7 +85,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	const u_char* data = pkt->ip_hdr->Payload();
 	int len = pkt->ip_hdr->PayloadLen();
 
-	const struct udphdr* up = (const struct udphdr*) data;
+	const struct udphdr* up = (const struct udphdr*)data;
 	const std::unique_ptr<IP_Hdr>& ip = pkt->ip_hdr;
 
 	adapter->DeliverPacket(len, data, is_orig, -1, ip.get(), remaining);
@@ -106,20 +103,17 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	int chksum = up->uh_sum;
 
 	auto validate_checksum =
-		! run_state::current_pkt->l3_checksummed &&
-		! zeek::detail::ignore_checksums &&
-		! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) &&
-		remaining >=len;
+		! run_state::current_pkt->l3_checksummed && ! zeek::detail::ignore_checksums &&
+		! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) && remaining >= len;
 
 	constexpr auto vxlan_len = 8;
 	constexpr auto eth_len = 14;
 
-	if ( validate_checksum &&
-	     len > ((int)sizeof(struct udphdr) + vxlan_len + eth_len) &&
+	if ( validate_checksum && len > ((int)sizeof(struct udphdr) + vxlan_len + eth_len) &&
 	     (data[0] & 0x08) == 0x08 )
 		{
-		if ( std::find(vxlan_ports.begin(), vxlan_ports.end(),
-		               ntohs(up->uh_dport)) != vxlan_ports.end() )
+		if ( std::find(vxlan_ports.begin(), vxlan_ports.end(), ntohs(up->uh_dport)) !=
+		     vxlan_ports.end() )
 			{
 			// Looks like VXLAN on a well-known port, so the checksum should be
 			// transmitted as zero, and we should accept that.  If not
@@ -165,8 +159,10 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	if ( udp_contents )
 		{
 		static auto udp_content_ports = id::find_val<TableVal>("udp_content_ports");
-		static auto udp_content_delivery_ports_orig = id::find_val<TableVal>("udp_content_delivery_ports_orig");
-		static auto udp_content_delivery_ports_resp = id::find_val<TableVal>("udp_content_delivery_ports_resp");
+		static auto udp_content_delivery_ports_orig =
+			id::find_val<TableVal>("udp_content_delivery_ports_orig");
+		static auto udp_content_delivery_ports_resp =
+			id::find_val<TableVal>("udp_content_delivery_ports_resp");
 		bool do_udp_contents = false;
 		const auto& sport_val = val_mgr->Port(ntohs(up->uh_sport), TRANSPORT_UDP);
 		const auto& dport_val = val_mgr->Port(ntohs(up->uh_dport), TRANSPORT_UDP);
@@ -176,8 +172,8 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 			do_udp_contents = true;
 		else
 			{
-			uint16_t p = zeek::detail::udp_content_delivery_ports_use_resp ? c->RespPort()
-			                                                               : up->uh_dport;
+			uint16_t p =
+				zeek::detail::udp_content_delivery_ports_use_resp ? c->RespPort() : up->uh_dport;
 			const auto& port_val = zeek::val_mgr->Port(ntohs(p), TRANSPORT_UDP);
 
 			if ( is_orig )
@@ -197,10 +193,8 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 			}
 
 		if ( do_udp_contents )
-			adapter->EnqueueConnEvent(udp_contents,
-			                     adapter->ConnVal(),
-			                     val_mgr->Bool(is_orig),
-			                     make_intrusive<StringVal>(len, (const char*) data));
+			adapter->EnqueueConnEvent(udp_contents, adapter->ConnVal(), val_mgr->Bool(is_orig),
+			                          make_intrusive<StringVal>(len, (const char*)data));
 		}
 
 	if ( is_orig )
@@ -226,8 +220,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 bool UDPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
 	{
-	auto sum = detail::ip_in_cksum(ip->IP4_Hdr(), ip->SrcAddr(), ip->DstAddr(),
-	                               IPPROTO_UDP,
+	auto sum = detail::ip_in_cksum(ip->IP4_Hdr(), ip->SrcAddr(), ip->DstAddr(), IPPROTO_UDP,
 	                               reinterpret_cast<const uint8_t*>(up), len);
 
 	return sum == 0xffff;

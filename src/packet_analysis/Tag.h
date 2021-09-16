@@ -2,15 +2,17 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
 #include "zeek/Tag.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek::plugin {
-	template <class T> class TaggedComponent;
-	template <class T, class C>	class ComponentManager;
-}
+namespace zeek::plugin
+	{
+template <class T> class TaggedComponent;
+template <class T, class C> class ComponentManager;
+	}
 
-namespace zeek::packet_analysis {
+namespace zeek::packet_analysis
+	{
 
 class Manager;
 class Component;
@@ -18,7 +20,8 @@ class Component;
 /**
  * Class to identify a protocol analyzer type.
  */
-class Tag : public zeek::Tag {
+class Tag : public zeek::Tag
+	{
 public:
 	/*
 	 * Copy constructor.
@@ -50,26 +53,17 @@ public:
 	/**
 	 * Compares two tags for equality.
 	 */
-	bool operator==(const Tag& other) const
-		{
-		return zeek::Tag::operator==(other);
-		}
+	bool operator==(const Tag& other) const { return zeek::Tag::operator==(other); }
 
 	/**
 	 * Compares two tags for inequality.
 	 */
-	bool operator!=(const Tag& other) const
-		{
-		return zeek::Tag::operator!=(other);
-		}
+	bool operator!=(const Tag& other) const { return zeek::Tag::operator!=(other); }
 
 	/**
 	 * Compares two tags for less-than relationship.
 	 */
-	bool operator<(const Tag& other) const
-		{
-		return zeek::Tag::operator<(other);
-		}
+	bool operator<(const Tag& other) const { return zeek::Tag::operator<(other); }
 
 	/**
 	 * Returns the \c Analyzer::Tag enum that corresponds to this tag.
@@ -82,7 +76,6 @@ public:
 	static Tag Error;
 
 protected:
-
 	friend class packet_analysis::Manager;
 	friend class plugin::ComponentManager<Tag, Component>;
 	friend class plugin::TaggedComponent<Tag>;
@@ -105,6 +98,6 @@ protected:
 	 * @param val An enum value of script type \c Analyzer::Tag.
 	 */
 	explicit Tag(IntrusivePtr<EnumVal> val);
-};
+	};
 
-}
+	}

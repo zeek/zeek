@@ -2,54 +2,54 @@
 
 #pragma once
 
+#include <stdint.h>
+#include <sys/resource.h>
+#include <sys/time.h>
+#include <sys/types.h>
+
 #include "zeek/zeek-config.h"
 
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <stdint.h>
-
-namespace zeek {
+namespace zeek
+	{
 
 class File;
 class Func;
 class TableVal;
 
-namespace detail {
+namespace detail
+	{
 
 class Location;
 
 // Object called by SegmentProfiler when it is done and reports its
 // cumulative CPU/memory statistics.
-class SegmentStatsReporter {
+class SegmentStatsReporter
+	{
 public:
-	SegmentStatsReporter()	{ }
-	virtual ~SegmentStatsReporter()	{ }
+	SegmentStatsReporter() { }
+	virtual ~SegmentStatsReporter() { }
 
-	virtual void SegmentProfile(const char* name, const Location* loc,
-	                            double dtime, int dmem) = 0;
-};
-
+	virtual void SegmentProfile(const char* name, const Location* loc, double dtime, int dmem) = 0;
+	};
 
 // A SegmentProfiler tracks how much CPU and memory is consumed
 // across its lifetime.
 //
 // ### This needs porting to Linux.  It could also be improved by
 // better efforts at measuring its own overhead.
-class SegmentProfiler {
+class SegmentProfiler
+	{
 public:
 	// The constructor takes some way of identifying the segment.
-	SegmentProfiler(SegmentStatsReporter* arg_reporter,
-				const char* arg_name)
-	    : reporter(arg_reporter), name(arg_name), loc(), initial_rusage()
+	SegmentProfiler(SegmentStatsReporter* arg_reporter, const char* arg_name)
+		: reporter(arg_reporter), name(arg_name), loc(), initial_rusage()
 		{
 		if ( reporter )
 			Init();
 		}
 
-	SegmentProfiler(SegmentStatsReporter* arg_reporter,
-	                const Location* arg_loc)
-	    : reporter(arg_reporter), name(), loc(arg_loc), initial_rusage()
+	SegmentProfiler(SegmentStatsReporter* arg_reporter, const Location* arg_loc)
+		: reporter(arg_reporter), name(), loc(arg_loc), initial_rusage()
 		{
 		if ( reporter )
 			Init();
@@ -69,29 +69,28 @@ protected:
 	const char* name;
 	const Location* loc;
 	struct rusage initial_rusage;
-};
+	};
 
-
-class ProfileLogger final : public SegmentStatsReporter {
+class ProfileLogger final : public SegmentStatsReporter
+	{
 public:
 	ProfileLogger(zeek::File* file, double interval);
 	~ProfileLogger() override;
 
 	void Log();
-	zeek::File* File()	{ return file; }
+	zeek::File* File() { return file; }
 
 protected:
-	void SegmentProfile(const char* name, const Location* loc,
-	                    double dtime, int dmem) override;
+	void SegmentProfile(const char* name, const Location* loc, double dtime, int dmem) override;
 
 private:
 	zeek::File* file;
 	unsigned int log_count;
-};
-
+	};
 
 // Generates load_sample() events.
-class SampleLogger final : public SegmentStatsReporter {
+class SampleLogger final : public SegmentStatsReporter
+	{
 public:
 	SampleLogger();
 	~SampleLogger() override;
@@ -102,12 +101,10 @@ public:
 	void LocationSeen(const Location* loc);
 
 protected:
-	void SegmentProfile(const char* name, const Location* loc,
-	                    double dtime, int dmem) override;
+	void SegmentProfile(const char* name, const Location* loc, double dtime, int dmem) override;
 
 	TableVal* load_samples;
-};
-
+	};
 
 extern ProfileLogger* profiling_logger;
 extern ProfileLogger* segment_logger;
@@ -122,7 +119,8 @@ extern uint64_t tot_ack_bytes;
 extern uint64_t tot_gap_events;
 extern uint64_t tot_gap_bytes;
 
-class PacketProfiler {
+class PacketProfiler
+	{
 public:
 	PacketProfiler(unsigned int mode, double freq, File* arg_file);
 	~PacketProfiler();
@@ -142,7 +140,7 @@ protected:
 	uint64_t last_mem;
 	uint64_t pkt_cnt;
 	uint64_t byte_cnt;
-};
+	};
 
-} // namespace detail
-} // namespace zeek
+	} // namespace detail
+	} // namespace zeek

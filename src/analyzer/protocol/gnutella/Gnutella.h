@@ -4,7 +4,8 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-namespace zeek::analyzer::gnutella {
+namespace zeek::analyzer::gnutella
+	{
 
 constexpr int ORIG_OK = 0x1;
 constexpr int RESP_OK = 0x2;
@@ -12,11 +13,13 @@ constexpr int RESP_OK = 0x2;
 constexpr int GNUTELLA_MSG_SIZE = 23;
 constexpr int GNUTELLA_MAX_PAYLOAD = 1024;
 
-namespace detail {
+namespace detail
+	{
 
-class GnutellaMsgState {
+class GnutellaMsgState
+	{
 public:
-	GnutellaMsgState ();
+	GnutellaMsgState();
 
 	std::string buffer;
 	int current_offset;
@@ -32,20 +35,20 @@ public:
 	char payload[GNUTELLA_MAX_PAYLOAD];
 	unsigned int payload_len;
 	unsigned int payload_left;
-};
+	};
 
-} // namespace detail
+	} // namespace detail
 
-class Gnutella_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class Gnutella_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 public:
 	explicit Gnutella_Analyzer(Connection* conn);
 	~Gnutella_Analyzer() override;
 
-	void Done () override;
+	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new Gnutella_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new Gnutella_Analyzer(conn); }
 
 private:
 	bool NextLine(const u_char* data, int len);
@@ -53,7 +56,7 @@ private:
 	bool GnutellaOK(std::string header);
 	bool IsHTTP(std::string header);
 
-	bool Established() const	{ return state == (ORIG_OK | RESP_OK); }
+	bool Established() const { return state == (ORIG_OK | RESP_OK); }
 
 	void DeliverLines(int len, const u_char* data, bool orig);
 
@@ -69,6 +72,6 @@ private:
 	detail::GnutellaMsgState* orig_msg_state;
 	detail::GnutellaMsgState* resp_msg_state;
 	detail::GnutellaMsgState* ms;
-};
+	};
 
-} // namespace zeek::analyzer::gnutella
+	} // namespace zeek::analyzer::gnutella

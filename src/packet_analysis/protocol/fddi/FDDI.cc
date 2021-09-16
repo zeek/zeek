@@ -4,10 +4,7 @@
 
 using namespace zeek::packet_analysis::FDDI;
 
-FDDIAnalyzer::FDDIAnalyzer()
-	: zeek::packet_analysis::Analyzer("FDDI")
-	{
-	}
+FDDIAnalyzer::FDDIAnalyzer() : zeek::packet_analysis::Analyzer("FDDI") { }
 
 bool FDDIAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{

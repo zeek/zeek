@@ -4,12 +4,16 @@
 
 #pragma once
 
-#include "zeek/threading/MsgThread.h"
 #include "zeek/logging/Component.h"
+#include "zeek/threading/MsgThread.h"
 
-namespace broker { class data; }
+namespace broker
+	{
+class data;
+	}
 
-namespace zeek::logging {
+namespace zeek::logging
+	{
 
 class WriterFrontend;
 
@@ -23,7 +27,7 @@ class WriterFrontend;
  * thread (the constructor and destructor are the exceptions.)
  */
 class WriterBackend : public threading::MsgThread
-{
+	{
 public:
 	/**
 	 * Constructor.
@@ -90,33 +94,34 @@ public:
 		 */
 		config_map config;
 
-		WriterInfo() : path(nullptr), rotation_interval(0.0), rotation_base(0.0),
-		               network_time(0.0)
+		WriterInfo() : path(nullptr), rotation_interval(0.0), rotation_base(0.0), network_time(0.0)
 			{
 			}
 
 		WriterInfo(const WriterInfo& other)
 			{
 			path = other.path ? util::copy_string(other.path) : nullptr;
-			post_proc_func = other.post_proc_func ? util::copy_string(other.post_proc_func) : nullptr;
+			post_proc_func =
+				other.post_proc_func ? util::copy_string(other.post_proc_func) : nullptr;
 			rotation_interval = other.rotation_interval;
 			rotation_base = other.rotation_base;
 			network_time = other.network_time;
 
-			for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
-				config.insert(std::make_pair(util::copy_string(i->first),
-				                             util::copy_string(i->second)));
+			for ( config_map::const_iterator i = other.config.begin(); i != other.config.end();
+			      i++ )
+				config.insert(
+					std::make_pair(util::copy_string(i->first), util::copy_string(i->second)));
 			}
 
 		~WriterInfo()
 			{
-			delete [] path;
-			delete [] post_proc_func;
+			delete[] path;
+			delete[] post_proc_func;
 
 			for ( config_map::iterator i = config.begin(); i != config.end(); i++ )
 				{
-				delete [] i->first;
-				delete [] i->second;
+				delete[] i->first;
+				delete[] i->second;
 				}
 			}
 
@@ -125,7 +130,7 @@ public:
 		broker::data ToBroker() const;
 		bool FromBroker(broker::data d);
 
-		private:
+	private:
 		const WriterInfo& operator=(const WriterInfo& other); // Disable.
 		};
 
@@ -200,24 +205,24 @@ public:
 	/**
 	 * Returns the additional writer information passed into the constructor.
 	 */
-	const WriterInfo& Info() const	{ return *info; }
+	const WriterInfo& Info() const { return *info; }
 
 	/**
 	 * Returns the number of log fields as passed into the constructor.
 	 */
-	int NumFields() const	{ return num_fields; }
+	int NumFields() const { return num_fields; }
 
 	/**
 	 * Returns the log fields as passed into the constructor.
 	 */
-	const threading::Field* const * Fields() const	{ return fields; }
+	const threading::Field* const* Fields() const { return fields; }
 
 	/**
 	 * Returns the current buffering state.
 	 *
 	 * @return True if buffering is enabled.
 	 */
-	bool IsBuf()	{ return buffering; }
+	bool IsBuf() { return buffering; }
 
 	/**
 	 * Signals that a file has been successfully rotated and any
@@ -240,8 +245,8 @@ public:
 	 * @param terminating: True if the original rotation request occured
 	 * due to the main Bro process shutting down.
 	 */
-	bool FinishedRotation(const char* new_name, const char* old_name,
-			      double open, double close, bool terminating);
+	bool FinishedRotation(const char* new_name, const char* old_name, double open, double close,
+	                      bool terminating);
 
 	/**
 	 * Signals that a file rotation request has been processed, but no
@@ -276,7 +281,7 @@ protected:
 	 * implementation should also call Error() to indicate what happened.
 	 */
 	virtual bool DoInit(const WriterInfo& info, int num_fields,
-			    const threading::Field* const*  fields) = 0;
+	                    const threading::Field* const* fields) = 0;
 
 	/**
 	 * Writer-specific output method implementing recording of fone log
@@ -288,8 +293,8 @@ protected:
 	 * disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error() to indicate what happened.
 	 */
-	virtual bool DoWrite(int num_fields, const threading::Field* const*  fields,
-			     threading::Value** vals) = 0;
+	virtual bool DoWrite(int num_fields, const threading::Field* const* fields,
+	                     threading::Value** vals) = 0;
 
 	/**
 	 * Writer-specific method implementing a change of fthe buffering
@@ -362,7 +367,7 @@ protected:
 	 * reached a regularly scheduled time for rotation).
 	 */
 	virtual bool DoRotate(const char* rotated_path, double open, double close,
-			      bool terminating) = 0;
+	                      bool terminating) = 0;
 
 	/**
 	 * Writer-specific method called just before the threading system is
@@ -390,12 +395,12 @@ private:
 	// this class, it's running in a different thread!
 	WriterFrontend* frontend;
 
-	const WriterInfo* info;	// Meta information.
-	int num_fields;	// Number of log fields.
-	const threading::Field* const*  fields;	// Log fields.
-	bool buffering;	// True if buffering is enabled.
+	const WriterInfo* info; // Meta information.
+	int num_fields; // Number of log fields.
+	const threading::Field* const* fields; // Log fields.
+	bool buffering; // True if buffering is enabled.
 
 	int rotation_counter; // Tracks FinishedRotation() calls.
-};
+	};
 
-} // namespace zeek::logging
+	} // namespace zeek::logging

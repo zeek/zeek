@@ -1,9 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/Tag.h"
+
 #include "zeek/Val.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 Tag::Tag(const EnumTypePtr& etype, type_t arg_type, subtype_t arg_subtype)
 	{
@@ -82,4 +84,4 @@ std::string Tag::AsString() const
 	return util::fmt("%" PRIu32 "/%" PRIu32, type, subtype);
 	}
 
-} // namespace zeek
+	} // namespace zeek

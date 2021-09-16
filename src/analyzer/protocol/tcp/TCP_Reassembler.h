@@ -1,41 +1,50 @@
 #pragma once
 
+#include "zeek/File.h"
 #include "zeek/Reassem.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
-#include "zeek/File.h"
 
-namespace zeek {
-namespace packet_analysis::TCP { class TCPSessionAdapter; }
+namespace zeek
+	{
+namespace packet_analysis::TCP
+	{
+class TCPSessionAdapter;
+	}
 
 class Connection;
 
-namespace analyzer {
+namespace analyzer
+	{
 
 class Analyzer;
 
-namespace tcp {
+namespace tcp
+	{
 
-using TCP_Analyzer [[deprecated("Remove in v5.1. Use zeek::packet_analysis::TCP::TCPSessionAdapter.")]] =
-	zeek::packet_analysis::TCP::TCPSessionAdapter;
+using TCP_Analyzer
+	[[deprecated("Remove in v5.1. Use zeek::packet_analysis::TCP::TCPSessionAdapter.")]] =
+		zeek::packet_analysis::TCP::TCPSessionAdapter;
 
-class TCP_Reassembler final : public Reassembler {
+class TCP_Reassembler final : public Reassembler
+	{
 public:
-	enum Type {
-		Direct,		// deliver to destination analyzer itself
-		Forward,	// forward to destination analyzer's children
-	};
+	enum Type
+		{
+		Direct, // deliver to destination analyzer itself
+		Forward, // forward to destination analyzer's children
+		};
 
 	TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
-	                packet_analysis::TCP::TCPSessionAdapter* arg_tcp_analyzer,
-	                Type arg_type, TCP_Endpoint* arg_endp);
+	                packet_analysis::TCP::TCPSessionAdapter* arg_tcp_analyzer, Type arg_type,
+	                TCP_Endpoint* arg_endp);
 
 	void Done();
 
-	void SetDstAnalyzer(analyzer::Analyzer* analyzer)	{ dst_analyzer = analyzer; }
-	void SetType(Type arg_type)	{ type = arg_type; }
+	void SetDstAnalyzer(analyzer::Analyzer* analyzer) { dst_analyzer = analyzer; }
+	void SetType(Type arg_type) { type = arg_type; }
 
-	packet_analysis::TCP::TCPSessionAdapter* GetTCPAnalyzer()	{ return tcp_analyzer; }
+	packet_analysis::TCP::TCPSessionAdapter* GetTCPAnalyzer() { return tcp_analyzer; }
 
 	// Returns the volume of data buffered in the reassembler.
 	// First parameter returns data that is above a hole, and thus is
@@ -55,7 +64,7 @@ public:
 	uint64_t NumUndeliveredBytes() const;
 
 	void SetContentsFile(FilePtr f);
-	const FilePtr& GetContentsFile() const	{ return record_contents_file; }
+	const FilePtr& GetContentsFile() const { return record_contents_file; }
 
 	void MatchUndelivered(uint64_t up_to_seq, bool use_last_upper);
 
@@ -64,7 +73,7 @@ public:
 	void SkipToSeq(uint64_t seq);
 
 	bool DataSent(double t, uint64_t seq, int len, const u_char* data,
-		     analyzer::tcp::TCP_Flags flags, bool replaying=true);
+	              analyzer::tcp::TCP_Flags flags, bool replaying = true);
 	void AckReceived(uint64_t seq);
 
 	// Checks if we have delivered all contents that we can possibly
@@ -72,24 +81,22 @@ public:
 	// when so.
 	void CheckEOF();
 
-	bool HasUndeliveredData() const	{ return HasBlocks(); }
-	bool HadGap() const	{ return had_gap; }
+	bool HasUndeliveredData() const { return HasBlocks(); }
+	bool HadGap() const { return had_gap; }
 	bool DataPending() const;
-	uint64_t DataSeq() const		{ return LastReassemSeq(); }
+	uint64_t DataSeq() const { return LastReassemSeq(); }
 
 	void DeliverBlock(uint64_t seq, int len, const u_char* data);
 	virtual void Deliver(uint64_t seq, int len, const u_char* data);
 
-	TCP_Endpoint* Endpoint()		{ return endp; }
-	const TCP_Endpoint* Endpoint() const	{ return endp; }
+	TCP_Endpoint* Endpoint() { return endp; }
+	const TCP_Endpoint* Endpoint() const { return endp; }
 
-	bool IsOrig() const	{ return endp->IsOrig(); }
+	bool IsOrig() const { return endp->IsOrig(); }
 
-	bool IsSkippedContents(uint64_t seq, int length) const
-		{ return seq + length <= seq_to_skip; }
+	bool IsSkippedContents(uint64_t seq, int length) const { return seq + length <= seq_to_skip; }
 
 private:
-
 	void Undelivered(uint64_t up_to_seq) override;
 	void Gap(uint64_t seq, uint64_t len);
 
@@ -112,14 +119,14 @@ private:
 	bool in_delivery;
 	analyzer::tcp::TCP_Flags flags;
 
-	FilePtr record_contents_file;	// file on which to reassemble contents
+	FilePtr record_contents_file; // file on which to reassemble contents
 
 	analyzer::Analyzer* dst_analyzer;
 	packet_analysis::TCP::TCPSessionAdapter* tcp_analyzer;
 
 	Type type;
-};
+	};
 
-} // namespace tcp
-} // namespace analyzer
-} // namespace zeek
+	} // namespace tcp
+	} // namespace analyzer
+	} // namespace zeek

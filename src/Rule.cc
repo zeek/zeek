@@ -1,11 +1,12 @@
-#include "zeek/zeek-config.h"
-
 #include "zeek/Rule.h"
+
 #include "zeek/RuleAction.h"
 #include "zeek/RuleCondition.h"
 #include "zeek/RuleMatcher.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 // Start at one as we want search for this within a list,
 // and List's is_member returns zero for non-membership ...
@@ -15,11 +16,11 @@ rule_list Rule::rule_table;
 
 Rule::~Rule()
 	{
-	delete [] id;
+	delete[] id;
 
 	for ( const auto& p : patterns )
 		{
-		delete [] p->pattern;
+		delete[] p->pattern;
 		delete p;
 		}
 
@@ -34,7 +35,7 @@ Rule::~Rule()
 
 	for ( const auto& prec : preconds )
 		{
-		delete [] prec->id;
+		delete[] prec->id;
 		delete prec;
 		}
 	}
@@ -42,9 +43,15 @@ Rule::~Rule()
 const char* Rule::TypeToString(Rule::PatternType type)
 	{
 	static const char* labels[] = {
-		"File Magic", "Payload", "HTTP-REQUEST", "HTTP-REQUEST-BODY",
-		"HTTP-REQUEST-HEADER", "HTTP-REPLY-BODY",
-		"HTTP-REPLY-HEADER", "FTP", "Finger",
+		"File Magic",
+		"Payload",
+		"HTTP-REQUEST",
+		"HTTP-REQUEST-BODY",
+		"HTTP-REQUEST-HEADER",
+		"HTTP-REPLY-BODY",
+		"HTTP-REPLY-HEADER",
+		"FTP",
+		"Finger",
 	};
 	return labels[type];
 	}
@@ -55,8 +62,7 @@ void Rule::PrintDebug()
 
 	for ( const auto& p : patterns )
 		{
-		fprintf(stderr, "	%-8s |%s| (%d) \n",
-			TypeToString(p->type), p->pattern, p->id);
+		fprintf(stderr, "	%-8s |%s| (%d) \n", TypeToString(p->type), p->pattern, p->id);
 		}
 
 	for ( const auto& h : hdr_tests )
@@ -71,8 +77,7 @@ void Rule::PrintDebug()
 	fputs("\n", stderr);
 	}
 
-void Rule::AddPattern(const char* str, Rule::PatternType type,
-			uint32_t offset, uint32_t depth)
+void Rule::AddPattern(const char* str, Rule::PatternType type, uint32_t offset, uint32_t depth)
 	{
 	Pattern* p = new Pattern;
 	p->pattern = util::copy_string(str);
@@ -102,4 +107,4 @@ void Rule::SortHdrTests()
 	// something clever here.
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

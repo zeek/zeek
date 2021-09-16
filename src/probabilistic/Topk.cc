@@ -4,22 +4,23 @@
 
 #include <broker/error.hh>
 
-#include "zeek/broker/Data.h"
 #include "zeek/CompHash.h"
-#include "zeek/Reporter.h"
 #include "zeek/Dict.h"
+#include "zeek/Reporter.h"
+#include "zeek/broker/Data.h"
 
-namespace zeek::probabilistic::detail {
+namespace zeek::probabilistic::detail
+	{
 
 static void topk_element_hash_delete_func(void* val)
 	{
-	Element* e = (Element*) val;
+	Element* e = (Element*)val;
 	delete e;
 	}
 
 void TopkVal::Typify(TypePtr t)
 	{
-	assert(!hash && !type);
+	assert(! hash && ! type);
 	type = std::move(t);
 	auto tl = make_intrusive<TypeList>(type);
 	tl->Append(type);
@@ -104,7 +105,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 			Element* e = *eit;
 			// lookup if we already know this one...
 			zeek::detail::HashKey* key = GetHash(e->value);
-			Element* olde = (Element*) elementDict->Lookup(key);
+			Element* olde = (Element*)elementDict->Lookup(key);
 
 			if ( olde == nullptr )
 				{
@@ -114,7 +115,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 				// insert at bucket position 0
 				if ( buckets.size() > 0 )
 					{
-					assert (buckets.front()-> count > 0 );
+					assert(buckets.front()->count > 0);
 					}
 
 				Bucket* newbucket = new Bucket();
@@ -126,7 +127,6 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 
 				elementDict->Insert(key, olde);
 				numElements++;
-
 				}
 
 			// now that we are sure that the old element is present - increment epsilon
@@ -153,7 +153,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 	while ( numElements > size )
 		{
 		pruned = true;
-		assert(buckets.size() > 0 );
+		assert(buckets.size() > 0);
 		Bucket* b = buckets.front();
 		assert(b->elements.size() > 0);
 
@@ -199,13 +199,13 @@ VectorValPtr TopkVal::GetTopK(int k) const // returns vector
 	int read = 0;
 	std::list<Bucket*>::const_iterator it = buckets.end();
 	it--;
-	while (read < k )
+	while ( read < k )
 		{
-		//printf("Bucket %llu\n", (*it)->count);
+		// printf("Bucket %llu\n", (*it)->count);
 		std::list<Element*>::iterator eit = (*it)->elements.begin();
 		while ( eit != (*it)->elements.end() )
 			{
-			//printf("Size: %ld\n", (*it)->elements.size());
+			// printf("Size: %ld\n", (*it)->elements.size());
 			t->Assign(read, (*eit)->value);
 			read++;
 			eit++;
@@ -223,7 +223,7 @@ VectorValPtr TopkVal::GetTopK(int k) const // returns vector
 uint64_t TopkVal::GetCount(Val* value) const
 	{
 	zeek::detail::HashKey* key = GetHash(value);
-	Element* e = (Element*) elementDict->Lookup(key);
+	Element* e = (Element*)elementDict->Lookup(key);
 	delete key;
 
 	if ( e == nullptr )
@@ -238,7 +238,7 @@ uint64_t TopkVal::GetCount(Val* value) const
 uint64_t TopkVal::GetEpsilon(Val* value) const
 	{
 	zeek::detail::HashKey* key = GetHash(value);
-	Element* e = (Element*) elementDict->Lookup(key);
+	Element* e = (Element*)elementDict->Lookup(key);
 	delete key;
 
 	if ( e == nullptr )
@@ -263,7 +263,8 @@ uint64_t TopkVal::GetSum() const
 		}
 
 	if ( pruned )
-		reporter->Warning("TopkVal::GetSum() was used on a pruned data structure. Result values do not represent total element count");
+		reporter->Warning("TopkVal::GetSum() was used on a pruned data structure. Result values do "
+		                  "not represent total element count");
 
 	return sum;
 	}
@@ -274,16 +275,15 @@ void TopkVal::Encountered(ValPtr encountered)
 
 	if ( numElements == 0 )
 		Typify(encountered->GetType());
-	else
-		if ( ! same_type(type, encountered->GetType()) )
-			{
-			reporter->Error("Trying to add element to topk with differing type from other elements");
-			return;
-			}
+	else if ( ! same_type(type, encountered->GetType()) )
+		{
+		reporter->Error("Trying to add element to topk with differing type from other elements");
+		return;
+		}
 
 	// Step 1 - get the hash.
 	zeek::detail::HashKey* key = GetHash(encountered);
-	Element* e = (Element*) elementDict->Lookup(key);
+	Element* e = (Element*)elementDict->Lookup(key);
 
 	if ( e == nullptr )
 		{
@@ -328,7 +328,7 @@ void TopkVal::Encountered(ValPtr encountered)
 			assert(b->elements.size() > 0);
 			zeek::detail::HashKey* deleteKey = GetHash((*(b->elements.begin()))->value);
 			b->elements.erase(b->elements.begin());
-			Element* deleteElement = (Element*) elementDict->RemoveEntry(deleteKey);
+			Element* deleteElement = (Element*)elementDict->RemoveEntry(deleteKey);
 			assert(deleteElement); // there has to have been a minimal element...
 			delete deleteElement;
 			delete deleteKey;
@@ -341,7 +341,6 @@ void TopkVal::Encountered(ValPtr encountered)
 
 			// fallthrough, increment operation has to run!
 			}
-
 		}
 
 	// ok, we now have an element in e
@@ -362,10 +361,10 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count)
 
 	bucketIter++;
 
-	while ( bucketIter != buckets.end() && (*bucketIter)->count < currcount+count )
+	while ( bucketIter != buckets.end() && (*bucketIter)->count < currcount + count )
 		bucketIter++;
 
-	if ( bucketIter != buckets.end() && (*bucketIter)->count == currcount+count )
+	if ( bucketIter != buckets.end() && (*bucketIter)->count == currcount + count )
 		nextBucket = *bucketIter;
 
 	if ( nextBucket == nullptr )
@@ -374,7 +373,7 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count)
 		// create it...
 
 		Bucket* b = new Bucket();
-		b->count = currcount+count;
+		b->count = currcount + count;
 
 		std::list<Bucket*>::iterator nextBucketPos = buckets.insert(bucketIter, b);
 		b->bucketPos = nextBucketPos; // and give it the iterator we know now.
@@ -446,7 +445,6 @@ broker::expected<broker::data> TopkVal::DoSerialize() const
 	return {std::move(d)};
 	}
 
-
 bool TopkVal::DoUnserialize(const broker::data& data)
 	{
 	auto v = caf::get_if<broker::vector>(&data);
@@ -507,7 +505,7 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 			b->elements.insert(b->elements.end(), e);
 
 			zeek::detail::HashKey* key = GetHash(e->value);
-			assert (elementDict->Lookup(key) == nullptr);
+			assert(elementDict->Lookup(key) == nullptr);
 
 			elementDict->Insert(key, e);
 			delete key;
@@ -520,4 +518,4 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 	return true;
 	}
 
-} // namespace zeek::probabilistic::detail
+	} // namespace zeek::probabilistic::detail

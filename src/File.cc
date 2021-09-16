@@ -1,37 +1,38 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/File.h"
 
 #include <sys/types.h>
+
+#include "zeek/zeek-config.h"
 #ifdef TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
+#include <sys/time.h>
+#include <time.h>
 #else
-# ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
 #endif
+#endif
+#include <errno.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
-#include <errno.h>
 #include <unistd.h>
-
 #include <algorithm>
 
 #include "zeek/Attr.h"
-#include "zeek/Type.h"
+#include "zeek/Desc.h"
+#include "zeek/Event.h"
 #include "zeek/Expr.h"
 #include "zeek/NetVar.h"
-#include "zeek/RunState.h"
-#include "zeek/Event.h"
 #include "zeek/Reporter.h"
-#include "zeek/Desc.h"
+#include "zeek/RunState.h"
+#include "zeek/Type.h"
 #include "zeek/Var.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 std::list<std::pair<std::string, File*>> File::open_files;
 
@@ -159,8 +160,8 @@ File::~File()
 	Close();
 	Unref(attrs);
 
-	delete [] name;
-	delete [] access;
+	delete[] name;
+	delete[] access;
 
 #ifdef USE_PERFTOOLS_DEBUG
 	heap_checker->UnIgnoreObject(this);
@@ -231,7 +232,7 @@ bool File::Close()
 
 void File::Unlink()
 	{
-	for ( auto it = open_files.begin(); it != open_files.end(); ++it)
+	for ( auto it = open_files.begin(); it != open_files.end(); ++it )
 		{
 		if ( (*it).second == this )
 			{
@@ -294,7 +295,7 @@ RecordVal* File::Rotate()
 
 	Unlink();
 
- 	fclose(f);
+	fclose(f);
 	f = nullptr;
 
 	Open(newf);
@@ -350,11 +351,11 @@ double File::Size()
 
 FilePtr File::Get(const char* name)
 	{
-	for ( const auto &el : open_files )
+	for ( const auto& el : open_files )
 		if ( el.first == name )
 			return {NewRef{}, el.second};
 
 	return make_intrusive<File>(name, "w");
 	}
 
-} // namespace zeek
+	} // namespace zeek

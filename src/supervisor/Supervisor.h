@@ -3,27 +3,29 @@
 #pragma once
 
 #include <sys/types.h>
-#include <optional>
+#include <chrono>
 #include <cstdint>
+#include <map>
+#include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
-#include <vector>
 #include <utility>
-#include <memory>
-#include <chrono>
-#include <map>
+#include <vector>
 
-#include "zeek/iosource/IOSource.h"
-#include "zeek/Timer.h"
-#include "zeek/Pipe.h"
 #include "zeek/Flare.h"
 #include "zeek/Func.h"
-#include "zeek/NetVar.h"
 #include "zeek/IntrusivePtr.h"
+#include "zeek/NetVar.h"
 #include "zeek/Options.h"
+#include "zeek/Pipe.h"
+#include "zeek/Timer.h"
+#include "zeek/iosource/IOSource.h"
 
-namespace zeek {
-namespace detail {
+namespace zeek
+	{
+namespace detail
+	{
 
 struct SupervisorStemHandle;
 struct SupervisedNode;
@@ -33,7 +35,8 @@ struct SupervisorNode;
  * A simple wrapper around a pipe to help do line-buffered output
  * of a Supervisor/Stem child process' redirected stdout/stderr.
  */
-struct LineBufferedPipe {
+struct LineBufferedPipe
+	{
 	/**
 	 * A pipe that a parent process can read from to obtain output
 	 * written by a child process.
@@ -75,9 +78,9 @@ struct LineBufferedPipe {
 	 * A hook to call when emitting messages read from the pipe.
 	 */
 	FuncPtr hook;
-};
+	};
 
-} // namespace zeek::detail
+	} // namespace zeek::detail
 
 /**
  * A Supervisor object manages a tree of persistent Zeek processes.  If any
@@ -94,26 +97,28 @@ struct LineBufferedPipe {
  * will self-terminate if it detects its parent has died and that detection is
  * done via polling for change in parent process ID.
  */
-class Supervisor : public iosource::IOSource {
+class Supervisor : public iosource::IOSource
+	{
 public:
-
 	/**
 	 * Configuration options that change Supervisor behavior.
 	 */
-	struct Config {
+	struct Config
+		{
 		/**
 		 * The filesystem path of the Zeek binary/executable.  This is used
 		 * if the Stem process ever dies and we need to fork() and exec() to
 		 * re-create it.
 		 */
 		std::string zeek_exe_path;
-	};
+		};
 
 	/**
 	 * Configuration options that influence how a Supervised Zeek node
 	 * integrates into the normal Zeek Cluster Framework.
 	 */
-	struct ClusterEndpoint {
+	struct ClusterEndpoint
+		{
 		/**
 		 * The node's role within the cluster.  E.g. manager, logger, worker.
 		 */
@@ -131,12 +136,13 @@ public:
 		 * Typically used by worker nodes.
 		 */
 		std::optional<std::string> interface;
-	};
+		};
 
 	/**
 	 * Configuration options that influence behavior of a Supervised Zeek node.
 	 */
-	struct NodeConfig {
+	struct NodeConfig
+		{
 		/**
 		 * Create configuration from script-layer record value.
 		 * @param node_val  the script-layer record value to convert.
@@ -205,7 +211,7 @@ public:
 		 * Entries in the map use node names for keys.
 		 */
 		std::map<std::string, ClusterEndpoint> cluster;
-	};
+		};
 
 	/**
 	 * Create and run the Stem process if necessary.
@@ -223,8 +229,7 @@ public:
 	 * about itself if this is a supervised process.  If called from a process
 	 * that is not supervised, this returns an "empty" object.
 	 */
-	static const std::optional<detail::SupervisedNode>& ThisNode()
-		{ return supervised_node; }
+	static const std::optional<detail::SupervisedNode>& ThisNode() { return supervised_node; }
 
 	using NodeMap = std::map<std::string, detail::SupervisorNode, std::less<>>;
 
@@ -249,15 +254,13 @@ public:
 	/**
 	 * @return the process ID of the Stem.
 	 */
-	pid_t StemPID() const
-		{ return stem_pid; }
+	pid_t StemPID() const { return stem_pid; }
 
 	/**
 	 * @return the state of currently supervised processes.  The map uses
 	 * node names for keys.
 	 */
-	const NodeMap& Nodes()
-		{ return nodes; }
+	const NodeMap& Nodes() { return nodes; }
 
 	/**
 	 * Retrieve current status of a supervised node.
@@ -306,7 +309,6 @@ public:
 	void ObserveChildSignal(int signo);
 
 private:
-
 	// IOSource interface overrides:
 	double GetNextTimeout() override;
 	void Process() override;
@@ -317,8 +319,7 @@ private:
 
 	void ReapStem();
 
-	const char* Tag() override
-		{ return "zeek::Supervisor"; }
+	const char* Tag() override { return "zeek::Supervisor"; }
 
 	static std::optional<detail::SupervisedNode> supervised_node;
 
@@ -331,13 +332,15 @@ private:
 	detail::Flare signal_flare;
 	NodeMap nodes;
 	std::string msg_buffer;
-};
+	};
 
-namespace detail {
+namespace detail
+	{
 /**
  * State used to initalialize and talk to the Supervisor Stem process.
  */
-struct SupervisorStemHandle {
+struct SupervisorStemHandle
+	{
 	/**
 	 * Bidirectional pipes that allow the Supervisor and Stem to talk.
 	 */
@@ -356,12 +359,13 @@ struct SupervisorStemHandle {
 	 * The Stem's process ID.
 	 */
 	pid_t pid = 0;
-};
+	};
 
 /**
  * State which defines a Supervised Zeek node's understanding of itself.
  */
-struct SupervisedNode {
+struct SupervisedNode
+	{
 	/**
 	 * Initialize the Supervised node within the Zeek Cluster Framework.
 	 * This function populates the "Cluster::nodes" script-layer variable
@@ -389,12 +393,13 @@ struct SupervisedNode {
 	 * of the Stem process).
 	 */
 	pid_t parent_pid;
-};
+	};
 
 /**
  * The state of a supervised node from the Supervisor's perspective.
  */
-struct SupervisorNode {
+struct SupervisorNode
+	{
 	/**
 	 * Convert the node into script-layer Supervisor::NodeStatus record
 	 * representation.
@@ -404,15 +409,13 @@ struct SupervisorNode {
 	/**
 	 * @return the name of the node.
 	 */
-	const std::string& Name() const
-		{ return config.name; }
+	const std::string& Name() const { return config.name; }
 
 	/**
 	 * Create a new node state from a given configuration.
 	 * @param arg_config  the configuration to use for the node.
 	 */
-	SupervisorNode(Supervisor::NodeConfig arg_config) : config(std::move(arg_config))
-		{ }
+	SupervisorNode(Supervisor::NodeConfig arg_config) : config(std::move(arg_config)) { }
 
 	/**
 	 * The desired configuration for the node.
@@ -458,16 +461,16 @@ struct SupervisorNode {
 	 * any output written to the Node's stdout.
 	 */
 	detail::LineBufferedPipe stderr_pipe;
-};
+	};
 
 /**
  * A timer used by supervised processes to periodically check whether their
  * parent (supervisor) process has died.  If it has died, the supervised
  * process self-terminates.
  */
-class ParentProcessCheckTimer final : public Timer {
+class ParentProcessCheckTimer final : public Timer
+	{
 public:
-
 	/**
 	 * Create a timer to check for parent process death.
 	 * @param t  the time at which to trigger the timer's check.
@@ -476,13 +479,12 @@ public:
 	ParentProcessCheckTimer(double t, double interval);
 
 protected:
-
 	void Dispatch(double t, bool is_expire) override;
 
 	double interval;
-};
-}
+	};
+	}
 
 extern Supervisor* supervisor_mgr;
 
-} // namespace zeek
+	} // namespace zeek

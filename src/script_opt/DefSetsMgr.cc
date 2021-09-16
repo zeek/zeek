@@ -2,9 +2,8 @@
 
 #include "zeek/script_opt/DefSetsMgr.h"
 
-
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 DefSetsMgr::DefSetsMgr()
 	{
@@ -15,15 +14,14 @@ DefSetsMgr::DefSetsMgr()
 	post_max_defs = make_intrusive<ReachingDefSet>(item_map);
 	}
 
-
 void DefSetsMgr::CreatePostDef(const ID* id, DefinitionPoint dp, bool min_only)
 	{
 	auto di = item_map.GetID_DI(id);
 	CreatePostDef(di, dp, min_only);
 	}
 
-void DefSetsMgr::CreatePostDef(std::shared_ptr<DefinitionItem> di,
-				DefinitionPoint dp, bool min_only)
+void DefSetsMgr::CreatePostDef(std::shared_ptr<DefinitionItem> di, DefinitionPoint dp,
+                               bool min_only)
 	{
 	auto where = dp.OpaqueVal();
 
@@ -44,8 +42,8 @@ void DefSetsMgr::CreatePostDef(std::shared_ptr<DefinitionItem> di,
 	CreateDef(std::move(di), dp, false, min_only);
 	}
 
-void DefSetsMgr::CreateDef(std::shared_ptr<DefinitionItem> di,
-				DefinitionPoint dp, bool is_pre, bool min_only)
+void DefSetsMgr::CreateDef(std::shared_ptr<DefinitionItem> di, DefinitionPoint dp, bool is_pre,
+                           bool min_only)
 	{
 	auto where = dp.OpaqueVal();
 	RDSetPtr min_defs = is_pre ? pre_min_defs : post_min_defs;
@@ -59,5 +57,4 @@ void DefSetsMgr::CreateDef(std::shared_ptr<DefinitionItem> di,
 	max_defs->AddOrReplace(where, di.get(), dp);
 	}
 
-
-} // zeek::detail
+	} // zeek::detail

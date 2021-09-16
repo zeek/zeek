@@ -4,98 +4,100 @@
 
 #include "zeek/script_opt/CPP/Compile.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 using namespace std;
 
 void CPPCompile::GenStmt(const Stmt* s)
 	{
-	switch ( s->Tag() ) {
-	case STMT_INIT:
-		GenInitStmt(s->AsInitStmt());
-		break;
-
-	case STMT_LIST:
+	switch ( s->Tag() )
 		{
-		// These always occur in contexts surrounded by {}'s,
-		// so no need to add them explicitly.
-		auto sl = s->AsStmtList();
-		const auto& stmts = sl->Stmts();
+		case STMT_INIT:
+			GenInitStmt(s->AsInitStmt());
+			break;
 
-		for ( const auto& stmt : stmts )
-			GenStmt(stmt);
+		case STMT_LIST:
+				{
+				// These always occur in contexts surrounded by {}'s,
+				// so no need to add them explicitly.
+				auto sl = s->AsStmtList();
+				const auto& stmts = sl->Stmts();
+
+				for ( const auto& stmt : stmts )
+					GenStmt(stmt);
+				}
+			break;
+
+		case STMT_EXPR:
+			if ( auto e = s->AsExprStmt()->StmtExpr() )
+				Emit("%s;", GenExpr(e, GEN_DONT_CARE, true));
+			break;
+
+		case STMT_IF:
+			GenIfStmt(s->AsIfStmt());
+			break;
+
+		case STMT_WHILE:
+			GenWhileStmt(s->AsWhileStmt());
+			break;
+
+		case STMT_NULL:
+			Emit(";");
+			break;
+
+		case STMT_RETURN:
+			GenReturnStmt(s->AsReturnStmt());
+			break;
+
+		case STMT_ADD:
+			GenAddStmt(static_cast<const ExprStmt*>(s));
+			break;
+
+		case STMT_DELETE:
+			GenDeleteStmt(static_cast<const ExprStmt*>(s));
+			break;
+
+		case STMT_EVENT:
+			GenEventStmt(static_cast<const EventStmt*>(s));
+			break;
+
+		case STMT_SWITCH:
+			GenSwitchStmt(static_cast<const SwitchStmt*>(s));
+			break;
+
+		case STMT_FOR:
+			GenForStmt(s->AsForStmt());
+			break;
+
+		case STMT_NEXT:
+			Emit("continue;");
+			break;
+
+		case STMT_BREAK:
+			if ( break_level > 0 )
+				Emit("break;");
+			else
+				Emit("return false;");
+			break;
+
+		case STMT_PRINT:
+				{
+				auto el = static_cast<const ExprListStmt*>(s)->ExprList();
+				Emit("do_print_stmt({%s});", GenExpr(el, GEN_VAL_PTR));
+				}
+			break;
+
+		case STMT_FALLTHROUGH:
+			break;
+
+		case STMT_WHEN:
+			ASSERT(0);
+			break;
+
+		default:
+			reporter->InternalError("bad statement type in CPPCompile::GenStmt");
 		}
-		break;
-
-	case STMT_EXPR:
-		if ( auto e = s->AsExprStmt()->StmtExpr() )
-			Emit("%s;", GenExpr(e, GEN_DONT_CARE, true));
-		break;
-
-	case STMT_IF:
-		GenIfStmt(s->AsIfStmt());
-		break;
-
-	case STMT_WHILE:
-		GenWhileStmt(s->AsWhileStmt());
-		break;
-
-	case STMT_NULL:
-		Emit(";");
-		break;
-
-	case STMT_RETURN:
-		GenReturnStmt(s->AsReturnStmt());
-		break;
-
-	case STMT_ADD:
-		GenAddStmt(static_cast<const ExprStmt*>(s));
-		break;
-
-	case STMT_DELETE:
-		GenDeleteStmt(static_cast<const ExprStmt*>(s));
-		break;
-
-	case STMT_EVENT:
-		GenEventStmt(static_cast<const EventStmt*>(s));
-		break;
-
-	case STMT_SWITCH:
-		GenSwitchStmt(static_cast<const SwitchStmt*>(s));
-		break;
-
-	case STMT_FOR:
-		GenForStmt(s->AsForStmt());
-		break;
-
-	case STMT_NEXT:
-		Emit("continue;");
-		break;
-
-	case STMT_BREAK:
-		if ( break_level > 0 )
-			Emit("break;");
-		else
-			Emit("return false;");
-		break;
-
-	case STMT_PRINT:
-		{
-		auto el = static_cast<const ExprListStmt*>(s)->ExprList();
-		Emit("do_print_stmt({%s});", GenExpr(el, GEN_VAL_PTR));
-		}
-		break;
-
-	case STMT_FALLTHROUGH:
-		break;
-
-	case STMT_WHEN:
-		ASSERT(0);
-		break;
-
-	default:
-		reporter->InternalError("bad statement type in CPPCompile::GenStmt");
-	}
 	}
 
 void CPPCompile::GenInitStmt(const InitStmt* init)
@@ -119,9 +121,8 @@ void CPPCompile::GenInitStmt(const InitStmt* init)
 			continue;
 			}
 
-		Emit("%s = make_intrusive<%s>(cast_intrusive<%s>(%s));",
-			IDName(aggr), type_name,
-			type_type, type_ind);
+		Emit("%s = make_intrusive<%s>(cast_intrusive<%s>(%s));", IDName(aggr), type_name, type_type,
+		     type_ind);
 		}
 	}
 
@@ -147,8 +148,7 @@ void CPPCompile::GenIfStmt(const IfStmt* i)
 
 void CPPCompile::GenWhileStmt(const WhileStmt* w)
 	{
-	Emit("while ( %s )",
-		GenExpr(w->Condition(), GEN_NATIVE));
+	Emit("while ( %s )", GenExpr(w->Condition(), GEN_NATIVE));
 
 	StartBlock();
 
@@ -188,8 +188,7 @@ void CPPCompile::GenAddStmt(const ExprStmt* es)
 	auto aggr = GenExpr(op->GetOp1(), GEN_DONT_CARE);
 	auto indices = op->GetOp2();
 
-	Emit("add_element__CPP(%s, index_val__CPP({%s}));",
-		aggr, GenExpr(indices, GEN_VAL_PTR));
+	Emit("add_element__CPP(%s, index_val__CPP({%s}));", aggr, GenExpr(indices, GEN_VAL_PTR));
 	}
 
 void CPPCompile::GenDeleteStmt(const ExprStmt* es)
@@ -202,8 +201,8 @@ void CPPCompile::GenDeleteStmt(const ExprStmt* es)
 		{
 		auto indices = op->GetOp2();
 
-		Emit("remove_element__CPP(%s, index_val__CPP({%s}));",
-                     aggr_gen, GenExpr(indices, GEN_VAL_PTR));
+		Emit("remove_element__CPP(%s, index_val__CPP({%s}));", aggr_gen,
+		     GenExpr(indices, GEN_VAL_PTR));
 		}
 
 	else
@@ -223,12 +222,10 @@ void CPPCompile::GenEventStmt(const EventStmt* ev)
 	RegisterEvent(ev_n);
 
 	if ( ev_e->Args()->Exprs().length() > 0 )
-		Emit("event_mgr.Enqueue(%s_ev, %s);",
-                     globals[string(ev_n)],
-                     GenExpr(ev_e->Args(), GEN_VAL_PTR));
+		Emit("event_mgr.Enqueue(%s_ev, %s);", globals[string(ev_n)],
+		     GenExpr(ev_e->Args(), GEN_VAL_PTR));
 	else
-		Emit("event_mgr.Enqueue(%s_ev, Args{});",
-                     globals[string(ev_n)]);
+		Emit("event_mgr.Enqueue(%s_ev, Args{});", globals[string(ev_n)]);
 	}
 
 void CPPCompile::GenSwitchStmt(const SwitchStmt* sw)
@@ -256,8 +253,7 @@ void CPPCompile::GenSwitchStmt(const SwitchStmt* sw)
 		{
 		if ( c->ExprCases() )
 			{
-			const auto& c_e_s =
-				c->ExprCases()->AsListExpr()->Exprs();
+			const auto& c_e_s = c->ExprCases()->AsListExpr()->Exprs();
 
 			for ( const auto& c_e : c_e_s )
 				{
@@ -340,11 +336,8 @@ void CPPCompile::GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var,
 	Emit("auto ind_lv__CPP = tv__CPP->RecreateIndex(*k__CPP);");
 
 	if ( value_var )
-		Emit("%s = %s;",
-			IDName(value_var),
-			GenericValPtrToGT("current_tev__CPP->GetVal()",
-				value_var->GetType(),
-				GEN_NATIVE));
+		Emit("%s = %s;", IDName(value_var),
+		     GenericValPtrToGT("current_tev__CPP->GetVal()", value_var->GetType(), GEN_NATIVE));
 
 	for ( int i = 0; i < loop_vars->length(); ++i )
 		{
@@ -353,11 +346,9 @@ void CPPCompile::GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var,
 		auto acc = NativeAccessor(v_t);
 
 		if ( IsNativeType(v_t) )
-			Emit("%s = ind_lv__CPP->Idx(%s)%s;",
-				IDName(var), Fmt(i), acc);
+			Emit("%s = ind_lv__CPP->Idx(%s)%s;", IDName(var), Fmt(i), acc);
 		else
-			Emit("%s = {NewRef{}, ind_lv__CPP->Idx(%s)%s};",
-				IDName(var), Fmt(i), acc);
+			Emit("%s = {NewRef{}, ind_lv__CPP->Idx(%s)%s};", IDName(var), Fmt(i), acc);
 		}
 	}
 
@@ -383,4 +374,4 @@ void CPPCompile::GenForOverString(const ExprPtr& str, const IDPList* loop_vars)
 	Emit("%s = std::move(sv__CPP);", IDName((*loop_vars)[0]));
 	}
 
-} // zeek::detail
+	} // zeek::detail

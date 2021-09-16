@@ -2,17 +2,17 @@
 
 #pragma once
 
-#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/RuleMatcher.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 
-namespace zeek::packet_analysis::ICMP {
+namespace zeek::packet_analysis::ICMP
+	{
 
-class ICMPSessionAdapter final : public IP::SessionAdapter {
+class ICMPSessionAdapter final : public IP::SessionAdapter
+	{
 
 public:
-
-	ICMPSessionAdapter(Connection* conn) :
-		IP::SessionAdapter("ICMP", conn) { }
+	ICMPSessionAdapter(Connection* conn) : IP::SessionAdapter("ICMP", conn) { }
 
 	void AddExtraAnalyzers(Connection* conn) override;
 	void UpdateConnVal(RecordVal* conn_val) override;
@@ -25,10 +25,9 @@ public:
 	void MatchEndpoint(const u_char* data, int len, bool is_orig);
 
 private:
-
 	detail::RuleMatcherState matcher_state;
 	int request_len = -1;
 	int reply_len = -1;
-};
+	};
 
-} // namespace zeek::packet_analysis::ICMP
+	} // namespace zeek::packet_analysis::ICMP

@@ -4,10 +4,7 @@
 
 using namespace zeek::packet_analysis::NFLog;
 
-NFLogAnalyzer::NFLogAnalyzer()
-	: zeek::packet_analysis::Analyzer("NFLog")
-	{
-	}
+NFLogAnalyzer::NFLogAnalyzer() : zeek::packet_analysis::Analyzer("NFLog") { }
 
 bool NFLogAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{

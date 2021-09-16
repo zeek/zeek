@@ -4,10 +4,7 @@
 
 using namespace zeek::packet_analysis::Wrapper;
 
-WrapperAnalyzer::WrapperAnalyzer()
-	: zeek::packet_analysis::Analyzer("Wrapper")
-	{
-	}
+WrapperAnalyzer::WrapperAnalyzer() : zeek::packet_analysis::Analyzer("Wrapper") { }
 
 bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
@@ -43,8 +40,7 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 
 	bool saw_vlan = false;
 
-	while ( protocol == 0x8100 || protocol == 0x9100 ||
-	        protocol == 0x8864 )
+	while ( protocol == 0x8100 || protocol == 0x9100 || protocol == 0x8864 )
 		{
 		switch ( protocol )
 			{
@@ -52,46 +48,46 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 			// 802.1q / 802.1ad
 			case 0x8100:
 			case 0x9100:
-				{
-				if ( data + 4 >= end_of_data )
 					{
-					Weird("truncated_link_header", packet);
-					return false;
-					}
+					if ( data + 4 >= end_of_data )
+						{
+						Weird("truncated_link_header", packet);
+						return false;
+						}
 
-				auto& vlan_ref = saw_vlan ? packet->inner_vlan : packet->vlan;
-				vlan_ref = ((data[0] << 8u) + data[1]) & 0xfff;
-				protocol = ((data[2] << 8u) + data[3]);
-				data += 4; // Skip the vlan header
-				saw_vlan = true;
-				packet->eth_type = protocol;
-				}
-			break;
+					auto& vlan_ref = saw_vlan ? packet->inner_vlan : packet->vlan;
+					vlan_ref = ((data[0] << 8u) + data[1]) & 0xfff;
+					protocol = ((data[2] << 8u) + data[3]);
+					data += 4; // Skip the vlan header
+					saw_vlan = true;
+					packet->eth_type = protocol;
+					}
+				break;
 
 			// PPPoE carried over the ethernet frame.
 			case 0x8864:
-				{
-				if ( data + 8 >= end_of_data )
 					{
-					Weird("truncated_link_header", packet);
-					return false;
-					}
+					if ( data + 8 >= end_of_data )
+						{
+						Weird("truncated_link_header", packet);
+						return false;
+						}
 
-				protocol = (data[6] << 8u) + data[7];
-				data += 8; // Skip the PPPoE session and PPP header
+					protocol = (data[6] << 8u) + data[7];
+					data += 8; // Skip the PPPoE session and PPP header
 
-				if ( protocol == 0x0021 )
-					packet->l3_proto = L3_IPV4;
-				else if ( protocol == 0x0057 )
-					packet->l3_proto = L3_IPV6;
-				else
-					{
-					// Neither IPv4 nor IPv6.
-					Weird("non_ip_packet_in_pppoe_encapsulation", packet);
-					return false;
+					if ( protocol == 0x0021 )
+						packet->l3_proto = L3_IPV4;
+					else if ( protocol == 0x0057 )
+						packet->l3_proto = L3_IPV6;
+					else
+						{
+						// Neither IPv4 nor IPv6.
+						Weird("non_ip_packet_in_pppoe_encapsulation", packet);
+						return false;
+						}
 					}
-				}
-			break;
+				break;
 			}
 		}
 

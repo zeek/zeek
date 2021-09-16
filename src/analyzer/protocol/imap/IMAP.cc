@@ -1,10 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/analyzer/protocol/imap/IMAP.h"
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
-#include "zeek/analyzer/Manager.h"
 
-namespace zeek::analyzer::imap {
+#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+
+namespace zeek::analyzer::imap
+	{
 
 IMAP_Analyzer::IMAP_Analyzer(Connection* conn)
 	: analyzer::tcp::TCP_ApplicationAnalyzer("IMAP", conn)
@@ -84,4 +86,4 @@ void IMAP_Analyzer::StartTLS()
 		AddChildAnalyzer(ssl);
 	}
 
-} // namespace zeek::analyzer::imap
+	} // namespace zeek::analyzer::imap

@@ -2,31 +2,33 @@
 
 #pragma once
 
-#include <string>
-#include <set>
 #include <map>
+#include <set>
+#include <string>
 
-#include "zeek/file_analysis/Component.h"
-#include "zeek/RunState.h"
 #include "zeek/RuleMatcher.h"
-
-#include "zeek/plugin/ComponentManager.h"
+#include "zeek/RunState.h"
 #include "zeek/analyzer/Tag.h"
+#include "zeek/file_analysis/Component.h"
 #include "zeek/file_analysis/FileTimer.h"
+#include "zeek/plugin/ComponentManager.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class TableVal;
 class VectorVal;
 
-namespace analyzer {
+namespace analyzer
+	{
 
 class Analyzer;
 class Tag;
 
-} // namespace analyzer
+	} // namespace analyzer
 
-namespace file_analysis {
+namespace file_analysis
+	{
 
 class File;
 class Tag;
@@ -34,9 +36,9 @@ class Tag;
 /**
  * Main entry point for interacting with file analysis.
  */
-class Manager : public plugin::ComponentManager<Tag, Component> {
+class Manager : public plugin::ComponentManager<Tag, Component>
+	{
 public:
-
 	/**
 	 * Constructor.
 	 */
@@ -110,9 +112,8 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string DataIn(const u_char* data, uint64_t len, uint64_t offset,
-	                   const analyzer::Tag& tag, Connection* conn, bool is_orig,
-	                   const std::string& precomputed_file_id = "",
+	std::string DataIn(const u_char* data, uint64_t len, uint64_t offset, const analyzer::Tag& tag,
+	                   Connection* conn, bool is_orig, const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
 
 	/**
@@ -137,9 +138,8 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associated file is not going to be analyzed further.
 	 */
-	std::string DataIn(const u_char* data, uint64_t len, const analyzer::Tag& tag,
-	                   Connection* conn, bool is_orig,
-	                   const std::string& precomputed_file_id = "",
+	std::string DataIn(const u_char* data, uint64_t len, const analyzer::Tag& tag, Connection* conn,
+	                   bool is_orig, const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
 
 	/**
@@ -217,9 +217,8 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string Gap(uint64_t offset, uint64_t len, const analyzer::Tag& tag,
-	                Connection* conn, bool is_orig,
-	                const std::string& precomputed_file_id = "");
+	std::string Gap(uint64_t offset, uint64_t len, const analyzer::Tag& tag, Connection* conn,
+	                bool is_orig, const std::string& precomputed_file_id = "");
 
 	/**
 	 * Provide the expected number of bytes that comprise a file.
@@ -236,8 +235,8 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string SetSize(uint64_t size, const analyzer::Tag& tag, Connection* conn,
-	                    bool is_orig, const std::string& precomputed_file_id = "");
+	std::string SetSize(uint64_t size, const analyzer::Tag& tag, Connection* conn, bool is_orig,
+	                    const std::string& precomputed_file_id = "");
 
 	/**
 	 * Starts ignoring a file, which will finally be removed from internal
@@ -282,8 +281,7 @@ public:
 	 * @return false if file identifier and analyzer did not map to anything,
 	 *         else true.
 	 */
-	bool SetExtractionLimit(const std::string& file_id,
-	                        RecordValPtr args, uint64_t n) const;
+	bool SetExtractionLimit(const std::string& file_id, RecordValPtr args, uint64_t n) const;
 
 	/**
 	 * Try to retrieve a file that's being analyzed, using its identifier/hash.
@@ -329,8 +327,7 @@ public:
 	 * @param f The file analzer is to be associated with.
 	 * @return The new analyzer instance or null if tag is invalid.
 	 */
-	Analyzer* InstantiateAnalyzer(const Tag& tag, RecordValPtr args,
-	                              File* f) const;
+	Analyzer* InstantiateAnalyzer(const Tag& tag, RecordValPtr args, File* f) const;
 
 	/**
 	 * Returns a set of all matching MIME magic signatures for a given
@@ -343,9 +340,9 @@ public:
 	 * @return Set of all matching file magic signatures, which may be
 	 *         an object allocated by the method if \a rval is a null pointer.
 	 */
-	zeek::detail::RuleMatcher::MIME_Matches* DetectMIME(
-		const u_char* data, uint64_t len,
-		zeek::detail::RuleMatcher::MIME_Matches* rval) const;
+	zeek::detail::RuleMatcher::MIME_Matches*
+	DetectMIME(const u_char* data, uint64_t len,
+	           zeek::detail::RuleMatcher::MIME_Matches* rval) const;
 
 	/**
 	 * Returns the strongest MIME magic signature match for a given data chunk.
@@ -356,14 +353,11 @@ public:
 	 */
 	std::string DetectMIME(const u_char* data, uint64_t len) const;
 
-	uint64_t CurrentFiles()
-		{ return id_map.size(); }
+	uint64_t CurrentFiles() { return id_map.size(); }
 
-	uint64_t MaxFiles()
-		{ return max_files; }
+	uint64_t MaxFiles() { return max_files; }
 
-	uint64_t CumulativeFiles()
-		{ return cumulative_files; }
+	uint64_t CumulativeFiles() { return cumulative_files; }
 
 protected:
 	friend class detail::FileTimer;
@@ -387,9 +381,8 @@ protected:
 	 *         connection-related fields.
 	 */
 	File* GetFile(const std::string& file_id, Connection* conn = nullptr,
-	              const analyzer::Tag& tag = analyzer::Tag::Error,
-	              bool is_orig = false, bool update_conn = true,
-	              const char* source_name = nullptr);
+	              const analyzer::Tag& tag = analyzer::Tag::Error, bool is_orig = false,
+	              bool update_conn = true, const char* source_name = nullptr);
 
 	/**
 	 * Evaluate timeout policy for a file and remove the File object mapped to
@@ -436,18 +429,18 @@ private:
 
 	TagSet* LookupMIMEType(const std::string& mtype, bool add_if_not_found);
 
-	std::map<std::string, File*> id_map;  /**< Map file ID to file_analysis::File records. */
+	std::map<std::string, File*> id_map; /**< Map file ID to file_analysis::File records. */
 	std::set<std::string> ignored; /**< Ignored files.  Will be finally removed on EOF. */
-	std::string current_file_id;	/**< Hash of what get_file_handle event sets. */
-	zeek::detail::RuleFileMagicState* magic_state;	/**< File magic signature match state. */
-	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */
+	std::string current_file_id; /**< Hash of what get_file_handle event sets. */
+	zeek::detail::RuleFileMagicState* magic_state; /**< File magic signature match state. */
+	MIMEMap mime_types; /**< Mapping of MIME types to analyzers. */
 
-	inline static TableVal* disabled = nullptr;	/**< Table of disabled analyzers. */
-	inline static TableType* tag_set_type = nullptr;	/**< Type for set[tag]. */
+	inline static TableVal* disabled = nullptr; /**< Table of disabled analyzers. */
+	inline static TableType* tag_set_type = nullptr; /**< Type for set[tag]. */
 
 	size_t cumulative_files;
 	size_t max_files;
-};
+	};
 
 /**
  * Returns a script-layer value corresponding to the \c mime_matches type.
@@ -455,8 +448,8 @@ private:
  */
 VectorValPtr GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m);
 
-} // namespace file_analysis
+	} // namespace file_analysis
 
 extern file_analysis::Manager* file_mgr;
 
-} // namespace zeek
+	} // namespace zeek

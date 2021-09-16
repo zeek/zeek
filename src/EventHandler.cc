@@ -1,17 +1,17 @@
 #include "zeek/EventHandler.h"
 
-#include "zeek/Event.h"
 #include "zeek/Desc.h"
+#include "zeek/Event.h"
 #include "zeek/Func.h"
-#include "zeek/Scope.h"
-#include "zeek/NetVar.h"
 #include "zeek/ID.h"
+#include "zeek/NetVar.h"
+#include "zeek/Scope.h"
 #include "zeek/Var.h"
-
-#include "zeek/broker/Manager.h"
 #include "zeek/broker/Data.h"
+#include "zeek/broker/Manager.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 EventHandler::EventHandler(std::string arg_name)
 	{
@@ -24,9 +24,7 @@ EventHandler::EventHandler(std::string arg_name)
 
 EventHandler::operator bool() const
 	{
-	return enabled && ((local && local->HasBodies())
-			   || generate_always
-			   || ! auto_publish.empty());
+	return enabled && ((local && local->HasBodies()) || generate_always || ! auto_publish.empty());
 	}
 
 const FuncTypePtr& EventHandler::GetType(bool check_export)
@@ -34,8 +32,8 @@ const FuncTypePtr& EventHandler::GetType(bool check_export)
 	if ( type )
 		return type;
 
-	const auto& id = detail::lookup_ID(name.data(), detail::current_module.c_str(),
-	                                   false, false, check_export);
+	const auto& id =
+		detail::lookup_ID(name.data(), detail::current_module.c_str(), false, false, check_export);
 
 	if ( ! id )
 		return FuncType::nil;
@@ -48,7 +46,9 @@ const FuncTypePtr& EventHandler::GetType(bool check_export)
 	}
 
 void EventHandler::SetFunc(FuncPtr f)
-	{ local = std::move(f); }
+	{
+	local = std::move(f);
+	}
 
 void EventHandler::Call(Args* vl, bool no_remote)
 	{
@@ -85,7 +85,7 @@ void EventHandler::Call(Args* vl, bool no_remote)
 
 			if ( valid_args )
 				{
-				for ( auto it = auto_publish.begin(); ; )
+				for ( auto it = auto_publish.begin();; )
 					{
 					const auto& topic = *it;
 					++it;
@@ -119,10 +119,10 @@ void EventHandler::NewEvent(Args* vl)
 	auto vargs = MakeCallArgumentVector(*vl, GetType()->Params());
 
 	auto ev = new Event(new_event, {
-			make_intrusive<StringVal>(name),
-			std::move(vargs),
-			});
+									   make_intrusive<StringVal>(name),
+									   std::move(vargs),
+								   });
 	event_mgr.Dispatch(ev);
 	}
 
-} // namespace zeek
+	} // namespace zeek

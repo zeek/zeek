@@ -2,18 +2,18 @@
 
 #include "zeek/analyzer/protocol/bittorrent/BitTorrentTracker.h"
 
-#include <sys/types.h>
 #include <regex.h>
+#include <sys/types.h>
 #include <algorithm>
 
+#include "zeek/analyzer/protocol/bittorrent/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-#include "zeek/analyzer/protocol/bittorrent/events.bif.h"
+#define FMT_INT "%" PRId64
+#define FMT_UINT "%" PRIu64
 
-# define FMT_INT "%" PRId64
-# define FMT_UINT "%" PRIu64
-
-namespace zeek::analyzer::bittorrent {
+namespace zeek::analyzer::bittorrent
+	{
 
 static TableTypePtr bt_tracker_headers;
 static RecordTypePtr bittorrent_peer;
@@ -22,20 +22,15 @@ static RecordTypePtr bittorrent_benc_value;
 static TableTypePtr bittorrent_benc_dir;
 
 BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
-: analyzer::tcp::TCP_ApplicationAnalyzer("BITTORRENTTRACKER", c)
+	: analyzer::tcp::TCP_ApplicationAnalyzer("BITTORRENTTRACKER", c)
 	{
 	if ( ! bt_tracker_headers )
 		{
-		bt_tracker_headers =
-			id::find_type<TableType>("bt_tracker_headers");
-		bittorrent_peer =
-			id::find_type<RecordType>("bittorrent_peer");
-		bittorrent_peer_set =
-			id::find_type<TableType>("bittorrent_peer_set");
-		bittorrent_benc_value =
-			id::find_type<RecordType>("bittorrent_benc_value");
-		bittorrent_benc_dir =
-			id::find_type<TableType>("bittorrent_benc_dir");
+		bt_tracker_headers = id::find_type<TableType>("bt_tracker_headers");
+		bittorrent_peer = id::find_type<RecordType>("bittorrent_peer");
+		bittorrent_peer_set = id::find_type<TableType>("bittorrent_peer_set");
+		bittorrent_benc_value = id::find_type<RecordType>("bittorrent_benc_value");
+		bittorrent_benc_dir = id::find_type<TableType>("bittorrent_benc_dir");
 		}
 
 	keep_alive = false;
@@ -81,8 +76,7 @@ void BitTorrentTracker_Analyzer::Done()
 	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 	}
 
-void BitTorrentTracker_Analyzer::DeliverStream(int len, const u_char* data,
-						bool orig)
+void BitTorrentTracker_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
@@ -163,8 +157,7 @@ void BitTorrentTracker_Analyzer::ServerReply(int len, const u_char* data)
 
 	while ( true )
 		{
-		while ( res_state != detail::BTT_RES_BODY &&
-			res_buf_pos < res_buf + res_buf_len )
+		while ( res_state != detail::BTT_RES_BODY && res_buf_pos < res_buf + res_buf_len )
 			{
 			char* lf = strchr(res_buf_pos, '\n');
 			if ( ! lf )
@@ -181,14 +174,12 @@ void BitTorrentTracker_Analyzer::ServerReply(int len, const u_char* data)
 			res_buf_pos = lf + 1;
 			}
 
-		if ( res_state != detail::BTT_RES_BODY ||
-		     res_buf_pos >= res_buf + res_buf_len )
+		if ( res_state != detail::BTT_RES_BODY || res_buf_pos >= res_buf + res_buf_len )
 			break;
 
 		ResponseBody();
 
-		if ( res_state != detail::BTT_RES_DONE ||
-		     res_status != 200 || ! keep_alive )
+		if ( res_state != detail::BTT_RES_DONE || res_status != 200 || ! keep_alive )
 			break;
 
 		res_state = detail::BTT_RES_STATUS;
@@ -245,11 +236,8 @@ void BitTorrentTracker_Analyzer::InitBencParser(void)
 void BitTorrentTracker_Analyzer::DeliverWeird(const char* msg, bool orig)
 	{
 	if ( bt_tracker_weird )
-		EnqueueConnEvent(bt_tracker_weird,
-			ConnVal(),
-			val_mgr->Bool(orig),
-			make_intrusive<StringVal>(msg)
-		);
+		EnqueueConnEvent(bt_tracker_weird, ConnVal(), val_mgr->Bool(orig),
+		                 make_intrusive<StringVal>(msg));
 	}
 
 bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
@@ -260,78 +248,78 @@ bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
 	if ( ! initialized )
 		{
 		regcomp(&r_get, "^GET[ \t]+", REG_EXTENDED | REG_ICASE);
-		regcomp(&r_get_end, "[ \t]+HTTP/[0123456789.]+$",
-			REG_EXTENDED | REG_ICASE);
+		regcomp(&r_get_end, "[ \t]+HTTP/[0123456789.]+$", REG_EXTENDED | REG_ICASE);
 		regcomp(&r_hdr, "^[^: \t]+:[ ]*", REG_EXTENDED | REG_ICASE);
 		initialized = true;
 		}
 
-	switch ( req_state ) {
-	case detail::BTT_REQ_GET:
+	switch ( req_state )
 		{
-		regmatch_t match[1];
-		if ( regexec(&r_get, line, 1, match, 0) )
-			{
-			ProtocolViolation("BitTorrentTracker: invalid HTTP GET");
-			stop_orig = true;
-			return false;
-			}
-
-		regmatch_t match_end[1];
-		if ( ! regexec(&r_get_end, line, 1, match_end, 0) )
-			{
-			if ( match_end[0].rm_so <= match[0].rm_eo )
+		case detail::BTT_REQ_GET:
 				{
-				ProtocolViolation("BitTorrentTracker: invalid HTTP GET");
-				stop_orig = true;
-				return false;
+				regmatch_t match[1];
+				if ( regexec(&r_get, line, 1, match, 0) )
+					{
+					ProtocolViolation("BitTorrentTracker: invalid HTTP GET");
+					stop_orig = true;
+					return false;
+					}
+
+				regmatch_t match_end[1];
+				if ( ! regexec(&r_get_end, line, 1, match_end, 0) )
+					{
+					if ( match_end[0].rm_so <= match[0].rm_eo )
+						{
+						ProtocolViolation("BitTorrentTracker: invalid HTTP GET");
+						stop_orig = true;
+						return false;
+						}
+
+					keep_alive = (line[match_end[0].rm_eo - 1] == '1');
+					line[match_end[0].rm_so] = 0;
+					}
+
+				RequestGet(&line[match[0].rm_eo]);
+
+				req_state = detail::BTT_REQ_HEADER;
 				}
-
-			keep_alive = (line[match_end[0].rm_eo - 1] == '1');
-			line[match_end[0].rm_so] = 0;
-			}
-
-		RequestGet(&line[match[0].rm_eo]);
-
-		req_state = detail::BTT_REQ_HEADER;
-		}
-		break;
-
-	case detail::BTT_REQ_HEADER:
-		{
-		if ( ! *line )
-			{
-			EmitRequest();
-			req_state = detail::BTT_REQ_DONE;
 			break;
-			}
 
-		regmatch_t match[1];
-		if ( regexec(&r_hdr, line, 1, match, 0) )
-			{
-			ProtocolViolation("BitTorrentTracker: invalid HTTP request header");
-			stop_orig = true;
-			return false;
-			}
+		case detail::BTT_REQ_HEADER:
+				{
+				if ( ! *line )
+					{
+					EmitRequest();
+					req_state = detail::BTT_REQ_DONE;
+					break;
+					}
 
-		*strchr(line, ':') = 0;	// this cannot fail - see regex_hdr
-		RequestHeader(line, &line[match[0].rm_eo]);
+				regmatch_t match[1];
+				if ( regexec(&r_hdr, line, 1, match, 0) )
+					{
+					ProtocolViolation("BitTorrentTracker: invalid HTTP request header");
+					stop_orig = true;
+					return false;
+					}
+
+				*strchr(line, ':') = 0; // this cannot fail - see regex_hdr
+				RequestHeader(line, &line[match[0].rm_eo]);
+				}
+			break;
+
+		case detail::BTT_REQ_DONE:
+			if ( *line )
+				{
+				auto msg = util::fmt("Got post request data: %s\n", line);
+				Weird("bittorrent_tracker_data_post_request", msg);
+				DeliverWeird(msg, true);
+				}
+			break;
+
+		default:
+			// Make the compiler happy.
+			break;
 		}
-		break;
-
-	case detail::BTT_REQ_DONE:
-		if ( *line )
-			{
-			auto msg = util::fmt("Got post request data: %s\n", line);
-			Weird("bittorrent_tracker_data_post_request", msg);
-			DeliverWeird(msg, true);
-			}
-		break;
-
-	default:
-		// Make the compiler happy.
-		break;
-	}
 
 	return true;
 	}
@@ -346,11 +334,8 @@ void BitTorrentTracker_Analyzer::EmitRequest(void)
 	ProtocolConfirmation();
 
 	if ( bt_tracker_request )
-		EnqueueConnEvent(bt_tracker_request,
-		                 ConnVal(),
-		                 IntrusivePtr{AdoptRef{}, req_val_uri},
-		                 IntrusivePtr{AdoptRef{}, req_val_headers}
-		);
+		EnqueueConnEvent(bt_tracker_request, ConnVal(), IntrusivePtr{AdoptRef{}, req_val_uri},
+		                 IntrusivePtr{AdoptRef{}, req_val_headers});
 
 	req_val_uri = nullptr;
 	req_val_headers = nullptr;
@@ -363,77 +348,74 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 
 	if ( ! initialized )
 		{
-		regcomp(&r_stat, "^HTTP/[0123456789.]* ",
-			REG_EXTENDED | REG_ICASE);
+		regcomp(&r_stat, "^HTTP/[0123456789.]* ", REG_EXTENDED | REG_ICASE);
 		regcomp(&r_hdr, "^[^: \t]+:[ ]*", REG_EXTENDED | REG_ICASE);
 		initialized = true;
 		}
 
-	switch ( res_state ) {
-	case detail::BTT_RES_STATUS:
+	switch ( res_state )
 		{
-		if ( res_allow_blank_line && ! *line )
-			{
-			// There may be an empty line after the bencoded
-			// directory, if this is a keep-alive connection.
-			// Ignore it.
-			res_allow_blank_line = false;
-			break;
-			}
-
-		regmatch_t match[1];
-		if ( regexec(&r_stat, line, 1, match, 0) )
-			{
-			ProtocolViolation("BitTorrentTracker: invalid HTTP status");
-			stop_resp = true;
-			return false;
-			}
-
-		ResponseStatus(&line[match[0].rm_eo]);
-		res_state = detail::BTT_RES_HEADER;
-		}
-		break;
-
-	case detail::BTT_RES_HEADER:
-		if ( ! *line )
-			{
-			if ( res_status != 200 )
+		case detail::BTT_RES_STATUS:
 				{
-				if ( bt_tracker_response_not_ok )
-					EnqueueConnEvent(
-						bt_tracker_response_not_ok,
-						ConnVal(),
-						val_mgr->Count(res_status),
-						IntrusivePtr{AdoptRef{}, res_val_headers}
-					);
-				res_val_headers = nullptr;
-				res_buf_pos = res_buf + res_buf_len;
-				res_state = detail::BTT_RES_DONE;
+				if ( res_allow_blank_line && ! *line )
+					{
+					// There may be an empty line after the bencoded
+					// directory, if this is a keep-alive connection.
+					// Ignore it.
+					res_allow_blank_line = false;
+					break;
+					}
+
+				regmatch_t match[1];
+				if ( regexec(&r_stat, line, 1, match, 0) )
+					{
+					ProtocolViolation("BitTorrentTracker: invalid HTTP status");
+					stop_resp = true;
+					return false;
+					}
+
+				ResponseStatus(&line[match[0].rm_eo]);
+				res_state = detail::BTT_RES_HEADER;
 				}
-			else
-				res_state = detail::BTT_RES_BODY;
-
 			break;
-			}
 
-		{
-		regmatch_t match[1];
-		if ( regexec(&r_hdr, line, 1, match, 0) )
-			{
-			ProtocolViolation("BitTorrentTracker: invalid HTTP response header");
-			stop_resp = true;
-			return false;
-			}
+		case detail::BTT_RES_HEADER:
+			if ( ! *line )
+				{
+				if ( res_status != 200 )
+					{
+					if ( bt_tracker_response_not_ok )
+						EnqueueConnEvent(bt_tracker_response_not_ok, ConnVal(),
+						                 val_mgr->Count(res_status),
+						                 IntrusivePtr{AdoptRef{}, res_val_headers});
+					res_val_headers = nullptr;
+					res_buf_pos = res_buf + res_buf_len;
+					res_state = detail::BTT_RES_DONE;
+					}
+				else
+					res_state = detail::BTT_RES_BODY;
 
-		*strchr(line, ':') = 0;	// this cannot fail - see regex_hdr
-		ResponseHeader(line, &line[match[0].rm_eo]);
+				break;
+				}
+
+				{
+				regmatch_t match[1];
+				if ( regexec(&r_hdr, line, 1, match, 0) )
+					{
+					ProtocolViolation("BitTorrentTracker: invalid HTTP response header");
+					stop_resp = true;
+					return false;
+					}
+
+				*strchr(line, ':') = 0; // this cannot fail - see regex_hdr
+				ResponseHeader(line, &line[match[0].rm_eo]);
+				}
+			break;
+
+		default:
+			// Make the compiler happy.
+			break;
 		}
-		break;
-
-	default:
-		// Make the compiler happy.
-		break;
-	}
 
 	return true;
 	}
@@ -444,8 +426,7 @@ void BitTorrentTracker_Analyzer::ResponseStatus(char* status)
 		res_status = 0;
 	}
 
-void BitTorrentTracker_Analyzer::ParseHeader(char* name, char* value,
-						bool is_request)
+void BitTorrentTracker_Analyzer::ParseHeader(char* name, char* value, bool is_request)
 	{
 	if ( ! strcasecmp(name, "connection") )
 		{
@@ -464,8 +445,7 @@ void BitTorrentTracker_Analyzer::ParseHeader(char* name, char* value,
 #endif
 	}
 
-void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
-                                              detail::BTT_BencTypes type,
+void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name, detail::BTT_BencTypes type,
                                               int value_len, char* value)
 	{
 	if ( name_len == 5 && ! strncmp(name, "peers", 5) )
@@ -476,7 +456,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 			// addresses in network order but PortVal's
 			// take ports in host order.  BitTorrent specifies
 			// that both are in network order here.
-			uint32_t ad = extract_uint32((u_char*) value);
+			uint32_t ad = extract_uint32((u_char*)value);
 			uint16_t pt = ntohs((value[4] << 8) | value[5]);
 
 			auto peer = make_intrusive<RecordVal>(bittorrent_peer);
@@ -494,8 +474,8 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 		}
 	}
 
-void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
-                                              detail::BTT_BencTypes type, bro_int_t value)
+void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name, detail::BTT_BencTypes type,
+                                              bro_int_t value)
 	{
 	auto benc_value = make_intrusive<RecordVal>(bittorrent_benc_value);
 	auto name_ = make_intrusive<StringVal>(name_len, name);
@@ -506,276 +486,293 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 
 void BitTorrentTracker_Analyzer::ResponseBody(void)
 	{
-	switch ( ResponseParseBenc() ) {
-	case 0:
-		EmitResponse();
-		res_state = detail::BTT_RES_DONE;
-		break;
+	switch ( ResponseParseBenc() )
+		{
+		case 0:
+			EmitResponse();
+			res_state = detail::BTT_RES_DONE;
+			break;
 
-	case -1: // parsing failed
-	case -2: // need more data
-		break;
-	}
+		case -1: // parsing failed
+		case -2: // need more data
+			break;
+		}
 	}
 
 int BitTorrentTracker_Analyzer::ResponseParseBenc(void)
 	{
-#define VIOLATION_IF(expr, msg) \
-	{ \
-	if ( expr ) \
-		{ \
-		ProtocolViolation(msg); \
-		stop_resp = true; \
-		return -1; \
-		} \
-	}
+#define VIOLATION_IF(expr, msg)                                                                    \
+		{                                                                                          \
+		if ( expr )                                                                                \
+			{                                                                                      \
+			ProtocolViolation(msg);                                                                \
+			stop_resp = true;                                                                      \
+			return -1;                                                                             \
+			}                                                                                      \
+		}
 
-#define INC_COUNT \
-	{ \
-	unsigned int count = benc_count.back(); \
-	benc_count.pop_back(); \
-	benc_count.push_back(count + 1); \
-	}
+#define INC_COUNT                                                                                  \
+		{                                                                                          \
+		unsigned int count = benc_count.back();                                                    \
+		benc_count.pop_back();                                                                     \
+		benc_count.push_back(count + 1);                                                           \
+		}
 
-	for ( unsigned int len = res_buf_len - (res_buf_pos - res_buf); len;
-	      --len, ++res_buf_pos )
+	for ( unsigned int len = res_buf_len - (res_buf_pos - res_buf); len; --len, ++res_buf_pos )
 		{
-		switch ( benc_state ) {
-		case detail::BENC_STATE_EMPTY:
+		switch ( benc_state )
 			{
-			switch ( res_buf_pos[0] ) {
-			case 'd':
-				switch ( benc_stack.size() ) {
-				case 0: break;
-				case 1:
-					benc_raw = res_buf_pos;
-					benc_raw_type = detail::BENC_TYPE_DIR;
-					/* fall through */
-				default:
-					VIOLATION_IF(benc_stack.back() == 'd' &&
-						     ! (benc_count.back() % 2),
-						     "BitTorrentTracker: directory key is not a string but a directory")
-					++benc_raw_len;
-				}
-
-				benc_stack.push_back('d');
-				benc_count.push_back(0);
-				break;
-
-			case 'l':
-				switch ( benc_stack.size() ) {
-				case 0:
-					VIOLATION_IF(1, "BitTorrentTracker: not a bencoded directory (first char: l)")
-					/* fall through */
-
-				case 1:
-					benc_raw = res_buf_pos;
-					benc_raw_type = detail::BENC_TYPE_LIST;
-					/* fall through */
-
-				default:
-					VIOLATION_IF(benc_stack.back() == 'd' &&
-						     ! (benc_count.back() % 2),
-						     "BitTorrentTracker: directory key is not a string but a list")
-					++benc_raw_len;
-				}
-
-				benc_stack.push_back('l');
-				benc_count.push_back(0);
-				break;
-
-			case 'i':
-				VIOLATION_IF(! benc_stack.size(),
-					"BitTorrentTracker: not a bencoded directory (first char: i)")
-				VIOLATION_IF(benc_stack.back() == 'd' &&
-					     ! (benc_count.back() % 2),
-					     "BitTorrentTracker: directory key is not a string but an int")
-
-				if ( benc_raw_type != detail::BENC_TYPE_NONE )
-					++benc_raw_len;
-
-				benc_state = detail::BENC_STATE_INT1;
-				break;
-
-			case 'e':
-				VIOLATION_IF(! benc_stack.size(),
-					"BitTorrentTracker: not a bencoded directory (first char: e)")
-				VIOLATION_IF(benc_stack.back() == 'd' &&
-					     benc_count.back() % 2,
-					     "BitTorrentTracker: directory has an odd count of members")
-
-				if ( benc_raw_type != detail::BENC_TYPE_NONE )
-					++benc_raw_len;
-
-				if ( benc_stack.size() == 2 )
-					{ // coming back to level 1
-					ResponseBenc(benc_key_len, benc_key,
-							benc_raw_type,
-							benc_raw_len, benc_raw);
-					benc_key = nullptr;
-					benc_key_len = 0;
-					benc_raw = nullptr;
-					benc_raw_len = 0;
-					benc_raw_type = detail::BENC_TYPE_NONE;
-					}
-
-				benc_stack.pop_back();
-				benc_count.pop_back();
-
-				if ( benc_stack.size() )
-					INC_COUNT
-				else
-					{ // benc parsing successful
-					++res_buf_pos;
-					return 0;
-					}
-				break;
-
-			case '0': case '1': case '2': case '3': case '4':
-			case '5': case '6': case '7': case '8': case '9':
-				VIOLATION_IF(! benc_stack.size(),
-					"BitTorrentTracker: not a bencoded directory (first char: [0-9])")
-
-				if ( benc_raw_type != detail::BENC_TYPE_NONE )
-					++benc_raw_len;
-
-				benc_strlen = res_buf_pos;
-				benc_state = detail::BENC_STATE_STR1;
-				break;
-
-			default:
-				VIOLATION_IF(1, "BitTorrentTracker: no valid bencoding")
-			}
-			}
-			break;
-
-		case detail::BENC_STATE_INT1:
-			benc_int = res_buf_pos;
-			if ( res_buf_pos[0] == '-' )
-				{
-				if ( benc_raw_type != detail::BENC_TYPE_NONE )
-					++benc_raw_len;
-				benc_state = detail::BENC_STATE_INT2;
-				break;
-				}
-
-		case detail::BENC_STATE_INT2:
-			VIOLATION_IF(res_buf_pos[0] < '0' ||
-				     res_buf_pos[0] > '9',
-				     "BitTorrentTracker: no valid bencoding")
-
-			if ( benc_raw_type != detail::BENC_TYPE_NONE )
-				++benc_raw_len;
-
-			benc_state = detail::BENC_STATE_INT3;
-			break;
-
-		case detail::BENC_STATE_INT3:
-			if ( res_buf_pos[0] == 'e' )
-				{
-				if ( sscanf(benc_int, FMT_INT,
-					    &benc_int_val) == 1 )
+			case detail::BENC_STATE_EMPTY:
 					{
-					if ( benc_stack.size() == 1 )
+					switch ( res_buf_pos[0] )
 						{
-						ResponseBenc(benc_key_len,
-							benc_key, detail::BENC_TYPE_INT,
-							benc_int_val);
-						benc_key = nullptr;
-						benc_key_len = 0;
+						case 'd':
+							switch ( benc_stack.size() )
+								{
+								case 0:
+									break;
+								case 1:
+									benc_raw = res_buf_pos;
+									benc_raw_type = detail::BENC_TYPE_DIR;
+									/* fall through */
+								default:
+									VIOLATION_IF(benc_stack.back() == 'd' &&
+									                 ! (benc_count.back() % 2),
+									             "BitTorrentTracker: directory key is not a string "
+									             "but a directory")
+									++benc_raw_len;
+								}
+
+							benc_stack.push_back('d');
+							benc_count.push_back(0);
+							break;
+
+						case 'l':
+							switch ( benc_stack.size() )
+								{
+								case 0:
+									VIOLATION_IF(1, "BitTorrentTracker: not a bencoded directory "
+									                "(first char: l)")
+									/* fall through */
+
+								case 1:
+									benc_raw = res_buf_pos;
+									benc_raw_type = detail::BENC_TYPE_LIST;
+									/* fall through */
+
+								default:
+									VIOLATION_IF(benc_stack.back() == 'd' &&
+									                 ! (benc_count.back() % 2),
+									             "BitTorrentTracker: directory key is not a string "
+									             "but a list")
+									++benc_raw_len;
+								}
+
+							benc_stack.push_back('l');
+							benc_count.push_back(0);
+							break;
+
+						case 'i':
+							VIOLATION_IF(
+								! benc_stack.size(),
+								"BitTorrentTracker: not a bencoded directory (first char: i)")
+							VIOLATION_IF(
+								benc_stack.back() == 'd' && ! (benc_count.back() % 2),
+								"BitTorrentTracker: directory key is not a string but an int")
+
+							if ( benc_raw_type != detail::BENC_TYPE_NONE )
+								++benc_raw_len;
+
+							benc_state = detail::BENC_STATE_INT1;
+							break;
+
+						case 'e':
+							VIOLATION_IF(
+								! benc_stack.size(),
+								"BitTorrentTracker: not a bencoded directory (first char: e)")
+							VIOLATION_IF(benc_stack.back() == 'd' && benc_count.back() % 2,
+							             "BitTorrentTracker: directory has an odd count of members")
+
+							if ( benc_raw_type != detail::BENC_TYPE_NONE )
+								++benc_raw_len;
+
+							if ( benc_stack.size() == 2 )
+								{ // coming back to level 1
+								ResponseBenc(benc_key_len, benc_key, benc_raw_type, benc_raw_len,
+								             benc_raw);
+								benc_key = nullptr;
+								benc_key_len = 0;
+								benc_raw = nullptr;
+								benc_raw_len = 0;
+								benc_raw_type = detail::BENC_TYPE_NONE;
+								}
+
+							benc_stack.pop_back();
+							benc_count.pop_back();
+
+							if ( benc_stack.size() )
+								INC_COUNT
+							else
+								{ // benc parsing successful
+								++res_buf_pos;
+								return 0;
+								}
+							break;
+
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+							VIOLATION_IF(
+								! benc_stack.size(),
+								"BitTorrentTracker: not a bencoded directory (first char: [0-9])")
+
+							if ( benc_raw_type != detail::BENC_TYPE_NONE )
+								++benc_raw_len;
+
+							benc_strlen = res_buf_pos;
+							benc_state = detail::BENC_STATE_STR1;
+							break;
+
+						default:
+							VIOLATION_IF(1, "BitTorrentTracker: no valid bencoding")
 						}
 					}
+				break;
+
+			case detail::BENC_STATE_INT1:
+				benc_int = res_buf_pos;
+				if ( res_buf_pos[0] == '-' )
+					{
+					if ( benc_raw_type != detail::BENC_TYPE_NONE )
+						++benc_raw_len;
+					benc_state = detail::BENC_STATE_INT2;
+					break;
+					}
+
+			case detail::BENC_STATE_INT2:
+				VIOLATION_IF(res_buf_pos[0] < '0' || res_buf_pos[0] > '9',
+				             "BitTorrentTracker: no valid bencoding")
+
+				if ( benc_raw_type != detail::BENC_TYPE_NONE )
+					++benc_raw_len;
+
+				benc_state = detail::BENC_STATE_INT3;
+				break;
+
+			case detail::BENC_STATE_INT3:
+				if ( res_buf_pos[0] == 'e' )
+					{
+					if ( sscanf(benc_int, FMT_INT, &benc_int_val) == 1 )
+						{
+						if ( benc_stack.size() == 1 )
+							{
+							ResponseBenc(benc_key_len, benc_key, detail::BENC_TYPE_INT,
+							             benc_int_val);
+							benc_key = nullptr;
+							benc_key_len = 0;
+							}
+						}
+					else
+						VIOLATION_IF(1, "BitTorrentTracker: no valid bencoding")
+
+					INC_COUNT
+					benc_state = detail::BENC_STATE_EMPTY;
+					}
+
 				else
-					VIOLATION_IF(1, "BitTorrentTracker: no valid bencoding")
+					VIOLATION_IF(res_buf_pos[0] < '0' || res_buf_pos[0] > '9',
+					             "BitTorrentTracker: no valid bencoding");
 
-				INC_COUNT
-				benc_state = detail::BENC_STATE_EMPTY;
-				}
-
-			else
-				VIOLATION_IF(res_buf_pos[0] < '0' ||
-					     res_buf_pos[0] > '9',
-					     "BitTorrentTracker: no valid bencoding");
-
-			if ( benc_raw_type != detail::BENC_TYPE_NONE )
-				++benc_raw_len;
-
-			break;
-
-		case detail::BENC_STATE_STR1:
-			switch ( res_buf_pos[0] ) {
-			case '0': case '1': case '2': case '3': case '4':
-			case '5': case '6': case '7': case '8': case '9':
 				if ( benc_raw_type != detail::BENC_TYPE_NONE )
 					++benc_raw_len;
+
 				break;
 
-			case ':':
-				VIOLATION_IF(sscanf(benc_strlen, "%u",
-						    &benc_str_len) != 1,
-					     "BitTorrentTracker: no valid bencoding")
-
-				benc_str_have = 0;
-				benc_str = res_buf_pos + 1;
-
-				if ( benc_stack.size() == 1 &&
-				     ! (benc_count.front() % 2) )
+			case detail::BENC_STATE_STR1:
+				switch ( res_buf_pos[0] )
 					{
-					benc_key = benc_str;
-					benc_key_len = benc_str_len;
+					case '0':
+					case '1':
+					case '2':
+					case '3':
+					case '4':
+					case '5':
+					case '6':
+					case '7':
+					case '8':
+					case '9':
+						if ( benc_raw_type != detail::BENC_TYPE_NONE )
+							++benc_raw_len;
+						break;
+
+					case ':':
+						VIOLATION_IF(sscanf(benc_strlen, "%u", &benc_str_len) != 1,
+						             "BitTorrentTracker: no valid bencoding")
+
+						benc_str_have = 0;
+						benc_str = res_buf_pos + 1;
+
+						if ( benc_stack.size() == 1 && ! (benc_count.front() % 2) )
+							{
+							benc_key = benc_str;
+							benc_key_len = benc_str_len;
+							}
+
+						if ( benc_raw_type != detail::BENC_TYPE_NONE )
+							++benc_raw_len;
+
+						benc_state = detail::BENC_STATE_STR2;
+						break;
+
+					default:
+						VIOLATION_IF(1, "BitTorrentTracker: no valid bencoding")
+					}
+				break;
+
+			case detail::BENC_STATE_STR2:
+				if ( benc_str_have < benc_str_len )
+					{
+					unsigned int seek = std::min(len, benc_str_len - benc_str_have);
+					benc_str_have += seek;
+
+					if ( benc_raw_type != detail::BENC_TYPE_NONE )
+						benc_raw_len += seek;
+
+					res_buf_pos += seek - 1;
+					len -= seek - 1;
 					}
 
-				if ( benc_raw_type != detail::BENC_TYPE_NONE )
-					++benc_raw_len;
+				if ( benc_str_have == benc_str_len )
+					{
+					if ( benc_stack.size() == 1 && benc_key && benc_key != benc_str )
+						{
+						ResponseBenc(benc_key_len, benc_key, detail::BENC_TYPE_STR, benc_str_len,
+						             benc_str);
+						benc_key_len = 0;
+						benc_key = nullptr;
+						}
 
-				benc_state = detail::BENC_STATE_STR2;
+					if ( ! benc_str_len )
+						{
+						--res_buf_pos;
+						++len;
+						}
+
+					INC_COUNT
+					benc_state = detail::BENC_STATE_EMPTY;
+					}
 				break;
-
-			default:
-				VIOLATION_IF(1, "BitTorrentTracker: no valid bencoding")
 			}
-			break;
-
-		case detail::BENC_STATE_STR2:
-			if ( benc_str_have < benc_str_len )
-				{
-				unsigned int seek =
-					std::min(len, benc_str_len - benc_str_have);
-				benc_str_have += seek;
-
-				if ( benc_raw_type != detail::BENC_TYPE_NONE )
-					benc_raw_len += seek;
-
-				res_buf_pos += seek - 1;
-				len -= seek - 1;
-				}
-
-			if ( benc_str_have == benc_str_len )
-				{
-				if ( benc_stack.size() == 1 && benc_key &&
-				     benc_key != benc_str )
-					{
-					ResponseBenc(benc_key_len, benc_key,
-							detail::BENC_TYPE_STR,
-							benc_str_len, benc_str);
-					benc_key_len = 0;
-					benc_key = nullptr;
-					}
-
-				if ( ! benc_str_len )
-					{
-					--res_buf_pos;
-					++len;
-					}
-
-				INC_COUNT
-				benc_state = detail::BENC_STATE_EMPTY;
-				}
-			break;
-		}
 		}
 
-	return -2;	// need more data
+	return -2; // need more data
 	}
 
 void BitTorrentTracker_Analyzer::EmitResponse(void)
@@ -783,17 +780,14 @@ void BitTorrentTracker_Analyzer::EmitResponse(void)
 	ProtocolConfirmation();
 
 	if ( bt_tracker_response )
-		EnqueueConnEvent(bt_tracker_response,
-		                 ConnVal(),
-		                 val_mgr->Count(res_status),
+		EnqueueConnEvent(bt_tracker_response, ConnVal(), val_mgr->Count(res_status),
 		                 IntrusivePtr{AdoptRef{}, res_val_headers},
 		                 IntrusivePtr{AdoptRef{}, res_val_peers},
-		                 IntrusivePtr{AdoptRef{}, res_val_benc}
-		);
+		                 IntrusivePtr{AdoptRef{}, res_val_benc});
 
 	res_val_headers = nullptr;
 	res_val_peers = nullptr;
 	res_val_benc = nullptr;
 	}
 
-} // namespace zeek::analyzer::bittorrent
+	} // namespace zeek::analyzer::bittorrent

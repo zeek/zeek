@@ -8,8 +8,11 @@
 #include <set>
 
 #include "zeek/IntrusivePtr.h"
+#include "zeek/ID.h"
+#include "zeek/Expr.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 class Expr;
 class Stmt;
@@ -23,7 +26,8 @@ using ExprPtr = IntrusivePtr<Expr>;
 // as of its value after a specific statement, (2) might-or-might-not
 // be defined, or (3) definitely not defined.
 
-class IDDefRegion {
+class IDDefRegion
+	{
 public:
 	IDDefRegion(const Stmt* s, bool maybe, int def);
 	IDDefRegion(int stmt_num, int level, bool maybe, int def);
@@ -41,36 +45,36 @@ public:
 
 	// Returns the starting point of the region, i.e., the number
 	// of the statement *after* which executing this region begins.
-	int StartsAfter() const	{ return start_stmt; }
+	int StartsAfter() const { return start_stmt; }
 
 	// Returns or sets the ending point of the region, i.e., the
 	// last statement for which this region applies (including executing
 	// that statement).  A value of NO_DEF means that the region
 	// continues indefinitely, i.e., we haven't yet encountered its end.
-	int EndsAfter() const			{ return end_stmt; }
-	void SetEndsAfter(int _end_stmt)	{ end_stmt = _end_stmt; }
+	int EndsAfter() const { return end_stmt; }
+	void SetEndsAfter(int _end_stmt) { end_stmt = _end_stmt; }
 
 	// The confluence nesting level associated with the region.  Other
 	// regions that overlap take precedence if they have a higher
 	// (= more inner) block level.
-	int BlockLevel() const		{ return block_level; }
+	int BlockLevel() const { return block_level; }
 
 	// True if in the region the identifer could be defined.
-	bool MaybeDefined() const	{ return maybe_defined; }
+	bool MaybeDefined() const { return maybe_defined; }
 
 	// Returns (or sets) the statement after which the identifer is
 	// (definitely) defined, or NO_DEF if it doesn't have a definite
 	// point of definition.
-	int DefinedAfter() const		{ return defined; }
-	void UpdateDefinedAfter(int _defined)	{ defined = _defined; }
+	int DefinedAfter() const { return defined; }
+	void UpdateDefinedAfter(int _defined) { defined = _defined; }
 
 	// Returns (or sets) the expression used to define the identifier,
 	// if any.  Note that an identifier can be definitely defined
 	// (i.e., DefinedAfter() returns a statement number, not NO_DEF)
 	// but not have an associated expression, if the point-of-definition
 	// is the end of a confluence block.
-	const ExprPtr& DefExprAfter() const	{ return def_expr; }
-	void SetDefExpr(ExprPtr e)		{ def_expr = e; }
+	const ExprPtr& DefExprAfter() const { return def_expr; }
+	void SetDefExpr(ExprPtr e) { def_expr = e; }
 
 	// Used for debugging.
 	void Dump() const;
@@ -82,7 +86,7 @@ protected:
 
 	// Number of the statement that this region applies to, *after*
 	// its execution.
-	int end_stmt = NO_DEF;	// means the region hasn't ended yet
+	int end_stmt = NO_DEF; // means the region hasn't ended yet
 
 	// Degree of confluence nesting associated with this region.
 	int block_level;
@@ -99,14 +103,14 @@ protected:
 	// Nil if either it's ambiguous (due to confluence), or the
 	// identifier isn't guaranteed to be defined.
 	ExprPtr def_expr;
-};
-
+	};
 
 // Class tracking optimization information associated with identifiers.
 
-class IDOptInfo {
+class IDOptInfo
+	{
 public:
-	IDOptInfo(const ID* id)	{ my_id = id; }
+	IDOptInfo(const ID* id) { my_id = id; }
 
 	// Reset all computed information about the identifier.  Used
 	// when making a second pass over an AST after optimizing it,
@@ -117,13 +121,12 @@ public:
 	// the identifier.  These are needed by compile-to-C++ script
 	// optimization.  They're not used by ZAM optimization.
 	void AddInitExpr(ExprPtr init_expr);
-	const std::vector<ExprPtr>& GetInitExprs() const
-		{ return init_exprs; }
+	const std::vector<ExprPtr>& GetInitExprs() const { return init_exprs; }
 
 	// Associated constant expression, if any.  This is only set
 	// for identifiers that are aliases for a constant (i.e., there
 	// are no other assignments to them).
-	const ConstExpr* Const() const	{ return const_expr; }
+	const ConstExpr* Const() const { return const_expr; }
 
 	// The most use of "const" in any single line in the Zeek
 	// codebase :-P ... though only by one!
@@ -131,8 +134,8 @@ public:
 
 	// Whether the identifier is a temporary variable.  Temporaries
 	// are guaranteed to have exactly one point of definition.
-	bool IsTemp() const	{ return is_temp; }
-	void SetTemp()		{ is_temp = true; }
+	bool IsTemp() const { return is_temp; }
+	void SetTemp() { is_temp = true; }
 
 	// Called when the identifier is defined via execution of the
 	// given statement, with an assignment to the expression 'e'
@@ -140,8 +143,7 @@ public:
 	// gives the full set of surrounding confluence statements.
 	// It should be processed starting at conf_start (note that
 	// conf_blocks may be empty).
-	void DefinedAfter(const Stmt* s, const ExprPtr& e,
-	                  const std::vector<const Stmt*>& conf_blocks,
+	void DefinedAfter(const Stmt* s, const ExprPtr& e, const std::vector<const Stmt*>& conf_blocks,
 	                  bro_uint_t conf_start);
 
 	// Called upon encountering a "return" statement.
@@ -185,15 +187,11 @@ public:
 
 	// The following are used to avoid multiple error messages
 	// for use of undefined variables.
-	bool DidUndefinedWarning() const
-		{ return did_undefined_warning; }
-	bool DidPossiblyUndefinedWarning() const
-		{ return did_possibly_undefined_warning; }
+	bool DidUndefinedWarning() const { return did_undefined_warning; }
+	bool DidPossiblyUndefinedWarning() const { return did_possibly_undefined_warning; }
 
-	void SetDidUndefinedWarning()
-		{ did_undefined_warning = true; }
-	void SetDidPossiblyUndefinedWarning()
-		{ did_possibly_undefined_warning = true; }
+	void SetDidUndefinedWarning() { did_undefined_warning = true; }
+	void SetDidPossiblyUndefinedWarning() { did_possibly_undefined_warning = true; }
 
 private:
 	// End any active regions that are at or inner to the given level.
@@ -202,7 +200,9 @@ private:
 	// Find the region that applies *before* executing the given
 	// statement.  There should always be such a region.
 	IDDefRegion& FindRegionBefore(int stmt_num)
-		{ return usage_regions[FindRegionBeforeIndex(stmt_num)]; }
+		{
+		return usage_regions[FindRegionBeforeIndex(stmt_num)];
+		}
 	int FindRegionBeforeIndex(int stmt_num);
 
 	// Return the current "active" region, if any.  The active region
@@ -263,10 +263,10 @@ private:
 	// Track whether we've already generated usage errors.
 	bool did_undefined_warning = false;
 	bool did_possibly_undefined_warning = false;
-};
+	};
 
 // If non-nil, then output detailed tracing information when building
 // up the usage regions for any identifier with the given name.
 extern const char* trace_ID;
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

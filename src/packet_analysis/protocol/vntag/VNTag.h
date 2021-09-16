@@ -5,9 +5,11 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::VNTag {
+namespace zeek::packet_analysis::VNTag
+	{
 
-class VNTagAnalyzer : public Analyzer {
+class VNTagAnalyzer : public Analyzer
+	{
 public:
 	VNTagAnalyzer();
 	~VNTagAnalyzer() override = default;
@@ -18,6 +20,6 @@ public:
 		{
 		return std::make_shared<VNTagAnalyzer>();
 		}
-};
+	};
 
-}
+	}

@@ -2,15 +2,14 @@
 
 #include "zeek/analyzer/protocol/mysql/MySQL.h"
 
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/Reporter.h"
-
 #include "zeek/analyzer/protocol/mysql/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-namespace zeek::analyzer::mysql {
+namespace zeek::analyzer::mysql
+	{
 
-MySQL_Analyzer::MySQL_Analyzer(Connection* c)
-	: analyzer::tcp::TCP_ApplicationAnalyzer("MySQL", c)
+MySQL_Analyzer::MySQL_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer("MySQL", c)
 	{
 	interp = new binpac::MySQL::MySQL_Conn(this);
 	had_gap = false;
@@ -66,4 +65,4 @@ void MySQL_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	interp->NewGap(orig, len);
 	}
 
-} // namespace zeek::analyzer::mysql
+	} // namespace zeek::analyzer::mysql

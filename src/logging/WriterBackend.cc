@@ -4,64 +4,80 @@
 
 #include <broker/data.hh>
 
-#include "zeek/util.h"
-#include "zeek/threading/SerialTypes.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/WriterFrontend.h"
+#include "zeek/threading/SerialTypes.h"
+#include "zeek/util.h"
 
 // Messages sent from backend to frontend (i.e., "OutputMessages").
 
-using zeek::threading::Value;
 using zeek::threading::Field;
+using zeek::threading::Value;
 
-namespace zeek::logging {
+namespace zeek::logging
+	{
 
 class RotationFinishedMessage final : public threading::OutputMessage<WriterFrontend>
-{
+	{
 public:
 	RotationFinishedMessage(WriterFrontend* writer, const char* new_name, const char* old_name,
-				double open, double close, bool success, bool terminating)
+	                        double open, double close, bool success, bool terminating)
 		: threading::OutputMessage<WriterFrontend>("RotationFinished", writer),
-		new_name(util::copy_string(new_name)), old_name(util::copy_string(old_name)), open(open),
-		close(close), success(success), terminating(terminating)	{ }
+		  new_name(util::copy_string(new_name)), old_name(util::copy_string(old_name)), open(open),
+		  close(close), success(success), terminating(terminating)
+		{
+		}
 
 	~RotationFinishedMessage() override
 		{
-		delete [] new_name;
-		delete [] old_name;
+		delete[] new_name;
+		delete[] old_name;
 		}
 
 	bool Process() override
 		{
-		return log_mgr->FinishedRotation(Object(), new_name, old_name, open, close, success, terminating);
+		return log_mgr->FinishedRotation(Object(), new_name, old_name, open, close, success,
+		                                 terminating);
 		}
 
 private:
-        const char* new_name;
-        const char* old_name;
-        double open;
-        double close;
+	const char* new_name;
+	const char* old_name;
+	double open;
+	double close;
 	bool success;
-        bool terminating;
-};
+	bool terminating;
+	};
 
 class FlushWriteBufferMessage final : public threading::OutputMessage<WriterFrontend>
-{
+	{
 public:
 	FlushWriteBufferMessage(WriterFrontend* writer)
-		: threading::OutputMessage<WriterFrontend>("FlushWriteBuffer", writer)	{}
+		: threading::OutputMessage<WriterFrontend>("FlushWriteBuffer", writer)
+		{
+		}
 
-	bool Process() override	{ Object()->FlushWriteBuffer(); return true; }
-};
+	bool Process() override
+		{
+		Object()->FlushWriteBuffer();
+		return true;
+		}
+	};
 
 class DisableMessage final : public threading::OutputMessage<WriterFrontend>
-{
+	{
 public:
 	DisableMessage(WriterFrontend* writer)
-		: threading::OutputMessage<WriterFrontend>("Disable", writer)	{}
+		: threading::OutputMessage<WriterFrontend>("Disable", writer)
+		{
+		}
 
-	bool Process() override	{ Object()->SetDisable(); return true; }
-};
+	bool Process() override
+		{
+		Object()->SetDisable();
+		return true;
+		}
+	};
 
 // Backend methods.
 
@@ -78,7 +94,8 @@ broker::data WriterBackend::WriterInfo::ToBroker() const
 
 	auto bppf = post_proc_func ? post_proc_func : "";
 
-	return broker::vector({path, rotation_base, rotation_interval, network_time, std::move(t), bppf});
+	return broker::vector(
+		{path, rotation_base, rotation_interval, network_time, std::move(t), bppf});
 	}
 
 bool WriterBackend::WriterInfo::FromBroker(broker::data d)
@@ -134,10 +151,10 @@ WriterBackend::~WriterBackend()
 	{
 	if ( fields )
 		{
-		for(int i = 0; i < num_fields; ++i)
+		for ( int i = 0; i < num_fields; ++i )
 			delete fields[i];
 
-		delete [] fields;
+		delete[] fields;
 		}
 
 	delete info;
@@ -151,17 +168,18 @@ void WriterBackend::DeleteVals(int num_writes, Value*** vals)
 		for ( int i = 0; i < num_fields; i++ )
 			delete vals[j][i];
 
-		delete [] vals[j];
+		delete[] vals[j];
 		}
 
-	delete [] vals;
+	delete[] vals;
 	}
 
-bool WriterBackend::FinishedRotation(const char* new_name, const char* old_name,
-				     double open, double close, bool terminating)
+bool WriterBackend::FinishedRotation(const char* new_name, const char* old_name, double open,
+                                     double close, bool terminating)
 	{
 	--rotation_counter;
-	SendOut(new RotationFinishedMessage(frontend, new_name, old_name, open, close, true, terminating));
+	SendOut(
+		new RotationFinishedMessage(frontend, new_name, old_name, open, close, true, terminating));
 	return true;
 	}
 
@@ -204,7 +222,7 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 
 #ifdef DEBUG
 		const char* msg = Fmt("Number of fields don't match in WriterBackend::Write() (%d vs. %d)",
-				      arg_num_fields, num_fields);
+		                      arg_num_fields, num_fields);
 		Debug(DBG_LOGGING, msg);
 #endif
 
@@ -221,8 +239,9 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 			if ( vals[j][i]->type != fields[i]->type )
 				{
 #ifdef DEBUG
-				const char* msg = Fmt("Field #%d type doesn't match in WriterBackend::Write() (%d vs. %d)",
-						      i, vals[j][i]->type, fields[i]->type);
+				const char* msg =
+					Fmt("Field #%d type doesn't match in WriterBackend::Write() (%d vs. %d)", i,
+				        vals[j][i]->type, fields[i]->type);
 				Debug(DBG_LOGGING, msg);
 #endif
 				DisableFrontend();
@@ -273,8 +292,7 @@ bool WriterBackend::SetBuf(bool enabled)
 	return true;
 	}
 
-bool WriterBackend::Rotate(const char* rotated_path, double open,
-			   double close, bool terminating)
+bool WriterBackend::Rotate(const char* rotated_path, double open, double close, bool terminating)
 	{
 	if ( Failed() )
 		return true;
@@ -292,7 +310,8 @@ bool WriterBackend::Rotate(const char* rotated_path, double open,
 		InternalError(Fmt("writer %s did not call FinishedRotation() in DoRotation()", Name()));
 
 	if ( rotation_counter < 0 )
-		InternalError(Fmt("writer %s called FinishedRotation() more than once in DoRotation()", Name()));
+		InternalError(
+			Fmt("writer %s called FinishedRotation() more than once in DoRotation()", Name()));
 
 	return true;
 	}
@@ -328,4 +347,4 @@ bool WriterBackend::OnHeartbeat(double network_time, double current_time)
 	return DoHeartbeat(network_time, current_time);
 	}
 
-} // namespace zeek::logging
+	} // namespace zeek::logging

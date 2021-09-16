@@ -2,38 +2,40 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 
-#include "zeek/zeek-config.h"
 #include "zeek/Reporter.h"
 
-#include <unistd.h>
 #include <syslog.h>
+#include <unistd.h>
 
+#include "zeek/Conn.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
+#include "zeek/EventHandler.h"
 #include "zeek/Expr.h"
+#include "zeek/ID.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
-#include "zeek/Conn.h"
 #include "zeek/Timer.h"
-#include "zeek/ID.h"
-#include "zeek/EventHandler.h"
-#include "zeek/plugin/Plugin.h"
-#include "zeek/plugin/Manager.h"
-#include "zeek/input.h"
 #include "zeek/file_analysis/File.h"
+#include "zeek/input.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/zeek-config.h"
 
 #ifdef SYSLOG_INT
-extern "C" {
-int openlog(const char* ident, int logopt, int facility);
-int syslog(int priority, const char* message_fmt, ...);
-int closelog();
-}
+extern "C"
+	{
+	int openlog(const char* ident, int logopt, int facility);
+	int syslog(int priority, const char* message_fmt, ...);
+	int closelog();
+	}
 #endif
 
 zeek::Reporter* zeek::reporter = nullptr;
 zeek::Reporter*& reporter = zeek::reporter;
 
-namespace zeek {
+namespace zeek
+	{
 
 Reporter::Reporter(bool arg_abort_on_scripting_errors)
 	{
@@ -73,7 +75,7 @@ void Reporter::InitOptions()
 	weird_sampling_duration = id::find_val("Weird::sampling_duration")->AsInterval();
 
 	auto init_weird_set = [](WeirdSet* set, const char* name)
-		{
+	{
 		auto wl_val = id::find_val(name)->AsTableVal();
 		auto wl_table = wl_val->AsTable();
 
@@ -84,7 +86,7 @@ void Reporter::InitOptions()
 			std::string key = index->Idx(0)->AsString()->CheckString();
 			set->emplace(move(key));
 			}
-		};
+	};
 
 	init_weird_set(&weird_sampling_whitelist, "Weird::sampling_whitelist");
 	init_weird_set(&weird_sampling_global_list, "Weird::sampling_global_list");
@@ -159,8 +161,8 @@ void Reporter::ExprRuntimeError(const detail::Expr* expr, const char* fmt, ...)
 	va_list ap;
 	va_start(ap, fmt);
 	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
-	DoLog("expression error", reporter_error, out, nullptr, nullptr, true, true,
-	      d.Description(), fmt, ap);
+	DoLog("expression error", reporter_error, out, nullptr, nullptr, true, true, d.Description(),
+	      fmt, ap);
 	va_end(ap);
 	PopLocation();
 
@@ -193,7 +195,8 @@ void Reporter::CPPRuntimeError(const char* fmt, ...)
 	va_list ap;
 	va_start(ap, fmt);
 	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
-	DoLog("runtime error in compiled code", reporter_error, out, nullptr, nullptr, true, true, "", fmt, ap);
+	DoLog("runtime error in compiled code", reporter_error, out, nullptr, nullptr, true, true, "",
+	      fmt, ap);
 	va_end(ap);
 
 	if ( abort_on_scripting_errors )
@@ -225,8 +228,7 @@ void Reporter::AnalyzerError(analyzer::Analyzer* a, const char* fmt, ...)
 	va_start(ap, fmt);
 	// Always log to stderr.
 	// TODO: would be nice to also log a call stack.
-	DoLog("analyzer error", reporter_error, stderr, nullptr, nullptr, true, true, nullptr, fmt,
-	      ap);
+	DoLog("analyzer error", reporter_error, stderr, nullptr, nullptr, true, true, nullptr, fmt, ap);
 	va_end(ap);
 	}
 
@@ -266,48 +268,51 @@ void Reporter::UpdateWeirdStats(const char* name)
 	++weird_count_by_type[name];
 	}
 
-class NetWeirdTimer final : public detail::Timer {
+class NetWeirdTimer final : public detail::Timer
+	{
 public:
 	NetWeirdTimer(double t, const char* name, double timeout)
-		: detail::Timer(t + timeout, detail::TIMER_NET_WEIRD_EXPIRE),
-		  weird_name(name)
-		{}
+		: detail::Timer(t + timeout, detail::TIMER_NET_WEIRD_EXPIRE), weird_name(name)
+		{
+		}
 
-	void Dispatch(double t, bool is_expire) override
-		{ reporter->ResetNetWeird(weird_name); }
+	void Dispatch(double t, bool is_expire) override { reporter->ResetNetWeird(weird_name); }
 
 	std::string weird_name;
-};
+	};
 
-class FlowWeirdTimer final : public detail::Timer {
+class FlowWeirdTimer final : public detail::Timer
+	{
 public:
 	using IPPair = std::pair<IPAddr, IPAddr>;
 
 	FlowWeirdTimer(double t, IPPair p, double timeout)
-		: detail::Timer(t + timeout, detail::TIMER_FLOW_WEIRD_EXPIRE),
-		  endpoints(std::move(p))
-		{}
+		: detail::Timer(t + timeout, detail::TIMER_FLOW_WEIRD_EXPIRE), endpoints(std::move(p))
+		{
+		}
 
 	void Dispatch(double t, bool is_expire) override
-		{ reporter->ResetFlowWeird(endpoints.first, endpoints.second); }
+		{
+		reporter->ResetFlowWeird(endpoints.first, endpoints.second);
+		}
 
 	IPPair endpoints;
-};
+	};
 
-class ConnTupleWeirdTimer final : public detail::Timer {
+class ConnTupleWeirdTimer final : public detail::Timer
+	{
 public:
 	using ConnTuple = Reporter::ConnTuple;
 
 	ConnTupleWeirdTimer(double t, ConnTuple id, double timeout)
-		: detail::Timer(t + timeout, detail::TIMER_CONN_TUPLE_WEIRD_EXPIRE),
-		  conn_id(std::move(id))
-		{}
+		: detail::Timer(t + timeout, detail::TIMER_CONN_TUPLE_WEIRD_EXPIRE), conn_id(std::move(id))
+		{
+		}
 
-	void Dispatch(double t, bool is_expire) override
-		{ reporter->ResetExpiredConnWeird(conn_id); }
+	void Dispatch(double t, bool is_expire) override { reporter->ResetExpiredConnWeird(conn_id); }
 
 	ConnTuple conn_id;
-};
+	};
 
 void Reporter::ResetNetWeird(const std::string& name)
 	{
@@ -342,8 +347,8 @@ bool Reporter::PermitNetWeird(const char* name)
 	++count;
 
 	if ( count == 1 )
-		detail::timer_mgr->Add(new NetWeirdTimer(run_state::network_time, name,
-		                                         weird_sampling_duration));
+		detail::timer_mgr->Add(
+			new NetWeirdTimer(run_state::network_time, name, weird_sampling_duration));
 
 	if ( count <= weird_sampling_threshold )
 		return true;
@@ -355,15 +360,14 @@ bool Reporter::PermitNetWeird(const char* name)
 		return false;
 	}
 
-bool Reporter::PermitFlowWeird(const char* name,
-                               const IPAddr& orig, const IPAddr& resp)
+bool Reporter::PermitFlowWeird(const char* name, const IPAddr& orig, const IPAddr& resp)
 	{
 	auto endpoints = std::make_pair(orig, resp);
 	auto& map = flow_weird_state[endpoints];
 
 	if ( map.empty() )
-		detail::timer_mgr->Add(new FlowWeirdTimer(run_state::network_time, endpoints,
-		                                          weird_sampling_duration));
+		detail::timer_mgr->Add(
+			new FlowWeirdTimer(run_state::network_time, endpoints, weird_sampling_duration));
 
 	auto& count = map[name];
 	++count;
@@ -380,8 +384,8 @@ bool Reporter::PermitFlowWeird(const char* name,
 
 bool Reporter::PermitExpiredConnWeird(const char* name, const RecordVal& conn_id)
 	{
-	if ( !conn_id.HasField("orig_h") || !conn_id.HasField("resp_h") ||
-	     !conn_id.HasField("orig_p") || !conn_id.HasField("resp_p") )
+	if ( ! conn_id.HasField("orig_h") || ! conn_id.HasField("resp_h") ||
+	     ! conn_id.HasField("orig_p") || ! conn_id.HasField("resp_p") )
 		return false;
 
 	auto conn_tuple = std::make_tuple(conn_id.GetFieldAs<AddrVal>("orig_h"),
@@ -393,9 +397,8 @@ bool Reporter::PermitExpiredConnWeird(const char* name, const RecordVal& conn_id
 	auto& map = expired_conn_weird_state[conn_tuple];
 
 	if ( map.empty() )
-		detail::timer_mgr->Add(new ConnTupleWeirdTimer(run_state::network_time,
-		                                               std::move(conn_tuple),
-		                                               weird_sampling_duration));
+		detail::timer_mgr->Add(new ConnTupleWeirdTimer(
+			run_state::network_time, std::move(conn_tuple), weird_sampling_duration));
 
 	auto& count = map[name];
 	++count;
@@ -428,87 +431,92 @@ void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl,
 	{
 	UpdateWeirdStats(name);
 
-	switch ( CheckGlobalWeirdLists(name) ) {
-	case PermitWeird::Allow:
-		break;
-	case PermitWeird::Deny:
-		return;
-	case PermitWeird::Unknown:
-		if ( ! f->PermitWeird(name, weird_sampling_threshold,
-		                      weird_sampling_rate, weird_sampling_duration) )
+	switch ( CheckGlobalWeirdLists(name) )
+		{
+		case PermitWeird::Allow:
+			break;
+		case PermitWeird::Deny:
 			return;
-	}
+		case PermitWeird::Unknown:
+			if ( ! f->PermitWeird(name, weird_sampling_threshold, weird_sampling_rate,
+			                      weird_sampling_duration) )
+				return;
+		}
 
-	WeirdHelper(file_weird, {f->ToVal()->Ref(), new StringVal(addl), new StringVal(source)},
-	            "%s", name);
+	WeirdHelper(file_weird, {f->ToVal()->Ref(), new StringVal(addl), new StringVal(source)}, "%s",
+	            name);
 	}
 
 void Reporter::Weird(Connection* conn, const char* name, const char* addl, const char* source)
 	{
 	UpdateWeirdStats(name);
 
-	switch ( CheckGlobalWeirdLists(name) ) {
-	case PermitWeird::Allow:
-		break;
-	case PermitWeird::Deny:
-		return;
-	case PermitWeird::Unknown:
-		if ( ! conn->PermitWeird(name, weird_sampling_threshold,
-		                         weird_sampling_rate, weird_sampling_duration) )
+	switch ( CheckGlobalWeirdLists(name) )
+		{
+		case PermitWeird::Allow:
+			break;
+		case PermitWeird::Deny:
 			return;
-	}
+		case PermitWeird::Unknown:
+			if ( ! conn->PermitWeird(name, weird_sampling_threshold, weird_sampling_rate,
+			                         weird_sampling_duration) )
+				return;
+		}
 
 	WeirdHelper(conn_weird, {conn->GetVal()->Ref(), new StringVal(addl), new StringVal(source)},
 	            "%s", name);
 	}
 
-void Reporter::Weird(RecordValPtr conn_id, StringValPtr uid, const char* name,
-                     const char* addl, const char* source)
+void Reporter::Weird(RecordValPtr conn_id, StringValPtr uid, const char* name, const char* addl,
+                     const char* source)
 	{
 	UpdateWeirdStats(name);
 
-	switch ( CheckGlobalWeirdLists(name) ) {
-	case PermitWeird::Allow:
-		break;
-	case PermitWeird::Deny:
-		return;
-	case PermitWeird::Unknown:
-		if ( ! PermitExpiredConnWeird(name, *conn_id) )
+	switch ( CheckGlobalWeirdLists(name) )
+		{
+		case PermitWeird::Allow:
+			break;
+		case PermitWeird::Deny:
 			return;
-	}
+		case PermitWeird::Unknown:
+			if ( ! PermitExpiredConnWeird(name, *conn_id) )
+				return;
+		}
 
 	WeirdHelper(expired_conn_weird,
 	            {conn_id.release(), uid.release(), new StringVal(addl), new StringVal(source)},
 	            "%s", name);
 	}
 
-void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl, const char* source)
+void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl,
+                     const char* source)
 	{
 	UpdateWeirdStats(name);
 
-	switch ( CheckGlobalWeirdLists(name) ) {
-	case PermitWeird::Allow:
-		break;
-	case PermitWeird::Deny:
-		return;
-	case PermitWeird::Unknown:
-		if ( ! PermitFlowWeird(name, orig, resp) )
-			 return;
-	}
+	switch ( CheckGlobalWeirdLists(name) )
+		{
+		case PermitWeird::Allow:
+			break;
+		case PermitWeird::Deny:
+			return;
+		case PermitWeird::Unknown:
+			if ( ! PermitFlowWeird(name, orig, resp) )
+				return;
+		}
 
 	WeirdHelper(flow_weird,
 	            {new AddrVal(orig), new AddrVal(resp), new StringVal(addl), new StringVal(source)},
 	            "%s", name);
 	}
 
-void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
-                     Connection* conn, ValPList* addl, bool location, bool time,
-                     const char* postfix, const char* fmt, va_list ap)
+void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn,
+                     ValPList* addl, bool location, bool time, const char* postfix, const char* fmt,
+                     va_list ap)
 	{
 	static char tmp[512];
 
 	int size = sizeof(tmp);
-	char* buffer  = tmp;
+	char* buffer = tmp;
 	char* alloced = nullptr;
 
 	std::string loc_str;
@@ -541,7 +549,6 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 
 					else
 						d.Add("<no location>");
-
 					}
 				}
 
@@ -574,7 +581,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 
 		// Enlarge buffer;
 		size *= 2;
-		buffer = alloced = (char *)realloc(alloced, size);
+		buffer = alloced = (char*)realloc(alloced, size);
 
 		if ( ! buffer )
 			FatalError("out of memory in Reporter");
@@ -592,27 +599,29 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		if ( locations.size() )
 			{
 			auto locs = locations.back();
-			raise_event = PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
-							      HookReporter(prefix, event, conn, addl, location,
-									   locs.first, locs.second, time, buffer), true);
+			raise_event =
+				PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
+			                            HookReporter(prefix, event, conn, addl, location,
+			                                         locs.first, locs.second, time, buffer),
+			                            true);
 			}
 		else
-			raise_event = PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
-							      HookReporter(prefix, event, conn, addl, location,
-									   nullptr, nullptr, time, buffer), true);
+			raise_event = PLUGIN_HOOK_WITH_RESULT(
+				HOOK_REPORTER,
+				HookReporter(prefix, event, conn, addl, location, nullptr, nullptr, time, buffer),
+				true);
 		}
 
 	if ( raise_event && event && via_events && ! in_error_handler )
 		{
-		auto vl_size = 1 + (bool)time + (bool)location + (bool)conn +
-		               (addl ? addl->length() : 0);
+		auto vl_size = 1 + (bool)time + (bool)location + (bool)conn + (addl ? addl->length() : 0);
 
 		Args vl;
 		vl.reserve(vl_size);
 
 		if ( time )
 			vl.emplace_back(make_intrusive<TimeVal>(
-				                run_state::network_time ? run_state::network_time : util::current_time()));
+				run_state::network_time ? run_state::network_time : util::current_time()));
 
 		vl.emplace_back(make_intrusive<StringVal>(buffer));
 
@@ -681,5 +690,4 @@ bool Reporter::EmitToStderr(bool flag)
 	return flag || ! run_state::detail::zeek_init_done;
 	}
 
-
-} // namespace zeek
+	} // namespace zeek

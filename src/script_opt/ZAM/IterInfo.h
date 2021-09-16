@@ -8,12 +8,14 @@
 #include "zeek/ZeekString.h"
 #include "zeek/script_opt/ZAM/ZInst.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 // Class for iterating over the elements of a table.  Requires some care
 // because the dictionary iterators need to be destructed when done.
 
-class TableIterInfo {
+class TableIterInfo
+	{
 public:
 	// No constructor needed, as all of our member variables are
 	// instead instantiated via BeginLoop().  This allows us to
@@ -22,7 +24,7 @@ public:
 
 	// We do, however, want to make sure that when we go out of scope,
 	// if we have any pending iterators we clear them.
-	~TableIterInfo()	{ Clear(); }
+	~TableIterInfo() { Clear(); }
 
 	// Start looping over the elements of the given table.  "_aux"
 	// provides information about the index variables, their types,
@@ -37,16 +39,10 @@ public:
 		}
 
 	// True if we're done iterating, false if not.
-	bool IsDoneIterating() const
-		{
-		return *tbl_iter == *tbl_end;
-		}
+	bool IsDoneIterating() const { return *tbl_iter == *tbl_end; }
 
 	// Indicates that the current iteration is finished.
-	void IterFinished()
-		{
-		++*tbl_iter;
-		}
+	void IterFinished() { ++*tbl_iter; }
 
 	// Performs the next iteration (assuming IsDoneIterating() returned
 	// false), assigning to the index variables.
@@ -74,7 +70,7 @@ public:
 		}
 
 	// Called upon finishing the iteration.
-	void EndIter()		{ Clear(); }
+	void EndIter() { Clear(); }
 
 	// Called to explicitly clear any iteration state.
 	void Clear()
@@ -94,12 +90,13 @@ private:
 
 	std::optional<DictIterator> tbl_iter;
 	std::optional<DictIterator> tbl_end;
-};
+	};
 
 // Class for simple step-wise iteration across an integer range.
 // Suitable for iterating over vectors or strings.
 
-class StepIterInfo {
+class StepIterInfo
+	{
 public:
 	// We do some cycle-squeezing by not having a constructor to
 	// initialize our member variables, since we impose a discipline
@@ -123,24 +120,18 @@ public:
 		}
 
 	// True if we're done iterating, false if not.
-	bool IsDoneIterating() const
-		{
-		return iter >= n;
-		}
+	bool IsDoneIterating() const { return iter >= n; }
 
 	// Indicates that the current iteration is finished.
-	void IterFinished()
-		{
-		++iter;
-		}
+	void IterFinished() { ++iter; }
 
 	// Counter of where we are in the iteration.
-	bro_uint_t iter;	// initialized to 0 at start of loop
-	bro_uint_t n;	// we loop from 0 ... n-1
+	bro_uint_t iter; // initialized to 0 at start of loop
+	bro_uint_t n; // we loop from 0 ... n-1
 
 	// The low-level value we're iterating over.
 	const std::vector<std::optional<ZVal>>* vv;
 	const String* s;
-};
+	};
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

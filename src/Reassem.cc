@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/Reassem.h"
 
 #include <algorithm>
 
 #include "zeek/Desc.h"
+#include "zeek/zeek-config.h"
 
 using std::min;
 
-namespace zeek {
+namespace zeek
+	{
 
 uint64_t Reassembler::total_size = 0;
 uint64_t Reassembler::sizes[REASSEM_NUM];
@@ -100,9 +101,8 @@ DataBlockMap::const_iterator DataBlockList::FirstBlockAtOrBefore(uint64_t seq) c
 	return std::prev(it);
 	}
 
-DataBlockMap::const_iterator
-DataBlockList::Insert(uint64_t seq, uint64_t upper, const u_char* data,
-                      DataBlockMap::const_iterator hint)
+DataBlockMap::const_iterator DataBlockList::Insert(uint64_t seq, uint64_t upper, const u_char* data,
+                                                   DataBlockMap::const_iterator hint)
 	{
 	auto size = upper - seq;
 	auto rval = block_map.emplace_hint(hint, seq, DataBlock(data, size, seq));
@@ -114,9 +114,8 @@ DataBlockList::Insert(uint64_t seq, uint64_t upper, const u_char* data,
 	return rval;
 	}
 
-DataBlockMap::const_iterator
-DataBlockList::Insert(uint64_t seq, uint64_t upper, const u_char* data,
-                      DataBlockMap::const_iterator* hint)
+DataBlockMap::const_iterator DataBlockList::Insert(uint64_t seq, uint64_t upper, const u_char* data,
+                                                   DataBlockMap::const_iterator* hint)
 	{
 	// Empty list.
 	if ( block_map.empty() )
@@ -191,8 +190,7 @@ DataBlockList::Insert(uint64_t seq, uint64_t upper, const u_char* data,
 	return rval;
 	}
 
-uint64_t DataBlockList::Trim(uint64_t seq, uint64_t max_old,
-                             DataBlockList* old_list)
+uint64_t DataBlockList::Trim(uint64_t seq, uint64_t max_old, DataBlockList* old_list)
 	{
 	uint64_t num_missing = 0;
 
@@ -267,14 +265,12 @@ uint64_t DataBlockList::Trim(uint64_t seq, uint64_t max_old,
 	}
 
 Reassembler::Reassembler(uint64_t init_seq, ReassemblerType reassem_type)
-	: block_list(this), old_block_list(this),
-	  last_reassem_seq(init_seq), trim_seq(init_seq),
+	: block_list(this), old_block_list(this), last_reassem_seq(init_seq), trim_seq(init_seq),
 	  max_old_blocks(0), rtype(reassem_type)
 	{
 	}
 
-void Reassembler::CheckOverlap(const DataBlockList& list,
-                               uint64_t seq, uint64_t len,
+void Reassembler::CheckOverlap(const DataBlockList& list, uint64_t seq, uint64_t len,
                                const u_char* data)
 	{
 	if ( list.Empty() )
@@ -347,7 +343,8 @@ void Reassembler::NewBlock(double t, uint64_t seq, uint64_t len, const u_char* d
 		len -= amount_old;
 		}
 
-	auto it = block_list.Insert(seq, upper_seq, data);;
+	auto it = block_list.Insert(seq, upper_seq, data);
+	;
 	BlockInserted(it);
 	}
 
@@ -387,4 +384,4 @@ uint64_t Reassembler::MemoryAllocation(ReassemblerType rtype)
 	return Reassembler::sizes[rtype];
 	}
 
-} // namespace zeek
+	} // namespace zeek

@@ -2,15 +2,15 @@
 
 #include "zeek/iosource/pcap/Dumper.h"
 
-#include <sys/stat.h>
 #include <errno.h>
+#include <sys/stat.h>
 
-#include "zeek/iosource/PktSrc.h"
 #include "zeek/RunState.h"
-
+#include "zeek/iosource/PktSrc.h"
 #include "zeek/iosource/pcap/pcap.bif.h"
 
-namespace zeek::iosource::pcap {
+namespace zeek::iosource::pcap
+	{
 
 PcapDumper::PcapDumper(const std::string& path, bool arg_append)
 	{
@@ -20,9 +20,7 @@ PcapDumper::PcapDumper(const std::string& path, bool arg_append)
 	pd = nullptr;
 	}
 
-PcapDumper::~PcapDumper()
-	{
-	}
+PcapDumper::~PcapDumper() { }
 
 void PcapDumper::Open()
 	{
@@ -74,7 +72,7 @@ void PcapDumper::Open()
 		// is not supported by libpcap. So, we have to hack a
 		// little bit, knowing that pcap_dumpter_t is, in fact,
 		// a FILE ... :-(
-		dumper = (pcap_dumper_t*) fopen(props.path.c_str(), "a");
+		dumper = (pcap_dumper_t*)fopen(props.path.c_str(), "a");
 		if ( ! dumper )
 			{
 			Error(util::fmt("can't open dump %s: %s", props.path.c_str(), strerror(errno)));
@@ -105,11 +103,9 @@ bool PcapDumper::Dump(const Packet* pkt)
 		return false;
 
 	// Reconstitute the pcap_pkthdr.
-	const struct pcap_pkthdr phdr = {
-		.ts = pkt->ts, .caplen = pkt->cap_len, .len = pkt->len
-	};
+	const struct pcap_pkthdr phdr = {.ts = pkt->ts, .caplen = pkt->cap_len, .len = pkt->len};
 
-	pcap_dump((u_char*) dumper, &phdr, pkt->data);
+	pcap_dump((u_char*)dumper, &phdr, pkt->data);
 	return true;
 	}
 
@@ -118,4 +114,4 @@ iosource::PktDumper* PcapDumper::Instantiate(const std::string& path, bool appen
 	return new PcapDumper(path, append);
 	}
 
-} // namespace zeek::iosource::pcap
+	} // namespace zeek::iosource::pcap

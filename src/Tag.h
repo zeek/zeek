@@ -2,15 +2,15 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include <stdint.h>
 #include <string>
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/util.h"
+#include "zeek/zeek-config.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class EnumVal;
 class EnumType;
@@ -35,7 +35,8 @@ using EnumValPtr = IntrusivePtr<EnumVal>;
  * The Tag class supports all operations necessary to act as an index in a
  * \c std::map.
  */
-class Tag  {
+class Tag
+	{
 public:
 	/**
 	 * Type for the analyzer's main type.
@@ -50,12 +51,12 @@ public:
 	/**
 	 * Returns the tag's main type.
 	 */
-	type_t Type() const 	{ return type; }
+	type_t Type() const { return type; }
 
 	/**
 	 * Returns the tag's subtype.
 	 */
-	subtype_t Subtype() const 	{ return subtype; }
+	subtype_t Subtype() const { return subtype; }
 
 	/**
 	 * Returns the numerical values for main and subtype inside a string
@@ -143,9 +144,9 @@ protected:
 	explicit Tag(EnumValPtr val);
 
 private:
-	type_t type;            // Main type.
-	subtype_t subtype;      // Subtype.
-	mutable EnumValPtr val;   // Script-layer value.
-};
+	type_t type; // Main type.
+	subtype_t subtype; // Subtype.
+	mutable EnumValPtr val; // Script-layer value.
+	};
 
-} // namespace zeek
+	} // namespace zeek

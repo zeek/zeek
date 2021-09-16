@@ -5,9 +5,11 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::Null {
+namespace zeek::packet_analysis::Null
+	{
 
-class NullAnalyzer : public Analyzer {
+class NullAnalyzer : public Analyzer
+	{
 public:
 	NullAnalyzer();
 	~NullAnalyzer() override = default;
@@ -18,6 +20,6 @@ public:
 		{
 		return std::make_shared<NullAnalyzer>();
 		}
-};
+	};
 
-}
+	}

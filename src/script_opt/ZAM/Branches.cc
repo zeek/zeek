@@ -2,12 +2,12 @@
 
 // Methods for dealing with ZAM branches.
 
-#include "zeek/Reporter.h"
 #include "zeek/Desc.h"
+#include "zeek/Reporter.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 void ZAMCompiler::PushGoTos(GoToSets& gotos)
 	{
@@ -63,7 +63,7 @@ InstLabel ZAMCompiler::GoToTargetBeyond(const ZAMStmt s)
 		return pending_inst;
 		}
 
-	return insts1[n+1];
+	return insts1[n + 1];
 	}
 
 void ZAMCompiler::SetTarget(ZInstI* inst, const InstLabel l, int slot)
@@ -89,10 +89,9 @@ ZInstI* ZAMCompiler::FindLiveTarget(ZInstI* goto_target)
 		return insts1[idx];
 	}
 
-void ZAMCompiler::ConcretizeBranch(ZInstI* inst, ZInstI* target,
-                                   int target_slot)
+void ZAMCompiler::ConcretizeBranch(ZInstI* inst, ZInstI* target, int target_slot)
 	{
-	int t;	// instruction number of target
+	int t; // instruction number of target
 
 	if ( target == pending_inst )
 		{
@@ -106,15 +105,24 @@ void ZAMCompiler::ConcretizeBranch(ZInstI* inst, ZInstI* target,
 	else
 		t = target->inst_num;
 
-	switch ( target_slot ) {
-	case 1:	inst->v1 = t; break;
-	case 2:	inst->v2 = t; break;
-	case 3:	inst->v3 = t; break;
-	case 4:	inst->v4 = t; break;
+	switch ( target_slot )
+		{
+		case 1:
+			inst->v1 = t;
+			break;
+		case 2:
+			inst->v2 = t;
+			break;
+		case 3:
+			inst->v3 = t;
+			break;
+		case 4:
+			inst->v4 = t;
+			break;
 
-	default:
-		reporter->InternalError("bad GoTo target");
-	}
+		default:
+			reporter->InternalError("bad GoTo target");
+		}
 	}
 
 void ZAMCompiler::SetV1(ZAMStmt s, const InstLabel l)
@@ -168,4 +176,4 @@ void ZAMCompiler::SetV4(ZAMStmt s, const InstLabel l)
 		inst->op_type = OP_VVVV_I4;
 	}
 
-} // zeek::detail
+	} // zeek::detail

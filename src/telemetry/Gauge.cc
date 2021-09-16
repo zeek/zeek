@@ -2,13 +2,14 @@
 
 #include "zeek/telemetry/Gauge.h"
 
+#include "zeek/telemetry/Detail.h"
+
 #include "caf/telemetry/gauge.hpp"
 #include "caf/telemetry/metric_family.hpp"
 #include "caf/telemetry/metric_family_impl.hpp"
 
-#include "zeek/telemetry/Detail.h"
-
-namespace zeek::telemetry {
+namespace zeek::telemetry
+	{
 
 // -- IntGauge ---------------------------------------------------------------
 
@@ -47,17 +48,16 @@ int64_t IntGauge::Value() const noexcept
 	return deref(pimpl).value();
 	}
 
-IntGaugeFamily::IntGaugeFamily(Impl* ptr) : MetricFamily(upcast(ptr))
-	{
-	}
+IntGaugeFamily::IntGaugeFamily(Impl* ptr) : MetricFamily(upcast(ptr)) { }
 
 IntGauge IntGaugeFamily::GetOrAdd(Span<const LabelView> labels)
 	{
-	return with_native_labels(labels, [this](auto nativeLabels)
-		{
-		auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
-		return IntGauge{hdl};
-		});
+	return with_native_labels(labels,
+	                          [this](auto nativeLabels)
+	                          {
+								  auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
+								  return IntGauge{hdl};
+							  });
 	}
 
 // -- DblGauge ---------------------------------------------------------------
@@ -87,17 +87,16 @@ double DblGauge::Value() const noexcept
 	return deref(pimpl).value();
 	}
 
-DblGaugeFamily::DblGaugeFamily(Impl* ptr) : MetricFamily(upcast(ptr))
-	{
-	}
+DblGaugeFamily::DblGaugeFamily(Impl* ptr) : MetricFamily(upcast(ptr)) { }
 
 DblGauge DblGaugeFamily::GetOrAdd(Span<const LabelView> labels)
 	{
-	return with_native_labels(labels, [this](auto nativeLabels)
-		{
-		auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
-		return DblGauge{hdl};
-		});
+	return with_native_labels(labels,
+	                          [this](auto nativeLabels)
+	                          {
+								  auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
+								  return DblGauge{hdl};
+							  });
 	}
 
-} // namespace zeek::telemetry
+	} // namespace zeek::telemetry

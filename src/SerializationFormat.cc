@@ -3,17 +3,18 @@
 #include <ctype.h>
 
 #include "zeek/DebugLogger.h"
+#include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"
 #include "zeek/net_util.h"
-#include "zeek/IPAddr.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 const float SerializationFormat::GROWTH_FACTOR = 2.5;
 
 SerializationFormat::SerializationFormat()
-    : output(), output_size(), output_pos(), input(), input_len(), input_pos(),
-      bytes_written(), bytes_read()
+	: output(), output_size(), output_pos(), input(), input_len(), input_pos(), bytes_written(),
+	  bytes_read()
 	{
 	}
 
@@ -102,13 +103,9 @@ bool SerializationFormat::WriteData(const void* b, size_t count)
 	return true;
 	}
 
-BinarySerializationFormat::BinarySerializationFormat()
-	{
-	}
+BinarySerializationFormat::BinarySerializationFormat() { }
 
-BinarySerializationFormat::~BinarySerializationFormat()
-	{
-	}
+BinarySerializationFormat::~BinarySerializationFormat() { }
 
 bool BinarySerializationFormat::Read(int* v, const char* tag)
 	{
@@ -116,7 +113,7 @@ bool BinarySerializationFormat::Read(int* v, const char* tag)
 	if ( ! ReadData(&tmp, sizeof(tmp)) )
 		return false;
 
-	*v = (int) ntohl(tmp);
+	*v = (int)ntohl(tmp);
 	DBG_LOG(DBG_SERIAL, "Read int %d [%s]", *v, tag);
 	return true;
 	}
@@ -140,7 +137,6 @@ bool BinarySerializationFormat::Read(uint32_t* v, const char* tag)
 	DBG_LOG(DBG_SERIAL, "Read uint32_t %" PRIu32 " [%s]", *v, tag);
 	return true;
 	}
-
 
 bool BinarySerializationFormat::Read(int64_t* v, const char* tag)
 	{
@@ -203,7 +199,7 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag)
 
 	if ( ! ReadData(s, l) )
 		{
-		delete [] s;
+		delete[] s;
 		*str = nullptr;
 		return false;
 		}
@@ -240,7 +236,7 @@ bool BinarySerializationFormat::Read(std::string* v, const char* tag)
 
 	*v = std::string(buffer, len);
 
-	delete [] buffer;
+	delete[] buffer;
 	return true;
 	}
 
@@ -285,7 +281,7 @@ bool BinarySerializationFormat::Read(IPPrefix* prefix, const char* tag)
 
 bool BinarySerializationFormat::Read(struct in_addr* addr, const char* tag)
 	{
-	uint32_t* bytes = (uint32_t*) &addr->s_addr;
+	uint32_t* bytes = (uint32_t*)&addr->s_addr;
 
 	if ( ! Read(&bytes[0], "addr4") )
 		return false;
@@ -296,7 +292,7 @@ bool BinarySerializationFormat::Read(struct in_addr* addr, const char* tag)
 
 bool BinarySerializationFormat::Read(struct in6_addr* addr, const char* tag)
 	{
-	uint32_t* bytes = (uint32_t*) &addr->s6_addr;
+	uint32_t* bytes = (uint32_t*)&addr->s6_addr;
 
 	for ( int i = 0; i < 4; ++i )
 		{
@@ -332,7 +328,7 @@ bool BinarySerializationFormat::Write(uint32_t v, const char* tag)
 bool BinarySerializationFormat::Write(int v, const char* tag)
 	{
 	DBG_LOG(DBG_SERIAL, "Write int %d [%s]", v, tag);
-	uint32_t tmp = htonl((uint32_t) v);
+	uint32_t tmp = htonl((uint32_t)v);
 	return WriteData(&tmp, sizeof(tmp));
 	}
 
@@ -404,7 +400,7 @@ bool BinarySerializationFormat::Write(const IPPrefix& prefix, const char* tag)
 
 bool BinarySerializationFormat::Write(const struct in_addr& addr, const char* tag)
 	{
-	const uint32_t* bytes = (uint32_t*) &addr.s_addr;
+	const uint32_t* bytes = (uint32_t*)&addr.s_addr;
 
 	if ( ! Write(ntohl(bytes[0]), "addr4") )
 		return false;
@@ -414,7 +410,7 @@ bool BinarySerializationFormat::Write(const struct in_addr& addr, const char* ta
 
 bool BinarySerializationFormat::Write(const struct in6_addr& addr, const char* tag)
 	{
-	const uint32_t* bytes = (uint32_t*) &addr.s6_addr;
+	const uint32_t* bytes = (uint32_t*)&addr.s6_addr;
 
 	for ( int i = 0; i < 4; ++i )
 		{
@@ -447,4 +443,4 @@ bool BinarySerializationFormat::Write(const char* buf, int len, const char* tag)
 	return WriteData(&l, sizeof(l)) && WriteData(buf, len);
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

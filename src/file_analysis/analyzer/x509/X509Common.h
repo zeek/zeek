@@ -5,12 +5,13 @@
 
 #pragma once
 
-#include <openssl/x509.h>
 #include <openssl/asn1.h>
+#include <openssl/x509.h>
 
 #include "zeek/file_analysis/Analyzer.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class EventHandlerPtr;
 class Reporter;
@@ -18,16 +19,19 @@ class StringVal;
 template <class T> class IntrusivePtr;
 using StringValPtr = IntrusivePtr<StringVal>;
 
-namespace file_analysis {
+namespace file_analysis
+	{
 
 class File;
 class Tag;
 
-namespace detail {
+namespace detail
+	{
 
-class X509Common : public file_analysis::Analyzer {
+class X509Common : public file_analysis::Analyzer
+	{
 public:
-	~X509Common() override {};
+	~X509Common() override{};
 
 	/**
 	 * Retrieve an X509 extension value from an OpenSSL BIO to which it was
@@ -46,15 +50,14 @@ public:
 	                              Reporter* reporter);
 
 protected:
-	X509Common(const file_analysis::Tag& arg_tag,
-	           RecordValPtr arg_args,
+	X509Common(const file_analysis::Tag& arg_tag, RecordValPtr arg_args,
 	           file_analysis::File* arg_file);
 
 	void ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global);
 	void ParseSignedCertificateTimestamps(X509_EXTENSION* ext);
 	virtual void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) = 0;
-};
+	};
 
-} // namespace detail
-} // namespace file_analysis
-} // namespace zeek
+	} // namespace detail
+	} // namespace file_analysis
+	} // namespace zeek

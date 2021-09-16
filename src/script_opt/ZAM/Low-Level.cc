@@ -2,13 +2,13 @@
 
 // Methods relating to low-level ZAM instruction manipulation.
 
-#include "zeek/Reporter.h"
 #include "zeek/Desc.h"
-#include "zeek/script_opt/ZAM/Compile.h"
+#include "zeek/Reporter.h"
 #include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/script_opt/ZAM/Compile.h"
 
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 const ZAMStmt ZAMCompiler::StartingBlock()
 	{
@@ -53,7 +53,7 @@ ZInstAux* ZAMCompiler::InternalBuildVals(const ListExpr* l, int stride)
 
 	auto aux = new ZInstAux(n * stride);
 
-	int offset = 0;	// offset into aux info
+	int offset = 0; // offset into aux info
 	for ( int i = 0; i < n; ++i )
 		{
 		auto& e = exprs[i];
@@ -168,5 +168,4 @@ ZAMStmt ZAMCompiler::PrevStmt(const ZAMStmt s)
 	return ZAMStmt(s.stmt_num - 1);
 	}
 
-
-} // zeek::detail
+	} // zeek::detail

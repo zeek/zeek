@@ -1,28 +1,25 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/Options.h"
-#include "zeek/Reporter.h"
-#include "zeek/module_util.h"
+#include "zeek/script_opt/ScriptOpt.h"
+
 #include "zeek/Desc.h"
 #include "zeek/EventHandler.h"
 #include "zeek/EventRegistry.h"
-
-#include "zeek/script_opt/ScriptOpt.h"
-#include "zeek/script_opt/ProfileFunc.h"
-#include "zeek/script_opt/Inline.h"
-#include "zeek/script_opt/Reduce.h"
-#include "zeek/script_opt/GenIDDefs.h"
-#include "zeek/script_opt/GenRDs.h"
-#include "zeek/script_opt/UseDefs.h"
-
+#include "zeek/Options.h"
+#include "zeek/Reporter.h"
+#include "zeek/module_util.h"
 #include "zeek/script_opt/CPP/Compile.h"
 #include "zeek/script_opt/CPP/Func.h"
-
+#include "zeek/script_opt/GenIDDefs.h"
+#include "zeek/script_opt/GenRDs.h"
+#include "zeek/script_opt/Inline.h"
+#include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/script_opt/Reduce.h"
+#include "zeek/script_opt/UseDefs.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
-
-namespace zeek::detail {
-
+namespace zeek::detail
+	{
 
 AnalyOpt analysis_options;
 
@@ -37,7 +34,7 @@ static std::vector<FuncInfo> funcs;
 static ZAMCompiler* ZAM = nullptr;
 
 static bool generating_CPP = false;
-static std::string hash_dir;	// for storing hashes of previous compilations
+static std::string hash_dir; // for storing hashes of previous compilations
 
 static ScriptFuncPtr global_stmts;
 
@@ -45,8 +42,7 @@ void analyze_func(ScriptFuncPtr f)
 	{
 	// Even if we're doing --optimize-only, we still track all functions
 	// here because the inliner will need the full list.
-	funcs.emplace_back(f, f->GetScope(), f->CurrentBody(),
-	                   f->CurrentPriority());
+	funcs.emplace_back(f, f->GetScope(), f->CurrentBody(), f->CurrentPriority());
 	}
 
 const FuncInfo* analyze_global_stmts(Stmt* stmts)
@@ -63,18 +59,15 @@ const FuncInfo* analyze_global_stmts(Stmt* stmts)
 	auto sc = current_scope();
 	std::vector<IDPtr> empty_inits;
 	StmtPtr stmts_p{NewRef{}, stmts};
-	global_stmts = make_intrusive<ScriptFunc>(id, stmts_p, empty_inits,
-	                                          sc->Length(), 0);
+	global_stmts = make_intrusive<ScriptFunc>(id, stmts_p, empty_inits, sc->Length(), 0);
 
 	funcs.emplace_back(global_stmts, sc, stmts_p, 0);
 
 	return &funcs.back();
 	}
 
-
 static bool optimize_AST(ScriptFunc* f, std::shared_ptr<ProfileFunc>& pf,
-                         std::shared_ptr<Reducer>& rc, ScopePtr scope,
-                         StmtPtr& body)
+                         std::shared_ptr<Reducer>& rc, ScopePtr scope, StmtPtr& body)
 	{
 	pf = std::make_shared<ProfileFunc>(f, body, true);
 
@@ -99,8 +92,8 @@ static bool optimize_AST(ScriptFunc* f, std::shared_ptr<ProfileFunc>& pf,
 	return true;
 	}
 
-static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
-                          ScopePtr scope, StmtPtr& body)
+static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopePtr scope,
+                          StmtPtr& body)
 	{
 	if ( reporter->Errors() > 0 )
 		return;
@@ -116,8 +109,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 	if ( ! is_ZAM_compilable(pf.get(), &reason) )
 		{
 		if ( analysis_options.report_uncompilable )
-			printf("Skipping compilation of %s due to %s\n",
-			       f->Name(), reason);
+			printf("Skipping compilation of %s due to %s\n", f->Name(), reason);
 		return;
 		}
 
@@ -139,7 +131,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 		{
 		if ( non_reduced_perp )
 			reporter->InternalError("Reduction inconsistency for %s: %s\n", f->Name(),
-			       obj_desc(non_reduced_perp).c_str());
+			                        obj_desc(non_reduced_perp).c_str());
 		else
 			reporter->InternalError("Reduction inconsistency for %s\n", f->Name());
 		}
@@ -158,8 +150,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 		RD_Decorate reduced_rds(pf, f, scope, body);
 		}
 
-	if ( analysis_options.optimize_AST &&
-	     ! optimize_AST(f, pf, rc, scope, body) )
+	if ( analysis_options.optimize_AST && ! optimize_AST(f, pf, rc, scope, body) )
 		{
 		pop_scope();
 		return;
@@ -187,8 +178,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 		body = new_body;
 		}
 
-	int new_frame_size = scope->Length() + rc->NumTemps() +
-	                     rc->NumNewLocals();
+	int new_frame_size = scope->Length() + rc->NumTemps() + rc->NumNewLocals();
 
 	if ( new_frame_size > f->FrameSize() )
 		f->SetFrameSize(new_frame_size);
@@ -211,7 +201,6 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf,
 
 	pop_scope();
 	}
-
 
 static void check_env_opt(const char* opt, bool& opt_flag)
 	{
@@ -242,8 +231,7 @@ static void init_options()
 	check_env_opt("ZEEK_ADD_CPP", analysis_options.add_CPP);
 	check_env_opt("ZEEK_UPDATE_CPP", analysis_options.update_CPP);
 	check_env_opt("ZEEK_GEN_CPP", analysis_options.gen_CPP);
-	check_env_opt("ZEEK_GEN_STANDALONE_CPP",
-		      analysis_options.gen_standalone_CPP);
+	check_env_opt("ZEEK_GEN_STANDALONE_CPP", analysis_options.gen_standalone_CPP);
 	check_env_opt("ZEEK_COMPILE_ALL", analysis_options.compile_all);
 	check_env_opt("ZEEK_REPORT_CPP", analysis_options.report_CPP);
 	check_env_opt("ZEEK_USE_CPP", analysis_options.use_CPP);
@@ -311,14 +299,12 @@ static void init_options()
 			analysis_options.report_uncompilable = true;
 		}
 
-	if ( analysis_options.report_uncompilable &&
-	     ! analysis_options.gen_ZAM_code && ! generating_CPP )
+	if ( analysis_options.report_uncompilable && ! analysis_options.gen_ZAM_code &&
+	     ! generating_CPP )
 		reporter->FatalError("report-uncompilable requires generation of ZAM or C++");
 
-	if ( analysis_options.only_func ||
-	     analysis_options.optimize_AST ||
-	     analysis_options.gen_ZAM_code ||
-	     analysis_options.usage_issues > 0 )
+	if ( analysis_options.only_func || analysis_options.optimize_AST ||
+	     analysis_options.gen_ZAM_code || analysis_options.usage_issues > 0 )
 		analysis_options.activate = true;
 	}
 
@@ -349,8 +335,7 @@ static void report_CPP()
 				specific = " - specific";
 			}
 
-		printf("script function %s (hash %llu%s): %s\n",
-			name, hash, specific, have ? "yes" : "no");
+		printf("script function %s (hash %llu%s): %s\n", name, hash, specific, have ? "yes" : "no");
 
 		if ( have )
 			already_reported.insert(hash);
@@ -362,8 +347,7 @@ static void report_CPP()
 	for ( const auto& s : compiled_scripts )
 		if ( already_reported.count(s.first) == 0 )
 			{
-			printf("%s body (hash %llu)\n",
-				s.second.body->Name().c_str(), s.first);
+			printf("%s body (hash %llu)\n", s.second.body->Name().c_str(), s.first);
 			++addl;
 			}
 
@@ -422,8 +406,7 @@ static void generate_CPP(std::unique_ptr<ProfileFuncs>& pfs)
 	{
 	const auto hash_name = hash_dir + "CPP-hashes";
 
-	auto hm = std::make_unique<CPPHashManager>(hash_name.c_str(),
-	                                           analysis_options.add_CPP);
+	auto hm = std::make_unique<CPPHashManager>(hash_name.c_str(), analysis_options.add_CPP);
 
 	if ( analysis_options.gen_CPP )
 		{
@@ -442,8 +425,7 @@ static void generate_CPP(std::unique_ptr<ProfileFuncs>& pfs)
 		for ( auto& func : funcs )
 			{
 			auto hash = func.Profile()->HashVal();
-			if ( compiled_scripts.count(hash) > 0 ||
-			     hm->HasHash(hash) )
+			if ( compiled_scripts.count(hash) > 0 || hm->HasHash(hash) )
 				func.SetSkip(true);
 			}
 
@@ -456,9 +438,8 @@ static void generate_CPP(std::unique_ptr<ProfileFuncs>& pfs)
 	const auto addl_name = hash_dir + "CPP-gen-addl.h";
 
 	CPPCompile cpp(funcs, *pfs, gen_name, addl_name, *hm,
-		       analysis_options.gen_CPP || analysis_options.update_CPP,
-		       analysis_options.gen_standalone_CPP,
-		       analysis_options.report_uncompilable);
+	               analysis_options.gen_CPP || analysis_options.update_CPP,
+	               analysis_options.gen_standalone_CPP, analysis_options.report_uncompilable);
 	}
 
 static void find_when_funcs(std::unique_ptr<ProfileFuncs>& pfs,
@@ -511,10 +492,10 @@ static void find_when_funcs(std::unique_ptr<ProfileFuncs>& pfs,
 
 static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	{
-	if ( analysis_options.usage_issues > 0 &&
-	     analysis_options.optimize_AST )
+	if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST )
 		{
-		fprintf(stderr, "warning: \"-O optimize-AST\" option is incompatible with -u option, deactivating optimization\n");
+		fprintf(stderr, "warning: \"-O optimize-AST\" option is incompatible with -u option, "
+		                "deactivating optimization\n");
 		analysis_options.optimize_AST = false;
 		}
 
@@ -584,8 +565,7 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 				continue;
 			}
 
-		else if ( ! analysis_options.compile_all &&
-		          inl && inl->WasInlined(func) &&
+		else if ( ! analysis_options.compile_all && inl && inl->WasInlined(func) &&
 		          func_used_indirectly.count(func) == 0 )
 			// No need to compile as it won't be called directly.
 			continue;
@@ -606,16 +586,14 @@ void analyze_scripts()
 		did_init = true;
 		}
 
-	if ( ! analysis_options.activate && ! analysis_options.inliner &&
-	     ! generating_CPP && ! analysis_options.report_CPP &&
-	     ! analysis_options.use_CPP )
+	if ( ! analysis_options.activate && ! analysis_options.inliner && ! generating_CPP &&
+	     ! analysis_options.report_CPP && ! analysis_options.use_CPP )
 		// No work to do, avoid profiling overhead.
 		return;
 
 	// Now that everything's parsed and BiF's have been initialized,
 	// profile the functions.
-	auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable,
-	                                          false);
+	auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
 
 	if ( CPP_init_hook )
 		(*CPP_init_hook)();
@@ -640,5 +618,4 @@ void analyze_scripts()
 	analyze_scripts_for_ZAM(pfs);
 	}
 
-
-} // namespace zeek::detail
+	} // namespace zeek::detail

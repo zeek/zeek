@@ -2,19 +2,20 @@
 
 #include "zeek/zeekygen/utils.h"
 
-#include <sys/stat.h>
 #include <errno.h>
+#include <sys/stat.h>
 
-#include "zeek/ID.h"
-#include "zeek/Val.h"
 #include "zeek/Func.h"
-#include "zeek/Scope.h"
+#include "zeek/ID.h"
 #include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/Val.h"
 #include "zeek/plugin/Manager.h"
 
 using namespace std;
 
-namespace zeek::zeekygen::detail {
+namespace zeek::zeekygen::detail
+	{
 
 bool prettify_params(string& s)
 	{
@@ -93,8 +94,8 @@ time_t get_mtime(const string& filename)
 	struct stat s;
 
 	if ( stat(filename.c_str(), &s) < 0 )
-		reporter->InternalError("Zeekygen failed to stat file '%s': %s",
-		                        filename.c_str(), strerror(errno));
+		reporter->InternalError("Zeekygen failed to stat file '%s': %s", filename.c_str(),
+		                        strerror(errno));
 
 	return s.st_mtime;
 	}
@@ -136,8 +137,7 @@ bool is_all_whitespace(const string& s)
 
 string redef_indication(const string& from_script)
 	{
-	return util::fmt("(present if :doc:`/scripts/%s` is loaded)",
-	                 from_script.c_str());
+	return util::fmt("(present if :doc:`/scripts/%s` is loaded)", from_script.c_str());
 	}
 
 std::string normalize_script_path(std::string_view path)
@@ -167,52 +167,52 @@ std::optional<std::string> source_code_range(const zeek::detail::ID* id)
 	int extra_lines = 0;
 	const zeek::detail::Location* loc = &zeek::detail::no_location;
 
-	switch ( type->Tag() ) {
-	case TYPE_FUNC:
+	switch ( type->Tag() )
 		{
-		const auto& v = id->GetVal();
+		case TYPE_FUNC:
+				{
+				const auto& v = id->GetVal();
 
-		if ( v && v->AsFunc()->GetBodies().size() == 1 )
-			{
-			// Either a function or an event/hook with single body can
-			// report that single, continuous range.
-			loc = v->AsFunc()->GetBodies()[0].stmts->GetLocationInfo();
-			++extra_lines;
-			}
-		else
-			loc = id->GetLocationInfo();
-		}
-		break;
-	case TYPE_ENUM:
-		// Fallthrough
-	case TYPE_RECORD:
-		if ( id->IsType() )
-			{
-			loc = type->GetLocationInfo();
+				if ( v && v->AsFunc()->GetBodies().size() == 1 )
+					{
+					// Either a function or an event/hook with single body can
+					// report that single, continuous range.
+					loc = v->AsFunc()->GetBodies()[0].stmts->GetLocationInfo();
+					++extra_lines;
+					}
+				else
+					loc = id->GetLocationInfo();
+				}
+			break;
+		case TYPE_ENUM:
+			// Fallthrough
+		case TYPE_RECORD:
+			if ( id->IsType() )
+				{
+				loc = type->GetLocationInfo();
 
-			if ( zeek::util::ends_with(loc->filename, ".bif.zeek") )
-				// Source code won't be available to reference, so fall back
-				// to identifier location which may actually be in a regular
-				// .zeek script.
-				loc = id->GetLocationInfo();
+				if ( zeek::util::ends_with(loc->filename, ".bif.zeek") )
+					// Source code won't be available to reference, so fall back
+					// to identifier location which may actually be in a regular
+					// .zeek script.
+					loc = id->GetLocationInfo();
+				else
+					++extra_lines;
+				}
 			else
-				++extra_lines;
-			}
-		else
-			loc = id->GetLocationInfo();
+				loc = id->GetLocationInfo();
 
-		break;
-	default:
-		loc = id->GetLocationInfo();
-		break;
-	}
+			break;
+		default:
+			loc = id->GetLocationInfo();
+			break;
+		}
 
 	if ( loc == &zeek::detail::no_location )
 		return {};
 
-	return util::fmt("%s %d %d",
-	                 normalize_script_path(loc->filename).data(),
-	                 loc->first_line, loc->last_line + extra_lines);
+	return util::fmt("%s %d %d", normalize_script_path(loc->filename).data(), loc->first_line,
+	                 loc->last_line + extra_lines);
 	}
 
-} // namespace zeek::zeekygen::detail
+	} // namespace zeek::zeekygen::detail

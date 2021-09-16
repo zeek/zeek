@@ -1,12 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/Overflow.h"
+
 #include "zeek/Val.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
-bool would_overflow(const zeek::Type* from_type, const zeek::Type* to_type,
-                    const Val* val)
+bool would_overflow(const zeek::Type* from_type, const zeek::Type* to_type, const Val* val)
 	{
 	if ( ! to_type || ! from_type )
 		return true;
@@ -36,4 +37,4 @@ bool would_overflow(const zeek::Type* from_type, const zeek::Type* to_type,
 	return false;
 	}
 
-}
+	}

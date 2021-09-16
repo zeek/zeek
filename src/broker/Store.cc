@@ -1,11 +1,13 @@
 #include "zeek/broker/Store.h"
+
 #include "zeek/Desc.h"
 #include "zeek/ID.h"
 #include "zeek/broker/Manager.h"
 
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_store_handle;
 
-namespace zeek::Broker::detail {
+namespace zeek::Broker::detail
+	{
 
 EnumValPtr query_status(bool success)
 	{
@@ -50,33 +52,34 @@ bool StoreHandleVal::DoUnserialize(const broker::data& data)
 
 broker::backend to_backend_type(BifEnum::Broker::BackendType type)
 	{
-	switch ( type ) {
-	case BifEnum::Broker::MEMORY:
-		return broker::backend::memory;
+	switch ( type )
+		{
+		case BifEnum::Broker::MEMORY:
+			return broker::backend::memory;
 
-	case BifEnum::Broker::SQLITE:
-		return broker::backend::sqlite;
-	}
+		case BifEnum::Broker::SQLITE:
+			return broker::backend::sqlite;
+		}
 
 	throw std::runtime_error("unknown broker backend");
 	}
 
-broker::backend_options to_backend_options(broker::backend backend,
-                                           RecordVal* options)
+broker::backend_options to_backend_options(broker::backend backend, RecordVal* options)
 	{
-	switch ( backend ) {
-	case broker::backend::sqlite:
+	switch ( backend )
 		{
-		auto path = options->GetFieldAs<RecordVal>(0)
-			->GetFieldAs<StringVal>(0)->CheckString();
-		return {{"path", path}};
-		}
+		case broker::backend::sqlite:
+				{
+				auto path =
+					options->GetFieldAs<RecordVal>(0)->GetFieldAs<StringVal>(0)->CheckString();
+				return {{"path", path}};
+				}
 
-	default:
-		break;
-	}
+		default:
+			break;
+		}
 
 	return broker::backend_options{};
 	}
 
-} // namespace zeek::Broker
+	} // namespace zeek::Broker

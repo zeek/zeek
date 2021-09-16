@@ -5,35 +5,35 @@
 #include "zeek/input/Manager.h"
 #include "zeek/input/ReaderBackend.h"
 
-namespace zeek::input {
+namespace zeek::input
+	{
 
 class InitMessage final : public threading::InputMessage<ReaderBackend>
-{
+	{
 public:
-	InitMessage(ReaderBackend* backend,
-		    const int num_fields, const threading::Field* const* fields)
-		: threading::InputMessage<ReaderBackend>("Init", backend),
-		num_fields(num_fields), fields(fields) { }
-
-	bool Process() override
+	InitMessage(ReaderBackend* backend, const int num_fields, const threading::Field* const* fields)
+		: threading::InputMessage<ReaderBackend>("Init", backend), num_fields(num_fields),
+		  fields(fields)
 		{
-		return Object()->Init(num_fields, fields);
 		}
+
+	bool Process() override { return Object()->Init(num_fields, fields); }
 
 private:
 	const int num_fields;
 	const threading::Field* const* fields;
-};
+	};
 
 class UpdateMessage final : public threading::InputMessage<ReaderBackend>
-{
+	{
 public:
 	UpdateMessage(ReaderBackend* backend)
 		: threading::InputMessage<ReaderBackend>("Update", backend)
-		 { }
+		{
+		}
 
 	bool Process() override { return Object()->Update(); }
-};
+	};
 
 ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, EnumVal* type)
 	{
@@ -59,12 +59,11 @@ void ReaderFrontend::Stop()
 
 ReaderFrontend::~ReaderFrontend()
 	{
-	delete [] name;
+	delete[] name;
 	delete info;
 	}
 
-void ReaderFrontend::Init(const int arg_num_fields,
-		          const threading::Field* const* arg_fields)
+void ReaderFrontend::Init(const int arg_num_fields, const threading::Field* const* arg_fields)
 	{
 	if ( disabled )
 		return;
@@ -98,4 +97,4 @@ const char* ReaderFrontend::Name() const
 	return name;
 	}
 
-} // namespace zeek::input
+	} // namespace zeek::input

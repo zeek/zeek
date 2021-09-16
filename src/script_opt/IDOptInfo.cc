@@ -1,13 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/Stmt.h"
-#include "zeek/Expr.h"
-#include "zeek/Desc.h"
 #include "zeek/script_opt/IDOptInfo.h"
+
+#include "zeek/Desc.h"
+#include "zeek/Expr.h"
+#include "zeek/Stmt.h"
 #include "zeek/script_opt/StmtOptInfo.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 const char* trace_ID = nullptr;
 
@@ -50,7 +51,6 @@ void IDDefRegion::Dump() const
 	printf("\n");
 	}
 
-
 void IDOptInfo::Clear()
 	{
 	static bool did_init = false;
@@ -70,11 +70,11 @@ void IDOptInfo::Clear()
 	}
 
 void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
-                             const std::vector<const Stmt*>& conf_blocks,
-                             bro_uint_t conf_start)
+                             const std::vector<const Stmt*>& conf_blocks, bro_uint_t conf_start)
 	{
 	if ( tracing )
-		printf("ID %s defined at %d: %s\n", trace_ID, s ? s->GetOptInfo()->stmt_num : NO_DEF, s ? obj_desc(s).c_str() : "<entry>");
+		printf("ID %s defined at %d: %s\n", trace_ID, s ? s->GetOptInfo()->stmt_num : NO_DEF,
+		       s ? obj_desc(s).c_str() : "<entry>");
 
 	if ( ! s )
 		{ // This is a definition-upon-entry
@@ -101,7 +101,7 @@ void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
 	EndRegionsAfter(stmt_num - 1, s_oi->block_level);
 
 	// Fill in any missing confluence blocks.
-	int b = 0;	// index into our own blocks
+	int b = 0; // index into our own blocks
 	int n = confluence_stmts.size();
 
 	while ( b < n && conf_start < conf_blocks.size() )
@@ -137,7 +137,8 @@ void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
 void IDOptInfo::ReturnAt(const Stmt* s)
 	{
 	if ( tracing )
-		printf("ID %s subject to return %d: %s\n", trace_ID, s->GetOptInfo()->stmt_num, obj_desc(s).c_str());
+		printf("ID %s subject to return %d: %s\n", trace_ID, s->GetOptInfo()->stmt_num,
+		       obj_desc(s).c_str());
 
 	// Look for a catch-return that this would branch to.
 	for ( int i = confluence_stmts.size() - 1; i >= 0; --i )
@@ -159,8 +160,7 @@ void IDOptInfo::ReturnAt(const Stmt* s)
 void IDOptInfo::BranchBackTo(const Stmt* from, const Stmt* to, bool close_all)
 	{
 	if ( tracing )
-		printf("ID %s branching back from %d->%d: %s\n", trace_ID,
-		       from->GetOptInfo()->stmt_num,
+		printf("ID %s branching back from %d->%d: %s\n", trace_ID, from->GetOptInfo()->stmt_num,
 		       to->GetOptInfo()->stmt_num, obj_desc(from).c_str());
 
 	// The key notion we need to update is whether the regions
@@ -207,13 +207,12 @@ void IDOptInfo::BranchBackTo(const Stmt* from, const Stmt* to, bool close_all)
 		DumpBlocks();
 	}
 
-void IDOptInfo::BranchBeyond(const Stmt* end_s, const Stmt* block,
-                             bool close_all)
+void IDOptInfo::BranchBeyond(const Stmt* end_s, const Stmt* block, bool close_all)
 	{
 	if ( tracing )
-		printf("ID %s branching forward from %d beyond %d: %s\n",
-		       trace_ID, end_s->GetOptInfo()->stmt_num,
-		       block->GetOptInfo()->stmt_num, obj_desc(end_s).c_str());
+		printf("ID %s branching forward from %d beyond %d: %s\n", trace_ID,
+		       end_s->GetOptInfo()->stmt_num, block->GetOptInfo()->stmt_num,
+		       obj_desc(end_s).c_str());
 
 	ASSERT(pending_confluences.count(block) > 0);
 
@@ -237,7 +236,8 @@ void IDOptInfo::BranchBeyond(const Stmt* end_s, const Stmt* block,
 void IDOptInfo::StartConfluenceBlock(const Stmt* s)
 	{
 	if ( tracing )
-		printf("ID %s starting confluence block at %d: %s\n", trace_ID, s->GetOptInfo()->stmt_num, obj_desc(s).c_str());
+		printf("ID %s starting confluence block at %d: %s\n", trace_ID, s->GetOptInfo()->stmt_num,
+		       obj_desc(s).c_str());
 
 	auto s_oi = s->GetOptInfo();
 	int block_level = s_oi->block_level;
@@ -309,7 +309,8 @@ void IDOptInfo::ConfluenceBlockEndsAfter(const Stmt* s, bool no_orig_flow)
 	int cs_level = cs->GetOptInfo()->block_level;
 
 	if ( tracing )
-		printf("ID %s ending (%d) confluence block (%d, level %d) at %d: %s\n", trace_ID, no_orig_flow, cs_stmt_num, cs_level, stmt_num, obj_desc(s).c_str());
+		printf("ID %s ending (%d) confluence block (%d, level %d) at %d: %s\n", trace_ID,
+		       no_orig_flow, cs_stmt_num, cs_level, stmt_num, obj_desc(s).c_str());
 
 	if ( block_has_orig_flow.back() )
 		no_orig_flow = false;
@@ -339,8 +340,7 @@ void IDOptInfo::ConfluenceBlockEndsAfter(const Stmt* s, bool no_orig_flow)
 			{ // End this region.
 			ur.SetEndsAfter(stmt_num);
 
-			if ( ur.StartsAfter() <= cs_stmt_num && no_orig_flow &&
-			     pc.count(i) == 0 )
+			if ( ur.StartsAfter() <= cs_stmt_num && no_orig_flow && pc.count(i) == 0 )
 				// Don't include this region in our assessment.
 				continue;
 			}
@@ -519,4 +519,4 @@ void IDOptInfo::DumpBlocks() const
 	printf("<end>\n");
 	}
 
-} // zeek::detail
+	} // zeek::detail

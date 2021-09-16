@@ -9,11 +9,14 @@
 #pragma once
 
 #include <stdio.h>
+
 #include "zeek/script_opt/ProfileFunc.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
-class CPPHashManager {
+class CPPHashManager
+	{
 public:
 	// Create a hash manager that uses the given name for
 	// referring to hash file(s).  It's a "base" rather than
@@ -27,46 +30,40 @@ public:
 	CPPHashManager(const char* hash_name_base, bool append);
 	~CPPHashManager();
 
-	bool IsAppend() const		{ return append; }
+	bool IsAppend() const { return append; }
 
 	// True if the given hash has already been generated.
-	bool HasHash(p_hash_type h) const
-		{ return previously_compiled.count(h) > 0; }
+	bool HasHash(p_hash_type h) const { return previously_compiled.count(h) > 0; }
 
 	// The internal (C++) name of a previously compiled function,
 	// as identified by its hash.
-	const std::string& FuncBodyName(p_hash_type h)
-		{ return previously_compiled[h]; }
+	const std::string& FuncBodyName(p_hash_type h) { return previously_compiled[h]; }
 
 	// Whether the given global has already been generated;
 	// and, if so, the hashes of its type and initialization
 	// value (used for consistency checking).  Here the name
 	// is that used at the script level.
-	bool HasGlobal(const std::string& gl) const
-		{ return gl_type_hashes.count(gl) > 0; }
-	p_hash_type GlobalTypeHash(const std::string& gl)
-		{ return gl_type_hashes[gl]; }
-	p_hash_type GlobalValHash(const std::string& gl)
-		{ return gl_val_hashes[gl]; }
+	bool HasGlobal(const std::string& gl) const { return gl_type_hashes.count(gl) > 0; }
+	p_hash_type GlobalTypeHash(const std::string& gl) { return gl_type_hashes[gl]; }
+	p_hash_type GlobalValHash(const std::string& gl) { return gl_val_hashes[gl]; }
 
 	// Whether the given C++ global already exists, and, if so,
 	// in what scope.
-	bool HasGlobalVar(const std::string& gv) const
-		{ return gv_scopes.count(gv) > 0; }
-	int GlobalVarScope(const std::string& gv)
-		{ return gv_scopes[gv]; }
+	bool HasGlobalVar(const std::string& gv) const { return gv_scopes.count(gv) > 0; }
+	int GlobalVarScope(const std::string& gv) { return gv_scopes[gv]; }
 
 	// True if the given global corresponds to a record type
 	// or an enum type.  Used to suppress complaints about
 	// definitional inconsistencies for extensible types.
 	bool HasRecordTypeGlobal(const std::string& rt) const
-		{ return record_type_globals.count(rt) > 0; }
-	bool HasEnumTypeGlobal(const std::string& et) const
-		{ return enum_type_globals.count(et) > 0; }
+		{
+		return record_type_globals.count(rt) > 0;
+		}
+	bool HasEnumTypeGlobal(const std::string& et) const { return enum_type_globals.count(et) > 0; }
 
 	// Access to the file we're writing hashes to, so that the
 	// compiler can add new entries to it.
-	FILE* HashFile() const	{ return hf_w; }
+	FILE* HashFile() const { return hf_w; }
 
 protected:
 	// Parses an existing file with hash information.
@@ -110,13 +107,17 @@ protected:
 	// We lock on the first
 	FILE* hf_r = nullptr;
 	FILE* hf_w = nullptr;
-};
+	};
 
 // Maps hashes to indices into C++ globals (like "types_N__CPP"), and
 // namespace scopes.
-struct CompiledItemPair { int index; int scope; };
+struct CompiledItemPair
+	{
+	int index;
+	int scope;
+	};
 using VarMapper = std::unordered_map<p_hash_type, CompiledItemPair>;
 
 extern VarMapper compiled_items;
 
-} // zeek::detail
+	} // zeek::detail

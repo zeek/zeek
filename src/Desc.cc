@@ -1,22 +1,23 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/Desc.h"
 
-#include <stdlib.h>
-#include <string.h>
 #include <errno.h>
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "zeek/File.h"
-#include "zeek/Reporter.h"
 #include "zeek/ConvertUTF.h"
+#include "zeek/File.h"
 #include "zeek/IPAddr.h"
+#include "zeek/Reporter.h"
+#include "zeek/zeek-config.h"
 
 #define DEFAULT_SIZE 128
 #define SLOP 10
 
-namespace zeek {
+namespace zeek
+	{
 
 ODesc::ODesc(DescType t, File* arg_f)
 	{
@@ -28,7 +29,7 @@ ODesc::ODesc(DescType t, File* arg_f)
 		{
 		size = DEFAULT_SIZE;
 		base = util::safe_malloc(size);
-		((char*) base)[0] = '\0';
+		((char*)base)[0] = '\0';
 		offset = 0;
 		}
 	else
@@ -64,7 +65,7 @@ void ODesc::EnableEscaping()
 	escape = true;
 	}
 
-void ODesc::EnableUTF8 ()
+void ODesc::EnableUTF8()
 	{
 	utf8 = true;
 	}
@@ -93,12 +94,11 @@ void ODesc::Add(const char* s, int do_indent)
 	{
 	unsigned int n = strlen(s);
 
-	if ( do_indent && IsReadable() && offset > 0 &&
-	     ((const char*) base)[offset - 1] == '\n' )
+	if ( do_indent && IsReadable() && offset > 0 && ((const char*)base)[offset - 1] == '\n' )
 		Indent();
 
 	if ( IsBinary() )
-		AddBytes(s, n+1);
+		AddBytes(s, n + 1);
 	else
 		AddBytes(s, n);
 	}
@@ -169,13 +169,12 @@ void ODesc::Add(double d, bool no_exp)
 		Add(tmp);
 
 		auto approx_equal = [](double a, double b, double tolerance = 1e-6) -> bool
-			{
+		{
 			auto v = a - b;
 			return v < 0 ? -v < tolerance : v < tolerance;
-			};
+		};
 
-		if ( approx_equal(d, nearbyint(d), 1e-9) &&
-		     isfinite(d) && ! strchr(tmp, 'e') )
+		if ( approx_equal(d, nearbyint(d), 1e-9) && isfinite(d) && ! strchr(tmp, 'e') )
 			// disambiguate from integer
 			Add(".0");
 		}
@@ -210,7 +209,7 @@ void ODesc::AddBytes(const String* s)
 			{
 			const char* str = s->Render(String::EXPANDED_STRING);
 			Add(str);
-			delete [] str;
+			delete[] str;
 			}
 		}
 	else
@@ -294,17 +293,17 @@ std::pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n
 void ODesc::AddBytes(const void* bytes, unsigned int n)
 	{
 	if ( ! escape )
-	    {
-	    AddBytesRaw(bytes, n);
-	    return;
-	    }
+		{
+		AddBytesRaw(bytes, n);
+		return;
+		}
 
-	const char* s = (const char*) bytes;
-	const char* e = (const char*) bytes + n;
+	const char* s = (const char*)bytes;
+	const char* e = (const char*)bytes + n;
 
 	while ( s < e )
 		{
-		auto [ esc_start, esc_len ] = FirstEscapeLoc(s, e - s);
+		auto [esc_start, esc_len] = FirstEscapeLoc(s, e - s);
 
 		if ( esc_start != nullptr )
 			{
@@ -343,7 +342,7 @@ void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
 		{
 		static bool write_failed = false;
 
-		if ( ! f->Write((const char*) bytes, n) )
+		if ( ! f->Write((const char*)bytes, n) )
 			{
 			if ( ! write_failed )
 				// Most likely it's a "disk full" so report
@@ -364,10 +363,10 @@ void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
 		// The following casting contortions are necessary because
 		// simply using &base[offset] generates complaints about
 		// using a void* for pointer arithemtic.
-		memcpy((void*) &((char*) base)[offset], bytes, n);
+		memcpy((void*)&((char*)base)[offset], bytes, n);
 		offset += n;
 
-		((char*) base)[offset] = '\0';	// ensure that always NUL-term.
+		((char*)base)[offset] = '\0'; // ensure that always NUL-term.
 		}
 	}
 
@@ -389,7 +388,7 @@ void ODesc::Clear()
 		free(base);
 		size = DEFAULT_SIZE;
 		base = util::safe_malloc(size);
-		((char*) base)[0] = '\0';
+		((char*)base)[0] = '\0';
 		}
 	}
 
@@ -415,7 +414,6 @@ bool ODesc::FindType(const Type* type)
 	return false;
 	}
 
-
 std::string obj_desc(const Obj* o)
 	{
 	static ODesc d;
@@ -428,4 +426,4 @@ std::string obj_desc(const Obj* o)
 	return std::string(d.Description());
 	}
 
-} // namespace zeek
+	} // namespace zeek

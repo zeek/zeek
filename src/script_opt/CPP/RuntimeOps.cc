@@ -1,12 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/ZeekString.h"
-#include "zeek/RunState.h"
-#include "zeek/EventRegistry.h"
-#include "zeek/IPAddr.h"
 #include "zeek/script_opt/CPP/RuntimeOps.h"
 
-namespace zeek::detail {
+#include "zeek/EventRegistry.h"
+#include "zeek/IPAddr.h"
+#include "zeek/RunState.h"
+#include "zeek/ZeekString.h"
+
+namespace zeek::detail
+	{
 
 using namespace std;
 
@@ -55,8 +57,7 @@ ValPtr index_vec__CPP(const VectorValPtr& vec, int index)
 
 ValPtr index_string__CPP(const StringValPtr& svp, vector<ValPtr> indices)
 	{
-	return index_string(svp->AsString(),
-	                    index_val__CPP(move(indices)).get());
+	return index_string(svp->AsString(), index_val__CPP(move(indices)).get());
 	}
 
 ValPtr set_event__CPP(IDPtr g, ValPtr v, EventHandlerPtr& gh)
@@ -71,7 +72,7 @@ ValPtr cast_value_to_type__CPP(const ValPtr& v, const TypePtr& t)
 	auto result = cast_value_to_type(v.get(), t.get());
 	if ( ! result )
 		reporter->CPPRuntimeError("invalid cast of value with type '%s' to type '%s'",
-			type_name(v->GetType()->Tag()), type_name(t->Tag()));
+		                          type_name(v->GetType()->Tag()), type_name(t->Tag()));
 	return result;
 	}
 
@@ -80,8 +81,8 @@ ValPtr from_any__CPP(const ValPtr& v, const TypePtr& t)
 	auto vt = v->GetType()->Tag();
 
 	if ( vt != t->Tag() && vt != TYPE_ERROR )
-		reporter->CPPRuntimeError("incompatible \"any\" type (%s vs. %s)",
-			type_name(vt), type_name(t->Tag()));
+		reporter->CPPRuntimeError("incompatible \"any\" type (%s vs. %s)", type_name(vt),
+		                          type_name(t->Tag()));
 
 	return v;
 	}
@@ -96,20 +97,19 @@ ValPtr from_any_vec__CPP(const ValPtr& v, const TypePtr& t)
 
 SubNetValPtr addr_mask__CPP(const IPAddr& a, uint32_t mask)
 	{
-        if ( a.GetFamily() == IPv4 )
-                {
-                if ( mask > 32 )
-                        reporter->CPPRuntimeError("bad IPv4 subnet prefix length: %d", int(mask));
-                }
-        else
-                {
-                if ( mask > 128 )
-                        reporter->CPPRuntimeError("bad IPv6 subnet prefix length: %d", int(mask));
-                }
+	if ( a.GetFamily() == IPv4 )
+		{
+		if ( mask > 32 )
+			reporter->CPPRuntimeError("bad IPv4 subnet prefix length: %d", int(mask));
+		}
+	else
+		{
+		if ( mask > 128 )
+			reporter->CPPRuntimeError("bad IPv6 subnet prefix length: %d", int(mask));
+		}
 
-        return make_intrusive<SubNetVal>(a, mask);
+	return make_intrusive<SubNetVal>(a, mask);
 	}
-
 
 // Helper function for reporting invalidation of interators.
 static void check_iterators__CPP(bool invalid)
@@ -119,8 +119,7 @@ static void check_iterators__CPP(bool invalid)
 	}
 
 // Template for aggregate assignments of the form "v1[v2] = v3".
-template <typename T>
-ValPtr assign_to_index__CPP(T v1, ValPtr v2, ValPtr v3)
+template <typename T> ValPtr assign_to_index__CPP(T v1, ValPtr v2, ValPtr v3)
 	{
 	bool iterators_invalidated = false;
 	auto err_msg = assign_to_index(move(v1), move(v2), v3, iterators_invalidated);
@@ -164,8 +163,7 @@ void remove_element__CPP(TableValPtr aggr, ListValPtr indices)
 // and values and returns a collective AttributesPtr corresponding to
 // those instantiated attributes.  For attributes that don't have
 // associated expressions, the correspoinding value should be nil.
-static AttributesPtr build_attrs__CPP(vector<int> attr_tags,
-				      vector<ValPtr> attr_vals)
+static AttributesPtr build_attrs__CPP(vector<int> attr_tags, vector<ValPtr> attr_vals)
 	{
 	vector<AttrPtr> attrs;
 	int nattrs = attr_tags.size();
@@ -184,8 +182,7 @@ static AttributesPtr build_attrs__CPP(vector<int> attr_tags,
 	return make_intrusive<Attributes>(move(attrs), nullptr, false, false);
 	}
 
-TableValPtr set_constructor__CPP(vector<ValPtr> elements, TableTypePtr t,
-                                 vector<int> attr_tags,
+TableValPtr set_constructor__CPP(vector<ValPtr> elements, TableTypePtr t, vector<int> attr_tags,
                                  vector<ValPtr> attr_vals)
 	{
 	auto attrs = build_attrs__CPP(move(attr_tags), move(attr_vals));
@@ -197,9 +194,8 @@ TableValPtr set_constructor__CPP(vector<ValPtr> elements, TableTypePtr t,
 	return aggr;
 	}
 
-TableValPtr table_constructor__CPP(vector<ValPtr> indices, vector<ValPtr> vals,
-                                   TableTypePtr t, vector<int> attr_tags,
-                                   vector<ValPtr> attr_vals)
+TableValPtr table_constructor__CPP(vector<ValPtr> indices, vector<ValPtr> vals, TableTypePtr t,
+                                   vector<int> attr_tags, vector<ValPtr> attr_vals)
 	{
 	const auto& yt = t->Yield().get();
 	auto n = indices.size();
@@ -247,4 +243,4 @@ ValPtr schedule__CPP(double dt, EventHandlerPtr event, vector<ValPtr> args)
 	return nullptr;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

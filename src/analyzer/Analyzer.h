@@ -3,20 +3,19 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
-
 #include <list>
-#include <vector>
 #include <tuple>
 #include <type_traits>
+#include <vector>
 
+#include "zeek/EventHandler.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Obj.h"
+#include "zeek/Timer.h"
 #include "zeek/analyzer/Tag.h"
 
-#include "zeek/Obj.h"
-#include "zeek/EventHandler.h"
-#include "zeek/Timer.h"
-#include "zeek/IntrusivePtr.h"
-
-namespace zeek {
+namespace zeek
+	{
 
 class Connection;
 class IP_Hdr;
@@ -24,15 +23,28 @@ class File;
 using FilePtr = zeek::IntrusivePtr<File>;
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 
-namespace detail { class Rule; }
-namespace packet_analysis::IP { class IPBasedAnalyzer; }
+namespace detail
+	{
+class Rule;
+	}
+namespace packet_analysis::IP
+	{
+class IPBasedAnalyzer;
+	}
 
-} // namespace zeek
+	} // namespace zeek
 
-namespace zeek::analyzer {
+namespace zeek::analyzer
+	{
 
-namespace tcp { class TCP_ApplicationAnalyzer; }
-namespace pia { class PIA; }
+namespace tcp
+	{
+class TCP_ApplicationAnalyzer;
+	}
+namespace pia
+	{
+class PIA;
+	}
 
 class Analyzer;
 class AnalyzerTimer;
@@ -51,35 +63,35 @@ typedef void (Analyzer::*analyzer_timer_func)(double t);
 /**
  * Class to receive processed output from an anlyzer.
  */
-class OutputHandler {
+class OutputHandler
+	{
 public:
 	/**
 	 * Destructor.
 	 */
-	virtual	~OutputHandler() { }
+	virtual ~OutputHandler() { }
 
 	/**
 	 * Hook for receiving packet data. Parameters are the same as for
 	 * Analyzer::DeliverPacket().
 	 */
-	virtual void DeliverPacket(int len, const u_char* data,
-				   bool orig, uint64_t seq,
-				   const IP_Hdr* ip, int caplen)
-		{ }
+	virtual void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+	                           const IP_Hdr* ip, int caplen)
+		{
+		}
 
 	/**
 	 * Hook for receiving stream data. Parameters are the same as for
 	 * Analyzer::DeliverStream().
 	 */
-	virtual void DeliverStream(int len, const u_char* data,
-				   bool orig)	{ }
+	virtual void DeliverStream(int len, const u_char* data, bool orig) { }
 
 	/**
 	 * Hook for receiving notification of stream gaps. Parameters are the
 	 * same as for Analyzer::Undelivered().
 	 */
-	virtual void Undelivered(uint64_t seq, int len, bool orig)	{ }
-};
+	virtual void Undelivered(uint64_t seq, int len, bool orig) { }
+	};
 
 /**
  * Main analyzer interface.
@@ -92,7 +104,8 @@ public:
  * When overiding any of the class' methods, always make sure to call the
  * base-class version first.
  */
-class Analyzer {
+class Analyzer
+	{
 public:
 	/**
 	 * Constructor.
@@ -161,8 +174,8 @@ public:
 	 *
 	 * @param caplen The packet's capture length, if available.
 	 */
-	void NextPacket(int len, const u_char* data, bool is_orig,
-			uint64_t seq = -1, const IP_Hdr* ip = nullptr, int caplen = 0);
+	void NextPacket(int len, const u_char* data, bool is_orig, uint64_t seq = -1,
+	                const IP_Hdr* ip = nullptr, int caplen = 0);
 
 	/**
 	 * Passes stream input to the analyzer for processing. The analyzer
@@ -213,9 +226,8 @@ public:
 	 *
 	 * Parameters are the same as for NextPacket().
 	 */
-	virtual void ForwardPacket(int len, const u_char* data,
-					bool orig, uint64_t seq,
-					const IP_Hdr* ip, int caplen);
+	virtual void ForwardPacket(int len, const u_char* data, bool orig, uint64_t seq,
+	                           const IP_Hdr* ip, int caplen);
 
 	/**
 	 * Forwards stream input on to all child analyzers. If the analyzer
@@ -245,8 +257,8 @@ public:
 	 * NextDeliverPacket() and can be overridden by derived classes.
 	 * Parameters are the same.
 	 */
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen);
+	virtual void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+	                           const IP_Hdr* ip, int caplen);
 
 	/**
 	 * Hook for accessing stream input for parsing. This is called by
@@ -284,39 +296,38 @@ public:
 	 * across all analyzer instantiated and can thus be used to indentify
 	 * a specific instance.
 	 */
-	ID GetID() const	{ return id; }
+	ID GetID() const { return id; }
 
 	/**
 	 * Returns the connection that the analyzer is associated with.
 	 */
-	Connection* Conn() const	{ return conn; }
+	Connection* Conn() const { return conn; }
 
 	/**
 	 * Returns the OutputHandler associated with the connection, or null
 	 * if none.
 	 */
-	OutputHandler* GetOutputHandler() const	{ return output_handler; }
+	OutputHandler* GetOutputHandler() const { return output_handler; }
 
 	/**
 	 * Associates an OutputHandler with the connnection.
 	 *
 	 * @param handler The handler.
 	 */
-	void SetOutputHandler(OutputHandler* handler)
-		{ output_handler = handler; }
+	void SetOutputHandler(OutputHandler* handler) { output_handler = handler; }
 
 	/**
 	 * If this analyzer was activated by a signature match, this returns
 	 * the signature that did so. Returns null otherwise.
 	 */
-	const zeek::detail::Rule* Signature() const		{ return signature; }
+	const zeek::detail::Rule* Signature() const { return signature; }
 
 	/**
 	 * Sets the signature that activated this analyzer, if any.
 	 *
 	 * @param sig The signature.
 	 */
-	void SetSignature(const zeek::detail::Rule* sig)	{ signature = sig; }
+	void SetSignature(const zeek::detail::Rule* sig) { signature = sig; }
 
 	/**
 	 * Signals the analyzer to skip all further input processsing. The \a
@@ -324,29 +335,33 @@ public:
 	 *
 	 * @param do_skip If true, further processing will be skipped.
 	 */
-	void SetSkip(bool do_skip)		{ skip = do_skip; }
+	void SetSkip(bool do_skip) { skip = do_skip; }
 
 	/**
 	 * Returns true if the analyzer has been told to skip processing all
 	 * further input.
 	 */
-	bool Skipping() const			{ return skip; }
+	bool Skipping() const { return skip; }
 
 	/**
 	 * Returns true if Done() has been called.
 	 */
-	bool IsFinished() const 		{ return finished; }
+	bool IsFinished() const { return finished; }
 
 	/**
 	 * Returns true if the analyzer has been flagged for removal and
 	 * shouldn't be used anymore.
 	 */
-	bool Removing() const	{ return removing; }
+	bool Removing() const { return removing; }
 
 	/**
 	 * Returns the tag associated with the analyzer's type.
 	 */
-	Tag GetAnalyzerTag() const		{ assert(tag); return tag; }
+	Tag GetAnalyzerTag() const
+		{
+		assert(tag);
+		return tag;
+		}
 
 	/**
 	 * Sets the tag associated with the analyzer's type. Note that this
@@ -380,8 +395,7 @@ public:
 	 * @param analyzer The ananlyzer to add. Takes ownership.
 	 * @return false if analyzer type was already a child or prevented, else true.
 	 */
-	bool AddChildAnalyzer(Analyzer* analyzer)
-		{ return AddChildAnalyzer(analyzer, true); }
+	bool AddChildAnalyzer(Analyzer* analyzer) { return AddChildAnalyzer(analyzer, true); }
 
 	/**
 	 * Adds a new child analyzer to the analyzer tree. If an analyzer of
@@ -402,8 +416,7 @@ public:
 	 * @return whether the child analyzer is scheduled for removal
 	 * (and was not before).
 	 */
-	bool RemoveChildAnalyzer(Analyzer* analyzer)
-		{ return RemoveChildAnalyzer(analyzer->GetID()); }
+	bool RemoveChildAnalyzer(Analyzer* analyzer) { return RemoveChildAnalyzer(analyzer->GetID()); }
 
 	/**
 	 * Removes a child analyzer. It's ok for the analyzer to not to be a
@@ -471,20 +484,20 @@ public:
 	 * currently queued up to be added. If you just added an analyzer,
 	 * it will not immediately be in this list.
 	 */
-	const analyzer_list& GetChildren()	{ return children; }
+	const analyzer_list& GetChildren() { return children; }
 
 	/**
 	 * Returns a pointer to the parent analyzer, or null if this instance
 	 * has not yet been added to an analyzer tree.
 	 */
-	Analyzer* Parent() const	{ return parent; }
+	Analyzer* Parent() const { return parent; }
 
 	/**
 	 * Sets the parent analyzer.
 	 *
 	 * @param p The new parent.
 	 */
-	void SetParent(Analyzer* p)	{ parent = p; }
+	void SetParent(Analyzer* p) { parent = p; }
 
 	/**
 	 * Remove the analyzer form its parent. The analyzer must have a
@@ -537,15 +550,13 @@ public:
 	 *
 	 * @param len If \a data is given, the length of it.
 	 */
-	virtual void ProtocolViolation(const char* reason,
-					const char* data = nullptr, int len = 0);
+	virtual void ProtocolViolation(const char* reason, const char* data = nullptr, int len = 0);
 
 	/**
 	 * Returns true if ProtocolConfirmation() has been called at least
 	 * once.
 	 */
-	bool ProtocolConfirmed() const
-		{ return protocol_confirmed; }
+	bool ProtocolConfirmed() const { return protocol_confirmed; }
 
 	/**
 	 * Called whenever the connection value is updated. Per default, this
@@ -556,7 +567,7 @@ public:
 	 *
 	 * @param conn_val The connenction value being updated.
 	 */
-	virtual void UpdateConnVal(RecordVal *conn_val);
+	virtual void UpdateConnVal(RecordVal* conn_val);
 
 	/**
 	 * Convenience function that forwards directly to
@@ -580,11 +591,11 @@ public:
 	 * A version of EnqueueConnEvent() taking a variable number of arguments.
 	 */
 	template <class... Args>
-	std::enable_if_t<
-		std::is_convertible_v<
-			std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
+	std::enable_if_t<std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
 	EnqueueConnEvent(EventHandlerPtr h, Args&&... args)
-		{ return EnqueueConnEvent(h, zeek::Args{std::forward<Args>(args)...}); }
+		{
+		return EnqueueConnEvent(h, zeek::Args{std::forward<Args>(args)...});
+		}
 
 	/**
 	 * Convenience function that forwards directly to the corresponding
@@ -595,8 +606,9 @@ public:
 	/**
 	 * Internal method.
 	 */
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
-	virtual unsigned int MemoryAllocation() const;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] virtual unsigned int
+	MemoryAllocation() const;
 
 protected:
 	friend class AnalyzerTimer;
@@ -610,7 +622,9 @@ protected:
 	 * and ID.
 	 */
 	static std::string fmt_analyzer(const Analyzer* a)
-		{ return std::string(a->GetAnalyzerName()) + util::fmt("[%d]", a->GetID()); }
+		{
+		return std::string(a->GetAnalyzerName()) + util::fmt("[%d]", a->GetID());
+		}
 
 	/**
 	 * Associates a connection with this analyzer.  Must be called if
@@ -618,7 +632,7 @@ protected:
 	 *
 	 * @param c The connection.
 	 */
-	void SetConnection(Connection* c)	{ conn = c; }
+	void SetConnection(Connection* c) { conn = c; }
 
 	/**
 	 * Instantiates a new timer associated with the analyzer.
@@ -633,8 +647,7 @@ protected:
 	 *
 	 * @param type The timer's type.
 	 */
-	void AddTimer(analyzer_timer_func timer, double t, bool do_expire,
-	              detail::TimerType type);
+	void AddTimer(analyzer_timer_func timer, double t, bool do_expire, detail::TimerType type);
 
 	/**
 	 * Cancels all timers added previously via AddTimer().
@@ -724,38 +737,37 @@ private:
 	bool removing;
 
 	static ID id_counter;
-};
+	};
 
 /**
  * Convenience macro to add a new timer.
  */
-#define ADD_ANALYZER_TIMER(timer, t, do_expire, type) \
+#define ADD_ANALYZER_TIMER(timer, t, do_expire, type)                                              \
 	AddTimer(zeek::analyzer::analyzer_timer_func(timer), (t), (do_expire), (type))
 
 /**
  * Internal convenience macro to iterate over the list of child analyzers.
  */
-#define LOOP_OVER_CHILDREN(var) \
-	for ( auto var = children.begin(); var != children.end(); ++var )
+#define LOOP_OVER_CHILDREN(var) for ( auto var = children.begin(); var != children.end(); ++var )
 
 /**
  * Internal convenience macro to iterate over the constant list of child
  * analyzers.
  */
-#define LOOP_OVER_CONST_CHILDREN(var) \
+#define LOOP_OVER_CONST_CHILDREN(var)                                                              \
 	for ( auto var = children.cbegin(); var != children.cend(); ++var )
 
 /**
  * Convenience macro to iterate over a given list of child analyzers.
  */
-#define LOOP_OVER_GIVEN_CHILDREN(var, the_kids) \
+#define LOOP_OVER_GIVEN_CHILDREN(var, the_kids)                                                    \
 	for ( auto var = the_kids.begin(); var != the_kids.end(); ++var )
 
 /**
  * Convenience macro to iterate over a given constant list of child
  * analyzers.
  */
-#define LOOP_OVER_GIVEN_CONST_CHILDREN(var, the_kids) \
+#define LOOP_OVER_GIVEN_CONST_CHILDREN(var, the_kids)                                              \
 	for ( auto var = the_kids.cbegin(); var != the_kids.cend(); ++var )
 
 /**
@@ -764,7 +776,8 @@ private:
  * are uni-directional: they receive data only from one side of a connection.
  *
  */
-class SupportAnalyzer : public Analyzer {
+class SupportAnalyzer : public Analyzer
+	{
 public:
 	/**
 	 * Constructor.
@@ -777,19 +790,22 @@ public:
 	 * @param arg_orig: If true, this is a support analyzer for the
 	 * connection originator side, and otherwise for the responder side.
 	 */
-	SupportAnalyzer(const char* name, Connection* conn, bool arg_orig)
-		: Analyzer(name, conn)	{ orig = arg_orig; sibling = nullptr; }
+	SupportAnalyzer(const char* name, Connection* conn, bool arg_orig) : Analyzer(name, conn)
+		{
+		orig = arg_orig;
+		sibling = nullptr;
+		}
 
 	/**
 	 * Destructor.
 	 */
-	~SupportAnalyzer() override {}
+	~SupportAnalyzer() override { }
 
 	/**
 	 * Returns true if this is a support analyzer for the connection's
 	 * originator side.
 	 */
-	bool IsOrig() const 	{ return orig; }
+	bool IsOrig() const { return orig; }
 
 	/**
 	 * Returns the analyzer's next sibling, or null if none.
@@ -800,34 +816,34 @@ public:
 	SupportAnalyzer* Sibling(bool only_active = false) const;
 
 	/**
-	* Passes packet input to the next sibling SupportAnalyzer if any, or
-	* on to the associated main analyzer if none. If however there's an
-	* output handler associated with this support analyzer, the data is
-	* passed only to there.
-	*
-	* Parameters same as for Analyzer::ForwardPacket.
-	*/
-	void ForwardPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	 * Passes packet input to the next sibling SupportAnalyzer if any, or
+	 * on to the associated main analyzer if none. If however there's an
+	 * output handler associated with this support analyzer, the data is
+	 * passed only to there.
+	 *
+	 * Parameters same as for Analyzer::ForwardPacket.
+	 */
+	void ForwardPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip,
+	                   int caplen) override;
 
 	/**
-	* Passes stream input to the next sibling SupportAnalyzer if any, or
-	* on to the associated main analyzer if none. If however there's an
-	* output handler associated with this support analyzer, the data is
-	* passed only to there.
-	*
-	* Parameters same as for Analyzer::ForwardStream.
-	*/
+	 * Passes stream input to the next sibling SupportAnalyzer if any, or
+	 * on to the associated main analyzer if none. If however there's an
+	 * output handler associated with this support analyzer, the data is
+	 * passed only to there.
+	 *
+	 * Parameters same as for Analyzer::ForwardStream.
+	 */
 	void ForwardStream(int len, const u_char* data, bool orig) override;
 
 	/**
-	* Passes gap information to the next sibling SupportAnalyzer if any,
-	* or on to the associated main analyzer if none. If however there's
-	* an output handler associated with this support analyzer, the gap is
-	* passed only to there.
-	*
-	* Parameters same as for Analyzer::ForwardPacket.
-	*/
+	 * Passes gap information to the next sibling SupportAnalyzer if any,
+	 * or on to the associated main analyzer if none. If however there's
+	 * an output handler associated with this support analyzer, the gap is
+	 * passed only to there.
+	 *
+	 * Parameters same as for Analyzer::ForwardPacket.
+	 */
 	void ForwardUndelivered(uint64_t seq, int len, bool orig) override;
 
 protected:
@@ -839,7 +855,7 @@ private:
 	// Points to next support analyzer in chain.  The list is managed by
 	// parent analyzer.
 	SupportAnalyzer* sibling;
-};
+	};
 
 // The following need to be consistent with bro.init.
 #define CONTENTS_NONE 0
@@ -847,4 +863,4 @@ private:
 #define CONTENTS_RESP 2
 #define CONTENTS_BOTH 3
 
-} // namespace zeek::analyzer
+	} // namespace zeek::analyzer

@@ -1,10 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/script_opt/TempVar.h"
+
 #include "zeek/Reporter.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 TempVar::TempVar(int num, const TypePtr& t, ExprPtr _rhs) : type(t)
 	{
@@ -25,4 +26,4 @@ void TempVar::SetAlias(IDPtr _alias)
 	alias = std::move(_alias);
 	}
 
-} // zeek::detail
+	} // zeek::detail

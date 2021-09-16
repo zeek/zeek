@@ -7,13 +7,15 @@
 #include <string_view>
 #include <utility>
 
-#include "zeek/plugin/Plugin.h"
-#include "zeek/plugin/Component.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekArgs.h"
+#include "zeek/plugin/Component.h"
+#include "zeek/plugin/Plugin.h"
 
-namespace zeek {
-namespace plugin {
+namespace zeek
+	{
+namespace plugin
+	{
 
 // Macros that trigger plugin hooks. We put this into macros to short-cut the
 // code for the most common case that no plugin defines the hook.
@@ -25,8 +27,11 @@ namespace plugin {
  *
  * @param method_call The \a Manager method corresponding to the hook.
  */
-#define PLUGIN_HOOK_VOID(hook, method_call) \
-	{ if ( zeek::plugin_mgr->HavePluginForHook(zeek::plugin::hook) ) zeek::plugin_mgr->method_call; }
+#define PLUGIN_HOOK_VOID(hook, method_call)                                                        \
+		{                                                                                          \
+		if ( zeek::plugin_mgr->HavePluginForHook(zeek::plugin::hook) )                             \
+			zeek::plugin_mgr->method_call;                                                         \
+		}
 
 /**
  * Macro to trigger hooks that return a result.
@@ -38,16 +43,17 @@ namespace plugin {
  * @param default_result: The result to use if there's no plugin implementing
  * the hook.
  */
-#define PLUGIN_HOOK_WITH_RESULT(hook, method_call, default_result) \
-	(zeek::plugin_mgr->HavePluginForHook(zeek::plugin::hook) ? zeek::plugin_mgr->method_call : (default_result))
+#define PLUGIN_HOOK_WITH_RESULT(hook, method_call, default_result)                                 \
+	(zeek::plugin_mgr->HavePluginForHook(zeek::plugin::hook) ? zeek::plugin_mgr->method_call       \
+	                                                         : (default_result))
 
 /**
  * A singleton object managing all plugins.
  */
 class Manager
-{
+	{
 public:
-	typedef void (*bif_init_func)(Plugin *);
+	typedef void (*bif_init_func)(Plugin*);
 	using plugin_list = std::list<Plugin*>;
 	using component_list = Plugin::component_list;
 	using inactive_plugin_list = std::list<std::pair<std::string, std::string>>;
@@ -146,7 +152,7 @@ public:
 	 * are derived from a specific class. The class is given as the
 	 * template parameter \c T.
 	 */
-	template<class T> std::list<T *> Components() const;
+	template <class T> std::list<T*> Components() const;
 
 	/**
 	 * Returns the (dynamic) plugin associated with a given filesytem
@@ -175,7 +181,7 @@ public:
 	 *
 	 * @param plugin The plugin to return the hooks for.
 	 */
-	std::list<std::pair<HookType, int> > HooksEnabledForPlugin(const Plugin* plugin) const;
+	std::list<std::pair<HookType, int>> HooksEnabledForPlugin(const Plugin* plugin) const;
 
 	/**
 	 * Enables a hook for a given plugin.
@@ -236,7 +242,8 @@ public:
 	 * if a plugin took over the file but had trouble loading it; and -1 if
 	 * no plugin was interested in the file at all.
 	 */
-	virtual int HookLoadFile(const Plugin::LoadType type, const std::string& file, const std::string& resolved);
+	virtual int HookLoadFile(const Plugin::LoadType type, const std::string& file,
+	                         const std::string& resolved);
 
 	/**
 	 * Hook that filters calls to a script function/event/hook.
@@ -253,8 +260,8 @@ public:
 	 * it may be any Val and must be ignored). If no plugin handled the call,
 	 * the method returns null.
 	 */
-	std::pair<bool, ValPtr>
-	HookCallFunction(const Func* func, zeek::detail::Frame* parent, Args* args) const;
+	std::pair<bool, ValPtr> HookCallFunction(const Func* func, zeek::detail::Frame* parent,
+	                                         Args* args) const;
 
 	/**
 	 * Hook that filters the queuing of an event.
@@ -280,7 +287,7 @@ public:
 	 *
 	 * @param conn The connection.
 	 */
-	void HookSetupAnalyzerTree(Connection *conn) const;
+	void HookSetupAnalyzerTree(Connection* conn) const;
 
 	/**
 	 * Hook that informs plugins that the event queue is being drained.
@@ -318,11 +325,8 @@ public:
 	 *
 	 * @param fields threading::Field description of the fields being logged.
 	 */
-	void HookLogInit(const std::string& writer,
-	                 const std::string& instantiating_filter,
-	                 bool local, bool remote,
-	                 const logging::WriterBackend::WriterInfo& info,
-	                 int num_fields,
+	void HookLogInit(const std::string& writer, const std::string& instantiating_filter, bool local,
+	                 bool remote, const logging::WriterBackend::WriterInfo& info, int num_fields,
 	                 const threading::Field* const* fields) const;
 
 	/**
@@ -351,11 +355,9 @@ public:
 	 * @return true if log line should be written, false if log line should be
 	 *         skipped and not passed on to the writer.
 	 */
-	bool HookLogWrite(const std::string& writer,
-	                  const std::string& filter,
-	                  const logging::WriterBackend::WriterInfo& info,
-	                  int num_fields, const threading::Field* const* fields,
-	                  threading::Value** vals) const;
+	bool HookLogWrite(const std::string& writer, const std::string& filter,
+	                  const logging::WriterBackend::WriterInfo& info, int num_fields,
+	                  const threading::Field* const* fields, threading::Value** vals) const;
 
 	/**
 	 * Hook into reporting. This method will be called for each reporter call
@@ -387,8 +389,9 @@ public:
 	 */
 	bool HookReporter(const std::string& prefix, const EventHandlerPtr event,
 	                  const Connection* conn, const ValPList* addl, bool location,
-	                  const zeek::detail::Location* location1, const zeek::detail::Location* location2,
-	                  bool time, const std::string& message);
+	                  const zeek::detail::Location* location1,
+	                  const zeek::detail::Location* location2, bool time,
+	                  const std::string& message);
 
 	/**
 	 * Internal method that registers a freshly instantiated plugin with
@@ -417,10 +420,12 @@ public:
 	void ExtendZeekPathForPlugins();
 
 private:
-	bool ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found, std::vector<std::string>* errors);
+	bool ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found,
+	                                   std::vector<std::string>* errors);
 	void UpdateInputFiles();
 	void MetaHookPre(HookType hook, const HookArgumentList& args) const;
-	void MetaHookPost(HookType hook, const HookArgumentList& args, const HookArgument& result) const;
+	void MetaHookPost(HookType hook, const HookArgumentList& args,
+	                  const HookArgument& result) const;
 
 	// Directories that have already been searched for dynamic plugins.
 	// Used to prevent multiple searches of the same dirs (e.g. via symlinks).
@@ -431,7 +436,7 @@ private:
 	// load at first.
 	std::set<std::string> requested_plugins;
 
-	 // All found dynamic plugins, mapping their names to base directory.
+	// All found dynamic plugins, mapping their names to base directory.
 	using dynamic_plugin_map = std::map<std::string, std::string>;
 	dynamic_plugin_map dynamic_plugins;
 
@@ -440,7 +445,7 @@ private:
 	using file_list = std::list<std::string>;
 	file_list scripts_to_load;
 
-	bool init;	// Flag indicating whether InitPreScript() has run yet.
+	bool init; // Flag indicating whether InitPreScript() has run yet.
 
 	// A hook list keeps pairs of plugin and priority interested in a
 	// given hook.
@@ -470,20 +475,20 @@ private:
 	// so that plugins can register their bifs even before the manager
 	// exists.
 	static bif_init_func_map* BifFilesInternal();
-};
+	};
 
-template<class T>
-std::list<T *> Manager::Components() const
+template <class T> std::list<T*> Manager::Components() const
 	{
-	std::list<T *> result;
+	std::list<T*> result;
 
-	for ( plugin_list::const_iterator p = ActivePluginsInternal()->begin(); p != ActivePluginsInternal()->end(); p++ )
+	for ( plugin_list::const_iterator p = ActivePluginsInternal()->begin();
+	      p != ActivePluginsInternal()->end(); p++ )
 		{
 		component_list components = (*p)->Components();
 
 		for ( component_list::const_iterator c = components.begin(); c != components.end(); c++ )
 			{
-			T* t = dynamic_cast<T *>(*c);
+			T* t = dynamic_cast<T*>(*c);
 
 			if ( t )
 				result.push_back(t);
@@ -493,22 +498,24 @@ std::list<T *> Manager::Components() const
 	return result;
 	}
 
-namespace detail {
+namespace detail
+	{
 
 /**
  * Internal class used by bifcl-generated code to register its init functions at runtime.
  */
-class __RegisterBif {
+class __RegisterBif
+	{
 public:
 	__RegisterBif(const char* plugin, Manager::bif_init_func init)
 		{
 		Manager::RegisterBifFile(plugin, init);
 		}
-};
+	};
 
-} // namespace detail
-} // namespace plugin
+	} // namespace detail
+	} // namespace plugin
 
 extern plugin::Manager* plugin_mgr;
 
-} // namespace zeek
+	} // namespace zeek

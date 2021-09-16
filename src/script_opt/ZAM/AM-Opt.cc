@@ -4,14 +4,15 @@
 // i.e., code improvement that's done after the compiler has generated
 // an initial, complete intermediary function body.
 
-#include "zeek/input.h"
-#include "zeek/Reporter.h"
 #include "zeek/Desc.h"
+#include "zeek/Reporter.h"
+#include "zeek/input.h"
 #include "zeek/script_opt/Reduce.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 // Tracks per function its maximum remapped interpreter frame size.  We
 // can't do this when compiling individual functions since for event handlers
@@ -42,8 +43,7 @@ void finalize_functions(const std::vector<FuncInfo>& funcs)
 		// preserve the size they need.
 		int size = func->FrameSize();
 
-		if ( f.Body()->Tag() != STMT_ZAM &&
-		     remapped_intrp_frame_sizes.count(func) > 0 &&
+		if ( f.Body()->Tag() != STMT_ZAM && remapped_intrp_frame_sizes.count(func) > 0 &&
 		     size > remapped_intrp_frame_sizes[func] )
 			remapped_intrp_frame_sizes[func] = size;
 		}
@@ -62,7 +62,6 @@ void finalize_functions(const std::vector<FuncInfo>& funcs)
 		func->SetFrameSize(remapped_intrp_frame_sizes[func]);
 		}
 	}
-
 
 // The following is for activating detailed dumping for debugging
 // optimizer problems.
@@ -133,15 +132,13 @@ void ZAMCompiler::OptimizeInsts()
 				DumpInsts1(nullptr);
 				}
 			}
-		}
-	while ( something_changed );
+		} while ( something_changed );
 
 	ReMapFrame();
 	ReMapInterpreterFrame();
 	}
 
-template<typename T>
-void ZAMCompiler::TallySwitchTargets(const CaseMapsI<T>& switches)
+template <typename T> void ZAMCompiler::TallySwitchTargets(const CaseMapsI<T>& switches)
 	{
 	for ( auto& targs : switches )
 		for ( auto& targ : targs )
@@ -177,8 +174,7 @@ bool ZAMCompiler::RemoveDeadCode()
 			continue;
 			}
 
-		if ( t && t->inst_num > i0->inst_num &&
-		     (! i1 || t->inst_num <= i1->inst_num) )
+		if ( t && t->inst_num > i0->inst_num && (! i1 || t->inst_num <= i1->inst_num) )
 			{
 			// This is effectively a branch to the next
 			// instruction.  Even if i0 is conditional, there's
@@ -362,106 +358,105 @@ void ZAMCompiler::ComputeFrameLifetimes()
 			CheckSlotAssignment(inst->v1, inst);
 
 		// Some special-casing.
-		switch ( inst->op ) {
-		case OP_NEXT_TABLE_ITER_VV:
-		case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
+		switch ( inst->op )
 			{
-			// These assign to an arbitrary long list of variables.
-			auto& iter_vars = inst->aux->loop_vars;
-			auto depth = inst->loop_depth;
+			case OP_NEXT_TABLE_ITER_VV:
+			case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
+					{
+					// These assign to an arbitrary long list of variables.
+					auto& iter_vars = inst->aux->loop_vars;
+					auto depth = inst->loop_depth;
 
-			for ( auto v : iter_vars )
-				{
-				CheckSlotAssignment(v, inst);
+					for ( auto v : iter_vars )
+						{
+						CheckSlotAssignment(v, inst);
 
-				// Also mark it as usage throughout the
-				// loop.  Otherwise, we risk pruning the
-				// variable if it happens to not be used
-				// (which will mess up the iteration logic)
-				// or doubling it up with some other value
-				// inside the loop (which will fail when
-				// the loop var has memory management
-				// associated with it).
-				ExtendLifetime(v, EndOfLoop(inst, depth));
-				}
+						// Also mark it as usage throughout the
+						// loop.  Otherwise, we risk pruning the
+						// variable if it happens to not be used
+						// (which will mess up the iteration logic)
+						// or doubling it up with some other value
+						// inside the loop (which will fail when
+						// the loop var has memory management
+						// associated with it).
+						ExtendLifetime(v, EndOfLoop(inst, depth));
+						}
 
-			// No need to check the additional "var" associated
-			// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
-			// a slot-1 assignment.  However, similar to other
-			// loop variables, mark this as a usage.
-			if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV )
-				ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
-			}
-			break;
-
-		case OP_NEXT_TABLE_ITER_NO_VARS_VV:
-			break;
-
-		case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV:
-			{
-			auto depth = inst->loop_depth;
-			ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
-			}
-			break;
-
-		case OP_NEXT_VECTOR_ITER_VVV:
-		case OP_NEXT_STRING_ITER_VVV:
-			// Sometimes loops are written that don't actually
-			// use the iteration variable.  However, we still
-			// need to mark the variable as having usage
-			// throughout the loop, lest we elide the iteration
-			// instruction.  An alternative would be to transform
-			// such iterators into variable-less versions.  That
-			// optimization hardly seems worth the trouble, though,
-			// given the presumed rarity of such loops.
-			ExtendLifetime(inst->v1,
-			               EndOfLoop(inst, inst->loop_depth));
-			break;
-
-		case OP_INIT_TABLE_LOOP_VV:
-		case OP_INIT_VECTOR_LOOP_VV:
-		case OP_INIT_STRING_LOOP_VV:
-			{
-			// For all of these, the scope of the aggregate being
-			// looped over is the entire loop, even if it doesn't
-			// directly appear in it, and not just the initializer.
-			// For all three, the aggregate is in v1.
-			ASSERT(i < insts1.size() - 1);
-			auto succ = insts1[i+1];
-			ASSERT(succ->live);
-			auto depth = succ->loop_depth;
-			ExtendLifetime(inst->v1, EndOfLoop(succ, depth));
-
-			// Important: we skip the usual UsesSlots analysis
-			// below since we've already set it, and don't want
-			// to perturb ExtendLifetime's consistency check.
-			continue;
-			}
-
-		case OP_STORE_GLOBAL_V:
-			{
-			// Use of the global goes to here.
-			auto slot = frame_layout1[globalsI[inst->v1].id.get()];
-			ExtendLifetime(slot, EndOfLoop(inst, 1));
-			break;
-			}
-
-		default:
-			// Look for slots in auxiliary information.
-			auto aux = inst->aux;
-			if ( ! aux || ! aux->slots )
+					// No need to check the additional "var" associated
+					// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
+					// a slot-1 assignment.  However, similar to other
+					// loop variables, mark this as a usage.
+					if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV )
+						ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
+					}
 				break;
 
-			for ( auto j = 0; j < aux->n; ++j )
-				{
-				if ( aux->slots[j] < 0 )
-					continue;
+			case OP_NEXT_TABLE_ITER_NO_VARS_VV:
+				break;
 
-				ExtendLifetime(aux->slots[j],
-				               EndOfLoop(inst, 1));
-				}
-			break;
-		}
+			case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV:
+					{
+					auto depth = inst->loop_depth;
+					ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
+					}
+				break;
+
+			case OP_NEXT_VECTOR_ITER_VVV:
+			case OP_NEXT_STRING_ITER_VVV:
+				// Sometimes loops are written that don't actually
+				// use the iteration variable.  However, we still
+				// need to mark the variable as having usage
+				// throughout the loop, lest we elide the iteration
+				// instruction.  An alternative would be to transform
+				// such iterators into variable-less versions.  That
+				// optimization hardly seems worth the trouble, though,
+				// given the presumed rarity of such loops.
+				ExtendLifetime(inst->v1, EndOfLoop(inst, inst->loop_depth));
+				break;
+
+			case OP_INIT_TABLE_LOOP_VV:
+			case OP_INIT_VECTOR_LOOP_VV:
+			case OP_INIT_STRING_LOOP_VV:
+					{
+					// For all of these, the scope of the aggregate being
+					// looped over is the entire loop, even if it doesn't
+					// directly appear in it, and not just the initializer.
+					// For all three, the aggregate is in v1.
+					ASSERT(i < insts1.size() - 1);
+					auto succ = insts1[i + 1];
+					ASSERT(succ->live);
+					auto depth = succ->loop_depth;
+					ExtendLifetime(inst->v1, EndOfLoop(succ, depth));
+
+					// Important: we skip the usual UsesSlots analysis
+					// below since we've already set it, and don't want
+					// to perturb ExtendLifetime's consistency check.
+					continue;
+					}
+
+			case OP_STORE_GLOBAL_V:
+					{
+					// Use of the global goes to here.
+					auto slot = frame_layout1[globalsI[inst->v1].id.get()];
+					ExtendLifetime(slot, EndOfLoop(inst, 1));
+					break;
+					}
+
+			default:
+				// Look for slots in auxiliary information.
+				auto aux = inst->aux;
+				if ( ! aux || ! aux->slots )
+					break;
+
+				for ( auto j = 0; j < aux->n; ++j )
+					{
+					if ( aux->slots[j] < 0 )
+						continue;
+
+					ExtendLifetime(aux->slots[j], EndOfLoop(inst, 1));
+					}
+				break;
+			}
 
 		int s1, s2, s3, s4;
 
@@ -560,47 +555,49 @@ void ZAMCompiler::ReMapFrame()
 			}
 
 		// Handle special cases.
-		switch ( inst->op ) {
-		case OP_NEXT_TABLE_ITER_VV:
-		case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
+		switch ( inst->op )
 			{
-			// Rewrite iteration variables.
-			auto& iter_vars = inst->aux->loop_vars;
-			for ( auto& v : iter_vars )
-				{
-				ASSERT(v >= 0 && v < n1_slots);
-				v = frame1_to_frame2[v];
-				}
-			}
-			break;
-
-		default:
-			// Update slots in auxiliary information.
-			auto aux = inst->aux;
-			if ( ! aux || ! aux->slots )
+			case OP_NEXT_TABLE_ITER_VV:
+			case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
+					{
+					// Rewrite iteration variables.
+					auto& iter_vars = inst->aux->loop_vars;
+					for ( auto& v : iter_vars )
+						{
+						ASSERT(v >= 0 && v < n1_slots);
+						v = frame1_to_frame2[v];
+						}
+					}
 				break;
 
-			for ( auto j = 0; j < aux->n; ++j )
-				{
-				auto& slot = aux->slots[j];
+			default:
+				// Update slots in auxiliary information.
+				auto aux = inst->aux;
+				if ( ! aux || ! aux->slots )
+					break;
 
-				if ( slot < 0 )
-					// This is instead a constant.
-					continue;
-
-				auto new_slot = frame1_to_frame2[slot];
-
-				if ( new_slot < 0 )
+				for ( auto j = 0; j < aux->n; ++j )
 					{
-					ODesc d;
-					inst->stmt->GetLocationInfo()->Describe(&d);
-					reporter->Error("%s: value used but not set: %s", d.Description(), frame_denizens[slot]->Name());
-					}
+					auto& slot = aux->slots[j];
 
-				slot = new_slot;
-				}
-			break;
-		}
+					if ( slot < 0 )
+						// This is instead a constant.
+						continue;
+
+					auto new_slot = frame1_to_frame2[slot];
+
+					if ( new_slot < 0 )
+						{
+						ODesc d;
+						inst->stmt->GetLocationInfo()->Describe(&d);
+						reporter->Error("%s: value used but not set: %s", d.Description(),
+						                frame_denizens[slot]->Name());
+						}
+
+					slot = new_slot;
+					}
+				break;
+			}
 
 		if ( inst->IsGlobalLoad() )
 			{
@@ -686,8 +683,7 @@ void ZAMCompiler::ReMapVar(ID* id, int slot, bro_uint_t inst)
 		// ZAM instructions are careful to allow operands and
 		// assignment destinations to refer to the same slot.
 
-		if ( s.scope_end <= static_cast<int>(inst) &&
-		     s.is_managed == is_managed )
+		if ( s.scope_end <= static_cast<int>(inst) && s.is_managed == is_managed )
 			{ // It's compatible.
 			if ( s.scope_end == static_cast<int>(inst) )
 				{ // It ends right on the money.
@@ -728,8 +724,7 @@ void ZAMCompiler::ReMapVar(ID* id, int slot, bro_uint_t inst)
 
 void ZAMCompiler::CheckSlotAssignment(int slot, const ZInstI* inst)
 	{
-	ASSERT(slot >= 0 &&
-	       static_cast<bro_uint_t>(slot) < frame_denizens.size());
+	ASSERT(slot >= 0 && static_cast<bro_uint_t>(slot) < frame_denizens.size());
 
 	// We construct temporaries such that their values are never used
 	// earlier than their definitions in loop bodies.  For other
@@ -774,7 +769,8 @@ void ZAMCompiler::CheckSlotUse(int slot, const ZInstI* inst)
 		{
 		ODesc d;
 		inst->stmt->GetLocationInfo()->Describe(&d);
-		reporter->Error("%s: value used but not set: %s", d.Description(), frame_denizens[slot]->Name());
+		reporter->Error("%s: value used but not set: %s", d.Description(),
+		                frame_denizens[slot]->Name());
 		}
 
 	// See comment above about temporaries not having their values
@@ -808,17 +804,15 @@ void ZAMCompiler::ExtendLifetime(int slot, const ZInstI* inst)
 		// extended lifetimes, as that can happen if they're
 		// used as a "for" loop-over target, which already
 		// extends lifetime across the body of the loop.
-		if ( inst->loop_depth > 0 &&
-		     reducer->IsTemporary(frame_denizens[slot]) &&
+		if ( inst->loop_depth > 0 && reducer->IsTemporary(frame_denizens[slot]) &&
 		     old_inst->inst_num >= inst->inst_num )
 			return;
 
 		// We expect to only be increasing the slot's lifetime ...
-		// *unless* we're inside a nested loop, in which case 
+		// *unless* we're inside a nested loop, in which case
 		// the slot might have already been extended to the
 		// end of the outer loop.
-		ASSERT(old_inst->inst_num <= inst->inst_num ||
-		       inst->loop_depth > 1);
+		ASSERT(old_inst->inst_num <= inst->inst_num || inst->loop_depth > 1);
 
 		if ( old_inst->inst_num < inst->inst_num )
 			{ // Extend.
@@ -898,8 +892,7 @@ bool ZAMCompiler::VarIsAssigned(int slot, const ZInstI* i) const
 	// Special-case for table iterators, which assign to a bunch
 	// of variables but they're not immediately visible in the
 	// instruction layout.
-	if ( i->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV ||
-	     i->op == OP_NEXT_TABLE_ITER_VV )
+	if ( i->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV || i->op == OP_NEXT_TABLE_ITER_VV )
 		{
 		auto& iter_vars = i->aux->loop_vars;
 		for ( auto v : iter_vars )
@@ -1061,4 +1054,4 @@ void ZAMCompiler::KillInsts(bro_uint_t i)
 		}
 	}
 
-} // zeek::detail
+	} // zeek::detail

@@ -1,12 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/analyzer/protocol/rpc/XDR.h"
 
 #include <string.h>
 #include <algorithm>
 
 #include "zeek/analyzer/protocol/rpc/events.bif.h"
+#include "zeek/zeek-config.h"
 
 uint32_t zeek::analyzer::rpc::extract_XDR_uint32(const u_char*& buf, int& len)
 	{
@@ -58,7 +58,8 @@ double zeek::analyzer::rpc::extract_XDR_time(const u_char*& buf, int& len)
 	return double(uhi) + double(ulo) / 1e9;
 	}
 
-const u_char* zeek::analyzer::rpc::extract_XDR_opaque(const u_char*& buf, int& len, int& n, int max_len, bool short_buf_ok)
+const u_char* zeek::analyzer::rpc::extract_XDR_opaque(const u_char*& buf, int& len, int& n,
+                                                      int max_len, bool short_buf_ok)
 	{
 	n = int(extract_XDR_uint32(buf, len));
 	if ( ! buf )
@@ -73,7 +74,7 @@ const u_char* zeek::analyzer::rpc::extract_XDR_opaque(const u_char*& buf, int& l
 		return nullptr;
 		}
 
-	int n4 = ((n + 3) >> 2) << 2;	// n rounded up to next multiple of 4
+	int n4 = ((n + 3) >> 2) << 2; // n rounded up to next multiple of 4
 
 	len -= n4;
 	const u_char* opaque = buf;
@@ -86,12 +87,12 @@ const u_char* zeek::analyzer::rpc::extract_XDR_opaque_fixed(const u_char*& buf, 
 	{
 	if ( ! buf )
 		return nullptr;
-	if ( n < 0 || n > len)
+	if ( n < 0 || n > len )
 		{
 		buf = nullptr;
 		return nullptr;
 		}
-	int n4 = ((n + 3) >> 2) << 2;	// n rounded up to next multiple of 4
+	int n4 = ((n + 3) >> 2) << 2; // n rounded up to next multiple of 4
 
 	len -= n4;
 	const u_char* opaque = buf;
@@ -100,7 +101,6 @@ const u_char* zeek::analyzer::rpc::extract_XDR_opaque_fixed(const u_char*& buf, 
 	return opaque;
 	}
 
-
 uint32_t zeek::analyzer::rpc::skip_XDR_opaque_auth(const u_char*& buf, int& len)
 	{
 	uint32_t auth_flavor = extract_XDR_uint32(buf, len);
@@ -108,7 +108,7 @@ uint32_t zeek::analyzer::rpc::skip_XDR_opaque_auth(const u_char*& buf, int& len)
 		return 0;
 
 	int n;
-	(void) extract_XDR_opaque(buf, len, n, 400);
+	(void)extract_XDR_opaque(buf, len, n, 400);
 
 	return auth_flavor;
 	}

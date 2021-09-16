@@ -1,35 +1,44 @@
-#include "zeek/zeek-config.h"
 #include "zeek/PolicyFile.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <assert.h>
-#include <stdio.h>
 #include <errno.h>
-
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "zeek/Debug.h"
-#include "zeek/util.h"
 #include "zeek/Reporter.h"
+#include "zeek/util.h"
+#include "zeek/zeek-config.h"
 
 using namespace std;
 
-struct PolicyFile {
-	PolicyFile ()	{ filedata = nullptr; lmtime = 0; }
-	~PolicyFile ()	{ delete [] filedata; filedata = nullptr; }
+struct PolicyFile
+	{
+	PolicyFile()
+		{
+		filedata = nullptr;
+		lmtime = 0;
+		}
+	~PolicyFile()
+		{
+		delete[] filedata;
+		filedata = nullptr;
+		}
 
 	time_t lmtime;
 	char* filedata;
 	vector<const char*> lines;
-};
+	};
 
 typedef map<string, PolicyFile*> PolicyFileMap;
 static PolicyFileMap policy_files;
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 int how_many_lines_in(const char* policy_filename)
 	{
@@ -97,9 +106,9 @@ bool LoadPolicyFileText(const char* policy_filename)
 
 	// ### This code is not necessarily Unicode safe!
 	// (probably fine with UTF-8)
-	pf->filedata = new char[size+1];
+	pf->filedata = new char[size + 1];
 	if ( fread(pf->filedata, size, 1, f) != 1 )
-        reporter->InternalError("Failed to fread() file data");
+		reporter->InternalError("Failed to fread() file data");
 	pf->filedata[size] = 0;
 	fclose(f);
 
@@ -122,8 +131,8 @@ bool LoadPolicyFileText(const char* policy_filename)
 	}
 
 // REMEMBER: line number arguments are indexed from 0.
-bool PrintLines(const char* policy_filename, unsigned int start_line,
-		unsigned int how_many_lines, bool show_numbers)
+bool PrintLines(const char* policy_filename, unsigned int start_line, unsigned int how_many_lines,
+                bool show_numbers)
 	{
 	if ( ! policy_filename )
 		return true;
@@ -157,8 +166,8 @@ bool PrintLines(const char* policy_filename, unsigned int start_line,
 
 	if ( start_line > pf->lines.size() )
 		{
-		debug_msg("Line number %d out of range; %s has %d lines\n",
-			start_line, policy_filename, int(pf->lines.size()));
+		debug_msg("Line number %d out of range; %s has %d lines\n", start_line, policy_filename,
+		          int(pf->lines.size()));
 		return false;
 		}
 
@@ -177,4 +186,4 @@ bool PrintLines(const char* policy_filename, unsigned int start_line,
 	return true;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

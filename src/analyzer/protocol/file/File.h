@@ -6,9 +6,11 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-namespace zeek::analyzer::file {
+namespace zeek::analyzer::file
+	{
 
-class File_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class File_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 public:
 	File_Analyzer(const char* name, Connection* conn);
 
@@ -18,8 +20,8 @@ public:
 
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-//	static analyzer::Analyzer* Instantiate(Connection* conn)
-//		{ return new File_Analyzer(conn); }
+	//	static analyzer::Analyzer* Instantiate(Connection* conn)
+	//		{ return new File_Analyzer(conn); }
 
 protected:
 	void Identify();
@@ -29,26 +31,22 @@ protected:
 	int buffer_len;
 	std::string file_id_orig;
 	std::string file_id_resp;
-};
+	};
 
-class IRC_Data : public File_Analyzer {
+class IRC_Data : public File_Analyzer
+	{
 public:
-	explicit IRC_Data(Connection* conn)
-		: File_Analyzer("IRC_Data", conn)
-		{ }
+	explicit IRC_Data(Connection* conn) : File_Analyzer("IRC_Data", conn) { }
 
-	static Analyzer* Instantiate(Connection* conn)
-		{ return new IRC_Data(conn); }
-};
+	static Analyzer* Instantiate(Connection* conn) { return new IRC_Data(conn); }
+	};
 
-class FTP_Data : public File_Analyzer {
+class FTP_Data : public File_Analyzer
+	{
 public:
-	explicit FTP_Data(Connection* conn)
-		: File_Analyzer("FTP_Data", conn)
-		{ }
+	explicit FTP_Data(Connection* conn) : File_Analyzer("FTP_Data", conn) { }
 
-	static Analyzer* Instantiate(Connection* conn)
-		{ return new FTP_Data(conn); }
-};
+	static Analyzer* Instantiate(Connection* conn) { return new FTP_Data(conn); }
+	};
 
-} // namespace zeek::analyzer::file
+	} // namespace zeek::analyzer::file

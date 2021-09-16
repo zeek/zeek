@@ -313,8 +313,9 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 			case OP_NOP:
 				break;
 
-#include "ZAM-EvalDefs.h"
+// These must stay in this order or the build fails.
 #include "ZAM-EvalMacros.h"
+#include "ZAM-EvalDefs.h"
 
 			default:
 				reporter->InternalError("bad ZAM opcode");

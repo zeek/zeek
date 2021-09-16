@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include <net/if_arp.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <net/if_arp.h>
 
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"

@@ -3,9 +3,9 @@
 #include "zeek/iosource/Manager.h"
 
 #include <assert.h>
+#include <sys/types.h>
 #include <sys/event.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include "zeek/NetVar.h"

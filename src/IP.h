@@ -2,9 +2,9 @@
 
 #pragma once
 
+#include <sys/types.h> // for u_char
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#include <sys/types.h> // for u_char
 
 #include "zeek/zeek-config.h"
 

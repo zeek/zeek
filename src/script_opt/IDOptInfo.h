@@ -8,6 +8,8 @@
 #include <set>
 
 #include "zeek/IntrusivePtr.h"
+#include "zeek/ID.h"
+#include "zeek/Expr.h"
 
 namespace zeek::detail
 	{

@@ -1,8 +1,14 @@
 #pragma once
 
+// This needs to remain the first include in this file, or some defines aren't
+// set correctly when netinet/tcp.h is included and the CentOS 7 build breaks.
+// clang-format off
+#include "zeek/net_util.h"
+
 #include <netinet/tcp.h>
 #include <sys/types.h>
 #include <string>
+// clang-format on
 
 namespace zeek::analyzer::tcp
 	{

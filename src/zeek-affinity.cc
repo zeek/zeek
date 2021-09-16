@@ -28,8 +28,8 @@ bool set_affinity(int core_number)
 
 #elif defined(__FreeBSD__)
 
-#include <sys/cpuset.h>
 #include <sys/param.h>
+#include <sys/cpuset.h>
 
 namespace zeek
 	{

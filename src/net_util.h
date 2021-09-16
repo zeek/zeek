@@ -21,12 +21,12 @@ typedef enum
 	IPv6
 } IPFamily;
 
+#include <sys/types.h>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
-#include <sys/types.h>
 #ifdef HAVE_LINUX
 #define __FAVOR_BSD
 #endif

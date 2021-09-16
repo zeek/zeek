@@ -212,246 +212,246 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			// Count of users, services and servers in whole network.
 			case 251:
+				{
 				if ( ! irc_network_info )
 					break;
 
+				vector<string> parts = SplitWords(params, ' ');
+				int users = 0;
+				int services = 0;
+				int servers = 0;
+
+				for ( size_t i = 1; i < parts.size(); ++i )
 					{
-					vector<string> parts = SplitWords(params, ' ');
-					int users = 0;
-					int services = 0;
-					int servers = 0;
-
-					for ( size_t i = 1; i < parts.size(); ++i )
-						{
-						if ( parts[i] == "users" )
-							users = atoi(parts[i - 1].c_str());
-						else if ( parts[i] == "services" )
-							services = atoi(parts[i - 1].c_str());
-						else if ( parts[i] == "servers" )
-							servers = atoi(parts[i - 1].c_str());
-						// else ###
-						}
-
-					EnqueueConnEvent(irc_network_info, ConnVal(), val_mgr->Bool(orig),
-					                 val_mgr->Int(users), val_mgr->Int(services),
-					                 val_mgr->Int(servers));
+					if ( parts[i] == "users" )
+						users = atoi(parts[i - 1].c_str());
+					else if ( parts[i] == "services" )
+						services = atoi(parts[i - 1].c_str());
+					else if ( parts[i] == "servers" )
+						servers = atoi(parts[i - 1].c_str());
+					// else ###
 					}
+
+				EnqueueConnEvent(irc_network_info, ConnVal(), val_mgr->Bool(orig),
+				                 val_mgr->Int(users), val_mgr->Int(services),
+				                 val_mgr->Int(servers));
+				}
 				break;
 
 			// List of users in a channel (names command).
 			case 353:
+				{
 				if ( ! irc_names_info )
 					break;
 
+				vector<string> parts = SplitWords(params, ' ');
+
+				if ( parts.size() < 3 )
 					{
-					vector<string> parts = SplitWords(params, ' ');
-
-					if ( parts.size() < 3 )
-						{
-						Weird("irc_invalid_names_line");
-						return;
-						}
-
-					// Remove nick name.
-					parts.erase(parts.begin());
-
-					string type = parts[0];
-					string channel = parts[1];
-
-					// Remove type and channel.
-					parts.erase(parts.begin());
-					parts.erase(parts.begin());
-
-					if ( parts.size() > 0 && parts[0][0] == ':' )
-						parts[0] = parts[0].substr(1);
-
-					auto set = make_intrusive<TableVal>(id::string_set);
-
-					for ( auto& part : parts )
-						{
-						if ( part[0] == '@' )
-							part = part.substr(1);
-						auto idx = make_intrusive<StringVal>(part);
-						set->Assign(std::move(idx), nullptr);
-						}
-
-					EnqueueConnEvent(irc_names_info, ConnVal(), val_mgr->Bool(orig),
-					                 make_intrusive<StringVal>(type.c_str()),
-					                 make_intrusive<StringVal>(channel.c_str()), std::move(set));
+					Weird("irc_invalid_names_line");
+					return;
 					}
-				break;
+
+				// Remove nick name.
+				parts.erase(parts.begin());
+
+				string type = parts[0];
+				string channel = parts[1];
+
+				// Remove type and channel.
+				parts.erase(parts.begin());
+				parts.erase(parts.begin());
+
+				if ( parts.size() > 0 && parts[0][0] == ':' )
+					parts[0] = parts[0].substr(1);
+
+				auto set = make_intrusive<TableVal>(id::string_set);
+
+				for ( auto& part : parts )
+					{
+					if ( part[0] == '@' )
+						part = part.substr(1);
+					auto idx = make_intrusive<StringVal>(part);
+					set->Assign(std::move(idx), nullptr);
+					}
+
+				EnqueueConnEvent(irc_names_info, ConnVal(), val_mgr->Bool(orig),
+				                 make_intrusive<StringVal>(type.c_str()),
+				                 make_intrusive<StringVal>(channel.c_str()), std::move(set));
+				}
+			break;
 
 			// Count of users and services on this server.
 			case 255:
+				{
 				if ( ! irc_server_info )
 					break;
 
+				vector<string> parts = SplitWords(params, ' ');
+				int users = 0;
+				int services = 0;
+				int servers = 0;
+
+				for ( size_t i = 1; i < parts.size(); ++i )
 					{
-					vector<string> parts = SplitWords(params, ' ');
-					int users = 0;
-					int services = 0;
-					int servers = 0;
-
-					for ( size_t i = 1; i < parts.size(); ++i )
-						{
-						if ( parts[i] == "users," )
-							users = atoi(parts[i - 1].c_str());
-						else if ( parts[i] == "clients" )
-							users = atoi(parts[i - 1].c_str());
-						else if ( parts[i] == "services" )
-							services = atoi(parts[i - 1].c_str());
-						else if ( parts[i] == "servers" )
-							servers = atoi(parts[i - 1].c_str());
-						// else ###
-						}
-
-					EnqueueConnEvent(irc_server_info, ConnVal(), val_mgr->Bool(orig),
-					                 val_mgr->Int(users), val_mgr->Int(services),
-					                 val_mgr->Int(servers));
+					if ( parts[i] == "users," )
+						users = atoi(parts[i - 1].c_str());
+					else if ( parts[i] == "clients" )
+						users = atoi(parts[i - 1].c_str());
+					else if ( parts[i] == "services" )
+						services = atoi(parts[i - 1].c_str());
+					else if ( parts[i] == "servers" )
+						servers = atoi(parts[i - 1].c_str());
+					// else ###
 					}
+
+				EnqueueConnEvent(irc_server_info, ConnVal(), val_mgr->Bool(orig),
+				                 val_mgr->Int(users), val_mgr->Int(services),
+				                 val_mgr->Int(servers));
+				}
 				break;
 
 			// Count of channels.
 			case 254:
+				{
 				if ( ! irc_channel_info )
 					break;
 
-					{
-					vector<string> parts = SplitWords(params, ' ');
-					int channels = 0;
-					for ( size_t i = 1; i < parts.size(); ++i )
-						if ( parts[i] == ":channels" )
-							channels = atoi(parts[i - 1].c_str());
+				vector<string> parts = SplitWords(params, ' ');
+				int channels = 0;
+				for ( size_t i = 1; i < parts.size(); ++i )
+					if ( parts[i] == ":channels" )
+						channels = atoi(parts[i - 1].c_str());
 
-					EnqueueConnEvent(irc_channel_info, ConnVal(), val_mgr->Bool(orig),
-					                 val_mgr->Int(channels));
-					}
+				EnqueueConnEvent(irc_channel_info, ConnVal(), val_mgr->Bool(orig),
+				                 val_mgr->Int(channels));
+				}
 				break;
 
 			// RPL_GLOBALUSERS
 			case 266:
+				{
+				// FIXME: We should really streamline all this
+				// parsing code ...
+				if ( ! irc_global_users )
+					break;
+
+				const char* prefix = params.c_str();
+
+				const char* eop = strchr(prefix, ' ');
+				if ( ! eop )
 					{
-					// FIXME: We should really streamline all this
-					// parsing code ...
-					if ( ! irc_global_users )
-						break;
-
-					const char* prefix = params.c_str();
-
-					const char* eop = strchr(prefix, ' ');
-					if ( ! eop )
-						{
-						Weird("invalid_irc_global_users_reply");
-						break;
-						}
-
-					const char* msg = strchr(++eop, ':');
-					if ( ! msg )
-						{
-						Weird("invalid_irc_global_users_reply");
-						break;
-						}
-
-					EnqueueConnEvent(irc_global_users, ConnVal(), val_mgr->Bool(orig),
-					                 make_intrusive<StringVal>(eop - prefix, prefix),
-					                 make_intrusive<StringVal>(++msg));
+					Weird("invalid_irc_global_users_reply");
 					break;
 					}
+
+				const char* msg = strchr(++eop, ':');
+				if ( ! msg )
+					{
+					Weird("invalid_irc_global_users_reply");
+					break;
+					}
+
+				EnqueueConnEvent(irc_global_users, ConnVal(), val_mgr->Bool(orig),
+				                 make_intrusive<StringVal>(eop - prefix, prefix),
+				                 make_intrusive<StringVal>(++msg));
+				}
+				break;
 
 			// WHOIS user reply line.
 			case 311:
+				{
 				if ( ! irc_whois_user_line )
 					break;
 
+				vector<string> parts = SplitWords(params, ' ');
+
+				if ( parts.size() > 1 )
+					parts.erase(parts.begin());
+				if ( parts.size() < 5 )
 					{
-					vector<string> parts = SplitWords(params, ' ');
-
-					if ( parts.size() > 1 )
-						parts.erase(parts.begin());
-					if ( parts.size() < 5 )
-						{
-						Weird("irc_invalid_whois_user_line");
-						return;
-						}
-
-					Args vl;
-					vl.reserve(6);
-					vl.emplace_back(ConnVal());
-					vl.emplace_back(val_mgr->Bool(orig));
-					vl.emplace_back(make_intrusive<StringVal>(parts[0].c_str()));
-					vl.emplace_back(make_intrusive<StringVal>(parts[1].c_str()));
-					vl.emplace_back(make_intrusive<StringVal>(parts[2].c_str()));
-
-					parts.erase(parts.begin(), parts.begin() + 4);
-
-					string real_name = parts[0];
-					for ( size_t i = 1; i < parts.size(); ++i )
-						real_name = real_name + " " + parts[i];
-
-					if ( real_name[0] == ':' )
-						real_name = real_name.substr(1);
-
-					vl.emplace_back(make_intrusive<StringVal>(real_name.c_str()));
-
-					EnqueueConnEvent(irc_whois_user_line, std::move(vl));
+					Weird("irc_invalid_whois_user_line");
+					return;
 					}
+
+				Args vl;
+				vl.reserve(6);
+				vl.emplace_back(ConnVal());
+				vl.emplace_back(val_mgr->Bool(orig));
+				vl.emplace_back(make_intrusive<StringVal>(parts[0].c_str()));
+				vl.emplace_back(make_intrusive<StringVal>(parts[1].c_str()));
+				vl.emplace_back(make_intrusive<StringVal>(parts[2].c_str()));
+
+				parts.erase(parts.begin(), parts.begin() + 4);
+
+				string real_name = parts[0];
+				for ( size_t i = 1; i < parts.size(); ++i )
+					real_name = real_name + " " + parts[i];
+
+				if ( real_name[0] == ':' )
+					real_name = real_name.substr(1);
+
+				vl.emplace_back(make_intrusive<StringVal>(real_name.c_str()));
+
+				EnqueueConnEvent(irc_whois_user_line, std::move(vl));
+				}
 				break;
 
 			// WHOIS operator reply line.
 			case 313:
+				{
 				if ( ! irc_whois_operator_line )
 					break;
 
+				vector<string> parts = SplitWords(params, ' ');
+
+				if ( parts.size() > 1 )
+					parts.erase(parts.begin());
+
+				if ( parts.size() < 2 )
 					{
-					vector<string> parts = SplitWords(params, ' ');
-
-					if ( parts.size() > 1 )
-						parts.erase(parts.begin());
-
-					if ( parts.size() < 2 )
-						{
-						Weird("irc_invalid_whois_operator_line");
-						return;
-						}
-
-					EnqueueConnEvent(irc_whois_operator_line, ConnVal(), val_mgr->Bool(orig),
-					                 make_intrusive<StringVal>(parts[0].c_str()));
+					Weird("irc_invalid_whois_operator_line");
+					return;
 					}
+
+				EnqueueConnEvent(irc_whois_operator_line, ConnVal(), val_mgr->Bool(orig),
+				                 make_intrusive<StringVal>(parts[0].c_str()));
+				}
 				break;
 
 			// WHOIS channel reply.
 			case 319:
+				{
 				if ( ! irc_whois_channel_line )
 					break;
 
+				vector<string> parts = SplitWords(params, ' ');
+
+				// Remove nick name.
+				parts.erase(parts.begin());
+				if ( parts.size() < 2 )
 					{
-					vector<string> parts = SplitWords(params, ' ');
-
-					// Remove nick name.
-					parts.erase(parts.begin());
-					if ( parts.size() < 2 )
-						{
-						Weird("irc_invalid_whois_channel_line");
-						return;
-						}
-
-					string nick = parts[0];
-					parts.erase(parts.begin());
-
-					if ( parts.size() > 0 && parts[0][0] == ':' )
-						parts[0] = parts[0].substr(1);
-
-					auto set = make_intrusive<TableVal>(id::string_set);
-
-					for ( const auto& part : parts )
-						{
-						auto idx = make_intrusive<StringVal>(part);
-						set->Assign(std::move(idx), nullptr);
-						}
-
-					EnqueueConnEvent(irc_whois_channel_line, ConnVal(), val_mgr->Bool(orig),
-					                 make_intrusive<StringVal>(nick.c_str()), std::move(set));
+					Weird("irc_invalid_whois_channel_line");
+					return;
 					}
+
+				string nick = parts[0];
+				parts.erase(parts.begin());
+
+				if ( parts.size() > 0 && parts[0][0] == ':' )
+					parts[0] = parts[0].substr(1);
+
+				auto set = make_intrusive<TableVal>(id::string_set);
+
+				for ( const auto& part : parts )
+					{
+					auto idx = make_intrusive<StringVal>(part);
+					set->Assign(std::move(idx), nullptr);
+					}
+
+				EnqueueConnEvent(irc_whois_channel_line, ConnVal(), val_mgr->Bool(orig),
+				                 make_intrusive<StringVal>(nick.c_str()), std::move(set));
+				}
 				break;
 
 			// RPL_TOPIC reply.
@@ -485,39 +485,39 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 						Weird("irc_invalid_topic_reply");
 						return;
 						}
-					break;
 					}
+					break;
 
 			// WHO reply line.
 			case 352:
+				{
 				if ( ! irc_who_line )
 					break;
 
+				vector<string> parts = SplitWords(params, ' ');
+				if ( parts.size() < 9 )
 					{
-					vector<string> parts = SplitWords(params, ' ');
-					if ( parts.size() < 9 )
-						{
-						Weird("irc_invalid_who_line");
-						return;
-						}
-
-					if ( parts[2][0] == '~' )
-						parts[2] = parts[2].substr(1);
-
-					if ( parts[7][0] == ':' )
-						parts[7] = parts[7].substr(1);
-
-					EnqueueConnEvent(irc_who_line, ConnVal(), val_mgr->Bool(orig),
-					                 make_intrusive<StringVal>(parts[0].c_str()),
-					                 make_intrusive<StringVal>(parts[1].c_str()),
-					                 make_intrusive<StringVal>(parts[2].c_str()),
-					                 make_intrusive<StringVal>(parts[3].c_str()),
-					                 make_intrusive<StringVal>(parts[4].c_str()),
-					                 make_intrusive<StringVal>(parts[5].c_str()),
-					                 make_intrusive<StringVal>(parts[6].c_str()),
-					                 val_mgr->Int(atoi(parts[7].c_str())),
-					                 make_intrusive<StringVal>(parts[8].c_str()));
+					Weird("irc_invalid_who_line");
+					return;
 					}
+
+				if ( parts[2][0] == '~' )
+					parts[2] = parts[2].substr(1);
+
+				if ( parts[7][0] == ':' )
+					parts[7] = parts[7].substr(1);
+
+				EnqueueConnEvent(irc_who_line, ConnVal(), val_mgr->Bool(orig),
+				                 make_intrusive<StringVal>(parts[0].c_str()),
+				                 make_intrusive<StringVal>(parts[1].c_str()),
+				                 make_intrusive<StringVal>(parts[2].c_str()),
+				                 make_intrusive<StringVal>(parts[3].c_str()),
+				                 make_intrusive<StringVal>(parts[4].c_str()),
+				                 make_intrusive<StringVal>(parts[5].c_str()),
+				                 make_intrusive<StringVal>(parts[6].c_str()),
+				                 val_mgr->Int(atoi(parts[7].c_str())),
+				                 make_intrusive<StringVal>(parts[8].c_str()));
+				}
 				break;
 
 			// Invalid nick name.

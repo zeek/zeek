@@ -26,7 +26,7 @@ class ReaderBackend;
 /**
  * Singleton class for managing input streams.
  */
-class Manager : public plugin::ComponentManager<Tag, Component>
+class Manager : public plugin::ComponentManager<Component>
 	{
 public:
 	/**

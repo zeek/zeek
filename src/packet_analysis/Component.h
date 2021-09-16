@@ -17,7 +17,7 @@ namespace zeek::packet_analysis
 class Analyzer;
 using AnalyzerPtr = std::shared_ptr<Analyzer>;
 
-class Component : public plugin::Component, public plugin::TaggedComponent<packet_analysis::Tag>
+class Component : public plugin::Component, public plugin::TaggedComponent
 	{
 public:
 	using factory_callback = std::function<AnalyzerPtr()>;

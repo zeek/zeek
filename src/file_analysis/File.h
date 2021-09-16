@@ -27,7 +27,6 @@ namespace file_analysis
 	{
 
 class FileReassembler;
-class Tag;
 
 /**
  * Wrapper class around \c fa_file record values from script layer.

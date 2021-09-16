@@ -13,11 +13,9 @@ set(input_SRCS
     Manager.cc
     ReaderBackend.cc
     ReaderFrontend.cc
-    Tag.cc
 )
 
 bif_target(input.bif)
 
 bro_add_subdir_library(input ${input_SRCS})
 add_dependencies(bro_input generate_outputs)
-

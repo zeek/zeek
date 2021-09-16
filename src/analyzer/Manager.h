@@ -56,7 +56,7 @@ namespace analyzer
  * respecting well-known ports, and tracking any analyzers specifically
  * scheduled for individidual connections.
  */
-class Manager : public plugin::ComponentManager<Tag, Component>
+class Manager : public plugin::ComponentManager<Component>
 	{
 public:
 	/**

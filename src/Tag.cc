@@ -7,12 +7,15 @@
 namespace zeek
 	{
 
+const Tag Tag::Error;
+
+Tag::Tag(type_t arg_type, subtype_t arg_subtype) : Tag(nullptr, arg_type, arg_subtype) { }
+
 Tag::Tag(const EnumTypePtr& etype, type_t arg_type, subtype_t arg_subtype)
+	: type(arg_type), subtype(arg_subtype), etype(etype)
 	{
 	assert(arg_type > 0);
 
-	type = arg_type;
-	subtype = arg_subtype;
 	int64_t i = (int64_t)(type) | ((int64_t)subtype << 31);
 	val = etype->GetEnumVal(i);
 	}
@@ -68,11 +71,13 @@ Tag& Tag::operator=(const Tag&& other) noexcept
 	return *this;
 	}
 
-const EnumValPtr& Tag::AsVal(const EnumTypePtr& etype) const
+const EnumValPtr& Tag::AsVal() const
 	{
+	// TODO: this probably isn't valid, and we should just return the null val
+	// if it's null.
 	if ( ! val )
 		{
-		assert(type == 0 && subtype == 0);
+		assert(type == 0 && subtype == 0 && etype != nullptr);
 		val = etype->GetEnumVal(0);
 		}
 

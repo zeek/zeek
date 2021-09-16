@@ -14,7 +14,7 @@ Component::Component(const std::string& name, factory_callback arg_factory,
                      bool arg_adapter)
 	: plugin::Component(
 		  arg_adapter ? plugin::component::SESSION_ADAPTER : plugin::component::ANALYZER, name),
-	  plugin::TaggedComponent<analyzer::Tag>(arg_subtype)
+	  plugin::TaggedComponent(arg_subtype, analyzer_mgr->GetTagType())
 	{
 	factory = arg_factory;
 	enabled = arg_enabled;

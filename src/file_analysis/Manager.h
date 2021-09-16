@@ -23,7 +23,6 @@ namespace analyzer
 	{
 
 class Analyzer;
-class Tag;
 
 	} // namespace analyzer
 
@@ -31,12 +30,11 @@ namespace file_analysis
 	{
 
 class File;
-class Tag;
 
 /**
  * Main entry point for interacting with file analysis.
  */
-class Manager : public plugin::ComponentManager<Tag, Component>
+class Manager : public plugin::ComponentManager<Component>
 	{
 public:
 	/**

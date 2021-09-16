@@ -27,7 +27,7 @@ class Manager;
  * A plugin can provide a specific file analyzer by registering this
  * analyzer component, describing the analyzer.
  */
-class Component : public plugin::Component, public plugin::TaggedComponent<file_analysis::Tag>
+class Component : public plugin::Component, public plugin::TaggedComponent
 	{
 public:
 	using factory_function = Analyzer* (*)(RecordValPtr args, File* file);

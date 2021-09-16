@@ -132,7 +132,7 @@ Manager::Stream::~Stream()
 		delete *f;
 	}
 
-Manager::Manager() : plugin::ComponentManager<logging::Tag, logging::Component>("Log", "Writer")
+Manager::Manager() : plugin::ComponentManager<logging::Component>("Log", "Writer")
 	{
 	rotations_pending = 0;
 	}

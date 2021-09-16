@@ -23,7 +23,6 @@ namespace file_analysis
 	{
 
 class File;
-class Tag;
 
 namespace detail
 	{

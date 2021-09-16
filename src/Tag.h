@@ -4,7 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 
 #include "zeek/IntrusivePtr.h"
@@ -14,9 +14,9 @@ namespace zeek
 	{
 
 class EnumVal;
+using EnumValPtr = IntrusivePtr<EnumVal>;
 class EnumType;
 using EnumTypePtr = IntrusivePtr<EnumType>;
-using EnumValPtr = IntrusivePtr<EnumVal>;
 
 /**
  * Class to identify an analyzer type.
@@ -60,27 +60,52 @@ public:
 	subtype_t Subtype() const { return subtype; }
 
 	/**
-	 * Returns the numerical values for main and subtype inside a string
-	 * suitable for printing. This is primarily for debugging.
-	 */
-	std::string AsString() const;
-
-protected:
-	/*
-	 * Copy constructor.
-	 */
-	Tag(const Tag& other);
-
-	/**
 	 * Default constructor. This initializes the tag with an error value
 	 * that will make \c operator \c bool return false.
 	 */
 	Tag();
 
 	/**
+	 * Constructor.
+	 *
+	 * @param etype the script-layer enum type associated with the tag.
+	 *
+	 * @param type The main type. Note that the manager class manages the
+	 * the value space internally, so noone else should assign main types.
+	 *
+	 * @param subtype The sub type, which is left to an analyzer for
+	 * interpretation. By default it's set to zero.
+	 */
+	Tag(const EnumTypePtr& etype, type_t type, subtype_t subtype = 0);
+
+	/**
+	 * Constructor.
+	 *
+	 * @param type The main type. Note that the \a analyzer::Manager
+	 * manages the value space internally, so noone else should assign
+	 * any main types.
+	 *
+	 * @param subtype The sub type, which is left to an analyzer for
+	 * interpretation. By default it's set to zero.
+	 */
+	explicit Tag(type_t type, subtype_t subtype = 0);
+
+	/**
+	 * Constructor.
+	 *
+	 * @param val An enum value of script type \c Analyzer::Tag.
+	 */
+	explicit Tag(EnumValPtr val);
+
+	/*
+	 * Copy constructor.
+	 */
+	Tag(const Tag& other);
+
+	/**
 	 * Destructor.
 	 */
-	~Tag();
+	virtual ~Tag();
 
 	/**
 	 * Assignment operator.
@@ -117,37 +142,32 @@ protected:
 		}
 
 	/**
+	 * Returns the numerical values for main and subtype inside a string
+	 * suitable for printing. This is primarily for debugging.
+	 */
+	std::string AsString() const;
+
+	/**
 	 * Returns the script-layer enum that corresponds to this tag.
 	 * The returned value does not have its ref-count increased.
 	 *
 	 * @param etype the script-layer enum type associated with the tag.
 	 */
-	const EnumValPtr& AsVal(const EnumTypePtr& etype) const;
+	const EnumValPtr& AsVal() const;
 
 	/**
-	 * Constructor.
-	 *
-	 * @param etype the script-layer enum type associated with the tag.
-	 *
-	 * @param type The main type. Note that the manager class manages the
-	 * the value space internally, so noone else should assign main types.
-	 *
-	 * @param subtype The sub type, which is left to an analyzer for
-	 * interpretation. By default it's set to zero.
+	 * Returns false if the tag represents an error value rather than a
+	 * legal analyzer type.
 	 */
-	Tag(const EnumTypePtr& etype, type_t type, subtype_t subtype = 0);
+	explicit operator bool() const { return *this != Error; }
 
-	/**
-	 * Constructor.
-	 *
-	 * @param val An enum value of script type \c Analyzer::Tag.
-	 */
-	explicit Tag(EnumValPtr val);
+	static const Tag Error;
 
 private:
 	type_t type; // Main type.
 	subtype_t subtype; // Subtype.
 	mutable EnumValPtr val; // Script-layer value.
+	mutable EnumTypePtr etype;
 	};
 
 	} // namespace zeek

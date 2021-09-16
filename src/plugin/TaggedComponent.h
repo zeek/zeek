@@ -2,15 +2,16 @@
 
 #include <cassert>
 
+#include "zeek/Tag.h"
+#include "zeek/Type.h"
+
 namespace zeek::plugin
 	{
 
 /**
  * A class which has a tag of a given type associated with it.
- *
- * @tparam T A ::Tag type or derivative.
  */
-template <class T> class TaggedComponent
+class TaggedComponent
 	{
 public:
 	/**
@@ -24,7 +25,7 @@ public:
 	 * and component instances can accordingly access it via Tag().
 	 * If not used, leave at zero.
 	 */
-	explicit TaggedComponent(typename T::subtype_t subtype = 0);
+	explicit TaggedComponent(Tag::subtype_t subtype = 0, zeek::EnumTypePtr etype = nullptr);
 
 	/**
 	 * Initializes tag by creating the unique tag value for thos componend.
@@ -35,36 +36,15 @@ public:
 	/**
 	 * @return The component's tag.
 	 */
-	T Tag() const;
+	zeek::Tag Tag() const;
 
 private:
-	T tag; /**< The automatically assigned analyzer tag. */
-	typename T::subtype_t subtype;
+	zeek::Tag tag; /**< The automatically assigned analyzer tag. */
+	Tag::subtype_t subtype;
 	bool initialized;
-	static typename T::type_t type_counter; /**< Used to generate globally
+	EnumTypePtr etype;
+	static Tag::type_t type_counter; /**< Used to generate globally
 	                                             unique tags. */
 	};
-
-template <class T> TaggedComponent<T>::TaggedComponent(typename T::subtype_t subtype)
-	{
-	tag = T(1, 0);
-	this->subtype = subtype;
-	initialized = false;
-	}
-
-template <class T> void TaggedComponent<T>::InitializeTag()
-	{
-	assert(initialized == false);
-	initialized = true;
-	tag = T(++type_counter, subtype);
-	}
-
-template <class T> T TaggedComponent<T>::Tag() const
-	{
-	assert(initialized);
-	return tag;
-	}
-
-template <class T> typename T::type_t TaggedComponent<T>::type_counter(0);
 
 	} // namespace zeek::plugin

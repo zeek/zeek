@@ -15,11 +15,9 @@ set(logging_SRCS
     Manager.cc
     WriterBackend.cc
     WriterFrontend.cc
-    Tag.cc
 )
 
 bif_target(logging.bif)
 
 bro_add_subdir_library(logging ${logging_SRCS})
 add_dependencies(bro_logging generate_outputs)
-

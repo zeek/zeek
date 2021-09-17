@@ -64,39 +64,39 @@ void KeyedHash::InitOptions()
 
 hash64_t KeyedHash::Hash64(const void* bytes, uint64_t size)
 	{
-	return highwayhash::SipHash(shared_siphash_key, reinterpret_cast<const char*>(bytes), size);
+	return highwayhash::SipHash(shared_siphash_key, static_cast<const char*>(bytes), size);
 	}
 
 void KeyedHash::Hash128(const void* bytes, uint64_t size, hash128_t* result)
 	{
 	highwayhash::InstructionSets::Run<highwayhash::HighwayHash>(
-		shared_highwayhash_key, reinterpret_cast<const char*>(bytes), size, result);
+		shared_highwayhash_key, static_cast<const char*>(bytes), size, result);
 	}
 
 void KeyedHash::Hash256(const void* bytes, uint64_t size, hash256_t* result)
 	{
 	highwayhash::InstructionSets::Run<highwayhash::HighwayHash>(
-		shared_highwayhash_key, reinterpret_cast<const char*>(bytes), size, result);
+		shared_highwayhash_key, static_cast<const char*>(bytes), size, result);
 	}
 
 hash64_t KeyedHash::StaticHash64(const void* bytes, uint64_t size)
 	{
 	hash64_t result = 0;
 	highwayhash::InstructionSets::Run<highwayhash::HighwayHash>(
-		cluster_highwayhash_key, reinterpret_cast<const char*>(bytes), size, &result);
+		cluster_highwayhash_key, static_cast<const char*>(bytes), size, &result);
 	return result;
 	}
 
 void KeyedHash::StaticHash128(const void* bytes, uint64_t size, hash128_t* result)
 	{
 	highwayhash::InstructionSets::Run<highwayhash::HighwayHash>(
-		cluster_highwayhash_key, reinterpret_cast<const char*>(bytes), size, result);
+		cluster_highwayhash_key, static_cast<const char*>(bytes), size, result);
 	}
 
 void KeyedHash::StaticHash256(const void* bytes, uint64_t size, hash256_t* result)
 	{
 	highwayhash::InstructionSets::Run<highwayhash::HighwayHash>(
-		cluster_highwayhash_key, reinterpret_cast<const char*>(bytes), size, result);
+		cluster_highwayhash_key, static_cast<const char*>(bytes), size, result);
 	}
 
 void init_hash_function()
@@ -106,109 +106,99 @@ void init_hash_function()
 		reporter->InternalError("Zeek's hash functions aren't fully initialized");
 	}
 
-HashKey::HashKey(bro_int_t i)
+HashKey::HashKey(bool b)
 	{
-	key_u.i = i;
-	key = (void*)&key_u;
-	size = sizeof(i);
-	hash = HashBytes(key, size);
+	Set(b);
 	}
 
-HashKey::HashKey(bro_uint_t u)
+HashKey::HashKey(int i)
 	{
-	key_u.i = bro_int_t(u);
-	key = (void*)&key_u;
-	size = sizeof(u);
-	hash = HashBytes(key, size);
+	Set(i);
+	}
+
+HashKey::HashKey(bro_int_t bi)
+	{
+	Set(bi);
+	}
+
+HashKey::HashKey(bro_uint_t bu)
+	{
+	Set(bu);
 	}
 
 HashKey::HashKey(uint32_t u)
 	{
-	key_u.u32 = u;
-	key = (void*)&key_u;
-	size = sizeof(u);
-	hash = HashBytes(key, size);
+	Set(u);
 	}
 
-HashKey::HashKey(const uint32_t u[], int n)
+HashKey::HashKey(const uint32_t u[], size_t n)
 	{
-	size = n * sizeof(u[0]);
-	key = (void*)u;
-	hash = HashBytes(key, size);
+	size = write_size = n * sizeof(u[0]);
+	key = (char*)u;
 	}
 
 HashKey::HashKey(double d)
 	{
-		union {
-		double d;
-		int i[2];
-		} u;
-
-	key_u.d = u.d = d;
-	key = (void*)&key_u;
-	size = sizeof(d);
-	hash = HashBytes(key, size);
+	Set(d);
 	}
 
 HashKey::HashKey(const void* p)
 	{
-	key_u.p = p;
-	key = (void*)&key_u;
-	size = sizeof(p);
-	hash = HashBytes(key, size);
+	Set(p);
 	}
 
 HashKey::HashKey(const char* s)
 	{
-	size = strlen(s); // note - skip final \0
-	key = (void*)s;
-	hash = HashBytes(key, size);
+	size = write_size = strlen(s); // note - skip final \0
+	key = (char*)s;
 	}
 
 HashKey::HashKey(const String* s)
 	{
-	size = s->Len();
-	key = (void*)s->Bytes();
-	hash = HashBytes(key, size);
+	size = write_size = s->Len();
+	key = (char*)s->Bytes();
 	}
 
-HashKey::HashKey(int copy_key, void* arg_key, int arg_size)
+HashKey::HashKey(int copy_key, void* arg_key, size_t arg_size)
 	{
-	size = arg_size;
-	is_our_dynamic = true;
+	size = write_size = arg_size;
 
 	if ( copy_key )
 		{
-		key = (void*)new char[size];
+		key = new char[size]; // s == 0 is okay, returns non-nil
 		memcpy(key, arg_key, size);
 		}
 	else
-		key = arg_key;
-
-	hash = HashBytes(key, size);
+		key = (char*)arg_key;
 	}
 
-HashKey::HashKey(const void* arg_key, int arg_size, hash_t arg_hash)
+HashKey::HashKey(const void* arg_key, size_t arg_size, hash_t arg_hash)
 	{
-	size = arg_size;
+	size = write_size = arg_size;
 	hash = arg_hash;
-	key = CopyKey(arg_key, size);
+	key = CopyKey((char*)arg_key, size);
 	is_our_dynamic = true;
 	}
 
-HashKey::HashKey(const void* arg_key, int arg_size, hash_t arg_hash, bool /* dont_copy */)
+HashKey::HashKey(const void* arg_key, size_t arg_size, hash_t arg_hash, bool /* dont_copy */)
 	{
-	size = arg_size;
+	size = write_size = arg_size;
 	hash = arg_hash;
-	key = const_cast<void*>(arg_key);
+	key = (char*)arg_key;
 	}
 
-HashKey::HashKey(const void* bytes, int arg_size)
+HashKey::HashKey(const void* bytes, size_t arg_size)
 	{
-	size = arg_size;
-	key = CopyKey(bytes, size);
-	hash = HashBytes(key, size);
+	size = write_size = arg_size;
+	key = CopyKey((char*)bytes, size);
 	is_our_dynamic = true;
+	}
+
+hash_t HashKey::Hash() const
+	{
+	if ( hash == 0 )
+		hash = HashBytes(key, size);
+	return hash;
 	}
 
 void* HashKey::TakeKey()
@@ -222,16 +212,289 @@ void* HashKey::TakeKey()
 		return CopyKey(key, size);
 	}
 
-void* HashKey::CopyKey(const void* k, int s) const
+char* HashKey::CopyKey(const char* k, size_t s) const
 	{
-	void* k_copy = (void*)new char[s];
+	char* k_copy = new char[s]; // s == 0 is okay, returns non-nil
 	memcpy(k_copy, k, s);
 	return k_copy;
 	}
 
-hash_t HashKey::HashBytes(const void* bytes, int size)
+hash_t HashKey::HashBytes(const void* bytes, size_t size)
 	{
 	return KeyedHash::Hash64(bytes, size);
+	}
+
+void HashKey::Set(bool b)
+	{
+	key_u.b = b;
+	key = reinterpret_cast<char*>(&key_u);
+	size = write_size = sizeof(b);
+	}
+
+void HashKey::Set(int i)
+	{
+	key_u.i = i;
+	key = reinterpret_cast<char*>(&key_u);
+	size = write_size = sizeof(i);
+	}
+
+void HashKey::Set(bro_int_t bi)
+	{
+	key_u.bi = bi;
+	key = reinterpret_cast<char*>(&key_u);
+	size = write_size = sizeof(bi);
+	}
+
+void HashKey::Set(bro_uint_t bu)
+	{
+	key_u.bi = bro_int_t(bu);
+	key = reinterpret_cast<char*>(&key_u);
+	size = write_size = sizeof(bu);
+	}
+
+void HashKey::Set(uint32_t u)
+	{
+	key_u.u32 = u;
+	key = reinterpret_cast<char*>(&key_u);
+	size = write_size = sizeof(u);
+	}
+
+void HashKey::Set(double d)
+	{
+		union {
+		double d;
+		int i[2];
+		} u;
+
+	key_u.d = u.d = d;
+	key = reinterpret_cast<char*>(&key_u);
+	size = write_size = sizeof(d);
+	}
+
+void HashKey::Set(const void* p)
+	{
+	key_u.p = p;
+	key = reinterpret_cast<char*>(&key_u);
+	size = write_size = sizeof(p);
+	}
+
+void HashKey::Reserve(const char* tag, size_t addl_size, size_t alignment)
+	{
+	ASSERT(! IsAllocated());
+	size_t s0 = size;
+	size_t s1 = util::memory_size_align(size, alignment);
+	size = s1 + addl_size;
+	}
+
+void HashKey::Allocate()
+	{
+	if ( key != nullptr and key != reinterpret_cast<char*>(&key_u) )
+		{
+		reporter->InternalWarning("usage error in HashKey::Allocate(): already allocated");
+		return;
+		}
+
+	is_our_dynamic = true;
+	key = reinterpret_cast<char*>(new double[size / sizeof(double) + 1]);
+
+	read_size = 0;
+	write_size = 0;
+	}
+
+void HashKey::Write(const char* tag, bool b)
+	{
+	Write(tag, &b, sizeof(b), 0);
+	}
+
+void HashKey::Write(const char* tag, int i, bool align)
+	{
+	if ( ! IsAllocated() )
+		{
+		Set(i);
+		return;
+		}
+
+	Write(tag, &i, sizeof(i), align ? sizeof(i) : 0);
+	}
+
+void HashKey::Write(const char* tag, bro_int_t bi, bool align)
+	{
+	if ( ! IsAllocated() )
+		{
+		Set(bi);
+		return;
+		}
+
+	Write(tag, &bi, sizeof(bi), align ? sizeof(bi) : 0);
+	}
+
+void HashKey::Write(const char* tag, bro_uint_t bu, bool align)
+	{
+	if ( ! IsAllocated() )
+		{
+		Set(bu);
+		return;
+		}
+
+	Write(tag, &bu, sizeof(bu), align ? sizeof(bu) : 0);
+	}
+
+void HashKey::Write(const char* tag, uint32_t u, bool align)
+	{
+	if ( ! IsAllocated() )
+		{
+		Set(u);
+		return;
+		}
+
+	Write(tag, &u, sizeof(u), align ? sizeof(u) : 0);
+	}
+
+void HashKey::Write(const char* tag, double d, bool align)
+	{
+	if ( ! IsAllocated() )
+		{
+		Set(d);
+		return;
+		}
+
+	Write(tag, &d, sizeof(d), align ? sizeof(d) : 0);
+	}
+
+void HashKey::Write(const char* tag, const void* bytes, size_t n, size_t alignment)
+	{
+	AlignWrite(alignment);
+	EnsureWriteSpace(n);
+
+	memcpy(key + write_size, bytes, n);
+	write_size += n;
+
+	DBG_LOG(DBG_HASHKEY, "HashKey %p writing %lu/%lu: %lu -> %lu -> %lu [%s]", this, n, alignment,
+	        s0, s1, write_size, tag);
+	}
+
+void HashKey::SkipWrite(const char* tag, size_t n)
+	{
+	EnsureWriteSpace(n);
+	write_size += n;
+	}
+
+void HashKey::AlignWrite(size_t alignment)
+	{
+	ASSERT(IsAllocated());
+
+	if ( alignment == 0 )
+		return;
+
+	size_t old_size = write_size;
+
+	write_size = util::memory_size_align(write_size, alignment);
+
+	if ( write_size > size )
+		reporter->InternalError("buffer overflow in HashKey::AlignWrite(): "
+		                        "after alignment, %lu bytes used of %lu allocated",
+		                        write_size, size);
+
+	while ( old_size < write_size )
+		key[old_size++] = '\0';
+	}
+
+void HashKey::AlignRead(size_t alignment) const
+	{
+	ASSERT(IsAllocated());
+
+	if ( alignment == 0 )
+		return;
+
+	int old_size = read_size;
+
+	read_size = util::memory_size_align(read_size, alignment);
+
+	if ( read_size > size )
+		reporter->InternalError("buffer overflow in HashKey::AlignRead(): "
+		                        "after alignment, %lu bytes used of %lu allocated",
+		                        read_size, size);
+	}
+
+void HashKey::Read(const char* tag, bool& b) const
+	{
+	Read(tag, &b, sizeof(b), 0);
+	}
+
+void HashKey::Read(const char* tag, int& i, bool align) const
+	{
+	Read(tag, &i, sizeof(i), align ? sizeof(i) : 0);
+	}
+
+void HashKey::Read(const char* tag, bro_int_t& i, bool align) const
+	{
+	Read(tag, &i, sizeof(i), align ? sizeof(i) : 0);
+	}
+
+void HashKey::Read(const char* tag, bro_uint_t& u, bool align) const
+	{
+	Read(tag, &u, sizeof(u), align ? sizeof(u) : 0);
+	}
+
+void HashKey::Read(const char* tag, uint32_t& u, bool align) const
+	{
+	Read(tag, &u, sizeof(u), align ? sizeof(u) : 0);
+	}
+
+void HashKey::Read(const char* tag, double& d, bool align) const
+	{
+	Read(tag, &d, sizeof(d), align ? sizeof(d) : 0);
+	}
+
+void HashKey::Read(const char* tag, void* out, size_t n, size_t alignment) const
+	{
+	AlignRead(alignment);
+	EnsureReadSpace(n);
+
+	// In case out is nil, make sure nothing is to be read, and only memcpy
+	// when there is a non-zero amount. Memory checkers don't nullpointers
+	// in memcpy even if the size is 0.
+	ASSERT(out != nullptr || (out == nullptr && n == 0));
+
+	if ( n > 0 )
+		{
+		memcpy(out, key + read_size, n);
+		read_size += n;
+		}
+	}
+
+void HashKey::SkipRead(const char* tag, size_t n) const
+	{
+	EnsureReadSpace(n);
+	read_size += n;
+	}
+
+void HashKey::EnsureWriteSpace(size_t n) const
+	{
+	if ( n == 0 )
+		return;
+
+	if ( ! IsAllocated() )
+		reporter->InternalError("usage error in HashKey::EnsureWriteSpace(): "
+		                        "size-checking unreserved buffer");
+	if ( write_size + n > size )
+		reporter->InternalError("buffer overflow in HashKey::Write(): writing %lu "
+		                        "bytes with %lu remaining",
+		                        n, size - write_size);
+	}
+
+void HashKey::EnsureReadSpace(size_t n) const
+	{
+	if ( n == 0 )
+		return;
+
+	if ( ! IsAllocated() )
+		reporter->InternalError("usage error in HashKey::EnsureReadSpace(): "
+		                        "size-checking unreserved buffer");
+	if ( read_size + n > size )
+		reporter->InternalError("buffer overflow in HashKey::EnsureReadSpace(): reading %lu "
+		                        "bytes with %lu remaining",
+		                        n, size - read_size);
 	}
 
 	} // namespace zeek::detail

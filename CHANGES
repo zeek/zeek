@@ -1,5 +1,9 @@
 4.0.4 | 2021-09-18 16:17:35 -0700
 
+  * Ensure table/set HashKey buffer reservation and writes happen in same order (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 5fc8d898975814dccd66ed80c77be7be20012a21)
+
   * Update HMAC key used for benchmarking service (Tim Wojtulewicz, Corelight)
 
     (cherry picked from commit 2fda808302dae017c6987b9265b61cba368bea06)

@@ -17,8 +17,46 @@
 
 namespace zeek::detail {
 
-CompositeHash::CompositeHash(TypeListPtr composite_type)
-	: type(std::move(composite_type))
+// A comparison callable to assist with consistent iteration order over tables
+// during reservation & writes.
+struct HashKeyComparer
+	{
+	bool operator()(const std::unique_ptr<HashKey>& a, const std::unique_ptr<HashKey>& b) const
+		{
+		if ( a->Hash() != b->Hash() )
+			return a->Hash() < b->Hash();
+		if ( a->Size() != b->Size() )
+			return a->Size() < b->Size();
+		return memcmp(a->Key(), b->Key(), a->Size()) < 0;
+		}
+	};
+
+using HashkeyMap = std::map<std::unique_ptr<HashKey>, ListValPtr, HashKeyComparer>;
+using HashkeyMapPtr = std::unique_ptr<HashkeyMap>;
+
+// Helper that produces a table from HashKeys to the ListVal indexes into the
+// table, that we can iterate over in sorted-Hashkey order.
+const HashkeyMapPtr ordered_hashkeys(const TableVal* tv)
+	{
+	auto res = std::make_unique<HashkeyMap>();
+	auto tbl = tv->AsTable();
+	auto idx = 0;
+
+	auto it = tbl->InitForIteration();
+	HashKey* k;
+
+	while ( tbl->NextEntry(k, it) )
+		{
+		// Do we have to recreate here? Could we reuse the existing key?
+		auto lv = tv->RecreateIndex(*k);
+		std::unique_ptr<HashKey> tmp(k);
+		res->insert_or_assign(std::move(tmp), lv);
+		}
+
+	return res;
+	}
+
+CompositeHash::CompositeHash(TypeListPtr composite_type) : type(std::move(composite_type))
 	{
 	singleton_tag = TYPE_INTERNAL_ERROR;
 
@@ -210,40 +248,10 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			*kp = tv->Size();
 			kp1 = reinterpret_cast<char*>(kp+1);
 
-			auto tbl = tv->AsTable();
-			auto it = tbl->InitForIteration();
-			auto lv = make_intrusive<ListVal>(TYPE_ANY);
-
-			struct HashKeyComparer {
-				bool operator()(const HashKey* a, const HashKey* b) const
-					{
-					if ( a->Hash() != b->Hash() )
-						return a->Hash() < b->Hash();
-					if ( a->Size() != b->Size() )
-						return a->Size() < b->Size();
-					return strncmp(static_cast<const char*>(a->Key()),
-					               static_cast<const char*>(b->Key()),
-					               a->Size()) < 0;
-					}
-			};
-
-			std::map<HashKey*, int, HashKeyComparer> hashkeys;
-			HashKey* k;
-			auto idx = 0;
-
-			while ( tbl->NextEntry(k, it) )
+			auto hashkeys = ordered_hashkeys(tv);
+			for ( auto& kv : *hashkeys )
 				{
-				hashkeys[k] = idx++;
-				lv->Append(tv->RecreateIndex(*k));
-				}
-
-			for ( auto& kv : hashkeys )
-				delete kv.first;
-
-			for ( auto& kv : hashkeys )
-				{
-				auto idx = kv.second;
-				const auto& key = lv->Idx(idx);
+				auto key = kv.second;
 
 				if ( ! (kp1 = SingleValHash(type_check, kp1, key->GetType().get(),
 				                            key.get(), false)) )
@@ -259,8 +267,8 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 					}
 				}
 
-			}
 			break;
+			}
 
 		case TYPE_VECTOR:
 			{
@@ -538,11 +546,12 @@ int CompositeHash::SingleTypeKeySize(Type* bt, const Val* v,
 				return (optional && ! calc_static_size) ? sz : 0;
 
 			sz = SizeAlign(sz, sizeof(int));
-			TableVal* tv = const_cast<TableVal*>(v->AsTableVal());
-			auto lv = tv->ToListVal();
-			for ( int i = 0; i < tv->Size(); ++i )
+			auto tv = v->AsTableVal();
+			auto hashkeys = ordered_hashkeys(tv);
+
+			for ( auto& kv : *hashkeys )
 				{
-				const auto& key = lv->Idx(i);
+				auto key = kv.second;
 				sz = SingleTypeKeySize(key->GetType().get(), key.get(), type_check, sz, false,
 				                       calc_static_size);
 				if ( ! sz )
@@ -550,7 +559,7 @@ int CompositeHash::SingleTypeKeySize(Type* bt, const Val* v,
 
 				if ( ! bt->IsSet() )
 					{
-					auto val = tv->FindOrDefault(key);
+					auto val = const_cast<TableVal*>(tv)->FindOrDefault(key);
 					sz = SingleTypeKeySize(val->GetType().get(), val.get(), type_check, sz,
 					                       false, calc_static_size);
 					if ( ! sz )

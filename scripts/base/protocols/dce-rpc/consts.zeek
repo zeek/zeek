@@ -2203,6 +2203,21 @@ export {
 		["00020400-0000-0000-c000-000000000046",0x05] = "GetIDsOfNames",
 		["00020400-0000-0000-c000-000000000046",0x06] = "Invoke",
 
+		# ITypeInfo - MSDN Ref: OLE Automation Protocol [ms-oaut]
+		["00020401-0000-0000-c000-000000000046",0x03] = "GetTypeAttr",
+		["00020401-0000-0000-c000-000000000046",0x04] = "GetTypeComp",
+		["00020401-0000-0000-c000-000000000046",0x05] = "GetFuncDesc",
+		["00020401-0000-0000-c000-000000000046",0x06] = "GetVarDesc",
+		["00020401-0000-0000-c000-000000000046",0x07] = "GetNames",
+		["00020401-0000-0000-c000-000000000046",0x08] = "GetRefTypeOfImplType",
+		["00020401-0000-0000-c000-000000000046",0x09] = "GetImplTypeFlags",
+		["00020401-0000-0000-c000-000000000046",0x0C] = "GetDocumentation",
+		["00020401-0000-0000-c000-000000000046",0x0D] = "GetDllEntry",
+		["00020401-0000-0000-c000-000000000046",0x0E] = "GetRefTypeInfo",
+		["00020401-0000-0000-c000-000000000046",0x10] = "CreateInstance",
+		["00020401-0000-0000-c000-000000000046",0x11] = "GetMops",
+		["00020401-0000-0000-c000-000000000046",0x12] = "GetContainingTypeLib",
+
 		# IDMNotify - MSDN Ref: Disk Mgmt Remote Protocol [ms-dmrp]
 		["d2d79df7-3400-11d0-b40b-00aa005ff586",0x00] = "ObjectsChanged",
 

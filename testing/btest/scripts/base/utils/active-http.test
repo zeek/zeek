@@ -17,7 +17,7 @@ function check_exit_condition()
 	{
 	c += 1;
 
-	if ( c == 2 )
+	if ( c == 3 )
 		terminate();
 	}
 
@@ -39,4 +39,5 @@ event zeek_init()
 	{
 	test_request("test1", [$url="127.0.0.1:32123"]);
 	test_request("test2", [$url="127.0.0.1:32123/empty", $method="POST"]);
+	test_request("test3", [$url="127.0.0.1:32123", $method="POST 123"]); # will be rejected and not execute request
 	}

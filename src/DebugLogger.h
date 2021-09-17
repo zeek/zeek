@@ -54,6 +54,7 @@ enum DebugStream
 	DBG_BROKER, // Broker communication
 	DBG_SCRIPTS, // Script initialization
 	DBG_SUPERVISOR, // Process supervisor
+	DBG_HASHKEY, // HashKey buffers
 
 	NUM_DBGS // Has to be last
 	};

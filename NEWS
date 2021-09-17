@@ -17,6 +17,11 @@ New Functionality
 
   `python3 auxil/run-clang-format/run-clang-format.py --clang-format-executable `which clang-format-12` -r src -i`
 
+- Experimental support for speeding up Zeek script execution by compiling
+  scripts to a low-level form called "ZAM".  You activate this feature by
+  specifying ``-O ZAM`` on the command line.  See
+  ``src/script_opt/ZAM/README.md`` for more information.
+
 Changed Functionality
 ---------------------
 

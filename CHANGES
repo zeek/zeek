@@ -1,5 +1,9 @@
 4.1.1 | 2021-09-20 12:25:06 -0700
 
+  * Ensure table/set HashKey buffer reservation and writes happen in same order (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 5fc8d898975814dccd66ed80c77be7be20012a21)
+
   * Fix addr/string type confusion in Broker::peers() (Christian Kreibich, Corelight)
 
     (cherry picked from commit 2bcaa33563ef51881fbd7caf512d7475460a830b)

@@ -2205,6 +2205,28 @@ const void* memory_align(const void* ptr, size_t size)
 		return reinterpret_cast<const void*>(buf);
 	}
 
+TEST_CASE("util memory_align")
+	{
+	void* p1000 = (void*)0x1000;
+	void* p1001 = (void*)0x1001;
+	void* p1002 = (void*)0x1002;
+	void* p1003 = (void*)0x1003;
+	void* p1004 = (void*)0x1004;
+
+	CHECK(memory_align(p1000, 0) == p1000);
+	CHECK(memory_align(p1000, 1) == p1000);
+	CHECK(memory_align(p1000, 2) == p1000);
+	CHECK(memory_align(p1000, 4) == p1000);
+
+	CHECK(memory_align(p1001, 0) == p1001);
+	CHECK(memory_align(p1001, 1) == p1001);
+	CHECK(memory_align(p1001, 2) == p1002);
+	CHECK(memory_align(p1001, 4) == p1004);
+
+	CHECK(memory_align(p1002, 4) == p1004);
+	CHECK(memory_align(p1003, 4) == p1004);
+	}
+
 void* memory_align_and_pad(void* ptr, size_t size)
 	{
 	if ( ! size )
@@ -2219,6 +2241,40 @@ void* memory_align_and_pad(void* ptr, size_t size)
 		*buf++ = '\0';
 
 	return reinterpret_cast<void*>(buf);
+	}
+
+TEST_CASE("util memory_align_and_pad")
+	{
+	unsigned char mem[16];
+
+	memset(mem, 0xff, 16);
+
+	CHECK((mem[0] == 0xff && mem[1] == 0xff));
+
+	CHECK(memory_align_and_pad(mem, 0) == mem);
+	CHECK((mem[0] == 0xff && mem[1] == 0xff));
+
+	CHECK(memory_align_and_pad(mem, 2) == mem);
+	CHECK((mem[0] == 0xff && mem[1] == 0xff));
+
+	CHECK(memory_align_and_pad(mem + 1, 2) == mem + 2);
+	for ( int i = 1; i < 2; i++ )
+		CHECK(mem[i] == 0x00);
+	CHECK((mem[0] == 0xff && mem[2] == 0xff));
+
+	memset(mem, 0xff, 16);
+
+	CHECK(memory_align_and_pad(mem + 1, 4) == mem + 4);
+	for ( int i = 1; i < 3; i++ )
+		CHECK(mem[i] == 0x00);
+	CHECK((mem[0] == 0xff && mem[4] == 0xff));
+
+	memset(mem, 0xff, 16);
+
+	CHECK(memory_align_and_pad(mem + 1, 8) == mem + 8);
+	for ( int i = 1; i < 7; i++ )
+		CHECK(mem[i] == 0x00);
+	CHECK((mem[0] == 0xff && mem[8] == 0xff));
 	}
 
 int memory_size_align(size_t offset, size_t size)
@@ -2236,6 +2292,22 @@ int memory_size_align(size_t offset, size_t size)
 		}
 
 	return offset;
+	}
+
+TEST_CASE("util memory_size_align")
+	{
+	CHECK(memory_size_align(0x1000, 0) == 0x1000);
+	CHECK(memory_size_align(0x1000, 1) == 0x1000);
+	CHECK(memory_size_align(0x1000, 2) == 0x1000);
+	CHECK(memory_size_align(0x1000, 4) == 0x1000);
+
+	CHECK(memory_size_align(0x1001, 0) == 0x1001);
+	CHECK(memory_size_align(0x1001, 1) == 0x1001);
+	CHECK(memory_size_align(0x1001, 2) == 0x1002);
+	CHECK(memory_size_align(0x1001, 4) == 0x1004);
+
+	CHECK(memory_size_align(0x1002, 4) == 0x1004);
+	CHECK(memory_size_align(0x1003, 4) == 0x1004);
 	}
 
 void get_memory_usage(uint64_t* total, uint64_t* malloced)

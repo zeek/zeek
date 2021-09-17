@@ -161,17 +161,11 @@ HashKey::HashKey(const String* s)
 	key = (char*)s->Bytes();
 	}
 
-HashKey::HashKey(int copy_key, void* arg_key, size_t arg_size)
+HashKey::HashKey(const void* bytes, size_t arg_size)
 	{
 	size = write_size = arg_size;
-
-	if ( copy_key )
-		{
-		key = new char[size]; // s == 0 is okay, returns non-nil
-		memcpy(key, arg_key, size);
-		}
-	else
-		key = (char*)arg_key;
+	key = CopyKey((char*)bytes, size);
+	is_our_dynamic = true;
 	}
 
 HashKey::HashKey(const void* arg_key, size_t arg_size, hash_t arg_hash)
@@ -187,13 +181,6 @@ HashKey::HashKey(const void* arg_key, size_t arg_size, hash_t arg_hash, bool /* 
 	size = write_size = arg_size;
 	hash = arg_hash;
 	key = (char*)arg_key;
-	}
-
-HashKey::HashKey(const void* bytes, size_t arg_size)
-	{
-	size = write_size = arg_size;
-	key = CopyKey((char*)bytes, size);
-	is_our_dynamic = true;
 	}
 
 hash_t HashKey::Hash() const

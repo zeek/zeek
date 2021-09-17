@@ -243,33 +243,23 @@ public:
 	explicit HashKey(const char* s); // No copying, no ownership
 	explicit HashKey(const String* s); // No copying, no ownership
 
-	~HashKey()
-		{
-		if ( is_our_dynamic )
-			delete[](char*) key;
-		}
-
-	// Create a HashKey given all of its components.  "key" is assumed
-	// to be dynamically allocated and to now belong to this HashKey
-	// (to delete upon destruct'ing).  If "copy_key" is true, it's
-	// first copied.
-	//
-	// The calling sequence here is unusual (normally key would be
-	// first) to avoid possible ambiguities with the next constructor,
-	// which is the more commonly used one.
-	HashKey(int copy_key, void* key, size_t size);
-
-	// Same, but automatically copies the key.
-	HashKey(const void* key, size_t size, hash_t hash);
-
-	// Builds a key from the given chunk of bytes.
+	// Builds a key from the given chunk of bytes. Copies the data.
 	HashKey(const void* bytes, size_t size);
+
+	// Create a HashKey given all of its components. Copies the key.
+	HashKey(const void* key, size_t size, hash_t hash);
 
 	// Create a Hashkey given all of its components *without*
 	// copying the key and *without* taking ownership.  Note that
 	// "dont_copy" is a type placeholder to differentiate this member
 	// function from the one above; its value is not used.
 	HashKey(const void* key, size_t size, hash_t hash, bool dont_copy);
+
+	~HashKey()
+		{
+		if ( is_our_dynamic )
+			delete[](char*) key;
+		}
 
 	// Hands over the key to the caller.  This means that if the
 	// key is our dynamic, we give it to the caller and mark it

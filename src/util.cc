@@ -2187,6 +2187,57 @@ void safe_close(int fd)
 		}
 	}
 
+const void* memory_align(const void* ptr, size_t size)
+	{
+	if ( ! size )
+		return ptr;
+
+	ASSERT(is_power_of_2(size));
+
+	const char* buf = reinterpret_cast<const char*>(ptr);
+	size_t mask = size - 1; // Assume size is a power of 2.
+	unsigned long l_ptr = reinterpret_cast<unsigned long>(ptr);
+	unsigned long offset = l_ptr & mask;
+
+	if ( offset > 0 )
+		return reinterpret_cast<const void*>(buf - offset + size);
+	else
+		return reinterpret_cast<const void*>(buf);
+	}
+
+void* memory_align_and_pad(void* ptr, size_t size)
+	{
+	if ( ! size )
+		return ptr;
+
+	ASSERT(is_power_of_2(size));
+
+	char* buf = reinterpret_cast<char*>(ptr);
+	size_t mask = size - 1;
+	while ( (reinterpret_cast<unsigned long>(buf) & mask) != 0 )
+		// Not aligned - zero pad.
+		*buf++ = '\0';
+
+	return reinterpret_cast<void*>(buf);
+	}
+
+int memory_size_align(size_t offset, size_t size)
+	{
+	if ( ! size || ! offset )
+		return offset;
+
+	ASSERT(is_power_of_2(size));
+
+	size_t mask = size - 1; // Assume size is a power of 2.
+	if ( offset & mask )
+		{
+		offset &= ~mask; // Round down.
+		offset += size; // Round up.
+		}
+
+	return offset;
+	}
+
 void get_memory_usage(uint64_t* total, uint64_t* malloced)
 	{
 	uint64_t ret_total;

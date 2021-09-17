@@ -28,8 +28,12 @@
 
 namespace zeek
 	{
+
 class String;
+class ODesc;
+
 	}
+
 namespace zeek::detail
 	{
 
@@ -353,6 +357,8 @@ public:
 	void* KeyAtWrite() { return static_cast<void*>(key + write_size); }
 	const void* KeyAtRead() const { return static_cast<void*>(key + read_size); }
 	const void* KeyEnd() const { return static_cast<void*>(key + size); }
+
+	void Describe(ODesc* d) const;
 
 protected:
 	char* CopyKey(const char* key, size_t size) const;

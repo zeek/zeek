@@ -17,15 +17,9 @@
 
 4.2.0-dev.165 | 2021-09-14 18:39:34 -0700
 
-  * still more nit-squashing (Vern Paxson, Corelight)
+  * Addressed a number of low-level issues found by Coverity and compiler warnings (Vern Paxson, Corelight)
 
-  * avoiding using back() for an empty std::string (Vern Paxson, Corelight)
-
-  * additional tweaks to address some compiler warnings (Vern Paxson, Corelight)
-
-  * tweaks to address some compiler warnings (Vern Paxson, Corelight)
-
-  * tweaks to address concerns flagged by Coverity (Vern Paxson, Corelight)
+  * Fixed https://github.com/zeek/zeek/issues/1776 (Vern Paxson, Corelight)
 
 4.2.0-dev.159 | 2021-09-14 13:00:50 -0700
 
@@ -51,79 +45,17 @@
 
 4.2.0-dev.150 | 2021-09-08 11:44:15 -0700
 
-  * fix race condition in btest output ordering (Vern Paxson, Corelight)
+  * Fixes and btests for vector coercion overflows, typing, and holes (Vern Paxson, Corelight)
 
-  * whoops, forgot to canonicalize filenames in new btest (Vern Paxson, Corelight)
+  * Improve -u reporting, distinguishing between maybe-vs-definite problems (Vern Paxson, Corelight)
 
-  * extend btest to include a coercion overflow (Vern Paxson, Corelight)
+  * "-a ZAM" testing baseline alternative (Vern Paxson, Corelight)
 
-  * fixed a typo in a comment (Vern Paxson, Corelight)
+  * The main ZAM code, now available via -O ZAM (Vern Paxson, Corelight)
 
-  * fixes for vector coercion overflows, typing, and holes (Vern Paxson, Corelight)
+  * Rewrote tracking of variable definition ranges to be much more performant (Vern Paxson, Corelight)
 
-  * factoring out logic to check for overflows during coercions (Vern Paxson, Corelight)
-
-  * test case for vector coercions, including holes (Vern Paxson, Corelight)
-
-  * low-level cleanups found by code review (Vern Paxson, Corelight)
-
-  * additional conversions of size() to empty() checks that were missed previously (Vern Paxson, Corelight)
-
-  * indentation nit (Vern Paxson, Corelight)
-
-  * flag loop that has slightly subtle logic (Vern Paxson, Corelight)
-
-  * use ## to start major sections (Vern Paxson, Corelight)
-
-  * a number of low-level tweaks from code review (Vern Paxson, Corelight)
-
-  * use std::find_if rather than explicit loop (Vern Paxson, Corelight)
-
-  * switch simple loops that don't need indices to being iterator-based (Vern Paxson, Corelight)
-
-  * use container empty() rather than size() where appropriate (Vern Paxson, Corelight)
-
-  * Baseline variants for "-a zam" (Vern Paxson, Corelight)
-
-  * new "-a ZAM" testing baseline alternative (Vern Paxson, Corelight)
-
-  * updates for usage issues: support for -uu, maybe/definitely distinctions (Vern Paxson, Corelight)
-
-  * enable reducer to track folding to enable constant propagation (Vern Paxson, Corelight)
-
-  * switch to ID definition regions; reworked driver functions; more info for reporting uncompilable functions (Vern Paxson, Corelight)
-
-  * README for using ZAM (Vern Paxson, Corelight)
-
-  * the main ZAM code (Vern Paxson, Corelight)
-
-  * reworking of command-line options related to script optimization (Vern Paxson, Corelight)
-
-  * definitions of ZAM operations (Vern Paxson, Corelight)
-
-  * standalone templator for ZAM operations (Vern Paxson, Corelight)
-
-  * computing of identifier definition regions (Vern Paxson, Corelight)
-
-  * for parse-only, only do script analysis if looking for usage issues (Vern Paxson, Corelight)
-
-  * tracking of optimization information associated with identifiers (Vern Paxson, Corelight)
-
-  * tracking of optimization information associated with expressions (Vern Paxson, Corelight)
-
-  * tracking of optimization information associated with statements (Vern Paxson, Corelight)
-
-  * simple AST optimization for ?: operator (Vern Paxson, Corelight)
-
-  * track implicit assignments when profiling, associate counts with assignees (Vern Paxson, Corelight)
-
-  * preparing for a new Stmt subclass for ZAM function bodies (Vern Paxson, Corelight)
-
-  * provide ZAM execution with direct access to ZVal elements (Vern Paxson, Corelight)
-
-  * factoring to support debugging of Dict iterators - no semantic changes (Vern Paxson, Corelight)
-
-  * low-level tidying/nits - no semantic changes (Vern Paxson, Corelight)
+  * Extend ID/Expr/Stmt classes to have associated optimization information (Vern Paxson, Corelight)
 
 4.2.0-dev.112 | 2021-09-03 18:12:12 +0000
 

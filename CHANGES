@@ -1,3 +1,42 @@
+4.0.4 | 2021-09-18 16:17:35 -0700
+
+  * Update HMAC key used for benchmarking service (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 2fda808302dae017c6987b9265b61cba368bea06)
+
+  * Fix ignore_checksums_net with more than a single subnet not working (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 802dfd80c13c9c882a68dd9c41e67e8451c59031)
+
+  * Fix addr/string type confusion in Broker::peers() (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 2bcaa33563ef51881fbd7caf512d7475460a830b)
+
+  * Fix some HTTP evasions. Now HTTP packets are correctly parsed, when CRLF is missing on a multipart
+    boundary / at packet boundaries. Fixes GH-1598 (jerome Grandvalet)
+
+    (cherry picked from commit 8b506ca113928334b6dadf4ff5f721ab093083d4)
+
+  * Under certain circumstances, Zeek processes could get into an infinite looping state inside RotationTimer.
+    This is fixed by handling special cases of rotation happening exactly on the time boundary, and fixing
+    a special case of timer expiration. Fixes GH-1689. (Sowmya Ramapatruni, Corelight)
+
+    (cherry picked from commit ec6b954499dedad6808b7343aee9a19ebd50de1d)
+
+  * GH-1684: Ensure that the time gets updated every pass if we're reading live traffic (Tim Wojtulewicz, Corelight)
+
+    This is necessary for e.g. packet sources that don't have a selectable
+    file descriptor. They'll always be ready on a very short timeout, but
+    won't necessarily have a packet to process. In these case, sometimes
+    the time won't get updated for a long time and timers don't function
+    correctly.
+
+    (cherry picked from 36972ba9e1b4ce63c29622a7a31e2c07e465c6cb)
+
+  * Bump highwayhash to pull in FreeBSD 14 fix (Christian Kreibich, Corelight)
+
+    (cherry picked from commit ca2c3cdc99b082fac27deee02a79c3c0f0a09a63)
+
 4.0.3 | 2021-07-06 12:20:34 -0700
 
   * Skip input framework entries with missing but non-optional fields (Christian Kreibich, Corelight)

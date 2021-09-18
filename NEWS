@@ -1,7 +1,42 @@
-
 This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
+
+Zeek 4.0.4
+==========
+
+This release fixes the following bugs:
+
+- The highwayhash submodule was updated to fix a build failure on FreeBSD 14.
+
+  https://github.com/zeek/zeek/pull/1680
+
+- Packet sources that don't have a selectable file descriptor could
+  potentially prevent the network time from ever updating, which would have
+  adverse effects on the primary run loop such as preventing timers from
+  executing.
+
+  https://github.com/zeek/zeek/pull/1690
+
+- Specific conditions in the run loop could lead RotationTimers to get into
+  an infinite loop.
+
+  https://github.com/zeek/zeek/pull/1711
+
+- Specially crafted HTTP packets could avoid the HTTP analyzer.
+
+  https://github.com/zeek/zeek/pull/1691
+
+- Zeekctl crashes using the `zeekctl status` command if the `StatusCmdShowAll`
+  option is set to `1` in zeekctl.cfg.
+
+  https://github.com/zeek/zeek/pull/1734
+
+- The `ignore_checksum_nets` option does not work correctly if configured
+  with multiple subnets.
+
+  https://github.com/zeek/zeek/pull/1778
+  https://github.com/zeek/zeek/commit/802dfd80c13c9c882a68dd9c41e67e8451c59031
 
 Zeek 4.0.3
 ==========

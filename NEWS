@@ -29,6 +29,9 @@ Changed Functionality
   to revert to the previous behavior by setting ``LogAscii::enable_utf_8`` to
   false.
 
+- The ``SYN_packet`` record now records TCP timestamps (TSval/TSecr)
+  when available.
+
 Removed Functionality
 ---------------------
 

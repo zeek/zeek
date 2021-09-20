@@ -1,3 +1,8 @@
+
+4.2.0-dev.179 | 2021-09-20 11:20:50 +0200
+
+  * Add TSval and TSecr to "SYN_packet" record. (gpotter2)
+
 4.2.0-dev.174 | 2021-09-16 15:36:52 -0700
 
   * Minor fixes for build problems after reformatting (Tim Wojtulewicz, Corelight)

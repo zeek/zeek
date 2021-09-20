@@ -1,3 +1,27 @@
+4.1.1 | 2021-09-20 12:25:06 -0700
+
+  * Fix addr/string type confusion in Broker::peers() (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 2bcaa33563ef51881fbd7caf512d7475460a830b)
+
+  * GH-1684: Ensure that the time gets updated every pass if we're reading live traffic (Tim Wojtulewicz, Corelight)
+
+    This is necessary for e.g. packet sources that don't have a selectable
+    file descriptor. They'll always be ready on a very short timeout, but
+    won't necessarily have a packet to process. In these case, sometimes
+    the time won't get updated for a long time and timers don't function
+    correctly.
+
+    (cherry picked from 36972ba9e1b4ce63c29622a7a31e2c07e465c6cb)
+
+  * Fix ignore_checksums_net with more than a single subnet not working (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 802dfd80c13c9c882a68dd9c41e67e8451c59031)
+
+  * fix for looping over vectors with holes per https://github.com/zeek/zeek/issues/1763 (Vern Paxson, Corelight)
+
+    (cherry picked from commit 8414d13030b6c45e1112bf4462b938e9e0454a3f)
+
 4.1.0 | 2021-08-04 15:13:39 -0700
 
   * Release 4.1.0.

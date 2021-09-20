@@ -3,6 +3,34 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 4.1.1
+==========
+
+This release fixes the following bugs:
+
+- Looping over vectors with missing elements in script-land could fail to
+  process all elements.
+
+  https://github.com/zeek/zeek/pull/1765
+
+- The `ignore_checksum_nets` option does not work correctly if configured
+  to with multiple subnets.
+
+  https://github.com/zeek/zeek/pull/1778
+  https://github.com/zeek/zeek/commit/802dfd80c13c9c882a68dd9c41e67e8451c59031
+
+- Packet sources that don't have a selectable file descriptor could
+  potentially prevent the network time from ever updating, which would have
+  adverse effects on the primary run loop such as preventing timers from
+  executing.
+
+  https://github.com/zeek/zeek/pull/1690
+
+- Zeekctl crashes using the `zeekctl status` command if the `StatusCmdShowAll`
+  option is set to `1` in zeekctl.cfg.
+
+  https://github.com/zeek/zeek/pull/1734
+
 Zeek 4.1.0
 ==========
 

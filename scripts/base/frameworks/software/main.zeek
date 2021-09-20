@@ -476,9 +476,11 @@ function software_fmt(i: Info): string
 	return fmt("%s %s", i$name, software_fmt_version(i$version));
 	}
 
-event Software::register(info: Info)
+# Parse unparsed_version if needed before raising register event
+# This is used to maintain the behavior of the exported Software::register
+# event that expects a pre-parsed 'name' field.
+event Software::new(info: Info)
 	{
-
 	if ( ! info?$version )
 		{
 		local sw = parse_with_cache(info$unparsed_version);
@@ -486,6 +488,12 @@ event Software::register(info: Info)
 		info$name = sw$name;
 		info$version = sw$version;
 		}
+
+	event Software::register(info);
+	}
+
+event Software::register(info: Info)
+	{
 
 	local ts: SoftwareSet;
 
@@ -536,9 +544,9 @@ function found(id: conn_id, info: Info): bool
 		}
 
 	@if ( Cluster::is_enabled() )
-		Cluster::publish_hrw(Cluster::proxy_pool, info$host, Software::register, info);
+		Cluster::publish_hrw(Cluster::proxy_pool, info$host, Software::new, info);
 	@else
-		event Software::register(info);
+		event Software::new(info);
 	@endif
 
 	return T;

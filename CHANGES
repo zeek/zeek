@@ -1,3 +1,13 @@
+
+4.2.0-dev.194 | 2021-09-21 17:56:14 +0200
+
+  * Optimize software framework version parsing by adding a small
+    cache in front of the parse method, and moving the parsing itself
+    to the proxies where the caching can be more efficient. (Justin
+    Azoff, Corelight)
+
+  * Add further mappings for MS-OAUT IDispatch methods. (FOX-DS)
+
 4.2.0-dev.189 | 2021-09-21 07:45:11 -0700
 
   * Add btests for new functionality (Christian Kreibich, Corelight)

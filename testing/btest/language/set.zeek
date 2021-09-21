@@ -24,6 +24,7 @@ event zeek_init()
 	local s6: set[port, string, bool] = set();
 	local s7: set[port, string, bool];
 	local s8 = set( [8/tcp, "type inference", T] );
+	local s9: set[set[count]] = set();
 
 	# Type inference tests
 
@@ -181,5 +182,15 @@ event zeek_init()
 	test_case( "equality", a == a | set(5,11) );
 
 	test_case( "magnitude", |a_and_b| == |a_or_b|);
+
+	add s9[set(1,2,3)];
+	test_case( "nested-set-add", |s9| == 1 );
+	add s9[set(1,2,3)];
+	test_case( "nested-set-add", |s9| == 1 );
+	add s9[set(2,3,4)];
+	test_case( "nested-set-add", |s9| == 2 );
+	delete s9[set(1,2,3)];
+	test_case( "nested-set-del", |s9| == 1 );
+	test_case( "nested-set-in", set(2,3,4) in s9 );
 }
 

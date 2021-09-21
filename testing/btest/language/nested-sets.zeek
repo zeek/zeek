@@ -28,6 +28,8 @@ type r: record {
 	b: set[count];
 };
 
+type s: set[set[count]];
+
 global foo: set[r];
 global bar = set(1,3,5);
 

@@ -29,6 +29,9 @@ event zeek_init()
 	local t11: table[conn_id, bool] of count = {
 	    [ [$orig_h=1.1.1.1, $orig_p=1234/tcp,
 	       $resp_h=2.2.2.2, $resp_p=4321/tcp], T ] = 42 };
+	local t12: table[table[count] of string] of string = {
+		[table([1] = "foo", [2] = "bar")] = "oh1"
+	};
 
 	# Type inference tests
 
@@ -159,5 +162,10 @@ event zeek_init()
 	delete t11[cid, T];
 	test_case( "remove element", |t11| == 1 );
 	test_case( "!in operator", [cid, T] !in t11 );
+
+	t12[table([2] = "blum", [3] = "frub")] = "oh2";
+	test_case( "nested table addition", |t12| == 2 );
+	delete t12[table([1] = "foo", [2] = "bar")];
+	test_case( "nested table removal", |t12| == 1 );
 }
 

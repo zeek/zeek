@@ -493,6 +493,24 @@ inline char* safe_strncpy(char* dest, const char* src, size_t n)
 	return result;
 	}
 
+// Memory alignment helpers.
+
+inline bool is_power_of_2(bro_uint_t x)
+	{
+	return ((x - 1) & x) == 0;
+	}
+
+// Rounds the given pointer up to the nearest multiple of the
+// given size, if not already a multiple.
+const void* memory_align(const void* ptr, size_t size);
+
+// Rounds the given pointer up to the nearest multiple of the
+// given size, padding the skipped region with 0 bytes.
+void* memory_align_and_pad(void* ptr, size_t size);
+
+// Returns offset rounded up so it can correctly align data of the given size.
+int memory_size_align(size_t offset, size_t size);
+
 // Returns total memory allocations and (if available) amount actually
 // handed out by malloc.
 extern void get_memory_usage(uint64_t* total, uint64_t* malloced);

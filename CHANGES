@@ -1,3 +1,59 @@
+4.2.0-dev.189 | 2021-09-21 07:45:11 -0700
+
+  * Add btests for new functionality (Christian Kreibich, Corelight)
+
+    - Expand language.set to cover sets of sets
+    - Expand language.table to cover tables indexed with tables
+    - Add language.table-nested-set-ordering to capture the reproducer from GHI-1753
+
+  * Remove unused HashKey constructor and reorder for consistency (Christian Kreibich, Corelight)
+
+    One of the HashKey constructors was only used in the old CompHash code.
+    This aso reorders some constructors and the destructor for readability.
+
+  * Refactor CompHash class to use new HashKey buffering features (Christian Kreibich, Corelight)
+
+    This preserves the previous hash key buffer layout (so the testsuite still
+    passes) and overall approach but gets rid of the codepath for writing singleton
+    serializations. This code path required a fourth switch block over all types
+    (besides reads, writes, and size computation) and was inconsistent with the one
+    for writing non-atomic types.
+
+  * Add debug string and ODesc support to HashKey class (Christian Kreibich, Corelight)
+
+    This allows tracing of hash key buffer reservations, reads, and writes via a new
+    debug stream, and supports printing a summary of a HashKey object via
+    Describe(). The latter comes in handy e.g. in TableVal::Describe() (where
+    including the hash key is now available but commented out).
+
+  * Refactor HashKey class to support read/write operations (Christian Kreibich, Corelight)
+
+    This preserves the optimization of storing values directly in the key_u member
+    union when feasible, and using a variable size buffer otherwise. It also adds
+    bounds-checking for that buffer, moves size arguments to size_t, decouples
+    construction from hash computation, emulates the tagging feature found in
+    SerializationFormat to assist troubleshooting, and switches feasible
+    reinterpret_casts to static_casts.
+
+  * Add unit tests for memory helpers (Christian Kreibich, Corelight)
+
+  * Add memory sizing/alignment helpers to util.cc/h (Christian Kreibich, Corelight)
+
+    This functionality previously lived in the CompHash class, with one difference:
+    this removes a discrepancy between the offset aligner and the memory pointer
+    aligner/padder. The size aligner used to align the provided offset and then add an
+    additional alignment size (for example, 1 aligned to 4 wouldn't yield 4 but 8).
+    Like the memory aligners it now only rounds up as needed.
+
+    Includes unit tests.
+
+  * Ensure table/set HashKey buffer reservation and writes happen in same order (Christian Kreibich, Corelight)
+
+    This takes the existing sorting for table index hashkeys we had in place during
+    hash key writes and applies it also during buffer size reservation. It changes
+    the approach slightly: the underlying map now points to the TableVal entry index
+    vals directly, rather than to the numerical index into an additional list that
+    gets built up to store those indexes. Doing so removes the need for that list.
 
 4.2.0-dev.179 | 2021-09-20 11:20:50 +0200
 

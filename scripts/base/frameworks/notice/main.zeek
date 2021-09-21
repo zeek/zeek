@@ -380,12 +380,13 @@ function log_mailing_postprocessor(info: Log::RotationInfo): bool
 		{
 		local headers = email_headers(fmt("Log Contents: %s", info$fname),
 		                              mail_dest);
-		local tmpfilename = fmt("%s.mailheaders.tmp", info$fname);
+		local tmpfilename = safe_shell_quote(fmt("%s.mailheaders.tmp", info$fname));
 		local tmpfile = open(tmpfilename);
 		write_file(tmpfile, headers);
 		close(tmpfile);
 		system(fmt("/bin/cat %s %s | %s -t -oi && /bin/rm %s %s",
-		       tmpfilename, info$fname, sendmail, tmpfilename, info$fname));
+		       tmpfilename, safe_shell_quote(info$fname), sendmail,
+			   tmpfilename, safe_shell_quote(info$fname)));
 		}
 	return T;
 	}

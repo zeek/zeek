@@ -1,4 +1,15 @@
-4.0.4 | 2021-09-18 16:17:35 -0700
+4.0.4 | 2021-09-21 16:04:07 -0700
+
+  * Sanitize log files names before they go into system(). (Robin Sommer, Corelight)
+
+    In principle, an attacker who's controlling the Zeek scripts being
+    loaded could have set log paths to include non-safe characters leading
+    to arbitrary command execution during log rotation. This fix avoids that
+    be sanitizing the file names / command lines.
+
+    Note, though, that this isn't a problem that we can really solve:
+    somebody controlling scripts can just as well inject custom
+    `system()` calls to begin with.
 
   * PIA - switch size to int64_t (Johanna Amann, Corelight)
 

@@ -69,7 +69,7 @@ function sftp_postprocessor(info: Log::RotationInfo): bool
 		               d$host_port, d$user, d$host);
 		}
 
-	command += fmt("/bin/rm %s", info$fname);
+	command += fmt("/bin/rm %s", safe_shell_quote(info$fname));
 	system(command);
 	return T;
 	}

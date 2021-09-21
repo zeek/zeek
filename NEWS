@@ -5,6 +5,20 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 4.0.4
 ==========
 
+This release fixes the following security issues:
+
+- Paths from log stream make it into system() unchecked, potentially leading
+  to commands being run on the system unintentionally. This requires either
+  bad scripting or a malicious package to be installed, and is considered
+  low severity.
+
+- Fix potential unbounded state growth in the PIA analyzer when receiving a
+  connection with either a large number of zero-length packets, or one which
+  continues ack-ing unseen segments. It is possible to run Zeek out of memory
+  in these instances and cause it to crash. Due to the possibility of this
+  happening with packets received from the network, this is a potential DoS
+  vulnerability.
+
 This release fixes the following bugs:
 
 - The highwayhash submodule was updated to fix a build failure on FreeBSD 14.

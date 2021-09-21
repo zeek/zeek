@@ -1,5 +1,16 @@
 4.0.4 | 2021-09-18 16:17:35 -0700
 
+  * PIA - switch size to int64_t (Johanna Amann, Corelight)
+
+    This brings the PIA size counter in line with the actual datatype used
+    on the scripting layer - both now use an int64_t.
+
+  * Introduce dpd_max_packets (Johanna Amann, Corelight)
+
+    dpd_max_packets is an additional setting that limits the maximum amount
+    of packets that dpd will cache; before dpd was only limited by buffer
+    size (but could cache a limitless amount of data-less packets).
+
   * Ensure table/set HashKey buffer reservation and writes happen in same order (Christian Kreibich, Corelight)
 
     (cherry picked from commit 5fc8d898975814dccd66ed80c77be7be20012a21)

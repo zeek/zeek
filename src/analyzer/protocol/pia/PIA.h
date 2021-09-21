@@ -57,12 +57,20 @@ protected:
 		DataBlock* next;
 	};
 
-	struct Buffer {
-		Buffer() { head = tail = nullptr; size = 0; state = INIT; }
+	struct Buffer
+		{
+		Buffer()
+			{
+			head = tail = nullptr;
+			size = 0;
+			chunks = 0;
+			state = INIT;
+			}
 
 		DataBlock* head;
 		DataBlock* tail;
-		int size;
+		int64_t size;
+		int64_t chunks;
 		State state;
 	};
 

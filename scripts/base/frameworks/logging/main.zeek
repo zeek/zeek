@@ -649,7 +649,7 @@ function run_rotation_postprocessor_cmd(info: RotationInfo, npath: string) : boo
 	# The date format is hard-coded here to provide a standardized
 	# script interface.
 	system(fmt("%s %s %s %s %s %d %s",
-               pp_cmd, npath, info$path,
+               pp_cmd, safe_shell_quote(npath), safe_shell_quote(info$path),
                strftime("%y-%m-%d_%H.%M.%S", info$open),
                strftime("%y-%m-%d_%H.%M.%S", info$close),
                info$terminating, writer));

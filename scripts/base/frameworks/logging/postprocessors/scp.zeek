@@ -66,7 +66,7 @@ function scp_postprocessor(info: Log::RotationInfo): bool
 		command += fmt("scp %s %s@%s:%s;", info$fname, d$user, d$host, dst);
 		}
 
-	command += fmt("/bin/rm %s", info$fname);
+	command += fmt("/bin/rm %s", safe_shell_quote(info$fname));
 	system(command);
 	return T;
 	}

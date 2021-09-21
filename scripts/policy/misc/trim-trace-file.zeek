@@ -24,7 +24,7 @@ event TrimTraceFile::go(first_trim: bool)
 		{
 		local info = rotate_file_by_name(trace_output_file);
 		if ( info$old_name != "" )
-			system(fmt("/bin/rm %s", info$new_name));
+			system(fmt("/bin/rm %s", safe_shell_quote(info$new_name)));
 		}
 	
 	schedule trim_interval { TrimTraceFile::go(F) };

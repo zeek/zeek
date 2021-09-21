@@ -75,7 +75,7 @@ void PIA::AddToBuffer(Buffer* buffer, int len, const u_char* data, bool is_orig,
 
 void PIA::ReplayPacketBuffer(analyzer::Analyzer* analyzer)
 	{
-	DBG_LOG(DBG_ANALYZER, "PIA replaying %d total packet bytes", pkt_buffer.size);
+	DBG_LOG(DBG_ANALYZER, "PIA replaying %" PRIu64 " total packet bytes", pkt_buffer.size);
 
 	for ( DataBlock* b = pkt_buffer.head; b; b = b->next )
 		analyzer->DeliverPacket(b->len, b->data, b->is_orig, -1, b->ip, 0);
@@ -106,7 +106,7 @@ void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t 
 	     len > 0 )
 		{
 		AddToBuffer(&pkt_buffer, seq, len, data, is_orig, ip);
-		if ( pkt_buffer.size > zeek::detail::dpd_buffer_size )
+		if ( pkt_buffer.size > zeek::detail::dpd_buffer_size || ++pkt_buffer.chunks > zeek::detail::dpd_max_packets )
 			new_state = zeek::detail::dpd_match_only_beginning ?
 						SKIPPING : MATCHING_ONLY;
 		}
@@ -281,7 +281,7 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 	if ( stream_buffer.state == BUFFERING || new_state == BUFFERING )
 		{
 		AddToBuffer(&stream_buffer, len, data, is_orig);
-		if ( stream_buffer.size > zeek::detail::dpd_buffer_size )
+		if ( stream_buffer.size > zeek::detail::dpd_buffer_size || ++stream_buffer.chunks > zeek::detail::dpd_max_packets )
 			new_state = zeek::detail::dpd_match_only_beginning ?
 						SKIPPING : MATCHING_ONLY;
 		}
@@ -295,11 +295,17 @@ void PIA_TCP::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
-	if ( stream_buffer.state == BUFFERING )
-		// We use data=nil to mark an undelivered.
-		AddToBuffer(&stream_buffer, seq, len, nullptr, is_orig);
+	if ( stream_buffer.state != BUFFERING )
+		return;
 
-	// No check for buffer overrun here. I think that's ok.
+	// We use data=nil to mark an undelivered.
+	AddToBuffer(&stream_buffer, seq, len, nullptr, is_orig);
+
+	if ( ++stream_buffer.chunks > zeek::detail::dpd_max_packets )
+		{
+		stream_buffer.state = zeek::detail::dpd_match_only_beginning ? SKIPPING : MATCHING_ONLY;
+		DBG_LOG(DBG_ANALYZER, "PIA_TCP[%d] buffer chunks exceeded", GetID());
+		}
 	}
 
 void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule)
@@ -433,7 +439,7 @@ void PIA_TCP::DeactivateAnalyzer(analyzer::Tag tag)
 
 void PIA_TCP::ReplayStreamBuffer(analyzer::Analyzer* analyzer)
 	{
-	DBG_LOG(DBG_ANALYZER, "PIA_TCP replaying %d total stream bytes", stream_buffer.size);
+	DBG_LOG(DBG_ANALYZER, "PIA_TCP replaying %" PRIu64 " total stream bytes", stream_buffer.size);
 
 	for ( DataBlock* b = stream_buffer.head; b; b = b->next )
 		{

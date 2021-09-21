@@ -82,6 +82,7 @@ extern int sig_max_group_size;
 
 extern int dpd_reassemble_first_packets;
 extern int dpd_buffer_size;
+extern int dpd_max_packets;
 extern int dpd_match_only_beginning;
 extern int dpd_late_match_stop;
 extern int dpd_ignore_ports;

@@ -1,3 +1,13 @@
+4.2.0-dev.198 | 2021-09-21 14:13:21 -0700
+
+  * Use `brew update` instead of `brew update-reset` in CI macOS prepare script (Tim Wojtulewicz, Corelight)
+
+    Using `brew update-reset` causes homebrew to reset to homebrew's HEAD commit, which may
+    be buggy and broken. It appears whatever Cirrus was doing previously on their Catalina
+    VM is no longer a problem, and so update-reset isn't required anymore. Switch to
+    `brew update` to make sure we still get newer versions of the packages, but is
+    actually a versioned release of homebrew.
+
 4.2.0-dev.196 | 2021-09-21 09:44:26 -0700
 
   * Disable script profiling/coverage on sanitizer builds (Tim Wojtulewicz, Corelight)

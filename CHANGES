@@ -1,3 +1,16 @@
+4.2.0-dev.201 | 2021-09-21 15:15:57 -0700
+
+  * PIA - switch size to int64_t (Johanna Amann, Corelight)
+
+    This brings the PIA size counter in line with the actual datatype used
+    on the scripting layer - both now use an int64_t.
+
+  * Introduce dpd_max_packets (Johanna Amann, Corelight)
+
+    dpd_max_packets is an additional setting that limits the maximum amount
+    of packets that dpd will cache; before dpd was only limited by buffer
+    size (but could cache a limitless amount of data-less packets).
+
 4.2.0-dev.198 | 2021-09-21 14:13:21 -0700
 
   * Use `brew update` instead of `brew update-reset` in CI macOS prepare script (Tim Wojtulewicz, Corelight)

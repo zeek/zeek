@@ -181,6 +181,7 @@ int sig_max_group_size;
 
 int dpd_reassemble_first_packets;
 int dpd_buffer_size;
+int dpd_max_packets;
 int dpd_match_only_beginning;
 int dpd_late_match_stop;
 int dpd_ignore_ports;
@@ -339,6 +340,7 @@ void init_net_var()
 
 	dpd_reassemble_first_packets = id::find_val("dpd_reassemble_first_packets")->AsBool();
 	dpd_buffer_size = id::find_val("dpd_buffer_size")->AsCount();
+	dpd_max_packets = id::find_val("dpd_max_packets")->AsCount();
 	dpd_match_only_beginning = id::find_val("dpd_match_only_beginning")->AsBool();
 	dpd_late_match_stop = id::find_val("dpd_late_match_stop")->AsBool();
 	dpd_ignore_ports = id::find_val("dpd_ignore_ports")->AsBool();

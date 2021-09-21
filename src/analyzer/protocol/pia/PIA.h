@@ -74,12 +74,14 @@ protected:
 			{
 			head = tail = nullptr;
 			size = 0;
+			chunks = 0;
 			state = INIT;
 			}
 
 		DataBlock* head;
 		DataBlock* tail;
-		int size;
+		int64_t size;
+		int64_t chunks;
 		State state;
 		};
 

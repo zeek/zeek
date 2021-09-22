@@ -10,7 +10,6 @@
 #include "zeek/Expr.h"
 #include "zeek/ID.h"
 #include "zeek/script_opt/IDOptInfo.h"
-#include "zeek/script_opt/ReachingDefs.h"
 
 namespace zeek::detail
 	{
@@ -43,9 +42,6 @@ public:
 	IDPtr Alias() const { return alias; }
 	void SetAlias(IDPtr id);
 
-	const RDPtr& MaxRDs() const { return max_rds; }
-	void SetMaxRDs(RDPtr rds) { max_rds = std::move(rds); }
-
 protected:
 	std::string name;
 	IDPtr id;
@@ -53,7 +49,6 @@ protected:
 	ExprPtr rhs;
 	bool active = true;
 	IDPtr alias;
-	RDPtr max_rds;
 	};
 
 	} // zeek::detail

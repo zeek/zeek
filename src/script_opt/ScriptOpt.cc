@@ -11,7 +11,6 @@
 #include "zeek/script_opt/CPP/Compile.h"
 #include "zeek/script_opt/CPP/Func.h"
 #include "zeek/script_opt/GenIDDefs.h"
-#include "zeek/script_opt/GenRDs.h"
 #include "zeek/script_opt/Inline.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/Reduce.h"
@@ -144,12 +143,6 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 	f->ReplaceBody(body, new_body);
 	body = new_body;
 
-	if ( analysis_options.usage_issues > 1 )
-		{
-		// Use the old-school approach for this.
-		RD_Decorate reduced_rds(pf, f, scope, body);
-		}
-
 	if ( analysis_options.optimize_AST && ! optimize_AST(f, pf, rc, scope, body) )
 		{
 		pop_scope();
@@ -268,7 +261,7 @@ static void init_options()
 	auto usage = getenv("ZEEK_USAGE_ISSUES");
 
 	if ( usage )
-		analysis_options.usage_issues = atoi(usage) > 1 ? 2 : 1;
+		analysis_options.usage_issues = 1;
 
 	if ( ! analysis_options.only_func )
 		{

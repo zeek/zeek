@@ -36,12 +36,8 @@ jobs:
           load: true
           tags: ${{ env.TEST_TAG }}
 
-      # Run tests on the just created image.
-      - name: Run tests
-        uses: plexsystems/container-structure-test-action@v0.2.0
-        with:
-            image: ${{ env.TEST_TAG }}
-            config: docker/container-structure-test.yaml
+      - name: Run btests
+        run: make -C docker/btest
 
       - name: Get Version
         id: version
@@ -84,3 +80,11 @@ jobs:
           push: true
           tags: |
             zeekurity/${{ steps.target.outputs.tag}}
+
+      - name: Preserve artifacts
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: docker-btest
+          path: docker/btest/.tmp
+          if-no-files-found: ignore

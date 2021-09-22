@@ -6,3 +6,7 @@ VERSION := $$(cat ../VERSION)
 
 all:
 	@docker build -t zeek:$(VERSION) -f Dockerfile ..
+	@docker tag zeek:$(VERSION) zeek:latest
+
+test:
+	@TEST_TAG=zeek:$(VERSION) $(MAKE) -C btest

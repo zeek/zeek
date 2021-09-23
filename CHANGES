@@ -1,4 +1,9 @@
 
+4.2.0-dev.208 | 2021-09-23 17:48:13 +0200
+
+  * Fix and extend protocol forwarding/logging in dce_rpc-auth.
+    (FOX-DS)
+
 4.2.0-dev.205 | 2021-09-23 12:24:06 +0200
 
   * Avoid allocation of duplicate zero-length strings for new

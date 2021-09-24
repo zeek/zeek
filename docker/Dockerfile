@@ -1,7 +1,7 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
 # Layer to build Zeek.
-FROM debian:buster-slim AS build_zeek
+FROM debian:bullseye-slim AS build
 
 # Configure system for build.
 RUN apt-get -q update \
@@ -38,7 +38,7 @@ RUN ./configure \
  && ninja -C build install
 
 # Final layer containing all artifacts.
-FROM debian:buster-slim AS final
+FROM debian:bullseye-slim AS final
 
 RUN apt-get -q update \
  && apt-get install -q -y --no-install-recommends \
@@ -56,5 +56,5 @@ RUN apt-get -q update \
  && rm -rf /var/lib/apt/lists/*
 
 # Copy over Zeek installation.
-COPY --from=build_zeek /usr/local/zeek /usr/local/zeek
+COPY --from=build /usr/local/zeek /usr/local/zeek
 ENV PATH "/usr/local/zeek/bin:${PATH}"

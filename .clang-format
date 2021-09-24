@@ -30,7 +30,7 @@ BreakBeforeBraces: Whitesmiths
 #   SplitEmptyNamespace: false
 
 AccessModifierOffset: -4
-AlignAfterOpenBracket: true
+AlignAfterOpenBracket: Align
 AlignTrailingComments: false
 AllowShortBlocksOnASingleLine: Empty
 AllowShortEnumsOnASingleLine: true

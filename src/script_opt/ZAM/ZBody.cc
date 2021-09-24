@@ -313,9 +313,11 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 			case OP_NOP:
 				break;
 
-// These must stay in this order or the build fails.
+				// These must stay in this order or the build fails.
+				// clang-format off
 #include "ZAM-EvalMacros.h"
 #include "ZAM-EvalDefs.h"
+				// clang-format on
 
 			default:
 				reporter->InternalError("bad ZAM opcode");

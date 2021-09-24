@@ -47,10 +47,7 @@ bool ScannedFile::AlreadyScanned() const
 	return rval;
 	}
 
-SignatureFile::SignatureFile(std::string file)
-	: file(std::move(file))
-	{
-	}
+SignatureFile::SignatureFile(std::string file) : file(std::move(file)) { }
 
 SignatureFile::SignatureFile(std::string file, std::string full_path)
 	: file(std::move(file)), full_path(std::move(full_path))

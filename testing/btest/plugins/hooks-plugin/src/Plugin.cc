@@ -15,6 +15,7 @@ using namespace btest::plugin::Demo_Hooks;
 zeek::plugin::Configuration Plugin::Configure()
 	{
 	EnableHook(zeek::plugin::HOOK_LOAD_FILE);
+	EnableHook(zeek::plugin::HOOK_LOAD_FILE_EXT);
 	EnableHook(zeek::plugin::HOOK_CALL_FUNCTION);
 	EnableHook(zeek::plugin::HOOK_QUEUE_EVENT);
 	EnableHook(zeek::plugin::HOOK_DRAIN_EVENTS);
@@ -54,6 +55,13 @@ int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std
 	fprintf(stderr, "%.6f %-15s %s %s\n", zeek::run_state::network_time, "| HookLoadFile",
 		file.c_str(), resolved.c_str());
 	return -1;
+	}
+
+std::pair<int, std::optional<std::string>> Plugin::HookLoadFileExtended(const LoadType type, const std::string& file, const std::string& resolved)
+	{
+	fprintf(stderr, "%.6f %-15s %s %s\n", zeek::run_state::network_time, "| HookLoadFileExtended",
+		file.c_str(), resolved.c_str());
+	return std::make_pair(-1, std::nullopt);
 	}
 
 std::pair<bool, zeek::ValPtr> Plugin::HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* frame,

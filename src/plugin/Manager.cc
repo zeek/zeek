@@ -692,6 +692,41 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 	return rc;
 	}
 
+std::pair<int, std::optional<std::string>>
+Manager::HookLoadFileExtended(const Plugin::LoadType type, const string& file,
+                              const string& resolved)
+	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(HookArgument(type));
+		args.push_back(HookArgument(file));
+		args.push_back(HookArgument(resolved));
+		MetaHookPre(HOOK_LOAD_FILE_EXT, args);
+		}
+
+	hook_list* l = hooks[HOOK_LOAD_FILE_EXT];
+
+	std::pair<int, std::optional<std::string>> rc = {-1, std::nullopt};
+
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+
+			rc = p->HookLoadFileExtended(type, file, resolved);
+
+			if ( rc.first >= 0 )
+				break;
+			}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_LOAD_FILE_EXT, args, HookArgument(rc));
+
+	return rc;
+	}
+
 std::pair<bool, ValPtr> Manager::HookCallFunction(const Func* func, zeek::detail::Frame* parent,
                                                   Args* vecargs) const
 	{

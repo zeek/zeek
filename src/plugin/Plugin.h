@@ -5,6 +5,7 @@
 #include "zeek/zeek-config.h"
 
 #include <list>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -57,6 +58,7 @@ enum HookType
 	{
 	// Note: when changing this table, update hook_name() in Plugin.cc.
 	HOOK_LOAD_FILE, //< Activates Plugin::HookLoadFile().
+	HOOK_LOAD_FILE_EXT, //< Activates Plugin::HookLoadFileExtended().
 	HOOK_CALL_FUNCTION, //< Activates Plugin::HookCallFunction().
 	HOOK_QUEUE_EVENT, //< Activates Plugin::HookQueueEvent().
 	HOOK_DRAIN_EVENTS, //< Activates Plugin::HookDrainEvents()
@@ -205,7 +207,8 @@ public:
 		CONN,
 		THREAD_FIELDS,
 		LOCATION,
-		ARG_LIST
+		ARG_LIST,
+		INPUT_FILE
 		};
 
 	/**
@@ -355,6 +358,15 @@ public:
 		{
 		type = ARG_LIST;
 		arg.args = args;
+		}
+
+	/**
+	 * Constructor with HookLoadFileExtended result describing an input file.
+	 */
+	explicit HookArgument(std::pair<int, std::optional<std::string>> file)
+		{
+		type = INPUT_FILE;
+		input_file = std::move(file);
 		}
 
 	/**
@@ -540,6 +552,7 @@ private:
 	std::pair<bool, Val*> func_result;
 	std::pair<int, const threading::Field* const*> tfields;
 	std::string arg_string;
+	std::pair<int, std::optional<std::string>> input_file;
 	};
 
 using HookArgumentList = std::list<HookArgument>;
@@ -814,6 +827,43 @@ protected:
 	 */
 	virtual int HookLoadFile(const LoadType type, const std::string& file,
 	                         const std::string& resolved);
+
+	/**
+	 * Hook into loading input files, with extended capabilities. This method
+	 * will be called between InitPreScript() and InitPostScript(), but with no
+	 * further order or timing guaranteed. It will be called once for each
+	 * input file Bro is about to load, either given on the command line or via
+	 * @load script directives. The hook can take over the file, in which case
+	 * Bro will not further process it otherwise. It can, alternatively, also
+	 * provide the file content as a string, which Bro will then process just
+	 * as if it had read it from a file.
+	 *
+	 * @param type The type of load encountered: script load, signatures load,
+	 *             or plugin load.
+	 *
+	 * @param file The filename that was passed to @load. Only includes
+	 *             an extension if it was given in @load.
+	 *
+	 * @param resolved The file or directory name Bro resolved from
+	 *                 the given path and is going to load. Empty string
+	 *                 if Bro was not able to resolve a path.
+	 *
+	 * @return tuple of an integer and an optional string, where: the integer
+	 * must be 1 if the plugin takes over loading the file (see below); 0 if
+	 * the plugin wanted to take over the file but had trouble loading it
+	 * (processing will abort in this case, and the plugin should have printed
+	 * an error message); and -1 if the plugin wants Bro to proceeed processing
+	 * the file normally. If the plugins takes over by returning 1, there are
+	 * two cases: if the second tuple element remains unset, the plugin handled
+	 * the loading completely internally; Bro will not do anything further with
+	 * it. Alternatively, the plugin may optionally return the acutal content
+	 * to use for the file as a string through the tuple's second element. If
+	 * so, Bro will ignore the file on disk and use that provided content
+	 * instead (including when there's actually no physical file in place on
+	 * disk at all, and loading would have hence failed otherwise).
+	 */
+	virtual std::pair<int, std::optional<std::string>>
+	HookLoadFileExtended(const LoadType type, const std::string& file, const std::string& resolved);
 
 	/**
 	 * Hook into executing a script-level function/event/hook. Whenever

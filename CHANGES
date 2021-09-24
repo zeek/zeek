@@ -1,3 +1,8 @@
+4.2.0-dev.214 | 2021-09-24 10:31:34 -0700
+
+  * script simplification that removes an unnecessary &is_assigned (Vern Paxson, Corelight)
+
+  * removing -uu functionality and associated script analysis now no longer needed (Vern Paxson, Corelight)
 
 4.2.0-dev.208 | 2021-09-23 17:48:13 +0200
 

@@ -78,11 +78,9 @@ struct AnalyOpt
 	bool dump_ZAM = false;
 
 	// If non-zero, looks for variables that are used-but-possibly-not-set,
-	// or set-but-not-used.
-	//
-	// If > 1, also reports on uses of uninitialized record fields and
-	// analyzes nested records in depth.  Warning: with the current
-	// data structures this greatly increases analysis time.
+	// or set-but-not-used.  We store this as an int rather than a bool
+	// because we might at some point extend the analysis to deeper forms
+	// of usage issues, such as those present in record fields.
 	//
 	// Included here with other ZAM-related options since conducting
 	// the analysis requires activating some of the machinery used

@@ -2,9 +2,11 @@
 
 #pragma once
 
+// clang-format off
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <net/if_arp.h>
+// clang-format on
 
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"

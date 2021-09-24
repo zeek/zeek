@@ -106,9 +106,9 @@ void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t 
 	if ( (pkt_buffer.state == BUFFERING || new_state == BUFFERING) && len > 0 )
 		{
 		AddToBuffer(&pkt_buffer, seq, len, data, is_orig, ip);
-		if ( pkt_buffer.size > zeek::detail::dpd_buffer_size || ++pkt_buffer.chunks > zeek::detail::dpd_max_packets )
-			new_state = zeek::detail::dpd_match_only_beginning ?
-						SKIPPING : MATCHING_ONLY;
+		if ( pkt_buffer.size > zeek::detail::dpd_buffer_size ||
+		     ++pkt_buffer.chunks > zeek::detail::dpd_max_packets )
+			new_state = zeek::detail::dpd_match_only_beginning ? SKIPPING : MATCHING_ONLY;
 		}
 
 	// FIXME: I'm not sure why it does not work with eol=true...
@@ -280,9 +280,9 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 	if ( stream_buffer.state == BUFFERING || new_state == BUFFERING )
 		{
 		AddToBuffer(&stream_buffer, len, data, is_orig);
-		if ( stream_buffer.size > zeek::detail::dpd_buffer_size || ++stream_buffer.chunks > zeek::detail::dpd_max_packets )
-			new_state = zeek::detail::dpd_match_only_beginning ?
-						SKIPPING : MATCHING_ONLY;
+		if ( stream_buffer.size > zeek::detail::dpd_buffer_size ||
+		     ++stream_buffer.chunks > zeek::detail::dpd_max_packets )
+			new_state = zeek::detail::dpd_match_only_beginning ? SKIPPING : MATCHING_ONLY;
 		}
 
 	DoMatch(data, len, is_orig, false, false, false, nullptr);

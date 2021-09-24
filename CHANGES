@@ -1,3 +1,12 @@
+4.2.0-dev.218 | 2021-09-24 11:10:30 -0700
+
+  * Add a minimal containerized Docker environment (Benjamin Bannier, Corelight)
+
+    This patch adds a minimal Zeek environment packaged as a container.
+    Since this is intended both as a base layer for other images and as a
+    quick way to explore Zeek we install only zeek and zkg as basic
+    functionality.
+
 4.2.0-dev.214 | 2021-09-24 10:31:34 -0700
 
   * script simplification that removes an unnecessary &is_assigned (Vern Paxson, Corelight)

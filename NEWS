@@ -9,6 +9,19 @@ Zeek 4.2.0
 New Functionality
 -----------------
 
+- We now provide minimal official Docker images for the Zeek project via two
+  repositories on the Docker hub, ``zeekurity/zeek`` and ``zeekurity/zeek-dev``.
+  The former receives all Zeek release versions, with tag ``zeek:latest`` being
+  the most recent. An image corresponding to our latest merge into the master
+  branch is tagged at ``zeek-dev:latest``.
+
+  The images run Debian and provide a full install of the Zeek distribution into
+  ``/usr/local/zeek``. They do not set Zeek-specific entrypoints or provide any
+  particular configuration for operationally running Zeek. To keep the images
+  lightweight they also do not contain a development toolchain as needed for
+  example to build a Zeek plugin. You can add any required system packages in a
+  derived image, or install them directly in the running container.
+
 - Zeek now supports formatting the C++ code using clang-format. It requires at
   least clang-format 12.0.1 due to some additions that were made in that version
   to better support the Whitesmiths style. Zeek also includes a set of python

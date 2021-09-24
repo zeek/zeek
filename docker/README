@@ -1,0 +1,19 @@
+Container image for Zeek
+========================
+
+This directory contains a minimal container image for Zeek. This image is
+published automatically to [DockerHub](https://hub.docker.com/u/zeekurity) for
+releases and for commits on the `master` branch.
+
+- Images for release are published as
+  [`zeekurity/zeek`](https://hub.docker.com/r/zeekurity/zeek) with the `latest`
+  tag pointing to the latest release.
+- Development images for the `master` branch are published as
+  [`zeekurity/zeek-dev`](https://hub.docker.com/r/zeekurity/zeek-dev).
+
+
+To run the image execute e.g.,:
+
+    docker run -it zeekurity/zeek
+
+To build the image execute `make` from this directory.

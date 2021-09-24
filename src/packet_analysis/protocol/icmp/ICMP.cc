@@ -49,11 +49,11 @@ bool ICMPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packe
 	tuple.src_port = htons(icmpp->icmp_type);
 
 	if ( packet->proto == IPPROTO_ICMP )
-		tuple.dst_port =
-			htons(ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code, tuple.is_one_way));
+		tuple.dst_port = htons(
+			ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code, tuple.is_one_way));
 	else if ( packet->proto == IPPROTO_ICMPV6 )
-		tuple.dst_port =
-			htons(ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code, tuple.is_one_way));
+		tuple.dst_port = htons(
+			ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code, tuple.is_one_way));
 	else
 		reporter->InternalError("Reached ICMP packet analyzer with unknown packet protocol %x",
 		                        packet->proto);
@@ -280,11 +280,11 @@ TransportProto ICMPAnalyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t* 
 			*src_port = ntohs(icmpp->icmp_type);
 
 			if ( ip4 )
-				*dst_port =
-					ntohs(ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code, is_one_way));
+				*dst_port = ntohs(
+					ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code, is_one_way));
 			else
-				*dst_port =
-					ntohs(ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code, is_one_way));
+				*dst_port = ntohs(
+					ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code, is_one_way));
 
 			break;
 			}

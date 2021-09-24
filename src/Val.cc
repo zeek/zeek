@@ -1839,8 +1839,8 @@ ValPtr TableVal::Default(const ValPtr& index)
 		     record_promotion_compatible(dtype->AsRecordType(), ytype->AsRecordType()) )
 			{
 			auto rt = cast_intrusive<RecordType>(ytype);
-			auto coerce =
-				make_intrusive<detail::RecordCoerceExpr>(def_attr->GetExpr(), std::move(rt));
+			auto coerce = make_intrusive<detail::RecordCoerceExpr>(def_attr->GetExpr(),
+			                                                       std::move(rt));
 
 			def_val = coerce->Eval(nullptr);
 			}

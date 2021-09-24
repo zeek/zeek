@@ -345,8 +345,8 @@ void do_print_stmt(const std::vector<ValPtr>& vals)
 		++offset;
 		}
 
-	static auto print_log_type =
-		static_cast<BifEnum::Log::PrintLogType>(id::find_val("Log::print_to_log")->AsEnum());
+	static auto print_log_type = static_cast<BifEnum::Log::PrintLogType>(
+		id::find_val("Log::print_to_log")->AsEnum());
 
 	switch ( print_log_type )
 		{

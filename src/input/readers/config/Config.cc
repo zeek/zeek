@@ -69,8 +69,8 @@ bool Config::DoInit(const ReaderInfo& info, int num_fields, const Field* const* 
 	                   BifConst::InputConfig::empty_field->Len());
 
 	threading::formatter::Ascii::SeparatorInfo sep_info("\t", set_separator, "", empty_field);
-	formatter =
-		std::unique_ptr<threading::Formatter>(new threading::formatter::Ascii(this, sep_info));
+	formatter = std::unique_ptr<threading::Formatter>(
+		new threading::formatter::Ascii(this, sep_info));
 
 	return DoUpdate();
 	}

@@ -103,8 +103,8 @@ void TimerMgr::Process()
 
 	// Just advance the timer manager based on the current network time. This won't actually
 	// change the time, but will dispatch any timers that need dispatching.
-	run_state::current_dispatched +=
-		Advance(run_state::network_time, max_timer_expires - run_state::current_dispatched);
+	run_state::current_dispatched += Advance(run_state::network_time,
+	                                         max_timer_expires - run_state::current_dispatched);
 	}
 
 void TimerMgr::InitPostScript()

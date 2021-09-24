@@ -102,9 +102,10 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 	int chksum = up->uh_sum;
 
-	auto validate_checksum =
-		! run_state::current_pkt->l3_checksummed && ! zeek::detail::ignore_checksums &&
-		! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) && remaining >= len;
+	auto validate_checksum = ! run_state::current_pkt->l3_checksummed &&
+	                         ! zeek::detail::ignore_checksums &&
+	                         ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) &&
+	                         remaining >= len;
 
 	constexpr auto vxlan_len = 8;
 	constexpr auto eth_len = 14;
@@ -159,10 +160,10 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	if ( udp_contents )
 		{
 		static auto udp_content_ports = id::find_val<TableVal>("udp_content_ports");
-		static auto udp_content_delivery_ports_orig =
-			id::find_val<TableVal>("udp_content_delivery_ports_orig");
-		static auto udp_content_delivery_ports_resp =
-			id::find_val<TableVal>("udp_content_delivery_ports_resp");
+		static auto udp_content_delivery_ports_orig = id::find_val<TableVal>(
+			"udp_content_delivery_ports_orig");
+		static auto udp_content_delivery_ports_resp = id::find_val<TableVal>(
+			"udp_content_delivery_ports_resp");
 		bool do_udp_contents = false;
 		const auto& sport_val = val_mgr->Port(ntohs(up->uh_sport), TRANSPORT_UDP);
 		const auto& dport_val = val_mgr->Port(ntohs(up->uh_dport), TRANSPORT_UDP);
@@ -172,8 +173,8 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 			do_udp_contents = true;
 		else
 			{
-			uint16_t p =
-				zeek::detail::udp_content_delivery_ports_use_resp ? c->RespPort() : up->uh_dport;
+			uint16_t p = zeek::detail::udp_content_delivery_ports_use_resp ? c->RespPort()
+			                                                               : up->uh_dport;
 			const auto& port_val = zeek::val_mgr->Port(ntohs(p), TRANSPORT_UDP);
 
 			if ( is_orig )

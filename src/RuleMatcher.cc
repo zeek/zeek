@@ -663,8 +663,8 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state, const u
 #ifdef DEBUG
 	if ( debug_logger.IsEnabled(DBG_RULES) )
 		{
-		const char* s =
-			util::fmt_bytes(reinterpret_cast<const char*>(data), min(40, static_cast<int>(len)));
+		const char* s = util::fmt_bytes(reinterpret_cast<const char*>(data),
+		                                min(40, static_cast<int>(len)));
 		DBG_LOG(DBG_RULES, "Matching %s rules on |%s%s|", Rule::TypeToString(Rule::FILE_MAGIC), s,
 		        len > 40 ? "..." : "");
 		}
@@ -806,8 +806,8 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer, const
 					case RuleHdrTest::ICMPv6:
 					case RuleHdrTest::TCP:
 					case RuleHdrTest::UDP:
-						match =
-							compare(*h->vals, getval(ip->Payload() + h->offset, h->size), h->comp);
+						match = compare(*h->vals, getval(ip->Payload() + h->offset, h->size),
+						                h->comp);
 						break;
 
 					case RuleHdrTest::IPSrc:
@@ -1405,8 +1405,8 @@ void RuleMatcherState::InitEndpointMatcher(analyzer::Analyzer* analyzer, const I
 			delete orig_match_state;
 			}
 
-		orig_match_state =
-			rule_matcher->InitEndpoint(analyzer, ip, caplen, resp_match_state, from_orig, pia);
+		orig_match_state = rule_matcher->InitEndpoint(analyzer, ip, caplen, resp_match_state,
+		                                              from_orig, pia);
 		}
 
 	else
@@ -1417,8 +1417,8 @@ void RuleMatcherState::InitEndpointMatcher(analyzer::Analyzer* analyzer, const I
 			delete resp_match_state;
 			}
 
-		resp_match_state =
-			rule_matcher->InitEndpoint(analyzer, ip, caplen, orig_match_state, from_orig, pia);
+		resp_match_state = rule_matcher->InitEndpoint(analyzer, ip, caplen, orig_match_state,
+		                                              from_orig, pia);
 		}
 	}
 

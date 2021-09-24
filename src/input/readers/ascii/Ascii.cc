@@ -419,8 +419,8 @@ bool Ascii::DoUpdate()
 				assert(val->type == TYPE_PORT);
 				//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
 
-				val->val.port_val.proto =
-					formatter->ParseProto(stringfields[(*fit).secondary_position]);
+				val->val.port_val.proto = formatter->ParseProto(
+					stringfields[(*fit).secondary_position]);
 				}
 
 			fields[fpos] = val;

@@ -187,8 +187,8 @@ void CPPCompile::GenFuncVarInits()
 
 		hashes += "}";
 
-		auto init =
-			string("lookup_func__CPP(\"") + fn + "\", " + hashes + ", " + GenTypeName(ft) + ")";
+		auto init = string("lookup_func__CPP(\"") + fn + "\", " + hashes + ", " + GenTypeName(ft) +
+		            ")";
 
 		AddInit(fv, const_name, init);
 		}
@@ -226,8 +226,8 @@ void CPPCompile::GenPreInit(const Type* t)
 			break;
 
 		case TYPE_FILE:
-			pre_init =
-				string("make_intrusive<FileType>(") + GenTypeName(t->AsFileType()->Yield()) + ")";
+			pre_init = string("make_intrusive<FileType>(") + GenTypeName(t->AsFileType()->Yield()) +
+			           ")";
 			break;
 
 		case TYPE_OPAQUE:

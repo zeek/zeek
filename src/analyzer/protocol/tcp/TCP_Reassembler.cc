@@ -42,14 +42,14 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 
 	if ( ::tcp_contents )
 		{
-		static auto tcp_content_delivery_ports_orig =
-			id::find_val<TableVal>("tcp_content_delivery_ports_orig");
-		static auto tcp_content_delivery_ports_resp =
-			id::find_val<TableVal>("tcp_content_delivery_ports_resp");
-		const auto& dst_port_val =
-			val_mgr->Port(ntohs(tcp_analyzer->Conn()->RespPort()), TRANSPORT_TCP);
-		const auto& ports =
-			IsOrig() ? tcp_content_delivery_ports_orig : tcp_content_delivery_ports_resp;
+		static auto tcp_content_delivery_ports_orig = id::find_val<TableVal>(
+			"tcp_content_delivery_ports_orig");
+		static auto tcp_content_delivery_ports_resp = id::find_val<TableVal>(
+			"tcp_content_delivery_ports_resp");
+		const auto& dst_port_val = val_mgr->Port(ntohs(tcp_analyzer->Conn()->RespPort()),
+		                                         TRANSPORT_TCP);
+		const auto& ports = IsOrig() ? tcp_content_delivery_ports_orig
+		                             : tcp_content_delivery_ports_resp;
 		auto result = ports->FindOrDefault(dst_port_val);
 
 		if ( (IsOrig() && zeek::detail::tcp_content_deliver_all_orig) ||
@@ -519,10 +519,10 @@ void TCP_Reassembler::AckReceived(uint64_t seq)
 		// Nothing to do.
 		return;
 
-	bool test_active =
-		! skip_deliveries && ! tcp_analyzer->Skipping() &&
-		(BifConst::report_gaps_for_partial || (endp->state == TCP_ENDPOINT_ESTABLISHED &&
-	                                           endp->peer->state == TCP_ENDPOINT_ESTABLISHED));
+	bool test_active = ! skip_deliveries && ! tcp_analyzer->Skipping() &&
+	                   (BifConst::report_gaps_for_partial ||
+	                    (endp->state == TCP_ENDPOINT_ESTABLISHED &&
+	                     endp->peer->state == TCP_ENDPOINT_ESTABLISHED));
 
 	uint64_t num_missing = TrimToSeq(seq);
 

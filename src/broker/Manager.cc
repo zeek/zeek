@@ -376,8 +376,8 @@ void Manager::InitializeBrokerStoreForwarding()
 		if ( id->HasVal() && id->GetAttr(zeek::detail::ATTR_BACKEND) )
 			{
 			const auto& attr = id->GetAttr(zeek::detail::ATTR_BACKEND);
-			auto e =
-				static_cast<BifEnum::Broker::BackendType>(attr->GetExpr()->Eval(nullptr)->AsEnum());
+			auto e = static_cast<BifEnum::Broker::BackendType>(
+				attr->GetExpr()->Eval(nullptr)->AsEnum());
 			auto storename = std::string("___sync_store_") + global.first;
 			id->GetVal()->AsTableVal()->SetBrokerStore(storename);
 			AddForwardedStore(storename, cast_intrusive<TableVal>(id->GetVal()));
@@ -739,8 +739,8 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	std::string serial_data(data, len);
 	free(data);
 
-	auto v =
-		log_topic_func->Invoke(IntrusivePtr{NewRef{}, stream}, make_intrusive<StringVal>(path));
+	auto v = log_topic_func->Invoke(IntrusivePtr{NewRef{}, stream},
+	                                make_intrusive<StringVal>(path));
 
 	if ( ! v )
 		{
@@ -1797,8 +1797,8 @@ void Manager::BrokerStoreToZeekTable(const std::string& name, const detail::Stor
 		if ( its.size() == 1 )
 			zeek_key = detail::data_to_val(key, its[0].get());
 		else
-			zeek_key =
-				detail::data_to_val(key, table->GetType()->AsTableType()->GetIndices().get());
+			zeek_key = detail::data_to_val(key,
+			                               table->GetType()->AsTableType()->GetIndices().get());
 
 		if ( ! zeek_key )
 			{

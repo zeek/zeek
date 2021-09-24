@@ -382,11 +382,11 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule
 
 	auto* tcp = static_cast<packet_analysis::TCP::TCPSessionAdapter*>(Parent());
 
-	auto* reass_orig =
-		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct, tcp->Orig());
+	auto* reass_orig = new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
+	                                            tcp->Orig());
 
-	auto* reass_resp =
-		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct, tcp->Resp());
+	auto* reass_resp = new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
+	                                            tcp->Resp());
 
 	uint64_t orig_seq = 0;
 	uint64_t resp_seq = 0;

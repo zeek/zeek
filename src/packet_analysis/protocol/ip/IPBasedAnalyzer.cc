@@ -160,8 +160,8 @@ zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const detail::Co
 	if ( ! WantConnection(src_h, dst_h, pkt->ip_hdr->Payload(), flip) )
 		return nullptr;
 
-	Connection* conn =
-		new Connection(key, run_state::processing_start_time, id, pkt->ip_hdr->FlowLabel(), pkt);
+	Connection* conn = new Connection(key, run_state::processing_start_time, id,
+	                                  pkt->ip_hdr->FlowLabel(), pkt);
 	conn->SetTransport(transport);
 
 	if ( flip )
@@ -293,7 +293,7 @@ void IPBasedAnalyzer::SetIgnoreChecksumsNets(TableValPtr t)
 TableValPtr IPBasedAnalyzer::GetIgnoreChecksumsNets()
 	{
 	if ( ! IPBasedAnalyzer::ignore_checksums_nets_table )
-		IPBasedAnalyzer::ignore_checksums_nets_table =
-			zeek::id::find_val<TableVal>("ignore_checksums_nets");
+		IPBasedAnalyzer::ignore_checksums_nets_table = zeek::id::find_val<TableVal>(
+			"ignore_checksums_nets");
 	return IPBasedAnalyzer::ignore_checksums_nets_table;
 	}

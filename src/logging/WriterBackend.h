@@ -101,8 +101,8 @@ public:
 		WriterInfo(const WriterInfo& other)
 			{
 			path = other.path ? util::copy_string(other.path) : nullptr;
-			post_proc_func =
-				other.post_proc_func ? util::copy_string(other.post_proc_func) : nullptr;
+			post_proc_func = other.post_proc_func ? util::copy_string(other.post_proc_func)
+			                                      : nullptr;
 			rotation_interval = other.rotation_interval;
 			rotation_base = other.rotation_base;
 			network_time = other.network_time;

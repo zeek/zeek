@@ -256,8 +256,8 @@ bool Raw::Execute()
 
 		if ( use_stderr )
 			{
-			stderrfile =
-				std::unique_ptr<FILE, int (*)(FILE*)>(fdopen(pipes[stderr_in], "r"), fclose);
+			stderrfile = std::unique_ptr<FILE, int (*)(FILE*)>(fdopen(pipes[stderr_in], "r"),
+			                                                   fclose);
 
 			if ( ! stderrfile )
 				{
@@ -359,8 +359,8 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		fname = source.substr(0, fname.length() - 1);
 		}
 
-	ReaderInfo::config_map::const_iterator it =
-		info.config.find("stdin"); // data that is sent to the child process
+	ReaderInfo::config_map::const_iterator it = info.config.find(
+		"stdin"); // data that is sent to the child process
 	if ( it != info.config.end() )
 		{
 		stdin_string = it->second;
@@ -486,8 +486,8 @@ int64_t Raw::GetLine(FILE* arg_file)
 			repeats++;
 			// bah, we cannot use realloc because we would have to change the delete in the manager
 			// to a free.
-			std::unique_ptr<char[]> newbuf =
-				std::unique_ptr<char[]>(new char[block_size * repeats]);
+			std::unique_ptr<char[]> newbuf = std::unique_ptr<char[]>(
+				new char[block_size * repeats]);
 			memcpy(newbuf.get(), buf.get(), block_size * (repeats - 1));
 			buf = std::move(newbuf);
 			offset = block_size * (repeats - 1);

@@ -135,8 +135,8 @@ public:
 			return;
 
 		block_type excess = extra_bits();
-		typename std::iterator_traits<ForwardIterator>::difference_type delta =
-			std::distance(first, last);
+		typename std::iterator_traits<ForwardIterator>::difference_type delta = std::distance(first,
+		                                                                                      last);
 
 		bits.reserve(Blocks() + delta);
 

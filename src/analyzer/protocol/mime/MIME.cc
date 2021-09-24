@@ -1461,9 +1461,9 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		                           make_intrusive<StringVal>(data_len, data));
 		}
 
-	cur_entity_id =
-		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len, analyzer->GetAnalyzerTag(),
-	                     analyzer->Conn(), is_orig, cur_entity_id);
+	cur_entity_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
+	                                 analyzer->GetAnalyzerTag(), analyzer->Conn(), is_orig,
+	                                 cur_entity_id);
 
 	cur_entity_len += len;
 	buffer_start = (buf + len) - (char*)data_buffer->Bytes();

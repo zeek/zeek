@@ -244,8 +244,8 @@ string CPPCompile::GenIncrExpr(const Expr* e, GenType gt, bool is_incr, bool top
 	// twice, so easiest is to just transform this node
 	// into the expanded equivalent.
 	auto op = e->GetOp1();
-	auto one =
-		e->GetType()->InternalType() == TYPE_INTERNAL_INT ? val_mgr->Int(1) : val_mgr->Count(1);
+	auto one = e->GetType()->InternalType() == TYPE_INTERNAL_INT ? val_mgr->Int(1)
+	                                                             : val_mgr->Count(1);
 	auto one_e = make_intrusive<ConstExpr>(one);
 
 	ExprPtr rhs;

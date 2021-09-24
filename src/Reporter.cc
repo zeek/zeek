@@ -600,11 +600,11 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 		if ( locations.size() )
 			{
 			auto locs = locations.back();
-			raise_event =
-				PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
-			                            HookReporter(prefix, event, conn, addl, location,
-			                                         locs.first, locs.second, time, buffer),
-			                            true);
+			raise_event = PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
+			                                      HookReporter(prefix, event, conn, addl, location,
+			                                                   locs.first, locs.second, time,
+			                                                   buffer),
+			                                      true);
 			}
 		else
 			raise_event = PLUGIN_HOOK_WITH_RESULT(

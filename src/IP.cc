@@ -656,8 +656,8 @@ void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16_t len)
 						if ( homeAddr )
 							reporter->Weird(SrcAddr(), DstAddr(), "multiple_home_addr_opts");
 						else
-							homeAddr =
-								new IPAddr(*((const in6_addr*)(data + sizeof(struct ip6_opt))));
+							homeAddr = new IPAddr(
+								*((const in6_addr*)(data + sizeof(struct ip6_opt))));
 						}
 					else
 						reporter->Weird(SrcAddr(), DstAddr(), "bad_home_addr_len");

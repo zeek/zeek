@@ -177,8 +177,8 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f)
 
 	if ( OBJ_obj2nid(algorithm) == NID_md5WithRSAEncryption )
 		{
-		ASN1_OBJECT* copy =
-			OBJ_dup(algorithm); // the next line will destroy the original algorithm.
+		ASN1_OBJECT* copy = OBJ_dup(
+			algorithm); // the next line will destroy the original algorithm.
 		X509_PUBKEY_set0_param(X509_get_X509_PUBKEY(ssl_cert), OBJ_nid2obj(NID_rsaEncryption), 0,
 		                       NULL, NULL, 0);
 		algorithm = copy;
@@ -288,8 +288,8 @@ void X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		{
 		if ( x509_ext_basic_constraints )
 			{
-			auto pBasicConstraint =
-				make_intrusive<RecordVal>(BifType::Record::X509::BasicConstraints);
+			auto pBasicConstraint = make_intrusive<RecordVal>(
+				BifType::Record::X509::BasicConstraints);
 			pBasicConstraint->Assign(0, constr->ca);
 
 			if ( constr->pathlen )

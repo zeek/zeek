@@ -1060,8 +1060,8 @@ int Dictionary::LookupIndex(const void* key, int key_size, detail::hash_t hash,
 #ifdef DEBUG
 	int linear_position = LinearLookupIndex(key, key_size, hash);
 #endif // DEBUG
-	int position =
-		LookupIndex(key, key_size, hash, bucket, Capacity(), insert_position, insert_distance);
+	int position = LookupIndex(key, key_size, hash, bucket, Capacity(), insert_position,
+	                           insert_distance);
 	if ( position >= 0 )
 		{
 		ASSERT(position == linear_position); // same as linearLookup

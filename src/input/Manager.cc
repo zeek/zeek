@@ -1179,8 +1179,8 @@ int Manager::SendEntryTable(Stream* i, const Value* const* vals)
 	zeek::detail::hash_t valhash = 0;
 	if ( stream->num_val_fields > 0 )
 		{
-		if ( zeek::detail::HashKey* valhashkey =
-		         HashValues(stream->num_val_fields, vals + stream->num_idx_fields) )
+		if ( zeek::detail::HashKey* valhashkey = HashValues(stream->num_val_fields,
+		                                                    vals + stream->num_idx_fields) )
 			{
 			valhash = valhashkey->Hash();
 			delete (valhashkey);
@@ -1681,8 +1681,8 @@ int Manager::PutTable(Stream* i, const Value* const* vals)
 					{
 					// in case of update send back the old value.
 					assert(stream->num_val_fields > 0);
-					auto ev =
-						BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_CHANGED);
+					auto ev = BifType::Enum::Input::Event->GetEnumVal(
+						BifEnum::Input::EVENT_CHANGED);
 					assert(oldval != nullptr);
 					SendEvent(stream->event, 4, stream->description->Ref(), ev.release(), predidx,
 					          oldval.release());
@@ -1746,8 +1746,8 @@ bool Manager::Delete(ReaderFrontend* reader, Value** vals)
 		{
 		TableStream* stream = (TableStream*)i;
 		bool convert_error = false;
-		Val* idxval =
-			ValueToIndexVal(i, stream->num_idx_fields, stream->itype, vals, convert_error);
+		Val* idxval = ValueToIndexVal(i, stream->num_idx_fields, stream->itype, vals,
+		                              convert_error);
 		readVals = stream->num_idx_fields + stream->num_val_fields;
 		bool streamresult = true;
 
@@ -1772,8 +1772,8 @@ bool Manager::Delete(ReaderFrontend* reader, Value** vals)
 					Unref(predidx);
 				else
 					{
-					auto ev =
-						BifType::Enum::Input::Event->GetEnumVal(BifEnum::Input::EVENT_REMOVED);
+					auto ev = BifType::Enum::Input::Event->GetEnumVal(
+						BifEnum::Input::EVENT_REMOVED);
 
 					streamresult = CallPred(stream->pred, 3, ev.release(), predidx,
 					                        IntrusivePtr{val}.release());
@@ -1906,8 +1906,8 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType* request_type, 
 
 		Val* fieldVal = nullptr;
 		if ( request_type->GetFieldType(i)->Tag() == TYPE_RECORD )
-			fieldVal =
-				ListValToRecordVal(list, request_type->GetFieldType(i)->AsRecordType(), position);
+			fieldVal = ListValToRecordVal(list, request_type->GetFieldType(i)->AsRecordType(),
+			                              position);
 		else
 			{
 			fieldVal = list->Idx(*position).get();

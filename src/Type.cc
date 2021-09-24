@@ -520,8 +520,8 @@ TableType::TableType(TypeListPtr ind, TypePtr yield)
 
 		if ( ! is_supported_index_type(tli, &unsupported_type_name) )
 			{
-			auto msg =
-				util::fmt("index type containing '%s' is not supported", unsupported_type_name);
+			auto msg = util::fmt("index type containing '%s' is not supported",
+			                     unsupported_type_name);
 			Error(msg, tli.get());
 			SetError();
 			break;
@@ -1720,8 +1720,8 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		if ( doc->GetDeclaringScript() )
 			enum_from_script = doc->GetDeclaringScript()->Name();
 
-		zeekygen::detail::IdentifierInfo* type_doc =
-			detail::zeekygen_mgr->GetIdentifierInfo(GetName());
+		zeekygen::detail::IdentifierInfo* type_doc = detail::zeekygen_mgr->GetIdentifierInfo(
+			GetName());
 
 		if ( type_doc && type_doc->GetDeclaringScript() )
 			type_from_script = type_doc->GetDeclaringScript()->Name();
@@ -2310,10 +2310,10 @@ TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2)
 				// actually see those changes from the redef.
 				return id->GetType();
 
-			std::string msg =
-				util::fmt("incompatible enum types: '%s' and '%s'"
-			              " ('%s' enum type ID is invalid)",
-			              t1->GetName().data(), t2->GetName().data(), t1->GetName().data());
+			std::string msg = util::fmt("incompatible enum types: '%s' and '%s'"
+			                            " ('%s' enum type ID is invalid)",
+			                            t1->GetName().data(), t2->GetName().data(),
+			                            t1->GetName().data());
 			t1->Error(msg.data(), t2);
 			return nullptr;
 			}

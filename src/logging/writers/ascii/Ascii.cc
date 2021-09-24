@@ -105,8 +105,8 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( ! sf_stream )
 		{
-		rval.error =
-			util::fmt("Failed to open %s: %s", rval.shadow_filename.data(), strerror(errno));
+		rval.error = util::fmt("Failed to open %s: %s", rval.shadow_filename.data(),
+		                       strerror(errno));
 		return rval;
 		}
 
@@ -124,8 +124,8 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	if ( sf_len == -1 )
 		{
-		rval.error =
-			util::fmt("Failed to ftell() on %s: %s", rval.shadow_filename.data(), strerror(errno));
+		rval.error = util::fmt("Failed to ftell() on %s: %s", rval.shadow_filename.data(),
+		                       strerror(errno));
 		fclose(sf_stream);
 		return rval;
 		}
@@ -169,8 +169,8 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	// Use shadow file's modification time as creation time.
 	if ( stat(rval.shadow_filename.data(), &st) != 0 )
 		{
-		rval.error =
-			util::fmt("Failed to stat %s: %s", rval.shadow_filename.data(), strerror(errno));
+		rval.error = util::fmt("Failed to stat %s: %s", rval.shadow_filename.data(),
+		                       strerror(errno));
 		return rval;
 		}
 
@@ -454,8 +454,8 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 
 		fname += ext;
 
-		bool use_shadow =
-			BifConst::LogAscii::enable_leftover_log_rotation && Info().rotation_interval > 0;
+		bool use_shadow = BifConst::LogAscii::enable_leftover_log_rotation &&
+		                  Info().rotation_interval > 0;
 
 		if ( use_shadow )
 			{
@@ -676,8 +676,8 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 		return false;
 		}
 
-	bool use_shadow =
-		BifConst::LogAscii::enable_leftover_log_rotation && Info().rotation_interval > 0;
+	bool use_shadow = BifConst::LogAscii::enable_leftover_log_rotation &&
+	                  Info().rotation_interval > 0;
 
 	if ( use_shadow )
 		{

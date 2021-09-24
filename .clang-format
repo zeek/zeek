@@ -70,6 +70,10 @@ SpacesInParentheses: false
 TabWidth: 4
 UseTab: AlignWithSpaces
 
+# Setting this to a high number causes clang-format to prefer breaking somewhere else
+# over breaking after the assignment operator in a line that's over the column limit
+PenaltyBreakAssignment: 100
+
 IncludeBlocks: Regroup
 
 # Include categories go like this:

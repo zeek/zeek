@@ -544,8 +544,8 @@ void zeek::detail::LineBufferedPipe::Emit(const char* msg) const
 				}
 			}
 
-		auto res =
-			hook->Invoke(make_intrusive<StringVal>(node_len, node), make_intrusive<StringVal>(msg));
+		auto res = hook->Invoke(make_intrusive<StringVal>(node_len, node),
+		                        make_intrusive<StringVal>(msg));
 		do_print = res->AsBool();
 		}
 

@@ -364,8 +364,8 @@ struct val_converter
 			unsigned int pos = 0;
 			for ( auto& item : a )
 				{
-				auto item_val =
-					data_to_val(move(item), pure ? lt->GetPureType().get() : types[pos].get());
+				auto item_val = data_to_val(move(item),
+				                            pure ? lt->GetPureType().get() : types[pos].get());
 				pos++;
 
 				if ( ! item_val )

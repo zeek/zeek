@@ -277,8 +277,8 @@ void Expr::AssignToIndex(ValPtr v1, ValPtr v2, ValPtr v3) const
 	{
 	bool iterators_invalidated;
 
-	auto error_msg =
-		assign_to_index(std::move(v1), std::move(v2), std::move(v3), iterators_invalidated);
+	auto error_msg = assign_to_index(std::move(v1), std::move(v2), std::move(v3),
+	                                 iterators_invalidated);
 
 	if ( iterators_invalidated )
 		{
@@ -718,8 +718,8 @@ ValPtr UnaryExpr::Fold(Val* v) const
 
 void UnaryExpr::ExprDescribe(ODesc* d) const
 	{
-	bool is_coerce =
-		Tag() == EXPR_ARITH_COERCE || Tag() == EXPR_RECORD_COERCE || Tag() == EXPR_TABLE_COERCE;
+	bool is_coerce = Tag() == EXPR_ARITH_COERCE || Tag() == EXPR_RECORD_COERCE ||
+	                 Tag() == EXPR_TABLE_COERCE;
 
 	if ( d->IsReadable() )
 		{
@@ -1084,8 +1084,8 @@ ValPtr BinaryExpr::PatternFold(Val* v1, Val* v2) const
 	if ( tag != EXPR_AND && tag != EXPR_OR )
 		BadTag("BinaryExpr::PatternFold");
 
-	RE_Matcher* res =
-		tag == EXPR_AND ? RE_Matcher_conjunction(re1, re2) : RE_Matcher_disjunction(re1, re2);
+	RE_Matcher* res = tag == EXPR_AND ? RE_Matcher_conjunction(re1, re2)
+	                                  : RE_Matcher_disjunction(re1, re2);
 
 	return make_intrusive<PatternVal>(res);
 	}
@@ -2860,9 +2860,9 @@ IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice)
 
 	if ( match_type == DOES_NOT_MATCH_INDEX )
 		{
-		std::string error_msg =
-			util::fmt("expression with type '%s' is not a type that can be indexed",
-		              type_name(op1->GetType()->Tag()));
+		std::string error_msg = util::fmt(
+			"expression with type '%s' is not a type that can be indexed",
+			type_name(op1->GetType()->Tag()));
 		SetError(error_msg.data());
 		}
 
@@ -3995,8 +3995,8 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 				if ( ! is_arithmetic_promotable(sup_t_i.get(), sub_t_i.get()) &&
 				     ! is_record_promotable(sup_t_i.get(), sub_t_i.get()) )
 					{
-					std::string error_msg =
-						util::fmt("type clash for field \"%s\"", sub_r->FieldName(i));
+					std::string error_msg = util::fmt("type clash for field \"%s\"",
+					                                  sub_r->FieldName(i));
 					Error(error_msg.c_str(), sub_t_i.get());
 					SetError();
 					break;
@@ -4015,8 +4015,8 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 				{
 				if ( ! t_r->FieldDecl(i)->GetAttr(ATTR_OPTIONAL) )
 					{
-					std::string error_msg =
-						util::fmt("non-optional field \"%s\" missing", t_r->FieldName(i));
+					std::string error_msg = util::fmt("non-optional field \"%s\" missing",
+					                                  t_r->FieldName(i));
 					Error(error_msg.c_str());
 					SetError();
 					break;
@@ -4101,8 +4101,8 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector<int>& 
 			if ( rhs_type->Tag() == TYPE_RECORD && field_type->Tag() == TYPE_RECORD &&
 			     ! same_type(rhs_type, field_type) )
 				{
-				if ( auto new_val =
-				         rhs->AsRecordVal()->CoerceTo(cast_intrusive<RecordType>(field_type)) )
+				if ( auto new_val = rhs->AsRecordVal()->CoerceTo(
+						 cast_intrusive<RecordType>(field_type)) )
 					rhs = std::move(new_val);
 				}
 			else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) &&
@@ -4125,8 +4125,8 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector<int>& 
 				if ( def_type->Tag() == TYPE_RECORD && field_type->Tag() == TYPE_RECORD &&
 				     ! same_type(def_type, field_type) )
 					{
-					auto tmp =
-						def_val->AsRecordVal()->CoerceTo(cast_intrusive<RecordType>(field_type));
+					auto tmp = def_val->AsRecordVal()->CoerceTo(
+						cast_intrusive<RecordType>(field_type));
 
 					if ( tmp )
 						def_val = std::move(tmp);
@@ -4567,9 +4567,9 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList ar
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
-	auto dummy_func =
-		make_intrusive<ScriptFunc>(ingredients->id, ingredients->body, ingredients->inits,
-	                               ingredients->frame_size, ingredients->priority);
+	auto dummy_func = make_intrusive<ScriptFunc>(ingredients->id, ingredients->body,
+	                                             ingredients->inits, ingredients->frame_size,
+	                                             ingredients->priority);
 
 	dummy_func->SetOuterIDs(outer_ids);
 
@@ -4880,8 +4880,8 @@ TypePtr ListExpr::InitType() const
 			// Collapse any embedded sets or lists.
 			if ( ti->IsSet() || ti->Tag() == TYPE_LIST )
 				{
-				TypeList* til =
-					ti->IsSet() ? ti->AsSetType()->GetIndices().get() : ti->AsTypeList();
+				TypeList* til = ti->IsSet() ? ti->AsSetType()->GetIndices().get()
+				                            : ti->AsTypeList();
 
 				if ( ! til->IsPure() || ! til->AllMatch(til->GetPureType(), true) )
 					tl->Append({NewRef{}, til});
@@ -5164,8 +5164,8 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_li
 				if ( field >= 0 && same_type(lhs->GetFieldType(field), t->GetFieldType(j)) )
 					{
 					auto fe_lhs = make_intrusive<FieldExpr>(record, field_name);
-					auto fe_rhs =
-						make_intrusive<FieldExpr>(IntrusivePtr{NewRef{}, init}, field_name);
+					auto fe_rhs = make_intrusive<FieldExpr>(IntrusivePtr{NewRef{}, init},
+					                                        field_name);
 					Append(get_assign_expr(std::move(fe_lhs), std::move(fe_rhs), is_init));
 					}
 				}

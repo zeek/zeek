@@ -837,8 +837,8 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val)
 
 	if ( value_var )
 		{
-		ZOp op =
-			no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV : OP_NEXT_TABLE_ITER_VAL_VAR_VVV;
+		ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV
+		                      : OP_NEXT_TABLE_ITER_VAL_VAR_VVV;
 		z = ZInstI(op, FrameSlot(value_var), iter_slot, 0);
 		z.CheckIfManaged(value_var->GetType());
 		z.op_type = OP_VVV_I2_I3;

@@ -526,8 +526,8 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
 
 		bool optional = (bool)rtype->FieldDecl(i)->GetAttr(detail::ATTR_OPTIONAL);
 
-		filter->fields[filter->num_fields - 1] =
-			new threading::Field(new_path.c_str(), nullptr, t->Tag(), st, optional);
+		filter->fields[filter->num_fields - 1] = new threading::Field(new_path.c_str(), nullptr,
+		                                                              t->Tag(), st, optional);
 		}
 
 	return true;
@@ -868,8 +868,8 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 					if ( const auto& val = filter->field_name_map->Find(fn) )
 						{
 						delete[] filter->fields[j]->name;
-						filter->fields[j]->name =
-							util::copy_string(val->AsStringVal()->CheckString());
+						filter->fields[j]->name = util::copy_string(
+							val->AsStringVal()->CheckString());
 						}
 					}
 				arg_fields[j] = new threading::Field(*filter->fields[j]);
@@ -1049,8 +1049,8 @@ threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
 
 			for ( bro_int_t i = 0; i < lval->val.vector_val.size; i++ )
 				{
-				lval->val.vector_val.vals[i] =
-					ValToLogVal(vec->ValAt(i).get(), vec->GetType()->Yield().get());
+				lval->val.vector_val.vals[i] = ValToLogVal(vec->ValAt(i).get(),
+				                                           vec->GetType()->Yield().get());
 				}
 
 			break;
@@ -1153,8 +1153,8 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 		return nullptr;
 		}
 
-	Stream::WriterMap::iterator w =
-		stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), info->path));
+	Stream::WriterMap::iterator w = stream->writers.find(
+		Stream::WriterPathPair(writer->AsEnum(), info->path));
 
 	if ( w != stream->writers.end() )
 		{
@@ -1279,8 +1279,8 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
 		return true;
 		}
 
-	Stream::WriterMap::iterator w =
-		stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), path));
+	Stream::WriterMap::iterator w = stream->writers.find(
+		Stream::WriterPathPair(writer->AsEnum(), path));
 
 	if ( w == stream->writers.end() )
 		{
@@ -1478,11 +1478,11 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 			static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 			double base = util::detail::parse_rotate_base_time(base_time);
-			double delta_t =
-				util::detail::calc_next_rotate(run_state::network_time, rotation_interval, base);
+			double delta_t = util::detail::calc_next_rotate(run_state::network_time,
+			                                                rotation_interval, base);
 
-			winfo->rotation_timer =
-				new RotationTimer(run_state::network_time + delta_t, winfo, true);
+			winfo->rotation_timer = new RotationTimer(run_state::network_time + delta_t, winfo,
+			                                          true);
 			}
 
 		zeek::detail::timer_mgr->Add(winfo->rotation_timer);
@@ -1561,9 +1561,9 @@ void Manager::Rotate(WriterInfo* winfo)
 	else
 		ppf = default_ppf;
 
-	auto rotation_path =
-		FormatRotationPath({NewRef{}, winfo->type}, winfo->writer->Info().path, winfo->open_time,
-	                       run_state::network_time, run_state::terminating, std::move(ppf));
+	auto rotation_path = FormatRotationPath({NewRef{}, winfo->type}, winfo->writer->Info().path,
+	                                        winfo->open_time, run_state::network_time,
+	                                        run_state::terminating, std::move(ppf));
 
 	winfo->writer->Rotate(rotation_path.data(), winfo->open_time, run_state::network_time,
 	                      run_state::terminating);

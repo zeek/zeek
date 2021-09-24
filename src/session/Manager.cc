@@ -59,8 +59,8 @@ public:
 		telemetry::IntCounterFamily total_family = telemetry_mgr->CounterFamily(
 			"zeek", "total-sessions", {"protocol"}, "Total number of sessions", "1", true);
 
-		auto [it, inserted] =
-			entries.insert({protocol, Protocol{active_family, total_family, protocol}});
+		auto [it, inserted] = entries.insert(
+			{protocol, Protocol{active_family, total_family, protocol}});
 
 		if ( inserted )
 			return it;

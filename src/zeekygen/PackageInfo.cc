@@ -38,8 +38,8 @@ PackageInfo::PackageInfo(const string& arg_name) : Info(), pkg_name(arg_name), r
 
 string PackageInfo::DoReStructuredText(bool roles_only) const
 	{
-	string rval =
-		util::fmt(":doc:`%s </scripts/%s/index>`\n\n", pkg_name.c_str(), pkg_name.c_str());
+	string rval = util::fmt(":doc:`%s </scripts/%s/index>`\n\n", pkg_name.c_str(),
+	                        pkg_name.c_str());
 
 	for ( size_t i = 0; i < readme.size(); ++i )
 		rval += "   " + readme[i] + "\n";

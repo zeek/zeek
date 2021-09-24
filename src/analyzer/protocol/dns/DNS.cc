@@ -865,8 +865,8 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
 
 				if ( server_cookie_len >= 8 )
 					{
-					cookie.server_cookie =
-						ExtractStream(data, server_cookie_len, server_cookie_len);
+					cookie.server_cookie = ExtractStream(data, server_cookie_len,
+					                                     server_cookie_len);
 					}
 
 				analyzer->EnqueueConnEvent(dns_EDNS_cookie, analyzer->ConnVal(), msg->BuildHdrVal(),

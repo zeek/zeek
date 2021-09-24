@@ -330,10 +330,10 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 	else
 		{
 		if ( send_size && content_length > 0 )
-			precomputed_file_id =
-				file_mgr->SetSize(content_length, http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-			                      http_message->MyHTTP_Analyzer()->Conn(), http_message->IsOrig(),
-			                      precomputed_file_id);
+			precomputed_file_id = file_mgr->SetSize(
+				content_length, http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+				http_message->MyHTTP_Analyzer()->Conn(), http_message->IsOrig(),
+				precomputed_file_id);
 
 		precomputed_file_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
 		                                       http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
@@ -894,8 +894,8 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	const char* line = reinterpret_cast<const char*>(data);
 	const char* end_of_line = line + len;
 
-	analyzer::tcp::ContentLine_Analyzer* content_line =
-		is_orig ? content_line_orig : content_line_resp;
+	analyzer::tcp::ContentLine_Analyzer* content_line = is_orig ? content_line_orig
+	                                                            : content_line_resp;
 
 	if ( content_line->IsPlainDelivery() )
 		{
@@ -1063,8 +1063,8 @@ void HTTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 
 	HTTP_Message* msg = is_orig ? request_message : reply_message;
 
-	analyzer::tcp::ContentLine_Analyzer* content_line =
-		is_orig ? content_line_orig : content_line_resp;
+	analyzer::tcp::ContentLine_Analyzer* content_line = is_orig ? content_line_orig
+	                                                            : content_line_resp;
 
 	if ( ! content_line->IsSkippedContents(seq, len) )
 		{

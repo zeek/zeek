@@ -69,8 +69,8 @@ RPC_CallInfo::RPC_CallInfo(uint32_t arg_xid, const u_char*& buf, int& n, double 
 		stamp = extract_XDR_uint32(cred_opaque, cred_opaque_n);
 		int machinename_n;
 		constexpr auto max_machinename_len = 255;
-		auto mnp =
-			extract_XDR_opaque(cred_opaque, cred_opaque_n, machinename_n, max_machinename_len);
+		auto mnp = extract_XDR_opaque(cred_opaque, cred_opaque_n, machinename_n,
+		                              max_machinename_len);
 
 		if ( ! mnp )
 			{

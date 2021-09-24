@@ -402,8 +402,8 @@ ExprPtr Expr::AssignToTemporary(ExprPtr e, Reducer* c, StmtPtr& red_stmt)
 	{
 	auto result_tmp = c->GenTemporaryExpr(GetType(), e);
 
-	auto a_e =
-		make_intrusive<AssignExpr>(result_tmp->MakeLvalue(), e, false, nullptr, nullptr, false);
+	auto a_e = make_intrusive<AssignExpr>(result_tmp->MakeLvalue(), e, false, nullptr, nullptr,
+	                                      false);
 	a_e->SetIsTemp();
 	a_e->SetOriginal(ThisPtr());
 

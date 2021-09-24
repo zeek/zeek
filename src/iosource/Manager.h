@@ -2,13 +2,14 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <map>
 #include <string>
 #include <vector>
 
 #include "zeek/Flare.h"
 #include "zeek/iosource/IOSource.h"
-#include "zeek/zeek-config.h"
 
 struct timespec;
 struct kevent;

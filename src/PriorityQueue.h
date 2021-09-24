@@ -2,10 +2,10 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <math.h>
 #include <stdint.h>
-
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include <limits.h>
-
 #include "zeek/zeek-config.h"
+
+#include <limits.h>
 
 namespace zeek
 	{

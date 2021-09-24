@@ -2,11 +2,12 @@
 
 #include "zeek/CCL.h"
 
+#include "zeek/zeek-config.h"
+
 #include <algorithm>
 
 #include "zeek/DFA.h"
 #include "zeek/RE.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

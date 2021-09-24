@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/dns/DNS.h"
 
+#include "zeek/zeek-config.h"
+
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <netinet/in.h>
@@ -14,7 +16,6 @@
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/dns/events.bif.h"
 #include "zeek/session/Manager.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::analyzer::dns
 	{

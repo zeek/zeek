@@ -2,6 +2,8 @@
 
 #include "zeek/DbgBreakpoint.h"
 
+#include "zeek/zeek-config.h"
+
 #include <assert.h>
 
 #include "zeek/Debug.h"
@@ -15,7 +17,6 @@
 #include "zeek/Timer.h"
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

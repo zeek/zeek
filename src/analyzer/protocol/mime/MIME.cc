@@ -1,12 +1,13 @@
 #include "zeek/analyzer/protocol/mime/MIME.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Base64.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/mime/events.bif.h"
 #include "zeek/digest.h"
 #include "zeek/file_analysis/Manager.h"
-#include "zeek/zeek-config.h"
 
 // Here are a few things to do:
 //

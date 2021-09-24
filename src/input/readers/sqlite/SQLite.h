@@ -2,13 +2,14 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <iostream>
 #include <vector>
 
 #include "zeek/3rdparty/sqlite3.h"
 #include "zeek/input/ReaderBackend.h"
 #include "zeek/threading/formatters/Ascii.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::input::reader::detail
 	{

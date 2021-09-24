@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/smtp/SMTP.h"
 
+#include "zeek/zeek-config.h"
+
 #include <stdlib.h>
 
 #include "zeek/Event.h"
@@ -9,7 +11,6 @@
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/smtp/events.bif.h"
-#include "zeek/zeek-config.h"
 
 #undef SMTP_CMD_DEF
 #define SMTP_CMD_DEF(cmd) #cmd,

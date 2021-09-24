@@ -1,6 +1,8 @@
 
 #include "zeek/RuleMatcher.h"
 
+#include "zeek/zeek-config.h"
+
 #include <algorithm>
 #include <functional>
 
@@ -22,7 +24,6 @@
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/module_util.h"
-#include "zeek/zeek-config.h"
 
 using namespace std;
 

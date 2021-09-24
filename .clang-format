@@ -81,11 +81,14 @@ IncludeBlocks: Regroup
 # 5: everything else, which should catch any of the auto-generated code from the
 #    build directory as well
 #
-# Sections 0-1 and 2-3 get group together in their respective blocks
+# Sections 0-1 and 2-3 get grouped together in their respective blocks
 IncludeCategories:
   - Regex: '^"zeek-config\.h"'
-    Priority: 0
+    Priority: 1
     SortPriority: 1
+  - Regex: '^"zeek/zeek-config\.h"'
+    Priority: 1
+    SortPriority: 2
   - Regex: '^<[[:print:]]+\.(h|hh)>'
     Priority: 2
     SortPriority: 2

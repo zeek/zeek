@@ -2,6 +2,8 @@
 
 #include "zeek/input/readers/sqlite/SQLite.h"
 
+#include "zeek/zeek-config.h"
+
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -12,7 +14,6 @@
 #include "zeek/logging/writers/ascii/ascii.bif.h"
 #include "zeek/logging/writers/sqlite/sqlite.bif.h"
 #include "zeek/threading/SerialTypes.h"
-#include "zeek/zeek-config.h"
 
 using zeek::threading::Field;
 using zeek::threading::Value;

@@ -2,13 +2,14 @@
 
 #include "zeek/Scope.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Desc.h"
 #include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

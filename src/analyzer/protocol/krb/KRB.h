@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include <mutex>
-
 #include "zeek/zeek-config.h"
+
+#include <mutex>
 
 #ifdef USE_KRB5
 #include <krb5.h>

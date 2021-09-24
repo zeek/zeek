@@ -3,6 +3,8 @@
 
 #include "zeek/analyzer/protocol/pop3/POP3.h"
 
+#include "zeek/zeek-config.h"
+
 #include <ctype.h>
 #include <string>
 #include <vector>
@@ -11,7 +13,6 @@
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pop3/events.bif.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::analyzer::pop3
 	{

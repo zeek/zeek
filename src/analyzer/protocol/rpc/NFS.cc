@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/rpc/NFS.h"
 
+#include "zeek/zeek-config.h"
+
 #include <utility>
 #include <vector>
 
@@ -10,7 +12,6 @@
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/rpc/XDR.h"
 #include "zeek/analyzer/protocol/rpc/events.bif.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::analyzer::rpc
 	{

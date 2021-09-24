@@ -2,6 +2,8 @@
 
 #include "zeek/Hash.h"
 
+#include "zeek/zeek-config.h"
+
 #include <highwayhash/highwayhash_target.h>
 #include <highwayhash/instruction_sets.h>
 #include <highwayhash/sip_hash.h>
@@ -12,7 +14,6 @@
 #include "zeek/Val.h" // needed for const.bif
 #include "zeek/ZeekString.h"
 #include "zeek/digest.h"
-#include "zeek/zeek-config.h"
 
 #include "const.bif.netvar_h"
 

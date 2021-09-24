@@ -2,6 +2,8 @@
 
 #include "zeek/RE.h"
 
+#include "zeek/zeek-config.h"
+
 #include <stdlib.h>
 #include <utility>
 
@@ -10,7 +12,6 @@
 #include "zeek/EquivClass.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
-#include "zeek/zeek-config.h"
 
 zeek::detail::CCL* zeek::detail::curr_ccl = nullptr;
 zeek::detail::Specific_RE_Matcher* zeek::detail::rem = nullptr;

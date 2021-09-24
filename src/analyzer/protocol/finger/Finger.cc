@@ -2,13 +2,14 @@
 
 #include "zeek/analyzer/protocol/finger/Finger.h"
 
+#include "zeek/zeek-config.h"
+
 #include <ctype.h>
 
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/finger/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::analyzer::finger
 	{

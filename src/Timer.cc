@@ -2,6 +2,8 @@
 
 #include "zeek/Timer.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Desc.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
@@ -9,7 +11,6 @@
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
 #include "zeek/util.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

@@ -2,11 +2,12 @@
 
 #include "zeek/analyzer/protocol/rpc/Portmap.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/rpc/XDR.h"
 #include "zeek/analyzer/protocol/rpc/events.bif.h"
-#include "zeek/zeek-config.h"
 
 #define PMAPPROC_NULL 0
 #define PMAPPROC_SET 1

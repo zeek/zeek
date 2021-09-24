@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/http/HTTP.h"
 
+#include "zeek/zeek-config.h"
+
 #include <ctype.h>
 #include <math.h>
 #include <stdlib.h>
@@ -13,7 +15,6 @@
 #include "zeek/analyzer/protocol/http/events.bif.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
 #include "zeek/file_analysis/Manager.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::analyzer::http
 	{

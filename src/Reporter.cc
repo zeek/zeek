@@ -4,6 +4,8 @@
 
 #include "zeek/Reporter.h"
 
+#include "zeek/zeek-config.h"
+
 #include <syslog.h>
 #include <unistd.h>
 
@@ -20,7 +22,6 @@
 #include "zeek/input.h"
 #include "zeek/plugin/Manager.h"
 #include "zeek/plugin/Plugin.h"
-#include "zeek/zeek-config.h"
 
 #ifdef SYSLOG_INT
 extern "C"

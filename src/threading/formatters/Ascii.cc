@@ -2,12 +2,13 @@
 
 #include "threading/formatters/Ascii.h"
 
+#include "zeek/zeek-config.h"
+
 #include <errno.h>
 #include <sstream>
 
 #include "zeek/Desc.h"
 #include "zeek/threading/MsgThread.h"
-#include "zeek/zeek-config.h"
 
 using namespace std;
 

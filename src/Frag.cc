@@ -2,13 +2,14 @@
 
 #include "zeek/Frag.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Hash.h"
 #include "zeek/IP.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/session/Manager.h"
-#include "zeek/zeek-config.h"
 
 constexpr uint32_t MIN_ACCEPTABLE_FRAG_SIZE = 64;
 constexpr uint32_t MAX_ACCEPTABLE_FRAG_SIZE = 64000;

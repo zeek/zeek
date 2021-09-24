@@ -3,10 +3,10 @@
 
 #include "zeek/Func.h"
 
+#include "zeek/zeek-config.h"
+
 #include <sys/stat.h>
 #include <sys/types.h>
-
-#include "zeek/zeek-config.h"
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>

@@ -2,6 +2,8 @@
 
 #include "zeek/CompHash.h"
 
+#include "zeek/zeek-config.h"
+
 #include <cstring>
 #include <map>
 #include <vector>
@@ -13,7 +15,6 @@
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
 #include "zeek/ZeekString.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

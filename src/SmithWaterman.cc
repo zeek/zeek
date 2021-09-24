@@ -2,6 +2,8 @@
 
 #include "zeek/SmithWaterman.h"
 
+#include "zeek/zeek-config.h"
+
 #include <ctype.h>
 #include <algorithm>
 
@@ -9,7 +11,6 @@
 #include "zeek/Val.h"
 #include "zeek/Var.h"
 #include "zeek/util.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

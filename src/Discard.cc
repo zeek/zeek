@@ -2,6 +2,8 @@
 
 #include "zeek/Discard.h"
 
+#include "zeek/zeek-config.h"
+
 #include <algorithm>
 
 #include "zeek/Func.h"
@@ -11,7 +13,6 @@
 #include "zeek/Val.h"
 #include "zeek/Var.h"
 #include "zeek/ZeekString.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

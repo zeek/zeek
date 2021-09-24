@@ -2,13 +2,14 @@
 
 #include "zeek/analyzer/protocol/ncp/NCP.h"
 
+#include "zeek/zeek-config.h"
+
 #include <stdlib.h>
 #include <map>
 #include <string>
 
 #include "zeek/analyzer/protocol/ncp/consts.bif.h"
 #include "zeek/analyzer/protocol/ncp/events.bif.h"
-#include "zeek/zeek-config.h"
 
 using namespace std;
 

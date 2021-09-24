@@ -2,13 +2,14 @@
 
 #include "zeek/logging/writers/sqlite/SQLite.h"
 
+#include "zeek/zeek-config.h"
+
 #include <errno.h>
 #include <string>
 #include <vector>
 
 #include "zeek/logging/writers/sqlite/sqlite.bif.h"
 #include "zeek/threading/SerialTypes.h"
-#include "zeek/zeek-config.h"
 
 using namespace std;
 using zeek::threading::Field;

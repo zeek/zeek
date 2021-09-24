@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
-
 #include "zeek/zeek-config.h"
+
+#include <string>
 
 namespace zeek
 	{

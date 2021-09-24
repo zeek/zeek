@@ -2,6 +2,8 @@
 
 #include "zeek/Type.h"
 
+#include "zeek/zeek-config.h"
+
 #include <list>
 #include <map>
 #include <string>
@@ -14,7 +16,6 @@
 #include "zeek/Val.h"
 #include "zeek/Var.h"
 #include "zeek/module_util.h"
-#include "zeek/zeek-config.h"
 #include "zeek/zeekygen/IdentifierInfo.h"
 #include "zeek/zeekygen/Manager.h"
 #include "zeek/zeekygen/ScriptInfo.h"

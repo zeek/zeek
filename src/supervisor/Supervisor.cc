@@ -2,6 +2,8 @@
 
 #include "zeek/supervisor/Supervisor.h"
 
+#include "zeek/zeek-config.h"
+
 #include <fcntl.h>
 #include <poll.h>
 #include <sys/types.h>
@@ -13,8 +15,6 @@
 #include <sstream>
 #include <utility>
 #include <variant>
-
-#include "zeek/zeek-config.h"
 
 #define RAPIDJSON_HAS_STDSTRING 1
 #include <rapidjson/document.h>

@@ -5,11 +5,11 @@
 
 #ifdef DEBUG
 
+#include "zeek/zeek-config.h"
+
 #include <stdio.h>
 #include <set>
 #include <string>
-
-#include "zeek/zeek-config.h"
 
 #define DBG_LOG(stream, args...)                                                                   \
 	if ( ::zeek::detail::debug_logger.IsEnabled(stream) )                                          \

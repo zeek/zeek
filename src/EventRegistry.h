@@ -2,13 +2,13 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <map>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "zeek/zeek-config.h"
 
 namespace zeek
 	{

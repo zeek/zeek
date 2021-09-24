@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include <sys/types.h> // for u_char
+#include "zeek/zeek-config.h"
+
 #include <netinet/in.h>
 #include <netinet/ip.h>
-
-#include "zeek/zeek-config.h"
+#include <sys/types.h> // for u_char
 
 #ifdef HAVE_NETINET_IP6_H
 #include <netinet/ip6.h>

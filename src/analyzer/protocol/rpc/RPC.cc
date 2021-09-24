@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/rpc/RPC.h"
 
+#include "zeek/zeek-config.h"
+
 #include <stdlib.h>
 #include <string>
 
@@ -11,7 +13,6 @@
 #include "zeek/analyzer/protocol/rpc/XDR.h"
 #include "zeek/analyzer/protocol/rpc/events.bif.h"
 #include "zeek/session/Manager.h"
-#include "zeek/zeek-config.h"
 
 namespace
 	{ // local namespace

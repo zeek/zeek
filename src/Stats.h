@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <stdint.h>
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
-
-#include "zeek/zeek-config.h"
 
 namespace zeek
 	{

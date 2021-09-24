@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "zeek/Tag.h"
 #include "zeek/zeek-config.h"
+
+#include "zeek/Tag.h"
 
 namespace zeek
 	{

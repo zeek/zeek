@@ -2,6 +2,8 @@
 
 #include "zeek/zeek-setup.h"
 
+#include "zeek/zeek-config.h"
+
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 #include <signal.h>
@@ -14,7 +16,6 @@
 #include <optional>
 
 #include "zeek/3rdparty/sqlite3.h"
-#include "zeek/zeek-config.h"
 
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "zeek/3rdparty/doctest.h"

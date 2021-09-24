@@ -2,6 +2,8 @@
 
 #include "zeek/Val.h"
 
+#include "zeek/zeek-config.h"
+
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -35,7 +37,6 @@
 #include "zeek/broker/Manager.h"
 #include "zeek/broker/Store.h"
 #include "zeek/threading/formatters/JSON.h"
-#include "zeek/zeek-config.h"
 
 using namespace std;
 

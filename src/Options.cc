@@ -2,10 +2,11 @@
 
 #include "zeek/Options.h"
 
+#include "zeek/zeek-config.h"
+
 #include <unistd.h>
 
 #include "zeek/script_opt/ScriptOpt.h"
-#include "zeek/zeek-config.h"
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>

@@ -2,6 +2,8 @@
 
 #include "zeek/session/Manager.h"
 
+#include "zeek/zeek-config.h"
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <pcap.h>
@@ -21,7 +23,6 @@
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/session/Session.h"
 #include "zeek/telemetry/Manager.h"
-#include "zeek/zeek-config.h"
 
 zeek::session::Manager* zeek::session_mgr = nullptr;
 zeek::session::Manager*& zeek::sessions = zeek::session_mgr;

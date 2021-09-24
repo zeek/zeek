@@ -2,6 +2,8 @@
 
 #include "zeek/Expr.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
@@ -20,7 +22,6 @@
 #include "zeek/digest.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/ExprOptInfo.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

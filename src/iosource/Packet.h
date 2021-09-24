@@ -1,10 +1,10 @@
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <stdint.h>
 #include <sys/types.h> // for u_char
 #include <string>
-
-#include "zeek/zeek-config.h"
 
 #if defined(__OpenBSD__)
 #include <net/bpf.h>

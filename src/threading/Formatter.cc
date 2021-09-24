@@ -2,11 +2,12 @@
 
 #include "zeek/threading/Formatter.h"
 
+#include "zeek/zeek-config.h"
+
 #include <errno.h>
 
 #include "zeek/bro_inet_ntop.h"
 #include "zeek/threading/MsgThread.h"
-#include "zeek/zeek-config.h"
 
 using zeek::threading::Field;
 using zeek::threading::Value;

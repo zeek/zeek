@@ -2,6 +2,8 @@
 
 #include "zeek/Var.h"
 
+#include "zeek/zeek-config.h"
+
 #include <memory>
 
 #include "zeek/EventRegistry.h"
@@ -16,7 +18,6 @@
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/ScriptOpt.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

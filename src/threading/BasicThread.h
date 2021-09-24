@@ -1,11 +1,11 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <stdint.h>
 #include <iosfwd>
 #include <thread>
-
-#include "zeek/zeek-config.h"
 
 namespace zeek::threading
 	{

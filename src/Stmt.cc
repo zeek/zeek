@@ -2,6 +2,8 @@
 
 #include "zeek/Stmt.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/CompHash.h"
 #include "zeek/Debug.h"
 #include "zeek/Desc.h"
@@ -19,7 +21,6 @@
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/logging.bif.h"
 #include "zeek/script_opt/StmtOptInfo.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

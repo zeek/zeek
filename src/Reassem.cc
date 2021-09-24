@@ -2,10 +2,11 @@
 
 #include "zeek/Reassem.h"
 
+#include "zeek/zeek-config.h"
+
 #include <algorithm>
 
 #include "zeek/Desc.h"
-#include "zeek/zeek-config.h"
 
 using std::min;
 

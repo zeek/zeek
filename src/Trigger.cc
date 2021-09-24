@@ -48,17 +48,17 @@ TraversalCode trigger::TriggerTraversalCallback::PreExpr(const Expr* expr)
 	switch ( expr->Tag() )
 		{
 		case EXPR_NAME:
-				{
-				const auto* e = static_cast<const NameExpr*>(expr);
-				if ( e->Id()->IsGlobal() )
-					trigger->Register(e->Id());
+			{
+			const auto* e = static_cast<const NameExpr*>(expr);
+			if ( e->Id()->IsGlobal() )
+				trigger->Register(e->Id());
 
-				Val* v = e->Id()->GetVal().get();
+			Val* v = e->Id()->GetVal().get();
 
-				if ( v && v->Modifiable() )
-					trigger->Register(v);
-				break;
-				};
+			if ( v && v->Modifiable() )
+				trigger->Register(v);
+			break;
+			};
 
 		default:
 			// All others are uninteresting.

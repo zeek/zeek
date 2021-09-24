@@ -1024,21 +1024,21 @@ void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 			break;
 
 		case broker::zeek::Message::Type::Batch:
+			{
+			broker::zeek::Batch batch(std::move(msg));
+
+			if ( ! batch.valid() )
 				{
-				broker::zeek::Batch batch(std::move(msg));
-
-				if ( ! batch.valid() )
-					{
-					reporter->Warning("received invalid broker Batch: %s",
-					                  broker::to_string(batch).data());
-					return;
-					}
-
-				for ( auto& i : batch.batch() )
-					DispatchMessage(topic, std::move(i));
-
-				break;
+				reporter->Warning("received invalid broker Batch: %s",
+				                  broker::to_string(batch).data());
+				return;
 				}
+
+			for ( auto& i : batch.batch() )
+				DispatchMessage(topic, std::move(i));
+
+			break;
+			}
 
 		default:
 			// We ignore unknown types so that we could add more in the

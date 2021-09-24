@@ -24,32 +24,32 @@ const ZAMStmt ZAMCompiler::CompileExpr(const Expr* e)
 			return CompileAssignExpr(static_cast<const AssignExpr*>(e));
 
 		case EXPR_INDEX_ASSIGN:
-				{
-				auto iae = static_cast<const IndexAssignExpr*>(e);
-				auto t = iae->GetOp1()->GetType()->Tag();
-				if ( t == TYPE_VECTOR )
-					return AssignVecElems(iae);
+			{
+			auto iae = static_cast<const IndexAssignExpr*>(e);
+			auto t = iae->GetOp1()->GetType()->Tag();
+			if ( t == TYPE_VECTOR )
+				return AssignVecElems(iae);
 
-				ASSERT(t == TYPE_TABLE);
-				return AssignTableElem(iae);
-				}
+			ASSERT(t == TYPE_TABLE);
+			return AssignTableElem(iae);
+			}
 
 		case EXPR_FIELD_LHS_ASSIGN:
-				{
-				auto flhs = static_cast<const FieldLHSAssignExpr*>(e);
-				return CompileFieldLHSAssignExpr(flhs);
-				}
+			{
+			auto flhs = static_cast<const FieldLHSAssignExpr*>(e);
+			return CompileFieldLHSAssignExpr(flhs);
+			}
 
 		case EXPR_SCHEDULE:
 			return CompileScheduleExpr(static_cast<const ScheduleExpr*>(e));
 
 		case EXPR_EVENT:
-				{
-				auto ee = static_cast<const EventExpr*>(e);
-				auto h = ee->Handler().Ptr();
-				auto args = ee->Args();
-				return EventHL(h, args);
-				}
+			{
+			auto ee = static_cast<const EventExpr*>(e);
+			auto h = ee->Handler().Ptr();
+			auto args = ee->Args();
+			return EventHL(h, args);
+			}
 
 		default:
 			reporter->InternalError("bad statement type in ZAMCompile::CompileExpr");
@@ -1111,31 +1111,31 @@ const ZAMStmt ZAMCompiler::ArithCoerce(const NameExpr* n, const Expr* e)
 	switch ( targ_it )
 		{
 		case TYPE_INTERNAL_DOUBLE:
-				{
-				if ( op_it == TYPE_INTERNAL_INT )
-					a = nt_is_vec ? OP_COERCE_DI_VEC_VV : OP_COERCE_DI_VV;
-				else
-					a = nt_is_vec ? OP_COERCE_DU_VEC_VV : OP_COERCE_DU_VV;
-				break;
-				}
+			{
+			if ( op_it == TYPE_INTERNAL_INT )
+				a = nt_is_vec ? OP_COERCE_DI_VEC_VV : OP_COERCE_DI_VV;
+			else
+				a = nt_is_vec ? OP_COERCE_DU_VEC_VV : OP_COERCE_DU_VV;
+			break;
+			}
 
 		case TYPE_INTERNAL_INT:
-				{
-				if ( op_it == TYPE_INTERNAL_UNSIGNED )
-					a = nt_is_vec ? OP_COERCE_IU_VEC_VV : OP_COERCE_IU_VV;
-				else
-					a = nt_is_vec ? OP_COERCE_ID_VEC_VV : OP_COERCE_ID_VV;
-				break;
-				}
+			{
+			if ( op_it == TYPE_INTERNAL_UNSIGNED )
+				a = nt_is_vec ? OP_COERCE_IU_VEC_VV : OP_COERCE_IU_VV;
+			else
+				a = nt_is_vec ? OP_COERCE_ID_VEC_VV : OP_COERCE_ID_VV;
+			break;
+			}
 
 		case TYPE_INTERNAL_UNSIGNED:
-				{
-				if ( op_it == TYPE_INTERNAL_INT )
-					a = nt_is_vec ? OP_COERCE_UI_VEC_VV : OP_COERCE_UI_VV;
-				else
-					a = nt_is_vec ? OP_COERCE_UD_VEC_VV : OP_COERCE_UD_VV;
-				break;
-				}
+			{
+			if ( op_it == TYPE_INTERNAL_INT )
+				a = nt_is_vec ? OP_COERCE_UI_VEC_VV : OP_COERCE_UI_VV;
+			else
+				a = nt_is_vec ? OP_COERCE_UD_VEC_VV : OP_COERCE_UD_VV;
+			break;
+			}
 
 		default:
 			reporter->InternalError("bad target internal type in coercion");

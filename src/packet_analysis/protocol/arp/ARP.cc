@@ -115,11 +115,11 @@ bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			break;
 
 		default:
-				{
-				// don't know how to proceed
-				BadARPEvent(ah, "unknown-arp-hw-address (hrd=%i)", ntohs(ah->ar_hrd));
-				return false;
-				}
+			{
+			// don't know how to proceed
+			BadARPEvent(ah, "unknown-arp-hw-address (hrd=%i)", ntohs(ah->ar_hrd));
+			return false;
+			}
 		}
 
 	// Note: We don't support IPv6 addresses.
@@ -136,11 +136,11 @@ bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			break;
 
 		default:
-				{
-				// don't know how to proceed
-				BadARPEvent(ah, "unknown-arp-proto-address (pro=%i)", ntohs(ah->ar_pro));
-				return false;
-				}
+			{
+			// don't know how to proceed
+			BadARPEvent(ah, "unknown-arp-proto-address (pro=%i)", ntohs(ah->ar_pro));
+			return false;
+			}
 		}
 
 	// Check MAC src address = ARP sender MAC address.
@@ -167,18 +167,18 @@ bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		case ARPOP_REVREPLY:
 		case ARPOP_INVREQUEST:
 		case ARPOP_INVREPLY:
-				{
-				// don't know how to handle the opcode
-				BadARPEvent(ah, "unimplemented-arp-opcode (%i)", ntohs(ah->ar_op));
-				return false;
-				}
+			{
+			// don't know how to handle the opcode
+			BadARPEvent(ah, "unimplemented-arp-opcode (%i)", ntohs(ah->ar_op));
+			return false;
+			}
 
 		default:
-				{
-				// invalid opcode
-				BadARPEvent(ah, "invalid-arp-opcode (opcode=%i)", ntohs(ah->ar_op));
-				return false;
-				}
+			{
+			// invalid opcode
+			BadARPEvent(ah, "invalid-arp-opcode (opcode=%i)", ntohs(ah->ar_op));
+			return false;
+			}
 		}
 
 	// Leave packet analyzer land

@@ -81,11 +81,11 @@ string find_type_accessor(ZAM_ExprType et)
 			return "re_val";
 
 		default:
-				{
-				string acc = find_type_info(et).accessor;
-				transform(acc.begin(), acc.end(), acc.begin(), ::tolower);
-				return acc + "_val";
-				}
+			{
+			string acc = find_type_info(et).accessor;
+			transform(acc.begin(), acc.end(), acc.begin(), ::tolower);
+			return acc + "_val";
+			}
 		}
 	}
 

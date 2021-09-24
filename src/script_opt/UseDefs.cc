@@ -185,40 +185,40 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 	switch ( s->Tag() )
 		{
 		case STMT_LIST:
+			{
+			auto sl = s->AsStmtList();
+			const auto& stmts = sl->Stmts();
+
+			for ( int i = stmts.length(); --i >= 0; )
 				{
-				auto sl = s->AsStmtList();
-				const auto& stmts = sl->Stmts();
+				auto s_i = stmts[i];
 
-				for ( int i = stmts.length(); --i >= 0; )
-					{
-					auto s_i = stmts[i];
+				const Stmt* succ;
 
-					const Stmt* succ;
-
-					if ( i == stmts.length() - 1 )
-						{ // Very last statement.
-						succ = succ_stmt;
-						if ( successor2.find(s) != successor2.end() )
-							successor2[s_i] = successor2[s];
-						}
-					else
-						succ = stmts[i + 1];
-
-					succ_UDs = PropagateUDs(s_i, succ_UDs, succ, second_pass);
+				if ( i == stmts.length() - 1 )
+					{ // Very last statement.
+					succ = succ_stmt;
+					if ( successor2.find(s) != successor2.end() )
+						successor2[s_i] = successor2[s];
 					}
+				else
+					succ = stmts[i + 1];
 
-				return UseUDs(s, succ_UDs);
+				succ_UDs = PropagateUDs(s_i, succ_UDs, succ, second_pass);
 				}
+
+			return UseUDs(s, succ_UDs);
+			}
 
 		case STMT_CATCH_RETURN:
-				{
-				auto cr = s->AsCatchReturnStmt();
-				auto block = cr->Block();
+			{
+			auto cr = s->AsCatchReturnStmt();
+			auto block = cr->Block();
 
-				auto uds = PropagateUDs(block.get(), succ_UDs, succ_stmt, second_pass);
+			auto uds = PropagateUDs(block.get(), succ_UDs, succ_stmt, second_pass);
 
-				return UseUDs(s, uds);
-				}
+			return UseUDs(s, uds);
+			}
 
 		case STMT_NULL:
 		case STMT_NEXT:
@@ -238,55 +238,55 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 		case STMT_ADD:
 		case STMT_DELETE:
 		case STMT_RETURN:
-				{
-				auto e = static_cast<const ExprStmt*>(s)->StmtExpr();
+			{
+			auto e = static_cast<const ExprStmt*>(s)->StmtExpr();
 
-				if ( e )
-					return CreateExprUDs(s, e, succ_UDs);
-				else
-					return UseUDs(s, succ_UDs);
-				}
+			if ( e )
+				return CreateExprUDs(s, e, succ_UDs);
+			else
+				return UseUDs(s, succ_UDs);
+			}
 
 		case STMT_EXPR:
-				{
-				auto e = s->AsExprStmt()->StmtExpr();
+			{
+			auto e = s->AsExprStmt()->StmtExpr();
 
-				if ( e->Tag() != EXPR_ASSIGN )
-					return CreateExprUDs(s, e, succ_UDs);
+			if ( e->Tag() != EXPR_ASSIGN )
+				return CreateExprUDs(s, e, succ_UDs);
 
-				// Change in use-defs as here we have a definition.
-				auto a = e->AsAssignExpr();
-				auto lhs_ref = a->GetOp1();
+			// Change in use-defs as here we have a definition.
+			auto a = e->AsAssignExpr();
+			auto lhs_ref = a->GetOp1();
 
-				if ( lhs_ref->Tag() != EXPR_REF )
-					// Since we're working on reduced form ...
-					reporter->InternalError("lhs inconsistency in UseDefs::ExprUDs");
+			if ( lhs_ref->Tag() != EXPR_REF )
+				// Since we're working on reduced form ...
+				reporter->InternalError("lhs inconsistency in UseDefs::ExprUDs");
 
-				auto lhs_var = lhs_ref->GetOp1();
-				auto lhs_id = lhs_var->AsNameExpr()->Id();
-				auto lhs_UDs = RemoveID(lhs_id, succ_UDs);
-				auto rhs_UDs = ExprUDs(a->GetOp2().get());
-				auto uds = UD_Union(lhs_UDs, rhs_UDs);
+			auto lhs_var = lhs_ref->GetOp1();
+			auto lhs_id = lhs_var->AsNameExpr()->Id();
+			auto lhs_UDs = RemoveID(lhs_id, succ_UDs);
+			auto rhs_UDs = ExprUDs(a->GetOp2().get());
+			auto uds = UD_Union(lhs_UDs, rhs_UDs);
 
-				if ( ! second_pass )
-					successor[s] = succ_stmt;
+			if ( ! second_pass )
+				successor[s] = succ_stmt;
 
-				return CreateUDs(s, uds);
-				}
+			return CreateUDs(s, uds);
+			}
 
 		case STMT_IF:
-				{
-				auto i = s->AsIfStmt();
-				auto cond = i->StmtExpr();
+			{
+			auto i = s->AsIfStmt();
+			auto cond = i->StmtExpr();
 
-				auto cond_UDs = ExprUDs(cond);
-				auto true_UDs = PropagateUDs(i->TrueBranch(), succ_UDs, succ_stmt, second_pass);
-				auto false_UDs = PropagateUDs(i->FalseBranch(), succ_UDs, succ_stmt, second_pass);
+			auto cond_UDs = ExprUDs(cond);
+			auto true_UDs = PropagateUDs(i->TrueBranch(), succ_UDs, succ_stmt, second_pass);
+			auto false_UDs = PropagateUDs(i->FalseBranch(), succ_UDs, succ_stmt, second_pass);
 
-				auto uds = CreateUDs(s, UD_Union(cond_UDs, true_UDs, false_UDs));
+			auto uds = CreateUDs(s, UD_Union(cond_UDs, true_UDs, false_UDs));
 
-				return uds;
-				}
+			return uds;
+			}
 
 		case STMT_INIT:
 			if ( ! second_pass )
@@ -304,111 +304,111 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 			return UseUDs(s, succ_UDs);
 
 		case STMT_SWITCH:
+			{
+			auto sw_UDs = std::make_shared<UseDefSet>();
+
+			auto sw = s->AsSwitchStmt();
+			auto cases = sw->Cases();
+
+			for ( const auto& c : *cases )
 				{
-				auto sw_UDs = std::make_shared<UseDefSet>();
+				auto body = c->Body();
+				auto uds = PropagateUDs(body, succ_UDs, succ_stmt, second_pass);
 
-				auto sw = s->AsSwitchStmt();
-				auto cases = sw->Cases();
-
-				for ( const auto& c : *cases )
+				auto exprs = c->ExprCases();
+				if ( exprs )
 					{
-					auto body = c->Body();
-					auto uds = PropagateUDs(body, succ_UDs, succ_stmt, second_pass);
-
-					auto exprs = c->ExprCases();
-					if ( exprs )
-						{
-						auto e_UDs = ExprUDs(exprs);
-						uds = UD_Union(uds, e_UDs);
-						}
-
-					auto type_ids = c->TypeCases();
-					if ( type_ids )
-						for ( const auto& id : *type_ids )
-							uds = RemoveID(id, uds);
-
-					FoldInUDs(sw_UDs, uds);
+					auto e_UDs = ExprUDs(exprs);
+					uds = UD_Union(uds, e_UDs);
 					}
 
-				auto e_UDs = ExprUDs(sw->StmtExpr());
+				auto type_ids = c->TypeCases();
+				if ( type_ids )
+					for ( const auto& id : *type_ids )
+						uds = RemoveID(id, uds);
 
-				if ( sw->HasDefault() )
-					FoldInUDs(sw_UDs, e_UDs);
-				else
-					// keep successor definitions in the mix
-					FoldInUDs(sw_UDs, succ_UDs, e_UDs);
-
-				return CreateUDs(s, sw_UDs);
+				FoldInUDs(sw_UDs, uds);
 				}
+
+			auto e_UDs = ExprUDs(sw->StmtExpr());
+
+			if ( sw->HasDefault() )
+				FoldInUDs(sw_UDs, e_UDs);
+			else
+				// keep successor definitions in the mix
+				FoldInUDs(sw_UDs, succ_UDs, e_UDs);
+
+			return CreateUDs(s, sw_UDs);
+			}
 
 		case STMT_FOR:
-				{
-				auto f = s->AsForStmt();
-				auto body = f->LoopBody();
+			{
+			auto f = s->AsForStmt();
+			auto body = f->LoopBody();
 
-				// The loop body has two potential successors, itself
-				// and the successor of the entire "for" statement.
-				successor2[body] = succ_stmt;
-				auto body_UDs = PropagateUDs(body, succ_UDs, body, second_pass);
+			// The loop body has two potential successors, itself
+			// and the successor of the entire "for" statement.
+			successor2[body] = succ_stmt;
+			auto body_UDs = PropagateUDs(body, succ_UDs, body, second_pass);
 
-				auto e = f->LoopExpr();
-				auto f_UDs = ExprUDs(e);
-				FoldInUDs(f_UDs, body_UDs);
+			auto e = f->LoopExpr();
+			auto f_UDs = ExprUDs(e);
+			FoldInUDs(f_UDs, body_UDs);
 
-				// Confluence: loop the top UDs back around to the bottom.
-				auto bottom_UDs = UD_Union(f_UDs, succ_UDs);
-				(void)PropagateUDs(body, bottom_UDs, body, true);
+			// Confluence: loop the top UDs back around to the bottom.
+			auto bottom_UDs = UD_Union(f_UDs, succ_UDs);
+			(void)PropagateUDs(body, bottom_UDs, body, true);
 
-				auto ids = f->LoopVars();
-				for ( const auto& id : *ids )
-					RemoveUDFrom(f_UDs, id);
+			auto ids = f->LoopVars();
+			for ( const auto& id : *ids )
+				RemoveUDFrom(f_UDs, id);
 
-				auto val_var = f->ValueVar();
-				if ( val_var )
-					RemoveUDFrom(f_UDs, val_var.get());
+			auto val_var = f->ValueVar();
+			if ( val_var )
+				RemoveUDFrom(f_UDs, val_var.get());
 
-				// The loop might not execute at all.
-				FoldInUDs(f_UDs, succ_UDs);
+			// The loop might not execute at all.
+			FoldInUDs(f_UDs, succ_UDs);
 
-				return CreateUDs(s, f_UDs);
-				}
+			return CreateUDs(s, f_UDs);
+			}
 
 		case STMT_WHILE:
+			{
+			auto w = s->AsWhileStmt();
+			auto body = w->Body();
+			auto cond_stmt = w->CondPredStmt();
+
+			// See note above for STMT_FOR regarding propagating
+			// around the loop.
+			auto succ = cond_stmt ? cond_stmt : body;
+			successor2[body.get()] = succ_stmt;
+			auto body_UDs = PropagateUDs(body.get(), succ_UDs, succ.get(), second_pass);
+
+			const auto& cond = w->Condition();
+			auto w_UDs = UD_Union(ExprUDs(cond.get()), body_UDs);
+			FoldInUDs(w_UDs, body_UDs);
+
+			if ( cond_stmt )
 				{
-				auto w = s->AsWhileStmt();
-				auto body = w->Body();
-				auto cond_stmt = w->CondPredStmt();
+				// Create a successor for the cond_stmt
+				// that has the correct UDs associated with it.
+				const auto& c_as_s = w->ConditionAsStmt();
+				auto c_as_s_UDs = std::make_shared<UseDefSet>(w_UDs);
+				CreateUDs(c_as_s.get(), c_as_s_UDs);
 
-				// See note above for STMT_FOR regarding propagating
-				// around the loop.
-				auto succ = cond_stmt ? cond_stmt : body;
-				successor2[body.get()] = succ_stmt;
-				auto body_UDs = PropagateUDs(body.get(), succ_UDs, succ.get(), second_pass);
-
-				const auto& cond = w->Condition();
-				auto w_UDs = UD_Union(ExprUDs(cond.get()), body_UDs);
-				FoldInUDs(w_UDs, body_UDs);
-
-				if ( cond_stmt )
-					{
-					// Create a successor for the cond_stmt
-					// that has the correct UDs associated with it.
-					const auto& c_as_s = w->ConditionAsStmt();
-					auto c_as_s_UDs = std::make_shared<UseDefSet>(w_UDs);
-					CreateUDs(c_as_s.get(), c_as_s_UDs);
-
-					w_UDs = PropagateUDs(cond_stmt, w_UDs, c_as_s, second_pass);
-					}
-
-				// Confluence: loop the top UDs back around to the bottom.
-				auto bottom_UDs = UD_Union(w_UDs, succ_UDs);
-				(void)PropagateUDs(body, bottom_UDs, succ, true);
-
-				// The loop might not execute at all.
-				FoldInUDs(w_UDs, succ_UDs);
-
-				return CreateUDs(s, w_UDs);
+				w_UDs = PropagateUDs(cond_stmt, w_UDs, c_as_s, second_pass);
 				}
+
+			// Confluence: loop the top UDs back around to the bottom.
+			auto bottom_UDs = UD_Union(w_UDs, succ_UDs);
+			(void)PropagateUDs(body, bottom_UDs, succ, true);
+
+			// The loop might not execute at all.
+			FoldInUDs(w_UDs, succ_UDs);
+
+			return CreateUDs(s, w_UDs);
+			}
 
 		default:
 			reporter->InternalError("non-reduced statement in use-def analysis");
@@ -454,12 +454,12 @@ UDs UseDefs::ExprUDs(const Expr* e)
 			break;
 
 		case EXPR_FIELD_LHS_ASSIGN:
-				{
-				AddInExprUDs(uds, e->GetOp1().get());
-				auto rhs_UDs = ExprUDs(e->GetOp2().get());
-				uds = UD_Union(uds, rhs_UDs);
-				break;
-				}
+			{
+			AddInExprUDs(uds, e->GetOp1().get());
+			auto rhs_UDs = ExprUDs(e->GetOp2().get());
+			uds = UD_Union(uds, rhs_UDs);
+			break;
+			}
 
 		case EXPR_INCR:
 		case EXPR_DECR:
@@ -467,41 +467,41 @@ UDs UseDefs::ExprUDs(const Expr* e)
 			break;
 
 		case EXPR_RECORD_CONSTRUCTOR:
-				{
-				auto r = static_cast<const RecordConstructorExpr*>(e);
-				AddInExprUDs(uds, r->Op().get());
-				break;
-				}
+			{
+			auto r = static_cast<const RecordConstructorExpr*>(e);
+			AddInExprUDs(uds, r->Op().get());
+			break;
+			}
 
 		case EXPR_CONST:
 			break;
 
 		case EXPR_LAMBDA:
-				{
-				auto l = static_cast<const LambdaExpr*>(e);
-				auto ids = l->OuterIDs();
+			{
+			auto l = static_cast<const LambdaExpr*>(e);
+			auto ids = l->OuterIDs();
 
-				for ( const auto& id : ids )
-					AddID(uds, id);
-				break;
-				}
+			for ( const auto& id : ids )
+				AddID(uds, id);
+			break;
+			}
 
 		case EXPR_CALL:
-				{
-				auto c = e->AsCallExpr();
-				AddInExprUDs(uds, c->Func());
-				AddInExprUDs(uds, c->Args());
-				break;
-				}
+			{
+			auto c = e->AsCallExpr();
+			AddInExprUDs(uds, c->Func());
+			AddInExprUDs(uds, c->Args());
+			break;
+			}
 
 		case EXPR_LIST:
-				{
-				auto l = e->AsListExpr();
-				for ( const auto& l_e : l->Exprs() )
-					AddInExprUDs(uds, l_e);
+			{
+			auto l = e->AsListExpr();
+			for ( const auto& l_e : l->Exprs() )
+				AddInExprUDs(uds, l_e);
 
-				break;
-				}
+			break;
+			}
 
 		default:
 			auto op1 = e->GetOp1();
@@ -532,11 +532,11 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 			break;
 
 		case EXPR_LIST:
-				{
-				auto l = e->AsListExpr();
-				for ( const auto& l_e : l->Exprs() )
-					AddInExprUDs(uds, l_e);
-				}
+			{
+			auto l = e->AsListExpr();
+			for ( const auto& l_e : l->Exprs() )
+				AddInExprUDs(uds, l_e);
+			}
 			break;
 
 		case EXPR_EVENT:

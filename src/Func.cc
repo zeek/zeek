@@ -272,26 +272,25 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFl
 			break;
 
 		case FUNC_FLAVOR_FUNCTION:
+			{
+			const auto& yt = GetType()->Yield();
+
+			if ( (! yt) || yt->Tag() == TYPE_VOID )
 				{
-				const auto& yt = GetType()->Yield();
-
-				if ( (! yt) || yt->Tag() == TYPE_VOID )
-					{
-					if ( hook_result )
-						reporter->InternalError(
-							"plugin returned non-void result for void method %s", this->Name());
-					}
-
-				else if ( hook_result && hook_result->GetType()->Tag() != yt->Tag() &&
-				          yt->Tag() != TYPE_ANY )
-					{
-					reporter->InternalError(
-						"plugin returned wrong type (got %d, expecting %d) for %s",
-						hook_result->GetType()->Tag(), yt->Tag(), this->Name());
-					}
-
-				break;
+				if ( hook_result )
+					reporter->InternalError("plugin returned non-void result for void method %s",
+					                        this->Name());
 				}
+
+			else if ( hook_result && hook_result->GetType()->Tag() != yt->Tag() &&
+			          yt->Tag() != TYPE_ANY )
+				{
+				reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
+				                        hook_result->GetType()->Tag(), yt->Tag(), this->Name());
+				}
+
+			break;
+			}
 		}
 	}
 

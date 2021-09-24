@@ -1285,38 +1285,38 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to, vector<IPPrefi
 			break;
 
 		case TYPE_SUBNET:
+			{
+			if ( prefix_vector )
 				{
-				if ( prefix_vector )
+				prefix_vector->push_back(v->AsSubNet());
+				delete mval;
+				return true;
+				}
+			else
+				{
+				const uint32_t* n;
+				uint32_t m[4];
+				v->AsSubNet().Prefix().GetBytes(&n);
+				v->AsSubNetVal()->Mask().CopyIPv6(m);
+
+				for ( unsigned int i = 0; i < 4; ++i )
+					m[i] = ntohl(m[i]);
+
+				bool is_v4_mask = m[0] == 0xffffffff && m[1] == m[0] && m[2] == m[0];
+
+				if ( v->AsSubNet().Prefix().GetFamily() == IPv4 && is_v4_mask )
 					{
-					prefix_vector->push_back(v->AsSubNet());
-					delete mval;
-					return true;
+					mval->val = ntohl(*n);
+					mval->mask = m[3];
 					}
 				else
 					{
-					const uint32_t* n;
-					uint32_t m[4];
-					v->AsSubNet().Prefix().GetBytes(&n);
-					v->AsSubNetVal()->Mask().CopyIPv6(m);
-
-					for ( unsigned int i = 0; i < 4; ++i )
-						m[i] = ntohl(m[i]);
-
-					bool is_v4_mask = m[0] == 0xffffffff && m[1] == m[0] && m[2] == m[0];
-
-					if ( v->AsSubNet().Prefix().GetFamily() == IPv4 && is_v4_mask )
-						{
-						mval->val = ntohl(*n);
-						mval->mask = m[3];
-						}
-					else
-						{
-						rules_error("IPv6 subnets not supported");
-						mval->val = 0;
-						mval->mask = 0;
-						}
+					rules_error("IPv6 subnets not supported");
+					mval->val = 0;
+					mval->mask = 0;
 					}
 				}
+			}
 			break;
 
 		default:

@@ -32,42 +32,42 @@ bool PortmapperInterp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n
 			break;
 
 		case PMAPPROC_SET:
-				{
-				auto m = ExtractMapping(buf, n);
-				if ( ! m )
-					return false;
-				c->AddVal(std::move(m));
-				}
+			{
+			auto m = ExtractMapping(buf, n);
+			if ( ! m )
+				return false;
+			c->AddVal(std::move(m));
+			}
 			break;
 
 		case PMAPPROC_UNSET:
-				{
-				auto m = ExtractMapping(buf, n);
-				if ( ! m )
-					return false;
-				c->AddVal(std::move(m));
-				}
+			{
+			auto m = ExtractMapping(buf, n);
+			if ( ! m )
+				return false;
+			c->AddVal(std::move(m));
+			}
 			break;
 
 		case PMAPPROC_GETPORT:
-				{
-				auto pr = ExtractPortRequest(buf, n);
-				if ( ! pr )
-					return false;
-				c->AddVal(std::move(pr));
-				}
+			{
+			auto pr = ExtractPortRequest(buf, n);
+			if ( ! pr )
+				return false;
+			c->AddVal(std::move(pr));
+			}
 			break;
 
 		case PMAPPROC_DUMP:
 			break;
 
 		case PMAPPROC_CALLIT:
-				{
-				auto call_it = ExtractCallItRequest(buf, n);
-				if ( ! call_it )
-					return false;
-				c->AddVal(std::move(call_it));
-				}
+			{
+			auto call_it = ExtractCallItRequest(buf, n);
+			if ( ! call_it )
+				return false;
+			c->AddVal(std::move(call_it));
+			}
 			break;
 
 		default:

@@ -698,190 +698,188 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
 		switch ( option_code )
 			{
 			case detail::TYPE_ECS:
+				{
+				// must be 4 bytes + variable number of octets for address
+				if ( option_len <= 4 )
 					{
-					// must be 4 bytes + variable number of octets for address
-					if ( option_len <= 4 )
-						{
-						analyzer->Weird("EDNS_ECS_invalid_option_len");
-						data += option_len;
-						break;
-						}
-
-					detail::EDNS_ECS opt{};
-					uint16_t ecs_family = ExtractShort(data, option_len);
-					uint16_t source_scope = ExtractShort(data, option_len);
-					opt.ecs_src_pfx_len = (source_scope >> 8) & 0xff;
-					opt.ecs_scp_pfx_len = source_scope & 0xff;
-
-					// ADDRESS, variable number of octets, contains either an IPv4 or
-					// IPv6 address, depending on FAMILY, which MUST be truncated to the
-					// number of bits indicated by the SOURCE PREFIX-LENGTH field,
-					// padding with 0 bits to pad to the end of the last octet needed.
-					if ( ecs_family == L3_IPV4 )
-						{
-						if ( opt.ecs_src_pfx_len > 32 )
-							{
-							analyzer->Weird("EDNS_ECS_invalid_addr_v4_prefix",
-							                util::fmt("%" PRIu16 " bits", opt.ecs_src_pfx_len));
-							data += option_len;
-							break;
-							}
-
-						if ( opt.ecs_src_pfx_len > option_len * 8 )
-							{
-							analyzer->Weird("EDNS_ECS_invalid_addr_v4",
-							                util::fmt("need %" PRIu16 " bits, have %d bits",
-							                          opt.ecs_src_pfx_len, option_len * 8));
-							data += option_len;
-							break;
-							}
-
-						opt.ecs_family = make_intrusive<StringVal>("v4");
-						uint32_t addr = 0;
-						uint16_t shift_factor = 3;
-						int bits_left = opt.ecs_src_pfx_len;
-
-						while ( bits_left > 0 )
-							{
-							addr |= data[0] << (shift_factor * 8);
-							data++;
-							shift_factor--;
-							option_len--;
-							bits_left -= 8;
-							}
-
-						addr = htonl(addr);
-						opt.ecs_addr = make_intrusive<AddrVal>(addr);
-						}
-					else if ( ecs_family == L3_IPV6 )
-						{
-						if ( opt.ecs_src_pfx_len > 128 )
-							{
-							analyzer->Weird("EDNS_ECS_invalid_addr_v6_prefix",
-							                util::fmt("%" PRIu16 " bits", opt.ecs_src_pfx_len));
-							data += option_len;
-							break;
-							}
-
-						if ( opt.ecs_src_pfx_len > option_len * 8 )
-							{
-							analyzer->Weird("EDNS_ECS_invalid_addr_v6",
-							                util::fmt("need %" PRIu16 " bits, have %d bits",
-							                          opt.ecs_src_pfx_len, option_len * 8));
-							data += option_len;
-							break;
-							}
-
-						opt.ecs_family = make_intrusive<StringVal>("v6");
-						uint32_t addr[4] = {0};
-						uint16_t shift_factor = 15;
-						int bits_left = opt.ecs_src_pfx_len;
-						int i = 0;
-
-						while ( bits_left > 0 )
-							{
-							addr[i / 4] |= data[0] << ((shift_factor % 4) * 8);
-							data++;
-							i++;
-							shift_factor--;
-							option_len--;
-							bits_left -= 8;
-							}
-
-						for ( uint8_t i = 0; i < 4; i++ )
-							{
-							addr[i] = htonl(addr[i]);
-							}
-						opt.ecs_addr = make_intrusive<AddrVal>(addr);
-						}
-					else
-						{
-						// non ipv4/ipv6 family address
-						data += option_len;
-						break;
-						}
-
-					analyzer->EnqueueConnEvent(dns_EDNS_ecs, analyzer->ConnVal(),
-					                           msg->BuildHdrVal(), msg->BuildEDNS_ECS_Val(&opt));
-					data += option_len;
-					break;
-					} // END EDNS ECS
-
-			case TYPE_TCP_KA:
-					{
-					EDNS_TCP_KEEPALIVE edns_tcp_keepalive{.keepalive_timeout_omitted = true,
-					                                      .keepalive_timeout = 0};
-					if ( option_len == 0 || option_len == 2 )
-						{
-						// 0 bytes is permitted by RFC 7828, showing that the timeout value is
-						// omitted.
-						if ( option_len == 2 )
-							{
-							edns_tcp_keepalive.keepalive_timeout = ExtractShort(data, option_len);
-							edns_tcp_keepalive.keepalive_timeout_omitted = false;
-							}
-
-						if ( analyzer->Conn()->ConnTransport() == TRANSPORT_UDP )
-							{
-							/*
-							 * Based on RFC 7828 (3.2.1/3.2.2), clients and servers MUST NOT
-							 * negotiate TCP Keepalive timeout in DNS-over-UDP.
-							 */
-							analyzer->Weird("EDNS_TCP_Keepalive_In_UDP");
-							}
-
-						analyzer->EnqueueConnEvent(dns_EDNS_tcp_keepalive, analyzer->ConnVal(),
-						                           msg->BuildHdrVal(),
-						                           msg->BuildEDNS_TCP_KA_Val(&edns_tcp_keepalive));
-						}
-					else
-						{
-						// error. MUST BE 0 or 2 bytes. skip
-						data += option_len;
-						}
-					break;
-					} // END EDNS TCP KEEPALIVE
-
-			case TYPE_COOKIE:
-					{
-					EDNS_COOKIE cookie{};
-					if ( option_len != 8 && ! (option_len >= 16 && option_len <= 40) )
-						{
-						/*
-						 * option length for DNS Cookie must be 8 bytes (with client cookie only)
-						 * OR
-						 * between 16 bytes to 40 bytes (with an 8 bytes client and an 8 to 32 bytes
-						 * server cookie)
-						 */
-						data += option_len;
-						break;
-						}
-
-					int client_cookie_len = 8;
-					int server_cookie_len = option_len - client_cookie_len;
-
-					cookie.client_cookie =
-						ExtractStream(data, client_cookie_len, client_cookie_len);
-					cookie.server_cookie = nullptr;
-
-					if ( server_cookie_len >= 8 )
-						{
-						cookie.server_cookie =
-							ExtractStream(data, server_cookie_len, server_cookie_len);
-						}
-
-					analyzer->EnqueueConnEvent(dns_EDNS_cookie, analyzer->ConnVal(),
-					                           msg->BuildHdrVal(),
-					                           msg->BuildEDNS_COOKIE_Val(&cookie));
-
-					break;
-					} // END EDNS COOKIE
-
-			default:
-					{
+					analyzer->Weird("EDNS_ECS_invalid_option_len");
 					data += option_len;
 					break;
 					}
+
+				detail::EDNS_ECS opt{};
+				uint16_t ecs_family = ExtractShort(data, option_len);
+				uint16_t source_scope = ExtractShort(data, option_len);
+				opt.ecs_src_pfx_len = (source_scope >> 8) & 0xff;
+				opt.ecs_scp_pfx_len = source_scope & 0xff;
+
+				// ADDRESS, variable number of octets, contains either an IPv4 or
+				// IPv6 address, depending on FAMILY, which MUST be truncated to the
+				// number of bits indicated by the SOURCE PREFIX-LENGTH field,
+				// padding with 0 bits to pad to the end of the last octet needed.
+				if ( ecs_family == L3_IPV4 )
+					{
+					if ( opt.ecs_src_pfx_len > 32 )
+						{
+						analyzer->Weird("EDNS_ECS_invalid_addr_v4_prefix",
+						                util::fmt("%" PRIu16 " bits", opt.ecs_src_pfx_len));
+						data += option_len;
+						break;
+						}
+
+					if ( opt.ecs_src_pfx_len > option_len * 8 )
+						{
+						analyzer->Weird("EDNS_ECS_invalid_addr_v4",
+						                util::fmt("need %" PRIu16 " bits, have %d bits",
+						                          opt.ecs_src_pfx_len, option_len * 8));
+						data += option_len;
+						break;
+						}
+
+					opt.ecs_family = make_intrusive<StringVal>("v4");
+					uint32_t addr = 0;
+					uint16_t shift_factor = 3;
+					int bits_left = opt.ecs_src_pfx_len;
+
+					while ( bits_left > 0 )
+						{
+						addr |= data[0] << (shift_factor * 8);
+						data++;
+						shift_factor--;
+						option_len--;
+						bits_left -= 8;
+						}
+
+					addr = htonl(addr);
+					opt.ecs_addr = make_intrusive<AddrVal>(addr);
+					}
+				else if ( ecs_family == L3_IPV6 )
+					{
+					if ( opt.ecs_src_pfx_len > 128 )
+						{
+						analyzer->Weird("EDNS_ECS_invalid_addr_v6_prefix",
+						                util::fmt("%" PRIu16 " bits", opt.ecs_src_pfx_len));
+						data += option_len;
+						break;
+						}
+
+					if ( opt.ecs_src_pfx_len > option_len * 8 )
+						{
+						analyzer->Weird("EDNS_ECS_invalid_addr_v6",
+						                util::fmt("need %" PRIu16 " bits, have %d bits",
+						                          opt.ecs_src_pfx_len, option_len * 8));
+						data += option_len;
+						break;
+						}
+
+					opt.ecs_family = make_intrusive<StringVal>("v6");
+					uint32_t addr[4] = {0};
+					uint16_t shift_factor = 15;
+					int bits_left = opt.ecs_src_pfx_len;
+					int i = 0;
+
+					while ( bits_left > 0 )
+						{
+						addr[i / 4] |= data[0] << ((shift_factor % 4) * 8);
+						data++;
+						i++;
+						shift_factor--;
+						option_len--;
+						bits_left -= 8;
+						}
+
+					for ( uint8_t i = 0; i < 4; i++ )
+						{
+						addr[i] = htonl(addr[i]);
+						}
+					opt.ecs_addr = make_intrusive<AddrVal>(addr);
+					}
+				else
+					{
+					// non ipv4/ipv6 family address
+					data += option_len;
+					break;
+					}
+
+				analyzer->EnqueueConnEvent(dns_EDNS_ecs, analyzer->ConnVal(), msg->BuildHdrVal(),
+				                           msg->BuildEDNS_ECS_Val(&opt));
+				data += option_len;
+				break;
+				} // END EDNS ECS
+
+			case TYPE_TCP_KA:
+				{
+				EDNS_TCP_KEEPALIVE edns_tcp_keepalive{.keepalive_timeout_omitted = true,
+				                                      .keepalive_timeout = 0};
+				if ( option_len == 0 || option_len == 2 )
+					{
+					// 0 bytes is permitted by RFC 7828, showing that the timeout value is
+					// omitted.
+					if ( option_len == 2 )
+						{
+						edns_tcp_keepalive.keepalive_timeout = ExtractShort(data, option_len);
+						edns_tcp_keepalive.keepalive_timeout_omitted = false;
+						}
+
+					if ( analyzer->Conn()->ConnTransport() == TRANSPORT_UDP )
+						{
+						/*
+						 * Based on RFC 7828 (3.2.1/3.2.2), clients and servers MUST NOT
+						 * negotiate TCP Keepalive timeout in DNS-over-UDP.
+						 */
+						analyzer->Weird("EDNS_TCP_Keepalive_In_UDP");
+						}
+
+					analyzer->EnqueueConnEvent(dns_EDNS_tcp_keepalive, analyzer->ConnVal(),
+					                           msg->BuildHdrVal(),
+					                           msg->BuildEDNS_TCP_KA_Val(&edns_tcp_keepalive));
+					}
+				else
+					{
+					// error. MUST BE 0 or 2 bytes. skip
+					data += option_len;
+					}
+				break;
+				} // END EDNS TCP KEEPALIVE
+
+			case TYPE_COOKIE:
+				{
+				EDNS_COOKIE cookie{};
+				if ( option_len != 8 && ! (option_len >= 16 && option_len <= 40) )
+					{
+					/*
+					 * option length for DNS Cookie must be 8 bytes (with client cookie only)
+					 * OR
+					 * between 16 bytes to 40 bytes (with an 8 bytes client and an 8 to 32 bytes
+					 * server cookie)
+					 */
+					data += option_len;
+					break;
+					}
+
+				int client_cookie_len = 8;
+				int server_cookie_len = option_len - client_cookie_len;
+
+				cookie.client_cookie = ExtractStream(data, client_cookie_len, client_cookie_len);
+				cookie.server_cookie = nullptr;
+
+				if ( server_cookie_len >= 8 )
+					{
+					cookie.server_cookie =
+						ExtractStream(data, server_cookie_len, server_cookie_len);
+					}
+
+				analyzer->EnqueueConnEvent(dns_EDNS_cookie, analyzer->ConnVal(), msg->BuildHdrVal(),
+				                           msg->BuildEDNS_COOKIE_Val(&cookie));
+
+				break;
+				} // END EDNS COOKIE
+
+			default:
+				{
+				data += option_len;
+				break;
+				}
 			}
 		}
 

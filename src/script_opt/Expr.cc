@@ -189,27 +189,27 @@ bool Expr::IsReducedConditional(Reducer* c) const
 			return IsReduced(c);
 
 		case EXPR_IN:
+			{
+			auto op1 = GetOp1();
+			auto op2 = GetOp2();
+
+			if ( op1->Tag() != EXPR_NAME && op1->Tag() != EXPR_LIST )
+				return NonReduced(this);
+
+			if ( op2->GetType()->Tag() != TYPE_TABLE || ! op2->IsReduced(c) )
+				return NonReduced(this);
+
+			if ( op1->Tag() == EXPR_LIST )
 				{
-				auto op1 = GetOp1();
-				auto op2 = GetOp2();
+				auto l1 = op1->AsListExpr();
+				auto& l1_e = l1->Exprs();
 
-				if ( op1->Tag() != EXPR_NAME && op1->Tag() != EXPR_LIST )
+				if ( l1_e.length() < 1 || l1_e.length() > 2 )
 					return NonReduced(this);
-
-				if ( op2->GetType()->Tag() != TYPE_TABLE || ! op2->IsReduced(c) )
-					return NonReduced(this);
-
-				if ( op1->Tag() == EXPR_LIST )
-					{
-					auto l1 = op1->AsListExpr();
-					auto& l1_e = l1->Exprs();
-
-					if ( l1_e.length() < 1 || l1_e.length() > 2 )
-						return NonReduced(this);
-					}
-
-				return true;
 				}
+
+			return true;
+			}
 
 		case EXPR_EQ:
 		case EXPR_NE:
@@ -324,40 +324,40 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt)
 			return Reduce(c, red_stmt);
 
 		case EXPR_IN:
+			{
+			// This is complicated because there are lots of forms
+			// of "in" expressions, and we're only interested in
+			// those with 1 or 2 indices, into a table.
+			auto op1 = GetOp1();
+			auto op2 = GetOp2();
+
+			if ( c->Optimizing() )
+				return Reduce(c, red_stmt);
+
+			if ( op2->GetType()->Tag() != TYPE_TABLE )
+				// Not a table de-reference.
+				return Reduce(c, red_stmt);
+
+			if ( op1->Tag() == EXPR_LIST )
 				{
-				// This is complicated because there are lots of forms
-				// of "in" expressions, and we're only interested in
-				// those with 1 or 2 indices, into a table.
-				auto op1 = GetOp1();
-				auto op2 = GetOp2();
+				auto l1 = op1->AsListExpr();
+				auto& l1_e = l1->Exprs();
 
-				if ( c->Optimizing() )
+				if ( l1_e.length() < 1 || l1_e.length() > 2 )
+					// Wrong number of indices.
 					return Reduce(c, red_stmt);
-
-				if ( op2->GetType()->Tag() != TYPE_TABLE )
-					// Not a table de-reference.
-					return Reduce(c, red_stmt);
-
-				if ( op1->Tag() == EXPR_LIST )
-					{
-					auto l1 = op1->AsListExpr();
-					auto& l1_e = l1->Exprs();
-
-					if ( l1_e.length() < 1 || l1_e.length() > 2 )
-						// Wrong number of indices.
-						return Reduce(c, red_stmt);
-					}
-
-				if ( ! op1->IsReduced(c) || ! op2->IsReduced(c) )
-					{
-					auto red2_stmt = ReduceToSingletons(c);
-					auto res = ReduceToConditional(c, red_stmt);
-					red_stmt = MergeStmts(red2_stmt, red_stmt);
-					return res;
-					}
-
-				return ThisPtr();
 				}
+
+			if ( ! op1->IsReduced(c) || ! op2->IsReduced(c) )
+				{
+				auto red2_stmt = ReduceToSingletons(c);
+				auto res = ReduceToConditional(c, red_stmt);
+				red_stmt = MergeStmts(red2_stmt, red_stmt);
+				return res;
+				}
+
+			return ThisPtr();
+			}
 
 		case EXPR_EQ:
 		case EXPR_NE:
@@ -1489,10 +1489,10 @@ bool RefExpr::HasReducedOps(Reducer* c) const
 			return op->AsFieldExpr()->Op()->IsReduced(c);
 
 		case EXPR_INDEX:
-				{
-				auto ind = op->AsIndexExpr();
-				return ind->Op1()->IsReduced(c) && ind->Op2()->IsReduced(c);
-				}
+			{
+			auto ind = op->AsIndexExpr();
+			return ind->Op1()->IsReduced(c) && ind->Op2()->IsReduced(c);
+			}
 
 		case EXPR_LIST:
 			return op->IsReduced(c);

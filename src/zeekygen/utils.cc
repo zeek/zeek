@@ -170,19 +170,19 @@ std::optional<std::string> source_code_range(const zeek::detail::ID* id)
 	switch ( type->Tag() )
 		{
 		case TYPE_FUNC:
-				{
-				const auto& v = id->GetVal();
+			{
+			const auto& v = id->GetVal();
 
-				if ( v && v->AsFunc()->GetBodies().size() == 1 )
-					{
-					// Either a function or an event/hook with single body can
-					// report that single, continuous range.
-					loc = v->AsFunc()->GetBodies()[0].stmts->GetLocationInfo();
-					++extra_lines;
-					}
-				else
-					loc = id->GetLocationInfo();
+			if ( v && v->AsFunc()->GetBodies().size() == 1 )
+				{
+				// Either a function or an event/hook with single body can
+				// report that single, continuous range.
+				loc = v->AsFunc()->GetBodies()[0].stmts->GetLocationInfo();
+				++extra_lines;
 				}
+			else
+				loc = id->GetLocationInfo();
+			}
 			break;
 		case TYPE_ENUM:
 			// Fallthrough

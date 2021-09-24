@@ -272,81 +272,81 @@ bool Reducer::SameExpr(const Expr* e1, const Expr* e2)
 			reporter->InternalError("Unexpected tag in Reducer::SameExpr");
 
 		case EXPR_ANY_INDEX:
-				{
-				auto a1 = e1->AsAnyIndexExpr();
-				auto a2 = e2->AsAnyIndexExpr();
+			{
+			auto a1 = e1->AsAnyIndexExpr();
+			auto a2 = e2->AsAnyIndexExpr();
 
-				if ( a1->Index() != a2->Index() )
-					return false;
+			if ( a1->Index() != a2->Index() )
+				return false;
 
-				return SameOp(a1->GetOp1(), a2->GetOp1());
-				}
+			return SameOp(a1->GetOp1(), a2->GetOp1());
+			}
 
 		case EXPR_FIELD:
-				{
-				auto f1 = e1->AsFieldExpr();
-				auto f2 = e2->AsFieldExpr();
+			{
+			auto f1 = e1->AsFieldExpr();
+			auto f2 = e2->AsFieldExpr();
 
-				if ( f1->Field() != f2->Field() )
-					return false;
+			if ( f1->Field() != f2->Field() )
+				return false;
 
-				return SameOp(f1->GetOp1(), f2->GetOp1());
-				}
+			return SameOp(f1->GetOp1(), f2->GetOp1());
+			}
 
 		case EXPR_HAS_FIELD:
-				{
-				auto f1 = e1->AsHasFieldExpr();
-				auto f2 = e2->AsHasFieldExpr();
+			{
+			auto f1 = e1->AsHasFieldExpr();
+			auto f2 = e2->AsHasFieldExpr();
 
-				if ( f1->Field() != f2->Field() )
-					return false;
+			if ( f1->Field() != f2->Field() )
+				return false;
 
-				return SameOp(f1->GetOp1(), f2->GetOp1());
-				}
+			return SameOp(f1->GetOp1(), f2->GetOp1());
+			}
 
 		case EXPR_LIST:
-				{
-				auto l1 = e1->AsListExpr()->Exprs();
-				auto l2 = e2->AsListExpr()->Exprs();
+			{
+			auto l1 = e1->AsListExpr()->Exprs();
+			auto l2 = e2->AsListExpr()->Exprs();
 
-				ASSERT(l1.length() == l2.length());
+			ASSERT(l1.length() == l2.length());
 
-				for ( int i = 0; i < l1.length(); ++i )
-					if ( ! SameExpr(l1[i], l2[i]) )
-						return false;
+			for ( int i = 0; i < l1.length(); ++i )
+				if ( ! SameExpr(l1[i], l2[i]) )
+					return false;
 
-				return true;
-				}
+			return true;
+			}
 
 		case EXPR_CALL:
-				{
-				auto c1 = e1->AsCallExpr();
-				auto c2 = e2->AsCallExpr();
-				auto f1 = c1->Func();
-				auto f2 = c2->Func();
+			{
+			auto c1 = e1->AsCallExpr();
+			auto c2 = e2->AsCallExpr();
+			auto f1 = c1->Func();
+			auto f2 = c2->Func();
 
-				if ( f1 != f2 )
-					return false;
+			if ( f1 != f2 )
+				return false;
 
-				if ( ! f1->IsPure() )
-					return false;
+			if ( ! f1->IsPure() )
+				return false;
 
-				return SameExpr(c1->Args(), c2->Args());
-				}
+			return SameExpr(c1->Args(), c2->Args());
+			}
 
 		case EXPR_LAMBDA:
 			return false;
 
 		case EXPR_IS:
-				{
-				if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
-					return false;
+			{
+			if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
+				return false;
 
-				auto i1 = e1->AsIsExpr();
-				auto i2 = e2->AsIsExpr();
+			auto i1 = e1->AsIsExpr();
+			auto i2 = e2->AsIsExpr();
 
-				return same_type(i1->TestType(), i2->TestType());
-				}
+			return same_type(i1->TestType(), i2->TestType());
+			}
 
 		default:
 			if ( ! e1->GetOp1() )
@@ -865,59 +865,59 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
 	switch ( t )
 		{
 		case EXPR_ASSIGN:
+			{
+			auto lhs_ref = e->GetOp1()->AsRefExprPtr();
+			auto lhs = lhs_ref->GetOp1()->AsNameExpr();
+
+			if ( CheckID(ids, lhs->Id(), false) )
 				{
-				auto lhs_ref = e->GetOp1()->AsRefExprPtr();
-				auto lhs = lhs_ref->GetOp1()->AsNameExpr();
-
-				if ( CheckID(ids, lhs->Id(), false) )
-					{
-					is_valid = false;
-					return TC_ABORTALL;
-					}
-
-				// Note, we don't use CheckAggrMod() because this
-				// is a plain assignment.  It might be changing a variable's
-				// binding to an aggregate, but it's not changing the
-				// aggregate itself.
+				is_valid = false;
+				return TC_ABORTALL;
 				}
+
+			// Note, we don't use CheckAggrMod() because this
+			// is a plain assignment.  It might be changing a variable's
+			// binding to an aggregate, but it's not changing the
+			// aggregate itself.
+			}
 			break;
 
 		case EXPR_INDEX_ASSIGN:
-				{
-				auto lhs_aggr = e->GetOp1();
-				auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
+			{
+			auto lhs_aggr = e->GetOp1();
+			auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
 
-				if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
-					{
-					is_valid = false;
-					return TC_ABORTALL;
-					}
+			if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
+				{
+				is_valid = false;
+				return TC_ABORTALL;
 				}
+			}
 			break;
 
 		case EXPR_FIELD_LHS_ASSIGN:
+			{
+			auto lhs = e->GetOp1();
+			auto lhs_aggr_id = lhs->AsNameExpr()->Id();
+			auto lhs_field = e->AsFieldLHSAssignExpr()->Field();
+
+			if ( lhs_field == field && same_type(lhs_aggr_id->GetType(), field_type) )
 				{
-				auto lhs = e->GetOp1();
-				auto lhs_aggr_id = lhs->AsNameExpr()->Id();
-				auto lhs_field = e->AsFieldLHSAssignExpr()->Field();
-
-				if ( lhs_field == field && same_type(lhs_aggr_id->GetType(), field_type) )
-					{
-					// Potential assignment to the same field as for
-					// our expression of interest.  Even if the
-					// identifier involved is not one we have our eye
-					// on, due to aggregate aliasing this could be
-					// altering the value of our expression, so bail.
-					is_valid = false;
-					return TC_ABORTALL;
-					}
-
-				if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
-					{
-					is_valid = false;
-					return TC_ABORTALL;
-					}
+				// Potential assignment to the same field as for
+				// our expression of interest.  Even if the
+				// identifier involved is not one we have our eye
+				// on, due to aggregate aliasing this could be
+				// altering the value of our expression, so bail.
+				is_valid = false;
+				return TC_ABORTALL;
 				}
+
+			if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
+				{
+				is_valid = false;
+				return TC_ABORTALL;
+				}
+			}
 			break;
 
 		case EXPR_APPEND_TO:
@@ -931,14 +931,14 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
 			break;
 
 		case EXPR_CALL:
-				{
-				for ( auto i : ids )
-					if ( i->IsGlobal() || IsAggr(i->GetType()) )
-						{
-						is_valid = false;
-						return TC_ABORTALL;
-						}
-				}
+			{
+			for ( auto i : ids )
+				if ( i->IsGlobal() || IsAggr(i->GetType()) )
+					{
+					is_valid = false;
+					return TC_ABORTALL;
+					}
+			}
 			break;
 
 		default:

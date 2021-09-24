@@ -444,161 +444,161 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			break;
 
 		case TYPE_PORT:
-				{
-				auto* pval = val->AsPortVal();
-				writer.StartObject();
-				writer.Key("port");
-				writer.Int64(pval->Port());
-				writer.Key("proto");
-				writer.String(pval->Protocol());
-				writer.EndObject();
-				break;
-				}
+			{
+			auto* pval = val->AsPortVal();
+			writer.StartObject();
+			writer.Key("port");
+			writer.Int64(pval->Port());
+			writer.Key("proto");
+			writer.String(pval->Protocol());
+			writer.EndObject();
+			break;
+			}
 
 		case TYPE_PATTERN:
 		case TYPE_INTERVAL:
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
-				{
-				ODesc d;
-				d.SetStyle(RAW_STYLE);
-				val->Describe(&d);
-				writer.String(reinterpret_cast<const char*>(d.Bytes()), d.Len());
-				break;
-				}
+			{
+			ODesc d;
+			d.SetStyle(RAW_STYLE);
+			val->Describe(&d);
+			writer.String(reinterpret_cast<const char*>(d.Bytes()), d.Len());
+			break;
+			}
 
 		case TYPE_FILE:
 		case TYPE_FUNC:
 		case TYPE_ENUM:
 		case TYPE_STRING:
-				{
-				ODesc d;
-				d.SetStyle(RAW_STYLE);
-				val->Describe(&d);
-				writer.String(util::json_escape_utf8(
-					std::string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
-				break;
-				}
+			{
+			ODesc d;
+			d.SetStyle(RAW_STYLE);
+			val->Describe(&d);
+			writer.String(util::json_escape_utf8(
+				std::string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
+			break;
+			}
 
 		case TYPE_TABLE:
+			{
+			auto* table = val->AsTable();
+			auto* tval = val->AsTableVal();
+
+			if ( tval->GetType()->IsSet() )
+				writer.StartArray();
+			else
+				writer.StartObject();
+
+			std::unique_ptr<detail::HashKey> k;
+			TableEntryVal* entry;
+
+			for ( const auto& te : *table )
 				{
-				auto* table = val->AsTable();
-				auto* tval = val->AsTableVal();
+				entry = te.GetValue<TableEntryVal*>();
+				k = te.GetHashKey();
+
+				auto lv = tval->RecreateIndex(*k);
+				Val* entry_key = lv->Length() == 1 ? lv->Idx(0).get() : lv.get();
 
 				if ( tval->GetType()->IsSet() )
-					writer.StartArray();
+					BuildJSON(writer, entry_key, only_loggable, re);
 				else
-					writer.StartObject();
-
-				std::unique_ptr<detail::HashKey> k;
-				TableEntryVal* entry;
-
-				for ( const auto& te : *table )
 					{
-					entry = te.GetValue<TableEntryVal*>();
-					k = te.GetHashKey();
+					rapidjson::StringBuffer buffer;
+					threading::formatter::JSON::NullDoubleWriter key_writer(buffer);
+					BuildJSON(key_writer, entry_key, only_loggable, re);
+					string key_str = buffer.GetString();
 
-					auto lv = tval->RecreateIndex(*k);
-					Val* entry_key = lv->Length() == 1 ? lv->Idx(0).get() : lv.get();
+					if ( key_str.length() >= 2 && key_str[0] == '"' &&
+					     key_str[key_str.length() - 1] == '"' )
+						// Strip quotes.
+						key_str = key_str.substr(1, key_str.length() - 2);
 
-					if ( tval->GetType()->IsSet() )
-						BuildJSON(writer, entry_key, only_loggable, re);
-					else
-						{
-						rapidjson::StringBuffer buffer;
-						threading::formatter::JSON::NullDoubleWriter key_writer(buffer);
-						BuildJSON(key_writer, entry_key, only_loggable, re);
-						string key_str = buffer.GetString();
-
-						if ( key_str.length() >= 2 && key_str[0] == '"' &&
-						     key_str[key_str.length() - 1] == '"' )
-							// Strip quotes.
-							key_str = key_str.substr(1, key_str.length() - 2);
-
-						BuildJSON(writer, entry->GetVal().get(), only_loggable, re, key_str);
-						}
+					BuildJSON(writer, entry->GetVal().get(), only_loggable, re, key_str);
 					}
-
-				if ( tval->GetType()->IsSet() )
-					writer.EndArray();
-				else
-					writer.EndObject();
-
-				break;
 				}
+
+			if ( tval->GetType()->IsSet() )
+				writer.EndArray();
+			else
+				writer.EndObject();
+
+			break;
+			}
 
 		case TYPE_RECORD:
+			{
+			writer.StartObject();
+
+			auto* rval = val->AsRecordVal();
+			auto rt = rval->GetType()->AsRecordType();
+
+			for ( auto i = 0; i < rt->NumFields(); ++i )
 				{
-				writer.StartObject();
+				auto value = rval->GetFieldOrDefault(i);
 
-				auto* rval = val->AsRecordVal();
-				auto rt = rval->GetType()->AsRecordType();
-
-				for ( auto i = 0; i < rt->NumFields(); ++i )
+				if ( value && (! only_loggable || rt->FieldHasAttr(i, detail::ATTR_LOG)) )
 					{
-					auto value = rval->GetFieldOrDefault(i);
+					string key_str;
+					auto field_name = rt->FieldName(i);
 
-					if ( value && (! only_loggable || rt->FieldHasAttr(i, detail::ATTR_LOG)) )
+					if ( re && re->MatchAnywhere(field_name) != 0 )
 						{
-						string key_str;
-						auto field_name = rt->FieldName(i);
-
-						if ( re && re->MatchAnywhere(field_name) != 0 )
-							{
-							auto blank = make_intrusive<StringVal>("");
-							auto fn_val = make_intrusive<StringVal>(field_name);
-							const auto& bs = *blank->AsString();
-							auto key_val = fn_val->Replace(re, bs, false);
-							key_str = key_val->ToStdString();
-							}
-						else
-							key_str = field_name;
-
-						BuildJSON(writer, value.get(), only_loggable, re, key_str);
+						auto blank = make_intrusive<StringVal>("");
+						auto fn_val = make_intrusive<StringVal>(field_name);
+						const auto& bs = *blank->AsString();
+						auto key_val = fn_val->Replace(re, bs, false);
+						key_str = key_val->ToStdString();
 						}
-					}
+					else
+						key_str = field_name;
 
-				writer.EndObject();
-				break;
+					BuildJSON(writer, value.get(), only_loggable, re, key_str);
+					}
 				}
+
+			writer.EndObject();
+			break;
+			}
 
 		case TYPE_LIST:
-				{
-				writer.StartArray();
+			{
+			writer.StartArray();
 
-				auto* lval = val->AsListVal();
-				size_t size = lval->Length();
-				for ( size_t i = 0; i < size; i++ )
-					BuildJSON(writer, lval->Idx(i).get(), only_loggable, re);
+			auto* lval = val->AsListVal();
+			size_t size = lval->Length();
+			for ( size_t i = 0; i < size; i++ )
+				BuildJSON(writer, lval->Idx(i).get(), only_loggable, re);
 
-				writer.EndArray();
-				break;
-				}
+			writer.EndArray();
+			break;
+			}
 
 		case TYPE_VECTOR:
-				{
-				writer.StartArray();
+			{
+			writer.StartArray();
 
-				auto* vval = val->AsVectorVal();
-				size_t size = vval->SizeVal()->AsCount();
-				for ( size_t i = 0; i < size; i++ )
-					BuildJSON(writer, vval->ValAt(i).get(), only_loggable, re);
+			auto* vval = val->AsVectorVal();
+			size_t size = vval->SizeVal()->AsCount();
+			for ( size_t i = 0; i < size; i++ )
+				BuildJSON(writer, vval->ValAt(i).get(), only_loggable, re);
 
-				writer.EndArray();
-				break;
-				}
+			writer.EndArray();
+			break;
+			}
 
 		case TYPE_OPAQUE:
-				{
-				writer.StartObject();
+			{
+			writer.StartObject();
 
-				writer.Key("opaque_type");
-				auto* oval = val->AsOpaqueVal();
-				writer.String(OpaqueMgr::mgr()->TypeID(oval));
+			writer.Key("opaque_type");
+			auto* oval = val->AsOpaqueVal();
+			writer.String(OpaqueMgr::mgr()->TypeID(oval));
 
-				writer.EndObject();
-				break;
-				}
+			writer.EndObject();
+			break;
+			}
 
 		default:
 			writer.Null();
@@ -1369,23 +1369,23 @@ static void find_nested_record_types(const TypePtr& t, std::set<RecordType*>* fo
 	switch ( t->Tag() )
 		{
 		case TYPE_RECORD:
-				{
-				auto rt = t->AsRecordType();
-				found->emplace(rt);
+			{
+			auto rt = t->AsRecordType();
+			found->emplace(rt);
 
-				for ( auto i = 0; i < rt->NumFields(); ++i )
-					find_nested_record_types(rt->FieldDecl(i)->type, found);
-				}
+			for ( auto i = 0; i < rt->NumFields(); ++i )
+				find_nested_record_types(rt->FieldDecl(i)->type, found);
+			}
 			return;
 		case TYPE_TABLE:
 			find_nested_record_types(t->AsTableType()->GetIndices(), found);
 			find_nested_record_types(t->AsTableType()->Yield(), found);
 			return;
 		case TYPE_LIST:
-				{
-				for ( const auto& type : t->AsTypeList()->GetTypes() )
-					find_nested_record_types(type, found);
-				}
+			{
+			for ( const auto& type : t->AsTypeList()->GetTypes() )
+				find_nested_record_types(type, found);
+			}
 			return;
 		case TYPE_FUNC:
 			find_nested_record_types(t->AsFuncType()->Params(), found);
@@ -2145,62 +2145,62 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 			{
 			case ELEMENT_NEW:
 			case ELEMENT_CHANGED:
-					{
+				{
 #ifndef __clang__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
-					broker::optional<broker::timespan> expiry;
+				broker::optional<broker::timespan> expiry;
 #ifndef __clang__
 #pragma GCC diagnostic pop
 #endif
 
-					auto expire_time = GetExpireTime();
-					if ( expire_time == 0 )
-						// Entry is set to immediately expire. Let's not forward it.
-						break;
-
-					if ( expire_time > 0 )
-						{
-						if ( attrs->Find(detail::ATTR_EXPIRE_CREATE) )
-							{
-							// for create expiry, we have to substract the already elapsed time from
-							// the expiry.
-							auto e = expire_time -
-							         (run_state::network_time - new_entry_val->ExpireAccessTime());
-							if ( e <= 0 )
-								// element already expired? Let's not insert it.
-								break;
-
-							expiry = Broker::detail::convert_expiry(e);
-							}
-						else
-							expiry = Broker::detail::convert_expiry(expire_time);
-						}
-
-					if ( table_type->IsSet() )
-						handle->store.put(std::move(*broker_index), broker::data(), expiry);
-					else
-						{
-						if ( ! new_entry_val )
-							{
-							emit_builtin_error(
-								"did not receive new value for Broker datastore send operation");
-							return;
-							}
-
-						auto new_value = new_entry_val->GetVal().get();
-						auto broker_val = Broker::detail::val_to_data(new_value);
-						if ( ! broker_val )
-							{
-							emit_builtin_error("invalid Broker data conversation for table value");
-							return;
-							}
-
-						handle->store.put(std::move(*broker_index), std::move(*broker_val), expiry);
-						}
+				auto expire_time = GetExpireTime();
+				if ( expire_time == 0 )
+					// Entry is set to immediately expire. Let's not forward it.
 					break;
+
+				if ( expire_time > 0 )
+					{
+					if ( attrs->Find(detail::ATTR_EXPIRE_CREATE) )
+						{
+						// for create expiry, we have to substract the already elapsed time from
+						// the expiry.
+						auto e = expire_time -
+						         (run_state::network_time - new_entry_val->ExpireAccessTime());
+						if ( e <= 0 )
+							// element already expired? Let's not insert it.
+							break;
+
+						expiry = Broker::detail::convert_expiry(e);
+						}
+					else
+						expiry = Broker::detail::convert_expiry(expire_time);
 					}
+
+				if ( table_type->IsSet() )
+					handle->store.put(std::move(*broker_index), broker::data(), expiry);
+				else
+					{
+					if ( ! new_entry_val )
+						{
+						emit_builtin_error(
+							"did not receive new value for Broker datastore send operation");
+						return;
+						}
+
+					auto new_value = new_entry_val->GetVal().get();
+					auto broker_val = Broker::detail::val_to_data(new_value);
+					if ( ! broker_val )
+						{
+						emit_builtin_error("invalid Broker data conversation for table value");
+						return;
+						}
+
+					handle->store.put(std::move(*broker_index), std::move(*broker_val), expiry);
+					}
+				break;
+				}
 
 			case ELEMENT_REMOVED:
 				handle->store.erase(std::move(*broker_index));

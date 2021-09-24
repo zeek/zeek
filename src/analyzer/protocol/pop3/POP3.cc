@@ -155,57 +155,57 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 				break;
 
 			case detail::AUTH_PLAIN:
+				{
+				// Format: "authorization identity<NUL>authentication
+				//		identity<NUL>password"
+				char* str = (char*)decoded->Bytes();
+				int len = decoded->Len();
+				char* end = str + len;
+				char* s;
+				char* e;
+
+				for ( s = str; s < end && *s; ++s )
+					;
+				++s;
+
+				for ( e = s; e < end && *e; ++e )
+					;
+
+				if ( e >= end )
 					{
-					// Format: "authorization identity<NUL>authentication
-					//		identity<NUL>password"
-					char* str = (char*)decoded->Bytes();
-					int len = decoded->Len();
-					char* end = str + len;
-					char* s;
-					char* e;
-
-					for ( s = str; s < end && *s; ++s )
-						;
-					++s;
-
-					for ( e = s; e < end && *e; ++e )
-						;
-
-					if ( e >= end )
-						{
-						Weird("pop3_malformed_auth_plain");
-						delete decoded;
-						return;
-						}
-
-					user = s;
-					s = e + 1;
-
-					if ( s >= end )
-						{
-						Weird("pop3_malformed_auth_plain");
-						delete decoded;
-						return;
-						}
-
-					password.assign(s, len - (s - str));
-
-					break;
+					Weird("pop3_malformed_auth_plain");
+					delete decoded;
+					return;
 					}
+
+				user = s;
+				s = e + 1;
+
+				if ( s >= end )
+					{
+					Weird("pop3_malformed_auth_plain");
+					delete decoded;
+					return;
+					}
+
+				password.assign(s, len - (s - str));
+
+				break;
+				}
 
 			case detail::AUTH_CRAM_MD5:
-					{ // Format: "user<space>password-hash"
-					const char* s;
-					const char* str = (char*)decoded->CheckString();
+				{ // Format: "user<space>password-hash"
+				const char* s;
+				const char* str = (char*)decoded->CheckString();
 
-					for ( s = str; *s && *s != '\t' && *s != ' '; ++s )
-						;
+				for ( s = str; *s && *s != '\t' && *s != ' '; ++s )
+					;
 
-					user = std::string(str, s);
-					password = "";
+				user = std::string(str, s);
+				password = "";
 
-					break;
-					}
+				break;
+				}
 
 			case detail::AUTH:
 				break;
@@ -694,16 +694,16 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 
 				case detail::TOP:
 				case detail::RETR:
-						{
-						int data_len = end_of_line - line;
-						if ( ! mail )
-							// ProcessReply is only called if orig == false
-							BeginData(false);
-						ProcessData(data_len, line);
-						if ( requestForMultiLine == true )
-							multiLine = true;
-						break;
-						}
+					{
+					int data_len = end_of_line - line;
+					if ( ! mail )
+						// ProcessReply is only called if orig == false
+						BeginData(false);
+					ProcessData(data_len, line);
+					if ( requestForMultiLine == true )
+						multiLine = true;
+					break;
+					}
 
 				case detail::CAPA:
 					ProtocolConfirmation();

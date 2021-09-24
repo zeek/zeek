@@ -279,7 +279,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				                 make_intrusive<StringVal>(type.c_str()),
 				                 make_intrusive<StringVal>(channel.c_str()), std::move(set));
 				}
-			break;
+				break;
 
 			// Count of users and services on this server.
 			case 255:
@@ -456,37 +456,37 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			// RPL_TOPIC reply.
 			case 332:
-					{
-					if ( ! irc_channel_topic )
-						break;
-
-					vector<string> parts = SplitWords(params, ' ');
-					if ( parts.size() < 4 )
-						{
-						Weird("irc_invalid_topic_reply");
-						return;
-						}
-
-					unsigned int pos = params.find(':');
-					if ( pos < params.size() )
-						{
-						string topic = params.substr(pos + 1);
-						const char* t = topic.c_str();
-
-						if ( *t == ':' )
-							++t;
-
-						EnqueueConnEvent(irc_channel_topic, ConnVal(), val_mgr->Bool(orig),
-						                 make_intrusive<StringVal>(parts[1].c_str()),
-						                 make_intrusive<StringVal>(t));
-						}
-					else
-						{
-						Weird("irc_invalid_topic_reply");
-						return;
-						}
-					}
+				{
+				if ( ! irc_channel_topic )
 					break;
+
+				vector<string> parts = SplitWords(params, ' ');
+				if ( parts.size() < 4 )
+					{
+					Weird("irc_invalid_topic_reply");
+					return;
+					}
+
+				unsigned int pos = params.find(':');
+				if ( pos < params.size() )
+					{
+					string topic = params.substr(pos + 1);
+					const char* t = topic.c_str();
+
+					if ( *t == ':' )
+						++t;
+
+					EnqueueConnEvent(irc_channel_topic, ConnVal(), val_mgr->Bool(orig),
+					                 make_intrusive<StringVal>(parts[1].c_str()),
+					                 make_intrusive<StringVal>(t));
+					}
+				else
+					{
+					Weird("irc_invalid_topic_reply");
+					return;
+					}
+				}
+				break;
 
 			// WHO reply line.
 			case 352:

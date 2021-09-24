@@ -952,23 +952,23 @@ threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
 			break;
 
 		case TYPE_ENUM:
+			{
+			const char* s = val->GetType()->AsEnumType()->Lookup(val->InternalInt());
+
+			if ( s )
 				{
-				const char* s = val->GetType()->AsEnumType()->Lookup(val->InternalInt());
-
-				if ( s )
-					{
-					lval->val.string_val.data = util::copy_string(s);
-					lval->val.string_val.length = strlen(s);
-					}
-
-				else
-					{
-					val->GetType()->Error("enum type does not contain value", val);
-					lval->val.string_val.data = util::copy_string("");
-					lval->val.string_val.length = 0;
-					}
-				break;
+				lval->val.string_val.data = util::copy_string(s);
+				lval->val.string_val.length = strlen(s);
 				}
+
+			else
+				{
+				val->GetType()->Error("enum type does not contain value", val);
+				lval->val.string_val.data = util::copy_string("");
+				lval->val.string_val.length = 0;
+				}
+			break;
+			}
 
 		case TYPE_COUNT:
 			lval->val.uint_val = val->InternalUnsigned();
@@ -994,67 +994,67 @@ threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
 			break;
 
 		case TYPE_STRING:
-				{
-				const String* s = val->AsString();
-				char* buf = new char[s->Len()];
-				memcpy(buf, s->Bytes(), s->Len());
+			{
+			const String* s = val->AsString();
+			char* buf = new char[s->Len()];
+			memcpy(buf, s->Bytes(), s->Len());
 
-				lval->val.string_val.data = buf;
-				lval->val.string_val.length = s->Len();
-				break;
-				}
+			lval->val.string_val.data = buf;
+			lval->val.string_val.length = s->Len();
+			break;
+			}
 
 		case TYPE_FILE:
-				{
-				const File* f = val->AsFile();
-				string s = f->Name();
-				lval->val.string_val.data = util::copy_string(s.c_str());
-				lval->val.string_val.length = s.size();
-				break;
-				}
+			{
+			const File* f = val->AsFile();
+			string s = f->Name();
+			lval->val.string_val.data = util::copy_string(s.c_str());
+			lval->val.string_val.length = s.size();
+			break;
+			}
 
 		case TYPE_FUNC:
-				{
-				ODesc d;
-				const Func* f = val->AsFunc();
-				f->Describe(&d);
-				const char* s = d.Description();
-				lval->val.string_val.data = util::copy_string(s);
-				lval->val.string_val.length = strlen(s);
-				break;
-				}
+			{
+			ODesc d;
+			const Func* f = val->AsFunc();
+			f->Describe(&d);
+			const char* s = d.Description();
+			lval->val.string_val.data = util::copy_string(s);
+			lval->val.string_val.length = strlen(s);
+			break;
+			}
 
 		case TYPE_TABLE:
-				{
-				auto set = val->AsTableVal()->ToPureListVal();
-				if ( ! set )
-					// ToPureListVal has reported an internal warning
-					// already. Just keep going by making something up.
-					set = make_intrusive<ListVal>(TYPE_INT);
+			{
+			auto set = val->AsTableVal()->ToPureListVal();
+			if ( ! set )
+				// ToPureListVal has reported an internal warning
+				// already. Just keep going by making something up.
+				set = make_intrusive<ListVal>(TYPE_INT);
 
-				lval->val.set_val.size = set->Length();
-				lval->val.set_val.vals = new threading::Value*[lval->val.set_val.size];
+			lval->val.set_val.size = set->Length();
+			lval->val.set_val.vals = new threading::Value*[lval->val.set_val.size];
 
-				for ( bro_int_t i = 0; i < lval->val.set_val.size; i++ )
-					lval->val.set_val.vals[i] = ValToLogVal(set->Idx(i).get());
+			for ( bro_int_t i = 0; i < lval->val.set_val.size; i++ )
+				lval->val.set_val.vals[i] = ValToLogVal(set->Idx(i).get());
 
-				break;
-				}
+			break;
+			}
 
 		case TYPE_VECTOR:
+			{
+			VectorVal* vec = val->AsVectorVal();
+			lval->val.vector_val.size = vec->Size();
+			lval->val.vector_val.vals = new threading::Value*[lval->val.vector_val.size];
+
+			for ( bro_int_t i = 0; i < lval->val.vector_val.size; i++ )
 				{
-				VectorVal* vec = val->AsVectorVal();
-				lval->val.vector_val.size = vec->Size();
-				lval->val.vector_val.vals = new threading::Value*[lval->val.vector_val.size];
-
-				for ( bro_int_t i = 0; i < lval->val.vector_val.size; i++ )
-					{
-					lval->val.vector_val.vals[i] =
-						ValToLogVal(vec->ValAt(i).get(), vec->GetType()->Yield().get());
-					}
-
-				break;
+				lval->val.vector_val.vals[i] =
+					ValToLogVal(vec->ValAt(i).get(), vec->GetType()->Yield().get());
 				}
+
+			break;
+			}
 
 		default:
 			reporter->InternalError("unsupported type %s for log_write", type_name(lval->type));

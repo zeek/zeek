@@ -79,17 +79,17 @@ bool CPPCompile::IsSimpleInitExpr(const ExprPtr& e) const
 			return true;
 
 		case EXPR_RECORD_COERCE:
-				{ // look for coercion of empty record
-				auto op = e->GetOp1();
+			{ // look for coercion of empty record
+			auto op = e->GetOp1();
 
-				if ( op->Tag() != EXPR_RECORD_CONSTRUCTOR )
-					return false;
+			if ( op->Tag() != EXPR_RECORD_CONSTRUCTOR )
+				return false;
 
-				auto rc = static_cast<const RecordConstructorExpr*>(op.get());
-				const auto& exprs = rc->Op()->AsListExpr()->Exprs();
+			auto rc = static_cast<const RecordConstructorExpr*>(op.get());
+			const auto& exprs = rc->Op()->AsListExpr()->Exprs();
 
-				return exprs.length() == 0;
-				}
+			return exprs.length() == 0;
+			}
 
 		default:
 			return false;
@@ -235,16 +235,16 @@ void CPPCompile::GenPreInit(const Type* t)
 			break;
 
 		case TYPE_RECORD:
-				{
-				string name;
+			{
+			string name;
 
-				if ( t->GetName() != "" )
-					name = string("\"") + t->GetName() + string("\"");
-				else
-					name = "nullptr";
+			if ( t->GetName() != "" )
+				name = string("\"") + t->GetName() + string("\"");
+			else
+				name = "nullptr";
 
-				pre_init = string("get_record_type__CPP(") + name + ")";
-				}
+			pre_init = string("get_record_type__CPP(") + name + ")";
+			}
 			break;
 
 		case TYPE_LIST:

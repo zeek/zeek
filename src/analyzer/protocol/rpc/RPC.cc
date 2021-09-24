@@ -636,75 +636,73 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 				// no break. fall through
 
 			case WAIT_FOR_MARKER:
+				{
+				bool got_marker = marker_buf.ConsumeChunk(data, len);
+
+				if ( got_marker )
 					{
-					bool got_marker = marker_buf.ConsumeChunk(data, len);
+					const u_char* dummy_p = marker_buf.GetBuf();
+					int dummy_len = (int)marker_buf.GetFill();
 
-					if ( got_marker )
+					// have full marker
+					marker = extract_XDR_uint32(dummy_p, dummy_len);
+					marker_buf.Init(4, 4);
+
+					if ( ! dummy_p )
 						{
-						const u_char* dummy_p = marker_buf.GetBuf();
-						int dummy_len = (int)marker_buf.GetFill();
-
-						// have full marker
-						marker = extract_XDR_uint32(dummy_p, dummy_len);
-						marker_buf.Init(4, 4);
-
-						if ( ! dummy_p )
-							{
-							reporter->AnalyzerError(this,
-							                        "inconsistent RPC record marker extraction");
-							return;
-							}
-
-						last_frag = (marker & 0x80000000) != 0;
-						marker &= 0x7fffffff;
-						// printf("%.6f %d marker= %u <> last_frag= %d <> expected=%llu <>
-						// processed= %llu <> len = %d\n", 		run_state::network_time, IsOrig(),
-						// marker,
-						// last_frag, msg_buf.GetExpected(), msg_buf.GetProcessed(), len);
-
-						if ( ! msg_buf.AddToExpected(marker) )
-							Conn()->Weird("RPC_message_too_long",
-							              util::fmt("%" PRId64, msg_buf.GetExpected()));
-
-						if ( last_frag )
-							state = WAIT_FOR_LAST_DATA;
-						else
-							state = WAIT_FOR_DATA;
+						reporter->AnalyzerError(this, "inconsistent RPC record marker extraction");
+						return;
 						}
+
+					last_frag = (marker & 0x80000000) != 0;
+					marker &= 0x7fffffff;
+					// printf("%.6f %d marker= %u <> last_frag= %d <> expected=%llu <>
+					// processed= %llu <> len = %d\n", 		run_state::network_time, IsOrig(),
+					// marker,
+					// last_frag, msg_buf.GetExpected(), msg_buf.GetProcessed(), len);
+
+					if ( ! msg_buf.AddToExpected(marker) )
+						Conn()->Weird("RPC_message_too_long",
+						              util::fmt("%" PRId64, msg_buf.GetExpected()));
+
+					if ( last_frag )
+						state = WAIT_FOR_LAST_DATA;
+					else
+						state = WAIT_FOR_DATA;
 					}
+				}
 				// Else remain in state. Haven't got the full 4 bytes
 				// for the marker yet.
 				break;
 
 			case WAIT_FOR_DATA:
 			case WAIT_FOR_LAST_DATA:
+				{
+				bool got_all_data = msg_buf.ConsumeChunk(data, len);
+
+				if ( got_all_data )
 					{
-					bool got_all_data = msg_buf.ConsumeChunk(data, len);
-
-					if ( got_all_data )
+					// Got all the data we expected. Now let's
+					// see whether there is another fragment
+					// coming or whether we just finished the
+					// last fragment.
+					if ( state == WAIT_FOR_LAST_DATA )
 						{
-						// Got all the data we expected. Now let's
-						// see whether there is another fragment
-						// coming or whether we just finished the
-						// last fragment.
-						if ( state == WAIT_FOR_LAST_DATA )
-							{
-							const u_char* dummy_p = msg_buf.GetBuf();
-							int dummy_len = (int)msg_buf.GetFill();
+						const u_char* dummy_p = msg_buf.GetBuf();
+						int dummy_len = (int)msg_buf.GetFill();
 
-							if ( ! interp->DeliverRPC(dummy_p, dummy_len,
-							                          (int)msg_buf.GetExpected(), IsOrig(),
-							                          start_time, last_time) )
-								Conn()->Weird("partial_RPC");
+						if ( ! interp->DeliverRPC(dummy_p, dummy_len, (int)msg_buf.GetExpected(),
+						                          IsOrig(), start_time, last_time) )
+							Conn()->Weird("partial_RPC");
 
-							state = WAIT_FOR_MESSAGE;
-							}
-						else
-							state = WAIT_FOR_MARKER;
+						state = WAIT_FOR_MESSAGE;
 						}
-					// Else remain in state. Haven't read all the data
-					// yet.
+					else
+						state = WAIT_FOR_MARKER;
 					}
+				// Else remain in state. Haven't read all the data
+				// yet.
+				}
 				break;
 			} // end switch
 		} // end while

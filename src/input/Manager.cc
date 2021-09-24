@@ -841,28 +841,28 @@ bool Manager::IsCompatibleType(Type* t, bool atomic_only)
 			return ! atomic_only;
 
 		case TYPE_TABLE:
-				{
-				if ( atomic_only )
-					return false;
+			{
+			if ( atomic_only )
+				return false;
 
-				if ( ! t->IsSet() )
-					return false;
+			if ( ! t->IsSet() )
+				return false;
 
-				const auto& indices = t->AsSetType()->GetIndices();
+			const auto& indices = t->AsSetType()->GetIndices();
 
-				if ( indices->GetTypes().size() != 1 )
-					return false;
+			if ( indices->GetTypes().size() != 1 )
+				return false;
 
-				return IsCompatibleType(indices->GetPureType().get(), true);
-				}
+			return IsCompatibleType(indices->GetPureType().get(), true);
+			}
 
 		case TYPE_VECTOR:
-				{
-				if ( atomic_only )
-					return false;
+			{
+			if ( atomic_only )
+				return false;
 
-				return IsCompatibleType(t->AsVectorType()->Yield().get(), true);
-				}
+			return IsCompatibleType(t->AsVectorType()->Yield().get(), true);
+			}
 
 		default:
 			return false;
@@ -1999,65 +1999,65 @@ int Manager::GetValueLength(const Value* val) const
 
 		case TYPE_STRING:
 		case TYPE_ENUM:
-				{
-				length += val->val.string_val.length + 1;
-				break;
-				}
+			{
+			length += val->val.string_val.length + 1;
+			break;
+			}
 
 		case TYPE_ADDR:
+			{
+			switch ( val->val.addr_val.family )
 				{
-				switch ( val->val.addr_val.family )
-					{
-					case IPv4:
-						length += sizeof(val->val.addr_val.in.in4);
-						break;
-					case IPv6:
-						length += sizeof(val->val.addr_val.in.in6);
-						break;
-					default:
-						assert(false);
-					}
+				case IPv4:
+					length += sizeof(val->val.addr_val.in.in4);
+					break;
+				case IPv6:
+					length += sizeof(val->val.addr_val.in.in6);
+					break;
+				default:
+					assert(false);
 				}
+			}
 			break;
 
 		case TYPE_SUBNET:
+			{
+			switch ( val->val.subnet_val.prefix.family )
 				{
-				switch ( val->val.subnet_val.prefix.family )
-					{
-					case IPv4:
-						length += sizeof(val->val.subnet_val.prefix.in.in4) +
-						          sizeof(val->val.subnet_val.length);
-						break;
-					case IPv6:
-						length += sizeof(val->val.subnet_val.prefix.in.in6) +
-						          sizeof(val->val.subnet_val.length);
-						break;
-					default:
-						assert(false);
-					}
+				case IPv4:
+					length += sizeof(val->val.subnet_val.prefix.in.in4) +
+					          sizeof(val->val.subnet_val.length);
+					break;
+				case IPv6:
+					length += sizeof(val->val.subnet_val.prefix.in.in6) +
+					          sizeof(val->val.subnet_val.length);
+					break;
+				default:
+					assert(false);
 				}
+			}
 			break;
 
 		case TYPE_PATTERN:
-				{
-				length += strlen(val->val.pattern_text_val) + 1;
-				break;
-				}
+			{
+			length += strlen(val->val.pattern_text_val) + 1;
+			break;
+			}
 
 		case TYPE_TABLE:
-				{
-				for ( int i = 0; i < val->val.set_val.size; i++ )
-					length += GetValueLength(val->val.set_val.vals[i]);
-				break;
-				}
+			{
+			for ( int i = 0; i < val->val.set_val.size; i++ )
+				length += GetValueLength(val->val.set_val.vals[i]);
+			break;
+			}
 
 		case TYPE_VECTOR:
-				{
-				int j = val->val.vector_val.size;
-				for ( int i = 0; i < j; i++ )
-					length += GetValueLength(val->val.vector_val.vals[i]);
-				break;
-				}
+			{
+			int j = val->val.vector_val.size;
+			for ( int i = 0; i < j; i++ )
+				length += GetValueLength(val->val.vector_val.vals[i]);
+			break;
+			}
 
 		default:
 			reporter->InternalError("unsupported type %d for GetValueLength", val->type);
@@ -2084,16 +2084,16 @@ int Manager::CopyValue(char* data, const int startpos, const Value* val) const
 			return sizeof(val->val.uint_val);
 
 		case TYPE_PORT:
-				{
-				int length = 0;
-				memcpy(data + startpos, (const void*)&(val->val.port_val.port),
-				       sizeof(val->val.port_val.port));
-				length += sizeof(val->val.port_val.port);
-				memcpy(data + startpos + length, (const void*)&(val->val.port_val.proto),
-				       sizeof(val->val.port_val.proto));
-				length += sizeof(val->val.port_val.proto);
-				return length;
-				}
+			{
+			int length = 0;
+			memcpy(data + startpos, (const void*)&(val->val.port_val.port),
+			       sizeof(val->val.port_val.port));
+			length += sizeof(val->val.port_val.port);
+			memcpy(data + startpos + length, (const void*)&(val->val.port_val.proto),
+			       sizeof(val->val.port_val.proto));
+			length += sizeof(val->val.port_val.proto);
+			return length;
+			}
 
 		case TYPE_DOUBLE:
 		case TYPE_TIME:
@@ -2104,92 +2104,92 @@ int Manager::CopyValue(char* data, const int startpos, const Value* val) const
 
 		case TYPE_STRING:
 		case TYPE_ENUM:
-				{
-				memcpy(data + startpos, val->val.string_val.data, val->val.string_val.length);
-				// Add a \0 to the end. To be able to hash zero-length
-				// strings and differentiate from !present.
-				memset(data + startpos + val->val.string_val.length, 0, 1);
-				return val->val.string_val.length + 1;
-				}
+			{
+			memcpy(data + startpos, val->val.string_val.data, val->val.string_val.length);
+			// Add a \0 to the end. To be able to hash zero-length
+			// strings and differentiate from !present.
+			memset(data + startpos + val->val.string_val.length, 0, 1);
+			return val->val.string_val.length + 1;
+			}
 
 		case TYPE_ADDR:
+			{
+			int length = 0;
+			switch ( val->val.addr_val.family )
 				{
-				int length = 0;
-				switch ( val->val.addr_val.family )
-					{
-					case IPv4:
-						length = sizeof(val->val.addr_val.in.in4);
-						memcpy(data + startpos, (const char*)&(val->val.addr_val.in.in4), length);
-						break;
+				case IPv4:
+					length = sizeof(val->val.addr_val.in.in4);
+					memcpy(data + startpos, (const char*)&(val->val.addr_val.in.in4), length);
+					break;
 
-					case IPv6:
-						length = sizeof(val->val.addr_val.in.in6);
-						memcpy(data + startpos, (const char*)&(val->val.addr_val.in.in6), length);
-						break;
+				case IPv6:
+					length = sizeof(val->val.addr_val.in.in6);
+					memcpy(data + startpos, (const char*)&(val->val.addr_val.in.in6), length);
+					break;
 
-					default:
-						assert(false);
-					}
-
-				return length;
+				default:
+					assert(false);
 				}
+
+			return length;
+			}
 
 		case TYPE_SUBNET:
+			{
+			int length = 0;
+			switch ( val->val.subnet_val.prefix.family )
 				{
-				int length = 0;
-				switch ( val->val.subnet_val.prefix.family )
-					{
-					case IPv4:
-						length = sizeof(val->val.addr_val.in.in4);
-						memcpy(data + startpos, (const char*)&(val->val.subnet_val.prefix.in.in4),
-						       length);
-						break;
+				case IPv4:
+					length = sizeof(val->val.addr_val.in.in4);
+					memcpy(data + startpos, (const char*)&(val->val.subnet_val.prefix.in.in4),
+					       length);
+					break;
 
-					case IPv6:
-						length = sizeof(val->val.addr_val.in.in6);
-						memcpy(data + startpos, (const char*)&(val->val.subnet_val.prefix.in.in6),
-						       length);
-						break;
+				case IPv6:
+					length = sizeof(val->val.addr_val.in.in6);
+					memcpy(data + startpos, (const char*)&(val->val.subnet_val.prefix.in.in6),
+					       length);
+					break;
 
-					default:
-						assert(false);
-					}
-
-				int lengthlength = sizeof(val->val.subnet_val.length);
-				memcpy(data + startpos + length, (const char*)&(val->val.subnet_val.length),
-				       lengthlength);
-				length += lengthlength;
-
-				return length;
+				default:
+					assert(false);
 				}
+
+			int lengthlength = sizeof(val->val.subnet_val.length);
+			memcpy(data + startpos + length, (const char*)&(val->val.subnet_val.length),
+			       lengthlength);
+			length += lengthlength;
+
+			return length;
+			}
 
 		case TYPE_PATTERN:
-				{
-				// include null-terminator
-				int length = strlen(val->val.pattern_text_val) + 1;
-				memcpy(data + startpos, val->val.pattern_text_val, length);
-				return length;
-				}
+			{
+			// include null-terminator
+			int length = strlen(val->val.pattern_text_val) + 1;
+			memcpy(data + startpos, val->val.pattern_text_val, length);
+			return length;
+			}
 
 		case TYPE_TABLE:
-				{
-				int length = 0;
-				int j = val->val.set_val.size;
-				for ( int i = 0; i < j; i++ )
-					length += CopyValue(data, startpos + length, val->val.set_val.vals[i]);
+			{
+			int length = 0;
+			int j = val->val.set_val.size;
+			for ( int i = 0; i < j; i++ )
+				length += CopyValue(data, startpos + length, val->val.set_val.vals[i]);
 
-				return length;
-				}
+			return length;
+			}
 
 		case TYPE_VECTOR:
-				{
-				int length = 0;
-				int j = val->val.vector_val.size;
-				for ( int i = 0; i < j; i++ )
-					length += CopyValue(data, startpos + length, val->val.vector_val.vals[i]);
+			{
+			int length = 0;
+			int j = val->val.vector_val.size;
+			for ( int i = 0; i < j; i++ )
+				length += CopyValue(data, startpos + length, val->val.vector_val.vals[i]);
 
-				return length;
-				}
+			return length;
+			}
 
 		default:
 			reporter->InternalError("unsupported type %d for CopyValue", val->type);
@@ -2284,133 +2284,132 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type,
 			return new IntervalVal(val->val.double_val);
 
 		case TYPE_STRING:
-				{
-				String* s = new String((const u_char*)val->val.string_val.data,
-				                       val->val.string_val.length, true);
-				return new StringVal(s);
-				}
+			{
+			String* s = new String((const u_char*)val->val.string_val.data,
+			                       val->val.string_val.length, true);
+			return new StringVal(s);
+			}
 
 		case TYPE_PORT:
 			return val_mgr->Port(val->val.port_val.port, val->val.port_val.proto)->Ref();
 
 		case TYPE_ADDR:
+			{
+			IPAddr* addr = nullptr;
+			switch ( val->val.addr_val.family )
 				{
-				IPAddr* addr = nullptr;
-				switch ( val->val.addr_val.family )
-					{
-					case IPv4:
-						addr = new IPAddr(val->val.addr_val.in.in4);
-						break;
+				case IPv4:
+					addr = new IPAddr(val->val.addr_val.in.in4);
+					break;
 
-					case IPv6:
-						addr = new IPAddr(val->val.addr_val.in.in6);
-						break;
+				case IPv6:
+					addr = new IPAddr(val->val.addr_val.in.in6);
+					break;
 
-					default:
-						assert(false);
-					}
-
-				auto* addrval = new AddrVal(*addr);
-				delete addr;
-				return addrval;
+				default:
+					assert(false);
 				}
+
+			auto* addrval = new AddrVal(*addr);
+			delete addr;
+			return addrval;
+			}
 
 		case TYPE_SUBNET:
+			{
+			IPAddr* addr = nullptr;
+			switch ( val->val.subnet_val.prefix.family )
 				{
-				IPAddr* addr = nullptr;
-				switch ( val->val.subnet_val.prefix.family )
-					{
-					case IPv4:
-						addr = new IPAddr(val->val.subnet_val.prefix.in.in4);
-						break;
+				case IPv4:
+					addr = new IPAddr(val->val.subnet_val.prefix.in.in4);
+					break;
 
-					case IPv6:
-						addr = new IPAddr(val->val.subnet_val.prefix.in.in6);
-						break;
+				case IPv6:
+					addr = new IPAddr(val->val.subnet_val.prefix.in.in6);
+					break;
 
-					default:
-						assert(false);
-					}
-
-				auto* subnetval = new SubNetVal(*addr, val->val.subnet_val.length);
-				delete addr;
-				return subnetval;
+				default:
+					assert(false);
 				}
+
+			auto* subnetval = new SubNetVal(*addr, val->val.subnet_val.length);
+			delete addr;
+			return subnetval;
+			}
 
 		case TYPE_PATTERN:
-				{
-				auto* re = new RE_Matcher(val->val.pattern_text_val);
-				re->Compile();
-				return new PatternVal(re);
-				}
+			{
+			auto* re = new RE_Matcher(val->val.pattern_text_val);
+			re->Compile();
+			return new PatternVal(re);
+			}
 
 		case TYPE_TABLE:
+			{
+			// all entries have to have the same type...
+			const auto& type = request_type->AsTableType()->GetIndices()->GetPureType();
+			auto set_index = make_intrusive<TypeList>(type);
+			set_index->Append(type);
+			auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+			auto t = make_intrusive<TableVal>(std::move(s));
+			for ( int j = 0; j < val->val.set_val.size; j++ )
 				{
-				// all entries have to have the same type...
-				const auto& type = request_type->AsTableType()->GetIndices()->GetPureType();
-				auto set_index = make_intrusive<TypeList>(type);
-				set_index->Append(type);
-				auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
-				auto t = make_intrusive<TableVal>(std::move(s));
-				for ( int j = 0; j < val->val.set_val.size; j++ )
-					{
-					Val* assignval =
-						ValueToVal(i, val->val.set_val.vals[j], type.get(), have_error);
+				Val* assignval = ValueToVal(i, val->val.set_val.vals[j], type.get(), have_error);
 
-					if ( have_error )
-						return nullptr;
+				if ( have_error )
+					return nullptr;
 
-					t->Assign({AdoptRef{}, assignval}, nullptr);
-					}
-
-				return t.release();
+				t->Assign({AdoptRef{}, assignval}, nullptr);
 				}
+
+			return t.release();
+			}
 
 		case TYPE_VECTOR:
+			{
+			// all entries have to have the same type...
+			const auto& type = request_type->AsVectorType()->Yield();
+			auto vt = make_intrusive<VectorType>(type);
+			auto v = make_intrusive<VectorVal>(std::move(vt));
+
+			for ( int j = 0; j < val->val.vector_val.size; j++ )
 				{
-				// all entries have to have the same type...
-				const auto& type = request_type->AsVectorType()->Yield();
-				auto vt = make_intrusive<VectorType>(type);
-				auto v = make_intrusive<VectorVal>(std::move(vt));
+				auto el = ValueToVal(i, val->val.vector_val.vals[j], type.get(), have_error);
 
-				for ( int j = 0; j < val->val.vector_val.size; j++ )
-					{
-					auto el = ValueToVal(i, val->val.vector_val.vals[j], type.get(), have_error);
+				if ( have_error )
+					return nullptr;
 
-					if ( have_error )
-						return nullptr;
-
-					v->Assign(j, {AdoptRef{}, el});
-					}
-
-				return v.release();
+				v->Assign(j, {AdoptRef{}, el});
 				}
+
+			return v.release();
+			}
 
 		case TYPE_ENUM:
+			{
+			// Convert to string first to not have to deal with missing
+			// \0's...
+			string enum_string(val->val.string_val.data, val->val.string_val.length);
+
+			string module = zeek::detail::extract_module_name(enum_string.c_str());
+			string var = zeek::detail::extract_var_name(enum_string.c_str());
+
+			// Well, this is kind of stupid, because EnumType just
+			// mangles the module name and the var name together again...
+			// but well.
+			bro_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
+			if ( index == -1 )
 				{
-				// Convert to string first to not have to deal with missing
-				// \0's...
-				string enum_string(val->val.string_val.data, val->val.string_val.length);
+				Warning(i, "Value '%s' for stream '%s' is not a valid enum.", enum_string.c_str(),
+				        i->name.c_str());
 
-				string module = zeek::detail::extract_module_name(enum_string.c_str());
-				string var = zeek::detail::extract_var_name(enum_string.c_str());
-
-				// Well, this is kind of stupid, because EnumType just
-				// mangles the module name and the var name together again...
-				// but well.
-				bro_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
-				if ( index == -1 )
-					{
-					Warning(i, "Value '%s' for stream '%s' is not a valid enum.",
-					        enum_string.c_str(), i->name.c_str());
-
-					have_error = true;
-					return nullptr;
-					}
-
-				auto rval = request_type->AsEnumType()->GetEnumVal(index);
-				return rval.release();
+				have_error = true;
+				return nullptr;
 				}
+
+			auto rval = request_type->AsEnumType()->GetEnumVal(index);
+			return rval.release();
+			}
 
 		default:
 			reporter->InternalError("Unsupported type for input_read in stream %s",

@@ -353,10 +353,10 @@ void do_print_stmt(const std::vector<ValPtr>& vals)
 		case BifEnum::Log::REDIRECT_NONE:
 			break;
 		case BifEnum::Log::REDIRECT_ALL:
-				{
-				print_log(vals);
-				return;
-				}
+			{
+			print_log(vals);
+			return;
+			}
 		case BifEnum::Log::REDIRECT_STDOUT:
 			if ( f->FileHandle() == stdout )
 				{
@@ -765,35 +765,35 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
 						{
 						// Simplify trivial unary plus/minus expressions on consts.
 						case EXPR_NEGATE:
-								{
-								NegExpr* ne = (NegExpr*)(expr);
+							{
+							NegExpr* ne = (NegExpr*)(expr);
 
-								if ( ne->Op()->IsConst() )
-									Unref(exprs.replace(j, new ConstExpr(ne->Eval(nullptr))));
-								}
+							if ( ne->Op()->IsConst() )
+								Unref(exprs.replace(j, new ConstExpr(ne->Eval(nullptr))));
+							}
 							break;
 
 						case EXPR_POSITIVE:
-								{
-								PosExpr* pe = (PosExpr*)(expr);
+							{
+							PosExpr* pe = (PosExpr*)(expr);
 
-								if ( pe->Op()->IsConst() )
-									Unref(exprs.replace(j, new ConstExpr(pe->Eval(nullptr))));
-								}
+							if ( pe->Op()->IsConst() )
+								Unref(exprs.replace(j, new ConstExpr(pe->Eval(nullptr))));
+							}
 							break;
 
 						case EXPR_NAME:
+							{
+							NameExpr* ne = (NameExpr*)(expr);
+
+							if ( ne->Id()->IsConst() )
 								{
-								NameExpr* ne = (NameExpr*)(expr);
+								auto v = ne->Eval(nullptr);
 
-								if ( ne->Id()->IsConst() )
-									{
-									auto v = ne->Eval(nullptr);
-
-									if ( v )
-										Unref(exprs.replace(j, new ConstExpr(std::move(v))));
-									}
+								if ( v )
+									Unref(exprs.replace(j, new ConstExpr(std::move(v))));
 								}
+							}
 							break;
 
 						default:

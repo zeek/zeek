@@ -223,19 +223,19 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 		switch ( init->Tag() )
 			{
 			case EXPR_TABLE_CONSTRUCTOR:
-					{
-					auto* ctor = static_cast<TableConstructorExpr*>(init.get());
-					if ( ctor->GetAttrs() )
-						id->AddAttrs(ctor->GetAttrs());
-					}
+				{
+				auto* ctor = static_cast<TableConstructorExpr*>(init.get());
+				if ( ctor->GetAttrs() )
+					id->AddAttrs(ctor->GetAttrs());
+				}
 				break;
 
 			case EXPR_SET_CONSTRUCTOR:
-					{
-					auto* ctor = static_cast<SetConstructorExpr*>(init.get());
-					if ( ctor->GetAttrs() )
-						id->AddAttrs(ctor->GetAttrs());
-					}
+				{
+				auto* ctor = static_cast<SetConstructorExpr*>(init.get());
+				if ( ctor->GetAttrs() )
+					id->AddAttrs(ctor->GetAttrs());
+				}
 				break;
 
 			default:

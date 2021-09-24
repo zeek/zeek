@@ -348,19 +348,19 @@ void DbgBreakpoint::PrintHitMsg()
 		case BP_STMT:
 		case BP_FUNC:
 		case BP_LINE:
-				{
-				ODesc d;
-				Frame* f = g_frame_stack.back();
-				const ScriptFunc* func = f->GetFunction();
+			{
+			ODesc d;
+			Frame* f = g_frame_stack.back();
+			const ScriptFunc* func = f->GetFunction();
 
-				if ( func )
-					func->DescribeDebug(&d, f->GetFuncArgs());
+			if ( func )
+				func->DescribeDebug(&d, f->GetFuncArgs());
 
-				const Location* loc = at_stmt->GetLocationInfo();
+			const Location* loc = at_stmt->GetLocationInfo();
 
-				debug_msg("Breakpoint %d, %s at %s:%d\n", GetID(), d.Description(), loc->filename,
-				          loc->first_line);
-				}
+			debug_msg("Breakpoint %d, %s at %s:%d\n", GetID(), d.Description(), loc->filename,
+			          loc->first_line);
+			}
 			return;
 
 		case BP_TIME:

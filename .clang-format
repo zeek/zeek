@@ -47,7 +47,7 @@ ColumnLimit: 100
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 FixNamespaceComments: false
 IndentCaseLabels: true
-IndentCaseBlocks: true
+IndentCaseBlocks: false
 IndentExternBlock: NoIndent
 IndentPPDirectives: None
 IndentWidth: 4

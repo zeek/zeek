@@ -144,23 +144,23 @@ bool Value::IsCompatibleType(Type* t, bool atomic_only)
 			return ! atomic_only;
 
 		case TYPE_TABLE:
-				{
-				if ( atomic_only )
-					return false;
+			{
+			if ( atomic_only )
+				return false;
 
-				if ( ! t->IsSet() )
-					return false;
+			if ( ! t->IsSet() )
+				return false;
 
-				return IsCompatibleType(t->AsSetType()->GetIndices()->GetPureType().get(), true);
-				}
+			return IsCompatibleType(t->AsSetType()->GetIndices()->GetPureType().get(), true);
+			}
 
 		case TYPE_VECTOR:
-				{
-				if ( atomic_only )
-					return false;
+			{
+			if ( atomic_only )
+				return false;
 
-				return IsCompatibleType(t->AsVectorType()->Yield().get(), true);
-				}
+			return IsCompatibleType(t->AsVectorType()->Yield().get(), true);
+			}
 
 		default:
 			return false;
@@ -193,80 +193,80 @@ bool Value::Read(detail::SerializationFormat* fmt)
 			return fmt->Read(&val.uint_val, "uint");
 
 		case TYPE_PORT:
+			{
+			int proto;
+			if ( ! (fmt->Read(&val.port_val.port, "port") && fmt->Read(&proto, "proto")) )
 				{
-				int proto;
-				if ( ! (fmt->Read(&val.port_val.port, "port") && fmt->Read(&proto, "proto")) )
-					{
-					return false;
-					}
-
-				switch ( proto )
-					{
-					case 0:
-						val.port_val.proto = TRANSPORT_UNKNOWN;
-						break;
-					case 1:
-						val.port_val.proto = TRANSPORT_TCP;
-						break;
-					case 2:
-						val.port_val.proto = TRANSPORT_UDP;
-						break;
-					case 3:
-						val.port_val.proto = TRANSPORT_ICMP;
-						break;
-					default:
-						return false;
-					}
-
-				return true;
+				return false;
 				}
+
+			switch ( proto )
+				{
+				case 0:
+					val.port_val.proto = TRANSPORT_UNKNOWN;
+					break;
+				case 1:
+					val.port_val.proto = TRANSPORT_TCP;
+					break;
+				case 2:
+					val.port_val.proto = TRANSPORT_UDP;
+					break;
+				case 3:
+					val.port_val.proto = TRANSPORT_ICMP;
+					break;
+				default:
+					return false;
+				}
+
+			return true;
+			}
 
 		case TYPE_ADDR:
+			{
+			char family;
+
+			if ( ! fmt->Read(&family, "addr-family") )
+				return false;
+
+			switch ( family )
 				{
-				char family;
+				case 4:
+					val.addr_val.family = IPv4;
+					return fmt->Read(&val.addr_val.in.in4, "addr-in4");
 
-				if ( ! fmt->Read(&family, "addr-family") )
-					return false;
-
-				switch ( family )
-					{
-					case 4:
-						val.addr_val.family = IPv4;
-						return fmt->Read(&val.addr_val.in.in4, "addr-in4");
-
-					case 6:
-						val.addr_val.family = IPv6;
-						return fmt->Read(&val.addr_val.in.in6, "addr-in6");
-					}
-
-				// Can't be reached.
-				abort();
+				case 6:
+					val.addr_val.family = IPv6;
+					return fmt->Read(&val.addr_val.in.in6, "addr-in6");
 				}
+
+			// Can't be reached.
+			abort();
+			}
 
 		case TYPE_SUBNET:
+			{
+			char length;
+			char family;
+
+			if ( ! (fmt->Read(&length, "subnet-len") && fmt->Read(&family, "subnet-family")) )
+				return false;
+
+			switch ( family )
 				{
-				char length;
-				char family;
+				case 4:
+					val.subnet_val.length = (uint8_t)length;
+					val.subnet_val.prefix.family = IPv4;
+					return fmt->Read(&val.subnet_val.prefix.in.in4, "subnet-in4");
 
-				if ( ! (fmt->Read(&length, "subnet-len") && fmt->Read(&family, "subnet-family")) )
-					return false;
-
-				switch ( family )
-					{
-					case 4:
-						val.subnet_val.length = (uint8_t)length;
-						val.subnet_val.prefix.family = IPv4;
-						return fmt->Read(&val.subnet_val.prefix.in.in4, "subnet-in4");
-
-					case 6:
-						val.subnet_val.length = (uint8_t)length;
-						val.subnet_val.prefix.family = IPv6;
-						return fmt->Read(&val.subnet_val.prefix.in.in6, "subnet-in6");
-					}
-
-				// Can't be reached.
-				abort();
+				case 6:
+					val.subnet_val.length = (uint8_t)length;
+					val.subnet_val.prefix.family = IPv6;
+					return fmt->Read(&val.subnet_val.prefix.in.in6, "subnet-in6");
 				}
+
+			// Can't be reached.
+			abort();
+			}
 
 		case TYPE_DOUBLE:
 		case TYPE_TIME:
@@ -280,40 +280,40 @@ bool Value::Read(detail::SerializationFormat* fmt)
 			return fmt->Read(&val.string_val.data, &val.string_val.length, "string");
 
 		case TYPE_TABLE:
+			{
+			if ( ! fmt->Read(&val.set_val.size, "set_size") )
+				return false;
+
+			val.set_val.vals = new Value*[val.set_val.size];
+
+			for ( bro_int_t i = 0; i < val.set_val.size; ++i )
 				{
-				if ( ! fmt->Read(&val.set_val.size, "set_size") )
+				val.set_val.vals[i] = new Value;
+
+				if ( ! val.set_val.vals[i]->Read(fmt) )
 					return false;
-
-				val.set_val.vals = new Value*[val.set_val.size];
-
-				for ( bro_int_t i = 0; i < val.set_val.size; ++i )
-					{
-					val.set_val.vals[i] = new Value;
-
-					if ( ! val.set_val.vals[i]->Read(fmt) )
-						return false;
-					}
-
-				return true;
 				}
+
+			return true;
+			}
 
 		case TYPE_VECTOR:
+			{
+			if ( ! fmt->Read(&val.vector_val.size, "vector_size") )
+				return false;
+
+			val.vector_val.vals = new Value*[val.vector_val.size];
+
+			for ( bro_int_t i = 0; i < val.vector_val.size; ++i )
 				{
-				if ( ! fmt->Read(&val.vector_val.size, "vector_size") )
+				val.vector_val.vals[i] = new Value;
+
+				if ( ! val.vector_val.vals[i]->Read(fmt) )
 					return false;
-
-				val.vector_val.vals = new Value*[val.vector_val.size];
-
-				for ( bro_int_t i = 0; i < val.vector_val.size; ++i )
-					{
-					val.vector_val.vals[i] = new Value;
-
-					if ( ! val.vector_val.vals[i]->Read(fmt) )
-						return false;
-					}
-
-				return true;
 				}
+
+			return true;
+			}
 
 		default:
 			reporter->InternalError("unsupported type %s in Value::Read", type_name(type));
@@ -344,41 +344,41 @@ bool Value::Write(detail::SerializationFormat* fmt) const
 			return fmt->Write(val.port_val.port, "port") && fmt->Write(val.port_val.proto, "proto");
 
 		case TYPE_ADDR:
+			{
+			switch ( val.addr_val.family )
 				{
-				switch ( val.addr_val.family )
-					{
-					case IPv4:
-						return fmt->Write((char)4, "addr-family") &&
-						       fmt->Write(val.addr_val.in.in4, "addr-in4");
+				case IPv4:
+					return fmt->Write((char)4, "addr-family") &&
+					       fmt->Write(val.addr_val.in.in4, "addr-in4");
 
-					case IPv6:
-						return fmt->Write((char)6, "addr-family") &&
-						       fmt->Write(val.addr_val.in.in6, "addr-in6");
-					}
-
-				// Can't be reached.
-				abort();
+				case IPv6:
+					return fmt->Write((char)6, "addr-family") &&
+					       fmt->Write(val.addr_val.in.in6, "addr-in6");
 				}
+
+			// Can't be reached.
+			abort();
+			}
 
 		case TYPE_SUBNET:
+			{
+			if ( ! fmt->Write((char)val.subnet_val.length, "subnet-length") )
+				return false;
+
+			switch ( val.subnet_val.prefix.family )
 				{
-				if ( ! fmt->Write((char)val.subnet_val.length, "subnet-length") )
-					return false;
+				case IPv4:
+					return fmt->Write((char)4, "subnet-family") &&
+					       fmt->Write(val.subnet_val.prefix.in.in4, "subnet-in4");
 
-				switch ( val.subnet_val.prefix.family )
-					{
-					case IPv4:
-						return fmt->Write((char)4, "subnet-family") &&
-						       fmt->Write(val.subnet_val.prefix.in.in4, "subnet-in4");
-
-					case IPv6:
-						return fmt->Write((char)6, "subnet-family") &&
-						       fmt->Write(val.subnet_val.prefix.in.in6, "subnet-in6");
-					}
-
-				// Can't be reached.
-				abort();
+				case IPv6:
+					return fmt->Write((char)6, "subnet-family") &&
+					       fmt->Write(val.subnet_val.prefix.in.in6, "subnet-in6");
 				}
+
+			// Can't be reached.
+			abort();
+			}
 
 		case TYPE_DOUBLE:
 		case TYPE_TIME:
@@ -392,32 +392,32 @@ bool Value::Write(detail::SerializationFormat* fmt) const
 			return fmt->Write(val.string_val.data, val.string_val.length, "string");
 
 		case TYPE_TABLE:
+			{
+			if ( ! fmt->Write(val.set_val.size, "set_size") )
+				return false;
+
+			for ( int i = 0; i < val.set_val.size; ++i )
 				{
-				if ( ! fmt->Write(val.set_val.size, "set_size") )
+				if ( ! val.set_val.vals[i]->Write(fmt) )
 					return false;
-
-				for ( int i = 0; i < val.set_val.size; ++i )
-					{
-					if ( ! val.set_val.vals[i]->Write(fmt) )
-						return false;
-					}
-
-				return true;
 				}
+
+			return true;
+			}
 
 		case TYPE_VECTOR:
+			{
+			if ( ! fmt->Write(val.vector_val.size, "vector_size") )
+				return false;
+
+			for ( int i = 0; i < val.vector_val.size; ++i )
 				{
-				if ( ! fmt->Write(val.vector_val.size, "vector_size") )
+				if ( ! val.vector_val.vals[i]->Write(fmt) )
 					return false;
-
-				for ( int i = 0; i < val.vector_val.size; ++i )
-					{
-					if ( ! val.vector_val.vals[i]->Write(fmt) )
-						return false;
-					}
-
-				return true;
 				}
+
+			return true;
+			}
 
 		default:
 			reporter->InternalError("unsupported type %s in Value::Write", type_name(type));
@@ -464,203 +464,203 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			return new IntervalVal(val->val.double_val);
 
 		case TYPE_STRING:
-				{
-				auto* s = new String((const u_char*)val->val.string_val.data,
-				                     val->val.string_val.length, true);
-				return new StringVal(s);
-				}
+			{
+			auto* s = new String((const u_char*)val->val.string_val.data,
+			                     val->val.string_val.length, true);
+			return new StringVal(s);
+			}
 
 		case TYPE_PORT:
 			return val_mgr->Port(val->val.port_val.port, val->val.port_val.proto)->Ref();
 
 		case TYPE_ADDR:
+			{
+			IPAddr* addr = nullptr;
+			switch ( val->val.addr_val.family )
 				{
-				IPAddr* addr = nullptr;
-				switch ( val->val.addr_val.family )
-					{
-					case IPv4:
-						addr = new IPAddr(val->val.addr_val.in.in4);
-						break;
+				case IPv4:
+					addr = new IPAddr(val->val.addr_val.in.in4);
+					break;
 
-					case IPv6:
-						addr = new IPAddr(val->val.addr_val.in.in6);
-						break;
+				case IPv6:
+					addr = new IPAddr(val->val.addr_val.in.in6);
+					break;
 
-					default:
-						assert(false);
-					}
-
-				auto* addrval = new AddrVal(*addr);
-				delete addr;
-				return addrval;
+				default:
+					assert(false);
 				}
+
+			auto* addrval = new AddrVal(*addr);
+			delete addr;
+			return addrval;
+			}
 
 		case TYPE_SUBNET:
+			{
+			IPAddr* addr = nullptr;
+			switch ( val->val.subnet_val.prefix.family )
 				{
-				IPAddr* addr = nullptr;
-				switch ( val->val.subnet_val.prefix.family )
-					{
-					case IPv4:
-						addr = new IPAddr(val->val.subnet_val.prefix.in.in4);
-						break;
+				case IPv4:
+					addr = new IPAddr(val->val.subnet_val.prefix.in.in4);
+					break;
 
-					case IPv6:
-						addr = new IPAddr(val->val.subnet_val.prefix.in.in6);
-						break;
+				case IPv6:
+					addr = new IPAddr(val->val.subnet_val.prefix.in.in6);
+					break;
 
-					default:
-						assert(false);
-					}
-
-				auto* subnetval = new SubNetVal(*addr, val->val.subnet_val.length);
-				delete addr;
-				return subnetval;
+				default:
+					assert(false);
 				}
+
+			auto* subnetval = new SubNetVal(*addr, val->val.subnet_val.length);
+			delete addr;
+			return subnetval;
+			}
 
 		case TYPE_PATTERN:
-				{
-				auto* re = new RE_Matcher(val->val.pattern_text_val);
-				re->Compile();
-				return new PatternVal(re);
-				}
+			{
+			auto* re = new RE_Matcher(val->val.pattern_text_val);
+			re->Compile();
+			return new PatternVal(re);
+			}
 
 		case TYPE_TABLE:
+			{
+			TypeListPtr set_index;
+			if ( val->val.set_val.size == 0 &&
+			     (val->subtype == TYPE_VOID || val->subtype == TYPE_ENUM) )
+				// don't know type - unspecified table.
+				set_index = make_intrusive<TypeList>();
+			else
 				{
-				TypeListPtr set_index;
-				if ( val->val.set_val.size == 0 &&
-				     (val->subtype == TYPE_VOID || val->subtype == TYPE_ENUM) )
-					// don't know type - unspecified table.
-					set_index = make_intrusive<TypeList>();
-				else
+				// all entries have to have the same type...
+				TypeTag stag = val->subtype;
+				if ( stag == TYPE_VOID )
+					stag = val->val.set_val.vals[0]->type;
+
+				TypePtr index_type;
+
+				if ( stag == TYPE_ENUM )
 					{
-					// all entries have to have the same type...
-					TypeTag stag = val->subtype;
-					if ( stag == TYPE_VOID )
-						stag = val->val.set_val.vals[0]->type;
+					// Enums are not a base-type, so need to look it up.
+					const auto& sv = val->val.set_val.vals[0]->val.string_val;
+					std::string enum_name(sv.data, sv.length);
+					const auto& enum_id = detail::global_scope()->Find(enum_name);
 
-					TypePtr index_type;
-
-					if ( stag == TYPE_ENUM )
+					if ( ! enum_id )
 						{
-						// Enums are not a base-type, so need to look it up.
-						const auto& sv = val->val.set_val.vals[0]->val.string_val;
-						std::string enum_name(sv.data, sv.length);
-						const auto& enum_id = detail::global_scope()->Find(enum_name);
+						reporter->Warning("Value '%s' of source '%s' is not a valid enum.",
+						                  enum_name.data(), source.c_str());
 
-						if ( ! enum_id )
-							{
-							reporter->Warning("Value '%s' of source '%s' is not a valid enum.",
-							                  enum_name.data(), source.c_str());
-
-							have_error = true;
-							return nullptr;
-							}
-
-						index_type = enum_id->GetType();
-						}
-					else
-						index_type = base_type(stag);
-
-					set_index = make_intrusive<TypeList>(index_type);
-					set_index->Append(std::move(index_type));
-					}
-
-				auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
-				auto t = make_intrusive<TableVal>(std::move(s));
-				for ( int j = 0; j < val->val.set_val.size; j++ )
-					{
-					Val* assignval = ValueToVal(source, val->val.set_val.vals[j], have_error);
-					if ( have_error )
+						have_error = true;
 						return nullptr;
+						}
 
-					t->Assign({AdoptRef{}, assignval}, nullptr);
+					index_type = enum_id->GetType();
 					}
+				else
+					index_type = base_type(stag);
 
-				return t.release();
+				set_index = make_intrusive<TypeList>(index_type);
+				set_index->Append(std::move(index_type));
 				}
+
+			auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+			auto t = make_intrusive<TableVal>(std::move(s));
+			for ( int j = 0; j < val->val.set_val.size; j++ )
+				{
+				Val* assignval = ValueToVal(source, val->val.set_val.vals[j], have_error);
+				if ( have_error )
+					return nullptr;
+
+				t->Assign({AdoptRef{}, assignval}, nullptr);
+				}
+
+			return t.release();
+			}
 
 		case TYPE_VECTOR:
+			{
+			TypePtr type;
+
+			if ( val->val.vector_val.size == 0 &&
+			     (val->subtype == TYPE_VOID || val->subtype == TYPE_ENUM) )
+				// don't know type - unspecified table.
+				type = base_type(TYPE_ANY);
+			else
 				{
-				TypePtr type;
-
-				if ( val->val.vector_val.size == 0 &&
-				     (val->subtype == TYPE_VOID || val->subtype == TYPE_ENUM) )
-					// don't know type - unspecified table.
-					type = base_type(TYPE_ANY);
-				else
+				// all entries have to have the same type...
+				if ( val->subtype == TYPE_VOID )
+					type = base_type(val->val.vector_val.vals[0]->type);
+				else if ( val->subtype == TYPE_ENUM )
 					{
-					// all entries have to have the same type...
-					if ( val->subtype == TYPE_VOID )
-						type = base_type(val->val.vector_val.vals[0]->type);
-					else if ( val->subtype == TYPE_ENUM )
+					// Enums are not a base-type, so need to look it up.
+					const auto& sv = val->val.vector_val.vals[0]->val.string_val;
+					std::string enum_name(sv.data, sv.length);
+					const auto& enum_id = detail::global_scope()->Find(enum_name);
+
+					if ( ! enum_id )
 						{
-						// Enums are not a base-type, so need to look it up.
-						const auto& sv = val->val.vector_val.vals[0]->val.string_val;
-						std::string enum_name(sv.data, sv.length);
-						const auto& enum_id = detail::global_scope()->Find(enum_name);
+						reporter->Warning("Value '%s' of source '%s' is not a valid enum.",
+						                  enum_name.data(), source.c_str());
 
-						if ( ! enum_id )
-							{
-							reporter->Warning("Value '%s' of source '%s' is not a valid enum.",
-							                  enum_name.data(), source.c_str());
-
-							have_error = true;
-							return nullptr;
-							}
-
-						type = enum_id->GetType();
-						}
-					else
-						type = base_type(val->subtype);
-					}
-
-				auto vt = make_intrusive<VectorType>(std::move(type));
-				auto v = make_intrusive<VectorVal>(std::move(vt));
-
-				for ( int j = 0; j < val->val.vector_val.size; j++ )
-					{
-					auto el = ValueToVal(source, val->val.vector_val.vals[j], have_error);
-					if ( have_error )
+						have_error = true;
 						return nullptr;
+						}
 
-					v->Assign(j, {AdoptRef{}, el});
+					type = enum_id->GetType();
 					}
-
-				return v.release();
+				else
+					type = base_type(val->subtype);
 				}
+
+			auto vt = make_intrusive<VectorType>(std::move(type));
+			auto v = make_intrusive<VectorVal>(std::move(vt));
+
+			for ( int j = 0; j < val->val.vector_val.size; j++ )
+				{
+				auto el = ValueToVal(source, val->val.vector_val.vals[j], have_error);
+				if ( have_error )
+					return nullptr;
+
+				v->Assign(j, {AdoptRef{}, el});
+				}
+
+			return v.release();
+			}
 
 		case TYPE_ENUM:
+			{
+			// Convert to string first to not have to deal with missing
+			// \0's...
+			std::string enum_string(val->val.string_val.data, val->val.string_val.length);
+
+			// let's try looking it up by global ID.
+			const auto& id = detail::lookup_ID(enum_string.c_str(), detail::GLOBAL_MODULE_NAME);
+
+			if ( ! id || ! id->IsEnumConst() )
 				{
-				// Convert to string first to not have to deal with missing
-				// \0's...
-				std::string enum_string(val->val.string_val.data, val->val.string_val.length);
+				reporter->Warning("Value '%s' for source '%s' is not a valid enum.",
+				                  enum_string.c_str(), source.c_str());
 
-				// let's try looking it up by global ID.
-				const auto& id = detail::lookup_ID(enum_string.c_str(), detail::GLOBAL_MODULE_NAME);
-
-				if ( ! id || ! id->IsEnumConst() )
-					{
-					reporter->Warning("Value '%s' for source '%s' is not a valid enum.",
-					                  enum_string.c_str(), source.c_str());
-
-					have_error = true;
-					return nullptr;
-					}
-
-				EnumType* t = id->GetType()->AsEnumType();
-				int intval = t->Lookup(id->ModuleName(), id->Name());
-				if ( intval < 0 )
-					{
-					reporter->Warning("Enum value '%s' for source '%s' not found.",
-					                  enum_string.c_str(), source.c_str());
-
-					have_error = true;
-					return nullptr;
-					}
-
-				auto rval = t->GetEnumVal(intval);
-				return rval.release();
+				have_error = true;
+				return nullptr;
 				}
+
+			EnumType* t = id->GetType()->AsEnumType();
+			int intval = t->Lookup(id->ModuleName(), id->Name());
+			if ( intval < 0 )
+				{
+				reporter->Warning("Enum value '%s' for source '%s' not found.", enum_string.c_str(),
+				                  source.c_str());
+
+				have_error = true;
+				return nullptr;
+				}
+
+			auto rval = t->GetEnumVal(intval);
+			return rval.release();
+			}
 
 		default:
 			reporter->InternalError("Unsupported type in SerialTypes::ValueToVal from source %s",

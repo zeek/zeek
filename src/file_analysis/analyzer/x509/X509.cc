@@ -493,32 +493,32 @@ unsigned int X509::KeyLength(EVP_PKEY* key)
 
 #ifndef OPENSSL_NO_EC
 		case EVP_PKEY_EC:
+			{
+			BIGNUM* ec_order = BN_new();
+			if ( ! ec_order )
+				// could not malloc bignum?
+				return 0;
+
+			const EC_GROUP* group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(key));
+
+			if ( ! group )
 				{
-				BIGNUM* ec_order = BN_new();
-				if ( ! ec_order )
-					// could not malloc bignum?
-					return 0;
-
-				const EC_GROUP* group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(key));
-
-				if ( ! group )
-					{
-					// unknown ex-group
-					BN_free(ec_order);
-					return 0;
-					}
-
-				if ( ! EC_GROUP_get_order(group, ec_order, NULL) )
-					{
-					// could not get ec-group-order
-					BN_free(ec_order);
-					return 0;
-					}
-
-				unsigned int length = BN_num_bits(ec_order);
+				// unknown ex-group
 				BN_free(ec_order);
-				return length;
+				return 0;
 				}
+
+			if ( ! EC_GROUP_get_order(group, ec_order, NULL) )
+				{
+				// could not get ec-group-order
+				BN_free(ec_order);
+				return 0;
+				}
+
+			unsigned int length = BN_num_bits(ec_order);
+			BN_free(ec_order);
+			return length;
+			}
 #endif
 		default:
 			return 0; // unknown public key type

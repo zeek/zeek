@@ -168,57 +168,57 @@ void HookArgument::Describe(ODesc* d) const
 			break;
 
 		case WRITER_INFO:
+			{
+			d->Add(arg.winfo->path);
+			d->Add("(");
+			d->Add(arg.winfo->network_time);
+			d->Add(",");
+			d->Add(arg.winfo->rotation_interval);
+			d->Add(",");
+			d->Add(arg.winfo->rotation_base);
+
+			if ( arg.winfo->config.size() > 0 )
 				{
-				d->Add(arg.winfo->path);
-				d->Add("(");
-				d->Add(arg.winfo->network_time);
-				d->Add(",");
-				d->Add(arg.winfo->rotation_interval);
-				d->Add(",");
-				d->Add(arg.winfo->rotation_base);
+				bool first = true;
+				d->Add("config: {");
 
-				if ( arg.winfo->config.size() > 0 )
+				for ( auto& v : arg.winfo->config )
 					{
-					bool first = true;
-					d->Add("config: {");
-
-					for ( auto& v : arg.winfo->config )
-						{
-						if ( ! first )
-							d->Add(", ");
-
-						d->Add(v.first);
-						d->Add(": ");
-						d->Add(v.second);
-						first = false;
-						}
-
-					d->Add("}");
-					}
-
-				d->Add(")");
-				}
-			break;
-
-		case THREAD_FIELDS:
-				{
-				d->Add("{");
-
-				for ( int i = 0; i < tfields.first; i++ )
-					{
-					const threading::Field* f = tfields.second[i];
-
-					if ( i > 0 )
+					if ( ! first )
 						d->Add(", ");
 
-					d->Add(f->name);
-					d->Add(" (");
-					d->Add(f->TypeName());
-					d->Add(")");
+					d->Add(v.first);
+					d->Add(": ");
+					d->Add(v.second);
+					first = false;
 					}
 
 				d->Add("}");
 				}
+
+			d->Add(")");
+			}
+			break;
+
+		case THREAD_FIELDS:
+			{
+			d->Add("{");
+
+			for ( int i = 0; i < tfields.first; i++ )
+				{
+				const threading::Field* f = tfields.second[i];
+
+				if ( i > 0 )
+					d->Add(", ");
+
+				d->Add(f->name);
+				d->Add(" (");
+				d->Add(f->TypeName());
+				d->Add(")");
+				}
+
+			d->Add("}");
+			}
 			break;
 
 		case LOCATION:

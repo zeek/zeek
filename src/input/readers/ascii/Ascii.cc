@@ -281,58 +281,58 @@ bool Ascii::DoUpdate()
 	switch ( Info().mode )
 		{
 		case MODE_REREAD:
+			{
+			// check if the file has changed
+			struct stat sb;
+			if ( stat(fname.c_str(), &sb) == -1 )
 				{
-				// check if the file has changed
-				struct stat sb;
-				if ( stat(fname.c_str(), &sb) == -1 )
-					{
-					FailWarn(fail_on_file_problem, Fmt("Could not get stat for %s", fname.c_str()),
-					         true);
+				FailWarn(fail_on_file_problem, Fmt("Could not get stat for %s", fname.c_str()),
+				         true);
 
-					file.close();
-					return ! fail_on_file_problem;
-					}
-
-				if ( sb.st_ino == ino && sb.st_mtime == mtime )
-					// no change
-					return true;
-
-				// Warn again in case of trouble if the file changes. The comparison to 0
-				// is to suppress an extra warning that we'd otherwise get on the initial
-				// inode assignment.
-				if ( ino != 0 )
-					StopWarningSuppression();
-
-				mtime = sb.st_mtime;
-				ino = sb.st_ino;
-				// File changed. Fall through to re-read.
+				file.close();
+				return ! fail_on_file_problem;
 				}
+
+			if ( sb.st_ino == ino && sb.st_mtime == mtime )
+				// no change
+				return true;
+
+			// Warn again in case of trouble if the file changes. The comparison to 0
+			// is to suppress an extra warning that we'd otherwise get on the initial
+			// inode assignment.
+			if ( ino != 0 )
+				StopWarningSuppression();
+
+			mtime = sb.st_mtime;
+			ino = sb.st_ino;
+			// File changed. Fall through to re-read.
+			}
 
 		case MODE_MANUAL:
 		case MODE_STREAM:
+			{
+			// dirty, fix me. (well, apparently after trying seeking, etc
+			// - this is not that bad)
+			if ( file.is_open() )
 				{
-				// dirty, fix me. (well, apparently after trying seeking, etc
-				// - this is not that bad)
-				if ( file.is_open() )
+				if ( Info().mode == MODE_STREAM )
 					{
-					if ( Info().mode == MODE_STREAM )
+					file.clear(); // remove end of file evil bits
+					if ( ! ReadHeader(true) )
 						{
-						file.clear(); // remove end of file evil bits
-						if ( ! ReadHeader(true) )
-							{
-							return ! fail_on_file_problem; // header reading failed
-							}
-
-						break;
+						return ! fail_on_file_problem; // header reading failed
 						}
 
-					file.close();
+					break;
 					}
 
-				OpenFile();
-
-				break;
+				file.close();
 				}
+
+			OpenFile();
+
+			break;
+			}
 
 		default:
 			assert(false);

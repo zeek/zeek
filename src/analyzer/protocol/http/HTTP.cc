@@ -925,52 +925,51 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 		switch ( request_state )
 			{
 			case EXPECT_REQUEST_LINE:
+				{
+				int res = HTTP_RequestLine(line, end_of_line);
+
+				if ( res < 0 )
+					return;
+
+				else if ( res > 0 )
 					{
-					int res = HTTP_RequestLine(line, end_of_line);
+					++num_requests;
 
-					if ( res < 0 )
-						return;
+					if ( ! keep_alive && num_requests > 1 )
+						Weird("unexpected_multiple_HTTP_requests");
 
-					else if ( res > 0 )
-						{
-						++num_requests;
+					request_state = EXPECT_REQUEST_MESSAGE;
+					request_ongoing = 1;
+					unanswered_requests.push(request_method);
+					HTTP_Request();
+					InitHTTPMessage(content_line, request_message, is_orig, HTTP_BODY_MAYBE, len);
+					}
 
-						if ( ! keep_alive && num_requests > 1 )
-							Weird("unexpected_multiple_HTTP_requests");
-
-						request_state = EXPECT_REQUEST_MESSAGE;
-						request_ongoing = 1;
-						unanswered_requests.push(request_method);
-						HTTP_Request();
-						InitHTTPMessage(content_line, request_message, is_orig, HTTP_BODY_MAYBE,
-						                len);
-						}
-
+				else
+					{
+					if ( ! RequestExpected() )
+						HTTP_Event("crud_trailing_HTTP_request",
+						           analyzer::mime::to_string_val(line, end_of_line));
 					else
 						{
-						if ( ! RequestExpected() )
-							HTTP_Event("crud_trailing_HTTP_request",
-							           analyzer::mime::to_string_val(line, end_of_line));
+						// We do see HTTP requests with a
+						// trailing EOL that's not accounted
+						// for by the content-length. This
+						// will lead to a call to this method
+						// with len==0 while we are expecting
+						// a new request. Since HTTP servers
+						// handle such requests gracefully,
+						// we should do so as well.
+						if ( len == 0 )
+							Weird("empty_http_request");
 						else
 							{
-							// We do see HTTP requests with a
-							// trailing EOL that's not accounted
-							// for by the content-length. This
-							// will lead to a call to this method
-							// with len==0 while we are expecting
-							// a new request. Since HTTP servers
-							// handle such requests gracefully,
-							// we should do so as well.
-							if ( len == 0 )
-								Weird("empty_http_request");
-							else
-								{
-								ProtocolViolation("not a http request line");
-								request_state = EXPECT_REQUEST_NOTHING;
-								}
+							ProtocolViolation("not a http request line");
+							request_state = EXPECT_REQUEST_NOTHING;
 							}
 						}
 					}
+				}
 				break;
 
 			case EXPECT_REQUEST_MESSAGE:

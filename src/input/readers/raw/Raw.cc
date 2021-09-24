@@ -558,26 +558,26 @@ bool Raw::DoUpdate()
 		switch ( Info().mode )
 			{
 			case MODE_REREAD:
+				{
+				assert(childpid == -1); // mode may not be used to execute child programs
+				// check if the file has changed
+				struct stat sb;
+				if ( stat(fname.c_str(), &sb) == -1 )
 					{
-					assert(childpid == -1); // mode may not be used to execute child programs
-					// check if the file has changed
-					struct stat sb;
-					if ( stat(fname.c_str(), &sb) == -1 )
-						{
-						Error(Fmt("Could not get stat for %s", fname.c_str()));
-						return false;
-						}
-
-					if ( sb.st_ino == ino && sb.st_mtime == mtime )
-						// no change
-						return true;
-
-					mtime = sb.st_mtime;
-					ino = sb.st_ino;
-					// file changed. reread.
-					//
-					// fallthrough
+					Error(Fmt("Could not get stat for %s", fname.c_str()));
+					return false;
 					}
+
+				if ( sb.st_ino == ino && sb.st_mtime == mtime )
+					// no change
+					return true;
+
+				mtime = sb.st_mtime;
+				ino = sb.st_ino;
+				// file changed. reread.
+				//
+				// fallthrough
+				}
 
 			case MODE_MANUAL:
 			case MODE_STREAM:

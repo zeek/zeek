@@ -1,3 +1,10 @@
+4.2.0-dev.220 | 2021-09-24 20:49:08 -0700
+
+  * Add .dockerignore to suppress btest artifacts (Christian Kreibich, Corelight)
+
+    We run btest in CI between image build and upload, and since its artifacts
+    weren't suppressed, the discrepancy caused the Dockerfile COPY to cache-miss.
+
 4.2.0-dev.218 | 2021-09-24 11:10:30 -0700
 
   * Add a minimal containerized Docker environment (Benjamin Bannier, Corelight)

@@ -6,5 +6,5 @@ set -e
 set -x
 
 brew update
-brew upgrade cmake openssl
+brew upgrade cmake openssl@1.1
 brew install swig bison

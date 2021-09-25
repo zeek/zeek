@@ -1,3 +1,12 @@
+4.2.0-dev.222 | 2021-09-25 11:47:46 -0700
+
+  * Fixing homebrew, again. (Tim Wojtulewicz, Corelight)
+
+    Homebrew apparently requires you to now specify the version of the package
+    you're updating. We previously could just run `brew update openssl` and it
+    would work. Now we must run `brew update openssl@1.1` for the command to
+    succeed.
+
 4.2.0-dev.220 | 2021-09-24 20:49:08 -0700
 
   * Add .dockerignore to suppress btest artifacts (Christian Kreibich, Corelight)

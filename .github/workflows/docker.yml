@@ -78,7 +78,7 @@ jobs:
           file: docker/Dockerfile
           push: true
           tags: |
-            zeekurity/${{ steps.target.outputs.tag}}
+            zeekurity/${{ steps.target.outputs.tag }}
 
       - name: Preserve artifacts
         uses: actions/upload-artifact@v2

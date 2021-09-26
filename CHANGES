@@ -1,3 +1,8 @@
+
+4.2.0-dev.224 | 2021-09-26 10:27:05 -0700
+
+  * Fix space issue in docker tag computation (Benjamin Bannier, Corelight)
+
 4.2.0-dev.222 | 2021-09-25 11:47:46 -0700
 
   * Fixing homebrew, again. (Tim Wojtulewicz, Corelight)

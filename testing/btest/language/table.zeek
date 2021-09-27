@@ -71,28 +71,28 @@ event zeek_init()
 	ct = 0;
 	for ( c in t2 )
 	{
-		++ct;		
+		++ct;
 	}
 	test_case( "iterate over table", ct == 0 );
 
 	ct = 0;
 	for ( c in t3 )
 	{
-		++ct;		
+		++ct;
 	}
 	test_case( "iterate over table", ct == 0 );
 
 	ct = 0;
 	for ( [c1, c2, c3] in t6 )
 	{
-		++ct;		
+		++ct;
 	}
 	test_case( "iterate over table", ct == 2 );
 
 	ct = 0;
 	for ( [c1, c2, c3] in t7 )
 	{
-		++ct;		
+		++ct;
 	}
 	test_case( "iterate over table", ct == 0 );
 

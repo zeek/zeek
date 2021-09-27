@@ -13,7 +13,7 @@ global sg2: set[port, string, bool] = { [10/udp, "curly", F],
 		[11/udp, "braces", T] };
 global sg3 = { "more", "curly", "braces" };
 
-event zeek_init()
+function basic_functionality()
 {
 	local s1: set[string] = set( "test", "example" );
 	local s2: set[string] = set();
@@ -24,7 +24,6 @@ event zeek_init()
 	local s6: set[port, string, bool] = set();
 	local s7: set[port, string, bool];
 	local s8 = set( [8/tcp, "type inference", T] );
-	local s9: set[set[count]] = set();
 
 	# Type inference tests
 
@@ -182,15 +181,84 @@ event zeek_init()
 	test_case( "equality", a == a | set(5,11) );
 
 	test_case( "magnitude", |a_and_b| == |a_or_b|);
-
-	add s9[set(1,2,3)];
-	test_case( "nested-set-add", |s9| == 1 );
-	add s9[set(1,2,3)];
-	test_case( "nested-set-add", |s9| == 1 );
-	add s9[set(2,3,4)];
-	test_case( "nested-set-add", |s9| == 2 );
-	delete s9[set(1,2,3)];
-	test_case( "nested-set-del", |s9| == 1 );
-	test_case( "nested-set-in", set(2,3,4) in s9 );
 }
 
+function complex_index_types()
+{
+	# Initialization
+	local s1: set[table[string] of string] = { table(["k1"] = "v1") };
+
+	# Adding a member
+	add s1[table(["k2"] = "v2")];
+
+	# Various checks, including membership test
+	test_case( "table index size", |s1| == 2 );
+	test_case( "table index membership", table(["k2"] = "v2") in s1 );
+	test_case( "table index non-membership", table(["k2"] = "v3") !in s1 );
+
+	# Member deletion
+	delete s1[table(["k1"] = "v1")];
+	test_case( "table index reduced size", |s1| == 1 );
+
+	# Iteration
+	for ( ti in s1 )
+		{
+		test_case( "table index iteration", to_json(ti) == to_json(table(["k2"] = "v2")) );
+		break;
+		}
+
+	# As above, for other index types
+	local s2: set[vector of string] = { vector("v1", "v2") };
+
+	add s2[vector("v3", "v4")];
+	test_case( "vector index size", |s2| == 2 );
+	test_case( "vector index membership", vector("v3", "v4") in s2 );
+	test_case( "vector index non-membership", vector("v4", "v5") !in s2 );
+
+	delete s2[vector("v1", "v2")];
+	test_case( "vector index reduced size", |s2| == 1 );
+
+	for ( vi in s2 )
+		{
+		test_case( "vector index iteration", to_json(vi) == to_json(vector("v3", "v4")) );
+		break;
+		}
+
+	local s3: set[set[string]] = { set("s1", "s2") };
+
+	add s3[set("s3", "s4")];
+	test_case( "set index size", |s3| == 2 );
+	test_case( "set index membership", set("s3", "s4") in s3 );
+	test_case( "set index non-membership", set("s4", "s5") !in s3 );
+
+	delete s3[set("s1", "s2")];
+	test_case( "set index reduced size", |s3| == 1 );
+
+	for ( si in s3 )
+		{
+		test_case( "set index iteration", to_json(si) == to_json(set("s3", "s4")) );
+		break;
+		}
+
+	local s4: set[pattern] = { /pat1/ };
+
+	add s4[/pat2/];
+	test_case( "pattern index size", |s4| == 2 );
+	test_case( "pattern index membership", /pat2/ in s4 );
+	test_case( "pattern index non-membership", /pat3/ !in s4 );
+
+	delete s4[/pat1/];
+	test_case( "pattern index reduced size", |s4| == 1 );
+
+	for ( pi in s4 )
+		{
+		test_case( "pattern index iteration", to_json(pi) == to_json(/pat2/) );
+		break;
+		}
+}
+
+event zeek_init()
+{
+	basic_functionality();
+	complex_index_types();
+}

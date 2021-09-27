@@ -69,11 +69,10 @@ broker::backend_options to_backend_options(broker::backend backend, RecordVal* o
 	switch ( backend )
 		{
 		case broker::backend::sqlite:
-				{
-				auto path =
-					options->GetFieldAs<RecordVal>(0)->GetFieldAs<StringVal>(0)->CheckString();
-				return {{"path", path}};
-				}
+			{
+			auto path = options->GetFieldAs<RecordVal>(0)->GetFieldAs<StringVal>(0)->CheckString();
+			return {{"path", path}};
+			}
 
 		default:
 			break;

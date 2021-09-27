@@ -193,8 +193,8 @@ template <class T, class C> T ComponentManager<T, C>::GetComponentTag(Val* v) co
 
 template <class T, class C> C* ComponentManager<T, C>::Lookup(const std::string& name) const
 	{
-	typename std::map<std::string, C*>::const_iterator i =
-		components_by_name.find(util::to_upper(name));
+	typename std::map<std::string, C*>::const_iterator i = components_by_name.find(
+		util::to_upper(name));
 	return i != components_by_name.end() ? i->second : 0;
 	}
 

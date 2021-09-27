@@ -3,10 +3,10 @@
 
 #include "zeek/Func.h"
 
+#include "zeek/zeek-config.h"
+
 #include <sys/stat.h>
 #include <sys/types.h>
-
-#include "zeek/zeek-config.h"
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -272,26 +272,25 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFl
 			break;
 
 		case FUNC_FLAVOR_FUNCTION:
+			{
+			const auto& yt = GetType()->Yield();
+
+			if ( (! yt) || yt->Tag() == TYPE_VOID )
 				{
-				const auto& yt = GetType()->Yield();
-
-				if ( (! yt) || yt->Tag() == TYPE_VOID )
-					{
-					if ( hook_result )
-						reporter->InternalError(
-							"plugin returned non-void result for void method %s", this->Name());
-					}
-
-				else if ( hook_result && hook_result->GetType()->Tag() != yt->Tag() &&
-				          yt->Tag() != TYPE_ANY )
-					{
-					reporter->InternalError(
-						"plugin returned wrong type (got %d, expecting %d) for %s",
-						hook_result->GetType()->Tag(), yt->Tag(), this->Name());
-					}
-
-				break;
+				if ( hook_result )
+					reporter->InternalError("plugin returned non-void result for void method %s",
+					                        this->Name());
 				}
+
+			else if ( hook_result && hook_result->GetType()->Tag() != yt->Tag() &&
+			          yt->Tag() != TYPE_ANY )
+				{
+				reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
+				                        hook_result->GetType()->Tag(), yt->Tag(), this->Name());
+				}
+
+			break;
+			}
 		}
 	}
 

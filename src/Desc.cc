@@ -2,6 +2,8 @@
 
 #include "zeek/Desc.h"
 
+#include "zeek/zeek-config.h"
+
 #include <errno.h>
 #include <math.h>
 #include <stdlib.h>
@@ -11,7 +13,6 @@
 #include "zeek/File.h"
 #include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"
-#include "zeek/zeek-config.h"
 
 #define DEFAULT_SIZE 128
 #define SLOP 10

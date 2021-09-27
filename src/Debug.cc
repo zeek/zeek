@@ -2,13 +2,13 @@
 
 #include "zeek/Debug.h"
 
+#include "zeek/zeek-config.h"
+
 #include <ctype.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string>
-
-#include "zeek/zeek-config.h"
 
 #ifdef HAVE_READLINE
 #include <readline/history.h>

@@ -30,7 +30,7 @@ BreakBeforeBraces: Whitesmiths
 #   SplitEmptyNamespace: false
 
 AccessModifierOffset: -4
-AlignAfterOpenBracket: true
+AlignAfterOpenBracket: Align
 AlignTrailingComments: false
 AllowShortBlocksOnASingleLine: Empty
 AllowShortEnumsOnASingleLine: true
@@ -47,7 +47,7 @@ ColumnLimit: 100
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 FixNamespaceComments: false
 IndentCaseLabels: true
-IndentCaseBlocks: true
+IndentCaseBlocks: false
 IndentExternBlock: NoIndent
 IndentPPDirectives: None
 IndentWidth: 4
@@ -70,6 +70,10 @@ SpacesInParentheses: false
 TabWidth: 4
 UseTab: AlignWithSpaces
 
+# Setting this to a high number causes clang-format to prefer breaking somewhere else
+# over breaking after the assignment operator in a line that's over the column limit
+PenaltyBreakAssignment: 100
+
 IncludeBlocks: Regroup
 
 # Include categories go like this:
@@ -81,11 +85,14 @@ IncludeBlocks: Regroup
 # 5: everything else, which should catch any of the auto-generated code from the
 #    build directory as well
 #
-# Sections 0-1 and 2-3 get group together in their respective blocks
+# Sections 0-1 and 2-3 get grouped together in their respective blocks
 IncludeCategories:
   - Regex: '^"zeek-config\.h"'
-    Priority: 0
+    Priority: 1
     SortPriority: 1
+  - Regex: '^"zeek/zeek-config\.h"'
+    Priority: 1
+    SortPriority: 2
   - Regex: '^<[[:print:]]+\.(h|hh)>'
     Priority: 2
     SortPriority: 2

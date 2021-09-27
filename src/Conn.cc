@@ -2,6 +2,8 @@
 
 #include "zeek/Conn.h"
 
+#include "zeek/zeek-config.h"
+
 #include <binpac.h>
 #include <ctype.h>
 
@@ -19,7 +21,6 @@
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
 #include "zeek/session/Manager.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek
 	{

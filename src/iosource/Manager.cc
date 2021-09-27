@@ -3,8 +3,12 @@
 #include "zeek/iosource/Manager.h"
 
 #include <assert.h>
+// These two files have to remain in the same order or FreeBSD builds
+// stop working.
+// clang-format off
 #include <sys/types.h>
 #include <sys/event.h>
+// clang-format on
 #include <sys/time.h>
 #include <unistd.h>
 

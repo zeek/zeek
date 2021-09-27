@@ -2,10 +2,10 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <stdint.h>
 #include <string>
-
-#include "zeek/zeek-config.h"
 
 struct in_addr;
 struct in6_addr;

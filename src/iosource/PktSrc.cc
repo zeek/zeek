@@ -2,6 +2,8 @@
 
 #include "zeek/iosource/PktSrc.h"
 
+#include "zeek/zeek-config.h"
+
 #include <sys/stat.h>
 
 #include "zeek/Hash.h"
@@ -13,7 +15,6 @@
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/session/Manager.h"
 #include "zeek/util.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::iosource
 	{

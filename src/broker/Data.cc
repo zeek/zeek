@@ -134,14 +134,14 @@ struct val_converter
 			case TYPE_STRING:
 				return make_intrusive<StringVal>(a.size(), a.data());
 			case TYPE_FILE:
-					{
-					auto file = File::Get(a.data());
+				{
+				auto file = File::Get(a.data());
 
-					if ( file )
-						return make_intrusive<FileVal>(std::move(file));
+				if ( file )
+					return make_intrusive<FileVal>(std::move(file));
 
-					return nullptr;
-					}
+				return nullptr;
+				}
 			default:
 				return nullptr;
 			}
@@ -364,8 +364,8 @@ struct val_converter
 			unsigned int pos = 0;
 			for ( auto& item : a )
 				{
-				auto item_val =
-					data_to_val(move(item), pure ? lt->GetPureType().get() : types[pos].get());
+				auto item_val = data_to_val(move(item),
+				                            pure ? lt->GetPureType().get() : types[pos].get());
 				pos++;
 
 				if ( ! item_val )
@@ -842,231 +842,231 @@ broker::expected<broker::data> val_to_data(const Val* v)
 		case TYPE_COUNT:
 			return {v->AsCount()};
 		case TYPE_PORT:
-				{
-				auto p = v->AsPortVal();
-				return {broker::port(p->Port(), to_broker_port_proto(p->PortType()))};
-				}
+			{
+			auto p = v->AsPortVal();
+			return {broker::port(p->Port(), to_broker_port_proto(p->PortType()))};
+			}
 		case TYPE_ADDR:
-				{
-				auto a = v->AsAddr();
-				in6_addr tmp;
-				a.CopyIPv6(&tmp);
-				return {broker::address(reinterpret_cast<const uint32_t*>(&tmp),
-				                        broker::address::family::ipv6,
-				                        broker::address::byte_order::network)};
-				}
+			{
+			auto a = v->AsAddr();
+			in6_addr tmp;
+			a.CopyIPv6(&tmp);
+			return {broker::address(reinterpret_cast<const uint32_t*>(&tmp),
+			                        broker::address::family::ipv6,
+			                        broker::address::byte_order::network)};
+			}
 			break;
 		case TYPE_SUBNET:
-				{
-				auto s = v->AsSubNet();
-				in6_addr tmp;
-				s.Prefix().CopyIPv6(&tmp);
-				auto a = broker::address(reinterpret_cast<const uint32_t*>(&tmp),
-				                         broker::address::family::ipv6,
-				                         broker::address::byte_order::network);
-				return {broker::subnet(std::move(a), s.Length())};
-				}
+			{
+			auto s = v->AsSubNet();
+			in6_addr tmp;
+			s.Prefix().CopyIPv6(&tmp);
+			auto a = broker::address(reinterpret_cast<const uint32_t*>(&tmp),
+			                         broker::address::family::ipv6,
+			                         broker::address::byte_order::network);
+			return {broker::subnet(std::move(a), s.Length())};
+			}
 			break;
 		case TYPE_DOUBLE:
 			return {v->AsDouble()};
 		case TYPE_TIME:
-				{
-				auto secs = broker::fractional_seconds{v->AsTime()};
-				auto since_epoch = std::chrono::duration_cast<broker::timespan>(secs);
-				return {broker::timestamp{since_epoch}};
-				}
+			{
+			auto secs = broker::fractional_seconds{v->AsTime()};
+			auto since_epoch = std::chrono::duration_cast<broker::timespan>(secs);
+			return {broker::timestamp{since_epoch}};
+			}
 		case TYPE_INTERVAL:
-				{
-				auto secs = broker::fractional_seconds{v->AsInterval()};
-				return {std::chrono::duration_cast<broker::timespan>(secs)};
-				}
+			{
+			auto secs = broker::fractional_seconds{v->AsInterval()};
+			return {std::chrono::duration_cast<broker::timespan>(secs)};
+			}
 		case TYPE_ENUM:
-				{
-				auto enum_type = v->GetType()->AsEnumType();
-				auto enum_name = enum_type->Lookup(v->AsEnum());
-				return {broker::enum_value(enum_name ? enum_name : "<unknown enum>")};
-				}
+			{
+			auto enum_type = v->GetType()->AsEnumType();
+			auto enum_name = enum_type->Lookup(v->AsEnum());
+			return {broker::enum_value(enum_name ? enum_name : "<unknown enum>")};
+			}
 		case TYPE_STRING:
-				{
-				auto s = v->AsString();
-				return {string(reinterpret_cast<const char*>(s->Bytes()), s->Len())};
-				}
+			{
+			auto s = v->AsString();
+			return {string(reinterpret_cast<const char*>(s->Bytes()), s->Len())};
+			}
 		case TYPE_FILE:
 			return {string(v->AsFile()->Name())};
 		case TYPE_FUNC:
+			{
+			const Func* f = v->AsFunc();
+			std::string name(f->Name());
+
+			broker::vector rval;
+			rval.push_back(name);
+
+			if ( name.find("lambda_<") == 0 )
 				{
-				const Func* f = v->AsFunc();
-				std::string name(f->Name());
-
-				broker::vector rval;
-				rval.push_back(name);
-
-				if ( name.find("lambda_<") == 0 )
+				// Only ScriptFuncs have closures.
+				if ( auto b = dynamic_cast<const zeek::detail::ScriptFunc*>(f) )
 					{
-					// Only ScriptFuncs have closures.
-					if ( auto b = dynamic_cast<const zeek::detail::ScriptFunc*>(f) )
-						{
-						auto bc = b->SerializeClosure();
-						if ( ! bc )
-							return broker::ec::invalid_data;
-
-						rval.emplace_back(std::move(*bc));
-						}
-					else
-						{
-						reporter->InternalWarning("Closure with non-ScriptFunc");
+					auto bc = b->SerializeClosure();
+					if ( ! bc )
 						return broker::ec::invalid_data;
-						}
+
+					rval.emplace_back(std::move(*bc));
+					}
+				else
+					{
+					reporter->InternalWarning("Closure with non-ScriptFunc");
+					return broker::ec::invalid_data;
+					}
+				}
+
+			return {std::move(rval)};
+			}
+		case TYPE_TABLE:
+			{
+			auto is_set = v->GetType()->IsSet();
+			auto table = v->AsTable();
+			auto table_val = v->AsTableVal();
+			broker::data rval;
+
+			if ( is_set )
+				rval = broker::set();
+			else
+				rval = broker::table();
+
+			for ( const auto& te : *table )
+				{
+				auto hk = te.GetHashKey();
+				auto* entry = te.GetValue<TableEntryVal*>();
+
+				auto vl = table_val->RecreateIndex(*hk);
+
+				broker::vector composite_key;
+				composite_key.reserve(vl->Length());
+
+				for ( auto k = 0; k < vl->Length(); ++k )
+					{
+					auto key_part = val_to_data(vl->Idx(k).get());
+
+					if ( ! key_part )
+						return broker::ec::invalid_data;
+
+					composite_key.emplace_back(move(*key_part));
 					}
 
-				return {std::move(rval)};
-				}
-		case TYPE_TABLE:
-				{
-				auto is_set = v->GetType()->IsSet();
-				auto table = v->AsTable();
-				auto table_val = v->AsTableVal();
-				broker::data rval;
+				broker::data key;
+
+				if ( composite_key.size() == 1 )
+					key = move(composite_key[0]);
+				else
+					key = move(composite_key);
 
 				if ( is_set )
-					rval = broker::set();
+					caf::get<broker::set>(rval).emplace(move(key));
 				else
-					rval = broker::table();
-
-				for ( const auto& te : *table )
 					{
-					auto hk = te.GetHashKey();
-					auto* entry = te.GetValue<TableEntryVal*>();
+					auto val = val_to_data(entry->GetVal().get());
 
-					auto vl = table_val->RecreateIndex(*hk);
+					if ( ! val )
+						return broker::ec::invalid_data;
 
-					broker::vector composite_key;
-					composite_key.reserve(vl->Length());
-
-					for ( auto k = 0; k < vl->Length(); ++k )
-						{
-						auto key_part = val_to_data(vl->Idx(k).get());
-
-						if ( ! key_part )
-							return broker::ec::invalid_data;
-
-						composite_key.emplace_back(move(*key_part));
-						}
-
-					broker::data key;
-
-					if ( composite_key.size() == 1 )
-						key = move(composite_key[0]);
-					else
-						key = move(composite_key);
-
-					if ( is_set )
-						caf::get<broker::set>(rval).emplace(move(key));
-					else
-						{
-						auto val = val_to_data(entry->GetVal().get());
-
-						if ( ! val )
-							return broker::ec::invalid_data;
-
-						caf::get<broker::table>(rval).emplace(move(key), move(*val));
-						}
+					caf::get<broker::table>(rval).emplace(move(key), move(*val));
 					}
-
-				return {std::move(rval)};
 				}
+
+			return {std::move(rval)};
+			}
 		case TYPE_VECTOR:
+			{
+			auto vec = v->AsVectorVal();
+			broker::vector rval;
+			rval.reserve(vec->Size());
+
+			for ( auto i = 0u; i < vec->Size(); ++i )
 				{
-				auto vec = v->AsVectorVal();
-				broker::vector rval;
-				rval.reserve(vec->Size());
+				auto item_val = vec->ValAt(i);
 
-				for ( auto i = 0u; i < vec->Size(); ++i )
-					{
-					auto item_val = vec->ValAt(i);
+				if ( ! item_val )
+					continue;
 
-					if ( ! item_val )
-						continue;
+				auto item = val_to_data(item_val.get());
 
-					auto item = val_to_data(item_val.get());
+				if ( ! item )
+					return broker::ec::invalid_data;
 
-					if ( ! item )
-						return broker::ec::invalid_data;
-
-					rval.emplace_back(move(*item));
-					}
-
-				return {std::move(rval)};
+				rval.emplace_back(move(*item));
 				}
+
+			return {std::move(rval)};
+			}
 		case TYPE_LIST:
+			{
+			// We don't really support lists on the broker side.
+			// So we just pretend that it is a vector instead.
+			auto list = v->AsListVal();
+			broker::vector rval;
+			rval.reserve(list->Length());
+
+			for ( auto i = 0; i < list->Length(); ++i )
 				{
-				// We don't really support lists on the broker side.
-				// So we just pretend that it is a vector instead.
-				auto list = v->AsListVal();
-				broker::vector rval;
-				rval.reserve(list->Length());
+				const auto& item_val = list->Idx(i);
 
-				for ( auto i = 0; i < list->Length(); ++i )
-					{
-					const auto& item_val = list->Idx(i);
+				if ( ! item_val )
+					continue;
 
-					if ( ! item_val )
-						continue;
+				auto item = val_to_data(item_val.get());
 
-					auto item = val_to_data(item_val.get());
+				if ( ! item )
+					return broker::ec::invalid_data;
 
-					if ( ! item )
-						return broker::ec::invalid_data;
-
-					rval.emplace_back(move(*item));
-					}
-
-				return {std::move(rval)};
+				rval.emplace_back(move(*item));
 				}
+
+			return {std::move(rval)};
+			}
 		case TYPE_RECORD:
+			{
+			auto rec = v->AsRecordVal();
+			broker::vector rval;
+			size_t num_fields = v->GetType()->AsRecordType()->NumFields();
+			rval.reserve(num_fields);
+
+			for ( size_t i = 0; i < num_fields; ++i )
 				{
-				auto rec = v->AsRecordVal();
-				broker::vector rval;
-				size_t num_fields = v->GetType()->AsRecordType()->NumFields();
-				rval.reserve(num_fields);
+				auto item_val = rec->GetFieldOrDefault(i);
 
-				for ( size_t i = 0; i < num_fields; ++i )
+				if ( ! item_val )
 					{
-					auto item_val = rec->GetFieldOrDefault(i);
-
-					if ( ! item_val )
-						{
-						rval.emplace_back(broker::nil);
-						continue;
-						}
-
-					auto item = val_to_data(item_val.get());
-
-					if ( ! item )
-						return broker::ec::invalid_data;
-
-					rval.emplace_back(move(*item));
+					rval.emplace_back(broker::nil);
+					continue;
 					}
 
-				return {std::move(rval)};
+				auto item = val_to_data(item_val.get());
+
+				if ( ! item )
+					return broker::ec::invalid_data;
+
+				rval.emplace_back(move(*item));
 				}
+
+			return {std::move(rval)};
+			}
 		case TYPE_PATTERN:
-				{
-				const RE_Matcher* p = v->AsPattern();
-				broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
-				return {std::move(rval)};
-				}
+			{
+			const RE_Matcher* p = v->AsPattern();
+			broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
+			return {std::move(rval)};
+			}
 		case TYPE_OPAQUE:
+			{
+			auto c = v->AsOpaqueVal()->Serialize();
+			if ( ! c )
 				{
-				auto c = v->AsOpaqueVal()->Serialize();
-				if ( ! c )
-					{
-					reporter->Error("unsupported opaque type for serialization");
-					break;
-					}
-
-				return {c};
+				reporter->Error("unsupported opaque type for serialization");
+				break;
 				}
+
+			return {c};
+			}
 		default:
 			reporter->Error("unsupported Broker::Data type: %s", type_name(v->GetType()->Tag()));
 			break;

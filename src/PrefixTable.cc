@@ -94,8 +94,8 @@ std::list<std::tuple<IPPrefix, void*>> PrefixTable::FindAll(const SubNetVal* val
 void* PrefixTable::Lookup(const IPAddr& addr, int width, bool exact) const
 	{
 	prefix_t* prefix = MakePrefix(addr, width);
-	patricia_node_t* node =
-		exact ? patricia_search_exact(tree, prefix) : patricia_search_best(tree, prefix);
+	patricia_node_t* node = exact ? patricia_search_exact(tree, prefix)
+	                              : patricia_search_best(tree, prefix);
 
 	int elems = 0;
 	patricia_node_t** list = nullptr;

@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/netbios/NetbiosSSN.h"
 
+#include "zeek/zeek-config.h"
+
 #include <ctype.h>
 
 #include "zeek/Event.h"
@@ -10,7 +12,6 @@
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/netbios/events.bif.h"
 #include "zeek/session/Manager.h"
-#include "zeek/zeek-config.h"
 
 constexpr double netbios_ssn_session_timeout = 15.0;
 

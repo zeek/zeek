@@ -2,10 +2,10 @@
 
 #include "zeek/DNS_Mgr.h"
 
+#include "zeek/zeek-config.h"
+
 #include <sys/socket.h>
 #include <sys/types.h>
-
-#include "zeek/zeek-config.h"
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -1167,16 +1167,16 @@ void DNS_Mgr::IssueAsyncRequests()
 		if ( req->IsAddrReq() )
 			success = DoRequest(nb_dns, new DNS_Mgr_Request(req->host));
 		else if ( req->is_txt )
-			success =
-				DoRequest(nb_dns, new DNS_Mgr_Request(req->name.c_str(), AF_INET, req->is_txt));
+			success = DoRequest(nb_dns,
+			                    new DNS_Mgr_Request(req->name.c_str(), AF_INET, req->is_txt));
 		else
 			{
 			// If only one request type succeeds, don't consider it a failure.
-			success =
-				DoRequest(nb_dns, new DNS_Mgr_Request(req->name.c_str(), AF_INET, req->is_txt));
-			success =
-				DoRequest(nb_dns, new DNS_Mgr_Request(req->name.c_str(), AF_INET6, req->is_txt)) ||
-				success;
+			success = DoRequest(nb_dns,
+			                    new DNS_Mgr_Request(req->name.c_str(), AF_INET, req->is_txt));
+			success = DoRequest(nb_dns,
+			                    new DNS_Mgr_Request(req->name.c_str(), AF_INET6, req->is_txt)) ||
+			          success;
 			}
 
 		if ( ! success )

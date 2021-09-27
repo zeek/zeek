@@ -2,6 +2,8 @@
 
 #include "zeek/ZeekString.h"
 
+#include "zeek/zeek-config.h"
+
 #include <ctype.h>
 #include <algorithm>
 #include <iostream>
@@ -12,7 +14,6 @@
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
 #include "zeek/util.h"
-#include "zeek/zeek-config.h"
 
 #ifdef DEBUG
 #define DEBUG_STR(msg) DBG_LOG(zeek::DBG_STRING, msg)

@@ -2,6 +2,8 @@
 
 #include "zeek/Discard.h"
 
+#include "zeek/zeek-config.h"
+
 #include <algorithm>
 
 #include "zeek/Func.h"
@@ -11,7 +13,6 @@
 #include "zeek/Val.h"
 #include "zeek/Var.h"
 #include "zeek/ZeekString.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{
@@ -71,8 +72,8 @@ bool Discarder::NextPacket(const std::unique_ptr<IP_Hdr>& ip, int len, int caple
 
 	bool is_tcp = (proto == IPPROTO_TCP);
 	bool is_udp = (proto == IPPROTO_UDP);
-	int min_hdr_len =
-		is_tcp ? sizeof(struct tcphdr) : (is_udp ? sizeof(struct udphdr) : sizeof(struct icmp));
+	int min_hdr_len = is_tcp ? sizeof(struct tcphdr)
+	                         : (is_udp ? sizeof(struct udphdr) : sizeof(struct icmp));
 
 	if ( len < min_hdr_len || caplen < min_hdr_len )
 		// we don't have a complete protocol header

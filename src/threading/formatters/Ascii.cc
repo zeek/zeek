@@ -2,12 +2,13 @@
 
 #include "threading/formatters/Ascii.h"
 
+#include "zeek/zeek-config.h"
+
 #include <errno.h>
 #include <sstream>
 
 #include "zeek/Desc.h"
 #include "zeek/threading/MsgThread.h"
-#include "zeek/zeek-config.h"
 
 using namespace std;
 
@@ -122,79 +123,79 @@ bool Ascii::Describe(ODesc* desc, Value* val, const string& name) const
 		case TYPE_STRING:
 		case TYPE_FILE:
 		case TYPE_FUNC:
+			{
+			int size = val->val.string_val.length;
+			const char* data = val->val.string_val.data;
+
+			if ( ! size )
 				{
-				int size = val->val.string_val.length;
-				const char* data = val->val.string_val.data;
-
-				if ( ! size )
-					{
-					desc->Add(separators.empty_field);
-					break;
-					}
-
-				if ( escapeReservedContent(desc, separators.unset_field, data, size) )
-					break;
-
-				if ( escapeReservedContent(desc, separators.empty_field, data, size) )
-					break;
-
-				desc->AddN(data, size);
+				desc->Add(separators.empty_field);
 				break;
 				}
+
+			if ( escapeReservedContent(desc, separators.unset_field, data, size) )
+				break;
+
+			if ( escapeReservedContent(desc, separators.empty_field, data, size) )
+				break;
+
+			desc->AddN(data, size);
+			break;
+			}
 
 		case TYPE_TABLE:
+			{
+			if ( ! val->val.set_val.size )
 				{
-				if ( ! val->val.set_val.size )
-					{
-					desc->Add(separators.empty_field);
-					break;
-					}
-
-				desc->AddEscapeSequence(separators.set_separator);
-
-				for ( bro_int_t j = 0; j < val->val.set_val.size; j++ )
-					{
-					if ( j > 0 )
-						desc->AddRaw(separators.set_separator);
-
-					if ( ! Describe(desc, val->val.set_val.vals[j]) )
-						{
-						desc->RemoveEscapeSequence(separators.set_separator);
-						return false;
-						}
-					}
-
-				desc->RemoveEscapeSequence(separators.set_separator);
-
+				desc->Add(separators.empty_field);
 				break;
 				}
+
+			desc->AddEscapeSequence(separators.set_separator);
+
+			for ( bro_int_t j = 0; j < val->val.set_val.size; j++ )
+				{
+				if ( j > 0 )
+					desc->AddRaw(separators.set_separator);
+
+				if ( ! Describe(desc, val->val.set_val.vals[j]) )
+					{
+					desc->RemoveEscapeSequence(separators.set_separator);
+					return false;
+					}
+				}
+
+			desc->RemoveEscapeSequence(separators.set_separator);
+
+			break;
+			}
 
 		case TYPE_VECTOR:
+			{
+			if ( ! val->val.vector_val.size )
 				{
-				if ( ! val->val.vector_val.size )
-					{
-					desc->Add(separators.empty_field);
-					break;
-					}
-
-				desc->AddEscapeSequence(separators.set_separator);
-
-				for ( bro_int_t j = 0; j < val->val.vector_val.size; j++ )
-					{
-					if ( j > 0 )
-						desc->AddRaw(separators.set_separator);
-
-					if ( ! Describe(desc, val->val.vector_val.vals[j]) )
-						{
-						desc->RemoveEscapeSequence(separators.set_separator);
-						return false;
-						}
-					}
-
-				desc->RemoveEscapeSequence(separators.set_separator);
-
+				desc->Add(separators.empty_field);
 				break;
 				}
+
+			desc->AddEscapeSequence(separators.set_separator);
+
+			for ( bro_int_t j = 0; j < val->val.vector_val.size; j++ )
+				{
+				if ( j > 0 )
+					desc->AddRaw(separators.set_separator);
+
+				if ( ! Describe(desc, val->val.vector_val.vals[j]) )
+					{
+					desc->RemoveEscapeSequence(separators.set_separator);
+					return false;
+					}
+				}
+
+			desc->RemoveEscapeSequence(separators.set_separator);
+
+			break;
+			}
 
 		default:
 			GetThread()->Warning(
@@ -221,30 +222,30 @@ Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, Type
 		{
 		case TYPE_ENUM:
 		case TYPE_STRING:
-				{
-				string unescaped = util::get_unescaped_string(s);
-				val->val.string_val.length = unescaped.size();
-				val->val.string_val.data = new char[val->val.string_val.length];
-				// we do not need a zero-byte at the end - the input manager adds that explicitly
-				memcpy(val->val.string_val.data, unescaped.data(), unescaped.size());
-				break;
-				}
+			{
+			string unescaped = util::get_unescaped_string(s);
+			val->val.string_val.length = unescaped.size();
+			val->val.string_val.data = new char[val->val.string_val.length];
+			// we do not need a zero-byte at the end - the input manager adds that explicitly
+			memcpy(val->val.string_val.data, unescaped.data(), unescaped.size());
+			break;
+			}
 
 		case TYPE_BOOL:
+			{
+			auto stripped = util::strstrip(s);
+			if ( stripped == "T" || stripped == "1" )
+				val->val.int_val = 1;
+			else if ( stripped == "F" || stripped == "0" )
+				val->val.int_val = 0;
+			else
 				{
-				auto stripped = util::strstrip(s);
-				if ( stripped == "T" || stripped == "1" )
-					val->val.int_val = 1;
-				else if ( stripped == "F" || stripped == "0" )
-					val->val.int_val = 0;
-				else
-					{
-					GetThread()->Warning(GetThread()->Fmt("Field: %s Invalid value for boolean: %s",
-					                                      name.c_str(), start));
-					goto parse_error;
-					}
-				break;
+				GetThread()->Warning(GetThread()->Fmt("Field: %s Invalid value for boolean: %s",
+				                                      name.c_str(), start));
+				goto parse_error;
 				}
+			break;
+			}
 
 		case TYPE_INT:
 			val->val.int_val = strtoll(start, &end, 10);
@@ -267,90 +268,90 @@ Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, Type
 			break;
 
 		case TYPE_PORT:
+			{
+			auto stripped = util::strstrip(s);
+			val->val.port_val.proto = TRANSPORT_UNKNOWN;
+			pos = stripped.find('/');
+			string numberpart;
+			if ( pos != std::string::npos && stripped.length() > pos + 1 )
 				{
-				auto stripped = util::strstrip(s);
-				val->val.port_val.proto = TRANSPORT_UNKNOWN;
-				pos = stripped.find('/');
-				string numberpart;
-				if ( pos != std::string::npos && stripped.length() > pos + 1 )
-					{
-					auto proto = stripped.substr(pos + 1);
-					if ( util::strtolower(proto) == "tcp" )
-						val->val.port_val.proto = TRANSPORT_TCP;
-					else if ( util::strtolower(proto) == "udp" )
-						val->val.port_val.proto = TRANSPORT_UDP;
-					else if ( util::strtolower(proto) == "icmp" )
-						val->val.port_val.proto = TRANSPORT_ICMP;
-					else if ( util::strtolower(proto) == "unknown" )
-						val->val.port_val.proto = TRANSPORT_UNKNOWN;
-					else
-						GetThread()->Warning(GetThread()->Fmt(
-							"Port '%s' contained unknown protocol '%s'", s.c_str(), proto.c_str()));
-					}
-
-				if ( pos != std::string::npos && pos > 0 )
-					{
-					numberpart = stripped.substr(0, pos);
-					start = numberpart.c_str();
-					}
-				val->val.port_val.port = strtoull(start, &end, 10);
-				if ( CheckNumberError(start, end, true) )
-					goto parse_error;
+				auto proto = stripped.substr(pos + 1);
+				if ( util::strtolower(proto) == "tcp" )
+					val->val.port_val.proto = TRANSPORT_TCP;
+				else if ( util::strtolower(proto) == "udp" )
+					val->val.port_val.proto = TRANSPORT_UDP;
+				else if ( util::strtolower(proto) == "icmp" )
+					val->val.port_val.proto = TRANSPORT_ICMP;
+				else if ( util::strtolower(proto) == "unknown" )
+					val->val.port_val.proto = TRANSPORT_UNKNOWN;
+				else
+					GetThread()->Warning(GetThread()->Fmt(
+						"Port '%s' contained unknown protocol '%s'", s.c_str(), proto.c_str()));
 				}
+
+			if ( pos != std::string::npos && pos > 0 )
+				{
+				numberpart = stripped.substr(0, pos);
+				start = numberpart.c_str();
+				}
+			val->val.port_val.port = strtoull(start, &end, 10);
+			if ( CheckNumberError(start, end, true) )
+				goto parse_error;
+			}
 			break;
 
 		case TYPE_SUBNET:
+			{
+			string unescaped = util::strstrip(util::get_unescaped_string(s));
+			size_t pos = unescaped.find('/');
+			if ( pos == unescaped.npos )
 				{
-				string unescaped = util::strstrip(util::get_unescaped_string(s));
-				size_t pos = unescaped.find('/');
-				if ( pos == unescaped.npos )
-					{
-					GetThread()->Warning(GetThread()->Fmt("Invalid value for subnet: %s", start));
-					goto parse_error;
-					}
-
-				string width_str = unescaped.substr(pos + 1);
-				uint8_t width = (uint8_t)strtol(width_str.c_str(), &end, 10);
-
-				if ( CheckNumberError(start, end) )
-					goto parse_error;
-
-				string addr = unescaped.substr(0, pos);
-
-				val->val.subnet_val.prefix = ParseAddr(addr);
-				val->val.subnet_val.length = width;
-				break;
-				}
-
-		case TYPE_ADDR:
-				{
-				string unescaped = util::strstrip(util::get_unescaped_string(s));
-				val->val.addr_val = ParseAddr(unescaped);
-				break;
-				}
-
-		case TYPE_PATTERN:
-				{
-				string candidate = util::get_unescaped_string(s);
-				// A string is a candidate pattern iff it begins and ends with
-				// a '/'. Rather or not the rest of the string is legal will
-				// be determined later when it is given to the RE engine.
-				if ( candidate.size() >= 2 )
-					{
-					if ( candidate.front() == candidate.back() && candidate.back() == '/' )
-						{
-						// Remove the '/'s
-						candidate.erase(0, 1);
-						candidate.erase(candidate.size() - 1);
-						val->val.pattern_text_val = util::copy_string(candidate.c_str());
-						break;
-						}
-					}
-
-				GetThread()->Warning(GetThread()->Fmt("String '%s' contained no parseable pattern.",
-				                                      candidate.c_str()));
+				GetThread()->Warning(GetThread()->Fmt("Invalid value for subnet: %s", start));
 				goto parse_error;
 				}
+
+			string width_str = unescaped.substr(pos + 1);
+			uint8_t width = (uint8_t)strtol(width_str.c_str(), &end, 10);
+
+			if ( CheckNumberError(start, end) )
+				goto parse_error;
+
+			string addr = unescaped.substr(0, pos);
+
+			val->val.subnet_val.prefix = ParseAddr(addr);
+			val->val.subnet_val.length = width;
+			break;
+			}
+
+		case TYPE_ADDR:
+			{
+			string unescaped = util::strstrip(util::get_unescaped_string(s));
+			val->val.addr_val = ParseAddr(unescaped);
+			break;
+			}
+
+		case TYPE_PATTERN:
+			{
+			string candidate = util::get_unescaped_string(s);
+			// A string is a candidate pattern iff it begins and ends with
+			// a '/'. Rather or not the rest of the string is legal will
+			// be determined later when it is given to the RE engine.
+			if ( candidate.size() >= 2 )
+				{
+				if ( candidate.front() == candidate.back() && candidate.back() == '/' )
+					{
+					// Remove the '/'s
+					candidate.erase(0, 1);
+					candidate.erase(candidate.size() - 1);
+					val->val.pattern_text_val = util::copy_string(candidate.c_str());
+					break;
+					}
+				}
+
+			GetThread()->Warning(
+				GetThread()->Fmt("String '%s' contained no parseable pattern.", candidate.c_str()));
+			goto parse_error;
+			}
 
 		case TYPE_TABLE:
 		case TYPE_VECTOR:

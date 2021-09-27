@@ -376,8 +376,8 @@ void Manager::InitializeBrokerStoreForwarding()
 		if ( id->HasVal() && id->GetAttr(zeek::detail::ATTR_BACKEND) )
 			{
 			const auto& attr = id->GetAttr(zeek::detail::ATTR_BACKEND);
-			auto e =
-				static_cast<BifEnum::Broker::BackendType>(attr->GetExpr()->Eval(nullptr)->AsEnum());
+			auto e = static_cast<BifEnum::Broker::BackendType>(
+				attr->GetExpr()->Eval(nullptr)->AsEnum());
 			auto storename = std::string("___sync_store_") + global.first;
 			id->GetVal()->AsTableVal()->SetBrokerStore(storename);
 			AddForwardedStore(storename, cast_intrusive<TableVal>(id->GetVal()));
@@ -739,8 +739,8 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	std::string serial_data(data, len);
 	free(data);
 
-	auto v =
-		log_topic_func->Invoke(IntrusivePtr{NewRef{}, stream}, make_intrusive<StringVal>(path));
+	auto v = log_topic_func->Invoke(IntrusivePtr{NewRef{}, stream},
+	                                make_intrusive<StringVal>(path));
 
 	if ( ! v )
 		{
@@ -1024,21 +1024,21 @@ void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 			break;
 
 		case broker::zeek::Message::Type::Batch:
+			{
+			broker::zeek::Batch batch(std::move(msg));
+
+			if ( ! batch.valid() )
 				{
-				broker::zeek::Batch batch(std::move(msg));
-
-				if ( ! batch.valid() )
-					{
-					reporter->Warning("received invalid broker Batch: %s",
-					                  broker::to_string(batch).data());
-					return;
-					}
-
-				for ( auto& i : batch.batch() )
-					DispatchMessage(topic, std::move(i));
-
-				break;
+				reporter->Warning("received invalid broker Batch: %s",
+				                  broker::to_string(batch).data());
+				return;
 				}
+
+			for ( auto& i : batch.batch() )
+				DispatchMessage(topic, std::move(i));
+
+			break;
+			}
 
 		default:
 			// We ignore unknown types so that we could add more in the
@@ -1176,7 +1176,7 @@ void Manager::ProcessStoreEventInsertUpdate(const TableValPtr& table, const std:
 		{
 		reporter->Error(
 			"ProcessStoreEvent %s: could not convert key \"%s\" for store \"%s\" while receiving "
-		    "remote data. This probably means the tables have different types on different nodes.",
+			"remote data. This probably means the tables have different types on different nodes.",
 			type, to_string(key).c_str(), store_id.c_str());
 		return;
 		}
@@ -1797,8 +1797,8 @@ void Manager::BrokerStoreToZeekTable(const std::string& name, const detail::Stor
 		if ( its.size() == 1 )
 			zeek_key = detail::data_to_val(key, its[0].get());
 		else
-			zeek_key =
-				detail::data_to_val(key, table->GetType()->AsTableType()->GetIndices().get());
+			zeek_key = detail::data_to_val(key,
+			                               table->GetType()->AsTableType()->GetIndices().get());
 
 		if ( ! zeek_key )
 			{

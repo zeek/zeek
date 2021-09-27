@@ -271,8 +271,8 @@ public:
 	static constexpr bro_uint_t PREALLOCATED_COUNTS = 4096;
 	static constexpr bro_uint_t PREALLOCATED_INTS = 512;
 	static constexpr bro_int_t PREALLOCATED_INT_LOWEST = -255;
-	static constexpr bro_int_t PREALLOCATED_INT_HIGHEST =
-		PREALLOCATED_INT_LOWEST + PREALLOCATED_INTS - 1;
+	static constexpr bro_int_t PREALLOCATED_INT_HIGHEST = PREALLOCATED_INT_LOWEST +
+	                                                      PREALLOCATED_INTS - 1;
 
 	ValManager();
 

@@ -2,10 +2,11 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/file_analysis/Tag.h"
 #include "zeek/plugin/Component.h"
 #include "zeek/plugin/TaggedComponent.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek
 	{

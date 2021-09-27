@@ -1,6 +1,8 @@
 
 #include "zeek/RuleMatcher.h"
 
+#include "zeek/zeek-config.h"
+
 #include <algorithm>
 #include <functional>
 
@@ -22,7 +24,6 @@
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/module_util.h"
-#include "zeek/zeek-config.h"
 
 using namespace std;
 
@@ -662,8 +663,8 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state, const u
 #ifdef DEBUG
 	if ( debug_logger.IsEnabled(DBG_RULES) )
 		{
-		const char* s =
-			util::fmt_bytes(reinterpret_cast<const char*>(data), min(40, static_cast<int>(len)));
+		const char* s = util::fmt_bytes(reinterpret_cast<const char*>(data),
+		                                min(40, static_cast<int>(len)));
 		DBG_LOG(DBG_RULES, "Matching %s rules on |%s%s|", Rule::TypeToString(Rule::FILE_MAGIC), s,
 		        len > 40 ? "..." : "");
 		}
@@ -805,8 +806,8 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer, const
 					case RuleHdrTest::ICMPv6:
 					case RuleHdrTest::TCP:
 					case RuleHdrTest::UDP:
-						match =
-							compare(*h->vals, getval(ip->Payload() + h->offset, h->size), h->comp);
+						match = compare(*h->vals, getval(ip->Payload() + h->offset, h->size),
+						                h->comp);
 						break;
 
 					case RuleHdrTest::IPSrc:
@@ -1284,38 +1285,38 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to, vector<IPPrefi
 			break;
 
 		case TYPE_SUBNET:
+			{
+			if ( prefix_vector )
 				{
-				if ( prefix_vector )
+				prefix_vector->push_back(v->AsSubNet());
+				delete mval;
+				return true;
+				}
+			else
+				{
+				const uint32_t* n;
+				uint32_t m[4];
+				v->AsSubNet().Prefix().GetBytes(&n);
+				v->AsSubNetVal()->Mask().CopyIPv6(m);
+
+				for ( unsigned int i = 0; i < 4; ++i )
+					m[i] = ntohl(m[i]);
+
+				bool is_v4_mask = m[0] == 0xffffffff && m[1] == m[0] && m[2] == m[0];
+
+				if ( v->AsSubNet().Prefix().GetFamily() == IPv4 && is_v4_mask )
 					{
-					prefix_vector->push_back(v->AsSubNet());
-					delete mval;
-					return true;
+					mval->val = ntohl(*n);
+					mval->mask = m[3];
 					}
 				else
 					{
-					const uint32_t* n;
-					uint32_t m[4];
-					v->AsSubNet().Prefix().GetBytes(&n);
-					v->AsSubNetVal()->Mask().CopyIPv6(m);
-
-					for ( unsigned int i = 0; i < 4; ++i )
-						m[i] = ntohl(m[i]);
-
-					bool is_v4_mask = m[0] == 0xffffffff && m[1] == m[0] && m[2] == m[0];
-
-					if ( v->AsSubNet().Prefix().GetFamily() == IPv4 && is_v4_mask )
-						{
-						mval->val = ntohl(*n);
-						mval->mask = m[3];
-						}
-					else
-						{
-						rules_error("IPv6 subnets not supported");
-						mval->val = 0;
-						mval->mask = 0;
-						}
+					rules_error("IPv6 subnets not supported");
+					mval->val = 0;
+					mval->mask = 0;
 					}
 				}
+			}
 			break;
 
 		default:
@@ -1404,8 +1405,8 @@ void RuleMatcherState::InitEndpointMatcher(analyzer::Analyzer* analyzer, const I
 			delete orig_match_state;
 			}
 
-		orig_match_state =
-			rule_matcher->InitEndpoint(analyzer, ip, caplen, resp_match_state, from_orig, pia);
+		orig_match_state = rule_matcher->InitEndpoint(analyzer, ip, caplen, resp_match_state,
+		                                              from_orig, pia);
 		}
 
 	else
@@ -1416,8 +1417,8 @@ void RuleMatcherState::InitEndpointMatcher(analyzer::Analyzer* analyzer, const I
 			delete resp_match_state;
 			}
 
-		resp_match_state =
-			rule_matcher->InitEndpoint(analyzer, ip, caplen, orig_match_state, from_orig, pia);
+		resp_match_state = rule_matcher->InitEndpoint(analyzer, ip, caplen, orig_match_state,
+		                                              from_orig, pia);
 		}
 	}
 

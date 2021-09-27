@@ -1,5 +1,7 @@
 #include "zeek/RuleAction.h"
 
+#include "zeek/zeek-config.h"
+
 #include <string>
 
 #include "zeek/Conn.h"
@@ -8,7 +10,6 @@
 #include "zeek/RuleMatcher.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
-#include "zeek/zeek-config.h"
 
 using std::string;
 

@@ -2,9 +2,10 @@
 
 #include "zeek/analyzer/protocol/login/Telnet.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/analyzer/protocol/login/NVT.h"
 #include "zeek/analyzer/protocol/login/events.bif.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::analyzer::login
 	{

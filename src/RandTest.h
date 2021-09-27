@@ -1,8 +1,8 @@
 #pragma once
 
-#include <stdint.h>
-
 #include "zeek/zeek-config.h"
+
+#include <stdint.h>
 
 #define RT_MONTEN                                                                                  \
 	6 /* Bytes used as Monte Carlo                                                                 \

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <broker/expected.hh>
 #include <memory>
 #include <string>
@@ -9,7 +11,6 @@
 
 #include "zeek/probabilistic/BitVector.h"
 #include "zeek/probabilistic/Hasher.h"
-#include "zeek/zeek-config.h"
 
 namespace broker
 	{

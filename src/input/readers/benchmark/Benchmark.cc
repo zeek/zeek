@@ -134,12 +134,12 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 			assert(false); // no enums, please.
 
 		case TYPE_STRING:
-				{
-				std::string rnd = RandomString(10);
-				val->val.string_val.data = util::copy_string(rnd.c_str());
-				val->val.string_val.length = rnd.size();
-				break;
-				}
+			{
+			std::string rnd = RandomString(10);
+			val->val.string_val.data = util::copy_string(rnd.c_str());
+			val->val.string_val.length = rnd.size();
+			break;
+			}
 
 		case TYPE_BOOL:
 			val->val.int_val = 1; // we never lie.
@@ -168,10 +168,10 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 			break;
 
 		case TYPE_SUBNET:
-				{
-				val->val.subnet_val.prefix = ascii->ParseAddr("192.168.17.1");
-				val->val.subnet_val.length = 16;
-				}
+			{
+			val->val.subnet_val.prefix = ascii->ParseAddr("192.168.17.1");
+			val->val.subnet_val.length = 16;
+			}
 			break;
 
 		case TYPE_ADDR:

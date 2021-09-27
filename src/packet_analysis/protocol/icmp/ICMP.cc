@@ -49,11 +49,11 @@ bool ICMPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packe
 	tuple.src_port = htons(icmpp->icmp_type);
 
 	if ( packet->proto == IPPROTO_ICMP )
-		tuple.dst_port =
-			htons(ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code, tuple.is_one_way));
+		tuple.dst_port = htons(
+			ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code, tuple.is_one_way));
 	else if ( packet->proto == IPPROTO_ICMPV6 )
-		tuple.dst_port =
-			htons(ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code, tuple.is_one_way));
+		tuple.dst_port = htons(
+			ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code, tuple.is_one_way));
 	else
 		reporter->InternalError("Reached ICMP packet analyzer with unknown packet protocol %x",
 		                        packet->proto);
@@ -274,36 +274,36 @@ TransportProto ICMPAnalyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t* 
 	switch ( proto )
 		{
 		case TRANSPORT_ICMP:
-				{
-				const struct icmp* icmpp = (const struct icmp*)transport_hdr;
-				bool is_one_way; // dummy
-				*src_port = ntohs(icmpp->icmp_type);
+			{
+			const struct icmp* icmpp = (const struct icmp*)transport_hdr;
+			bool is_one_way; // dummy
+			*src_port = ntohs(icmpp->icmp_type);
 
-				if ( ip4 )
-					*dst_port =
-						ntohs(ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code, is_one_way));
-				else
-					*dst_port =
-						ntohs(ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code, is_one_way));
+			if ( ip4 )
+				*dst_port = ntohs(
+					ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code, is_one_way));
+			else
+				*dst_port = ntohs(
+					ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code, is_one_way));
 
-				break;
-				}
+			break;
+			}
 
 		case TRANSPORT_TCP:
-				{
-				const struct tcphdr* tp = (const struct tcphdr*)transport_hdr;
-				*src_port = ntohs(tp->th_sport);
-				*dst_port = ntohs(tp->th_dport);
-				break;
-				}
+			{
+			const struct tcphdr* tp = (const struct tcphdr*)transport_hdr;
+			*src_port = ntohs(tp->th_sport);
+			*dst_port = ntohs(tp->th_dport);
+			break;
+			}
 
 		case TRANSPORT_UDP:
-				{
-				const struct udphdr* up = (const struct udphdr*)transport_hdr;
-				*src_port = ntohs(up->uh_sport);
-				*dst_port = ntohs(up->uh_dport);
-				break;
-				}
+			{
+			const struct udphdr* up = (const struct udphdr*)transport_hdr;
+			*src_port = ntohs(up->uh_sport);
+			*dst_port = ntohs(up->uh_dport);
+			break;
+			}
 
 		default:
 			*src_port = *dst_port = ntohs(0);
@@ -749,10 +749,10 @@ zeek::VectorValPtr ICMPAnalyzer::BuildNDOptionsVal(int caplen, const u_char* dat
 					}
 
 			default:
-					{
-					set_payload_field = true;
-					break;
-					}
+				{
+				set_payload_field = true;
+				break;
+				}
 			}
 
 		if ( set_payload_field )

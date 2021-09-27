@@ -127,80 +127,79 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 			break;
 
 		case TYPE_TIME:
+			{
+			if ( timestamps == TS_ISO8601 )
 				{
-				if ( timestamps == TS_ISO8601 )
+				char buffer[40];
+				char buffer2[48];
+				time_t the_time = time_t(floor(val->val.double_val));
+				struct tm t;
+
+				if ( ! gmtime_r(&the_time, &t) ||
+				     ! strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &t) )
 					{
-					char buffer[40];
-					char buffer2[48];
-					time_t the_time = time_t(floor(val->val.double_val));
-					struct tm t;
-
-					if ( ! gmtime_r(&the_time, &t) ||
-					     ! strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &t) )
-						{
-						GetThread()->Error(GetThread()->Fmt(
-							"json formatter: failure getting time: (%lf)", val->val.double_val));
-						// This was a failure, doesn't really matter what gets put here
-						// but it should probably stand out...
-						writer.String("2000-01-01T00:00:00.000000");
-						}
-					else
-						{
-						double integ;
-						double frac = modf(val->val.double_val, &integ);
-
-						if ( frac < 0 )
-							frac += 1;
-
-						snprintf(buffer2, sizeof(buffer2), "%s.%06.0fZ", buffer,
-						         fabs(frac) * 1000000);
-						writer.String(buffer2, strlen(buffer2));
-						}
+					GetThread()->Error(GetThread()->Fmt(
+						"json formatter: failure getting time: (%lf)", val->val.double_val));
+					// This was a failure, doesn't really matter what gets put here
+					// but it should probably stand out...
+					writer.String("2000-01-01T00:00:00.000000");
 					}
-
-				else if ( timestamps == TS_EPOCH )
-					writer.Double(val->val.double_val);
-
-				else if ( timestamps == TS_MILLIS )
+				else
 					{
-					// ElasticSearch uses milliseconds for timestamps
-					writer.Uint64((uint64_t)(val->val.double_val * 1000));
-					}
+					double integ;
+					double frac = modf(val->val.double_val, &integ);
 
-				break;
+					if ( frac < 0 )
+						frac += 1;
+
+					snprintf(buffer2, sizeof(buffer2), "%s.%06.0fZ", buffer, fabs(frac) * 1000000);
+					writer.String(buffer2, strlen(buffer2));
+					}
 				}
+
+			else if ( timestamps == TS_EPOCH )
+				writer.Double(val->val.double_val);
+
+			else if ( timestamps == TS_MILLIS )
+				{
+				// ElasticSearch uses milliseconds for timestamps
+				writer.Uint64((uint64_t)(val->val.double_val * 1000));
+				}
+
+			break;
+			}
 
 		case TYPE_ENUM:
 		case TYPE_STRING:
 		case TYPE_FILE:
 		case TYPE_FUNC:
-				{
-				writer.String(util::json_escape_utf8(
-					std::string(val->val.string_val.data, val->val.string_val.length)));
-				break;
-				}
+			{
+			writer.String(util::json_escape_utf8(
+				std::string(val->val.string_val.data, val->val.string_val.length)));
+			break;
+			}
 
 		case TYPE_TABLE:
-				{
-				writer.StartArray();
+			{
+			writer.StartArray();
 
-				for ( bro_int_t idx = 0; idx < val->val.set_val.size; idx++ )
-					BuildJSON(writer, val->val.set_val.vals[idx]);
+			for ( bro_int_t idx = 0; idx < val->val.set_val.size; idx++ )
+				BuildJSON(writer, val->val.set_val.vals[idx]);
 
-				writer.EndArray();
-				break;
-				}
+			writer.EndArray();
+			break;
+			}
 
 		case TYPE_VECTOR:
-				{
-				writer.StartArray();
+			{
+			writer.StartArray();
 
-				for ( bro_int_t idx = 0; idx < val->val.vector_val.size; idx++ )
-					BuildJSON(writer, val->val.vector_val.vals[idx]);
+			for ( bro_int_t idx = 0; idx < val->val.vector_val.size; idx++ )
+				BuildJSON(writer, val->val.vector_val.vals[idx]);
 
-				writer.EndArray();
-				break;
-				}
+			writer.EndArray();
+			break;
+			}
 
 		default:
 			reporter->Warning("Unhandled type in JSON::BuildJSON");

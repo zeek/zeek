@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <cstdio>
 #include <map>
 #include <string>
 #include <vector>
-
-#include "zeek/zeek-config.h"
 
 namespace zeek::zeekygen::detail
 	{

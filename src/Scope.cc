@@ -2,13 +2,14 @@
 
 #include "zeek/Scope.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Desc.h"
 #include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{
@@ -110,8 +111,8 @@ const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global
 	std::string fullname = make_full_var_name(curr_module, name);
 
 	std::string ID_module = extract_module_name(fullname.c_str());
-	bool need_export =
-		check_export && (ID_module != GLOBAL_MODULE_NAME && ID_module != curr_module);
+	bool need_export = check_export &&
+	                   (ID_module != GLOBAL_MODULE_NAME && ID_module != curr_module);
 
 	for ( auto s_i = scopes.rbegin(); s_i != scopes.rend(); ++s_i )
 		{

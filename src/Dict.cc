@@ -1060,8 +1060,8 @@ int Dictionary::LookupIndex(const void* key, int key_size, detail::hash_t hash,
 #ifdef DEBUG
 	int linear_position = LinearLookupIndex(key, key_size, hash);
 #endif // DEBUG
-	int position =
-		LookupIndex(key, key_size, hash, bucket, Capacity(), insert_position, insert_distance);
+	int position = LookupIndex(key, key_size, hash, bucket, Capacity(), insert_position,
+	                           insert_distance);
 	if ( position >= 0 )
 		{
 		ASSERT(position == linear_position); // same as linearLookup
@@ -1239,7 +1239,7 @@ void Dictionary::InsertRelocateAndAdjust(detail::DictEntry& entry, int insert_po
 	// range if the changed range straddles over remap_end.
 	if ( Remapping() && insert_position <= remap_end && remap_end < last_affected_position )
 		{ //[i,j] range changed. if map_end in between. then possibly old entry pushed down across
-		  //map_end.
+		  // map_end.
 		remap_end = last_affected_position; // adjust to j on the conservative side.
 		}
 
@@ -1498,7 +1498,7 @@ void Dictionary::Remap()
 		if ( ! table[remap_end].Empty() && Remap(remap_end) )
 			left--;
 		else //< successful Remap may increase remap_end in the case of SizeUp due to insert. if so,
-		     //remap_end need to be worked on again.
+		     // remap_end need to be worked on again.
 			remap_end--;
 		}
 	if ( remap_end < 0 )

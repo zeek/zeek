@@ -36,11 +36,11 @@ const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s)
 			return CompileDel(static_cast<const DelStmt*>(s));
 
 		case STMT_EVENT:
-				{
-				auto es = static_cast<const EventStmt*>(s);
-				auto e = static_cast<const EventExpr*>(es->StmtExpr());
-				return CompileExpr(e);
-				}
+			{
+			auto es = static_cast<const EventStmt*>(s);
+			auto e = static_cast<const EventExpr*>(es->StmtExpr());
+			return CompileExpr(e);
+			}
 
 		case STMT_WHILE:
 			return CompileWhile(static_cast<const WhileStmt*>(s));
@@ -67,12 +67,12 @@ const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s)
 			return CompileWhen(static_cast<const WhenStmt*>(s));
 
 		case STMT_CHECK_ANY_LEN:
-				{
-				auto cs = static_cast<const CheckAnyLenStmt*>(s);
-				auto n = cs->StmtExpr()->AsNameExpr();
-				auto expected_len = cs->ExpectedLen();
-				return CheckAnyLenVi(n, expected_len);
-				}
+			{
+			auto cs = static_cast<const CheckAnyLenStmt*>(s);
+			auto n = cs->StmtExpr()->AsNameExpr();
+			auto expected_len = cs->ExpectedLen();
+			return CheckAnyLenVi(n, expected_len);
+			}
 
 		case STMT_NEXT:
 			return CompileNext();
@@ -520,29 +520,29 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, 
 				break;
 
 			case TYPE_INTERNAL_STRING:
-					{
-					// This leaks, but only statically so not worth
-					// tracking the value for ultimate deletion.
-					auto sv = cv->AsString()->Render();
-					std::string s(sv);
-					new_str_cases[s] = case_body_start;
-					delete[] sv;
-					break;
-					}
+				{
+				// This leaks, but only statically so not worth
+				// tracking the value for ultimate deletion.
+				auto sv = cv->AsString()->Render();
+				std::string s(sv);
+				new_str_cases[s] = case_body_start;
+				delete[] sv;
+				break;
+				}
 
 			case TYPE_INTERNAL_ADDR:
-					{
-					auto a = cv->AsAddr().AsString();
-					new_str_cases[a] = case_body_start;
-					break;
-					}
+				{
+				auto a = cv->AsAddr().AsString();
+				new_str_cases[a] = case_body_start;
+				break;
+				}
 
 			case TYPE_INTERNAL_SUBNET:
-					{
-					auto n = cv->AsSubNet().AsString();
-					new_str_cases[n] = case_body_start;
-					break;
-					}
+				{
+				auto n = cv->AsSubNet().AsString();
+				new_str_cases[n] = case_body_start;
+				break;
+				}
 
 			default:
 				reporter->InternalError("bad recovered type when compiling switch");
@@ -837,8 +837,8 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val)
 
 	if ( value_var )
 		{
-		ZOp op =
-			no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV : OP_NEXT_TABLE_ITER_VAL_VAR_VVV;
+		ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV
+		                      : OP_NEXT_TABLE_ITER_VAL_VAR_VVV;
 		z = ZInstI(op, FrameSlot(value_var), iter_slot, 0);
 		z.CheckIfManaged(value_var->GetType());
 		z.op_type = OP_VVV_I2_I3;

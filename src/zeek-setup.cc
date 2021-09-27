@@ -2,6 +2,8 @@
 
 #include "zeek/zeek-setup.h"
 
+#include "zeek/zeek-config.h"
+
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 #include <signal.h>
@@ -14,7 +16,6 @@
 #include <optional>
 
 #include "zeek/3rdparty/sqlite3.h"
-#include "zeek/zeek-config.h"
 
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "zeek/3rdparty/doctest.h"
@@ -370,8 +371,8 @@ static std::vector<std::string> get_script_signature_files()
 	std::vector<std::string> rval;
 
 	// Parse rule files defined on the script level.
-	char* script_signature_files =
-		util::copy_string(id::find_val("signature_files")->AsString()->CheckString());
+	char* script_signature_files = util::copy_string(
+		id::find_val("signature_files")->AsString()->CheckString());
 
 	char* tmp = script_signature_files;
 	char* s;
@@ -920,8 +921,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		packet_mgr->DumpDebug();
 		analyzer_mgr->DumpDebug();
 
-		run_state::detail::have_pending_timers =
-			! run_state::reading_traces && timer_mgr->Size() > 0;
+		run_state::detail::have_pending_timers = ! run_state::reading_traces &&
+		                                         timer_mgr->Size() > 0;
 
 		return {0, std::move(options)};
 	}

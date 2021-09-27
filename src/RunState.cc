@@ -2,9 +2,9 @@
 
 #include "zeek/RunState.h"
 
-#include <sys/types.h>
-
 #include "zeek/zeek-config.h"
+
+#include <sys/types.h>
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -386,9 +386,10 @@ void get_final_stats()
 		{
 		iosource::PktSrc::Stats s;
 		ps->Statistics(&s);
-		double dropped_pct =
-			s.dropped > 0.0 ? ((double)s.dropped / ((double)s.received + (double)s.dropped)) * 100.0
-							: 0.0;
+		double dropped_pct = s.dropped > 0.0
+		                         ? ((double)s.dropped / ((double)s.received + (double)s.dropped)) *
+		                               100.0
+		                         : 0.0;
 		reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " (%.2f%%) dropped",
 		               s.received, ps->Path().c_str(), s.dropped, dropped_pct);
 		}

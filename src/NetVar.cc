@@ -2,11 +2,12 @@
 
 #include "zeek/NetVar.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/EventHandler.h"
 #include "zeek/ID.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
-#include "zeek/zeek-config.h"
 
 zeek::RecordType* conn_id;
 zeek::RecordType* endpoint;
@@ -291,8 +292,8 @@ void init_net_var()
 
 	udp_content_deliver_all_orig = bool(id::find_val("udp_content_deliver_all_orig")->AsBool());
 	udp_content_deliver_all_resp = bool(id::find_val("udp_content_deliver_all_resp")->AsBool());
-	udp_content_delivery_ports_use_resp =
-		bool(id::find_val("udp_content_delivery_ports_use_resp")->AsBool());
+	udp_content_delivery_ports_use_resp = bool(
+		id::find_val("udp_content_delivery_ports_use_resp")->AsBool());
 
 	dns_session_timeout = id::find_val("dns_session_timeout")->AsInterval();
 	rpc_timeout = id::find_val("rpc_timeout")->AsInterval();

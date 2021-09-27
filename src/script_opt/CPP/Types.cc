@@ -466,19 +466,19 @@ void CPPCompile::RegisterType(const TypePtr& tp)
 			break;
 
 		case TYPE_TYPE:
-				{
-				const auto& tt = t->AsTypeType()->GetType();
-				NoteNonRecordInitDependency(t, tt);
-				RegisterType(tt);
-				}
+			{
+			const auto& tt = t->AsTypeType()->GetType();
+			NoteNonRecordInitDependency(t, tt);
+			RegisterType(tt);
+			}
 			break;
 
 		case TYPE_VECTOR:
-				{
-				const auto& yield = t->AsVectorType()->Yield();
-				NoteNonRecordInitDependency(t, yield);
-				RegisterType(yield);
-				}
+			{
+			const auto& yield = t->AsVectorType()->Yield();
+			NoteNonRecordInitDependency(t, yield);
+			RegisterType(yield);
+			}
 			break;
 
 		case TYPE_LIST:

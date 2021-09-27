@@ -81,8 +81,8 @@ IntHistogramFamily Manager::IntHistoFam(std::string_view prefix, std::string_vie
 		[&, this](auto xs)
 		{
 			auto bounds = caf::span<const int64_t>{ubounds.data(), ubounds.size()};
-			auto ptr =
-				deref(pimpl).histogram_family(prefix, name, xs, bounds, helptext, unit, is_sum);
+			auto ptr = deref(pimpl).histogram_family(prefix, name, xs, bounds, helptext, unit,
+		                                             is_sum);
 			return IntHistogramFamily{opaque(ptr)};
 		});
 	}
@@ -213,8 +213,8 @@ SCENARIO("telemetry managers provide access to counter families")
 			}
 		WHEN("retrieving a DblCounter family")
 			{
-			auto family =
-				mgr.CounterFamily<double>("zeek", "runtime", {"query"}, "test", "seconds", true);
+			auto family = mgr.CounterFamily<double>("zeek", "runtime", {"query"}, "test", "seconds",
+			                                        true);
 			THEN("the family object stores the parameters")
 				{
 				CHECK_EQ(family.Prefix(), "zeek"sv);
@@ -338,8 +338,8 @@ SCENARIO("telemetry managers provide access to gauge families")
 			}
 		WHEN("retrieving a DblGauge family")
 			{
-			auto family =
-				mgr.GaugeFamily<double>("zeek", "water-level", {"river"}, "test", "meters");
+			auto family = mgr.GaugeFamily<double>("zeek", "water-level", {"river"}, "test",
+			                                      "meters");
 			THEN("the family object stores the parameters")
 				{
 				CHECK_EQ(family.Prefix(), "zeek"sv);
@@ -461,8 +461,8 @@ SCENARIO("telemetry managers provide access to histogram families")
 		WHEN("retrieving an IntHistogram family")
 			{
 			int64_t buckets[] = {10, 20};
-			auto family =
-				mgr.HistogramFamily("zeek", "payload-size", {"protocol"}, buckets, "test", "bytes");
+			auto family = mgr.HistogramFamily("zeek", "payload-size", {"protocol"}, buckets, "test",
+			                                  "bytes");
 			THEN("the family object stores the parameters")
 				{
 				CHECK_EQ(family.Prefix(), "zeek"sv);

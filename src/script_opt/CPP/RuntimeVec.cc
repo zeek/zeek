@@ -66,16 +66,16 @@ static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt)
 		switch ( vt->Yield()->InternalType() )                                                     \
 			{                                                                                      \
 			case TYPE_INTERNAL_INT:                                                                \
-					{                                                                              \
-					VEC_OP1_KERNEL(AsInt, IntVal, op)                                              \
-					break;                                                                         \
-					}                                                                              \
+				{                                                                                  \
+				VEC_OP1_KERNEL(AsInt, IntVal, op)                                                  \
+				break;                                                                             \
+				}                                                                                  \
                                                                                                    \
 			case TYPE_INTERNAL_UNSIGNED:                                                           \
-					{                                                                              \
-					VEC_OP1_KERNEL(AsCount, CountVal, op)                                          \
-					break;                                                                         \
-					}                                                                              \
+				{                                                                                  \
+				VEC_OP1_KERNEL(AsCount, CountVal, op)                                              \
+				break;                                                                             \
+				}                                                                                  \
                                                                                                    \
 				double_kernel                                                                      \
                                                                                                    \
@@ -126,19 +126,19 @@ VEC_OP1(comp, ~, )
 		switch ( vt->Yield()->InternalType() )                                                     \
 			{                                                                                      \
 			case TYPE_INTERNAL_INT:                                                                \
-					{                                                                              \
-					if ( vt->Yield()->Tag() == TYPE_BOOL )                                         \
-						VEC_OP2_KERNEL(AsBool, BoolVal, op)                                        \
-					else                                                                           \
-						VEC_OP2_KERNEL(AsInt, IntVal, op)                                          \
-					break;                                                                         \
-					}                                                                              \
+				{                                                                                  \
+				if ( vt->Yield()->Tag() == TYPE_BOOL )                                             \
+					VEC_OP2_KERNEL(AsBool, BoolVal, op)                                            \
+				else                                                                               \
+					VEC_OP2_KERNEL(AsInt, IntVal, op)                                              \
+				break;                                                                             \
+				}                                                                                  \
                                                                                                    \
 			case TYPE_INTERNAL_UNSIGNED:                                                           \
-					{                                                                              \
-					VEC_OP2_KERNEL(AsCount, CountVal, op)                                          \
-					break;                                                                         \
-					}                                                                              \
+				{                                                                                  \
+				VEC_OP2_KERNEL(AsCount, CountVal, op)                                              \
+				break;                                                                             \
+				}                                                                                  \
                                                                                                    \
 				double_kernel                                                                      \
                                                                                                    \
@@ -184,22 +184,22 @@ VEC_OP2(oror, ||, )
 		switch ( vt->Yield()->InternalType() )                                                     \
 			{                                                                                      \
 			case TYPE_INTERNAL_INT:                                                                \
-					{                                                                              \
-					VEC_OP2_KERNEL(AsInt, BoolVal, op)                                             \
-					break;                                                                         \
-					}                                                                              \
+				{                                                                                  \
+				VEC_OP2_KERNEL(AsInt, BoolVal, op)                                                 \
+				break;                                                                             \
+				}                                                                                  \
                                                                                                    \
 			case TYPE_INTERNAL_UNSIGNED:                                                           \
-					{                                                                              \
-					VEC_OP2_KERNEL(AsCount, BoolVal, op)                                           \
-					break;                                                                         \
-					}                                                                              \
+				{                                                                                  \
+				VEC_OP2_KERNEL(AsCount, BoolVal, op)                                               \
+				break;                                                                             \
+				}                                                                                  \
                                                                                                    \
 			case TYPE_INTERNAL_DOUBLE:                                                             \
-					{                                                                              \
-					VEC_OP2_KERNEL(AsDouble, BoolVal, op)                                          \
-					break;                                                                         \
-					}                                                                              \
+				{                                                                                  \
+				VEC_OP2_KERNEL(AsDouble, BoolVal, op)                                              \
+				break;                                                                             \
+				}                                                                                  \
                                                                                                    \
 			default:                                                                               \
 				break;                                                                             \

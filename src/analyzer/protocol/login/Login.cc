@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/login/Login.h"
 
+#include "zeek/zeek-config.h"
+
 #include <ctype.h>
 #include <stdlib.h>
 
@@ -12,7 +14,6 @@
 #include "zeek/Var.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/login/events.bif.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::analyzer::login
 	{

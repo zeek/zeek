@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "zeek/IntrusivePtr.h"
 #include "zeek/zeek-config.h"
+
+#include "zeek/IntrusivePtr.h"
 
 namespace zeek
 	{

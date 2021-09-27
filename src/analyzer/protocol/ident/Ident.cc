@@ -2,13 +2,14 @@
 
 #include "zeek/analyzer/protocol/ident/Ident.h"
 
+#include "zeek/zeek-config.h"
+
 #include <ctype.h>
 
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/ident/events.bif.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::analyzer::ident
 	{

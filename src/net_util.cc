@@ -2,6 +2,8 @@
 
 #include "zeek/net_util.h"
 
+#include "zeek/zeek-config.h"
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -10,7 +12,6 @@
 #include "zeek/IP.h"
 #include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"
-#include "zeek/zeek-config.h"
 
 const char* transport_proto_string(TransportProto proto)
 	{

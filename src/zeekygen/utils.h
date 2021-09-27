@@ -2,11 +2,11 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <time.h> // for time_t
 #include <optional>
 #include <string>
-
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

@@ -7,9 +7,9 @@
 
 #include <set>
 
-#include "zeek/IntrusivePtr.h"
-#include "zeek/ID.h"
 #include "zeek/Expr.h"
+#include "zeek/ID.h"
+#include "zeek/IntrusivePtr.h"
 
 namespace zeek::detail
 	{

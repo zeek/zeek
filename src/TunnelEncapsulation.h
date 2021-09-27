@@ -2,13 +2,14 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <vector>
 
 #include "zeek/ID.h"
 #include "zeek/IPAddr.h"
 #include "zeek/NetVar.h"
 #include "zeek/UID.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek
 	{

@@ -1,5 +1,7 @@
 #include "zeek/RuleCondition.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Func.h"
 #include "zeek/ID.h"
 #include "zeek/Reporter.h"
@@ -7,7 +9,6 @@
 #include "zeek/Scope.h"
 #include "zeek/Val.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/zeek-config.h"
 
 static inline bool is_established(const zeek::analyzer::tcp::TCP_Endpoint* e)
 	{

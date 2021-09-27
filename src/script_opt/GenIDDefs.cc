@@ -67,140 +67,140 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s)
 	switch ( s->Tag() )
 		{
 		case STMT_CATCH_RETURN:
-				{
-				auto cr = s->AsCatchReturnStmt();
-				auto block = cr->Block();
+			{
+			auto cr = s->AsCatchReturnStmt();
+			auto block = cr->Block();
 
-				StartConfluenceBlock(s);
-				block->Traverse(this);
-				EndConfluenceBlock();
+			StartConfluenceBlock(s);
+			block->Traverse(this);
+			EndConfluenceBlock();
 
-				auto retvar = cr->RetVar();
-				if ( retvar )
-					TrackID(retvar->Id());
+			auto retvar = cr->RetVar();
+			if ( retvar )
+				TrackID(retvar->Id());
 
-				return TC_ABORTSTMT;
-				}
+			return TC_ABORTSTMT;
+			}
 
 		case STMT_IF:
-				{
-				auto i = s->AsIfStmt();
-				auto cond = i->StmtExpr();
-				auto t_branch = i->TrueBranch();
-				auto f_branch = i->FalseBranch();
+			{
+			auto i = s->AsIfStmt();
+			auto cond = i->StmtExpr();
+			auto t_branch = i->TrueBranch();
+			auto f_branch = i->FalseBranch();
 
-				cond->Traverse(this);
+			cond->Traverse(this);
 
-				StartConfluenceBlock(s);
+			StartConfluenceBlock(s);
 
-				t_branch->Traverse(this);
-				if ( ! t_branch->NoFlowAfter(false) )
-					BranchBeyond(curr_stmt, s, true);
+			t_branch->Traverse(this);
+			if ( ! t_branch->NoFlowAfter(false) )
+				BranchBeyond(curr_stmt, s, true);
 
-				f_branch->Traverse(this);
-				if ( ! f_branch->NoFlowAfter(false) )
-					BranchBeyond(curr_stmt, s, true);
+			f_branch->Traverse(this);
+			if ( ! f_branch->NoFlowAfter(false) )
+				BranchBeyond(curr_stmt, s, true);
 
-				EndConfluenceBlock(true);
+			EndConfluenceBlock(true);
 
-				return TC_ABORTSTMT;
-				}
+			return TC_ABORTSTMT;
+			}
 
 		case STMT_SWITCH:
+			{
+			auto sw = s->AsSwitchStmt();
+			auto e = sw->StmtExpr();
+
+			e->Traverse(this);
+
+			StartConfluenceBlock(sw);
+
+			for ( const auto& c : *sw->Cases() )
 				{
-				auto sw = s->AsSwitchStmt();
-				auto e = sw->StmtExpr();
+				auto body = c->Body();
 
-				e->Traverse(this);
+				auto exprs = c->ExprCases();
+				if ( exprs )
+					exprs->Traverse(this);
 
-				StartConfluenceBlock(sw);
-
-				for ( const auto& c : *sw->Cases() )
+				auto type_ids = c->TypeCases();
+				if ( type_ids )
 					{
-					auto body = c->Body();
-
-					auto exprs = c->ExprCases();
-					if ( exprs )
-						exprs->Traverse(this);
-
-					auto type_ids = c->TypeCases();
-					if ( type_ids )
-						{
-						for ( const auto& id : *type_ids )
-							if ( id->Name() )
-								TrackID(id);
-						}
-
-					body->Traverse(this);
+					for ( const auto& id : *type_ids )
+						if ( id->Name() )
+							TrackID(id);
 					}
 
-				EndConfluenceBlock(sw->HasDefault());
-
-				return TC_ABORTSTMT;
+				body->Traverse(this);
 				}
+
+			EndConfluenceBlock(sw->HasDefault());
+
+			return TC_ABORTSTMT;
+			}
 
 		case STMT_FOR:
-				{
-				auto f = s->AsForStmt();
+			{
+			auto f = s->AsForStmt();
 
-				auto ids = f->LoopVars();
-				auto e = f->LoopExpr();
-				auto body = f->LoopBody();
-				auto val_var = f->ValueVar();
+			auto ids = f->LoopVars();
+			auto e = f->LoopExpr();
+			auto body = f->LoopBody();
+			auto val_var = f->ValueVar();
 
-				e->Traverse(this);
+			e->Traverse(this);
 
-				for ( const auto& id : *ids )
-					TrackID(id);
+			for ( const auto& id : *ids )
+				TrackID(id);
 
-				if ( val_var )
-					TrackID(val_var);
+			if ( val_var )
+				TrackID(val_var);
 
-				StartConfluenceBlock(s);
-				body->Traverse(this);
+			StartConfluenceBlock(s);
+			body->Traverse(this);
 
-				if ( ! body->NoFlowAfter(false) )
-					BranchBackTo(curr_stmt, s, true);
+			if ( ! body->NoFlowAfter(false) )
+				BranchBackTo(curr_stmt, s, true);
 
-				EndConfluenceBlock();
+			EndConfluenceBlock();
 
-				return TC_ABORTSTMT;
-				}
+			return TC_ABORTSTMT;
+			}
 
 		case STMT_WHILE:
-				{
-				auto w = s->AsWhileStmt();
+			{
+			auto w = s->AsWhileStmt();
 
-				StartConfluenceBlock(s);
+			StartConfluenceBlock(s);
 
-				auto cond_pred_stmt = w->CondPredStmt();
-				if ( cond_pred_stmt )
-					cond_pred_stmt->Traverse(this);
+			auto cond_pred_stmt = w->CondPredStmt();
+			if ( cond_pred_stmt )
+				cond_pred_stmt->Traverse(this);
 
-				// Important to traverse the condition in its version
-				// interpreted as a statement, so that when evaluating
-				// its variable usage, that's done in the context of
-				// *after* cond_pred_stmt executes, rather than as
-				// part of that execution.
-				auto cond_stmt = w->ConditionAsStmt();
-				cond_stmt->Traverse(this);
+			// Important to traverse the condition in its version
+			// interpreted as a statement, so that when evaluating
+			// its variable usage, that's done in the context of
+			// *after* cond_pred_stmt executes, rather than as
+			// part of that execution.
+			auto cond_stmt = w->ConditionAsStmt();
+			cond_stmt->Traverse(this);
 
-				auto body = w->Body();
-				body->Traverse(this);
+			auto body = w->Body();
+			body->Traverse(this);
 
-				if ( ! body->NoFlowAfter(false) )
-					BranchBackTo(curr_stmt, s, true);
+			if ( ! body->NoFlowAfter(false) )
+				BranchBackTo(curr_stmt, s, true);
 
-				EndConfluenceBlock();
+			EndConfluenceBlock();
 
-				return TC_ABORTSTMT;
-				}
+			return TC_ABORTSTMT;
+			}
 
 		case STMT_WHEN:
-				{
-				// ### punt on these for now, need to reflect on bindings.
-				return TC_ABORTSTMT;
-				}
+			{
+			// ### punt on these for now, need to reflect on bindings.
+			return TC_ABORTSTMT;
+			}
 
 		default:
 			return TC_CONTINUE;
@@ -212,21 +212,21 @@ TraversalCode GenIDDefs::PostStmt(const Stmt* s)
 	switch ( s->Tag() )
 		{
 		case STMT_INIT:
+			{
+			auto init = s->AsInitStmt();
+			auto& inits = init->Inits();
+
+			for ( const auto& id : inits )
 				{
-				auto init = s->AsInitStmt();
-				auto& inits = init->Inits();
+				auto id_t = id->GetType();
 
-				for ( const auto& id : inits )
-					{
-					auto id_t = id->GetType();
-
-					// Only aggregates get initialized.
-					if ( zeek::IsAggr(id->GetType()->Tag()) )
-						TrackID(id);
-					}
-
-				break;
+				// Only aggregates get initialized.
+				if ( zeek::IsAggr(id->GetType()->Tag()) )
+					TrackID(id);
 				}
+
+			break;
+			}
 
 		case STMT_RETURN:
 			ReturnAt(s);
@@ -237,20 +237,20 @@ TraversalCode GenIDDefs::PostStmt(const Stmt* s)
 			break;
 
 		case STMT_BREAK:
+			{
+			auto target = FindBreakTarget();
+
+			if ( target )
+				BranchBeyond(s, target, false);
+
+			else
 				{
-				auto target = FindBreakTarget();
-
-				if ( target )
-					BranchBeyond(s, target, false);
-
-				else
-					{
-					ASSERT(func_flavor == FUNC_FLAVOR_HOOK);
-					ReturnAt(s);
-					}
-
-				break;
+				ASSERT(func_flavor == FUNC_FLAVOR_HOOK);
+				ReturnAt(s);
 				}
+
+			break;
+			}
 
 		case STMT_FALLTHROUGH:
 			// No need to do anything, the work all occurs
@@ -275,28 +275,28 @@ TraversalCode GenIDDefs::PreExpr(const Expr* e)
 			break;
 
 		case EXPR_ASSIGN:
+			{
+			auto lhs = e->GetOp1();
+			auto op2 = e->GetOp2();
+
+			if ( lhs->Tag() == EXPR_LIST && op2->GetType()->Tag() != TYPE_ANY )
 				{
-				auto lhs = e->GetOp1();
-				auto op2 = e->GetOp2();
-
-				if ( lhs->Tag() == EXPR_LIST && op2->GetType()->Tag() != TYPE_ANY )
-					{
-					// This combination occurs only for assignments used
-					// to initialize table entries.  Treat it as references
-					// to both the lhs and the rhs, not as an assignment.
-					return TC_CONTINUE;
-					}
-
-				op2->Traverse(this);
-
-				if ( ! CheckLHS(lhs, op2) )
-					// Not a simple assignment (or group of assignments),
-					// so analyze the accesses to check for use of
-					// possibly undefined values.
-					lhs->Traverse(this);
-
-				return TC_ABORTSTMT;
+				// This combination occurs only for assignments used
+				// to initialize table entries.  Treat it as references
+				// to both the lhs and the rhs, not as an assignment.
+				return TC_CONTINUE;
 				}
+
+			op2->Traverse(this);
+
+			if ( ! CheckLHS(lhs, op2) )
+				// Not a simple assignment (or group of assignments),
+				// so analyze the accesses to check for use of
+				// possibly undefined values.
+				lhs->Traverse(this);
+
+			return TC_ABORTSTMT;
+			}
 
 		case EXPR_COND:
 			// Special hack.  We turn off checking for usage issues
@@ -314,17 +314,17 @@ TraversalCode GenIDDefs::PreExpr(const Expr* e)
 			return TC_ABORTSTMT;
 
 		case EXPR_LAMBDA:
-				{
-				auto l = static_cast<const LambdaExpr*>(e);
-				const auto& ids = l->OuterIDs();
+			{
+			auto l = static_cast<const LambdaExpr*>(e);
+			const auto& ids = l->OuterIDs();
 
-				for ( auto& id : ids )
-					CheckVarUsage(e, id);
+			for ( auto& id : ids )
+				CheckVarUsage(e, id);
 
-				// Don't descend into the lambda body - we'll analyze and
-				// optimize it separately, as its own function.
-				return TC_ABORTSTMT;
-				}
+			// Don't descend into the lambda body - we'll analyze and
+			// optimize it separately, as its own function.
+			return TC_ABORTSTMT;
+			}
 
 		default:
 			break;
@@ -360,28 +360,28 @@ bool GenIDDefs::CheckLHS(const ExprPtr& lhs, const ExprPtr& rhs)
 			return CheckLHS(lhs->GetOp1(), rhs);
 
 		case EXPR_NAME:
-				{
-				auto n = lhs->AsNameExpr();
-				TrackID(n->Id(), rhs);
-				return true;
-				}
+			{
+			auto n = lhs->AsNameExpr();
+			TrackID(n->Id(), rhs);
+			return true;
+			}
 
 		case EXPR_LIST:
-				{ // look for [a, b, c] = any_val
-				auto l = lhs->AsListExpr();
-				for ( const auto& expr : l->Exprs() )
-					{
-					if ( expr->Tag() != EXPR_NAME )
-						// This will happen for table initializers,
-						// for example.
-						return false;
+			{ // look for [a, b, c] = any_val
+			auto l = lhs->AsListExpr();
+			for ( const auto& expr : l->Exprs() )
+				{
+				if ( expr->Tag() != EXPR_NAME )
+					// This will happen for table initializers,
+					// for example.
+					return false;
 
-					auto n = expr->AsNameExpr();
-					TrackID(n->Id());
-					}
-
-				return true;
+				auto n = expr->AsNameExpr();
+				TrackID(n->Id());
 				}
+
+			return true;
+			}
 
 		case EXPR_FIELD:
 			// If we want to track record field initializations,

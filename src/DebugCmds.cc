@@ -3,6 +3,8 @@
 
 #include "zeek/DebugCmds.h"
 
+#include "zeek/zeek-config.h"
+
 #include <assert.h>
 #include <regex.h>
 #include <string.h>
@@ -21,7 +23,6 @@
 #include "zeek/Stmt.h"
 #include "zeek/Val.h"
 #include "zeek/util.h"
-#include "zeek/zeek-config.h"
 
 using namespace std;
 

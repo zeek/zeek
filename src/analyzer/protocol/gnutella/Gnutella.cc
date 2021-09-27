@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/gnutella/Gnutella.h"
 
+#include "zeek/zeek-config.h"
+
 #include <ctype.h>
 #include <algorithm>
 
@@ -10,7 +12,6 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/gnutella/events.bif.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::analyzer::gnutella
 	{

@@ -2,13 +2,14 @@
 
 #include "zeek/Obj.h"
 
+#include "zeek/zeek-config.h"
+
 #include <stdlib.h>
 
 #include "zeek/Desc.h"
 #include "zeek/File.h"
 #include "zeek/Func.h"
 #include "zeek/plugin/Manager.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek
 	{

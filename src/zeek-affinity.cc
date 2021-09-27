@@ -28,8 +28,10 @@ bool set_affinity(int core_number)
 
 #elif defined(__FreeBSD__)
 
+// clang-format off
 #include <sys/param.h>
 #include <sys/cpuset.h>
+// clang-format on
 
 namespace zeek
 	{

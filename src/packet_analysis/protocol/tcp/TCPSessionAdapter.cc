@@ -636,8 +636,8 @@ void TCPSessionAdapter::Process(bool is_orig, const struct tcphdr* tp, int len,
 		else
 			{
 			bool ack_underflow = false;
-			rel_ack =
-				get_relative_seq(peer, ack_seq, peer->AckSeq(), peer->AckWraps(), &ack_underflow);
+			rel_ack = get_relative_seq(peer, ack_seq, peer->AckSeq(), peer->AckWraps(),
+			                           &ack_underflow);
 
 			if ( ack_underflow )
 				{
@@ -1614,10 +1614,10 @@ void TCPSessionAdapter::AddExtraAnalyzers(Connection* conn)
 
 	if ( tcp_contents && ! reass )
 		{
-		static auto tcp_content_delivery_ports_orig =
-			id::find_val<TableVal>("tcp_content_delivery_ports_orig");
-		static auto tcp_content_delivery_ports_resp =
-			id::find_val<TableVal>("tcp_content_delivery_ports_resp");
+		static auto tcp_content_delivery_ports_orig = id::find_val<TableVal>(
+			"tcp_content_delivery_ports_orig");
+		static auto tcp_content_delivery_ports_resp = id::find_val<TableVal>(
+			"tcp_content_delivery_ports_resp");
 		const auto& dport = val_mgr->Port(ntohs(Conn()->RespPort()), TRANSPORT_TCP);
 
 		if ( ! reass )
@@ -1821,8 +1821,8 @@ int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 void TCPSessionAdapter::CheckRecording(bool need_contents, analyzer::tcp::TCP_Flags flags)
 	{
 	bool record_current_content = need_contents || Conn()->RecordContents();
-	bool record_current_packet =
-		Conn()->RecordPackets() || flags.SYN() || flags.FIN() || flags.RST();
+	bool record_current_packet = Conn()->RecordPackets() || flags.SYN() || flags.FIN() ||
+	                             flags.RST();
 
 	Conn()->SetRecordCurrentContent(record_current_content);
 	Conn()->SetRecordCurrentPacket(record_current_packet);

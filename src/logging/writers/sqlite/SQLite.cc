@@ -2,13 +2,14 @@
 
 #include "zeek/logging/writers/sqlite/SQLite.h"
 
+#include "zeek/zeek-config.h"
+
 #include <errno.h>
 #include <string>
 #include <vector>
 
 #include "zeek/logging/writers/sqlite/sqlite.bif.h"
 #include "zeek/threading/SerialTypes.h"
-#include "zeek/zeek-config.h"
 
 using namespace std;
 using zeek::threading::Field;
@@ -253,16 +254,16 @@ int SQLite::AddParams(Value* val, int pos)
 			return sqlite3_bind_int(st, pos, val->val.port_val.port);
 
 		case TYPE_SUBNET:
-				{
-				string out = io->Render(val->val.subnet_val);
-				return sqlite3_bind_text(st, pos, out.data(), out.size(), SQLITE_TRANSIENT);
-				}
+			{
+			string out = io->Render(val->val.subnet_val);
+			return sqlite3_bind_text(st, pos, out.data(), out.size(), SQLITE_TRANSIENT);
+			}
 
 		case TYPE_ADDR:
-				{
-				string out = io->Render(val->val.addr_val);
-				return sqlite3_bind_text(st, pos, out.data(), out.size(), SQLITE_TRANSIENT);
-				}
+			{
+			string out = io->Render(val->val.addr_val);
+			return sqlite3_bind_text(st, pos, out.data(), out.size(), SQLITE_TRANSIENT);
+			}
 
 		case TYPE_TIME:
 		case TYPE_INTERVAL:
@@ -273,59 +274,59 @@ int SQLite::AddParams(Value* val, int pos)
 		case TYPE_STRING:
 		case TYPE_FILE:
 		case TYPE_FUNC:
-				{
-				if ( ! val->val.string_val.length || val->val.string_val.length == 0 )
-					return sqlite3_bind_null(st, pos);
+			{
+			if ( ! val->val.string_val.length || val->val.string_val.length == 0 )
+				return sqlite3_bind_null(st, pos);
 
-				return sqlite3_bind_text(st, pos, val->val.string_val.data,
-				                         val->val.string_val.length, SQLITE_TRANSIENT);
-				}
+			return sqlite3_bind_text(st, pos, val->val.string_val.data, val->val.string_val.length,
+			                         SQLITE_TRANSIENT);
+			}
 
 		case TYPE_TABLE:
-				{
-				ODesc desc;
-				desc.Clear();
-				desc.EnableEscaping();
-				desc.AddEscapeSequence(set_separator);
+			{
+			ODesc desc;
+			desc.Clear();
+			desc.EnableEscaping();
+			desc.AddEscapeSequence(set_separator);
 
-				if ( ! val->val.set_val.size )
-					desc.Add(empty_field);
-				else
-					for ( bro_int_t j = 0; j < val->val.set_val.size; j++ )
-						{
-						if ( j > 0 )
-							desc.AddRaw(set_separator);
+			if ( ! val->val.set_val.size )
+				desc.Add(empty_field);
+			else
+				for ( bro_int_t j = 0; j < val->val.set_val.size; j++ )
+					{
+					if ( j > 0 )
+						desc.AddRaw(set_separator);
 
-						io->Describe(&desc, val->val.set_val.vals[j], fields[pos - 1]->name);
-						}
+					io->Describe(&desc, val->val.set_val.vals[j], fields[pos - 1]->name);
+					}
 
-				desc.RemoveEscapeSequence(set_separator);
-				return sqlite3_bind_text(st, pos, (const char*)desc.Bytes(), desc.Len(),
-				                         SQLITE_TRANSIENT);
-				}
+			desc.RemoveEscapeSequence(set_separator);
+			return sqlite3_bind_text(st, pos, (const char*)desc.Bytes(), desc.Len(),
+			                         SQLITE_TRANSIENT);
+			}
 
 		case TYPE_VECTOR:
-				{
-				ODesc desc;
-				desc.Clear();
-				desc.EnableEscaping();
-				desc.AddEscapeSequence(set_separator);
+			{
+			ODesc desc;
+			desc.Clear();
+			desc.EnableEscaping();
+			desc.AddEscapeSequence(set_separator);
 
-				if ( ! val->val.vector_val.size )
-					desc.Add(empty_field);
-				else
-					for ( bro_int_t j = 0; j < val->val.vector_val.size; j++ )
-						{
-						if ( j > 0 )
-							desc.AddRaw(set_separator);
+			if ( ! val->val.vector_val.size )
+				desc.Add(empty_field);
+			else
+				for ( bro_int_t j = 0; j < val->val.vector_val.size; j++ )
+					{
+					if ( j > 0 )
+						desc.AddRaw(set_separator);
 
-						io->Describe(&desc, val->val.vector_val.vals[j], fields[pos - 1]->name);
-						}
+					io->Describe(&desc, val->val.vector_val.vals[j], fields[pos - 1]->name);
+					}
 
-				desc.RemoveEscapeSequence(set_separator);
-				return sqlite3_bind_text(st, pos, (const char*)desc.Bytes(), desc.Len(),
-				                         SQLITE_TRANSIENT);
-				}
+			desc.RemoveEscapeSequence(set_separator);
+			return sqlite3_bind_text(st, pos, (const char*)desc.Bytes(), desc.Len(),
+			                         SQLITE_TRANSIENT);
+			}
 
 		default:
 			Error(Fmt("unsupported field format %d", val->type));

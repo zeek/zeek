@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <broker/expected.hh>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-
-#include "zeek/zeek-config.h"
 
 namespace broker
 	{

@@ -2,10 +2,11 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <zlib.h>
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::analyzer::zip
 	{

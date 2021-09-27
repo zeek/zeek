@@ -127,17 +127,17 @@ bool CPPCompile::AddConstant(const ValPtr& vp)
 
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
-				{
-				auto prefix = (tag == TYPE_ADDR) ? "Addr" : "SubNet";
+			{
+			auto prefix = (tag == TYPE_ADDR) ? "Addr" : "SubNet";
 
-				Emit("%sValPtr %s;", prefix, const_name);
+			Emit("%sValPtr %s;", prefix, const_name);
 
-				ODesc d;
-				v->Describe(&d);
+			ODesc d;
+			v->Describe(&d);
 
-				AddInit(v, const_name,
-				        string("make_intrusive<") + prefix + "Val>(\"" + d.Description() + "\")");
-				}
+			AddInit(v, const_name,
+			        string("make_intrusive<") + prefix + "Val>(\"" + d.Description() + "\")");
+			}
 			break;
 
 		case TYPE_FUNC:
@@ -151,15 +151,15 @@ bool CPPCompile::AddConstant(const ValPtr& vp)
 			break;
 
 		case TYPE_FILE:
-				{
-				Emit("FileValPtr %s;", const_name);
+			{
+			Emit("FileValPtr %s;", const_name);
 
-				auto f = cast_intrusive<FileVal>(vp)->Get();
+			auto f = cast_intrusive<FileVal>(vp)->Get();
 
-				AddInit(v, const_name,
-				        string("make_intrusive<FileVal>(") + "make_intrusive<File>(\"" + f->Name() +
-				            "\", \"w\"))");
-				}
+			AddInit(v, const_name,
+			        string("make_intrusive<FileVal>(") + "make_intrusive<File>(\"" + f->Name() +
+			            "\", \"w\"))");
+			}
 			break;
 
 		default:

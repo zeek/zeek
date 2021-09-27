@@ -199,20 +199,20 @@ bool Binary::DoUpdate()
 		switch ( Info().mode )
 			{
 			case MODE_REREAD:
+				{
+				switch ( UpdateModificationTime() )
 					{
-					switch ( UpdateModificationTime() )
-						{
-						case -1:
-							return false; // error
-						case 0:
-							return true; // no change
-						case 1:
-							break; // file changed. reread.
-						default:
-							assert(false);
-						}
-					// fallthrough
+					case -1:
+						return false; // error
+					case 0:
+						return true; // no change
+					case 1:
+						break; // file changed. reread.
+					default:
+						assert(false);
 					}
+				// fallthrough
+				}
 
 			case MODE_MANUAL:
 			case MODE_STREAM:

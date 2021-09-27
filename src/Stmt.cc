@@ -2,6 +2,8 @@
 
 #include "zeek/Stmt.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/CompHash.h"
 #include "zeek/Debug.h"
 #include "zeek/Desc.h"
@@ -19,7 +21,6 @@
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/logging.bif.h"
 #include "zeek/script_opt/StmtOptInfo.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{
@@ -344,18 +345,18 @@ void do_print_stmt(const std::vector<ValPtr>& vals)
 		++offset;
 		}
 
-	static auto print_log_type =
-		static_cast<BifEnum::Log::PrintLogType>(id::find_val("Log::print_to_log")->AsEnum());
+	static auto print_log_type = static_cast<BifEnum::Log::PrintLogType>(
+		id::find_val("Log::print_to_log")->AsEnum());
 
 	switch ( print_log_type )
 		{
 		case BifEnum::Log::REDIRECT_NONE:
 			break;
 		case BifEnum::Log::REDIRECT_ALL:
-				{
-				print_log(vals);
-				return;
-				}
+			{
+			print_log(vals);
+			return;
+			}
 		case BifEnum::Log::REDIRECT_STDOUT:
 			if ( f->FileHandle() == stdout )
 				{
@@ -764,35 +765,35 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
 						{
 						// Simplify trivial unary plus/minus expressions on consts.
 						case EXPR_NEGATE:
-								{
-								NegExpr* ne = (NegExpr*)(expr);
+							{
+							NegExpr* ne = (NegExpr*)(expr);
 
-								if ( ne->Op()->IsConst() )
-									Unref(exprs.replace(j, new ConstExpr(ne->Eval(nullptr))));
-								}
+							if ( ne->Op()->IsConst() )
+								Unref(exprs.replace(j, new ConstExpr(ne->Eval(nullptr))));
+							}
 							break;
 
 						case EXPR_POSITIVE:
-								{
-								PosExpr* pe = (PosExpr*)(expr);
+							{
+							PosExpr* pe = (PosExpr*)(expr);
 
-								if ( pe->Op()->IsConst() )
-									Unref(exprs.replace(j, new ConstExpr(pe->Eval(nullptr))));
-								}
+							if ( pe->Op()->IsConst() )
+								Unref(exprs.replace(j, new ConstExpr(pe->Eval(nullptr))));
+							}
 							break;
 
 						case EXPR_NAME:
+							{
+							NameExpr* ne = (NameExpr*)(expr);
+
+							if ( ne->Id()->IsConst() )
 								{
-								NameExpr* ne = (NameExpr*)(expr);
+								auto v = ne->Eval(nullptr);
 
-								if ( ne->Id()->IsConst() )
-									{
-									auto v = ne->Eval(nullptr);
-
-									if ( v )
-										Unref(exprs.replace(j, new ConstExpr(std::move(v))));
-									}
+								if ( v )
+									Unref(exprs.replace(j, new ConstExpr(std::move(v))));
 								}
+							}
 							break;
 
 						default:

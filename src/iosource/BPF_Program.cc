@@ -2,9 +2,9 @@
 
 #include "zeek/iosource/BPF_Program.h"
 
-#include <string.h>
-
 #include "zeek/zeek-config.h"
+
+#include <string.h>
 
 #ifdef DONT_HAVE_LIBPCAP_PCAP_FREECODE
 extern "C"

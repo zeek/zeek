@@ -392,13 +392,15 @@ void SegmentProfiler::Report()
 	struct rusage final_rusage;
 	getrusage(RUSAGE_SELF, &final_rusage);
 
-	double start_time =
-		double(initial_rusage.ru_utime.tv_sec) + double(initial_rusage.ru_utime.tv_usec) / 1e6 +
-		double(initial_rusage.ru_stime.tv_sec) + double(initial_rusage.ru_stime.tv_usec) / 1e6;
+	double start_time = double(initial_rusage.ru_utime.tv_sec) +
+	                    double(initial_rusage.ru_utime.tv_usec) / 1e6 +
+	                    double(initial_rusage.ru_stime.tv_sec) +
+	                    double(initial_rusage.ru_stime.tv_usec) / 1e6;
 
-	double stop_time =
-		double(final_rusage.ru_utime.tv_sec) + double(final_rusage.ru_utime.tv_usec) / 1e6 +
-		double(final_rusage.ru_stime.tv_sec) + double(final_rusage.ru_stime.tv_usec) / 1e6;
+	double stop_time = double(final_rusage.ru_utime.tv_sec) +
+	                   double(final_rusage.ru_utime.tv_usec) / 1e6 +
+	                   double(final_rusage.ru_stime.tv_sec) +
+	                   double(final_rusage.ru_stime.tv_usec) / 1e6;
 
 	int start_mem = initial_rusage.ru_maxrss * 1024;
 	int stop_mem = initial_rusage.ru_maxrss * 1024;

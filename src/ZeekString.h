@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <sys/types.h>
 #include <iosfwd>
 #include <string>
 #include <vector>
-
-#include "zeek/zeek-config.h"
 
 namespace zeek
 	{

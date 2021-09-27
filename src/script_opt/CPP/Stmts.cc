@@ -18,15 +18,15 @@ void CPPCompile::GenStmt(const Stmt* s)
 			break;
 
 		case STMT_LIST:
-				{
-				// These always occur in contexts surrounded by {}'s,
-				// so no need to add them explicitly.
-				auto sl = s->AsStmtList();
-				const auto& stmts = sl->Stmts();
+			{
+			// These always occur in contexts surrounded by {}'s,
+			// so no need to add them explicitly.
+			auto sl = s->AsStmtList();
+			const auto& stmts = sl->Stmts();
 
-				for ( const auto& stmt : stmts )
-					GenStmt(stmt);
-				}
+			for ( const auto& stmt : stmts )
+				GenStmt(stmt);
+			}
 			break;
 
 		case STMT_EXPR:
@@ -82,10 +82,10 @@ void CPPCompile::GenStmt(const Stmt* s)
 			break;
 
 		case STMT_PRINT:
-				{
-				auto el = static_cast<const ExprListStmt*>(s)->ExprList();
-				Emit("do_print_stmt({%s});", GenExpr(el, GEN_VAL_PTR));
-				}
+			{
+			auto el = static_cast<const ExprListStmt*>(s)->ExprList();
+			Emit("do_print_stmt({%s});", GenExpr(el, GEN_VAL_PTR));
+			}
 			break;
 
 		case STMT_FALLTHROUGH:

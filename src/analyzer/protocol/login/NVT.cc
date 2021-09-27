@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/login/NVT.h"
 
+#include "zeek/zeek-config.h"
+
 #include <stdlib.h>
 
 #include "zeek/Event.h"
@@ -10,7 +12,6 @@
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/login/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/zeek-config.h"
 
 #define IS_3_BYTE_OPTION(c) (c >= 251 && c <= 254)
 
@@ -207,20 +208,19 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
 	switch ( data[0] )
 		{
 		case HERE_IS_AUTHENTICATION:
+			{
+			TelnetAuthenticateOption* peer = (TelnetAuthenticateOption*)endp->FindPeerOption(code);
+
+			if ( ! peer )
 				{
-				TelnetAuthenticateOption* peer =
-					(TelnetAuthenticateOption*)endp->FindPeerOption(code);
-
-				if ( ! peer )
-					{
-					reporter->AnalyzerError(
-						endp, "option peer missing in TelnetAuthenticateOption::RecvSubOption");
-					return;
-					}
-
-				if ( ! peer->DidRequestAuthentication() )
-					InconsistentOption(0);
+				reporter->AnalyzerError(
+					endp, "option peer missing in TelnetAuthenticateOption::RecvSubOption");
+				return;
 				}
+
+			if ( ! peer->DidRequestAuthentication() )
+				InconsistentOption(0);
+			}
 			break;
 
 		case SEND_ME_AUTHENTICATION:
@@ -246,11 +246,11 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
 			break;
 
 		case AUTHENTICATION_NAME:
-				{
-				char* auth_name = new char[len];
-				util::safe_strncpy(auth_name, (char*)data + 1, len);
-				endp->SetAuthName(auth_name);
-				}
+			{
+			char* auth_name = new char[len];
+			util::safe_strncpy(auth_name, (char*)data + 1, len);
+			endp->SetAuthName(auth_name);
+			}
 			break;
 
 		default:

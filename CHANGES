@@ -1,3 +1,6 @@
+4.2.0-dev.233 | 2021-09-27 12:06:27 -0700
+
+  * Fix a number of issues with the initial pass of clang-format (Tim Wojtulewicz, Corelight)
 
 4.2.0-dev.224 | 2021-09-26 10:27:05 -0700
 

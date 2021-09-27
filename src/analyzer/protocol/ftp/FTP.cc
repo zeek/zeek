@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/ftp/FTP.h"
 
+#include "zeek/zeek-config.h"
+
 #include <stdlib.h>
 
 #include "zeek/Base64.h"
@@ -12,7 +14,6 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/ftp/events.bif.h"
 #include "zeek/analyzer/protocol/login/NVT.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::analyzer::ftp
 	{

@@ -362,43 +362,43 @@ void ZAMCompiler::ComputeFrameLifetimes()
 			{
 			case OP_NEXT_TABLE_ITER_VV:
 			case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
+				{
+				// These assign to an arbitrary long list of variables.
+				auto& iter_vars = inst->aux->loop_vars;
+				auto depth = inst->loop_depth;
+
+				for ( auto v : iter_vars )
 					{
-					// These assign to an arbitrary long list of variables.
-					auto& iter_vars = inst->aux->loop_vars;
-					auto depth = inst->loop_depth;
+					CheckSlotAssignment(v, inst);
 
-					for ( auto v : iter_vars )
-						{
-						CheckSlotAssignment(v, inst);
-
-						// Also mark it as usage throughout the
-						// loop.  Otherwise, we risk pruning the
-						// variable if it happens to not be used
-						// (which will mess up the iteration logic)
-						// or doubling it up with some other value
-						// inside the loop (which will fail when
-						// the loop var has memory management
-						// associated with it).
-						ExtendLifetime(v, EndOfLoop(inst, depth));
-						}
-
-					// No need to check the additional "var" associated
-					// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
-					// a slot-1 assignment.  However, similar to other
-					// loop variables, mark this as a usage.
-					if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV )
-						ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
+					// Also mark it as usage throughout the
+					// loop.  Otherwise, we risk pruning the
+					// variable if it happens to not be used
+					// (which will mess up the iteration logic)
+					// or doubling it up with some other value
+					// inside the loop (which will fail when
+					// the loop var has memory management
+					// associated with it).
+					ExtendLifetime(v, EndOfLoop(inst, depth));
 					}
+
+				// No need to check the additional "var" associated
+				// with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
+				// a slot-1 assignment.  However, similar to other
+				// loop variables, mark this as a usage.
+				if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV )
+					ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
+				}
 				break;
 
 			case OP_NEXT_TABLE_ITER_NO_VARS_VV:
 				break;
 
 			case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV:
-					{
-					auto depth = inst->loop_depth;
-					ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
-					}
+				{
+				auto depth = inst->loop_depth;
+				ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
+				}
 				break;
 
 			case OP_NEXT_VECTOR_ITER_VVV:
@@ -417,30 +417,30 @@ void ZAMCompiler::ComputeFrameLifetimes()
 			case OP_INIT_TABLE_LOOP_VV:
 			case OP_INIT_VECTOR_LOOP_VV:
 			case OP_INIT_STRING_LOOP_VV:
-					{
-					// For all of these, the scope of the aggregate being
-					// looped over is the entire loop, even if it doesn't
-					// directly appear in it, and not just the initializer.
-					// For all three, the aggregate is in v1.
-					ASSERT(i < insts1.size() - 1);
-					auto succ = insts1[i + 1];
-					ASSERT(succ->live);
-					auto depth = succ->loop_depth;
-					ExtendLifetime(inst->v1, EndOfLoop(succ, depth));
+				{
+				// For all of these, the scope of the aggregate being
+				// looped over is the entire loop, even if it doesn't
+				// directly appear in it, and not just the initializer.
+				// For all three, the aggregate is in v1.
+				ASSERT(i < insts1.size() - 1);
+				auto succ = insts1[i + 1];
+				ASSERT(succ->live);
+				auto depth = succ->loop_depth;
+				ExtendLifetime(inst->v1, EndOfLoop(succ, depth));
 
-					// Important: we skip the usual UsesSlots analysis
-					// below since we've already set it, and don't want
-					// to perturb ExtendLifetime's consistency check.
-					continue;
-					}
+				// Important: we skip the usual UsesSlots analysis
+				// below since we've already set it, and don't want
+				// to perturb ExtendLifetime's consistency check.
+				continue;
+				}
 
 			case OP_STORE_GLOBAL_V:
-					{
-					// Use of the global goes to here.
-					auto slot = frame_layout1[globalsI[inst->v1].id.get()];
-					ExtendLifetime(slot, EndOfLoop(inst, 1));
-					break;
-					}
+				{
+				// Use of the global goes to here.
+				auto slot = frame_layout1[globalsI[inst->v1].id.get()];
+				ExtendLifetime(slot, EndOfLoop(inst, 1));
+				break;
+				}
 
 			default:
 				// Look for slots in auxiliary information.
@@ -559,15 +559,15 @@ void ZAMCompiler::ReMapFrame()
 			{
 			case OP_NEXT_TABLE_ITER_VV:
 			case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
+				{
+				// Rewrite iteration variables.
+				auto& iter_vars = inst->aux->loop_vars;
+				for ( auto& v : iter_vars )
 					{
-					// Rewrite iteration variables.
-					auto& iter_vars = inst->aux->loop_vars;
-					for ( auto& v : iter_vars )
-						{
-						ASSERT(v >= 0 && v < n1_slots);
-						v = frame1_to_frame2[v];
-						}
+					ASSERT(v >= 0 && v < n1_slots);
+					v = frame1_to_frame2[v];
 					}
+				}
 				break;
 
 			default:

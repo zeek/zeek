@@ -2,6 +2,8 @@
 
 #include "zeek/Event.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Desc.h"
 #include "zeek/Func.h"
 #include "zeek/NetVar.h"
@@ -11,7 +13,6 @@
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
 #include "zeek/plugin/Manager.h"
-#include "zeek/zeek-config.h"
 
 zeek::EventMgr zeek::event_mgr;
 zeek::EventMgr& mgr = zeek::event_mgr;

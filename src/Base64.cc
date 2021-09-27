@@ -1,11 +1,12 @@
 #include "zeek/Base64.h"
 
+#include "zeek/zeek-config.h"
+
 #include <math.h>
 
 #include "zeek/Conn.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

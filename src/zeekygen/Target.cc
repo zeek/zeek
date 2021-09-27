@@ -81,38 +81,37 @@ static void write_plugin_components(FILE* f, const plugin::Plugin* p)
 		switch ( component->Type() )
 			{
 			case plugin::component::ANALYZER:
-					{
-					const analyzer::Component* c =
-						dynamic_cast<const analyzer::Component*>(component);
+				{
+				const analyzer::Component* c = dynamic_cast<const analyzer::Component*>(component);
 
-					if ( c )
-						write_analyzer_component(f, c);
-					else
-						reporter->InternalError("component type mismatch");
-					}
+				if ( c )
+					write_analyzer_component(f, c);
+				else
+					reporter->InternalError("component type mismatch");
+				}
 				break;
 
 			case plugin::component::PACKET_ANALYZER:
-					{
-					const packet_analysis::Component* c =
-						dynamic_cast<const packet_analysis::Component*>(component);
+				{
+				const packet_analysis::Component* c =
+					dynamic_cast<const packet_analysis::Component*>(component);
 
-					if ( c )
-						write_analyzer_component(f, c);
-					else
-						reporter->InternalError("component type mismatch");
-					}
+				if ( c )
+					write_analyzer_component(f, c);
+				else
+					reporter->InternalError("component type mismatch");
+				}
 				break;
 
 			case plugin::component::FILE_ANALYZER:
-					{
-					const auto* c = dynamic_cast<const file_analysis::Component*>(component);
+				{
+				const auto* c = dynamic_cast<const file_analysis::Component*>(component);
 
-					if ( c )
-						write_analyzer_component(f, c);
-					else
-						reporter->InternalError("component type mismatch");
-					}
+				if ( c )
+					write_analyzer_component(f, c);
+				else
+					reporter->InternalError("component type mismatch");
+				}
 				break;
 
 			case plugin::component::READER:

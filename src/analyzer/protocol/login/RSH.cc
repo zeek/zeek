@@ -2,11 +2,12 @@
 
 #include "zeek/analyzer/protocol/login/RSH.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/login/events.bif.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::analyzer::login
 	{

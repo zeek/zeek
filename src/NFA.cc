@@ -2,12 +2,13 @@
 
 #include "zeek/NFA.h"
 
+#include "zeek/zeek-config.h"
+
 #include <algorithm>
 
 #include "zeek/Desc.h"
 #include "zeek/EquivClass.h"
 #include "zeek/IntSet.h"
-#include "zeek/zeek-config.h"
 
 namespace zeek::detail
 	{

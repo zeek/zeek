@@ -1,5 +1,7 @@
 #include "zeek/PolicyFile.h"
 
+#include "zeek/zeek-config.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -12,7 +14,6 @@
 #include "zeek/Debug.h"
 #include "zeek/Reporter.h"
 #include "zeek/util.h"
-#include "zeek/zeek-config.h"
 
 using namespace std;
 

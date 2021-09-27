@@ -3,6 +3,8 @@
 
 #include "zeek/ID.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Attr.h"
 #include "zeek/Desc.h"
 #include "zeek/Dict.h"
@@ -16,7 +18,6 @@
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/IDOptInfo.h"
-#include "zeek/zeek-config.h"
 #include "zeek/zeekygen/IdentifierInfo.h"
 #include "zeek/zeekygen/Manager.h"
 #include "zeek/zeekygen/ScriptInfo.h"

@@ -13,8 +13,12 @@ defaults:
   run:
     shell: bash
 
+env:
+  IMAGE_NAME: zeek-image.tar
+  IMAGE_FILE: /tmp/zeek-image.tar
+
 jobs:
-  build:
+  docker-build:
     runs-on: ubuntu-latest
     env:
       TEST_TAG: zeek:latest
@@ -28,7 +32,7 @@ jobs:
       # so we avoid rebuilds of the same image after this step.
       - uses: docker/setup-buildx-action@v1
 
-      - name: Build
+      - name: Build image
         uses: docker/build-push-action@v2
         with:
           context: ./
@@ -40,6 +44,9 @@ jobs:
 
       - name: Run btests
         run: make -C docker/btest
+
+      - name: Save image tarball
+        run: docker save -o ${{ env.IMAGE_FILE }} ${{ env.TEST_TAG }}
 
       - name: Get version
         id: version
@@ -74,7 +81,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Push
+      - name: Push image
         # Only publish if we did compute a tag.
         if: github.repository == 'zeek/zeek' && github.event_name == 'push' && steps.target.outputs.tag != ''
         uses: docker/build-push-action@v2
@@ -87,7 +94,14 @@ jobs:
           tags: |
             zeekurity/${{ steps.target.outputs.tag }}
 
-      - name: Preserve artifacts
+      - name: Preserve image artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.IMAGE_NAME }}
+          path: ${{ env.IMAGE_FILE }}
+          retention-days: 1
+
+      - name: Preserve btest artifacts
         uses: actions/upload-artifact@v2
         if: failure()
         with:

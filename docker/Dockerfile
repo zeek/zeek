@@ -31,11 +31,10 @@ RUN apt-get -q update \
 COPY . /src/zeek
 RUN make -C /src/zeek distclean
 
+ARG CONFFLAGS="--generator=Ninja --build-type=Release"
+
 WORKDIR /src/zeek
-RUN ./configure \
-     --generator=Ninja \
-     --build-type=Release \
- && ninja -C build install
+RUN ./configure $CONFFLAGS && ninja -C build install
 
 # Final layer containing all artifacts.
 FROM debian:bullseye-slim AS final

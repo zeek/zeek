@@ -18,7 +18,7 @@ RUN apt-get -q update \
      libz-dev \
      make \
      python3-minimal \
-     python3-dev \
+     python3.9-dev \
      swig \
      ninja-build \
      python3-pip \
@@ -45,7 +45,7 @@ RUN apt-get -q update \
      ca-certificates \
      git \
      libmaxminddb0 \
-     libpython3.7 \
+     libpython3.9 \
      libpcap0.8 \
      libssl1.1 \
      libz1 \

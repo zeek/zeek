@@ -1,3 +1,7 @@
+4.2.0-dev.235 | 2021-09-28 10:04:46 -0700
+
+  * GHI-1766: Remove address from Site::private_address_space that converts into 0.0.0.0/0 (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.233 | 2021-09-27 12:06:27 -0700
 
   * Fix a number of issues with the initial pass of clang-format (Tim Wojtulewicz, Corelight)

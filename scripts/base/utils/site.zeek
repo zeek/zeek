@@ -87,8 +87,6 @@ export {
 		[::]/128,
 		# Loopback Address, see :rfc:`4291`
 		[::1]/128,
-		# IPv4-mapped Address, see :rfc:`4291`
-		[::ffff:0:0]/96,
 		# IPv4-IPv6 Translation, see :rfc:`8215`
 		[64:ff9b:1::]/48,
 		# Discard-Only Address Block, see :rfc:`6666`

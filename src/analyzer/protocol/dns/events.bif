@@ -721,9 +721,9 @@ event dns_SSHFP%(c: connection, msg: dns_msg, ans: dns_answer, algo: count, fpty
 ## loc: The parsed RDATA of LOC type record.
 event dns_LOC%(c: connection, msg: dns_msg, ans: dns_answer, loc: dns_loc_rr%);
 
-## Generated for DNS replies of type *SVCB*.
-## See `RFC draft <https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07>`__
-## for more information about the DNS SVCB/HTTPS resource records.
+## Generated for DNS replies of type *SVCB* (General Purpose Service Endpoints).
+## See `RFC draft for DNS SVCB/HTTPS <https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07>`__
+## for more information about DNS SVCB/HTTPS resource records.
 ## For replies with multiple answers, an individual event of the corresponding type is raised for each.
 ##
 ## c: The connection, which may be UDP or TCP depending on the type of the
@@ -736,10 +736,10 @@ event dns_LOC%(c: connection, msg: dns_msg, ans: dns_answer, loc: dns_loc_rr%);
 ## svcb: The parsed RDATA of SVCB type record.
 event dns_SVCB%(c: connection, msg: dns_msg, ans: dns_answer, svcb: dns_svcb_rr%);
 
-## Generated for DNS replies of type *HTTPS*. 
-## See `RFC draft <https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07>`__
-## for more information about the DNS SVCB/HTTPS resource records.
-## Since SVCB and HTTPS record share the same wire format layout, the argument https is dns_svcb_rr. 
+## Generated for DNS replies of type *HTTPS* (HTTPS Specific Service Endpoints). 
+## See `RFC draft for DNS SVCB/HTTPS <https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07>`__
+## for more information about DNS SVCB/HTTPS resource records.
+## Since SVCB and HTTPS records share the same wire format layout, the argument https is dns_svcb_rr. 
 ## For replies with multiple answers, an individual event of the corresponding type is raised for each.
 ##
 ## c: The connection, which may be UDP or TCP depending on the type of the
@@ -749,7 +749,7 @@ event dns_SVCB%(c: connection, msg: dns_msg, ans: dns_answer, svcb: dns_svcb_rr%
 ##
 ## ans: The type-independent part of the parsed answer record.
 ##
-## https: The parsed RDATA of SVCB type record.
+## https: The parsed RDATA of HTTPS type record.
 event dns_HTTPS%(c: connection, msg: dns_msg, ans: dns_answer, https: dns_svcb_rr%);
 
 ## Generated at the end of processing a DNS packet. This event is the last

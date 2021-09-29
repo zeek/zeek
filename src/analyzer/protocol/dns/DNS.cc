@@ -1727,11 +1727,11 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 		{
 			case detail::TYPE_SVCB:
 				analyzer->EnqueueConnEvent(dns_SVCB, analyzer->ConnVal(), msg->BuildHdrVal(),
-		                           msg->BuildAnswerVal(), msg->BuildSVCB_Val(&svcb_data));
+		                        	       msg->BuildAnswerVal(), msg->BuildSVCB_Val(&svcb_data));
 				break;
 			case detail::TYPE_HTTPS:
 				analyzer->EnqueueConnEvent(dns_HTTPS, analyzer->ConnVal(), msg->BuildHdrVal(),
-		                           msg->BuildAnswerVal(), msg->BuildSVCB_Val(&svcb_data));
+		                        		  msg->BuildAnswerVal(), msg->BuildSVCB_Val(&svcb_data));
 				break;
 			default: break; // unreachable. for suppressing compiler warnings.
 		}
@@ -2046,7 +2046,7 @@ RecordValPtr DNS_MsgInfo::BuildSVCB_Val(SVCB_DATA* svcb)
 	r->Assign(0, svcb->svc_priority);
 	r->Assign(1, make_intrusive<StringVal>(svcb->target_name));
 
-	// TODO: assign svcparams
+	// TODO: assign values to svcparams
 	return r;
 	}
 

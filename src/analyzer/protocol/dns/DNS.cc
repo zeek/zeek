@@ -345,6 +345,14 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
 			status = ParseRR_LOC(msg, data, len, rdlength, msg_start);
 			break;
 
+		case detail::TYPE_SVCB:
+			status = ParseRR_SVCB(msg, data, len, rdlength, msg_start, TYPE_SVCB);
+			break;
+
+		case detail::TYPE_HTTPS:
+			status = ParseRR_SVCB(msg, data, len, rdlength, msg_start, TYPE_HTTPS);
+			break;	
+
 		default:
 
 			if ( dns_unknown_reply && ! msg->skip_event )
@@ -1687,6 +1695,39 @@ bool DNS_Interpreter::ParseRR_CAA(detail::DNS_MsgInfo* msg, const u_char*& data,
 	return rdlength == 0;
 	}
 
+bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, 
+								   int rdlength, const u_char* msg_start, const RR_Type& svcb_type)
+	{
+		unsigned short svc_priority = ExtractShort(data, len);
+
+		u_char target_name[513];
+		int name_len = sizeof(target_name) - 1;
+		u_char* name_end = ExtractName(data, len, target_name, name_len, msg_start, false);
+		if ( ! name_end )
+			return false;
+
+		SVCB_DATA svcb_data = {
+			.svc_priority = svc_priority,
+			.target_name = new String(target_name, name_end - target_name, true),
+			.svc_params = nullptr,
+		};
+
+		// TODO: parse svcparams
+
+		switch( svcb_type )
+		{
+			case detail::TYPE_SVCB:
+				analyzer->EnqueueConnEvent(dns_SVCB, analyzer->ConnVal(), msg->BuildHdrVal(),
+		                           msg->BuildAnswerVal(), msg->BuildSVCB_Val(&svcb_data));
+				break;
+			case detail::TYPE_HTTPS:
+				analyzer->EnqueueConnEvent(dns_HTTPS, analyzer->ConnVal(), msg->BuildHdrVal(),
+		                           msg->BuildAnswerVal(), msg->BuildSVCB_Val(&svcb_data));
+				break;
+		}
+		return true;
+	}
+
 void DNS_Interpreter::SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHandlerPtr event,
                                              const u_char*& data, int& len, String* question_name,
                                              String* original_name)
@@ -1985,6 +2026,18 @@ RecordValPtr DNS_MsgInfo::BuildLOC_Val(LOC_DATA* loc)
 	r->Assign(9, is_query);
 
 	return r;
+	}
+
+RecordValPtr DNS_MsgInfo::BuildSVCB_Val(SVCB_DATA* svcb)
+	{
+	static auto dns_svcb_rr = id::find_type<RecordType>("dns_svcb_rr");
+	auto r = make_intrusive<RecordVal>(dns_svcb_rr);
+
+	r->Assign(0, svcb->svc_priority);
+	r->Assign(1, make_intrusive<StringVal>(svcb->target_name));
+
+	// TODO: assign svcparams
+	return dns_svcb_rr;
 	}
 
 	} // namespace detail

@@ -71,6 +71,8 @@ enum RR_Type
 	TYPE_DS = 43, ///< Delegation signer (RFC 4034)
 	TYPE_NSEC3 = 50,
 	TYPE_NSEC3PARAM = 51, ///< Contains the NSEC3 parameters (RFC 5155)
+	TYPE_SVCB = 64, ///< SerViCe Binding (RFC draft: https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07#section-1.1)
+	TYPE_HTTPS = 65, ///< HTTPS record (HTTPS specific SVCB resource record)
 	// Obsoleted
 	TYPE_SPF = 99, ///< Alternative: storing SPF data in TXT records, using the same format (RFC
 	               ///< 4408). Support for it was discontinued in RFC 7208
@@ -146,6 +148,18 @@ enum DNSSEC_Digest
 	SHA256 = 2,
 	GOST_R_34_11_94 = 3,
 	SHA384 = 4,
+	};
+
+///< all keys are defined in RFC draft https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07#section-14.3.2
+enum SVCPARAM_Key
+	{
+		mandatory = 0,
+		alpn = 1,
+		no_default_alpn = 2,
+		port = 3,
+		ipv4hint = 4,
+		ech = 5,
+		ipv6hint = 6,
 	};
 
 struct DNS_RawMsgHdr
@@ -269,6 +283,20 @@ struct LOC_DATA
 	unsigned long altitude; // 32
 	};
 
+struct SVCB_DATA
+	{
+	unsigned short svc_priority; // 2
+	String* target_name;
+	SVCPARAM_KV* svc_params;
+	}
+
+struct SVCPARAM_KV
+	{
+		String* key;
+		String* value;
+		SVCPARAM_KV* next;
+	};
+
 class DNS_MsgInfo
 	{
 public:
@@ -288,6 +316,7 @@ public:
 	RecordValPtr BuildDS_Val(struct DS_DATA*);
 	RecordValPtr BuildBINDS_Val(struct BINDS_DATA*);
 	RecordValPtr BuildLOC_Val(struct LOC_DATA*);
+	RecordValPtr BuildSVCB_Val(struct SVCB_DATA*);
 
 	int id;
 	int opcode; ///< query type, see DNS_Opcode
@@ -393,6 +422,8 @@ protected:
 	                   const u_char* msg_start);
 	bool ParseRR_LOC(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
 	                 const u_char* msg_start);
+	bool ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
+	                 const u_char* msg_start, const RR_Type& svcb_type);
 	void SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHandlerPtr event,
 	                            const u_char*& data, int& len, String* question_name,
 	                            String* original_name);

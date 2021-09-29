@@ -3884,6 +3884,12 @@ type dns_loc_rr: record {
 	is_query: count;	##< The RR is a query/Response.
 };
 
+type dns_svcb_rr: record {
+	svc_priority: count;  ##< Service priority. (AliasMode? ServiceMode?)
+	target_name: string; ##< Target name, the hostname of the service endpoint.
+	svc_params: table[count] of vector of string; ##< service parameters as key-value pairs
+}
+
 # DNS answer types.
 #
 # .. zeek:see:: dns_answerr

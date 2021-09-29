@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#open	2021-09-29-11-39-42
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
+#types	time	string	addr	port	addr	port	string	string	bool	string	string
+1632928690.528268	CvVbVi3kNVC4LPU90f	192.168.1.99	62978	192.168.1.1	53	DNS_truncated_RR_rdlength_lt_len	-	F	zeek	DNS
+#close	2021-09-29-11-39-42

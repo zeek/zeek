@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dns
+#open	2021-09-29-11-39-42
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected	auth	addl
+#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool	set[string]	set[string]
+1632928690.500620	CvVbVi3kNVC4LPU90f	192.168.1.99	62978	192.168.1.1	53	udp	62111	-	cloudflare.com	1	C_INTERNET	65	HTTPS	0	NOERROR	F	F	T	F	2	-	-	F	-	-
+#close	2021-09-29-11-39-42

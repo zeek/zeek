@@ -287,14 +287,7 @@ struct SVCB_DATA
 	{
 	unsigned short svc_priority; // 2
 	String* target_name;
-	SVCPARAM_KV* svc_params;
-	}
-
-struct SVCPARAM_KV
-	{
-		String* key;
-		String* value;
-		SVCPARAM_KV* next;
+	Dictionary svc_params;
 	};
 
 class DNS_MsgInfo

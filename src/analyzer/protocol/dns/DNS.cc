@@ -1709,7 +1709,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 		SVCB_DATA svcb_data = {
 			.svc_priority = svc_priority,
 			.target_name = new String(target_name, name_end - target_name, true),
-			.svc_params = nullptr,
+			.svc_params = Dictionary(),
 		};
 
 		// TODO: parse svcparams
@@ -2037,7 +2037,7 @@ RecordValPtr DNS_MsgInfo::BuildSVCB_Val(SVCB_DATA* svcb)
 	r->Assign(1, make_intrusive<StringVal>(svcb->target_name));
 
 	// TODO: assign svcparams
-	return dns_svcb_rr;
+	return r;
 	}
 
 	} // namespace detail

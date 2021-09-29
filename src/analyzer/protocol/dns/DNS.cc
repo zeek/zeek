@@ -1706,6 +1706,15 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 		if ( ! name_end )
 			return false;
 
+		// target name can be root - in this case the alternative endpoint is
+		// qname itself. make sure that we print "." instead of an empty string
+		if ( name_end - target_name == 0 )
+			{
+			target_name[0] = '.';
+			target_name[1] = '\0';
+			name_end = target_name+1;
+			}
+
 		SVCB_DATA svcb_data = {
 			.svc_priority = svc_priority,
 			.target_name = new String(target_name, name_end - target_name, true),
@@ -1724,6 +1733,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 				analyzer->EnqueueConnEvent(dns_HTTPS, analyzer->ConnVal(), msg->BuildHdrVal(),
 		                           msg->BuildAnswerVal(), msg->BuildSVCB_Val(&svcb_data));
 				break;
+			default: break; // unreachable. for suppressing compiler warnings.
 		}
 		return true;
 	}

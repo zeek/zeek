@@ -3885,9 +3885,9 @@ type dns_loc_rr: record {
 };
 
 type dns_svcb_rr: record {
-	svc_priority: count;  ##< Service priority. (AliasMode? ServiceMode?)
-	target_name: string; ##< Target name, the hostname of the service endpoint.
-	svc_params: table[count] of vector of string; ##< service parameters as key-value pairs
+	svc_priority: count;	##< Service priority. (AliasMode? ServiceMode?)
+	target_name: string;	##< Target name, the hostname of the service endpoint.
+	svc_params: table[count] of vector of string;	##< service parameters as key-value pairs
 };
 
 # DNS answer types.

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "zeek/Tag.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
 #include "zeek/packet_analysis/Analyzer.h"
@@ -42,7 +43,7 @@ public:
 	void AddChildPacketAnalyzer(analyzer::Analyzer* a);
 
 	Analyzer* FindChild(analyzer::ID id) override;
-	Analyzer* FindChild(analyzer::Tag tag) override;
+	Analyzer* FindChild(zeek::Tag tag) override;
 	bool RemoveChildAnalyzer(analyzer::ID id) override;
 
 	// True if the connection has closed in some sense, false otherwise.

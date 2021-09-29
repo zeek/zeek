@@ -196,7 +196,7 @@ void IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 		if ( ! analyzers_by_port.empty() && ! zeek::detail::dpd_ignore_ports )
 			{
 			int resp_port = ntohs(conn->RespPort());
-			std::set<analyzer::Tag>* ports = LookupPort(resp_port, false);
+			std::set<zeek::Tag>* ports = LookupPort(resp_port, false);
 
 			if ( ports )
 				{
@@ -227,7 +227,7 @@ void IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 	PLUGIN_HOOK_VOID(HOOK_SETUP_ANALYZER_TREE, HookSetupAnalyzerTree(conn));
 	}
 
-bool IPBasedAnalyzer::RegisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port)
+bool IPBasedAnalyzer::RegisterAnalyzerForPort(const zeek::Tag& tag, uint32_t port)
 	{
 	tag_set* l = LookupPort(port, true);
 
@@ -243,7 +243,7 @@ bool IPBasedAnalyzer::RegisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t
 	return true;
 	}
 
-bool IPBasedAnalyzer::UnregisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port)
+bool IPBasedAnalyzer::UnregisterAnalyzerForPort(const zeek::Tag& tag, uint32_t port)
 	{
 	tag_set* l = LookupPort(port, true);
 

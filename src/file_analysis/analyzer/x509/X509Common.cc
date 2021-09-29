@@ -17,7 +17,7 @@
 namespace zeek::file_analysis::detail
 	{
 
-X509Common::X509Common(const file_analysis::Tag& arg_tag, RecordValPtr arg_args,
+X509Common::X509Common(const zeek::Tag& arg_tag, RecordValPtr arg_args,
                        file_analysis::File* arg_file)
 	: file_analysis::Analyzer(arg_tag, std::move(arg_args), arg_file)
 	{

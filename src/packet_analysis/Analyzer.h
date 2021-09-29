@@ -1,9 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 #pragma once
 
+#include "zeek/Tag.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/Manager.h"
-#include "zeek/packet_analysis/Tag.h"
 
 namespace zeek::packet_analysis
 	{
@@ -31,7 +31,7 @@ public:
 	 * @param tag The tag for the type of analyzer. The tag must map to
 	 * the name the corresponding Component registers.
 	 */
-	explicit Analyzer(const Tag& tag);
+	explicit Analyzer(const zeek::Tag& tag);
 
 	/**
 	 * Destructor.
@@ -50,7 +50,7 @@ public:
 	/**
 	 * Returns the tag associated with the analyzer's type.
 	 */
-	const Tag GetAnalyzerTag() const;
+	const zeek::Tag GetAnalyzerTag() const;
 
 	/**
 	 * Returns a textual description of the analyzer's type. This is
@@ -165,7 +165,7 @@ protected:
 	void Weird(const char* name, Packet* packet = nullptr, const char* addl = "") const;
 
 private:
-	Tag tag;
+	zeek::Tag tag;
 	Dispatcher dispatcher;
 	AnalyzerPtr default_analyzer = nullptr;
 
@@ -174,7 +174,7 @@ private:
 	 */
 	bool report_unknown_protocols = true;
 
-	void Init(const Tag& tag);
+	void Init(const zeek::Tag& tag);
 	};
 
 using AnalyzerPtr = std::shared_ptr<Analyzer>;

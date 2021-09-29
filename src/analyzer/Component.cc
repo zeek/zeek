@@ -10,7 +10,7 @@ namespace zeek::analyzer
 	{
 
 Component::Component(const std::string& name, factory_callback arg_factory,
-                     Tag::subtype_t arg_subtype, bool arg_enabled, bool arg_partial,
+                     zeek::Tag::subtype_t arg_subtype, bool arg_enabled, bool arg_partial,
                      bool arg_adapter)
 	: plugin::Component(
 		  arg_adapter ? plugin::component::SESSION_ADAPTER : plugin::component::ANALYZER, name),

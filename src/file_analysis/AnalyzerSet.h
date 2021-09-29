@@ -6,7 +6,7 @@
 #include <queue>
 
 #include "zeek/Dict.h"
-#include "zeek/file_analysis/Tag.h"
+#include "zeek/Tag.h"
 
 namespace zeek
 	{
@@ -55,7 +55,7 @@ public:
 	 * @param args an \c AnalyzerArgs record.
 	 * @return pointer to an analyzer instance, or a null pointer if not found.
 	 */
-	Analyzer* Find(const file_analysis::Tag& tag, RecordValPtr args);
+	Analyzer* Find(const zeek::Tag& tag, RecordValPtr args);
 
 	/**
 	 * Attach an analyzer to #file immediately.
@@ -63,7 +63,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer was instantiated/attached, else false.
 	 */
-	bool Add(const file_analysis::Tag& tag, RecordValPtr args);
+	bool Add(const zeek::Tag& tag, RecordValPtr args);
 
 	/**
 	 * Queue the attachment of an analyzer to #file.
@@ -72,7 +72,7 @@ public:
 	 * @return if successful, a pointer to a newly instantiated analyzer else
 	 * a null pointer.  The caller does *not* take ownership of the memory.
 	 */
-	file_analysis::Analyzer* QueueAdd(const file_analysis::Tag& tag, RecordValPtr args);
+	file_analysis::Analyzer* QueueAdd(const zeek::Tag& tag, RecordValPtr args);
 
 	/**
 	 * Remove an analyzer from #file immediately.
@@ -80,7 +80,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return false if analyzer didn't exist and so wasn't removed, else true.
 	 */
-	bool Remove(const file_analysis::Tag& tag, RecordValPtr args);
+	bool Remove(const zeek::Tag& tag, RecordValPtr args);
 
 	/**
 	 * Queue the removal of an analyzer from #file.
@@ -88,7 +88,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer exists at time of call, else false;
 	 */
-	bool QueueRemove(const file_analysis::Tag& tag, RecordValPtr args);
+	bool QueueRemove(const zeek::Tag& tag, RecordValPtr args);
 
 	/**
 	 * Perform all queued modifications to the current analyzer set.
@@ -146,8 +146,7 @@ protected:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return the hash key calculated from \a args
 	 */
-	std::unique_ptr<zeek::detail::HashKey> GetKey(const file_analysis::Tag& tag,
-	                                              RecordValPtr args) const;
+	std::unique_ptr<zeek::detail::HashKey> GetKey(const zeek::Tag& tag, RecordValPtr args) const;
 
 	/**
 	 * Create an instance of a file analyzer.
@@ -155,8 +154,7 @@ protected:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return a new file analyzer instance.
 	 */
-	file_analysis::Analyzer* InstantiateAnalyzer(const file_analysis::Tag& tag,
-	                                             RecordValPtr args) const;
+	file_analysis::Analyzer* InstantiateAnalyzer(const zeek::Tag& tag, RecordValPtr args) const;
 
 	/**
 	 * Insert an analyzer instance in to the set.
@@ -171,7 +169,7 @@ protected:
 	 *        just used for debugging messages.
 	 * @param key the hash key which represents the analyzer's \c AnalyzerArgs.
 	 */
-	bool Remove(const file_analysis::Tag& tag, std::unique_ptr<zeek::detail::HashKey> key);
+	bool Remove(const zeek::Tag& tag, std::unique_ptr<zeek::detail::HashKey> key);
 
 private:
 	File* file; /**< File which owns the set */
@@ -234,7 +232,7 @@ private:
 		 * @param arg_a an analyzer instance to add to an analyzer set.
 		 * @param arg_key hash key representing the analyzer's \c AnalyzerArgs.
 		 */
-		RemoveMod(const file_analysis::Tag& arg_tag, std::unique_ptr<zeek::detail::HashKey> arg_key)
+		RemoveMod(const zeek::Tag& arg_tag, std::unique_ptr<zeek::detail::HashKey> arg_key)
 			: Modification(), tag(arg_tag), key(std::move(arg_key))
 			{
 			}
@@ -243,7 +241,7 @@ private:
 		void Abort() override { }
 
 	protected:
-		file_analysis::Tag tag;
+		zeek::Tag tag;
 		std::unique_ptr<zeek::detail::HashKey> key;
 		};
 

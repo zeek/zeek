@@ -25,9 +25,9 @@
 
 #include "zeek/Dict.h"
 #include "zeek/IP.h"
+#include "zeek/Tag.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Component.h"
-#include "zeek/analyzer/Tag.h"
 #include "zeek/analyzer/analyzer.bif.h"
 #include "zeek/net_util.h"
 #include "zeek/plugin/ComponentManager.h"
@@ -50,7 +50,7 @@ namespace analyzer
  * Class maintaining and scheduling available protocol analyzers.
  *
  * The manager maintains a registry of all available protocol analyzers,
- * including a mapping between their textual names and analyzer::Tag. It
+ * including a mapping between their textual names and Tag. It
  * instantantiates new analyzers on demand. For new connections, the manager
  * sets up their initial analyzer tree, including adding the right \c PIA,
  * respecting well-known ports, and tracking any analyzers specifically
@@ -95,14 +95,14 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool EnableAnalyzer(const Tag& tag);
+	bool EnableAnalyzer(const zeek::Tag& tag);
 
 	/**
 	 * Enables an analyzer type. Only enabled analyzers will be
 	 * instantiated for new connections.
 	 *
 	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Analyzer::Tag.
+	 * Tag.
 	 *
 	 * @return True if successful.
 	 */
@@ -116,14 +116,14 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool DisableAnalyzer(const Tag& tag);
+	bool DisableAnalyzer(const zeek::Tag& tag);
 
 	/**
 	 * Disables an analyzer type. Disabled analyzers will not be
 	 * instantiated for new connections.
 	 *
 	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Analyzer::Tag.
+	 * Tag.
 	 *
 	 * @return True if successful.
 	 */
@@ -140,20 +140,20 @@ public:
 	 *
 	 * @param name The canonical analyzer name to check.
 	 */
-	Tag GetAnalyzerTag(const char* name);
+	zeek::Tag GetAnalyzerTag(const char* name);
 
 	/**
 	 * Returns true if an analyzer is enabled.
 	 *
 	 * @param tag The analyzer's tag.
 	 */
-	bool IsEnabled(const Tag& tag);
+	bool IsEnabled(const zeek::Tag& tag);
 
 	/**
 	 * Returns true if an analyzer is enabled.
 	 *
 	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Analyzer::Tag.
+	 * Tag.
 	 */
 	bool IsEnabled(EnumVal* tag);
 
@@ -163,7 +163,7 @@ public:
 	 * assigned.
 	 *
 	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Analyzer::Tag.
+	 * Tag.
 	 *
 	 * @param port The well-known port.
 	 *
@@ -184,13 +184,13 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port);
+	bool RegisterAnalyzerForPort(const zeek::Tag& tag, TransportProto proto, uint32_t port);
 
 	/**
 	 * Unregisters a well-known port for an anlyzers.
 	 *
 	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Analyzer::Tag.
+	 * Tag.
 	 *
 	 * @param port The well-known port.
 	 *
@@ -210,9 +210,9 @@ public:
 	 * @param port The port's number.
 	 *
 	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Analyzer::Tag.
+	 * Tag.
 	 */
-	bool UnregisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port);
+	bool UnregisterAnalyzerForPort(const zeek::Tag& tag, TransportProto proto, uint32_t port);
 
 	/**
 	 * Instantiates a new analyzer instance for a connection.
@@ -226,7 +226,7 @@ public:
 	 * null if tag is invalid, the requested analyzer is disabled, or the
 	 * analyzer can't be instantiated.
 	 */
-	Analyzer* InstantiateAnalyzer(const Tag& tag, Connection* c);
+	Analyzer* InstantiateAnalyzer(const zeek::Tag& tag, Connection* c);
 
 	/**
 	 * Instantiates a new analyzer instance for a connection.
@@ -263,7 +263,7 @@ public:
 	 * schedule this analyzer. Must be non-zero.
 	 */
 	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
-	                      TransportProto proto, const Tag& analyzer, double timeout);
+	                      TransportProto proto, const zeek::Tag& analyzer, double timeout);
 
 	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
@@ -321,7 +321,7 @@ public:
 	 * @param resp_p The connection's anticipated responder port.
 	 *
 	 * @param analyzer The analyzer to use once the connection is seen as
-	 * an enum value of script-type \c Analyzer::Tag.
+	 * an enum value of script-type \c Tag.
 	 *
 	 * @param timeout An interval after which to timeout the request to
 	 * schedule this analyzer. Must be non-zero.
@@ -336,11 +336,11 @@ public:
 
 private:
 	// Internal version that must be used only once InitPostScript has completed.
-	bool RegisterAnalyzerForPort(const std::tuple<Tag, TransportProto, uint32_t>& p);
+	bool RegisterAnalyzerForPort(const std::tuple<zeek::Tag, TransportProto, uint32_t>& p);
 
 	friend class packet_analysis::IP::IPBasedAnalyzer;
 
-	using tag_set = std::set<Tag>;
+	using tag_set = std::set<zeek::Tag>;
 
 	tag_set GetScheduled(const Connection* conn);
 	void ExpireScheduledAnalyzers();
@@ -365,7 +365,7 @@ private:
 	struct ScheduledAnalyzer
 		{
 		ConnIndex conn;
-		Tag analyzer;
+		zeek::Tag analyzer;
 		double timeout;
 
 		struct Comparator
@@ -377,7 +377,7 @@ private:
 			};
 		};
 
-	using protocol_analyzers = std::set<std::tuple<Tag, TransportProto, uint32_t>>;
+	using protocol_analyzers = std::set<std::tuple<zeek::Tag, TransportProto, uint32_t>>;
 	using conns_map = std::multimap<ConnIndex, ScheduledAnalyzer*>;
 	using conns_queue = std::priority_queue<ScheduledAnalyzer*, std::vector<ScheduledAnalyzer*>,
 	                                        ScheduledAnalyzer::Comparator>;

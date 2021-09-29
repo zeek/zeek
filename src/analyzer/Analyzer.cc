@@ -75,7 +75,7 @@ const char* Analyzer::GetAnalyzerName() const
 	return analyzer_mgr->GetComponentName(tag).c_str();
 	}
 
-void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
+void Analyzer::SetAnalyzerTag(const zeek::Tag& arg_tag)
 	{
 	assert(! tag || tag == arg_tag);
 	tag = arg_tag;
@@ -89,7 +89,7 @@ bool Analyzer::IsAnalyzer(const char* name)
 
 Analyzer::Analyzer(const char* name, Connection* conn)
 	{
-	Tag tag = analyzer_mgr->GetComponentTag(name);
+	zeek::Tag tag = analyzer_mgr->GetComponentTag(name);
 
 	if ( ! tag )
 		reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::Component?",
@@ -98,17 +98,17 @@ Analyzer::Analyzer(const char* name, Connection* conn)
 	CtorInit(tag, conn);
 	}
 
-Analyzer::Analyzer(const Tag& tag, Connection* conn)
+Analyzer::Analyzer(const zeek::Tag& tag, Connection* conn)
 	{
 	CtorInit(tag, conn);
 	}
 
 Analyzer::Analyzer(Connection* conn)
 	{
-	CtorInit(Tag(), conn);
+	CtorInit(zeek::Tag(), conn);
 	}
 
-void Analyzer::CtorInit(const Tag& arg_tag, Connection* arg_conn)
+void Analyzer::CtorInit(const zeek::Tag& arg_tag, Connection* arg_conn)
 	{
 	// Don't Ref conn here to avoid circular ref'ing. It can't be deleted
 	// before us.
@@ -411,7 +411,7 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	return true;
 	}
 
-Analyzer* Analyzer::AddChildAnalyzer(const Tag& analyzer)
+Analyzer* Analyzer::AddChildAnalyzer(const zeek::Tag& analyzer)
 	{
 	if ( HasChildAnalyzer(analyzer) )
 		return nullptr;
@@ -466,7 +466,7 @@ bool Analyzer::Remove()
 	return removing;
 	}
 
-void Analyzer::PreventChildren(Tag tag)
+void Analyzer::PreventChildren(zeek::Tag tag)
 	{
 	auto it = std::find(prevented.begin(), prevented.end(), tag);
 
@@ -476,7 +476,7 @@ void Analyzer::PreventChildren(Tag tag)
 	prevented.emplace_back(tag);
 	}
 
-bool Analyzer::HasChildAnalyzer(Tag tag)
+bool Analyzer::HasChildAnalyzer(zeek::Tag tag)
 	{
 	LOOP_OVER_CHILDREN(i)
 	if ( (*i)->tag == tag )
@@ -511,7 +511,7 @@ Analyzer* Analyzer::FindChild(ID arg_id)
 	return nullptr;
 	}
 
-Analyzer* Analyzer::FindChild(Tag arg_tag)
+Analyzer* Analyzer::FindChild(zeek::Tag arg_tag)
 	{
 	if ( tag == arg_tag )
 		return this;
@@ -535,7 +535,7 @@ Analyzer* Analyzer::FindChild(Tag arg_tag)
 
 Analyzer* Analyzer::FindChild(const char* name)
 	{
-	Tag tag = analyzer_mgr->GetComponentTag(name);
+	zeek::Tag tag = analyzer_mgr->GetComponentTag(name);
 	return tag ? FindChild(tag) : nullptr;
 	}
 
@@ -607,7 +607,7 @@ void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 	return;
 	}
 
-bool Analyzer::HasSupportAnalyzer(const Tag& tag, bool orig)
+bool Analyzer::HasSupportAnalyzer(const zeek::Tag& tag, bool orig)
 	{
 	SupportAnalyzer* s = orig ? orig_supporters : resp_supporters;
 	for ( ; s; s = s->sibling )
@@ -677,7 +677,7 @@ void Analyzer::FlipRoles()
 	resp_supporters = tmp;
 	}
 
-void Analyzer::ProtocolConfirmation(Tag arg_tag)
+void Analyzer::ProtocolConfirmation(zeek::Tag arg_tag)
 	{
 	if ( protocol_confirmed )
 		return;

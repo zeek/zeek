@@ -46,6 +46,6 @@ function __name%(atype: Analyzer::Tag%) : string
 
 function __tag%(name: string%) : Analyzer::Tag
 	%{
-	analyzer::Tag t = zeek::analyzer_mgr->GetComponentTag(name->CheckString());
+	zeek::Tag t = zeek::analyzer_mgr->GetComponentTag(name->CheckString());
 	return t.AsVal();
 	%}

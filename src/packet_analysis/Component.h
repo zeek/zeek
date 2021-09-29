@@ -6,7 +6,7 @@
 
 #include <functional>
 
-#include "zeek/packet_analysis/Tag.h"
+#include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
 #include "zeek/plugin/TaggedComponent.h"
 #include "zeek/util.h"
@@ -22,7 +22,7 @@ class Component : public plugin::Component, public plugin::TaggedComponent
 public:
 	using factory_callback = std::function<AnalyzerPtr()>;
 
-	Component(const std::string& name, factory_callback factory, Tag::subtype_t subtype = 0);
+	Component(const std::string& name, factory_callback factory, zeek::Tag::subtype_t subtype = 0);
 	~Component() override = default;
 
 	/**

@@ -724,7 +724,7 @@ analyzer::Analyzer* TCPSessionAdapter::FindChild(analyzer::ID arg_id)
 	return nullptr;
 	}
 
-analyzer::Analyzer* TCPSessionAdapter::FindChild(analyzer::Tag arg_tag)
+analyzer::Analyzer* TCPSessionAdapter::FindChild(zeek::Tag arg_tag)
 	{
 	analyzer::Analyzer* child = packet_analysis::IP::SessionAdapter::FindChild(arg_tag);
 
@@ -1599,8 +1599,8 @@ bool TCPSessionAdapter::IsReuse(double t, const u_char* pkt)
 
 void TCPSessionAdapter::AddExtraAnalyzers(Connection* conn)
 	{
-	static analyzer::Tag analyzer_connsize = analyzer_mgr->GetComponentTag("CONNSIZE");
-	static analyzer::Tag analyzer_tcpstats = analyzer_mgr->GetComponentTag("TCPSTATS");
+	static zeek::Tag analyzer_connsize = analyzer_mgr->GetComponentTag("CONNSIZE");
+	static zeek::Tag analyzer_tcpstats = analyzer_mgr->GetComponentTag("TCPSTATS");
 
 	// We have to decide whether to reassamble the stream.
 	// We turn it on right away if we already have an app-layer

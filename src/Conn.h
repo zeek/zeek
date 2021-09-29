@@ -11,12 +11,12 @@
 #include "zeek/IPAddr.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Rule.h"
+#include "zeek/Tag.h"
 #include "zeek/Timer.h"
 #include "zeek/UID.h"
 #include "zeek/WeirdState.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/analyzer/Analyzer.h"
-#include "zeek/analyzer/Tag.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/session/Session.h"
 
@@ -136,7 +136,7 @@ public:
 	void FlipRoles();
 
 	analyzer::Analyzer* FindAnalyzer(analyzer::ID id);
-	analyzer::Analyzer* FindAnalyzer(const analyzer::Tag& tag); // find first in tree.
+	analyzer::Analyzer* FindAnalyzer(const zeek::Tag& tag); // find first in tree.
 	analyzer::Analyzer* FindAnalyzer(const char* name); // find first in tree.
 
 	TransportProto ConnTransport() const { return proto; }

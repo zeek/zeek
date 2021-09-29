@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek/input/Tag.h"
+#include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
 #include "zeek/plugin/TaggedComponent.h"
 

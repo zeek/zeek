@@ -123,7 +123,7 @@ void Manager::DumpDebug()
 
 void Manager::Done() { }
 
-bool Manager::EnableAnalyzer(const Tag& tag)
+bool Manager::EnableAnalyzer(const zeek::Tag& tag)
 	{
 	Component* p = Lookup(tag);
 
@@ -149,7 +149,7 @@ bool Manager::EnableAnalyzer(EnumVal* val)
 	return true;
 	}
 
-bool Manager::DisableAnalyzer(const Tag& tag)
+bool Manager::DisableAnalyzer(const zeek::Tag& tag)
 	{
 	Component* p = Lookup(tag);
 
@@ -185,12 +185,12 @@ void Manager::DisableAllAnalyzers()
 		(*i)->SetEnabled(false);
 	}
 
-analyzer::Tag Manager::GetAnalyzerTag(const char* name)
+zeek::Tag Manager::GetAnalyzerTag(const char* name)
 	{
 	return GetComponentTag(name);
 	}
 
-bool Manager::IsEnabled(const Tag& tag)
+bool Manager::IsEnabled(const zeek::Tag& tag)
 	{
 	if ( ! tag )
 		return false;
@@ -233,7 +233,7 @@ bool Manager::UnregisterAnalyzerForPort(EnumVal* val, PortVal* port)
 	return UnregisterAnalyzerForPort(p->Tag(), port->PortType(), port->Port());
 	}
 
-bool Manager::RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port)
+bool Manager::RegisterAnalyzerForPort(const zeek::Tag& tag, TransportProto proto, uint32_t port)
 	{
 	if ( initialized )
 		return RegisterAnalyzerForPort(std::make_tuple(tag, proto, port));
@@ -247,7 +247,7 @@ bool Manager::RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint
 		}
 	}
 
-bool Manager::RegisterAnalyzerForPort(const std::tuple<Tag, TransportProto, uint32_t>& p)
+bool Manager::RegisterAnalyzerForPort(const std::tuple<zeek::Tag, TransportProto, uint32_t>& p)
 	{
 	const auto& [tag, proto, port] = p;
 
@@ -267,7 +267,7 @@ bool Manager::RegisterAnalyzerForPort(const std::tuple<Tag, TransportProto, uint
 	return ipba->RegisterAnalyzerForPort(tag, port);
 	}
 
-bool Manager::UnregisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port)
+bool Manager::UnregisterAnalyzerForPort(const zeek::Tag& tag, TransportProto proto, uint32_t port)
 	{
 	if ( auto i = pending_analyzers_for_ports.find(std::make_tuple(tag, proto, port));
 	     i != pending_analyzers_for_ports.end() )
@@ -289,7 +289,7 @@ bool Manager::UnregisterAnalyzerForPort(const Tag& tag, TransportProto proto, ui
 	return ipba->UnregisterAnalyzerForPort(tag, port);
 	}
 
-Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, Connection* conn)
+Analyzer* Manager::InstantiateAnalyzer(const zeek::Tag& tag, Connection* conn)
 	{
 	Component* c = Lookup(tag);
 
@@ -324,7 +324,7 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, Connection* conn)
 
 Analyzer* Manager::InstantiateAnalyzer(const char* name, Connection* conn)
 	{
-	Tag tag = GetComponentTag(name);
+	zeek::Tag tag = GetComponentTag(name);
 	return tag ? InstantiateAnalyzer(tag, conn) : nullptr;
 	}
 
@@ -367,7 +367,7 @@ void Manager::ExpireScheduledAnalyzers()
 	}
 
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
-                               TransportProto proto, const Tag& analyzer, double timeout)
+                               TransportProto proto, const zeek::Tag& analyzer, double timeout)
 	{
 	if ( ! run_state::network_time )
 		{
@@ -392,9 +392,9 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t 
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
                                TransportProto proto, const char* analyzer, double timeout)
 	{
-	Tag tag = GetComponentTag(analyzer);
+	zeek::Tag tag = GetComponentTag(analyzer);
 
-	if ( tag != Tag() )
+	if ( tag != zeek::Tag() )
 		ScheduleAnalyzer(orig, resp, resp_p, proto, tag, timeout);
 	}
 
@@ -402,8 +402,8 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* 
                                Val* analyzer, double timeout)
 	{
 	EnumValPtr ev{NewRef{}, analyzer->AsEnumVal()};
-	return ScheduleAnalyzer(orig, resp, resp_p->Port(), resp_p->PortType(), Tag(std::move(ev)),
-	                        timeout);
+	return ScheduleAnalyzer(orig, resp, resp_p->Port(), resp_p->PortType(),
+	                        zeek::Tag(std::move(ev)), timeout);
 	}
 
 Manager::tag_set Manager::GetScheduled(const Connection* conn)

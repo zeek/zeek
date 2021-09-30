@@ -17,7 +17,9 @@ Tag::Tag(const EnumTypePtr& etype, type_t arg_type, subtype_t arg_subtype)
 	assert(arg_type > 0);
 
 	int64_t i = (int64_t)(type) | ((int64_t)subtype << 31);
-	val = etype->GetEnumVal(i);
+
+	if ( etype )
+		val = etype->GetEnumVal(i);
 	}
 
 Tag::Tag(EnumValPtr arg_val)
@@ -36,13 +38,13 @@ Tag::Tag(const Tag& other)
 	type = other.type;
 	subtype = other.subtype;
 	val = other.val;
+	etype = other.etype;
 	}
 
 Tag::Tag()
 	{
-	type = 0;
-	subtype = 0;
 	val = nullptr;
+	etype = nullptr;
 	}
 
 Tag::~Tag() = default;
@@ -54,6 +56,7 @@ Tag& Tag::operator=(const Tag& other)
 		type = other.type;
 		subtype = other.subtype;
 		val = other.val;
+		etype = other.etype;
 		}
 
 	return *this;
@@ -66,22 +69,10 @@ Tag& Tag::operator=(const Tag&& other) noexcept
 		type = other.type;
 		subtype = other.subtype;
 		val = std::move(other.val);
+		etype = std::move(other.etype);
 		}
 
 	return *this;
-	}
-
-const EnumValPtr& Tag::AsVal() const
-	{
-	// TODO: this probably isn't valid, and we should just return the null val
-	// if it's null.
-	if ( ! val )
-		{
-		assert(type == 0 && subtype == 0 && etype != nullptr);
-		val = etype->GetEnumVal(0);
-		}
-
-	return val;
 	}
 
 std::string Tag::AsString() const

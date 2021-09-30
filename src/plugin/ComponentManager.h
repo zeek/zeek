@@ -21,7 +21,7 @@ namespace zeek::plugin
  * installs identifiers in the script-layer to identify them by a unique tag,
  * (a script-layer enum value).
  *
- * @tparam C A plugin::TaggedComponent type derivative.
+ * @tparam C A plugin::Component type derivative.
  */
 template <class C> class ComponentManager
 	{

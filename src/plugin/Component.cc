@@ -8,23 +8,14 @@
 namespace zeek::plugin
 	{
 
-Component::Component(component::Type arg_type, const std::string& arg_name)
+Tag::type_t Component::type_counter(0);
+
+Component::Component(component::Type arg_type, const std::string& arg_name,
+                     Tag::subtype_t tag_subtype, zeek::EnumTypePtr etype)
+	: type(arg_type), name(arg_name), tag(etype, 1, 0), etype(std::move(etype)),
+	  tag_subtype(tag_subtype)
 	{
-	type = arg_type;
-	name = arg_name;
 	canon_name = util::canonify_name(name);
-	}
-
-Component::~Component() { }
-
-const std::string& Component::Name() const
-	{
-	return name;
-	}
-
-component::Type Component::Type() const
-	{
-	return type;
 	}
 
 void Component::Describe(ODesc* d) const
@@ -82,6 +73,22 @@ void Component::Describe(ODesc* d) const
 	d->Add(" (");
 	DoDescribe(d);
 	d->Add(")");
+	}
+
+void Component::InitializeTag()
+	{
+	assert(tag_initialized == false);
+	tag_initialized = true;
+	tag = zeek::Tag(etype, ++type_counter, tag_subtype);
+	}
+
+/**
+ * @return The component's tag.
+ */
+zeek::Tag Component::Tag() const
+	{
+	assert(tag_initialized);
+	return tag;
 	}
 
 	} // namespace zeek::plugin

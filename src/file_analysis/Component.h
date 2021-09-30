@@ -6,7 +6,6 @@
 
 #include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
-#include "zeek/plugin/TaggedComponent.h"
 
 namespace zeek
 	{
@@ -27,7 +26,7 @@ class Manager;
  * A plugin can provide a specific file analyzer by registering this
  * analyzer component, describing the analyzer.
  */
-class Component : public plugin::Component, public plugin::TaggedComponent
+class Component : public plugin::Component
 	{
 public:
 	using factory_function = Analyzer* (*)(RecordValPtr args, File* file);

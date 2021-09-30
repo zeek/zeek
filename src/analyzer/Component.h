@@ -6,7 +6,6 @@
 
 #include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
-#include "zeek/plugin/TaggedComponent.h"
 #include "zeek/util.h"
 
 namespace zeek
@@ -25,7 +24,7 @@ class Analyzer;
  * A plugin can provide a specific protocol analyzer by registering this
  * analyzer component, describing the analyzer.
  */
-class Component : public plugin::Component, public plugin::TaggedComponent
+class Component : public plugin::Component
 	{
 public:
 	using factory_callback = Analyzer* (*)(Connection* conn);
@@ -68,7 +67,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~Component() override;
+	~Component() override = default;
 
 	/**
 	 * Initialization function. This function has to be called before any

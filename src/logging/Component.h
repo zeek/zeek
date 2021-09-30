@@ -4,7 +4,6 @@
 
 #include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
-#include "zeek/plugin/TaggedComponent.h"
 
 namespace zeek::logging
 	{
@@ -15,7 +14,7 @@ class WriterBackend;
 /**
  * Component description for plugins providing log writers.
  */
-class Component : public plugin::Component, public plugin::TaggedComponent
+class Component : public plugin::Component
 	{
 public:
 	using factory_callback = WriterBackend* (*)(WriterFrontend* frontend);

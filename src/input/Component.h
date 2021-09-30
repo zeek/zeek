@@ -4,7 +4,6 @@
 
 #include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
-#include "zeek/plugin/TaggedComponent.h"
 
 namespace zeek::input
 	{
@@ -15,7 +14,7 @@ class ReaderBackend;
 /**
  * Component description for plugins providing log readers.
  */
-class Component : public plugin::Component, public plugin::TaggedComponent
+class Component : public plugin::Component
 	{
 public:
 	using factory_callback = ReaderBackend* (*)(ReaderFrontend* frontend);

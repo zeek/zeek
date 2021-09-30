@@ -153,7 +153,7 @@ public:
 	 *
 	 * @param etype the script-layer enum type associated with the tag.
 	 */
-	const EnumValPtr& AsVal() const;
+	const EnumValPtr& AsVal() const { return val; }
 
 	/**
 	 * Returns false if the tag represents an error value rather than a
@@ -164,10 +164,10 @@ public:
 	static const Tag Error;
 
 private:
-	type_t type; // Main type.
-	subtype_t subtype; // Subtype.
-	mutable EnumValPtr val; // Script-layer value.
-	mutable EnumTypePtr etype;
+	type_t type = 0; // Main type.
+	subtype_t subtype = 0; // Subtype.
+	EnumValPtr val; // Script-layer value.
+	EnumTypePtr etype;
 	};
 
 	} // namespace zeek

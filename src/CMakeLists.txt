@@ -379,7 +379,6 @@ set(MAIN_SRCS
 
     plugin/Component.cc
     plugin/ComponentManager.h
-    plugin/TaggedComponent.cc
     plugin/Manager.cc
     plugin/Plugin.cc
 

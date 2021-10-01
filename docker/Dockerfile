@@ -18,7 +18,7 @@ RUN apt-get -q update \
      libz-dev \
      make \
      python3-minimal \
-     python3-dev \
+     python3.9-dev \
      swig \
      ninja-build \
      python3-pip \
@@ -31,11 +31,10 @@ RUN apt-get -q update \
 COPY . /src/zeek
 RUN make -C /src/zeek distclean
 
+ARG CONFFLAGS="--generator=Ninja --build-type=Release"
+
 WORKDIR /src/zeek
-RUN ./configure \
-     --generator=Ninja \
-     --build-type=Release \
- && ninja -C build install
+RUN ./configure $CONFFLAGS && ninja -C build install
 
 # Final layer containing all artifacts.
 FROM debian:bullseye-slim AS final
@@ -45,7 +44,7 @@ RUN apt-get -q update \
      ca-certificates \
      git \
      libmaxminddb0 \
-     libpython3.7 \
+     libpython3.9 \
      libpcap0.8 \
      libssl1.1 \
      libz1 \
@@ -58,3 +57,4 @@ RUN apt-get -q update \
 # Copy over Zeek installation.
 COPY --from=build /usr/local/zeek /usr/local/zeek
 ENV PATH "/usr/local/zeek/bin:${PATH}"
+ENV PYTHONPATH "/usr/local/zeek/lib/zeek/python:${PYTHONPATH}"

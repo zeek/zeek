@@ -1,4 +1,14 @@
 
+4.2.0-dev.245 | 2021-10-01 14:19:19 -0700
+
+  * Enable customization of the Docker image's configure invocation (Christian Kreibich, Corelight)
+
+  * Add Python Broker module load test to Docker image btests (Christian Kreibich, Corelight)
+
+  * Set PYTHONPATH in Docker to automatically find Zeek's modules (Christian Kreibich, Corelight)
+
+  * Docker image fix: libpython needs to be 3.9 on Debian Bullseye (Christian Kreibich, Corelight)
+
 4.2.0-dev.240 | 2021-10-01 13:28:39 -0700
 
   * Bump highwayhash submodule to pull in another FreeBSD header fix (Christian Kreibich, Corelight)

@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TEST_TAG: zeek:latest
+      CONFFLAGS: --generator=Ninja --build-type=Release
     steps:
       - uses: actions/checkout@v2
         with:
@@ -31,7 +32,8 @@ jobs:
         with:
           context: ./
           file: docker/Dockerfile
-          # Load and tag the image so it can be used by the test job below.
+          build-args: |
+            CONFFLAGS=${{ env.CONFFLAGS }}
           load: true
           tags: ${{ env.TEST_TAG }}
 
@@ -76,6 +78,8 @@ jobs:
         with:
           context: ./
           file: docker/Dockerfile
+          build-args: |
+            CONFFLAGS=${{ env.CONFFLAGS }}
           push: true
           tags: |
             zeekurity/${{ steps.target.outputs.tag }}

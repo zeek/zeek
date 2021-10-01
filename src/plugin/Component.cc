@@ -11,7 +11,7 @@ namespace zeek::plugin
 Tag::type_t Component::type_counter(0);
 
 Component::Component(component::Type arg_type, const std::string& arg_name,
-                     Tag::subtype_t tag_subtype, zeek::EnumTypePtr etype)
+                     Tag::subtype_t tag_subtype, EnumTypePtr etype)
 	: type(arg_type), name(arg_name), tag(etype, 1, 0), etype(std::move(etype)),
 	  tag_subtype(tag_subtype)
 	{

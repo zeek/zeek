@@ -13,7 +13,8 @@
 
 using namespace zeek::packet_analysis;
 
-Manager::Manager() : plugin::ComponentManager<packet_analysis::Component>("PacketAnalyzer", "Tag")
+Manager::Manager()
+	: plugin::ComponentManager<packet_analysis::Component>("PacketAnalyzer", "Tag", "AllAnalyzers")
 	{
 	}
 

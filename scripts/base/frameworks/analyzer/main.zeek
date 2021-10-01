@@ -9,6 +9,13 @@
 ##! These tags are defined internally by
 ##! the analyzers themselves, and documented in their analyzer-specific
 ##! description along with the events that they generate.
+##!
+##! Analyzer tags are also inserted into a global :zeek:type:`AllAnalyzers` enum
+##! type. This type contains duplicates of all of the :zeek:type:`Analyzer::Tag`,
+##! :zeek:type:`PacketAnalyzer::Tag` and :zeek:type:`Files::Tag` enum values
+##! and can be used for arguments to function/hook/event definitions where they
+##! need to handle any analyzer type. See :zeek:id:`Analyzer::register_for_ports`
+##! for an example.
 
 @load base/frameworks/packet-filter/utils
 
@@ -186,12 +193,12 @@ function all_registered_ports(): table[Analyzer::Tag] of set[port]
 	return ports;
 	}
 
-function name(atype: Analyzer::Tag) : string
+function name(atype: AllAnalyzers::Tag) : string
 	{
 	return __name(atype);
 	}
 
-function get_tag(name: string): Analyzer::Tag
+function get_tag(name: string): AllAnalyzers::Tag
 	{
 	return __tag(name);
 	}

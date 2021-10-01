@@ -56,7 +56,10 @@ bool Manager::ConnIndex::operator<(const ConnIndex& other) const
 	return false;
 	}
 
-Manager::Manager() : plugin::ComponentManager<analyzer::Component>("Analyzer", "Tag") { }
+Manager::Manager()
+	: plugin::ComponentManager<analyzer::Component>("Analyzer", "Tag", "AllAnalyzers")
+	{
+	}
 
 Manager::~Manager()
 	{

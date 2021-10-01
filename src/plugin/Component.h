@@ -63,7 +63,7 @@ public:
 	 * script-land.
 	 */
 	Component(component::Type type, const std::string& name, Tag::subtype_t tag_subtype = 0,
-	          zeek::EnumTypePtr etype = nullptr);
+	          EnumTypePtr etype = nullptr);
 
 	/**
 	 * Destructor.

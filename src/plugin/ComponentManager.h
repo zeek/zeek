@@ -4,13 +4,16 @@
 #include <map>
 #include <string>
 
+#include "zeek/Attr.h"
 #include "zeek/DebugLogger.h"
+#include "zeek/Expr.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/Tag.h"
 #include "zeek/Type.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h" // for add_type()
+#include "zeek/module_util.h"
 #include "zeek/zeekygen/Manager.h"
 
 namespace zeek::plugin
@@ -36,7 +39,8 @@ public:
 	 * @param local_id The local part of the ID of the new enum type
 	 * (e.g., "Tag").
 	 */
-	ComponentManager(const std::string& module, const std::string& local_id);
+	ComponentManager(const std::string& module, const std::string& local_id,
+	                 const std::string& parent_module = "");
 
 	/**
 	 * @return The script-layer module in which the component's "Tag" ID lives.
@@ -120,20 +124,45 @@ public:
 	C* Lookup(EnumVal* val) const;
 
 private:
-	std::string module; /**< Script layer module in which component tags live. */
-	EnumTypePtr tag_enum_type; /**< Enum type of component tags. */
+	/** Script layer module in which component tags live. */
+	std::string module;
+	std::string parent_module;
+
+	/** Module-local type of component tags. */
+	EnumTypePtr tag_enum_type;
+	EnumTypePtr parent_tag_enum_type;
+
 	std::map<std::string, C*> components_by_name;
 	std::map<zeek::Tag, C*> components_by_tag;
 	std::map<int, C*> components_by_val;
 	};
 
 template <class C>
-ComponentManager<C>::ComponentManager(const std::string& arg_module, const std::string& local_id)
-	: module(arg_module), tag_enum_type(make_intrusive<EnumType>(module + "::" + local_id))
+ComponentManager<C>::ComponentManager(const std::string& module, const std::string& local_id,
+                                      const std::string& parent_module)
+	: module(module), parent_module(parent_module)
 	{
+	tag_enum_type = make_intrusive<EnumType>(module + "::" + local_id);
 	auto id = zeek::detail::install_ID(local_id.c_str(), module.c_str(), true, true);
 	zeek::detail::add_type(id.get(), tag_enum_type, nullptr);
 	zeek::detail::zeekygen_mgr->Identifier(std::move(id));
+
+	if ( ! parent_module.empty() )
+		{
+		// check to see if the parent module's type has been created already
+		id = zeek::detail::lookup_ID(local_id.c_str(), parent_module.c_str(), false, true, false);
+		if ( id != zeek::detail::ID::nil )
+			{
+			parent_tag_enum_type = id->GetType<EnumType>();
+			}
+		else
+			{
+			parent_tag_enum_type = make_intrusive<EnumType>(parent_module + "::" + local_id);
+			id = zeek::detail::install_ID(local_id.c_str(), parent_module.c_str(), true, true);
+			zeek::detail::add_type(id.get(), parent_tag_enum_type, nullptr);
+			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
+			}
+		}
 	}
 
 template <class C> const std::string& ComponentManager<C>::GetModule() const
@@ -194,19 +223,19 @@ template <class C> C* ComponentManager<C>::Lookup(const std::string& name) const
 	{
 	typename std::map<std::string, C*>::const_iterator i = components_by_name.find(
 		util::to_upper(name));
-	return i != components_by_name.end() ? i->second : 0;
+	return i != components_by_name.end() ? i->second : nullptr;
 	}
 
 template <class C> C* ComponentManager<C>::Lookup(const zeek::Tag& tag) const
 	{
 	typename std::map<zeek::Tag, C*>::const_iterator i = components_by_tag.find(tag);
-	return i != components_by_tag.end() ? i->second : 0;
+	return i != components_by_tag.end() ? i->second : nullptr;
 	}
 
 template <class C> C* ComponentManager<C>::Lookup(EnumVal* val) const
 	{
 	typename std::map<int, C*>::const_iterator i = components_by_val.find(val->InternalInt());
-	return i != components_by_val.end() ? i->second : 0;
+	return i != components_by_val.end() ? i->second : nullptr;
 	}
 
 template <class C>
@@ -229,6 +258,13 @@ void ComponentManager<C>::RegisterComponent(C* component, const std::string& pre
 	std::string id = util::fmt("%s%s", prefix.c_str(), cname.c_str());
 	tag_enum_type->AddName(module, id.c_str(), component->Tag().AsVal()->InternalInt(), true,
 	                       nullptr);
+
+	if ( parent_tag_enum_type )
+		{
+		std::string parent_id = util::fmt("%s_%s", util::strtoupper(module).c_str(), id.c_str());
+		parent_tag_enum_type->AddName(parent_module, parent_id.c_str(),
+		                              component->Tag().AsVal()->InternalInt(), true, nullptr);
+		}
 	}
 
 	} // namespace zeek::plugin

@@ -1,3 +1,12 @@
+
+4.2.0-dev.240 | 2021-10-01 13:28:39 -0700
+
+  * Bump highwayhash submodule to pull in another FreeBSD header fix (Christian Kreibich, Corelight)
+
+  * CI tweak: upgrade curl on FreeBSD to avoid cert expiration (Christian Kreibich, Corelight)
+
+  * CI tweak: add a datestamp to Debian 9 Dockerfiles to invalidate Cirrus build cache (Christian Kreibich, Corelight)
+
 4.2.0-dev.235 | 2021-09-28 10:04:46 -0700
 
   * GHI-1766: Remove address from Site::private_address_space that converts into 0.0.0.0/0 (Tim Wojtulewicz, Corelight)

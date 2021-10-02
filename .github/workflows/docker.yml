@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TEST_TAG: zeek:latest
-      CONFFLAGS: --generator=Ninja --build-type=Release
+      CONFFLAGS: --generator=Ninja --build-type=Release --enable-zeek-client
     steps:
       - uses: actions/checkout@v2
         with:

@@ -38,6 +38,11 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- Zeek now treats non-atomic index types for sets and tables more consistently.
+  Indexing now generally works with any types Zeek's hashing subsystem knows how
+  to serialize, meaning that you can now also index with sets, vectors,
+  patterns, and even tables.
+
 - The traditional TSV Zeek logs are now valid UTF8 by default. It's possible
   to revert to the previous behavior by setting ``LogAscii::enable_utf_8`` to
   false.

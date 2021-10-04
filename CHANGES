@@ -1,3 +1,8 @@
+4.2.0-dev.249 | 2021-10-04 12:47:42 -0700
+
+  * Expand table/set tests to cover new index types (Christian Kreibich, Corelight)
+
+  * Expression tweaks to get complex types to work as container indices (Christian Kreibich, Corelight)
 
 4.2.0-dev.245 | 2021-10-01 14:19:19 -0700
 

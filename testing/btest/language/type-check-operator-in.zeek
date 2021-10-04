@@ -30,3 +30,18 @@ MyRec() in records;
 myrec in "asdf";
 myrec in string_records;
 myrec in record_strings;
+
+# Patterns do not apply transparently to collections of strings, so fail
+# to type-check too:
+
+/foo/ in strings;
+
+# Complex index types need to match, too. (For tests with matching types,
+# see set.zeek / table.zeek.)
+
+local table_set: set[table[string] of string] = set();
+local stringvec_set: set[vector of string] = set();
+local string_count_map: table[string] of count = table();
+
+string_count_map in table_set;
+vector(1, 2, 3) in stringvec_set;

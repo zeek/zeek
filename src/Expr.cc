@@ -2985,7 +2985,7 @@ ValPtr IndexExpr::Eval(Frame* f) const
 
 	Val* indv = v2->AsListVal()->Idx(0).get();
 
-	if ( is_vector(indv) )
+	if ( is_vector(v1) && is_vector(indv) )
 		{
 		VectorVal* v_v1 = v1->AsVectorVal();
 		VectorVal* v_v2 = indv->AsVectorVal();
@@ -4294,64 +4294,72 @@ InExpr::InExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 
 	if ( op1->GetType()->Tag() == TYPE_PATTERN )
 		{
-		if ( op2->GetType()->Tag() != TYPE_STRING )
+		if ( op2->GetType()->Tag() == TYPE_STRING )
 			{
-			op2->GetType()->Error("pattern requires string index", op1.get());
+			SetType(base_type(TYPE_BOOL));
+			return;
+			}
+		else if ( op2->GetType()->Tag() == TYPE_TABLE )
+			{
+			// fall through to type-checking at end of function
+			}
+		else
+			{
+			op2->GetType()->Error("pattern requires string or set/table index", op1.get());
 			SetError();
+			return;
 			}
-		else
-			SetType(base_type(TYPE_BOOL));
 		}
 
-	else if ( op1->GetType()->Tag() == TYPE_STRING && op2->GetType()->Tag() == TYPE_STRING )
-		SetType(base_type(TYPE_BOOL));
-
-	else
+	if ( op1->GetType()->Tag() == TYPE_STRING && op2->GetType()->Tag() == TYPE_STRING )
 		{
-		// Check for:	<addr> in <subnet>
-		//		<addr> in set[subnet]
-		//		<addr> in table[subnet] of ...
-		if ( op1->GetType()->Tag() == TYPE_ADDR )
-			{
-			if ( op2->GetType()->Tag() == TYPE_SUBNET )
-				{
-				SetType(base_type(TYPE_BOOL));
-				return;
-				}
+		SetType(base_type(TYPE_BOOL));
+		return;
+		}
 
-			if ( op2->GetType()->Tag() == TYPE_TABLE &&
-			     op2->GetType()->AsTableType()->IsSubNetIndex() )
-				{
-				SetType(base_type(TYPE_BOOL));
-				return;
-				}
+	// Check for:	<addr> in <subnet>
+	//		<addr> in set[subnet]
+	//		<addr> in table[subnet] of ...
+	if ( op1->GetType()->Tag() == TYPE_ADDR )
+		{
+		if ( op2->GetType()->Tag() == TYPE_SUBNET )
+			{
+			SetType(base_type(TYPE_BOOL));
+			return;
 			}
 
-		if ( op1->Tag() != EXPR_LIST )
-			op1 = make_intrusive<ListExpr>(std::move(op1));
-
-		ListExpr* lop1 = op1->AsListExpr();
-
-		if ( ! op2->GetType()->MatchesIndex(lop1) )
-			SetError("not an index type");
-		else
+		if ( op2->GetType()->Tag() == TYPE_TABLE &&
+		     op2->GetType()->AsTableType()->IsSubNetIndex() )
+			{
 			SetType(base_type(TYPE_BOOL));
+			return;
+			}
 		}
+
+	if ( op1->Tag() != EXPR_LIST )
+		op1 = make_intrusive<ListExpr>(std::move(op1));
+
+	ListExpr* lop1 = op1->AsListExpr();
+
+	if ( ! op2->GetType()->MatchesIndex(lop1) )
+		SetError("not an index type");
+	else
+		SetType(base_type(TYPE_BOOL));
 	}
 
 ValPtr InExpr::Fold(Val* v1, Val* v2) const
 	{
-	if ( v1->GetType()->Tag() == TYPE_PATTERN )
-		{
-		auto re = v1->As<PatternVal*>();
-		const String* s = v2->AsString();
-		return val_mgr->Bool(re->MatchAnywhere(s) != 0);
-		}
-
 	if ( v2->GetType()->Tag() == TYPE_STRING )
 		{
-		const String* s1 = v1->AsString();
 		const String* s2 = v2->AsString();
+
+		if ( v1->GetType()->Tag() == TYPE_PATTERN )
+			{
+			auto re = v1->As<PatternVal*>();
+			return val_mgr->Bool(re->MatchAnywhere(s2) != 0);
+			}
+
+		const String* s1 = v1->AsString();
 
 		// Could do better here e.g. Boyer-Moore if done repeatedly.
 		auto s = reinterpret_cast<const unsigned char*>(s1->CheckString());

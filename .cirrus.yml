@@ -227,6 +227,20 @@ macos_catalina_task:
   << : *MACOS_RESOURCES_TEMPLATE
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/security.html#sup
+freebsd14_task:
+  freebsd_instance:
+    # We don't support FreeBSD 14 yet, this is a purely informative task
+    image_family: freebsd-14-0-snap
+    cpu: 8
+    # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
+    memory: 8GB
+
+    allow_failures: true
+    skip_notification: true
+
+  prepare_script: ./ci/freebsd/prepare.sh
+  << : *CI_TEMPLATE
+
 freebsd13_task:
   freebsd_instance:
     # FreeBSD 13 EOL: January 31, 2026
@@ -241,16 +255,6 @@ freebsd12_task:
   freebsd_instance:
     # FreeBSD 12 EOL: June 30, 2024
     image_family: freebsd-12-2
-    cpu: 8
-    # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
-    memory: 8GB
-  prepare_script: ./ci/freebsd/prepare.sh
-  << : *CI_TEMPLATE
-
-freebsd11_task:
-  freebsd_instance:
-    # FreeBSD 11 EOL: September 30, 2021
-    image_family: freebsd-11-4
     cpu: 8
     # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
     memory: 8GB

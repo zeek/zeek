@@ -11,6 +11,7 @@
 #include "zeek/CCL.h"
 #include "zeek/RE.h"
 #include "zeek/Rule.h"
+#include "zeek/ScannedFile.h"
 
 //#define MATCHER_PRINT_STATS
 
@@ -259,7 +260,7 @@ public:
 	~RuleMatcher();
 
 	// Parse the given files and built up data structures.
-	bool ReadFiles(const std::vector<std::string>& files);
+	bool ReadFiles(const std::vector<SignatureFile>& files);
 
 	/**
 	 * Inititialize a state object for matching file magic signatures.

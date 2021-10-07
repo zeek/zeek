@@ -348,33 +348,7 @@ when	return TOK_WHEN;
 @load-sigs{WS}{FILE} {
 	const char* file = zeek::util::skip_whitespace(yytext + 10);
 	std::string path = find_relative_file(file, ".sig");
-	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::SIGNATURES, file, path), -1);
-
-	switch ( rc ) {
-	case -1:
-		// No plugin in charge of this file.
-		if ( path.empty() )
-			zeek::reporter->Error("failed to find file associated with @load-sigs %s",
-			                      file);
-		else
-			zeek::detail::sig_files.push_back(std::move(path));
-		break;
-
-	case 0:
-		if ( ! zeek::reporter->Errors() )
-			zeek::reporter->Error("Plugin reported error loading signatures %s", file);
-
-		exit(1);
-		break;
-
-	case 1:
-		// A plugin took care of it, just skip.
-		break;
-
-	default:
-		assert(false);
-		break;
-	}
+	sig_files.emplace_back(file, path);
 	}
 
 @load-plugin{WS}{ID} {

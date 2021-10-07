@@ -737,15 +737,19 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			id->SetVal(make_intrusive<StringVal>(*options.pcap_filter));
 			}
 
-		auto all_signature_files = options.signature_files;
+		std::vector<SignatureFile> all_signature_files;
+
+		// Append signature files given on the command line
+		for ( const auto& sf : options.signature_files )
+			all_signature_files.push_back(sf);
 
 		// Append signature files defined in "signature_files" script option
 		for ( auto&& sf : get_script_signature_files() )
-			all_signature_files.emplace_back(std::move(sf));
+			all_signature_files.push_back(std::move(sf));
 
 		// Append signature files defined in @load-sigs
 		for ( const auto& sf : zeek::detail::sig_files )
-			all_signature_files.emplace_back(sf);
+			all_signature_files.push_back(sf);
 
 		if ( ! all_signature_files.empty() )
 			{

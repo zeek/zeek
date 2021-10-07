@@ -1034,6 +1034,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/zeek.bif, <...>/zeek.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, builtin-plugins/__preload__.zeek, <...>/__preload__.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, s1.sig, ./s1.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./archive, <...>/archive.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./audio, <...>/audio.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./dpd.sig, <...>/dpd.sig) -> -1
@@ -1046,6 +1047,7 @@
 0.000000   MetaHookPost  LoadFile(1, ./office, <...>/office.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./programming, <...>/programming.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./video, <...>/video.sig) -> -1
+0.000000   MetaHookPost  LoadFile(1, s2, ./s2.sig) -> -1
 0.000000   MetaHookPost  LogInit(Log::WRITER_ASCII, default, true, true, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)}) -> <void>
 0.000000   MetaHookPost  LogWrite(Log::WRITER_ASCII, default, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)}, <void ptr>) -> true
 0.000000   MetaHookPost  QueueEvent(NetControl::init()) -> false
@@ -2086,6 +2088,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/zeek.bif, <...>/zeek.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek)
 0.000000   MetaHookPre   LoadFile(0, builtin-plugins/__preload__.zeek, <...>/__preload__.zeek)
+0.000000   MetaHookPre   LoadFile(0, s1.sig, ./s1.sig)
 0.000000   MetaHookPre   LoadFile(1, ./archive, <...>/archive.sig)
 0.000000   MetaHookPre   LoadFile(1, ./audio, <...>/audio.sig)
 0.000000   MetaHookPre   LoadFile(1, ./dpd.sig, <...>/dpd.sig)
@@ -2098,6 +2101,7 @@
 0.000000   MetaHookPre   LoadFile(1, ./office, <...>/office.sig)
 0.000000   MetaHookPre   LoadFile(1, ./programming, <...>/programming.sig)
 0.000000   MetaHookPre   LoadFile(1, ./video, <...>/video.sig)
+0.000000   MetaHookPre   LoadFile(1, s2, ./s2.sig)
 0.000000   MetaHookPre   LogInit(Log::WRITER_ASCII, default, true, true, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)})
 0.000000   MetaHookPre   LogWrite(Log::WRITER_ASCII, default, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)}, <void ptr>)
 0.000000   MetaHookPre   QueueEvent(NetControl::init())
@@ -3149,6 +3153,8 @@
 0.000000 | HookLoadFile  base<...>/zeek.bif <...>/zeek.bif.zeek
 0.000000 | HookLoadFile  builtin-plugins/__load__.zeek <...>/__load__.zeek
 0.000000 | HookLoadFile  builtin-plugins/__preload__.zeek <...>/__preload__.zeek
+0.000000 | HookLoadFile  s1.sig ./s1.sig
+0.000000 | HookLoadFile  s2 ./s2.sig
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
 0.000000 | HookLogWrite  packet_filter [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()

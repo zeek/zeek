@@ -24,6 +24,7 @@
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/module_util.h"
+#include "zeek/plugin/Manager.h"
 
 using namespace std;
 
@@ -248,7 +249,7 @@ void RuleMatcher::Delete(RuleHdrTest* node)
 	delete node;
 	}
 
-bool RuleMatcher::ReadFiles(const std::vector<std::string>& files)
+bool RuleMatcher::ReadFiles(const std::vector<SignatureFile>& files)
 	{
 #ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
@@ -256,18 +257,54 @@ bool RuleMatcher::ReadFiles(const std::vector<std::string>& files)
 
 	parse_error = false;
 
-	for ( const auto& f : files )
+	for ( auto f : files )
 		{
-		rules_in = util::open_file(util::find_file(f, util::zeek_path(), ".sig"));
+		if ( ! f.full_path )
+			f.full_path = util::find_file(f.file, util::zeek_path(), ".sig");
+
+		int rc = PLUGIN_HOOK_WITH_RESULT(
+			HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::SIGNATURES, f.file, *f.full_path),
+			-1);
+
+		switch ( rc )
+			{
+			case -1:
+				// No plugin in charge of this file.
+				if ( f.full_path->empty() )
+					{
+					zeek::reporter->Error("failed to find file associated with @load-sigs %s",
+					                      f.file.c_str());
+					continue;
+					}
+				break;
+
+			case 0:
+				if ( ! zeek::reporter->Errors() )
+					zeek::reporter->Error("Plugin reported error loading signatures %s",
+					                      f.file.c_str());
+
+				exit(1);
+				break;
+
+			case 1:
+				// A plugin took care of it, just skip.
+				continue;
+
+			default:
+				assert(false);
+				break;
+			}
+
+		rules_in = util::open_file(*f.full_path);
 
 		if ( ! rules_in )
 			{
-			reporter->Error("Can't open signature file %s", f.data());
+			reporter->Error("Can't open signature file %s", f.file.c_str());
 			return false;
 			}
 
 		rules_line_number = 0;
-		current_rule_file = f.data();
+		current_rule_file = f.full_path->c_str();
 		rules_parse();
 		fclose(rules_in);
 		}

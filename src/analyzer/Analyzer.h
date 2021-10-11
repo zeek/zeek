@@ -57,8 +57,8 @@ class OutputHandler;
 // to the children list, it can invalidate iterators in the outer call,
 // causing a crash.
 using analyzer_list = std::list<Analyzer*>;
-typedef uint32_t ID;
-typedef void (Analyzer::*analyzer_timer_func)(double t);
+using ID = uint32_t;
+using analyzer_timer_func = void (Analyzer::*)(double_t);
 
 /**
  * Class to receive processed output from an anlyzer.

@@ -120,7 +120,7 @@ struct Value
 		bro_int_t size;
 		Value** vals;
 		};
-	typedef set_t vec_t;
+	using vec_t = set_t;
 	struct port_t
 		{
 		bro_uint_t port;

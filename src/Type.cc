@@ -1689,8 +1689,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 
 	// Create temporary, reverse name map so that enums can be documented
 	// in ascending order of their actual integral value instead of by name.
-	typedef map<bro_int_t, std::string> RevNameMap;
-
+	using RevNameMap = std::map<bro_int_t, std::string>;
 	RevNameMap rev;
 
 	for ( NameMap::const_iterator it = names.begin(); it != names.end(); ++it )

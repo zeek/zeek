@@ -17,7 +17,7 @@ namespace detail
 
 // An initialization hook for a collection of compiled-to-C++ functions
 // (the result of a single invocation of the compiler on a set of scripts).
-typedef void (*CPP_init_func)();
+using CPP_init_func = void (*)();
 
 // Tracks the initialization hooks for different compilation runs.
 extern std::vector<CPP_init_func> CPP_init_funcs;

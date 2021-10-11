@@ -85,9 +85,8 @@ struct Manager::Stream
 	Func* policy;
 	list<Filter*> filters;
 
-	typedef pair<int, string> WriterPathPair;
-
-	typedef map<WriterPathPair, WriterInfo*> WriterMap;
+	using WriterPathPair = pair<int, string>;
+	using WriterMap = map<WriterPathPair, WriterInfo*>;
 
 	WriterMap writers; // Writers indexed by id/path pair.
 

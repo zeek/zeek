@@ -76,7 +76,7 @@ public:
 	struct ReaderInfo
 		{
 		// Structure takes ownership of the strings.
-		typedef std::map<const char*, const char*, util::CompareString> config_map;
+		using config_map = std::map<const char*, const char*, util::CompareString>;
 
 		/**
 		 * A string left to the interpretation of the reader

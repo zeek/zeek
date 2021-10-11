@@ -17,7 +17,7 @@ namespace zeek
 //
 class VectorVal;
 
-typedef u_char* byte_vec;
+using byte_vec = u_char*;
 
 /**
  * A container type for holding blocks of byte data. This can be used for
@@ -28,18 +28,18 @@ typedef u_char* byte_vec;
 class String
 	{
 public:
-	typedef std::vector<String*> Vec;
-	typedef Vec::iterator VecIt;
-	typedef Vec::const_iterator VecCIt;
+	using Vec = std::vector<String*>;
+	using VecIt = Vec::iterator;
+	using VecCIt = Vec::const_iterator;
 
-	typedef std::vector<const String*> CVec;
-	typedef Vec::iterator CVecIt;
-	typedef Vec::const_iterator CVecCIt;
+	using CVec = std::vector<const String*>;
+	using CVecIt = Vec::iterator;
+	using CVecCIt = Vec::const_iterator;
 
 	// IdxVecs are vectors of indices of characters in a string.
-	typedef std::vector<int> IdxVec;
-	typedef IdxVec::iterator IdxVecIt;
-	typedef IdxVec::const_iterator IdxVecCIt;
+	using IdxVec = std::vector<int>;
+	using IdxVecIt = IdxVec::iterator;
+	using IdxVecCIt = IdxVec::const_iterator;
 
 	// Constructors creating internal copies of the data passed in.
 	String(const u_char* str, int arg_n, bool add_NUL);

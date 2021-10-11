@@ -29,8 +29,8 @@ enum HasherType
 class Hasher
 	{
 public:
-	typedef zeek::detail::hash_t digest;
-	typedef std::vector<digest> digest_vector;
+	using digest = zeek::detail::hash_t;
+	using digest_vector = std::vector<digest>;
 	struct seed_t
 		{
 		// actually HH_U64, which has the same type

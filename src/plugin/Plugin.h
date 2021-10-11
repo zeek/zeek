@@ -574,9 +574,9 @@ using HookArgumentList = std::list<HookArgument>;
 class Plugin
 	{
 public:
-	typedef std::list<Component*> component_list;
-	typedef std::list<BifItem> bif_item_list;
-	typedef std::list<std::pair<HookType, int>> hook_list;
+	using component_list = std::list<Component*>;
+	using bif_item_list = std::list<BifItem>;
+	using hook_list = std::list<std::pair<HookType, int>>;
 
 	/**
 	 * The different types of @loads supported by HookLoadFile.

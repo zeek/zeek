@@ -59,7 +59,7 @@ bool in_debug = false;
 
 // ### fix this hardwired access to external variables etc.
 struct yy_buffer_state;
-typedef struct yy_buffer_state* YY_BUFFER_STATE;
+using YY_BUFFER_STATE = struct yy_buffer_state*;
 YY_BUFFER_STATE bro_scan_string(const char*);
 
 extern YYLTYPE yylloc; // holds start line and column of token

@@ -20,7 +20,7 @@ class PktDumper;
 class Component : public plugin::Component
 	{
 public:
-	typedef IOSource* (*factory_callback)();
+	using factory_callback = IOSource* (*)();
 
 	/**
 	 * Constructor.
@@ -63,7 +63,7 @@ public:
 		BOTH ///< Live input as well as offline.
 		};
 
-	typedef PktSrc* (*factory_callback)(const std::string& path, bool is_live);
+	using factory_callback = PktSrc* (*)(const std::string& path, bool is_live);
 
 	/**
 	 * Constructor.
@@ -134,7 +134,7 @@ private:
 class PktDumperComponent : public plugin::Component
 	{
 public:
-	typedef PktDumper* (*factory_callback)(const std::string& path, bool append);
+	using factory_callback = PktDumper* (*)(const std::string& path, bool append);
 
 	/**
 	 * XXX

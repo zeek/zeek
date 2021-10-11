@@ -32,7 +32,7 @@ class ScriptInfo;
  */
 template <class T> struct InfoMap
 	{
-	typedef std::map<std::string, T*> map_type;
+	using map_type = std::map<std::string, T*>;
 
 	/**
 	 * @param name Name of an info object to retrieve.
@@ -216,8 +216,8 @@ public:
 	bool IsUpToDate(const std::string& target_file, const std::vector<T*>& dependencies) const;
 
 private:
-	typedef std::vector<std::string> comment_buffer_t;
-	typedef std::map<std::string, comment_buffer_t> comment_buffer_map_t;
+	using comment_buffer_t = std::vector<std::string>;
+	using comment_buffer_map_t = std::map<std::string, comment_buffer_t>;
 
 	IdentifierInfo* CreateIdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script,
 	                                     bool from_redef = false);

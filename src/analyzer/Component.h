@@ -28,7 +28,7 @@ class Analyzer;
 class Component : public plugin::Component, public plugin::TaggedComponent<analyzer::Tag>
 	{
 public:
-	typedef Analyzer* (*factory_callback)(Connection* conn);
+	using factory_callback = Analyzer* (*)(Connection* conn);
 
 	/**
 	 * Constructor.

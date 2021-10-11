@@ -85,8 +85,8 @@ public:
 	std::vector<std::string> GetComments() const;
 
 private:
-	typedef std::map<std::string, IdentifierInfo*> id_info_map;
-	typedef std::set<std::string> string_set;
+	using id_info_map = std::map<std::string, IdentifierInfo*>;
+	using string_set = std::set<std::string>;
 
 	time_t DoGetModificationTime() const override;
 

@@ -35,7 +35,7 @@ struct PolicyFile
 	vector<const char*> lines;
 	};
 
-typedef map<string, PolicyFile*> PolicyFileMap;
+using PolicyFileMap = map<string, PolicyFile*>;
 static PolicyFileMap policy_files;
 
 namespace zeek::detail

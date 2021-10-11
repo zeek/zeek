@@ -124,9 +124,9 @@ protected:
 	ListValPtr AddrListDelta(ListVal* al1, ListVal* al2);
 	void DumpAddrList(FILE* f, ListVal* al);
 
-	typedef std::map<std::string, std::pair<DNS_Mapping*, DNS_Mapping*>> HostMap;
-	typedef std::map<IPAddr, DNS_Mapping*> AddrMap;
-	typedef std::map<std::string, DNS_Mapping*> TextMap;
+	using HostMap = std::map<std::string, std::pair<DNS_Mapping*, DNS_Mapping*>>;
+	using AddrMap = std::map<IPAddr, DNS_Mapping*>;
+	using TextMap = std::map<std::string, DNS_Mapping*>;
 	void LoadCache(FILE* f);
 	void Save(FILE* f, const AddrMap& m);
 	void Save(FILE* f, const HostMap& m);
@@ -168,7 +168,7 @@ protected:
 
 	RecordTypePtr dm_rec;
 
-	typedef std::list<LookupCallback*> CallbackList;
+	using CallbackList = std::list<LookupCallback*>;
 
 	struct AsyncRequest
 		{
@@ -217,16 +217,16 @@ protected:
 			}
 		};
 
-	typedef std::map<IPAddr, AsyncRequest*> AsyncRequestAddrMap;
+	using AsyncRequestAddrMap = std::map<IPAddr, AsyncRequest*>;
 	AsyncRequestAddrMap asyncs_addrs;
 
-	typedef std::map<std::string, AsyncRequest*> AsyncRequestNameMap;
+	using AsyncRequestNameMap = std::map<std::string, AsyncRequest*>;
 	AsyncRequestNameMap asyncs_names;
 
-	typedef std::map<std::string, AsyncRequest*> AsyncRequestTextMap;
+	using AsyncRequestTextMap = std::map<std::string, AsyncRequest*>;
 	AsyncRequestTextMap asyncs_texts;
 
-	typedef std::list<AsyncRequest*> QueuedList;
+	using QueuedList = std::list<AsyncRequest*>;
 	QueuedList asyncs_queued;
 
 	struct AsyncRequestCompare
@@ -234,8 +234,8 @@ protected:
 		bool operator()(const AsyncRequest* a, const AsyncRequest* b) { return a->time > b->time; }
 		};
 
-	typedef std::priority_queue<AsyncRequest*, std::vector<AsyncRequest*>, AsyncRequestCompare>
-		TimeoutQueue;
+	using TimeoutQueue =
+		std::priority_queue<AsyncRequest*, std::vector<AsyncRequest*>, AsyncRequestCompare>;
 	TimeoutQueue asyncs_timeouts;
 
 	unsigned long num_requests;

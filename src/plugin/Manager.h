@@ -53,7 +53,7 @@ namespace plugin
 class Manager
 	{
 public:
-	typedef void (*bif_init_func)(Plugin*);
+	using bif_init_func = void (*)(Plugin*);
 	using plugin_list = std::list<Plugin*>;
 	using component_list = Plugin::component_list;
 	using inactive_plugin_list = std::list<std::pair<std::string, std::string>>;

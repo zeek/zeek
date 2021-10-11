@@ -8,9 +8,9 @@
 
 #if defined(__OpenBSD__)
 #include <net/bpf.h>
-typedef struct bpf_timeval pkt_timeval;
+using pkt_timeval = bpf_timeval;
 #else
-typedef struct timeval pkt_timeval;
+using pkt_timeval = struct timeval;
 #endif
 
 #include <pcap.h> // For DLT_ constants

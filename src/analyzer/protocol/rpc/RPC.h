@@ -215,23 +215,23 @@ public:
 	~Contents_RPC() override;
 
 protected:
-	typedef enum
-	{
+	enum state_t
+		{
 		WAIT_FOR_MESSAGE,
 		WAIT_FOR_MARKER,
 		WAIT_FOR_DATA,
 		WAIT_FOR_LAST_DATA,
-	} state_t;
+		};
 
-	typedef enum
-	{
+	enum resync_state_t
+		{
 		NEED_RESYNC,
 		RESYNC_WAIT_FOR_MSG_START,
 		RESYNC_WAIT_FOR_FULL_MSG,
 		RESYNC_HAD_FULL_MSG,
 		INSYNC,
 		RESYNC_INIT,
-	} resync_state_t;
+		};
 
 	void Init() override;
 	virtual bool CheckResync(int& len, const u_char*& data, bool orig);

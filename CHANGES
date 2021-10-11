@@ -1,3 +1,9 @@
+4.2.0-dev.253 | 2021-10-11 11:38:30 -0700
+
+  * Don't initialize private testsuite in CI when not running out of Zeek project (Christian Kreibich, Corelight)
+
+  * Drop FreeBSD 11.4 (now EOL), add FreeBSD 14 as informational build (Christian Kreibich, Corelight)
+
 4.2.0-dev.249 | 2021-10-04 12:47:42 -0700
 
   * Expand table/set tests to cover new index types (Christian Kreibich, Corelight)

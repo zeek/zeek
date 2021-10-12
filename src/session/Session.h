@@ -29,7 +29,7 @@ class Timer;
 	}
 
 class Session;
-typedef void (Session::*timer_func)(double t);
+using timer_func = void (Session::*)(double t);
 
 class Session : public Obj
 	{

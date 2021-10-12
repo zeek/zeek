@@ -18,7 +18,7 @@ namespace zeek::detail
 // across function calls).
 
 class UseDefSet;
-typedef std::shared_ptr<UseDefSet> UDs;
+using UDs = std::shared_ptr<UseDefSet>;
 
 class UseDefSet
 	{

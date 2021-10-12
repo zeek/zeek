@@ -25,8 +25,8 @@ class BitVector;
 class CounterVector
 	{
 public:
-	typedef size_t size_type;
-	typedef uint64_t count_type;
+	using size_type = size_t;
+	using count_type = uint64_t;
 
 	/**
 	 * Constructs a counter vector having cells of a given width.

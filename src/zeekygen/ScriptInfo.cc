@@ -107,7 +107,7 @@ static string make_redef_summary(const string& heading, char underline, char bor
 		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
 
-		typedef list<IdentifierInfo::Redefinition> redef_list;
+		using redef_list = std::list<IdentifierInfo::Redefinition>;
 		redef_list redefs = (*it)->GetRedefs(from_script);
 
 		for ( redef_list::const_iterator iit = redefs.begin(); iit != redefs.end(); ++iit )

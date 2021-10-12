@@ -50,10 +50,10 @@ extern zeek::detail::BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const
 namespace zeek::detail
 	{
 
-typedef uint64_t hash_t;
-typedef uint64_t hash64_t;
-typedef uint64_t hash128_t[2];
-typedef uint64_t hash256_t[4];
+using hash_t = uint64_t;
+using hash64_t = uint64_t;
+using hash128_t = uint64_t[2];
+using hash256_t = uint64_t[4];
 
 class KeyedHash
 	{
@@ -219,12 +219,12 @@ private:
 	friend BifReturnVal BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const Args*);
 	};
 
-typedef enum
-{
+enum HashKeyTag
+	{
 	HASH_KEY_INT,
 	HASH_KEY_DOUBLE,
 	HASH_KEY_STRING
-} HashKeyTag;
+	};
 
 constexpr int NUM_HASH_KEYS = HASH_KEY_STRING + 1;
 

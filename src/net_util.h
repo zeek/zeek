@@ -15,11 +15,11 @@ enum TransportProto
 
 extern const char* transport_proto_string(TransportProto proto);
 
-typedef enum
-{
+enum IPFamily
+	{
 	IPv4,
 	IPv6
-} IPFamily;
+	};
 
 #include <sys/types.h>
 #include <arpa/inet.h>

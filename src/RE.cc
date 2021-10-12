@@ -304,7 +304,7 @@ void Specific_RE_Matcher::Dump(FILE* f)
 
 inline void RE_Match_State::AddMatches(const AcceptingSet& as, MatchPos position)
 	{
-	typedef std::pair<AcceptIdx, MatchPos> am_idx;
+	using am_idx = std::pair<AcceptIdx, MatchPos>;
 
 	for ( AcceptingSet::const_iterator it = as.begin(); it != as.end(); ++it )
 		accepted_matches.insert(am_idx(*it, position));

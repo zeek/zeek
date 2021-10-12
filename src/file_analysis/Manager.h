@@ -424,8 +424,8 @@ protected:
 	static bool IsDisabled(const analyzer::Tag& tag);
 
 private:
-	typedef std::set<Tag> TagSet;
-	typedef std::map<std::string, TagSet*> MIMEMap;
+	using TagSet = std::set<Tag>;
+	using MIMEMap = std::map<std::string, TagSet*>;
 
 	TagSet* LookupMIMEType(const std::string& mtype, bool add_if_not_found);
 

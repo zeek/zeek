@@ -284,7 +284,7 @@ double calc_next_rotate(double current, double rotate_interval, double base);
 
 template <class T> void delete_each(T* t)
 	{
-	typedef typename T::iterator iterator;
+	using iterator = typename T::iterator;
 	for ( iterator it = t->begin(); it != t->end(); ++it )
 		delete *it;
 	}

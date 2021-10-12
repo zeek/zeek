@@ -1,3 +1,7 @@
+4.2.0-dev.255 | 2021-10-12 09:22:37 -0700
+
+  * Replace most uses of typedef with using for type aliasing (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.253 | 2021-10-11 11:38:30 -0700
 
   * Don't initialize private testsuite in CI when not running out of Zeek project (Christian Kreibich, Corelight)

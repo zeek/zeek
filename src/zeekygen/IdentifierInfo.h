@@ -187,8 +187,8 @@ private:
 		bool from_redef;
 		};
 
-	typedef std::list<Redefinition*> redef_list;
-	typedef std::map<std::string, RecordField*> record_field_map;
+	using redef_list = std::list<Redefinition*>;
+	using record_field_map = std::map<std::string, RecordField*>;
 
 	std::vector<std::string> comments;
 	zeek::detail::IDPtr id;

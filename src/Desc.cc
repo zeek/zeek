@@ -267,7 +267,7 @@ size_t ODesc::StartsWithEscapeSequence(const char* start, const char* end)
 
 std::pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
 	{
-	typedef std::pair<const char*, size_t> escape_pos;
+	using escape_pos = std::pair<const char*, size_t>;
 
 	if ( IsBinary() )
 		return escape_pos(0, 0);

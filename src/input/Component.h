@@ -18,7 +18,7 @@ class ReaderBackend;
 class Component : public plugin::Component, public plugin::TaggedComponent<Tag>
 	{
 public:
-	typedef ReaderBackend* (*factory_callback)(ReaderFrontend* frontend);
+	using factory_callback = ReaderBackend* (*)(ReaderFrontend* frontend);
 
 	/**
 	 * Constructor.

@@ -743,7 +743,7 @@ protected:
 class EnumType final : public Type
 	{
 public:
-	typedef std::list<std::pair<std::string, bro_int_t>> enum_name_list;
+	using enum_name_list = std::list<std::pair<std::string, bro_int_t>>;
 
 	explicit EnumType(const EnumType* e);
 	explicit EnumType(const std::string& arg_name);
@@ -792,7 +792,7 @@ protected:
 	                     bool is_export, detail::Expr* deprecation = nullptr,
 	                     bool from_redef = false);
 
-	typedef std::map<std::string, bro_int_t> NameMap;
+	using NameMap = std::map<std::string, bro_int_t>;
 	NameMap names;
 
 	// Whether any of the elements of the enum were added via redef's.

@@ -18,7 +18,7 @@ class WriterBackend;
 class Component : public plugin::Component, public plugin::TaggedComponent<logging::Tag>
 	{
 public:
-	typedef WriterBackend* (*factory_callback)(WriterFrontend* frontend);
+	using factory_callback = WriterBackend* (*)(WriterFrontend* frontend);
 
 	/**
 	 * Constructor.

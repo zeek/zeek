@@ -1698,53 +1698,53 @@ bool DNS_Interpreter::ParseRR_CAA(detail::DNS_MsgInfo* msg, const u_char*& data,
 bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, 
 								   int rdlength, const u_char* msg_start, const RR_Type& svcb_type)
 	{
-		// the smallest SVCB/HTTPS rr is 3 bytes:
-		// the first 2 bytes are for the svc priority, and the third byte is root (0x0)
-		if ( len < 3 )
-			return false;
+	// the smallest SVCB/HTTPS rr is 3 bytes:
+	// the first 2 bytes are for the svc priority, and the third byte is root (0x0)
+	if ( len < 3 )
+		return false;
 
-		uint16_t svc_priority = ExtractShort(data, len);
+	uint16_t svc_priority = ExtractShort(data, len);
 
-		u_char target_name[513];
-		int name_len = sizeof(target_name) - 1;
-		u_char* name_end = ExtractName(data, len, target_name, name_len, msg_start, false);
-		if ( ! name_end )
-			return false;
+	u_char target_name[513];
+	int name_len = sizeof(target_name) - 1;
+	u_char* name_end = ExtractName(data, len, target_name, name_len, msg_start, false);
+	if ( ! name_end )
+		return false;
 
-		// target name can be root - in this case the alternative endpoint is
-		// qname itself. make sure that we print "." instead of an empty string
-		if ( name_end - target_name == 0 )
-			{
-			target_name[0] = '.';
-			target_name[1] = '\0';
-			name_end = target_name+1;
-			}
+	// target name can be root - in this case the alternative endpoint is
+	// qname itself. make sure that we print "." instead of an empty string
+	if ( name_end - target_name == 0 )
+		{
+		target_name[0] = '.';
+		target_name[1] = '\0';
+		name_end = target_name+1;
+		}
 
-		SVCB_DATA svcb_data = {
-			.svc_priority = svc_priority,
-			.target_name = make_intrusive<StringVal>(new String(target_name, name_end - target_name, true)),
-		};
+	SVCB_DATA svcb_data = {
+		.svc_priority = svc_priority,
+		.target_name = make_intrusive<StringVal>(new String(target_name, name_end - target_name, true)),
+	};
 
-		// TODO: parse svcparams
-		// we consume all the remaining raw data (svc params) but do nothing.
-		// this should be removed if the svc param parser is ready
-		String* unparsed_data = ExtractStream(data, len, rdlength);
-		delete unparsed_data;
+	// TODO: parse svcparams
+	// we consume all the remaining raw data (svc params) but do nothing.
+	// this should be removed if the svc param parser is ready
+	String* unparsed_data = ExtractStream(data, len, rdlength);
+	delete unparsed_data;
 
 
-		switch( svcb_type )
-			{
-			case detail::TYPE_SVCB:
-				analyzer->EnqueueConnEvent(dns_SVCB, analyzer->ConnVal(), msg->BuildHdrVal(),
-										msg->BuildAnswerVal(), msg->BuildSVCB_Val(svcb_data));
-				break;
-			case detail::TYPE_HTTPS:
-				analyzer->EnqueueConnEvent(dns_HTTPS, analyzer->ConnVal(), msg->BuildHdrVal(),
-										msg->BuildAnswerVal(), msg->BuildSVCB_Val(svcb_data));
-				break;
-			default: break; // unreachable. for suppressing compiler warnings.
-			}
-		return true;
+	switch( svcb_type )
+		{
+		case detail::TYPE_SVCB:
+			analyzer->EnqueueConnEvent(dns_SVCB, analyzer->ConnVal(), msg->BuildHdrVal(),
+									msg->BuildAnswerVal(), msg->BuildSVCB_Val(svcb_data));
+			break;
+		case detail::TYPE_HTTPS:
+			analyzer->EnqueueConnEvent(dns_HTTPS, analyzer->ConnVal(), msg->BuildHdrVal(),
+									msg->BuildAnswerVal(), msg->BuildSVCB_Val(svcb_data));
+			break;
+		default: break; // unreachable. for suppressing compiler warnings.
+		}
+	return true;
 	}
 
 void DNS_Interpreter::SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHandlerPtr event,

@@ -1,3 +1,1 @@
-[svc_priority=0, target_name=foo.example.com, svc_params={
-
-}]
+[svc_priority=0, target_name=foo.example.com]

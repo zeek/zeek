@@ -117,12 +117,12 @@ function Broker::__peers%(%): PeerInfos
 
 		if ( n )
 			{
-			network_info->Assign(0, zeek::make_intrusive<zeek::AddrVal>(IPAddr(n->address)));
+			network_info->Assign(0, zeek::make_intrusive<zeek::StringVal>(n->address));
 			network_info->Assign(1, zeek::val_mgr->Port(n->port, TRANSPORT_TCP));
 			}
 		else
 			{
-			network_info->Assign(0, zeek::make_intrusive<zeek::AddrVal>("0.0.0.0"));
+			network_info->Assign(0, zeek::make_intrusive<zeek::StringVal>("0.0.0.0"));
 			network_info->Assign(1, zeek::val_mgr->Port(0, TRANSPORT_TCP));
 			}
 
@@ -144,4 +144,46 @@ function Broker::__node_id%(%): string
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	return zeek::make_intrusive<zeek::StringVal>(broker_mgr->NodeID());
+	%}
+
+function Broker::__set_metrics_export_interval%(value: interval%): bool
+	%{
+	// This BIF may run prior to broker::Manager::InitPostScript. In this case,
+	// broker_mgr is still null but we can safely ignore this event because the
+	// Manager is going to initialize Broker using the most recent value of the
+	// corresponding option.
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	if ( broker_mgr )
+		broker_mgr->SetMetricsExportInterval(value);
+	return zeek::val_mgr->True();
+	%}
+
+function Broker::__set_metrics_export_topic%(value: string%): bool
+	%{
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	if ( broker_mgr )
+		broker_mgr->SetMetricsExportTopic(value->ToStdString());
+	return zeek::val_mgr->True();
+	%}
+
+function Broker::__set_metrics_export_endpoint_name%(value: string%): bool
+	%{
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	if ( broker_mgr )
+		broker_mgr->SetMetricsExportEndpointName(value->ToStdString());
+	return zeek::val_mgr->True();
+	%}
+
+function Broker::__set_metrics_export_prefixes%(filter: string_vec%): bool
+	%{
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	if ( broker_mgr )
+		{
+		std::vector<std::string> slist;
+		auto* vval = filter->AsVectorVal();
+		for ( unsigned index = 0; index < vval->Size(); ++index )
+			slist.emplace_back(vval->StringValAt(index)->ToStdString());
+		broker_mgr->SetMetricsExportPrefixes(std::move(slist));
+		}
+	return zeek::val_mgr->True();
 	%}

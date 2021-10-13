@@ -5,9 +5,11 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::Root {
+namespace zeek::packet_analysis::Root
+	{
 
-class RootAnalyzer : public Analyzer {
+class RootAnalyzer : public Analyzer
+	{
 public:
 	RootAnalyzer();
 	~RootAnalyzer() override = default;
@@ -18,6 +20,6 @@ public:
 		{
 		return std::make_shared<RootAnalyzer>();
 		}
-};
+	};
 
-}
+	}

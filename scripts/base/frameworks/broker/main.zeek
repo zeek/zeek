@@ -31,7 +31,7 @@ export {
 	## authenticated.
 	const disable_ssl = F &redef;
 
-	## Path to a file containing concatenated trusted certificates 
+	## Path to a file containing concatenated trusted certificates
 	## in PEM format. If set, Zeek will require valid certificates for
 	## all peers.
 	const ssl_cafile = "" &redef;
@@ -121,6 +121,37 @@ export {
 	## but also want to initaiate a Broker peering and still shutdown after
 	## done reading the pcap.
 	option peer_counts_as_iosource = T;
+
+	## Port for Broker's metric exporter. Setting this to a valid TCP port causes
+	## Broker to make metrics available to Prometheus scrapers via HTTP. Zeek
+	## overrides any value provided in zeek_init or earlier at startup if the
+	## environment variable BROKER_METRICS_PORT is defined.
+	const metrics_port = 0/unknown &redef;
+
+	## Frequency for publishing scraped metrics to the target topic. Zeek
+	## overrides any value provided in zeek_init or earlier at startup if the
+	## environment variable BROKER_METRICS_EXPORT_INTERVAL is defined.
+	option metrics_export_interval = 1 sec;
+
+	## Target topic for the metrics. Setting a non-empty string starts the
+	## periodic publishing of local metrics. Zeek overrides any value provided in
+	## zeek_init or earlier at startup if the environment variable
+	## BROKER_METRICS_EXPORT_TOPIC is defined.
+	option metrics_export_topic = "";
+
+	## ID for the metrics exporter. When setting a target topic for the
+	## exporter, Broker sets this option to the suffix of the new topic *unless*
+	## the ID is a non-empty string. Since setting a topic starts the periodic
+	## publishing of events, we recommend setting the ID always first or avoid
+	## setting it at all if the topic suffix serves as a good-enough ID. Zeek
+	## overrides any value provided in zeek_init or earlier at startup if the
+	## environment variable BROKER_METRICS_ENDPOINT_NAME is defined.
+	option metrics_export_endpoint_name = "";
+
+	## Selects prefixes from the local metrics. Only metrics with prefixes
+	## listed in this variable are included when publishing local metrics.
+	## Setting an empty vector selects *all* metrics.
+	option metrics_export_prefixes: vector of string = vector();
 
 	## The default topic prefix where logs will be published.  The log's stream
 	## id is appended when writing to a particular stream.
@@ -255,6 +286,7 @@ export {
 	global listen: function(a: string &default = default_listen_address,
 	                        p: port &default = default_port,
 	                        retry: interval &default = default_listen_retry): port;
+
 	## Initiate a remote connection.
 	##
 	## a: an address to connect to, e.g. "localhost" or "127.0.0.1".
@@ -385,9 +417,53 @@ event Broker::log_flush() &priority=10
 	schedule Broker::log_batch_interval { Broker::log_flush() };
 	}
 
+function update_metrics_export_interval(id: string, val: interval): interval
+	{
+	Broker::__set_metrics_export_interval(val);
+	return val;
+	}
+
+function update_metrics_export_topic(id: string, val: string): string
+	{
+	Broker::__set_metrics_export_topic(val);
+	return val;
+	}
+
+function update_metrics_export_endpoint_name(id: string, val: string): string
+	{
+	Broker::__set_metrics_export_endpoint_name(val);
+	return val;
+	}
+
+function update_metrics_export_prefixes(id: string, filter: vector of string): vector of string
+	{
+	Broker::__set_metrics_export_prefixes(filter);
+	return filter;
+	}
+
 event zeek_init()
 	{
 	schedule Broker::log_batch_interval { Broker::log_flush() };
+	# interval
+	update_metrics_export_interval("Broker::metrics_export_interval",
+	                               Broker::metrics_export_interval);
+	Option::set_change_handler("Broker::metrics_export_interval",
+	                           update_metrics_export_interval);
+	# topic
+	update_metrics_export_topic("Broker::metrics_export_topic",
+	                            Broker::metrics_export_topic);
+	Option::set_change_handler("Broker::metrics_export_topic",
+	                           update_metrics_export_topic);
+	# endpoint name
+	update_metrics_export_endpoint_name("Broker::metrics_export_endpoint_name",
+	                                    Broker::metrics_export_endpoint_name);
+	Option::set_change_handler("Broker::metrics_export_endpoint_name",
+	                           update_metrics_export_endpoint_name);
+	# prefixes
+	update_metrics_export_prefixes("Broker::metrics_export_prefixes",
+	                               Broker::metrics_export_prefixes);
+	Option::set_change_handler("Broker::metrics_export_prefixes",
+	                           update_metrics_export_prefixes);
 	}
 
 event retry_listen(a: string, p: port, retry: interval)

@@ -1,5 +1,4 @@
 *.git
 diag.log
-bro-testing*
 zeek-testing*
 .proxy

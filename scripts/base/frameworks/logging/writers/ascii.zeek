@@ -38,7 +38,7 @@ export {
 	## written into logs.
 	##
 	## This option is also available as a per-filter ``$config`` option.
-	const enable_utf_8 = F &redef;
+	const enable_utf_8 = T &redef;
 
 	## Define the gzip level to compress the logs.  If 0, then no gzip
 	## compression is performed. Enabling compression also changes
@@ -53,6 +53,11 @@ export {
 	##
 	## This option is also available as a per-filter ``$config`` option.
 	const gzip_file_extension = "gz" &redef;
+
+	## Define the default logging directory. If empty, logs are written
+	## to the current working directory.
+	##
+	const logdir = "" &redef;
 
 	## Format of timestamps when writing out JSON. By default, the JSON
 	## formatter will use double values for timestamps which represent the

@@ -1,0 +1,9 @@
+#! /bin/sh
+
+build=../../../build
+
+cd $build
+export -n ZEEK_USE_CPP ZEEK_ADD_CPP
+export ZEEK_HASH_DIR=.
+echo | src/zeek -O gen-C++
+ninja || echo Full embedded build failed

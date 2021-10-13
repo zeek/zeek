@@ -4,27 +4,24 @@
 
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 
-#include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/IP.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
-
 #include "zeek/analyzer/protocol/conn-size/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
-namespace zeek::analyzer::conn_size {
+namespace zeek::analyzer::conn_size
+	{
 
 ConnSize_Analyzer::ConnSize_Analyzer(Connection* c)
-    : Analyzer("CONNSIZE", c),
-      orig_bytes(), resp_bytes(), orig_pkts(), resp_pkts(),
-      orig_bytes_thresh(), resp_bytes_thresh(), orig_pkts_thresh(), resp_pkts_thresh(), duration_thresh()
+	: Analyzer("CONNSIZE", c), orig_bytes(), resp_bytes(), orig_pkts(), resp_pkts(),
+	  orig_bytes_thresh(), resp_bytes_thresh(), orig_pkts_thresh(), resp_pkts_thresh(),
+	  duration_thresh()
 	{
 	start_time = c->StartTime();
 	}
 
-
-ConnSize_Analyzer::~ConnSize_Analyzer()
-	{
-	}
+ConnSize_Analyzer::~ConnSize_Analyzer() { }
 
 void ConnSize_Analyzer::Init()
 	{
@@ -51,11 +48,7 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bo
 	if ( ! f )
 		return;
 
-	EnqueueConnEvent(f,
-		ConnVal(),
-		val_mgr->Count(threshold),
-		val_mgr->Bool(is_orig)
-	);
+	EnqueueConnEvent(f, ConnVal(), val_mgr->Count(threshold), val_mgr->Bool(is_orig));
 	}
 
 void ConnSize_Analyzer::CheckThresholds(bool is_orig)
@@ -91,31 +84,30 @@ void ConnSize_Analyzer::CheckThresholds(bool is_orig)
 
 	if ( duration_thresh != 0 )
 		{
-		if ( ( run_state::network_time - start_time ) > duration_thresh && conn_duration_threshold_crossed )
+		if ( (run_state::network_time - start_time) > duration_thresh &&
+		     conn_duration_threshold_crossed )
 			{
-			EnqueueConnEvent(conn_duration_threshold_crossed,
-					ConnVal(),
-					make_intrusive<IntervalVal>(duration_thresh),
-					val_mgr->Bool(is_orig)
-			);
+			EnqueueConnEvent(conn_duration_threshold_crossed, ConnVal(),
+			                 make_intrusive<IntervalVal>(duration_thresh), val_mgr->Bool(is_orig));
 			duration_thresh = 0;
 			}
 		}
 	}
 
-void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
+                                      const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
 	if ( is_orig )
 		{
 		orig_bytes += ip->TotalLen();
-		orig_pkts ++;
+		orig_pkts++;
 		}
 	else
 		{
 		resp_bytes += ip->TotalLen();
-		resp_pkts ++;
+		resp_pkts++;
 		}
 
 	CheckThresholds(is_orig);
@@ -168,7 +160,7 @@ void ConnSize_Analyzer::SetDurationThreshold(double duration)
 	CheckThresholds(true);
 	}
 
-void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
+void ConnSize_Analyzer::UpdateConnVal(RecordVal* conn_val)
 	{
 	// RecordType *connection_type is decleared in NetVar.h
 	RecordVal* orig_endp = conn_val->GetFieldAs<RecordVal>("orig");
@@ -192,7 +184,6 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	Analyzer::UpdateConnVal(conn_val);
 	}
 
-
 void ConnSize_Analyzer::FlipRoles()
 	{
 	Analyzer::FlipRoles();
@@ -207,4 +198,4 @@ void ConnSize_Analyzer::FlipRoles()
 	resp_pkts = tmp;
 	}
 
-} // namespace zeek::analyzer::conn_size
+	} // namespace zeek::analyzer::conn_size

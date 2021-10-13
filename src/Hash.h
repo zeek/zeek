@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 /***
- * This file contains functions to generate hashes used keyed hash functions.
+ * This file contains functions to generate hashes using keyed hash functions.
  * Keyed hash functions make it difficult/impossible to find information about the
  * output of a hash when the key is unknown to the attacker. This fact holds, even
  * when the input value is known.
@@ -9,12 +9,12 @@
  * We use these kinds of hashes heavily internally - e.g. for scriptland hash generation.
  * It is important that these hashes are not easily guessable to prevent complexity attacks.
  *
- * The HashKey class is the actual class that is used to generate Hash keys that are used internally,
- * e.g. for lookups in hash-tables; the Hashes are also used for connection ID generation.
+ * The HashKey class is the actual class that is used to generate Hash keys that are used
+ * internally, e.g. for lookups in hash-tables and connection ID generation.
  *
- * This means that the hashes created by most functions in this file will be different each run, unless
- * a seed file is used. There are a few functions that create hashes that are static over runs
- * and use an installation-wide seed value; these are specifically called out.
+ * This means that the hashes created by most functions in this file will be different each run,
+ * unless a seed file is used. There are a few functions that create hashes that are static over
+ * runs and use an installation-wide seed value; these are specifically called out.
  */
 
 #pragma once
@@ -26,26 +26,37 @@
 // to allow bro_md5_hmac access to the hmac seed
 #include "zeek/ZeekArgs.h"
 
-namespace zeek { class String; }
-namespace zeek::detail {
+namespace zeek
+	{
+
+class String;
+class ODesc;
+
+	}
+
+namespace zeek::detail
+	{
 
 class Frame;
 class BifReturnVal;
 
-}
+	}
 
-namespace zeek::BifFunc {
-	extern zeek::detail::BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
-}
+namespace zeek::BifFunc
+	{
+extern zeek::detail::BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
+	}
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
-typedef uint64_t hash_t;
-typedef uint64_t hash64_t;
-typedef uint64_t hash128_t[2];
-typedef uint64_t hash256_t[4];
+using hash_t = uint64_t;
+using hash64_t = uint64_t;
+using hash128_t = uint64_t[2];
+using hash256_t = uint64_t[4];
 
-class KeyedHash {
+class KeyedHash
+	{
 public:
 	/**
 	 * Generate a 64 bit digest hash.
@@ -193,63 +204,62 @@ public:
 private:
 	// actually HHKey. This key changes each start (unless a seed is specified)
 	alignas(32) static uint64_t shared_highwayhash_key[4];
-	// actually HHKey. This key is installation specific and sourced from the digest_salt script-level const.
+	// actually HHKey. This key is installation specific and sourced from the digest_salt
+	// script-level const.
 	alignas(32) static uint64_t cluster_highwayhash_key[4];
-	// actually HH_U64, which has the same type. This key changes each start (unless a seed is specified)
+	// actually HH_U64, which has the same type. This key changes each start (unless a seed is
+	// specified)
 	alignas(16) static unsigned long long shared_siphash_key[2];
 	// This key changes each start (unless a seed is specified)
 	inline static uint8_t shared_hmac_md5_key[16];
 	inline static bool seeds_initialized = false;
 
-	friend void util::detail::hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
+	friend void util::detail::hmac_md5(size_t size, const unsigned char* bytes,
+	                                   unsigned char digest[16]);
 	friend BifReturnVal BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const Args*);
-};
+	};
 
-typedef enum {
+enum HashKeyTag
+	{
 	HASH_KEY_INT,
 	HASH_KEY_DOUBLE,
 	HASH_KEY_STRING
-} HashKeyTag;
+	};
 
 constexpr int NUM_HASH_KEYS = HASH_KEY_STRING + 1;
 
-class HashKey {
+class HashKey
+	{
 public:
-	explicit HashKey(bro_int_t i);
-	explicit HashKey(bro_uint_t u);
+	explicit HashKey() { }
+	explicit HashKey(bool b);
+	explicit HashKey(int i);
+	explicit HashKey(bro_int_t bi);
+	explicit HashKey(bro_uint_t bu);
 	explicit HashKey(uint32_t u);
-	HashKey(const uint32_t u[], int n);
+	HashKey(const uint32_t u[], size_t n);
 	explicit HashKey(double d);
 	explicit HashKey(const void* p);
-	explicit HashKey(const char* s);
-	explicit HashKey(const String* s);
-	~HashKey()
-		{
-		if ( is_our_dynamic )
-			delete [] (char *) key;
-		}
+	explicit HashKey(const char* s); // No copying, no ownership
+	explicit HashKey(const String* s); // No copying, no ownership
 
-	// Create a HashKey given all of its components.  "key" is assumed
-	// to be dynamically allocated and to now belong to this HashKey
-	// (to delete upon destruct'ing).  If "copy_key" is true, it's
-	// first copied.
-	//
-	// The calling sequence here is unusual (normally key would be
-	// first) to avoid possible ambiguities with the next constructor,
-	// which is the more commonly used one.
-	HashKey(int copy_key, void* key, int size);
+	// Builds a key from the given chunk of bytes. Copies the data.
+	HashKey(const void* bytes, size_t size);
 
-	// Same, but automatically copies the key.
-	HashKey(const void* key, int size, hash_t hash);
-
-	// Builds a key from the given chunk of bytes.
-	HashKey(const void* bytes, int size);
+	// Create a HashKey given all of its components. Copies the key.
+	HashKey(const void* key, size_t size, hash_t hash);
 
 	// Create a Hashkey given all of its components *without*
 	// copying the key and *without* taking ownership.  Note that
 	// "dont_copy" is a type placeholder to differentiate this member
 	// function from the one above; its value is not used.
-	HashKey(const void* key, int size, hash_t hash, bool dont_copy);
+	HashKey(const void* key, size_t size, hash_t hash, bool dont_copy);
+
+	~HashKey()
+		{
+		if ( is_our_dynamic )
+			delete[](char*) key;
+		}
 
 	// Hands over the key to the caller.  This means that if the
 	// key is our dynamic, we give it to the caller and mark it
@@ -257,29 +267,120 @@ public:
 	// we give them a copy of it.
 	void* TakeKey();
 
-	const void* Key() const	{ return key; }
-	int Size() const	{ return size; }
-	hash_t Hash() const	{ return hash; }
+	const void* Key() const { return key; }
+	size_t Size() const { return size; }
+	hash_t Hash() const;
 
-	unsigned int MemoryAllocation() const	{ return padded_sizeof(*this) + util::pad_size(size); }
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	MemoryAllocation() const
+		{
+		return padded_sizeof(*this) + util::pad_size(size);
+		}
 
-	static hash_t HashBytes(const void* bytes, int size);
+	static hash_t HashBytes(const void* bytes, size_t size);
+
+	// A HashKey is "allocated" when the underlying key points somewhere
+	// other than our internal key_u union. This is almost like
+	// is_our_dynamic, but remains true also after TakeKey().
+	bool IsAllocated() const
+		{
+		return (key != nullptr && key != reinterpret_cast<const char*>(&key_u));
+		}
+
+	// Buffer size reservation. Repeated calls to these methods
+	// incrementally build up the eventual buffer size to be allocated via
+	// Allocate().
+	template <typename T> void ReserveType(const char* tag) { Reserve(tag, sizeof(T), sizeof(T)); }
+	void Reserve(const char* tag, size_t addl_size, size_t alignment = 0);
+
+	// Allocates the reserved amount of memory
+	void Allocate();
+
+	// Incremental writes into an allocated HashKey. The tags give context
+	// to what's being written and are only used in debug-build log streams.
+	// When true, the alignment boolean will cause write-marker alignment to
+	// the size of the item being written, otherwise writes happen directly
+	// at the current marker.
+	void Write(const char* tag, bool b);
+	void Write(const char* tag, int i, bool align = true);
+	void Write(const char* tag, bro_int_t bi, bool align = true);
+	void Write(const char* tag, bro_uint_t bu, bool align = true);
+	void Write(const char* tag, uint32_t u, bool align = true);
+	void Write(const char* tag, double d, bool align = true);
+
+	void Write(const char* tag, const void* bytes, size_t n, size_t alignment = 0);
+
+	// For writes that copy directly into the allocated buffer, this method
+	// advances the write marker without modifying content.
+	void SkipWrite(const char* tag, size_t n);
+
+	// Aligns the write marker to the next multiple of the given alignment size.
+	void AlignWrite(size_t alignment);
+
+	// Bounds check: if the buffer does not have at least n bytes available
+	// to write into, triggers an InternalError.
+	void EnsureWriteSpace(size_t n) const;
+
+	// Reads don't modify our internal state except for the read offset
+	// pointer. To blend in more seamlessly with the rest of Zeek we keep
+	// reads a const operation.
+	void ResetRead() const { read_size = 0; }
+
+	// Incremental reads from an allocated HashKey. As with writes, the
+	// tags are only used  for debug-build logging, and alignment prior
+	// to the read of the item is controlled by the align boolean.
+	void Read(const char* tag, bool& b) const;
+	void Read(const char* tag, int& i, bool align = true) const;
+	void Read(const char* tag, bro_int_t& bi, bool align = true) const;
+	void Read(const char* tag, bro_uint_t& bu, bool align = true) const;
+	void Read(const char* tag, uint32_t& u, bool align = true) const;
+	void Read(const char* tag, double& d, bool align = true) const;
+
+	void Read(const char* tag, void* out, size_t n, size_t alignment = 0) const;
+
+	// These mirror the corresponding write methods above.
+	void SkipRead(const char* tag, size_t n) const;
+	void AlignRead(size_t alignment) const;
+	void EnsureReadSpace(size_t n) const;
+
+	void* KeyAtWrite() { return static_cast<void*>(key + write_size); }
+	const void* KeyAtRead() const { return static_cast<void*>(key + read_size); }
+	const void* KeyEnd() const { return static_cast<void*>(key + size); }
+
+	void Describe(ODesc* d) const;
+
 protected:
-	void* CopyKey(const void* key, int size) const;
+	char* CopyKey(const char* key, size_t size) const;
 
-	union {
-		bro_int_t i;
+	// Payload setters for types stored directoly in the key_u union. These
+	// adjust the size and write_size markers to indicate a full buffer, and
+	// use the key_u union for storage.
+	void Set(bool b);
+	void Set(int i);
+	void Set(bro_int_t bi);
+	void Set(bro_uint_t bu);
+	void Set(uint32_t u);
+	void Set(double d);
+	void Set(const void* p);
+
+		union {
+		bool b;
+		int i;
+		bro_int_t bi;
 		uint32_t u32;
 		double d;
 		const void* p;
-	} key_u;
+		} key_u;
 
-	void* key;
-	hash_t hash;
-	int size;
+	char* key = nullptr;
+	mutable hash_t hash = 0;
+	size_t size = 0;
 	bool is_our_dynamic = false;
-};
+	size_t write_size = 0;
+	mutable size_t read_size = 0;
+	};
 
 extern void init_hash_function();
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

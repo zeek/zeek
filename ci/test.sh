@@ -16,6 +16,9 @@ if [[ -z "${CIRRUS_CI}" ]]; then
     ZEEK_CI_BTEST_RETRIES=2
 fi
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+. ${SCRIPT_DIR}/common.sh
+
 function pushd
     {
     command pushd "$@" > /dev/null || exit 1
@@ -57,6 +60,14 @@ function run_btests
     banner "Running baseline tests: zeek"
 
     pushd testing/btest
+
+    # Commenting out this line in btest.cfg causes the script profiling/coverage
+    # to be disabled. We do this for the sanitizer build right now because of a
+    # fairly significant performance bug when running tests.
+    if [ "${ZEEK_CI_DISABLE_SCRIPT_PROFILING}" = "1" ]; then
+        sed -i 's/^ZEEK_PROFILER_FILE/#ZEEK_PROFILER_FILE/g' btest.cfg
+    fi
+
     ${BTEST} -z ${ZEEK_CI_BTEST_RETRIES} -d -b -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} || result=1
     make coverage
     prep_artifacts
@@ -66,6 +77,15 @@ function run_btests
 
 function run_external_btests
     {
+    # Commenting out this line in btest.cfg causes the script profiling/coverage
+    # to be disabled. We do this for the sanitizer build right now because of a
+    # fairly significant performance bug when running tests.
+    if [ "${ZEEK_CI_DISABLE_SCRIPT_PROFILING}" = "1" ]; then
+        pushd testing/external
+        sed -i 's/^ZEEK_PROFILER_FILE/#ZEEK_PROFILER_FILE/g' subdir-btest.cfg
+        popd
+    fi
+
     local zeek_testing_pid=""
     local zeek_testing_pid_private=""
     pushd testing/external/zeek-testing

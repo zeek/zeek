@@ -9,7 +9,8 @@
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 
-namespace zeek::telemetry {
+namespace zeek::telemetry
+	{
 
 class DblCounterFamily;
 class IntCounterFamily;
@@ -18,7 +19,8 @@ class Manager;
 /**
  * A handle to a metric that represents an integer value that can only go up.
  */
-class IntCounter {
+class IntCounter
+	{
 public:
 	friend class IntCounterFamily;
 
@@ -55,18 +57,13 @@ public:
 	/**
 	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool IsSameAs(IntCounter other) const noexcept
-		{
-		return pimpl == other.pimpl;
-		}
+	constexpr bool IsSameAs(IntCounter other) const noexcept { return pimpl == other.pimpl; }
 
 private:
-	explicit IntCounter(Impl* ptr) noexcept : pimpl(ptr)
-		{
-		}
+	explicit IntCounter(Impl* ptr) noexcept : pimpl(ptr) { }
 
 	Impl* pimpl;
-};
+	};
 
 /**
  * Checks whether two @ref IntCounter handles are identical.
@@ -81,13 +78,14 @@ constexpr bool operator==(IntCounter lhs, IntCounter rhs) noexcept
 /// @relates IntCounter
 constexpr bool operator!=(IntCounter lhs, IntCounter rhs) noexcept
 	{
-	return !(lhs == rhs);
+	return ! (lhs == rhs);
 	}
 
 /**
  * Manages a collection of IntCounter metrics.
  */
-class IntCounterFamily : public MetricFamily {
+class IntCounterFamily : public MetricFamily
+	{
 public:
 	friend class Manager;
 
@@ -116,13 +114,14 @@ public:
 
 private:
 	explicit IntCounterFamily(Impl* ptr);
-};
+	};
 
 /**
  * A handle to a metric that represents a floating point value that can only go
  * up.
  */
-class DblCounter {
+class DblCounter
+	{
 public:
 	friend class DblCounterFamily;
 
@@ -153,18 +152,13 @@ public:
 	/**
 	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool IsSameAs(DblCounter other) const noexcept
-		{
-		return pimpl == other.pimpl;
-		}
+	constexpr bool IsSameAs(DblCounter other) const noexcept { return pimpl == other.pimpl; }
 
 private:
-	explicit DblCounter(Impl* ptr) noexcept : pimpl(ptr)
-		{
-		}
+	explicit DblCounter(Impl* ptr) noexcept : pimpl(ptr) { }
 
 	Impl* pimpl;
-};
+	};
 
 /**
  * Checks whether two @ref DblCounter handles are identical.
@@ -179,13 +173,14 @@ constexpr bool operator==(DblCounter lhs, DblCounter rhs) noexcept
 /// @relates DblCounter
 constexpr bool operator!=(DblCounter lhs, DblCounter rhs) noexcept
 	{
-	return !(lhs == rhs);
+	return ! (lhs == rhs);
 	}
 
 /**
  * Manages a collection of DblCounter metrics.
  */
-class DblCounterFamily : public MetricFamily {
+class DblCounterFamily : public MetricFamily
+	{
 public:
 	friend class Manager;
 
@@ -214,26 +209,25 @@ public:
 
 private:
 	explicit DblCounterFamily(Impl* ptr);
-};
+	};
 
-namespace detail {
+namespace detail
+	{
 
-template <class T>
-struct CounterOracle {
-	static_assert(std::is_same<T, int64_t>::value,
-	              "Counter<T> only supports int64_t and double");
+template <class T> struct CounterOracle
+	{
+	static_assert(std::is_same<T, int64_t>::value, "Counter<T> only supports int64_t and double");
 
 	using type = IntCounter;
-};
+	};
 
-template <>
-struct CounterOracle<double> {
+template <> struct CounterOracle<double>
+	{
 	using type = DblCounter;
-};
+	};
 
-} // namespace detail
+	} // namespace detail
 
-template <class T>
-using Counter = typename detail::CounterOracle<T>::type;
+template <class T> using Counter = typename detail::CounterOracle<T>::type;
 
-} // namespace zeek::telemetry
+	} // namespace zeek::telemetry

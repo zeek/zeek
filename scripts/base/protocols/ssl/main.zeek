@@ -68,6 +68,36 @@ export {
 		## Flag to indicate if this record already has been logged, to
 		## prevent duplicates.
 		logged:           bool             &default=F;
+
+		## SSL history showing which types of packets we received in which order.
+		## Letters have the following meaning with client-sent letters being capitalized:
+		## H  hello_request
+		## C  client_hello
+		## S  server_hello
+		## V  hello_verify_request
+		## T  NewSessionTicket
+		## X  certificate
+		## K  server_key_exchange
+		## R  certificate_request
+		## N  server_hello_done
+		## Y  certificate_verify
+		## G  client_key_exchange
+		## F  finished
+		## W  certificate_url
+		## U  certificate_status
+		## A  supplemental_data
+		## Z  unassigned_handshake_type
+		## I  change_cipher_spec
+		## B  heartbeat
+		## D  application_data
+		## E  end_of_early_data
+		## O  encrypted_extensions
+		## P  key_update
+		## M  message_hash
+		## J  hello_retry_request
+		## L  alert
+		## Q  unknown_content_type
+		ssl_history:          string &log &default="";
 	};
 
 	## The default root CA bundle.  By default, the mozilla-ca-list.zeek
@@ -111,8 +141,8 @@ export {
 	## record as it is sent on to the logging framework.
 	global log_ssl: event(rec: Info);
 
-	# Hook that can be used to perform actions right before the log record
-	# is written.
+	## Hook that can be used to perform actions right before the log record
+	## is written.
 	global ssl_finishing: hook(c: connection);
 
 	## SSL finalization hook.  Remaining SSL info may get logged when it's called.
@@ -145,7 +175,8 @@ const dtls_ports = { 443/udp };
 
 redef likely_server_ports += { ssl_ports, dtls_ports };
 
-event zeek_init() &priority=5
+# Priority needs to be higher than priority of zeek_init in ssl/files.zeek
+event zeek_init() &priority=6
 	{
 	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl, $path="ssl", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
@@ -159,6 +190,14 @@ function set_session(c: connection)
 		c$ssl = [$ts=network_time(), $uid=c$uid, $id=c$id];
 		Conn::register_removal_hook(c, finalize_ssl);
 		}
+	}
+
+function add_to_history(c: connection, is_orig: bool, char: string)
+	{
+	if ( is_orig )
+		c$ssl$ssl_history = c$ssl$ssl_history+to_upper(char);
+	else
+		c$ssl$ssl_history = c$ssl$ssl_history+to_lower(char);
 	}
 
 function delay_log(info: Info, token: string)
@@ -295,6 +334,75 @@ event ssl_handshake_message(c: connection, is_orig: bool, msg_type: count, lengt
 
 	if ( is_orig && msg_type == SSL::CLIENT_KEY_EXCHANGE )
 		c$ssl$client_key_exchange_seen = T;
+
+	switch ( msg_type )
+		{
+		case SSL::HELLO_REQUEST:
+			add_to_history(c, is_orig, "h");
+			break;
+		case SSL::CLIENT_HELLO:
+			add_to_history(c, is_orig, "c");
+			break;
+		case SSL::SERVER_HELLO:
+			add_to_history(c, is_orig, "s");
+			break;
+		case SSL::HELLO_VERIFY_REQUEST:
+			add_to_history(c, is_orig, "v");
+			break;
+		case SSL::SESSION_TICKET:
+			add_to_history(c, is_orig, "t");
+			break;
+		# end of early data
+		case 5:
+			add_to_history(c, is_orig, "e");
+			break;
+		case SSL::HELLO_RETRY_REQUEST:
+			add_to_history(c, is_orig, "j");
+			break;
+		case SSL::ENCRYPTED_EXTENSIONS:
+			add_to_history(c, is_orig, "o");
+			break;
+		case SSL::CERTIFICATE:
+			add_to_history(c, is_orig, "x");
+			break;
+		case SSL::SERVER_KEY_EXCHANGE:
+			add_to_history(c, is_orig, "k");
+			break;
+		case SSL::CERTIFICATE_REQUEST:
+			add_to_history(c, is_orig, "r");
+			break;
+		case SSL::SERVER_HELLO_DONE:
+			add_to_history(c, is_orig, "n");
+			break;
+		case SSL::CERTIFICATE_VERIFY:
+			add_to_history(c, is_orig, "y");
+			break;
+		case SSL::CLIENT_KEY_EXCHANGE:
+			add_to_history(c, is_orig, "g");
+			break;
+		case SSL::FINISHED:
+			add_to_history(c, is_orig, "f");
+			break;
+		case SSL::CERTIFICATE_URL:
+			add_to_history(c, is_orig, "w");
+			break;
+		case SSL::CERTIFICATE_STATUS:
+			add_to_history(c, is_orig, "u");
+			break;
+		case SSL::SUPPLEMENTAL_DATA:
+			add_to_history(c, is_orig, "a");
+			break;
+		case SSL::KEY_UPDATE:
+			add_to_history(c, is_orig, "p");
+			break;
+		# message hash
+		case 254:
+			add_to_history(c, is_orig, "m");
+			break;
+		default:
+			add_to_history(c, is_orig, "z");
+			break;
+		}
 	}
 
 # Extension event is fired _before_ the respective client or server hello.
@@ -318,6 +426,7 @@ event ssl_extension(c: connection, is_orig: bool, code: count, val: string) &pri
 event ssl_change_cipher_spec(c: connection, is_orig: bool) &priority=5
 	{
 	set_session(c);
+	add_to_history(c, is_orig, "i");
 
 	if ( is_orig && c$ssl$client_ticket_empty_session_seen && ! c$ssl$client_key_exchange_seen )
 		c$ssl$resumed = T;
@@ -326,8 +435,15 @@ event ssl_change_cipher_spec(c: connection, is_orig: bool) &priority=5
 event ssl_alert(c: connection, is_orig: bool, level: count, desc: count) &priority=5
 	{
 	set_session(c);
+	add_to_history(c, is_orig, "l");
 
 	c$ssl$last_alert = alert_descriptions[desc];
+	}
+
+event ssl_heartbeat(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count, payload: string)
+	{
+	set_session(c);
+	add_to_history(c, is_orig, "b");
 	}
 
 event ssl_established(c: connection) &priority=7

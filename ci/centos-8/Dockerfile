@@ -7,7 +7,7 @@ RUN dnf config-manager --set-enabled powertools
 
 RUN dnf -y update && dnf -y install \
     git \
-    cmake3 \
+    cmake \
     make \
     gcc \
     gcc-c++ \

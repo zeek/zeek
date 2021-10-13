@@ -1,8 +1,8 @@
 # @TEST-PORT: BROKER_PORT
 
-# @TEST-EXEC: zeek -B broker -b %DIR/sort-stuff.zeek common.zeek one.zeek > output1
-# @TEST-EXEC: btest-bg-run master "cp ../*.sqlite . && zeek -B broker -b %DIR/sort-stuff.zeek ../common.zeek ../two.zeek >../output2"
-# @TEST-EXEC: btest-bg-run clone "zeek -B broker -b %DIR/sort-stuff.zeek ../common.zeek ../three.zeek >../output3"
+# @TEST-EXEC: zeek -b %DIR/sort-stuff.zeek common.zeek one.zeek > output1
+# @TEST-EXEC: btest-bg-run master "cp ../*.sqlite . && zeek -b %DIR/sort-stuff.zeek ../common.zeek ../two.zeek >../output2"
+# @TEST-EXEC: btest-bg-run clone "zeek -b %DIR/sort-stuff.zeek ../common.zeek ../three.zeek >../output3"
 # @TEST-EXEC: btest-bg-wait 20
 
 # @TEST-EXEC: btest-diff output1

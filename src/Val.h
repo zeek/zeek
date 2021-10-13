@@ -3,19 +3,19 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
-#include <vector>
-#include <list>
 #include <array>
+#include <list>
 #include <unordered_map>
+#include <vector>
 
+#include "zeek/Dict.h"
 #include "zeek/IntrusivePtr.h"
-#include "zeek/Type.h"
-#include "zeek/Timer.h"
 #include "zeek/Notifier.h"
 #include "zeek/Reporter.h"
-#include "zeek/net_util.h"
-#include "zeek/Dict.h"
+#include "zeek/Timer.h"
+#include "zeek/Type.h"
 #include "zeek/ZVal.h"
+#include "zeek/net_util.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -23,11 +23,12 @@
 #define NUM_PORT_SPACES 4
 #define PORT_SPACE_MASK 0x30000
 
-#define TCP_PORT_MASK	0x10000
-#define UDP_PORT_MASK	0x20000
-#define ICMP_PORT_MASK	0x30000
+#define TCP_PORT_MASK 0x10000
+#define UDP_PORT_MASK 0x20000
+#define ICMP_PORT_MASK 0x30000
 
-namespace zeek {
+namespace zeek
+	{
 
 class String;
 class Func;
@@ -37,7 +38,8 @@ class RE_Matcher;
 class File;
 using FilePtr = zeek::IntrusivePtr<File>;
 
-namespace detail {
+namespace detail
+	{
 
 class ScriptFunc;
 class Frame;
@@ -45,14 +47,17 @@ class PrefixTable;
 class CompositeHash;
 class HashKey;
 
-} // namespace detail
+class ZBody;
 
-namespace run_state {
+	} // namespace detail
+
+namespace run_state
+	{
 
 extern double network_time;
 extern double zeek_start_network_time;
 
-} // namespace run_state
+	} // namespace run_state
 
 using FuncPtr = IntrusivePtr<Func>;
 using FilePtr = IntrusivePtr<File>;
@@ -85,13 +90,18 @@ using TableValPtr = IntrusivePtr<TableVal>;
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
 
-class Val : public Obj {
+class Val : public Obj
+	{
 public:
 	static inline const ValPtr nil;
 
 	~Val() override;
 
-	Val* Ref()			{ zeek::Ref(this); return this; }
+	Val* Ref()
+		{
+		zeek::Ref(this);
+		return this;
+		}
 	ValPtr Clone();
 
 	bool IsZero() const;
@@ -110,7 +120,9 @@ public:
 	virtual ValPtr SizeVal() const;
 
 	// Bytes in total value object.
-	virtual unsigned int MemoryAllocation() const;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] virtual unsigned int
+	MemoryAllocation() const;
 
 	// Add this value to the given value (if appropriate).
 	// Returns true if succcessful.  is_first_init is true only if
@@ -121,31 +133,27 @@ public:
 	// Remove this value from the given value (if appropriate).
 	virtual bool RemoveFrom(Val* v) const;
 
-	const TypePtr& GetType() const
-		{ return type; }
+	const TypePtr& GetType() const { return type; }
 
-	template <class T>
-	IntrusivePtr<T> GetType() const
-		{ return cast_intrusive<T>(type); }
+	template <class T> IntrusivePtr<T> GetType() const { return cast_intrusive<T>(type); }
 
-#define UNDERLYING_ACCESSOR_DECL(ztype, ctype, name) \
-	ctype name() const;
+#define UNDERLYING_ACCESSOR_DECL(ztype, ctype, name) ctype name() const;
 
-UNDERLYING_ACCESSOR_DECL(detail::IntValImplementation, bro_int_t, AsInt)
-UNDERLYING_ACCESSOR_DECL(BoolVal, bool, AsBool)
-UNDERLYING_ACCESSOR_DECL(EnumVal, int, AsEnum)
-UNDERLYING_ACCESSOR_DECL(detail::UnsignedValImplementation, bro_uint_t, AsCount)
-UNDERLYING_ACCESSOR_DECL(detail::DoubleValImplementation, double, AsDouble)
-UNDERLYING_ACCESSOR_DECL(TimeVal, double, AsTime)
-UNDERLYING_ACCESSOR_DECL(IntervalVal, double, AsInterval)
-UNDERLYING_ACCESSOR_DECL(AddrVal, const IPAddr&, AsAddr)
-UNDERLYING_ACCESSOR_DECL(SubNetVal, const IPPrefix&, AsSubNet)
-UNDERLYING_ACCESSOR_DECL(StringVal, const String*, AsString)
-UNDERLYING_ACCESSOR_DECL(FuncVal, Func*, AsFunc)
-UNDERLYING_ACCESSOR_DECL(FileVal, File*, AsFile)
-UNDERLYING_ACCESSOR_DECL(PatternVal, const RE_Matcher*, AsPattern)
-UNDERLYING_ACCESSOR_DECL(TableVal, const PDict<TableEntryVal>*, AsTable)
-UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
+	UNDERLYING_ACCESSOR_DECL(detail::IntValImplementation, bro_int_t, AsInt)
+	UNDERLYING_ACCESSOR_DECL(BoolVal, bool, AsBool)
+	UNDERLYING_ACCESSOR_DECL(EnumVal, int, AsEnum)
+	UNDERLYING_ACCESSOR_DECL(detail::UnsignedValImplementation, bro_uint_t, AsCount)
+	UNDERLYING_ACCESSOR_DECL(detail::DoubleValImplementation, double, AsDouble)
+	UNDERLYING_ACCESSOR_DECL(TimeVal, double, AsTime)
+	UNDERLYING_ACCESSOR_DECL(IntervalVal, double, AsInterval)
+	UNDERLYING_ACCESSOR_DECL(AddrVal, const IPAddr&, AsAddr)
+	UNDERLYING_ACCESSOR_DECL(SubNetVal, const IPPrefix&, AsSubNet)
+	UNDERLYING_ACCESSOR_DECL(StringVal, const String*, AsString)
+	UNDERLYING_ACCESSOR_DECL(FuncVal, Func*, AsFunc)
+	UNDERLYING_ACCESSOR_DECL(FileVal, File*, AsFile)
+	UNDERLYING_ACCESSOR_DECL(PatternVal, const RE_Matcher*, AsPattern)
+	UNDERLYING_ACCESSOR_DECL(TableVal, const PDict<TableEntryVal>*, AsTable)
+	UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
 
 	FuncVal* AsFuncVal();
 	const FuncVal* AsFuncVal() const;
@@ -186,12 +194,15 @@ UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
 	OpaqueVal* AsOpaqueVal();
 	const OpaqueVal* AsOpaqueVal() const;
 
+	TypeVal* AsTypeVal();
+	const TypeVal* AsTypeVal() const;
+
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
 
 	// To be overridden by mutable derived class to enable change
 	// notification.
-	virtual notifier::detail::Modifiable* Modifiable()	{ return nullptr; }
+	virtual notifier::detail::Modifiable* Modifiable() { return nullptr; }
 
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
@@ -201,14 +212,11 @@ UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
 	void SetID(detail::ID* id);
 #endif
 
-	static bool WouldOverflow(const zeek::Type* from_type, const zeek::Type* to_type, const Val* val);
-
 	TableValPtr GetRecordFields();
 
-	StringValPtr ToJSON(bool only_loggable=false, RE_Matcher* re=nullptr);
+	StringValPtr ToJSON(bool only_loggable = false, RE_Matcher* re = nullptr);
 
-	template<typename T>
-	T As()
+	template <typename T> T As()
 		{
 		// Since we're converting from "this", make sure the type requested is a pointer.
 		static_assert(std::is_pointer<T>());
@@ -216,7 +224,6 @@ UNDERLYING_ACCESSOR_DECL(TypeVal, zeek::Type*, AsType)
 		}
 
 protected:
-
 	// Friends with access to Clone().
 	friend class EnumType;
 	friend class ListVal;
@@ -232,19 +239,18 @@ protected:
 	static ValPtr MakeInt(bro_int_t i);
 	static ValPtr MakeCount(bro_uint_t u);
 
-	explicit Val(TypePtr t) noexcept
-		: type(std::move(t))
-		{}
+	explicit Val(TypePtr t) noexcept : type(std::move(t)) { }
 
 	// For internal use by the Val::Clone() methods.
-	struct CloneState {
+	struct CloneState
+		{
 		// Caches a cloned value for later reuse during the same
 		// cloning operation. For recursive types, call this *before*
 		// descending down.
 		ValPtr NewClone(Val* src, ValPtr dst);
 
 		std::unordered_map<Val*, Val*> clones;
-	};
+		};
 
 	ValPtr Clone(CloneState* state);
 	virtual ValPtr DoClone(CloneState* state);
@@ -255,35 +261,32 @@ protected:
 	// For debugging, we keep the name of the ID to which a Val is bound.
 	const char* bound_id = nullptr;
 #endif
-
-};
+	};
 
 // Holds pre-allocated Val objects for those where it's more optimal to
 // re-use existing ones rather than allocate anew.
-class ValManager {
+class ValManager
+	{
 public:
-
 	static constexpr bro_uint_t PREALLOCATED_COUNTS = 4096;
 	static constexpr bro_uint_t PREALLOCATED_INTS = 512;
 	static constexpr bro_int_t PREALLOCATED_INT_LOWEST = -255;
-	static constexpr bro_int_t PREALLOCATED_INT_HIGHEST =
-            PREALLOCATED_INT_LOWEST + PREALLOCATED_INTS - 1;
+	static constexpr bro_int_t PREALLOCATED_INT_HIGHEST = PREALLOCATED_INT_LOWEST +
+	                                                      PREALLOCATED_INTS - 1;
 
 	ValManager();
 
-	inline const ValPtr& True() const
-		{ return b_true; }
+	inline const ValPtr& True() const { return b_true; }
 
-	inline const ValPtr& False() const
-		{ return b_false; }
+	inline const ValPtr& False() const { return b_false; }
 
-	inline const ValPtr& Bool(bool b) const
-		{ return b ? b_true : b_false; }
+	inline const ValPtr& Bool(bool b) const { return b ? b_true : b_false; }
 
 	inline ValPtr Int(int64_t i) const
 		{
-		return i < PREALLOCATED_INT_LOWEST || i > PREALLOCATED_INT_HIGHEST ?
-		    Val::MakeInt(i) : ints[i - PREALLOCATED_INT_LOWEST];
+		return i < PREALLOCATED_INT_LOWEST || i > PREALLOCATED_INT_HIGHEST
+		           ? Val::MakeInt(i)
+		           : ints[i - PREALLOCATED_INT_LOWEST];
 		}
 
 	inline ValPtr Count(uint64_t i) const
@@ -291,8 +294,7 @@ public:
 		return i >= PREALLOCATED_COUNTS ? Val::MakeCount(i) : counts[i];
 		}
 
-	inline const StringValPtr& EmptyString() const
-		{ return empty_string; }
+	inline const StringValPtr& EmptyString() const { return empty_string; }
 
 	// Port number given in host order.
 	const PortValPtr& Port(uint32_t port_num, TransportProto port_type) const;
@@ -301,128 +303,122 @@ public:
 	const PortValPtr& Port(uint32_t port_num) const;
 
 private:
-
 	std::array<std::array<PortValPtr, 65536>, NUM_PORT_SPACES> ports;
 	std::array<ValPtr, PREALLOCATED_COUNTS> counts;
 	std::array<ValPtr, PREALLOCATED_INTS> ints;
 	StringValPtr empty_string;
 	ValPtr b_true;
 	ValPtr b_false;
-};
+	};
 
 extern ValManager* val_mgr;
 
-
-namespace detail {
+namespace detail
+	{
 
 // These are *internal* classes used to allow different publicly visible
 // classes to share the same low-level value (per Type::InternalType).
 // They may change or go away in the future.
 
-class IntValImplementation : public Val {
+class IntValImplementation : public Val
+	{
 public:
-	IntValImplementation(TypePtr t, bro_int_t v)
-		: Val(std::move(t)), int_val(v)
-		{}
+	IntValImplementation(TypePtr t, bro_int_t v) : Val(std::move(t)), int_val(v) { }
 
-	bro_int_t Get() const	{ return int_val; }
+	bro_int_t Get() const { return int_val; }
 
 protected:
 	bro_int_t int_val;
-};
+	};
 
-class UnsignedValImplementation : public Val {
+class UnsignedValImplementation : public Val
+	{
 public:
-	UnsignedValImplementation(TypePtr t, bro_uint_t v)
-		: Val(std::move(t)), uint_val(v)
-		{}
+	UnsignedValImplementation(TypePtr t, bro_uint_t v) : Val(std::move(t)), uint_val(v) { }
 
-	bro_uint_t Get() const	{ return uint_val; }
+	bro_uint_t Get() const { return uint_val; }
 
 protected:
 	bro_uint_t uint_val;
-};
+	};
 
-class DoubleValImplementation : public Val {
+class DoubleValImplementation : public Val
+	{
 public:
-	DoubleValImplementation(TypePtr t, double v)
-		: Val(std::move(t)), double_val(v)
-		{}
+	DoubleValImplementation(TypePtr t, double v) : Val(std::move(t)), double_val(v) { }
 
-	double Get() const	{ return double_val; }
+	double Get() const { return double_val; }
 
 protected:
 	double double_val;
-};
+	};
 
-} // namespace detail
+	} // namespace detail
 
-class IntVal final : public detail::IntValImplementation {
+class IntVal final : public detail::IntValImplementation
+	{
 public:
-	IntVal(bro_int_t v)
-		: detail::IntValImplementation(base_type(TYPE_INT), v)
-		{}
+	IntVal(bro_int_t v) : detail::IntValImplementation(base_type(TYPE_INT), v) { }
 
 	// No Get() method since in the current implementation the
 	// inherited one serves that role.
-};
+	};
 
-class BoolVal final : public detail::IntValImplementation {
+class BoolVal final : public detail::IntValImplementation
+	{
 public:
-	BoolVal(bro_int_t v)
-		: detail::IntValImplementation(base_type(TYPE_BOOL), v)
-		{}
+	BoolVal(bro_int_t v) : detail::IntValImplementation(base_type(TYPE_BOOL), v) { }
 
-	bool Get() const	{ return static_cast<bool>(int_val); }
-};
+	bool Get() const { return static_cast<bool>(int_val); }
+	};
 
-class CountVal : public detail::UnsignedValImplementation {
+class CountVal : public detail::UnsignedValImplementation
+	{
 public:
-	CountVal(bro_uint_t v)
-		: detail::UnsignedValImplementation(base_type(TYPE_COUNT), v)
-		{}
+	CountVal(bro_uint_t v) : detail::UnsignedValImplementation(base_type(TYPE_COUNT), v) { }
 
 	// Same as for IntVal: no Get() method needed.
-};
+	};
 
-class DoubleVal : public detail::DoubleValImplementation {
+class DoubleVal : public detail::DoubleValImplementation
+	{
 public:
-	DoubleVal(double v)
-		: detail::DoubleValImplementation(base_type(TYPE_DOUBLE), v)
-		{}
+	DoubleVal(double v) : detail::DoubleValImplementation(base_type(TYPE_DOUBLE), v) { }
 
 	// Same as for IntVal: no Get() method needed.
-};
+	};
 
 #define Microseconds 1e-6
 #define Milliseconds 1e-3
 #define Seconds 1.0
-#define Minutes (60*Seconds)
-#define Hours (60*Minutes)
-#define Days (24*Hours)
+#define Minutes (60 * Seconds)
+#define Hours (60 * Minutes)
+#define Days (24 * Hours)
 
-class IntervalVal final : public detail::DoubleValImplementation {
+class IntervalVal final : public detail::DoubleValImplementation
+	{
 public:
 	IntervalVal(double quantity, double units = Seconds)
-		: detail::DoubleValImplementation(base_type(TYPE_INTERVAL),
-						quantity * units)
-		{}
+		: detail::DoubleValImplementation(base_type(TYPE_INTERVAL), quantity * units)
+		{
+		}
 
 	// Same as for IntVal: no Get() method needed.
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-};
+	};
 
-class TimeVal final : public detail::DoubleValImplementation {
+class TimeVal final : public detail::DoubleValImplementation
+	{
 public:
-	TimeVal(double t) : detail::DoubleValImplementation(base_type(TYPE_TIME), t)
-		{}
+	TimeVal(double t) : detail::DoubleValImplementation(base_type(TYPE_TIME), t) { }
 
 	// Same as for IntVal: no Get() method needed.
-};
+	};
 
-class PortVal final : public detail::UnsignedValImplementation {
+class PortVal final : public detail::UnsignedValImplementation
+	{
 public:
 	ValPtr SizeVal() const override;
 
@@ -450,10 +446,11 @@ public:
 	// Returns a masked port number
 	static uint32_t Mask(uint32_t port_num, TransportProto port_type);
 
-protected:
-	friend class ValManager;
+	// Only meant for use by ValManager and compiled-to-C++ script
+	// functions.
 	PortVal(uint32_t p);
 
+protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
 
@@ -462,10 +459,11 @@ private:
 	// `RecordVal::GetFieldAs` into returning the right type.
 	// It shouldn't actually be used for anything.
 	friend class RecordVal;
-	PortValPtr Get()	{ return {NewRef{}, this}; }
-};
+	PortValPtr Get() { return {NewRef{}, this}; }
+	};
 
-class AddrVal final : public Val {
+class AddrVal final : public Val
+	{
 public:
 	explicit AddrVal(const char* text);
 	explicit AddrVal(const std::string& text);
@@ -474,22 +472,25 @@ public:
 	ValPtr SizeVal() const override;
 
 	// Constructor for address already in network order.
-	explicit AddrVal(uint32_t addr);          // IPv4.
+	explicit AddrVal(uint32_t addr); // IPv4.
 	explicit AddrVal(const uint32_t addr[4]); // IPv6.
 	explicit AddrVal(const IPAddr& addr);
 
-	const IPAddr& Get() const	{ return *addr_val; }
+	const IPAddr& Get() const { return *addr_val; }
 
-	unsigned int MemoryAllocation() const override;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	MemoryAllocation() const override;
 
 protected:
 	ValPtr DoClone(CloneState* state) override;
 
 private:
 	IPAddr* addr_val;
-};
+	};
 
-class SubNetVal final : public Val {
+class SubNetVal final : public Val
+	{
 public:
 	explicit SubNetVal(const char* text);
 	SubNetVal(const char* text, int width);
@@ -507,9 +508,11 @@ public:
 
 	bool Contains(const IPAddr& addr) const;
 
-	const IPPrefix& Get() const	{ return *subnet_val; }
+	const IPPrefix& Get() const { return *subnet_val; }
 
-	unsigned int MemoryAllocation() const override;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	MemoryAllocation() const override;
 
 protected:
 	void ValDescribe(ODesc* d) const override;
@@ -517,9 +520,10 @@ protected:
 
 private:
 	IPPrefix* subnet_val;
-};
+	};
 
-class StringVal final : public Val {
+class StringVal final : public Val
+	{
 public:
 	explicit StringVal(String* s);
 	explicit StringVal(const char* s);
@@ -539,14 +543,16 @@ public:
 	// 	{ return AsString()->ExpandedString(format); }
 
 	std::string ToStdString() const;
+	std::string_view ToStdStringView() const;
 	StringVal* ToUpper();
 
-	const String* Get() const	{ return string_val; }
+	const String* Get() const { return string_val; }
 
-	unsigned int MemoryAllocation() const override;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	MemoryAllocation() const override;
 
-	StringValPtr Replace(RE_Matcher* re, const String& repl,
-	                                      bool do_all);
+	StringValPtr Replace(RE_Matcher* re, const String& repl, bool do_all);
 
 protected:
 	void ValDescribe(ODesc* d) const override;
@@ -554,9 +560,10 @@ protected:
 
 private:
 	String* string_val;
-};
+	};
 
-class FuncVal final : public Val {
+class FuncVal final : public Val
+	{
 public:
 	explicit FuncVal(FuncPtr f);
 
@@ -564,7 +571,7 @@ public:
 
 	ValPtr SizeVal() const override;
 
-	Func* Get() const	{ return func_val.get(); }
+	Func* Get() const { return func_val.get(); }
 
 protected:
 	void ValDescribe(ODesc* d) const override;
@@ -572,15 +579,16 @@ protected:
 
 private:
 	FuncPtr func_val;
-};
+	};
 
-class FileVal final : public Val {
+class FileVal final : public Val
+	{
 public:
 	explicit FileVal(FilePtr f);
 
 	ValPtr SizeVal() const override;
 
-	File* Get() const	{ return file_val.get(); }
+	File* Get() const { return file_val.get(); }
 
 protected:
 	void ValDescribe(ODesc* d) const override;
@@ -588,9 +596,10 @@ protected:
 
 private:
 	FilePtr file_val;
-};
+	};
 
-class PatternVal final : public Val {
+class PatternVal final : public Val
+	{
 public:
 	explicit PatternVal(RE_Matcher* re);
 	~PatternVal() override;
@@ -602,9 +611,11 @@ public:
 	bool MatchExactly(const String* s) const;
 	bool MatchAnywhere(const String* s) const;
 
-	const RE_Matcher* Get() const	{ return re_val; }
+	const RE_Matcher* Get() const { return re_val; }
 
-	unsigned int MemoryAllocation() const override;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	MemoryAllocation() const override;
 
 protected:
 	void ValDescribe(ODesc* d) const override;
@@ -612,23 +623,24 @@ protected:
 
 private:
 	RE_Matcher* re_val;
-};
+	};
 
 // ListVals are mainly used to index tables that have more than one
 // element in their index.
-class ListVal final : public Val {
+class ListVal final : public Val
+	{
 public:
 	explicit ListVal(TypeTag t);
 
 	~ListVal() override;
 
-	TypeTag BaseTag() const		{ return tag; }
+	TypeTag BaseTag() const { return tag; }
 
 	ValPtr SizeVal() const override;
 
-	int Length() const		{ return vals.size(); }
+	int Length() const { return vals.size(); }
 
-	const ValPtr& Idx(size_t i) const	{ return vals[i]; }
+	const ValPtr& Idx(size_t i) const { return vals[i]; }
 
 	// Returns an RE_Matcher() that will match any string that
 	// includes embedded within it one of the patterns listed
@@ -649,38 +661,42 @@ public:
 	// Returns a Set representation of the list (which must be homogeneous).
 	TableValPtr ToSetVal() const;
 
-	const std::vector<ValPtr>& Vals() const	{ return vals; }
+	const std::vector<ValPtr>& Vals() const { return vals; }
 
 	void Describe(ODesc* d) const override;
 
-	unsigned int MemoryAllocation() const override;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	MemoryAllocation() const override;
 
 protected:
 	ValPtr DoClone(CloneState* state) override;
 
 	std::vector<ValPtr> vals;
 	TypeTag tag;
-};
+	};
 
-class TableEntryVal {
+class TableEntryVal
+	{
 public:
-	explicit TableEntryVal(ValPtr v)
-		: val(std::move(v))
+	explicit TableEntryVal(ValPtr v) : val(std::move(v))
 		{
-		expire_access_time =
-			int(run_state::network_time - run_state::zeek_start_network_time);
+		expire_access_time = int(run_state::network_time - run_state::zeek_start_network_time);
 		}
 
 	TableEntryVal* Clone(Val::CloneState* state);
 
-	const ValPtr& GetVal() const
-		{ return val; }
+	const ValPtr& GetVal() const { return val; }
 
 	// Returns/sets time of last expiration relevant access to this value.
 	double ExpireAccessTime() const
-		{ return run_state::zeek_start_network_time + expire_access_time; }
+		{
+		return run_state::zeek_start_network_time + expire_access_time;
+		}
 	void SetExpireAccess(double time)
-		{ expire_access_time = int(time - run_state::zeek_start_network_time); }
+		{
+		expire_access_time = int(time - run_state::zeek_start_network_time);
+		}
 
 protected:
 	friend class TableVal;
@@ -691,22 +707,24 @@ protected:
 	// to save a few bytes, as we do not need a high resolution for these
 	// anyway.
 	int expire_access_time;
-};
+	};
 
-class TableValTimer final : public detail::Timer {
+class TableValTimer final : public detail::Timer
+	{
 public:
 	TableValTimer(TableVal* val, double t);
 	~TableValTimer() override;
 
 	void Dispatch(double t, bool is_expire) override;
 
-	TableVal* Table()	{ return table; }
+	TableVal* Table() { return table; }
 
 protected:
 	TableVal* table;
-};
+	};
 
-class TableVal final : public Val, public notifier::detail::Modifiable {
+class TableVal final : public Val, public notifier::detail::Modifiable
+	{
 public:
 	explicit TableVal(TableTypePtr t, detail::AttributesPtr attrs = nullptr);
 
@@ -741,9 +759,8 @@ public:
 	 *        Broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
-	bool Assign(ValPtr index, std::unique_ptr<detail::HashKey> k,
-	            ValPtr new_val, bool broker_forward = true,
-	            bool* iterators_invalidated = nullptr);
+	bool Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr new_val,
+	            bool broker_forward = true, bool* iterators_invalidated = nullptr);
 
 	ValPtr SizeVal() const override;
 
@@ -877,7 +894,8 @@ public:
 	 * value is returned to differentiate it from non-existent index (nullptr),
 	 * but otherwise has no meaning in relation to the set's contents.
 	 */
-	ValPtr Remove(const Val& index, bool broker_forward = true, bool* iterators_invalidated = nullptr);
+	ValPtr Remove(const Val& index, bool broker_forward = true,
+	              bool* iterators_invalidated = nullptr);
 
 	/**
 	 * Same as Remove(const Val&), but uses a precomputed hash key.
@@ -902,10 +920,9 @@ public:
 
 	const detail::AttrPtr& GetAttr(detail::AttrTag t) const;
 
-	const detail::AttributesPtr& GetAttrs() const
-		{ return attrs; }
+	const detail::AttributesPtr& GetAttrs() const { return attrs; }
 
-	const PDict<TableEntryVal>* Get() const	{ return table_val; }
+	const PDict<TableEntryVal>* Get() const { return table_val; }
 
 	// Returns the size of the table.
 	int Size() const;
@@ -926,7 +943,9 @@ public:
 	// the function in the frame allowing it to capture its closure.
 	void InitDefaultFunc(detail::Frame* f);
 
-	unsigned int MemoryAllocation() const override;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	MemoryAllocation() const override;
 
 	void ClearTimer(detail::Timer* t)
 		{
@@ -941,7 +960,7 @@ public:
 	 */
 	std::unique_ptr<detail::HashKey> MakeHashKey(const Val& index) const;
 
-	notifier::detail::Modifiable* Modifiable() override	{ return this; }
+	notifier::detail::Modifiable* Modifiable() override { return this; }
 
 	// Retrieves and saves all table state (key-value pairs) for
 	// tables whose index type depends on the given RecordType.
@@ -991,7 +1010,7 @@ protected:
 	ValPtr Default(const ValPtr& index);
 
 	// Returns true if item expiration is enabled.
-	bool ExpirationEnabled()	{ return expire_time != nullptr; }
+	bool ExpirationEnabled() { return expire_time != nullptr; }
 
 	// Returns the expiration time defined by %{create,read,write}_expire
 	// attribute, or -1 for unset/invalid values. In the invalid case, an
@@ -1002,11 +1021,16 @@ protected:
 	double CallExpireFunc(ListValPtr idx);
 
 	// Enum for the different kinds of changes an &on_change handler can see
-	enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
+	enum OnChangeType
+		{
+		ELEMENT_NEW,
+		ELEMENT_CHANGED,
+		ELEMENT_REMOVED,
+		ELEMENT_EXPIRED
+		};
 
 	// Calls &change_func.
-	void CallChangeFunc(const ValPtr& index, const ValPtr& old_value,
-	                    OnChangeType tpe);
+	void CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnChangeType tpe);
 
 	// Sends data on to backing Broker Store
 	void SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType tpe);
@@ -1032,42 +1056,28 @@ protected:
 
 private:
 	PDict<TableEntryVal>* table_val;
-};
+	};
 
 // This would be way easier with is_convertible_v, but sadly that won't
 // work here because Obj has deleted copy constructors (and for good
 // reason). Instead we make up our own type trait here that basically
 // combines a bunch of is_same traits into a single trait to make life
 // easier in the definitions of GetFieldAs().
-template <typename T>
-struct is_zeek_val
+template <typename T> struct is_zeek_val
 	{
 	static const bool value = std::disjunction_v<
-		std::is_same<AddrVal, T>,
-		std::is_same<BoolVal, T>,
-		std::is_same<CountVal, T>,
-		std::is_same<DoubleVal, T>,
-		std::is_same<EnumVal, T>,
-		std::is_same<FileVal, T>,
-		std::is_same<FuncVal, T>,
-		std::is_same<IntVal, T>,
-		std::is_same<IntervalVal, T>,
-		std::is_same<ListVal, T>,
-		std::is_same<OpaqueVal, T>,
-		std::is_same<PatternVal, T>,
-		std::is_same<PortVal, T>,
-		std::is_same<RecordVal, T>,
-		std::is_same<StringVal, T>,
-		std::is_same<SubNetVal, T>,
-		std::is_same<TableVal, T>,
-		std::is_same<TimeVal, T>,
-		std::is_same<TypeVal, T>,
-		std::is_same<VectorVal, T>>;
+		std::is_same<AddrVal, T>, std::is_same<BoolVal, T>, std::is_same<CountVal, T>,
+		std::is_same<DoubleVal, T>, std::is_same<EnumVal, T>, std::is_same<FileVal, T>,
+		std::is_same<FuncVal, T>, std::is_same<IntVal, T>, std::is_same<IntervalVal, T>,
+		std::is_same<ListVal, T>, std::is_same<OpaqueVal, T>, std::is_same<PatternVal, T>,
+		std::is_same<PortVal, T>, std::is_same<RecordVal, T>, std::is_same<StringVal, T>,
+		std::is_same<SubNetVal, T>, std::is_same<TableVal, T>, std::is_same<TimeVal, T>,
+		std::is_same<TypeVal, T>, std::is_same<VectorVal, T>>;
 	};
-template <typename T>
-inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
+template <typename T> inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
 
-class RecordVal final : public Val, public notifier::detail::Modifiable {
+class RecordVal final : public Val, public notifier::detail::Modifiable
+	{
 public:
 	explicit RecordVal(RecordTypePtr t, bool init_fields = true);
 
@@ -1089,9 +1099,10 @@ public:
 	 * @param args  A variable number of arguments to pass to constructor of
 	 * type @c T.
 	 */
-	template <class T, class... Ts>
-	void Assign(int field, Ts&&... args)
-		{ Assign(field, make_intrusive<T>(std::forward<Ts>(args)...)); }
+	template <class T, class... Ts> void Assign(int field, Ts&&... args)
+		{
+		Assign(field, make_intrusive<T>(std::forward<Ts>(args)...));
+		}
 
 	/**
 	 * Sets the given record field to not-in-record.  Equivalent to
@@ -1103,13 +1114,13 @@ public:
 	// The following provide efficient record field assignments.
 	void Assign(int field, bool new_val)
 		{
-		(*record_val)[field].int_val = int(new_val);
+		(*record_val)[field] = ZVal(bro_int_t(new_val));
 		AddedField(field);
 		}
 
 	void Assign(int field, int new_val)
 		{
-		(*record_val)[field].int_val = new_val;
+		(*record_val)[field] = ZVal(bro_int_t(new_val));
 		AddedField(field);
 		}
 
@@ -1118,18 +1129,18 @@ public:
 	// than the other.
 	void Assign(int field, uint32_t new_val)
 		{
-		(*record_val)[field].uint_val = new_val;
+		(*record_val)[field] = ZVal(bro_uint_t(new_val));
 		AddedField(field);
 		}
 	void Assign(int field, uint64_t new_val)
 		{
-		(*record_val)[field].uint_val = new_val;
+		(*record_val)[field] = ZVal(bro_uint_t(new_val));
 		AddedField(field);
 		}
 
 	void Assign(int field, double new_val)
 		{
-		(*record_val)[field].double_val = new_val;
+		(*record_val)[field] = ZVal(new_val);
 		AddedField(field);
 		}
 
@@ -1137,30 +1148,25 @@ public:
 	// but we use the names so that in the future if it would
 	// be helpful, we can track the intent of the underlying
 	// value representing a time or an interval.
-	void AssignTime(int field, double new_val)
-		{ Assign(field, new_val); }
-	void AssignInterval(int field, double new_val)
-		{ Assign(field, new_val); }
+	void AssignTime(int field, double new_val) { Assign(field, new_val); }
+	void AssignInterval(int field, double new_val) { Assign(field, new_val); }
 
 	void Assign(int field, StringVal* new_val)
 		{
-		ZVal::DeleteManagedType((*record_val)[field]);
-		(*record_val)[field].string_val = new_val;
+		if ( HasField(field) )
+			ZVal::DeleteManagedType(*(*record_val)[field]);
+		(*record_val)[field] = ZVal(new_val);
 		AddedField(field);
 		}
-	void Assign(int field, const char* new_val)
-		{ Assign(field, new StringVal(new_val)); }
-	void Assign(int field, const std::string& new_val)
-		{ Assign(field, new StringVal(new_val)); }
-	void Assign(int field, String* new_val)
-		{ Assign(field, new StringVal(new_val)); }
+	void Assign(int field, const char* new_val) { Assign(field, new StringVal(new_val)); }
+	void Assign(int field, const std::string& new_val) { Assign(field, new StringVal(new_val)); }
+	void Assign(int field, String* new_val) { Assign(field, new StringVal(new_val)); }
 
 	/**
 	 * Assign a value of type @c T to a record field of the given name.
 	 * A fatal error occurs if the no such field name exists.
 	 */
-	template <class T>
-	void AssignField(const char* field_name, T&& val)
+	template <class T> void AssignField(const char* field_name, T&& val)
 		{
 		int idx = GetType()->AsRecordType()->FieldOffset(field_name);
 		if ( idx < 0 )
@@ -1169,45 +1175,10 @@ public:
 		}
 
 	/**
-	 * Appends a value to the record's fields.  The caller is responsible
-	 * for ensuring that fields are appended in the correct order and
-	 * with the correct type.
-	 * @param v  The value to append.
-	 */
-	void AppendField(ValPtr v)
-		{
-		if ( v )
-			{
-			(*is_in_record)[record_val->size()] = true;
-			record_val->emplace_back(ZVal(v, v->GetType()));
-			}
-		else
-			{
-			(*is_in_record)[record_val->size()] = false;
-			record_val->emplace_back(ZVal());
-			}
-		}
-
-	/**
-	 * Ensures that the record has enough internal storage for the
-	 * given number of fields.
-	 * @param n  The number of fields.
-	 */
-	void Reserve(unsigned int n)
-		{
-		record_val->reserve(n);
-		is_in_record->reserve(n);
-
-		for ( auto i = is_in_record->size(); i < n; ++i )
-			is_in_record->emplace_back(false);
-		}
-
-	/**
 	 * Returns the number of fields in the record.
 	 * @return  The number of fields in the record.
 	 */
-	unsigned int NumFields() const
-		{ return record_val->size(); }
+	unsigned int NumFields() const { return record_val->size(); }
 
 	/**
 	 * Returns true if the given field is in the record, false if
@@ -1215,9 +1186,18 @@ public:
 	 * @param field  The field index to retrieve.
 	 * @return  Whether there's a value for the given field index.
 	 */
-	bool HasField(int field) const
+	bool HasField(int field) const { return (*record_val)[field] ? true : false; }
+
+	/**
+	 * Returns true if the given field is in the record, false if
+	 * it's missing.
+	 * @param field  The field name to retrieve.
+	 * @return  Whether there's a value for the given field name.
+	 */
+	bool HasField(const char* field) const
 		{
-		return (*is_in_record)[field];
+		int idx = GetType()->AsRecordType()->FieldOffset(field);
+		return (idx != -1) && HasField(idx);
 		}
 
 	/**
@@ -1230,7 +1210,7 @@ public:
 		if ( ! HasField(field) )
 			return nullptr;
 
-		return (*record_val)[field].ToVal(rt->GetFieldType(field));
+		return (*record_val)[field]->ToVal(rt->GetFieldType(field));
 		}
 
 	/**
@@ -1238,9 +1218,10 @@ public:
 	 * @param field  The field index to retrieve.
 	 * @return  The value at the given field index cast to type @c T.
 	 */
-	template <class T>
-	IntrusivePtr<T> GetField(int field) const
-		{ return cast_intrusive<T>(GetField(field)); }
+	template <class T> IntrusivePtr<T> GetField(int field) const
+		{
+		return cast_intrusive<T>(GetField(field));
+		}
 
 	/**
 	 * Returns the value of a given field index if it's previously been
@@ -1266,9 +1247,10 @@ public:
 	 * @return  The value of the given field cast to type @c T.  If no such
 	 * field name exists, a fatal error occurs.
 	 */
-	template <class T>
-	IntrusivePtr<T> GetField(const char* field) const
-		{ return cast_intrusive<T>(GetField(field)); }
+	template <class T> IntrusivePtr<T> GetField(const char* field) const
+		{
+		return cast_intrusive<T>(GetField(field));
+		}
 
 	/**
 	 * Returns the value of a given field name if it's previously been
@@ -1288,49 +1270,47 @@ public:
 	 * @return  The value of the given field or its default value cast to
 	 * type @c T.  If no such field name exists, a fatal error occurs.
 	 */
-	template <class T>
-	IntrusivePtr<T> GetFieldOrDefault(const char* field) const
-		{ return cast_intrusive<T>(GetField(field)); }
+	template <class T> IntrusivePtr<T> GetFieldOrDefault(const char* field) const
+		{
+		return cast_intrusive<T>(GetField(field));
+		}
 
 	// The following return the given field converted to a particular
 	// underlying value.  We provide these to enable efficient
 	// access to record fields (without requiring an intermediary Val).
 	// It is up to the caller to ensure that the field exists in the
 	// record (using HasField(), if necessary).
-	template <typename T,
-	          typename std::enable_if_t<is_zeek_val_v<T>, bool> = true>
+	template <typename T, typename std::enable_if_t<is_zeek_val_v<T>, bool> = true>
 	auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T>
 		{
-		if constexpr ( std::is_same_v<T, BoolVal> ||
-		               std::is_same_v<T, IntVal> ||
+		if constexpr ( std::is_same_v<T, BoolVal> || std::is_same_v<T, IntVal> ||
 		               std::is_same_v<T, EnumVal> )
-			return record_val->operator[](field).int_val;
+			return record_val->operator[](field)->int_val;
 		else if constexpr ( std::is_same_v<T, CountVal> )
-			return record_val->operator[](field).uint_val;
-		else if constexpr ( std::is_same_v<T, DoubleVal> ||
-		                    std::is_same_v<T, TimeVal> ||
+			return record_val->operator[](field)->uint_val;
+		else if constexpr ( std::is_same_v<T, DoubleVal> || std::is_same_v<T, TimeVal> ||
 		                    std::is_same_v<T, IntervalVal> )
-			return record_val->operator[](field).double_val;
+			return record_val->operator[](field)->double_val;
 		else if constexpr ( std::is_same_v<T, PortVal> )
-			return val_mgr->Port(record_val->at(field).uint_val);
+			return val_mgr->Port(record_val->at(field)->uint_val);
 		else if constexpr ( std::is_same_v<T, StringVal> )
-			return record_val->operator[](field).string_val->Get();
+			return record_val->operator[](field)->string_val->Get();
 		else if constexpr ( std::is_same_v<T, AddrVal> )
-			return record_val->operator[](field).addr_val->Get();
+			return record_val->operator[](field)->addr_val->Get();
 		else if constexpr ( std::is_same_v<T, SubNetVal> )
-			return record_val->operator[](field).subnet_val->Get();
+			return record_val->operator[](field)->subnet_val->Get();
 		else if constexpr ( std::is_same_v<T, File> )
-			return *(record_val->operator[](field).file_val);
+			return *(record_val->operator[](field)->file_val);
 		else if constexpr ( std::is_same_v<T, Func> )
-			return *(record_val->operator[](field).func_val);
+			return *(record_val->operator[](field)->func_val);
 		else if constexpr ( std::is_same_v<T, PatternVal> )
-			return record_val->operator[](field).re_val->Get();
+			return record_val->operator[](field)->re_val->Get();
 		else if constexpr ( std::is_same_v<T, RecordVal> )
-			return record_val->operator[](field).record_val;
+			return record_val->operator[](field)->record_val;
 		else if constexpr ( std::is_same_v<T, VectorVal> )
-			return record_val->operator[](field).vector_val;
+			return record_val->operator[](field)->vector_val;
 		else if constexpr ( std::is_same_v<T, TableVal> )
-			return record_val->operator[](field).table_val->Get();
+			return record_val->operator[](field)->table_val->Get();
 		else
 			{
 			// It's an error to reach here, although because of
@@ -1340,17 +1320,15 @@ public:
 			}
 		}
 
-	template <typename T,
-	          typename std::enable_if_t<!is_zeek_val_v<T>, bool> = true>
+	template <typename T, typename std::enable_if_t<! is_zeek_val_v<T>, bool> = true>
 	T GetFieldAs(int field) const
 		{
 		if constexpr ( std::is_integral_v<T> && std::is_signed_v<T> )
-			return record_val->operator[](field).int_val;
-		else if constexpr ( std::is_integral_v<T> &&
-					std::is_unsigned_v<T> )
-			return record_val->operator[](field).uint_val;
+			return record_val->operator[](field)->int_val;
+		else if constexpr ( std::is_integral_v<T> && std::is_unsigned_v<T> )
+			return record_val->operator[](field)->uint_val;
 		else if constexpr ( std::is_floating_point_v<T> )
-			return record_val->operator[](field).double_val;
+			return record_val->operator[](field)->double_val;
 
 		// Note: we could add other types here using type traits,
 		// such as is_same_v<T, std::string>, etc.
@@ -1358,8 +1336,7 @@ public:
 		return T{};
 		}
 
-	template <typename T>
-	auto GetFieldAs(const char* field) const
+	template <typename T> auto GetFieldAs(const char* field) const
 		{
 		int idx = GetType()->AsRecordType()->FieldOffset(field);
 
@@ -1378,8 +1355,8 @@ public:
 
 	// This is an experiment to associate a Obj within the
 	// event engine to a record value in bro script.
-	void SetOrigin(Obj* o)	{ origin = o; }
-	Obj* GetOrigin() const	{ return origin; }
+	void SetOrigin(Obj* o) { origin = o; }
+	Obj* GetOrigin() const { return origin; }
 
 	// Returns a new value representing the value coerced to the given
 	// type. If coercion is not possible, returns 0. The non-const
@@ -1392,16 +1369,16 @@ public:
 	//
 	// The *allow_orphaning* parameter allows for a record to be demoted
 	// down to a record type that contains less fields.
-	RecordValPtr CoerceTo(RecordTypePtr other,
-	                      RecordValPtr aggr,
+	RecordValPtr CoerceTo(RecordTypePtr other, RecordValPtr aggr,
 	                      bool allow_orphaning = false) const;
-	RecordValPtr CoerceTo(RecordTypePtr other,
-	                      bool allow_orphaning = false);
+	RecordValPtr CoerceTo(RecordTypePtr other, bool allow_orphaning = false);
 
-	unsigned int MemoryAllocation() const override;
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
 
-	notifier::detail::Modifiable* Modifiable() override	{ return this; }
+	notifier::detail::Modifiable* Modifiable() override { return this; }
 
 	// Extend the underlying arrays of record instances created during
 	// parsing to match the number of fields in the record type (they may
@@ -1411,13 +1388,42 @@ public:
 	static void DoneParsing();
 
 protected:
+	friend class zeek::detail::ZBody;
+
+	/**
+	 * Appends a value to the record's fields.  The caller is responsible
+	 * for ensuring that fields are appended in the correct order and
+	 * with the correct type.  The type needs to be passed in because
+	 * it's unsafe to take it from v when the field's type is "any" while
+	 * v is a concrete type.
+	 * @param v  The value to append.
+	 * @param t  The type associated with the field.
+	 */
+	void AppendField(ValPtr v, const TypePtr& t)
+		{
+		if ( v )
+			record_val->emplace_back(ZVal(v, t));
+		else
+			record_val->emplace_back(std::nullopt);
+		}
+
+	// For use by low-level ZAM instructions.  Caller assumes
+	// responsibility for memory management.  The first version
+	// allows manipulation of whether the field is present at all.
+	// The second version ensures that the optional value is present.
+	std::optional<ZVal>& RawOptField(int field) { return (*record_val)[field]; }
+
+	ZVal& RawField(int field)
+		{
+		auto& f = RawOptField(field);
+		if ( ! f )
+			f = ZVal();
+		return *f;
+		}
+
 	ValPtr DoClone(CloneState* state) override;
 
-	void AddedField(int field)
-		{
-		(*is_in_record)[field] = true;
-		Modified();
-		}
+	void AddedField(int field) { Modified(); }
 
 	Obj* origin;
 
@@ -1428,31 +1434,26 @@ private:
 	void DeleteFieldIfManaged(unsigned int field)
 		{
 		if ( HasField(field) && IsManaged(field) )
-			ZVal::DeleteManagedType((*record_val)[field]);
+			ZVal::DeleteManagedType(*(*record_val)[field]);
 		}
 
-	bool IsManaged(unsigned int offset) const
-		{ return is_managed[offset]; }
+	bool IsManaged(unsigned int offset) const { return is_managed[offset]; }
 
 	// Just for template inferencing.
-	RecordVal* Get()	{ return this; }
+	RecordVal* Get() { return this; }
 
 	// Keep this handy for quick access during low-level operations.
 	RecordTypePtr rt;
 
 	// Low-level values of each of the fields.
-	std::vector<ZVal>* record_val;
-
-	// Whether a given field exists - for optional fields, and because
-	// Zeek does not enforce that non-optional fields are actually
-	// present.
-	std::vector<bool>* is_in_record;
+	std::vector<std::optional<ZVal>>* record_val;
 
 	// Whether a given field requires explicit memory management.
 	const std::vector<bool>& is_managed;
-};
+	};
 
-class EnumVal final : public detail::IntValImplementation {
+class EnumVal final : public detail::IntValImplementation
+	{
 public:
 	ValPtr SizeVal() const override;
 
@@ -1460,38 +1461,37 @@ protected:
 	friend class Val;
 	friend class EnumType;
 
-	template<class T, class... Ts>
-	friend IntrusivePtr<T> make_intrusive(Ts&&... args);
+	friend EnumValPtr make_enum__CPP(TypePtr t, int i);
 
-	EnumVal(EnumTypePtr t, bro_int_t i)
-		: detail::IntValImplementation(std::move(t), i)
-		{}
+	template <class T, class... Ts> friend IntrusivePtr<T> make_intrusive(Ts&&... args);
+
+	EnumVal(EnumTypePtr t, bro_int_t i) : detail::IntValImplementation(std::move(t), i) { }
 
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
-};
+	};
 
-class TypeVal final : public Val {
+class TypeVal final : public Val
+	{
 public:
-	TypeVal(TypePtr t) : Val(std::move(t))
-		{}
+	TypeVal(TypePtr t) : Val(std::move(t)) { }
 
 	// Extra arg to differentiate from previous version.
-	TypeVal(TypePtr t, bool type_type)
-		: Val(make_intrusive<TypeType>(std::move(t)))
-		{}
+	TypeVal(TypePtr t, bool type_type) : Val(make_intrusive<TypeType>(std::move(t))) { }
 
-	zeek::Type* Get() const	{ return type.get(); }
+	zeek::Type* Get() const { return type.get(); }
 
 protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
-};
+	};
 
-
-class VectorVal final : public Val, public notifier::detail::Modifiable {
+class VectorVal final : public Val, public notifier::detail::Modifiable
+	{
 public:
 	explicit VectorVal(VectorTypePtr t);
+	VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals);
+
 	~VectorVal() override;
 
 	ValPtr SizeVal() const override;
@@ -1505,10 +1505,6 @@ public:
 	 */
 	bool Assign(unsigned int index, ValPtr element);
 
-	// Note: the following nullptr method can also go upon removing the above.
-	void Assign(unsigned int index, std::nullptr_t)
-		{ Assign(index, ValPtr{}); }
-
 	/**
 	 * Assigns a given value to multiple indices in the vector.
 	 * @param index  The starting index to assign to.
@@ -1516,8 +1512,7 @@ public:
 	 * @return  True if the elements were successfully assigned, or false if
 	 * the element was the wrong type.
 	 */
-	bool AssignRepeat(unsigned int index, unsigned int how_many,
-	                  ValPtr element);
+	bool AssignRepeat(unsigned int index, unsigned int how_many, ValPtr element);
 
 	// Add this value to the given value (if appropriate).
 	// Returns true if succcessful.
@@ -1535,7 +1530,7 @@ public:
 	// Reserves storage for at least the number of elements.
 	void Reserve(unsigned int num_elements);
 
-	notifier::detail::Modifiable* Modifiable() override	{ return this; }
+	notifier::detail::Modifiable* Modifiable() override { return this; }
 
 	/**
 	 * Inserts an element at the given position in the vector.  All elements
@@ -1553,8 +1548,7 @@ public:
 	 * @return  True if the element was inserted or false if the element was
 	 * the wrong type.
 	 */
-	bool Append(ValPtr element)
-		{ return Insert(Size(), element); }
+	bool Append(ValPtr element) { return Insert(Size(), element); }
 
 	// Removes an element at a specific position.
 	bool Remove(unsigned int index);
@@ -1576,32 +1570,66 @@ public:
 	 */
 	VectorValPtr Order(Func* cmp_func = nullptr);
 
-	ValPtr ValAt(unsigned int index) const	{ return At(index); }
+	/**
+	 * Ensures that the vector can be used as a "vector of t".  In
+	 * general, this is only relevant for objects that are typed as
+	 * "vector of any", making sure that each element is in fact
+	 * of type "t", and is internally represented as such so that
+	 * this object can be used directly without any special-casing.
+	 *
+	 * Returns true if the object is compatible with "vector of t"
+	 * (including if it's not a vector-of-any but instead already a
+	 * vector-of-t), false if not compatible.
+	 * @param t  The yield type to concretize to.
+	 * @return  True if the object is compatible with vector-of-t, false
+	 * if not.
+	 */
+	bool Concretize(const TypePtr& t);
+
+	ValPtr ValAt(unsigned int index) const { return At(index); }
+
+	bool Has(unsigned int index) const
+		// Version to use once std::optional implementation is merged.
+		// { return index < vector_val->size() && vector_val[index]; }
+		{
+		return At(index) != nullptr;
+		}
 
 	/**
 	 * Returns the given element in a given underlying representation.
 	 * Enables efficient vector access.  Caller must ensure that the
-	 * index lies within the vector's range.
+	 * index lies within the vector's range, and does not point to
+	 * a "hole".
 	 * @param index  The position in the vector of the element to return.
 	 * @return  The element's underlying value.
 	 */
-	bro_uint_t CountAt(unsigned int index) const
-		{ return (*vector_val)[index].uint_val; }
+	bro_int_t IntAt(unsigned int index) const { return (*vector_val)[index]->int_val; }
+	bro_uint_t CountAt(unsigned int index) const { return (*vector_val)[index]->uint_val; }
+	double DoubleAt(unsigned int index) const { return (*vector_val)[index]->double_val; }
 	const RecordVal* RecordValAt(unsigned int index) const
-		{ return (*vector_val)[index].record_val; }
+		{
+		return (*vector_val)[index]->record_val;
+		}
 	bool BoolAt(unsigned int index) const
-		{ return static_cast<bool>((*vector_val)[index].uint_val); }
+		{
+		return static_cast<bool>((*vector_val)[index]->uint_val);
+		}
 	const StringVal* StringValAt(unsigned int index) const
-		{ return (*vector_val)[index].string_val; }
-	const String* StringAt(unsigned int index) const
-		{ return StringValAt(index)->AsString(); }
+		{
+		return (*vector_val)[index]->string_val;
+		}
+	const String* StringAt(unsigned int index) const { return StringValAt(index)->AsString(); }
+
+	// Only intended for low-level access by compiled code.
+	const auto& RawVec() const { return vector_val; }
+	auto& RawVec() { return vector_val; }
 
 protected:
 	/**
 	 * Returns the element at a given index or nullptr if it does not exist.
 	 * @param index  The position in the vector of the element to return.
 	 * @return  The element at the given index or nullptr if the index
-	 * does not exist (it's greater than or equal to vector's current size).
+	 * does not exist.
 	 *
 	 * Protected to ensure callers pick one of the differentiated accessors
 	 * above, as appropriate, with ValAt() providing the original semantics.
@@ -1614,7 +1642,7 @@ protected:
 private:
 	// Just for template inferencing.
 	friend class RecordVal;
-	VectorVal* Get()	{ return this; }
+	VectorVal* Get() { return this; }
 
 	// Check the type of the given element against our current
 	// yield type and adjust as necessary.  Returns whether the
@@ -1624,7 +1652,7 @@ private:
 	// Add the given number of "holes" to the end of a vector.
 	void AddHoles(int nholes);
 
-	std::vector<ZVal>* vector_val;
+	std::vector<std::optional<ZVal>>* vector_val;
 
 	// For homogeneous vectors (the usual case), the type of the
 	// elements.  Will be TYPE_VOID for empty vectors created using
@@ -1646,11 +1674,10 @@ private:
 	// Thus, if yield_types is non-nil, then we know this is a
 	// vector-of-any.
 	std::vector<TypePtr>* yield_types = nullptr;
-};
+	};
 
-#define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name) \
-	inline ctype Val::name() const \
-		{ return static_cast<const ztype*>(this)->Get(); }
+#define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name)                                                \
+	inline ctype Val::name() const { return static_cast<const ztype*>(this)->Get(); }
 
 UNDERLYING_ACCESSOR_DEF(detail::IntValImplementation, bro_int_t, AsInt)
 UNDERLYING_ACCESSOR_DEF(BoolVal, bool, AsBool)
@@ -1668,26 +1695,29 @@ UNDERLYING_ACCESSOR_DEF(PatternVal, const RE_Matcher*, AsPattern)
 UNDERLYING_ACCESSOR_DEF(TableVal, const PDict<TableEntryVal>*, AsTable)
 UNDERLYING_ACCESSOR_DEF(TypeVal, zeek::Type*, AsType)
 
-
 // Checks the given value for consistency with the given type.  If an
 // exact match, returns it.  If promotable, returns the promoted version.
 // If not a match, generates an error message and return nil.  If is_init is
 // true, then the checking is done in the context of an initialization.
-extern ValPtr check_and_promote(
-	ValPtr v, const Type* t, bool is_init,
-	const detail::Location* expr_location = nullptr);
+extern ValPtr check_and_promote(ValPtr v, const Type* t, bool is_init,
+                                const detail::Location* expr_location = nullptr);
 
 extern bool same_val(const Val* v1, const Val* v2);
 extern bool same_atomic_val(const Val* v1, const Val* v2);
 extern bool is_atomic_val(const Val* v);
-extern void describe_vals(const ValPList* vals, ODesc* d, int offset=0);
-extern void describe_vals(const std::vector<ValPtr>& vals,
-                          ODesc* d, size_t offset = 0);
+extern void describe_vals(const ValPList* vals, ODesc* d, int offset = 0);
+extern void describe_vals(const std::vector<ValPtr>& vals, ODesc* d, size_t offset = 0);
 extern void delete_vals(ValPList* vals);
 
 // True if the given Val* has a vector type.
-inline bool is_vector(Val* v)	{ return v->GetType()->Tag() == TYPE_VECTOR; }
-inline bool is_vector(const ValPtr& v)	{ return is_vector(v.get()); }
+inline bool is_vector(Val* v)
+	{
+	return v->GetType()->Tag() == TYPE_VECTOR;
+	}
+inline bool is_vector(const ValPtr& v)
+	{
+	return is_vector(v.get());
+	}
 
 // Returns v casted to type T if the type supports that. Returns null if not.
 //
@@ -1706,4 +1736,4 @@ extern bool can_cast_value_to_type(const Val* v, Type* t);
 // specific instance later.
 extern bool can_cast_value_to_type(const Type* s, Type* t);
 
-} // namespace zeek
+	} // namespace zeek

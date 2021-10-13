@@ -1,7 +1,9 @@
 #include "zeek/PacketFilter.h"
+
 #include "zeek/IP.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 void PacketFilter::DeleteFilter(void* data)
 	{
@@ -82,40 +84,39 @@ bool PacketFilter::RemoveDst(Val* dst)
 
 bool PacketFilter::Match(const std::unique_ptr<IP_Hdr>& ip, int len, int caplen)
 	{
-	Filter* f = (Filter*) src_filter.Lookup(ip->SrcAddr(), 128);
+	Filter* f = (Filter*)src_filter.Lookup(ip->SrcAddr(), 128);
 	if ( f )
 		return MatchFilter(*f, *ip, len, caplen);
 
-	f = (Filter*) dst_filter.Lookup(ip->DstAddr(), 128);
+	f = (Filter*)dst_filter.Lookup(ip->DstAddr(), 128);
 	if ( f )
 		return MatchFilter(*f, *ip, len, caplen);
 
 	return default_match;
 	}
 
-bool PacketFilter::MatchFilter(const Filter& f, const IP_Hdr& ip,
-                               int len, int caplen)
+bool PacketFilter::MatchFilter(const Filter& f, const IP_Hdr& ip, int len, int caplen)
 	{
 	if ( ip.NextProto() == IPPROTO_TCP && f.tcp_flags )
 		{
 		// Caution! The packet sanity checks have not been performed yet
 		int ip_hdr_len = ip.HdrLen();
-		len -= ip_hdr_len;	// remove IP header
+		len -= ip_hdr_len; // remove IP header
 		caplen -= ip_hdr_len;
 
-		if ( (unsigned int) len < sizeof(struct tcphdr) ||
-		     (unsigned int) caplen < sizeof(struct tcphdr) )
+		if ( (unsigned int)len < sizeof(struct tcphdr) ||
+		     (unsigned int)caplen < sizeof(struct tcphdr) )
 			// Packet too short, will be dropped anyway.
 			return false;
 
-		const struct tcphdr* tp = (const struct tcphdr*) ip.Payload();
+		const struct tcphdr* tp = (const struct tcphdr*)ip.Payload();
 
 		if ( tp->th_flags & f.tcp_flags )
-			 // At least one of the flags is set, so don't drop
+			// At least one of the flags is set, so don't drop
 			return false;
 		}
 
 	return util::detail::random_number() < f.probability;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

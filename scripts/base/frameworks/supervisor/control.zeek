@@ -4,6 +4,7 @@
 ##! That is, it may change in various incompatible ways without warning or
 ##! deprecation until the stable 4.0.0 release.
 
+@load base/frameworks/broker
 @load ./api
 
 module SupervisorControl;
@@ -14,6 +15,10 @@ export {
 	## publishing Supervisor requests, this is also the prefix string to use
 	## for their topic names.
 	const topic_prefix = "zeek/supervisor" &redef;
+
+	## When enabled, the Supervisor will listen on the configured Broker
+	## :zeek:see:`Broker::default_listen_address`.
+	const enable_listen = F &redef;
 
 	## Send a request to a remote Supervisor process to create a node.
 	##

@@ -2,12 +2,12 @@
 
 #include "zeek/analyzer/protocol/gssapi/GSSAPI.h"
 
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/Reporter.h"
-
 #include "zeek/analyzer/protocol/gssapi/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-namespace zeek::analyzer::gssapi {
+namespace zeek::analyzer::gssapi
+	{
 
 GSSAPI_Analyzer::GSSAPI_Analyzer(Connection* c)
 	: analyzer::tcp::TCP_ApplicationAnalyzer("GSSAPI", c)
@@ -57,4 +57,4 @@ void GSSAPI_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	interp->NewGap(orig, len);
 	}
 
-} // namespace zeek::analyzer::gssapi
+	} // namespace zeek::analyzer::gssapi

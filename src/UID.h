@@ -9,26 +9,26 @@
 
 #define BRO_UID_LEN 2
 
-namespace zeek {
+namespace zeek
+	{
 
 /**
  * A class for creating/managing UIDs of arbitrary bit-length and converting
  * them to human-readable strings in Base62 format.
  */
-class UID {
+class UID
+	{
 public:
-
 	/**
 	 * Default ctor.  The UID is uninitialized.
 	 */
-	UID() : initialized(false) {}
+	UID() : initialized(false) { }
 
 	/**
 	 * Construct a UID of a given bit-length, optionally from given values.
 	 * @see UID::Set
 	 */
-	explicit UID(bro_uint_t bits, const uint64_t* v = nullptr, size_t n = 0)
-		{ Set(bits, v, n); }
+	explicit UID(bro_uint_t bits, const uint64_t* v = nullptr, size_t n = 0) { Set(bits, v, n); }
 
 	/**
 	 * Copy constructor.
@@ -59,8 +59,7 @@ public:
 	 * @return false if the UID instance was created via the default ctor
 	 *         and not yet initialized w/ Set().
 	 */
-	explicit operator bool() const
-		{ return initialized; }
+	explicit operator bool() const { return initialized; }
 
 	/**
 	 * Assignment operator.
@@ -71,18 +70,19 @@ public:
 	 * UID equality operator.
 	 */
 	friend bool operator==(const UID& u1, const UID& u2)
-		{ return memcmp(u1.uid, u2.uid, sizeof(u1.uid)) == 0; }
+		{
+		return memcmp(u1.uid, u2.uid, sizeof(u1.uid)) == 0;
+		}
 
 	/**
 	 * UID inequality operator.
 	 */
-	friend bool operator!=(const UID& u1, const UID& u2)
-		{ return ! ( u1 == u2 ); }
+	friend bool operator!=(const UID& u1, const UID& u2) { return ! (u1 == u2); }
 
 private:
 	uint64_t uid[BRO_UID_LEN];
 	bool initialized; // Since technically uid == 0 is a legit UID
-};
+	};
 
 inline UID::UID(const UID& other)
 	{
@@ -97,4 +97,4 @@ inline UID& UID::operator=(const UID& other)
 	return *this;
 	}
 
-} // namespace zeek
+	} // namespace zeek

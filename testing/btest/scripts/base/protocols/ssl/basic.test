@@ -4,3 +4,4 @@
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: btest-diff x509.log
 # @TEST-EXEC: test ! -f dpd.log
+# @TEST-EXEC: test ! -f files.log

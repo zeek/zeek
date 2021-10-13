@@ -2,15 +2,16 @@
 
 #include "zeek/telemetry/Histogram.h"
 
+#include <cassert>
+
+#include "zeek/telemetry/Detail.h"
+
 #include "caf/telemetry/histogram.hpp"
 #include "caf/telemetry/metric_family.hpp"
 #include "caf/telemetry/metric_family_impl.hpp"
 
-#include "zeek/telemetry/Detail.h"
-
-#include <cassert>
-
-namespace zeek::telemetry {
+namespace zeek::telemetry
+	{
 
 // -- IntHistogram ---------------------------------------------------------------
 
@@ -43,17 +44,16 @@ int64_t IntHistogram::UpperBoundAt(size_t index) const noexcept
 	return xs[index].upper_bound;
 	}
 
-IntHistogramFamily::IntHistogramFamily(Impl* ptr) : MetricFamily(upcast(ptr))
-	{
-	}
+IntHistogramFamily::IntHistogramFamily(Impl* ptr) : MetricFamily(upcast(ptr)) { }
 
 IntHistogram IntHistogramFamily::GetOrAdd(Span<const LabelView> labels)
 	{
-	return with_native_labels(labels, [this](auto nativeLabels)
-		{
-		auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
-		return IntHistogram{hdl};
-		});
+	return with_native_labels(labels,
+	                          [this](auto nativeLabels)
+	                          {
+								  auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
+								  return IntHistogram{hdl};
+							  });
 	}
 
 // -- DblHistogram ---------------------------------------------------------------
@@ -87,17 +87,16 @@ double DblHistogram::UpperBoundAt(size_t index) const noexcept
 	return xs[index].upper_bound;
 	}
 
-DblHistogramFamily::DblHistogramFamily(Impl* ptr) : MetricFamily(upcast(ptr))
-	{
-	}
+DblHistogramFamily::DblHistogramFamily(Impl* ptr) : MetricFamily(upcast(ptr)) { }
 
 DblHistogram DblHistogramFamily::GetOrAdd(Span<const LabelView> labels)
 	{
-	return with_native_labels(labels, [this](auto nativeLabels)
-		{
-		auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
-		return DblHistogram{hdl};
-		});
+	return with_native_labels(labels,
+	                          [this](auto nativeLabels)
+	                          {
+								  auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
+								  return DblHistogram{hdl};
+							  });
 	}
 
-} // namespace zeek::telemetry
+	} // namespace zeek::telemetry

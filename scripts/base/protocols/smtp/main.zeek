@@ -109,7 +109,7 @@ event zeek_init() &priority=5
 
 function find_address_in_smtp_header(header: string): string
 	{
-	local ips = extract_ip_addresses(header);
+	local ips = extract_ip_addresses(header, T);
 	# If there are more than one IP address found, return the second.
 	if ( |ips| > 1 )
 		return ips[1];

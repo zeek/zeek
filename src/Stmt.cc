@@ -1,39 +1,56 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Stmt.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/CompHash.h"
-#include "zeek/Expr.h"
-#include "zeek/Event.h"
-#include "zeek/Frame.h"
-#include "zeek/File.h"
-#include "zeek/Reporter.h"
-#include "zeek/NetVar.h"
-#include "zeek/Scope.h"
-#include "zeek/Var.h"
-#include "zeek/Desc.h"
 #include "zeek/Debug.h"
+#include "zeek/Desc.h"
+#include "zeek/Event.h"
+#include "zeek/Expr.h"
+#include "zeek/File.h"
+#include "zeek/Frame.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/NetVar.h"
+#include "zeek/Reporter.h"
+#include "zeek/Scope.h"
 #include "zeek/Traverse.h"
 #include "zeek/Trigger.h"
-#include "zeek/IntrusivePtr.h"
+#include "zeek/Var.h"
 #include "zeek/logging/Manager.h"
-
 #include "zeek/logging/logging.bif.h"
+#include "zeek/script_opt/StmtOptInfo.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 const char* stmt_name(StmtTag t)
 	{
 	static const char* stmt_names[int(NUM_STMTS)] = {
 		"alarm", // Does no longer exist, but kept for keeping enums consistent.
-		"print", "event", "expr", "if", "when", "switch",
-		"for", "next", "break", "return", "add", "delete",
-		"list", "bodylist",
-		"<init>", "fallthrough", "while",
+		"print",
+		"event",
+		"expr",
+		"if",
+		"when",
+		"switch",
+		"for",
+		"next",
+		"break",
+		"return",
+		"add",
+		"delete",
+		"list",
+		"bodylist",
+		"<init>",
+		"fallthrough",
+		"while",
 		"catch-return",
 		"check-any-length",
+		"compiled-C++",
+		"ZAM",
+		"ZAM-resumption",
 		"null",
 	};
 
@@ -47,89 +64,92 @@ Stmt::Stmt(StmtTag arg_tag)
 	last_access = 0;
 	access_count = 0;
 
+	opt_info = new StmtOptInfo();
+
 	SetLocationInfo(&start_location, &end_location);
 	}
 
 Stmt::~Stmt()
 	{
+	delete opt_info;
 	}
 
 StmtList* Stmt::AsStmtList()
 	{
 	CHECK_TAG(tag, STMT_LIST, "Stmt::AsStmtList", stmt_name)
-	return (StmtList*) this;
+	return (StmtList*)this;
 	}
 
 const StmtList* Stmt::AsStmtList() const
 	{
 	CHECK_TAG(tag, STMT_LIST, "Stmt::AsStmtList", stmt_name)
-	return (const StmtList*) this;
+	return (const StmtList*)this;
 	}
 
 ForStmt* Stmt::AsForStmt()
 	{
 	CHECK_TAG(tag, STMT_FOR, "Stmt::AsForStmt", stmt_name)
-	return (ForStmt*) this;
+	return (ForStmt*)this;
 	}
 
 const ForStmt* Stmt::AsForStmt() const
 	{
 	CHECK_TAG(tag, STMT_FOR, "Stmt::AsForStmt", stmt_name)
-	return (const ForStmt*) this;
+	return (const ForStmt*)this;
 	}
 
 const InitStmt* Stmt::AsInitStmt() const
 	{
 	CHECK_TAG(tag, STMT_INIT, "Stmt::AsInitStmt", stmt_name)
-	return (const InitStmt*) this;
+	return (const InitStmt*)this;
 	}
 
 const IfStmt* Stmt::AsIfStmt() const
 	{
 	CHECK_TAG(tag, STMT_IF, "Stmt::AsIfStmt", stmt_name)
-	return (const IfStmt*) this;
+	return (const IfStmt*)this;
 	}
 
 const WhileStmt* Stmt::AsWhileStmt() const
 	{
 	CHECK_TAG(tag, STMT_WHILE, "Stmt::AsWhileStmt", stmt_name)
-	return (const WhileStmt*) this;
+	return (const WhileStmt*)this;
 	}
 
 const WhenStmt* Stmt::AsWhenStmt() const
 	{
 	CHECK_TAG(tag, STMT_WHEN, "Stmt::AsWhenStmt", stmt_name)
-	return (const WhenStmt*) this;
+	return (const WhenStmt*)this;
 	}
 
 const SwitchStmt* Stmt::AsSwitchStmt() const
 	{
 	CHECK_TAG(tag, STMT_SWITCH, "Stmt::AsSwitchStmt", stmt_name)
-	return (const SwitchStmt*) this;
+	return (const SwitchStmt*)this;
 	}
 
 const ExprStmt* Stmt::AsExprStmt() const
 	{
 	CHECK_TAG(tag, STMT_EXPR, "Stmt::AsExprStmt", stmt_name)
-	return (const ExprStmt*) this;
+	return (const ExprStmt*)this;
 	}
 
 const PrintStmt* Stmt::AsPrintStmt() const
 	{
 	CHECK_TAG(tag, STMT_PRINT, "Stmt::AsPrintStmt", stmt_name)
-	return (const PrintStmt*) this;
+	return (const PrintStmt*)this;
 	}
 
 const CatchReturnStmt* Stmt::AsCatchReturnStmt() const
 	{
 	CHECK_TAG(tag, STMT_CATCH_RETURN, "Stmt::AsCatchReturnStmt", stmt_name)
-	return (const CatchReturnStmt*) this;
+	return (const CatchReturnStmt*)this;
 	}
 
 const ReturnStmt* Stmt::AsReturnStmt() const
 	{
 	CHECK_TAG(tag, STMT_RETURN, "Stmt::AsReturnStmt", stmt_name)
-	return (const ReturnStmt*) this;
+	return (const ReturnStmt*)this;
 	}
 
 bool Stmt::SetLocationInfo(const Location* start, const Location* end)
@@ -150,7 +170,7 @@ bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 	// Optimistically just put it at the end.
 	map.push_back(new_mapping);
 
-	int curr_idx = map.length() - 1;
+	size_t curr_idx = map.size() - 1;
 	if ( curr_idx == 0 )
 		return true;
 
@@ -219,8 +239,7 @@ void Stmt::AccessStats(ODesc* d) const
 		}
 	}
 
-ExprListStmt::ExprListStmt(StmtTag t, ListExprPtr arg_l)
-	: Stmt(t), l(std::move(arg_l))
+ExprListStmt::ExprListStmt(StmtTag t, ListExprPtr arg_l) : Stmt(t), l(std::move(arg_l))
 	{
 	const ExprPList& e = l->Exprs();
 	for ( const auto& expr : e )
@@ -302,8 +321,7 @@ static void print_log(const std::vector<ValPtr>& vals)
 	log_mgr->Write(plval.get(), record.get());
 	}
 
-ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
-                         StmtFlowType& /* flow */)
+ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals, StmtFlowType& /* flow */)
 	{
 	RegisterAccess();
 	do_print_stmt(vals);
@@ -328,30 +346,30 @@ void do_print_stmt(const std::vector<ValPtr>& vals)
 		}
 
 	static auto print_log_type = static_cast<BifEnum::Log::PrintLogType>(
-	        id::find_val("Log::print_to_log")->AsEnum());
+		id::find_val("Log::print_to_log")->AsEnum());
 
-	switch ( print_log_type ) {
-	case BifEnum::Log::REDIRECT_NONE:
-		break;
-	case BifEnum::Log::REDIRECT_ALL:
+	switch ( print_log_type )
 		{
-		print_log(vals);
-		return;
-		}
-	case BifEnum::Log::REDIRECT_STDOUT:
-		if ( f->FileHandle() == stdout )
+		case BifEnum::Log::REDIRECT_NONE:
+			break;
+		case BifEnum::Log::REDIRECT_ALL:
 			{
-			// Should catch even printing to a "manually opened" stdout file,
-			// like "/dev/stdout" or "-".
 			print_log(vals);
 			return;
 			}
-		break;
-	default:
-		reporter->InternalError("unknown Log::PrintLogType value: %d",
-		                        print_log_type);
-		break;
-	}
+		case BifEnum::Log::REDIRECT_STDOUT:
+			if ( f->FileHandle() == stdout )
+				{
+				// Should catch even printing to a "manually opened" stdout file,
+				// like "/dev/stdout" or "-".
+				print_log(vals);
+				return;
+				}
+			break;
+		default:
+			reporter->InternalError("unknown Log::PrintLogType value: %d", print_log_type);
+			break;
+		}
 
 	DescStyle style = f->IsRawOutput() ? RAW_STYLE : STANDARD_STYLE;
 
@@ -457,11 +475,8 @@ TraversalCode ExprStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IfStmt::IfStmt(ExprPtr test,
-               StmtPtr arg_s1,
-               StmtPtr arg_s2)
-	: ExprStmt(STMT_IF, std::move(test)),
-	  s1(std::move(arg_s1)), s2(std::move(arg_s2))
+IfStmt::IfStmt(ExprPtr test, StmtPtr arg_s1, StmtPtr arg_s2)
+	: ExprStmt(STMT_IF, std::move(test)), s1(std::move(arg_s1)), s2(std::move(arg_s2))
 	{
 	if ( ! e->IsError() && ! IsBool(e->GetType()->Tag()) )
 		e->Error("conditional in test must be boolean");
@@ -558,7 +573,8 @@ static StmtTag get_last_stmt_tag(const Stmt* stmt)
 	return get_last_stmt_tag(stmts->Stmts()[len - 1]);
 	}
 
-class FallthroughFinder : public TraversalCallback {
+class FallthroughFinder : public TraversalCallback
+	{
 	TraversalCode PreStmt(const Stmt* stmt) override
 		{
 		if ( stmt->Tag() == STMT_SWITCH )
@@ -573,12 +589,10 @@ class FallthroughFinder : public TraversalCallback {
 		reporter->PopLocation();
 		return TC_CONTINUE;
 		}
-};
+	};
 
-Case::Case(ListExprPtr arg_expr_cases, IDPList* arg_type_cases,
-           StmtPtr arg_s)
-	: expr_cases(std::move(arg_expr_cases)), type_cases(arg_type_cases),
-	  s(std::move(arg_s))
+Case::Case(ListExprPtr arg_expr_cases, IDPList* arg_type_cases, StmtPtr arg_s)
+	: expr_cases(std::move(arg_expr_cases)), type_cases(arg_type_cases), s(std::move(arg_s))
 	{
 	StmtTag t = get_last_stmt_tag(Body());
 
@@ -700,7 +714,7 @@ TraversalCode Case::Traverse(TraversalCallback* cb) const
 
 static void int_del_func(void* v)
 	{
-	delete (int*) v;
+	delete (int*)v;
 	}
 
 void SwitchStmt::Init()
@@ -709,12 +723,11 @@ void SwitchStmt::Init()
 	t->Append(e->GetType());
 	comp_hash = new CompositeHash(std::move(t));
 
-	case_label_value_map.SetDeleteFunc(int_del_func);
+	case_label_hash_map.SetDeleteFunc(int_del_func);
 	}
 
 SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
-	: ExprStmt(STMT_SWITCH, std::move(index)),
-	  cases(arg_cases), default_case_idx(-1)
+	: ExprStmt(STMT_SWITCH, std::move(index)), cases(arg_cases), default_case_idx(-1)
 	{
 	Init();
 
@@ -748,43 +761,44 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
 					{
 					Expr* expr = exprs[j];
 
-					switch ( expr->Tag() ) {
-					// Simplify trivial unary plus/minus expressions on consts.
-					case EXPR_NEGATE:
+					switch ( expr->Tag() )
 						{
-						NegExpr* ne = (NegExpr*)(expr);
-
-						if ( ne->Op()->IsConst() )
-							Unref(exprs.replace(j, new ConstExpr(ne->Eval(nullptr))));
-						}
-						break;
-
-					case EXPR_POSITIVE:
-						{
-						PosExpr* pe = (PosExpr*)(expr);
-
-						if ( pe->Op()->IsConst() )
-							Unref(exprs.replace(j, new ConstExpr(pe->Eval(nullptr))));
-						}
-						break;
-
-					case EXPR_NAME:
-						{
-						NameExpr* ne = (NameExpr*)(expr);
-
-						if ( ne->Id()->IsConst() )
+						// Simplify trivial unary plus/minus expressions on consts.
+						case EXPR_NEGATE:
 							{
-							auto v = ne->Eval(nullptr);
+							NegExpr* ne = (NegExpr*)(expr);
 
-							if ( v )
-								Unref(exprs.replace(j, new ConstExpr(std::move(v))));
+							if ( ne->Op()->IsConst() )
+								Unref(exprs.replace(j, new ConstExpr(ne->Eval(nullptr))));
 							}
-						}
-						break;
+							break;
 
-					default:
-						break;
-					}
+						case EXPR_POSITIVE:
+							{
+							PosExpr* pe = (PosExpr*)(expr);
+
+							if ( pe->Op()->IsConst() )
+								Unref(exprs.replace(j, new ConstExpr(pe->Eval(nullptr))));
+							}
+							break;
+
+						case EXPR_NAME:
+							{
+							NameExpr* ne = (NameExpr*)(expr);
+
+							if ( ne->Id()->IsConst() )
+								{
+								auto v = ne->Eval(nullptr);
+
+								if ( v )
+									Unref(exprs.replace(j, new ConstExpr(std::move(v))));
+								}
+							}
+							break;
+
+						default:
+							break;
+						}
 					}
 
 				if ( ! exprs[j]->IsConst() )
@@ -805,7 +819,7 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
 				{
 				const auto& ct = t->GetType();
 
-	   			if ( ! can_cast_value_to_type(e->GetType().get(), ct.get()) )
+				if ( ! can_cast_value_to_type(e->GetType().get(), ct.get()) )
 					{
 					c->Error("cannot cast switch expression to case type");
 					continue;
@@ -830,7 +844,6 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
 
 	if ( have_exprs && have_types )
 		Error("cannot mix cases with expressions and types");
-
 	}
 
 SwitchStmt::~SwitchStmt()
@@ -850,16 +863,16 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 		{
 		reporter->PushLocation(e->GetLocationInfo());
 		reporter->InternalError("switch expression type mismatch (%s/%s)",
-		                        type_name(v->GetType()->Tag()),
-		                        type_name(e->GetType()->Tag()));
+		                        type_name(v->GetType()->Tag()), type_name(e->GetType()->Tag()));
 		}
 
-	int* label_idx = case_label_value_map.Lookup(hk.get());
+	int* label_idx = case_label_hash_map.Lookup(hk.get());
 
 	if ( label_idx )
 		return false;
 
-	case_label_value_map.Insert(hk.get(), new int(idx));
+	case_label_value_map[v] = idx;
+	case_label_hash_map.Insert(hk.get(), new int(idx));
 	return true;
 	}
 
@@ -883,7 +896,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 	ID* label_id = nullptr;
 
 	// Find matching expression cases.
-	if ( case_label_value_map.Length() )
+	if ( case_label_hash_map.Length() )
 		{
 		auto hk = comp_hash->MakeHashKey(*v, true);
 
@@ -891,12 +904,11 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 			{
 			reporter->PushLocation(e->GetLocationInfo());
 			reporter->Error("switch expression type mismatch (%s/%s)",
-			                type_name(v->GetType()->Tag()),
-			                type_name(e->GetType()->Tag()));
+			                type_name(v->GetType()->Tag()), type_name(e->GetType()->Tag()));
 			return std::make_pair(-1, nullptr);
 			}
 
-		if ( auto i = case_label_value_map.Lookup(hk.get()) )
+		if ( auto i = case_label_hash_map.Lookup(hk.get()) )
 			label_idx = *i;
 		}
 
@@ -944,7 +956,7 @@ ValPtr SwitchStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow)
 		flow = FLOW_NEXT;
 		rval = c->Body()->Exec(f, flow);
 
-		if ( flow == FLOW_BREAK  || flow == FLOW_RETURN )
+		if ( flow == FLOW_BREAK || flow == FLOW_RETURN )
 			break;
 		}
 
@@ -1005,11 +1017,7 @@ TraversalCode SwitchStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-
-AddDelStmt::AddDelStmt(StmtTag t, ExprPtr arg_e)
-: ExprStmt(t, std::move(arg_e))
-	{
-	}
+AddDelStmt::AddDelStmt(StmtTag t, ExprPtr arg_e) : ExprStmt(t, std::move(arg_e)) { }
 
 bool AddDelStmt::IsPure() const
 	{
@@ -1029,7 +1037,6 @@ TraversalCode AddDelStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-
 AddStmt::AddStmt(ExprPtr arg_e) : AddDelStmt(STMT_ADD, std::move(arg_e))
 	{
 	if ( ! e->CanAdd() )
@@ -1043,7 +1050,6 @@ ValPtr AddStmt::Exec(Frame* f, StmtFlowType& flow)
 	e->Add(f);
 	return nullptr;
 	}
-
 
 DelStmt::DelStmt(ExprPtr arg_e) : AddDelStmt(STMT_DELETE, std::move(arg_e))
 	{
@@ -1062,9 +1068,7 @@ ValPtr DelStmt::Exec(Frame* f, StmtFlowType& flow)
 	return nullptr;
 	}
 
-
-EventStmt::EventStmt(EventExprPtr arg_e)
-	: ExprStmt(STMT_EVENT, arg_e), event_expr(std::move(arg_e))
+EventStmt::EventStmt(EventExprPtr arg_e) : ExprStmt(STMT_EVENT, arg_e), event_expr(std::move(arg_e))
 	{
 	}
 
@@ -1095,12 +1099,9 @@ TraversalCode EventStmt::Traverse(TraversalCallback* cb) const
 	}
 
 WhileStmt::WhileStmt(ExprPtr arg_loop_condition, StmtPtr arg_body)
-	: Stmt(STMT_WHILE),
-	  loop_condition(std::move(arg_loop_condition)),
-	  body(std::move(arg_body))
+	: Stmt(STMT_WHILE), loop_condition(std::move(arg_loop_condition)), body(std::move(arg_body))
 	{
-	if ( ! loop_condition->IsError() &&
-	     ! IsBool(loop_condition->GetType()->Tag()) )
+	if ( ! loop_condition->IsError() && ! IsBool(loop_condition->GetType()->Tag()) )
 		loop_condition->Error("while conditional must be boolean");
 	}
 
@@ -1108,7 +1109,10 @@ WhileStmt::~WhileStmt() = default;
 
 bool WhileStmt::IsPure() const
 	{
-	return loop_condition->IsPure() && body->IsPure();
+	if ( loop_condition->IsPure() && body->IsPure() )
+		return ! loop_cond_pred_stmt || loop_cond_pred_stmt->IsPure();
+	else
+		return false;
 	}
 
 void WhileStmt::StmtDescribe(ODesc* d) const
@@ -1117,6 +1121,13 @@ void WhileStmt::StmtDescribe(ODesc* d) const
 
 	if ( d->IsReadable() )
 		d->Add("(");
+
+	if ( loop_cond_pred_stmt )
+		{
+		d->Add(" {");
+		loop_cond_pred_stmt->Describe(d);
+		d->Add("} ");
+		}
 
 	loop_condition->Describe(d);
 
@@ -1135,6 +1146,12 @@ TraversalCode WhileStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
+	if ( loop_cond_pred_stmt )
+		{
+		tc = loop_cond_pred_stmt->Traverse(cb);
+		HANDLE_TC_STMT_PRE(tc);
+		}
+
 	tc = loop_condition->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);
 
@@ -1151,7 +1168,7 @@ ValPtr WhileStmt::Exec(Frame* f, StmtFlowType& flow)
 	flow = FLOW_NEXT;
 	ValPtr rval;
 
-	for ( ; ; )
+	for ( ;; )
 		{
 		if ( loop_cond_pred_stmt )
 			loop_cond_pred_stmt->Exec(f, flow);
@@ -1207,8 +1224,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 
 			else
 				{
-				add_local({NewRef{}, lv}, ind_type, INIT_NONE,
-				          nullptr, nullptr, VAR_REGULAR);
+				add_local({NewRef{}, lv}, ind_type, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 				}
 			}
 		}
@@ -1224,8 +1240,8 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 		const auto& t = (*loop_vars)[0]->GetType();
 
 		if ( ! t )
-			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT),
-						INIT_NONE, nullptr, nullptr, VAR_REGULAR);
+			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT), INIT_NONE, nullptr,
+			          nullptr, VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
 			{
@@ -1245,9 +1261,8 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 		const auto& t = (*loop_vars)[0]->GetType();
 
 		if ( ! t )
-			add_local({NewRef{}, (*loop_vars)[0]},
-					base_type(TYPE_STRING),
-					INIT_NONE, nullptr, nullptr, VAR_REGULAR);
+			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_STRING), INIT_NONE, nullptr,
+			          nullptr, VAR_REGULAR);
 
 		else if ( t->Tag() != TYPE_STRING )
 			{
@@ -1259,8 +1274,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 		e->Error("target to iterate over must be a table, set, vector, or string");
 	}
 
-ForStmt::ForStmt(IDPList* arg_loop_vars,
-                 ExprPtr loop_expr, IDPtr val_var)
+ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr, IDPtr val_var)
 	: ForStmt(arg_loop_vars, std::move(loop_expr))
 	{
 	value_var = std::move(val_var);
@@ -1326,9 +1340,13 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow)
 	else if ( v->GetType()->Tag() == TYPE_VECTOR )
 		{
 		VectorVal* vv = v->AsVectorVal();
+		const auto& raw_vv = *vv->RawVec();
 
 		for ( auto i = 0u; i < vv->Size(); ++i )
 			{
+			if ( ! raw_vv[i] )
+				continue;
+
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
 			f->SetElement((*loop_vars)[0], val_mgr->Count(i));
@@ -1345,7 +1363,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow)
 
 		for ( int i = 0; i < sval->Len(); ++i )
 			{
-			auto sv = make_intrusive<StringVal>(1, (const char*) sval->Bytes() + i);
+			auto sv = make_intrusive<StringVal>(1, (const char*)sval->Bytes() + i);
 			f->SetElement((*loop_vars)[0], std::move(sv));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
@@ -1359,10 +1377,10 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow)
 		e->Error("Invalid type in for-loop execution");
 
 	if ( flow == FLOW_LOOP )
-		flow = FLOW_NEXT;	// last iteration exited with a "next"
+		flow = FLOW_NEXT; // last iteration exited with a "next"
 
 	if ( flow == FLOW_BREAK )
-		flow = FLOW_NEXT;	// we've now finished the "break"
+		flow = FLOW_NEXT; // we've now finished the "break"
 
 	return ret;
 	}
@@ -1510,10 +1528,9 @@ TraversalCode FallthroughStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-ReturnStmt::ReturnStmt(ExprPtr arg_e)
-	: ExprStmt(STMT_RETURN, std::move(arg_e))
+ReturnStmt::ReturnStmt(ExprPtr arg_e) : ExprStmt(STMT_RETURN, std::move(arg_e))
 	{
-	Scope* s = current_scope();
+	auto s = current_scope();
 
 	if ( ! s || ! s->GetID() )
 		{
@@ -1547,7 +1564,7 @@ ReturnStmt::ReturnStmt(ExprPtr arg_e)
 
 	else
 		{
-		auto promoted_e = check_and_promote_expr(e.get(), yt.get());
+		auto promoted_e = check_and_promote_expr(e, yt);
 
 		if ( promoted_e )
 			e = std::move(promoted_e);
@@ -1694,20 +1711,20 @@ ValPtr InitStmt::Exec(Frame* f, StmtFlowType& flow)
 
 		ValPtr v;
 
-		switch ( t->Tag() ) {
-		case TYPE_RECORD:
-			v = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
-			break;
-		case TYPE_VECTOR:
-			v = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
-			break;
-		case TYPE_TABLE:
-			v = make_intrusive<TableVal>(cast_intrusive<TableType>(t),
-			                             aggr->GetAttrs());
-			break;
-		default:
-			break;
-		}
+		switch ( t->Tag() )
+			{
+			case TYPE_RECORD:
+				v = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
+				break;
+			case TYPE_VECTOR:
+				v = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
+				break;
+			case TYPE_TABLE:
+				v = make_intrusive<TableVal>(cast_intrusive<TableType>(t), aggr->GetAttrs());
+				break;
+			default:
+				break;
+			}
 
 		f->SetElement(aggr, std::move(v));
 		}
@@ -1777,11 +1794,9 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-WhenStmt::WhenStmt(ExprPtr arg_cond,
-                   StmtPtr arg_s1, StmtPtr arg_s2,
-                   ExprPtr arg_timeout, bool arg_is_return)
-	: Stmt(STMT_WHEN),
-	  cond(std::move(arg_cond)), s1(std::move(arg_s1)), s2(std::move(arg_s2)),
+WhenStmt::WhenStmt(ExprPtr arg_cond, StmtPtr arg_s1, StmtPtr arg_s2, ExprPtr arg_timeout,
+                   bool arg_is_return)
+	: Stmt(STMT_WHEN), cond(std::move(arg_cond)), s1(std::move(arg_s1)), s2(std::move(arg_s2)),
 	  timeout(std::move(arg_timeout)), is_return(arg_is_return)
 	{
 	assert(cond);
@@ -1809,11 +1824,9 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 	flow = FLOW_NEXT;
 
 	// The new trigger object will take care of its own deletion.
-	new trigger::Trigger(IntrusivePtr{cond}.release(),
-	                     IntrusivePtr{s1}.release(),
-	                     IntrusivePtr{s2}.release(),
-	                     IntrusivePtr{timeout}.release(),
-	                     f, is_return, location);
+	new trigger::Trigger(IntrusivePtr{cond}.release(), IntrusivePtr{s1}.release(),
+	                     IntrusivePtr{s2}.release(), IntrusivePtr{timeout}.release(), f, is_return,
+	                     location);
 	return nullptr;
 	}
 
@@ -1880,4 +1893,4 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

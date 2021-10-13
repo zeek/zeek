@@ -3,15 +3,15 @@
 #include <assert.h>
 #include <algorithm>
 
-#include "zeek/Traverse.h"
+#include "zeek/DebugLogger.h"
+#include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/Frame.h"
 #include "zeek/ID.h"
-#include "zeek/Val.h"
-#include "zeek/Stmt.h"
 #include "zeek/Reporter.h"
-#include "zeek/Desc.h"
-#include "zeek/DebugLogger.h"
+#include "zeek/Stmt.h"
+#include "zeek/Traverse.h"
+#include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 
 using namespace zeek::detail;
@@ -20,53 +20,59 @@ using namespace zeek::detail::trigger;
 // Callback class to traverse an expression, registering all relevant IDs and
 // Vals for change notifications.
 
-namespace zeek::detail::trigger {
+namespace zeek::detail::trigger
+	{
 
-class TriggerTraversalCallback : public TraversalCallback {
+class TriggerTraversalCallback : public TraversalCallback
+	{
 public:
-	TriggerTraversalCallback(Trigger *arg_trigger)
-		{ Ref(arg_trigger); trigger = arg_trigger; }
+	TriggerTraversalCallback(Trigger* arg_trigger)
+		{
+		Ref(arg_trigger);
+		trigger = arg_trigger;
+		}
 
-	~TriggerTraversalCallback()
-		{ Unref(trigger); }
+	~TriggerTraversalCallback() { Unref(trigger); }
 
 	virtual TraversalCode PreExpr(const Expr*) override;
 
 private:
 	Trigger* trigger;
-};
+	};
 
 TraversalCode trigger::TriggerTraversalCallback::PreExpr(const Expr* expr)
 	{
 	// We catch all expressions here which in some way reference global
 	// state.
 
-	switch ( expr->Tag() ) {
-	case EXPR_NAME:
+	switch ( expr->Tag() )
 		{
-		const auto* e = static_cast<const NameExpr*>(expr);
-		if ( e->Id()->IsGlobal() )
-			trigger->Register(e->Id());
+		case EXPR_NAME:
+			{
+			const auto* e = static_cast<const NameExpr*>(expr);
+			if ( e->Id()->IsGlobal() )
+				trigger->Register(e->Id());
 
-		Val* v = e->Id()->GetVal().get();
+			Val* v = e->Id()->GetVal().get();
 
-		if ( v && v->Modifiable() )
-			trigger->Register(v);
-		break;
-		};
+			if ( v && v->Modifiable() )
+				trigger->Register(v);
+			break;
+			};
 
-	default:
-		// All others are uninteresting.
-		break;
-	}
+		default:
+			// All others are uninteresting.
+			break;
+		}
 
 	return TC_CONTINUE;
 	}
 
-class TriggerTimer final : public Timer {
+class TriggerTimer final : public Timer
+	{
 public:
 	TriggerTimer(double arg_timeout, Trigger* arg_trigger)
-	: Timer(run_state::network_time + arg_timeout, TIMER_TRIGGER)
+		: Timer(run_state::network_time + arg_timeout, TIMER_TRIGGER)
 		{
 		Ref(arg_trigger);
 		trigger = arg_trigger;
@@ -74,8 +80,7 @@ public:
 		time = run_state::network_time;
 		}
 
-	~TriggerTimer()
-		{ Unref(trigger); }
+	~TriggerTimer() { Unref(trigger); }
 
 	void Dispatch(double t, bool is_expire) override
 		{
@@ -96,17 +101,45 @@ protected:
 	Trigger* trigger;
 	double timeout;
 	double time;
-};
+	};
 
-Trigger::Trigger(Expr* arg_cond, Stmt* arg_body,
-                 Stmt* arg_timeout_stmts,
-                 Expr* arg_timeout, Frame* arg_frame,
-                 bool arg_is_return, const Location* arg_location)
+Trigger::Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeout_expr,
+                 Frame* frame, bool is_return, const Location* location)
+	{
+	timeout_value = -1;
+
+	if ( timeout_expr )
+		{
+		ValPtr timeout_val;
+
+		try
+			{
+			timeout_val = timeout_expr->Eval(frame);
+			}
+		catch ( InterpreterException& )
+			{ /* Already reported */
+			}
+
+		if ( timeout_val )
+			timeout_value = timeout_val->AsInterval();
+		}
+
+	Init(cond, body, timeout_stmts, frame, is_return, location);
+	}
+
+Trigger::Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts, double timeout, Frame* frame,
+                 bool is_return, const Location* location)
+	{
+	timeout_value = timeout;
+	Init(cond, body, timeout_stmts, frame, is_return, location);
+	}
+
+void Trigger::Init(const Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts, Frame* arg_frame,
+                   bool arg_is_return, const Location* arg_location)
 	{
 	cond = arg_cond;
 	body = arg_body;
 	timeout_stmts = arg_timeout_stmts;
-	timeout = arg_timeout;
 	frame = arg_frame->Clone();
 	timer = nullptr;
 	delayed = false;
@@ -114,7 +147,6 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body,
 	attached = nullptr;
 	is_return = arg_is_return;
 	location = arg_location;
-	timeout_value = -1;
 
 	DBG_LOG(DBG_NOTIFIERS, "%s: instantiating", Name());
 
@@ -130,23 +162,6 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body,
 
 		parent->Attach(this);
 		arg_frame->SetDelayed();
-		}
-
-	ValPtr timeout_val;
-
-	if ( arg_timeout )
-		{
-		try
-			{
-			timeout_val = arg_timeout->Eval(arg_frame);
-			}
-		catch ( InterpreterException& )
-			{ /* Already reported */ }
-		}
-
-	if ( timeout_val )
-		{
-		timeout_value = timeout_val->AsInterval();
 		}
 
 	// Make sure we don't get deleted if somebody calls a method like
@@ -198,7 +213,7 @@ Trigger::~Trigger()
 	// point.
 	}
 
-void Trigger::Init(std::vector<ValPtr> index_expr_results)
+void Trigger::ReInit(std::vector<ValPtr> index_expr_results)
 	{
 	assert(! disabled);
 	UnregisterAll();
@@ -218,8 +233,7 @@ bool Trigger::Eval()
 
 	if ( delayed )
 		{
-		DBG_LOG(DBG_NOTIFIERS, "%s: skipping eval due to delayed call",
-				Name());
+		DBG_LOG(DBG_NOTIFIERS, "%s: skipping eval due to delayed call", Name());
 		return false;
 		}
 
@@ -256,7 +270,8 @@ bool Trigger::Eval()
 		v = cond->Eval(f);
 		}
 	catch ( InterpreterException& )
-		{ /* Already reported */ }
+		{ /* Already reported */
+		}
 
 	IndexExprWhen::EndEval();
 	auto index_expr_results = IndexExprWhen::TakeAllResults();
@@ -266,7 +281,7 @@ bool Trigger::Eval()
 	if ( f->HasDelayed() )
 		{
 		DBG_LOG(DBG_NOTIFIERS, "%s: eval has delayed", Name());
-		assert(!v);
+		assert(! v);
 		Unref(f);
 		return false;
 		}
@@ -276,12 +291,11 @@ bool Trigger::Eval()
 		// Not true. Perhaps next time...
 		DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is false", Name());
 		Unref(f);
-		Init(std::move(index_expr_results));
+		ReInit(std::move(index_expr_results));
 		return false;
 		}
 
-	DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is true, executing",
-			Name());
+	DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is true, executing", Name());
 
 	v = nullptr;
 	StmtFlowType flow;
@@ -291,7 +305,8 @@ bool Trigger::Eval()
 		v = body->Exec(f, flow);
 		}
 	catch ( InterpreterException& e )
-		{ /* Already reported. */ }
+		{ /* Already reported. */
+		}
 
 	if ( is_return )
 		{
@@ -303,7 +318,7 @@ bool Trigger::Eval()
 #ifdef DEBUG
 		const char* pname = util::copy_string(trigger->Name());
 		DBG_LOG(DBG_NOTIFIERS, "%s: trigger has parent %s, caching result", Name(), pname);
-		delete [] pname;
+		delete[] pname;
 #endif
 
 		auto queued = trigger->Cache(frame->GetCall(), v.get());
@@ -344,7 +359,8 @@ void Trigger::Timeout()
 			v = timeout_stmts->Exec(f.get(), flow);
 			}
 		catch ( InterpreterException& e )
-			{ /* Already reported. */ }
+			{ /* Already reported. */
+			}
 
 		if ( is_return )
 			{
@@ -355,8 +371,9 @@ void Trigger::Timeout()
 
 #ifdef DEBUG
 			const char* pname = util::copy_string(trigger->Name());
-			DBG_LOG(DBG_NOTIFIERS, "%s: trigger has parent %s, caching timeout result", Name(), pname);
-			delete [] pname;
+			DBG_LOG(DBG_NOTIFIERS, "%s: trigger has parent %s, caching timeout result", Name(),
+			        pname);
+			delete[] pname;
 #endif
 			auto queued = trigger->Cache(frame->GetCall(), v.get());
 			trigger->Release();
@@ -407,7 +424,7 @@ void Trigger::UnregisterAll()
 	objs.clear();
 	}
 
-void Trigger::Attach(Trigger *trigger)
+void Trigger::Attach(Trigger* trigger)
 	{
 	assert(! disabled);
 	assert(! trigger->disabled);
@@ -416,7 +433,7 @@ void Trigger::Attach(Trigger *trigger)
 #ifdef DEBUG
 	const char* pname = util::copy_string(trigger->Name());
 	DBG_LOG(DBG_NOTIFIERS, "%s: attaching to %s", Name(), pname);
-	delete [] pname;
+	delete[] pname;
 #endif
 
 	Ref(trigger);
@@ -446,7 +463,6 @@ bool Trigger::Cache(const CallExpr* expr, Val* v)
 	return true;
 	}
 
-
 Val* Trigger::Lookup(const CallExpr* expr)
 	{
 	assert(! disabled);
@@ -474,11 +490,8 @@ void Trigger::Modified(notifier::detail::Modifiable* m)
 const char* Trigger::Name() const
 	{
 	assert(location);
-	return util::fmt("%s:%d-%d", location->filename,
-	                       location->first_line, location->last_line);
+	return util::fmt("%s:%d-%d", location->filename, location->first_line, location->last_line);
 	}
-
-
 
 Manager::Manager() : iosource::IOSource()
 	{
@@ -538,4 +551,4 @@ void Manager::GetStats(Stats* stats)
 	stats->pending = pending->size();
 	}
 
-}
+	}

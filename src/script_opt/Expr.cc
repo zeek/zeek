@@ -3,97 +3,166 @@
 // Optimization-related methods for Expr classes.
 
 #include "zeek/Expr.h"
-#include "zeek/Stmt.h"
-#include "zeek/Func.h"
-#include "zeek/Frame.h"
-#include "zeek/Scope.h"
+
 #include "zeek/Desc.h"
-#include "zeek/Traverse.h"
+#include "zeek/Frame.h"
+#include "zeek/Func.h"
 #include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/Stmt.h"
+#include "zeek/Traverse.h"
 #include "zeek/script_opt/Inline.h"
 #include "zeek/script_opt/Reduce.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 static bool same_singletons(ExprPtr e1, ExprPtr e2);
-
 
 ConstExpr* Expr::AsConstExpr()
 	{
 	CHECK_TAG(tag, EXPR_CONST, "ExprVal::AsConstExpr", expr_name)
-	return (ConstExpr*) this;
+	return (ConstExpr*)this;
 	}
 
 const FieldExpr* Expr::AsFieldExpr() const
 	{
 	CHECK_TAG(tag, EXPR_FIELD, "ExprVal::AsFieldExpr", expr_name)
-	return (const FieldExpr*) this;
+	return (const FieldExpr*)this;
 	}
 
 FieldExpr* Expr::AsFieldExpr()
 	{
 	CHECK_TAG(tag, EXPR_FIELD, "ExprVal::AsFieldExpr", expr_name)
-	return (FieldExpr*) this;
+	return (FieldExpr*)this;
 	}
 
 IntrusivePtr<FieldAssignExpr> Expr::AsFieldAssignExprPtr()
 	{
 	CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
-	return {NewRef{}, (FieldAssignExpr*) this};
+	return {NewRef{}, (FieldAssignExpr*)this};
 	}
 
 const IndexAssignExpr* Expr::AsIndexAssignExpr() const
 	{
 	CHECK_TAG(tag, EXPR_INDEX_ASSIGN, "ExprVal::AsIndexAssignExpr", expr_name)
-	return (const IndexAssignExpr*) this;
+	return (const IndexAssignExpr*)this;
 	}
 
 const FieldLHSAssignExpr* Expr::AsFieldLHSAssignExpr() const
 	{
 	CHECK_TAG(tag, EXPR_FIELD_LHS_ASSIGN, "ExprVal::AsFieldLHSAssignExpr", expr_name)
-	return (const FieldLHSAssignExpr*) this;
+	return (const FieldLHSAssignExpr*)this;
+	}
+
+HasFieldExpr* Expr::AsHasFieldExpr()
+	{
+	CHECK_TAG(tag, EXPR_HAS_FIELD, "ExprVal::AsHasFieldExpr", expr_name)
+	return (HasFieldExpr*)this;
 	}
 
 const HasFieldExpr* Expr::AsHasFieldExpr() const
 	{
 	CHECK_TAG(tag, EXPR_HAS_FIELD, "ExprVal::AsHasFieldExpr", expr_name)
-	return (const HasFieldExpr*) this;
+	return (const HasFieldExpr*)this;
 	}
 
 const AddToExpr* Expr::AsAddToExpr() const
 	{
 	CHECK_TAG(tag, EXPR_ADD_TO, "ExprVal::AsAddToExpr", expr_name)
-	return (const AddToExpr*) this;
+	return (const AddToExpr*)this;
 	}
 
 const IsExpr* Expr::AsIsExpr() const
 	{
 	CHECK_TAG(tag, EXPR_IS, "ExprVal::AsIsExpr", expr_name)
-	return (const IsExpr*) this;
+	return (const IsExpr*)this;
+	}
+
+CallExpr* Expr::AsCallExpr()
+	{
+	CHECK_TAG(tag, EXPR_CALL, "ExprVal::AsCallExpr", expr_name)
+	return (CallExpr*)this;
+	}
+
+FieldAssignExpr* Expr::AsFieldAssignExpr()
+	{
+	CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
+	return (FieldAssignExpr*)this;
+	}
+
+const RecordCoerceExpr* Expr::AsRecordCoerceExpr() const
+	{
+	CHECK_TAG(tag, EXPR_RECORD_COERCE, "ExprVal::AsRecordCoerceExpr", expr_name)
+	return (const RecordCoerceExpr*)this;
+	}
+
+const RecordConstructorExpr* Expr::AsRecordConstructorExpr() const
+	{
+	CHECK_TAG(tag, EXPR_RECORD_CONSTRUCTOR, "ExprVal::AsRecordConstructorExpr", expr_name)
+	return (const RecordConstructorExpr*)this;
+	}
+
+const TableConstructorExpr* Expr::AsTableConstructorExpr() const
+	{
+	CHECK_TAG(tag, EXPR_TABLE_CONSTRUCTOR, "ExprVal::AsTableConstructorExpr", expr_name)
+	return (const TableConstructorExpr*)this;
+	}
+
+const SetConstructorExpr* Expr::AsSetConstructorExpr() const
+	{
+	CHECK_TAG(tag, EXPR_SET_CONSTRUCTOR, "ExprVal::AsSetConstructorExpr", expr_name)
+	return (const SetConstructorExpr*)this;
+	}
+
+RefExpr* Expr::AsRefExpr()
+	{
+	CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
+	return (RefExpr*)this;
 	}
 
 const InlineExpr* Expr::AsInlineExpr() const
 	{
 	CHECK_TAG(tag, EXPR_INLINE, "ExprVal::AsInlineExpr", expr_name)
-	return (const InlineExpr*) this;
+	return (const InlineExpr*)this;
+	}
+
+AnyIndexExpr* Expr::AsAnyIndexExpr()
+	{
+	CHECK_TAG(tag, EXPR_ANY_INDEX, "ExprVal::AsAnyIndexExpr", expr_name)
+	return (AnyIndexExpr*)this;
 	}
 
 const AnyIndexExpr* Expr::AsAnyIndexExpr() const
 	{
 	CHECK_TAG(tag, EXPR_ANY_INDEX, "ExprVal::AsAnyIndexExpr", expr_name)
-	return (const AnyIndexExpr*) this;
+	return (const AnyIndexExpr*)this;
+	}
+
+LambdaExpr* Expr::AsLambdaExpr()
+	{
+	CHECK_TAG(tag, EXPR_LAMBDA, "ExprVal::AsLambdaExpr", expr_name)
+	return (LambdaExpr*)this;
 	}
 
 const LambdaExpr* Expr::AsLambdaExpr() const
 	{
 	CHECK_TAG(tag, EXPR_LAMBDA, "ExprVal::AsLambdaExpr", expr_name)
-	return (const LambdaExpr*) this;
+	return (const LambdaExpr*)this;
 	}
 
-ExprPtr Expr::GetOp1() const { return nullptr; }
-ExprPtr Expr::GetOp2() const { return nullptr; }
-ExprPtr Expr::GetOp3() const { return nullptr; }
+ExprPtr Expr::GetOp1() const
+	{
+	return nullptr;
+	}
+ExprPtr Expr::GetOp2() const
+	{
+	return nullptr;
+	}
+ExprPtr Expr::GetOp3() const
+	{
+	return nullptr;
+	}
 
 void Expr::SetOp1(ExprPtr) { }
 void Expr::SetOp2(ExprPtr) { }
@@ -111,48 +180,49 @@ bool Expr::HasReducedOps(Reducer* c) const
 
 bool Expr::IsReducedConditional(Reducer* c) const
 	{
-	switch ( tag ) {
-	case EXPR_CONST:
-		return true;
-
-	case EXPR_NAME:
-		return IsReduced(c);
-
-	case EXPR_IN:
+	switch ( tag )
 		{
-		auto op1 = GetOp1();
-		auto op2 = GetOp2();
+		case EXPR_CONST:
+			return true;
 
-		if ( op1->Tag() != EXPR_NAME && op1->Tag() != EXPR_LIST )
-			return NonReduced(this);
+		case EXPR_NAME:
+			return IsReduced(c);
 
-		if ( op2->GetType()->Tag() != TYPE_TABLE || ! op2->IsReduced(c) )
-			return NonReduced(this);
-
-		if ( op1->Tag() == EXPR_LIST )
+		case EXPR_IN:
 			{
-			auto l1 = op1->AsListExpr();
-			auto& l1_e = l1->Exprs();
+			auto op1 = GetOp1();
+			auto op2 = GetOp2();
 
-			if ( l1_e.length() < 1 || l1_e.length() > 2 )
+			if ( op1->Tag() != EXPR_NAME && op1->Tag() != EXPR_LIST )
 				return NonReduced(this);
+
+			if ( op2->GetType()->Tag() != TYPE_TABLE || ! op2->IsReduced(c) )
+				return NonReduced(this);
+
+			if ( op1->Tag() == EXPR_LIST )
+				{
+				auto l1 = op1->AsListExpr();
+				auto& l1_e = l1->Exprs();
+
+				if ( l1_e.length() < 1 || l1_e.length() > 2 )
+					return NonReduced(this);
+				}
+
+			return true;
 			}
 
-		return true;
+		case EXPR_EQ:
+		case EXPR_NE:
+		case EXPR_LE:
+		case EXPR_GE:
+		case EXPR_LT:
+		case EXPR_GT:
+		case EXPR_HAS_FIELD:
+			return HasReducedOps(c);
+
+		default:
+			return false;
 		}
-
-	case EXPR_EQ:
-	case EXPR_NE:
-	case EXPR_LE:
-	case EXPR_GE:
-	case EXPR_LT:
-	case EXPR_GT:
-	case EXPR_HAS_FIELD:
-		return HasReducedOps(c);
-
-	default:
-		return false;
-	}
 	}
 
 bool Expr::IsReducedFieldAssignment(Reducer* c) const
@@ -171,46 +241,47 @@ bool Expr::IsReducedFieldAssignment(Reducer* c) const
 
 bool Expr::IsFieldAssignable(const Expr* e) const
 	{
-	switch ( e->Tag() ) {
-	case EXPR_NAME:
-	case EXPR_CONST:
-	case EXPR_NOT:
-	case EXPR_COMPLEMENT:
-	case EXPR_POSITIVE:
-	case EXPR_NEGATE:
-	case EXPR_ADD:
-	case EXPR_SUB:
-	case EXPR_TIMES:
-	case EXPR_DIVIDE:
-	case EXPR_MOD:
-	case EXPR_AND:
-	case EXPR_OR:
-	case EXPR_XOR:
-	case EXPR_FIELD:
-	case EXPR_HAS_FIELD:
-	case EXPR_IN:
-	case EXPR_SIZE:
-		return true;
+	switch ( e->Tag() )
+		{
+		case EXPR_NAME:
+		case EXPR_CONST:
+		case EXPR_NOT:
+		case EXPR_COMPLEMENT:
+		case EXPR_POSITIVE:
+		case EXPR_NEGATE:
+		case EXPR_ADD:
+		case EXPR_SUB:
+		case EXPR_TIMES:
+		case EXPR_DIVIDE:
+		case EXPR_MOD:
+		case EXPR_AND:
+		case EXPR_OR:
+		case EXPR_XOR:
+		case EXPR_FIELD:
+		case EXPR_HAS_FIELD:
+		case EXPR_IN:
+		case EXPR_SIZE:
+			return true;
 
-	// These would not be hard to add in principle, but at the expense
-	// of some added complexity in the templator.  Seems unlikely the
-	// actual performance gain would make that worth it.
-	// case EXPR_LT:
-	// case EXPR_LE:
-	// case EXPR_EQ:
-	// case EXPR_NE:
-	// case EXPR_GE:
-	// case EXPR_GT:
+			// These would not be hard to add in principle, but at the expense
+			// of some added complexity in the templator.  Seems unlikely the
+			// actual performance gain would make that worth it.
+			// case EXPR_LT:
+			// case EXPR_LE:
+			// case EXPR_EQ:
+			// case EXPR_NE:
+			// case EXPR_GE:
+			// case EXPR_GT:
 
-	// These could be added if we subsetted them to versions for
-	// which we know it's safe to evaluate both operands.  Again
-	// likely not worth it.
-	// case EXPR_AND_AND:
-	// case EXPR_OR_OR:
+			// These could be added if we subsetted them to versions for
+			// which we know it's safe to evaluate both operands.  Again
+			// likely not worth it.
+			// case EXPR_AND_AND:
+			// case EXPR_OR_OR:
 
-	default:
-		return false;
-	}
+		default:
+			return false;
+		}
 	}
 
 ExprPtr Expr::Reduce(Reducer* c, StmtPtr& red_stmt)
@@ -241,79 +312,80 @@ StmtPtr Expr::ReduceToSingletons(Reducer* c)
 
 ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt)
 	{
-	switch ( tag ) {
-	case EXPR_CONST:
-		return ThisPtr();
-
-	case EXPR_NAME:
-		if ( c->Optimizing() )
+	switch ( tag )
+		{
+		case EXPR_CONST:
 			return ThisPtr();
 
-		return Reduce(c, red_stmt);
+		case EXPR_NAME:
+			if ( c->Optimizing() )
+				return ThisPtr();
 
-	case EXPR_IN:
-		{
-		// This is complicated because there are lots of forms
-		// of "in" expressions, and we're only interested in
-		// those with 1 or 2 indices, into a table.
-		auto op1 = GetOp1();
-		auto op2 = GetOp2();
-
-		if ( c->Optimizing() )
 			return Reduce(c, red_stmt);
 
-		if ( op2->GetType()->Tag() != TYPE_TABLE )
-			// Not a table de-reference.
-			return Reduce(c, red_stmt);
-
-		if ( op1->Tag() == EXPR_LIST )
+		case EXPR_IN:
 			{
-			auto l1 = op1->AsListExpr();
-			auto& l1_e = l1->Exprs();
+			// This is complicated because there are lots of forms
+			// of "in" expressions, and we're only interested in
+			// those with 1 or 2 indices, into a table.
+			auto op1 = GetOp1();
+			auto op2 = GetOp2();
 
-			if ( l1_e.length() < 1 || l1_e.length() > 2 )
-				// Wrong number of indices.
+			if ( c->Optimizing() )
 				return Reduce(c, red_stmt);
+
+			if ( op2->GetType()->Tag() != TYPE_TABLE )
+				// Not a table de-reference.
+				return Reduce(c, red_stmt);
+
+			if ( op1->Tag() == EXPR_LIST )
+				{
+				auto l1 = op1->AsListExpr();
+				auto& l1_e = l1->Exprs();
+
+				if ( l1_e.length() < 1 || l1_e.length() > 2 )
+					// Wrong number of indices.
+					return Reduce(c, red_stmt);
+				}
+
+			if ( ! op1->IsReduced(c) || ! op2->IsReduced(c) )
+				{
+				auto red2_stmt = ReduceToSingletons(c);
+				auto res = ReduceToConditional(c, red_stmt);
+				red_stmt = MergeStmts(red2_stmt, red_stmt);
+				return res;
+				}
+
+			return ThisPtr();
 			}
 
-		if ( ! op1->IsReduced(c) || ! op2->IsReduced(c) )
-			{
-			auto red2_stmt = ReduceToSingletons(c);
-			auto res = ReduceToConditional(c, red_stmt);
-			red_stmt = MergeStmts(red2_stmt, red_stmt);
-			return res;
-			}
+		case EXPR_EQ:
+		case EXPR_NE:
+		case EXPR_LE:
+		case EXPR_GE:
+		case EXPR_LT:
+		case EXPR_GT:
+			red_stmt = ReduceToSingletons(c);
 
-		return ThisPtr();
+			if ( GetOp1()->IsConst() && GetOp2()->IsConst() )
+				// Fold!
+				{
+				StmtPtr fold_stmts;
+				auto new_me = Reduce(c, fold_stmts);
+				red_stmt = MergeStmts(red_stmt, fold_stmts);
+
+				return new_me;
+				}
+
+			return ThisPtr();
+
+		case EXPR_HAS_FIELD:
+			red_stmt = ReduceToSingletons(c);
+			return ThisPtr();
+
+		default:
+			return Reduce(c, red_stmt);
 		}
-
-	case EXPR_EQ:
-	case EXPR_NE:
-	case EXPR_LE:
-	case EXPR_GE:
-	case EXPR_LT:
-	case EXPR_GT:
-		red_stmt = ReduceToSingletons(c);
-
-		if ( GetOp1()->IsConst() && GetOp2()->IsConst() )
-			// Fold!
-			{
-			StmtPtr fold_stmts;
-			auto new_me = Reduce(c, fold_stmts);
-			red_stmt = MergeStmts(red_stmt, fold_stmts);
-
-			return new_me;
-			}
-
-		return ThisPtr();
-
-	case EXPR_HAS_FIELD:
-		red_stmt = ReduceToSingletons(c);
-		return ThisPtr();
-
-	default:
-		return Reduce(c, red_stmt);
-	}
 	}
 
 ExprPtr Expr::ReduceToFieldAssignment(Reducer* c, StmtPtr& red_stmt)
@@ -330,8 +402,8 @@ ExprPtr Expr::AssignToTemporary(ExprPtr e, Reducer* c, StmtPtr& red_stmt)
 	{
 	auto result_tmp = c->GenTemporaryExpr(GetType(), e);
 
-	auto a_e = make_intrusive<AssignExpr>(result_tmp->MakeLvalue(), e,
-						false, nullptr, nullptr, false);
+	auto a_e = make_intrusive<AssignExpr>(result_tmp->MakeLvalue(), e, false, nullptr, nullptr,
+	                                      false);
 	a_e->SetIsTemp();
 	a_e->SetOriginal(ThisPtr());
 
@@ -376,25 +448,31 @@ StmtPtr Expr::MergeStmts(StmtPtr s1, StmtPtr s2, StmtPtr s3) const
 
 ValPtr Expr::MakeZero(TypeTag t) const
 	{
-	switch ( t ) {
-	case TYPE_BOOL:		return val_mgr->False();
-	case TYPE_INT:		return val_mgr->Int(0);
-	case TYPE_COUNT:	return val_mgr->Count(0);
+	switch ( t )
+		{
+		case TYPE_BOOL:
+			return val_mgr->False();
+		case TYPE_INT:
+			return val_mgr->Int(0);
+		case TYPE_COUNT:
+			return val_mgr->Count(0);
 
-	case TYPE_DOUBLE:	return make_intrusive<DoubleVal>(0.0);
-	case TYPE_TIME:		return make_intrusive<TimeVal>(0.0);
-	case TYPE_INTERVAL:	return make_intrusive<IntervalVal>(0.0, 1.0);
+		case TYPE_DOUBLE:
+			return make_intrusive<DoubleVal>(0.0);
+		case TYPE_TIME:
+			return make_intrusive<TimeVal>(0.0);
+		case TYPE_INTERVAL:
+			return make_intrusive<IntervalVal>(0.0, 1.0);
 
-	default:
-		reporter->InternalError("bad call to MakeZero");
-	}
+		default:
+			reporter->InternalError("bad call to MakeZero");
+		}
 	}
 
 ConstExprPtr Expr::MakeZeroExpr(TypeTag t) const
 	{
 	return make_intrusive<ConstExpr>(MakeZero(t));
 	}
-
 
 ExprPtr NameExpr::Duplicate()
 	{
@@ -428,8 +506,7 @@ ExprPtr NameExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 ValPtr NameExpr::FoldVal() const
 	{
-	if ( ! id->IsConst() || id->GetAttr(ATTR_REDEF) ||
-	     id->GetType()->Tag() == TYPE_FUNC )
+	if ( ! id->IsConst() || id->GetAttr(ATTR_REDEF) || id->GetType()->Tag() == TYPE_FUNC )
 		return nullptr;
 
 	return id->GetVal();
@@ -437,19 +514,16 @@ ValPtr NameExpr::FoldVal() const
 
 bool NameExpr::FoldableGlobal() const
 	{
-	return id->IsGlobal() && id->IsConst() &&
-	       is_atomic_type(id->GetType()) &&
-		// Make sure constant can't be changed on the command line
-		// or such.
-		! id->GetAttr(ATTR_REDEF);
+	return id->IsGlobal() && id->IsConst() && is_atomic_type(id->GetType()) &&
+	       // Make sure constant can't be changed on the command line
+	       // or such.
+	       ! id->GetAttr(ATTR_REDEF);
 	}
-
 
 ExprPtr ConstExpr::Duplicate()
 	{
 	return SetSucc(new ConstExpr(val));
 	}
-
 
 ExprPtr UnaryExpr::Inline(Inliner* inl)
 	{
@@ -494,7 +568,6 @@ ExprPtr UnaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	else
 		return AssignToTemporary(c, red_stmt);
 	}
-
 
 ExprPtr BinaryExpr::Inline(Inliner* inl)
 	{
@@ -552,13 +625,11 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		return AssignToTemporary(c, red_stmt);
 	}
 
-
 ExprPtr CloneExpr::Duplicate()
 	{
 	// oh the irony
 	return SetSucc(new CloneExpr(op->Duplicate()));
 	}
-
 
 ExprPtr IncrExpr::Duplicate()
 	{
@@ -575,8 +646,7 @@ bool IncrExpr::IsReduced(Reducer* c) const
 	auto ref_op = op->AsRefExprPtr();
 	auto target = ref_op->GetOp1();
 
-	if ( target->Tag() != EXPR_NAME ||
-	     ! IsIntegral(target->GetType()->Tag()) )
+	if ( target->Tag() != EXPR_NAME || ! IsIntegral(target->GetType()->Tag()) )
 		return NonReduced(this);
 
 	return ref_op->IsReduced(c);
@@ -590,8 +660,7 @@ ExprPtr IncrExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	auto ref_op = op->AsRefExprPtr();
 	auto target = ref_op->GetOp1();
 
-	if ( target->Tag() == EXPR_NAME &&
-	     IsIntegral(target->GetType()->Tag()) )
+	if ( target->Tag() == EXPR_NAME && IsIntegral(target->GetType()->Tag()) )
 		{
 		if ( c->Optimizing() )
 			op = c->UpdateExpr(op);
@@ -650,8 +719,7 @@ ExprPtr IncrExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	else
 		reporter->InternalError("confused in IncrExpr::Reduce");
 
-	auto assign = make_intrusive<AssignExpr>(orig_target, rhs, false,
-						nullptr, nullptr, false);
+	auto assign = make_intrusive<AssignExpr>(orig_target, rhs, false, nullptr, nullptr, false);
 
 	orig_target->SetOriginal(ThisPtr());
 
@@ -662,8 +730,7 @@ ExprPtr IncrExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	auto res = assign->Reduce(c, assign_stmt2);
 	res = res->ReduceToSingleton(c, red_stmt);
 	red_stmt = MergeStmts(MergeStmts(init_red_stmt, target_stmt),
-			MergeStmts(incr_stmt, assign_stmt, assign_stmt2),
-				red_stmt);
+	                      MergeStmts(incr_stmt, assign_stmt, assign_stmt2), red_stmt);
 
 	return res;
 	}
@@ -673,8 +740,7 @@ ExprPtr IncrExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
 	auto ref_op = op->AsRefExprPtr();
 	auto target = ref_op->GetOp1();
 
-	if ( target->Tag() == EXPR_NAME &&
-	     IsIntegral(target->GetType()->Tag()) )
+	if ( target->Tag() == EXPR_NAME && IsIntegral(target->GetType()->Tag()) )
 		{
 		ExprPtr incr_expr = Duplicate();
 		red_stmt = make_intrusive<ExprStmt>(incr_expr)->Reduce(c);
@@ -690,7 +756,6 @@ ExprPtr IncrExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
 	else
 		return UnaryExpr::ReduceToSingleton(c, red_stmt);
 	}
-
 
 ExprPtr ComplementExpr::Duplicate()
 	{
@@ -710,7 +775,6 @@ ExprPtr ComplementExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return UnaryExpr::Reduce(c, red_stmt);
 	}
 
-
 ExprPtr NotExpr::Duplicate()
 	{
 	return SetSucc(new NotExpr(op->Duplicate()));
@@ -728,7 +792,6 @@ ExprPtr NotExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 	return UnaryExpr::Reduce(c, red_stmt);
 	}
-
 
 ExprPtr PosExpr::Duplicate()
 	{
@@ -751,7 +814,6 @@ ExprPtr PosExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		return op->ReduceToSingleton(c, red_stmt);
 	}
 
-
 ExprPtr NegExpr::Duplicate()
 	{
 	return SetSucc(new NegExpr(op->Duplicate()));
@@ -770,12 +832,10 @@ ExprPtr NegExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return UnaryExpr::Reduce(c, red_stmt);
 	}
 
-
 ExprPtr SizeExpr::Duplicate()
 	{
 	return SetSucc(new SizeExpr(op->Duplicate()));
 	}
-
 
 ExprPtr AddExpr::Duplicate()
 	{
@@ -786,8 +846,7 @@ ExprPtr AddExpr::Duplicate()
 
 bool AddExpr::WillTransform(Reducer* c) const
 	{
-	return op1->IsZero() || op2->IsZero() ||
-		op1->Tag() == EXPR_NEGATE || op2->Tag() == EXPR_NEGATE;
+	return op1->IsZero() || op2->IsZero() || op1->Tag() == EXPR_NEGATE || op2->Tag() == EXPR_NEGATE;
 	}
 
 ExprPtr AddExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
@@ -815,7 +874,6 @@ ExprPtr AddExpr::BuildSub(const ExprPtr& op1, const ExprPtr& op2)
 	return sub;
 	}
 
-
 ExprPtr AddToExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -837,8 +895,7 @@ ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 		op2 = op2->Reduce(c, red_stmt2);
 
-		auto append =
-			make_intrusive<AppendToExpr>(op1->Duplicate(), op2);
+		auto append = make_intrusive<AppendToExpr>(op1->Duplicate(), op2);
 		append->SetOriginal(ThisPtr());
 
 		auto append_stmt = make_intrusive<ExprStmt>(append);
@@ -854,13 +911,11 @@ ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		// the following is basically equivalent.
 		auto rhs = op1->AsRefExprPtr()->GetOp1();
 		auto do_incr = make_intrusive<AddExpr>(rhs->Duplicate(), op2);
-		auto assign = make_intrusive<AssignExpr>(op1, do_incr, false, nullptr,
-		                                         nullptr, false);
+		auto assign = make_intrusive<AssignExpr>(op1, do_incr, false, nullptr, nullptr, false);
 
 		return assign->ReduceToSingleton(c, red_stmt);
 		}
 	}
-
 
 ExprPtr SubExpr::Duplicate()
 	{
@@ -872,9 +927,8 @@ ExprPtr SubExpr::Duplicate()
 bool SubExpr::WillTransform(Reducer* c) const
 	{
 	return op2->IsZero() || op2->Tag() == EXPR_NEGATE ||
-		(type->Tag() != TYPE_VECTOR && type->Tag() != TYPE_TABLE &&
-	         op1->Tag() == EXPR_NAME && op2->Tag() == EXPR_NAME &&
-		 op1->AsNameExpr()->Id() == op2->AsNameExpr()->Id());
+	       (type->Tag() != TYPE_VECTOR && type->Tag() != TYPE_TABLE && op1->Tag() == EXPR_NAME &&
+	        op2->Tag() == EXPR_NAME && op1->AsNameExpr()->Id() == op2->AsNameExpr()->Id());
 	}
 
 ExprPtr SubExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
@@ -896,8 +950,8 @@ ExprPtr SubExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		op2 = c->UpdateExpr(op2);
 		}
 
-	if ( type->Tag() != TYPE_VECTOR && type->Tag() != TYPE_TABLE &&
-	     op1->Tag() == EXPR_NAME && op2->Tag() == EXPR_NAME )
+	if ( type->Tag() != TYPE_VECTOR && type->Tag() != TYPE_TABLE && op1->Tag() == EXPR_NAME &&
+	     op2->Tag() == EXPR_NAME )
 		{
 		auto n1 = op1->AsNameExpr();
 		auto n2 = op2->AsNameExpr();
@@ -911,7 +965,6 @@ ExprPtr SubExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return BinaryExpr::Reduce(c, red_stmt);
 	}
 
-
 ExprPtr RemoveFromExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -923,12 +976,10 @@ ExprPtr RemoveFromExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	{
 	auto rhs = op1->AsRefExprPtr()->GetOp1();
 	auto do_decr = make_intrusive<SubExpr>(rhs->Duplicate(), op2);
-	auto assign = make_intrusive<AssignExpr>(op1, do_decr, false, nullptr, nullptr,
-	                                         false);
+	auto assign = make_intrusive<AssignExpr>(op1, do_decr, false, nullptr, nullptr, false);
 
 	return assign->Reduce(c, red_stmt);
 	}
-
 
 ExprPtr TimesExpr::Duplicate()
 	{
@@ -952,17 +1003,16 @@ ExprPtr TimesExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 	// Optimize integral multiplication by zero ... but not
 	// double, due to cases like Inf*0 or NaN*0.
-	if ( (op1->IsZero() || op2->IsZero()) &&
-	     GetType()->Tag() != TYPE_DOUBLE )
+	if ( (op1->IsZero() || op2->IsZero()) && GetType()->Tag() != TYPE_DOUBLE )
 		{
-		auto zero_val = op1->IsZero() ?
-				op1->Eval(nullptr) : op2->Eval(nullptr);
-		return make_intrusive<ConstExpr>(zero_val);
+		if ( op1->IsZero() )
+			return c->Fold(op1);
+		else
+			return c->Fold(op2);
 		}
 
 	return BinaryExpr::Reduce(c, red_stmt);
 	}
-
 
 ExprPtr DivideExpr::Duplicate()
 	{
@@ -987,14 +1037,12 @@ ExprPtr DivideExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return BinaryExpr::Reduce(c, red_stmt);
 	}
 
-
 ExprPtr ModExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
 	return SetSucc(new ModExpr(op1_d, op2_d));
 	}
-
 
 // Helper functions used by BoolExpr.
 
@@ -1007,16 +1055,14 @@ ExprPtr ModExpr::Duplicate()
 // nullptr, and the caller should have ensured that the starting point is
 // a disjunction (since a bare "/pat/ in var" by itself isn't a "cascade"
 // and doesn't present a potential optimization opportunity.
-static bool is_pattern_cascade(const ExprPtr& e, IDPtr& id,
-				std::vector<ConstExprPtr>& patterns)
+static bool is_pattern_cascade(const ExprPtr& e, IDPtr& id, std::vector<ConstExprPtr>& patterns)
 	{
 	auto lhs = e->GetOp1();
 	auto rhs = e->GetOp2();
 
 	if ( e->Tag() == EXPR_IN )
 		{
-		if ( lhs->Tag() != EXPR_CONST ||
-		     lhs->GetType()->Tag() != TYPE_PATTERN ||
+		if ( lhs->Tag() != EXPR_CONST || lhs->GetType()->Tag() != TYPE_PATTERN ||
 		     rhs->Tag() != EXPR_NAME )
 			return false;
 
@@ -1034,8 +1080,7 @@ static bool is_pattern_cascade(const ExprPtr& e, IDPtr& id,
 	if ( e->Tag() != EXPR_OR_OR )
 		return false;
 
-	return is_pattern_cascade(lhs, id, patterns) &&
-		is_pattern_cascade(rhs, id, patterns);
+	return is_pattern_cascade(lhs, id, patterns) && is_pattern_cascade(rhs, id, patterns);
 	}
 
 // Given a set of pattern constants, returns a disjunction that
@@ -1046,12 +1091,11 @@ static ExprPtr build_disjunction(std::vector<ConstExprPtr>& patterns)
 
 	ExprPtr e = patterns[0];
 
-	for ( unsigned int i = 1; i < patterns.size(); ++i )
-		e = make_intrusive<BitExpr>(EXPR_OR, e, patterns[i]);
+	for ( auto& p : patterns )
+		e = make_intrusive<BitExpr>(EXPR_OR, e, p);
 
 	return e;
 	}
-
 
 ExprPtr BoolExpr::Duplicate()
 	{
@@ -1070,10 +1114,9 @@ bool BoolExpr::WillTransformInConditional(Reducer* c) const
 	IDPtr common_id;
 	std::vector<ConstExprPtr> patterns;
 
-	ExprPtr e_ptr = {NewRef{}, (Expr*) this};
+	ExprPtr e_ptr = {NewRef{}, (Expr*)this};
 
-	return tag == EXPR_OR_OR &&
-		is_pattern_cascade(e_ptr, common_id, patterns);
+	return tag == EXPR_OR_OR && is_pattern_cascade(e_ptr, common_id, patterns);
 	}
 
 ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
@@ -1083,8 +1126,7 @@ ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	// efficient to match.
 	IDPtr common_id = nullptr;
 	std::vector<ConstExprPtr> patterns;
-	if ( tag == EXPR_OR_OR &&
-	     is_pattern_cascade(ThisPtr(), common_id, patterns) )
+	if ( tag == EXPR_OR_OR && is_pattern_cascade(ThisPtr(), common_id, patterns) )
 		{
 		auto new_pat = build_disjunction(patterns);
 		auto new_id = make_intrusive<NameExpr>(common_id);
@@ -1170,7 +1212,6 @@ bool BoolExpr::IsFalse(const ExprPtr& e) const
 	return c_e->Value()->IsZero();
 	}
 
-
 ExprPtr BitExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -1181,8 +1222,8 @@ ExprPtr BitExpr::Duplicate()
 bool BitExpr::WillTransform(Reducer* c) const
 	{
 	return GetType()->Tag() == TYPE_COUNT &&
-		(op1->IsZero() || op2->IsZero() ||
-		 (same_singletons(op1, op2) && op1->Tag() == EXPR_NAME));
+	       (op1->IsZero() || op2->IsZero() ||
+	        (same_singletons(op1, op2) && op1->Tag() == EXPR_NAME));
 	}
 
 ExprPtr BitExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
@@ -1227,7 +1268,6 @@ ExprPtr BitExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return BinaryExpr::Reduce(c, red_stmt);
 	}
 
-
 ExprPtr EqExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -1252,7 +1292,6 @@ ExprPtr EqExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 	return BinaryExpr::Reduce(c, red_stmt);
 	}
-
 
 ExprPtr RelExpr::Duplicate()
 	{
@@ -1290,7 +1329,6 @@ ExprPtr RelExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return BinaryExpr::Reduce(c, red_stmt);
 	}
 
-
 ExprPtr CondExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -1310,8 +1348,7 @@ ExprPtr CondExpr::Inline(Inliner* inl)
 
 bool CondExpr::IsReduced(Reducer* c) const
 	{
-	if ( ! IsVector(op1->GetType()->Tag()) || ! HasReducedOps(c) ||
-             same_singletons(op2, op3) )
+	if ( ! IsVector(op1->GetType()->Tag()) || ! HasReducedOps(c) || same_singletons(op2, op3) )
 		return NonReduced(this);
 
 	return true;
@@ -1319,8 +1356,7 @@ bool CondExpr::IsReduced(Reducer* c) const
 
 bool CondExpr::HasReducedOps(Reducer* c) const
 	{
-	return op1->IsSingleton(c) && op2->IsSingleton(c) &&
-		op3->IsSingleton(c) && ! op1->IsConst();
+	return op1->IsSingleton(c) && op2->IsSingleton(c) && op3->IsSingleton(c) && ! op1->IsConst();
 	}
 
 bool CondExpr::WillTransform(Reducer* c) const
@@ -1357,14 +1393,26 @@ ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		{
 		if ( op1->HasNoSideEffects() )
 			{
-			if ( op1->Tag() != EXPR_CONST &&
-			     op1->Tag() != EXPR_NAME )
+			if ( op1->Tag() != EXPR_CONST && op1->Tag() != EXPR_NAME )
 				op1 = op1->AssignToTemporary(c, red_stmt);
 			}
 
 		red_stmt = MergeStmts(op1_red_stmt, red_stmt);
 
 		return op2;
+		}
+
+	if ( op2->IsConst() && op3->IsConst() && GetType()->Tag() == TYPE_BOOL )
+		{
+		auto op2_t = op2->IsOne();
+		ASSERT(op2_t != op3->IsOne());
+
+		if ( op2_t )
+			// This is "var ? T : F", which can be replaced by var.
+			return op1;
+
+		// Instead we have "var ? F : T".
+		return make_intrusive<NotExpr>(op1);
 		}
 
 	if ( c->Optimizing() )
@@ -1411,13 +1459,11 @@ StmtPtr CondExpr::ReduceToSingletons(Reducer* c)
 		if ( ! red3_stmt )
 			red3_stmt = make_intrusive<NullStmt>();
 
-		if_else = make_intrusive<IfStmt>(op1->Duplicate(),
-							red2_stmt, red3_stmt);
+		if_else = make_intrusive<IfStmt>(op1->Duplicate(), red2_stmt, red3_stmt);
 		}
 
 	return MergeStmts(red1_stmt, if_else);
 	}
-
 
 ExprPtr RefExpr::Duplicate()
 	{
@@ -1434,26 +1480,27 @@ bool RefExpr::IsReduced(Reducer* c) const
 
 bool RefExpr::HasReducedOps(Reducer* c) const
 	{
-	switch ( op->Tag() ) {
-	case EXPR_NAME:
-		return op->IsReduced(c);
-
-	case EXPR_FIELD:
-		return op->AsFieldExpr()->Op()->IsReduced(c);
-
-	case EXPR_INDEX:
+	switch ( op->Tag() )
 		{
-		auto ind = op->AsIndexExpr();
-		return ind->Op1()->IsReduced(c) && ind->Op2()->IsReduced(c);
+		case EXPR_NAME:
+			return op->IsReduced(c);
+
+		case EXPR_FIELD:
+			return op->AsFieldExpr()->Op()->IsReduced(c);
+
+		case EXPR_INDEX:
+			{
+			auto ind = op->AsIndexExpr();
+			return ind->Op1()->IsReduced(c) && ind->Op2()->IsReduced(c);
+			}
+
+		case EXPR_LIST:
+			return op->IsReduced(c);
+
+		default:
+			Internal("bad operand in RefExpr::IsReduced");
+			return true;
 		}
-
-	case EXPR_LIST:
-		return op->IsReduced(c);
-
-	default:
-		Internal("bad operand in RefExpr::IsReduced");
-		return true;
-	}
 	}
 
 bool RefExpr::WillTransform(Reducer* c) const
@@ -1489,7 +1536,6 @@ StmtPtr RefExpr::ReduceToLHS(Reducer* c)
 	return MergeStmts(red_stmt1, red_stmt2);
 	}
 
-
 ExprPtr AssignExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -1508,16 +1554,20 @@ bool AssignExpr::IsReduced(Reducer* c) const
 		// Cascaded assignments are never reduced.
 		return false;
 
-	auto lhs_is_any = op1->GetType()->Tag() == TYPE_ANY;
-	auto rhs_is_any = op2->GetType()->Tag() == TYPE_ANY;
+	const auto& t1 = op1->GetType();
+	const auto& t2 = op2->GetType();
+
+	auto lhs_is_any = t1->Tag() == TYPE_ANY;
+	auto rhs_is_any = t2->Tag() == TYPE_ANY;
 
 	if ( lhs_is_any != rhs_is_any && op2->Tag() != EXPR_CONST )
 		return NonReduced(this);
 
-	auto t1 = op1->Tag();
+	if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() &&
+	     t2->Yield()->Tag() == TYPE_ANY )
+		return NonReduced(this);
 
-	if ( t1 == EXPR_REF &&
-	     op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
+	if ( op1->Tag() == EXPR_REF && op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
 		// We are not reduced because we should instead
 		// be folded.
 		return NonReduced(this);
@@ -1545,12 +1595,21 @@ bool AssignExpr::HasReducedOps(Reducer* c) const
 ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	{
 	// Yields a fully reduced assignment expression.
-
 	if ( c->Optimizing() )
 		{
 		// Don't update the LHS, it's already in reduced form
 		// and it doesn't make sense to expand aliases or such.
+		auto orig_op2 = op2;
 		op2 = c->UpdateExpr(op2);
+
+		if ( op2 != orig_op2 && op2->Tag() == EXPR_CONST && op1->Tag() == EXPR_REF )
+			{
+			auto lhs = op1->GetOp1();
+			auto op2_c = cast_intrusive<ConstExpr>(op2);
+			if ( lhs->Tag() == EXPR_NAME )
+				c->FoldedTo(orig_op2, op2_c);
+			}
+
 		return ThisPtr();
 		}
 
@@ -1558,8 +1617,11 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		// These are generated for reduced expressions.
 		return ThisPtr();
 
-	auto lhs_is_any = op1->GetType()->Tag() == TYPE_ANY;
-	auto rhs_is_any = op2->GetType()->Tag() == TYPE_ANY;
+	auto& t1 = op1->GetType();
+	auto& t2 = op2->GetType();
+
+	auto lhs_is_any = t1->Tag() == TYPE_ANY;
+	auto rhs_is_any = t2->Tag() == TYPE_ANY;
 
 	StmtPtr rhs_reduce;
 
@@ -1577,9 +1639,17 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 				op2 = make_intrusive<CoerceToAnyExpr>(red_rhs);
 			}
 		else
-			op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs,
-								op1->GetType());
+			op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs, t1);
 
+		op2->SetLocationInfo(op2_loc);
+		}
+
+	if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() &&
+	     t2->Yield()->Tag() == TYPE_ANY )
+		{
+		auto op2_loc = op2->GetLocationInfo();
+		ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
+		op2 = make_intrusive<CoerceFromAnyVecExpr>(red_rhs, t1);
 		op2->SetLocationInfo(op2_loc);
 		}
 
@@ -1598,8 +1668,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		auto ind2_e = ind_e->Op2()->Reduce(c, ind2_stmt);
 		auto rhs_e = op2->Reduce(c, rhs_stmt);
 
-		red_stmt = MergeStmts(MergeStmts(rhs_reduce, ind1_stmt),
-					ind2_stmt, rhs_stmt);
+		red_stmt = MergeStmts(MergeStmts(rhs_reduce, ind1_stmt), ind2_stmt, rhs_stmt);
 
 		auto index_assign = make_intrusive<IndexAssignExpr>(ind1_e, ind2_e, rhs_e);
 		return TransformMe(index_assign, c, red_stmt);
@@ -1619,8 +1688,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 		auto field_name = field_e->FieldName();
 		auto field = field_e->Field();
-		auto field_assign =
-			make_intrusive<FieldLHSAssignExpr>(lhs_e, rhs_e, field_name, field);
+		auto field_assign = make_intrusive<FieldLHSAssignExpr>(lhs_e, rhs_e, field_name, field);
 
 		return TransformMe(field_assign, c, red_stmt);
 		}
@@ -1642,8 +1710,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 			auto rhs_dup = rhs_e->Duplicate();
 			auto rhs = make_intrusive<AnyIndexExpr>(rhs_dup, i);
 			auto lhs = lhs_list[i]->ThisPtr();
-			auto assign = make_intrusive<AssignExpr>(lhs, rhs,
-						false, nullptr, nullptr, false);
+			auto assign = make_intrusive<AssignExpr>(lhs, rhs, false, nullptr, nullptr, false);
 			auto assign_stmt = make_intrusive<ExprStmt>(assign);
 			red_stmt = MergeStmts(red_stmt, assign_stmt);
 			}
@@ -1662,7 +1729,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	red_stmt = op2->ReduceToSingletons(c);
 
 	if ( op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
-		op2 = make_intrusive<ConstExpr>(op2->Eval(nullptr));
+		op2 = c->Fold(op2);
 
 	// Check once again for transformation, this time made possible
 	// because the operands have been reduced.  We don't simply
@@ -1680,8 +1747,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	StmtPtr lhs_stmt = lhs_ref->ReduceToLHS(c);
 	StmtPtr rhs_stmt = op2->ReduceToSingletons(c);
 
-	red_stmt = MergeStmts(MergeStmts(rhs_reduce, red_stmt),
-				lhs_stmt, rhs_stmt);
+	red_stmt = MergeStmts(MergeStmts(rhs_reduce, red_stmt), lhs_stmt, rhs_stmt);
 
 	return ThisPtr();
 	}
@@ -1700,14 +1766,12 @@ ExprPtr AssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
 	return op1->AsRefExprPtr()->GetOp1();
 	}
 
-
 ExprPtr IndexSliceAssignExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_d = op2->Duplicate();
 	return SetSucc(new IndexSliceAssignExpr(op1_d, op2_d, is_init));
 	}
-
 
 ExprPtr IndexExpr::Duplicate()
 	{
@@ -1743,7 +1807,6 @@ StmtPtr IndexExpr::ReduceToSingletons(Reducer* c)
 	return MergeStmts(red1_stmt, red2_stmt);
 	}
 
-
 ExprPtr IndexExprWhen::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -1751,23 +1814,27 @@ ExprPtr IndexExprWhen::Duplicate()
 	return SetSucc(new IndexExprWhen(op1_d, op2_l, is_slice));
 	}
 
-
 ExprPtr FieldExpr::Duplicate()
 	{
 	return SetSucc(new FieldExpr(op->Duplicate(), field_name));
 	}
-
 
 ExprPtr HasFieldExpr::Duplicate()
 	{
 	return SetSucc(new HasFieldExpr(op->Duplicate(), field_name));
 	}
 
-
 ExprPtr RecordConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
-	return SetSucc(new RecordConstructorExpr(op_l));
+
+	if ( map )
+		{
+		auto rt = cast_intrusive<RecordType>(type);
+		return SetSucc(new RecordConstructorExpr(rt, op_l));
+		}
+	else
+		return SetSucc(new RecordConstructorExpr(op_l));
 	}
 
 bool RecordConstructorExpr::HasReducedOps(Reducer* c) const
@@ -1826,14 +1893,12 @@ StmtPtr RecordConstructorExpr::ReduceToSingletons(Reducer* c)
 	return red_stmt;
 	}
 
-
 ExprPtr TableConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
 
 	TypePtr t;
-	if ( (type && type->GetName().size() > 0) ||
-	     ! op->AsListExpr()->Exprs().empty() )
+	if ( (type && type->GetName().size() > 0) || ! op->AsListExpr()->Exprs().empty() )
 		t = type;
 	else
 		// Use a null type rather than the one inferred, to instruct
@@ -1851,8 +1916,7 @@ bool TableConstructorExpr::HasReducedOps(Reducer* c) const
 		{
 		auto a = expr->AsAssignExpr();
 		// LHS is a list, not a singleton.
-		if ( ! a->GetOp1()->HasReducedOps(c) ||
-		     ! a->GetOp2()->IsSingleton(c) )
+		if ( ! a->GetOp1()->HasReducedOps(c) || ! a->GetOp2()->IsSingleton(c) )
 			return NonReduced(this);
 		}
 
@@ -1909,14 +1973,12 @@ StmtPtr TableConstructorExpr::ReduceToSingletons(Reducer* c)
 	return red_stmt;
 	}
 
-
 ExprPtr SetConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
 
 	TypePtr t;
-	if ( (type && type->GetName().size() > 0) ||
-	     ! op->AsListExpr()->Exprs().empty() )
+	if ( (type && type->GetName().size() > 0) || ! op->AsListExpr()->Exprs().empty() )
 		t = type;
 	else
 		// Use a null type rather than the one inferred, to instruct
@@ -1937,7 +1999,7 @@ ExprPtr SetConstructorExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	// temporaries.
 	red_stmt = nullptr;
 
-	(void) op->Reduce(c, red_stmt);
+	(void)op->Reduce(c, red_stmt);
 
 	if ( c->Optimizing() )
 		return ThisPtr();
@@ -1949,7 +2011,6 @@ StmtPtr SetConstructorExpr::ReduceToSingletons(Reducer* c)
 	{
 	return op->ReduceToSingletons(c);
 	}
-
 
 ExprPtr VectorConstructorExpr::Duplicate()
 	{
@@ -1965,7 +2026,6 @@ bool VectorConstructorExpr::HasReducedOps(Reducer* c) const
 	{
 	return Op()->HasReducedOps(c);
 	}
-
 
 ExprPtr FieldAssignExpr::Duplicate()
 	{
@@ -1991,7 +2051,6 @@ ExprPtr FieldAssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return AssignToTemporary(c, red_stmt);
 	}
 
-
 ExprPtr ArithCoerceExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
@@ -2008,8 +2067,13 @@ ExprPtr ArithCoerceExpr::Duplicate()
 
 bool ArithCoerceExpr::WillTransform(Reducer* c) const
 	{
-	return op->Tag() == EXPR_CONST &&
-		IsArithmetic(op->AsConstExpr()->Value()->GetType()->Tag());
+	if ( op->Tag() != EXPR_CONST )
+		return false;
+
+	if ( IsArithmetic(GetType()->Tag()) )
+		return true;
+
+	return IsArithmetic(op->AsConstExpr()->Value()->GetType()->Tag());
 	}
 
 ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
@@ -2022,28 +2086,39 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	if ( ! op->IsReduced(c) )
 		op = op->ReduceToSingleton(c, red_stmt);
 
-	auto t = type->InternalType();
-
 	if ( op->Tag() == EXPR_CONST )
 		{
-		auto cv = op->AsConstExpr()->Value();
-		auto tag = cv->GetType()->Tag();
+		const auto& t = GetType();
+		auto cv = op->AsConstExpr()->ValuePtr();
+		const auto& ct = cv->GetType();
 
-		if ( IsArithmetic(tag) )
-			return make_intrusive<ConstExpr>(FoldSingleVal(cv, t));
+		if ( IsArithmetic(t->Tag()) || IsArithmetic(ct->Tag()) )
+			{
+			if ( auto v = FoldSingleVal(cv, t) )
+				return make_intrusive<ConstExpr>(v);
+			// else there was a coercion error, fall through
+			}
 		}
 
 	if ( c->Optimizing() )
 		return ThisPtr();
 
-	auto bt = op->GetType()->InternalType();
+	const auto& ot = op->GetType();
+	auto bt = ot->InternalType();
+	auto tt = type->InternalType();
 
-	if ( t == bt )
+	if ( ot->Tag() == TYPE_VECTOR )
+		{
+		bt = ot->Yield()->InternalType();
+		tt = type->Yield()->InternalType();
+		}
+
+	if ( bt == tt )
+		// Can drop the conversion.
 		return op;
 
 	return AssignToTemporary(c, red_stmt);
 	}
-
 
 ExprPtr RecordCoerceExpr::Duplicate()
 	{
@@ -2051,20 +2126,17 @@ ExprPtr RecordCoerceExpr::Duplicate()
 	return SetSucc(new RecordCoerceExpr(op_dup, GetType<RecordType>()));
 	}
 
-
 ExprPtr TableCoerceExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
 	return SetSucc(new TableCoerceExpr(op_dup, GetType<TableType>()));
 	}
 
-
 ExprPtr VectorCoerceExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
 	return SetSucc(new VectorCoerceExpr(op_dup, GetType<VectorType>()));
 	}
-
 
 ExprPtr ScheduleExpr::Duplicate()
 	{
@@ -2133,13 +2205,12 @@ ExprPtr ScheduleExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 	StmtPtr red2_stmt;
 	// We assume that EventExpr won't transform itself fundamentally.
-	(void) event->Reduce(c, red2_stmt);
+	(void)event->Reduce(c, red2_stmt);
 
 	red_stmt = MergeStmts(red_stmt, red2_stmt);
 
 	return ThisPtr();
 	}
-
 
 ExprPtr InExpr::Duplicate()
 	{
@@ -2152,7 +2223,6 @@ bool InExpr::HasReducedOps(Reducer* c) const
 	{
 	return op1->HasReducedOps(c) && op2->IsSingleton(c);
 	}
-
 
 ExprPtr CallExpr::Duplicate()
 	{
@@ -2208,7 +2278,7 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 	StmtPtr red2_stmt;
 	// We assume that ListExpr won't transform itself fundamentally.
-	(void) args->Reduce(c, red2_stmt);
+	(void)args->Reduce(c, red2_stmt);
 
 	// ### could check here for (1) pure function, and (2) all
 	// arguments constants, and call it to fold right now.
@@ -2233,7 +2303,6 @@ StmtPtr CallExpr::ReduceToSingletons(Reducer* c)
 	return MergeStmts(func_stmt, args_stmt);
 	}
 
-
 ExprPtr LambdaExpr::Duplicate()
 	{
 	auto ingr = std::make_unique<function_ingredients>(*ingredients);
@@ -2254,7 +2323,6 @@ ExprPtr LambdaExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	else
 		return AssignToTemporary(c, red_stmt);
 	}
-
 
 ExprPtr EventExpr::Duplicate()
 	{
@@ -2286,7 +2354,7 @@ ExprPtr EventExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 	if ( ! Args()->IsReduced(c) )
 		// We assume that ListExpr won't transform itself fundamentally.
-		(void) Args()->Reduce(c, red_stmt);
+		(void)Args()->Reduce(c, red_stmt);
 
 	return ThisPtr();
 	}
@@ -2296,13 +2364,11 @@ StmtPtr EventExpr::ReduceToSingletons(Reducer* c)
 	return args->ReduceToSingletons(c);
 	}
 
-
 ExprPtr ListExpr::Duplicate()
 	{
 	auto new_l = new ListExpr();
 
-	loop_over_list(exprs, i)
-		new_l->Append(exprs[i]->Duplicate());
+	loop_over_list(exprs, i) new_l->Append(exprs[i]->Duplicate());
 
 	return SetSucc(new_l);
 	}
@@ -2366,8 +2432,7 @@ ExprPtr ListExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 			continue;
 
 		StmtPtr e_stmt;
-		auto old = exprs.replace(i,
-			exprs[i]->ReduceToSingleton(c, e_stmt).release());
+		auto old = exprs.replace(i, exprs[i]->ReduceToSingleton(c, e_stmt).release());
 		Unref(old);
 
 		if ( e_stmt )
@@ -2397,22 +2462,19 @@ StmtPtr ListExpr::ReduceToSingletons(Reducer* c)
 	return red_stmt;
 	}
 
-
 ExprPtr CastExpr::Duplicate()
 	{
 	return SetSucc(new CastExpr(op->Duplicate(), type));
 	}
-
 
 ExprPtr IsExpr::Duplicate()
 	{
 	return SetSucc(new IsExpr(op->Duplicate(), t));
 	}
 
-
-InlineExpr::InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> arg_params,
-			StmtPtr arg_body, int _frame_offset, TypePtr ret_type)
-: Expr(EXPR_INLINE), args(std::move(arg_args)), body(std::move(arg_body))
+InlineExpr::InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> arg_params, StmtPtr arg_body,
+                       int _frame_offset, TypePtr ret_type)
+	: Expr(EXPR_INLINE), args(std::move(arg_args)), body(std::move(arg_body))
 	{
 	params = std::move(arg_params);
 	frame_offset = _frame_offset;
@@ -2486,8 +2548,7 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		auto red_i = args_list[i]->Reduce(c, arg_red_stmt);
 
 		auto param_i = c->GenInlineBlockName(params[i]);
-		auto assign = make_intrusive<AssignExpr>(param_i, red_i,
-						false, nullptr, nullptr, false);
+		auto assign = make_intrusive<AssignExpr>(param_i, red_i, false, nullptr, nullptr, false);
 		auto assign_stmt = make_intrusive<ExprStmt>(assign);
 
 		red_stmt = MergeStmts(red_stmt, arg_red_stmt, assign_stmt);
@@ -2535,7 +2596,6 @@ void InlineExpr::ExprDescribe(ODesc* d) const
 		body->Describe(d);
 		}
 	}
-
 
 AppendToExpr::AppendToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(EXPR_APPEND_TO, std::move(arg_op1), std::move(arg_op2))
@@ -2589,10 +2649,8 @@ ExprPtr AppendToExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return ThisPtr();
 	}
 
-
-IndexAssignExpr::IndexAssignExpr(ExprPtr arg_op1, ExprPtr arg_op2,
-					ExprPtr arg_op3)
-: BinaryExpr(EXPR_INDEX_ASSIGN, std::move(arg_op1), std::move(arg_op2))
+IndexAssignExpr::IndexAssignExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)
+	: BinaryExpr(EXPR_INDEX_ASSIGN, std::move(arg_op1), std::move(arg_op2))
 	{
 	op3 = arg_op3;
 	SetType(op3->GetType());
@@ -2697,10 +2755,9 @@ void IndexAssignExpr::ExprDescribe(ODesc* d) const
 	op3->Describe(d);
 	}
 
-
-FieldLHSAssignExpr::FieldLHSAssignExpr(ExprPtr arg_op1, ExprPtr arg_op2,
-					const char* _field_name, int _field)
-: BinaryExpr(EXPR_FIELD_LHS_ASSIGN, std::move(arg_op1), std::move(arg_op2))
+FieldLHSAssignExpr::FieldLHSAssignExpr(ExprPtr arg_op1, ExprPtr arg_op2, const char* _field_name,
+                                       int _field)
+	: BinaryExpr(EXPR_FIELD_LHS_ASSIGN, std::move(arg_op1), std::move(arg_op2))
 	{
 	field_name = _field_name;
 	field = _field;
@@ -2767,8 +2824,7 @@ ExprPtr FieldLHSAssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
 	StmtPtr field_res_stmt;
 	auto res = field_res->ReduceToSingleton(c, field_res_stmt);
 
-	red_stmt = MergeStmts(MergeStmts(op1_red_stmt, assign_stmt),
-				red_stmt, field_res_stmt);
+	red_stmt = MergeStmts(MergeStmts(op1_red_stmt, assign_stmt), red_stmt, field_res_stmt);
 
 	return res;
 	}
@@ -2787,9 +2843,7 @@ void FieldLHSAssignExpr::ExprDescribe(ODesc* d) const
 	op2->Describe(d);
 	}
 
-
-CoerceToAnyExpr::CoerceToAnyExpr(ExprPtr arg_op)
-	: UnaryExpr(EXPR_TO_ANY_COERCE, std::move(arg_op))
+CoerceToAnyExpr::CoerceToAnyExpr(ExprPtr arg_op) : UnaryExpr(EXPR_TO_ANY_COERCE, std::move(arg_op))
 	{
 	type = base_type(TYPE_ANY);
 	}
@@ -2804,11 +2858,10 @@ ExprPtr CoerceToAnyExpr::Duplicate()
 	return SetSucc(new CoerceToAnyExpr(op->Duplicate()));
 	}
 
-
 CoerceFromAnyExpr::CoerceFromAnyExpr(ExprPtr arg_op, TypePtr to_type)
 	: UnaryExpr(EXPR_FROM_ANY_COERCE, std::move(arg_op))
 	{
-	type = to_type;
+	type = std::move(to_type);
 	}
 
 ValPtr CoerceFromAnyExpr::Fold(Val* v) const
@@ -2827,6 +2880,33 @@ ExprPtr CoerceFromAnyExpr::Duplicate()
 	return SetSucc(new CoerceFromAnyExpr(op->Duplicate(), type));
 	}
 
+CoerceFromAnyVecExpr::CoerceFromAnyVecExpr(ExprPtr arg_op, TypePtr to_type)
+	: UnaryExpr(EXPR_FROM_ANY_VEC_COERCE, std::move(arg_op))
+	{
+	type = std::move(to_type);
+	}
+
+ValPtr CoerceFromAnyVecExpr::Eval(Frame* f) const
+	{
+	if ( IsError() )
+		return nullptr;
+
+	auto v = op->Eval(f);
+
+	if ( ! v )
+		return nullptr;
+
+	auto vv = v->AsVectorVal();
+	if ( ! vv->Concretize(type->Yield()) )
+		RuntimeError("incompatible \"vector of any\" type");
+
+	return v;
+	}
+
+ExprPtr CoerceFromAnyVecExpr::Duplicate()
+	{
+	return SetSucc(new CoerceFromAnyVecExpr(op->Duplicate(), type));
+	}
 
 AnyIndexExpr::AnyIndexExpr(ExprPtr arg_op, int _index)
 	: UnaryExpr(EXPR_ANY_INDEX, std::move(arg_op))
@@ -2866,7 +2946,6 @@ void AnyIndexExpr::ExprDescribe(ODesc* d) const
 		d->Add("]");
 	}
 
-
 void NopExpr::ExprDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
@@ -2892,14 +2971,12 @@ TraversalCode NopExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-
 static bool same_singletons(ExprPtr e1, ExprPtr e2)
 	{
 	auto e1t = e1->Tag();
 	auto e2t = e2->Tag();
 
-	if ( (e1t != EXPR_NAME && e1t != EXPR_CONST) ||
-	     (e2t != EXPR_NAME && e2t != EXPR_CONST) )
+	if ( (e1t != EXPR_NAME && e1t != EXPR_CONST) || (e2t != EXPR_NAME && e2t != EXPR_CONST) )
 		return false;
 
 	if ( e1t != e2t )
@@ -2922,5 +2999,4 @@ static bool same_singletons(ExprPtr e1, ExprPtr e2)
 	return i1 == i2;
 	}
 
-
-} // namespace zeek::detail
+	} // namespace zeek::detail

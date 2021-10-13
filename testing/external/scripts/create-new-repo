@@ -1,31 +1,26 @@
 #! /usr/bin/env bash
+#
+# Helper script for creating new external testing repos. See the
+# README for details.
 
 cwd=`pwd`
 
-if [ $# != 2 ]; then
-    echo "usage: $0 <name> <dst-repo-dir>"
+if [ -z "$1" ]; then
+    echo "usage: $0 <name> [<dst-repo-url>]"
     exit 1
 fi
 
 name=`pwd`/$1
 repo=$2
 
-if [ -e $repo ]; then
-    echo "$repo already exists, aborting."
-    exit 1
-fi
-
 if [ -e $name ]; then
     echo "$name already exists, aborting."
     exit 1
 fi
 
-mkdir $repo
-( cd $repo && git init --bare )
-
-git clone $repo $name
-
+mkdir $name
 cd $name
+git init
 
 for dir in tests Baseline; do
     mkdir $dir
@@ -42,4 +37,7 @@ cp $cwd/`dirname $0`/skel/.gitignore .
 git add * .gitignore
 
 git commit -m "Repository initialized."
-git push origin master
+
+if [ -n "$repo" ]; then
+    git remote add origin $repo
+fi

@@ -2,10 +2,11 @@
 
 #include "zeek/analyzer/protocol/xmpp/XMPP.h"
 
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-namespace zeek::analyzer::xmpp {
+namespace zeek::analyzer::xmpp
+	{
 
 XMPP_Analyzer::XMPP_Analyzer(Connection* conn)
 	: analyzer::tcp::TCP_ApplicationAnalyzer("XMPP", conn)
@@ -15,9 +16,7 @@ XMPP_Analyzer::XMPP_Analyzer(Connection* conn)
 	tls_active = false;
 	}
 
-XMPP_Analyzer::~XMPP_Analyzer()
-	{
-	}
+XMPP_Analyzer::~XMPP_Analyzer() { }
 
 void XMPP_Analyzer::Done()
 	{
@@ -85,4 +84,4 @@ void XMPP_Analyzer::StartTLS()
 		AddChildAnalyzer(ssl);
 	}
 
-} // namespace zeek::analyzer::xmpp
+	} // namespace zeek::analyzer::xmpp

@@ -4,10 +4,11 @@
 
 #include <unistd.h>
 
-#include "zeek/analyzer/protocol/krb/types.bif.h"
 #include "zeek/analyzer/protocol/krb/events.bif.h"
+#include "zeek/analyzer/protocol/krb/types.bif.h"
 
-namespace zeek::analyzer::krb {
+namespace zeek::analyzer::krb
+	{
 
 bool KRB_Analyzer::krb_available = false;
 #ifdef USE_KRB5
@@ -16,8 +17,7 @@ krb5_keytab KRB_Analyzer::krb_keytab = nullptr;
 std::once_flag KRB_Analyzer::krb_initialized;
 #endif
 
-KRB_Analyzer::KRB_Analyzer(Connection* conn)
-	: Analyzer("KRB", conn)
+KRB_Analyzer::KRB_Analyzer(Connection* conn) : Analyzer("KRB", conn)
 	{
 	interp = new binpac::KRB::KRB_Conn(this);
 #ifdef USE_KRB5
@@ -72,8 +72,8 @@ void KRB_Analyzer::Done()
 	Analyzer::Done();
 	}
 
-void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-				 uint64_t seq, const IP_Hdr* ip, int caplen)
+void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+                                 const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -87,12 +87,11 @@ void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	}
 
-StringValPtr KRB_Analyzer::GetAuthenticationInfo(const String* principal,
-                                                 const String* ciphertext,
+StringValPtr KRB_Analyzer::GetAuthenticationInfo(const String* principal, const String* ciphertext,
                                                  const bro_uint_t enctype)
 	{
 #ifdef USE_KRB5
-	if ( !krb_available )
+	if ( ! krb_available )
 		return nullptr;
 
 	String delim("/");
@@ -104,13 +103,14 @@ StringValPtr KRB_Analyzer::GetAuthenticationInfo(const String* principal,
 		}
 	std::unique_ptr<String> service = unique_ptr<String>(principal->GetSubstring(0, pos));
 	std::unique_ptr<String> hostname = unique_ptr<String>(principal->GetSubstring(pos + 1, -1));
-	if ( !service || !hostname )
+	if ( ! service || ! hostname )
 		{
 		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
 		return nullptr;
 		}
 	krb5_principal sprinc;
-	krb5_error_code retval = krb5_sname_to_principal(krb_context, hostname->CheckString(), service->CheckString(), KRB5_NT_SRV_HST, &sprinc);
+	krb5_error_code retval = krb5_sname_to_principal(
+		krb_context, hostname->CheckString(), service->CheckString(), KRB5_NT_SRV_HST, &sprinc);
 	if ( retval )
 		{
 		warn_krb("KRB: Couldn't generate principal name", krb_context, retval);
@@ -158,4 +158,4 @@ StringValPtr KRB_Analyzer::GetAuthenticationInfo(const String* principal,
 #endif
 	}
 
-} // namespace zeek::analyzer::krb
+	} // namespace zeek::analyzer::krb

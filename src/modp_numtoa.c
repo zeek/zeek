@@ -23,6 +23,8 @@
  */
 static const double _pow10[] = {1, 10, 100, 1000, 10000, 100000, 1000000,
                                10000000, 100000000, 1000000000};
+static const double _pow10r[] = {1, .1, .01, .001, .0001, .00001, .000001,
+                                .0000001, .00000001, .000000001};
 
 static void strreverse(char* begin, char* end)
 {
@@ -53,6 +55,7 @@ static void sn_strip_trailing_zeros(char* str)
 	if ( ! frac )
 		return;
 
+	char* start_dec = frac;
 	char* exp = 0;
 	char* trailing_zeros = 0;
 
@@ -77,6 +80,9 @@ static void sn_strip_trailing_zeros(char* str)
 
 		++frac;
 		}
+
+	if ( trailing_zeros == start_dec )
+		--trailing_zeros;
 
 	if ( trailing_zeros && exp )
 		{
@@ -285,6 +291,14 @@ void modp_dtoa2(double value, char* str, int prec)
     } else if (prec > 9) {
         /* precision of >= 10 can lead to overflow errors */
         prec = 9;
+    }
+
+    double smallest = _pow10r[prec];
+
+    if (value != 0.0 && value < smallest) {
+        sprintf(str, "%.*e", DBL_DECIMAL_DIG - 1, neg ? -value : value);
+        sn_strip_trailing_zeros(str);
+        return;
     }
 
     int whole = (int) value;

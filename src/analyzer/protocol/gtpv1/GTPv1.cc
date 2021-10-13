@@ -1,14 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/analyzer/protocol/gtpv1/GTPv1.h"
-#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
 #include "zeek/analyzer/protocol/gtpv1/events.bif.h"
+#include "zeek/packet_analysis/protocol/ip/IP.h"
+#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
-namespace zeek::analyzer::gtpv1 {
+namespace zeek::analyzer::gtpv1
+	{
 
-GTPv1_Analyzer::GTPv1_Analyzer(Connection* conn)
-: Analyzer("GTPV1", conn)
+GTPv1_Analyzer::GTPv1_Analyzer(Connection* conn) : Analyzer("GTPV1", conn)
 	{
 	interp = new binpac::GTPv1::GTPv1_Conn(this);
 	}
@@ -24,7 +25,8 @@ void GTPv1_Analyzer::Done()
 	Event(udp_session_done);
 	}
 
-void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
+                                   const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	try
@@ -46,8 +48,8 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 	caplen -= inner_packet_offset;
 	inner_packet_offset = -1;
 
-	IP_Hdr* inner = nullptr;
-	int result = sessions->ParseIPPacket(len, data, next_header, inner);
+	std::unique_ptr<IP_Hdr> inner = nullptr;
+	int result = packet_analysis::IP::ParsePacket(len, data, next_header, inner);
 
 	if ( result == 0 )
 		{
@@ -58,8 +60,7 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 			ProtocolConfirmation();
 
 		if ( gtp_hdr_val )
-			BifEvent::enqueue_gtpv1_g_pdu_packet(this, Conn(),
-			                                     std::move(gtp_hdr_val),
+			BifEvent::enqueue_gtpv1_g_pdu_packet(this, Conn(), std::move(gtp_hdr_val),
 			                                     inner->ToPktHdrVal());
 
 		std::shared_ptr<zeek::EncapsulationStack> e = Conn()->GetEncapsulation();
@@ -71,14 +72,9 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 		ProtocolViolation("Invalid IP version in wrapped packet",
 		                  reinterpret_cast<const char*>(odata), olen);
 	else if ( result < 0 )
-		ProtocolViolation("Truncated GTPv1",
-		                  reinterpret_cast<const char*>(odata), olen);
+		ProtocolViolation("Truncated GTPv1", reinterpret_cast<const char*>(odata), olen);
 	else
-		ProtocolViolation("GTPv1 payload length",
-		                  reinterpret_cast<const char*>(odata), olen);
-
-	if ( result != 0 )
-		delete inner;
+		ProtocolViolation("GTPv1 payload length", reinterpret_cast<const char*>(odata), olen);
 	}
 
-} // namespace zeek::analyzer::gtpv1
+	} // namespace zeek::analyzer::gtpv1

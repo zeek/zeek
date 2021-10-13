@@ -2,36 +2,34 @@
 
 #include "zeek/probabilistic/BitVector.h"
 
+#include <broker/data.hh>
+#include <openssl/sha.h>
 #include <cassert>
 #include <limits>
-#include <openssl/sha.h>
-#include <broker/data.hh>
 
 #include "zeek/digest.h"
 
-namespace zeek::probabilistic::detail {
+namespace zeek::probabilistic::detail
+	{
 
 BitVector::size_type BitVector::npos = static_cast<BitVector::size_type>(-1);
 BitVector::block_type BitVector::bits_per_block =
 	std::numeric_limits<BitVector::block_type>::digits;
 
-namespace {
+namespace
+	{
 
 uint8_t count_table[] = {
-	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2,
-	3, 3, 4, 3, 4, 4, 5, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3,
-	3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3,
-	4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4,
-	3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5,
-	6, 6, 7, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4,
-	4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5,
-	6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 2, 3, 3, 4, 3, 4, 4, 5,
-	3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 3,
-	4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6,
-	6, 7, 6, 7, 7, 8
-};
+	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8};
 
-} // namespace <anonymous>
+	} // namespace <anonymous>
 
 BitVector::Reference::Reference(block_type& block, block_type i)
 	: block(block), mask((block_type(1) << i))
@@ -118,8 +116,7 @@ BitVector::BitVector(size_type size, bool value)
 	num_bits = size;
 	}
 
-BitVector::BitVector(BitVector const& other)
-	: bits(other.bits)
+BitVector::BitVector(BitVector const& other) : bits(other.bits)
 	{
 	num_bits = other.num_bits;
 	}
@@ -174,7 +171,7 @@ BitVector& BitVector::operator<<=(size_type n)
 
 		else
 			{
-			for (size_type i = last-div; i > 0; --i)
+			for ( size_type i = last - div; i > 0; --i )
 				b[i + div] = b[i];
 
 			b[div] = b[0];
@@ -204,7 +201,7 @@ BitVector& BitVector::operator>>=(size_type n)
 
 		if ( r != 0 )
 			{
-			for (size_type i = last - div; i > 0; --i)
+			for ( size_type i = last - div; i > 0; --i )
 				b[i - div] = (b[i] >> r) | (b[i + 1] << (bits_per_block - r));
 
 			b[last - div] = b[last] >> r;
@@ -212,8 +209,8 @@ BitVector& BitVector::operator>>=(size_type n)
 
 		else
 			{
-			for (size_type i = div; i <= last; ++i)
-				b[i-div] = b[i];
+			for ( size_type i = div; i <= last; ++i )
+				b[i - div] = b[i];
 			}
 
 		std::fill_n(b + (Blocks() - div), div, block_type(0));
@@ -309,7 +306,6 @@ bool operator<(BitVector const& x, BitVector const& y)
 
 		else if ( x.bits[i] > y.bits[i] )
 			return false;
-
 		}
 
 	return false;
@@ -404,7 +400,7 @@ BitVector& BitVector::Flip(size_type i)
 
 BitVector& BitVector::Flip()
 	{
-	for (size_type i = 0; i < Blocks(); ++i)
+	for ( size_type i = 0; i < Blocks(); ++i )
 		bits[i] = ~bits[i];
 
 	zero_unused_bits();
@@ -549,7 +545,7 @@ BitVector::size_type BitVector::lowest_bit(block_type block)
 	block_type x = block - (block & (block - 1));
 	size_type log = 0;
 
-	while (x >>= 1)
+	while ( x >>= 1 )
 		++log;
 
 	return log;
@@ -568,7 +564,7 @@ void BitVector::zero_unused_bits()
 
 BitVector::size_type BitVector::find_from(size_type i) const
 	{
-	while (i < Blocks() && bits[i] == 0)
+	while ( i < Blocks() && bits[i] == 0 )
 		++i;
 
 	if ( i >= Blocks() )
@@ -577,4 +573,4 @@ BitVector::size_type BitVector::find_from(size_type i) const
 	return i * bits_per_block + lowest_bit(bits[i]);
 	}
 
-} // namespace zeek::probabilistic::detail
+	} // namespace zeek::probabilistic::detail

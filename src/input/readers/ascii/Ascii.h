@@ -3,18 +3,20 @@
 #pragma once
 
 #include <sys/types.h>
-#include <iostream>
-#include <vector>
 #include <fstream>
+#include <iostream>
 #include <memory>
+#include <vector>
 
 #include "zeek/input/ReaderBackend.h"
 #include "zeek/threading/formatters/Ascii.h"
 
-namespace zeek::input::reader::detail {
+namespace zeek::input::reader::detail
+	{
 
 // Description for input field mapping.
-struct FieldMapping {
+struct FieldMapping
+	{
 	std::string name;
 	TypeTag type;
 	TypeTag subtype; // internal type for sets and vectors
@@ -23,18 +25,24 @@ struct FieldMapping {
 	bool present;
 
 	FieldMapping(const std::string& arg_name, const TypeTag& arg_type, int arg_position);
-	FieldMapping(const std::string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype, int arg_position);
+	FieldMapping(const std::string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype,
+	             int arg_position);
 
 	FieldMapping(const FieldMapping& arg);
-	FieldMapping() { position = -1; secondary_position = -1; }
+	FieldMapping()
+		{
+		position = -1;
+		secondary_position = -1;
+		}
 
 	FieldMapping subType();
-};
+	};
 
 /**
  * Reader for structured ASCII files.
  */
-class Ascii : public ReaderBackend {
+class Ascii : public ReaderBackend
+	{
 public:
 	explicit Ascii(ReaderFrontend* frontend);
 	~Ascii() override;
@@ -48,7 +56,8 @@ public:
 	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Ascii(frontend); }
 
 protected:
-	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) override;
+	bool DoInit(const ReaderInfo& info, int arg_num_fields,
+	            const threading::Field* const* fields) override;
 	void DoClose() override;
 	bool DoUpdate() override;
 	bool DoHeartbeat(double network_time, double current_time) override;
@@ -83,6 +92,6 @@ private:
 	std::string path_prefix;
 
 	std::unique_ptr<threading::Formatter> formatter;
-};
+	};
 
-} // namespace zeek::input::reader::detail
+	} // namespace zeek::input::reader::detail

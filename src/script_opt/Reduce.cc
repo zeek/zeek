@@ -1,24 +1,45 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/ID.h"
-#include "zeek/Var.h"
-#include "zeek/Scope.h"
-#include "zeek/Expr.h"
-#include "zeek/Stmt.h"
-#include "zeek/Desc.h"
-#include "zeek/Reporter.h"
-#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/Reduce.h"
+
+#include "zeek/Desc.h"
+#include "zeek/Expr.h"
+#include "zeek/ID.h"
+#include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/Stmt.h"
+#include "zeek/Var.h"
+#include "zeek/script_opt/ExprOptInfo.h"
+#include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/TempVar.h"
 
+namespace zeek::detail
+	{
 
-namespace zeek::detail {
+StmtPtr Reducer::Reduce(StmtPtr s)
+	{
+	reduction_root = std::move(s);
 
+	try
+		{
+		return reduction_root->Reduce(this);
+		}
+	catch ( InterpreterException& e )
+		{
+		/* Already reported. */
+		return reduction_root;
+		}
+	}
 
 ExprPtr Reducer::GenTemporaryExpr(const TypePtr& t, ExprPtr rhs)
 	{
 	auto e = make_intrusive<NameExpr>(GenTemporary(t, rhs));
 	e->SetLocationInfo(rhs->GetLocationInfo());
+
+	// No need to associate with current statement, since these
+	// are not generated during optimization.
+
 	return e;
 	}
 
@@ -27,14 +48,19 @@ NameExprPtr Reducer::UpdateName(NameExprPtr n)
 	if ( NameIsReduced(n.get()) )
 		return n;
 
-	return make_intrusive<NameExpr>(FindNewLocal(n));
+	auto ne = make_intrusive<NameExpr>(FindNewLocal(n));
+
+	// This name can be used by follow-on optimization analysis,
+	// so need to associate it with its statement.
+	BindExprToCurrStmt(ne);
+
+	return ne;
 	}
 
 bool Reducer::NameIsReduced(const NameExpr* n) const
 	{
 	auto id = n->Id();
-	return inline_block_level == 0 || id->IsGlobal() || IsTemporary(id) ||
-		IsNewLocal(n);
+	return inline_block_level == 0 || id->IsGlobal() || IsTemporary(id) || IsNewLocal(n);
 	}
 
 void Reducer::UpdateIDs(IDPList* ids)
@@ -86,12 +112,13 @@ IDPtr Reducer::UpdateID(IDPtr id)
 
 bool Reducer::ID_IsReduced(const ID* id) const
 	{
-	return inline_block_level == 0 || id->IsGlobal() || IsTemporary(id) ||
-		IsNewLocal(id);
+	return inline_block_level == 0 || id->IsGlobal() || IsTemporary(id) || IsNewLocal(id);
 	}
 
 NameExprPtr Reducer::GenInlineBlockName(const IDPtr& id)
 	{
+	// We do this during reduction, not optimization, so no need
+	// to associate with curr_stmt.
 	return make_intrusive<NameExpr>(GenLocal(id));
 	}
 
@@ -104,6 +131,7 @@ NameExprPtr Reducer::PushInlineBlock(TypePtr type)
 
 	IDPtr ret_id = install_ID("@retvar", "<internal>", false, false);
 	ret_id->SetType(type);
+	ret_id->GetOptInfo()->SetTemp();
 
 	// Track this as a new local *if* we're in the outermost inlining
 	// block.  If we're recursively deeper into inlining, then this
@@ -127,48 +155,22 @@ bool Reducer::SameVal(const Val* v1, const Val* v2) const
 		return v1 == v2;
 	}
 
-ExprPtr Reducer::NewVarUsage(IDPtr var, const DefPoints* dps, const Expr* orig)
+ExprPtr Reducer::NewVarUsage(IDPtr var, const Expr* orig)
 	{
-	if ( ! dps )
-		reporter->InternalError("null defpoints in NewVarUsage");
-
 	auto var_usage = make_intrusive<NameExpr>(var);
-	SetDefPoints(var_usage.get(), dps);
-	TrackExprReplacement(orig, var_usage.get());
+	BindExprToCurrStmt(var_usage);
 
 	return var_usage;
 	}
 
-const DefPoints* Reducer::GetDefPoints(const NameExpr* var)
+void Reducer::BindExprToCurrStmt(const ExprPtr& e)
 	{
-	auto dps = FindDefPoints(var);
-
-	if ( ! dps )
-		{
-		auto id = var->Id();
-		auto di = mgr->GetConstID_DI(id);
-		auto rds = mgr->GetPreMaxRDs(GetRDLookupObj(var));
-
-		dps = rds->GetDefPoints(di);
-
-		SetDefPoints(var, dps);
-		}
-
-	return dps;
+	e->GetOptInfo()->stmt_num = curr_stmt->GetOptInfo()->stmt_num;
 	}
 
-const DefPoints* Reducer::FindDefPoints(const NameExpr* var) const
+void Reducer::BindStmtToCurrStmt(const StmtPtr& s)
 	{
-	auto dps = var_usage_to_DPs.find(var);
-	if ( dps == var_usage_to_DPs.end() )
-		return nullptr;
-	else
-		return dps->second;
-	}
-
-void Reducer::SetDefPoints(const NameExpr* var, const DefPoints* dps)
-	{
-	var_usage_to_DPs[var] = dps;
+	s->GetOptInfo()->stmt_num = curr_stmt->GetOptInfo()->stmt_num;
 	}
 
 bool Reducer::SameOp(const Expr* op1, const Expr* op2)
@@ -182,7 +184,7 @@ bool Reducer::SameOp(const Expr* op1, const Expr* op2)
 	if ( op1->Tag() == EXPR_NAME )
 		{
 		// Needs to be both the same identifier and in contexts
-		// where the identifier has the same definition points.
+		// where the identifier has the same definitions.
 		auto op1_n = op1->AsNameExpr();
 		auto op2_n = op2->AsNameExpr();
 
@@ -192,10 +194,13 @@ bool Reducer::SameOp(const Expr* op1, const Expr* op2)
 		if ( op1_id != op2_id )
 			return false;
 
-		auto op1_dps = GetDefPoints(op1_n);
-		auto op2_dps = GetDefPoints(op2_n);
+		auto e_stmt_1 = op1->GetOptInfo()->stmt_num;
+		auto e_stmt_2 = op2->GetOptInfo()->stmt_num;
 
-		return same_DPs(op1_dps, op2_dps);
+		auto def_1 = op1_id->GetOptInfo()->DefinitionBefore(e_stmt_1);
+		auto def_2 = op2_id->GetOptInfo()->DefinitionBefore(e_stmt_2);
+
+		return def_1 == def_2 && def_1 != NO_DEF;
 		}
 
 	else if ( op1->Tag() == EXPR_CONST )
@@ -239,128 +244,129 @@ bool Reducer::SameExpr(const Expr* e1, const Expr* e2)
 	if ( ! same_type(e1->GetType(), e2->GetType()) )
 		return false;
 
-	switch ( e1->Tag() ) {
-	case EXPR_NAME:
-	case EXPR_CONST:
-		return SameOp(e1, e2);
-
-	case EXPR_CLONE:
-	case EXPR_RECORD_CONSTRUCTOR:
-	case EXPR_TABLE_CONSTRUCTOR:
-	case EXPR_SET_CONSTRUCTOR:
-	case EXPR_VECTOR_CONSTRUCTOR:
-	case EXPR_EVENT:
-	case EXPR_SCHEDULE:
-		// These always generate a new value.
-		return false;
-
-	case EXPR_INCR:
-	case EXPR_DECR:
-	case EXPR_AND_AND:
-	case EXPR_OR_OR:
-	case EXPR_ASSIGN:
-	case EXPR_FIELD_ASSIGN:
-	case EXPR_INDEX_SLICE_ASSIGN:
-		// All of these should have been translated into something
-		// else.
-		reporter->InternalError("Unexpected tag in Reducer::SameExpr");
-
-	case EXPR_ANY_INDEX:
+	switch ( e1->Tag() )
 		{
-		auto a1 = e1->AsAnyIndexExpr();
-		auto a2 = e2->AsAnyIndexExpr();
+		case EXPR_NAME:
+		case EXPR_CONST:
+			return SameOp(e1, e2);
 
-		if ( a1->Index() != a2->Index() )
+		case EXPR_CLONE:
+		case EXPR_RECORD_CONSTRUCTOR:
+		case EXPR_TABLE_CONSTRUCTOR:
+		case EXPR_SET_CONSTRUCTOR:
+		case EXPR_VECTOR_CONSTRUCTOR:
+		case EXPR_EVENT:
+		case EXPR_SCHEDULE:
+			// These always generate a new value.
 			return false;
 
-		return SameOp(a1->GetOp1(), a2->GetOp1());
-		}
+		case EXPR_INCR:
+		case EXPR_DECR:
+		case EXPR_AND_AND:
+		case EXPR_OR_OR:
+		case EXPR_ASSIGN:
+		case EXPR_FIELD_ASSIGN:
+		case EXPR_INDEX_SLICE_ASSIGN:
+			// All of these should have been translated into something
+			// else.
+			reporter->InternalError("Unexpected tag in Reducer::SameExpr");
 
-	case EXPR_FIELD:
-		{
-		auto f1 = e1->AsFieldExpr();
-		auto f2 = e2->AsFieldExpr();
+		case EXPR_ANY_INDEX:
+			{
+			auto a1 = e1->AsAnyIndexExpr();
+			auto a2 = e2->AsAnyIndexExpr();
 
-		if ( f1->Field() != f2->Field() )
-			return false;
-
-		return SameOp(f1->GetOp1(), f2->GetOp1());
-		}
-
-	case EXPR_HAS_FIELD:
-		{
-		auto f1 = e1->AsHasFieldExpr();
-		auto f2 = e2->AsHasFieldExpr();
-
-		if ( f1->Field() != f2->Field() )
-			return false;
-
-		return SameOp(f1->GetOp1(), f2->GetOp1());
-		}
-
-	case EXPR_LIST:
-		{
-		auto l1 = e1->AsListExpr()->Exprs();
-		auto l2 = e2->AsListExpr()->Exprs();
-
-		ASSERT(l1.length() == l2.length());
-
-		for ( int i = 0; i < l1.length(); ++i )
-			if ( ! SameExpr(l1[i], l2[i]) )
+			if ( a1->Index() != a2->Index() )
 				return false;
 
-		return true;
+			return SameOp(a1->GetOp1(), a2->GetOp1());
+			}
+
+		case EXPR_FIELD:
+			{
+			auto f1 = e1->AsFieldExpr();
+			auto f2 = e2->AsFieldExpr();
+
+			if ( f1->Field() != f2->Field() )
+				return false;
+
+			return SameOp(f1->GetOp1(), f2->GetOp1());
+			}
+
+		case EXPR_HAS_FIELD:
+			{
+			auto f1 = e1->AsHasFieldExpr();
+			auto f2 = e2->AsHasFieldExpr();
+
+			if ( f1->Field() != f2->Field() )
+				return false;
+
+			return SameOp(f1->GetOp1(), f2->GetOp1());
+			}
+
+		case EXPR_LIST:
+			{
+			auto l1 = e1->AsListExpr()->Exprs();
+			auto l2 = e2->AsListExpr()->Exprs();
+
+			ASSERT(l1.length() == l2.length());
+
+			for ( int i = 0; i < l1.length(); ++i )
+				if ( ! SameExpr(l1[i], l2[i]) )
+					return false;
+
+			return true;
+			}
+
+		case EXPR_CALL:
+			{
+			auto c1 = e1->AsCallExpr();
+			auto c2 = e2->AsCallExpr();
+			auto f1 = c1->Func();
+			auto f2 = c2->Func();
+
+			if ( f1 != f2 )
+				return false;
+
+			if ( ! f1->IsPure() )
+				return false;
+
+			return SameExpr(c1->Args(), c2->Args());
+			}
+
+		case EXPR_LAMBDA:
+			return false;
+
+		case EXPR_IS:
+			{
+			if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
+				return false;
+
+			auto i1 = e1->AsIsExpr();
+			auto i2 = e2->AsIsExpr();
+
+			return same_type(i1->TestType(), i2->TestType());
+			}
+
+		default:
+			if ( ! e1->GetOp1() )
+				reporter->InternalError("Bad default in Reducer::SameExpr");
+
+			if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
+				return false;
+
+			if ( e1->GetOp2() && ! SameOp(e1->GetOp2(), e2->GetOp2()) )
+				return false;
+
+			if ( e1->GetOp3() && ! SameOp(e1->GetOp3(), e2->GetOp3()) )
+				return false;
+
+			return true;
 		}
-
-	case EXPR_CALL:
-		{
-		auto c1 = e1->AsCallExpr();
-		auto c2 = e2->AsCallExpr();
-		auto f1 = c1->Func();
-		auto f2 = c2->Func();
-
-		if ( f1 != f2 )
-			return false;
-
-		if ( ! f1->IsPure() )
-			return false;
-
-		return SameExpr(c1->Args(), c2->Args());
-		}
-
-	case EXPR_LAMBDA:
-		return false;
-
-	case EXPR_IS:
-		{
-		if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
-			return false;
-
-		auto i1 = e1->AsIsExpr();
-		auto i2 = e2->AsIsExpr();
-
-		return same_type(i1->TestType(), i2->TestType());
-		}
-
-	default:
-		if ( ! e1->GetOp1() )
-			reporter->InternalError("Bad default in Reducer::SameExpr");
-
-		if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
-			return false;
-
-		if ( e1->GetOp2() && ! SameOp(e1->GetOp2(), e2->GetOp2()) )
-			return false;
-
-		if ( e1->GetOp3() && ! SameOp(e1->GetOp3(), e2->GetOp3()) )
-			return false;
-
-		return true;
-	}
 	}
 
 IDPtr Reducer::FindExprTmp(const Expr* rhs, const Expr* a,
-				const std::shared_ptr<const TempVar>& lhs_tmp)
+                           const std::shared_ptr<const TempVar>& lhs_tmp)
 	{
 	for ( const auto& et_i : expr_temps )
 		{
@@ -377,11 +383,10 @@ IDPtr Reducer::FindExprTmp(const Expr* rhs, const Expr* a,
 			// always makes it here.
 			auto id = et_i->Id().get();
 
-			// We use 'a' in the following rather than rhs
-			// because the RHS can get rewritten (for example,
-			// due to folding) after we generate RDs, and
-			// thus might not have any.
-			if ( ! mgr->HasSinglePreMinRD(a, id) )
+			auto stmt_num = a->GetOptInfo()->stmt_num;
+			auto def = id->GetOptInfo()->DefinitionBefore(stmt_num);
+
+			if ( def == NO_DEF )
 				// The temporary's value isn't guaranteed
 				// to make it here.
 				continue;
@@ -410,7 +415,8 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const
 	//   must not be any assignments to aggregates of the same
 	//   type(s).  This is to deal with possible aliases.
 	//
-	// * Same goes to modifications of aggregates via "add" or "delete".
+	// * Same goes to modifications of aggregates via "add" or "delete"
+	//   or "+=" append.
 	//
 	// * No propagation of expressions that are based on aggregates
 	//   across function calls.
@@ -455,18 +461,14 @@ void Reducer::CheckIDs(const Expr* e, std::vector<const ID*>& ids) const
 
 bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
 	{
-	auto a_max_rds = mgr->GetPostMaxRDs(GetRDLookupObj(a));
-
 	auto lhs_id = lhs->Id();
-	auto lhs_tmp = FindTemporary(lhs_id);	// nil if LHS not a temporary
+	auto lhs_tmp = FindTemporary(lhs_id); // nil if LHS not a temporary
 	auto rhs_tmp = FindExprTmp(rhs, a, lhs_tmp);
 
 	ExprPtr new_rhs;
 	if ( rhs_tmp )
 		{ // We already have a temporary
-		auto tmp_di = mgr->GetConstID_DI(rhs_tmp.get());
-		auto dps = a_max_rds->GetDefPoints(tmp_di);
-		new_rhs = NewVarUsage(rhs_tmp, dps, rhs);
+		new_rhs = NewVarUsage(rhs_tmp, rhs);
 		rhs = new_rhs.get();
 		}
 
@@ -492,26 +494,16 @@ bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
 			// Treat the LHS as either an alias for the RHS,
 			// or as a constant if the RHS is a constant in
 			// this context.
-			auto rhs_di = mgr->GetConstID_DI(rhs_id.get());
-			auto dps = a_max_rds->GetDefPoints(rhs_di);
+			auto stmt_num = a->GetOptInfo()->stmt_num;
+			auto rhs_const = CheckForConst(rhs_id, stmt_num);
 
-			auto rhs_const = CheckForConst(rhs_id, dps);
 			if ( rhs_const )
 				lhs_tmp->SetConst(rhs_const);
 			else
-				lhs_tmp->SetAlias(rhs_id, dps);
+				lhs_tmp->SetAlias(rhs_id);
 
 			return true;
 			}
-
-		// Track where we define the temporary.
-		auto lhs_di = mgr->GetConstID_DI(lhs_id);
-		auto dps = a_max_rds->GetDefPoints(lhs_di);
-		if ( lhs_tmp->DPs() && ! same_DPs(lhs_tmp->DPs(), dps) )
-			reporter->InternalError("double DPs for temporary");
-
-		lhs_tmp->SetDPs(dps);
-		SetDefPoints(lhs, dps);
 
 		expr_temps.emplace_back(lhs_tmp);
 		}
@@ -519,77 +511,56 @@ bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
 	return false;
 	}
 
-const ConstExpr* Reducer::CheckForConst(const IDPtr& id,
-					const DefPoints* dps) const
+const ConstExpr* Reducer::CheckForConst(const IDPtr& id, int stmt_num) const
 	{
-	if ( ! dps || dps->length() == 0 )
-		// This can happen for access to uninitialized values.
+	if ( id->GetType()->Tag() == TYPE_ANY )
+		// Don't propagate identifiers of type "any" as constants.
+		// This is because the identifier might be used in some
+		// context that's dynamically unreachable due to the type
+		// of its value (such as via a type-switch), but for which
+		// constant propagation of the constant value to that
+		// context can result in compile-time errors when folding
+		// expressions in which the identifier appears (and is
+		// in that context presumed to have a different type).
 		return nullptr;
 
-	if ( dps->length() != 1 )
-		// Multiple definitions of the variable reach to this
-		// location.  In theory we could check whether they *all*
-		// provide the same constant, but that hardly seems likely.
-		return nullptr;
+	auto oi = id->GetOptInfo();
+	auto c = oi->Const();
 
-	// Identifier has a unique definition.
-	auto dp = (*dps)[0];
-	const Expr* e = nullptr;
+	if ( c )
+		return c;
 
-	if ( dp.Tag() == STMT_DEF )
+	auto e = id->GetOptInfo()->DefExprBefore(stmt_num);
+	if ( e )
 		{
-		auto s = dp.StmtVal();
+		auto ce = constant_exprs.find(e.get());
+		if ( ce != constant_exprs.end() )
+			e = ce->second;
 
-		if ( s->Tag() == STMT_CATCH_RETURN )
-			{
-			// Change 's' to refer to the associated assignment
-			// statement, if any.
-			auto cr = s->AsCatchReturnStmt();
-			s = cr->AssignStmt().get();
+		if ( e->Tag() == EXPR_CONST )
+			return e->AsConstExpr();
 
-			if ( ! s )
-				return nullptr;
-			}
-
-		if ( s->Tag() != STMT_EXPR )
-			// Defined in a statement other than an assignment.
+		// Follow aliases.
+		if ( e->Tag() != EXPR_NAME )
 			return nullptr;
 
-		e = s->AsExprStmt()->StmtExpr();
+		return CheckForConst(e->AsNameExpr()->IdPtr(), stmt_num);
 		}
 
-	else if ( dp.Tag() == EXPR_DEF )
-		e = dp.ExprVal();
-
-	else
-		return nullptr;
-
-	if ( e->Tag() != EXPR_ASSIGN )
-		// Not sure why this would happen, other than EXPR_APPEND_TO,
-		// but in any case not an expression we can mine for a
-		// constant.
-		return nullptr;
-
-	auto rhs = e->GetOp2();
-
-	if ( rhs->Tag() != EXPR_CONST )
-		return nullptr;
-
-	return rhs->AsConstExpr();
+	return nullptr;
 	}
 
-void Reducer::TrackExprReplacement(const Expr* orig, const Expr* e)
+ConstExprPtr Reducer::Fold(ExprPtr e)
 	{
-	new_expr_to_orig[e] = orig;
+	auto c = make_intrusive<ConstExpr>(e->Eval(nullptr));
+	FoldedTo(e, c);
+	return c;
 	}
 
-const Obj* Reducer::GetRDLookupObj(const Expr* e) const
+void Reducer::FoldedTo(ExprPtr e, ConstExprPtr c)
 	{
-	auto orig_e = new_expr_to_orig.find(e);
-	if ( orig_e == new_expr_to_orig.end() )
-		return e;
-	else
-		return orig_e->second;
+	constant_exprs[e.get()] = std::move(c);
+	folded_exprs.push_back(std::move(e));
 	}
 
 ExprPtr Reducer::OptExpr(Expr* e)
@@ -620,13 +591,10 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e)
 	auto tmp_var = FindTemporary(id);
 	if ( ! tmp_var )
 		{
-		auto max_rds = mgr->GetPreMaxRDs(GetRDLookupObj(n));
-
 		IDPtr id_ptr = {NewRef{}, id};
-		auto di = mgr->GetConstID_DI(id);
-		auto dps = max_rds->GetDefPoints(di);
+		auto stmt_num = e->GetOptInfo()->stmt_num;
+		auto is_const = CheckForConst(id_ptr, stmt_num);
 
-		auto is_const = CheckForConst(id_ptr, dps);
 		if ( is_const )
 			{
 			// Remember this variable as one whose value
@@ -647,36 +615,33 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e)
 	auto alias = tmp_var->Alias();
 	if ( alias )
 		{
-		// Make sure that the definition points for the
-		// alias here are the same as when the alias
-		// was created.
+		// Make sure that the definitions for the alias here are
+		// the same as when the alias was created.
 		auto alias_tmp = FindTemporary(alias.get());
 
-		if ( alias_tmp )
+		// Resolve any alias chains.
+		while ( alias_tmp && alias_tmp->Alias() )
 			{
-			while ( alias_tmp->Alias() )
-				{
-				// Alias chains can occur due to
-				// re-reduction while optimizing.
-				auto a_id = alias_tmp->Id();
-				if ( a_id == id )
-					return e;
+			alias = alias_tmp->Alias();
+			alias_tmp = FindTemporary(alias.get());
+			}
 
-				alias_tmp = FindTemporary(alias_tmp->Id().get());
-				}
-
-			// Temporaries always have only one definition point,
+		if ( alias->GetOptInfo()->IsTemp() )
+			{
+			// Temporaries always have only one definition,
 			// so no need to check for consistency.
-			auto new_usage = NewVarUsage(alias, alias_tmp->DPs(), e.get());
+			auto new_usage = NewVarUsage(alias, e.get());
 			return new_usage;
 			}
 
-		auto e_max_rds = mgr->GetPreMaxRDs(GetRDLookupObj(e.get()));
-		auto alias_di = mgr->GetConstID_DI(alias.get());
-		auto alias_dps = e_max_rds->GetDefPoints(alias_di);
+		auto e_stmt_1 = e->GetOptInfo()->stmt_num;
+		auto e_stmt_2 = tmp_var->RHS()->GetOptInfo()->stmt_num;
 
-		if ( same_DPs(alias_dps, tmp_var->DPs()) )
-			return NewVarUsage(alias, alias_dps, e.get());
+		auto def_1 = alias->GetOptInfo()->DefinitionBefore(e_stmt_1);
+		auto def_2 = tmp_var->Id()->GetOptInfo()->DefinitionBefore(e_stmt_2);
+
+		if ( def_1 == def_2 && def_1 != NO_DEF )
+			return NewVarUsage(alias, e.get());
 		else
 			return e;
 		}
@@ -741,11 +706,18 @@ StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, Stmt* succ_stmt)
 
 	// Got it.  Mark the original temporary as no longer relevant.
 	lhs_tmp->Deactivate();
-	auto merge_e = make_intrusive<AssignExpr>(a_lhs_deref, rhs, false,
-						nullptr, nullptr, false);
-	TrackExprReplacement(rhs.get(), merge_e.get());
+	auto merge_e = make_intrusive<AssignExpr>(a_lhs_deref, rhs, false, nullptr, nullptr, false);
+	auto merge_e_stmt = make_intrusive<ExprStmt>(merge_e);
 
-	return make_intrusive<ExprStmt>(merge_e);
+	// Update the associated stmt_num's.  For strict correctness, we
+	// want both of these bound to the earlier of the two statements
+	// we're merging (though in practice, either will work, since
+	// we're eliding the only difference between the two).  Our
+	// caller ensures this.
+	BindExprToCurrStmt(merge_e);
+	BindStmtToCurrStmt(merge_e_stmt);
+
+	return merge_e_stmt;
 	}
 
 IDPtr Reducer::GenTemporary(const TypePtr& t, ExprPtr rhs)
@@ -794,6 +766,9 @@ IDPtr Reducer::GenLocal(const IDPtr& orig)
 	local_id->SetType(orig->GetType());
 	local_id->SetAttrs(orig->GetAttrs());
 
+	if ( orig->GetOptInfo()->IsTemp() )
+		local_id->GetOptInfo()->SetTemp();
+
 	new_locals.insert(local_id.get());
 	orig_to_new_locals[orig.get()] = local_id;
 
@@ -802,7 +777,7 @@ IDPtr Reducer::GenLocal(const IDPtr& orig)
 
 bool Reducer::IsNewLocal(const ID* id) const
 	{
-	ID* non_const_ID = (ID*) id;	// I don't get why C++ requires this
+	ID* non_const_ID = (ID*)id; // I don't get why C++ requires this
 	return new_locals.count(non_const_ID) != 0;
 	}
 
@@ -815,10 +790,9 @@ std::shared_ptr<TempVar> Reducer::FindTemporary(const ID* id) const
 		return tmp->second;
 	}
 
-
-CSE_ValidityChecker::CSE_ValidityChecker(const std::vector<const ID*>& _ids,
-				const Expr* _start_e, const Expr* _end_e)
-: ids(_ids)
+CSE_ValidityChecker::CSE_ValidityChecker(const std::vector<const ID*>& _ids, const Expr* _start_e,
+                                         const Expr* _end_e)
+	: ids(_ids)
 	{
 	start_e = _start_e;
 	end_e = _end_e;
@@ -837,7 +811,7 @@ CSE_ValidityChecker::CSE_ValidityChecker(const std::vector<const ID*>& _ids,
 		}
 
 	else
-		field = -1;	// flags that there's no relevant field
+		field = -1; // flags that there's no relevant field
 	}
 
 TraversalCode CSE_ValidityChecker::PreStmt(const Stmt* s)
@@ -888,96 +862,106 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
 	// We have a starting point, and not yet an ending point.
 	auto t = e->Tag();
 
-	switch ( t ) {
-	case EXPR_ASSIGN:
+	switch ( t )
 		{
-		auto lhs_ref = e->GetOp1()->AsRefExprPtr();
-		auto lhs = lhs_ref->GetOp1()->AsNameExpr();
-
-		if ( CheckID(ids, lhs->Id(), false) )
+		case EXPR_ASSIGN:
 			{
-			is_valid = false;
-			return TC_ABORTALL;
-			}
+			auto lhs_ref = e->GetOp1()->AsRefExprPtr();
+			auto lhs = lhs_ref->GetOp1()->AsNameExpr();
 
-		// Note, we don't use CheckAggrMod() because this
-		// is a plain assignment.  It might be changing a variable's
-		// binding to an aggregate, but it's not changing the
-		// aggregate itself.
-		}
-		break;
-
-	case EXPR_INDEX_ASSIGN:
-		{
-		auto lhs_aggr = e->GetOp1();
-		auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
-
-		if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
-			{
-			is_valid = false;
-			return TC_ABORTALL;
-			}
-		}
-		break;
-
-	case EXPR_FIELD_LHS_ASSIGN:
-		{
-		auto lhs = e->GetOp1();
-		auto lhs_aggr_id = lhs->AsNameExpr()->Id();
-		auto lhs_field = e->AsFieldLHSAssignExpr()->Field();
-
-		if ( lhs_field == field &&
-		     same_type(lhs_aggr_id->GetType(), field_type) )
-			{
-			// Potential assignment to the same field as for
-			// our expression of interest.  Even if the
-			// identifier involved is not one we have our eye
-			// on, due to aggregate aliasing this could be
-			// altering the value of our expression, so bail.
-			is_valid = false;
-			return TC_ABORTALL;
-			}
-
-		if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
-			{
-			is_valid = false;
-			return TC_ABORTALL;
-			}
-		}
-		break;
-
-	case EXPR_CALL:
-		{
-		for ( auto i : ids )
-			if ( i->IsGlobal() || IsAggr(i->GetType()) )
+			if ( CheckID(ids, lhs->Id(), false) )
 				{
 				is_valid = false;
 				return TC_ABORTALL;
 				}
-		}
-		break;
 
-	default:
-		if ( in_aggr_mod_stmt && (t == EXPR_INDEX || t == EXPR_FIELD) )
+			// Note, we don't use CheckAggrMod() because this
+			// is a plain assignment.  It might be changing a variable's
+			// binding to an aggregate, but it's not changing the
+			// aggregate itself.
+			}
+			break;
+
+		case EXPR_INDEX_ASSIGN:
 			{
-			auto aggr = e->GetOp1();
-			auto aggr_id = aggr->AsNameExpr()->Id();
+			auto lhs_aggr = e->GetOp1();
+			auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
 
-			if ( CheckID(ids, aggr_id, true) )
+			if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
 				{
 				is_valid = false;
 				return TC_ABORTALL;
 				}
 			}
+			break;
 
-		break;
-	}
+		case EXPR_FIELD_LHS_ASSIGN:
+			{
+			auto lhs = e->GetOp1();
+			auto lhs_aggr_id = lhs->AsNameExpr()->Id();
+			auto lhs_field = e->AsFieldLHSAssignExpr()->Field();
+
+			if ( lhs_field == field && same_type(lhs_aggr_id->GetType(), field_type) )
+				{
+				// Potential assignment to the same field as for
+				// our expression of interest.  Even if the
+				// identifier involved is not one we have our eye
+				// on, due to aggregate aliasing this could be
+				// altering the value of our expression, so bail.
+				is_valid = false;
+				return TC_ABORTALL;
+				}
+
+			if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) )
+				{
+				is_valid = false;
+				return TC_ABORTALL;
+				}
+			}
+			break;
+
+		case EXPR_APPEND_TO:
+			// This doesn't directly change any identifiers, but does
+			// alter an aggregate.
+			if ( CheckAggrMod(ids, e) )
+				{
+				is_valid = false;
+				return TC_ABORTALL;
+				}
+			break;
+
+		case EXPR_CALL:
+			{
+			for ( auto i : ids )
+				if ( i->IsGlobal() || IsAggr(i->GetType()) )
+					{
+					is_valid = false;
+					return TC_ABORTALL;
+					}
+			}
+			break;
+
+		default:
+			if ( in_aggr_mod_stmt && (t == EXPR_INDEX || t == EXPR_FIELD) )
+				{
+				auto aggr = e->GetOp1();
+				auto aggr_id = aggr->AsNameExpr()->Id();
+
+				if ( CheckID(ids, aggr_id, true) )
+					{
+					is_valid = false;
+					return TC_ABORTALL;
+					}
+				}
+
+			break;
+		}
 
 	return TC_CONTINUE;
 	}
 
-bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids,
-					const ID* id, bool ignore_orig) const
+bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids, const ID* id,
+                                  bool ignore_orig) const
 	{
 	// Only check type info for aggregates.
 	auto id_t = IsAggr(id->GetType()) ? id->GetType() : nullptr;
@@ -988,7 +972,7 @@ bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids,
 			continue;
 
 		if ( id == i )
-			return true;	// reassignment
+			return true; // reassignment
 
 		if ( id_t && same_type(id_t, i->GetType()) )
 			// Same-type aggregate.
@@ -998,8 +982,7 @@ bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids,
 	return false;
 	}
 
-bool CSE_ValidityChecker::CheckAggrMod(const std::vector<const ID*>& ids,
-					const Expr* e) const
+bool CSE_ValidityChecker::CheckAggrMod(const std::vector<const ID*>& ids, const Expr* e) const
 	{
 	const auto& e_i_t = e->GetType();
 	if ( IsAggr(e_i_t) )
@@ -1014,28 +997,6 @@ bool CSE_ValidityChecker::CheckAggrMod(const std::vector<const ID*>& ids,
 	return false;
 	}
 
-
-bool same_DPs(const DefPoints* dp1, const DefPoints* dp2)
-	{
-	if ( dp1 == dp2 )
-		return true;
-
-	if ( ! dp1 || ! dp2 )
-		return false;
-
-	// Given how we construct DPs, they should be element-by-element
-	// equivalent; we don't have to worry about reordering.
-	if ( dp1->length() != dp2->length() )
-		return false;
-
-	for ( auto i = 0; i < dp1->length(); ++i )
-		if ( ! (*dp1)[i].SameAs((*dp2)[i]) )
-			return false;
-
-	return true;
-	}
-
-
 const Expr* non_reduced_perp;
 bool checking_reduction;
 
@@ -1047,5 +1008,4 @@ bool NonReduced(const Expr* perp)
 	return false;
 	}
 
-
-} // zeek::detail
+	} // zeek::detail

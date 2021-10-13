@@ -1,13 +1,12 @@
 #include "zeek/analyzer/protocol/ssl/SSL.h"
 
-#include "zeek/analyzer/Manager.h"
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/Reporter.h"
-#include "zeek/util.h"
-
+#include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/ssl/events.bif.h"
 #include "zeek/analyzer/protocol/ssl/ssl_pac.h"
 #include "zeek/analyzer/protocol/ssl/tls-handshake_pac.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/util.h"
 
 #include <arpa/inet.h>
 #include <openssl/evp.h>
@@ -30,7 +29,8 @@ static void print_hex(std::string name, u_char* data, int len)
 	printf("\n");
 	}
 
-namespace zeek::analyzer::ssl {
+namespace zeek::analyzer::ssl
+	{
 
 #define MSB(a) ((a>>8)&0xff)
 #define LSB(a) (a&0xff)
@@ -42,8 +42,7 @@ static void fmt_seq(uint32_t num, u_char* buf)
 	memcpy(buf+4, &netnum, 4);
 	}
 
-SSL_Analyzer::SSL_Analyzer(Connection* c)
-: analyzer::tcp::TCP_ApplicationAnalyzer("SSL", c)
+SSL_Analyzer::SSL_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer("SSL", c)
 	{
 	interp = new binpac::SSL::SSL_Conn(this);
 	handshake_interp = new binpac::TLSHandshake::Handshake_Conn(this);
@@ -113,7 +112,8 @@ void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void SSL_Analyzer::SendHandshake(uint16_t raw_tls_version, const u_char* begin, const u_char* end, bool orig)
+void SSL_Analyzer::SendHandshake(uint16_t raw_tls_version, const u_char* begin, const u_char* end,
+                                 bool orig)
 	{
 	handshake_interp->set_record_version(raw_tls_version);
 	try
@@ -364,4 +364,4 @@ void SSL_Analyzer::ForwardDecryptedData(int len, const u_char* data, bool is_ori
 	ForwardStream(len, data, is_orig);
 	}
 
-} // namespace zeek::analyzer::ssl
+	} // namespace zeek::analyzer::ssl

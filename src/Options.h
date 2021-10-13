@@ -9,13 +9,15 @@
 #include "zeek/DNS_Mgr.h"
 #include "zeek/script_opt/ScriptOpt.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 /**
  * Options that define general Zeek processing behavior, usually determined
  * from command-line arguments.
  */
-struct Options {
+struct Options
+	{
 	/**
 	 * Unset options that aren't meant to be used by the supervisor, but may
 	 * make sense for supervised nodes to inherit (as opposed to flagging
@@ -40,7 +42,7 @@ struct Options {
 
 	std::optional<std::string> identifier_to_print;
 	std::optional<std::string> script_code_to_exec;
-	std::vector<std::string> script_prefixes = { "" }; // "" = "no prefix"
+	std::vector<std::string> script_prefixes = {""}; // "" = "no prefix"
 
 	int signature_re_level = 4;
 	bool ignore_checksums = false;
@@ -70,7 +72,6 @@ struct Options {
 	std::optional<std::string> random_seed_output_file;
 	std::optional<std::string> process_status_file;
 	std::optional<std::string> zeekygen_config_file;
-	std::string libidmef_dtd_file = "idmef-message.dtd";
 
 	std::set<std::string> plugins_to_load;
 	std::vector<std::string> scripts_to_load;
@@ -80,7 +81,7 @@ struct Options {
 
 	// For script optimization:
 	detail::AnalyOpt analysis_options;
-};
+	};
 
 /**
  * Parse Zeek command-line arguments.
@@ -102,4 +103,4 @@ void usage(const char* prog, int code = 1);
  */
 bool fake_dns();
 
-} // namespace zeek
+	} // namespace zeek

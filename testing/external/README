@@ -81,19 +81,21 @@ script to set that up:
 
 .. console:
 
-    > ./scripts/create-new-repo <repo-name> <repo-url>
+    > ./scripts/create-new-repo <repo-name> [<repo-url>]
 
-The first argument is the local name of the repository (it will be
-cloned into ``<repo-name>``); and the second is the URL of the git
-repository. The repository will be initialized with a few standard
-directories as well as a skeleton test in ``<name>/tests``. You can
-then edit files as needed. You add trace files by editing
-``Traces/traces.cfg``; see the comments in there. For each trace, you
-also need to calculate a checksum with ``md5sum`` and put it into
-``<url>.md5sum``. The scripts use this to decide if they need to
-redownload the trace. Accordingly, if you update a trace, make sure to
-also recalculate its checksum. Note that the traces will be downloaded
-to ``Traces/`` but must not be added to the git repostiory; there's a
-``.gitignore`` installed to prevent that.
+The first argument is the local name of the repository (it will be initialized
+in a ``<repo-name>`` directory). The second, optional argument is the URL of the
+git repository. The repository will be initialized with a few standard
+directories as well as a skeleton test in ``<name>/tests``. You can then edit
+files as needed. When provided, the remote URL is added as the origin remote.
+The script does not otherwise interact with the remote.
+
+You add trace files by editing ``Traces/traces.cfg``; see the comments in
+there. For each trace, you also need to calculate a checksum with ``md5sum`` and
+put it into ``<url>.md5sum``. The scripts use this to decide if they need to
+redownload the trace. Accordingly, if you update a trace, make sure to also
+recalculate its checksum. Note that the traces will be downloaded to ``Traces/``
+but must not be added to the git repostiory; there's a ``.gitignore`` installed
+to prevent that.
 
 

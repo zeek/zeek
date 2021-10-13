@@ -1,49 +1,103 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/Expr.h"
+
 #include "zeek/zeek-config.h"
 
-#include "zeek/Expr.h"
-#include "zeek/Event.h"
+#include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
+#include "zeek/Event.h"
+#include "zeek/EventRegistry.h"
 #include "zeek/Frame.h"
 #include "zeek/Func.h"
+#include "zeek/Hash.h"
+#include "zeek/IPAddr.h"
 #include "zeek/RE.h"
+#include "zeek/RunState.h"
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
-#include "zeek/EventRegistry.h"
-#include "zeek/RunState.h"
 #include "zeek/Traverse.h"
 #include "zeek/Trigger.h"
-#include "zeek/IPAddr.h"
+#include "zeek/broker/Data.h"
 #include "zeek/digest.h"
 #include "zeek/module_util.h"
-#include "zeek/DebugLogger.h"
-#include "zeek/Hash.h"
+#include "zeek/script_opt/ExprOptInfo.h"
 
-#include "zeek/broker/Data.h"
+namespace zeek::detail
+	{
 
-namespace zeek::detail {
+static bool init_tag_check(const Expr* expr, const char* name, TypeTag expect_tag, TypeTag init_tag)
+	{
+	if ( expect_tag == init_tag )
+		return true;
+
+	auto msg = util::fmt("unexpected use of %s in '%s' initialization", name, type_name(init_tag));
+	expr->Error(msg);
+	return false;
+	}
 
 const char* expr_name(BroExprTag t)
 	{
 	static const char* expr_names[int(NUM_EXPRS)] = {
-		"name", "const",
+		"name",
+		"const",
 		"(*)",
-		"++", "--", "!", "~", "+", "-",
-		"+", "-", "+=", "-=", "*", "/", "%",
-		"&", "|", "^",
-		"&&", "||",
-		"<", "<=", "==", "!=", ">=", ">", "?:", "ref",
-		"=", "[]", "$", "?$", "[=]",
-		"table()", "set()", "vector()",
-		"$=", "in", "<<>>",
-		"()", "function()", "event", "schedule",
-		"coerce", "record_coerce", "table_coerce", "vector_coerce",
-		"sizeof", "cast", "is", "[:]=",
+		"++",
+		"--",
+		"!",
+		"~",
+		"+",
+		"-",
+		"+",
+		"-",
+		"+=",
+		"-=",
+		"*",
+		"/",
+		"%",
+		"&",
+		"|",
+		"^",
+		"&&",
+		"||",
+		"<",
+		"<=",
+		"==",
+		"!=",
+		">=",
+		">",
+		"?:",
+		"ref",
+		"=",
+		"[]",
+		"$",
+		"?$",
+		"[=]",
+		"table()",
+		"set()",
+		"vector()",
+		"$=",
+		"in",
+		"<<>>",
+		"()",
+		"function()",
+		"event",
+		"schedule",
+		"coerce",
+		"record_coerce",
+		"table_coerce",
+		"vector_coerce",
+		"sizeof",
+		"cast",
+		"is",
+		"[:]=",
 		"inline()",
-		"[]=", "$=",
+		"[]=",
+		"$=",
 		"vec+=",
-		"to_any_coerce", "from_any_coerce",
+		"to_any_coerce",
+		"from_any_coerce",
+		"from_any_vec_coerce",
 		"any[]",
 		"nop",
 
@@ -56,119 +110,124 @@ const char* expr_name(BroExprTag t)
 		// This isn't quite right - we return a static buffer,
 		// so multiple calls to expr_name() could lead to confusion
 		// by overwriting the buffer.  But oh well.
-		snprintf(errbuf, sizeof(errbuf),
-				"%d: not an expression tag", int(t));
+		snprintf(errbuf, sizeof(errbuf), "%d: not an expression tag", int(t));
 		return errbuf;
 		}
 
 	return expr_names[int(t)];
 	}
 
-Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), type(nullptr), paren(false)
+Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), paren(false), type(nullptr)
 	{
 	SetLocationInfo(&start_location, &end_location);
+	opt_info = new ExprOptInfo();
+	}
+
+Expr::~Expr()
+	{
+	delete opt_info;
 	}
 
 const ListExpr* Expr::AsListExpr() const
 	{
-	CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
-	return (const ListExpr*) this;
+	CHECK_TAG(tag, EXPR_LIST, "Expr::AsListExpr", expr_name)
+	return (const ListExpr*)this;
 	}
 
 ListExpr* Expr::AsListExpr()
 	{
-	CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
-	return (ListExpr*) this;
+	CHECK_TAG(tag, EXPR_LIST, "Expr::AsListExpr", expr_name)
+	return (ListExpr*)this;
 	}
 
 ListExprPtr Expr::AsListExprPtr()
 	{
-	CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
-	return {NewRef{}, (ListExpr*) this};
+	CHECK_TAG(tag, EXPR_LIST, "Expr::AsListExpr", expr_name)
+	return {NewRef{}, (ListExpr*)this};
 	}
 
 const NameExpr* Expr::AsNameExpr() const
 	{
-	CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
-	return (const NameExpr*) this;
+	CHECK_TAG(tag, EXPR_NAME, "Expr::AsNameExpr", expr_name)
+	return (const NameExpr*)this;
 	}
 
 NameExpr* Expr::AsNameExpr()
 	{
-	CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
-	return (NameExpr*) this;
+	CHECK_TAG(tag, EXPR_NAME, "Expr::AsNameExpr", expr_name)
+	return (NameExpr*)this;
 	}
 
 NameExprPtr Expr::AsNameExprPtr()
 	{
-	CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
-	return {NewRef{}, (NameExpr*) this};
+	CHECK_TAG(tag, EXPR_NAME, "Expr::AsNameExpr", expr_name)
+	return {NewRef{}, (NameExpr*)this};
 	}
 
 const ConstExpr* Expr::AsConstExpr() const
 	{
-	CHECK_TAG(tag, EXPR_CONST, "ExprVal::AsConstExpr", expr_name)
-	return (const ConstExpr*) this;
+	CHECK_TAG(tag, EXPR_CONST, "Expr::AsConstExpr", expr_name)
+	return (const ConstExpr*)this;
 	}
 
 ConstExprPtr Expr::AsConstExprPtr()
 	{
-	CHECK_TAG(tag, EXPR_CONST, "ExprVal::AsConstExpr", expr_name)
-	return {NewRef{}, (ConstExpr*) this};
+	CHECK_TAG(tag, EXPR_CONST, "Expr::AsConstExpr", expr_name)
+	return {NewRef{}, (ConstExpr*)this};
 	}
 
 const CallExpr* Expr::AsCallExpr() const
 	{
-	CHECK_TAG(tag, EXPR_CALL, "ExprVal::AsCallExpr", expr_name)
-	return (const CallExpr*) this;
+	CHECK_TAG(tag, EXPR_CALL, "Expr::AsCallExpr", expr_name)
+	return (const CallExpr*)this;
 	}
 
 const AssignExpr* Expr::AsAssignExpr() const
 	{
-	CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
-	return (const AssignExpr*) this;
+	CHECK_TAG(tag, EXPR_ASSIGN, "Expr::AsAssignExpr", expr_name)
+	return (const AssignExpr*)this;
 	}
 
 AssignExpr* Expr::AsAssignExpr()
 	{
-	CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
-	return (AssignExpr*) this;
+	CHECK_TAG(tag, EXPR_ASSIGN, "Expr::AsAssignExpr", expr_name)
+	return (AssignExpr*)this;
 	}
 
 const IndexExpr* Expr::AsIndexExpr() const
 	{
-	CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
-	return (const IndexExpr*) this;
+	CHECK_TAG(tag, EXPR_INDEX, "Expr::AsIndexExpr", expr_name)
+	return (const IndexExpr*)this;
 	}
 
 IndexExpr* Expr::AsIndexExpr()
 	{
-	CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
-	return (IndexExpr*) this;
+	CHECK_TAG(tag, EXPR_INDEX, "Expr::AsIndexExpr", expr_name)
+	return (IndexExpr*)this;
 	}
 
 const EventExpr* Expr::AsEventExpr() const
 	{
-	CHECK_TAG(tag, EXPR_EVENT, "ExprVal::AsEventExpr", expr_name)
-	return (const EventExpr*) this;
+	CHECK_TAG(tag, EXPR_EVENT, "Expr::AsEventExpr", expr_name)
+	return (const EventExpr*)this;
 	}
 
 EventExprPtr Expr::AsEventExprPtr()
 	{
-	CHECK_TAG(tag, EXPR_EVENT, "ExprVal::AsEventExpr", expr_name)
-	return {NewRef{}, (EventExpr*) this};
+	CHECK_TAG(tag, EXPR_EVENT, "Expr::AsEventExpr", expr_name)
+	return {NewRef{}, (EventExpr*)this};
 	}
 
 const RefExpr* Expr::AsRefExpr() const
 	{
-	CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
-	return (const RefExpr*) this;
+	CHECK_TAG(tag, EXPR_REF, "Expr::AsRefExpr", expr_name)
+	return (const RefExpr*)this;
 	}
 
 RefExprPtr Expr::AsRefExprPtr()
 	{
-	CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
-	return {NewRef{}, (RefExpr*) this};
+	CHECK_TAG(tag, EXPR_REF, "Expr::AsRefExpr", expr_name)
+	return {NewRef{}, (RefExpr*)this};
 	}
 
 bool Expr::CanAdd() const
@@ -199,8 +258,12 @@ ExprPtr Expr::MakeLvalue()
 	return {NewRef{}, this};
 	}
 
-void Expr::EvalIntoAggregate(const zeek::Type* /* t */, Val* /* aggr */,
-                             Frame* /* f */) const
+bool Expr::InvertSense()
+	{
+	return false;
+	}
+
+void Expr::EvalIntoAggregate(const zeek::Type* /* t */, Val* /* aggr */, Frame* /* f */) const
 	{
 	Internal("Expr::EvalIntoAggregate called");
 	}
@@ -222,7 +285,8 @@ void Expr::AssignToIndex(ValPtr v1, ValPtr v2, ValPtr v3) const
 		ODesc d;
 		Describe(&d);
 		reporter->PushLocation(GetLocationInfo());
-		reporter->Warning("possible loop/iterator invalidation caused by expression: %s", d.Description());
+		reporter->Warning("possible loop/iterator invalidation caused by expression: %s",
+		                  d.Description());
 		reporter->PopLocation();
 		}
 
@@ -235,13 +299,12 @@ static int get_slice_index(int idx, int len)
 	if ( abs(idx) > len )
 		idx = idx > 0 ? len : 0; // Clamp maximum positive/negative indices.
 	else if ( idx < 0 )
-		idx += len;  // Map to a positive index.
+		idx += len; // Map to a positive index.
 
 	return idx;
 	}
 
-const char* assign_to_index(ValPtr v1, ValPtr v2, ValPtr v3,
-				bool& iterators_invalidated)
+const char* assign_to_index(ValPtr v1, ValPtr v2, ValPtr v3, bool& iterators_invalidated)
 	{
 	iterators_invalidated = false;
 
@@ -254,85 +317,86 @@ const char* assign_to_index(ValPtr v1, ValPtr v2, ValPtr v3,
 	// already unref'd.
 	auto v_extra = v3;
 
-	switch ( v1->GetType()->Tag() ) {
-	case TYPE_VECTOR:
+	switch ( v1->GetType()->Tag() )
 		{
-		const ListVal* lv = v2->AsListVal();
-		VectorVal* v1_vect = v1->AsVectorVal();
-
-		if ( lv->Length() > 1 )
+		case TYPE_VECTOR:
 			{
-			auto len = v1_vect->Size();
-			bro_int_t first = get_slice_index(lv->Idx(0)->CoerceToInt(), len);
-			bro_int_t last = get_slice_index(lv->Idx(1)->CoerceToInt(), len);
+			const ListVal* lv = v2->AsListVal();
+			VectorVal* v1_vect = v1->AsVectorVal();
 
-			// Remove the elements from the vector within the slice.
-			for ( auto idx = first; idx < last; idx++ )
-				v1_vect->Remove(first);
-
-			// Insert the new elements starting at the first
-			// position.
-
-			VectorVal* v_vect = v3->AsVectorVal();
-
-			for ( auto idx = 0u; idx < v_vect->Size();
-			      idx++, first++ )
-				v1_vect->Insert(first, v_vect->ValAt(idx));
-			}
-
-		else if ( ! v1_vect->Assign(lv->Idx(0)->CoerceToUnsigned(), std::move(v3)) )
-			{
-			v3 = std::move(v_extra);
-
-			if ( v3 )
+			if ( lv->Length() > 1 )
 				{
-				ODesc d;
-				v3->Describe(&d);
-				const auto& vt = v3->GetType();
-				auto vtt = vt->Tag();
-				std::string tn = vtt == TYPE_RECORD ?
-					vt->GetName() : type_name(vtt);
-				return util::fmt("vector index assignment failed for invalid type '%s', value: %s",
-					tn.data(), d.Description());
+				auto len = v1_vect->Size();
+				bro_int_t first = get_slice_index(lv->Idx(0)->CoerceToInt(), len);
+				bro_int_t last = get_slice_index(lv->Idx(1)->CoerceToInt(), len);
+
+				// Remove the elements from the vector within the slice.
+				for ( auto idx = first; idx < last; idx++ )
+					v1_vect->Remove(first);
+
+				// Insert the new elements starting at the first
+				// position.
+
+				VectorVal* v_vect = v3->AsVectorVal();
+
+				for ( auto idx = 0u; idx < v_vect->Size(); idx++, first++ )
+					v1_vect->Insert(first, v_vect->ValAt(idx));
 				}
-			else
-				return "assignment failed with null value";
-			}
-		break;
-		}
 
-	case TYPE_TABLE:
-		{
-		if ( ! v1->AsTableVal()->Assign(std::move(v2), std::move(v3), true, &iterators_invalidated) )
-			{
-			v3 = std::move(v_extra);
-
-			if ( v3 )
+			else if ( ! v1_vect->Assign(lv->Idx(0)->CoerceToUnsigned(), std::move(v3)) )
 				{
-				ODesc d;
-				v3->Describe(&d);
-				const auto& vt = v3->GetType();
-				auto vtt = vt->Tag();
-				std::string tn = vtt == TYPE_RECORD ?
-					vt->GetName() : type_name(vtt);
-				return util::fmt("table index assignment failed for invalid type '%s', value: %s",
-					tn.data(), d.Description());
+				v3 = std::move(v_extra);
+
+				if ( v3 )
+					{
+					ODesc d;
+					v3->Describe(&d);
+					const auto& vt = v3->GetType();
+					auto vtt = vt->Tag();
+					std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
+					return util::fmt(
+						"vector index assignment failed for invalid type '%s', value: %s",
+						tn.data(), d.Description());
+					}
+				else
+					return "assignment failed with null value";
 				}
-			else
-				return "assignment failed with null value";
+			break;
 			}
 
-		break;
+		case TYPE_TABLE:
+			{
+			if ( ! v1->AsTableVal()->Assign(std::move(v2), std::move(v3), true,
+			                                &iterators_invalidated) )
+				{
+				v3 = std::move(v_extra);
+
+				if ( v3 )
+					{
+					ODesc d;
+					v3->Describe(&d);
+					const auto& vt = v3->GetType();
+					auto vtt = vt->Tag();
+					std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
+					return util::fmt(
+						"table index assignment failed for invalid type '%s', value: %s", tn.data(),
+						d.Description());
+					}
+				else
+					return "assignment failed with null value";
+				}
+
+			break;
+			}
+
+		case TYPE_STRING:
+			return "assignment via string index accessor not allowed";
+			break;
+
+		default:
+			return "bad index expression type in assignment";
+			break;
 		}
-
-	case TYPE_STRING:
-		return "assignment via string index accessor not allowed";
-		break;
-
-	default:
-		return "bad index expression type in assignment";
-		break;
-	}
 
 	return nullptr;
 	}
@@ -414,9 +478,7 @@ void Expr::AddTag(ODesc* d) const
 		d->AddSP(expr_name(Tag()));
 	}
 
-void Expr::Canonicize()
-	{
-	}
+void Expr::Canonicize() { }
 
 void Expr::SetType(TypePtr t)
 	{
@@ -446,14 +508,12 @@ void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
 		ODesc d;
 		d.SetShort();
 		Describe(&d);
-		reporter->RuntimeError(GetLocationInfo(),
-					"%s, expression: %s, call stack: %s",
-					msg.data(), d.Description(), rcs.data());
+		reporter->RuntimeError(GetLocationInfo(), "%s, expression: %s, call stack: %s", msg.data(),
+		                       d.Description(), rcs.data());
 		}
 	}
 
-NameExpr::NameExpr(IDPtr arg_id, bool const_init)
-	: Expr(EXPR_NAME), id(std::move(arg_id))
+NameExpr::NameExpr(IDPtr arg_id, bool const_init) : Expr(EXPR_NAME), id(std::move(arg_id))
 	{
 	in_const_init = const_init;
 
@@ -539,7 +599,6 @@ TraversalCode NameExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-
 void NameExpr::ExprDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
@@ -553,13 +612,17 @@ void NameExpr::ExprDescribe(ODesc* d) const
 		}
 	}
 
-ConstExpr::ConstExpr(ValPtr arg_val)
-	: Expr(EXPR_CONST), val(std::move(arg_val))
+ConstExpr::ConstExpr(ValPtr arg_val) : Expr(EXPR_CONST), val(std::move(arg_val))
 	{
-	if ( val->GetType()->Tag() == TYPE_LIST && val->AsListVal()->Length() == 1 )
-		val = val->AsListVal()->Idx(0);
+	if ( val )
+		{
+		if ( val->GetType()->Tag() == TYPE_LIST && val->AsListVal()->Length() == 1 )
+			val = val->AsListVal()->Idx(0);
 
-	SetType(val->GetType());
+		SetType(val->GetType());
+		}
+	else
+		SetError();
 	}
 
 void ConstExpr::ExprDescribe(ODesc* d) const
@@ -581,8 +644,7 @@ TraversalCode ConstExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-UnaryExpr::UnaryExpr(BroExprTag arg_tag, ExprPtr arg_op)
-	: Expr(arg_tag), op(std::move(arg_op))
+UnaryExpr::UnaryExpr(BroExprTag arg_tag, ExprPtr arg_op) : Expr(arg_tag), op(std::move(arg_op))
 	{
 	if ( op->IsError() )
 		SetError();
@@ -656,9 +718,8 @@ ValPtr UnaryExpr::Fold(Val* v) const
 
 void UnaryExpr::ExprDescribe(ODesc* d) const
 	{
-	bool is_coerce =
-		Tag() == EXPR_ARITH_COERCE || Tag() == EXPR_RECORD_COERCE ||
-		Tag() == EXPR_TABLE_COERCE;
+	bool is_coerce = Tag() == EXPR_ARITH_COERCE || Tag() == EXPR_RECORD_COERCE ||
+	                 Tag() == EXPR_TABLE_COERCE;
 
 	if ( d->IsReadable() )
 		{
@@ -731,8 +792,8 @@ ValPtr BinaryExpr::Eval(Frame* f) const
 			{
 			auto vv_i = vv->ValAt(i);
 			if ( vv_i )
-				v_result->Assign(i, is_vec1 ? Fold(vv_i.get(), v2.get())
-				                            : Fold(v1.get(), vv_i.get()));
+				v_result->Assign(i,
+				                 is_vec1 ? Fold(vv_i.get(), v2.get()) : Fold(v1.get(), vv_i.get()));
 			else
 				v_result->Assign(i, nullptr);
 			}
@@ -820,111 +881,139 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 	else
 		RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 
-	switch ( tag ) {
-#define DO_INT_FOLD(op) \
-	if ( is_integral ) \
-		i3 = i1 op i2; \
-	else if ( is_unsigned ) \
-		u3 = u1 op u2; \
-	else \
+	switch ( tag )
+		{
+#define DO_INT_FOLD(op)                                                                            \
+	if ( is_integral )                                                                             \
+		i3 = i1 op i2;                                                                             \
+	else if ( is_unsigned )                                                                        \
+		u3 = u1 op u2;                                                                             \
+	else                                                                                           \
 		RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 
-#define DO_UINT_FOLD(op) \
-	if ( is_unsigned ) \
-		u3 = u1 op u2; \
-	else \
+#define DO_UINT_FOLD(op)                                                                           \
+	if ( is_unsigned )                                                                             \
+		u3 = u1 op u2;                                                                             \
+	else                                                                                           \
 		RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 
-#define DO_FOLD(op) \
-	if ( is_integral ) \
-		i3 = i1 op i2; \
-	else if ( is_unsigned ) \
-		u3 = u1 op u2; \
-	else \
+#define DO_FOLD(op)                                                                                \
+	if ( is_integral )                                                                             \
+		i3 = i1 op i2;                                                                             \
+	else if ( is_unsigned )                                                                        \
+		u3 = u1 op u2;                                                                             \
+	else                                                                                           \
 		d3 = d1 op d2;
 
-#define DO_INT_VAL_FOLD(op) \
-	if ( is_integral ) \
-		i3 = i1 op i2; \
-	else if ( is_unsigned ) \
-		i3 = u1 op u2; \
-	else \
+#define DO_INT_VAL_FOLD(op)                                                                        \
+	if ( is_integral )                                                                             \
+		i3 = i1 op i2;                                                                             \
+	else if ( is_unsigned )                                                                        \
+		i3 = u1 op u2;                                                                             \
+	else                                                                                           \
 		i3 = d1 op d2;
 
-	case EXPR_ADD:
-	case EXPR_ADD_TO:	DO_FOLD(+); break;
-	case EXPR_SUB:
-	case EXPR_REMOVE_FROM:	DO_FOLD(-); break;
-	case EXPR_TIMES:	DO_FOLD(*); break;
-	case EXPR_DIVIDE:
-		{
-		if ( is_integral )
+		case EXPR_ADD:
+		case EXPR_ADD_TO:
+			DO_FOLD(+);
+			break;
+		case EXPR_SUB:
+		case EXPR_REMOVE_FROM:
+			DO_FOLD(-);
+			break;
+		case EXPR_TIMES:
+			DO_FOLD(*);
+			break;
+		case EXPR_DIVIDE:
 			{
-			if ( i2 == 0 )
-				RuntimeError("division by zero");
+			if ( is_integral )
+				{
+				if ( i2 == 0 )
+					RuntimeError("division by zero");
 
-			i3 = i1 / i2;
+				i3 = i1 / i2;
+				}
+
+			else if ( is_unsigned )
+				{
+				if ( u2 == 0 )
+					RuntimeError("division by zero");
+
+				u3 = u1 / u2;
+				}
+			else
+				{
+				if ( d2 == 0 )
+					RuntimeError("division by zero");
+
+				d3 = d1 / d2;
+				}
+			}
+			break;
+
+		case EXPR_MOD:
+			{
+			if ( is_integral )
+				{
+				if ( i2 == 0 )
+					RuntimeError("modulo by zero");
+
+				i3 = i1 % i2;
+				}
+
+			else if ( is_unsigned )
+				{
+				if ( u2 == 0 )
+					RuntimeError("modulo by zero");
+
+				u3 = u1 % u2;
+				}
+
+			else
+				RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 			}
 
-		else if ( is_unsigned )
-			{
-			if ( u2 == 0 )
-				RuntimeError("division by zero");
+			break;
 
-			u3 = u1 / u2;
-			}
-		else
-			{
-			if ( d2 == 0 )
-				RuntimeError("division by zero");
+		case EXPR_AND:
+			DO_UINT_FOLD(&);
+			break;
+		case EXPR_OR:
+			DO_UINT_FOLD(|);
+			break;
+		case EXPR_XOR:
+			DO_UINT_FOLD(^);
+			break;
 
-			d3 = d1 / d2;
-			}
+		case EXPR_AND_AND:
+			DO_INT_FOLD(&&);
+			break;
+		case EXPR_OR_OR:
+			DO_INT_FOLD(||);
+			break;
 
+		case EXPR_LT:
+			DO_INT_VAL_FOLD(<);
+			break;
+		case EXPR_LE:
+			DO_INT_VAL_FOLD(<=);
+			break;
+		case EXPR_EQ:
+			DO_INT_VAL_FOLD(==);
+			break;
+		case EXPR_NE:
+			DO_INT_VAL_FOLD(!=);
+			break;
+		case EXPR_GE:
+			DO_INT_VAL_FOLD(>=);
+			break;
+		case EXPR_GT:
+			DO_INT_VAL_FOLD(>);
+			break;
+
+		default:
+			BadTag("BinaryExpr::Fold", expr_name(tag));
 		}
-		break;
-
-	case EXPR_MOD:
-		{
-		if ( is_integral )
-			{
-			if ( i2 == 0 )
-				RuntimeError("modulo by zero");
-
-			i3 = i1 % i2;
-			}
-
-		else if ( is_unsigned )
-			{
-			if ( u2 == 0 )
-				RuntimeError("modulo by zero");
-
-			u3 = u1 % u2;
-			}
-
-		else
-			RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
-		}
-
-		break;
-
-	case EXPR_AND:		DO_UINT_FOLD(&); break;
-	case EXPR_OR:		DO_UINT_FOLD(|); break;
-	case EXPR_XOR:		DO_UINT_FOLD(^); break;
-
-	case EXPR_AND_AND:	DO_INT_FOLD(&&); break;
-	case EXPR_OR_OR:	DO_INT_FOLD(||); break;
-
-	case EXPR_LT:		DO_INT_VAL_FOLD(<); break;
-	case EXPR_LE:		DO_INT_VAL_FOLD(<=); break;
-	case EXPR_EQ:		DO_INT_VAL_FOLD(==); break;
-	case EXPR_NE:		DO_INT_VAL_FOLD(!=); break;
-	case EXPR_GE:		DO_INT_VAL_FOLD(>=); break;
-	case EXPR_GT:		DO_INT_VAL_FOLD(>); break;
-
-	default:
-		BadTag("BinaryExpr::Fold", expr_name(tag));
-	}
 
 	const auto& ret_type = IsVector(GetType()->Tag()) ? GetType()->Yield() : GetType();
 
@@ -948,34 +1037,44 @@ ValPtr BinaryExpr::StringFold(Val* v1, Val* v2) const
 	const String* s2 = v2->AsString();
 	int result = 0;
 
-	switch ( tag ) {
-#undef DO_FOLD
-#define DO_FOLD(sense) { result = Bstr_cmp(s1, s2) sense 0; break; }
-
-	case EXPR_LT:		DO_FOLD(<)
-	case EXPR_LE:		DO_FOLD(<=)
-	case EXPR_EQ:		DO_FOLD(==)
-	case EXPR_NE:		DO_FOLD(!=)
-	case EXPR_GE:		DO_FOLD(>=)
-	case EXPR_GT:		DO_FOLD(>)
-
-	case EXPR_ADD:
-	case EXPR_ADD_TO:
+	switch ( tag )
 		{
-		std::vector<const String*> strings;
-		strings.push_back(s1);
-		strings.push_back(s2);
-
-		return make_intrusive<StringVal>(concatenate(strings));
+#undef DO_FOLD
+#define DO_FOLD(sense)                                                                             \
+		{                                                                                          \
+		result = Bstr_cmp(s1, s2) sense 0;                                                         \
+		break;                                                                                     \
 		}
 
-	default:
-		BadTag("BinaryExpr::StringFold", expr_name(tag));
-	}
+		case EXPR_LT:
+			DO_FOLD(<)
+		case EXPR_LE:
+			DO_FOLD(<=)
+		case EXPR_EQ:
+			DO_FOLD(==)
+		case EXPR_NE:
+			DO_FOLD(!=)
+		case EXPR_GE:
+			DO_FOLD(>=)
+		case EXPR_GT:
+			DO_FOLD(>)
+
+		case EXPR_ADD:
+		case EXPR_ADD_TO:
+			{
+			std::vector<const String*> strings;
+			strings.push_back(s1);
+			strings.push_back(s2);
+
+			return make_intrusive<StringVal>(concatenate(strings));
+			}
+
+		default:
+			BadTag("BinaryExpr::StringFold", expr_name(tag));
+		}
 
 	return val_mgr->Bool(result);
 	}
-
 
 ValPtr BinaryExpr::PatternFold(Val* v1, Val* v2) const
 	{
@@ -985,9 +1084,8 @@ ValPtr BinaryExpr::PatternFold(Val* v1, Val* v2) const
 	if ( tag != EXPR_AND && tag != EXPR_OR )
 		BadTag("BinaryExpr::PatternFold");
 
-	RE_Matcher* res = tag == EXPR_AND ?
-		RE_Matcher_conjunction(re1, re2) :
-		RE_Matcher_disjunction(re1, re2);
+	RE_Matcher* res = tag == EXPR_AND ? RE_Matcher_conjunction(re1, re2)
+	                                  : RE_Matcher_disjunction(re1, re2);
 
 	return make_intrusive<PatternVal>(res);
 	}
@@ -998,56 +1096,57 @@ ValPtr BinaryExpr::SetFold(Val* v1, Val* v2) const
 	TableVal* tv2 = v2->AsTableVal();
 	bool res = false;
 
-	switch ( tag ) {
-	case EXPR_AND:
-		return tv1->Intersection(*tv2);
-
-	case EXPR_OR:
+	switch ( tag )
 		{
-		auto rval = v1->Clone();
+		case EXPR_AND:
+			return tv1->Intersection(*tv2);
 
-		if ( ! tv2->AddTo(rval.get(), false, false) )
-			reporter->InternalError("set union failed to type check");
+		case EXPR_OR:
+			{
+			auto rval = v1->Clone();
 
-		return rval;
+			if ( ! tv2->AddTo(rval.get(), false, false) )
+				reporter->InternalError("set union failed to type check");
+
+			return rval;
+			}
+
+		case EXPR_SUB:
+			{
+			auto rval = v1->Clone();
+
+			if ( ! tv2->RemoveFrom(rval.get()) )
+				reporter->InternalError("set difference failed to type check");
+
+			return rval;
+			}
+
+		case EXPR_EQ:
+			res = tv1->EqualTo(*tv2);
+			break;
+
+		case EXPR_NE:
+			res = ! tv1->EqualTo(*tv2);
+			break;
+
+		case EXPR_LT:
+			res = tv1->IsSubsetOf(*tv2) && tv1->Size() < tv2->Size();
+			break;
+
+		case EXPR_LE:
+			res = tv1->IsSubsetOf(*tv2);
+			break;
+
+		case EXPR_GE:
+		case EXPR_GT:
+			// These should't happen due to canonicalization.
+			reporter->InternalError("confusion over canonicalization in set comparison");
+			break;
+
+		default:
+			BadTag("BinaryExpr::SetFold", expr_name(tag));
+			return nullptr;
 		}
-
-	case EXPR_SUB:
-		{
-		auto rval = v1->Clone();
-
-		if ( ! tv2->RemoveFrom(rval.get()) )
-			reporter->InternalError("set difference failed to type check");
-
-		return rval;
-		}
-
-	case EXPR_EQ:
-		res = tv1->EqualTo(*tv2);
-		break;
-
-	case EXPR_NE:
-		res = ! tv1->EqualTo(*tv2);
-		break;
-
-	case EXPR_LT:
-		res = tv1->IsSubsetOf(*tv2) && tv1->Size() < tv2->Size();
-		break;
-
-	case EXPR_LE:
-		res = tv1->IsSubsetOf(*tv2);
-		break;
-
-	case EXPR_GE:
-	case EXPR_GT:
-		// These should't happen due to canonicalization.
-		reporter->InternalError("confusion over canonicalization in set comparison");
-		break;
-
-	default:
-		BadTag("BinaryExpr::SetFold", expr_name(tag));
-		return nullptr;
-	}
 
 	return val_mgr->Bool(res);
 	}
@@ -1058,30 +1157,31 @@ ValPtr BinaryExpr::AddrFold(Val* v1, Val* v2) const
 	IPAddr a2 = v2->AsAddr();
 	bool result = false;
 
-	switch ( tag ) {
+	switch ( tag )
+		{
 
-	case EXPR_LT:
-		result = a1 < a2;
-		break;
-	case EXPR_LE:
-		result = a1 < a2 || a1 == a2;
-		break;
-	case EXPR_EQ:
-		result = a1 == a2;
-		break;
-	case EXPR_NE:
-		result = a1 != a2;
-		break;
-	case EXPR_GE:
-		result = ! ( a1 < a2 );
-		break;
-	case EXPR_GT:
-		result = ( ! ( a1 < a2 ) ) && ( a1 != a2 );
-		break;
+		case EXPR_LT:
+			result = a1 < a2;
+			break;
+		case EXPR_LE:
+			result = a1 < a2 || a1 == a2;
+			break;
+		case EXPR_EQ:
+			result = a1 == a2;
+			break;
+		case EXPR_NE:
+			result = a1 != a2;
+			break;
+		case EXPR_GE:
+			result = ! (a1 < a2);
+			break;
+		case EXPR_GT:
+			result = (! (a1 < a2)) && (a1 != a2);
+			break;
 
-	default:
-		BadTag("BinaryExpr::AddrFold", expr_name(tag));
-	}
+		default:
+			BadTag("BinaryExpr::AddrFold", expr_name(tag));
+		}
 
 	return val_mgr->Bool(result);
 	}
@@ -1149,8 +1249,7 @@ void BinaryExpr::PromoteForInterval(ExprPtr& op)
 		op = make_intrusive<ArithCoerceExpr>(op, TYPE_DOUBLE);
 	}
 
-CloneExpr::CloneExpr(ExprPtr arg_op)
-	: UnaryExpr(EXPR_CLONE, std::move(arg_op))
+CloneExpr::CloneExpr(ExprPtr arg_op) : UnaryExpr(EXPR_CLONE, std::move(arg_op))
 	{
 	if ( IsError() )
 		return;
@@ -1174,8 +1273,7 @@ ValPtr CloneExpr::Fold(Val* v) const
 	return v->Clone();
 	}
 
-IncrExpr::IncrExpr(BroExprTag arg_tag, ExprPtr arg_op)
-	: UnaryExpr(arg_tag, arg_op->MakeLvalue())
+IncrExpr::IncrExpr(BroExprTag arg_tag, ExprPtr arg_op) : UnaryExpr(arg_tag, arg_op->MakeLvalue())
 	{
 	if ( IsError() )
 		return;
@@ -1211,8 +1309,7 @@ ValPtr IncrExpr::DoSingleEval(Frame* f, Val* v) const
 		{
 		--k;
 
-		if ( k < 0 &&
-		     v->GetType()->InternalType() == TYPE_INTERNAL_UNSIGNED )
+		if ( k < 0 && v->GetType()->InternalType() == TYPE_INTERNAL_UNSIGNED )
 			RuntimeError("count underflow");
 		}
 
@@ -1223,7 +1320,6 @@ ValPtr IncrExpr::DoSingleEval(Frame* f, Val* v) const
 	else
 		return val_mgr->Count(k);
 	}
-
 
 ValPtr IncrExpr::Eval(Frame* f) const
 	{
@@ -1239,7 +1335,8 @@ ValPtr IncrExpr::Eval(Frame* f) const
 		for ( unsigned int i = 0; i < v_vec->Size(); ++i )
 			{
 			auto elt = v_vec->ValAt(i);
-			v_vec->Assign(i, DoSingleEval(f, elt.get()));
+			if ( elt )
+				v_vec->Assign(i, DoSingleEval(f, elt.get()));
 			}
 
 		op->Assign(f, std::move(v_vec));
@@ -1258,8 +1355,7 @@ bool IncrExpr::IsPure() const
 	return false;
 	}
 
-ComplementExpr::ComplementExpr(ExprPtr arg_op)
-	: UnaryExpr(EXPR_COMPLEMENT, std::move(arg_op))
+ComplementExpr::ComplementExpr(ExprPtr arg_op) : UnaryExpr(EXPR_COMPLEMENT, std::move(arg_op))
 	{
 	if ( IsError() )
 		return;
@@ -1275,11 +1371,10 @@ ComplementExpr::ComplementExpr(ExprPtr arg_op)
 
 ValPtr ComplementExpr::Fold(Val* v) const
 	{
-	return val_mgr->Count(~ v->InternalUnsigned());
+	return val_mgr->Count(~v->InternalUnsigned());
 	}
 
-NotExpr::NotExpr(ExprPtr arg_op)
-	: UnaryExpr(EXPR_NOT, std::move(arg_op))
+NotExpr::NotExpr(ExprPtr arg_op) : UnaryExpr(EXPR_NOT, std::move(arg_op))
 	{
 	if ( IsError() )
 		return;
@@ -1297,8 +1392,7 @@ ValPtr NotExpr::Fold(Val* v) const
 	return val_mgr->Bool(! v->InternalInt());
 	}
 
-PosExpr::PosExpr(ExprPtr arg_op)
-	: UnaryExpr(EXPR_POSITIVE, std::move(arg_op))
+PosExpr::PosExpr(ExprPtr arg_op) : UnaryExpr(EXPR_POSITIVE, std::move(arg_op))
 	{
 	if ( IsError() )
 		return;
@@ -1332,8 +1426,7 @@ ValPtr PosExpr::Fold(Val* v) const
 		return val_mgr->Int(v->CoerceToInt());
 	}
 
-NegExpr::NegExpr(ExprPtr arg_op)
-	: UnaryExpr(EXPR_NEGATE, std::move(arg_op))
+NegExpr::NegExpr(ExprPtr arg_op) : UnaryExpr(EXPR_NEGATE, std::move(arg_op))
 	{
 	if ( IsError() )
 		return;
@@ -1360,22 +1453,24 @@ NegExpr::NegExpr(ExprPtr arg_op)
 ValPtr NegExpr::Fold(Val* v) const
 	{
 	if ( v->GetType()->Tag() == TYPE_DOUBLE )
-		return make_intrusive<DoubleVal>(- v->InternalDouble());
+		return make_intrusive<DoubleVal>(-v->InternalDouble());
 	else if ( v->GetType()->Tag() == TYPE_INTERVAL )
-		return make_intrusive<IntervalVal>(- v->InternalDouble());
+		return make_intrusive<IntervalVal>(-v->InternalDouble());
 	else
-		return val_mgr->Int(- v->CoerceToInt());
+		return val_mgr->Int(-v->CoerceToInt());
 	}
 
-SizeExpr::SizeExpr(ExprPtr arg_op)
-	: UnaryExpr(EXPR_SIZE, std::move(arg_op))
+SizeExpr::SizeExpr(ExprPtr arg_op) : UnaryExpr(EXPR_SIZE, std::move(arg_op))
 	{
 	if ( IsError() )
 		return;
 
-	if ( op->GetType()->Tag() == TYPE_ANY )
+	auto& t = op->GetType();
+
+	if ( t->Tag() == TYPE_ANY )
 		SetType(base_type(TYPE_ANY));
-	else if ( op->GetType()->InternalType() == TYPE_INTERNAL_DOUBLE )
+	else if ( t->Tag() == TYPE_FILE || t->Tag() == TYPE_SUBNET ||
+	          t->InternalType() == TYPE_INTERNAL_DOUBLE )
 		SetType(base_type(TYPE_DOUBLE));
 	else
 		SetType(base_type(TYPE_COUNT));
@@ -1397,7 +1492,7 @@ ValPtr SizeExpr::Fold(Val* v) const
 	}
 
 AddExpr::AddExpr(ExprPtr arg_op1, ExprPtr arg_op2)
-    : BinaryExpr(EXPR_ADD, std::move(arg_op1), std::move(arg_op2))
+	: BinaryExpr(EXPR_ADD, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
 		return;
@@ -1414,7 +1509,7 @@ AddExpr::AddExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 
 	TypePtr base_result_type;
 
-	if ( bt2 == TYPE_INTERVAL && ( bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL ) )
+	if ( bt2 == TYPE_INTERVAL && (bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL) )
 		base_result_type = base_type(bt1);
 	else if ( bt2 == TYPE_TIME && bt1 == TYPE_INTERVAL )
 		base_result_type = base_type(bt2);
@@ -1437,16 +1532,14 @@ AddExpr::AddExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 void AddExpr::Canonicize()
 	{
 	if ( expr_greater(op2.get(), op1.get()) ||
-	     (op1->GetType()->Tag() == TYPE_INTERVAL &&
-	      op2->GetType()->Tag() == TYPE_TIME) ||
-	     (op2->IsConst() && ! is_vector(op2->ExprVal()) && ! op1->IsConst()))
+	     (op1->GetType()->Tag() == TYPE_INTERVAL && op2->GetType()->Tag() == TYPE_TIME) ||
+	     (op2->IsConst() && ! is_vector(op2->ExprVal()) && ! op1->IsConst()) )
 		SwapOps();
 	}
 
 AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
-	: BinaryExpr(EXPR_ADD_TO, is_vector(arg_op1) ?
-	             std::move(arg_op1) : arg_op1->MakeLvalue(),
-	             std::move(arg_op2))
+	: BinaryExpr(EXPR_ADD_TO, is_vector(arg_op1) ? std::move(arg_op1) : arg_op1->MakeLvalue(),
+                 std::move(arg_op2))
 	{
 	if ( IsError() )
 		return;
@@ -1478,8 +1571,8 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 			}
 
 		else if ( bt1 != bt2 && bt1 != TYPE_ANY )
-			ExprError(util::fmt("incompatible vector append: %s and %s",
-			                          type_name(bt1), type_name(bt2)));
+			ExprError(
+				util::fmt("incompatible vector append: %s and %s", type_name(bt1), type_name(bt2)));
 
 		else
 			SetType(op1->GetType());
@@ -1539,7 +1632,7 @@ SubExpr::SubExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 
 	TypePtr base_result_type;
 
-	if ( bt2 == TYPE_INTERVAL && ( bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL ) )
+	if ( bt2 == TYPE_INTERVAL && (bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL) )
 		base_result_type = base_type(bt1);
 
 	else if ( bt1 == TYPE_TIME && bt2 == TYPE_TIME )
@@ -1678,8 +1771,7 @@ DivideExpr::DivideExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	else if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 
-	else if ( bt1 == TYPE_ADDR && ! is_vector(op2) &&
-		  (bt2 == TYPE_COUNT || bt2 == TYPE_INT) )
+	else if ( bt1 == TYPE_ADDR && ! is_vector(op2) && (bt2 == TYPE_COUNT || bt2 == TYPE_INT) )
 		SetType(base_type(TYPE_SUBNET));
 
 	else
@@ -1865,8 +1957,7 @@ ValPtr BoolExpr::Eval(Frame* f) const
 		const auto op1 = vec_v1->BoolAt(i);
 		const auto op2 = vec_v2->BoolAt(i);
 
-		bool local_result =
-			(tag == EXPR_AND_AND) ? (op1 && op2) : (op1 || op2);
+		bool local_result = (tag == EXPR_AND_AND) ? (op1 && op2) : (op1 || op2);
 
 		result->Assign(i, val_mgr->Bool(local_result));
 		}
@@ -1951,43 +2042,43 @@ EqExpr::EqExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 		PromoteOps(max_type(bt1, bt2));
 
 	else if ( EitherArithmetic(bt1, bt2) &&
-		// Allow comparisons with zero.
-		  ((bt1 == TYPE_TIME && op2->IsZero()) ||
-		   (bt2 == TYPE_TIME && op1->IsZero())) )
+	          // Allow comparisons with zero.
+	          ((bt1 == TYPE_TIME && op2->IsZero()) || (bt2 == TYPE_TIME && op1->IsZero())) )
 		PromoteOps(TYPE_TIME);
 
 	else if ( bt1 == bt2 )
 		{
-		switch ( bt1 ) {
-		case TYPE_BOOL:
-		case TYPE_TIME:
-		case TYPE_INTERVAL:
-		case TYPE_STRING:
-		case TYPE_PORT:
-		case TYPE_ADDR:
-		case TYPE_SUBNET:
-		case TYPE_ERROR:
-		case TYPE_FUNC:
-			break;
-
-		case TYPE_ENUM:
-			if ( ! same_type(t1, t2) )
-				ExprError("illegal enum comparison");
-			break;
-
-		case TYPE_TABLE:
-			if ( t1->IsSet() && t2->IsSet() )
-				{
-				if ( ! same_type(t1, t2) )
-					ExprError("incompatible sets in comparison");
+		switch ( bt1 )
+			{
+			case TYPE_BOOL:
+			case TYPE_TIME:
+			case TYPE_INTERVAL:
+			case TYPE_STRING:
+			case TYPE_PORT:
+			case TYPE_ADDR:
+			case TYPE_SUBNET:
+			case TYPE_ERROR:
+			case TYPE_FUNC:
 				break;
-				}
 
-			// FALL THROUGH
+			case TYPE_ENUM:
+				if ( ! same_type(t1, t2) )
+					ExprError("illegal enum comparison");
+				break;
 
-		default:
-			ExprError("illegal comparison");
-		}
+			case TYPE_TABLE:
+				if ( t1->IsSet() && t2->IsSet() )
+					{
+					if ( ! same_type(t1, t2) )
+						ExprError("incompatible sets in comparison");
+					break;
+					}
+
+				// FALL THROUGH
+
+			default:
+				ExprError("illegal comparison");
+			}
 		}
 
 	else if ( bt1 == TYPE_PATTERN && bt2 == TYPE_STRING )
@@ -2030,6 +2121,12 @@ ValPtr EqExpr::Fold(Val* v1, Val* v2) const
 		return BinaryExpr::Fold(v1, v2);
 	}
 
+bool EqExpr::InvertSense()
+	{
+	tag = (tag == EXPR_EQ ? EXPR_NE : EXPR_EQ);
+	return true;
+	}
+
 RelExpr::RelExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
@@ -2066,9 +2163,8 @@ RelExpr::RelExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	else if ( bt1 != bt2 )
 		ExprError("operands must be of the same type");
 
-	else if ( bt1 != TYPE_TIME && bt1 != TYPE_INTERVAL &&
-		  bt1 != TYPE_PORT && bt1 != TYPE_ADDR &&
-		  bt1 != TYPE_STRING )
+	else if ( bt1 != TYPE_TIME && bt1 != TYPE_INTERVAL && bt1 != TYPE_PORT && bt1 != TYPE_ADDR &&
+	          bt1 != TYPE_STRING )
 		ExprError("illegal comparison");
 	}
 
@@ -2087,9 +2183,30 @@ void RelExpr::Canonicize()
 		}
 	}
 
+bool RelExpr::InvertSense()
+	{
+	switch ( tag )
+		{
+		case EXPR_LT:
+			tag = EXPR_GE;
+			return true;
+		case EXPR_LE:
+			tag = EXPR_GT;
+			return true;
+		case EXPR_GE:
+			tag = EXPR_LT;
+			return true;
+		case EXPR_GT:
+			tag = EXPR_LE;
+			return true;
+
+		default:
+			return false;
+		}
+	}
+
 CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)
-	: Expr(EXPR_COND),
-	  op1(std::move(arg_op1)), op2(std::move(arg_op2)), op3(std::move(arg_op3))
+	: Expr(EXPR_COND), op1(std::move(arg_op1)), op2(std::move(arg_op2)), op3(std::move(arg_op3))
 	{
 	TypeTag bt1 = op1->GetType()->Tag();
 
@@ -2151,7 +2268,7 @@ CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)
 
 				if ( tt2->IsUnspecifiedTable() )
 					op2 = make_intrusive<TableCoerceExpr>(std::move(op2), std::move(tt3));
-				else if( tt3->IsUnspecifiedTable() )
+				else if ( tt3->IsUnspecifiedTable() )
 					op3 = make_intrusive<TableCoerceExpr>(std::move(op3), std::move(tt2));
 				else if ( ! same_type(op2->GetType(), op3->GetType()) )
 					ExprError("operands must be of the same type");
@@ -2163,7 +2280,7 @@ CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)
 
 				if ( vt2->IsUnspecifiedVector() )
 					op2 = make_intrusive<VectorCoerceExpr>(std::move(op2), std::move(vt3));
-				else if( vt3->IsUnspecifiedVector() )
+				else if ( vt3->IsUnspecifiedVector() )
 					op3 = make_intrusive<VectorCoerceExpr>(std::move(op3), std::move(vt2));
 				else if ( ! same_type(op2->GetType(), op3->GetType()) )
 					ExprError("operands must be of the same type");
@@ -2259,8 +2376,7 @@ void CondExpr::ExprDescribe(ODesc* d) const
 	op3->Describe(d);
 	}
 
-RefExpr::RefExpr(ExprPtr arg_op)
-	: UnaryExpr(EXPR_REF, std::move(arg_op))
+RefExpr::RefExpr(ExprPtr arg_op) : UnaryExpr(EXPR_REF, std::move(arg_op))
 	{
 	if ( IsError() )
 		return;
@@ -2281,14 +2397,10 @@ void RefExpr::Assign(Frame* f, ValPtr v)
 	op->Assign(f, std::move(v));
 	}
 
-AssignExpr::AssignExpr(ExprPtr arg_op1,
-                       ExprPtr arg_op2,
-                       bool arg_is_init, ValPtr arg_val,
-                       const AttributesPtr& attrs,
-                       bool typecheck)
-	: BinaryExpr(EXPR_ASSIGN, arg_is_init ?
-	             std::move(arg_op1) : arg_op1->MakeLvalue(),
-	             std::move(arg_op2))
+AssignExpr::AssignExpr(ExprPtr arg_op1, ExprPtr arg_op2, bool arg_is_init, ValPtr arg_val,
+                       const AttributesPtr& attrs, bool typecheck)
+	: BinaryExpr(EXPR_ASSIGN, arg_is_init ? std::move(arg_op1) : arg_op1->MakeLvalue(),
+                 std::move(arg_op2))
 	{
 	val = nullptr;
 	is_init = arg_is_init;
@@ -2303,15 +2415,14 @@ AssignExpr::AssignExpr(ExprPtr arg_op1,
 
 	if ( is_init )
 		{
-		SetLocationInfo(op1->GetLocationInfo(),
-				op2->GetLocationInfo());
+		SetLocationInfo(op1->GetLocationInfo(), op2->GetLocationInfo());
 		return;
 		}
 
 	if ( typecheck )
 		// We discard the status from TypeCheck since it has already
 		// generated error messages.
-		(void) TypeCheck(attrs);
+		(void)TypeCheck(attrs);
 
 	val = std::move(arg_val);
 
@@ -2344,8 +2455,7 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 		return true;
 		}
 
-	if ( bt1 == TYPE_TABLE && bt2 == bt1 &&
-	     op2->GetType()->AsTableType()->IsUnspecifiedTable() )
+	if ( bt1 == TYPE_TABLE && bt2 == bt1 && op2->GetType()->AsTableType()->IsUnspecifiedTable() )
 		{
 		op2 = make_intrusive<TableCoerceExpr>(std::move(op2), op1->GetType<TableType>());
 		return true;
@@ -2359,11 +2469,11 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 			attr_copy = std::make_unique<std::vector<AttrPtr>>(attrs->GetAttrs());
 
 		if ( op1->GetType()->IsSet() )
-			op2 = make_intrusive<SetConstructorExpr>(
-			        cast_intrusive<ListExpr>(op2), std::move(attr_copy), op1->GetType());
+			op2 = make_intrusive<SetConstructorExpr>(cast_intrusive<ListExpr>(op2),
+			                                         std::move(attr_copy), op1->GetType());
 		else
-			op2 = make_intrusive<TableConstructorExpr>(
-			        cast_intrusive<ListExpr>(op2), std::move(attr_copy), op1->GetType());
+			op2 = make_intrusive<TableConstructorExpr>(cast_intrusive<ListExpr>(op2),
+			                                           std::move(attr_copy), op1->GetType());
 
 		// The constructor expressions are performing the type
 		// checking and will set op2 to an error state on failure.
@@ -2381,14 +2491,12 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 		if ( op2->Tag() == EXPR_LIST )
 			{
 			op2 = make_intrusive<VectorConstructorExpr>(
-				IntrusivePtr{AdoptRef{}, op2.release()->AsListExpr()},
-				op1->GetType());
+				IntrusivePtr{AdoptRef{}, op2.release()->AsListExpr()}, op1->GetType());
 			return true;
 			}
 		}
 
-	if ( op1->GetType()->Tag() == TYPE_RECORD &&
-	     op2->GetType()->Tag() == TYPE_RECORD )
+	if ( op1->GetType()->Tag() == TYPE_RECORD && op2->GetType()->Tag() == TYPE_RECORD )
 		{
 		if ( same_type(op1->GetType(), op2->GetType()) )
 			return true;
@@ -2425,7 +2533,6 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 
 				std::unique_ptr<std::vector<AttrPtr>> attr_copy;
 
-
 				if ( sce->GetAttrs() )
 					{
 					const auto& a = sce->GetAttrs()->GetAttrs();
@@ -2433,10 +2540,8 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 					}
 
 				int errors_before = reporter->Errors();
-				op2 = make_intrusive<SetConstructorExpr>(
-					IntrusivePtr{NewRef{}, ctor_list},
-					std::move(attr_copy),
-					op1->GetType());
+				op2 = make_intrusive<SetConstructorExpr>(IntrusivePtr{NewRef{}, ctor_list},
+				                                         std::move(attr_copy), op1->GetType());
 				int errors_after = reporter->Errors();
 
 				if ( errors_after > errors_before )
@@ -2461,7 +2566,7 @@ bool AssignExpr::TypeCheckArithmetics(TypeTag bt1, TypeTag bt2)
 	if ( ! IsArithmetic(bt2) )
 		{
 		ExprError(util::fmt("assignment of non-arithmetic value to arithmetic (%s/%s)",
-		                          type_name(bt1), type_name(bt2)));
+		                    type_name(bt1), type_name(bt2)));
 		return false;
 		}
 
@@ -2496,7 +2601,6 @@ bool AssignExpr::TypeCheckArithmetics(TypeTag bt1, TypeTag bt2)
 	return true;
 	}
 
-
 ValPtr AssignExpr::Eval(Frame* f) const
 	{
 	if ( is_init )
@@ -2530,9 +2634,7 @@ TypePtr AssignExpr::InitType() const
 	if ( tl->Tag() != TYPE_LIST )
 		Internal("inconsistent list expr in AssignExpr::InitType");
 
-	return make_intrusive<TableType>(
-		IntrusivePtr{NewRef{}, tl->AsTypeList()},
-		op2->GetType());
+	return make_intrusive<TableType>(IntrusivePtr{NewRef{}, tl->AsTypeList()}, op2->GetType());
 	}
 
 void AssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const
@@ -2656,8 +2758,7 @@ ValPtr AssignExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 				}
 
 			if ( ! same_type(*yt, *op2->GetType()) &&
-			     ! record_promotion_compatible(yt->AsRecordType(),
-			                                   op2->GetType()->AsRecordType()) )
+			     ! record_promotion_compatible(yt->AsRecordType(), op2->GetType()->AsRecordType()) )
 				{
 				Error("type mismatch in table value initialization: "
 				      "incompatible record types");
@@ -2699,7 +2800,7 @@ bool AssignExpr::IsRecordElement(TypeDecl* td) const
 		{
 		if ( td )
 			{
-			const NameExpr* n = (const NameExpr*) op1.get();
+			const NameExpr* n = (const NameExpr*)op1.get();
 			td->type = op2->GetType();
 			td->id = util::copy_string(n->Id()->Name());
 			}
@@ -2735,8 +2836,7 @@ ValPtr IndexSliceAssignExpr::Eval(Frame* f) const
 	}
 
 IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice)
-	: BinaryExpr(EXPR_INDEX, std::move(arg_op1), std::move(arg_op2)),
-	  is_slice(arg_is_slice)
+	: BinaryExpr(EXPR_INDEX, std::move(arg_op1), std::move(arg_op2)), is_slice(arg_is_slice)
 	{
 	if ( IsError() )
 		return;
@@ -2760,9 +2860,9 @@ IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice)
 
 	if ( match_type == DOES_NOT_MATCH_INDEX )
 		{
-		std::string error_msg =
-		    util::fmt("expression with type '%s' is not a type that can be indexed",
-		                    type_name(op1->GetType()->Tag()));
+		std::string error_msg = util::fmt(
+			"expression with type '%s' is not a type that can be indexed",
+			type_name(op1->GetType()->Tag()));
 		SetError(error_msg.data());
 		}
 
@@ -2791,7 +2891,7 @@ IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice)
 bool IndexExpr::CanAdd() const
 	{
 	if ( IsError() )
-		return true;	// avoid cascading the error report
+		return true; // avoid cascading the error report
 
 	// "add" only allowed if our type is "set".
 	return op1->GetType()->IsSet();
@@ -2800,7 +2900,7 @@ bool IndexExpr::CanAdd() const
 bool IndexExpr::CanDel() const
 	{
 	if ( IsError() )
-		return true;	// avoid cascading the error report
+		return true; // avoid cascading the error report
 
 	return op1->GetType()->Tag() == TYPE_TABLE;
 	}
@@ -2828,7 +2928,8 @@ void IndexExpr::Add(Frame* f)
 		ODesc d;
 		Describe(&d);
 		reporter->PushLocation(GetLocationInfo());
-		reporter->Warning("possible loop/iterator invalidation caused by expression: %s", d.Description());
+		reporter->Warning("possible loop/iterator invalidation caused by expression: %s",
+		                  d.Description());
 		reporter->PopLocation();
 		}
 	}
@@ -2856,7 +2957,8 @@ void IndexExpr::Delete(Frame* f)
 		ODesc d;
 		Describe(&d);
 		reporter->PushLocation(GetLocationInfo());
-		reporter->Warning("possible loop/iterator invalidation caused by expression: %s", d.Description());
+		reporter->Warning("possible loop/iterator invalidation caused by expression: %s",
+		                  d.Description());
 		reporter->PopLocation();
 		}
 	}
@@ -2883,11 +2985,11 @@ ValPtr IndexExpr::Eval(Frame* f) const
 
 	Val* indv = v2->AsListVal()->Idx(0).get();
 
-	if ( is_vector(indv) )
+	if ( is_vector(v1) && is_vector(indv) )
 		{
 		VectorVal* v_v1 = v1->AsVectorVal();
 		VectorVal* v_v2 = indv->AsVectorVal();
-		auto v_result = make_intrusive<VectorVal>(GetType<VectorType>());
+		auto vt = cast_intrusive<VectorType>(GetType());
 
 		// Booleans select each element (or not).
 		if ( IsBool(v_v2->GetType()->Yield()->Tag()) )
@@ -2898,23 +3000,11 @@ ValPtr IndexExpr::Eval(Frame* f) const
 				return nullptr;
 				}
 
-			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
-				{
-				if ( v_v2->BoolAt(i) )
-					v_result->Assign(v_result->Size() + 1, v_v1->ValAt(i));
-				}
+			return vector_bool_select(vt, v_v1, v_v2);
 			}
 		else
-			{ // The elements are indices.
-			// ### Should handle negative indices here like
-			// S does, i.e., by excluding those elements.
-			// Probably only do this if *all* are negative.
-			v_result->Resize(v_v2->Size());
-			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
-				v_result->Assign(i, v_v1->ValAt(v_v2->ValAt(i)->CoerceToInt()));
-			}
-
-		return v_result;
+			// Elements are indices.
+			return vector_int_select(vt, v_v1, v_v2);
 		}
 	else
 		return Fold(v1.get(), v2.get());
@@ -2927,30 +3017,31 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 
 	ValPtr v;
 
-	switch ( v1->GetType()->Tag() ) {
-	case TYPE_VECTOR:
+	switch ( v1->GetType()->Tag() )
 		{
-		VectorVal* vect = v1->AsVectorVal();
-		const ListVal* lv = v2->AsListVal();
+		case TYPE_VECTOR:
+			{
+			VectorVal* vect = v1->AsVectorVal();
+			const ListVal* lv = v2->AsListVal();
 
-		if ( lv->Length() == 1 )
-			v = vect->ValAt(lv->Idx(0)->CoerceToUnsigned());
-		else
-			return index_slice(vect, lv);
+			if ( lv->Length() == 1 )
+				v = vect->ValAt(lv->Idx(0)->CoerceToUnsigned());
+			else
+				return index_slice(vect, lv);
+			}
+			break;
+
+		case TYPE_TABLE:
+			v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2});
+			break;
+
+		case TYPE_STRING:
+			return index_string(v1->AsString(), v2->AsListVal());
+
+		default:
+			RuntimeError("type cannot be indexed");
+			break;
 		}
-		break;
-
-	case TYPE_TABLE:
-		v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2}); // Then, we jump into the TableVal here.
-		break;
-
-	case TYPE_STRING:
-		return index_string(v1->AsString(), v2->AsListVal());
-
-	default:
-		RuntimeError("type cannot be indexed");
-		break;
-	}
 
 	if ( v )
 		return v;
@@ -3016,6 +3107,33 @@ VectorValPtr index_slice(VectorVal* vect, int _first, int _last)
 	return result;
 	}
 
+VectorValPtr vector_bool_select(VectorTypePtr vt, const VectorVal* v1, const VectorVal* v2)
+	{
+	auto v_result = make_intrusive<VectorVal>(std::move(vt));
+
+	for ( unsigned int i = 0; i < v2->Size(); ++i )
+		if ( v2->BoolAt(i) )
+			v_result->Assign(v_result->Size() + 1, v1->ValAt(i));
+
+	return v_result;
+	}
+
+VectorValPtr vector_int_select(VectorTypePtr vt, const VectorVal* v1, const VectorVal* v2)
+	{
+	auto v_result = make_intrusive<VectorVal>(std::move(vt));
+
+	// The elements are indices.
+	//
+	// ### Should handle negative indices here like S does, i.e.,
+	// by excluding those elements.  Probably only do this if *all*
+	// are negative.
+	v_result->Resize(v2->Size());
+	for ( unsigned int i = 0; i < v2->Size(); ++i )
+		v_result->Assign(i, v1->ValAt(v2->ValAt(i)->CoerceToInt()));
+
+	return v_result;
+	}
+
 void IndexExpr::Assign(Frame* f, ValPtr v)
 	{
 	if ( IsError() )
@@ -3039,8 +3157,8 @@ void IndexExpr::ExprDescribe(ODesc* d) const
 	}
 
 FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
-	: UnaryExpr(EXPR_FIELD, std::move(arg_op)),
-	  field_name(util::copy_string(arg_field_name)), td(nullptr), field(0)
+	: UnaryExpr(EXPR_FIELD, std::move(arg_op)), field_name(util::copy_string(arg_field_name)),
+	  td(nullptr), field(0)
 	{
 	if ( IsError() )
 		return;
@@ -3067,7 +3185,7 @@ FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
 
 FieldExpr::~FieldExpr()
 	{
-	delete [] field_name;
+	delete[] field_name;
 	}
 
 ExprPtr FieldExpr::MakeLvalue()
@@ -3130,8 +3248,7 @@ void FieldExpr::ExprDescribe(ODesc* d) const
 	}
 
 HasFieldExpr::HasFieldExpr(ExprPtr arg_op, const char* arg_field_name)
-	: UnaryExpr(EXPR_HAS_FIELD, std::move(arg_op)),
-	  field_name(arg_field_name), field(0)
+	: UnaryExpr(EXPR_HAS_FIELD, std::move(arg_op)), field_name(arg_field_name), field(0)
 	{
 	if ( IsError() )
 		return;
@@ -3179,7 +3296,7 @@ void HasFieldExpr::ExprDescribe(ODesc* d) const
 	}
 
 RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
-	: Expr(EXPR_RECORD_CONSTRUCTOR), op(std::move(constructor_list))
+	: Expr(EXPR_RECORD_CONSTRUCTOR), op(std::move(constructor_list)), map(std::nullopt)
 	{
 	if ( IsError() )
 		return;
@@ -3199,7 +3316,7 @@ RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
 			continue;
 			}
 
-		FieldAssignExpr* field = (FieldAssignExpr*) e;
+		FieldAssignExpr* field = (FieldAssignExpr*)e;
 		const auto& field_type = field->GetType();
 		char* field_name = util::copy_string(field->FieldName());
 		record_types->push_back(new TypeDecl(field_name, field_type));
@@ -3208,12 +3325,57 @@ RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
 	SetType(make_intrusive<RecordType>(record_types));
 	}
 
-RecordConstructorExpr::~RecordConstructorExpr()
+RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr constructor_list)
+	: Expr(EXPR_RECORD_CONSTRUCTOR), op(std::move(constructor_list))
 	{
+	if ( IsError() )
+		return;
+
+	SetType(known_rt);
+
+	const auto& exprs = op->AsListExpr()->Exprs();
+	map = std::vector<int>(exprs.length());
+
+	int i = 0;
+	for ( const auto& e : exprs )
+		{
+		if ( e->Tag() != EXPR_FIELD_ASSIGN )
+			{
+			Error("bad type in record constructor", e);
+			SetError();
+			continue;
+			}
+
+		auto field = e->AsFieldAssignExpr();
+		int index = known_rt->FieldOffset(field->FieldName());
+
+		if ( index < 0 )
+			{
+			Error("no such field in record", e);
+			SetError();
+			continue;
+			}
+
+		auto known_ft = known_rt->GetFieldType(index);
+
+		if ( ! field->PromoteTo(known_ft) )
+			SetError();
+
+		(*map)[i++] = index;
+		}
 	}
 
 ValPtr RecordConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
+	if ( IsError() )
+		{
+		Error("bad record initializer");
+		return nullptr;
+		}
+
+	if ( ! init_tag_check(this, "record constructor", TYPE_RECORD, t->Tag()) )
+		return nullptr;
+
 	auto v = Eval(nullptr);
 
 	if ( v )
@@ -3240,13 +3402,16 @@ ValPtr RecordConstructorExpr::Eval(Frame* f) const
 	const auto& exprs = op->Exprs();
 	auto rt = cast_intrusive<RecordType>(type);
 
-	if ( exprs.length() != rt->NumFields() )
+	if ( ! map && exprs.length() != rt->NumFields() )
 		RuntimeErrorWithCallStack("inconsistency evaluating record constructor");
 
 	auto rv = make_intrusive<RecordVal>(std::move(rt));
 
 	for ( int i = 0; i < exprs.length(); ++i )
-		rv->Assign(i, exprs[i]->Eval(f));
+		{
+		int ind = map ? (*map)[i] : i;
+		rv->Assign(ind, exprs[i]->Eval(f));
+		}
 
 	return rv;
 	}
@@ -3258,9 +3423,21 @@ bool RecordConstructorExpr::IsPure() const
 
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const
 	{
-	d->Add("[");
-	op->Describe(d);
-	d->Add("]");
+	auto& tn = type->GetName();
+
+	if ( tn.size() > 0 )
+		{
+		d->Add(tn);
+		d->Add("(");
+		op->Describe(d);
+		d->Add(")");
+		}
+	else
+		{
+		d->Add("[");
+		op->Describe(d);
+		d->Add("]");
+		}
 	}
 
 TraversalCode RecordConstructorExpr::Traverse(TraversalCallback* cb) const
@@ -3277,8 +3454,7 @@ TraversalCode RecordConstructorExpr::Traverse(TraversalCallback* cb) const
 
 TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
                                            std::unique_ptr<std::vector<AttrPtr>> arg_attrs,
-                                           TypePtr arg_type,
-                                           AttributesPtr arg_attrs2)
+                                           TypePtr arg_type, AttributesPtr arg_attrs2)
 	: UnaryExpr(EXPR_TABLE_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
@@ -3298,7 +3474,8 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 	else
 		{
 		if ( op->AsListExpr()->Exprs().empty() )
-			SetType(make_intrusive<TableType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
+			SetType(
+				make_intrusive<TableType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
 		else
 			{
 			SetType(init_type(op.get()));
@@ -3306,8 +3483,7 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 			if ( ! type )
 				SetError();
 
-			else if ( type->Tag() != TYPE_TABLE ||
-				  type->AsTableType()->IsSet() )
+			else if ( type->Tag() != TYPE_TABLE || type->AsTableType()->IsSet() )
 				SetError("values in table(...) constructor do not specify a table");
 			}
 		}
@@ -3326,9 +3502,9 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 		if ( expr->Tag() != EXPR_ASSIGN )
 			continue;
 
-		auto idx_expr = expr->AsAssignExpr()->Op1();
-		auto val_expr = expr->AsAssignExpr()->Op2();
-		auto yield_type = GetType()->AsTableType()->Yield().get();
+		auto idx_expr = expr->AsAssignExpr()->GetOp1();
+		auto val_expr = expr->AsAssignExpr()->GetOp2();
+		auto yield_type = GetType()->AsTableType()->Yield();
 
 		// Promote LHS
 		assert(idx_expr->Tag() == EXPR_LIST);
@@ -3339,17 +3515,14 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 
 		loop_over_list(idx_exprs, j)
 			{
-			Expr* idx = idx_exprs[j];
+			ExprPtr idx = {NewRef{}, idx_exprs[j]};
 
-			auto promoted_idx = check_and_promote_expr(idx, indices[j].get());
+			auto promoted_idx = check_and_promote_expr(idx, indices[j]);
 
 			if ( promoted_idx )
 				{
-				if ( promoted_idx.get() != idx )
-					{
-					Unref(idx);
-					idx_exprs.replace(j, promoted_idx.release());
-					}
+				if ( promoted_idx != idx )
+					Unref(idx_exprs.replace(j, promoted_idx.release()));
 
 				continue;
 				}
@@ -3393,11 +3566,13 @@ ValPtr TableConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	if ( IsError() )
 		return nullptr;
 
+	if ( ! init_tag_check(this, "table constructor", TYPE_TABLE, t->Tag()) )
+		return nullptr;
+
 	auto tt = GetType<TableType>();
 
-	auto tval = aggr ?
-	        TableValPtr{AdoptRef{}, aggr.release()->AsTableVal()} :
-	        make_intrusive<TableVal>(std::move(tt), attrs);
+	auto tval = aggr ? TableValPtr{AdoptRef{}, aggr.release()->AsTableVal()}
+	                 : make_intrusive<TableVal>(std::move(tt), attrs);
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
@@ -3415,8 +3590,7 @@ void TableConstructorExpr::ExprDescribe(ODesc* d) const
 
 SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
                                        std::unique_ptr<std::vector<AttrPtr>> arg_attrs,
-                                       TypePtr arg_type,
-                                       AttributesPtr arg_attrs2)
+                                       TypePtr arg_type, AttributesPtr arg_attrs2)
 	: UnaryExpr(EXPR_SET_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
@@ -3436,7 +3610,8 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 	else
 		{
 		if ( op->AsListExpr()->Exprs().empty() )
-			SetType(make_intrusive<zeek::SetType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
+			SetType(make_intrusive<zeek::SetType>(make_intrusive<TypeList>(base_type(TYPE_ANY)),
+			                                      nullptr));
 		else
 			SetType(init_type(op.get()));
 		}
@@ -3457,8 +3632,7 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 
 	if ( indices.size() == 1 )
 		{
-		if ( ! check_and_promote_exprs_to_type(op->AsListExpr(),
-		                                       indices[0].get()) )
+		if ( ! check_and_promote_exprs_to_type(op->AsListExpr(), indices[0]) )
 			ExprError("inconsistent type in set constructor");
 		}
 
@@ -3489,8 +3663,7 @@ ValPtr SetConstructorExpr::Eval(Frame* f) const
 	if ( IsError() )
 		return nullptr;
 
-	auto aggr = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()},
-	                                     attrs);
+	auto aggr = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()}, attrs);
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
@@ -3507,11 +3680,13 @@ ValPtr SetConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	if ( IsError() )
 		return nullptr;
 
+	if ( ! init_tag_check(this, "set constructor", TYPE_TABLE, t->Tag()) )
+		return nullptr;
+
 	const auto& index_type = t->AsTableType()->GetIndices();
 	auto tt = GetType<TableType>();
-	auto tval = aggr ?
-	        TableValPtr{AdoptRef{}, aggr.release()->AsTableVal()} :
-	make_intrusive<TableVal>(std::move(tt), attrs);
+	auto tval = aggr ? TableValPtr{AdoptRef{}, aggr.release()->AsTableVal()}
+	                 : make_intrusive<TableVal>(std::move(tt), attrs);
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& e : exprs )
@@ -3535,8 +3710,7 @@ void SetConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add(")");
 	}
 
-VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list,
-                                             TypePtr arg_type)
+VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list, TypePtr arg_type)
 	: UnaryExpr(EXPR_VECTOR_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
@@ -3573,8 +3747,7 @@ VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list,
 			}
 		}
 
-	if ( ! check_and_promote_exprs_to_type(op->AsListExpr(),
-					       type->AsVectorType()->Yield().get()) )
+	if ( ! check_and_promote_exprs_to_type(op->AsListExpr(), type->AsVectorType()->Yield()) )
 		ExprError("inconsistent types in vector constructor");
 	}
 
@@ -3605,10 +3778,12 @@ ValPtr VectorConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	if ( IsError() )
 		return nullptr;
 
+	if ( ! init_tag_check(this, "vector constructor", TYPE_VECTOR, t->Tag()) )
+		return nullptr;
+
 	auto vt = GetType<VectorType>();
-	auto vec = aggr ?
-	        VectorValPtr{AdoptRef{}, aggr.release()->AsVectorVal()} :
-	make_intrusive<VectorVal>(std::move(vt));
+	auto vec = aggr ? VectorValPtr{AdoptRef{}, aggr.release()->AsVectorVal()}
+	                : make_intrusive<VectorVal>(std::move(vt));
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	loop_over_list(exprs, i)
@@ -3639,8 +3814,13 @@ FieldAssignExpr::FieldAssignExpr(const char* arg_field_name, ExprPtr value)
 	SetType(op->GetType());
 	}
 
-void FieldAssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f)
-	const
+bool FieldAssignExpr::PromoteTo(TypePtr t)
+	{
+	op = check_and_promote_expr(op, t);
+	return op != nullptr;
+	}
+
+void FieldAssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const
 	{
 	if ( IsError() )
 		return;
@@ -3653,8 +3833,7 @@ void FieldAssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f
 		int idx = rt->FieldOffset(field_name.c_str());
 
 		if ( idx < 0 )
-			reporter->InternalError("Missing record field: %s",
-			                              field_name.c_str());
+			reporter->InternalError("Missing record field: %s", field_name.c_str());
 
 		rec->Assign(idx, std::move(v));
 		}
@@ -3676,11 +3855,15 @@ void FieldAssignExpr::ExprDescribe(ODesc* d) const
 	d->Add("$");
 	d->Add(FieldName());
 	d->Add("=");
-	op->Describe(d);
+
+	if ( op )
+		op->Describe(d);
+	else
+		d->Add("<error>");
 	}
 
 ArithCoerceExpr::ArithCoerceExpr(ExprPtr arg_op, TypeTag t)
-: UnaryExpr(EXPR_ARITH_COERCE, std::move(arg_op))
+	: UnaryExpr(EXPR_ARITH_COERCE, std::move(arg_op))
 	{
 	if ( IsError() )
 		return;
@@ -3699,58 +3882,43 @@ ArithCoerceExpr::ArithCoerceExpr(ExprPtr arg_op, TypeTag t)
 	if ( (bt == TYPE_ENUM) != (t == TYPE_ENUM) )
 		ExprError("can't convert to/from enumerated type");
 
-	else if ( ! IsArithmetic(t) && ! IsBool(t) &&
-		  t != TYPE_TIME && t != TYPE_INTERVAL )
+	else if ( ! IsArithmetic(t) && ! IsBool(t) && t != TYPE_TIME && t != TYPE_INTERVAL )
 		ExprError("bad coercion");
 
-	else if ( ! IsArithmetic(bt) && ! IsBool(bt) &&
-		  ! IsArithmetic(vbt) && ! IsBool(vbt) )
+	else if ( ! IsArithmetic(bt) && ! IsBool(bt) && ! IsArithmetic(vbt) && ! IsBool(vbt) )
 		ExprError("bad coercion value");
 	}
 
-ValPtr ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) const
+ValPtr ArithCoerceExpr::FoldSingleVal(ValPtr v, const TypePtr& t) const
 	{
-	switch ( t ) {
-	case TYPE_INTERNAL_DOUBLE:
-		return make_intrusive<DoubleVal>(v->CoerceToDouble());
-
-	case TYPE_INTERNAL_INT:
-		return val_mgr->Int(v->CoerceToInt());
-
-	case TYPE_INTERNAL_UNSIGNED:
-		return val_mgr->Count(v->CoerceToUnsigned());
-
-	default:
-		RuntimeErrorWithCallStack("bad type in CoerceExpr::Fold");
-		return nullptr;
-	}
+	return check_and_promote(v, t.get(), false, location);
 	}
 
 ValPtr ArithCoerceExpr::Fold(Val* v) const
 	{
-	InternalTypeTag t = type->InternalType();
+	auto t = GetType();
 
 	if ( ! is_vector(v) )
 		{
 		// Our result type might be vector, in which case this
 		// invocation is being done per-element rather than on
-		// the whole vector.  Correct the type tag if necessary.
+		// the whole vector.  Correct the type if so.
 		if ( type->Tag() == TYPE_VECTOR )
-			t = GetType()->AsVectorType()->Yield()->InternalType();
+			t = t->AsVectorType()->Yield();
 
-		return FoldSingleVal(v, t);
+		return FoldSingleVal({NewRef{}, v}, t);
 		}
 
-	t = GetType()->AsVectorType()->Yield()->InternalType();
-
 	VectorVal* vv = v->AsVectorVal();
-	auto result = make_intrusive<VectorVal>(GetType<VectorType>());
+	auto result = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
+
+	auto yt = t->AsVectorType()->Yield();
 
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
 		auto elt = vv->ValAt(i);
 		if ( elt )
-			result->Assign(i, FoldSingleVal(elt.get(), t));
+			result->Assign(i, FoldSingleVal(elt, yt));
 		else
 			result->Assign(i, nullptr);
 		}
@@ -3778,7 +3946,7 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 		RecordType* sub_r = op->GetType()->AsRecordType();
 
 		int map_size = t_r->NumFields();
-		map.resize(map_size, -1);	// -1 = field is not mapped
+		map.resize(map_size, -1); // -1 = field is not mapped
 
 		int i;
 		for ( i = 0; i < sub_r->NumFields(); ++i )
@@ -3786,8 +3954,8 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 			int t_i = t_r->FieldOffset(sub_r->FieldName(i));
 			if ( t_i < 0 )
 				{
-				ExprError(util::fmt("orphaned field \"%s\" in record coercion",
-				                          sub_r->FieldName(i)));
+				ExprError(
+					util::fmt("orphaned field \"%s\" in record coercion", sub_r->FieldName(i)));
 				break;
 				}
 
@@ -3797,7 +3965,7 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 			if ( ! same_type(sup_t_i, sub_t_i) )
 				{
 				auto is_arithmetic_promotable = [](zeek::Type* sup, zeek::Type* sub) -> bool
-					{
+				{
 					auto sup_tag = sup->Tag();
 					auto sub_tag = sub->Tag();
 
@@ -3811,25 +3979,24 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 						return false;
 
 					return true;
-					};
+				};
 
 				auto is_record_promotable = [](zeek::Type* sup, zeek::Type* sub) -> bool
-					{
+				{
 					if ( sup->Tag() != TYPE_RECORD )
 						return false;
 
 					if ( sub->Tag() != TYPE_RECORD )
 						return false;
 
-					return record_promotion_compatible(sup->AsRecordType(),
-					                                   sub->AsRecordType());
-					};
+					return record_promotion_compatible(sup->AsRecordType(), sub->AsRecordType());
+				};
 
 				if ( ! is_arithmetic_promotable(sup_t_i.get(), sub_t_i.get()) &&
 				     ! is_record_promotable(sup_t_i.get(), sub_t_i.get()) )
 					{
-					std::string error_msg = util::fmt(
-						"type clash for field \"%s\"", sub_r->FieldName(i));
+					std::string error_msg = util::fmt("type clash for field \"%s\"",
+					                                  sub_r->FieldName(i));
 					Error(error_msg.c_str(), sub_t_i.get());
 					SetError();
 					break;
@@ -3848,8 +4015,8 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 				{
 				if ( ! t_r->FieldDecl(i)->GetAttr(ATTR_OPTIONAL) )
 					{
-					std::string error_msg = util::fmt(
-						"non-optional field \"%s\" missing", t_r->FieldName(i));
+					std::string error_msg = util::fmt("non-optional field \"%s\" missing",
+					                                  t_r->FieldName(i));
 					Error(error_msg.c_str());
 					SetError();
 					break;
@@ -3863,6 +4030,15 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 
 ValPtr RecordCoerceExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	{
+	if ( IsError() )
+		{
+		Error("bad record initializer");
+		return nullptr;
+		}
+
+	if ( ! init_tag_check(this, "record", TYPE_RECORD, t->Tag()) )
+		return nullptr;
+
 	if ( auto v = Eval(nullptr) )
 		{
 		RecordVal* rv = v->AsRecordVal();
@@ -3887,8 +4063,7 @@ ValPtr RecordCoerceExpr::Fold(Val* v) const
 	return coerce_to_record(rt, v, map);
 	}
 
-RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v,
-				const std::vector<int>& map)
+RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector<int>& map)
 	{
 	int map_size = map.size();
 	auto val = make_intrusive<RecordVal>(rt);
@@ -3905,8 +4080,7 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v,
 			if ( ! rhs )
 				{
 				auto rv_rt = rv->GetType()->AsRecordType();
-				const auto& def = rv_rt->FieldDecl(map[i])->
-							GetAttr(ATTR_DEFAULT);
+				const auto& def = rv_rt->FieldDecl(map[i])->GetAttr(ATTR_DEFAULT);
 
 				if ( def )
 					rhs = def->GetExpr()->Eval(nullptr);
@@ -3924,11 +4098,11 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v,
 			const auto& rhs_type = rhs->GetType();
 			const auto& field_type = val_type->GetFieldType(i);
 
-			if ( rhs_type->Tag() == TYPE_RECORD &&
-			     field_type->Tag() == TYPE_RECORD &&
+			if ( rhs_type->Tag() == TYPE_RECORD && field_type->Tag() == TYPE_RECORD &&
 			     ! same_type(rhs_type, field_type) )
 				{
-				if ( auto new_val = rhs->AsRecordVal()->CoerceTo(cast_intrusive<RecordType>(field_type)) )
+				if ( auto new_val = rhs->AsRecordVal()->CoerceTo(
+						 cast_intrusive<RecordType>(field_type)) )
 					rhs = std::move(new_val);
 				}
 			else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) &&
@@ -3948,12 +4122,11 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v,
 				const auto& def_type = def_val->GetType();
 				const auto& field_type = rt->GetFieldType(i);
 
-				if ( def_type->Tag() == TYPE_RECORD &&
-				     field_type->Tag() == TYPE_RECORD &&
+				if ( def_type->Tag() == TYPE_RECORD && field_type->Tag() == TYPE_RECORD &&
 				     ! same_type(def_type, field_type) )
 					{
 					auto tmp = def_val->AsRecordVal()->CoerceTo(
-					        cast_intrusive<RecordType>(field_type));
+						cast_intrusive<RecordType>(field_type));
 
 					if ( tmp )
 						def_val = std::move(tmp);
@@ -3984,10 +4157,7 @@ TableCoerceExpr::TableCoerceExpr(ExprPtr arg_op, TableTypePtr r)
 		ExprError("coercion of non-table/set to table/set");
 	}
 
-
-TableCoerceExpr::~TableCoerceExpr()
-	{
-	}
+TableCoerceExpr::~TableCoerceExpr() { }
 
 ValPtr TableCoerceExpr::Fold(Val* v) const
 	{
@@ -4014,10 +4184,7 @@ VectorCoerceExpr::VectorCoerceExpr(ExprPtr arg_op, VectorTypePtr v)
 		ExprError("coercion of non-vector to vector");
 	}
 
-
-VectorCoerceExpr::~VectorCoerceExpr()
-	{
-	}
+VectorCoerceExpr::~VectorCoerceExpr() { }
 
 ValPtr VectorCoerceExpr::Fold(Val* v) const
 	{
@@ -4029,16 +4196,12 @@ ValPtr VectorCoerceExpr::Fold(Val* v) const
 	return make_intrusive<VectorVal>(GetType<VectorType>());
 	}
 
-ScheduleTimer::ScheduleTimer(const EventHandlerPtr& arg_event, Args arg_args,
-                             double t)
-	: Timer(t, TIMER_SCHEDULE),
-	  event(arg_event), args(std::move(arg_args))
+ScheduleTimer::ScheduleTimer(const EventHandlerPtr& arg_event, Args arg_args, double t)
+	: Timer(t, TIMER_SCHEDULE), event(arg_event), args(std::move(arg_args))
 	{
 	}
 
-ScheduleTimer::~ScheduleTimer()
-	{
-	}
+ScheduleTimer::~ScheduleTimer() { }
 
 void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */)
 	{
@@ -4047,8 +4210,7 @@ void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */)
 	}
 
 ScheduleExpr::ScheduleExpr(ExprPtr arg_when, EventExprPtr arg_event)
-	: Expr(EXPR_SCHEDULE),
-	  when(std::move(arg_when)), event(std::move(arg_event))
+	: Expr(EXPR_SCHEDULE), when(std::move(arg_when)), event(std::move(arg_event))
 	{
 	if ( IsError() || when->IsError() || event->IsError() )
 		return;
@@ -4132,65 +4294,72 @@ InExpr::InExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 
 	if ( op1->GetType()->Tag() == TYPE_PATTERN )
 		{
-		if ( op2->GetType()->Tag() != TYPE_STRING )
+		if ( op2->GetType()->Tag() == TYPE_STRING )
 			{
-			op2->GetType()->Error("pattern requires string index", op1.get());
+			SetType(base_type(TYPE_BOOL));
+			return;
+			}
+		else if ( op2->GetType()->Tag() == TYPE_TABLE )
+			{
+			// fall through to type-checking at end of function
+			}
+		else
+			{
+			op2->GetType()->Error("pattern requires string or set/table index", op1.get());
 			SetError();
+			return;
 			}
-		else
-			SetType(base_type(TYPE_BOOL));
 		}
 
-	else if ( op1->GetType()->Tag() == TYPE_STRING &&
-		  op2->GetType()->Tag() == TYPE_STRING )
-		SetType(base_type(TYPE_BOOL));
-
-	else
+	if ( op1->GetType()->Tag() == TYPE_STRING && op2->GetType()->Tag() == TYPE_STRING )
 		{
-		// Check for:	<addr> in <subnet>
-		//		<addr> in set[subnet]
-		//		<addr> in table[subnet] of ...
-		if ( op1->GetType()->Tag() == TYPE_ADDR )
-			{
-			if ( op2->GetType()->Tag() == TYPE_SUBNET )
-				{
-				SetType(base_type(TYPE_BOOL));
-				return;
-				}
+		SetType(base_type(TYPE_BOOL));
+		return;
+		}
 
-			if ( op2->GetType()->Tag() == TYPE_TABLE &&
-			     op2->GetType()->AsTableType()->IsSubNetIndex() )
-				{
-				SetType(base_type(TYPE_BOOL));
-				return;
-				}
+	// Check for:	<addr> in <subnet>
+	//		<addr> in set[subnet]
+	//		<addr> in table[subnet] of ...
+	if ( op1->GetType()->Tag() == TYPE_ADDR )
+		{
+		if ( op2->GetType()->Tag() == TYPE_SUBNET )
+			{
+			SetType(base_type(TYPE_BOOL));
+			return;
 			}
 
-		if ( op1->Tag() != EXPR_LIST )
-			op1 = make_intrusive<ListExpr>(std::move(op1));
-
-		ListExpr* lop1 = op1->AsListExpr();
-
-		if ( ! op2->GetType()->MatchesIndex(lop1) )
-			SetError("not an index type");
-		else
+		if ( op2->GetType()->Tag() == TYPE_TABLE &&
+		     op2->GetType()->AsTableType()->IsSubNetIndex() )
+			{
 			SetType(base_type(TYPE_BOOL));
+			return;
+			}
 		}
+
+	if ( op1->Tag() != EXPR_LIST )
+		op1 = make_intrusive<ListExpr>(std::move(op1));
+
+	ListExpr* lop1 = op1->AsListExpr();
+
+	if ( ! op2->GetType()->MatchesIndex(lop1) )
+		SetError("not an index type");
+	else
+		SetType(base_type(TYPE_BOOL));
 	}
 
 ValPtr InExpr::Fold(Val* v1, Val* v2) const
 	{
-	if ( v1->GetType()->Tag() == TYPE_PATTERN )
-		{
-		auto re = v1->As<PatternVal*>();
-		const String* s = v2->AsString();
-		return val_mgr->Bool(re->MatchAnywhere(s) != 0);
-		}
-
 	if ( v2->GetType()->Tag() == TYPE_STRING )
 		{
-		const String* s1 = v1->AsString();
 		const String* s2 = v2->AsString();
+
+		if ( v1->GetType()->Tag() == TYPE_PATTERN )
+			{
+			auto re = v1->As<PatternVal*>();
+			return val_mgr->Bool(re->MatchAnywhere(s2) != 0);
+			}
+
+		const String* s1 = v1->AsString();
 
 		// Could do better here e.g. Boyer-Moore if done repeatedly.
 		auto s = reinterpret_cast<const unsigned char*>(s1->CheckString());
@@ -4198,8 +4367,7 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const
 		return val_mgr->Bool(res);
 		}
 
-	if ( v1->GetType()->Tag() == TYPE_ADDR &&
-	     v2->GetType()->Tag() == TYPE_SUBNET )
+	if ( v1->GetType()->Tag() == TYPE_ADDR && v2->GetType()->Tag() == TYPE_SUBNET )
 		return val_mgr->Bool(v2->AsSubNetVal()->Contains(v1->AsAddr()));
 
 	bool res;
@@ -4249,28 +4417,29 @@ CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook)
 
 		if ( ! yield )
 			{
-			switch ( func_type->AsFuncType()->Flavor() ) {
+			switch ( func_type->AsFuncType()->Flavor() )
+				{
 
-			case FUNC_FLAVOR_FUNCTION:
-				Error("function has no yield type");
-				SetError();
-				break;
+				case FUNC_FLAVOR_FUNCTION:
+					Error("function has no yield type");
+					SetError();
+					break;
 
-			case FUNC_FLAVOR_EVENT:
-				Error("event called in expression, use event statement instead");
-				SetError();
-				break;
+				case FUNC_FLAVOR_EVENT:
+					Error("event called in expression, use event statement instead");
+					SetError();
+					break;
 
-			case FUNC_FLAVOR_HOOK:
-				Error("hook has no yield type");
-				SetError();
-				break;
+				case FUNC_FLAVOR_HOOK:
+					Error("hook has no yield type");
+					SetError();
+					break;
 
-			default:
-				Error("invalid function flavor");
-				SetError();
-				break;
-			}
+				default:
+					Error("invalid function flavor");
+					SetError();
+					break;
+				}
 			}
 		else
 			SetType(yield);
@@ -4284,15 +4453,14 @@ CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook)
 		     // run-time errors when we apply this analysis during
 		     // parsing.  Really we should instead do it after we've
 		     // parsed the entire set of scripts.
-		     util::streq(((NameExpr*) func.get())->Id()->Name(), "fmt") &&
+		     util::streq(((NameExpr*)func.get())->Id()->Name(), "fmt") &&
 		     // The following is needed because fmt might not yet
 		     // be bound as a name.
-		     did_builtin_init &&
-		     (func_val = func->Eval(nullptr)) )
+		     did_builtin_init && (func_val = func->Eval(nullptr)) )
 			{
 			zeek::Func* f = func_val->AsFunc();
 			if ( f->GetKind() == Func::BUILTIN_FUNC &&
-			     ! check_built_in_call((BuiltinFunc*) f, this) )
+			     ! check_built_in_call((BuiltinFunc*)f, this) )
 				SetError();
 			}
 		}
@@ -4339,9 +4507,7 @@ ValPtr CallExpr::Eval(Frame* f) const
 			{
 			if ( Val* v = trigger->Lookup(this) )
 				{
-				DBG_LOG(DBG_NOTIFIERS,
-					"%s: provides cached function result",
-					trigger->Name());
+				DBG_LOG(DBG_NOTIFIERS, "%s: provides cached function result", trigger->Name());
 				return {NewRef{}, v};
 				}
 			}
@@ -4397,8 +4563,8 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		args->Describe(d);
 	}
 
-LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
-                       IDPList arg_outer_ids) : Expr(EXPR_LAMBDA)
+LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList arg_outer_ids)
+	: Expr(EXPR_LAMBDA)
 	{
 	ingredients = std::move(arg_ing);
 	outer_ids = std::move(arg_outer_ids);
@@ -4409,12 +4575,9 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
-	auto dummy_func = make_intrusive<ScriptFunc>(
-		ingredients->id,
-		ingredients->body,
-		ingredients->inits,
-		ingredients->frame_size,
-		ingredients->priority);
+	auto dummy_func = make_intrusive<ScriptFunc>(ingredients->id, ingredients->body,
+	                                             ingredients->inits, ingredients->frame_size,
+	                                             ingredients->priority);
 
 	dummy_func->SetOuterIDs(outer_ids);
 
@@ -4422,7 +4585,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	ODesc d;
 	dummy_func->Describe(&d);
 
-	for ( ; ; )
+	for ( ;; )
 		{
 		hash128_t h;
 		KeyedHash::Hash128(d.Bytes(), d.Len(), &h);
@@ -4465,9 +4628,9 @@ void LambdaExpr::CheckCaptures()
 		if ( outer_ids.size() > 0 )
 			{
 			// TODO: Remove in v5.1: these deprecated closure semantics
-			reporter->Warning("use of outer identifiers in lambdas without [] captures is deprecated: %s%s",
-				outer_ids.size() > 1 ? "e.g., " : "",
-				outer_ids[0]->Name());
+			reporter->Warning(
+				"use of outer identifiers in lambdas without [] captures is deprecated: %s%s",
+				outer_ids.size() > 1 ? "e.g., " : "", outer_ids[0]->Name());
 			capture_by_ref = true;
 			}
 
@@ -4514,19 +4677,15 @@ void LambdaExpr::CheckCaptures()
 		}
 	}
 
-Scope* LambdaExpr::GetScope() const
+ScopePtr LambdaExpr::GetScope() const
 	{
-	return ingredients->scope.get();
+	return ingredients->scope;
 	}
 
 ValPtr LambdaExpr::Eval(Frame* f) const
 	{
-	auto lamb = make_intrusive<ScriptFunc>(
-		ingredients->id,
-		ingredients->body,
-		ingredients->inits,
-		ingredients->frame_size,
-		ingredients->priority);
+	auto lamb = make_intrusive<ScriptFunc>(ingredients->id, ingredients->body, ingredients->inits,
+	                                       ingredients->frame_size, ingredients->priority);
 
 	if ( capture_by_ref )
 		lamb->AddClosure(outer_ids, f);
@@ -4651,14 +4810,14 @@ ListExpr::ListExpr(ExprPtr e) : Expr(EXPR_LIST)
 
 ListExpr::~ListExpr()
 	{
-	for ( const auto& expr: exprs )
+	for ( const auto& expr : exprs )
 		Unref(expr);
 	}
 
 void ListExpr::Append(ExprPtr e)
 	{
 	exprs.push_back(e.release());
-	((TypeList*) type.get())->Append(exprs.back()->GetType());
+	((TypeList*)type.get())->Append(exprs.back()->GetType());
 	}
 
 bool ListExpr::IsPure() const
@@ -4715,7 +4874,6 @@ TypePtr ListExpr::InitType() const
 			types->push_back(td);
 			}
 
-
 		return make_intrusive<RecordType>(types);
 		}
 
@@ -4730,12 +4888,10 @@ TypePtr ListExpr::InitType() const
 			// Collapse any embedded sets or lists.
 			if ( ti->IsSet() || ti->Tag() == TYPE_LIST )
 				{
-				TypeList* til = ti->IsSet() ?
-					ti->AsSetType()->GetIndices().get() :
-					ti->AsTypeList();
+				TypeList* til = ti->IsSet() ? ti->AsSetType()->GetIndices().get()
+				                            : ti->AsTypeList();
 
-				if ( ! til->IsPure() ||
-				     ! til->AllMatch(til->GetPureType(), true) )
+				if ( ! til->IsPure() || ! til->AllMatch(til->GetPureType(), true) )
 					tl->Append({NewRef{}, til});
 				else
 					tl->Append(til->GetPureType());
@@ -4813,8 +4969,7 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 		return v;
 		}
 
-	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TABLE &&
-	     t->Tag() != TYPE_VECTOR )
+	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TABLE && t->Tag() != TYPE_VECTOR )
 		{
 		if ( exprs.length() == 1 )
 			// Allow "global x:int = { 5 }"
@@ -4839,12 +4994,12 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 		loop_over_list(exprs, i)
 			{
-			Expr* e = exprs[i];
+			ExprPtr e = {NewRef{}, exprs[i]};
 			const auto& vyt = vec->GetType()->AsVectorType()->Yield();
-			auto promoted_e = check_and_promote_expr(e, vyt.get());
+			auto promoted_e = check_and_promote_expr(e, vyt);
 
 			if ( promoted_e )
-				e = promoted_e.get();
+				e = promoted_e;
 
 			if ( ! vec->Assign(i, e->Eval(nullptr)) )
 				{
@@ -4960,7 +5115,7 @@ void ListExpr::ExprDescribe(ODesc* d) const
 
 ExprPtr ListExpr::MakeLvalue()
 	{
-	for ( const auto & expr : exprs )
+	for ( const auto& expr : exprs )
 		if ( expr->Tag() != EXPR_NAME )
 			ExprError("can only assign to list of identifiers");
 
@@ -4974,8 +5129,7 @@ void ListExpr::Assign(Frame* f, ValPtr v)
 	if ( exprs.length() != lv->Length() )
 		RuntimeError("mismatch in list lengths");
 
-	loop_over_list(exprs, i)
-		exprs[i]->Assign(f, lv->Idx(i));
+	loop_over_list(exprs, i) exprs[i]->Assign(f, lv->Idx(i));
 	}
 
 TraversalCode ListExpr::Traverse(TraversalCallback* cb) const
@@ -4993,8 +5147,7 @@ TraversalCode ListExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-RecordAssignExpr::RecordAssignExpr(const ExprPtr& record,
-                                   const ExprPtr& init_list, bool is_init)
+RecordAssignExpr::RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_list, bool is_init)
 	{
 	const ExprPList& inits = init_list->AsListExpr()->Exprs();
 
@@ -5016,11 +5169,11 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record,
 				const char* field_name = t->FieldName(j);
 				int field = lhs->FieldOffset(field_name);
 
-				if ( field >= 0 &&
-				     same_type(lhs->GetFieldType(field), t->GetFieldType(j)) )
+				if ( field >= 0 && same_type(lhs->GetFieldType(field), t->GetFieldType(j)) )
 					{
 					auto fe_lhs = make_intrusive<FieldExpr>(record, field_name);
-					auto fe_rhs = make_intrusive<FieldExpr>(IntrusivePtr{NewRef{}, init}, field_name);
+					auto fe_rhs = make_intrusive<FieldExpr>(IntrusivePtr{NewRef{}, init},
+					                                        field_name);
 					Append(get_assign_expr(std::move(fe_lhs), std::move(fe_rhs), is_init));
 					}
 				}
@@ -5028,7 +5181,7 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record,
 
 		else if ( init->Tag() == EXPR_FIELD_ASSIGN )
 			{
-			FieldAssignExpr* rf = (FieldAssignExpr*) init;
+			FieldAssignExpr* rf = (FieldAssignExpr*)init;
 			rf->Ref();
 
 			const char* field_name = ""; // rf->FieldName();
@@ -5055,8 +5208,7 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record,
 		}
 	}
 
-CastExpr::CastExpr(ExprPtr arg_op, TypePtr t)
-	: UnaryExpr(EXPR_CAST, std::move(arg_op))
+CastExpr::CastExpr(ExprPtr arg_op, TypePtr t) : UnaryExpr(EXPR_CAST, std::move(arg_op))
 	{
 	auto stype = Op()->GetType();
 
@@ -5066,34 +5218,38 @@ CastExpr::CastExpr(ExprPtr arg_op, TypePtr t)
 		ExprError("cast not supported");
 	}
 
-ValPtr CastExpr::Eval(Frame* f) const
+ValPtr CastExpr::Fold(Val* v) const
 	{
-	if ( IsError() )
-		return nullptr;
+	std::string error;
+	auto res = cast_value({NewRef{}, v}, GetType(), error);
 
-	auto v = op->Eval(f);
+	if ( ! res )
+		RuntimeError(error.c_str());
 
-	if ( ! v )
-		return nullptr;
+	return res;
+	}
 
-	auto nv = cast_value_to_type(v.get(), GetType().get());
+ValPtr cast_value(ValPtr v, const TypePtr& t, std::string& error)
+	{
+	auto nv = cast_value_to_type(v.get(), t.get());
 
 	if ( nv )
 		return nv;
 
 	ODesc d;
+
 	d.Add("invalid cast of value with type '");
 	v->GetType()->Describe(&d);
 	d.Add("' to type '");
-	GetType()->Describe(&d);
+	t->Describe(&d);
 	d.Add("'");
 
 	if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) &&
-		 ! v->AsRecordVal()->HasField(0) )
+	     ! v->AsRecordVal()->HasField(0) )
 		d.Add(" (nil $data field)");
 
-	RuntimeError(d.Description());
-	return nullptr;  // not reached.
+	error = d.Description();
+	return nullptr;
 	}
 
 void CastExpr::ExprDescribe(ODesc* d) const
@@ -5126,48 +5282,52 @@ void IsExpr::ExprDescribe(ODesc* d) const
 
 ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init)
 	{
-	if ( op1->GetType()->Tag() == TYPE_RECORD &&
-	     op2->GetType()->Tag() == TYPE_LIST )
-		return make_intrusive<RecordAssignExpr>(
-			std::move(op1), std::move(op2), is_init);
+	if ( op1->GetType()->Tag() == TYPE_RECORD && op2->GetType()->Tag() == TYPE_LIST )
+		return make_intrusive<RecordAssignExpr>(std::move(op1), std::move(op2), is_init);
 
 	else if ( op1->Tag() == EXPR_INDEX && op1->AsIndexExpr()->IsSlice() )
-		return make_intrusive<IndexSliceAssignExpr>(
-			std::move(op1), std::move(op2), is_init);
+		return make_intrusive<IndexSliceAssignExpr>(std::move(op1), std::move(op2), is_init);
 
 	else
-		return make_intrusive<AssignExpr>(
-			std::move(op1), std::move(op2), is_init);
+		return make_intrusive<AssignExpr>(std::move(op1), std::move(op2), is_init);
 	}
 
-ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
+ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t)
 	{
 	const auto& et = e->GetType();
 	TypeTag e_tag = et->Tag();
 	TypeTag t_tag = t->Tag();
 
-	if ( t->Tag() == TYPE_ANY )
-		return {NewRef{}, e};
+	if ( t_tag == TYPE_ANY )
+		{
+		if ( e_tag != TYPE_ANY )
+			return make_intrusive<CoerceToAnyExpr>(e);
+
+		return e;
+		}
+
+	if ( e_tag == TYPE_ANY )
+		return make_intrusive<CoerceFromAnyExpr>(e, t);
 
 	if ( EitherArithmetic(t_tag, e_tag) )
 		{
 		if ( e_tag == t_tag )
-			return {NewRef{}, e};
+			return e;
 
 		if ( ! BothArithmetic(t_tag, e_tag) )
 			{
-			t->Error("arithmetic mixed with non-arithmetic", e);
+			t->Error("arithmetic mixed with non-arithmetic", e.get());
 			return nullptr;
 			}
 
 		TypeTag mt = max_type(t_tag, e_tag);
 		if ( mt != t_tag )
 			{
-			t->Error("over-promotion of arithmetic value", e);
+			t->Error("over-promotion of arithmetic value", e.get());
 			return nullptr;
 			}
 
-		return make_intrusive<ArithCoerceExpr>(IntrusivePtr{NewRef{}, e}, t_tag);
+		return make_intrusive<ArithCoerceExpr>(e, t_tag);
 		}
 
 	if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
@@ -5176,39 +5336,32 @@ ExprPtr check_and_promote_expr(Expr* const e, zeek::Type* t)
 		RecordType* et_r = et->AsRecordType();
 
 		if ( same_type(t, et) )
-			return {NewRef{}, e};
+			return e;
 
 		if ( record_promotion_compatible(t_r, et_r) )
-			return make_intrusive<RecordCoerceExpr>(
-				IntrusivePtr{NewRef{}, e},
-				IntrusivePtr{NewRef{}, t_r});
+			return make_intrusive<RecordCoerceExpr>(e, IntrusivePtr{NewRef{}, t_r});
 
-		t->Error("incompatible record types", e);
+		t->Error("incompatible record types", e.get());
 		return nullptr;
 		}
-
 
 	if ( ! same_type(t, et) )
 		{
 		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
-			  et->AsTableType()->IsUnspecifiedTable() )
-			return make_intrusive<TableCoerceExpr>(
-				IntrusivePtr{NewRef{}, e},
-				IntrusivePtr{NewRef{}, t->AsTableType()});
+		     et->AsTableType()->IsUnspecifiedTable() )
+			return make_intrusive<TableCoerceExpr>(e, IntrusivePtr{NewRef{}, t->AsTableType()});
 
 		if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR &&
 		     et->AsVectorType()->IsUnspecifiedVector() )
-			return make_intrusive<VectorCoerceExpr>(
-				IntrusivePtr{NewRef{}, e},
-				IntrusivePtr{NewRef{}, t->AsVectorType()});
+			return make_intrusive<VectorCoerceExpr>(e, IntrusivePtr{NewRef{}, t->AsVectorType()});
 
 		if ( t->Tag() != TYPE_ERROR && et->Tag() != TYPE_ERROR )
-			t->Error("type clash", e);
+			t->Error("type clash", e.get());
 
 		return nullptr;
 		}
 
-	return {NewRef{}, e};
+	return e;
 	}
 
 bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
@@ -5227,8 +5380,8 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 
 	loop_over_list(el, i)
 		{
-		Expr* e = el[i];
-		auto promoted_e = check_and_promote_expr(e, tl[i].get());
+		ExprPtr e = {NewRef{}, el[i]};
+		auto promoted_e = check_and_promote_expr(e, tl[i]);
 
 		if ( ! promoted_e )
 			{
@@ -5236,17 +5389,14 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 			return false;
 			}
 
-		if ( promoted_e.get() != e )
-			{
-			Unref(e);
-			el.replace(i, promoted_e.release());
-			}
+		if ( promoted_e != e )
+			Unref(el.replace(i, promoted_e.release()));
 		}
 
 	return true;
 	}
 
-bool check_and_promote_args(ListExpr* const args, RecordType* types)
+bool check_and_promote_args(ListExpr* const args, const RecordType* types)
 	{
 	ExprPList& el = args->Exprs();
 	int ntypes = types->NumFields();
@@ -5263,7 +5413,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 		// arguments using &default expressions.
 		for ( int i = ntypes - 1; i >= el.length(); --i )
 			{
-			TypeDecl* td = types->FieldDecl(i);
+			auto td = types->FieldDecl(i);
 			const auto& def_attr = td->attrs ? td->attrs->Find(ATTR_DEFAULT).get() : nullptr;
 
 			if ( ! def_attr )
@@ -5300,29 +5450,26 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 	return rval;
 	}
 
-bool check_and_promote_exprs_to_type(ListExpr* const elements, zeek::Type* type)
+bool check_and_promote_exprs_to_type(ListExpr* const elements, TypePtr t)
 	{
 	ExprPList& el = elements->Exprs();
 
-	if ( type->Tag() == TYPE_ANY )
+	if ( t->Tag() == TYPE_ANY )
 		return true;
 
 	loop_over_list(el, i)
 		{
-		Expr* e = el[i];
-		auto promoted_e = check_and_promote_expr(e, type);
+		ExprPtr e = {NewRef{}, el[i]};
+		auto promoted_e = check_and_promote_expr(e, t);
 
 		if ( ! promoted_e )
 			{
-			e->Error("type mismatch", type);
+			e->Error("type mismatch", t.get());
 			return false;
 			}
 
-		if ( promoted_e.get() != e )
-			{
-			Unref(e);
-			el.replace(i, promoted_e.release());
-			}
+		if ( promoted_e != e )
+			Unref(el.replace(i, promoted_e.release()));
 		}
 
 	return true;
@@ -5352,4 +5499,4 @@ bool expr_greater(const Expr* e1, const Expr* e2)
 	return e1->Tag() > e2->Tag();
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

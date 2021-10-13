@@ -3,14 +3,16 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "zeek/NetVar.h"
-#include "zeek/iosource/Manager.h"
 #include "zeek/Event.h"
 #include "zeek/IPAddr.h"
+#include "zeek/NetVar.h"
 #include "zeek/RunState.h"
+#include "zeek/iosource/Manager.h"
 
-namespace zeek::threading {
-namespace detail {
+namespace zeek::threading
+	{
+namespace detail
+	{
 
 void HeartbeatTimer::Dispatch(double t, bool is_expire)
 	{
@@ -21,7 +23,7 @@ void HeartbeatTimer::Dispatch(double t, bool is_expire)
 	thread_mgr->StartHeartbeatTimer();
 	}
 
-} // namespace detail
+	} // namespace detail
 
 Manager::Manager()
 	{
@@ -44,26 +46,28 @@ void Manager::Terminate()
 	terminating = true;
 
 	// First process remaining thread output for the message threads.
-	do Flush(); while ( did_process );
+	do
+		Flush();
+		while ( did_process );
 
-	// Signal all to stop.
+		// Signal all to stop.
 
-	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
-		(*i)->SignalStop();
+		for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
+			(*i)->SignalStop();
 
-	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
-		(*i)->WaitForStop();
+		for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
+			(*i)->WaitForStop();
 
-	// Then join them all.
-	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
-		{
-		(*i)->Join();
-		delete *i;
-		}
+		// Then join them all.
+		for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
+			{
+			(*i)->Join();
+			delete *i;
+			}
 
-	all_threads.clear();
-	msg_threads.clear();
-	terminating = false;
+		all_threads.clear();
+		msg_threads.clear();
+		terminating = false;
 	}
 
 void Manager::AddThread(BasicThread* thread)
@@ -87,7 +91,7 @@ void Manager::KillThreads()
 
 	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
 		(*i)->Kill();
-        }
+	}
 
 void Manager::KillThread(BasicThread* thread)
 	{
@@ -118,7 +122,7 @@ void Manager::SendHeartbeats()
 
 		all_threads.remove(t);
 
-		MsgThread* mt = dynamic_cast<MsgThread *>(t);
+		MsgThread* mt = dynamic_cast<MsgThread*>(t);
 
 		if ( mt )
 			msg_threads.remove(mt);
@@ -131,13 +135,15 @@ void Manager::SendHeartbeats()
 void Manager::StartHeartbeatTimer()
 	{
 	heartbeat_timer_running = true;
-	zeek::detail::timer_mgr->Add(new detail::HeartbeatTimer(run_state::network_time + BifConst::Threading::heartbeat_interval));
+	zeek::detail::timer_mgr->Add(new detail::HeartbeatTimer(
+		run_state::network_time + BifConst::Threading::heartbeat_interval));
 	}
 
 // Raise everything in here as warnings so it is passed to scriptland without
 // looking "fatal". In addition to these warnings, ReaderBackend will queue
 // one reporter message.
-bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int num_vals, Value* *vals) const
+bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int num_vals,
+                        Value** vals) const
 	{
 	EventHandler* handler = event_registry->Lookup(name);
 	if ( handler == nullptr )
@@ -148,15 +154,16 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 		}
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "Thread %s: SendEvent for event %s with %d vals",
-	        thread->Name(), name.c_str(), num_vals);
+	DBG_LOG(DBG_INPUT, "Thread %s: SendEvent for event %s with %d vals", thread->Name(),
+	        name.c_str(), num_vals);
 #endif
 
 	const auto& type = handler->GetType()->Params();
 	int num_event_vals = type->NumFields();
 	if ( num_vals != num_event_vals )
 		{
-		reporter->Warning("Thread %s: Wrong number of values for event %s", thread->Name(), name.c_str());
+		reporter->Warning("Thread %s: Wrong number of values for event %s", thread->Name(),
+		                  name.c_str());
 		Value::delete_value_ptr_array(vals, num_vals);
 		return false;
 		}
@@ -166,7 +173,7 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 	Args vl;
 	vl.reserve(num_vals);
 
-	for ( int j = 0; j < num_vals; j++)
+	for ( int j = 0; j < num_vals; j++ )
 		{
 		Val* v = Value::ValueToVal(std::string("thread ") + thread->Name(), vals[j], convert_error);
 		vl.emplace_back(AdoptRef{}, v);
@@ -245,7 +252,7 @@ void Manager::Flush()
 
 		all_threads.remove(t);
 
-		MsgThread* mt = dynamic_cast<MsgThread *>(t);
+		MsgThread* mt = dynamic_cast<MsgThread*>(t);
 
 		if ( mt )
 			msg_threads.remove(mt);
@@ -254,7 +261,8 @@ void Manager::Flush()
 		delete t;
 		}
 
-	// fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", run_state::network_time,
+	// fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n",
+	// run_state::network_time,
 	//         detail::timer_mgr->Time(), do_beat, (int)did_process, next_beat);
 	}
 
@@ -269,10 +277,10 @@ const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats(
 		MsgThread::Stats s;
 		t->GetStats(&s);
 
-		stats.push_back(std::make_pair(t->Name(),s));
+		stats.push_back(std::make_pair(t->Name(), s));
 		}
 
 	return stats;
 	}
 
-} // namespace zeek::threading
+	} // namespace zeek::threading

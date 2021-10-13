@@ -1,18 +1,19 @@
 #pragma once
 
-#include <mutex>
-#include <condition_variable>
-#include <queue>
-#include <deque>
 #include <stdint.h>
 #include <sys/time.h>
+#include <condition_variable>
+#include <deque>
+#include <mutex>
+#include <queue>
 
 #include "zeek/Reporter.h"
 #include "zeek/threading/BasicThread.h"
 
 #undef Queue // Defined elsewhere unfortunately.
 
-namespace zeek::threading {
+namespace zeek::threading
+	{
 
 /**
  * A thread-safe single-reader single-writer queue.
@@ -25,9 +26,8 @@ namespace zeek::threading {
  * TODO: Unclear how critical performance is for this qeueue. We could likely
  * optimize it further if helpful.
  */
-template<typename T>
-class Queue
-{
+template <typename T> class Queue
+	{
 public:
 	/**
 	 * Constructor.
@@ -87,8 +87,8 @@ public:
 	 */
 	struct Stats
 		{
-		uint64_t num_reads;	//! Number of messages read from the queue.
-		uint64_t num_writes;	//! Number of messages written to the queue.
+		uint64_t num_reads; //! Number of messages read from the queue.
+		uint64_t num_writes; //! Number of messages written to the queue.
 		};
 
 	/**
@@ -104,12 +104,12 @@ private:
 
 	std::vector<std::unique_lock<std::mutex>> LocksForAllQueues();
 
-	std::mutex mutex[NUM_QUEUES];	// Mutex protected shared accesses.
-	std::condition_variable has_data[NUM_QUEUES];	// Signals when data becomes available
-	std::queue<T> messages[NUM_QUEUES];	// Actually holds the queued messages
+	std::mutex mutex[NUM_QUEUES]; // Mutex protected shared accesses.
+	std::condition_variable has_data[NUM_QUEUES]; // Signals when data becomes available
+	std::queue<T> messages[NUM_QUEUES]; // Actually holds the queued messages
 
-	int read_ptr;	// Where the next operation will read from
-	int write_ptr;	// Where the next operation will write to
+	int read_ptr; // Where the next operation will read from
+	int write_ptr; // Where the next operation will write to
 
 	BasicThread* reader;
 	BasicThread* writer;
@@ -117,7 +117,7 @@ private:
 	// Statistics.
 	uint64_t num_reads;
 	uint64_t num_writes;
-};
+	};
 
 inline static std::unique_lock<std::mutex> acquire_lock(std::mutex& m)
 	{
@@ -133,8 +133,7 @@ inline static std::unique_lock<std::mutex> acquire_lock(std::mutex& m)
 		}
 	}
 
-template<typename T>
-inline Queue<T>::Queue(BasicThread* arg_reader, BasicThread* arg_writer)
+template <typename T> inline Queue<T>::Queue(BasicThread* arg_reader, BasicThread* arg_writer)
 	{
 	read_ptr = 0;
 	write_ptr = 0;
@@ -143,19 +142,16 @@ inline Queue<T>::Queue(BasicThread* arg_reader, BasicThread* arg_writer)
 	writer = arg_writer;
 	}
 
-template<typename T>
-inline Queue<T>::~Queue()
-	{
-	}
+template <typename T> inline Queue<T>::~Queue() { }
 
-template<typename T>
-inline T Queue<T>::Get()
+template <typename T> inline T Queue<T>::Get()
 	{
 	auto lock = acquire_lock(mutex[read_ptr]);
 
 	int old_read_ptr = read_ptr;
 
-	if ( messages[read_ptr].empty() && ! ((reader && reader->Killed()) || (writer && writer->Killed())) )
+	if ( messages[read_ptr].empty() &&
+	     ! ((reader && reader->Killed()) || (writer && writer->Killed())) )
 		{
 		if ( has_data[read_ptr].wait_for(lock, std::chrono::seconds(5)) == std::cv_status::timeout )
 			return nullptr;
@@ -173,8 +169,7 @@ inline T Queue<T>::Get()
 	return data;
 	}
 
-template<typename T>
-inline void Queue<T>::Put(T data)
+template <typename T> inline void Queue<T>::Put(T data)
 	{
 	auto lock = acquire_lock(mutex[write_ptr]);
 
@@ -194,9 +189,7 @@ inline void Queue<T>::Put(T data)
 		}
 	}
 
-
-template<typename T>
-inline bool Queue<T>::Ready()
+template <typename T> inline bool Queue<T>::Ready()
 	{
 	auto lock = acquire_lock(mutex[read_ptr]);
 
@@ -205,8 +198,7 @@ inline bool Queue<T>::Ready()
 	return ret;
 	}
 
-template<typename T>
-inline std::vector<std::unique_lock<std::mutex>> Queue<T>::LocksForAllQueues()
+template <typename T> inline std::vector<std::unique_lock<std::mutex>> Queue<T>::LocksForAllQueues()
 	{
 	std::vector<std::unique_lock<std::mutex>> locks;
 
@@ -226,8 +218,7 @@ inline std::vector<std::unique_lock<std::mutex>> Queue<T>::LocksForAllQueues()
 	return locks;
 	}
 
-template<typename T>
-inline uint64_t Queue<T>::Size()
+template <typename T> inline uint64_t Queue<T>::Size()
 	{
 	// Need to lock all queues.
 	auto locks = LocksForAllQueues();
@@ -240,8 +231,7 @@ inline uint64_t Queue<T>::Size()
 	return size;
 	}
 
-template<typename T>
-inline void Queue<T>::GetStats(Stats* stats)
+template <typename T> inline void Queue<T>::GetStats(Stats* stats)
 	{
 	// To be safe, we look all queues. That's probably unneccessary, but
 	// doesn't really hurt.
@@ -251,8 +241,7 @@ inline void Queue<T>::GetStats(Stats* stats)
 	stats->num_writes = num_writes;
 	}
 
-template<typename T>
-inline void Queue<T>::WakeUp()
+template <typename T> inline void Queue<T>::WakeUp()
 	{
 	for ( int i = 0; i < NUM_QUEUES; i++ )
 		{
@@ -261,4 +250,4 @@ inline void Queue<T>::WakeUp()
 		}
 	}
 
-} // namespace zeek::threading
+	} // namespace zeek::threading

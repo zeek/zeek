@@ -25,6 +25,13 @@ type string_any_table: table[string] of any;
 ##    directly and then remove this alias.
 type string_set: set[string];
 
+## A set of subnets.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type subnet_set: set[subnet];
+
 ## A set of addresses.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
@@ -582,6 +589,8 @@ type SYN_packet: record {
 	win_scale: int;	##< The window scale option if present, or -1 if not.
 	MSS: count;	##< The maximum segment size if present, or 0 if not.
 	SACK_OK: bool;	##< True if the *SACK* option is present.
+	TSval: count &optional;	##< The TCP TS value if present.
+	TSecr: count &optional;	##< The TCP TS echo reply if present.
 };
 
 ## Packet capture statistics.  All counts are cumulative.
@@ -635,7 +644,7 @@ type ProcStats: record {
 	real_time: interval;          ##< Elapsed real time since Zeek started running.
 	user_time: interval;          ##< User CPU seconds.
 	system_time: interval;        ##< System CPU seconds.
-	mem: count;                   ##< Maximum memory consumed, in KB.
+	mem: count;                   ##< Maximum memory consumed, in bytes.
 	minor_faults: count;          ##< Page faults not requiring actual I/O.
 	major_faults: count;          ##< Page faults requiring actual I/O.
 	num_swap: count;              ##< Times swapped out.
@@ -1933,6 +1942,7 @@ type gtp_delete_pdp_ctx_response_elements: record {
 @load base/frameworks/supervisor/api
 @load base/bif/supervisor.bif
 @load base/bif/packet_analysis.bif
+@load base/bif/CPP-load.bif
 
 ## Internal function.
 function add_interface(iold: string, inew: string): string
@@ -2788,14 +2798,22 @@ export {
 	## .. zeek:see:: smb1_nt_create_andx_response smb2_create_response
 	type SMB::MACTimes: record {
 		## The time when data was last written to the file.
-		modified : time &log;
+		modified 	: time &log;
+		## Same as `modified` but in SMB's original `FILETIME` integer format.
+		modified_raw: count;
 		## The time when the file was last accessed.
-		accessed : time &log;
+		accessed 	: time &log;
+		## Same as `accessed` but in SMB's original `FILETIME` integer format.
+		accessed_raw: count;
 		## The time the file was created.
-		created  : time &log;
+		created  	: time &log;
+		## Same as `created` but in SMB's original `FILETIME` integer format.
+		created_raw : count;
 		## The time when the file was last modified.
-		changed  : time &log;
-	} &log;
+		changed  	: time &log;
+		## Same as `changed` but in SMB's original `FILETIME` integer format.
+		changed_raw : count;
+	};
 
 	## A set of file names used as named pipes over SMB. This
 	## only comes into play as a heuristic to identify named
@@ -4117,15 +4135,6 @@ type PE::SectionHeader: record {
 }
 module GLOBAL;
 
-## Internal to the stepping stone detector.
-const stp_delta: interval &redef;
-
-## Internal to the stepping stone detector.
-const stp_idle_min: interval &redef;
-
-## Internal to the stepping stone detector.
-global stp_skip_src: set[addr] &redef;
-
 ## Description of a signature match.
 ##
 ## .. zeek:see:: signature_match
@@ -4890,8 +4899,20 @@ const dpd_reassemble_first_packets = T &redef;
 ## connections will be able to analyze the session.
 ##
 ## .. zeek:see:: dpd_reassemble_first_packets dpd_match_only_beginning
-##    dpd_ignore_ports
+##    dpd_ignore_ports dpd_max_packets
 const dpd_buffer_size = 1024 &redef;
+
+## Maximum number of per-connection packets that will be buffered for dynamic
+## protocol detection. For each connection, Zeek buffers up to this amount
+## of packets in memory so that complete protocol analysis can start even after
+## the initial packets have already passed through (i.e., when a DPD signature
+## matches only later). However, once the buffer is full, data is deleted and lost
+## to analyzers that are activated afterwards. Then only analyzers that can deal
+## with partial connections will be able to analyze the session.
+##
+## .. zeek:see:: dpd_reassemble_first_packets dpd_match_only_beginning
+##    dpd_ignore_ports dpd_buffer_size
+const dpd_max_packets = 100 &redef;
 
 ## If true, stops signature matching if :zeek:see:`dpd_buffer_size` has been
 ## reached.
@@ -5029,6 +5050,12 @@ export {
 	## if you customize this, you may still want to manually ensure that
 	## :zeek:see:`likely_server_ports` also gets populated accordingly.
 	const vxlan_ports: set[port] = { 4789/udp } &redef;
+
+	## The set of UDP ports used for Geneve traffic.  Traffic using this
+	## UDP destination port will attempt to be decapsulated.  Note that if
+	## if you customize this, you may still want to manually ensure that
+	## :zeek:see:`likely_server_ports` also gets populated accordingly.
+	const geneve_ports: set[port] = { 6081/udp } &redef;
 } # end export
 
 module Reporter;

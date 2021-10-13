@@ -1,7 +1,7 @@
 
 %%{
 #include "zeek/File.h"
-#include "zeek/Sessions.h"
+#include "zeek/session/Manager.h"
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 %%}
@@ -18,7 +18,7 @@
 ## .. zeek:see:: get_resp_seq
 function get_orig_seq%(cid: conn_id%): count
 	%{
-	zeek::Connection* c = zeek::sessions->FindConnection(cid);
+	zeek::Connection* c = zeek::session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->Count(0);
 
@@ -27,7 +27,7 @@ function get_orig_seq%(cid: conn_id%): count
 
 	zeek::analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return zeek::val_mgr->Count(static_cast<zeek::analyzer::tcp::TCP_Analyzer*>(tc)->OrigSeq());
+		return zeek::val_mgr->Count(static_cast<zeek::packet_analysis::TCP::TCPSessionAdapter*>(tc)->OrigSeq());
 	else
 		{
 		reporter->Error("connection does not have TCP analyzer");
@@ -47,7 +47,7 @@ function get_orig_seq%(cid: conn_id%): count
 ## .. zeek:see:: get_orig_seq
 function get_resp_seq%(cid: conn_id%): count
 	%{
-	zeek::Connection* c = zeek::sessions->FindConnection(cid);
+	zeek::Connection* c = zeek::session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->Count(0);
 
@@ -56,7 +56,7 @@ function get_resp_seq%(cid: conn_id%): count
 
 	zeek::analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return zeek::val_mgr->Count(static_cast<zeek::analyzer::tcp::TCP_Analyzer*>(tc)->RespSeq());
+		return zeek::val_mgr->Count(static_cast<zeek::packet_analysis::TCP::TCPSessionAdapter*>(tc)->RespSeq());
 	else
 		{
 		reporter->Error("connection does not have TCP analyzer");
@@ -97,11 +97,11 @@ function get_resp_seq%(cid: conn_id%): count
 ## .. zeek:see:: get_contents_file set_record_packets contents_file_write_failure
 function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	%{
-	zeek::Connection* c = zeek::sessions->FindConnection(cid);
+	zeek::Connection* c = zeek::session_mgr->FindConnection(cid);
 	if ( ! c )
 		return zeek::val_mgr->False();
 
-	c->GetRootAnalyzer()->SetContentsFile(direction, {zeek::NewRef{}, f});
+	c->GetSessionAdapter()->SetContentsFile(direction, {zeek::NewRef{}, f});
 	return zeek::val_mgr->True();
 	%}
 
@@ -120,11 +120,11 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 ## .. zeek:see:: set_contents_file set_record_packets contents_file_write_failure
 function get_contents_file%(cid: conn_id, direction: count%): file
 	%{
-	zeek::Connection* c = zeek::sessions->FindConnection(cid);
+	zeek::Connection* c = zeek::session_mgr->FindConnection(cid);
 
 	if ( c )
 		{
-		auto cf = c->GetRootAnalyzer()->GetContentsFile(direction);
+		auto cf = c->GetSessionAdapter()->GetContentsFile(direction);
 
 		if ( cf )
 			return zeek::make_intrusive<zeek::FileVal>(std::move(cf));

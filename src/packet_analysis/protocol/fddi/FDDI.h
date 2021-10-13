@@ -5,9 +5,11 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::FDDI {
+namespace zeek::packet_analysis::FDDI
+	{
 
-class FDDIAnalyzer : public zeek::packet_analysis::Analyzer {
+class FDDIAnalyzer : public zeek::packet_analysis::Analyzer
+	{
 public:
 	FDDIAnalyzer();
 	~FDDIAnalyzer() override = default;
@@ -18,6 +20,6 @@ public:
 		{
 		return std::make_shared<FDDIAnalyzer>();
 		}
-};
+	};
 
-}
+	}

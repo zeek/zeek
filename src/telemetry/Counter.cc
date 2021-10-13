@@ -2,13 +2,14 @@
 
 #include "zeek/telemetry/Counter.h"
 
+#include "zeek/telemetry/Detail.h"
+
 #include "caf/telemetry/counter.hpp"
 #include "caf/telemetry/metric_family.hpp"
 #include "caf/telemetry/metric_family_impl.hpp"
 
-#include "zeek/telemetry/Detail.h"
-
-namespace zeek::telemetry {
+namespace zeek::telemetry
+	{
 
 // -- IntCounter ---------------------------------------------------------------
 
@@ -32,17 +33,16 @@ int64_t IntCounter::Value() const noexcept
 	return deref(pimpl).value();
 	}
 
-IntCounterFamily::IntCounterFamily(Impl* ptr) : MetricFamily(upcast(ptr))
-	{
-	}
+IntCounterFamily::IntCounterFamily(Impl* ptr) : MetricFamily(upcast(ptr)) { }
 
 IntCounter IntCounterFamily::GetOrAdd(Span<const LabelView> labels)
 	{
-	return with_native_labels(labels, [this](auto nativeLabels)
-		{
-		auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
-		return IntCounter{hdl};
-		});
+	return with_native_labels(labels,
+	                          [this](auto nativeLabels)
+	                          {
+								  auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
+								  return IntCounter{hdl};
+							  });
 	}
 
 // -- DblCounter ---------------------------------------------------------------
@@ -62,17 +62,16 @@ double DblCounter::Value() const noexcept
 	return deref(pimpl).value();
 	}
 
-DblCounterFamily::DblCounterFamily(Impl* ptr) : MetricFamily(upcast(ptr))
-	{
-	}
+DblCounterFamily::DblCounterFamily(Impl* ptr) : MetricFamily(upcast(ptr)) { }
 
 DblCounter DblCounterFamily::GetOrAdd(Span<const LabelView> labels)
 	{
-	return with_native_labels(labels, [this](auto nativeLabels)
-		{
-		auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
-		return DblCounter{hdl};
-		});
+	return with_native_labels(labels,
+	                          [this](auto nativeLabels)
+	                          {
+								  auto hdl = opaque(deref(this, pimpl).get_or_add(nativeLabels));
+								  return DblCounter{hdl};
+							  });
 	}
 
-} // namespace zeek::telemetry
+	} // namespace zeek::telemetry

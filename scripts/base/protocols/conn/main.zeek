@@ -239,10 +239,7 @@ function determine_service(c: connection): string
 function set_conn(c: connection, eoc: bool)
 	{
 	if ( ! c?$conn )
-		{
-		local tmp: Info &is_assigned;
-		c$conn = tmp;
-		}
+		c$conn = Info();
 
 	c$conn$ts=c$start_time;
 	c$conn$uid=c$uid;

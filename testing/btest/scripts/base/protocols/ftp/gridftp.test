@@ -10,6 +10,8 @@ module GridFTP;
 
 redef size_threshold = 2;
 
+redef X509::relog_known_certificates_after = 0secs;
+
 redef enum Notice::Type += {
     Data_Channel
 };

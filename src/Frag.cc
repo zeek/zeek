@@ -1,19 +1,21 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/Frag.h"
+
 #include "zeek/zeek-config.h"
 
-#include "zeek/Frag.h"
 #include "zeek/Hash.h"
 #include "zeek/IP.h"
 #include "zeek/NetVar.h"
-#include "zeek/Sessions.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
+#include "zeek/session/Manager.h"
 
 constexpr uint32_t MIN_ACCEPTABLE_FRAG_SIZE = 64;
 constexpr uint32_t MAX_ACCEPTABLE_FRAG_SIZE = 64000;
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 FragTimer::~FragTimer()
 	{
@@ -29,9 +31,8 @@ void FragTimer::Dispatch(double t, bool /* is_expire */)
 		reporter->InternalWarning("fragment timer dispatched w/o reassembler");
 	}
 
-FragReassembler::FragReassembler(NetSessions* arg_s,
-                                 const std::unique_ptr<IP_Hdr>& ip, const u_char* pkt,
-                                 const FragReassemblerKey& k, double t)
+FragReassembler::FragReassembler(session::Manager* arg_s, const std::unique_ptr<IP_Hdr>& ip,
+                                 const u_char* pkt, const FragReassemblerKey& k, double t)
 	: Reassembler(0, REASSEM_FRAG)
 	{
 	s = arg_s;
@@ -41,9 +42,9 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 	if ( ip4 )
 		{
 		proto_hdr_len = ip->HdrLen();
-		proto_hdr = new u_char[64];	// max IP header + slop
+		proto_hdr = new u_char[64]; // max IP header + slop
 		// Don't do a structure copy - need to pick up options, too.
-		memcpy((void*) proto_hdr, (const void*) ip4, proto_hdr_len);
+		memcpy((void*)proto_hdr, (const void*)ip4, proto_hdr_len);
 		}
 	else
 		{
@@ -53,7 +54,7 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 		}
 
 	reassembled_pkt = nullptr;
-	frag_size = 0;	// flag meaning "not known"
+	frag_size = 0; // flag meaning "not known"
 	next_proto = ip->NextProto();
 
 	if ( frag_timeout != 0.0 )
@@ -70,11 +71,10 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 FragReassembler::~FragReassembler()
 	{
 	DeleteTimer();
-	delete [] proto_hdr;
+	delete[] proto_hdr;
 	}
 
-void FragReassembler::AddFragment(double t, const std::unique_ptr<IP_Hdr>& ip,
-                                  const u_char* pkt)
+void FragReassembler::AddFragment(double t, const std::unique_ptr<IP_Hdr>& ip, const u_char* pkt)
 	{
 	const struct ip* ip4 = ip->IP4_Hdr();
 
@@ -82,16 +82,15 @@ void FragReassembler::AddFragment(double t, const std::unique_ptr<IP_Hdr>& ip,
 		{
 		if ( ip4->ip_p != ((const struct ip*)proto_hdr)->ip_p ||
 		     ip4->ip_hl != ((const struct ip*)proto_hdr)->ip_hl )
-		// || ip4->ip_tos != proto_hdr->ip_tos
-		// don't check TOS, there's at least one stack that actually
-		// uses different values, and it's hard to see an associated
-		// attack.
-		s->Weird("fragment_protocol_inconsistency", ip.get());
+			// || ip4->ip_tos != proto_hdr->ip_tos
+			// don't check TOS, there's at least one stack that actually
+			// uses different values, and it's hard to see an associated
+			// attack.
+			s->Weird("fragment_protocol_inconsistency", ip.get());
 		}
 	else
 		{
-		if ( ip->NextProto() != next_proto ||
-		     ip->HdrLen() - 8 != proto_hdr_len )
+		if ( ip->NextProto() != next_proto || ip->HdrLen() - 8 != proto_hdr_len )
 			s->Weird("fragment_protocol_inconsistency", ip.get());
 		// TODO: more detailed unfrag header consistency checks?
 		}
@@ -183,7 +182,7 @@ void FragReassembler::Weird(const char* name) const
 
 void FragReassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 	{
-	if ( memcmp((const void*) b1, (const void*) b2, n) )
+	if ( memcmp((const void*)b1, (const void*)b2, n) )
 		Weird("fragment_inconsistency");
 	else
 		Weird("fragment_overlap");
@@ -254,7 +253,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 	// for a more recent one.
 
 	u_char* pkt = new u_char[n];
-	memcpy((void*) pkt, (const void*) proto_hdr, proto_hdr_len);
+	memcpy((void*)pkt, (const void*)proto_hdr, proto_hdr_len);
 
 	u_char* pkt_start = pkt;
 
@@ -280,7 +279,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 			reporter->InternalWarning("bad fragment reassembly");
 			DeleteTimer();
 			Expire(run_state::network_time);
-			delete [] pkt_start;
+			delete[] pkt_start;
 			return;
 			}
 
@@ -293,28 +292,25 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 
 	if ( version == 4 )
 		{
-		struct ip* reassem4 = (struct ip*) pkt_start;
+		struct ip* reassem4 = (struct ip*)pkt_start;
 		reassem4->ip_len = htons(frag_size + proto_hdr_len);
-		reassembled_pkt = std::make_unique<IP_Hdr>(reassem4, true);
-		reassembled_pkt->reassembled = true;
+		reassembled_pkt = std::make_unique<IP_Hdr>(reassem4, true, true);
 		DeleteTimer();
 		}
 
 	else if ( version == 6 )
 		{
-		struct ip6_hdr* reassem6 = (struct ip6_hdr*) pkt_start;
+		struct ip6_hdr* reassem6 = (struct ip6_hdr*)pkt_start;
 		reassem6->ip6_plen = htons(frag_size + proto_hdr_len - 40);
 		const IPv6_Hdr_Chain* chain = new IPv6_Hdr_Chain(reassem6, next_proto, n);
-		reassembled_pkt = std::make_unique<IP_Hdr>(reassem6, true, n, chain);
-		reassembled_pkt->reassembled = true;
+		reassembled_pkt = std::make_unique<IP_Hdr>(reassem6, true, n, chain, true);
 		DeleteTimer();
 		}
 
 	else
 		{
-		reporter->InternalWarning("bad IP version in fragment reassembly: %d",
-		                                version);
-		delete [] pkt_start;
+		reporter->InternalWarning("bad IP version in fragment reassembly: %d", version);
+		delete[] pkt_start;
 		}
 	}
 
@@ -322,7 +318,7 @@ void FragReassembler::Expire(double t)
 	{
 	block_list.Clear();
 	expire_timer->ClearReassembler();
-	expire_timer = nullptr;	// timer manager will delete it
+	expire_timer = nullptr; // timer manager will delete it
 
 	fragment_mgr->Remove(this);
 	}
@@ -333,7 +329,7 @@ void FragReassembler::DeleteTimer()
 		{
 		expire_timer->ClearReassembler();
 		timer_mgr->Cancel(expire_timer);
-		expire_timer = nullptr;	// timer manager will delete it
+		expire_timer = nullptr; // timer manager will delete it
 		}
 	}
 
@@ -355,7 +351,7 @@ FragReassembler* FragmentManager::NextFragment(double t, const std::unique_ptr<I
 
 	if ( ! f )
 		{
-		f = new FragReassembler(sessions, ip, pkt, key, t);
+		f = new FragReassembler(session_mgr, ip, pkt, key, t);
 		fragments[key] = f;
 		if ( fragments.size() > max_fragments )
 			max_fragments = fragments.size();
@@ -390,4 +386,4 @@ uint32_t FragmentManager::MemoryAllocation() const
 	return fragments.size() * (sizeof(FragmentMap::key_type) + sizeof(FragmentMap::value_type));
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

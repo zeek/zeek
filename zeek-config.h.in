@@ -22,6 +22,9 @@
 /* Define if you have the `mallinfo' function. */
 #cmakedefine HAVE_MALLINFO
 
+/* Define if you have the `mallinfo2' function. */
+#cmakedefine HAVE_MALLINFO2
+
 /* Define if you have the <memory.h> header file. */
 #cmakedefine HAVE_MEMORY_H
 
@@ -118,9 +121,6 @@
 
 /* Use Google's perftools */
 #cmakedefine USE_PERFTOOLS_DEBUG
-
-/* Analyze Mobile IPv6 traffic */
-#cmakedefine ENABLE_MOBILE_IPV6
 
 /* Use libCurl. */
 #cmakedefine USE_CURL
@@ -277,4 +277,24 @@ extern const char* BRO_VERSION_FUNCTION();
 	#define ZEEK_LSAN_IGNORE(x)
 	#define ZEEK_LSAN_DISABLE(x)
 	#define ZEEK_LSAN_DISABLE_SCOPE(x)
+#endif
+
+// This part is dependent on calling configure with '--sanitizers=thread'
+// and not manually setting CFLAGS/CXXFLAGS to include --fsanitize=thread.
+// This is because some of the unit tests only work when built without
+// TSan, at least until SQLite opts to fix their problems with atomics.
+#if defined(__SANITIZE_THREAD__)
+	#cmakedefine ZEEK_TSAN
+#endif
+
+#if defined(__has_feature)
+	#if __has_feature(thread_sanitizer)
+		#cmakedefine ZEEK_TSAN
+	#endif
+#endif
+
+#if defined(ZEEK_TSAN)
+	#define ZEEK_DISABLE_TSAN __attribute__((no_sanitize("thread")))
+#else
+	#define ZEEK_DISABLE_TSAN
 #endif

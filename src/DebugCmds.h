@@ -4,32 +4,32 @@
 #pragma once
 
 #include <stdlib.h>
+#include <deque>
 #include <string>
 #include <vector>
-
-#include "zeek/Queue.h"
 
 // This file is generated during the build.
 #include "DebugCmdConstants.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
-class DebugCmdInfo {
+class DebugCmdInfo
+	{
 public:
 	DebugCmdInfo(const DebugCmdInfo& info);
 
-	DebugCmdInfo(DebugCmd cmd, const char* const* names, int num_names,
-			bool resume_execution, const char* const helpstring,
-			bool repeatable);
+	DebugCmdInfo(DebugCmd cmd, const char* const* names, int num_names, bool resume_execution,
+	             const char* const helpstring, bool repeatable);
 
-	DebugCmdInfo() : helpstring(nullptr) {}
+	DebugCmdInfo() : helpstring(nullptr) { }
 
-	int Cmd() const		{ return cmd; }
-	int NumNames() const	{ return num_names; }
-	const std::vector<const char *>& Names() const	{ return names; }
-	bool ResumeExecution() const	{ return resume_execution; }
-	const char* Helpstring() const	{ return helpstring; }
-	bool Repeatable() const	{ return repeatable; }
+	int Cmd() const { return cmd; }
+	int NumNames() const { return num_names; }
+	const std::vector<const char*>& Names() const { return names; }
+	bool ResumeExecution() const { return resume_execution; }
+	const char* Helpstring() const { return helpstring; }
+	bool Repeatable() const { return repeatable; }
 
 protected:
 	DebugCmd cmd;
@@ -43,13 +43,14 @@ protected:
 
 	// Does entering a blank line repeat this command?
 	bool repeatable;
-};
+	};
 
-extern PQueue<DebugCmdInfo> g_DebugCmdInfos;
+using DebugCmdInfoQueue = std::deque<DebugCmdInfo*>;
+extern DebugCmdInfoQueue g_DebugCmdInfos;
 
-void init_global_dbg_constants ();
+void init_global_dbg_constants();
 
-#define num_debug_cmds() (g_DebugCmdInfos.length())
+#define num_debug_cmds() (static_cast<int>(g_DebugCmdInfos.size()))
 
 // Looks up the info record and returns it; if cmd is not found returns 0.
 const DebugCmdInfo* get_debug_cmd_info(DebugCmd cmd);
@@ -79,4 +80,4 @@ DbgCmdFn dbg_cmd_info;
 DbgCmdFn dbg_cmd_list;
 DbgCmdFn dbg_cmd_trace;
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

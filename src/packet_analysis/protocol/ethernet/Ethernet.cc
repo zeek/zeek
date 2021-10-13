@@ -1,14 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/packet_analysis/protocol/ethernet/Ethernet.h"
+
 #include "zeek/packet_analysis/Manager.h"
 
 using namespace zeek::packet_analysis::Ethernet;
 
-EthernetAnalyzer::EthernetAnalyzer()
-	: zeek::packet_analysis::Analyzer("Ethernet")
-	{
-	}
+EthernetAnalyzer::EthernetAnalyzer() : zeek::packet_analysis::Analyzer("Ethernet") { }
 
 void EthernetAnalyzer::Initialize()
 	{
@@ -69,10 +67,10 @@ bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 
 		AnalyzerPtr eth_analyzer = nullptr;
 
-		if ( data[14] == 0xAA && data[15] == 0xAA)
+		if ( data[14] == 0xAA && data[15] == 0xAA )
 			// IEEE 802.2 SNAP
 			eth_analyzer = SNAPAnalyzer;
-		else if ( data[14] == 0xFF && data[15] == 0xFF)
+		else if ( data[14] == 0xFF && data[15] == 0xFF )
 			// Novell raw IEEE 802.3
 			eth_analyzer = NovellRawAnalyzer;
 		else

@@ -4,10 +4,7 @@
 
 using namespace zeek::packet_analysis::Wrapper;
 
-WrapperAnalyzer::WrapperAnalyzer()
-	: zeek::packet_analysis::Analyzer("Wrapper")
-	{
-	}
+WrapperAnalyzer::WrapperAnalyzer() : zeek::packet_analysis::Analyzer("Wrapper") { }
 
 bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 	{
@@ -43,8 +40,7 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 
 	bool saw_vlan = false;
 
-	while ( protocol == 0x8100 || protocol == 0x9100 ||
-	        protocol == 0x8864 )
+	while ( protocol == 0x8100 || protocol == 0x9100 || protocol == 0x8864 )
 		{
 		switch ( protocol )
 			{
@@ -66,7 +62,7 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 				saw_vlan = true;
 				packet->eth_type = protocol;
 				}
-			break;
+				break;
 
 			// PPPoE carried over the ethernet frame.
 			case 0x8864:
@@ -91,7 +87,7 @@ bool WrapperAnalyzer::Analyze(Packet* packet, const uint8_t*& data)
 					return false;
 					}
 				}
-			break;
+				break;
 			}
 		}
 

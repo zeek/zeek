@@ -1,20 +1,21 @@
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
 
-#include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/Reporter.h"
-
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/analyzer/protocol/tcp/events.bif.h"
 
-namespace zeek::analyzer::tcp {
+namespace zeek::analyzer::tcp
+	{
 
 ContentLine_Analyzer::ContentLine_Analyzer(Connection* conn, bool orig, int max_line_length)
-: TCP_SupportAnalyzer("CONTENTLINE", conn, orig), max_line_length(max_line_length)
+	: TCP_SupportAnalyzer("CONTENTLINE", conn, orig), max_line_length(max_line_length)
 	{
 	InitState();
 	}
 
-ContentLine_Analyzer::ContentLine_Analyzer(const char* name, Connection* conn, bool orig, int max_line_length)
-: TCP_SupportAnalyzer(name, conn, orig), max_line_length(max_line_length)
+ContentLine_Analyzer::ContentLine_Analyzer(const char* name, Connection* conn, bool orig,
+                                           int max_line_length)
+	: TCP_SupportAnalyzer(name, conn, orig), max_line_length(max_line_length)
 	{
 	InitState();
 	}
@@ -31,6 +32,7 @@ void ContentLine_Analyzer::InitState()
 	seq = 0;
 	seq_to_skip = 0;
 	plain_delivery_length = 0;
+	delivery_length = -1;
 	is_plain = false;
 	suppress_weirds = false;
 
@@ -53,7 +55,7 @@ void ContentLine_Analyzer::InitBuffer(int size)
 		{
 		if ( offset > 0 )
 			memcpy(b, buf, offset);
-		delete [] buf;
+		delete[] buf;
 		}
 	else
 		{
@@ -67,7 +69,7 @@ void ContentLine_Analyzer::InitBuffer(int size)
 
 ContentLine_Analyzer::~ContentLine_Analyzer()
 	{
-	delete [] buf;
+	delete[] buf;
 	}
 
 bool ContentLine_Analyzer::HasPartialLine() const
@@ -75,8 +77,7 @@ bool ContentLine_Analyzer::HasPartialLine() const
 	return buf && offset > 0;
 	}
 
-void ContentLine_Analyzer::DeliverStream(int len, const u_char* data,
-						bool is_orig)
+void ContentLine_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
 	TCP_SupportAnalyzer::DeliverStream(len, data, is_orig);
 
@@ -85,14 +86,28 @@ void ContentLine_Analyzer::DeliverStream(int len, const u_char* data,
 
 	if ( skip_partial )
 		{
-		TCP_Analyzer* tcp =
-			static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
+		auto* tcp = static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
 
 		if ( tcp && tcp->IsPartial() )
 			return;
 		}
 
+	if ( delivery_length > 0 )
+		delivery_length -= len;
+
 	DoDeliver(len, data);
+
+	// If we have parsed all the data of the packet but there is no CRLF at the end
+	// Force the process by flushing buffer
+	if ( delivery_length == 0 )
+		{
+		if ( HasPartialLine() )
+			{
+			Weird("line_terminated_without_CRLF");
+			DoDeliver(2, (const u_char*)"\r\n");
+			}
+		delivery_length = -1;
+		}
 
 	seq += len;
 	}
@@ -105,19 +120,30 @@ void ContentLine_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 void ContentLine_Analyzer::EndpointEOF(bool is_orig)
 	{
 	if ( offset > 0 )
-		DeliverStream(1, (const u_char*) "\n", is_orig);
+		DeliverStream(1, (const u_char*)"\n", is_orig);
 	}
 
 void ContentLine_Analyzer::SetPlainDelivery(int64_t length)
 	{
 	if ( length < 0 )
 		{
-		reporter->AnalyzerError(
-			this, "negative length for plain delivery");
+		reporter->AnalyzerError(this, "negative length for plain delivery");
 		return;
 		}
 
 	plain_delivery_length = length;
+	}
+
+void ContentLine_Analyzer::SetDeliverySize(int64_t length)
+	{
+	// Length can be unset with -1 value, all other negative length will be rejected
+	if ( length < -1 )
+		{
+		reporter->AnalyzerError(this, "negative length for delivery size");
+		return;
+		}
+
+	delivery_length = length;
 	}
 
 void ContentLine_Analyzer::DoDeliver(int len, const u_char* data)
@@ -126,8 +152,7 @@ void ContentLine_Analyzer::DoDeliver(int len, const u_char* data)
 
 	while ( len > 0 && ! SkipDeliveries() )
 		{
-		if ( (CR_LF_as_EOL & CR_as_EOL) &&
-		     last_char == '\r' && *data == '\n' )
+		if ( (CR_LF_as_EOL & CR_as_EOL) && last_char == '\r' && *data == '\n' )
 			{
 			// CR is already considered as EOL.
 			// Compress CRLF to just one line termination.
@@ -140,7 +165,9 @@ void ContentLine_Analyzer::DoDeliver(int len, const u_char* data)
 			// careful when executing plain delivery to
 			// clear last_char once we do so.
 			last_char = *data;
-			--len; ++data; ++seq;
+			--len;
+			++data;
+			++seq;
 			++seq_delivered_in_lines;
 			}
 
@@ -177,7 +204,9 @@ void ContentLine_Analyzer::DoDeliver(int len, const u_char* data)
 
 			ForwardUndelivered(seq, skip_len, IsOrig());
 
-			len -= skip_len; data += skip_len; seq += skip_len;
+			len -= skip_len;
+			data += skip_len;
+			seq += skip_len;
 			seq_delivered_in_lines += skip_len;
 			}
 
@@ -205,16 +234,16 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data)
 
 		int c = data[0];
 
-#define EMIT_LINE \
-	{ \
-	buf[offset] = '\0'; \
-	int seq_len = data + 1 - data_start; \
-	seq_delivered_in_lines = seq + seq_len; \
-	last_char = c; \
-	ForwardStream(offset, buf, IsOrig()); \
-	offset = 0; \
-	return seq_len; \
-	}
+#define EMIT_LINE                                                                                  \
+		{                                                                                          \
+		buf[offset] = '\0';                                                                        \
+		int seq_len = data + 1 - data_start;                                                       \
+		seq_delivered_in_lines = seq + seq_len;                                                    \
+		last_char = c;                                                                             \
+		ForwardStream(offset, buf, IsOrig());                                                      \
+		offset = 0;                                                                                \
+		return seq_len;                                                                            \
+		}
 
 		if ( offset >= max_line_length )
 			{
@@ -222,63 +251,65 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data)
 			EMIT_LINE
 			}
 
-		switch ( c ) {
-		case '\r':
-			// Look ahead for '\n'.
-			if ( len > 1 && data[1] == '\n' )
-				{
-				--len; ++data;
-				last_char = c;
-				c = data[0];
-				EMIT_LINE
-				}
-
-			else if ( CR_LF_as_EOL & CR_as_EOL )
-				EMIT_LINE
-
-			else
-				buf[offset++] = c;
-			break;
-
-		case '\n':
-			if ( last_char == '\r' )
-				{
-				// Weird corner-case:
-				// this can happen if we see a \r at the end of a packet where crlf is
-				// set to CR_as_EOL | LF_as_EOL, with the packet causing crlf to be set to
-				// 0 and the next packet beginning with a \n. In this case we just swallow
-				// the character and re-set last_char.
-				if ( offset == 0 )
+		switch ( c )
+			{
+			case '\r':
+				// Look ahead for '\n'.
+				if ( len > 1 && data[1] == '\n' )
 					{
+					--len;
+					++data;
 					last_char = c;
-					break;
+					c = data[0];
+					EMIT_LINE
 					}
-				--offset; // remove '\r'
-				EMIT_LINE
-				}
 
-			else if ( CR_LF_as_EOL & LF_as_EOL )
-				EMIT_LINE
+				else if ( CR_LF_as_EOL & CR_as_EOL )
+					EMIT_LINE
 
-			else
-				{
-				if ( ! suppress_weirds && Conn()->FlagEvent(SINGULAR_LF) )
-					Weird("line_terminated_with_single_LF");
+				else
+					buf[offset++] = c;
+				break;
+
+			case '\n':
+				if ( last_char == '\r' )
+					{
+					// Weird corner-case:
+					// this can happen if we see a \r at the end of a packet where crlf is
+					// set to CR_as_EOL | LF_as_EOL, with the packet causing crlf to be set to
+					// 0 and the next packet beginning with a \n. In this case we just swallow
+					// the character and re-set last_char.
+					if ( offset == 0 )
+						{
+						last_char = c;
+						break;
+						}
+					--offset; // remove '\r'
+					EMIT_LINE
+					}
+
+				else if ( CR_LF_as_EOL & LF_as_EOL )
+					EMIT_LINE
+
+				else
+					{
+					if ( ! suppress_weirds && Conn()->FlagEvent(SINGULAR_LF) )
+						Weird("line_terminated_with_single_LF");
+					buf[offset++] = c;
+					}
+				break;
+
+			case '\0':
+				if ( flag_NULs )
+					CheckNUL();
+				else
+					buf[offset++] = c;
+				break;
+
+			default:
 				buf[offset++] = c;
-				}
-			break;
-
-		case '\0':
-			if ( flag_NULs )
-				CheckNUL();
-			else
-				buf[offset++] = c;
-			break;
-
-		default:
-			buf[offset++] = c;
-			break;
-		}
+				break;
+			}
 
 		if ( last_char == '\r' )
 			if ( ! suppress_weirds && Conn()->FlagEvent(SINGULAR_CR) )
@@ -300,14 +331,12 @@ void ContentLine_Analyzer::CheckNUL()
 	// had been an initial SYN, so we check for whether
 	// the connection has at most two bytes so far.
 
-	TCP_Analyzer* tcp =
-		static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
+	auto* tcp = static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
 
 	if ( tcp )
 		{
 		TCP_Endpoint* endp = IsOrig() ? tcp->Orig() : tcp->Resp();
-		if ( endp->state == TCP_ENDPOINT_PARTIAL &&
-		     endp->LastSeq() - endp->StartSeq() <= 2 )
+		if ( endp->state == TCP_ENDPOINT_PARTIAL && endp->LastSeq() - endp->StartSeq() <= 2 )
 			; // Ignore it.
 		else
 			{
@@ -340,4 +369,4 @@ void ContentLine_Analyzer::SkipBytes(int64_t length)
 	seq_to_skip = SeqDelivered() + length;
 	}
 
-} // namespace zeek::analyzer::tcp
+	} // namespace zeek::analyzer::tcp

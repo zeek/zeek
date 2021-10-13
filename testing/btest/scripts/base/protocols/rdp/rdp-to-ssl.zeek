@@ -4,3 +4,5 @@
 
 @load base/protocols/rdp
 @load base/protocols/ssl
+
+redef SSL::log_include_server_certificate_subject_issuer=T;

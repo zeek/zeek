@@ -1,36 +1,36 @@
 #include "zeek/Anon.h"
 
-#include <stdlib.h>
-#include <unistd.h>
 #include <assert.h>
+#include <stdlib.h>
 #include <sys/time.h>
+#include <unistd.h>
 
-#include "zeek/util.h"
-#include "zeek/net_util.h"
-#include "zeek/Val.h"
+#include "zeek/Event.h"
+#include "zeek/ID.h"
+#include "zeek/IPAddr.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
-#include "zeek/ID.h"
-#include "zeek/IPAddr.h"
-#include "zeek/Event.h"
+#include "zeek/Val.h"
+#include "zeek/net_util.h"
+#include "zeek/util.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {nullptr};
 
 static uint32_t rand32()
 	{
-	return ((util::detail::random_number() & 0xffff) << 16) | (util::detail::random_number() & 0xffff);
+	return ((util::detail::random_number() & 0xffff) << 16) |
+	       (util::detail::random_number() & 0xffff);
 	}
 
 // From tcpdpriv.
 static int bi_ffs(uint32_t value)
 	{
 	int add = 0;
-	static uint8_t bvals[] = {
-		0, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1
-	};
+	static uint8_t bvals[] = {0, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1};
 
 	if ( (value & 0xFFFF0000) == 0 )
 		{
@@ -57,7 +57,7 @@ static int bi_ffs(uint32_t value)
 	return add + bvals[value & 0xf];
 	}
 
-#define first_n_bit_mask(n)	(~(0xFFFFFFFFU >> n))
+#define first_n_bit_mask(n) (~(0xFFFFFFFFU >> n))
 
 ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr)
 	{
@@ -82,16 +82,17 @@ bool AnonymizeIPAddr::PreservePrefix(ipaddr32_t /* input */, int /* num_bits */)
 
 bool AnonymizeIPAddr::PreserveNet(ipaddr32_t input)
 	{
-	switch ( addr_to_class(ntohl(input)) ) {
-	case 'A':
-		return PreservePrefix(input, 8);
-	case 'B':
-		return PreservePrefix(input, 16);
-	case 'C':
-		return PreservePrefix(input, 24);
-	default:
-		return false;
-	}
+	switch ( addr_to_class(ntohl(input)) )
+		{
+		case 'A':
+			return PreservePrefix(input, 8);
+		case 'B':
+			return PreservePrefix(input, 16);
+		case 'C':
+			return PreservePrefix(input, 24);
+		default:
+			return false;
+		}
 	}
 
 ipaddr32_t AnonymizeIPAddr_Seq::anonymize(ipaddr32_t /* input */)
@@ -113,7 +114,6 @@ ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input)
 	return output;
 	}
 
-
 // This code is from "On the Design and Performance of Prefix-Preserving
 // IP Traffic Trace Anonymization", by Xu et al (IMW 2001)
 //
@@ -130,13 +130,13 @@ ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input)
 		{
 		// PAD(x_0 ... x_{i-1}) = x_0 ... x_{i-1} 1 0 ... 0 .
 		prefix.len = htonl(i + 1);
-		prefix.prefix = htonl((input & ~(prefix_mask>>i)) | (1<<(31-i)));
+		prefix.prefix = htonl((input & ~(prefix_mask >> i)) | (1 << (31 - i)));
 
 		// HK(PAD(x_0 ... x_{i-1})).
-		util::detail::hmac_md5(sizeof(prefix), (u_char*) &prefix, digest);
+		util::detail::hmac_md5(sizeof(prefix), (u_char*)&prefix, digest);
 
 		// f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
-		ipaddr32_t bit_mask = (digest[0] & 1) << (31-i);
+		ipaddr32_t bit_mask = (digest[0] & 1) << (31 - i);
 
 		// x_i' = x_i ^ f_{i-1}.
 		output ^= bit_mask;
@@ -148,7 +148,7 @@ ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input)
 AnonymizeIPAddr_A50::~AnonymizeIPAddr_A50()
 	{
 	for ( auto& b : blocks )
-		delete [] b;
+		delete[] b;
 	}
 
 void AnonymizeIPAddr_A50::init()
@@ -167,9 +167,7 @@ void AnonymizeIPAddr_A50::init()
 
 bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 	{
-	DEBUG_MSG("%s/%d\n",
-			IPAddr(IPv4, &input, IPAddr::Network).AsString().c_str(),
-			num_bits);
+	DEBUG_MSG("%s/%d\n", IPAddr(IPv4, &input, IPAddr::Network).AsString().c_str(), num_bits);
 
 	if ( ! before_anonymization )
 		{
@@ -225,7 +223,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::new_node_block()
 	blocks.push_back(block);
 
 	for ( int i = 1; i < block_size - 1; ++i )
-		block[i].child[0] = &block[i+1];
+		block[i].child[0] = &block[i + 1];
 
 	block[block_size - 1].child[0] = nullptr;
 	next_free_node = &block[1];
@@ -247,7 +245,7 @@ inline AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::new_node()
 		return new_node_block();
 	}
 
-inline void AnonymizeIPAddr_A50::free_node(Node *n)
+inline void AnonymizeIPAddr_A50::free_node(Node* n)
 	{
 	n->child[0] = next_free_node;
 	next_free_node = n;
@@ -261,8 +259,7 @@ ipaddr32_t AnonymizeIPAddr_A50::make_output(ipaddr32_t old_output, int swivel) c
 	else
 		{
 		// Bits up to swivel are unchanged; bit swivel is flipped.
-		ipaddr32_t known_part =
-			((old_output >> (32 - swivel)) ^ 1) << (32 - swivel);
+		ipaddr32_t known_part = ((old_output >> (32 - swivel)) ^ 1) << (32 - swivel);
 
 		// Remainder of bits are random.
 		return known_part | ((rand32() & 0x7FFFFFFF) >> swivel);
@@ -299,11 +296,11 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
 	down[bitvalue]->output = make_output(n->output, swivel);
 	down[bitvalue]->child[0] = down[bitvalue]->child[1] = nullptr;
 
-	*down[1 - bitvalue] = *n;	// copy orig node down one level
+	*down[1 - bitvalue] = *n; // copy orig node down one level
 
-	n->input = down[1]->input;	// NB: 1s to the right (0s to the left)
+	n->input = down[1]->input; // NB: 1s to the right (0s to the left)
 	n->output = down[1]->output;
-	n->child[0] = down[0];		// point to children
+	n->child[0] = down[0]; // point to children
 	n->child[1] = down[1];
 
 	return down[bitvalue];
@@ -340,8 +337,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a)
 			{
 			// swivel is the first bit in which the two children
 			// differ.
-			int swivel =
-				bi_ffs(n->child[0]->input ^ n->child[1]->input);
+			int swivel = bi_ffs(n->child[0]->input ^ n->child[1]->input);
 
 			if ( bi_ffs(a ^ n->input) < swivel )
 				// Input differs earlier.
@@ -394,22 +390,23 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
 
 	int method = -1;
 
-	switch ( cl ) {
-	case ORIG_ADDR: // client address
-		preserve_addr = anon_preserve_orig_addr.get();
-		method = orig_addr_anonymization;
-		break;
+	switch ( cl )
+		{
+		case ORIG_ADDR: // client address
+			preserve_addr = anon_preserve_orig_addr.get();
+			method = orig_addr_anonymization;
+			break;
 
-	case RESP_ADDR: // server address
-		preserve_addr = anon_preserve_resp_addr.get();
-		method = resp_addr_anonymization;
-		break;
+		case RESP_ADDR: // server address
+			preserve_addr = anon_preserve_resp_addr.get();
+			method = resp_addr_anonymization;
+			break;
 
-	default:
-		preserve_addr = anon_preserve_other_addr.get();
-		method = other_addr_anonymization;
-		break;
-	}
+		default:
+			preserve_addr = anon_preserve_other_addr.get();
+			method = other_addr_anonymization;
+			break;
+		}
 
 	ipaddr32_t new_ip = 0;
 
@@ -442,12 +439,10 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
 void log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output)
 	{
 	if ( anonymization_mapping )
-		event_mgr.Enqueue(anonymization_mapping,
-		                  make_intrusive<AddrVal>(input),
-		                  make_intrusive<AddrVal>(output)
-		);
+		event_mgr.Enqueue(anonymization_mapping, make_intrusive<AddrVal>(input),
+		                  make_intrusive<AddrVal>(output));
 	}
 
 #endif
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

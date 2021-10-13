@@ -1,21 +1,20 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/zeekygen/IdentifierInfo.h"
+
+#include "zeek/Desc.h"
+#include "zeek/Expr.h"
+#include "zeek/Val.h"
 #include "zeek/zeekygen/ScriptInfo.h"
 #include "zeek/zeekygen/utils.h"
 
-#include "zeek/Desc.h"
-#include "zeek/Val.h"
-#include "zeek/Expr.h"
-
 using namespace std;
 
-namespace zeek::zeekygen::detail {
+namespace zeek::zeekygen::detail
+	{
 
-IdentifierInfo::IdentifierInfo(zeek::detail::IDPtr arg_id, ScriptInfo* script,
-                               bool redef)
-	: Info(),
-	  comments(), id(std::move(arg_id)), initial_val(), redefs(), fields(),
+IdentifierInfo::IdentifierInfo(zeek::detail::IDPtr arg_id, ScriptInfo* script, bool redef)
+	: Info(), comments(), id(std::move(arg_id)), initial_val(), redefs(), fields(),
 	  last_field_seen(), declaring_script(script), from_redef(redef)
 	{
 	if ( id->GetVal() && (id->IsOption() || id->IsRedefinable()) )
@@ -24,12 +23,10 @@ IdentifierInfo::IdentifierInfo(zeek::detail::IDPtr arg_id, ScriptInfo* script,
 
 IdentifierInfo::~IdentifierInfo()
 	{
-	for ( redef_list::const_iterator it = redefs.begin(); it != redefs.end();
-	      ++it )
+	for ( redef_list::const_iterator it = redefs.begin(); it != redefs.end(); ++it )
 		delete *it;
 
-	for ( record_field_map::const_iterator it = fields.begin();
-	      it != fields.end(); ++it )
+	for ( record_field_map::const_iterator it = fields.begin(); it != fields.end(); ++it )
 		delete it->second;
 	}
 
@@ -40,10 +37,8 @@ void IdentifierInfo::AddRedef(const string& script, zeek::detail::InitClass ic,
 	redefs.push_back(redef);
 	}
 
-void IdentifierInfo::AddRecordField(const TypeDecl* field,
-                                    const string& script,
-                                    vector<string>& comments,
-                                    bool from_redef)
+void IdentifierInfo::AddRecordField(const TypeDecl* field, const string& script,
+                                    vector<string>& comments, bool from_redef)
 	{
 	RecordField* rf = new RecordField();
 	rf->field = new TypeDecl(*field);
@@ -77,13 +72,11 @@ vector<string> IdentifierInfo::GetFieldComments(const string& field) const
 	return it->second->comments;
 	}
 
-list<IdentifierInfo::Redefinition>
-IdentifierInfo::GetRedefs(const string& from_script) const
+list<IdentifierInfo::Redefinition> IdentifierInfo::GetRedefs(const string& from_script) const
 	{
 	list<Redefinition> rval;
 
-	for ( redef_list::const_iterator it = redefs.begin(); it != redefs.end();
-	      ++it )
+	for ( redef_list::const_iterator it = redefs.begin(); it != redefs.end(); ++it )
 		{
 		if ( from_script == (*it)->from_script )
 			rval.push_back(*(*it));
@@ -153,13 +146,10 @@ time_t IdentifierInfo::DoGetModificationTime() const
 	return declaring_script->GetModificationTime();
 	}
 
-IdentifierInfo::Redefinition::Redefinition(std::string arg_script,
-                                           zeek::detail::InitClass arg_ic,
+IdentifierInfo::Redefinition::Redefinition(std::string arg_script, zeek::detail::InitClass arg_ic,
                                            zeek::detail::ExprPtr arg_expr,
                                            std::vector<std::string> arg_comments)
-	: from_script(std::move(arg_script)),
-	  ic(arg_ic),
-	  init_expr(std::move(arg_expr)),
+	: from_script(std::move(arg_script)), ic(arg_ic), init_expr(std::move(arg_expr)),
 	  comments(std::move(arg_comments))
 	{
 	}
@@ -171,4 +161,4 @@ IdentifierInfo::RecordField::~RecordField()
 	delete field;
 	}
 
-} // namespace zeek::zeekygen::detail
+	} // namespace zeek::zeekygen::detail

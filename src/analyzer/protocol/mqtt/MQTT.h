@@ -2,14 +2,22 @@
 
 #pragma once
 
-#include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/ID.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
-namespace binpac { namespace MQTT { class MQTT_Conn; } }
+namespace binpac
+	{
+namespace MQTT
+	{
+class MQTT_Conn;
+	}
+	}
 
-namespace zeek::analyzer::mqtt {
+namespace zeek::analyzer::mqtt
+	{
 
-class MQTT_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class MQTT_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 
 public:
 	MQTT_Analyzer(Connection* conn);
@@ -21,11 +29,12 @@ public:
 	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
-		{ return new MQTT_Analyzer(conn); }
+		{
+		return new MQTT_Analyzer(conn);
+		}
 
 protected:
 	binpac::MQTT::MQTT_Conn* interp;
+	};
 
-};
-
-} // namespace zeek::analyzer::mqtt
+	} // namespace zeek::analyzer::mqtt

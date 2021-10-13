@@ -10,14 +10,16 @@
 #include <string_view>
 #include <vector>
 
-namespace zeek {
+namespace zeek
+	{
 
 class EventHandler;
 class EventHandlerPtr;
 class RE_Matcher;
 
 // The registry keeps track of all events that we provide or handle.
-class EventRegistry {
+class EventRegistry
+	{
 public:
 	EventRegistry();
 	~EventRegistry() noexcept;
@@ -53,8 +55,8 @@ public:
 
 private:
 	std::map<std::string, std::unique_ptr<EventHandler>, std::less<>> handlers;
-};
+	};
 
 extern EventRegistry* event_registry;
 
-} // namespace zeek
+	} // namespace zeek

@@ -4,6 +4,7 @@ module PacketAnalyzer;
 
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Manager.h"
+#include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 
 %%}
 
@@ -45,5 +46,15 @@ function try_register_packet_analyzer_by_name%(parent: string, identifier: count
 		return zeek::val_mgr->False();
 
 	parent_analyzer->RegisterProtocol(identifier, child_analyzer);
+	return zeek::val_mgr->True();
+	%}
+
+## Internal function that is used to update the core-mirror of the script-level `ignore_checksums_nets` variable.
+function PacketAnalyzer::__set_ignore_checksums_nets%(v: subnet_set%) : bool
+	%{
+	if ( v->GetType()->Tag() != zeek::TYPE_TABLE )
+		zeek::emit_builtin_error("update_ignore_checksums_net() requires a table/set argument");
+
+	zeek::packet_analysis::IP::IPBasedAnalyzer::SetIgnoreChecksumsNets(zeek::IntrusivePtr{zeek::NewRef{}, v->AsTableVal()});
 	return zeek::val_mgr->True();
 	%}

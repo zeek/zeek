@@ -193,6 +193,7 @@ enum Type %{
 	HTTP,
 	GRE,
 	VXLAN,
+	GENEVE,
 %}
 
 type EncapsulatingConn: record;

@@ -135,6 +135,15 @@ event zeek_init()
 	print "============ test extract_ip_addresses()";
 	print extract_ip_addresses("this is 1.1.1.1 a test 2.2.2.2 string with ip addresses 3.3.3.3");
 	print extract_ip_addresses("this is 1.1.1.1 a test 0:0:0:0:0:0:0:0 string with ip addresses 3.3.3.3");
+	print extract_ip_addresses("text 1.1.1.1 text", T);
+	print extract_ip_addresses("text 1.1.1.1 text", F);
+	print extract_ip_addresses("text1.1.1.1text", T);
+	print extract_ip_addresses("text1.1.1.1text", F);
+	print extract_ip_addresses("text[1.1.1.1]text", T);
+	print extract_ip_addresses("text[1.1.1.1]text", F);
+	print extract_ip_addresses("[1.1.1.1] [2.2.2.2]", T);
+	print extract_ip_addresses("1.1.1.1", T);
+	print extract_ip_addresses("1.1.1.1", F);
 
 	# This will use the leading 6 from "IPv6" (maybe that's not intended
 	# by a person trying to parse such a string, but that's just what's going

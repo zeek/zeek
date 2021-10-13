@@ -11,6 +11,19 @@
 
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
+@load frameworks/cluster/agent/__load__.zeek
+@load frameworks/cluster/agent/api.zeek
+@load frameworks/cluster/agent/boot.zeek
+@load frameworks/cluster/agent/config.zeek
+# @load frameworks/cluster/agent/main.zeek
+@load frameworks/cluster/controller/__load__.zeek
+@load frameworks/cluster/controller/api.zeek
+@load frameworks/cluster/controller/boot.zeek
+@load frameworks/cluster/controller/config.zeek
+@load frameworks/cluster/controller/log.zeek
+# @load frameworks/cluster/controller/main.zeek
+@load frameworks/cluster/controller/request.zeek
+@load frameworks/cluster/controller/types.zeek
 @load frameworks/dpd/detect-protocols.zeek
 @load frameworks/dpd/packet-segment-logging.zeek
 @load frameworks/intel/do_notice.zeek
@@ -41,6 +54,7 @@
 @load frameworks/notice/extend-email/hostnames.zeek
 @load files/unified2/__load__.zeek
 @load files/unified2/main.zeek
+@load files/x509/disable-certificate-events-known-certs.zeek
 @load files/x509/log-ocsp.zeek
 @load frameworks/packet-filter/shunt.zeek
 @load frameworks/software/version-changes.zeek
@@ -103,9 +117,11 @@
 @load protocols/ssh/software.zeek
 #@load protocols/ssl/decryption.zeek
 @load protocols/ssl/expiring-certs.zeek
-@load protocols/ssl/extract-certs-pem.zeek
+# @load protocols/ssl/extract-certs-pem.zeek
 @load protocols/ssl/heartbleed.zeek
 @load protocols/ssl/known-certs.zeek
+@load protocols/ssl/log-certs-base64.zeek
+@load protocols/ssl/ssl-log-ext.zeek
 @load protocols/ssl/log-hostcerts-only.zeek
 #@load protocols/ssl/notary.zeek
 @load protocols/ssl/validate-certs.zeek

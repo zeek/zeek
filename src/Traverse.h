@@ -2,23 +2,26 @@
 
 #pragma once
 
+#include "zeek/Scope.h"
 #include "zeek/TraverseTypes.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class Func;
 
-namespace detail {
+namespace detail
+	{
 
-class Scope;
 class Stmt;
 class Expr;
 class ID;
 
-class TraversalCallback {
+class TraversalCallback
+	{
 public:
-	TraversalCallback()	{ current_scope = nullptr; }
-	virtual ~TraversalCallback() {}
+	TraversalCallback() { current_scope = nullptr; }
+	virtual ~TraversalCallback() { }
 
 	virtual TraversalCode PreFunction(const Func*) { return TC_CONTINUE; }
 	virtual TraversalCode PostFunction(const Func*) { return TC_CONTINUE; }
@@ -38,10 +41,10 @@ public:
 	virtual TraversalCode PreDecl(const ID*) { return TC_CONTINUE; }
 	virtual TraversalCode PostDecl(const ID*) { return TC_CONTINUE; }
 
-	Scope* current_scope;
-};
+	ScopePtr current_scope;
+	};
 
 TraversalCode traverse_all(TraversalCallback* cb);
 
-} // namespace detail
-} // namespace zeek
+	} // namespace detail
+	} // namespace zeek

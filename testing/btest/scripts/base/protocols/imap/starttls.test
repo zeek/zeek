@@ -9,6 +9,8 @@
 @load base/frameworks/dpd
 @load base/protocols/imap
 
+redef SSL::log_include_server_certificate_subject_issuer=T;
+
 event imap_starttls(c: connection)
 	{
 	print "Tls started for connection";

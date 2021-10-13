@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include <string>
 #include <map>
+#include <string>
 
+#include "zeek/Func.h"
 #include "zeek/OpaqueVal.h"
 #include "zeek/file_analysis/analyzer/x509/X509Common.h"
-#include "zeek/Func.h"
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10002000L ) || defined(LIBRESSL_VERSION_NUMBER)
 
@@ -17,57 +17,57 @@
 
 #if ( OPENSSL_VERSION_NUMBER < 0x1010000fL ) || defined(LIBRESSL_VERSION_NUMBER)
 
-#define X509_OBJECT_new()   (X509_OBJECT*)malloc(sizeof(X509_OBJECT))
+#define X509_OBJECT_new() (X509_OBJECT*)malloc(sizeof(X509_OBJECT))
 #define X509_OBJECT_free(a) free(a)
 
-#define OCSP_resp_get0_certs(x)    (x)->certs
+#define OCSP_resp_get0_certs(x) (x)->certs
 
-#define EVP_PKEY_get0_DSA(p)    ((p)->pkey.dsa)
+#define EVP_PKEY_get0_DSA(p) ((p)->pkey.dsa)
 #define EVP_PKEY_get0_EC_KEY(p) ((p)->pkey.ec)
-#define EVP_PKEY_get0_RSA(p)    ((p)->pkey.rsa)
+#define EVP_PKEY_get0_RSA(p) ((p)->pkey.rsa)
 
-#if !defined(LIBRESSL_VERSION_NUMBER) || ( LIBRESSL_VERSION_NUMBER < 0x2070000fL )
+#if ! defined(LIBRESSL_VERSION_NUMBER) || (LIBRESSL_VERSION_NUMBER < 0x2070000fL)
 
 #define OCSP_SINGLERESP_get0_id(s) (s)->certId
 
-static X509 *X509_OBJECT_get0_X509(const X509_OBJECT *a)
-{
+static X509* X509_OBJECT_get0_X509(const X509_OBJECT* a)
+	{
 	if ( a == nullptr || a->type != X509_LU_X509 )
 		return nullptr;
 	return a->data.x509;
-}
+	}
 
-static void DSA_get0_pqg(const DSA *d,
-			 const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
-{
+static void DSA_get0_pqg(const DSA* d, const BIGNUM** p, const BIGNUM** q, const BIGNUM** g)
+	{
 	if ( p != nullptr )
 		*p = d->p;
 	if ( q != nullptr )
 		*q = d->q;
 	if ( g != nullptr )
 		*g = d->g;
-}
+	}
 
-static void RSA_get0_key(const RSA *r,
-			 const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
-{
+static void RSA_get0_key(const RSA* r, const BIGNUM** n, const BIGNUM** e, const BIGNUM** d)
+	{
 	if ( n != nullptr )
 		*n = r->n;
 	if ( e != nullptr )
 		*e = r->e;
 	if ( d != nullptr )
 		*d = r->d;
-}
+	}
 
 #endif
 
 #endif
 
-namespace zeek::file_analysis::detail {
+namespace zeek::file_analysis::detail
+	{
 
 class X509Val;
 
-class X509 : public file_analysis::detail::X509Common {
+class X509 : public file_analysis::detail::X509Common
+	{
 public:
 	bool DeliverStream(const u_char* data, uint64_t len) override;
 	bool Undelivered(uint64_t offset, uint64_t len) override;
@@ -88,9 +88,10 @@ public:
 	 */
 	static RecordValPtr ParseCertificate(X509Val* cert_val, file_analysis::File* file = nullptr);
 
-	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
-	                                            file_analysis::File* file)
-		{ return new X509(std::move(args), file); }
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file)
+		{
+		return new X509(std::move(args), file);
+		}
 
 	/**
 	 * Retrieves OpenSSL's representation of an X509 certificate store
@@ -117,14 +118,15 @@ public:
 	/**
 	 * Sets the table[string] that used as the certificate cache inside of Zeek.
 	 */
-	static void SetCertificateCache(TableValPtr cache)
-		{ certificate_cache = std::move(cache); }
+	static void SetCertificateCache(TableValPtr cache) { certificate_cache = std::move(cache); }
 
 	/**
 	 * Sets the callback when a certificate cache hit is encountered
 	 */
 	static void SetCertificateCacheHitCallback(FuncPtr func)
-		{ cache_hit_callback = std::move(func); }
+		{
+		cache_hit_callback = std::move(func);
+		}
 
 protected:
 	X509(RecordValPtr args, file_analysis::File* file);
@@ -138,12 +140,12 @@ private:
 
 	// Helpers for ParseCertificate.
 	static StringValPtr KeyCurve(EVP_PKEY* key);
-	static unsigned int KeyLength(EVP_PKEY *key);
+	static unsigned int KeyLength(EVP_PKEY* key);
 	/** X509 stores associated with global script-layer values */
 	inline static std::map<Val*, X509_STORE*> x509_stores = std::map<Val*, X509_STORE*>();
 	inline static TableValPtr certificate_cache = nullptr;
 	inline static FuncPtr cache_hit_callback = nullptr;
-};
+	};
 
 /**
  * This class wraps an OpenSSL X509 data structure.
@@ -152,7 +154,8 @@ private:
  * script-land. Otherwise, we cannot verify certificates from Bro
  * scriptland
  */
-class X509Val : public OpaqueVal {
+class X509Val : public OpaqueVal
+	{
 public:
 	/**
 	 * Construct an X509Val.
@@ -194,6 +197,6 @@ protected:
 	DECLARE_OPAQUE_VALUE(X509Val)
 private:
 	::X509* certificate; // the wrapped certificate
-};
+	};
 
-} // namespace zeek::file_analysis::detail
+	} // namespace zeek::file_analysis::detail

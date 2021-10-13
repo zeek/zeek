@@ -4,10 +4,7 @@
 
 using namespace zeek::packet_analysis::PPPSerial;
 
-PPPSerialAnalyzer::PPPSerialAnalyzer()
-	: zeek::packet_analysis::Analyzer("PPPSerial")
-	{
-	}
+PPPSerialAnalyzer::PPPSerialAnalyzer() : zeek::packet_analysis::Analyzer("PPPSerial") { }
 
 bool PPPSerialAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{

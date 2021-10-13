@@ -87,9 +87,17 @@ type Array = record {
 
 ############################## ASN.1 Conversion Functions
 
+# Converts an 8-byte string into an int64. If this string is longer than
+# 8 bytes, it reports a weird and returns zero.
 function binary_to_int64(bs: bytestring): int64
 	%{
 	int64 rval = 0;
+
+	if ( bs.length() > 8 )
+		{
+		zeek::reporter->Weird("asn_binary_to_int64_shift_too_large", zeek::util::fmt("%d", bs.length()));
+		return 0;
+		}
 
 	for ( int i = 0; i < bs.length(); ++i )
 		{
@@ -153,9 +161,8 @@ zeek::StringValPtr asn1_oid_to_val(const ASN1Encoding* oid)
 		// Underflow.
 		return zeek::val_mgr->EmptyString();
 
-	for ( size_t i = 0; i < subidentifiers.size(); ++i )
+	for ( auto subidentifier : subidentifiers )
 		{
-		subidentifier = subidentifiers[i];
 		uint64 value = 0;
 
 		for ( size_t j = 0; j < subidentifier.size(); ++j )
@@ -175,17 +182,13 @@ zeek::StringValPtr asn1_oid_to_val(const ASN1Encoding* oid)
 
 		if ( i > 0 )
 			{
-			rval += ".";
-			snprintf(tmp, sizeof(tmp), "%" PRIu64, subidentifier_values[i]);
+			snprintf(tmp, sizeof(tmp), ".%" PRIu64, subidentifier_values[i]);
 			rval += tmp;
 			}
 		else
 			{
 			std::div_t result = std::div(subidentifier_values[i], 40);
-			snprintf(tmp, sizeof(tmp), "%d", result.quot);
-			rval += tmp;
-			rval += ".";
-			snprintf(tmp, sizeof(tmp), "%d", result.rem);
+			snprintf(tmp, sizeof(tmp), "%d.%d", result.quot, result.rem);
 			rval += tmp;
 			}
 		}

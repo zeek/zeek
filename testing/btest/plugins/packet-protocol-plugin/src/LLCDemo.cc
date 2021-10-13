@@ -1,7 +1,7 @@
 #include "LLCDemo.h"
 #include "zeek/Event.h"
 #include "zeek/Val.h"
-#include "zeek/Sessions.h"
+#include "zeek/session/Manager.h"
 #include "events.bif.h"
 
 using namespace zeek::packet_analysis::PacketDemo;

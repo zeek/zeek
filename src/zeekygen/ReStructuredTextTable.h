@@ -2,17 +2,18 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
-namespace zeek::zeekygen::detail {
+namespace zeek::zeekygen::detail
+	{
 
 /**
  * A reST table with arbitrary number of columns.
  */
-class ReStructuredTextTable {
+class ReStructuredTextTable
+	{
 public:
-
 	/**
 	 * Create the reST table object.
 	 * @param arg_num_cols The number of columns in the table.
@@ -31,8 +32,7 @@ public:
 	 * @return A border sized appropriated for the table with columns of sizes
 	 * denoted by \a col_sizes.
 	 */
-	static std::string MakeBorder(const std::vector<size_t>& col_sizes,
-	                              char border);
+	static std::string MakeBorder(const std::vector<size_t>& col_sizes, char border);
 
 	/**
 	 * @param border Character to use for the border.
@@ -41,10 +41,9 @@ public:
 	std::string AsString(char border) const;
 
 private:
-
 	size_t num_cols;
-	std::vector<std::vector<std::string> > rows;
+	std::vector<std::vector<std::string>> rows;
 	std::vector<size_t> longest_row_in_column;
-};
+	};
 
-} // namespace zeek::zeekygen::detail
+	} // namespace zeek::zeekygen::detail

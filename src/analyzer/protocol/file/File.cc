@@ -2,14 +2,14 @@
 
 #include <algorithm>
 
-#include "zeek/file_analysis/Manager.h"
-#include "zeek/RuleMatcher.h"
 #include "zeek/Reporter.h"
+#include "zeek/RuleMatcher.h"
+#include "zeek/analyzer/protocol/file/events.bif.h"
+#include "zeek/file_analysis/Manager.h"
 #include "zeek/util.h"
 
-#include "zeek/analyzer/protocol/file/events.bif.h"
-
-namespace zeek::analyzer::file {
+namespace zeek::analyzer::file
+	{
 
 File_Analyzer::File_Analyzer(const char* name, Connection* conn)
 	: TCP_ApplicationAnalyzer(name, conn)
@@ -25,7 +25,7 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	if ( n )
 		{
-		memcpy(buffer + buffer_len, (const char*) data, n);
+		memcpy(buffer + buffer_len, (const char*)data, n);
 		buffer_len += n;
 
 		if ( buffer_len == BUFFER_SIZE )
@@ -33,11 +33,9 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 
 	if ( orig )
-		file_id_orig = file_mgr->DataIn(data, len, GetAnalyzerTag(), Conn(),
-		                                orig, file_id_orig);
+		file_id_orig = file_mgr->DataIn(data, len, GetAnalyzerTag(), Conn(), orig, file_id_orig);
 	else
-		file_id_resp = file_mgr->DataIn(data, len, GetAnalyzerTag(), Conn(),
-		                                orig, file_id_resp);
+		file_id_resp = file_mgr->DataIn(data, len, GetAnalyzerTag(), Conn(), orig, file_id_resp);
 	}
 
 void File_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
@@ -45,11 +43,9 @@ void File_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
 	if ( orig )
-		file_id_orig = file_mgr->Gap(seq, len, GetAnalyzerTag(), Conn(), orig,
-		                             file_id_orig);
+		file_id_orig = file_mgr->Gap(seq, len, GetAnalyzerTag(), Conn(), orig, file_id_orig);
 	else
-		file_id_resp = file_mgr->Gap(seq, len, GetAnalyzerTag(), Conn(), orig,
-		                             file_id_resp);
+		file_id_resp = file_mgr->Gap(seq, len, GetAnalyzerTag(), Conn(), orig, file_id_resp);
 	}
 
 void File_Analyzer::Done()
@@ -73,19 +69,12 @@ void File_Analyzer::Done()
 void File_Analyzer::Identify()
 	{
 	detail::RuleMatcher::MIME_Matches matches;
-	file_mgr->DetectMIME(reinterpret_cast<const u_char*>(buffer), buffer_len,
-	                           &matches);
-	std::string match = matches.empty() ? "<unknown>"
-		: *(matches.begin()->second.begin());
+	file_mgr->DetectMIME(reinterpret_cast<const u_char*>(buffer), buffer_len, &matches);
+	std::string match = matches.empty() ? "<unknown>" : *(matches.begin()->second.begin());
 
 	if ( file_transferred )
-		EnqueueConnEvent(
-			file_transferred,
-			ConnVal(),
-			make_intrusive<StringVal>(buffer_len, buffer),
-			make_intrusive<StringVal>("<unknown>"),
-			make_intrusive<StringVal>(match)
-		);
+		EnqueueConnEvent(file_transferred, ConnVal(), make_intrusive<StringVal>(buffer_len, buffer),
+		                 make_intrusive<StringVal>("<unknown>"), make_intrusive<StringVal>(match));
 	}
 
-} // namespace zeek::analyzer::file
+	} // namespace zeek::analyzer::file

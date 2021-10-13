@@ -2,30 +2,27 @@
 
 #pragma once
 
-#include "zeek/Scope.h"
 #include "zeek/Expr.h"
+#include "zeek/Scope.h"
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
-#include "zeek/script_opt/DefSetsMgr.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 class Expr;
 class TempVar;
-class ProfileFunc;
 
-class Reducer {
+class Reducer
+	{
 public:
-	Reducer()	{ }
+	Reducer() { }
 
-	StmtPtr Reduce(StmtPtr s)
-		{
-		reduction_root = std::move(s);
-		return reduction_root->Reduce(this);
-		}
+	StmtPtr Reduce(StmtPtr s);
 
-	const DefSetsMgr* GetDefSetsMgr() const		{ return mgr; }
-	void SetDefSetsMgr(const DefSetsMgr* _mgr)	{ mgr = _mgr; }
+	void SetReadyToOptimize() { opt_ready = true; }
+
+	void SetCurrStmt(const Stmt* stmt) { curr_stmt = stmt; }
 
 	ExprPtr GenTemporaryExpr(const TypePtr& t, ExprPtr rhs);
 
@@ -39,15 +36,14 @@ public:
 	bool IDsAreReduced(const std::vector<IDPtr>& ids) const;
 
 	IDPtr UpdateID(IDPtr id);
-	bool ID_IsReduced(const IDPtr& id) const
-		{ return ID_IsReduced(id.get()); }
+	bool ID_IsReduced(const IDPtr& id) const { return ID_IsReduced(id.get()); }
 	bool ID_IsReduced(const ID* id) const;
 
 	// This is called *prior* to pushing a new inline block, in
 	// order to generate the equivalent of function parameters.
 	NameExprPtr GenInlineBlockName(const IDPtr& id);
 
-	int NumNewLocals() const	{ return new_locals.size(); }
+	int NumNewLocals() const { return new_locals.size(); }
 
 	// Returns the name of a temporary for holding the return
 	// value of the block, or nil if the type indicates there's
@@ -58,38 +54,36 @@ public:
 	// Whether it's okay to split a statement into two copies for if-else
 	// expansion.  We only allow this to a particular depth because
 	// beyond that a function body can get too large to analyze.
-	bool BifurcationOkay() const	{ return bifurcation_level <= 12; }
-	int BifurcationLevel() const	{ return bifurcation_level; }
+	bool BifurcationOkay() const { return bifurcation_level <= 12; }
+	int BifurcationLevel() const { return bifurcation_level; }
 
-	void PushBifurcation()		{ ++bifurcation_level; }
-	void PopBifurcation()		{ --bifurcation_level; }
+	void PushBifurcation() { ++bifurcation_level; }
+	void PopBifurcation() { --bifurcation_level; }
 
-	int NumTemps() const		{ return temps.size(); }
+	int NumTemps() const { return temps.size(); }
 
 	// True if this name already reflects the replacement.
-	bool IsNewLocal(const NameExpr* n) const
-		{ return IsNewLocal(n->Id()); }
+	bool IsNewLocal(const NameExpr* n) const { return IsNewLocal(n->Id()); }
 	bool IsNewLocal(const ID* id) const;
 
-	bool IsTemporary(const ID* id) const
-		{ return FindTemporary(id) != nullptr; }
+	bool IsTemporary(const ID* id) const { return FindTemporary(id) != nullptr; }
 
-	bool IsConstantVar(const ID* id) const
-		{ return constant_vars.find(id) != constant_vars.end(); }
+	bool IsConstantVar(const ID* id) const { return constant_vars.find(id) != constant_vars.end(); }
 
 	// True if the Reducer is being used in the context of a second
 	// pass over for AST optimization.
-	bool Optimizing() const
-		{ return ! IsPruning() && mgr != nullptr; }
+	bool Optimizing() const { return ! IsPruning() && opt_ready; }
 
 	// A predicate that indicates whether a given reduction pass
 	// is being made to prune unused statements.
-	bool IsPruning() const		{ return omitted_stmts.size() > 0; }
+	bool IsPruning() const { return omitted_stmts.size() > 0; }
 
 	// A predicate that returns true if the given statement should
 	// be removed due to AST optimization.
 	bool ShouldOmitStmt(const Stmt* s) const
-		{ return omitted_stmts.find(s) != omitted_stmts.end(); }
+		{
+		return omitted_stmts.find(s) != omitted_stmts.end();
+		}
 
 	// Provides a replacement for the given statement due to
 	// AST optimization, or nil if there's no replacement.
@@ -104,12 +98,14 @@ public:
 
 	// Tells the reducer to prune the given statement during the
 	// next reduction pass.
-	void AddStmtToOmit(const Stmt* s)	{ omitted_stmts.insert(s); }
+	void AddStmtToOmit(const Stmt* s) { omitted_stmts.insert(s); }
 
 	// Tells the reducer to replace the given statement during the
 	// next reduction pass.
 	void AddStmtToReplace(const Stmt* s_old, StmtPtr s_new)
-		{ replaced_stmts[s_old] = std::move(s_new); }
+		{
+		replaced_stmts[s_old] = std::move(s_new);
+		}
 
 	// Tells the reducer that it can reclaim the storage associated
 	// with the omitted statements.
@@ -130,6 +126,14 @@ public:
 	// already been applied.
 	bool IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs);
 
+	// Returns a constant representing folding of the given expression
+	// (which must have constant operands).
+	ConstExprPtr Fold(ExprPtr e);
+
+	// Notes that the given expression has been folded to the
+	// given constant.
+	void FoldedTo(ExprPtr orig, ConstExprPtr c);
+
 	// Given an lhs=rhs statement followed by succ_stmt, returns
 	// a (new) merge of the two if they're of the form tmp=rhs, var=tmp;
 	// otherwise, nil.
@@ -141,8 +145,7 @@ public:
 	// one (meant for calls in an Expr context) does not, to avoid
 	// circularity.
 	ExprPtr OptExpr(Expr* e);
-	ExprPtr OptExpr(const ExprPtr& e)
-		{ return OptExpr(e.get()); }
+	ExprPtr OptExpr(const ExprPtr& e) { return OptExpr(e.get()); }
 
 	// This one for expressions appearing in an Expr context.
 	ExprPtr UpdateExpr(ExprPtr e);
@@ -154,29 +157,18 @@ protected:
 	// are in fact equivalent.)
 	bool SameVal(const Val* v1, const Val* v2) const;
 
-	// Track that the variable "var", which has the given set of
-	// definition points, will be a replacement for the "orig"
-	// expression.  Returns the replacement expression (which is
-	// is just a NameExpr referring to "var").
-	ExprPtr NewVarUsage(IDPtr var, const DefPoints* dps, const Expr* orig);
+	// Track that the variable "var" will be a replacement for
+	// the "orig" expression.  Returns the replacement expression
+	// (which is is just a NameExpr referring to "var").
+	ExprPtr NewVarUsage(IDPtr var, const Expr* orig);
 
-	// Returns the definition points associated with "var".  If none
-	// exist in our cache, then populates the cache.
-	const DefPoints* GetDefPoints(const NameExpr* var);
-
-	// Retrieve the definition points associated in our cache with the
-	// given variable, if any.
-	const DefPoints* FindDefPoints(const NameExpr* var) const;
-
-	// Adds a mapping in our cache of the given variable to the given
-	// set of definition points.
-	void SetDefPoints(const NameExpr* var, const DefPoints* dps);
+	void BindExprToCurrStmt(const ExprPtr& e);
+	void BindStmtToCurrStmt(const StmtPtr& s);
 
 	// Returns true if op1 and op2 represent the same operand, given
 	// the reaching definitions available at their usages (e1 and e2).
 	bool SameOp(const Expr* op1, const Expr* op2);
-	bool SameOp(const ExprPtr& op1, const ExprPtr& op2)
-		{ return SameOp(op1.get(), op2.get()); }
+	bool SameOp(const ExprPtr& op1, const ExprPtr& op2) { return SameOp(op1.get(), op2.get()); }
 
 	// True if e1 and e2 reflect identical expressions in the context
 	// of using a value computed for one of them in lieu of computing
@@ -193,7 +185,7 @@ protected:
 	// whether we can skip that assignment because we already have the
 	// exact same value available in a previously assigned temporary.
 	IDPtr FindExprTmp(const Expr* rhs, const Expr* a,
-				const std::shared_ptr<const TempVar>& lhs_tmp);
+	                  const std::shared_ptr<const TempVar>& lhs_tmp);
 
 	// Tests whether an expression computed at e1 (and assigned to "id")
 	// remains valid for substitution at e2.
@@ -211,8 +203,7 @@ protected:
 	// Retrieve the identifier corresponding to the new local for
 	// the given expression.  Creates the local if necessary.
 	IDPtr FindNewLocal(const IDPtr& id);
-	IDPtr FindNewLocal(const NameExprPtr& n)
-		{ return FindNewLocal(n->IdPtr()); }
+	IDPtr FindNewLocal(const NameExprPtr& n) { return FindNewLocal(n->IdPtr()); }
 
 	// Generate a new local to use in lieu of the original (seen
 	// in an inlined block).  The difference is that the new
@@ -220,23 +211,10 @@ protected:
 	// for the current function.
 	IDPtr GenLocal(const IDPtr& orig);
 
-	// This is the heart of constant propagation.  Given an identifier
-	// and a set of definition points for it, if its value is constant
-	// then returns the corresponding ConstExpr with the value.
-	const ConstExpr* CheckForConst(const IDPtr& id,
-					const DefPoints* dps) const;
-
-	// Track that we're replacing instances of "orig" with a new
-	// expression.  This allows us to locate the RDs associated
-	// with "orig" in the context of the new expression, without
-	// requiring an additional RD propagation pass.
-	void TrackExprReplacement(const Expr* orig, const Expr* e);
-
-	// Returns the object we should use to look up RD's associated
-	// with 'e'.  (This isn't necessarily 'e' itself because we
-	// may have decided to replace it with a different expression,
-	// per TrackExprReplacement().)
-	const Obj* GetRDLookupObj(const Expr* e) const;
+	// This is the heart of constant propagation.  Given an identifier,
+	// if its value is constant at the given location then returns
+	// the corresponding ConstExpr with the value.
+	const ConstExpr* CheckForConst(const IDPtr& id, int stmt_num) const;
 
 	// Tracks the temporary variables created during the reduction/
 	// optimization process.
@@ -257,6 +235,14 @@ protected:
 	// rename local variables when inlining.
 	std::unordered_map<const ID*, IDPtr> orig_to_new_locals;
 
+	// Tracks expressions we've folded, so that we can recognize them
+	// for constant propagation.
+	std::unordered_map<const Expr*, ConstExprPtr> constant_exprs;
+
+	// Holds onto those expressions so they don't become invalid
+	// due to memory management.
+	std::vector<ExprPtr> folded_exprs;
+
 	// Which statements to elide from the AST (because optimization
 	// has determined they're no longer needed).
 	std::unordered_set<const Stmt*> omitted_stmts;
@@ -274,27 +260,18 @@ protected:
 	// exponentially.
 	int bifurcation_level = 0;
 
-	// For a given usage of a variable's value, return the definition
-	// points associated with its use at that point.  We use this
-	// both as a cache (populating it every time we do a more laborious
-	// lookup), and proactively when creating new references to variables.
-	std::unordered_map<const NameExpr*, const DefPoints*> var_usage_to_DPs;
-
 	// Tracks which (non-temporary) variables had constant
 	// values used for constant propagation.
 	std::unordered_set<const ID*> constant_vars;
 
-	// For a new expression we've created, map it to the expression
-	// it's replacing.  This allows us to locate the RDs associated
-	// with the usage.
-	std::unordered_map<const Expr*, const Expr*> new_expr_to_orig;
-
 	// Statement at which the current reduction started.
 	StmtPtr reduction_root = nullptr;
 
-	const DefSetsMgr* mgr = nullptr;
-};
+	// Statement we're currently working on.
+	const Stmt* curr_stmt = nullptr;
 
+	bool opt_ready = false;
+	};
 
 // Helper class that walks an AST to determine whether it's safe
 // to substitute a common subexpression (which at this point is
@@ -305,10 +282,10 @@ protected:
 // See Reducer::ExprValid for a discussion of what's required
 // for safety.
 
-class CSE_ValidityChecker : public TraversalCallback {
+class CSE_ValidityChecker : public TraversalCallback
+	{
 public:
-	CSE_ValidityChecker(const std::vector<const ID*>& ids,
-			const Expr* start_e, const Expr* end_e);
+	CSE_ValidityChecker(const std::vector<const ID*>& ids, const Expr* start_e, const Expr* end_e);
 
 	TraversalCode PreStmt(const Stmt*) override;
 	TraversalCode PostStmt(const Stmt*) override;
@@ -328,13 +305,11 @@ public:
 protected:
 	// Returns true if an assigment involving the given identifier on
 	// the LHS is in conflict with the given list of identifiers.
-	bool CheckID(const std::vector<const ID*>& ids, const ID* id,
-			bool ignore_orig) const;
+	bool CheckID(const std::vector<const ID*>& ids, const ID* id, bool ignore_orig) const;
 
 	// Returns true if the assignment given by 'e' modifies an aggregate
 	// with the same type as that of one of the identifiers.
-	bool CheckAggrMod(const std::vector<const ID*>& ids,
-				const Expr* e) const;
+	bool CheckAggrMod(const std::vector<const ID*>& ids, const Expr* e) const;
 
 	// The list of identifiers for which an assignment to one of them
 	// renders the CSE unsafe.
@@ -365,10 +340,7 @@ protected:
 	// Whether analyzed expressions occur in the context of
 	// a statement that modifies an aggregate ("add" or "delete").
 	bool in_aggr_mod_stmt = false;
-};
-
-
-extern bool same_DPs(const DefPoints* dp1, const DefPoints* dp2);
+	};
 
 // Used for debugging, to communicate which expression wasn't
 // reduced when we expected them all to be.
@@ -378,4 +350,4 @@ extern bool checking_reduction;
 // Used to report a non-reduced expression.
 extern bool NonReduced(const Expr* perp);
 
-} // zeek::detail
+	} // zeek::detail

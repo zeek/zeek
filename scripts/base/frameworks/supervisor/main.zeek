@@ -3,7 +3,6 @@
 
 @load ./api
 @load ./control
-@load base/frameworks/broker
 
 function Supervisor::status(node: string): Supervisor::Status
 	{
@@ -42,6 +41,14 @@ function Supervisor::node(): Supervisor::NodeConfig
 
 event zeek_init() &priority=10
 	{
+	if ( Supervisor::is_supervisor() && SupervisorControl::enable_listen )
+		{
+		# This may fail, possibly with scheduled retries. Any failures
+		# already get logged by the listen() implementation, so we don't
+		# report additionally.
+		Broker::listen();
+		}
+
 	Broker::subscribe(SupervisorControl::topic_prefix);
 	}
 

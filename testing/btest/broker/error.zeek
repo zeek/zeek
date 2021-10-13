@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -B main-loop,broker -b send.zeek >send.out
+# @TEST-EXEC: zeek -b send.zeek >send.out
 # @TEST-EXEC: btest-diff send.out
 # 
 

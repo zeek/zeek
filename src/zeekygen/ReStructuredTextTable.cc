@@ -6,7 +6,8 @@
 
 using namespace std;
 
-namespace zeek::zeekygen::detail {
+namespace zeek::zeekygen::detail
+	{
 
 ReStructuredTextTable::ReStructuredTextTable(size_t arg_num_cols)
 	: num_cols(arg_num_cols), rows(), longest_row_in_column()
@@ -25,8 +26,7 @@ void ReStructuredTextTable::AddRow(const vector<string>& new_row)
 			longest_row_in_column[i] = new_row[i].size();
 	}
 
-string ReStructuredTextTable::MakeBorder(const vector<size_t>& col_sizes,
-                                         char border)
+string ReStructuredTextTable::MakeBorder(const vector<size_t>& col_sizes, char border)
 	{
 	string rval;
 
@@ -68,4 +68,4 @@ string ReStructuredTextTable::AsString(char border) const
 	return rval;
 	}
 
-} // namespace zeek::zeekygen::detail
+	} // namespace zeek::zeekygen::detail

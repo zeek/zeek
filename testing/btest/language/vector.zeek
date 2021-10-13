@@ -10,6 +10,11 @@ function test_case(msg: string, expect: bool)
 # Note: only global vectors can be initialized with curly braces
 global vg1: vector of string = { "curly", "braces" };
 
+type R: record {
+	a: bool &default=T;
+};
+
+
 event zeek_init()
 {
 	local v1: vector of string = vector( "test", "example" );
@@ -27,6 +32,7 @@ event zeek_init()
 	local v13 = vector( F, F, T );
 	local v14 = v12 && v13;
 	local v15 = v12 || v13;
+	local v18 = v12 ? v5 : v6;
 
 	# Type inference tests
 
@@ -110,6 +116,13 @@ event zeek_init()
 	test_case( "add element", |v5| == 4 );
 	test_case( "access element", v5[3] == 77 );
 
+	v5[10] = 10;
+	test_case( "add above a hole", |v5| == 11 );
+	test_case( "in operator for non-hole", 3 in v5 );
+	test_case( "in operator for hole", 4 !in v5 );
+	test_case( "in operator for edge", |v5|-1 in v5 );
+	test_case( "in operator for out of range", 44 !in v5 );
+
 	vg1[2] = "global";
 	test_case( "add element", |vg1| == 3 );
 	test_case( "access element", vg1[2] == "global" );
@@ -134,21 +147,12 @@ event zeek_init()
 	test_case( "access element", v4[0] == "new4" );
 
 	v5[0] = 0;
-	test_case( "overwrite element", |v5| == 4 );
+	test_case( "overwrite element", |v5| == 11 );
 	test_case( "access element", v5[0] == 0 );
 
 	vg1[1] = "new5";
 	test_case( "overwrite element", |vg1| == 3 );
 	test_case( "access element", vg1[1] == "new5" );
-
-	# Test increment/decrement operators
-
-	++v5;
-	test_case( "++ operator", |v5| == 4 && v5[0] == 1 && v5[1] == 3
-			 && v5[2] == 4 && v5[3] == 78 );
-	--v5;
-	test_case( "-- operator", |v5| == 4 && v5[0] == 0 && v5[1] == 2
-			 && v5[2] == 3 && v5[3] == 77 );
 
 	# Test +,-,*,/,% of two vectors
 
@@ -157,6 +161,26 @@ event zeek_init()
 	test_case( "* operator", v9[0] == 10 && v9[1] == 40 && v9[2] == 90 );
 	test_case( "/ operator", v10[0] == 10 && v10[1] == 10 && v10[2] == 10 );
 	test_case( "% operator", v11[0] == 0 && v11[1] == 0 && v11[2] == 0 );
+
+	local vs1: vector of string = vector( "foo", "bar" );
+	local vs2: vector of string = vector( "xxx", "yyy" );
+	local vs3: vector of string = vector( "xxx", "bar" );
+
+	local vss = vs1 + vs2;
+	test_case( "+ operator [string]", vss[0] == "fooxxx" && vss[1] == "baryyy" );
+
+	local vss2 = vs1 + "@";
+	test_case( "+ operator [string]", vss2[0] == "foo@" && vss2[1] == "bar@" );
+
+	local vss3 = (vs1 == vs3);
+	test_case( "== operator [string]", vss3[0] == F && vss3[1] == T );
+
+	local vss4 = (vs1 == "bar");
+	test_case( "== operator [string]", vss4[0] == F && vss4[1] == T );
+
+	local vss5 = ("bar" == vs1);
+	test_case( "== operator [string]", vss5[0] == F && vss5[1] == T );
+		# !=, <, >, <=, >= are handled the same as ==, skipping tests
 
 	# Test &&,|| of two vectors
 
@@ -183,4 +207,23 @@ event zeek_init()
 	test_case( "slicing assignment grow", all_set(v17 == vector(6, 2, 9, 10, 11, 5)) );
 	v17[2:5] = vector(9);
 	test_case( "slicing assignment shrink", all_set(v17 == vector(6, 2, 9, 5)) );
+
+	# Test boolean ? operator.
+	test_case( "? operator", all_set(v18 == vector(1, 20, 3)) );
+
+	# Test copying of a vector with holes, as this used to crash.
+	local v19 = copy(v5);
+	test_case( "copy of a vector with holes", |v5| == |v19| );
+	# Even after removing some elements at the end, any trailing holes should
+	# be preserved after copying;
+	v5[6:] = vector();
+	local v20 = copy(v5);
+	print "copy of a vector with trailing holes", v5, v20;
+
+	local v21 = vector(R(), R());
+	v21[4] = R();
+	print "hole in vector of managed types", |v21|, v21;
+	v21[3:] = vector();
+	print "hole in vector of managed types after replacing slice", |v21|, v21;
+
 }

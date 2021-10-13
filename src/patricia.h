@@ -1,8 +1,20 @@
 /*
+ * This code originates from Dave Plonka's Net::Security perl module. An adaptation
+ * of it in C is kept at https://github.com/CAIDA/cc-common/tree/master/libpatricia.
+ * That repository is considered the upstream version for Zeek's fork. We make some
+ * custom changes to this upstream:
+ * - Replace void_fn_t with data_fn_t and prefix_data_fn_t
+ * - Add patricia_search_all method
+ *
+ * The current version is based on commit 4a2c61374f507a420d28bd9084c976142d279605
+ * from that repo.
+ */
+
+/*
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
- * Merit Network, Inc., and their contributors. 
+ * Merit Network, Inc., and their contributors.
  *
  * This file had been called "radix.h" in the MRT sources.
  *
@@ -12,28 +24,28 @@
  */
 
 /* From copyright.txt:
- * 
+ *
  * Copyright (c) 1997, 1998, 1999
- * 
- * 
+ *
+ *
  * The Regents of the University of Michigan ("The Regents") and Merit Network,
  * Inc.  All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 1.  Redistributions of source code must retain the above 
- *     copyright notice, this list of conditions and the 
+ * 1.  Redistributions of source code must retain the above
+ *     copyright notice, this list of conditions and the
  *     following disclaimer.
- * 2.  Redistributions in binary form must reproduce the above 
- *     copyright notice, this list of conditions and the 
- *     following disclaimer in the documentation and/or other 
+ * 2.  Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the
+ *     following disclaimer in the documentation and/or other
  *     materials provided with the distribution.
- * 3.  All advertising materials mentioning features or use of 
- *     this software must display the following acknowledgement:  
+ * 3.  All advertising materials mentioning features or use of
+ *     this software must display the following acknowledgement:
  * This product includes software developed by the University of Michigan, Merit
- * Network, Inc., and their contributors. 
+ * Network, Inc., and their contributors.
  * 4.  Neither the name of the University, Merit Network, nor the
- *     names of their contributors may be used to endorse or 
- *     promote products derived from this software without 
+ *     names of their contributors may be used to endorse or
+ *     promote products derived from this software without
  *     specific prior written permission.
  * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -44,12 +56,10 @@
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #pragma once
-
-#include <sys/types.h>
 
 /* { from defs.h */
 #define prefix_touchar(prefix) ((u_char *)&(prefix)->add.sin)
@@ -59,7 +69,15 @@
 
 #define addroute make_and_lookup
 
-#include <netinet/in.h> /* for struct in_addr */
+#include <sys/types.h> /* for u_* definitions (on FreeBSD 5) */
+
+#include <errno.h> /* for EAFNOSUPPORT */
+#ifndef EAFNOSUPPORT
+#  defined EAFNOSUPPORT WSAEAFNOSUPPORT
+#  include <winsock.h>
+#else
+#  include <netinet/in.h> /* for struct in_addr */
+#endif
 
 #include <sys/socket.h> /* for AF_INET */
 
@@ -106,16 +124,18 @@ typedef struct _patricia_tree_t {
 patricia_node_t *patricia_search_exact (patricia_tree_t *patricia, prefix_t *prefix);
 bool patricia_search_all (patricia_tree_t *patricia, prefix_t *prefix, patricia_node_t ***list, int *n);
 patricia_node_t *patricia_search_best (patricia_tree_t *patricia, prefix_t *prefix);
-patricia_node_t * patricia_search_best2 (patricia_tree_t *patricia, prefix_t *prefix, 
+patricia_node_t * patricia_search_best2 (patricia_tree_t *patricia, prefix_t *prefix,
 				   int inclusive);
 patricia_node_t *patricia_lookup (patricia_tree_t *patricia, prefix_t *prefix);
 void patricia_remove (patricia_tree_t *patricia, patricia_node_t *node);
 patricia_tree_t *New_Patricia (int maxbits);
 void Clear_Patricia (patricia_tree_t *patricia, data_fn_t func);
 void Destroy_Patricia (patricia_tree_t *patricia, data_fn_t func);
+
 void patricia_process (patricia_tree_t *patricia, prefix_data_fn_t func);
 
 void Deref_Prefix (prefix_t * prefix);
+char *prefix_toa (prefix_t * prefix);
 
 /* { from demo.c */
 
@@ -127,7 +147,7 @@ make_and_lookup (patricia_tree_t *tree, char *string);
 
 /* } */
 
-#define PATRICIA_MAXBITS 128
+#define PATRICIA_MAXBITS        (sizeof(struct in6_addr) * 8)
 #define PATRICIA_NBIT(x)        (0x80 >> ((x) & 0x7f))
 #define PATRICIA_NBYTE(x)       ((x) >> 3)
 

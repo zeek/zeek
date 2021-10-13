@@ -1,3 +1,8 @@
+# This crashes with ZAM because it explicitly violates typing, which happens
+# to work in the intepreter, but isn't sound.
+#
+# @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
+#
 # @TEST-EXEC: zeek -b %INPUT >out 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 

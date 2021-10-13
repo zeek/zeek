@@ -136,6 +136,9 @@ export {
 		## The actions which have been applied to this notice.
 		actions:        ActionSet      &log &default=ActionSet();
 
+		## The email address(es) where to send this notice
+		email_dest:     set[string]    &log &default=set();
+
 		## By adding chunks of text into this element, other scripts
 		## can expand on notices that are being emailed.  The normal
 		## way to add text is to extend the vector by handling the
@@ -199,11 +202,12 @@ export {
 	##
 	## Note that this is overridden by the ZeekControl SendMail option.
 	option sendmail            = "/usr/sbin/sendmail";
-	## Email address to send notices with the
+	## The default email address to send notices with the
 	## :zeek:enum:`Notice::ACTION_EMAIL` action or to send bulk alarm logs
 	## on rotation with :zeek:enum:`Notice::ACTION_ALARM`.
 	##
-	## Note that this is overridden by the ZeekControl MailTo option.
+	## Note that this is overridden by the ZeekControl MailTo option or by
+	## the `email_dest` field in the :zeek:see:`Notice::Info` record.
 	const mail_dest           = ""                   &redef;
 
 	## Address that emails will be from.
@@ -380,12 +384,13 @@ function log_mailing_postprocessor(info: Log::RotationInfo): bool
 		{
 		local headers = email_headers(fmt("Log Contents: %s", info$fname),
 		                              mail_dest);
-		local tmpfilename = fmt("%s.mailheaders.tmp", info$fname);
+		local tmpfilename = safe_shell_quote(fmt("%s.mailheaders.tmp", info$fname));
 		local tmpfile = open(tmpfilename);
 		write_file(tmpfile, headers);
 		close(tmpfile);
 		system(fmt("/bin/cat %s %s | %s -t -oi && /bin/rm %s %s",
-		       tmpfilename, info$fname, sendmail, tmpfilename, info$fname));
+		       tmpfilename, safe_shell_quote(info$fname), sendmail,
+			   tmpfilename, safe_shell_quote(info$fname)));
 		}
 	return T;
 	}
@@ -510,10 +515,17 @@ hook Notice::policy(n: Notice::Info) &priority=10
 	add n$actions[ACTION_LOG];
 	}
 
-hook Notice::notice(n: Notice::Info) &priority=-5
+hook Notice::notice(n: Notice::Info)
 	{
 	if ( ACTION_EMAIL in n$actions )
-		email_notice_to(n, mail_dest, T);
+		add n$email_dest[mail_dest];
+	}
+
+hook Notice::notice(n: Notice::Info) &priority=-5
+	{
+	for ( dest in n$email_dest )
+		email_notice_to(n, dest, T);
+
 	if ( ACTION_LOG in n$actions )
 		Log::write(Notice::LOG, n);
 	if ( ACTION_ALARM in n$actions )

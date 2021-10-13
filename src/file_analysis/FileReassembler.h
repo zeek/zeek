@@ -4,18 +4,20 @@
 
 #include "zeek/Reassem.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class Connection;
 class File;
 
-namespace file_analysis {
+namespace file_analysis
+	{
 
 class File;
 
-class FileReassembler final : public Reassembler {
+class FileReassembler final : public Reassembler
+	{
 public:
-
 	FileReassembler(File* f, uint64_t starting_offset);
 	~FileReassembler() override = default;
 
@@ -46,18 +48,16 @@ public:
 	 * @return whether the reassembler is currently is the process of flushing
 	 * out the contents of its buffer.
 	 */
-	bool IsCurrentlyFlushing() const
-		{ return flushing; }
+	bool IsCurrentlyFlushing() const { return flushing; }
 
 protected:
-
 	void Undelivered(uint64_t up_to_seq) override;
 	void BlockInserted(DataBlockMap::const_iterator it) override;
 	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 
 	File* the_file = nullptr;
 	bool flushing = false;
-};
+	};
 
-} // namespace file_analysis
-} // namespace zeek
+	} // namespace file_analysis
+	} // namespace zeek

@@ -147,6 +147,10 @@ if ( ZEEK_SANITIZERS )
             set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS},")
         endif ()
 
+        if ( _sanitizer STREQUAL "thread" )
+            set(ZEEK_TSAN true)
+        endif ()
+
         if ( NOT _sanitizer STREQUAL "undefined" )
             set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS}${_sanitizer}")
             continue()
@@ -490,10 +494,10 @@ endif()
 # Tell the plugin code that we're building as part of the main tree.
 set(ZEEK_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
-set(DEFAULT_ZEEKPATH .:${ZEEK_SCRIPT_INSTALL_PATH}:${ZEEK_SCRIPT_INSTALL_PATH}/policy:${ZEEK_SCRIPT_INSTALL_PATH}/site)
+set(DEFAULT_ZEEKPATH .:${ZEEK_SCRIPT_INSTALL_PATH}:${ZEEK_SCRIPT_INSTALL_PATH}/policy:${ZEEK_SCRIPT_INSTALL_PATH}/site:${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins)
 
 if ( NOT BINARY_PACKAGING_MODE )
-    set(ZEEK_DIST ${CMAKE_SOURCE_DIR})
+    set(ZEEK_DIST ${PROJECT_SOURCE_DIR})
 endif ()
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
@@ -539,12 +543,16 @@ if ( GooglePerftools_INCLUDE_DIR )
     set(ZEEK_CONFIG_GooglePerftools_INCLUDE_DIR ${GooglePerftools_INCLUDE_DIR})
 endif ()
 
+set(ZEEK_CONFIG_BTEST_TOOLS_DIR ${ZEEK_ROOT_DIR}/share/btest)
+install(DIRECTORY DESTINATION ${ZEEK_CONFIG_BTEST_TOOLS_DIR})
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config @ONLY)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/zeek-config DESTINATION bin)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake DESTINATION share/zeek
-        USE_SOURCE_PERMISSIONS)
+        USE_SOURCE_PERMISSIONS
+        PATTERN ".git" EXCLUDE)
 
 # Install wrapper script for Bro-to-Zeek renaming.
 include(InstallShellScript)
@@ -571,11 +579,40 @@ if ( INSTALL_ZKG )
 endif ()
 
 ########################################################################
+## Look for external plugins to build in
+
+string(REPLACE "," " " _build_in_plugins "${ZEEK_INCLUDE_PLUGINS}")
+separate_arguments(_build_in_plugins)
+foreach(plugin_dir ${_build_in_plugins})
+    if ( NOT IS_ABSOLUTE "${plugin_dir}/CMakeLists.txt" )
+      message(FATAL_ERROR "Plugins to build in need to be defined with absolute path! ${plugin_dir}")
+    endif()
+
+    if ( NOT EXISTS "${plugin_dir}/CMakeLists.txt" )
+      message(FATAL_ERROR "No plugin found at ${plugin_dir}!")
+    endif()
+
+    get_filename_component(plugin_name ${plugin_dir} NAME)
+
+    # Create a list of plugin directories that will then be added in the src/CMakeLists.txt
+    list(APPEND BUILTIN_PLUGIN_LIST ${plugin_dir})
+
+    message(STATUS "  Building in plugin: ${plugin_name} (${plugin_dir})")
+
+    if ( "${ZEEK_BUILTIN_PLUGINS}" STREQUAL "" )
+        set(ZEEK_BUILTIN_PLUGINS ${plugin_name})
+    else ()
+        set(ZEEK_BUILTIN_PLUGINS "${ZEEK_BUILTIN_PLUGINS}, ${plugin_name}")
+    endif ()
+endforeach()
+
+########################################################################
 ## Recurse on sub-directories
 
 add_subdirectory(src)
 add_subdirectory(scripts)
 add_subdirectory(man)
+add_subdirectory(testing)
 
 include(CheckOptionalBuildSources)
 
@@ -584,11 +621,12 @@ CheckOptionalBuildSources(auxil/package-manager ZKG INSTALL_ZKG)
 CheckOptionalBuildSources(auxil/zeekctl   ZeekControl INSTALL_ZEEKCTL)
 CheckOptionalBuildSources(auxil/zeek-aux  Zeek-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER)
+CheckOptionalBuildSources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
 
 ########################################################################
 ## Packaging Setup
 
-if ( INSTALL_ZEEKCTL OR INSTALL_ZKG )
+if ( INSTALL_ZEEKCTL OR INSTALL_ZKG OR INSTALL_ZEEK_CLIENT )
     # CPack RPM Generator may not automatically detect this
     set(CPACK_RPM_PACKAGE_REQUIRES "python >= ${ZEEK_PYTHON_MIN}")
 endif ()
@@ -608,17 +646,24 @@ if (CMAKE_BUILD_TYPE)
     string(TOUPPER ${CMAKE_BUILD_TYPE} BuildType)
 endif ()
 
+if ( INSTALL_BTEST_PCAPS )
+    set(_install_btest_tools_msg "all")
+else ()
+    set(_install_btest_tools_msg "no pcaps")
+endif ()
+
 message(
     "\n====================|  Zeek Build Summary  |===================="
     "\n"
     "\nBuild type:        ${CMAKE_BUILD_TYPE}"
-    "\nBuild dir:         ${CMAKE_BINARY_DIR}"
+    "\nBuild dir:         ${PROJECT_BINARY_DIR}"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
     "\nPlugin dir:        ${BRO_PLUGIN_INSTALL_PATH}"
     "\nPython module dir: ${PY_MOD_INSTALL_DIR}"
     "\nZeek Script Path:  ${ZEEK_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\nUnit tests:        ${ENABLE_ZEEK_UNIT_TESTS}"
+    "\nBuiltin Plugins:   ${ZEEK_BUILTIN_PLUGINS}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"
     "\nCFLAGS:            ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}"
@@ -629,6 +674,7 @@ message(
     "\nZeekControl:       ${INSTALL_ZEEKCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\nBTest:             ${INSTALL_BTEST}"
+    "\nBTest tooling:     ${_install_btest_tools_msg}"
     "\nzkg:               ${INSTALL_ZKG}"
     "\n"
     "\nlibmaxminddb:      ${USE_GEOIP}"

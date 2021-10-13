@@ -5,9 +5,11 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::LinuxSLL {
+namespace zeek::packet_analysis::LinuxSLL
+	{
 
-class LinuxSLLAnalyzer : public Analyzer {
+class LinuxSLLAnalyzer : public Analyzer
+	{
 public:
 	LinuxSLLAnalyzer();
 	~LinuxSLLAnalyzer() override = default;
@@ -20,7 +22,6 @@ public:
 		}
 
 private:
-
 	// Structure layout is based on https://www.tcpdump.org/linktypes/LINKTYPE_LINUX_SLL.html
 	struct SLLHeader
 		{
@@ -30,6 +31,6 @@ private:
 		uint64_t addr;
 		uint16_t protocol_type;
 		} __attribute__((__packed__));
-};
+	};
 
-}
+	}

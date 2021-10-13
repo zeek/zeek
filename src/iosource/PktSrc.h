@@ -10,21 +10,27 @@
 
 struct pcap_pkthdr;
 
-namespace zeek::iosource {
+namespace zeek::iosource
+	{
 
-namespace detail { class BPF_Program; }
+namespace detail
+	{
+class BPF_Program;
+	}
 
 /**
  * Base class for packet sources.
  */
-class PktSrc : public IOSource {
+class PktSrc : public IOSource
+	{
 public:
 	static const int NETMASK_UNKNOWN = 0xffffffff;
 
 	/**
 	 * Struct for returning statistics on a packet source.
 	 */
-	struct Stats {
+	struct Stats
+		{
 		/**
 		 * Packets received by source after filtering (w/o drops).
 		 */
@@ -33,7 +39,7 @@ public:
 		/**
 		 * Packets dropped by source.
 		 */
-		uint64_t dropped;	// pkts dropped
+		uint64_t dropped; // pkts dropped
 
 		/**
 		 * Total number of packets on link before filtering.
@@ -42,12 +48,12 @@ public:
 		uint64_t link;
 
 		/**
-		  * Bytes received by source after filtering (w/o drops).
-		*/
+		 * Bytes received by source after filtering (w/o drops).
+		 */
 		uint64_t bytes_received;
 
-		Stats()	{ received = dropped = link = bytes_received = 0; }
-	};
+		Stats() { received = dropped = link = bytes_received = 0; }
+		};
 
 	/**
 	 * Constructor.
@@ -134,7 +140,7 @@ public:
 	 * @param pkt The content of the packet to filter.
 	 *
 	 * @return True if it maches. 	 */
-	bool ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt);
+	bool ApplyBPFFilter(int index, const struct pcap_pkthdr* hdr, const u_char* pkt);
 
 	/**
 	 * Returns the packet currently being processed, if available.
@@ -209,7 +215,8 @@ protected:
 	 * Structure to pass back information about the packet source to the
 	 * base class. Derived class pass an instance of this to \a Opened().
 	 */
-	struct Properties {
+	struct Properties
+		{
 		/**
 		 * The path associated with the source. This is the interface
 		 * name for live source, and a filename for offline sources.
@@ -240,7 +247,7 @@ protected:
 		bool is_live;
 
 		Properties();
-	};
+		};
 
 	/**
 	 * Called from the implementations of \a Open() to signal that the
@@ -330,7 +337,6 @@ protected:
 	virtual void DoneWithPacket() = 0;
 
 private:
-
 	// Internal helper for ExtractNextPacket().
 	bool ExtractNextPacketInternal();
 
@@ -346,9 +352,9 @@ private:
 	Packet current_packet;
 
 	// For BPF filtering support.
-	std::vector<detail::BPF_Program *> filters;
+	std::vector<detail::BPF_Program*> filters;
 
 	std::string errbuf;
-};
+	};
 
-} // namespace zeek::iosource
+	} // namespace zeek::iosource

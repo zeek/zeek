@@ -3,19 +3,21 @@
 #pragma once
 
 #include <sys/types.h>
-#include <vector>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 #include "zeek/input/ReaderBackend.h"
 
-namespace zeek::input::reader::detail {
+namespace zeek::input::reader::detail
+	{
 
 /**
  * A reader that returns a file (or the output of a command) as a single
  * blob.
  */
-class Raw : public ReaderBackend {
+class Raw : public ReaderBackend
+	{
 public:
 	explicit Raw(ReaderFrontend* frontend);
 	~Raw() override;
@@ -29,7 +31,8 @@ public:
 	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Raw(frontend); }
 
 protected:
-	bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) override;
+	bool DoInit(const ReaderInfo& info, int arg_num_fields,
+	            const threading::Field* const* fields) override;
 	void DoClose() override;
 	bool DoUpdate() override;
 	bool DoHeartbeat(double network_time, double current_time) override;
@@ -46,8 +49,8 @@ private:
 	void WriteToStdin();
 
 	std::string fname; // Source with a potential "|" removed.
-	std::unique_ptr<FILE, int(*)(FILE*)> file;
-	std::unique_ptr<FILE, int(*)(FILE*)> stderrfile;
+	std::unique_ptr<FILE, int (*)(FILE*)> file;
+	std::unique_ptr<FILE, int (*)(FILE*)> stderrfile;
 	bool execute;
 	bool firstrun;
 	time_t mtime;
@@ -77,16 +80,17 @@ private:
 	int pipes[6];
 	pid_t childpid;
 
-	enum IoChannels {
+	enum IoChannels
+		{
 		stdout_in = 0,
 		stdout_out = 1,
 		stdin_in = 2,
 		stdin_out = 3,
 		stderr_in = 4,
 		stderr_out = 5
-	};
+		};
 
 	static const int block_size;
-};
+	};
 
-} // namespace zeek::input::reader::detail
+	} // namespace zeek::input::reader::detail

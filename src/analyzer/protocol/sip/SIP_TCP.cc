@@ -4,11 +4,12 @@
 // activated. We don't yet support SIP-over-TCP.
 
 #include "zeek/analyzer/protocol/sip/SIP_TCP.h"
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "zeek/analyzer/protocol/sip/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-namespace zeek::analyzer::sip_tcp {
+namespace zeek::analyzer::sip_tcp
+	{
 
 SIP_Analyzer::SIP_Analyzer(Connection* conn)
 	: analyzer::tcp::TCP_ApplicationAnalyzer("SIP_TCP", conn)
@@ -67,4 +68,4 @@ void SIP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	interp->NewGap(orig, len);
 	}
 
-} // namespace zeek::analyzer::sip_tcp
+	} // namespace zeek::analyzer::sip_tcp

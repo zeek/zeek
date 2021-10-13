@@ -7,16 +7,18 @@
 #include "zeek/Type.h"
 #include "zeek/threading/SerialTypes.h"
 
-namespace zeek::threading {
+namespace zeek::threading
+	{
 
 class MsgThread;
 
 /**
-  * A thread-safe class for converting values into some textual format. This
-  * is a base class that implements the interface for common
-  * rendering/parsing code needed by a number of input/output threads.
-  */
-class Formatter {
+ * A thread-safe class for converting values into some textual format. This
+ * is a base class that implements the interface for common
+ * rendering/parsing code needed by a number of input/output threads.
+ */
+class Formatter
+	{
 public:
 	/**
 	 * Constructor.
@@ -49,7 +51,7 @@ public:
 	 * @return Returns true on success, false on error. Errors must also
 	 * be flagged via the thread.
 	 */
-	virtual bool Describe(ODesc* desc, int num_fields, const Field* const * fields,
+	virtual bool Describe(ODesc* desc, int num_fields, const Field* const* fields,
 	                      Value** vals) const = 0;
 
 	/**
@@ -138,7 +140,7 @@ public:
 	 * @return The transport protocol, which will be \c TRANSPORT_UNKNOWN
 	 * on error. Errors are also flagged via the thread.
 	 */
-	TransportProto ParseProto(const std::string &proto) const;
+	TransportProto ParseProto(const std::string& proto) const;
 
 	/**
 	 * Convert a string into a Value::addr_t.
@@ -150,17 +152,17 @@ public:
 	 * @return The address, which will be all-zero on error. Errors are
 	 * also flagged via the thread.
 	 */
-	Value::addr_t ParseAddr(const std::string &addr) const;
+	Value::addr_t ParseAddr(const std::string& addr) const;
 
 protected:
 	/**
 	 * Returns the thread associated with the formatter via the
 	 * constructor.
 	 */
-	MsgThread* GetThread() const	{ return thread; }
+	MsgThread* GetThread() const { return thread; }
 
 private:
 	MsgThread* thread;
-};
+	};
 
-} // namespace zeek::threading
+	} // namespace zeek::threading

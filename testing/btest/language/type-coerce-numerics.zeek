@@ -1,3 +1,8 @@
+# We skip this test for ZAM, because it will optimize away the values
+# that are created to induce overflows.  An alternative would be to change
+# the test to print those values.
+# @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
+#
 # @TEST-EXEC: zeek -b first_set.zeek >first_set.out 2>first_set.err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff first_set.out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff first_set.err

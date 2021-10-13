@@ -1,7 +1,7 @@
 # @TEST-PORT: BROKER_PORT
 
-# @TEST-EXEC: zeek -B broker -b one.zeek > output1
-# @TEST-EXEC-FAIL: zeek -B broker -b two.zeek > output2
+# @TEST-EXEC: zeek -b one.zeek > output1
+# @TEST-EXEC-FAIL: zeek -b two.zeek > output2
 # @TEST-EXEC: btest-diff .stderr
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 

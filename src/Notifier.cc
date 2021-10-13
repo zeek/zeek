@@ -1,13 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/Notifier.h"
+
 #include <set>
 
-#include "zeek/Notifier.h"
 #include "zeek/DebugLogger.h"
 
 zeek::notifier::detail::Registry zeek::notifier::detail::registry;
 
-namespace zeek::notifier::detail {
+namespace zeek::notifier::detail
+	{
 
 Receiver::Receiver()
 	{
@@ -86,4 +88,4 @@ Modifiable::~Modifiable()
 		registry.Unregister(this);
 	}
 
-} // namespace zeek::notifier::detail
+	} // namespace zeek::notifier::detail

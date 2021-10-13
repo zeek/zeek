@@ -2,23 +2,24 @@
 
 #pragma once
 
-#include <fstream>
 #include <sys/types.h>
+#include <fstream>
 
 #include "zeek/input/ReaderBackend.h"
 
-namespace zeek::input::reader::detail {
+namespace zeek::input::reader::detail
+	{
 
 /**
  * Binary mode file reader.
  */
-class Binary : public ReaderBackend {
+class Binary : public ReaderBackend
+	{
 public:
 	explicit Binary(ReaderFrontend* frontend);
 	~Binary() override;
 
-	static ReaderBackend* Instantiate(ReaderFrontend* frontend)
-		{ return new Binary(frontend); }
+	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Binary(frontend); }
 
 protected:
 	bool DoInit(const ReaderInfo& info, int arg_num_fields,
@@ -42,6 +43,6 @@ private:
 	// options set from the script-level.
 	static std::streamsize chunk_size;
 	std::string path_prefix;
-};
+	};
 
-} // namespace zeek::input::reader::detail
+	} // namespace zeek::input::reader::detail

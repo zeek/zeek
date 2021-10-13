@@ -23,19 +23,28 @@
 #include <queue>
 #include <vector>
 
+#include "zeek/Dict.h"
+#include "zeek/IP.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Component.h"
 #include "zeek/analyzer/Tag.h"
+#include "zeek/analyzer/analyzer.bif.h"
+#include "zeek/net_util.h"
 #include "zeek/plugin/ComponentManager.h"
 
-#include "zeek/Dict.h"
-#include "zeek/net_util.h"
-#include "zeek/IP.h"
+namespace zeek
+	{
 
-#include "zeek/analyzer/analyzer.bif.h"
+namespace packet_analysis::IP
+	{
 
-namespace zeek {
-namespace analyzer {
+class IPBasedAnalyzer;
+class SessionAdapter;
+
+	} // namespace packet_analysis::IP
+
+namespace analyzer
+	{
 
 /**
  * Class maintaining and scheduling available protocol analyzers.
@@ -47,7 +56,8 @@ namespace analyzer {
  * respecting well-known ports, and tracking any analyzers specifically
  * scheduled for individidual connections.
  */
-class Manager : public plugin::ComponentManager<Tag, Component> {
+class Manager : public plugin::ComponentManager<Tag, Component>
+	{
 public:
 	/**
 	 * Constructor.
@@ -58,12 +68,6 @@ public:
 	 * Destructor.
 	 */
 	~Manager();
-
-	/**
-	 * First-stage initializion of the manager. This is called early on
-	 * during Bro's initialization, before any scripts are processed.
-	 */
-	void InitPreScript();
 
 	/**
 	 * Second-stage initialization of the manager. This is called late
@@ -239,17 +243,6 @@ public:
 	Analyzer* InstantiateAnalyzer(const char* name, Connection* c);
 
 	/**
-	 * Given the first packet of a connection, builds its initial
-	 * analyzer tree.
-	 *
-	 * @param conn The connection to add the initial set of analyzers to.
-	 *
-	 * @return False if the tree cannot be build; that's usually an
-	 * internally error.
-	 */
-	bool BuildInitialAnalyzerTree(Connection* conn);
-
-	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
 	 * the connection is seen, BuildInitAnalyzerTree() will add the
 	 * specified analyzer to its tree.
@@ -294,8 +287,7 @@ public:
 	 * schedule this analyzer. Must be non-zero.
 	 */
 	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
-	                      TransportProto proto, const char* analyzer,
-	                      double timeout);
+	                      TransportProto proto, const char* analyzer, double timeout);
 
 	/**
 	 * Searched for analyzers scheduled to be attached to a given connection
@@ -313,7 +305,7 @@ public:
 	 * @return True if at least one scheduled analyzer was found.
 	 */
 	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true,
-	                             TransportLayerAnalyzer* parent = nullptr);
+	                             packet_analysis::IP::SessionAdapter* parent = nullptr);
 
 	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
@@ -334,90 +326,89 @@ public:
 	 * @param timeout An interval after which to timeout the request to
 	 * schedule this analyzer. Must be non-zero.
 	 */
-	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
-	                      Val* analyzer, double timeout);
+	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p, Val* analyzer,
+	                      double timeout);
 
 	/**
 	 * @return the UDP port numbers to be associated with VXLAN traffic.
 	 */
-	const std::vector<uint16_t>& GetVxlanPorts() const
-		{ return vxlan_ports; }
+	const std::vector<uint16_t>& GetVxlanPorts() const { return vxlan_ports; }
 
 private:
+	// Internal version that must be used only once InitPostScript has completed.
+	bool RegisterAnalyzerForPort(const std::tuple<Tag, TransportProto, uint32_t>& p);
+
+	friend class packet_analysis::IP::IPBasedAnalyzer;
 
 	using tag_set = std::set<Tag>;
-	using analyzer_map_by_port = std::map<uint32_t, tag_set*>;
-
-	tag_set* LookupPort(PortVal* val, bool add_if_not_found);
-	tag_set* LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found);
 
 	tag_set GetScheduled(const Connection* conn);
 	void ExpireScheduledAnalyzers();
 
-	analyzer_map_by_port analyzers_by_port_tcp;
-	analyzer_map_by_port analyzers_by_port_udp;
-
-	Tag analyzer_connsize;
-	Tag analyzer_stepping;
-	Tag analyzer_tcpstats;
-
 	//// Data structures to track analyzed scheduled for future connections.
 
 	// The index for a scheduled connection.
-	struct ConnIndex {
+	struct ConnIndex
+		{
 		IPAddr orig;
 		IPAddr resp;
 		uint16_t resp_p;
 		uint16_t proto;
 
-		ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
-			     uint16_t _resp_p, uint16_t _proto);
+		ConnIndex(const IPAddr& _orig, const IPAddr& _resp, uint16_t _resp_p, uint16_t _proto);
 		ConnIndex();
 
 		bool operator<(const ConnIndex& other) const;
-	};
+		};
 
 	// Information associated with a scheduled connection.
-	struct ScheduledAnalyzer {
+	struct ScheduledAnalyzer
+		{
 		ConnIndex conn;
 		Tag analyzer;
 		double timeout;
 
-		struct Comparator {
-			bool operator() (ScheduledAnalyzer* a, ScheduledAnalyzer* b) {
+		struct Comparator
+			{
+			bool operator()(ScheduledAnalyzer* a, ScheduledAnalyzer* b)
+				{
 				return a->timeout > b->timeout;
-			}
+				}
+			};
 		};
-	};
 
+	using protocol_analyzers = std::set<std::tuple<Tag, TransportProto, uint32_t>>;
 	using conns_map = std::multimap<ConnIndex, ScheduledAnalyzer*>;
-	using conns_queue = std::priority_queue<ScheduledAnalyzer*,
-	                                        std::vector<ScheduledAnalyzer*>,
+	using conns_queue = std::priority_queue<ScheduledAnalyzer*, std::vector<ScheduledAnalyzer*>,
 	                                        ScheduledAnalyzer::Comparator>;
+
+	bool initialized = false;
+	protocol_analyzers pending_analyzers_for_ports;
 
 	conns_map conns;
 	conns_queue conns_by_timeout;
 	std::vector<uint16_t> vxlan_ports;
-};
+	};
 
-} // namespace analyzer
+	} // namespace analyzer
 
 extern analyzer::Manager* analyzer_mgr;
 
-} // namespace zeek
+	} // namespace zeek
 
 // Macros for analyzer debug logging which include the connection id into the
 // message.
 #ifdef DEBUG
-# define DBG_ANALYZER(conn, txt) \
-	DBG_LOG(zeek::DBG_ANALYZER, "%s " txt, \
-		fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), \
-		conn->RespAddr(), ntohs(conn->RespPort())));
-# define DBG_ANALYZER_ARGS(conn, fmt, args...) \
-	DBG_LOG(zeek::DBG_ANALYZER, "%s " fmt, \
-		fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), \
-		conn->RespAddr(), ntohs(conn->RespPort())), ##args);
+#define DBG_ANALYZER(conn, txt)                                                                    \
+	DBG_LOG(zeek::DBG_ANALYZER, "%s " txt,                                                         \
+	        fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), conn->RespAddr(),               \
+	                    ntohs(conn->RespPort())));
+#define DBG_ANALYZER_ARGS(conn, fmt, args...)                                                      \
+	DBG_LOG(zeek::DBG_ANALYZER, "%s " fmt,                                                         \
+	        fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), conn->RespAddr(),               \
+	                    ntohs(conn->RespPort())),                                                  \
+	        ##args);
 #else
-# define DBG_ANALYZER(conn, txt)
-# define DBG_ANALYZER_ARGS(conn, fmt, args...)
+#define DBG_ANALYZER(conn, txt)
+#define DBG_ANALYZER_ARGS(conn, fmt, args...)
 #endif

@@ -182,5 +182,5 @@ export {
 		[4] = "ipv4hint",
 		[5] = "ech",
 		[6] = "ipv6hint",
-	} &default = function(n: count): string { return fmt("key%d", n); };
+	} &default = function(n: count): string { return fmt("key-%d", n); };
 }

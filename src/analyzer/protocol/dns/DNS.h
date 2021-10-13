@@ -153,13 +153,13 @@ enum DNSSEC_Digest
 ///< all keys are defined in RFC draft https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07#section-14.3.2
 enum SVCPARAM_Key
 	{
-		mandatory = 0,
-		alpn = 1,
-		no_default_alpn = 2,
-		port = 3,
-		ipv4hint = 4,
-		ech = 5,
-		ipv6hint = 6,
+	mandatory = 0,
+	alpn = 1,
+	no_default_alpn = 2,
+	port = 3,
+	ipv4hint = 4,
+	ech = 5,
+	ipv6hint = 6,
 	};
 
 struct DNS_RawMsgHdr
@@ -285,9 +285,8 @@ struct LOC_DATA
 
 struct SVCB_DATA
 	{
-	unsigned short svc_priority; // 2
-	String* target_name;
-	Dictionary svc_params;
+	uint16_t svc_priority; // 2
+	StringValPtr target_name;
 	};
 
 class DNS_MsgInfo
@@ -309,7 +308,7 @@ public:
 	RecordValPtr BuildDS_Val(struct DS_DATA*);
 	RecordValPtr BuildBINDS_Val(struct BINDS_DATA*);
 	RecordValPtr BuildLOC_Val(struct LOC_DATA*);
-	RecordValPtr BuildSVCB_Val(struct SVCB_DATA*);
+	RecordValPtr BuildSVCB_Val(const struct SVCB_DATA&);
 
 	int id;
 	int opcode; ///< query type, see DNS_Opcode

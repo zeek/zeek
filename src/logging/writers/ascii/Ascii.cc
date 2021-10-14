@@ -465,7 +465,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 
 			if ( sfd < 0 )
 				{
-				Error(Fmt("cannot open %s: %s", sfname.data(), Strerror(errno)));
+				Error(Fmt("cannot open %s: %s", tmp_sfname.data(), Strerror(errno)));
 				return false;
 				}
 
@@ -478,6 +478,8 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 				util::safe_write(sfd, ppf, strlen(ppf));
 
 			util::safe_write(sfd, "\n", 1);
+
+			util::safe_fsync(sfd);
 
 			util::safe_close(sfd);
 

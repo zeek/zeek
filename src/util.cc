@@ -2162,6 +2162,24 @@ bool safe_pwrite(int fd, const unsigned char* data, size_t len, size_t offset)
 	return true;
 	}
 
+void safe_fsync(int fd)
+	{
+	int r;
+
+	do
+		{
+		r = fsync(fd);
+		} while ( r < 0 && errno == EINTR );
+
+	if ( r < 0 )
+		{
+		char buf[128];
+		zeek_strerror_r(errno, buf, sizeof(buf));
+		fprintf(stderr, "safe_fsync error %d: %s\n", errno, buf);
+		abort();
+		}
+	}
+
 void safe_close(int fd)
 	{
 	/*

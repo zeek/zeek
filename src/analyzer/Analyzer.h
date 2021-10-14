@@ -58,7 +58,7 @@ class OutputHandler;
 // causing a crash.
 using analyzer_list = std::list<Analyzer*>;
 using ID = uint32_t;
-using analyzer_timer_func = void (Analyzer::*)(double_t);
+using analyzer_timer_func = void (Analyzer::*)(double t);
 
 /**
  * Class to receive processed output from an anlyzer.

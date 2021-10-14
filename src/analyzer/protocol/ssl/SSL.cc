@@ -12,7 +12,8 @@
 #include <openssl/evp.h>
 
 #ifdef OPENSSL_HAVE_KDF_H
-    #include <openssl/kdf.h>
+	#include <openssl/kdf.h>
+	#include <openssl/core_names.h>
 #endif
 
 static void print_hex(std::string name, u_char* data, int len)
@@ -160,34 +161,32 @@ bool SSL_Analyzer::TLS12_PRF(const std::string& secret, const std::string& label
 		const char* rnd1, size_t rnd1_len, const char* rnd2, size_t rnd2_len, u_char* out, size_t out_len)
 	{
 #ifdef OPENSSL_HAVE_KDF_H
-	// alloc buffers
-	EVP_PKEY_CTX *pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_TLS1_PRF, NULL);
+	// alloc context + params
+	EVP_KDF *kdf = EVP_KDF_fetch(NULL, "TLS1-PRF", NULL);
+	EVP_KDF_CTX *pctx = EVP_KDF_CTX_new(kdf);
+	OSSL_PARAM params[4], *p = params;
+	EVP_KDF_free(kdf);
+
+	// prepare seed: seed = label + rnd1 + rnd2
 	size_t seed_len = label.size() + rnd1_len + rnd2_len;
 	std::string seed{};
 	seed.reserve(seed_len);
 
-	// seed = label + rnd1 + rnd2
 	seed.append(label);
 	seed.append(rnd1, rnd1_len);
 	seed.append(rnd2, rnd2_len);
 
-	if (EVP_PKEY_derive_init(pctx) <= 0)
-		goto abort; /* Error */
+	// setup OSSL_PARAM array: digest, secret, seed
 	// FIXME: sha384 should not be hardcoded
-	if (EVP_PKEY_CTX_set_tls1_prf_md(pctx, EVP_sha384()) <= 0)
-		goto abort; /* Error */
-	if (EVP_PKEY_CTX_set1_tls1_prf_secret(pctx, secret.data(), secret.size()) <= 0)
-		goto abort; /* Error */
-	if (EVP_PKEY_CTX_add1_tls1_prf_seed(pctx, seed.data(), seed.size()) <= 0)
-		goto abort; /* Error */
-	if (EVP_PKEY_derive(pctx, out, &out_len) <= 0)
-		goto abort; /* Error */
+	*p++ = OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST, SN_sha384, strlen(SN_sha384));
+	*p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SECRET, (void*)secret.data(), secret.size());
+	*p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SEED, (void*)seed.data(), seed.size());
+	*p = OSSL_PARAM_construct_end();
 
-	EVP_PKEY_CTX_free(pctx);
-	return true;
-
-abort:
-	EVP_PKEY_CTX_free(pctx);
+	// derive key material
+	bool result = EVP_KDF_derive(pctx, out, out_len, params) <= 0;
+	EVP_KDF_CTX_free(pctx);
+	return result;
 #endif
 	return false;
 	}

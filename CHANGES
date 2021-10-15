@@ -1,3 +1,11 @@
+4.2.0-dev.260 | 2021-10-15 09:45:45 +0100
+
+  * logging/writers/ascii: shadow files: Add fsync() before rename(). This
+    prevents potential problems with leftover files after unclean shutdowns.
+    (Arne Welzel, Corelight)
+
+  * Fix typo in typedef changes that broke tests on 32-bit Debian 9 (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.255 | 2021-10-12 09:22:37 -0700
 
   * Replace most uses of typedef with using for type aliasing (Tim Wojtulewicz, Corelight)

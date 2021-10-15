@@ -10,10 +10,14 @@
 
 #include <arpa/inet.h>
 #include <openssl/evp.h>
+#include <openssl/opensslv.h>
 
 #ifdef OPENSSL_HAVE_KDF_H
 	#include <openssl/kdf.h>
-	#include <openssl/core_names.h>
+#endif
+
+#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
+#include <openssl/core_names.h>
 #endif
 
 static void print_hex(std::string name, u_char* data, int len)
@@ -161,11 +165,16 @@ bool SSL_Analyzer::TLS12_PRF(const std::string& secret, const std::string& label
 		const char* rnd1, size_t rnd1_len, const char* rnd2, size_t rnd2_len, u_char* out, size_t out_len)
 	{
 #ifdef OPENSSL_HAVE_KDF_H
+#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
 	// alloc context + params
 	EVP_KDF *kdf = EVP_KDF_fetch(NULL, "TLS1-PRF", NULL);
 	EVP_KDF_CTX *pctx = EVP_KDF_CTX_new(kdf);
 	OSSL_PARAM params[4], *p = params;
 	EVP_KDF_free(kdf);
+#else /* OSSL 3 */
+	// alloc buffers
+	EVP_PKEY_CTX *pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_TLS1_PRF, NULL);
+#endif /* OSSL 3 */
 
 	// prepare seed: seed = label + rnd1 + rnd2
 	size_t seed_len = label.size() + rnd1_len + rnd2_len;
@@ -176,6 +185,7 @@ bool SSL_Analyzer::TLS12_PRF(const std::string& secret, const std::string& label
 	seed.append(rnd1, rnd1_len);
 	seed.append(rnd2, rnd2_len);
 
+#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
 	// setup OSSL_PARAM array: digest, secret, seed
 	// FIXME: sha384 should not be hardcoded
 	*p++ = OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST, SN_sha384, strlen(SN_sha384));
@@ -187,7 +197,28 @@ bool SSL_Analyzer::TLS12_PRF(const std::string& secret, const std::string& label
 	bool result = EVP_KDF_derive(pctx, out, out_len, params) <= 0;
 	EVP_KDF_CTX_free(pctx);
 	return result;
-#endif
+#else /* OSSL 3 */
+	if (EVP_PKEY_derive_init(pctx) <= 0)
+		goto abort; /* Error */
+	// setup OSSL_PARAM array: digest, secret, seed
+	// FIXME: sha384 should not be hardcoded
+	if (EVP_PKEY_CTX_set_tls1_prf_md(pctx, EVP_sha384()) <= 0)
+		goto abort; /* Error */
+	if (EVP_PKEY_CTX_set1_tls1_prf_secret(pctx, secret.data(), secret.size()) <= 0)
+		goto abort; /* Error */
+	if (EVP_PKEY_CTX_add1_tls1_prf_seed(pctx, seed.data(), seed.size()) <= 0)
+		goto abort; /* Error */
+	if (EVP_PKEY_derive(pctx, out, &out_len) <= 0)
+		goto abort; /* Error */
+
+	EVP_PKEY_CTX_free(pctx);
+	return true;
+
+abort:
+	EVP_PKEY_CTX_free(pctx);
+#endif /* OSSL 3 */
+
+#endif /* HAVE_KDF */
 	return false;
 	}
 

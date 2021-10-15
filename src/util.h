@@ -535,6 +535,10 @@ extern bool safe_write(int fd, const char* data, int len);
 extern bool safe_pwrite(int fd, const unsigned char* data, size_t len,
                         size_t offset);
 
+// Like fsync() but handles interrupted system calls by retrying and
+// aborts on unrecoverable errors.
+extern bool safe_fsync(int fd);
+
 // Wraps close(2) to emit error messages and abort on unrecoverable errors.
 extern void safe_close(int fd);
 

@@ -35,6 +35,9 @@ New Functionality
   specifying ``-O ZAM`` on the command line.  See
   ``src/script_opt/ZAM/README.md`` for more information.
 
+- The DNS analyzer has initial support for the SVCB and HTTPS types. The new events
+  are ``dns_SVCB`` and ``dns_HTTPS``.
+
 Changed Functionality
 ---------------------
 

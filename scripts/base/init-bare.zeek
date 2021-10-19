@@ -3884,6 +3884,14 @@ type dns_loc_rr: record {
 	is_query: count;	##< The RR is a query/Response.
 };
 
+## DNS SVCB and HTTPS RRs
+##
+## .. zeek:see:: dns_SVCB dns_HTTPS
+type dns_svcb_rr: record {
+	svc_priority: count;	##< Service priority for the current record, 0 indicates that this record is in AliasMode and cannot carry svc_params; otherwise this is in ServiceMode, and may include svc_params
+	target_name: string;	##< Target name, the hostname of the service endpoint.
+};
+
 # DNS answer types.
 #
 # .. zeek:see:: dns_answerr

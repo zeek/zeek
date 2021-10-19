@@ -37,7 +37,7 @@ event ssl_established(c: connection)
 	print "established", c$id;
 	}
 
-event ssl_encrypted_data(c: connection, is_orig: bool, record_version: count, content_type: count, length: count, payload: string)
+event ssl_encrypted_data(c: connection, is_orig: bool, record_version: count, content_type: count, length: count)
 	{
 	print "encrypted", c$id, is_orig, SSL::version_strings[record_version], content_type;
 	}

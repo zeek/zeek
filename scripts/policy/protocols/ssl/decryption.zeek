@@ -77,7 +77,7 @@ event ssl_client_hello(c: connection, version: count, record_version: count, pos
 		}
 	}
 
-event ssl_encrypted_data(c: connection, is_orig: bool, record_version: count, content_type: count, length: count, payload: string)
+event ssl_encrypted_data(c: connection, is_orig: bool, record_version: count, content_type: count, length: count)
 	{
 	if ( c$ssl?$client_random )
 		{

@@ -27,7 +27,7 @@ event ssl_plaintext_data(c: connection, is_orig: bool, record_version: count, co
 	print "Plaintext data", c$id$orig_h, c$id$resp_h, is_orig, SSL::version_strings[record_version], content_type, length;
 	}
 
-event ssl_encrypted_data(c: connection, is_orig: bool, record_version: count, content_type: count, length: count, payload: string)
+event ssl_encrypted_data(c: connection, is_orig: bool, record_version: count, content_type: count, length: count)
 	{
 	print "Encrypted data", c$id$orig_h, c$id$resp_h, is_orig, SSL::version_strings[record_version], content_type, length;
 	}

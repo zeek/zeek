@@ -33,7 +33,7 @@ export {
 		## Indicate whether or not the authentication was successful.
 		success    : bool     &log &optional;
 
-		## Internally used field to indicate if the login attempt 
+		## Internally used field to indicate if the login attempt
 		## has already been logged.
 		done: bool  &default=F;
 	};

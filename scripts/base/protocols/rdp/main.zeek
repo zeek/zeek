@@ -41,15 +41,15 @@ export {
 		desktop_width:         count   &log &optional;
 		## Desktop height of the client machine.
 		desktop_height:        count   &log &optional;
-		## The color depth requested by the client in 
+		## The color depth requested by the client in
 		## the high_color_depth field.
 		requested_color_depth: string  &log &optional;
 
 		## If the connection is being encrypted with native
-		## RDP encryption, this is the type of cert 
+		## RDP encryption, this is the type of cert
 		## being used.
 		cert_type:             string  &log &optional;
-		## The number of certs seen.  X.509 can transfer an 
+		## The number of certs seen.  X.509 can transfer an
 		## entire certificate chain.
 		cert_count:            count   &log &default=0;
 		## Indicates if the provided certificate or certificate
@@ -57,7 +57,7 @@ export {
 		cert_permanent:        bool    &log &optional;
 		## Encryption level of the connection.
 		encryption_level:      string  &log &optional;
-		## Encryption method of the connection. 
+		## Encryption method of the connection.
 		encryption_method:     string  &log &optional;
 		};
 
@@ -65,7 +65,7 @@ export {
 	## continuing to process encrypted traffic.
 	option disable_analyzer_after_detection = F;
 
-	## The amount of time to monitor an RDP session from when it is first 
+	## The amount of time to monitor an RDP session from when it is first
 	## identified. When this interval is reached, the session is logged.
 	option rdp_check_interval = 10secs;
 
@@ -113,7 +113,7 @@ function write_log(c: connection)
 	info$done = T;
 
 	# Verify that the RDP session contains
-	# RDP data before writing it to the log. 
+	# RDP data before writing it to the log.
 	if ( info?$cookie || info?$keyboard_layout || info?$result )
 		Log::write(RDP::LOG, info);
 	}
@@ -124,16 +124,16 @@ event check_record(c: connection)
 	if ( c$rdp$done )
 		return;
 
-	# If the value rdp_check_interval has passed since the 
-	# RDP session was started, then log the record. 
+	# If the value rdp_check_interval has passed since the
+	# RDP session was started, then log the record.
 	local diff = network_time() - c$rdp$ts;
 	if ( diff > rdp_check_interval )
 		{
 		write_log(c);
 
 		# Remove the analyzer if it is still attached.
-		if ( disable_analyzer_after_detection && 
-		     connection_exists(c$id) && 
+		if ( disable_analyzer_after_detection &&
+		     connection_exists(c$id) &&
 		     c$rdp?$analyzer_id )
 			{
 			disable_analyzer(c$id, c$rdp$analyzer_id);
@@ -240,7 +240,7 @@ event rdp_server_certificate(c: connection, cert_type: count, permanently_issued
 	# now so we manually count this one.
 	if ( c$rdp$cert_type == "RSA" )
 		++c$rdp$cert_count;
-	
+
 	c$rdp$cert_permanent = permanently_issued;
 	}
 

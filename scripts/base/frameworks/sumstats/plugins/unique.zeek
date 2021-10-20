@@ -46,7 +46,7 @@ hook register_observe_plugins()
 
 		if ( ! r?$unique_max || |rv$unique_vals| <= r$unique_max )
 			add rv$unique_vals[obs];
-			
+
 		rv$unique = |rv$unique_vals|;
 		});
 	}

@@ -1,8 +1,7 @@
-
 ## Extract an integer from a string.
-## 
+##
 ## s: The string to search for a number.
-## 
+##
 ## get_first: Provide `F` if you would like the last number found.
 ##
 ## Returns: The request integer from the given string or 0 if

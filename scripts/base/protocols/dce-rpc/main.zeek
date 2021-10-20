@@ -17,7 +17,7 @@ export {
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id         : conn_id  &log;
 		## Round trip time from the request to the response.
-		## If either the request or response wasn't seen, 
+		## If either the request or response wasn't seen,
 		## this will be null.
 		rtt        : interval &log &optional;
 

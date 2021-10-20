@@ -60,7 +60,7 @@ export {
 		SIG_ALARM_PER_ORIG,
 		## Alarm once and then never again.
 		SIG_ALARM_ONCE,
-		## Count signatures per responder host and alarm with the 
+		## Count signatures per responder host and alarm with the
 		## :zeek:enum:`Signatures::Count_Signature` notice if a threshold
 		## defined by :zeek:id:`Signatures::count_thresholds` is reached.
 		SIG_COUNT_PER_RESP,
@@ -100,15 +100,15 @@ export {
 		## Number of hosts, from a summary count.
 		host_count: count        &log &optional;
 	};
-	
-	## Actions for a signature.  
+
+	## Actions for a signature.
 	const actions: table[string] of Action =  {
 		["unspecified"] = SIG_IGNORE, # place-holder
 	} &redef &default = SIG_ALARM;
 
 	## Signature IDs that should always be ignored.
 	option ignored_ids = /NO_DEFAULT_MATCHES/;
-	
+
 	## Generate a notice if, for a pair [orig, signature], the number of
 	## different responders has reached one of the thresholds.
 	const horiz_scan_thresholds = { 5, 10, 50, 100, 500, 1000 } &redef;
@@ -120,7 +120,7 @@ export {
 	## Generate a notice if a :zeek:enum:`Signatures::SIG_COUNT_PER_RESP`
 	## signature is triggered as often as given by one of these thresholds.
 	const count_thresholds = { 5, 10, 50, 100, 500, 1000, 10000, 1000000, } &redef;
-	
+
 	## The interval between when :zeek:enum:`Signatures::Signature_Summary`
 	## notices are generated.
 	option summary_interval = 1 day;
@@ -147,7 +147,7 @@ event zeek_init() &priority=5
 	{
 	Log::create_stream(Signatures::LOG, [$columns=Info, $ev=log_signature, $path="signatures", $policy=log_policy]);
 	}
-		
+
 # Returns true if the given signature has already been triggered for the given
 # [orig, resp] pair.
 function has_signature_matched(id: string, orig: addr, resp: addr): bool
@@ -173,7 +173,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 	# Trim the matched data down to something reasonable
 	if ( |data| > 140 )
 		data = fmt("%s...", sub_bytes(data, 0, 140));
-	
+
 	local src_addr: addr;
 	local src_port: port;
 	local dst_addr: addr;
@@ -212,7 +212,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 	local notice = F;
 	if ( action == SIG_ALARM )
 		notice = T;
-	
+
 	if ( action == SIG_COUNT_PER_RESP )
 		{
 		local dst = state$conn$id$resp_h;
@@ -252,7 +252,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 		        $conn=state$conn, $src=src_addr,
 		        $dst=dst_addr, $msg=fmt("%s: %s", src_addr, msg),
 		        $sub=data]);
-	
+
 	if ( action == SIG_FILE_BUT_NO_SCAN || action == SIG_SUMMARY )
 		return;
 
@@ -279,7 +279,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 			fmt("%s has triggered signature %s on %d hosts",
 				orig, sig_id, hcount);
 
-		Log::write(Signatures::LOG, 
+		Log::write(Signatures::LOG,
 			[$ts=network_time(), $note=Multiple_Sig_Responders,
 		     $src_addr=orig, $sig_id=sig_id, $event_msg=msg,
 		     $host_count=hcount, $sub_msg=horz_scan_msg]);
@@ -296,9 +296,9 @@ event signature_match(state: signature_state, msg: string, data: string)
 			fmt("%s has triggered %d different signatures on host %s",
 				orig, vcount, resp);
 
-		Log::write(Signatures::LOG, 
+		Log::write(Signatures::LOG,
 		           [$ts=network_time(),
-		            $note=Multiple_Signatures, 
+		            $note=Multiple_Signatures,
 		            $src_addr=orig,
 		            $dst_addr=resp, $sig_id=sig_id, $sig_count=vcount,
 		            $event_msg=fmt("%s different signatures triggered", vcount),
@@ -311,4 +311,3 @@ event signature_match(state: signature_state, msg: string, data: string)
 		last_vthresh[orig] = vcount;
 		}
 	}
-

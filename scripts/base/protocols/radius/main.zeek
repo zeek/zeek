@@ -24,7 +24,7 @@ export {
 		mac          : string   &log &optional;
 		## The address given to the network access server, if
 		## present.  This is only a hint from the RADIUS server
-		## and the network access server is not required to honor 
+		## and the network access server is not required to honor
 		## the address.
 		framed_addr  : addr     &log &optional;
 		## Address (IPv4, IPv6, or FQDN) of the initiator end of the tunnel,
@@ -33,7 +33,7 @@ export {
 		tunnel_client: string   &log &optional;
 		## Connect info, if present.
 		connect_info : string   &log &optional;
-		## Reply message from the server challenge. This is 
+		## Reply message from the server challenge. This is
 		## frequently shown to the user authenticating.
 		reply_msg    : string   &log &optional;
 		## Successful or failed authentication.

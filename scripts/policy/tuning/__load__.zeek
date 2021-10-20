@@ -1,2 +1,2 @@
-##! This loads the default tuning 
+##! This loads the default tuning
 @load ./defaults

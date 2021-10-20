@@ -82,10 +82,10 @@ event modbus_read_holding_registers_response(c: connection, headers: ModbusHeade
 			if ( slave_regs[c$modbus$track_address]$value != registers[i] )
 				{
 				local delta = network_time() - slave_regs[c$modbus$track_address]$last_set;
-				event Modbus::changed_register(c, c$modbus$track_address, 
+				event Modbus::changed_register(c, c$modbus$track_address,
 				                               slave_regs[c$modbus$track_address]$value, registers[i],
 				                               delta);
-				
+
 				slave_regs[c$modbus$track_address]$last_set = network_time();
 				slave_regs[c$modbus$track_address]$value = registers[i];
 				}
@@ -102,7 +102,7 @@ event modbus_read_holding_registers_response(c: connection, headers: ModbusHeade
 
 event Modbus::changed_register(c: connection, register: count, old_val: count, new_val: count, delta: interval)
 	{
-	local rec: MemmapInfo = [$ts=network_time(), $uid=c$uid, $id=c$id, 
+	local rec: MemmapInfo = [$ts=network_time(), $uid=c$uid, $id=c$id,
 	                         $register=register, $old_val=old_val, $new_val=new_val, $delta=delta];
 	Log::write(REGISTER_CHANGE_LOG, rec);
 	}

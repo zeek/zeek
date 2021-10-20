@@ -22,9 +22,8 @@ hook Intel::extend_match(info: Info, s: Seen, items: set[Item]) &priority=9
 			break;
 			}
 		}
-	
+
 	if ( whitelisted )
 		# Prevent logging
 		break;
 	}
-

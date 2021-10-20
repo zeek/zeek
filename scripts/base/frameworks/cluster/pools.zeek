@@ -364,7 +364,7 @@ event zeek_init() &priority=-5
 	if ( manager_is_logger )
 		{
 		local mgr = nodes_with_type(Cluster::MANAGER);
-		
+
 		if ( |mgr| > 0 )
 			{
 			local eln = pool_eligibility[Cluster::LOGGER]$eligible_nodes;
@@ -438,7 +438,7 @@ event zeek_init() &priority=-5
 
 		pet = pool_eligibility[pool$spec$node_type];
 		local nodes_to_init = |pet$eligible_nodes|;
-		
+
 		if ( pool$spec?$max_nodes &&
 			 pool$spec$max_nodes < |pet$eligible_nodes| )
 			nodes_to_init = pool$spec$max_nodes;

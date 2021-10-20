@@ -1,4 +1,4 @@
-##! Core script support for logging syslog messages.  This script represents 
+##! Core script support for logging syslog messages.  This script represents
 ##! one syslog message as one logged record.
 
 @load ./consts
@@ -52,7 +52,7 @@ event syslog_message(c: connection, facility: count, severity: count, msg: strin
 	info$facility=facility_codes[facility];
 	info$severity=severity_codes[severity];
 	info$message=msg;
-	
+
 	c$syslog = info;
 	}
 

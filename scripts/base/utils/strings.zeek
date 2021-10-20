@@ -25,7 +25,7 @@ function join_string_set(ss: set[string], j: string): string
 		{
 		if ( i > 0 )
 			output = cat(output, j);
-			
+
 		output = cat(output, s);
 		++i;
 		}

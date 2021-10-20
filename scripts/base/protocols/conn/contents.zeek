@@ -1,5 +1,5 @@
-##! This script can be used to extract either the originator's data or the 
-##! responders data or both.  By default nothing is extracted, and in order 
+##! This script can be used to extract either the originator's data or the
+##! responders data or both.  By default nothing is extracted, and in order
 ##! to actually extract data the ``c$extract_orig`` and/or the
 ##! ``c$extract_resp`` variable must be set to ``T``.  One way to achieve this
 ##! would be to handle the :zeek:id:`connection_established` event elsewhere
@@ -19,7 +19,7 @@ export {
 	## The prefix given to files containing extracted connections as they
 	## are opened on disk.
 	option extraction_prefix = "contents";
-	
+
 	## If this variable is set to ``T``, then all contents of all
 	## connections will be extracted.
 	option default_extract = F;
@@ -38,7 +38,7 @@ event connection_established(c: connection) &priority=-5
 		local orig_f = open(orig_file);
 		set_contents_file(c$id, CONTENTS_ORIG, orig_f);
 		}
-		
+
 	if ( c$extract_resp )
 		{
 		local resp_file = generate_extraction_filename(extraction_prefix, c, "resp.dat");

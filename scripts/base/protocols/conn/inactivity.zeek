@@ -10,14 +10,14 @@ export {
 		# For interactive services, allow longer periods of inactivity.
 		[[Analyzer::ANALYZER_SSH, Analyzer::ANALYZER_FTP]] = 1 hrs,
 	};
-	
+
 	## Define inactivity timeouts based on common protocol ports.
 	option port_inactivity_timeouts: table[port] of interval = {
 		[[21/tcp, 22/tcp, 23/tcp, 513/tcp]] = 1 hrs,
 	};
-	
+
 }
-	
+
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count)
 	{
 	if ( atype in analyzer_inactivity_timeouts )

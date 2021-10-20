@@ -14,7 +14,7 @@ export {
 function get_file_handle(c: connection, is_orig: bool): string
 	{
 	if ( ! (c$smb_state?$current_file &&
-	        (c$smb_state$current_file?$name || 
+	        (c$smb_state$current_file?$name ||
 	         c$smb_state$current_file?$path)) )
 		{
 		# TODO - figure out what are the cases where this happens.

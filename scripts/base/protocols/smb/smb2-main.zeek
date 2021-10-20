@@ -19,7 +19,7 @@ event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=5
 		state$pipe_map = table();
 		c$smb_state = state;
 		}
-	
+
 	local smb_state = c$smb_state;
 	local tid = hdr$tree_id;
 	local mid = hdr$message_id;
@@ -159,10 +159,10 @@ event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::Cre
 	if ( time_to_double(response$times$modified) > 0.0 )
 		c$smb_state$current_file$times = response$times;
 
-	# We can identify the file by its file id now so let's stick it 
+	# We can identify the file by its file id now so let's stick it
 	# in the file map.
 	c$smb_state$fid_map[response$file_id$persistent+response$file_id$volatile] = c$smb_state$current_file;
-	
+
 	c$smb_state$current_file = c$smb_state$fid_map[response$file_id$persistent+response$file_id$volatile];
 	}
 
@@ -193,7 +193,7 @@ event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, o
 	}
 
 event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=-5
-	{ 
+	{
 	SMB::write_file_log(c$smb_state);
 	}
 
@@ -249,7 +249,7 @@ event smb2_file_rename(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, ds
 
 	if ( c$smb_state$current_file?$name )
 		c$smb_state$current_file$prev_name = c$smb_state$current_file$name;
-		
+
 	c$smb_state$current_file$name = dst_filename;
 
 	switch ( c$smb_state$current_tree$share_type )

@@ -24,7 +24,7 @@ event log_smtp(rec: Info)
 		{
 		ip = rec$x_originating_ip;
 		loc = lookup_location(ip);
-		
+
 		if ( (loc?$country_code &&
 			 loc$country_code in suspicious_origination_countries) ||
 			 ip in suspicious_origination_networks )

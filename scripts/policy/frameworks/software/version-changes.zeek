@@ -8,14 +8,14 @@
 module Software;
 
 export {
-	redef enum Notice::Type += { 
+	redef enum Notice::Type += {
 		## For certain software, a version changing may matter.  In that
 		## case, this notice will be generated.  Software that matters
 		## if the version changes can be configured with the
 		## :zeek:id:`Software::interesting_version_changes` variable.
 		Software_Version_Change,
 	};
-	
+
 	## Some software is more interesting when the version changes and this
 	## is a set of all software that should raise a notice when a different
 	## version is seen on a host.

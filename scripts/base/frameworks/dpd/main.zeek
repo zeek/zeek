@@ -35,7 +35,7 @@ export {
 	## Number of protocol violations to tolerate before disabling an analyzer.
 	option max_violations: table[Analyzer::Tag] of count = table() &default = 5;
 
-	## Analyzers which you don't want to throw 
+	## Analyzers which you don't want to throw
 	option ignore_violations: set[Analyzer::Tag] = set();
 
 	## Ignore violations which go this many bytes into the connection.

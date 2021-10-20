@@ -16,7 +16,7 @@ export {
 	##
 	## Returns: A vector of strings containing the keys.
 	global extract_keys: function(data: string, kv_splitter: pattern): string_vec;
-	
+
 	## Creates a URL from an :zeek:type:`HTTP::Info` record.  This should
 	## handle edge cases such as proxied requests appropriately.
 	##
@@ -24,7 +24,7 @@ export {
 	##
 	## Returns: A URL, not prefixed by ``"http://"``.
 	global build_url: function(rec: Info): string;
-	
+
 	## Creates a URL from an :zeek:type:`HTTP::Info` record.  This should
 	## handle edge cases such as proxied requests appropriately.
 	##
@@ -41,7 +41,7 @@ export {
 function extract_keys(data: string, kv_splitter: pattern): string_vec
 	{
 	local key_vec: vector of string = vector();
-	
+
 	local parts = split_string(data, kv_splitter);
 	for ( part_index in parts )
 		{
@@ -64,7 +64,7 @@ function build_url(rec: Info): string
 		host = fmt("%s:%d", host, resp_p);
 	return fmt("%s%s", host, uri);
 	}
-	
+
 function build_url_http(rec: Info): string
 	{
 	return fmt("http://%s", build_url(rec));

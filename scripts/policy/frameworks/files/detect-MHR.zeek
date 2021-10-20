@@ -66,7 +66,7 @@ function do_mhr_lookup(hash: string, fi: Notice::FileInfo)
 
 event file_hash(f: fa_file, kind: string, hash: string)
 	{
-	if ( kind == "sha1" && f?$info && f$info?$mime_type && 
+	if ( kind == "sha1" && f?$info && f$info?$mime_type &&
 	     match_file_types in f$info$mime_type )
 		do_mhr_lookup(hash, Notice::create_file_info(f));
 	}

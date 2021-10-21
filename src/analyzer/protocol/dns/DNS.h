@@ -71,7 +71,9 @@ enum RR_Type
 	TYPE_DS = 43, ///< Delegation signer (RFC 4034)
 	TYPE_NSEC3 = 50,
 	TYPE_NSEC3PARAM = 51, ///< Contains the NSEC3 parameters (RFC 5155)
-	TYPE_SVCB = 64, ///< SerViCe Binding (RFC draft: https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07#section-1.1)
+	TYPE_SVCB =
+	64, ///< SerViCe Binding (RFC draft:
+	    ///< https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07#section-1.1)
 	TYPE_HTTPS = 65, ///< HTTPS record (HTTPS specific SVCB resource record)
 	// Obsoleted
 	TYPE_SPF = 99, ///< Alternative: storing SPF data in TXT records, using the same format (RFC
@@ -150,7 +152,8 @@ enum DNSSEC_Digest
 	SHA384 = 4,
 	};
 
-///< all keys are defined in RFC draft https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07#section-14.3.2
+///< all keys are defined in RFC draft
+///< https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07#section-14.3.2
 enum SVCPARAM_Key
 	{
 	mandatory = 0,
@@ -415,7 +418,7 @@ protected:
 	bool ParseRR_LOC(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
 	                 const u_char* msg_start);
 	bool ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
-	                 const u_char* msg_start, const RR_Type& svcb_type);
+	                  const u_char* msg_start, const RR_Type& svcb_type);
 	void SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHandlerPtr event,
 	                            const u_char*& data, int& len, String* question_name,
 	                            String* original_name);

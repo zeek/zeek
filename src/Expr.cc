@@ -4328,8 +4328,7 @@ InExpr::InExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 			return;
 			}
 
-		if ( op2->GetType()->Tag() == TYPE_TABLE &&
-		     op2->GetType()->AsTableType()->IsSubNetIndex() )
+		if ( op2->GetType()->Tag() == TYPE_TABLE && op2->GetType()->AsTableType()->IsSubNetIndex() )
 			{
 			SetType(base_type(TYPE_BOOL));
 			return;

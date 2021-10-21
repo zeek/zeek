@@ -21,12 +21,17 @@ enum IPFamily
 	IPv6
 	};
 
+// Force these files to stay in this order. Normally, clang-format
+// wants to move sys/types.h to the end of this block, but that
+// breaks FreeBSD builds.
+// clang-format off
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
+// clang-format on
 #ifdef HAVE_LINUX
 #define __FAVOR_BSD
 #endif

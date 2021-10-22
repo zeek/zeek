@@ -1696,7 +1696,7 @@ bool DNS_Interpreter::ParseRR_CAA(detail::DNS_MsgInfo* msg, const u_char*& data,
 	}
 
 bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data, int& len,
-								   int rdlength, const u_char* msg_start, const RR_Type& svcb_type)
+                                   int rdlength, const u_char* msg_start, const RR_Type& svcb_type)
 	{
 	const u_char* data_start = data;
 	// the smallest SVCB/HTTPS rr is 3 bytes:
@@ -1721,12 +1721,13 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 		{
 		target_name[0] = '.';
 		target_name[1] = '\0';
-		name_end = target_name+1;
+		name_end = target_name + 1;
 		}
 
 	SVCB_DATA svcb_data = {
 		.svc_priority = svc_priority,
-		.target_name = make_intrusive<StringVal>(new String(target_name, name_end - target_name, true)),
+		.target_name = make_intrusive<StringVal>(
+			new String(target_name, name_end - target_name, true)),
 	};
 
 	// TODO: parse svcparams
@@ -1735,21 +1736,22 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 	std::ptrdiff_t parsed_bytes = data - data_start;
 	if ( parsed_bytes < rdlength )
 		{
-		len -= ( rdlength - parsed_bytes );
-		data += ( rdlength - parsed_bytes );
+		len -= (rdlength - parsed_bytes);
+		data += (rdlength - parsed_bytes);
 		}
 
-	switch( svcb_type )
+	switch ( svcb_type )
 		{
 		case detail::TYPE_SVCB:
 			analyzer->EnqueueConnEvent(dns_SVCB, analyzer->ConnVal(), msg->BuildHdrVal(),
-									msg->BuildAnswerVal(), msg->BuildSVCB_Val(svcb_data));
+			                           msg->BuildAnswerVal(), msg->BuildSVCB_Val(svcb_data));
 			break;
 		case detail::TYPE_HTTPS:
 			analyzer->EnqueueConnEvent(dns_HTTPS, analyzer->ConnVal(), msg->BuildHdrVal(),
-									msg->BuildAnswerVal(), msg->BuildSVCB_Val(svcb_data));
+			                           msg->BuildAnswerVal(), msg->BuildSVCB_Val(svcb_data));
 			break;
-		default: break; // unreachable. for suppressing compiler warnings.
+		default:
+			break; // unreachable. for suppressing compiler warnings.
 		}
 	return true;
 	}

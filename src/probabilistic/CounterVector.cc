@@ -169,11 +169,11 @@ broker::expected<broker::data> CounterVector::Serialize() const
 
 std::unique_ptr<CounterVector> CounterVector::Unserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = broker::get_if<broker::vector>(&data);
 	if ( ! (v && v->size() >= 2) )
 		return nullptr;
 
-	auto width = caf::get_if<uint64_t>(&(*v)[0]);
+	auto width = broker::get_if<uint64_t>(&(*v)[0]);
 	auto bits = BitVector::Unserialize((*v)[1]);
 
 	if ( ! (width && bits) )

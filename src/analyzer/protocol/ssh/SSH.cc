@@ -67,7 +67,7 @@ void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+		AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 
 	auto encrypted_len = interp->get_encrypted_bytes_in_current_segment();

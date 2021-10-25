@@ -35,7 +35,7 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+		AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 
 	if ( inner_packet_offset <= 0 )
@@ -57,7 +57,7 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 
 		if ( (! BifConst::Tunnel::delay_gtp_confirmation) ||
 		     (interp->valid(true) && interp->valid(false)) )
-			ProtocolConfirmation();
+			AnalyzerConfirmation();
 
 		if ( gtp_hdr_val )
 			BifEvent::enqueue_gtpv1_g_pdu_packet(this, Conn(), std::move(gtp_hdr_val),
@@ -69,12 +69,12 @@ void GTPv1_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 			run_state::network_time, nullptr, inner, e, ec);
 		}
 	else if ( result == -2 )
-		ProtocolViolation("Invalid IP version in wrapped packet",
+		AnalyzerViolation("Invalid IP version in wrapped packet",
 		                  reinterpret_cast<const char*>(odata), olen);
 	else if ( result < 0 )
-		ProtocolViolation("Truncated GTPv1", reinterpret_cast<const char*>(odata), olen);
+		AnalyzerViolation("Truncated GTPv1", reinterpret_cast<const char*>(odata), olen);
 	else
-		ProtocolViolation("GTPv1 payload length", reinterpret_cast<const char*>(odata), olen);
+		AnalyzerViolation("GTPv1 payload length", reinterpret_cast<const char*>(odata), olen);
 	}
 
 	} // namespace zeek::analyzer::gtpv1

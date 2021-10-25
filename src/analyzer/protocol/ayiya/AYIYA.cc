@@ -36,7 +36,7 @@ void AYIYA_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+		AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 
 	if ( inner_packet_offset <= 0 )
@@ -52,7 +52,7 @@ void AYIYA_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 
 	if ( result == 0 )
 		{
-		ProtocolConfirmation();
+		AnalyzerConfirmation();
 	std:
 		shared_ptr<EncapsulationStack> e = Conn()->GetEncapsulation();
 		EncapsulatingConn ec(Conn(), BifEnum::Tunnel::AYIYA);
@@ -60,12 +60,12 @@ void AYIYA_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 			run_state::network_time, nullptr, inner, e, ec);
 		}
 	else if ( result == -2 )
-		ProtocolViolation("AYIYA next header internal mismatch",
+		AnalyzerViolation("AYIYA next header internal mismatch",
 		                  reinterpret_cast<const char*>(data), len);
 	else if ( result < 0 )
-		ProtocolViolation("Truncated AYIYA", reinterpret_cast<const char*>(data), len);
+		AnalyzerViolation("Truncated AYIYA", reinterpret_cast<const char*>(data), len);
 	else
-		ProtocolViolation("AYIYA payload length", reinterpret_cast<const char*>(data), len);
+		AnalyzerViolation("AYIYA payload length", reinterpret_cast<const char*>(data), len);
 	}
 
 	} // namespace zeek::analyzer::ayiya

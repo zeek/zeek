@@ -44,7 +44,7 @@ refine flow SIP_Flow += {
 
 	function proc_sip_reply(vers: SIP_Version, code: int, reason: bytestring): bool
 		%{
-		connection()->zeek_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->AnalyzerConfirmation();
 		if ( sip_reply )
 			{
 			zeek::BifEvent::enqueue_sip_reply(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),

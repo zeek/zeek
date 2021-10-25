@@ -103,7 +103,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		};
 
 		f = ftp_request;
-		ProtocolConfirmation();
+		AnalyzerConfirmation();
 
 		if ( strncmp((const char*)cmd_str->Bytes(), "AUTH", cmd_len) == 0 )
 			auth_requested = std::string(line, end_of_line - line);
@@ -146,7 +146,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 				if ( reply_code > 0 )
 					line += 3;
 				else
-					ProtocolViolation("non-numeric reply code", (const char*)data, length);
+					AnalyzerViolation("non-numeric reply code", (const char*)data, length);
 
 				if ( line < end_of_line )
 					line = util::skip_whitespace(line, end_of_line);

@@ -4,6 +4,7 @@
 
 #include "zeek/DebugLogger.h"
 #include "zeek/Dict.h"
+#include "zeek/Event.h"
 #include "zeek/RunState.h"
 #include "zeek/session/Manager.h"
 #include "zeek/util.h"
@@ -164,6 +165,44 @@ void Analyzer::RegisterProtocol(uint32_t identifier, AnalyzerPtr child)
 void Analyzer::Weird(const char* name, Packet* packet, const char* addl) const
 	{
 	session_mgr->Weird(name, packet, addl, GetAnalyzerName());
+	}
+
+void Analyzer::AnalyzerConfirmation(session::Session* session, zeek::Tag arg_tag)
+	{
+	if ( session->AnalyzerState(arg_tag) == session::AnalyzerConfirmationState::CONFIRMED )
+		return;
+
+	session->SetAnalyzerState(GetAnalyzerTag(), session::AnalyzerConfirmationState::CONFIRMED);
+
+	if ( ! analyzer_confirmation )
+		return;
+
+	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
+	event_mgr.Enqueue(analyzer_confirmation, session->GetVal(), tval, val_mgr->Count(0));
+	}
+
+void Analyzer::AnalyzerViolation(const char* reason, session::Session* session, const char* data,
+                                 int len)
+	{
+	if ( ! analyzer_violation )
+		return;
+
+	session->SetAnalyzerState(GetAnalyzerTag(), session::AnalyzerConfirmationState::VIOLATED);
+
+	StringValPtr r;
+
+	if ( data && len )
+		{
+		const char* tmp = util::copy_string(reason);
+		r = make_intrusive<StringVal>(util::fmt(
+			"%s [%s%s]", tmp, util::fmt_bytes(data, std::min(40, len)), len > 40 ? "..." : ""));
+		delete[] tmp;
+		}
+	else
+		r = make_intrusive<StringVal>(reason);
+
+	const auto& tval = tag.AsVal();
+	event_mgr.Enqueue(analyzer_violation, session->GetVal(), tval, val_mgr->Count(0), std::move(r));
 	}
 
 	} // namespace zeek::packet_analysis

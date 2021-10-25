@@ -33,7 +33,7 @@ public:
 	 */
 	void Weird(const char* name, bool force = false) const
 		{
-		if ( ProtocolConfirmed() || force )
+		if ( AnalyzerConfirmed() || force )
 			reporter->Weird(Conn(), name, "", GetAnalyzerName());
 		}
 
@@ -44,7 +44,7 @@ public:
 	void Confirm()
 		{
 		if ( ! BifConst::Tunnel::delay_teredo_confirmation || (valid_orig && valid_resp) )
-			ProtocolConfirmation();
+			AnalyzerConfirmation();
 		}
 
 protected:

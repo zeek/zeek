@@ -54,7 +54,7 @@ refine connection Handshake_Conn += {
 			{
 			// This should be impossible due to the binpac parser
 			// and protocol description
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Impossible extension length: %zu", length));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("Impossible extension length: %zu", length));
 			zeek_analyzer()->SetSkip(true);
 			return true;
 			}
@@ -287,7 +287,7 @@ refine connection Handshake_Conn += {
 
 	function proc_unknown_handshake(hs: HandshakeRecord, is_orig: bool) : bool
 		%{
-		zeek_analyzer()->ProtocolViolation(zeek::util::fmt("unknown handshake message (%d) from %s",
+		zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("unknown handshake message (%d) from %s",
 			${hs.msg_type}, orig_label(is_orig).c_str()));
 		return true;
 		%}

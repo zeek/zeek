@@ -22,7 +22,7 @@ export {
 
 	type dir: enum { NONE, INCOMING, OUTGOING, BOTH };
 
-	option valids: table[Analyzer::Tag, addr, port] of dir = {
+	option valids: table[AllAnalyzers::Tag, addr, port] of dir = {
 		# A couple of ports commonly used for benign HTTP servers.
 
 		# For now we want to see everything.
@@ -45,7 +45,7 @@ export {
 	# log files, this also saves memory because for these we don't
 	# need to remember which servers we already have reported, which
 	# for some can be a lot.
-	option suppress_servers: set [Analyzer::Tag] = {
+	option suppress_servers: set [AllAnalyzers::Tag] = {
 		# Analyzer::ANALYZER_HTTP
 	};
 
@@ -61,7 +61,7 @@ export {
 
 	# Entry point for other analyzers to report that they recognized
 	# a certain (sub-)protocol.
-	global found_protocol: function(c: connection, analyzer: Analyzer::Tag,
+	global found_protocol: function(c: connection, analyzer: AllAnalyzers::Tag,
 					protocol: string);
 
 	# Table keeping reported (server, port, analyzer) tuples (and their
@@ -74,7 +74,7 @@ export {
 }
 
 # Table that tracks currently active dynamic analyzers per connection.
-global conns: table[conn_id] of set[Analyzer::Tag];
+global conns: table[conn_id] of set[AllAnalyzers::Tag];
 
 # Table of reports by other analyzers about the protocol used in a connection.
 global protocols: table[conn_id] of set[string];
@@ -84,7 +84,7 @@ type protocol : record {
 	sub: string;	# "sub-protocols" reported by other sources
 };
 
-function get_protocol(c: connection, a: Analyzer::Tag) : protocol
+function get_protocol(c: connection, a: AllAnalyzers::Tag) : protocol
 	{
 	local str = "";
 	if ( c$id in protocols )
@@ -101,7 +101,7 @@ function fmt_protocol(p: protocol) : string
 	return p$sub != "" ? fmt("%s (via %s)", p$sub, p$a) : p$a;
 	}
 
-function do_notice(c: connection, a: Analyzer::Tag, d: dir)
+function do_notice(c: connection, a: AllAnalyzers::Tag, d: dir)
 	{
 	if ( d == BOTH )
 		return;
@@ -198,7 +198,7 @@ hook finalize_protocol_detection(c: connection)
 	report_protocols(c);
 	}
 
-event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count)
+event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count)
 	{
 	# Don't report anything running on a well-known port.
 	if ( c$id$resp_p in Analyzer::registered_ports(atype) )
@@ -219,7 +219,7 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count)
 		}
 	}
 
-function found_protocol(c: connection, atype: Analyzer::Tag, protocol: string)
+function found_protocol(c: connection, atype: AllAnalyzers::Tag, protocol: string)
 	{
 	# Don't report anything running on a well-known port.
 	if ( c$id$resp_p in Analyzer::registered_ports(atype) )

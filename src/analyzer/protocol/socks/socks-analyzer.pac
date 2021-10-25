@@ -61,7 +61,7 @@ refine connection SOCKS_Conn += {
 			                              zeek::val_mgr->Port(${reply.port}, TRANSPORT_TCP));
 			}
 
-		zeek_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->AnalyzerConfirmation();
 		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(zeek_analyzer())->EndpointDone(false);
 		return true;
 		%}
@@ -70,14 +70,14 @@ refine connection SOCKS_Conn += {
 		%{
 		if ( ${request.reserved} != 0 )
 			{
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid value in reserved field: %d", ${request.reserved}));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("invalid value in reserved field: %d", ${request.reserved}));
 			zeek_analyzer()->SetSkip(true);
 			return false;
 			}
 
 		if ( (${request.command} == 0) || (${request.command} > 3) )
 			{
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("undefined value in command field: %d", ${request.command}));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("undefined value in command field: %d", ${request.command}));
 			zeek_analyzer()->SetSkip(true);
 			return false;
 			}
@@ -102,7 +102,7 @@ refine connection SOCKS_Conn += {
 				break;
 
 			default:
-				zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid SOCKSv5 addr type: %d", ${request.remote_name.addr_type}));
+				zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("invalid SOCKSv5 addr type: %d", ${request.remote_name.addr_type}));
 				return false;
 			}
 
@@ -142,7 +142,7 @@ refine connection SOCKS_Conn += {
 				break;
 
 			default:
-				zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid SOCKSv5 addr type: %d", ${reply.bound.addr_type}));
+				zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("invalid SOCKSv5 addr type: %d", ${reply.bound.addr_type}));
 				return false;
 			}
 
@@ -154,7 +154,7 @@ refine connection SOCKS_Conn += {
 			                              std::move(sa),
 			                              zeek::val_mgr->Port(${reply.port}, TRANSPORT_TCP));
 
-		zeek_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->AnalyzerConfirmation();
 		static_cast<zeek::analyzer::socks::SOCKS_Analyzer*>(zeek_analyzer())->EndpointDone(false);
 		return true;
 		%}
@@ -196,7 +196,7 @@ refine connection SOCKS_Conn += {
 
 	function version_error(version: uint8): bool
 		%{
-		zeek_analyzer()->ProtocolViolation(zeek::util::fmt("unsupported/unknown SOCKS version %d", version));
+		zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("unsupported/unknown SOCKS version %d", version));
 		return true;
 		%}
 

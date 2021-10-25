@@ -171,7 +171,7 @@ refine connection KRB_Conn += {
 
 	function proc_krb_kdc_req_msg(msg: KRB_KDC_REQ): bool
 		%{
-		zeek_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->AnalyzerConfirmation();
 		auto msg_type = binary_to_int64(${msg.msg_type.data.content});
 
 		if ( msg_type == 10 )
@@ -199,7 +199,7 @@ refine connection KRB_Conn += {
 
 	function proc_krb_kdc_rep_msg(msg: KRB_KDC_REP): bool
 		%{
-		zeek_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->AnalyzerConfirmation();
 		auto msg_type = binary_to_int64(${msg.msg_type.data.content});
 		auto make_arg = [this, msg]() -> zeek::RecordValPtr
 			{
@@ -241,7 +241,7 @@ refine connection KRB_Conn += {
 
 	function proc_krb_error_msg(msg: KRB_ERROR_MSG): bool
 		%{
-		zeek_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->AnalyzerConfirmation();
 		if ( krb_error )
 			{
 			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Error_Msg);
@@ -255,7 +255,7 @@ refine connection KRB_Conn += {
 
 	function proc_krb_ap_req_msg(msg: KRB_AP_REQ): bool
 		%{
-		zeek_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->AnalyzerConfirmation();
 		if ( krb_ap_request )
 			{
 			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::AP_Options);
@@ -279,7 +279,7 @@ refine connection KRB_Conn += {
 
 	function proc_krb_ap_rep_msg(msg: KRB_AP_REP): bool
 		%{
-		zeek_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->AnalyzerConfirmation();
 		if ( krb_ap_response )
 			{
 			zeek::BifEvent::enqueue_krb_ap_response(zeek_analyzer(), zeek_analyzer()->Conn());
@@ -289,7 +289,7 @@ refine connection KRB_Conn += {
 
 	function proc_krb_safe_msg(msg: KRB_SAFE_MSG): bool
 		%{
-		zeek_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->AnalyzerConfirmation();
 		if ( krb_safe )
 			{
 			auto rv = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::SAFE_Msg);
@@ -347,7 +347,7 @@ refine connection KRB_Conn += {
 
 	function proc_krb_priv_msg(msg: KRB_PRIV_MSG): bool
 		%{
-		zeek_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->AnalyzerConfirmation();
 		if ( krb_priv )
 			{
 			zeek::BifEvent::enqueue_krb_priv(zeek_analyzer(), zeek_analyzer()->Conn(), ${msg.is_orig});
@@ -357,7 +357,7 @@ refine connection KRB_Conn += {
 
 	function proc_krb_cred_msg(msg: KRB_CRED_MSG): bool
 		%{
-		zeek_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->AnalyzerConfirmation();
 		if ( krb_cred )
 			{
 			zeek::BifEvent::enqueue_krb_cred(zeek_analyzer(), zeek_analyzer()->Conn(), ${msg.is_orig},

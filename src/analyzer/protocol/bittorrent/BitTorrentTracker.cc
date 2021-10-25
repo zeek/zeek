@@ -99,7 +99,7 @@ void BitTorrentTracker_Analyzer::ClientRequest(int len, const u_char* data)
 
 	if ( req_buf_len + len > sizeof(req_buf) - 1 )
 		{
-		ProtocolViolation("BitTorrentTracker: request message too long");
+		AnalyzerViolation("BitTorrentTracker: request message too long");
 		stop_orig = true;
 		return;
 		}
@@ -146,7 +146,7 @@ void BitTorrentTracker_Analyzer::ServerReply(int len, const u_char* data)
 
 	if ( res_buf_len + len > sizeof(res_buf) - 1 )
 		{
-		ProtocolViolation("BitTorrentTracker: response message too long");
+		AnalyzerViolation("BitTorrentTracker: response message too long");
 		stop_resp = true;
 		return;
 		}
@@ -201,7 +201,7 @@ void BitTorrentTracker_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
-	ProtocolViolation("BitTorrentTracker: cannot recover from content gap");
+	AnalyzerViolation("BitTorrentTracker: cannot recover from content gap");
 
 	if ( orig )
 		stop_orig = true;
@@ -260,7 +260,7 @@ bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
 			regmatch_t match[1];
 			if ( regexec(&r_get, line, 1, match, 0) )
 				{
-				ProtocolViolation("BitTorrentTracker: invalid HTTP GET");
+				AnalyzerViolation("BitTorrentTracker: invalid HTTP GET");
 				stop_orig = true;
 				return false;
 				}
@@ -270,7 +270,7 @@ bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
 				{
 				if ( match_end[0].rm_so <= match[0].rm_eo )
 					{
-					ProtocolViolation("BitTorrentTracker: invalid HTTP GET");
+					AnalyzerViolation("BitTorrentTracker: invalid HTTP GET");
 					stop_orig = true;
 					return false;
 					}
@@ -297,7 +297,7 @@ bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
 			regmatch_t match[1];
 			if ( regexec(&r_hdr, line, 1, match, 0) )
 				{
-				ProtocolViolation("BitTorrentTracker: invalid HTTP request header");
+				AnalyzerViolation("BitTorrentTracker: invalid HTTP request header");
 				stop_orig = true;
 				return false;
 				}
@@ -331,7 +331,7 @@ void BitTorrentTracker_Analyzer::RequestGet(char* uri)
 
 void BitTorrentTracker_Analyzer::EmitRequest(void)
 	{
-	ProtocolConfirmation();
+	AnalyzerConfirmation();
 
 	if ( bt_tracker_request )
 		EnqueueConnEvent(bt_tracker_request, ConnVal(), IntrusivePtr{AdoptRef{}, req_val_uri},
@@ -369,7 +369,7 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 			regmatch_t match[1];
 			if ( regexec(&r_stat, line, 1, match, 0) )
 				{
-				ProtocolViolation("BitTorrentTracker: invalid HTTP status");
+				AnalyzerViolation("BitTorrentTracker: invalid HTTP status");
 				stop_resp = true;
 				return false;
 				}
@@ -402,7 +402,7 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 				regmatch_t match[1];
 				if ( regexec(&r_hdr, line, 1, match, 0) )
 					{
-					ProtocolViolation("BitTorrentTracker: invalid HTTP response header");
+					AnalyzerViolation("BitTorrentTracker: invalid HTTP response header");
 					stop_resp = true;
 					return false;
 					}
@@ -505,7 +505,7 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc(void)
 		{                                                                                          \
 		if ( expr )                                                                                \
 			{                                                                                      \
-			ProtocolViolation(msg);                                                                \
+			AnalyzerViolation(msg);                                                                \
 			stop_resp = true;                                                                      \
 			return -1;                                                                             \
 			}                                                                                      \
@@ -772,7 +772,7 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc(void)
 
 void BitTorrentTracker_Analyzer::EmitResponse(void)
 	{
-	ProtocolConfirmation();
+	AnalyzerConfirmation();
 
 	if ( bt_tracker_response )
 		EnqueueConnEvent(bt_tracker_response, ConnVal(), val_mgr->Count(res_status),

@@ -6,6 +6,7 @@
 #include "zeek/Tag.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/Manager.h"
+#include "zeek/session/Session.h"
 
 namespace zeek::packet_analysis
 	{
@@ -125,6 +126,52 @@ public:
 	 * @return true if the protocol is detected in the packet data.
 	 */
 	virtual bool DetectProtocol(size_t len, const uint8_t* data, Packet* packet) { return false; }
+
+	/**
+	 * Signals Zeek's protocol detection that the analyzer has recognized
+	 * the input to indeed conform to the expected protocol. This should
+	 * be called as early as possible during a connection's life-time. It
+	 * may turn into \c analyzer_confirmed event at the script-layer (but
+	 * only once per analyzer for each connection, even if the method is
+	 * called multiple times).
+	 *
+	 * If tag is given, it overrides the analyzer tag passed to the
+	 * scripting layer; the default is the one of the analyzer itself.
+	 */
+	virtual void AnalyzerConfirmation(session::Session* session, zeek::Tag tag = zeek::Tag());
+
+	/**
+	 * Signals Bro's protocol detection that the analyzer has found a
+	 * severe protocol violation that could indicate that it's not
+	 * parsing the expected protocol. This turns into \c
+	 * analyzer_violation events at the script-layer (one such event is
+	 * raised for each call to this method so that the script-layer can
+	 * built up a notion of how prevalent protocol violations are; the
+	 * more, the less likely it's the right protocol).
+	 *
+	 * @param reason A textual description of the error encountered.
+	 *
+	 * @param data An optional pointer to the malformed data.
+	 *
+	 * @param len If \a data is given, the length of it.
+	 */
+	virtual void AnalyzerViolation(const char* reason, session::Session* session,
+	                               const char* data = nullptr, int len = 0);
+
+	/**
+	 * Returns true if ProtocolConfirmation() has been called at least
+	 * once.
+	 */
+	bool AnalyzerConfirmed(session::Session* session) const
+		{
+		return session->AnalyzerState(GetAnalyzerTag()) ==
+		       session::AnalyzerConfirmationState::CONFIRMED;
+		}
+	bool AnalyzerViolated(session::Session* session) const
+		{
+		return session->AnalyzerState(GetAnalyzerTag()) ==
+		       session::AnalyzerConfirmationState::VIOLATED;
+		}
 
 protected:
 	friend class Manager;

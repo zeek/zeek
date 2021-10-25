@@ -2,7 +2,7 @@
 refine flow RADIUS_Flow += {
 	function proc_radius_message(msg: RADIUS_PDU): bool
 		%{
-		connection()->zeek_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->AnalyzerConfirmation();
 
 		if ( ! radius_message )
 			return false;

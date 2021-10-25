@@ -640,7 +640,7 @@ flow GTPv1_Flow(is_orig: bool)
 		%{
 		ZeekAnalyzer a = connection()->zeek_analyzer();
 		const_bytestring b = ${pdu.sourcedata};
-		a->ProtocolViolation(r.c_str(), (const char*) b.begin(), b.length());
+		a->AnalyzerViolation(r.c_str(), (const char*) b.begin(), b.length());
 		%}
 
 	function process_gtpv1(pdu: GTPv1_Header): bool

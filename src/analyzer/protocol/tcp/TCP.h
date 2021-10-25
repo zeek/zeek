@@ -68,7 +68,7 @@ public:
 
 	// This suppresses violations if the TCP connection wasn't
 	// fully established.
-	void ProtocolViolation(const char* reason, const char* data = nullptr, int len = 0) override;
+	void AnalyzerViolation(const char* reason, const char* data = nullptr, int len = 0) override;
 
 	// "name" and "val" both now belong to this object, which needs to
 	//  delete them when done with them.

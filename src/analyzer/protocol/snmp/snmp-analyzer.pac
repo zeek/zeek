@@ -372,7 +372,7 @@ refine connection SNMP_Conn += {
 	function proc_header(rec: Header): bool
 		%{
 		if ( ! ${rec.is_orig} )
-			zeek_analyzer()->ProtocolConfirmation();
+			zeek_analyzer()->AnalyzerConfirmation();
 
 		if ( rec->unknown() )
 			return false;
@@ -385,7 +385,7 @@ refine connection SNMP_Conn += {
 		if ( rec->flags()->encoding()->content().length() == 1 )
 			return true;
 
-		zeek_analyzer()->ProtocolViolation("Invalid v3 HeaderData msgFlags");
+		zeek_analyzer()->AnalyzerViolation("Invalid v3 HeaderData msgFlags");
 		return false;
 		%}
 
@@ -396,7 +396,7 @@ refine connection SNMP_Conn += {
 
 		// Unwind now to stop parsing because it's definitely the
 		// wrong protocol and parsing further could be expensive.
-		// Upper layer of analyzer will catch and call ProtocolViolation().
+		// Upper layer of analyzer will catch and call AnalyzerViolation().
 		throw binpac::Exception(zeek::util::fmt("Got ASN.1 tag %d, expect %d",
 		                        rec->tag(), expect));
 		return false;

@@ -11,7 +11,7 @@ module DPD;
 export {
 	redef record Info += {
 		## A chunk of the payload that most likely resulted in the
-		## protocol violation.
+		## analyzer violation.
 		packet_segment: string &optional &log;
 	};
 
@@ -20,7 +20,7 @@ export {
 }
 
 
-event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
+event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count,
                          reason: string) &priority=4
 	{
 	if ( ! c?$dpd ) return;

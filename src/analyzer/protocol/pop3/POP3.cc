@@ -625,7 +625,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 		{
 		if ( ! waitingForAuthentication )
 			{
-			ProtocolViolation(util::fmt("unknown server command (%s)",
+			AnalyzerViolation(util::fmt("unknown server command (%s)",
 			                            (tokens.size() > 0 ? tokens[0].c_str() : "???")),
 			                  line, length);
 
@@ -664,7 +664,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 				case detail::USER:
 					state = detail::USER;
 					masterState = detail::POP3_AUTHORIZATION;
-					ProtocolConfirmation();
+					AnalyzerConfirmation();
 					break;
 
 				case detail::PASS:
@@ -706,7 +706,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 					}
 
 				case detail::CAPA:
-					ProtocolConfirmation();
+					AnalyzerConfirmation();
 					// Fall-through.
 
 				case detail::UIDL:
@@ -716,7 +716,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 					break;
 
 				case detail::STLS:
-					ProtocolConfirmation();
+					AnalyzerConfirmation();
 					tls = true;
 					StartTLS();
 					return;

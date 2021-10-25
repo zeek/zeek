@@ -29,7 +29,7 @@ refine connection DCE_RPC_Conn += {
 	function proc_dce_rpc_pdu(pdu: DCE_RPC_PDU): bool
 		%{
 		// If a whole pdu message parsed ok, let's confirm the protocol
-		zeek_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->AnalyzerConfirmation();
 		return true;
 		%}
 

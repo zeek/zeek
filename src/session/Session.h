@@ -2,11 +2,13 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 
 #include "zeek/EventHandler.h"
 #include "zeek/Hash.h"
 #include "zeek/Obj.h"
+#include "zeek/Tag.h"
 #include "zeek/Timer.h"
 #include "zeek/session/Key.h"
 
@@ -30,6 +32,13 @@ class Timer;
 
 class Session;
 using timer_func = void (Session::*)(double t);
+
+enum class AnalyzerConfirmationState
+	{
+	UNKNOWN,
+	VIOLATED,
+	CONFIRMED
+	};
 
 class Session : public Obj
 	{
@@ -214,6 +223,9 @@ public:
 	 */
 	virtual std::string TransportIdentifier() const = 0;
 
+	AnalyzerConfirmationState AnalyzerState(const zeek::Tag& tag) const;
+	void SetAnalyzerState(const zeek::Tag& tag, AnalyzerConfirmationState);
+
 protected:
 	friend class detail::Timer;
 
@@ -261,6 +273,8 @@ protected:
 	unsigned int record_packets : 1, record_contents : 1;
 	unsigned int record_current_packet : 1, record_current_content : 1;
 	bool in_session_table;
+
+	std::map<zeek::Tag, AnalyzerConfirmationState> analyzer_confirmations;
 	};
 
 namespace detail

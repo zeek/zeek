@@ -53,7 +53,7 @@ event zeek_init() &priority=5
 	Log::create_stream(DPD::LOG, [$columns=Info, $path="dpd", $policy=log_policy]);
 	}
 
-event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=10
+event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=10
 	{
 	local analyzer = Analyzer::name(atype);
 
@@ -63,7 +63,7 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 	add c$service[analyzer];
 	}
 
-event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
+event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count,
                          reason: string) &priority=10
 	{
 	local analyzer = Analyzer::name(atype);
@@ -85,7 +85,7 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
 	c$dpd = info;
 	}
 
-event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason: string) &priority=5
+event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count, reason: string) &priority=5
 	{
 	if ( atype in ignore_violations )
 		return;
@@ -114,8 +114,8 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason
 		}
 	}
 
-event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
-				reason: string) &priority=-5
+event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count,
+			 reason: string) &priority=-5
 	{
 	if ( c?$dpd )
 		{

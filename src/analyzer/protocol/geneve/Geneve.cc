@@ -29,7 +29,7 @@ void Geneve_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 
 	if ( len < tunnel_header_len )
 		{
-		ProtocolViolation("Geneve header truncation", reinterpret_cast<const char*>(data), len);
+		AnalyzerViolation("Geneve header truncation", reinterpret_cast<const char*>(data), len);
 		return;
 		}
 
@@ -53,7 +53,7 @@ void Geneve_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 
 	if ( len < tunnel_header_len + tunnel_opt_len )
 		{
-		ProtocolViolation("Geneve option header truncation", reinterpret_cast<const char*>(data),
+		AnalyzerViolation("Geneve option header truncation", reinterpret_cast<const char*>(data),
 		                  len);
 		return;
 		}
@@ -72,7 +72,7 @@ void Geneve_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 
 	if ( ! packet_mgr->ProcessInnerPacket(&pkt) )
 		{
-		ProtocolViolation("Geneve invalid inner packet");
+		AnalyzerViolation("Geneve invalid inner packet");
 		return;
 		}
 
@@ -81,7 +81,7 @@ void Geneve_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 	if ( ! pkt.ip_hdr )
 		return;
 
-	ProtocolConfirmation();
+	AnalyzerConfirmation();
 
 	if ( geneve_packet )
 		{

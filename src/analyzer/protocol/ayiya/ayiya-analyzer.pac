@@ -39,7 +39,7 @@ flow AYIYA_Flow
 
 		if ( ${pdu.packet}.length() < (int)sizeof(struct ip) )
 			{
-			connection()->zeek_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->AnalyzerViolation(
 			    "Truncated AYIYA", (const char*) ${pdu.packet}.data(),
 			    ${pdu.packet}.length());
 			return false;
@@ -50,7 +50,7 @@ flow AYIYA_Flow
 		if ( ( ${pdu.next_header} == IPPROTO_IPV6 && ip->ip_v != 6 ) ||
 		     ( ${pdu.next_header} == IPPROTO_IPV4 && ip->ip_v != 4) )
 			{
-			connection()->zeek_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->AnalyzerViolation(
 			    "AYIYA next header mismatch", (const char*)${pdu.packet}.data(),
 			     ${pdu.packet}.length());
 			return false;

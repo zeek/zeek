@@ -37,13 +37,13 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 
 	if ( len < vxlan_len )
 		{
-		ProtocolViolation("VXLAN header truncation", (const char*)data, len);
+		AnalyzerViolation("VXLAN header truncation", (const char*)data, len);
 		return;
 		}
 
 	if ( (data[0] & 0x08) == 0 )
 		{
-		ProtocolViolation("VXLAN 'I' flag not set", (const char*)data, len);
+		AnalyzerViolation("VXLAN 'I' flag not set", (const char*)data, len);
 		return;
 		}
 
@@ -77,7 +77,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 
 	if ( ! packet_mgr->ProcessInnerPacket(&pkt) )
 		{
-		ProtocolViolation("VXLAN invalid inner packet");
+		AnalyzerViolation("VXLAN invalid inner packet");
 		return;
 		}
 
@@ -86,7 +86,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint6
 	if ( ! pkt.ip_hdr )
 		return;
 
-	ProtocolConfirmation();
+	AnalyzerConfirmation();
 
 	if ( vxlan_packet )
 		{

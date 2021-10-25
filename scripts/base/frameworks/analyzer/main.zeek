@@ -53,7 +53,7 @@ export {
 	## ports: The set of well-known ports to associate with the analyzer.
 	##
 	## Returns: True if the ports were successfully registered.
-	global register_for_ports: function(tag: Analyzer::Tag, ports: set[port]) : bool;
+	global register_for_ports: function(tag: AllAnalyzers::Tag, ports: set[port]) : bool;
 
 	## Registers an individual well-known port for an analyzer. If a future
 	## connection on this port is seen, the analyzer will be automatically
@@ -65,7 +65,7 @@ export {
 	## p: The well-known port to associate with the analyzer.
 	##
 	## Returns: True if the port was successfully registered.
-	global register_for_port: function(tag: Analyzer::Tag, p: port) : bool;
+	global register_for_port: function(tag: AllAnalyzers::Tag, p: port) : bool;
 
 	## Returns a set of all well-known ports currently registered for a
 	## specific analyzer.
@@ -73,13 +73,13 @@ export {
 	## tag: The tag of the analyzer.
 	##
 	## Returns: The set of ports.
-	global registered_ports: function(tag: Analyzer::Tag) : set[port];
+	global registered_ports: function(tag: AllAnalyzers::Tag) : set[port];
 
 	## Returns a table of all ports-to-analyzer mappings currently registered.
 	##
 	## Returns: A table mapping each analyzer to the set of ports
 	##          registered for it.
-	global all_registered_ports: function() : table[Analyzer::Tag] of set[port];
+	global all_registered_ports: function() : table[AllAnalyzers::Tag] of set[port];
 
 	## Translates an analyzer type to a string with the analyzer's name.
 	##
@@ -137,7 +137,7 @@ export {
 
 @load base/bif/analyzer.bif
 
-global ports: table[Analyzer::Tag] of set[port];
+global ports: table[AllAnalyzers::Tag] of set[port];
 
 event zeek_init() &priority=5
 	{
@@ -158,7 +158,7 @@ function disable_analyzer(tag: Analyzer::Tag) : bool
 	return __disable_analyzer(tag);
 	}
 
-function register_for_ports(tag: Analyzer::Tag, ports: set[port]) : bool
+function register_for_ports(tag: AllAnalyzers::Tag, ports: set[port]) : bool
 	{
 	local rc = T;
 
@@ -171,7 +171,7 @@ function register_for_ports(tag: Analyzer::Tag, ports: set[port]) : bool
 	return rc;
 	}
 
-function register_for_port(tag: Analyzer::Tag, p: port) : bool
+function register_for_port(tag: AllAnalyzers::Tag, p: port) : bool
 	{
 	if ( ! __register_for_port(tag, p) )
 		return F;
@@ -183,12 +183,12 @@ function register_for_port(tag: Analyzer::Tag, p: port) : bool
 	return T;
 	}
 
-function registered_ports(tag: Analyzer::Tag) : set[port]
+function registered_ports(tag: AllAnalyzers::Tag) : set[port]
 	{
 	return tag in ports ? ports[tag] : set();
 	}
 
-function all_registered_ports(): table[Analyzer::Tag] of set[port]
+function all_registered_ports(): table[AllAnalyzers::Tag] of set[port]
 	{
 	return ports;
 	}
@@ -230,4 +230,3 @@ function get_bpf(): string
 		}
 	return output;
 	}
-

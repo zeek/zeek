@@ -8,7 +8,7 @@
 		%{
 		if ( ! version_ok(version) )
 			{
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("unsupported server SSL version 0x%04x", version));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("unsupported server SSL version 0x%04x", version));
 			zeek_analyzer()->SetSkip(true);
 			}
 

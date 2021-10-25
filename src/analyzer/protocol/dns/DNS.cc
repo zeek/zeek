@@ -59,7 +59,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 	// This should weed out most of it.
 	if ( zeek::detail::dns_max_queries > 0 && msg.qdcount > zeek::detail::dns_max_queries )
 		{
-		analyzer->ProtocolViolation("DNS_Conn_count_too_large");
+		analyzer->AnalyzerViolation("DNS_Conn_count_too_large");
 		analyzer->Weird("DNS_Conn_count_too_large");
 		EndMessage(&msg);
 		return;
@@ -82,7 +82,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 		return;
 		}
 
-	analyzer->ProtocolConfirmation();
+	analyzer->AnalyzerConfirmation();
 
 	int skip_auth = zeek::detail::dns_skip_all_auth;
 	int skip_addl = zeek::detail::dns_skip_all_addl;

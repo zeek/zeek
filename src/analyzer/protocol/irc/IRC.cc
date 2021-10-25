@@ -89,7 +89,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		}
 
 	if ( orig )
-		ProtocolConfirmation();
+		AnalyzerConfirmation();
 
 	int code = 0;
 	string command = "";
@@ -99,7 +99,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	if ( myline.length() < 3 )
 		{
 		Weird("irc_invalid_line");
-		ProtocolViolation("line too short");
+		AnalyzerViolation("line too short");
 		return;
 		}
 
@@ -114,7 +114,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		else
 			{
 			Weird("irc_invalid_reply_number");
-			ProtocolViolation("invalid reply number");
+			AnalyzerViolation("invalid reply number");
 			return;
 			}
 		}
@@ -561,7 +561,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( ++invalid_msg_count > invalid_msg_max_count )
 			{
 			Weird("irc_too_many_invalid");
-			ProtocolViolation("too many long lines");
+			AnalyzerViolation("too many long lines");
 			return;
 			}
 		return;

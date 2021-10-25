@@ -5036,14 +5036,14 @@ export {
 
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing
-	## a :zeek:see:`protocol_confirmation`.  If it's false, the first
+	## a :zeek:see:`analyzer_confirmation`.  If it's false, the first
 	## occurrence of a packet with valid Teredo encapsulation causes a
 	## confirmation.
 	const delay_teredo_confirmation = T &redef;
 
 	## With this set, the GTP analyzer waits until the most-recent upflow
 	## and downflow packets are a valid GTPv1 encapsulation before
-	## issuing :zeek:see:`protocol_confirmation`.  If it's false, the
+	## issuing :zeek:see:`analyzer_confirmation`.  If it's false, the
 	## first occurrence of a packet with valid GTPv1 encapsulation causes
 	## confirmation.  Since the same inner connection can be carried
 	## differing outer upflow/downflow connections, setting to false

@@ -152,7 +152,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 
 	if ( ! te.Parse(data, len) )
 		{
-		ProtocolViolation("Bad Teredo encapsulation", (const char*)data, len);
+		AnalyzerViolation("Bad Teredo encapsulation", (const char*)data, len);
 		return;
 		}
 
@@ -175,7 +175,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 			Weird("Teredo_bubble_with_payload", true);
 		else
 			{
-			ProtocolViolation("Teredo payload length", (const char*)data, len);
+			AnalyzerViolation("Teredo payload length", (const char*)data, len);
 			return;
 			}
 		}
@@ -192,7 +192,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 
 	else
 		{
-		ProtocolViolation("Truncated Teredo or invalid inner IP version", (const char*)data, len);
+		AnalyzerViolation("Truncated Teredo or invalid inner IP version", (const char*)data, len);
 		return;
 		}
 

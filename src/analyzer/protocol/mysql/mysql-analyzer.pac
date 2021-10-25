@@ -20,7 +20,7 @@ refine flow MySQL_Flow += {
 	function proc_mysql_handshake_response_packet(msg: Handshake_Response_Packet): bool
 		%{
 		if ( ${msg.version} == 9 || ${msg.version == 10} )
-			connection()->zeek_analyzer()->ProtocolConfirmation();
+			connection()->zeek_analyzer()->AnalyzerConfirmation();
 
 		if ( mysql_handshake )
 			{

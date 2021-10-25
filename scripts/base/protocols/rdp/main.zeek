@@ -265,7 +265,7 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		}
 	}
 
-event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5
+event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=5
 	{
 	if ( atype == Analyzer::ANALYZER_RDP )
 		{
@@ -274,7 +274,7 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 		}
 	}
 
-event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason: string) &priority=5
+event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count, reason: string) &priority=5
 	{
 	# If a protocol violation occurs, then log the record immediately.
 	if ( c?$rdp )

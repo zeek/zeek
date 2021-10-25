@@ -533,7 +533,8 @@ public:
 	 * If tag is given, it overrides the analyzer tag passed to the
 	 * scripting layer; the default is the one of the analyzer itself.
 	 */
-	virtual void ProtocolConfirmation(zeek::Tag tag = zeek::Tag());
+	[[deprecated("Remove in v5.1. Use AnalyzerConfirmation.")]] virtual void
+	ProtocolConfirmation(zeek::Tag tag = zeek::Tag());
 
 	/**
 	 * Signals Bro's protocol detection that the analyzer has found a
@@ -550,13 +551,53 @@ public:
 	 *
 	 * @param len If \a data is given, the length of it.
 	 */
-	virtual void ProtocolViolation(const char* reason, const char* data = nullptr, int len = 0);
+	[[deprecated("Remove in v5.1. Use AnalyzerViolation.")]] virtual void
+	ProtocolViolation(const char* reason, const char* data = nullptr, int len = 0);
 
 	/**
 	 * Returns true if ProtocolConfirmation() has been called at least
 	 * once.
 	 */
-	bool ProtocolConfirmed() const { return protocol_confirmed; }
+	[[deprecated("Remove in v5.1. Use AnalyzerConfirmed.")]] bool ProtocolConfirmed() const
+		{
+		return protocol_confirmed;
+		}
+
+	/**
+	 * Signals Zeek's protocol detection that the analyzer has recognized
+	 * the input to indeed conform to the expected protocol. This should
+	 * be called as early as possible during a connection's life-time. It
+	 * may turn into \c analyzer_confirmed event at the script-layer (but
+	 * only once per analyzer for each connection, even if the method is
+	 * called multiple times).
+	 *
+	 * If tag is given, it overrides the analyzer tag passed to the
+	 * scripting layer; the default is the one of the analyzer itself.
+	 */
+	virtual void AnalyzerConfirmation(zeek::Tag tag = zeek::Tag());
+
+	/**
+	 * Signals Bro's protocol detection that the analyzer has found a
+	 * severe protocol violation that could indicate that it's not
+	 * parsing the expected protocol. This turns into \c
+	 * analyzer_violation events at the script-layer (one such event is
+	 * raised for each call to this method so that the script-layer can
+	 * built up a notion of how prevalent protocol violations are; the
+	 * more, the less likely it's the right protocol).
+	 *
+	 * @param reason A textual description of the error encountered.
+	 *
+	 * @param data An optional pointer to the malformed data.
+	 *
+	 * @param len If \a data is given, the length of it.
+	 */
+	virtual void AnalyzerViolation(const char* reason, const char* data = nullptr, int len = 0);
+
+	/**
+	 * Returns true if ProtocolConfirmation() has been called at least
+	 * once.
+	 */
+	bool AnalyzerConfirmed() const { return analyzer_confirmed; }
 
 	/**
 	 * Called whenever the connection value is updated. Per default, this
@@ -729,6 +770,7 @@ private:
 	std::vector<zeek::Tag> prevented;
 
 	bool protocol_confirmed;
+	bool analyzer_confirmed;
 
 	TimerPList timers;
 	bool timers_canceled;

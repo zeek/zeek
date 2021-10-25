@@ -206,7 +206,7 @@ refine flow SSH_Flow += {
 
 	function proc_newkeys(): bool
 		%{
-		connection()->zeek_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->AnalyzerConfirmation();
 		return true;
 		%}
 

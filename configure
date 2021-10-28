@@ -32,71 +32,71 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                                 (semicolon delimited and quoted when multiple)
 
   Installation Directories:
-    --prefix=PREFIX        installation directory [/usr/local/zeek]
-    --scriptdir=PATH       root installation directory for Zeek scripts
-                           [PREFIX/share/zeek]
+    --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
+    --libdir=PATH          installation directory for library files [PREFIX/lib]
     --localstatedir=PATH   when using ZeekControl, path to store log files
                            and run-time data (within log/ and spool/ subdirs)
                            [PREFIX]
-    --spooldir=PATH        when using ZeekControl, path to store run-time data
-                           [PREFIX/spool]
     --logdir=PATH          when using ZeekControl, path to store log file
                            [PREFIX/logs]
-    --libdir=PATH          installation directory for library files [PREFIX/lib]
-    --plugindir=PATH       installation directory for plugins [LIBDIR/zeek/plugin]
-    --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
     --mandir=PATH          installation path for man pages [PREFIX/share/man]
+    --plugindir=PATH       installation directory for plugins [LIBDIR/zeek/plugin]
+    --prefix=PREFIX        installation directory [/usr/local/zeek]
     --python-dir=PATH      explicit installation directory for Python modules
     --python-prefix=PATH   versioned installation directory for Python modules,
                            like setup.py install --prefix
                            [PATH/lib/python<Python Version>/site-packages]
     --python-home=PATH     installation path for Python modules, like setup.py's
                            install --home [PATH/lib/python]
+    --scriptdir=PATH       root installation directory for Zeek scripts
+                           [PREFIX/share/zeek]
+    --spooldir=PATH        when using ZeekControl, path to store run-time data
+                           [PREFIX/spool]
 
   Optional Features:
-    --enable-debug         compile in debugging mode (like --build-type=Debug)
     --enable-coverage      compile with code coverage support (implies debugging mode)
+    --enable-cpp-tests     build Zeek's C++ unit tests
+    --enable-debug         compile in debugging mode (like --build-type=Debug)
     --enable-fuzzers       build fuzzer targets
+    --enable-jemalloc      link against jemalloc
     --enable-mobile-ipv6   analyze mobile IPv6 features defined by RFC 6275
     --enable-perftools     enable use of Google perftools (use tcmalloc)
     --enable-perftools-debug use Google's perftools for debugging
-    --enable-jemalloc      link against jemalloc
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
-    --enable-cpp-tests     build Zeek's C++ unit tests
     --enable-zeek-client   install the Zeek cluster management client (experimental)
-    --disable-zeekctl      don't install ZeekControl
-    --disable-auxtools     don't build or install auxiliary tools
     --disable-archiver     don't build or install zeek-archiver tool
+    --disable-auxtools     don't build or install auxiliary tools
+    --disable-broker-tests don't try to build Broker unit tests
     --disable-btest        don't install BTest
     --disable-btest-pcaps  don't install Zeek's BTest input pcaps
     --disable-python       don't try to build python bindings for Broker
-    --disable-broker-tests don't try to build Broker unit tests
+    --disable-zeekctl      don't install ZeekControl
     --disable-zkg          don't install zkg
 
   Required Packages in Non-Standard Locations:
-    --with-openssl=PATH    path to OpenSSL install root
-    --with-bind=PATH       path to BIND install root
-    --with-pcap=PATH       path to libpcap install root
-    --with-binpac=PATH     path to BinPAC executable
-                           (useful for cross-compiling)
     --with-bifcl=PATH      path to Zeek BIF compiler executable
                            (useful for cross-compiling)
-    --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
-    --with-python=PATH     path to Python executable
+    --with-bind=PATH       path to BIND install root
+    --with-binpac=PATH     path to BinPAC executable
+                           (useful for cross-compiling)
     --with-broker=PATH     path to Broker install root
                            (Zeek uses an embedded version by default)
     --with-caf=PATH        path to C++ Actor Framework install root
                            (a Broker dependency that is embedded by default)
+    --with-flex=PATH       path to flex executable
     --with-libkqueue=PATH  path to libkqueue install root
                            (Zeek uses an embedded version by default)
+    --with-openssl=PATH    path to OpenSSL install root
+    --with-pcap=PATH       path to libpcap install root
+    --with-python=PATH     path to Python executable
 
   Optional Packages in Non-Standard Locations:
     --with-geoip=PATH      path to the libmaxminddb install root
+    --with-jemalloc=PATH   path to jemalloc install root
     --with-krb5=PATH       path to krb5 install root
     --with-perftools=PATH  path to Google Perftools install root
-    --with-jemalloc=PATH   path to jemalloc install root
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
     --with-swig=PATH       path to SWIG executable

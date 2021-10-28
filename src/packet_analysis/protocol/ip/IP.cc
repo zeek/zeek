@@ -81,8 +81,13 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		// TCP segmentation offloading can zero out the ip_len field.
 		Weird("ip_hdr_len_zero", packet);
 
-		// Cope with the zero'd out ip_len field by using the caplen.
-		total_len = packet->cap_len - hdr_size;
+		if ( detail::ignore_checksums )
+			// Cope with the zero'd out ip_len field by using the caplen.
+			total_len = packet->cap_len - hdr_size;
+		else
+			// If this is caused by segmentation offloading, the checksum will
+			// also be incorrect. If checksum validation is enabled - jus tbail here.
+			return false;
 		}
 
 	if ( packet->len < total_len + hdr_size )
@@ -236,7 +241,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	packet->proto = proto;
 
 	// Double check the lengths one more time before forwarding this on.
-	if ( packet->ip_hdr->TotalLen() < packet->ip_hdr->HdrLen() )
+	if ( total_len < packet->ip_hdr->HdrLen() )
 		{
 		Weird("bogus_IP_header_lengths", packet);
 		return false;

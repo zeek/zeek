@@ -96,6 +96,10 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	{
 	const u_char* data = pkt->ip_hdr->Payload();
 	int len = pkt->ip_hdr->PayloadLen();
+	// If the header length is zero, tcp checksum offloading is probably enabled
+	// In this case, let's fix up the length.
+	if ( pkt->ip_hdr->TotalLen() == 0 )
+		len = remaining;
 	auto* adapter = static_cast<TCPSessionAdapter*>(c->GetSessionAdapter());
 
 	const struct tcphdr* tp = ExtractTCP_Header(data, len, remaining, adapter);

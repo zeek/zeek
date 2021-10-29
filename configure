@@ -71,6 +71,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-btest        don't install BTest
     --disable-btest-pcaps  don't install Zeek's BTest input pcaps
     --disable-python       don't try to build python bindings for Broker
+    --disable-systemd      don't build systemd scope support
     --disable-zeekctl      don't install ZeekControl
     --disable-zkg          don't install zkg
 
@@ -163,6 +164,7 @@ append_cache_entry ZEEK_ETC_INSTALL_DIR PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_JEMALLOC      BOOL   false
+append_cache_entry ENABLE_SYSTEMD       BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_BTEST        BOOL   true
@@ -315,6 +317,9 @@ while [ $# -ne 0 ]; do
         --disable-broker-tests)
             append_cache_entry BROKER_DISABLE_TESTS        BOOL true
             append_cache_entry BROKER_DISABLE_DOC_EXAMPLES BOOL true
+            ;;
+        --disable-systemd)
+            append_cache_entry ENABLE_SYSTEMD BOOL false
             ;;
         --disable-zkg)
             append_cache_entry INSTALL_ZKG BOOL false

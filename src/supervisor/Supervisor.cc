@@ -16,6 +16,11 @@
 #include <utility>
 #include <variant>
 
+#ifdef LIBSYSTEMD_FOUND
+#include <systemd/sd-bus.h>
+#include <systemd/sd-event.h>
+#endif
+
 #define RAPIDJSON_HAS_STDSTRING 1
 #include <rapidjson/document.h>
 

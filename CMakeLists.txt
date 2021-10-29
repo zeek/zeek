@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.5...3.18 FATAL_ERROR)
 project(Zeek C CXX)
 
 include(GNUInstallDirs)
+include(FindPkgConfig)
 
 include(cmake/CommonCMakeConfig.cmake)
 include(cmake/FindClangTidy.cmake)
@@ -403,12 +404,19 @@ endif ()
 
 set(USE_KRB5 false)
 if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
-  find_package(LibKrb5)
-  if (LIBKRB5_FOUND)
-     set(USE_KRB5 true)
-     include_directories(BEFORE ${LibKrb5_INCLUDE_DIR})
-     list(APPEND OPTLIBS ${LibKrb5_LIBRARY})
-  endif ()
+    find_package(LibKrb5)
+    if (LIBKRB5_FOUND)
+        set(USE_KRB5 true)
+        include_directories(BEFORE ${LibKrb5_INCLUDE_DIR})
+        list(APPEND OPTLIBS ${LibKrb5_LIBRARY})
+    endif ()
+
+    if ( ENABLE_SYSTEMD AND PKG_CONFIG_FOUND )
+        pkg_check_modules(LIBSYSTEMD libsystemd)
+        if ( LIBSYSTEMD_FOUND )
+            list(APPEND OPTLIBS ${LIBSYSTEMD_LIBRARIES})
+        endif ()
+    endif ()
 endif ()
 
 set(HAVE_PERFTOOLS false)
@@ -652,6 +660,12 @@ else ()
     set(_install_btest_tools_msg "no pcaps")
 endif ()
 
+if ( LIBSYSTEMD_FOUND )
+    set(_systemd_support_msg "true")
+else ()
+    set(_systemd_support_msg "false")
+endif ()
+
 message(
     "\n====================|  Zeek Build Summary  |===================="
     "\n"
@@ -683,6 +697,7 @@ message(
     "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
     "\njemalloc:          ${ENABLE_JEMALLOC}"
+    "\nsystemd support:   ${_systemd_support_msg}"
     "\n"
     "\nFuzz Targets:      ${ZEEK_ENABLE_FUZZERS}"
     "\nFuzz Engine:       ${ZEEK_FUZZING_ENGINE}"

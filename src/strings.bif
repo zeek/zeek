@@ -1145,7 +1145,7 @@ function count_substr%(str: string, sub: string%) : count
 
 %%{
 
-static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t start, int64_t end, bool rfind)
+static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t start, int64_t end, bool rfind, bool case_sensitive)
 	{
 	// Don't bother if the start is after the end of the string.
 	if ( start > str->Len() )
@@ -1168,11 +1168,19 @@ static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t s
 		return -1;
 
 	string s = str->ToStdString().substr(start, end_pos);
+	string sb = sub->ToStdString();
 	size_t pos = string::npos;
+
+	if ( !case_sensitive )
+	{
+		transform(s.begin(), s.end(), s.begin(), ::tolower);
+		transform(sb.begin(), sb.end(), sb.begin(), ::tolower);
+	}
+
 	if ( rfind )
-		pos = s.rfind(sub->ToStdString());
+		pos = s.rfind(sb);
 	else
-		pos = s.find(sub->ToStdString());
+		pos = s.find(sb);
 
 	if ( pos == string::npos )
 		return -1;
@@ -1193,13 +1201,14 @@ static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t s
 ## end: An optional position for the end of the substring. A value less than
 ##      zero (such as the default -1) means a search until the end of the
 ##      string.
+## case_sensitive: An optional position for search case insensitively
 ##
 ## Returns: The position of the substring. Returns -1 if the string wasn't
 ##          found. Prints an error if the starting position is after the ending
 ##          position.
-function find_str%(str: string, sub: string, start: count &default=0, end: int &default=-1%) : int
+function find_str%(str: string, sub: string, start: count &default=0, end: int &default=-1, case_sensitive: bool &default=T%) : int
 	%{
-	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, false));
+	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, false, case_sensitive));
 	%}
 
 ## The same as :zeek:see:`find_str`, but returns the highest index matching
@@ -1214,9 +1223,9 @@ function find_str%(str: string, sub: string, start: count &default=0, end: int &
 ## Returns: The position of the substring. Returns -1 if the string wasn't
 ##          found. Prints an error if the starting position is after the ending
 ##          position.
-function rfind_str%(str: string, sub: string, start: count &default=0, end: int &default=-1%) : int
+function rfind_str%(str: string, sub: string, start: count &default=0, end: int &default=-1, case_sensitive: bool &default=T%) : int
 	%{
-	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, true));
+	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, true, case_sensitive));
 	%}
 
 ## Returns whether a string starts with a substring.

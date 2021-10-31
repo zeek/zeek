@@ -83,16 +83,16 @@ broker::data WriterBackend::WriterInfo::ToBroker() const
 
 bool WriterBackend::WriterInfo::FromBroker(broker::data d)
 	{
-	if ( ! caf::holds_alternative<broker::vector>(d) )
+	if ( ! broker::is<broker::vector>(d) )
 		return false;
 
-	auto v = caf::get<broker::vector>(d);
-	auto bpath = caf::get_if<std::string>(&v[0]);
-	auto brotation_base = caf::get_if<double>(&v[1]);
-	auto brotation_interval = caf::get_if<double>(&v[2]);
-	auto bnetwork_time = caf::get_if<double>(&v[3]);
-	auto bconfig = caf::get_if<broker::table>(&v[4]);
-	auto bppf = caf::get_if<std::string>(&v[5]);
+	auto v = broker::get<broker::vector>(d);
+	auto bpath = broker::get_if<std::string>(&v[0]);
+	auto brotation_base = broker::get_if<double>(&v[1]);
+	auto brotation_interval = broker::get_if<double>(&v[2]);
+	auto bnetwork_time = broker::get_if<double>(&v[3]);
+	auto bconfig = broker::get_if<broker::table>(&v[4]);
+	auto bppf = broker::get_if<std::string>(&v[5]);
 
 	if ( ! (bpath && brotation_base && brotation_interval && bnetwork_time && bconfig && bppf) )
 		return false;
@@ -105,8 +105,8 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d)
 
 	for ( auto i : *bconfig )
 		{
-		auto k = caf::get_if<std::string>(&i.first);
-		auto v = caf::get_if<std::string>(&i.second);
+		auto k = broker::get_if<std::string>(&i.first);
+		auto v = broker::get_if<std::string>(&i.second);
 
 		if ( ! (k && v) )
 			return false;

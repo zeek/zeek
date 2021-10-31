@@ -1,5 +1,7 @@
 # @TEST-GROUP: broker
 #
+# @TEST-KNOWN-FAILURE: ALM broker currently does not implement SSL transport
+#
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run recv "zeek -B broker -b ../recv.zeek >recv.out"

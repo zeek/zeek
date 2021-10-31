@@ -11,6 +11,8 @@
 #include "broker/store.bif.h"
 #include "broker/data.bif.h"
 
+#include <optional>
+
 namespace zeek::Broker::detail {
 
 extern OpaqueTypePtr opaque_of_store_handle;
@@ -52,9 +54,9 @@ inline RecordValPtr query_result(RecordValPtr data)
  * @param e: expire interval as double; 0 if no expiry
  * @return expire interval in Broker format
  */
-static broker::optional<broker::timespan> convert_expiry(double e)
+static std::optional<broker::timespan> convert_expiry(double e)
 	{
-	broker::optional<broker::timespan> ts;
+	std::optional<broker::timespan> ts;
 
 	if ( e )
 		{

@@ -46,12 +46,12 @@ broker::expected<broker::data> BloomFilter::Serialize() const
 
 std::unique_ptr<BloomFilter> BloomFilter::Unserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = broker::get_if<broker::vector>(&data);
 
 	if ( ! (v && v->size() == 3) )
 		return nullptr;
 
-	auto type = caf::get_if<uint64_t>(&(*v)[0]);
+	auto type = broker::get_if<uint64_t>(&(*v)[0]);
 	if ( ! type )
 		return nullptr;
 

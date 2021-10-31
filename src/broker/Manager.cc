@@ -1279,7 +1279,7 @@ bool Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 		}
 
 	// Get log fields.
-	auto fields_data = caf::get_if<broker::vector>(&lc.fields_data());
+	auto fields_data = broker::get_if<broker::vector>(&lc.fields_data());
 
 	if ( ! fields_data )
 		{
@@ -1344,7 +1344,7 @@ bool Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 		return false;
 		}
 
-	auto path = caf::get_if<std::string>(&lw.path());
+	auto path = broker::get_if<std::string>(&lw.path());
 
 	if ( ! path )
 		{
@@ -1352,7 +1352,7 @@ bool Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 		return false;
 		}
 
-	auto serial_data = caf::get_if<std::string>(&lw.serial_data());
+	auto serial_data = broker::get_if<std::string>(&lw.serial_data());
 
 	if ( ! serial_data )
 		{
@@ -1537,7 +1537,15 @@ void Manager::ProcessError(broker::error_view err)
 		msg += '(';
 		msg += to_string(ctx->node);
 		msg += ", ";
-		msg += caf::deep_to_string(ctx->network);
+		if (ctx->network)
+			{
+			msg += '*';
+			msg += broker::to_string(*ctx->network);
+			}
+			else
+			{
+			msg += "null";
+			}
 		msg += ", ";
 		if ( auto what = err.message() )
 			msg += caf::deep_to_string(*what);
@@ -1663,7 +1671,7 @@ void Manager::BrokerStoreToZeekTable(const std::string& name, const detail::Stor
 	if ( ! keys )
 		return;
 
-	auto set = caf::get_if<broker::set>(&(keys->get_data()));
+	auto set = broker::get_if<broker::set>(*keys);
 	auto table = handle->forward_to;
 	const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
 	bool is_set = table->GetType()->IsSet();

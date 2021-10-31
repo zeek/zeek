@@ -212,13 +212,13 @@ broker::expected<broker::data> CardinalityCounter::Serialize() const
 
 std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = broker::get_if<broker::vector>(&data);
 	if ( ! (v && v->size() >= 3) )
 		return nullptr;
 
-	auto m = caf::get_if<uint64_t>(&(*v)[0]);
-	auto V = caf::get_if<uint64_t>(&(*v)[1]);
-	auto alpha_m = caf::get_if<double>(&(*v)[2]);
+	auto m = broker::get_if<uint64_t>(&(*v)[0]);
+	auto V = broker::get_if<uint64_t>(&(*v)[1]);
+	auto alpha_m = broker::get_if<double>(&(*v)[2]);
 
 	if ( ! (m && V && alpha_m) )
 		return nullptr;
@@ -233,7 +233,7 @@ std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker
 
 	for ( size_t i = 0; i < *m; ++i )
 		{
-		auto x = caf::get_if<uint64_t>(&(*v)[3 + i]);
+		auto x = broker::get_if<uint64_t>(&(*v)[3 + i]);
 		if ( ! x )
 			return nullptr;
 

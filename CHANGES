@@ -1,3 +1,13 @@
+4.2.0-dev.280 | 2021-11-01 09:20:16 -0700
+
+  * Fix issue with broken libpcaps that return repeat packets (Tim Wojtulewicz, Corelight)
+
+    This is apparently a problem with the Myricom version of libpcap, where
+    instead of returning a null or a zero if no packets are available, it
+    returns the previous packet. This causes Zeek to improperly parse the
+    packet and crash. We thought we had fixed this previously with a check
+    for a null packet but that fix was not enough.
+
 4.2.0-dev.277 | 2021-10-21 17:23:46 -0700
 
   * Apply some missing clang-format changes (Tim Wojtulewicz, Corelight)

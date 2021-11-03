@@ -150,7 +150,7 @@ function basic_functionality()
 	local a_and_b = a & b;
 
 	test_case( "union", a_or_b == a_plus_b );
-	test_case( "intersection", a_and_b == a_plus_b );
+	test_case( "intersection", a_and_b == a_also_b );
 	test_case( "difference", a - b == a_sans_b );
 	test_case( "difference", b - a == b_sans_a );
 

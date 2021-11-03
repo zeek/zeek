@@ -276,7 +276,7 @@ static void print_event_c_body(FILE* fp)
 			}
 		}
 
-	fprintf(fp, "\t        },\n\t    zeek::util::detail::SOURCE_LOCAL, analyzer->GetID()");
+	fprintf(fp, "\t        },\n\t    zeek::util::detail::SOURCE_LOCAL, analyzer ? analyzer->GetID() : 0");
 
 	if ( connection_arg )
 		// Pass the connection to the EventMgr as the "cookie"

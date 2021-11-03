@@ -1,3 +1,7 @@
+4.2.0-dev.284 | 2021-11-03 09:35:10 -0700
+
+  * GH-1781: Add .git-blame-ignore-revs file (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.280 | 2021-11-01 09:20:16 -0700
 
   * Fix issue with broken libpcaps that return repeat packets (Tim Wojtulewicz, Corelight)

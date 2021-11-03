@@ -91,6 +91,13 @@ env:
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
+fedora35_task:
+  container:
+    # Fedora 35 EOL: Around Dec 2022
+    dockerfile: ci/fedora-35/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 fedora34_task:
   container:
     # Fedora 34 EOL: Around May 2022

@@ -1,3 +1,7 @@
+4.2.0-dev.286 | 2021-11-03 09:36:41 -0700
+
+  * GH-693: use pcap_dump_open_append where supported (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.284 | 2021-11-03 09:35:10 -0700
 
   * GH-1781: Add .git-blame-ignore-revs file (Tim Wojtulewicz, Corelight)

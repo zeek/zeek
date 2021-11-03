@@ -68,11 +68,15 @@ void PcapDumper::Open()
 
 	else
 		{
+#ifdef HAVE_PCAP_DUMP_OPEN_APPEND
+		dumper = pcap_dump_open_append(pd, props.path.c_str());
+#else
 		// Old file and we need to append, which, unfortunately,
 		// is not supported by libpcap. So, we have to hack a
-		// little bit, knowing that pcap_dumpter_t is, in fact,
+		// little bit, knowing that pcap_dumper_t is, in fact,
 		// a FILE ... :-(
 		dumper = (pcap_dumper_t*)fopen(props.path.c_str(), "a");
+#endif
 		if ( ! dumper )
 			{
 			Error(util::fmt("can't open dump %s: %s", props.path.c_str(), strerror(errno)));

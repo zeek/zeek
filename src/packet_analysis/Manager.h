@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "zeek/Func.h"
 #include "zeek/PacketFilter.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/Component.h"
@@ -126,6 +127,12 @@ public:
 		return pkt_filter;
 		}
 
+	/**
+	 * Returns the total number of packets received that weren't considered
+	 * processed by some analyzer.
+	 */
+	uint64_t GetUnprocessedCount() const { return total_not_processed; }
+
 private:
 	/**
 	 * Instantiates a new analyzer instance.
@@ -163,6 +170,8 @@ private:
 	uint64_t unknown_sampling_rate = 0;
 	double unknown_sampling_duration = 0;
 	uint64_t unknown_first_bytes_count = 0;
+
+	uint64_t total_not_processed = 0;
 	};
 
 	} // namespace packet_analysis

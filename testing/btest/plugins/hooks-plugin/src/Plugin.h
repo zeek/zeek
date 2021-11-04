@@ -24,6 +24,7 @@ protected:
 	                  int num_fields, const zeek::threading::Field* const* fields,
 	                  zeek::threading::Value** vals) override;
 	void HookSetupAnalyzerTree(zeek::Connection *conn) override;
+	void HookUnprocessedPacket(const zeek::Packet* packet) override;
 	void MetaHookPre(zeek::plugin::HookType hook, const zeek::plugin::HookArgumentList& args) override;
 	void MetaHookPost(zeek::plugin::HookType hook, const zeek::plugin::HookArgumentList& args,
 	                  zeek::plugin::HookArgument result) override;

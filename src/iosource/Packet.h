@@ -123,6 +123,12 @@ public:
 	RecordValPtr ToRawPktHdrVal() const;
 
 	/**
+	 * Returns a RecordVal that represents the Packet. This is used
+	 * by the get_current_packet bif.
+	 */
+	static RecordValPtr ToVal(const Packet* p);
+
+	/**
 	 * Maximal length of a layer 2 address.
 	 */
 	static const int L2_ADDR_LEN = 6;
@@ -240,6 +246,14 @@ public:
 	 * analyzer to the IPTunnel analyzer.
 	 */
 	int gre_link_type = DLT_RAW;
+
+	/**
+	 * This flag indicates whether a packet has been processed. This can
+	 * mean different things depending on the traffic, but generally it
+	 * means that a packet has been logged in some way. We default to
+	 * false, and this can be set to true for any number of reasons.
+	 */
+	bool processed = false;
 
 private:
 	// Renders an MAC address into its ASCII representation.

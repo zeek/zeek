@@ -7,6 +7,7 @@
 #include "zeek/iosource/PktDumper.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Dispatcher.h"
+#include "zeek/plugin/Manager.h"
 #include "zeek/zeek-bif.h"
 
 using namespace zeek::packet_analysis;
@@ -105,6 +106,16 @@ void Manager::ProcessPacket(Packet* packet)
 
 	// Start packet analysis
 	root_analyzer->ForwardPacket(packet->cap_len, packet->data, packet, packet->link_type);
+
+	if ( ! packet->processed )
+		{
+		if ( packet_not_processed )
+			event_mgr.Enqueue(packet_not_processed, Packet::ToVal(packet));
+
+		plugin_mgr->HookUnprocessedPacket(packet);
+
+		total_not_processed++;
+		}
 
 	if ( raw_packet )
 		event_mgr.Enqueue(raw_packet, packet->ToRawPktHdrVal());

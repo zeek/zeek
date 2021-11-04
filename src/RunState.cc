@@ -390,8 +390,16 @@ void get_final_stats()
 		                         ? ((double)s.dropped / ((double)s.received + (double)s.dropped)) *
 		                               100.0
 		                         : 0.0;
-		reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " (%.2f%%) dropped",
-		               s.received, ps->Path().c_str(), s.dropped, dropped_pct);
+
+		uint64_t not_processed = packet_mgr->GetUnprocessedCount();
+		double unprocessed_pct = not_processed > 0
+		                             ? ((double)not_processed / (double)s.received) * 100.0
+		                             : 0.0;
+
+		reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64
+		               " (%.2f%%) dropped, %" PRIu64 " (%.2f%%) not processed",
+		               s.received, ps->Path().c_str(), s.dropped, dropped_pct, not_processed,
+		               unprocessed_pct);
 		}
 	}
 

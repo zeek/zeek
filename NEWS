@@ -9,8 +9,49 @@ Zeek 4.2.0
 New Functionality
 -----------------
 
+- We now provide minimal official Docker images for the Zeek project via two
+  repositories on the Docker hub, ``zeekurity/zeek`` and ``zeekurity/zeek-dev``.
+  The former receives all Zeek release versions, with tag ``zeek:latest`` being
+  the most recent. An image corresponding to our latest merge into the master
+  branch is tagged at ``zeek-dev:latest``.
+
+  The images run Debian and provide a full install of the Zeek distribution into
+  ``/usr/local/zeek``. They do not set Zeek-specific entrypoints or provide any
+  particular configuration for operationally running Zeek. To keep the images
+  lightweight they also do not contain a development toolchain as needed for
+  example to build a Zeek plugin. You can add any required system packages in a
+  derived image, or install them directly in the running container.
+
+- Zeek now supports formatting the C++ code using clang-format. It requires at
+  least clang-format 12.0.1 due to some additions that were made in that version
+  to better support the Whitesmiths style. Zeek also includes a set of python
+  scripts to more easily reformat in the auxil/run-clang-format directory. An
+  example command to reformat the code:
+
+  `python3 auxil/run-clang-format/run-clang-format.py --clang-format-executable `which clang-format-12` -r src -i`
+
+- Experimental support for speeding up Zeek script execution by compiling
+  scripts to a low-level form called "ZAM".  You activate this feature by
+  specifying ``-O ZAM`` on the command line.  See
+  ``src/script_opt/ZAM/README.md`` for more information.
+
+- The DNS analyzer has initial support for the SVCB and HTTPS types. The new events
+  are ``dns_SVCB`` and ``dns_HTTPS``.
+
 Changed Functionality
 ---------------------
+
+- Zeek now treats non-atomic index types for sets and tables more consistently.
+  Indexing now generally works with any types Zeek's hashing subsystem knows how
+  to serialize, meaning that you can now also index with sets, vectors,
+  patterns, and even tables.
+
+- The traditional TSV Zeek logs are now valid UTF8 by default. It's possible
+  to revert to the previous behavior by setting ``LogAscii::enable_utf_8`` to
+  false.
+
+- The ``SYN_packet`` record now records TCP timestamps (TSval/TSecr)
+  when available.
 
 Removed Functionality
 ---------------------

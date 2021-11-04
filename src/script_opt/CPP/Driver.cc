@@ -1,22 +1,20 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <errno.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "zeek/script_opt/CPP/Compile.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 using namespace std;
 
-
-CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs,
-                       const string& gen_name, const string& _addl_name,
-                       CPPHashManager& _hm, bool _update, bool _standalone)
-: funcs(_funcs), pfs(_pfs), hm(_hm),
-  update(_update), standalone(_standalone)
+CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs, const string& gen_name,
+                       const string& _addl_name, CPPHashManager& _hm, bool _update,
+                       bool _standalone, bool report_uncompilable)
+	: funcs(_funcs), pfs(_pfs), hm(_hm), update(_update), standalone(_standalone)
 	{
 	addl_name = _addl_name;
 	bool is_addl = hm.IsAppend();
@@ -59,15 +57,14 @@ CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs,
 		auto addl_f = fopen(addl_name.c_str(), "w");
 		if ( ! addl_f )
 			{
-			reporter->Error("can't open C++ additional file %s",
-			                addl_name.c_str());
+			reporter->Error("can't open C++ additional file %s", addl_name.c_str());
 			exit(1);
 			}
 
 		fclose(addl_f);
 		}
 
-	Compile();
+	Compile(report_uncompilable);
 	}
 
 CPPCompile::~CPPCompile()
@@ -75,7 +72,7 @@ CPPCompile::~CPPCompile()
 	fclose(write_file);
 	}
 
-void CPPCompile::Compile()
+void CPPCompile::Compile(bool report_uncompilable)
 	{
 	// Get the working directory so we can use it in diagnostic messages
 	// as a way to identify this compilation.  Only germane when doing
@@ -100,8 +97,12 @@ void CPPCompile::Compile()
 			// Can't be called directly.
 			continue;
 
-		if ( IsCompilable(func) )
+		const char* reason;
+		if ( IsCompilable(func, &reason) )
 			compilable_funcs.insert(BodyName(func));
+		else if ( reason && report_uncompilable )
+			fprintf(stderr, "%s cannot be compiled to C++ due to %s\n", func.Func()->Name(),
+			        reason);
 
 		auto h = func.Profile()->HashVal();
 		if ( hm.HasHash(h) )
@@ -251,16 +252,14 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 		// same binary).
 		h = merge_p_hashes(h, p_hash(cf_locs[f]));
 
-	auto init = string("register_body__CPP(make_intrusive<") +
-			f + "_cl>(\"" + f + "\"), " + Fmt(p) + ", " +
-			Fmt(h) + ", " + events + ");";
+	auto init = string("register_body__CPP(make_intrusive<") + f + "_cl>(\"" + f + "\"), " +
+	            Fmt(p) + ", " + Fmt(h) + ", " + events + ");";
 
 	AddInit(names_to_bodies[f], init);
 
 	if ( update )
 		{
-		fprintf(hm.HashFile(), "func\n%s%s\n",
-		        scope_prefix(addl_tag).c_str(), f.c_str());
+		fprintf(hm.HashFile(), "func\n%s%s\n", scope_prefix(addl_tag).c_str(), f.c_str());
 		fprintf(hm.HashFile(), "%llu\n", h);
 		}
 	}
@@ -341,17 +340,24 @@ void CPPCompile::GenEpilog()
 	Emit("} // zeek::detail");
 	}
 
-bool CPPCompile::IsCompilable(const FuncInfo& func)
+bool CPPCompile::IsCompilable(const FuncInfo& func, const char** reason)
 	{
+	if ( ! is_CPP_compilable(func.Profile(), reason) )
+		return false;
+
+	if ( reason )
+		// Indicate that there's no fundamental reason it can't be
+		// compiled.
+		*reason = nullptr;
+
 	if ( func.ShouldSkip() )
-		// Caller marked this function as one to skip.
 		return false;
 
 	if ( hm.HasHash(func.Profile()->HashVal()) )
 		// We've already compiled it.
 		return false;
 
-	return is_CPP_compilable(func.Profile());
+	return true;
 	}
 
-} // zeek::detail
+	} // zeek::detail

@@ -589,6 +589,8 @@ type SYN_packet: record {
 	win_scale: int;	##< The window scale option if present, or -1 if not.
 	MSS: count;	##< The maximum segment size if present, or 0 if not.
 	SACK_OK: bool;	##< True if the *SACK* option is present.
+	TSval: count &optional;	##< The TCP TS value if present.
+	TSecr: count &optional;	##< The TCP TS echo reply if present.
 };
 
 ## Packet capture statistics.  All counts are cumulative.
@@ -3882,6 +3884,14 @@ type dns_loc_rr: record {
 	is_query: count;	##< The RR is a query/Response.
 };
 
+## DNS SVCB and HTTPS RRs
+##
+## .. zeek:see:: dns_SVCB dns_HTTPS
+type dns_svcb_rr: record {
+	svc_priority: count;	##< Service priority for the current record, 0 indicates that this record is in AliasMode and cannot carry svc_params; otherwise this is in ServiceMode, and may include svc_params
+	target_name: string;	##< Target name, the hostname of the service endpoint.
+};
+
 # DNS answer types.
 #
 # .. zeek:see:: dns_answerr
@@ -4897,8 +4907,20 @@ const dpd_reassemble_first_packets = T &redef;
 ## connections will be able to analyze the session.
 ##
 ## .. zeek:see:: dpd_reassemble_first_packets dpd_match_only_beginning
-##    dpd_ignore_ports
+##    dpd_ignore_ports dpd_max_packets
 const dpd_buffer_size = 1024 &redef;
+
+## Maximum number of per-connection packets that will be buffered for dynamic
+## protocol detection. For each connection, Zeek buffers up to this amount
+## of packets in memory so that complete protocol analysis can start even after
+## the initial packets have already passed through (i.e., when a DPD signature
+## matches only later). However, once the buffer is full, data is deleted and lost
+## to analyzers that are activated afterwards. Then only analyzers that can deal
+## with partial connections will be able to analyze the session.
+##
+## .. zeek:see:: dpd_reassemble_first_packets dpd_match_only_beginning
+##    dpd_ignore_ports dpd_buffer_size
+const dpd_max_packets = 100 &redef;
 
 ## If true, stops signature matching if :zeek:see:`dpd_buffer_size` has been
 ## reached.

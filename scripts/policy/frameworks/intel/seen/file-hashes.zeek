@@ -7,6 +7,6 @@ event file_hash(f: fa_file, kind: string, hash: string)
 	                         $indicator_type=Intel::FILE_HASH,
 	                         $f=f,
 	                         $where=Files::IN_HASH);
-	
+
 	Intel::seen(seen);
 	}

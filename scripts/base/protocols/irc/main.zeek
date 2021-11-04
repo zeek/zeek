@@ -1,11 +1,11 @@
 ##! Implements the core IRC analysis support.  The logging model is to log
-##! IRC commands along with the associated response and some additional 
+##! IRC commands along with the associated response and some additional
 ##! metadata about the connection if it's available.
 
 module IRC;
 
 export {
-	
+
 	redef enum Log::ID += { LOG };
 
 	global log_policy: Log::PolicyHook;
@@ -21,7 +21,7 @@ export {
 		nick:     string      &log &optional;
 		## Username given for the connection.
 		user:     string      &log &optional;
-		
+
 		## Command given by the client.
 		command:  string      &log &optional;
 		## Value for the command given by the client.
@@ -29,8 +29,8 @@ export {
 		## Any additional data for the command.
 		addl:     string      &log &optional;
 	};
-	
-	## Event that can be handled to access the IRC record as it is sent on 
+
+	## Event that can be handled to access the IRC record as it is sent on
 	## to the logging framework.
 	global irc_log: event(rec: Info);
 }
@@ -48,7 +48,7 @@ event zeek_init() &priority=5
 	Log::create_stream(IRC::LOG, [$columns=Info, $ev=irc_log, $path="irc", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_IRC, ports);
 	}
-	
+
 function new_session(c: connection): Info
 	{
 	local info: Info;
@@ -57,12 +57,12 @@ function new_session(c: connection): Info
 	info$id = c$id;
 	return info;
 	}
-	
+
 function set_session(c: connection)
 	{
 	if ( ! c?$irc )
 		c$irc = new_session(c);
-		
+
 	c$irc$ts=network_time();
 	}
 

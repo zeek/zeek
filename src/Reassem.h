@@ -10,11 +10,13 @@
 
 #include "zeek/Obj.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 // Whenever subclassing the Reassembler class
 // you should add to this for known subclasses.
-enum ReassemblerType {
+enum ReassemblerType
+	{
 	REASSEM_UNKNOWN,
 	REASSEM_TCP,
 	REASSEM_FRAG,
@@ -22,16 +24,16 @@ enum ReassemblerType {
 
 	// Terminal value. Add new above.
 	REASSEM_NUM,
-};
+	};
 
 class Reassembler;
 
 /**
  * A block/segment of data for use in the reassembly process.
  */
-class DataBlock {
+class DataBlock
+	{
 public:
-
 	/**
 	 * Create a data block/segment with associated sequence numbering.
 	 */
@@ -62,7 +64,7 @@ public:
 		seq = other.seq;
 		upper = other.upper;
 		auto size = other.Size();
-		delete [] block;
+		delete[] block;
 		block = new u_char[size];
 		memcpy(block, other.block, size);
 		return *this;
@@ -75,88 +77,83 @@ public:
 
 		seq = other.seq;
 		upper = other.upper;
-		delete [] block;
+		delete[] block;
 		block = other.block;
 		other.block = nullptr;
 		return *this;
 		}
 
-	~DataBlock()
-		{ delete [] block; }
+	~DataBlock() { delete[] block; }
 
 	/**
 	 * @return length of the data block
 	 */
-	uint64_t Size() const
-		{ return upper - seq; }
+	uint64_t Size() const { return upper - seq; }
 
 	uint64_t seq;
 	uint64_t upper;
 	u_char* block;
-};
+	};
 
 using DataBlockMap = std::map<uint64_t, DataBlock>;
-
 
 /**
  * The data structure used for reassembling arbitrary sequences of data
  * blocks/segments.  It internally uses an ordered map (std::map).
  */
-class DataBlockList {
+class DataBlockList
+	{
 public:
+	DataBlockList() { }
 
-	DataBlockList()
-		{ }
+	DataBlockList(Reassembler* r) : reassembler(r) { }
 
-	DataBlockList(Reassembler* r) : reassembler(r)
-		{ }
-
-	~DataBlockList()
-		{ Clear(); }
+	~DataBlockList() { Clear(); }
 
 	/**
 	 * @return iterator to start of the block list.
 	 */
-	DataBlockMap::const_iterator Begin() const
-		{ return block_map.begin(); }
+	DataBlockMap::const_iterator Begin() const { return block_map.begin(); }
 
 	/**
 	 * @return iterator to end of the block list (one past last element).
 	 */
-	DataBlockMap::const_iterator End() const
-		{ return block_map.end(); }
+	DataBlockMap::const_iterator End() const { return block_map.end(); }
 
 	/**
 	 * @return reference to the first data block in the list.
 	 * Must not be called when the list is empty.
 	 */
 	const DataBlock& FirstBlock() const
-		{ assert(block_map.size()); return block_map.begin()->second; }
+		{
+		assert(block_map.size());
+		return block_map.begin()->second;
+		}
 
 	/**
 	 * @return reference to the last data block in the list.
 	 * Must not be called when the list is empty.
 	 */
 	const DataBlock& LastBlock() const
-		{ assert(block_map.size()); return block_map.rbegin()->second; }
+		{
+		assert(block_map.size());
+		return block_map.rbegin()->second;
+		}
 
 	/**
 	 * @return whether the list is empty.
 	 */
-	bool Empty() const
-		{ return block_map.empty(); };
+	bool Empty() const { return block_map.empty(); };
 
 	/**
 	 * @return the number of blocks in the list.
 	 */
-	size_t NumBlocks() const
-		{ return block_map.size(); };
+	size_t NumBlocks() const { return block_map.size(); };
 
 	/**
 	 * @return the total size, in bytes, of all blocks in the list.
 	 */
-	size_t DataSize() const
-		{ return total_data_size; }
+	size_t DataSize() const { return total_data_size; }
 
 	/**
 	 * Counts the total size of all data contained in list elements
@@ -183,9 +180,8 @@ public:
 	 * for an insertion point or null to search from the beginning of the list
 	 * @return an iterator to the element that was inserted
 	 */
-	DataBlockMap::const_iterator
-	Insert(uint64_t seq, uint64_t upper, const u_char* data,
-	       DataBlockMap::const_iterator* hint = nullptr);
+	DataBlockMap::const_iterator Insert(uint64_t seq, uint64_t upper, const u_char* data,
+	                                    DataBlockMap::const_iterator* hint = nullptr);
 
 	/**
 	 * Insert a new data block at the end of the list and remove blocks
@@ -195,7 +191,6 @@ public:
 	 * starting from the beginning after the insertion takes place).
 	 */
 	void Append(DataBlock block, uint64_t limit);
-
 
 	/**
 	 * Remove all elements below a given sequence number.
@@ -217,7 +212,6 @@ public:
 	DataBlockMap::const_iterator FirstBlockAtOrBefore(uint64_t seq) const;
 
 private:
-
 	/**
 	 * Insert a new data block into the list.
 	 * @param seq  lower sequence number of the data block
@@ -227,9 +221,8 @@ private:
 	 * for an insertion point
 	 * @return an iterator to the element that was inserted
 	 */
-	DataBlockMap::const_iterator
-	Insert(uint64_t seq, uint64_t upper, const u_char* data,
-	       DataBlockMap::const_iterator hint);
+	DataBlockMap::const_iterator Insert(uint64_t seq, uint64_t upper, const u_char* data,
+	                                    DataBlockMap::const_iterator hint);
 
 	/**
 	 * Removes a block from the list and updates other state which keeps
@@ -249,12 +242,13 @@ private:
 	Reassembler* reassembler = nullptr;
 	size_t total_data_size = 0;
 	DataBlockMap block_map;
-};
+	};
 
-class Reassembler : public Obj {
+class Reassembler : public Obj
+	{
 public:
 	Reassembler(uint64_t init_seq, ReassemblerType reassem_type = REASSEM_UNKNOWN);
-	~Reassembler() override	{}
+	~Reassembler() override { }
 
 	void NewBlock(double t, uint64_t seq, uint64_t len, const u_char* data);
 
@@ -266,33 +260,38 @@ public:
 	void ClearBlocks();
 	void ClearOldBlocks();
 
-	bool HasBlocks() const
-		{ return ! block_list.Empty(); }
+	bool HasBlocks() const { return ! block_list.Empty(); }
 
-	uint64_t LastReassemSeq() const	{ return last_reassem_seq; }
+	uint64_t LastReassemSeq() const { return last_reassem_seq; }
 
-	uint64_t TrimSeq() const
-		{ return trim_seq; }
+	uint64_t TrimSeq() const { return trim_seq; }
 
 	void SetTrimSeq(uint64_t seq)
-		{ if ( seq > trim_seq ) trim_seq = seq; }
+		{
+		if ( seq > trim_seq )
+			trim_seq = seq;
+		}
 
-	uint64_t TotalSize() const;	// number of bytes buffered up
+	uint64_t TotalSize() const; // number of bytes buffered up
 
 	void Describe(ODesc* d) const override;
 
 	// Sum over all data buffered in some reassembler.
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
-	static uint64_t TotalMemoryAllocation()	{ return total_size; }
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] static uint64_t
+	TotalMemoryAllocation()
+		{
+		return total_size;
+		}
 
 	// Data buffered by type of reassembler.
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
-	static uint64_t MemoryAllocation(ReassemblerType rtype);
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] static uint64_t
+	MemoryAllocation(ReassemblerType rtype);
 
-	void SetMaxOldBlocks(uint32_t count)	{ max_old_blocks = count; }
+	void SetMaxOldBlocks(uint32_t count) { max_old_blocks = count; }
 
 protected:
-
 	friend class DataBlockList;
 
 	virtual void Undelivered(uint64_t up_to_seq);
@@ -300,20 +299,19 @@ protected:
 	virtual void BlockInserted(DataBlockMap::const_iterator it) = 0;
 	virtual void Overlap(const u_char* b1, const u_char* b2, uint64_t n) = 0;
 
-	void CheckOverlap(const DataBlockList& list,
-				uint64_t seq, uint64_t len, const u_char* data);
+	void CheckOverlap(const DataBlockList& list, uint64_t seq, uint64_t len, const u_char* data);
 
 	DataBlockList block_list;
 	DataBlockList old_block_list;
 
 	uint64_t last_reassem_seq = 0;
-	uint64_t trim_seq = 0;	// how far we've trimmed
+	uint64_t trim_seq = 0; // how far we've trimmed
 	uint32_t max_old_blocks = 0;
 
 	ReassemblerType rtype = REASSEM_UNKNOWN;
 
 	static uint64_t total_size;
 	static uint64_t sizes[REASSEM_NUM];
-};
+	};
 
-} // namespace zeek
+	} // namespace zeek

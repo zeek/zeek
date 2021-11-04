@@ -4,34 +4,39 @@
 
 #pragma once
 
-#include <vector>
-#include <string>
 #include <algorithm>
+#include <string>
+#include <vector>
 
-#include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/analyzer/protocol/tcp/ContentLine.h"
 #include "zeek/analyzer/protocol/login/NVT.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
+#include "zeek/analyzer/protocol/tcp/ContentLine.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
 #undef POP3_CMD_DEF
-#define POP3_CMD_DEF(cmd)	POP3_CMD_##cmd,
+#define POP3_CMD_DEF(cmd) POP3_CMD_##cmd,
 
-namespace zeek::analyzer::pop3 {
-namespace detail {
+namespace zeek::analyzer::pop3
+	{
+namespace detail
+	{
 
-enum POP3_Cmd {
+enum POP3_Cmd
+	{
 #include "POP3_cmd.def"
-};
+	};
 
-enum POP3_MasterState {
+enum POP3_MasterState
+	{
 	POP3_START,
 	POP3_AUTHORIZATION,
 	POP3_TRANSACTION,
 	POP3_UPDATE,
 	POP3_FINISHED,
-};
+	};
 
-enum POP3_State {
+enum POP3_State
+	{
 	START,
 	USER,
 	PASS,
@@ -55,16 +60,18 @@ enum POP3_State {
 	XSENDER,
 	MISC,
 	END,
-};
+	};
 
-enum POP3_SubState {
+enum POP3_SubState
+	{
 	POP3_OK,
 	POP3_WOK,
-};
+	};
 
-} // namespace detail
+	} // namespace detail
 
-class POP3_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class POP3_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 public:
 	explicit POP3_Analyzer(Connection* conn);
 	~POP3_Analyzer() override;
@@ -72,10 +79,7 @@ public:
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{
-		return new POP3_Analyzer(conn);
-		}
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new POP3_Analyzer(conn); }
 
 protected:
 	int masterState;
@@ -105,8 +109,8 @@ protected:
 	std::vector<std::string> TokenizeLine(const std::string& input, char split);
 	int ParseCmd(std::string cmd);
 	void AuthSuccessfull();
-	void POP3Event(EventHandlerPtr event, bool is_orig,
-	               const char* arg1 = nullptr, const char* arg2 = nullptr);
+	void POP3Event(EventHandlerPtr event, bool is_orig, const char* arg1 = nullptr,
+	               const char* arg2 = nullptr);
 
 	analyzer::mime::MIME_Mail* mail;
 	std::list<std::string> cmds;
@@ -115,6 +119,6 @@ private:
 	bool tls;
 	analyzer::tcp::ContentLine_Analyzer* cl_orig;
 	analyzer::tcp::ContentLine_Analyzer* cl_resp;
-};
+	};
 
-} // namespace zeek::analyzer::pop3
+	} // namespace zeek::analyzer::pop3

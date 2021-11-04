@@ -1,6 +1,7 @@
 #include "zeek/iosource/Packet.h"
 
-extern "C" {
+extern "C"
+	{
 #include <pcap.h>
 #ifdef HAVE_NET_ETHERNET_H
 #include <net/ethernet.h>
@@ -12,23 +13,23 @@ extern "C" {
 #elif defined(HAVE_NET_ETHERTYPES_H)
 #include <net/ethertypes.h>
 #endif
-}
+	}
 
 #include "zeek/Desc.h"
 #include "zeek/IP.h"
+#include "zeek/TunnelEncapsulation.h"
+#include "zeek/Var.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/packet_analysis/Manager.h"
-#include "zeek/Var.h"
-#include "zeek/TunnelEncapsulation.h"
 
-namespace zeek {
+namespace zeek
+	{
 
-void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
-		  uint32_t arg_len, const u_char *arg_data, bool arg_copy,
-		  std::string arg_tag)
+void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, uint32_t arg_len,
+                  const u_char* arg_data, bool arg_copy, std::string arg_tag)
 	{
 	if ( data && copy )
-		delete [] data;
+		delete[] data;
 
 	link_type = arg_link_type;
 	ts = *arg_ts;
@@ -41,7 +42,7 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 	if ( arg_data && arg_copy )
 		{
 		data = new u_char[arg_caplen];
-		memcpy(const_cast<u_char *>(data), arg_data, arg_caplen);
+		memcpy(const_cast<u_char*>(data), arg_data, arg_caplen);
 		}
 	else
 		data = arg_data;
@@ -72,7 +73,7 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 Packet::~Packet()
 	{
 	if ( copy )
-		delete [] data;
+		delete[] data;
 	}
 
 RecordValPtr Packet::ToRawPktHdrVal() const
@@ -112,8 +113,8 @@ RecordValPtr Packet::ToRawPktHdrVal() const
 		// Ethernet header layout is:
 		//    dst[6bytes] src[6bytes] ethertype[2bytes]...
 		l2_hdr->Assign(0, BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_ETHERNET));
-		l2_hdr->Assign(3, FmtEUI48(data + 6));	// src
-		l2_hdr->Assign(4, FmtEUI48(data));  	// dst
+		l2_hdr->Assign(3, FmtEUI48(data + 6)); // src
+		l2_hdr->Assign(4, FmtEUI48(data)); // dst
 
 		if ( vlan )
 			l2_hdr->Assign(5, vlan);
@@ -148,9 +149,9 @@ RecordValPtr Packet::ToRawPktHdrVal() const
 ValPtr Packet::FmtEUI48(const u_char* mac) const
 	{
 	char buf[20];
-	snprintf(buf, sizeof buf, "%02x:%02x:%02x:%02x:%02x:%02x",
-		 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	snprintf(buf, sizeof buf, "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3],
+	         mac[4], mac[5]);
 	return make_intrusive<StringVal>(buf);
 	}
 
-} // namespace zeek
+	} // namespace zeek

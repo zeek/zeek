@@ -3,19 +3,25 @@
 #pragma once
 
 #include <list>
-#include "zeek/Val.h"
+
 #include "zeek/OpaqueVal.h"
+#include "zeek/Val.h"
 
 // This class implements the top-k algorithm. Or - to be more precise - an
 // interpretation of it.
 
-namespace zeek::detail { class CompositeHash; }
+namespace zeek::detail
+	{
+class CompositeHash;
+	}
 
-namespace zeek::probabilistic::detail {
+namespace zeek::probabilistic::detail
+	{
 
 struct Element;
 
-struct Bucket {
+struct Bucket
+	{
 	uint64_t count;
 	std::list<Element*> elements;
 
@@ -23,15 +29,17 @@ struct Bucket {
 	// points to us - so it is invalid when we are no longer there. Cute,
 	// isn't it?
 	std::list<Bucket*>::iterator bucketPos;
-};
+	};
 
-struct Element {
+struct Element
+	{
 	uint64_t epsilon;
 	ValPtr value;
 	Bucket* parent;
-};
+	};
 
-class TopkVal : public OpaqueVal {
+class TopkVal : public OpaqueVal
+	{
 
 public:
 	/**
@@ -77,7 +85,7 @@ public:
 	 *
 	 * @returns internal count for val, 0 if unknown
 	 */
-	 uint64_t GetCount(Val* value) const;
+	uint64_t GetCount(Val* value) const;
 
 	/**
 	 * Get the current epsilon tracked in the top-k data structure for a
@@ -116,7 +124,7 @@ public:
 	 *
 	 * @param doPrune prune resulting TopkVal to size after merging
 	 */
-	void Merge(const TopkVal* value, bool doPrune=false);
+	void Merge(const TopkVal* value, bool doPrune = false);
 
 	/**
 	 * Clone the Opaque Type
@@ -153,8 +161,7 @@ private:
 	 * @returns HashKey for value
 	 */
 	zeek::detail::HashKey* GetHash(Val* v) const; // this probably should go somewhere else.
-	zeek::detail::HashKey* GetHash(const ValPtr& v) const
-		{ return GetHash(v.get()); }
+	zeek::detail::HashKey* GetHash(const ValPtr& v) const { return GetHash(v.get()); }
 
 	/**
 	 * Set the type that this TopK instance tracks
@@ -170,6 +177,6 @@ private:
 	uint64_t size; // how many elements are we tracking?
 	uint64_t numElements; // how many elements do we have at the moment
 	bool pruned; // was this data structure pruned?
-};
+	};
 
-} // namespace zeek::probabilistic::detail
+	} // namespace zeek::probabilistic::detail

@@ -95,7 +95,7 @@ hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 		{
 		local other_vector: vector of Observation;
 		local othercount: count;
-		
+
 		if ( rv1$sample_elements > rv2$sample_elements )
 			{
 			result$samples = copy(rv1$samples);

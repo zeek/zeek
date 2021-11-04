@@ -6,14 +6,15 @@
 #include <string>
 #include <utility>
 
+#include "zeek/WeirdState.h"
+#include "zeek/ZeekArgs.h"
+#include "zeek/ZeekList.h" // for ValPList
+#include "zeek/ZeekString.h"
 #include "zeek/analyzer/Tag.h"
 #include "zeek/file_analysis/AnalyzerSet.h"
-#include "zeek/ZeekString.h"
-#include "zeek/ZeekList.h" // for ValPList
-#include "zeek/ZeekArgs.h"
-#include "zeek/WeirdState.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class Connection;
 class EventHandlerPtr;
@@ -22,7 +23,8 @@ class RecordType;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 using RecordTypePtr = IntrusivePtr<RecordType>;
 
-namespace file_analysis {
+namespace file_analysis
+	{
 
 class FileReassembler;
 class Tag;
@@ -30,9 +32,9 @@ class Tag;
 /**
  * Wrapper class around \c fa_file record values from script layer.
  */
-class File {
+class File
+	{
 public:
-
 	/**
 	 * Destructor.  Nothing fancy, releases a reference to the wrapped
 	 * \c fa_file value.
@@ -42,8 +44,7 @@ public:
 	/**
 	 * @return the wrapped \c fa_file record value, #val.
 	 */
-	const RecordValPtr& ToVal() const
-		{ return val; }
+	const RecordValPtr& ToVal() const { return val; }
 
 	/**
 	 * @return the value of the "source" field from #val record or an empty
@@ -205,8 +206,7 @@ public:
 	 * Whether to permit a weird to carry on through the full reporter/weird
 	 * framework.
 	 */
-	bool PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
-	                 double duration);
+	bool PermitWeird(const char* name, uint64_t threshold, uint64_t rate, double duration);
 
 protected:
 	friend class Manager;
@@ -313,7 +313,9 @@ protected:
 	 */
 	static int Idx(const std::string& field_name, const RecordType* type);
 	static int Idx(const std::string& field_name, const RecordTypePtr& type)
-		{ return Idx(field_name, type.get()); }
+		{
+		return Idx(field_name, type.get());
+		}
 
 	/**
 	 * Initializes static member.
@@ -321,27 +323,32 @@ protected:
 	static void StaticInit();
 
 protected:
-	std::string id;                 /**< A pretty hash that likely identifies file */
-	RecordValPtr val;            /**< \c fa_file from script layer. */
+	std::string id; /**< A pretty hash that likely identifies file */
+	RecordValPtr val; /**< \c fa_file from script layer. */
 	FileReassembler* file_reassembler; /**< A reassembler for the file if it's needed. */
-	uint64_t stream_offset;      /**< The offset of the file which has been forwarded. */
-	uint64_t reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
-	bool did_metadata_inference;        /**< Whether the metadata inference has already been attempted. */
-	bool reassembly_enabled;           /**< Whether file stream reassembly is needed. */
-	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
-	bool done;                 /**< If this object is about to be deleted. */
-	detail::AnalyzerSet analyzers;     /**< A set of attached file analyzers. */
-	std::list<Analyzer *> done_analyzers; /**< Analyzers we're done with, remembered here until they can be safely deleted. */
+	uint64_t stream_offset; /**< The offset of the file which has been forwarded. */
+	uint64_t reassembly_max_buffer; /**< Maximum allowed buffer for reassembly. */
+	bool did_metadata_inference; /**< Whether the metadata inference has already been attempted. */
+	bool reassembly_enabled; /**< Whether file stream reassembly is needed. */
+	bool postpone_timeout; /**< Whether postponing timeout is requested. */
+	bool done; /**< If this object is about to be deleted. */
+	detail::AnalyzerSet analyzers; /**< A set of attached file analyzers. */
+	std::list<Analyzer*> done_analyzers; /**< Analyzers we're done with, remembered here until they
+	                                        can be safely deleted. */
 
-	struct BOF_Buffer {
-		BOF_Buffer() : full(false), size(0) {}
+	struct BOF_Buffer
+		{
+		BOF_Buffer() : full(false), size(0) { }
 		~BOF_Buffer()
-			{ for ( size_t i = 0; i < chunks.size(); ++i ) delete chunks[i]; }
+			{
+			for ( size_t i = 0; i < chunks.size(); ++i )
+				delete chunks[i];
+			}
 
 		bool full;
 		uint64_t size;
 		String::CVec chunks;
-	} bof_buffer;              /**< Beginning of file buffer. */
+		} bof_buffer; /**< Beginning of file buffer. */
 
 	zeek::detail::WeirdStateMap weird_state;
 
@@ -364,7 +371,7 @@ protected:
 
 	static int meta_mime_type_idx;
 	static int meta_mime_types_idx;
-};
+	};
 
-} // namespace file_analysis
-} // namespace zeek
+	} // namespace file_analysis
+	} // namespace zeek

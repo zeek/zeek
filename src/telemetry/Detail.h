@@ -19,7 +19,8 @@
 #include "caf/telemetry/label_view.hpp"
 #include "caf/telemetry/metric_family.hpp"
 
-namespace zeek::telemetry {
+namespace zeek::telemetry
+	{
 
 // -- traits for converting between opaque handles and native pointers ---------
 
@@ -28,23 +29,20 @@ namespace zeek::telemetry {
  * type, @c Opaque for referring to the @c Impl type. For instance types such as
  * @c IntCounter, the trait must also provide the member type @c NativeFamily.
  */
-template <class T>
-struct PimplTrait;
+template <class T> struct PimplTrait;
 
-template <>
-struct PimplTrait<IntCounter::Impl>
+template <> struct PimplTrait<IntCounter::Impl>
 	{
 	using Native = caf::telemetry::int_counter;
 	using Oqaque = IntCounter::Impl;
 	using NativeFamily = caf::telemetry::metric_family_impl<Native>;
 	};
 
-template <>
-struct PimplTrait<caf::telemetry::int_counter>
-: PimplTrait<IntCounter::Impl> { };
+template <> struct PimplTrait<caf::telemetry::int_counter> : PimplTrait<IntCounter::Impl>
+	{
+	};
 
-template <>
-struct PimplTrait<IntCounterFamily::Impl>
+template <> struct PimplTrait<IntCounterFamily::Impl>
 	{
 	using Native = typename PimplTrait<IntCounter::Impl>::NativeFamily;
 	using Oqaque = IntCounterFamily::Impl;
@@ -52,22 +50,22 @@ struct PimplTrait<IntCounterFamily::Impl>
 
 template <>
 struct PimplTrait<typename PimplTrait<IntCounter::Impl>::NativeFamily>
-: PimplTrait<IntCounterFamily::Impl> { };
+	: PimplTrait<IntCounterFamily::Impl>
+	{
+	};
 
-template <>
-struct PimplTrait<DblCounter::Impl>
+template <> struct PimplTrait<DblCounter::Impl>
 	{
 	using Native = caf::telemetry::dbl_counter;
 	using Oqaque = DblCounter::Impl;
 	using NativeFamily = caf::telemetry::metric_family_impl<Native>;
 	};
 
-template <>
-struct PimplTrait<caf::telemetry::dbl_counter>
-: PimplTrait<DblCounter::Impl> { };
+template <> struct PimplTrait<caf::telemetry::dbl_counter> : PimplTrait<DblCounter::Impl>
+	{
+	};
 
-template <>
-struct PimplTrait<DblCounterFamily::Impl>
+template <> struct PimplTrait<DblCounterFamily::Impl>
 	{
 	using Native = typename PimplTrait<DblCounter::Impl>::NativeFamily;
 	using Oqaque = DblCounterFamily::Impl;
@@ -75,21 +73,22 @@ struct PimplTrait<DblCounterFamily::Impl>
 
 template <>
 struct PimplTrait<typename PimplTrait<DblCounter::Impl>::NativeFamily>
-: PimplTrait<DblCounterFamily::Impl> { };
+	: PimplTrait<DblCounterFamily::Impl>
+	{
+	};
 
-template <>
-struct PimplTrait<IntGauge::Impl>
+template <> struct PimplTrait<IntGauge::Impl>
 	{
 	using Native = caf::telemetry::int_gauge;
 	using Oqaque = IntGauge::Impl;
 	using NativeFamily = caf::telemetry::metric_family_impl<Native>;
 	};
 
-template <>
-struct PimplTrait<caf::telemetry::int_gauge> : PimplTrait<IntGauge::Impl> { };
+template <> struct PimplTrait<caf::telemetry::int_gauge> : PimplTrait<IntGauge::Impl>
+	{
+	};
 
-template <>
-struct PimplTrait<IntGaugeFamily::Impl>
+template <> struct PimplTrait<IntGaugeFamily::Impl>
 	{
 	using Native = typename PimplTrait<IntGauge::Impl>::NativeFamily;
 	using Oqaque = IntGaugeFamily::Impl;
@@ -97,21 +96,22 @@ struct PimplTrait<IntGaugeFamily::Impl>
 
 template <>
 struct PimplTrait<typename PimplTrait<IntGauge::Impl>::NativeFamily>
-: PimplTrait<IntGaugeFamily::Impl> { };
+	: PimplTrait<IntGaugeFamily::Impl>
+	{
+	};
 
-template <>
-struct PimplTrait<DblGauge::Impl>
+template <> struct PimplTrait<DblGauge::Impl>
 	{
 	using Native = caf::telemetry::dbl_gauge;
 	using Oqaque = DblGauge::Impl;
 	using NativeFamily = caf::telemetry::metric_family_impl<Native>;
 	};
 
-template <>
-struct PimplTrait<caf::telemetry::dbl_gauge> : PimplTrait<DblGauge::Impl> { };
+template <> struct PimplTrait<caf::telemetry::dbl_gauge> : PimplTrait<DblGauge::Impl>
+	{
+	};
 
-template <>
-struct PimplTrait<DblGaugeFamily::Impl>
+template <> struct PimplTrait<DblGaugeFamily::Impl>
 	{
 	using Native = typename PimplTrait<DblGauge::Impl>::NativeFamily;
 	using Oqaque = DblGaugeFamily::Impl;
@@ -119,22 +119,22 @@ struct PimplTrait<DblGaugeFamily::Impl>
 
 template <>
 struct PimplTrait<typename PimplTrait<DblGauge::Impl>::NativeFamily>
-: PimplTrait<DblGaugeFamily::Impl> { };
+	: PimplTrait<DblGaugeFamily::Impl>
+	{
+	};
 
-template <>
-struct PimplTrait<IntHistogram::Impl>
+template <> struct PimplTrait<IntHistogram::Impl>
 	{
 	using Native = caf::telemetry::int_histogram;
 	using Oqaque = IntHistogram::Impl;
 	using NativeFamily = caf::telemetry::metric_family_impl<Native>;
 	};
 
-template <>
-struct PimplTrait<caf::telemetry::int_histogram>
-: PimplTrait<IntHistogram::Impl> { };
+template <> struct PimplTrait<caf::telemetry::int_histogram> : PimplTrait<IntHistogram::Impl>
+	{
+	};
 
-template <>
-struct PimplTrait<IntHistogramFamily::Impl>
+template <> struct PimplTrait<IntHistogramFamily::Impl>
 	{
 	using Native = typename PimplTrait<IntHistogram::Impl>::NativeFamily;
 	using Oqaque = IntHistogramFamily::Impl;
@@ -142,22 +142,22 @@ struct PimplTrait<IntHistogramFamily::Impl>
 
 template <>
 struct PimplTrait<typename PimplTrait<IntHistogram::Impl>::NativeFamily>
-: PimplTrait<IntHistogramFamily::Impl> { };
+	: PimplTrait<IntHistogramFamily::Impl>
+	{
+	};
 
-template <>
-struct PimplTrait<DblHistogram::Impl>
+template <> struct PimplTrait<DblHistogram::Impl>
 	{
 	using Native = caf::telemetry::dbl_histogram;
 	using Oqaque = DblHistogram::Impl;
 	using NativeFamily = caf::telemetry::metric_family_impl<Native>;
 	};
 
-template <>
-struct PimplTrait<caf::telemetry::dbl_histogram>
-: PimplTrait<DblHistogram::Impl> { };
+template <> struct PimplTrait<caf::telemetry::dbl_histogram> : PimplTrait<DblHistogram::Impl>
+	{
+	};
 
-template <>
-struct PimplTrait<DblHistogramFamily::Impl>
+template <> struct PimplTrait<DblHistogramFamily::Impl>
 	{
 	using Native = typename PimplTrait<DblHistogram::Impl>::NativeFamily;
 	using Oqaque = DblHistogramFamily::Impl;
@@ -165,29 +165,29 @@ struct PimplTrait<DblHistogramFamily::Impl>
 
 template <>
 struct PimplTrait<typename PimplTrait<DblHistogram::Impl>::NativeFamily>
-: PimplTrait<DblHistogramFamily::Impl> { };
+	: PimplTrait<DblHistogramFamily::Impl>
+	{
+	};
 
-template <>
-struct PimplTrait<Manager::Impl>
+template <> struct PimplTrait<Manager::Impl>
 	{
 	using Native = caf::telemetry::metric_registry;
 	using Oqaque = Manager::Impl;
 	};
 
 template <>
-struct PimplTrait<typename PimplTrait<Manager::Impl>::Native>
-: PimplTrait<Manager::Impl> { };
+struct PimplTrait<typename PimplTrait<Manager::Impl>::Native> : PimplTrait<Manager::Impl>
+	{
+	};
 
 // -- free functions -----------------------------------------------------------
 
-template <class T, class NativeType = typename PimplTrait<T>::Native>
-auto& deref(T* ptr)
+template <class T, class NativeType = typename PimplTrait<T>::Native> auto& deref(T* ptr)
 	{
 	return *reinterpret_cast<NativeType*>(ptr);
 	}
 
-template <class Family>
-auto& deref(Family*, MetricFamily::Impl* ptr)
+template <class Family> auto& deref(Family*, MetricFamily::Impl* ptr)
 	{
 	using InstanceType = typename Family::InstanceType;
 	using ImplType = typename InstanceType::Impl;
@@ -195,14 +195,12 @@ auto& deref(Family*, MetricFamily::Impl* ptr)
 	return *reinterpret_cast<NativeType*>(ptr);
 	}
 
-template <class T, class OpaqueType = typename PimplTrait<T>::Oqaque>
-auto opaque(T* ptr)
+template <class T, class OpaqueType = typename PimplTrait<T>::Oqaque> auto opaque(T* ptr)
 	{
 	return reinterpret_cast<OpaqueType*>(ptr);
 	}
 
-template <class Family>
-auto opaque(const Family*, MetricFamily::Impl* ptr)
+template <class Family> auto opaque(const Family*, MetricFamily::Impl* ptr)
 	{
 	using InstanceType = typename Family::InstanceType;
 	using ImplType = typename InstanceType::Impl;
@@ -210,24 +208,22 @@ auto opaque(const Family*, MetricFamily::Impl* ptr)
 	return reinterpret_cast<OpaqueType*>(ptr);
 	}
 
-template <class T, class Native = typename PimplTrait<T>::Native>
-auto upcast(T* ptr)
+template <class T, class Native = typename PimplTrait<T>::Native> auto upcast(T* ptr)
 	{
 	auto native = reinterpret_cast<Native*>(ptr);
 	auto base_ptr = static_cast<caf::telemetry::metric_family*>(native);
 	return reinterpret_cast<MetricFamily::Impl*>(base_ptr);
 	}
 
-template <class F>
-auto with_native_labels(Span<const LabelView> xs, F continuation)
+template <class F> auto with_native_labels(Span<const LabelView> xs, F continuation)
 	{
 	namespace ct = caf::telemetry;
 
 	if ( xs.size() <= 10 )
 		{
-		ct::label_view buf[10]={
-			{{},{}}, {{},{}}, {{},{}}, {{},{}}, {{},{}},
-			{{},{}}, {{},{}}, {{},{}}, {{},{}}, {{},{}},
+		ct::label_view buf[10] = {
+			{{}, {}}, {{}, {}}, {{}, {}}, {{}, {}}, {{}, {}},
+			{{}, {}}, {{}, {}}, {{}, {}}, {{}, {}}, {{}, {}},
 		};
 		for ( size_t index = 0; index < xs.size(); ++index )
 			buf[index] = ct::label_view{xs[index].first, xs[index].second};
@@ -242,8 +238,7 @@ auto with_native_labels(Span<const LabelView> xs, F continuation)
 		}
 	}
 
-template <class F>
-auto with_native_labels(Span<const std::string_view> xs, F continuation)
+template <class F> auto with_native_labels(Span<const std::string_view> xs, F continuation)
 	{
 	if ( xs.size() <= 10 )
 		{
@@ -261,4 +256,4 @@ auto with_native_labels(Span<const std::string_view> xs, F continuation)
 		}
 	}
 
-} // namespace zeek::telemetry
+	} // namespace zeek::telemetry

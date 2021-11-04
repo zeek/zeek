@@ -6,7 +6,8 @@
 #include "zeek/plugin/Component.h"
 #include "zeek/plugin/TaggedComponent.h"
 
-namespace zeek::logging {
+namespace zeek::logging
+	{
 
 class WriterFrontend;
 class WriterBackend;
@@ -14,10 +15,10 @@ class WriterBackend;
 /**
  * Component description for plugins providing log writers.
  */
-class Component : public plugin::Component,
-                  public plugin::TaggedComponent<logging::Tag> {
+class Component : public plugin::Component, public plugin::TaggedComponent<logging::Tag>
+	{
 public:
-	typedef WriterBackend* (*factory_callback)(WriterFrontend* frontend);
+	using factory_callback = WriterBackend* (*)(WriterFrontend* frontend);
 
 	/**
 	 * Constructor.
@@ -48,16 +49,16 @@ public:
 	/**
 	 * Returns the writer's factory function.
 	 */
-	factory_callback Factory() const	{ return factory; }
+	factory_callback Factory() const { return factory; }
 
 protected:
 	/**
-	  * Overriden from plugin::Component.
-	  */
+	 * Overriden from plugin::Component.
+	 */
 	void DoDescribe(ODesc* d) const override;
 
 private:
 	factory_callback factory;
-};
+	};
 
-} // namespace zeek::logging
+	} // namespace zeek::logging

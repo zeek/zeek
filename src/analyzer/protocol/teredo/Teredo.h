@@ -1,25 +1,28 @@
 #pragma once
 
-#include "zeek/analyzer/Analyzer.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
+#include "zeek/analyzer/Analyzer.h"
 
-namespace zeek::analyzer::teredo {
+namespace zeek::analyzer::teredo
+	{
 
-class Teredo_Analyzer final : public analyzer::Analyzer {
+class Teredo_Analyzer final : public analyzer::Analyzer
+	{
 public:
 	explicit Teredo_Analyzer(Connection* conn)
-		: Analyzer("TEREDO", conn), valid_orig(false), valid_resp(false) {}
+		: Analyzer("TEREDO", conn), valid_orig(false), valid_resp(false)
+		{
+		}
 
 	~Teredo_Analyzer() override = default;
 
 	void Done() override;
 
-	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip,
+	                   int caplen) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new Teredo_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new Teredo_Analyzer(conn); }
 
 	/**
 	 * Emits a weird only if the analyzer has previously been able to
@@ -40,54 +43,51 @@ public:
 	 */
 	void Confirm()
 		{
-		if ( ! BifConst::Tunnel::delay_teredo_confirmation ||
-		     ( valid_orig && valid_resp ) )
+		if ( ! BifConst::Tunnel::delay_teredo_confirmation || (valid_orig && valid_resp) )
 			ProtocolConfirmation();
 		}
 
 protected:
 	bool valid_orig;
 	bool valid_resp;
-};
+	};
 
-namespace detail {
+namespace detail
+	{
 
-class TeredoEncapsulation {
+class TeredoEncapsulation
+	{
 public:
 	explicit TeredoEncapsulation(const Teredo_Analyzer* ta)
 		: inner_ip(nullptr), origin_indication(nullptr), auth(nullptr), analyzer(ta)
-		{}
+		{
+		}
 
 	/**
 	 * Returns whether input data parsed as a valid Teredo encapsulation type.
 	 * If it was valid, the len argument is decremented appropriately.
 	 */
-	bool Parse(const u_char* data, int& len)
-		{ return DoParse(data, len, false, false); }
+	bool Parse(const u_char* data, int& len) { return DoParse(data, len, false, false); }
 
-	const u_char* InnerIP() const
-		{ return inner_ip; }
+	const u_char* InnerIP() const { return inner_ip; }
 
-	const u_char* OriginIndication() const
-		{ return origin_indication; }
+	const u_char* OriginIndication() const { return origin_indication; }
 
-	const u_char* Authentication() const
-		{ return auth; }
+	const u_char* Authentication() const { return auth; }
 
 	RecordValPtr BuildVal(const std::unique_ptr<IP_Hdr>& inner) const;
 
 protected:
 	bool DoParse(const u_char* data, int& len, bool found_orig, bool found_au);
 
-	void Weird(const char* name) const
-		{ analyzer->Weird(name); }
+	void Weird(const char* name) const { analyzer->Weird(name); }
 
 	const u_char* inner_ip;
 	const u_char* origin_indication;
 	const u_char* auth;
 	const Teredo_Analyzer* analyzer;
-};
+	};
 
-} // namespace detail
+	} // namespace detail
 
-} // namespace zeek::analyzer::teredo
+	} // namespace zeek::analyzer::teredo

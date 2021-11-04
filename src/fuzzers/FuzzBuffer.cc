@@ -1,19 +1,20 @@
-#if !defined(_GNU_SOURCE)
+#if ! defined(_GNU_SOURCE)
 #define _GNU_SOURCE
 #endif
 
-#include <string.h>
-
 #include "zeek/fuzzers/FuzzBuffer.h"
 
-namespace zeek::detail {
+#include <string.h>
+
+namespace zeek::detail
+	{
 
 bool FuzzBuffer::Valid(int chunk_count_limit) const
 	{
 	if ( end - begin < PKT_MAGIC_LEN + 2 )
 		return false;
 
-	if ( memcmp(begin, PKT_MAGIC, PKT_MAGIC_LEN) != 0)
+	if ( memcmp(begin, PKT_MAGIC, PKT_MAGIC_LEN) != 0 )
 		return false;
 
 	if ( ExceedsChunkLimit(chunk_count_limit) )
@@ -29,8 +30,7 @@ int FuzzBuffer::ChunkCount(int chunk_count_limit) const
 
 	while ( pos < end && (chunks < chunk_count_limit || chunk_count_limit == 0) )
 		{
-		pos = (const unsigned char*)memmem(pos, end - pos,
-		                                   PKT_MAGIC, PKT_MAGIC_LEN);
+		pos = (const unsigned char*)memmem(pos, end - pos, PKT_MAGIC, PKT_MAGIC_LEN);
 		if ( ! pos )
 			break;
 
@@ -46,8 +46,7 @@ std::optional<FuzzBuffer::Chunk> FuzzBuffer::Next()
 	if ( begin == end )
 		return {};
 
-	auto pos = (const unsigned char*)memmem(begin, end - begin,
-	                                        PKT_MAGIC, PKT_MAGIC_LEN);
+	auto pos = (const unsigned char*)memmem(begin, end - begin, PKT_MAGIC, PKT_MAGIC_LEN);
 
 	if ( ! pos )
 		return {};
@@ -64,8 +63,7 @@ std::optional<FuzzBuffer::Chunk> FuzzBuffer::Next()
 
 	auto chunk_begin = begin;
 
-	auto next = (const unsigned char*)memmem(begin, end - begin,
-	                                         PKT_MAGIC, PKT_MAGIC_LEN);
+	auto next = (const unsigned char*)memmem(begin, end - begin, PKT_MAGIC, PKT_MAGIC_LEN);
 
 	if ( next )
 		begin = next;
@@ -89,4 +87,4 @@ std::optional<FuzzBuffer::Chunk> FuzzBuffer::Next()
 	return {};
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

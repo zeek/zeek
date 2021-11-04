@@ -2,18 +2,21 @@
 
 #pragma once
 
-#include <string>
 #include <openssl/ocsp.h>
+#include <string>
 
 #include "zeek/file_analysis/analyzer/x509/X509Common.h"
 
-namespace zeek::file_analysis {
+namespace zeek::file_analysis
+	{
 
 class File;
 
-namespace detail {
+namespace detail
+	{
 
-class OCSP : public file_analysis::detail::X509Common {
+class OCSP : public file_analysis::detail::X509Common
+	{
 public:
 	bool DeliverStream(const u_char* data, uint64_t len) override;
 	bool Undelivered(uint64_t offset, uint64_t len) override;
@@ -21,8 +24,7 @@ public:
 
 	static file_analysis::Analyzer* InstantiateRequest(RecordValPtr args,
 	                                                   file_analysis::File* file);
-	static file_analysis::Analyzer* InstantiateReply(RecordValPtr args,
-	                                                 file_analysis::File* file);
+	static file_analysis::Analyzer* InstantiateReply(RecordValPtr args, file_analysis::File* file);
 
 protected:
 	OCSP(RecordValPtr args, file_analysis::File* file, bool request);
@@ -34,7 +36,7 @@ private:
 
 	std::string ocsp_data;
 	bool request = false; // true if ocsp request, false if reply
-};
+	};
 
-} // namespace detail
-} // namespace zeek::file_analysis
+	} // namespace detail
+	} // namespace zeek::file_analysis

@@ -6,9 +6,11 @@
 
 #include "analyzer/protocol/krb/krb_TCP_pac.h"
 
-namespace zeek::analyzer::krb_tcp {
+namespace zeek::analyzer::krb_tcp
+	{
 
-class KRB_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class KRB_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 
 public:
 	explicit KRB_Analyzer(Connection* conn);
@@ -21,17 +23,17 @@ public:
 	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	StringValPtr GetAuthenticationInfo(const String* principal,
-	                                   const String* ciphertext,
+	StringValPtr GetAuthenticationInfo(const String* principal, const String* ciphertext,
 	                                   const bro_uint_t enctype)
-		{ return val_mgr->EmptyString(); }
+		{
+		return val_mgr->EmptyString();
+		}
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new KRB_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new KRB_Analyzer(conn); }
 
 protected:
 	binpac::KRB_TCP::KRB_Conn* interp;
 	bool had_gap;
-};
+	};
 
-} // namespace zeek::analyzer::krb_tcp
+	} // namespace zeek::analyzer::krb_tcp

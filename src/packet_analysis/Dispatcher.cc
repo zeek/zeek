@@ -1,13 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/packet_analysis/Dispatcher.h"
+
 #include <algorithm>
 
-#include "zeek/packet_analysis/Dispatcher.h"
-#include "zeek/packet_analysis/Analyzer.h"
-#include "zeek/Reporter.h"
 #include "zeek/DebugLogger.h"
+#include "zeek/Reporter.h"
+#include "zeek/packet_analysis/Analyzer.h"
 
-namespace zeek::packet_analysis {
+namespace zeek::packet_analysis
+	{
 
 Dispatcher::~Dispatcher()
 	{
@@ -24,7 +26,8 @@ void Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer)
 		return;
 		}
 
-	// If highestIdentifier == identifier, overwrite would happen -> no check needed, will return false
+	// If highestIdentifier == identifier, overwrite would happen -> no check needed, will return
+	// false
 	if ( GetHighestIdentifier() < identifier )
 		{
 		table.resize(table.size() + (identifier - GetHighestIdentifier()), nullptr);
@@ -51,7 +54,8 @@ void Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer)
 	int64_t index = identifier - lowest_identifier;
 	if ( table[index] != nullptr )
 		reporter->InternalWarning("Overwriting packet analyzer mapping %#8" PRIx64 " => %s with %s",
-				index+lowest_identifier, table[index]->GetAnalyzerName(), analyzer->GetAnalyzerName());
+		                          index + lowest_identifier, table[index]->GetAnalyzerName(),
+		                          analyzer->GetAnalyzerName());
 	table[index] = std::move(analyzer);
 	}
 
@@ -66,7 +70,11 @@ AnalyzerPtr Dispatcher::Lookup(uint32_t identifier) const
 
 size_t Dispatcher::Count() const
 	{
-	return std::count_if(table.begin(), table.end(), [](AnalyzerPtr a) { return a != nullptr; });
+	return std::count_if(table.begin(), table.end(),
+	                     [](AnalyzerPtr a)
+	                     {
+							 return a != nullptr;
+						 });
 	}
 
 void Dispatcher::Clear()
@@ -84,14 +92,15 @@ void Dispatcher::FreeValues()
 void Dispatcher::DumpDebug() const
 	{
 #ifdef DEBUG
-	DBG_LOG(DBG_PACKET_ANALYSIS, "Dispatcher elements (used/total): %lu/%lu", Count(), table.size());
+	DBG_LOG(DBG_PACKET_ANALYSIS, "Dispatcher elements (used/total): %lu/%lu", Count(),
+	        table.size());
 	for ( size_t i = 0; i < table.size(); i++ )
 		{
 		if ( table[i] != nullptr )
-			DBG_LOG(DBG_PACKET_ANALYSIS, "%#8lx => %s",
-					i+lowest_identifier, table[i]->GetAnalyzerName());
+			DBG_LOG(DBG_PACKET_ANALYSIS, "%#8lx => %s", i + lowest_identifier,
+			        table[i]->GetAnalyzerName());
 		}
 #endif
 	}
 
-}
+	}

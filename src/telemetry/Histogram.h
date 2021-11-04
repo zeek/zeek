@@ -9,7 +9,8 @@
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 
-namespace zeek::telemetry {
+namespace zeek::telemetry
+	{
 
 class DblHistogramFamily;
 class IntHistogramFamily;
@@ -20,7 +21,8 @@ class Manager;
  * measurements with integer precision. Sorts individual measurements into
  * configurable buckets.
  */
-class IntHistogram {
+class IntHistogram
+	{
 public:
 	friend class IntHistogramFamily;
 
@@ -55,18 +57,13 @@ public:
 	/**
 	 * @return Whether @c this and @p other refer to the same histogram.
 	 */
-	constexpr bool IsSameAs(IntHistogram other) const noexcept
-		{
-		return pimpl == other.pimpl;
-		}
+	constexpr bool IsSameAs(IntHistogram other) const noexcept { return pimpl == other.pimpl; }
 
 private:
-	explicit IntHistogram(Impl* ptr) noexcept : pimpl(ptr)
-		{
-		}
+	explicit IntHistogram(Impl* ptr) noexcept : pimpl(ptr) { }
 
 	Impl* pimpl;
-};
+	};
 
 /**
  * Checks whether two @ref IntHistogram handles are identical.
@@ -80,13 +77,14 @@ constexpr bool operator==(IntHistogram lhs, IntHistogram rhs) noexcept
 /// @relates IntHistogram
 constexpr bool operator!=(IntHistogram lhs, IntHistogram rhs) noexcept
 	{
-	return !(lhs == rhs);
+	return ! (lhs == rhs);
 	}
 
 /**
  * Manages a collection of IntHistogram metrics.
  */
-class IntHistogramFamily : public MetricFamily {
+class IntHistogramFamily : public MetricFamily
+	{
 public:
 	friend class Manager;
 
@@ -115,14 +113,15 @@ public:
 
 private:
 	explicit IntHistogramFamily(Impl* ptr);
-};
+	};
 
 /**
  * A handle to a metric that represents an aggregatable distribution of observed
  * measurements with floating point precision. Sorts individual measurements
  * into configurable buckets.
  */
-class DblHistogram {
+class DblHistogram
+	{
 public:
 	friend class DblHistogramFamily;
 
@@ -157,18 +156,13 @@ public:
 	/**
 	 * @return Whether @c this and @p other refer to the same histogram.
 	 */
-	constexpr bool IsSameAs(DblHistogram other) const noexcept
-		{
-		return pimpl == other.pimpl;
-		}
+	constexpr bool IsSameAs(DblHistogram other) const noexcept { return pimpl == other.pimpl; }
 
 private:
-	explicit DblHistogram(Impl* ptr) noexcept : pimpl(ptr)
-		{
-		}
+	explicit DblHistogram(Impl* ptr) noexcept : pimpl(ptr) { }
 
 	Impl* pimpl;
-};
+	};
 
 /**
  * Checks whether two @ref DblHistogram handles are identical.
@@ -182,13 +176,14 @@ constexpr bool operator==(DblHistogram lhs, DblHistogram rhs) noexcept
 /// @relates DblHistogram
 constexpr bool operator!=(DblHistogram lhs, DblHistogram rhs) noexcept
 	{
-	return !(lhs == rhs);
+	return ! (lhs == rhs);
 	}
 
 /**
  * Manages a collection of DblHistogram metrics.
  */
-class DblHistogramFamily : public MetricFamily {
+class DblHistogramFamily : public MetricFamily
+	{
 public:
 	friend class Manager;
 
@@ -217,26 +212,25 @@ public:
 
 private:
 	explicit DblHistogramFamily(Impl* ptr);
-};
+	};
 
-namespace detail {
+namespace detail
+	{
 
-template <class T>
-struct HistogramOracle {
-	static_assert(std::is_same<T, int64_t>::value,
-	              "Histogram<T> only supports int64_t and double");
+template <class T> struct HistogramOracle
+	{
+	static_assert(std::is_same<T, int64_t>::value, "Histogram<T> only supports int64_t and double");
 
 	using type = IntHistogram;
-};
+	};
 
-template <>
-struct HistogramOracle<double> {
+template <> struct HistogramOracle<double>
+	{
 	using type = DblHistogram;
-};
+	};
 
-} // namespace detail
+	} // namespace detail
 
-template <class T>
-using Histogram = typename detail::HistogramOracle<T>::type;
+template <class T> using Histogram = typename detail::HistogramOracle<T>::type;
 
-} // namespace zeek::telemetry
+	} // namespace zeek::telemetry

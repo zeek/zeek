@@ -4,21 +4,25 @@
 
 #include "analyzer/protocol/dnp3/dnp3_pac.h"
 
-namespace zeek::analyzer::dnp3 {
+namespace zeek::analyzer::dnp3
+	{
 
-namespace detail {
+namespace detail
+	{
 
-class DNP3_Base {
+class DNP3_Base
+	{
 public:
 	explicit DNP3_Base(analyzer::Analyzer* analyzer);
 	virtual ~DNP3_Base();
 
-	binpac::DNP3::DNP3_Conn* Interpreter()	{ return interp; }
+	binpac::DNP3::DNP3_Conn* Interpreter() { return interp; }
 
 protected:
 	static const int MAX_BUFFER_SIZE = 300;
 
-	struct Endpoint	{
+	struct Endpoint
+		{
 		u_char buffer[MAX_BUFFER_SIZE];
 		int buffer_len;
 		bool in_hdr;
@@ -59,11 +63,12 @@ protected:
 
 	Endpoint orig_state;
 	Endpoint resp_state;
-};
+	};
 
-} // namespace detail
+	} // namespace detail
 
-class DNP3_TCP_Analyzer : public detail::DNP3_Base, public analyzer::tcp::TCP_ApplicationAnalyzer {
+class DNP3_TCP_Analyzer : public detail::DNP3_Base, public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 public:
 	explicit DNP3_TCP_Analyzer(Connection* conn);
 	~DNP3_TCP_Analyzer() override;
@@ -73,21 +78,19 @@ public:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
-	static Analyzer* Instantiate(Connection* conn)
-		{ return new DNP3_TCP_Analyzer(conn); }
-};
+	static Analyzer* Instantiate(Connection* conn) { return new DNP3_TCP_Analyzer(conn); }
+	};
 
-class DNP3_UDP_Analyzer : public detail::DNP3_Base, public analyzer::Analyzer {
+class DNP3_UDP_Analyzer : public detail::DNP3_Base, public analyzer::Analyzer
+	{
 public:
 	explicit DNP3_UDP_Analyzer(Connection* conn);
 	~DNP3_UDP_Analyzer() override;
 
-	void DeliverPacket(int len, const u_char* data, bool orig,
-                    uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip,
+	                   int caplen) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new DNP3_UDP_Analyzer(conn); }
-};
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new DNP3_UDP_Analyzer(conn); }
+	};
 
-
-} // namespace zeek::analyzer::dnp3
+	} // namespace zeek::analyzer::dnp3

@@ -1,24 +1,36 @@
 #pragma once
 
-namespace zeek::analyzer::tcp {
+// This needs to remain the first include in this file, or some defines aren't
+// set correctly when netinet/tcp.h is included and the CentOS 7 build breaks.
+// clang-format off
+#include "zeek/net_util.h"
 
-class TCP_Flags {
+#include <netinet/tcp.h>
+#include <sys/types.h>
+#include <string>
+// clang-format on
+
+namespace zeek::analyzer::tcp
+	{
+
+class TCP_Flags
+	{
 public:
-	TCP_Flags(const struct tcphdr* tp)	{ flags = tp->th_flags; }
-	TCP_Flags()	{ flags = 0; }
+	TCP_Flags(const struct tcphdr* tp) { flags = tp->th_flags; }
+	TCP_Flags() { flags = 0; }
 
-	bool SYN() const	{ return flags & TH_SYN; }
-	bool FIN() const	{ return flags & TH_FIN; }
-	bool RST() const	{ return flags & TH_RST; }
-	bool ACK() const	{ return flags & TH_ACK; }
-	bool URG() const	{ return flags & TH_URG; }
-	bool PUSH() const	{ return flags & TH_PUSH; }
+	bool SYN() const { return flags & TH_SYN; }
+	bool FIN() const { return flags & TH_FIN; }
+	bool RST() const { return flags & TH_RST; }
+	bool ACK() const { return flags & TH_ACK; }
+	bool URG() const { return flags & TH_URG; }
+	bool PUSH() const { return flags & TH_PUSH; }
 
 	std::string AsString() const;
 
 protected:
 	u_char flags;
-};
+	};
 
 inline std::string TCP_Flags::AsString() const
 	{
@@ -47,4 +59,4 @@ inline std::string TCP_Flags::AsString() const
 	return tcp_flags;
 	}
 
-} // namespace zeek::analyzer::tcp
+	} // namespace zeek::analyzer::tcp

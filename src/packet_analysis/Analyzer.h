@@ -1,16 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 #pragma once
 
+#include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/packet_analysis/Tag.h"
-#include "zeek/iosource/Packet.h"
 
-namespace zeek::packet_analysis {
+namespace zeek::packet_analysis
+	{
 
 /**
  * Main packet analyzer interface.
  */
-class Analyzer {
+class Analyzer
+	{
 public:
 	/**
 	 * Constructor.
@@ -21,7 +23,7 @@ public:
 	 * protocols during packet forwarding. This should generally always be
 	 * set to true.
 	 */
-	explicit Analyzer(std::string name, bool report_unknown_protocols=true);
+	explicit Analyzer(std::string name, bool report_unknown_protocols = true);
 
 	/**
 	 * Constructor.
@@ -80,8 +82,7 @@ public:
 	 *
 	 * @return false if the analysis failed, else true.
 	 */
-	virtual bool AnalyzePacket(size_t len, const uint8_t* data,
-	                           Packet* packet) = 0;
+	virtual bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) = 0;
 
 	/**
 	 * Dumps out debug information to the \c analyzer debug stream.
@@ -123,9 +124,10 @@ protected:
 	 * namespace. Configuration values for the analyzer are expected in this module.
 	 * @return Analyzer's module name.
 	 */
-	std::string GetModuleName() const {
+	std::string GetModuleName() const
+		{
 		return util::fmt("PacketAnalyzer::%s::", GetAnalyzerName());
-	};
+		};
 
 	/**
 	 * Triggers analysis of the encapsulated packet. The encapsulated protocol
@@ -137,8 +139,7 @@ protected:
 	 *
 	 * @return false if the analysis failed, else true.
 	 */
-	bool ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
-	                   uint32_t identifier) const;
+	bool ForwardPacket(size_t len, const uint8_t* data, Packet* packet, uint32_t identifier) const;
 
 	/**
 	 * Triggers default analysis of the encapsulated packet if the default analyzer
@@ -161,7 +162,7 @@ protected:
 	 * the weird. If this is passed, the analyzer's name will be prepended to
 	 * it before output.
 	 */
-	void Weird(const char* name, Packet* packet=nullptr, const char* addl="") const;
+	void Weird(const char* name, Packet* packet = nullptr, const char* addl = "") const;
 
 private:
 	Tag tag;
@@ -174,8 +175,8 @@ private:
 	bool report_unknown_protocols = true;
 
 	void Init(const Tag& tag);
-};
+	};
 
 using AnalyzerPtr = std::shared_ptr<Analyzer>;
 
-}
+	}

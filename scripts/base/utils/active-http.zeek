@@ -78,6 +78,19 @@ function request2curl(r: Request, bodyfile: string, headersfile: string): string
 
 function request(req: Request): ActiveHTTP::Response
 	{
+	local resp: Response;
+	resp$code = 0;
+	resp$msg = "";
+	resp$body = "";
+	resp$headers = table();
+
+	# Sanity-check the method parameter as it will go directly into our command line.
+	if ( req$method != /[A-Za-z]+/ )
+		{
+		Reporter::error(fmt("There was an illegal method specified with ActiveHTTP (\"%s\").", req$method));
+		return resp;
+		}
+
 	local tmpfile     = "/tmp/zeek-activehttp-" + unique_id("");
 	local bodyfile    = fmt("%s_body", tmpfile);
 	local headersfile = fmt("%s_headers", tmpfile);
@@ -85,11 +98,6 @@ function request(req: Request): ActiveHTTP::Response
 	local cmd = request2curl(req, bodyfile, headersfile);
 	local stdin_data = req?$client_data ? req$client_data : "";
 
-	local resp: Response;
-	resp$code = 0;
-	resp$msg = "";
-	resp$body = "";
-	resp$headers = table();
 	return when ( local result = Exec::run([$cmd=cmd, $stdin=stdin_data, $read_files=set(bodyfile, headersfile)]) )
 		{
 		# If there is no response line then nothing else will work either.

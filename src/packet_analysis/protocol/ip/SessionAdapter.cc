@@ -16,8 +16,7 @@ bool SessionAdapter::IsReuse(double t, const u_char* pkt)
 	return parent->IsReuse(t, pkt);
 	}
 
-void SessionAdapter::SetContentsFile(unsigned int /* direction */,
-                                             FilePtr /* f */)
+void SessionAdapter::SetContentsFile(unsigned int /* direction */, FilePtr /* f */)
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	}

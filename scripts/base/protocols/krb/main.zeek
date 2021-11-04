@@ -95,7 +95,7 @@ function set_session(c: connection): bool
 		             $id  = c$id);
 		Conn::register_removal_hook(c, finalize_krb);
 		}
-	
+
 	return c$krb$logged;
 	}
 
@@ -115,7 +115,7 @@ event krb_error(c: connection, msg: Error_Msg) &priority=5
 
 	if ( msg?$error_text && msg$error_text in ignored_errors )
 		{
-		if ( c?$krb ) 
+		if ( c?$krb )
 			delete c$krb;
 
 		return;
@@ -174,7 +174,7 @@ event krb_as_response(c: connection, msg: KDC_Response) &priority=5
 
 	if ( ! c$krb?$client && ( msg?$client_name || msg?$client_realm ) )
 		{
-		c$krb$client = fmt("%s/%s", msg?$client_name ? msg$client_name : "", 
+		c$krb$client = fmt("%s/%s", msg?$client_name ? msg$client_name : "",
 	                                msg?$client_realm ? msg$client_realm : "");
 		}
 
@@ -202,7 +202,7 @@ event krb_tgs_request(c: connection, msg: KDC_Request) &priority=5
 	c$krb$request_type = "TGS";
 	if ( msg?$service_name )
 		c$krb$service = msg$service_name;
-	if ( msg?$from ) 
+	if ( msg?$from )
 		c$krb$from = msg$from;
 	if ( msg?$till )
 		c$krb$till = msg$till;
@@ -221,7 +221,7 @@ event krb_tgs_response(c: connection, msg: KDC_Response) &priority=5
 
 	if ( ! c$krb?$client && ( msg?$client_name || msg?$client_realm ) )
 		{
-		c$krb$client = fmt("%s/%s", msg?$client_name ? msg$client_name : "", 
+		c$krb$client = fmt("%s/%s", msg?$client_name ? msg$client_name : "",
 	                                msg?$client_realm ? msg$client_realm : "");
 		}
 

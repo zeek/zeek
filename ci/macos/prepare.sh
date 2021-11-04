@@ -5,6 +5,6 @@ sysctl hw.model hw.machine hw.ncpu hw.physicalcpu hw.logicalcpu
 set -e
 set -x
 
-brew update-reset
-brew upgrade cmake openssl
+brew update
+brew upgrade cmake openssl@1.1
 brew install swig bison

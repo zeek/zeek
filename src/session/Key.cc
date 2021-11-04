@@ -2,10 +2,10 @@
 
 #include <cstring>
 
-namespace zeek::session::detail {
+namespace zeek::session::detail
+	{
 
-Key::Key(const void* session, size_t size, size_t type, bool copy) :
-	size(size), type(type)
+Key::Key(const void* session, size_t size, size_t type, bool copy) : size(size), type(type)
 	{
 	data = reinterpret_cast<const uint8_t*>(session);
 
@@ -45,7 +45,7 @@ Key& Key::operator=(Key&& rhs)
 Key::~Key()
 	{
 	if ( copied )
-		delete [] data;
+		delete[] data;
 	}
 
 void Key::CopyData()
@@ -55,7 +55,7 @@ void Key::CopyData()
 
 	copied = true;
 
-	uint8_t *temp = new uint8_t[size];
+	uint8_t* temp = new uint8_t[size];
 	memcpy(temp, data, size);
 	data = temp;
 	}
@@ -80,4 +80,4 @@ bool Key::operator==(const Key& rhs) const
 	return memcmp(data, rhs.data, size) == 0;
 	}
 
-} // namespace zeek::session::detail
+	} // namespace zeek::session::detail

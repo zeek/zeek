@@ -5,9 +5,11 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::MPLS {
+namespace zeek::packet_analysis::MPLS
+	{
 
-class MPLSAnalyzer : public zeek::packet_analysis::Analyzer {
+class MPLSAnalyzer : public zeek::packet_analysis::Analyzer
+	{
 public:
 	MPLSAnalyzer();
 	~MPLSAnalyzer() override = default;
@@ -18,6 +20,6 @@ public:
 		{
 		return std::make_shared<MPLSAnalyzer>();
 		}
-};
+	};
 
-}
+	}

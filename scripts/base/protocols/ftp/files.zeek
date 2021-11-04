@@ -18,14 +18,14 @@ export {
 	## Describe the file being transferred.
 	global describe_file: function(f: fa_file): string;
 
-	redef record fa_file += { 
+	redef record fa_file += {
 		ftp: FTP::Info &optional;
 	};
 }
 
 function get_file_handle(c: connection, is_orig: bool): string
 	{
-	if ( [c$id$resp_h, c$id$resp_p] !in ftp_data_expected ) 
+	if ( [c$id$resp_h, c$id$resp_p] !in ftp_data_expected )
 		return "";
 
 	return cat(Analyzer::ANALYZER_FTP_DATA, c$start_time, c$id, is_orig);
@@ -54,7 +54,7 @@ event zeek_init() &priority=5
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
-	if ( [c$id$resp_h, c$id$resp_p] !in ftp_data_expected ) 
+	if ( [c$id$resp_h, c$id$resp_p] !in ftp_data_expected )
 		return;
 
 	local ftp = ftp_data_expected[c$id$resp_h, c$id$resp_p];

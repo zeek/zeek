@@ -8,7 +8,8 @@
 
 #include "zeek/Span.h"
 
-namespace zeek::telemetry {
+namespace zeek::telemetry
+	{
 
 /**
  * A key-value pair for a single label dimension.
@@ -19,7 +20,8 @@ using LabelView = std::pair<std::string_view, std::string_view>;
  * Manages a collection (family) of metrics. All members of the family share
  * the same prefix (namespace), name, and label dimensions.
  */
-class MetricFamily {
+class MetricFamily
+	{
 public:
 	struct Impl;
 
@@ -41,14 +43,14 @@ public:
 	 */
 	std::string_view Name() const noexcept;
 
-    /**
-     * @return The names for all label dimensions.
-     */
+	/**
+	 * @return The names for all label dimensions.
+	 */
 	Span<const std::string> LabelNames() const noexcept;
 
-    /**
-     * @return A short explanation of the metric.
-     */
+	/**
+	 * @return A short explanation of the metric.
+	 */
 	std::string_view Helptext() const noexcept;
 
 	/**
@@ -66,11 +68,9 @@ public:
 	bool IsSum() const noexcept;
 
 protected:
-	explicit MetricFamily(Impl* ptr) : pimpl(ptr)
-		{
-		}
+	explicit MetricFamily(Impl* ptr) : pimpl(ptr) { }
 
 	Impl* pimpl;
-};
+	};
 
-} // namespace zeek::telemetry
+	} // namespace zeek::telemetry

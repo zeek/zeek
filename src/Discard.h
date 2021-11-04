@@ -7,16 +7,19 @@
 
 #include "zeek/IntrusivePtr.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class IP_Hdr;
 class Val;
 class Func;
 using FuncPtr = IntrusivePtr<Func>;
 
-namespace detail {
+namespace detail
+	{
 
-class Discarder {
+class Discarder
+	{
 public:
 	Discarder();
 	~Discarder();
@@ -35,7 +38,7 @@ protected:
 
 	// Maximum amount of application data passed to filtering functions.
 	int discarder_maxlen;
-};
+	};
 
-} // namespace detail
-} // namespace zeek
+	} // namespace detail
+	} // namespace zeek

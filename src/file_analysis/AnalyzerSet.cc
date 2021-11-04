@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/file_analysis/AnalyzerSet.h"
-#include "zeek/file_analysis/File.h"
-#include "zeek/file_analysis/Analyzer.h"
-#include "zeek/file_analysis/Manager.h"
+
 #include "zeek/CompHash.h"
 #include "zeek/Val.h"
-
+#include "zeek/file_analysis/Analyzer.h"
+#include "zeek/file_analysis/File.h"
+#include "zeek/file_analysis/Manager.h"
 #include "zeek/file_analysis/file_analysis.bif.h"
 
-namespace zeek::file_analysis::detail {
+namespace zeek::file_analysis::detail
+	{
 
 static void analyzer_del_func(void* v)
 	{
@@ -41,8 +42,7 @@ AnalyzerSet::~AnalyzerSet()
 	delete analyzer_hash;
 	}
 
-Analyzer* AnalyzerSet::Find(const file_analysis::Tag& tag,
-                            RecordValPtr args)
+Analyzer* AnalyzerSet::Find(const file_analysis::Tag& tag, RecordValPtr args)
 	{
 	auto key = GetKey(tag, std::move(args));
 	Analyzer* rval = analyzer_map.Lookup(key.get());
@@ -56,8 +56,7 @@ bool AnalyzerSet::Add(const file_analysis::Tag& tag, RecordValPtr args)
 	if ( analyzer_map.Lookup(key.get()) )
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s skipped: already exists",
-		        file->GetID().c_str(),
-		        file_mgr->GetComponentName(tag).c_str());
+		        file->GetID().c_str(), file_mgr->GetComponentName(tag).c_str());
 
 		return true;
 		}
@@ -72,8 +71,7 @@ bool AnalyzerSet::Add(const file_analysis::Tag& tag, RecordValPtr args)
 	return true;
 	}
 
-Analyzer* AnalyzerSet::QueueAdd(const file_analysis::Tag& tag,
-                                RecordValPtr args)
+Analyzer* AnalyzerSet::QueueAdd(const file_analysis::Tag& tag, RecordValPtr args)
 	{
 	auto key = GetKey(tag, args);
 	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, std::move(args));
@@ -91,8 +89,7 @@ bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set)
 	if ( set->analyzer_map.Lookup(key.get()) )
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s skipped: already exists",
-		        a->GetFile()->GetID().c_str(),
-		        file_mgr->GetComponentName(a->Tag()).c_str());
+		        a->GetFile()->GetID().c_str(), file_mgr->GetComponentName(a->Tag()).c_str());
 
 		Abort();
 		return true;
@@ -108,26 +105,23 @@ void AnalyzerSet::AddMod::Abort()
 	delete a;
 	}
 
-bool AnalyzerSet::Remove(const file_analysis::Tag& tag,
-                         RecordValPtr args)
+bool AnalyzerSet::Remove(const file_analysis::Tag& tag, RecordValPtr args)
 	{
 	return Remove(tag, GetKey(tag, std::move(args)));
 	}
 
-bool AnalyzerSet::Remove(const file_analysis::Tag& tag,
-                         std::unique_ptr<zeek::detail::HashKey> key)
+bool AnalyzerSet::Remove(const file_analysis::Tag& tag, std::unique_ptr<zeek::detail::HashKey> key)
 	{
-	auto a = (file_analysis::Analyzer*) analyzer_map.Remove(key.get());
+	auto a = (file_analysis::Analyzer*)analyzer_map.Remove(key.get());
 
 	if ( ! a )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Skip remove analyzer %s",
-		        file->GetID().c_str(), file_mgr->GetComponentName(tag).c_str());
+		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Skip remove analyzer %s", file->GetID().c_str(),
+		        file_mgr->GetComponentName(tag).c_str());
 		return false;
 		}
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Remove analyzer %s",
-	        file->GetID().c_str(),
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Remove analyzer %s", file->GetID().c_str(),
 	        file_mgr->GetComponentName(tag).c_str());
 
 	a->Done();
@@ -140,8 +134,7 @@ bool AnalyzerSet::Remove(const file_analysis::Tag& tag,
 	return true;
 	}
 
-bool AnalyzerSet::QueueRemove(const file_analysis::Tag& tag,
-                              RecordValPtr args)
+bool AnalyzerSet::QueueRemove(const file_analysis::Tag& tag, RecordValPtr args)
 	{
 	auto key = GetKey(tag, std::move(args));
 	auto rval = analyzer_map.Lookup(key.get());
@@ -168,10 +161,9 @@ std::unique_ptr<zeek::detail::HashKey> AnalyzerSet::GetKey(const file_analysis::
 	return key;
 	}
 
-file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,
-                                                          RecordValPtr args) const
+file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag, RecordValPtr args) const
 	{
-	auto  a = file_mgr->InstantiateAnalyzer(tag, std::move(args), file);
+	auto a = file_mgr->InstantiateAnalyzer(tag, std::move(args), file);
 
 	if ( ! a )
 		{
@@ -180,8 +172,7 @@ file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,
 		if ( c && ! c->Enabled() )
 			return nullptr;
 
-		reporter->Error("[%s] Failed file analyzer %s instantiation",
-		                file->GetID().c_str(),
+		reporter->Error("[%s] Failed file analyzer %s instantiation", file->GetID().c_str(),
 		                file_mgr->GetComponentName(tag).c_str());
 		return nullptr;
 		}
@@ -189,11 +180,10 @@ file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,
 	return a;
 	}
 
-void AnalyzerSet::Insert(file_analysis::Analyzer* a,
-                         std::unique_ptr<zeek::detail::HashKey> key)
+void AnalyzerSet::Insert(file_analysis::Analyzer* a, std::unique_ptr<zeek::detail::HashKey> key)
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s",
-	        file->GetID().c_str(), file_mgr->GetComponentName(a->Tag()).c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s", file->GetID().c_str(),
+	        file_mgr->GetComponentName(a->Tag()).c_str());
 	analyzer_map.Insert(key.get(), a);
 
 	a->Init();
@@ -204,8 +194,7 @@ void AnalyzerSet::DrainModifications()
 	if ( mod_queue.empty() )
 		return;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Start analyzer mod queue flush",
-	        file->GetID().c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Start analyzer mod queue flush", file->GetID().c_str());
 	do
 		{
 		Modification* mod = mod_queue.front();
@@ -213,8 +202,7 @@ void AnalyzerSet::DrainModifications()
 		delete mod;
 		mod_queue.pop();
 		} while ( ! mod_queue.empty() );
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] End flushing analyzer mod queue.",
-	        file->GetID().c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] End flushing analyzer mod queue.", file->GetID().c_str());
 	}
 
-} // namespace zeek::file_analysis::detail
+	} // namespace zeek::file_analysis::detail

@@ -5,9 +5,11 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::Skip {
+namespace zeek::packet_analysis::Skip
+	{
 
-class SkipAnalyzer : public Analyzer {
+class SkipAnalyzer : public Analyzer
+	{
 public:
 	SkipAnalyzer();
 	~SkipAnalyzer() override = default;
@@ -22,6 +24,6 @@ public:
 
 private:
 	bro_uint_t skip_bytes = 0;
-};
+	};
 
-}
+	}

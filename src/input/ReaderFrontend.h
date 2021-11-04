@@ -5,11 +5,13 @@
 #include "zeek/input/ReaderBackend.h"
 #include "zeek/threading/SerialTypes.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class EnumVal;
 
-namespace input {
+namespace input
+	{
 
 class Manager;
 
@@ -21,7 +23,8 @@ class Manager;
  * spawns a new thread, and it receives messages from the frontend that
  * correspond to method called by the manager.
  */
-class ReaderFrontend {
+class ReaderFrontend
+	{
 public:
 	/**
 	 * Constructor.
@@ -89,13 +92,13 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void SetDisable()	{ disabled = true; }
+	void SetDisable() { disabled = true; }
 
 	/**
 	 * Returns true if the reader frontend has been disabled with
 	 * SetDisable().
 	 */
-	bool Disabled()	{ return disabled; }
+	bool Disabled() { return disabled; }
 
 	/**
 	 * Returns a descriptive name for the reader, including the type of
@@ -108,30 +111,34 @@ public:
 	/**
 	 * Returns the additional reader information passed into the constructor.
 	 */
-	const ReaderBackend::ReaderInfo& Info() const	{ assert(info); return *info; }
+	const ReaderBackend::ReaderInfo& Info() const
+		{
+		assert(info);
+		return *info;
+		}
 
 	/**
 	 * Returns the number of log fields as passed into the constructor.
 	 */
-	int NumFields() const	{ return num_fields; }
+	int NumFields() const { return num_fields; }
 
 	/**
 	 * Returns the log fields as passed into the constructor.
 	 */
-	const threading::Field* const * Fields() const	{ return fields; }
+	const threading::Field* const* Fields() const { return fields; }
 
 protected:
 	friend class Manager;
 
 private:
-	ReaderBackend* backend;	// The backend we have instanatiated.
-	ReaderBackend::ReaderInfo* info;	// Meta information.
-	const threading::Field* const*  fields;	// The input fields.
-	int num_fields;		// Information as passed to Init().
-	bool disabled;		// True if disabled.
-	bool initialized;	// True if initialized.
-	const char* name;	// Descriptive name.
-};
+	ReaderBackend* backend; // The backend we have instanatiated.
+	ReaderBackend::ReaderInfo* info; // Meta information.
+	const threading::Field* const* fields; // The input fields.
+	int num_fields; // Information as passed to Init().
+	bool disabled; // True if disabled.
+	bool initialized; // True if initialized.
+	const char* name; // Descriptive name.
+	};
 
-} // namespace input
-} // namespace zeek
+	} // namespace input
+	} // namespace zeek

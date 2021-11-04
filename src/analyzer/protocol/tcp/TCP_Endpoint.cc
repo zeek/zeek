@@ -4,21 +4,21 @@
 
 #include <errno.h>
 
-#include "zeek/RunState.h"
-#include "zeek/NetVar.h"
-#include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
-#include "zeek/Reporter.h"
-#include "zeek/session/Manager.h"
 #include "zeek/Event.h"
 #include "zeek/File.h"
+#include "zeek/NetVar.h"
+#include "zeek/Reporter.h"
+#include "zeek/RunState.h"
 #include "zeek/Val.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/analyzer/protocol/tcp/events.bif.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
+#include "zeek/session/Manager.h"
 
-#include "zeek/analyzer/protocol/tcp/events.bif.h"
-
-namespace zeek::analyzer::tcp {
+namespace zeek::analyzer::tcp
+	{
 
 TCP_Endpoint::TCP_Endpoint(packet_analysis::TCP::TCPSessionAdapter* arg_analyzer, bool arg_is_orig)
 	{
@@ -110,8 +110,7 @@ void TCP_Endpoint::CheckEOF()
 		contents_processor->CheckEOF();
 	}
 
-void TCP_Endpoint::SizeBufferedData(uint64_t& waiting_on_hole,
-                                    uint64_t& waiting_on_ack)
+void TCP_Endpoint::SizeBufferedData(uint64_t& waiting_on_hole, uint64_t& waiting_on_ack)
 	{
 	if ( contents_processor )
 		contents_processor->SizeBufferedData(waiting_on_hole, waiting_on_ack);
@@ -131,9 +130,8 @@ bool TCP_Endpoint::ValidChecksum(const struct tcphdr* tp, int len, bool ipv4) co
 
 static inline bool is_handshake(EndpointState state)
 	{
-	return state == TCP_ENDPOINT_INACTIVE ||
-		state == TCP_ENDPOINT_SYN_SENT ||
-		state == TCP_ENDPOINT_SYN_ACK_SENT;
+	return state == TCP_ENDPOINT_INACTIVE || state == TCP_ENDPOINT_SYN_SENT ||
+	       state == TCP_ENDPOINT_SYN_ACK_SENT;
 	}
 
 void TCP_Endpoint::SetState(EndpointState new_state)
@@ -188,13 +186,12 @@ uint64_t TCP_Endpoint::Size() const
 		--size;
 
 	if ( FIN_cnt > 0 && size != 0 )
-		--size;	// don't include FIN octet.
+		--size; // don't include FIN octet.
 
 	return size;
 	}
 
-bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
-                            const u_char* data,
+bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
                             const IP_Hdr* ip, const struct tcphdr* tp)
 	{
 	bool status = false;
@@ -210,8 +207,7 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 	if ( caplen <= 0 )
 		return status;
 
-	if ( contents_file && ! contents_processor &&
-	     seq + len > contents_start_seq )
+	if ( contents_file && ! contents_processor && seq + len > contents_start_seq )
 		{
 		int64_t under_seq = contents_start_seq - seq;
 		if ( under_seq > 0 )
@@ -221,7 +217,8 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 			len -= under_seq;
 			}
 
-		// DEBUG_MSG("%d: seek %d, data=%02x len=%d\n", IsOrig(), seq - contents_start_seq, *data, len);
+		// DEBUG_MSG("%d: seek %d, data=%02x len=%d\n", IsOrig(), seq - contents_start_seq, *data,
+		// len);
 		FILE* f = contents_file->Seek(seq - contents_start_seq);
 
 		if ( fwrite(data, 1, len, f) < unsigned(len) )
@@ -231,11 +228,9 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 			reporter->Error("TCP contents write failed: %s", buf);
 
 			if ( contents_file_write_failure )
-				tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
-					Conn()->GetVal(),
-					val_mgr->Bool(IsOrig()),
-					make_intrusive<StringVal>(buf)
-				);
+				tcp_analyzer->EnqueueConnEvent(contents_file_write_failure, Conn()->GetVal(),
+				                               val_mgr->Bool(IsOrig()),
+				                               make_intrusive<StringVal>(buf));
 			}
 		}
 
@@ -254,7 +249,7 @@ void TCP_Endpoint::SetContentsFile(FilePtr f)
 	contents_start_seq = ToRelativeSeqSpace(last_seq, seq_wraps);
 
 	if ( contents_start_seq == 0 )
-		contents_start_seq = 1;	// skip SYN
+		contents_start_seq = 1; // skip SYN
 
 	if ( contents_processor )
 		contents_processor->SetContentsFile(contents_file);
@@ -282,36 +277,29 @@ void TCP_Endpoint::AddHistory(char code)
 void TCP_Endpoint::ChecksumError()
 	{
 	uint32_t t = chk_thresh;
-	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'C' : 'c',
-	                                chk_cnt, chk_thresh) )
-		Conn()->HistoryThresholdEvent(tcp_multiple_checksum_errors,
-		                              IsOrig(), t);
+	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'C' : 'c', chk_cnt, chk_thresh) )
+		Conn()->HistoryThresholdEvent(tcp_multiple_checksum_errors, IsOrig(), t);
 	}
 
 void TCP_Endpoint::DidRxmit()
 	{
 	uint32_t t = rxmt_thresh;
-	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'T' : 't',
-	                                rxmt_cnt, rxmt_thresh) )
-		Conn()->HistoryThresholdEvent(tcp_multiple_retransmissions,
-		                              IsOrig(), t);
+	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'T' : 't', rxmt_cnt, rxmt_thresh) )
+		Conn()->HistoryThresholdEvent(tcp_multiple_retransmissions, IsOrig(), t);
 	}
 
 void TCP_Endpoint::ZeroWindow()
 	{
 	uint32_t t = win0_thresh;
-	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'W' : 'w',
-	                                win0_cnt, win0_thresh) )
-		Conn()->HistoryThresholdEvent(tcp_multiple_zero_windows,
-		                              IsOrig(), t);
+	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'W' : 'w', win0_cnt, win0_thresh) )
+		Conn()->HistoryThresholdEvent(tcp_multiple_zero_windows, IsOrig(), t);
 	}
 
 void TCP_Endpoint::Gap(uint64_t seq, uint64_t len)
 	{
 	uint32_t t = gap_thresh;
-	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'G' : 'g',
-					gap_cnt, gap_thresh) )
+	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'G' : 'g', gap_cnt, gap_thresh) )
 		Conn()->HistoryThresholdEvent(tcp_multiple_gap, IsOrig(), t);
 	}
 
-} // namespace zeek::analyzer::tcp
+	} // namespace zeek::analyzer::tcp

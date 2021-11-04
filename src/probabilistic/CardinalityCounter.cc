@@ -2,30 +2,31 @@
 
 #include "zeek/probabilistic/CardinalityCounter.h"
 
+#include <broker/data.hh>
 #include <math.h>
 #include <stdint.h>
 #include <utility>
 
-#include <broker/data.hh>
-
 #include "zeek/Reporter.h"
 
-namespace zeek::probabilistic::detail {
+namespace zeek::probabilistic::detail
+	{
 
 int CardinalityCounter::OptimalB(double error, double confidence) const
 	{
 	double initial_estimate = 2 * (log(1.04) - log(error)) / log(2);
-	int answer = (int) floor(initial_estimate);
+	int answer = (int)floor(initial_estimate);
 
 	// k is the number of standard deviations that we have to go to have
 	// a confidence level of conf.
 
 	double k = 0;
 
-	do {
+	do
+		{
 		answer++;
 		k = pow(2, (answer - initial_estimate) / 2);
-	} while ( erf(k / sqrt(2)) < confidence );
+		} while ( erf(k / sqrt(2)) < confidence );
 
 	return answer;
 	}
@@ -50,11 +51,13 @@ void CardinalityCounter::Init(uint64_t size)
 		alpha_m = 0.7213 / (1 + 1.079 / m);
 
 	else
-		reporter->InternalError("Invalid size %" PRIu64 ". Size either has to be 16, 32, 64 or bigger than 128", size);
+		reporter->InternalError(
+			"Invalid size %" PRIu64 ". Size either has to be 16, 32, 64 or bigger than 128", size);
 
 	double calc_p = log2(m);
 	if ( trunc(calc_p) != calc_p )
-		reporter->InternalError("Invalid size %" PRIu64 ". Size either has to be a power of 2", size);
+		reporter->InternalError("Invalid size %" PRIu64 ". Size either has to be a power of 2",
+		                        size);
 
 	p = calc_p;
 
@@ -67,8 +70,7 @@ void CardinalityCounter::Init(uint64_t size)
 	V = m;
 	}
 
-CardinalityCounter::CardinalityCounter(CardinalityCounter& other)
-	: buckets(other.buckets)
+CardinalityCounter::CardinalityCounter(CardinalityCounter& other) : buckets(other.buckets)
 	{
 	V = other.V;
 	alpha_m = other.alpha_m;
@@ -90,7 +92,7 @@ CardinalityCounter::CardinalityCounter(CardinalityCounter&& o) noexcept
 CardinalityCounter::CardinalityCounter(double error_margin, double confidence)
 	{
 	int b = OptimalB(error_margin, confidence);
-	Init((uint64_t) pow(2, b));
+	Init((uint64_t)pow(2, b));
 
 	assert(b == p);
 	}
@@ -113,9 +115,7 @@ CardinalityCounter::CardinalityCounter(uint64_t arg_size, uint64_t arg_V, double
 	p = log2(m);
 	}
 
-CardinalityCounter::~CardinalityCounter()
-	{
-	}
+CardinalityCounter::~CardinalityCounter() { }
 
 uint8_t CardinalityCounter::Rank(uint64_t hash_modified) const
 	{
@@ -129,9 +129,9 @@ uint8_t CardinalityCounter::Rank(uint64_t hash_modified) const
 void CardinalityCounter::AddElement(uint64_t hash)
 	{
 	uint64_t index = hash % m;
-	hash = hash-index;
+	hash = hash - index;
 
-	if( buckets[index] == 0 )
+	if ( buckets[index] == 0 )
 		V--;
 
 	uint8_t temp = Rank(hash);
@@ -158,7 +158,7 @@ double CardinalityCounter::Size() const
 	answer = 1 / answer;
 	answer = (alpha_m * m * m * answer);
 
-	if ( answer <= 5.0 * (m/2) )
+	if ( answer <= 5.0 * (m / 2) )
 		return m * log(((double)m) / V);
 
 	else if ( answer <= (pow(2, 64) / 30) )
@@ -189,7 +189,7 @@ bool CardinalityCounter::Merge(CardinalityCounter* c)
 	return true;
 	}
 
-const std::vector<uint8_t> &CardinalityCounter::GetBuckets() const
+const std::vector<uint8_t>& CardinalityCounter::GetBuckets() const
 	{
 	return buckets;
 	}
@@ -228,7 +228,7 @@ std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker
 	auto cc = std::unique_ptr<CardinalityCounter>(new CardinalityCounter(*m, *V, *alpha_m));
 	if ( *m != cc->m )
 		return nullptr;
-	if ( cc->buckets.size() != * m )
+	if ( cc->buckets.size() != *m )
 		return nullptr;
 
 	for ( size_t i = 0; i < *m; ++i )
@@ -283,11 +283,11 @@ int CardinalityCounter::flsll(uint64_t mask)
 	{
 	int bit;
 
-	if (mask == 0)
+	if ( mask == 0 )
 		return (0);
-	for (bit = 1; mask != 1; bit++)
+	for ( bit = 1; mask != 1; bit++ )
 		mask = (uint64_t)mask >> 1;
 	return (bit);
 	}
 
-} // namespace zeek::probabilistic::detail
+	} // namespace zeek::probabilistic::detail

@@ -107,13 +107,13 @@ export {
 	} &redef &default=function(i: count):string { return fmt("unknown-wksta-command-%d", i); };
 
 	type rpc_cmd_table: table[count] of string;
-	
+
 	## The subcommands for RPC endpoints.
 	const rpc_sub_cmds: table[string] of rpc_cmd_table = {
 		["4b324fc8-1670-01d3-1278-5a47bf6ee188"] = srv_cmds,
-		["6bffd098-a112-3610-9833-46c3f87e345a"] = wksta_cmds,	
+		["6bffd098-a112-3610-9833-46c3f87e345a"] = wksta_cmds,
 	} &redef &default=function(i: string):rpc_cmd_table { return table() &default=function(j: string):string { return fmt("unknown-uuid-%s", j); }; };
-	
+
 }
 
 module SMB1;
@@ -195,37 +195,37 @@ export {
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	const trans2_sub_commands: table[count] of string = {
-		[0x00] = "OPEN2",	
-		[0x01] = "FIND_FIRST2",	
-		[0x02] = "FIND_NEXT2",	
-		[0x03] = "QUERY_FS_INFORMATION",	
-		[0x04] = "SET_FS_INFORMATION",	
-		[0x05] = "QUERY_PATH_INFORMATION",	
-		[0x06] = "SET_PATH_INFORMATION",	
-		[0x07] = "QUERY_FILE_INFORMATION",	
-		[0x08] = "SET_FILE_INFORMATION",	
-		[0x09] = "FSCTL",	
-		[0x0A] = "IOCTL",	
-		[0x0B] = "FIND_NOTIFY_FIRST",	
-		[0x0C] = "FIND_NOTIFY_NEXT",	
-		[0x0D] = "CREATE_DIRECTORY",	
-		[0x0E] = "SESSION_SETUP",	
-		[0x10] = "GET_DFS_REFERRAL",	
-		[0x11] = "REPORT_DFS_INCONSISTENCY",	
+		[0x00] = "OPEN2",
+		[0x01] = "FIND_FIRST2",
+		[0x02] = "FIND_NEXT2",
+		[0x03] = "QUERY_FS_INFORMATION",
+		[0x04] = "SET_FS_INFORMATION",
+		[0x05] = "QUERY_PATH_INFORMATION",
+		[0x06] = "SET_PATH_INFORMATION",
+		[0x07] = "QUERY_FILE_INFORMATION",
+		[0x08] = "SET_FILE_INFORMATION",
+		[0x09] = "FSCTL",
+		[0x0A] = "IOCTL",
+		[0x0B] = "FIND_NOTIFY_FIRST",
+		[0x0C] = "FIND_NOTIFY_NEXT",
+		[0x0D] = "CREATE_DIRECTORY",
+		[0x0E] = "SESSION_SETUP",
+		[0x10] = "GET_DFS_REFERRAL",
+		[0x11] = "REPORT_DFS_INCONSISTENCY",
 	} &default=function(i: count):string { return fmt("unknown-trans2-sub-cmd-%d", i); };
 
 	const trans_sub_commands: table[count] of string = {
-		[0x01] = "SET_NMPIPE_STATE",	
-		[0x11] = "RAW_READ_NMPIPE",	
-		[0x21] = "QUERY_NMPIPE_STATE",	
-		[0x22] = "QUERY_NMPIPE_INFO",	
-		[0x23] = "PEEK_NMPIPE",	
-		[0x26] = "TRANSACT_NMPIPE",	
-		[0x31] = "RAW_WRITE_NMPIPE",	
-		[0x36] = "READ_NMPIPE",	
-		[0x37] = "WRITE_NMPIPE",	
-		[0x53] = "WAIT_NMPIPE",	
-		[0x54] = "CALL_NMPIPE",	
+		[0x01] = "SET_NMPIPE_STATE",
+		[0x11] = "RAW_READ_NMPIPE",
+		[0x21] = "QUERY_NMPIPE_STATE",
+		[0x22] = "QUERY_NMPIPE_INFO",
+		[0x23] = "PEEK_NMPIPE",
+		[0x26] = "TRANSACT_NMPIPE",
+		[0x31] = "RAW_WRITE_NMPIPE",
+		[0x36] = "READ_NMPIPE",
+		[0x37] = "WRITE_NMPIPE",
+		[0x53] = "WAIT_NMPIPE",
+		[0x54] = "CALL_NMPIPE",
 	} &default=function(i: count):string { return fmt("unknown-trans-sub-cmd-%d", i); };
 }
 

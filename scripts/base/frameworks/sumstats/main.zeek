@@ -510,7 +510,7 @@ function check_thresholds(ss: SumStat, key: Key, result: Result, modify_pct: dou
 		return F;
 
 	# Add in the extra ResultVals to make threshold_vals easier to write.
-	# This length comparison should work because we just need to make 
+	# This length comparison should work because we just need to make
 	# sure that we have the same number of reducers and results.
 	if ( |ss$reducers| != |result| )
 		{
@@ -568,4 +568,3 @@ function threshold_crossed(ss: SumStat, key: Key, result: Result)
 
 	ss$threshold_crossed(key, result);
 	}
-

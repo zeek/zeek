@@ -6,17 +6,19 @@
 
 #include <map>
 
-#include "zeek/input/Component.h"
 #include "zeek/EventHandler.h"
+#include "zeek/input/Component.h"
+#include "zeek/input/Tag.h"
 #include "zeek/plugin/ComponentManager.h"
 #include "zeek/threading/SerialTypes.h"
-#include "zeek/input/Tag.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 class RecordVal;
 
-namespace input {
+namespace input
+	{
 
 class ReaderFrontend;
 class ReaderBackend;
@@ -24,7 +26,8 @@ class ReaderBackend;
 /**
  * Singleton class for managing input streams.
  */
-class Manager : public plugin::ComponentManager<Tag, Component> {
+class Manager : public plugin::ComponentManager<Tag, Component>
+	{
 public:
 	/**
 	 * Constructor.
@@ -83,7 +86,7 @@ public:
 	 * This method corresponds directly to the internal BiF defined in
 	 * input.bif, which just forwards here.
 	 */
-	bool ForceUpdate(const std::string &id);
+	bool ForceUpdate(const std::string& id);
 
 	/**
 	 * Deletes an existing input stream.
@@ -93,7 +96,7 @@ public:
 	 * This method corresponds directly to the internal BiF defined in
 	 * input.bif, which just forwards here.
 	 */
-	bool RemoveStream(const std::string &id);
+	bool RemoveStream(const std::string& id);
 
 	/**
 	 * Signals the manager to shutdown at Bro's termination.
@@ -113,7 +116,7 @@ public:
 	 *
 	 * @return True if the type is compatible with the input framework.
 	 */
-	static bool IsCompatibleType(Type* t, bool atomic_only=false);
+	static bool IsCompatibleType(Type* t, bool atomic_only = false);
 
 protected:
 	friend class ReaderFrontend;
@@ -130,9 +133,9 @@ protected:
 	// For readers to write to input stream in direct mode (reporting
 	// new/deleted values directly). Functions take ownership of
 	// threading::Value fields.
-	void Put(ReaderFrontend* reader, threading::Value* *vals);
+	void Put(ReaderFrontend* reader, threading::Value** vals);
 	void Clear(ReaderFrontend* reader);
-	bool Delete(ReaderFrontend* reader, threading::Value* *vals);
+	bool Delete(ReaderFrontend* reader, threading::Value** vals);
 	// Trigger sending the End-of-Data event when the input source has
 	// finished reading. Just use in direct mode.
 	void SendEndOfData(ReaderFrontend* reader);
@@ -140,7 +143,7 @@ protected:
 	// For readers to write to input stream in indirect mode (manager is
 	// monitoring new/deleted values) Functions take ownership of
 	// threading::Value fields.
-	void SendEntry(ReaderFrontend* reader, threading::Value* *vals);
+	void SendEntry(ReaderFrontend* reader, threading::Value** vals);
 	void EndCurrentSend(ReaderFrontend* reader);
 
 	// Instantiates a new ReaderBackend of the given type (note that
@@ -187,56 +190,62 @@ private:
 	// Check if the types of the error_ev event are correct. If table is
 	// true, check for tablestream type, otherwhise check for eventstream
 	// type.
-	bool CheckErrorEventTypes(const std::string& stream_name, const Func* error_event, bool table) const;
+	bool CheckErrorEventTypes(const std::string& stream_name, const Func* error_event,
+	                          bool table) const;
 
 	// SendEntry implementation for Table stream.
-	int SendEntryTable(Stream* i, const threading::Value* const *vals);
+	int SendEntryTable(Stream* i, const threading::Value* const* vals);
 
 	// Put implementation for Table stream.
-	int PutTable(Stream* i, const threading::Value* const *vals);
+	int PutTable(Stream* i, const threading::Value* const* vals);
 
 	// SendEntry and Put implementation for Event stream.
-	int SendEventStreamEvent(Stream* i, EnumVal* type, const threading::Value* const *vals);
+	int SendEventStreamEvent(Stream* i, EnumVal* type, const threading::Value* const* vals);
 
 	// Check if a record is made up of compatible types and return a list
 	// of all fields that are in the record in order. Recursively unrolls
 	// records
-	bool UnrollRecordType(std::vector<threading::Field*> *fields, const RecordType *rec, const std::string& nameprepend, bool allow_file_func) const;
+	bool UnrollRecordType(std::vector<threading::Field*>* fields, const RecordType* rec,
+	                      const std::string& nameprepend, bool allow_file_func) const;
 
 	// Send events
 	void SendEvent(EventHandlerPtr ev, const int numvals, ...) const;
 	void SendEvent(EventHandlerPtr ev, std::list<Val*> events) const;
 
 	// Implementation of SendEndOfData (send end_of_data event).
-	void SendEndOfData(const Stream *i);
+	void SendEndOfData(const Stream* i);
 
 	// Call predicate function and return result.
 	bool CallPred(Func* pred_func, const int numvals, ...) const;
 
 	// Get a hashkey for a set of threading::Values.
-	zeek::detail::HashKey* HashValues(const int num_elements, const threading::Value* const *vals) const;
+	zeek::detail::HashKey* HashValues(const int num_elements,
+	                                  const threading::Value* const* vals) const;
 
 	// Get the memory used by a specific value.
 	int GetValueLength(const threading::Value* val) const;
 
 	// Copies the raw data in a specific threading::Value to position
 	// startpos.
-	int CopyValue(char *data, const int startpos, const threading::Value* val) const;
+	int CopyValue(char* data, const int startpos, const threading::Value* val) const;
 
 	// Convert Threading::Value to an internal Bro Type (works with Records).
-	Val* ValueToVal(const Stream* i, const threading::Value* val, Type* request_type, bool& have_error) const;
+	Val* ValueToVal(const Stream* i, const threading::Value* val, Type* request_type,
+	                bool& have_error) const;
 
 	// Convert Threading::Value to an internal Bro list type.
-	Val* ValueToIndexVal(const Stream* i, int num_fields, const RecordType* type, const threading::Value* const *vals, bool& have_error) const;
+	Val* ValueToIndexVal(const Stream* i, int num_fields, const RecordType* type,
+	                     const threading::Value* const* vals, bool& have_error) const;
 
 	// Converts a threading::value to a record type. Mostly used by
 	// ValueToVal.
-	RecordVal* ValueToRecordVal(const Stream* i, const threading::Value* const *vals, RecordType *request_type, int* position, bool& have_error) const;
+	RecordVal* ValueToRecordVal(const Stream* i, const threading::Value* const* vals,
+	                            RecordType* request_type, int* position, bool& have_error) const;
 
-	Val* RecordValToIndexVal(RecordVal *r) const;
+	Val* RecordValToIndexVal(RecordVal* r) const;
 
 	// Converts a Bro ListVal to a RecordVal given the record type.
-	RecordVal* ListValToRecordVal(ListVal* list, RecordType *request_type, int* position) const;
+	RecordVal* ListValToRecordVal(ListVal* list, RecordType* request_type, int* position) const;
 
 	// Internally signal errors, warnings, etc.
 	// These are sent on to input scriptland and reporter.log
@@ -244,22 +253,34 @@ private:
 	void Warning(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
 	void Error(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
 
-	enum class ErrorType { INFO, WARNING, ERROR };
-	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) const __attribute__((format(printf, 5, 6)));
-	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap) const __attribute__((format(printf, 5, 0)));
+	enum class ErrorType
+		{
+		INFO,
+		WARNING,
+		ERROR
+		};
+	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) const
+		__attribute__((format(printf, 5, 6)));
+	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt,
+	                  va_list ap) const __attribute__((format(printf, 5, 0)));
 
-	Stream* FindStream(const std::string &name) const;
+	Stream* FindStream(const std::string& name) const;
 	Stream* FindStream(ReaderFrontend* reader) const;
 
-	enum StreamType { TABLE_STREAM, EVENT_STREAM, ANALYSIS_STREAM };
+	enum StreamType
+		{
+		TABLE_STREAM,
+		EVENT_STREAM,
+		ANALYSIS_STREAM
+		};
 
 	std::map<ReaderFrontend*, Stream*> readers;
 
 	EventHandlerPtr end_of_data;
-};
+	};
 
-} // namespace input
+	} // namespace input
 
 extern input::Manager* input_mgr;
 
-} // namespace zeek
+	} // namespace zeek

@@ -5,9 +5,11 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::IEEE802_11 {
+namespace zeek::packet_analysis::IEEE802_11
+	{
 
-class IEEE802_11Analyzer : public Analyzer {
+class IEEE802_11Analyzer : public Analyzer
+	{
 public:
 	IEEE802_11Analyzer();
 	~IEEE802_11Analyzer() override = default;
@@ -18,6 +20,6 @@ public:
 		{
 		return std::make_shared<IEEE802_11Analyzer>();
 		}
-};
+	};
 
-}
+	}

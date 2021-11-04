@@ -5,19 +5,18 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::NFLog {
+namespace zeek::packet_analysis::NFLog
+	{
 
-class NFLogAnalyzer : public Analyzer {
+class NFLogAnalyzer : public Analyzer
+	{
 public:
 	NFLogAnalyzer();
 	~NFLogAnalyzer() override = default;
 
 	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
-	static AnalyzerPtr Instantiate()
-		{
-		return std::make_shared<NFLogAnalyzer>();
-		}
-};
+	static AnalyzerPtr Instantiate() { return std::make_shared<NFLogAnalyzer>(); }
+	};
 
-}
+	}

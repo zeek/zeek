@@ -1,44 +1,47 @@
 #include "zeek/logging/WriterFrontend.h"
 
 #include "zeek/RunState.h"
-#include "zeek/threading/SerialTypes.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/WriterBackend.h"
+#include "zeek/threading/SerialTypes.h"
 
-using zeek::threading::Value;
 using zeek::threading::Field;
+using zeek::threading::Value;
 
-namespace zeek::logging  {
+namespace zeek::logging
+	{
 
 // Messages sent from frontend to backend (i.e., "InputMessages").
 
 class InitMessage final : public threading::InputMessage<WriterBackend>
-{
+	{
 public:
 	InitMessage(WriterBackend* backend, const int num_fields, const Field* const* fields)
-		: threading::InputMessage<WriterBackend>("Init", backend),
-		num_fields(num_fields), fields(fields)
-			{}
+		: threading::InputMessage<WriterBackend>("Init", backend), num_fields(num_fields),
+		  fields(fields)
+		{
+		}
 
 	bool Process() override { return Object()->Init(num_fields, fields); }
 
 private:
 	const int num_fields;
-	const Field * const* fields;
-};
+	const Field* const* fields;
+	};
 
 class RotateMessage final : public threading::InputMessage<WriterBackend>
-{
+	{
 public:
-	RotateMessage(WriterBackend* backend, WriterFrontend* frontend, const char* rotated_path, const double open,
-	              const double close, const bool terminating)
-		: threading::InputMessage<WriterBackend>("Rotate", backend),
-		frontend(frontend),
-		rotated_path(util::copy_string(rotated_path)), open(open),
-		close(close), terminating(terminating) { }
+	RotateMessage(WriterBackend* backend, WriterFrontend* frontend, const char* rotated_path,
+	              const double open, const double close, const bool terminating)
+		: threading::InputMessage<WriterBackend>("Rotate", backend), frontend(frontend),
+		  rotated_path(util::copy_string(rotated_path)), open(open), close(close),
+		  terminating(terminating)
+		{
+		}
 
-	virtual ~RotateMessage()	{ delete [] rotated_path; }
+	virtual ~RotateMessage() { delete[] rotated_path; }
 
 	bool Process() override { return Object()->Rotate(rotated_path, open, close, terminating); }
 
@@ -48,47 +51,52 @@ private:
 	const double open;
 	const double close;
 	const bool terminating;
-};
+	};
 
 class WriteMessage final : public threading::InputMessage<WriterBackend>
-{
+	{
 public:
 	WriteMessage(WriterBackend* backend, int num_fields, int num_writes, Value*** vals)
-		: threading::InputMessage<WriterBackend>("Write", backend),
-		num_fields(num_fields), num_writes(num_writes), vals(vals)	{}
+		: threading::InputMessage<WriterBackend>("Write", backend), num_fields(num_fields),
+		  num_writes(num_writes), vals(vals)
+		{
+		}
 
 	bool Process() override { return Object()->Write(num_fields, num_writes, vals); }
 
 private:
 	int num_fields;
 	int num_writes;
-	Value ***vals;
-};
+	Value*** vals;
+	};
 
 class SetBufMessage final : public threading::InputMessage<WriterBackend>
-{
+	{
 public:
 	SetBufMessage(WriterBackend* backend, const bool enabled)
-		: threading::InputMessage<WriterBackend>("SetBuf", backend),
-		enabled(enabled) { }
+		: threading::InputMessage<WriterBackend>("SetBuf", backend), enabled(enabled)
+		{
+		}
 
 	bool Process() override { return Object()->SetBuf(enabled); }
 
 private:
 	const bool enabled;
-};
+	};
 
 class FlushMessage final : public threading::InputMessage<WriterBackend>
-{
+	{
 public:
 	FlushMessage(WriterBackend* backend, double network_time)
-		: threading::InputMessage<WriterBackend>("Flush", backend),
-		network_time(network_time) {}
+		: threading::InputMessage<WriterBackend>("Flush", backend), network_time(network_time)
+		{
+		}
 
 	bool Process() override { return Object()->Flush(network_time); }
+
 private:
 	double network_time;
-};
+	};
 
 // Frontend methods.
 
@@ -131,12 +139,12 @@ WriterFrontend::~WriterFrontend()
 	for ( auto i = 0; i < num_fields; ++i )
 		delete fields[i];
 
-	delete [] fields;
+	delete[] fields;
 
 	Unref(stream);
 	Unref(writer);
 	delete info;
-	delete [] name;
+	delete[] name;
 	}
 
 void WriterFrontend::Stop()
@@ -151,7 +159,7 @@ void WriterFrontend::Stop()
 		}
 	}
 
-void WriterFrontend::Init(int arg_num_fields, const Field* const * arg_fields)
+void WriterFrontend::Init(int arg_num_fields, const Field* const* arg_fields)
 	{
 	if ( disabled )
 		return;
@@ -176,13 +184,8 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const * arg_fields)
 
 	if ( remote )
 		{
-		broker_mgr->PublishLogCreate(stream,
-					     writer,
-					     *info,
-					     arg_num_fields,
-					     arg_fields);
+		broker_mgr->PublishLogCreate(stream, writer, *info, arg_num_fields, arg_fields);
 		}
-
 	}
 
 void WriterFrontend::Write(int arg_num_fields, Value** vals)
@@ -203,11 +206,7 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals)
 
 	if ( remote )
 		{
-		broker_mgr->PublishLogWrite(stream,
-				writer,
-				info->path,
-				num_fields,
-				vals);
+		broker_mgr->PublishLogWrite(stream, writer, info->path, num_fields, vals);
 		}
 
 	if ( ! backend )
@@ -228,7 +227,6 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals)
 	if ( write_buffer_pos >= WRITER_BUFFER_SIZE || ! buf || run_state::terminating )
 		// Buffer full (or no bufferin desired or termiating).
 		FlushWriteBuffer();
-
 	}
 
 void WriterFrontend::FlushWriteBuffer()
@@ -291,7 +289,7 @@ void WriterFrontend::DeleteVals(int num_fields, Value** vals)
 	for ( int i = 0; i < num_fields; i++ )
 		delete vals[i];
 
-	delete [] vals;
+	delete[] vals;
 	}
 
-} // namespace zeek::logging
+	} // namespace zeek::logging

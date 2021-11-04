@@ -3,12 +3,11 @@
 #include <unistd.h>
 #include <cstdlib>
 
-#include "zeek/zeek-setup.h"
-
 #include "zeek/Event.h"
-#include "zeek/session/Manager.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/file_analysis/Manager.h"
+#include "zeek/session/Manager.h"
+#include "zeek/zeek-setup.h"
 
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 	{
@@ -45,7 +44,8 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 	return 0;
 	}
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 void fuzzer_cleanup_one_input()
 	{
@@ -61,4 +61,4 @@ void fuzzer_cleanup_one_input()
 	run_state::terminating = false;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

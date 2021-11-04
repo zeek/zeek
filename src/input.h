@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "zeek/ZeekList.h"
 
@@ -34,7 +34,8 @@ extern void do_doc_token_stop();
 extern int line_number;
 extern const char* filename;
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 class Stmt;
 
@@ -42,10 +43,10 @@ extern int zeek_argc;
 extern char** zeek_argv;
 extern const char* prog;
 
-extern std::vector<std::string> zeek_script_prefixes;	// -p flag
-extern const char* command_line_policy;	// -e flag
+extern std::vector<std::string> zeek_script_prefixes; // -p flag
+extern const char* command_line_policy; // -e flag
 extern std::vector<std::string> params;
 
 extern Stmt* stmts; // global statements
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

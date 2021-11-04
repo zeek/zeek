@@ -1,3 +1,342 @@
+4.2.0-dev.286 | 2021-11-03 09:36:41 -0700
+
+  * GH-693: use pcap_dump_open_append where supported (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.284 | 2021-11-03 09:35:10 -0700
+
+  * GH-1781: Add .git-blame-ignore-revs file (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.280 | 2021-11-01 09:20:16 -0700
+
+  * Fix issue with broken libpcaps that return repeat packets (Tim Wojtulewicz, Corelight)
+
+    This is apparently a problem with the Myricom version of libpcap, where
+    instead of returning a null or a zero if no packets are available, it
+    returns the previous packet. This causes Zeek to improperly parse the
+    packet and crash. We thought we had fixed this previously with a check
+    for a null packet but that fix was not enough.
+
+4.2.0-dev.277 | 2021-10-21 17:23:46 -0700
+
+  * Apply some missing clang-format changes (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.274 | 2021-10-20 11:13:16 -0700
+
+  * Remove trailing whitespace from script files (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.271 | 2021-10-19 14:54:56 +0200
+
+  * Add parsing of DNS SVCB/HTTPS records (FlyingWithJerome)
+
+4.2.0-dev.260 | 2021-10-15 09:45:45 +0100
+
+  * logging/writers/ascii: shadow files: Add fsync() before rename(). This
+    prevents potential problems with leftover files after unclean shutdowns.
+    (Arne Welzel, Corelight)
+
+  * Fix typo in typedef changes that broke tests on 32-bit Debian 9 (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.255 | 2021-10-12 09:22:37 -0700
+
+  * Replace most uses of typedef with using for type aliasing (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.253 | 2021-10-11 11:38:30 -0700
+
+  * Don't initialize private testsuite in CI when not running out of Zeek project (Christian Kreibich, Corelight)
+
+  * Drop FreeBSD 11.4 (now EOL), add FreeBSD 14 as informational build (Christian Kreibich, Corelight)
+
+4.2.0-dev.249 | 2021-10-04 12:47:42 -0700
+
+  * Expand table/set tests to cover new index types (Christian Kreibich, Corelight)
+
+  * Expression tweaks to get complex types to work as container indices (Christian Kreibich, Corelight)
+
+4.2.0-dev.245 | 2021-10-01 14:19:19 -0700
+
+  * Enable customization of the Docker image's configure invocation (Christian Kreibich, Corelight)
+
+  * Add Python Broker module load test to Docker image btests (Christian Kreibich, Corelight)
+
+  * Set PYTHONPATH in Docker to automatically find Zeek's modules (Christian Kreibich, Corelight)
+
+  * Docker image fix: libpython needs to be 3.9 on Debian Bullseye (Christian Kreibich, Corelight)
+
+4.2.0-dev.240 | 2021-10-01 13:28:39 -0700
+
+  * Bump highwayhash submodule to pull in another FreeBSD header fix (Christian Kreibich, Corelight)
+
+  * CI tweak: upgrade curl on FreeBSD to avoid cert expiration (Christian Kreibich, Corelight)
+
+  * CI tweak: add a datestamp to Debian 9 Dockerfiles to invalidate Cirrus build cache (Christian Kreibich, Corelight)
+
+4.2.0-dev.235 | 2021-09-28 10:04:46 -0700
+
+  * GHI-1766: Remove address from Site::private_address_space that converts into 0.0.0.0/0 (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.233 | 2021-09-27 12:06:27 -0700
+
+  * Fix a number of issues with the initial pass of clang-format (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.224 | 2021-09-26 10:27:05 -0700
+
+  * Fix space issue in docker tag computation (Benjamin Bannier, Corelight)
+
+4.2.0-dev.222 | 2021-09-25 11:47:46 -0700
+
+  * Fixing homebrew, again. (Tim Wojtulewicz, Corelight)
+
+    Homebrew apparently requires you to now specify the version of the package
+    you're updating. We previously could just run `brew update openssl` and it
+    would work. Now we must run `brew update openssl@1.1` for the command to
+    succeed.
+
+4.2.0-dev.220 | 2021-09-24 20:49:08 -0700
+
+  * Add .dockerignore to suppress btest artifacts (Christian Kreibich, Corelight)
+
+    We run btest in CI between image build and upload, and since its artifacts
+    weren't suppressed, the discrepancy caused the Dockerfile COPY to cache-miss.
+
+4.2.0-dev.218 | 2021-09-24 11:10:30 -0700
+
+  * Add a minimal containerized Docker environment (Benjamin Bannier, Corelight)
+
+    This patch adds a minimal Zeek environment packaged as a container.
+    Since this is intended both as a base layer for other images and as a
+    quick way to explore Zeek we install only zeek and zkg as basic
+    functionality.
+
+4.2.0-dev.214 | 2021-09-24 10:31:34 -0700
+
+  * script simplification that removes an unnecessary &is_assigned (Vern Paxson, Corelight)
+
+  * removing -uu functionality and associated script analysis now no longer needed (Vern Paxson, Corelight)
+
+4.2.0-dev.208 | 2021-09-23 17:48:13 +0200
+
+  * Fix and extend protocol forwarding/logging in dce_rpc-auth.
+    (FOX-DS)
+
+4.2.0-dev.205 | 2021-09-23 12:24:06 +0200
+
+  * Avoid allocation of duplicate zero-length strings for new
+    connections. (Justin Azoff, Corelight)
+
+  * Sanity-check the method passed into ActiveHTTP. Reported by Pierre
+    Gaulon. (Robin Sommer, Corelight)
+
+4.2.0-dev.203 | 2021-09-21 15:16:49 -0700
+
+  * Sanitize log files names before they go into system(). (Robin Sommer, Corelight)
+
+    In principle, an attacker who's controlling the Zeek scripts being
+    loaded could have set log paths to include non-safe characters leading
+    to arbitrary command execution during log rotation. This fix avoids that
+    be sanitizing the file names / command lines.
+
+    Note, though, that this isn't a problem that we can really solve:
+    somebody controlling scripts can just as well inject custom
+    `system()` calls to begin with.
+
+    Closes #54.
+
+4.2.0-dev.201 | 2021-09-21 15:15:57 -0700
+
+  * PIA - switch size to int64_t (Johanna Amann, Corelight)
+
+    This brings the PIA size counter in line with the actual datatype used
+    on the scripting layer - both now use an int64_t.
+
+  * Introduce dpd_max_packets (Johanna Amann, Corelight)
+
+    dpd_max_packets is an additional setting that limits the maximum amount
+    of packets that dpd will cache; before dpd was only limited by buffer
+    size (but could cache a limitless amount of data-less packets).
+
+4.2.0-dev.198 | 2021-09-21 14:13:21 -0700
+
+  * Use `brew update` instead of `brew update-reset` in CI macOS prepare script (Tim Wojtulewicz, Corelight)
+
+    Using `brew update-reset` causes homebrew to reset to homebrew's HEAD commit, which may
+    be buggy and broken. It appears whatever Cirrus was doing previously on their Catalina
+    VM is no longer a problem, and so update-reset isn't required anymore. Switch to
+    `brew update` to make sure we still get newer versions of the packages, but is
+    actually a versioned release of homebrew.
+
+4.2.0-dev.196 | 2021-09-21 09:44:26 -0700
+
+  * Disable script profiling/coverage on sanitizer builds (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.194 | 2021-09-21 17:56:14 +0200
+
+  * Optimize software framework version parsing by adding a small
+    cache in front of the parse method, and moving the parsing itself
+    to the proxies where the caching can be more efficient. (Justin
+    Azoff, Corelight)
+
+  * Add further mappings for MS-OAUT IDispatch methods. (FOX-DS)
+
+4.2.0-dev.189 | 2021-09-21 07:45:11 -0700
+
+  * Add btests for new functionality (Christian Kreibich, Corelight)
+
+    - Expand language.set to cover sets of sets
+    - Expand language.table to cover tables indexed with tables
+    - Add language.table-nested-set-ordering to capture the reproducer from GHI-1753
+
+  * Remove unused HashKey constructor and reorder for consistency (Christian Kreibich, Corelight)
+
+    One of the HashKey constructors was only used in the old CompHash code.
+    This aso reorders some constructors and the destructor for readability.
+
+  * Refactor CompHash class to use new HashKey buffering features (Christian Kreibich, Corelight)
+
+    This preserves the previous hash key buffer layout (so the testsuite still
+    passes) and overall approach but gets rid of the codepath for writing singleton
+    serializations. This code path required a fourth switch block over all types
+    (besides reads, writes, and size computation) and was inconsistent with the one
+    for writing non-atomic types.
+
+  * Add debug string and ODesc support to HashKey class (Christian Kreibich, Corelight)
+
+    This allows tracing of hash key buffer reservations, reads, and writes via a new
+    debug stream, and supports printing a summary of a HashKey object via
+    Describe(). The latter comes in handy e.g. in TableVal::Describe() (where
+    including the hash key is now available but commented out).
+
+  * Refactor HashKey class to support read/write operations (Christian Kreibich, Corelight)
+
+    This preserves the optimization of storing values directly in the key_u member
+    union when feasible, and using a variable size buffer otherwise. It also adds
+    bounds-checking for that buffer, moves size arguments to size_t, decouples
+    construction from hash computation, emulates the tagging feature found in
+    SerializationFormat to assist troubleshooting, and switches feasible
+    reinterpret_casts to static_casts.
+
+  * Add unit tests for memory helpers (Christian Kreibich, Corelight)
+
+  * Add memory sizing/alignment helpers to util.cc/h (Christian Kreibich, Corelight)
+
+    This functionality previously lived in the CompHash class, with one difference:
+    this removes a discrepancy between the offset aligner and the memory pointer
+    aligner/padder. The size aligner used to align the provided offset and then add an
+    additional alignment size (for example, 1 aligned to 4 wouldn't yield 4 but 8).
+    Like the memory aligners it now only rounds up as needed.
+
+    Includes unit tests.
+
+  * Ensure table/set HashKey buffer reservation and writes happen in same order (Christian Kreibich, Corelight)
+
+    This takes the existing sorting for table index hashkeys we had in place during
+    hash key writes and applies it also during buffer size reservation. It changes
+    the approach slightly: the underlying map now points to the TableVal entry index
+    vals directly, rather than to the numerical index into an additional list that
+    gets built up to store those indexes. Doing so removes the need for that list.
+
+4.2.0-dev.179 | 2021-09-20 11:20:50 +0200
+
+  * Add TSval and TSecr to "SYN_packet" record. (gpotter2)
+
+4.2.0-dev.174 | 2021-09-16 15:36:52 -0700
+
+  * Minor fixes for build problems after reformatting (Tim Wojtulewicz, Corelight)
+
+  * Reformat the world (Tim Wojtulewicz, Corelight)
+
+  * Fixes for includes ahead of reformatting (Tim Wojtulewicz, Corelight)
+
+  * GH-386: Add clang-format config and scripts (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.169 | 2021-09-16 11:15:14 +0200
+
+  * Added four new opnum mappings for MS-OAUT IDispatch methods. (FOX-DS)
+
+  * Reformat docs in addrs.zeek to fix doc generation. (Tim
+    Wojtulewicz, Corelight)
+
+4.2.0-dev.165 | 2021-09-14 18:39:34 -0700
+
+  * Addressed a number of low-level issues found by Coverity and compiler warnings (Vern Paxson, Corelight)
+
+  * Fixed https://github.com/zeek/zeek/issues/1776 (Vern Paxson, Corelight)
+
+4.2.0-dev.159 | 2021-09-14 13:00:50 -0700
+
+  * ignore_checksums_nets: Add test for multiple subnets (Arne Welzel, Corelight)
+
+    This test fails with Zeek 4.1 and Zeek 4.0.3.
+
+4.2.0-dev.157 | 2021-09-08 12:04:45 -0700
+
+  * fix for looping over vectors with holes per https://github.com/zeek/zeek/issues/1763 (Vern Paxson, Corelight)
+
+  * btest for https://github.com/zeek/zeek/issues/1763 (Vern Paxson, Corelight)
+
+4.2.0-dev.154 | 2021-09-08 12:03:51 -0700
+
+  * Fix mis-usage of string::append that leads to an overflow (Tim Wojtulewicz, Corelight)
+
+  * Use json_escape_utf8 for all utf8 data in ODesc (Tim Wojtulewicz, Corelight)
+
+  * Switch the TSV Zeek logs to be UTF8 by default. (Seth Hall, Corelight)
+
+    There is a paired zeek-testing branch for some updates there.
+
+4.2.0-dev.150 | 2021-09-08 11:44:15 -0700
+
+  * Fixes and btests for vector coercion overflows, typing, and holes (Vern Paxson, Corelight)
+
+  * Improve -u reporting, distinguishing between maybe-vs-definite problems (Vern Paxson, Corelight)
+
+  * "-a ZAM" testing baseline alternative (Vern Paxson, Corelight)
+
+  * The main ZAM code, now available via -O ZAM (Vern Paxson, Corelight)
+
+  * Rewrote tracking of variable definition ranges to be much more performant (Vern Paxson, Corelight)
+
+  * Extend ID/Expr/Stmt classes to have associated optimization information (Vern Paxson, Corelight)
+
+4.2.0-dev.112 | 2021-09-03 18:12:12 +0000
+
+  * Add btests for DNS WKS and BINDS (Vlad Grigorescu)
+
+  * Add btest for DNS WKS RR. (Vlad Grigorescu)
+
+  * Add btest for DNS NSEC3PARAM RR. (Vlad Grigorescu)
+
+4.2.0-dev.106 | 2021-09-03 18:10:31 +0000
+
+  * Code modernization: use ranged-based for loop where possible (Vlad Grigorescu)
+
+  * Improve performance of asn1_oid_to_val string conversions. (Vlad Grigorescu)
+
+4.2.0-dev.103 | 2021-09-03 18:08:57 +0000
+
+  * Disable the scripts.base.frameworks.logging.sqlite.simultaneous-writes test under TSan (Tim Wojtulewicz, Corelight)
+
+    Due to a bug (or intentional code) in SQLite, we disabled enabling the shared cache
+    in sqlite3 if running under ThreadSanitizer (see cf1fefbe0b0a6163b389cc92b5a6878c7fc95f1f).
+    Unfortunately, this has the side-effect of breaking the simultaneous-writes test because
+    the shared cache is disabled. This is hopefully a temporary fix until SQLite fixes the
+    issue on their side.
+
+  * Mark MsgThread::cnt_sent_{in,out} as atomic to avoid a data race (Tim Wojtulewicz, Corelight)
+
+  * Disable call to sqlite3_enable_shared_cache under ThreadSanitizer (Tim Wojtulewicz, Corelight)
+
+    See https://sqlite.org/forum/forumpost/54424d80ee for details.
+
+4.2.0-dev.99 | 2021-09-03 17:36:09 +0000
+
+  * GH-1589: Avoid extracting IP-like strings from SMTP headers (Tim Wojtulewicz, Corelight)
+
+  * Minor updates to the external-testsuite scripts (Christian Kreibich, Corelight)
+
+    Delete the unused Baseline folder, remove a Bro-era name from gitignore,
+    change create-new-repo to work with a second argument that is actually
+    a URL, and tweak whitespace. Expand description in README and update the
+    explanation of OPENSSL_ENABLE_MD5_VERIFY in subdir-btest.cfg.
 
 4.2.0-dev.94 | 2021-08-31 15:58:00 +0200
 

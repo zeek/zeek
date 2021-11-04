@@ -2,11 +2,12 @@
 
 #pragma once
 
-#include "zeek/Val.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Stats.h"
+#include "zeek/Val.h"
 
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 extern int watchdog_interval;
 
@@ -82,6 +83,7 @@ extern int sig_max_group_size;
 
 extern int dpd_reassemble_first_packets;
 extern int dpd_buffer_size;
+extern int dpd_max_packets;
 extern int dpd_match_only_beginning;
 extern int dpd_late_match_stop;
 extern int dpd_ignore_ports;
@@ -101,11 +103,11 @@ extern void init_event_handlers();
 extern void init_net_var();
 extern void init_builtin_types();
 
-} // namespace zeek::detail
+	} // namespace zeek::detail
 
 #include "const.bif.netvar_h"
-#include "types.bif.netvar_h"
 #include "event.bif.netvar_h"
+#include "packet_analysis.bif.netvar_h"
 #include "reporter.bif.netvar_h"
 #include "supervisor.bif.netvar_h"
-#include "packet_analysis.bif.netvar_h"
+#include "types.bif.netvar_h"

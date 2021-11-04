@@ -2,15 +2,14 @@
 
 #include "zeek/analyzer/protocol/ntlm/NTLM.h"
 
-#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/Reporter.h"
-
 #include "zeek/analyzer/protocol/ntlm/events.bif.h"
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-namespace zeek::analyzer::ntlm {
+namespace zeek::analyzer::ntlm
+	{
 
-NTLM_Analyzer::NTLM_Analyzer(Connection* c)
-	: analyzer::tcp::TCP_ApplicationAnalyzer("NTLM", c)
+NTLM_Analyzer::NTLM_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer("NTLM", c)
 	{
 	interp = new binpac::NTLM::NTLM_Conn(this);
 	}
@@ -57,4 +56,4 @@ void NTLM_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	interp->NewGap(orig, len);
 	}
 
-} // namespace zeek::analyzer::ntlm
+	} // namespace zeek::analyzer::ntlm

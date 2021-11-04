@@ -4,16 +4,16 @@
 
 #include <pcap.h> // For DLT_ constants
 
-#include "zeek/session/Manager.h"
-#include "zeek/RunState.h"
 #include "zeek/IP.h"
 #include "zeek/Reporter.h"
+#include "zeek/RunState.h"
+#include "zeek/session/Manager.h"
 
 using namespace zeek::packet_analysis::GRE;
 
-static unsigned int gre_header_len(uint16_t flags=0)
+static unsigned int gre_header_len(uint16_t flags = 0)
 	{
-	unsigned int len = 4;  // Always has 2 byte flags and 2 byte protocol type.
+	unsigned int len = 4; // Always has 2 byte flags and 2 byte protocol type.
 
 	if ( flags & 0x8000 )
 		// Checksum/Reserved1 present.
@@ -36,10 +36,7 @@ static unsigned int gre_header_len(uint16_t flags=0)
 	return len;
 	}
 
-GREAnalyzer::GREAnalyzer()
-	: zeek::packet_analysis::Analyzer("GRE")
-	{
-	}
+GREAnalyzer::GREAnalyzer() : zeek::packet_analysis::Analyzer("GRE") { }
 
 bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
@@ -116,7 +113,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 						return false;
 						}
 					}
-				proto_typ = ntohs(*((uint16_t *) (data + gre_len + erspan_len + eth_len - 2)));
+				proto_typ = ntohs(*((uint16_t*)(data + gre_len + erspan_len + eth_len - 2)));
 				}
 			else
 				{
@@ -137,7 +134,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 				auto flags = data + gre_len + erspan_len - 1;
 				bool have_opt_header = ((*flags & 0x01) == 0x01);
 
-				if ( have_opt_header  )
+				if ( have_opt_header )
 					{
 					if ( len > gre_len + erspan_len + 8 + eth_len )
 						erspan_len += 8;

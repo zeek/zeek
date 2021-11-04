@@ -27,7 +27,7 @@ function set_to_regex(ss: set[string], pat: string): pattern
 	for ( s in ss )
 		{
 		local tmp_pattern = convert_for_pattern(s);
-		return_pat = ( i == 0 ) ? 
+		return_pat = ( i == 0 ) ?
 			 tmp_pattern : cat(tmp_pattern, "|", return_pat);
 		++i;
 		}

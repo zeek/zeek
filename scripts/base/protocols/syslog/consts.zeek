@@ -31,7 +31,7 @@ export {
 		[23] =  "LOCAL7",
 		[999] = "UNSPECIFIED",
 	} &default=function(c: count): string { return fmt("?-%d", c); };
-	
+
 	## Mapping between the constants and string values for syslog severities.
 	const severity_codes: table[count] of string = {
 		[0] = "EMERG",

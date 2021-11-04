@@ -3087,14 +3087,14 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 	%}
 
 %%{
-typedef struct {
+struct bro_uuid_t {
 	uint32_t time_low;
 	uint16_t time_mid;
 	uint16_t time_hi_and_version;
 	uint8_t clock_seq_hi_and_reserved;
 	uint8_t clock_seq_low;
 	uint8_t node[6];
-} bro_uuid_t;
+};
 %%}
 
 ## Converts a bytes representation of a UUID into its string form. For example,

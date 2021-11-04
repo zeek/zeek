@@ -4,9 +4,11 @@
 
 #include <cstddef>
 #include <cstdint>
+
 #include "zeek/Hash.h"
 
-namespace zeek::session::detail {
+namespace zeek::session::detail
+	{
 
 struct KeyHash;
 
@@ -20,10 +22,10 @@ struct KeyHash;
  * the data is copied into the object so the lifetime of the key data is
  * guaranteed over the lifetime of the map entry.
  */
-class Key final {
+class Key final
+	{
 public:
-
-	const static size_t CONNECTION_KEY_TYPE=0;
+	const static size_t CONNECTION_KEY_TYPE = 0;
 
 	/**
 	 * Create a new session key from a data pointer.
@@ -38,7 +40,7 @@ public:
 	 * during construction. This defaults to false because normally the only time
 	 * data is copied into the key is when it's inserted into the session map.
 	 */
-	Key(const void* key_data, size_t size, size_t type, bool copy=false);
+	Key(const void* key_data, size_t size, size_t type, bool copy = false);
 
 	~Key();
 
@@ -62,9 +64,7 @@ public:
 	bool operator<(const Key& rhs) const;
 	bool operator==(const Key& rhs) const;
 
-	std::size_t Hash() const {
-		return zeek::detail::HashKey::HashBytes(data, size);
-	}
+	std::size_t Hash() const { return zeek::detail::HashKey::HashBytes(data, size); }
 
 private:
 	friend struct KeyHash;
@@ -73,10 +73,11 @@ private:
 	size_t size = 0;
 	size_t type = CONNECTION_KEY_TYPE;
 	bool copied = false;
-};
+	};
 
-struct KeyHash {
+struct KeyHash
+	{
 	std::size_t operator()(const Key& k) const { return k.Hash(); }
-};
+	};
 
-} // namespace zeek::session::detail
+	} // namespace zeek::session::detail

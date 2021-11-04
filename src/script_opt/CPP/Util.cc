@@ -1,12 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <errno.h>
-#include <unistd.h>
-#include <sys/file.h>
-
 #include "zeek/script_opt/CPP/Util.h"
 
-namespace zeek::detail {
+#include <errno.h>
+#include <sys/file.h>
+#include <unistd.h>
+
+namespace zeek::detail
+	{
 
 using namespace std;
 
@@ -33,13 +34,21 @@ string scope_prefix(int scope)
 	return scope_prefix(to_string(scope));
 	}
 
-bool is_CPP_compilable(const ProfileFunc* pf)
+bool is_CPP_compilable(const ProfileFunc* pf, const char** reason)
 	{
 	if ( pf->NumWhenStmts() > 0 )
+		{
+		if ( reason )
+			*reason = "use of \"when\"";
 		return false;
+		}
 
 	if ( pf->TypeSwitches().size() > 0 )
+		{
+		if ( reason )
+			*reason = "use of type-based \"switch\"";
 		return false;
+		}
 
 	return true;
 	}
@@ -66,4 +75,4 @@ void unlock_file(const string& fname, FILE* f)
 		}
 	}
 
-} // zeek::detail
+	} // zeek::detail

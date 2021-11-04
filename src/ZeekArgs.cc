@@ -1,10 +1,12 @@
 #include "zeek/ZeekArgs.h"
-#include "zeek/Val.h"
-#include "zeek/Type.h"
-#include "zeek/ID.h"
-#include "zeek/Desc.h"
 
-namespace zeek {
+#include "zeek/Desc.h"
+#include "zeek/ID.h"
+#include "zeek/Type.h"
+#include "zeek/Val.h"
+
+namespace zeek
+	{
 
 Args val_list_to_args(const ValPList& vl)
 	{
@@ -17,9 +19,8 @@ Args val_list_to_args(const ValPList& vl)
 	return rval;
 	}
 
-VectorValPtr MakeCallArgumentVector(const Args& vals,
-                                    const RecordTypePtr& types)
-    {
+VectorValPtr MakeCallArgumentVector(const Args& vals, const RecordTypePtr& types)
+	{
 	static auto call_argument_vector = id::find_type<VectorType>("call_argument_vector");
 
 	auto rval = make_intrusive<VectorVal>(call_argument_vector);
@@ -49,6 +50,6 @@ VectorValPtr MakeCallArgumentVector(const Args& vals,
 		}
 
 	return rval;
-    }
+	}
 
-} // namespace zeek
+	} // namespace zeek

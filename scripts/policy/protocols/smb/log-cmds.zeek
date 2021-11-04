@@ -39,7 +39,7 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=-5
 
 	if ( c$smb_state$current_cmd$status in SMB::ignored_command_statuses )
 		return;
-	
+
 	if ( c$smb_state$current_cmd$command in SMB::deferred_logging_cmds )
 		return;
 

@@ -1,1065 +1,922 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
 #include "zeek/CompHash.h"
 
-#include <cstring>
-#include <vector>
-#include <map>
+#include "zeek/zeek-config.h"
 
-#include "zeek/ZeekString.h"
+#include <cstring>
+#include <map>
+#include <vector>
+
 #include "zeek/Dict.h"
-#include "zeek/Val.h"
-#include "zeek/RE.h"
-#include "zeek/Reporter.h"
 #include "zeek/Func.h"
 #include "zeek/IPAddr.h"
+#include "zeek/RE.h"
+#include "zeek/Reporter.h"
+#include "zeek/Val.h"
+#include "zeek/ZeekString.h"
 
-namespace zeek::detail {
-
-CompositeHash::CompositeHash(TypeListPtr composite_type)
-	: type(std::move(composite_type))
+namespace zeek::detail
 	{
-	singleton_tag = TYPE_INTERNAL_ERROR;
 
-	// If the only element is a record or vector, don't treat it as a
-	// singleton, since it needs to be evaluated specially.
+// A comparison callable to assist with consistent iteration order over tables
+// during reservation & writes.
+struct HashKeyComparer
+	{
+	bool operator()(const std::unique_ptr<HashKey>& a, const std::unique_ptr<HashKey>& b) const
+		{
+		if ( a->Hash() != b->Hash() )
+			return a->Hash() < b->Hash();
+		if ( a->Size() != b->Size() )
+			return a->Size() < b->Size();
+		return memcmp(a->Key(), b->Key(), a->Size()) < 0;
+		}
+	};
 
+using HashkeyMap = std::map<std::unique_ptr<HashKey>, ListValPtr, HashKeyComparer>;
+using HashkeyMapPtr = std::unique_ptr<HashkeyMap>;
+
+// Helper that produces a table from HashKeys to the ListVal indexes into the
+// table, that we can iterate over in sorted-Hashkey order.
+const HashkeyMapPtr ordered_hashkeys(const TableVal* tv)
+	{
+	auto res = std::make_unique<HashkeyMap>();
+	auto tbl = tv->AsTable();
+	auto idx = 0;
+
+	for ( const auto& entry : *tbl )
+		{
+		auto k = entry.GetHashKey();
+		// Potential optimization: we could do without the following if
+		// the caller uses k directly to determine key length &
+		// content. But: the way k got serialized might differ somewhat
+		// from how we'll end up doing it (e.g. singleton vs
+		// non-singleton), and looking up a table value with the hashkey
+		// is tricky in case of subnets (consider the special-casing in
+		// TableVal::Find()).
+		auto lv = tv->RecreateIndex(*k);
+		res->insert_or_assign(std::move(k), lv);
+		}
+
+	return res;
+	}
+
+CompositeHash::CompositeHash(TypeListPtr composite_type) : type(std::move(composite_type))
+	{
 	if ( type->GetTypes().size() == 1 )
-		{
-		if ( type->GetTypes()[0]->Tag() == TYPE_RECORD ||
-		     type->GetTypes()[0]->Tag() == TYPE_VECTOR)
-			{
-			is_complex_type = true;
-			is_singleton = false;
-			}
-		else
-			{
-			is_complex_type = false;
-			is_singleton = true;
-			}
-		}
-
-	else
-		{
-		is_singleton = false;
-		is_complex_type = false;
-		}
-
-	if ( is_singleton )
-		{
-		// Don't do any further key computations - we'll do them
-		// via the singleton later.
-		singleton_tag = type->GetTypes()[0]->InternalType();
-		size = 0;
-		key = nullptr;
-		}
-
-	else
-		{
-		size = ComputeKeySize(nullptr, true, true);
-
-		if ( size > 0 )
-			// Fixed size.  Make sure what we get is fully aligned.
-			key = reinterpret_cast<char*>
-				(new double[size/sizeof(double) + 1]);
-		else
-			key = nullptr;
-		}
+		is_singleton = true;
 	}
-
-CompositeHash::~CompositeHash()
-	{
-	delete [] key;
-	}
-
-// Computes the piece of the hash for Val*, returning the new kp.
-char* CompositeHash::SingleValHash(bool type_check, char* kp0,
-                                   Type* bt, Val* v, bool optional) const
-	{
-	char* kp1 = nullptr;
-	InternalTypeTag t = bt->InternalType();
-
-	if ( optional )
-		{
-		// Add a marker saying whether the optional field is set.
-		char* kp = AlignAndPadType<char>(kp0);
-		*kp = ( v ? 1 : 0);
-		kp0 = reinterpret_cast<char*>(kp+1);
-
-		if ( ! v )
-			return kp0;
-		}
-
-	if ( type_check )
-		{
-		InternalTypeTag vt = v->GetType()->InternalType();
-		if ( vt != t )
-			return nullptr;
-		}
-
-	switch ( t ) {
-	case TYPE_INTERNAL_INT:
-		{
-		bro_int_t* kp = AlignAndPadType<bro_int_t>(kp0);
-		*kp = v->AsInt();
-		kp1 = reinterpret_cast<char*>(kp+1);
-		}
-		break;
-
-	case TYPE_INTERNAL_UNSIGNED:
-		{
-		bro_uint_t* kp = AlignAndPadType<bro_uint_t>(kp0);
-		*kp = v->AsCount();
-		kp1 = reinterpret_cast<char*>(kp+1);
-		}
-		break;
-
-	case TYPE_INTERNAL_ADDR:
-		{
-		uint32_t* kp = AlignAndPadType<uint32_t>(kp0);
-		v->AsAddr().CopyIPv6(kp);
-		kp1 = reinterpret_cast<char*>(kp+4);
-		}
-		break;
-
-	case TYPE_INTERNAL_SUBNET:
-		{
-		uint32_t* kp = AlignAndPadType<uint32_t>(kp0);
-		v->AsSubNet().Prefix().CopyIPv6(kp);
-		kp[4] = v->AsSubNet().Length();
-		kp1 = reinterpret_cast<char*>(kp+5);
-		}
-		break;
-
-	case TYPE_INTERNAL_DOUBLE:
-		{
-		double* kp = AlignAndPadType<double>(kp0);
-		*kp = v->InternalDouble();
-		kp1 = reinterpret_cast<char*>(kp+1);
-		}
-		break;
-
-	case TYPE_INTERNAL_VOID:
-	case TYPE_INTERNAL_OTHER:
-		{
-		switch ( v->GetType()->Tag() ) {
-		case TYPE_FUNC:
-			{
-			uint32_t* kp = AlignAndPadType<uint32_t>(kp0);
-			*kp = v->AsFunc()->GetUniqueFuncID();
-			kp1 = reinterpret_cast<char*>(kp+1);
-			break;
-			}
-
-		case TYPE_PATTERN:
-			{
-			const char* texts[2] = {
-				v->AsPattern()->PatternText(),
-				v->AsPattern()->AnywherePatternText()
-			};
-
-			uint64_t* kp;
-			for ( int i = 0; i < 2; i++ )
-				{
-				kp = AlignAndPadType<uint64_t>(kp0+i);
-				*kp = strlen(texts[i]) + 1;
-				}
-
-			kp1 = reinterpret_cast<char*>(kp+1);
-			for ( int i = 0; i < 2; i++ )
-				{
-				memcpy(kp1, texts[i], strlen(texts[i]) + 1);
-				kp1 += strlen(texts[i]) + 1;
-				}
-
-			break;
-			}
-
-		case TYPE_RECORD:
-			{
-			char* kp = kp0;
-			RecordVal* rv = v->AsRecordVal();
-			RecordType* rt = bt->AsRecordType();
-			int num_fields = rt->NumFields();
-
-			for ( int i = 0; i < num_fields; ++i )
-				{
-				auto rv_i = rv->GetField(i);
-
-				Attributes* a = rt->FieldDecl(i)->attrs.get();
-				bool optional_attr = (a && a->Find(ATTR_OPTIONAL));
-
-				if ( ! (rv_i || optional_attr) )
-					return nullptr;
-
-				if ( ! (kp = SingleValHash(type_check, kp,
-							   rt->GetFieldType(i).get(),
-							   rv_i.get(), optional_attr)) )
-					return nullptr;
-				}
-
-			kp1 = kp;
-			break;
-			}
-
-		case TYPE_TABLE:
-			{
-			int* kp = AlignAndPadType<int>(kp0);
-			TableVal* tv = v->AsTableVal();
-			*kp = tv->Size();
-			kp1 = reinterpret_cast<char*>(kp+1);
-
-			auto tbl = tv->AsTable();
-			auto lv = make_intrusive<ListVal>(TYPE_ANY);
-
-			struct HashKeyComparer {
-				bool operator()(const std::unique_ptr<HashKey>& a, const std::unique_ptr<HashKey>& b) const
-					{
-					if ( a->Hash() != b->Hash() )
-						return a->Hash() < b->Hash();
-					if ( a->Size() != b->Size() )
-						return a->Size() < b->Size();
-					return strncmp(static_cast<const char*>(a->Key()),
-					               static_cast<const char*>(b->Key()),
-					               a->Size()) < 0;
-					}
-			};
-
-			std::map<std::unique_ptr<HashKey>, int, HashKeyComparer> hashkeys;
-			auto idx = 0;
-
-			for ( const auto& entry : *tbl )
-				{
-				auto k = entry.GetHashKey();
-				lv->Append(tv->RecreateIndex(*k));
-				hashkeys[std::move(k)] = idx++;
-				}
-
-			for ( auto& kv : hashkeys )
-				{
-				auto idx = kv.second;
-				const auto& key = lv->Idx(idx);
-
-				if ( ! (kp1 = SingleValHash(type_check, kp1, key->GetType().get(),
-				                            key.get(), false)) )
-					return nullptr;
-
-				if ( ! v->GetType()->IsSet() )
-					{
-					auto val = tv->FindOrDefault(key);
-
-					if ( ! (kp1 = SingleValHash(type_check, kp1, val->GetType().get(),
-					                            val.get(), false)) )
-						return nullptr;
-					}
-				}
-			}
-			break;
-
-		case TYPE_VECTOR:
-			{
-			unsigned int* kp = AlignAndPadType<unsigned int>(kp0);
-			VectorVal* vv = v->AsVectorVal();
-			VectorType* vt = v->GetType()->AsVectorType();
-			*kp = vv->Size();
-			kp1 = reinterpret_cast<char*>(kp+1);
-			for ( unsigned int i = 0; i < vv->Size(); ++i )
-				{
-				auto val = vv->ValAt(i);
-				unsigned int* kp = AlignAndPadType<unsigned int>(kp1);
-				*kp = i;
-				kp1 = reinterpret_cast<char*>(kp+1);
-				kp = AlignAndPadType<unsigned int>(kp1);
-				*kp = val ? 1 : 0;
-				kp1 = reinterpret_cast<char*>(kp+1);
-
-				if ( val )
-					{
-					if ( ! (kp1 = SingleValHash(type_check, kp1,
-					                            vt->Yield().get(), val.get(),
-					                            false)) )
-						return nullptr;
-					}
-				}
-			}
-			break;
-
-		case TYPE_LIST:
-			{
-			int* kp = AlignAndPadType<int>(kp0);
-			ListVal* lv = v->AsListVal();
-			*kp = lv->Length();
-			kp1 = reinterpret_cast<char*>(kp+1);
-			for ( int i = 0; i < lv->Length(); ++i )
-				{
-				Val* entry_val = lv->Idx(i).get();
-				if ( ! (kp1 = SingleValHash(type_check, kp1, entry_val->GetType().get(),
-				                            entry_val, false)) )
-					return nullptr;
-				}
-			}
-			break;
-
-		default:
-			{
-			reporter->InternalError("bad index type in CompositeHash::SingleValHash");
-			return nullptr;
-			}
-		}
-
-		break; // case TYPE_INTERNAL_VOID/OTHER
-		}
-
-	case TYPE_INTERNAL_STRING:
-		{
-		// Align to int for the length field.
-		int* kp = AlignAndPadType<int>(kp0);
-		const String* sval = v->AsString();
-
-		*kp = sval->Len();	// so we can recover the value
-
-		kp1 = reinterpret_cast<char*>(kp+1);
-
-		memcpy(kp1, sval->Bytes(), sval->Len());
-		kp1 += sval->Len();
-		}
-		break;
-
-	case TYPE_INTERNAL_ERROR:
-		return nullptr;
-	}
-
-	return kp1;
-	}
-
 
 std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const Val& argv, bool type_check) const
 	{
-	auto v = &argv;
-
-	if ( is_singleton )
-		return ComputeSingletonHash(v, type_check);
-
-	if ( is_complex_type && v->GetType()->Tag() != TYPE_LIST )
-		{
-		ListVal lv(TYPE_ANY);
-
-		// Cast away const to use ListVal - but since we
-		// re-introduce const on the recursive call, it should
-		// be okay; the only thing is that the ListVal unref's it.
-		Val* ncv = (Val*) v;
-		lv.Append({NewRef{}, ncv});
-		return MakeHashKey(lv, type_check);
-		}
-
-	char* k = key;
-
-	if ( ! k )
-		{
-		int sz = ComputeKeySize(v, type_check, false);
-		if ( sz == 0 )
-			return nullptr;
-
-		k = reinterpret_cast<char*>(new double[sz/sizeof(double) + 1]);
-		type_check = false;	// no need to type-check again.
-		}
-
+	auto res = std::make_unique<HashKey>();
 	const auto& tl = type->GetTypes();
 
-	if ( type_check && v->GetType()->Tag() != TYPE_LIST )
-		return nullptr;
-
-	auto lv = v->AsListVal();
-
-	if ( type_check && lv->Length() != static_cast<int>(tl.size()) )
-		return nullptr;
-
-	char* kp = k;
-	for ( auto i = 0u; i < tl.size(); ++i )
+	if ( is_singleton )
 		{
-		kp = SingleValHash(type_check, kp, tl[i].get(), lv->Idx(i).get(), false);
-		if ( ! kp )
-			return nullptr;
-		}
+		const Val* v = &argv;
 
-	return std::make_unique<HashKey>((k == key), (void*) k, kp - k);
-	}
-
-std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) const
-	{
-	if ( v->GetType()->Tag() == TYPE_LIST )
-		{
-		auto lv = v->AsListVal();
-
-		if ( type_check && lv->Length() != 1 )
-			return nullptr;
-
-		v = lv->Idx(0).get();
-		}
-
-	if ( type_check && v->GetType()->InternalType() != singleton_tag )
-		return nullptr;
-
-	switch ( singleton_tag ) {
-	case TYPE_INTERNAL_INT:
-		return std::make_unique<HashKey>(v->AsInt());
-
-	case TYPE_INTERNAL_UNSIGNED:
-		return std::make_unique<HashKey>(v->AsCount());
-
-	case TYPE_INTERNAL_ADDR:
-		return v->AsAddr().MakeHashKey();
-
-	case TYPE_INTERNAL_SUBNET:
-		return v->AsSubNet().MakeHashKey();
-
-	case TYPE_INTERNAL_DOUBLE:
-		return std::make_unique<HashKey>(v->InternalDouble());
-
-	case TYPE_INTERNAL_VOID:
-	case TYPE_INTERNAL_OTHER:
-		if ( v->GetType()->Tag() == TYPE_FUNC )
-			return std::make_unique<HashKey>(v->AsFunc()->GetUniqueFuncID());
-
-		if ( v->GetType()->Tag() == TYPE_PATTERN )
+		// This is the "singleton" case -- actually just a single value
+		// that may come bundled in a list. If so, unwrap it.
+		if ( v->GetType()->Tag() == TYPE_LIST )
 			{
-			const char* texts[2] = {
-				v->AsPattern()->PatternText(),
-				v->AsPattern()->AnywherePatternText()
-			};
-			int n = strlen(texts[0]) + strlen(texts[1]) + 2; // 2 for null
-			char* key = new char[n];
-			std::memcpy(key, texts[0], strlen(texts[0]) + 1);
-			std::memcpy(key + strlen(texts[0]) + 1, texts[1], strlen(texts[1]) + 1);
-			return std::make_unique<HashKey>(false, key, n);
+			auto lv = v->AsListVal();
+
+			if ( type_check && lv->Length() != 1 )
+				return nullptr;
+
+			v = lv->Idx(0).get();
 			}
 
-		reporter->InternalError("bad index type in CompositeHash::ComputeSingletonHash");
+		if ( SingleValHash(*res, v, tl[0].get(), type_check, false, true) )
+			return res;
+
+		return nullptr;
+		}
+
+	if ( type_check && argv.GetType()->Tag() != TYPE_LIST )
 		return nullptr;
 
-	case TYPE_INTERNAL_STRING:
-		return std::make_unique<HashKey>(v->AsString());
-
-	case TYPE_INTERNAL_ERROR:
+	if ( ! ReserveKeySize(*res, &argv, type_check, false) )
 		return nullptr;
 
-	default:
-		reporter->InternalError("bad internal type in CompositeHash::ComputeSingletonHash");
-		return nullptr;
+	// Size computation has done requested type-checking, no further need
+	type_check = false;
+
+	// The size computation resulted in a requested buffer size; allocate it.
+	res->Allocate();
+
+	for ( auto i = 0u; i < tl.size(); ++i )
+		{
+		if ( ! SingleValHash(*res, argv.AsListVal()->Idx(i).get(), tl[i].get(), type_check, false,
+		                     false) )
+			return nullptr;
+		}
+
+	return res;
 	}
-	}
 
-int CompositeHash::SingleTypeKeySize(Type* bt, const Val* v,
-                                     bool type_check, int sz, bool optional,
-                                     bool calc_static_size) const
+ListValPtr CompositeHash::RecoverVals(const HashKey& hk) const
 	{
-	InternalTypeTag t = bt->InternalType();
+	auto l = make_intrusive<ListVal>(TYPE_ANY);
+	const auto& tl = type->GetTypes();
+
+	hk.ResetRead();
+
+	for ( const auto& type : tl )
+		{
+		ValPtr v;
+
+		if ( ! RecoverOneVal(hk, type.get(), &v, false, is_singleton) )
+			reporter->InternalError("value recovery failure in CompositeHash::RecoverVals");
+
+		ASSERT(v);
+		l->Append(std::move(v));
+		}
+
+	return l;
+	}
+
+bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool optional,
+                                  bool singleton) const
+	{
+	TypeTag tag = t->Tag();
+	InternalTypeTag it = t->InternalType();
 
 	if ( optional )
-		sz = SizeAlign(sz, sizeof(char));
+		{
+		bool opt;
+		hk.Read("optional", opt);
+
+		if ( ! opt )
+			{
+			*pval = nullptr;
+			return true;
+			}
+		}
+
+	switch ( it )
+		{
+		case TYPE_INTERNAL_INT:
+			{
+			bro_int_t i;
+			hk.Read("int", i);
+
+			if ( tag == TYPE_ENUM )
+				*pval = t->AsEnumType()->GetEnumVal(i);
+			else if ( tag == TYPE_BOOL )
+				*pval = val_mgr->Bool(i);
+			else if ( tag == TYPE_INT )
+				*pval = val_mgr->Int(i);
+			else
+				{
+				reporter->InternalError(
+					"bad internal unsigned int in CompositeHash::RecoverOneVal()");
+				*pval = nullptr;
+				return false;
+				}
+			}
+			break;
+
+		case TYPE_INTERNAL_UNSIGNED:
+			{
+			bro_uint_t u;
+			hk.Read("unsigned", u);
+
+			switch ( tag )
+				{
+				case TYPE_COUNT:
+					*pval = val_mgr->Count(u);
+					break;
+
+				case TYPE_PORT:
+					*pval = val_mgr->Port(u);
+					break;
+
+				default:
+					reporter->InternalError(
+						"bad internal unsigned int in CompositeHash::RecoverOneVal()");
+					*pval = nullptr;
+					return false;
+				}
+			}
+			break;
+
+		case TYPE_INTERNAL_DOUBLE:
+			{
+			double d;
+			hk.Read("double", d);
+
+			if ( tag == TYPE_INTERVAL )
+				*pval = make_intrusive<IntervalVal>(d, 1.0);
+			else if ( tag == TYPE_TIME )
+				*pval = make_intrusive<TimeVal>(d);
+			else
+				*pval = make_intrusive<DoubleVal>(d);
+			}
+			break;
+
+		case TYPE_INTERNAL_ADDR:
+			{
+			hk.AlignRead(sizeof(uint32_t));
+			hk.EnsureReadSpace(sizeof(uint32_t) * 4);
+			IPAddr addr(IPv6, static_cast<const uint32_t*>(hk.KeyAtRead()), IPAddr::Network);
+			hk.SkipRead("addr", sizeof(uint32_t) * 4);
+
+			switch ( tag )
+				{
+				case TYPE_ADDR:
+					*pval = make_intrusive<AddrVal>(addr);
+					break;
+
+				default:
+					reporter->InternalError(
+						"bad internal address in CompositeHash::RecoverOneVal()");
+					*pval = nullptr;
+					return false;
+				}
+			}
+			break;
+
+		case TYPE_INTERNAL_SUBNET:
+			{
+			hk.AlignRead(sizeof(uint32_t));
+			hk.EnsureReadSpace(sizeof(uint32_t) * 4);
+			IPAddr addr(IPv6, static_cast<const uint32_t*>(hk.KeyAtRead()), IPAddr::Network);
+			hk.SkipRead("subnet", sizeof(uint32_t) * 4);
+
+			uint32_t width;
+			hk.Read("subnet-width", width);
+			*pval = make_intrusive<SubNetVal>(addr, width);
+			}
+			break;
+
+		case TYPE_INTERNAL_VOID:
+		case TYPE_INTERNAL_OTHER:
+			{
+			switch ( t->Tag() )
+				{
+				case TYPE_FUNC:
+					{
+					uint32_t id;
+					hk.Read("func", id);
+					const auto& f = Func::GetFuncPtrByID(id);
+
+					if ( ! f )
+						reporter->InternalError("failed to look up unique function id %" PRIu32
+						                        " in CompositeHash::RecoverOneVal()",
+						                        id);
+
+					*pval = make_intrusive<FuncVal>(f);
+					const auto& pvt = (*pval)->GetType();
+
+					if ( ! pvt )
+						reporter->InternalError(
+							"bad aggregate Val in CompositeHash::RecoverOneVal()");
+
+					else if ( t->Tag() != TYPE_FUNC && ! same_type(pvt, t) )
+						// ### Maybe fix later, but may be fundamentally un-checkable --US
+						{
+						reporter->InternalError(
+							"inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
+						*pval = nullptr;
+						return false;
+						}
+
+					// ### A crude approximation for now.
+					else if ( t->Tag() == TYPE_FUNC && pvt->Tag() != TYPE_FUNC )
+						{
+						reporter->InternalError(
+							"inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
+						*pval = nullptr;
+						return false;
+						}
+					}
+					break;
+
+				case TYPE_PATTERN:
+					{
+					const char* texts[2] = {nullptr, nullptr};
+					uint64_t lens[2] = {0, 0};
+
+					if ( ! singleton )
+						{
+						hk.Read("pattern-len1", lens[0]);
+						hk.Read("pattern-len2", lens[1]);
+						}
+
+					texts[0] = static_cast<const char*>(hk.KeyAtRead());
+					hk.SkipRead("pattern-string1", strlen(texts[0]) + 1);
+					texts[1] = static_cast<const char*>(hk.KeyAtRead());
+					hk.SkipRead("pattern-string2", strlen(texts[1]) + 1);
+
+					RE_Matcher* re = new RE_Matcher(texts[0], texts[1]);
+
+					if ( ! re->Compile() )
+						reporter->InternalError("failed compiling table/set key pattern: %s",
+						                        re->PatternText());
+
+					*pval = make_intrusive<PatternVal>(re);
+					}
+					break;
+
+				case TYPE_RECORD:
+					{
+					auto rt = t->AsRecordType();
+					int num_fields = rt->NumFields();
+
+					std::vector<ValPtr> values;
+					int i;
+					for ( i = 0; i < num_fields; ++i )
+						{
+						ValPtr v;
+						Attributes* a = rt->FieldDecl(i)->attrs.get();
+						bool optional = (a && a->Find(ATTR_OPTIONAL));
+
+						if ( ! RecoverOneVal(hk, rt->GetFieldType(i).get(), &v, optional, false) )
+							{
+							*pval = nullptr;
+							return false;
+							}
+
+						// An earlier call to reporter->InternalError would have called
+						// abort() and broken the call tree that clang-tidy is relying on to
+						// get the error described.
+						// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Branch)
+						if ( ! (v || optional) )
+							{
+							reporter->InternalError(
+								"didn't recover expected number of fields from HashKey");
+							*pval = nullptr;
+							return false;
+							}
+
+						values.emplace_back(std::move(v));
+						}
+
+					ASSERT(int(values.size()) == num_fields);
+
+					auto rv = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
+
+					for ( int i = 0; i < num_fields; ++i )
+						rv->Assign(i, std::move(values[i]));
+
+					*pval = std::move(rv);
+					}
+					break;
+
+				case TYPE_TABLE:
+					{
+					int n;
+					hk.Read("table-size", n);
+					auto tt = t->AsTableType();
+					auto tv = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
+
+					for ( int i = 0; i < n; ++i )
+						{
+						ValPtr key;
+						if ( ! RecoverOneVal(hk, tt->GetIndices().get(), &key, false, false) )
+							{
+							*pval = nullptr;
+							return false;
+							}
+
+						if ( t->IsSet() )
+							tv->Assign(std::move(key), nullptr);
+						else
+							{
+							ValPtr value;
+							if ( ! RecoverOneVal(hk, tt->Yield().get(), &value, false, false) )
+								{
+								*pval = nullptr;
+								return false;
+								}
+							tv->Assign(std::move(key), std::move(value));
+							}
+						}
+
+					*pval = std::move(tv);
+					}
+					break;
+
+				case TYPE_VECTOR:
+					{
+					unsigned int n;
+					hk.Read("vector-size", n);
+					auto vt = t->AsVectorType();
+					auto vv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
+
+					for ( unsigned int i = 0; i < n; ++i )
+						{
+						unsigned int index;
+						hk.Read("vector-idx", index);
+						bool have_val;
+						hk.Read("vector-idx-present", have_val);
+						ValPtr value;
+
+						if ( have_val &&
+						     ! RecoverOneVal(hk, vt->Yield().get(), &value, false, false) )
+							{
+							*pval = nullptr;
+							return false;
+							}
+
+						vv->Assign(index, std::move(value));
+						}
+
+					*pval = std::move(vv);
+					}
+					break;
+
+				case TYPE_LIST:
+					{
+					int n;
+					hk.Read("list-size", n);
+					auto tl = t->AsTypeList();
+					auto lv = make_intrusive<ListVal>(TYPE_ANY);
+
+					for ( int i = 0; i < n; ++i )
+						{
+						ValPtr v;
+						Type* it = tl->GetTypes()[i].get();
+						if ( ! RecoverOneVal(hk, it, &v, false, false) )
+							return false;
+						lv->Append(std::move(v));
+						}
+
+					*pval = std::move(lv);
+					}
+					break;
+
+				default:
+					{
+					reporter->InternalError("bad index type in CompositeHash::RecoverOneVal");
+					*pval = nullptr;
+					return false;
+					}
+				}
+			}
+			break;
+
+		case TYPE_INTERNAL_STRING:
+			{
+			int n = hk.Size();
+
+			if ( ! singleton )
+				{
+				hk.Read("string-len", n);
+				hk.EnsureReadSpace(n);
+				}
+
+			*pval = make_intrusive<StringVal>(new String((const byte_vec)hk.KeyAtRead(), n, true));
+			hk.SkipRead("string", n);
+			}
+			break;
+
+		case TYPE_INTERNAL_ERROR:
+			break;
+		}
+
+	return true;
+	}
+
+bool CompositeHash::SingleValHash(HashKey& hk, const Val* v, Type* bt, bool type_check,
+                                  bool optional, bool singleton) const
+	{
+	InternalTypeTag t = bt->InternalType();
 
 	if ( type_check && v )
 		{
 		InternalTypeTag vt = v->GetType()->InternalType();
 		if ( vt != t )
-			return 0;
+			return false;
 		}
-
-	switch ( t ) {
-	case TYPE_INTERNAL_INT:
-	case TYPE_INTERNAL_UNSIGNED:
-		sz = SizeAlign(sz, sizeof(bro_int_t));
-		break;
-
-	case TYPE_INTERNAL_ADDR:
-		sz = SizeAlign(sz, sizeof(uint32_t));
-		sz += sizeof(uint32_t) * 3;	// to make a total of 4 words
-		break;
-
-	case TYPE_INTERNAL_SUBNET:
-		sz = SizeAlign(sz, sizeof(uint32_t));
-		sz += sizeof(uint32_t) * 4;	// to make a total of 5 words
-		break;
-
-	case TYPE_INTERNAL_DOUBLE:
-		sz = SizeAlign(sz, sizeof(double));
-		break;
-
-	case TYPE_INTERNAL_VOID:
-	case TYPE_INTERNAL_OTHER:
-		{
-		switch ( bt->Tag() ) {
-		case TYPE_FUNC:
-			{
-			sz = SizeAlign(sz, sizeof(uint32_t));
-			break;
-			}
-
-		case TYPE_PATTERN:
-			{
-			if ( ! v )
-				return (optional && ! calc_static_size) ? sz : 0;
-
-			sz = SizeAlign(sz, 2 * sizeof(uint64_t));
-			sz += strlen(v->AsPattern()->PatternText())
-				+ strlen(v->AsPattern()->AnywherePatternText()) + 2; // 2 for null terminators
-			break;
-			}
-
-		case TYPE_RECORD:
-			{
-			if ( ! v )
-				return (optional && ! calc_static_size) ? sz : 0;
-
-			const RecordVal* rv = v->AsRecordVal();
-			RecordType* rt = bt->AsRecordType();
-			int num_fields = rt->NumFields();
-
-			for ( int i = 0; i < num_fields; ++i )
-				{
-				Attributes* a = rt->FieldDecl(i)->attrs.get();
-				bool optional_attr = (a && a->Find(ATTR_OPTIONAL));
-
-				auto rv_v = rv ? rv->GetField(i) : nullptr;
-				sz = SingleTypeKeySize(rt->GetFieldType(i).get(),
-						       rv_v.get(),
-						       type_check, sz, optional_attr,
-						       calc_static_size);
-				if ( ! sz )
-					return 0;
-				}
-
-			break;
-			}
-
-		case TYPE_TABLE:
-			{
-			if ( ! v )
-				return (optional && ! calc_static_size) ? sz : 0;
-
-			sz = SizeAlign(sz, sizeof(int));
-			TableVal* tv = const_cast<TableVal*>(v->AsTableVal());
-			auto lv = tv->ToListVal();
-			for ( int i = 0; i < tv->Size(); ++i )
-				{
-				const auto& key = lv->Idx(i);
-				sz = SingleTypeKeySize(key->GetType().get(), key.get(), type_check, sz, false,
-				                       calc_static_size);
-				if ( ! sz )
-					return 0;
-
-				if ( ! bt->IsSet() )
-					{
-					auto val = tv->FindOrDefault(key);
-					sz = SingleTypeKeySize(val->GetType().get(), val.get(), type_check, sz,
-					                       false, calc_static_size);
-					if ( ! sz )
-						return 0;
-					}
-				}
-
-			break;
-			}
-
-		case TYPE_VECTOR:
-			{
-			if ( ! v )
-				return (optional && ! calc_static_size) ? sz : 0;
-
-			sz = SizeAlign(sz, sizeof(unsigned int));
-			VectorVal* vv = const_cast<VectorVal*>(v->AsVectorVal());
-			for ( unsigned int i = 0; i < vv->Size(); ++i )
-				{
-				auto val = vv->ValAt(i);
-				sz = SizeAlign(sz, sizeof(unsigned int));
-				sz = SizeAlign(sz, sizeof(unsigned int));
-				if ( val )
-					sz = SingleTypeKeySize(bt->AsVectorType()->Yield().get(),
-					                       val.get(), type_check, sz, false,
-					                       calc_static_size);
-				if ( ! sz ) return 0;
-				}
-
-			break;
-			}
-
-		case TYPE_LIST:
-			{
-			if ( ! v )
-				return (optional && ! calc_static_size) ? sz : 0;
-
-			sz = SizeAlign(sz, sizeof(int));
-			ListVal* lv = const_cast<ListVal*>(v->AsListVal());
-			for ( int i = 0; i < lv->Length(); ++i )
-				{
-				sz = SingleTypeKeySize(lv->Idx(i)->GetType().get(), lv->Idx(i).get(),
-				                       type_check, sz, false, calc_static_size);
-				if ( ! sz) return 0;
-				}
-
-			break;
-			}
-
-		default:
-			{
-			reporter->InternalError("bad index type in CompositeHash::CompositeHash");
-			return 0;
-			}
-		}
-
-		break; // case TYPE_INTERNAL_VOID/OTHER
-		}
-
-	case TYPE_INTERNAL_STRING:
-		if ( ! v )
-			return (optional && ! calc_static_size) ? sz : 0;
-
-		// Factor in length field.
-		sz = SizeAlign(sz, sizeof(int));
-		sz += v->AsString()->Len();
-		break;
-
-	case TYPE_INTERNAL_ERROR:
-		return 0;
-	}
-
-	return sz;
-	}
-
-int CompositeHash::ComputeKeySize(const Val* v, bool type_check, bool calc_static_size) const
-	{
-	const auto& tl = type->GetTypes();
-
-	if ( v )
-		{
-		if ( type_check && v->GetType()->Tag() != TYPE_LIST )
-			return 0;
-
-		auto lv = v->AsListVal();
-
-		if ( type_check && lv->Length() != static_cast<int>(tl.size()) )
-			return 0;
-		}
-
-	int sz = 0;
-	for ( auto i = 0u; i < tl.size(); ++i )
-		{
-		sz = SingleTypeKeySize(tl[i].get(), v ? v->AsListVal()->Idx(i).get() : nullptr,
-				       type_check, sz, false, calc_static_size);
-		if ( ! sz )
-			return 0;
-		}
-
-	return sz;
-	}
-
-namespace
-	{
-	inline bool is_power_of_2(bro_uint_t x)
-		{
-		return ((x - 1) & x) == 0;
-		}
-	}
-
-const void* CompositeHash::Align(const char* ptr, unsigned int size) const
-	{
-	if ( ! size )
-		return ptr;
-
-	ASSERT(is_power_of_2(size));
-
-	unsigned int mask = size - 1;	// Assume size is a power of 2.
-	unsigned long l_ptr = reinterpret_cast<unsigned long>(ptr);
-	unsigned long offset = l_ptr & mask;
-
-	if ( offset > 0 )
-		return reinterpret_cast<const void*>(ptr - offset + size);
-	else
-		return reinterpret_cast<const void*>(ptr);
-	}
-
-void* CompositeHash::AlignAndPad(char* ptr, unsigned int size) const
-	{
-	if ( ! size )
-		return ptr;
-
-	ASSERT(is_power_of_2(size));
-
-	unsigned int mask = size - 1;	// Assume size is a power of 2.
-	while ( (reinterpret_cast<unsigned long>(ptr) & mask) != 0 )
-		// Not aligned - zero pad.
-		*ptr++ = '\0';
-
-	return reinterpret_cast<void *>(ptr);
-	}
-
-int CompositeHash::SizeAlign(int offset, unsigned int size) const
-	{
-	if ( ! size )
-		return offset;
-
-	ASSERT(is_power_of_2(size));
-
-	unsigned int mask = size - 1;	// Assume size is a power of 2.
-	if ( offset & mask )
-		{
-		offset &= ~mask;	// Round down.
-		offset += size;		// Round up.
-		}
-
-	offset += size;		// Add in size.
-
-	return offset;
-	}
-
-ListValPtr CompositeHash::RecoverVals(const HashKey& k) const
-	{
-	auto l = make_intrusive<ListVal>(TYPE_ANY);
-	const auto& tl = type->GetTypes();
-	const char* kp = (const char*) k.Key();
-	const char* const k_end = kp + k.Size();
-
-	for ( const auto& type : tl )
-		{
-		ValPtr v;
-		kp = RecoverOneVal(k, kp, k_end, type.get(), &v, false);
-		ASSERT(v);
-		l->Append(std::move(v));
-		}
-
-	if ( kp != k_end )
-		reporter->InternalError("under-ran key in CompositeHash::DescribeKey %zd", k_end - kp);
-
-	return l;
-	}
-
-const char* CompositeHash::RecoverOneVal(
-	const HashKey& k, const char* kp0,
-	const char* const k_end, Type* t,
-	ValPtr* pval, bool optional) const
-	{
-	// k->Size() == 0 for a single empty string.
-	if ( kp0 >= k_end && k.Size() > 0 )
-		reporter->InternalError("over-ran key in CompositeHash::RecoverVals");
-
-	TypeTag tag = t->Tag();
-	InternalTypeTag it = t->InternalType();
-	const char* kp1 = nullptr;
 
 	if ( optional )
 		{
-		const char* kp = AlignType<char>(kp0);
-		kp0 = kp1 = reinterpret_cast<const char*>(kp+1);
+		// Add a marker saying whether the optional field is set.
+		hk.Write("optional", v != nullptr);
 
-		if ( ! *kp )
+		if ( ! v )
+			return true;
+		}
+
+	switch ( t )
+		{
+		case TYPE_INTERNAL_INT:
+			hk.Write("int", v->AsInt());
+			break;
+
+		case TYPE_INTERNAL_UNSIGNED:
+			hk.Write("unsigned", v->AsCount());
+			break;
+
+		case TYPE_INTERNAL_ADDR:
+			if ( ! EnsureTypeReserve(hk, v, bt, type_check) )
+				return false;
+
+			hk.AlignWrite(sizeof(uint32_t));
+			hk.EnsureWriteSpace(sizeof(uint32_t) * 4);
+			v->AsAddr().CopyIPv6(static_cast<uint32_t*>(hk.KeyAtWrite()));
+			hk.SkipWrite("addr", sizeof(uint32_t) * 4);
+			break;
+
+		case TYPE_INTERNAL_SUBNET:
+			if ( ! EnsureTypeReserve(hk, v, bt, type_check) )
+				return false;
+
+			hk.AlignWrite(sizeof(uint32_t));
+			hk.EnsureWriteSpace(sizeof(uint32_t) * 5);
+			v->AsSubNet().Prefix().CopyIPv6(static_cast<uint32_t*>(hk.KeyAtWrite()));
+			hk.SkipWrite("subnet", sizeof(uint32_t) * 4);
+			hk.Write("subnet-width", v->AsSubNet().Length());
+			break;
+
+		case TYPE_INTERNAL_DOUBLE:
+			hk.Write("double", v->InternalDouble());
+			break;
+
+		case TYPE_INTERNAL_VOID:
+		case TYPE_INTERNAL_OTHER:
 			{
-			*pval = nullptr;
-			return kp0;
-			}
-		}
-
-	switch ( it ) {
-	case TYPE_INTERNAL_INT:
-		{
-		const bro_int_t* const kp = AlignType<bro_int_t>(kp0);
-		kp1 = reinterpret_cast<const char*>(kp+1);
-
-		if ( tag == TYPE_ENUM )
-			*pval = t->AsEnumType()->GetEnumVal(*kp);
-		else if ( tag == TYPE_BOOL )
-			*pval = val_mgr->Bool(*kp);
-		else if ( tag == TYPE_INT )
-			*pval = val_mgr->Int(*kp);
-		else
-			{
-			reporter->InternalError("bad internal unsigned int in CompositeHash::RecoverOneVal()");
-			*pval = nullptr;
-			}
-		}
-		break;
-
-	case TYPE_INTERNAL_UNSIGNED:
-		{
-		const bro_uint_t* const kp = AlignType<bro_uint_t>(kp0);
-		kp1 = reinterpret_cast<const char*>(kp+1);
-
-		switch ( tag ) {
-		case TYPE_COUNT:
-			*pval = val_mgr->Count(*kp);
-			break;
-
-		case TYPE_PORT:
-			*pval = val_mgr->Port(*kp);
-			break;
-
-		default:
-			reporter->InternalError("bad internal unsigned int in CompositeHash::RecoverOneVal()");
-			*pval = nullptr;
-			break;
-		}
-		}
-		break;
-
-	case TYPE_INTERNAL_DOUBLE:
-		{
-		const double* const kp = AlignType<double>(kp0);
-		kp1 = reinterpret_cast<const char*>(kp+1);
-
-		if ( tag == TYPE_INTERVAL )
-			*pval = make_intrusive<IntervalVal>(*kp, 1.0);
-		else if ( tag == TYPE_TIME )
-			*pval = make_intrusive<TimeVal>(*kp);
-		else
-			*pval = make_intrusive<DoubleVal>(*kp);
-		}
-		break;
-
-	case TYPE_INTERNAL_ADDR:
-		{
-		const uint32_t* const kp = AlignType<uint32_t>(kp0);
-		kp1 = reinterpret_cast<const char*>(kp+4);
-
-		IPAddr addr(IPv6, kp, IPAddr::Network);
-
-		switch ( tag ) {
-		case TYPE_ADDR:
-			*pval = make_intrusive<AddrVal>(addr);
-			break;
-
-		default:
-			reporter->InternalError("bad internal address in CompositeHash::RecoverOneVal()");
-			*pval = nullptr;
-			break;
-		}
-		}
-		break;
-
-	case TYPE_INTERNAL_SUBNET:
-		{
-		const uint32_t* const kp = AlignType<uint32_t>(kp0);
-		kp1 = reinterpret_cast<const char*>(kp+5);
-		*pval = make_intrusive<SubNetVal>(kp, kp[4]);
-		}
-		break;
-
-	case TYPE_INTERNAL_VOID:
-	case TYPE_INTERNAL_OTHER:
-		{
-		switch ( t->Tag() ) {
-		case TYPE_FUNC:
-			{
-			const uint32_t* const kp = AlignType<uint32_t>(kp0);
-			kp1 = reinterpret_cast<const char*>(kp+1);
-
-			const auto& f = Func::GetFuncPtrByID(*kp);
-
-			if ( ! f )
-				reporter->InternalError("failed to look up unique function id %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp);
-
-			*pval = make_intrusive<FuncVal>(f);
-			const auto& pvt = (*pval)->GetType();
-
-			if ( ! pvt )
-				reporter->InternalError("bad aggregate Val in CompositeHash::RecoverOneVal()");
-
-			else if ( t->Tag() != TYPE_FUNC && ! same_type(pvt, t) )
-				// ### Maybe fix later, but may be fundamentally
-				// un-checkable --US
-				reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
-
-			// ### A crude approximation for now.
-			else if ( t->Tag() == TYPE_FUNC && pvt->Tag() != TYPE_FUNC )
-				reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
-			}
-			break;
-
-		case TYPE_PATTERN:
-			{
-			RE_Matcher* re = nullptr;
-			if ( is_singleton )
+			switch ( v->GetType()->Tag() )
 				{
-				kp1 = kp0;
-				int divider = strlen(kp0) + 1;
-				re = new RE_Matcher(kp1, kp1 + divider);
-				kp1 += k.Size();
-				}
-			else
-				{
-				const uint64_t* const len = AlignType<uint64_t>(kp0);
+				case TYPE_FUNC:
+					hk.Write("func", v->AsFunc()->GetUniqueFuncID());
+					break;
 
-				kp1 = reinterpret_cast<const char*>(len+2);
-				re = new RE_Matcher(kp1, kp1 + len[0]);
-				kp1 += len[0] + len[1];
-				}
-
-			if ( ! re->Compile() )
-				reporter->InternalError("failed compiling table/set key pattern: %s",
-				                              re->PatternText());
-
-			*pval = make_intrusive<PatternVal>(re);
-			}
-			break;
-
-		case TYPE_RECORD:
-			{
-			const char* kp = kp0;
-			RecordType* rt = t->AsRecordType();
-			int num_fields = rt->NumFields();
-
-			std::vector<ValPtr> values;
-			int i;
-			for ( i = 0; i < num_fields; ++i )
-				{
-				ValPtr v;
-
-				Attributes* a = rt->FieldDecl(i)->attrs.get();
-				bool optional = (a && a->Find(ATTR_OPTIONAL));
-
-				kp = RecoverOneVal(k, kp, k_end,
-				                   rt->GetFieldType(i).get(), &v, optional);
-
-				// An earlier call to reporter->InternalError would have called abort() and broken the
-				// call tree that clang-tidy is relying on to get the error described.
-				// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Branch)
-				if ( ! (v || optional) )
+				case TYPE_PATTERN:
 					{
-					reporter->InternalError("didn't recover expected number of fields from HashKey");
-					pval = nullptr;
+					const char* texts[2] = {v->AsPattern()->PatternText(),
+					                        v->AsPattern()->AnywherePatternText()};
+					uint64_t lens[2] = {strlen(texts[0]) + 1, strlen(texts[1]) + 1};
+
+					if ( ! singleton )
+						{
+						hk.Write("pattern-len1", lens[0]);
+						hk.Write("pattern-len2", lens[1]);
+						}
+					else
+						{
+						hk.Reserve("pattern", lens[0] + lens[1]);
+						hk.Allocate();
+						}
+
+					hk.Write("pattern-string1", static_cast<const void*>(texts[0]), lens[0]);
+					hk.Write("pattern-string2", static_cast<const void*>(texts[1]), lens[1]);
 					break;
 					}
 
-				values.emplace_back(std::move(v));
-				}
-
-			ASSERT(int(values.size()) == num_fields);
-
-			auto rv = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
-
-			for ( int i = 0; i < num_fields; ++i )
-				rv->Assign(i, std::move(values[i]));
-
-			*pval = std::move(rv);
-			kp1 = kp;
-			}
-			break;
-
-		case TYPE_TABLE:
-			{
-			int n;
-			const int* const kp = AlignType<int>(kp0);
-			n = *kp;
-			kp1 = reinterpret_cast<const char*>(kp+1);
-			TableType* tt = t->AsTableType();
-			auto tv = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
-
-			for ( int i = 0; i < n; ++i )
-				{
-				ValPtr key;
-				kp1 = RecoverOneVal(k, kp1, k_end, tt->GetIndices().get(), &key, false);
-
-				if ( t->IsSet() )
-					tv->Assign(std::move(key), nullptr);
-				else
+				case TYPE_RECORD:
 					{
-					ValPtr value;
-					kp1 = RecoverOneVal(k, kp1, k_end, tt->Yield().get(), &value,
-					                    false);
-					tv->Assign(std::move(key), std::move(value));
+					auto rv = v->AsRecordVal();
+					auto rt = bt->AsRecordType();
+					int num_fields = rt->NumFields();
+
+					if ( ! EnsureTypeReserve(hk, v, bt, type_check) )
+						return false;
+
+					for ( int i = 0; i < num_fields; ++i )
+						{
+						auto rv_i = rv->GetField(i);
+
+						Attributes* a = rt->FieldDecl(i)->attrs.get();
+						bool optional_attr = (a && a->Find(ATTR_OPTIONAL));
+
+						if ( ! (rv_i || optional_attr) )
+							return false;
+
+						if ( ! SingleValHash(hk, rv_i.get(), rt->GetFieldType(i).get(), type_check,
+						                     optional_attr, false) )
+							return false;
+						}
+					break;
+					}
+
+				case TYPE_TABLE:
+					{
+					if ( ! EnsureTypeReserve(hk, v, bt, type_check) )
+						return false;
+
+					auto tv = v->AsTableVal();
+					auto hashkeys = ordered_hashkeys(tv);
+
+					hk.Write("table-size", tv->Size());
+
+					for ( auto& kv : *hashkeys )
+						{
+						auto key = kv.second;
+
+						if ( ! SingleValHash(hk, key.get(), key->GetType().get(), type_check, false,
+						                     false) )
+							return false;
+
+						if ( ! v->GetType()->IsSet() )
+							{
+							auto val = const_cast<TableVal*>(tv)->FindOrDefault(key);
+
+							if ( ! SingleValHash(hk, val.get(), val->GetType().get(), type_check,
+							                     false, false) )
+								return false;
+							}
+						}
+					}
+					break;
+
+				case TYPE_VECTOR:
+					{
+					if ( ! EnsureTypeReserve(hk, v, bt, type_check) )
+						return false;
+
+					auto vv = v->AsVectorVal();
+					auto vt = v->GetType()->AsVectorType();
+
+					hk.Write("vector-size", vv->Size());
+
+					for ( unsigned int i = 0; i < vv->Size(); ++i )
+						{
+						auto val = vv->ValAt(i);
+						hk.Write("vector-idx", i);
+						hk.Write("vector-idx-present", val != nullptr);
+
+						if ( val && ! SingleValHash(hk, val.get(), vt->Yield().get(), type_check,
+						                            false, false) )
+							return false;
+						}
+					}
+					break;
+
+				case TYPE_LIST:
+					{
+					if ( ! hk.IsAllocated() )
+						{
+						if ( ! ReserveSingleTypeKeySize(hk, bt, v, type_check, false, false,
+						                                false) )
+							return false;
+
+						hk.Allocate();
+						}
+
+					auto lv = v->AsListVal();
+
+					hk.Write("list-size", lv->Length());
+
+					for ( int i = 0; i < lv->Length(); ++i )
+						{
+						Val* entry_val = lv->Idx(i).get();
+						if ( ! SingleValHash(hk, entry_val, entry_val->GetType().get(), type_check,
+						                     false, false) )
+							return false;
+						}
+					}
+					break;
+
+				default:
+					{
+					reporter->InternalError("bad index type in CompositeHash::SingleValHash");
+					return false;
 					}
 				}
 
-			*pval = std::move(tv);
+			break; // case TYPE_INTERNAL_VOID/OTHER
+			}
+
+		case TYPE_INTERNAL_STRING:
+			{
+			if ( ! EnsureTypeReserve(hk, v, bt, type_check) )
+				return false;
+
+			const auto sval = v->AsString();
+
+			if ( ! singleton )
+				hk.Write("string-len", sval->Len());
+
+			hk.Write("string", sval->Bytes(), sval->Len());
 			}
 			break;
 
-		case TYPE_VECTOR:
-			{
-			unsigned int n;
-			const unsigned int* kp = AlignType<unsigned int>(kp0);
-			n = *kp;
-			kp1 = reinterpret_cast<const char*>(kp+1);
-			VectorType* vt = t->AsVectorType();
-			auto vv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
-
-			for ( unsigned int i = 0; i < n; ++i )
-				{
-				kp = AlignType<unsigned int>(kp1);
-				unsigned int index = *kp;
-				kp1 = reinterpret_cast<const char*>(kp+1);
-				kp = AlignType<unsigned int>(kp1);
-				unsigned int have_val = *kp;
-				kp1 = reinterpret_cast<const char*>(kp+1);
-				ValPtr value;
-
-				if ( have_val )
-					kp1 = RecoverOneVal(k, kp1, k_end, vt->Yield().get(), &value,
-					                    false);
-
-				vv->Assign(index, std::move(value));
-				}
-
-			*pval = std::move(vv);
-			}
-			break;
-
-		case TYPE_LIST:
-			{
-			int n;
-			const int* const kp = AlignType<int>(kp0);
-			n = *kp;
-			kp1 = reinterpret_cast<const char*>(kp+1);
-			TypeList* tl = t->AsTypeList();
-			auto lv = make_intrusive<ListVal>(TYPE_ANY);
-
-			for ( int i = 0; i < n; ++i )
-				{
-				ValPtr v;
-				Type* it = tl->GetTypes()[i].get();
-				kp1 = RecoverOneVal(k, kp1, k_end, it, &v, false);
-				lv->Append(std::move(v));
-				}
-
-			*pval = std::move(lv);
-			}
-			break;
-
-		default:
-			{
-			reporter->InternalError("bad index type in CompositeHash::DescribeKey");
-			}
+		case TYPE_INTERNAL_ERROR:
+			return false;
 		}
-		}
-		break;
 
-	case TYPE_INTERNAL_STRING:
+	return true;
+	}
+
+bool CompositeHash::EnsureTypeReserve(HashKey& hk, const Val* v, Type* bt, bool type_check) const
+	{
+	if ( hk.IsAllocated() )
+		return true;
+
+	if ( ! ReserveSingleTypeKeySize(hk, bt, v, type_check, false, false, true) )
+		return false;
+
+	hk.Allocate();
+	return true;
+	}
+
+bool CompositeHash::ReserveKeySize(HashKey& hk, const Val* v, bool type_check,
+                                   bool calc_static_size) const
+	{
+	const auto& tl = type->GetTypes();
+
+	for ( auto i = 0u; i < tl.size(); ++i )
 		{
-		// There is a minor issue here -- the pointer does not have to
-		// be aligned by int in the singleton case.
-
-		int n;
-		if ( is_singleton )
-			{
-			kp1 = kp0;
-			n = k.Size();
-			}
-		else
-			{
-			const int* const kp = AlignType<int>(kp0);
-			n = *kp;
-			kp1 = reinterpret_cast<const char*>(kp+1);
-			}
-
-		*pval = make_intrusive<StringVal>(new String((const byte_vec) kp1, n, true));
-		kp1 += n;
+		if ( ! ReserveSingleTypeKeySize(hk, tl[i].get(), v ? v->AsListVal()->Idx(i).get() : nullptr,
+		                                type_check, false, calc_static_size, is_singleton) )
+			return false;
 		}
-		break;
 
-	case TYPE_INTERNAL_ERROR:
-		break;
+	return true;
 	}
 
-	return kp1;
+bool CompositeHash::ReserveSingleTypeKeySize(HashKey& hk, Type* bt, const Val* v, bool type_check,
+                                             bool optional, bool calc_static_size,
+                                             bool singleton) const
+	{
+	InternalTypeTag t = bt->InternalType();
+
+	if ( optional )
+		{
+		hk.ReserveType<bool>("optional");
+		if ( ! v )
+			return true;
+		}
+
+	if ( type_check && v )
+		{
+		InternalTypeTag vt = v->GetType()->InternalType();
+		if ( vt != t )
+			return false;
+		}
+
+	switch ( t )
+		{
+		case TYPE_INTERNAL_INT:
+			hk.ReserveType<bro_int_t>("int");
+			break;
+
+		case TYPE_INTERNAL_UNSIGNED:
+			hk.ReserveType<bro_int_t>("unsigned");
+			break;
+
+		case TYPE_INTERNAL_ADDR:
+			hk.Reserve("addr", sizeof(uint32_t) * 4, sizeof(uint32_t));
+			break;
+
+		case TYPE_INTERNAL_SUBNET:
+			hk.Reserve("subnet", sizeof(uint32_t) * 5, sizeof(uint32_t));
+			break;
+
+		case TYPE_INTERNAL_DOUBLE:
+			hk.ReserveType<double>("double");
+			break;
+
+		case TYPE_INTERNAL_VOID:
+		case TYPE_INTERNAL_OTHER:
+			{
+			switch ( bt->Tag() )
+				{
+				case TYPE_FUNC:
+					{
+					hk.ReserveType<uint32_t>("func");
+					break;
+					}
+
+				case TYPE_PATTERN:
+					{
+					if ( ! v )
+						return (optional && ! calc_static_size);
+
+					if ( ! singleton )
+						{
+						hk.ReserveType<uint64_t>("pattern-len1");
+						hk.ReserveType<uint64_t>("pattern-len2");
+						}
+
+					// +1 in the following to include null terminators
+					hk.Reserve("pattern-string1", strlen(v->AsPattern()->PatternText()) + 1, 0);
+					hk.Reserve("pattern-string1", strlen(v->AsPattern()->AnywherePatternText()) + 1,
+					           0);
+					break;
+					}
+
+				case TYPE_RECORD:
+					{
+					if ( ! v )
+						return (optional && ! calc_static_size);
+
+					const RecordVal* rv = v->AsRecordVal();
+					RecordType* rt = bt->AsRecordType();
+					int num_fields = rt->NumFields();
+
+					for ( int i = 0; i < num_fields; ++i )
+						{
+						Attributes* a = rt->FieldDecl(i)->attrs.get();
+						bool optional_attr = (a && a->Find(ATTR_OPTIONAL));
+
+						auto rv_v = rv ? rv->GetField(i) : nullptr;
+						if ( ! ReserveSingleTypeKeySize(hk, rt->GetFieldType(i).get(), rv_v.get(),
+						                                type_check, optional_attr, calc_static_size,
+						                                false) )
+							return false;
+						}
+					break;
+					}
+
+				case TYPE_TABLE:
+					{
+					if ( ! v )
+						return (optional && ! calc_static_size);
+
+					auto tv = v->AsTableVal();
+					auto hashkeys = ordered_hashkeys(tv);
+
+					hk.ReserveType<int>("table-size");
+
+					for ( auto& kv : *hashkeys )
+						{
+						auto key = kv.second;
+
+						if ( ! ReserveSingleTypeKeySize(hk, key->GetType().get(), key.get(),
+						                                type_check, false, calc_static_size,
+						                                false) )
+							return false;
+
+						if ( ! bt->IsSet() )
+							{
+							auto val = const_cast<TableVal*>(tv)->FindOrDefault(key);
+							if ( ! ReserveSingleTypeKeySize(hk, val->GetType().get(), val.get(),
+							                                type_check, false, calc_static_size,
+							                                false) )
+								return false;
+							}
+						}
+
+					break;
+					}
+
+				case TYPE_VECTOR:
+					{
+					if ( ! v )
+						return (optional && ! calc_static_size);
+
+					hk.ReserveType<int>("vector-size");
+					VectorVal* vv = const_cast<VectorVal*>(v->AsVectorVal());
+					for ( unsigned int i = 0; i < vv->Size(); ++i )
+						{
+						auto val = vv->ValAt(i);
+						hk.ReserveType<unsigned int>("vector-idx");
+						hk.ReserveType<unsigned int>("vector-idx-present");
+						if ( val && ! ReserveSingleTypeKeySize(
+										hk, bt->AsVectorType()->Yield().get(), val.get(),
+										type_check, false, calc_static_size, false) )
+							return false;
+						}
+					break;
+					}
+
+				case TYPE_LIST:
+					{
+					if ( ! v )
+						return (optional && ! calc_static_size);
+
+					hk.ReserveType<int>("list-size");
+					ListVal* lv = const_cast<ListVal*>(v->AsListVal());
+					for ( int i = 0; i < lv->Length(); ++i )
+						{
+						if ( ! ReserveSingleTypeKeySize(hk, lv->Idx(i)->GetType().get(),
+						                                lv->Idx(i).get(), type_check, false,
+						                                calc_static_size, false) )
+							return false;
+						}
+
+					break;
+					}
+
+				default:
+					{
+					reporter->InternalError(
+						"bad index type in CompositeHash::ReserveSingleTypeKeySize");
+					return 0;
+					}
+				}
+
+			break; // case TYPE_INTERNAL_VOID/OTHER
+			}
+
+		case TYPE_INTERNAL_STRING:
+			if ( ! v )
+				return (optional && ! calc_static_size);
+			if ( ! singleton )
+				hk.ReserveType<int>("string-len");
+			hk.Reserve("string", v->AsString()->Len());
+			break;
+
+		case TYPE_INTERNAL_ERROR:
+			return false;
+		}
+
+	return true;
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

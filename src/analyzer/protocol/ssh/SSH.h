@@ -2,14 +2,15 @@
 
 #pragma once
 
-#include "zeek/analyzer/protocol/tcp/TCP.h"
-
 #include "zeek/analyzer/protocol/ssh/events.bif.h"
 #include "zeek/analyzer/protocol/ssh/ssh_pac.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
-namespace zeek::analyzer::ssh {
+namespace zeek::analyzer::ssh
+	{
 
-class SSH_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class SSH_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 
 public:
 	explicit SSH_Analyzer(Connection* conn);
@@ -23,8 +24,7 @@ public:
 	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new SSH_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new SSH_Analyzer(conn); }
 
 protected:
 	binpac::SSH::SSH_Conn* interp;
@@ -41,7 +41,6 @@ protected:
 
 	int service_accept_size;
 	int userauth_failure_size;
+	};
 
-};
-
-} // namespace zeek::analyzer::ssh
+	} // namespace zeek::analyzer::ssh

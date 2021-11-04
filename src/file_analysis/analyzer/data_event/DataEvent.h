@@ -4,19 +4,20 @@
 
 #include <string>
 
-#include "zeek/Val.h"
-#include "zeek/file_analysis/File.h"
-#include "zeek/file_analysis/Analyzer.h"
 #include "zeek/EventHandler.h"
+#include "zeek/Val.h"
+#include "zeek/file_analysis/Analyzer.h"
+#include "zeek/file_analysis/File.h"
 
-namespace zeek::file_analysis::detail {
+namespace zeek::file_analysis::detail
+	{
 
 /**
  * An analyzer to send file data to script-layer via events.
  */
-class DataEvent : public file_analysis::Analyzer {
+class DataEvent : public file_analysis::Analyzer
+	{
 public:
-
 	/**
 	 * Generates the event, if any, specified by the "chunk_event" field of this
 	 * analyzer's \c AnalyzerArgs.  This is for non-sequential file data input.
@@ -43,11 +44,9 @@ public:
 	 * @return the new DataEvent analyzer instance or a null pointer if
 	 *         no "chunk_event" or "stream_event" field was specfied in \a args.
 	 */
-	static file_analysis::Analyzer* Instantiate(RecordValPtr args,
-	                                            file_analysis::File* file);
+	static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file);
 
 protected:
-
 	/**
 	 * Constructor.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
@@ -57,12 +56,11 @@ protected:
 	 * @param se pointer to event handler which will be called to receive
 	 *        sequential file data.
 	 */
-	DataEvent(RecordValPtr args, file_analysis::File* file,
-	          EventHandlerPtr ce, EventHandlerPtr se);
+	DataEvent(RecordValPtr args, file_analysis::File* file, EventHandlerPtr ce, EventHandlerPtr se);
 
 private:
 	EventHandlerPtr chunk_event;
 	EventHandlerPtr stream_event;
-};
+	};
 
-} // namespace zeek::file_analysis::detail
+	} // namespace zeek::file_analysis::detail

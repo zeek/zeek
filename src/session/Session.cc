@@ -2,19 +2,20 @@
 
 #include "zeek/session/Session.h"
 
-#include "zeek/Reporter.h"
-#include "zeek/analyzer/Analyzer.h"
-#include "zeek/Val.h"
-#include "zeek/Event.h"
 #include "zeek/Desc.h"
-#include "zeek/session/Manager.h"
+#include "zeek/Event.h"
 #include "zeek/IP.h"
+#include "zeek/Reporter.h"
+#include "zeek/Val.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/session/Manager.h"
 
-namespace zeek::session {
-namespace detail {
+namespace zeek::session
+	{
+namespace detail
+	{
 
-void Timer::Init(Session* arg_session, timer_func arg_timer,
-                 bool arg_do_expire)
+void Timer::Init(Session* arg_session, timer_func arg_timer, bool arg_do_expire)
 	{
 	session = arg_session;
 	timer = arg_timer;
@@ -46,14 +47,11 @@ void Timer::Dispatch(double t, bool is_expire)
 		reporter->InternalError("reference count inconsistency in session::Timer::Dispatch");
 	}
 
-} // namespace detail
+	} // namespace detail
 
-Session::Session(double t,
-                 EventHandlerPtr timeout_event,
-                 EventHandlerPtr status_update_event,
+Session::Session(double t, EventHandlerPtr timeout_event, EventHandlerPtr status_update_event,
                  double status_update_interval)
-	: start_time(t), last_time(t),
-	  session_timeout_event(timeout_event),
+	: start_time(t), last_time(t), session_timeout_event(timeout_event),
 	  session_status_update_event(status_update_event),
 	  session_status_update_interval(status_update_interval)
 	{
@@ -116,8 +114,8 @@ void Session::SetInactivityTimeout(double timeout)
 			}
 
 	if ( timeout )
-		ADD_TIMER(&Session::InactivityTimer,
-		          last_time + timeout, 0, zeek::detail::TIMER_CONN_INACTIVITY);
+		ADD_TIMER(&Session::InactivityTimer, last_time + timeout, 0,
+		          zeek::detail::TIMER_CONN_INACTIVITY);
 
 	inactivity_timeout = timeout;
 	}
@@ -160,8 +158,7 @@ void Session::DeleteTimer(double /* t */)
 	session_mgr->Remove(this);
 	}
 
-void Session::AddTimer(timer_func timer, double t, bool do_expire,
-                       zeek::detail::TimerType type)
+void Session::AddTimer(timer_func timer, double t, bool do_expire, zeek::detail::TimerType type)
 	{
 	if ( timers_canceled )
 		return;
@@ -191,17 +188,15 @@ void Session::InactivityTimer(double t)
 		++zeek::detail::killed_by_inactivity;
 		}
 	else
-		ADD_TIMER(&Session::InactivityTimer,
-		          last_time + inactivity_timeout, 0,
+		ADD_TIMER(&Session::InactivityTimer, last_time + inactivity_timeout, 0,
 		          zeek::detail::TIMER_CONN_INACTIVITY);
 	}
 
 void Session::StatusUpdateTimer(double t)
 	{
 	EnqueueEvent(session_status_update_event, nullptr, GetVal());
-	ADD_TIMER(&Session::StatusUpdateTimer,
-	          run_state::network_time + session_status_update_interval, 0,
-	          zeek::detail::TIMER_CONN_STATUS_UPDATE);
+	ADD_TIMER(&Session::StatusUpdateTimer, run_state::network_time + session_status_update_interval,
+	          0, zeek::detail::TIMER_CONN_STATUS_UPDATE);
 	}
 
 void Session::RemoveConnectionTimer(double t)
@@ -210,4 +205,4 @@ void Session::RemoveConnectionTimer(double t)
 	session_mgr->Remove(this);
 	}
 
-} // namespace zeek::session
+	} // namespace zeek::session

@@ -1,34 +1,35 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/IPAddr.h"
+
 #include <cstdlib>
 #include <string>
 #include <vector>
 
-#include "zeek/IPAddr.h"
-#include "zeek/Reporter.h"
-#include "zeek/ZeekString.h"
 #include "zeek/Conn.h"
 #include "zeek/Hash.h"
-#include "zeek/bro_inet_ntop.h"
+#include "zeek/Reporter.h"
+#include "zeek/ZeekString.h"
 #include "zeek/analyzer/Manager.h"
+#include "zeek/bro_inet_ntop.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 const IPAddr IPAddr::v4_unspecified = IPAddr(in4_addr{});
 const IPAddr IPAddr::v6_unspecified = IPAddr();
 
-namespace detail {
+namespace detail
+	{
 
-ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port,
-                 uint16_t dst_port, TransportProto t, bool one_way)
+ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port,
+                 TransportProto t, bool one_way)
 	: transport(t)
 	{
- 	// Lookup up connection based on canonical ordering, which is
+	// Lookup up connection based on canonical ordering, which is
 	// the smaller of <src addr, src port> and <dst addr, dst port>
 	// followed by the other.
-	if ( one_way ||
-	     addr_port_canon_lt(src, src_port, dst, dst_port)
-	   )
+	if ( one_way || addr_port_canon_lt(src, src_port, dst, dst_port) )
 		{
 		ip1 = src.in6;
 		ip2 = dst.in6;
@@ -45,8 +46,7 @@ ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port,
 	}
 
 ConnKey::ConnKey(const ConnTuple& id)
-	: ConnKey(id.src_addr, id.dst_addr, id.src_port, id.dst_port,
-	          id.proto, id.is_one_way)
+	: ConnKey(id.src_addr, id.dst_addr, id.src_port, id.dst_port, id.proto, id.is_one_way)
 	{
 	}
 
@@ -64,7 +64,7 @@ ConnKey& ConnKey::operator=(const ConnKey& rhs)
 	return *this;
 	}
 
-} // namespace detail
+	} // namespace detail
 
 IPAddr::IPAddr(const String& s)
 	{
@@ -81,7 +81,7 @@ static inline uint32_t bit_mask32(int bottom_bits)
 	if ( bottom_bits >= 32 )
 		return 0xffffffff;
 
-	return (((uint32_t) 1) << bottom_bits) - 1;
+	return (((uint32_t)1) << bottom_bits) - 1;
 	}
 
 void IPAddr::Mask(int top_bits_to_keep)
@@ -92,12 +92,11 @@ void IPAddr::Mask(int top_bits_to_keep)
 		return;
 		}
 
-	uint32_t mask_bits[4] = { 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff };
+	uint32_t mask_bits[4] = {0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
 	std::ldiv_t res = std::ldiv(top_bits_to_keep, 32);
 
 	if ( res.quot < 4 )
-		mask_bits[res.quot] =
-		        htonl(mask_bits[res.quot] & ~bit_mask32(32 - res.rem));
+		mask_bits[res.quot] = htonl(mask_bits[res.quot] & ~bit_mask32(32 - res.rem));
 
 	for ( unsigned int i = res.quot + 1; i < 4; ++i )
 		mask_bits[i] = 0;
@@ -116,7 +115,7 @@ void IPAddr::ReverseMask(int top_bits_to_chop)
 		return;
 		}
 
-	uint32_t mask_bits[4] = { 0, 0, 0, 0 };
+	uint32_t mask_bits[4] = {0, 0, 0, 0};
 	std::ldiv_t res = std::ldiv(top_bits_to_chop, 32);
 
 	if ( res.quot < 4 )
@@ -144,7 +143,7 @@ bool IPAddr::ConvertString(const char* s, in6_addr* result)
 	// that can't e.g. handle leading zeroes.
 	int a[4];
 	int n = 0;
-	int match_count = sscanf(s, "%d.%d.%d.%d%n", a+0, a+1, a+2, a+3, &n);
+	int match_count = sscanf(s, "%d.%d.%d.%d%n", a + 0, a + 1, a + 2, a + 3, &n);
 
 	if ( match_count != 4 )
 		return false;
@@ -200,15 +199,14 @@ std::string IPAddr::AsHexString() const
 
 	if ( GetFamily() == IPv4 )
 		{
-		uint32_t* p = (uint32_t*) &in6.s6_addr[12];
-		snprintf(buf, sizeof(buf), "%08x", (uint32_t) ntohl(*p));
+		uint32_t* p = (uint32_t*)&in6.s6_addr[12];
+		snprintf(buf, sizeof(buf), "%08x", (uint32_t)ntohl(*p));
 		}
 	else
 		{
-		uint32_t* p = (uint32_t*) in6.s6_addr;
-		snprintf(buf, sizeof(buf), "%08x%08x%08x%08x",
-				(uint32_t) ntohl(p[0]), (uint32_t) ntohl(p[1]),
-				(uint32_t) ntohl(p[2]), (uint32_t) ntohl(p[3]));
+		uint32_t* p = (uint32_t*)in6.s6_addr;
+		snprintf(buf, sizeof(buf), "%08x%08x%08x%08x", (uint32_t)ntohl(p[0]), (uint32_t)ntohl(p[1]),
+		         (uint32_t)ntohl(p[2]), (uint32_t)ntohl(p[3]));
 		}
 
 	return buf;
@@ -219,7 +217,7 @@ std::string IPAddr::PtrName() const
 	if ( GetFamily() == IPv4 )
 		{
 		char buf[256];
-		uint32_t* p = (uint32_t*) &in6.s6_addr[12];
+		uint32_t* p = (uint32_t*)&in6.s6_addr[12];
 		uint32_t a = ntohl(*p);
 		uint32_t a3 = (a >> 24) & 0xff;
 		uint32_t a2 = (a >> 16) & 0xff;
@@ -232,15 +230,15 @@ std::string IPAddr::PtrName() const
 		{
 		static const char hex_digit[] = "0123456789abcdef";
 		std::string ptr_name("ip6.arpa");
-		uint32_t* p = (uint32_t*) in6.s6_addr;
+		uint32_t* p = (uint32_t*)in6.s6_addr;
 
 		for ( unsigned int i = 0; i < 4; ++i )
 			{
 			uint32_t a = ntohl(p[i]);
-			for ( unsigned int j = 1; j <=8; ++j )
+			for ( unsigned int j = 1; j <= 8; ++j )
 				{
 				ptr_name.insert(0, 1, '.');
-				ptr_name.insert(0, 1, hex_digit[(a >> (32-j*4)) & 0x0f]);
+				ptr_name.insert(0, 1, hex_digit[(a >> (32 - j * 4)) & 0x0f]);
 				}
 			}
 
@@ -248,8 +246,7 @@ std::string IPAddr::PtrName() const
 		}
 	}
 
-IPPrefix::IPPrefix(const in4_addr& in4, uint8_t length)
-	: prefix(in4), length(96 + length)
+IPPrefix::IPPrefix(const in4_addr& in4, uint8_t length) : prefix(in4), length(96 + length)
 	{
 	if ( length > 32 )
 		{
@@ -260,8 +257,7 @@ IPPrefix::IPPrefix(const in4_addr& in4, uint8_t length)
 	prefix.Mask(this->length);
 	}
 
-IPPrefix::IPPrefix(const in6_addr& in6, uint8_t length)
-	: prefix(in6), length(length)
+IPPrefix::IPPrefix(const in6_addr& in6, uint8_t length) : prefix(in6), length(length)
 	{
 	if ( length > 128 )
 		{
@@ -289,8 +285,7 @@ bool IPAddr::CheckPrefixLength(uint8_t length, bool len_is_v6_relative) const
 	return true;
 	}
 
-IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative)
-	: prefix(addr)
+IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative) : prefix(addr)
 	{
 	if ( prefix.CheckPrefixLength(length, len_is_v6_relative) )
 		{
@@ -318,15 +313,16 @@ std::string IPPrefix::AsString() const
 	else
 		modp_uitoa10(length, l);
 
-	return prefix.AsString() +"/" + l;
+	return prefix.AsString() + "/" + l;
 	}
 
 std::unique_ptr<detail::HashKey> IPPrefix::MakeHashKey() const
 	{
-	struct {
+	struct
+		{
 		in6_addr ip;
 		uint32_t len;
-	} key;
+		} key;
 
 	key.ip = prefix.in6;
 	key.len = Length();
@@ -359,4 +355,4 @@ bool IPPrefix::ConvertString(const char* text, IPPrefix* result)
 	return true;
 	}
 
-} // namespace zeek
+	} // namespace zeek

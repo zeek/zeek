@@ -23,10 +23,13 @@
 //	Entries must be either a pointer to the data or nonzero data with
 //	sizeof(data) <= sizeof(void*).
 
-namespace zeek {
+namespace zeek
+	{
 
-template<typename T>
-class [[deprecated("Remove in v5.1. This class is deprecated (and is likely broken, see #1528). Use std::vector<T>.")]] Queue {
+template <typename T>
+class [[deprecated("Remove in v5.1. This class is deprecated (and is likely broken, see #1528). "
+                   "Use std::vector<T>.")]] Queue
+	{
 public:
 	explicit Queue(int size = 0)
 		{
@@ -42,7 +45,7 @@ public:
 			}
 		else
 			{
-			if ( (entries = new T[chunk_size+1]) )
+			if ( (entries = new T[chunk_size + 1]) )
 				max_entries = chunk_size;
 			else
 				{
@@ -52,11 +55,11 @@ public:
 			}
 		}
 
-	~Queue()		{ delete[] entries; }
+	~Queue() { delete[] entries; }
 
-	int length() const	{ return num_entries; }
-	int capacity() const	{ return max_entries; }
-	int resize(int new_size = 0)	// 0 => size to fit current number of entries
+	int length() const { return num_entries; }
+	int capacity() const { return max_entries; }
+	int resize(int new_size = 0) // 0 => size to fit current number of entries
 		{
 		if ( new_size < num_entries )
 			new_size = num_entries; // do not lose any entries
@@ -66,22 +69,19 @@ public:
 			// Note, allocate extra space, so that we can always
 			// use the [max_entries] element.
 			// ### Yin, why not use realloc()?
-			T* new_entries = new T[new_size+1];
+			T* new_entries = new T[new_size + 1];
 
 			if ( new_entries )
 				{
 				if ( head <= tail )
-					memcpy( new_entries, entries + head,
-						sizeof(T) * num_entries );
+					memcpy(new_entries, entries + head, sizeof(T) * num_entries);
 				else
 					{
 					int len = num_entries - tail;
-					memcpy( new_entries, entries + head,
-						sizeof(T) * len );
-					memcpy( new_entries + len, entries,
-						sizeof(T) * tail );
+					memcpy(new_entries, entries + head, sizeof(T) * len);
+					memcpy(new_entries + len, entries, sizeof(T) * tail);
 					}
-				delete [] entries;
+				delete[] entries;
 				entries = new_entries;
 				max_entries = new_size;
 				head = 0;
@@ -96,19 +96,19 @@ public:
 		}
 
 	// remove all entries without delete[] entry
-	void clear()		{ head = tail = num_entries = 0; }
+	void clear() { head = tail = num_entries = 0; }
 
 	// helper functions for iterating over queue
-	T& front()	{ return entries[head]; }
-	T& back()	{ return entries[tail]; }
-	const T& front() const	{ return entries[head]; }
-	const T& back() const	{ return entries[tail]; }
+	T& front() { return entries[head]; }
+	T& back() { return entries[tail]; }
+	const T& front() const { return entries[head]; }
+	const T& back() const { return entries[tail]; }
 
-	void push_front(const T& a)	// add in front of queue
+	void push_front(const T& a) // add in front of queue
 		{
 		if ( num_entries == max_entries )
 			{
-			resize(max_entries+chunk_size);	// make more room
+			resize(max_entries + chunk_size); // make more room
 			chunk_size *= 2;
 			}
 
@@ -122,11 +122,11 @@ public:
 			}
 		}
 
-	void push_back(const T& a)	// add at end of queue
+	void push_back(const T& a) // add at end of queue
 		{
 		if ( num_entries == max_entries )
 			{
-			resize(max_entries+chunk_size);	// make more room
+			resize(max_entries + chunk_size); // make more room
 			chunk_size *= 2;
 			}
 
@@ -159,7 +159,7 @@ public:
 		}
 
 	// return nth *PHYSICAL* entry of queue (do not remove)
-	T& operator[](int i) const	{ return entries[i]; }
+	T& operator[](int i) const { return entries[i]; }
 
 	// Type traits needed for some of the std algorithms to work
 	using value_type = T;
@@ -187,17 +187,16 @@ public:
 	const_reverse_iterator crend() const { return rend(); }
 
 protected:
-
 	T* entries;
-	int chunk_size;		// increase size by this amount when necessary
-	int max_entries;	// entry's index range: 0 .. max_entries
+	int chunk_size; // increase size by this amount when necessary
+	int max_entries; // entry's index range: 0 .. max_entries
 	int num_entries;
-	int head;	// beginning of the queue in the ring
-	int tail;	// just beyond the end of the queue in the ring
+	int head; // beginning of the queue in the ring
+	int tail; // just beyond the end of the queue in the ring
 	};
 
+template <typename T>
+using PQueue [[deprecated("Remove in v5.1. This class is deprecated (and is likely broken, see "
+                          "#1528). Use std::vector<T*>.")]] = Queue<T*>;
 
-template<typename T>
-using PQueue [[deprecated("Remove in v5.1. This class is deprecated (and is likely broken, see #1528). Use std::vector<T*>.")]] = Queue<T*>;
-
-} // namespace zeek
+	} // namespace zeek

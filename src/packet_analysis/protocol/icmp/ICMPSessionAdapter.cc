@@ -8,10 +8,11 @@
 using namespace zeek::packet_analysis::ICMP;
 using namespace zeek::packet_analysis::IP;
 
-enum ICMP_EndpointState {
-	ICMP_INACTIVE,	// no packet seen
-	ICMP_ACTIVE,	// packets seen
-};
+enum ICMP_EndpointState
+	{
+	ICMP_INACTIVE, // no packet seen
+	ICMP_ACTIVE, // packets seen
+	};
 
 void ICMPSessionAdapter::AddExtraAnalyzers(Connection* conn)
 	{
@@ -73,8 +74,7 @@ void ICMPSessionAdapter::InitEndpointMatcher(const IP_Hdr* ip_hdr, int len, bool
 void ICMPSessionAdapter::MatchEndpoint(const u_char* data, int len, bool is_orig)
 	{
 	if ( zeek::detail::rule_matcher )
-		matcher_state.Match(zeek::detail::Rule::PAYLOAD, data, len, is_orig,
-		                    false, false, true);
+		matcher_state.Match(zeek::detail::Rule::PAYLOAD, data, len, is_orig, false, false, true);
 	}
 
 void ICMPSessionAdapter::Done()

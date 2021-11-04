@@ -2,28 +2,31 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
+#include "zeek/IntrusivePtr.h"
 #include "zeek/Obj.h"
 #include "zeek/ZeekList.h"
-#include "zeek/IntrusivePtr.h"
 
 // Note that there are two kinds of attributes: the kind (here) which
 // modify expressions or supply metadata on types, and the kind that
 // are extra metadata on every variable instance.
 
-namespace zeek {
+namespace zeek
+	{
 
 class Type;
 using TypePtr = IntrusivePtr<Type>;
 
-namespace detail {
+namespace detail
+	{
 
 class Expr;
 using ExprPtr = IntrusivePtr<Expr>;
 
-enum AttrTag {
+enum AttrTag
+	{
 	ATTR_OPTIONAL,
 	ATTR_DEFAULT,
 	ATTR_REDEF,
@@ -38,8 +41,8 @@ enum AttrTag {
 	ATTR_GROUP,
 	ATTR_LOG,
 	ATTR_ERROR_HANDLER,
-	ATTR_TYPE_COLUMN,	// for input framework
-	ATTR_TRACKED,	// hidden attribute, tracked by NotifierRegistry
+	ATTR_TYPE_COLUMN, // for input framework
+	ATTR_TRACKED, // hidden attribute, tracked by NotifierRegistry
 	ATTR_ON_CHANGE, // for table change tracking
 	ATTR_BROKER_STORE, // for Broker store backed tables
 	ATTR_BROKER_STORE_ALLOW_COMPLEX, // for Broker store backed tables
@@ -48,14 +51,15 @@ enum AttrTag {
 	ATTR_IS_ASSIGNED, // to suppress usage warnings
 	ATTR_IS_USED, // to suppress usage warnings
 	NUM_ATTRS // this item should always be last
-};
+	};
 
 class Attr;
 using AttrPtr = IntrusivePtr<Attr>;
 class Attributes;
 using AttributesPtr = IntrusivePtr<Attributes>;
 
-class Attr final : public Obj {
+class Attr final : public Obj
+	{
 public:
 	static inline const AttrPtr nil;
 
@@ -64,10 +68,9 @@ public:
 
 	~Attr() override = default;
 
-	AttrTag Tag() const	{ return tag; }
+	AttrTag Tag() const { return tag; }
 
-	const ExprPtr& GetExpr() const
-		{ return expr; }
+	const ExprPtr& GetExpr() const { return expr; }
 
 	void SetAttrExpr(ExprPtr e);
 
@@ -100,13 +103,13 @@ protected:
 
 	AttrTag tag;
 	ExprPtr expr;
-};
+	};
 
 // Manages a collection of attributes.
-class Attributes final : public Obj {
+class Attributes final : public Obj
+	{
 public:
-	Attributes(std::vector<AttrPtr> a, TypePtr t,
-	           bool in_record, bool is_global);
+	Attributes(std::vector<AttrPtr> a, TypePtr t, bool in_record, bool is_global);
 	Attributes(TypePtr t, bool in_record, bool is_global);
 
 	~Attributes() override = default;
@@ -122,8 +125,7 @@ public:
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
 
-	const std::vector<AttrPtr>& GetAttrs() const
-		{ return attrs; }
+	const std::vector<AttrPtr>& GetAttrs() const { return attrs; }
 
 	bool operator==(const Attributes& other) const;
 
@@ -135,7 +137,7 @@ protected:
 
 	bool in_record;
 	bool global_var;
-};
+	};
 
-} // namespace detail
-} // namespace zeek
+	} // namespace detail
+	} // namespace zeek

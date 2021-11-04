@@ -78,7 +78,7 @@ export {
 		## The DHCP message types seen by this DHCP transaction
 		msg_types:      vector of string &log &default=string_vec();
 
-		## Duration of the DHCP "session" representing the 
+		## Duration of the DHCP "session" representing the
 		## time from the first message to the last.
 		duration:       interval    &log &default=0secs;
 

@@ -1,10 +1,10 @@
 ##! This script feeds software detected through email into the software
-##! framework.  Mail clients and webmail interfaces are the only thing 
+##! framework.  Mail clients and webmail interfaces are the only thing
 ##! currently detected.
-##! 
+##!
 ##! TODO:
 ##!
-##! * Find some heuristic to determine if email was sent through 
+##! * Find some heuristic to determine if email was sent through
 ##!   a MS Exchange webmail interface as opposed to a desktop client.
 
 @load base/frameworks/software/main
@@ -18,13 +18,13 @@ export {
 		MAIL_SERVER,
 		WEBMAIL_SERVER
 	};
-	
+
 	redef record Info += {
 		## Boolean indicator of if the message was sent through a
 		## webmail interface.
 		is_webmail: bool &log &default=F;
 	};
-	
+
 	## Assuming that local mail servers are more trustworthy with the
 	## headers they insert into message envelopes, this default makes Zeek
 	## not attempt to detect software in inbound message bodies.  If mail
@@ -34,15 +34,15 @@ export {
 	## incoming messages (network traffic originating from a non-local
 	## address), set this variable to EXTERNAL_HOSTS or ALL_HOSTS.
 	option detect_clients_in_messages_from = LOCAL_HOSTS;
-	
-	## A regular expression to match USER-AGENT-like headers to find if a 
+
+	## A regular expression to match USER-AGENT-like headers to find if a
 	## message was sent with a webmail interface.
 	option webmail_user_agents =
-	                     /^iPlanet Messenger/ 
+	                     /^iPlanet Messenger/
 	                   | /^Sun Java\(tm\) System Messenger Express/
 	                   | /\(IMP\)/  # Horde Internet Messaging Program
 	                   | /^SquirrelMail/
-	                   | /^NeoMail/ 
+	                   | /^NeoMail/
 	                   | /ZimbraWebClient/;
 }
 
@@ -66,12 +66,12 @@ event log_smtp(rec: Info)
 			{
 			s_type = WEBMAIL_SERVER;
 			# If the earliest received header indicates that the connection
-			# was via HTTP, then that likely means the actual mail software 
+			# was via HTTP, then that likely means the actual mail software
 			# is installed on the second address in the path.
 			if ( rec?$first_received && /via HTTP/ in rec$first_received )
 				client_ip = rec$path[|rec$path|-2];
 			}
-		
+
 		if ( addr_matches_host(rec$id$orig_h,
 		                       detect_clients_in_messages_from) )
 			{
@@ -79,4 +79,3 @@ event log_smtp(rec: Info)
 			}
 		}
 	}
-

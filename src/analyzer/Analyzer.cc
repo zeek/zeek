@@ -2,36 +2,37 @@
 
 #include "zeek/analyzer/Analyzer.h"
 
-#include <algorithm>
 #include <binpac.h>
+#include <algorithm>
 
+#include "zeek/Event.h"
+#include "zeek/ZeekString.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
-#include "zeek/ZeekString.h"
-#include "zeek/Event.h"
 
-namespace zeek::analyzer {
+namespace zeek::analyzer
+	{
 
-class AnalyzerTimer final : public zeek::detail::Timer {
+class AnalyzerTimer final : public zeek::detail::Timer
+	{
 public:
-	AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
-	              double arg_t, int arg_do_expire, zeek::detail::TimerType arg_type);
+	AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer, double arg_t,
+	              int arg_do_expire, zeek::detail::TimerType arg_type);
 
 	virtual ~AnalyzerTimer();
 
 	void Dispatch(double t, bool is_expire) override;
 
 protected:
-
 	void Init(Analyzer* analyzer, analyzer_timer_func timer, int do_expire);
 
 	Analyzer* analyzer = nullptr;
 	analyzer_timer_func timer;
 	int do_expire = 0;
-};
+	};
 
-AnalyzerTimer::AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
-			     double arg_t, int arg_do_expire, zeek::detail::TimerType arg_type)
+AnalyzerTimer::AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer, double arg_t,
+                             int arg_do_expire, zeek::detail::TimerType arg_type)
 	: Timer(arg_t, arg_type)
 	{
 	Init(arg_analyzer, arg_timer, arg_do_expire);
@@ -55,8 +56,7 @@ void AnalyzerTimer::Dispatch(double t, bool is_expire)
 	(analyzer->*timer)(t);
 	}
 
-void AnalyzerTimer::Init(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
-				int arg_do_expire)
+void AnalyzerTimer::Init(Analyzer* arg_analyzer, analyzer_timer_func arg_timer, int arg_do_expire)
 	{
 	analyzer = arg_analyzer;
 	timer = arg_timer;
@@ -92,7 +92,8 @@ Analyzer::Analyzer(const char* name, Connection* conn)
 	Tag tag = analyzer_mgr->GetComponentTag(name);
 
 	if ( ! tag )
-		reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::Component?", name);
+		reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::Component?",
+		                        name);
 
 	CtorInit(tag, conn);
 	}
@@ -142,10 +143,10 @@ Analyzer::~Analyzer()
 	// implementation tries to inspect analyzer tree w/ assumption that
 	// all analyzers are still valid.
 	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
-		delete *i;
+	delete *i;
 
 	LOOP_OVER_CHILDREN(i)
-		delete *i;
+	delete *i;
 
 	SupportAnalyzer* next = nullptr;
 
@@ -155,7 +156,7 @@ Analyzer::~Analyzer()
 		delete a;
 		}
 
-	for ( SupportAnalyzer* a = resp_supporters; a; a = next)
+	for ( SupportAnalyzer* a = resp_supporters; a; a = next )
 		{
 		next = a->sibling;
 		delete a;
@@ -164,9 +165,7 @@ Analyzer::~Analyzer()
 	delete output_handler;
 	}
 
-void Analyzer::Init()
-	{
-	}
+void Analyzer::Init() { }
 
 void Analyzer::InitChildren()
 	{
@@ -181,7 +180,7 @@ void Analyzer::InitChildren()
 
 void Analyzer::Done()
 	{
-	assert(!finished);
+	assert(! finished);
 
 	if ( ! skip )
 		{
@@ -194,8 +193,8 @@ void Analyzer::Done()
 	AppendNewChildren();
 
 	LOOP_OVER_CHILDREN(i)
-		if ( ! (*i)->finished )
-			(*i)->Done();
+	if ( ! (*i)->finished )
+		(*i)->Done();
 
 	for ( SupportAnalyzer* a = orig_supporters; a; a = a->sibling )
 		if ( ! a->finished )
@@ -208,8 +207,8 @@ void Analyzer::Done()
 	finished = true;
 	}
 
-void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
-                          const IP_Hdr* ip, int caplen)
+void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip,
+                          int caplen)
 	{
 	if ( skip )
 		return;
@@ -225,7 +224,7 @@ void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64_t se
 			{
 			DeliverPacket(len, data, is_orig, seq, ip, caplen);
 			}
-		catch ( binpac::Exception const &e )
+		catch ( binpac::Exception const& e )
 			{
 			ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 			}
@@ -248,7 +247,7 @@ void Analyzer::NextStream(int len, const u_char* data, bool is_orig)
 			{
 			DeliverStream(len, data, is_orig);
 			}
-		catch ( binpac::Exception const &e )
+		catch ( binpac::Exception const& e )
 			{
 			ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 			}
@@ -271,7 +270,7 @@ void Analyzer::NextUndelivered(uint64_t seq, int len, bool is_orig)
 			{
 			Undelivered(seq, len, is_orig);
 			}
-		catch ( binpac::Exception const &e )
+		catch ( binpac::Exception const& e )
 			{
 			ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 			}
@@ -291,12 +290,11 @@ void Analyzer::NextEndOfData(bool is_orig)
 		EndOfData(is_orig);
 	}
 
-void Analyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
-				uint64_t seq, const IP_Hdr* ip, int caplen)
+void Analyzer::ForwardPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
+                             const IP_Hdr* ip, int caplen)
 	{
 	if ( output_handler )
-		output_handler->DeliverPacket(len, data, is_orig, seq,
-						ip, caplen);
+		output_handler->DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
 	AppendNewChildren();
 
@@ -305,7 +303,7 @@ void Analyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
 		{
 		Analyzer* current = *i;
 
-		if ( ! (current->finished || current->removing ) )
+		if ( ! (current->finished || current->removing) )
 			{
 			current->NextPacket(len, data, is_orig, seq, ip, caplen);
 			++i;
@@ -328,7 +326,7 @@ void Analyzer::ForwardStream(int len, const u_char* data, bool is_orig)
 		{
 		Analyzer* current = *i;
 
-		if ( ! (current->finished || current->removing ) )
+		if ( ! (current->finished || current->removing) )
 			{
 			current->NextStream(len, data, is_orig);
 			++i;
@@ -351,7 +349,7 @@ void Analyzer::ForwardUndelivered(uint64_t seq, int len, bool is_orig)
 		{
 		Analyzer* current = *i;
 
-		if ( ! (current->finished || current->removing ) )
+		if ( ! (current->finished || current->removing) )
 			{
 			current->NextUndelivered(seq, len, is_orig);
 			++i;
@@ -371,7 +369,7 @@ void Analyzer::ForwardEndOfData(bool orig)
 		{
 		Analyzer* current = *i;
 
-		if ( ! (current->finished || current->removing ) )
+		if ( ! (current->finished || current->removing) )
 			{
 			current->NextEndOfData(orig);
 			++i;
@@ -408,8 +406,8 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	if ( init )
 		analyzer->Init();
 
-	DBG_LOG(DBG_ANALYZER, "%s added child %s",
-			fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
+	DBG_LOG(DBG_ANALYZER, "%s added child %s", fmt_analyzer(this).c_str(),
+	        fmt_analyzer(analyzer).c_str());
 	return true;
 	}
 
@@ -441,8 +439,8 @@ bool Analyzer::RemoveChild(const analyzer_list& children, ID id)
 		if ( i->finished || i->removing )
 			return false;
 
-		DBG_LOG(DBG_ANALYZER, "%s disabling child %s",
-		        fmt_analyzer(this).c_str(), fmt_analyzer(i).c_str());
+		DBG_LOG(DBG_ANALYZER, "%s disabling child %s", fmt_analyzer(this).c_str(),
+		        fmt_analyzer(i).c_str());
 		// We just flag it as being removed here but postpone
 		// actually doing that to later. Otherwise, we'd need
 		// to call Done() here, which then in turn might
@@ -481,12 +479,12 @@ void Analyzer::PreventChildren(Tag tag)
 bool Analyzer::HasChildAnalyzer(Tag tag)
 	{
 	LOOP_OVER_CHILDREN(i)
-		if ( (*i)->tag == tag )
-			return true;
+	if ( (*i)->tag == tag )
+		return true;
 
 	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
-		if ( (*i)->tag == tag )
-			return true;
+	if ( (*i)->tag == tag )
+		return true;
 
 	return false;
 	}
@@ -554,8 +552,8 @@ analyzer_list::iterator Analyzer::DeleteChild(analyzer_list::iterator i)
 		child->removing = false;
 		}
 
-	DBG_LOG(DBG_ANALYZER, "%s deleted child %s 3",
-		fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
+	DBG_LOG(DBG_ANALYZER, "%s deleted child %s 3", fmt_analyzer(this).c_str(),
+	        fmt_analyzer(child).c_str());
 
 	auto next = children.erase(i);
 	delete child;
@@ -566,18 +564,15 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 	{
 	if ( HasSupportAnalyzer(analyzer->GetAnalyzerTag(), analyzer->IsOrig()) )
 		{
-		DBG_LOG(DBG_ANALYZER, "%s already has %s %s",
-			fmt_analyzer(this).c_str(),
-			analyzer->IsOrig() ? "originator" : "responder",
-			fmt_analyzer(analyzer).c_str());
+		DBG_LOG(DBG_ANALYZER, "%s already has %s %s", fmt_analyzer(this).c_str(),
+		        analyzer->IsOrig() ? "originator" : "responder", fmt_analyzer(analyzer).c_str());
 
 		analyzer->Done();
 		delete analyzer;
 		return;
 		}
 
-	SupportAnalyzer** head =
-		analyzer->IsOrig() ? &orig_supporters : &resp_supporters;
+	SupportAnalyzer** head = analyzer->IsOrig() ? &orig_supporters : &resp_supporters;
 
 	// Find end of the list.
 	SupportAnalyzer* prev = nullptr;
@@ -594,18 +589,14 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 
 	analyzer->Init();
 
-	DBG_LOG(DBG_ANALYZER, "%s added %s support %s",
-			fmt_analyzer(this).c_str(),
-			analyzer->IsOrig() ? "originator" : "responder",
-			fmt_analyzer(analyzer).c_str());
+	DBG_LOG(DBG_ANALYZER, "%s added %s support %s", fmt_analyzer(this).c_str(),
+	        analyzer->IsOrig() ? "originator" : "responder", fmt_analyzer(analyzer).c_str());
 	}
 
 void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s disabled %s support analyzer %s",
-			fmt_analyzer(this).c_str(),
-			analyzer->IsOrig() ? "originator" : "responder",
-			fmt_analyzer(analyzer).c_str());
+	DBG_LOG(DBG_ANALYZER, "%s disabled %s support analyzer %s", fmt_analyzer(this).c_str(),
+	        analyzer->IsOrig() ? "originator" : "responder", fmt_analyzer(analyzer).c_str());
 
 	// We mark the analyzer as being removed here, which will prevent it
 	// from being used further. However, we don't actually delete it
@@ -639,31 +630,30 @@ SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig)
 	return sa->Sibling(true);
 	}
 
-void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-				uint64_t seq, const IP_Hdr* ip, int caplen)
+void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
+                             const IP_Hdr* ip, int caplen)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
-			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F", seq, ip, caplen,
-			util::fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
+	DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64 ", %p, %d) [%s%s]",
+	        fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F", seq, ip, caplen,
+	        util::fmt_bytes((const char*)data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s DeliverStream(%d, %s) [%s%s]",
-			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F",
-			util::fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
+	DBG_LOG(DBG_ANALYZER, "%s DeliverStream(%d, %s) [%s%s]", fmt_analyzer(this).c_str(), len,
+	        is_orig ? "T" : "F", util::fmt_bytes((const char*)data, min(40, len)),
+	        len > 40 ? "..." : "");
 	}
 
 void Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s Undelivered(%" PRIu64", %d, %s)",
-			fmt_analyzer(this).c_str(), seq, len, is_orig ? "T" : "F");
+	DBG_LOG(DBG_ANALYZER, "%s Undelivered(%" PRIu64 ", %d, %s)", fmt_analyzer(this).c_str(), seq,
+	        len, is_orig ? "T" : "F");
 	}
 
 void Analyzer::EndOfData(bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s EndOfData(%s)",
-			fmt_analyzer(this).c_str(), is_orig ? "T" : "F");
+	DBG_LOG(DBG_ANALYZER, "%s EndOfData(%s)", fmt_analyzer(this).c_str(), is_orig ? "T" : "F");
 	}
 
 void Analyzer::FlipRoles()
@@ -671,10 +661,10 @@ void Analyzer::FlipRoles()
 	DBG_LOG(DBG_ANALYZER, "%s FlipRoles()", fmt_analyzer(this).c_str());
 
 	LOOP_OVER_CHILDREN(i)
-		(*i)->FlipRoles();
+	(*i)->FlipRoles();
 
 	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
-		(*i)->FlipRoles();
+	(*i)->FlipRoles();
 
 	for ( SupportAnalyzer* a = orig_supporters; a; a = a->sibling )
 		a->FlipRoles();
@@ -710,11 +700,10 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 
 	if ( data && len )
 		{
-		const char *tmp = util::copy_string(reason);
-		r = make_intrusive<StringVal>(util::fmt("%s [%s%s]", tmp,
-		                                        util::fmt_bytes(data, min(40, len)),
-		                                        len > 40 ? "..." : ""));
-		delete [] tmp;
+		const char* tmp = util::copy_string(reason);
+		r = make_intrusive<StringVal>(util::fmt(
+			"%s [%s%s]", tmp, util::fmt_bytes(data, min(40, len)), len > 40 ? "..." : ""));
+		delete[] tmp;
 		}
 	else
 		r = make_intrusive<StringVal>(reason);
@@ -723,11 +712,10 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	event_mgr.Enqueue(protocol_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
 	}
 
-void Analyzer::AddTimer(analyzer_timer_func timer, double t,
-                        bool do_expire, zeek::detail::TimerType type)
+void Analyzer::AddTimer(analyzer_timer_func timer, double t, bool do_expire,
+                        zeek::detail::TimerType type)
 	{
-	zeek::detail::Timer* analyzer_timer = new
-		AnalyzerTimer(this, timer, t, do_expire, type);
+	zeek::detail::Timer* analyzer_timer = new AnalyzerTimer(this, timer, t, do_expire, type);
 
 	zeek::detail::timer_mgr->Add(analyzer_timer);
 	timers.push_back(analyzer_timer);
@@ -758,7 +746,7 @@ void Analyzer::CancelTimers()
 void Analyzer::AppendNewChildren()
 	{
 	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
-		children.push_back(*i);
+	children.push_back(*i);
 	new_children.clear();
 	}
 
@@ -766,11 +754,10 @@ unsigned int Analyzer::MemoryAllocation() const
 	{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	unsigned int mem = padded_sizeof(*this)
-		+ (timers.MemoryAllocation() - padded_sizeof(timers));
+	unsigned int mem = padded_sizeof(*this) + (timers.MemoryAllocation() - padded_sizeof(timers));
 
 	LOOP_OVER_CONST_CHILDREN(i)
-		mem += (*i)->MemoryAllocation();
+	mem += (*i)->MemoryAllocation();
 
 	for ( SupportAnalyzer* a = orig_supporters; a; a = a->sibling )
 		mem += a->MemoryAllocation();
@@ -782,10 +769,10 @@ unsigned int Analyzer::MemoryAllocation() const
 #pragma GCC diagnostic pop
 	}
 
-void Analyzer::UpdateConnVal(RecordVal *conn_val)
+void Analyzer::UpdateConnVal(RecordVal* conn_val)
 	{
 	LOOP_OVER_CHILDREN(i)
-		(*i)->UpdateConnVal(conn_val);
+	(*i)->UpdateConnVal(conn_val);
 	}
 
 const RecordValPtr& Analyzer::ConnVal()
@@ -820,15 +807,14 @@ SupportAnalyzer* SupportAnalyzer::Sibling(bool only_active) const
 	return next;
 	}
 
-void SupportAnalyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+void SupportAnalyzer::ForwardPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
+                                    const IP_Hdr* ip, int caplen)
 	{
 	// We do not call parent's method, as we're replacing the functionality.
 
 	if ( GetOutputHandler() )
 		{
-		GetOutputHandler()->DeliverPacket(len, data, is_orig, seq,
-							ip, caplen);
+		GetOutputHandler()->DeliverPacket(len, data, is_orig, seq, ip, caplen);
 		return;
 		}
 
@@ -882,5 +868,4 @@ void SupportAnalyzer::ForwardUndelivered(uint64_t seq, int len, bool is_orig)
 		Parent()->Undelivered(seq, len, is_orig);
 	}
 
-
-} // namespace zeek::analyzer
+	} // namespace zeek::analyzer

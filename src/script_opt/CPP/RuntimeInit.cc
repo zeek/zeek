@@ -1,10 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/module_util.h"
-#include "zeek/EventRegistry.h"
 #include "zeek/script_opt/CPP/RuntimeInit.h"
 
-namespace zeek::detail {
+#include "zeek/EventRegistry.h"
+#include "zeek/module_util.h"
+
+namespace zeek::detail
+	{
 
 using namespace std;
 
@@ -47,7 +49,6 @@ static int flag_init_CPP()
 
 static int dummy = flag_init_CPP();
 
-
 void register_type__CPP(TypePtr t, const std::string& name)
 	{
 	if ( t->GetName().size() > 0 )
@@ -61,14 +62,13 @@ void register_type__CPP(TypePtr t, const std::string& name)
 	id->MakeType();
 	}
 
-void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash,
-                        vector<string> events)
+void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, vector<string> events)
 	{
-	compiled_scripts[hash] = { move(body), priority, move(events) };
+	compiled_scripts[hash] = {move(body), priority, move(events)};
 	}
 
-void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name,
-                          TypePtr t, bool has_captures)
+void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, TypePtr t,
+                          bool has_captures)
 	{
 	auto ft = cast_intrusive<FuncType>(t);
 
@@ -98,8 +98,8 @@ void register_scripts__CPP(p_hash_type h, void (*callback)())
 	standalone_callbacks[h] = callback;
 	}
 
-void activate_bodies__CPP(const char* fn, const char* module, bool exported,
-                          TypePtr t, vector<p_hash_type> hashes)
+void activate_bodies__CPP(const char* fn, const char* module, bool exported, TypePtr t,
+                          vector<p_hash_type> hashes)
 	{
 	auto ft = cast_intrusive<FuncType>(t);
 	auto fg = lookup_ID(fn, module, false, false, false);
@@ -115,8 +115,7 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported,
 		{ // Create it.
 		std::vector<StmtPtr> no_bodies;
 		std::vector<int> no_priorities;
-		auto sf = make_intrusive<ScriptFunc>(fn, ft, no_bodies,
-		                                     no_priorities);
+		auto sf = make_intrusive<ScriptFunc>(fn, ft, no_bodies, no_priorities);
 
 		v = make_intrusive<FuncVal>(move(sf));
 		fg->SetVal(v);
@@ -143,7 +142,7 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported,
 	if ( ft->Flavor() == FUNC_FLAVOR_EVENT )
 		events.insert(fn);
 
-	vector<detail::IDPtr> no_inits;	// empty initialization vector
+	vector<detail::IDPtr> no_inits; // empty initialization vector
 	int num_params = ft->Params()->NumFields();
 
 	for ( auto h : hashes )
@@ -190,8 +189,7 @@ Func* lookup_bif__CPP(const char* bif)
 	return b ? b->GetVal()->AsFunc() : nullptr;
 	}
 
-FuncValPtr lookup_func__CPP(string name, vector<p_hash_type> hashes,
-                            const TypePtr& t)
+FuncValPtr lookup_func__CPP(string name, vector<p_hash_type> hashes, const TypePtr& t)
 	{
 	auto ft = cast_intrusive<FuncType>(t);
 
@@ -216,20 +214,17 @@ FuncValPtr lookup_func__CPP(string name, vector<p_hash_type> hashes,
 			}
 		}
 
-	auto sf = make_intrusive<ScriptFunc>(move(name), move(ft), move(bodies),
-	                                     move(priorities));
+	auto sf = make_intrusive<ScriptFunc>(move(name), move(ft), move(bodies), move(priorities));
 
 	return make_intrusive<FuncVal>(move(sf));
 	}
-
 
 RecordTypePtr get_record_type__CPP(const char* record_type_name)
 	{
 	IDPtr existing_type;
 
-	if ( record_type_name &&
-	     (existing_type = global_scope()->Find(record_type_name)) &&
-	      existing_type->GetType()->Tag() == TYPE_RECORD )
+	if ( record_type_name && (existing_type = global_scope()->Find(record_type_name)) &&
+	     existing_type->GetType()->Tag() == TYPE_RECORD )
 		return cast_intrusive<RecordType>(existing_type->GetType());
 
 	return make_intrusive<RecordType>(new type_decl_list());
@@ -251,4 +246,4 @@ EnumValPtr make_enum__CPP(TypePtr t, int i)
 	return make_intrusive<EnumVal>(et, i);
 	}
 
-} // namespace zeek::detail
+	} // namespace zeek::detail

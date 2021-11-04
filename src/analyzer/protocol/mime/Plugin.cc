@@ -2,9 +2,11 @@
 
 #include "zeek/plugin/Plugin.h"
 
-namespace zeek::plugin::detail::Zeek_MIME {
+namespace zeek::plugin::detail::Zeek_MIME
+	{
 
-class Plugin : public zeek::plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin
+	{
 public:
 	zeek::plugin::Configuration Configure() override
 		{
@@ -13,6 +15,6 @@ public:
 		config.description = "MIME parsing";
 		return config;
 		}
-} plugin;
+	} plugin;
 
-} // namespace zeek::plugin::detail::Zeek_MIME
+	} // namespace zeek::plugin::detail::Zeek_MIME

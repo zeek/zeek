@@ -2,18 +2,22 @@
 
 #pragma once
 
-#include "zeek/packet_analysis/Analyzer.h"
-#include "zeek/packet_analysis/Component.h"
 #include "zeek/IPAddr.h"
 #include "zeek/TunnelEncapsulation.h"
+#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::IPTunnel {
+namespace zeek::packet_analysis::IPTunnel
+	{
 
-namespace detail { class IPTunnelTimer; }
+namespace detail
+	{
+class IPTunnelTimer;
+	}
 
-class IPTunnelAnalyzer : public Analyzer {
+class IPTunnelAnalyzer : public Analyzer
+	{
 public:
-
 	IPTunnelAnalyzer();
 	~IPTunnelAnalyzer() override = default;
 
@@ -39,7 +43,7 @@ public:
 	 *        the most-recently found depth of encapsulation.
 	 * @param ec The most-recently found depth of encapsulation.
 	 */
-	bool ProcessEncapsulatedPacket(double t, const Packet *pkt,
+	bool ProcessEncapsulatedPacket(double t, const Packet* pkt,
 	                               const std::unique_ptr<IP_Hdr>& inner,
 	                               std::shared_ptr<EncapsulationStack> prev,
 	                               const EncapsulatingConn& ec);
@@ -60,26 +64,25 @@ public:
 	 *        including the most-recently found depth of encapsulation.
 	 * @param ec The most-recently found depth of encapsulation.
 	 */
-	bool ProcessEncapsulatedPacket(double t, const Packet* pkt,
-	                               uint32_t caplen, uint32_t len,
+	bool ProcessEncapsulatedPacket(double t, const Packet* pkt, uint32_t caplen, uint32_t len,
 	                               const u_char* data, int link_type,
 	                               std::shared_ptr<EncapsulationStack> prev,
 	                               const EncapsulatingConn& ec);
 
 protected:
-
 	friend class detail::IPTunnelTimer;
 
 	using IPPair = std::pair<IPAddr, IPAddr>;
 	using TunnelActivity = std::pair<EncapsulatingConn, double>;
 	using IPTunnelMap = std::map<IPPair, TunnelActivity>;
 	IPTunnelMap ip_tunnels;
+	};
 
-};
+namespace detail
+	{
 
-namespace detail {
-
-class IPTunnelTimer final : public zeek::detail::Timer {
+class IPTunnelTimer final : public zeek::detail::Timer
+	{
 public:
 	IPTunnelTimer(double t, IPTunnelAnalyzer::IPPair p, IPTunnelAnalyzer* analyzer);
 	~IPTunnelTimer() override = default;
@@ -89,11 +92,11 @@ public:
 protected:
 	IPTunnelAnalyzer::IPPair tunnel_idx;
 	IPTunnelAnalyzer* analyzer;
-};
+	};
 
-} // namespace detail
+	} // namespace detail
 
 // This is temporary until the TCP and UDP analyzers are moved to be packet analyzers.
 extern IPTunnelAnalyzer* ip_tunnel_analyzer;
 
-}
+	}

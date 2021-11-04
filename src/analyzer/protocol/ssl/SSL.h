@@ -1,16 +1,29 @@
 #pragma once
 
+#include "zeek/analyzer/protocol/ssl/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "zeek/analyzer/protocol/ssl/events.bif.h"
+namespace binpac
+	{
+namespace SSL
+	{
+class SSL_Conn;
+	}
+	}
 
-namespace binpac { namespace SSL { class SSL_Conn; } }
+namespace binpac
+	{
+namespace TLSHandshake
+	{
+class Handshake_Conn;
+	}
+	}
 
-namespace binpac { namespace TLSHandshake { class Handshake_Conn; } }
+namespace zeek::analyzer::ssl
+	{
 
-namespace zeek::analyzer::ssl {
-
-class SSL_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
+class SSL_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
+	{
 public:
 	explicit SSL_Analyzer(Connection* conn);
 	~SSL_Analyzer() override;
@@ -30,14 +43,12 @@ public:
 	// Overridden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new SSL_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new SSL_Analyzer(conn); }
 
 protected:
 	binpac::SSL::SSL_Conn* interp;
 	binpac::TLSHandshake::Handshake_Conn* handshake_interp;
 	bool had_gap;
+	};
 
-};
-
-} // namespace zeek::analyzer::ssl
+	} // namespace zeek::analyzer::ssl

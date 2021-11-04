@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <errno.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "zeek/script_opt/CPP/Compile.h"
 
-
-namespace zeek::detail {
+namespace zeek::detail
+	{
 
 using namespace std;
 
@@ -22,8 +22,7 @@ void CPPCompile::DeclareFunc(const FuncInfo& func)
 	const auto& body = func.Body();
 	auto priority = func.Priority();
 
-	DeclareSubclass(f->GetType(), pf, fname, body, priority, nullptr,
-	                f->Flavor());
+	DeclareSubclass(f->GetType(), pf, fname, body, priority, nullptr, f->Flavor());
 
 	if ( f->GetBodies().size() == 1 )
 		compiled_simple_funcs[f->Name()] = fname;
@@ -41,14 +40,12 @@ void CPPCompile::DeclareLambda(const LambdaExpr* l, const ProfileFunc* pf)
 	for ( auto id : ids )
 		lambda_names[id] = LocalName(id);
 
-	DeclareSubclass(l_id->GetType<FuncType>(), pf, lname, body, 0, l,
-	                FUNC_FLAVOR_FUNCTION);
+	DeclareSubclass(l_id->GetType<FuncType>(), pf, lname, body, 0, l, FUNC_FLAVOR_FUNCTION);
 	}
 
-void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf,
-                                 const string& fname,
-                                 const StmtPtr& body, int priority,
-                                 const LambdaExpr* l, FunctionFlavor flavor)
+void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, const string& fname,
+                                 const StmtPtr& body, int priority, const LambdaExpr* l,
+                                 FunctionFlavor flavor)
 	{
 	const auto& yt = ft->Yield();
 	in_hook = flavor == FUNC_FLAVOR_HOOK;
@@ -64,8 +61,8 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf,
 
 	Emit("public:");
 
-	string addl_args;	// captures passed in on construction
-	string inits;	// initializers for corresponding member vars
+	string addl_args; // captures passed in on construction
+	string inits; // initializers for corresponding member vars
 
 	if ( lambda_ids )
 		{
@@ -79,8 +76,8 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf,
 			}
 		}
 
-	Emit("%s_cl(const char* name%s) : CPPStmt(name)%s { }",
-	     fname, addl_args.c_str(), inits.c_str());
+	Emit("%s_cl(const char* name%s) : CPPStmt(name)%s { }", fname, addl_args.c_str(),
+	     inits.c_str());
 
 	// An additional constructor just used to generate place-holder
 	// instances, due to the mis-design that lambdas are identified
@@ -141,9 +138,8 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf,
 	total_hash = merge_p_hashes(total_hash, h);
 	}
 
-void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf,
-                             const string& fname, const StmtPtr& body,
-                             const LambdaExpr* l, const IDPList* lambda_ids)
+void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf, const string& fname,
+                             const StmtPtr& body, const LambdaExpr* l, const IDPList* lambda_ids)
 	{
 	// Declare the member variables for holding the captures.
 	for ( auto& id : *lambda_ids )
@@ -155,15 +151,13 @@ void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf,
 
 	// Generate initialization to create and register the lambda.
 	auto literal_name = string("\"") + l->Name() + "\"";
-	auto instantiate = string("make_intrusive<") + fname + "_cl>(" +
-	                   literal_name + ")";
+	auto instantiate = string("make_intrusive<") + fname + "_cl>(" + literal_name + ")";
 
 	int nl = lambda_ids->length();
 	auto h = Fmt(pf->HashVal());
 	auto has_captures = nl > 0 ? "true" : "false";
-	auto l_init = string("register_lambda__CPP(") + instantiate +
-	              ", " + h + ", \"" + l->Name() + "\", " +
-	              GenTypeName(ft) + ", " + has_captures + ");";
+	auto l_init = string("register_lambda__CPP(") + instantiate + ", " + h + ", \"" + l->Name() +
+	              "\", " + GenTypeName(ft) + ", " + has_captures + ");";
 
 	AddInit(l, l_init);
 	NoteInitDependency(l, TypeRep(ft));
@@ -184,8 +178,7 @@ void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf,
 		auto l_i = (*lambda_ids)[i];
 		const auto& t_i = l_i->GetType();
 		auto cap_i = string("f->GetElement(") + Fmt(i) + ")";
-		Emit("%s = %s;", lambda_names[l_i],
-		     GenericValPtrToGT(cap_i, t_i, GEN_NATIVE));
+		Emit("%s = %s;", lambda_names[l_i], GenericValPtrToGT(cap_i, t_i, GEN_NATIVE));
 		}
 	EndBlock();
 
@@ -197,8 +190,7 @@ void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf,
 		{
 		auto l_i = (*lambda_ids)[i];
 		const auto& t_i = l_i->GetType();
-		Emit("vals.emplace_back(%s);",
-		     NativeToGT(lambda_names[l_i], t_i, GEN_VAL_PTR));
+		Emit("vals.emplace_back(%s);", NativeToGT(lambda_names[l_i], t_i, GEN_VAL_PTR));
 		}
 	Emit("return vals;");
 	EndBlock();
@@ -259,8 +251,7 @@ string CPPCompile::ParamDecl(const FuncTypePtr& ft, const IDPList* lambda_ids,
 
 		if ( param_id )
 			{
-			if ( t->Tag() == TYPE_ANY &&
-			     param_id->GetType()->Tag() != TYPE_ANY )
+			if ( t->Tag() == TYPE_ANY && param_id->GetType()->Tag() != TYPE_ANY )
 				// We'll need to translate the parameter
 				// from its current representation to
 				// type "any".
@@ -321,4 +312,4 @@ const ID* CPPCompile::FindParam(int i, const ProfileFunc* pf)
 	return nullptr;
 	}
 
-} // zeek::detail
+	} // zeek::detail

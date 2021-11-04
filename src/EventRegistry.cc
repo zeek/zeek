@@ -1,10 +1,12 @@
 #include "zeek/EventRegistry.h"
+
 #include "zeek/EventHandler.h"
 #include "zeek/Func.h"
 #include "zeek/RE.h"
 #include "zeek/Reporter.h"
 
-namespace zeek {
+namespace zeek
+	{
 
 EventRegistry::EventRegistry() = default;
 EventRegistry::~EventRegistry() noexcept = default;
@@ -103,9 +105,7 @@ void EventRegistry::PrintDebug()
 		{
 		EventHandler* v = entry.second.get();
 		fprintf(stderr, "Registered event %s (%s handler / %s)\n", v->Name(),
-				v->GetFunc() ? "local" : "no",
-				*v ? "active" : "not active"
-				);
+		        v->GetFunc() ? "local" : "no", *v ? "active" : "not active");
 		}
 	}
 
@@ -123,4 +123,4 @@ void EventRegistry::SetErrorHandler(std::string_view name)
 	                          std::string(name).c_str());
 	}
 
-} // namespace zeek
+	} // namespace zeek

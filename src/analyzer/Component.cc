@@ -2,15 +2,18 @@
 
 #include "zeek/analyzer/Component.h"
 
-#include "zeek/analyzer/Manager.h"
 #include "zeek/Desc.h"
+#include "zeek/analyzer/Manager.h"
 #include "zeek/util.h"
 
-namespace zeek::analyzer {
+namespace zeek::analyzer
+	{
 
-Component::Component(const std::string& name, factory_callback arg_factory, Tag::subtype_t arg_subtype,
-                     bool arg_enabled, bool arg_partial, bool arg_adapter)
-	: plugin::Component(arg_adapter ? plugin::component::SESSION_ADAPTER : plugin::component::ANALYZER, name),
+Component::Component(const std::string& name, factory_callback arg_factory,
+                     Tag::subtype_t arg_subtype, bool arg_enabled, bool arg_partial,
+                     bool arg_adapter)
+	: plugin::Component(
+		  arg_adapter ? plugin::component::SESSION_ADAPTER : plugin::component::ANALYZER, name),
 	  plugin::TaggedComponent<analyzer::Tag>(arg_subtype)
 	{
 	factory = arg_factory;
@@ -24,9 +27,7 @@ void Component::Initialize()
 	analyzer_mgr->RegisterComponent(this, "ANALYZER_");
 	}
 
-Component::~Component()
-	{
-	}
+Component::~Component() { }
 
 void Component::DoDescribe(ODesc* d) const
 	{
@@ -40,4 +41,4 @@ void Component::DoDescribe(ODesc* d) const
 	d->Add(enabled ? "enabled" : "disabled");
 	}
 
-} // namespace zeek::analyzer
+	} // namespace zeek::analyzer

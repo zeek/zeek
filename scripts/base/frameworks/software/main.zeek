@@ -13,18 +13,18 @@ module Software;
 export {
 	## The software logging stream identifier.
 	redef enum Log::ID += { LOG };
-	
+
 	## A default logging policy hook for the stream.
 	global log_policy: Log::PolicyHook;
 
 	## Scripts detecting new types of software need to redef this enum to add
-	## their own specific software types which would then be used when they 
+	## their own specific software types which would then be used when they
 	## create :zeek:type:`Software::Info` records.
 	type Type: enum {
 		## A placeholder type for when the type of software is not known.
 		UNKNOWN,
 	};
-	
+
 	## A structure to represent the numeric version of software.
 	type Version: record {
 		## Major version number.
@@ -38,7 +38,7 @@ export {
 		## Additional version string (e.g. "beta42").
 		addl:   string &optional;
 	} &log;
-	
+
 	## The record type that is used for representing and logging software.
 	type Info: record {
 		## The time at which the software was detected.
@@ -58,9 +58,9 @@ export {
 		## parsing doesn't always work reliably in all cases and this
 		## acts as a fallback in the logs.
 		unparsed_version: string &log &optional;
-		
+
 		## This can indicate that this software being detected should
-		## definitely be sent onward to the logging framework.  By 
+		## definitely be sent onward to the logging framework.  By
 		## default, only software that is "interesting" due to a change
 		## in version or it being currently unknown is sent to the
 		## logging framework.  This can be set to T to force the record
@@ -68,7 +68,7 @@ export {
 		## tracking needs to happen in a specific way to the software.
 		force_log:        bool &default=F;
 	};
-	
+
 	## Hosts whose software should be detected and tracked.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
 	option asset_tracking = LOCAL_HOSTS;
@@ -78,21 +78,21 @@ export {
 	## id: The connection id where the software was discovered.
 	##
 	## info: A record representing the software discovered.
-	## 
+	##
 	## Returns: T if the software was logged, F otherwise.
 	global found: function(id: conn_id, info: Info): bool;
-	
+
 	## Compare two version records.
-	## 
+	##
 	## Returns:  -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
 	##           If the numerical version numbers match, the *addl* string
 	##           is compared lexicographically.
 	global cmp_versions: function(v1: Version, v2: Version): int;
-	
-	## Sometimes software will expose itself on the network with 
-	## slight naming variations.  This table provides a mechanism 
-	## for a piece of software to be renamed to a single name 
-	## even if it exposes itself with an alternate name.  The 
+
+	## Sometimes software will expose itself on the network with
+	## slight naming variations.  This table provides a mechanism
+	## for a piece of software to be renamed to a single name
+	## even if it exposes itself with an alternate name.  The
 	## yielded string is the name that will be logged and generally
 	## used for everything.
 	global alternate_names: table[string] of string {
@@ -100,17 +100,17 @@ export {
 	} &default=function(a: string): string { return a; };
 
 	## Type to represent a collection of :zeek:type:`Software::Info` records.
-	## It's indexed with the name of a piece of software such as "Firefox" 
+	## It's indexed with the name of a piece of software such as "Firefox"
 	## and it yields a :zeek:type:`Software::Info` record with more
 	## information about the software.
 	type SoftwareSet: table[string] of Info;
-	
+
 	## The set of software associated with an address.  Data expires from
-	## this table after one day by default so that a detected piece of 
+	## this table after one day by default so that a detected piece of
 	## software will be logged once each day.  In a cluster, this table is
 	## uniformly distributed among proxy nodes.
 	global tracked: table[addr] of SoftwareSet &create_expire=1day;
-	
+
 	## This event can be handled to access the :zeek:type:`Software::Info`
 	## record as it is sent on to the logging framework.
 	global log_software: event(rec: Info);
@@ -128,7 +128,7 @@ event zeek_init() &priority=5
 	{
 	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software, $path="software", $policy=log_policy]);
 	}
-	
+
 type Description: record {
 	name:             string;
 	version:          Version;
@@ -138,13 +138,13 @@ type Description: record {
 # Defining this here because of a circular dependency between two functions.
 global parse_mozilla: function(unparsed_version: string): Description;
 
-# Don't even try to understand this now, just make sure the tests are 
+# Don't even try to understand this now, just make sure the tests are
 # working.
 function parse(unparsed_version: string): Description
 	{
 	local software_name = "<parse error>";
 	local v: Version;
-	
+
 	# Parse browser-alike versions separately
 	if ( /^(Mozilla|Opera)\/[0-9]+\./ in unparsed_version )
 		{
@@ -220,10 +220,10 @@ function parse(unparsed_version: string): Description
 						{
 						v$addl = strip(version_parts[2]);
 						}
-						
+
 					}
 				}
-			
+
 			if ( 3 in version_numbers && version_numbers[3] != "" )
 				v$minor3 = extract_count(version_numbers[3]);
 			if ( 2 in version_numbers && version_numbers[2] != "" )
@@ -234,17 +234,29 @@ function parse(unparsed_version: string): Description
 				v$major = extract_count(version_numbers[0]);
 			}
 		}
-	
+
 	return [$version=v, $unparsed_version=unparsed_version, $name=alternate_names[software_name]];
 	}
 
+global parse_cache: table[string] of Description &read_expire=65secs;
+
+# Call parse, but cache results in the parse_cache table
+function parse_with_cache(unparsed_version: string): Description
+	{
+	if (unparsed_version in parse_cache)
+		return parse_cache[unparsed_version];
+
+	local res = parse(unparsed_version);
+	parse_cache[unparsed_version] = res;
+	return res;
+	}
 
 function parse_mozilla(unparsed_version: string): Description
 	{
 	local software_name = "<unknown browser>";
 	local v: Version;
 	local parts: string_vec;
-	
+
 	if ( /Opera [0-9\.]*$/ in unparsed_version )
 		{
 		software_name = "Opera";
@@ -337,7 +349,7 @@ function parse_mozilla(unparsed_version: string): Description
 		if ( 2 in parts )
 			v = parse(parts[2])$version;
 		}
-	
+
 	else if ( /AdobeAIR\/[0-9\.]*/ in unparsed_version )
 		{
 		software_name = "AdobeAIR";
@@ -380,7 +392,7 @@ function cmp_versions(v1: Version, v2: Version): int
 		else
 			return v1?$major ? 1 : -1;
 		}
-		
+
 	if ( v1?$minor && v2?$minor )
 		{
 		if ( v1$minor < v2$minor )
@@ -395,7 +407,7 @@ function cmp_versions(v1: Version, v2: Version): int
 		else
 			return v1?$minor ? 1 : -1;
 		}
-		
+
 	if ( v1?$minor2 && v2?$minor2 )
 		{
 		if ( v1$minor2 < v2$minor2 )
@@ -450,7 +462,7 @@ function software_endpoint_name(id: conn_id, host: addr): string
 # Convert a version into a string "a.b.c-x".
 function software_fmt_version(v: Version): string
 	{
-	return fmt("%s%s%s%s%s", 
+	return fmt("%s%s%s%s%s",
 	           v?$major ? fmt("%d", v$major) : "0",
 	           v?$minor ? fmt(".%d", v$minor) : "",
 	           v?$minor2 ? fmt(".%d", v$minor2) : "",
@@ -464,8 +476,25 @@ function software_fmt(i: Info): string
 	return fmt("%s %s", i$name, software_fmt_version(i$version));
 	}
 
+# Parse unparsed_version if needed before raising register event
+# This is used to maintain the behavior of the exported Software::register
+# event that expects a pre-parsed 'name' field.
+event Software::new(info: Info)
+	{
+	if ( ! info?$version )
+		{
+		local sw = parse_with_cache(info$unparsed_version);
+		info$unparsed_version = sw$unparsed_version;
+		info$name = sw$name;
+		info$version = sw$version;
+		}
+
+	event Software::register(info);
+	}
+
 event Software::register(info: Info)
 	{
+
 	local ts: SoftwareSet;
 
 	if ( info$host in tracked )
@@ -481,10 +510,10 @@ event Software::register(info: Info)
 		local changed = cmp_versions(old$version, info$version) != 0;
 
 		if ( changed )
-			event Software::version_change(old, info);	
+			event Software::version_change(old, info);
 		else if ( ! info$force_log )
 			# If the version hasn't changed, then we're just redetecting the
-			# same thing, then we don't care. 
+			# same thing, then we don't care.
 			return;
 		}
 
@@ -497,7 +526,7 @@ function found(id: conn_id, info: Info): bool
 	if ( ! info$force_log && ! addr_matches_host(info$host, asset_tracking) )
 		return F;
 
-	if ( ! info?$ts ) 
+	if ( ! info?$ts )
 		info$ts = network_time();
 
 	if ( info?$version )
@@ -514,19 +543,10 @@ function found(id: conn_id, info: Info): bool
 		return F;
 		}
 
-	if ( ! info?$version )
-		{
-		local sw = parse(info$unparsed_version);
-		info$unparsed_version = sw$unparsed_version;
-		info$name = sw$name;
-		info$version = sw$version;
-		}
-
 	@if ( Cluster::is_enabled() )
-		Cluster::publish_hrw(Cluster::proxy_pool, info$host, Software::register,
-		                     info);
+		Cluster::publish_hrw(Cluster::proxy_pool, info$host, Software::new, info);
 	@else
-		event Software::register(info);
+		event Software::new(info);
 	@endif
 
 	return T;

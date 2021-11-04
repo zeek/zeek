@@ -7,14 +7,18 @@
 #include <utility>
 
 #include "zeek/Frag.h"
-#include "zeek/NetVar.h"
-#include "zeek/telemetry/Manager.h"
 #include "zeek/Hash.h"
+#include "zeek/NetVar.h"
 #include "zeek/session/Session.h"
+#include "zeek/telemetry/Manager.h"
 
-namespace zeek {
+namespace zeek
+	{
 
-namespace detail { class PacketFilter; }
+namespace detail
+	{
+class PacketFilter;
+	}
 
 class EncapsulationStack;
 class Packet;
@@ -22,11 +26,16 @@ class Connection;
 struct ConnTuple;
 class StatBlocks;
 
-namespace session {
+namespace session
+	{
 
-namespace detail { class ProtocolStats; }
+namespace detail
+	{
+class ProtocolStats;
+	}
 
-struct Stats {
+struct Stats
+	{
 	size_t num_TCP_conns;
 	size_t max_TCP_conns;
 	uint64_t cumulative_TCP_conns;
@@ -42,14 +51,15 @@ struct Stats {
 	size_t num_fragments;
 	size_t max_fragments;
 	uint64_t num_packets;
-};
+	};
 
-class Manager final {
+class Manager final
+	{
 public:
 	Manager();
 	~Manager();
 
-	void Done();	// call to drain events before destructing
+	void Done(); // call to drain events before destructing
 
 	// Looks up the connection referred to by the given Val,
 	// which should be a conn_id record.  Returns nil if there's
@@ -65,7 +75,7 @@ public:
 	Connection* FindConnection(const zeek::detail::ConnKey& conn_key);
 
 	void Remove(Session* s);
-	void Insert(Session* c, bool remove_existing=true);
+	void Insert(Session* c, bool remove_existing = true);
 
 	// Generating connection_pending events for all connections
 	// that are still active.
@@ -76,37 +86,35 @@ public:
 
 	void GetStats(Stats& s);
 
-	void Weird(const char* name, const Packet* pkt,
-	           const char* addl = "", const char* source = "");
-	void Weird(const char* name, const IP_Hdr* ip,
-	           const char* addl = "");
+	void Weird(const char* name, const Packet* pkt, const char* addl = "", const char* source = "");
+	void Weird(const char* name, const IP_Hdr* ip, const char* addl = "");
 
-	[[deprecated("Remove in v5.1. Use packet_mgr->GetPacketFilter().")]]
-	zeek::detail::PacketFilter* GetPacketFilter(bool init=true);
+	[[deprecated("Remove in v5.1. Use packet_mgr->GetPacketFilter().")]] zeek::detail::PacketFilter*
+	GetPacketFilter(bool init = true);
 
-	unsigned int CurrentSessions()
+	unsigned int CurrentSessions() { return session_map.size(); }
+
+	[[deprecated("Remove in v5.1. Use CurrentSessions().")]] unsigned int CurrentConnections()
 		{
-		return session_map.size();
+		return CurrentSessions();
 		}
 
-	[[deprecated("Remove in v5.1. Use CurrentSessions().")]]
-	unsigned int CurrentConnections() { return CurrentSessions(); }
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	SessionMemoryUsage();
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	SessionMemoryUsageVals();
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
-	unsigned int SessionMemoryUsage();
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
-	unsigned int SessionMemoryUsageVals();
-
-	[[deprecated("Remove in v5.1. Use SessionMemoryUsage().")]]
-	unsigned int ConnectionMemoryUsage()
+	[[deprecated("Remove in v5.1. Use SessionMemoryUsage().")]] unsigned int ConnectionMemoryUsage()
 		{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		return SessionMemoryUsage();
 #pragma GCC diagnostic pop
 		}
-	[[deprecated("Remove in v5.1. Use SessionMemoryUsageVals().")]]
-	unsigned int ConnectionMemoryUsageConnVals()
+	[[deprecated("Remove in v5.1. Use SessionMemoryUsageVals().")]] unsigned int
+	ConnectionMemoryUsageConnVals()
 		{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -114,11 +122,11 @@ public:
 #pragma GCC diagnostic pop
 		}
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See GHI-572.")]]
-	unsigned int MemoryAllocation();
+	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
+	             "GHI-572.")]] unsigned int
+	MemoryAllocation();
 
 private:
-
 	using SessionMap = std::unordered_map<detail::Key, Session*, detail::KeyHash>;
 
 	// Inserts a new connection into the sessions map. If a connection with
@@ -130,14 +138,15 @@ private:
 
 	SessionMap session_map;
 	detail::ProtocolStats* stats;
-};
+	};
 
-} // namespace session
+	} // namespace session
 
 // Manager for the currently active sessions.
 extern session::Manager* session_mgr;
 
-extern session::Manager*& sessions [[deprecated("Remove in v5.1. Use zeek::sessions::session_mgr.")]];
+extern session::Manager*& sessions
+	[[deprecated("Remove in v5.1. Use zeek::sessions::session_mgr.")]];
 using NetSessions [[deprecated("Remove in v5.1. Use zeek::session::Manager.")]] = session::Manager;
 
-} // namespace zeek
+	} // namespace zeek

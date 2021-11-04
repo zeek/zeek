@@ -4,10 +4,7 @@
 
 using namespace zeek::packet_analysis::VNTag;
 
-VNTagAnalyzer::VNTagAnalyzer()
-	: zeek::packet_analysis::Analyzer("VNTag")
-	{
-	}
+VNTagAnalyzer::VNTagAnalyzer() : zeek::packet_analysis::Analyzer("VNTag") { }
 
 bool VNTagAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{

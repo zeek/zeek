@@ -1715,8 +1715,7 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 		t0 = tmp;
 		}
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-	for ( const auto& tble : *tbl )
+	for ( const auto& tble : *t1 )
 		{
 		auto k = tble.GetHashKey();
 

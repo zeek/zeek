@@ -1,5 +1,2 @@
 # Ignore everything 3rdparty
 src/3rdparty/*
-
-# These files are generated code
-src/DebugCmdInfoConstants.*

@@ -43,8 +43,8 @@
 #include <string>
 #include <vector>
 
+#include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/3rdparty/doctest.h"
-#include "zeek/ConvertUTF.h"
 #include "zeek/Desc.h"
 #include "zeek/Dict.h"
 #include "zeek/Hash.h"

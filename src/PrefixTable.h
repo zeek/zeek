@@ -2,7 +2,7 @@
 
 extern "C"
 	{
-#include "zeek/patricia.h"
+#include "zeek/3rdparty/patricia.h"
 	}
 
 #include <list>

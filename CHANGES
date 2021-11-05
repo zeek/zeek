@@ -1,3 +1,11 @@
+4.2.0-dev.297 | 2021-11-05 12:49:55 -0700
+
+  * Only push CI's Docker images when we're on the main repo (Christian Kreibich, Corelight)
+
+  * Add macOS Monterey and drop Catalina in CI (Christian Kreibich, Corelight)
+
+  * Add Fedora 35 to CI (Christian Kreibich, Corelight)
+
 4.2.0-dev.292 | 2021-11-04 14:28:35 -0700
 
   * Fix C++ set intersection code (Yacin Nadji, Corelight)

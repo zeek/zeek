@@ -93,6 +93,13 @@ env:
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
+fedora35_task:
+  container:
+    # Fedora 35 EOL: Around Dec 2022
+    dockerfile: ci/fedora-35/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 fedora34_task:
   container:
     # Fedora 34 EOL: Around May 2022
@@ -212,16 +219,16 @@ alpine_task:
 
 # Apple doesn't publish official long-term support timelines.
 # We aim to support both the current and previous macOS release.
-macos_big_sur_task:
+macos_monterey_task:
   macos_instance:
-    image: big-sur-xcode-12.5
+    image: monterey-xcode-13.1
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_RESOURCES_TEMPLATE
 
-macos_catalina_task:
+macos_big_sur_task:
   macos_instance:
-    image: catalina-xcode
+    image: big-sur-xcode-12.5
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_RESOURCES_TEMPLATE

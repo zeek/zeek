@@ -168,7 +168,7 @@ bool SSL_Analyzer::TLS12_PRF(const std::string& secret, const std::string& label
 #if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
 	// alloc context + params
 	EVP_KDF *kdf = EVP_KDF_fetch(NULL, "TLS1-PRF", NULL);
-	EVP_KDF_CTX *pctx = EVP_KDF_CTX_new(kdf);
+	EVP_KDF_CTX *kctx = EVP_KDF_CTX_new(kdf);
 	OSSL_PARAM params[4], *p = params;
 	EVP_KDF_free(kdf);
 #else /* OSSL 3 */
@@ -193,14 +193,23 @@ bool SSL_Analyzer::TLS12_PRF(const std::string& secret, const std::string& label
 	*p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SEED, (void*)seed.data(), seed.size());
 	*p = OSSL_PARAM_construct_end();
 
+	// set OSSL params
+	if (EVP_KDF_CTX_set_params(kctx, params) <= 0)
+		goto abort;
 	// derive key material
-	bool result = EVP_KDF_derive(pctx, out, out_len, params) <= 0;
-	EVP_KDF_CTX_free(pctx);
-	return result;
+	if (EVP_KDF_derive(kctx, out, out_len, NULL) <= 0)
+		goto abort;
+
+	EVP_KDF_CTX_free(kctx);
+	return true;
+
+abort:
+	EVP_KDF_CTX_free(kctx);
+	return false;
 #else /* OSSL 3 */
 	if (EVP_PKEY_derive_init(pctx) <= 0)
 		goto abort; /* Error */
-	// setup OSSL_PARAM array: digest, secret, seed
+	// setup PKEY params: digest, secret, seed
 	// FIXME: sha384 should not be hardcoded
 	if (EVP_PKEY_CTX_set_tls1_prf_md(pctx, EVP_sha384()) <= 0)
 		goto abort; /* Error */

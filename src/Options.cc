@@ -90,6 +90,8 @@ void usage(const char* prog, int code)
 	        "    -a|--parse-only                | exit immediately after parsing scripts\n");
 	fprintf(stderr,
 	        "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
+	fprintf(stderr,
+	        "    -c|--capture-unprocessed <file>| write unprocessed packets to a tcpdump file\n");
 	fprintf(stderr, "    -d|--debug-script              | activate Zeek script debugging\n");
 	fprintf(stderr, "    -e|--exec <zeek code>          | augment loaded scripts by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
@@ -103,8 +105,9 @@ void usage(const char* prog, int code)
 	                "allowed, pass '-' as the filename to read from stdin)\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
-	fprintf(stderr, "    -u|--usage-issues              | find variable usage issues and exit; use "
-	                "-uu for deeper/more expensive analysis\n");
+	fprintf(stderr,
+	        "    -u|--usage-issues              | find variable usage issues and exit; use "
+	        "-uu for deeper/more expensive analysis\n");
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
 	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
 #ifdef DEBUG
@@ -165,9 +168,8 @@ void usage(const char* prog, int code)
 	        getenv("ZEEK_DNS_RESOLVER")
 	            ? getenv("ZEEK_DNS_RESOLVER")
 	            : "not set, will use first IPv4 address from /etc/resolv.conf");
-	fprintf(
-		stderr,
-		"    $ZEEK_DEBUG_LOG_STDERR         | Use stderr for debug logs generated via the -B flag");
+	fprintf(stderr, "    $ZEEK_DEBUG_LOG_STDERR         | Use stderr for debug logs generated via "
+	                "the -B flag");
 
 	fprintf(stderr, "\n");
 
@@ -362,6 +364,7 @@ Options parse_cmdline(int argc, char** argv)
 	constexpr struct option long_opts[] = {
 		{"parse-only", no_argument, nullptr, 'a'},
 		{"bare-mode", no_argument, nullptr, 'b'},
+		{"capture-unprocessed", required_argument, nullptr, 'c'},
 		{"debug-script", no_argument, nullptr, 'd'},
 		{"exec", required_argument, nullptr, 'e'},
 		{"filter", required_argument, nullptr, 'f'},
@@ -405,7 +408,7 @@ Options parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuv",
+	util::safe_strncpy(opts, "B:c:e:f:G:H:I:i:j::n:O:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuv",
 	                   sizeof(opts));
 
 	int op;
@@ -427,6 +430,9 @@ Options parse_cmdline(int argc, char** argv)
 				break;
 			case 'b':
 				rval.bare_mode = true;
+				break;
+			case 'c':
+				rval.unprocessed_output_file = optarg;
 				break;
 			case 'd':
 				rval.debug_scripts = true;

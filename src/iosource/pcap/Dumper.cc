@@ -110,6 +110,7 @@ bool PcapDumper::Dump(const Packet* pkt)
 	const struct pcap_pkthdr phdr = {.ts = pkt->ts, .caplen = pkt->cap_len, .len = pkt->len};
 
 	pcap_dump((u_char*)dumper, &phdr, pkt->data);
+	pcap_dump_flush(dumper);
 	return true;
 	}
 

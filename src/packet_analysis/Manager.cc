@@ -4,6 +4,7 @@
 
 #include "zeek/RunState.h"
 #include "zeek/Stats.h"
+#include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktDumper.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Dispatcher.h"
@@ -24,7 +25,7 @@ Manager::~Manager()
 	delete pkt_filter;
 	}
 
-void Manager::InitPostScript()
+void Manager::InitPostScript(const std::string& unprocessed_output_file)
 	{
 	// Instantiate objects for all available analyzers
 	for ( const auto& analyzerComponent : GetComponents() )
@@ -49,6 +50,10 @@ void Manager::InitPostScript()
 	unknown_sampling_threshold = id::find_val("UnknownProtocol::sampling_threshold")->AsCount();
 	unknown_sampling_duration = id::find_val("UnknownProtocol::sampling_duration")->AsInterval();
 	unknown_first_bytes_count = id::find_val("UnknownProtocol::first_bytes_count")->AsCount();
+
+	if ( ! unprocessed_output_file.empty() )
+		// This gets automatically cleaned up by iosource_mgr. No need to delete it locally.
+		unprocessed_dumper = iosource_mgr->OpenPktDumper(unprocessed_output_file, true);
 	}
 
 void Manager::Done() { }
@@ -113,6 +118,9 @@ void Manager::ProcessPacket(Packet* packet)
 			event_mgr.Enqueue(packet_not_processed, Packet::ToVal(packet));
 
 		plugin_mgr->HookUnprocessedPacket(packet);
+
+		if ( unprocessed_dumper )
+			unprocessed_dumper->Dump(packet);
 
 		total_not_processed++;
 		}

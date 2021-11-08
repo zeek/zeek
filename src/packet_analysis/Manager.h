@@ -18,6 +18,11 @@ namespace detail
 class PacketProfiler;
 	}
 
+namespace iosource
+	{
+class PktDumper;
+	}
+
 namespace packet_analysis
 	{
 
@@ -40,8 +45,12 @@ public:
 	/**
 	 * Second-stage initialization of the manager. This is called late
 	 * during Zeek's initialization after any scripts are processed.
+	 *
+	 * @param unprocessed_output_file A path to a file where unprocessed
+	 * packets will be written. This can be an empty string to disable
+	 * writing packets.
 	 */
-	void InitPostScript();
+	void InitPostScript(const std::string& unprocessed_output_file);
 
 	/**
 	 * Finished the manager's operations.
@@ -172,6 +181,7 @@ private:
 	uint64_t unknown_first_bytes_count = 0;
 
 	uint64_t total_not_processed = 0;
+	iosource::PktDumper* unprocessed_dumper = nullptr;
 	};
 
 	} // namespace packet_analysis

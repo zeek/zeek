@@ -133,11 +133,15 @@ export {
 	global disabled_analyzers: set[Analyzer::Tag] = {
 		ANALYZER_TCPSTATS,
 	} &redef;
+
+	## A table of ports mapped to analyzers that handle those ports. This is
+	## used by BPF filtering and DPD. Session analyzers can add to this using
+	## Analyzer::register_for_port(s) and packet analyzers can add to this
+	## using PacketAnalyzer::register_for_port(s).
+	global ports: table[AllAnalyzers::Tag] of set[port];
 }
 
 @load base/bif/analyzer.bif
-
-global ports: table[AllAnalyzers::Tag] of set[port];
 
 event zeek_init() &priority=5
 	{
@@ -158,7 +162,7 @@ function disable_analyzer(tag: Analyzer::Tag) : bool
 	return __disable_analyzer(tag);
 	}
 
-function register_for_ports(tag: AllAnalyzers::Tag, ports: set[port]) : bool
+function register_for_ports(tag: Analyzer::Tag, ports: set[port]) : bool
 	{
 	local rc = T;
 
@@ -171,7 +175,7 @@ function register_for_ports(tag: AllAnalyzers::Tag, ports: set[port]) : bool
 	return rc;
 	}
 
-function register_for_port(tag: AllAnalyzers::Tag, p: port) : bool
+function register_for_port(tag: Analyzer::Tag, p: port) : bool
 	{
 	if ( ! __register_for_port(tag, p) )
 		return F;

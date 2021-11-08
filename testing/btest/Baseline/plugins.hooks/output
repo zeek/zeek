@@ -845,6 +845,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./logging.bif.zeek, <...>/logging.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./magic, <...>/magic) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./main, <...>/main.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./main.zeek, <...>/main.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./max, <...>/max.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./messaging.bif.zeek, <...>/messaging.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./min, <...>/min.zeek) -> -1
@@ -967,6 +968,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/logging, <...>/logging) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/logging.bif, <...>/logging.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/main, <...>/main.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/main.zeek, <...>/main.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/messaging.bif, <...>/messaging.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/modbus, <...>/modbus) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/mpls, <...>/mpls) -> -1
@@ -2265,6 +2267,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./logging.bif.zeek, <...>/logging.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./magic, <...>/magic)
 0.000000   MetaHookPre   LoadFile(0, ./main, <...>/main.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./main.zeek, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./max, <...>/max.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./messaging.bif.zeek, <...>/messaging.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./min, <...>/min.zeek)
@@ -2387,6 +2390,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/logging, <...>/logging)
 0.000000   MetaHookPre   LoadFile(0, base<...>/logging.bif, <...>/logging.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/main, <...>/main.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/main.zeek, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/messaging.bif, <...>/messaging.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/modbus, <...>/modbus)
 0.000000   MetaHookPre   LoadFile(0, base<...>/mpls, <...>/mpls)
@@ -3693,6 +3697,7 @@
 0.000000 | HookLoadFile  ./logging.bif.zeek <...>/logging.bif.zeek
 0.000000 | HookLoadFile  ./magic <...>/magic
 0.000000 | HookLoadFile  ./main <...>/main.zeek
+0.000000 | HookLoadFile  ./main.zeek <...>/main.zeek
 0.000000 | HookLoadFile  ./max <...>/max.zeek
 0.000000 | HookLoadFile  ./messaging.bif.zeek <...>/messaging.bif.zeek
 0.000000 | HookLoadFile  ./min <...>/min.zeek
@@ -3818,6 +3823,7 @@
 0.000000 | HookLoadFile  base<...>/logging <...>/logging
 0.000000 | HookLoadFile  base<...>/logging.bif <...>/logging.bif.zeek
 0.000000 | HookLoadFile  base<...>/main <...>/main.zeek
+0.000000 | HookLoadFile  base<...>/main.zeek <...>/main.zeek
 0.000000 | HookLoadFile  base<...>/messaging.bif <...>/messaging.bif.zeek
 0.000000 | HookLoadFile  base<...>/modbus <...>/modbus
 0.000000 | HookLoadFile  base<...>/mpls <...>/mpls

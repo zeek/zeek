@@ -114,40 +114,6 @@ There are additional workflows relating to running the test suite, which
 we document only briefly here as they're likely going to change or go away
 , as it's not clear they're actually needed.
 
-First, `-O update-C++` will run using a Zeek instance that already includes
-compiled scripts and, for any functions pulled in by the command-line scripts,
-if they're not already compiled, will generate additional C++ code for
-those that can be combined with the already-compiled code.  The
-additionally compiled code leverages the existing compiled-in functions
-(and globals), which it learns about via the `CPP-hashes.dat` file mentioned
-above.  Any code compiled in this fashion must be _consistent_ with the
-previously compiled code, meaning that globals and extensible types (enums,
-records) have definitions that align with those previously used, and any
-other code later compiled must also be consistent.
-
-In a similar vein, `-O add-C++` likewise uses a Zeek instance that already
-includes compiled scripts.  It generates additional C++ code that leverages
-that existing compilation.  However, this code is _not_ meant for use with
-subsequently compiled code; later code also build with `add-C++` can have
-inconsistencies with this code.  (The utility of this mode is to support
-compiling the entire test suite as one large incremental compilation,
-rather than as hundreds of pointwise compilations.)
-
-Both of these _append_ to any existing `CPP-gen-addl.h` file, providing
-a means for building it up to reflect a number of compilations.
-
-The `update-C++` and `add-C++` options help support different
-ways of building the `btest` test suite.  They were meant to enable doing so
-without requiring per-test-suite-element recompilations.  However, experiences
-to date have found that trying to avoid pointwise compilations incurs
-additional headaches, so it's better to just bite off the cost of a large
-number of recompilations.  Given that, it might make sense to remove these
-options.
-
-Finally, with respect to workflow there are number of simple scripts in
-`src/script_opt/CPP/` (which should ultimately be replaced) in support of
-compiler maintenance:
-
 * `non-embedded-build`  
 Builds `zeek` without any embedded compiled-to-C++ scripts.
 * `bare-embedded-build`  
@@ -183,12 +149,11 @@ Known Issues
 Here we list various known issues with using the compiler:
 <br>
 
-* Compilation of compiled code can be noticeably slow (if built using
-`./configure --enable-debug`) or hugely slow (if not), with the latter
-taking on the order of an hour on a beefy laptop.  This slowness complicates
+* Compilation of compiled code can be quite slow when the C++ compilation
+includes optimization,
+taking many minutes on a beefy laptop.  This slowness complicates
 CI/CD approaches for always running compiled code against the test suite
-when merging changes.  It's not presently clear how feasible it is to
-speed this up.
+when merging changes.
 
 * Run-time error messages generally lack location information and information
 about associated expressions/statements, making them hard to puzzle out.

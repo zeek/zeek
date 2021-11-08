@@ -221,8 +221,6 @@ static void init_options()
 	check_env_opt("ZEEK_PROFILE", analysis_options.profile_ZAM);
 
 	// Compile-to-C++-related options.
-	check_env_opt("ZEEK_ADD_CPP", analysis_options.add_CPP);
-	check_env_opt("ZEEK_UPDATE_CPP", analysis_options.update_CPP);
 	check_env_opt("ZEEK_GEN_CPP", analysis_options.gen_CPP);
 	check_env_opt("ZEEK_GEN_STANDALONE_CPP", analysis_options.gen_standalone_CPP);
 	check_env_opt("ZEEK_COMPILE_ALL", analysis_options.compile_all);
@@ -233,23 +231,6 @@ static void init_options()
 		analysis_options.gen_CPP = true;
 
 	if ( analysis_options.gen_CPP )
-		{
-		if ( analysis_options.add_CPP )
-			{
-			reporter->Warning("gen-C++ incompatible with add-C++");
-			analysis_options.add_CPP = false;
-			}
-
-		if ( analysis_options.update_CPP )
-			{
-			reporter->Warning("gen-C++ incompatible with update-C++");
-			analysis_options.update_CPP = false;
-			}
-
-		generating_CPP = true;
-		}
-
-	if ( analysis_options.update_CPP || analysis_options.add_CPP )
 		generating_CPP = true;
 
 	if ( analysis_options.use_CPP && generating_CPP )

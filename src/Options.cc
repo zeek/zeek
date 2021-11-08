@@ -202,8 +202,6 @@ static void print_analysis_help()
 	fprintf(stderr, "    report-uncompilable	print names of functions that can't be compiled\n");
 	fprintf(stderr, "    use-C++	use available C++ script bodies\n");
 	fprintf(stderr, "\n  experimental options for incremental compilation:\n");
-	fprintf(stderr, "    add-C++	generate private C++ for any missing script bodies\n");
-	fprintf(stderr, "    update-C++	generate reusable C++ for any missing script bodies\n");
 	}
 
 static void set_analysis_option(const char* opt, Options& opts)
@@ -223,9 +221,7 @@ static void set_analysis_option(const char* opt, Options& opts)
 		exit(0);
 		}
 
-	if ( util::streq(opt, "add-C++") )
-		a_o.add_CPP = true;
-	else if ( util::streq(opt, "dump-uds") )
+	if ( util::streq(opt, "dump-uds") )
 		a_o.activate = a_o.dump_uds = true;
 	else if ( util::streq(opt, "dump-xform") )
 		a_o.activate = a_o.dump_xform = true;
@@ -253,8 +249,6 @@ static void set_analysis_option(const char* opt, Options& opts)
 		a_o.inliner = a_o.report_recursive = true;
 	else if ( util::streq(opt, "report-uncompilable") )
 		a_o.report_uncompilable = true;
-	else if ( util::streq(opt, "update-C++") )
-		a_o.update_CPP = true;
 	else if ( util::streq(opt, "use-C++") )
 		a_o.use_CPP = true;
 	else if ( util::streq(opt, "xform") )

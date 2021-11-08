@@ -96,18 +96,6 @@ struct AnalyOpt
 	// of the corresponding script, and not activated by default).
 	bool gen_standalone_CPP = false;
 
-	// If true, generate C++ for those script bodies that don't already
-	// have generated code, in a form that enables later compiles to
-	// take advantage of the newly-added elements.  Only use for generating
-	// a zeek that will always include the associated scripts.
-	bool update_CPP = false;
-
-	// If true, generate C++ for those script bodies that don't already
-	// have generated code.  The added C++ is not made available for
-	// later generated code, and will work for a generated zeek that
-	// runs without including the associated scripts.
-	bool add_CPP = false;
-
 	// If true, use C++ bodies if available.
 	bool use_CPP = false;
 

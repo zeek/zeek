@@ -399,7 +399,7 @@ static void generate_CPP(std::unique_ptr<ProfileFuncs>& pfs)
 	{
 	const auto hash_name = hash_dir + "CPP-hashes";
 
-	auto hm = std::make_unique<CPPHashManager>(hash_name.c_str(), analysis_options.add_CPP);
+	auto hm = std::make_unique<CPPHashManager>(hash_name.c_str());
 
 	if ( analysis_options.gen_CPP )
 		{
@@ -413,26 +413,12 @@ static void generate_CPP(std::unique_ptr<ProfileFuncs>& pfs)
 				}
 			}
 		}
-	else
-		{ // doing add-C++ instead, so look for previous compilations
-		for ( auto& func : funcs )
-			{
-			auto hash = func.Profile()->HashVal();
-			if ( compiled_scripts.count(hash) > 0 || hm->HasHash(hash) )
-				func.SetSkip(true);
-			}
-
-		// Now that we've presumably marked a lot of functions
-		// as skippable, recompute the global profile.
-		pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
-		}
 
 	const auto gen_name = hash_dir + "CPP-gen.cc";
 	const auto addl_name = hash_dir + "CPP-gen-addl.h";
 
-	CPPCompile cpp(funcs, *pfs, gen_name, addl_name, *hm,
-	               analysis_options.gen_CPP || analysis_options.update_CPP,
-	               analysis_options.gen_standalone_CPP, analysis_options.report_uncompilable);
+	CPPCompile cpp(funcs, *pfs, gen_name, addl_name, *hm, analysis_options.gen_standalone_CPP,
+	               analysis_options.report_uncompilable);
 	}
 
 static void find_when_funcs(std::unique_ptr<ProfileFuncs>& pfs,

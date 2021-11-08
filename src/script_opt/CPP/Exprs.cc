@@ -232,7 +232,12 @@ string CPPCompile::GenConstExpr(const ConstExpr* c, GenType gt)
 	const auto& t = c->GetType();
 
 	if ( ! IsNativeType(t) )
-		return NativeToGT(const_vals[c->Value()], t, gt);
+		{
+		auto v = c->ValuePtr();
+		int consts_offset; // ignored
+		(void)RegisterConstant(v, consts_offset);
+		return NativeToGT(const_vals[v.get()]->Name(), t, gt);
+		}
 
 	return NativeToGT(GenVal(c->ValuePtr()), t, gt);
 	}
@@ -1177,8 +1182,10 @@ string CPPCompile::GenField(const ExprPtr& rec, int field)
 		// New mapping.
 		mapping_slot = num_rf_mappings++;
 
+		ASSERT(processed_types.count(rt) > 0);
+		auto rt_offset = processed_types[rt]->Offset();
 		string field_name = rt->FieldName(field);
-		field_decls.emplace_back(pair(rt, rt->FieldDecl(field)));
+		field_decls.emplace_back(pair(rt_offset, rt->FieldDecl(field)));
 
 		if ( record_field_mappings.count(rt) > 0 )
 			// We're already tracking this record.
@@ -1217,7 +1224,7 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev)
 		mapping_slot = num_ev_mappings++;
 
 		string enum_name = et->Lookup(v);
-		enum_names.emplace_back(pair(et, move(enum_name)));
+		enum_names.emplace_back(pair(TypeOffset(t), move(enum_name)));
 
 		if ( enum_val_mappings.count(et) > 0 )
 			{

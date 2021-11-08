@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/script_opt/CPP/RuntimeInit.h"
+#include "zeek/script_opt/CPP/RuntimeInitSupport.h"
 
 #include "zeek/EventRegistry.h"
 #include "zeek/module_util.h"
@@ -49,7 +49,7 @@ static int flag_init_CPP()
 
 static int dummy = flag_init_CPP();
 
-void register_type__CPP(TypePtr t, const std::string& name)
+void register_type__CPP(TypePtr t, const string& name)
 	{
 	if ( t->GetName().size() > 0 )
 		// Already registered.
@@ -113,8 +113,8 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
 	auto v = fg->GetVal();
 	if ( ! v )
 		{ // Create it.
-		std::vector<StmtPtr> no_bodies;
-		std::vector<int> no_priorities;
+		vector<StmtPtr> no_bodies;
+		vector<int> no_priorities;
 		auto sf = make_intrusive<ScriptFunc>(fn, ft, no_bodies, no_priorities);
 
 		v = make_intrusive<FuncVal>(move(sf));
@@ -192,6 +192,28 @@ Func* lookup_bif__CPP(const char* bif)
 FuncValPtr lookup_func__CPP(string name, vector<p_hash_type> hashes, const TypePtr& t)
 	{
 	auto ft = cast_intrusive<FuncType>(t);
+
+	if ( hashes.empty() )
+		{
+		// This happens for functions that have at least one
+		// uncompilable body.
+		auto gl = lookup_ID(name.c_str(), GLOBAL_MODULE_NAME, false, false, false);
+		if ( ! gl )
+			{
+			reporter->CPPRuntimeError("non-compiled function %s missing", name.c_str());
+			exit(1);
+			}
+
+		auto v = gl->GetVal();
+		if ( ! v || v->GetType()->Tag() != TYPE_FUNC )
+			{
+			reporter->CPPRuntimeError("non-compiled function %s has an invalid value",
+			                          name.c_str());
+			exit(1);
+			}
+
+		return cast_intrusive<FuncVal>(v);
+		}
 
 	vector<StmtPtr> bodies;
 	vector<int> priorities;

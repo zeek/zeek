@@ -401,7 +401,9 @@ set(MAIN_SRCS
     script_opt/CPP/GenFunc.cc
     script_opt/CPP/HashMgr.cc
     script_opt/CPP/Inits.cc
-    script_opt/CPP/RuntimeInit.cc
+    script_opt/CPP/InitsInfo.cc
+    script_opt/CPP/RuntimeInits.cc
+    script_opt/CPP/RuntimeInitSupport.cc
     script_opt/CPP/RuntimeOps.cc
     script_opt/CPP/RuntimeVec.cc
     script_opt/CPP/Stmts.cc

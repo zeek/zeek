@@ -27,10 +27,8 @@ public:
 	// end of the file (and the hash file will be locked, to prevent
 	// overlapping updates from concurrent compilation/appends).
 	// Otherwise, the file will be generated afresh.
-	CPPHashManager(const char* hash_name_base, bool append);
+	CPPHashManager(const char* hash_name_base);
 	~CPPHashManager();
-
-	bool IsAppend() const { return append; }
 
 	// True if the given hash has already been generated.
 	bool HasHash(p_hash_type h) const { return previously_compiled.count(h) > 0; }
@@ -95,10 +93,6 @@ protected:
 	// Information about globals in terms of their internal variable
 	// names, rather than their script-level names.
 	std::unordered_map<std::string, int> gv_scopes;
-
-	// Whether we're appending to existing hash file(s), or starting
-	// afresh.
-	bool append;
 
 	// Base for file names.
 	std::string hash_name;

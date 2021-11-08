@@ -185,7 +185,7 @@ ListConstInfo::ListConstInfo(CPPCompile* _c, ValPtr v) : CompoundItemInfo(_c)
 	auto lv = cast_intrusive<ListVal>(v);
 	auto n = lv->Length();
 
-	for ( auto i = 0U; i < n; ++i )
+	for ( auto i = 0; i < n; ++i )
 		vals.emplace_back(ValElem(c, lv->Idx(i)));
 	}
 
@@ -194,7 +194,7 @@ VectorConstInfo::VectorConstInfo(CPPCompile* c, ValPtr v) : CompoundItemInfo(c, 
 	auto vv = cast_intrusive<VectorVal>(v);
 	auto n = vv->Size();
 
-	for ( auto i = 0; i < n; ++i )
+	for ( auto i = 0U; i < n; ++i )
 		vals.emplace_back(ValElem(c, vv->ValAt(i)));
 	}
 
@@ -205,7 +205,7 @@ RecordConstInfo::RecordConstInfo(CPPCompile* c, ValPtr v) : CompoundItemInfo(c, 
 
 	type = c->TypeOffset(r->GetType());
 
-	for ( auto i = 0; i < n; ++i )
+	for ( auto i = 0U; i < n; ++i )
 		vals.emplace_back(ValElem(c, r->GetField(i)));
 	}
 

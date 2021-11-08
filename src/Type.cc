@@ -123,18 +123,6 @@ RecordType* Type::AsRecordType()
 	return (RecordType*)this;
 	}
 
-const SubNetType* Type::AsSubNetType() const
-	{
-	CHECK_TYPE_TAG(TYPE_SUBNET, "Type::AsSubNetType");
-	return (const SubNetType*)this;
-	}
-
-SubNetType* Type::AsSubNetType()
-	{
-	CHECK_TYPE_TAG(TYPE_SUBNET, "Type::AsSubNetType");
-	return (SubNetType*)this;
-	}
-
 const FuncType* Type::AsFuncType() const
 	{
 	CHECK_TYPE_TAG(TYPE_FUNC, "Type::AsFuncType");
@@ -1440,16 +1428,6 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 		}
 
 	return "";
-	}
-
-SubNetType::SubNetType() : Type(TYPE_SUBNET) { }
-
-void SubNetType::Describe(ODesc* d) const
-	{
-	if ( d->IsReadable() )
-		d->Add("subnet");
-	else
-		d->Add(int(Tag()));
 	}
 
 FileType::FileType(TypePtr yield_type) : Type(TYPE_FILE), yield(std::move(yield_type)) { }

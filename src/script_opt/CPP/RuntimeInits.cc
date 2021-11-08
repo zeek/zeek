@@ -1,12 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/script_opt/CPP/RunTimeInits.h"
+#include "zeek/script_opt/CPP/RuntimeInits.h"
 
 #include "zeek/Desc.h"
 #include "zeek/File.h"
 #include "zeek/RE.h"
 #include "zeek/ZeekString.h"
-#include "zeek/script_opt/CPP/RunTimeInitSupport.h"
+#include "zeek/script_opt/CPP/RuntimeInitSupport.h"
 
 using namespace std;
 

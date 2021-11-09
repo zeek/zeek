@@ -1326,9 +1326,14 @@ void RecordType::DescribeFields(ODesc* d) const
 			d->AddCount(types->length());
 			for ( const auto& type : *types )
 				{
-				type->type->Describe(d);
-				d->SP();
 				d->Add(type->id);
+				d->SP();
+
+				if ( d->FindType(type->type.get()) )
+					d->Add("<recursion>");
+				else
+					type->type->Describe(d);
+
 				d->SP();
 				}
 			}

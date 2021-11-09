@@ -1,3 +1,7 @@
+4.2.0-dev.303 | 2021-11-09 09:45:57 -0700
+
+  * GH-1819: Handle recursive types when describing type in binary mode (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.301 | 2021-11-09 09:28:18 -0700
 
   * Remove no-op false-teredo test (Tim Wojtulewicz, Corelight)

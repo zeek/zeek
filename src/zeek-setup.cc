@@ -67,7 +67,7 @@
 
 extern "C"
 	{
-#include "zeek/setsignal.h"
+#include "zeek/3rdparty/setsignal.h"
 	};
 
 zeek::detail::ScriptCoverageManager zeek::detail::script_coverage_mgr;

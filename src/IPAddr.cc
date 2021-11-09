@@ -6,12 +6,12 @@
 #include <string>
 #include <vector>
 
+#include "zeek/3rdparty/bro_inet_ntop.h"
 #include "zeek/Conn.h"
 #include "zeek/Hash.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Manager.h"
-#include "zeek/bro_inet_ntop.h"
 
 namespace zeek
 	{

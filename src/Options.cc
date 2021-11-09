@@ -17,7 +17,7 @@
 #include <cstdlib>
 #include <sstream>
 
-#include "zeek/bsd-getopt-long.h"
+#include "zeek/3rdparty/bsd-getopt-long.h"
 #include "zeek/logging/writers/ascii/Ascii.h"
 
 namespace zeek

@@ -89,9 +89,9 @@ static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt)
 #define VEC_OP1_WITH_DOUBLE(name, op)                                                              \
 	VEC_OP1(                                                                                       \
 		name, op, case TYPE_INTERNAL_DOUBLE                                                        \
-		:                                                                                          \
-		{                                                                                          \
-			VEC_OP1_KERNEL(AsDouble, DoubleVal, op) break;                                         \
+		: {                                                                                        \
+			VEC_OP1_KERNEL(AsDouble, DoubleVal, op)                                                \
+			break;                                                                                 \
 		})
 
 // The unary operations supported for vectors.
@@ -152,9 +152,9 @@ VEC_OP1(comp, ~, )
 #define VEC_OP2_WITH_DOUBLE(name, op)                                                              \
 	VEC_OP2(                                                                                       \
 		name, op, case TYPE_INTERNAL_DOUBLE                                                        \
-		:                                                                                          \
-		{                                                                                          \
-			VEC_OP2_KERNEL(AsDouble, DoubleVal, op) break;                                         \
+		: {                                                                                        \
+			VEC_OP2_KERNEL(AsDouble, DoubleVal, op)                                                \
+			break;                                                                                 \
 		})
 
 // The binary operations supported for vectors.

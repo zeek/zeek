@@ -280,7 +280,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ZAM-AssignFlavorsDefs.h
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
+set_source_files_properties(3rdparty/nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
 set(MAIN_SRCS
@@ -297,7 +297,6 @@ set(MAIN_SRCS
     CCL.cc
     CompHash.cc
     Conn.cc
-    ConvertUTF.c
     DFA.cc
     DbgBreakpoint.cc
     DbgHelp.cc
@@ -367,13 +366,6 @@ set(MAIN_SRCS
     ZeekArgs.cc
     ZeekString.cc
     ZVal.cc
-    bsd-getopt-long.c
-    bro_inet_ntop.c
-    in_cksum.cc
-    patricia.c
-    setsignal.c
-    strsep.c
-    modp_numtoa.c
 
     supervisor/Supervisor.cc
 
@@ -437,12 +429,20 @@ set(MAIN_SRCS
     script_opt/ZAM/ZInst.cc
     script_opt/ZAM/ZOp.cc
 
-    nb_dns.c
     digest.h
 )
 
 set(THIRD_PARTY_SRCS
+    3rdparty/bro_inet_ntop.c
+    3rdparty/bsd-getopt-long.c
+    3rdparty/ConvertUTF.c
+    3rdparty/in_cksum.cc
+    3rdparty/modp_numtoa.c
+    3rdparty/nb_dns.c
+    3rdparty/patricia.c
+    3rdparty/setsignal.c
     3rdparty/sqlite3.c
+    3rdparty/strsep.c
 )
 
 set(GEN_ZAM_SRCS

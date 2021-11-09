@@ -72,7 +72,7 @@ extern HeapLeakChecker* heap_checker;
 
 extern "C"
 	{
-#include "zeek/modp_numtoa.h"
+#include "zeek/3rdparty/modp_numtoa.h"
 	}
 
 using bro_int_t = int64_t;

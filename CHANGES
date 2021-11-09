@@ -1,3 +1,61 @@
+4.2.0-dev.310 | 2021-11-09 10:29:59 -0700
+
+  * Add Github action exercising pre-commit (Benjamin Bannier, Corelight)
+
+    This patch adds a Github action which exercises pre-commit linters for
+    commits to the `master` branch or for pull requests.  We adds this task
+    as a Github action since we expect it to finish quickly; running outside
+    of Cirrus makes it possible provide feedback quickly.
+
+  * Add pre-commit config. (Benjamin Bannier, Corelight)
+
+    This patch adds `clang-format` as only linter for now. This replaces the
+    previously used script from `auxil/run-clang-format` which we remove.
+
+    This requires the Python program `pre-commit`
+    (https://pypi.org/project/pre-commit/). With that one can then run
+    `clang-format` on the whole codebase with
+
+        $ pre-commit run -a clang-format
+
+    or on just the staged files
+
+        # Explicitly selecting linter.
+        $ pre-commit run clang-format
+
+        # Run all linters (currently just `clang-format`).
+        $ pre-commit
+
+    `pre-commit` supports managing Git commit hooks so that linters are run
+    on commit. Linters can be installed with
+
+        $ pre-commit install
+
+    The documentation at https://pre-commit.com/ covers these topics in
+    addition to more information.
+
+  * Format code with `clang-format` (Benjamin Bannier, Corelight)
+
+    This patch formats files not conforming to the C++ formatting with
+    `clang-format`.
+
+  * Remove stale files `src/DebugCmdInfoConstants.*` (Benjamin Bannier, Corelight)
+
+    The files generated from `src/DebugCmdInfoConstants.in` are placed in
+    `build/src/` by the build setup, and generated file in `src/` removed
+    here were unused and possibly out-of-date.
+
+  * Disable formatting for files in `testing/btest/plugins` (Benjamin Bannier, Corelight)
+
+    Files in that folder were previously not formatted. With this patch we
+    now disable formatting in that folder explicitly by adding a dedicated
+    `clang-format` config which deactivates any formatting changes.
+
+  * Move 3rdparty source files to `3rdparty/` (Benjamin Bannier, Corelight)
+
+    This patch moves in-tree 3rdparty source files to `3rdparty/`. With that
+    we can remove special treatment of these files for `run-clang-format`.
+
 4.2.0-dev.303 | 2021-11-09 09:45:57 -0700
 
   * GH-1819: Handle recursive types when describing type in binary mode (Tim Wojtulewicz, Corelight)

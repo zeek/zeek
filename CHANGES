@@ -1,3 +1,7 @@
+4.2.0-dev.301 | 2021-11-09 09:28:18 -0700
+
+  * Remove no-op false-teredo test (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.297 | 2021-11-05 12:49:55 -0700
 
   * Only push CI's Docker images when we're on the main repo (Christian Kreibich, Corelight)

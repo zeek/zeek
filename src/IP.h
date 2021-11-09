@@ -411,6 +411,9 @@ public:
 	/**
 	 * Returns the length of the IP packet's payload (length of packet minus
 	 * header length or, for IPv6, also minus length of all extension headers).
+	 *
+	 * Also returns 0 if the IPv4 length field is set to zero - which is, e.g.,
+	 * the case when TCP segment offloading is enabled.
 	 */
 	uint16_t PayloadLen() const
 		{

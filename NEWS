@@ -38,6 +38,8 @@ New Functionality
 - The DNS analyzer has initial support for the SVCB and HTTPS types. The new events
   are ``dns_SVCB`` and ``dns_HTTPS``.
 
+- The ``find_str`` and ``rfind_str`` bifs now support case-insensitive searches.
+
 Changed Functionality
 ---------------------
 

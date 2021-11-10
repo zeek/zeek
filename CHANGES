@@ -1,3 +1,7 @@
+4.2.0-dev.317 | 2021-11-10 11:33:29 +0000
+
+  * Add case-insensitive search for find_str and rfind_str (Abdel)
+
 4.2.0-dev.314 | 2021-11-10 11:16:28 +0100
 
   * GH-1757: Add new hook `HookLoadFileExtended` that allows plugins

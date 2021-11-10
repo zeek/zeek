@@ -30,6 +30,8 @@ export {
 		listen_port: port &optional;
 	};
 
+	type InstanceVec: vector of Instance;
+
 	## State that a Cluster Node can be in. State changes trigger an
 	## API notification (see notify_change()).
 	type State: enum {
@@ -59,7 +61,6 @@ export {
 		id: string &default=unique_id(""); # Unique identifier for a particular configuration
 
 		## The instances in the cluster.
-		## XXX we may be able to make this optional
 		instances: set[Instance];
 
 		## The set of nodes in the cluster, as distributed over the instances.
@@ -68,12 +69,12 @@ export {
 
 	# Return value for request-response API event pairs
 	type Result: record {
-		reqid: string;              # Request ID of operation this result refers to
-		instance: string;           # Name of associated instance (for context)
-		success: bool &default=T;   # True if successful
-		data: any &optional;        # Addl data returned for successful operation
-		error: string &default="";  # Descriptive error on failure
-		node: string &optional;     # Name of associated node (for context)
+		reqid: string;                # Request ID of operation this result refers to
+		instance: string &default=""; # Name of associated instance (for context)
+		success: bool &default=T;     # True if successful
+		data: any &optional;          # Addl data returned for successful operation
+		error: string &default="";    # Descriptive error on failure
+		node: string &optional;       # Name of associated node (for context)
 	};
 
 	type ResultVec: vector of Result;

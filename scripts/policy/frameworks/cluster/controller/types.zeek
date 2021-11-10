@@ -61,10 +61,10 @@ export {
 		id: string &default=unique_id(""); # Unique identifier for a particular configuration
 
 		## The instances in the cluster.
-		instances: set[Instance];
+		instances: set[Instance] &default=set();
 
 		## The set of nodes in the cluster, as distributed over the instances.
-		nodes: set[Node];
+		nodes: set[Node] &default=set();
 	};
 
 	# Return value for request-response API event pairs
@@ -78,4 +78,32 @@ export {
 	};
 
 	type ResultVec: vector of Result;
+
+	global result_to_string: function(res: Result): string;
 }
+
+function result_to_string(res: Result): string
+	{
+	local result = "";
+
+	if ( res$success )
+		result = "success";
+	else if ( res$error != "" )
+		result = fmt("error (%s)", res$error);
+	else
+		result = "error";
+
+	local details: string_vec;
+
+	if ( res$reqid != "" )
+		details[|details|] = fmt("reqid %s", res$reqid);
+	if ( res$instance != "" )
+		details[|details|] = fmt("instance %s", res$instance);
+	if ( res?$node && res$node != "" )
+		details[|details|] = fmt("node %s", res$node);
+
+	if ( |details| > 0 )
+		result = fmt("%s (%s)", result, join_string_vec(details, ", "));
+
+	return result;
+	}

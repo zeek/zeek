@@ -99,12 +99,7 @@ function to_string(request: Request): string
 	for ( idx in request$results )
 		{
 		res = request$results[idx];
-		if ( res$success )
-			results[|results|] = "success";
-		else if ( |res$error| > 0 )
-			results[|results|] = fmt("error (%s)", res$error);
-		else
-			results[|results|] = "error";
+		results[|results|] = ClusterController::Types::result_to_string(res);
 		}
 
 	return fmt("[request %s%s %s, results: %s]", request$id, parent_id,

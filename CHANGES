@@ -1,3 +1,13 @@
+4.2.0-dev.319 | 2021-11-10 10:20:01 -0700
+
+  * Install include headers from `src/3rdparty/`. (Benjamin Bannier, Corelight)
+
+    This is a fixup commit for 72cbc7cd13b7c1bda98658104431c3b530ff68d6
+    where we move some header files from `src/` to `src/3rdparty/` but
+    missed adding install rules for these header. Since some of these
+    headers are exposed in installed headers they need to be installed as
+    well.
+
 4.2.0-dev.317 | 2021-11-10 11:33:29 +0000
 
   * Add case-insensitive search for find_str and rfind_str (Abdel)

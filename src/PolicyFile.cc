@@ -49,7 +49,7 @@ int how_many_lines_in(const char* policy_filename)
 	FILE* throwaway = fopen(policy_filename, "r");
 	if ( ! throwaway )
 		{
-		debug_msg("No such policy file: %s.\n", policy_filename);
+		debug_msg("Could not open policy file: %s.\n", policy_filename);
 		return -1;
 		}
 
@@ -97,7 +97,7 @@ bool LoadPolicyFileText(const char* policy_filename,
 
 		if ( ! f )
 			{
-			debug_msg("No such policy file: %s.\n", policy_filename);
+			debug_msg("Could not open policy file: %s.\n", policy_filename);
 			return false;
 			}
 
@@ -152,7 +152,7 @@ bool PrintLines(const char* policy_filename, unsigned int start_line, unsigned i
 	FILE* throwaway = fopen(policy_filename, "r");
 	if ( ! throwaway )
 		{
-		debug_msg("No such policy file: %s.\n", policy_filename);
+		debug_msg("Could not open policy file: %s.\n", policy_filename);
 		return false;
 		}
 

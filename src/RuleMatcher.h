@@ -11,6 +11,8 @@
 #include "zeek/CCL.h"
 #include "zeek/RE.h"
 #include "zeek/Rule.h"
+#include "zeek/ScannedFile.h"
+#include "zeek/plugin/Manager.h"
 
 //#define MATCHER_PRINT_STATS
 
@@ -22,7 +24,6 @@ extern void rules_error(zeek::detail::Rule* id, const char* msg);
 extern int rules_lex(void);
 extern int rules_parse(void);
 extern "C" int rules_wrap(void);
-extern FILE* rules_in;
 extern int rules_line_number;
 extern const char* current_rule_file;
 
@@ -259,7 +260,7 @@ public:
 	~RuleMatcher();
 
 	// Parse the given files and built up data structures.
-	bool ReadFiles(const std::vector<std::string>& files);
+	bool ReadFiles(const std::vector<SignatureFile>& files);
 
 	/**
 	 * Inititialize a state object for matching file magic signatures.

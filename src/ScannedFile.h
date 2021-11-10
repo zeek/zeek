@@ -3,6 +3,7 @@
 #pragma once
 
 #include <list>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -34,6 +35,16 @@ public:
 	};
 
 extern std::list<ScannedFile> files_scanned;
-extern std::vector<std::string> sig_files;
+
+struct SignatureFile
+	{
+	std::string file;
+	std::optional<std::string> full_path;
+
+	SignatureFile(std::string file);
+	SignatureFile(std::string file, std::string full_path);
+	};
+
+extern std::vector<SignatureFile> sig_files;
 
 	} // namespace zeek::detail

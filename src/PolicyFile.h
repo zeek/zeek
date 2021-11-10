@@ -14,12 +14,16 @@
 // policy_filename arguments should be absolute or relative paths;
 // no expansion is done.
 
+#include <optional>
+#include <string>
+
 namespace zeek::detail
 	{
 
 int how_many_lines_in(const char* policy_filename);
 
-bool LoadPolicyFileText(const char* policy_filename);
+bool LoadPolicyFileText(const char* policy_filename,
+                        const std::optional<std::string>& preloaded_content = {});
 
 // start_line is 1-based (the intuitive way)
 bool PrintLines(const char* policy_filename, unsigned int start_line, unsigned int how_many_lines,

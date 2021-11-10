@@ -27,6 +27,11 @@
 
 using namespace std;
 
+// Functions exposed by rule-scan.l
+extern void rules_set_input_from_buffer(const char* data, size_t size);
+extern void rules_set_input_from_file(FILE* f);
+extern void rules_parse_input();
+
 namespace zeek::detail
 	{
 
@@ -248,7 +253,7 @@ void RuleMatcher::Delete(RuleHdrTest* node)
 	delete node;
 	}
 
-bool RuleMatcher::ReadFiles(const std::vector<std::string>& files)
+bool RuleMatcher::ReadFiles(const std::vector<SignatureFile>& files)
 	{
 #ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
@@ -256,20 +261,82 @@ bool RuleMatcher::ReadFiles(const std::vector<std::string>& files)
 
 	parse_error = false;
 
-	for ( const auto& f : files )
+	for ( auto f : files )
 		{
-		rules_in = util::open_file(util::find_file(f, util::zeek_path(), ".sig"));
+		if ( ! f.full_path )
+			f.full_path = util::find_file(f.file, util::zeek_path(), ".sig");
 
-		if ( ! rules_in )
+		std::pair<int, std::optional<std::string>> rc = {-1, std::nullopt};
+		rc.first = PLUGIN_HOOK_WITH_RESULT(
+			HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::SIGNATURES, f.file, *f.full_path),
+			-1);
+
+		if ( rc.first < 0 )
+			rc = PLUGIN_HOOK_WITH_RESULT(
+				HOOK_LOAD_FILE_EXT,
+				HookLoadFileExtended(zeek::plugin::Plugin::SIGNATURES, f.file, *f.full_path),
+				std::make_pair(-1, std::nullopt));
+
+		switch ( rc.first )
 			{
-			reporter->Error("Can't open signature file %s", f.data());
-			return false;
+			case -1:
+				// No plugin in charge of this file.
+				if ( f.full_path->empty() )
+					{
+					zeek::reporter->Error("failed to find file associated with @load-sigs %s",
+					                      f.file.c_str());
+					continue;
+					}
+				break;
+
+			case 0:
+				if ( ! zeek::reporter->Errors() )
+					zeek::reporter->Error("Plugin reported error loading signatures %s",
+					                      f.file.c_str());
+
+				exit(1);
+				break;
+
+			case 1:
+				if ( ! rc.second )
+					// A plugin took care of it, just skip.
+					continue;
+
+				break;
+
+			default:
+				assert(false);
+				break;
+			}
+
+		FILE* rules_in = nullptr;
+
+		if ( rc.first == 1 )
+			{
+			// Parse code provided by plugin.
+			assert(rc.second);
+			rules_set_input_from_buffer(rc.second->data(), rc.second->size());
+			}
+		else
+			{
+			// Parse from file.
+			rules_in = util::open_file(*f.full_path);
+
+			if ( ! rules_in )
+				{
+				reporter->Error("Can't open signature file %s", f.file.c_str());
+				return false;
+				}
+
+			rules_set_input_from_file(rules_in);
 			}
 
 		rules_line_number = 0;
-		current_rule_file = f.data();
-		rules_parse();
-		fclose(rules_in);
+		current_rule_file = f.full_path->c_str();
+		rules_parse_input();
+
+		if ( rules_in )
+			fclose(rules_in);
 		}
 
 	if ( parse_error )

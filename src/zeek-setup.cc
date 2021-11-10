@@ -737,7 +737,11 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			id->SetVal(make_intrusive<StringVal>(*options.pcap_filter));
 			}
 
-		auto all_signature_files = options.signature_files;
+		std::vector<SignatureFile> all_signature_files;
+
+		// Append signature files given on the command line
+		for ( const auto& sf : options.signature_files )
+			all_signature_files.emplace_back(sf);
 
 		// Append signature files defined in "signature_files" script option
 		for ( auto&& sf : get_script_signature_files() )

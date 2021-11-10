@@ -1,3 +1,18 @@
+4.2.0-dev.314 | 2021-11-10 11:16:28 +0100
+
+  * GH-1757: Add new hook `HookLoadFileExtended` that allows plugins
+    to supply Zeek script and signature code to parse. (Robin Sommer)
+
+    The new hook works similar to the existing `HookLoadFile` but,
+    additionally, allows the plugin to return a string that contains
+    the code to be used for the file being loaded. If the plugin does
+    so, the content of any actual file on disk will be ignored. This
+    works for both Zeek scripts and signatures.
+
+  * Fix an issue where signature files supplied on the command line
+    wouldn't pass through the file loading hooks. (Robin Sommer,
+    Corelight)
+
 4.2.0-dev.310 | 2021-11-09 10:29:59 -0700
 
   * Add Github action exercising pre-commit (Benjamin Bannier, Corelight)

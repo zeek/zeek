@@ -1034,6 +1034,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/zeek.bif, <...>/zeek.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, builtin-plugins/__preload__.zeek, <...>/__preload__.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, s1.sig, ./s1.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./archive, <...>/archive.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./audio, <...>/audio.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./dpd.sig, <...>/dpd.sig) -> -1
@@ -1046,6 +1047,373 @@
 0.000000   MetaHookPost  LoadFile(1, ./office, <...>/office.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./programming, <...>/programming.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./video, <...>/video.sig) -> -1
+0.000000   MetaHookPost  LoadFile(1, s2, ./s2.sig) -> -1
+0.000000   MetaHookPost  LoadFileExtended(0, ../main, <...>/main.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ../plugin, <...>/plugin.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./CPP-load.bif.zeek, <...>/CPP-load.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_ARP.events.bif.zeek, <...>/Zeek_ARP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_AsciiReader.ascii.bif.zeek, <...>/Zeek_AsciiReader.ascii.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_AsciiWriter.ascii.bif.zeek, <...>/Zeek_AsciiWriter.ascii.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_BenchmarkReader.benchmark.bif.zeek, <...>/Zeek_BenchmarkReader.benchmark.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_BinaryReader.binary.bif.zeek, <...>/Zeek_BinaryReader.binary.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_BitTorrent.events.bif.zeek, <...>/Zeek_BitTorrent.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_ConfigReader.config.bif.zeek, <...>/Zeek_ConfigReader.config.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_ConnSize.events.bif.zeek, <...>/Zeek_ConnSize.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_ConnSize.functions.bif.zeek, <...>/Zeek_ConnSize.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DCE_RPC.consts.bif.zeek, <...>/Zeek_DCE_RPC.consts.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DCE_RPC.events.bif.zeek, <...>/Zeek_DCE_RPC.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DCE_RPC.types.bif.zeek, <...>/Zeek_DCE_RPC.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DHCP.events.bif.zeek, <...>/Zeek_DHCP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DHCP.types.bif.zeek, <...>/Zeek_DHCP.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DNP3.events.bif.zeek, <...>/Zeek_DNP3.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DNS.events.bif.zeek, <...>/Zeek_DNS.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_FTP.events.bif.zeek, <...>/Zeek_FTP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_FTP.functions.bif.zeek, <...>/Zeek_FTP.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_File.events.bif.zeek, <...>/Zeek_File.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_FileEntropy.events.bif.zeek, <...>/Zeek_FileEntropy.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_FileExtract.events.bif.zeek, <...>/Zeek_FileExtract.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_FileExtract.functions.bif.zeek, <...>/Zeek_FileExtract.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_FileHash.events.bif.zeek, <...>/Zeek_FileHash.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Finger.events.bif.zeek, <...>/Zeek_Finger.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_GSSAPI.events.bif.zeek, <...>/Zeek_GSSAPI.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_GTPv1.events.bif.zeek, <...>/Zeek_GTPv1.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Geneve.events.bif.zeek, <...>/Zeek_Geneve.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Gnutella.events.bif.zeek, <...>/Zeek_Gnutella.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_HTTP.events.bif.zeek, <...>/Zeek_HTTP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_HTTP.functions.bif.zeek, <...>/Zeek_HTTP.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_ICMP.events.bif.zeek, <...>/Zeek_ICMP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_IMAP.events.bif.zeek, <...>/Zeek_IMAP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_IRC.events.bif.zeek, <...>/Zeek_IRC.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Ident.events.bif.zeek, <...>/Zeek_Ident.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_KRB.events.bif.zeek, <...>/Zeek_KRB.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_KRB.types.bif.zeek, <...>/Zeek_KRB.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Login.events.bif.zeek, <...>/Zeek_Login.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Login.functions.bif.zeek, <...>/Zeek_Login.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_MIME.events.bif.zeek, <...>/Zeek_MIME.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_MQTT.events.bif.zeek, <...>/Zeek_MQTT.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_MQTT.types.bif.zeek, <...>/Zeek_MQTT.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Modbus.events.bif.zeek, <...>/Zeek_Modbus.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_MySQL.events.bif.zeek, <...>/Zeek_MySQL.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_NCP.consts.bif.zeek, <...>/Zeek_NCP.consts.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_NCP.events.bif.zeek, <...>/Zeek_NCP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_NTLM.events.bif.zeek, <...>/Zeek_NTLM.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_NTLM.types.bif.zeek, <...>/Zeek_NTLM.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_NTP.events.bif.zeek, <...>/Zeek_NTP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_NTP.types.bif.zeek, <...>/Zeek_NTP.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_NetBIOS.events.bif.zeek, <...>/Zeek_NetBIOS.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_NetBIOS.functions.bif.zeek, <...>/Zeek_NetBIOS.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_NoneWriter.none.bif.zeek, <...>/Zeek_NoneWriter.none.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_PE.events.bif.zeek, <...>/Zeek_PE.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_POP3.events.bif.zeek, <...>/Zeek_POP3.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RADIUS.events.bif.zeek, <...>/Zeek_RADIUS.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RDP.events.bif.zeek, <...>/Zeek_RDP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RDP.types.bif.zeek, <...>/Zeek_RDP.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RFB.events.bif.zeek, <...>/Zeek_RFB.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RPC.events.bif.zeek, <...>/Zeek_RPC.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RawReader.raw.bif.zeek, <...>/Zeek_RawReader.raw.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SIP.events.bif.zeek, <...>/Zeek_SIP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.consts.bif.zeek, <...>/Zeek_SMB.consts.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.events.bif.zeek, <...>/Zeek_SMB.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_check_directory.bif.zeek, <...>/Zeek_SMB.smb1_com_check_directory.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_close.bif.zeek, <...>/Zeek_SMB.smb1_com_close.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_create_directory.bif.zeek, <...>/Zeek_SMB.smb1_com_create_directory.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_echo.bif.zeek, <...>/Zeek_SMB.smb1_com_echo.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_logoff_andx.bif.zeek, <...>/Zeek_SMB.smb1_com_logoff_andx.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_negotiate.bif.zeek, <...>/Zeek_SMB.smb1_com_negotiate.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_nt_cancel.bif.zeek, <...>/Zeek_SMB.smb1_com_nt_cancel.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_nt_create_andx.bif.zeek, <...>/Zeek_SMB.smb1_com_nt_create_andx.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_query_information.bif.zeek, <...>/Zeek_SMB.smb1_com_query_information.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_read_andx.bif.zeek, <...>/Zeek_SMB.smb1_com_read_andx.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_session_setup_andx.bif.zeek, <...>/Zeek_SMB.smb1_com_session_setup_andx.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_transaction.bif.zeek, <...>/Zeek_SMB.smb1_com_transaction.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_transaction2.bif.zeek, <...>/Zeek_SMB.smb1_com_transaction2.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_transaction2_secondary.bif.zeek, <...>/Zeek_SMB.smb1_com_transaction2_secondary.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_transaction_secondary.bif.zeek, <...>/Zeek_SMB.smb1_com_transaction_secondary.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_tree_connect_andx.bif.zeek, <...>/Zeek_SMB.smb1_com_tree_connect_andx.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_tree_disconnect.bif.zeek, <...>/Zeek_SMB.smb1_com_tree_disconnect.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_com_write_andx.bif.zeek, <...>/Zeek_SMB.smb1_com_write_andx.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb1_events.bif.zeek, <...>/Zeek_SMB.smb1_events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_com_close.bif.zeek, <...>/Zeek_SMB.smb2_com_close.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_com_create.bif.zeek, <...>/Zeek_SMB.smb2_com_create.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_com_negotiate.bif.zeek, <...>/Zeek_SMB.smb2_com_negotiate.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_com_read.bif.zeek, <...>/Zeek_SMB.smb2_com_read.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_com_session_setup.bif.zeek, <...>/Zeek_SMB.smb2_com_session_setup.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_com_set_info.bif.zeek, <...>/Zeek_SMB.smb2_com_set_info.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_com_transform_header.bif.zeek, <...>/Zeek_SMB.smb2_com_transform_header.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_com_tree_connect.bif.zeek, <...>/Zeek_SMB.smb2_com_tree_connect.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_com_tree_disconnect.bif.zeek, <...>/Zeek_SMB.smb2_com_tree_disconnect.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_com_write.bif.zeek, <...>/Zeek_SMB.smb2_com_write.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_events.bif.zeek, <...>/Zeek_SMB.smb2_events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.types.bif.zeek, <...>/Zeek_SMB.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMTP.events.bif.zeek, <...>/Zeek_SMTP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMTP.functions.bif.zeek, <...>/Zeek_SMTP.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SNMP.events.bif.zeek, <...>/Zeek_SNMP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SNMP.types.bif.zeek, <...>/Zeek_SNMP.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SOCKS.events.bif.zeek, <...>/Zeek_SOCKS.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SQLiteReader.sqlite.bif.zeek, <...>/Zeek_SQLiteReader.sqlite.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SQLiteWriter.sqlite.bif.zeek, <...>/Zeek_SQLiteWriter.sqlite.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSH.events.bif.zeek, <...>/Zeek_SSH.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSH.types.bif.zeek, <...>/Zeek_SSH.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.consts.bif.zeek, <...>/Zeek_SSL.consts.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Teredo.events.bif.zeek, <...>/Zeek_Teredo.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Unified2.events.bif.zeek, <...>/Zeek_Unified2.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Unified2.types.bif.zeek, <...>/Zeek_Unified2.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./acld, <...>/acld.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./addrs, <...>/addrs.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./api, <...>/api.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./average, <...>/average.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./bloom-filter.bif.zeek, <...>/bloom-filter.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./broker, <...>/broker.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./certificate-event-cache, <...>/certificate-event-cache.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./comm.bif.zeek, <...>/comm.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./const-dos-error, <...>/const-dos-error.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./const-nt-status, <...>/const-nt-status.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./const.bif.zeek, <...>/const.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./consts, <...>/consts.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./contents, <...>/contents.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./control, <...>/control.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./ct-list, <...>/ct-list.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./data.bif.zeek, <...>/data.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./dcc-send, <...>/dcc-send.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./debug, <...>/debug.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./drop, <...>/drop.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./entities, <...>/entities.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./event.bif.zeek, <...>/event.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./exec, <...>/exec.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./file_analysis.bif.zeek, <...>/file_analysis.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./files, <...>/files.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./gridftp, <...>/gridftp.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./hll_unique, <...>/hll_unique.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./hooks.bif.zeek, <...>/hooks.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./inactivity, <...>/inactivity.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./info, <...>/info.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./input, <...>/input.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./input.bif.zeek, <...>/input.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./last, <...>/last.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./log, <...>/log.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./log-ocsp, <...>/log-ocsp.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./logging.bif.zeek, <...>/logging.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./magic, <...>/magic) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./main, <...>/main.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./max, <...>/max.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./messaging.bif.zeek, <...>/messaging.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./min, <...>/min.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./mozilla-ca-list, <...>/mozilla-ca-list.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./netstats, <...>/netstats.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./non-cluster, <...>/non-cluster.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./openflow, <...>/openflow.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./option.bif.zeek, <...>/option.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./packet_analysis.bif.zeek, <...>/packet_analysis.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./packetfilter, <...>/packetfilter.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./patterns, <...>/patterns.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./pcap.bif.zeek, <...>/pcap.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./plugin, <...>/plugin.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./plugins, <...>/plugins) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./polling, <...>/polling.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./pools, <...>/pools.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./postprocessors, <...>/postprocessors) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./removal-hooks, <...>/removal-hooks.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./ryu, <...>/ryu.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./sample, <...>/sample.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./scp, <...>/scp.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./sftp, <...>/sftp.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./shunt, <...>/shunt.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./site, <...>/site.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./smb1-main, <...>/smb1-main.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./smb2-main, <...>/smb2-main.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./stats.bif.zeek, <...>/stats.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./std-dev, <...>/std-dev.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./store, <...>/store.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./store.bif.zeek, <...>/store.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./strings.bif.zeek, <...>/strings.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./sum, <...>/sum.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./telemetry.bif.zeek, <...>/telemetry.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./thresholds, <...>/thresholds.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./top-k.bif.zeek, <...>/top-k.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./topk, <...>/topk.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./types, <...>/types.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./types.bif.zeek, <...>/types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./unique, <...>/unique.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./utils, <...>/utils.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./utils-commands, <...>/utils-commands.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./variance, <...>/variance.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./weird, <...>/weird.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./zeek.bif.zeek, <...>/zeek.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./zeekygen.bif.zeek, <...>/zeekygen.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/add-geodata, <...>/add-geodata.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/ascii, <...>/ascii.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/benchmark, <...>/benchmark.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/binary, <...>/binary.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/config, <...>/config.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/email_admin, <...>/email_admin.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/none, <...>/none.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/page, <...>/page.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/pp-alarms, <...>/pp-alarms.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/raw, <...>/raw.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/sqlite, <...>/sqlite.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, <...>/__load__.zeek, <...>/__load__.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, <...>/__preload__.zeek, <...>/__preload__.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, <...>/hooks.zeek, <...>/hooks.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base/bif, <...>/bif) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base/init-default, <...>/init-default.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base/packet-protocols, <...>/packet-protocols) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/Zeek_SNMP.types.bif, <...>/Zeek_SNMP.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/active-http, <...>/active-http.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/addrs, <...>/addrs.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/analyzer, <...>/analyzer) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/analyzer.bif, <...>/analyzer.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/api, <...>/api.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/backtrace, <...>/backtrace.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/broker, <...>/broker) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/cluster, <...>/cluster) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/comm.bif, <...>/comm.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/config, <...>/config) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/conn, <...>/conn) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/conn-ids, <...>/conn-ids.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/const.bif, <...>/const.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/control, <...>/control) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/data.bif, <...>/data.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/dce-rpc, <...>/dce-rpc) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/dhcp, <...>/dhcp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/dir, <...>/dir.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/directions-and-hosts, <...>/directions-and-hosts.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/dnp3, <...>/dnp3) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/dns, <...>/dns) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/dpd, <...>/dpd) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/email, <...>/email.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ethernet, <...>/ethernet) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/event.bif, <...>/event.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/exec, <...>/exec.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/extract, <...>/extract) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/fddi, <...>/fddi) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/file_analysis.bif, <...>/file_analysis.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/files, <...>/files) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/files, <...>/files.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/find-checksum-offloading, <...>/find-checksum-offloading.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/find-filtered-trace, <...>/find-filtered-trace.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ftp, <...>/ftp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/geoip-distance, <...>/geoip-distance.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/gre, <...>/gre) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/hash, <...>/hash) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/hash_hrw, <...>/hash_hrw.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/http, <...>/http) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/icmp, <...>/icmp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ieee802_11, <...>/ieee802_11) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ieee802_11_radio, <...>/ieee802_11_radio) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/imap, <...>/imap) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/input, <...>/input) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/input.bif, <...>/input.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/intel, <...>/intel) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ip, <...>/ip) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/iptunnel, <...>/iptunnel) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/irc, <...>/irc) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/krb, <...>/krb) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/linux_sll, <...>/linux_sll) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/logging, <...>/logging) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/logging.bif, <...>/logging.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/main, <...>/main.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/messaging.bif, <...>/messaging.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/modbus, <...>/modbus) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/mpls, <...>/mpls) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/mqtt, <...>/mqtt) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/mysql, <...>/mysql) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/netcontrol, <...>/netcontrol) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/nflog, <...>/nflog) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/notice, <...>/notice) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ntlm, <...>/ntlm) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ntp, <...>/ntp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/null, <...>/null) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/numbers, <...>/numbers.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/openflow, <...>/openflow) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/option.bif, <...>/option.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/packet-filter, <...>/packet-filter) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/packet_analysis.bif, <...>/packet_analysis.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/paths, <...>/paths.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/patterns, <...>/patterns.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/pe, <...>/pe) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/plugins, <...>/plugins) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/pop3, <...>/pop3) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ppp_serial, <...>/ppp_serial) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/pppoe, <...>/pppoe) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/queue, <...>/queue.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/radius, <...>/radius) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/rdp, <...>/rdp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/removal-hooks, <...>/removal-hooks.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/reporter, <...>/reporter) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/reporter.bif, <...>/reporter.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/rfb, <...>/rfb) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/root, <...>/root) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/signatures, <...>/signatures) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/sip, <...>/sip) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/site, <...>/site.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/skip, <...>/skip) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/smb, <...>/smb) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/smtp, <...>/smtp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/snmp, <...>/snmp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/socks, <...>/socks) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/software, <...>/software) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ssh, <...>/ssh) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ssl, <...>/ssl) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/stats.bif, <...>/stats.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/store.bif, <...>/store.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/strings, <...>/strings.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/strings.bif, <...>/strings.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/sumstats, <...>/sumstats) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/supervisor, <...>/supervisor) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/syslog, <...>/syslog) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/tcp, <...>/tcp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/thresholds, <...>/thresholds.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/time, <...>/time.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/tunnels, <...>/tunnels) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/types.bif, <...>/types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/udp, <...>/udp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/urls, <...>/urls.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/utils, <...>/utils.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/version, <...>/version.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/vlan, <...>/vlan) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/vntag, <...>/vntag) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/weird, <...>/weird.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/x509, <...>/x509) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/xmpp, <...>/xmpp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/zeek.bif, <...>/zeek.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, builtin-plugins/__preload__.zeek, <...>/__preload__.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, s1.sig, ./s1.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./archive, <...>/archive.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./audio, <...>/audio.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./dpd.sig, <...>/dpd.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./executable, <...>/executable.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./font, <...>/font.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./general, <...>/general.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./image, <...>/image.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./java, <...>/java.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./libmagic, <...>/libmagic.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./office, <...>/office.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./programming, <...>/programming.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./video, <...>/video.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, s2, ./s2.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LogInit(Log::WRITER_ASCII, default, true, true, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)}) -> <void>
 0.000000   MetaHookPost  LogWrite(Log::WRITER_ASCII, default, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)}, <void ptr>) -> true
 0.000000   MetaHookPost  QueueEvent(NetControl::init()) -> false
@@ -2086,6 +2454,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/zeek.bif, <...>/zeek.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek)
 0.000000   MetaHookPre   LoadFile(0, builtin-plugins/__preload__.zeek, <...>/__preload__.zeek)
+0.000000   MetaHookPre   LoadFile(0, s1.sig, ./s1.sig)
 0.000000   MetaHookPre   LoadFile(1, ./archive, <...>/archive.sig)
 0.000000   MetaHookPre   LoadFile(1, ./audio, <...>/audio.sig)
 0.000000   MetaHookPre   LoadFile(1, ./dpd.sig, <...>/dpd.sig)
@@ -2098,6 +2467,373 @@
 0.000000   MetaHookPre   LoadFile(1, ./office, <...>/office.sig)
 0.000000   MetaHookPre   LoadFile(1, ./programming, <...>/programming.sig)
 0.000000   MetaHookPre   LoadFile(1, ./video, <...>/video.sig)
+0.000000   MetaHookPre   LoadFile(1, s2, ./s2.sig)
+0.000000   MetaHookPre   LoadFileExtended(0, ../main, <...>/main.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ../plugin, <...>/plugin.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./CPP-load.bif.zeek, <...>/CPP-load.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_ARP.events.bif.zeek, <...>/Zeek_ARP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_AsciiReader.ascii.bif.zeek, <...>/Zeek_AsciiReader.ascii.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_AsciiWriter.ascii.bif.zeek, <...>/Zeek_AsciiWriter.ascii.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_BenchmarkReader.benchmark.bif.zeek, <...>/Zeek_BenchmarkReader.benchmark.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_BinaryReader.binary.bif.zeek, <...>/Zeek_BinaryReader.binary.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_BitTorrent.events.bif.zeek, <...>/Zeek_BitTorrent.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_ConfigReader.config.bif.zeek, <...>/Zeek_ConfigReader.config.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_ConnSize.events.bif.zeek, <...>/Zeek_ConnSize.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_ConnSize.functions.bif.zeek, <...>/Zeek_ConnSize.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DCE_RPC.consts.bif.zeek, <...>/Zeek_DCE_RPC.consts.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DCE_RPC.events.bif.zeek, <...>/Zeek_DCE_RPC.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DCE_RPC.types.bif.zeek, <...>/Zeek_DCE_RPC.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DHCP.events.bif.zeek, <...>/Zeek_DHCP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DHCP.types.bif.zeek, <...>/Zeek_DHCP.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DNP3.events.bif.zeek, <...>/Zeek_DNP3.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DNS.events.bif.zeek, <...>/Zeek_DNS.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_FTP.events.bif.zeek, <...>/Zeek_FTP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_FTP.functions.bif.zeek, <...>/Zeek_FTP.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_File.events.bif.zeek, <...>/Zeek_File.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_FileEntropy.events.bif.zeek, <...>/Zeek_FileEntropy.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_FileExtract.events.bif.zeek, <...>/Zeek_FileExtract.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_FileExtract.functions.bif.zeek, <...>/Zeek_FileExtract.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_FileHash.events.bif.zeek, <...>/Zeek_FileHash.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Finger.events.bif.zeek, <...>/Zeek_Finger.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_GSSAPI.events.bif.zeek, <...>/Zeek_GSSAPI.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_GTPv1.events.bif.zeek, <...>/Zeek_GTPv1.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Geneve.events.bif.zeek, <...>/Zeek_Geneve.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Gnutella.events.bif.zeek, <...>/Zeek_Gnutella.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_HTTP.events.bif.zeek, <...>/Zeek_HTTP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_HTTP.functions.bif.zeek, <...>/Zeek_HTTP.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_ICMP.events.bif.zeek, <...>/Zeek_ICMP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_IMAP.events.bif.zeek, <...>/Zeek_IMAP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_IRC.events.bif.zeek, <...>/Zeek_IRC.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Ident.events.bif.zeek, <...>/Zeek_Ident.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_KRB.events.bif.zeek, <...>/Zeek_KRB.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_KRB.types.bif.zeek, <...>/Zeek_KRB.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Login.events.bif.zeek, <...>/Zeek_Login.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Login.functions.bif.zeek, <...>/Zeek_Login.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_MIME.events.bif.zeek, <...>/Zeek_MIME.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_MQTT.events.bif.zeek, <...>/Zeek_MQTT.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_MQTT.types.bif.zeek, <...>/Zeek_MQTT.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Modbus.events.bif.zeek, <...>/Zeek_Modbus.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_MySQL.events.bif.zeek, <...>/Zeek_MySQL.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_NCP.consts.bif.zeek, <...>/Zeek_NCP.consts.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_NCP.events.bif.zeek, <...>/Zeek_NCP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_NTLM.events.bif.zeek, <...>/Zeek_NTLM.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_NTLM.types.bif.zeek, <...>/Zeek_NTLM.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_NTP.events.bif.zeek, <...>/Zeek_NTP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_NTP.types.bif.zeek, <...>/Zeek_NTP.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_NetBIOS.events.bif.zeek, <...>/Zeek_NetBIOS.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_NetBIOS.functions.bif.zeek, <...>/Zeek_NetBIOS.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_NoneWriter.none.bif.zeek, <...>/Zeek_NoneWriter.none.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_PE.events.bif.zeek, <...>/Zeek_PE.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_POP3.events.bif.zeek, <...>/Zeek_POP3.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RADIUS.events.bif.zeek, <...>/Zeek_RADIUS.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RDP.events.bif.zeek, <...>/Zeek_RDP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RDP.types.bif.zeek, <...>/Zeek_RDP.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RFB.events.bif.zeek, <...>/Zeek_RFB.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RPC.events.bif.zeek, <...>/Zeek_RPC.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RawReader.raw.bif.zeek, <...>/Zeek_RawReader.raw.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SIP.events.bif.zeek, <...>/Zeek_SIP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.consts.bif.zeek, <...>/Zeek_SMB.consts.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.events.bif.zeek, <...>/Zeek_SMB.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_check_directory.bif.zeek, <...>/Zeek_SMB.smb1_com_check_directory.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_close.bif.zeek, <...>/Zeek_SMB.smb1_com_close.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_create_directory.bif.zeek, <...>/Zeek_SMB.smb1_com_create_directory.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_echo.bif.zeek, <...>/Zeek_SMB.smb1_com_echo.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_logoff_andx.bif.zeek, <...>/Zeek_SMB.smb1_com_logoff_andx.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_negotiate.bif.zeek, <...>/Zeek_SMB.smb1_com_negotiate.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_nt_cancel.bif.zeek, <...>/Zeek_SMB.smb1_com_nt_cancel.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_nt_create_andx.bif.zeek, <...>/Zeek_SMB.smb1_com_nt_create_andx.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_query_information.bif.zeek, <...>/Zeek_SMB.smb1_com_query_information.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_read_andx.bif.zeek, <...>/Zeek_SMB.smb1_com_read_andx.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_session_setup_andx.bif.zeek, <...>/Zeek_SMB.smb1_com_session_setup_andx.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_transaction.bif.zeek, <...>/Zeek_SMB.smb1_com_transaction.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_transaction2.bif.zeek, <...>/Zeek_SMB.smb1_com_transaction2.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_transaction2_secondary.bif.zeek, <...>/Zeek_SMB.smb1_com_transaction2_secondary.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_transaction_secondary.bif.zeek, <...>/Zeek_SMB.smb1_com_transaction_secondary.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_tree_connect_andx.bif.zeek, <...>/Zeek_SMB.smb1_com_tree_connect_andx.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_tree_disconnect.bif.zeek, <...>/Zeek_SMB.smb1_com_tree_disconnect.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_com_write_andx.bif.zeek, <...>/Zeek_SMB.smb1_com_write_andx.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb1_events.bif.zeek, <...>/Zeek_SMB.smb1_events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_com_close.bif.zeek, <...>/Zeek_SMB.smb2_com_close.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_com_create.bif.zeek, <...>/Zeek_SMB.smb2_com_create.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_com_negotiate.bif.zeek, <...>/Zeek_SMB.smb2_com_negotiate.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_com_read.bif.zeek, <...>/Zeek_SMB.smb2_com_read.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_com_session_setup.bif.zeek, <...>/Zeek_SMB.smb2_com_session_setup.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_com_set_info.bif.zeek, <...>/Zeek_SMB.smb2_com_set_info.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_com_transform_header.bif.zeek, <...>/Zeek_SMB.smb2_com_transform_header.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_com_tree_connect.bif.zeek, <...>/Zeek_SMB.smb2_com_tree_connect.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_com_tree_disconnect.bif.zeek, <...>/Zeek_SMB.smb2_com_tree_disconnect.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_com_write.bif.zeek, <...>/Zeek_SMB.smb2_com_write.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_events.bif.zeek, <...>/Zeek_SMB.smb2_events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.types.bif.zeek, <...>/Zeek_SMB.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMTP.events.bif.zeek, <...>/Zeek_SMTP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMTP.functions.bif.zeek, <...>/Zeek_SMTP.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SNMP.events.bif.zeek, <...>/Zeek_SNMP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SNMP.types.bif.zeek, <...>/Zeek_SNMP.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SOCKS.events.bif.zeek, <...>/Zeek_SOCKS.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SQLiteReader.sqlite.bif.zeek, <...>/Zeek_SQLiteReader.sqlite.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SQLiteWriter.sqlite.bif.zeek, <...>/Zeek_SQLiteWriter.sqlite.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSH.events.bif.zeek, <...>/Zeek_SSH.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSH.types.bif.zeek, <...>/Zeek_SSH.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.consts.bif.zeek, <...>/Zeek_SSL.consts.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Teredo.events.bif.zeek, <...>/Zeek_Teredo.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Unified2.events.bif.zeek, <...>/Zeek_Unified2.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Unified2.types.bif.zeek, <...>/Zeek_Unified2.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./acld, <...>/acld.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./addrs, <...>/addrs.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./api, <...>/api.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./average, <...>/average.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./bloom-filter.bif.zeek, <...>/bloom-filter.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./broker, <...>/broker.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./certificate-event-cache, <...>/certificate-event-cache.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./comm.bif.zeek, <...>/comm.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./const-dos-error, <...>/const-dos-error.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./const-nt-status, <...>/const-nt-status.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./const.bif.zeek, <...>/const.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./consts, <...>/consts.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./contents, <...>/contents.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./control, <...>/control.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./ct-list, <...>/ct-list.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./data.bif.zeek, <...>/data.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./dcc-send, <...>/dcc-send.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./debug, <...>/debug.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./drop, <...>/drop.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./entities, <...>/entities.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./event.bif.zeek, <...>/event.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./exec, <...>/exec.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./file_analysis.bif.zeek, <...>/file_analysis.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./files, <...>/files.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./gridftp, <...>/gridftp.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./hll_unique, <...>/hll_unique.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./hooks.bif.zeek, <...>/hooks.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./inactivity, <...>/inactivity.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./info, <...>/info.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./input, <...>/input.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./input.bif.zeek, <...>/input.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./last, <...>/last.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./log, <...>/log.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./log-ocsp, <...>/log-ocsp.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./logging.bif.zeek, <...>/logging.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./magic, <...>/magic)
+0.000000   MetaHookPre   LoadFileExtended(0, ./main, <...>/main.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./max, <...>/max.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./messaging.bif.zeek, <...>/messaging.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./min, <...>/min.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./mozilla-ca-list, <...>/mozilla-ca-list.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./netstats, <...>/netstats.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./non-cluster, <...>/non-cluster.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./openflow, <...>/openflow.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./option.bif.zeek, <...>/option.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./packet_analysis.bif.zeek, <...>/packet_analysis.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./packetfilter, <...>/packetfilter.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./patterns, <...>/patterns.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./pcap.bif.zeek, <...>/pcap.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./plugin, <...>/plugin.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./plugins, <...>/plugins)
+0.000000   MetaHookPre   LoadFileExtended(0, ./polling, <...>/polling.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./pools, <...>/pools.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./postprocessors, <...>/postprocessors)
+0.000000   MetaHookPre   LoadFileExtended(0, ./removal-hooks, <...>/removal-hooks.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./ryu, <...>/ryu.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./sample, <...>/sample.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./scp, <...>/scp.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./sftp, <...>/sftp.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./shunt, <...>/shunt.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./site, <...>/site.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./smb1-main, <...>/smb1-main.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./smb2-main, <...>/smb2-main.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./stats.bif.zeek, <...>/stats.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./std-dev, <...>/std-dev.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./store, <...>/store.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./store.bif.zeek, <...>/store.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./strings.bif.zeek, <...>/strings.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./sum, <...>/sum.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./telemetry.bif.zeek, <...>/telemetry.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./thresholds, <...>/thresholds.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./top-k.bif.zeek, <...>/top-k.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./topk, <...>/topk.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./types, <...>/types.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./types.bif.zeek, <...>/types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./unique, <...>/unique.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./utils, <...>/utils.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./utils-commands, <...>/utils-commands.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./variance, <...>/variance.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./weird, <...>/weird.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./zeek.bif.zeek, <...>/zeek.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./zeekygen.bif.zeek, <...>/zeekygen.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/add-geodata, <...>/add-geodata.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/ascii, <...>/ascii.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/benchmark, <...>/benchmark.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/binary, <...>/binary.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/config, <...>/config.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/email_admin, <...>/email_admin.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/none, <...>/none.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/page, <...>/page.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/pp-alarms, <...>/pp-alarms.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/raw, <...>/raw.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/sqlite, <...>/sqlite.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, <...>/__load__.zeek, <...>/__load__.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, <...>/__preload__.zeek, <...>/__preload__.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, <...>/hooks.zeek, <...>/hooks.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base/bif, <...>/bif)
+0.000000   MetaHookPre   LoadFileExtended(0, base/init-default, <...>/init-default.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base/packet-protocols, <...>/packet-protocols)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/Zeek_SNMP.types.bif, <...>/Zeek_SNMP.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/active-http, <...>/active-http.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/addrs, <...>/addrs.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/analyzer, <...>/analyzer)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/analyzer.bif, <...>/analyzer.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/api, <...>/api.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/backtrace, <...>/backtrace.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/broker, <...>/broker)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/cluster, <...>/cluster)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/comm.bif, <...>/comm.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/config, <...>/config)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/conn, <...>/conn)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/conn-ids, <...>/conn-ids.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/const.bif, <...>/const.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/control, <...>/control)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/data.bif, <...>/data.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/dce-rpc, <...>/dce-rpc)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/dhcp, <...>/dhcp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/dir, <...>/dir.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/directions-and-hosts, <...>/directions-and-hosts.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/dnp3, <...>/dnp3)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/dns, <...>/dns)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/dpd, <...>/dpd)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/email, <...>/email.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ethernet, <...>/ethernet)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/event.bif, <...>/event.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/exec, <...>/exec.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/extract, <...>/extract)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/fddi, <...>/fddi)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/file_analysis.bif, <...>/file_analysis.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/files, <...>/files)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/files, <...>/files.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/find-checksum-offloading, <...>/find-checksum-offloading.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/find-filtered-trace, <...>/find-filtered-trace.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ftp, <...>/ftp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/geoip-distance, <...>/geoip-distance.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/gre, <...>/gre)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/hash, <...>/hash)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/hash_hrw, <...>/hash_hrw.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/http, <...>/http)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/icmp, <...>/icmp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ieee802_11, <...>/ieee802_11)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ieee802_11_radio, <...>/ieee802_11_radio)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/imap, <...>/imap)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/input, <...>/input)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/input.bif, <...>/input.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/intel, <...>/intel)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ip, <...>/ip)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/iptunnel, <...>/iptunnel)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/irc, <...>/irc)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/krb, <...>/krb)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/linux_sll, <...>/linux_sll)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/logging, <...>/logging)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/logging.bif, <...>/logging.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/main, <...>/main.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/messaging.bif, <...>/messaging.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/modbus, <...>/modbus)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/mpls, <...>/mpls)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/mqtt, <...>/mqtt)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/mysql, <...>/mysql)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/netcontrol, <...>/netcontrol)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/nflog, <...>/nflog)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/notice, <...>/notice)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ntlm, <...>/ntlm)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ntp, <...>/ntp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/null, <...>/null)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/numbers, <...>/numbers.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/openflow, <...>/openflow)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/option.bif, <...>/option.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/packet-filter, <...>/packet-filter)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/packet_analysis.bif, <...>/packet_analysis.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/paths, <...>/paths.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/patterns, <...>/patterns.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/pe, <...>/pe)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/plugins, <...>/plugins)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/pop3, <...>/pop3)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ppp_serial, <...>/ppp_serial)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/pppoe, <...>/pppoe)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/queue, <...>/queue.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/radius, <...>/radius)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/rdp, <...>/rdp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/removal-hooks, <...>/removal-hooks.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/reporter, <...>/reporter)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/reporter.bif, <...>/reporter.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/rfb, <...>/rfb)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/root, <...>/root)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/signatures, <...>/signatures)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/sip, <...>/sip)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/site, <...>/site.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/skip, <...>/skip)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/smb, <...>/smb)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/smtp, <...>/smtp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/snmp, <...>/snmp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/socks, <...>/socks)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/software, <...>/software)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ssh, <...>/ssh)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ssl, <...>/ssl)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/stats.bif, <...>/stats.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/store.bif, <...>/store.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/strings, <...>/strings.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/strings.bif, <...>/strings.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/sumstats, <...>/sumstats)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/supervisor, <...>/supervisor)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/syslog, <...>/syslog)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/tcp, <...>/tcp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/thresholds, <...>/thresholds.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/time, <...>/time.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/tunnels, <...>/tunnels)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/types.bif, <...>/types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/udp, <...>/udp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/urls, <...>/urls.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/utils, <...>/utils.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/version, <...>/version.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/vlan, <...>/vlan)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/vntag, <...>/vntag)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/weird, <...>/weird.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/x509, <...>/x509)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/xmpp, <...>/xmpp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/zeek.bif, <...>/zeek.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, builtin-plugins/__preload__.zeek, <...>/__preload__.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, s1.sig, ./s1.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./archive, <...>/archive.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./audio, <...>/audio.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./dpd.sig, <...>/dpd.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./executable, <...>/executable.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./font, <...>/font.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./general, <...>/general.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./image, <...>/image.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./java, <...>/java.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./libmagic, <...>/libmagic.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./office, <...>/office.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./programming, <...>/programming.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./video, <...>/video.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, s2, ./s2.sig)
 0.000000   MetaHookPre   LogInit(Log::WRITER_ASCII, default, true, true, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)})
 0.000000   MetaHookPre   LogWrite(Log::WRITER_ASCII, default, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)}, <void ptr>)
 0.000000   MetaHookPre   QueueEvent(NetControl::init())
@@ -3149,6 +3885,374 @@
 0.000000 | HookLoadFile  base<...>/zeek.bif <...>/zeek.bif.zeek
 0.000000 | HookLoadFile  builtin-plugins/__load__.zeek <...>/__load__.zeek
 0.000000 | HookLoadFile  builtin-plugins/__preload__.zeek <...>/__preload__.zeek
+0.000000 | HookLoadFile  s1.sig ./s1.sig
+0.000000 | HookLoadFile  s2 ./s2.sig
+0.000000 | HookLoadFileExtended ../main <...>/main.zeek
+0.000000 | HookLoadFileExtended ../plugin <...>/plugin.zeek
+0.000000 | HookLoadFileExtended ./CPP-load.bif.zeek <...>/CPP-load.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_ARP.events.bif.zeek <...>/Zeek_ARP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_AsciiReader.ascii.bif.zeek <...>/Zeek_AsciiReader.ascii.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_AsciiWriter.ascii.bif.zeek <...>/Zeek_AsciiWriter.ascii.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_BenchmarkReader.benchmark.bif.zeek <...>/Zeek_BenchmarkReader.benchmark.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_BinaryReader.binary.bif.zeek <...>/Zeek_BinaryReader.binary.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_BitTorrent.events.bif.zeek <...>/Zeek_BitTorrent.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_ConfigReader.config.bif.zeek <...>/Zeek_ConfigReader.config.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_ConnSize.events.bif.zeek <...>/Zeek_ConnSize.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_ConnSize.functions.bif.zeek <...>/Zeek_ConnSize.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_DCE_RPC.consts.bif.zeek <...>/Zeek_DCE_RPC.consts.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_DCE_RPC.events.bif.zeek <...>/Zeek_DCE_RPC.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_DCE_RPC.types.bif.zeek <...>/Zeek_DCE_RPC.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_DHCP.events.bif.zeek <...>/Zeek_DHCP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_DHCP.types.bif.zeek <...>/Zeek_DHCP.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_DNP3.events.bif.zeek <...>/Zeek_DNP3.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_DNS.events.bif.zeek <...>/Zeek_DNS.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_FTP.events.bif.zeek <...>/Zeek_FTP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_FTP.functions.bif.zeek <...>/Zeek_FTP.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_File.events.bif.zeek <...>/Zeek_File.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_FileEntropy.events.bif.zeek <...>/Zeek_FileEntropy.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_FileExtract.events.bif.zeek <...>/Zeek_FileExtract.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_FileExtract.functions.bif.zeek <...>/Zeek_FileExtract.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_FileHash.events.bif.zeek <...>/Zeek_FileHash.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Finger.events.bif.zeek <...>/Zeek_Finger.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_GSSAPI.events.bif.zeek <...>/Zeek_GSSAPI.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_GTPv1.events.bif.zeek <...>/Zeek_GTPv1.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Geneve.events.bif.zeek <...>/Zeek_Geneve.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Gnutella.events.bif.zeek <...>/Zeek_Gnutella.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_HTTP.events.bif.zeek <...>/Zeek_HTTP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_HTTP.functions.bif.zeek <...>/Zeek_HTTP.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_ICMP.events.bif.zeek <...>/Zeek_ICMP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_IMAP.events.bif.zeek <...>/Zeek_IMAP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_IRC.events.bif.zeek <...>/Zeek_IRC.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Ident.events.bif.zeek <...>/Zeek_Ident.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_KRB.events.bif.zeek <...>/Zeek_KRB.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_KRB.types.bif.zeek <...>/Zeek_KRB.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Login.events.bif.zeek <...>/Zeek_Login.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Login.functions.bif.zeek <...>/Zeek_Login.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_MIME.events.bif.zeek <...>/Zeek_MIME.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_MQTT.events.bif.zeek <...>/Zeek_MQTT.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_MQTT.types.bif.zeek <...>/Zeek_MQTT.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Modbus.events.bif.zeek <...>/Zeek_Modbus.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_MySQL.events.bif.zeek <...>/Zeek_MySQL.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_NCP.consts.bif.zeek <...>/Zeek_NCP.consts.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_NCP.events.bif.zeek <...>/Zeek_NCP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_NTLM.events.bif.zeek <...>/Zeek_NTLM.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_NTLM.types.bif.zeek <...>/Zeek_NTLM.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_NTP.events.bif.zeek <...>/Zeek_NTP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_NTP.types.bif.zeek <...>/Zeek_NTP.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_NetBIOS.events.bif.zeek <...>/Zeek_NetBIOS.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_NetBIOS.functions.bif.zeek <...>/Zeek_NetBIOS.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_NoneWriter.none.bif.zeek <...>/Zeek_NoneWriter.none.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_PE.events.bif.zeek <...>/Zeek_PE.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_POP3.events.bif.zeek <...>/Zeek_POP3.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_RADIUS.events.bif.zeek <...>/Zeek_RADIUS.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_RDP.events.bif.zeek <...>/Zeek_RDP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_RDP.types.bif.zeek <...>/Zeek_RDP.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_RFB.events.bif.zeek <...>/Zeek_RFB.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_RPC.events.bif.zeek <...>/Zeek_RPC.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_RawReader.raw.bif.zeek <...>/Zeek_RawReader.raw.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SIP.events.bif.zeek <...>/Zeek_SIP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.consts.bif.zeek <...>/Zeek_SMB.consts.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.events.bif.zeek <...>/Zeek_SMB.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_check_directory.bif.zeek <...>/Zeek_SMB.smb1_com_check_directory.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_close.bif.zeek <...>/Zeek_SMB.smb1_com_close.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_create_directory.bif.zeek <...>/Zeek_SMB.smb1_com_create_directory.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_echo.bif.zeek <...>/Zeek_SMB.smb1_com_echo.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_logoff_andx.bif.zeek <...>/Zeek_SMB.smb1_com_logoff_andx.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_negotiate.bif.zeek <...>/Zeek_SMB.smb1_com_negotiate.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_nt_cancel.bif.zeek <...>/Zeek_SMB.smb1_com_nt_cancel.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_nt_create_andx.bif.zeek <...>/Zeek_SMB.smb1_com_nt_create_andx.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_query_information.bif.zeek <...>/Zeek_SMB.smb1_com_query_information.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_read_andx.bif.zeek <...>/Zeek_SMB.smb1_com_read_andx.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_session_setup_andx.bif.zeek <...>/Zeek_SMB.smb1_com_session_setup_andx.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_transaction.bif.zeek <...>/Zeek_SMB.smb1_com_transaction.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_transaction2.bif.zeek <...>/Zeek_SMB.smb1_com_transaction2.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_transaction2_secondary.bif.zeek <...>/Zeek_SMB.smb1_com_transaction2_secondary.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_transaction_secondary.bif.zeek <...>/Zeek_SMB.smb1_com_transaction_secondary.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_tree_connect_andx.bif.zeek <...>/Zeek_SMB.smb1_com_tree_connect_andx.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_tree_disconnect.bif.zeek <...>/Zeek_SMB.smb1_com_tree_disconnect.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_com_write_andx.bif.zeek <...>/Zeek_SMB.smb1_com_write_andx.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb1_events.bif.zeek <...>/Zeek_SMB.smb1_events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_com_close.bif.zeek <...>/Zeek_SMB.smb2_com_close.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_com_create.bif.zeek <...>/Zeek_SMB.smb2_com_create.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_com_negotiate.bif.zeek <...>/Zeek_SMB.smb2_com_negotiate.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_com_read.bif.zeek <...>/Zeek_SMB.smb2_com_read.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_com_session_setup.bif.zeek <...>/Zeek_SMB.smb2_com_session_setup.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_com_set_info.bif.zeek <...>/Zeek_SMB.smb2_com_set_info.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_com_transform_header.bif.zeek <...>/Zeek_SMB.smb2_com_transform_header.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_com_tree_connect.bif.zeek <...>/Zeek_SMB.smb2_com_tree_connect.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_com_tree_disconnect.bif.zeek <...>/Zeek_SMB.smb2_com_tree_disconnect.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_com_write.bif.zeek <...>/Zeek_SMB.smb2_com_write.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_events.bif.zeek <...>/Zeek_SMB.smb2_events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMB.types.bif.zeek <...>/Zeek_SMB.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMTP.events.bif.zeek <...>/Zeek_SMTP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMTP.functions.bif.zeek <...>/Zeek_SMTP.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SNMP.events.bif.zeek <...>/Zeek_SNMP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SNMP.types.bif.zeek <...>/Zeek_SNMP.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SOCKS.events.bif.zeek <...>/Zeek_SOCKS.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SQLiteReader.sqlite.bif.zeek <...>/Zeek_SQLiteReader.sqlite.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SQLiteWriter.sqlite.bif.zeek <...>/Zeek_SQLiteWriter.sqlite.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SSH.events.bif.zeek <...>/Zeek_SSH.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SSH.types.bif.zeek <...>/Zeek_SSH.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SSL.consts.bif.zeek <...>/Zeek_SSL.consts.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SSL.events.bif.zeek <...>/Zeek_SSL.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SSL.functions.bif.zeek <...>/Zeek_SSL.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SSL.types.bif.zeek <...>/Zeek_SSL.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Syslog.events.bif.zeek <...>/Zeek_Syslog.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_TCP.events.bif.zeek <...>/Zeek_TCP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_TCP.functions.bif.zeek <...>/Zeek_TCP.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_TCP.types.bif.zeek <...>/Zeek_TCP.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Teredo.events.bif.zeek <...>/Zeek_Teredo.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_UDP.events.bif.zeek <...>/Zeek_UDP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Unified2.events.bif.zeek <...>/Zeek_Unified2.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Unified2.types.bif.zeek <...>/Zeek_Unified2.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_VXLAN.events.bif.zeek <...>/Zeek_VXLAN.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_X509.events.bif.zeek <...>/Zeek_X509.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_X509.functions.bif.zeek <...>/Zeek_X509.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_X509.ocsp_events.bif.zeek <...>/Zeek_X509.ocsp_events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_X509.types.bif.zeek <...>/Zeek_X509.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_XMPP.events.bif.zeek <...>/Zeek_XMPP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./acld <...>/acld.zeek
+0.000000 | HookLoadFileExtended ./addrs <...>/addrs.zeek
+0.000000 | HookLoadFileExtended ./analyzer.bif.zeek <...>/analyzer.bif.zeek
+0.000000 | HookLoadFileExtended ./api <...>/api.zeek
+0.000000 | HookLoadFileExtended ./archive <...>/archive.sig
+0.000000 | HookLoadFileExtended ./audio <...>/audio.sig
+0.000000 | HookLoadFileExtended ./average <...>/average.zeek
+0.000000 | HookLoadFileExtended ./bloom-filter.bif.zeek <...>/bloom-filter.bif.zeek
+0.000000 | HookLoadFileExtended ./broker <...>/broker.zeek
+0.000000 | HookLoadFileExtended ./cardinality-counter.bif.zeek <...>/cardinality-counter.bif.zeek
+0.000000 | HookLoadFileExtended ./certificate-event-cache <...>/certificate-event-cache.zeek
+0.000000 | HookLoadFileExtended ./comm.bif.zeek <...>/comm.bif.zeek
+0.000000 | HookLoadFileExtended ./const-dos-error <...>/const-dos-error.zeek
+0.000000 | HookLoadFileExtended ./const-nt-status <...>/const-nt-status.zeek
+0.000000 | HookLoadFileExtended ./const.bif.zeek <...>/const.bif.zeek
+0.000000 | HookLoadFileExtended ./consts <...>/consts.zeek
+0.000000 | HookLoadFileExtended ./contents <...>/contents.zeek
+0.000000 | HookLoadFileExtended ./control <...>/control.zeek
+0.000000 | HookLoadFileExtended ./ct-list <...>/ct-list.zeek
+0.000000 | HookLoadFileExtended ./data.bif.zeek <...>/data.bif.zeek
+0.000000 | HookLoadFileExtended ./dcc-send <...>/dcc-send.zeek
+0.000000 | HookLoadFileExtended ./debug <...>/debug.zeek
+0.000000 | HookLoadFileExtended ./dpd.sig <...>/dpd.sig
+0.000000 | HookLoadFileExtended ./drop <...>/drop.zeek
+0.000000 | HookLoadFileExtended ./entities <...>/entities.zeek
+0.000000 | HookLoadFileExtended ./event.bif.zeek <...>/event.bif.zeek
+0.000000 | HookLoadFileExtended ./exec <...>/exec.zeek
+0.000000 | HookLoadFileExtended ./executable <...>/executable.sig
+0.000000 | HookLoadFileExtended ./file_analysis.bif.zeek <...>/file_analysis.bif.zeek
+0.000000 | HookLoadFileExtended ./files <...>/files.zeek
+0.000000 | HookLoadFileExtended ./font <...>/font.sig
+0.000000 | HookLoadFileExtended ./general <...>/general.sig
+0.000000 | HookLoadFileExtended ./gridftp <...>/gridftp.zeek
+0.000000 | HookLoadFileExtended ./hll_unique <...>/hll_unique.zeek
+0.000000 | HookLoadFileExtended ./hooks.bif.zeek <...>/hooks.bif.zeek
+0.000000 | HookLoadFileExtended ./image <...>/image.sig
+0.000000 | HookLoadFileExtended ./inactivity <...>/inactivity.zeek
+0.000000 | HookLoadFileExtended ./info <...>/info.zeek
+0.000000 | HookLoadFileExtended ./input <...>/input.zeek
+0.000000 | HookLoadFileExtended ./input.bif.zeek <...>/input.bif.zeek
+0.000000 | HookLoadFileExtended ./java <...>/java.sig
+0.000000 | HookLoadFileExtended ./last <...>/last.zeek
+0.000000 | HookLoadFileExtended ./libmagic <...>/libmagic.sig
+0.000000 | HookLoadFileExtended ./log <...>/log.zeek
+0.000000 | HookLoadFileExtended ./log-ocsp <...>/log-ocsp.zeek
+0.000000 | HookLoadFileExtended ./logging.bif.zeek <...>/logging.bif.zeek
+0.000000 | HookLoadFileExtended ./magic <...>/magic
+0.000000 | HookLoadFileExtended ./main <...>/main.zeek
+0.000000 | HookLoadFileExtended ./max <...>/max.zeek
+0.000000 | HookLoadFileExtended ./messaging.bif.zeek <...>/messaging.bif.zeek
+0.000000 | HookLoadFileExtended ./min <...>/min.zeek
+0.000000 | HookLoadFileExtended ./mozilla-ca-list <...>/mozilla-ca-list.zeek
+0.000000 | HookLoadFileExtended ./netstats <...>/netstats.zeek
+0.000000 | HookLoadFileExtended ./non-cluster <...>/non-cluster.zeek
+0.000000 | HookLoadFileExtended ./office <...>/office.sig
+0.000000 | HookLoadFileExtended ./openflow <...>/openflow.zeek
+0.000000 | HookLoadFileExtended ./option.bif.zeek <...>/option.bif.zeek
+0.000000 | HookLoadFileExtended ./packet_analysis.bif.zeek <...>/packet_analysis.bif.zeek
+0.000000 | HookLoadFileExtended ./packetfilter <...>/packetfilter.zeek
+0.000000 | HookLoadFileExtended ./patterns <...>/patterns.zeek
+0.000000 | HookLoadFileExtended ./pcap.bif.zeek <...>/pcap.bif.zeek
+0.000000 | HookLoadFileExtended ./plugin <...>/plugin.zeek
+0.000000 | HookLoadFileExtended ./plugins <...>/plugins
+0.000000 | HookLoadFileExtended ./polling <...>/polling.zeek
+0.000000 | HookLoadFileExtended ./pools <...>/pools.zeek
+0.000000 | HookLoadFileExtended ./postprocessors <...>/postprocessors
+0.000000 | HookLoadFileExtended ./programming <...>/programming.sig
+0.000000 | HookLoadFileExtended ./removal-hooks <...>/removal-hooks.zeek
+0.000000 | HookLoadFileExtended ./reporter.bif.zeek <...>/reporter.bif.zeek
+0.000000 | HookLoadFileExtended ./ryu <...>/ryu.zeek
+0.000000 | HookLoadFileExtended ./sample <...>/sample.zeek
+0.000000 | HookLoadFileExtended ./scp <...>/scp.zeek
+0.000000 | HookLoadFileExtended ./sftp <...>/sftp.zeek
+0.000000 | HookLoadFileExtended ./shunt <...>/shunt.zeek
+0.000000 | HookLoadFileExtended ./site <...>/site.zeek
+0.000000 | HookLoadFileExtended ./smb1-main <...>/smb1-main.zeek
+0.000000 | HookLoadFileExtended ./smb2-main <...>/smb2-main.zeek
+0.000000 | HookLoadFileExtended ./stats.bif.zeek <...>/stats.bif.zeek
+0.000000 | HookLoadFileExtended ./std-dev <...>/std-dev.zeek
+0.000000 | HookLoadFileExtended ./store <...>/store.zeek
+0.000000 | HookLoadFileExtended ./store.bif.zeek <...>/store.bif.zeek
+0.000000 | HookLoadFileExtended ./strings.bif.zeek <...>/strings.bif.zeek
+0.000000 | HookLoadFileExtended ./sum <...>/sum.zeek
+0.000000 | HookLoadFileExtended ./supervisor.bif.zeek <...>/supervisor.bif.zeek
+0.000000 | HookLoadFileExtended ./telemetry.bif.zeek <...>/telemetry.bif.zeek
+0.000000 | HookLoadFileExtended ./thresholds <...>/thresholds.zeek
+0.000000 | HookLoadFileExtended ./top-k.bif.zeek <...>/top-k.bif.zeek
+0.000000 | HookLoadFileExtended ./topk <...>/topk.zeek
+0.000000 | HookLoadFileExtended ./types <...>/types.zeek
+0.000000 | HookLoadFileExtended ./types.bif.zeek <...>/types.bif.zeek
+0.000000 | HookLoadFileExtended ./unique <...>/unique.zeek
+0.000000 | HookLoadFileExtended ./utils <...>/utils.zeek
+0.000000 | HookLoadFileExtended ./utils-commands <...>/utils-commands.zeek
+0.000000 | HookLoadFileExtended ./variance <...>/variance.zeek
+0.000000 | HookLoadFileExtended ./video <...>/video.sig
+0.000000 | HookLoadFileExtended ./weird <...>/weird.zeek
+0.000000 | HookLoadFileExtended ./zeek.bif.zeek <...>/zeek.bif.zeek
+0.000000 | HookLoadFileExtended ./zeekygen.bif.zeek <...>/zeekygen.bif.zeek
+0.000000 | HookLoadFileExtended .<...>/add-geodata <...>/add-geodata.zeek
+0.000000 | HookLoadFileExtended .<...>/ascii <...>/ascii.zeek
+0.000000 | HookLoadFileExtended .<...>/benchmark <...>/benchmark.zeek
+0.000000 | HookLoadFileExtended .<...>/binary <...>/binary.zeek
+0.000000 | HookLoadFileExtended .<...>/config <...>/config.zeek
+0.000000 | HookLoadFileExtended .<...>/email_admin <...>/email_admin.zeek
+0.000000 | HookLoadFileExtended .<...>/none <...>/none.zeek
+0.000000 | HookLoadFileExtended .<...>/page <...>/page.zeek
+0.000000 | HookLoadFileExtended .<...>/pp-alarms <...>/pp-alarms.zeek
+0.000000 | HookLoadFileExtended .<...>/raw <...>/raw.zeek
+0.000000 | HookLoadFileExtended .<...>/sqlite <...>/sqlite.zeek
+0.000000 | HookLoadFileExtended <...>/__load__.zeek <...>/__load__.zeek
+0.000000 | HookLoadFileExtended <...>/__preload__.zeek <...>/__preload__.zeek
+0.000000 | HookLoadFileExtended <...>/hooks.zeek <...>/hooks.zeek
+0.000000 | HookLoadFileExtended base/bif <...>/bif
+0.000000 | HookLoadFileExtended base/init-default <...>/init-default.zeek
+0.000000 | HookLoadFileExtended base/init-frameworks-and-bifs.zeek <...>/init-frameworks-and-bifs.zeek
+0.000000 | HookLoadFileExtended base/packet-protocols <...>/packet-protocols
+0.000000 | HookLoadFileExtended base<...>/CPP-load.bif <...>/CPP-load.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/Zeek_KRB.types.bif <...>/Zeek_KRB.types.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/Zeek_SNMP.types.bif <...>/Zeek_SNMP.types.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/active-http <...>/active-http.zeek
+0.000000 | HookLoadFileExtended base<...>/addrs <...>/addrs.zeek
+0.000000 | HookLoadFileExtended base<...>/analyzer <...>/analyzer
+0.000000 | HookLoadFileExtended base<...>/analyzer.bif <...>/analyzer.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/api <...>/api.zeek
+0.000000 | HookLoadFileExtended base<...>/backtrace <...>/backtrace.zeek
+0.000000 | HookLoadFileExtended base<...>/broker <...>/broker
+0.000000 | HookLoadFileExtended base<...>/cluster <...>/cluster
+0.000000 | HookLoadFileExtended base<...>/comm.bif <...>/comm.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/config <...>/config
+0.000000 | HookLoadFileExtended base<...>/conn <...>/conn
+0.000000 | HookLoadFileExtended base<...>/conn-ids <...>/conn-ids.zeek
+0.000000 | HookLoadFileExtended base<...>/const.bif <...>/const.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/control <...>/control
+0.000000 | HookLoadFileExtended base<...>/data.bif <...>/data.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/dce-rpc <...>/dce-rpc
+0.000000 | HookLoadFileExtended base<...>/dhcp <...>/dhcp
+0.000000 | HookLoadFileExtended base<...>/dir <...>/dir.zeek
+0.000000 | HookLoadFileExtended base<...>/directions-and-hosts <...>/directions-and-hosts.zeek
+0.000000 | HookLoadFileExtended base<...>/dnp3 <...>/dnp3
+0.000000 | HookLoadFileExtended base<...>/dns <...>/dns
+0.000000 | HookLoadFileExtended base<...>/dpd <...>/dpd
+0.000000 | HookLoadFileExtended base<...>/email <...>/email.zeek
+0.000000 | HookLoadFileExtended base<...>/ethernet <...>/ethernet
+0.000000 | HookLoadFileExtended base<...>/event.bif <...>/event.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/exec <...>/exec.zeek
+0.000000 | HookLoadFileExtended base<...>/extract <...>/extract
+0.000000 | HookLoadFileExtended base<...>/fddi <...>/fddi
+0.000000 | HookLoadFileExtended base<...>/file_analysis.bif <...>/file_analysis.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/files <...>/files
+0.000000 | HookLoadFileExtended base<...>/files <...>/files.zeek
+0.000000 | HookLoadFileExtended base<...>/find-checksum-offloading <...>/find-checksum-offloading.zeek
+0.000000 | HookLoadFileExtended base<...>/find-filtered-trace <...>/find-filtered-trace.zeek
+0.000000 | HookLoadFileExtended base<...>/ftp <...>/ftp
+0.000000 | HookLoadFileExtended base<...>/geoip-distance <...>/geoip-distance.zeek
+0.000000 | HookLoadFileExtended base<...>/gre <...>/gre
+0.000000 | HookLoadFileExtended base<...>/hash <...>/hash
+0.000000 | HookLoadFileExtended base<...>/hash_hrw <...>/hash_hrw.zeek
+0.000000 | HookLoadFileExtended base<...>/http <...>/http
+0.000000 | HookLoadFileExtended base<...>/icmp <...>/icmp
+0.000000 | HookLoadFileExtended base<...>/ieee802_11 <...>/ieee802_11
+0.000000 | HookLoadFileExtended base<...>/ieee802_11_radio <...>/ieee802_11_radio
+0.000000 | HookLoadFileExtended base<...>/imap <...>/imap
+0.000000 | HookLoadFileExtended base<...>/input <...>/input
+0.000000 | HookLoadFileExtended base<...>/input.bif <...>/input.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/intel <...>/intel
+0.000000 | HookLoadFileExtended base<...>/ip <...>/ip
+0.000000 | HookLoadFileExtended base<...>/iptunnel <...>/iptunnel
+0.000000 | HookLoadFileExtended base<...>/irc <...>/irc
+0.000000 | HookLoadFileExtended base<...>/krb <...>/krb
+0.000000 | HookLoadFileExtended base<...>/linux_sll <...>/linux_sll
+0.000000 | HookLoadFileExtended base<...>/logging <...>/logging
+0.000000 | HookLoadFileExtended base<...>/logging.bif <...>/logging.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/main <...>/main.zeek
+0.000000 | HookLoadFileExtended base<...>/messaging.bif <...>/messaging.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/modbus <...>/modbus
+0.000000 | HookLoadFileExtended base<...>/mpls <...>/mpls
+0.000000 | HookLoadFileExtended base<...>/mqtt <...>/mqtt
+0.000000 | HookLoadFileExtended base<...>/mysql <...>/mysql
+0.000000 | HookLoadFileExtended base<...>/netcontrol <...>/netcontrol
+0.000000 | HookLoadFileExtended base<...>/nflog <...>/nflog
+0.000000 | HookLoadFileExtended base<...>/notice <...>/notice
+0.000000 | HookLoadFileExtended base<...>/ntlm <...>/ntlm
+0.000000 | HookLoadFileExtended base<...>/ntp <...>/ntp
+0.000000 | HookLoadFileExtended base<...>/null <...>/null
+0.000000 | HookLoadFileExtended base<...>/numbers <...>/numbers.zeek
+0.000000 | HookLoadFileExtended base<...>/openflow <...>/openflow
+0.000000 | HookLoadFileExtended base<...>/option.bif <...>/option.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/packet-filter <...>/packet-filter
+0.000000 | HookLoadFileExtended base<...>/packet_analysis.bif <...>/packet_analysis.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/paths <...>/paths.zeek
+0.000000 | HookLoadFileExtended base<...>/patterns <...>/patterns.zeek
+0.000000 | HookLoadFileExtended base<...>/pe <...>/pe
+0.000000 | HookLoadFileExtended base<...>/plugins <...>/plugins
+0.000000 | HookLoadFileExtended base<...>/pop3 <...>/pop3
+0.000000 | HookLoadFileExtended base<...>/ppp_serial <...>/ppp_serial
+0.000000 | HookLoadFileExtended base<...>/pppoe <...>/pppoe
+0.000000 | HookLoadFileExtended base<...>/queue <...>/queue.zeek
+0.000000 | HookLoadFileExtended base<...>/radius <...>/radius
+0.000000 | HookLoadFileExtended base<...>/rdp <...>/rdp
+0.000000 | HookLoadFileExtended base<...>/removal-hooks <...>/removal-hooks.zeek
+0.000000 | HookLoadFileExtended base<...>/reporter <...>/reporter
+0.000000 | HookLoadFileExtended base<...>/reporter.bif <...>/reporter.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/rfb <...>/rfb
+0.000000 | HookLoadFileExtended base<...>/root <...>/root
+0.000000 | HookLoadFileExtended base<...>/signatures <...>/signatures
+0.000000 | HookLoadFileExtended base<...>/sip <...>/sip
+0.000000 | HookLoadFileExtended base<...>/site <...>/site.zeek
+0.000000 | HookLoadFileExtended base<...>/skip <...>/skip
+0.000000 | HookLoadFileExtended base<...>/smb <...>/smb
+0.000000 | HookLoadFileExtended base<...>/smtp <...>/smtp
+0.000000 | HookLoadFileExtended base<...>/snmp <...>/snmp
+0.000000 | HookLoadFileExtended base<...>/socks <...>/socks
+0.000000 | HookLoadFileExtended base<...>/software <...>/software
+0.000000 | HookLoadFileExtended base<...>/ssh <...>/ssh
+0.000000 | HookLoadFileExtended base<...>/ssl <...>/ssl
+0.000000 | HookLoadFileExtended base<...>/stats.bif <...>/stats.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/store.bif <...>/store.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/strings <...>/strings.zeek
+0.000000 | HookLoadFileExtended base<...>/strings.bif <...>/strings.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/sumstats <...>/sumstats
+0.000000 | HookLoadFileExtended base<...>/supervisor <...>/supervisor
+0.000000 | HookLoadFileExtended base<...>/supervisor.bif <...>/supervisor.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/syslog <...>/syslog
+0.000000 | HookLoadFileExtended base<...>/tcp <...>/tcp
+0.000000 | HookLoadFileExtended base<...>/thresholds <...>/thresholds.zeek
+0.000000 | HookLoadFileExtended base<...>/time <...>/time.zeek
+0.000000 | HookLoadFileExtended base<...>/tunnels <...>/tunnels
+0.000000 | HookLoadFileExtended base<...>/types.bif <...>/types.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/udp <...>/udp
+0.000000 | HookLoadFileExtended base<...>/urls <...>/urls.zeek
+0.000000 | HookLoadFileExtended base<...>/utils <...>/utils.zeek
+0.000000 | HookLoadFileExtended base<...>/version <...>/version.zeek
+0.000000 | HookLoadFileExtended base<...>/vlan <...>/vlan
+0.000000 | HookLoadFileExtended base<...>/vntag <...>/vntag
+0.000000 | HookLoadFileExtended base<...>/weird <...>/weird.zeek
+0.000000 | HookLoadFileExtended base<...>/x509 <...>/x509
+0.000000 | HookLoadFileExtended base<...>/xmpp <...>/xmpp
+0.000000 | HookLoadFileExtended base<...>/zeek.bif <...>/zeek.bif.zeek
+0.000000 | HookLoadFileExtended builtin-plugins/__load__.zeek <...>/__load__.zeek
+0.000000 | HookLoadFileExtended builtin-plugins/__preload__.zeek <...>/__preload__.zeek
+0.000000 | HookLoadFileExtended s1.sig ./s1.sig
+0.000000 | HookLoadFileExtended s2 ./s2.sig
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
 0.000000 | HookLogWrite  packet_filter [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()

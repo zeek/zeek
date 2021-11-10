@@ -246,6 +246,32 @@ public:
 	                         const std::string& resolved);
 
 	/**
+	 * Hook that gives plugins a chance to take over loading an input file,
+	 * including replacing the file's content. This method must be called
+	 * between InitPreScript() and InitPostScript() for each input file Bro is
+	 * about to load, either given on the command line or via @load script
+	 * directives. The hook can take over the file, in which case Bro must not
+	 * further process it otherwise; or provide its content, in which case Bro
+	 * must use that and ignore the original file.
+	 *
+	 * @return tuple where the first element is 1 if a plugin took over the
+	 * file; 0 if a plugin took over the file but had trouble loading it; and
+	 * -1 if no plugin was interested in the file at all.
+	 *
+	 * If the plugins takes over by returning 1, there are two cases: if the
+	 * second tuple element remains unset, the plugin handled the loading
+	 * completely internally; the caller must not process it any further.
+	 * Alternatively, the plugin may optionally return the acutal content to
+	 * use for the file as a string through the tuple's second element. If so,
+	 * the caller must ignore the file on disk and use that provided content
+	 * instead (including when there's actually no physical file in place on
+	 * disk at all).
+	 */
+	virtual std::pair<int, std::optional<std::string>>
+	HookLoadFileExtended(const Plugin::LoadType type, const std::string& file,
+	                     const std::string& resolved);
+
+	/**
 	 * Hook that filters calls to a script function/event/hook.
 	 *
 	 * @param func The function to be called.

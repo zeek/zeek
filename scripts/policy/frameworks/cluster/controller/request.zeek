@@ -13,6 +13,7 @@ export {
 
 	# State specific to the set_configuration request/response events
 	type SetConfigurationState: record {
+		config: ClusterController::Types::Configuration;
 		requests: vector of Request &default=vector();
 	};
 
@@ -44,6 +45,7 @@ export {
 	global finish: function(reqid: string): bool;
 
 	global is_null: function(request: Request): bool;
+	global to_string: function(request: Request): string;
 }
 
 # XXX this needs a mechanism for expiring stale requests
@@ -83,4 +85,29 @@ function is_null(request: Request): bool
 		return T;
 
 	return F;
+	}
+
+function to_string(request: Request): string
+	{
+	local results: string_vec;
+	local res: ClusterController::Types::Result;
+	local parent_id = "";
+
+	if ( request?$parent_id )
+		parent_id = fmt(" (via %s)", request$parent_id);
+
+	for ( idx in request$results )
+		{
+		res = request$results[idx];
+		if ( res$success )
+			results[|results|] = "success";
+		else if ( |res$error| > 0 )
+			results[|results|] = fmt("error (%s)", res$error);
+		else
+			results[|results|] = "error";
+		}
+
+	return fmt("[request %s%s %s, results: %s]", request$id, parent_id,
+	           request$finished ? "finished" : "pending",
+	           join_string_vec(results, ","));
 	}

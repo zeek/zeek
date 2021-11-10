@@ -149,12 +149,16 @@ event ClusterAgent::API::set_configuration_request(reqid: string, config: Cluste
 	# events asynchonously. The only indication of error will be
 	# notification events to the controller.
 
-	local res = ClusterController::Types::Result(
-	    $reqid = reqid,
-	    $instance = ClusterAgent::name);
+	if ( reqid != "" )
+		{
+		local res = ClusterController::Types::Result(
+		    $reqid = reqid,
+		    $instance = ClusterAgent::name);
 
-	ClusterController::Log::info(fmt("tx ClusterAgent::API::set_configuration_response %s", reqid));
-	event ClusterAgent::API::set_configuration_response(reqid, res);
+		ClusterController::Log::info(fmt("tx ClusterAgent::API::set_configuration_response %s",
+		                                 ClusterController::Types::result_to_string(res)));
+		event ClusterAgent::API::set_configuration_response(reqid, res);
+		}
 	}
 
 event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)

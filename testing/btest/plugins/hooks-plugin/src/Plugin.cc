@@ -282,8 +282,6 @@ void Plugin::HookUnprocessedPacket(const zeek::Packet* packet)
 	d.Add(packet->time);
 	d.Add(" len=");
 	d.Add(packet->len);
-	d.Add(" header=");
-	d.AddN(reinterpret_cast<const char*>(packet->data), 10);
 	d.Add("]");
 
 	fprintf(stderr, "%.6f %-23s %s\n", zeek::run_state::network_time, "| HookUnprocessedPacket", d.Description());

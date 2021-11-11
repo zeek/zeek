@@ -21,3 +21,6 @@ docker run --rm "${TEST_TAG}" zkg install --force sethhall/domain-tld | sed 's/(
 
 # Check that the Broker Python module loads
 docker run --rm "${TEST_TAG}" python3 -c "import broker"
+
+# Check that the local Zeek config loads zkg packages.
+docker run --rm "${TEST_TAG}" grep -q '^@load packages' /usr/local/zeek/share/zeek/site/local.zeek

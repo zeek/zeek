@@ -34,7 +34,8 @@ RUN make -C /src/zeek distclean
 ARG CONFFLAGS="--generator=Ninja --build-type=Release"
 
 WORKDIR /src/zeek
-RUN ./configure $CONFFLAGS && ninja -C build install
+RUN ./configure $CONFFLAGS \
+ && ninja -C build install
 
 # Final layer containing all artifacts.
 FROM debian:bullseye-slim AS final
@@ -58,3 +59,6 @@ RUN apt-get -q update \
 COPY --from=build /usr/local/zeek /usr/local/zeek
 ENV PATH "/usr/local/zeek/bin:${PATH}"
 ENV PYTHONPATH "/usr/local/zeek/lib/zeek/python:${PYTHONPATH}"
+
+# Enable zkg package loading
+RUN echo '@load packages' >> $(zeek-config --site_dir)/local.zeek

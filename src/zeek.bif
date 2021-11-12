@@ -3657,7 +3657,7 @@ public:
 		}
 
 	// Overridden from zeek::detail::DNS_Mgr:Lookup:Callback.
-	virtual void Resolved(const char* name)
+	void Resolved(const char* name) override
 		{
 		zeek::Val* result = new zeek::StringVal(name);
 		trigger->Cache(call, result);
@@ -3665,14 +3665,14 @@ public:
 		trigger->Release();
 		}
 
-	virtual void Resolved(zeek::TableVal* addrs)
+	void Resolved(zeek::TableVal* addrs) override
 		{
 		// No Ref() for addrs.
 		trigger->Cache(call, addrs);
 		trigger->Release();
 		}
 
-	virtual void Timeout()
+	void Timeout() override
 		{
 		if ( lookup_name )
 			{

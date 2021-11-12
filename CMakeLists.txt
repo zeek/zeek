@@ -480,6 +480,7 @@ include(CheckNameserCompat)
 include(GetArchitecture)
 include(RequireCXX17)
 include(FindKqueue)
+include(FindCAres)
 
 if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
   set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)

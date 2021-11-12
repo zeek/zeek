@@ -18,6 +18,7 @@
 #include "zeek/3rdparty/sqlite3.h"
 
 #define DOCTEST_CONFIG_IMPLEMENT
+
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/Anon.h"
 #include "zeek/DFA.h"
@@ -330,7 +331,6 @@ static void terminate_zeek()
 	input_mgr->Terminate();
 	thread_mgr->Terminate();
 	broker_mgr->Terminate();
-	dns_mgr->Terminate();
 
 	event_mgr.Drain();
 
@@ -342,6 +342,7 @@ static void terminate_zeek()
 	delete packet_mgr;
 	delete analyzer_mgr;
 	delete file_mgr;
+	delete dns_mgr;
 	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
 	delete iosource_mgr;
 	delete event_registry;
@@ -459,6 +460,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	if ( dns_type == DNS_DEFAULT && fake_dns() )
 		dns_type = DNS_FAKE;
+
+	dns_mgr = new DNS_Mgr(dns_type);
 
 	RETSIGTYPE (*oldhandler)(int);
 
@@ -598,8 +601,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		add_input_file("base/frameworks/packet-filter/main.zeek");
 
 	push_scope(nullptr, nullptr);
-
-	dns_mgr = new DNS_Mgr(dns_type);
 
 	// It would nice if this were configurable.  This is similar to the
 	// chicken and the egg problem.  It would be configurable by parsing
@@ -756,6 +757,9 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		file_mgr->InitPostScript();
 		dns_mgr->InitPostScript();
 
+		dns_mgr->LookupHost("www.apple.com");
+		//		dns_mgr->LookupAddr("17.253.144.10");
+
 #ifdef USE_PERFTOOLS_DEBUG
 		}
 #endif
@@ -859,9 +863,12 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		if ( (oldhandler = setsignal(SIGHUP, sig_handler)) != SIG_DFL )
 			(void)setsignal(SIGHUP, oldhandler);
 
+		// If we were priming the DNS cache (i.e. -P was passed as an argument), flush anything
+		// remaining to be resolved and save the cache to disk. We can just exit now because
+		// we've done everything we need to do. The run loop isn't started in this case, so
+		// nothing else should be happening.
 		if ( dns_type == DNS_PRIME )
 			{
-			dns_mgr->Verify();
 			dns_mgr->Resolve();
 
 			if ( ! dns_mgr->Save() )

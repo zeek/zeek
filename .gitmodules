@@ -52,3 +52,6 @@
 [submodule "auxil/gen-zam"]
 	path = auxil/gen-zam
 	url = https://github.com/zeek/gen-zam
+[submodule "auxil/c-ares"]
+	path = auxil/c-ares
+	url = https://github.com/c-ares/c-ares

@@ -1012,6 +1012,29 @@ bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr even
 	return result;
 	}
 
+void Manager::HookUnprocessedPacket(const Packet* packet) const
+	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.emplace_back(HookArgument{packet});
+		MetaHookPre(HOOK_UNPROCESSED_PACKET, args);
+		}
+
+	hook_list* l = hooks[HOOK_UNPROCESSED_PACKET];
+
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+			p->HookUnprocessedPacket(packet);
+			}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_UNPROCESSED_PACKET, args, HookArgument());
+	}
+
 void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const
 	{
 	if ( hook_list* l = hooks[HOOK_CALL_FUNCTION] )

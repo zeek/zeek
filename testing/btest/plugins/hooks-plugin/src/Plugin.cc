@@ -26,6 +26,7 @@ zeek::plugin::Configuration Plugin::Configure()
 	EnableHook(zeek::plugin::HOOK_SETUP_ANALYZER_TREE);
 	EnableHook(zeek::plugin::HOOK_LOG_INIT);
 	EnableHook(zeek::plugin::HOOK_LOG_WRITE);
+	EnableHook(zeek::plugin::HOOK_UNPROCESSED_PACKET);
 
 	zeek::plugin::Configuration config;
 	config.name = "Demo::Hooks";
@@ -271,4 +272,17 @@ bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
 
 	fprintf(stderr, "%.6f %-15s %s %s\n", zeek::run_state::network_time, "| HookLogWrite", info.path, d.Description());
 	return true;
+	}
+
+void Plugin::HookUnprocessedPacket(const zeek::Packet* packet)
+	{
+	zeek::ODesc d;
+	d.Add("[");
+	d.Add("ts=");
+	d.Add(packet->time);
+	d.Add(" len=");
+	d.Add(packet->len);
+	d.Add("]");
+
+	fprintf(stderr, "%.6f %-23s %s\n", zeek::run_state::network_time, "| HookUnprocessedPacket", d.Description());
 	}

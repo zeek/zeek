@@ -72,6 +72,7 @@ struct Options
 	std::optional<std::string> random_seed_output_file;
 	std::optional<std::string> process_status_file;
 	std::optional<std::string> zeekygen_config_file;
+	std::optional<std::string> unprocessed_output_file;
 
 	std::set<std::string> plugins_to_load;
 	std::vector<std::string> scripts_to_load;

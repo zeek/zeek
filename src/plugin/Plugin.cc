@@ -31,6 +31,7 @@ const char* hook_name(HookType h)
 		"SetupAnalyzerTree",
 		"LogInit",
 		"LogWrite",
+		"UnprocessedPacket",
 		// MetaHooks
 		"MetaHookPre",
 		"MetaHookPost",
@@ -244,7 +245,11 @@ void HookArgument::Describe(ODesc* d) const
 				d->Add("<no content>");
 
 			d->Add(")");
+			break;
 			}
+
+		case PACKET:
+			d->Add("<packet>");
 			break;
 		}
 	}
@@ -431,6 +436,8 @@ bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event
 	{
 	return true;
 	}
+
+void Plugin::HookUnprocessedPacket(const Packet* packet) { }
 
 void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args) { }
 

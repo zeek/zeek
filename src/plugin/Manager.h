@@ -420,6 +420,15 @@ public:
 	                  const std::string& message);
 
 	/**
+	 * Hook for packets that are considered unprocessed by an Analyzer. This
+	 * typically means that a packet has not had a log entry written for it by
+	 * the time analysis finishes.
+	 *
+	 * @param packet The data for an unprocessed packet
+	 */
+	void HookUnprocessedPacket(const Packet* packet) const;
+
+	/**
 	 * Internal method that registers a freshly instantiated plugin with
 	 * the manager.
 	 *

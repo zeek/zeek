@@ -1,3 +1,20 @@
+4.2.0-dev.326 | 2021-11-12 09:30:54 -0700
+
+  * Added plugin.unprocessed_packet_hook btest (Tim Wojtulewicz, Corelight)
+
+  * Fix whitespace in help output (Tim Wojtulewicz, Corelight)
+
+  * Add command-line option to write unprocessed packets to a file (Tim Wojtulewicz, Corelight)
+
+    This commit also changes the PcapDumper to automatically flush after
+    every called to Dump(). This is because pcap_dump has an internal buffer
+    of some sort that only writes to the file after a set amount of bytes.
+    When using the new option on a low-traffic network, it might be a while
+    before you see any packets written since it has to overcome that buffer
+    limit first.
+
+  * GH-1620: Add event and plugin hook to track packets not processed (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.319 | 2021-11-10 10:20:01 -0700
 
   * Install include headers from `src/3rdparty/`. (Benjamin Bannier, Corelight)

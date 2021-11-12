@@ -708,7 +708,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			exit(success ? 0 : 1);
 			}
 
-		packet_mgr->InitPostScript();
+		packet_mgr->InitPostScript(options.unprocessed_output_file.value_or(""));
 		analyzer_mgr->InitPostScript();
 		file_mgr->InitPostScript();
 		dns_mgr->InitPostScript();

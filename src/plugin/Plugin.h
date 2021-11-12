@@ -30,6 +30,7 @@ class ODesc;
 class Event;
 class Func;
 class Obj;
+class Packet;
 
 template <class T> class IntrusivePtr;
 using ValPtr = IntrusivePtr<Val>;
@@ -68,6 +69,7 @@ enum HookType
 	HOOK_LOG_INIT, //< Activates Plugin::HookLogInit
 	HOOK_LOG_WRITE, //< Activates Plugin::HookLogWrite
 	HOOK_REPORTER, //< Activates Plugin::HookReporter
+	HOOK_UNPROCESSED_PACKET, //<Activates Plugin::HookUnprocessedPacket
 
 	// Meta hooks.
 	META_HOOK_PRE, //< Activates Plugin::MetaHookPre().
@@ -208,7 +210,8 @@ public:
 		THREAD_FIELDS,
 		LOCATION,
 		ARG_LIST,
-		INPUT_FILE
+		INPUT_FILE,
+		PACKET
 		};
 
 	/**
@@ -370,7 +373,17 @@ public:
 		}
 
 	/**
-	 * Returns the value for a boolen argument. The argument's type must
+	 * Returns the value for a zeek::Packet* argument. The argument's type must
+	 * Constructor with a zeek::Packet* argument.
+	 */
+	explicit HookArgument(const Packet* packet)
+		{
+		type = PACKET;
+		arg.packet = packet;
+		}
+
+	/**
+	 * Returns the value for a boolean argument. The argument's type must
 	 * match accordingly.
 	 */
 	bool AsBool() const
@@ -509,13 +522,23 @@ public:
 		}
 
 	/**
-	 * Returns the value for a vod pointer argument. The argument's type
+	 * Returns the value for a void pointer argument. The argument's type
 	 * must match accordingly.
 	 */
 	const void* AsVoidPtr() const
 		{
 		assert(type == VOIDP);
 		return arg.voidp;
+		}
+
+	/**
+	 * Returns the value for a Packet pointer argument. The argument's type
+	 * must match accordingly.
+	 */
+	const Packet* AsPacket() const
+		{
+		assert(type == PACKET);
+		return arg.packet;
 		}
 
 	/**
@@ -546,6 +569,7 @@ private:
 		const void* voidp;
 		const logging::WriterBackend::WriterInfo* winfo;
 		const detail::Location* loc;
+		const Packet* packet;
 		} arg;
 
 	// Outside union because these have dtors.
@@ -1038,6 +1062,15 @@ protected:
 	                          const zeek::detail::Location* location1,
 	                          const zeek::detail::Location* location2, bool time,
 	                          const std::string& message);
+
+	/**
+	 * Hook for packets that are considered unprocessed by an Analyzer. This
+	 * typically means that a packet has not had a log entry written for it by
+	 * the time analysis finishes.
+	 *
+	 * @param packet The data for an unprocessed packet
+	 */
+	virtual void HookUnprocessedPacket(const Packet* packet);
 
 	// Meta hooks.
 	virtual void MetaHookPre(HookType hook, const HookArgumentList& args);

@@ -40,6 +40,15 @@ New Functionality
 
 - The ``find_str`` and ``rfind_str`` bifs now support case-insensitive searches.
 
+- Added a new plugin hook for capturing packets that made it through analysis
+  without being processed called ``Plugin::HookUnprocessedPacket``. Currently
+  ARP packets or packets with a valid IP-based transport header are marked as
+  processed. This also adds an event called ``packet_not_processed`` that
+  reports the same packets.
+
+- A new command-line option ``-c`` or ``--capture-unprocessed`` will dump any
+  packets not marked as being processed, similar to the new hook and event above.
+
 Changed Functionality
 ---------------------
 

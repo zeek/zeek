@@ -2,10 +2,10 @@
 
 #include "zeek/analyzer/protocol/bittorrent/BitTorrentTracker.h"
 
-#include <regex.h>
 #include <sys/types.h>
 #include <algorithm>
 
+#include "zeek/RE.h"
 #include "zeek/analyzer/protocol/bittorrent/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
@@ -243,13 +243,20 @@ void BitTorrentTracker_Analyzer::DeliverWeird(const char* msg, bool orig)
 bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
 	{
 	static bool initialized = false;
-	static regex_t r_get, r_get_end, r_hdr;
+	static RE_Matcher re_get("^GET[ \t]+");
+	static RE_Matcher re_get_end("[ \t]+HTTP/[0-9.]+$");
+	static RE_Matcher re_hdr("^[^: \t]+:[ ]*");
 
 	if ( ! initialized )
 		{
-		regcomp(&r_get, "^GET[ \t]+", REG_EXTENDED | REG_ICASE);
-		regcomp(&r_get_end, "[ \t]+HTTP/[0123456789.]+$", REG_EXTENDED | REG_ICASE);
-		regcomp(&r_hdr, "^[^: \t]+:[ ]*", REG_EXTENDED | REG_ICASE);
+		re_get.Compile();
+		re_get_end.Compile();
+		re_hdr.Compile();
+
+		re_get.MakeCaseInsensitive();
+		re_get_end.MakeCaseInsensitive();
+		re_hdr.MakeCaseInsensitive();
+
 		initialized = true;
 		}
 
@@ -257,29 +264,46 @@ bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
 		{
 		case detail::BTT_REQ_GET:
 			{
-			regmatch_t match[1];
-			if ( regexec(&r_get, line, 1, match, 0) )
+			int len_get;
+			// 1. Get length of the match using MatchPrefix()
+			// 2. Check if the len_get is not -1
+			// 3. If len_get is not -1, then continue otherwise throw error
+			if ( (len_get = re_get.MatchPrefix(line)) == -1 )
 				{
 				ProtocolViolation("BitTorrentTracker: invalid HTTP GET");
 				stop_orig = true;
 				return false;
 				}
 
-			regmatch_t match_end[1];
-			if ( ! regexec(&r_get_end, line, 1, match_end, 0) )
+			int len_get_end, match_end;
+
+			// 1. Get the starting position of the match using MatchAnywhere()
+			// 2. Check if the match_end is greater than 0
+			// 3. If match_end is greater than 0, then there is a match
+			if ( (match_end = re_get_end.MatchAnywhere(line)) > 0 )
 				{
-				if ( match_end[0].rm_so <= match[0].rm_eo )
+				// 4. Get the length of the match using MatchPrefix()
+				// 5. Check if match_end is greater than len_get otherwise throw error
+				len_get_end = re_get_end.MatchPrefix(line);
+				if ( match_end <= len_get )
 					{
 					ProtocolViolation("BitTorrentTracker: invalid HTTP GET");
 					stop_orig = true;
 					return false;
 					}
-
-				keep_alive = (line[match_end[0].rm_eo - 1] == '1');
-				line[match_end[0].rm_so] = 0;
+				// To keep_alive check the last char of the matched string
+				// last char = match_end + len_get_end -2
+				// because match_end gives the starting position of the match +1
+				// and len_get_end gives the length of the match
+				// so we need to subtract 2 to get the last char of the match in
+				// a zero indexed string
+				keep_alive = (line[match_end + len_get_end - 2] == '1');
+				// make the starting char of the line as null
+				// starting char = match_end - 1
+				line[match_end - 1] = 0;
 				}
 
-			RequestGet(&line[match[0].rm_eo]);
+			RequestGet(&line[len_get - 1]);
 
 			req_state = detail::BTT_REQ_HEADER;
 			}
@@ -294,8 +318,8 @@ bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
 				break;
 				}
 
-			regmatch_t match[1];
-			if ( regexec(&r_hdr, line, 1, match, 0) )
+			int len_hdr;
+			if ( (len_hdr = re_hdr.MatchPrefix(line)) == -1 )
 				{
 				ProtocolViolation("BitTorrentTracker: invalid HTTP request header");
 				stop_orig = true;
@@ -303,7 +327,7 @@ bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
 				}
 
 			*strchr(line, ':') = 0; // this cannot fail - see regex_hdr
-			RequestHeader(line, &line[match[0].rm_eo]);
+			RequestHeader(line, &line[len_hdr - 1]);
 			}
 			break;
 
@@ -344,12 +368,17 @@ void BitTorrentTracker_Analyzer::EmitRequest(void)
 bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 	{
 	static bool initialized = false;
-	static regex_t r_stat, r_hdr;
+	static RE_Matcher re_stat("^HTTP/[0-9.]* ");
+	static RE_Matcher re_hdr("^[^: \t]+:[ ]*");
 
 	if ( ! initialized )
 		{
-		regcomp(&r_stat, "^HTTP/[0123456789.]* ", REG_EXTENDED | REG_ICASE);
-		regcomp(&r_hdr, "^[^: \t]+:[ ]*", REG_EXTENDED | REG_ICASE);
+		re_stat.Compile();
+		re_hdr.Compile();
+
+		re_stat.MakeCaseInsensitive();
+		re_hdr.MakeCaseInsensitive();
+
 		initialized = true;
 		}
 
@@ -366,15 +395,15 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 				break;
 				}
 
-			regmatch_t match[1];
-			if ( regexec(&r_stat, line, 1, match, 0) )
+			int len_stat;
+			if ( (len_stat = re_stat.MatchPrefix(line)) == -1 )
 				{
 				ProtocolViolation("BitTorrentTracker: invalid HTTP status");
 				stop_resp = true;
 				return false;
 				}
 
-			ResponseStatus(&line[match[0].rm_eo]);
+			ResponseStatus(&line[len_stat - 1]);
 			res_state = detail::BTT_RES_HEADER;
 			}
 			break;
@@ -399,8 +428,8 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 				}
 
 				{
-				regmatch_t match[1];
-				if ( regexec(&r_hdr, line, 1, match, 0) )
+				int len_hdr;
+				if ( (len_hdr = re_hdr.MatchPrefix(line)) == -1 )
 					{
 					ProtocolViolation("BitTorrentTracker: invalid HTTP response header");
 					stop_resp = true;
@@ -408,7 +437,7 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 					}
 
 				*strchr(line, ':') = 0; // this cannot fail - see regex_hdr
-				ResponseHeader(line, &line[match[0].rm_eo]);
+				ResponseHeader(line, &line[len_hdr - 1]);
 				}
 			break;
 

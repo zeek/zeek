@@ -61,7 +61,7 @@ jobs:
             echo "::set-output name=tag::zeek:latest"
           elif [ "${GITHUB_REF}" = "refs/heads/master" ]; then
             echo "::set-output name=tag::zeek-dev:latest"
-          elif [[ "${GITHUB_REF}" = refs/heads/v* ]] && [[ "${GITHUB_REF}" != refs/heads/v*-dev ]]; then
+          elif [[ "${GITHUB_REF}" = refs/tags/v* ]] && [[ "${GITHUB_REF}" != refs/tags/v*-dev ]]; then
             echo "::set-output name=tag::zeek:${RELEASE_VERSION}"
           fi
 

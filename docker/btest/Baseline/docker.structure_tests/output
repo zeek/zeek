@@ -8,11 +8,7 @@ zeek = https://github.com/zeek/packages
 state_dir = /usr/local/zeek/var/lib/zkg
 script_dir = /usr/local/zeek/share/zeek/site
 plugin_dir = /usr/local/zeek/lib/zeek/plugins
-bin_dir = /usr/local/zeek/bin
 zeek_dist = 
-
-[templates]
-default = https://github.com/zeek/package-template
 
 
 Installing "zeek/sethhall/domain-tld"

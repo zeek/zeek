@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TEST_TAG: zeek:latest
+      PUSH_TAG: zeek:latest
       CONFFLAGS: --generator=Ninja --build-type=Release
     steps:
       - uses: actions/checkout@v2
@@ -84,6 +85,7 @@ jobs:
           push: true
           tags: |
             zeekurity/${{ steps.target.outputs.tag }}
+            zeekurity/${{ env.PUSH_TAG }}
 
       - name: Preserve artifacts
         uses: actions/upload-artifact@v2

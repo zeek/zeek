@@ -3646,6 +3646,7 @@ bool VectorVal::Concretize(const TypePtr& t)
 		}
 
 	// Require that this vector be treated consistently in the future.
+	type = make_intrusive<VectorType>(t);
 	yield_type = t;
 	managed_yield = ZVal::IsManagedType(yield_type);
 	delete yield_types;

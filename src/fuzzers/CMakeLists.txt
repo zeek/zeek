@@ -78,5 +78,6 @@ target_link_libraries(zeek_fuzzer_shared
                       ${zeek_fuzzer_shared_deps}
                       ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
+add_fuzz_target(dns)
 add_fuzz_target(pop3)
 add_fuzz_target(packet)

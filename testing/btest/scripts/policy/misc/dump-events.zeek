@@ -1,3 +1,7 @@
+# Skip this test for OpenSSL 3.0 at the moment. We will switch it to only OpenSSL 3.0, once
+# a majority of distributions use is.
+# @TEST-REQUIRES: grep -q "^ZEEK_HAVE_OPENSSL_3_0.*true" $BUILD/CMakeCache.txt && test $? != 0
+
 # @TEST-EXEC: zeek -r $TRACES/smtp.trace policy/misc/dump-events %INPUT >all-events.log
 # @TEST-EXEC: zeek -r $TRACES/smtp.trace policy/misc/dump-events %INPUT DumpEvents::include_args=F >all-events-no-args.log
 # @TEST-EXEC: zeek -r $TRACES/smtp.trace policy/misc/dump-events %INPUT DumpEvents::include=/smtp_/ >smtp-events.log

@@ -628,7 +628,12 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 x509_verify_chainerror:
 
-	auto rrecord = x509_result_record(X509_STORE_CTX_get_error(csc), X509_verify_cert_error_string(X509_STORE_CTX_get_error(csc)), std::move(chainVector));
+	auto error_string = X509_verify_cert_error_string(X509_STORE_CTX_get_error(csc));
+	// this string representation changed between OpenSSL 1 and 3 and messes up our test baselines.
+	if ( X509_STORE_CTX_get_error(csc) == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT )
+		error_string = "self signed certificate";
+
+	auto rrecord = x509_result_record(X509_STORE_CTX_get_error(csc), error_string, std::move(chainVector));
 
 	X509_STORE_CTX_cleanup(csc);
 	X509_STORE_CTX_free(csc);

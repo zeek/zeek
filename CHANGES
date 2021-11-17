@@ -1,3 +1,7 @@
+4.2.0-dev.333 | 2021-11-17 11:57:04 -0800
+
+  * Clean up fully after successful Docker btests (Christian Kreibich, Corelight)
+
 4.2.0-dev.331 | 2021-11-15 10:10:52 -0800
 
   * Fix ref-naming typo in the Github Docker workflow (Christian Kreibich, Corelight)

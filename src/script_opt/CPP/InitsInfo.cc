@@ -126,9 +126,6 @@ void CPP_BasicConstInitsInfo::BuildCohortElement(CPPCompile* c, string init_type
 
 string CPP_InitInfo::ValElem(CPPCompile* c, ValPtr v)
 	{
-	string init_type;
-	string init_args;
-
 	if ( v )
 		{
 		int consts_offset;
@@ -245,8 +242,6 @@ void FuncConstInfo::InitializerVals(std::vector<std::string>& ivs) const
 
 	ivs.emplace_back(Fmt(type));
 	ivs.emplace_back(Fmt(c->TrackString(fn)));
-
-	string hashes;
 
 	if ( ! c->NotFullyCompilable(fn) )
 		{

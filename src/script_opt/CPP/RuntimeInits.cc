@@ -57,13 +57,10 @@ template <class T>
 void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<ListValPtr>& ivec, int offset,
                                    ValElemVec& init_vals) const
 	{
-	auto n = init_vals.size();
-	auto i = 0U;
-
 	auto l = make_intrusive<ListVal>(TYPE_ANY);
 
-	while ( i < n )
-		l->Append(im->ConstVals(init_vals[i++]));
+	for ( auto& iv : init_vals )
+		l->Append(im->ConstVals(iv));
 
 	ivec[offset] = l;
 	}
@@ -72,15 +69,15 @@ template <class T>
 void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<VectorValPtr>& ivec, int offset,
                                    ValElemVec& init_vals) const
 	{
-	auto n = init_vals.size();
-	auto i = 0U;
-	auto t = init_vals[i++];
+	auto iv_it = init_vals.begin();
+	auto iv_end = init_vals.end();
+	auto t = *(iv_it++);
 
 	auto vt = cast_intrusive<VectorType>(im->Types(t));
 	auto vv = make_intrusive<VectorVal>(vt);
 
-	while ( i < n )
-		vv->Append(im->ConstVals(init_vals[i++]));
+	while ( iv_it != iv_end )
+		vv->Append(im->ConstVals(*(iv_it++)));
 
 	ivec[offset] = vv;
 	}
@@ -89,19 +86,20 @@ template <class T>
 void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<RecordValPtr>& ivec, int offset,
                                    ValElemVec& init_vals) const
 	{
-	auto n = init_vals.size();
-	auto i = 0U;
-	auto t = init_vals[i++];
+	auto iv_it = init_vals.begin();
+	auto iv_end = init_vals.end();
+	auto t = *(iv_it++);
 
 	auto rt = cast_intrusive<RecordType>(im->Types(t));
 	auto rv = make_intrusive<RecordVal>(rt);
 
-	while ( i < n )
+	auto field = 0;
+	while ( iv_it != iv_end )
 		{
-		auto v = init_vals[i];
+		auto v = *(iv_it++);
 		if ( v >= 0 )
-			rv->Assign(i - 1, im->ConstVals(v));
-		++i;
+			rv->Assign(field, im->ConstVals(v));
+		++field;
 		}
 
 	ivec[offset] = rv;
@@ -111,17 +109,17 @@ template <class T>
 void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<TableValPtr>& ivec, int offset,
                                    ValElemVec& init_vals) const
 	{
-	auto n = init_vals.size();
-	auto i = 0U;
-	auto t = init_vals[i++];
+	auto iv_it = init_vals.begin();
+	auto iv_end = init_vals.end();
+	auto t = *(iv_it++);
 
 	auto tt = cast_intrusive<TableType>(im->Types(t));
 	auto tv = make_intrusive<TableVal>(tt);
 
-	while ( i < n )
+	while ( iv_it != iv_end )
 		{
-		auto index = im->ConstVals(init_vals[i++]);
-		auto v = init_vals[i++];
+		auto index = im->ConstVals(*(iv_it++));
+		auto v = *(iv_it++);
 		auto value = v >= 0 ? im->ConstVals(v) : nullptr;
 		tv->Assign(index, value);
 		}
@@ -133,11 +131,9 @@ template <class T>
 void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<FileValPtr>& ivec, int offset,
                                    ValElemVec& init_vals) const
 	{
-	auto n = init_vals.size();
-	auto i = 0U;
-	auto t = init_vals[i++]; // not used
-
-	auto fn = im->Strings(init_vals[i++]);
+	// Note, in the following we use element 1, not 0, because we
+	// don't need the "type" value in element 0.
+	auto fn = im->Strings(init_vals[1]);
 	auto fv = make_intrusive<FileVal>(make_intrusive<File>(fn, "w"));
 
 	ivec[offset] = fv;
@@ -147,16 +143,15 @@ template <class T>
 void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<FuncValPtr>& ivec, int offset,
                                    ValElemVec& init_vals) const
 	{
-	auto n = init_vals.size();
-	auto i = 0U;
-	auto t = init_vals[i++];
-
-	auto fn = im->Strings(init_vals[i++]);
+	auto iv_it = init_vals.begin();
+	auto iv_end = init_vals.end();
+	auto t = *(iv_it++);
+	auto fn = im->Strings(*(iv_it++));
 
 	std::vector<p_hash_type> hashes;
 
-	while ( i < n )
-		hashes.push_back(im->Hashes(init_vals[i++]));
+	while ( iv_it != iv_end )
+		hashes.push_back(im->Hashes(*(iv_it++)));
 
 	ivec[offset] = lookup_func__CPP(fn, hashes, im->Types(t));
 	}
@@ -211,12 +206,10 @@ template <class T>
 void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<AttributesPtr>& ivec, int offset,
                                    ValElemVec& init_vals) const
 	{
-	auto n = init_vals.size();
-	auto i = 0U;
-
 	std::vector<AttrPtr> a_list;
-	while ( i < n )
-		a_list.emplace_back(im->Attrs(init_vals[i++]));
+
+	for ( auto& iv : init_vals )
+		a_list.emplace_back(im->Attrs(iv));
 
 	ivec[offset] = make_intrusive<Attributes>(a_list, nullptr, false, false);
 	}
@@ -333,18 +326,18 @@ void CPP_TypeInits::Generate(InitsManager* im, vector<TypePtr>& ivec, int offset
 
 TypePtr CPP_TypeInits::BuildEnumType(InitsManager* im, ValElemVec& init_vals) const
 	{
-	auto name = im->Strings(init_vals[1]);
+	auto iv_it = init_vals.begin();
+	auto iv_end = init_vals.end();
+	auto name = im->Strings(*++iv_it); // skip element [0]
 	auto et = get_enum_type__CPP(name);
 
 	if ( et->Names().empty() )
 		{
-		auto n = init_vals.size();
-		auto i = 2U;
-
-		while ( i < n )
+		++iv_it;
+		while ( iv_it != iv_end )
 			{
-			auto e_name = im->Strings(init_vals[i++]);
-			auto e_val = init_vals[i++];
+			auto e_name = im->Strings(*(iv_it++));
+			auto e_val = *(iv_it++);
 			et->AddNameInternal(e_name, e_val);
 			}
 		}
@@ -374,11 +367,13 @@ TypePtr CPP_TypeInits::BuildTypeList(InitsManager* im, ValElemVec& init_vals, in
 	{
 	const auto& tl = cast_intrusive<TypeList>(inits_vec[offset]);
 
-	auto n = init_vals.size();
-	auto i = 1U;
+	auto iv_it = init_vals.begin();
+	auto iv_end = init_vals.end();
 
-	while ( i < n )
-		tl->Append(im->Types(init_vals[i++]));
+	++iv_it;
+
+	while ( iv_it != iv_end )
+		tl->Append(im->Types(*(iv_it++)));
 
 	return tl;
 	}

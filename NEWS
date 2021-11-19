@@ -49,6 +49,12 @@ New Functionality
 - A new command-line option ``-c`` or ``--capture-unprocessed`` will dump any
   packets not marked as being processed, similar to the new hook and event above.
 
+- In Zeek plugins, the new cmake function ``zeek_plugin_scripts()`` should be
+  used alongside ``zeek_plugin_cc()`` and related functions to establish
+  dependency tracking between Zeek scripts shipped with the plugin and plugin
+  rebuilds.  Previously, updates to included Zeek scripts didn't reliably
+  trigger a rebuild.
+
 Changed Functionality
 ---------------------
 
@@ -63,6 +69,10 @@ Changed Functionality
 
 - The ``SYN_packet`` record now records TCP timestamps (TSval/TSecr)
   when available.
+
+- The ``init-plugin`` script now focuses purely on dynamic Zeek plugins. It no
+  longer generates Zeek packages. To instantiate new Zeek packages, use the
+  ``zkg create`` command instead.
 
 Removed Functionality
 ---------------------

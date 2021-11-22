@@ -258,8 +258,9 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 
 	// Build up an initializer of the events relevant to the function.
 	string events;
-	if ( body_events.count(f) > 0 )
-		for ( const auto& e : body_events[f] )
+	auto be = body_events.find(f);
+	if ( be != body_events.end() )
+		for ( const auto& e : be->second )
 			{
 			if ( events.size() > 0 )
 				events += ", ";
@@ -278,8 +279,9 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 		// same binary).
 		h = merge_p_hashes(h, p_hash(cf_locs[f]));
 
-	ASSERT(func_index.count(f) > 0);
-	auto type_signature = casting_index[func_index[f]];
+	auto fi = func_index.find(f);
+	ASSERT(fi != func_index.end());
+	auto type_signature = casting_index[fi->second];
 	Emit("\tCPP_RegisterBody(\"%s\", (void*) %s, %s, %s, %s, std::vector<std::string>(%s)),", f, f,
 	     Fmt(type_signature), Fmt(p), Fmt(h), events);
 	}

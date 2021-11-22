@@ -154,8 +154,9 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
 			continue;
 
 		// Add in the new body.
-		ASSERT(compiled_scripts.count(h) > 0);
-		auto cs = compiled_scripts[h];
+		auto csi = compiled_scripts.find(h);
+		ASSERT(csi != compiled_scripts.end());
+		auto cs = csi->second;
 
 		f->AddBody(cs.body, no_inits, num_params, cs.priority);
 		added_bodies[fn].insert(h);
@@ -220,9 +221,10 @@ FuncValPtr lookup_func__CPP(string name, vector<p_hash_type> hashes, const TypeP
 
 	for ( auto h : hashes )
 		{
-		ASSERT(compiled_scripts.count(h) > 0);
+		auto cs = compiled_scripts.find(h);
+		ASSERT(cs != compiled_scripts.end());
 
-		const auto& f = compiled_scripts[h];
+		const auto& f = cs->second;
 		bodies.push_back(f.body);
 		priorities.push_back(f.priority);
 

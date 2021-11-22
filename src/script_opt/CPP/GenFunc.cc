@@ -233,12 +233,14 @@ string CPPCompile::BodyName(const FuncInfo& func)
 
 p_hash_type CPPCompile::BodyHash(const Stmt* body)
 	{
-	ASSERT(body_names.count(body) > 0);
+	auto bn = body_names.find(body);
+	ASSERT(bn != body_names.end());
 
-	auto& body_name = body_names[body];
-	ASSERT(body_hashes.count(body_name) > 0);
+	auto& body_name = bn->second;
+	auto bh = body_hashes.find(body_name);
+	ASSERT(bh != body_hashes.end());
 
-	return body_hashes[body_name];
+	return bh->second;
 	}
 
 string CPPCompile::GenArgs(const RecordTypePtr& params, const Expr* e)

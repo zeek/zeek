@@ -13,9 +13,10 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttributes(const AttributesPtr& att
 		return nullptr;
 
 	auto a = attrs.get();
+	auto pa = processed_attrs.find(a);
 
-	if ( processed_attrs.count(a) > 0 )
-		return processed_attrs[a];
+	if ( pa != processed_attrs.end() )
+		return pa->second;
 
 	attributes.AddKey(attrs);
 
@@ -41,9 +42,10 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttributes(const AttributesPtr& att
 shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttr(const AttrPtr& attr)
 	{
 	auto a = attr.get();
+	auto pa = processed_attr.find(a);
 
-	if ( processed_attr.count(a) > 0 )
-		return processed_attr[a];
+	if ( pa != processed_attr.end() )
+		return pa->second;
 
 	const auto& e = a->GetExpr();
 	if ( e && ! IsSimpleInitExpr(e) )

@@ -280,8 +280,9 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp)
 	{
 	auto t = TypeRep(tp);
 
-	if ( processed_types.count(t) > 0 )
-		return processed_types[t];
+	auto pt = processed_types.find(t);
+	if ( pt != processed_types.end() )
+		return pt->second;
 
 	processed_types[t] = nullptr;
 

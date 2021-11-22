@@ -306,10 +306,13 @@ AttrInfo::AttrInfo(CPPCompile* _c, const AttrPtr& attr) : CompoundItemInfo(_c)
 
 AttrsInfo::AttrsInfo(CPPCompile* _c, const AttributesPtr& _attrs) : CompoundItemInfo(_c)
 	{
+	const auto& pas = c->ProcessedAttr();
+
 	for ( const auto& a : _attrs->GetAttrs() )
 		{
-		ASSERT(c->ProcessedAttr().count(a.get()) > 0);
-		const auto& gi = c->ProcessedAttr().at(a.get());
+		auto pa = pas.find(a.get());
+		ASSERT(pa != pas.end());
+		const auto& gi = pa->second;
 		init_cohort = max(init_cohort, gi->InitCohort() + 1);
 		vals.emplace_back(Fmt(gi->Offset()));
 		}

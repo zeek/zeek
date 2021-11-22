@@ -17,12 +17,13 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
 	cv_indices.push_back(vp);
 
 	auto v = vp.get();
+	auto cv = const_vals.find(v);
 
-	if ( const_vals.count(v) > 0 )
+	if ( cv != const_vals.end() )
 		{
 		// Already did this one.
 		consts_offset = const_offsets[v];
-		return const_vals[v];
+		return cv->second;
 		}
 
 	// Formulate a key that's unique per distinct constant.
@@ -50,11 +51,12 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
 		c_desc = d.Description();
 		}
 
-	if ( constants.count(c_desc) > 0 )
+	auto c = constants.find(c_desc);
+	if ( c != constants.end() )
 		{
-		const_vals[v] = constants[c_desc];
+		const_vals[v] = c->second;
 		consts_offset = const_offsets[v] = constants_offsets[c_desc];
-		return const_vals[v];
+		return c->second;
 		}
 
 	auto tag = t->Tag();

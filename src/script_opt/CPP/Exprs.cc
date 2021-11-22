@@ -1173,23 +1173,25 @@ string CPPCompile::GenField(const ExprPtr& rec, int field)
 	// Need to dynamically map the field.
 	int mapping_slot;
 
-	if ( record_field_mappings.count(rt) > 0 && record_field_mappings[rt].count(field) > 0 )
+	auto rfm = record_field_mappings.find(rt);
+	if ( rfm != record_field_mappings.end() && rfm->second.count(field) > 0 )
 		// We're already tracking this field.
-		mapping_slot = record_field_mappings[rt][field];
+		mapping_slot = rfm->second[field];
 
 	else
 		{
 		// New mapping.
 		mapping_slot = num_rf_mappings++;
 
-		ASSERT(processed_types.count(rt) > 0);
-		auto rt_offset = processed_types[rt]->Offset();
+		auto pt = processed_types.find(rt);
+		ASSERT(pt != processed_types.end());
+		auto rt_offset = pt->second->Offset();
 		string field_name = rt->FieldName(field);
 		field_decls.emplace_back(pair(rt_offset, rt->FieldDecl(field)));
 
-		if ( record_field_mappings.count(rt) > 0 )
+		if ( rfm != record_field_mappings.end() )
 			// We're already tracking this record.
-			record_field_mappings[rt][field] = mapping_slot;
+			rfm->second[field] = mapping_slot;
 		else
 			{
 			// Need to start tracking this record.
@@ -1214,9 +1216,10 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev)
 	// Need to dynamically map the access.
 	int mapping_slot;
 
-	if ( enum_val_mappings.count(et) > 0 && enum_val_mappings[et].count(v) > 0 )
+	auto evm = enum_val_mappings.find(et);
+	if ( evm != enum_val_mappings.end() && evm->second.count(v) > 0 )
 		// We're already tracking this value.
-		mapping_slot = enum_val_mappings[et][v];
+		mapping_slot = evm->second[v];
 
 	else
 		{
@@ -1226,10 +1229,10 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev)
 		string enum_name = et->Lookup(v);
 		enum_names.emplace_back(pair(TypeOffset(t), move(enum_name)));
 
-		if ( enum_val_mappings.count(et) > 0 )
+		if ( evm != enum_val_mappings.end() )
 			{
 			// We're already tracking this enum.
-			enum_val_mappings[et][v] = mapping_slot;
+			evm->second[v] = mapping_slot;
 			}
 		else
 			{

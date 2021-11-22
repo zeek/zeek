@@ -212,26 +212,30 @@ public:
 	// an offset into the global vector that will hold these.
 	int TrackString(std::string s)
 		{
-		if ( tracked_strings.count(s) == 0 )
-			{
-			tracked_strings[s] = ordered_tracked_strings.size();
-			ordered_tracked_strings.emplace_back(s);
-			}
+		auto ts = tracked_strings.find(s);
+		if ( ts != tracked_strings.end() )
+			return ts->second;
 
-		return tracked_strings[s];
+		int offset = ordered_tracked_strings.size();
+		tracked_strings[s] = offset;
+		ordered_tracked_strings.emplace_back(s);
+
+		return offset;
 		}
 
 	// Tracks a profile hash value needed for initialization.  Returns
 	// an offset into the global vector that will hold these.
 	int TrackHash(p_hash_type h)
 		{
-		if ( tracked_hashes.count(h) == 0 )
-			{
-			tracked_hashes[h] = ordered_tracked_hashes.size();
-			ordered_tracked_hashes.emplace_back(h);
-			}
+		auto th = tracked_hashes.find(h);
+		if ( th != tracked_hashes.end() )
+			return th->second;
 
-		return tracked_hashes[h];
+		int offset = ordered_tracked_hashes.size();
+		tracked_hashes[h] = offset;
+		ordered_tracked_hashes.emplace_back(h);
+
+		return offset;
 		}
 
 	// Returns the hash associated with a given function body.

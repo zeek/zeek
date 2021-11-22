@@ -120,7 +120,9 @@ void CPPCompile::CreateGlobal(const ID* g)
 
 std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterGlobal(const ID* g)
 	{
-	if ( global_gis.count(g) == 0 )
+	auto gg = global_gis.find(g);
+
+	if ( gg == global_gis.end() )
 		{
 		auto gn = string(g->Name());
 
@@ -131,9 +133,10 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterGlobal(const ID* g)
 		auto gi = make_shared<GlobalInitInfo>(this, g, globals[gn]);
 		global_id_info->AddInstance(gi);
 		global_gis[g] = gi;
+		return gi;
 		}
-
-	return global_gis[g];
+	else
+		return gg->second;
 	}
 
 void CPPCompile::AddBiF(const ID* b, bool is_var)
@@ -184,9 +187,9 @@ const string& CPPCompile::IDNameStr(const ID* id)
 		return globals[g];
 		}
 
-	ASSERT(locals.count(id) > 0);
-
-	return locals[id];
+	auto l = locals.find(id);
+	ASSERT(l != locals.end());
+	return l->second;
 	}
 
 string CPPCompile::LocalName(const ID* l) const

@@ -18,8 +18,9 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterInitExpr(const ExprPtr& ep)
 	{
 	auto ename = InitExprName(ep);
 
-	if ( init_infos.count(ename) )
-		return init_infos[ename];
+	auto ii = init_infos.find(ename);
+	if ( ii != init_infos.end() )
+		return ii->second;
 
 	auto wrapper_cl = string("wrapper_") + ename + "_cl";
 
@@ -247,8 +248,9 @@ void CPPCompile::GenStandaloneActivation()
 			// We didn't wind up compiling it.
 			continue;
 
-		ASSERT(body_hashes.count(bname) > 0);
-		func_bodies[f].push_back(body_hashes[bname]);
+		auto bh = body_hashes.find(bname);
+		ASSERT(bh != body_hashes.end());
+		func_bodies[f].push_back(bh->second);
 		}
 
 	for ( auto& fb : func_bodies )

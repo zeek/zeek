@@ -186,7 +186,7 @@ public:
 	// Returns a mapping of from Attr objects to their associated
 	// initialization information.  The Attr must have previously
 	// been registered.
-	auto& ProcessedAttr() { return processed_attr; }
+	auto& ProcessedAttr() const { return processed_attr; }
 
 	// True if the given expression is simple enough that we can
 	// generate code to evaluate it directly, and don't need to

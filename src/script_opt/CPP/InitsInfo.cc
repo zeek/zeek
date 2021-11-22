@@ -309,7 +309,7 @@ AttrsInfo::AttrsInfo(CPPCompile* _c, const AttributesPtr& _attrs) : CompoundItem
 	for ( const auto& a : _attrs->GetAttrs() )
 		{
 		ASSERT(c->ProcessedAttr().count(a.get()) > 0);
-		auto gi = c->ProcessedAttr()[a.get()];
+		const auto& gi = c->ProcessedAttr().at(a.get());
 		init_cohort = max(init_cohort, gi->InitCohort() + 1);
 		vals.emplace_back(Fmt(gi->Offset()));
 		}

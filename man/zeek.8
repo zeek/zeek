@@ -66,7 +66,7 @@ print version and exit
 print contents of state file
 .TP
 \fB\-C\fR,\ \-\-no\-checksums
-ignore checksums
+When this option is set, Zeek ignores invalid packet checksums and does process the packets. Furthermore, if this option is set Zeek also processes IP packets with a zero total length field, which is typically caused by TCP (TCP Segment Offloading) on the NIC.
 .TP
 \fB\-F\fR,\ \-\-force\-dns
 force DNS

@@ -74,6 +74,13 @@ Changed Functionality
   longer generates Zeek packages. To instantiate new Zeek packages, use the
   ``zkg create`` command instead.
 
+- The ``ignore_checksums`` options and the ``-C`` command-line option now additionally cause
+  Zeek to accept IPv4 packets that provide a length of zero in the total-length IPv4 header
+  field. When the length is set to zero, the capture length of the packet is used instead.
+  This can be used to replay traces, or analyze traffic when TCP sequence offloading is enabled
+  on the local NIC - which typically causes the total-length of affected packets to be set to
+  zero.
+
 Removed Functionality
 ---------------------
 

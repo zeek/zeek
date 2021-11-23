@@ -411,11 +411,18 @@ public:
 	/**
 	 * Returns the length of the IP packet's payload (length of packet minus
 	 * header length or, for IPv6, also minus length of all extension headers).
+	 *
+	 * Also returns 0 if the IPv4 length field is set to zero - which is, e.g.,
+	 * the case when TCP segment offloading is enabled.
 	 */
 	uint16_t PayloadLen() const
 		{
 		if ( ip4 )
-			return ntohs(ip4->ip_len) - ip4->ip_hl * 4;
+			{
+			// prevent overflow in case of segment offloading/zeroed header length.
+			auto total_len = ntohs(ip4->ip_len);
+			return total_len ? total_len - ip4->ip_hl * 4 : 0;
+			}
 
 		return ntohs(ip6->ip6_plen) + 40 - ip6_hdrs->TotalLength();
 		}

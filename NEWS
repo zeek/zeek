@@ -55,6 +55,24 @@ New Functionality
   rebuilds.  Previously, updates to included Zeek scripts didn't reliably
   trigger a rebuild.
 
+- Added PacketAnalyzer::register_for_port(s) functions to the packet analyzer
+  framework in script-land. This allows a packet analyzer to register a port
+  mapping with a parent analyzer just like any other numeric identifier, while
+  also adding that port to the now-global Analyzer::ports table used by BPF
+  filtering.
+
+- Added AllAnalyzers::Tag enum type that combines the existing Analyzer::Tag,
+  PacketAnalyzer::Tag, and Files::Tags into a single enum. The existing types
+  still exist, but the new type can be used as an argument for
+  functions/hooks/events that need to handle any of the analyzer types.
+
+- Added protocol detection functionality to the packet analyzer framework.
+  Packet analyzers can register for protocol detection using the
+  ``PacketAnalyzer::register_protocol_detection`` script function and implement
+  the ``PacketAnalyzer::DetectProtocol`` method in C++. This allows packet
+  analyzer plugins to detect a protocol via byte matching or other heuristics
+  instead of relying solely on a numeric identifier for forwarding.
+
 Changed Functionality
 ---------------------
 
@@ -81,11 +99,20 @@ Changed Functionality
   on the local NIC - which typically causes the total-length of affected packets to be set to
   zero.
 
+- The existing tunnel analyzers for AYIYA, Geneve, GTPv1, Teredo, and VXLAN
+  are now packet analyzers.
+
 Removed Functionality
 ---------------------
 
 Deprecated Functionality
 ------------------------
+
+- The ``protocol_confirmation`` and ``protocol_violation`` events along with
+  the corresponding ``Analyzer::ProtocolConfirmation` and
+  ``Analyzer::ProtocolViolation`` C++ methods are marked as deprecated. They are
+  replaced by ``analyzer_confirmation`` and ``analyzer_violation`` which can also
+  now be implemented in packet analyzers.
 
 Zeek 4.1.0
 ==========

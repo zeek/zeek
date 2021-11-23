@@ -10,7 +10,7 @@
 ##! the analyzers themselves, and documented in their analyzer-specific
 ##! description along with the events that they generate.
 ##!
-##! Analyzer tags are also inserted into a global :zeek:type:`AllAnalyzers` enum
+##! Analyzer tags are also inserted into a global :zeek:type:`AllAnalyzers::Tag` enum
 ##! type. This type contains duplicates of all of the :zeek:type:`Analyzer::Tag`,
 ##! :zeek:type:`PacketAnalyzer::Tag` and :zeek:type:`Files::Tag` enum values
 ##! and can be used for arguments to function/hook/event definitions where they

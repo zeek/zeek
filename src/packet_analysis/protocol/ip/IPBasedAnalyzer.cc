@@ -119,7 +119,9 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 
 bool IPBasedAnalyzer::CheckHeaderTrunc(size_t min_hdr_len, size_t remaining, Packet* packet)
 	{
-	if ( packet->ip_hdr->PayloadLen() < min_hdr_len )
+	// If segment offloading or similar is enabled, the payload len will return 0.
+	// Thus, let's ignore that case.
+	if ( packet->ip_hdr->PayloadLen() && packet->ip_hdr->PayloadLen() < min_hdr_len )
 		{
 		Weird("truncated_header", packet);
 		return false;

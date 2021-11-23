@@ -1016,9 +1016,16 @@ const TCP_RESET = 6;	##< Endpoint has sent RST.
 const UDP_INACTIVE = 0;	##< Endpoint is still inactive.
 const UDP_ACTIVE = 1;	##< Endpoint has sent something.
 
-## If true, don't verify checksums.  Useful for running on altered trace
-## files, and for saving a few cycles, but at the risk of analyzing invalid
-## data. Note that the ``-C`` command-line option overrides the setting of this
+## If true, don't verify checksums, and accept packets that give a length of
+## zero in the IPv4 header. This is useful when running against traces of local
+## traffic and the NIC checksum offloading feature is enabled. It can also
+## be useful for running on altered trace files, and for saving a few cycles
+## at the risk of analyzing invalid data.
+## With this option, packets that have a value of zero in the total-length field
+## of the IPv4 header are also accepted, and the capture-length is used instead.
+## The total-length field is commonly set to zero when the NIC sequence offloading
+## feature is enabled.
+## Note that the ``-C`` command-line option overrides the setting of this
 ## variable.
 const ignore_checksums = F &redef;
 

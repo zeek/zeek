@@ -1,3 +1,22 @@
+4.2.0-dev.340 | 2021-11-23 10:10:13 +0000
+
+  * Accept packets that use tcp segment offloading. (Johanna Amann, Corelight)
+
+    When checksum offloading is enabled, we now forward packets that
+    have 0 header lengths set - and assume that they have TSO enabled.
+
+    If checksum offloading is not enabled, we drop the packets (GH-1829)
+
+  * Updates to NEWS to cover recent additions. [nomail] [skip ci] (Christian Kreibich, Corelight)
+
+  * Update doc and auxil/zeek-aux submodules [nomail] [skip ci] (Christian Kreibich, Corelight)
+
+  * Update cmake and aux/zeek-aux submodules [nomail] [skip ci] (Christian Kreibich, Corelight)
+
+4.2.0-dev.333 | 2021-11-17 11:57:04 -0800
+
+  * Clean up fully after successful Docker btests (Christian Kreibich, Corelight)
+
 4.2.0-dev.331 | 2021-11-15 10:10:52 -0800
 
   * Fix ref-naming typo in the Github Docker workflow (Christian Kreibich, Corelight)

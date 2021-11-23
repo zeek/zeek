@@ -1,3 +1,7 @@
+4.2.0-dev.350 | 2021-11-23 15:35:06 +0000
+
+  * Add testcase for TCP segment offloading (GH-1829). (Johanna Amann, Corelight)
+
 4.2.0-dev.348 | 2021-11-23 13:45:39 +0000
 
   * OpenSSL 3 compatibility (Johanna Amann, Corelight)

@@ -11,6 +11,9 @@
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <string>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#include <openssl/core_names.h>
+#endif
 
 #include "zeek/Event.h"
 #include "zeek/file_analysis/File.h"
@@ -204,9 +207,20 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f)
 			{
 			pX509Cert->Assign(9, "rsa");
 
-			const BIGNUM* e;
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
+			const BIGNUM* e = nullptr;
 			RSA_get0_key(EVP_PKEY_get0_RSA(pkey), NULL, &e, NULL);
+#else
+			BIGNUM* e = nullptr;
+			EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e);
+#endif
 			char* exponent = BN_bn2dec(e);
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+			// the OpenSSL 3.0 API allocates a new bignum; earlier APIs give a direct pointer
+			// to the internal data structure that should not be freed.
+			BN_free(e);
+			e = nullptr;
+#endif
 			if ( exponent != NULL )
 				{
 				pX509Cert->Assign(11, exponent);
@@ -456,6 +470,7 @@ StringValPtr X509::KeyCurve(EVP_PKEY* key)
 		return nullptr;
 		}
 
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	const EC_GROUP* group;
 	int nid;
 	if ( (group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(key))) == NULL )
@@ -472,7 +487,14 @@ StringValPtr X509::KeyCurve(EVP_PKEY* key)
 		return nullptr;
 
 	return make_intrusive<StringVal>(curve_name);
-#endif
+#else
+	static char buf[256];
+	if ( ! EVP_PKEY_get_utf8_string_param(key, OSSL_PKEY_PARAM_GROUP_NAME, buf, 255, nullptr) )
+		return nullptr;
+
+	return make_intrusive<StringVal>(buf);
+#endif /* OPENSSL_VERSION_NUMBER */
+#endif /* OPENSSL_NO_EC */
 	}
 
 unsigned int X509::KeyLength(EVP_PKEY* key)
@@ -482,18 +504,40 @@ unsigned int X509::KeyLength(EVP_PKEY* key)
 	switch ( EVP_PKEY_base_id(key) )
 		{
 		case EVP_PKEY_RSA:
-			const BIGNUM* n;
+			{
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
+			const BIGNUM* n = nullptr;
 			RSA_get0_key(EVP_PKEY_get0_RSA(key), &n, NULL, NULL);
 			return BN_num_bits(n);
+#else
+			BIGNUM* n = nullptr;
+			EVP_PKEY_get_bn_param(key, OSSL_PKEY_PARAM_RSA_N, &n);
+			auto num_bits = BN_num_bits(n);
+			BN_free(n);
+			return num_bits;
+#endif
+			}
 
 		case EVP_PKEY_DSA:
+			{
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
 			const BIGNUM* p;
 			DSA_get0_pqg(EVP_PKEY_get0_DSA(key), &p, NULL, NULL);
 			return BN_num_bits(p);
+#else
+			BIGNUM* p = nullptr;
+			EVP_PKEY_get_bn_param(key, OSSL_PKEY_PARAM_FFC_P, &p);
+			auto num_bits = BN_num_bits(p);
+			BN_free(p);
+			return num_bits;
+#endif
+			}
 
 #ifndef OPENSSL_NO_EC
+
 		case EVP_PKEY_EC:
 			{
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
 			BIGNUM* ec_order = BN_new();
 			if ( ! ec_order )
 				// could not malloc bignum?
@@ -514,12 +558,16 @@ unsigned int X509::KeyLength(EVP_PKEY* key)
 				BN_free(ec_order);
 				return 0;
 				}
+#else
+			BIGNUM* ec_order = nullptr;
+			EVP_PKEY_get_bn_param(key, OSSL_PKEY_PARAM_EC_ORDER, &ec_order);
+#endif /* OPENSSL_VERSION_NUMBER */
 
 			unsigned int length = BN_num_bits(ec_order);
 			BN_free(ec_order);
 			return length;
 			}
-#endif
+#endif /* OPENSSL_NO_EC */
 		default:
 			return 0; // unknown public key type
 		}

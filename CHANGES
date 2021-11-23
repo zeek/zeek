@@ -1,3 +1,13 @@
+4.2.0-dev.348 | 2021-11-23 13:45:39 +0000
+
+  * OpenSSL 3 compatibility (Johanna Amann, Corelight)
+
+    Zeek is now compatible with OpenSSL 3.0, our test baselines pass cleanly, and
+    we have a CI run for OpenSSL 3.0. This has a certain amount of new code for
+    X.509 certificate parsing. Apart from that, the main chainge is that we
+    use an older, legacy, API for OpaqueVal hashing, since the newer API
+    does not allow us to serialize data anymore. For details see ticket 1379.
+
 4.2.0-dev.340 | 2021-11-23 10:10:13 +0000
 
   * Accept packets that use tcp segment offloading. (Johanna Amann, Corelight)

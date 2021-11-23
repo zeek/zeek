@@ -3,6 +3,7 @@
 #pragma once
 
 #include <broker/expected.hh>
+#include <openssl/md5.h>
 #include <paraglob/paraglob.h>
 #include <sys/types.h> // for u_char
 
@@ -245,7 +246,7 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(MD5Val)
 private:
-	EVP_MD_CTX* ctx;
+	MD5_CTX ctx;
 	};
 
 class SHA1Val : public HashVal
@@ -270,7 +271,7 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(SHA1Val)
 private:
-	EVP_MD_CTX* ctx;
+	SHA_CTX ctx;
 	};
 
 class SHA256Val : public HashVal
@@ -295,7 +296,7 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(SHA256Val)
 private:
-	EVP_MD_CTX* ctx;
+	SHA256_CTX ctx;
 	};
 
 class EntropyVal : public OpaqueVal

@@ -1,3 +1,9 @@
+4.2.0-dev.385 | 2021-11-23 19:43:48 -0700
+
+  * Changes to speed up compilation of Compiled-to-C++ Zeek Scripts (Vern Paxson, Corelight)
+
+  * removing unused SubNetType class (Vern Paxson, Corelight)
+
 4.2.0-dev.371 | 2021-11-23 19:41:10 -0700
 
   * Add new tunnel packet analyzers, remove old ones (Tim Wojtulewicz, Corelight)

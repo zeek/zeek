@@ -5,6 +5,7 @@
 #pragma once
 
 #include "zeek/Val.h"
+#include "zeek/script_opt/CPP/Attrs.h"
 #include "zeek/script_opt/CPP/Func.h"
 
 namespace zeek

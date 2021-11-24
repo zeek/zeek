@@ -245,7 +245,7 @@ void CPPCompile::GenSwitchStmt(const SwitchStmt* sw)
 	else
 		sw_val = string("p_hash(") + GenExpr(e, GEN_VAL_PTR) + ")";
 
-	Emit("switch ( %s ) {", sw_val.c_str());
+	Emit("switch ( %s ) {", sw_val);
 
 	++break_level;
 

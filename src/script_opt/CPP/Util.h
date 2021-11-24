@@ -36,4 +36,12 @@ extern bool is_CPP_compilable(const ProfileFunc* pf, const char** reason = nullp
 extern void lock_file(const std::string& fname, FILE* f);
 extern void unlock_file(const std::string& fname, FILE* f);
 
+// For the given byte array / string, returns a version expanded
+// with escape sequences in order to represent it as a C++ string.
+extern std::string CPPEscape(const char* b, int len);
+inline std::string CPPEscape(const char* s)
+	{
+	return CPPEscape(s, strlen(s));
+	}
+
 	} // zeek::detail

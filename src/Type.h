@@ -152,7 +152,6 @@ class TypeList;
 class TableType;
 class SetType;
 class RecordType;
-class SubNetType;
 class FuncType;
 class EnumType;
 class VectorType;
@@ -165,7 +164,6 @@ using TypeListPtr = IntrusivePtr<TypeList>;
 using TableTypePtr = IntrusivePtr<TableType>;
 using SetTypePtr = IntrusivePtr<SetType>;
 using RecordTypePtr = IntrusivePtr<RecordType>;
-using SubNetTypePtr = IntrusivePtr<SubNetType>;
 using FuncTypePtr = IntrusivePtr<FuncType>;
 using EnumTypePtr = IntrusivePtr<EnumType>;
 using VectorTypePtr = IntrusivePtr<VectorType>;
@@ -225,9 +223,6 @@ public:
 
 	const RecordType* AsRecordType() const;
 	RecordType* AsRecordType();
-
-	const SubNetType* AsSubNetType() const;
-	SubNetType* AsSubNetType();
 
 	const FuncType* AsFuncType() const;
 	FuncType* AsFuncType();
@@ -698,13 +693,6 @@ protected:
 	int num_orig_fields;
 
 	type_decl_list* types;
-	};
-
-class SubNetType final : public Type
-	{
-public:
-	SubNetType();
-	void Describe(ODesc* d) const override;
 	};
 
 class FileType final : public Type

@@ -15,6 +15,7 @@
 #pragma once
 
 #include "zeek/script_opt/CPP/HashMgr.h"
+#include "zeek/script_opt/CPP/InitsInfo.h"
 
 namespace zeek::detail
 	{
@@ -24,11 +25,13 @@ namespace zeek::detail
 template <class T> class CPPTracker
 	{
 public:
-	// The base name is used to construct key names.  The mapper,
-	// if present, maps hash values to information about the previously
-	// generated scope in which the value appears.
-	CPPTracker(const char* _base_name, VarMapper* _mapper = nullptr)
-		: base_name(_base_name), mapper(_mapper)
+	// The base name is used to construct key names.  "single_global",
+	// if true, specifies that the names should be constructed as
+	// indexes into a single global, rather than as distinct globals.
+	// The mapper, if present, maps hash values to information about
+	// the previously generated scope in which the value appears.
+	CPPTracker(const char* _base_name, bool _single_global, VarMapper* _mapper = nullptr)
+		: base_name(_base_name), single_global(_single_global), mapper(_mapper)
 		{
 		}
 
@@ -39,6 +42,8 @@ public:
 	// Only adds the key if it's not already present.  If a hash
 	// is provided, then refrains from computing it.
 	void AddKey(IntrusivePtr<T> key, p_hash_type h = 0);
+
+	void AddInitInfo(const T* rep, std::shared_ptr<CPP_InitInfo> gi) { gi_s[rep] = std::move(gi); }
 
 	// Returns the (C++ variable) name associated with the given key.
 	std::string KeyName(const T* key);
@@ -81,6 +86,8 @@ private:
 	// Maps keys to internal representations (i.e., hashes).
 	std::unordered_map<const T*, p_hash_type> map;
 
+	std::unordered_map<const T*, std::shared_ptr<CPP_InitInfo>> gi_s;
+
 	// Maps internal representations to distinct values.  These
 	// may-or-may-not be indices into an "inherited" namespace scope.
 	std::unordered_map<p_hash_type, int> map2;
@@ -97,6 +104,10 @@ private:
 
 	// Used to construct key names.
 	std::string base_name;
+
+	// Whether to base the names out of a single global, or distinct
+	// globals.
+	bool single_global;
 
 	// If non-nil, the mapper to consult for previous names.
 	VarMapper* mapper;

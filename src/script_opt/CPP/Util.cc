@@ -75,4 +75,60 @@ void unlock_file(const string& fname, FILE* f)
 		}
 	}
 
+string CPPEscape(const char* b, int len)
+	{
+	string res;
+
+	for ( int i = 0; i < len; ++i )
+		{
+		unsigned char c = b[i];
+
+		switch ( c )
+			{
+			case '\a':
+				res += "\\a";
+				break;
+			case '\b':
+				res += "\\b";
+				break;
+			case '\f':
+				res += "\\f";
+				break;
+			case '\n':
+				res += "\\n";
+				break;
+			case '\r':
+				res += "\\r";
+				break;
+			case '\t':
+				res += "\\t";
+				break;
+			case '\v':
+				res += "\\v";
+				break;
+
+			case '\\':
+				res += "\\\\";
+				break;
+			case '"':
+				res += "\\\"";
+				break;
+
+			default:
+				if ( isprint(c) )
+					res += c;
+				else
+					{
+					char buf[8192];
+					snprintf(buf, sizeof buf, "%03o", c);
+					res += "\\";
+					res += buf;
+					}
+				break;
+			}
+		}
+
+	return res;
+	}
+
 	} // zeek::detail

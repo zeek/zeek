@@ -12,28 +12,11 @@ using namespace std;
 
 VarMapper compiled_items;
 
-CPPHashManager::CPPHashManager(const char* hash_name_base, bool _append)
+CPPHashManager::CPPHashManager(const char* hash_name_base)
 	{
-	append = _append;
-
 	hash_name = string(hash_name_base) + ".dat";
 
-	if ( append )
-		{
-		hf_r = fopen(hash_name.c_str(), "r");
-		if ( ! hf_r )
-			{
-			reporter->Error("can't open auxiliary C++ hash file %s for reading", hash_name.c_str());
-			exit(1);
-			}
-
-		lock_file(hash_name, hf_r);
-		LoadHashes(hf_r);
-		}
-
-	auto mode = append ? "a" : "w";
-
-	hf_w = fopen(hash_name.c_str(), mode);
+	hf_w = fopen(hash_name.c_str(), "w");
 	if ( ! hf_w )
 		{
 		reporter->Error("can't open auxiliary C++ hash file %s for writing", hash_name.c_str());

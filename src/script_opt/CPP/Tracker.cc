@@ -51,13 +51,26 @@ template <class T> string CPPTracker<T>::KeyName(const T* key)
 	auto hash = map[key];
 	ASSERT(hash != 0);
 
+	auto rep = reps[hash];
+	auto gi = gi_s.find(rep);
+	if ( gi != gi_s.end() )
+		return gi->second->Name();
+
 	auto index = map2[hash];
 
 	string scope;
 	if ( IsInherited(hash) )
 		scope = scope_prefix(scope2[hash]);
 
-	return scope + string(base_name) + "_" + Fmt(index) + "__CPP";
+	string ind = Fmt(index);
+	string full_name;
+
+	if ( single_global )
+		full_name = base_name + "__CPP[" + ind + "]";
+	else
+		full_name = base_name + "_" + ind + "__CPP";
+
+	return scope + full_name;
 	}
 
 template <class T> void CPPTracker<T>::LogIfNew(IntrusivePtr<T> key, int scope, FILE* log_file)

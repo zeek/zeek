@@ -100,6 +100,12 @@ public:
 	ProfileFunc(const Stmt* body, bool abs_rec_fields = false);
 	ProfileFunc(const Expr* func, bool abs_rec_fields = false);
 
+	// Returns the function, body, or expression profiled.  Each can be
+	// null depending on the constructor used.
+	const Func* ProfiledFunc() const { return profiled_func; }
+	const Stmt* ProfiledBody() const { return profiled_body; }
+	const Expr* ProfiledExpr() const { return profiled_expr; }
+
 	// See the comments for the associated member variables for each
 	// of these accessors.
 	const std::unordered_set<const ID*>& Globals() const { return globals; }
@@ -156,6 +162,12 @@ protected:
 
 	// Take note of an assignment to an identifier.
 	void TrackAssignment(const ID* id);
+
+	// The function, body, or expression profiled.  Can be null
+	// depending on which constructor was used.
+	const Func* profiled_func = nullptr;
+	const Stmt* profiled_body = nullptr;
+	const Expr* profiled_expr = nullptr;
 
 	// Globals seen in the function.
 	//

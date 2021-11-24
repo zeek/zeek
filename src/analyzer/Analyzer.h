@@ -125,7 +125,7 @@ public:
 	 *
 	 * @param conn The connection the analyzer is associated with.
 	 */
-	Analyzer(const Tag& tag, Connection* conn);
+	Analyzer(const zeek::Tag& tag, Connection* conn);
 
 	/**
 	 * Constructor. As this version of the constructor does not receive a
@@ -357,7 +357,7 @@ public:
 	/**
 	 * Returns the tag associated with the analyzer's type.
 	 */
-	Tag GetAnalyzerTag() const
+	zeek::Tag GetAnalyzerTag() const
 		{
 		assert(tag);
 		return tag;
@@ -369,7 +369,7 @@ public:
 	 * did not receive a name or tag. The method cannot be used to change
 	 * an existing tag.
 	 */
-	void SetAnalyzerTag(const Tag& tag);
+	void SetAnalyzerTag(const zeek::Tag& tag);
 
 	/**
 	 * Returns a textual description of the analyzer's type. This is
@@ -405,7 +405,7 @@ public:
 	 * @param tag The type of analyzer to add.
 	 * @return the new analyzer instance that was added.
 	 */
-	Analyzer* AddChildAnalyzer(const Tag& tag);
+	Analyzer* AddChildAnalyzer(const zeek::Tag& tag);
 
 	/**
 	 * Removes a child analyzer. It's ok for the analyzer to not to be a
@@ -434,14 +434,14 @@ public:
 	 *
 	 * @param tag The type of analyzer to prevent.
 	 */
-	void PreventChildren(Tag tag);
+	void PreventChildren(zeek::Tag tag);
 
 	/**
 	 * Returns true if analyzer has a direct child of a given type.
 	 *
 	 * @param tag The type of analyzer to check for.
 	 */
-	bool HasChildAnalyzer(Tag tag);
+	bool HasChildAnalyzer(zeek::Tag tag);
 
 	/**
 	 * Recursively searches all (direct or indirect) childs of the
@@ -463,7 +463,7 @@ public:
 	 * @return The first analyzer of the given type found, or null if
 	 * none.
 	 */
-	virtual Analyzer* FindChild(Tag tag);
+	virtual Analyzer* FindChild(zeek::Tag tag);
 
 	/**
 	 * Recursively searches all (direct or indirect) childs of the
@@ -533,7 +533,8 @@ public:
 	 * If tag is given, it overrides the analyzer tag passed to the
 	 * scripting layer; the default is the one of the analyzer itself.
 	 */
-	virtual void ProtocolConfirmation(Tag tag = Tag());
+	[[deprecated("Remove in v5.1. Use AnalyzerConfirmation.")]] virtual void
+	ProtocolConfirmation(zeek::Tag tag = zeek::Tag());
 
 	/**
 	 * Signals Bro's protocol detection that the analyzer has found a
@@ -550,13 +551,53 @@ public:
 	 *
 	 * @param len If \a data is given, the length of it.
 	 */
-	virtual void ProtocolViolation(const char* reason, const char* data = nullptr, int len = 0);
+	[[deprecated("Remove in v5.1. Use AnalyzerViolation.")]] virtual void
+	ProtocolViolation(const char* reason, const char* data = nullptr, int len = 0);
 
 	/**
 	 * Returns true if ProtocolConfirmation() has been called at least
 	 * once.
 	 */
-	bool ProtocolConfirmed() const { return protocol_confirmed; }
+	[[deprecated("Remove in v5.1. Use AnalyzerConfirmed.")]] bool ProtocolConfirmed() const
+		{
+		return protocol_confirmed;
+		}
+
+	/**
+	 * Signals Zeek's protocol detection that the analyzer has recognized
+	 * the input to indeed conform to the expected protocol. This should
+	 * be called as early as possible during a connection's life-time. It
+	 * may turn into \c analyzer_confirmed event at the script-layer (but
+	 * only once per analyzer for each connection, even if the method is
+	 * called multiple times).
+	 *
+	 * If tag is given, it overrides the analyzer tag passed to the
+	 * scripting layer; the default is the one of the analyzer itself.
+	 */
+	virtual void AnalyzerConfirmation(zeek::Tag tag = zeek::Tag());
+
+	/**
+	 * Signals Bro's protocol detection that the analyzer has found a
+	 * severe protocol violation that could indicate that it's not
+	 * parsing the expected protocol. This turns into \c
+	 * analyzer_violation events at the script-layer (one such event is
+	 * raised for each call to this method so that the script-layer can
+	 * built up a notion of how prevalent protocol violations are; the
+	 * more, the less likely it's the right protocol).
+	 *
+	 * @param reason A textual description of the error encountered.
+	 *
+	 * @param data An optional pointer to the malformed data.
+	 *
+	 * @param len If \a data is given, the length of it.
+	 */
+	virtual void AnalyzerViolation(const char* reason, const char* data = nullptr, int len = 0);
+
+	/**
+	 * Returns true if ProtocolConfirmation() has been called at least
+	 * once.
+	 */
+	bool AnalyzerConfirmed() const { return analyzer_confirmed; }
 
 	/**
 	 * Called whenever the connection value is updated. Per default, this
@@ -667,7 +708,7 @@ protected:
 	 *
 	 * @param orig True if asking about the originator side.
 	 */
-	bool HasSupportAnalyzer(const Tag& tag, bool orig);
+	bool HasSupportAnalyzer(const zeek::Tag& tag, bool orig);
 
 	/**
 	 * Returns the first still active support analyzer for the given
@@ -711,9 +752,9 @@ private:
 	analyzer_list::iterator DeleteChild(analyzer_list::iterator i);
 
 	// Helper for the ctors.
-	void CtorInit(const Tag& tag, Connection* conn);
+	void CtorInit(const zeek::Tag& tag, Connection* conn);
 
-	Tag tag;
+	zeek::Tag tag;
 	ID id;
 
 	Connection* conn;
@@ -726,9 +767,10 @@ private:
 	SupportAnalyzer* resp_supporters;
 
 	analyzer_list new_children;
-	std::vector<Tag> prevented;
+	std::vector<zeek::Tag> prevented;
 
 	bool protocol_confirmed;
+	bool analyzer_confirmed;
 
 	TimerPList timers;
 	bool timers_canceled;

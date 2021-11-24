@@ -73,12 +73,12 @@ public:
 
 	void PrintDebug() override;
 
-	analyzer::Tag Analyzer() const { return analyzer; }
-	analyzer::Tag ChildAnalyzer() const { return child_analyzer; }
+	zeek::Tag Analyzer() const { return analyzer; }
+	zeek::Tag ChildAnalyzer() const { return child_analyzer; }
 
 private:
-	analyzer::Tag analyzer;
-	analyzer::Tag child_analyzer;
+	zeek::Tag analyzer;
+	zeek::Tag child_analyzer;
 	};
 
 class RuleActionEnable : public RuleActionAnalyzer

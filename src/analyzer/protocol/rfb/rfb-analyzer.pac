@@ -9,7 +9,7 @@ refine flow RFB_Flow += {
 				                                     to_stringval(major),
 				                                     to_stringval(minor));
 
-			connection()->zeek_analyzer()->ProtocolConfirmation();
+			connection()->zeek_analyzer()->AnalyzerConfirmation();
 			}
 		else
 			{
@@ -181,7 +181,7 @@ refine connection RFB_Conn += {
 		else
 			{
 			// Shouldn't be a possible.
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid RFB security type %u", msg->sectype()));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("invalid RFB security type %u", msg->sectype()));
 			}
 
 		return true;
@@ -235,7 +235,7 @@ refine connection RFB_Conn += {
 			}
 		else
 			{
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("unknown RFB auth selection: %u", ${msg.type}));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("unknown RFB auth selection: %u", ${msg.type}));
 			}
 
 		return true;
@@ -277,7 +277,7 @@ refine connection RFB_Conn += {
 			// Failed
 			server_state = SERVER_AUTH_FAILURE;
 		else
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid RFB auth result: %u", ${msg.result}));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("invalid RFB auth result: %u", ${msg.result}));
 
 		return true;
 		%}

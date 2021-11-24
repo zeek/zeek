@@ -168,12 +168,12 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 			if ( ! CheckCRC(PSEUDO_LINK_LAYER_LEN, endp->buffer,
 			                endp->buffer + PSEUDO_LINK_LAYER_LEN, "header") )
 				{
-				analyzer->ProtocolViolation("broken_checksum");
+				analyzer->AnalyzerViolation("broken_checksum");
 				return false;
 				}
 
 			// If the checksum works out, we're pretty certainly DNP3.
-			analyzer->ProtocolConfirmation();
+			analyzer->AnalyzerConfirmation();
 
 			// DNP3 packets without transport and application
 			// layers can happen, we ignore them.

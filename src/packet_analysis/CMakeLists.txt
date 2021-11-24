@@ -13,7 +13,6 @@ set(packet_analysis_SRCS
     Dispatcher.cc
     Manager.cc
     Component.cc
-    Tag.cc
     )
 
 bro_add_subdir_library(packet_analysis ${packet_analysis_SRCS})

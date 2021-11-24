@@ -79,7 +79,7 @@ void File::StaticInit()
 	}
 
 File::File(const std::string& file_id, const std::string& source_name, Connection* conn,
-           analyzer::Tag tag, bool is_orig)
+           zeek::Tag tag, bool is_orig)
 	: id(file_id), val(nullptr), file_reassembler(nullptr), stream_offset(0),
 	  reassembly_max_buffer(0), did_metadata_inference(false), reassembly_enabled(false),
 	  postpone_timeout(false), done(false), analyzers(this)
@@ -246,7 +246,7 @@ void File::ScheduleInactivityTimer() const
 		new detail::FileTimer(run_state::network_time, id, GetTimeoutInterval()));
 	}
 
-bool File::AddAnalyzer(file_analysis::Tag tag, RecordValPtr args)
+bool File::AddAnalyzer(zeek::Tag tag, RecordValPtr args)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing addition of %s analyzer", id.c_str(),
 	        file_mgr->GetComponentName(tag).c_str());
@@ -257,7 +257,7 @@ bool File::AddAnalyzer(file_analysis::Tag tag, RecordValPtr args)
 	return analyzers.QueueAdd(tag, std::move(args)) != nullptr;
 	}
 
-bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordValPtr args)
+bool File::RemoveAnalyzer(zeek::Tag tag, RecordValPtr args)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing remove of %s analyzer", id.c_str(),
 	        file_mgr->GetComponentName(tag).c_str());

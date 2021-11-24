@@ -51,7 +51,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	// This is a unique pointer because of the mass of early returns from this method.
 	if ( protocol == 4 )
 		{
-		packet->ip_hdr = std::make_unique<IP_Hdr>(ip, false);
+		packet->ip_hdr = std::make_shared<IP_Hdr>(ip, false);
 		packet->l3_proto = L3_IPV4;
 		}
 	else if ( protocol == 6 )
@@ -62,13 +62,22 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			return false;
 			}
 
-		packet->ip_hdr = std::make_unique<IP_Hdr>((const struct ip6_hdr*)data, false, len);
+		packet->ip_hdr = std::make_shared<IP_Hdr>((const struct ip6_hdr*)data, false, len);
 		packet->l3_proto = L3_IPV6;
 		}
 	else
 		{
 		Weird("unknown_ip_version", packet);
 		return false;
+		}
+
+	// If there's an encapsulation stack in this packet, meaning this packet is part of a chain
+	// of tunnels, make sure to store the IP header in the last flow in the stack so it can be
+	// used by previous analyzers as we return up the chain.
+	if ( packet->encap )
+		{
+		if ( auto* ec = packet->encap->Last() )
+			ec->ip_hdr = packet->ip_hdr;
 		}
 
 	const struct ip* ip4 = packet->ip_hdr->IP4_Hdr();
@@ -164,7 +173,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			{
 			f = detail::fragment_mgr->NextFragment(run_state::processing_start_time, packet->ip_hdr,
 			                                       packet->data + hdr_size);
-			std::unique_ptr<IP_Hdr> ih = f->ReassembledPkt();
+			std::shared_ptr<IP_Hdr> ih = f->ReassembledPkt();
 
 			if ( ! ih )
 				// It didn't reassemble into anything yet.
@@ -275,7 +284,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	}
 
 int zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* const pkt, int proto,
-                                           std::unique_ptr<zeek::IP_Hdr>& inner)
+                                           std::shared_ptr<zeek::IP_Hdr>& inner)
 	{
 	if ( proto == IPPROTO_IPV6 )
 		{
@@ -283,7 +292,7 @@ int zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* const pkt, 
 			return -1;
 
 		const struct ip6_hdr* ip6 = (const struct ip6_hdr*)pkt;
-		inner = std::make_unique<zeek::IP_Hdr>(ip6, false, caplen);
+		inner = std::make_shared<zeek::IP_Hdr>(ip6, false, caplen);
 		if ( (ip6->ip6_ctlun.ip6_un2_vfc & 0xF0) != 0x60 )
 			return -2;
 		}
@@ -294,7 +303,7 @@ int zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* const pkt, 
 			return -1;
 
 		const struct ip* ip4 = (const struct ip*)pkt;
-		inner = std::make_unique<zeek::IP_Hdr>(ip4, false);
+		inner = std::make_shared<zeek::IP_Hdr>(ip4, false);
 		if ( ip4->ip_v != 4 )
 			return -2;
 		}

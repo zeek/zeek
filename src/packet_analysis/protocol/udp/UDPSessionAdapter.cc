@@ -17,7 +17,7 @@ enum UDP_EndpointState
 
 void UDPSessionAdapter::AddExtraAnalyzers(Connection* conn)
 	{
-	static analyzer::Tag analyzer_connsize = analyzer_mgr->GetComponentTag("CONNSIZE");
+	static zeek::Tag analyzer_connsize = analyzer_mgr->GetComponentTag("CONNSIZE");
 
 	if ( analyzer_mgr->IsEnabled(analyzer_connsize) )
 		// Add ConnSize analyzer. Needs to see packets, not stream.

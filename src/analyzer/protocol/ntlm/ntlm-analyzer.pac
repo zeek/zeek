@@ -71,7 +71,7 @@ refine connection NTLM_Conn += {
 					// According to spec, the TargetInfo MUST be a sequence of
 					// AV_PAIRs and terminated by the null AV_PAIR when the
 					// TargetInfoLen is non-zero, so this is in violation.
-					zeek_analyzer()->ProtocolViolation("NTLM AV Pair loop underflow");
+					zeek_analyzer()->AnalyzerViolation("NTLM AV Pair loop underflow");
 
 				return result;
 				}

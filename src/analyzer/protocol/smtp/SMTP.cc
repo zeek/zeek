@@ -289,7 +289,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			{
 			reply_code = -1;
 			Unexpected(is_sender, "reply code out of range", length, line);
-			ProtocolViolation(util::fmt("reply code %d out of range", reply_code), line, length);
+			AnalyzerViolation(util::fmt("reply code %d out of range", reply_code), line, length);
 			}
 
 		else
@@ -848,7 +848,7 @@ int SMTP_Analyzer::ParseCmd(int cmd_len, const char* cmd)
 
 void SMTP_Analyzer::RequestEvent(int cmd_len, const char* cmd, int arg_len, const char* arg)
 	{
-	ProtocolConfirmation();
+	AnalyzerConfirmation();
 
 	if ( smtp_request )
 		{

@@ -282,6 +282,7 @@ void ProtoAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 	fprintf(f, "==================\n\n");
 
 	WriteAnalyzerTagDefn(f, "Analyzer");
+	WriteAnalyzerTagDefn(f, "AllAnalyzers");
 
 	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 	plugin::Manager::plugin_list::const_iterator it;

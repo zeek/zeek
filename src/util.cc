@@ -1537,6 +1537,22 @@ std::string strtolower(const std::string& s)
 	return t;
 	}
 
+TEST_CASE("util strtoupper")
+	{
+	const char* a = "aBcD";
+	CHECK(strtoupper(a) == "ABCD");
+
+	std::string b = "aBcD";
+	CHECK(strtoupper(b) == "ABCD");
+	}
+
+std::string strtoupper(const std::string& s)
+	{
+	std::string t = s;
+	std::transform(t.begin(), t.end(), t.begin(), ::toupper);
+	return t;
+	}
+
 TEST_CASE("util fmt_bytes")
 	{
 	const char* a = "abcd";

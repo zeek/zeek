@@ -342,6 +342,9 @@ extern std::string strstrip(std::string s);
 // Return a lower-cased version of the string.
 extern std::string strtolower(const std::string& s);
 
+// Return a upper-cased version of the string.
+extern std::string strtoupper(const std::string& s);
+
 extern int fputs(int len, const char* s, FILE* fp);
 extern bool is_printable(const char* s, int len);
 

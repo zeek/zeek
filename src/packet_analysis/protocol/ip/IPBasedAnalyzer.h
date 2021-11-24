@@ -6,7 +6,7 @@
 #include <set>
 
 #include "zeek/ID.h"
-#include "zeek/analyzer/Tag.h"
+#include "zeek/Tag.h"
 #include "zeek/packet_analysis/Analyzer.h"
 
 namespace zeek::analyzer::pia
@@ -49,7 +49,7 @@ public:
 	 * @param port The port's number.
 	 * @return True if successful.
 	 */
-	bool RegisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port);
+	bool RegisterAnalyzerForPort(const zeek::Tag& tag, uint32_t port);
 
 	/**
 	 * Unregisters a well-known port for an analyzer.
@@ -57,9 +57,9 @@ public:
 	 * @param tag The analyzer's tag.
 	 * @param port The port's number.
 	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Analyzer::Tag.
+	 * Tag.
 	 */
-	bool UnregisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port);
+	bool UnregisterAnalyzerForPort(const zeek::Tag& tag, uint32_t port);
 
 	/**
 	 * Dumps information about the registered session analyzers per port.
@@ -180,7 +180,7 @@ private:
 	// While this is storing session analyzer tags, we store it here since packet analyzers
 	// are persitent objects. We can't do this in the adapters because those get created
 	// and destroyed for each connection.
-	using tag_set = std::set<analyzer::Tag>;
+	using tag_set = std::set<zeek::Tag>;
 	using analyzer_map_by_port = std::map<uint32_t, tag_set*>;
 	analyzer_map_by_port analyzers_by_port;
 

@@ -1,3 +1,54 @@
+4.2.0-dev.371 | 2021-11-23 19:41:10 -0700
+
+  * Add new tunnel packet analyzers, remove old ones (Tim Wojtulewicz, Corelight)
+
+  * Add PacketAnalyzer::register_for_port(s) functions (Tim Wojtulewicz, Corelight)
+
+    These allow packet analyzers to register ports as identifiers to forward from
+    parent analyzers, while also adding those ports to the now-global
+    Analyzer::ports table at the same time.
+
+  * Add analyzer_confirmation and analyzer_violation events (Tim Wojtulewicz, Corelight)
+
+  * Add utility function for tunnel analyzers to setup encapsulation (Tim Wojtulewicz, Corelight)
+
+  * Store some additional information in the packet during processing (Tim Wojtulewicz, Corelight)
+
+    - Session related to the packet
+    - is_orig information if a UDP header was found
+
+  * Minor fix in UDP to avoid duplicating tunnels (Tim Wojtulewicz, Corelight)
+
+  * Fix error text in IPTunnel analyzer (Tim Wojtulewicz, Corelight)
+
+  * Change Packet::ip_hdr to be a shared_ptr so it can be copied into EncapsulatingConn (Tim Wojtulewicz, Corelight)
+
+  * Add method for packet analyzers to register for protocol detection (Tim Wojtulewicz, Corelight)
+
+  * Add concept of "parent" tag namespaces (Tim Wojtulewicz, Corelight)
+
+    This allows us to create an EnumType that groups all of the analyzer
+    tag values into a single type, while still having the existing types
+    that split them up. We can then use this for certain events that benefit
+    from taking all of the tag types at once.
+
+  * Unify plugin::Component and plugin::TaggedComponent into a single class (Tim Wojtulewicz, Corelight)
+
+    These two are almost always used in conjunction with each other, and
+    TaggedComponent is never used by itself. Combining them together into
+    a single class will help simplify some of the code around managing
+    the mapping between Tags and Components.
+
+  * Remove uses of deprecated Tag types (Tim Wojtulewicz, Corelight)
+
+  * Unify all of the Tag types into one type (Tim Wojtulewicz, Corelight)
+
+    - Remove tag types for each component type (analyzer, etc)
+    - Add deprecated versions of the old types
+    - Remove unnecessary tag element from templates for TaggedComponent and ComponentManager
+    - Enable TaggedComponent to pass an EnumType when initializing Tag objects
+    - Update some tests that are affected by the tag enum values changing order
+
 4.2.0-dev.350 | 2021-11-23 15:35:06 +0000
 
   * Add testcase for TCP segment offloading (GH-1829). (Johanna Amann, Corelight)

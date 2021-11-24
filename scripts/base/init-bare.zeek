@@ -5036,14 +5036,14 @@ export {
 
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing
-	## a :zeek:see:`protocol_confirmation`.  If it's false, the first
+	## a :zeek:see:`analyzer_confirmation`.  If it's false, the first
 	## occurrence of a packet with valid Teredo encapsulation causes a
 	## confirmation.
 	const delay_teredo_confirmation = T &redef;
 
 	## With this set, the GTP analyzer waits until the most-recent upflow
 	## and downflow packets are a valid GTPv1 encapsulation before
-	## issuing :zeek:see:`protocol_confirmation`.  If it's false, the
+	## issuing :zeek:see:`analyzer_confirmation`.  If it's false, the
 	## first occurrence of a packet with valid GTPv1 encapsulation causes
 	## confirmation.  Since the same inner connection can be carried
 	## differing outer upflow/downflow connections, setting to false
@@ -5060,17 +5060,6 @@ export {
 	## may choose whether to perform the validation.
 	const validate_vxlan_checksums = T &redef;
 
-	## The set of UDP ports used for VXLAN traffic.  Traffic using this
-	## UDP destination port will attempt to be decapsulated.  Note that if
-	## if you customize this, you may still want to manually ensure that
-	## :zeek:see:`likely_server_ports` also gets populated accordingly.
-	const vxlan_ports: set[port] = { 4789/udp } &redef;
-
-	## The set of UDP ports used for Geneve traffic.  Traffic using this
-	## UDP destination port will attempt to be decapsulated.  Note that if
-	## if you customize this, you may still want to manually ensure that
-	## :zeek:see:`likely_server_ports` also gets populated accordingly.
-	const geneve_ports: set[port] = { 6081/udp } &redef;
 } # end export
 
 module Reporter;

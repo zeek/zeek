@@ -36,7 +36,7 @@ class RotationTimer;
 /**
  * Singleton class for managing log streams.
  */
-class Manager : public plugin::ComponentManager<Tag, Component>
+class Manager : public plugin::ComponentManager<Component>
 	{
 public:
 	/**

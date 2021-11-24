@@ -133,7 +133,7 @@ refine flow NTP_Flow += {
 
 	function proc_ntp_message(msg: NTP_PDU): bool
 		%{
-		connection()->zeek_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->AnalyzerConfirmation();
 
 		if ( ! ntp_message )
 			return false;

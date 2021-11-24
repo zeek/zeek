@@ -262,7 +262,7 @@ function known_services_done(c: connection)
 		}
 
 	if ( ! has_active_service(c) )
-		# If we're here during a protocol_confirmation, it's still premature
+		# If we're here during a analyzer_confirmation, it's still premature
 		# to declare there's an actual service, so wait for the connection
 		# removal to check again (to get more timely reporting we'd have
 		# schedule some recurring event to poll for handshake/activity).
@@ -293,7 +293,7 @@ function known_services_done(c: connection)
 		event service_info_commit(info);
 	}
 
-event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=-5
+event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=-5
 	{
 	known_services_done(c);
 	}

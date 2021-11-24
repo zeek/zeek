@@ -4,7 +4,7 @@
 
 #include <sys/types.h> // for u_char
 
-#include "zeek/file_analysis/Tag.h"
+#include "zeek/Tag.h"
 
 namespace zeek
 	{
@@ -81,7 +81,7 @@ public:
 	/**
 	 * @return the analyzer type enum value.
 	 */
-	file_analysis::Tag Tag() const { return tag; }
+	zeek::Tag Tag() const { return tag; }
 
 	/**
 	 * Returns the analyzer instance's internal ID. These IDs are unique
@@ -106,7 +106,7 @@ public:
 	 * did not receive a name or tag. The method cannot be used to change
 	 * an existing tag.
 	 */
-	void SetAnalyzerTag(const file_analysis::Tag& tag);
+	void SetAnalyzerTag(const zeek::Tag& tag);
 
 	/**
 	 * @return true if the analyzer has ever seen a stream-wise delivery.
@@ -141,7 +141,7 @@ protected:
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
-	Analyzer(file_analysis::Tag arg_tag, RecordValPtr arg_args, File* arg_file);
+	Analyzer(zeek::Tag arg_tag, RecordValPtr arg_args, File* arg_file);
 
 	/**
 	 * Constructor.  Only derived classes are meant to be instantiated.
@@ -156,7 +156,7 @@ protected:
 
 private:
 	ID id; /**< Unique instance ID. */
-	file_analysis::Tag tag; /**< The particular type of the analyzer instance. */
+	zeek::Tag tag; /**< The particular type of the analyzer instance. */
 	RecordValPtr args; /**< \c AnalyzerArgs val gives tunable analyzer params. */
 	File* file; /**< The file to which the analyzer is attached. */
 	bool got_stream_delivery;

@@ -37,7 +37,7 @@ refine connection SSL_Conn += {
 		%}
 	function proc_unknown_record(rec: SSLRecord) : bool
 		%{
-		zeek_analyzer()->ProtocolViolation(zeek::util::fmt("unknown SSL record type (%d) from %s",
+		zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("unknown SSL record type (%d) from %s",
 				${rec.content_type},
 				orig_label(${rec.is_orig}).c_str()));
 		return true;
@@ -90,7 +90,7 @@ refine connection SSL_Conn += {
 		%{
 		if ( version != SSLv20 )
 			{
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version in SSL server hello. Version: %d", version));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("Invalid version in SSL server hello. Version: %d", version));
 			zeek_analyzer()->SetSkip(true);
 			return false;
 			}

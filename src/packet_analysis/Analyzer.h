@@ -1,9 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 #pragma once
 
+#include <set>
+
+#include "zeek/Tag.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/Manager.h"
-#include "zeek/packet_analysis/Tag.h"
+#include "zeek/session/Session.h"
 
 namespace zeek::packet_analysis
 	{
@@ -31,7 +34,7 @@ public:
 	 * @param tag The tag for the type of analyzer. The tag must map to
 	 * the name the corresponding Component registers.
 	 */
-	explicit Analyzer(const Tag& tag);
+	explicit Analyzer(const zeek::Tag& tag);
 
 	/**
 	 * Destructor.
@@ -50,7 +53,7 @@ public:
 	/**
 	 * Returns the tag associated with the analyzer's type.
 	 */
-	const Tag GetAnalyzerTag() const;
+	const zeek::Tag GetAnalyzerTag() const;
 
 	/**
 	 * Returns a textual description of the analyzer's type. This is
@@ -97,6 +100,90 @@ public:
 	 * forwarding.
 	 */
 	void RegisterProtocol(uint32_t identifier, AnalyzerPtr child);
+
+	/**
+	 * Registers an analyzer to use for protocol detection if identifier
+	 * matching fails. This will also be preferred over the default analyzer
+	 * if one exists.
+	 *
+	 * @param child The analyzer that will be called for protocol detection.
+	 */
+	void RegisterProtocolDetection(AnalyzerPtr child) { analyzers_to_detect.insert(child); }
+
+	/**
+	 * Detects whether the protocol for an analyzer can be found in the packet
+	 * data. Packet analyzers can overload this method to provide any sort of
+	 * pattern-matching or byte-value detection against the packet data to
+	 * determine whether the packet contains the analyzer's protocol. The
+	 * analyzer must also register for the detection in script-land using the
+	 * PacketAnalyzer::register_protocol_detection bif method.
+	 *
+	 * @param len The number of bytes passed in. As we move along the chain of
+	 * analyzers, this is the number of bytes we have left of the packet to
+	 * process.
+	 * @param data Pointer to the input to process.
+	 * @param packet Object that maintains the packet's meta data.
+	 * @return true if the protocol is detected in the packet data.
+	 */
+	virtual bool DetectProtocol(size_t len, const uint8_t* data, Packet* packet) { return false; }
+
+	/**
+	 * Signals Zeek's protocol detection that the analyzer has recognized
+	 * the input to indeed conform to the expected protocol. This should
+	 * be called as early as possible during a connection's life-time. It
+	 * may turn into \c analyzer_confirmed event at the script-layer (but
+	 * only once per analyzer for each connection, even if the method is
+	 * called multiple times).
+	 *
+	 * If tag is given, it overrides the analyzer tag passed to the
+	 * scripting layer; the default is the one of the analyzer itself.
+	 */
+	virtual void AnalyzerConfirmation(session::Session* session, zeek::Tag tag = zeek::Tag());
+
+	/**
+	 * Signals Bro's protocol detection that the analyzer has found a
+	 * severe protocol violation that could indicate that it's not
+	 * parsing the expected protocol. This turns into \c
+	 * analyzer_violation events at the script-layer (one such event is
+	 * raised for each call to this method so that the script-layer can
+	 * built up a notion of how prevalent protocol violations are; the
+	 * more, the less likely it's the right protocol).
+	 *
+	 * @param reason A textual description of the error encountered.
+	 *
+	 * @param data An optional pointer to the malformed data.
+	 *
+	 * @param len If \a data is given, the length of it.
+	 */
+	virtual void AnalyzerViolation(const char* reason, session::Session* session,
+	                               const char* data = nullptr, int len = 0);
+
+	/**
+	 * Returns true if ProtocolConfirmation() has been called at least
+	 * once.
+	 */
+	bool AnalyzerConfirmed(session::Session* session) const
+		{
+		return session->AnalyzerState(GetAnalyzerTag()) ==
+		       session::AnalyzerConfirmationState::CONFIRMED;
+		}
+	bool AnalyzerViolated(session::Session* session) const
+		{
+		return session->AnalyzerState(GetAnalyzerTag()) ==
+		       session::AnalyzerConfirmationState::VIOLATED;
+		}
+
+	/**
+	 * Reports a Weird with the analyzer's name included in the addl field.
+	 *
+	 * @param name The name of the weird.
+	 * @param packet An optional pointer to a packet to be used for additional
+	 * information in the weird output.
+	 * @param addl An optional string containing additional information about
+	 * the weird. If this is passed, the analyzer's name will be prepended to
+	 * it before output.
+	 */
+	void Weird(const char* name, Packet* packet = nullptr, const char* addl = "") const;
 
 protected:
 	friend class Manager;
@@ -152,20 +239,8 @@ protected:
 	 */
 	bool ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const;
 
-	/**
-	 * Reports a Weird with the analyzer's name included in the addl field.
-	 *
-	 * @param name The name of the weird.
-	 * @param packet An optional pointer to a packet to be used for additional
-	 * information in the weird output.
-	 * @param addl An optional string containing additional information about
-	 * the weird. If this is passed, the analyzer's name will be prepended to
-	 * it before output.
-	 */
-	void Weird(const char* name, Packet* packet = nullptr, const char* addl = "") const;
-
 private:
-	Tag tag;
+	zeek::Tag tag;
 	Dispatcher dispatcher;
 	AnalyzerPtr default_analyzer = nullptr;
 
@@ -174,7 +249,9 @@ private:
 	 */
 	bool report_unknown_protocols = true;
 
-	void Init(const Tag& tag);
+	std::set<AnalyzerPtr> analyzers_to_detect;
+
+	void Init(const zeek::Tag& tag);
 	};
 
 using AnalyzerPtr = std::shared_ptr<Analyzer>;

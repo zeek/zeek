@@ -9,6 +9,13 @@
 ##! These tags are defined internally by
 ##! the analyzers themselves, and documented in their analyzer-specific
 ##! description along with the events that they generate.
+##!
+##! Analyzer tags are also inserted into a global :zeek:type:`AllAnalyzers::Tag` enum
+##! type. This type contains duplicates of all of the :zeek:type:`Analyzer::Tag`,
+##! :zeek:type:`PacketAnalyzer::Tag` and :zeek:type:`Files::Tag` enum values
+##! and can be used for arguments to function/hook/event definitions where they
+##! need to handle any analyzer type. See :zeek:id:`Analyzer::register_for_ports`
+##! for an example.
 
 @load base/frameworks/packet-filter/utils
 
@@ -46,7 +53,7 @@ export {
 	## ports: The set of well-known ports to associate with the analyzer.
 	##
 	## Returns: True if the ports were successfully registered.
-	global register_for_ports: function(tag: Analyzer::Tag, ports: set[port]) : bool;
+	global register_for_ports: function(tag: AllAnalyzers::Tag, ports: set[port]) : bool;
 
 	## Registers an individual well-known port for an analyzer. If a future
 	## connection on this port is seen, the analyzer will be automatically
@@ -58,7 +65,7 @@ export {
 	## p: The well-known port to associate with the analyzer.
 	##
 	## Returns: True if the port was successfully registered.
-	global register_for_port: function(tag: Analyzer::Tag, p: port) : bool;
+	global register_for_port: function(tag: AllAnalyzers::Tag, p: port) : bool;
 
 	## Returns a set of all well-known ports currently registered for a
 	## specific analyzer.
@@ -66,13 +73,13 @@ export {
 	## tag: The tag of the analyzer.
 	##
 	## Returns: The set of ports.
-	global registered_ports: function(tag: Analyzer::Tag) : set[port];
+	global registered_ports: function(tag: AllAnalyzers::Tag) : set[port];
 
 	## Returns a table of all ports-to-analyzer mappings currently registered.
 	##
 	## Returns: A table mapping each analyzer to the set of ports
 	##          registered for it.
-	global all_registered_ports: function() : table[Analyzer::Tag] of set[port];
+	global all_registered_ports: function() : table[AllAnalyzers::Tag] of set[port];
 
 	## Translates an analyzer type to a string with the analyzer's name.
 	##
@@ -126,11 +133,15 @@ export {
 	global disabled_analyzers: set[Analyzer::Tag] = {
 		ANALYZER_TCPSTATS,
 	} &redef;
+
+	## A table of ports mapped to analyzers that handle those ports. This is
+	## used by BPF filtering and DPD. Session analyzers can add to this using
+	## Analyzer::register_for_port(s) and packet analyzers can add to this
+	## using PacketAnalyzer::register_for_port(s).
+	global ports: table[AllAnalyzers::Tag] of set[port];
 }
 
 @load base/bif/analyzer.bif
-
-global ports: table[Analyzer::Tag] of set[port];
 
 event zeek_init() &priority=5
 	{
@@ -176,22 +187,22 @@ function register_for_port(tag: Analyzer::Tag, p: port) : bool
 	return T;
 	}
 
-function registered_ports(tag: Analyzer::Tag) : set[port]
+function registered_ports(tag: AllAnalyzers::Tag) : set[port]
 	{
 	return tag in ports ? ports[tag] : set();
 	}
 
-function all_registered_ports(): table[Analyzer::Tag] of set[port]
+function all_registered_ports(): table[AllAnalyzers::Tag] of set[port]
 	{
 	return ports;
 	}
 
-function name(atype: Analyzer::Tag) : string
+function name(atype: AllAnalyzers::Tag) : string
 	{
 	return __name(atype);
 	}
 
-function get_tag(name: string): Analyzer::Tag
+function get_tag(name: string): AllAnalyzers::Tag
 	{
 	return __tag(name);
 	}
@@ -223,4 +234,3 @@ function get_bpf(): string
 		}
 	return output;
 	}
-

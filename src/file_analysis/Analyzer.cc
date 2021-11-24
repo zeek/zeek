@@ -15,13 +15,13 @@ Analyzer::~Analyzer()
 	DBG_LOG(DBG_FILE_ANALYSIS, "Destroy file analyzer %s", file_mgr->GetComponentName(tag).c_str());
 	}
 
-void Analyzer::SetAnalyzerTag(const file_analysis::Tag& arg_tag)
+void Analyzer::SetAnalyzerTag(const zeek::Tag& arg_tag)
 	{
 	assert(! tag || tag == arg_tag);
 	tag = arg_tag;
 	}
 
-Analyzer::Analyzer(file_analysis::Tag arg_tag, RecordValPtr arg_args, File* arg_file)
+Analyzer::Analyzer(zeek::Tag arg_tag, RecordValPtr arg_args, File* arg_file)
 	: tag(arg_tag), args(std::move(arg_args)), file(arg_file), got_stream_delivery(false),
 	  skip(false)
 	{

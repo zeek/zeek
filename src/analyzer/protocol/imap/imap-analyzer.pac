@@ -17,14 +17,14 @@ refine connection IMAP_Conn += {
 		//printf("imap %s %s\n", commands.c_str(), tags.c_str());
 
 		if ( !is_orig && tags == "*" && commands == "ok" )
-			zeek_analyzer()->ProtocolConfirmation();
+			zeek_analyzer()->AnalyzerConfirmation();
 
 		if ( is_orig && ( command == "capability" || commands == "starttls" ) )
-			zeek_analyzer()->ProtocolConfirmation();
+			zeek_analyzer()->AnalyzerConfirmation();
 
 		if ( command == "authenticate" || command == "login" || command == "examine" || command == "create" || command == "list" || command == "fetch" )
 			{
-			zeek_analyzer()->ProtocolConfirmation();
+			zeek_analyzer()->AnalyzerConfirmation();
 			// Handshake has passed the phase where we should see StartTLS. Simply skip from hereon...
 			zeek_analyzer()->SetSkip(true);
 			return true;

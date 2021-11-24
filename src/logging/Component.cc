@@ -10,7 +10,7 @@ namespace zeek::logging
 	{
 
 Component::Component(const std::string& name, factory_callback arg_factory)
-	: plugin::Component(plugin::component::WRITER, name)
+	: plugin::Component(plugin::component::WRITER, name, 0, log_mgr->GetTagType())
 	{
 	factory = arg_factory;
 	}

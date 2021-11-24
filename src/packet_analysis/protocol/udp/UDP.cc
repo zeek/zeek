@@ -41,10 +41,10 @@ void UDPAnalyzer::Initialize()
 	{
 	IPBasedAnalyzer::Initialize();
 
-	const auto& id = detail::global_scope()->Find("Tunnel::vxlan_ports");
+	const auto& id = detail::global_scope()->Find("PacketAnalyzer::VXLAN::vxlan_ports");
 
 	if ( ! (id && id->GetVal()) )
-		reporter->FatalError("Tunnel::vxlan_ports not defined");
+		reporter->FatalError("PacketAnalyzer::VXLAN::vxlan_ports not defined");
 
 	auto table_val = id->GetVal()->AsTableVal();
 	auto port_list = table_val->ToPureListVal();
@@ -86,7 +86,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	int len = pkt->ip_hdr->PayloadLen();
 
 	const struct udphdr* up = (const struct udphdr*)data;
-	const std::unique_ptr<IP_Hdr>& ip = pkt->ip_hdr;
+	const std::shared_ptr<IP_Hdr>& ip = pkt->ip_hdr;
 
 	adapter->DeliverPacket(len, data, is_orig, -1, ip.get(), remaining);
 
@@ -211,8 +211,15 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 		adapter->Event(udp_reply);
 		}
 
-	// Send the packet back into the packet analysis framework.
-	ForwardPacket(len, data, pkt);
+	// Store the session in the packet in case we get an encapsulation here. We need it for
+	// handling those properly.
+	pkt->session = c;
+
+	// Send the packet back into the packet analysis framework. We only check the response
+	// port here because the orig/resp should have already swapped around based on
+	// likely_server_ports. This also prevents us from processing things twice if protocol
+	// detection has to be used.
+	ForwardPacket(len, data, pkt, ntohs(c->RespPort()));
 
 	// Also try sending it into session analysis.
 	if ( remaining >= len )

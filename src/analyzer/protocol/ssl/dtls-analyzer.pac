@@ -55,7 +55,7 @@ refine connection SSL_Conn += {
 
 		if ( length > MAX_DTLS_HANDSHAKE_RECORD )
 			{
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("DTLS record length %" PRId64 " larger than allowed maximum.", length));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("DTLS record length %" PRId64 " larger than allowed maximum.", length));
 			return true;
 			}
 
@@ -77,7 +77,7 @@ refine connection SSL_Conn += {
 			{
 			if ( i->first_sequence_seen )
 				{
-				zeek_analyzer()->ProtocolViolation("Saw second and different first message fragment for handshake.");
+				zeek_analyzer()->AnalyzerViolation("Saw second and different first message fragment for handshake.");
 				return true;
 				}
 			// first sequence number was incorrect, let's fix that.
@@ -97,13 +97,13 @@ refine connection SSL_Conn += {
 		// copy data from fragment to buffer
 		if ( ${rec.data}.length() != flength )
 			{
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("DTLS handshake record length does not match packet length"));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("DTLS handshake record length does not match packet length"));
 			return true;
 			}
 
 		if ( foffset + flength > length )
 			{
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("DTLS handshake fragment trying to write past end of buffer"));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("DTLS handshake fragment trying to write past end of buffer"));
 			return true;
 			}
 
@@ -124,7 +124,7 @@ refine connection SSL_Conn += {
 			uint64 total_length = i->message_last_sequence - i->message_first_sequence;
 			if ( total_length > 30 )
 				{
-				zeek_analyzer()->ProtocolViolation(zeek::util::fmt("DTLS Message fragmented over more than 30 pieces. Cannot reassemble."));
+				zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("DTLS Message fragmented over more than 30 pieces. Cannot reassemble."));
 				return true;
 				}
 

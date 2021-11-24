@@ -1,0 +1,12 @@
+## Generated for any packet encapsulated in a Geneve tunnel.
+## See :rfc:`8926` for more information about the Geneve protocol.
+##
+## outer: The Geneve tunnel connection.
+##
+## inner: The Geneve-encapsulated Ethernet packet header and transport header.
+##
+## vni: Geneve Network Identifier.
+##
+## .. note:: Since this event may be raised on a per-packet basis, handling
+##    it may become particularly expensive for real-time analysis.
+event geneve_packet%(outer: connection, inner: pkt_hdr, vni: count%);

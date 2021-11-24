@@ -964,7 +964,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 							Weird("empty_http_request");
 						else
 							{
-							ProtocolViolation("not a http request line");
+							AnalyzerViolation("not a http request line");
 							request_state = EXPECT_REQUEST_NOTHING;
 							}
 						}
@@ -993,7 +993,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 					++num_replies;
 
 					if ( ! unanswered_requests.empty() )
-						ProtocolConfirmation();
+						AnalyzerConfirmation();
 
 					reply_state = EXPECT_REPLY_MESSAGE;
 					reply_ongoing = 1;
@@ -1011,7 +1011,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 					{
 					if ( line != end_of_line )
 						{
-						ProtocolViolation("not a http reply line");
+						AnalyzerViolation("not a http reply line");
 						reply_state = EXPECT_REPLY_NOTHING;
 						}
 					}
@@ -1360,7 +1360,7 @@ StringValPtr HTTP_Analyzer::TruncateURI(const StringValPtr& uri)
 
 void HTTP_Analyzer::HTTP_Request()
 	{
-	ProtocolConfirmation();
+	AnalyzerConfirmation();
 
 	const char* method = (const char*)request_method->AsString()->Bytes();
 	int method_len = request_method->AsString()->Len();

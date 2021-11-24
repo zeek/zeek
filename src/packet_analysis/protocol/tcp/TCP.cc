@@ -113,12 +113,16 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 	analyzer::tcp::TCP_Endpoint* endpoint = is_orig ? adapter->orig : adapter->resp;
 	analyzer::tcp::TCP_Endpoint* peer = endpoint->peer;
-	const std::unique_ptr<IP_Hdr>& ip = pkt->ip_hdr;
+	const std::shared_ptr<IP_Hdr>& ip = pkt->ip_hdr;
 
 	if ( ! ValidateChecksum(ip.get(), tp, endpoint, len, remaining, adapter) )
 		return;
 
 	adapter->Process(is_orig, tp, len, ip, data, remaining);
+
+	// Store the session in the packet in case we get an encapsulation here. We need it for
+	// handling those properly.
+	pkt->session = c;
 
 	// Send the packet back into the packet analysis framework.
 	ForwardPacket(len, data, pkt);

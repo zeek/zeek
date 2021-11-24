@@ -24,8 +24,93 @@ namespace detail
 
 ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port,
                  TransportProto t, bool one_way)
-	: transport(t)
 	{
+	Init(src, dst, src_port, dst_port, t, one_way);
+	}
+
+ConnKey::ConnKey(const ConnTuple& id)
+	{
+	Init(id.src_addr, id.dst_addr, id.src_port, id.dst_port, id.proto, id.is_one_way);
+	}
+
+ConnKey& ConnKey::operator=(const ConnKey& rhs)
+	{
+	if ( this == &rhs )
+		return *this;
+
+	// Because of padding in the object, this needs to memset to clear out
+	// the extra memory used by padding. Otherwise, the session key stuff
+	// doesn't work quite right.
+	memset(this, 0, sizeof(ConnKey));
+
+	memcpy(&ip1, &rhs.ip1, sizeof(in6_addr));
+	memcpy(&ip2, &rhs.ip2, sizeof(in6_addr));
+	port1 = rhs.port1;
+	port2 = rhs.port2;
+	transport = rhs.transport;
+	valid = rhs.valid;
+
+	return *this;
+	}
+
+ConnKey::ConnKey(Val* v)
+	{
+	const auto& vt = v->GetType();
+	if ( ! IsRecord(vt->Tag()) )
+		{
+		valid = false;
+		return;
+		}
+
+	RecordType* vr = vt->AsRecordType();
+	auto vl = v->As<RecordVal*>();
+
+	int orig_h, orig_p; // indices into record's value list
+	int resp_h, resp_p;
+
+	if ( vr == id::conn_id )
+		{
+		orig_h = 0;
+		orig_p = 1;
+		resp_h = 2;
+		resp_p = 3;
+		}
+	else
+		{
+		// While it's not a conn_id, it may have equivalent fields.
+		orig_h = vr->FieldOffset("orig_h");
+		resp_h = vr->FieldOffset("resp_h");
+		orig_p = vr->FieldOffset("orig_p");
+		resp_p = vr->FieldOffset("resp_p");
+
+		if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 )
+			{
+			valid = false;
+			return;
+			}
+
+		// ### we ought to check that the fields have the right
+		// types, too.
+		}
+
+	const IPAddr& orig_addr = vl->GetFieldAs<AddrVal>(orig_h);
+	const IPAddr& resp_addr = vl->GetFieldAs<AddrVal>(resp_h);
+
+	auto orig_portv = vl->GetFieldAs<PortVal>(orig_p);
+	auto resp_portv = vl->GetFieldAs<PortVal>(resp_p);
+
+	Init(orig_addr, resp_addr, htons((unsigned short)orig_portv->Port()),
+	     htons((unsigned short)resp_portv->Port()), orig_portv->PortType(), false);
+	}
+
+void ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port,
+                   TransportProto t, bool one_way)
+	{
+	// Because of padding in the object, this needs to memset to clear out
+	// the extra memory used by padding. Otherwise, the session key stuff
+	// doesn't work quite right.
+	memset(this, 0, sizeof(ConnKey));
+
 	// Lookup up connection based on canonical ordering, which is
 	// the smaller of <src addr, src port> and <dst addr, dst port>
 	// followed by the other.
@@ -43,25 +128,9 @@ ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16
 		port1 = dst_port;
 		port2 = src_port;
 		}
-	}
 
-ConnKey::ConnKey(const ConnTuple& id)
-	: ConnKey(id.src_addr, id.dst_addr, id.src_port, id.dst_port, id.proto, id.is_one_way)
-	{
-	}
-
-ConnKey& ConnKey::operator=(const ConnKey& rhs)
-	{
-	if ( this == &rhs )
-		return *this;
-
-	memcpy(&ip1, &rhs.ip1, sizeof(in6_addr));
-	memcpy(&ip2, &rhs.ip2, sizeof(in6_addr));
-	port1 = rhs.port1;
-	port2 = rhs.port2;
-	transport = rhs.transport;
-
-	return *this;
+	transport = t;
+	valid = true;
 	}
 
 	} // namespace detail

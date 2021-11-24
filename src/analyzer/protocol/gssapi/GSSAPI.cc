@@ -43,11 +43,11 @@ void GSSAPI_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	try
 		{
 		interp->NewData(orig, data, data + len);
-		ProtocolConfirmation();
+		AnalyzerConfirmation();
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+		AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 

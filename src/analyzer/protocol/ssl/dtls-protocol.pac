@@ -63,18 +63,18 @@ refine connection SSL_Conn += {
 			// Reset only to 0 once we have seen a client hello.
 			// This means the connection gets a limited amount of valid/invalid
 			// packets before a client hello has to be seen - which seems reasonable.
-			if ( zeek_analyzer()->ProtocolConfirmed() )
+			if ( zeek_analyzer()->AnalyzerConfirmed() )
 				invalid_version_count_ = 0;
 			return true;
 
 		default:
 			invalid_version_count_++;
 
-			if ( zeek_analyzer()->ProtocolConfirmed() )
+			if ( zeek_analyzer()->AnalyzerConfirmed() )
 				{
 				reported_errors_++;
 				if ( reported_errors_ <= zeek::BifConst::SSL::dtls_max_reported_version_errors )
-					zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version in DTLS connection. Packet reported version: %d", version));
+					zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("Invalid version in DTLS connection. Packet reported version: %d", version));
 				}
 
 			if ( invalid_version_count_ > zeek::BifConst::SSL::dtls_max_version_errors )

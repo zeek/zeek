@@ -1,5 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/CPP/Util.h"
 
 #include <errno.h>
@@ -47,6 +48,14 @@ bool is_CPP_compilable(const ProfileFunc* pf, const char** reason)
 		{
 		if ( reason )
 			*reason = "use of type-based \"switch\"";
+		return false;
+		}
+
+	auto body = pf->ProfiledBody();
+	if ( body && ! body->GetOptInfo()->is_free_of_conditionals )
+		{
+		if ( reason )
+			*reason = "body may be affected by @if conditional";
 		return false;
 		}
 

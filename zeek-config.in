@@ -22,9 +22,9 @@ add_path() {
     # $1: existing path
     # $2: path to add
     if test -z "$2" || test "$1" = "$2" ||
-       echo "$1" | grep -q "^$2:" 2>/dev/null ||
-       echo "$1" | grep -q ":$2:" 2>/dev/null ||
-       echo "$1" | grep -q ":$2$" 2>/dev/null; then
+        echo "$1" | grep -q "^$2:" 2>/dev/null ||
+        echo "$1" | grep -q ":$2:" 2>/dev/null ||
+        echo "$1" | grep -q ":$2$" 2>/dev/null; then
         echo "$1"
         return
     fi
@@ -69,81 +69,81 @@ Toplevel installation directories for third-party components:
 "
 }
 
-if [ $# -eq 0 ] ; then
-      usage 1>&2
-      exit 1
+if [ $# -eq 0 ]; then
+    usage 1>&2
+    exit 1
 fi
 
 while [ $# -ne 0 ]; do
-  case "$1" in
-  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
-  *) optarg= ;;
-  esac
+    case "$1" in
+        -*=*) optarg=$(echo "$1" | sed 's/[-_a-zA-Z0-9]*=//') ;;
+        *) optarg= ;;
+    esac
 
-  case $1 in
-    --binpac_root)
-      echo $binpac_root
-      ;;
-    --bro_dist)  # For compatibility with legacy Bro plugins.
-      echo $zeek_dist
-      ;;
-    --broker_root)
-      echo $broker_root
-      ;;
-    --bropath)   # For compatibility with legacy Bro plugins.
-      echo $zeekpath
-      ;;
-    --btest_tools_dir)
-      echo $btest_tools_dir
-      ;;
-    --build_type)
-      echo $build_type
-      ;;
-    --caf_root)
-      echo $caf_root
-      ;;
-    --cmake_dir)
-      echo $cmake_dir
-      ;;
-    --config_dir)
-      echo $config_dir
-      ;;
-    --include_dir)
-      echo $include_dir
-      ;;
-    --lib_dir)
-      echo $lib_dir
-      ;;
-    --plugin_dir)
-      echo $plugin_dir
-      ;;
-    --prefix)
-      echo $prefix
-      ;;
-    --python_dir)
-      echo $python_dir
-      ;;
-    --script_dir)
-      echo $script_dir
-      ;;
-    --site_dir)
-      echo $site_dir
-      ;;
-    --version)
-      echo $version
-      ;;
-    --zeek_dist)
-      echo $zeek_dist
-      ;;
-    --zeekpath)
-      echo $zeekpath
-      ;;
-    *)
-      usage 1>&2
-      exit 1
-      ;;
-  esac
-  shift
+    case $1 in
+        --binpac_root)
+            echo $binpac_root
+            ;;
+        --bro_dist) # For compatibility with legacy Bro plugins.
+            echo $zeek_dist
+            ;;
+        --broker_root)
+            echo $broker_root
+            ;;
+        --bropath) # For compatibility with legacy Bro plugins.
+            echo $zeekpath
+            ;;
+        --btest_tools_dir)
+            echo $btest_tools_dir
+            ;;
+        --build_type)
+            echo $build_type
+            ;;
+        --caf_root)
+            echo $caf_root
+            ;;
+        --cmake_dir)
+            echo $cmake_dir
+            ;;
+        --config_dir)
+            echo $config_dir
+            ;;
+        --include_dir)
+            echo $include_dir
+            ;;
+        --lib_dir)
+            echo $lib_dir
+            ;;
+        --plugin_dir)
+            echo $plugin_dir
+            ;;
+        --prefix)
+            echo $prefix
+            ;;
+        --python_dir)
+            echo $python_dir
+            ;;
+        --script_dir)
+            echo $script_dir
+            ;;
+        --site_dir)
+            echo $site_dir
+            ;;
+        --version)
+            echo $version
+            ;;
+        --zeek_dist)
+            echo $zeek_dist
+            ;;
+        --zeekpath)
+            echo $zeekpath
+            ;;
+        *)
+            usage 1>&2
+            exit 1
+            ;;
+    esac
+    shift
 done
 
 exit 0

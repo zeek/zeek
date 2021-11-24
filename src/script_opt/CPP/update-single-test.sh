@@ -13,7 +13,7 @@ cp $build/CPP-hashes.dat .
 grep -c '^namespace' $gen
 mv $gen $build/
 cd $build
-ninja >& errs || echo build for $1 failed
+ninja >&errs || echo build for $1 failed
 
 export -n ZEEK_ADD_CPP
 cd $test

@@ -6,3 +6,9 @@ repos:
   rev: 'v13.0.0'
   hooks:
   - id: clang-format
+
+- repo: https://github.com/maxwinterstein/shfmt-py
+  rev: 3.3.1.8
+  hooks:
+    - id: shfmt
+      args: ["-w", "-i", "4", "-ci"]

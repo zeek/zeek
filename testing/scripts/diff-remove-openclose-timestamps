@@ -3,10 +3,10 @@
 # Replace timestamps in the #start/end markers in logs.
 
 # Get us "modern" regexps with sed.
-if [ `uname` == "Linux" ]; then
-   sed="sed -r"
+if [ $(uname) == "Linux" ]; then
+    sed="sed -r"
 else
-   sed="sed -E"
+    sed="sed -E"
 fi
 
 $sed 's/^ *#(open|close).(19|20)..-..-..-..-..-..$/#\1 XXXX-XX-XX-XX-XX-XX/g'

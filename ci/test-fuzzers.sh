@@ -17,8 +17,8 @@ for fuzzer_path in ${fuzzers}; do
 
     if [[ -e ${corpus} ]]; then
         echo "Fuzzer: ${fuzzer_exe} ${corpus}"
-        ( rm -rf corpus && mkdir corpus ) || result=1
-        ( cd corpus && unzip ../${corpus} >/dev/null ) || result=1
+        (rm -rf corpus && mkdir corpus) || result=1
+        (cd corpus && unzip ../${corpus} >/dev/null) || result=1
         ${fuzzer_path} corpus/* >${fuzzer_exe}.out 2>${fuzzer_exe}.err
 
         if [[ $? -eq 0 ]]; then
@@ -35,6 +35,5 @@ for fuzzer_path in ${fuzzers}; do
 
     echo "-----------------------------------------"
 done
-
 
 exit ${result}

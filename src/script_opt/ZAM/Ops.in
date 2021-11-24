@@ -1099,7 +1099,7 @@ eval	auto v = frame[z.v2].double_val;
 		ZAM_run_time_error(z.loc, "underflow converting double to count");
 		break;
 		}
-	if ( v > UINT64_MAX )
+	if ( v > static_cast<double>(UINT64_MAX) )
 		{
 		ZAM_run_time_error(z.loc, "overflow converting double to count");
 		break;

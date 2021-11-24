@@ -3405,12 +3405,21 @@ ValPtr RecordConstructorExpr::Eval(Frame* f) const
 	if ( ! map && exprs.length() != rt->NumFields() )
 		RuntimeErrorWithCallStack("inconsistency evaluating record constructor");
 
-	auto rv = make_intrusive<RecordVal>(std::move(rt));
+	auto rv = make_intrusive<RecordVal>(rt);
 
 	for ( int i = 0; i < exprs.length(); ++i )
 		{
+		auto v_i = exprs[i]->Eval(f);
 		int ind = map ? (*map)[i] : i;
-		rv->Assign(ind, exprs[i]->Eval(f));
+
+		if ( v_i && v_i->GetType()->Tag() == TYPE_VECTOR &&
+		     v_i->GetType<VectorType>()->IsUnspecifiedVector() )
+			{
+			const auto& t_ind = rt->GetFieldType(ind);
+			v_i->AsVectorVal()->Concretize(t_ind->Yield());
+			}
+
+		rv->Assign(ind, v_i);
 		}
 
 	return rv;
@@ -4104,6 +4113,13 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector<int>& 
 				if ( auto new_val = rhs->AsRecordVal()->CoerceTo(
 						 cast_intrusive<RecordType>(field_type)) )
 					rhs = std::move(new_val);
+				}
+			else if ( rhs_type->Tag() == TYPE_VECTOR && field_type->Tag() == TYPE_VECTOR &&
+			          rhs_type->AsVectorType()->IsUnspecifiedVector() )
+				{
+				auto rhs_v = rhs->AsVectorVal();
+				if ( ! rhs_v->Concretize(field_type->Yield()) )
+					reporter->InternalError("could not concretize empty vector");
 				}
 			else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) &&
 			          ! same_type(rhs_type, field_type) )
@@ -5049,7 +5065,7 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 ValPtr ListExpr::AddSetInit(const zeek::Type* t, ValPtr aggr) const
 	{
 	if ( aggr->GetType()->Tag() != TYPE_TABLE )
-		Internal("bad aggregate in ListExpr::InitVal");
+		Internal("bad aggregate in ListExpr::AddSetInit");
 
 	TableVal* tv = aggr->AsTableVal();
 	const TableType* tt = tv->GetType()->AsTableType();

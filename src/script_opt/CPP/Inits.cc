@@ -240,6 +240,9 @@ void CPPCompile::GenStandaloneActivation()
 
 	for ( const auto& func : funcs )
 		{
+		if ( func.ShouldSkip() )
+			continue;
+
 		auto f = func.Func();
 		auto fname = BodyName(func);
 		auto bname = Canonicalize(fname.c_str()) + "_zf";

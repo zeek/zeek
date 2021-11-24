@@ -53,11 +53,15 @@ namespace zeek::detail {\n
 void init_global_dbg_constants () {
 ''' % inputfile
 
+
 def outputrecord():
     global init_str, enum_str
 
     if dbginfo["names"]:
-        dbginfo["name_init"] = "const char * const names[] = {\n\t\t\t%s\n\t\t};\n" % ",\n\t\t\t".join(dbginfo["names"])
+        dbginfo["name_init"] = "const char * const names[] = {\n"\
+                               "\t\t\t%s\n"\
+                               "\t\t};\n" \
+                               % ",\n\t\t\t".join(dbginfo["names"])
     else:
         dbginfo["name_init"] = "const char * const names[] = { };\n"
 
@@ -68,16 +72,25 @@ def outputrecord():
 
     enum_str += "\t%s,\n" % dbginfo["cmd"]
 
+
 def initdbginfo():
-    return {"cmd": "", "name_init": "", "num_names": 0, "names": [],
-            "resume": "false", "help": "", "repeatable": "false"}
+    return {
+        "cmd": "",
+        "name_init": "",
+        "num_names": 0,
+        "names": [],
+        "resume": "false",
+        "help": "",
+        "repeatable": "false"
+    }
+
 
 dbginfo = initdbginfo()
 
 inputf = open(inputfile, "r")
 for line in inputf:
     line = line.strip()
-    if not line or line.startswith("//"):	# skip empty lines and comments
+    if not line or line.startswith("//"):  # skip empty lines and comments
         continue
 
     fields = line.split(":", 1)
@@ -95,9 +108,9 @@ for line in inputf:
         dbginfo[f1] = f2
     elif f1 == "names":
         # put quotes around the strings
-        dbginfo[f1] = [ '"%s"' % n for n in f2.split() ]
+        dbginfo[f1] = ['"%s"' % n for n in f2.split()]
     elif f1 == "help":
-        dbginfo[f1] = f2.replace('"', '\\"') # escape quotation marks
+        dbginfo[f1] = f2.replace('"', '\\"')  # escape quotation marks
     elif f1 in ("resume", "repeatable"):
         dbginfo[f1] = f2
     else:

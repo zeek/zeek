@@ -32,6 +32,7 @@ export {
 
 	global log_level = DEBUG &redef;
 
+	global debug: function(message: string);
 	global info: function(message: string);
 	global warning: function(message: string);
 	global error: function(message: string);

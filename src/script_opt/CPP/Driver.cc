@@ -64,6 +64,12 @@ void CPPCompile::Compile(bool report_uncompilable)
 	// previously compiled instances of those if present.
 	for ( const auto& func : funcs )
 		{
+		if ( func.ShouldSkip() )
+			{
+			not_fully_compilable.insert(func.Func()->Name());
+			continue;
+			}
+
 		if ( func.Func()->Flavor() != FUNC_FLAVOR_FUNCTION )
 			// Can't be called directly.
 			continue;
@@ -94,20 +100,12 @@ void CPPCompile::Compile(bool report_uncompilable)
 		{
 		TypePtr tp{NewRef{}, (Type*)(t)};
 		types.AddKey(tp, pfs.HashType(t));
-		(void)RegisterType(tp);
 		}
 
 	// ### This doesn't work for -O add-C++
 	Emit("TypePtr types__CPP[%s];", Fmt(static_cast<int>(types.DistinctKeys().size())));
 
 	NL();
-
-#if 0
-	for ( auto gi : all_global_info )
-		Emit(gi->Declare());
-
-	NL();
-#endif
 
 	for ( auto& g : pfs.AllGlobals() )
 		CreateGlobal(g);
@@ -126,7 +124,8 @@ void CPPCompile::Compile(bool report_uncompilable)
 	// The scaffolding is now in place to go ahead and generate
 	// the functions & lambdas.  First declare them ...
 	for ( const auto& func : funcs )
-		DeclareFunc(func);
+		if ( ! func.ShouldSkip() )
+			DeclareFunc(func);
 
 	// We track lambdas by their internal names, because two different
 	// LambdaExpr's can wind up referring to the same underlying lambda
@@ -148,7 +147,8 @@ void CPPCompile::Compile(bool report_uncompilable)
 
 	// ... and now generate their bodies.
 	for ( const auto& func : funcs )
-		CompileFunc(func);
+		if ( ! func.ShouldSkip() )
+			CompileFunc(func);
 
 	lambda_names.clear();
 	for ( const auto& l : pfs.Lambdas() )

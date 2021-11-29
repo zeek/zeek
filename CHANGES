@@ -1,3 +1,7 @@
+4.2.0-dev.391 | 2021-11-29 13:44:11 -0700
+
+  * suppress unneeded initializations (Vern Paxson, Corelight)
+
 4.2.0-dev.387 | 2021-11-24 13:32:33 -0700
 
   * fixes for constructing and assigning records with fields that are empty vectors (Vern Paxson, Corelight)

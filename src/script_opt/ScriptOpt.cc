@@ -382,19 +382,6 @@ static void generate_CPP(std::unique_ptr<ProfileFuncs>& pfs)
 
 	auto hm = std::make_unique<CPPHashManager>(hash_name.c_str());
 
-	if ( analysis_options.gen_CPP )
-		{
-		if ( analysis_options.only_func )
-			{ // deactivate all functions except the target one
-			for ( auto& func : funcs )
-				{
-				auto fn = func.Func()->Name();
-				if ( *analysis_options.only_func != fn )
-					func.SetSkip(true);
-				}
-			}
-		}
-
 	const auto gen_name = hash_dir + "CPP-gen.cc";
 	const auto addl_name = hash_dir + "CPP-gen-addl.h";
 
@@ -550,6 +537,19 @@ void analyze_scripts()
 	     ! analysis_options.report_CPP && ! analysis_options.use_CPP )
 		// No work to do, avoid profiling overhead.
 		return;
+
+	if ( analysis_options.gen_CPP )
+		{
+		if ( analysis_options.only_func )
+			{ // deactivate all functions except the target one
+			for ( auto& func : funcs )
+				{
+				auto fn = func.Func()->Name();
+				if ( *analysis_options.only_func != fn )
+					func.SetSkip(true);
+				}
+			}
+		}
 
 	// Now that everything's parsed and BiF's have been initialized,
 	// profile the functions.

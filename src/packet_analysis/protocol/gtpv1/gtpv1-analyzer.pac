@@ -610,7 +610,9 @@ connection GTPv1_Conn(zeek_analyzer: ZeekPacketAnalyzer)
 	%}
 
 	%init{
-		valid_orig = valid_resp = false;
+		valid_orig = false;
+		valid_resp = false;
+		packet = nullptr;
 	%}
 
 	function valid(orig: bool): bool

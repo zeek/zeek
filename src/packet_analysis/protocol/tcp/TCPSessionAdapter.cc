@@ -422,7 +422,7 @@ static zeek::RecordValPtr build_syn_packet_val(bool is_orig, const zeek::IP_Hdr*
 	if ( TSval )
 		v->Assign(8, *TSval);
 
-	if ( TSval )
+	if ( TSecr )
 		v->Assign(9, *TSecr);
 
 	return v;

@@ -1,3 +1,12 @@
+4.2.0-dev.393 | 2021-11-29 13:46:59 -0700
+
+  * Fix a number of Coverity findings (Tim Wojtulewicz, Corelight)
+
+    1466460: Uninitialized field in gtp-analyzer.pac
+    1462465: Null pointer dereference in CompositeHash::SingleValHash
+    1462463: Copy/paste error in TCPSessionAdapter::build_syn_packet_val
+    1462067: Uninitialized fields in Zinst
+
 4.2.0-dev.391 | 2021-11-29 13:44:11 -0700
 
   * suppress unneeded initializations (Vern Paxson, Corelight)

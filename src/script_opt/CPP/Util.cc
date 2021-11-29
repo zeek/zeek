@@ -1,11 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/CPP/Util.h"
 
 #include <errno.h>
 #include <sys/file.h>
 #include <unistd.h>
+
+#include "zeek/script_opt/StmtOptInfo.h"
 
 namespace zeek::detail
 	{

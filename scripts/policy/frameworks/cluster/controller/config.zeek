@@ -28,13 +28,6 @@ export {
 	# The controller listens for messages on this topic:
 	const topic = "zeek/cluster-control/controller" &redef;
 
-	# The set of agents to interact with. When this is non-empty
-	# at startup, the controller contacts the agents; when it is
-	# empty, it waits for agents to connect. They key is a name of
-	# each instance. This should match the $name member of the
-	# instance records.
-	const instances: table[string] of ClusterController::Types::Instance = { } &redef;
-
 	# The role of this node in cluster management. Agent and
 	# controller both redef this. Used during logging.
 	const role = ClusterController::Types::NONE &redef;

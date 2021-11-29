@@ -30,4 +30,11 @@ export {
 
 	# Report informational message.
 	global notify_log: event(instance: string, msg: string, node: string &default="");
+
+	# Notification events, controller -> agent
+
+	# Confirmation from controller in response to notify_agent_hello
+	# that the agent is welcome.
+	global notify_controller_hello: event(controller: string, host: addr);
+
 }

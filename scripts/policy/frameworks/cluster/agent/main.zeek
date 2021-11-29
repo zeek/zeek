@@ -22,6 +22,12 @@ global g_nodes: table[string] of ClusterController::Types::Node;
 # new configurations.
 global g_data_cluster: table[string] of Supervisor::ClusterEndpoint;
 
+# Whether we currenty keep notifying the controller that we're here.
+# We stop once the controller responds back, and resume when we've
+# lost the peering.
+global g_notify_controller: bool = T;
+
+
 event SupervisorControl::create_response(reqid: string, result: string)
 	{
 	local req = ClusterController::Request::lookup(reqid);
@@ -161,14 +167,28 @@ event ClusterAgent::API::set_configuration_request(reqid: string, config: Cluste
 		}
 	}
 
+event ClusterAgent::API::notify_controller_hello(controller: string, host: addr)
+	{
+	ClusterController::Log::info(fmt("rx ClusterAgent::API::notify_controller_hello %s %s", controller, host));
+	g_notify_controller = F;
+	}
+
+event ClusterAgent::API::notify_agent_hello(instance: string, host: addr, api_version: count)
+	{
+	if ( g_notify_controller )
+		schedule 1sec { ClusterAgent::API::notify_agent_hello(instance, host, api_version) };
+	}
+
 event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	{
 	# This does not (cannot?) immediately verify that the new peer
 	# is in fact a controller, so we might send this redundantly.
 	# Controllers handle the hello event accordingly.
 
+	g_notify_controller = T;
+
 	local epi = ClusterAgent::endpoint_info();
-	# XXX deal with unexpected peers, unless we're okay with it
+
 	event ClusterAgent::API::notify_agent_hello(epi$id,
 	    to_addr(epi$network$address), ClusterAgent::API::version);
 	}

@@ -64,9 +64,9 @@ public:
 		}
 
 	// Create a stub instruction that will be populated later.
-	ZInst() { }
+	ZInst() = default;
 
-	virtual ~ZInst() { }
+	virtual ~ZInst() = default;
 
 	// Methods for printing out the instruction for debugging/maintenance.
 	void Dump(bro_uint_t inst_num, const FrameReMap* mappings) const;
@@ -93,8 +93,8 @@ public:
 	// Returns a string describing the constant.
 	std::string ConstDump() const;
 
-	ZOp op;
-	ZAMOpType op_type;
+	ZOp op = OP_NOP;
+	ZAMOpType op_type = OP_X;
 
 	// Usually indices into frame, though sometimes hold integer constants.
 	// When an instruction has both frame slots and integer constants,

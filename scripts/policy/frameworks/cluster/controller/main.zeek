@@ -9,8 +9,8 @@
 
 redef ClusterController::role = ClusterController::Types::CONTROLLER;
 
-global config_current: ClusterController::Types::Configuration;
-global config_reqid_pending: string = "";
+global g_config_current: ClusterController::Types::Configuration;
+global g_config_reqid_pending: string = "";
 
 function send_config_to_agents(req: ClusterController::Request::Request,
                                config: ClusterController::Types::Configuration)
@@ -90,15 +90,15 @@ event ClusterAgent::API::notify_agent_hello(instance: string, host: addr, api_ve
 
 	# If we have a pending configuration request, check in on it now to see whether
 	# we have all agents required, and finalize the config request.
-	if ( config_reqid_pending == "" )
+	if ( g_config_reqid_pending == "" )
 		return;
 
-	local req = ClusterController::Request::lookup(config_reqid_pending);
+	local req = ClusterController::Request::lookup(g_config_reqid_pending);
 
 	if ( ClusterController::Request::is_null(req) || ! req?$set_configuration_state )
 		{
 		# Odd, just clear out pending state.
-		config_reqid_pending = "";
+		g_config_reqid_pending = "";
 		return;
 		}
 
@@ -117,7 +117,7 @@ event ClusterAgent::API::notify_agent_hello(instance: string, host: addr, api_ve
 	# update the request state and eventually send the response event
 	# to the client.
 	send_config_to_agents(req, req$set_configuration_state$config);
-	config_reqid_pending = "";
+	g_config_reqid_pending = "";
 	}
 
 
@@ -216,11 +216,11 @@ event ClusterController::API::set_configuration_request(reqid: string, config: C
 	req$set_configuration_state = ClusterController::Request::SetConfigurationState($config = config);
 
 	# At the moment there can only be one pending request.
-	if ( config_reqid_pending != "" )
+	if ( g_config_reqid_pending != "" )
 		{
 		res = ClusterController::Types::Result($reqid=reqid);
 		res$success = F;
-		res$error = fmt("request %s still pending", config_reqid_pending);
+		res$error = fmt("request %s still pending", g_config_reqid_pending);
 		req$results += res;
 
 		ClusterController::Log::info(fmt("tx ClusterController::API::set_configuration_response %s",
@@ -312,7 +312,7 @@ event ClusterController::API::set_configuration_request(reqid: string, config: C
 			             ClusterController::connect_retry);
 			}
 
-		config_reqid_pending = req$id;
+		g_config_reqid_pending = req$id;
 		return;
 		}
 

@@ -49,30 +49,30 @@ export {
 }
 
 # XXX this needs a mechanism for expiring stale requests
-global requests: table[string] of Request;
+global g_requests: table[string] of Request;
 
 function create(reqid: string): Request
 	{
 	local ret = Request($id=reqid);
-	requests[reqid] = ret;
+	g_requests[reqid] = ret;
 	return ret;
 	}
 
 function lookup(reqid: string): Request
 	{
-	if ( reqid in requests )
-		return requests[reqid];
+	if ( reqid in g_requests )
+		return g_requests[reqid];
 
 	return null_req;
 	}
 
 function finish(reqid: string): bool
 	{
-	if ( reqid !in requests )
+	if ( reqid !in g_requests )
 		return F;
 
-	local req = requests[reqid];
-	delete requests[reqid];
+	local req = g_requests[reqid];
+	delete g_requests[reqid];
 
 	req$finished = T;
 

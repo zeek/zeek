@@ -1,3 +1,18 @@
+4.2.0-dev.394 | 2021-11-30 11:53:35 -0700
+
+  * Fix for the recent patch that allows segment offloaded packets. (Johanna Amann, Corelight)
+
+    We recently added support for segment offloaded packets. It turns out
+    that this can lead to problems in UDP/ICMP based parsers since I missed
+    correctly also updating the payloadlength there, and using the capture
+    length instead when segment offloading is enabled.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=41391
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=41394
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=41395
+    (Link to details becomes public 30 days after patch release)
+
 4.2.0-dev.393 | 2021-11-29 13:46:59 -0700
 
   * Fix a number of Coverity findings (Tim Wojtulewicz, Corelight)

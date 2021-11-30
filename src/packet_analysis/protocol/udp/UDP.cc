@@ -84,6 +84,10 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 	const u_char* data = pkt->ip_hdr->Payload();
 	int len = pkt->ip_hdr->PayloadLen();
+	// If segment offloading or similar is enabled, the payload len will return 0.
+	// Thus, let's ignore that case.
+	if ( len == 0 )
+		len = remaining;
 
 	const struct udphdr* up = (const struct udphdr*)data;
 	const std::shared_ptr<IP_Hdr>& ip = pkt->ip_hdr;

@@ -1,3 +1,7 @@
+4.2.0-dev.396 | 2021-12-01 09:44:03 -0700
+
+  * GH-1873: Deprecate the tag types differently to avoid type clashes (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.394 | 2021-11-30 11:53:35 -0700
 
   * Fix for the recent patch that allows segment offloaded packets. (Johanna Amann, Corelight)

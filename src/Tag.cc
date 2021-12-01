@@ -62,7 +62,7 @@ Tag& Tag::operator=(const Tag& other)
 	return *this;
 	}
 
-Tag& Tag::operator=(const Tag&& other) noexcept
+Tag& Tag::operator=(Tag&& other) noexcept
 	{
 	if ( this != &other )
 		{

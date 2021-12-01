@@ -41,8 +41,8 @@ if [ "$file_hash" != "$head_hash" ]; then
     read -p "[Y/n] " choice
 
     case "$choice" in
-        n|N) echo "Skipped '$repo_base'";;
-        *) echo $head_hash > $hash_file  && git add $hash_file && echo "Updated '$file_base'";;
+        n | N) echo "Skipped '$repo_base'" ;;
+        *) echo $head_hash >$hash_file && git add $hash_file && echo "Updated '$file_base'" ;;
     esac
 else
     echo " none"

@@ -1,3 +1,16 @@
+4.2.0-dev.406 | 2021-12-01 10:32:34 -0700
+
+  * Format Python scripts with yapf. (Benjamin Bannier, Corelight)
+
+    We also add a very basic yapf configuration file. Most of the changes in
+    this patch were performed automatically, but we broke one overly long
+    string into multiple components on `src/make_dbg_constants.py`.
+
+  * Format shell scripts with shfmt. (Benjamin Bannier, Corelight)
+
+    All changes in this patch were performed automatically with `shfmt` with
+    configuration flags specified in `.pre-commit-config.yaml`.
+
 4.2.0-dev.403 | 2021-12-01 10:25:32 -0700
 
   * fix btest comment to more accurately describe the test (Vern Paxson, Corelight)

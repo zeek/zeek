@@ -16,47 +16,41 @@ if [[ -z "${CIRRUS_CI}" ]]; then
     ZEEK_CI_BTEST_RETRIES=2
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 . ${SCRIPT_DIR}/common.sh
 
-function pushd
-    {
-    command pushd "$@" > /dev/null || exit 1
-    }
+function pushd {
+    command pushd "$@" >/dev/null || exit 1
+}
 
-function popd
-    {
-    command popd "$@" > /dev/null || exit 1
-    }
+function popd {
+    command popd "$@" >/dev/null || exit 1
+}
 
-function banner
-    {
+function banner {
     local msg="${1}"
     printf "+--------------------------------------------------------------+\n"
     printf "| %-60s |\n" "$(date)"
     printf "| %-60s |\n" "${msg}"
     printf "+--------------------------------------------------------------+\n"
-    }
+}
 
-function run_unit_tests
-    {
+function run_unit_tests {
     banner "Running unit tests"
 
     pushd build
-    ( . ./zeek-path-dev.sh && zeek --test ) || result=1
+    (. ./zeek-path-dev.sh && zeek --test) || result=1
     popd
     return 0
-    }
+}
 
-function prep_artifacts
-    {
+function prep_artifacts {
     banner "Prepare artifacts"
     [[ -d .tmp ]] && rm -rf .tmp/script-coverage && tar -czf tmp.tar.gz .tmp
     junit2html btest-results.xml btest-results.html
-    }
+}
 
-function run_btests
-    {
+function run_btests {
     banner "Running baseline tests: zeek"
 
     pushd testing/btest
@@ -73,10 +67,9 @@ function run_btests
     prep_artifacts
     popd
     return 0
-    }
+}
 
-function run_external_btests
-    {
+function run_external_btests {
     # Commenting out this line in btest.cfg causes the script profiling/coverage
     # to be disabled. We do this for the sanitizer build right now because of a
     # fairly significant performance bug when running tests.
@@ -120,7 +113,7 @@ function run_external_btests
     else
         banner "Skipping private tests (not available for PRs)"
     fi
-    }
+}
 
 banner "Start tests: ${ZEEK_CI_CPUS} cpus, ${ZEEK_CI_BTEST_JOBS} btest jobs"
 

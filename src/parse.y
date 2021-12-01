@@ -105,6 +105,11 @@ extern const char* last_filename; // Absolute path of last file parsed.
 extern const char* last_tok_filename;
 extern const char* last_last_tok_filename;
 
+extern int conditional_epoch; // let's us track embedded conditionals
+
+// Whether the file we're currently parsing includes @if conditionals.
+extern bool current_file_has_conditionals;
+
 YYLTYPE GetCurrentLocation();
 extern int yyerror(const char[]);
 extern int brolex();
@@ -138,6 +143,7 @@ bool defining_global_ID = false;
 std::vector<int> saved_in_init;
 
 static Location func_hdr_location;
+static int func_hdr_cond_epoch = 0;
 EnumType* cur_enum_type = nullptr;
 static ID* cur_decl_type_id = nullptr;
 
@@ -1214,16 +1220,19 @@ decl:
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
-	|	func_hdr { func_hdr_location = @1; } func_body
-
-	|	func_hdr { func_hdr_location = @1; } conditional_list func_body
+	|	func_hdr
+			{
+			func_hdr_location = @1;
+			func_hdr_cond_epoch = conditional_epoch;
+			}
+		conditional_list func_body
 
 	|	conditional
 	;
 
 conditional_list:
-		conditional
-	|	conditional conditional_list
+	|	conditional_list conditional
+	;
 
 conditional:
 		TOK_ATIF '(' expr ')'
@@ -1296,7 +1305,13 @@ func_body:
 		'}'
 			{
 			set_location(func_hdr_location, @5);
-			end_func({AdoptRef{}, $3});
+
+			bool free_of_conditionals = true;
+			if ( current_file_has_conditionals ||
+			     conditional_epoch > func_hdr_cond_epoch )
+				free_of_conditionals = false;
+
+			end_func({AdoptRef{}, $3}, free_of_conditionals);
 			}
 	;
 

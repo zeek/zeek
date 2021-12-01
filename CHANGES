@@ -1,3 +1,15 @@
+4.2.0-dev.403 | 2021-12-01 10:25:32 -0700
+
+  * fix btest comment to more accurately describe the test (Vern Paxson, Corelight)
+
+  * btests for erroneous script conditionals (Vern Paxson, Corelight)
+
+  * avoid compiling-to-C++ for functions potentially influenced by conditionals (Vern Paxson, Corelight)
+
+  * track the use of conditionals in functions and files (Vern Paxson, Corelight)
+
+  * AST profiles track the associated function/body/expression (Vern Paxson, Corelight)
+
 4.2.0-dev.396 | 2021-12-01 09:44:03 -0700
 
   * GH-1873: Deprecate the tag types differently to avoid type clashes (Tim Wojtulewicz, Corelight)

@@ -18,6 +18,7 @@
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/script_opt/StmtOptInfo.h"
 
 namespace zeek::detail
 	{
@@ -717,7 +718,7 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 
 static bool duplicate_ASTs = getenv("ZEEK_DUPLICATE_ASTS");
 
-void end_func(StmtPtr body)
+void end_func(StmtPtr body, bool free_of_conditionals)
 	{
 	if ( duplicate_ASTs && reporter->Errors() == 0 )
 		// Only try duplication in the absence of errors.  If errors
@@ -728,6 +729,8 @@ void end_func(StmtPtr body)
 		// We duplicate twice to make sure that the AST produced
 		// by duplicating can itself be correctly duplicated.
 		body = body->Duplicate()->Duplicate();
+
+	body->GetOptInfo()->is_free_of_conditionals = free_of_conditionals;
 
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 

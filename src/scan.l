@@ -48,7 +48,22 @@ extern YYLTYPE yylloc;	// holds start line and column of token
 extern zeek::EnumType* cur_enum_type;
 
 // Track the @if... depth.
-std::intptr_t current_depth = 0;
+static std::intptr_t conditional_depth = 0;
+
+zeek::detail::int_list entry_cond_depth; // @if depth upon starting file
+
+// Tracks how many conditionals there have been.  This value only
+// increases.  Its value is to support logic such as figuring out
+// whether a function body has a conditional within it by comparing
+// the epoch at the beginning of parsing the body with that at the end.
+int conditional_epoch = 0;
+
+// Whether the current file has included conditionals (so far).
+bool current_file_has_conditionals = false;
+
+// The files that include conditionals.  Not currently used, but will be
+// in the future once we add --optimize-files=/pat/.
+std::unordered_set<std::string> files_with_conditionals;
 
 zeek::detail::int_list if_stack;
 
@@ -97,6 +112,18 @@ static std::string find_relative_script_file(const std::string& filename)
 		return zeek::util::find_script_file(filename, zeek::util::SafeDirname(::filename).result);
 	else
 		return zeek::util::find_script_file(filename, zeek::util::zeek_path());
+	}
+
+static void start_conditional()
+	{
+	++conditional_depth;
+	++conditional_epoch;
+
+	if ( ! current_file_has_conditionals )
+		// First time we've observed that this file includes conditionals.
+		files_with_conditionals.insert(::filename);
+
+	current_file_has_conditionals = true;
 	}
 
 class FileInfo {
@@ -418,11 +445,11 @@ when	return TOK_WHEN;
 @ifdef	return TOK_ATIFDEF;
 @ifndef	return TOK_ATIFNDEF;
 @else   return TOK_ATELSE;
-@endif	--current_depth;
+@endif	do_atendif();
 
-<IGNORE>@if	++current_depth;
-<IGNORE>@ifdef	++current_depth;
-<IGNORE>@ifndef	++current_depth;
+<IGNORE>@if	start_conditional();
+<IGNORE>@ifdef	start_conditional();
+<IGNORE>@ifndef	start_conditional();
 <IGNORE>@else   return TOK_ATELSE;
 <IGNORE>@endif	return TOK_ATENDIF;
 <IGNORE>[^@\r\n]+	/* eat */
@@ -639,17 +666,19 @@ static int load_files(const char* orig_file)
 
 	zeek::detail::zeekygen_mgr->Script(file_path);
 
-	// "orig_file", could be an alias for yytext, which is ephemeral
+	// "orig_file" could be an alias for yytext, which is ephemeral
 	//  and will be zapped after the yy_switch_to_buffer() below.
 	YY_BUFFER_STATE buffer;
 
-	if ( rc.first == 1 ) {
+	if ( rc.first == 1 )
+		{
 		// Parse code provided by plugin.
 		assert(rc.second);
 		DBG_LOG(zeek::DBG_SCRIPTS, "Loading %s from code supplied by plugin ", file_path.c_str());
 		buffer = yy_scan_bytes(rc.second->data(), rc.second->size()); // this copies the data
 		}
-	else {
+	else
+		{
 		// Parse from file.
 		assert(f);
 		DBG_LOG(zeek::DBG_SCRIPTS, "Loading %s", file_path.c_str());
@@ -662,6 +691,8 @@ static int load_files(const char* orig_file)
 	// Don't delete the old filename - it's pointed to by
 	// every Obj created when parsing it.
 	yylloc.filename = filename = zeek::util::copy_string(file_path.c_str());
+
+	entry_cond_depth.push_back(conditional_depth);
 
 	return 1;
 	}
@@ -693,9 +724,21 @@ public:
 	std::vector<const zeek::detail::NameExpr*> local_names;
 };
 
+static void begin_ignoring()
+	{
+	if_stack.push_back(conditional_depth);
+	BEGIN(IGNORE);
+	}
+
+static void resume_processing()
+	{
+	if_stack.pop_back();
+	BEGIN(INITIAL);
+	}
+
 void do_atif(zeek::detail::Expr* expr)
 	{
-	++current_depth;
+	start_conditional();
 
 	LocalNameFinder cb;
 	expr->Traverse(&cb);
@@ -716,70 +759,52 @@ void do_atif(zeek::detail::Expr* expr)
 		}
 
 	if ( ! val->AsBool() )
-		{
-		if_stack.push_back(current_depth);
-		BEGIN(IGNORE);
-		}
+		begin_ignoring();
 	}
 
 void do_atifdef(const char* id)
 	{
-	++current_depth;
+	start_conditional();
 
 	const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
 
 	if ( ! i )
-		{
-		if_stack.push_back(current_depth);
-		BEGIN(IGNORE);
-		}
+		begin_ignoring();
 	}
 
 void do_atifndef(const char *id)
 	{
-	++current_depth;
+	start_conditional();
 
 	const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
 
 	if ( i )
-		{
-		if_stack.push_back(current_depth);
-		BEGIN(IGNORE);
-		}
+		begin_ignoring();
 	}
 
 void do_atelse()
 	{
-	if ( current_depth == 0 )
+	if ( conditional_depth == 0 )
 		zeek::reporter->Error("@else without @if...");
 
-	if ( ! if_stack.empty() && current_depth > if_stack.back() )
+	if ( ! if_stack.empty() && conditional_depth > if_stack.back() )
 		return;
 
 	if ( YY_START == INITIAL )
-		{
-		if_stack.push_back(current_depth);
-		BEGIN(IGNORE);
-		}
+		begin_ignoring();
 	else
-		{
-		if_stack.pop_back();
-		BEGIN(INITIAL);
-		}
+		resume_processing();
 	}
 
 void do_atendif()
 	{
-	if ( current_depth == 0 )
+	if ( conditional_depth <= entry_cond_depth.back() )
 		zeek::reporter->Error("unbalanced @if... @endif");
 
-	if ( current_depth == if_stack.back() )
-		{
-		BEGIN(INITIAL);
-		if_stack.pop_back();
-		}
+	if ( ! if_stack.empty() && conditional_depth == if_stack.back() )
+		resume_processing();
 
-	--current_depth;
+	--conditional_depth;
 	}
 
 // Be careful to never delete things from this list, as the strings
@@ -840,7 +865,15 @@ void add_to_name_list(char* s, char delim, zeek::name_list& nl)
 
 int yywrap()
 	{
+	if ( entry_cond_depth.size() > 0 )
+		{
+		if ( conditional_depth > entry_cond_depth.back() )
+			zeek::reporter->FatalError("unbalanced @if... @endif");
+		entry_cond_depth.pop_back();
+		}
+
 	last_filename = ::filename;
+	current_file_has_conditionals = false;
 
 	if ( zeek::reporter->Errors() > 0 )
 		return 1;

@@ -60,12 +60,23 @@ p_hash_type script_specific_hash(const StmtPtr& body, p_hash_type generic_hash)
 
 ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fields)
 	{
+	profiled_func = func;
+	profiled_body = body.get();
 	abs_rec_fields = _abs_rec_fields;
 	Profile(func->GetType().get(), body);
 	}
 
+ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields)
+	{
+	profiled_body = s;
+	abs_rec_fields = _abs_rec_fields;
+	s->Traverse(this);
+	}
+
 ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields)
 	{
+	profiled_expr = e;
+
 	abs_rec_fields = _abs_rec_fields;
 
 	if ( e->Tag() == EXPR_LAMBDA )
@@ -82,12 +93,6 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields)
 		// We don't have a function type, so do the traversal
 		// directly.
 		e->Traverse(this);
-	}
-
-ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields)
-	{
-	abs_rec_fields = _abs_rec_fields;
-	s->Traverse(this);
 	}
 
 void ProfileFunc::Profile(const FuncType* ft, const StmtPtr& body)

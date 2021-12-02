@@ -143,8 +143,9 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    --pseudo-realtime[=<speedup>]   | enable pseudo-realtime for performance "
 	                "evaluation (default 1)\n");
 	fprintf(stderr, "    -j|--jobs                       | enable supervisor mode\n");
+
 	fprintf(stderr, "    --test                          | run unit tests ('--test -h' for help, "
-	                "only when compiling with ENABLE_ZEEK_UNIT_TESTS)\n");
+	                "not available when built without ENABLE_ZEEK_UNIT_TESTS)\n");
 	fprintf(stderr, "    $ZEEKPATH                       | file search path (%s)\n",
 	        util::zeek_path().c_str());
 	fprintf(stderr, "    $ZEEK_PLUGIN_PATH               | plugin search path (%s)\n",

@@ -55,7 +55,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Optional Features:
     --enable-coverage      compile with code coverage support (implies debugging mode)
-    --enable-cpp-tests     build Zeek's C++ unit tests
     --enable-debug         compile in debugging mode (like --build-type=Debug)
     --enable-fuzzers       build fuzzer targets
     --enable-jemalloc      link against jemalloc
@@ -70,6 +69,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-broker-tests don't try to build Broker unit tests
     --disable-btest        don't install BTest
     --disable-btest-pcaps  don't install Zeek's BTest input pcaps
+    --disable-cpp-tests    don't build Zeek's C++ unit tests
     --disable-python       don't try to build python bindings for Broker
     --disable-zeekctl      don't install ZeekControl
     --disable-zkg          don't install zkg
@@ -163,6 +163,7 @@ append_cache_entry ZEEK_ETC_INSTALL_DIR PATH $prefix/etc
 append_cache_entry ENABLE_DEBUG BOOL false
 append_cache_entry ENABLE_PERFTOOLS BOOL false
 append_cache_entry ENABLE_JEMALLOC BOOL false
+append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL true
 append_cache_entry BUILD_SHARED_LIBS BOOL true
 append_cache_entry INSTALL_AUX_TOOLS BOOL true
 append_cache_entry INSTALL_BTEST BOOL true
@@ -260,9 +261,6 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_COVERAGE BOOL true
             append_cache_entry ENABLE_DEBUG BOOL true
             ;;
-        --enable-cpp-tests)
-            append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL true
-            ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG BOOL true
             ;;
@@ -306,6 +304,9 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-btest-pcaps)
             append_cache_entry INSTALL_BTEST_PCAPS BOOL false
+            ;;
+        --disable-cpp-tests)
+            append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL false
             ;;
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS BOOL true

@@ -161,11 +161,6 @@ event dce_rpc_request(c: connection, fid: count, ctx_id: count, opnum: count, st
 		{
 		c$dce_rpc$ts = network_time();
 		}
-	}
-
-event dce_rpc_response(c: connection, fid: count, ctx_id: count, opnum: count, stub_len: count) &priority=5
-	{
-	set_session(c, fid);
 
 	# In the event that the binding wasn't seen, but the pipe
 	# name is known, go ahead and see if we have a pipe name to

@@ -3,7 +3,7 @@
 #include <sys/types.h> // for u_char
 #include <string>
 
-#include "zeek/analyzer/Tag.h"
+#include "zeek/Tag.h"
 
 namespace zeek::detail
 	{

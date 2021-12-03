@@ -11,8 +11,8 @@
 #include "zeek/EventHandler.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Obj.h"
+#include "zeek/Tag.h"
 #include "zeek/Timer.h"
-#include "zeek/analyzer/Tag.h"
 
 namespace zeek
 	{

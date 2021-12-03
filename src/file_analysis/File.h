@@ -6,11 +6,11 @@
 #include <string>
 #include <utility>
 
+#include "zeek/Tag.h"
 #include "zeek/WeirdState.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/ZeekList.h" // for ValPList
 #include "zeek/ZeekString.h"
-#include "zeek/analyzer/Tag.h"
 #include "zeek/file_analysis/AnalyzerSet.h"
 
 namespace zeek

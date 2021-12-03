@@ -6,6 +6,17 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 4.2.0
 ==========
 
+Breaking Changes
+----------------
+
+- The existing ``Tag`` types in C++ (``zeek::Analyzer::Tag``, etc) have been merged
+  into a single type called ``zeek::Tag``. This is a breaking change, and may result
+  in plugins failing to build where they were relying on those types being different
+  for function overloading and such. We attempted to include deprecated versions of
+  the old types, but were unable to do so because of changes to return types from a
+  number of methods. With this change, any uses of the `zeek::*::Tag` types will
+  need to be replaced by `zeek::Tag`.
+
 New Functionality
 -----------------
 

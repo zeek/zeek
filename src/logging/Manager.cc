@@ -311,8 +311,11 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		streams.push_back(nullptr);
 
 	if ( streams[idx] )
-		// We already know this one, delete the previous definition.
-		delete streams[idx];
+		{
+		// We already know this one. Clean up the old version before making
+		// a new one.
+		RemoveStream(idx);
+		}
 
 	// Create new stream.
 	streams[idx] = new Stream;
@@ -334,7 +337,11 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 bool Manager::RemoveStream(EnumVal* id)
 	{
 	unsigned int idx = id->AsEnum();
+	return RemoveStream(idx);
+	}
 
+bool Manager::RemoveStream(unsigned int idx)
+	{
 	if ( idx >= streams.size() || ! streams[idx] )
 		return false;
 

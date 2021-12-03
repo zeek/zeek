@@ -294,7 +294,7 @@ if ( NOT BIFCL_EXE_PATH )
   add_subdirectory(auxil/bifcl)
 endif ()
 
-if (ENABLE_JEMALLOC)
+if (ENABLE_JEMALLOC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     find_package(JeMalloc)
 
     if (NOT JEMALLOC_FOUND)

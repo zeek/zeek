@@ -122,10 +122,12 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    -I|--print-id <ID name>         | print out given ID\n");
 	fprintf(stderr, "    -N|--print-plugins              | print available plugins and exit (-NN "
 	                "for verbose)\n");
-	fprintf(stderr, "    -O|--optimize[=<option>]        | enable script optimization (use -O help "
+	fprintf(stderr, "    -O|--optimize <option>          | enable script optimization (use -O help "
 	                "for options)\n");
-	fprintf(stderr, "    -o|--optimize-only=<func>       | enable script optimization only for the "
-	                "given function\n");
+	fprintf(stderr, "    -0|--optimize-files=<pat>       | enable script optimization for all "
+	                "functions in files with names containing the given pattern\n");
+	fprintf(stderr, "    -o|--optimize-funcs=<pat>       | enable script optimization for "
+	                "functions with names fully matching the given pattern\n");
 	fprintf(stderr, "    -P|--prime-dns                  | prime DNS\n");
 	fprintf(stderr,
 	        "    -Q|--time                       | print execution time summary to stderr\n");
@@ -379,7 +381,8 @@ Options parse_cmdline(int argc, char** argv)
 		{"save-seeds", required_argument, nullptr, 'H'},
 		{"print-plugins", no_argument, nullptr, 'N'},
 		{"optimize", required_argument, nullptr, 'O'},
-		{"optimize-only", required_argument, nullptr, 'o'},
+		{"optimize-funcs", required_argument, nullptr, 'o'},
+		{"optimize-files", required_argument, nullptr, '0'},
 		{"prime-dns", no_argument, nullptr, 'P'},
 		{"time", no_argument, nullptr, 'Q'},
 		{"debug-rules", no_argument, nullptr, 'S'},
@@ -402,7 +405,7 @@ Options parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	util::safe_strncpy(opts, "B:c:e:f:G:H:I:i:j::n:O:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuv",
+	util::safe_strncpy(opts, "B:c:e:f:G:H:I:i:j::n:O:0:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuv",
 	                   sizeof(opts));
 
 	int op;
@@ -542,7 +545,10 @@ Options parse_cmdline(int argc, char** argv)
 				set_analysis_option(optarg, rval);
 				break;
 			case 'o':
-				rval.analysis_options.only_func = optarg;
+				add_func_analysis_pattern(rval.analysis_options, optarg);
+				break;
+			case '0':
+				add_file_analysis_pattern(rval.analysis_options, optarg);
 				break;
 			case 'P':
 				if ( rval.dns_mode != detail::DNS_DEFAULT )

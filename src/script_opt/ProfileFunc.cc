@@ -461,8 +461,6 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
 
 		if ( ! pred || (*pred)(pf.get(), nullptr) )
 			MergeInProfile(pf.get());
-		else
-			f.SetSkip(true);
 
 		f.SetProfile(std::move(pf));
 		func_profs[f.Func()] = f.ProfilePtr();

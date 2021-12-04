@@ -6,6 +6,8 @@
 
 #include "zeek/script_opt/CPP/Compile.h"
 
+extern std::unordered_set<std::string> files_with_conditionals;
+
 namespace zeek::detail
 	{
 
@@ -60,29 +62,48 @@ void CPPCompile::Compile(bool report_uncompilable)
 
 	GenProlog();
 
+	unordered_set<string> filenames_reported_as_skipped;
+
 	// Determine which functions we can call directly, and reuse
 	// previously compiled instances of those if present.
-	for ( const auto& func : funcs )
+	for ( auto& func : funcs )
 		{
+		const auto& f = func.Func();
+
+		auto& ofiles = analysis_options.only_files;
+		string fn = func.Body()->GetLocationInfo()->filename;
+
+		if ( ! func.ShouldSkip() && ! ofiles.empty() && files_with_conditionals.count(fn) > 0 )
+			{
+			if ( filenames_reported_as_skipped.count(fn) == 0 )
+				{
+				reporter->Warning(
+					"skipping compilation of files in %s due to presence of conditional code",
+					fn.c_str());
+				filenames_reported_as_skipped.insert(fn);
+				}
+
+			func.SetSkip(true);
+			}
+
 		if ( func.ShouldSkip() )
 			{
-			not_fully_compilable.insert(func.Func()->Name());
+			not_fully_compilable.insert(f->Name());
 			continue;
 			}
 
-		if ( func.Func()->Flavor() != FUNC_FLAVOR_FUNCTION )
-			// Can't be called directly.
-			continue;
-
 		const char* reason;
 		if ( IsCompilable(func, &reason) )
-			compilable_funcs.insert(BodyName(func));
+			{
+			if ( f->Flavor() == FUNC_FLAVOR_FUNCTION )
+				// Note this as a callable compiled function.
+				compilable_funcs.insert(BodyName(func));
+			}
 		else
 			{
 			if ( reason && report_uncompilable )
-				fprintf(stderr, "%s cannot be compiled to C++ due to %s\n", func.Func()->Name(),
-				        reason);
-			not_fully_compilable.insert(func.Func()->Name());
+				fprintf(stderr, "%s cannot be compiled to C++ due to %s\n", f->Name(), reason);
+			not_fully_compilable.insert(f->Name());
 			}
 
 		auto h = func.Profile()->HashVal();
@@ -90,7 +111,7 @@ void CPPCompile::Compile(bool report_uncompilable)
 			{
 			// Track the previously compiled instance
 			// of this function.
-			auto n = func.Func()->Name();
+			auto n = f->Name();
 			hashed_funcs[n] = hm.FuncBodyName(h);
 			}
 		}

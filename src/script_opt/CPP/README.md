@@ -160,17 +160,7 @@ about associated expressions/statements, making them hard to puzzle out.
 This could be fixed, but would add execution overhead in passing around
 the necessary strings / `Location` objects.
 
-* Subtle bugs can arise when compiling code that uses `@if` conditional
-compilation.  The compiled code will not directly use the wrong instance
-of a script body (one that differs due to the `@if` conditional having a
-different resolution at compile time versus later run-time).  However, if
-compiled code itself calls a function that has conditional code, the
-compiled code will always call the version of the function present during
-compilation, rather than the run-time version.  This problem can be fixed
-at the cost of making all function calls more expensive (perhaps a measure
-that requires an explicit flag to activate); or, when possible, by modifying
-the conditional code to check the condition at run-time rather than at
-compile-time.
+* To avoid subtle bugs, the compiler will refrain from compiling script elements (functions, hooks, event handlers) that include conditional code.  In addition, when using `--optimize-files` it will not compile any functions appearing in a source file that includes conditional code (even if it's not in a function body).
 
 * Code compiled with `-O gen-standalone-C++` will not execute any global
 statements when invoked using the "stand-in" script.  The right fix for

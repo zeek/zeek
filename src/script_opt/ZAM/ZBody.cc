@@ -21,6 +21,7 @@
 #include "zeek/broker/Manager.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/logging/Manager.h"
+#include "zeek/packet_analysis/Manager.h"
 
 namespace zeek::detail
 	{

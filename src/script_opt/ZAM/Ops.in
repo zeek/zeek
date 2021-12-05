@@ -1055,7 +1055,17 @@ macro EvalConstructRecord(map_init, map_accessor)
 	auto n = aux->n;
 	map_init
 	for ( auto i = 0; i < n; ++i )
-		new_r->Assign(map_accessor, aux->ToVal(frame, i));
+		{
+		auto v_i = aux->ToVal(frame, i);
+		auto ind = map_accessor;
+		if ( v_i && v_i->GetType()->Tag() == TYPE_VECTOR &&
+		     v_i->GetType<VectorType>()->IsUnspecifiedVector() )
+			{
+			const auto& t_ind = rt->GetFieldType(ind);
+			v_i->AsVectorVal()->Concretize(t_ind->Yield());
+			}
+		new_r->Assign(ind, aux->ToVal(frame, i));
+		}
 	auto& r = frame[z.v1].record_val;
 	Unref(r);
 	r = new_r;
@@ -2084,9 +2094,17 @@ eval	EvalStrStr(frame[z.v2], z.c)
 internal-op Analyzer--Name
 type VV
 eval	auto atype = frame[z.v2].ToVal(z.t);
-	auto& name = analyzer_mgr->GetComponentName(cast_intrusive<EnumVal>(atype));
+	auto val = atype->AsEnumVal();
 	Unref(frame[z.v1].string_val);
-	frame[z.v1].string_val = new StringVal(name);
+	plugin::Component* component = zeek::analyzer_mgr->Lookup(val);
+	if ( ! component )
+		component = zeek::packet_mgr->Lookup(val);
+	if ( ! component )
+		component = zeek::file_mgr->Lookup(val);
+	if ( component )
+		frame[z.v1].string_val = new StringVal(component->CanonicalName());
+	else
+		frame[z.v1].string_val = new StringVal("<error>");
 
 internal-op Files--Enable-Reassembly
 op1-read

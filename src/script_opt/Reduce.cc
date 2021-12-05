@@ -941,6 +941,12 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e)
 			}
 			break;
 
+		case EXPR_TABLE_CONSTRUCTOR:
+			// These have EXPR_ASSIGN's in them that don't
+			// correspond to actual assignments to variables,
+			// so we don't want to traverse them.
+			return TC_ABORTSTMT;
+
 		default:
 			if ( in_aggr_mod_stmt && (t == EXPR_INDEX || t == EXPR_FIELD) )
 				{

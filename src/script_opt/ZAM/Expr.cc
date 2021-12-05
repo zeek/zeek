@@ -230,7 +230,8 @@ const ZAMStmt ZAMCompiler::CompileAssignToIndex(const NameExpr* lhs, const Index
 	auto n = const_aggr ? nullptr : aggr->AsNameExpr();
 	auto con = const_aggr ? aggr->AsConstExpr() : nullptr;
 
-	if ( indexes.length() == 1 && indexes[0]->GetType()->Tag() == TYPE_VECTOR )
+	if ( indexes.length() == 1 && indexes[0]->GetType()->Tag() == TYPE_VECTOR &&
+	     aggr->GetType()->Tag() != TYPE_TABLE )
 		{
 		auto index1 = indexes[0];
 		if ( index1->Tag() == EXPR_CONST )

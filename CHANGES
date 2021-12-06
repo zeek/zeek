@@ -1,3 +1,7 @@
+4.2.0-dev.408 | 2021-12-06 09:15:24 -0700
+
+  * GH-1768: Properly cleanup existing log stream when recreated on with the same ID (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.406 | 2021-12-01 10:32:34 -0700
 
   * Format Python scripts with yapf. (Benjamin Bannier, Corelight)

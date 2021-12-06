@@ -295,8 +295,10 @@ private:
 	bool CompareFields(const Filter* filter, const WriterFrontend* writer);
 	bool CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter);
 
-	std::vector<Stream *> streams;	// Indexed by stream enum.
-	int rotations_pending;	// Number of rotations not yet finished.
+	bool RemoveStream(unsigned int idx);
+
+	std::vector<Stream*> streams; // Indexed by stream enum.
+	int rotations_pending; // Number of rotations not yet finished.
 	FuncPtr rotation_format_func;
 };
 

@@ -19,4 +19,9 @@ event zeek_init() &priority=20
 	# https://datatracker.ietf.org/doc/html/draft-gross-geneve-00#section-3.4
 	# for details.
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 0x6558, PacketAnalyzer::ANALYZER_ETHERNET);
+
+	# Some additional mappings for protocols that we already handle natively.
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 0x0800, PacketAnalyzer::ANALYZER_IP);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 0x08DD, PacketAnalyzer::ANALYZER_IP);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 0x0808, PacketAnalyzer::ANALYZER_ARP);
 	}

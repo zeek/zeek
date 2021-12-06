@@ -7,8 +7,8 @@
 #include <map>
 
 #include "zeek/EventHandler.h"
+#include "zeek/Tag.h"
 #include "zeek/input/Component.h"
-#include "zeek/input/Tag.h"
 #include "zeek/plugin/ComponentManager.h"
 #include "zeek/threading/SerialTypes.h"
 

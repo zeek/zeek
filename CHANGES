@@ -1,3 +1,7 @@
+4.2.0-dev.410 | 2021-12-06 11:29:32 -0700
+
+  * Remove separate Tag types, note breaking change in NEWS (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.408 | 2021-12-06 09:15:24 -0700
 
   * GH-1768: Properly cleanup existing log stream when recreated on with the same ID (Tim Wojtulewicz, Corelight)

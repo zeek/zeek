@@ -10,11 +10,11 @@ btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 4GB
 
-config: &CONFIG --build-type=release --enable-cpp-tests --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
-static_config: &STATIC_CONFIG --build-type=release --enable-cpp-tests --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install
-sanitizer_config: &SANITIZER_CONFIG --build-type=debug --enable-cpp-tests --disable-broker-tests --sanitizers=address,undefined --enable-fuzzers --enable-coverage
-mobile_ipv6_config: &MOBILE_IPV6_CONFIG --build-type=release --enable-cpp-tests --enable-mobile-ipv6 --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
-openssl30_config: &OPENSSL30_CONFIG --build-type=release --enable-cpp-tests  --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install
+config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
+static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install
+sanitizer_config: &SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address,undefined --enable-fuzzers --enable-coverage
+mobile_ipv6_config: &MOBILE_IPV6_CONFIG --build-type=release --enable-mobile-ipv6 --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
+openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS

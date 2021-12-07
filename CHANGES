@@ -1,3 +1,11 @@
+4.2.0-dev.417 | 2021-12-06 17:00:16 -0800
+
+  * Flip C++ unit tests to being enabled by default (Christian Kreibich, Corelight)
+
+    To disable them, configure with --disable-cpp-tests.
+
+  * Support for unit tests in plugins (Christian Kreibich, Corelight)
+
 4.2.0-dev.410 | 2021-12-06 11:29:32 -0700
 
   * Remove separate Tag types, note breaking change in NEWS (Tim Wojtulewicz, Corelight)

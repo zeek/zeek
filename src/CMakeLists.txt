@@ -629,6 +629,7 @@ install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/patricia.h
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/setsignal.h
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/doctest.h
         DESTINATION include/zeek/3rdparty
 )
 

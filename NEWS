@@ -113,6 +113,11 @@ Changed Functionality
 - The existing tunnel analyzers for AYIYA, Geneve, GTPv1, Teredo, and VXLAN
   are now packet analyzers.
 
+- C++ unit tests are now compiled in by default and can be disabled by
+  configuring the build with --disable-cpp-tests. We removed the former
+  --enable-cpp-tests configure flag. Unit tests now also work in (static and
+  dynamic) Zeek plugins.
+
 Removed Functionality
 ---------------------
 

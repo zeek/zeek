@@ -1,3 +1,7 @@
+4.2.0-dev.419 | 2021-12-07 09:34:45 -0700
+
+  * GH-1764: Update mappings for Geneve analyzer to IP4/IP6/ARP (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.417 | 2021-12-06 17:00:16 -0800
 
   * Flip C++ unit tests to being enabled by default (Christian Kreibich, Corelight)

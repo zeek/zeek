@@ -14,6 +14,9 @@ global check_instances_ready: function(insts: set[string], tc: TableChange, inst
 global add_instance: function(inst: ClusterController::Types::Instance);
 global drop_instance: function(inst: ClusterController::Types::Instance);
 
+global null_config: function(): ClusterController::Types::Configuration;
+global is_null_config: function(config: ClusterController::Types::Configuration): bool;
+
 # The desired set of agents the controller interact with, as provided by the
 # most recent config update sent by the client. They key is a name of each
 # instance. This should match the $name member of the instance records.
@@ -30,6 +33,9 @@ global g_instances_ready: set[string] = set() &on_change=check_instances_ready;
 # agents required by the update.
 global g_config_reqid_pending: string = "";
 
+# The most recent configuration we have successfully deployed. This is also
+# the one we send whenever the client requests it.
+global g_config_current: ClusterController::Types::Configuration;
 
 function send_config_to_agents(req: ClusterController::Request::Request,
                                config: ClusterController::Types::Configuration)
@@ -102,6 +108,16 @@ function drop_instance(inst: ClusterController::Types::Instance)
 		delete g_instances_ready[inst$name];
 
 	ClusterController::Log::info(fmt("dropped instance %s", inst$name));
+	}
+
+function null_config(): ClusterController::Types::Configuration
+	{
+	return ClusterController::Types::Configuration($id="");
+	}
+
+function is_null_config(config: ClusterController::Types::Configuration): bool
+	{
+	return config$id == "";
 	}
 
 event ClusterController::API::notify_agents_ready(instances: set[string])
@@ -249,6 +265,11 @@ event ClusterAgent::API::set_configuration_response(reqid: string, result: Clust
 		ClusterController::Request::finish(r$id);
 		}
 
+	# This is the point where we're really done with the original
+	# set_configuration request. We adopt the configuration as the current
+	# one.
+	g_config_current = req$set_configuration_state$config;
+
 	ClusterController::Log::info(fmt("tx ClusterController::API::set_configuration_response %s",
 	                                 ClusterController::Request::to_string(req)));
 	event ClusterController::API::set_configuration_response(req$id, req$results);
@@ -385,6 +406,11 @@ event ClusterController::API::get_instances_request(reqid: string)
 
 event zeek_init()
 	{
+	# Initialize null config at startup. We will replace it once we have
+	# persistence, and again whenever we complete a client's
+	# set_configuration request.
+	g_config_current = null_config();
+
 	# The controller always listens -- it needs to be able to respond to the
 	# Zeek client. This port is also used by the agents if they connect to
 	# the client. The client doesn't automatically establish or accept

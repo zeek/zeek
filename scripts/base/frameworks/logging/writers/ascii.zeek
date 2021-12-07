@@ -66,6 +66,11 @@ export {
 	## This option is also available as a per-filter ``$config`` option.
 	const json_timestamps: JSON::TimestampFormat = JSON::TS_EPOCH &redef;
 
+	## Handling of optional fields when writing out JSON. By default the
+	## JSON formatter skips key and val when the field is absent. Setting
+	## the following field to T includes the key, with a null value.
+	const json_include_unset_fields = F &redef;
+
 	## If true, include lines with log meta information such as column names
 	## with types, the values of ASCII logging options that are in use, and
 	## the time when the file was opened and closed (the latter at the end).

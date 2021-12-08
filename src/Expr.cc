@@ -2626,7 +2626,7 @@ TypePtr AssignExpr::InitType() const
 	{
 	if ( op1->Tag() != EXPR_LIST )
 		{
-		Error("bad initializer");
+		Error("bad initializer, first operand should be a list");
 		return nullptr;
 		}
 
@@ -3490,7 +3490,10 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 			SetType(init_type(op.get()));
 
 			if ( ! type )
+				{
 				SetError();
+				return;
+				}
 
 			else if ( type->Tag() != TYPE_TABLE || type->AsTableType()->IsSet() )
 				SetError("values in table(...) constructor do not specify a table");

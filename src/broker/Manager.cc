@@ -260,6 +260,9 @@ void Manager::InitPostScript()
 	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
 	options.use_real_time = use_real_time;
 
+	if ( get_option("Broker::disable_forwarding")->AsBool() )
+		options.disable_forwarding = true;
+
 	BrokerConfig config{std::move(options)};
 
 	auto scheduler_policy = get_option("Broker::scheduler_policy")->AsString()->CheckString();

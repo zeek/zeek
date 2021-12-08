@@ -721,8 +721,12 @@ expr:
 			{
 			--in_hook;
 			set_location(@1, @3);
+
 			if ( $3->Tag() != EXPR_CALL )
 				$3->Error("not a valid hook call expression");
+			else if ( $3->AsCallExpr()->Func()->GetType()->AsFuncType()->Flavor() != FUNC_FLAVOR_HOOK )
+				$3->Error("hook keyword should only be used to call hooks");
+
 			$$ = $3;
 			}
 

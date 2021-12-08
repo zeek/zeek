@@ -84,13 +84,12 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 		tunnel_it->second.second = zeek::run_state::network_time;
 
 	if ( gre_version == 0 )
-		ProcessEncapsulatedPacket(run_state::processing_start_time, packet, len, len, data,
-		                          gre_link_type, packet->encap, ip_tunnels[tunnel_idx].first);
+		return ProcessEncapsulatedPacket(run_state::processing_start_time, packet, len, len, data,
+		                                 gre_link_type, packet->encap,
+		                                 ip_tunnels[tunnel_idx].first);
 	else
-		ProcessEncapsulatedPacket(run_state::processing_start_time, packet, inner, packet->encap,
-		                          ip_tunnels[tunnel_idx].first);
-
-	return true;
+		return ProcessEncapsulatedPacket(run_state::processing_start_time, packet, inner,
+		                                 packet->encap, ip_tunnels[tunnel_idx].first);
 	}
 
 /**

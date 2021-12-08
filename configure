@@ -311,6 +311,9 @@ while [ $# -ne 0 ]; do
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS BOOL true
             ;;
+        --disable-zeekctl)
+            append_cache_entry INSTALL_ZEEKCTL BOOL false
+            ;;
         --disable-zkg)
             append_cache_entry INSTALL_ZKG BOOL false
             ;;

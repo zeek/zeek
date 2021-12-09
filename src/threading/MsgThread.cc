@@ -5,6 +5,8 @@
 #include <unistd.h>
 
 #include "zeek/DebugLogger.h"
+#include "zeek/Desc.h"
+#include "zeek/Obj.h"
 #include "zeek/RunState.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/threading/Manager.h"
@@ -341,38 +343,105 @@ void MsgThread::Finished()
 
 void MsgThread::Info(const char* msg)
 	{
-	SendOut(new detail::ReporterMessage(detail::ReporterMessage::INFO, this, msg));
+	ODesc desc;
+
+	if ( auto* location = GetLocationInfo() )
+		{
+		location->Describe(&desc);
+		desc.Add(": ");
+		}
+
+	desc.Add(msg);
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::INFO, this, desc.Description()));
 	}
 
 void MsgThread::Warning(const char* msg)
 	{
-	SendOut(new detail::ReporterMessage(detail::ReporterMessage::WARNING, this, msg));
+	ODesc desc;
+
+	if ( auto* location = GetLocationInfo() )
+		{
+		location->Describe(&desc);
+		desc.Add(": ");
+		}
+
+	desc.Add(msg);
+	SendOut(
+		new detail::ReporterMessage(detail::ReporterMessage::WARNING, this, desc.Description()));
 	}
 
 void MsgThread::Error(const char* msg)
 	{
-	SendOut(new detail::ReporterMessage(detail::ReporterMessage::ERROR, this, msg));
+	ODesc desc;
+
+	if ( auto* location = GetLocationInfo() )
+		{
+		location->Describe(&desc);
+		desc.Add(": ");
+		}
+
+	desc.Add(msg);
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::ERROR, this, desc.Description()));
 	}
 
 void MsgThread::FatalError(const char* msg)
 	{
-	SendOut(new detail::ReporterMessage(detail::ReporterMessage::FATAL_ERROR, this, msg));
+	ODesc desc;
+
+	if ( auto* location = GetLocationInfo() )
+		{
+		location->Describe(&desc);
+		desc.Add(": ");
+		}
+
+	desc.Add(msg);
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::FATAL_ERROR, this,
+	                                    desc.Description()));
 	}
 
 void MsgThread::FatalErrorWithCore(const char* msg)
 	{
-	SendOut(new detail::ReporterMessage(detail::ReporterMessage::FATAL_ERROR_WITH_CORE, this, msg));
+	ODesc desc;
+
+	if ( auto* location = GetLocationInfo() )
+		{
+		location->Describe(&desc);
+		desc.Add(": ");
+		}
+
+	desc.Add(msg);
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::FATAL_ERROR_WITH_CORE, this,
+	                                    desc.Description()));
 	}
 
 void MsgThread::InternalWarning(const char* msg)
 	{
-	SendOut(new detail::ReporterMessage(detail::ReporterMessage::INTERNAL_WARNING, this, msg));
+	ODesc desc;
+
+	if ( auto* location = GetLocationInfo() )
+		{
+		location->Describe(&desc);
+		desc.Add(": ");
+		}
+
+	desc.Add(msg);
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::INTERNAL_WARNING, this,
+	                                    desc.Description()));
 	}
 
 void MsgThread::InternalError(const char* msg)
 	{
 	// This one aborts immediately.
-	fprintf(stderr, "internal error in thread: %s\n", msg);
+	ODesc desc;
+
+	if ( auto* location = GetLocationInfo() )
+		{
+		location->Describe(&desc);
+		desc.Add(": ");
+		}
+
+	desc.Add(msg);
+	fprintf(stderr, "internal error in thread: %s\n", desc.Description());
 	abort();
 	}
 
@@ -380,7 +449,16 @@ void MsgThread::InternalError(const char* msg)
 
 void MsgThread::Debug(DebugStream stream, const char* msg)
 	{
-	SendOut(new detail::DebugMessage(stream, this, msg));
+	ODesc desc;
+
+	if ( auto* location = GetLocationInfo() )
+		{
+		location->Describe(&desc);
+		desc.Add(": ");
+		}
+
+	desc.Add(msg);
+	SendOut(new detail::DebugMessage(stream, this, desc.Description()));
 	}
 
 #endif

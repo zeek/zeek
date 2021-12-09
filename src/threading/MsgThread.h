@@ -8,6 +8,11 @@
 #include "zeek/threading/BasicThread.h"
 #include "zeek/threading/Queue.h"
 
+namespace zeek::detail
+	{
+class Location;
+	}
+
 namespace zeek::threading
 	{
 
@@ -274,6 +279,17 @@ protected:
 	void OnWaitForStop() override;
 	void OnSignalStop() override;
 	void OnKill() override;
+
+	/**
+	 * Method for child classes to override to provide file location
+	 * information in log messages. This is primarily used by the input
+	 * framework's ReaderBackend classes to give more descriptive error
+	 * messages.
+	 *
+	 * @return A Location pointer containing the file location information,
+	 * or nullptr if nothing is available.
+	 */
+	virtual zeek::detail::Location* GetLocationInfo() const { return nullptr; }
 
 private:
 	/**

@@ -55,9 +55,10 @@ Ascii::Ascii(ReaderFrontend* frontend) : ReaderBackend(frontend)
 	fail_on_invalid_lines = false;
 	}
 
-Ascii::~Ascii() { }
-
-void Ascii::DoClose() { }
+void Ascii::DoClose()
+	{
+	read_location.reset();
+	}
 
 bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
@@ -156,6 +157,9 @@ bool Ascii::OpenFile()
 		return ! fail_on_file_problem;
 		}
 
+	read_location = std::make_unique<zeek::detail::Location>();
+	read_location->filename = util::copy_string(fname.c_str());
+
 	StopWarningSuppression();
 	return true;
 	}
@@ -253,6 +257,12 @@ bool Ascii::GetLine(string& str)
 	{
 	while ( getline(file, str) )
 		{
+		if ( read_location )
+			{
+			read_location->first_line++;
+			read_location->last_line++;
+			}
+
 		if ( ! str.size() )
 			continue;
 
@@ -277,6 +287,12 @@ bool Ascii::DoUpdate()
 	{
 	if ( ! OpenFile() )
 		return ! fail_on_file_problem;
+
+	if ( read_location )
+		{
+		read_location->first_line = 0;
+		read_location->last_line = 0;
+		}
 
 	switch ( Info().mode )
 		{

@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+#include "zeek/Obj.h"
 #include "zeek/input/ReaderBackend.h"
 #include "zeek/threading/formatters/Ascii.h"
 
@@ -20,20 +21,16 @@ struct FieldMapping
 	std::string name;
 	TypeTag type;
 	TypeTag subtype; // internal type for sets and vectors
-	int position;
-	int secondary_position; // for ports: pos of the second field
-	bool present;
+	int position = -1;
+	int secondary_position = -1; // for ports: pos of the second field
+	bool present = false;
 
 	FieldMapping(const std::string& arg_name, const TypeTag& arg_type, int arg_position);
 	FieldMapping(const std::string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype,
 	             int arg_position);
 
 	FieldMapping(const FieldMapping& arg);
-	FieldMapping()
-		{
-		position = -1;
-		secondary_position = -1;
-		}
+	FieldMapping() = default;
 
 	FieldMapping subType();
 	};
@@ -45,7 +42,7 @@ class Ascii : public ReaderBackend
 	{
 public:
 	explicit Ascii(ReaderFrontend* frontend);
-	~Ascii() override;
+	~Ascii() override = default;
 
 	// prohibit copying and moving
 	Ascii(const Ascii&) = delete;
@@ -61,6 +58,8 @@ protected:
 	void DoClose() override;
 	bool DoUpdate() override;
 	bool DoHeartbeat(double network_time, double current_time) override;
+
+	zeek::detail::Location* GetLocationInfo() const override { return read_location.get(); }
 
 private:
 	bool ReadHeader(bool useCached);
@@ -92,6 +91,7 @@ private:
 	std::string path_prefix;
 
 	std::unique_ptr<threading::Formatter> formatter;
+	std::unique_ptr<zeek::detail::Location> read_location;
 	};
 
 	} // namespace zeek::input::reader::detail

@@ -84,6 +84,12 @@ New Functionality
   analyzer plugins to detect a protocol via byte matching or other heuristics
   instead of relying solely on a numeric identifier for forwarding.
 
+- The JSON logger's new LogAscii::json_include_unset_fields flag provides
+  control over how to handle unset "&optional" fields. By default it continues
+  to skip such fields entirely. When redef'ing the flag to T it includes such
+  fields, with a "null" value. This simplifies data import use cases that
+  require fields to be present at all times, regardless of their value.
+
 Changed Functionality
 ---------------------
 

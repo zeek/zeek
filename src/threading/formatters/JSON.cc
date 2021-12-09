@@ -28,7 +28,8 @@ bool JSON::NullDoubleWriter::Double(double d)
 	return rapidjson::Writer<rapidjson::StringBuffer>::Double(d);
 	}
 
-JSON::JSON(MsgThread* t, TimeFormat tf) : Formatter(t), surrounding_braces(true)
+JSON::JSON(MsgThread* t, TimeFormat tf, bool arg_include_unset_fields)
+	: Formatter(t), surrounding_braces(true), include_unset_fields(arg_include_unset_fields)
 	{
 	timestamps = tf;
 	}
@@ -44,7 +45,7 @@ bool JSON::Describe(ODesc* desc, int num_fields, const Field* const* fields, Val
 
 	for ( int i = 0; i < num_fields; i++ )
 		{
-		if ( vals[i]->present )
+		if ( vals[i]->present || include_unset_fields )
 			BuildJSON(writer, vals[i], fields[i]->name);
 		}
 
@@ -62,7 +63,7 @@ bool JSON::Describe(ODesc* desc, Value* val, const std::string& name) const
 		return false;
 		}
 
-	if ( ! val->present || name.empty() )
+	if ( (! val->present && ! include_unset_fields) || name.empty() )
 		return true;
 
 	rapidjson::Document doc;
@@ -86,14 +87,14 @@ Value* JSON::ParseValue(const std::string& s, const std::string& name, TypeTag t
 
 void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& name) const
 	{
+	if ( ! name.empty() )
+		writer.Key(name);
+
 	if ( ! val->present )
 		{
 		writer.Null();
 		return;
 		}
-
-	if ( ! name.empty() )
-		writer.Key(name);
 
 	switch ( val->type )
 		{

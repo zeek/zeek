@@ -1,3 +1,7 @@
+4.2.0-dev.425 | 2021-12-09 13:45:17 -0800
+
+  * Add LogAscii::json_include_unset_fields flag to control unset field rendering (Christian Kreibich, Corelight)
+
 4.2.0-dev.423 | 2021-12-09 19:56:43 +0000
 
   * Improve error message for clash between variable and function name (Johanna Amann, Corelight)

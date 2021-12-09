@@ -1,3 +1,12 @@
+4.2.0-dev.423 | 2021-12-09 19:56:43 +0000
+
+  * Improve error message for clash between variable and function name (Johanna Amann, Corelight)
+    Fixes GH-1832
+
+  * Restore --disable-zeekctl configure argument (Tim Wojtulewicz, Corelight)
+
+  * Update plugin.hooks baseline for recent Geneve change (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.419 | 2021-12-07 09:34:45 -0700
 
   * GH-1764: Update mappings for Geneve analyzer to IP4/IP6/ARP (Tim Wojtulewicz, Corelight)

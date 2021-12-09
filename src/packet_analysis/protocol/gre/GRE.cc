@@ -85,7 +85,6 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 				{
 				eth_len = 14;
 				gre_link_type = DLT_EN10MB;
-				proto_typ = ntohs(*((uint16_t*)(data + gre_len + eth_len - 2)));
 				}
 			else
 				{
@@ -113,7 +112,6 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 						return false;
 						}
 					}
-				proto_typ = ntohs(*((uint16_t*)(data + gre_len + erspan_len + eth_len - 2)));
 				}
 			else
 				{
@@ -144,8 +142,32 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 						return false;
 						}
 					}
+				}
+			else
+				{
+				Weird("truncated_GRE", packet);
+				return false;
+				}
+			}
 
-				proto_typ = ntohs(*((uint16_t*)(data + gre_len + erspan_len + eth_len - 2)));
+		else if ( proto_typ == 0x8200 )
+			{
+			// ARUBA. Following headers seem like they're always a 26-byte 802.11 QoS header, then
+			// an 8-byte LLC header, then IPv4. There's very little in the way of documentation
+			// for ARUBA's header format. This is all based on the one sample file we have that
+			// contains it.
+			if ( len > gre_len + 34 )
+				{
+				gre_link_type = DLT_EN10MB;
+				erspan_len = 34;
+
+				// TODO: fix this, but it's gonna require quite a bit more surgery to the GRE
+				// analyzer to make it more independent from the IPTunnel analyzer.
+				// Setting gre_version to 1 here tricks the IPTunnel analyzer into treating the
+				// first header as IP instead of Ethernet which it does by default when
+				// gre_version is 0.
+				gre_version = 1;
+				proto = (data[gre_len + 34] & 0xF0) >> 4;
 				}
 			else
 				{
@@ -187,7 +209,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		return false;
 		}
 
-	if ( gre_version == 1 )
+	if ( gre_version == 1 && proto_typ != 0x8200 )
 		{
 		uint16_t ppp_proto = ntohs(*((uint16_t*)(data + gre_len + 2)));
 

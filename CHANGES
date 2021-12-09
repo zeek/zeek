@@ -1,3 +1,9 @@
+4.2.0-dev.428 | 2021-12-09 14:58:53 -0700
+
+  * GH-1125: Support GRE ARUBA headers (Tim Wojtulewicz, Corelight)
+
+  * Fix ethertype for ARP in Geneve forwarding rules (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.425 | 2021-12-09 13:45:17 -0800
 
   * Add LogAscii::json_include_unset_fields flag to control unset field rendering (Christian Kreibich, Corelight)

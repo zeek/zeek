@@ -618,8 +618,14 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
 	std::optional<FuncType::Prototype> prototype;
 
 	if ( id->GetType() )
+		{
+		if ( id->GetType()->Tag() != TYPE_FUNC )
+			{
+			id->Error("Function clash with previous definition with incompatible type", t.get());
+			reporter->FatalError("invalid definition of '%s' (see previous errors)", id->Name());
+			}
 		prototype = get_prototype(id, t);
-
+		}
 	else if ( is_redef )
 		id->Error("redef of not-previously-declared value");
 

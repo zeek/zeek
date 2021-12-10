@@ -1,3 +1,9 @@
+4.2.0-dev.432 | 2021-12-10 09:28:23 -0700
+
+  * GH-1741: Print error if calling a non-hook with hook keyword (Tim Wojtulewicz, Corelight)
+
+  * GH-1740: Report a better error message if table key is not a list (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.428 | 2021-12-09 14:58:53 -0700
 
   * GH-1125: Support GRE ARUBA headers (Tim Wojtulewicz, Corelight)

@@ -15,7 +15,7 @@ hook myhook(i: count)
 hook myhook(i: count) &priority=-1
     {
     print "other myhook()", i;
-	}
+    }
 
 function indirect(): hook(i: count)
     {
@@ -66,6 +66,11 @@ hook myhook(i: count)
 	if ( i == 0 ) break;
 	}
 
+function foo()
+	{
+	print "foo()";
+	}
+
 event zeek_init()
 	{
 	myhook(3);
@@ -78,5 +83,6 @@ event zeek_init()
 	if ( h(3) )
 		print "hmm";
 	print "done";
+	hook foo();
 	}
 @TEST-END-FILE

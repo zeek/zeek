@@ -61,8 +61,9 @@ int conditional_epoch = 0;
 // Whether the current file has included conditionals (so far).
 bool current_file_has_conditionals = false;
 
-// The files that include conditionals.  Not currently used, but will be
-// in the future once we add --optimize-files=/pat/.
+// The files that include conditionals.  Used when compiling scripts to C++
+// to flag issues for --optimize-files=/pat/ where one of the files includes
+// conditional code.
 std::unordered_set<std::string> files_with_conditionals;
 
 zeek::detail::int_list if_stack;
@@ -692,6 +693,8 @@ static int load_files(const char* orig_file)
 	// every Obj created when parsing it.
 	yylloc.filename = filename = zeek::util::copy_string(file_path.c_str());
 
+	current_file_has_conditionals = files_with_conditionals.count(filename) > 0;
+
 	entry_cond_depth.push_back(conditional_depth);
 
 	return 1;
@@ -873,7 +876,6 @@ int yywrap()
 		}
 
 	last_filename = ::filename;
-	current_file_has_conditionals = false;
 
 	if ( zeek::reporter->Errors() > 0 )
 		return 1;
@@ -884,8 +886,11 @@ int yywrap()
 		delete file_stack.remove_nth(file_stack.length() - 1);
 
 	if ( YY_CURRENT_BUFFER )
+		{
 		// There's more on the stack to scan.
+		current_file_has_conditionals = files_with_conditionals.count(::filename) > 0;
 		return 0;
+		}
 
 	// Stack is now empty.
 	while ( essential_input_files.length() > 0 || input_files.length() > 0 )

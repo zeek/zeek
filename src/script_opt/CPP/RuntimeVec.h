@@ -80,4 +80,9 @@ extern VectorValPtr vec_coerce_to_bro_int_t__CPP(const VectorValPtr& v, TypePtr 
 extern VectorValPtr vec_coerce_to_bro_uint_t__CPP(const VectorValPtr& v, TypePtr targ);
 extern VectorValPtr vec_coerce_to_double__CPP(const VectorValPtr& v, TypePtr targ);
 
+// A dummy function used during code generation for unsupported operations
+// that mix vector and scalar arguments.  We don't define it in RuntimeVec.cc
+// so that it'll generate a linking error.
+extern VectorValPtr vec_scalar_mixed_with_vector();
+
 	} // namespace zeek::detail

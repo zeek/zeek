@@ -1,3 +1,9 @@
+4.2.0-dev.448 | 2021-12-10 15:35:34 -0700
+
+  * update btest to no longer use (unsupported) %S formatting, no longer needed (Vern Paxson, Corelight)
+
+  * replace --optimize-only with --optimize-funcs and --optimize-files (Vern Paxson, Corelight)
+
 4.2.0-dev.444 | 2021-12-10 13:13:13 -0700
 
   * reintroduction of "-O add-C++" option (Vern Paxson, Corelight)

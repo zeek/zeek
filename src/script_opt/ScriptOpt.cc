@@ -39,14 +39,14 @@ static ScriptFuncPtr global_stmts;
 
 void analyze_func(ScriptFuncPtr f)
 	{
-	// Even if we're doing --optimize-only, we still track all functions
-	// here because the inliner will need the full list.
+	// Even if we're analyzing only a subset of the scripts, we still
+	// track all functions here because the inliner will need the full list.
 	funcs.emplace_back(f, f->GetScope(), f->CurrentBody(), f->CurrentPriority());
 	}
 
 const FuncInfo* analyze_global_stmts(Stmt* stmts)
 	{
-	// We ignore analysis_options.only_func - if it's in use, later
+	// We ignore analysis_options.only_{files,funcs} - if they're in use, later
 	// logic will keep this function from being compiled, but it's handy
 	// now to enter it into "funcs" so we have a FuncInfo to return.
 
@@ -63,6 +63,55 @@ const FuncInfo* analyze_global_stmts(Stmt* stmts)
 	funcs.emplace_back(global_stmts, sc, stmts_p, 0);
 
 	return &funcs.back();
+	}
+
+void add_func_analysis_pattern(AnalyOpt& opts, const char* pat)
+	{
+	try
+		{
+		std::string full_pat = std::string("^(") + pat + ")$";
+		opts.only_funcs.emplace_back(std::regex(full_pat));
+		}
+	catch ( const std::regex_error& e )
+		{
+		reporter->FatalError("bad file analysis pattern: %s", pat);
+		}
+	}
+
+void add_file_analysis_pattern(AnalyOpt& opts, const char* pat)
+	{
+	try
+		{
+		std::string full_pat = std::string("^.*(") + pat + ").*$";
+		opts.only_files.emplace_back(std::regex(full_pat));
+		}
+	catch ( const std::regex_error& e )
+		{
+		reporter->FatalError("bad file analysis pattern: %s", pat);
+		}
+	}
+
+bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body)
+	{
+	auto& ofuncs = analysis_options.only_funcs;
+	auto& ofiles = analysis_options.only_files;
+
+	if ( ofiles.empty() && ofuncs.empty() )
+		return true;
+
+	auto fn = f->Name();
+
+	for ( auto& o : ofuncs )
+		if ( std::regex_match(fn, o) )
+			return true;
+
+	fn = body->GetLocationInfo()->filename;
+
+	for ( auto& o : ofiles )
+		if ( std::regex_match(fn, o) )
+			return true;
+
+	return false;
 	}
 
 static bool optimize_AST(ScriptFunc* f, std::shared_ptr<ProfileFunc>& pf,
@@ -97,7 +146,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 	if ( reporter->Errors() > 0 )
 		return;
 
-	if ( analysis_options.only_func )
+	if ( analysis_options.dump_xform )
 		printf("Original: %s\n", obj_desc(body.get()).c_str());
 
 	if ( body->Tag() == STMT_CPP )
@@ -245,11 +294,11 @@ static void init_options()
 	if ( usage )
 		analysis_options.usage_issues = 1;
 
-	if ( ! analysis_options.only_func )
+	if ( analysis_options.only_funcs.empty() )
 		{
 		auto zo = getenv("ZEEK_ONLY");
 		if ( zo )
-			analysis_options.only_func = zo;
+			add_file_analysis_pattern(analysis_options, zo);
 		}
 
 	if ( analysis_options.gen_ZAM )
@@ -262,14 +311,8 @@ static void init_options()
 	if ( analysis_options.dump_ZAM )
 		analysis_options.gen_ZAM_code = true;
 
-	if ( analysis_options.only_func )
+	if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() )
 		{
-		// Note, this comes after the statement above because for
-		// --optimize-only we don't necessarily want to go all
-		// the way to *generating* ZAM code, though we'll want to
-		// dump it *if* we generate it.
-		analysis_options.dump_xform = analysis_options.dump_ZAM = true;
-
 		if ( analysis_options.gen_ZAM_code || generating_CPP )
 			analysis_options.report_uncompilable = true;
 		}
@@ -278,8 +321,8 @@ static void init_options()
 	     ! generating_CPP )
 		reporter->FatalError("report-uncompilable requires generation of ZAM or C++");
 
-	if ( analysis_options.only_func || analysis_options.optimize_AST ||
-	     analysis_options.gen_ZAM_code || analysis_options.usage_issues > 0 )
+	if ( analysis_options.optimize_AST || analysis_options.gen_ZAM_code ||
+	     analysis_options.usage_issues > 0 )
 		analysis_options.activate = true;
 	}
 
@@ -388,54 +431,6 @@ static void generate_CPP(std::unique_ptr<ProfileFuncs>& pfs)
 	CPPCompile cpp(funcs, *pfs, gen_name, add, standalone, report);
 	}
 
-static void find_when_funcs(std::unique_ptr<ProfileFuncs>& pfs,
-                            std::unordered_set<const ScriptFunc*>& when_funcs)
-	{
-	// Figure out which functions either directly or indirectly
-	// appear in "when" clauses.
-
-	// Which functions we still need to analyze.
-	std::unordered_set<const ScriptFunc*> when_funcs_to_do;
-
-	for ( auto& f : funcs )
-		if ( f.Profile()->WhenCalls().size() > 0 )
-			{
-			when_funcs.insert(f.Func());
-
-			for ( auto& bf : f.Profile()->WhenCalls() )
-				{
-				ASSERT(pfs->FuncProf(bf));
-				when_funcs_to_do.insert(bf);
-				}
-			}
-
-	// Set of new functions to put on to-do list.  Separate from
-	// the to-do list itself so we don't modify it while iterating
-	// over it.
-	std::unordered_set<const ScriptFunc*> new_to_do;
-
-	while ( when_funcs_to_do.size() > 0 )
-		{
-		for ( auto& wf : when_funcs_to_do )
-			{
-			when_funcs.insert(wf);
-
-			for ( auto& wff : pfs->FuncProf(wf)->ScriptCalls() )
-				{
-				if ( when_funcs.count(wff) > 0 )
-					// We've already processed this
-					// function.
-					continue;
-
-				new_to_do.insert(wff);
-				}
-			}
-
-		when_funcs_to_do = new_to_do;
-		new_to_do.clear();
-		}
-	}
-
 static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	{
 	if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST )
@@ -454,12 +449,6 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 		f.SetSkip(false);
 
 	pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
-
-	// set of functions involved (directly or indirectly) in "when"
-	// clauses.
-	std::unordered_set<const ScriptFunc*> when_funcs;
-
-	find_when_funcs(pfs, when_funcs);
 
 	bool report_recursive = analysis_options.report_recursive;
 	std::unique_ptr<Inliner> inl;
@@ -501,13 +490,15 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 			}
 		}
 
+	bool did_one = false;
+
 	for ( auto& f : funcs )
 		{
 		auto func = f.Func();
 
-		if ( analysis_options.only_func )
+		if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() )
 			{
-			if ( *analysis_options.only_func != func->Name() )
+			if ( ! should_analyze(f.FuncPtr(), f.Body()) )
 				continue;
 			}
 
@@ -519,7 +510,11 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 		auto new_body = f.Body();
 		optimize_func(func, f.ProfilePtr(), f.Scope(), new_body);
 		f.SetBody(new_body);
+		did_one = true;
 		}
+
+	if ( ! did_one )
+		reporter->FatalError("no matching functions/files for -O ZAM");
 	}
 
 void analyze_scripts()
@@ -532,23 +527,30 @@ void analyze_scripts()
 		did_init = true;
 		}
 
+	auto& ofuncs = analysis_options.only_funcs;
+	auto& ofiles = analysis_options.only_files;
+
 	if ( ! analysis_options.activate && ! analysis_options.inliner && ! generating_CPP &&
 	     ! analysis_options.report_CPP && ! analysis_options.use_CPP )
-		// No work to do, avoid profiling overhead.
-		return;
+		{ // No work to do, avoid profiling overhead.
+		if ( ! ofuncs.empty() )
+			reporter->FatalError("--optimize-funcs used but no optimization specified");
+		if ( ! ofiles.empty() )
+			reporter->FatalError("--optimize-files used but no optimization specified");
 
-	if ( analysis_options.gen_CPP )
-		{
-		if ( analysis_options.only_func )
-			{ // deactivate all functions except the target one
-			for ( auto& func : funcs )
-				{
-				auto fn = func.Func()->Name();
-				if ( *analysis_options.only_func != fn )
-					func.SetSkip(true);
-				}
-			}
+		return;
 		}
+
+	bool have_one_to_do = false;
+
+	for ( auto& func : funcs )
+		if ( should_analyze(func.FuncPtr(), func.Body()) )
+			have_one_to_do = true;
+		else
+			func.SetSkip(true);
+
+	if ( ! have_one_to_do )
+		reporter->FatalError("no matching functions/files for C++ compilation");
 
 	// Now that everything's parsed and BiF's have been initialized,
 	// profile the functions.
@@ -568,6 +570,9 @@ void analyze_scripts()
 
 	if ( generating_CPP )
 		{
+		if ( analysis_options.gen_ZAM )
+			reporter->FatalError("-O ZAM and -O gen-C++ conflict");
+
 		generate_CPP(pfs);
 		exit(0);
 		}

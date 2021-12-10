@@ -12,13 +12,11 @@ namespace zeek::detail
 using namespace std;
 
 CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs, const string& gen_name,
-                       const string& _addl_name, CPPHashManager& _hm, bool _standalone,
-                       bool report_uncompilable)
-	: funcs(_funcs), pfs(_pfs), hm(_hm), standalone(_standalone)
+                       bool add, bool _standalone, bool report_uncompilable)
+	: funcs(_funcs), pfs(_pfs), standalone(_standalone)
 	{
-	addl_name = _addl_name;
 	auto target_name = gen_name.c_str();
-	auto mode = "w";
+	auto mode = add ? "a" : "w";
 
 	write_file = fopen(target_name, mode);
 	if ( ! write_file )
@@ -26,18 +24,32 @@ CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs, const strin
 		reporter->Error("can't open C++ target file %s", target_name);
 		exit(1);
 		}
-	else
+
+	if ( add )
 		{
-		// Create an empty "additional" file.
-		auto addl_f = fopen(addl_name.c_str(), "w");
-		if ( ! addl_f )
+		// We need a unique number to associate with the name
+		// space for the code we're adding.  A convenient way to
+		// generate this safely is to use the present size of the
+		// file we're appending to.  That guarantees that every
+		// incremental compilation will wind up with a different
+		// number.
+		struct stat st;
+		if ( fstat(fileno(write_file), &st) != 0 )
 			{
-			reporter->Error("can't open C++ additional file %s", addl_name.c_str());
+			char buf[256];
+			util::zeek_strerror_r(errno, buf, sizeof(buf));
+			reporter->Error("fstat failed on %s: %s", target_name, buf);
 			exit(1);
 			}
 
-		fclose(addl_f);
+		// We use a value of "0" to mean "we're not appending,
+		// we're generating from scratch", so make sure we're
+		// distinct from that.
+		addl_tag = st.st_size + 1;
 		}
+
+	else
+		addl_tag = 0;
 
 	Compile(report_uncompilable);
 	}
@@ -84,15 +96,6 @@ void CPPCompile::Compile(bool report_uncompilable)
 				        reason);
 			not_fully_compilable.insert(func.Func()->Name());
 			}
-
-		auto h = func.Profile()->HashVal();
-		if ( hm.HasHash(h) )
-			{
-			// Track the previously compiled instance
-			// of this function.
-			auto n = func.Func()->Name();
-			hashed_funcs[n] = hm.FuncBodyName(h);
-			}
 		}
 
 	// Track all of the types we'll be using.
@@ -111,7 +114,7 @@ void CPPCompile::Compile(bool report_uncompilable)
 		CreateGlobal(g);
 
 	for ( const auto& e : pfs.Events() )
-		if ( AddGlobal(e, "gl", false) )
+		if ( AddGlobal(e, "gl") )
 			Emit("EventHandlerPtr %s_ev;", globals[string(e)]);
 
 	for ( const auto& t : pfs.RepTypes() )
@@ -177,9 +180,9 @@ void CPPCompile::GenProlog()
 	if ( addl_tag == 0 )
 		{
 		Emit("#include \"zeek/script_opt/CPP/Runtime.h\"\n");
-		Emit("namespace zeek::detail { //\n");
 		}
 
+	Emit("namespace zeek::detail { //\n");
 	Emit("namespace CPP_%s { // %s\n", Fmt(addl_tag), working_dir);
 
 	// The following might-or-might-not wind up being populated/used.
@@ -273,10 +276,7 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 		// Hash in the location associated with this compilation
 		// pass, to get a final hash that avoids conflicts with
 		// identical-but-in-a-different-context function bodies
-		// when compiling potentially conflicting additional code
-		// (which we want to support to enable quicker test suite
-		// runs by enabling multiple tests to be compiled into the
-		// same binary).
+		// when compiling potentially conflicting additional code.
 		h = merge_p_hashes(h, p_hash(cf_locs[f]));
 
 	auto fi = func_index.find(f);
@@ -418,11 +418,6 @@ void CPPCompile::GenEpilog()
 	GenInitHook();
 
 	Emit("} // %s\n\n", scope_prefix(addl_tag));
-
-	if ( addl_tag > 0 )
-		return;
-
-	Emit("#include \"" + addl_name + "\"\n");
 	Emit("} // zeek::detail");
 	}
 
@@ -437,10 +432,6 @@ bool CPPCompile::IsCompilable(const FuncInfo& func, const char** reason)
 		*reason = nullptr;
 
 	if ( func.ShouldSkip() )
-		return false;
-
-	if ( hm.HasHash(func.Profile()->HashVal()) )
-		// We've already compiled it.
 		return false;
 
 	return true;

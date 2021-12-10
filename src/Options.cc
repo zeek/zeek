@@ -198,6 +198,7 @@ static void print_analysis_help()
 	fprintf(stderr, "    xform	transform scripts to \"reduced\" form\n");
 
 	fprintf(stderr, "\n--optimize options when generating C++:\n");
+	fprintf(stderr, "    add-C++	add C++ script bodies to existing generated code\n");
 	fprintf(stderr, "    gen-C++	generate C++ script bodies\n");
 	fprintf(stderr, "    gen-standalone-C++	generate \"standalone\" C++ script bodies\n");
 	fprintf(stderr, "    help	print this list\n");
@@ -230,6 +231,8 @@ static void set_analysis_option(const char* opt, Options& opts)
 		a_o.activate = a_o.dump_xform = true;
 	else if ( util::streq(opt, "dump-ZAM") )
 		a_o.activate = a_o.dump_ZAM = true;
+	else if ( util::streq(opt, "add-C++") )
+		a_o.add_CPP = true;
 	else if ( util::streq(opt, "gen-C++") )
 		a_o.gen_CPP = true;
 	else if ( util::streq(opt, "gen-standalone-C++") )

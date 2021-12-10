@@ -21,19 +21,8 @@ template <class T> void CPPTracker<T>::AddKey(IntrusivePtr<T> key, p_hash_type h
 
 	if ( map2.count(h) == 0 )
 		{
-		int index;
-		if ( mapper && mapper->count(h) > 0 )
-			{
-			const auto& pair = (*mapper)[h];
-			index = pair.index;
-			scope2[h] = Fmt(pair.scope);
-			inherited.insert(h);
-			}
-		else
-			{
-			index = num_non_inherited++;
-			keys.push_back(key);
-			}
+		auto index = keys.size();
+		keys.push_back(key);
 
 		map2[h] = index;
 		reps[h] = key.get();
@@ -57,11 +46,6 @@ template <class T> string CPPTracker<T>::KeyName(const T* key)
 		return gi->second->Name();
 
 	auto index = map2[hash];
-
-	string scope;
-	if ( IsInherited(hash) )
-		scope = scope_prefix(scope2[hash]);
-
 	string ind = Fmt(index);
 	string full_name;
 
@@ -70,18 +54,7 @@ template <class T> string CPPTracker<T>::KeyName(const T* key)
 	else
 		full_name = base_name + "_" + ind + "__CPP";
 
-	return scope + full_name;
-	}
-
-template <class T> void CPPTracker<T>::LogIfNew(IntrusivePtr<T> key, int scope, FILE* log_file)
-	{
-	if ( IsInherited(key) )
-		return;
-
-	auto hash = map[key.get()];
-	auto index = map2[hash];
-
-	fprintf(log_file, "hash\n%llu %d %d\n", hash, index, scope);
+	return full_name;
 	}
 
 template <class T> p_hash_type CPPTracker<T>::Hash(IntrusivePtr<T> key) const

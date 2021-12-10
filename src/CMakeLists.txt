@@ -390,7 +390,6 @@ set(MAIN_SRCS
     script_opt/CPP/Exprs.cc
     script_opt/CPP/Func.cc
     script_opt/CPP/GenFunc.cc
-    script_opt/CPP/HashMgr.cc
     script_opt/CPP/Inits.cc
     script_opt/CPP/InitsInfo.cc
     script_opt/CPP/RuntimeInits.cc

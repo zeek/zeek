@@ -1,3 +1,7 @@
+4.2.0-dev.434 | 2021-12-10 13:11:10 -0700
+
+  * updates to ZAM to track recent changes in script semantics (Vern Paxson, Corelight)
+
 4.2.0-dev.432 | 2021-12-10 09:28:23 -0700
 
   * GH-1741: Print error if calling a non-hook with hook keyword (Tim Wojtulewicz, Corelight)

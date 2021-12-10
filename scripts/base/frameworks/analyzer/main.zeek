@@ -53,7 +53,7 @@ export {
 	## ports: The set of well-known ports to associate with the analyzer.
 	##
 	## Returns: True if the ports were successfully registered.
-	global register_for_ports: function(tag: AllAnalyzers::Tag, ports: set[port]) : bool;
+	global register_for_ports: function(tag: Analyzer::Tag, ports: set[port]) : bool;
 
 	## Registers an individual well-known port for an analyzer. If a future
 	## connection on this port is seen, the analyzer will be automatically
@@ -65,7 +65,7 @@ export {
 	## p: The well-known port to associate with the analyzer.
 	##
 	## Returns: True if the port was successfully registered.
-	global register_for_port: function(tag: AllAnalyzers::Tag, p: port) : bool;
+	global register_for_port: function(tag: Analyzer::Tag, p: port) : bool;
 
 	## Returns a set of all well-known ports currently registered for a
 	## specific analyzer.

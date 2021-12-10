@@ -828,21 +828,37 @@ extern bool same_type(const Type& t1, const Type& t2, bool is_init = false,
 inline bool same_type(const TypePtr& t1, const TypePtr& t2, bool is_init = false,
                       bool match_record_field_names = true)
 	{
+	// If the pointers are identical, the type should be the same type.
+	if ( t1.get() == t2.get() )
+		return true;
+
 	return same_type(*t1, *t2, is_init, match_record_field_names);
 	}
 inline bool same_type(const Type* t1, const Type* t2, bool is_init = false,
                       bool match_record_field_names = true)
 	{
+	// If the pointers are identical, the type should be the same type.
+	if ( t1 == t2 )
+		return true;
+
 	return same_type(*t1, *t2, is_init, match_record_field_names);
 	}
 inline bool same_type(const TypePtr& t1, const Type* t2, bool is_init = false,
                       bool match_record_field_names = true)
 	{
+	// If the pointers are identical, the type should be the same type.
+	if ( t1.get() == t2 )
+		return true;
+
 	return same_type(*t1, *t2, is_init, match_record_field_names);
 	}
 inline bool same_type(const Type* t1, const TypePtr& t2, bool is_init = false,
                       bool match_record_field_names = true)
 	{
+	// If the pointers are identical, the type should be the same type.
+	if ( t1 == t2.get() )
+		return true;
+
 	return same_type(*t1, *t2, is_init, match_record_field_names);
 	}
 

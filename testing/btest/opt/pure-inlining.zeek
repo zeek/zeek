@@ -4,8 +4,7 @@
 # Tests pure inlining of scripts (no other optimization/compilation used).
 # The non-recursive functions should be (recursively!) inlined into the
 # body of my_handler, while neither the directly-recursive nor the
-# mutually recursive ones should be.  We print out each function body
-# in its transformed form (format %S) to test this.
+# mutually recursive ones should be.
 
 function non_recursiveA(x: double, y: double): double
 	{
@@ -56,12 +55,12 @@ event my_handler()
 
 event zeek_init()
 	{
-	print fmt("%S", non_recursiveA);
-	print fmt("%S", non_recursiveB);
-	print fmt("%S", recursive);
-	print fmt("%S", mutually_recursiveA);
-	print fmt("%S", mutually_recursiveB);
-	print fmt("%S", my_handler);
+	print fmt("%s", non_recursiveA);
+	print fmt("%s", non_recursiveB);
+	print fmt("%s", recursive);
+	print fmt("%s", mutually_recursiveA);
+	print fmt("%s", mutually_recursiveB);
+	print fmt("%s", my_handler);
 
 	event my_handler();
 	}

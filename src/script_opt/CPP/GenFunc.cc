@@ -206,6 +206,10 @@ string CPPCompile::BodyName(const FuncInfo& func)
 		string fns = fn;
 		transform(fns.begin(), fns.end(), fns.begin(), canonicalize);
 
+		if ( ! isalpha(fns[0]) )
+			// This can happen for filenames beginning with numbers.
+			fns = "_" + fns;
+
 		fname = fns + "__" + fname;
 		}
 

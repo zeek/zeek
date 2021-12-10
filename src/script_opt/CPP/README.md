@@ -73,9 +73,7 @@ The following workflow assumes you are in the `build/` subdirectory:
 
 1. `./src/zeek -O gen-C++ target.zeek`  
 The generated code is written to
-`CPP-gen.cc`.  The compiler will also produce
-a file `CPP-hashes.dat`, for use by an advanced feature, and an
-empty `CPP-gen-addl.h` file (same).
+`CPP-gen.cc`.
 2. `ninja` or `make` to recompile Zeek
 3. `./src/zeek -O use-C++ target.zeek`  
 Executes with each function/hook/event
@@ -109,6 +107,10 @@ additional constraints compared to the current `gen-C++` functionality.
 On the other hand, it's possible (not yet established) that code created
 using `gen-C++` can be made to compile significantly faster than
 standalone code.
+
+Another option, `-O add-C++`, instead _appends_ the generated code to existing C++ in `CPP-gen.cc`.
+You can use this option repeatedly for different scripts and then
+compile the collection _en masse_.
 
 There are additional workflows relating to running the test suite, which
 we document only briefly here as they're likely going to change or go away

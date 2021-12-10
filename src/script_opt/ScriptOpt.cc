@@ -33,7 +33,7 @@ static std::vector<FuncInfo> funcs;
 static ZAMCompiler* ZAM = nullptr;
 
 static bool generating_CPP = false;
-static std::string hash_dir; // for storing hashes of previous compilations
+static std::string CPP_dir; // where to generate C++ code
 
 static ScriptFuncPtr global_stmts;
 
@@ -203,9 +203,9 @@ static void check_env_opt(const char* opt, bool& opt_flag)
 
 static void init_options()
 	{
-	auto hd = getenv("ZEEK_HASH_DIR");
-	if ( hd )
-		hash_dir = std::string(hd) + "/";
+	auto cppd = getenv("ZEEK_CPP_DIR");
+	if ( cppd )
+		CPP_dir = std::string(cppd) + "/";
 
 	// ZAM-related options.
 	check_env_opt("ZEEK_DUMP_XFORM", analysis_options.dump_xform);
@@ -221,13 +221,14 @@ static void init_options()
 	check_env_opt("ZEEK_PROFILE", analysis_options.profile_ZAM);
 
 	// Compile-to-C++-related options.
+	check_env_opt("ZEEK_ADD_CPP", analysis_options.add_CPP);
 	check_env_opt("ZEEK_GEN_CPP", analysis_options.gen_CPP);
 	check_env_opt("ZEEK_GEN_STANDALONE_CPP", analysis_options.gen_standalone_CPP);
 	check_env_opt("ZEEK_COMPILE_ALL", analysis_options.compile_all);
 	check_env_opt("ZEEK_REPORT_CPP", analysis_options.report_CPP);
 	check_env_opt("ZEEK_USE_CPP", analysis_options.use_CPP);
 
-	if ( analysis_options.gen_standalone_CPP )
+	if ( analysis_options.gen_standalone_CPP || analysis_options.add_CPP )
 		analysis_options.gen_CPP = true;
 
 	if ( analysis_options.gen_CPP )
@@ -378,15 +379,13 @@ static void use_CPP()
 
 static void generate_CPP(std::unique_ptr<ProfileFuncs>& pfs)
 	{
-	const auto hash_name = hash_dir + "CPP-hashes";
+	const auto gen_name = CPP_dir + "CPP-gen.cc";
 
-	auto hm = std::make_unique<CPPHashManager>(hash_name.c_str());
+	const bool add = analysis_options.add_CPP;
+	const bool standalone = analysis_options.gen_standalone_CPP;
+	const bool report = analysis_options.report_uncompilable;
 
-	const auto gen_name = hash_dir + "CPP-gen.cc";
-	const auto addl_name = hash_dir + "CPP-gen-addl.h";
-
-	CPPCompile cpp(funcs, *pfs, gen_name, addl_name, *hm, analysis_options.gen_standalone_CPP,
-	               analysis_options.report_uncompilable);
+	CPPCompile cpp(funcs, *pfs, gen_name, add, standalone, report);
 	}
 
 static void find_when_funcs(std::unique_ptr<ProfileFuncs>& pfs,

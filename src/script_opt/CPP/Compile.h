@@ -4,7 +4,6 @@
 
 #include "zeek/Desc.h"
 #include "zeek/script_opt/CPP/Func.h"
-#include "zeek/script_opt/CPP/HashMgr.h"
 #include "zeek/script_opt/CPP/InitsInfo.h"
 #include "zeek/script_opt/CPP/Tracker.h"
 #include "zeek/script_opt/CPP/Util.h"
@@ -15,10 +14,9 @@
 // functionality into a number of groups (see below), these interact with
 // one another, and in particular with various member variables, enough
 // so that it's not clear there's benefit to further splitting the
-// functionality into multiple classes.  (Some splitting has already been
-// done for more self-contained functionality, resulting in the CPPTracker
-// and CPPHashManager classes, and initialization information in
-// InitsInfo.{h,cc} and RuntimeInits.{h,cc}.)
+// functionality into multiple classes.  (Some splitting has already been done
+// for more self-contained functionality, resulting in the CPPTracker class
+// and initialization information in InitsInfo.{h,cc} and RuntimeInits.{h,cc}.)
 //
 // Most aspects of translating to C++ have a straightforward nature.
 // We can turn many Zeek script statements directly into the C++ that's
@@ -129,8 +127,7 @@ class CPPCompile
 	{
 public:
 	CPPCompile(std::vector<FuncInfo>& _funcs, ProfileFuncs& pfs, const std::string& gen_name,
-	           const std::string& addl_name, CPPHashManager& _hm, bool _standalone,
-	           bool report_uncompilable);
+	           bool add, bool _standalone, bool report_uncompilable);
 	~CPPCompile();
 
 	// Constructing a CPPCompile object does all of the compilation.
@@ -317,10 +314,6 @@ private:
 	// The global profile of all of the functions.
 	ProfileFuncs& pfs;
 
-	// Hash-indexed information about previously compiled code (and used
-	// to update it from this compilation run).
-	CPPHashManager& hm;
-
 	// Script functions that we are able to compile.  We compute
 	// these ahead of time so that when compiling script function A
 	// which makes a call to script function B, we know whether
@@ -369,11 +362,6 @@ private:
 	// See Vars.cc for definitions.
 	//
 
-	// Returns true if the current compilation context has collisions
-	// with previously generated code (globals with conflicting types
-	// or initialization values, or types with differing elements).
-	bool CheckForCollisions();
-
 	// Generate declarations associated with the given global, and, if
 	// it's used as a variable (not just as a function being called),
 	// track it as such.
@@ -385,10 +373,8 @@ private:
 
 	// Register the given global name.  "suffix" distinguishs particular
 	// types of globals, such as the names of bifs, global (non-function)
-	// variables, or compiled Zeek functions.  If "track" is true then
-	// if we're compiling incrementally, and this is a new global not
-	// previously compiled, then we track its hash for future compilations.
-	bool AddGlobal(const std::string& g, const char* suffix, bool track);
+	// variables, or compiled Zeek functions.
+	bool AddGlobal(const std::string& g, const char* suffix);
 
 	// Tracks that the body we're currently compiling refers to the
 	// given event.
@@ -936,7 +922,7 @@ private:
 	const char* IntrusiveVal(const TypePtr& t);
 
 	// Maps types to indices in the global "types__CPP" array.
-	CPPTracker<Type> types = {"types", true, &compiled_items};
+	CPPTracker<Type> types = {"types", true};
 
 	// Used to prevent analysis of mutually-referring types from
 	// leading to infinite recursion.  Maps types to their global
@@ -966,7 +952,7 @@ private:
 	static const char* AttrName(AttrTag t);
 
 	// Similar for attributes, so we can reconstruct record types.
-	CPPTracker<Attributes> attributes = {"attrs", false, &compiled_items};
+	CPPTracker<Attributes> attributes = {"attrs", false};
 
 	// Maps Attributes and Attr's to their global initialization
 	// information.
@@ -1036,7 +1022,7 @@ private:
 	// Expressions for which we need to generate initialization-time
 	// code.  Currently, these are only expressions appearing in
 	// attributes.
-	CPPTracker<Expr> init_exprs = {"gen_init_expr", false, &compiled_items};
+	CPPTracker<Expr> init_exprs = {"gen_init_expr", false};
 
 	//
 	// End of methods related to run-time initialization.
@@ -1126,9 +1112,6 @@ private:
 
 	// File to which we're generating code.
 	FILE* write_file;
-
-	// Name of file holding potential "additional" code.
-	std::string addl_name;
 
 	// Indentation level.
 	int block_level = 0;

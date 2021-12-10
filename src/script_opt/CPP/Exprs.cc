@@ -1,9 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <errno.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include "zeek/RE.h"
 #include "zeek/script_opt/CPP/Compile.h"
 #include "zeek/script_opt/ProfileFunc.h"
@@ -607,7 +603,7 @@ string CPPCompile::GenArithCoerceExpr(const Expr* e, GenType gt)
 		}
 
 	if ( is_vec )
-		return string("vec_coerce_") + cast_name + "__CPP(" + GenExpr(op, GEN_NATIVE) + ", " +
+		return string("vec_coerce_to_") + cast_name + "__CPP(" + GenExpr(op, GEN_NATIVE) + ", " +
 		       GenTypeName(t) + ")";
 
 	return NativeToGT(cast_name + "(" + GenExpr(op, GEN_NATIVE) + ")", t, gt);
@@ -810,7 +806,7 @@ string CPPCompile::GenBinary(const Expr* e, GenType gt, const char* op, const ch
 
 		if ( t->Tag() == TYPE_VECTOR && t->Yield()->Tag() == TYPE_STRING &&
 		     op2->GetType()->Tag() == TYPE_VECTOR )
-			return string("vec_str_op_") + vec_op + "__CPP(" + gen1 + ", " + gen2 + ")";
+			return string("str_vec_op_") + vec_op + "__CPP(" + gen1 + ", " + gen2 + ")";
 
 		return GenVectorOp(e, gen1, gen2, vec_op);
 		}
@@ -1129,9 +1125,21 @@ string CPPCompile::GenVectorOp(const Expr* e, string op, const char* vec_op)
 
 string CPPCompile::GenVectorOp(const Expr* e, string op1, string op2, const char* vec_op)
 	{
+	auto& op1_t = e->GetOp1()->GetType();
+	auto& op2_t = e->GetOp2()->GetType();
+
+	if ( op1_t->Tag() != TYPE_VECTOR || op2_t->Tag() != TYPE_VECTOR )
+		{
+		// This is a deprecated mixed-scalar-and-vector operation.
+		// We don't support these.  Arrange for linking errors.
+		reporter->Error(
+			"C++ generation does not support deprecated scalar-mixed-with-vector operations");
+		return "vec_scalar_mixed_with_vector()";
+		}
+
 	auto invoke = string(vec_op) + "__CPP(" + op1 + ", " + op2 + ")";
 
-	if ( e->GetOp1()->GetType()->Yield()->Tag() == TYPE_STRING )
+	if ( op2_t->Yield()->Tag() == TYPE_STRING )
 		return string("str_vec_op_") + invoke;
 
 	auto gen = string("vec_op_") + invoke;

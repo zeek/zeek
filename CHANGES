@@ -1,3 +1,13 @@
+4.2.0-dev.442 | 2021-12-10 13:12:43 -0700
+
+  * fixes for vector operations (Vern Paxson, Corelight)
+
+  * flag globals initialized to opaque values as non-compilable (Vern Paxson, Corelight)
+
+  * skip type signatures for lambdas (Vern Paxson, Corelight)
+
+  * fix for translating filenames beginning with numbers to C++ variable names (Vern Paxson, Corelight)
+
 4.2.0-dev.436 | 2021-12-10 13:11:36 -0700
 
   * update script-to-C++ compilation for new record constructor internals (Vern Paxson, Corelight)

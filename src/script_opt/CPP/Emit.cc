@@ -1,9 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <errno.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include "zeek/script_opt/CPP/Compile.h"
 
 namespace zeek::detail

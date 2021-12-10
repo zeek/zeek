@@ -1,9 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <errno.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include "zeek/script_opt/CPP/Compile.h"
 
 namespace zeek::detail
@@ -209,6 +205,10 @@ string CPPCompile::BodyName(const FuncInfo& func)
 
 		string fns = fn;
 		transform(fns.begin(), fns.end(), fns.begin(), canonicalize);
+
+		if ( ! isalpha(fns[0]) )
+			// This can happen for filenames beginning with numbers.
+			fns = "_" + fns;
 
 		fname = fns + "__" + fname;
 		}

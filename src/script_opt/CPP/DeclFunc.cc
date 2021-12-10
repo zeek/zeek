@@ -1,9 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <errno.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include "zeek/script_opt/CPP/Compile.h"
 
 namespace zeek::detail
@@ -73,7 +69,7 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
 
 	func_index[fname] = cast;
 
-	if ( casting_index.count(cast) == 0 )
+	if ( ! l && casting_index.count(cast) == 0 )
 		{
 		casting_index[cast] = func_casting_glue.size();
 

@@ -224,6 +224,17 @@ RecordValPtr record_constructor__CPP(vector<ValPtr> vals, RecordTypePtr t)
 	return rv;
 	}
 
+RecordValPtr record_constructor_map__CPP(vector<ValPtr> vals, vector<int> map, RecordTypePtr t)
+	{
+	auto rv = make_intrusive<RecordVal>(move(t));
+	auto n = vals.size();
+
+	for ( auto i = 0u; i < n; ++i )
+		rv->Assign(map[i], vals[i]);
+
+	return rv;
+	}
+
 VectorValPtr vector_constructor__CPP(vector<ValPtr> vals, VectorTypePtr t)
 	{
 	auto vv = make_intrusive<VectorVal>(move(t));

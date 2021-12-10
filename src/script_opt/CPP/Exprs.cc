@@ -670,8 +670,30 @@ string CPPCompile::GenRecordConstructorExpr(const Expr* e)
 			vals += ", ";
 		}
 
-	return string("record_constructor__CPP({") + vals + "}, " + "cast_intrusive<RecordType>(" +
-	       GenTypeName(t) + "))";
+	vals = string("{") + vals + "}";
+
+	const auto& map = rc->Map();
+
+	if ( map )
+		{
+		string map_vals;
+		for ( auto m : *map )
+			{
+			if ( ! map_vals.empty() )
+				map_vals += ", ";
+
+			map_vals += to_string(m);
+			}
+
+		map_vals = string("{") + map_vals + "}";
+
+		return string("record_constructor_map__CPP(") + vals + ", " + map_vals +
+		       ", cast_intrusive<RecordType>(" + GenTypeName(t) + "))";
+		}
+
+	else
+		return string("record_constructor__CPP(") + vals + ", cast_intrusive<RecordType>(" +
+		       GenTypeName(t) + "))";
 	}
 
 string CPPCompile::GenSetConstructorExpr(const Expr* e)

@@ -1,3 +1,7 @@
+4.2.0-dev.436 | 2021-12-10 13:11:36 -0700
+
+  * update script-to-C++ compilation for new record constructor internals (Vern Paxson, Corelight)
+
 4.2.0-dev.434 | 2021-12-10 13:11:10 -0700
 
   * updates to ZAM to track recent changes in script semantics (Vern Paxson, Corelight)

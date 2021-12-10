@@ -105,15 +105,6 @@ void CPPCompile::Compile(bool report_uncompilable)
 				fprintf(stderr, "%s cannot be compiled to C++ due to %s\n", f->Name(), reason);
 			not_fully_compilable.insert(f->Name());
 			}
-
-		auto h = func.Profile()->HashVal();
-		if ( hm.HasHash(h) )
-			{
-			// Track the previously compiled instance
-			// of this function.
-			auto n = f->Name();
-			hashed_funcs[n] = hm.FuncBodyName(h);
-			}
 		}
 
 	// Track all of the types we'll be using.

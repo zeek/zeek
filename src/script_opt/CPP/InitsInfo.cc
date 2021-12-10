@@ -323,7 +323,8 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
 	{
 	Zeek_name = g->Name();
 
-	auto gi = c->RegisterType(g->GetType());
+	auto& gt = g->GetType();
+	auto gi = c->RegisterType(gt);
 	init_cohort = max(init_cohort, gi->InitCohort() + 1);
 	type = gi->Offset();
 
@@ -338,7 +339,15 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
 
 	exported = g->IsExport();
 
-	val = ValElem(c, g->GetVal());
+	auto v = g->GetVal();
+	if ( v && gt->Tag() == TYPE_OPAQUE )
+		{
+		reporter->Error("cannot compile to C++ global \"%s\" initialized to opaque value",
+		                g->Name());
+		v = nullptr;
+		}
+
+	val = ValElem(c, v);
 	}
 
 void GlobalInitInfo::InitializerVals(std::vector<std::string>& ivs) const

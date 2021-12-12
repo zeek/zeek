@@ -185,7 +185,7 @@ particularly difficult to fix.
 
 * A number of steps could be taken to increase the performance of
 the optimized code.  These include:
-	1. Switching the generated code to use the new ZVal-related interfaces.
+	1. Switching the generated code to use the new ZVal-related interfaces, including for vector operations.
 	2. Directly calling BiFs rather than using the `Invoke()` method to do so.  This relates to the broader question of switching BiFs to be based on a notion of "inlined C++" code in Zeek functions, rather than using the standalone `bifcl` BiF compiler.
 	3. Switching the Event Engine over to queuing events with `ZVal` arguments rather than `ValPtr` arguments.
 	4. Making the compiler aware of certain BiFs that can be directly inlined (e.g., `network_time()`), a technique employed effectively by the ZAM compiler.

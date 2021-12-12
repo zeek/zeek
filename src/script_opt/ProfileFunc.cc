@@ -470,16 +470,22 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
 	// functions.  Recursively compute their hashes.
 	ComputeTypeHashes(main_types);
 
-	// Computing the hashes can have marked expressions (seen in
-	// record attributes) for further analysis.  Likewise, when
-	// doing the profile merges above we may have noted lambda
-	// expressions.  Analyze these, and iteratively any further
-	// expressions that that analysis uncovers.
-	DrainPendingExprs();
+	do
+		{
+		// Computing the hashes can have marked expressions (seen in
+		// record attributes) for further analysis.  Likewise, when
+		// doing the profile merges above we may have noted lambda
+		// expressions.  Analyze these, and iteratively any further
+		// expressions that that analysis uncovers.
+		DrainPendingExprs();
 
-	// We now have all the information we need to form definitive,
-	// deterministic hashes.
-	ComputeBodyHashes(funcs);
+		// We now have all the information we need to form definitive,
+		// deterministic hashes.
+		ComputeBodyHashes(funcs);
+
+		// Computing those hashes could have led to traversals that
+		// create more pending expressions to analyze.
+		} while ( ! pending_exprs.empty() );
 	}
 
 void ProfileFuncs::MergeInProfile(ProfileFunc* pf)

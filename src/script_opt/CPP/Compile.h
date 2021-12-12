@@ -943,10 +943,6 @@ private:
 	// the set of attributes.
 	void BuildAttrs(const AttributesPtr& attrs, std::string& attr_tags, std::string& attr_vals);
 
-	// Generates code to create the given attributes at run-time.
-	void GenAttrs(const AttributesPtr& attrs);
-	std::string GenAttrExpr(const ExprPtr& e);
-
 	// Returns a string representation of the name associated with
 	// different attribute tags (e.g., "ATTR_DEFAULT").
 	static const char* AttrName(AttrTag t);

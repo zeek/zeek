@@ -215,22 +215,43 @@ TableValPtr table_constructor__CPP(vector<ValPtr> indices, vector<ValPtr> vals, 
 
 RecordValPtr record_constructor__CPP(vector<ValPtr> vals, RecordTypePtr t)
 	{
-	auto rv = make_intrusive<RecordVal>(move(t));
+	auto rv = make_intrusive<RecordVal>(t);
 	auto n = vals.size();
 
 	for ( auto i = 0u; i < n; ++i )
-		rv->Assign(i, vals[i]);
+		{
+		auto& v_i = vals[i];
+
+		if ( v_i && v_i->GetType()->Tag() == TYPE_VECTOR && v_i->AsVectorVal()->Size() == 0 )
+			{
+			const auto& t_ind = t->GetFieldType(i);
+			v_i->AsVectorVal()->Concretize(t_ind->Yield());
+			}
+
+		rv->Assign(i, v_i);
+		}
 
 	return rv;
 	}
 
 RecordValPtr record_constructor_map__CPP(vector<ValPtr> vals, vector<int> map, RecordTypePtr t)
 	{
-	auto rv = make_intrusive<RecordVal>(move(t));
+	auto rv = make_intrusive<RecordVal>(t);
 	auto n = vals.size();
 
 	for ( auto i = 0u; i < n; ++i )
-		rv->Assign(map[i], vals[i]);
+		{
+		auto& v_i = vals[i];
+		auto ind = map[i];
+
+		if ( v_i && v_i->GetType()->Tag() == TYPE_VECTOR && v_i->AsVectorVal()->Size() == 0 )
+			{
+			const auto& t_ind = t->GetFieldType(ind);
+			v_i->AsVectorVal()->Concretize(t_ind->Yield());
+			}
+
+		rv->Assign(ind, v_i);
+		}
 
 	return rv;
 	}

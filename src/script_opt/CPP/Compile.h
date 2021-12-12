@@ -301,6 +301,20 @@ private:
 	// in support of run-time initialization of various dynamic values.
 	void GenEpilog();
 
+	// Generate the main method of the CPPDynStmt class, doing dynamic
+	// dispatch for function invocation.
+	void GenCPPDynStmt();
+
+	// Generate a function to load BiFs.
+	void GenLoadBiFs();
+
+	// Generate the main initialization function, which finalizes
+	// the run-time environment.
+	void GenFinishInit();
+
+	// Generate the function that registers compiled script bodies.
+	void GenRegisterBodies();
+
 	// True if the given function (plus body and profile) is one
 	// that should be compiled.  If non-nil, sets reason to the
 	// the reason why, if there's a fundamental problem.  If however

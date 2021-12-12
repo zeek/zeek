@@ -66,7 +66,6 @@ static p_hash_type script_specific_hash(const Stmt* body, p_hash_type generic_ha
 	return merge_p_hashes(generic_hash, p_hash(bl_f));
 	}
 
-
 ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fields)
 	{
 	profiled_func = func;

@@ -99,9 +99,6 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
 		// for lambdas that don't take any arguments, but that
 		// seems potentially more confusing than beneficial.
 		compiled_funcs.emplace(fname);
-
-		auto loc_f = script_specific_filename(body);
-		cf_locs[fname] = loc_f;
 		}
 
 	auto h = pf->HashVal();

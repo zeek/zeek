@@ -585,10 +585,6 @@ private:
 	// function name, and maps to the C++ name.
 	std::unordered_map<std::string, std::string> compiled_simple_funcs;
 
-	// Maps those to their associated files - used to make add-C++ body
-	// hashes distinct.
-	std::unordered_map<std::string, std::string> cf_locs;
-
 	// Maps function bodies to the names we use for them.
 	std::unordered_map<const Stmt*, std::string> body_names;
 

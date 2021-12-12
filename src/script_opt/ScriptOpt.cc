@@ -350,17 +350,8 @@ static void report_CPP()
 		auto name = f.Func()->Name();
 		auto hash = f.Profile()->HashVal();
 		bool have = compiled_scripts.count(hash) > 0;
-		auto specific = "";
 
-		if ( ! have )
-			{
-			hash = script_specific_hash(f.Body(), hash);
-			have = compiled_scripts.count(hash) > 0;
-			if ( have )
-				specific = " - specific";
-			}
-
-		printf("script function %s (hash %llu%s): %s\n", name, hash, specific, have ? "yes" : "no");
+		printf("script function %s (hash %llu): %s\n", name, hash, have ? "yes" : "no");
 
 		if ( have )
 			already_reported.insert(hash);
@@ -387,12 +378,6 @@ static void use_CPP()
 		auto hash = f.Profile()->HashVal();
 		auto s = compiled_scripts.find(hash);
 
-		if ( s == compiled_scripts.end() )
-			{ // Look for script-specific body.
-			hash = script_specific_hash(f.Body(), hash);
-			s = compiled_scripts.find(hash);
-			}
-
 		if ( s != compiled_scripts.end() )
 			{
 			auto b = s->second.body;
@@ -418,6 +403,10 @@ static void use_CPP()
 				auto h = event_registry->Register(e);
 				h->SetUsed();
 				}
+
+			auto finish = s->second.finish_init_func;
+			if ( finish )
+				(*finish)();
 			}
 		}
 

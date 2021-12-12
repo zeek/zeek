@@ -197,10 +197,10 @@ void CPPCompile::Compile(bool report_uncompilable)
 
 void CPPCompile::GenProlog()
 	{
-	if ( addl_tag == 0 )
-		{
+	if ( addl_tag <= 1 )
+		// This is either a compilation via gen-C++, or
+		// one using add-C++ and an empty CPP-gen.cc file.
 		Emit("#include \"zeek/script_opt/CPP/Runtime.h\"\n");
-		}
 
 	Emit("namespace zeek::detail { //\n");
 	Emit("namespace CPP_%s { // %s\n", Fmt(addl_tag), working_dir);
@@ -291,13 +291,6 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 			}
 
 	events = string("{") + events + "}";
-
-	if ( addl_tag > 0 )
-		// Hash in the location associated with this compilation
-		// pass, to get a final hash that avoids conflicts with
-		// identical-but-in-a-different-context function bodies
-		// when compiling potentially conflicting additional code.
-		h = merge_p_hashes(h, p_hash(cf_locs[f]));
 
 	auto fi = func_index.find(f);
 	ASSERT(fi != func_index.end());

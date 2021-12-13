@@ -1,3 +1,13 @@
+4.2.0-dev.454 | 2021-12-13 09:41:32 -0700
+
+  * Check for sets before attempting to check for same Yield types (Tim Wojtulewicz)
+
+  * Add early bail-outs to same_type() (Tim Wojtulewicz)
+
+  * Fix types for Analyzer::register_for_port(s) to be the same (Tim Wojtulewicz)
+
+  * Update cmake submodule across all other submodules (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.448 | 2021-12-10 15:35:34 -0700
 
   * update btest to no longer use (unsupported) %S formatting, no longer needed (Vern Paxson, Corelight)

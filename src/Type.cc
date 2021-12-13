@@ -1903,6 +1903,11 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 			if ( (tl1 || tl2) && ! (tl1 && tl2) )
 				return false;
 
+			// If one is a set and one isn't, they shouldn't
+			// be considered the same type.
+			if ( (t1->IsSet() && ! t2->IsSet()) || (t2->IsSet() && ! t1->IsSet()) )
+				return false;
+
 			const auto& y1 = t1->Yield();
 			const auto& y2 = t2->Yield();
 
@@ -2015,6 +2020,12 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 
 			if ( ! same_type(tl1, tl2, is_init, match_record_field_names) )
 				result = false;
+			else if ( t1->IsSet() && t2->IsSet() )
+				// Sets don't have yield types because they don't have values. If
+				// both types are sets, and we already matched on the indices
+				// above consider that a success. We already checked the case
+				// where only one of the two is a set earlier.
+				result = true;
 			else
 				{
 				const auto& y1 = t1->Yield();

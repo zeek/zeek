@@ -1,4 +1,5 @@
 @load ./types
+@load ./config
 
 module ClusterController::Request;
 
@@ -8,8 +9,10 @@ export {
 		parent_id: string &optional;
 	};
 
-	# API-specific state. XXX we may be able to generalize after this
-	# has settled a bit more.
+	# API-specific state. XXX we may be able to generalize after this has
+	# settled a bit more. It would also be nice to move request-specific
+	# state out of this module -- we could for example redef Request in
+	# main.zeek as needed.
 
 	# State specific to the set_configuration request/response events
 	type SetConfigurationState: record {
@@ -44,12 +47,25 @@ export {
 	global lookup: function(reqid: string): Request;
 	global finish: function(reqid: string): bool;
 
+	global request_expired: event(req: Request);
+
 	global is_null: function(request: Request): bool;
 	global to_string: function(request: Request): string;
 }
 
-# XXX this needs a mechanism for expiring stale requests
-global g_requests: table[string] of Request;
+function requests_expire_func(reqs: table[string] of Request, reqid: string): interval
+	{
+	event ClusterController::Request::request_expired(reqs[reqid]);
+	return 0secs;
+	}
+
+# This is the global request-tracking table. The table maps from request ID
+# strings to corresponding Request records. Entries time out after the
+# ClusterController::request_timeout interval. Upon expiration, a
+# request_expired event triggers that conveys the request state.
+global g_requests: table[string] of Request
+    &create_expire=ClusterController::request_timeout
+    &expire_func=requests_expire_func;
 
 function create(reqid: string): Request
 	{

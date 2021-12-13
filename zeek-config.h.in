@@ -108,6 +108,9 @@
 /* should we declare syslog() and openlog() */
 #cmakedefine SYSLOG_INT
 
+/* should we use stub syslog() and openlog() */
+#cmakedefine USE_STUB_SYSLOG
+
 /* Define if you have <sys/time.h> */
 #cmakedefine HAVE_SYS_TIME_H
 

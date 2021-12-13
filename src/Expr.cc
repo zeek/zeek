@@ -263,7 +263,7 @@ bool Expr::InvertSense()
 	return false;
 	}
 
-void Expr::EvalIntoAggregate(const zeek::Type* /* t */, Val* /* aggr */, Frame* /* f */) const
+void Expr::EvalIntoAggregate(const TypePtr& /* t */, ValPtr /* aggr */, Frame* /* f */) const
 	{
 	Internal("Expr::EvalIntoAggregate called");
 	}
@@ -416,7 +416,7 @@ bool Expr::IsPure() const
 	return true;
 	}
 
-ValPtr Expr::InitVal(const zeek::Type* t, ValPtr aggr) const
+ValPtr Expr::InitVal(const TypePtr& t, ValPtr aggr) const
 	{
 	if ( aggr )
 		{
@@ -2637,7 +2637,7 @@ TypePtr AssignExpr::InitType() const
 	return make_intrusive<TableType>(IntrusivePtr{NewRef{}, tl->AsTypeList()}, op2->GetType());
 	}
 
-void AssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const
+void AssignExpr::EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const
 	{
 	if ( IsError() )
 		return;
@@ -2677,7 +2677,7 @@ void AssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) con
 	TableVal* tv = aggr->AsTableVal();
 
 	auto index = op1->Eval(f);
-	auto v = check_and_promote(op2->Eval(f), t->Yield().get(), true);
+	auto v = check_and_promote(op2->Eval(f), t->Yield(), true);
 
 	if ( ! index || ! v )
 		return;
@@ -2686,7 +2686,7 @@ void AssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) con
 		RuntimeError("type clash in table assignment");
 	}
 
-ValPtr AssignExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
+ValPtr AssignExpr::InitVal(const TypePtr& t, ValPtr aggr) const
 	{
 	if ( ! aggr )
 		{
@@ -2703,7 +2703,7 @@ ValPtr AssignExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 		{
 		if ( t->Tag() != TYPE_RECORD )
 			{
-			Error("not a record initializer", t);
+			Error("not a record initializer", t.get());
 			return nullptr;
 			}
 
@@ -2721,7 +2721,7 @@ ValPtr AssignExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 		RecordVal* aggr_r = aggr->AsRecordVal();
 
-		auto v = op2->InitVal(rt->GetFieldType(td.id).get(), nullptr);
+		auto v = op2->InitVal(rt->GetFieldType(td.id), nullptr);
 
 		if ( ! v )
 			return nullptr;
@@ -2734,7 +2734,7 @@ ValPtr AssignExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 		{
 		if ( t->Tag() != TYPE_TABLE )
 			{
-			Error("not a table initialization", t);
+			Error("not a table initialization", t.get());
 			return nullptr;
 			}
 
@@ -2745,7 +2745,7 @@ ValPtr AssignExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 		const TableType* tt = tv->GetType()->AsTableType();
 		const auto& yt = tv->GetType()->Yield();
 
-		auto index = op1->InitVal(tt->GetIndices().get(), nullptr);
+		auto index = op1->InitVal(tt->GetIndices(), nullptr);
 
 		if ( yt->Tag() == TYPE_RECORD )
 			{
@@ -2776,7 +2776,7 @@ ValPtr AssignExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 				}
 			}
 
-		auto v = op2->InitVal(yt.get(), nullptr);
+		auto v = op2->InitVal(yt, nullptr);
 
 		if ( ! index || ! v )
 			return nullptr;
@@ -3372,7 +3372,7 @@ RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr
 		}
 	}
 
-ValPtr RecordConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
+ValPtr RecordConstructorExpr::InitVal(const TypePtr& t, ValPtr aggr) const
 	{
 	if ( IsError() )
 		{
@@ -3388,8 +3388,7 @@ ValPtr RecordConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	if ( v )
 		{
 		RecordVal* rv = v->AsRecordVal();
-		auto bt = const_cast<zeek::Type*>(t);
-		RecordTypePtr rt{NewRef{}, bt->AsRecordType()};
+		RecordTypePtr rt{NewRef{}, t->AsRecordType()};
 		auto aggr_rec = cast_intrusive<RecordVal>(std::move(aggr));
 		auto ar = rv->CoerceTo(std::move(rt), std::move(aggr_rec));
 
@@ -3573,14 +3572,14 @@ ValPtr TableConstructorExpr::Eval(Frame* f) const
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
-		expr->EvalIntoAggregate(type.get(), aggr.get(), f);
+		expr->EvalIntoAggregate(type, aggr, f);
 
 	aggr->InitDefaultFunc(f);
 
 	return aggr;
 	}
 
-ValPtr TableConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
+ValPtr TableConstructorExpr::InitVal(const TypePtr& t, ValPtr aggr) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -3595,7 +3594,7 @@ ValPtr TableConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
-		expr->EvalIntoAggregate(t, tval.get(), nullptr);
+		expr->EvalIntoAggregate(t, tval, nullptr);
 
 	return tval;
 	}
@@ -3664,7 +3663,7 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 			ListExpr* le = ce->AsListExpr();
 
 			assert(ce->Tag() == EXPR_LIST);
-			if ( check_and_promote_exprs(le, type->AsTableType()->GetIndices().get()) )
+			if ( check_and_promote_exprs(le, type->AsTableType()->GetIndices()) )
 				{
 				if ( le != cle[i] )
 					cle.replace(i, le);
@@ -3694,7 +3693,7 @@ ValPtr SetConstructorExpr::Eval(Frame* f) const
 	return aggr;
 	}
 
-ValPtr SetConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
+ValPtr SetConstructorExpr::InitVal(const TypePtr& t, ValPtr aggr) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -3710,7 +3709,7 @@ ValPtr SetConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 	for ( const auto& e : exprs )
 		{
-		auto element = check_and_promote(e->Eval(nullptr), index_type.get(), true);
+		auto element = check_and_promote(e->Eval(nullptr), index_type, true);
 
 		if ( ! element || ! tval->Assign(std::move(element), nullptr) )
 			{
@@ -3792,7 +3791,7 @@ ValPtr VectorConstructorExpr::Eval(Frame* f) const
 	return vec;
 	}
 
-ValPtr VectorConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
+ValPtr VectorConstructorExpr::InitVal(const TypePtr& t, ValPtr aggr) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -3808,7 +3807,7 @@ ValPtr VectorConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	loop_over_list(exprs, i)
 		{
 		Expr* e = exprs[i];
-		auto v = check_and_promote(e->Eval(nullptr), t->Yield().get(), true);
+		auto v = check_and_promote(e->Eval(nullptr), t->Yield(), true);
 
 		if ( ! v || ! vec->Assign(i, std::move(v)) )
 			{
@@ -3839,7 +3838,7 @@ bool FieldAssignExpr::PromoteTo(TypePtr t)
 	return op != nullptr;
 	}
 
-void FieldAssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const
+void FieldAssignExpr::EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const
 	{
 	if ( IsError() )
 		return;
@@ -3910,7 +3909,7 @@ ArithCoerceExpr::ArithCoerceExpr(ExprPtr arg_op, TypeTag t)
 
 ValPtr ArithCoerceExpr::FoldSingleVal(ValPtr v, const TypePtr& t) const
 	{
-	return check_and_promote(v, t.get(), false, location);
+	return check_and_promote(v, t, false, location);
 	}
 
 ValPtr ArithCoerceExpr::Fold(Val* v) const
@@ -4047,7 +4046,7 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 		}
 	}
 
-ValPtr RecordCoerceExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
+ValPtr RecordCoerceExpr::InitVal(const TypePtr& t, ValPtr aggr) const
 	{
 	if ( IsError() )
 		{
@@ -4061,8 +4060,7 @@ ValPtr RecordCoerceExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	if ( auto v = Eval(nullptr) )
 		{
 		RecordVal* rv = v->AsRecordVal();
-		auto bt = const_cast<zeek::Type*>(t);
-		RecordTypePtr rt{NewRef{}, bt->AsRecordType()};
+		RecordTypePtr rt{NewRef{}, t->AsRecordType()};
 		auto aggr_rec = cast_intrusive<RecordVal>(std::move(aggr));
 
 		if ( auto ar = rv->CoerceTo(std::move(rt), std::move(aggr_rec)) )
@@ -4134,7 +4132,7 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector<int>& 
 			else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) &&
 			          ! same_type(rhs_type, field_type) )
 				{
-				auto new_val = check_and_promote(rhs, field_type.get(), false);
+				auto new_val = check_and_promote(rhs, field_type, false);
 				rhs = std::move(new_val);
 				}
 
@@ -4929,7 +4927,7 @@ TypePtr ListExpr::InitType() const
 		}
 	}
 
-ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
+ValPtr ListExpr::InitVal(const TypePtr& t, ValPtr aggr) const
 	{
 	// While fairly similar to the EvalIntoAggregate() code,
 	// we keep this separate since it also deals with initialization
@@ -4947,13 +4945,13 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 		if ( exprs.length() != static_cast<int>(tl.size()) )
 			{
-			Error("index mismatch", t);
+			Error("index mismatch", t.get());
 			return nullptr;
 			}
 
 		loop_over_list(exprs, i)
 			{
-			auto vi = exprs[i]->InitVal(tl[i].get(), nullptr);
+			auto vi = exprs[i]->InitVal(tl[i], nullptr);
 			if ( ! vi )
 				return nullptr;
 
@@ -4967,7 +4965,7 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 		{
 		if ( aggr )
 			{
-			Error("bad use of list in initialization", t);
+			Error("bad use of list in initialization", t.get());
 			return nullptr;
 			}
 
@@ -4975,7 +4973,7 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 		if ( exprs.length() != static_cast<int>(tl.size()) )
 			{
-			Error("index mismatch", t);
+			Error("index mismatch", t.get());
 			return nullptr;
 			}
 
@@ -4983,7 +4981,7 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 		loop_over_list(exprs, i)
 			{
-			auto vi = exprs[i]->InitVal(tl[i].get(), nullptr);
+			auto vi = exprs[i]->InitVal(tl[i], nullptr);
 
 			if ( ! vi )
 				return nullptr;
@@ -5001,7 +4999,7 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 			return exprs[0]->InitVal(t, aggr);
 		else
 			{
-			Error("aggregate initializer for scalar type", t);
+			Error("aggregate initializer for scalar type", t.get());
 			return nullptr;
 			}
 		}
@@ -5052,7 +5050,7 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 			{
 			if ( t->Tag() == TYPE_RECORD )
 				{
-				e->Error("bad record initializer", t);
+				e->Error("bad record initializer", t.get());
 				return nullptr;
 				}
 
@@ -5060,7 +5058,7 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 			if ( ! same_type(v->GetType(), t) )
 				{
-				v->GetType()->Error("type clash in table initializer", t);
+				v->GetType()->Error("type clash in table initializer", t.get());
 				return nullptr;
 				}
 
@@ -5072,14 +5070,14 @@ ValPtr ListExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 	return aggr;
 	}
 
-ValPtr ListExpr::AddSetInit(const zeek::Type* t, ValPtr aggr) const
+ValPtr ListExpr::AddSetInit(TypePtr t, ValPtr aggr) const
 	{
 	if ( aggr->GetType()->Tag() != TYPE_TABLE )
 		Internal("bad aggregate in ListExpr::AddSetInit");
 
 	TableVal* tv = aggr->AsTableVal();
 	const TableType* tt = tv->GetType()->AsTableType();
-	const TypeList* it = tt->GetIndices().get();
+	TypeListPtr it = tt->GetIndices();
 
 	for ( const auto& expr : exprs )
 		{
@@ -5091,7 +5089,7 @@ ValPtr ListExpr::AddSetInit(const zeek::Type* t, ValPtr aggr) const
 		else if ( expr->GetType()->Tag() == TYPE_LIST )
 			element = expr->InitVal(it, nullptr);
 		else
-			element = expr->InitVal(it->GetTypes()[0].get(), nullptr);
+			element = expr->InitVal(it->GetTypes()[0], nullptr);
 
 		if ( ! element )
 			return nullptr;
@@ -5100,7 +5098,7 @@ ValPtr ListExpr::AddSetInit(const zeek::Type* t, ValPtr aggr) const
 			{
 			if ( ! same_type(element->GetType(), t) )
 				{
-				element->Error("type clash in set initializer", t);
+				element->Error("type clash in set initializer", t.get());
 				return nullptr;
 				}
 
@@ -5113,7 +5111,7 @@ ValPtr ListExpr::AddSetInit(const zeek::Type* t, ValPtr aggr) const
 		if ( expr->GetType()->Tag() == TYPE_LIST )
 			element = check_and_promote(std::move(element), it, true);
 		else
-			element = check_and_promote(std::move(element), it->GetTypes()[0].get(), true);
+			element = check_and_promote(std::move(element), it->GetTypes()[0], true);
 
 		if ( ! element )
 			return nullptr;
@@ -5389,7 +5387,7 @@ ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t)
 	return e;
 	}
 
-bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
+bool check_and_promote_exprs(ListExpr* const elements, const TypeListPtr& types)
 	{
 	ExprPList& el = elements->Exprs();
 	const auto& tl = types->GetTypes();
@@ -5464,13 +5462,12 @@ bool check_and_promote_args(ListExpr* const args, const RecordType* types)
 			el.push_back(def_elements[--ne].release());
 		}
 
-	TypeList* tl = new TypeList();
+	auto tl = make_intrusive<TypeList>();
 
 	for ( int i = 0; i < types->NumFields(); ++i )
 		tl->Append(types->GetFieldType(i));
 
 	int rval = check_and_promote_exprs(args, tl);
-	Unref(tl);
 
 	return rval;
 	}

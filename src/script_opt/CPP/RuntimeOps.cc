@@ -197,7 +197,7 @@ TableValPtr set_constructor__CPP(vector<ValPtr> elements, TableTypePtr t, vector
 TableValPtr table_constructor__CPP(vector<ValPtr> indices, vector<ValPtr> vals, TableTypePtr t,
                                    vector<int> attr_tags, vector<ValPtr> attr_vals)
 	{
-	const auto& yt = t->Yield().get();
+	const auto& yt = t->Yield();
 	auto n = indices.size();
 
 	auto attrs = build_attrs__CPP(move(attr_tags), move(attr_vals));

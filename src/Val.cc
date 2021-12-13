@@ -3730,8 +3730,19 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
-ValPtr check_and_promote(ValPtr v, const Type* t, bool is_init,
+ValPtr check_and_promote(ValPtr v, const TypePtr& t, bool is_init,
                          const detail::Location* expr_location)
+	{
+		// Once 5.0 comes out, this function can merge with the deprecated one below it, and this
+		// pragma block can go away.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	return check_and_promote(v, t.get(), is_init, expr_location);
+#pragma GCC diagnostic pop
+	}
+
+[[deprecated("Remove in v5.1. Use version that takes TypePtr instead.")]] ValPtr
+check_and_promote(ValPtr v, const Type* t, bool is_init, const detail::Location* expr_location)
 	{
 	if ( ! v )
 		return nullptr;

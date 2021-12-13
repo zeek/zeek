@@ -2422,6 +2422,19 @@ function int_to_count%(n: int%): count
 ## d: The :zeek:type:`double` to convert.
 ##
 ## Returns: The :zeek:type:`double` *d* as unsigned integer, or 0 if *d* < 0.0.
+##          The value returned follows typical rounding rules, as implemented
+##          by rint().
+function double_to_int%(d: double%): count
+	%{
+	return zeek::val_mgr->Int(bro_int_t(rint(d)));
+	%}
+
+## Converts a :zeek:type:`double` to a :zeek:type:`int`.
+##
+## d: The :zeek:type:`double` to convert.
+##
+## Returns: The :zeek:type:`double` *d* as signed integer. The value returned
+##          follows typical rounding rules, as implemented by rint().
 ##
 ## .. zeek:see:: double_to_time
 function double_to_count%(d: double%): count

@@ -395,13 +395,16 @@ event ClusterController::API::get_instances_request(reqid: string)
 	{
 	ClusterController::Log::info(fmt("rx ClusterController::API::set_instances_request %s", reqid));
 
+	local res = ClusterController::Types::Result($reqid = reqid);
 	local insts: vector of ClusterController::Types::Instance;
 
 	for ( i in g_instances )
 		insts += g_instances[i];
 
+	res$data = insts;
+
 	ClusterController::Log::info(fmt("tx ClusterController::API::get_instances_response %s", reqid));
-	event ClusterController::API::get_instances_response(reqid, insts);
+	event ClusterController::API::get_instances_response(reqid, res);
 	}
 
 event zeek_init()

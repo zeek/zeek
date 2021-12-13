@@ -11,7 +11,7 @@ export {
 
 	global get_instances_request: event(reqid: string);
 	global get_instances_response: event(reqid: string,
-	    instances: vector of ClusterController::Types::Instance);
+	    result: ClusterController::Types::Result);
 
 	global set_configuration_request: event(reqid: string,
 	    config: ClusterController::Types::Configuration);

@@ -1407,6 +1407,8 @@ ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		auto op2_t = op2->IsOne();
 		ASSERT(op2_t != op3->IsOne());
 
+		red_stmt = MergeStmts(op1_red_stmt, red_stmt);
+
 		if ( op2_t )
 			// This is "var ? T : F", which can be replaced by var.
 			return op1;
@@ -1821,7 +1823,7 @@ ExprPtr FieldExpr::Duplicate()
 
 ExprPtr HasFieldExpr::Duplicate()
 	{
-	return SetSucc(new HasFieldExpr(op->Duplicate(), field_name));
+	return SetSucc(new HasFieldExpr(op->Duplicate(), util::copy_string(field_name)));
 	}
 
 ExprPtr RecordConstructorExpr::Duplicate()

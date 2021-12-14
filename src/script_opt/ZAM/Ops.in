@@ -1064,7 +1064,7 @@ macro EvalConstructRecord(map_init, map_accessor)
 			const auto& t_ind = rt->GetFieldType(ind);
 			v_i->AsVectorVal()->Concretize(t_ind->Yield());
 			}
-		new_r->Assign(ind, aux->ToVal(frame, i));
+		new_r->Assign(ind, v_i);
 		}
 	auto& r = frame[z.v1].record_val;
 	Unref(r);

@@ -1,3 +1,21 @@
+4.2.0-dev.468 | 2021-12-14 11:34:47 -0700
+
+  * factoring of generating C++ initializations, no semantic changes (Vern Paxson, Corelight)
+
+  * restored support for incremental compilation of scripts to C++ (Vern Paxson, Corelight)
+
+  * fixes for -O gen-standalone-C++ (Vern Paxson, Corelight)
+
+  * new ZEEK_FILE_ONLY and ZEEK_FUNC_ONLY environment variables for debugging script optimization - replaces ZEEK_ONLY (Vern Paxson, Corelight)
+
+  * fix for compiling record constructors to C++ (Vern Paxson, Corelight)
+
+  * fixes for compiling vector operations to C++ (Vern Paxson, Corelight)
+
+  * fixed for profiling missing some profile elements (Vern Paxson, Corelight)
+
+  * minor efficiency tweak for ZAM record construction (Vern Paxson, Corelight)
+
 4.2.0-dev.456 | 2021-12-14 09:23:47 -0700
 
   * GH-1860: Add double_to_int() bif (Tim Wojtulewicz, Corelight)

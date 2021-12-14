@@ -62,9 +62,10 @@ void register_type__CPP(TypePtr t, const string& name)
 	id->MakeType();
 	}
 
-void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, vector<string> events)
+void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, vector<string> events,
+                        void (*finish_init)())
 	{
-	compiled_scripts[hash] = {move(body), priority, move(events)};
+	compiled_scripts[hash] = {move(body), priority, move(events), finish_init};
 	}
 
 void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, TypePtr t,
@@ -89,7 +90,7 @@ void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, T
 	if ( ! has_captures )
 		// Note, no support for lambdas that themselves refer
 		// to events.
-		register_body__CPP(body, 0, hash, {});
+		register_body__CPP(body, 0, hash, {}, nullptr);
 	}
 
 void register_scripts__CPP(p_hash_type h, void (*callback)())
@@ -190,11 +191,12 @@ Func* lookup_bif__CPP(const char* bif)
 	return b ? b->GetVal()->AsFunc() : nullptr;
 	}
 
-FuncValPtr lookup_func__CPP(string name, vector<p_hash_type> hashes, const TypePtr& t)
+FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> hashes,
+                            const TypePtr& t)
 	{
 	auto ft = cast_intrusive<FuncType>(t);
 
-	if ( hashes.empty() )
+	if ( static_cast<int>(hashes.size()) < num_bodies )
 		{
 		// This happens for functions that have at least one
 		// uncompilable body.

@@ -301,6 +301,20 @@ private:
 	// in support of run-time initialization of various dynamic values.
 	void GenEpilog();
 
+	// Generate the main method of the CPPDynStmt class, doing dynamic
+	// dispatch for function invocation.
+	void GenCPPDynStmt();
+
+	// Generate a function to load BiFs.
+	void GenLoadBiFs();
+
+	// Generate the main initialization function, which finalizes
+	// the run-time environment.
+	void GenFinishInit();
+
+	// Generate the function that registers compiled script bodies.
+	void GenRegisterBodies();
+
 	// True if the given function (plus body and profile) is one
 	// that should be compiled.  If non-nil, sets reason to the
 	// the reason why, if there's a fundamental problem.  If however
@@ -584,10 +598,6 @@ private:
 	// a single body and thus can be called dirctly.  Indexed by
 	// function name, and maps to the C++ name.
 	std::unordered_map<std::string, std::string> compiled_simple_funcs;
-
-	// Maps those to their associated files - used to make add-C++ body
-	// hashes distinct.
-	std::unordered_map<std::string, std::string> cf_locs;
 
 	// Maps function bodies to the names we use for them.
 	std::unordered_map<const Stmt*, std::string> body_names;
@@ -942,10 +952,6 @@ private:
 	// of the tags and (optional) values/expressions associated with
 	// the set of attributes.
 	void BuildAttrs(const AttributesPtr& attrs, std::string& attr_tags, std::string& attr_vals);
-
-	// Generates code to create the given attributes at run-time.
-	void GenAttrs(const AttributesPtr& attrs);
-	std::string GenAttrExpr(const ExprPtr& e);
 
 	// Returns a string representation of the name associated with
 	// different attribute tags (e.g., "ATTR_DEFAULT").

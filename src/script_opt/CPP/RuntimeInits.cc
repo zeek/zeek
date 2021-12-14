@@ -147,13 +147,14 @@ void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<FuncValPtr>& iv
 	auto iv_end = init_vals.end();
 	auto t = *(iv_it++);
 	auto fn = im->Strings(*(iv_it++));
+	auto num_bodies = *(iv_it++);
 
 	std::vector<p_hash_type> hashes;
 
 	while ( iv_it != iv_end )
 		hashes.push_back(im->Hashes(*(iv_it++)));
 
-	ivec[offset] = lookup_func__CPP(fn, hashes, im->Types(t));
+	ivec[offset] = lookup_func__CPP(fn, num_bodies, hashes, im->Types(t));
 	}
 
 template <class T>

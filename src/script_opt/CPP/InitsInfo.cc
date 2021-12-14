@@ -239,14 +239,14 @@ void FuncConstInfo::InitializerVals(std::vector<std::string>& ivs) const
 	{
 	auto f = fv->AsFunc();
 	const auto& fn = f->Name();
+	const auto& bodies = f->GetBodies();
 
 	ivs.emplace_back(Fmt(type));
 	ivs.emplace_back(Fmt(c->TrackString(fn)));
+	ivs.emplace_back(to_string(bodies.size()));
 
 	if ( ! c->NotFullyCompilable(fn) )
 		{
-		const auto& bodies = f->GetBodies();
-
 		for ( const auto& b : bodies )
 			{
 			auto h = c->BodyHash(b.stmts.get());

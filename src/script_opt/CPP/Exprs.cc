@@ -580,13 +580,13 @@ string CPPCompile::GenArithCoerceExpr(const Expr* e, GenType gt)
 	if ( same_type(t, op->GetType()) )
 		return GenExpr(op, gt);
 
-	bool is_vec = t->Tag() == TYPE_VECTOR;
-
-	auto coerce_t = is_vec ? t->Yield() : t;
+	if ( t->Tag() == TYPE_VECTOR )
+		return string("vector_coerce_to__CPP(") + GenExpr(op, GEN_NATIVE) + ", " + GenTypeName(t) +
+		       ")";
 
 	string cast_name;
 
-	switch ( coerce_t->InternalType() )
+	switch ( t->InternalType() )
 		{
 		case TYPE_INTERNAL_INT:
 			cast_name = "bro_int_t";
@@ -601,10 +601,6 @@ string CPPCompile::GenArithCoerceExpr(const Expr* e, GenType gt)
 		default:
 			reporter->InternalError("bad type in arithmetic coercion");
 		}
-
-	if ( is_vec )
-		return string("vec_coerce_to_") + cast_name + "__CPP(" + GenExpr(op, GEN_NATIVE) + ", " +
-		       GenTypeName(t) + ")";
 
 	return NativeToGT(cast_name + "(" + GenExpr(op, GEN_NATIVE) + ")", t, gt);
 	}
@@ -1115,10 +1111,12 @@ string CPPCompile::GenListAssign(const ExprPtr& lhs, const ExprPtr& rhs)
 
 string CPPCompile::GenVectorOp(const Expr* e, string op, const char* vec_op)
 	{
-	auto gen = string("vec_op_") + vec_op + "__CPP(" + op + ")";
+	auto t = e->GetType();
+	auto gen_t = GenTypeName(t);
+	auto gen = string("vec_op_") + vec_op + "__CPP(" + op + ", " + gen_t + ")";
 
-	if ( ! IsArithmetic(e->GetType()->Yield()->Tag()) )
-		gen = string("vector_coerce_to__CPP(") + gen + ", " + GenTypeName(e->GetType()) + ")";
+	if ( ! IsArithmetic(t->Yield()->Tag()) )
+		gen = string("vector_coerce_to__CPP(") + gen + ", " + gen_t + ")";
 
 	return gen;
 	}

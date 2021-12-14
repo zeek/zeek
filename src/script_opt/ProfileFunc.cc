@@ -23,7 +23,13 @@ p_hash_type p_hash(const Obj* o)
 	return p_hash(d.Description());
 	}
 
-std::string script_specific_filename(const StmtPtr& body)
+// Returns a filename associated with the given function body.  Used to
+// provide distinctness to identical function bodies seen in separate,
+// potentially conflicting incremental compilations.  An example of this
+// is a function named foo() that calls bar(), for which in two different
+// compilation contexts bar() has differing semantics, even though foo()'s
+// (shallow) semantics are the same.
+static std::string script_specific_filename(const Stmt* body)
 	{
 	// The specific filename is taken from the location filename, making
 	// it absolute if necessary.
@@ -52,7 +58,9 @@ std::string script_specific_filename(const StmtPtr& body)
 	return bl_f;
 	}
 
-p_hash_type script_specific_hash(const StmtPtr& body, p_hash_type generic_hash)
+// Returns a incremental-compilation-specific hash for the given function
+// body, given its non-specific hash is "generic_hash".
+static p_hash_type script_specific_hash(const Stmt* body, p_hash_type generic_hash)
 	{
 	auto bl_f = script_specific_filename(body);
 	return merge_p_hashes(generic_hash, p_hash(bl_f));
@@ -470,16 +478,22 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
 	// functions.  Recursively compute their hashes.
 	ComputeTypeHashes(main_types);
 
-	// Computing the hashes can have marked expressions (seen in
-	// record attributes) for further analysis.  Likewise, when
-	// doing the profile merges above we may have noted lambda
-	// expressions.  Analyze these, and iteratively any further
-	// expressions that that analysis uncovers.
-	DrainPendingExprs();
+	do
+		{
+		// Computing the hashes can have marked expressions (seen in
+		// record attributes) for further analysis.  Likewise, when
+		// doing the profile merges above we may have noted lambda
+		// expressions.  Analyze these, and iteratively any further
+		// expressions that that analysis uncovers.
+		DrainPendingExprs();
 
-	// We now have all the information we need to form definitive,
-	// deterministic hashes.
-	ComputeBodyHashes(funcs);
+		// We now have all the information we need to form definitive,
+		// deterministic hashes.
+		ComputeBodyHashes(funcs);
+
+		// Computing those hashes could have led to traversals that
+		// create more pending expressions to analyze.
+		} while ( ! pending_exprs.empty() );
 	}
 
 void ProfileFuncs::MergeInProfile(ProfileFunc* pf)
@@ -691,6 +705,9 @@ void ProfileFuncs::ComputeProfileHash(std::shared_ptr<ProfileFunc> pf)
 	h = merge_p_hashes(h, p_hash("addl"));
 	for ( auto i : pf->AdditionalHashes() )
 		h = merge_p_hashes(h, i);
+
+	if ( ! pf->Stmts().empty() )
+		h = script_specific_hash(pf->Stmts()[0], h);
 
 	pf->SetHashVal(h);
 	}

@@ -213,17 +213,11 @@ void CPPCompile::GenStandaloneActivation()
 	{
 	NL();
 
-#if 0
 	Emit("void standalone_activation__CPP()");
 	StartBlock();
-	for ( auto& a : activations )
-		Emit(a);
-	EndBlock();
-#endif
 
+	Emit("finish_init__CPP();");
 	NL();
-	Emit("void standalone_init__CPP()");
-	StartBlock();
 
 	// For events and hooks, we need to add each compiled body *unless*
 	// it's already there (which could be the case if the standalone
@@ -283,10 +277,14 @@ void CPPCompile::GenStandaloneActivation()
 		     GenTypeName(ft), hashes);
 		}
 
+	EndBlock();
+
 	NL();
+	Emit("void standalone_init__CPP()");
+	StartBlock();
+	Emit("init__CPP();");
 	Emit("CPP_activation_funcs.push_back(standalone_activation__CPP);");
 	Emit("CPP_activation_hook = activate__CPPs;");
-
 	EndBlock();
 	}
 
@@ -299,15 +297,6 @@ void CPPCompile::GenLoad()
 	total_hash = merge_p_hashes(total_hash, th);
 
 	Emit("register_scripts__CPP(%s, standalone_init__CPP);", Fmt(total_hash));
-
-	// Spit out the placeholder script, and any associated module
-	// definitions.
-	for ( const auto& m : module_names )
-		if ( m != "GLOBAL" )
-			printf("module %s;\n", m.c_str());
-
-	if ( module_names.size() > 0 )
-		printf("module GLOBAL;\n\n");
 
 	printf("global init_CPP_%llu = load_CPP(%llu);\n", total_hash, total_hash);
 	}

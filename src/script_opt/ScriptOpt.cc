@@ -99,16 +99,16 @@ bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body)
 	if ( ofiles.empty() && ofuncs.empty() )
 		return true;
 
-	auto fn = f->Name();
+	auto fun = f->Name();
 
 	for ( auto& o : ofuncs )
-		if ( std::regex_match(fn, o) )
+		if ( std::regex_match(fun, o) )
 			return true;
 
-	fn = body->GetLocationInfo()->filename;
+	auto fin = util::detail::normalize_path(body->GetLocationInfo()->filename);
 
 	for ( auto& o : ofiles )
-		if ( std::regex_match(fn, o) )
+		if ( std::regex_match(fin, o) )
 			return true;
 
 	return false;
@@ -296,7 +296,14 @@ static void init_options()
 
 	if ( analysis_options.only_funcs.empty() )
 		{
-		auto zo = getenv("ZEEK_ONLY");
+		auto zo = getenv("ZEEK_FUNC_ONLY");
+		if ( zo )
+			add_func_analysis_pattern(analysis_options, zo);
+		}
+
+	if ( analysis_options.only_files.empty() )
+		{
+		auto zo = getenv("ZEEK_FILE_ONLY");
 		if ( zo )
 			add_file_analysis_pattern(analysis_options, zo);
 		}
@@ -343,17 +350,8 @@ static void report_CPP()
 		auto name = f.Func()->Name();
 		auto hash = f.Profile()->HashVal();
 		bool have = compiled_scripts.count(hash) > 0;
-		auto specific = "";
 
-		if ( ! have )
-			{
-			hash = script_specific_hash(f.Body(), hash);
-			have = compiled_scripts.count(hash) > 0;
-			if ( have )
-				specific = " - specific";
-			}
-
-		printf("script function %s (hash %llu%s): %s\n", name, hash, specific, have ? "yes" : "no");
+		printf("script function %s (hash %llu): %s\n", name, hash, have ? "yes" : "no");
 
 		if ( have )
 			already_reported.insert(hash);
@@ -380,12 +378,6 @@ static void use_CPP()
 		auto hash = f.Profile()->HashVal();
 		auto s = compiled_scripts.find(hash);
 
-		if ( s == compiled_scripts.end() )
-			{ // Look for script-specific body.
-			hash = script_specific_hash(f.Body(), hash);
-			s = compiled_scripts.find(hash);
-			}
-
 		if ( s != compiled_scripts.end() )
 			{
 			auto b = s->second.body;
@@ -411,6 +403,10 @@ static void use_CPP()
 				auto h = event_registry->Register(e);
 				h->SetUsed();
 				}
+
+			auto finish = s->second.finish_init_func;
+			if ( finish )
+				(*finish)();
 			}
 		}
 

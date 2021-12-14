@@ -1,3 +1,7 @@
+4.2.0-dev.456 | 2021-12-14 09:23:47 -0700
+
+  * GH-1860: Add double_to_int() bif (Tim Wojtulewicz, Corelight)
+
 4.2.0-dev.454 | 2021-12-13 09:41:32 -0700
 
   * Check for sets before attempting to check for same Yield types (Tim Wojtulewicz)

@@ -105,9 +105,7 @@ void usage(const char* prog, int code)
 	                "allowed, pass '-' as the filename to read from stdin)\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>        | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>      | activate execution tracing\n");
-	fprintf(stderr,
-	        "    -u|--usage-issues               | find variable usage issues and exit; use "
-	        "-uu for deeper/more expensive analysis\n");
+	fprintf(stderr, "    -u|--usage-issues               | find variable usage issues and exit\n");
 	fprintf(stderr, "    -v|--version                    | print version and exit\n");
 	fprintf(stderr, "    -w|--writefile <writefile>      | write to given tcpdump file\n");
 #ifdef DEBUG

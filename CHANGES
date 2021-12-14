@@ -1,3 +1,9 @@
+4.2.0-dev.477 | 2021-12-14 16:53:57 -0700
+
+  * fixes for double-delete and reducing '?' operator with constant alternatives (Vern Paxson, Corelight)
+
+  * correct usage info for -u flag; -uu no longer supported (Vern Paxson, Corelight)
+
 4.2.0-dev.468 | 2021-12-14 11:34:47 -0700
 
   * factoring of generating C++ initializations, no semantic changes (Vern Paxson, Corelight)

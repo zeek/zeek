@@ -17,4 +17,15 @@ export {
 	    config: ClusterController::Types::Configuration);
 	global set_configuration_response: event(reqid: string,
 	    result: ClusterController::Types::ResultVec);
-}
+
+	# Testing events. These don't provide operational value but expose
+	# internal functionality, triggered by test cases.
+
+	# This event causes no further action (other than getting logged) if
+	# set_state is F. When T, the controller establishes request state. The
+	# conroller only ever sends the response event when this state times
+	# out.
+	global test_timeout_request: event(reqid: string, with_state: bool);
+	global test_timeout_response: event(reqid: string,
+	    result: ClusterController::Types::Result);
+	}

@@ -407,6 +407,50 @@ event ClusterController::API::get_instances_request(reqid: string)
 	event ClusterController::API::get_instances_response(reqid, res);
 	}
 
+event ClusterController::Request::request_expired(req: ClusterController::Request::Request)
+	{
+	# Various handlers for timed-out request state. We use the state members
+	# to identify how to respond.  No need to clean up the request itself,
+	# since we're getting here via the request module's expiration
+	# mechanism that handles the cleanup.
+	local res: ClusterController::Types::Result;
+
+	if ( req?$set_configuration_state )
+		{
+		res = ClusterController::Types::Result($reqid=req$id);
+		res$success = F;
+		res$error = "request timed out";
+		req$results += res;
+
+		ClusterController::Log::info(fmt("tx ClusterController::API::set_configuration_response %s",
+		                                 ClusterController::Request::to_string(req)));
+		event ClusterController::API::set_configuration_response(req$id, req$results);
+		}
+
+	if ( req?$test_state )
+		{
+		res = ClusterController::Types::Result($reqid=req$id);
+		res$success = F;
+		res$error = "request timed out";
+
+		ClusterController::Log::info(fmt("tx ClusterController::API::test_timeout_response %s", req$id));
+		event ClusterController::API::test_timeout_response(req$id, res);
+		}
+	}
+
+event ClusterController::API::test_timeout_request(reqid: string, with_state: bool)
+	{
+	ClusterController::Log::info(fmt("rx ClusterController::API::test_timeout_request %s %s", reqid, with_state));
+
+	if ( with_state )
+		{
+		# This state times out and triggers a timeout response in the
+		# above request_expired event handler.
+		local req = ClusterController::Request::create(reqid);
+		req$test_state = ClusterController::Request::TestState();
+		}
+	}
+
 event zeek_init()
 	{
 	# Initialize null config at startup. We will replace it once we have
@@ -433,6 +477,8 @@ event zeek_init()
 	    ClusterController::API::get_instances_response);
 	Broker::auto_publish(ClusterController::topic,
 	    ClusterController::API::set_configuration_response);
+	Broker::auto_publish(ClusterController::topic,
+	    ClusterController::API::test_timeout_response);
 
 	ClusterController::Log::info("controller is live");
 	}

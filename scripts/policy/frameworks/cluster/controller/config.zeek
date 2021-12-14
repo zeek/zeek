@@ -32,8 +32,10 @@ export {
 	# controller both redef this. Used during logging.
 	const role = ClusterController::Types::NONE &redef;
 
-	# The timeout for client request state.
-	const request_timeout = 15sec &redef;
+	# The timeout for request state. Applies both to state kept for client
+	# requests, as well as state in the agents for requests to the
+	# supervisor.
+	const request_timeout = 10sec &redef;
 
 	# Agent and controller currently log only, not via the data cluster's
 	# logger. (This might get added later.) For now, this means that

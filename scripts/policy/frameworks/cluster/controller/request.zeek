@@ -20,14 +20,13 @@ export {
 		requests: vector of Request &default=vector();
 	};
 
-	# State specific to the set_nodes request/response events
-	type SetNodesState: record {
-		requests: vector of Request &default=vector();
-	};
-
 	# State specific to supervisor interactions
 	type SupervisorState: record {
 		node: string;
+	};
+
+	# State for testing events
+	type TestState: record {
 	};
 
 	# The redef is a workaround so we can use the Request type
@@ -37,8 +36,8 @@ export {
 		finished: bool &default=F;
 
 		set_configuration_state: SetConfigurationState &optional;
-		set_nodes_state: SetNodesState &optional;
 		supervisor_state: SupervisorState &optional;
+		test_state: TestState &optional;
 	};
 
 	global null_req = Request($id="", $finished=T);

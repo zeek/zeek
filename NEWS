@@ -46,8 +46,29 @@ New Functionality
   specifying ``-O ZAM`` on the command line.  See
   ``src/script_opt/ZAM/README.md`` for more information.
 
-- The DNS analyzer has initial support for the SVCB and HTTPS types. The new events
-  are ``dns_SVCB`` and ``dns_HTTPS``.
+- Improvements for compiling scripts to C++ (an experimental optimization
+  feature introduced in 4.1).  The generated C++ now compiles much faster than
+  previously, though it can still take quite a while when using C++ optimization
+  on large sets of scripts.  You can incrementally compile additional scripts
+  using ``-O add-C++``.  See ``src/script_opt/CPP/README.md`` for details.
+
+- The new flags --optimize-files=/pat/ and --optimize-funcs=/pat/ apply
+  to both ZAM and compile-to-C++ script optimization.  The first instructs
+  Zeek to optimize any functions/hooks/event handlers residing in files
+  matching the given pattern (unanchored).  The second does the same but
+  based on the function name, and with the pattern anchored (so for example
+  --optimize-funcs=foo will optimize any functions named "foo" but not
+  those named "foobar", or "MYSCOPE::foo").  The flags can be combined
+  and can also be used multiple times to specify a set of patterns.
+  If neither flag is used then optimization is applied to all loaded
+  scripts; if used, then only to those that match.
+
+- The ``-uu`` flag for analyzing potentially unused record fields has been
+  removed because, due to other changes in script optimization, keeping it
+  would now require about 1,800 lines of code not otherwise needed.
+
+- The DNS analyzer has initial support for the SVCB and HTTPS types. The new
+  events are ``dns_SVCB`` and ``dns_HTTPS``.
 
 - The ``find_str`` and ``rfind_str`` bifs now support case-insensitive searches.
 

@@ -6,6 +6,8 @@
 
 @load ./api
 
+module ClusterAgent::Runtime;
+
 redef ClusterController::role = ClusterController::Types::AGENT;
 
 # The global configuration as passed to us by the controller

@@ -8,6 +8,8 @@
 @load ./request
 @load ./util
 
+module ClusterController::Runtime;
+
 redef ClusterController::role = ClusterController::Types::CONTROLLER;
 
 global check_instances_ready: function(insts: set[string], tc: TableChange, inst: string);

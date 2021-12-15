@@ -4,7 +4,7 @@ module ClusterAgent;
 
 export {
 	# The name this agent uses to represent the cluster instance
-        # it manages. When the environment variable isn't set and there's,
+	# it manages. When the environment variable isn't set and there's,
 	# no redef, this falls back to "agent-<hostname>".
 	const name = getenv("ZEEK_AGENT_NAME") &redef;
 
@@ -33,7 +33,7 @@ export {
 		$address="0.0.0.0", $bound_port=0/unknown] &redef;
 
 	# Agent and controller currently log only, not via the data cluster's
-        # logger. (This might get added later.) For now, this means that
+	# logger. (This might get added later.) For now, this means that
 	# if both write to the same log file, it gets garbled. The following
 	# lets you specify the working directory specifically for the agent.
 	const directory = "" &redef;
@@ -53,8 +53,8 @@ function instance(): ClusterController::Types::Instance
 	{
 	local epi = endpoint_info();
 	return ClusterController::Types::Instance($name=epi$id,
-		$host=to_addr(epi$network$address),
-		$listen_port=epi$network$bound_port);
+	    $host=to_addr(epi$network$address),
+	    $listen_port=epi$network$bound_port);
 	}
 
 function endpoint_info(): Broker::EndpointInfo

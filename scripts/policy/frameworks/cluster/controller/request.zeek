@@ -27,7 +27,7 @@ export {
 	};
 
 	# The redef is a workaround so we can use the Request type
-        # while it is still being defined
+	# while it is still being defined
 	redef record Request += {
 		results: ClusterController::Types::ResultVec &default=vector();
 		finished: bool &default=F;

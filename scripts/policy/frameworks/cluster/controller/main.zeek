@@ -53,8 +53,8 @@ event ClusterAgent::API::notify_agent_hello(instance: string, host: addr, api_ve
 
 
 event ClusterAgent::API::notify_change(instance: string, n: ClusterController::Types::Node,
-				       old: ClusterController::Types::State,
-				       new: ClusterController::Types::State)
+                                       old: ClusterController::Types::State,
+                                       new: ClusterController::Types::State)
 	{
 	# XXX TODO
 	}
@@ -96,10 +96,10 @@ event ClusterAgent::API::set_configuration_response(reqid: string, result: Clust
 			return;
 
 	# All set_configuration requests to instances are done, so respond
-        # back to client. We need to compose the result, aggregating
-        # the results we got from the requests to the agents. In the
-        # end we have one Result per instance requested in the
-        # original set_configuration_request.
+	# back to client. We need to compose the result, aggregating
+	# the results we got from the requests to the agents. In the
+	# end we have one Result per instance requested in the
+	# original set_configuration_request.
 	#
 	# XXX we can likely generalize result aggregation in the request module.
 	for ( i in req$set_configuration_state$requests )

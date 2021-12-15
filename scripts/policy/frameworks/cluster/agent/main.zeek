@@ -185,7 +185,7 @@ event zeek_init()
 	Broker::peer(supervisor_addr, Broker::default_port, Broker::default_listen_retry);
 
 	# Agents need receive communication targeted at it, and any responses
-        # from the supervisor.
+	# from the supervisor.
 	Broker::subscribe(agent_topic);
 	Broker::subscribe(SupervisorControl::topic_prefix);
 
@@ -210,8 +210,8 @@ event zeek_init()
 		{
 		# We connect to the controller.
 		Broker::peer(ClusterAgent::controller$address,
-			     ClusterAgent::controller$bound_port,
-			     ClusterController::connect_retry);
+		             ClusterAgent::controller$bound_port,
+		             ClusterController::connect_retry);
 		}
 	else
 		{

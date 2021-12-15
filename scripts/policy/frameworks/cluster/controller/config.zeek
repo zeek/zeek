@@ -40,7 +40,7 @@ export {
 	const role = ClusterController::Types::NONE &redef;
 
 	# Agent and controller currently log only, not via the data cluster's
-        # logger. (This might get added later.) For now, this means that
+	# logger. (This might get added later.) For now, this means that
 	# if both write to the same log file, it gets garbled. The following
 	# lets you specify the working directory specifically for the agent.
 	const directory = "" &redef;

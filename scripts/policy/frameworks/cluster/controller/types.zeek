@@ -37,7 +37,7 @@ export {
 		Stopped,  # Explicitly stopped
 		Failed,   # Failed to start; and permanently halted
 		Crashed,  # Crashed, will be restarted,
-	        Unknown,  # State not known currently (e.g., because of lost connectivity)
+		Unknown,  # State not known currently (e.g., because of lost connectivity)
 	};
 
 	## Configuration describing a Cluster Node process.

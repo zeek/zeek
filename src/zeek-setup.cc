@@ -16,7 +16,9 @@
 #include <list>
 #include <optional>
 
+#ifdef USE_SQLITE
 #include "zeek/3rdparty/sqlite3.h"
+#endif
 
 #define DOCTEST_CONFIG_IMPLEMENT
 
@@ -645,11 +647,12 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
-
+#ifdef USE_SQLITE
 	int r = sqlite3_initialize();
 
 	if ( r != SQLITE_OK )
 		reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
+#endif
 
 	timer_mgr = new TimerMgr();
 
@@ -1121,7 +1124,9 @@ int cleanup(bool did_run_loop)
 	run_state::detail::delete_run();
 	terminate_zeek();
 
+#ifdef USE_SQLITE
 	sqlite3_shutdown();
+#endif
 
 	do_ssl_deinit();
 

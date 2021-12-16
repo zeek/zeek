@@ -2434,6 +2434,9 @@ void get_memory_usage(uint64_t* total, uint64_t* malloced)
 
 	// In KB.
 	ret_total = r.ru_maxrss * 1024;
+
+	if ( malloced )
+		*malloced = r.ru_ixrss * 1024;
 #endif
 
 	if ( total )

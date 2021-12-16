@@ -177,6 +177,8 @@ gen_zam_target(${GEN_ZAM_SRC})
 ## Including subdirectories.
 ########################################################################
 
+option(USE_SQLITE "Should Zeek use SQLite?" ON)
+
 set(bro_SUBDIR_LIBS CACHE INTERNAL "subdir libraries" FORCE)
 set(bro_SUBDIR_DEPS CACHE INTERNAL "subdir dependencies" FORCE)
 set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
@@ -441,7 +443,7 @@ set(THIRD_PARTY_SRCS
     3rdparty/modp_numtoa.c
     3rdparty/patricia.c
     3rdparty/setsignal.c
-    3rdparty/sqlite3.c
+    $<$<BOOL:USE_SQLITE>:3rdparty/sqlite3.c>
     3rdparty/strsep.c
 )
 
@@ -679,7 +681,7 @@ install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/modp_numtoa.h
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/patricia.h
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/setsignal.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h
+        $<$<BOOL:USE_SQLITE>:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h>
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/doctest.h
         DESTINATION include/zeek/3rdparty
 )

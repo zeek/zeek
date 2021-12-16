@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <sys/types.h>
 #include <chrono>
 #include <cstdint>

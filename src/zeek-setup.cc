@@ -579,7 +579,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	file_mgr = new file_analysis::Manager();
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
 	broker_mgr = new Broker::Manager(broker_real_time);
-	telemetry_mgr = broker_mgr->NewTelemetryManager().release();
+	telemetry_mgr = new telemetry::Manager;
 	trigger_mgr = new trigger::Manager();
 
 	plugin_mgr->InitPreScript();

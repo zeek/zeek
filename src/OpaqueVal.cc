@@ -33,7 +33,7 @@ inline bool get_vector_idx(const V& v, unsigned int i, D* dst)
 	if ( i >= v.size() )
 		return false;
 
-	auto x = caf::get_if<S>(&v[i]);
+	auto x = broker::get_if<S>(&v[i]);
 	if ( ! x )
 		return false;
 
@@ -81,12 +81,12 @@ broker::expected<broker::data> OpaqueVal::Serialize() const
 
 OpaqueValPtr OpaqueVal::Unserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = broker::get_if<broker::vector>(&data);
 
 	if ( ! (v && v->size() == 2) )
 		return nullptr;
 
-	auto type = caf::get_if<std::string>(&(*v)[0]);
+	auto type = broker::get_if<std::string>(&(*v)[0]);
 	if ( ! type )
 		return nullptr;
 
@@ -118,17 +118,17 @@ broker::expected<broker::data> OpaqueVal::SerializeType(const TypePtr& t)
 
 TypePtr OpaqueVal::UnserializeType(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = broker::get_if<broker::vector>(&data);
 	if ( ! (v && v->size() == 2) )
 		return nullptr;
 
-	auto by_name = caf::get_if<bool>(&(*v)[0]);
+	auto by_name = broker::get_if<bool>(&(*v)[0]);
 	if ( ! by_name )
 		return nullptr;
 
 	if ( *by_name )
 		{
-		auto name = caf::get_if<std::string>(&(*v)[1]);
+		auto name = broker::get_if<std::string>(&(*v)[1]);
 		if ( ! name )
 			return nullptr;
 
@@ -142,7 +142,7 @@ TypePtr OpaqueVal::UnserializeType(const broker::data& data)
 		return id->GetType();
 		}
 
-	auto tag = caf::get_if<uint64_t>(&(*v)[1]);
+	auto tag = broker::get_if<uint64_t>(&(*v)[1]);
 	if ( ! tag )
 		return nullptr;
 
@@ -295,11 +295,11 @@ broker::expected<broker::data> MD5Val::DoSerialize() const
 
 bool MD5Val::DoUnserialize(const broker::data& data)
 	{
-	auto d = caf::get_if<broker::vector>(&data);
+	auto d = broker::get_if<broker::vector>(&data);
 	if ( ! d )
 		return false;
 
-	auto valid = caf::get_if<bool>(&(*d)[0]);
+	auto valid = broker::get_if<bool>(&(*d)[0]);
 	if ( ! valid )
 		return false;
 
@@ -312,7 +312,7 @@ bool MD5Val::DoUnserialize(const broker::data& data)
 	if ( (*d).size() != 2 )
 		return false;
 
-	auto s = caf::get_if<std::string>(&(*d)[1]);
+	auto s = broker::get_if<std::string>(&(*d)[1]);
 	if ( ! s )
 		return false;
 
@@ -385,11 +385,11 @@ broker::expected<broker::data> SHA1Val::DoSerialize() const
 
 bool SHA1Val::DoUnserialize(const broker::data& data)
 	{
-	auto d = caf::get_if<broker::vector>(&data);
+	auto d = broker::get_if<broker::vector>(&data);
 	if ( ! d )
 		return false;
 
-	auto valid = caf::get_if<bool>(&(*d)[0]);
+	auto valid = broker::get_if<bool>(&(*d)[0]);
 	if ( ! valid )
 		return false;
 
@@ -402,7 +402,7 @@ bool SHA1Val::DoUnserialize(const broker::data& data)
 	if ( (*d).size() != 2 )
 		return false;
 
-	auto s = caf::get_if<std::string>(&(*d)[1]);
+	auto s = broker::get_if<std::string>(&(*d)[1]);
 	if ( ! s )
 		return false;
 
@@ -475,11 +475,11 @@ broker::expected<broker::data> SHA256Val::DoSerialize() const
 
 bool SHA256Val::DoUnserialize(const broker::data& data)
 	{
-	auto d = caf::get_if<broker::vector>(&data);
+	auto d = broker::get_if<broker::vector>(&data);
 	if ( ! d )
 		return false;
 
-	auto valid = caf::get_if<bool>(&(*d)[0]);
+	auto valid = broker::get_if<bool>(&(*d)[0]);
 	if ( ! valid )
 		return false;
 
@@ -492,7 +492,7 @@ bool SHA256Val::DoUnserialize(const broker::data& data)
 	if ( (*d).size() != 2 )
 		return false;
 
-	auto s = caf::get_if<std::string>(&(*d)[1]);
+	auto s = broker::get_if<std::string>(&(*d)[1]);
 	if ( ! s )
 		return false;
 
@@ -546,7 +546,7 @@ broker::expected<broker::data> EntropyVal::DoSerialize() const
 
 bool EntropyVal::DoUnserialize(const broker::data& data)
 	{
-	auto d = caf::get_if<broker::vector>(&data);
+	auto d = broker::get_if<broker::vector>(&data);
 	if ( ! d )
 		return false;
 
@@ -728,12 +728,12 @@ broker::expected<broker::data> BloomFilterVal::DoSerialize() const
 
 bool BloomFilterVal::DoUnserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = broker::get_if<broker::vector>(&data);
 
 	if ( ! (v && v->size() == 2) )
 		return false;
 
-	auto no_type = caf::get_if<broker::none>(&(*v)[0]);
+	auto no_type = broker::get_if<broker::none>(&(*v)[0]);
 	if ( ! no_type )
 		{
 		auto t = UnserializeType((*v)[0]);
@@ -822,12 +822,12 @@ broker::expected<broker::data> CardinalityVal::DoSerialize() const
 
 bool CardinalityVal::DoUnserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = broker::get_if<broker::vector>(&data);
 
 	if ( ! (v && v->size() == 2) )
 		return false;
 
-	auto no_type = caf::get_if<broker::none>(&(*v)[0]);
+	auto no_type = broker::get_if<broker::none>(&(*v)[0]);
 	if ( ! no_type )
 		{
 		auto t = UnserializeType((*v)[0]);
@@ -879,7 +879,7 @@ broker::expected<broker::data> ParaglobVal::DoSerialize() const
 
 bool ParaglobVal::DoUnserialize(const broker::data& data)
 	{
-	auto d = caf::get_if<broker::vector>(&data);
+	auto d = broker::get_if<broker::vector>(&data);
 	if ( ! d )
 		return false;
 

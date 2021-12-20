@@ -9,6 +9,8 @@
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 
+#include "broker/telemetry/fwd.hh"
+
 namespace zeek::telemetry
 	{
 
@@ -24,8 +26,6 @@ class IntCounter
 public:
 	friend class IntCounterFamily;
 
-	struct Impl;
-
 	static inline const char* OpaqueName = "IntCounterMetricVal";
 
 	IntCounter() = delete;
@@ -35,34 +35,36 @@ public:
 	/**
 	 * Increments the value by 1.
 	 */
-	void Inc() noexcept;
+	void Inc() noexcept { broker::telemetry::inc(hdl); }
 
 	/**
 	 * Increments the value by @p amount.
 	 * @pre `amount >= 0`
 	 */
-	void Inc(int64_t amount) noexcept;
+	void Inc(int64_t amount) noexcept { broker::telemetry::inc(hdl, amount); }
 
 	/**
 	 * Increments the value by 1.
 	 * @return The new value.
 	 */
-	int64_t operator++() noexcept;
+	int64_t operator++() noexcept { return broker::telemetry::inc(hdl); }
 
 	/**
 	 * @return The current value.
 	 */
-	int64_t Value() const noexcept;
+	int64_t Value() const noexcept { return broker::telemetry::value(hdl); }
 
 	/**
 	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool IsSameAs(IntCounter other) const noexcept { return pimpl == other.pimpl; }
+	constexpr bool IsSameAs(IntCounter other) const noexcept { return hdl == other.hdl; }
 
 private:
-	explicit IntCounter(Impl* ptr) noexcept : pimpl(ptr) { }
+	using Handle = broker::telemetry::int_counter_hdl*;
 
-	Impl* pimpl;
+	explicit IntCounter(Handle hdl) noexcept : hdl(hdl) { }
+
+	Handle hdl;
 	};
 
 /**
@@ -89,8 +91,6 @@ class IntCounterFamily : public MetricFamily
 public:
 	friend class Manager;
 
-	class Impl;
-
 	static inline const char* OpaqueName = "IntCounterMetricFamilyVal";
 
 	using InstanceType = IntCounter;
@@ -102,7 +102,10 @@ public:
 	 * Returns the metrics handle for given labels, creating a new instance
 	 * lazily if necessary.
 	 */
-	IntCounter GetOrAdd(Span<const LabelView> labels);
+	IntCounter GetOrAdd(Span<const LabelView> labels)
+		{
+		return IntCounter{int_counter_get_or_add(hdl, labels)};
+		}
 
 	/**
 	 * @copydoc GetOrAdd
@@ -113,7 +116,9 @@ public:
 		}
 
 private:
-	explicit IntCounterFamily(Impl* ptr);
+	using Handle = broker::telemetry::int_counter_family_hdl*;
+
+	explicit IntCounterFamily(Handle hdl) : MetricFamily(upcast(hdl)) { }
 	};
 
 /**
@@ -125,8 +130,6 @@ class DblCounter
 public:
 	friend class DblCounterFamily;
 
-	struct Impl;
-
 	static inline const char* OpaqueName = "DblCounterMetricVal";
 
 	DblCounter() = delete;
@@ -136,28 +139,30 @@ public:
 	/**
 	 * Increments the value by 1.
 	 */
-	void Inc() noexcept;
+	void Inc() noexcept { broker::telemetry::inc(hdl); }
 
 	/**
 	 * Increments the value by @p amount.
 	 * @pre `amount >= 0`
 	 */
-	void Inc(double amount) noexcept;
+	void Inc(double amount) noexcept { broker::telemetry::inc(hdl, amount); }
 
 	/**
 	 * @return The current value.
 	 */
-	double Value() const noexcept;
+	double Value() const noexcept { return broker::telemetry::value(hdl); }
 
 	/**
 	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool IsSameAs(DblCounter other) const noexcept { return pimpl == other.pimpl; }
+	constexpr bool IsSameAs(DblCounter other) const noexcept { return hdl == other.hdl; }
 
 private:
-	explicit DblCounter(Impl* ptr) noexcept : pimpl(ptr) { }
+	using Handle = broker::telemetry::dbl_counter_hdl*;
 
-	Impl* pimpl;
+	explicit DblCounter(Handle hdl) noexcept : hdl(hdl) { }
+
+	Handle hdl;
 	};
 
 /**
@@ -184,8 +189,6 @@ class DblCounterFamily : public MetricFamily
 public:
 	friend class Manager;
 
-	class Impl;
-
 	static inline const char* OpaqueName = "DblCounterMetricFamilyVal";
 
 	using InstanceType = DblCounter;
@@ -197,7 +200,10 @@ public:
 	 * Returns the metrics handle for given labels, creating a new instance
 	 * lazily if necessary.
 	 */
-	DblCounter GetOrAdd(Span<const LabelView> labels);
+	DblCounter GetOrAdd(Span<const LabelView> labels)
+		{
+		return DblCounter{dbl_counter_get_or_add(hdl, labels)};
+		}
 
 	/**
 	 * @copydoc GetOrAdd
@@ -208,7 +214,9 @@ public:
 		}
 
 private:
-	explicit DblCounterFamily(Impl* ptr);
+	using Handle = broker::telemetry::dbl_counter_family_hdl*;
+
+	explicit DblCounterFamily(Handle hdl) : MetricFamily(upcast(hdl)) { }
 	};
 
 namespace detail

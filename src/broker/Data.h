@@ -5,6 +5,8 @@
 #include "zeek/OpaqueVal.h"
 #include "zeek/Reporter.h"
 
+#include "broker/data.hh"
+
 namespace zeek
 	{
 
@@ -181,10 +183,10 @@ broker::data& opaque_field_to_data(zeek::RecordVal* v, zeek::detail::Frame* f);
 template <typename T>
 T& require_data_type(broker::data& d, zeek::TypeTag tag, zeek::detail::Frame* f)
 	{
-	auto ptr = caf::get_if<T>(&d);
+	auto ptr = broker::get_if<T>(&d);
 	if ( ! ptr )
 		zeek::reporter->RuntimeError(f->GetCallLocation(), "data is of type '%s' not of type '%s'",
-		                             caf::visit(type_name_getter{tag}, d), zeek::type_name(tag));
+		                             visit(type_name_getter{tag}, d), zeek::type_name(tag));
 
 	return *ptr;
 	}

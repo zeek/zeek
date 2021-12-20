@@ -447,14 +447,14 @@ broker::expected<broker::data> TopkVal::DoSerialize() const
 
 bool TopkVal::DoUnserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = broker::get_if<broker::vector>(&data);
 
 	if ( ! (v && v->size() >= 4) )
 		return false;
 
-	auto size_ = caf::get_if<uint64_t>(&(*v)[0]);
-	auto numElements_ = caf::get_if<uint64_t>(&(*v)[1]);
-	auto pruned_ = caf::get_if<bool>(&(*v)[2]);
+	auto size_ = broker::get_if<uint64_t>(&(*v)[0]);
+	auto numElements_ = broker::get_if<uint64_t>(&(*v)[1]);
+	auto pruned_ = broker::get_if<bool>(&(*v)[2]);
 
 	if ( ! (size_ && numElements_ && pruned_) )
 		return false;
@@ -463,7 +463,7 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 	numElements = *numElements_;
 	pruned = *pruned_;
 
-	auto no_type = caf::get_if<broker::none>(&(*v)[3]);
+	auto no_type = broker::get_if<broker::none>(&(*v)[3]);
 	if ( ! no_type )
 		{
 		auto t = UnserializeType((*v)[3]);
@@ -479,8 +479,8 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 
 	while ( i < numElements )
 		{
-		auto elements_count = caf::get_if<uint64_t>(&(*v)[idx++]);
-		auto count = caf::get_if<uint64_t>(&(*v)[idx++]);
+		auto elements_count = broker::get_if<uint64_t>(&(*v)[idx++]);
+		auto count = broker::get_if<uint64_t>(&(*v)[idx++]);
 
 		if ( ! (elements_count && count) )
 			return false;
@@ -491,7 +491,7 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 
 		for ( uint64_t j = 0; j < *elements_count; j++ )
 			{
-			auto epsilon = caf::get_if<uint64_t>(&(*v)[idx++]);
+			auto epsilon = broker::get_if<uint64_t>(&(*v)[idx++]);
 			auto val = Broker::detail::data_to_val((*v)[idx++], type.get());
 
 			if ( ! (epsilon && val) )

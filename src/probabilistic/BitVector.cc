@@ -512,12 +512,12 @@ broker::expected<broker::data> BitVector::Serialize() const
 
 std::unique_ptr<BitVector> BitVector::Unserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = broker::get_if<broker::vector>(&data);
 	if ( ! (v && v->size() >= 2) )
 		return nullptr;
 
-	auto num_bits = caf::get_if<uint64_t>(&(*v)[0]);
-	auto size = caf::get_if<uint64_t>(&(*v)[1]);
+	auto num_bits = broker::get_if<uint64_t>(&(*v)[0]);
+	auto size = broker::get_if<uint64_t>(&(*v)[1]);
 
 	if ( ! (num_bits && size) )
 		return nullptr;
@@ -530,7 +530,7 @@ std::unique_ptr<BitVector> BitVector::Unserialize(const broker::data& data)
 
 	for ( size_t i = 0; i < *size; ++i )
 		{
-		auto x = caf::get_if<uint64_t>(&(*v)[2 + i]);
+		auto x = broker::get_if<uint64_t>(&(*v)[2 + i]);
 		if ( ! x )
 			return nullptr;
 

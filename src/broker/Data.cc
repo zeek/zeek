@@ -226,7 +226,7 @@ struct val_converter
 			{
 			const auto& expected_index_types = tt->GetIndices()->GetTypes();
 			broker::vector composite_key;
-			auto indices = caf::get_if<broker::vector>(&item);
+			auto indices = get_if<broker::vector>(&item);
 
 			if ( indices )
 				{
@@ -281,7 +281,7 @@ struct val_converter
 			{
 			const auto& expected_index_types = tt->GetIndices()->GetTypes();
 			broker::vector composite_key;
-			auto indices = caf::get_if<broker::vector>(&item.first);
+			auto indices = get_if<broker::vector>(&item.first);
 
 			if ( indices )
 				{
@@ -446,7 +446,7 @@ struct val_converter
 				if ( idx >= a.size() )
 					return nullptr;
 
-				if ( caf::get_if<broker::none>(&a[idx]) != nullptr )
+				if ( get_if<broker::none>(&a[idx]) != nullptr )
 					{
 					rval->Remove(i);
 					++idx;
@@ -469,8 +469,8 @@ struct val_converter
 			if ( a.size() != 2 )
 				return nullptr;
 
-			auto exact_text = caf::get_if<std::string>(&a[0]);
-			auto anywhere_text = caf::get_if<std::string>(&a[1]);
+			auto exact_text = get_if<std::string>(&a[0]);
+			auto anywhere_text = get_if<std::string>(&a[1]);
 
 			if ( ! exact_text || ! anywhere_text )
 				return nullptr;
@@ -606,7 +606,7 @@ struct type_checker
 		for ( const auto& item : a )
 			{
 			const auto& expected_index_types = tt->GetIndices()->GetTypes();
-			auto indices = caf::get_if<broker::vector>(&item);
+			auto indices = get_if<broker::vector>(&item);
 			vector<const broker::data*> indices_to_check;
 
 			if ( indices )
@@ -663,7 +663,7 @@ struct type_checker
 		for ( auto& item : a )
 			{
 			const auto& expected_index_types = tt->GetIndices()->GetTypes();
-			auto indices = caf::get_if<broker::vector>(&item.first);
+			auto indices = get_if<broker::vector>(&item.first);
 			vector<const broker::data*> indices_to_check;
 
 			if ( indices )
@@ -765,7 +765,7 @@ struct type_checker
 				if ( idx >= a.size() )
 					return false;
 
-				if ( caf::get_if<broker::none>(&a[idx]) != nullptr )
+				if ( get_if<broker::none>(&a[idx]) != nullptr )
 					{
 					++idx;
 					continue;
@@ -784,8 +784,8 @@ struct type_checker
 			if ( a.size() != 2 )
 				return false;
 
-			auto exact_text = caf::get_if<std::string>(&a[0]);
-			auto anywhere_text = caf::get_if<std::string>(&a[1]);
+			auto exact_text = get_if<std::string>(&a[0]);
+			auto anywhere_text = get_if<std::string>(&a[1]);
 
 			if ( ! exact_text || ! anywhere_text )
 				return false;
@@ -820,7 +820,7 @@ static bool data_type_check(const broker::data& d, Type* t)
 	if ( t->Tag() == TYPE_ANY )
 		return true;
 
-	return caf::visit(type_checker{t}, d);
+	return visit(type_checker{t}, d);
 	}
 
 ValPtr data_to_val(broker::data d, Type* type)
@@ -828,7 +828,7 @@ ValPtr data_to_val(broker::data d, Type* type)
 	if ( type->Tag() == TYPE_ANY )
 		return make_data_val(move(d));
 
-	return caf::visit(val_converter{type}, std::move(d));
+	return visit(val_converter{type}, d);
 	}
 
 broker::expected<broker::data> val_to_data(const Val* v)
@@ -961,7 +961,7 @@ broker::expected<broker::data> val_to_data(const Val* v)
 					key = move(composite_key);
 
 				if ( is_set )
-					caf::get<broker::set>(rval).emplace(move(key));
+					get<broker::set>(rval).emplace(move(key));
 				else
 					{
 					auto val = val_to_data(entry->GetVal().get());
@@ -969,7 +969,7 @@ broker::expected<broker::data> val_to_data(const Val* v)
 					if ( ! val )
 						return broker::ec::invalid_data;
 
-					caf::get<broker::table>(rval).emplace(move(key), move(*val));
+					get<broker::table>(rval).emplace(move(key), move(*val));
 					}
 				}
 
@@ -1180,7 +1180,7 @@ struct data_type_getter
 
 EnumValPtr get_data_type(RecordVal* v, zeek::detail::Frame* frame)
 	{
-	return caf::visit(data_type_getter{}, opaque_field_to_data(v, frame));
+	return visit(data_type_getter{}, opaque_field_to_data(v, frame));
 	}
 
 broker::data& opaque_field_to_data(RecordVal* v, zeek::detail::Frame* f)
@@ -1240,11 +1240,11 @@ broker::expected<broker::data> SetIterator::DoSerialize() const
 
 bool SetIterator::DoUnserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = get_if<broker::vector>(&data);
 	if ( ! (v && v->size() == 2) )
 		return false;
 
-	auto x = caf::get_if<broker::set>(&(*v)[0]);
+	auto x = get_if<broker::set>(&(*v)[0]);
 
 	// We set the iterator by finding the element it used to point to.
 	// This is not perfect, as there's no guarantee that the restored
@@ -1267,11 +1267,11 @@ broker::expected<broker::data> TableIterator::DoSerialize() const
 
 bool TableIterator::DoUnserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = get_if<broker::vector>(&data);
 	if ( ! (v && v->size() == 2) )
 		return false;
 
-	auto x = caf::get_if<broker::table>(&(*v)[0]);
+	auto x = get_if<broker::table>(&(*v)[0]);
 
 	// We set the iterator by finding the element it used to point to.
 	// This is not perfect, as there's no guarantee that the restored
@@ -1295,12 +1295,12 @@ broker::expected<broker::data> VectorIterator::DoSerialize() const
 
 bool VectorIterator::DoUnserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = get_if<broker::vector>(&data);
 	if ( ! (v && v->size() == 2) )
 		return false;
 
-	auto x = caf::get_if<broker::vector>(&(*v)[0]);
-	auto y = caf::get_if<broker::integer>(&(*v)[1]);
+	auto x = get_if<broker::vector>(&(*v)[0]);
+	auto y = get_if<broker::integer>(&(*v)[1]);
 
 	if ( ! (x && y) )
 		return false;
@@ -1320,12 +1320,12 @@ broker::expected<broker::data> RecordIterator::DoSerialize() const
 
 bool RecordIterator::DoUnserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = get_if<broker::vector>(&data);
 	if ( ! (v && v->size() == 2) )
 		return false;
 
-	auto x = caf::get_if<broker::vector>(&(*v)[0]);
-	auto y = caf::get_if<broker::integer>(&(*v)[1]);
+	auto x = get_if<broker::vector>(&(*v)[0]);
+	auto y = get_if<broker::integer>(&(*v)[1]);
 
 	if ( ! (x && y) )
 		return false;
@@ -1352,25 +1352,25 @@ broker::data threading_field_to_data(const threading::Field* f)
 
 threading::Field* data_to_threading_field(broker::data d)
 	{
-	if ( ! caf::holds_alternative<broker::vector>(d) )
+	if ( ! holds_alternative<broker::vector>(d) )
 		return nullptr;
 
-	auto& v = caf::get<broker::vector>(d);
-	auto name = caf::get_if<std::string>(&v[0]);
+	auto& v = get<broker::vector>(d);
+	auto name = get_if<std::string>(&v[0]);
 	auto secondary = v[1];
-	auto type = caf::get_if<broker::count>(&v[2]);
-	auto subtype = caf::get_if<broker::count>(&v[3]);
-	auto optional = caf::get_if<broker::boolean>(&v[4]);
+	auto type = get_if<broker::count>(&v[2]);
+	auto subtype = get_if<broker::count>(&v[3]);
+	auto optional = get_if<broker::boolean>(&v[4]);
 
 	if ( ! (name && type && subtype && optional) )
 		return nullptr;
 
-	if ( secondary != broker::nil && ! caf::holds_alternative<std::string>(secondary) )
+	if ( secondary != broker::nil && ! holds_alternative<std::string>(secondary) )
 		return nullptr;
 
 	return new threading::Field(
 		name->c_str(),
-		secondary != broker::nil ? caf::get<std::string>(secondary).c_str() : nullptr,
+		secondary != broker::nil ? get<std::string>(secondary).c_str() : nullptr,
 		static_cast<TypeTag>(*type), static_cast<TypeTag>(*subtype), *optional);
 	}
 

@@ -9,8 +9,8 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 		switch ( name )
 			{
 			case "HOST":
-			# The split is done to remove the occasional port value that shows up here (see also base script)
-			local host = split_string1(value, /:/)[0];
+			# Remove the occasional port value that shows up here.
+			local host = gsub(value, /:[[:digit:]]+$/, "");
 			if ( is_valid_ip(host) )
 				Intel::seen([$host=to_addr(host),
 					     $indicator_type=Intel::ADDR,

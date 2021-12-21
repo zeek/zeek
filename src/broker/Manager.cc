@@ -28,6 +28,57 @@
 
 using namespace std;
 
+namespace {
+
+void print_escaped(std::string& buf, std::string_view str)
+	{
+	buf.push_back('"');
+	for ( auto c : str )
+		{
+		switch ( c )
+			{
+			default:
+				buf.push_back(c);
+				break;
+			case '\\':
+				buf.push_back('\\');
+				buf.push_back('\\');
+				break;
+			case '\b':
+				buf.push_back('\\');
+				buf.push_back('b');
+				break;
+			case '\f':
+				buf.push_back('\\');
+				buf.push_back('f');
+				break;
+			case '\n':
+				buf.push_back('\\');
+				buf.push_back('n');
+				break;
+			case '\r':
+				buf.push_back('\\');
+				buf.push_back('r');
+				break;
+			case '\t':
+				buf.push_back('\\');
+				buf.push_back('t');
+				break;
+			case '\v':
+				buf.push_back('\\');
+				buf.push_back('v');
+				break;
+			case '"':
+				buf.push_back('\\');
+				buf.push_back('"');
+				break;
+			}
+		}
+	buf.push_back('"');
+	}
+
+	} // namespace
+
 namespace zeek::Broker
 	{
 
@@ -1658,7 +1709,7 @@ void Manager::ProcessError(broker::error_view err)
 		msg += broker::to_string(ctx->network);
 		msg += ", ";
 		if ( auto what = err.message() )
-			msg += *what;
+			print_escaped(msg, *what);
 		else
 			msg += R"_("")_";
 		msg += ')';

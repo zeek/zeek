@@ -147,6 +147,10 @@ Changed Functionality
   --enable-cpp-tests configure flag. Unit tests now also work in (static and
   dynamic) Zeek plugins.
 
+- Entries in ``http.log`` now record the original ``HOST`` headers.
+  Previously, they would skip any port specification a header might
+  include.
+
 Removed Functionality
 ---------------------
 

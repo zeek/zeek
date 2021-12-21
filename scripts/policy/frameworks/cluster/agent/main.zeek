@@ -24,11 +24,6 @@ global g_nodes: table[string] of ClusterController::Types::Node;
 # new configurations.
 global g_data_cluster: table[string] of Supervisor::ClusterEndpoint;
 
-# Whether we currenty keep notifying the controller that we're here.
-# We stop once the controller responds back, and resume when we've
-# lost the peering.
-global g_notify_controller: bool = T;
-
 
 event SupervisorControl::create_response(reqid: string, result: string)
 	{
@@ -169,25 +164,44 @@ event ClusterAgent::API::set_configuration_request(reqid: string, config: Cluste
 		}
 	}
 
-event ClusterAgent::API::notify_controller_hello(controller: string, host: addr)
+event ClusterAgent::API::agent_welcome_request(reqid: string)
 	{
-	ClusterController::Log::info(fmt("rx ClusterAgent::API::notify_controller_hello %s %s", controller, host));
-	g_notify_controller = F;
+	ClusterController::Log::info(fmt("rx ClusterAgent::API::agent_welcome_request %s", reqid));
+
+	local res = ClusterController::Types::Result(
+	    $reqid = reqid,
+	    $instance = ClusterAgent::name);
+
+	ClusterController::Log::info(fmt("tx ClusterAgent::API::agent_welcome_response %s",
+	                                 ClusterController::Types::result_to_string(res)));
+	event ClusterAgent::API::agent_welcome_response(reqid, res);
 	}
 
-event ClusterAgent::API::notify_agent_hello(instance: string, host: addr, api_version: count)
+event ClusterAgent::API::agent_standby_request(reqid: string)
 	{
-	if ( g_notify_controller )
-		schedule 1sec { ClusterAgent::API::notify_agent_hello(instance, host, api_version) };
+	ClusterController::Log::info(fmt("rx ClusterAgent::API::agent_standby_request %s", reqid));
+
+	# We shut down any existing cluster nodes via an empty configuration,
+	# and fall silent. We do not unpeer/disconnect (assuming we earlier
+	# peered/connected -- otherwise there's nothing we can do here via
+	# Broker anyway), mainly to keep open the possibility of running
+	# cluster nodes again later.
+	event ClusterAgent::API::set_configuration_request("", ClusterController::Types::Configuration());
+
+	local res = ClusterController::Types::Result(
+	    $reqid = reqid,
+	    $instance = ClusterAgent::name);
+
+	ClusterController::Log::info(fmt("tx ClusterAgent::API::agent_standby_response %s",
+	                                 ClusterController::Types::result_to_string(res)));
+	event ClusterAgent::API::agent_standby_response(reqid, res);
 	}
 
 event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	{
 	# This does not (cannot?) immediately verify that the new peer
-	# is in fact a controller, so we might send this redundantly.
-	# Controllers handle the hello event accordingly.
-
-	g_notify_controller = T;
+	# is in fact a controller, so we might send this in vain.
+	# Controllers register the agent upon receipt of the event.
 
 	local epi = ClusterAgent::endpoint_info();
 
@@ -218,6 +232,9 @@ event zeek_init()
 	# Auto-publish a bunch of events. Glob patterns or module-level
 	# auto-publish would be helpful here.
 	Broker::auto_publish(agent_topic, ClusterAgent::API::set_configuration_response);
+	Broker::auto_publish(agent_topic, ClusterAgent::API::agent_welcome_response);
+	Broker::auto_publish(agent_topic, ClusterAgent::API::agent_standby_response);
+
 	Broker::auto_publish(agent_topic, ClusterAgent::API::notify_agent_hello);
 	Broker::auto_publish(agent_topic, ClusterAgent::API::notify_change);
 	Broker::auto_publish(agent_topic, ClusterAgent::API::notify_error);

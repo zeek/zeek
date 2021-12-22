@@ -24,6 +24,7 @@
 # @load frameworks/cluster/controller/main.zeek
 @load frameworks/cluster/controller/request.zeek
 @load frameworks/cluster/controller/types.zeek
+@load frameworks/cluster/controller/util.zeek
 @load frameworks/dpd/detect-protocols.zeek
 @load frameworks/dpd/packet-segment-logging.zeek
 @load frameworks/intel/do_notice.zeek

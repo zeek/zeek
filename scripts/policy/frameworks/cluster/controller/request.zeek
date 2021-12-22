@@ -1,4 +1,5 @@
 @load ./types
+@load ./config
 
 module ClusterController::Request;
 
@@ -8,16 +9,14 @@ export {
 		parent_id: string &optional;
 	};
 
-	# API-specific state. XXX we may be able to generalize after this
-	# has settled a bit more.
+	# API-specific state. XXX we may be able to generalize after this has
+	# settled a bit more. It would also be nice to move request-specific
+	# state out of this module -- we could for example redef Request in
+	# main.zeek as needed.
 
 	# State specific to the set_configuration request/response events
 	type SetConfigurationState: record {
-		requests: vector of Request &default=vector();
-	};
-
-	# State specific to the set_nodes request/response events
-	type SetNodesState: record {
+		config: ClusterController::Types::Configuration;
 		requests: vector of Request &default=vector();
 	};
 
@@ -26,15 +25,19 @@ export {
 		node: string;
 	};
 
+	# State for testing events
+	type TestState: record {
+	};
+
 	# The redef is a workaround so we can use the Request type
-        # while it is still being defined
+	# while it is still being defined
 	redef record Request += {
 		results: ClusterController::Types::ResultVec &default=vector();
 		finished: bool &default=F;
 
 		set_configuration_state: SetConfigurationState &optional;
-		set_nodes_state: SetNodesState &optional;
 		supervisor_state: SupervisorState &optional;
+		test_state: TestState &optional;
 	};
 
 	global null_req = Request($id="", $finished=T);
@@ -43,34 +46,48 @@ export {
 	global lookup: function(reqid: string): Request;
 	global finish: function(reqid: string): bool;
 
+	global request_expired: event(req: Request);
+
 	global is_null: function(request: Request): bool;
+	global to_string: function(request: Request): string;
 }
 
-# XXX this needs a mechanism for expiring stale requests
-global requests: table[string] of Request;
+function requests_expire_func(reqs: table[string] of Request, reqid: string): interval
+	{
+	event ClusterController::Request::request_expired(reqs[reqid]);
+	return 0secs;
+	}
+
+# This is the global request-tracking table. The table maps from request ID
+# strings to corresponding Request records. Entries time out after the
+# ClusterController::request_timeout interval. Upon expiration, a
+# request_expired event triggers that conveys the request state.
+global g_requests: table[string] of Request
+    &create_expire=ClusterController::request_timeout
+    &expire_func=requests_expire_func;
 
 function create(reqid: string): Request
 	{
 	local ret = Request($id=reqid);
-	requests[reqid] = ret;
+	g_requests[reqid] = ret;
 	return ret;
 	}
 
 function lookup(reqid: string): Request
 	{
-	if ( reqid in requests )
-		return requests[reqid];
+	if ( reqid in g_requests )
+		return g_requests[reqid];
 
 	return null_req;
 	}
 
 function finish(reqid: string): bool
 	{
-	if ( reqid !in requests )
+	if ( reqid !in g_requests )
 		return F;
 
-	local req = requests[reqid];
-	delete requests[reqid];
+	local req = g_requests[reqid];
+	delete g_requests[reqid];
 
 	req$finished = T;
 
@@ -83,4 +100,24 @@ function is_null(request: Request): bool
 		return T;
 
 	return F;
+	}
+
+function to_string(request: Request): string
+	{
+	local results: string_vec;
+	local res: ClusterController::Types::Result;
+	local parent_id = "";
+
+	if ( request?$parent_id )
+		parent_id = fmt(" (via %s)", request$parent_id);
+
+	for ( idx in request$results )
+		{
+		res = request$results[idx];
+		results[|results|] = ClusterController::Types::result_to_string(res);
+		}
+
+	return fmt("[request %s%s %s, results: %s]", request$id, parent_id,
+	           request$finished ? "finished" : "pending",
+	           join_string_vec(results, ","));
 	}

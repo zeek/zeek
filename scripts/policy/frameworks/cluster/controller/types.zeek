@@ -30,6 +30,8 @@ export {
 		listen_port: port &optional;
 	};
 
+	type InstanceVec: vector of Instance;
+
 	## State that a Cluster Node can be in. State changes trigger an
 	## API notification (see notify_change()).
 	type State: enum {
@@ -37,7 +39,7 @@ export {
 		Stopped,  # Explicitly stopped
 		Failed,   # Failed to start; and permanently halted
 		Crashed,  # Crashed, will be restarted,
-	        Unknown,  # State not known currently (e.g., because of lost connectivity)
+		Unknown,  # State not known currently (e.g., because of lost connectivity)
 	};
 
 	## Configuration describing a Cluster Node process.
@@ -59,22 +61,49 @@ export {
 		id: string &default=unique_id(""); # Unique identifier for a particular configuration
 
 		## The instances in the cluster.
-		## XXX we may be able to make this optional
-		instances: set[Instance];
+		instances: set[Instance] &default=set();
 
 		## The set of nodes in the cluster, as distributed over the instances.
-		nodes: set[Node];
+		nodes: set[Node] &default=set();
 	};
 
 	# Return value for request-response API event pairs
 	type Result: record {
-		reqid: string;              # Request ID of operation this result refers to
-		instance: string;           # Name of associated instance (for context)
-		success: bool &default=T;   # True if successful
-		data: any &optional;        # Addl data returned for successful operation
-		error: string &default="";  # Descriptive error on failure
-		node: string &optional;     # Name of associated node (for context)
+		reqid: string;                # Request ID of operation this result refers to
+		instance: string &default=""; # Name of associated instance (for context)
+		success: bool &default=T;     # True if successful
+		data: any &optional;          # Addl data returned for successful operation
+		error: string &default="";    # Descriptive error on failure
+		node: string &optional;       # Name of associated node (for context)
 	};
 
 	type ResultVec: vector of Result;
+
+	global result_to_string: function(res: Result): string;
 }
+
+function result_to_string(res: Result): string
+	{
+	local result = "";
+
+	if ( res$success )
+		result = "success";
+	else if ( res$error != "" )
+		result = fmt("error (%s)", res$error);
+	else
+		result = "error";
+
+	local details: string_vec;
+
+	if ( res$reqid != "" )
+		details[|details|] = fmt("reqid %s", res$reqid);
+	if ( res$instance != "" )
+		details[|details|] = fmt("instance %s", res$instance);
+	if ( res?$node && res$node != "" )
+		details[|details|] = fmt("node %s", res$node);
+
+	if ( |details| > 0 )
+		result = fmt("%s (%s)", result, join_string_vec(details, ", "));
+
+	return result;
+	}

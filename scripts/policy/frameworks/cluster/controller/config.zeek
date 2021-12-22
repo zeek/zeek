@@ -28,19 +28,17 @@ export {
 	# The controller listens for messages on this topic:
 	const topic = "zeek/cluster-control/controller" &redef;
 
-	# The set of agents to interact with. When this is non-empty
-	# at startup, the controller contacts the agents; when it is
-	# empty, it waits for agents to connect. They key is a name of
-	# each instance. This should match the $name member of the
-	# instance records.
-	const instances: table[string] of ClusterController::Types::Instance = { } &redef;
-
 	# The role of this node in cluster management. Agent and
 	# controller both redef this. Used during logging.
 	const role = ClusterController::Types::NONE &redef;
 
+	# The timeout for request state. Applies both to state kept for client
+	# requests, as well as state in the agents for requests to the
+	# supervisor.
+	const request_timeout = 10sec &redef;
+
 	# Agent and controller currently log only, not via the data cluster's
-        # logger. (This might get added later.) For now, this means that
+	# logger. (This might get added later.) For now, this means that
 	# if both write to the same log file, it gets garbled. The following
 	# lets you specify the working directory specifically for the agent.
 	const directory = "" &redef;

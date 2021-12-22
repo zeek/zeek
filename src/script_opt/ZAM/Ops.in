@@ -1740,19 +1740,19 @@ eval    (*tiv_ptr)[z.v1].Clear();
 op When
 op1-read
 type VVVV
-eval	auto when_body = new ZAMResumption(this, z.v2);
-	auto timeout_body = new ZAMResumption(this, z.v3);
+eval	auto when_body = make_intrusive<ZAMResumption>(this, z.v2);
+	auto timeout_body = make_intrusive<ZAMResumption>(this, z.v3);
 	new trigger::Trigger(z.e, when_body, timeout_body, frame[z.v1].double_val, f, z.v4, z.loc);
 
 op When
 type VVVC
-eval	auto when_body = new ZAMResumption(this, z.v1);
-	auto timeout_body = new ZAMResumption(this, z.v2);
+eval	auto when_body = make_intrusive<ZAMResumption>(this, z.v1);
+	auto timeout_body = make_intrusive<ZAMResumption>(this, z.v2);
 	new trigger::Trigger(z.e, when_body, timeout_body, z.c.double_val, f, z.v3, z.loc);
 
 op When
 type VV
-eval	auto when_body = new ZAMResumption(this, z.v2);
+eval	auto when_body = make_intrusive<ZAMResumption>(this, z.v2);
 	new trigger::Trigger(z.e, when_body, nullptr, -1.0, f, z.v1, z.loc);
 
 op CheckAnyLen

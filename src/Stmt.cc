@@ -1824,8 +1824,8 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 	flow = FLOW_NEXT;
 
 	// The new trigger object will take care of its own deletion.
-	new trigger::Trigger(IntrusivePtr{cond}.release(), IntrusivePtr{s1}.release(),
-	                     IntrusivePtr{s2}.release(), IntrusivePtr{timeout}.release(), f, is_return,
+	new trigger::Trigger(IntrusivePtr{cond}.release(), s1, s2,
+	                     IntrusivePtr{timeout}.release(), f, is_return,
 	                     location);
 	return nullptr;
 	}

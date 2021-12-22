@@ -16,6 +16,8 @@ namespace zeek
 class ODesc;
 class Val;
 
+using ValPtr = IntrusivePtr<Val>;
+
 namespace detail
 	{
 
@@ -24,6 +26,8 @@ class Stmt;
 class Expr;
 class CallExpr;
 class ID;
+
+using StmtPtr = IntrusivePtr<Stmt>;
 
 namespace trigger
 	{
@@ -41,9 +45,9 @@ public:
 	// instantiation.  Note that if the condition is already true, the
 	// statements are executed immediately and the object is deleted
 	// right away.
-	Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeout, Frame* f,
+	Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, Expr* timeout, Frame* f,
 	        bool is_return, const Location* loc);
-	Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts, double timeout, Frame* f,
+	Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* f,
 	        bool is_return, const Location* loc);
 	~Trigger() override;
 
@@ -99,18 +103,18 @@ private:
 	friend class TriggerTraversalCallback;
 	friend class TriggerTimer;
 
-	void Init(const Expr* cond, Stmt* body, Stmt* timeout_stmts, Frame* frame, bool is_return,
+	void Init(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, Frame* frame, bool is_return,
 	          const Location* location);
 
-	void ReInit(std::vector<IntrusivePtr<Val>> index_expr_results);
+	void ReInit(std::vector<ValPtr> index_expr_results);
 
 	void Register(ID* id);
 	void Register(Val* val);
 	void UnregisterAll();
 
 	const Expr* cond;
-	Stmt* body;
-	Stmt* timeout_stmts;
+	StmtPtr body;
+	StmtPtr timeout_stmts;
 	Expr* timeout;
 	double timeout_value;
 	Frame* frame;
@@ -128,8 +132,6 @@ private:
 	using ValCache = std::map<const CallExpr*, Val*>;
 	ValCache cache;
 	};
-
-using TriggerPtr = IntrusivePtr<Trigger>;
 
 class Manager final : public iosource::IOSource
 	{

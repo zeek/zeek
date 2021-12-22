@@ -103,7 +103,7 @@ protected:
 	double time;
 	};
 
-Trigger::Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeout_expr,
+Trigger::Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, Expr* timeout_expr,
                  Frame* frame, bool is_return, const Location* location)
 	{
 	timeout_value = -1;
@@ -127,14 +127,14 @@ Trigger::Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeou
 	Init(cond, body, timeout_stmts, frame, is_return, location);
 	}
 
-Trigger::Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts, double timeout, Frame* frame,
+Trigger::Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* frame,
                  bool is_return, const Location* location)
 	{
 	timeout_value = timeout;
 	Init(cond, body, timeout_stmts, frame, is_return, location);
 	}
 
-void Trigger::Init(const Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts, Frame* arg_frame,
+void Trigger::Init(const Expr* arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts, Frame* arg_frame,
                    bool arg_is_return, const Location* arg_location)
 	{
 	cond = arg_cond;

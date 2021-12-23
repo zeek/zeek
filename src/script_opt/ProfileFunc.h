@@ -74,6 +74,8 @@ inline p_hash_type merge_p_hashes(p_hash_type h1, p_hash_type h2)
 	return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
 	}
 
+using IDSet = const std::unordered_set<const ID*>;
+
 // Class for profiling the components of a single function (or expression).
 class ProfileFunc : public TraversalCallback
 	{
@@ -97,22 +99,22 @@ public:
 
 	// See the comments for the associated member variables for each
 	// of these accessors.
-	const std::unordered_set<const ID*>& Globals() const { return globals; }
-	const std::unordered_set<const ID*>& AllGlobals() const { return all_globals; }
-	const std::unordered_set<const ID*>& Locals() const { return locals; }
-	const std::unordered_set<const ID*>& Params() const { return params; }
+	IDSet& Globals() const { return globals; }
+	IDSet& AllGlobals() const { return all_globals; }
+	IDSet& Locals() const { return locals; }
+	IDSet& Params() const { return params; }
 	const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
-	const std::unordered_set<const ID*>& Inits() const { return inits; }
+	IDSet& Inits() const { return inits; }
 	const std::vector<const Stmt*>& Stmts() const { return stmts; }
 	const std::vector<const Expr*>& Exprs() const { return exprs; }
 	const std::vector<const LambdaExpr*>& Lambdas() const { return lambdas; }
 	const std::vector<const ConstExpr*>& Constants() const { return constants; }
-	const std::unordered_set<const ID*>& UnorderedIdentifiers() const { return ids; }
+	IDSet& UnorderedIdentifiers() const { return ids; }
 	const std::vector<const ID*>& OrderedIdentifiers() const { return ordered_ids; }
 	const std::unordered_set<const Type*>& UnorderedTypes() const { return types; }
 	const std::vector<const Type*>& OrderedTypes() const { return ordered_types; }
 	const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
-	const std::unordered_set<const ID*>& BiFGlobals() const { return BiF_globals; }
+	IDSet& BiFGlobals() const { return BiF_globals; }
 	const std::unordered_set<ScriptFunc*>& WhenCalls() const { return when_calls; }
 	const std::unordered_set<std::string>& Events() const { return events; }
 	const std::unordered_set<const Attributes*>& ConstructorAttrs() const
@@ -287,13 +289,13 @@ public:
 	// The following accessors provide a global profile across all of
 	// the (non-skipped) functions in "funcs".  See the comments for
 	// the associated member variables for documentation.
-	const std::unordered_set<const ID*>& Globals() const { return globals; }
-	const std::unordered_set<const ID*>& AllGlobals() const { return all_globals; }
+	IDSet& Globals() const { return globals; }
+	IDSet& AllGlobals() const { return all_globals; }
 	const std::unordered_set<const ConstExpr*>& Constants() const { return constants; }
 	const std::vector<const Type*>& MainTypes() const { return main_types; }
 	const std::vector<const Type*>& RepTypes() const { return rep_types; }
 	const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
-	const std::unordered_set<const ID*>& BiFGlobals() const { return BiF_globals; }
+	IDSet& BiFGlobals() const { return BiF_globals; }
 	const std::unordered_set<const LambdaExpr*>& Lambdas() const { return lambdas; }
 	const std::unordered_set<std::string>& Events() const { return events; }
 

@@ -45,13 +45,6 @@ bool is_CPP_compilable(const ProfileFunc* pf, const char** reason)
 		return false;
 		}
 
-	if ( pf->TypeSwitches().size() > 0 )
-		{
-		if ( reason )
-			*reason = "use of type-based \"switch\"";
-		return false;
-		}
-
 	auto body = pf->ProfiledBody();
 	if ( body && ! body->GetOptInfo()->is_free_of_conditionals )
 		{

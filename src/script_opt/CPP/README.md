@@ -176,9 +176,6 @@ an extensible record (i.e., fields added using `redef`).
 * The compiler will not compile bodies that include "when" statements
 This is fairly involved to fix.
 
-* The compiler will not compile bodies that include "type" switches.
-This is not hard to fix.
-
 * If a lambda generates an event that is not otherwise referred to, that
 event will not be registered upon instantiating the lambda.  This is not
 particularly difficult to fix.

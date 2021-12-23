@@ -718,7 +718,11 @@ private:
 	void GenAddStmt(const ExprStmt* es);
 	void GenDeleteStmt(const ExprStmt* es);
 	void GenEventStmt(const EventStmt* ev);
+
 	void GenSwitchStmt(const SwitchStmt* sw);
+	void GenTypeSwitchStmt(const Expr* e, const case_list* cases);
+	void GenTypeSwitchCase(const ID* id, int case_offset, bool is_multi);
+	void GenValueSwitchStmt(const Expr* e, const case_list* cases);
 
 	void GenForStmt(const ForStmt* f);
 	void GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var, const IDPList* loop_vars);

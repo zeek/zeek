@@ -410,12 +410,10 @@ const ZAMStmt ZAMCompiler::CompileSwitch(const SwitchStmt* sw)
 	// Need to track a new set of contexts for "break" statements.
 	PushBreaks();
 
-	auto& cases = *sw->Cases();
-
-	if ( cases.length() > 0 && cases[0]->TypeCases() )
-		return TypeSwitch(sw, n, c);
-	else
+	if ( sw->TypeMap()->empty() )
 		return ValueSwitch(sw, n, c);
+	else
+		return TypeSwitch(sw, n, c);
 	}
 
 const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, const ConstExpr* c)

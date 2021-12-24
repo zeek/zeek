@@ -26,18 +26,16 @@ namespace zeek::detail::trigger
 class TriggerTraversalCallback : public TraversalCallback
 	{
 public:
-	TriggerTraversalCallback(Trigger* arg_trigger)
-		{
-		Ref(arg_trigger);
-		trigger = arg_trigger;
-		}
-
-	~TriggerTraversalCallback() { Unref(trigger); }
+	TriggerTraversalCallback() {}
 
 	virtual TraversalCode PreExpr(const Expr*) override;
 
+	const IDSet& Globals() { return globals; }
+	const IDSet& Locals() { return locals; }
+
 private:
-	Trigger* trigger;
+	IDSet globals;
+	IDSet locals;
 	};
 
 TraversalCode trigger::TriggerTraversalCallback::PreExpr(const Expr* expr)
@@ -50,14 +48,12 @@ TraversalCode trigger::TriggerTraversalCallback::PreExpr(const Expr* expr)
 		case EXPR_NAME:
 			{
 			const auto* e = static_cast<const NameExpr*>(expr);
-			if ( e->Id()->IsGlobal() )
-				trigger->Register(e->Id());
+			auto id = e->Id();
 
-			Val* v = e->Id()->GetVal().get();
-
-			if ( v && v->Modifiable() )
-				trigger->Register(v);
-			break;
+			if ( id->IsGlobal() )
+				globals.insert(id);
+			else
+				locals.insert(id);
 			};
 
 		default:
@@ -217,8 +213,22 @@ void Trigger::ReInit(std::vector<ValPtr> index_expr_results)
 	{
 	assert(! disabled);
 	UnregisterAll();
-	TriggerTraversalCallback cb(this);
+	TriggerTraversalCallback cb;
 	cond->Traverse(&cb);
+
+	for ( auto g : cb.Globals() )
+		{
+		Register(g);
+
+		auto& v = g->GetVal();
+		if ( v && v->Modifiable() )
+			Register(v.get());
+		}
+
+	for ( auto l : cb.Locals() )
+		{
+		ASSERT(! l->GetVal());
+		}
 
 	for ( const auto& v : index_expr_results )
 		Register(v.get());
@@ -390,9 +400,10 @@ void Trigger::Timeout()
 	Unref(this);
 	}
 
-void Trigger::Register(ID* id)
+void Trigger::Register(const ID* const_id)
 	{
 	assert(! disabled);
+	ID* id = const_cast<ID*>(const_id);
 	notifier::detail::registry.Register(id, this);
 
 	Ref(id);

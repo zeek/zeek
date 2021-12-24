@@ -100,7 +100,6 @@ public:
 	const char* Name() const;
 
 private:
-	friend class TriggerTraversalCallback;
 	friend class TriggerTimer;
 
 	void Init(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, Frame* frame, bool is_return,
@@ -108,7 +107,7 @@ private:
 
 	void ReInit(std::vector<ValPtr> index_expr_results);
 
-	void Register(ID* id);
+	void Register(const ID* id);
 	void Register(Val* val);
 	void UnregisterAll();
 

@@ -435,7 +435,7 @@ private:
 	std::unordered_map<std::string, std::string> events;
 
 	// Globals that correspond to variables, not functions.
-	std::unordered_set<const ID*> global_vars;
+	IDSet global_vars;
 
 	//
 	// End of methods related to script/C++ variables.
@@ -539,7 +539,7 @@ private:
 	std::unordered_map<const ID*, std::string> lambda_names;
 
 	// The function's parameters.  Tracked so we don't re-declare them.
-	std::unordered_set<const ID*> params;
+	IDSet params;
 
 	// Whether we're compiling a hook.
 	bool in_hook = false;

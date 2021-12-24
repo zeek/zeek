@@ -656,7 +656,7 @@ void ZAMCompiler::ReMapInterpreterFrame()
 		remapped_intrp_frame_sizes[func] = next_interp_slot;
 	}
 
-void ZAMCompiler::ReMapVar(ID* id, int slot, bro_uint_t inst)
+void ZAMCompiler::ReMapVar(const ID* id, int slot, bro_uint_t inst)
 	{
 	// A greedy algorithm for this is to simply find the first suitable
 	// frame slot.  We do that with one twist: we also look for a
@@ -832,7 +832,7 @@ void ZAMCompiler::ExtendLifetime(int slot, const ZInstI* inst)
 
 		if ( inst_endings.count(inst) == 0 )
 			{
-			std::unordered_set<ID*> denizens;
+			IDSet denizens;
 			inst_endings[inst] = denizens;
 			}
 

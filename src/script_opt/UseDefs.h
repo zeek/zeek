@@ -33,7 +33,7 @@ public:
 	void Add(const ID* id) { use_defs.insert(id); }
 	void Remove(const ID* id) { use_defs.erase(id); }
 
-	const std::unordered_set<const ID*>& IterateOver() const { return use_defs; }
+	const IDSet& IterateOver() const { return use_defs; }
 
 	void Dump() const;
 	void DumpNL() const
@@ -43,7 +43,7 @@ public:
 		}
 
 protected:
-	std::unordered_set<const ID*> use_defs;
+	IDSet use_defs;
 	};
 
 class Reducer;

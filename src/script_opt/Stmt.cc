@@ -910,12 +910,10 @@ StmtPtr InitStmt::DoReduce(Reducer* c)
 
 StmtPtr WhenStmt::Duplicate()
 	{
-	auto cond_d = cond->Duplicate();
-	auto s1_d = s1->Duplicate();
-	auto s2_d = s2 ? s2->Duplicate() : nullptr;
-	auto timeout_d = timeout ? timeout->Duplicate() : nullptr;
+	auto wc = new WhenClause(cond->Duplicate(), s1->Duplicate());
+	auto wt = s2 ? new WhenTimeout(timeout->Duplicate(), s2->Duplicate()) :nullptr; 
 
-	return SetSucc(new WhenStmt(cond_d, s1_d, s2_d, timeout_d, is_return));
+	return SetSucc(new WhenStmt(wc, wt, is_return));
 	}
 
 void WhenStmt::Inline(Inliner* inl)

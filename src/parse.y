@@ -74,6 +74,8 @@
 %type <attr_l> attr_list opt_attr
 %type <capture> capture
 %type <captures> capture_list opt_captures
+%type <when_clause> when_clause
+%type <when_timeout> when_timeout
 
 %{
 #include <stdlib.h>
@@ -306,6 +308,8 @@ static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
 	zeek::detail::AttrTag attrtag;
 	zeek::FuncType::Capture* capture;
 	std::vector<zeek::FuncType::Capture*>* captures;
+	zeek::detail::WhenClause* when_clause;
+	zeek::detail::WhenTimeout* when_timeout;
 }
 
 %%
@@ -342,6 +346,22 @@ opt_expr:
 			{ $$ = $1; }
 	|
 			{ $$ = 0; }
+	;
+
+when_clause: TOK_WHEN '(' when_condition ')' stmt
+		{
+		set_location(@1, @5);
+		$$ = new WhenClause({AdoptRef{}, $3}, {AdoptRef{}, $5});
+		}
+	;
+
+when_timeout: TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
+		{
+		set_location(@1, @6);
+		$$ = new WhenTimeout({AdoptRef{}, $2}, {AdoptRef{}, $5});
+		if ( $4 )
+		    script_coverage_mgr.DecIgnoreDepth();
+		}
 	;
 
 when_condition:
@@ -1693,37 +1713,24 @@ stmt:
 			$$ = build_local($2, $3, $4, $5, $6, VAR_CONST, ! $8).release();
 			}
 
-	|	TOK_WHEN '(' when_condition ')' stmt
+	|	when_clause
 			{
-			set_location(@3, @5);
-			$$ = new WhenStmt({AdoptRef{}, $3}, {AdoptRef{}, $5},
-			                                  nullptr, nullptr, false);
+			$$ = new WhenStmt($1, nullptr, false);
 			}
 
-	|	TOK_WHEN '(' when_condition ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
+	|	when_clause when_timeout
 			{
-			set_location(@3, @9);
-			$$ = new WhenStmt({AdoptRef{}, $3}, {AdoptRef{}, $5},
-			                                  {AdoptRef{}, $10}, {AdoptRef{}, $7}, false);
-			if ( $9 )
-			    script_coverage_mgr.DecIgnoreDepth();
+			$$ = new WhenStmt($1, $2, false);
 			}
 
-
-	|	TOK_RETURN TOK_WHEN '(' when_condition ')' stmt
+	|	TOK_RETURN when_clause
 			{
-			set_location(@4, @6);
-			$$ = new WhenStmt({AdoptRef{}, $4}, {AdoptRef{}, $6}, nullptr,
-			                  nullptr, true);
+			$$ = new WhenStmt($2, nullptr, true);
 			}
 
-	|	TOK_RETURN TOK_WHEN '(' when_condition ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
+	|	TOK_RETURN when_clause when_timeout
 			{
-			set_location(@4, @10);
-			$$ = new WhenStmt({AdoptRef{}, $4}, {AdoptRef{}, $6},
-			                                  {AdoptRef{}, $11}, {AdoptRef{}, $8}, true);
-			if ( $10 )
-			    script_coverage_mgr.DecIgnoreDepth();
+			$$ = new WhenStmt($2, $3, true);
 			}
 
 	|	index_slice '=' expr ';' opt_no_test

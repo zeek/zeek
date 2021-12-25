@@ -1794,11 +1794,20 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-WhenStmt::WhenStmt(ExprPtr arg_cond, StmtPtr arg_s1, StmtPtr arg_s2, ExprPtr arg_timeout,
-                   bool arg_is_return)
-	: Stmt(STMT_WHEN), cond(std::move(arg_cond)), s1(std::move(arg_s1)), s2(std::move(arg_s2)),
-	  timeout(std::move(arg_timeout)), is_return(arg_is_return)
+WhenStmt::WhenStmt(WhenClause* wc, WhenTimeout* wt, bool arg_is_return)
+	: Stmt(STMT_WHEN), is_return(arg_is_return)
 	{
+	cond = wc->Cond();
+	s1 = wc->WhenStmt();
+	delete wc;
+
+	if ( wt )
+		{
+		timeout = wt->TimeoutExpr();
+		s2 = wt->TimeoutStmt();
+		delete wt;
+		}
+
 	assert(cond);
 	assert(s1);
 

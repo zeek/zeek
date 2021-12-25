@@ -5,6 +5,7 @@
 // Zeek statements.
 
 #include "zeek/Dict.h"
+#include "zeek/Expr.h"
 #include "zeek/ID.h"
 #include "zeek/StmtBase.h"
 #include "zeek/ZeekList.h"
@@ -535,11 +536,37 @@ public:
 	StmtPtr Duplicate() override { return SetSucc(new NullStmt()); }
 	};
 
+class WhenClause
+	{
+public:
+	WhenClause(ExprPtr _cond, StmtPtr _s) : cond(std::move(_cond)), s(std::move(_s)) {}
+
+	ExprPtr Cond() { return cond; }
+	StmtPtr WhenStmt() { return s; }
+
+private:
+	ExprPtr cond;
+	StmtPtr s;
+	};
+
+class WhenTimeout
+	{
+public:
+	WhenTimeout(ExprPtr _timeout, StmtPtr _s) : timeout(std::move(_timeout)), s(std::move(_s)) {}
+
+	ExprPtr TimeoutExpr() { return timeout; }
+	StmtPtr TimeoutStmt() { return s; }
+
+private:
+	ExprPtr timeout;
+	StmtPtr s;
+	};
+
 class WhenStmt final : public Stmt
 	{
 public:
 	// s2 is null if no timeout block given.
-	WhenStmt(ExprPtr cond, StmtPtr s1, StmtPtr s2, ExprPtr timeout, bool is_return);
+	WhenStmt(WhenClause* wc, WhenTimeout* wt, bool is_return);
 	~WhenStmt() override;
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;

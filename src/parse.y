@@ -307,7 +307,7 @@ static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
 	std::vector<zeek::detail::AttrPtr>* attr_l;
 	zeek::detail::AttrTag attrtag;
 	zeek::FuncType::Capture* capture;
-	std::vector<zeek::FuncType::Capture*>* captures;
+	zeek::FuncType::CaptureList* captures;
 	zeek::detail::WhenClause* when_clause;
 	zeek::detail::WhenTimeout* when_timeout;
 }
@@ -1387,15 +1387,7 @@ begin_lambda:
 
 			if ( $1 )
 				{
-				captures = FuncType::CaptureList{};
-				captures->reserve($1->size());
-
-				for ( auto c : *$1 )
-					{
-					captures->emplace_back(*c);
-					delete c;
-					}
-
+				captures = *$1;
 				delete $1;
 				}
 
@@ -1413,11 +1405,15 @@ opt_captures:
 
 capture_list:
 		capture_list ',' capture
-			{ $1->push_back($3); }
+			{
+			$1->push_back(*$3);
+			delete $3;
+			}
 	|	capture
 			{
-			$$ = new std::vector<FuncType::Capture*>;
-			$$->push_back($1);
+			$$ = new zeek::FuncType::CaptureList;
+			$$->push_back(*$1);
+			delete $1;
 			}
 	;
 

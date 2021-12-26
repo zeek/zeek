@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 141
+%expect 140
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -75,7 +75,6 @@
 %type <capture> capture
 %type <captures> capture_list opt_captures
 %type <when_clause> when_clause
-%type <when_timeout> when_timeout
 
 %{
 #include <stdlib.h>
@@ -308,8 +307,7 @@ static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
 	zeek::detail::AttrTag attrtag;
 	zeek::FuncType::Capture* capture;
 	zeek::FuncType::CaptureList* captures;
-	zeek::detail::WhenClause* when_clause;
-	zeek::detail::WhenTimeout* when_timeout;
+	zeek::detail::WhenInfo* when_clause;
 }
 
 %%
@@ -348,18 +346,18 @@ opt_expr:
 			{ $$ = 0; }
 	;
 
-when_clause: TOK_WHEN '(' when_condition ')' stmt
+when_clause:
+		TOK_WHEN '(' when_condition ')' stmt
+			{
+			set_location(@1, @5);
+			$$ = new WhenInfo({AdoptRef{}, $3}, {AdoptRef{}, $5});
+			}
+	|
+		TOK_WHEN '(' when_condition ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 		{
-		set_location(@1, @5);
-		$$ = new WhenClause({AdoptRef{}, $3}, {AdoptRef{}, $5});
-		}
-	;
-
-when_timeout: TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
-		{
-		set_location(@1, @6);
-		$$ = new WhenTimeout({AdoptRef{}, $2}, {AdoptRef{}, $5});
-		if ( $4 )
+		set_location(@1, @11);
+		$$ = new WhenInfo({AdoptRef{}, $3}, {AdoptRef{}, $5}, {AdoptRef{}, $7}, {AdoptRef{}, $10});
+		if ( $9 )
 		    script_coverage_mgr.DecIgnoreDepth();
 		}
 	;
@@ -1421,8 +1419,7 @@ capture:
 		opt_deep TOK_ID
 			{
 			set_location(@2);
-			auto id = lookup_ID($2,
-					current_module.c_str());
+			auto id = lookup_ID($2, current_module.c_str());
 
 			if ( ! id )
 				reporter->Error("no such local identifier: %s", $2);
@@ -1711,22 +1708,12 @@ stmt:
 
 	|	when_clause
 			{
-			$$ = new WhenStmt($1, nullptr, false);
-			}
-
-	|	when_clause when_timeout
-			{
-			$$ = new WhenStmt($1, $2, false);
+			$$ = new WhenStmt($1, false);
 			}
 
 	|	TOK_RETURN when_clause
 			{
-			$$ = new WhenStmt($2, nullptr, true);
-			}
-
-	|	TOK_RETURN when_clause when_timeout
-			{
-			$$ = new WhenStmt($2, $3, true);
+			$$ = new WhenStmt($2, true);
 			}
 
 	|	index_slice '=' expr ';' opt_no_test

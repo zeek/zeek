@@ -910,12 +910,20 @@ StmtPtr InitStmt::DoReduce(Reducer* c)
 
 StmtPtr WhenStmt::Duplicate()
 	{
+	FuncType::CaptureList* cl_dup = nullptr;
+
+	if ( cl )
+		{
+		cl_dup = new FuncType::CaptureList;
+		*cl_dup = *cl;
+		}
+
 	WhenInfo* wi;
 
 	if ( s2 )
-		wi = new WhenInfo(cond->Duplicate(), s1->Duplicate(), timeout->Duplicate(), s2->Duplicate());
+		wi = new WhenInfo(cond->Duplicate(), s1->Duplicate(), timeout->Duplicate(), s2->Duplicate(), cl_dup);
 	else
-		wi = new WhenInfo(cond->Duplicate(), s1->Duplicate());
+		wi = new WhenInfo(cond->Duplicate(), s1->Duplicate(), cl_dup);
 
 	return SetSucc(new WhenStmt(wi, is_return));
 	}

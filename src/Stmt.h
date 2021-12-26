@@ -8,6 +8,7 @@
 #include "zeek/Expr.h"
 #include "zeek/ID.h"
 #include "zeek/StmtBase.h"
+#include "zeek/Type.h"
 #include "zeek/ZeekList.h"
 
 namespace zeek::detail
@@ -539,9 +540,12 @@ public:
 class WhenInfo
 	{
 public:
-	WhenInfo(ExprPtr _cond, StmtPtr _s) : cond(std::move(_cond)), s(std::move(_s)) {}
-	WhenInfo(ExprPtr _cond, StmtPtr _s, ExprPtr _timeout, StmtPtr _timeout_s) :
-	cond(std::move(_cond)), s(std::move(_s)), timeout(std::move(_timeout)), timeout_s(std::move(_timeout_s)) {}
+	// Takes ownership of the CaptureList.
+	WhenInfo(ExprPtr _cond, StmtPtr _s, FuncType::CaptureList* _cl) : cond(std::move(_cond)), s(std::move(_s)), cl(_cl) {}
+	WhenInfo(ExprPtr _cond, StmtPtr _s, ExprPtr _timeout, StmtPtr _timeout_s, FuncType::CaptureList* _cl) :
+		cond(std::move(_cond)), s(std::move(_s)), timeout(std::move(_timeout)), timeout_s(std::move(_timeout_s)), cl(_cl) {}
+
+	~WhenInfo() { delete cl; }
 
 	ExprPtr Cond() { return cond; }
 	StmtPtr WhenStmt() { return s; }
@@ -549,16 +553,20 @@ public:
 	ExprPtr TimeoutExpr() { return timeout; }
 	StmtPtr TimeoutStmt() { return s; }
 
+	FuncType::CaptureList* Captures() { return cl; }
+
 private:
 	ExprPtr cond;
 	StmtPtr s;
 	ExprPtr timeout;
 	StmtPtr timeout_s;
+	FuncType::CaptureList* cl;
 	};
 
 class WhenStmt final : public Stmt
 	{
 public:
+	// The constructor takes ownership of the WhenInfo object.
 	WhenStmt(WhenInfo* wi, bool is_return);
 	~WhenStmt() override;
 
@@ -587,6 +595,8 @@ protected:
 	StmtPtr s2;
 	ExprPtr timeout;
 	bool is_return;
+
+	FuncType::CaptureList* cl;
 	};
 
 // Internal statement used for inlining.  Executes a block and stops

@@ -1801,6 +1801,7 @@ WhenStmt::WhenStmt(WhenInfo* wi, bool arg_is_return)
 	s1 = wi->WhenStmt();
 	timeout = wi->TimeoutExpr();
 	s2 = wi->TimeoutStmt();
+	cl = nullptr; // ###
 	delete wi;
 
 	assert(cond);

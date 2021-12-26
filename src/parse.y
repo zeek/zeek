@@ -347,17 +347,17 @@ opt_expr:
 	;
 
 when_clause:
-		TOK_WHEN '(' when_condition ')' stmt
+		TOK_WHEN opt_captures '(' when_condition ')' stmt
 			{
-			set_location(@1, @5);
-			$$ = new WhenInfo({AdoptRef{}, $3}, {AdoptRef{}, $5});
+			set_location(@1, @6);
+			$$ = new WhenInfo({AdoptRef{}, $4}, {AdoptRef{}, $6}, $2);
 			}
 	|
-		TOK_WHEN '(' when_condition ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
+		TOK_WHEN opt_captures '(' when_condition ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 		{
-		set_location(@1, @11);
-		$$ = new WhenInfo({AdoptRef{}, $3}, {AdoptRef{}, $5}, {AdoptRef{}, $7}, {AdoptRef{}, $10});
-		if ( $9 )
+		set_location(@1, @12);
+		$$ = new WhenInfo({AdoptRef{}, $4}, {AdoptRef{}, $6}, {AdoptRef{}, $8}, {AdoptRef{}, $11}, $2);
+		if ( $10 )
 		    script_coverage_mgr.DecIgnoreDepth();
 		}
 	;

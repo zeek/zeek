@@ -1797,18 +1797,24 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 WhenStmt::WhenStmt(WhenInfo* _wi)
 	: Stmt(STMT_WHEN), wi(_wi)
 	{
-	if ( ! wi->Cond()->IsError() && ! IsBool(wi->Cond()->GetType()->Tag()) )
-		wi->Cond()->Error("conditional in test must be boolean");
+	auto cond = wi->Cond();
 
-	if ( wi->TimeoutExpr() )
+	if ( ! cond->IsError() && ! IsBool(cond->GetType()->Tag()) )
+		cond->Error("conditional in test must be boolean");
+
+	auto te = wi->TimeoutExpr();
+
+	if ( te )
 		{
-		if ( wi->TimeoutExpr()->IsError() )
+		if ( te->IsError() )
 			return;
 
-		TypeTag bt = wi->TimeoutExpr()->GetType()->Tag();
+		TypeTag bt = te->GetType()->Tag();
 		if ( bt != TYPE_TIME && bt != TYPE_INTERVAL )
-			wi->Cond()->Error("when timeout requires a time or time interval");
+			te->Error("when timeout requires a time or time interval");
 		}
+
+	auto c = wi->Captures();
 	}
 
 WhenStmt::~WhenStmt()

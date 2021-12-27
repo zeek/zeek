@@ -912,20 +912,22 @@ StmtPtr WhenStmt::Duplicate()
 	{
 	FuncType::CaptureList* cl_dup = nullptr;
 
-	if ( cl )
+	if ( wi->Captures() )
 		{
 		cl_dup = new FuncType::CaptureList;
-		*cl_dup = *cl;
+		*cl_dup = *wi->Captures();
 		}
 
-	WhenInfo* wi;
+	WhenInfo* new_wi;
 
-	if ( s2 )
-		wi = new WhenInfo(cond->Duplicate(), s1->Duplicate(), timeout->Duplicate(), s2->Duplicate(), cl_dup);
+	if ( TimeoutBody() )
+		new_wi = new WhenInfo(Cond(), Body(), TimeoutExpr(), TimeoutBody(), cl_dup);
 	else
-		wi = new WhenInfo(cond->Duplicate(), s1->Duplicate(), cl_dup);
+		new_wi = new WhenInfo(Cond(), Body(), cl_dup);
 
-	return SetSucc(new WhenStmt(wi, is_return));
+	new_wi->SetIsReturn(IsReturn());
+
+	return SetSucc(new WhenStmt(wi));
 	}
 
 void WhenStmt::Inline(Inliner* inl)

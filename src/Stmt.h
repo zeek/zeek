@@ -555,29 +555,36 @@ public:
 
 	FuncType::CaptureList* Captures() { return cl; }
 
+	void SetIsReturn(bool _is_return) { is_return = _is_return; }
+	bool IsReturn() const { return is_return; }
+
 private:
 	ExprPtr cond;
 	StmtPtr s;
 	ExprPtr timeout;
 	StmtPtr timeout_s;
 	FuncType::CaptureList* cl;
+
+	bool is_return = false;
 	};
 
 class WhenStmt final : public Stmt
 	{
 public:
 	// The constructor takes ownership of the WhenInfo object.
-	WhenStmt(WhenInfo* wi, bool is_return);
+	WhenStmt(WhenInfo* wi);
 	~WhenStmt() override;
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 	bool IsPure() const override;
 
-	const Expr* Cond() const { return cond.get(); }
-	const Stmt* Body() const { return s1.get(); }
-	const Expr* TimeoutExpr() const { return timeout.get(); }
-	const Stmt* TimeoutBody() const { return s2.get(); }
-	bool IsReturn() const { return is_return; }
+	ExprPtr Cond() const { return wi->Cond(); }
+	StmtPtr Body() const { return wi->WhenStmt(); }
+	ExprPtr TimeoutExpr() const { return wi->TimeoutExpr(); }
+	StmtPtr TimeoutBody() const { return wi->TimeoutStmt(); }
+	bool IsReturn() const { return wi->IsReturn(); }
+
+	const WhenInfo* Info() const { return wi; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -590,13 +597,7 @@ public:
 	bool IsReduced(Reducer* c) const override;
 
 protected:
-	ExprPtr cond;
-	StmtPtr s1;
-	StmtPtr s2;
-	ExprPtr timeout;
-	bool is_return;
-
-	FuncType::CaptureList* cl;
+	WhenInfo* wi;
 	};
 
 // Internal statement used for inlining.  Executes a block and stops

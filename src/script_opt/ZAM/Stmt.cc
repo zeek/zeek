@@ -1115,7 +1115,7 @@ const ZAMStmt ZAMCompiler::CompileWhen(const WhenStmt* ws)
 		z.v1 = is_return;
 		}
 
-	z.e = cond;
+	z.e = cond.get();
 
 	auto when_eval = AddInst(z);
 

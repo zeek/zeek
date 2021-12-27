@@ -1794,34 +1794,27 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-WhenStmt::WhenStmt(WhenInfo* wi, bool arg_is_return)
-	: Stmt(STMT_WHEN), is_return(arg_is_return)
+WhenStmt::WhenStmt(WhenInfo* _wi)
+	: Stmt(STMT_WHEN), wi(_wi)
 	{
-	cond = wi->Cond();
-	s1 = wi->WhenStmt();
-	timeout = wi->TimeoutExpr();
-	s2 = wi->TimeoutStmt();
-	cl = nullptr; // ###
-	delete wi;
+	if ( ! wi->Cond()->IsError() && ! IsBool(wi->Cond()->GetType()->Tag()) )
+		wi->Cond()->Error("conditional in test must be boolean");
 
-	assert(cond);
-	assert(s1);
-
-	if ( ! cond->IsError() && ! IsBool(cond->GetType()->Tag()) )
-		cond->Error("conditional in test must be boolean");
-
-	if ( timeout )
+	if ( wi->TimeoutExpr() )
 		{
-		if ( timeout->IsError() )
+		if ( wi->TimeoutExpr()->IsError() )
 			return;
 
-		TypeTag bt = timeout->GetType()->Tag();
+		TypeTag bt = wi->TimeoutExpr()->GetType()->Tag();
 		if ( bt != TYPE_TIME && bt != TYPE_INTERVAL )
-			cond->Error("when timeout requires a time or time interval");
+			wi->Cond()->Error("when timeout requires a time or time interval");
 		}
 	}
 
-WhenStmt::~WhenStmt() = default;
+WhenStmt::~WhenStmt()
+	{
+	delete wi;
+	}
 
 ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 	{
@@ -1829,15 +1822,15 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 	flow = FLOW_NEXT;
 
 	// The new trigger object will take care of its own deletion.
-	new trigger::Trigger(IntrusivePtr{cond}.release(), s1, s2,
-	                     IntrusivePtr{timeout}.release(), f, is_return,
+	new trigger::Trigger(IntrusivePtr{wi->Cond()}.release(), wi->WhenStmt(), wi->TimeoutStmt(),
+	                     IntrusivePtr{wi->TimeoutExpr()}.release(), f, wi->IsReturn(),
 	                     location);
 	return nullptr;
 	}
 
 bool WhenStmt::IsPure() const
 	{
-	return cond->IsPure() && s1->IsPure() && (! s2 || s2->IsPure());
+	return wi->Cond()->IsPure() && wi->WhenStmt()->IsPure() && (! wi->TimeoutStmt() || wi->TimeoutStmt()->IsPure());
 	}
 
 void WhenStmt::StmtDescribe(ODesc* d) const
@@ -1847,33 +1840,33 @@ void WhenStmt::StmtDescribe(ODesc* d) const
 	if ( d->IsReadable() )
 		d->Add("(");
 
-	cond->Describe(d);
+	wi->Cond()->Describe(d);
 
 	if ( d->IsReadable() )
 		d->Add(")");
 
 	d->SP();
 	d->PushIndent();
-	s1->AccessStats(d);
-	s1->Describe(d);
+	wi->WhenStmt()->AccessStats(d);
+	wi->WhenStmt()->Describe(d);
 	d->PopIndent();
 
-	if ( s2 )
+	if ( wi->TimeoutStmt() )
 		{
 		if ( d->IsReadable() )
 			{
 			d->SP();
 			d->Add("timeout");
 			d->SP();
-			timeout->Describe(d);
+			wi->TimeoutExpr()->Describe(d);
 			d->SP();
 			d->PushIndent();
-			s2->AccessStats(d);
-			s2->Describe(d);
+			wi->TimeoutStmt()->AccessStats(d);
+			wi->TimeoutStmt()->Describe(d);
 			d->PopIndent();
 			}
 		else
-			s2->Describe(d);
+			wi->TimeoutStmt()->Describe(d);
 		}
 	}
 
@@ -1882,15 +1875,15 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	tc = cond->Traverse(cb);
+	tc = wi->Cond()->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);
 
-	tc = s1->Traverse(cb);
+	tc = wi->WhenStmt()->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);
 
-	if ( s2 )
+	if ( wi->TimeoutStmt() )
 		{
-		tc = s2->Traverse(cb);
+		tc = wi->TimeoutStmt()->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 

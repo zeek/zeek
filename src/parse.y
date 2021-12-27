@@ -1708,12 +1708,13 @@ stmt:
 
 	|	when_clause
 			{
-			$$ = new WhenStmt($1, false);
+			$$ = new WhenStmt($1);
 			}
 
 	|	TOK_RETURN when_clause
 			{
-			$$ = new WhenStmt($2, true);
+			$2->SetIsReturn(true);
+			$$ = new WhenStmt($2);
 			}
 
 	|	index_slice '=' expr ';' opt_no_test

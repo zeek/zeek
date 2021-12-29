@@ -100,6 +100,7 @@ public:
 	const IDSet& Globals() const { return globals; }
 	const IDSet& AllGlobals() const { return all_globals; }
 	const IDSet& Locals() const { return locals; }
+	const IDSet& WhenLocals() const { return when_locals; }
 	const IDSet& Params() const { return params; }
 	const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
 	const IDSet& Inits() const { return inits; }
@@ -169,6 +170,9 @@ protected:
 
 	// Locals seen in the function.
 	IDSet locals;
+
+	// Same, but for those declared in "when" expressions.
+	IDSet when_locals;
 
 	// The function's parameters.  Empty if our starting point was
 	// profiling an expression.

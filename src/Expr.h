@@ -959,6 +959,9 @@ public:
 	bool IsTemp() const { return is_temp; }
 	void SetIsTemp() { is_temp = true; }
 
+	ValPtr AssignVal() { return val; }
+	const ValPtr& AssignVal() const { return val; }
+
 protected:
 	bool TypeCheck(const AttributesPtr& attrs = nullptr);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);

@@ -279,13 +279,26 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 		case EXPR_REMOVE_FROM:
 		case EXPR_ASSIGN:
 			{
-			if ( e->GetOp1()->Tag() == EXPR_REF )
+			if ( e->GetOp1()->Tag() != EXPR_REF )
+				// this isn't a direct assignment
+				break;
+
+			auto lhs = e->GetOp1()->GetOp1();
+			if ( lhs->Tag() != EXPR_NAME )
+				break;
+
+			auto id = lhs->AsNameExpr()->Id();
+			TrackAssignment(id);
+
+			if ( e->Tag() == EXPR_ASSIGN )
 				{
-				auto lhs = e->GetOp1()->GetOp1();
-				if ( lhs->Tag() == EXPR_NAME )
-					TrackAssignment(lhs->AsNameExpr()->Id());
+				auto a_e = static_cast<const AssignExpr*>(e);
+				auto& av = a_e->AssignVal();
+				if ( av )
+					// This is a funky "local" assignment
+					// inside a when clause.
+					when_locals.insert(id);
 				}
-			// else this isn't a direct assignment.
 			break;
 			}
 

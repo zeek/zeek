@@ -26,7 +26,7 @@ namespace zeek::detail::trigger
 class TriggerTraversalCallback : public TraversalCallback
 	{
 public:
-	TriggerTraversalCallback() {}
+	TriggerTraversalCallback() { }
 
 	virtual TraversalCode PreExpr(const Expr*) override;
 
@@ -123,15 +123,15 @@ Trigger::Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, Expr* ti
 	Init(cond, body, timeout_stmts, frame, is_return, location);
 	}
 
-Trigger::Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* frame,
-                 bool is_return, const Location* location)
+Trigger::Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, double timeout,
+                 Frame* frame, bool is_return, const Location* location)
 	{
 	timeout_value = timeout;
 	Init(cond, body, timeout_stmts, frame, is_return, location);
 	}
 
-void Trigger::Init(const Expr* arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts, Frame* arg_frame,
-                   bool arg_is_return, const Location* arg_location)
+void Trigger::Init(const Expr* arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts,
+                   Frame* arg_frame, bool arg_is_return, const Location* arg_location)
 	{
 	cond = arg_cond;
 	body = arg_body;

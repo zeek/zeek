@@ -1825,8 +1825,23 @@ void WhenInfo::Build(StmtPtr ws)
 			locals.insert(tl.begin(), tl.end());
 			}
 
+		// Remove any "when locals".
+		for ( auto& wl : cond_pf.WhenLocals() )
+			locals.erase(wl);
+
 		if ( ! locals.empty() )
-			ws->Warn("\"when\" statement referring to locals without an explict [] capture is deprecated");
+			{
+			std::string vars;
+			for ( auto& l : locals )
+				{
+				if ( ! vars.empty() )
+					vars += ", ";
+				vars += l->Name();
+				}
+
+			std::string msg = util::fmt("\"when\" statement referring to locals without an explicit [] capture is deprecated: %s", vars.c_str());
+			ws->Warn(msg.c_str());
+			}
 		return;
 		}
 

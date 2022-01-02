@@ -537,6 +537,8 @@ public:
 	StmtPtr Duplicate() override { return SetSucc(new NullStmt()); }
 	};
 
+class WhenStmt;
+
 class WhenInfo
 	{
 public:
@@ -557,7 +559,7 @@ public:
 		timeout_s = std::move(_timeout_s);
 		}
 
-	void Build();
+	void Build(StmtPtr ws);
 	void Instantiate(Frame* f);
 
 	ExprPtr OrigCond() { return cond; }

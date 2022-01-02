@@ -1802,7 +1802,7 @@ WhenInfo::WhenInfo(FuncType::CaptureList* _cl)
 	lambda_param->SetType(base_type(TYPE_COUNT));
 	}
 
-void WhenInfo::Build()
+void WhenInfo::Build(StmtPtr ws)
 	{
 	ProfileFunc cond_pf(cond.get());
 
@@ -1810,8 +1810,25 @@ void WhenInfo::Build()
 	when_expr_globals = cond_pf.Globals();
 
 	if ( ! cl )
+		{
 		// Old-style semantics.
+		auto locals = when_expr_locals;
+
+		ProfileFunc body_pf(s.get());
+		auto bl = body_pf.Locals();
+		locals.insert(bl.begin(), bl.end());
+
+		if ( timeout_s )
+			{
+			ProfileFunc to_pf(timeout_s.get());
+			auto tl = to_pf.Locals();
+			locals.insert(tl.begin(), tl.end());
+			}
+
+		if ( ! locals.empty() )
+			ws->Warn("\"when\" statement referring to locals without an explict [] capture is deprecated");
 		return;
+		}
 
 	// Make any when-locals part of our captures, to enable sharing
 	// between the condition and the body/timeout code.
@@ -1855,7 +1872,7 @@ void WhenInfo::Build()
 	auto ingredients = std::make_unique<function_ingredients>(current_scope(), shebang);
 	auto outer_ids = gather_outer_ids(pop_scope(), ingredients->body);
 
-	lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids));
+	lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids), ws);
 	}
 
 void WhenInfo::Instantiate(Frame* f)
@@ -1866,7 +1883,7 @@ void WhenInfo::Instantiate(Frame* f)
 
 ExprPtr WhenInfo::Cond()
 	{
-	if ( ! cl )
+	if ( ! curr_lambda )
 		return cond;
 
 	return make_intrusive<CallExpr>(curr_lambda, invoke_cond);
@@ -1874,7 +1891,7 @@ ExprPtr WhenInfo::Cond()
 
 StmtPtr WhenInfo::WhenBody()
 	{
-	if ( ! cl )
+	if ( ! curr_lambda )
 		return s;
 
 	auto invoke = make_intrusive<CallExpr>(curr_lambda, invoke_s);
@@ -1883,7 +1900,7 @@ StmtPtr WhenInfo::WhenBody()
 
 StmtPtr WhenInfo::TimeoutStmt()
 	{
-	if ( ! cl )
+	if ( ! curr_lambda )
 		return timeout_s;
 
 	auto invoke = make_intrusive<CallExpr>(curr_lambda, invoke_timeout);
@@ -1892,9 +1909,9 @@ StmtPtr WhenInfo::TimeoutStmt()
 
 WhenStmt::WhenStmt(WhenInfo* _wi) : Stmt(STMT_WHEN), wi(_wi)
 	{
-	wi->Build();
+	wi->Build(ThisPtr());
 
-	auto cond = wi->OrigCond();
+	auto cond = wi->Cond();
 
 	if ( ! cond->IsError() && ! IsBool(cond->GetType()->Tag()) )
 		cond->Error("conditional in test must be boolean");

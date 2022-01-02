@@ -4581,7 +4581,7 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		args->Describe(d);
 	}
 
-LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList arg_outer_ids)
+LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList arg_outer_ids, StmtPtr when_parent)
 	: Expr(EXPR_LAMBDA)
 	{
 	ingredients = std::move(arg_ing);
@@ -4589,7 +4589,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList ar
 
 	SetType(ingredients->id->GetType());
 
-	CheckCaptures();
+	CheckCaptures(when_parent);
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
@@ -4634,7 +4634,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList ar
 	id->SetConst();
 	}
 
-void LambdaExpr::CheckCaptures()
+void LambdaExpr::CheckCaptures(StmtPtr when_parent)
 	{
 	auto ft = type->AsFuncType();
 	const auto& captures = ft->GetCaptures();
@@ -4658,6 +4658,8 @@ void LambdaExpr::CheckCaptures()
 	std::set<const ID*> outer_is_matched;
 	std::set<const ID*> capture_is_matched;
 
+	auto desc = when_parent ? "\"when\" statement" : "lambda";
+
 	for ( const auto& c : *captures )
 		{
 		auto cid = c.id.get();
@@ -4670,7 +4672,11 @@ void LambdaExpr::CheckCaptures()
 
 		if ( capture_is_matched.count(cid) > 0 )
 			{
-			ExprError(util::fmt("%s listed multiple times in capture", cid->Name()));
+			auto msg = util::fmt("%s listed multiple times in capture", cid->Name());
+			if ( when_parent )
+				when_parent->Error(msg);
+			else
+				ExprError(msg);
 			continue;
 			}
 
@@ -4685,13 +4691,25 @@ void LambdaExpr::CheckCaptures()
 
 	for ( auto id : outer_ids )
 		if ( outer_is_matched.count(id) == 0 )
-			ExprError(util::fmt("%s is used inside lambda but not captured", id->Name()));
+			{
+			auto msg = util::fmt("%s is used inside %s but not captured", id->Name(), desc);
+			if ( when_parent )
+				when_parent->Error(msg);
+			else
+				ExprError(msg);
+			}
 
 	for ( const auto& c : *captures )
 		{
 		auto cid = c.id.get();
 		if ( cid && capture_is_matched.count(cid) == 0 )
-			ExprError(util::fmt("%s is captured but not used inside lambda", cid->Name()));
+			{
+			auto msg = util::fmt("%s is captured but not used inside %s", cid->Name(), desc);
+			if ( when_parent )
+				when_parent->Error(msg);
+			else
+				ExprError(msg);
+			}
 		}
 	}
 

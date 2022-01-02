@@ -540,23 +540,41 @@ public:
 class WhenInfo
 	{
 public:
-	// Takes ownership of the CaptureList.
-	WhenInfo(ExprPtr _cond, StmtPtr _s, FuncType::CaptureList* _cl) : cond(std::move(_cond)), s(std::move(_s)), cl(_cl) {}
-	WhenInfo(ExprPtr _cond, StmtPtr _s, ExprPtr _timeout, StmtPtr _timeout_s, FuncType::CaptureList* _cl) :
-		cond(std::move(_cond)), s(std::move(_s)), timeout(std::move(_timeout)), timeout_s(std::move(_timeout_s)), cl(_cl) {}
-
+	// Takes ownership of the CaptureList, which if nil signifies
+	// old-style frame semantics.
+	WhenInfo(FuncType::CaptureList* _cl = nullptr);
 	~WhenInfo() { delete cl; }
 
-	ExprPtr Cond() { return cond; }
-	StmtPtr WhenStmt() { return s; }
+	void AddBody(ExprPtr _cond, StmtPtr _s)
+		{
+		cond = std::move(_cond);
+		s = std::move(_s);
+		}
+
+	void AddTimeout(ExprPtr _timeout, StmtPtr _timeout_s)
+		{
+		timeout = std::move(_timeout);
+		timeout_s = std::move(_timeout_s);
+		}
+
+	void Build();
+	void Instantiate(Frame* f);
+
+	ExprPtr Cond();
+	StmtPtr WhenStmt();
 
 	ExprPtr TimeoutExpr() { return timeout; }
-	StmtPtr TimeoutStmt() { return s; }
+	StmtPtr TimeoutStmt();
 
 	FuncType::CaptureList* Captures() { return cl; }
 
 	void SetIsReturn(bool _is_return) { is_return = _is_return; }
 	bool IsReturn() const { return is_return; }
+
+	IDPtr LambdaParam() { return lambda_param; }
+
+	const IDSet& WhenExprLocals () const { return when_expr_locals; }
+	const IDSet& WhenExprGlobals () const { return when_expr_globals; }
 
 private:
 	ExprPtr cond;
@@ -566,6 +584,17 @@ private:
 	FuncType::CaptureList* cl;
 
 	bool is_return = false;
+
+	IDPtr lambda_param;
+	LambdaExprPtr lambda;
+	ConstExprPtr curr_lambda;
+
+	ListExprPtr invoke_cond;
+	ListExprPtr invoke_s;
+	ListExprPtr invoke_timeout;
+
+	IDSet when_expr_locals;
+	IDSet when_expr_globals;
 	};
 
 class WhenStmt final : public Stmt
@@ -597,6 +626,9 @@ public:
 	bool IsReduced(Reducer* c) const override;
 
 protected:
+	friend class ZAMCompiler;
+	friend class CPPCompiler;
+
 	WhenInfo* wi;
 	};
 

@@ -20,6 +20,7 @@
 #include "zeek/Var.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/logging.bif.h"
+#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/StmtOptInfo.h"
 
 namespace zeek::detail
@@ -1794,9 +1795,100 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-WhenStmt::WhenStmt(WhenInfo* _wi)
-	: Stmt(STMT_WHEN), wi(_wi)
+WhenInfo::WhenInfo(FuncType::CaptureList* _cl)
+	: cl(_cl)
 	{
+	lambda_param = current_scope()->GenerateTemporary("when-param");
+	}
+
+void WhenInfo::Build()
+	{
+	ProfileFunc cond_pf(cond.get());
+
+	when_expr_locals = cond_pf.Locals();
+	when_expr_globals = cond_pf.Globals();
+
+	if ( ! cl )
+		// Old-style semantics.
+		return;
+
+	// Make any when-locals part of our captures, to enable sharing
+	// between the condition and the body/timeout code.
+	for ( auto& wl : cond_pf.WhenLocals() )
+		{
+		IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
+		cl->emplace_back(FuncType::Capture{wl_ptr, false});
+		}
+
+	// Build the AST elements of the lambda.
+
+	// First, the constants we'll need.
+	auto true_const = make_intrusive<ConstExpr>(val_mgr->True());
+	auto one_const = make_intrusive<ConstExpr>(val_mgr->Count(1));
+	auto two_const = make_intrusive<ConstExpr>(val_mgr->Count(2));
+	auto three_const = make_intrusive<ConstExpr>(val_mgr->Count(3));
+
+	invoke_cond = make_intrusive<ListExpr>(one_const);
+	invoke_s = make_intrusive<ListExpr>(two_const);
+	invoke_timeout = make_intrusive<ListExpr>(three_const);
+
+	// Access to the parameter that selects which action we're doing.
+	auto param = make_intrusive<NameExpr>(lambda_param);
+
+	// Expressions for testing for the latter constants.
+	auto one_test = make_intrusive<EqExpr>(EXPR_EQ, param, one_const);
+	auto two_test = make_intrusive<EqExpr>(EXPR_EQ, param, two_const);
+
+	auto test_cond = make_intrusive<ReturnStmt>(cond);
+	auto do_test = make_intrusive<IfStmt>(one_test, test_cond, nullptr);
+
+	auto do_bodies = make_intrusive<IfStmt>(two_test, s, timeout_s);
+	auto dummy_return = make_intrusive<ReturnStmt>(true_const);
+
+	auto shebang = make_intrusive<StmtList>(test_cond, do_bodies, dummy_return);
+
+	auto ingredients = std::make_unique<function_ingredients>(current_scope(), shebang);
+	auto outer_ids = gather_outer_ids(pop_scope(), ingredients->body);
+
+	lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids));
+	}
+
+void WhenInfo::Instantiate(Frame* f)
+	{
+	if ( cl )
+		curr_lambda = make_intrusive<ConstExpr>(lambda->Eval(f));
+	}
+
+ExprPtr WhenInfo::Cond()
+	{
+	if ( ! cl )
+		return cond;
+
+	return make_intrusive<CallExpr>(curr_lambda, invoke_cond);
+	}
+
+StmtPtr WhenInfo::WhenStmt()
+	{
+	if ( ! cl )
+		return s;
+
+	auto invoke = make_intrusive<CallExpr>(curr_lambda, invoke_s);
+	return make_intrusive<ExprStmt>(invoke);
+	}
+
+StmtPtr WhenInfo::TimeoutStmt()
+	{
+	if ( ! cl )
+		return timeout_s;
+
+	auto invoke = make_intrusive<CallExpr>(curr_lambda, invoke_timeout);
+	return make_intrusive<ExprStmt>(invoke);
+	}
+
+WhenStmt::WhenStmt(WhenInfo* _wi) : Stmt(STMT_WHEN), wi(_wi)
+	{
+	wi->Build();
+
 	auto cond = wi->Cond();
 
 	if ( ! cond->IsError() && ! IsBool(cond->GetType()->Tag()) )
@@ -1813,8 +1905,6 @@ WhenStmt::WhenStmt(WhenInfo* _wi)
 		if ( bt != TYPE_TIME && bt != TYPE_INTERVAL )
 			te->Error("when timeout requires a time or time interval");
 		}
-
-	auto c = wi->Captures();
 	}
 
 WhenStmt::~WhenStmt()
@@ -1829,14 +1919,14 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 
 	// The new trigger object will take care of its own deletion.
 	new trigger::Trigger(IntrusivePtr{wi->Cond()}.release(), wi->WhenStmt(), wi->TimeoutStmt(),
-	                     IntrusivePtr{wi->TimeoutExpr()}.release(), f, wi->IsReturn(),
-	                     location);
+	                     IntrusivePtr{wi->TimeoutExpr()}.release(), f, wi->IsReturn(), location);
 	return nullptr;
 	}
 
 bool WhenStmt::IsPure() const
 	{
-	return wi->Cond()->IsPure() && wi->WhenStmt()->IsPure() && (! wi->TimeoutStmt() || wi->TimeoutStmt()->IsPure());
+	return wi->Cond()->IsPure() && wi->WhenStmt()->IsPure() &&
+	       (! wi->TimeoutStmt() || wi->TimeoutStmt()->IsPure());
 	}
 
 void WhenStmt::StmtDescribe(ODesc* d) const

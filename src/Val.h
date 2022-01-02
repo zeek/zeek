@@ -82,6 +82,7 @@ class TypeVal;
 
 using AddrValPtr = IntrusivePtr<AddrVal>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
+using FuncValPtr = IntrusivePtr<FuncVal>;
 using ListValPtr = IntrusivePtr<ListVal>;
 using PortValPtr = IntrusivePtr<PortVal>;
 using RecordValPtr = IntrusivePtr<RecordVal>;

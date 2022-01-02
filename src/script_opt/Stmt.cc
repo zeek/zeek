@@ -918,13 +918,9 @@ StmtPtr WhenStmt::Duplicate()
 		*cl_dup = *wi->Captures();
 		}
 
-	WhenInfo* new_wi;
-
-	if ( TimeoutBody() )
-		new_wi = new WhenInfo(Cond(), Body(), TimeoutExpr(), TimeoutBody(), cl_dup);
-	else
-		new_wi = new WhenInfo(Cond(), Body(), cl_dup);
-
+	auto new_wi = new WhenInfo(cl_dup);
+	new_wi->AddBody(Cond(), Body());
+	new_wi->AddTimeout(TimeoutExpr(), TimeoutBody());
 	new_wi->SetIsReturn(IsReturn());
 
 	return SetSucc(new WhenStmt(wi));

@@ -137,6 +137,7 @@ using EventExprPtr = IntrusivePtr<EventExpr>;
 using ExprPtr = IntrusivePtr<Expr>;
 using NameExprPtr = IntrusivePtr<NameExpr>;
 using RefExprPtr = IntrusivePtr<RefExpr>;
+using LambdaExprPtr = IntrusivePtr<LambdaExpr>;
 
 class Stmt;
 using StmtPtr = IntrusivePtr<Stmt>;

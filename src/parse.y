@@ -73,8 +73,8 @@
 %type <attr> attr
 %type <attr_l> attr_list opt_attr
 %type <capture> capture
-%type <captures> capture_list opt_captures
-%type <when_clause> when_clause
+%type <captures> capture_list opt_captures when_captures
+%type <when_clause> when_head when_start when_clause
 
 %{
 #include <stdlib.h>
@@ -347,19 +347,50 @@ opt_expr:
 	;
 
 when_clause:
-		TOK_WHEN opt_captures '(' when_condition ')' stmt
+		when_head TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 			{
-			set_location(@1, @6);
-			$$ = new WhenInfo({AdoptRef{}, $4}, {AdoptRef{}, $6}, $2);
+			$1->AddTimeout({AdoptRef{}, $3}, {AdoptRef{}, $6});
+			if ( $5 )
+			    script_coverage_mgr.DecIgnoreDepth();
 			}
 	|
-		TOK_WHEN opt_captures '(' when_condition ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
-		{
-		set_location(@1, @12);
-		$$ = new WhenInfo({AdoptRef{}, $4}, {AdoptRef{}, $6}, {AdoptRef{}, $8}, {AdoptRef{}, $11}, $2);
-		if ( $10 )
-		    script_coverage_mgr.DecIgnoreDepth();
-		}
+		when_head
+	;
+
+when_head:
+		when_start '(' when_condition ')' stmt
+			{ $1->AddBody({AdoptRef{}, $3}, {AdoptRef{}, $5}); }
+	;
+
+when_start:
+		TOK_WHEN '[' when_captures ']'
+			{
+			$$ = new WhenInfo($3);
+
+			// Create the internal lambda we'll use to manage
+			// the captures.
+			auto id = current_scope()->GenerateTemporary("when-internal");
+			auto param_id = $$->LambdaParam();
+			auto param_list = new type_decl_list();
+			auto count_t = base_type(TYPE_COUNT);
+			param_list->push_back(new TypeDecl(param_id->Name(), count_t));
+			auto params = make_intrusive<RecordType>(param_list);
+			auto ft = make_intrusive<FuncType>(params, base_type(TYPE_BOOL),
+			                                   FUNC_FLAVOR_FUNCTION);
+			ft->SetCaptures(*$3);
+
+			// This begin_func will be completed by WhenInfo::Build().
+			begin_func(id, current_module.c_str(), FUNC_FLAVOR_FUNCTION, false, ft);
+			}
+
+	|	TOK_WHEN
+			{ $$ = new WhenInfo(); }
+	;
+
+when_captures:
+		capture_list
+	|
+		{ $$ = new zeek::FuncType::CaptureList; }
 	;
 
 when_condition:

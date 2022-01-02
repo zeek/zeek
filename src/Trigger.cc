@@ -110,7 +110,7 @@ Trigger::Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, double t
 	Init(cond, body, timeout_stmts, frame, is_return, location);
 	}
 
-Trigger::Trigger(WhenInfo* wi, IDSet& _globals, std::vector<ValPtr> _local_aggrs,  Frame* f, const Location* loc)
+Trigger::Trigger(WhenInfo* wi, const IDSet& _globals, std::vector<ValPtr> _local_aggrs,  Frame* f, const Location* loc)
 	{
 	globals = _globals;
 	local_aggrs = std::move(_local_aggrs);
@@ -118,7 +118,7 @@ Trigger::Trigger(WhenInfo* wi, IDSet& _globals, std::vector<ValPtr> _local_aggrs
 
 	GetTimeout(wi->TimeoutExpr().get());
 
-	Init(wi->Cond().get(), wi->WhenStmt(), wi->TimeoutStmt(), f, wi->IsReturn(), loc);
+	Init(wi->Cond().get(), wi->WhenBody(), wi->TimeoutStmt(), f, wi->IsReturn(), loc);
 	}
 
 void Trigger::GetTimeout(Expr* timeout_expr)

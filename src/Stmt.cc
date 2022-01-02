@@ -1799,6 +1799,7 @@ WhenInfo::WhenInfo(FuncType::CaptureList* _cl)
 	: cl(_cl)
 	{
 	lambda_param = current_scope()->GenerateTemporary("when-param");
+	lambda_param->SetType(base_type(TYPE_COUNT));
 	}
 
 void WhenInfo::Build()
@@ -1839,10 +1840,14 @@ void WhenInfo::Build()
 	auto one_test = make_intrusive<EqExpr>(EXPR_EQ, param, one_const);
 	auto two_test = make_intrusive<EqExpr>(EXPR_EQ, param, two_const);
 
-	auto test_cond = make_intrusive<ReturnStmt>(cond);
-	auto do_test = make_intrusive<IfStmt>(one_test, test_cond, nullptr);
+	auto empty = make_intrusive<NullStmt>();
 
-	auto do_bodies = make_intrusive<IfStmt>(two_test, s, timeout_s);
+	auto test_cond = make_intrusive<ReturnStmt>(cond);
+	auto do_test = make_intrusive<IfStmt>(one_test, test_cond, empty);
+
+	auto else_branch = timeout_s ? timeout_s : empty;
+
+	auto do_bodies = make_intrusive<IfStmt>(two_test, s, else_branch);
 	auto dummy_return = make_intrusive<ReturnStmt>(true_const);
 
 	auto shebang = make_intrusive<StmtList>(test_cond, do_bodies, dummy_return);
@@ -1867,7 +1872,7 @@ ExprPtr WhenInfo::Cond()
 	return make_intrusive<CallExpr>(curr_lambda, invoke_cond);
 	}
 
-StmtPtr WhenInfo::WhenStmt()
+StmtPtr WhenInfo::WhenBody()
 	{
 	if ( ! cl )
 		return s;
@@ -1889,7 +1894,7 @@ WhenStmt::WhenStmt(WhenInfo* _wi) : Stmt(STMT_WHEN), wi(_wi)
 	{
 	wi->Build();
 
-	auto cond = wi->Cond();
+	auto cond = wi->OrigCond();
 
 	if ( ! cond->IsError() && ! IsBool(cond->GetType()->Tag()) )
 		cond->Error("conditional in test must be boolean");
@@ -1917,15 +1922,33 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	// The new trigger object will take care of its own deletion.
-	new trigger::Trigger(IntrusivePtr{wi->Cond()}.release(), wi->WhenStmt(), wi->TimeoutStmt(),
-	                     IntrusivePtr{wi->TimeoutExpr()}.release(), f, wi->IsReturn(), location);
+	wi->Instantiate(f);
+
+	if ( wi->Captures() )
+		{
+		std::vector<ValPtr> local_aggrs;
+		for ( auto& l : wi->WhenExprLocals() )
+			{
+			IDPtr l_ptr = {NewRef{}, const_cast<ID*>(l)};
+			auto v = f->GetElementByID(l_ptr);
+			if ( v && v->Modifiable() )
+				local_aggrs.emplace_back(std::move(v));
+			}
+
+		new trigger::Trigger(wi, wi->WhenExprGlobals(), local_aggrs, f, location);
+		}
+
+	else
+		// The new trigger object will take care of its own deletion.
+		new trigger::Trigger(IntrusivePtr{wi->Cond()}.release(), wi->WhenBody(), wi->TimeoutStmt(),
+				     IntrusivePtr{wi->TimeoutExpr()}.release(), f, wi->IsReturn(), location);
+
 	return nullptr;
 	}
 
 bool WhenStmt::IsPure() const
 	{
-	return wi->Cond()->IsPure() && wi->WhenStmt()->IsPure() &&
+	return wi->Cond()->IsPure() && wi->WhenBody()->IsPure() &&
 	       (! wi->TimeoutStmt() || wi->TimeoutStmt()->IsPure());
 	}
 
@@ -1943,8 +1966,8 @@ void WhenStmt::StmtDescribe(ODesc* d) const
 
 	d->SP();
 	d->PushIndent();
-	wi->WhenStmt()->AccessStats(d);
-	wi->WhenStmt()->Describe(d);
+	wi->WhenBody()->AccessStats(d);
+	wi->WhenBody()->Describe(d);
 	d->PopIndent();
 
 	if ( wi->TimeoutStmt() )
@@ -1974,7 +1997,7 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 	tc = wi->Cond()->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);
 
-	tc = wi->WhenStmt()->Traverse(cb);
+	tc = wi->WhenBody()->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);
 
 	if ( wi->TimeoutStmt() )

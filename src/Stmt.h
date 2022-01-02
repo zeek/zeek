@@ -560,8 +560,9 @@ public:
 	void Build();
 	void Instantiate(Frame* f);
 
+	ExprPtr OrigCond() { return cond; }
 	ExprPtr Cond();
-	StmtPtr WhenStmt();
+	StmtPtr WhenBody();
 
 	ExprPtr TimeoutExpr() { return timeout; }
 	StmtPtr TimeoutStmt();
@@ -608,7 +609,7 @@ public:
 	bool IsPure() const override;
 
 	ExprPtr Cond() const { return wi->Cond(); }
-	StmtPtr Body() const { return wi->WhenStmt(); }
+	StmtPtr Body() const { return wi->WhenBody(); }
 	ExprPtr TimeoutExpr() const { return wi->TimeoutExpr(); }
 	StmtPtr TimeoutBody() const { return wi->TimeoutStmt(); }
 	bool IsReturn() const { return wi->IsReturn(); }
@@ -625,10 +626,7 @@ public:
 
 	bool IsReduced(Reducer* c) const override;
 
-protected:
-	friend class ZAMCompiler;
-	friend class CPPCompiler;
-
+private:
 	WhenInfo* wi;
 	};
 

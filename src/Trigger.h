@@ -52,7 +52,7 @@ public:
 	Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* f,
 	        bool is_return, const Location* loc);
 
-	Trigger(WhenInfo* wi, IDSet& globals, std::vector<ValPtr> local_aggrs,  Frame* f, const Location* loc);
+	Trigger(WhenInfo* wi, const IDSet& globals, std::vector<ValPtr> local_aggrs,  Frame* f, const Location* loc);
 
 	~Trigger() override;
 

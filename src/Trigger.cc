@@ -26,16 +26,13 @@ namespace zeek::detail::trigger
 class TriggerTraversalCallback : public TraversalCallback
 	{
 public:
-	TriggerTraversalCallback() { }
+	TriggerTraversalCallback(IDSet& _globals, IDSet& _locals) : globals(_globals), locals(_locals) { }
 
 	virtual TraversalCode PreExpr(const Expr*) override;
 
-	const IDSet& Globals() { return globals; }
-	const IDSet& Locals() { return locals; }
-
 private:
-	IDSet globals;
-	IDSet locals;
+	IDSet& globals;
+	IDSet& locals;
 	};
 
 TraversalCode trigger::TriggerTraversalCallback::PreExpr(const Expr* expr)
@@ -102,7 +99,31 @@ protected:
 Trigger::Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, Expr* timeout_expr,
                  Frame* frame, bool is_return, const Location* location)
 	{
-	timeout_value = -1;
+	GetTimeout(timeout_expr);
+	Init(cond, body, timeout_stmts, frame, is_return, location);
+	}
+
+Trigger::Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, double timeout,
+                 Frame* frame, bool is_return, const Location* location)
+	{
+	timeout_value = timeout;
+	Init(cond, body, timeout_stmts, frame, is_return, location);
+	}
+
+Trigger::Trigger(WhenInfo* wi, IDSet& _globals, std::vector<ValPtr> _local_aggrs,  Frame* f, const Location* loc)
+	{
+	globals = _globals;
+	local_aggrs = std::move(_local_aggrs);
+	have_trigger_elems = true;
+
+	GetTimeout(wi->TimeoutExpr().get());
+
+	Init(wi->Cond().get(), wi->WhenStmt(), wi->TimeoutStmt(), f, wi->IsReturn(), loc);
+	}
+
+void Trigger::GetTimeout(Expr* timeout_expr)
+	{
+	timeout_value = -1.0;
 
 	if ( timeout_expr )
 		{
@@ -119,15 +140,6 @@ Trigger::Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, Expr* ti
 		if ( timeout_val )
 			timeout_value = timeout_val->AsInterval();
 		}
-
-	Init(cond, body, timeout_stmts, frame, is_return, location);
-	}
-
-Trigger::Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, double timeout,
-                 Frame* frame, bool is_return, const Location* location)
-	{
-	timeout_value = timeout;
-	Init(cond, body, timeout_stmts, frame, is_return, location);
 	}
 
 void Trigger::Init(const Expr* arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts,
@@ -136,13 +148,17 @@ void Trigger::Init(const Expr* arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_s
 	cond = arg_cond;
 	body = arg_body;
 	timeout_stmts = arg_timeout_stmts;
-	frame = arg_frame->Clone();
 	timer = nullptr;
 	delayed = false;
 	disabled = false;
 	attached = nullptr;
 	is_return = arg_is_return;
 	location = arg_location;
+
+	if ( arg_frame )
+		frame = arg_frame->Clone();
+	else
+		frame = nullptr;
 
 	DBG_LOG(DBG_NOTIFIERS, "%s: instantiating", Name());
 
@@ -213,10 +229,15 @@ void Trigger::ReInit(std::vector<ValPtr> index_expr_results)
 	{
 	assert(! disabled);
 	UnregisterAll();
-	TriggerTraversalCallback cb;
-	cond->Traverse(&cb);
 
-	for ( auto g : cb.Globals() )
+	if ( ! have_trigger_elems )
+		{
+		TriggerTraversalCallback cb(globals, locals);
+		cond->Traverse(&cb);
+		have_trigger_elems = true;
+		}
+
+	for ( auto g : globals )
 		{
 		Register(g);
 
@@ -225,10 +246,13 @@ void Trigger::ReInit(std::vector<ValPtr> index_expr_results)
 			Register(v.get());
 		}
 
-	for ( auto l : cb.Locals() )
+	for ( auto l : locals )
 		{
 		ASSERT(! l->GetVal());
 		}
+
+	for ( auto& av : local_aggrs )
+		Register(av.get());
 
 	for ( const auto& v : index_expr_results )
 		Register(v.get());

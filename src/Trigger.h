@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 
+#include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Notifier.h"
 #include "zeek/Obj.h"
@@ -26,6 +27,7 @@ class Stmt;
 class Expr;
 class CallExpr;
 class ID;
+class WhenInfo;
 
 using StmtPtr = IntrusivePtr<Stmt>;
 
@@ -49,6 +51,9 @@ public:
 	        bool is_return, const Location* loc);
 	Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* f,
 	        bool is_return, const Location* loc);
+
+	Trigger(WhenInfo* wi, IDSet& globals, std::vector<ValPtr> local_aggrs,  Frame* f, const Location* loc);
+
 	~Trigger() override;
 
 	// Evaluates the condition. If true, executes the body and deletes
@@ -102,6 +107,8 @@ public:
 private:
 	friend class TriggerTimer;
 
+	void GetTimeout(Expr* timeout_expr);
+
 	void Init(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, Frame* frame, bool is_return,
 	          const Location* location);
 
@@ -125,6 +132,12 @@ private:
 
 	bool delayed; // true if a function call is currently being delayed
 	bool disabled;
+
+	// Globals and locals present in the when expression.
+	bool have_trigger_elems = false;
+	IDSet globals;
+	IDSet locals;	// not needed, present only for matching deprecated logic
+	std::vector<ValPtr> local_aggrs;
 
 	std::vector<std::pair<Obj*, notifier::detail::Modifiable*>> objs;
 

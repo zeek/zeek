@@ -96,14 +96,14 @@ protected:
 	double time;
 	};
 
-Trigger::Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, Expr* timeout_expr,
+Trigger::Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, ExprPtr timeout_expr,
                  Frame* frame, bool is_return, const Location* location)
 	{
 	GetTimeout(timeout_expr);
 	Init(cond, body, timeout_stmts, frame, is_return, location);
 	}
 
-Trigger::Trigger(const Expr* cond, StmtPtr body, StmtPtr timeout_stmts, double timeout,
+Trigger::Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, double timeout,
                  Frame* frame, bool is_return, const Location* location)
 	{
 	timeout_value = timeout;
@@ -116,12 +116,12 @@ Trigger::Trigger(WhenInfo* wi, const IDSet& _globals, std::vector<ValPtr> _local
 	local_aggrs = std::move(_local_aggrs);
 	have_trigger_elems = true;
 
-	GetTimeout(wi->TimeoutExpr().get());
+	GetTimeout(wi->TimeoutExpr());
 
-	Init(wi->Cond().get(), wi->WhenBody(), wi->TimeoutStmt(), f, wi->IsReturn(), loc);
+	Init(wi->Cond(), wi->WhenBody(), wi->TimeoutStmt(), f, wi->IsReturn(), loc);
 	}
 
-void Trigger::GetTimeout(Expr* timeout_expr)
+void Trigger::GetTimeout(const ExprPtr& timeout_expr)
 	{
 	timeout_value = -1.0;
 
@@ -142,7 +142,7 @@ void Trigger::GetTimeout(Expr* timeout_expr)
 		}
 	}
 
-void Trigger::Init(const Expr* arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts,
+void Trigger::Init(ExprPtr arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts,
                    Frame* arg_frame, bool arg_is_return, const Location* arg_location)
 	{
 	cond = arg_cond;

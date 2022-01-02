@@ -1850,7 +1850,7 @@ void WhenInfo::Build()
 	auto do_bodies = make_intrusive<IfStmt>(two_test, s, else_branch);
 	auto dummy_return = make_intrusive<ReturnStmt>(true_const);
 
-	auto shebang = make_intrusive<StmtList>(test_cond, do_bodies, dummy_return);
+	auto shebang = make_intrusive<StmtList>(do_test, do_bodies, dummy_return);
 
 	auto ingredients = std::make_unique<function_ingredients>(current_scope(), shebang);
 	auto outer_ids = gather_outer_ids(pop_scope(), ingredients->body);
@@ -1940,8 +1940,8 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 
 	else
 		// The new trigger object will take care of its own deletion.
-		new trigger::Trigger(IntrusivePtr{wi->Cond()}.release(), wi->WhenBody(), wi->TimeoutStmt(),
-				     IntrusivePtr{wi->TimeoutExpr()}.release(), f, wi->IsReturn(), location);
+		new trigger::Trigger(wi->Cond(), wi->WhenBody(), wi->TimeoutStmt(),
+				     wi->TimeoutExpr(), f, wi->IsReturn(), location);
 
 	return nullptr;
 	}

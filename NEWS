@@ -112,6 +112,12 @@ New Functionality
   fields, with a "null" value. This simplifies data import use cases that
   require fields to be present at all times, regardless of their value.
 
+- A new external testsuite, https://github.com/zeek/zeek-testing-cluster,
+  focuses on testing the emerging controller framework. It leverages the new
+  official Zeek Docker image for building docker-compose test setups, driven via
+  btest. The Github CI setup now includes a workflow that deploys and runs this
+  testsuite.
+
 Changed Functionality
 ---------------------
 
@@ -146,6 +152,18 @@ Changed Functionality
   configuring the build with --disable-cpp-tests. We removed the former
   --enable-cpp-tests configure flag. Unit tests now also work in (static and
   dynamic) Zeek plugins.
+
+- This release expands the emerging cluster controller framework. Most changes
+  concern internals of the framework. Agent/controller connectivity management
+  has become more flexible: configuration updates pushed by the client can now
+  convey the agent topology, removing the need to hardwire/redef settings
+  in the controller. The new ClusterController::API::notify_agents_ready event
+  declares the management infrastructure ready for use. zeek-client's CLI has
+  expanded to support the new functionality.
+
+  The framework is still experimental and provides only a small subset of
+  ZeekControl's functionality. ZeekControl remains the recommended tool for
+  maintaining your cluster.
 
 Removed Functionality
 ---------------------

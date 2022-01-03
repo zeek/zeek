@@ -1,3 +1,21 @@
+4.2.0-dev.506 | 2022-01-03 09:33:43 -0800
+
+  * Expansion of the emerging cluster controller framework (Christian Kreibich, Corelight)
+
+    - Controller/agent connectivity is now controlled by pushed configurations
+    - The Request module now supports state timeouts
+    - Use Result records consistently for responses to the client
+    - Track successful config deployment in cluster controller
+    - Add ClusterController::API::notify_agents_ready event
+    - Make all globals start with a "g_" prefix
+    - Add missing debug() log function to log module's API
+    - Add separate utility module for controller and agent
+    - Additional infrastructure for printing types
+    - Bump zeek-client to v0.2.0
+    - Add Github action job for cluster tests
+    - Tweak Docker image configure invocation to include zeek-client
+    - Zeekygen documentation pass
+
 4.2.0-dev.477 | 2021-12-14 16:53:57 -0700
 
   * fixes for double-delete and reducing '?' operator with constant alternatives (Vern Paxson, Corelight)

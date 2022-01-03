@@ -1559,7 +1559,7 @@ ReturnStmt::ReturnStmt(ExprPtr arg_e) : ExprStmt(STMT_RETURN, std::move(arg_e))
 
 	else if ( ! e )
 		{
-		if ( ft->Flavor() != FUNC_FLAVOR_HOOK )
+		if ( ft->Flavor() != FUNC_FLAVOR_HOOK && ! ft->ExpressionlessReturnOkay() )
 			Error("return statement needs expression");
 		}
 
@@ -1808,6 +1808,11 @@ void WhenInfo::Build(StmtPtr ws)
 	ProfileFunc cond_pf(cond.get());
 
 	when_expr_locals = cond_pf.Locals();
+
+	// Remove any "when locals".
+	for ( auto& wl : cond_pf.WhenLocals() )
+		when_expr_locals.erase(wl);
+
 	when_expr_globals = cond_pf.Globals();
 
 	if ( ! cl )
@@ -1827,10 +1832,6 @@ void WhenInfo::Build(StmtPtr ws)
 				if ( prior_vars.count(tl->Name()) > 0 )
 					locals.insert(tl);
 			}
-
-		// Remove any "when locals".
-		for ( auto& wl : cond_pf.WhenLocals() )
-			locals.erase(wl);
 
 		if ( ! locals.empty() )
 			{

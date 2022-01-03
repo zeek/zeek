@@ -52,7 +52,7 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 %nonassoc TOK_AS TOK_IS
 
-%type <b> opt_no_test opt_no_test_block TOK_PATTERN_END opt_deep
+%type <b> opt_no_test opt_no_test_block TOK_PATTERN_END opt_deep when_flavor
 %type <str> TOK_ID TOK_PATTERN_TEXT
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_lambda case_type
 %type <id_l> local_id_list case_type_list
@@ -349,6 +349,7 @@ opt_expr:
 when_clause:
 		when_head TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 			{
+			set_location(@1, @7);
 			$1->AddTimeout({AdoptRef{}, $3}, {AdoptRef{}, $6});
 			if ( $5 )
 			    script_coverage_mgr.DecIgnoreDepth();
@@ -359,12 +360,17 @@ when_clause:
 
 when_head:
 		when_start '(' when_condition ')' stmt
-			{ $1->AddBody({AdoptRef{}, $3}, {AdoptRef{}, $5}); }
+			{
+			set_location(@1, @5);
+			$1->AddBody({AdoptRef{}, $3}, {AdoptRef{}, $5});
+			}
 	;
 
 when_start:
-		TOK_WHEN '[' when_captures ']'
+		when_flavor '[' when_captures ']'
 			{
+			set_location(@1, @4);
+
 			$$ = new WhenInfo($3);
 
 			// Create the internal lambda we'll use to manage
@@ -376,19 +382,33 @@ when_start:
 			param_list->push_back(new TypeDecl(util::copy_string(param_id.c_str()), count_t));
 			auto params = make_intrusive<RecordType>(param_list);
 
-			// We use a "hook" flavor so that bare returns inside
-			// the complex lambda we're going to create don't
-			// generate error messages.
 			auto ft = make_intrusive<FuncType>(params, base_type(TYPE_ANY),
-			                                   FUNC_FLAVOR_HOOK);
+			                                   FUNC_FLAVOR_FUNCTION);
 			ft->SetCaptures(*$3);
 
+			if ( $1 )
+				$$->SetIsReturn(true);
+			else
+				ft->SetExpressionlessReturnOkay(true);
+
 			// This begin_func will be completed by WhenInfo::Build().
-			begin_func(id, current_module.c_str(), FUNC_FLAVOR_HOOK, false, ft);
+			begin_func(id, current_module.c_str(), FUNC_FLAVOR_FUNCTION, false, ft);
 			}
 
-	|	TOK_WHEN
-			{ $$ = new WhenInfo(); }
+	|	when_flavor
+			{
+			set_location(@1, @1);
+			$$ = new WhenInfo();
+			$$->SetIsReturn($1);
+			}
+	;
+
+when_flavor:
+		TOK_RETURN TOK_WHEN
+			{ $$ = true; }
+	|
+		TOK_WHEN
+			{ $$ = false; }
 	;
 
 when_captures:
@@ -1744,12 +1764,6 @@ stmt:
 	|	when_clause
 			{
 			$$ = new WhenStmt($1);
-			}
-
-	|	TOK_RETURN when_clause
-			{
-			$2->SetIsReturn(true);
-			$$ = new WhenStmt($2);
 			}
 
 	|	index_slice '=' expr ';' opt_no_test

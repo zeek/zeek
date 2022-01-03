@@ -130,15 +130,6 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 
 		case STMT_WHEN:
 			++num_when_stmts;
-
-			in_when = true;
-			s->AsWhenStmt()->Cond()->Traverse(this);
-			in_when = false;
-
-			// It doesn't do any harm for us to re-traverse the
-			// conditional, so we don't bother hand-traversing the
-			// rest of the "when", but just let the usual processing
-			// do it.
 			break;
 
 		case STMT_FOR:

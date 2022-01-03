@@ -1,3 +1,26 @@
+4.2.0-dev.510 | 2022-01-03 13:54:52 -0700
+
+  * Switch BitTorrent analyzer to Zeek's regex engine (Avinal Kumar)
+
+    - Removes dependency on <regex.h>
+    - Replaces regex function with Zeek's standard regex functions
+    - Some replacements are workaround, may be improved later via an
+    appropiate API
+    - Update test baseline to fix what seems to be capturing on a bug in the
+    existing code.
+
+    Edit pass by Robin Sommer. Note that our test doesn't cover all the code
+    paths, but it does go through the one with the most substantial change.
+
+  * Adding test for BitTorrent tracker. (Robin Sommer, Corelight)
+
+    Our test trace is extracted from https://www.cloudshark.org/captures/b9089aac6eee.
+
+    There actually seems to be a bug in the existing code: the URI passed to
+    bt_tracker_request() includes a partial HTTP version. This commits
+    includes the baseline as the current code produces it, we'll fix that in
+    a subsequent comment.
+
 4.2.0-dev.506 | 2022-01-03 09:33:43 -0800
 
   * Expansion of the emerging cluster controller framework (Christian Kreibich, Corelight)

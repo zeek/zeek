@@ -142,6 +142,10 @@ bool resolving_global_ID = false;
 bool defining_global_ID = false;
 std::vector<int> saved_in_init;
 
+std::vector<std::set<const ID*>> locals_at_this_scope;
+static std::unordered_set<const ID*> out_of_scope_locals;
+static std::unordered_set<const ID*> warned_about_locals;
+
 static Location func_hdr_location;
 static int func_hdr_cond_epoch = 0;
 EnumType* cur_enum_type = nullptr;
@@ -557,6 +561,8 @@ expr:
 	|	TOK_LOCAL local_id '=' expr
 			{
 			set_location(@2, @4);
+			if ( ! locals_at_this_scope.empty() )
+			       locals_at_this_scope.back().insert($2);
 			$$ = add_and_assign_local({AdoptRef{}, $2}, {AdoptRef{}, $4},
 			                                        val_mgr->True()).release();
 			}
@@ -797,6 +803,14 @@ expr:
 					}
 				else
 					{
+					if ( out_of_scope_locals.count(id.get()) > 0 &&
+					     warned_about_locals.count(id.get()) == 0 )
+						{
+						// Remove in v5.1
+						reporter->Warning("use of out-of-scope local %s deprecated; move declaration to outer scope", id->Name());
+						warned_about_locals.insert(id.get());
+						}
+
 					$$ = new NameExpr(std::move(id));
 					}
 				}
@@ -1298,6 +1312,10 @@ func_body:
 			{
 			saved_in_init.push_back(in_init);
 			in_init = 0;
+
+			locals_at_this_scope.clear();
+			out_of_scope_locals.clear();
+			warned_about_locals.clear();
 			}
 
 		stmt_list
@@ -1573,11 +1591,20 @@ attr:
 	;
 
 stmt:
-		'{' opt_no_test_block stmt_list '}'
+		'{'
 			{
-			set_location(@1, @4);
-			$$ = $3;
-			if ( $2 )
+			std::set<const ID*> id_set;
+			locals_at_this_scope.emplace_back(id_set);
+			}
+		opt_no_test_block stmt_list '}'
+			{
+			auto& scope_locals = locals_at_this_scope.back();
+			out_of_scope_locals.insert(scope_locals.begin(), scope_locals.end());
+			locals_at_this_scope.pop_back();
+
+			set_location(@1, @5);
+			$$ = $4;
+			if ( $3 )
 			    script_coverage_mgr.DecIgnoreDepth();
 			}
 
@@ -1684,6 +1711,8 @@ stmt:
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @7);
+			if ( ! locals_at_this_scope.empty() )
+			       locals_at_this_scope.back().insert($2);
 			$$ = build_local($2, $3, $4, $5, $6, VAR_REGULAR, ! $8).release();
 			}
 

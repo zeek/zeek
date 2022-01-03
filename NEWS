@@ -177,6 +177,27 @@ Deprecated Functionality
   replaced by ``analyzer_confirmation`` and ``analyzer_violation`` which can
   also now be implemented in packet analyzers.
 
+- Declaring a local variable in an inner scope and then accessing it in an
+  outer scope is now deprecated.  For example,
+
+	if ( foo() )
+		{
+		local a = 5;
+		...
+		}
+	print a;
+
+  is deprecated.  You can address the issue by hoisting the declaration
+  to the outer scope, such as:
+
+	local a: count;
+	if ( foo() )
+		{
+		a = 5;
+		...
+		}
+	print a;
+
 Zeek 4.1.0
 ==========
 

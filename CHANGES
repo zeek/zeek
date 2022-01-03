@@ -1,3 +1,7 @@
+4.2.0-dev.514 | 2022-01-03 13:56:12 -0700
+
+  * deprecation warning on use of out-of-scope local (Vern Paxson, Corelight)
+
 4.2.0-dev.510 | 2022-01-03 13:54:52 -0700
 
   * Switch BitTorrent analyzer to Zeek's regex engine (Avinal Kumar)

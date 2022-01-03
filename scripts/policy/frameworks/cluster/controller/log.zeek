@@ -1,3 +1,8 @@
+##! This module implements straightforward logging abilities for cluster
+##! controller and agent. It uses Zeek's logging framework, and works only for
+##! nodes managed by the supervisor. In this setting Zeek's logging framework
+##! operates locally, i.e., this logging does not involve any logger nodes.
+
 @load ./config
 
 module ClusterController::Log;
@@ -9,6 +14,7 @@ export {
 	## A default logging policy hook for the stream.
 	global log_policy: Log::PolicyHook;
 
+	## The controller/agent log supports four different log levels.
 	type Level: enum {
 		DEBUG,
 		INFO,
@@ -16,7 +22,7 @@ export {
 		ERROR,
 	};
 
-	## The record type which contains the column fields of the cluster log.
+	## The record type containing the column fields of the agent/controller log.
 	type Info: record {
 		## The time at which a cluster message was generated.
 		ts:       time;
@@ -30,11 +36,32 @@ export {
 		message:  string;
 	} &log;
 
+	## The log level in use for this node.
 	global log_level = DEBUG &redef;
 
+	## A debug-level log message writer.
+	##
+	## message: the message to log.
+	##
 	global debug: function(message: string);
+
+	## An info-level log message writer.
+	##
+	## message: the message to log.
+	##
 	global info: function(message: string);
+
+	## A warning-level log message writer.
+	##
+	## message: the message to log.
+	##
 	global warning: function(message: string);
+
+	## An error-level log message writer. (This only logs a message, it does not
+	## terminate Zeek or have other runtime effects.)
+	##
+	## message: the message to log.
+	##
 	global error: function(message: string);
 }
 

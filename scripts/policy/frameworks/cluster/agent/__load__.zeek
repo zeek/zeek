@@ -1,5 +1,4 @@
-# The entry point for the cluster agent. It only runs bootstrap logic for
-# launching via the Supervisor. If we're not running the Supervisor, this does
-# nothing.
+##! The entry point for the cluster agent. It runs bootstrap logic for launching
+##! the agent process via Zeek's Supervisor.
 
 @load ./boot

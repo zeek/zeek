@@ -1,3 +1,8 @@
+##! This is the main "runtime" of a cluster agent. Zeek does not load this
+##! directly; rather, the agent's bootstrapping module (in ./boot.zeek)
+##! specifies it as the script to run in the node newly created via Zeek's
+##! supervisor.
+
 @load base/frameworks/broker
 
 @load policy/frameworks/cluster/controller/config

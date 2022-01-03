@@ -1800,6 +1800,7 @@ WhenInfo::WhenInfo(FuncType::CaptureList* _cl)
 	{
 	static int num_params = 0; // to ensure each is distinct
 	lambda_param_id = util::fmt("when-param-%d", ++num_params);
+	prior_vars = current_scope()->Vars();
 	}
 
 void WhenInfo::Build(StmtPtr ws)
@@ -1815,14 +1816,16 @@ void WhenInfo::Build(StmtPtr ws)
 		auto locals = when_expr_locals;
 
 		ProfileFunc body_pf(s.get());
-		auto bl = body_pf.Locals();
-		locals.insert(bl.begin(), bl.end());
+		for ( auto& bl : body_pf.Locals() )
+			if ( prior_vars.count(bl->Name()) > 0 )
+				locals.insert(bl);
 
 		if ( timeout_s )
 			{
 			ProfileFunc to_pf(timeout_s.get());
-			auto tl = to_pf.Locals();
-			locals.insert(tl.begin(), tl.end());
+			for ( auto& tl : body_pf.Locals() )
+				if ( prior_vars.count(tl->Name()) > 0 )
+					locals.insert(tl);
 			}
 
 		// Remove any "when locals".

@@ -599,6 +599,9 @@ private:
 
 	IDSet when_expr_locals;
 	IDSet when_expr_globals;
+
+	// Used for identifying deprecated instances.
+	std::map<std::string, IDPtr, std::less<>> prior_vars;
 	};
 
 class WhenStmt final : public Stmt

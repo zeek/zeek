@@ -333,9 +333,6 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 					{
 					auto bf = static_cast<ScriptFunc*>(func_vf);
 					script_calls.insert(bf);
-
-					if ( in_when )
-						when_calls.insert(bf);
 					}
 				else
 					BiF_globals.insert(func);

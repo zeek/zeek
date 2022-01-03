@@ -114,7 +114,6 @@ public:
 	const std::vector<const Type*>& OrderedTypes() const { return ordered_types; }
 	const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
 	const IDSet& BiFGlobals() const { return BiF_globals; }
-	const std::unordered_set<ScriptFunc*>& WhenCalls() const { return when_calls; }
 	const std::unordered_set<std::string>& Events() const { return events; }
 	const std::unordered_set<const Attributes*>& ConstructorAttrs() const
 		{

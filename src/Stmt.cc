@@ -1798,8 +1798,8 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 WhenInfo::WhenInfo(FuncType::CaptureList* _cl)
 	: cl(_cl)
 	{
-	lambda_param = current_scope()->GenerateTemporary("when-param");
-	lambda_param->SetType(base_type(TYPE_COUNT));
+	static int num_params = 0; // to ensure each is distinct
+	lambda_param_id = util::fmt("when-param-%d", ++num_params);
 	}
 
 void WhenInfo::Build(StmtPtr ws)
@@ -1866,7 +1866,9 @@ void WhenInfo::Build(StmtPtr ws)
 	invoke_timeout = make_intrusive<ListExpr>(three_const);
 
 	// Access to the parameter that selects which action we're doing.
-	auto param = make_intrusive<NameExpr>(lambda_param);
+	auto param_id = lookup_ID(lambda_param_id.c_str(), current_module.c_str());
+	ASSERT(param_id);
+	auto param = make_intrusive<NameExpr>(param_id);
 
 	// Expressions for testing for the latter constants.
 	auto one_test = make_intrusive<EqExpr>(EXPR_EQ, param, one_const);

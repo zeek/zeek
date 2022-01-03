@@ -370,17 +370,21 @@ when_start:
 			// Create the internal lambda we'll use to manage
 			// the captures.
 			auto id = current_scope()->GenerateTemporary("when-internal");
-			auto param_id = $$->LambdaParam();
+			auto param_id = $$->LambdaParamID();
 			auto param_list = new type_decl_list();
 			auto count_t = base_type(TYPE_COUNT);
-			param_list->push_back(new TypeDecl(param_id->Name(), count_t));
+			param_list->push_back(new TypeDecl(util::copy_string(param_id.c_str()), count_t));
 			auto params = make_intrusive<RecordType>(param_list);
-			auto ft = make_intrusive<FuncType>(params, base_type(TYPE_BOOL),
-			                                   FUNC_FLAVOR_FUNCTION);
+
+			// We use a "hook" flavor so that bare returns inside
+			// the complex lambda we're going to create don't
+			// generate error messages.
+			auto ft = make_intrusive<FuncType>(params, base_type(TYPE_ANY),
+			                                   FUNC_FLAVOR_HOOK);
 			ft->SetCaptures(*$3);
 
 			// This begin_func will be completed by WhenInfo::Build().
-			begin_func(id, current_module.c_str(), FUNC_FLAVOR_FUNCTION, false, ft);
+			begin_func(id, current_module.c_str(), FUNC_FLAVOR_HOOK, false, ft);
 			}
 
 	|	TOK_WHEN

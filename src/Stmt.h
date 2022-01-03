@@ -574,7 +574,8 @@ public:
 	void SetIsReturn(bool _is_return) { is_return = _is_return; }
 	bool IsReturn() const { return is_return; }
 
-	IDPtr LambdaParam() { return lambda_param; }
+	const std::string& LambdaParamID() { return lambda_param_id; }
+	const LambdaExprPtr& Lambda() const { return lambda; }
 
 	const IDSet& WhenExprLocals () const { return when_expr_locals; }
 	const IDSet& WhenExprGlobals () const { return when_expr_globals; }
@@ -588,7 +589,7 @@ private:
 
 	bool is_return = false;
 
-	IDPtr lambda_param;
+	std::string lambda_param_id;
 	LambdaExprPtr lambda;
 	ConstExprPtr curr_lambda;
 

@@ -1795,26 +1795,53 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-WhenInfo::WhenInfo(FuncType::CaptureList* _cl)
-	: cl(_cl)
+WhenInfo::WhenInfo(ExprPtr _cond, FuncType::CaptureList* _cl, bool _is_return)
+	: cond(std::move(_cond)), cl(_cl), is_return(_is_return)
 	{
+	prior_vars = current_scope()->Vars();
+
+	if ( ! cl )
+		return;
+
+	ProfileFunc cond_pf(cond.get());
+	when_expr_locals = cond_pf.Locals();
+	when_expr_globals = cond_pf.Globals();
+
+	// Make any when-locals part of our captures, to enable sharing
+	// between the condition and the body/timeout code.
+	for ( auto& wl : cond_pf.WhenLocals() )
+		{
+		IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
+		cl->emplace_back(FuncType::Capture{wl_ptr, false});
+
+		// In addition, don't treat them as external locals that
+		// should be evaluated prior to instantiating a trigger.
+		when_expr_locals.erase(wl);
+		}
+
+	// Create the internal lambda we'll use to manage the captures.
 	static int num_params = 0; // to ensure each is distinct
 	lambda_param_id = util::fmt("when-param-%d", ++num_params);
-	prior_vars = current_scope()->Vars();
+
+	auto param_list = new type_decl_list();
+	auto count_t = base_type(TYPE_COUNT);
+	param_list->push_back(new TypeDecl(util::copy_string(lambda_param_id.c_str()), count_t));
+	auto params = make_intrusive<RecordType>(param_list);
+
+	auto ft = make_intrusive<FuncType>(params, base_type(TYPE_ANY), FUNC_FLAVOR_FUNCTION);
+	ft->SetCaptures(*cl);
+
+	if ( ! is_return )
+		ft->SetExpressionlessReturnOkay(true);
+
+	auto id = current_scope()->GenerateTemporary("when-internal");
+
+	// This begin_func will be completed by WhenInfo::Build().
+	begin_func(id, current_module.c_str(), FUNC_FLAVOR_FUNCTION, false, ft);
 	}
 
 void WhenInfo::Build(StmtPtr ws)
 	{
-	ProfileFunc cond_pf(cond.get());
-
-	when_expr_locals = cond_pf.Locals();
-
-	// Remove any "when locals".
-	for ( auto& wl : cond_pf.WhenLocals() )
-		when_expr_locals.erase(wl);
-
-	when_expr_globals = cond_pf.Globals();
-
 	if ( ! cl )
 		{
 		// Old-style semantics.
@@ -1846,15 +1873,8 @@ void WhenInfo::Build(StmtPtr ws)
 			std::string msg = util::fmt("\"when\" statement referring to locals without an explicit [] capture is deprecated: %s", vars.c_str());
 			ws->Warn(msg.c_str());
 			}
-		return;
-		}
 
-	// Make any when-locals part of our captures, to enable sharing
-	// between the condition and the body/timeout code.
-	for ( auto& wl : cond_pf.WhenLocals() )
-		{
-		IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
-		cl->emplace_back(FuncType::Capture{wl_ptr, false});
+		return;
 		}
 
 	// Build the AST elements of the lambda.

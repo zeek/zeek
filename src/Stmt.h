@@ -544,14 +544,10 @@ class WhenInfo
 public:
 	// Takes ownership of the CaptureList, which if nil signifies
 	// old-style frame semantics.
-	WhenInfo(FuncType::CaptureList* _cl = nullptr);
+	WhenInfo(ExprPtr _cond, FuncType::CaptureList* _cl, bool _is_return);
 	~WhenInfo() { delete cl; }
 
-	void AddBody(ExprPtr _cond, StmtPtr _s)
-		{
-		cond = std::move(_cond);
-		s = std::move(_s);
-		}
+	void AddBody(StmtPtr _s) { s = std::move(_s); }
 
 	void AddTimeout(ExprPtr _timeout, StmtPtr _timeout_s)
 		{
@@ -559,7 +555,10 @@ public:
 		timeout_s = std::move(_timeout_s);
 		}
 
+	// Complete construction of the associated internals.
 	void Build(StmtPtr ws);
+
+	// Instantiate a new instance.
 	void Instantiate(Frame* f);
 
 	ExprPtr OrigCond() { return cond; }
@@ -571,14 +570,12 @@ public:
 
 	FuncType::CaptureList* Captures() { return cl; }
 
-	void SetIsReturn(bool _is_return) { is_return = _is_return; }
 	bool IsReturn() const { return is_return; }
 
-	const std::string& LambdaParamID() { return lambda_param_id; }
 	const LambdaExprPtr& Lambda() const { return lambda; }
 
-	const IDSet& WhenExprLocals () const { return when_expr_locals; }
-	const IDSet& WhenExprGlobals () const { return when_expr_globals; }
+	const IDSet& WhenExprLocals() const { return when_expr_locals; }
+	const IDSet& WhenExprGlobals() const { return when_expr_globals; }
 
 private:
 	ExprPtr cond;

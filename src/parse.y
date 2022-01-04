@@ -359,47 +359,24 @@ when_clause:
 	;
 
 when_head:
-		when_start '(' when_condition ')' stmt
+		when_start stmt
 			{
-			set_location(@1, @5);
-			$1->AddBody({AdoptRef{}, $3}, {AdoptRef{}, $5});
+			set_location(@1, @2);
+			$1->AddBody({AdoptRef{}, $2});
 			}
 	;
 
 when_start:
-		when_flavor '[' when_captures ']'
+		when_flavor '[' when_captures ']' '(' when_condition ')'
 			{
-			set_location(@1, @4);
-
-			$$ = new WhenInfo($3);
-
-			// Create the internal lambda we'll use to manage
-			// the captures.
-			auto id = current_scope()->GenerateTemporary("when-internal");
-			auto param_id = $$->LambdaParamID();
-			auto param_list = new type_decl_list();
-			auto count_t = base_type(TYPE_COUNT);
-			param_list->push_back(new TypeDecl(util::copy_string(param_id.c_str()), count_t));
-			auto params = make_intrusive<RecordType>(param_list);
-
-			auto ft = make_intrusive<FuncType>(params, base_type(TYPE_ANY),
-			                                   FUNC_FLAVOR_FUNCTION);
-			ft->SetCaptures(*$3);
-
-			if ( $1 )
-				$$->SetIsReturn(true);
-			else
-				ft->SetExpressionlessReturnOkay(true);
-
-			// This begin_func will be completed by WhenInfo::Build().
-			begin_func(id, current_module.c_str(), FUNC_FLAVOR_FUNCTION, false, ft);
+			set_location(@1, @7);
+			$$ = new WhenInfo({AdoptRef{}, $6}, $3, $1);
 			}
 
-	|	when_flavor
+	|	when_flavor '(' when_condition ')'
 			{
-			set_location(@1, @1);
-			$$ = new WhenInfo();
-			$$->SetIsReturn($1);
+			set_location(@1, @4);
+			$$ = new WhenInfo({AdoptRef{}, $3}, nullptr, $1);
 			}
 	;
 

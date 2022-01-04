@@ -1800,22 +1800,39 @@ WhenInfo::WhenInfo(ExprPtr _cond, FuncType::CaptureList* _cl, bool _is_return)
 	{
 	prior_vars = current_scope()->Vars();
 
-	if ( ! cl )
-		return;
-
 	ProfileFunc cond_pf(cond.get());
+
+	if ( ! cl )
+		{
+		for ( auto& wl : cond_pf.WhenLocals() )
+			prior_vars.erase(wl->Name());
+		return;
+		}
+
 	when_expr_locals = cond_pf.Locals();
 	when_expr_globals = cond_pf.Globals();
 
-	// Make any when-locals part of our captures, to enable sharing
-	// between the condition and the body/timeout code.
+	// Make any when-locals part of our captures, if not already present,
+	// to enable sharing between the condition and the body/timeout code.
 	for ( auto& wl : cond_pf.WhenLocals() )
 		{
-		IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
-		cl->emplace_back(FuncType::Capture{wl_ptr, false});
+		bool is_present = false;
+
+		for ( auto& c : *cl )
+			if ( c.id == wl )
+				{
+				is_present = true;
+				break;
+				}
+
+		if ( ! is_present )
+			{
+			IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
+			cl->emplace_back(FuncType::Capture{wl_ptr, false});
+			}
 
 		// In addition, don't treat them as external locals that
-		// should be evaluated prior to instantiating a trigger.
+		// existed at the onset.
 		when_expr_locals.erase(wl);
 		}
 

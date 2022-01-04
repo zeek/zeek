@@ -715,14 +715,6 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 		return TC_CONTINUE;
 		}
 
-	if ( expr->Tag() == EXPR_ASSIGN && expr->AsAssignExpr()->AssignVal() )
-		{
-		// This is a local created inside a "when" condition - don't
-		// treat the LHS as an outer ID, but do analyze the RHS.
-		expr->GetOp2()->Traverse(this);
-		return TC_ABORTSTMT;
-		}
-
 	if ( expr->Tag() != EXPR_NAME )
 		return TC_CONTINUE;
 

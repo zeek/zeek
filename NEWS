@@ -33,13 +33,9 @@ New Functionality
   example to build a Zeek plugin. You can add any required system packages in a
   derived image, or install them directly in the running container.
 
-- Zeek now supports formatting the C++ code using clang-format. It requires at
-  least clang-format 12.0.1 due to some additions that were made in that version
-  to better support the Whitesmiths style. Zeek also includes a set of python
-  scripts to more easily reformat in the auxil/run-clang-format directory. An
-  example command to reformat the code:
-
-  `python3 auxil/run-clang-format/run-clang-format.py --clang-format-executable `which clang-format-12` -r src -i`
+- Zeek now supports formatting the C++ code using clang-format. Also provided is
+  a configuration for ``pre-commit`` to run clang-format when add new commits via
+  ``git``. More details can be found at https://github.com/zeek/zeek/wiki/Coding-Style-and-Conventions#clang-format.
 
 - Experimental support for speeding up Zeek script execution by compiling
   scripts to a low-level form called "ZAM".  You activate this feature by
@@ -118,6 +114,8 @@ New Functionality
   btest. The Github CI setup now includes a workflow that deploys and runs this
   testsuite.
 
+- The GRE analyzer now supports the Aruba WLAN protocol type.
+
 Changed Functionality
 ---------------------
 
@@ -164,9 +162,6 @@ Changed Functionality
   The framework is still experimental and provides only a small subset of
   ZeekControl's functionality. ZeekControl remains the recommended tool for
   maintaining your cluster.
-
-Removed Functionality
----------------------
 
 Deprecated Functionality
 ------------------------

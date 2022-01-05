@@ -1669,7 +1669,7 @@ internal-op Next-Table-Iter-Val-Var
 # v3 = branch target if loop done
 type VVV
 eval	NextTableIterPre(v2, v3)
-	frame[z.v1] = ti.IterValue();
+	AssignV1(ti.IterValue());
 	ti.NextIter(frame);
 
 internal-op Next-Table-Iter-Val-Var-No-Vars
@@ -1678,7 +1678,7 @@ internal-op Next-Table-Iter-Val-Var-No-Vars
 # v3 = branch target if loop done
 type VVV
 eval	NextTableIterPre(v2, v3)
-	frame[z.v1] = ti.IterValue();
+	AssignV1(ti.IterValue());
 	ti.IterFinished();
 
 

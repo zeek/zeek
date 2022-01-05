@@ -295,7 +295,17 @@ if ( NOT BIFCL_EXE_PATH )
 endif ()
 
 if (ENABLE_JEMALLOC)
-    find_package(JeMalloc)
+    if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+        if (DEFINED ${JEMALLOC_ROOT_DIR})
+            # Look for jemalloc at a specific path
+            find_package(JeMalloc)
+        else()
+            # jemalloc is in the base system
+            set(JEMALLOC_FOUND true)
+        endif()
+    else()
+        find_package(JeMalloc)
+    endif()
 
     if (NOT JEMALLOC_FOUND)
         message(FATAL_ERROR "Could not find requested JeMalloc")

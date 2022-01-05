@@ -1,4 +1,6 @@
-4.2.0-rc1 | 2022-01-04 10:12:00 -0700
+4.2.0-rc1 | 2022-01-05 09:31:41 -0700
+
+  * Release 4.2.0-rc1.
 
   * Make FreeBSD more flexible, don't look for jemalloc unless we were (Craig Leres)
     given a specific path for it.

@@ -1,3 +1,12 @@
+5.0.0-dev.10 | 2022-01-05 09:13:45 -0700
+
+  * Make FreeBSD more flexible, don't look for jemalloc unless we were (Craig Leres)
+    given a specific path for it.
+
+  * Set JEMALLOC_FOUND when on FreeBSD (suggested by Tim Wojtulewicz) (Craig Leres)
+
+  * FreeBSD: don't look for jemalloc as a package, it's in the base system (Craig Leres)
+
 5.0.0-dev.6 | 2022-01-05 09:12:33 -0700
 
   * Fix return type of double_to_int (Johanna Amann, Corelight)

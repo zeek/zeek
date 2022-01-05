@@ -26,7 +26,7 @@ public:
 
 	bool IsActive();
 
-	bool NextPacket(const std::unique_ptr<IP_Hdr>& ip, int len, int caplen);
+	bool NextPacket(const std::shared_ptr<IP_Hdr>& ip, int len, int caplen);
 
 protected:
 	Val* BuildData(const u_char* data, int hdrlen, int len, int caplen);

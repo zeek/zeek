@@ -17,7 +17,7 @@
 #include <cstdlib>
 #include <sstream>
 
-#include "zeek/bsd-getopt-long.h"
+#include "zeek/3rdparty/bsd-getopt-long.h"
 #include "zeek/logging/writers/ascii/Ascii.h"
 
 namespace zeek
@@ -85,89 +85,92 @@ void usage(const char* prog, int code)
 
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
 	fprintf(stderr, "usage: %s --test [doctest-options] -- [options] [file ...]\n", prog);
-	fprintf(stderr, "    <file>                         | Zeek script file, or read stdin\n");
+	fprintf(stderr, "    <file>                          | Zeek script file, or read stdin\n");
 	fprintf(stderr,
-	        "    -a|--parse-only                | exit immediately after parsing scripts\n");
+	        "    -a|--parse-only                 | exit immediately after parsing scripts\n");
 	fprintf(stderr,
-	        "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
-	fprintf(stderr, "    -d|--debug-script              | activate Zeek script debugging\n");
-	fprintf(stderr, "    -e|--exec <zeek code>          | augment loaded scripts by given code\n");
-	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
-	fprintf(stderr, "    -h|--help                      | command line help\n");
+	        "    -b|--bare-mode                  | don't load scripts from the base/ directory\n");
 	fprintf(stderr,
-	        "    -i|--iface <interface>         | read from given interface (only one allowed)\n");
+	        "    -c|--capture-unprocessed <file> | write unprocessed packets to a tcpdump file\n");
+	fprintf(stderr, "    -d|--debug-script               | activate Zeek script debugging\n");
+	fprintf(stderr, "    -e|--exec <zeek code>           | augment loaded scripts by given code\n");
+	fprintf(stderr, "    -f|--filter <filter>            | tcpdump filter\n");
+	fprintf(stderr, "    -h|--help                       | command line help\n");
+	fprintf(stderr,
+	        "    -i|--iface <interface>          | read from given interface (only one allowed)\n");
 	fprintf(
 		stderr,
-		"    -p|--prefix <prefix>           | add given prefix to Zeek script file resolution\n");
-	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file (only one "
+		"    -p|--prefix <prefix>            | add given prefix to Zeek script file resolution\n");
+	fprintf(stderr, "    -r|--readfile <readfile>        | read from given tcpdump file (only one "
 	                "allowed, pass '-' as the filename to read from stdin)\n");
-	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
-	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
-	fprintf(stderr, "    -u|--usage-issues              | find variable usage issues and exit; use "
-	                "-uu for deeper/more expensive analysis\n");
-	fprintf(stderr, "    -v|--version                   | print version and exit\n");
-	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
+	fprintf(stderr, "    -s|--rulefile <rulefile>        | read rules from given file\n");
+	fprintf(stderr, "    -t|--tracefile <tracefile>      | activate execution tracing\n");
+	fprintf(stderr, "    -u|--usage-issues               | find variable usage issues and exit\n");
+	fprintf(stderr, "    -v|--version                    | print version and exit\n");
+	fprintf(stderr, "    -w|--writefile <writefile>      | write to given tcpdump file\n");
 #ifdef DEBUG
-	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected "
+	fprintf(stderr, "    -B|--debug <dbgstreams>         | Enable debugging output for selected "
 	                "streams ('-B help' for help)\n");
 #endif
-	fprintf(stderr, "    -C|--no-checksums              | ignore checksums\n");
-	fprintf(stderr, "    -D|--deterministic             | initialize random seeds to zero\n");
-	fprintf(stderr, "    -F|--force-dns                 | force DNS\n");
-	fprintf(stderr, "    -G|--load-seeds <file>         | load seeds from given file\n");
-	fprintf(stderr, "    -H|--save-seeds <file>         | save seeds to given file\n");
-	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
-	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN "
+	fprintf(stderr, "    -C|--no-checksums               | ignore checksums\n");
+	fprintf(stderr, "    -D|--deterministic              | initialize random seeds to zero\n");
+	fprintf(stderr, "    -F|--force-dns                  | force DNS\n");
+	fprintf(stderr, "    -G|--load-seeds <file>          | load seeds from given file\n");
+	fprintf(stderr, "    -H|--save-seeds <file>          | save seeds to given file\n");
+	fprintf(stderr, "    -I|--print-id <ID name>         | print out given ID\n");
+	fprintf(stderr, "    -N|--print-plugins              | print available plugins and exit (-NN "
 	                "for verbose)\n");
-	fprintf(stderr, "    -O|--optimize[=<option>]       | enable script optimization (use -O help "
+	fprintf(stderr, "    -O|--optimize <option>          | enable script optimization (use -O help "
 	                "for options)\n");
-	fprintf(stderr, "    -o|--optimize-only=<func>      | enable script optimization only for the "
-	                "given function\n");
-	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
+	fprintf(stderr, "    -0|--optimize-files=<pat>       | enable script optimization for all "
+	                "functions in files with names containing the given pattern\n");
+	fprintf(stderr, "    -o|--optimize-funcs=<pat>       | enable script optimization for "
+	                "functions with names fully matching the given pattern\n");
+	fprintf(stderr, "    -P|--prime-dns                  | prime DNS\n");
 	fprintf(stderr,
-	        "    -Q|--time                      | print execution time summary to stderr\n");
-	fprintf(stderr, "    -S|--debug-rules               | enable rule debugging\n");
-	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
-	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
-	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
+	        "    -Q|--time                       | print execution time summary to stderr\n");
+	fprintf(stderr, "    -S|--debug-rules                | enable rule debugging\n");
+	fprintf(stderr, "    -T|--re-level <level>           | set 'RE_level' for rules\n");
+	fprintf(stderr, "    -U|--status-file <file>         | Record process status in file\n");
+	fprintf(stderr, "    -W|--watchdog                   | activate watchdog timer\n");
 	fprintf(stderr,
-	        "    -X|--zeekygen <cfgfile>        | generate documentation based on config file\n");
+	        "    -X|--zeekygen <cfgfile>         | generate documentation based on config file\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
-	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
-	fprintf(stderr, "    -M|--mem-profile               | record heap [perftools]\n");
+	fprintf(stderr, "    -m|--mem-leaks                  | show leaks  [perftools]\n");
+	fprintf(stderr, "    -M|--mem-profile                | record heap [perftools]\n");
 #endif
-	fprintf(stderr, "    --pseudo-realtime[=<speedup>]  | enable pseudo-realtime for performance "
+	fprintf(stderr, "    --pseudo-realtime[=<speedup>]   | enable pseudo-realtime for performance "
 	                "evaluation (default 1)\n");
-	fprintf(stderr, "    -j|--jobs                      | enable supervisor mode\n");
-	fprintf(stderr, "    --test                         | run unit tests ('--test -h' for help, "
-	                "only when compiling with ENABLE_ZEEK_UNIT_TESTS)\n");
-	fprintf(stderr, "    $ZEEKPATH                      | file search path (%s)\n",
+	fprintf(stderr, "    -j|--jobs                       | enable supervisor mode\n");
+
+	fprintf(stderr, "    --test                          | run unit tests ('--test -h' for help, "
+	                "not available when built without ENABLE_ZEEK_UNIT_TESTS)\n");
+	fprintf(stderr, "    $ZEEKPATH                       | file search path (%s)\n",
 	        util::zeek_path().c_str());
-	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n",
+	fprintf(stderr, "    $ZEEK_PLUGIN_PATH               | plugin search path (%s)\n",
 	        util::zeek_plugin_path());
-	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE          | plugins to always activate (%s)\n",
+	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE           | plugins to always activate (%s)\n",
 	        util::zeek_plugin_activate());
-	fprintf(stderr, "    $ZEEK_PREFIXES                 | prefix list (%s)\n",
+	fprintf(stderr, "    $ZEEK_PREFIXES                  | prefix list (%s)\n",
 	        util::zeek_prefixes().c_str());
-	fprintf(stderr, "    $ZEEK_DNS_FAKE                 | disable DNS lookups (%s)\n",
+	fprintf(stderr, "    $ZEEK_DNS_FAKE                  | disable DNS lookups (%s)\n",
 	        fake_dns() ? "on" : "off");
-	fprintf(stderr, "    $ZEEK_SEED_FILE                | file to load seeds from (not set)\n");
-	fprintf(stderr, "    $ZEEK_LOG_SUFFIX               | ASCII log file extension (.%s)\n",
+	fprintf(stderr, "    $ZEEK_SEED_FILE                 | file to load seeds from (not set)\n");
+	fprintf(stderr, "    $ZEEK_LOG_SUFFIX                | ASCII log file extension (.%s)\n",
 	        logging::writer::detail::Ascii::LogExt().c_str());
-	fprintf(stderr, "    $ZEEK_PROFILER_FILE            | Output file for script execution "
+	fprintf(stderr, "    $ZEEK_PROFILER_FILE             | Output file for script execution "
 	                "statistics (not set)\n");
 	fprintf(stderr,
-	        "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n",
+	        "    $ZEEK_DISABLE_ZEEKYGEN          | Disable Zeekygen documentation support (%s)\n",
 	        getenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
 	fprintf(stderr,
-	        "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n",
+	        "    $ZEEK_DNS_RESOLVER              | IPv4/IPv6 address of DNS resolver to use (%s)\n",
 	        getenv("ZEEK_DNS_RESOLVER")
 	            ? getenv("ZEEK_DNS_RESOLVER")
 	            : "not set, will use first IPv4 address from /etc/resolv.conf");
-	fprintf(
-		stderr,
-		"    $ZEEK_DEBUG_LOG_STDERR         | Use stderr for debug logs generated via the -B flag");
+	fprintf(stderr, "    $ZEEK_DEBUG_LOG_STDERR          | Use stderr for debug logs generated via "
+	                "the -B flag");
 
 	fprintf(stderr, "\n");
 
@@ -195,6 +198,7 @@ static void print_analysis_help()
 	fprintf(stderr, "    xform	transform scripts to \"reduced\" form\n");
 
 	fprintf(stderr, "\n--optimize options when generating C++:\n");
+	fprintf(stderr, "    add-C++	add C++ script bodies to existing generated code\n");
 	fprintf(stderr, "    gen-C++	generate C++ script bodies\n");
 	fprintf(stderr, "    gen-standalone-C++	generate \"standalone\" C++ script bodies\n");
 	fprintf(stderr, "    help	print this list\n");
@@ -202,8 +206,6 @@ static void print_analysis_help()
 	fprintf(stderr, "    report-uncompilable	print names of functions that can't be compiled\n");
 	fprintf(stderr, "    use-C++	use available C++ script bodies\n");
 	fprintf(stderr, "\n  experimental options for incremental compilation:\n");
-	fprintf(stderr, "    add-C++	generate private C++ for any missing script bodies\n");
-	fprintf(stderr, "    update-C++	generate reusable C++ for any missing script bodies\n");
 	}
 
 static void set_analysis_option(const char* opt, Options& opts)
@@ -223,14 +225,14 @@ static void set_analysis_option(const char* opt, Options& opts)
 		exit(0);
 		}
 
-	if ( util::streq(opt, "add-C++") )
-		a_o.add_CPP = true;
-	else if ( util::streq(opt, "dump-uds") )
+	if ( util::streq(opt, "dump-uds") )
 		a_o.activate = a_o.dump_uds = true;
 	else if ( util::streq(opt, "dump-xform") )
 		a_o.activate = a_o.dump_xform = true;
 	else if ( util::streq(opt, "dump-ZAM") )
 		a_o.activate = a_o.dump_ZAM = true;
+	else if ( util::streq(opt, "add-C++") )
+		a_o.add_CPP = true;
 	else if ( util::streq(opt, "gen-C++") )
 		a_o.gen_CPP = true;
 	else if ( util::streq(opt, "gen-standalone-C++") )
@@ -253,8 +255,6 @@ static void set_analysis_option(const char* opt, Options& opts)
 		a_o.inliner = a_o.report_recursive = true;
 	else if ( util::streq(opt, "report-uncompilable") )
 		a_o.report_uncompilable = true;
-	else if ( util::streq(opt, "update-C++") )
-		a_o.update_CPP = true;
 	else if ( util::streq(opt, "use-C++") )
 		a_o.use_CPP = true;
 	else if ( util::streq(opt, "xform") )
@@ -362,6 +362,7 @@ Options parse_cmdline(int argc, char** argv)
 	constexpr struct option long_opts[] = {
 		{"parse-only", no_argument, nullptr, 'a'},
 		{"bare-mode", no_argument, nullptr, 'b'},
+		{"capture-unprocessed", required_argument, nullptr, 'c'},
 		{"debug-script", no_argument, nullptr, 'd'},
 		{"exec", required_argument, nullptr, 'e'},
 		{"filter", required_argument, nullptr, 'f'},
@@ -382,7 +383,8 @@ Options parse_cmdline(int argc, char** argv)
 		{"save-seeds", required_argument, nullptr, 'H'},
 		{"print-plugins", no_argument, nullptr, 'N'},
 		{"optimize", required_argument, nullptr, 'O'},
-		{"optimize-only", required_argument, nullptr, 'o'},
+		{"optimize-funcs", required_argument, nullptr, 'o'},
+		{"optimize-files", required_argument, nullptr, '0'},
 		{"prime-dns", no_argument, nullptr, 'P'},
 		{"time", no_argument, nullptr, 'Q'},
 		{"debug-rules", no_argument, nullptr, 'S'},
@@ -405,7 +407,7 @@ Options parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	util::safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:O:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuv",
+	util::safe_strncpy(opts, "B:c:e:f:G:H:I:i:j::n:O:0:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuv",
 	                   sizeof(opts));
 
 	int op;
@@ -427,6 +429,9 @@ Options parse_cmdline(int argc, char** argv)
 				break;
 			case 'b':
 				rval.bare_mode = true;
+				break;
+			case 'c':
+				rval.unprocessed_output_file = optarg;
 				break;
 			case 'd':
 				rval.debug_scripts = true;
@@ -542,7 +547,10 @@ Options parse_cmdline(int argc, char** argv)
 				set_analysis_option(optarg, rval);
 				break;
 			case 'o':
-				rval.analysis_options.only_func = optarg;
+				add_func_analysis_pattern(rval.analysis_options, optarg);
+				break;
+			case '0':
+				add_file_analysis_pattern(rval.analysis_options, optarg);
 				break;
 			case 'P':
 				if ( rval.dns_mode != detail::DNS_DEFAULT )

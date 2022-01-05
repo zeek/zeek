@@ -4,7 +4,7 @@
 # prefix.
 
 if [ $# != 1 ]; then
-    echo "usage: `basename $0` <field prefix>"
+    echo "usage: $(basename $0) <field prefix>"
     exit 1
 fi
 

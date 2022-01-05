@@ -10,11 +10,10 @@
 
 error_count=0
 
-error_msg()
-    {
-    error_count=$((error_count+1))
-    echo "$@" 1>&2;
-    }
+error_msg() {
+    error_count=$((error_count + 1))
+    echo "$@" 1>&2
+}
 
 if [ $# -ne 2 ]; then
     print "incorrect arguments"
@@ -29,7 +28,7 @@ for f in $all_loads; do
 done
 
 if [ $error_count -gt 0 ]; then
-    exit 1;
+    exit 1
 fi
 
 exit 0

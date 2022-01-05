@@ -252,7 +252,7 @@ signature file-mpqgame {
 	file-magic /^MPQ\x1a/
 }
 
-# Blizzard CASC Format game file 
+# Blizzard CASC Format game file
 signature file-blizgame {
 	file-mime "application/x-blizgame", 100
 	file-magic /^BLTE/
@@ -302,4 +302,3 @@ signature file-iso9660 {
         file-mime "application/x-iso9660-image", 99
         file-magic /CD001/
 }
-

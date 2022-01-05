@@ -72,7 +72,7 @@ void DTLS_Analyzer::SendHandshake(uint16_t raw_tls_version, uint8_t msg_type, ui
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+		AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 

@@ -18,6 +18,7 @@ using pkt_timeval = struct timeval;
 #include "zeek/IP.h"
 #include "zeek/NetVar.h" // For BifEnum::Tunnel
 #include "zeek/TunnelEncapsulation.h"
+#include "zeek/session/Session.h"
 
 namespace zeek
 	{
@@ -123,6 +124,12 @@ public:
 	RecordValPtr ToRawPktHdrVal() const;
 
 	/**
+	 * Returns a RecordVal that represents the Packet. This is used
+	 * by the get_current_packet bif.
+	 */
+	static RecordValPtr ToVal(const Packet* p);
+
+	/**
 	 * Maximal length of a layer 2 address.
 	 */
 	static const int L2_ADDR_LEN = 6;
@@ -166,29 +173,35 @@ public:
 	/**
 	 * (Outermost) VLAN tag if any, else 0.
 	 */
-	uint32_t vlan;
+	uint32_t vlan = 0;
 
 	/**
 	 * (Innermost) VLAN tag if any, else 0.
 	 */
-	uint32_t inner_vlan;
+	uint32_t inner_vlan = 0;
+
+	/**
+	 * If this packet is related to a connection, this flag denotes whether
+	 * this packet is from the originator of the connection.
+	 */
+	bool is_orig = false;
 
 	/**
 	 * Indicates whether the layer 2 checksum was validated by the
 	 * hardware/kernel before being received by zeek.
 	 */
-	bool l2_checksummed;
+	bool l2_checksummed = false;
 
 	/**
 	 * Indicates whether the layer 3 checksum was validated by the
 	 * hardware/kernel before being received by zeek.
 	 */
-	bool l3_checksummed;
+	bool l3_checksummed = false;
 
 	/**
 	 * Indicates whether this packet should be recorded.
 	 */
-	mutable bool dump_packet;
+	mutable bool dump_packet = false;
 
 	/**
 	 * Indicates the amount of data to be dumped. If only a header is needed,
@@ -212,7 +225,7 @@ public:
 	 * The IP header for this packet. This is filled in by the IP analyzer
 	 * during processing if the packet contains an IP header.
 	 */
-	std::unique_ptr<IP_Hdr> ip_hdr = nullptr;
+	std::shared_ptr<IP_Hdr> ip_hdr = nullptr;
 
 	/**
 	 * The protocol of the packet. This is used by the tunnel analyzers to
@@ -240,6 +253,19 @@ public:
 	 * analyzer to the IPTunnel analyzer.
 	 */
 	int gre_link_type = DLT_RAW;
+
+	/**
+	 * This flag indicates whether a packet has been processed. This can
+	 * mean different things depending on the traffic, but generally it
+	 * means that a packet has been logged in some way. We default to
+	 * false, and this can be set to true for any number of reasons.
+	 */
+	bool processed = false;
+
+	/**
+	 * The session related to this packet, if one exists.
+	 */
+	session::Session* session = nullptr;
 
 private:
 	// Renders an MAC address into its ASCII representation.

@@ -140,6 +140,10 @@ extern TableValPtr table_constructor__CPP(std::vector<ValPtr> indices, std::vect
 // assigned to the corresponding elements of the given vector of values.
 extern RecordValPtr record_constructor__CPP(std::vector<ValPtr> vals, RecordTypePtr t);
 
+// Same, but with a map when using a named constructor.
+extern RecordValPtr record_constructor_map__CPP(std::vector<ValPtr> vals, std::vector<int> map,
+                                                RecordTypePtr t);
+
 // Constructs a vector of the given type, populated with the given values.
 extern VectorValPtr vector_constructor__CPP(std::vector<ValPtr> vals, VectorTypePtr t);
 

@@ -104,7 +104,7 @@ export {
 		missing_bytes: count &log &default=0;
 
 		## The number of bytes in the file stream that were not delivered to
-		## stream file analyzers.  This could be overlapping bytes or 
+		## stream file analyzers.  This could be overlapping bytes or
 		## bytes that couldn't be reassembled.
 		overflow_bytes: count &log &default=0;
 
@@ -150,7 +150,7 @@ export {
 	## f: the file.
 	global enable_reassembly: function(f: fa_file);
 
-	## Disables the file reassembler on this file.  If the file is not 
+	## Disables the file reassembler on this file.  If the file is not
 	## transferred out of order this will have no effect.
 	##
 	## f: the file.
@@ -266,7 +266,7 @@ export {
 	};
 
 	## Register callbacks for protocols that work with the Files framework.
-	## The callbacks must uniquely identify a file and each protocol can 
+	## The callbacks must uniquely identify a file and each protocol can
 	## only have a single callback registered for it.
 	##
 	## tag: Tag for the protocol analyzer having a callback being registered.
@@ -280,7 +280,7 @@ export {
 	## manipulation when they are being added to a file before the core code
 	## takes over.  This is unlikely to be interesting for users and should
 	## only be called by file analyzer authors but is *not required*.
-	## 
+	##
 	## tag: Tag for the file analyzer.
 	##
 	## callback: Function to execute when the given file analyzer is being added.

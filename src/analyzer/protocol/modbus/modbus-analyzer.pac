@@ -106,7 +106,7 @@ refine flow ModbusTCP_Flow += {
 		if ( ! connection()->IsConfirmed() )
 			{
 			connection()->SetConfirmed();
-			connection()->zeek_analyzer()->ProtocolConfirmation();
+			connection()->zeek_analyzer()->AnalyzerConfirmation();
 			}
 
 		return true;
@@ -202,7 +202,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ${message.byte_count} % 2 != 0 )
 			{
-			connection()->zeek_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->AnalyzerViolation(
 			    zeek::util::fmt("invalid value for modbus read holding register response byte count %d", ${message.byte_count}));
 			return false;
 			}
@@ -246,7 +246,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ${message.byte_count} % 2 != 0 )
 			{
-			connection()->zeek_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->AnalyzerViolation(
 			    zeek::util::fmt("invalid value for modbus read input register response byte count %d", ${message.byte_count}));
 			return false;
 			}
@@ -283,7 +283,7 @@ refine flow ModbusTCP_Flow += {
 				val = 1;
 			else
 				{
-				connection()->zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid value for modbus write single coil request %d",
+				connection()->zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("invalid value for modbus write single coil request %d",
 				                                                    ${message.value}));
 				return false;
 				}
@@ -310,7 +310,7 @@ refine flow ModbusTCP_Flow += {
 				val = 1;
 			else
 				{
-				connection()->zeek_analyzer()->ProtocolViolation(zeek::util::fmt("invalid value for modbus write single coil response %d",
+				connection()->zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("invalid value for modbus write single coil response %d",
 				                                                    ${message.value}));
 				return false;
 				}
@@ -390,7 +390,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ${message.byte_count} % 2 != 0 )
 			{
-			connection()->zeek_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->AnalyzerViolation(
 			    zeek::util::fmt("invalid value for modbus write multiple registers request byte count %d", ${message.byte_count}));
 			return false;
 			}
@@ -575,7 +575,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ${message.write_byte_count} % 2 != 0 )
 			{
-			connection()->zeek_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->AnalyzerViolation(
 			    zeek::util::fmt("invalid value for modbus read write multiple registers request write byte count %d", ${message.write_byte_count}));
 			return false;
 			}
@@ -607,7 +607,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ${message.byte_count} % 2 != 0 )
 			{
-			connection()->zeek_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->AnalyzerViolation(
 			    zeek::util::fmt("invalid value for modbus read write multiple registers response byte count %d", ${message.byte_count}));
 			return false;
 			}
@@ -651,7 +651,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ${message.byte_count} % 2 != 0 )
 			{
-			connection()->zeek_analyzer()->ProtocolViolation(
+			connection()->zeek_analyzer()->AnalyzerViolation(
 			    zeek::util::fmt("invalid value for modbus read FIFO queue response byte count %d", ${message.byte_count}));
 			return false;
 			}

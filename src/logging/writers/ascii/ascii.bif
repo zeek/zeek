@@ -14,6 +14,7 @@ const use_json: bool;
 const enable_leftover_log_rotation: bool;
 const enable_utf_8: bool;
 const json_timestamps: JSON::TimestampFormat;
+const json_include_unset_fields: bool;
 const gzip_level: count;
 const gzip_file_extension: string;
 const logdir: string;

@@ -32,7 +32,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 	if ( ! BuildConnTuple(len, data, pkt, tuple) )
 		return false;
 
-	const std::unique_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;
+	const std::shared_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;
 	detail::ConnKey key(tuple);
 
 	Connection* conn = session_mgr->FindConnection(key);
@@ -63,7 +63,12 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 	if ( ! conn )
 		return false;
 
+	// If we successfuly made a connection for this packet that means it'll eventually
+	// get logged, which means we can mark this packet as having been processed.
+	pkt->processed = true;
+
 	bool is_orig = (tuple.src_addr == conn->OrigAddr()) && (tuple.src_port == conn->OrigPort());
+	pkt->is_orig = is_orig;
 
 	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
 
@@ -115,7 +120,9 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 
 bool IPBasedAnalyzer::CheckHeaderTrunc(size_t min_hdr_len, size_t remaining, Packet* packet)
 	{
-	if ( packet->ip_hdr->PayloadLen() < min_hdr_len )
+	// If segment offloading or similar is enabled, the payload len will return 0.
+	// Thus, let's ignore that case.
+	if ( packet->ip_hdr->PayloadLen() && packet->ip_hdr->PayloadLen() < min_hdr_len )
 		{
 		Weird("truncated_header", packet);
 		return false;
@@ -190,7 +197,7 @@ void IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 		if ( ! analyzers_by_port.empty() && ! zeek::detail::dpd_ignore_ports )
 			{
 			int resp_port = ntohs(conn->RespPort());
-			std::set<analyzer::Tag>* ports = LookupPort(resp_port, false);
+			std::set<zeek::Tag>* ports = LookupPort(resp_port, false);
 
 			if ( ports )
 				{
@@ -221,7 +228,7 @@ void IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 	PLUGIN_HOOK_VOID(HOOK_SETUP_ANALYZER_TREE, HookSetupAnalyzerTree(conn));
 	}
 
-bool IPBasedAnalyzer::RegisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port)
+bool IPBasedAnalyzer::RegisterAnalyzerForPort(const zeek::Tag& tag, uint32_t port)
 	{
 	tag_set* l = LookupPort(port, true);
 
@@ -237,7 +244,7 @@ bool IPBasedAnalyzer::RegisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t
 	return true;
 	}
 
-bool IPBasedAnalyzer::UnregisterAnalyzerForPort(const analyzer::Tag& tag, uint32_t port)
+bool IPBasedAnalyzer::UnregisterAnalyzerForPort(const zeek::Tag& tag, uint32_t port)
 	{
 	tag_set* l = LookupPort(port, true);
 

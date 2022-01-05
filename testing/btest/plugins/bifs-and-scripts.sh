@@ -60,4 +60,3 @@ EOF
 cat >activate.zeek <<EOF
 @load-plugin Demo::Foo
 EOF
-

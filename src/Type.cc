@@ -123,18 +123,6 @@ RecordType* Type::AsRecordType()
 	return (RecordType*)this;
 	}
 
-const SubNetType* Type::AsSubNetType() const
-	{
-	CHECK_TYPE_TAG(TYPE_SUBNET, "Type::AsSubNetType");
-	return (const SubNetType*)this;
-	}
-
-SubNetType* Type::AsSubNetType()
-	{
-	CHECK_TYPE_TAG(TYPE_SUBNET, "Type::AsSubNetType");
-	return (SubNetType*)this;
-	}
-
 const FuncType* Type::AsFuncType() const
 	{
 	CHECK_TYPE_TAG(TYPE_FUNC, "Type::AsFuncType");
@@ -1326,9 +1314,14 @@ void RecordType::DescribeFields(ODesc* d) const
 			d->AddCount(types->length());
 			for ( const auto& type : *types )
 				{
-				type->type->Describe(d);
-				d->SP();
 				d->Add(type->id);
+				d->SP();
+
+				if ( d->FindType(type->type.get()) )
+					d->Add("<recursion>");
+				else
+					type->type->Describe(d);
+
 				d->SP();
 				}
 			}
@@ -1440,16 +1433,6 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 		}
 
 	return "";
-	}
-
-SubNetType::SubNetType() : Type(TYPE_SUBNET) { }
-
-void SubNetType::Describe(ODesc* d) const
-	{
-	if ( d->IsReadable() )
-		d->Add("subnet");
-	else
-		d->Add(int(Tag()));
 	}
 
 FileType::FileType(TypePtr yield_type) : Type(TYPE_FILE), yield(std::move(yield_type)) { }
@@ -1920,6 +1903,11 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 			if ( (tl1 || tl2) && ! (tl1 && tl2) )
 				return false;
 
+			// If one is a set and one isn't, they shouldn't
+			// be considered the same type.
+			if ( (t1->IsSet() && ! t2->IsSet()) || (t2->IsSet() && ! t1->IsSet()) )
+				return false;
+
 			const auto& y1 = t1->Yield();
 			const auto& y2 = t2->Yield();
 
@@ -2032,6 +2020,12 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 
 			if ( ! same_type(tl1, tl2, is_init, match_record_field_names) )
 				result = false;
+			else if ( t1->IsSet() && t2->IsSet() )
+				// Sets don't have yield types because they don't have values. If
+				// both types are sets, and we already matched on the indices
+				// above consider that a success. We already checked the case
+				// where only one of the two is a set earlier.
+				result = true;
 			else
 				{
 				const auto& y1 = t1->Yield();

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "zeek/ConvertUTF.h"
+#include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/File.h"
 #include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"

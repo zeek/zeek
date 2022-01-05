@@ -43,8 +43,8 @@
 #include <string>
 #include <vector>
 
+#include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/3rdparty/doctest.h"
-#include "zeek/ConvertUTF.h"
 #include "zeek/Desc.h"
 #include "zeek/Dict.h"
 #include "zeek/Hash.h"
@@ -1537,6 +1537,22 @@ std::string strtolower(const std::string& s)
 	return t;
 	}
 
+TEST_CASE("util strtoupper")
+	{
+	const char* a = "aBcD";
+	CHECK(strtoupper(a) == "ABCD");
+
+	std::string b = "aBcD";
+	CHECK(strtoupper(b) == "ABCD");
+	}
+
+std::string strtoupper(const std::string& s)
+	{
+	std::string t = s;
+	std::transform(t.begin(), t.end(), t.begin(), ::toupper);
+	return t;
+	}
+
 TEST_CASE("util fmt_bytes")
 	{
 	const char* a = "abcd";
@@ -2157,6 +2173,36 @@ bool safe_pwrite(int fd, const unsigned char* data, size_t len, size_t offset)
 		data += n;
 		offset += n;
 		len -= n;
+		}
+
+	return true;
+	}
+
+bool safe_fsync(int fd)
+	{
+	int r;
+
+	/*
+	 * Failure cases of fsync(2) are EABDF, EINTR, ENOSPC, EROFS, EINVAL, EDQUOT.
+	 *
+	 * For EINTR, one can just retry until it is not interrupted. For the others
+	 * we report an error.
+	 *
+	 * Note that we don't use the reporter here to allow use from different threads.
+	 */
+	do
+		{
+		r = fsync(fd);
+		} while ( r < 0 && errno == EINTR );
+
+	if ( r < 0 )
+		{
+		char buf[128];
+		zeek_strerror_r(errno, buf, sizeof(buf));
+		fprintf(stderr, "safe_fsync error %d: %s\n", errno, buf);
+		abort();
+
+		return false;
 		}
 
 	return true;

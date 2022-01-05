@@ -48,7 +48,23 @@ extern YYLTYPE yylloc;	// holds start line and column of token
 extern zeek::EnumType* cur_enum_type;
 
 // Track the @if... depth.
-std::intptr_t current_depth = 0;
+static std::intptr_t conditional_depth = 0;
+
+zeek::detail::int_list entry_cond_depth; // @if depth upon starting file
+
+// Tracks how many conditionals there have been.  This value only
+// increases.  Its value is to support logic such as figuring out
+// whether a function body has a conditional within it by comparing
+// the epoch at the beginning of parsing the body with that at the end.
+int conditional_epoch = 0;
+
+// Whether the current file has included conditionals (so far).
+bool current_file_has_conditionals = false;
+
+// The files that include conditionals.  Used when compiling scripts to C++
+// to flag issues for --optimize-files=/pat/ where one of the files includes
+// conditional code.
+std::unordered_set<std::string> files_with_conditionals;
 
 zeek::detail::int_list if_stack;
 
@@ -97,6 +113,18 @@ static std::string find_relative_script_file(const std::string& filename)
 		return zeek::util::find_script_file(filename, zeek::util::SafeDirname(::filename).result);
 	else
 		return zeek::util::find_script_file(filename, zeek::util::zeek_path());
+	}
+
+static void start_conditional()
+	{
+	++conditional_depth;
+	++conditional_epoch;
+
+	if ( ! current_file_has_conditionals )
+		// First time we've observed that this file includes conditionals.
+		files_with_conditionals.insert(::filename);
+
+	current_file_has_conditionals = true;
 	}
 
 class FileInfo {
@@ -348,42 +376,19 @@ when	return TOK_WHEN;
 @load-sigs{WS}{FILE} {
 	const char* file = zeek::util::skip_whitespace(yytext + 10);
 	std::string path = find_relative_file(file, ".sig");
-	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::SIGNATURES, file, path), -1);
-
-	switch ( rc ) {
-	case -1:
-		// No plugin in charge of this file.
-		if ( path.empty() )
-			zeek::reporter->Error("failed to find file associated with @load-sigs %s",
-			                      file);
-		else
-			zeek::detail::sig_files.push_back(std::move(path));
-		break;
-
-	case 0:
-		if ( ! zeek::reporter->Errors() )
-			zeek::reporter->Error("Plugin reported error loading signatures %s", file);
-
-		exit(1);
-		break;
-
-	case 1:
-		// A plugin took care of it, just skip.
-		break;
-
-	default:
-		assert(false);
-		break;
-	}
+	sig_files.emplace_back(file, path);
 	}
 
 @load-plugin{WS}{ID} {
 	const char* plugin = zeek::util::skip_whitespace(yytext + 12);
-	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::PLUGIN, plugin, ""), -1);
+	std::pair<int, std::optional<std::string>> rc;
+	rc.first = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::PLUGIN, plugin, ""), -1);
+	if ( rc.first < 0 )
+		rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE_EXT, HookLoadFileExtended(zeek::plugin::Plugin::PLUGIN, plugin, ""), std::make_pair(-1, std::nullopt));
 
-	switch ( rc ) {
+	switch ( rc.first ) {
 	case -1:
-		// No plugin in charge of this file.
+		// No plugin in charge of this file. (We ignore any returned content.)
 		zeek::plugin_mgr->ActivateDynamicPlugin(plugin);
 		break;
 
@@ -441,11 +446,11 @@ when	return TOK_WHEN;
 @ifdef	return TOK_ATIFDEF;
 @ifndef	return TOK_ATIFNDEF;
 @else   return TOK_ATELSE;
-@endif	--current_depth;
+@endif	do_atendif();
 
-<IGNORE>@if	++current_depth;
-<IGNORE>@ifdef	++current_depth;
-<IGNORE>@ifndef	++current_depth;
+<IGNORE>@if	start_conditional();
+<IGNORE>@ifdef	start_conditional();
+<IGNORE>@ifndef	start_conditional();
 <IGNORE>@else   return TOK_ATELSE;
 <IGNORE>@endif	return TOK_ATENDIF;
 <IGNORE>[^@\r\n]+	/* eat */
@@ -586,12 +591,13 @@ YYLTYPE zeek::detail::GetCurrentLocation()
 static int load_files(const char* orig_file)
 	{
 	std::string file_path = find_relative_script_file(orig_file);
-	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::SCRIPT, orig_file, file_path), -1);
 
-	if ( rc == 1 )
-		return 0; // A plugin took care of it, just skip.
+	std::pair<int, std::optional<std::string>> rc = {-1, std::nullopt};
+	rc.first = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::SCRIPT, orig_file, file_path), -1);
+	if ( rc.first < 0 )
+		rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE_EXT, HookLoadFileExtended(zeek::plugin::Plugin::SCRIPT, orig_file, file_path), std::make_pair(-1, std::nullopt));
 
-	if ( rc == 0 )
+	if ( rc.first == 0 )
 		{
 		if ( ! zeek::reporter->Errors() )
 			// This is just in case the plugin failed to report
@@ -602,55 +608,57 @@ static int load_files(const char* orig_file)
 		exit(1);
 		}
 
-	assert(rc == -1); // No plugin in charge of this file.
+	if ( rc.first == 1 && ! rc.second )
+		return 0; // A plugin took care of it, just skip.
 
 	FILE* f = nullptr;
 
-	if ( zeek::util::streq(orig_file, "-") )
+	if ( rc.first == -1 )
 		{
-		f = stdin;
-		file_path = zeek::detail::ScannedFile::canonical_stdin_path;
-
-		if ( zeek::detail::g_policy_debug )
+		if ( zeek::util::streq(orig_file, "-") )
 			{
-			zeek::detail::debug_msg("Warning: can't use debugger while reading policy from stdin; turning off debugging.\n");
-			zeek::detail::g_policy_debug = false;
+			f = stdin;
+			file_path = zeek::detail::ScannedFile::canonical_stdin_path;
+
+			if ( zeek::detail::g_policy_debug )
+				{
+				zeek::detail::debug_msg("Warning: can't use debugger while reading policy from stdin; turning off debugging.\n");
+				zeek::detail::g_policy_debug = false;
+				}
 			}
-		}
 
-	else
-		{
-		if ( file_path.empty() )
-			zeek::reporter->FatalError("can't find %s", orig_file);
-
-		if ( zeek::util::is_dir(file_path.c_str()) )
-			f = zeek::util::detail::open_package(file_path);
 		else
-			f = zeek::util::open_file(file_path);
+			{
+			if ( file_path.empty() )
+				zeek::reporter->FatalError("can't find %s", orig_file);
 
-		if ( ! f )
-			zeek::reporter->FatalError("can't open %s", file_path.c_str());
+			if ( zeek::util::is_dir(file_path.c_str()) )
+				f = zeek::util::detail::open_package(file_path);
+			else
+				f = zeek::util::open_file(file_path);
+
+			if ( ! f )
+				zeek::reporter->FatalError("can't open %s", file_path.c_str());
+			}
+
+		zeek::detail::ScannedFile sf(file_stack.length(), file_path);
+		if ( sf.AlreadyScanned() )
+			{
+			if ( rc.first == -1 && f != stdin )
+				fclose(f);
+
+			return 0;
+			}
+
+		zeek::detail::files_scanned.push_back(std::move(sf));
 		}
-
-	zeek::detail::ScannedFile sf(file_stack.length(), file_path);
-
-	if ( sf.AlreadyScanned() )
-		{
-		if ( f != stdin )
-			fclose(f);
-
-		return 0;
-		}
-
-	zeek::detail::files_scanned.push_back(std::move(sf));
 
 	if ( zeek::detail::g_policy_debug && ! file_path.empty() )
 		{
 		// Add the filename to the file mapping table (Debug.h).
 		zeek::detail::Filemap* map = new zeek::detail::Filemap;
-		zeek::detail::HashKey* key = new zeek::detail::HashKey(file_path.c_str());
 		zeek::detail::g_dbgfilemaps.emplace(file_path, map);
-		LoadPolicyFileText(file_path.c_str());
+		LoadPolicyFileText(file_path.c_str(), rc.second);
 		}
 
 	// Remember where we were to restore the module scope in which
@@ -659,17 +667,35 @@ static int load_files(const char* orig_file)
 
 	zeek::detail::zeekygen_mgr->Script(file_path);
 
-	DBG_LOG(zeek::DBG_SCRIPTS, "Loading %s", file_path.c_str());
-
-	// "orig_file", could be an alias for yytext, which is ephemeral
+	// "orig_file" could be an alias for yytext, which is ephemeral
 	//  and will be zapped after the yy_switch_to_buffer() below.
-	yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
+	YY_BUFFER_STATE buffer;
 
+	if ( rc.first == 1 )
+		{
+		// Parse code provided by plugin.
+		assert(rc.second);
+		DBG_LOG(zeek::DBG_SCRIPTS, "Loading %s from code supplied by plugin ", file_path.c_str());
+		buffer = yy_scan_bytes(rc.second->data(), rc.second->size()); // this copies the data
+		}
+	else
+		{
+		// Parse from file.
+		assert(f);
+		DBG_LOG(zeek::DBG_SCRIPTS, "Loading %s", file_path.c_str());
+		buffer = yy_create_buffer(f, YY_BUF_SIZE);
+		}
+
+	yy_switch_to_buffer(buffer);
 	yylloc.first_line = yylloc.last_line = line_number = 1;
 
 	// Don't delete the old filename - it's pointed to by
 	// every Obj created when parsing it.
 	yylloc.filename = filename = zeek::util::copy_string(file_path.c_str());
+
+	current_file_has_conditionals = files_with_conditionals.count(filename) > 0;
+
+	entry_cond_depth.push_back(conditional_depth);
 
 	return 1;
 	}
@@ -701,9 +727,21 @@ public:
 	std::vector<const zeek::detail::NameExpr*> local_names;
 };
 
+static void begin_ignoring()
+	{
+	if_stack.push_back(conditional_depth);
+	BEGIN(IGNORE);
+	}
+
+static void resume_processing()
+	{
+	if_stack.pop_back();
+	BEGIN(INITIAL);
+	}
+
 void do_atif(zeek::detail::Expr* expr)
 	{
-	++current_depth;
+	start_conditional();
 
 	LocalNameFinder cb;
 	expr->Traverse(&cb);
@@ -724,70 +762,52 @@ void do_atif(zeek::detail::Expr* expr)
 		}
 
 	if ( ! val->AsBool() )
-		{
-		if_stack.push_back(current_depth);
-		BEGIN(IGNORE);
-		}
+		begin_ignoring();
 	}
 
 void do_atifdef(const char* id)
 	{
-	++current_depth;
+	start_conditional();
 
 	const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
 
 	if ( ! i )
-		{
-		if_stack.push_back(current_depth);
-		BEGIN(IGNORE);
-		}
+		begin_ignoring();
 	}
 
 void do_atifndef(const char *id)
 	{
-	++current_depth;
+	start_conditional();
 
 	const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
 
 	if ( i )
-		{
-		if_stack.push_back(current_depth);
-		BEGIN(IGNORE);
-		}
+		begin_ignoring();
 	}
 
 void do_atelse()
 	{
-	if ( current_depth == 0 )
+	if ( conditional_depth == 0 )
 		zeek::reporter->Error("@else without @if...");
 
-	if ( ! if_stack.empty() && current_depth > if_stack.back() )
+	if ( ! if_stack.empty() && conditional_depth > if_stack.back() )
 		return;
 
 	if ( YY_START == INITIAL )
-		{
-		if_stack.push_back(current_depth);
-		BEGIN(IGNORE);
-		}
+		begin_ignoring();
 	else
-		{
-		if_stack.pop_back();
-		BEGIN(INITIAL);
-		}
+		resume_processing();
 	}
 
 void do_atendif()
 	{
-	if ( current_depth == 0 )
+	if ( conditional_depth <= entry_cond_depth.back() )
 		zeek::reporter->Error("unbalanced @if... @endif");
 
-	if ( current_depth == if_stack.back() )
-		{
-		BEGIN(INITIAL);
-		if_stack.pop_back();
-		}
+	if ( ! if_stack.empty() && conditional_depth == if_stack.back() )
+		resume_processing();
 
-	--current_depth;
+	--conditional_depth;
 	}
 
 // Be careful to never delete things from this list, as the strings
@@ -848,6 +868,13 @@ void add_to_name_list(char* s, char delim, zeek::name_list& nl)
 
 int yywrap()
 	{
+	if ( entry_cond_depth.size() > 0 )
+		{
+		if ( conditional_depth > entry_cond_depth.back() )
+			zeek::reporter->FatalError("unbalanced @if... @endif");
+		entry_cond_depth.pop_back();
+		}
+
 	last_filename = ::filename;
 
 	if ( zeek::reporter->Errors() > 0 )
@@ -859,8 +886,11 @@ int yywrap()
 		delete file_stack.remove_nth(file_stack.length() - 1);
 
 	if ( YY_CURRENT_BUFFER )
+		{
 		// There's more on the stack to scan.
+		current_file_has_conditionals = files_with_conditionals.count(::filename) > 0;
 		return 0;
+		}
 
 	// Stack is now empty.
 	while ( essential_input_files.length() > 0 || input_files.length() > 0 )

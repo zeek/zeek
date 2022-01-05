@@ -1,9 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <errno.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include "zeek/script_opt/CPP/Compile.h"
 
 namespace zeek::detail
@@ -34,10 +30,8 @@ void CPPCompile::CompileLambda(const LambdaExpr* l, const ProfileFunc* pf)
 	DefineBody(l_id->GetType<FuncType>(), pf, lname, body, &ids, FUNC_FLAVOR_FUNCTION);
 	}
 
-void CPPCompile::GenInvokeBody(const string& fname, const TypePtr& t, const string& args)
+void CPPCompile::GenInvokeBody(const string& call, const TypePtr& t)
 	{
-	auto call = fname + "(" + args + ")";
-
 	if ( ! t || t->Tag() == TYPE_VOID )
 		{
 		Emit("%s;", call);
@@ -144,7 +138,7 @@ void CPPCompile::InitializeEvents(const ProfileFunc* pf)
 		// returns an EventHandlerPtr, sigh.
 		Emit("if ( event_registry->Lookup(\"%s\") )", e);
 		StartBlock();
-		Emit("%s = event_registry->Register(\"%s\");", ev_name.c_str(), e);
+		Emit("%s = event_registry->Register(\"%s\");", ev_name, e);
 		EndBlock();
 		Emit("did_init = true;");
 		EndBlock();
@@ -212,6 +206,10 @@ string CPPCompile::BodyName(const FuncInfo& func)
 		string fns = fn;
 		transform(fns.begin(), fns.end(), fns.begin(), canonicalize);
 
+		if ( ! isalpha(fns[0]) )
+			// This can happen for filenames beginning with numbers.
+			fns = "_" + fns;
+
 		fname = fns + "__" + fname;
 		}
 
@@ -231,6 +229,18 @@ string CPPCompile::BodyName(const FuncInfo& func)
 		reporter->InternalError("can't find body in CPPCompile::BodyName");
 
 	return fname + "__" + Fmt(static_cast<int>(i));
+	}
+
+p_hash_type CPPCompile::BodyHash(const Stmt* body)
+	{
+	auto bn = body_names.find(body);
+	ASSERT(bn != body_names.end());
+
+	auto& body_name = bn->second;
+	auto bh = body_hashes.find(body_name);
+	ASSERT(bh != body_hashes.end());
+
+	return bh->second;
 	}
 
 string CPPCompile::GenArgs(const RecordTypePtr& params, const Expr* e)

@@ -22,6 +22,10 @@ public:
 	// True if we observe that there is a branch out of the statement
 	// to just beyond its extent, such as due to a "break".
 	bool contains_branch_beyond = false;
+
+	// Whether this statement is free of the possible influence
+	// of conditional code.
+	bool is_free_of_conditionals = true;
 	};
 
 	} // namespace zeek::detail

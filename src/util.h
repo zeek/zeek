@@ -72,7 +72,7 @@ extern HeapLeakChecker* heap_checker;
 
 extern "C"
 	{
-#include "zeek/modp_numtoa.h"
+#include "zeek/3rdparty/modp_numtoa.h"
 	}
 
 using bro_int_t = int64_t;
@@ -342,6 +342,9 @@ extern std::string strstrip(std::string s);
 // Return a lower-cased version of the string.
 extern std::string strtolower(const std::string& s);
 
+// Return a upper-cased version of the string.
+extern std::string strtoupper(const std::string& s);
+
 extern int fputs(int len, const char* s, FILE* fp);
 extern bool is_printable(const char* s, int len);
 
@@ -460,6 +463,10 @@ extern bool safe_write(int fd, const char* data, int len);
 
 // Same as safe_write(), but for pwrite().
 extern bool safe_pwrite(int fd, const unsigned char* data, size_t len, size_t offset);
+
+// Like fsync() but handles interrupted system calls by retrying and
+// aborts on unrecoverable errors.
+extern bool safe_fsync(int fd);
 
 // Wraps close(2) to emit error messages and abort on unrecoverable errors.
 extern void safe_close(int fd);

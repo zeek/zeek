@@ -1,0 +1,26 @@
+# Reformat the world (initial clang-format formatting)
+b2f171ec69eae3a833a9db1b16e5234bd3eaf0b6
+
+# clang-format: Force zeek-config.h to be earlier in the config ordering
+9cb54f5d449b63006cc9a1f451a47732c92fef2d
+
+# clang-format: A few minor comment-spacing fixes
+07e276ab2e351ce71b709139f1933b9ead40d094
+
+# clang-format: Enforce ordering of includes in ZBody
+cb99ae2b7c9988656b097ad2789dffd2c0c37939
+
+# clang-format: Other include ordering changes
+e97c14add5b04aedc7f3f9dba59f665cbad793af
+
+# clang-format: Other minor formatting changes
+02206f3215f977ba7752476ba89ca06abe93375c
+
+# clang-format: Set IndentCaseBlocks to false
+4423574d265749da8e707ab0fbcffcbfaed26614
+
+# clang-format: Set penalty for breaking after assignment operator
+9af6b2f48d11b4e287d0f18034a486f76f9f2d61
+
+# Remove trailing whitespace from script files
+a6378531dbc5c357926d98fe785bb719cc70e1b4

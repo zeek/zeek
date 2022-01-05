@@ -197,6 +197,7 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	tsv = false;
 	use_json = false;
 	enable_utf_8 = false;
+	json_include_unset_fields = false;
 	formatter = nullptr;
 	gzip_level = 0;
 	gzfile = nullptr;
@@ -231,6 +232,8 @@ void Ascii::InitConfigOptions()
 	ODesc tsfmt;
 	BifConst::LogAscii::json_timestamps->Describe(&tsfmt);
 	json_timestamps.assign((const char*)tsfmt.Bytes(), tsfmt.Len());
+
+	json_include_unset_fields = BifConst::LogAscii::json_include_unset_fields;
 
 	gzip_file_extension.assign((const char*)BifConst::LogAscii::gzip_file_extension->Bytes(),
 	                           BifConst::LogAscii::gzip_file_extension->Len());
@@ -329,6 +332,20 @@ bool Ascii::InitFilterOptions()
 		else if ( strcmp(i->first, "json_timestamps") == 0 )
 			json_timestamps.assign(i->second);
 
+		else if ( strcmp(i->first, "json_include_unset_fields") == 0 )
+			{
+			if ( strcmp(i->second, "T") == 0 )
+				json_include_unset_fields = true;
+			else if ( strcmp(i->second, "F") == 0 )
+				json_include_unset_fields = false;
+			else
+				{
+				Error("invalid value for 'json_include_unset_fields', must be "
+				      "a string and either \"T\" or \"F\"");
+				return false;
+				}
+			}
+
 		else if ( strcmp(i->first, "gzip_file_extension") == 0 )
 			gzip_file_extension.assign(i->second);
 
@@ -364,7 +381,7 @@ bool Ascii::InitFormatter()
 			return false;
 			}
 
-		formatter = new threading::formatter::JSON(this, tf);
+		formatter = new threading::formatter::JSON(this, tf, json_include_unset_fields);
 		// Using JSON implicitly turns off the header meta fields.
 		include_meta = false;
 		}
@@ -465,7 +482,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 
 			if ( sfd < 0 )
 				{
-				Error(Fmt("cannot open %s: %s", sfname.data(), Strerror(errno)));
+				Error(Fmt("cannot open %s: %s", tmp_sfname.data(), Strerror(errno)));
 				return false;
 				}
 
@@ -478,7 +495,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 				util::safe_write(sfd, ppf, strlen(ppf));
 
 			util::safe_write(sfd, "\n", 1);
-
+			util::safe_fsync(sfd);
 			util::safe_close(sfd);
 
 			if ( rename(tmp_sfname.data(), sfname.data()) == -1 )

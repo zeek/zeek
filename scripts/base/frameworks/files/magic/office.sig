@@ -1,7 +1,6 @@
-
 # This signature is non-specific and terrible but after
-# searching for a long time there doesn't seem to be a 
-# better option.  
+# searching for a long time there doesn't seem to be a
+# better option.
 signature file-msword {
 	file-magic /^\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1/
 	file-mime "application/msword", 50

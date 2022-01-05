@@ -18,6 +18,7 @@
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/script_opt/StmtOptInfo.h"
 
 namespace zeek::detail
 	{
@@ -617,8 +618,14 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
 	std::optional<FuncType::Prototype> prototype;
 
 	if ( id->GetType() )
+		{
+		if ( id->GetType()->Tag() != TYPE_FUNC )
+			{
+			id->Error("Function clash with previous definition with incompatible type", t.get());
+			reporter->FatalError("invalid definition of '%s' (see previous errors)", id->Name());
+			}
 		prototype = get_prototype(id, t);
-
+		}
 	else if ( is_redef )
 		id->Error("redef of not-previously-declared value");
 
@@ -717,7 +724,7 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 
 static bool duplicate_ASTs = getenv("ZEEK_DUPLICATE_ASTS");
 
-void end_func(StmtPtr body)
+void end_func(StmtPtr body, bool free_of_conditionals)
 	{
 	if ( duplicate_ASTs && reporter->Errors() == 0 )
 		// Only try duplication in the absence of errors.  If errors
@@ -728,6 +735,8 @@ void end_func(StmtPtr body)
 		// We duplicate twice to make sure that the AST produced
 		// by duplicating can itself be correctly duplicated.
 		body = body->Duplicate()->Duplicate();
+
+	body->GetOptInfo()->is_free_of_conditionals = free_of_conditionals;
 
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 

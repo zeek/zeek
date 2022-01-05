@@ -1,4 +1,4 @@
-##! Generate notices when X.509 certificates over SSL/TLS are expired or 
+##! Generate notices when X.509 certificates over SSL/TLS are expired or
 ##! going to expire soon based on the date and time values stored within the
 ##! certificate.
 

@@ -41,7 +41,7 @@ export {
 		name: function(state: PluginState) : string;
 
 		## If true, plugin can expire rules itself. If false, the NetControl
-		## framework will manage rule expiration. 
+		## framework will manage rule expiration.
 		can_expire: bool;
 
 		## One-time initialization function called when plugin gets registered, and

@@ -501,6 +501,11 @@ bool CompositeHash::SingleValHash(HashKey& hk, const Val* v, Type* bt, bool type
 			return true;
 		}
 
+	// All of the rest of the code here depends on v not being null, since it needs
+	// to get values from it.
+	if ( ! v )
+		return false;
+
 	switch ( t )
 		{
 		case TYPE_INTERNAL_INT:
@@ -695,7 +700,7 @@ bool CompositeHash::SingleValHash(HashKey& hk, const Val* v, Type* bt, bool type
 			}
 			break;
 
-		case TYPE_INTERNAL_ERROR:
+		default:
 			return false;
 		}
 

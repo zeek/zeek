@@ -6,6 +6,8 @@
 #include <sys/file.h>
 #include <unistd.h>
 
+#include "zeek/script_opt/StmtOptInfo.h"
+
 namespace zeek::detail
 	{
 
@@ -50,6 +52,14 @@ bool is_CPP_compilable(const ProfileFunc* pf, const char** reason)
 		return false;
 		}
 
+	auto body = pf->ProfiledBody();
+	if ( body && ! body->GetOptInfo()->is_free_of_conditionals )
+		{
+		if ( reason )
+			*reason = "body may be affected by @if conditional";
+		return false;
+		}
+
 	return true;
 	}
 
@@ -73,6 +83,62 @@ void unlock_file(const string& fname, FILE* f)
 		reporter->Error("un-flock failed on %s: %s", fname.c_str(), buf);
 		exit(1);
 		}
+	}
+
+string CPPEscape(const char* b, int len)
+	{
+	string res;
+
+	for ( int i = 0; i < len; ++i )
+		{
+		unsigned char c = b[i];
+
+		switch ( c )
+			{
+			case '\a':
+				res += "\\a";
+				break;
+			case '\b':
+				res += "\\b";
+				break;
+			case '\f':
+				res += "\\f";
+				break;
+			case '\n':
+				res += "\\n";
+				break;
+			case '\r':
+				res += "\\r";
+				break;
+			case '\t':
+				res += "\\t";
+				break;
+			case '\v':
+				res += "\\v";
+				break;
+
+			case '\\':
+				res += "\\\\";
+				break;
+			case '"':
+				res += "\\\"";
+				break;
+
+			default:
+				if ( isprint(c) )
+					res += c;
+				else
+					{
+					char buf[8192];
+					snprintf(buf, sizeof buf, "%03o", c);
+					res += "\\";
+					res += buf;
+					}
+				break;
+			}
+		}
+
+	return res;
 	}
 
 	} // zeek::detail

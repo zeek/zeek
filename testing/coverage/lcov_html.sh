@@ -14,10 +14,10 @@ function finish {
     rm -rf "$TMP"
 }
 function verify_run {
-    if bash -c "$1" > /dev/null 2>&1; then
-	echo ${2:-"ok"}
+    if bash -c "$1" >/dev/null 2>&1; then
+        echo ${2:-"ok"}
     else
-	die ${3:-"error, abort"}
+        die ${3:-"error, abort"}
     fi
 }
 trap finish EXIT
@@ -50,37 +50,37 @@ Usage: $0 <options>
     exit 1
 }
 
-while (( "$#" )); do
+while (("$#")); do
     case "$1" in
-	--html)
-	    HTML_REPORT=1
-	    if [ ${#2} -eq 0 ]; then
-		COVERAGE_HTML_DIR="coverage-html"
-		shift 1
-	    else
-		COVERAGE_HTML_DIR=$2
-		shift 2
-	    fi
-	    ;;
-	--coveralls)
-	    if [ ${#2} -eq 0 ]; then
-		echo "ERROR: Coveralls repo token must be passed with --coveralls argument."
-		echo
-		usage
-	    fi
+        --html)
+            HTML_REPORT=1
+            if [ ${#2} -eq 0 ]; then
+                COVERAGE_HTML_DIR="coverage-html"
+                shift 1
+            else
+                COVERAGE_HTML_DIR=$2
+                shift 2
+            fi
+            ;;
+        --coveralls)
+            if [ ${#2} -eq 0 ]; then
+                echo "ERROR: Coveralls repo token must be passed with --coveralls argument."
+                echo
+                usage
+            fi
 
-	    HTML_REPORT=0
-	    COVERALLS_REPO_TOKEN=$2
-	    shift 2
-	    ;;
-	--help)
-	    usage
-	    shift 1
-	    ;;
-	*)
-	    COVERAGE_HTML_DIR="${1:-"coverage-html"}"
-	    shift 1
-	    ;;
+            HTML_REPORT=0
+            COVERALLS_REPO_TOKEN=$2
+            shift 2
+            ;;
+        --help)
+            usage
+            shift 1
+            ;;
+        *)
+            COVERAGE_HTML_DIR="${1:-"coverage-html"}"
+            shift 1
+            ;;
     esac
 done
 
@@ -96,7 +96,7 @@ fi
 REMOVE_TARGETS="*.yy *.ll *.y *.l \*/bro.dir/\* *.bif \*/zeek.dir/\* \*/src/3rdparty/\* \*/src/zeek/3rdparty/\* \*/auxil/\* "
 
 # 1. Move to base dir, create tmp dir
-cd ../../;
+cd ../../
 mkdir "$TMP"
 
 # 2. Check for .gcno and .gcda file presence
@@ -104,7 +104,7 @@ echo -n "Checking for coverage files... "
 for pat in gcda gcno; do
     if [ -z "$(find . -name "*.$pat" 2>/dev/null)" ]; then
         echo "no .$pat files, nothing to do"
-	exit 0
+        exit 0
     fi
 done
 echo "ok"
@@ -112,8 +112,8 @@ echo "ok"
 # 3. If lcov does not exist, abort process.
 echo -n "Checking for lcov... "
 verify_run "which lcov" \
-	"lcov installed on system, continue" \
-	"lcov not installed, abort"
+    "lcov installed on system, continue" \
+    "lcov not installed, abort"
 
 # 4. Create a "tracefile" through lcov, which is necessary to create output later on.
 echo -n "Creating tracefile for output generation... "
@@ -142,9 +142,9 @@ else
 
     # If we're being called by Cirrus, add some additional information to the output.
     if [ -n "${CIRRUS_BUILD_ID}" ]; then
-	coveralls_cmd="${coveralls_cmd} --service-name=cirrus --service-job-id=${CIRRUS_BUILD_ID}"
+        coveralls_cmd="${coveralls_cmd} --service-name=cirrus --service-job-id=${CIRRUS_BUILD_ID}"
     else
-	coveralls_cmd="${coveralls_cmd} --service-name=local"
+        coveralls_cmd="${coveralls_cmd} --service-name=local"
     fi
 
     coveralls_cmd="${coveralls_cmd} ${COVERAGE_FILE_CLEAN}"

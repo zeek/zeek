@@ -58,7 +58,7 @@ type Host: enum {
 function addr_matches_host(ip: addr, h: Host): bool
 	{
 	if ( h == NO_HOSTS ) return F;
-	
+
 	return ( h == ALL_HOSTS ||
 	        (h == LOCAL_HOSTS && Site::is_local_addr(ip)) ||
 	        (h == REMOTE_HOSTS && !Site::is_local_addr(ip)) );

@@ -1016,9 +1016,16 @@ const TCP_RESET = 6;	##< Endpoint has sent RST.
 const UDP_INACTIVE = 0;	##< Endpoint is still inactive.
 const UDP_ACTIVE = 1;	##< Endpoint has sent something.
 
-## If true, don't verify checksums.  Useful for running on altered trace
-## files, and for saving a few cycles, but at the risk of analyzing invalid
-## data. Note that the ``-C`` command-line option overrides the setting of this
+## If true, don't verify checksums, and accept packets that give a length of
+## zero in the IPv4 header. This is useful when running against traces of local
+## traffic and the NIC checksum offloading feature is enabled. It can also
+## be useful for running on altered trace files, and for saving a few cycles
+## at the risk of analyzing invalid data.
+## With this option, packets that have a value of zero in the total-length field
+## of the IPv4 header are also accepted, and the capture-length is used instead.
+## The total-length field is commonly set to zero when the NIC sequence offloading
+## feature is enabled.
+## Note that the ``-C`` command-line option overrides the setting of this
 ## variable.
 const ignore_checksums = F &redef;
 
@@ -3884,6 +3891,14 @@ type dns_loc_rr: record {
 	is_query: count;	##< The RR is a query/Response.
 };
 
+## DNS SVCB and HTTPS RRs
+##
+## .. zeek:see:: dns_SVCB dns_HTTPS
+type dns_svcb_rr: record {
+	svc_priority: count;	##< Service priority for the current record, 0 indicates that this record is in AliasMode and cannot carry svc_params; otherwise this is in ServiceMode, and may include svc_params
+	target_name: string;	##< Target name, the hostname of the service endpoint.
+};
+
 # DNS answer types.
 #
 # .. zeek:see:: dns_answerr
@@ -5021,14 +5036,14 @@ export {
 
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing
-	## a :zeek:see:`protocol_confirmation`.  If it's false, the first
+	## a :zeek:see:`analyzer_confirmation`.  If it's false, the first
 	## occurrence of a packet with valid Teredo encapsulation causes a
 	## confirmation.
 	const delay_teredo_confirmation = T &redef;
 
 	## With this set, the GTP analyzer waits until the most-recent upflow
 	## and downflow packets are a valid GTPv1 encapsulation before
-	## issuing :zeek:see:`protocol_confirmation`.  If it's false, the
+	## issuing :zeek:see:`analyzer_confirmation`.  If it's false, the
 	## first occurrence of a packet with valid GTPv1 encapsulation causes
 	## confirmation.  Since the same inner connection can be carried
 	## differing outer upflow/downflow connections, setting to false
@@ -5045,17 +5060,6 @@ export {
 	## may choose whether to perform the validation.
 	const validate_vxlan_checksums = T &redef;
 
-	## The set of UDP ports used for VXLAN traffic.  Traffic using this
-	## UDP destination port will attempt to be decapsulated.  Note that if
-	## if you customize this, you may still want to manually ensure that
-	## :zeek:see:`likely_server_ports` also gets populated accordingly.
-	const vxlan_ports: set[port] = { 4789/udp } &redef;
-
-	## The set of UDP ports used for Geneve traffic.  Traffic using this
-	## UDP destination port will attempt to be decapsulated.  Note that if
-	## if you customize this, you may still want to manually ensure that
-	## :zeek:see:`likely_server_ports` also gets populated accordingly.
-	const geneve_ports: set[port] = { 6081/udp } &redef;
 } # end export
 
 module Reporter;

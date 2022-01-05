@@ -46,7 +46,7 @@ extern "C"
 
 #include <netdb.h>
 
-#include "zeek/nb_dns.h"
+#include "zeek/3rdparty/nb_dns.h"
 	}
 
 using namespace std;

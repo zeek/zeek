@@ -4,9 +4,8 @@
 
 #include "zeek/zeek-config.h"
 
-#include "zeek/analyzer/Tag.h"
+#include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
-#include "zeek/plugin/TaggedComponent.h"
 #include "zeek/util.h"
 
 namespace zeek
@@ -25,7 +24,7 @@ class Analyzer;
  * A plugin can provide a specific protocol analyzer by registering this
  * analyzer component, describing the analyzer.
  */
-class Component : public plugin::Component, public plugin::TaggedComponent<analyzer::Tag>
+class Component : public plugin::Component
 	{
 public:
 	using factory_callback = Analyzer* (*)(Connection* conn);
@@ -45,8 +44,8 @@ public:
 	 *
 	 * @param subtype A subtype associated with this component that
 	 * further distinguishes it. The subtype will be integrated into
-	 * the analyzer::Tag that the manager associates with this analyzer,
-	 * and analyzer instances can accordingly access it via analyzer::Tag().
+	 * the Tag that the manager associates with this analyzer,
+	 * and analyzer instances can accordingly access it via Tag().
 	 * If not used, leave at zero.
 	 *
 	 * @param enabled If false the analyzer starts out as disabled and
@@ -62,13 +61,13 @@ public:
 	 * @param adapter If true, this analyzer is a session adapter from
 	 * the packet analyzer framework.
 	 */
-	Component(const std::string& name, factory_callback factory, Tag::subtype_t subtype = 0,
+	Component(const std::string& name, factory_callback factory, zeek::Tag::subtype_t subtype = 0,
 	          bool enabled = true, bool partial = false, bool adapter = false);
 
 	/**
 	 * Destructor.
 	 */
-	~Component() override;
+	~Component() override = default;
 
 	/**
 	 * Initialization function. This function has to be called before any

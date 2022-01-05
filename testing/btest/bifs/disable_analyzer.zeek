@@ -5,7 +5,7 @@
 
 global msg_count: table[conn_id] of count &default=0;
 
-event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=10
+event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=10
 	{
 	if ( atype != Analyzer::ANALYZER_HTTP )
 		return;
@@ -30,5 +30,3 @@ event zeek_done()
 	{
 	print "total http messages", msg_count;
 	}
-
-

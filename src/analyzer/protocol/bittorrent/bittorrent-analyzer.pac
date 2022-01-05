@@ -70,7 +70,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 				to_stringval(peer_id));
 			}
 
-		connection()->zeek_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->AnalyzerConfirmation();
 
 		return true;
 		%}

@@ -105,6 +105,11 @@ extern const char* last_filename; // Absolute path of last file parsed.
 extern const char* last_tok_filename;
 extern const char* last_last_tok_filename;
 
+extern int conditional_epoch; // let's us track embedded conditionals
+
+// Whether the file we're currently parsing includes @if conditionals.
+extern bool current_file_has_conditionals;
+
 YYLTYPE GetCurrentLocation();
 extern int yyerror(const char[]);
 extern int brolex();
@@ -137,7 +142,12 @@ bool resolving_global_ID = false;
 bool defining_global_ID = false;
 std::vector<int> saved_in_init;
 
+std::vector<std::set<const ID*>> locals_at_this_scope;
+static std::unordered_set<const ID*> out_of_scope_locals;
+static std::unordered_set<const ID*> warned_about_locals;
+
 static Location func_hdr_location;
+static int func_hdr_cond_epoch = 0;
 EnumType* cur_enum_type = nullptr;
 static ID* cur_decl_type_id = nullptr;
 
@@ -551,6 +561,8 @@ expr:
 	|	TOK_LOCAL local_id '=' expr
 			{
 			set_location(@2, @4);
+			if ( ! locals_at_this_scope.empty() )
+			       locals_at_this_scope.back().insert($2);
 			$$ = add_and_assign_local({AdoptRef{}, $2}, {AdoptRef{}, $4},
 			                                        val_mgr->True()).release();
 			}
@@ -715,8 +727,12 @@ expr:
 			{
 			--in_hook;
 			set_location(@1, @3);
+
 			if ( $3->Tag() != EXPR_CALL )
 				$3->Error("not a valid hook call expression");
+			else if ( $3->AsCallExpr()->Func()->GetType()->AsFuncType()->Flavor() != FUNC_FLAVOR_HOOK )
+				$3->Error("hook keyword should only be used to call hooks");
+
 			$$ = $3;
 			}
 
@@ -787,6 +803,14 @@ expr:
 					}
 				else
 					{
+					if ( out_of_scope_locals.count(id.get()) > 0 &&
+					     warned_about_locals.count(id.get()) == 0 )
+						{
+						// Remove in v5.1
+						reporter->Warning("use of out-of-scope local %s deprecated; move declaration to outer scope", id->Name());
+						warned_about_locals.insert(id.get());
+						}
+
 					$$ = new NameExpr(std::move(id));
 					}
 				}
@@ -1214,16 +1238,19 @@ decl:
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
-	|	func_hdr { func_hdr_location = @1; } func_body
-
-	|	func_hdr { func_hdr_location = @1; } conditional_list func_body
+	|	func_hdr
+			{
+			func_hdr_location = @1;
+			func_hdr_cond_epoch = conditional_epoch;
+			}
+		conditional_list func_body
 
 	|	conditional
 	;
 
 conditional_list:
-		conditional
-	|	conditional conditional_list
+	|	conditional_list conditional
+	;
 
 conditional:
 		TOK_ATIF '(' expr ')'
@@ -1285,6 +1312,10 @@ func_body:
 			{
 			saved_in_init.push_back(in_init);
 			in_init = 0;
+
+			locals_at_this_scope.clear();
+			out_of_scope_locals.clear();
+			warned_about_locals.clear();
 			}
 
 		stmt_list
@@ -1296,7 +1327,13 @@ func_body:
 		'}'
 			{
 			set_location(func_hdr_location, @5);
-			end_func({AdoptRef{}, $3});
+
+			bool free_of_conditionals = true;
+			if ( current_file_has_conditionals ||
+			     conditional_epoch > func_hdr_cond_epoch )
+				free_of_conditionals = false;
+
+			end_func({AdoptRef{}, $3}, free_of_conditionals);
 			}
 	;
 
@@ -1554,11 +1591,20 @@ attr:
 	;
 
 stmt:
-		'{' opt_no_test_block stmt_list '}'
+		'{'
 			{
-			set_location(@1, @4);
-			$$ = $3;
-			if ( $2 )
+			std::set<const ID*> id_set;
+			locals_at_this_scope.emplace_back(id_set);
+			}
+		opt_no_test_block stmt_list '}'
+			{
+			auto& scope_locals = locals_at_this_scope.back();
+			out_of_scope_locals.insert(scope_locals.begin(), scope_locals.end());
+			locals_at_this_scope.pop_back();
+
+			set_location(@1, @5);
+			$$ = $4;
+			if ( $3 )
 			    script_coverage_mgr.DecIgnoreDepth();
 			}
 
@@ -1665,6 +1711,8 @@ stmt:
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @7);
+			if ( ! locals_at_this_scope.empty() )
+			       locals_at_this_scope.back().insert($2);
 			$$ = build_local($2, $3, $4, $5, $6, VAR_REGULAR, ! $8).release();
 			}
 

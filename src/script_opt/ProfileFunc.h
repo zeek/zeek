@@ -74,17 +74,6 @@ inline p_hash_type merge_p_hashes(p_hash_type h1, p_hash_type h2)
 	return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
 	}
 
-// Returns a filename associated with the given function body.  Used to
-// provide distinctness to identical function bodies seen in separate,
-// potentially conflicting incremental compilations.  This is only germane
-// for allowing incremental compilation of subsets of the test suite, so
-// if we decide to forgo that capability, we can remove this.
-extern std::string script_specific_filename(const StmtPtr& body);
-
-// Returns a incremental-compilation-specific hash for the given function
-// body, given it's non-specific hash is "generic_hash".
-extern p_hash_type script_specific_hash(const StmtPtr& body, p_hash_type generic_hash);
-
 // Class for profiling the components of a single function (or expression).
 class ProfileFunc : public TraversalCallback
 	{
@@ -99,6 +88,12 @@ public:
 	// to discover what components they include.
 	ProfileFunc(const Stmt* body, bool abs_rec_fields = false);
 	ProfileFunc(const Expr* func, bool abs_rec_fields = false);
+
+	// Returns the function, body, or expression profiled.  Each can be
+	// null depending on the constructor used.
+	const Func* ProfiledFunc() const { return profiled_func; }
+	const Stmt* ProfiledBody() const { return profiled_body; }
+	const Expr* ProfiledExpr() const { return profiled_expr; }
 
 	// See the comments for the associated member variables for each
 	// of these accessors.
@@ -156,6 +151,12 @@ protected:
 
 	// Take note of an assignment to an identifier.
 	void TrackAssignment(const ID* id);
+
+	// The function, body, or expression profiled.  Can be null
+	// depending on which constructor was used.
+	const Func* profiled_func = nullptr;
+	const Stmt* profiled_body = nullptr;
+	const Expr* profiled_expr = nullptr;
 
 	// Globals seen in the function.
 	//

@@ -6,20 +6,19 @@
 
 #include "zeek/script_opt/CPP/Compile.h"
 
+extern std::unordered_set<std::string> files_with_conditionals;
+
 namespace zeek::detail
 	{
 
 using namespace std;
 
 CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs, const string& gen_name,
-                       const string& _addl_name, CPPHashManager& _hm, bool _update,
-                       bool _standalone, bool report_uncompilable)
-	: funcs(_funcs), pfs(_pfs), hm(_hm), update(_update), standalone(_standalone)
+                       bool add, bool _standalone, bool report_uncompilable)
+	: funcs(_funcs), pfs(_pfs), standalone(_standalone)
 	{
-	addl_name = _addl_name;
-	bool is_addl = hm.IsAppend();
-	auto target_name = is_addl ? addl_name.c_str() : gen_name.c_str();
-	auto mode = is_addl ? "a" : "w";
+	auto target_name = gen_name.c_str();
+	auto mode = add ? "a" : "w";
 
 	write_file = fopen(target_name, mode);
 	if ( ! write_file )
@@ -28,7 +27,7 @@ CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs, const strin
 		exit(1);
 		}
 
-	if ( is_addl )
+	if ( add )
 		{
 		// We need a unique number to associate with the name
 		// space for the code we're adding.  A convenient way to
@@ -52,17 +51,7 @@ CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs, const strin
 		}
 
 	else
-		{
-		// Create an empty "additional" file.
-		auto addl_f = fopen(addl_name.c_str(), "w");
-		if ( ! addl_f )
-			{
-			reporter->Error("can't open C++ additional file %s", addl_name.c_str());
-			exit(1);
-			}
-
-		fclose(addl_f);
-		}
+		addl_tag = 0;
 
 	Compile(report_uncompilable);
 	}
@@ -83,34 +72,50 @@ void CPPCompile::Compile(bool report_uncompilable)
 
 	working_dir = buf;
 
-	if ( update && addl_tag > 0 && CheckForCollisions() )
-		// Inconsistent compilation environment.
-		exit(1);
-
 	GenProlog();
+
+	unordered_set<string> filenames_reported_as_skipped;
 
 	// Determine which functions we can call directly, and reuse
 	// previously compiled instances of those if present.
-	for ( const auto& func : funcs )
+	for ( auto& func : funcs )
 		{
-		if ( func.Func()->Flavor() != FUNC_FLAVOR_FUNCTION )
-			// Can't be called directly.
+		const auto& f = func.Func();
+
+		auto& ofiles = analysis_options.only_files;
+		string fn = func.Body()->GetLocationInfo()->filename;
+
+		if ( ! func.ShouldSkip() && ! ofiles.empty() && files_with_conditionals.count(fn) > 0 )
+			{
+			if ( filenames_reported_as_skipped.count(fn) == 0 )
+				{
+				reporter->Warning(
+					"skipping compilation of files in %s due to presence of conditional code",
+					fn.c_str());
+				filenames_reported_as_skipped.insert(fn);
+				}
+
+			func.SetSkip(true);
+			}
+
+		if ( func.ShouldSkip() )
+			{
+			not_fully_compilable.insert(f->Name());
 			continue;
+			}
 
 		const char* reason;
 		if ( IsCompilable(func, &reason) )
-			compilable_funcs.insert(BodyName(func));
-		else if ( reason && report_uncompilable )
-			fprintf(stderr, "%s cannot be compiled to C++ due to %s\n", func.Func()->Name(),
-			        reason);
-
-		auto h = func.Profile()->HashVal();
-		if ( hm.HasHash(h) )
 			{
-			// Track the previously compiled instance
-			// of this function.
-			auto n = func.Func()->Name();
-			hashed_funcs[n] = hm.FuncBodyName(h);
+			if ( f->Flavor() == FUNC_FLAVOR_FUNCTION )
+				// Note this as a callable compiled function.
+				compilable_funcs.insert(BodyName(func));
+			}
+		else
+			{
+			if ( reason && report_uncompilable )
+				fprintf(stderr, "%s cannot be compiled to C++ due to %s\n", f->Name(), reason);
+			not_fully_compilable.insert(f->Name());
 			}
 		}
 
@@ -121,39 +126,15 @@ void CPPCompile::Compile(bool report_uncompilable)
 		types.AddKey(tp, pfs.HashType(t));
 		}
 
-	for ( const auto& t : types.DistinctKeys() )
-		if ( ! types.IsInherited(t) )
-			// Type is new to this compilation, so we'll
-			// be generating it.
-			Emit("TypePtr %s;", types.KeyName(t));
-
-	NL();
-
-	for ( const auto& c : pfs.Constants() )
-		AddConstant(c);
+	Emit("TypePtr types__CPP[%s];", Fmt(static_cast<int>(types.DistinctKeys().size())));
 
 	NL();
 
 	for ( auto& g : pfs.AllGlobals() )
 		CreateGlobal(g);
 
-	// Now that the globals are created, register their attributes,
-	// if any, and generate their initialization for use in standalone
-	// scripts.  We can't do these in CreateGlobal() because at that
-	// point it's possible that some of the globals refer to other
-	// globals not-yet-created.
-	for ( auto& g : pfs.AllGlobals() )
-		{
-		RegisterAttributes(g->GetAttrs());
-		if ( g->HasVal() )
-			{
-			auto gn = string(g->Name());
-			GenGlobalInit(g, globals[gn], g->GetVal());
-			}
-		}
-
 	for ( const auto& e : pfs.Events() )
-		if ( AddGlobal(e, "gl", false) )
+		if ( AddGlobal(e, "gl") )
 			Emit("EventHandlerPtr %s_ev;", globals[string(e)]);
 
 	for ( const auto& t : pfs.RepTypes() )
@@ -166,7 +147,8 @@ void CPPCompile::Compile(bool report_uncompilable)
 	// The scaffolding is now in place to go ahead and generate
 	// the functions & lambdas.  First declare them ...
 	for ( const auto& func : funcs )
-		DeclareFunc(func);
+		if ( ! func.ShouldSkip() )
+			DeclareFunc(func);
 
 	// We track lambdas by their internal names, because two different
 	// LambdaExpr's can wind up referring to the same underlying lambda
@@ -188,7 +170,8 @@ void CPPCompile::Compile(bool report_uncompilable)
 
 	// ... and now generate their bodies.
 	for ( const auto& func : funcs )
-		CompileFunc(func);
+		if ( ! func.ShouldSkip() )
+			CompileFunc(func);
 
 	lambda_names.clear();
 	for ( const auto& l : pfs.Lambdas() )
@@ -201,28 +184,94 @@ void CPPCompile::Compile(bool report_uncompilable)
 		lambda_names.insert(n);
 		}
 
+	NL();
+	Emit("std::vector<CPP_RegisterBody> CPP__bodies_to_register = {");
+
 	for ( const auto& f : compiled_funcs )
 		RegisterCompiledBody(f);
 
-	GenFuncVarInits();
+	Emit("};");
 
 	GenEpilog();
 	}
 
 void CPPCompile::GenProlog()
 	{
-	if ( addl_tag == 0 )
-		{
+	if ( addl_tag <= 1 )
+		// This is either a compilation via gen-C++, or
+		// one using add-C++ and an empty CPP-gen.cc file.
 		Emit("#include \"zeek/script_opt/CPP/Runtime.h\"\n");
-		Emit("namespace zeek::detail { //\n");
-		}
 
-	Emit("namespace CPP_%s { // %s\n", Fmt(addl_tag), working_dir.c_str());
+	Emit("namespace zeek::detail { //\n");
+	Emit("namespace CPP_%s { // %s\n", Fmt(addl_tag), working_dir);
 
 	// The following might-or-might-not wind up being populated/used.
 	Emit("std::vector<int> field_mapping;");
 	Emit("std::vector<int> enum_mapping;");
 	NL();
+
+	const_info[TYPE_BOOL] = CreateConstInitInfo("Bool", "ValPtr", "bool");
+	const_info[TYPE_INT] = CreateConstInitInfo("Int", "ValPtr", "bro_int_t");
+	const_info[TYPE_COUNT] = CreateConstInitInfo("Count", "ValPtr", "bro_uint_t");
+	const_info[TYPE_DOUBLE] = CreateConstInitInfo("Double", "ValPtr", "double");
+	const_info[TYPE_TIME] = CreateConstInitInfo("Time", "ValPtr", "double");
+	const_info[TYPE_INTERVAL] = CreateConstInitInfo("Interval", "ValPtr", "double");
+	const_info[TYPE_ADDR] = CreateConstInitInfo("Addr", "ValPtr", "");
+	const_info[TYPE_SUBNET] = CreateConstInitInfo("SubNet", "ValPtr", "");
+	const_info[TYPE_PORT] = CreateConstInitInfo("Port", "ValPtr", "uint32_t");
+
+	const_info[TYPE_ENUM] = CreateCompoundInitInfo("Enum", "ValPtr");
+	const_info[TYPE_STRING] = CreateCompoundInitInfo("String", "ValPtr");
+	const_info[TYPE_LIST] = CreateCompoundInitInfo("List", "ValPtr");
+	const_info[TYPE_PATTERN] = CreateCompoundInitInfo("Pattern", "ValPtr");
+	const_info[TYPE_VECTOR] = CreateCompoundInitInfo("Vector", "ValPtr");
+	const_info[TYPE_RECORD] = CreateCompoundInitInfo("Record", "ValPtr");
+	const_info[TYPE_TABLE] = CreateCompoundInitInfo("Table", "ValPtr");
+	const_info[TYPE_FUNC] = CreateCompoundInitInfo("Func", "ValPtr");
+	const_info[TYPE_FILE] = CreateCompoundInitInfo("File", "ValPtr");
+
+	type_info = CreateCompoundInitInfo("Type", "Ptr");
+	attr_info = CreateCompoundInitInfo("Attr", "Ptr");
+	attrs_info = CreateCompoundInitInfo("Attributes", "Ptr");
+
+	call_exprs_info = CreateCustomInitInfo("CallExpr", "Ptr");
+	lambda_reg_info = CreateCustomInitInfo("LambdaRegistration", "");
+	global_id_info = CreateCustomInitInfo("GlobalID", "");
+
+	NL();
+	DeclareDynCPPStmt();
+	NL();
+	}
+
+shared_ptr<CPP_InitsInfo> CPPCompile::CreateConstInitInfo(const char* tag, const char* type,
+                                                          const char* c_type)
+	{
+	auto gi = make_shared<CPP_BasicConstInitsInfo>(tag, type, c_type);
+	return RegisterInitInfo(tag, type, gi);
+	}
+
+shared_ptr<CPP_InitsInfo> CPPCompile::CreateCompoundInitInfo(const char* tag, const char* type)
+	{
+	auto gi = make_shared<CPP_CompoundInitsInfo>(tag, type);
+	return RegisterInitInfo(tag, type, gi);
+	}
+
+shared_ptr<CPP_InitsInfo> CPPCompile::CreateCustomInitInfo(const char* tag, const char* type)
+	{
+	auto gi = make_shared<CPP_CustomInitsInfo>(tag, type);
+	if ( type[0] == '\0' )
+		gi->SetCPPType("void*");
+
+	return RegisterInitInfo(tag, type, gi);
+	}
+
+shared_ptr<CPP_InitsInfo> CPPCompile::RegisterInitInfo(const char* tag, const char* type,
+                                                       shared_ptr<CPP_InitsInfo> gi)
+	{
+	string v_type = type[0] ? (string(tag) + type) : "void*";
+	Emit("std::vector<%s> CPP__%s__;", v_type, string(tag));
+	all_global_info.insert(gi);
+	return gi;
 	}
 
 void CPPCompile::RegisterCompiledBody(const string& f)
@@ -232,8 +281,9 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 
 	// Build up an initializer of the events relevant to the function.
 	string events;
-	if ( body_events.count(f) > 0 )
-		for ( const auto& e : body_events[f] )
+	auto be = body_events.find(f);
+	if ( be != body_events.end() )
+		for ( const auto& e : be->second )
 			{
 			if ( events.size() > 0 )
 				events += ", ";
@@ -242,102 +292,188 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 
 	events = string("{") + events + "}";
 
-	if ( addl_tag > 0 )
-		// Hash in the location associated with this compilation
-		// pass, to get a final hash that avoids conflicts with
-		// identical-but-in-a-different-context function bodies
-		// when compiling potentially conflicting additional code
-		// (which we want to support to enable quicker test suite
-		// runs by enabling multiple tests to be compiled into the
-		// same binary).
-		h = merge_p_hashes(h, p_hash(cf_locs[f]));
-
-	auto init = string("register_body__CPP(make_intrusive<") + f + "_cl>(\"" + f + "\"), " +
-	            Fmt(p) + ", " + Fmt(h) + ", " + events + ");";
-
-	AddInit(names_to_bodies[f], init);
-
-	if ( update )
-		{
-		fprintf(hm.HashFile(), "func\n%s%s\n", scope_prefix(addl_tag).c_str(), f.c_str());
-		fprintf(hm.HashFile(), "%llu\n", h);
-		}
+	auto fi = func_index.find(f);
+	ASSERT(fi != func_index.end());
+	auto type_signature = casting_index[fi->second];
+	Emit("\tCPP_RegisterBody(\"%s\", (void*) %s, %s, %s, %s, std::vector<std::string>(%s)),", f, f,
+	     Fmt(type_signature), Fmt(p), Fmt(h), events);
 	}
 
 void CPPCompile::GenEpilog()
 	{
 	NL();
+	for ( const auto& ii : init_infos )
+		GenInitExpr(ii.second);
 
-	for ( const auto& e : init_exprs.DistinctKeys() )
-		{
-		GenInitExpr(e);
-		if ( update )
-			init_exprs.LogIfNew(e, addl_tag, hm.HashFile());
-		}
+	NL();
+	GenCPPDynStmt();
 
-	for ( const auto& a : attributes.DistinctKeys() )
-		{
-		GenAttrs(a);
-		if ( update )
-			attributes.LogIfNew(a, addl_tag, hm.HashFile());
-		}
+	NL();
+	for ( auto gi : all_global_info )
+		gi->GenerateInitializers(this);
 
-	// Generate the guts of compound types, and preserve type names
-	// if present.
-	for ( const auto& t : types.DistinctKeys() )
-		{
-		ExpandTypeVar(t);
-		if ( update )
-			types.LogIfNew(t, addl_tag, hm.HashFile());
-		}
-
+	NL();
 	InitializeEnumMappings();
 
-	GenPreInits();
+	NL();
+	InitializeFieldMappings();
 
-	unordered_set<const Obj*> to_do;
-	for ( const auto& oi : obj_inits )
-		to_do.insert(oi.first);
+	NL();
+	InitializeBiFs();
 
-	CheckInitConsistency(to_do);
-	auto nc = GenDependentInits(to_do);
+	NL();
+	indices_mgr.Generate(this);
+
+	NL();
+	InitializeStrings();
+
+	NL();
+	InitializeHashes();
+
+	NL();
+	InitializeConsts();
+
+	NL();
+	GenLoadBiFs();
+
+	NL();
+	GenFinishInit();
+
+	NL();
+	GenRegisterBodies();
+
+	NL();
+	Emit("void init__CPP()");
+	StartBlock();
+	Emit("register_bodies__CPP();");
+	EndBlock();
 
 	if ( standalone )
 		GenStandaloneActivation();
 
-	NL();
-	Emit("void init__CPP()");
+	GenInitHook();
+
+	Emit("} // %s\n\n", scope_prefix(addl_tag));
+	Emit("} // zeek::detail");
+	}
+
+void CPPCompile::GenCPPDynStmt()
+	{
+	Emit("ValPtr CPPDynStmt::Exec(Frame* f, StmtFlowType& flow)");
 
 	StartBlock();
 
-	Emit("enum_mapping.resize(%s);\n", Fmt(int(enum_names.size())));
-	Emit("pre_init__CPP();");
+	Emit("flow = FLOW_RETURN;");
+
+	Emit("switch ( type_signature )");
+	StartBlock();
+	for ( auto i = 0U; i < func_casting_glue.size(); ++i )
+		{
+		Emit("case %s:", to_string(i));
+		StartBlock();
+		auto& glue = func_casting_glue[i];
+
+		auto invoke = string("(*(") + glue.cast + ")(func))(" + glue.args + ")";
+
+		if ( glue.is_hook )
+			{
+			Emit("if ( ! %s )", invoke);
+			StartBlock();
+			Emit("flow = FLOW_BREAK;");
+			EndBlock();
+			Emit("return nullptr;");
+			}
+
+		else if ( IsNativeType(glue.yield) )
+			GenInvokeBody(invoke, glue.yield);
+
+		else
+			Emit("return %s;", invoke);
+
+		EndBlock();
+		}
+
+	Emit("default:");
+	Emit("\treporter->InternalError(\"invalid type in CPPDynStmt::Exec\");");
+	Emit("\treturn nullptr;");
+
+	EndBlock();
+	EndBlock();
+	}
+
+void CPPCompile::GenLoadBiFs()
+	{
+	Emit("void load_BiFs__CPP()");
+	StartBlock();
+	Emit("for ( auto& b : CPP__BiF_lookups__ )");
+	Emit("\tb.ResolveBiF();");
+	EndBlock();
+	}
+
+void CPPCompile::GenFinishInit()
+	{
+	Emit("void finish_init__CPP()");
+
+	StartBlock();
+
+	Emit("static bool did_init = false;");
+	Emit("if ( did_init )");
+	Emit("\treturn;");
+	Emit("did_init = true;");
 
 	NL();
-	for ( auto i = 1; i <= nc; ++i )
-		Emit("init_%s__CPP();", Fmt(i));
+	Emit("std::vector<std::vector<int>> InitIndices;");
+	Emit("generate_indices_set(CPP__Indices__init, InitIndices);");
+
+	Emit("std::map<TypeTag, std::shared_ptr<CPP_AbstractInitAccessor>> InitConsts;");
+
+	NL();
+	for ( const auto& ci : const_info )
+		{
+		auto& gi = ci.second;
+		Emit("InitConsts.emplace(%s, std::make_shared<CPP_InitAccessor<%s>>(%s));",
+		     TypeTagName(ci.first), gi->CPPType(), gi->InitsName());
+		}
+
+	Emit("InitsManager im(CPP__ConstVals, InitConsts, InitIndices, CPP__Strings, CPP__Hashes, "
+	     "CPP__Type__, CPP__Attributes__, CPP__Attr__, CPP__CallExpr__);");
+
+	NL();
+	int max_cohort = 0;
+	for ( auto gi : all_global_info )
+		max_cohort = std::max(max_cohort, gi->MaxCohort());
+
+	for ( auto c = 0; c <= max_cohort; ++c )
+		for ( auto gi : all_global_info )
+			if ( gi->CohortSize(c) > 0 )
+				Emit("%s.InitializeCohort(&im, %s);", gi->InitializersName(), Fmt(c));
 
 	// Populate mappings for dynamic offsets.
 	NL();
-	InitializeFieldMappings();
+	Emit("for ( auto& em : CPP__enum_mappings__ )");
+	Emit("\tenum_mapping.push_back(em.ComputeOffset(&im));");
+	NL();
+	Emit("for ( auto& fm : CPP__field_mappings__ )");
+	Emit("\tfield_mapping.push_back(fm.ComputeOffset(&im));");
 
-	if ( standalone )
-		Emit("standalone_init__CPP();");
+	NL();
+	Emit("load_BiFs__CPP();");
 
-	EndBlock(true);
+	EndBlock();
+	}
 
-	GenInitHook();
+void CPPCompile::GenRegisterBodies()
+	{
+	Emit("void register_bodies__CPP()");
+	StartBlock();
 
-	Emit("} // %s\n\n", scope_prefix(addl_tag).c_str());
+	Emit("for ( auto& b : CPP__bodies_to_register )");
+	StartBlock();
+	Emit("auto f = make_intrusive<CPPDynStmt>(b.func_name.c_str(), b.func, b.type_signature);");
+	Emit("register_body__CPP(f, b.priority, b.h, b.events, finish_init__CPP);");
+	EndBlock();
 
-	if ( update )
-		UpdateGlobalHashes();
-
-	if ( addl_tag > 0 )
-		return;
-
-	Emit("#include \"" + addl_name + "\"\n");
-	Emit("} // zeek::detail");
+	EndBlock();
 	}
 
 bool CPPCompile::IsCompilable(const FuncInfo& func, const char** reason)
@@ -351,10 +487,6 @@ bool CPPCompile::IsCompilable(const FuncInfo& func, const char** reason)
 		*reason = nullptr;
 
 	if ( func.ShouldSkip() )
-		return false;
-
-	if ( hm.HasHash(func.Profile()->HashVal()) )
-		// We've already compiled it.
 		return false;
 
 	return true;

@@ -16,13 +16,13 @@ export {
 		## for.
 		index: count &default=0;
 	};
-	
-	## The thresholds you would like to use as defaults with the 
+
+	## The thresholds you would like to use as defaults with the
 	## :zeek:id:`default_check_threshold` function.
 	const default_notice_thresholds: vector of count = {
 		30, 100, 1000, 10000, 100000, 1000000, 10000000,
 	} &redef;
-	
+
 	## This will check if a :zeek:type:`TrackCount` variable has crossed any
 	## thresholds in a given set.
 	##
@@ -33,7 +33,7 @@ export {
 	##
 	## Returns: T if a threshold has been crossed, else F.
 	global check_threshold: function(v: vector of count, tracker: TrackCount): bool;
-	
+
 	## This will use the :zeek:id:`default_notice_thresholds` variable to
 	## check a :zeek:type:`TrackCount` variable to see if it has crossed
 	## another threshold.

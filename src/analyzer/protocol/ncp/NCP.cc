@@ -40,7 +40,7 @@ void NCP_Session::Deliver(bool is_orig, int len, const u_char* data)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		analyzer->ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+		analyzer->AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 

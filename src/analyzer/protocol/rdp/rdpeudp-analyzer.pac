@@ -62,7 +62,7 @@ refine connection RDPEUDP_Conn += {
 		if ( rdpeudp_synack )
 			zeek::BifEvent::enqueue_rdpeudp_synack(zeek_analyzer(), zeek_analyzer()->Conn());
 
-		zeek_analyzer()->ProtocolConfirmation();
+		zeek_analyzer()->AnalyzerConfirmation();
 		state_ = NEED_ACK;
 		resp_synex_flags_ = uUdpVer;
 

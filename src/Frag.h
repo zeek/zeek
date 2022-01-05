@@ -31,17 +31,17 @@ using FragReassemblerKey = std::tuple<IPAddr, IPAddr, bro_uint_t>;
 class FragReassembler : public Reassembler
 	{
 public:
-	FragReassembler(session::Manager* s, const std::unique_ptr<IP_Hdr>& ip, const u_char* pkt,
+	FragReassembler(session::Manager* s, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt,
 	                const FragReassemblerKey& k, double t);
 	~FragReassembler() override;
 
-	void AddFragment(double t, const std::unique_ptr<IP_Hdr>& ip, const u_char* pkt);
+	void AddFragment(double t, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt);
 
 	void Expire(double t);
 	void DeleteTimer();
 	void ClearTimer() { expire_timer = nullptr; }
 
-	std::unique_ptr<IP_Hdr> ReassembledPkt() { return std::move(reassembled_pkt); }
+	std::shared_ptr<IP_Hdr> ReassembledPkt() { return std::move(reassembled_pkt); }
 	const FragReassemblerKey& Key() const { return key; }
 
 protected:
@@ -50,7 +50,7 @@ protected:
 	void Weird(const char* name) const;
 
 	u_char* proto_hdr;
-	std::unique_ptr<IP_Hdr> reassembled_pkt;
+	std::shared_ptr<IP_Hdr> reassembled_pkt;
 	session::Manager* s;
 	uint64_t frag_size; // size of fully reassembled fragment
 	FragReassemblerKey key;
@@ -81,7 +81,7 @@ public:
 	FragmentManager() = default;
 	~FragmentManager();
 
-	FragReassembler* NextFragment(double t, const std::unique_ptr<IP_Hdr>& ip, const u_char* pkt);
+	FragReassembler* NextFragment(double t, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt);
 	void Clear();
 	void Remove(detail::FragReassembler* f);
 

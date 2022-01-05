@@ -474,7 +474,7 @@ hook finalize_ssl(c: connection)
 	finish(c, F);
 	}
 
-event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5
+event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=5
 	{
 	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
 		{
@@ -494,7 +494,7 @@ event ssl_plaintext_data(c: connection, is_orig: bool, record_version: count, co
 	Weird::weird(wi);
 	}
 
-event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
+event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count,
                          reason: string) &priority=5
 	{
 	if ( c?$ssl && ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS ) )

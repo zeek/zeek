@@ -112,12 +112,12 @@ function lookup_controller(name: string): vector of Controller
 	if ( Cluster::local_node_type() != Cluster::MANAGER )
 		return vector();
 
-	# I am not quite sure if we can actually get away with this - in the 
+	# I am not quite sure if we can actually get away with this - in the
 	# current state, this means that the individual nodes cannot lookup
 	# a controller by name.
 	#
 	# This means that there can be no reactions to things on the actual
-	# worker nodes - because they cannot look up a name. On the other hand - 
+	# worker nodes - because they cannot look up a name. On the other hand -
 	# currently we also do not even send the events to the worker nodes (at least
 	# not if we are using broker). Because of that I am not really feeling that
 	# badly about it...

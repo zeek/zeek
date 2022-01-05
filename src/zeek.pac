@@ -3,6 +3,7 @@
 %}
 
 extern type ZeekAnalyzer;
+extern type ZeekPacketAnalyzer;
 extern type ZeekVal;
 extern type ZeekPortVal;
 extern type ZeekStringVal;

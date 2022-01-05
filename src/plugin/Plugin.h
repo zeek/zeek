@@ -5,6 +5,7 @@
 #include "zeek/zeek-config.h"
 
 #include <list>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -29,6 +30,7 @@ class ODesc;
 class Event;
 class Func;
 class Obj;
+class Packet;
 
 template <class T> class IntrusivePtr;
 using ValPtr = IntrusivePtr<Val>;
@@ -57,6 +59,7 @@ enum HookType
 	{
 	// Note: when changing this table, update hook_name() in Plugin.cc.
 	HOOK_LOAD_FILE, //< Activates Plugin::HookLoadFile().
+	HOOK_LOAD_FILE_EXT, //< Activates Plugin::HookLoadFileExtended().
 	HOOK_CALL_FUNCTION, //< Activates Plugin::HookCallFunction().
 	HOOK_QUEUE_EVENT, //< Activates Plugin::HookQueueEvent().
 	HOOK_DRAIN_EVENTS, //< Activates Plugin::HookDrainEvents()
@@ -66,6 +69,7 @@ enum HookType
 	HOOK_LOG_INIT, //< Activates Plugin::HookLogInit
 	HOOK_LOG_WRITE, //< Activates Plugin::HookLogWrite
 	HOOK_REPORTER, //< Activates Plugin::HookReporter
+	HOOK_UNPROCESSED_PACKET, //<Activates Plugin::HookUnprocessedPacket
 
 	// Meta hooks.
 	META_HOOK_PRE, //< Activates Plugin::MetaHookPre().
@@ -205,7 +209,9 @@ public:
 		CONN,
 		THREAD_FIELDS,
 		LOCATION,
-		ARG_LIST
+		ARG_LIST,
+		INPUT_FILE,
+		PACKET
 		};
 
 	/**
@@ -358,7 +364,26 @@ public:
 		}
 
 	/**
-	 * Returns the value for a boolen argument. The argument's type must
+	 * Constructor with HookLoadFileExtended result describing an input file.
+	 */
+	explicit HookArgument(std::pair<int, std::optional<std::string>> file)
+		{
+		type = INPUT_FILE;
+		input_file = std::move(file);
+		}
+
+	/**
+	 * Returns the value for a zeek::Packet* argument. The argument's type must
+	 * Constructor with a zeek::Packet* argument.
+	 */
+	explicit HookArgument(const Packet* packet)
+		{
+		type = PACKET;
+		arg.packet = packet;
+		}
+
+	/**
+	 * Returns the value for a boolean argument. The argument's type must
 	 * match accordingly.
 	 */
 	bool AsBool() const
@@ -497,13 +522,23 @@ public:
 		}
 
 	/**
-	 * Returns the value for a vod pointer argument. The argument's type
+	 * Returns the value for a void pointer argument. The argument's type
 	 * must match accordingly.
 	 */
 	const void* AsVoidPtr() const
 		{
 		assert(type == VOIDP);
 		return arg.voidp;
+		}
+
+	/**
+	 * Returns the value for a Packet pointer argument. The argument's type
+	 * must match accordingly.
+	 */
+	const Packet* AsPacket() const
+		{
+		assert(type == PACKET);
+		return arg.packet;
 		}
 
 	/**
@@ -534,12 +569,14 @@ private:
 		const void* voidp;
 		const logging::WriterBackend::WriterInfo* winfo;
 		const detail::Location* loc;
+		const Packet* packet;
 		} arg;
 
 	// Outside union because these have dtors.
 	std::pair<bool, Val*> func_result;
 	std::pair<int, const threading::Field* const*> tfields;
 	std::string arg_string;
+	std::pair<int, std::optional<std::string>> input_file;
 	};
 
 using HookArgumentList = std::list<HookArgument>;
@@ -816,6 +853,43 @@ protected:
 	                         const std::string& resolved);
 
 	/**
+	 * Hook into loading input files, with extended capabilities. This method
+	 * will be called between InitPreScript() and InitPostScript(), but with no
+	 * further order or timing guaranteed. It will be called once for each
+	 * input file Bro is about to load, either given on the command line or via
+	 * @load script directives. The hook can take over the file, in which case
+	 * Bro will not further process it otherwise. It can, alternatively, also
+	 * provide the file content as a string, which Bro will then process just
+	 * as if it had read it from a file.
+	 *
+	 * @param type The type of load encountered: script load, signatures load,
+	 *             or plugin load.
+	 *
+	 * @param file The filename that was passed to @load. Only includes
+	 *             an extension if it was given in @load.
+	 *
+	 * @param resolved The file or directory name Bro resolved from
+	 *                 the given path and is going to load. Empty string
+	 *                 if Bro was not able to resolve a path.
+	 *
+	 * @return tuple of an integer and an optional string, where: the integer
+	 * must be 1 if the plugin takes over loading the file (see below); 0 if
+	 * the plugin wanted to take over the file but had trouble loading it
+	 * (processing will abort in this case, and the plugin should have printed
+	 * an error message); and -1 if the plugin wants Bro to proceeed processing
+	 * the file normally. If the plugins takes over by returning 1, there are
+	 * two cases: if the second tuple element remains unset, the plugin handled
+	 * the loading completely internally; Bro will not do anything further with
+	 * it. Alternatively, the plugin may optionally return the acutal content
+	 * to use for the file as a string through the tuple's second element. If
+	 * so, Bro will ignore the file on disk and use that provided content
+	 * instead (including when there's actually no physical file in place on
+	 * disk at all, and loading would have hence failed otherwise).
+	 */
+	virtual std::pair<int, std::optional<std::string>>
+	HookLoadFileExtended(const LoadType type, const std::string& file, const std::string& resolved);
+
+	/**
 	 * Hook into executing a script-level function/event/hook. Whenever
 	 * the script interpreter is about to execution a function, it first
 	 * gives all plugins with this hook enabled a chance to handle the
@@ -988,6 +1062,15 @@ protected:
 	                          const zeek::detail::Location* location1,
 	                          const zeek::detail::Location* location2, bool time,
 	                          const std::string& message);
+
+	/**
+	 * Hook for packets that are considered unprocessed by an Analyzer. This
+	 * typically means that a packet has not had a log entry written for it by
+	 * the time analysis finishes.
+	 *
+	 * @param packet The data for an unprocessed packet
+	 */
+	virtual void HookUnprocessedPacket(const Packet* packet);
 
 	// Meta hooks.
 	virtual void MetaHookPre(HookType hook, const HookArgumentList& args);

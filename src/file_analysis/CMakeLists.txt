@@ -15,7 +15,6 @@ set(file_analysis_SRCS
     Analyzer.cc
     AnalyzerSet.cc
     Component.cc
-    Tag.cc
 )
 
 bif_target(file_analysis.bif)

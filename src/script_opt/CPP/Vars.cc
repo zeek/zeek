@@ -1,9 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <errno.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include "zeek/script_opt/CPP/Compile.h"
 #include "zeek/script_opt/ProfileFunc.h"
 
@@ -11,69 +7,6 @@ namespace zeek::detail
 	{
 
 using namespace std;
-
-bool CPPCompile::CheckForCollisions()
-	{
-	for ( auto& g : pfs.AllGlobals() )
-		{
-		auto gn = string(g->Name());
-
-		if ( hm.HasGlobal(gn) )
-			{
-			// Make sure the previous compilation used the
-			// same type and initialization value for the global.
-			auto ht_orig = hm.GlobalTypeHash(gn);
-			auto hv_orig = hm.GlobalValHash(gn);
-
-			auto ht = pfs.HashType(g->GetType());
-			p_hash_type hv = 0;
-			if ( g->GetVal() )
-				hv = p_hash(g->GetVal());
-
-			if ( ht != ht_orig || hv != hv_orig )
-				{
-				fprintf(stderr, "%s: hash clash for global %s (%llu/%llu vs. %llu/%llu)\n",
-				        working_dir.c_str(), gn.c_str(), ht, hv, ht_orig, hv_orig);
-				fprintf(stderr, "val: %s\n",
-				        g->GetVal() ? obj_desc(g->GetVal().get()).c_str() : "<none>");
-				return true;
-				}
-			}
-		}
-
-	for ( auto& t : pfs.RepTypes() )
-		{
-		auto tag = t->Tag();
-
-		if ( tag != TYPE_ENUM && tag != TYPE_RECORD )
-			// Other types, if inconsistent, will just not reuse
-			// the previously compiled version of the type.
-			continue;
-
-		// We identify enum's and record's by name.  Make sure that
-		// the name either (1) wasn't previously used, or (2) if it
-		// was, it was likewise for an enum or a record.
-		const auto& tn = t->GetName();
-		if ( tn.empty() || ! hm.HasGlobal(tn) )
-			// No concern of collision since the type name
-			// wasn't previously compiled.
-			continue;
-
-		if ( tag == TYPE_ENUM && hm.HasEnumTypeGlobal(tn) )
-			// No inconsistency.
-			continue;
-
-		if ( tag == TYPE_RECORD && hm.HasRecordTypeGlobal(tn) )
-			// No inconsistency.
-			continue;
-
-		fprintf(stderr, "%s: type \"%s\" collides with compiled global\n", working_dir.c_str(),
-		        tn.c_str());
-		return true;
-		}
-
-	return false;
-	}
 
 void CPPCompile::CreateGlobal(const ID* g)
 	{
@@ -83,10 +16,10 @@ void CPPCompile::CreateGlobal(const ID* g)
 	if ( pfs.Globals().count(g) == 0 )
 		{
 		// Only used in the context of calls.  If it's compilable,
-		// the we'll call it directly.
+		// then we'll call it directly.
 		if ( compilable_funcs.count(gn) > 0 )
 			{
-			AddGlobal(gn, "zf", true);
+			AddGlobal(gn, "zf");
 			return;
 			}
 
@@ -97,23 +30,17 @@ void CPPCompile::CreateGlobal(const ID* g)
 			}
 		}
 
-	if ( AddGlobal(gn, "gl", true) )
+	if ( AddGlobal(gn, "gl") )
 		{ // We'll be creating this global.
 		Emit("IDPtr %s;", globals[gn]);
 
 		if ( pfs.Events().count(gn) > 0 )
-			// This is an event that's also used as
-			// a variable.
+			// This is an event that's also used as a variable.
 			Emit("EventHandlerPtr %s_ev;", globals[gn]);
 
-		const auto& t = g->GetType();
-		NoteInitDependency(g, TypeRep(t));
-
-		auto exported = g->IsExport() ? "true" : "false";
-
-		AddInit(g, globals[gn],
-		        string("lookup_global__CPP(\"") + gn + "\", " + GenTypeName(t) + ", " + exported +
-		            ")");
+		auto gi = make_shared<GlobalInitInfo>(this, g, globals[gn]);
+		global_id_info->AddInstance(gi);
+		global_gis[g] = gi;
 		}
 
 	if ( is_bif )
@@ -124,40 +51,25 @@ void CPPCompile::CreateGlobal(const ID* g)
 	global_vars.emplace(g);
 	}
 
-void CPPCompile::UpdateGlobalHashes()
+std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterGlobal(const ID* g)
 	{
-	for ( auto& g : pfs.AllGlobals() )
+	auto gg = global_gis.find(g);
+
+	if ( gg == global_gis.end() )
 		{
-		auto gn = g->Name();
+		auto gn = string(g->Name());
 
-		if ( hm.HasGlobal(gn) )
-			// Not new to this compilation run.
-			continue;
+		if ( globals.count(gn) == 0 )
+			// Create a name for it.
+			(void)IDNameStr(g);
 
-		auto ht = pfs.HashType(g->GetType());
-
-		p_hash_type hv = 0;
-		if ( g->GetVal() )
-			hv = p_hash(g->GetVal());
-
-		fprintf(hm.HashFile(), "global\n%s\n", gn);
-		fprintf(hm.HashFile(), "%llu %llu\n", ht, hv);
-
-		// Record location information in the hash file for
-		// diagnostic purposes.
-		auto loc = g->GetLocationInfo();
-		fprintf(hm.HashFile(), "%s %d\n", loc->filename, loc->first_line);
-
-		// Flag any named record/enum types.
-		if ( g->IsType() )
-			{
-			const auto& t = g->GetType();
-			if ( t->Tag() == TYPE_RECORD )
-				fprintf(hm.HashFile(), "record\n%s\n", gn);
-			else if ( t->Tag() == TYPE_ENUM )
-				fprintf(hm.HashFile(), "enum\n%s\n", gn);
-			}
+		auto gi = make_shared<GlobalInitInfo>(this, g, globals[gn]);
+		global_id_info->AddInstance(gi);
+		global_gis[g] = gi;
+		return gi;
 		}
+	else
+		return gg->second;
 	}
 
 void CPPCompile::AddBiF(const ID* b, bool is_var)
@@ -167,39 +79,20 @@ void CPPCompile::AddBiF(const ID* b, bool is_var)
 	if ( is_var )
 		n = n + "_"; // make the name distinct
 
-	if ( AddGlobal(n, "bif", true) )
+	if ( AddGlobal(n, "bif") )
 		Emit("Func* %s;", globals[n]);
 
-	auto lookup = string("lookup_bif__CPP(\"") + bn + "\")";
-
-	if ( standalone )
-		AddActivation(globals[n] + " = " + lookup + ";");
-	else
-		AddInit(b, globals[n], lookup);
+	ASSERT(BiFs.count(globals[n]) == 0);
+	BiFs[globals[n]] = bn;
 	}
 
-bool CPPCompile::AddGlobal(const string& g, const char* suffix, bool track)
+bool CPPCompile::AddGlobal(const string& g, const char* suffix)
 	{
-	bool new_var = false;
+	if ( globals.count(g) > 0 )
+		return false;
 
-	if ( globals.count(g) == 0 )
-		{
-		auto gn = GlobalName(g, suffix);
-
-		if ( hm.HasGlobalVar(gn) )
-			gn = scope_prefix(hm.GlobalVarScope(gn)) + gn;
-		else
-			{
-			new_var = true;
-
-			if ( track && update )
-				fprintf(hm.HashFile(), "global-var\n%s\n%d\n", gn.c_str(), addl_tag);
-			}
-
-		globals.emplace(g, gn);
-		}
-
-	return new_var;
+	globals.emplace(g, GlobalName(g, suffix));
+	return true;
 	}
 
 void CPPCompile::RegisterEvent(string ev_name)
@@ -207,18 +100,19 @@ void CPPCompile::RegisterEvent(string ev_name)
 	body_events[body_name].emplace_back(move(ev_name));
 	}
 
-const string& CPPCompile::IDNameStr(const ID* id) const
+const string& CPPCompile::IDNameStr(const ID* id)
 	{
 	if ( id->IsGlobal() )
 		{
 		auto g = string(id->Name());
-		ASSERT(globals.count(g) > 0);
-		return ((CPPCompile*)(this))->globals[g];
+		if ( globals.count(g) == 0 )
+			CreateGlobal(id);
+		return globals[g];
 		}
 
-	ASSERT(locals.count(id) > 0);
-
-	return ((CPPCompile*)(this))->locals[id];
+	auto l = locals.find(id);
+	ASSERT(l != locals.end());
+	return l->second;
 	}
 
 string CPPCompile::LocalName(const ID* l) const

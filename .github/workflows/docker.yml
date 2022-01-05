@@ -13,12 +13,17 @@ defaults:
   run:
     shell: bash
 
+env:
+  IMAGE_NAME: zeek-image.tar
+  IMAGE_FILE: /tmp/zeek-image.tar
+  IMAGE_PATH: /tmp
+
 jobs:
-  build:
+  docker-build:
     runs-on: ubuntu-latest
     env:
       TEST_TAG: zeek:latest
-      CONFFLAGS: --generator=Ninja --build-type=Release
+      CONFFLAGS: --generator=Ninja --build-type=Release --enable-zeek-client
     steps:
       - uses: actions/checkout@v2
         with:
@@ -27,7 +32,8 @@ jobs:
       # Create and boot a loader. This will e.g., provide caching
       # so we avoid rebuilds of the same image after this step.
       - uses: docker/setup-buildx-action@v1
-      - name: Build
+
+      - name: Build image
         uses: docker/build-push-action@v2
         with:
           context: ./
@@ -40,9 +46,13 @@ jobs:
       - name: Run btests
         run: make -C docker/btest
 
+      - name: Save image tarball
+        run: docker save -o ${{ env.IMAGE_FILE }} ${{ env.TEST_TAG }}
+
       - name: Get version
         id: version
         run: echo "::set-output name=RELEASE_VERSION::$(cat VERSION)"
+
       - name: Compute target tag
         id: target
         env:
@@ -59,21 +69,22 @@ jobs:
             echo "::set-output name=tag::zeek:latest"
           elif [ "${GITHUB_REF}" = "refs/heads/master" ]; then
             echo "::set-output name=tag::zeek-dev:latest"
-          elif [[ "${GITHUB_REF}" = refs/heads/v* ]] && [[ "${GITHUB_REF}" != refs/heads/v*-dev ]]; then
+          elif [[ "${GITHUB_REF}" = refs/tags/v* ]] && [[ "${GITHUB_REF}" != refs/tags/v*-dev ]]; then
             echo "::set-output name=tag::zeek:${RELEASE_VERSION}"
           fi
 
       - name: Login to DockerHub
         uses: docker/login-action@v1
-        # Secrets for the login are not available for pull requests.
-        if: github.event_name == 'push'
+        # Don't publish on forks. Also note that secrets for the login are not
+        # available for pull requests, so trigger on pushes only.
+        if: github.repository == 'zeek/zeek' && github.event_name == 'push'
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Push
+      - name: Push image
         # Only publish if we did compute a tag.
-        if: github.event_name == 'push' && steps.target.outputs.tag != ''
+        if: github.repository == 'zeek/zeek' && github.event_name == 'push' && steps.target.outputs.tag != ''
         uses: docker/build-push-action@v2
         with:
           context: ./
@@ -84,10 +95,65 @@ jobs:
           tags: |
             zeekurity/${{ steps.target.outputs.tag }}
 
-      - name: Preserve artifacts
+      - name: Preserve image artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.IMAGE_NAME }}
+          path: ${{ env.IMAGE_FILE }}
+          retention-days: 1
+
+      - name: Preserve btest artifacts
         uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: docker-btest
           path: docker/btest/.tmp
+          if-no-files-found: ignore
+
+  cluster-testing:
+    # We need the Zeek Docker image build job to complete first, since we need
+    # the resulting image for our docker-compose setup.
+    needs: docker-build
+    runs-on: ubuntu-latest
+    steps:
+      # Grab the sources so we have access to btest. Could also use pip, but it
+      # seems appealing to be using the in-tree version of btest. btest is in a
+      # submodule; we check it out selectively to save time.
+      - uses: actions/checkout@v2
+      - name: Check out btest
+        run: git submodule update --init ./auxil/btest
+
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ env.IMAGE_NAME }}
+          path: ${{ env.IMAGE_PATH }}
+
+      - name: Load Docker image
+        run: |
+          docker load --input ${{ env.IMAGE_FILE }}
+          docker tag zeek:latest zeektest:latest
+
+      # The testsuite ref to use for this version of Zeek is stored in a file in
+      # the Zeek source tree.
+      - name: Get testsuite version
+        run: |
+          echo "TESTSUITE_COMMIT=$(cat ./testing/external/commit-hash.zeek-testing-cluster)" >> $GITHUB_ENV
+
+      - name: Retrieve cluster testsuite
+        uses: actions/checkout@v2
+        with:
+          repository: zeek/zeek-testing-cluster
+          path: testing/external/zeek-testing-cluster
+          ref: ${{ ENV.TESTSUITE_COMMIT }}
+
+      - name: Run testsuite
+        run: make -C testing/external/zeek-testing-cluster
+
+      - name: Preserve btest artifacts
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: cluster-btest
+          path: testing/external/zeek-testing-cluster/.tmp
           if-no-files-found: ignore

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <optional>
+#include <regex>
 #include <string>
 
 #include "zeek/Expr.h"
@@ -24,9 +25,14 @@ namespace zeek::detail
 struct AnalyOpt
 	{
 
-	// If non-nil, then only analyze the given function/event/hook.
+	// If non-nil, then only analyze function/event/hook(s) whose names
+	// match one of the given regular expressions.
+	//
 	// Applies to both ZAM and C++.
-	std::optional<std::string> only_func;
+	std::vector<std::regex> only_funcs;
+
+	// Same, but for the filenames where the function is found.
+	std::vector<std::regex> only_files;
 
 	// For a given compilation target, report functions that can't
 	// be compiled.
@@ -68,7 +74,7 @@ struct AnalyOpt
 
 	// If true, dump out transformed code: the results of reducing
 	// interpreted scripts, and, if optimize is set, of then optimizing
-	// them.  Always done if only_func is set.
+	// them.
 	bool dump_xform = false;
 
 	// If true, dump out the use-defs for each analyzed function.
@@ -96,16 +102,7 @@ struct AnalyOpt
 	// of the corresponding script, and not activated by default).
 	bool gen_standalone_CPP = false;
 
-	// If true, generate C++ for those script bodies that don't already
-	// have generated code, in a form that enables later compiles to
-	// take advantage of the newly-added elements.  Only use for generating
-	// a zeek that will always include the associated scripts.
-	bool update_CPP = false;
-
-	// If true, generate C++ for those script bodies that don't already
-	// have generated code.  The added C++ is not made available for
-	// later generated code, and will work for a generated zeek that
-	// runs without including the associated scripts.
+	// Generate C++ that's added to existing generated code.
 	bool add_CPP = false;
 
 	// If true, use C++ bodies if available.
@@ -174,6 +171,16 @@ extern void analyze_func(ScriptFuncPtr f);
 // a pointer to a FuncInfo for an argument-less quasi-function that can
 // be Invoked, or its body executed directly, to execute the statements.
 extern const FuncInfo* analyze_global_stmts(Stmt* stmts);
+
+// Add a pattern to the "only_funcs" list.
+extern void add_func_analysis_pattern(AnalyOpt& opts, const char* pat);
+
+// Add a pattern to the "only_files" list.
+extern void add_file_analysis_pattern(AnalyOpt& opts, const char* pat);
+
+// True if the given script function & body should be analyzed; otherwise
+// it should be skipped.
+extern bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body);
 
 // Analyze all of the parsed scripts collectively for optimization.
 extern void analyze_scripts();

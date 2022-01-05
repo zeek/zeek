@@ -1,51 +1,83 @@
+##! Configuration settings for a cluster agent.
+
 @load policy/frameworks/cluster/controller/types
 
 module ClusterAgent;
 
 export {
-	# The name this agent uses to represent the cluster instance
-        # it manages. When the environment variable isn't set and there's,
-	# no redef, this falls back to "agent-<hostname>".
+	## The name this agent uses to represent the cluster instance it
+	## manages. Defaults to the value of the ZEEK_AGENT_NAME environment
+	## variable. When that is unset and you don't redef the value,
+	## the implementation defaults to "agent-<hostname>".
 	const name = getenv("ZEEK_AGENT_NAME") &redef;
 
-	# Agent stdout/stderr log files to produce in Zeek's working
-	# directory. If empty, no such logs will result. The actual
-	# log files have the agent's name (as per above) dot-prefixed.
+	## Agent stdout log configuration. If the string is non-empty, Zeek will
+	## produce a free-form log (i.e., not one governed by Zeek's logging
+	## framework) in Zeek's working directory. The final log's name is
+	## "<name>.<suffix>", where the name is taken from :zeek:see:`ClusterAgent::name`,
+	## and the suffix is defined by the following variable. If left empty,
+	## no such log results.
+	##
+	## Note that the agent also establishes a "proper" Zeek log via the
+	## :zeek:see:`ClusterController::Log` module.
 	const stdout_file_suffix = "agent.stdout" &redef;
+
+	## Agent stderr log configuration. Like :zeek:see:`ClusterAgent::stdout_file_suffix`,
+	## but for the stderr stream.
 	const stderr_file_suffix = "agent.stderr" &redef;
 
-	# The address and port the agent listens on. When
-	# undefined, falls back to configurable default values.
+	## The network address the agent listens on. This only takes effect if
+	## the agent isn't configured to connect to the controller (see
+	## :zeek:see:`ClusterAgent::controller`). By default this uses the value of the
+	## ZEEK_AGENT_ADDR environment variable, but you may also redef to
+	## a specific value. When empty, the implementation falls back to
+	## :zeek:see:`ClusterAgent::default_address`.
 	const listen_address = getenv("ZEEK_AGENT_ADDR") &redef;
+
+	## The fallback listen address if :zeek:see:`ClusterAgent::listen_address`
+	## remains empty. Unless redefined, this uses Broker's own default listen
+	## address.
 	const default_address = Broker::default_listen_address &redef;
 
+	## The network port the agent listens on. Counterpart to
+	## :zeek:see:`ClusterAgent::listen_address`, defaulting to the ZEEK_AGENT_PORT
+	## environment variable.
 	const listen_port = getenv("ZEEK_AGENT_PORT") &redef;
+
+	## The fallback listen port if :zeek:see:`ClusterAgent::listen_port` remains empty.
 	const default_port = 2151/tcp &redef;
 
-	# The agent communicates under to following topic prefix,
-	# suffixed with "/<name>" (see above):
+	## The agent's Broker topic prefix. For its own communication, the agent
+	## suffixes this with "/<name>", based on :zeek:see:`ClusterAgent::name`.
 	const topic_prefix = "zeek/cluster-control/agent" &redef;
 
-	# The coordinates of the controller. When defined, it means
-	# agents peer with (connect to) the controller; otherwise the
-	# controller knows all agents and peers with them.
+	## The network coordinates of the controller. When defined, the agent
+	## peers with (and connects to) the controller; otherwise the controller
+	## will peer (and connect to) the agent, listening as defined by
+	## :zeek:see:`ClusterAgent::listen_address` and :zeek:see:`ClusterAgent::listen_port`.
 	const controller: Broker::NetworkInfo = [
 		$address="0.0.0.0", $bound_port=0/unknown] &redef;
 
-	# Agent and controller currently log only, not via the data cluster's
-        # logger. (This might get added later.) For now, this means that
-	# if both write to the same log file, it gets garbled. The following
-	# lets you specify the working directory specifically for the agent.
+	## An optional custom output directory for the agent's stdout and stderr
+	## logs. Agent and controller currently only log locally, not via the
+	## data cluster's logger node. (This might change in the future.) This
+	## means that if both write to the same log file, the output gets
+	## garbled.
 	const directory = "" &redef;
 
-	# Working directory for data cluster nodes. When relative, note
-	# that this will apply from the working directory of the agent,
-	# since it creates data cluster nodes.
+	## The working directory for data cluster nodes created by this
+	## agent. If you make this a relative path, note that the path is
+	## relative to the agent's working directory, since it creates data
+	## cluster nodes.
 	const cluster_directory = "" &redef;
 
-	# The following functions return the effective network endpoint
-	# information for this agent, in two related forms.
+	## Returns a :zeek:see:`ClusterController::Types::Instance` describing this
+	## instance (its agent name plus listening address/port, as applicable).
 	global instance: function(): ClusterController::Types::Instance;
+
+	## Returns a :zeek:see:`Broker::EndpointInfo` record for this instance.
+	## Similar to :zeek:see:`ClusterAgent::instance`, but with slightly different
+	## data format.
 	global endpoint_info: function(): Broker::EndpointInfo;
 }
 
@@ -53,8 +85,8 @@ function instance(): ClusterController::Types::Instance
 	{
 	local epi = endpoint_info();
 	return ClusterController::Types::Instance($name=epi$id,
-		$host=to_addr(epi$network$address),
-		$listen_port=epi$network$bound_port);
+	    $host=to_addr(epi$network$address),
+	    $listen_port=epi$network$bound_port);
 	}
 
 function endpoint_info(): Broker::EndpointInfo

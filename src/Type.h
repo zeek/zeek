@@ -152,7 +152,6 @@ class TypeList;
 class TableType;
 class SetType;
 class RecordType;
-class SubNetType;
 class FuncType;
 class EnumType;
 class VectorType;
@@ -165,7 +164,6 @@ using TypeListPtr = IntrusivePtr<TypeList>;
 using TableTypePtr = IntrusivePtr<TableType>;
 using SetTypePtr = IntrusivePtr<SetType>;
 using RecordTypePtr = IntrusivePtr<RecordType>;
-using SubNetTypePtr = IntrusivePtr<SubNetType>;
 using FuncTypePtr = IntrusivePtr<FuncType>;
 using EnumTypePtr = IntrusivePtr<EnumType>;
 using VectorTypePtr = IntrusivePtr<VectorType>;
@@ -225,9 +223,6 @@ public:
 
 	const RecordType* AsRecordType() const;
 	RecordType* AsRecordType();
-
-	const SubNetType* AsSubNetType() const;
-	SubNetType* AsSubNetType();
 
 	const FuncType* AsFuncType() const;
 	FuncType* AsFuncType();
@@ -700,13 +695,6 @@ protected:
 	type_decl_list* types;
 	};
 
-class SubNetType final : public Type
-	{
-public:
-	SubNetType();
-	void Describe(ODesc* d) const override;
-	};
-
 class FileType final : public Type
 	{
 public:
@@ -840,21 +828,37 @@ extern bool same_type(const Type& t1, const Type& t2, bool is_init = false,
 inline bool same_type(const TypePtr& t1, const TypePtr& t2, bool is_init = false,
                       bool match_record_field_names = true)
 	{
+	// If the pointers are identical, the type should be the same type.
+	if ( t1.get() == t2.get() )
+		return true;
+
 	return same_type(*t1, *t2, is_init, match_record_field_names);
 	}
 inline bool same_type(const Type* t1, const Type* t2, bool is_init = false,
                       bool match_record_field_names = true)
 	{
+	// If the pointers are identical, the type should be the same type.
+	if ( t1 == t2 )
+		return true;
+
 	return same_type(*t1, *t2, is_init, match_record_field_names);
 	}
 inline bool same_type(const TypePtr& t1, const Type* t2, bool is_init = false,
                       bool match_record_field_names = true)
 	{
+	// If the pointers are identical, the type should be the same type.
+	if ( t1.get() == t2 )
+		return true;
+
 	return same_type(*t1, *t2, is_init, match_record_field_names);
 	}
 inline bool same_type(const Type* t1, const TypePtr& t2, bool is_init = false,
                       bool match_record_field_names = true)
 	{
+	// If the pointers are identical, the type should be the same type.
+	if ( t1 == t2.get() )
+		return true;
+
 	return same_type(*t1, *t2, is_init, match_record_field_names);
 	}
 

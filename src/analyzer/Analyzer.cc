@@ -75,7 +75,7 @@ const char* Analyzer::GetAnalyzerName() const
 	return analyzer_mgr->GetComponentName(tag).c_str();
 	}
 
-void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
+void Analyzer::SetAnalyzerTag(const zeek::Tag& arg_tag)
 	{
 	assert(! tag || tag == arg_tag);
 	tag = arg_tag;
@@ -89,7 +89,7 @@ bool Analyzer::IsAnalyzer(const char* name)
 
 Analyzer::Analyzer(const char* name, Connection* conn)
 	{
-	Tag tag = analyzer_mgr->GetComponentTag(name);
+	zeek::Tag tag = analyzer_mgr->GetComponentTag(name);
 
 	if ( ! tag )
 		reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::Component?",
@@ -98,17 +98,17 @@ Analyzer::Analyzer(const char* name, Connection* conn)
 	CtorInit(tag, conn);
 	}
 
-Analyzer::Analyzer(const Tag& tag, Connection* conn)
+Analyzer::Analyzer(const zeek::Tag& tag, Connection* conn)
 	{
 	CtorInit(tag, conn);
 	}
 
 Analyzer::Analyzer(Connection* conn)
 	{
-	CtorInit(Tag(), conn);
+	CtorInit(zeek::Tag(), conn);
 	}
 
-void Analyzer::CtorInit(const Tag& arg_tag, Connection* arg_conn)
+void Analyzer::CtorInit(const zeek::Tag& arg_tag, Connection* arg_conn)
 	{
 	// Don't Ref conn here to avoid circular ref'ing. It can't be deleted
 	// before us.
@@ -116,6 +116,7 @@ void Analyzer::CtorInit(const Tag& arg_tag, Connection* arg_conn)
 	tag = arg_tag;
 	id = ++id_counter;
 	protocol_confirmed = false;
+	analyzer_confirmed = false;
 	timers_canceled = false;
 	skip = false;
 	finished = false;
@@ -226,7 +227,7 @@ void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64_t se
 			}
 		catch ( binpac::Exception const& e )
 			{
-			ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+			AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
@@ -249,7 +250,7 @@ void Analyzer::NextStream(int len, const u_char* data, bool is_orig)
 			}
 		catch ( binpac::Exception const& e )
 			{
-			ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+			AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
@@ -272,7 +273,7 @@ void Analyzer::NextUndelivered(uint64_t seq, int len, bool is_orig)
 			}
 		catch ( binpac::Exception const& e )
 			{
-			ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+			AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
@@ -411,7 +412,7 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	return true;
 	}
 
-Analyzer* Analyzer::AddChildAnalyzer(const Tag& analyzer)
+Analyzer* Analyzer::AddChildAnalyzer(const zeek::Tag& analyzer)
 	{
 	if ( HasChildAnalyzer(analyzer) )
 		return nullptr;
@@ -466,7 +467,7 @@ bool Analyzer::Remove()
 	return removing;
 	}
 
-void Analyzer::PreventChildren(Tag tag)
+void Analyzer::PreventChildren(zeek::Tag tag)
 	{
 	auto it = std::find(prevented.begin(), prevented.end(), tag);
 
@@ -476,7 +477,7 @@ void Analyzer::PreventChildren(Tag tag)
 	prevented.emplace_back(tag);
 	}
 
-bool Analyzer::HasChildAnalyzer(Tag tag)
+bool Analyzer::HasChildAnalyzer(zeek::Tag tag)
 	{
 	LOOP_OVER_CHILDREN(i)
 	if ( (*i)->tag == tag )
@@ -511,7 +512,7 @@ Analyzer* Analyzer::FindChild(ID arg_id)
 	return nullptr;
 	}
 
-Analyzer* Analyzer::FindChild(Tag arg_tag)
+Analyzer* Analyzer::FindChild(zeek::Tag arg_tag)
 	{
 	if ( tag == arg_tag )
 		return this;
@@ -535,7 +536,7 @@ Analyzer* Analyzer::FindChild(Tag arg_tag)
 
 Analyzer* Analyzer::FindChild(const char* name)
 	{
-	Tag tag = analyzer_mgr->GetComponentTag(name);
+	zeek::Tag tag = analyzer_mgr->GetComponentTag(name);
 	return tag ? FindChild(tag) : nullptr;
 	}
 
@@ -607,7 +608,7 @@ void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 	return;
 	}
 
-bool Analyzer::HasSupportAnalyzer(const Tag& tag, bool orig)
+bool Analyzer::HasSupportAnalyzer(const zeek::Tag& tag, bool orig)
 	{
 	SupportAnalyzer* s = orig ? orig_supporters : resp_supporters;
 	for ( ; s; s = s->sibling )
@@ -677,7 +678,7 @@ void Analyzer::FlipRoles()
 	resp_supporters = tmp;
 	}
 
-void Analyzer::ProtocolConfirmation(Tag arg_tag)
+void Analyzer::ProtocolConfirmation(zeek::Tag arg_tag)
 	{
 	if ( protocol_confirmed )
 		return;
@@ -688,6 +689,10 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 		return;
 
 	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
+	// Enqueue both of these events. In the base scripts, only the analyzer version is handled.
+	// The protocol remains just for handling scripts that haven't been updated. Once that event
+	// is removed, this method is also removed.
+	event_mgr.Enqueue(analyzer_confirmation, ConnVal(), tval, val_mgr->Count(id));
 	event_mgr.Enqueue(protocol_confirmation, ConnVal(), tval, val_mgr->Count(id));
 	}
 
@@ -709,7 +714,46 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 		r = make_intrusive<StringVal>(reason);
 
 	const auto& tval = tag.AsVal();
+	// Enqueue both of these events. In the base scripts, only the analyzer version is handled.
+	// The protocol remains just for handling scripts that haven't been updated. Once that event
+	// is removed, this method is also removed.
+	event_mgr.Enqueue(analyzer_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
 	event_mgr.Enqueue(protocol_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
+	}
+
+void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag)
+	{
+	if ( analyzer_confirmed )
+		return;
+
+	analyzer_confirmed = true;
+
+	if ( ! analyzer_confirmation )
+		return;
+
+	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
+	event_mgr.Enqueue(analyzer_confirmation, ConnVal(), tval, val_mgr->Count(id));
+	}
+
+void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len)
+	{
+	if ( ! analyzer_violation )
+		return;
+
+	StringValPtr r;
+
+	if ( data && len )
+		{
+		const char* tmp = util::copy_string(reason);
+		r = make_intrusive<StringVal>(util::fmt(
+			"%s [%s%s]", tmp, util::fmt_bytes(data, min(40, len)), len > 40 ? "..." : ""));
+		delete[] tmp;
+		}
+	else
+		r = make_intrusive<StringVal>(reason);
+
+	const auto& tval = tag.AsVal();
+	event_mgr.Enqueue(analyzer_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t, bool do_expire,

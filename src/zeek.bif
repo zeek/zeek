@@ -2422,6 +2422,19 @@ function int_to_count%(n: int%): count
 ## d: The :zeek:type:`double` to convert.
 ##
 ## Returns: The :zeek:type:`double` *d* as unsigned integer, or 0 if *d* < 0.0.
+##          The value returned follows typical rounding rules, as implemented
+##          by rint().
+function double_to_int%(d: double%): count
+	%{
+	return zeek::val_mgr->Int(bro_int_t(rint(d)));
+	%}
+
+## Converts a :zeek:type:`double` to a :zeek:type:`int`.
+##
+## d: The :zeek:type:`double` to convert.
+##
+## Returns: The :zeek:type:`double` *d* as signed integer. The value returned
+##          follows typical rounding rules, as implemented by rint().
 ##
 ## .. zeek:see:: double_to_time
 function double_to_count%(d: double%): count
@@ -3509,30 +3522,13 @@ function dump_current_packet%(file_name: string%) : bool
 ## .. zeek:see:: dump_current_packet dump_packet
 function get_current_packet%(%) : pcap_packet
 	%{
-	static auto pcap_packet = zeek::id::find_type<zeek::RecordType>("pcap_packet");
-	const Packet* p;
-	auto pkt = zeek::make_intrusive<zeek::RecordVal>(pcap_packet);
+	const Packet* p = nullptr;
 	zeek::iosource::PktSrc* pkt_src = zeek::run_state::detail::current_packet_source();
 
 	if ( ! pkt_src || ! pkt_src->GetCurrentPacket(&p) )
-		{
-		pkt->Assign(0, 0);
-		pkt->Assign(1, 0);
-		pkt->Assign(2, 0);
-		pkt->Assign(3, 0);
-		pkt->Assign(4, zeek::val_mgr->EmptyString());
-		pkt->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_UNKNOWN));
-		return pkt;
-		}
+		p = nullptr;
 
-	pkt->Assign(0, static_cast<uint32_t>(p->ts.tv_sec));
-	pkt->Assign(1, static_cast<uint32_t>(p->ts.tv_usec));
-	pkt->Assign(2, p->cap_len);
-	pkt->Assign(3, p->len);
-	pkt->Assign(4, zeek::make_intrusive<zeek::StringVal>(p->cap_len, (const char*)p->data));
-	pkt->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(p->link_type));
-
-	return pkt;
+	return Packet::ToVal(p);
 	%}
 
 ## Function to get the raw headers of the currently processed packet.

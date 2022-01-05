@@ -6,6 +6,9 @@
 
 #include <string>
 
+#include "zeek/Tag.h"
+#include "zeek/Type.h"
+
 namespace zeek
 	{
 
@@ -49,13 +52,27 @@ public:
 	 *
 	 * @param name A descriptive name for the component.  This name must
 	 * be unique across all components of the same type.
+	 *
+	 * @param tag_subtype A subtype associated with this component that
+	 * further distinguishes it. The subtype will be integrated into
+	 * the Tag that the manager associates with this component,
+	 * and component instances can accordingly access it via Tag().
+	 * If not used, leave at zero.
+	 *
+	 * @param etype An enum type that describes the type for the tag in
+	 * script-land.
 	 */
-	Component(component::Type type, const std::string& name);
+	Component(component::Type type, const std::string& name, Tag::subtype_t tag_subtype = 0,
+	          EnumTypePtr etype = nullptr);
 
 	/**
 	 * Destructor.
 	 */
-	virtual ~Component();
+	virtual ~Component() = default;
+
+	// Disable.
+	Component(const Component& other) = delete;
+	Component operator=(const Component& other) = delete;
 
 	/**
 	 * Initialization function. This function has to be called before any
@@ -67,12 +84,12 @@ public:
 	/**
 	 * Returns the compoment's type.
 	 */
-	component::Type Type() const;
+	component::Type Type() const { return type; }
 
 	/**
 	 * Returns the compoment's name.
 	 */
-	const std::string& Name() const;
+	const std::string& Name() const { return name; }
 
 	/**
 	 * Returns a canonocalized version of the components's name.  The
@@ -93,6 +110,17 @@ public:
 	 */
 	void Describe(ODesc* d) const;
 
+	/**
+	 * Initializes tag by creating the unique tag value for this component.
+	 * Has to be called exactly once.
+	 */
+	void InitializeTag();
+
+	/**
+	 * @return The component's tag.
+	 */
+	zeek::Tag Tag() const;
+
 protected:
 	/**
 	 * Adds type specific information to the output of Describe().
@@ -104,13 +132,18 @@ protected:
 	virtual void DoDescribe(ODesc* d) const { }
 
 private:
-	// Disable.
-	Component(const Component& other);
-	Component operator=(const Component& other);
-
 	component::Type type;
 	std::string name;
 	std::string canon_name;
+
+	/** The automatically assigned component tag */
+	zeek::Tag tag;
+	EnumTypePtr etype;
+	Tag::subtype_t tag_subtype;
+	bool tag_initialized = false;
+
+	/** Used to generate globally unique tags */
+	static Tag::type_t type_counter;
 	};
 
 	} // namespace plugin

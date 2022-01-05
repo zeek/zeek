@@ -39,8 +39,5 @@ function load_CPP%(h: count%): bool
 	// compiled scripts.
 	detail::standalone_activations.push_back(cb->second);
 
-	// Proceed with activation.
-	(*detail::CPP_init_hook)();
-
 	return zeek::val_mgr->True();
 	%}

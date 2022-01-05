@@ -3,4 +3,3 @@
 # Replace fractions of double value (i.e., 3.14 -> 3.x).
 
 sed 's/\.[0-9]\{1,\}/.X/g'
-

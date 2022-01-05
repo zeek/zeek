@@ -8,11 +8,11 @@ if [ "$TMP" == "" ]; then
     TMP=/tmp
 fi
 
-tmp=$TMP/`basename $0`.$$.tmp
+tmp=$TMP/$(basename $0).$$.tmp
 
 cat >$tmp
 
-echo "### NOTE: This file has been sorted with `basename $0`."
+echo "### NOTE: This file has been sorted with $(basename $0)."
 cat $tmp | grep ^#
 cat $tmp | grep -v ^# | sort -s
 

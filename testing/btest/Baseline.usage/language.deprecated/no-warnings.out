@@ -7,7 +7,6 @@ warning in ./no-warnings.zeek, line 33: deprecated (blah)
 warning in ./no-warnings.zeek, line 37: deprecated (my_event)
 warning in ./no-warnings.zeek, line 38: deprecated (my_event)
 warning in ./no-warnings.zeek, line 39: deprecated (my_hook)
-warning in ./no-warnings.zeek, line 41: deprecated (my_record$b)
 warning in ./no-warnings.zeek, line 42: deprecated (my_record$b)
 warning in ./no-warnings.zeek, line 43: deprecated (my_record$b)
 warning in ./no-warnings.zeek, line 45: deprecated (my_record?$b)
@@ -18,8 +17,8 @@ warning in ./no-warnings.zeek, line 57: deprecated (my_hook)
 warning in ./no-warnings.zeek, line 62: deprecated (blah)
 warning in ./no-warnings.zeek, line 71: deprecated (dont_use_me)
 warning in ./no-warnings.zeek, line 76: deprecated (dont_use_me_either)
-warning: mr assignment unused: mr = (coerce <internal>::#1 to record { a:count; b:string; }); ./no-warnings.zeek, line 42
-warning: mr assignment unused: mr = (coerce <internal>::#0 to record { a:count; b:string; }); ./no-warnings.zeek, line 41
+warning: mr assignment unused: mr = (coerce <internal>::#0 to record { a:count &default=1, &optional; b:string &optional, &deprecated; }); ./no-warnings.zeek, line 42
+warning: mr assignment unused: mr = my_record($a=3, $b=yeah); ./no-warnings.zeek, line 41
 warning: l assignment unused: l = testing; ./no-warnings.zeek, line 33
 ZERO
 ONE

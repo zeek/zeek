@@ -2,11 +2,12 @@
 
 #pragma once
 
+#include "zeek/Func.h"
 #include "zeek/PacketFilter.h"
+#include "zeek/Tag.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/Dispatcher.h"
-#include "zeek/packet_analysis/Tag.h"
 #include "zeek/plugin/ComponentManager.h"
 
 namespace zeek
@@ -17,13 +18,18 @@ namespace detail
 class PacketProfiler;
 	}
 
+namespace iosource
+	{
+class PktDumper;
+	}
+
 namespace packet_analysis
 	{
 
 class Analyzer;
 using AnalyzerPtr = std::shared_ptr<Analyzer>;
 
-class Manager : public plugin::ComponentManager<Tag, Component>
+class Manager : public plugin::ComponentManager<Component>
 	{
 public:
 	/**
@@ -39,8 +45,12 @@ public:
 	/**
 	 * Second-stage initialization of the manager. This is called late
 	 * during Zeek's initialization after any scripts are processed.
+	 *
+	 * @param unprocessed_output_file A path to a file where unprocessed
+	 * packets will be written. This can be an empty string to disable
+	 * writing packets.
 	 */
-	void InitPostScript();
+	void InitPostScript(const std::string& unprocessed_output_file);
 
 	/**
 	 * Finished the manager's operations.
@@ -126,6 +136,12 @@ public:
 		return pkt_filter;
 		}
 
+	/**
+	 * Returns the total number of packets received that weren't considered
+	 * processed by some analyzer.
+	 */
+	uint64_t GetUnprocessedCount() const { return total_not_processed; }
+
 private:
 	/**
 	 * Instantiates a new analyzer instance.
@@ -135,7 +151,7 @@ private:
 	 * @return The new analyzer instance. Returns null if tag is invalid, the
 	 * requested analyzer is disabled, or the analyzer can't be instantiated.
 	 */
-	AnalyzerPtr InstantiateAnalyzer(const Tag& tag);
+	AnalyzerPtr InstantiateAnalyzer(const zeek::Tag& tag);
 
 	/**
 	 * Instantiates a new analyzer.
@@ -163,6 +179,9 @@ private:
 	uint64_t unknown_sampling_rate = 0;
 	double unknown_sampling_duration = 0;
 	uint64_t unknown_first_bytes_count = 0;
+
+	uint64_t total_not_processed = 0;
+	iosource::PktDumper* unprocessed_dumper = nullptr;
 	};
 
 	} // namespace packet_analysis

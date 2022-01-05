@@ -6,7 +6,7 @@
 
 #include <errno.h>
 
-#include "zeek/bro_inet_ntop.h"
+#include "zeek/3rdparty/bro_inet_ntop.h"
 #include "zeek/threading/MsgThread.h"
 
 using zeek::threading::Field;

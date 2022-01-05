@@ -101,6 +101,11 @@ bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		return false;
 		}
 
+	// ARP packets are considered processed if we get to this point. There may be issues
+	// with the processing of them, but they're actually an ARP packet and anything else
+	// will be reported via events.
+	packet->processed = true;
+
 	// Check the address description fields.
 	switch ( ntohs(ah->ar_hrd) )
 		{

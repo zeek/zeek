@@ -8,7 +8,7 @@ module Barnyard2;
 
 export {
 	redef enum Log::ID += { LOG };
-	
+
 	global log_policy: Log::PolicyHook;
 
 	type Info: record {
@@ -19,9 +19,9 @@ export {
 		## Associated alert data.
 		alert:              AlertData &log;
 	};
-	
+
 	## This can convert a Barnyard :zeek:type:`Barnyard2::PacketID` value to
-	## a :zeek:type:`conn_id` value in the case that you might need to index 
+	## a :zeek:type:`conn_id` value in the case that you might need to index
 	## into an existing data structure elsewhere within Zeek.
 	global pid2cid: function(p: PacketID): conn_id;
 }
@@ -40,22 +40,22 @@ function pid2cid(p: PacketID): conn_id
 event barnyard_alert(id: PacketID, alert: AlertData, msg: string, data: string)
 	{
 	Log::write(Barnyard2::LOG, [$ts=network_time(), $pid=id, $alert=alert]);
-	
+
 	#local proto_connection_string: string;
 	#if ( id$src_p == 0/tcp )
 	#	proto_connection_string = fmt("{PROTO:255} %s -> %s", id$src_ip, id$dst_ip);
 	#else
-	#	proto_connection_string = fmt("{%s} %s:%d -> %s:%d", 
+	#	proto_connection_string = fmt("{%s} %s:%d -> %s:%d",
 	#	                              to_upper(fmt("%s", get_port_transport_proto(id$dst_p))),
 	#	                              id$src_ip, id$src_p, id$dst_ip, id$dst_p);
     #
-	#local snort_alike_msg = fmt("%.6f [**] [%d:%d:%d] %s [**] [Classification: %s] [Priority: %d] %s", 
+	#local snort_alike_msg = fmt("%.6f [**] [%d:%d:%d] %s [**] [Classification: %s] [Priority: %d] %s",
 	#                            sad$ts,
 	#                            sad$generator_id,
 	#                            sad$signature_id,
 	#                            sad$signature_revision,
-	#                            msg, 
-	#                            sad$classification, 
-	#                            sad$priority_id, 
+	#                            msg,
+	#                            sad$classification,
+	#                            sad$priority_id,
 	#                            proto_connection_string);
 	}

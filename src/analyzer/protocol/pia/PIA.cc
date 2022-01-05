@@ -147,7 +147,7 @@ void PIA::DoMatch(const u_char* data, int len, bool is_orig, bool bol, bool eol,
 	                                      clear_state);
 	}
 
-void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule)
+void PIA_UDP::ActivateAnalyzer(zeek::Tag tag, const zeek::detail::Rule* rule)
 	{
 	if ( pkt_buffer.state == MATCHING_ONLY )
 		{
@@ -181,7 +181,7 @@ void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule
 	ReplayPacketBuffer(a);
 	}
 
-void PIA_UDP::DeactivateAnalyzer(analyzer::Tag tag)
+void PIA_UDP::DeactivateAnalyzer(zeek::Tag tag)
 	{
 	reporter->InternalError("PIA_UDP::Deact not implemented yet");
 	}
@@ -307,7 +307,7 @@ void PIA_TCP::Undelivered(uint64_t seq, int len, bool is_orig)
 		}
 	}
 
-void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule)
+void PIA_TCP::ActivateAnalyzer(zeek::Tag tag, const zeek::detail::Rule* rule)
 	{
 	if ( stream_buffer.state == MATCHING_ONLY )
 		{
@@ -429,7 +429,7 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule
 	tcp->SetReassembler(reass_orig, reass_resp);
 	}
 
-void PIA_TCP::DeactivateAnalyzer(analyzer::Tag tag)
+void PIA_TCP::DeactivateAnalyzer(zeek::Tag tag)
 	{
 	reporter->InternalError("PIA_TCP::Deact not implemented yet");
 	}

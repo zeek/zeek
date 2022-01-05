@@ -1,3 +1,8 @@
+##! This is the main "runtime" of a cluster agent. Zeek does not load this
+##! directly; rather, the agent's bootstrapping module (in ./boot.zeek)
+##! specifies it as the script to run in the node newly created via Zeek's
+##! supervisor.
+
 @load base/frameworks/broker
 
 @load policy/frameworks/cluster/controller/config
@@ -6,21 +11,24 @@
 
 @load ./api
 
+module ClusterAgent::Runtime;
+
 redef ClusterController::role = ClusterController::Types::AGENT;
 
 # The global configuration as passed to us by the controller
-global global_config: ClusterController::Types::Configuration;
+global g_config: ClusterController::Types::Configuration;
 
 # A map to make other instance info accessible
-global instances: table[string] of ClusterController::Types::Instance;
+global g_instances: table[string] of ClusterController::Types::Instance;
 
 # A map for the nodes we run on this instance, via this agent.
-global nodes: table[string] of ClusterController::Types::Node;
+global g_nodes: table[string] of ClusterController::Types::Node;
 
 # The node map employed by the supervisor to describe the cluster
 # topology to newly forked nodes. We refresh it when we receive
 # new configurations.
-global data_cluster: table[string] of Supervisor::ClusterEndpoint;
+global g_data_cluster: table[string] of Supervisor::ClusterEndpoint;
+
 
 event SupervisorControl::create_response(reqid: string, result: string)
 	{
@@ -86,43 +94,43 @@ event ClusterAgent::API::set_configuration_request(reqid: string, config: Cluste
 	# Adopt the global configuration provided.
 	# XXX this can later handle validation and persistence
 	# XXX should do this transactionally, only set when all else worked
-	global_config = config;
+	g_config = config;
 
 	# Refresh the instances table:
-	instances = table();
+	g_instances = table();
 	for ( inst in config$instances )
-		instances[inst$name] = inst;
+		g_instances[inst$name] = inst;
 
 	# Terminate existing nodes
-	for ( nodename in nodes )
+	for ( nodename in g_nodes )
 		supervisor_destroy(nodename);
 
-	nodes = table();
+	g_nodes = table();
 
 	# Refresh the data cluster and nodes tables
 
-	data_cluster = table();
+	g_data_cluster = table();
 	for ( node in config$nodes )
 		{
 		if ( node$instance == ClusterAgent::name )
-			nodes[node$name] = node;
+			g_nodes[node$name] = node;
 
 		local cep = Supervisor::ClusterEndpoint(
 		    $role = node$role,
-		    $host = instances[node$instance]$host,
+		    $host = g_instances[node$instance]$host,
 		    $p = node$p);
 
 		if ( node?$interface )
 			cep$interface = node$interface;
 
-		data_cluster[node$name] = cep;
+		g_data_cluster[node$name] = cep;
 		}
 
 	# Apply the new configuration via the supervisor
 
-	for ( nodename in nodes )
+	for ( nodename in g_nodes )
 		{
-		node = nodes[nodename];
+		node = g_nodes[nodename];
 		nc = Supervisor::NodeConfig($name=nodename);
 
 		if ( ClusterAgent::cluster_directory != "" )
@@ -140,7 +148,7 @@ event ClusterAgent::API::set_configuration_request(reqid: string, config: Cluste
 		# XXX could use options to enable per-node overrides for
 		# directory, stdout, stderr, others?
 
-		nc$cluster = data_cluster;
+		nc$cluster = g_data_cluster;
 		supervisor_create(nc);
 		}
 
@@ -149,22 +157,59 @@ event ClusterAgent::API::set_configuration_request(reqid: string, config: Cluste
 	# events asynchonously. The only indication of error will be
 	# notification events to the controller.
 
+	if ( reqid != "" )
+		{
+		local res = ClusterController::Types::Result(
+		    $reqid = reqid,
+		    $instance = ClusterAgent::name);
+
+		ClusterController::Log::info(fmt("tx ClusterAgent::API::set_configuration_response %s",
+		                                 ClusterController::Types::result_to_string(res)));
+		event ClusterAgent::API::set_configuration_response(reqid, res);
+		}
+	}
+
+event ClusterAgent::API::agent_welcome_request(reqid: string)
+	{
+	ClusterController::Log::info(fmt("rx ClusterAgent::API::agent_welcome_request %s", reqid));
+
 	local res = ClusterController::Types::Result(
 	    $reqid = reqid,
 	    $instance = ClusterAgent::name);
 
-	ClusterController::Log::info(fmt("tx ClusterAgent::API::set_configuration_response %s", reqid));
-	event ClusterAgent::API::set_configuration_response(reqid, res);
+	ClusterController::Log::info(fmt("tx ClusterAgent::API::agent_welcome_response %s",
+	                                 ClusterController::Types::result_to_string(res)));
+	event ClusterAgent::API::agent_welcome_response(reqid, res);
+	}
+
+event ClusterAgent::API::agent_standby_request(reqid: string)
+	{
+	ClusterController::Log::info(fmt("rx ClusterAgent::API::agent_standby_request %s", reqid));
+
+	# We shut down any existing cluster nodes via an empty configuration,
+	# and fall silent. We do not unpeer/disconnect (assuming we earlier
+	# peered/connected -- otherwise there's nothing we can do here via
+	# Broker anyway), mainly to keep open the possibility of running
+	# cluster nodes again later.
+	event ClusterAgent::API::set_configuration_request("", ClusterController::Types::Configuration());
+
+	local res = ClusterController::Types::Result(
+	    $reqid = reqid,
+	    $instance = ClusterAgent::name);
+
+	ClusterController::Log::info(fmt("tx ClusterAgent::API::agent_standby_response %s",
+	                                 ClusterController::Types::result_to_string(res)));
+	event ClusterAgent::API::agent_standby_response(reqid, res);
 	}
 
 event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	{
 	# This does not (cannot?) immediately verify that the new peer
-	# is in fact a controller, so we might send this redundantly.
-	# Controllers handle the hello event accordingly.
+	# is in fact a controller, so we might send this in vain.
+	# Controllers register the agent upon receipt of the event.
 
 	local epi = ClusterAgent::endpoint_info();
-	# XXX deal with unexpected peers, unless we're okay with it
+
 	event ClusterAgent::API::notify_agent_hello(epi$id,
 	    to_addr(epi$network$address), ClusterAgent::API::version);
 	}
@@ -185,13 +230,16 @@ event zeek_init()
 	Broker::peer(supervisor_addr, Broker::default_port, Broker::default_listen_retry);
 
 	# Agents need receive communication targeted at it, and any responses
-        # from the supervisor.
+	# from the supervisor.
 	Broker::subscribe(agent_topic);
 	Broker::subscribe(SupervisorControl::topic_prefix);
 
 	# Auto-publish a bunch of events. Glob patterns or module-level
 	# auto-publish would be helpful here.
 	Broker::auto_publish(agent_topic, ClusterAgent::API::set_configuration_response);
+	Broker::auto_publish(agent_topic, ClusterAgent::API::agent_welcome_response);
+	Broker::auto_publish(agent_topic, ClusterAgent::API::agent_standby_response);
+
 	Broker::auto_publish(agent_topic, ClusterAgent::API::notify_agent_hello);
 	Broker::auto_publish(agent_topic, ClusterAgent::API::notify_change);
 	Broker::auto_publish(agent_topic, ClusterAgent::API::notify_error);
@@ -210,8 +258,8 @@ event zeek_init()
 		{
 		# We connect to the controller.
 		Broker::peer(ClusterAgent::controller$address,
-			     ClusterAgent::controller$bound_port,
-			     ClusterController::connect_retry);
+		             ClusterAgent::controller$bound_port,
+		             ClusterController::connect_retry);
 		}
 	else
 		{

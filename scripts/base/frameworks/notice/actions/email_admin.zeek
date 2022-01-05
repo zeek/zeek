@@ -10,9 +10,9 @@ module Notice;
 
 export {
 	redef enum Action += {
-		## Indicate that the generated email should be addressed to the 
+		## Indicate that the generated email should be addressed to the
 		## appropriate email addresses as found by the
-		## :zeek:id:`Site::get_emails` function based on the relevant 
+		## :zeek:id:`Site::get_emails` function based on the relevant
 		## address or addresses indicated in the notice.
 		ACTION_EMAIL_ADMIN
 	};
@@ -23,7 +23,6 @@ hook notice(n: Notice::Info)
 	if ( |Site::local_admins| > 0 &&
 	     ACTION_EMAIL_ADMIN in n$actions )
 		{
-		local email = "";
 		if ( n?$src && |Site::get_emails(n$src)| > 0 )
 			add n$email_dest[Site::get_emails(n$src)];
 		if ( n?$dst && |Site::get_emails(n$dst)| > 0 )

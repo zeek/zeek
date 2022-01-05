@@ -57,5 +57,5 @@ private:
  *         long enough to be an IP header, and \a inner is always non-null
  *         for other return values.
  */
-int ParsePacket(int caplen, const u_char* const pkt, int proto, std::unique_ptr<IP_Hdr>& inner);
+int ParsePacket(int caplen, const u_char* const pkt, int proto, std::shared_ptr<IP_Hdr>& inner);
 	}

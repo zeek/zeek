@@ -10,7 +10,7 @@ namespace zeek::detail
 	{
 
 std::list<ScannedFile> files_scanned;
-std::vector<std::string> sig_files;
+std::vector<SignatureFile> sig_files;
 
 ScannedFile::ScannedFile(int arg_include_level, std::string arg_name, bool arg_skipped,
                          bool arg_prefixes_checked)
@@ -45,6 +45,13 @@ bool ScannedFile::AlreadyScanned() const
 
 	DBG_LOG(zeek::DBG_SCRIPTS, "AlreadyScanned result (%d) %s", rval, canonical_path.data());
 	return rval;
+	}
+
+SignatureFile::SignatureFile(std::string file) : file(std::move(file)) { }
+
+SignatureFile::SignatureFile(std::string file, std::string full_path)
+	: file(std::move(file)), full_path(std::move(full_path))
+	{
 	}
 
 	} // namespace zeek::detail

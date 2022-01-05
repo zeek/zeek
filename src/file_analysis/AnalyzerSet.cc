@@ -42,14 +42,14 @@ AnalyzerSet::~AnalyzerSet()
 	delete analyzer_hash;
 	}
 
-Analyzer* AnalyzerSet::Find(const file_analysis::Tag& tag, RecordValPtr args)
+Analyzer* AnalyzerSet::Find(const zeek::Tag& tag, RecordValPtr args)
 	{
 	auto key = GetKey(tag, std::move(args));
 	Analyzer* rval = analyzer_map.Lookup(key.get());
 	return rval;
 	}
 
-bool AnalyzerSet::Add(const file_analysis::Tag& tag, RecordValPtr args)
+bool AnalyzerSet::Add(const zeek::Tag& tag, RecordValPtr args)
 	{
 	auto key = GetKey(tag, args);
 
@@ -71,7 +71,7 @@ bool AnalyzerSet::Add(const file_analysis::Tag& tag, RecordValPtr args)
 	return true;
 	}
 
-Analyzer* AnalyzerSet::QueueAdd(const file_analysis::Tag& tag, RecordValPtr args)
+Analyzer* AnalyzerSet::QueueAdd(const zeek::Tag& tag, RecordValPtr args)
 	{
 	auto key = GetKey(tag, args);
 	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, std::move(args));
@@ -105,12 +105,12 @@ void AnalyzerSet::AddMod::Abort()
 	delete a;
 	}
 
-bool AnalyzerSet::Remove(const file_analysis::Tag& tag, RecordValPtr args)
+bool AnalyzerSet::Remove(const zeek::Tag& tag, RecordValPtr args)
 	{
 	return Remove(tag, GetKey(tag, std::move(args)));
 	}
 
-bool AnalyzerSet::Remove(const file_analysis::Tag& tag, std::unique_ptr<zeek::detail::HashKey> key)
+bool AnalyzerSet::Remove(const zeek::Tag& tag, std::unique_ptr<zeek::detail::HashKey> key)
 	{
 	auto a = (file_analysis::Analyzer*)analyzer_map.Remove(key.get());
 
@@ -134,7 +134,7 @@ bool AnalyzerSet::Remove(const file_analysis::Tag& tag, std::unique_ptr<zeek::de
 	return true;
 	}
 
-bool AnalyzerSet::QueueRemove(const file_analysis::Tag& tag, RecordValPtr args)
+bool AnalyzerSet::QueueRemove(const zeek::Tag& tag, RecordValPtr args)
 	{
 	auto key = GetKey(tag, std::move(args));
 	auto rval = analyzer_map.Lookup(key.get());
@@ -147,7 +147,7 @@ bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set)
 	return set->Remove(tag, std::move(key));
 	}
 
-std::unique_ptr<zeek::detail::HashKey> AnalyzerSet::GetKey(const file_analysis::Tag& t,
+std::unique_ptr<zeek::detail::HashKey> AnalyzerSet::GetKey(const zeek::Tag& t,
                                                            RecordValPtr args) const
 	{
 	auto lv = make_intrusive<ListVal>(TYPE_ANY);

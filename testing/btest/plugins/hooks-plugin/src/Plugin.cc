@@ -15,6 +15,7 @@ using namespace btest::plugin::Demo_Hooks;
 zeek::plugin::Configuration Plugin::Configure()
 	{
 	EnableHook(zeek::plugin::HOOK_LOAD_FILE);
+	EnableHook(zeek::plugin::HOOK_LOAD_FILE_EXT);
 	EnableHook(zeek::plugin::HOOK_CALL_FUNCTION);
 	EnableHook(zeek::plugin::HOOK_QUEUE_EVENT);
 	EnableHook(zeek::plugin::HOOK_DRAIN_EVENTS);
@@ -25,6 +26,7 @@ zeek::plugin::Configuration Plugin::Configure()
 	EnableHook(zeek::plugin::HOOK_SETUP_ANALYZER_TREE);
 	EnableHook(zeek::plugin::HOOK_LOG_INIT);
 	EnableHook(zeek::plugin::HOOK_LOG_WRITE);
+	EnableHook(zeek::plugin::HOOK_UNPROCESSED_PACKET);
 
 	zeek::plugin::Configuration config;
 	config.name = "Demo::Hooks";
@@ -54,6 +56,13 @@ int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std
 	fprintf(stderr, "%.6f %-15s %s %s\n", zeek::run_state::network_time, "| HookLoadFile",
 		file.c_str(), resolved.c_str());
 	return -1;
+	}
+
+std::pair<int, std::optional<std::string>> Plugin::HookLoadFileExtended(const LoadType type, const std::string& file, const std::string& resolved)
+	{
+	fprintf(stderr, "%.6f %-15s %s %s\n", zeek::run_state::network_time, "| HookLoadFileExtended",
+		file.c_str(), resolved.c_str());
+	return std::make_pair(-1, std::nullopt);
 	}
 
 std::pair<bool, zeek::ValPtr> Plugin::HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* frame,
@@ -263,4 +272,17 @@ bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
 
 	fprintf(stderr, "%.6f %-15s %s %s\n", zeek::run_state::network_time, "| HookLogWrite", info.path, d.Description());
 	return true;
+	}
+
+void Plugin::HookUnprocessedPacket(const zeek::Packet* packet)
+	{
+	zeek::ODesc d;
+	d.Add("[");
+	d.Add("ts=");
+	d.Add(packet->time);
+	d.Add(" len=");
+	d.Add(packet->len);
+	d.Add("]");
+
+	fprintf(stderr, "%.6f %-23s %s\n", zeek::run_state::network_time, "| HookUnprocessedPacket", d.Description());
 	}

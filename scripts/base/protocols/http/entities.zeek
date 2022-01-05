@@ -97,7 +97,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
-	if ( f$source == "HTTP" && c?$http ) 
+	if ( f$source == "HTTP" && c?$http )
 		{
 		f$http = c$http;
 
@@ -199,6 +199,6 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 
 event http_end_entity(c: connection, is_orig: bool) &priority=5
 	{
-	if ( c?$http && c$http?$current_entity ) 
+	if ( c?$http && c$http?$current_entity )
 		delete c$http$current_entity;
 	}

@@ -5,7 +5,7 @@
 # traces.cfg must consist of lines of the form "<url> [<http-user>[:<http-password>]]"
 
 if [ "$1" == "" ]; then
-    echo "usage: `basename $0` <traces-directory>"
+    echo "usage: $(basename $0) <traces-directory>"
     exit 1
 fi
 
@@ -18,7 +18,7 @@ cfg=traces.cfg
 
 for p in .proxy ../.proxy; do
     if [ -e $p ]; then
-        proxy=`cat $p | head -1 | awk '{print $1}'`
+        proxy=$(cat $p | head -1 | awk '{print $1}')
         echo Using proxy $proxy ...
         proxy="ALL_PROXY=$proxy"
         break
@@ -37,16 +37,16 @@ cat $cfg | while read line; do
         continue
     fi
 
-    url=`echo $line | awk '{print $1}'`
-    auth=`echo $line | awk '{print $2}'`
+    url=$(echo $line | awk '{print $1}')
+    auth=$(echo $line | awk '{print $2}')
 
-    file=$1/`echo $url | sed 's#^.*/##g'`
+    file=$1/$(echo $url | sed 's#^.*/##g')
     fp=$file.md5sum
 
     if [ "$auth" != "" ]; then
         auth="-u $auth"
         # Hide the hostname and directory names in output messages
-        safe_url=`echo $url | sed 's#/[A-Za-z].*/#/[hidden]/#'`
+        safe_url=$(echo $url | sed 's#/[A-Za-z].*/#/[hidden]/#')
     else
         safe_url=$url
     fi
@@ -66,7 +66,7 @@ cat $cfg | while read line; do
             download=1
         fi
     else
-       download=1
+        download=1
     fi
 
     if [ "$download" = "1" ]; then
@@ -77,9 +77,9 @@ cat $cfg | while read line; do
         }
         echo
         mv $fp.tmp $fp
-     #else
-     #  echo "`basename $file` already available."
-     fi
+    #else
+    #  echo "`basename $file` already available."
+    fi
 
     rm -f $fp.tmp
 

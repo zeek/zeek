@@ -67,7 +67,7 @@ RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 			reporter->Warning("unknown analyzer '%s' specified in rule", arg.c_str());
 		}
 	else
-		child_analyzer = analyzer::Tag();
+		child_analyzer = zeek::Tag();
 	}
 
 void RuleActionAnalyzer::PrintDebug()

@@ -21,7 +21,7 @@
 
 extern "C"
 	{
-#include "zeek/setsignal.h"
+#include "zeek/3rdparty/setsignal.h"
 	}
 
 #include "zeek/DebugLogger.h"

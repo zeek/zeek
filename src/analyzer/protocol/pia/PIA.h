@@ -29,10 +29,10 @@ public:
 
 	// Called when PIA wants to put an Analyzer in charge.  rule is the
 	// signature that triggered the activitation, if any.
-	virtual void ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule = nullptr) = 0;
+	virtual void ActivateAnalyzer(zeek::Tag tag, const zeek::detail::Rule* rule = nullptr) = 0;
 
 	// Called when PIA wants to remove an Analyzer.
-	virtual void DeactivateAnalyzer(analyzer::Tag tag) = 0;
+	virtual void DeactivateAnalyzer(zeek::Tag tag) = 0;
 
 	void Match(zeek::detail::Rule::PatternType type, const u_char* data, int len, bool is_orig,
 	           bool bol, bool eol, bool clear_state);
@@ -129,8 +129,8 @@ protected:
 		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen, true);
 		}
 
-	void ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule) override;
-	void DeactivateAnalyzer(analyzer::Tag tag) override;
+	void ActivateAnalyzer(zeek::Tag tag, const zeek::detail::Rule* rule) override;
+	void DeactivateAnalyzer(zeek::Tag tag) override;
 	};
 
 // PIA for TCP.  Accepts both packet and stream input (and reassembles
@@ -180,8 +180,8 @@ protected:
 	void DeliverStream(int len, const u_char* data, bool is_orig) override;
 	void Undelivered(uint64_t seq, int len, bool is_orig) override;
 
-	void ActivateAnalyzer(analyzer::Tag tag, const zeek::detail::Rule* rule = nullptr) override;
-	void DeactivateAnalyzer(analyzer::Tag tag) override;
+	void ActivateAnalyzer(zeek::Tag tag, const zeek::detail::Rule* rule = nullptr) override;
+	void DeactivateAnalyzer(zeek::Tag tag) override;
 
 private:
 	// FIXME: Not sure yet whether we need both pkt_buffer and stream_buffer.

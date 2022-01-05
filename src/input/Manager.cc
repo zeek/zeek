@@ -179,7 +179,7 @@ Manager::AnalysisStream::AnalysisStream() : Manager::Stream::Stream(ANALYSIS_STR
 
 Manager::AnalysisStream::~AnalysisStream() { }
 
-Manager::Manager() : plugin::ComponentManager<input::Tag, input::Component>("Input", "Reader")
+Manager::Manager() : plugin::ComponentManager<input::Component>("Input", "Reader")
 	{
 	end_of_data = event_registry->Register("Input::end_of_data");
 	}

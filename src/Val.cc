@@ -1715,8 +1715,7 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 		t0 = tmp;
 		}
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-	for ( const auto& tble : *tbl )
+	for ( const auto& tble : *t1 )
 		{
 		auto k = tble.GetHashKey();
 
@@ -3647,6 +3646,7 @@ bool VectorVal::Concretize(const TypePtr& t)
 		}
 
 	// Require that this vector be treated consistently in the future.
+	type = make_intrusive<VectorType>(t);
 	yield_type = t;
 	managed_yield = ZVal::IsManagedType(yield_type);
 	delete yield_types;

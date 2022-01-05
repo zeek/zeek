@@ -67,7 +67,7 @@ refine flow DHCP_Flow += {
 			}
 
 		if ( type == 0 )
-			connection()->zeek_analyzer()->ProtocolViolation("no DHCP message type option");
+			connection()->zeek_analyzer()->AnalyzerViolation("no DHCP message type option");
 
 		return type;
 		%}

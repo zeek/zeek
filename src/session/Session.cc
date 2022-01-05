@@ -205,4 +205,18 @@ void Session::RemoveConnectionTimer(double t)
 	session_mgr->Remove(this);
 	}
 
+AnalyzerConfirmationState Session::AnalyzerState(const zeek::Tag& tag) const
+	{
+	auto it = analyzer_confirmations.find(tag);
+	if ( it == analyzer_confirmations.end() )
+		return AnalyzerConfirmationState::UNKNOWN;
+
+	return it->second;
+	}
+
+void Session::SetAnalyzerState(const zeek::Tag& tag, AnalyzerConfirmationState value)
+	{
+	analyzer_confirmations.insert_or_assign(tag, value);
+	}
+
 	} // namespace zeek::session

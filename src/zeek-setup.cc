@@ -41,12 +41,12 @@
 #include "zeek/ScriptCoverageManager.h"
 #include "zeek/Stats.h"
 #include "zeek/Stmt.h"
+#include "zeek/Tag.h"
 #include "zeek/Timer.h"
 #include "zeek/Traverse.h"
 #include "zeek/Trigger.h"
 #include "zeek/Var.h"
 #include "zeek/analyzer/Manager.h"
-#include "zeek/analyzer/Tag.h"
 #include "zeek/binpac_zeek.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/file_analysis/Manager.h"
@@ -67,7 +67,7 @@
 
 extern "C"
 	{
-#include "zeek/setsignal.h"
+#include "zeek/3rdparty/setsignal.h"
 	};
 
 zeek::detail::ScriptCoverageManager zeek::detail::script_coverage_mgr;
@@ -416,13 +416,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		}
 
 	if ( options.run_unit_tests )
-		{
-		doctest::Context context;
-		auto dargs = to_cargs(options.doctest_args);
-		context.applyCommandLine(dargs.size(), dargs.data());
-		ZEEK_LSAN_ENABLE();
-		exit(context.run());
-		}
+		options.deterministic_mode = true;
 
 	auto stem = Supervisor::CreateStem(options.supervisor_mode);
 
@@ -601,6 +595,16 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
 
+	// Delay the unit test until here so that plugins have been loaded.
+	if ( options.run_unit_tests )
+		{
+		doctest::Context context;
+		auto dargs = to_cargs(options.doctest_args);
+		context.applyCommandLine(dargs.size(), dargs.data());
+		ZEEK_LSAN_ENABLE();
+		exit(context.run());
+		}
+
 	// Print usage after plugins load so that any path extensions are properly shown.
 	if ( options.print_usage )
 		usage(argv[0], 0);
@@ -708,7 +712,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			exit(success ? 0 : 1);
 			}
 
-		packet_mgr->InitPostScript();
+		packet_mgr->InitPostScript(options.unprocessed_output_file.value_or(""));
 		analyzer_mgr->InitPostScript();
 		file_mgr->InitPostScript();
 		dns_mgr->InitPostScript();
@@ -737,7 +741,11 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			id->SetVal(make_intrusive<StringVal>(*options.pcap_filter));
 			}
 
-		auto all_signature_files = options.signature_files;
+		std::vector<SignatureFile> all_signature_files;
+
+		// Append signature files given on the command line
+		for ( const auto& sf : options.signature_files )
+			all_signature_files.emplace_back(sf);
 
 		// Append signature files defined in "signature_files" script option
 		for ( auto&& sf : get_script_signature_files() )

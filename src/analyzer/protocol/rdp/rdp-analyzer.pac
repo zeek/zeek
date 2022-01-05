@@ -48,7 +48,7 @@ refine flow RDP_Flow += {
 
 	function proc_rdp_gcc_server_create_response(gcc_response: GCC_Server_Create_Response): bool
 		%{
-		connection()->zeek_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->AnalyzerConfirmation();
 
 		if ( rdp_gcc_server_create_response )
 			zeek::BifEvent::enqueue_rdp_gcc_server_create_response(connection()->zeek_analyzer(),
@@ -61,7 +61,7 @@ refine flow RDP_Flow += {
 
 	function proc_rdp_client_core_data(ccore: Client_Core_Data): bool
 		%{
-		connection()->zeek_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->AnalyzerConfirmation();
 
 		if ( rdp_client_core_data )
 			{
@@ -181,7 +181,7 @@ refine flow RDP_Flow += {
 
 	function proc_rdp_server_security(ssd: Server_Security_Data): bool
 		%{
-		connection()->zeek_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->AnalyzerConfirmation();
 
 		if ( rdp_server_security )
 			zeek::BifEvent::enqueue_rdp_server_security(connection()->zeek_analyzer(),

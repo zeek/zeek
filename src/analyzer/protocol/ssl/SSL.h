@@ -82,7 +82,7 @@ public:
 	 *
 	 * @param data Pointer to the key buffer as derived via TLS PRF
 	 */
-	void SetKeys(size_t len, const u_char* data);
+	void SetKeys(const std::vector<u_char> newkeys);
 
 	/**
 	 * Try to decrypt TLS application data from a packet. Requires secret or keys to be set prior
@@ -122,8 +122,9 @@ public:
 	 *
 	 * @return True, if the operation completed successfully, false otherwise
 	 */
-	bool TLS12_PRF(const std::string& secret, const std::string& label, const char* rnd1,
-	               size_t rnd1_len, const char* rnd2, size_t rnd2_len, u_char* out, size_t out_len);
+	std::optional<std::vector<u_char>> TLS12_PRF(const std::string& secret,
+	                                             const std::string& label, const std::string& rnd1,
+	                                             const std::string& rnd2, size_t requested_len);
 
 	/**
 	 * Forward decrypted TLS application data to child analyzers

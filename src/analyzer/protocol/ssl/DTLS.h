@@ -39,6 +39,13 @@ public:
 
 	static analyzer::Analyzer* Instantiate(Connection* conn) { return new DTLS_Analyzer(conn); }
 
+	/**
+	 * Try to decrypt TLS application data from a packet.
+	 *
+	 * For DTLS, this operation is not currently implemented and this function will
+	 * always return false.
+	 *
+	 **/
 	bool TryDecryptApplicationData(int len, const u_char* data, bool is_orig, uint8_t content_type,
 	                               uint16_t raw_tls_version);
 

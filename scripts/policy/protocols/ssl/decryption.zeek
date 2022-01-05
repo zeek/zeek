@@ -20,11 +20,11 @@ export {
 
 # Do not disable analyzers after detection - otherwise we will not receive
 # encrypted packets.
-redef SSL::disable_analyzer_after_detection=F;
+redef SSL::disable_analyzer_after_detection = F;
 
 redef record SSL::Info += {
-    # Decryption uses client_random as identifier
-    client_random: string &log &optional;
+	# Decryption uses client_random as identifier
+	client_random: string &log &optional;
 };
 
 type Idx: record {
@@ -55,12 +55,12 @@ event zeek_init()
 
 event SSL::add_keys(client_random: string, val: string)
 	{
-    SSL::keys[client_random] = val;
+	SSL::keys[client_random] = val;
 	}
 
 event SSL::add_secret(client_random: string, val: string)
 	{
-    SSL::secrets[client_random] = val;
+	SSL::secrets[client_random] = val;
 	}
 
 event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec)
@@ -68,13 +68,9 @@ event ssl_client_hello(c: connection, version: count, record_version: count, pos
 	c$ssl$client_random = client_random;
 
 	if ( client_random in keys )
-		{
 		set_keys(c, keys[client_random]);
-		}
 	else if ( client_random in secrets )
-		{
 		set_secret(c, secrets[client_random]);
-		}
 	}
 
 event ssl_encrypted_data(c: connection, is_orig: bool, record_version: count, content_type: count, length: count)
@@ -82,17 +78,12 @@ event ssl_encrypted_data(c: connection, is_orig: bool, record_version: count, co
 	if ( c$ssl?$client_random )
 		{
 		if ( c$ssl$client_random in keys )
-			{
 			set_keys(c, keys[c$ssl$client_random]);
-			}
 		else if ( c$ssl$client_random in secrets )
-			{
 			set_secret(c, secrets[c$ssl$client_random]);
-			}
 		else
 			{
-			# FIXME: replace with @if gated reporter
-			#print "No suitable key or secret found for random:", c$ssl$client_random;
+			# FIXME: perhaps report that we could not decrypt the session
 			}
 		}
 	}
@@ -105,7 +96,5 @@ event SSL::tls_input_done()
 event Input::end_of_data(name: string, source: string)
 	{
 	if ( name == input_stream_name )
-		{
 		event SSL::tls_input_done();
-		}
 	}

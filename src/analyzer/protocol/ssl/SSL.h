@@ -141,11 +141,14 @@ protected:
 	binpac::TLSHandshake::Handshake_Conn* handshake_interp;
 	bool had_gap;
 
-	// FIXME: should this be moved into the connection?
+	// client and server sequence number, used for TLS 1.2 decryption
 	int c_seq;
 	int s_seq;
+	// secret, for decyption
 	std::string secret;
+	// derived keys, for decryption
 	std::vector<u_char> keys;
+	// PIA, for decrypted data
 	zeek::analyzer::pia::PIA_TCP* pia;
 	};
 

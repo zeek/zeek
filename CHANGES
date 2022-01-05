@@ -1,3 +1,9 @@
+5.0.0-dev.6 | 2022-01-05 09:12:33 -0700
+
+  * Fix return type of double_to_int (Johanna Amann, Corelight)
+
+    Fixes GH-1919
+
 4.2.0-dev.514 | 2022-01-03 13:56:12 -0700
 
   * deprecation warning on use of out-of-scope local (Vern Paxson, Corelight)

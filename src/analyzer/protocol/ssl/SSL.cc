@@ -189,7 +189,8 @@ bool SSL_Analyzer::TLS12_PRF(const std::string& secret, const std::string& label
 #if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
 	// setup OSSL_PARAM array: digest, secret, seed
 	// FIXME: sha384 should not be hardcoded
-	*p++ = OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST, SN_sha384, strlen(SN_sha384));
+	// The const-cast is a bit ugly - but otherwise we have to copy the static string.
+	*p++ = OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST, const_cast<char*>(SN_sha384), 0);
 	*p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SECRET, (void*)secret.data(),
 	                                         secret.size());
 	*p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SEED, (void*)seed.data(), seed.size());

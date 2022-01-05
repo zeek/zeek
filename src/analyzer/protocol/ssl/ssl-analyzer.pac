@@ -14,11 +14,11 @@ refine connection SSL_Conn += {
 		%{
 		if ( ! version_ok(version) )
 			{
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("unsupported client SSL version 0x%04x", version));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("unsupported client SSL version 0x%04x", version));
 			zeek_analyzer()->SetSkip(true);
 			}
 		else
-			zeek_analyzer()->ProtocolConfirmation();
+			zeek_analyzer()->AnalyzerConfirmation();
 
 		if ( ssl_client_hello )
 			{
@@ -69,7 +69,7 @@ refine connection SSL_Conn += {
 		%{
 		if ( ! version_ok(version) )
 			{
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("unsupported server SSL version 0x%04x", version));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("unsupported server SSL version 0x%04x", version));
 			zeek_analyzer()->SetSkip(true);
 			}
 

@@ -1,8 +1,8 @@
 4.2.0-rc1 | 2022-01-04 10:12:00 -0700
 
-  * Update submodules to latest (new) release tags [skip ci] [nomail] (Tim Wojtulewicz, Corelight)
+  * Fix return type of double_to_int (Johanna Amann, Corelight)
 
-  * Update NEWS prior to 4.2 branching [skip ci] [nomail] (Tim Wojtulewicz, Corelight)
+    Fixes GH-1919
 
 4.2.0-dev.514 | 2022-01-03 13:56:12 -0700
 

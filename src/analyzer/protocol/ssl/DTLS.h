@@ -39,7 +39,8 @@ public:
 
 	static analyzer::Analyzer* Instantiate(Connection* conn) { return new DTLS_Analyzer(conn); }
 
-	bool TryDecryptApplicationData(int len, const u_char* data, bool is_orig, uint8_t content_type, uint16_t raw_tls_version);
+	bool TryDecryptApplicationData(int len, const u_char* data, bool is_orig, uint8_t content_type,
+	                               uint16_t raw_tls_version);
 
 protected:
 	binpac::DTLS::SSL_Conn* interp;

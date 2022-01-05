@@ -97,7 +97,8 @@ public:
 	 *
 	 * @param raw_tls_version Raw TLS version as given in the TLS packets
 	 */
-	bool TryDecryptApplicationData(int len, const u_char* data, bool is_orig, uint8_t content_type, uint16_t raw_tls_version);
+	bool TryDecryptApplicationData(int len, const u_char* data, bool is_orig, uint8_t content_type,
+	                               uint16_t raw_tls_version);
 
 	/**
 	 * TLS 1.2 pseudo random function (PRF) used to expand the pre-master secret and derive keys.
@@ -121,7 +122,8 @@ public:
 	 *
 	 * @return True, if the operation completed successfully, false otherwise
 	 */
-	bool TLS12_PRF(const std::string& secret, const std::string& label, const char* rnd1, size_t rnd1_len, const char* rnd2, size_t rnd2_len, u_char* out, size_t out_len);
+	bool TLS12_PRF(const std::string& secret, const std::string& label, const char* rnd1,
+	               size_t rnd1_len, const char* rnd2, size_t rnd2_len, u_char* out, size_t out_len);
 
 	/**
 	 * Forward decrypted TLS application data to child analyzers
@@ -144,7 +146,7 @@ protected:
 	int s_seq;
 	std::string secret;
 	std::vector<u_char> keys;
-	zeek::analyzer::pia::PIA_TCP *pia;
+	zeek::analyzer::pia::PIA_TCP* pia;
 	};
 
 	} // namespace zeek::analyzer::ssl

@@ -54,8 +54,9 @@ public:
 	Frame(int size, const ScriptFunc* func, const zeek::Args* fn_args);
 
 	/**
-	 * Deletes the frame. Unrefs its trigger, the values that it
-	 * contains and its closure if applicable.
+	 * Deletes the frame. Unrefs its trigger (implicitly, since it's an
+	 * IntrusivePtr), and the values that the frame contains and its
+	 * closure if applicable.
 	 */
 	virtual ~Frame() override;
 

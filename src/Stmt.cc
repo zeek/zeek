@@ -1953,7 +1953,7 @@ StmtPtr WhenInfo::WhenBody()
 		return s;
 
 	auto invoke = make_intrusive<CallExpr>(curr_lambda, invoke_s);
-	return make_intrusive<ExprStmt>(invoke);
+	return make_intrusive<ReturnStmt>(invoke, true);
 	}
 
 StmtPtr WhenInfo::TimeoutStmt()
@@ -1962,7 +1962,7 @@ StmtPtr WhenInfo::TimeoutStmt()
 		return timeout_s;
 
 	auto invoke = make_intrusive<CallExpr>(curr_lambda, invoke_timeout);
-	return make_intrusive<ExprStmt>(invoke);
+	return make_intrusive<ReturnStmt>(invoke, true);
 	}
 
 WhenStmt::WhenStmt(WhenInfo* _wi) : Stmt(STMT_WHEN), wi(_wi)

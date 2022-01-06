@@ -444,7 +444,7 @@ public:
 	// Optimization-related:
 	StmtPtr Duplicate() override;
 
-	// Constructor used for duplication, when we've already done
+	// Constructor used internally, for when we've already done
 	// all of the type-checking.
 	ReturnStmt(ExprPtr e, bool ignored);
 

@@ -3307,11 +3307,15 @@ RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 	type_decl_list* record_types = new type_decl_list(exprs.length());
 
+	const Expr* constructor_error_expr = nullptr;
+
 	for ( const auto& e : exprs )
 		{
 		if ( e->Tag() != EXPR_FIELD_ASSIGN )
 			{
-			Error("bad type in record constructor", e);
+			// Don't generate the error yet, as reporting it
+			// requires that we have a well-formed type.
+			constructor_error_expr = e;
 			SetError();
 			continue;
 			}
@@ -3323,6 +3327,9 @@ RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
 		}
 
 	SetType(make_intrusive<RecordType>(record_types));
+
+	if ( constructor_error_expr )
+		Error("bad type in record constructor", constructor_error_expr);
 	}
 
 RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr constructor_list)

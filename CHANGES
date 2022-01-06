@@ -1,3 +1,9 @@
+5.0.0-dev.15 | 2022-01-06 13:54:38 -0700
+
+  * test suite alternative baseline fixes for recent test renaming (Vern Paxson, Corelight)
+
+  * addressed a couple of memory leaks in ZAM execution (Vern Paxson, Corelight)
+
 5.0.0-dev.10 | 2022-01-05 09:13:45 -0700
 
   * Make FreeBSD more flexible, don't look for jemalloc unless we were (Craig Leres)

@@ -29,7 +29,7 @@ export {
 
 function check_ssh_hostname(id: conn_id, uid: string, host: addr)
 	{
-	when ( local hostname = lookup_addr(host) )
+	when [id, uid, host] ( local hostname = lookup_addr(host) )
 		{
 		if ( interesting_hostnames in hostname )
 			{

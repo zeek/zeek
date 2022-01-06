@@ -8,7 +8,7 @@
 
 function print_keys(a: any)
 	{
-	when ( local s = Broker::keys(a) )
+	when [a] ( local s = Broker::keys(a) )
 		{
 		print "keys", s;
 		}

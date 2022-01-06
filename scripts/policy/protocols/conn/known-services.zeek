@@ -123,7 +123,7 @@ event service_info_commit(info: ServicesInfo)
 		{
 		local key = AddrPortServTriplet($host = info$host, $p = info$port_num, $serv = s);
 
-		when ( local r = Broker::put_unique(Known::service_store$store, key,
+		when [info, s, key] ( local r = Broker::put_unique(Known::service_store$store, key,
 		                                    T, Known::service_store_expiry) )
 			{
 			if ( r$status == Broker::SUCCESS )

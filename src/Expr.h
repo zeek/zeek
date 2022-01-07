@@ -1423,7 +1423,8 @@ protected:
 class LambdaExpr final : public Expr
 	{
 public:
-	LambdaExpr(std::unique_ptr<function_ingredients> ingredients, IDPList outer_ids, StmtPtr when_parent = nullptr);
+	LambdaExpr(std::unique_ptr<function_ingredients> ingredients, IDPList outer_ids,
+	           StmtPtr when_parent = nullptr);
 
 	const std::string& Name() const { return my_name; }
 	const IDPList& OuterIDs() const { return outer_ids; }

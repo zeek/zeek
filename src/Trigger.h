@@ -52,7 +52,8 @@ public:
 	Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* f,
 	        bool is_return, const Location* loc);
 
-	Trigger(WhenInfo* wi, const IDSet& globals, std::vector<ValPtr> local_aggrs,  Frame* f, const Location* loc);
+	Trigger(WhenInfo* wi, const IDSet& globals, std::vector<ValPtr> local_aggrs, Frame* f,
+	        const Location* loc);
 
 	~Trigger() override;
 
@@ -136,7 +137,7 @@ private:
 	// Globals and locals present in the when expression.
 	bool have_trigger_elems = false;
 	IDSet globals;
-	IDSet locals;	// not needed, present only for matching deprecated logic
+	IDSet locals; // not needed, present only for matching deprecated logic
 	std::vector<ValPtr> local_aggrs;
 
 	std::vector<std::pair<Obj*, notifier::detail::Modifiable*>> objs;

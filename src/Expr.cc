@@ -4581,7 +4581,8 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		args->Describe(d);
 	}
 
-LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList arg_outer_ids, StmtPtr when_parent)
+LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList arg_outer_ids,
+                       StmtPtr when_parent)
 	: Expr(EXPR_LAMBDA)
 	{
 	ingredients = std::move(arg_ing);

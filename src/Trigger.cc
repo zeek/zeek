@@ -26,7 +26,9 @@ namespace zeek::detail::trigger
 class TriggerTraversalCallback : public TraversalCallback
 	{
 public:
-	TriggerTraversalCallback(IDSet& _globals, IDSet& _locals) : globals(_globals), locals(_locals) { }
+	TriggerTraversalCallback(IDSet& _globals, IDSet& _locals) : globals(_globals), locals(_locals)
+		{
+		}
 
 	virtual TraversalCode PreExpr(const Expr*) override;
 
@@ -103,14 +105,15 @@ Trigger::Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, ExprPtr time
 	Init(cond, body, timeout_stmts, frame, is_return, location);
 	}
 
-Trigger::Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, double timeout,
-                 Frame* frame, bool is_return, const Location* location)
+Trigger::Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* frame,
+                 bool is_return, const Location* location)
 	{
 	timeout_value = timeout;
 	Init(cond, body, timeout_stmts, frame, is_return, location);
 	}
 
-Trigger::Trigger(WhenInfo* wi, const IDSet& _globals, std::vector<ValPtr> _local_aggrs,  Frame* f, const Location* loc)
+Trigger::Trigger(WhenInfo* wi, const IDSet& _globals, std::vector<ValPtr> _local_aggrs, Frame* f,
+                 const Location* loc)
 	{
 	globals = _globals;
 	local_aggrs = std::move(_local_aggrs);
@@ -142,8 +145,8 @@ void Trigger::GetTimeout(const ExprPtr& timeout_expr)
 		}
 	}
 
-void Trigger::Init(ExprPtr arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts,
-                   Frame* arg_frame, bool arg_is_return, const Location* arg_location)
+void Trigger::Init(ExprPtr arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts, Frame* arg_frame,
+                   bool arg_is_return, const Location* arg_location)
 	{
 	cond = arg_cond;
 	body = arg_body;

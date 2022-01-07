@@ -1892,7 +1892,9 @@ void WhenInfo::Build(StmtPtr ws)
 				vars += l->Name();
 				}
 
-			std::string msg = util::fmt("\"when\" statement referring to locals without an explicit [] capture is deprecated: %s", vars.c_str());
+			std::string msg = util::fmt("\"when\" statement referring to locals without an "
+			                            "explicit [] capture is deprecated: %s",
+			                            vars.c_str());
 			ws->Warn(msg.c_str());
 			}
 
@@ -2020,8 +2022,8 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 
 	else
 		// The new trigger object will take care of its own deletion.
-		new trigger::Trigger(wi->Cond(), wi->WhenBody(), wi->TimeoutStmt(),
-				     wi->TimeoutExpr(), f, wi->IsReturn(), location);
+		new trigger::Trigger(wi->Cond(), wi->WhenBody(), wi->TimeoutStmt(), wi->TimeoutExpr(), f,
+		                     wi->IsReturn(), location);
 
 	return nullptr;
 	}

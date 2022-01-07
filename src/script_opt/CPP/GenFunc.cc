@@ -149,7 +149,7 @@ void CPPCompile::InitializeEvents(const ProfileFunc* pf)
 void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids)
 	{
 	// It's handy to have a set of the lambda captures rather than a list.
-	unordered_set<const ID*> lambda_set;
+	IDSet lambda_set;
 	if ( lambda_ids )
 		for ( auto li : *lambda_ids )
 			lambda_set.insert(li);

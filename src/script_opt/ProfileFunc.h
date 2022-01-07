@@ -260,10 +260,6 @@ protected:
 	// Whether we should treat record field accesses as absolute
 	// (integer offset) or relative (name-based).
 	bool abs_rec_fields;
-
-	// Whether we're separately processing a "when" condition to
-	// mine out its script calls.
-	bool in_when = false;
 	};
 
 // Function pointer for a predicate that determines whether a given

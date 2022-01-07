@@ -722,6 +722,10 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
+// The following is only used for debugging AST duplication.  If activated,
+// each AST is replaced with its duplicate.  In the absence of a duplication
+// error, this shouldn't change any semantics, so running the test suite
+// with this variable set can find flaws in the duplication machinery.
 static bool duplicate_ASTs = getenv("ZEEK_DUPLICATE_ASTS");
 
 void end_func(StmtPtr body, bool free_of_conditionals)

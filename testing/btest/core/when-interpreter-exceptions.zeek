@@ -37,7 +37,7 @@ function f(do_exception: bool): bool
 	local cmd = Exec::Command($cmd=fmt("echo 'f(%s)'",
 	                          do_exception));
 
-	return when ( local result = Exec::run(cmd) )
+	return when [cmd, do_exception] ( local result = Exec::run(cmd) )
 		{
 		print result$stdout;
 
@@ -58,7 +58,7 @@ function g(do_exception: bool): bool
 	{
 	local stall = Exec::Command($cmd="sleep 30");
 
-	return when ( local result = Exec::run(stall) )
+	return when [do_exception, stall] ( local result = Exec::run(stall) )
 		{
 		print "shouldn't get here, g()", do_exception, result;
 		}
@@ -84,14 +84,14 @@ event zeek_init()
 	local cmd = Exec::Command($cmd="echo 'zeek_init()'");
 	local stall = Exec::Command($cmd="sleep 30");
 
-	when ( local result = Exec::run(cmd) )
+	when [cmd] ( local result = Exec::run(cmd) )
 		{
 		print result$stdout;
 		event termination_check();
 		print myrecord$notset;
 		}
 
-	when ( local result2 = Exec::run(stall) )
+	when [stall] ( local result2 = Exec::run(stall) )
 		{
 		print "shouldn't get here", result2;
 		check_term_condition();

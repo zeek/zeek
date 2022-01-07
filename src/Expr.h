@@ -167,7 +167,7 @@ public:
 	// into the given aggregate of the given type.  Note that
 	// return type is void since it's updating an existing
 	// value, rather than creating a new one.
-	virtual void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const;
+	virtual void EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const;
 
 	// Assign to the given value, if appropriate.
 	virtual void Assign(Frame* f, ValPtr v);
@@ -187,7 +187,7 @@ public:
 	// with the given type.  If "aggr" is non-nil, then this expression
 	// is an element of the given aggregate, and it is added to it
 	// accordingly.
-	virtual ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const;
+	virtual ValPtr InitVal(const TypePtr& t, ValPtr aggr) const;
 
 	// True if the expression has no side effects, false otherwise.
 	virtual bool IsPure() const;
@@ -939,10 +939,10 @@ public:
 	           const AttributesPtr& attrs = nullptr, bool type_check = true);
 
 	ValPtr Eval(Frame* f) const override;
-	void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const override;
+	void EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const override;
 	TypePtr InitType() const override;
 	bool IsRecordElement(TypeDecl* td) const override;
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 	bool IsPure() const override;
 
 	// Optimization-related:
@@ -1149,7 +1149,7 @@ public:
 	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -1175,7 +1175,7 @@ public:
 	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -1200,7 +1200,7 @@ public:
 	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -1220,7 +1220,7 @@ public:
 	bool HasReducedOps(Reducer* c) const override;
 
 protected:
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 	};
@@ -1240,7 +1240,7 @@ public:
 	// (in which case an error is reported).
 	bool PromoteTo(TypePtr t);
 
-	void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const override;
+	void EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const override;
 	bool IsRecordElement(TypeDecl* td) const override;
 
 	// Optimization-related:
@@ -1282,7 +1282,7 @@ public:
 	const std::vector<int>& Map() const { return map; }
 
 protected:
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 	ValPtr Fold(Val* v) const override;
 
 	// For each super-record slot, gives subrecord slot with which to
@@ -1470,7 +1470,7 @@ public:
 	ValPtr Eval(Frame* f) const override;
 
 	TypePtr InitType() const override;
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 	ExprPtr MakeLvalue() override;
 	void Assign(Frame* f, ValPtr v) override;
 
@@ -1486,7 +1486,7 @@ public:
 	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
-	ValPtr AddSetInit(const zeek::Type* t, ValPtr aggr) const;
+	ValPtr AddSetInit(TypePtr t, ValPtr aggr) const;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -1767,7 +1767,7 @@ ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init);
  */
 extern ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t);
 
-extern bool check_and_promote_exprs(ListExpr* elements, TypeList* types);
+extern bool check_and_promote_exprs(ListExpr* elements, const TypeListPtr& types);
 extern bool check_and_promote_args(ListExpr* args, const RecordType* types);
 extern bool check_and_promote_exprs_to_type(ListExpr* elements, TypePtr type);
 

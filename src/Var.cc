@@ -23,7 +23,7 @@
 namespace zeek::detail
 	{
 
-static ValPtr init_val(Expr* init, const Type* t, ValPtr aggr)
+static ValPtr init_val(ExprPtr init, TypePtr t, ValPtr aggr)
 	{
 	try
 		{
@@ -289,7 +289,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 
 			if ( init )
 				{
-				v = init_val(init.get(), t.get(), aggr);
+				v = init_val(init, t, aggr);
 
 				if ( ! v )
 					return;

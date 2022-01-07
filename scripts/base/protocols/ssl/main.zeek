@@ -225,7 +225,7 @@ function log_record(info: Info)
 		}
 	else
 		{
-		when ( |info$delay_tokens| == 0 )
+		when [info] ( |info$delay_tokens| == 0 )
 			{
 			log_record(info);
 			}

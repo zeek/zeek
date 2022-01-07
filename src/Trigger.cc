@@ -23,6 +23,7 @@ using namespace zeek::detail::trigger;
 namespace zeek::detail::trigger
 	{
 
+// Used to extract the globals and locals seen in a trigger expression.
 class TriggerTraversalCallback : public TraversalCallback
 	{
 public:

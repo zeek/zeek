@@ -47,11 +47,15 @@ public:
 	// instantiation.  Note that if the condition is already true, the
 	// statements are executed immediately and the object is deleted
 	// right away.
+
+	// These first two constructors are for the deprecated deep-copy
+	// semantics.
 	Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, ExprPtr timeout, Frame* f,
 	        bool is_return, const Location* loc);
 	Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* f,
 	        bool is_return, const Location* loc);
 
+	// Used for capture-list semantics.
 	Trigger(WhenInfo* wi, const IDSet& globals, std::vector<ValPtr> local_aggrs, Frame* f,
 	        const Location* loc);
 
@@ -135,9 +139,16 @@ private:
 	bool disabled;
 
 	// Globals and locals present in the when expression.
-	bool have_trigger_elems = false;
 	IDSet globals;
 	IDSet locals; // not needed, present only for matching deprecated logic
+
+	// Tracks whether we've found the globals/locals, as the work only
+	// has to be done once.
+	bool have_trigger_elems = false;
+
+	// Aggregate values seen in locals used in the trigger condition,
+	// so we can detect changes in them that affect whether the condition
+	// holds.
 	std::vector<ValPtr> local_aggrs;
 
 	std::vector<std::pair<Obj*, notifier::detail::Modifiable*>> objs;

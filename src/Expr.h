@@ -960,6 +960,12 @@ public:
 	bool IsTemp() const { return is_temp; }
 	void SetIsTemp() { is_temp = true; }
 
+	// The following is a hack that's used in "when" expressions to support
+	// assignments to new locals, like "when ( (local l = foo()) && ...".
+	// These methods return the value to use when evaluating such
+	// assignments.  That would normally be the RHS of the assignment,
+	// but to get when's to work in a convenient fashion, for them it's
+	// instead boolean T.
 	ValPtr AssignVal() { return val; }
 	const ValPtr& AssignVal() const { return val; }
 

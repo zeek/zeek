@@ -537,8 +537,9 @@ public:
 	StmtPtr Duplicate() override { return SetSucc(new NullStmt()); }
 	};
 
-class WhenStmt;
-
+// A helper class for tracking all of the information associated with
+// a "when" statement, and constructing the necessary components in support
+// of lambda-style captures.
 class WhenInfo
 	{
 public:
@@ -555,13 +556,18 @@ public:
 		timeout_s = std::move(_timeout_s);
 		}
 
-	// Complete construction of the associated internals.
+	// Complete construction of the associated internals, including
+	// the (complex) lambda used to access the different elements of
+	// the statement.
 	void Build(StmtPtr ws);
 
 	// Instantiate a new instance.
 	void Instantiate(Frame* f);
 
-	ExprPtr OrigCond() { return cond; }
+	// For old-style semantics, the following simply return the
+	// individual "when" components.  For capture semantics, however,
+	// these instead return different invocations of a lambda that
+	// manages the captures.
 	ExprPtr Cond();
 	StmtPtr WhenBody();
 
@@ -574,6 +580,9 @@ public:
 
 	const LambdaExprPtr& Lambda() const { return lambda; }
 
+	// The locals and globals used in the conditional expression
+	// (other than newly introduced locals), necessary for registering
+	// the associated triggers for when their values change.
 	const IDSet& WhenExprLocals() const { return when_expr_locals; }
 	const IDSet& WhenExprGlobals() const { return when_expr_globals; }
 
@@ -586,10 +595,18 @@ private:
 
 	bool is_return = false;
 
+	// The name of parameter passed ot the lambda.
 	std::string lambda_param_id;
+
+	// The expression for constructing the lambda.
 	LambdaExprPtr lambda;
+
+	// The current instance of the lambda.  Created by Instantiate(),
+	// for immediate use via calls to Cond() etc.
 	ConstExprPtr curr_lambda;
 
+	// Arguments to use when calling the lambda to either evaluate
+	// the conditional, or execute the body or the timeout statement.
 	ListExprPtr invoke_cond;
 	ListExprPtr invoke_s;
 	ListExprPtr invoke_timeout;
@@ -597,7 +614,8 @@ private:
 	IDSet when_expr_locals;
 	IDSet when_expr_globals;
 
-	// Used for identifying deprecated instances.
+	// Used for identifying deprecated instances.  Holds all of the local
+	// variables in the scope prior to parsing the "when" statement.
 	std::map<std::string, IDPtr, std::less<>> prior_vars;
 	};
 

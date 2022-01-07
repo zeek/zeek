@@ -1864,6 +1864,11 @@ void WhenInfo::Build(StmtPtr ws)
 		// Old-style semantics.
 		auto locals = when_expr_locals;
 
+		ProfileFunc cond_pf(cond.get());
+		for ( auto& bl : cond_pf.Locals() )
+			if ( prior_vars.count(bl->Name()) > 0 )
+				locals.insert(bl);
+
 		ProfileFunc body_pf(s.get());
 		for ( auto& bl : body_pf.Locals() )
 			if ( prior_vars.count(bl->Name()) > 0 )
@@ -1872,7 +1877,7 @@ void WhenInfo::Build(StmtPtr ws)
 		if ( timeout_s )
 			{
 			ProfileFunc to_pf(timeout_s.get());
-			for ( auto& tl : body_pf.Locals() )
+			for ( auto& tl : to_pf.Locals() )
 				if ( prior_vars.count(tl->Name()) > 0 )
 					locals.insert(tl);
 			}

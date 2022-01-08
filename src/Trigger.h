@@ -112,7 +112,7 @@ public:
 private:
 	friend class TriggerTimer;
 
-	void GetTimeout(const ExprPtr& timeout_expr);
+	void GetTimeout(const ExprPtr& timeout_expr, Frame* f);
 
 	void Init(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, Frame* frame, bool is_return,
 	          const Location* location);

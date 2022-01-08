@@ -29,25 +29,28 @@ event zeek_init()
 	local orig1 = r($x = 1, $y = 2);
 	local orig2 = copy(orig1);
 
-	when ( local resp1 = async_foo1(orig1) )
+	when ( g == 1 && local resp1 = async_foo1(orig1) )
 		{
+		++g;
 		print orig1, resp1;
 		}
 
-	when [orig2] ( local resp2 = async_foo1(orig2) )
+	when [orig2] ( g == 2 && local resp2 = async_foo1(orig2) )
 		{
+		++g;
 		print orig2, resp2;
 		}
 
 	local orig3 = r($x = 111, $y = 222);
 	local orig4 = copy(orig3);
 
-	when ( local resp4 = async_foo2(orig3) )
+	when ( g == 3 && local resp4 = async_foo2(orig3) )
 		{
+		++g;
 		print orig3, resp4;
 		}
 
-	when [orig4] ( local resp5 = async_foo2(orig4) )
+	when [orig4] ( g == 4 && local resp5 = async_foo2(orig4) )
 		{
 		print orig4, resp5;
 		}

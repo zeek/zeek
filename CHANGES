@@ -1,3 +1,11 @@
+5.0.0-dev.25 | 2022-01-10 14:42:50 +0100
+
+  * GH-1844: Fix host header normalization in intel framework. (Robin
+    Sommer, Corelight)
+
+  * GH-1844: Switch to recording unmodified HTTP header. (Robin
+    Sommer, Corelight)
+
 5.0.0-dev.22 | 2022-01-07 12:34:25 -0700
 
   * GH-1624: Migrate check_and_promote and a few Expr methods to IntrusivePtr (Tim Wojtulewicz, Corelight)

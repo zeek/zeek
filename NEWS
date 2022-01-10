@@ -15,6 +15,10 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- Entries in ``http.log`` now record the original ``HOST`` headers.
+  Previously, they would skip any port specification a header might
+  include.
+
 Deprecated Functionality
 ------------------------
 

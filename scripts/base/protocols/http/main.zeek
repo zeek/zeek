@@ -263,8 +263,9 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			c$http$referrer = value;
 
 		else if ( name == "HOST" )
-			# The split is done to remove the occasional port value that shows up here.
-			c$http$host = split_string1(value, /:/)[0];
+			# Per #1844, we record the original host header, including any port
+			# specification if present.
+			c$http$host = value;
 
 		else if ( name == "RANGE" )
 			c$http$range_request = T;

@@ -163,6 +163,10 @@ Changed Functionality
   ZeekControl's functionality. ZeekControl remains the recommended tool for
   maintaining your cluster.
 
+- Entries in ``http.log`` now record the original ``HOST`` headers.
+  Previously, they would skip any port specification a header might
+  include.
+
 Deprecated Functionality
 ------------------------
 

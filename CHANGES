@@ -1,3 +1,15 @@
+5.0.0-dev.39 | 2022-01-11 15:02:37 -0700
+
+  * support for compiling type-based switches to C++ (Vern Paxson, Corelight)
+
+  * make encountering uncompilable "standalone" functions to be a hard error (Vern Paxson, Corelight)
+
+  * fix: ZAM could misinterpret a "type" switch that starts with a "default" (Vern Paxson, Corelight)
+
+  * fix: don't treat pseudo-identifiers in type cases as local variables (Vern Paxson, Corelight)
+
+  * removed development helper scripts now obsolete with --optimize-files= (Vern Paxson, Corelight)
+
 5.0.0-dev.33 | 2022-01-11 14:57:58 -0700
 
   * Bump CI sanitizer task to Ubuntu 20.04 (Tim Wojtulewicz, Corelight)

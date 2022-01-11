@@ -113,8 +113,13 @@ void CPPCompile::Compile(bool report_uncompilable)
 			}
 		else
 			{
-			if ( reason && report_uncompilable )
+			if ( reason && standalone )
+				reporter->Error("%s cannot be compiled to standalone C++ due to %s", f->Name(),
+				                reason);
+
+			else if ( reason && report_uncompilable )
 				fprintf(stderr, "%s cannot be compiled to C++ due to %s\n", f->Name(), reason);
+
 			not_fully_compilable.insert(f->Name());
 			}
 		}

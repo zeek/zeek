@@ -174,7 +174,11 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 				if ( idl )
 					{
 					for ( auto id : *idl )
-						locals.insert(id);
+						// Make sure it's not a placeholder
+						// identifier, used when there's
+						// no explicit one.
+						if ( id->Name() )
+							locals.insert(id);
 
 					is_type_switch = true;
 					}

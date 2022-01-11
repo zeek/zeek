@@ -191,6 +191,7 @@ public:
 
 protected:
 	friend class ZAMCompiler;
+	friend class CPPCompile;
 
 	int DefaultCaseIndex() const { return default_case_idx; }
 	const auto& ValueMap() const { return case_label_value_map; }

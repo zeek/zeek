@@ -250,7 +250,7 @@ freebsd12_task:
 sanitizer_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
-    dockerfile: ci/ubuntu-18.04/Dockerfile
+    dockerfile: ci/ubuntu-20.04/Dockerfile
     cpu: 4
     # AddressSanitizer uses a lot more memory than a typical config.
     memory: 12GB

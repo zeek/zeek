@@ -1,3 +1,11 @@
+5.0.0-dev.33 | 2022-01-11 14:57:58 -0700
+
+  * Bump CI sanitizer task to Ubuntu 20.04 (Tim Wojtulewicz, Corelight)
+
+  * Fix uninitialized variable warning (Tim Wojtulewicz, Corelight)
+
+  * Enable null check for UBSan (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.28 | 2022-01-10 10:30:39 -0700
 
   * fix for avoiding de-ref of nil pointer (Vern Paxson, Corelight)

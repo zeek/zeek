@@ -3,6 +3,21 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 5.0.0
+==========
+
+Breaking Changes
+----------------
+
+New Functionality
+-----------------
+
+Changed Functionality
+---------------------
+
+Deprecated Functionality
+------------------------
+
 Zeek 4.2.0
 ==========
 
@@ -162,6 +177,10 @@ Changed Functionality
   The framework is still experimental and provides only a small subset of
   ZeekControl's functionality. ZeekControl remains the recommended tool for
   maintaining your cluster.
+
+- Entries in ``http.log`` now record the original ``HOST`` headers.
+  Previously, they would skip any port specification a header might
+  include.
 
 Deprecated Functionality
 ------------------------

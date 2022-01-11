@@ -345,8 +345,8 @@ int IndexType::MatchesIndex(detail::ListExpr* const index) const
 	     exprs[0]->GetType()->Tag() == TYPE_ADDR )
 		return MATCHES_INDEX_SCALAR;
 
-	return check_and_promote_exprs(index, GetIndices().get()) ? MATCHES_INDEX_SCALAR
-	                                                          : DOES_NOT_MATCH_INDEX;
+	return check_and_promote_exprs(index, GetIndices()) ? MATCHES_INDEX_SCALAR
+	                                                    : DOES_NOT_MATCH_INDEX;
 	}
 
 void IndexType::Describe(ODesc* d) const
@@ -590,7 +590,7 @@ SetType::SetType(TypeListPtr ind, detail::ListExprPtr arg_elements)
 		{
 		if ( indices )
 			{ // We already have a type.
-			if ( ! check_and_promote_exprs(elements.get(), indices.get()) )
+			if ( ! check_and_promote_exprs(elements.get(), indices) )
 				SetError();
 			}
 		else

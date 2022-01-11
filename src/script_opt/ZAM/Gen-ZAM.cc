@@ -1386,8 +1386,8 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot_orig,
 		auto is_none = ei.LHS_ET() == ZAM_EXPR_TYPE_NONE;
 		auto is_default = ei.LHS_ET() == ZAM_EXPR_TYPE_DEFAULT;
 
-		if ( zc != ZIC_FIELD && ! is_none && ! is_default &&
-		     find_type_info(ei.LHS_ET()).is_managed && ! HasExplicitResultType() )
+		if ( ! is_none && ! is_default && find_type_info(ei.LHS_ET()).is_managed &&
+		     ! HasExplicitResultType() )
 			{
 			auto delim = zc == ZIC_VEC ? "->" : ".";
 			auto pre = "auto hold_lhs = " + lhs + delim + "ManagedVal();\n\t";

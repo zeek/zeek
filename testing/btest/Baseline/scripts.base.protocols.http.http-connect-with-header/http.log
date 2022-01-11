@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	52522	::1	80	1	CONNECT	secure.newegg.com	secure.newegg.com:443	-	1.0	Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:41.0) Gecko/20100101 Firefox/41.0	-	0	0	200	Connection Established	-	-	(empty)	-	-	PROXY-CONNECTION -> keep-alive	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	52522	::1	80	1	CONNECT	secure.newegg.com:443	secure.newegg.com:443	-	1.0	Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:41.0) Gecko/20100101 Firefox/41.0	-	0	0	200	Connection Established	-	-	(empty)	-	-	PROXY-CONNECTION -> keep-alive	-	-	-	-	-	-
 #close XXXX-XX-XX-XX-XX-XX

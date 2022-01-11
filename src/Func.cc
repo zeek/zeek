@@ -706,8 +706,12 @@ broker::expected<broker::data> ScriptFunc::SerializeClosure() const
 	{
 	if ( captures_frame )
 		return captures_frame->SerializeCopyFrame();
-	else
+
+	if ( closure )
 		return closure->SerializeClosureFrame(outer_ids);
+
+	// No captures/closures, return an empty vector.
+	return broker::vector{};
 	}
 
 void ScriptFunc::Describe(ODesc* d) const

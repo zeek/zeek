@@ -1,3 +1,50 @@
+5.0.0-dev.28 | 2022-01-10 10:30:39 -0700
+
+  * fix for avoiding de-ref of nil pointer (Vern Paxson, Corelight)
+
+5.0.0-dev.25 | 2022-01-10 14:42:50 +0100
+
+  * GH-1844: Fix host header normalization in intel framework. (Robin
+    Sommer, Corelight)
+
+  * GH-1844: Switch to recording unmodified HTTP header. (Robin
+    Sommer, Corelight)
+
+5.0.0-dev.22 | 2022-01-07 12:34:25 -0700
+
+  * GH-1624: Migrate check_and_promote and a few Expr methods to IntrusivePtr (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.19 | 2022-01-06 15:06:59 -0700
+
+  * bug fix for reporting poorly formed record constructors (Vern Paxson, Corelight)
+
+5.0.0-dev.17 | 2022-01-06 14:04:48 -0700
+
+  * Remove CentOS 8 from CI. (Johanna Amann, Corelight)
+
+    EOL was 2021-12-31
+
+5.0.0-dev.15 | 2022-01-06 13:54:38 -0700
+
+  * test suite alternative baseline fixes for recent test renaming (Vern Paxson, Corelight)
+
+  * addressed a couple of memory leaks in ZAM execution (Vern Paxson, Corelight)
+
+5.0.0-dev.10 | 2022-01-05 09:13:45 -0700
+
+  * Make FreeBSD more flexible, don't look for jemalloc unless we were (Craig Leres)
+    given a specific path for it.
+
+  * Set JEMALLOC_FOUND when on FreeBSD (suggested by Tim Wojtulewicz) (Craig Leres)
+
+  * FreeBSD: don't look for jemalloc as a package, it's in the base system (Craig Leres)
+
+5.0.0-dev.6 | 2022-01-05 09:12:33 -0700
+
+  * Fix return type of double_to_int (Johanna Amann, Corelight)
+
+    Fixes GH-1919
+
 4.2.0-dev.514 | 2022-01-03 13:56:12 -0700
 
   * deprecation warning on use of out-of-scope local (Vern Paxson, Corelight)

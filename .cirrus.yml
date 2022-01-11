@@ -105,13 +105,6 @@ fedora34_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-fedora33_task:
-  container:
-    # Fedora 33 EOL: Around November 2022
-    dockerfile: ci/fedora-33/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
 centosstream8_task:
   container:
     # Stream 8 support should be 5 years, so until 2024. but I cannot find a concrete timeline --cpk

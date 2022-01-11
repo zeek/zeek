@@ -212,7 +212,7 @@ abort:
 		goto abort; /* Error */
 
 	EVP_PKEY_CTX_free(pctx);
-	return keubuf;
+	return keybuf;
 
 abort:
 	EVP_PKEY_CTX_free(pctx);

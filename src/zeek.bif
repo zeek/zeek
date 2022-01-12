@@ -3642,8 +3642,8 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 
 class LookupHostCallback : public zeek::detail::DNS_Mgr::LookupCallback {
 public:
-	LookupHostCallback(zeek::detail::trigger::Trigger* arg_trigger, const zeek::detail::CallExpr* arg_call,
-				bool arg_lookup_name)
+	LookupHostCallback(zeek::detail::trigger::Trigger* arg_trigger,
+                           const zeek::detail::CallExpr* arg_call, bool arg_lookup_name)
 		{
 		Ref(arg_trigger);
 		trigger = arg_trigger;
@@ -3657,7 +3657,7 @@ public:
 		}
 
 	// Overridden from zeek::detail::DNS_Mgr:Lookup:Callback.
-	void Resolved(const char* name) override
+	void Resolved(const std::string& name) override
 		{
 		zeek::Val* result = new zeek::StringVal(name);
 		trigger->Cache(call, result);
@@ -3665,10 +3665,10 @@ public:
 		trigger->Release();
 		}
 
-	void Resolved(zeek::TableVal* addrs) override
+	void Resolved(zeek::TableValPtr addrs) override
 		{
 		// No Ref() for addrs.
-		trigger->Cache(call, addrs);
+		trigger->Cache(call, addrs.get());
 		trigger->Release();
 		}
 
@@ -3724,7 +3724,7 @@ function lookup_addr%(host: addr%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-	zeek::detail::dns_mgr->AsyncLookupAddr(host->AsAddr(),
+	zeek::detail::dns_mgr->LookupAddr(host->AsAddr(),
 			new LookupHostCallback(trigger, frame->GetCall(), true));
 	return nullptr;
 	%}
@@ -3753,7 +3753,7 @@ function lookup_hostname_txt%(host: string%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-	zeek::detail::dns_mgr->AsyncLookupNameText(host->CheckString(),
+	zeek::detail::dns_mgr->Lookup(host->CheckString(), T_TXT,
 				 new LookupHostCallback(trigger, frame->GetCall(), true));
 	return nullptr;
 	%}
@@ -3782,7 +3782,7 @@ function lookup_hostname%(host: string%) : addr_set
 	frame->SetDelayed();
 	trigger->Hold();
 
-	zeek::detail::dns_mgr->AsyncLookupName(host->CheckString(),
+	zeek::detail::dns_mgr->LookupHost(host->CheckString(),
 			new LookupHostCallback(trigger, frame->GetCall(), false));
 	return nullptr;
 	%}

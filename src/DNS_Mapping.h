@@ -15,7 +15,7 @@ class DNS_Mapping
 	{
 public:
 	DNS_Mapping() = delete;
-	DNS_Mapping(const char* host, struct hostent* h, uint32_t ttl);
+	DNS_Mapping(std::string host, struct hostent* h, uint32_t ttl);
 	DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl);
 	DNS_Mapping(FILE* f);
 
@@ -35,6 +35,7 @@ public:
 	StringValPtr Host();
 
 	double CreationTime() const { return creation_time; }
+	uint32_t TTL() const { return req_ttl; }
 
 	void Save(FILE* f) const;
 

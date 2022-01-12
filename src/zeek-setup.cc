@@ -342,8 +342,7 @@ static void terminate_zeek()
 	delete packet_mgr;
 	delete analyzer_mgr;
 	delete file_mgr;
-	delete dns_mgr;
-	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
+	// broker_mgr, timer_mgr, supervisor, and dns_mgr are deleted via iosource_mgr
 	delete iosource_mgr;
 	delete event_registry;
 	delete log_mgr;
@@ -757,7 +756,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		file_mgr->InitPostScript();
 		dns_mgr->InitPostScript();
 
-		dns_mgr->LookupHost("www.apple.com");
 		//		dns_mgr->LookupAddr("17.253.144.10");
 
 #ifdef USE_PERFTOOLS_DEBUG

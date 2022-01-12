@@ -6,14 +6,14 @@
 namespace zeek::detail
 	{
 
-DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32_t ttl)
+DNS_Mapping::DNS_Mapping(std::string host, struct hostent* h, uint32_t ttl)
 	{
 	Init(h);
 	req_host = host;
 	req_ttl = ttl;
 
 	if ( names.empty() )
-		names.push_back(host);
+		names.push_back(std::move(host));
 	}
 
 DNS_Mapping::DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl)
@@ -46,7 +46,10 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 
 	if ( sscanf(buf, "%lf %d %512s %d %512s %d %d %" PRIu32, &creation_time, &is_req_host, req_buf,
 	            &failed_local, name_buf, &map_type, &num_addrs, &req_ttl) != 8 )
+		{
+		no_mapping = true;
 		return;
+		}
 
 	failed = static_cast<bool>(failed_local);
 
@@ -129,12 +132,15 @@ void DNS_Mapping::Init(struct hostent* h)
 		// TODO: this could easily be expanded to include all of the aliases as well
 		names.push_back(h->h_name);
 
-	for ( int i = 0; h->h_addr_list[i] != NULL; ++i )
+	if ( h->h_addr_list )
 		{
-		if ( h->h_addrtype == AF_INET )
-			addrs.push_back(IPAddr(IPv4, (uint32_t*)h->h_addr_list[i], IPAddr::Network));
-		else if ( h->h_addrtype == AF_INET6 )
-			addrs.push_back(IPAddr(IPv6, (uint32_t*)h->h_addr_list[i], IPAddr::Network));
+		for ( int i = 0; h->h_addr_list[i] != NULL; ++i )
+			{
+			if ( h->h_addrtype == AF_INET )
+				addrs.push_back(IPAddr(IPv4, (uint32_t*)h->h_addr_list[i], IPAddr::Network));
+			else if ( h->h_addrtype == AF_INET6 )
+				addrs.push_back(IPAddr(IPv6, (uint32_t*)h->h_addr_list[i], IPAddr::Network));
+			}
 		}
 
 	failed = false;
@@ -167,7 +173,7 @@ void DNS_Mapping::Save(FILE* f) const
 
 TEST_CASE("dns_mapping init null hostent")
 	{
-	DNS_Mapping mapping("www.apple.com", nullptr, 123);
+	DNS_Mapping mapping(std::string("www.apple.com"), nullptr, 123);
 
 	CHECK(! mapping.Valid());
 	CHECK(mapping.Addrs() == nullptr);
@@ -190,7 +196,7 @@ TEST_CASE("dns_mapping init host")
 	std::vector<in_addr*> addrs = {&in4, NULL};
 	he.h_addr_list = reinterpret_cast<char**>(addrs.data());
 
-	DNS_Mapping mapping("testing.home", &he, 123);
+	DNS_Mapping mapping(std::string("testing.home"), &he, 123);
 	CHECK(mapping.Valid());
 	CHECK(mapping.ReqAddr() == IPAddr::v6_unspecified);
 	CHECK(strcmp(mapping.ReqHost(), "testing.home") == 0);
@@ -335,7 +341,7 @@ TEST_CASE("dns_mapping multiple addresses")
 	std::vector<in_addr*> addrs = {&in4_1, &in4_2, NULL};
 	he.h_addr_list = reinterpret_cast<char**>(addrs.data());
 
-	DNS_Mapping mapping("testing.home", &he, 123);
+	DNS_Mapping mapping(std::string("testing.home"), &he, 123);
 	CHECK(mapping.Valid());
 
 	auto lva = mapping.Addrs();

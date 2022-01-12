@@ -3236,9 +3236,12 @@ bool VectorVal::CheckElementType(const ValPtr& element)
 		int n = vector_val->size();
 
 		if ( n == 0 )
+			{
 			// First addition to an empty vector-of-any, perhaps
 			// it will be homogeneous.
 			yield_type = element->GetType();
+			managed_yield = ZVal::IsManagedType(yield_type);
+			}
 
 		else
 			{

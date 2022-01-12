@@ -1,3 +1,7 @@
+5.0.0-dev.41 | 2022-01-12 10:16:38 -0700
+
+  * Fix --with-jemalloc configure option on FreeBSD (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.39 | 2022-01-11 15:02:37 -0700
 
   * support for compiling type-based switches to C++ (Vern Paxson, Corelight)

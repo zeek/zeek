@@ -296,7 +296,7 @@ endif ()
 
 if (ENABLE_JEMALLOC)
     if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-        if (DEFINED ${JEMALLOC_ROOT_DIR})
+        if (DEFINED JEMALLOC_ROOT_DIR)
             # Look for jemalloc at a specific path
             find_package(JeMalloc)
         else()

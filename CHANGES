@@ -1,3 +1,29 @@
+4.2.0-rc2 | 2022-01-12 10:20:23 -0700
+
+  * Release 4.2.0-rc2.
+
+  * Fix --with-jemalloc configure option on FreeBSD (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 3932fd930f403d32815ad3676bd7affffdeec037)
+
+  * GH-1844: Fix host header normalization in intel framework. (Robin
+    Sommer, Corelight)
+
+    (cherry picked from commit 964293209b8b315df906ada8b5f34d4a95f2627d)
+
+  * GH-1844: Switch to recording unmodified HTTP header. (Robin
+    Sommer, Corelight)
+
+    (cherry picked from commit 964293209b8b315df906ada8b5f34d4a95f2627d)
+
+  * test suite alternative baseline fixes for recent test renaming (Vern Paxson, Corelight)
+
+    (cherry picked from commit 3e7472cc717220b0e5910fcf8ab19e930420192a)
+
+  * addressed a couple of memory leaks in ZAM execution (Vern Paxson, Corelight)
+
+    (cherry picked from commit 3e7472cc717220b0e5910fcf8ab19e930420192a)
+
 4.2.0-rc1 | 2022-01-05 09:31:41 -0700
 
   * Release 4.2.0-rc1.

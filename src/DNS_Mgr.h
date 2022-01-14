@@ -21,11 +21,13 @@ class RecordType;
 class Val;
 class ListVal;
 class TableVal;
+class StringVal;
 
 template <class T> class IntrusivePtr;
 using ValPtr = IntrusivePtr<Val>;
 using ListValPtr = IntrusivePtr<ListVal>;
 using TableValPtr = IntrusivePtr<TableVal>;
+using StringValPtr = IntrusivePtr<StringVal>;
 
 	} // namespace zeek
 
@@ -65,7 +67,7 @@ public:
 	// a set of addr.
 	TableValPtr LookupHost(const char* host);
 
-	ValPtr LookupAddr(const IPAddr& addr);
+	StringValPtr LookupAddr(const IPAddr& addr);
 
 	// Define the directory where to store the data.
 	void SetDir(const char* arg_dir) { dir = util::copy_string(arg_dir); }
@@ -108,6 +110,14 @@ public:
 	void GetStats(Stats* stats);
 
 	void Terminate();
+
+	static TableValPtr empty_addr_set();
+
+	/**
+	 * This method is used to call the private Process() method during unit testing
+	 * and shouldn't be used otherwise.
+	 */
+	void TestProcess();
 
 protected:
 	friend class LookupCallback;
@@ -183,38 +193,9 @@ protected:
 
 		bool IsAddrReq() const { return name.empty(); }
 
-		void Resolved(const char* name)
-			{
-			for ( CallbackList::iterator i = callbacks.begin(); i != callbacks.end(); ++i )
-				{
-				(*i)->Resolved(name);
-				delete *i;
-				}
-			callbacks.clear();
-			processed = true;
-			}
-
-		void Resolved(TableVal* addrs)
-			{
-			for ( CallbackList::iterator i = callbacks.begin(); i != callbacks.end(); ++i )
-				{
-				(*i)->Resolved(addrs);
-				delete *i;
-				}
-			callbacks.clear();
-			processed = true;
-			}
-
-		void Timeout()
-			{
-			for ( CallbackList::iterator i = callbacks.begin(); i != callbacks.end(); ++i )
-				{
-				(*i)->Timeout();
-				delete *i;
-				}
-			callbacks.clear();
-			processed = true;
-			}
+		void Resolved(const char* name);
+		void Resolved(TableVal* addrs);
+		void Timeout();
 		};
 
 	using AsyncRequestAddrMap = std::map<IPAddr, AsyncRequest*>;

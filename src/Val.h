@@ -823,6 +823,7 @@ public:
 	// so errors can arise for compound sets such as sets-of-sets.
 	// See https://bro-tracker.atlassian.net/browse/BIT-1949.
 	bool EqualTo(const TableVal& v) const;
+	bool EqualTo(const TableValPtr& v) const { return EqualTo(*(v.get())); }
 
 	// Returns true if this set is a subset (not necessarily proper)
 	// of the given set.

@@ -27,7 +27,9 @@
 #endif
 #include <stdlib.h>
 #include <algorithm>
+#include <vector>
 
+#include "zeek/3rdparty/doctest.h"
 #include "zeek/Event.h"
 #include "zeek/Expr.h"
 #include "zeek/Hash.h"
@@ -410,6 +412,8 @@ void DNS_Mgr::InitSource()
 		nb_dns = nb_dns_init(err);
 	else
 		{
+		// nb_dns expects a sockaddr, so copy the address out of the IPAddr
+		// object into one so it can be passed.
 		struct sockaddr_storage ss = {0};
 
 		if ( dns_resolver_addr.GetFamily() == IPv4 )
@@ -430,7 +434,7 @@ void DNS_Mgr::InitSource()
 
 	if ( nb_dns )
 		{
-		if ( ! iosource_mgr->RegisterFd(nb_dns_fd(nb_dns), this) )
+		if ( ! doctest::is_running_in_test && ! iosource_mgr->RegisterFd(nb_dns_fd(nb_dns), this) )
 			reporter->FatalError("Failed to register nb_dns file descriptor with iosource_mgr");
 		}
 	else
@@ -443,10 +447,18 @@ void DNS_Mgr::InitSource()
 
 void DNS_Mgr::InitPostScript()
 	{
-	dm_rec = id::find_type<RecordType>("dns_mapping");
+	if ( ! doctest::is_running_in_test )
+		{
+		dm_rec = id::find_type<RecordType>("dns_mapping");
 
-	// Registering will call Init()
-	iosource_mgr->Register(this, true);
+		// Registering will call Init()
+		iosource_mgr->Register(this, true);
+		}
+	else
+		{
+		// This would normally be called when registering the iosource above.
+		InitSource();
+		}
 
 	const char* cache_dir = dir ? dir : ".";
 	cache_name = new char[strlen(cache_dir) + 64];
@@ -535,9 +547,15 @@ TableValPtr DNS_Mgr::LookupHost(const char* name)
 		}
 	}
 
-ValPtr DNS_Mgr::LookupAddr(const IPAddr& addr)
+StringValPtr DNS_Mgr::LookupAddr(const IPAddr& addr)
 	{
+	if ( mode == DNS_FAKE )
+		return make_intrusive<StringVal>(fake_addr_lookup_result(addr));
+
 	InitSource();
+
+	if ( ! nb_dns )
+		return make_intrusive<StringVal>("<none>");
 
 	if ( mode != DNS_PRIME )
 		{
@@ -703,6 +721,9 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
 
 ValPtr DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 	{
+	if ( ! dm_rec )
+		return nullptr;
+
 	auto r = make_intrusive<RecordVal>(dm_rec);
 
 	r->AssignTime(0, dm->CreationTime());
@@ -1017,13 +1038,21 @@ const char* DNS_Mgr::LookupTextInCache(const string& name)
 static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback, TableValPtr result)
 	{
 	callback->Resolved(result.get());
-	delete callback;
+
+	// Don't delete this if testing because we need it to look at the results of the
+	// request. It'll get deleted by the test when finished.
+	if ( ! doctest::is_running_in_test )
+		delete callback;
 	}
 
 static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback, const char* result)
 	{
 	callback->Resolved(result);
-	delete callback;
+
+	// Don't delete this if testing because we need it to look at the results of the
+	// request. It'll get deleted by the test when finished.
+	if ( ! doctest::is_running_in_test )
+		delete callback;
 	}
 
 void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
@@ -1443,6 +1472,482 @@ void DNS_Mgr::Terminate()
 	{
 	if ( nb_dns )
 		iosource_mgr->UnregisterFd(nb_dns_fd(nb_dns), this);
+	}
+
+void DNS_Mgr::TestProcess()
+	{
+	// Only allow usage of this method when running unit tests.
+	assert(doctest::is_running_in_test);
+	Process();
+	}
+
+void DNS_Mgr::AsyncRequest::Resolved(const char* name)
+	{
+	for ( CallbackList::iterator i = callbacks.begin(); i != callbacks.end(); ++i )
+		{
+		(*i)->Resolved(name);
+		if ( ! doctest::is_running_in_test )
+			delete *i;
+		}
+	callbacks.clear();
+	processed = true;
+	}
+
+void DNS_Mgr::AsyncRequest::Resolved(TableVal* addrs)
+	{
+	for ( CallbackList::iterator i = callbacks.begin(); i != callbacks.end(); ++i )
+		{
+		(*i)->Resolved(addrs);
+		if ( ! doctest::is_running_in_test )
+			delete *i;
+		}
+	callbacks.clear();
+	processed = true;
+	}
+
+void DNS_Mgr::AsyncRequest::Timeout()
+	{
+	for ( CallbackList::iterator i = callbacks.begin(); i != callbacks.end(); ++i )
+		{
+		(*i)->Timeout();
+		if ( ! doctest::is_running_in_test )
+			delete *i;
+		}
+	callbacks.clear();
+	processed = true;
+	}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+static std::vector<IPAddr> get_result_addresses(TableVal* addrs)
+	{
+	std::vector<IPAddr> results;
+
+	auto m = addrs->ToMap();
+	for ( const auto& [k, v] : m )
+		{
+		auto lv = cast_intrusive<ListVal>(k);
+		auto lvv = lv->Vals();
+		for ( const auto& addr : lvv )
+			{
+			auto addr_ptr = cast_intrusive<AddrVal>(addr);
+			results.push_back(addr_ptr->Get());
+			}
+		}
+
+	return results;
+	}
+
+class TestCallback : public DNS_Mgr::LookupCallback
+	{
+public:
+	TestCallback() { }
+	void Resolved(const char* name) override
+		{
+		host_result = name;
+		done = true;
+		}
+	void Resolved(TableVal* addrs) override
+		{
+		addr_results = get_result_addresses(addrs);
+		done = true;
+		}
+	void Timeout() override
+		{
+		host_result = "timeout";
+		done = true;
+		}
+
+	std::string host_result;
+	std::vector<IPAddr> addr_results;
+	bool done = false;
+	};
+
+TEST_CASE("dns_mgr prime,save,load")
+	{
+	char prefix[] = "/tmp/zeek-unit-test-XXXXXX";
+	auto tmpdir = mkdtemp(prefix);
+
+	// Create a manager to prime the cache, make a few requests, and the save
+	// the result. This tests that the priming code will create the requests but
+	// wait for Resolve() to actually make the requests.
+	DNS_Mgr mgr(DNS_PRIME);
+	mgr.SetDir(tmpdir);
+	mgr.InitPostScript();
+
+	auto host_result = mgr.LookupHost("one.one.one.one");
+	REQUIRE(host_result != nullptr);
+	CHECK(host_result->EqualTo(empty_addr_set()));
+
+	IPAddr ones("1.1.1.1");
+	auto addr_result = mgr.LookupAddr(ones);
+	CHECK(strcmp(addr_result->CheckString(), "<none>") == 0);
+
+	mgr.Verify();
+	mgr.Resolve();
+
+	// Save off the resulting values from Resolve() into a file on disk
+	// in the tmpdir created by mkdtemp.
+	REQUIRE(mgr.Save());
+
+	// Make a second DNS manager and reload the cache that we just saved.
+	DNS_Mgr mgr2(DNS_FORCE);
+	mgr2.SetDir(tmpdir);
+	mgr2.InitPostScript();
+
+	// Make the same two requests, but verify that we're correctly getting
+	// data out of the cache.
+	host_result = mgr2.LookupHost("one.one.one.one");
+	REQUIRE(host_result != nullptr);
+	CHECK_FALSE(host_result->EqualTo(empty_addr_set()));
+
+	addr_result = mgr2.LookupAddr(ones);
+	REQUIRE(addr_result != nullptr);
+	CHECK(strcmp(addr_result->CheckString(), "one.one.one.one") == 0);
+	}
+
+TEST_CASE("dns_mgr alternate server")
+	{
+	char* old_server = getenv("ZEEK_DNS_RESOLVER");
+
+	setenv("ZEEK_DNS_RESOLVER", "1.1.1.1", 1);
+	DNS_Mgr mgr(DNS_DEFAULT);
+	mgr.InitPostScript();
+	auto result = mgr.LookupAddr("1.1.1.1");
+	mgr.Verify();
+	mgr.Resolve();
+
+	result = mgr.LookupAddr("1.1.1.1");
+	REQUIRE(result != nullptr);
+	CHECK(strcmp(result->CheckString(), "one.one.one.one") == 0);
+
+	// FIXME: This won't run on systems without IPv6 connectivity.
+	// setenv("ZEEK_DNS_RESOLVER", "2606:4700:4700::1111", 1);
+	// DNS_Mgr mgr2(DNS_DEFAULT, true);
+	// mgr2.InitPostScript();
+	// result = mgr2.LookupAddr("1.1.1.1");
+	// mgr2.Verify();
+	// mgr2.Resolve();
+
+	// result = mgr2.LookupAddr("1.1.1.1");
+	// CHECK(strcmp(result->CheckString(), "one.one.one.one") == 0);
+	}
+
+TEST_CASE("dns_mgr default mode")
+	{
+	DNS_Mgr mgr(DNS_DEFAULT);
+	mgr.InitPostScript();
+
+	IPAddr ones("1.1.1.1");
+	auto host_result = mgr.LookupHost("one.one.one.one");
+	REQUIRE(host_result != nullptr);
+	CHECK_FALSE(host_result->EqualTo(empty_addr_set()));
+
+	auto addrs_from_request = get_result_addresses(host_result.get());
+	auto it = std::find(addrs_from_request.begin(), addrs_from_request.end(), ones);
+	CHECK(it != addrs_from_request.end());
+
+	auto addr_result = mgr.LookupAddr(ones);
+	REQUIRE(addr_result != nullptr);
+	CHECK(strcmp(addr_result->CheckString(), "one.one.one.one") == 0);
+
+	IPAddr bad("240.0.0.0");
+	addr_result = mgr.LookupAddr(bad);
+	REQUIRE(addr_result != nullptr);
+	CHECK(strcmp(addr_result->CheckString(), "240.0.0.0") == 0);
+	}
+
+TEST_CASE("dns_mgr async host")
+	{
+	DNS_Mgr mgr(DNS_DEFAULT);
+	mgr.InitPostScript();
+
+	TestCallback cb{};
+	mgr.AsyncLookupName("one.one.one.one", &cb);
+
+	// This shouldn't take any longer than DNS_TIMEOUT+1 seconds, so bound it
+	// just in case of some failure we're not aware of yet.
+	int count = 0;
+	while ( ! cb.done && (count < DNS_TIMEOUT + 1) )
+		{
+		mgr.TestProcess();
+		sleep(1);
+		count++;
+		}
+
+	REQUIRE(count < (DNS_TIMEOUT + 1));
+	if ( cb.host_result != "timeout" )
+		{
+		REQUIRE_FALSE(cb.addr_results.empty());
+		IPAddr ones("1.1.1.1");
+		auto it = std::find(cb.addr_results.begin(), cb.addr_results.end(), ones);
+		CHECK(it != cb.addr_results.end());
+		}
+
+	mgr.Flush();
+	}
+
+TEST_CASE("dns_mgr async addr")
+	{
+	DNS_Mgr mgr(DNS_DEFAULT);
+	mgr.InitPostScript();
+
+	// The actual check for this test happens in TestCallback::Resolved().
+	TestCallback cb{};
+	mgr.AsyncLookupAddr(IPAddr{"1.1.1.1"}, &cb);
+
+	// This shouldn't take any longer than DNS_TIMEOUT +1 seconds, so bound it
+	// just in case of some failure we're not aware of yet.
+	int count = 0;
+	while ( ! cb.done && (count < DNS_TIMEOUT + 1) )
+		{
+		mgr.TestProcess();
+		sleep(1);
+		count++;
+		}
+
+	REQUIRE(count < (DNS_TIMEOUT + 1));
+	if ( cb.host_result != "timeout" )
+		REQUIRE(cb.host_result == "one.one.one.one");
+
+	mgr.Flush();
+	}
+
+TEST_CASE("dns_mgr async text")
+	{
+	DNS_Mgr mgr(DNS_DEFAULT);
+	mgr.InitPostScript();
+
+	// The actual check for this test happens in TestCallback::Resolved().
+	TestCallback cb{};
+	mgr.AsyncLookupNameText("unittest.zeek.org", &cb);
+
+	// This shouldn't take any longer than DNS_TIMEOUT +1 seconds, so bound it
+	// just in case of some failure we're not aware of yet.
+	int count = 0;
+	while ( ! cb.done && (count < DNS_TIMEOUT + 1) )
+		{
+		mgr.TestProcess();
+		sleep(1);
+		count++;
+		}
+
+	REQUIRE(count < (DNS_TIMEOUT + 1));
+	if ( cb.host_result != "timeout" )
+		REQUIRE(cb.host_result == "testing dns_mgr");
+
+	mgr.Flush();
+	}
+
+TEST_CASE("dns_mapping init null hostent")
+	{
+	DNS_Mapping mapping("www.apple.com", nullptr, 123);
+
+	CHECK(! mapping.Valid());
+	CHECK(mapping.Addrs() == nullptr);
+	CHECK(mapping.AddrsSet()->EqualTo(empty_addr_set()));
+	CHECK(mapping.Host() == nullptr);
+	}
+
+TEST_CASE("dns_mapping init host")
+	{
+	IPAddr addr("1.2.3.4");
+	in4_addr in4;
+	addr.CopyIPv4(&in4);
+
+	struct hostent he;
+	he.h_name = util::copy_string("testing.home");
+	he.h_aliases = NULL;
+	he.h_addrtype = AF_INET;
+	he.h_length = sizeof(in_addr);
+
+	std::vector<in_addr*> addrs = {&in4, NULL};
+	he.h_addr_list = reinterpret_cast<char**>(addrs.data());
+
+	DNS_Mapping mapping("testing.home", &he, 123);
+	CHECK(mapping.Valid());
+	CHECK(mapping.ReqAddr() == IPAddr::v6_unspecified);
+	CHECK(strcmp(mapping.ReqHost(), "testing.home") == 0);
+	CHECK(mapping.ReqStr() == "testing.home");
+
+	auto lva = mapping.Addrs();
+	REQUIRE(lva != nullptr);
+	CHECK(lva->Length() == 1);
+	auto lvae = lva->Idx(0)->AsAddrVal();
+	REQUIRE(lvae != nullptr);
+	CHECK(lvae->Get().AsString() == "1.2.3.4");
+
+	auto tvas = mapping.AddrsSet();
+	REQUIRE(tvas != nullptr);
+	CHECK_FALSE(tvas->EqualTo(empty_addr_set()));
+
+	auto svh = mapping.Host();
+	REQUIRE(svh != nullptr);
+	CHECK(svh->ToStdString() == "testing.home");
+	}
+
+TEST_CASE("dns_mapping init addr")
+	{
+	IPAddr addr("1.2.3.4");
+	in4_addr in4;
+	addr.CopyIPv4(&in4);
+
+	struct hostent he;
+	he.h_name = util::copy_string("testing.home");
+	he.h_aliases = NULL;
+	he.h_addrtype = AF_INET;
+	he.h_length = sizeof(in_addr);
+
+	std::vector<in_addr*> addrs = {&in4, NULL};
+	he.h_addr_list = reinterpret_cast<char**>(addrs.data());
+
+	DNS_Mapping mapping(addr, &he, 123);
+	CHECK(mapping.Valid());
+	CHECK(mapping.ReqAddr() == addr);
+	CHECK(mapping.ReqHost() == nullptr);
+	CHECK(mapping.ReqStr() == "1.2.3.4");
+
+	auto lva = mapping.Addrs();
+	REQUIRE(lva != nullptr);
+	CHECK(lva->Length() == 1);
+	auto lvae = lva->Idx(0)->AsAddrVal();
+	REQUIRE(lvae != nullptr);
+	CHECK(lvae->Get().AsString() == "1.2.3.4");
+
+	auto tvas = mapping.AddrsSet();
+	REQUIRE(tvas != nullptr);
+	CHECK_FALSE(tvas->EqualTo(empty_addr_set()));
+
+	auto svh = mapping.Host();
+	REQUIRE(svh != nullptr);
+	CHECK(svh->ToStdString() == "testing.home");
+	}
+
+TEST_CASE("dns_mapping save reload")
+	{
+	IPAddr addr("1.2.3.4");
+	in4_addr in4;
+	addr.CopyIPv4(&in4);
+
+	struct hostent he;
+	he.h_name = util::copy_string("testing.home");
+	he.h_aliases = NULL;
+	he.h_addrtype = AF_INET;
+	he.h_length = sizeof(in_addr);
+
+	std::vector<in_addr*> addrs = {&in4, NULL};
+	he.h_addr_list = reinterpret_cast<char**>(addrs.data());
+
+	// Create a temporary file in memory and fseek to the end of it so we're at
+	// EOF for the next bit.
+	char buffer[4096];
+	memset(buffer, 0, 4096);
+	FILE* tmpfile = fmemopen(buffer, 4096, "r+");
+	fseek(tmpfile, 0, SEEK_END);
+
+	// Try loading from the file at EOF. This should cause a mapping failure.
+	DNS_Mapping mapping(tmpfile);
+	CHECK(mapping.NoMapping());
+	rewind(tmpfile);
+
+	// Try reading from the empty file. This should cause an init failure.
+	DNS_Mapping mapping2(tmpfile);
+	CHECK(mapping2.InitFailed());
+	rewind(tmpfile);
+
+	// Save a valid mapping into the file and rewind to the start.
+	DNS_Mapping mapping3(addr, &he, 123);
+	mapping3.Save(tmpfile);
+	rewind(tmpfile);
+
+	// Test loading the mapping back out of the file
+	DNS_Mapping mapping4(tmpfile);
+	fclose(tmpfile);
+	CHECK(mapping4.Valid());
+	CHECK(mapping4.ReqAddr() == addr);
+	CHECK(mapping4.ReqHost() == nullptr);
+	CHECK(mapping4.ReqStr() == "1.2.3.4");
+
+	auto lva = mapping4.Addrs();
+	REQUIRE(lva != nullptr);
+	CHECK(lva->Length() == 1);
+	auto lvae = lva->Idx(0)->AsAddrVal();
+	REQUIRE(lvae != nullptr);
+	CHECK(lvae->Get().AsString() == "1.2.3.4");
+
+	auto tvas = mapping4.AddrsSet();
+	REQUIRE(tvas != nullptr);
+	CHECK(tvas != empty_addr_set());
+
+	auto svh = mapping4.Host();
+	REQUIRE(svh != nullptr);
+	CHECK(svh->ToStdString() == "testing.home");
+	}
+
+TEST_CASE("dns_mapping multiple addresses")
+	{
+	IPAddr addr("1.2.3.4");
+	in4_addr in4_1;
+	addr.CopyIPv4(&in4_1);
+
+	IPAddr addr2("5.6.7.8");
+	in4_addr in4_2;
+	addr2.CopyIPv4(&in4_2);
+
+	struct hostent he;
+	he.h_name = util::copy_string("testing.home");
+	he.h_aliases = NULL;
+	he.h_addrtype = AF_INET;
+	he.h_length = sizeof(in_addr);
+
+	std::vector<in_addr*> addrs = {&in4_1, &in4_2, NULL};
+	he.h_addr_list = reinterpret_cast<char**>(addrs.data());
+
+	DNS_Mapping mapping("testing.home", &he, 123);
+	CHECK(mapping.Valid());
+
+	auto lva = mapping.Addrs();
+	REQUIRE(lva != nullptr);
+	CHECK(lva->Length() == 2);
+
+	auto lvae = lva->Idx(0)->AsAddrVal();
+	REQUIRE(lvae != nullptr);
+	CHECK(lvae->Get().AsString() == "1.2.3.4");
+
+	lvae = lva->Idx(1)->AsAddrVal();
+	REQUIRE(lvae != nullptr);
+	CHECK(lvae->Get().AsString() == "5.6.7.8");
+	}
+
+TEST_CASE("dns_mapping ipv6")
+	{
+	IPAddr addr("64:ff9b:1::");
+	in6_addr in6;
+	addr.CopyIPv6(&in6);
+
+	struct hostent he;
+	he.h_name = util::copy_string("testing.home");
+	he.h_aliases = NULL;
+	he.h_addrtype = AF_INET6;
+	he.h_length = sizeof(in6_addr);
+
+	std::vector<in6_addr*> addrs = {&in6, NULL};
+	he.h_addr_list = reinterpret_cast<char**>(addrs.data());
+
+	DNS_Mapping mapping(addr, &he, 123);
+	CHECK(mapping.Valid());
+	CHECK(mapping.ReqAddr() == addr);
+	CHECK(mapping.ReqHost() == nullptr);
+	CHECK(mapping.ReqStr() == "64:ff9b:1::");
+
+	auto lva = mapping.Addrs();
+	REQUIRE(lva != nullptr);
+	CHECK(lva->Length() == 1);
+	auto lvae = lva->Idx(0)->AsAddrVal();
+	REQUIRE(lvae != nullptr);
+	CHECK(lvae->Get().AsString() == "64:ff9b:1::");
 	}
 
 	} // namespace zeek::detail

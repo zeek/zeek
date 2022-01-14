@@ -1,3 +1,7 @@
+5.0.0-dev.45 | 2022-01-14 12:21:25 -0700
+
+  * Have `make dist` cleanup a few more wayward files before tarring (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.43 | 2022-01-14 15:59:53 +0000
 
   * Make more StringVal member functions const (Johanna Amann, Corelight)

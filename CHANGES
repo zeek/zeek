@@ -2,6 +2,10 @@
 
   * Release 4.2.0.
 
+  * Have `make dist` cleanup a few more wayward files before tarring (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit cdf39840bb7974dc714666f2401e9b949c778f42(
+
   * CI update: add Ubuntu 21.10 (Christian Kreibich, Corelight)
 
   * CI update: remove OpenSUSE Leap 15.2 (EOL) (Christian Kreibich, Corelight)

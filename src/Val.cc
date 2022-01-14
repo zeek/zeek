@@ -953,17 +953,17 @@ ValPtr StringVal::SizeVal() const
 	return val_mgr->Count(string_val->Len());
 	}
 
-int StringVal::Len()
+int StringVal::Len() const
 	{
 	return AsString()->Len();
 	}
 
-const u_char* StringVal::Bytes()
+const u_char* StringVal::Bytes() const
 	{
 	return AsString()->Bytes();
 	}
 
-const char* StringVal::CheckString()
+const char* StringVal::CheckString() const
 	{
 	return AsString()->CheckString();
 	}

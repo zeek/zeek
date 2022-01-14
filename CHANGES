@@ -1,3 +1,9 @@
+5.0.0-dev.47 | 2022-01-14 12:22:11 -0700
+
+  * Remove Fedora 33 from CI. (Johanna Amann, Corelight)
+
+    EOL date was 2021‑11‑30
+
 5.0.0-dev.45 | 2022-01-14 12:21:25 -0700
 
   * Have `make dist` cleanup a few more wayward files before tarring (Tim Wojtulewicz, Corelight)

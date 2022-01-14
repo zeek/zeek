@@ -533,9 +533,9 @@ public:
 
 	ValPtr SizeVal() const override;
 
-	int Len();
-	const u_char* Bytes();
-	const char* CheckString();
+	int Len() const;
+	const u_char* Bytes() const;
+	const char* CheckString() const;
 
 	// Note that one needs to de-allocate the return value of
 	// ExpandedString() to avoid a memory leak.

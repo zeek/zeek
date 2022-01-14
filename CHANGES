@@ -1,3 +1,7 @@
+5.0.0-dev.43 | 2022-01-14 15:59:53 +0000
+
+  * Make more StringVal member functions const (Johanna Amann, Corelight)
+
 5.0.0-dev.41 | 2022-01-12 10:16:38 -0700
 
   * Fix --with-jemalloc configure option on FreeBSD (Tim Wojtulewicz, Corelight)

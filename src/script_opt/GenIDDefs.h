@@ -105,7 +105,7 @@ private:
 	// the front entry tracks identifiers at the outermost
 	// (non-confluence) scope.  Thus, to index it for a given
 	// confluence block i, we need to use i+1.
-	std::vector<std::unordered_set<const ID*>> modified_IDs;
+	std::vector<IDSet> modified_IDs;
 
 	// If non-zero, indicates we should suspend any generation
 	// of usage errors.  A counter rather than a boolean because

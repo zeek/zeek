@@ -89,7 +89,7 @@ event Known::cert_found(info: CertsInfo, hash: string)
 
 	local key = AddrCertHashPair($host = info$host, $hash = hash);
 
-	when ( local r = Broker::put_unique(Known::cert_store$store, key,
+	when [info, key] ( local r = Broker::put_unique(Known::cert_store$store, key,
 	                                    T, Known::cert_store_expiry) )
 		{
 		if ( r$status == Broker::SUCCESS )

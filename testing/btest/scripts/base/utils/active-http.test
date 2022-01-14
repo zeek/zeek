@@ -23,7 +23,7 @@ function check_exit_condition()
 
 function test_request(label: string, req: ActiveHTTP::Request)
 	{
-	when ( local response = ActiveHTTP::request(req) )
+	when [label, req] ( local response = ActiveHTTP::request(req) )
 		{
 		print label, response;
 		check_exit_condition();

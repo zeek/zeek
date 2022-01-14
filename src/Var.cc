@@ -680,12 +680,31 @@ class OuterIDBindingFinder : public TraversalCallback
 public:
 	OuterIDBindingFinder(ScopePtr s) { scopes.emplace_back(s); }
 
+	TraversalCode PreStmt(const Stmt*) override;
 	TraversalCode PreExpr(const Expr*) override;
 	TraversalCode PostExpr(const Expr*) override;
 
 	std::vector<ScopePtr> scopes;
 	std::unordered_set<ID*> outer_id_references;
 	};
+
+TraversalCode OuterIDBindingFinder::PreStmt(const Stmt* stmt)
+	{
+	if ( stmt->Tag() != STMT_WHEN )
+		return TC_CONTINUE;
+
+	auto ws = static_cast<const WhenStmt*>(stmt);
+	auto lambda = ws->Info()->Lambda();
+
+	if ( ! lambda )
+		// Old-style semantics.
+		return TC_CONTINUE;
+
+	// The semantics of identifiers for the "when" statement are those
+	// of the lambda it's transformed into.
+	lambda->Traverse(this);
+	return TC_ABORTSTMT;
+	}
 
 TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	{
@@ -722,6 +741,10 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
+// The following is only used for debugging AST duplication.  If activated,
+// each AST is replaced with its duplicate.  In the absence of a duplication
+// error, this shouldn't change any semantics, so running the test suite
+// with this variable set can find flaws in the duplication machinery.
 static bool duplicate_ASTs = getenv("ZEEK_DUPLICATE_ASTS");
 
 void end_func(StmtPtr body, bool free_of_conditionals)

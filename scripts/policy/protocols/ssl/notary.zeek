@@ -63,7 +63,7 @@ event ssl_established(c: connection) &priority=3
 	if ( waits_already )
 		return;
 
-	when ( local str = lookup_hostname_txt(fmt("%s.%s", digest, domain)) )
+	when [digest] ( local str = lookup_hostname_txt(fmt("%s.%s", digest, domain)) )
 		{
 		notary_cache[digest] = [];
 

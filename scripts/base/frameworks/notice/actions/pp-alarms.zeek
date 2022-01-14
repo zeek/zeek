@@ -212,7 +212,7 @@ function pretty_print_alarm(out: file, n: Info)
 		return;
 		}
 
-	when ( local h1name = lookup_addr(h1) )
+	when [out, n, h1, h2, line1, line2, line3] ( local h1name = lookup_addr(h1) )
 		{
 		if ( h2 == 0.0.0.0 )
 			{
@@ -220,7 +220,7 @@ function pretty_print_alarm(out: file, n: Info)
 			return;
 			}
 
-		when ( local h2name = lookup_addr(h2) )
+		when [out, n, h1, h2, line1, line2, line3, h1name] ( local h2name = lookup_addr(h2) )
 			{
 			do_msg(out, n, line1, line2, line3, h1, h1name, h2, h2name);
 			return;
@@ -240,7 +240,7 @@ function pretty_print_alarm(out: file, n: Info)
 			return;
 			}
 
-		when ( local h2name_ = lookup_addr(h2) )
+		when [out, n, h1, h2, line1, line2, line3] ( local h2name_ = lookup_addr(h2) )
 			{
 			do_msg(out, n, line1, line2, line3, h1,  "(dns timeout)", h2, h2name_);
 			return;

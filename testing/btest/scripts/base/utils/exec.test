@@ -19,7 +19,7 @@ function check_exit_condition()
 
 function test_cmd(label: string, cmd: Exec::Command)
 	{
-	when ( local result = Exec::run(cmd) )
+	when [label, cmd] ( local result = Exec::run(cmd) )
 		{
 		local file_content = "";
 

@@ -22,7 +22,7 @@ redef exit_only_after_terminate=T;
 event on_demand_key()
 	{
 	local host = 1.2.3.4;
-	when ( local result = SumStats::request_key("test", [$host=host]) )
+	when [host] ( local result = SumStats::request_key("test", [$host=host]) )
 		{
 		print fmt("Key request for %s", host);
 		print fmt("    Host: %s -> %.0f", host, result["test.reducer"]$sum);

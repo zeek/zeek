@@ -77,7 +77,7 @@ event Known::host_found(info: HostsInfo)
 	if ( ! Known::use_host_store )
 		return;
 
-	when ( local r = Broker::put_unique(Known::host_store$store, info$host,
+	when [info] ( local r = Broker::put_unique(Known::host_store$store, info$host,
 	                                    T, Known::host_store_expiry) )
 		{
 		if ( r$status == Broker::SUCCESS )

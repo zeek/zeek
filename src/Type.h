@@ -515,6 +515,20 @@ public:
 	 */
 	const std::optional<CaptureList>& GetCaptures() const { return captures; }
 
+	/**
+	 * Returns whether it's acceptable for a "return" inside the function
+	 * to not have an expression (even though the function has a return
+	 * type).  Used internally for lambdas built for "when" statements.
+	 */
+	bool ExpressionlessReturnOkay() const { return expressionless_return_okay; }
+
+	/**
+	 * Sets whether it's acceptable for a "return" inside the function
+	 * to not have an expression (even though the function has a return
+	 * type).  Used internally for lambdas built for "when" statements.
+	 */
+	void SetExpressionlessReturnOkay(bool is_ok) { expressionless_return_okay = is_ok; }
+
 protected:
 	friend FuncTypePtr make_intrusive<FuncType>();
 
@@ -526,6 +540,8 @@ protected:
 	std::vector<Prototype> prototypes;
 
 	std::optional<CaptureList> captures; // if nil then no captures specified
+	// Used for internal lambdas built for "when" statements:
+	bool expressionless_return_okay = false;
 	};
 
 class TypeType final : public Type

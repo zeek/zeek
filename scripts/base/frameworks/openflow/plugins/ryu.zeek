@@ -135,9 +135,9 @@ function ryu_flow_mod(state: OpenFlow::ControllerState, match: ofp_match, flow_m
 	);
 
 	# Execute call to Ryu's ReST API
-	when ( local result = ActiveHTTP::request(request) )
+	when [state, match, flow_mod, request] ( local result = ActiveHTTP::request(request) )
 		{
-		if(result$code == 200)
+		if (result$code == 200)
 			event OpenFlow::flow_mod_success(state$_name, match, flow_mod, result$body);
 		else
 			{
@@ -165,7 +165,7 @@ function ryu_flow_clear(state: OpenFlow::ControllerState): bool
 		$method="DELETE"
 	);
 
-	when ( local result = ActiveHTTP::request(request) )
+	when [request] ( local result = ActiveHTTP::request(request) )
 		{
 		}
 

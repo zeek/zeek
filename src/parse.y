@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 141
+%expect 140
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -52,7 +52,7 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 %nonassoc TOK_AS TOK_IS
 
-%type <b> opt_no_test opt_no_test_block TOK_PATTERN_END opt_deep
+%type <b> opt_no_test opt_no_test_block TOK_PATTERN_END opt_deep when_flavor
 %type <str> TOK_ID TOK_PATTERN_TEXT
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_lambda case_type
 %type <id_l> local_id_list case_type_list
@@ -73,7 +73,8 @@
 %type <attr> attr
 %type <attr_l> attr_list opt_attr
 %type <capture> capture
-%type <captures> capture_list opt_captures
+%type <captures> capture_list opt_captures when_captures
+%type <when_clause> when_head when_start when_clause
 
 %{
 #include <stdlib.h>
@@ -309,7 +310,8 @@ static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
 	std::vector<zeek::detail::AttrPtr>* attr_l;
 	zeek::detail::AttrTag attrtag;
 	zeek::FuncType::Capture* capture;
-	std::vector<zeek::FuncType::Capture*>* captures;
+	zeek::FuncType::CaptureList* captures;
+	zeek::detail::WhenInfo* when_clause;
 }
 
 %%
@@ -346,6 +348,54 @@ opt_expr:
 			{ $$ = $1; }
 	|
 			{ $$ = 0; }
+	;
+
+when_clause:
+		when_head TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
+			{
+			set_location(@1, @7);
+			$1->AddTimeout({AdoptRef{}, $3}, {AdoptRef{}, $6});
+			if ( $5 )
+			    script_coverage_mgr.DecIgnoreDepth();
+			}
+	|
+		when_head
+	;
+
+when_head:
+		when_start stmt
+			{
+			set_location(@1, @2);
+			$1->AddBody({AdoptRef{}, $2});
+			}
+	;
+
+when_start:
+		when_flavor '[' when_captures ']' '(' when_condition ')'
+			{
+			set_location(@1, @7);
+			$$ = new WhenInfo({AdoptRef{}, $6}, $3, $1);
+			}
+
+	|	when_flavor '(' when_condition ')'
+			{
+			set_location(@1, @4);
+			$$ = new WhenInfo({AdoptRef{}, $3}, nullptr, $1);
+			}
+	;
+
+when_flavor:
+		TOK_RETURN TOK_WHEN
+			{ $$ = true; }
+	|
+		TOK_WHEN
+			{ $$ = false; }
+	;
+
+when_captures:
+		capture_list
+	|
+		{ $$ = new zeek::FuncType::CaptureList; }
 	;
 
 when_condition:
@@ -1385,15 +1435,7 @@ begin_lambda:
 
 			if ( $1 )
 				{
-				captures = FuncType::CaptureList{};
-				captures->reserve($1->size());
-
-				for ( auto c : *$1 )
-					{
-					captures->emplace_back(*c);
-					delete c;
-					}
-
+				captures = *$1;
 				delete $1;
 				}
 
@@ -1411,11 +1453,15 @@ opt_captures:
 
 capture_list:
 		capture_list ',' capture
-			{ $1->push_back($3); }
+			{
+			$1->push_back(*$3);
+			delete $3;
+			}
 	|	capture
 			{
-			$$ = new std::vector<FuncType::Capture*>;
-			$$->push_back($1);
+			$$ = new zeek::FuncType::CaptureList;
+			$$->push_back(*$1);
+			delete $1;
 			}
 	;
 
@@ -1423,8 +1469,7 @@ capture:
 		opt_deep TOK_ID
 			{
 			set_location(@2);
-			auto id = lookup_ID($2,
-					current_module.c_str());
+			auto id = lookup_ID($2, current_module.c_str());
 
 			if ( ! id )
 				reporter->Error("no such local identifier: %s", $2);
@@ -1722,37 +1767,9 @@ stmt:
 			$$ = build_local($2, $3, $4, $5, $6, VAR_CONST, ! $8).release();
 			}
 
-	|	TOK_WHEN '(' when_condition ')' stmt
+	|	when_clause
 			{
-			set_location(@3, @5);
-			$$ = new WhenStmt({AdoptRef{}, $3}, {AdoptRef{}, $5},
-			                                  nullptr, nullptr, false);
-			}
-
-	|	TOK_WHEN '(' when_condition ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
-			{
-			set_location(@3, @9);
-			$$ = new WhenStmt({AdoptRef{}, $3}, {AdoptRef{}, $5},
-			                                  {AdoptRef{}, $10}, {AdoptRef{}, $7}, false);
-			if ( $9 )
-			    script_coverage_mgr.DecIgnoreDepth();
-			}
-
-
-	|	TOK_RETURN TOK_WHEN '(' when_condition ')' stmt
-			{
-			set_location(@4, @6);
-			$$ = new WhenStmt({AdoptRef{}, $4}, {AdoptRef{}, $6}, nullptr,
-			                  nullptr, true);
-			}
-
-	|	TOK_RETURN TOK_WHEN '(' when_condition ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
-			{
-			set_location(@4, @10);
-			$$ = new WhenStmt({AdoptRef{}, $4}, {AdoptRef{}, $6},
-			                                  {AdoptRef{}, $11}, {AdoptRef{}, $8}, true);
-			if ( $10 )
-			    script_coverage_mgr.DecIgnoreDepth();
+			$$ = new WhenStmt($1);
 			}
 
 	|	index_slice '=' expr ';' opt_no_test

@@ -1,3 +1,19 @@
+5.0.0-dev.58 | 2022-01-14 14:41:15 -0700
+
+  * explicitly provide the frame for evaluating a "when" timeout expression (Vern Paxson, Corelight)
+
+  * tests for new "when" semantics/errors (Vern Paxson, Corelight)
+
+  * captures for "when" statements (Vern Paxson, Corelight)
+    update Triggers to IntrusivePtr's and simpler AST traversal
+    introduce IDSet type, migrate associated "ID*" types to "const ID*"
+
+  * logic (other than in profiling) for assignments that yield separate values (Vern Paxson, Corelight)
+
+  * option for internal use to mark a function type as allowing non-expression returns (Vern Paxson, Corelight)
+
+  * removed some now-obsolete profiling functionality (Vern Paxson, Corelight)
+
 5.0.0-dev.47 | 2022-01-14 12:22:11 -0700
 
   * Remove Fedora 33 from CI. (Johanna Amann, Corelight)

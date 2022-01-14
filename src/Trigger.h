@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 
+#include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Notifier.h"
 #include "zeek/Obj.h"
@@ -16,6 +17,8 @@ namespace zeek
 class ODesc;
 class Val;
 
+using ValPtr = IntrusivePtr<Val>;
+
 namespace detail
 	{
 
@@ -24,6 +27,9 @@ class Stmt;
 class Expr;
 class CallExpr;
 class ID;
+class WhenInfo;
+
+using StmtPtr = IntrusivePtr<Stmt>;
 
 namespace trigger
 	{
@@ -41,10 +47,18 @@ public:
 	// instantiation.  Note that if the condition is already true, the
 	// statements are executed immediately and the object is deleted
 	// right away.
-	Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeout, Frame* f,
+
+	// These first two constructors are for the deprecated deep-copy
+	// semantics.
+	Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, ExprPtr timeout, Frame* f,
 	        bool is_return, const Location* loc);
-	Trigger(const Expr* cond, Stmt* body, Stmt* timeout_stmts, double timeout, Frame* f,
+	Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* f,
 	        bool is_return, const Location* loc);
+
+	// Used for capture-list semantics.
+	Trigger(WhenInfo* wi, const IDSet& globals, std::vector<ValPtr> local_aggrs, Frame* f,
+	        const Location* loc);
+
 	~Trigger() override;
 
 	// Evaluates the condition. If true, executes the body and deletes
@@ -96,22 +110,23 @@ public:
 	const char* Name() const;
 
 private:
-	friend class TriggerTraversalCallback;
 	friend class TriggerTimer;
 
-	void Init(const Expr* cond, Stmt* body, Stmt* timeout_stmts, Frame* frame, bool is_return,
+	void GetTimeout(const ExprPtr& timeout_expr, Frame* f);
+
+	void Init(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, Frame* frame, bool is_return,
 	          const Location* location);
 
-	void ReInit(std::vector<IntrusivePtr<Val>> index_expr_results);
+	void ReInit(std::vector<ValPtr> index_expr_results);
 
-	void Register(ID* id);
+	void Register(const ID* id);
 	void Register(Val* val);
 	void UnregisterAll();
 
-	const Expr* cond;
-	Stmt* body;
-	Stmt* timeout_stmts;
-	Expr* timeout;
+	ExprPtr cond;
+	StmtPtr body;
+	StmtPtr timeout_stmts;
+	ExprPtr timeout;
 	double timeout_value;
 	Frame* frame;
 	bool is_return;
@@ -123,13 +138,24 @@ private:
 	bool delayed; // true if a function call is currently being delayed
 	bool disabled;
 
+	// Globals and locals present in the when expression.
+	IDSet globals;
+	IDSet locals; // not needed, present only for matching deprecated logic
+
+	// Tracks whether we've found the globals/locals, as the work only
+	// has to be done once.
+	bool have_trigger_elems = false;
+
+	// Aggregate values seen in locals used in the trigger condition,
+	// so we can detect changes in them that affect whether the condition
+	// holds.
+	std::vector<ValPtr> local_aggrs;
+
 	std::vector<std::pair<Obj*, notifier::detail::Modifiable*>> objs;
 
 	using ValCache = std::map<const CallExpr*, Val*>;
 	ValCache cache;
 	};
-
-using TriggerPtr = IntrusivePtr<Trigger>;
 
 class Manager final : public iosource::IOSource
 	{

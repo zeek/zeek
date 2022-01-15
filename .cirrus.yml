@@ -167,13 +167,6 @@ debian9_32bit_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-opensuse_leap_15_2_task:
-  container:
-    # Opensuse Leap 15.2 EOL: Dec 2021
-    dockerfile: ci/opensuse-leap-15.2/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
 opensuse_leap_15_3_task:
   container:
     # Opensuse Leap 15.3 EOL: TBD

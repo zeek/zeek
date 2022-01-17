@@ -173,7 +173,7 @@ if ( ZEEK_SANITIZERS )
                 # list(APPEND _check_list "implicit-integer-sign-change") # Not truly UB
                 list(APPEND _check_list "integer-divide-by-zero")
                 list(APPEND _check_list "nonnull-attribute")
-                # list(APPEND _check_list "null") # TODO: fix associated errors
+                list(APPEND _check_list "null")
                 # list(APPEND _check_list "nullability-arg") # Not normally part of "undefined"
                 # list(APPEND _check_list "nullability-assign") # Not normally part of "undefined"
                 # list(APPEND _check_list "nullability-return") # Not normally part of "undefined"
@@ -296,7 +296,7 @@ endif ()
 
 if (ENABLE_JEMALLOC)
     if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-        if (DEFINED ${JEMALLOC_ROOT_DIR})
+        if (DEFINED JEMALLOC_ROOT_DIR)
             # Look for jemalloc at a specific path
             find_package(JeMalloc)
         else()

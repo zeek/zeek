@@ -461,7 +461,16 @@ string CPPCompile::GenAssignExpr(const Expr* e, GenType gt, bool top_level)
 	if ( rhs_is_any && ! lhs_is_any && t1->Tag() != TYPE_LIST )
 		rhs_native = rhs_val_ptr = GenericValPtrToGT(rhs_val_ptr, t1, GEN_NATIVE);
 
-	return GenAssign(op1, op2, rhs_native, rhs_val_ptr, gt, top_level);
+	auto gen = GenAssign(op1, op2, rhs_native, rhs_val_ptr, gt, top_level);
+	auto av = e->AsAssignExpr()->AssignVal();
+	if ( av )
+		{
+		auto av_e = make_intrusive<ConstExpr>(av);
+		auto av_gen = GenExpr(av_e, gt, false);
+		return string("(") + gen + ", " + av_gen + ")";
+		}
+	else
+		return gen;
 	}
 
 string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level)

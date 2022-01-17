@@ -953,17 +953,17 @@ ValPtr StringVal::SizeVal() const
 	return val_mgr->Count(string_val->Len());
 	}
 
-int StringVal::Len()
+int StringVal::Len() const
 	{
 	return AsString()->Len();
 	}
 
-const u_char* StringVal::Bytes()
+const u_char* StringVal::Bytes() const
 	{
 	return AsString()->Bytes();
 	}
 
-const char* StringVal::CheckString()
+const char* StringVal::CheckString() const
 	{
 	return AsString()->CheckString();
 	}
@@ -3236,9 +3236,12 @@ bool VectorVal::CheckElementType(const ValPtr& element)
 		int n = vector_val->size();
 
 		if ( n == 0 )
+			{
 			// First addition to an empty vector-of-any, perhaps
 			// it will be homogeneous.
 			yield_type = element->GetType();
+			managed_yield = ZVal::IsManagedType(yield_type);
+			}
 
 		else
 			{

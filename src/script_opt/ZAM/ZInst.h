@@ -18,7 +18,7 @@ class Stmt;
 using AttributesPtr = IntrusivePtr<Attributes>;
 
 // Maps ZAM frame slots to associated identifiers.
-using FrameMap = std::vector<ID*>;
+using FrameMap = std::vector<const ID*>;
 
 // Maps ZAM frame slots to information for sharing the slot across
 // multiple script variables.
@@ -28,7 +28,7 @@ public:
 	// The variables sharing the slot.  ID's need to be non-const so we
 	// can manipulate them, for example by changing their interpreter
 	// frame offset.
-	std::vector<ID*> ids;
+	std::vector<const ID*> ids;
 
 	// A parallel vector, only used for fully compiled code, which
 	// gives the names of the identifiers.  When in use, the above
@@ -402,7 +402,7 @@ public:
 	TypePtr* types = nullptr;
 
 	// Used for accessing function names.
-	ID* id_val = nullptr;
+	const ID* id_val = nullptr;
 
 	// Whether the instruction can lead to globals changing.
 	// Currently only needed by the optimizer, but convenient

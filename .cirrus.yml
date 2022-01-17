@@ -108,13 +108,6 @@ fedora34_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-fedora33_task:
-  container:
-    # Fedora 33 EOL: Around November 2022
-    dockerfile: ci/fedora-33/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
 centosstream8_task:
   container:
     # Stream 8 support should be 5 years, so until 2024. but I cannot find a concrete timeline --cpk
@@ -271,7 +264,7 @@ openssl30_task:
 sanitizer_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
-    dockerfile: ci/ubuntu-18.04/Dockerfile
+    dockerfile: ci/ubuntu-20.04/Dockerfile
     cpu: 4
     # AddressSanitizer uses a lot more memory than a typical config.
     memory: 12GB

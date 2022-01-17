@@ -349,10 +349,10 @@ private:
 
 	bool IsUnused(const IDPtr& id, const Stmt* where) const;
 
-	void LoadParam(ID* id);
-	const ZAMStmt LoadGlobal(ID* id);
+	void LoadParam(const ID* id);
+	const ZAMStmt LoadGlobal(const ID* id);
 
-	int AddToFrame(ID*);
+	int AddToFrame(const ID*);
 
 	int FrameSlot(const IDPtr& id) { return FrameSlot(id.get()); }
 	int FrameSlot(const ID* id);
@@ -420,7 +420,7 @@ private:
 
 	// Computes the remapping for a variable currently in the given slot,
 	// whose scope begins at the given instruction.
-	void ReMapVar(ID* id, int slot, bro_uint_t inst);
+	void ReMapVar(const ID* id, int slot, bro_uint_t inst);
 
 	// Look to initialize the beginning of local lifetime based on slot
 	// assignment at instruction inst.
@@ -541,7 +541,7 @@ private:
 
 	// A type for mapping an instruction to a set of locals associated
 	// with it.
-	using AssociatedLocals = std::unordered_map<const ZInstI*, std::unordered_set<ID*>>;
+	using AssociatedLocals = std::unordered_map<const ZInstI*, IDSet>;
 
 	// Maps (live) instructions to which frame denizens begin their
 	// lifetime via an initialization at that instruction, if any ...

@@ -82,6 +82,7 @@ class TypeVal;
 
 using AddrValPtr = IntrusivePtr<AddrVal>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
+using FuncValPtr = IntrusivePtr<FuncVal>;
 using ListValPtr = IntrusivePtr<ListVal>;
 using PortValPtr = IntrusivePtr<PortVal>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
@@ -533,9 +534,9 @@ public:
 
 	ValPtr SizeVal() const override;
 
-	int Len();
-	const u_char* Bytes();
-	const char* CheckString();
+	int Len() const;
+	const u_char* Bytes() const;
+	const char* CheckString() const;
 
 	// Note that one needs to de-allocate the return value of
 	// ExpandedString() to avoid a memory leak.

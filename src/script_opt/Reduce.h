@@ -229,7 +229,7 @@ protected:
 	std::unordered_map<const ID*, std::shared_ptr<TempVar>> ids_to_temps;
 
 	// Local variables created during reduction/optimization.
-	std::unordered_set<ID*> new_locals;
+	IDSet new_locals;
 
 	// Mapping of original identifiers to new locals.  Used to
 	// rename local variables when inlining.
@@ -262,7 +262,7 @@ protected:
 
 	// Tracks which (non-temporary) variables had constant
 	// values used for constant propagation.
-	std::unordered_set<const ID*> constant_vars;
+	IDSet constant_vars;
 
 	// Statement at which the current reduction started.
 	StmtPtr reduction_root = nullptr;

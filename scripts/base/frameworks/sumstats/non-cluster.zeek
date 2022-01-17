@@ -74,7 +74,7 @@ function data_added(ss: SumStat, key: Key, result: Result)
 function request(ss_name: string): ResultTable
 	{
 	# This only needs to be implemented this way for cluster compatibility.
-	return when ( T )
+	return when [ss_name] ( T )
 		{
 		if ( ss_name in result_store )
 			return result_store[ss_name];
@@ -86,7 +86,7 @@ function request(ss_name: string): ResultTable
 function request_key(ss_name: string, key: Key): Result
 	{
 	# This only needs to be implemented this way for cluster compatibility.
-	return when ( T )
+	return when [ss_name, key] ( T )
 		{
 		if ( ss_name in result_store && key in result_store[ss_name] )
 			return result_store[ss_name][key];

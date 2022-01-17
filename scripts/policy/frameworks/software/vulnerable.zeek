@@ -82,7 +82,7 @@ event grab_vulnerable_versions(i: count)
 		return;
 		}
 
-	when ( local result = lookup_hostname_txt(cat(i,".",vulnerable_versions_update_endpoint)) )
+	when [i] ( local result = lookup_hostname_txt(cat(i,".",vulnerable_versions_update_endpoint)) )
 		{
 		local parts = split_string1(result, /\x09/);
 		if ( |parts| != 2 ) #failure or end of list!

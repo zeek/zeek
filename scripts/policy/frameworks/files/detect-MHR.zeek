@@ -39,7 +39,7 @@ function do_mhr_lookup(hash: string, fi: Notice::FileInfo)
 	{
 	local hash_domain = fmt("%s.malware.hash.cymru.com", hash);
 
-	when ( local MHR_result = lookup_hostname_txt(hash_domain) )
+	when [hash, fi, hash_domain] ( local MHR_result = lookup_hostname_txt(hash_domain) )
 		{
 		# Data is returned as "<dateFirstDetected> <detectionRate>"
 		local MHR_answer = split_string1(MHR_result, / /);

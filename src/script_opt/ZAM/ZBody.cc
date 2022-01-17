@@ -296,8 +296,8 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 		auto& z = insts[pc];
 
 #ifdef DEBUG
-		int profile_pc;
-		double profile_CPU;
+		int profile_pc = 0;
+		double profile_CPU = 0.0;
 
 		if ( do_profile )
 			{

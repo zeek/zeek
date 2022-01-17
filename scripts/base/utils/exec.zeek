@@ -178,7 +178,7 @@ function run(cmd: Command): Result
 	                  $want_record=F,
 	                  $config=config_strings]);
 
-	return when ( cmd$uid !in pending_commands )
+	return when [cmd] ( cmd$uid !in pending_commands )
 		{
 		local result = results[cmd$uid];
 		delete results[cmd$uid];

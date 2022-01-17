@@ -1556,6 +1556,11 @@ bool AssignExpr::IsReduced(Reducer* c) const
 		// Cascaded assignments are never reduced.
 		return false;
 
+	if ( val )
+		// Initializations of "local" variables in "when" statements
+		// are never reduced.
+		return false;
+
 	const auto& t1 = op1->GetType();
 	const auto& t2 = op2->GetType();
 
@@ -1618,6 +1623,16 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	if ( IsTemp() )
 		// These are generated for reduced expressions.
 		return ThisPtr();
+
+	if ( val )
+		{
+		// These are reduced to the assignment followed by
+		// the assignment value.
+		auto assign_val = make_intrusive<ConstExpr>(val);
+		val = nullptr;
+		red_stmt = make_intrusive<ExprStmt>(ThisPtr());
+		return assign_val;
+		}
 
 	auto& t1 = op1->GetType();
 	auto& t2 = op2->GetType();
@@ -1757,13 +1772,17 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 ExprPtr AssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
 	{
 	// Yields a statement performing the assignment and for the
-	// expression the LHS (but turned into an RHS).
+	// expression the LHS (but turned into an RHS), or the assignment
+	// value if present.
 	if ( op1->Tag() != EXPR_REF )
 		Internal("Confusion in AssignExpr::ReduceToSingleton");
 
 	ExprPtr assign_expr = Duplicate();
 	auto ae_stmt = make_intrusive<ExprStmt>(assign_expr);
 	red_stmt = ae_stmt->Reduce(c);
+
+	if ( val )
+		return make_intrusive<ConstExpr>(val);
 
 	return op1->AsRefExprPtr()->GetOp1();
 	}

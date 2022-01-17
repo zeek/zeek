@@ -435,7 +435,7 @@ private:
 	std::unordered_map<std::string, std::string> events;
 
 	// Globals that correspond to variables, not functions.
-	std::unordered_set<const ID*> global_vars;
+	IDSet global_vars;
 
 	//
 	// End of methods related to script/C++ variables.
@@ -539,7 +539,7 @@ private:
 	std::unordered_map<const ID*, std::string> lambda_names;
 
 	// The function's parameters.  Tracked so we don't re-declare them.
-	std::unordered_set<const ID*> params;
+	IDSet params;
 
 	// Whether we're compiling a hook.
 	bool in_hook = false;
@@ -718,7 +718,11 @@ private:
 	void GenAddStmt(const ExprStmt* es);
 	void GenDeleteStmt(const ExprStmt* es);
 	void GenEventStmt(const EventStmt* ev);
+
 	void GenSwitchStmt(const SwitchStmt* sw);
+	void GenTypeSwitchStmt(const Expr* e, const case_list* cases);
+	void GenTypeSwitchCase(const ID* id, int case_offset, bool is_multi);
+	void GenValueSwitchStmt(const Expr* e, const case_list* cases);
 
 	void GenForStmt(const ForStmt* f);
 	void GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var, const IDPList* loop_vars);

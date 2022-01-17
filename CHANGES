@@ -1,3 +1,61 @@
+5.0.0-dev.61 | 2022-01-17 10:35:15 +0000
+
+  * fix for adding a non-managed type to an empty vector (Vern Paxson, Corelight)
+
+5.0.0-dev.58 | 2022-01-14 14:41:15 -0700
+
+  * explicitly provide the frame for evaluating a "when" timeout expression (Vern Paxson, Corelight)
+
+  * tests for new "when" semantics/errors (Vern Paxson, Corelight)
+
+  * captures for "when" statements (Vern Paxson, Corelight)
+    update Triggers to IntrusivePtr's and simpler AST traversal
+    introduce IDSet type, migrate associated "ID*" types to "const ID*"
+
+  * logic (other than in profiling) for assignments that yield separate values (Vern Paxson, Corelight)
+
+  * option for internal use to mark a function type as allowing non-expression returns (Vern Paxson, Corelight)
+
+  * removed some now-obsolete profiling functionality (Vern Paxson, Corelight)
+
+5.0.0-dev.47 | 2022-01-14 12:22:11 -0700
+
+  * Remove Fedora 33 from CI. (Johanna Amann, Corelight)
+
+    EOL date was 2021‑11‑30
+
+5.0.0-dev.45 | 2022-01-14 12:21:25 -0700
+
+  * Have `make dist` cleanup a few more wayward files before tarring (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.43 | 2022-01-14 15:59:53 +0000
+
+  * Make more StringVal member functions const (Johanna Amann, Corelight)
+
+5.0.0-dev.41 | 2022-01-12 10:16:38 -0700
+
+  * Fix --with-jemalloc configure option on FreeBSD (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.39 | 2022-01-11 15:02:37 -0700
+
+  * support for compiling type-based switches to C++ (Vern Paxson, Corelight)
+
+  * make encountering uncompilable "standalone" functions to be a hard error (Vern Paxson, Corelight)
+
+  * fix: ZAM could misinterpret a "type" switch that starts with a "default" (Vern Paxson, Corelight)
+
+  * fix: don't treat pseudo-identifiers in type cases as local variables (Vern Paxson, Corelight)
+
+  * removed development helper scripts now obsolete with --optimize-files= (Vern Paxson, Corelight)
+
+5.0.0-dev.33 | 2022-01-11 14:57:58 -0700
+
+  * Bump CI sanitizer task to Ubuntu 20.04 (Tim Wojtulewicz, Corelight)
+
+  * Fix uninitialized variable warning (Tim Wojtulewicz, Corelight)
+
+  * Enable null check for UBSan (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.28 | 2022-01-10 10:30:39 -0700
 
   * fix for avoiding de-ref of nil pointer (Vern Paxson, Corelight)

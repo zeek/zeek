@@ -137,6 +137,7 @@ using EventExprPtr = IntrusivePtr<EventExpr>;
 using ExprPtr = IntrusivePtr<Expr>;
 using NameExprPtr = IntrusivePtr<NameExpr>;
 using RefExprPtr = IntrusivePtr<RefExpr>;
+using LambdaExprPtr = IntrusivePtr<LambdaExpr>;
 
 class Stmt;
 using StmtPtr = IntrusivePtr<Stmt>;
@@ -959,6 +960,15 @@ public:
 	bool IsTemp() const { return is_temp; }
 	void SetIsTemp() { is_temp = true; }
 
+	// The following is a hack that's used in "when" expressions to support
+	// assignments to new locals, like "when ( (local l = foo()) && ...".
+	// These methods return the value to use when evaluating such
+	// assignments.  That would normally be the RHS of the assignment,
+	// but to get when's to work in a convenient fashion, for them it's
+	// instead boolean T.
+	ValPtr AssignVal() { return val; }
+	const ValPtr& AssignVal() const { return val; }
+
 protected:
 	bool TypeCheck(const AttributesPtr& attrs = nullptr);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
@@ -1419,7 +1429,8 @@ protected:
 class LambdaExpr final : public Expr
 	{
 public:
-	LambdaExpr(std::unique_ptr<function_ingredients> ingredients, IDPList outer_ids);
+	LambdaExpr(std::unique_ptr<function_ingredients> ingredients, IDPList outer_ids,
+	           StmtPtr when_parent = nullptr);
 
 	const std::string& Name() const { return my_name; }
 	const IDPList& OuterIDs() const { return outer_ids; }
@@ -1440,7 +1451,7 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 private:
-	void CheckCaptures();
+	void CheckCaptures(StmtPtr when_parent);
 
 	std::unique_ptr<function_ingredients> ingredients;
 

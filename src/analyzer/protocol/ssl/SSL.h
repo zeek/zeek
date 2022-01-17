@@ -25,6 +25,9 @@ namespace zeek::analyzer::ssl
 
 class SSL_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
 	{
+	// let binpac forward encryppted TLS application data to us.
+	friend class binpac::SSL::SSL_Conn;
+
 public:
 	explicit SSL_Analyzer(Connection* conn);
 	~SSL_Analyzer() override;
@@ -50,13 +53,19 @@ public:
 	 * Set the secret that should be used to derive keys for the
 	 * connection. (For TLS 1.2 this is the pre-master secret)
 	 *
+	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
+	 * cuphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
+	 *
 	 * @param secret The secret to set
 	 */
-	void SetSecret(StringVal* secret);
+	void SetSecret(const StringVal& secret);
 
 	/**
 	 * Set the secret that should be used to derive keys for the
 	 * connection. (For TLS 1.2 this is the pre-master secret)
+	 *
+	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
+	 * cuphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
 	 *
 	 * @param len Length of the secret bytes
 	 *
@@ -68,24 +77,32 @@ public:
 	 * Set the decryption keys that should be used to decrypt
 	 * TLS application data in the connection.
 	 *
+	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
+	 * cuphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
+	 *
 	 * @param keys The key buffer as derived via TLS PRF (for
 	 * AES_GCM this should be 72 bytes in length)
 	 */
-	void SetKeys(StringVal* keys);
+	void SetKeys(const StringVal& keys);
 
 	/**
 	 * Set the decryption keys that should be used to decrypt
 	 * TLS application data in the connection.
 	 *
-	 * @param len Length of the key buffer (for AES_GCM this should
-	 * be 72)
+	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
+	 * cuphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
 	 *
-	 * @param data Pointer to the key buffer as derived via TLS PRF
+	 * @param keys The key buffer as derived via TLS PRF (for
+	 * AES_GCM this should be 72 bytes in length)
 	 */
 	void SetKeys(const std::vector<u_char> newkeys);
 
+protected:
 	/**
-	 * Try to decrypt TLS application data from a packet. Requires secret or keys to be set prior
+	 * Try to decrypt TLS application data from a packet. Requires secret or keys to be set prior.
+	 *
+	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
+	 * cuphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
 	 *
 	 * @param len Length of the encrypted bytes to decrypt
 	 *
@@ -96,48 +113,46 @@ public:
 	 * @param content_type Content type as given in the TLS packet
 	 *
 	 * @param raw_tls_version Raw TLS version as given in the TLS packets
+	 *
+	 * @return True if decryption succeeded and data was forwarded.
 	 */
 	bool TryDecryptApplicationData(int len, const u_char* data, bool is_orig, uint8_t content_type,
 	                               uint16_t raw_tls_version);
 
 	/**
 	 * TLS 1.2 pseudo random function (PRF) used to expand the pre-master secret and derive keys.
-	 * The seed is obtained by concatinating rnd1 and rnd2
+	 * The seed is obtained by concatinating rnd1 and rnd2.
+	 *
+	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
+	 * cuphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
 	 *
 	 * @param secret Secret as defined in the TLS RFC
 	 *
 	 * @param label Label as defined in the TLS RFC
 	 *
-	 * @param rnd1 Pointer to the first part of the seed
+	 * @param First part of the seed
 	 *
-	 * @param rnd1_len Length of the first part of the seed
-	 *
-	 * @param rnd2 Pointer to the second part of the seed
+	 * @param rnd2 Second part of the seed
 	 *
 	 * @param rnd2_len Length of the second part of the seed
 	 *
-	 * @param out Pointer to the derived bytes
+	 * @param requested_len Length indicating how many bytes should be derived
 	 *
-	 * @param out_len Length indicating how many bytes should be derived
-	 *
-	 * @return True, if the operation completed successfully, false otherwise
+	 * @return The derived bytes, if the operation succeeds.
 	 */
 	std::optional<std::vector<u_char>> TLS12_PRF(const std::string& secret,
 	                                             const std::string& label, const std::string& rnd1,
 	                                             const std::string& rnd2, size_t requested_len);
 
 	/**
-	 * Forward decrypted TLS application data to child analyzers
+	 * Forward decrypted TLS application data to child analyzers.
 	 *
-	 * @param len Length of the data to forward
-	 *
-	 * @param data Pointer to the data to forward
+	 * @param data Data to forward
 	 *
 	 * @param is_orig Direction of the connection
 	 */
-	void ForwardDecryptedData(int len, const u_char* data, bool is_orig);
+	void ForwardDecryptedData(const std::vector<u_char>& data, bool is_orig);
 
-protected:
 	binpac::SSL::SSL_Conn* interp;
 	binpac::TLSHandshake::Handshake_Conn* handshake_interp;
 	bool had_gap;

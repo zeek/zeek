@@ -13,10 +13,12 @@ refine connection SSL_Conn += {
 
 	%member{
 		int established_;
+		int decryption_failed_;
 	%}
 
 	%init{
 		established_ = false;
+		decryption_failed_ = false;
 	%}
 
 	%cleanup{
@@ -65,10 +67,13 @@ refine connection SSL_Conn += {
 			{
 			zeek::BifEvent::enqueue_ssl_encrypted_data(zeek_analyzer(),
 				zeek_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
-			if (rec->content_type() == APPLICATION_DATA)
-				{
-				zeek_analyzer()->TryDecryptApplicationData(cont.length(), cont.data(), rec->is_orig(), rec->content_type(), rec->raw_tls_version());
-				}
+			}
+
+		if ( rec->content_type() == APPLICATION_DATA && decryption_failed_ == false )
+			{
+			// If decryption of one packet fails, do not try to decrypt future packets.
+			if ( ! zeek_analyzer()->TryDecryptApplicationData(cont.length(), cont.data(), rec->is_orig(), rec->content_type(), rec->raw_tls_version()) )
+				decryption_failed_ = true;
 			}
 
 		return true;

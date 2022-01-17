@@ -9,32 +9,59 @@
 ## finished succesfully).
 ##
 ## c: The SSL connection.
-function set_ssl_established%(c: connection%): any
+##
+## Returns: T on success, F on failure.
+function set_ssl_established%(c: connection%): bool
 	%{
 	zeek::analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
-	if ( sa )
-		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->StartEncryption();
-	return nullptr;
-	%}
 
-function set_secret%(c: connection, secret: string%): bool
-	%{
-	analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
 	if ( sa )
-	{
-		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->SetSecret(secret);
+		{
+		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->StartEncryption();
 		return zeek::val_mgr->True();
-	}
+		}
+
 	return zeek::val_mgr->False();
 	%}
 
+## Set the secret that should be used to derive keys for the connection.
+## (For TLS 1.2 this is the pre-master secret).
+##
+## c: The affected connection
+##
+## secret: secret to set
+##
+## Returns: T on success, F on failure.
+function set_secret%(c: connection, secret: string%): bool
+	%{
+	analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
+
+	if ( sa )
+		{
+		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->SetSecret(*secret);
+		return zeek::val_mgr->True();
+		}
+
+	return zeek::val_mgr->False();
+	%}
+
+## Set the decryption keys that should be used to decrypt
+## TLS application data in the connection.
+##
+## c: The affected connection
+##
+## keys: The key buffer as derived via TLS PRF.
+##
+## Returns: T on success, F on failure.
 function set_keys%(c: connection, keys: string%): bool
 	%{
 	analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
+
 	if ( sa )
-	{
-		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->SetKeys(keys);
+		{
+		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->SetKeys(*keys);
 		return zeek::val_mgr->True();
-	}
+		}
+
 	return zeek::val_mgr->False();
 	%}

@@ -26,11 +26,14 @@ namespace zeek::analyzer::ssl
 #define MSB(a) ((a >> 8) & 0xff)
 #define LSB(a) (a & 0xff)
 
-static void fmt_seq(uint32_t num, u_char* buf)
+static std::basic_string<unsigned char> fmt_seq(uint32_t num)
 	{
-	memset(buf, 0, 8);
+	std::basic_string<unsigned char> out(4, '\0');
+	out.reserve(13);
 	uint32_t netnum = htonl(num);
-	memcpy(buf + 4, &netnum, 4);
+	out.append(reinterpret_cast<u_char*>(&netnum), 4);
+	out.append(5, '\0');
+	return out;
 	}
 
 SSL_Analyzer::SSL_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer("SSL", c)
@@ -124,9 +127,9 @@ void SSL_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	interp->NewGap(orig, len);
 	}
 
-void SSL_Analyzer::SetSecret(zeek::StringVal* secret)
+void SSL_Analyzer::SetSecret(const zeek::StringVal& secret)
 	{
-	SetSecret(secret->Len(), secret->Bytes());
+	SetSecret(secret.Len(), secret.Bytes());
 	}
 
 void SSL_Analyzer::SetSecret(size_t len, const u_char* data)
@@ -135,11 +138,11 @@ void SSL_Analyzer::SetSecret(size_t len, const u_char* data)
 	secret.append((const char*)data, len);
 	}
 
-void SSL_Analyzer::SetKeys(zeek::StringVal* nkeys)
+void SSL_Analyzer::SetKeys(const zeek::StringVal& nkeys)
 	{
 	keys.clear();
-	keys.reserve(nkeys->Len());
-	std::copy(nkeys->Bytes(), nkeys->Bytes() + nkeys->Len(), std::back_inserter(keys));
+	keys.reserve(nkeys.Len());
+	std::copy(nkeys.Bytes(), nkeys.Bytes() + nkeys.Len(), std::back_inserter(keys));
 	}
 
 void SSL_Analyzer::SetKeys(const std::vector<u_char> newkeys)
@@ -282,40 +285,38 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 		// FIXME: could also print keys or conn id here
 		DBG_LOG(DBG_ANALYZER, "Decrypting application data");
 
+		// NOTE: you must not call functions that invalidate keys.data() on keys during the
+		// remainder of this function. (Given that we do not manipulate the key material in this
+		// function that should not be hard)
+
 		// client write_key
-		u_char c_wk[32];
+		const u_char* c_wk = keys.data();
 		// server write_key
-		u_char s_wk[32];
+		const u_char* s_wk = keys.data() + 32;
 		// client IV
-		u_char c_iv[4];
+		const u_char* c_iv = keys.data() + 64;
 		// server IV
-		u_char s_iv[4];
-
-		// AEAD nonce & tag
-		u_char s_aead_nonce[12];
-		u_char s_aead_tag[13];
-
-		// FIXME: there should be a better way to do these copies
-		memcpy(c_wk, keys.data(), 32);
-		memcpy(s_wk, keys.data() + 32, 32);
-		memcpy(c_iv, keys.data() + 64, 4);
-		memcpy(s_iv, keys.data() + 68, 4);
+		const u_char* s_iv = keys.data() + 68;
 
 		// FIXME: should we change types here?
 		u_char* encrypted = (u_char*)data;
 		size_t encrypted_len = len;
 
-		// FIXME: should this be moved to SSL_Conn?
 		if ( is_orig )
 			c_seq++;
 		else
 			s_seq++;
 
+		// AEAD nonce, length 12
+		std::basic_string<unsigned char> s_aead_nonce;
 		if ( is_orig )
-			memcpy(s_aead_nonce, c_iv, 4);
+			s_aead_nonce.assign(c_iv, 4);
 		else
-			memcpy(s_aead_nonce, s_iv, 4);
-		memcpy(&(s_aead_nonce[4]), encrypted, 8);
+			s_aead_nonce.assign(s_iv, 4);
+
+		// this should be the explicit counter
+		s_aead_nonce.append(encrypted, 8);
+		assert(s_aead_nonce.size() == 12);
 
 		EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
 		EVP_CIPHER_CTX_init(ctx);
@@ -323,47 +324,60 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 
 		encrypted += 8;
 		// FIXME: is this because of nonce and aead tag?
+		if ( encrypted_len <= (16 + 8) )
+			{
+			DBG_LOG(DBG_ANALYZER, "Invalid encrypted length encountered during TLS decryption");
+			EVP_CIPHER_CTX_free(ctx);
+			return false;
+			}
 		encrypted_len -= 8;
 		encrypted_len -= 16;
 
 		// FIXME: aes_256_gcm should not be hardcoded here ;)
 		if ( is_orig )
-			EVP_DecryptInit(ctx, EVP_aes_256_gcm(), c_wk, s_aead_nonce);
+			EVP_DecryptInit(ctx, EVP_aes_256_gcm(), c_wk, s_aead_nonce.data());
 		else
-			EVP_DecryptInit(ctx, EVP_aes_256_gcm(), s_wk, s_aead_nonce);
+			EVP_DecryptInit(ctx, EVP_aes_256_gcm(), s_wk, s_aead_nonce.data());
+
 		EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, 16, encrypted + encrypted_len);
 
+		// AEAD tag
+		std::basic_string<unsigned char> s_aead_tag;
 		if ( is_orig )
-			fmt_seq(c_seq, s_aead_tag);
+			s_aead_tag = fmt_seq(c_seq);
 		else
-			fmt_seq(s_seq, s_aead_tag);
+			s_aead_tag = fmt_seq(s_seq);
 
 		s_aead_tag[8] = content_type;
 		s_aead_tag[9] = MSB(raw_tls_version);
 		s_aead_tag[10] = LSB(raw_tls_version);
 		s_aead_tag[11] = MSB(encrypted_len);
 		s_aead_tag[12] = LSB(encrypted_len);
+		assert(s_aead_tag.size() == 13);
 
-		u_char* decrypted = new u_char[encrypted_len];
+		auto decrypted = std::vector<u_char>(
+			encrypted_len +
+			16); // see OpenSSL manpage - 16 is the block size for the supported cipher
 		int decrypted_len = 0;
 
-		EVP_DecryptUpdate(ctx, NULL, &decrypted_len, s_aead_tag, 13);
-		EVP_DecryptUpdate(ctx, decrypted, &decrypted_len, (const u_char*)encrypted, encrypted_len);
+		EVP_DecryptUpdate(ctx, NULL, &decrypted_len, s_aead_tag.data(), s_aead_tag.size());
+		EVP_DecryptUpdate(ctx, decrypted.data(), &decrypted_len, (const u_char*)encrypted,
+		                  encrypted_len);
+		assert(decrypted_len <= decrypted.size());
+		decrypted.resize(decrypted_len);
 
 		int res = 0;
 		if ( ! (res = EVP_DecryptFinal(ctx, NULL, &res)) )
 			{
 			DBG_LOG(DBG_ANALYZER, "Decryption failed with return code: %d. Invalid key?\n", res);
 			EVP_CIPHER_CTX_free(ctx);
-			delete[] decrypted;
 			return false;
 			}
 
 		DBG_LOG(DBG_ANALYZER, "Successfully decrypted %d bytes.", decrypted_len);
 		EVP_CIPHER_CTX_free(ctx);
-		ForwardDecryptedData(decrypted_len, reinterpret_cast<const u_char*>(decrypted), is_orig);
+		ForwardDecryptedData(decrypted, is_orig);
 
-		delete[] decrypted;
 		return true;
 		}
 
@@ -371,7 +385,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 	return false;
 	}
 
-void SSL_Analyzer::ForwardDecryptedData(int len, const u_char* data, bool is_orig)
+void SSL_Analyzer::ForwardDecryptedData(const std::vector<u_char>& data, bool is_orig)
 	{
 	if ( ! pia )
 		{
@@ -383,18 +397,9 @@ void SSL_Analyzer::ForwardDecryptedData(int len, const u_char* data, bool is_ori
 			}
 		else
 			reporter->FatalError("Could not initialize PIA");
-
-		// FIXME: Also statically add HTTP/H2 at the moment.
-		//        We should move this bit to scriptland
-		auto http = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
-		if ( http )
-			AddChildAnalyzer(http);
-		auto http2 = analyzer_mgr->InstantiateAnalyzer("HTTP2", Conn());
-		if ( http2 )
-			AddChildAnalyzer(http2);
 		}
 
-	ForwardStream(len, data, is_orig);
+	ForwardStream(data.size(), data.data(), is_orig);
 	}
 
 	} // namespace zeek::analyzer::ssl

@@ -638,6 +638,12 @@ void BloomFilterVal::Add(const Val* val)
 	bloom_filter->Add(key.get());
 	}
 
+bool BloomFilterVal::Decrement(const Val* val)
+	{
+	auto key = hash->MakeHashKey(*val, true);
+	return bloom_filter->Decrement(key.get());
+	}
+
 size_t BloomFilterVal::Count(const Val* val) const
 	{
 	auto key = hash->MakeHashKey(*val, true);

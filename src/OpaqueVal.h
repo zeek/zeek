@@ -328,6 +328,7 @@ public:
 	bool Typify(TypePtr type);
 
 	void Add(const Val* val);
+	bool Decrement(const Val* val);
 	size_t Count(const Val* val) const;
 	void Clear();
 	bool Empty() const;

@@ -43,11 +43,22 @@ public:
 	virtual ~BloomFilter();
 
 	/**
-	 * Adds an element to the Bloom filter.
+	 * Adds an element to the Bloom filter, or increments its value for counting
+	 * bloom filters
 	 *
 	 * @param key The key associated with the element to add.
 	 */
 	virtual void Add(const zeek::detail::HashKey* key) = 0;
+
+	/**
+	 * Decrements the value of an element in the bloom filter, if the underlying
+	 * filter supports the operation
+	 *
+	 * #param key The key associated with the element to decrement.
+	 *
+	 * @return True if the decrement operation succeeded.
+	 */
+	virtual bool Decrement(const zeek::detail::HashKey* key) = 0;
 
 	/**
 	 * Retrieves the associated count of a given value.
@@ -182,6 +193,7 @@ protected:
 
 	// Overridden from BloomFilter.
 	void Add(const zeek::detail::HashKey* key) override;
+	bool Decrement(const zeek::detail::HashKey* key) override;
 	size_t Count(const zeek::detail::HashKey* key) const override;
 	broker::expected<broker::data> DoSerialize() const override;
 	bool DoUnserialize(const broker::data& data) override;
@@ -231,6 +243,7 @@ protected:
 
 	// Overridden from BloomFilter.
 	void Add(const zeek::detail::HashKey* key) override;
+	bool Decrement(const zeek::detail::HashKey* key) override;
 	size_t Count(const zeek::detail::HashKey* key) const override;
 	broker::expected<broker::data> DoSerialize() const override;
 	bool DoUnserialize(const broker::data& data) override;

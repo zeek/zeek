@@ -163,6 +163,12 @@ void BasicBloomFilter::Add(const zeek::detail::HashKey* key)
 		bits->Set(h[i] % bits->Size());
 	}
 
+bool BasicBloomFilter::Decrement(const zeek::detail::HashKey* key)
+	{
+	// operation not supported by basic bloom filter
+	return false;
+	}
+
 size_t BasicBloomFilter::Count(const zeek::detail::HashKey* key) const
 	{
 	detail::Hasher::digest_vector h = hasher->Hash(key);
@@ -265,6 +271,20 @@ void CountingBloomFilter::Add(const zeek::detail::HashKey* key)
 
 	for ( size_t i = 0; i < h.size(); ++i )
 		cells->Increment(h[i] % cells->Size());
+	}
+
+bool CountingBloomFilter::Decrement(const zeek::detail::HashKey* key)
+	{
+	// Only decrement if a member.
+	if ( Count(key) == 0 )
+		return false;
+
+	detail::Hasher::digest_vector h = hasher->Hash(key);
+
+	for ( size_t i = 0; i < h.size(); ++i )
+		cells->Decrement(h[i] % cells->Size());
+
+	return true;
 	}
 
 size_t CountingBloomFilter::Count(const zeek::detail::HashKey* key) const

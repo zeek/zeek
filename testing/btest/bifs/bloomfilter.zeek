@@ -98,6 +98,15 @@ function test_counting_bloom_filter()
   print bloomfilter_lookup(bf_merged, "foo");
   print bloomfilter_lookup(bf_merged, "bar");
   print bloomfilter_lookup(bf_merged, "baz");
+
+  bloomfilter_decrement(bf, "foo");
+  print bloomfilter_lookup(bf, "foo"); # 2
+  bloomfilter_decrement(bf, "foo");
+  print bloomfilter_lookup(bf, "foo"); # 1
+  print bloomfilter_decrement(bf, "foo"); # True
+  print bloomfilter_lookup(bf, "foo"); # 0
+  print bloomfilter_lookup(bf, "bar"); # still 2
+  print bloomfilter_decrement(bf, "foo"); # False
   }
 
 event zeek_init()

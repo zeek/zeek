@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM debian:11
 
 ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
@@ -15,9 +15,6 @@ RUN apt-get update && apt-get -y install \
     python3 \
     python3-dev \
     python3-pip\
-    clang-8 \
-    libc++-8-dev \
-    libc++abi-8-dev \
     swig \
     zlib1g-dev \
     libkrb5-dev \
@@ -29,7 +26,3 @@ RUN apt-get update && apt-get -y install \
   && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install junit2html
-
-ENV CC=/usr/bin/clang-8
-ENV CXX=/usr/bin/clang++-8
-ENV CXXFLAGS=-stdlib=libc++

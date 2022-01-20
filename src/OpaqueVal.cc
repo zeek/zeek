@@ -611,6 +611,7 @@ ValPtr BloomFilterVal::DoClone(CloneState* state)
 	if ( bloom_filter )
 		{
 		auto bf = make_intrusive<BloomFilterVal>(bloom_filter->Clone());
+		assert(type);
 		bf->Typify(type);
 		return state->NewClone(this, std::move(bf));
 		}
@@ -675,6 +676,8 @@ BloomFilterValPtr BloomFilterVal::Merge(const BloomFilterVal* x, const BloomFilt
 		return nullptr;
 		}
 
+	auto final_type = x->Type() ? x->Type() : y->Type();
+
 	if ( typeid(*x->bloom_filter) != typeid(*y->bloom_filter) )
 		{
 		reporter->Error("cannot merge different Bloom filter types");
@@ -692,7 +695,7 @@ BloomFilterValPtr BloomFilterVal::Merge(const BloomFilterVal* x, const BloomFilt
 
 	auto merged = make_intrusive<BloomFilterVal>(copy);
 
-	if ( x->Type() && ! merged->Typify(x->Type()) )
+	if ( final_type && ! merged->Typify(final_type) )
 		{
 		reporter->Error("failed to set type on merged Bloom filter");
 		return nullptr;

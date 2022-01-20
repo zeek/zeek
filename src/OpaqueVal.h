@@ -335,6 +335,7 @@ public:
 	std::string InternalState() const;
 
 	static BloomFilterValPtr Merge(const BloomFilterVal* x, const BloomFilterVal* y);
+	static BloomFilterValPtr Intersect(const BloomFilterVal* x, const BloomFilterVal* y);
 
 protected:
 	friend class Val;

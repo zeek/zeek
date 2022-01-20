@@ -701,6 +701,49 @@ BloomFilterValPtr BloomFilterVal::Merge(const BloomFilterVal* x, const BloomFilt
 	return merged;
 	}
 
+BloomFilterValPtr BloomFilterVal::Intersect(const BloomFilterVal* x, const BloomFilterVal* y)
+	{
+	if ( x->Type() && // any one 0 is ok here
+	     y->Type() && ! same_type(x->Type(), y->Type()) )
+		{
+		reporter->Error("cannot merge Bloom filters with different types");
+		return nullptr;
+		}
+
+	auto final_type = x->Type() ? x->Type() : y->Type();
+
+	if ( typeid(*x->bloom_filter) != typeid(*y->bloom_filter) )
+		{
+		reporter->Error("cannot merge different Bloom filter types");
+		return nullptr;
+		}
+
+	if ( typeid(*x->bloom_filter) != typeid(*y->bloom_filter) )
+		{
+		reporter->Error("cannot intersect different Bloom filter types");
+		return nullptr;
+		}
+
+	auto intersected_bf = x->bloom_filter->Intersect(y->bloom_filter);
+
+	if ( ! intersected_bf )
+		{
+		reporter->Error("failed to intersect Bloom filter");
+		return nullptr;
+		}
+
+	auto intersected = make_intrusive<BloomFilterVal>(intersected_bf);
+
+	if ( final_type && ! intersected->Typify(final_type) )
+		{
+		reporter->Error("Failed to set type on intersected bloom filter");
+		return nullptr;
+		}
+
+	return intersected;
+	}
+
+
 BloomFilterVal::~BloomFilterVal()
 	{
 	delete hash;

@@ -125,6 +125,31 @@ bool BasicBloomFilter::Merge(const BloomFilter* other)
 	return true;
 	}
 
+BasicBloomFilter* BasicBloomFilter::Intersect(const BloomFilter* other) const
+	{
+	if ( typeid(*this) != typeid(*other) )
+		return nullptr;
+
+	const BasicBloomFilter* o = static_cast<const BasicBloomFilter*>(other);
+
+	if ( ! hasher->Equals(o->hasher) )
+		{
+		reporter->Error("incompatible hashers in BasicBloomFilter intersect");
+		return nullptr;
+		}
+
+	else if ( bits->Size() != o->bits->Size() )
+		{
+		reporter->Error("different bitvector size in BasicBloomFilter intersect");
+		return nullptr;
+		}
+
+	auto copy = Clone();
+	(*copy->bits) &= *o->bits;
+
+	return copy;
+	}
+
 BasicBloomFilter* BasicBloomFilter::Clone() const
 	{
 	BasicBloomFilter* copy = new BasicBloomFilter();
@@ -247,6 +272,32 @@ bool CountingBloomFilter::Merge(const BloomFilter* other)
 	(*cells) |= *o->cells;
 
 	return true;
+	}
+
+BasicBloomFilter* CountingBloomFilter::Intersect(const BloomFilter* other) const
+	{
+	if ( typeid(*this) != typeid(*other) )
+		return nullptr;
+
+	const CountingBloomFilter* o = static_cast<const CountingBloomFilter*>(other);
+
+	if ( ! hasher->Equals(o->hasher) )
+		{
+		reporter->Error("incompatible hashers in CountingBloomFilter merge");
+		return nullptr;
+		}
+
+	else if ( cells->Size() != o->cells->Size() )
+		{
+		reporter->Error("different bitvector size in CountingBloomFilter merge");
+		return nullptr;
+		}
+
+	auto outbf = new BasicBloomFilter(hasher->Clone(), cells->Size());
+	*outbf->bits |= cells->ToBitVector();
+	*outbf->bits &= o->cells->ToBitVector();
+
+	return outbf;
 	}
 
 CountingBloomFilter* CountingBloomFilter::Clone() const

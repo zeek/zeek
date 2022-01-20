@@ -82,13 +82,22 @@ public:
 	virtual void Clear() = 0;
 
 	/**
-	 * Merges another Bloom filter into a copy of this one.
+	 * Merges another Bloom filter into this one.
 	 *
 	 * @param other The other Bloom filter.
 	 *
 	 * @return `true` on success.
 	 */
 	virtual bool Merge(const BloomFilter* other) = 0;
+
+	/**
+	 * Intersects another Bloom filter with a copy of this one and returns the copy.
+	 *
+	 * @param other The other Bloom filter.
+	 *
+	 * @return Intersecting BloomFilter on success, nullptr otherwise.
+	 */
+	virtual BloomFilter* Intersect(const BloomFilter* other) const = 0;
 
 	/**
 	 * Constructs a copy of this Bloom filter.
@@ -126,11 +135,14 @@ protected:
 	const detail::Hasher* hasher;
 	};
 
+class CountingBloomFilter;
+
 /**
  * A basic Bloom filter.
  */
 class BasicBloomFilter : public BloomFilter
 	{
+	friend class CountingBloomFilter;
 public:
 	/**
 	 * Constructs a basic Bloom filter with a given number of cells. The
@@ -181,6 +193,7 @@ public:
 	void Clear() override;
 	bool Merge(const BloomFilter* other) override;
 	BasicBloomFilter* Clone() const override;
+	BasicBloomFilter* Intersect(const BloomFilter* other) const override;
 	std::string InternalState() const override;
 
 protected:
@@ -232,6 +245,21 @@ public:
 	bool Merge(const BloomFilter* other) override;
 	CountingBloomFilter* Clone() const override;
 	std::string InternalState() const override;
+
+	/**
+	 * Intersects another Bloom filter this one and returns a new BasicBloomFilter.
+	 *
+	 * Please note that the Intersection of two Counting bloom filters results in a
+	 * basic bloom filter. The reason for this is that the counters loose meaning during
+	 * the intersection process. The BasicBloomFilter will have bits set in cases where
+	 * both Counting Bloom filters has cell values greater than zero.
+	 *
+	 * @param other The other Bloom filter.
+	 *
+	 * @return Intersecting BloomFilter on success, nullptr otherwise.
+	 */
+	BasicBloomFilter* Intersect(const BloomFilter* other) const override;
+
 
 protected:
 	friend class BloomFilter;

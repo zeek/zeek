@@ -1,3 +1,19 @@
+4.2.0-rc2.7 | 2022-01-24 13:50:50 -0700
+
+  * CI update: add Ubuntu 21.10 (Christian Kreibich, Corelight)
+
+  * CI update: remove OpenSUSE Leap 15.2 (EOL) (Christian Kreibich, Corelight)
+
+  * CI update: add CentOS Stream 9 (Christian Kreibich, Corelight)
+
+  * Remove Fedora 33 from CI. (Johanna Amann, Corelight)
+
+    EOL date was 2021‑11‑30
+
+  * Remove CentOS 8 from CI. (Johanna Amann, Corelight)
+
+    EOL was 2021-12-31
+
 4.2.0-rc2 | 2022-01-12 10:20:23 -0700
 
   * Release 4.2.0-rc2.

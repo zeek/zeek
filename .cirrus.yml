@@ -108,31 +108,19 @@ fedora34_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-fedora33_task:
+centosstream9_task:
   container:
-    # Fedora 33 EOL: Around November 2022
-    dockerfile: ci/fedora-33/Dockerfile
+    # Stream 9 EOL: Around Dec 2027
+    dockerfile: ci/centos-stream-9/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
 centosstream8_task:
   container:
-    # Stream 8 support should be 5 years, so until 2024. but I cannot find a concrete timeline --cpk
+    # Stream 8 EOL: May 31, 2024
     dockerfile: ci/centos-stream-8/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-
-centos8_task:
-  container:
-    # CentOS 8 EOL: May 31, 2029
-    dockerfile: ci/centos-8/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  env:
-    ZEEK_CI_CREATE_ARTIFACT: 1
-  << : *CI_TEMPLATE
-  upload_binary_artifacts:
-    path: build.tgz
-  benchmark_script: ./ci/benchmark.sh
 
 centos7_task:
   container:
@@ -179,17 +167,17 @@ debian9_32bit_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-opensuse_leap_15_2_task:
-  container:
-    # Opensuse Leap 15.2 EOL: Dec 2021
-    dockerfile: ci/opensuse-leap-15.2/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
 opensuse_leap_15_3_task:
   container:
     # Opensuse Leap 15.3 EOL: TBD
     dockerfile: ci/opensuse-leap-15.3/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
+ubuntu21_task:
+  container:
+    # Ubuntu 21.10 EOL: July 2022
+    dockerfile: ci/ubuntu-21.10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 

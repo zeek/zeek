@@ -1,3 +1,11 @@
+5.0.0-dev.65 | 2022-01-24 13:41:25 -0800
+
+  * CI updates (Christian Kreibich, Corelight)
+
+    - add Ubuntu 21.10
+    - remove OpenSUSE Leap 15.2 (EOL)
+    - add CentOS Stream 9
+
 5.0.0-dev.61 | 2022-01-17 10:35:15 +0000
 
   * fix for adding a non-managed type to an empty vector (Vern Paxson, Corelight)

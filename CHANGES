@@ -1,4 +1,6 @@
-4.2.0-rc2.7 | 2022-01-24 13:50:50 -0700
+4.2.0 | 2022-01-24 13:51:50 -0700
+
+  * Release 4.2.0.
 
   * CI update: add Ubuntu 21.10 (Christian Kreibich, Corelight)
 
@@ -14,9 +16,9 @@
 
     EOL was 2021-12-31
 
-4.2.0-rc2 | 2022-01-12 10:20:23 -0700
+  * fix for adding a non-managed type to an empty vector (Vern Paxson, Corelight)
 
-  * Release 4.2.0-rc2.
+    (cherry picked from commit becc966106aa2540755bf9805213f8feed8afb93)
 
   * Fix --with-jemalloc configure option on FreeBSD (Tim Wojtulewicz, Corelight)
 
@@ -39,10 +41,6 @@
   * addressed a couple of memory leaks in ZAM execution (Vern Paxson, Corelight)
 
     (cherry picked from commit 3e7472cc717220b0e5910fcf8ab19e930420192a)
-
-4.2.0-rc1 | 2022-01-05 09:31:41 -0700
-
-  * Release 4.2.0-rc1.
 
   * Make FreeBSD more flexible, don't look for jemalloc unless we were (Craig Leres)
     given a specific path for it.

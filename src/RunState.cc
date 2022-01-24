@@ -190,7 +190,7 @@ void init_run(const std::optional<std::string>& interface,
 		if ( const auto& id = zeek::detail::global_scope()->Find("trace_output_file") )
 			id->SetVal(make_intrusive<StringVal>(writefile));
 		else
-			reporter->Error("trace_output_file not defined in bro.init");
+			reporter->Error("trace_output_file not defined");
 		}
 
 	zeek::detail::init_ip_addr_anonymizers();
@@ -472,7 +472,7 @@ double pseudo_realtime = 0.0;
 double network_time = 0.0; // time according to last packet timestamp
                            // (or current time)
 double processing_start_time = 0.0; // time started working on current pkt
-double zeek_start_time = 0.0; // time Bro started.
+double zeek_start_time = 0.0; // time Zeek started.
 double zeek_start_network_time; // timestamp of first packet
 bool terminating = false; // whether we're done reading and finishing up
 bool is_parsing = false;

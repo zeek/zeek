@@ -3,7 +3,7 @@
 /**
  * The central management unit for registering and instantiating analyzers.
  *
- * For each protocol that Bro supports, there's one class derived from
+ * For each protocol that Zeek supports, there's one class derived from
  * analyzer::Analyzer. Once we have decided that a connection's payload is to
  * be parsed as a given protocol, we instantiate the corresponding
  * analyzer-derived class and add the new instance as a child node into the
@@ -71,7 +71,7 @@ public:
 
 	/**
 	 * Second-stage initialization of the manager. This is called late
-	 * during Bro's initialization after any scripts are processed.
+	 * during Zeek's initialization after any scripts are processed.
 	 */
 	void InitPostScript();
 

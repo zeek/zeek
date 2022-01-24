@@ -85,7 +85,7 @@ public:
 	/**
 	 * Opens a new packet source.
 	 *
-	 * @param path The interface or file name, as one would give to Bro \c -i.
+	 * @param path The interface or file name, as one would give to zeek \c -i.
 	 *
 	 * @param is_live True if \a path represents a live interface, false
 	 * for a file.
@@ -101,7 +101,7 @@ public:
 	 *
 	 * @param append True to append if \a path already exists.
 	 *
-	 * @return The new packet dumper, or null if an error occured.
+	 * @return The new packet dumper, or null if an error occurred.
 	 */
 	PktDumper* OpenPktDumper(const std::string& path, bool append);
 

@@ -1,4 +1,4 @@
-// This code contributed to Bro by Florian Schimandl, Hugh Dollman and
+// This code contributed to Zeek/Bro by Florian Schimandl, Hugh Dollman and
 // Robin Sommer.
 
 #include "zeek/analyzer/protocol/pop3/POP3.h"

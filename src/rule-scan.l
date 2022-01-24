@@ -218,7 +218,7 @@ finger	{ rules_lval.val = zeek::detail::Rule::FINGER; return TOK_PATTERN_TYPE; }
 
 %%
 
-// We're about to parse a Bro policy-layer symbol.
+// We're about to parse a Zeek policy-layer symbol.
 void begin_PS()
 	{
 	BEGIN(PS);

@@ -93,10 +93,10 @@ extern double pseudo_realtime;
 // queue.
 extern double processing_start_time;
 
-// When the Bro process was started.
+// When the Zeek process was started.
 extern double zeek_start_time;
 
-// Time at which the Bro process was started with respect to network time,
+// Time at which the Zeek process was started with respect to network time,
 // i.e. the timestamp of the first packet.
 extern double zeek_start_network_time;
 
@@ -106,7 +106,7 @@ extern double network_time;
 // True if we're a in the process of cleaning-up just before termination.
 extern bool terminating;
 
-// True if Bro is currently parsing scripts.
+// True if Zeek is currently parsing scripts.
 extern bool is_parsing;
 
 extern const zeek::Packet* current_pkt;

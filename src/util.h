@@ -169,7 +169,7 @@ void seed_random(unsigned int seed);
 void set_thread_name(const char* name, pthread_t tid = pthread_self());
 
 // Each event source that may generate events gets an internally unique ID.
-// This is always LOCAL for a local Bro. For remote event sources, it gets
+// This is always LOCAL for a local Zeek. For remote event sources, it gets
 // assigned by the RemoteSerializer.
 //
 // FIXME: Find a nicer place for this type definition.

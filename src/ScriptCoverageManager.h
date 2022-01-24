@@ -13,7 +13,7 @@ namespace zeek::detail
 class Stmt;
 
 /**
- * A simple class for managing stats of Bro script coverage across Bro runs.
+ * A simple class for managing stats of Zeek script coverage across Zeek runs.
  */
 class ScriptCoverageManager
 	{
@@ -22,7 +22,7 @@ public:
 	virtual ~ScriptCoverageManager();
 
 	/**
-	 * Imports Bro script Stmt usage information from file pointed to by
+	 * Imports Zeek script Stmt usage information from file pointed to by
 	 * environment variable ZEEK_PROFILER_FILE.
 	 *
 	 * @return: true if usage info was read, otherwise false.

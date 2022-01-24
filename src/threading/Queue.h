@@ -21,7 +21,7 @@ namespace zeek::threading
  * The implementation uses multiple queues and reads/writes in rotary fashion
  * in an attempt to limit contention.
  *
- * All Queue instances must be instantiated by Bro's main thread.
+ * All Queue instances must be instantiated by Zeek's main thread.
  *
  * TODO: Unclear how critical performance is for this qeueue. We could likely
  * optimize it further if helpful.

@@ -1,4 +1,4 @@
-// This code contributed to Bro by Florian Schimandl and Hugh Dollman.
+// This code contributed to Zeek/Bro by Florian Schimandl and Hugh Dollman.
 //
 // An analyser for the POP3 protocol.
 

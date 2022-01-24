@@ -29,7 +29,7 @@ class KillMeMessage;
 
 /**
  * A specialized thread that provides bi-directional message passing between
- * Bro's main thread and the child thread. Messages are instances of
+ * Zeek's main thread and the child thread. Messages are instances of
  * BasicInputMessage and BasicOutputMessage for message sent \a to the child
  * thread and received \a from the child thread, respectively.
  *
@@ -45,7 +45,7 @@ public:
 	 * Constructor. It automatically registers the thread with the
 	 * threading::Manager.
 	 *
-	 * Only Bro's main thread may instantiate a new thread.
+	 * Only Zeek's main thread may instantiate a new thread.
 	 */
 	MsgThread();
 
@@ -77,7 +77,7 @@ public:
 	 * Allows the child thread to send a specified Zeek event. The given Vals
 	 * must match the values expected by the event.
 	 *
-	 * @param name name of the bro event to send
+	 * @param name name of the Zeek event to send
 	 *
 	 * @param num_vals number of entries in \a vals
 	 *
@@ -129,7 +129,7 @@ public:
 
 	/**
 	 * Reports a fatal error from the child thread. The main thread will
-	 * pass this to the Reporter once received. Bro will terminate after
+	 * pass this to the Reporter once received. Zeek will terminate after
 	 * the message has been reported.
 	 *
 	 * Only the child thread may call this method.
@@ -140,7 +140,7 @@ public:
 
 	/**
 	 * Reports a fatal error from the child thread. The main thread will
-	 * pass this to the Reporter once received. Bro will terminate with a
+	 * pass this to the Reporter once received. Zeek will terminate with a
 	 * core dump after the message has been reported.
 	 *
 	 * Only the child thread may call this method.
@@ -151,7 +151,7 @@ public:
 
 	/**
 	 * Reports a potential internal problem from the child thread. The
-	 * main thread will pass this to the Reporter once received. Bro will
+	 * main thread will pass this to the Reporter once received. Zeek will
 	 * continue normally.
 	 *
 	 * Only the child thread may call this method.
@@ -162,7 +162,7 @@ public:
 
 	/**
 	 * Reports an internal program error from the child thread. The main
-	 * thread will pass this to the Reporter once received. Bro will
+	 * thread will pass this to the Reporter once received. Zeek will
 	 * terminate with a core dump after the message has been reported.
 	 *
 	 * Only the child thread may call this method.
@@ -353,7 +353,7 @@ private:
 	};
 
 /**
- * Base class for all message between Bro's main process and a MsgThread.
+ * Base class for all message between Zeek's main process and a MsgThread.
  */
 class Message
 	{
@@ -389,7 +389,7 @@ private:
 	};
 
 /**
- * Base class for messages sent from Bro's main thread to a child MsgThread.
+ * Base class for messages sent from Zeek's main thread to a child MsgThread.
  */
 class BasicInputMessage : public Message
 	{
@@ -404,7 +404,7 @@ protected:
 	};
 
 /**
- * Base class for messages sent from a child MsgThread to Bro's main thread.
+ * Base class for messages sent from a child MsgThread to Zeek's main thread.
  */
 class BasicOutputMessage : public Message
 	{

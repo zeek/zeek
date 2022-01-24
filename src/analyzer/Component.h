@@ -83,7 +83,7 @@ public:
 
 	/**
 	 * Returns whether the analyzer supports partial connections. Partial
-	 * connections are those where Bro starts processing payload
+	 * connections are those where Zeek starts processing payload
 	 * mid-stream, after missing the beginning.
 	 */
 	bool Partial() const { return partial; }

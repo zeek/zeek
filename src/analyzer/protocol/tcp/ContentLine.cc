@@ -349,7 +349,7 @@ void ContentLine_Analyzer::CheckNUL()
 
 void ContentLine_Analyzer::SkipBytesAfterThisLine(int64_t length)
 	{
-	// This is a little complicated because Bro has to handle
+	// This is a little complicated because Zeek has to handle
 	// both CR and CRLF as a line break. When a line is delivered,
 	// it's possible that only a CR is seen, and we may not know
 	// if an LF is following until we see the next packet.  If an

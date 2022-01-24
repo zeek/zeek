@@ -1,4 +1,4 @@
-/* scan.l - scanner for Bro regular expressions */
+/* scan.l - scanner for Zeek regular expressions */
 
 /*
  * See the file "COPYING" in the main distribution directory for copyright.

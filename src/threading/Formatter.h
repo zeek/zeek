@@ -107,7 +107,7 @@ public:
 	static std::string Render(const Value::subnet_t& subnet);
 
 	/**
-	 * Convert a double into a string. This renders the double with Bro's
+	 * Convert a double into a string. This renders the double with Zeek's
 	 * standard precision.
 	 *
 	 * This is a helper function that formatter implementations may use.

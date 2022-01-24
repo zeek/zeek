@@ -1173,7 +1173,7 @@ struct data_type_getter
 		{
 		// Note that Broker uses vectors to store record data, so there's
 		// no actual way to tell if this data was originally associated
-		// with a Bro record.
+		// with a Zeek record.
 		return BifType::Enum::Broker::DataType->GetEnumVal(BifEnum::Broker::VECTOR);
 		}
 	};

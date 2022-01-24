@@ -27,7 +27,7 @@ using id_info_set = std::set<IdentifierInfo*, IdInfoComp>;
 using id_info_list = std::list<IdentifierInfo*>;
 
 /**
- * Information about a Bro script.
+ * Information about a Zeek script.
  */
 class ScriptInfo : public Info
 	{

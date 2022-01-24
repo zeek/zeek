@@ -108,7 +108,7 @@ public:
 
 	/**
 	 * First-stage initializion of the manager. This is called early on
-	 * during Bro's initialization, before any scripts are processed, and
+	 * during Zeek's initialization, before any scripts are processed, and
 	 * forwards to the corresponding Plugin methods.
 	 */
 	void InitPreScript();
@@ -121,7 +121,7 @@ public:
 
 	/**
 	 * Third-stage initialization of the manager. This is called late during
-	 * Bro's initialization after any scripts are processed, and forwards to
+	 * Zeek's initialization after any scripts are processed, and forwards to
 	 * the corresponding Plugin methods.
 	 */
 	void InitPostScript();
@@ -206,8 +206,8 @@ public:
 	/**
 	 * Registers interest in an event by a plugin, even if there's no handler
 	 * for it. Normally a plugin receives events through HookQueueEvent()
-	 * only if Bro actually has code to execute for it. By calling this
-	 * method, the plugin tells Bro to raise the event even if there's no
+	 * only if Zeek actually has code to execute for it. By calling this
+	 * method, the plugin tells Zeek to raise the event even if there's no
 	 * correspondong handler; it will then go into HookQueueEvent() just as
 	 * any other.
 	 *
@@ -218,7 +218,7 @@ public:
 	void RequestEvent(EventHandlerPtr handler, Plugin* plugin);
 
 	/**
-	 * Register interest in the destruction of a Obj instance. When Bro's
+	 * Register interest in the destruction of a Obj instance. When Zeek's
 	 * reference counting triggers the objects destructor to run, the \a
 	 * HookBroObjDtor will be called.
 	 *
@@ -233,9 +233,9 @@ public:
 	/**
 	 * Hook that gives plugins a chance to take over loading an input
 	 * file. This method must be called between InitPreScript() and
-	 * InitPostScript() for each input file Bro is about to load, either
+	 * InitPostScript() for each input file Zeek is about to load, either
 	 * given on the command line or via @load script directives. The hook can
-	 * take over the file, in which case Bro must not further process it
+	 * take over the file, in which case Zeek must not further process it
 	 * otherwise.
 	 *
 	 * @return 1 if a plugin took over the file and loaded it successfully; 0
@@ -248,10 +248,10 @@ public:
 	/**
 	 * Hook that gives plugins a chance to take over loading an input file,
 	 * including replacing the file's content. This method must be called
-	 * between InitPreScript() and InitPostScript() for each input file Bro is
+	 * between InitPreScript() and InitPostScript() for each input file Zeek is
 	 * about to load, either given on the command line or via @load script
-	 * directives. The hook can take over the file, in which case Bro must not
-	 * further process it otherwise; or provide its content, in which case Bro
+	 * directives. The hook can take over the file, in which case Zeek must not
+	 * further process it otherwise; or provide its content, in which case Zeek
 	 * must use that and ignore the original file.
 	 *
 	 * @return tuple where the first element is 1 if a plugin took over the
@@ -397,7 +397,7 @@ public:
 	 *
 	 * @param conn The associated connection
 	 *
-	 * @param addl Additional Bro values; typically will be passed to the event
+	 * @param addl Additional Zeek values; typically will be passed to the event
 	 *             by the reporter framework.
 	 *
 	 * @param location True if event expects location information

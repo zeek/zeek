@@ -74,7 +74,7 @@ using maskedvalue_list = PList<MaskedValue>;
 using string_list = PList<char>;
 using bstr_list = PList<String>;
 
-// Get values from Bro's script-level variables.
+// Get values from Zeek's script-level variables.
 extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
                                 std::vector<IPPrefix>* prefix_vector = nullptr);
 extern char* id_to_str(const char* id);

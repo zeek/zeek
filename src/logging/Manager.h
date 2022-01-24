@@ -226,7 +226,7 @@ public:
 	bool Flush(EnumVal* id);
 
 	/**
-	 * Signals the manager to shutdown at Bro's termination.
+	 * Signals the manager to shutdown at Zeek's termination.
 	 */
 	void Terminate();
 

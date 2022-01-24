@@ -8,7 +8,7 @@
 //	(probably in the lexer). Then later any function that so desires
 //	can call a relevant function. Note that since it caches the contents,
 //	changes to the policy files will not be reflected until restart,
-//	which is probably good since it'll always display the code that Bro
+//	which is probably good since it'll always display the code that Zeek
 //	is actually using.
 
 // policy_filename arguments should be absolute or relative paths;

@@ -32,7 +32,7 @@ public:
 	virtual ~Manager();
 
 	/**
-	 * Initialization of the manager. This is called late during Bro's
+	 * Initialization of the manager. This is called late during Zeek's
 	 * initialization after any scripts are processed.
 	 */
 	virtual void InitPostScript();

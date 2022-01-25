@@ -1,4 +1,4 @@
-// Support routines to help deal with Bro debugging commands and
+// Support routines to help deal with Zeek debugging commands and
 // implementation of most commands.
 
 #pragma once

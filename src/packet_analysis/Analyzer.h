@@ -141,7 +141,7 @@ public:
 	virtual void AnalyzerConfirmation(session::Session* session, zeek::Tag tag = zeek::Tag());
 
 	/**
-	 * Signals Bro's protocol detection that the analyzer has found a
+	 * Signals Zeek's protocol detection that the analyzer has found a
 	 * severe protocol violation that could indicate that it's not
 	 * parsing the expected protocol. This turns into \c
 	 * analyzer_violation events at the script-layer (one such event is

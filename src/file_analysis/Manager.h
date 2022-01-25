@@ -49,13 +49,13 @@ public:
 
 	/**
 	 * First-stage initializion of the manager. This is called early on
-	 * during Bro's initialization, before any scripts are processed.
+	 * during Zeek's initialization, before any scripts are processed.
 	 */
 	void InitPreScript();
 
 	/**
 	 * Second-stage initialization of the manager. This is called late
-	 * during Bro's initialization after any scripts are processed.
+	 * during Zeek's initialization after any scripts are processed.
 	 */
 	void InitPostScript();
 
@@ -384,7 +384,7 @@ protected:
 	 * Evaluate timeout policy for a file and remove the File object mapped to
 	 * \a file_id if needed.
 	 * @param file_id the file identifier/hash.
-	 * @param is_termination whether the Manager (and probably Bro) is in a
+	 * @param is_termination whether the Manager (and probably Zeek) is in a
 	 *        terminating state.  If true, then the timeout cannot be postponed.
 	 */
 	void Timeout(const std::string& file_id, bool is_terminating = run_state::terminating);

@@ -300,7 +300,7 @@ protected:
 	void Put(threading::Value** val);
 
 	/**
-	 * Method allowing a reader to delete a specific value from a Bro
+	 * Method allowing a reader to delete a specific value from a Zeek
 	 * table.
 	 *
 	 * If the receiving stream is an event stream, only a removed event
@@ -312,7 +312,7 @@ protected:
 	void Delete(threading::Value** val);
 
 	/**
-	 * Method allowing a reader to clear a Bro table.
+	 * Method allowing a reader to clear a Zeek table.
 	 *
 	 * If the receiving stream is an event stream, this is ignored.
 	 *

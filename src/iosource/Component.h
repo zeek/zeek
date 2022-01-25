@@ -115,7 +115,7 @@ public:
 
 	/**
 	 * Generates a human-readable description of the component. This goes
-	 * into the output of \c "bro -NN".
+	 * into the output of \c "zeek -NN".
 	 */
 	void DoDescribe(ODesc* d) const override;
 
@@ -164,7 +164,7 @@ public:
 
 	/**
 	 * Generates a human-readable description of the component. This goes
-	 * into the output of \c "bro -NN".
+	 * into the output of \c "zeek -NN".
 	 */
 	void DoDescribe(ODesc* d) const override;
 

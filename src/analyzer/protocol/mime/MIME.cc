@@ -11,7 +11,7 @@
 
 // Here are a few things to do:
 //
-// 1. Add a Bro internal function 'stop_deliver_data_of_entity' so
+// 1. Add a Zeek internal function 'stop_deliver_data_of_entity' so
 // that the engine does not decode and deliver further data for the
 // entity (which may speed up the engine by avoiding copying).
 //

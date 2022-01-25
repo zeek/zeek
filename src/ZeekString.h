@@ -102,7 +102,7 @@ public:
 	static constexpr int EXPANDED_STRING = // the original style
 		ESC_HEX;
 
-	static constexpr int BRO_STRING_LITERAL = // as in a Bro string literal
+	static constexpr int BRO_STRING_LITERAL = // as in a Bro/Zeek string literal
 		ESC_ESC | ESC_QUOT | ESC_HEX;
 
 	// Renders a string into a newly allocated character array that
@@ -193,7 +193,7 @@ extern int Bstr_cmp(const String* s1, const String* s2);
 // which would be necessary if String were used. Unlike String,
 // the string should not be deallocated on destruction.
 //
-// "BroConstString" might be a better name here.
+// "ZeekConstString" might be a better name here.
 
 struct data_chunk_t
 	{

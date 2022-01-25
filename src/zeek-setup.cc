@@ -304,7 +304,7 @@ static void terminate_bro()
 	if ( profiling_logger )
 		{
 		// FIXME: There are some occasional crashes in the memory
-		// allocation code when killing Bro.  Disabling this for now.
+		// allocation code when killing Zeek.  Disabling this for now.
 		if ( ! (signal_val == SIGTERM || signal_val == SIGINT) )
 			profiling_logger->Log();
 

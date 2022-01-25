@@ -391,7 +391,7 @@ bool Ascii::InitFormatter()
 		if ( enable_utf_8 )
 			desc.EnableUTF8();
 
-		// Use the default "Bro logs" format.
+		// Use the default "Zeek logs" format.
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(separator);
 		threading::formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field,

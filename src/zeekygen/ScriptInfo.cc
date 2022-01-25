@@ -340,7 +340,7 @@ void ScriptInfo::DoInitPostScript()
 		state_vars.push_back(info);
 		}
 
-	// The following enum types are automatically created internally in Bro,
+	// The following enum types are automatically created internally in Zeek,
 	// so just manually associating them with scripts for now.
 	if ( name == "base/frameworks/input/main.zeek" )
 		{

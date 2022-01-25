@@ -101,7 +101,7 @@ public:
 
 	/**
 	 * Returns a textual representation of the component. This goes into
-	 * the output of "bro -NN".
+	 * the output of "zeek -NN".
 	 *
 	 * By default, this just outputs the type and the name. Derived
 	 * versions can override DoDescribe() to add type specific details.

@@ -136,7 +136,7 @@ void EventMgr::Drain()
 
 	draining = true;
 
-	// Past Bro versions drained as long as there events, including when
+	// Past Zeek versions drained as long as there events, including when
 	// a handler queued new events during its execution. This could lead
 	// to endless loops in case a handler kept triggering its own event.
 	// We now limit this to just a couple of rounds. We do more than

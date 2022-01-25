@@ -566,7 +566,7 @@ void TCPSessionAdapter::Process(bool is_orig, const struct tcphdr* tp, int len,
 
 	if ( seq_underflow && ! flags.RST() )
 		// Can't tell if if this is a retransmit/out-of-order or something
-		// before the sequence Bro initialized the endpoint at or the TCP is
+		// before the sequence Zeek initialized the endpoint at or the TCP is
 		// just broken and sending garbage sequences.  In either case, some
 		// standard analysis doesn't apply (e.g. reassembly).
 		Weird("TCP_seq_underflow_or_misorder");

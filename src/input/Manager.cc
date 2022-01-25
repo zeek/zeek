@@ -30,7 +30,7 @@ namespace zeek::input
 /**
  * InputHashes are used as Dictionaries to store the value and index hashes
  * for all lines currently stored in a table. Index hash is stored as
- * HashKey*, because it is thrown into other Bro functions that need the
+ * HashKey*, because it is thrown into other Zeek functions that need the
  * complex structure of it. For everything we do (with values), we just take
  * the hash_t value and compare it directly with "=="
  */
@@ -1889,7 +1889,7 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 		event_mgr.Enqueue(ev, std::move(vl), util::detail::SOURCE_LOCAL);
 	}
 
-// Convert a bro list value to a bro record value.
+// Convert a Zeek list value to a Zeek record value.
 // I / we could think about moving this functionality to val.cc
 RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType* request_type, int* position) const
 	{
@@ -2067,7 +2067,7 @@ int Manager::GetValueLength(const Value* val) const
 	}
 
 // Given a threading::value, copy the raw data bytes into *data and return how many bytes were
-// copied. Used for hashing the values for lookup in the bro table
+// copied. Used for hashing the values for lookup in the Zeek table
 int Manager::CopyValue(char* data, const int startpos, const Value* val) const
 	{
 	assert(val->present); // presence has to be checked elsewhere
@@ -2243,7 +2243,7 @@ zeek::detail::HashKey* Manager::HashValues(const int num_elements, const Value* 
 	return key;
 	}
 
-// convert threading value to Bro value
+// convert threading value to Zeek value
 // have_error is a reference to a boolean which is set to true as soon as an error occurs.
 // When have_error is set to true at the beginning of the function, it is assumed that
 // an error already occurred in the past and processing is aborted.
@@ -2440,7 +2440,7 @@ Manager::Stream* Manager::FindStream(ReaderFrontend* reader) const
 	return nullptr;
 	}
 
-// Function is called on Bro shutdown.
+// Function is called on Zeek shutdown.
 // Signal all frontends that they will cease operation.
 void Manager::Terminate()
 	{

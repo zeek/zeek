@@ -822,7 +822,7 @@ public:
 	// Returns true if this set contains the same members as the
 	// given set.  Note that comparisons are done using hash keys,
 	// so errors can arise for compound sets such as sets-of-sets.
-	// See https://bro-tracker.atlassian.net/browse/BIT-1949.
+	// See https://github.com/zeek/zeek/issues/151.
 	bool EqualTo(const TableVal& v) const;
 
 	// Returns true if this set is a subset (not necessarily proper)
@@ -1355,7 +1355,7 @@ public:
 	TableValPtr GetRecordFieldsVal() const;
 
 	// This is an experiment to associate a Obj within the
-	// event engine to a record value in bro script.
+	// event engine to a record value in Zeek script.
 	void SetOrigin(Obj* o) { origin = o; }
 	Obj* GetOrigin() const { return origin; }
 

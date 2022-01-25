@@ -110,7 +110,7 @@ void PktSrc::Closed()
 
 void PktSrc::Error(const std::string& msg)
 	{
-	// We don't report this immediately, Bro will ask us for the error
+	// We don't report this immediately, Zeek will ask us for the error
 	// once it notices we aren't open.
 	errbuf = msg;
 	DBG_LOG(DBG_PKTIO, "Error with source %s: %s", IsOpen() ? props.path.c_str() : "<not open>",

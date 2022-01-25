@@ -1,3 +1,7 @@
+5.0.0-dev.67 | 2022-01-25 12:25:48 +0000
+
+  * updated Bro->Zeek in comments in the source tree (Vern Paxson, Corelight)
+
 5.0.0-dev.65 | 2022-01-24 13:41:25 -0800
 
   * CI updates (Christian Kreibich, Corelight)

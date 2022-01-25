@@ -28,6 +28,10 @@ RUN apt-get update && apt-get -y install \
     xz-utils \
   && rm -rf /var/lib/apt/lists/*
 
+# A version field to invalide Cirrus's build cache when needed, as suggested in
+# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
+ENV DOCKERFILE_VERSION 20220125
+
 RUN pip3 install junit2html
 
 ENV CC=/usr/bin/clang-8

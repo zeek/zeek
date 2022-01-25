@@ -2,6 +2,36 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 4.0.5
+==========
+
+This release fixes the following bugs:
+
+- The highwayhash module was updated to fix a build failure on FreeBSD.
+
+  https://github.com/zeek/zeek/pull/1809
+
+- A number of fixes for various problems on the CI infrastructure.
+
+  https://github.com/zeek/zeek/pull/1809
+  https://github.com/zeek/zeek/pull/1579
+  https://github.com/zeek/zeek/commit/a84d1bffe9ff596b8d98dc6e9461ed8877141dbb
+  https://github.com/zeek/zeek/commit/33a4e1cb6657d0a01e69addf2af26dcdd9da1ab0
+
+- Fixed an issue with log rotation on Linux systems using shadow files.
+
+  https://github.com/zeek/zeek/pull/1817
+
+- Writers were not being cleaned up correctly when recreating log streams
+  with the same ID as an existing stream. This could lead to a crash.
+
+  https://github.com/zeek/zeek/pull/1877
+
+- IP packets with bad/incorrect IP header lengths were not reporting weirds
+  as they should be.
+
+  https://github.com/zeek/zeek/pull/1569
+
 Zeek 4.0.4
 ==========
 

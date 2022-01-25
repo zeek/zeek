@@ -1,3 +1,50 @@
+4.0.5 | 2022-01-25 13:20:49 -0700
+
+  * CI tweak: add a datestamp to Ubuntu 16 Dockerfiles to invalidate Cirrus build cache (Tim Wojtulewicz, Corelight)
+
+  * Fixing homebrew, again. (Tim Wojtulewicz, Corelight)
+
+    Homebrew apparently requires you to now specify the version of the package
+    you're updating. We previously could just run `brew update openssl` and it
+    would work. Now we must run `brew update openssl@1.1` for the command to
+    succeed.
+
+    (cherry picked from commit dc4e273153f959a8e266318e66ef9bfeaef95da0)
+
+  * Bump highwayhash submodule to pull in another FreeBSD header fix (Christian Kreibich, Corelight)
+
+    (cherry picked from commit acde4d176588724bc9eb8ce83c45a0d7f7362c6c)
+
+  * CI tweak: upgrade curl on FreeBSD to avoid cert expiration (Christian Kreibich, Corelight)
+
+    (cherry picked from commit acde4d176588724bc9eb8ce83c45a0d7f7362c6c)
+
+  * CI tweak: add a datestamp to Debian 9 Dockerfiles to invalidate Cirrus build cache (Christian Kreibich, Corelight)
+
+    (cherry picked from commit acde4d176588724bc9eb8ce83c45a0d7f7362c6c)
+
+  * Have `make dist` cleanup a few more wayward files before tarring (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit cdf39840bb7974dc714666f2401e9b949c778f42)
+
+  * Fix handling of IP packets with bogus IP header lengths (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit d15fca7e172d2837f3399275a8cbe6bad1fd50c4)
+
+  * GH-1768: Properly cleanup existing log stream when recreated on with the same ID (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit fbb411780a2286acbcb7110217997bf49f9c2798)
+
+  * logging/writers/ascii: shadow files: Add fsync() before rename(). This
+    prevents potential problems with leftover files after unclean shutdowns.
+    (Arne Welzel, Corelight)
+
+    (cherry picked from commit 1b3b9a3cfc754f93585d2b13b4999ba2f44a07fe)
+
+  * Make update-traces fail when the curl invocation fails (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 3dac5ed8099168beeb69200acfb9f1667c6f44c4)
+
 4.0.4 | 2021-09-21 16:04:07 -0700
 
   * Sanitize log files names before they go into system(). (Robin Sommer, Corelight)

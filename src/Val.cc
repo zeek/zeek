@@ -3323,19 +3323,10 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 	auto n = vector_val->size();
 
 	if ( index < n )
-		{ // May need to delete previous element
+		{ // Find location within existing vector elements.
 		it = std::next(vector_val->begin(), index);
 		if ( yield_types )
-			{
-			if ( *it )
-				ZVal::DeleteIfManaged(**it, element->GetType());
 			types_it = std::next(yield_types->begin(), index);
-			}
-		else if ( managed_yield )
-			{
-			if ( *it )
-				ZVal::DeleteManagedType(**it);
-			}
 		}
 	else
 		{

@@ -1,3 +1,7 @@
+5.0.0-dev.70 | 2022-01-25 13:52:00 -0700
+
+  * bug fix for vector slice assignment (Vern Paxson, Corelight)
+
 5.0.0-dev.67 | 2022-01-25 12:25:48 +0000
 
   * updated Bro->Zeek in comments in the source tree (Vern Paxson, Corelight)

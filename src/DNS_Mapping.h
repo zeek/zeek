@@ -52,6 +52,8 @@ public:
 
 	int Type() const { return map_type; }
 
+	void Merge(DNS_Mapping* other);
+
 protected:
 	friend class DNS_Mgr;
 
@@ -70,7 +72,7 @@ protected:
 	ListValPtr addrs_val;
 
 	double creation_time = 0.0;
-	int map_type = 0;
+	int map_type = AF_UNSPEC;
 	bool no_mapping = false; // when initializing from a file, immediately hit EOF
 	bool init_failed = false;
 	bool failed = false;

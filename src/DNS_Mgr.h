@@ -218,8 +218,11 @@ public:
 	 * @param dr The request associated with the result.
 	 * @param h A hostent structure containing the actual result data.
 	 * @param ttl A ttl value contained in the response from the server.
+	 * @param merge A flag for whether these results should be merged into
+	 * an existing mapping. If false, AddResult will attempt to replace the
+	 * existing mapping with the new data and delete the old mapping.
 	 */
-	void AddResult(DNS_Request* dr, struct hostent* h, uint32_t ttl);
+	void AddResult(DNS_Request* dr, struct hostent* h, uint32_t ttl, bool merge = false);
 
 	/**
 	 * Returns an empty set of addresses, used in various error cases and during

@@ -76,7 +76,7 @@ public:
 private:
 	std::string host;
 	IPAddr addr;
-	int family = 0; // address family query type for host requests
+	int family = AF_UNSPEC; // address family query type for host requests
 	int request_type = 0; // Query type
 	bool async = false;
 	unsigned char* query = nullptr;
@@ -92,8 +92,6 @@ DNS_Request::DNS_Request(std::string host, int af, int request_type, bool async)
 
 DNS_Request::DNS_Request(const IPAddr& addr, bool async) : addr(addr), async(async)
 	{
-	// TODO: AF_UNSPEC for T_PTR requests?
-	family = addr.GetFamily() == IPv4 ? AF_INET : AF_INET6;
 	request_type = T_PTR;
 	}
 
@@ -248,27 +246,22 @@ static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinf
 			delete[] he.h_name;
 			}
 
-		// TODO: We can't do this here because we blow up the mapping added above by doing so.
-		// We need some sort of "merge mapping" mode in AddResult for this to work to add new
-		// IPs to an existing mapping.
-		/*
-		  if ( ! addrs6.empty() )
-		  {
-		  // Push a null on the end so the addr list has a final point during later parsing.
-		  addrs6.push_back(NULL);
+		if ( ! addrs6.empty() )
+			{
+			// Push a null on the end so the addr list has a final point during later parsing.
+			addrs6.push_back(NULL);
 
-		  struct hostent he;
-		  memset(&he, 0, sizeof(struct hostent));
-		  he.h_name = util::copy_string(result->name);
-		  he.h_addrtype = AF_INET6;
-		  he.h_length = sizeof(in6_addr);
-		  he.h_addr_list = reinterpret_cast<char**>(addrs6.data());
+			struct hostent he;
+			memset(&he, 0, sizeof(struct hostent));
+			he.h_name = util::copy_string(result->name);
+			he.h_addrtype = AF_INET6;
+			he.h_length = sizeof(in6_addr);
+			he.h_addr_list = reinterpret_cast<char**>(addrs6.data());
 
-		  dns_mgr->AddResult(req, &he, result->nodes[0].ai_ttl);
+			dns_mgr->AddResult(req, &he, result->nodes[0].ai_ttl, true);
 
-		  delete[] he.h_name;
-		  }
-		*/
+			delete[] he.h_name;
+			}
 		}
 
 	req->ProcessAsyncResult(timeouts > 0);
@@ -815,35 +808,45 @@ ValPtr DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 	return r;
 	}
 
-void DNS_Mgr::AddResult(DNS_Request* dr, struct hostent* h, uint32_t ttl)
+void DNS_Mgr::AddResult(DNS_Request* dr, struct hostent* h, uint32_t ttl, bool merge)
 	{
 	// TODO: the existing code doesn't handle hostname aliases at all. Should we?
 
-	DNS_Mapping* new_mapping;
-	DNS_Mapping* prev_mapping;
-	bool keep_prev = false;
+	DNS_Mapping* new_mapping = nullptr;
+	DNS_Mapping* prev_mapping = nullptr;
+	bool keep_prev = true;
 
 	if ( ! dr->Host().empty() )
 		{
 		new_mapping = new DNS_Mapping(dr->Host(), h, ttl);
-		prev_mapping = nullptr;
 
 		if ( dr->IsTxt() )
 			{
 			TextMap::iterator it = text_mappings.find(dr->Host());
 
 			if ( it == text_mappings.end() )
-				text_mappings[dr->Host()] = new_mapping;
+				{
+				auto result = text_mappings.emplace(dr->Host(), new_mapping);
+				it = result.first;
+				}
+			else
+				prev_mapping = it->second;
+
+			if ( prev_mapping && prev_mapping->Valid() )
+				{
+				if ( new_mapping->Valid() )
+					{
+					if ( merge )
+						new_mapping->Merge(prev_mapping);
+
+					it->second = new_mapping;
+					keep_prev = false;
+					}
+				}
 			else
 				{
-				prev_mapping = it->second;
 				it->second = new_mapping;
-				}
-
-			if ( new_mapping->Failed() && prev_mapping && prev_mapping->Valid() )
-				{
-				text_mappings[dr->Host()] = prev_mapping;
-				keep_prev = true;
+				keep_prev = false;
 				}
 			}
 		else
@@ -851,50 +854,88 @@ void DNS_Mgr::AddResult(DNS_Request* dr, struct hostent* h, uint32_t ttl)
 			HostMap::iterator it = host_mappings.find(dr->Host());
 			if ( it == host_mappings.end() )
 				{
-				host_mappings[dr->Host()].first = new_mapping->Type() == AF_INET ? new_mapping
-				                                                                 : nullptr;
+				std::pair<HostMap::iterator, bool> result;
 
-				host_mappings[dr->Host()].second = new_mapping->Type() == AF_INET ? nullptr
-				                                                                  : new_mapping;
+				if ( new_mapping->Type() == AF_INET )
+					result = host_mappings.emplace(dr->Host(), std::pair{new_mapping, nullptr});
+				else
+					result = host_mappings.emplace(dr->Host(), std::pair{nullptr, new_mapping});
+
+				it = result.first;
 				}
 			else
 				{
 				if ( new_mapping->Type() == AF_INET )
-					{
 					prev_mapping = it->second.first;
+				else
+					prev_mapping = it->second.second;
+				}
+
+			if ( prev_mapping && new_mapping->Type() != prev_mapping->Type() )
+				{
+				if ( new_mapping->Type() == AF_INET )
+					{
+					prev_mapping = it->second.second;
 					it->second.first = new_mapping;
 					}
 				else
 					{
-					prev_mapping = it->second.second;
+					prev_mapping = it->second.first;
 					it->second.second = new_mapping;
 					}
 				}
-
-			if ( new_mapping->Failed() && prev_mapping && prev_mapping->Valid() )
+			else if ( prev_mapping && prev_mapping->Valid() )
 				{
-				// Put previous, valid entry back - CompareMappings
-				// will generate a corresponding warning.
-				if ( prev_mapping->Type() == AF_INET )
-					host_mappings[dr->Host()].first = prev_mapping;
-				else
-					host_mappings[dr->Host()].second = prev_mapping;
+				if ( new_mapping->Valid() )
+					{
+					if ( merge )
+						new_mapping->Merge(prev_mapping);
 
-				keep_prev = true;
+					keep_prev = false;
+					if ( new_mapping->Type() == AF_INET )
+						it->second.first = new_mapping;
+					else
+						it->second.second = new_mapping;
+					}
+				}
+			else
+				{
+				keep_prev = false;
+				if ( new_mapping->Type() == AF_INET )
+					it->second.first = new_mapping;
+				else
+					it->second.second = new_mapping;
 				}
 			}
 		}
 	else
 		{
 		new_mapping = new DNS_Mapping(dr->Addr(), h, ttl);
-		AddrMap::iterator it = addr_mappings.find(dr->Addr());
-		prev_mapping = (it == addr_mappings.end()) ? 0 : it->second;
-		addr_mappings[dr->Addr()] = new_mapping;
 
-		if ( new_mapping->Failed() && prev_mapping && prev_mapping->Valid() )
+		AddrMap::iterator it = addr_mappings.find(dr->Addr());
+		if ( it == addr_mappings.end() )
 			{
-			addr_mappings[dr->Addr()] = prev_mapping;
-			keep_prev = true;
+			auto result = addr_mappings.emplace(dr->Addr(), new_mapping);
+			it = result.first;
+			}
+		else
+			prev_mapping = it->second;
+
+		if ( prev_mapping && prev_mapping->Valid() )
+			{
+			if ( new_mapping->Valid() )
+				{
+				if ( merge )
+					new_mapping->Merge(prev_mapping);
+
+				it->second = new_mapping;
+				keep_prev = false;
+				}
+			}
+		else
+			{
+			it->second = new_mapping;
+			keep_prev = false;
 			}
 		}
 
@@ -1516,16 +1557,24 @@ TEST_CASE("dns_mgr default mode")
 	dns_mgr = &mgr;
 	mgr.InitPostScript();
 
-	IPAddr ones("1.1.1.1");
+	IPAddr ones4("1.1.1.1");
+	IPAddr ones6("2606:4700:4700::1111");
+
 	auto host_result = mgr.LookupHost("one.one.one.one");
 	REQUIRE(host_result != nullptr);
 	CHECK_FALSE(host_result->EqualTo(TestDNS_Mgr::empty_addr_set()));
 
 	auto addrs_from_request = get_result_addresses(host_result);
-	auto it = std::find(addrs_from_request.begin(), addrs_from_request.end(), ones);
+	auto it = std::find(addrs_from_request.begin(), addrs_from_request.end(), ones4);
+	CHECK(it != addrs_from_request.end());
+	it = std::find(addrs_from_request.begin(), addrs_from_request.end(), ones6);
 	CHECK(it != addrs_from_request.end());
 
-	auto addr_result = mgr.LookupAddr(ones);
+	auto addr_result = mgr.LookupAddr(ones4);
+	REQUIRE(addr_result != nullptr);
+	CHECK(strcmp(addr_result->CheckString(), "one.one.one.one") == 0);
+
+	addr_result = mgr.LookupAddr(ones6);
 	REQUIRE(addr_result != nullptr);
 	CHECK(strcmp(addr_result->CheckString(), "one.one.one.one") == 0);
 

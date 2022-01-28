@@ -51,8 +51,6 @@ constexpr int MAX_PENDING_REQUESTS = 20;
 
 namespace zeek::detail
 	{
-
-static void hostbyaddr_cb(void* arg, int status, int timeouts, struct hostent* hostent);
 static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinfo* result);
 static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, int len);
 static void sock_cb(void* data, int s, int read, int write);
@@ -60,13 +58,12 @@ static void sock_cb(void* data, int s, int read, int write);
 class DNS_Request
 	{
 public:
-	DNS_Request(std::string host, int af, int request_type, bool async = false);
-	explicit DNS_Request(const IPAddr& addr, bool async = false);
+	DNS_Request(std::string host, int request_type, bool async = false);
+	DNS_Request(const IPAddr& addr, bool async = false);
 	~DNS_Request();
 
 	std::string Host() const { return host; }
 	const IPAddr& Addr() const { return addr; }
-	int Family() const { return family; }
 	int RequestType() const { return request_type; }
 	bool IsTxt() const { return request_type == 16; }
 
@@ -76,7 +73,6 @@ public:
 private:
 	std::string host;
 	IPAddr addr;
-	int family = AF_UNSPEC; // address family query type for host requests
 	int request_type = 0; // Query type
 	bool async = false;
 	unsigned char* query = nullptr;
@@ -85,8 +81,8 @@ private:
 
 uint16_t DNS_Request::request_id = 0;
 
-DNS_Request::DNS_Request(std::string host, int af, int request_type, bool async)
-	: host(std::move(host)), family(af), request_type(request_type), async(async)
+DNS_Request::DNS_Request(std::string host, int request_type, bool async)
+	: host(std::move(host)), request_type(request_type), async(async)
 	{
 	}
 
@@ -108,46 +104,28 @@ void DNS_Request::MakeRequest(ares_channel channel)
 	// all of them would be in flight at the same time.
 	DNS_Request::request_id++;
 
-	// TODO: how the heck do file lookups work? gethostbyname_file exists but gethostbyaddr_file
-	// doesn't. But then the code in ares_gethostbyaddr.c can switch on the setting in the channel
-	// for whether we should look at the file or not. If we don't care about file lookups at all,
-	// the T_PTR case below can be simplified and moved down into the else block.
-
-	// We do normal host and address lookups via the specialized methods for them
-	// because those will attempt to do file lookups as well internally before
-	// reaching out to the DNS server. The remaining lookup types all use
-	// ares_create_query() and ares_send() for more genericness.
 	if ( request_type == T_A || request_type == T_AAAA )
 		{
-		// TODO: gethostbyname_file?
-		// Use getaddrinfo here because it gives us the ttl information. If we don't
-		// care about TTL, we could use gethostbyname instead.
-		ares_addrinfo_hints hints = {ARES_AI_CANONNAME, family, 0, 0};
+		// For A/AAAA requests, we use a different method than the other requests. Since
+		// we're using the AF_UNSPEC family, we get both the ipv4 and ipv6 responses
+		// back in the same request if use ares_getaddrinfo() so we can store them both
+		// in the same mapping.
+		ares_addrinfo_hints hints = {ARES_AI_CANONNAME, AF_UNSPEC, 0, 0};
 		ares_getaddrinfo(channel, host.c_str(), NULL, &hints, addrinfo_cb, this);
-		}
-	else if ( request_type == T_PTR )
-		{
-		if ( addr.GetFamily() == IPv4 )
-			{
-			struct sockaddr_in sa;
-			inet_pton(AF_INET, addr.AsString().c_str(), &(sa.sin_addr));
-			ares_gethostbyaddr(channel, &sa.sin_addr, sizeof(sa.sin_addr), AF_INET, hostbyaddr_cb,
-			                   this);
-			}
-		else
-			{
-			struct sockaddr_in6 sa;
-			inet_pton(AF_INET6, addr.AsString().c_str(), &(sa.sin6_addr));
-			ares_gethostbyaddr(channel, &sa.sin6_addr, sizeof(sa.sin6_addr), AF_INET6,
-			                   hostbyaddr_cb, this);
-			}
 		}
 	else
 		{
+		std::string query_host;
+		if ( request_type == T_PTR )
+			query_host = addr.PtrName();
+		else
+			query_host = host;
+
 		unsigned char* query = NULL;
 		int len = 0;
-		int status = ares_create_query(host.c_str(), C_IN, request_type, DNS_Request::request_id, 1,
-		                               &query, &len, 0);
+		int status = ares_create_query(query_host.c_str(), C_IN, request_type,
+		                               DNS_Request::request_id, 1, &query, &len, 0);
+
 		if ( status != ARES_SUCCESS )
 			return;
 
@@ -171,30 +149,58 @@ void DNS_Request::ProcessAsyncResult(bool timed_out)
 	}
 
 /**
- * Called in response to ares_gethostbyaddr requests. Sends the hostent data to the
- * DNS manager via AddResult().
+ * Retrieves the TTL value from the first RR in the response.
+ *
+ * This code is adapted from an internal c-ares method called * ares__parse_into_addrinfo,
+ * which is used for ares_getaddrinfo callbacks. It's also the only method that properly
+ * parses out TTL data currently. This skips over the question and the first bit of the
+ * response to get to the first RR, and then returns the TTL from that RR. We only use the
+ * first RR because it's a good approximation for now, at least until the work in c-ares
+ * lands to add TTL support to the other RR-parsing methods.
+ *
+ * @param abuf The buffer containing the entire response from the server.
+ * @param alen The length of the buffer
+ * @param ttl An out param for returning the TTL value.
+ * @return A status code from c-ares. This will be ARES_SUCCESS on success, or some other
+ * code on failure.
  */
-static void hostbyaddr_cb(void* arg, int status, int timeouts, struct hostent* host)
+static int get_ttl(unsigned char* abuf, int alen, int* ttl)
 	{
-	auto req = reinterpret_cast<DNS_Request*>(arg);
+	int status;
+	long len;
+	char* hostname = NULL;
 
-	if ( ! host || status != ARES_SUCCESS )
+	*ttl = DNS_TIMEOUT;
+
+	unsigned char* aptr = abuf + HFIXEDSZ;
+	status = ares_expand_name(aptr, abuf, alen, &hostname, &len);
+	if ( status != ARES_SUCCESS )
 		{
-		printf("Failed hostbyaddr request: %s\n", ares_strerror(status));
-		// TODO: pass DNS_TIMEOUT for the TTL here just so things work for testing. This
-		// will absolutely need to get the data from the request somehow instead. See
-		// https://github.com/c-ares/c-ares/issues/387.
-		dns_mgr->AddResult(req, nullptr, DNS_TIMEOUT);
+		ares_free_string(hostname);
+		return status;
 		}
-	else
+	if ( aptr + len + QFIXEDSZ > abuf + alen )
 		{
-		// TODO: pass DNS_TIMEOUT for the TTL here just so things work for testing. This
-		// will absolutely need to get the data from the request somehow instead. See
-		// https://github.com/c-ares/c-ares/issues/387.
-		dns_mgr->AddResult(req, host, DNS_TIMEOUT);
+		ares_free_string(hostname);
+		return ARES_EBADRESP;
 		}
 
-	req->ProcessAsyncResult(timeouts > 0);
+	aptr += len + QFIXEDSZ;
+	ares_free_string(hostname);
+
+	status = ares_expand_name(aptr, abuf, alen, &hostname, &len);
+	if ( status != ARES_SUCCESS )
+		return status;
+
+	if ( aptr + RRFIXEDSZ > abuf + alen )
+		return ARES_EBADRESP;
+
+	aptr += len;
+	ares_free_string(hostname);
+
+	*ttl = DNS_RR_TTL(aptr);
+
+	return status;
 	}
 
 /**
@@ -207,8 +213,7 @@ static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinf
 
 	if ( status != ARES_SUCCESS )
 		{
-		// TODO: reporter warning or something here, or just give up on it?
-		printf("Failed addrinfo request: %s", ares_strerror(status));
+		reporter->Error("Failed lookup of hostname: %s", ares_strerror(status));
 		dns_mgr->AddResult(req, nullptr, 0);
 		}
 	else
@@ -265,29 +270,61 @@ static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinf
 		}
 
 	req->ProcessAsyncResult(timeouts > 0);
-
 	ares_freeaddrinfo(result);
 	}
 
-/**
- * Called in response to all other query types.
- */
 static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, int len)
 	{
 	auto req = reinterpret_cast<DNS_Request*>(arg);
 
 	if ( status != ARES_SUCCESS )
 		{
-		// TODO: reporter warning or something here, or just give up on it?
-		// TODO: what should we send to AddResult if we didn't get an answer back?
-		// struct hostent he;
-		// memset(&he, 0, sizeof(struct hostent));
-		// dns_mgr->AddResult(req, &he, 0);
+		reporter->Error("Failure from DNS lookup: %s", ares_strerror(status));
+
+		// Insert something into the cache so that the request loop will end correctly.
+		// We use the DNS_TIMEOUT value as the TTL here since it's small enough that the
+		// failed response will expire soon, and because we don't have the TTL from the
+		// response data.
+		dns_mgr->AddResult(req, nullptr, DNS_TIMEOUT);
 		}
 	else
 		{
+		// We don't really care that we couldn't properly parse the TTL here, since the
+		// later parsing will fail with better error messages. In that case, it's ok
+		// that we throw away the status value.
+		int ttl;
+		get_ttl(buf, len, &ttl);
+
 		switch ( req->RequestType() )
 			{
+			case T_PTR:
+				{
+				struct hostent* he;
+				if ( req->Addr().GetFamily() == IPv4 )
+					{
+					struct in_addr addr;
+					req->Addr().CopyIPv4(&addr);
+					status = ares_parse_ptr_reply(buf, len, &addr, sizeof(addr), AF_INET, &he);
+					}
+				else
+					{
+					struct in6_addr addr;
+					req->Addr().CopyIPv6(&addr);
+					status = ares_parse_ptr_reply(buf, len, &addr, sizeof(addr), AF_INET6, &he);
+					}
+
+				if ( status == ARES_SUCCESS )
+					{
+					dns_mgr->AddResult(req, he, ttl);
+					ares_free_hostent(he);
+					}
+				else
+					{
+					// See above for why DNS_TIMEOUT here.
+					dns_mgr->AddResult(req, nullptr, DNS_TIMEOUT);
+					}
+				break;
+				}
 			case T_TXT:
 				{
 				struct ares_txt_reply* reply;
@@ -305,13 +342,15 @@ static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, in
 					struct hostent he;
 					memset(&he, 0, sizeof(struct hostent));
 					he.h_name = util::copy_string(reinterpret_cast<const char*>(reply->txt));
+					dns_mgr->AddResult(req, &he, ttl);
 
-					// TODO: pass DNS_TIMEOUT for the TTL here just so things work for
-					// testing. This will absolutely need to get the data from the request
-					// somehow instead. See https://github.com/c-ares/c-ares/issues/387.
-					dns_mgr->AddResult(req, &he, DNS_TIMEOUT);
-
+					delete[] he.h_name;
 					ares_free_data(reply);
+					}
+				else
+					{
+					// See above for why DNS_TIMEOUT here.
+					dns_mgr->AddResult(req, nullptr, DNS_TIMEOUT);
 					}
 
 				break;
@@ -504,7 +543,7 @@ ValPtr DNS_Mgr::Lookup(const std::string& name, int request_type)
 		{
 		case DNS_PRIME:
 			{
-			auto req = new DNS_Request(name, AF_UNSPEC, request_type);
+			auto req = new DNS_Request(name, request_type);
 			req->MakeRequest(channel);
 			return empty_addr_set();
 			}
@@ -516,7 +555,7 @@ ValPtr DNS_Mgr::Lookup(const std::string& name, int request_type)
 
 		case DNS_DEFAULT:
 			{
-			auto req = new DNS_Request(name, AF_UNSPEC, request_type);
+			auto req = new DNS_Request(name, request_type);
 			req->MakeRequest(channel);
 			Resolve();
 
@@ -551,9 +590,9 @@ TableValPtr DNS_Mgr::LookupHost(const std::string& name)
 		{
 		case DNS_PRIME:
 			{
-			// We pass T_A here, but because we're passing AF_UNSPEC MakeRequest() will
-			// have c-ares attempt to lookup both ipv4 and ipv6 at the same time.
-			auto req = new DNS_Request(name, AF_UNSPEC, T_A);
+			// We pass T_A here, but DNSRequest::MakeRequest() will special-case that in
+			// a request that gets both T_A and T_AAAA results at one time.
+			auto req = new DNS_Request(name, T_A);
 			req->MakeRequest(channel);
 			return empty_addr_set();
 			}
@@ -564,9 +603,9 @@ TableValPtr DNS_Mgr::LookupHost(const std::string& name)
 
 		case DNS_DEFAULT:
 			{
-			// We pass T_A here, but because we're passing AF_UNSPEC MakeRequest() will
-			// have c-ares attempt to lookup both ipv4 and ipv6 at the same time.
-			auto req = new DNS_Request(name, AF_UNSPEC, T_A);
+			// We pass T_A here, but DNSRequest::MakeRequest() will special-case that in
+			// a request that gets both T_A and T_AAAA results at one time.
+			auto req = new DNS_Request(name, T_A);
 			req->MakeRequest(channel);
 			Resolve();
 
@@ -1196,11 +1235,11 @@ void DNS_Mgr::IssueAsyncRequests()
 		if ( req->IsAddrReq() )
 			dns_req = new DNS_Request(req->addr, true);
 		else if ( req->is_txt )
-			dns_req = new DNS_Request(req->host.c_str(), AF_UNSPEC, T_TXT, true);
+			dns_req = new DNS_Request(req->host.c_str(), T_TXT, true);
 		else
-			// We pass T_A here, but because we're passing AF_UNSPEC MakeRequest() will
-			// have c-ares attempt to lookup both ipv4 and ipv6 at the same time.
-			dns_req = new DNS_Request(req->host.c_str(), AF_UNSPEC, T_A, true);
+			// We pass T_A here, but DNSRequest::MakeRequest() will special-case that in
+			// a request that gets both T_A and T_AAAA results at one time.
+			dns_req = new DNS_Request(req->host.c_str(), T_A, true);
 
 		dns_req->MakeRequest(channel);
 

@@ -61,8 +61,6 @@ void SMB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	assert(TCP());
-
 	// It we need to resync and we don't have an SMB header, bail!
 	if ( need_sync && ! HasSMBHeader(len, data) )
 		return;

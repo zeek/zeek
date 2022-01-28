@@ -446,16 +446,16 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 		// is fully established we are in sync (since it's the first chunk
 		// of data after the SYN if its not established we need to
 		// resync.
-		auto* tcp = static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
-		assert(tcp);
+		resync_state = INSYNC;
 
-		if ( (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
-		     analyzer::tcp::TCP_ENDPOINT_ESTABLISHED )
+		if ( auto* tcp = static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP() )
 			{
-			NeedResync();
+			if ( (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
+			     analyzer::tcp::TCP_ENDPOINT_ESTABLISHED )
+				{
+				NeedResync();
+				}
 			}
-		else
-			resync_state = INSYNC;
 		}
 
 	if ( resync_state == INSYNC )

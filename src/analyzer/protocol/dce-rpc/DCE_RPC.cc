@@ -50,8 +50,6 @@ void DCE_RPC_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	assert(TCP());
-
 	if ( had_gap )
 		// If only one side had a content gap, we could still try to
 		// deliver data to the other side if the script layer can handle this.

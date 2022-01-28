@@ -44,8 +44,7 @@ void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	assert(TCP());
-	if ( TCP()->IsPartial() )
+	if ( TCP() && TCP()->IsPartial() )
 		return;
 
 	if ( had_gap )

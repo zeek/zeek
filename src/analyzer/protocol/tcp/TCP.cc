@@ -36,12 +36,13 @@ void TCP_ApplicationAnalyzer::Init()
 
 void TCP_ApplicationAnalyzer::AnalyzerViolation(const char* reason, const char* data, int len)
 	{
-	auto* tcp = TCP();
-
-	if ( tcp && (tcp->IsPartial() || tcp->HadGap(false) || tcp->HadGap(true)) )
-		// Filter out incomplete connections.  Parsing them is
-		// too unreliable.
-		return;
+	if ( auto* tcp = TCP() )
+		{
+		if ( tcp->IsPartial() || tcp->HadGap(false) || tcp->HadGap(true) )
+			// Filter out incomplete connections.  Parsing them is
+			// too unreliable.
+			return;
+		}
 
 	Analyzer::AnalyzerViolation(reason, data, len);
 	}

@@ -331,9 +331,7 @@ void ContentLine_Analyzer::CheckNUL()
 	// had been an initial SYN, so we check for whether
 	// the connection has at most two bytes so far.
 
-	auto* tcp = static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
-
-	if ( tcp )
+	if ( auto* tcp = static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP() )
 		{
 		TCP_Endpoint* endp = IsOrig() ? tcp->Orig() : tcp->Resp();
 		if ( endp->state == TCP_ENDPOINT_PARTIAL && endp->LastSeq() - endp->StartSeq() <= 2 )

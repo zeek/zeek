@@ -70,9 +70,9 @@ function send_config_to_agents(req: ClusterController::Request::Request,
 		areq$parent_id = req$id;
 
 		# We track the requests sent off to each agent. As the
-		# responses come in, we can check them off as completed,
-		# and once all are, we respond back to the client.
-		req$set_configuration_state$requests += areq;
+		# responses come in, we delete them. Once the requests
+		# set is empty, we respond back to the client.
+		add req$set_configuration_state$requests[areq$id];
 
 		# We could also broadcast just once on the agent prefix, but
 		# explicit request/response pairs for each agent seems cleaner.
@@ -283,62 +283,30 @@ event ClusterAgent::API::set_configuration_response(reqid: string, result: Clust
 	if ( ClusterController::Request::is_null(areq) )
 		return;
 
-	# Record the result and mark the request as done. This also
-	# marks the request as done in the parent-level request, since
-	# these records are stored by reference.
-	areq$results[0] = result; # We only have a single result here atm
-	areq$finished = T;
+	# Release the request, which is now done.
+	ClusterController::Request::finish(areq$id);
 
-	# Update the original request from the client:
+	# Find the original request from the client
 	local req = ClusterController::Request::lookup(areq$parent_id);
 	if ( ClusterController::Request::is_null(req) )
 		return;
 
-	# If there are any requests to the agents still unfinished,
-	# we're not done yet.
-	for ( i in req$set_configuration_state$requests )
-		if ( ! req$set_configuration_state$requests[i]$finished )
-			return;
+	# Add this result to the overall response
+	req$results[|req$results|] = result;
 
-	# All set_configuration requests to instances are done, so respond
-	# back to client. We need to compose the result, aggregating
-	# the results we got from the requests to the agents. In the
-	# end we have one Result per instance requested in the
-	# original set_configuration_request.
-	#
-	# XXX we can likely generalize result aggregation in the request module.
-	for ( i in req$set_configuration_state$requests )
-		{
-		local r = req$set_configuration_state$requests[i];
+	# Mark this request as done by removing it from the table of pending
+	# ones. The following if-check should always be true.
+	if ( areq$id in req$set_configuration_state$requests )
+		delete req$set_configuration_state$requests[areq$id];
 
-		local success = T;
-		local errors: string_vec;
-		local instance = "";
+	# If there are any pending requests to the agents, we're
+	# done: we respond once every agent has responed (or we time out).
+	if ( |req$set_configuration_state$requests| > 0 )
+		return;
 
-		for ( j in r$results )
-			{
-			local res = r$results[j];
-			instance = res$instance;
-
-			if ( res$success )
-				next;
-
-			success = F;
-			errors += fmt("node %s failed: %s", res$node, res$error);
-			}
-
-		req$results += ClusterController::Types::Result(
-		    $reqid = req$id,
-		    $instance = instance,
-		    $success = success,
-		    $error = join_string_vec(errors, ", ")
-		);
-
-		ClusterController::Request::finish(r$id);
-		}
-
-	# We're now done with the original set_configuration request.
-	# Adopt the configuration as the current one.
+	# All set_configuration requests to instances are done, so adopt the
+	# client's requested configuration as the new one and respond back to
+	# client.
 	g_config_current = req$set_configuration_state$config;
 	g_config_reqid_pending = "";
 

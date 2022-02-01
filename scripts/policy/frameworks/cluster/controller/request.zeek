@@ -28,7 +28,7 @@ export {
 	# State specific to the set_configuration request/response events
 	type SetConfigurationState: record {
 		config: ClusterController::Types::Configuration;
-		requests: vector of Request &default=vector();
+		requests: set[string] &default=set();
 	};
 
 	# State specific to supervisor interactions

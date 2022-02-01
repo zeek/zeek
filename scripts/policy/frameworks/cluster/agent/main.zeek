@@ -13,6 +13,15 @@
 
 module ClusterAgent::Runtime;
 
+# Request state specific to supervisor interactions
+type SupervisorState: record {
+	node: string;
+};
+
+redef record ClusterController::Request::Request += {
+	supervisor_state: SupervisorState &optional;
+};
+
 redef ClusterController::role = ClusterController::Types::AGENT;
 
 # The global configuration as passed to us by the controller
@@ -69,7 +78,7 @@ event SupervisorControl::destroy_response(reqid: string, result: bool)
 function supervisor_create(nc: Supervisor::NodeConfig)
 	{
 	local req = ClusterController::Request::create();
-	req$supervisor_state = ClusterController::Request::SupervisorState($node = nc$name);
+	req$supervisor_state = SupervisorState($node = nc$name);
 	event SupervisorControl::create_request(req$id, nc);
 	ClusterController::Log::info(fmt("issued supervisor create for %s, %s", nc$name, req$id));
 	}
@@ -77,7 +86,7 @@ function supervisor_create(nc: Supervisor::NodeConfig)
 function supervisor_destroy(node: string)
 	{
 	local req = ClusterController::Request::create();
-	req$supervisor_state = ClusterController::Request::SupervisorState($node = node);
+	req$supervisor_state = SupervisorState($node = node);
 	event SupervisorControl::destroy_request(req$id, node);
 	ClusterController::Log::info(fmt("issued supervisor destroy for %s, %s", node, req$id));
 	}

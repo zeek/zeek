@@ -15,6 +15,20 @@
 
 module ClusterController::Runtime;
 
+# Request state specific to the set_configuration request/response events
+type SetConfigurationState: record {
+	config: ClusterController::Types::Configuration;
+	requests: set[string] &default=set();
+};
+
+# Dummy state for testing events.
+type TestState: record { };
+
+redef record ClusterController::Request::Request += {
+	set_configuration_state: SetConfigurationState &optional;
+	test_state: TestState &optional;
+};
+
 redef ClusterController::role = ClusterController::Types::CONTROLLER;
 
 global check_instances_ready: function();
@@ -323,7 +337,7 @@ event ClusterController::API::set_configuration_request(reqid: string, config: C
 	local res: ClusterController::Types::Result;
 	local req = ClusterController::Request::create(reqid);
 
-	req$set_configuration_state = ClusterController::Request::SetConfigurationState($config = config);
+	req$set_configuration_state = SetConfigurationState($config = config);
 
 	# At the moment there can only be one pending request.
 	if ( g_config_reqid_pending != "" )
@@ -486,7 +500,7 @@ event ClusterController::API::test_timeout_request(reqid: string, with_state: bo
 		# This state times out and triggers a timeout response in the
 		# above request_expired event handler.
 		local req = ClusterController::Request::create(reqid);
-		req$test_state = ClusterController::Request::TestState();
+		req$test_state = TestState();
 		}
 	}
 

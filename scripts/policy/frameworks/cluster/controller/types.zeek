@@ -37,11 +37,11 @@ export {
 	## State that a Cluster Node can be in. State changes trigger an
 	## API notification (see notify_change()).
 	type State: enum {
-		Running,  ##< Running and operating normally
-		Stopped,  ##< Explicitly stopped
-		Failed,   ##< Failed to start; and permanently halted
-		Crashed,  ##< Crashed, will be restarted,
-		Unknown,  ##< State not known currently (e.g., because of lost connectivity)
+		RUNNING,  ##< Running and operating normally
+		STOPPED,  ##< Explicitly stopped
+		FAILED,   ##< Failed to start; and permanently halted
+		CRASHED,  ##< Crashed, will be restarted,
+		UNKNOWN,  ##< State not known currently (e.g., because of lost connectivity)
 	};
 
 	## Configuration describing a Cluster Node process.

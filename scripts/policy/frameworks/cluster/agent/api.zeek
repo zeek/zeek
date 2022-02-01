@@ -13,7 +13,6 @@ export {
 	## controller and agent.
 	const version = 1;
 
-
 	# Agent API events
 
 	## The controller sends this event to convey a new cluster configuration
@@ -41,6 +40,28 @@ export {
 	global set_configuration_response: event(reqid: string,
 	    result: ClusterController::Types::Result);
 
+
+	## The controller sends this event to request a list of
+	## :zeek:see:`ClusterController::Types::NodeStatus` records that capture
+	## the status of Supervisor-managed nodes running on this instance.
+	## instances.
+	##
+	## reqid: a request identifier string, echoed in the response event.
+	##
+	global get_nodes_request: event(reqid: string);
+
+	## Response to a get_nodes_request event. The agent sends this back to the
+	## controller.
+	##
+	## reqid: the request identifier used in the request event.
+	##
+	## result: a :zeek:see:`ClusterController::Types::Result` record. Its data
+	##     member is a vector of :zeek:see:`ClusterController::Types::NodeState`
+	##     records, covering the nodes at this instance. The result may also
+	##     indicate failure, with error messages indicating what went wrong.
+	##
+	global get_nodes_response: event(reqid: string,
+	    result: ClusterController::Types::Result);
 
 	## The controller sends this event to confirm to the agent that it is
 	## part of the current cluster topology. The agent acknowledges with the

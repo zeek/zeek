@@ -9,9 +9,9 @@ export {
 	## include the data cluster node types (worker, logger, etc) -- those
 	## continue to be managed by the cluster framework.
 	type Role: enum {
-		NONE,
-		AGENT,
-		CONTROLLER,
+		NONE,       ##< No active role in cluster management
+		AGENT,      ##< A cluster management agent.
+		CONTROLLER, ##< The cluster's controller.
 	};
 
 	## A Zeek-side option with value.
@@ -35,8 +35,11 @@ export {
 	type InstanceVec: vector of Instance;
 
 	## State that a Cluster Node can be in. State changes trigger an
-	## API notification (see notify_change()).
+	## API notification (see notify_change()). The Pending state corresponds
+	## to the Supervisor not yet reporting a PID for a node when it has not
+	## yet fully launched.
 	type State: enum {
+		PENDING,  ##< Not yet running
 		RUNNING,  ##< Running and operating normally
 		STOPPED,  ##< Explicitly stopped
 		FAILED,   ##< Failed to start; and permanently halted
@@ -61,13 +64,32 @@ export {
 	## Data structure capturing a cluster's complete configuration.
 	type Configuration: record {
 		id: string &default=unique_id(""); ##< Unique identifier for a particular configuration
-
 		## The instances in the cluster.
 		instances: set[Instance] &default=set();
 
 		## The set of nodes in the cluster, as distributed over the instances.
 		nodes: set[Node] &default=set();
 	};
+
+	## The status of a Supervisor-managed node, as reported to the client in
+	## a get_nodes_request/get_nodes_response transaction.
+	type NodeStatus: record {
+		## Cluster-unique, human-readable node name
+		node: string;
+		## Current run state of the node.
+		state: State;
+		## Role the node plays in cluster management.
+		mgmt_role: Role &default=NONE;
+		## Role the node plays in the data cluster.
+		cluster_role: Supervisor::ClusterRole &default=Supervisor::NONE;
+		## Process ID of the node. This is optional because the Supervisor may not have
+		## a PID when a node is still bootstrapping.
+		pid: int &optional;
+		## The node's Broker peering listening port, if any.
+		p: port &optional;
+	};
+
+	type NodeStatusVec: vector of NodeStatus;
 
 	## Return value for request-response API event pairs
 	type Result: record {
@@ -81,6 +103,8 @@ export {
 
 	type ResultVec: vector of Result;
 
+	## Given a :zeek:see:`ClusterController::Types::Result` record,
+	## this function returns a string summarizing it.
 	global result_to_string: function(res: Result): string;
 }
 

@@ -77,7 +77,11 @@ export {
 
 function requests_expire_func(reqs: table[string] of Request, reqid: string): interval
 	{
-	event ClusterController::Request::request_expired(reqs[reqid]);
+	# No need to flag request expiration when we've already internally marked
+	# the request as done.
+	if ( ! reqs[reqid]$finished )
+		event ClusterController::Request::request_expired(reqs[reqid]);
+
 	return 0secs;
 	}
 

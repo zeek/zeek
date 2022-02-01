@@ -255,11 +255,8 @@ event zeek_init()
 	Broker::auto_publish(agent_topic, ClusterAgent::API::notify_log);
 
 	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::create_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::create_response);
 	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::destroy_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::destroy_response);
 	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::restart_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::restart_response);
 	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::stop_request);
 
 	# Establish connectivity with the controller.

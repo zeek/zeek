@@ -1,3 +1,8 @@
+5.0.0-dev.74 | 2022-02-02 09:46:00 +0100
+
+  * GH-1890: Consistently warn about mixing vector and scalar operand
+    depreciaton (Zeke Medley, Corelight)
+
 5.0.0-dev.72 | 2022-02-02 09:36:30 +0100
 
   * Let TCP-based application analyzers operate without any TCP parent

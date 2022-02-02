@@ -9,6 +9,7 @@
 #include <syslog.h>
 #include <unistd.h>
 
+#include "zeek/3rdparty/doctest.h"
 #include "zeek/Conn.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
@@ -676,10 +677,14 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 			}
 
 		s += buffer;
-		s += "\n";
 
-		if ( out )
+		if ( doctest::is_running_in_test )
+			MESSAGE(s);
+		else
+			{
+			s += "\n";
 			fprintf(out, "%s", s.c_str());
+			}
 		}
 
 	if ( alloced )

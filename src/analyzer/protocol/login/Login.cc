@@ -123,8 +123,8 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 
 	if ( state == LOGIN_STATE_AUTHENTICATE )
 		{
-		if ( TCP()->OrigState() == analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
-		     TCP()->RespState() == analyzer::tcp::TCP_ENDPOINT_PARTIAL )
+		if ( TCP() && (TCP()->OrigState() == analyzer::tcp::TCP_ENDPOINT_PARTIAL ||
+		               TCP()->RespState() == analyzer::tcp::TCP_ENDPOINT_PARTIAL) )
 			state = LOGIN_STATE_CONFUSED; // unknown login state
 		else
 			{

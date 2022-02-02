@@ -79,10 +79,7 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //	{
 //	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 //
-//	assert(TCP());
-//
-//	if ( TCP()->IsPartial() || TCP()->HadGap(orig) )
-//		// punt-on-partial or stop-on-gap.
+//	if ( TCP() && TCP()->IsPartial() )
 //		return;
 //
 //	interp->NewData(orig, data, data + len);

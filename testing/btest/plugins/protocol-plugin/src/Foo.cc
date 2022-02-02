@@ -36,10 +36,7 @@ void Foo::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	zeek::analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	assert(TCP());
-
-	if ( TCP()->IsPartial() )
-		// punt on partial.
+	if ( TCP() && TCP()->IsPartial() )
 		return;
 
 	try

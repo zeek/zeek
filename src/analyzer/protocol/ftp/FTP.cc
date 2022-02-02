@@ -45,11 +45,14 @@ void FTP_Analyzer::Done()
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
-	if ( nvt_orig->HasPartialLine() &&
-	     (TCP()->OrigState() == analyzer::tcp::TCP_ENDPOINT_CLOSED ||
-	      TCP()->OrigPrevState() == analyzer::tcp::TCP_ENDPOINT_CLOSED) )
-		// ### should include the partial text
-		Weird("partial_ftp_request");
+	if ( TCP() )
+		{
+		if ( nvt_orig->HasPartialLine() &&
+		     (TCP()->OrigState() == analyzer::tcp::TCP_ENDPOINT_CLOSED ||
+		      TCP()->OrigPrevState() == analyzer::tcp::TCP_ENDPOINT_CLOSED) )
+			// ### should include the partial text
+			Weird("partial_ftp_request");
+		}
 	}
 
 static uint32_t get_reply_code(int len, const char* line)

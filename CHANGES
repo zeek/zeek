@@ -1,3 +1,8 @@
+5.0.0-dev.72 | 2022-02-02 09:36:30 +0100
+
+  * Let TCP-based application analyzers operate without any TCP parent
+    analyzer. (Robin Sommer, Corelight)
+
 5.0.0-dev.70 | 2022-01-25 13:52:00 -0700
 
   * bug fix for vector slice assignment (Vern Paxson, Corelight)

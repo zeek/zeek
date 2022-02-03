@@ -124,10 +124,18 @@ event ClusterAgent::API::set_configuration_request(reqid: string, config: Cluste
 		if ( node$instance == ClusterAgent::name )
 			g_nodes[node$name] = node;
 
+		# The cluster and supervisor frameworks require a port for every
+		# node, using 0/unknown to signify "don't listen". We use
+		# optional values and map an absent value to 0/unknown.
+		local p = 0/unknown;
+
+		if ( node?$p )
+			p = node$p;
+
 		local cep = Supervisor::ClusterEndpoint(
 		    $role = node$role,
 		    $host = g_instances[node$instance]$host,
-		    $p = node$p);
+		    $p = p);
 
 		if ( node?$interface )
 			cep$interface = node$interface;

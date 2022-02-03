@@ -32,6 +32,15 @@ Breaking Changes
   changes to return types from a number of methods. With this change, any uses
   of the `zeek::*::Tag` types will need to be replaced by `zeek::Tag`.
 
+- The DPD signature for SSL version 2 is no longer enabled by default. SSLv2
+  is basically extinct nowadays - and the protocol has a relatively high probability
+  of matching with random traffic and being misidentified. If you want to enable
+  the SSLv2 dpd signature, you can load the signature from `policy/protocols/ssl/dpd-v2.sig`
+
+  The DPD signature for SSL version 3 and up (including TLS 1.0 and above) now matches
+  for one-sided connections and does not require a reverst match anymore. This prevents
+  missed handshakes, where the client handshake contains a lot of data.
+
 New Functionality
 -----------------
 

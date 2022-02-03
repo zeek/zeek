@@ -8,6 +8,7 @@
 @load base/frameworks/dpd
 @load base/frameworks/signatures
 @load-sigs base/protocols/ssl/dpd.sig
+@load-sigs policy/protocols/ssl/dpd-v2.sig
 
 event zeek_init()
   {

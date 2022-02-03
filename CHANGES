@@ -1,3 +1,17 @@
+5.0.0-dev.77 | 2022-02-03 11:20:16 +0000
+
+  * Match DPD TLS signature on one-sided connections. (Johanna Amann, Corelight)
+
+    This commit changes DPD matching for TLS connections. A one-sided match
+    is enough to enable DPD now.
+
+    This commit also removes DPD for SSLv2 connections. SSLv2 connections do
+    basically no longer happen in the wild. SSLv2 is also really finnicky to
+    identify correctly - there is very little data required to match it, and
+    basically all matches today will be false positives. If DPD for SSLv2 is
+    still desired, the optional signature in policy/protocols/ssl/dpd-v2.sig
+    can be loaded.
+
 5.0.0-dev.74 | 2022-02-02 09:46:00 +0100
 
   * GH-1890: Consistently warn about mixing vector and scalar operand

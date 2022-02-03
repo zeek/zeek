@@ -15,6 +15,26 @@
 
 module ClusterController::Runtime;
 
+# Request state specific to the set_configuration request/response events
+type SetConfigurationState: record {
+	config: ClusterController::Types::Configuration;
+	requests: set[string] &default=set();
+};
+
+# Request state specific to the get_nodes request/response events
+type GetNodesState: record {
+	requests: set[string] &default=set();
+};
+
+# Dummy state for testing events.
+type TestState: record { };
+
+redef record ClusterController::Request::Request += {
+	set_configuration_state: SetConfigurationState &optional;
+	get_nodes_state: GetNodesState &optional;
+	test_state: TestState &optional;
+};
+
 redef ClusterController::role = ClusterController::Types::CONTROLLER;
 
 global check_instances_ready: function();
@@ -70,9 +90,9 @@ function send_config_to_agents(req: ClusterController::Request::Request,
 		areq$parent_id = req$id;
 
 		# We track the requests sent off to each agent. As the
-		# responses come in, we can check them off as completed,
-		# and once all are, we respond back to the client.
-		req$set_configuration_state$requests += areq;
+		# responses come in, we delete them. Once the requests
+		# set is empty, we respond back to the client.
+		add req$set_configuration_state$requests[areq$id];
 
 		# We could also broadcast just once on the agent prefix, but
 		# explicit request/response pairs for each agent seems cleaner.
@@ -283,62 +303,30 @@ event ClusterAgent::API::set_configuration_response(reqid: string, result: Clust
 	if ( ClusterController::Request::is_null(areq) )
 		return;
 
-	# Record the result and mark the request as done. This also
-	# marks the request as done in the parent-level request, since
-	# these records are stored by reference.
-	areq$results[0] = result; # We only have a single result here atm
-	areq$finished = T;
+	# Release the request, which is now done.
+	ClusterController::Request::finish(areq$id);
 
-	# Update the original request from the client:
+	# Find the original request from the client
 	local req = ClusterController::Request::lookup(areq$parent_id);
 	if ( ClusterController::Request::is_null(req) )
 		return;
 
-	# If there are any requests to the agents still unfinished,
-	# we're not done yet.
-	for ( i in req$set_configuration_state$requests )
-		if ( ! req$set_configuration_state$requests[i]$finished )
-			return;
+	# Add this result to the overall response
+	req$results[|req$results|] = result;
 
-	# All set_configuration requests to instances are done, so respond
-	# back to client. We need to compose the result, aggregating
-	# the results we got from the requests to the agents. In the
-	# end we have one Result per instance requested in the
-	# original set_configuration_request.
-	#
-	# XXX we can likely generalize result aggregation in the request module.
-	for ( i in req$set_configuration_state$requests )
-		{
-		local r = req$set_configuration_state$requests[i];
+	# Mark this request as done by removing it from the table of pending
+	# ones. The following if-check should always be true.
+	if ( areq$id in req$set_configuration_state$requests )
+		delete req$set_configuration_state$requests[areq$id];
 
-		local success = T;
-		local errors: string_vec;
-		local instance = "";
+	# If there are any pending requests to the agents, we're
+	# done: we respond once every agent has responed (or we time out).
+	if ( |req$set_configuration_state$requests| > 0 )
+		return;
 
-		for ( j in r$results )
-			{
-			local res = r$results[j];
-			instance = res$instance;
-
-			if ( res$success )
-				next;
-
-			success = F;
-			errors += fmt("node %s failed: %s", res$node, res$error);
-			}
-
-		req$results += ClusterController::Types::Result(
-		    $reqid = req$id,
-		    $instance = instance,
-		    $success = success,
-		    $error = join_string_vec(errors, ", ")
-		);
-
-		ClusterController::Request::finish(r$id);
-		}
-
-	# We're now done with the original set_configuration request.
-	# Adopt the configuration as the current one.
+	# All set_configuration requests to instances are done, so adopt the
+	# client's requested configuration as the new one and respond back to
+	# client.
 	g_config_current = req$set_configuration_state$config;
 	g_config_reqid_pending = "";
 
@@ -355,7 +343,7 @@ event ClusterController::API::set_configuration_request(reqid: string, config: C
 	local res: ClusterController::Types::Result;
 	local req = ClusterController::Request::create(reqid);
 
-	req$set_configuration_state = ClusterController::Request::SetConfigurationState($config = config);
+	req$set_configuration_state = SetConfigurationState($config = config);
 
 	# At the moment there can only be one pending request.
 	if ( g_config_reqid_pending != "" )
@@ -475,6 +463,84 @@ event ClusterController::API::get_instances_request(reqid: string)
 	event ClusterController::API::get_instances_response(reqid, res);
 	}
 
+event ClusterAgent::API::get_nodes_response(reqid: string, result: ClusterController::Types::Result)
+	{
+	ClusterController::Log::info(fmt("rx ClusterAgent::API::get_nodes_response %s", reqid));
+
+	# Retrieve state for the request we just got a response to
+	local areq = ClusterController::Request::lookup(reqid);
+	if ( ClusterController::Request::is_null(areq) )
+		return;
+
+	# Release the request, which is now done.
+	ClusterController::Request::finish(areq$id);
+
+	# Find the original request from the client
+	local req = ClusterController::Request::lookup(areq$parent_id);
+	if ( ClusterController::Request::is_null(req) )
+		return;
+
+	# Zeek's ingestion of an any-typed val via Broker yields an opaque
+	# Broker DataVal. When Zeek forwards this val via another event it stays
+	# in this opaque form. To avoid forcing recipients to distinguish
+	# whether the val is of the actual, intended (any-)type or a Broker
+	# DataVal wrapper, we explicitly cast it back to our intended Zeek
+	# type. This test case demonstrates: broker.remote_event_vector_any
+	result$data = result$data as ClusterController::Types::NodeStatusVec;
+
+	# Add this result to the overall response
+	req$results[|req$results|] = result;
+
+	# Mark this request as done by removing it from the table of pending
+	# ones. The following if-check should always be true.
+	if ( areq$id in req$get_nodes_state$requests )
+		delete req$get_nodes_state$requests[areq$id];
+
+	# If we still have pending queries out to the agents, do nothing: we'll
+	# handle this soon, or our request will time out and we respond with
+	# error.
+	if ( |req$get_nodes_state$requests| > 0 )
+		return;
+
+	ClusterController::Log::info(fmt("tx ClusterController::API::get_nodes_response %s",
+	                                 ClusterController::Request::to_string(req)));
+	event ClusterController::API::get_nodes_response(req$id, req$results);
+	ClusterController::Request::finish(req$id);
+	}
+
+event ClusterController::API::get_nodes_request(reqid: string)
+	{
+	ClusterController::Log::info(fmt("rx ClusterController::API::get_nodes_request %s", reqid));
+
+	# Special case: if we have no instances, respond right away.
+	if ( |g_instances| == 0 )
+		{
+		ClusterController::Log::info(fmt("tx ClusterController::API::get_nodes_response %s", reqid));
+		event ClusterController::API::get_nodes_response(reqid, vector(
+		    ClusterController::Types::Result($reqid=reqid, $success=F,
+		        $error="no instances connected")));
+		return;
+		}
+
+	local req = ClusterController::Request::create(reqid);
+	req$get_nodes_state = GetNodesState();
+
+	for ( name in g_instances )
+		{
+		if ( name !in g_instances_ready )
+			next;
+
+		local agent_topic = ClusterAgent::topic_prefix + "/" + name;
+		local areq = ClusterController::Request::create();
+
+		areq$parent_id = req$id;
+		add req$get_nodes_state$requests[areq$id];
+
+		ClusterController::Log::info(fmt("tx ClusterAgent::API::get_nodes_request %s to %s", areq$id, name));
+		Broker::publish(agent_topic, ClusterAgent::API::get_nodes_request, areq$id);
+		}
+	}
+
 event ClusterController::Request::request_expired(req: ClusterController::Request::Request)
 	{
 	# Various handlers for timed-out request state. We use the state members
@@ -498,6 +564,18 @@ event ClusterController::Request::request_expired(req: ClusterController::Reques
 		event ClusterController::API::set_configuration_response(req$id, req$results);
 		}
 
+	if ( req?$get_nodes_state )
+		{
+		res = ClusterController::Types::Result($reqid=req$id);
+		res$success = F;
+		res$error = "request timed out";
+		req$results += res;
+
+		ClusterController::Log::info(fmt("tx ClusterController::API::get_nodes_response %s",
+		                                 ClusterController::Request::to_string(req)));
+		event ClusterController::API::get_nodes_response(req$id, req$results);
+		}
+
 	if ( req?$test_state )
 		{
 		res = ClusterController::Types::Result($reqid=req$id);
@@ -518,7 +596,7 @@ event ClusterController::API::test_timeout_request(reqid: string, with_state: bo
 		# This state times out and triggers a timeout response in the
 		# above request_expired event handler.
 		local req = ClusterController::Request::create(reqid);
-		req$test_state = ClusterController::Request::TestState();
+		req$test_state = TestState();
 		}
 	}
 
@@ -543,13 +621,15 @@ event zeek_init()
 	Broker::subscribe(ClusterController::topic);
 
 	# Events sent to the client:
+	local events: vector of any = [
+	    ClusterController::API::get_instances_response,
+	    ClusterController::API::set_configuration_response,
+	    ClusterController::API::get_nodes_response,
+	    ClusterController::API::test_timeout_response
+	    ];
 
-	Broker::auto_publish(ClusterController::topic,
-	    ClusterController::API::get_instances_response);
-	Broker::auto_publish(ClusterController::topic,
-	    ClusterController::API::set_configuration_response);
-	Broker::auto_publish(ClusterController::topic,
-	    ClusterController::API::test_timeout_response);
+	for ( i in events )
+		Broker::auto_publish(ClusterController::topic, events[i]);
 
 	ClusterController::Log::info("controller is live");
 	}

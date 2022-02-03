@@ -57,6 +57,29 @@ export {
 	    result: ClusterController::Types::ResultVec);
 
 
+	## zeek-client sends this event to request a list of
+	## :zeek:see:`ClusterController::Types::NodeStatus` records that capture
+	## the status of Supervisor-managed nodes running on the cluster's
+	## instances.
+	##
+	## reqid: a request identifier string, echoed in the response event.
+	##
+	global get_nodes_request: event(reqid: string);
+
+	## Response to a get_nodes_request event. The controller sends this
+	## back to the client.
+	##
+	## reqid: the request identifier used in the request event.
+	##
+	## result: a :zeek:type`vector` of :zeek:see:`ClusterController::Types::Result`
+	##     records. Each record covers one cluster instance. Each record's data
+	##     member is a vector of :zeek:see:`ClusterController::Types::NodeState`
+	##     records, covering the nodes at that instance. Results may also indicate
+	##     failure, with error messages indicating what went wrong.
+	global get_nodes_response: event(reqid: string,
+	    result: ClusterController::Types::ResultVec);
+
+
 	# Testing events. These don't provide operational value but expose
 	# internal functionality, triggered by test cases.
 

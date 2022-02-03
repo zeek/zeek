@@ -1,3 +1,17 @@
+5.0.0-dev.87 | 2022-02-03 13:17:25 -0800
+
+  * Expansion of cluster controller functionality (Christian Kreibich, Corelight)
+
+    - Bump external cluster testsuite
+    - Bump zeek-client for the get-nodes command
+    - Add ClusterController::API::get_nodes_request/response event pair
+    - Support optional listening ports for cluster nodes
+    - Don't auto-publish Supervisor response events in the cluster agent
+    - Make members of the ClusterController::Types::State enum all-caps
+    - Be more conservative with triggering request timeout events
+    - Move redefs of ClusterController::Request::Request to their places of use
+    - Simplify ClusterController::API::set_configuration_request/response
+
 5.0.0-dev.77 | 2022-02-03 11:20:16 +0000
 
   * Match DPD TLS signature on one-sided connections. (Johanna Amann, Corelight)

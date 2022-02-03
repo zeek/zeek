@@ -13,6 +13,15 @@
 
 module ClusterAgent::Runtime;
 
+# Request state specific to supervisor interactions
+type SupervisorState: record {
+	node: string;
+};
+
+redef record ClusterController::Request::Request += {
+	supervisor_state: SupervisorState &optional;
+};
+
 redef ClusterController::role = ClusterController::Types::AGENT;
 
 # The global configuration as passed to us by the controller
@@ -69,7 +78,7 @@ event SupervisorControl::destroy_response(reqid: string, result: bool)
 function supervisor_create(nc: Supervisor::NodeConfig)
 	{
 	local req = ClusterController::Request::create();
-	req$supervisor_state = ClusterController::Request::SupervisorState($node = nc$name);
+	req$supervisor_state = SupervisorState($node = nc$name);
 	event SupervisorControl::create_request(req$id, nc);
 	ClusterController::Log::info(fmt("issued supervisor create for %s, %s", nc$name, req$id));
 	}
@@ -77,7 +86,7 @@ function supervisor_create(nc: Supervisor::NodeConfig)
 function supervisor_destroy(node: string)
 	{
 	local req = ClusterController::Request::create();
-	req$supervisor_state = ClusterController::Request::SupervisorState($node = node);
+	req$supervisor_state = SupervisorState($node = node);
 	event SupervisorControl::destroy_request(req$id, node);
 	ClusterController::Log::info(fmt("issued supervisor destroy for %s, %s", node, req$id));
 	}
@@ -115,10 +124,18 @@ event ClusterAgent::API::set_configuration_request(reqid: string, config: Cluste
 		if ( node$instance == ClusterAgent::name )
 			g_nodes[node$name] = node;
 
+		# The cluster and supervisor frameworks require a port for every
+		# node, using 0/unknown to signify "don't listen". We use
+		# optional values and map an absent value to 0/unknown.
+		local p = 0/unknown;
+
+		if ( node?$p )
+			p = node$p;
+
 		local cep = Supervisor::ClusterEndpoint(
 		    $role = node$role,
 		    $host = g_instances[node$instance]$host,
-		    $p = node$p);
+		    $p = p);
 
 		if ( node?$interface )
 			cep$interface = node$interface;
@@ -169,6 +186,94 @@ event ClusterAgent::API::set_configuration_request(reqid: string, config: Cluste
 		}
 	}
 
+event SupervisorControl::status_response(reqid: string, result: Supervisor::Status)
+	{
+	local req = ClusterController::Request::lookup(reqid);
+	if ( ClusterController::Request::is_null(req) )
+		return;
+
+	ClusterController::Request::finish(reqid);
+
+	local res = ClusterController::Types::Result(
+	    $reqid = req$parent_id, $instance = ClusterAgent::name);
+
+	local node_statuses: ClusterController::Types::NodeStatusVec;
+
+	for ( node in result$nodes )
+		{
+		local sns = result$nodes[node]; # Supervisor node status
+		local cns = ClusterController::Types::NodeStatus(
+			    $node=node, $state=ClusterController::Types::PENDING);
+
+		# Identify the role of the node. For data cluster roles (worker,
+		# manager, etc) we derive this from the cluster node table.  For
+		# agent and controller, we identify via environment variables
+		# that the controller framework establishes upon creation (see
+		# the respective boot.zeek scripts).
+		if ( node in sns$node$cluster )
+			{
+			cns$cluster_role = sns$node$cluster[node]$role;
+
+			# The supervisor's responses use 0/tcp (not 0/unknown)
+			# when indicating an unused port because its internal
+			# serialization always assumes TCP.
+			if ( sns$node$cluster[node]$p != 0/tcp )
+				cns$p = sns$node$cluster[node]$p;
+			}
+		else
+			{
+			if ( "ZEEK_CLUSTER_MGMT_NODE" in sns$node$env )
+				{
+				local role = sns$node$env["ZEEK_CLUSTER_MGMT_NODE"];
+				if ( role == "CONTROLLER" )
+					{
+					cns$mgmt_role = ClusterController::Types::CONTROLLER;
+					# The controller always listens, so the Zeek client can connect.
+					cns$p = ClusterController::endpoint_info()$network$bound_port;
+					}
+				else if ( role == "AGENT" )
+					{
+					cns$mgmt_role = ClusterController::Types::AGENT;
+					# If we have a controller address, the agent connects to it
+					# and does not listen. See zeek_init() below for similar logic.
+					if ( ClusterAgent::controller$address == "0.0.0.0" )
+						cns$p = ClusterAgent::endpoint_info()$network$bound_port;
+					}
+				else
+					ClusterController::Log::warning(fmt(
+					    "unexpected cluster management node type '%'", role));
+				}
+			}
+
+		# A PID is available if a supervised node has fully launched
+		# and is therefore running.
+		if ( sns?$pid )
+			{
+			cns$pid = sns$pid;
+			cns$state = ClusterController::Types::RUNNING;
+			}
+
+		node_statuses += cns;
+		}
+
+	res$data = node_statuses;
+
+	ClusterController::Log::info(fmt("tx ClusterAgent::API::get_nodes_response %s",
+	                                 ClusterController::Types::result_to_string(res)));
+	event ClusterAgent::API::get_nodes_response(req$parent_id, res);
+	}
+
+event ClusterAgent::API::get_nodes_request(reqid: string)
+	{
+	ClusterController::Log::info(fmt("rx ClusterAgent::API::get_nodes_request %s", reqid));
+
+	local req = ClusterController::Request::create();
+	req$parent_id = reqid;
+
+	event SupervisorControl::status_request(req$id, "");
+	ClusterController::Log::info(fmt("issued supervisor status, %s", req$id));
+	}
+
 event ClusterAgent::API::agent_welcome_request(reqid: string)
 	{
 	ClusterController::Log::info(fmt("rx ClusterAgent::API::agent_welcome_request %s", reqid));
@@ -214,6 +319,10 @@ event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	    to_addr(epi$network$address), ClusterAgent::API::version);
 	}
 
+# XXX We may want a request timeout event handler here. It's arguably cleaner to
+# send supervisor failure events back to the controller than to rely on its
+# controller-agent request timeout to kick in.
+
 event zeek_init()
 	{
 	local epi = ClusterAgent::endpoint_info();
@@ -236,6 +345,7 @@ event zeek_init()
 
 	# Auto-publish a bunch of events. Glob patterns or module-level
 	# auto-publish would be helpful here.
+	Broker::auto_publish(agent_topic, ClusterAgent::API::get_nodes_response);
 	Broker::auto_publish(agent_topic, ClusterAgent::API::set_configuration_response);
 	Broker::auto_publish(agent_topic, ClusterAgent::API::agent_welcome_response);
 	Broker::auto_publish(agent_topic, ClusterAgent::API::agent_standby_response);
@@ -246,11 +356,9 @@ event zeek_init()
 	Broker::auto_publish(agent_topic, ClusterAgent::API::notify_log);
 
 	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::create_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::create_response);
+	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::status_request);
 	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::destroy_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::destroy_response);
 	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::restart_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::restart_response);
 	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::stop_request);
 
 	# Establish connectivity with the controller.

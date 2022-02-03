@@ -18,37 +18,13 @@ export {
 		## received by the client), this specifies that original, "parent"
 		## request.
 		parent_id: string &optional;
-	};
 
-	# API-specific state. XXX we may be able to generalize after this has
-	# settled a bit more. It would also be nice to move request-specific
-	# state out of this module -- we could for example redef Request in
-	# main.zeek as needed.
-
-	# State specific to the set_configuration request/response events
-	type SetConfigurationState: record {
-		config: ClusterController::Types::Configuration;
-		requests: vector of Request &default=vector();
-	};
-
-	# State specific to supervisor interactions
-	type SupervisorState: record {
-		node: string;
-	};
-
-	# State for testing events
-	type TestState: record {
-	};
-
-	# The redef is a workaround so we can use the Request type
-	# while it is still being defined.
-	redef record Request += {
+		## The results vector builds up the list of results we eventually
+		## send to the requestor when we have processed the request.
 		results: ClusterController::Types::ResultVec &default=vector();
-		finished: bool &default=F;
 
-		set_configuration_state: SetConfigurationState &optional;
-		supervisor_state: SupervisorState &optional;
-		test_state: TestState &optional;
+		## An internal flag to track whether a request is complete.
+		finished: bool &default=F;
 	};
 
 	## A token request that serves as a null/nonexistant request.
@@ -101,7 +77,11 @@ export {
 
 function requests_expire_func(reqs: table[string] of Request, reqid: string): interval
 	{
-	event ClusterController::Request::request_expired(reqs[reqid]);
+	# No need to flag request expiration when we've already internally marked
+	# the request as done.
+	if ( ! reqs[reqid]$finished )
+		event ClusterController::Request::request_expired(reqs[reqid]);
+
 	return 0secs;
 	}
 

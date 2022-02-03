@@ -324,6 +324,8 @@ static void terminate_bro()
 
 	plugin_mgr->FinishPlugins();
 
+	finish_script_execution();
+
 	delete zeekygen_mgr;
 	delete packet_mgr;
 	delete analyzer_mgr;

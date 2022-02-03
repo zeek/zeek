@@ -578,4 +578,23 @@ void analyze_scripts()
 	analyze_scripts_for_ZAM(pfs);
 	}
 
+void profile_script_execution()
+	{
+	if ( analysis_options.profile_ZAM )
+		{
+		report_ZOP_profile();
+
+		for ( auto& f : funcs )
+			{
+			if ( f.Body()->Tag() == STMT_ZAM )
+				cast_intrusive<ZBody>(f.Body())->ProfileExecution();
+			}
+		}
+	}
+
+void finish_script_execution()
+	{
+	profile_script_execution();
+	}
+
 	} // namespace zeek::detail

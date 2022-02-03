@@ -59,11 +59,9 @@ struct decl_struct {
 	string bro_name;  // the name as we read it from input. What we write into the .zeek file
 
 	// special cases for events. Events have an EventHandlerPtr
-	// and a generate_* function. This name is for the generate_* function
-	string generate_bare_name;
-	string generate_c_fullname;
-	string generate_c_namespace_start;
-	string generate_c_namespace_end;
+	// and a enqueue_* function. This name is for the enqueue_* function
+	string enqueue_c_namespace_start;
+	string enqueue_c_namespace_end;
 	string enqueue_c_barename;
 	string enqueue_c_fullname;
 } decl;
@@ -92,12 +90,10 @@ void set_decl_name(const char *name)
 	decl.bro_fullname = "";
 	decl.bro_name = "";
 
-	decl.generate_c_fullname = "";
 	decl.enqueue_c_fullname = "";
-	decl.generate_bare_name = string("generate_") + decl.bare_name;
 	decl.enqueue_c_barename = string("enqueue_") + decl.bare_name;
-	decl.generate_c_namespace_start = "";
-	decl.generate_c_namespace_end = "";
+	decl.enqueue_c_namespace_start = "";
+	decl.enqueue_c_namespace_end = "";
 
 	switch ( definition_type ) {
 	case TYPE_DEF:
@@ -122,9 +118,8 @@ void set_decl_name(const char *name)
 		decl.c_namespace_start = "";
 		decl.c_namespace_end = "";
 		decl.c_fullname = "::";  // need this for namespace qualified events due do event_c_body
-		decl.generate_c_namespace_start = "namespace BifEvent { ";
-		decl.generate_c_namespace_end = " } ";
-		decl.generate_c_fullname = "BifEvent::";
+		decl.enqueue_c_namespace_start = "namespace BifEvent { ";
+		decl.enqueue_c_namespace_end = " } ";
 		decl.enqueue_c_fullname = "zeek::BifEvent::";
 		break;
 
@@ -139,16 +134,14 @@ void set_decl_name(const char *name)
 		decl.c_fullname += decl.module_name + "::";
 		decl.bro_fullname += decl.module_name + "::";
 
-		decl.generate_c_namespace_start  += "namespace " + decl.module_name + " { ";
-		decl.generate_c_namespace_end += " } ";
-		decl.generate_c_fullname += decl.module_name + "::";
+		decl.enqueue_c_namespace_start  += "namespace " + decl.module_name + " { ";
+		decl.enqueue_c_namespace_end += " } ";
 		decl.enqueue_c_fullname += decl.module_name + "::";
 		}
 
 	decl.bro_fullname += decl.bare_name;
 	decl.c_fullname += decl.bare_name;
 	decl.bro_name += name;
-	decl.generate_c_fullname += decl.generate_bare_name;
 	decl.enqueue_c_fullname += decl.enqueue_c_barename;
 	}
 
@@ -221,13 +214,13 @@ static void print_event_c_prototype_args(FILE* fp)
 static void print_event_c_prototype_header(FILE* fp)
 	{
 	fprintf(fp, "namespace zeek { %s void %s(zeek::analyzer::Analyzer* analyzer%s",
-	        decl.generate_c_namespace_start.c_str(),
+	        decl.enqueue_c_namespace_start.c_str(),
 	        decl.enqueue_c_barename.c_str(),
 	        args.size() ? ", " : "" );
 
 	print_event_c_prototype_args(fp);
 	fprintf(fp, ")");
-	fprintf(fp, "; %s }\n", decl.generate_c_namespace_end.c_str());
+	fprintf(fp, "; %s }\n", decl.enqueue_c_namespace_end.c_str());
 	}
 
 static void print_event_c_prototype_impl(FILE* fp)
@@ -248,7 +241,7 @@ static void print_event_c_body(FILE* fp)
 	fprintf(fp, "\t// check if %s is NULL, which should happen *before*\n",
 		decl.c_fullname.c_str());
 	fprintf(fp, "\t// %s is called to avoid unnecessary Val\n",
-		decl.generate_c_fullname.c_str());
+		decl.enqueue_c_fullname.c_str());
 	fprintf(fp, "\t// allocation.\n");
 	fprintf(fp, "\n");
 
@@ -284,7 +277,7 @@ static void print_event_c_body(FILE* fp)
 
 	fprintf(fp, ");\n");
 	fprintf(fp, "\t}\n\n");
-	//fprintf(fp, "%s // end namespace\n", decl.generate_c_namespace_end.c_str());
+	//fprintf(fp, "%s // end namespace\n", decl.enqueue_c_namespace_end.c_str());
 	}
 
 void record_bif_item(const char* id, const char* type)

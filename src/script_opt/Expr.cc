@@ -1858,6 +1858,12 @@ ExprPtr RecordConstructorExpr::Duplicate()
 		return SetSucc(new RecordConstructorExpr(op_l));
 	}
 
+ExprPtr RecordConstructorExpr::Inline(Inliner* inl)
+	{
+	op = op->Inline(inl)->AsListExprPtr();
+	return ThisPtr();
+	}
+
 bool RecordConstructorExpr::HasReducedOps(Reducer* c) const
 	{
 	auto& exprs = op->AsListExpr()->Exprs();

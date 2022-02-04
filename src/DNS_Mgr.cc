@@ -223,8 +223,18 @@ static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinf
 
 	if ( status != ARES_SUCCESS )
 		{
-		reporter->Error("Failed lookup of hostname: %s", ares_strerror(status));
-		mgr->AddResult(req, nullptr, 0);
+		// These two statuses should only ever be sent if we're shutting down everything
+		// and all of the existing queries are being cancelled. There's no reason to
+		// store a status that's just going to get deleted, nor is there a reason to log
+		// anything.
+		if ( status != ARES_ECANCELLED && status != ARES_EDESTRUCTION )
+			{
+			// Insert something into the cache so that the request loop will end correctly.
+			// We use the DNS_TIMEOUT value as the TTL here since it's small enough that the
+			// failed response will expire soon, and because we don't have the TTL from the
+			// response data.
+			mgr->AddResult(req, nullptr, DNS_TIMEOUT);
+			}
 		}
 	else
 		{
@@ -292,13 +302,18 @@ static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, in
 
 	if ( status != ARES_SUCCESS )
 		{
-		reporter->Error("Failure from DNS lookup: %s", ares_strerror(status));
-
-		// Insert something into the cache so that the request loop will end correctly.
-		// We use the DNS_TIMEOUT value as the TTL here since it's small enough that the
-		// failed response will expire soon, and because we don't have the TTL from the
-		// response data.
-		mgr->AddResult(req, nullptr, DNS_TIMEOUT);
+		// These two statuses should only ever be sent if we're shutting down everything
+		// and all of the existing queries are being cancelled. There's no reason to
+		// store a status that's just going to get deleted, nor is there a reason to log
+		// anything.
+		if ( status != ARES_ECANCELLED && status != ARES_EDESTRUCTION )
+			{
+			// Insert something into the cache so that the request loop will end correctly.
+			// We use the DNS_TIMEOUT value as the TTL here since it's small enough that the
+			// failed response will expire soon, and because we don't have the TTL from the
+			// response data.
+			mgr->AddResult(req, nullptr, DNS_TIMEOUT);
+			}
 		}
 	else
 		{

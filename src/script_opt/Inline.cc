@@ -125,23 +125,8 @@ void Inliner::Analyze()
 		}
 
 	for ( auto& f : funcs )
-		{
-		const auto& func_ptr = f.FuncPtr();
-		const auto& func = func_ptr.get();
-		const auto& body = f.Body();
-
-		// Processing optimization: only spend time trying to inline f
-		// if we haven't marked it as inlineable.  This trades off a
-		// bunch of compilation load (inlining every single function,
-		// even though almost none will be called directly) for a
-		// modest gain of having compiled code for those rare
-		// circumstances in which a Zeek function can be called
-		// not ultimately stemming from an event (such as global
-		// scripting, or expiration functions).
-
-		if ( should_analyze(func_ptr, body) && inline_ables.count(func) == 0 )
+		if ( should_analyze(f.FuncPtr(), f.Body()) )
 			InlineFunction(&f);
-		}
 	}
 
 void Inliner::InlineFunction(FuncInfo* f)

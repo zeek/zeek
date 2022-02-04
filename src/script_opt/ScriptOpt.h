@@ -185,6 +185,9 @@ extern bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body);
 // Analyze all of the parsed scripts collectively for optimization.
 extern void analyze_scripts();
 
+// Called when Zeek is terminating.
+extern void finish_script_execution();
+
 // Used for C++-compiled scripts to signal their presence, by setting this
 // to a non-empty value.
 extern void (*CPP_init_hook)();

@@ -193,7 +193,8 @@ static void print_analysis_help()
 	fprintf(stderr, "    no-ZAM-opt	omit low-level ZAM optimization\n");
 	fprintf(stderr, "    optimize-all	optimize all scripts, even inlined ones\n");
 	fprintf(stderr, "    optimize-AST	optimize the (transformed) AST; implies xform\n");
-	fprintf(stderr, "    profile-ZAM	generate to stdout a ZAM execution profile\n");
+	fprintf(stderr,
+	        "    profile-ZAM	generate to stdout a ZAM execution profile; implies -O ZAM\n");
 	fprintf(stderr, "    report-recursive	report on recursive functions and exit\n");
 	fprintf(stderr, "    xform	transform scripts to \"reduced\" form\n");
 
@@ -248,7 +249,7 @@ static void set_analysis_option(const char* opt, Options& opts)
 	else if ( util::streq(opt, "optimize-AST") )
 		a_o.activate = a_o.optimize_AST = true;
 	else if ( util::streq(opt, "profile-ZAM") )
-		a_o.activate = a_o.profile_ZAM = true;
+		a_o.activate = a_o.gen_ZAM_code = a_o.profile_ZAM = true;
 	else if ( util::streq(opt, "report-C++") )
 		a_o.report_CPP = true;
 	else if ( util::streq(opt, "report-recursive") )

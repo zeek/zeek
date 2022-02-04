@@ -626,8 +626,8 @@ protected:
 	// type (vec, list, table, record).
 	bool IsScalarAggregateOp() const;
 
-	// Warns about depreciated scalar vector operations like `[1, 2,
-	// 3] == 1` or `["a", "b", "c"] + "a"`.
+	// Warns about deprecated scalar vector operations like
+	// `[1, 2, 3] == 1` or `["a", "b", "c"] + "a"`.
 	void CheckScalarAggOp() const;
 
 	ExprPtr op1;
@@ -1161,6 +1161,7 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 	bool HasReducedOps(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;

@@ -1,5 +1,5 @@
 ##! The cluster agent boot logic runs in Zeek's supervisor and instructs it to
-##! launch an agent process. The agent's main logic resides in main.zeek,
+##! launch a Management agent process. The agent's main logic resides in main.zeek,
 ##! similarly to other frameworks. The new process will execute that script.
 ##!
 ##! If the current process is not the Zeek supervisor, this does nothing.
@@ -17,16 +17,16 @@ event zeek_init()
 	if ( ! Supervisor::is_supervisor() )
 		return;
 
-	local epi = ClusterAgent::endpoint_info();
+	local epi = Management::Agent::endpoint_info();
 	local sn = Supervisor::NodeConfig($name=epi$id, $bare_mode=T,
-		$scripts=vector("policy/frameworks/cluster/agent/main.zeek"));
+		$scripts=vector("policy/frameworks/management/agent/main.zeek"));
 
-	if ( ClusterAgent::directory != "" )
-		sn$directory = ClusterAgent::directory;
-	if ( ClusterAgent::stdout_file_suffix != "" )
-		sn$stdout_file = epi$id + "." + ClusterAgent::stdout_file_suffix;
-	if ( ClusterAgent::stderr_file_suffix != "" )
-		sn$stderr_file = epi$id + "." + ClusterAgent::stderr_file_suffix;
+	if ( Management::Agent::directory != "" )
+		sn$directory = Management::Agent::directory;
+	if ( Management::Agent::stdout_file_suffix != "" )
+		sn$stdout_file = epi$id + "." + Management::Agent::stdout_file_suffix;
+	if ( Management::Agent::stderr_file_suffix != "" )
+		sn$stderr_file = epi$id + "." + Management::Agent::stderr_file_suffix;
 
 	# This helps Zeek run controller and agent with a minimal set of scripts.
 	sn$env["ZEEK_CLUSTER_MGMT_NODE"] = "AGENT";

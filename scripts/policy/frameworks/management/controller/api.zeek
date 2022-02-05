@@ -3,9 +3,9 @@
 ##! corresponding response event. Such event pairs share the same name prefix
 ##! and end in "_request" and "_response", respectively.
 
-@load ./types
+@load policy/frameworks/management/types
 
-module ClusterController::API;
+module Management::Controller::API;
 
 export {
 	## A simple versioning scheme, used to track basic compatibility of
@@ -26,10 +26,10 @@ export {
 	## reqid: the request identifier used in the request event.
 	##
 	## result: the result record. Its data member is a
-	##     :zeek:see:`ClusterController::Types::Instance` record.
+	##     :zeek:see:`Management::Instance` record.
 	##
 	global get_instances_response: event(reqid: string,
-	    result: ClusterController::Types::Result);
+	    result: Management::Result);
 
 
 	## zeek-client sends this event to establish a new cluster configuration,
@@ -39,26 +39,26 @@ export {
 	##
 	## reqid: a request identifier string, echoed in the response event.
 	##
-	## config: a :zeek:see:`ClusterController::Types::Configuration` record
+	## config: a :zeek:see:`Management::Configuration` record
 	##     specifying the cluster configuration.
 	##
 	global set_configuration_request: event(reqid: string,
-	    config: ClusterController::Types::Configuration);
+	    config: Management::Configuration);
 
 	## Response to a set_configuration_request event. The controller sends
 	## this back to the client.
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: a vector of :zeek:see:`ClusterController::Types::Result` records.
+	## result: a vector of :zeek:see:`Management::Result` records.
 	##     Each member captures one agent's response.
 	##
 	global set_configuration_response: event(reqid: string,
-	    result: ClusterController::Types::ResultVec);
+	    result: Management::ResultVec);
 
 
 	## zeek-client sends this event to request a list of
-	## :zeek:see:`ClusterController::Types::NodeStatus` records that capture
+	## :zeek:see:`Management::NodeStatus` records that capture
 	## the status of Supervisor-managed nodes running on the cluster's
 	## instances.
 	##
@@ -71,13 +71,13 @@ export {
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: a :zeek:type`vector` of :zeek:see:`ClusterController::Types::Result`
+	## result: a :zeek:type`vector` of :zeek:see:`Management::Result`
 	##     records. Each record covers one cluster instance. Each record's data
-	##     member is a vector of :zeek:see:`ClusterController::Types::NodeStatus`
+	##     member is a vector of :zeek:see:`Management::NodeStatus`
 	##     records, covering the nodes at that instance. Results may also indicate
 	##     failure, with error messages indicating what went wrong.
 	global get_nodes_response: event(reqid: string,
-	    result: ClusterController::Types::ResultVec);
+	    result: Management::ResultVec);
 
 
 	# Testing events. These don't provide operational value but expose
@@ -102,7 +102,7 @@ export {
 	## reqid: the request identifier used in the request event.
 	##
 	global test_timeout_response: event(reqid: string,
-	    result: ClusterController::Types::Result);
+	    result: Management::Result);
 
 
 	# Notification events, agent -> controller

@@ -1,7 +1,7 @@
-# This test verifies basic agent-controller communication. We launch agent and
-# controller via the supervisor, add an extra handler for the notify_agent_hello
-# event that travels agent -> controller, and verify its print output in the
-# controller's stdout log.
+# This test verifies basic agent-controller communication in the Management
+# framework. We launch agent and controller via the supervisor, add an extra
+# handler for the notify_agent_hello event that travels agent -> controller, and
+# verify its print output in the controller's stdout log.
 
 # The following env vars is known to the controller framework
 # @TEST-PORT: ZEEK_CONTROLLER_PORT
@@ -12,20 +12,20 @@
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff zeek/controller.stdout
 
-@load policy/frameworks/cluster/agent
-@load policy/frameworks/cluster/controller
+@load policy/frameworks/management/agent
+@load policy/frameworks/management/controller
 
 redef Broker::default_port = to_port(getenv("BROKER_PORT"));
 
-redef ClusterController::name = "controller";
-redef ClusterAgent::name = "agent";
+redef Management::Controller::name = "controller";
+redef Management::Agent::name = "agent";
 
 # Tell the agent where to locate the controller.
-redef ClusterAgent::controller = [$address="127.0.0.1", $bound_port=to_port(getenv("ZEEK_CONTROLLER_PORT"))];
+redef Management::Agent::controller = [$address="127.0.0.1", $bound_port=to_port(getenv("ZEEK_CONTROLLER_PORT"))];
 
 @if ( Supervisor::is_supervised() )
 
-@load policy/frameworks/cluster/agent/api
+@load policy/frameworks/management/agent/api
 
 global logged = F;
 
@@ -41,7 +41,7 @@ event zeek_init()
 		}
 	}
 
-event ClusterAgent::API::notify_agent_hello(instance: string, host: addr, api_version: count)
+event Management::Agent::API::notify_agent_hello(instance: string, host: addr, api_version: count)
 	{
 	if ( Supervisor::node()$name == "controller" )
 		{

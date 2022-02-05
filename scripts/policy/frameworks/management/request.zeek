@@ -1,18 +1,18 @@
-##! This module implements a request state abstraction that both cluster
-##! controller and agent use to tie responses to received request events and be
-##! able to time-out such requests.
+##! This module implements a request state abstraction in the Management
+##! framework that both controller and agent use to connect request events to
+##! subsequent response ones, and to be able to time out such requests.
 
-@load ./types
 @load ./config
+@load ./types
 
-module ClusterController::Request;
+module Management::Request;
 
 export {
 	## Request records track state associated with a request/response event
 	## pair. Calls to
-	## :zeek:see:`ClusterController::Request::create` establish such state
+	## :zeek:see:`Management::Request::create` establish such state
 	## when an entity sends off a request event, while
-	## :zeek:see:`ClusterController::Request::finish` clears the state when
+	## :zeek:see:`Management::Request::finish` clears the state when
 	## a corresponding response event comes in, or the state times out.
 	type Request: record {
 		## Each request has a hopfully unique ID provided by the requester.
@@ -26,11 +26,18 @@ export {
 
 		## The results vector builds up the list of results we eventually
 		## send to the requestor when we have processed the request.
-		results: ClusterController::Types::ResultVec &default=vector();
+		results: Management::ResultVec &default=vector();
 
 		## An internal flag to track whether a request is complete.
 		finished: bool &default=F;
 	};
+
+	## The timeout for request state. Such state (see the :zeek:see:`Management::Request`
+	## module) ties together request and response event pairs. The timeout causes
+	## its cleanup in the absence of a timely response. It applies both to
+	## state kept for client requests, as well as state in the agents for
+	## requests to the supervisor.
+	const timeout_interval = 10sec &redef;
 
 	## A token request that serves as a null/nonexistant request.
 	global null_req = Request($id="", $finished=T);
@@ -42,7 +49,7 @@ export {
 	global create: function(reqid: string &default=unique_id("")): Request;
 
 	## This function looks up the request for a given request ID and returns
-	## it. When no such request exists, returns ClusterController::Request::null_req.
+	## it. When no such request exists, returns Management::Request::null_req.
 	##
 	## reqid: the ID of the request state to retrieve.
 	##
@@ -57,8 +64,8 @@ export {
 	global finish: function(reqid: string): bool;
 
 	## This event fires when a request times out (as per the
-	## ClusterController::request_timeout) before it has been finished via
-	## ClusterController::Request::finish().
+	## Management::Request::timeout_interval) before it has been finished via
+	## Management::Request::finish().
 	##
 	## req: the request state that is expiring.
 	##
@@ -85,18 +92,17 @@ function requests_expire_func(reqs: table[string] of Request, reqid: string): in
 	# No need to flag request expiration when we've already internally marked
 	# the request as done.
 	if ( ! reqs[reqid]$finished )
-		event ClusterController::Request::request_expired(reqs[reqid]);
+		event Management::Request::request_expired(reqs[reqid]);
 
 	return 0secs;
 	}
 
 # This is the global request-tracking table. The table maps from request ID
 # strings to corresponding Request records. Entries time out after the
-# ClusterController::request_timeout interval. Upon expiration, a
-# request_expired event triggers that conveys the request state.
+# Management::Request::timeout_interval. Upon expiration, a request_expired
+# event triggers that conveys the request state.
 global g_requests: table[string] of Request
-    &create_expire=ClusterController::request_timeout
-    &expire_func=requests_expire_func;
+    &create_expire=timeout_interval &expire_func=requests_expire_func;
 
 function create(reqid: string): Request
 	{
@@ -137,7 +143,7 @@ function is_null(request: Request): bool
 function to_string(request: Request): string
 	{
 	local results: string_vec;
-	local res: ClusterController::Types::Result;
+	local res: Management::Result;
 	local parent_id = "";
 
 	if ( request?$parent_id )
@@ -146,7 +152,7 @@ function to_string(request: Request): string
 	for ( idx in request$results )
 		{
 		res = request$results[idx];
-		results[|results|] = ClusterController::Types::result_to_string(res);
+		results[|results|] = Management::result_to_string(res);
 		}
 
 	return fmt("[request %s%s %s, results: %s]", request$id, parent_id,

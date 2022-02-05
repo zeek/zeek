@@ -1,8 +1,8 @@
-##! This module holds the basic types needed for the Cluster Controller
-##! framework. These are used by both agent and controller, and several
-##! have corresponding equals in the zeek-client implementation.
+##! This module holds the basic types needed for the Management framework. These
+##! are used by both cluster agent and controller, and several have corresponding
+##! implementations in zeek-client.
 
-module ClusterController::Types;
+module Management;
 
 export {
 	## Management infrastructure node type. This intentionally does not
@@ -103,7 +103,7 @@ export {
 
 	type ResultVec: vector of Result;
 
-	## Given a :zeek:see:`ClusterController::Types::Result` record,
+	## Given a :zeek:see:`Management::Result` record,
 	## this function returns a string summarizing it.
 	global result_to_string: function(res: Result): string;
 }

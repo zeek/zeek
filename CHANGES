@@ -1,3 +1,7 @@
+5.0-test | 2022-02-07 15:35:02 -0700
+
+  * Update submodule(s) [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.100 | 2022-02-07 14:18:50 -0800
 
   * Add capture to a Sumstats when-statement to fix deprecation warning (Christian Kreibich, Corelight)

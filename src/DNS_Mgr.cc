@@ -281,8 +281,8 @@ void DNS_Request::ProcessAsyncResult(bool timed_out, DNS_Mgr* mgr)
 		mgr->CheckAsyncHostRequest(host, timed_out);
 	else if ( request_type == T_PTR )
 		mgr->CheckAsyncAddrRequest(addr, timed_out);
-	else if ( request_type == T_TXT )
-		mgr->CheckAsyncTextRequest(host, timed_out);
+	else
+		mgr->CheckAsyncOtherRequest(host, timed_out, request_type);
 	}
 
 /**
@@ -842,16 +842,16 @@ void DNS_Mgr::LookupHost(const std::string& name, LookupCallback* callback)
 	// If we already have a request waiting for this host, we don't need to make
 	// another one. We can just add the callback to it and it'll get handled
 	// when the first request comes back.
-	AsyncRequestNameMap::iterator i = asyncs_names.find(name);
-	if ( i != asyncs_names.end() )
+	auto key = std::make_pair(T_A, name);
+	auto i = asyncs.find(key);
+	if ( i != asyncs.end() )
 		req = i->second;
 	else
 		{
 		// A new one.
-		req = new AsyncRequest{};
-		req->host = name;
+		req = new AsyncRequest{name, T_A};
 		asyncs_queued.push_back(req);
-		asyncs_names.emplace_hint(i, name, req);
+		asyncs.emplace_hint(i, std::move(key), req);
 		}
 
 	req->callbacks.push_back(callback);
@@ -862,16 +862,16 @@ void DNS_Mgr::LookupHost(const std::string& name, LookupCallback* callback)
 	IssueAsyncRequests();
 	}
 
-void DNS_Mgr::LookupAddr(const IPAddr& host, LookupCallback* callback)
+void DNS_Mgr::LookupAddr(const IPAddr& addr, LookupCallback* callback)
 	{
 	if ( mode == DNS_FAKE )
 		{
-		resolve_lookup_cb(callback, fake_addr_lookup_result(host));
+		resolve_lookup_cb(callback, fake_addr_lookup_result(addr));
 		return;
 		}
 
 	// Do we already know the answer?
-	if ( auto name = LookupAddrInCache(host, true, false) )
+	if ( auto name = LookupAddrInCache(addr, true, false) )
 		{
 		resolve_lookup_cb(callback, name->CheckString());
 		return;
@@ -882,16 +882,15 @@ void DNS_Mgr::LookupAddr(const IPAddr& host, LookupCallback* callback)
 	// If we already have a request waiting for this host, we don't need to make
 	// another one. We can just add the callback to it and it'll get handled
 	// when the first request comes back.
-	AsyncRequestAddrMap::iterator i = asyncs_addrs.find(host);
-	if ( i != asyncs_addrs.end() )
+	auto i = asyncs.find(addr);
+	if ( i != asyncs.end() )
 		req = i->second;
 	else
 		{
 		// A new one.
-		req = new AsyncRequest{};
-		req->addr = host;
+		req = new AsyncRequest{addr};
 		asyncs_queued.push_back(req);
-		asyncs_addrs.emplace_hint(i, host, req);
+		asyncs.emplace_hint(i, addr, req);
 		}
 
 	req->callbacks.push_back(callback);
@@ -904,12 +903,6 @@ void DNS_Mgr::LookupAddr(const IPAddr& host, LookupCallback* callback)
 
 void DNS_Mgr::Lookup(const std::string& name, int request_type, LookupCallback* callback)
 	{
-	if ( request_type == T_A || request_type == T_AAAA )
-		{
-		LookupHost(name, callback);
-		return;
-		}
-
 	if ( mode == DNS_FAKE )
 		{
 		resolve_lookup_cb(callback, fake_lookup_result(name, request_type));
@@ -928,17 +921,16 @@ void DNS_Mgr::Lookup(const std::string& name, int request_type, LookupCallback* 
 	// If we already have a request waiting for this host, we don't need to make
 	// another one. We can just add the callback to it and it'll get handled
 	// when the first request comes back.
-	AsyncRequestTextMap::iterator i = asyncs_texts.find(name);
-	if ( i != asyncs_texts.end() )
+	auto key = std::make_pair(request_type, name);
+	auto i = asyncs.find(key);
+	if ( i != asyncs.end() )
 		req = i->second;
 	else
 		{
 		// A new one.
-		req = new AsyncRequest{};
-		req->host = name;
-		req->is_txt = true;
+		req = new AsyncRequest{name, request_type};
 		asyncs_queued.push_back(req);
-		asyncs_texts.emplace_hint(i, name, req);
+		asyncs.emplace_hint(i, std::move(key), req);
 		}
 
 	req->callbacks.push_back(callback);
@@ -1281,14 +1273,14 @@ void DNS_Mgr::IssueAsyncRequests()
 		++num_requests;
 		req->time = util::current_time();
 
-		if ( req->IsAddrReq() )
+		if ( req->type == T_PTR )
 			dns_req = new DNS_Request(req->addr, true);
-		else if ( req->is_txt )
-			dns_req = new DNS_Request(req->host.c_str(), T_TXT, true);
-		else
+		else if ( req->type == T_A || req->type == T_AAAA )
 			// We pass T_A here, but DNSRequest::MakeRequest() will special-case that in
 			// a request that gets both T_A and T_AAAA results at one time.
 			dns_req = new DNS_Request(req->host.c_str(), T_A, true);
+		else
+			dns_req = new DNS_Request(req->host.c_str(), req->type, true);
 
 		dns_req->MakeRequest(channel, this);
 
@@ -1300,10 +1292,9 @@ void DNS_Mgr::IssueAsyncRequests()
 void DNS_Mgr::CheckAsyncHostRequest(const std::string& host, bool timeout)
 	{
 	// Note that this code is a mirror of that for CheckAsyncAddrRequest.
+	auto i = asyncs.find(std::make_pair(T_A, host));
 
-	AsyncRequestNameMap::iterator i = asyncs_names.find(host);
-
-	if ( i != asyncs_names.end() )
+	if ( i != asyncs.end() )
 		{
 		if ( timeout )
 			{
@@ -1319,7 +1310,7 @@ void DNS_Mgr::CheckAsyncHostRequest(const std::string& host, bool timeout)
 			return;
 
 		delete i->second;
-		asyncs_names.erase(i);
+		asyncs.erase(i);
 		--asyncs_pending;
 		}
 	}
@@ -1330,9 +1321,9 @@ void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout)
 
 	// In the following, if it's not in the respective map anymore, we've
 	// already finished it earlier and don't have anything to do.
-	AsyncRequestAddrMap::iterator i = asyncs_addrs.find(addr);
+	auto i = asyncs.find(addr);
 
-	if ( i != asyncs_addrs.end() )
+	if ( i != asyncs.end() )
 		{
 		if ( timeout )
 			{
@@ -1348,25 +1339,24 @@ void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout)
 			return;
 
 		delete i->second;
-		asyncs_addrs.erase(i);
+		asyncs.erase(i);
 		--asyncs_pending;
 		}
 	}
 
-void DNS_Mgr::CheckAsyncTextRequest(const std::string& host, bool timeout)
+void DNS_Mgr::CheckAsyncOtherRequest(const std::string& host, bool timeout, int request_type)
 	{
 	// Note that this code is a mirror of that for CheckAsyncAddrRequest.
 
-	AsyncRequestTextMap::iterator i = asyncs_texts.find(host);
-	if ( i != asyncs_texts.end() )
+	auto i = asyncs.find(std::make_pair(request_type, host));
+	if ( i != asyncs.end() )
 		{
 		if ( timeout )
 			{
-			AsyncRequestTextMap::iterator it = asyncs_texts.begin();
 			++failed;
 			i->second->Timeout();
 			}
-		else if ( auto name = LookupOtherInCache(host, T_TXT, true) )
+		else if ( auto name = LookupOtherInCache(host, request_type, true) )
 			{
 			++successful;
 			i->second->Resolved(name->CheckString());
@@ -1375,7 +1365,7 @@ void DNS_Mgr::CheckAsyncTextRequest(const std::string& host, bool timeout)
 			return;
 
 		delete i->second;
-		asyncs_texts.erase(i);
+		asyncs.erase(i);
 		--asyncs_pending;
 		}
 	}

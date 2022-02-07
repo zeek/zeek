@@ -1,3 +1,11 @@
+5.0.0-dev.97 | 2022-02-07 16:24:06 +0100
+
+  * Update to latest Broker without public CAF dependencies. (Dominik
+    Charousset, Corelight)
+
+  * Fix GCC builds and string output for Broker errors (Dominik
+    Charousset, Corelight)
+
 5.0.0-dev.94 | 2022-02-07 08:14:47 -0700
 
   * String/StringVal: Replace char*/string constructors with string_view (Tim Wojtulewicz, Corelight)

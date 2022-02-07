@@ -5,102 +5,37 @@
 #include <thread>
 
 #include "zeek/3rdparty/doctest.h"
-#include "zeek/telemetry/Detail.h"
+#include "zeek/broker/Manager.h"
 #include "zeek/telemetry/Timer.h"
 
-#include "caf/telemetry/metric_registry.hpp"
+#include "broker/telemetry/metric_registry.hh"
+
+namespace
+	{
+using NativeManager = broker::telemetry::metric_registry;
+using NativeManagerImpl = broker::telemetry::metric_registry_impl;
+using NativeManagerImplPtr = zeek::IntrusivePtr<NativeManagerImpl>;
+	}
 
 namespace zeek::telemetry
 	{
+
+Manager::Manager()
+	{
+	auto reg = NativeManager::pre_init_instance();
+	NativeManagerImplPtr ptr{NewRef{}, reg.pimpl()};
+	pimpl.swap(ptr);
+	}
 
 Manager::~Manager() { }
 
 void Manager::InitPostScript() { }
 
-IntCounterFamily Manager::IntCounterFam(std::string_view prefix, std::string_view name,
-                                        Span<const std::string_view> labels,
-                                        std::string_view helptext, std::string_view unit,
-                                        bool is_sum)
+void Manager::InitPostBrokerSetup(broker::endpoint& ep)
 	{
-	return with_native_labels(labels,
-	                          [&, this](auto xs)
-	                          {
-								  auto ptr = deref(pimpl).counter_family(prefix, name, xs, helptext,
-		                                                                 unit, is_sum);
-								  return IntCounterFamily{opaque(ptr)};
-							  });
-	}
-
-DblCounterFamily Manager::DblCounterFam(std::string_view prefix, std::string_view name,
-                                        Span<const std::string_view> labels,
-                                        std::string_view helptext, std::string_view unit,
-                                        bool is_sum)
-	{
-	return with_native_labels(labels,
-	                          [&, this](auto xs)
-	                          {
-								  auto ptr = deref(pimpl).counter_family<double>(
-									  prefix, name, xs, helptext, unit, is_sum);
-								  return DblCounterFamily{opaque(ptr)};
-							  });
-	}
-
-IntGaugeFamily Manager::IntGaugeFam(std::string_view prefix, std::string_view name,
-                                    Span<const std::string_view> labels, std::string_view helptext,
-                                    std::string_view unit, bool is_sum)
-	{
-	return with_native_labels(labels,
-	                          [&, this](auto xs)
-	                          {
-								  auto ptr = deref(pimpl).gauge_family(prefix, name, xs, helptext,
-		                                                               unit, is_sum);
-								  return IntGaugeFamily{opaque(ptr)};
-							  });
-	}
-
-DblGaugeFamily Manager::DblGaugeFam(std::string_view prefix, std::string_view name,
-                                    Span<const std::string_view> labels, std::string_view helptext,
-                                    std::string_view unit, bool is_sum)
-	{
-	return with_native_labels(labels,
-	                          [&, this](auto xs)
-	                          {
-								  auto ptr = deref(pimpl).gauge_family<double>(
-									  prefix, name, xs, helptext, unit, is_sum);
-								  return DblGaugeFamily{opaque(ptr)};
-							  });
-	}
-
-IntHistogramFamily Manager::IntHistoFam(std::string_view prefix, std::string_view name,
-                                        Span<const std::string_view> labels,
-                                        Span<const int64_t> ubounds, std::string_view helptext,
-                                        std::string_view unit, bool is_sum)
-	{
-	return with_native_labels(
-		labels,
-		[&, this](auto xs)
-		{
-			auto bounds = caf::span<const int64_t>{ubounds.data(), ubounds.size()};
-			auto ptr = deref(pimpl).histogram_family(prefix, name, xs, bounds, helptext, unit,
-		                                             is_sum);
-			return IntHistogramFamily{opaque(ptr)};
-		});
-	}
-
-DblHistogramFamily Manager::DblHistoFam(std::string_view prefix, std::string_view name,
-                                        Span<const std::string_view> labels,
-                                        Span<const double> ubounds, std::string_view helptext,
-                                        std::string_view unit, bool is_sum)
-	{
-	return with_native_labels(
-		labels,
-		[&, this](auto xs)
-		{
-			auto bounds = caf::span<const double>{ubounds.data(), ubounds.size()};
-			auto ptr = deref(pimpl).histogram_family<double>(prefix, name, xs, bounds, helptext,
-		                                                     unit, is_sum);
-			return DblHistogramFamily{opaque(ptr)};
-		});
+	auto reg = NativeManager::merge(NativeManager{pimpl.get()}, ep);
+	NativeManagerImplPtr ptr{NewRef{}, reg.pimpl()};
+	pimpl.swap(ptr);
 	}
 
 	} // namespace zeek::telemetry
@@ -109,8 +44,6 @@ DblHistogramFamily Manager::DblHistoFam(std::string_view prefix, std::string_vie
 
 using namespace std::literals;
 using namespace zeek::telemetry;
-
-using NativeManager = caf::telemetry::metric_registry;
 
 namespace
 	{
@@ -129,8 +62,7 @@ SCENARIO("telemetry managers provide access to counter singletons")
 	{
 	GIVEN("a telemetry manager")
 		{
-		NativeManager native_mgr;
-		Manager mgr{opaque(&native_mgr)};
+		Manager mgr;
 		WHEN("retrieving an IntCounter singleton")
 			{
 			auto first = mgr.CounterSingleton("zeek", "int-count", "test");
@@ -184,8 +116,7 @@ SCENARIO("telemetry managers provide access to counter families")
 	{
 	GIVEN("a telemetry manager")
 		{
-		NativeManager native_mgr;
-		Manager mgr{opaque(&native_mgr)};
+		Manager mgr;
 		WHEN("retrieving an IntCounter family")
 			{
 			auto family = mgr.CounterFamily("zeek", "requests", {"method"}, "test", "1", true);
@@ -244,8 +175,7 @@ SCENARIO("telemetry managers provide access to gauge singletons")
 	{
 	GIVEN("a telemetry manager")
 		{
-		NativeManager native_mgr;
-		Manager mgr{opaque(&native_mgr)};
+		Manager mgr;
 		WHEN("retrieving an IntGauge singleton")
 			{
 			auto first = mgr.GaugeSingleton("zeek", "int-gauge", "test");
@@ -309,8 +239,7 @@ SCENARIO("telemetry managers provide access to gauge families")
 	{
 	GIVEN("a telemetry manager")
 		{
-		NativeManager native_mgr;
-		Manager mgr{opaque(&native_mgr)};
+		Manager mgr;
 		WHEN("retrieving an IntGauge family")
 			{
 			auto family = mgr.GaugeFamily("zeek", "open-connections", {"protocol"}, "test");
@@ -369,8 +298,7 @@ SCENARIO("telemetry managers provide access to histogram singletons")
 	{
 	GIVEN("a telemetry manager")
 		{
-		NativeManager native_mgr;
-		Manager mgr{opaque(&native_mgr)};
+		Manager mgr;
 		WHEN("retrieving an IntHistogram singleton")
 			{
 			const auto max_int = std::numeric_limits<int64_t>::max();
@@ -456,8 +384,7 @@ SCENARIO("telemetry managers provide access to histogram families")
 	{
 	GIVEN("a telemetry manager")
 		{
-		NativeManager native_mgr;
-		Manager mgr{opaque(&native_mgr)};
+		Manager mgr;
 		WHEN("retrieving an IntHistogram family")
 			{
 			int64_t buckets[] = {10, 20};

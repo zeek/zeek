@@ -471,7 +471,7 @@ function Broker::__record_lookup%(r: Broker::Data, idx: count%): Broker::Data
 	auto& v = zeek::Broker::detail::require_data_type<broker::vector>(r->AsRecordVal(),
 	                                                        zeek::TYPE_RECORD, frame);
 
-	if ( idx >= v.size() || caf::get_if<broker::none>(&v[idx]) )
+	if ( idx >= v.size() || broker::get_if<broker::none>(&v[idx]) )
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 
 	return zeek::Broker::detail::make_data_val(v[idx]);
@@ -510,7 +510,7 @@ function Broker::__record_iterator_value%(it: opaque of Broker::RecordIterator%)
 		return rval;
 		}
 
-	if ( caf::get_if<broker::none>(&(*ri->it)) )
+	if ( broker::get_if<broker::none>(&(*ri->it)) )
 		return rval; // field isn't set
 
 	rval->Assign(0, zeek::make_intrusive<zeek::Broker::detail::DataVal>(*ri->it));

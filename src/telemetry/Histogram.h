@@ -9,6 +9,8 @@
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 
+#include "broker/telemetry/fwd.hh"
+
 namespace zeek::telemetry
 	{
 
@@ -26,8 +28,6 @@ class IntHistogram
 public:
 	friend class IntHistogramFamily;
 
-	struct Impl;
-
 	static inline const char* OpaqueName = "IntHistogramMetricVal";
 
 	IntHistogram() = delete;
@@ -38,31 +38,36 @@ public:
 	 * Increments all buckets with an upper bound less than or equal to @p value
 	 * by one and adds @p value to the total sum of all observed values.
 	 */
-	void Observe(int64_t value) noexcept;
+	void Observe(int64_t value) noexcept { return broker::telemetry::observe(hdl, value); }
 
 	/// @return The sum of all observed values.
-	int64_t Sum() const noexcept;
+	int64_t Sum() const noexcept { return broker::telemetry::sum(hdl); }
 
 	/// @return The number of buckets, including the implicit "infinite" bucket.
-	size_t NumBuckets() const noexcept;
+	size_t NumBuckets() const noexcept { return broker::telemetry::num_buckets(hdl); }
 
 	/// @return The number of observations in the bucket at @p index.
 	/// @pre index < NumBuckets()
-	int64_t CountAt(size_t index) const noexcept;
+	int64_t CountAt(size_t index) const noexcept { return broker::telemetry::count_at(hdl, index); }
 
 	/// @return The upper bound of the bucket at @p index.
 	/// @pre index < NumBuckets()
-	int64_t UpperBoundAt(size_t index) const noexcept;
+	int64_t UpperBoundAt(size_t index) const noexcept
+		{
+		return broker::telemetry::upper_bound_at(hdl, index);
+		}
 
 	/**
 	 * @return Whether @c this and @p other refer to the same histogram.
 	 */
-	constexpr bool IsSameAs(IntHistogram other) const noexcept { return pimpl == other.pimpl; }
+	constexpr bool IsSameAs(IntHistogram other) const noexcept { return hdl == other.hdl; }
 
 private:
-	explicit IntHistogram(Impl* ptr) noexcept : pimpl(ptr) { }
+	using Handle = broker::telemetry::int_histogram_hdl*;
 
-	Impl* pimpl;
+	explicit IntHistogram(Handle hdl) noexcept : hdl(hdl) { }
+
+	Handle hdl;
 	};
 
 /**
@@ -88,8 +93,6 @@ class IntHistogramFamily : public MetricFamily
 public:
 	friend class Manager;
 
-	class Impl;
-
 	static inline const char* OpaqueName = "IntHistogramMetricFamilyVal";
 
 	using InstanceType = IntHistogram;
@@ -101,7 +104,10 @@ public:
 	 * Returns the metrics handle for given labels, creating a new instance
 	 * lazily if necessary.
 	 */
-	IntHistogram GetOrAdd(Span<const LabelView> labels);
+	IntHistogram GetOrAdd(Span<const LabelView> labels)
+		{
+		return IntHistogram{int_histogram_get_or_add(hdl, labels)};
+		}
 
 	/**
 	 * @copydoc GetOrAdd
@@ -112,7 +118,9 @@ public:
 		}
 
 private:
-	explicit IntHistogramFamily(Impl* ptr);
+	using Handle = broker::telemetry::int_histogram_family_hdl*;
+
+	explicit IntHistogramFamily(Handle hdl) : MetricFamily(upcast(hdl)) { }
 	};
 
 /**
@@ -125,8 +133,6 @@ class DblHistogram
 public:
 	friend class DblHistogramFamily;
 
-	struct Impl;
-
 	static inline const char* OpaqueName = "DblHistogramMetricVal";
 
 	DblHistogram() = delete;
@@ -137,31 +143,36 @@ public:
 	 * Increments all buckets with an upper bound less than or equal to @p value
 	 * by one and adds @p value to the total sum of all observed values.
 	 */
-	void Observe(double value) noexcept;
+	void Observe(double value) noexcept { broker::telemetry::observe(hdl, value); }
 
 	/// @return The sum of all observed values.
-	double Sum() const noexcept;
+	double Sum() const noexcept { return broker::telemetry::sum(hdl); }
 
 	/// @return The number of buckets, including the implicit "infinite" bucket.
-	size_t NumBuckets() const noexcept;
+	size_t NumBuckets() const noexcept { return broker::telemetry::num_buckets(hdl); }
 
 	/// @return The number of observations in the bucket at @p index.
 	/// @pre index < NumBuckets()
-	int64_t CountAt(size_t index) const noexcept;
+	int64_t CountAt(size_t index) const noexcept { return broker::telemetry::count_at(hdl, index); }
 
 	/// @return The upper bound of the bucket at @p index.
 	/// @pre index < NumBuckets()
-	double UpperBoundAt(size_t index) const noexcept;
+	double UpperBoundAt(size_t index) const noexcept
+		{
+		return broker::telemetry::upper_bound_at(hdl, index);
+		}
 
 	/**
 	 * @return Whether @c this and @p other refer to the same histogram.
 	 */
-	constexpr bool IsSameAs(DblHistogram other) const noexcept { return pimpl == other.pimpl; }
+	constexpr bool IsSameAs(DblHistogram other) const noexcept { return hdl == other.hdl; }
 
 private:
-	explicit DblHistogram(Impl* ptr) noexcept : pimpl(ptr) { }
+	using Handle = broker::telemetry::dbl_histogram_hdl*;
 
-	Impl* pimpl;
+	explicit DblHistogram(Handle hdl) noexcept : hdl(hdl) { }
+
+	Handle hdl;
 	};
 
 /**
@@ -187,8 +198,6 @@ class DblHistogramFamily : public MetricFamily
 public:
 	friend class Manager;
 
-	class Impl;
-
 	static inline const char* OpaqueName = "DblHistogramMetricFamilyVal";
 
 	using InstanceType = DblHistogram;
@@ -200,7 +209,10 @@ public:
 	 * Returns the metrics handle for given labels, creating a new instance
 	 * lazily if necessary.
 	 */
-	DblHistogram GetOrAdd(Span<const LabelView> labels);
+	DblHistogram GetOrAdd(Span<const LabelView> labels)
+		{
+		return DblHistogram{dbl_histogram_get_or_add(hdl, labels)};
+		}
 
 	/**
 	 * @copydoc GetOrAdd
@@ -211,7 +223,9 @@ public:
 		}
 
 private:
-	explicit DblHistogramFamily(Impl* ptr);
+	using Handle = broker::telemetry::dbl_histogram_family_hdl*;
+
+	explicit DblHistogramFamily(Handle hdl) : MetricFamily(upcast(hdl)) { }
 	};
 
 namespace detail

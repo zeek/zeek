@@ -7,10 +7,23 @@
 #include <string_view>
 #include <vector>
 
+#include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
 #include "zeek/telemetry/Counter.h"
 #include "zeek/telemetry/Gauge.h"
 #include "zeek/telemetry/Histogram.h"
+
+#include "broker/telemetry/fwd.hh"
+
+namespace broker
+	{
+class endpoint;
+	}
+
+namespace zeek::Broker
+	{
+class Manager;
+	}
 
 namespace zeek::telemetry
 	{
@@ -21,9 +34,9 @@ namespace zeek::telemetry
 class Manager
 	{
 public:
-	class Impl;
+	friend class Broker::Manager;
 
-	explicit Manager(Impl* ptr) : pimpl(ptr) { }
+	Manager();
 
 	Manager(const Manager&) = delete;
 
@@ -54,13 +67,15 @@ public:
 		{
 		if constexpr ( std::is_same<ValueType, int64_t>::value )
 			{
-			return IntCounterFam(prefix, name, labels, helptext, unit, is_sum);
+			auto fam = int_counter_fam(ptr(), prefix, name, labels, helptext, unit, is_sum);
+			return IntCounterFamily{fam};
 			}
 		else
 			{
 			static_assert(std::is_same<ValueType, double>::value,
 			              "metrics only support int64_t and double values");
-			return DblCounterFam(prefix, name, labels, helptext, unit, is_sum);
+			auto fam = dbl_counter_fam(ptr(), prefix, name, labels, helptext, unit, is_sum);
+			return DblCounterFamily{fam};
 			}
 		}
 
@@ -148,13 +163,15 @@ public:
 		{
 		if constexpr ( std::is_same<ValueType, int64_t>::value )
 			{
-			return IntGaugeFam(prefix, name, labels, helptext, unit, is_sum);
+			auto fam = int_gauge_fam(ptr(), prefix, name, labels, helptext, unit, is_sum);
+			return IntGaugeFamily{fam};
 			}
 		else
 			{
 			static_assert(std::is_same<ValueType, double>::value,
 			              "metrics only support int64_t and double values");
-			return DblGaugeFam(prefix, name, labels, helptext, unit, is_sum);
+			auto fam = dbl_gauge_fam(ptr(), prefix, name, labels, helptext, unit, is_sum);
+			return DblGaugeFamily{fam};
 			}
 		}
 
@@ -264,13 +281,17 @@ public:
 		{
 		if constexpr ( std::is_same<ValueType, int64_t>::value )
 			{
-			return IntHistoFam(prefix, name, labels, default_upper_bounds, helptext, unit, is_sum);
+			auto fam = int_histogram_fam(ptr(), prefix, name, labels, default_upper_bounds,
+			                             helptext, unit, is_sum);
+			return IntHistogramFamily{fam};
 			}
 		else
 			{
 			static_assert(std::is_same<ValueType, double>::value,
 			              "metrics only support int64_t and double values");
-			return DblHistoFam(prefix, name, labels, default_upper_bounds, helptext, unit, is_sum);
+			auto fam = dbl_histogram_fam(ptr(), prefix, name, labels, default_upper_bounds,
+			                             helptext, unit, is_sum);
+			return DblHistogramFamily{fam};
 			}
 		}
 
@@ -368,30 +389,6 @@ public:
 		}
 
 protected:
-	IntCounterFamily IntCounterFam(std::string_view prefix, std::string_view name,
-	                               Span<const std::string_view> labels, std::string_view helptext,
-	                               std::string_view unit, bool is_sum);
-
-	DblCounterFamily DblCounterFam(std::string_view prefix, std::string_view name,
-	                               Span<const std::string_view> labels, std::string_view helptext,
-	                               std::string_view unit, bool is_sum);
-
-	IntGaugeFamily IntGaugeFam(std::string_view prefix, std::string_view name,
-	                           Span<const std::string_view> labels, std::string_view helptext,
-	                           std::string_view unit, bool is_sum);
-
-	DblGaugeFamily DblGaugeFam(std::string_view prefix, std::string_view name,
-	                           Span<const std::string_view> labels, std::string_view helptext,
-	                           std::string_view unit, bool is_sum);
-
-	IntHistogramFamily IntHistoFam(std::string_view prefix, std::string_view name,
-	                               Span<const std::string_view> labels, Span<const int64_t> ubounds,
-	                               std::string_view helptext, std::string_view unit, bool is_sum);
-
-	DblHistogramFamily DblHistoFam(std::string_view prefix, std::string_view name,
-	                               Span<const std::string_view> labels, Span<const double> ubounds,
-	                               std::string_view helptext, std::string_view unit, bool is_sum);
-
 	template <class F> static void WithLabelNames(Span<const LabelView> xs, F continuation)
 		{
 		if ( xs.size() <= 10 )
@@ -410,7 +407,13 @@ protected:
 			}
 		}
 
-	Impl* pimpl;
+	broker::telemetry::metric_registry_impl* ptr() { return pimpl.get(); }
+
+	// Connects all the dots after the Broker Manager constructed the endpoint
+	// for this Zeek instance. Called from Broker::Manager::InitPostScript().
+	void InitPostBrokerSetup(broker::endpoint&);
+
+	IntrusivePtr<broker::telemetry::metric_registry_impl> pimpl;
 	};
 
 	} // namespace zeek::telemetry

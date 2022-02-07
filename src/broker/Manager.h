@@ -396,11 +396,6 @@ public:
 	 */
 	void SetMetricsExportPrefixes(std::vector<std::string> filter);
 
-	/**
-	 * Allocates a new manager for telemetry data.
-	 */
-	std::unique_ptr<telemetry::Manager> NewTelemetryManager();
-
 private:
 	void DispatchMessage(const broker::topic& topic, broker::data msg);
 	// Process events used for Broker store backed zeek tables

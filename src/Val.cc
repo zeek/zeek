@@ -2143,15 +2143,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 			case ELEMENT_NEW:
 			case ELEMENT_CHANGED:
 				{
-#ifndef __clang__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-				broker::optional<broker::timespan> expiry;
-#ifndef __clang__
-#pragma GCC diagnostic pop
-#endif
-
+				std::optional<broker::timespan> expiry;
 				auto expire_time = GetExpireTime();
 				if ( expire_time == 0 )
 					// Entry is set to immediately expire. Let's not forward it.

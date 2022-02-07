@@ -623,7 +623,7 @@ broker::expected<broker::data> X509Val::DoSerialize() const
 
 bool X509Val::DoUnserialize(const broker::data& data)
 	{
-	auto s = caf::get_if<std::string>(&data);
+	auto s = broker::get_if<std::string>(&data);
 	if ( ! s )
 		return false;
 

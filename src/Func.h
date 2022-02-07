@@ -18,16 +18,11 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/ZeekList.h"
 
-namespace caf
-	{
-template <class> class expected;
-	}
-
 namespace broker
 	{
 class data;
 using vector = std::vector<data>;
-using caf::expected;
+template <class> class expected;
 	}
 
 namespace zeek

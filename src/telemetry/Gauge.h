@@ -9,6 +9,8 @@
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 
+#include "broker/telemetry/fwd.hh"
+
 namespace zeek::telemetry
 	{
 
@@ -17,15 +19,13 @@ class IntGaugeFamily;
 class Manager;
 
 /**
- * A handle to a metric that represents an integer value. Gauges are less
+ * A handle to a metric that represents an integer value. Gauges are more
  * permissive than counters and also allow decrementing the value.
  */
 class IntGauge
 	{
 public:
 	friend class IntGaugeFamily;
-
-	struct Impl;
 
 	static inline const char* OpaqueName = "IntGaugeMetricVal";
 
@@ -36,49 +36,51 @@ public:
 	/**
 	 * Increments the value by 1.
 	 */
-	void Inc() noexcept;
+	void Inc() noexcept { broker::telemetry::inc(hdl); }
 
 	/**
 	 * Increments the value by @p amount.
 	 */
-	void Inc(int64_t amount) noexcept;
+	void Inc(int64_t amount) noexcept { broker::telemetry::inc(hdl, amount); }
 
 	/**
 	 * Increments the value by 1.
 	 * @return The new value.
 	 */
-	int64_t operator++() noexcept;
+	int64_t operator++() noexcept { return broker::telemetry::inc(hdl); }
 
 	/**
 	 * Decrements the value by 1.
 	 */
-	void Dec() noexcept;
+	void Dec() noexcept { broker::telemetry::dec(hdl); }
 
 	/**
 	 * Decrements the value by @p amount.
 	 */
-	void Dec(int64_t amount) noexcept;
+	void Dec(int64_t amount) noexcept { broker::telemetry::dec(hdl, amount); }
 
 	/**
 	 * Decrements the value by 1.
 	 * @return The new value.
 	 */
-	int64_t operator--() noexcept;
+	int64_t operator--() noexcept { return broker::telemetry::dec(hdl); }
 
 	/**
 	 * @return The current value.
 	 */
-	int64_t Value() const noexcept;
+	int64_t Value() const noexcept { return broker::telemetry::value(hdl); }
 
 	/**
 	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool IsSameAs(IntGauge other) const noexcept { return pimpl == other.pimpl; }
+	constexpr bool IsSameAs(IntGauge other) const noexcept { return hdl == other.hdl; }
 
 private:
-	explicit IntGauge(Impl* ptr) noexcept : pimpl(ptr) { }
+	using Handle = broker::telemetry::int_gauge_hdl*;
 
-	Impl* pimpl;
+	explicit IntGauge(Handle hdl) noexcept : hdl(hdl) { }
+
+	Handle hdl;
 	};
 
 /**
@@ -105,8 +107,6 @@ class IntGaugeFamily : public MetricFamily
 public:
 	friend class Manager;
 
-	class Impl;
-
 	static inline const char* OpaqueName = "IntGaugeMetricFamilyVal";
 
 	using InstanceType = IntGauge;
@@ -118,7 +118,10 @@ public:
 	 * Returns the metrics handle for given labels, creating a new instance
 	 * lazily if necessary.
 	 */
-	IntGauge GetOrAdd(Span<const LabelView> labels);
+	IntGauge GetOrAdd(Span<const LabelView> labels)
+		{
+		return IntGauge{int_gauge_get_or_add(hdl, labels)};
+		}
 
 	/**
 	 * @copydoc GetOrAdd
@@ -129,20 +132,19 @@ public:
 		}
 
 private:
-	explicit IntGaugeFamily(Impl* ptr);
+	using Handle = broker::telemetry::int_gauge_family_hdl*;
+
+	explicit IntGaugeFamily(Handle hdl) : MetricFamily(upcast(hdl)) { }
 	};
 
 /**
- * A handle to a metric that represents a floating point value. Gauges are less
+ * A handle to a metric that represents a floating point value. Gauges are more
  * permissive than counters and also allow decrementing the value.
- * up.
  */
 class DblGauge
 	{
 public:
 	friend class DblGaugeFamily;
-
-	struct Impl;
 
 	static inline const char* OpaqueName = "DblGaugeMetricVal";
 
@@ -153,37 +155,39 @@ public:
 	/**
 	 * Increments the value by 1.
 	 */
-	void Inc() noexcept;
+	void Inc() noexcept { broker::telemetry::inc(hdl); }
 
 	/**
 	 * Increments the value by @p amount.
 	 */
-	void Inc(double amount) noexcept;
+	void Inc(double amount) noexcept { broker::telemetry::inc(hdl, amount); }
 
 	/**
 	 * Increments the value by 1.
 	 */
-	void Dec() noexcept;
+	void Dec() noexcept { broker::telemetry::dec(hdl); }
 
 	/**
 	 * Increments the value by @p amount.
 	 */
-	void Dec(double amount) noexcept;
+	void Dec(double amount) noexcept { broker::telemetry::dec(hdl, amount); }
 
 	/**
 	 * @return The current value.
 	 */
-	double Value() const noexcept;
+	double Value() const noexcept { return broker::telemetry::value(hdl); }
 
 	/**
 	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool IsSameAs(DblGauge other) const noexcept { return pimpl == other.pimpl; }
+	constexpr bool IsSameAs(DblGauge other) const noexcept { return hdl == other.hdl; }
 
 private:
-	explicit DblGauge(Impl* ptr) noexcept : pimpl(ptr) { }
+	using Handle = broker::telemetry::dbl_gauge_hdl*;
 
-	Impl* pimpl;
+	explicit DblGauge(Handle hdl) noexcept : hdl(hdl) { }
+
+	Handle hdl;
 	};
 
 /**
@@ -210,8 +214,6 @@ class DblGaugeFamily : public MetricFamily
 public:
 	friend class Manager;
 
-	class Impl;
-
 	static inline const char* OpaqueName = "DblGaugeMetricFamilyVal";
 
 	using InstanceType = DblGauge;
@@ -223,7 +225,10 @@ public:
 	 * Returns the metrics handle for given labels, creating a new instance
 	 * lazily if necessary.
 	 */
-	DblGauge GetOrAdd(Span<const LabelView> labels);
+	DblGauge GetOrAdd(Span<const LabelView> labels)
+		{
+		return DblGauge{dbl_gauge_get_or_add(hdl, labels)};
+		}
 
 	/**
 	 * @copydoc GetOrAdd
@@ -234,7 +239,9 @@ public:
 		}
 
 private:
-	explicit DblGaugeFamily(Impl* ptr);
+	using Handle = broker::telemetry::dbl_gauge_family_hdl*;
+
+	explicit DblGaugeFamily(Handle hdl) : MetricFamily(upcast(hdl)) { }
 	};
 
 namespace detail

@@ -265,7 +265,7 @@ protected:
 	void CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm);
 	ListValPtr AddrListDelta(ListVal* al1, ListVal* al2);
 
-	using HostMap = std::map<std::string, std::pair<DNS_Mapping*, DNS_Mapping*>>;
+	using HostMap = std::map<std::string, DNS_Mapping*>;
 	using AddrMap = std::map<IPAddr, DNS_Mapping*>;
 	using TextMap = std::map<std::string, DNS_Mapping*>;
 	void LoadCache(const std::string& path);

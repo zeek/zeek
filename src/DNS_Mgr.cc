@@ -923,57 +923,27 @@ void DNS_Mgr::AddResult(DNS_Request* dr, struct hostent* h, uint32_t ttl, bool m
 			HostMap::iterator it = host_mappings.find(dr->Host());
 			if ( it == host_mappings.end() )
 				{
-				std::pair<HostMap::iterator, bool> result;
-
-				if ( new_mapping->Type() == AF_INET )
-					result = host_mappings.emplace(dr->Host(), std::pair{new_mapping, nullptr});
-				else
-					result = host_mappings.emplace(dr->Host(), std::pair{nullptr, new_mapping});
-
+				auto result = host_mappings.emplace(dr->Host(), new_mapping);
 				it = result.first;
 				}
 			else
-				{
-				if ( new_mapping->Type() == AF_INET )
-					prev_mapping = it->second.first;
-				else
-					prev_mapping = it->second.second;
-				}
+				prev_mapping = it->second;
 
-			if ( prev_mapping && new_mapping->Type() != prev_mapping->Type() )
-				{
-				if ( new_mapping->Type() == AF_INET )
-					{
-					prev_mapping = it->second.second;
-					it->second.first = new_mapping;
-					}
-				else
-					{
-					prev_mapping = it->second.first;
-					it->second.second = new_mapping;
-					}
-				}
-			else if ( prev_mapping && prev_mapping->Valid() )
+			if ( prev_mapping && prev_mapping->Valid() )
 				{
 				if ( new_mapping->Valid() )
 					{
 					if ( merge )
 						new_mapping->Merge(prev_mapping);
 
+					it->second = new_mapping;
 					keep_prev = false;
-					if ( new_mapping->Type() == AF_INET )
-						it->second.first = new_mapping;
-					else
-						it->second.second = new_mapping;
 					}
 				}
 			else
 				{
+				it->second = new_mapping;
 				keep_prev = false;
-				if ( new_mapping->Type() == AF_INET )
-					it->second.first = new_mapping;
-				else
-					it->second.second = new_mapping;
 				}
 			}
 		}
@@ -1100,21 +1070,9 @@ void DNS_Mgr::LoadCache(const std::string& path)
 	for ( ; ! m->NoMapping() && ! m->InitFailed(); m = new DNS_Mapping(f) )
 		{
 		if ( m->ReqHost() )
-			{
-			if ( host_mappings.find(m->ReqHost()) == host_mappings.end() )
-				{
-				host_mappings[m->ReqHost()].first = 0;
-				host_mappings[m->ReqHost()].second = 0;
-				}
-			if ( m->Type() == AF_INET )
-				host_mappings[m->ReqHost()].first = m;
-			else
-				host_mappings[m->ReqHost()].second = m;
-			}
+			host_mappings.insert_or_assign(m->ReqHost(), m);
 		else
-			{
-			addr_mappings[m->ReqAddr()] = m;
-			}
+			addr_mappings.insert_or_assign(m->ReqAddr(), m);
 		}
 
 	if ( ! m->NoMapping() )
@@ -1156,11 +1114,8 @@ void DNS_Mgr::Save(FILE* f, const HostMap& m)
 	{
 	for ( HostMap::const_iterator it = m.begin(); it != m.end(); ++it )
 		{
-		if ( it->second.first )
-			it->second.first->Save(f);
-
-		if ( it->second.second )
-			it->second.second->Save(f);
+		if ( it->second )
+			it->second->Save(f);
 		}
 	}
 
@@ -1171,36 +1126,25 @@ TableValPtr DNS_Mgr::LookupNameInCache(const std::string& name, bool cleanup_exp
 	if ( it == host_mappings.end() )
 		return nullptr;
 
-	DNS_Mapping* d4 = it->second.first;
-	DNS_Mapping* d6 = it->second.second;
+	DNS_Mapping* d = it->second;
 
-	if ( (! d4 || d4->names.empty()) && (! d6 || d6->names.empty()) )
+	if ( ! d || d->names.empty() )
 		return nullptr;
 
-	if ( cleanup_expired && ((d4 && d4->Expired()) || (d6 && d6->Expired())) )
+	if ( cleanup_expired && (d && d->Expired()) )
 		{
 		host_mappings.erase(it);
-		delete d4;
-		delete d6;
+		delete d;
 		return nullptr;
 		}
 
-	if ( check_failed && ((d4 && d4->Failed()) || (d6 && d6->Failed())) )
+	if ( check_failed && (d && d->Failed()) )
 		{
 		reporter->Warning("Can't resolve host: %s", name.c_str());
 		return empty_addr_set();
 		}
 
-	auto tv4 = d4->AddrsSet();
-
-	if ( d6 )
-		{
-		auto tv6 = d6->AddrsSet();
-		tv4->AddTo(tv6.get(), false);
-		return tv6;
-		}
-
-	return tv4;
+	return d->AddrsSet();
 	}
 
 StringValPtr DNS_Mgr::LookupAddrInCache(const IPAddr& addr, bool cleanup_expired, bool check_failed)
@@ -1366,10 +1310,7 @@ void DNS_Mgr::Flush()
 	Resolve();
 
 	for ( HostMap::iterator it = host_mappings.begin(); it != host_mappings.end(); ++it )
-		{
-		delete it->second.first;
-		delete it->second.second;
-		}
+		delete it->second;
 
 	for ( AddrMap::iterator it2 = addr_mappings.begin(); it2 != addr_mappings.end(); ++it2 )
 		delete it2->second;

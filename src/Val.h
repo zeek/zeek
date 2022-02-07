@@ -527,8 +527,7 @@ class StringVal final : public Val
 	{
 public:
 	explicit StringVal(String* s);
-	explicit StringVal(const char* s);
-	explicit StringVal(const std::string& s);
+	StringVal(std::string_view s);
 	StringVal(int length, const char* s);
 	~StringVal() override;
 

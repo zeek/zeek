@@ -939,9 +939,7 @@ StringVal::StringVal(int length, const char* s)
 	{
 	}
 
-StringVal::StringVal(const char* s) : StringVal(new String(s)) { }
-
-StringVal::StringVal(const string& s) : StringVal(s.length(), s.data()) { }
+StringVal::StringVal(std::string_view s) : StringVal(s.length(), s.data()) { }
 
 StringVal::~StringVal()
 	{

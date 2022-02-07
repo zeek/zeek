@@ -47,12 +47,7 @@ String::String(const u_char* str, int arg_n, bool add_NUL) : String()
 	Set(str, arg_n, add_NUL);
 	}
 
-String::String(const char* str) : String()
-	{
-	Set(str);
-	}
-
-String::String(const std::string& str) : String()
+String::String(std::string_view str) : String()
 	{
 	Set(str);
 	}
@@ -147,29 +142,19 @@ void String::Set(const u_char* str, int len, bool add_NUL)
 	use_free_to_delete = false;
 	}
 
-void String::Set(const char* str)
+void String::Set(std::string_view str)
 	{
 	Reset();
 
-	if ( str )
+	if ( str.data() )
 		{
-		n = strlen(str);
+		n = str.size();
 		b = new u_char[n + 1];
-		memcpy(b, str, n + 1);
+		memcpy(b, str.data(), n);
+		b[n] = 0;
 		final_NUL = true;
 		use_free_to_delete = false;
 		}
-	}
-
-void String::Set(const std::string& str)
-	{
-	Reset();
-
-	n = str.size();
-	b = new u_char[n + 1];
-	memcpy(b, str.c_str(), n + 1);
-	final_NUL = true;
-	use_free_to_delete = false;
 	}
 
 void String::Set(const String& str)

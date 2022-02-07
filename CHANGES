@@ -1,3 +1,7 @@
+5.0.0-dev.94 | 2022-02-07 08:14:47 -0700
+
+  * String/StringVal: Replace char*/string constructors with string_view (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.92 | 2022-02-04 10:33:47 -0700
 
   * fix existing checks for looking to use C++ when it's not available (Vern Paxson, Corelight)

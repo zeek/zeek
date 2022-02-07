@@ -43,8 +43,7 @@ public:
 
 	// Constructors creating internal copies of the data passed in.
 	String(const u_char* str, int arg_n, bool add_NUL);
-	explicit String(const char* str);
-	explicit String(const std::string& str);
+	String(std::string_view str);
 	String(const String& bs);
 
 	// Constructor that takes owernship of the vector passed in.
@@ -72,8 +71,7 @@ public:
 	// contents to a copy of the string given by the arguments.
 	//
 	void Set(const u_char* str, int len, bool add_NUL = true);
-	void Set(const char* str);
-	void Set(const std::string& str);
+	void Set(std::string_view str);
 	void Set(const String& str);
 
 	void SetUseFreeToDelete(int use_it) { use_free_to_delete = use_it; }

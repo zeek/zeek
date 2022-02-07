@@ -7,6 +7,7 @@
 #include <map>
 #include <queue>
 #include <utility>
+#include <variant>
 
 #include "zeek/EventHandler.h"
 #include "zeek/IPAddr.h"
@@ -248,7 +249,8 @@ protected:
 	                               bool check_failed = false);
 	TableValPtr LookupNameInCache(const std::string& name, bool cleanup_expired = false,
 	                              bool check_failed = false);
-	StringValPtr LookupTextInCache(const std::string& name, bool cleanup_expired = false);
+	StringValPtr LookupOtherInCache(const std::string& name, int request_type,
+	                                bool cleanup_expired = false);
 
 	// Finish the request if we have a result.  If not, time it out if
 	// requested.
@@ -265,12 +267,10 @@ protected:
 	void CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm);
 	ListValPtr AddrListDelta(ListVal* al1, ListVal* al2);
 
-	using HostMap = std::map<std::string, DNS_Mapping*>;
-	using AddrMap = std::map<IPAddr, DNS_Mapping*>;
-	using TextMap = std::map<std::string, DNS_Mapping*>;
+	using MappingKey = std::variant<IPAddr, std::pair<int, std::string>>;
+	using MappingMap = std::map<MappingKey, DNS_Mapping*>;
 	void LoadCache(const std::string& path);
-	void Save(FILE* f, const AddrMap& m);
-	void Save(FILE* f, const HostMap& m);
+	void Save(FILE* f, const MappingMap& m);
 
 	// Issue as many queued async requests as slots are available.
 	void IssueAsyncRequests();
@@ -283,9 +283,7 @@ protected:
 
 	DNS_MgrMode mode;
 
-	HostMap host_mappings;
-	AddrMap addr_mappings;
-	TextMap text_mappings;
+	MappingMap all_mappings;
 
 	std::string cache_name;
 	std::string dir; // directory in which cache_name resides

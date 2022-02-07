@@ -1,16 +1,20 @@
 #include "zeek/DNS_Mapping.h"
 
+#include <ares_nameser.h>
+
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/DNS_Mgr.h"
+#include "zeek/Reporter.h"
 
 namespace zeek::detail
 	{
 
-DNS_Mapping::DNS_Mapping(std::string host, struct hostent* h, uint32_t ttl)
+DNS_Mapping::DNS_Mapping(std::string host, struct hostent* h, uint32_t ttl, int type)
 	{
 	Init(h);
 	req_host = host;
 	req_ttl = ttl;
+	req_type = type;
 
 	if ( names.empty() )
 		names.push_back(std::move(host));
@@ -21,6 +25,7 @@ DNS_Mapping::DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl)
 	Init(h);
 	req_addr = addr;
 	req_ttl = ttl;
+	req_type = T_PTR;
 	}
 
 DNS_Mapping::DNS_Mapping(FILE* f)
@@ -45,7 +50,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	int num_addrs;
 
 	if ( sscanf(buf, "%lf %d %512s %d %512s %d %d %" PRIu32, &creation_time, &is_req_host, req_buf,
-	            &failed_local, name_buf, &map_type, &num_addrs, &req_ttl) != 8 )
+	            &failed_local, name_buf, &req_type, &num_addrs, &req_ttl) != 8 )
 		{
 		no_mapping = true;
 		return;
@@ -126,7 +131,6 @@ void DNS_Mapping::Init(struct hostent* h)
 		return;
 		}
 
-	map_type = h->h_addrtype;
 	if ( h->h_name )
 		// for now, just use the official name
 		// TODO: this could easily be expanded to include all of the aliases as well
@@ -153,7 +157,7 @@ void DNS_Mapping::Clear()
 	addrs.clear();
 	addrs_val = nullptr;
 	no_mapping = false;
-	map_type = 0;
+	req_type = 0;
 	failed = true;
 	}
 
@@ -161,7 +165,7 @@ void DNS_Mapping::Save(FILE* f) const
 	{
 	fprintf(f, "%.0f %d %s %d %s %d %zu %" PRIu32 "\n", creation_time, ! req_host.empty(),
 	        req_host.empty() ? req_addr.AsString().c_str() : req_host.c_str(), failed,
-	        names.empty() ? "*" : names[0].c_str(), map_type, addrs.size(), req_ttl);
+	        names.empty() ? "*" : names[0].c_str(), req_type, addrs.size(), req_ttl);
 
 	for ( const auto& addr : addrs )
 		fprintf(f, "%s\n", addr.AsString().c_str());
@@ -173,13 +177,38 @@ void DNS_Mapping::Merge(DNS_Mapping* other)
 	std::copy(other->addrs.begin(), other->addrs.end(), std::back_inserter(addrs));
 	}
 
+// This value needs to be incremented if something changes in the data stored by Save(). This
+// allows us to change the structure of the cache without breaking something in DNS_Mgr.
+constexpr int FILE_VERSION = 1;
+
+void DNS_Mapping::InitializeCache(FILE* f)
+	{
+	fprintf(f, "%d\n", FILE_VERSION);
+	}
+
+bool DNS_Mapping::ValidateCacheVersion(FILE* f)
+	{
+	char buf[512];
+	if ( ! fgets(buf, sizeof(buf), f) )
+		return false;
+
+	int version;
+	if ( sscanf(buf, "%d", &version) != 1 )
+		{
+		reporter->Warning("Existing DNS cache did not have correct version, ignoring");
+		return false;
+		}
+
+	return FILE_VERSION == version;
+	}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 
 TEST_CASE("dns_mapping init null hostent")
 	{
-	DNS_Mapping mapping(std::string("www.apple.com"), nullptr, 123);
+	DNS_Mapping mapping("www.apple.com", nullptr, 123, T_A);
 
 	CHECK(! mapping.Valid());
 	CHECK(mapping.Addrs() == nullptr);
@@ -202,7 +231,7 @@ TEST_CASE("dns_mapping init host")
 	std::vector<in_addr*> addrs = {&in4, NULL};
 	he.h_addr_list = reinterpret_cast<char**>(addrs.data());
 
-	DNS_Mapping mapping(std::string("testing.home"), &he, 123);
+	DNS_Mapping mapping("testing.home", &he, 123, T_A);
 	CHECK(mapping.Valid());
 	CHECK(mapping.ReqAddr() == IPAddr::v6_unspecified);
 	CHECK(strcmp(mapping.ReqHost(), "testing.home") == 0);
@@ -347,7 +376,7 @@ TEST_CASE("dns_mapping multiple addresses")
 	std::vector<in_addr*> addrs = {&in4_1, &in4_2, NULL};
 	he.h_addr_list = reinterpret_cast<char**>(addrs.data());
 
-	DNS_Mapping mapping(std::string("testing.home"), &he, 123);
+	DNS_Mapping mapping("testing.home", &he, 123, T_A);
 	CHECK(mapping.Valid());
 
 	auto lva = mapping.Addrs();

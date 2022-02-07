@@ -15,7 +15,7 @@ class DNS_Mapping
 	{
 public:
 	DNS_Mapping() = delete;
-	DNS_Mapping(std::string host, struct hostent* h, uint32_t ttl);
+	DNS_Mapping(std::string host, struct hostent* h, uint32_t ttl, int type);
 	DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl);
 	DNS_Mapping(FILE* f);
 
@@ -29,6 +29,7 @@ public:
 	const char* ReqHost() const { return req_host.empty() ? nullptr : req_host.c_str(); }
 	const IPAddr& ReqAddr() const { return req_addr; }
 	std::string ReqStr() const { return req_host.empty() ? req_addr.AsString() : req_host; }
+	int ReqType() const { return req_type; }
 
 	ListValPtr Addrs();
 	TableValPtr AddrsSet(); // addresses returned as a set
@@ -50,9 +51,10 @@ public:
 		return util::current_time() > (creation_time + req_ttl);
 		}
 
-	int Type() const { return map_type; }
-
 	void Merge(DNS_Mapping* other);
+
+	static void InitializeCache(FILE* f);
+	static bool ValidateCacheVersion(FILE* f);
 
 protected:
 	friend class DNS_Mgr;
@@ -63,6 +65,7 @@ protected:
 	std::string req_host;
 	IPAddr req_addr;
 	uint32_t req_ttl = 0;
+	int req_type = 0;
 
 	// This class supports multiple names per address, but we only store one of them.
 	std::vector<std::string> names;
@@ -72,7 +75,6 @@ protected:
 	ListValPtr addrs_val;
 
 	double creation_time = 0.0;
-	int map_type = AF_UNSPEC;
 	bool no_mapping = false; // when initializing from a file, immediately hit EOF
 	bool init_failed = false;
 	bool failed = false;

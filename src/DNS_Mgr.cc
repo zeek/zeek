@@ -49,6 +49,130 @@ constexpr int DNS_TIMEOUT = 5;
 // The maximum allowed number of pending asynchronous requests.
 constexpr int MAX_PENDING_REQUESTS = 20;
 
+// This unfortunately doesn't exist in c-ares, even though it seems rather useful.
+static const char* request_type_string(int request_type)
+	{
+	switch ( request_type )
+		{
+		case T_A:
+			return "T_A";
+		case T_NS:
+			return "T_NS";
+		case T_MD:
+			return "T_MD";
+		case T_MF:
+			return "T_MF";
+		case T_CNAME:
+			return "T_CNAME";
+		case T_SOA:
+			return "T_SOA";
+		case T_MB:
+			return "T_MB";
+		case T_MG:
+			return "T_MG";
+		case T_MR:
+			return "T_MR";
+		case T_NULL:
+			return "T_NULL";
+		case T_WKS:
+			return "T_WKS";
+		case T_PTR:
+			return "T_PTR";
+		case T_HINFO:
+			return "T_HINFO";
+		case T_MINFO:
+			return "T_MINFO";
+		case T_MX:
+			return "T_MX";
+		case T_TXT:
+			return "T_TXT";
+		case T_RP:
+			return "T_RP";
+		case T_AFSDB:
+			return "T_AFSDB";
+		case T_X25:
+			return "T_X25";
+		case T_ISDN:
+			return "T_ISDN";
+		case T_RT:
+			return "T_RT";
+		case T_NSAP:
+			return "T_NSAP";
+		case T_NSAP_PTR:
+			return "T_NSAP_PTR";
+		case T_SIG:
+			return "T_SIG";
+		case T_KEY:
+			return "T_KEY";
+		case T_PX:
+			return "T_PX";
+		case T_GPOS:
+			return "T_GPOS";
+		case T_AAAA:
+			return "T_AAAA";
+		case T_LOC:
+			return "T_LOC";
+		case T_NXT:
+			return "T_NXT";
+		case T_EID:
+			return "T_EID";
+		case T_NIMLOC:
+			return "T_NIMLOC";
+		case T_SRV:
+			return "T_SRV";
+		case T_ATMA:
+			return "T_ATMA";
+		case T_NAPTR:
+			return "T_NAPTR";
+		case T_KX:
+			return "T_KX";
+		case T_CERT:
+			return "T_CERT";
+		case T_A6:
+			return "T_A6";
+		case T_DNAME:
+			return "T_DNAME";
+		case T_SINK:
+			return "T_SINK";
+		case T_OPT:
+			return "T_OPT";
+		case T_APL:
+			return "T_APL";
+		case T_DS:
+			return "T_DS";
+		case T_SSHFP:
+			return "T_SSHFP";
+		case T_RRSIG:
+			return "T_RRSIG";
+		case T_NSEC:
+			return "T_NSEC";
+		case T_DNSKEY:
+			return "T_DNSKEY";
+		case T_TKEY:
+			return "T_TKEY";
+		case T_TSIG:
+			return "T_TSIG";
+		case T_IXFR:
+			return "T_IXFR";
+		case T_AXFR:
+			return "T_AXFR";
+		case T_MAILB:
+			return "T_MAILB";
+		case T_MAILA:
+			return "T_MAILA";
+		case T_ANY:
+			return "T_ANY";
+		case T_URI:
+			return "T_URI";
+		case T_CAA:
+			return "T_CAA";
+		case T_MAX:
+			return "T_MAX";
+		default:
+			return "";
+		}
+	}
+
 namespace zeek::detail
 	{
 static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinfo* result);
@@ -90,6 +214,10 @@ uint16_t DNS_Request::request_id = 0;
 DNS_Request::DNS_Request(std::string host, int request_type, bool async)
 	: host(std::move(host)), request_type(request_type), async(async)
 	{
+	// We combine the T_A and T_AAAA requests together in one request, so set the type
+	// to T_A to make things easier in other parts of the code (mostly around lookups).
+	if ( request_type == T_AAAA )
+		request_type = T_A;
 	}
 
 DNS_Request::DNS_Request(const IPAddr& addr, bool async) : addr(addr), async(async)
@@ -113,7 +241,7 @@ void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr)
 	// all of them would be in flight at the same time.
 	DNS_Request::request_id++;
 
-	if ( request_type == T_A || request_type == T_AAAA )
+	if ( request_type == T_A )
 		{
 		// For A/AAAA requests, we use a different method than the other requests. Since
 		// we're using the AF_UNSPEC family, we get both the ipv4 and ipv6 responses
@@ -149,7 +277,7 @@ void DNS_Request::ProcessAsyncResult(bool timed_out, DNS_Mgr* mgr)
 	if ( ! async )
 		return;
 
-	if ( request_type == T_A || request_type == T_AAAA )
+	if ( request_type == T_A )
 		mgr->CheckAsyncHostRequest(host, timed_out);
 	else if ( request_type == T_PTR )
 		mgr->CheckAsyncAddrRequest(addr, timed_out);
@@ -385,7 +513,8 @@ static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, in
 				}
 
 			default:
-				reporter->Error("Requests of type %d are unsupported", req->RequestType());
+				reporter->Error("Requests of type %d (%s) are unsupported", req->RequestType(),
+				                request_type_string(req->RequestType()));
 				break;
 			}
 		}
@@ -531,9 +660,9 @@ static TableValPtr fake_name_lookup_result(const std::string& name)
 	return hv->ToSetVal();
 	}
 
-static std::string fake_text_lookup_result(const std::string name)
+static std::string fake_lookup_result(const std::string& name, int request_type)
 	{
-	return util::fmt("fake_text_lookup_result_%s", name.c_str());
+	return util::fmt("fake_lookup_result_%s_%s", request_type_string(request_type), name.c_str());
 	}
 
 static std::string fake_addr_lookup_result(const IPAddr& addr)
@@ -558,14 +687,14 @@ ValPtr DNS_Mgr::Lookup(const std::string& name, int request_type)
 	if ( request_type == T_A || request_type == T_AAAA )
 		return LookupHost(name);
 
-	if ( mode == DNS_FAKE && request_type == T_TXT )
-		return make_intrusive<StringVal>(fake_text_lookup_result(name));
+	if ( mode == DNS_FAKE )
+		return make_intrusive<StringVal>(fake_lookup_result(name, request_type));
 
 	InitSource();
 
-	if ( mode != DNS_PRIME && request_type == T_TXT )
+	if ( mode != DNS_PRIME )
 		{
-		if ( auto val = LookupTextInCache(name, false) )
+		if ( auto val = LookupOtherInCache(name, request_type, false) )
 			return val;
 		}
 
@@ -579,8 +708,8 @@ ValPtr DNS_Mgr::Lookup(const std::string& name, int request_type)
 			}
 
 		case DNS_FORCE:
-			reporter->FatalError("can't find DNS entry for %s (req type %d) in cache", name.c_str(),
-			                     request_type);
+			reporter->FatalError("can't find DNS entry for %s (req type %d / %s) in cache",
+			                     name.c_str(), request_type, request_type_string(request_type));
 			return nullptr;
 
 		case DNS_DEFAULT:
@@ -783,12 +912,12 @@ void DNS_Mgr::Lookup(const std::string& name, int request_type, LookupCallback* 
 
 	if ( mode == DNS_FAKE )
 		{
-		resolve_lookup_cb(callback, fake_text_lookup_result(name));
+		resolve_lookup_cb(callback, fake_lookup_result(name, request_type));
 		return;
 		}
 
 	// Do we already know the answer?
-	if ( auto txt = LookupTextInCache(name, true) )
+	if ( auto txt = LookupOtherInCache(name, request_type, true) )
 		{
 		resolve_lookup_cb(callback, txt->CheckString());
 		return;
@@ -885,97 +1014,49 @@ void DNS_Mgr::AddResult(DNS_Request* dr, struct hostent* h, uint32_t ttl, bool m
 	DNS_Mapping* prev_mapping = nullptr;
 	bool keep_prev = true;
 
-	if ( ! dr->Host().empty() )
-		{
-		new_mapping = new DNS_Mapping(dr->Host(), h, ttl);
-
-		if ( dr->IsTxt() )
-			{
-			TextMap::iterator it = text_mappings.find(dr->Host());
-
-			if ( it == text_mappings.end() )
-				{
-				auto result = text_mappings.emplace(dr->Host(), new_mapping);
-				it = result.first;
-				}
-			else
-				prev_mapping = it->second;
-
-			if ( prev_mapping && prev_mapping->Valid() )
-				{
-				if ( new_mapping->Valid() )
-					{
-					if ( merge )
-						new_mapping->Merge(prev_mapping);
-
-					it->second = new_mapping;
-					keep_prev = false;
-					}
-				}
-			else
-				{
-				it->second = new_mapping;
-				keep_prev = false;
-				}
-			}
-		else
-			{
-			HostMap::iterator it = host_mappings.find(dr->Host());
-			if ( it == host_mappings.end() )
-				{
-				auto result = host_mappings.emplace(dr->Host(), new_mapping);
-				it = result.first;
-				}
-			else
-				prev_mapping = it->second;
-
-			if ( prev_mapping && prev_mapping->Valid() )
-				{
-				if ( new_mapping->Valid() )
-					{
-					if ( merge )
-						new_mapping->Merge(prev_mapping);
-
-					it->second = new_mapping;
-					keep_prev = false;
-					}
-				}
-			else
-				{
-				it->second = new_mapping;
-				keep_prev = false;
-				}
-			}
-		}
-	else
+	MappingMap::iterator it;
+	if ( dr->RequestType() == T_PTR )
 		{
 		new_mapping = new DNS_Mapping(dr->Addr(), h, ttl);
-
-		AddrMap::iterator it = addr_mappings.find(dr->Addr());
-		if ( it == addr_mappings.end() )
+		it = all_mappings.find(dr->Addr());
+		if ( it == all_mappings.end() )
 			{
-			auto result = addr_mappings.emplace(dr->Addr(), new_mapping);
+			auto result = all_mappings.emplace(dr->Addr(), new_mapping);
 			it = result.first;
 			}
 		else
 			prev_mapping = it->second;
+		}
+	else
+		{
+		new_mapping = new DNS_Mapping(dr->Host(), h, ttl, dr->RequestType());
+		auto key = std::make_pair(dr->RequestType(), dr->Host());
 
-		if ( prev_mapping && prev_mapping->Valid() )
+		it = all_mappings.find(key);
+		if ( it == all_mappings.end() )
 			{
-			if ( new_mapping->Valid() )
-				{
-				if ( merge )
-					new_mapping->Merge(prev_mapping);
-
-				it->second = new_mapping;
-				keep_prev = false;
-				}
+			auto result = all_mappings.emplace(std::move(key), new_mapping);
+			it = result.first;
 			}
 		else
+			prev_mapping = it->second;
+		}
+
+	if ( prev_mapping && prev_mapping->Valid() )
+		{
+		if ( new_mapping->Valid() )
 			{
+			if ( merge )
+				new_mapping->Merge(prev_mapping);
+
 			it->second = new_mapping;
 			keep_prev = false;
 			}
+		}
+	else
+		{
+		it->second = new_mapping;
+		keep_prev = false;
 		}
 
 	if ( prev_mapping && ! dr->IsTxt() )
@@ -1065,14 +1146,17 @@ void DNS_Mgr::LoadCache(const std::string& path)
 	if ( ! f )
 		return;
 
+	if ( ! DNS_Mapping::ValidateCacheVersion(f) )
+		return;
+
 	// Loop until we find a mapping that doesn't initialize correctly.
 	DNS_Mapping* m = new DNS_Mapping(f);
 	for ( ; ! m->NoMapping() && ! m->InitFailed(); m = new DNS_Mapping(f) )
 		{
 		if ( m->ReqHost() )
-			host_mappings.insert_or_assign(m->ReqHost(), m);
+			all_mappings.insert_or_assign(std::make_pair(m->ReqType(), m->ReqHost()), m);
 		else
-			addr_mappings.insert_or_assign(m->ReqAddr(), m);
+			all_mappings.insert_or_assign(m->ReqAddr(), m);
 		}
 
 	if ( ! m->NoMapping() )
@@ -1092,38 +1176,28 @@ bool DNS_Mgr::Save()
 	if ( ! f )
 		return false;
 
-	Save(f, host_mappings);
-	Save(f, addr_mappings);
-	// Save(f, text_mappings); // We don't save the TXT mappings (yet?).
+	DNS_Mapping::InitializeCache(f);
+	Save(f, all_mappings);
 
 	fclose(f);
 
 	return true;
 	}
 
-void DNS_Mgr::Save(FILE* f, const AddrMap& m)
+void DNS_Mgr::Save(FILE* f, const MappingMap& m)
 	{
-	for ( AddrMap::const_iterator it = m.begin(); it != m.end(); ++it )
+	for ( const auto& [key, mapping] : m )
 		{
-		if ( it->second )
-			it->second->Save(f);
-		}
-	}
-
-void DNS_Mgr::Save(FILE* f, const HostMap& m)
-	{
-	for ( HostMap::const_iterator it = m.begin(); it != m.end(); ++it )
-		{
-		if ( it->second )
-			it->second->Save(f);
+		if ( mapping )
+			mapping->Save(f);
 		}
 	}
 
 TableValPtr DNS_Mgr::LookupNameInCache(const std::string& name, bool cleanup_expired,
                                        bool check_failed)
 	{
-	HostMap::iterator it = host_mappings.find(name);
-	if ( it == host_mappings.end() )
+	auto it = all_mappings.find(std::make_pair(T_A, name));
+	if ( it == all_mappings.end() )
 		return nullptr;
 
 	DNS_Mapping* d = it->second;
@@ -1133,7 +1207,7 @@ TableValPtr DNS_Mgr::LookupNameInCache(const std::string& name, bool cleanup_exp
 
 	if ( cleanup_expired && (d && d->Expired()) )
 		{
-		host_mappings.erase(it);
+		all_mappings.erase(it);
 		delete d;
 		return nullptr;
 		}
@@ -1149,15 +1223,15 @@ TableValPtr DNS_Mgr::LookupNameInCache(const std::string& name, bool cleanup_exp
 
 StringValPtr DNS_Mgr::LookupAddrInCache(const IPAddr& addr, bool cleanup_expired, bool check_failed)
 	{
-	AddrMap::iterator it = addr_mappings.find(addr);
-	if ( it == addr_mappings.end() )
+	auto it = all_mappings.find(addr);
+	if ( it == all_mappings.end() )
 		return nullptr;
 
 	DNS_Mapping* d = it->second;
 
 	if ( cleanup_expired && d->Expired() )
 		{
-		addr_mappings.erase(it);
+		all_mappings.erase(it);
 		delete d;
 		return nullptr;
 		}
@@ -1174,17 +1248,18 @@ StringValPtr DNS_Mgr::LookupAddrInCache(const IPAddr& addr, bool cleanup_expired
 	return make_intrusive<StringVal>("<\?\?\?>");
 	}
 
-StringValPtr DNS_Mgr::LookupTextInCache(const std::string& name, bool cleanup_expired)
+StringValPtr DNS_Mgr::LookupOtherInCache(const std::string& name, int request_type,
+                                         bool cleanup_expired)
 	{
-	TextMap::iterator it = text_mappings.find(name);
-	if ( it == text_mappings.end() )
+	auto it = all_mappings.find(std::make_pair(request_type, name));
+	if ( it == all_mappings.end() )
 		return nullptr;
 
 	DNS_Mapping* d = it->second;
 
 	if ( cleanup_expired && d->Expired() )
 		{
-		text_mappings.erase(it);
+		all_mappings.erase(it);
 		delete d;
 		return nullptr;
 		}
@@ -1291,7 +1366,7 @@ void DNS_Mgr::CheckAsyncTextRequest(const std::string& host, bool timeout)
 			++failed;
 			i->second->Timeout();
 			}
-		else if ( auto name = LookupTextInCache(host, true) )
+		else if ( auto name = LookupOtherInCache(host, T_TXT, true) )
 			{
 			++successful;
 			i->second->Resolved(name->CheckString());
@@ -1309,18 +1384,10 @@ void DNS_Mgr::Flush()
 	{
 	Resolve();
 
-	for ( HostMap::iterator it = host_mappings.begin(); it != host_mappings.end(); ++it )
-		delete it->second;
+	for ( auto& [key, mapping] : all_mappings )
+		delete mapping;
 
-	for ( AddrMap::iterator it2 = addr_mappings.begin(); it2 != addr_mappings.end(); ++it2 )
-		delete it2->second;
-
-	for ( TextMap::iterator it3 = text_mappings.begin(); it3 != text_mappings.end(); ++it3 )
-		delete it3->second;
-
-	host_mappings.clear();
-	addr_mappings.clear();
-	text_mappings.clear();
+	all_mappings.clear();
 	}
 
 double DNS_Mgr::GetNextTimeout()
@@ -1357,9 +1424,20 @@ void DNS_Mgr::GetStats(Stats* stats)
 	stats->successful = successful;
 	stats->failed = failed;
 	stats->pending = asyncs_pending;
-	stats->cached_hosts = host_mappings.size();
-	stats->cached_addresses = addr_mappings.size();
-	stats->cached_texts = text_mappings.size();
+
+	stats->cached_hosts = 0;
+	stats->cached_addresses = 0;
+	stats->cached_texts = 0;
+
+	for ( const auto& [key, mapping] : all_mappings )
+		{
+		if ( mapping->ReqType() == T_PTR )
+			stats->cached_addresses++;
+		else if ( mapping->ReqType() == T_A )
+			stats->cached_hosts++;
+		else
+			stats->cached_texts++;
+		}
 	}
 
 void DNS_Mgr::AsyncRequest::Resolved(const std::string& name)

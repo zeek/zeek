@@ -1,3 +1,7 @@
+5.0.0-dev.100 | 2022-02-07 14:18:50 -0800
+
+  * Add capture to a Sumstats when-statement to fix deprecation warning (Christian Kreibich, Corelight)
+
 5.0.0-dev.97 | 2022-02-07 16:24:06 +0100
 
   * Update to latest Broker without public CAF dependencies. (Dominik

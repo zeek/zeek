@@ -481,7 +481,7 @@ function request_key(ss_name: string, key: Key): Result
 	add dynamic_requests[uid];
 
 	event SumStats::cluster_get_result(uid, ss_name, key, F);
-	return when ( uid in done_with && Cluster::worker_count == done_with[uid] )
+	return when [uid, ss_name, key] ( uid in done_with && Cluster::worker_count == done_with[uid] )
 		{
 		#print "done with request_key";
 		local result = key_requests[uid];

@@ -26,6 +26,7 @@
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/EventRegistry.h"
+#include "zeek/EventTrace.h"
 #include "zeek/File.h"
 #include "zeek/Frag.h"
 #include "zeek/Frame.h"
@@ -299,7 +300,18 @@ static void terminate_zeek()
 		event_mgr.Enqueue(zeek_done, Args{});
 
 	timer_mgr->Expire();
+
+	// Drain() limits how many "generations" of newly created events
+	// it will process.  When we're terminating, however, we're okay
+	// with long chains of events, and this makes the workings of
+	// event-tracing simpler.
+	//
+	// That said, we also need to ensure that it runs at least once,
+	// as it has side effects such as tickling triggers.
 	event_mgr.Drain();
+
+	while ( event_mgr.HasEvents() )
+		event_mgr.Drain();
 
 	if ( profiling_logger )
 		{

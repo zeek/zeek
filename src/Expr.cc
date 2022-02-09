@@ -8,6 +8,7 @@
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/EventRegistry.h"
+#include "zeek/EventTrace.h"
 #include "zeek/Frame.h"
 #include "zeek/Func.h"
 #include "zeek/Hash.h"
@@ -4323,7 +4324,14 @@ ValPtr ScheduleExpr::Eval(Frame* f) const
 	auto args = eval_list(f, event->Args());
 
 	if ( args )
-		timer_mgr->Add(new ScheduleTimer(event->Handler(), std::move(*args), dt));
+		{
+		auto handler = event->Handler();
+
+		if ( etm )
+			etm->ScriptEventQueued(handler);
+
+		timer_mgr->Add(new ScheduleTimer(handler, std::move(*args), dt));
+		}
 
 	return nullptr;
 	}
@@ -4862,7 +4870,12 @@ ValPtr EventExpr::Eval(Frame* f) const
 	auto v = eval_list(f, args.get());
 
 	if ( handler )
+		{
+		if ( etm )
+			etm->ScriptEventQueued(handler);
+
 		event_mgr.Enqueue(handler, std::move(*v));
+		}
 
 	return nullptr;
 	}

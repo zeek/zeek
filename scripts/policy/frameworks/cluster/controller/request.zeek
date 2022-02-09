@@ -8,7 +8,12 @@
 module ClusterController::Request;
 
 export {
-	## Request records track each request's state.
+	## Request records track state associated with a request/response event
+	## pair. Calls to
+	## :zeek:see:`ClusterController::Request::create` establish such state
+	## when an entity sends off a request event, while
+	## :zeek:see:`ClusterController::Request::finish` clears the state when
+	## a corresponding response event comes in, or the state times out.
 	type Request: record {
 		## Each request has a hopfully unique ID provided by the requester.
 		id: string;

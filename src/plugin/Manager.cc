@@ -423,16 +423,26 @@ void Manager::ExtendZeekPathForPlugins()
 		if ( p->DynamicPlugin() || p->Name().empty() )
 			continue;
 
-		string canon = std::regex_replace(p->Name(), std::regex("::"), "_");
-		string dir = "builtin-plugins/" + canon;
+		try
+			{
+			string canon = std::regex_replace(p->Name(), std::regex("::"), "_");
+			string dir = "builtin-plugins/" + canon;
 
-		// Use find_file to find the directory in the path.
-		string script_dir = util::find_file(dir, util::zeek_path());
-		if ( script_dir.empty() || ! util::is_dir(script_dir) )
-			continue;
+			// Use find_file to find the directory in the path.
+			string script_dir = util::find_file(dir, util::zeek_path());
+			if ( script_dir.empty() || ! util::is_dir(script_dir) )
+				continue;
 
-		DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", script_dir.c_str());
-		path_additions.push_back(script_dir);
+			DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", script_dir.c_str());
+			path_additions.push_back(script_dir);
+			}
+		catch ( const std::regex_error& e )
+			{
+			// This really shouldn't ever happen, but we do need to catch the exception.
+			// Report a fatal error because something is wrong if this occurs.
+			reporter->FatalError("Failed to replace colons in plugin name %s: %s",
+			                     p->Name().c_str(), e.what());
+			}
 		}
 
 	for ( const auto& plugin_path : path_additions )

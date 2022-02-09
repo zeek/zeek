@@ -728,7 +728,7 @@ bool StmtList::IsReduced(Reducer* c) const
 
 StmtPtr StmtList::DoReduce(Reducer* c)
 	{
-	StmtPList* f_stmts = new StmtPList;
+	StmtPList* f_stmts = new StmtPList{};
 	bool did_change = false;
 
 	int n = Stmts().length();
@@ -749,7 +749,10 @@ StmtPtr StmtList::DoReduce(Reducer* c)
 		}
 
 	if ( f_stmts->length() == 0 )
+		{
+		delete f_stmts;
 		return TransformMe(make_intrusive<NullStmt>(), c);
+		}
 
 	if ( f_stmts->length() == 1 )
 		return (*f_stmts)[0]->Reduce(c);

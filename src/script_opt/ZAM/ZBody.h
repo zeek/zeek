@@ -70,7 +70,7 @@ protected:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 private:
-	const char* func_name;
+	const char* func_name = nullptr;
 
 	const ZInst* insts = nullptr;
 	unsigned int ninst;
@@ -109,7 +109,7 @@ private:
 	// const method.
 	std::vector<int>* inst_count = nullptr; // for profiling
 	double* CPU_time = nullptr; // cumulative CPU time for the program
-	std::vector<double>* inst_CPU; // per-instruction CPU time.
+	std::vector<double>* inst_CPU = nullptr; // per-instruction CPU time.
 
 	CaseMaps<bro_int_t> int_cases;
 	CaseMaps<bro_uint_t> uint_cases;

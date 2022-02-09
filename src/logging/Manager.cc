@@ -31,27 +31,27 @@ namespace zeek::logging
 
 struct Manager::Filter
 	{
-	Val* fval;
+	Val* fval = nullptr;
 	string name;
-	EnumVal* id;
-	Func* policy;
-	Func* path_func;
+	EnumVal* id = nullptr;
+	Func* policy = nullptr;
+	Func* path_func = nullptr;
 	string path;
-	Val* path_val;
-	EnumVal* writer;
-	TableVal* config;
-	TableVal* field_name_map;
+	Val* path_val = nullptr;
+	EnumVal* writer = nullptr;
+	TableVal* config = nullptr;
+	TableVal* field_name_map = nullptr;
 	string scope_sep;
 	string ext_prefix;
-	Func* ext_func;
-	int num_ext_fields;
-	bool local;
-	bool remote;
-	double interval;
-	Func* postprocessor;
+	Func* ext_func = nullptr;
+	int num_ext_fields = 0;
+	bool local = false;
+	bool remote = false;
+	double interval = 0.0;
+	Func* postprocessor = nullptr;
 
-	int num_fields;
-	threading::Field** fields;
+	int num_fields = 0;
+	threading::Field** fields = nullptr;
 
 	// Vector indexed by field number. Each element is a list of record
 	// indices defining a path leading to the value across potential
@@ -63,26 +63,26 @@ struct Manager::Filter
 
 struct Manager::WriterInfo
 	{
-	EnumVal* type;
-	double open_time;
-	detail::Timer* rotation_timer;
-	double interval;
-	Func* postprocessor;
-	WriterFrontend* writer;
-	WriterBackend::WriterInfo* info;
-	bool from_remote;
-	bool hook_initialized;
+	EnumVal* type = nullptr;
+	double open_time = 0.0;
+	detail::Timer* rotation_timer = nullptr;
+	double interval = 0.0;
+	Func* postprocessor = nullptr;
+	WriterFrontend* writer = nullptr;
+	WriterBackend::WriterInfo* info = nullptr;
+	bool from_remote = false;
+	bool hook_initialized = false;
 	string instantiating_filter;
 	};
 
 struct Manager::Stream
 	{
-	EnumVal* id;
-	bool enabled;
+	EnumVal* id = nullptr;
+	bool enabled = false;
 	string name;
-	RecordType* columns;
+	RecordType* columns = nullptr;
 	EventHandlerPtr event;
-	Func* policy;
+	Func* policy = nullptr;
 	list<Filter*> filters;
 
 	using WriterPathPair = pair<int, string>;

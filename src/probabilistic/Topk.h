@@ -171,12 +171,12 @@ private:
 	void Typify(TypePtr t);
 
 	TypePtr type;
-	zeek::detail::CompositeHash* hash;
+	zeek::detail::CompositeHash* hash = nullptr;
 	std::list<Bucket*> buckets;
-	PDict<Element>* elementDict;
-	uint64_t size; // how many elements are we tracking?
-	uint64_t numElements; // how many elements do we have at the moment
-	bool pruned; // was this data structure pruned?
+	PDict<Element>* elementDict = nullptr;
+	uint64_t size = 0; // how many elements are we tracking?
+	uint64_t numElements = 0; // how many elements do we have at the moment
+	bool pruned = false; // was this data structure pruned?
 	};
 
 	} // namespace zeek::probabilistic::detail

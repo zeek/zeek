@@ -1,3 +1,9 @@
+5.0.0-dev.104 | 2022-02-09 13:14:04 -0800
+
+  * Updates to the cluster controller scripts to fix the docs build (Christian Kreibich, Corelight)
+
+  * Bump zeek-client for Broker enum fix/workaround (Christian Kreibich, Corelight)
+
 5.0.0-dev.100 | 2022-02-07 14:18:50 -0800
 
   * Add capture to a Sumstats when-statement to fix deprecation warning (Christian Kreibich, Corelight)

@@ -56,7 +56,7 @@ export {
 	## reqid: the request identifier used in the request event.
 	##
 	## result: a :zeek:see:`ClusterController::Types::Result` record. Its data
-	##     member is a vector of :zeek:see:`ClusterController::Types::NodeState`
+	##     member is a vector of :zeek:see:`ClusterController::Types::NodeStatus`
 	##     records, covering the nodes at this instance. The result may also
 	##     indicate failure, with error messages indicating what went wrong.
 	##

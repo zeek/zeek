@@ -73,7 +73,7 @@ export {
 	##
 	## result: a :zeek:type`vector` of :zeek:see:`ClusterController::Types::Result`
 	##     records. Each record covers one cluster instance. Each record's data
-	##     member is a vector of :zeek:see:`ClusterController::Types::NodeState`
+	##     member is a vector of :zeek:see:`ClusterController::Types::NodeStatus`
 	##     records, covering the nodes at that instance. Results may also indicate
 	##     failure, with error messages indicating what went wrong.
 	global get_nodes_response: event(reqid: string,

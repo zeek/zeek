@@ -13,10 +13,15 @@
 
 module ClusterAgent::Runtime;
 
-# Request state specific to supervisor interactions
-type SupervisorState: record {
-	node: string;
-};
+# This export is mainly to appease Zeekygen's need to understand redefs of the
+# Request record below. Without it, it fails to establish link targets for the
+# tucked-on types.
+export {
+	## Request state specific to the agent's Supervisor interactions.
+	type SupervisorState: record {
+		node: string; ##< Name of the node the Supervisor is acting on.
+	};
+}
 
 redef record ClusterController::Request::Request += {
 	supervisor_state: SupervisorState &optional;

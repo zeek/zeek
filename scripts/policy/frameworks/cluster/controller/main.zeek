@@ -15,19 +15,31 @@
 
 module ClusterController::Runtime;
 
-# Request state specific to the set_configuration request/response events
-type SetConfigurationState: record {
-	config: ClusterController::Types::Configuration;
-	requests: set[string] &default=set();
-};
+# This export is mainly to appease Zeekygen's need to understand redefs of the
+# Request record below. Without it, it fails to establish link targets for the
+# tucked-on types.
+export {
+	## Request state specific to
+	## :zeek:see:`ClusterController::API::set_configuration_request` and
+	## :zeek:see:`ClusterController::API::set_configuration_response`.
+	type SetConfigurationState: record {
+		## The cluster configuration established with this request
+		config: ClusterController::Types::Configuration;
+		## Request state for every controller/agent transaction.
+		requests: set[string] &default=set();
+	};
 
-# Request state specific to the get_nodes request/response events
-type GetNodesState: record {
-	requests: set[string] &default=set();
-};
+	## Request state specific to
+	## :zeek:see:`ClusterController::API::get_nodes_request` and
+	## :zeek:see:`ClusterController::API::get_nodes_response`.
+	type GetNodesState: record {
+		## Request state for every controller/agent transaction.
+		requests: set[string] &default=set();
+	};
 
-# Dummy state for testing events.
-type TestState: record { };
+	## Dummy state for internal state-keeping test cases.
+	type TestState: record { };
+}
 
 redef record ClusterController::Request::Request += {
 	set_configuration_state: SetConfigurationState &optional;

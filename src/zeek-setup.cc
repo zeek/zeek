@@ -670,6 +670,9 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		};
 		auto ipbb = make_intrusive<BuiltinFunc>(init_bifs, ipbid->Name(), false);
 
+		if ( options.event_trace_file )
+			etm = make_unique<EventTraceMgr>(*options.event_trace_file);
+
 		run_state::is_parsing = true;
 		yyparse();
 		run_state::is_parsing = false;

@@ -313,6 +313,7 @@ set(MAIN_SRCS
     EventHandler.cc
     EventLauncher.cc
     EventRegistry.cc
+    EventTrace.cc
     Expr.cc
     File.cc
     Flare.cc

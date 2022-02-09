@@ -17,15 +17,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          token: ${{ secrets.ZEEK_BOT_TOKEN }}
+          submodules: "recursive"
 
-      - name: Sync Submodules
-        run: |
-          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
-          git submodule sync --recursive
-          git -c "http.extraheader=$auth_header" -c protocol.version=2 \
-            submodule update --init --force --recursive --depth=1
-          ( cd doc && git checkout master )
+      - name: Switch doc submodule to master
+        run: cd doc && git checkout master
 
       - name: Fetch Dependencies
         run: |
@@ -58,8 +53,7 @@ jobs:
         run: ./configure
 
       - name: Build
-        run: |
-          ( cd build && make -j 3 )
+        run: cd build && make -j $(nproc)
 
       - name: Generate Docs
         run: |

@@ -11,14 +11,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Update Submodules
-        shell: bash
-        run: |
-          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
-          git submodule sync --recursive
-          git -c "http.extraheader=$auth_header" -c protocol.version=2 \
-            submodule update --init --force --recursive --depth=1
+        with:
+          submodules: "recursive"
 
       - name: Fetch Dependencies
         run: |
@@ -45,7 +39,7 @@ jobs:
             wget
 
       - name: Install CAF
-        run: ( cd auxil/broker/caf && ./configure --prefix=`pwd`/build/install-root && cd build && make -j 3 install )
+        run: cd auxil/broker/caf && ./configure --prefix=`pwd`/build/install-root && cd build && make -j $(nproc) install
 
       - name: Configure
         run: ./configure --build-type=debug --with-caf=`pwd`/auxil/broker/caf/build/install-root --disable-broker-tests
@@ -65,7 +59,7 @@ jobs:
       - name: Build
         run: |
           export PATH=`pwd`/coverity-tools/bin:$PATH
-          ( cd build && cov-build --dir cov-int make -j 3 )
+          ( cd build && cov-build --dir cov-int make -j $(nproc) )
           cat build/cov-int/build-log.txt
 
       - name: Submit

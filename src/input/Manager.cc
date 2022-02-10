@@ -1473,8 +1473,9 @@ void Manager::SendEndOfData(const Stream* i)
 #ifdef DEBUG
 	DBG_LOG(DBG_INPUT, "SendEndOfData for stream %s", i->name.c_str());
 #endif
-	SendEvent(end_of_data, 2, new StringVal(i->name.c_str()),
-	          new StringVal(i->reader->Info().source));
+	auto name = make_intrusive<StringVal>(i->name.c_str());
+	auto source = make_intrusive<StringVal>(i->reader->Info().source);
+	SendEvent(end_of_data, 2, name->Ref(), source->Ref());
 
 	if ( i->stream_type == ANALYSIS_STREAM )
 		file_mgr->EndOfFile(static_cast<const AnalysisStream*>(i)->file_id);
@@ -2560,8 +2561,8 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 				__builtin_unreachable();
 			}
 
-		auto* message = new StringVal(buf);
-		SendEvent(i->error_event, 3, i->description->Ref(), message, ev.release());
+		auto message = make_intrusive<StringVal>(buf);
+		SendEvent(i->error_event, 3, i->description->Ref(), message->Ref(), ev.release());
 		}
 
 	if ( reporter_send )

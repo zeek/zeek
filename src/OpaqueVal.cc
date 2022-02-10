@@ -215,7 +215,10 @@ HashVal::HashVal(OpaqueTypePtr t) : OpaqueVal(std::move(t))
 	valid = false;
 	}
 
-MD5Val::MD5Val() : HashVal(md5_type) { }
+MD5Val::MD5Val() : HashVal(md5_type)
+	{
+	memset(&ctx, 0, sizeof(ctx));
+	}
 
 MD5Val::~MD5Val() { }
 
@@ -324,7 +327,10 @@ bool MD5Val::DoUnserialize(const broker::data& data)
 	return true;
 	}
 
-SHA1Val::SHA1Val() : HashVal(sha1_type) { }
+SHA1Val::SHA1Val() : HashVal(sha1_type)
+	{
+	memset(&ctx, 0, sizeof(ctx));
+	}
 
 SHA1Val::~SHA1Val() { }
 
@@ -414,7 +420,10 @@ bool SHA1Val::DoUnserialize(const broker::data& data)
 	return true;
 	}
 
-SHA256Val::SHA256Val() : HashVal(sha256_type) { }
+SHA256Val::SHA256Val() : HashVal(sha256_type)
+	{
+	memset(&ctx, 0, sizeof(ctx));
+	}
 
 SHA256Val::~SHA256Val() { }
 

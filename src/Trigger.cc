@@ -166,7 +166,7 @@ void Trigger::Init(ExprPtr arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts
 
 	DBG_LOG(DBG_NOTIFIERS, "%s: instantiating", Name());
 
-	if ( is_return )
+	if ( is_return && frame && arg_frame )
 		{
 		Trigger* parent = frame->GetTrigger();
 		if ( ! parent )

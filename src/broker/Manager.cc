@@ -1811,7 +1811,10 @@ detail::StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend 
 	Ref(handle);
 
 	data_stores.emplace(name, handle);
-	iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this);
+	if ( ! iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this) )
+		reporter->FatalError(
+			"Failed to register broker master mailbox descriptor with iosource_mgr");
+
 	PrepareForwarding(name);
 
 	if ( ! bstate->endpoint.use_real_time() )
@@ -1916,7 +1919,9 @@ detail::StoreHandleVal* Manager::MakeClone(const string& name, double resync_int
 	Ref(handle);
 
 	data_stores.emplace(name, handle);
-	iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this);
+	if ( ! iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this) )
+		reporter->FatalError(
+			"Failed to register broker clone mailbox descriptor with iosource_mgr");
 	PrepareForwarding(name);
 	return handle;
 	}

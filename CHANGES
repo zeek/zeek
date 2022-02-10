@@ -1,3 +1,7 @@
+5.0.0-dev.108 | 2022-02-10 10:35:02 -0700
+
+  * Fixing a big pile of Coverity issues (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.106 | 2022-02-09 15:15:21 -0800
 
   * Expand generate-docs Github workflow to test docs build on PRs (Christian Kreibich, Corelight)

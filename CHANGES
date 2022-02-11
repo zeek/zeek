@@ -1,3 +1,11 @@
+5.0.0-dev.112 | 2022-02-10 17:56:27 -0800
+
+  * Reorg of the cluster controller to new "Management framework" layout (Christian Kreibich, Corelight)
+
+  * Bump external cluster testsuite to reflect Management framework reorg (Christian Kreibich, Corelight)
+
+  * Bump zeek-client to reflect Management framework reorg (Christian Kreibich, Corelight)
+
 5.0.0-dev.108 | 2022-02-10 10:35:02 -0700
 
   * Fixing a big pile of Coverity issues (Tim Wojtulewicz, Corelight)

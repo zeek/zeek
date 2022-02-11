@@ -1,11 +1,11 @@
-##! This module implements straightforward logging abilities for cluster
-##! controller and agent. It uses Zeek's logging framework, and works only for
-##! nodes managed by the supervisor. In this setting Zeek's logging framework
-##! operates locally, i.e., this logging does not involve any logger nodes.
+##! This module implements logging abilities for controller and agent. It uses
+##! Zeek's logging framework and works only for nodes managed by the
+##! supervisor. In this setting Zeek's logging framework operates locally, i.e.,
+##! this does not involve logger nodes.
 
-@load ./config
+@load ./types
 
-module ClusterController::Log;
+module Management::Log;
 
 export {
 	## The cluster logging stream identifier.
@@ -25,12 +25,12 @@ export {
 	## The record type containing the column fields of the agent/controller log.
 	type Info: record {
 		## The time at which a cluster message was generated.
-		ts:       time;
+		ts: time;
 		## The name of the node that is creating the log record.
 		node: string;
 		## Log level of this message, converted from the above Level enum
 		level: string;
-		## The role of the node, translated from ClusterController::Types::Role.
+		## The role of the node, translated from Management::Role.
 		role: string;
 		## A message indicating information about cluster controller operation.
 		message:  string;
@@ -63,6 +63,10 @@ export {
 	## message: the message to log.
 	##
 	global error: function(message: string);
+
+	## The role of this process in cluster management. Agent and controller
+	## both redefine this, and we use it during logging.
+	const role = Management::NONE &redef;
 }
 
 # Enum translations to strings. This avoids those enums being reported
@@ -75,9 +79,9 @@ global l2s: table[Level] of string = {
 	[ERROR] = "ERROR",
 };
 
-global r2s: table[ClusterController::Types::Role] of string = {
-	[ClusterController::Types::AGENT] = "AGENT",
-	[ClusterController::Types::CONTROLLER] = "CONTROLLER",
+global r2s: table[Management::Role] of string = {
+	[Management::AGENT] = "AGENT",
+	[Management::CONTROLLER] = "CONTROLLER",
 };
 
 function debug(message: string)
@@ -87,7 +91,7 @@ function debug(message: string)
 
 	local node = Supervisor::node();
 	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[DEBUG],
-			 $role=r2s[ClusterController::role], $message=message]);
+			 $role=r2s[role], $message=message]);
 	}
 
 function info(message: string)
@@ -97,7 +101,7 @@ function info(message: string)
 
 	local node = Supervisor::node();
 	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[INFO],
-			 $role=r2s[ClusterController::role], $message=message]);
+			 $role=r2s[role], $message=message]);
 	}
 
 function warning(message: string)
@@ -107,7 +111,7 @@ function warning(message: string)
 
 	local node = Supervisor::node();
 	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[WARNING],
-			 $role=r2s[ClusterController::role], $message=message]);
+			 $role=r2s[role], $message=message]);
 	}
 
 function error(message: string)
@@ -117,7 +121,7 @@ function error(message: string)
 
 	local node = Supervisor::node();
 	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[ERROR],
-			 $role=r2s[ClusterController::role], $message=message]);
+			 $role=r2s[role], $message=message]);
 	}
 
 event zeek_init()
@@ -133,5 +137,5 @@ event zeek_init()
 	local stream = Log::Stream($columns=Info, $path=fmt("cluster-%s", node$name),
 	                           $policy=log_policy);
 
-	Log::create_stream(ClusterController::Log::LOG, stream);
+	Log::create_stream(Management::Log::LOG, stream);
 	}

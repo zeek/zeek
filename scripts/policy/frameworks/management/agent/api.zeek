@@ -4,9 +4,9 @@
 ##! "_response", respectively.
 
 @load base/frameworks/supervisor/control
-@load policy/frameworks/cluster/controller/types
+@load policy/frameworks/management/types
 
-module ClusterAgent::API;
+module Management::Agent::API;
 
 export {
 	## A simple versioning scheme, used to track basic compatibility of
@@ -21,14 +21,14 @@ export {
 	##
 	## reqid: a request identifier string, echoed in the response event.
 	##
-	## config: a :zeek:see:`ClusterController::Types::Configuration` record
+	## config: a :zeek:see:`Management::Configuration` record
 	##     describing the cluster topology. Note that this contains the full
 	##     topology, not just the part pertaining to this agent. That's because
 	##     the cluster framework requires full cluster visibility to establish
 	##     the needed peerings.
 	##
 	global set_configuration_request: event(reqid: string,
-	    config: ClusterController::Types::Configuration);
+	    config: Management::Configuration);
 
 	## Response to a set_configuration_request event. The agent sends
 	## this back to the controller.
@@ -38,11 +38,11 @@ export {
 	## result: the result record.
 	##
 	global set_configuration_response: event(reqid: string,
-	    result: ClusterController::Types::Result);
+	    result: Management::Result);
 
 
 	## The controller sends this event to request a list of
-	## :zeek:see:`ClusterController::Types::NodeStatus` records that capture
+	## :zeek:see:`Management::NodeStatus` records that capture
 	## the status of Supervisor-managed nodes running on this instance.
 	## instances.
 	##
@@ -55,13 +55,13 @@ export {
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: a :zeek:see:`ClusterController::Types::Result` record. Its data
-	##     member is a vector of :zeek:see:`ClusterController::Types::NodeStatus`
+	## result: a :zeek:see:`Management::Result` record. Its data
+	##     member is a vector of :zeek:see:`Management::NodeStatus`
 	##     records, covering the nodes at this instance. The result may also
 	##     indicate failure, with error messages indicating what went wrong.
 	##
 	global get_nodes_response: event(reqid: string,
-	    result: ClusterController::Types::Result);
+	    result: Management::Result);
 
 	## The controller sends this event to confirm to the agent that it is
 	## part of the current cluster topology. The agent acknowledges with the
@@ -79,7 +79,7 @@ export {
 	## result: the result record.
 	##
 	global agent_welcome_response: event(reqid: string,
-	    result: ClusterController::Types::Result);
+	    result: Management::Result);
 
 
 	## The controller sends this event to convey that the agent is not
@@ -102,7 +102,7 @@ export {
 	## result: the result record.
 	##
 	global agent_standby_response: event(reqid: string,
-	    result: ClusterController::Types::Result);
+	    result: Management::Result);
 
 
 	# Notification events, agent -> controller
@@ -112,7 +112,7 @@ export {
 	## communicate with. It is a controller-level equivalent of
 	## `:zeek:see:`Broker::peer_added`.
 	##
-	## instance: an instance name, really the agent's name as per :zeek:see:`ClusterAgent::name`.
+	## instance: an instance name, really the agent's name as per :zeek:see:`Management::Agent::name`.
 	##
 	## host: the IP address of the agent. (This may change in the future.)
 	##
@@ -126,9 +126,9 @@ export {
 
 	# Report node state changes.
 	global notify_change: event(instance: string,
-	    n: ClusterController::Types::Node,
-	    old: ClusterController::Types::State,
-	    new: ClusterController::Types::State);
+	    n: Management::Node,
+	    old: Management::State,
+	    new: Management::State);
 
 	# Report operational error.
 	global notify_error: event(instance: string, msg: string, node: string &default="");

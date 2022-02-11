@@ -1,7 +1,7 @@
-##! Utility functions for the cluster controller framework, available to agent
+##! Utility functions for the Management framework, available to agent
 ##! and controller.
 
-module ClusterController::Util;
+module Management::Util;
 
 export {
 	## Renders a set of strings to an alphabetically sorted vector.

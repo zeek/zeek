@@ -1,3 +1,7 @@
+5.0.0-dev.114 | 2022-02-11 09:30:04 -0800
+
+  * Minor modernizations to Github workflows (Christian Kreibich, Corelight)
+
 5.0.0-dev.112 | 2022-02-10 17:56:27 -0800
 
   * Reorg of the cluster controller to new "Management framework" layout (Christian Kreibich, Corelight)

@@ -4275,8 +4275,6 @@ ScheduleExpr::ScheduleExpr(ExprPtr arg_when, EventExprPtr arg_event)
 
 	if ( bt != TYPE_TIME && bt != TYPE_INTERVAL )
 		ExprError("schedule expression requires a time or time interval");
-	else
-		SetType(base_type(TYPE_TIMER));
 	}
 
 bool ScheduleExpr::IsPure() const

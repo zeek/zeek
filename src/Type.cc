@@ -42,21 +42,19 @@ const char* type_name(TypeTag t)
 		"string", // 7
 		"pattern", // 8
 		"enum", // 9
-		"timer", // 10
-		"port", // 11
-		"addr", // 12
-		"subnet", // 13
-		"any", // 14
-		"table", // 15
-		"union", // 16
-		"record", // 17
-		"types", // 18
-		"func", // 19
-		"file", // 20
-		"vector", // 21
-		"opaque", // 22
-		"type", // 23
-		"error", // 24
+		"port", // 10
+		"addr", // 11
+		"subnet", // 12
+		"any", // 13
+		"table", // 14
+		"record", // 15
+		"types", // 16
+		"func", // 17
+		"file", // 18
+		"vector", // 19
+		"opaque", // 20
+		"type", // 21
+		"error", // 22
 	};
 
 	if ( int(t) >= NUM_TYPES )
@@ -208,7 +206,6 @@ TypePtr Type::ShallowClone()
 		case TYPE_INTERVAL:
 		case TYPE_STRING:
 		case TYPE_PATTERN:
-		case TYPE_TIMER:
 		case TYPE_PORT:
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
@@ -1870,7 +1867,6 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 		case TYPE_INTERVAL:
 		case TYPE_STRING:
 		case TYPE_PATTERN:
-		case TYPE_TIMER:
 		case TYPE_PORT:
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
@@ -1971,9 +1967,6 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 		case TYPE_FILE:
 		case TYPE_TYPE:
 			break;
-
-		case TYPE_UNION:
-			reporter->Error("union type in same_type()");
 		}
 
 	// If we get to here, then we're dealing with a type with
@@ -2190,7 +2183,6 @@ bool is_assignable(TypeTag t)
 		case TYPE_STRING:
 		case TYPE_PATTERN:
 		case TYPE_ENUM:
-		case TYPE_TIMER:
 		case TYPE_PORT:
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
@@ -2210,9 +2202,6 @@ bool is_assignable(TypeTag t)
 
 		case TYPE_VOID:
 			return false;
-
-		case TYPE_UNION:
-			reporter->Error("union type in is_assignable()");
 		}
 
 	return false;
@@ -2269,7 +2258,6 @@ TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2)
 		case TYPE_INTERVAL:
 		case TYPE_STRING:
 		case TYPE_PATTERN:
-		case TYPE_TIMER:
 		case TYPE_PORT:
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
@@ -2470,10 +2458,6 @@ TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2)
 				}
 
 			return make_intrusive<FileType>(merge_types(t1->Yield(), t2->Yield()));
-
-		case TYPE_UNION:
-			reporter->InternalError("union type in merge_types()");
-			return nullptr;
 
 		default:
 			reporter->InternalError("bad type in merge_types()");

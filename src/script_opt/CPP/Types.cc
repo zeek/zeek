@@ -141,8 +141,6 @@ const char* CPPCompile::TypeTagName(TypeTag tag)
 			return "TYPE_TABLE";
 		case TYPE_TIME:
 			return "TYPE_TIME";
-		case TYPE_TIMER:
-			return "TYPE_TIMER";
 		case TYPE_TYPE:
 			return "TYPE_TYPE";
 		case TYPE_VECTOR:
@@ -302,7 +300,6 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp)
 		case TYPE_PORT:
 		case TYPE_STRING:
 		case TYPE_TIME:
-		case TYPE_TIMER:
 		case TYPE_VOID:
 		case TYPE_SUBNET:
 		case TYPE_FILE:

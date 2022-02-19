@@ -49,21 +49,19 @@ enum TypeTag
 	TYPE_STRING, // 7
 	TYPE_PATTERN, // 8
 	TYPE_ENUM, // 9
-	TYPE_TIMER, // 10
-	TYPE_PORT, // 11
-	TYPE_ADDR, // 12
-	TYPE_SUBNET, // 13
-	TYPE_ANY, // 14
-	TYPE_TABLE, // 15
-	TYPE_UNION, // 16
-	TYPE_RECORD, // 17
-	TYPE_LIST, // 18
-	TYPE_FUNC, // 19
-	TYPE_FILE, // 20
-	TYPE_VECTOR, // 21
-	TYPE_OPAQUE, // 22
-	TYPE_TYPE, // 23
-	TYPE_ERROR // 24
+	TYPE_PORT, // 10
+	TYPE_ADDR, // 11
+	TYPE_SUBNET, // 12
+	TYPE_ANY, // 13
+	TYPE_TABLE, // 14
+	TYPE_RECORD, // 15
+	TYPE_LIST, // 16
+	TYPE_FUNC, // 17
+	TYPE_FILE, // 18
+	TYPE_VECTOR, // 19
+	TYPE_OPAQUE, // 20
+	TYPE_TYPE, // 21
+	TYPE_ERROR // 22
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
 	};
 
@@ -126,10 +124,8 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 			return TYPE_INTERNAL_SUBNET;
 
 		case TYPE_PATTERN:
-		case TYPE_TIMER:
 		case TYPE_ANY:
 		case TYPE_TABLE:
-		case TYPE_UNION:
 		case TYPE_RECORD:
 		case TYPE_LIST:
 		case TYPE_FUNC:
@@ -951,7 +947,7 @@ inline bool IsInterval(TypeTag t)
 // True if the given type tag corresponds to a record type.
 inline bool IsRecord(TypeTag t)
 	{
-	return (t == TYPE_RECORD || t == TYPE_UNION);
+	return (t == TYPE_RECORD);
 	}
 
 // True if the given type tag corresponds to a function type.

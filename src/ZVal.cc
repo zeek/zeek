@@ -104,8 +104,6 @@ ZVal::ZVal(ValPtr v, const TypePtr& t)
 			break;
 
 		case TYPE_ERROR:
-		case TYPE_TIMER:
-		case TYPE_UNION:
 		case TYPE_VOID:
 			reporter->InternalError("bad type in ZVal constructor");
 		}
@@ -185,8 +183,6 @@ ZVal::ZVal(const TypePtr& t)
 			break;
 
 		case TYPE_ERROR:
-		case TYPE_TIMER:
-		case TYPE_UNION:
 		case TYPE_VOID:
 			reporter->InternalError("bad type in ZVal constructor");
 		}
@@ -275,8 +271,6 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 			break;
 
 		case TYPE_ERROR:
-		case TYPE_TIMER:
-		case TYPE_UNION:
 		case TYPE_VOID:
 		default:
 			v = nullptr;

@@ -297,9 +297,7 @@ switch	return TOK_SWITCH;
 table	return TOK_TABLE;
 time	return TOK_TIME;
 timeout	return TOK_TIMEOUT;
-timer	return TOK_TIMER;
 type	return TOK_TYPE;
-union	return TOK_UNION;
 vector	return TOK_VECTOR;
 when	return TOK_WHEN;
 

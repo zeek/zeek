@@ -189,8 +189,6 @@ int dpd_ignore_ports;
 
 int check_for_unused_event_handlers;
 
-double timer_mgr_inactivity_timeout;
-
 int record_all_packets;
 
 bro_uint_t bits_per_uid;
@@ -345,8 +343,6 @@ void init_net_var()
 	dpd_match_only_beginning = id::find_val("dpd_match_only_beginning")->AsBool();
 	dpd_late_match_stop = id::find_val("dpd_late_match_stop")->AsBool();
 	dpd_ignore_ports = id::find_val("dpd_ignore_ports")->AsBool();
-
-	timer_mgr_inactivity_timeout = id::find_val("timer_mgr_inactivity_timeout")->AsInterval();
 	}
 
 	} // namespace zeek::detail

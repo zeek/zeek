@@ -1,3 +1,7 @@
+5.0.0-dev.116 | 2022-02-21 18:17:13 -0700
+
+  * remove deprecated union and timer types, addressing #1898 (Matthew Luckie)
+
 5.0.0-dev.114 | 2022-02-11 09:30:04 -0800
 
   * Minor modernizations to Github workflows (Christian Kreibich, Corelight)

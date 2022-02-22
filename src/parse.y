@@ -18,7 +18,7 @@
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
-%token TOK_TIME TOK_TIMEOUT TOK_TIMER TOK_TYPE TOK_UNION TOK_VECTOR TOK_WHEN
+%token TOK_TIME TOK_TIMEOUT TOK_TYPE TOK_VECTOR TOK_WHEN
 %token TOK_WHILE TOK_AS TOK_IS
 
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_DEFAULT TOK_ATTR_OPTIONAL TOK_ATTR_REDEF
@@ -1023,11 +1023,6 @@ type:
 				$$ = base_type(TYPE_PATTERN)->Ref();
 				}
 
-	|	TOK_TIMER	{
-				set_location(@1);
-				$$ = base_type(TYPE_TIMER)->Ref();
-				}
-
 	|	TOK_PORT	{
 				set_location(@1);
 				$$ = base_type(TYPE_PORT)->Ref();
@@ -1068,13 +1063,6 @@ type:
 				{
 				set_location(@1, @5);
 				$$ = new RecordType($4);
-				}
-
-	|	TOK_UNION '{' type_list '}'
-				{
-				set_location(@1, @4);
-				reporter->Error("union type not implemented");
-				$$ = 0;
 				}
 
 	|	TOK_ENUM '{' { set_location(@1); parse_new_enum(); } enum_body '}'

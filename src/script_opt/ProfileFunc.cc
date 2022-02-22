@@ -576,8 +576,6 @@ void ProfileFuncs::TraverseValue(const ValPtr& v)
 		case TYPE_STRING:
 		case TYPE_SUBNET:
 		case TYPE_TIME:
-		case TYPE_TIMER:
-		case TYPE_UNION:
 		case TYPE_VOID:
 			break;
 
@@ -777,8 +775,6 @@ p_hash_type ProfileFuncs::HashType(const Type* t)
 		case TYPE_STRING:
 		case TYPE_SUBNET:
 		case TYPE_TIME:
-		case TYPE_TIMER:
-		case TYPE_UNION:
 		case TYPE_VOID:
 			h = merge_p_hashes(h, p_hash(t));
 			break;

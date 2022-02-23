@@ -1,9 +1,9 @@
-##! This script allows for the decryption of certain TLS 1.2 connection, if the user is in possession
+##! This script allows for the decryption of certain TLS 1.2 connections, if the user is in possession
 ##! of the private key material for the session. Key material can either be provided via a file (useful
-##! for processing trace files) or via sending events via broker (for live decoding).
+##! for processing trace files) or via sending events via Broker (for live decoding).
 ##!
 ##! Please note that this feature is experimental and can change without guarantees to our typical
-##! deprecation tieline. Please also note that currently only TLS 1.2 connections that use the
+##! deprecation timeline. Please also note that currently only TLS 1.2 connections that use the
 ##! TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 cipher suite are supported.
 
 @load base/frameworks/input
@@ -26,19 +26,19 @@ export {
 	## Secrets expire after this time of not being used.
 	const secret_expiration = 5 mins &redef;
 
-	## This event can be triggered, e.g., via broker to add known keys to the TLS key database.
+	## This event can be triggered, e.g., via Broker to add known keys to the TLS key database.
 	##
 	## client_random: client random for which the key is set
 	##
 	## keys: key material
 	global add_keys: event(client_random: string, keys: string);
 
-	## This event can be triggered, e.g., via broker to add known secrets to the TLS secret datbase.
+	## This event can be triggered, e.g., via Broker to add known secrets to the TLS secret datbase.
 	##
 	## client_random: client random for which the secret is set
 	##
 	## secrets: derived TLS secrets material
-	global add_secret: event(client_random: string, secret: string);
+	global add_secret: event(client_random: string, secrets: string);
 }
 
 @if ( keylog_file == "" )
@@ -47,8 +47,8 @@ export {
 global secrets: table[string] of string = {} &redef;
 global keys: table[string] of string = {} &redef;
 @else
-#global secrets: table[string] of string = {} &read_expire=secret_expiration &redef;
-#global keys: table[string] of string = {} &read_expire=secret_expiration &redef;
+global secrets: table[string] of string = {} &read_expire=secret_expiration &redef;
+global keys: table[string] of string = {} &read_expire=secret_expiration &redef;
 @endif
 
 

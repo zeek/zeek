@@ -23,8 +23,15 @@
 namespace zeek::analyzer::ssl
 	{
 
-#define MSB(a) ((a >> 8) & 0xff)
-#define LSB(a) (a & 0xff)
+template <typename T> static inline T MSB(const T a)
+	{
+	return ((a >> 8) & 0xff);
+	}
+
+template <typename T> static inline T LSB(const T a)
+	{
+	return (a & 0xff);
+	}
 
 static std::basic_string<unsigned char> fmt_seq(uint32_t num)
 	{
@@ -147,7 +154,7 @@ void SSL_Analyzer::SetKeys(const zeek::StringVal& nkeys)
 
 void SSL_Analyzer::SetKeys(const std::vector<u_char> newkeys)
 	{
-	keys = newkeys;
+	keys = std::move(newkeys);
 	}
 
 std::optional<std::vector<u_char>>
@@ -396,7 +403,7 @@ void SSL_Analyzer::ForwardDecryptedData(const std::vector<u_char>& data, bool is
 			pia->FirstPacket(false, nullptr);
 			}
 		else
-			reporter->FatalError("Could not initialize PIA");
+			reporter->Error("Could not initialize PIA");
 		}
 
 	ForwardStream(data.size(), data.data(), is_orig);

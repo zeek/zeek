@@ -25,7 +25,7 @@ namespace zeek::analyzer::ssl
 
 class SSL_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
 	{
-	// let binpac forward encryppted TLS application data to us.
+	// let binpac forward encrypted TLS application data to us.
 	friend class binpac::SSL::SSL_Conn;
 
 public:
@@ -54,7 +54,7 @@ public:
 	 * connection. (For TLS 1.2 this is the pre-master secret)
 	 *
 	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
-	 * cuphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
+	 * ciphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
 	 *
 	 * @param secret The secret to set
 	 */

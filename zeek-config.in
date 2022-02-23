@@ -65,7 +65,7 @@ Toplevel installation directories for third-party components:
 
   --binpac_root         BinPAC compiler
   --broker_root         Broker communication framework
-  --caf_root            C++ Actor Framework
+  --caf_root            C++ Actor Framework (deprecated, will be removed in 5.1)
 "
 }
 
@@ -100,7 +100,7 @@ while [ $# -ne 0 ]; do
             echo $build_type
             ;;
         --caf_root)
-            echo $caf_root
+            echo "The caf_root option is deprecated and will be removed in 5.1. The Broker API has been updated to no longer require access to CAF to build against Broker."
             ;;
         --cmake_dir)
             echo $cmake_dir

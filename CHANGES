@@ -1,3 +1,7 @@
+5.0.0-dev.118 | 2022-02-23 10:51:57 -0700
+
+  * GH-1949: Remove unused timer_mgr_inactivity_timeout global (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.116 | 2022-02-21 18:17:13 -0700
 
   * remove deprecated union and timer types, addressing #1898 (Matthew Luckie)

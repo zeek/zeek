@@ -4963,9 +4963,6 @@ const dpd_ignore_ports = F &redef;
 ## connection if it misses the initial handshake.
 const likely_server_ports: set[port] &redef;
 
-## Per-incident timer managers are drained after this amount of inactivity.
-const timer_mgr_inactivity_timeout = 1 min &redef;
-
 ## If true, output profiling for Time-Machine queries.
 const time_machine_profiling = F &redef;
 

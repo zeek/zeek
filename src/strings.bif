@@ -541,7 +541,7 @@ function to_lower%(str: string%): string
 			*ls++ = s[i];
 		}
 
-    *ls++ = '\0';
+	*ls++ = '\0';
 
 	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, lower_s, n));
 	%}
@@ -570,7 +570,7 @@ function to_upper%(str: string%): string
 			*us++ = s[i];
 		}
 
-    *us++ = '\0';
+	*us++ = '\0';
 
 	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, upper_s, n));
 	%}

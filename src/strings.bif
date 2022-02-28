@@ -1254,13 +1254,17 @@ function ends_with%(str: string, sub: string%) : bool
 	return zeek::val_mgr->Bool(s.rfind(sub_s) == (s.size() - sub_s.size()));
 	%}
 
-## Returns whether an entire string consists only of digits.
+## Returns whether a string consists entirely of digits.
+## The empty string is not numeric.
 ##
 function is_num%(str: string%) : bool
 	%{
 	// Python's version of this method (which this is based on) just checks to see if every
 	// character in the string is a numeric value. If something more than this is desired, we
 	// could use something like std::from_chars or std::strto{ul,f} to check it.
+	if ( str->Len() == 0 )
+		return zeek::val_mgr->False();
+
 	const char* s = str->CheckString();
 	for ( int i = 0; i < str->Len(); i++ )
 		if ( ! std::isdigit(s[i]) )
@@ -1269,10 +1273,14 @@ function is_num%(str: string%) : bool
 	return zeek::val_mgr->True();
 	%}
 
-## Returns whether an entire string is alphabetic characters.
+## Returns whether a string consists entirely of alphabetic characters.
+## The empty string is not alphabetic.
 ##
 function is_alpha%(str: string%) : bool
 	%{
+	if ( str->Len() == 0 )
+		return zeek::val_mgr->False();
+
 	const char* s = str->CheckString();
 	for ( int i = 0; i < str->Len(); i++ )
 		if ( ! std::isalpha(s[i]) )
@@ -1281,10 +1289,14 @@ function is_alpha%(str: string%) : bool
 	return zeek::val_mgr->True();
 	%}
 
-## Returns whether an entire string is alphanumeric characters
+## Returns whether a string consists entirely of alphanumeric characters.
+## The empty string is not alphanumeric.
 ##
 function is_alnum%(str: string%) : bool
 	%{
+	if ( str->Len() == 0 )
+		return zeek::val_mgr->False();
+
 	const char* s = str->CheckString();
 	for ( int i = 0; i < str->Len(); i++ )
 		if ( ! std::isalnum(s[i]) )

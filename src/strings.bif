@@ -614,6 +614,7 @@ function to_string_literal%(str: string%): string
 	%}
 
 ## Determines whether a given string contains only ASCII characters.
+## The empty string is ASCII.
 ##
 ## str: The string to examine.
 ##

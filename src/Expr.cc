@@ -3375,6 +3375,8 @@ RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr
 	const auto& exprs = op->AsListExpr()->Exprs();
 	map = std::vector<int>(exprs.length());
 
+	std::set<int> fields_seen; // used to check for missing fields
+
 	int i = 0;
 	for ( const auto& e : exprs )
 		{
@@ -3401,7 +3403,28 @@ RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr
 			SetError();
 
 		(*map)[i++] = index;
+		fields_seen.insert(index);
 		}
+
+	if ( IsError() )
+		return;
+
+	auto n = known_rt->NumFields();
+	for ( i = 0; i < n; ++i )
+		if ( fields_seen.count(i) == 0 )
+			{
+			const auto td_i = known_rt->FieldDecl(i);
+			if ( IsAggr(td_i->type) )
+				// These are always initialized.
+				continue;
+
+			if ( ! td_i->GetAttr(ATTR_OPTIONAL) )
+				{
+				auto err = std::string("mandatory field \"") + known_rt->FieldName(i) +
+				           "\" missing";
+				ExprError(err.c_str());
+				}
+			}
 	}
 
 ValPtr RecordConstructorExpr::InitVal(const TypePtr& t, ValPtr aggr) const

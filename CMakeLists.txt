@@ -294,6 +294,10 @@ if ( NOT BIFCL_EXE_PATH )
   add_subdirectory(auxil/bifcl)
 endif ()
 
+if ( NOT GEN_ZAM_EXE_PATH )
+  add_subdirectory(auxil/gen-zam)
+endif ()
+
 if (ENABLE_JEMALLOC)
     if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
         if (DEFINED JEMALLOC_ROOT_DIR)

@@ -49,3 +49,6 @@
 [submodule "auxil/zeek-client"]
 	path = auxil/zeek-client
 	url = https://github.com/zeek/zeek-client
+[submodule "auxil/gen-zam"]
+	path = auxil/gen-zam
+	url = https://github.com/zeek/gen-zam

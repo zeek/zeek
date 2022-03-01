@@ -953,9 +953,6 @@ refine connection Handshake_Conn += {
 		chosen_version_ = UNKNOWN_VERSION;
 
 		record_version_ = 0;
-		// FIXME: How should bytestrings be initialized?
-		// client_random_ = ??
-		// server_random_ = ??
 		gmt_unix_time_ = 0;
 	%}
 

@@ -240,14 +240,18 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 	auto cipher = handshake_interp->chosen_cipher();
 	if ( cipher != 0xC030 )
 		{
-		DBG_LOG(DBG_ANALYZER, "Unsupported cipher suite: %d\n", cipher);
+		DBG_LOG(DBG_ANALYZER, "Unsupported cipher suite for decryption: %d\n", cipher);
 		return false;
 		}
 
 	// Neither secret or key present: abort
 	if ( secret.size() == 0 && keys.size() == 0 )
 		{
-		DBG_LOG(DBG_ANALYZER, "Could not decrypt packet due to missing keys/secret.\n");
+		DBG_LOG(
+			DBG_ANALYZER,
+			"Could not decrypt packet due to missing keys/secret. Client_random: %s\n",
+			util::fmt_bytes(reinterpret_cast<const char*>(handshake_interp->client_random().data()),
+		                    handshake_interp->client_random().length()));
 		// FIXME: change util function to return a printably std::string for DBG_LOG
 		// print_hex("->client_random:", handshake_interp->client_random().data(),
 		// handshake_interp->client_random().size());

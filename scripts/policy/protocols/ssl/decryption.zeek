@@ -92,7 +92,6 @@ event SSL::add_secret(client_random: string, val: string)
 event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec)
 	{
 	c$ssl$client_random = client_random;
-	print "Client random!";
 
 	if ( client_random in keys )
 		set_keys(c, keys[client_random]);

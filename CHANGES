@@ -1,3 +1,8 @@
+5.0.0-dev.160 | 2022-03-02 13:48:07 +0000
+
+  * restored record constructor checking for missing-but-mandatory fields. This includea a new btest
+    as well as a fix to the base-scrpts. (Vern Paxson, Corelight)
+
 5.0.0-dev.156 | 2022-03-02 08:23:50 +0000
 
   * The is_num(), is_alpha(), and is_alnum() BiFs now return F on empty string.

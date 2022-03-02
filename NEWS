@@ -140,6 +140,14 @@ New Functionality
 
 - The GRE analyzer now supports the Aruba WLAN protocol type.
 
+- Zeek now features limited TLS decryption capabilities. This feature is experimental
+  and only works for TLS 1.2 connections that use the TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  ciphersuite. Furthermore Zeek requires access to the pre-master secret of each TLS
+  connection. Typically this functionality will be most useful when analyzing trace-files
+  where the TLS client recorded the key material. For more details and examples how to
+  use this functionality, see the TLS Decryption documentation at
+  https://docs.zeek.org/en/master/frameworks/tls-decryption.html
+
 Changed Functionality
 ---------------------
 

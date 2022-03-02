@@ -118,6 +118,7 @@
 @load protocols/ssh/geo-data.zeek
 @load protocols/ssh/interesting-hostnames.zeek
 @load protocols/ssh/software.zeek
+@load protocols/ssl/decryption.zeek
 @load protocols/ssl/expiring-certs.zeek
 # @load protocols/ssl/extract-certs-pem.zeek
 @load protocols/ssl/heartbleed.zeek

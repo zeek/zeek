@@ -15,6 +15,8 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The is_num(), is_alpha(), and is_alnum() BiFs now return F for the empty string.
+
 Deprecated Functionality
 ------------------------
 

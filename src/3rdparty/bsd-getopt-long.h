@@ -97,6 +97,12 @@ int pure_getopt_long_only(int nargc, char * const *nargv,
 
 int pure_getopt(int nargc, char * const *nargv, const char *options);
 
+extern const char *pure_optarg;            /* getopt(3) external variables */
+extern int pure_opterr;
+extern int pure_optind;
+extern int pure_optopt;
+extern int pure_optreset;
+
 #ifdef __cplusplus
 }
 #endif

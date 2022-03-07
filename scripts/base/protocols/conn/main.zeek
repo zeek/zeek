@@ -239,10 +239,11 @@ function determine_service(c: connection): string
 function set_conn(c: connection, eoc: bool)
 	{
 	if ( ! c?$conn )
-		c$conn = Info();
+		{
+		local p = get_port_transport_proto(c$id$resp_p);
+		c$conn = Info($ts=c$start_time, $uid=c$uid, $proto=p);
+		}
 
-	c$conn$ts=c$start_time;
-	c$conn$uid=c$uid;
 	c$conn$id=c$id;
 	if ( c?$tunnel && |c$tunnel| > 0 )
 		{
@@ -250,7 +251,6 @@ function set_conn(c: connection, eoc: bool)
 			c$conn$tunnel_parents = set();
 		add c$conn$tunnel_parents[c$tunnel[|c$tunnel|-1]$uid];
 		}
-	c$conn$proto=get_port_transport_proto(c$id$resp_p);
 	if( |Site::local_nets| > 0 )
 		{
 		c$conn$local_orig=Site::is_local_addr(c$id$orig_h);

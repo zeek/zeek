@@ -87,7 +87,7 @@ private:
 	// Will be called from the object itself.
 	void Modified(Modifiable* m);
 
-	typedef std::unordered_multimap<Modifiable*, Receiver*> ModifiableMap;
+	using ModifiableMap = std::unordered_multimap<Modifiable*, Receiver*>;
 	ModifiableMap registrations;
 	};
 

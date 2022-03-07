@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 141
+%expect 140
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -18,7 +18,7 @@
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
-%token TOK_TIME TOK_TIMEOUT TOK_TIMER TOK_TYPE TOK_UNION TOK_VECTOR TOK_WHEN
+%token TOK_TIME TOK_TIMEOUT TOK_TYPE TOK_VECTOR TOK_WHEN
 %token TOK_WHILE TOK_AS TOK_IS
 
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_DEFAULT TOK_ATTR_OPTIONAL TOK_ATTR_REDEF
@@ -52,7 +52,7 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 %nonassoc TOK_AS TOK_IS
 
-%type <b> opt_no_test opt_no_test_block TOK_PATTERN_END opt_deep
+%type <b> opt_no_test opt_no_test_block TOK_PATTERN_END opt_deep when_flavor
 %type <str> TOK_ID TOK_PATTERN_TEXT
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_lambda case_type
 %type <id_l> local_id_list case_type_list
@@ -73,7 +73,8 @@
 %type <attr> attr
 %type <attr_l> attr_list opt_attr
 %type <capture> capture
-%type <captures> capture_list opt_captures
+%type <captures> capture_list opt_captures when_captures
+%type <when_clause> when_head when_start when_clause
 
 %{
 #include <stdlib.h>
@@ -104,6 +105,11 @@ extern const char* filename;  // Absolute path of file currently being parsed.
 extern const char* last_filename; // Absolute path of last file parsed.
 extern const char* last_tok_filename;
 extern const char* last_last_tok_filename;
+
+extern int conditional_epoch; // let's us track embedded conditionals
+
+// Whether the file we're currently parsing includes @if conditionals.
+extern bool current_file_has_conditionals;
 
 YYLTYPE GetCurrentLocation();
 extern int yyerror(const char[]);
@@ -137,7 +143,12 @@ bool resolving_global_ID = false;
 bool defining_global_ID = false;
 std::vector<int> saved_in_init;
 
+std::vector<std::set<const ID*>> locals_at_this_scope;
+static std::unordered_set<const ID*> out_of_scope_locals;
+static std::unordered_set<const ID*> warned_about_locals;
+
 static Location func_hdr_location;
+static int func_hdr_cond_epoch = 0;
 EnumType* cur_enum_type = nullptr;
 static ID* cur_decl_type_id = nullptr;
 
@@ -299,7 +310,8 @@ static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
 	std::vector<zeek::detail::AttrPtr>* attr_l;
 	zeek::detail::AttrTag attrtag;
 	zeek::FuncType::Capture* capture;
-	std::vector<zeek::FuncType::Capture*>* captures;
+	zeek::FuncType::CaptureList* captures;
+	zeek::detail::WhenInfo* when_clause;
 }
 
 %%
@@ -336,6 +348,54 @@ opt_expr:
 			{ $$ = $1; }
 	|
 			{ $$ = 0; }
+	;
+
+when_clause:
+		when_head TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
+			{
+			set_location(@1, @7);
+			$1->AddTimeout({AdoptRef{}, $3}, {AdoptRef{}, $6});
+			if ( $5 )
+			    script_coverage_mgr.DecIgnoreDepth();
+			}
+	|
+		when_head
+	;
+
+when_head:
+		when_start stmt
+			{
+			set_location(@1, @2);
+			$1->AddBody({AdoptRef{}, $2});
+			}
+	;
+
+when_start:
+		when_flavor '[' when_captures ']' '(' when_condition ')'
+			{
+			set_location(@1, @7);
+			$$ = new WhenInfo({AdoptRef{}, $6}, $3, $1);
+			}
+
+	|	when_flavor '(' when_condition ')'
+			{
+			set_location(@1, @4);
+			$$ = new WhenInfo({AdoptRef{}, $3}, nullptr, $1);
+			}
+	;
+
+when_flavor:
+		TOK_RETURN TOK_WHEN
+			{ $$ = true; }
+	|
+		TOK_WHEN
+			{ $$ = false; }
+	;
+
+when_captures:
+		capture_list
+	|
+		{ $$ = new zeek::FuncType::CaptureList; }
 	;
 
 when_condition:
@@ -551,6 +611,8 @@ expr:
 	|	TOK_LOCAL local_id '=' expr
 			{
 			set_location(@2, @4);
+			if ( ! locals_at_this_scope.empty() )
+			       locals_at_this_scope.back().insert($2);
 			$$ = add_and_assign_local({AdoptRef{}, $2}, {AdoptRef{}, $4},
 			                                        val_mgr->True()).release();
 			}
@@ -715,8 +777,12 @@ expr:
 			{
 			--in_hook;
 			set_location(@1, @3);
+
 			if ( $3->Tag() != EXPR_CALL )
 				$3->Error("not a valid hook call expression");
+			else if ( $3->AsCallExpr()->Func()->GetType()->AsFuncType()->Flavor() != FUNC_FLAVOR_HOOK )
+				$3->Error("hook keyword should only be used to call hooks");
+
 			$$ = $3;
 			}
 
@@ -787,6 +853,14 @@ expr:
 					}
 				else
 					{
+					if ( out_of_scope_locals.count(id.get()) > 0 &&
+					     warned_about_locals.count(id.get()) == 0 )
+						{
+						// Remove in v5.1
+						reporter->Warning("use of out-of-scope local %s deprecated; move declaration to outer scope", id->Name());
+						warned_about_locals.insert(id.get());
+						}
+
 					$$ = new NameExpr(std::move(id));
 					}
 				}
@@ -949,11 +1023,6 @@ type:
 				$$ = base_type(TYPE_PATTERN)->Ref();
 				}
 
-	|	TOK_TIMER	{
-				set_location(@1);
-				$$ = base_type(TYPE_TIMER)->Ref();
-				}
-
 	|	TOK_PORT	{
 				set_location(@1);
 				$$ = base_type(TYPE_PORT)->Ref();
@@ -994,13 +1063,6 @@ type:
 				{
 				set_location(@1, @5);
 				$$ = new RecordType($4);
-				}
-
-	|	TOK_UNION '{' type_list '}'
-				{
-				set_location(@1, @4);
-				reporter->Error("union type not implemented");
-				$$ = 0;
 				}
 
 	|	TOK_ENUM '{' { set_location(@1); parse_new_enum(); } enum_body '}'
@@ -1214,16 +1276,19 @@ decl:
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
-	|	func_hdr { func_hdr_location = @1; } func_body
-
-	|	func_hdr { func_hdr_location = @1; } conditional_list func_body
+	|	func_hdr
+			{
+			func_hdr_location = @1;
+			func_hdr_cond_epoch = conditional_epoch;
+			}
+		conditional_list func_body
 
 	|	conditional
 	;
 
 conditional_list:
-		conditional
-	|	conditional conditional_list
+	|	conditional_list conditional
+	;
 
 conditional:
 		TOK_ATIF '(' expr ')'
@@ -1285,6 +1350,10 @@ func_body:
 			{
 			saved_in_init.push_back(in_init);
 			in_init = 0;
+
+			locals_at_this_scope.clear();
+			out_of_scope_locals.clear();
+			warned_about_locals.clear();
 			}
 
 		stmt_list
@@ -1296,7 +1365,13 @@ func_body:
 		'}'
 			{
 			set_location(func_hdr_location, @5);
-			end_func({AdoptRef{}, $3});
+
+			bool free_of_conditionals = true;
+			if ( current_file_has_conditionals ||
+			     conditional_epoch > func_hdr_cond_epoch )
+				free_of_conditionals = false;
+
+			end_func({AdoptRef{}, $3}, free_of_conditionals);
 			}
 	;
 
@@ -1348,15 +1423,7 @@ begin_lambda:
 
 			if ( $1 )
 				{
-				captures = FuncType::CaptureList{};
-				captures->reserve($1->size());
-
-				for ( auto c : *$1 )
-					{
-					captures->emplace_back(*c);
-					delete c;
-					}
-
+				captures = *$1;
 				delete $1;
 				}
 
@@ -1374,11 +1441,15 @@ opt_captures:
 
 capture_list:
 		capture_list ',' capture
-			{ $1->push_back($3); }
+			{
+			$1->push_back(*$3);
+			delete $3;
+			}
 	|	capture
 			{
-			$$ = new std::vector<FuncType::Capture*>;
-			$$->push_back($1);
+			$$ = new zeek::FuncType::CaptureList;
+			$$->push_back(*$1);
+			delete $1;
 			}
 	;
 
@@ -1386,8 +1457,7 @@ capture:
 		opt_deep TOK_ID
 			{
 			set_location(@2);
-			auto id = lookup_ID($2,
-					current_module.c_str());
+			auto id = lookup_ID($2, current_module.c_str());
 
 			if ( ! id )
 				reporter->Error("no such local identifier: %s", $2);
@@ -1554,11 +1624,20 @@ attr:
 	;
 
 stmt:
-		'{' opt_no_test_block stmt_list '}'
+		'{'
 			{
-			set_location(@1, @4);
-			$$ = $3;
-			if ( $2 )
+			std::set<const ID*> id_set;
+			locals_at_this_scope.emplace_back(id_set);
+			}
+		opt_no_test_block stmt_list '}'
+			{
+			auto& scope_locals = locals_at_this_scope.back();
+			out_of_scope_locals.insert(scope_locals.begin(), scope_locals.end());
+			locals_at_this_scope.pop_back();
+
+			set_location(@1, @5);
+			$$ = $4;
+			if ( $3 )
 			    script_coverage_mgr.DecIgnoreDepth();
 			}
 
@@ -1665,6 +1744,8 @@ stmt:
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @7);
+			if ( ! locals_at_this_scope.empty() )
+			       locals_at_this_scope.back().insert($2);
 			$$ = build_local($2, $3, $4, $5, $6, VAR_REGULAR, ! $8).release();
 			}
 
@@ -1674,37 +1755,9 @@ stmt:
 			$$ = build_local($2, $3, $4, $5, $6, VAR_CONST, ! $8).release();
 			}
 
-	|	TOK_WHEN '(' when_condition ')' stmt
+	|	when_clause
 			{
-			set_location(@3, @5);
-			$$ = new WhenStmt({AdoptRef{}, $3}, {AdoptRef{}, $5},
-			                                  nullptr, nullptr, false);
-			}
-
-	|	TOK_WHEN '(' when_condition ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
-			{
-			set_location(@3, @9);
-			$$ = new WhenStmt({AdoptRef{}, $3}, {AdoptRef{}, $5},
-			                                  {AdoptRef{}, $10}, {AdoptRef{}, $7}, false);
-			if ( $9 )
-			    script_coverage_mgr.DecIgnoreDepth();
-			}
-
-
-	|	TOK_RETURN TOK_WHEN '(' when_condition ')' stmt
-			{
-			set_location(@4, @6);
-			$$ = new WhenStmt({AdoptRef{}, $4}, {AdoptRef{}, $6}, nullptr,
-			                  nullptr, true);
-			}
-
-	|	TOK_RETURN TOK_WHEN '(' when_condition ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
-			{
-			set_location(@4, @10);
-			$$ = new WhenStmt({AdoptRef{}, $4}, {AdoptRef{}, $6},
-			                                  {AdoptRef{}, $11}, {AdoptRef{}, $8}, true);
-			if ( $10 )
-			    script_coverage_mgr.DecIgnoreDepth();
+			$$ = new WhenStmt($1);
 			}
 
 	|	index_slice '=' expr ';' opt_no_test

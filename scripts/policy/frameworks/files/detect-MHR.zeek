@@ -39,7 +39,7 @@ function do_mhr_lookup(hash: string, fi: Notice::FileInfo)
 	{
 	local hash_domain = fmt("%s.malware.hash.cymru.com", hash);
 
-	when ( local MHR_result = lookup_hostname_txt(hash_domain) )
+	when [hash, fi, hash_domain] ( local MHR_result = lookup_hostname_txt(hash_domain) )
 		{
 		# Data is returned as "<dateFirstDetected> <detectionRate>"
 		local MHR_answer = split_string1(MHR_result, / /);
@@ -66,7 +66,7 @@ function do_mhr_lookup(hash: string, fi: Notice::FileInfo)
 
 event file_hash(f: fa_file, kind: string, hash: string)
 	{
-	if ( kind == "sha1" && f?$info && f$info?$mime_type && 
+	if ( kind == "sha1" && f?$info && f$info?$mime_type &&
 	     match_file_types in f$info$mime_type )
 		do_mhr_lookup(hash, Notice::create_file_info(f));
 	}

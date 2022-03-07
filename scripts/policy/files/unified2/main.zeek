@@ -1,4 +1,3 @@
-
 @load base/utils/dir
 @load base/utils/paths
 
@@ -255,7 +254,7 @@ event file_new(f: fa_file)
 	if ( |parts| == 3 )
 		file_dir = parts[0];
 
-	if ( (watch_file != "" && f$source == watch_file) || 
+	if ( (watch_file != "" && f$source == watch_file) ||
 	     (watch_dir != "" && compress_path(watch_dir) == file_dir) )
 		{
 		Files::add_analyzer(f, Files::ANALYZER_UNIFIED2);

@@ -17,7 +17,7 @@ namespace zeek
 //
 class VectorVal;
 
-typedef u_char* byte_vec;
+using byte_vec = u_char*;
 
 /**
  * A container type for holding blocks of byte data. This can be used for
@@ -28,23 +28,22 @@ typedef u_char* byte_vec;
 class String
 	{
 public:
-	typedef std::vector<String*> Vec;
-	typedef Vec::iterator VecIt;
-	typedef Vec::const_iterator VecCIt;
+	using Vec = std::vector<String*>;
+	using VecIt = Vec::iterator;
+	using VecCIt = Vec::const_iterator;
 
-	typedef std::vector<const String*> CVec;
-	typedef Vec::iterator CVecIt;
-	typedef Vec::const_iterator CVecCIt;
+	using CVec = std::vector<const String*>;
+	using CVecIt = Vec::iterator;
+	using CVecCIt = Vec::const_iterator;
 
 	// IdxVecs are vectors of indices of characters in a string.
-	typedef std::vector<int> IdxVec;
-	typedef IdxVec::iterator IdxVecIt;
-	typedef IdxVec::const_iterator IdxVecCIt;
+	using IdxVec = std::vector<int>;
+	using IdxVecIt = IdxVec::iterator;
+	using IdxVecCIt = IdxVec::const_iterator;
 
 	// Constructors creating internal copies of the data passed in.
 	String(const u_char* str, int arg_n, bool add_NUL);
-	explicit String(const char* str);
-	explicit String(const std::string& str);
+	String(std::string_view str);
 	String(const String& bs);
 
 	// Constructor that takes owernship of the vector passed in.
@@ -72,8 +71,7 @@ public:
 	// contents to a copy of the string given by the arguments.
 	//
 	void Set(const u_char* str, int len, bool add_NUL = true);
-	void Set(const char* str);
-	void Set(const std::string& str);
+	void Set(std::string_view str);
 	void Set(const String& str);
 
 	void SetUseFreeToDelete(int use_it) { use_free_to_delete = use_it; }
@@ -102,7 +100,7 @@ public:
 	static constexpr int EXPANDED_STRING = // the original style
 		ESC_HEX;
 
-	static constexpr int BRO_STRING_LITERAL = // as in a Bro string literal
+	static constexpr int BRO_STRING_LITERAL = // as in a Bro/Zeek string literal
 		ESC_ESC | ESC_QUOT | ESC_HEX;
 
 	// Renders a string into a newly allocated character array that
@@ -193,7 +191,7 @@ extern int Bstr_cmp(const String* s1, const String* s2);
 // which would be necessary if String were used. Unlike String,
 // the string should not be deallocated on destruction.
 //
-// "BroConstString" might be a better name here.
+// "ZeekConstString" might be a better name here.
 
 struct data_chunk_t
 	{

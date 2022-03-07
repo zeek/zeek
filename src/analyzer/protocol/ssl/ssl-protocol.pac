@@ -197,7 +197,7 @@ refine connection SSL_Conn += {
 			if ( version != SSLv30 && version != TLSv10 &&
 			     version != TLSv11 && version != TLSv12 )
 				{
-				zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version late in TLS connection. Packet reported version: %d", version));
+				zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("Invalid version late in TLS connection. Packet reported version: %d", version));
 				zeek_analyzer()->SetSkip(true);
 				return UNKNOWN_VERSION;
 				}
@@ -214,7 +214,7 @@ refine connection SSL_Conn += {
 				if ( version != SSLv20 && version != SSLv30 && version != TLSv10 &&
 				     version != TLSv11 && version != TLSv12 )
 					{
-					zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version in SSL client hello. Version: %d", version));
+					zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("Invalid version in SSL client hello. Version: %d", version));
 					zeek_analyzer()->SetSkip(true);
 					return UNKNOWN_VERSION;
 					}
@@ -231,7 +231,7 @@ refine connection SSL_Conn += {
 
 			else // this is not SSL or TLS.
 				{
-				zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid headers in SSL connection. Head1: %d, head2: %d, head3: %d", head1, head2, head3));
+				zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("Invalid headers in SSL connection. Head1: %d, head2: %d, head3: %d", head1, head2, head3));
 				zeek_analyzer()->SetSkip(true);
 				return UNKNOWN_VERSION;
 				}
@@ -241,7 +241,7 @@ refine connection SSL_Conn += {
 		if ( version != SSLv30 && version != TLSv10 &&
 		     version != TLSv11 && version != TLSv12 )
 			{
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid version in TLS connection. Version: %d", version));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("Invalid version in TLS connection. Version: %d", version));
 			zeek_analyzer()->SetSkip(true);
 			return UNKNOWN_VERSION;
 			}
@@ -252,7 +252,7 @@ refine connection SSL_Conn += {
 			return version;
 			}
 
-		zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Invalid type in TLS connection. Version: %d, Type: %d", version, head0));
+		zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("Invalid type in TLS connection. Version: %d, Type: %d", version, head0));
 		zeek_analyzer()->SetSkip(true);
 		return UNKNOWN_VERSION;
 		%}

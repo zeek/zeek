@@ -1,3 +1,5 @@
+@load ./main.zeek
+
 @load base/packet-protocols/root
 @load base/packet-protocols/ip
 @load base/packet-protocols/skip
@@ -12,9 +14,15 @@
 @load base/packet-protocols/pppoe
 @load base/packet-protocols/vlan
 @load base/packet-protocols/mpls
-@load base/packet-protocols/gre
-@load base/packet-protocols/iptunnel
 @load base/packet-protocols/vntag
 @load base/packet-protocols/udp
 @load base/packet-protocols/tcp
 @load base/packet-protocols/icmp
+
+@load base/packet-protocols/gre
+@load base/packet-protocols/iptunnel
+@load base/packet-protocols/ayiya
+@load base/packet-protocols/geneve
+@load base/packet-protocols/vxlan
+@load base/packet-protocols/teredo
+@load base/packet-protocols/gtpv1

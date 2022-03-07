@@ -5,7 +5,7 @@
 module SMB;
 
 export {
-	redef enum Log::ID += { 
+	redef enum Log::ID += {
 		AUTH_LOG,
 		MAPPING_LOG,
 		FILES_LOG
@@ -13,7 +13,7 @@ export {
 
 	global log_policy_files: Log::PolicyHook;
 	global log_policy_mapping: Log::PolicyHook;
-	
+
 	## Abstracted actions for SMB file actions.
 	type Action: enum {
 		FILE_READ,
@@ -55,7 +55,7 @@ export {
 		id				: conn_id &log;
 		## Unique ID of the file.
 		fuid			: string  &log &optional;
-		
+
 		## Action this log record represents.
 		action			: Action  &log &optional;
 		## Path pulled from the tree this file was transferred to or from.
@@ -99,14 +99,14 @@ export {
 		uid				: string &log;
 		## ID of the connection the request was sent over.
 		id				: conn_id &log;
-		
+
 		## The command sent by the client.
 		command			: string &log;
 		## The subcommand sent by the client, if present.
 		sub_command		: string &log &optional;
 		## Command argument sent by the client, if any.
 		argument		: string &log &optional;
-		
+
 		## Server reply to the client's command.
 		status			: string &log &optional;
 		## Round trip time from the request to the response.
@@ -116,13 +116,13 @@ export {
 
 		## Authenticated username, if available.
 		username		: string &log &optional;
-		
+
 		## If this is related to a tree, this is the tree
 		## that was used for the current command.
 		tree			: string &log &optional;
 		## The type of tree (disk share, printer share, named pipe, etc.).
 		tree_service	: string &log &optional;
-		
+
 		## If the command referenced a file, store it here.
 		referenced_file	: FileInfo &log &optional;
 		## If the command referenced a tree, store it here.
@@ -138,7 +138,7 @@ export {
 		current_file   : FileInfo    &optional;
 		## A reference to the current tree.
 		current_tree   : TreeInfo    &optional;
-		
+
 		## Indexed on MID to map responses to requests.
 		pending_cmds : table[count] of CmdInfo   &optional;
 		## File map to retrieve file information based on the file ID.
@@ -161,7 +161,7 @@ export {
 	redef record connection += {
 		smb_state : State &optional;
 	};
-	
+
 	## This is an internally used function.
 	const set_current_file: function(smb_state: State, file_id: count) &redef;
 
@@ -195,7 +195,7 @@ function set_current_file(smb_state: State, file_id: count)
 		smb_state$fid_map[file_id] = smb_state$current_cmd$referenced_file;
 		smb_state$fid_map[file_id]$fid = file_id;
 		}
-	
+
 	smb_state$current_cmd$referenced_file = smb_state$fid_map[file_id];
 	smb_state$current_file = smb_state$current_cmd$referenced_file;
 	}
@@ -203,7 +203,7 @@ function set_current_file(smb_state: State, file_id: count)
 function write_file_log(state: State)
 	{
 	local f = state$current_file;
-	if ( f?$name && 
+	if ( f?$name &&
 	     f$action in logged_file_actions )
 		{
 		# Everything in this if statement is to avoid overlogging
@@ -225,7 +225,7 @@ function write_file_log(state: State)
 			else
 				add state$recent_files[file_ident];
 			}
-		
+
 		Log::write(FILES_LOG, f);
 		}
 	}
@@ -240,7 +240,7 @@ event file_state_remove(f: fa_file) &priority=-5
 	{
 	if ( f$source != "SMB" )
 		return;
-	
+
 	for ( id, c in f$conns )
 		{
 		if ( c?$smb_state && c$smb_state?$current_file)

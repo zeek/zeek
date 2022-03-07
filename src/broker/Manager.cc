@@ -1,13 +1,11 @@
 #include "zeek/broker/Manager.h"
 
+#include <broker/broker.hh>
+#include <broker/configuration.hh>
+#include <broker/zeek.hh>
 #include <unistd.h>
 #include <cstdio>
 #include <cstring>
-
-#include <caf/config.hpp>
-
-#include <broker/broker.hh>
-#include <broker/zeek.hh>
 
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
@@ -49,6 +47,58 @@
 #endif
 
 using namespace std;
+
+namespace
+	{
+
+void print_escaped(std::string& buf, std::string_view str)
+	{
+	buf.push_back('"');
+	for ( auto c : str )
+		{
+		switch ( c )
+			{
+			default:
+				buf.push_back(c);
+				break;
+			case '\\':
+				buf.push_back('\\');
+				buf.push_back('\\');
+				break;
+			case '\b':
+				buf.push_back('\\');
+				buf.push_back('b');
+				break;
+			case '\f':
+				buf.push_back('\\');
+				buf.push_back('f');
+				break;
+			case '\n':
+				buf.push_back('\\');
+				buf.push_back('n');
+				break;
+			case '\r':
+				buf.push_back('\\');
+				buf.push_back('r');
+				break;
+			case '\t':
+				buf.push_back('\\');
+				buf.push_back('t');
+				break;
+			case '\v':
+				buf.push_back('\\');
+				buf.push_back('v');
+				break;
+			case '"':
+				buf.push_back('\\');
+				buf.push_back('"');
+				break;
+			}
+		}
+	buf.push_back('"');
+	}
+
+	} // namespace
 
 namespace zeek::Broker
 	{
@@ -113,10 +163,10 @@ namespace
 struct opt_mapping
 	{
 	broker::configuration* cfg;
-	std::string_view broker_name;
+	std::string broker_name;
 	const char* zeek_name;
 
-	template <class T> auto broker_read() { return caf::get_as<T>(*cfg, broker_name); }
+	template <class T> auto broker_read() { return broker::get_as<T>(*cfg, broker_name); }
 
 	template <class T> auto broker_write(T&& val) { cfg->set(broker_name, std::forward<T>(val)); }
 
@@ -130,23 +180,10 @@ struct opt_mapping
 
 	} // namespace
 
-class BrokerConfig : public broker::configuration
-	{
-public:
-	BrokerConfig(broker::broker_options options) : broker::configuration(options)
-		{
-		openssl_cafile = get_option("Broker::ssl_cafile")->AsString()->CheckString();
-		openssl_capath = get_option("Broker::ssl_capath")->AsString()->CheckString();
-		openssl_certificate = get_option("Broker::ssl_certificate")->AsString()->CheckString();
-		openssl_key = get_option("Broker::ssl_keyfile")->AsString()->CheckString();
-		openssl_passphrase = get_option("Broker::ssl_passphrase")->AsString()->CheckString();
-		}
-	};
-
 class BrokerState
 	{
 public:
-	BrokerState(BrokerConfig config, size_t congestion_queue_size)
+	BrokerState(broker::configuration config, size_t congestion_queue_size)
 		: endpoint(std::move(config)),
 		  subscriber(endpoint.make_subscriber({broker::topic::statuses(), broker::topic::errors()},
 	                                          congestion_queue_size))
@@ -263,7 +300,13 @@ void Manager::InitPostScript()
 	if ( get_option("Broker::disable_forwarding")->AsBool() )
 		options.disable_forwarding = true;
 
-	BrokerConfig config{std::move(options)};
+	broker::configuration config{std::move(options)};
+
+	config.openssl_cafile(get_option("Broker::ssl_cafile")->AsString()->CheckString());
+	config.openssl_capath(get_option("Broker::ssl_capath")->AsString()->CheckString());
+	config.openssl_certificate(get_option("Broker::ssl_certificate")->AsString()->CheckString());
+	config.openssl_key(get_option("Broker::ssl_keyfile")->AsString()->CheckString());
+	config.openssl_passphrase(get_option("Broker::ssl_passphrase")->AsString()->CheckString());
 
 	auto scheduler_policy = get_option("Broker::scheduler_policy")->AsString()->CheckString();
 
@@ -282,11 +325,11 @@ void Manager::InitPostScript()
 		config.set("caf.scheduler.max-threads", get_option("Broker::max_threads")->AsCount());
 
 	config.set("caf.work-stealing.moderate-sleep-duration",
-	           caf::timespan(static_cast<unsigned>(
+	           broker::timespan(static_cast<unsigned>(
 				   get_option("Broker::moderate_sleep")->AsInterval() * 1e9)));
 
 	config.set("caf.work-stealing.relaxed-sleep-duration",
-	           caf::timespan(
+	           broker::timespan(
 				   static_cast<unsigned>(get_option("Broker::relaxed_sleep")->AsInterval() * 1e9)));
 
 	config.set("caf.work-stealing.aggressive-poll-attempts",
@@ -387,6 +430,8 @@ void Manager::InitPostScript()
 		reporter->FatalError("Failed to register broker subscriber with iosource_mgr");
 
 	bstate->subscriber.add_topic(broker::topic::store_events(), true);
+
+	telemetry_mgr->InitPostBrokerSetup(bstate->endpoint);
 
 	InitializeBrokerStoreForwarding();
 	}
@@ -1056,7 +1101,7 @@ void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 			if ( ! batch.valid() )
 				{
 				reporter->Warning("received invalid broker Batch: %s",
-				                  broker::to_string(batch).data());
+				                  broker::to_string(batch.as_data()).data());
 				return;
 				}
 
@@ -1402,7 +1447,8 @@ bool Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 	DBG_LOG(DBG_BROKER, "Received log-create: %s", RenderMessage(lc.as_data()).c_str());
 	if ( ! lc.valid() )
 		{
-		reporter->Warning("received invalid broker LogCreate: %s", broker::to_string(lc).data());
+		reporter->Warning("received invalid broker LogCreate: %s",
+		                  broker::to_string(lc.as_data()).data());
 		return false;
 		}
 
@@ -1428,7 +1474,7 @@ bool Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 		}
 
 	// Get log fields.
-	auto fields_data = broker::get_if<broker::vector>(&lc.fields_data());
+	auto fields_data = get_if<broker::vector>(&lc.fields_data());
 
 	if ( ! fields_data )
 		{
@@ -1468,7 +1514,8 @@ bool Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 
 	if ( ! lw.valid() )
 		{
-		reporter->Warning("received invalid broker LogWrite: %s", broker::to_string(lw).data());
+		reporter->Warning("received invalid broker LogWrite: %s",
+		                  broker::to_string(lw.as_data()).data());
 		return false;
 		}
 
@@ -1493,7 +1540,7 @@ bool Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 		return false;
 		}
 
-	auto path = broker::get_if<std::string>(&lw.path());
+	auto path = get_if<std::string>(&lw.path());
 
 	if ( ! path )
 		{
@@ -1502,7 +1549,7 @@ bool Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 		return false;
 		}
 
-	auto serial_data = broker::get_if<std::string>(&lw.serial_data());
+	auto serial_data = get_if<std::string>(&lw.serial_data());
 
 	if ( ! serial_data )
 		{
@@ -1557,7 +1604,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 	if ( ! iu.valid() )
 		{
 		reporter->Warning("received invalid broker IdentifierUpdate: %s",
-		                  broker::to_string(iu).data());
+		                  broker::to_string(iu.as_data()).data());
 		return false;
 		}
 
@@ -1689,20 +1736,12 @@ void Manager::ProcessError(broker::error_view err)
 	if ( auto ctx = err.context() )
 		{
 		msg += '(';
-		msg += to_string(ctx->node);
+		msg += broker::to_string(ctx->node);
 		msg += ", ";
-		if (ctx->network)
-			{
-			msg += '*';
-			msg += broker::to_string(*ctx->network);
-			}
-			else
-			{
-			msg += "null";
-			}
+		msg += broker::to_string(ctx->network);
 		msg += ", ";
 		if ( auto what = err.message() )
-			msg += caf::deep_to_string(*what);
+			print_escaped(msg, *what);
 		else
 			msg += R"_("")_";
 		msg += ')';
@@ -1803,7 +1842,10 @@ detail::StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend 
 	Ref(handle);
 
 	data_stores.emplace(name, handle);
-	iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this);
+	if ( ! iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this) )
+		reporter->FatalError(
+			"Failed to register broker master mailbox descriptor with iosource_mgr");
+
 	PrepareForwarding(name);
 
 	if ( ! bstate->endpoint.use_real_time() )
@@ -1825,7 +1867,7 @@ void Manager::BrokerStoreToZeekTable(const std::string& name, const detail::Stor
 	if ( ! keys )
 		return;
 
-	auto set = broker::get_if<broker::set>(&(*keys));
+	auto set = get_if<broker::set>(&(keys->get_data()));
 	auto table = handle->forward_to;
 	const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
 	bool is_set = table->GetType()->IsSet();
@@ -1908,7 +1950,9 @@ detail::StoreHandleVal* Manager::MakeClone(const string& name, double resync_int
 	Ref(handle);
 
 	data_stores.emplace(name, handle);
-	iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this);
+	if ( ! iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this) )
+		reporter->FatalError(
+			"Failed to register broker clone mailbox descriptor with iosource_mgr");
 	PrepareForwarding(name);
 	return handle;
 	}
@@ -2022,55 +2066,6 @@ void Manager::SetMetricsExportEndpointName(std::string value)
 void Manager::SetMetricsExportPrefixes(std::vector<std::string> filter)
 	{
 	bstate->endpoint.metrics_exporter().set_prefixes(std::move(filter));
-	}
-
-std::unique_ptr<telemetry::Manager> Manager::NewTelemetryManager()
-	{
-	// The telemetry Manager actually only has a dependency on the actor system,
-	// not to the Broker Manager. By having the telemetry Manager hold on to a
-	// shared_ptr to our Broker state, we make sure the Broker endpoint, which
-	// owns the CAF actor system, lives for as long as necessary. This also
-	// makes sure that the Broker Manager may even get destroyed before the
-	// telemetry Manager.
-	struct TM final : public telemetry::Manager
-		{
-		using MetricRegistryPtr = std::unique_ptr<caf::telemetry::metric_registry>;
-
-		static auto getPimpl(BrokerState& st)
-			{
-			auto registry = std::addressof(st.endpoint.system().metrics());
-			return reinterpret_cast<telemetry::Manager::Impl*>(registry);
-			}
-
-		static auto getPimpl(MetricRegistryPtr& ptr)
-			{
-			return reinterpret_cast<telemetry::Manager::Impl*>(ptr.get());
-			}
-
-		explicit TM(Broker::Manager* parent, MetricRegistryPtr ptr)
-			: telemetry::Manager(getPimpl(ptr)), parent(parent), tmp(std::move(ptr))
-			{
-			assert(tmp != nullptr);
-			assert(parent != nullptr);
-			}
-
-		void InitPostScript() override
-			{
-			assert(parent->bstate != nullptr);
-			ptr = parent->bstate;
-			auto registry = std::addressof(ptr->endpoint.system().metrics());
-			registry->merge(*tmp);
-			tmp.reset();
-			pimpl = reinterpret_cast<telemetry::Manager::Impl*>(registry);
-			}
-
-		Broker::Manager* parent;
-		MetricRegistryPtr tmp;
-		std::shared_ptr<BrokerState> ptr;
-		};
-
-	auto tmp = std::make_unique<caf::telemetry::metric_registry>();
-	return std::make_unique<TM>(this, std::move(tmp));
 	}
 
 	} // namespace zeek::Broker

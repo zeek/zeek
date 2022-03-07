@@ -5,8 +5,10 @@
 // Zeek statements.
 
 #include "zeek/Dict.h"
+#include "zeek/Expr.h"
 #include "zeek/ID.h"
 #include "zeek/StmtBase.h"
+#include "zeek/Type.h"
 #include "zeek/ZeekList.h"
 
 namespace zeek::detail
@@ -191,6 +193,7 @@ public:
 
 protected:
 	friend class ZAMCompiler;
+	friend class CPPCompile;
 
 	int DefaultCaseIndex() const { return default_case_idx; }
 	const auto& ValueMap() const { return case_label_value_map; }
@@ -442,7 +445,7 @@ public:
 	// Optimization-related:
 	StmtPtr Duplicate() override;
 
-	// Constructor used for duplication, when we've already done
+	// Constructor used internally, for when we've already done
 	// all of the type-checking.
 	ReturnStmt(ExprPtr e, bool ignored);
 
@@ -535,21 +538,105 @@ public:
 	StmtPtr Duplicate() override { return SetSucc(new NullStmt()); }
 	};
 
+// A helper class for tracking all of the information associated with
+// a "when" statement, and constructing the necessary components in support
+// of lambda-style captures.
+class WhenInfo
+	{
+public:
+	// Takes ownership of the CaptureList, which if nil signifies
+	// old-style frame semantics.
+	WhenInfo(ExprPtr _cond, FuncType::CaptureList* _cl, bool _is_return);
+	~WhenInfo() { delete cl; }
+
+	void AddBody(StmtPtr _s) { s = std::move(_s); }
+
+	void AddTimeout(ExprPtr _timeout, StmtPtr _timeout_s)
+		{
+		timeout = std::move(_timeout);
+		timeout_s = std::move(_timeout_s);
+		}
+
+	// Complete construction of the associated internals, including
+	// the (complex) lambda used to access the different elements of
+	// the statement.
+	void Build(StmtPtr ws);
+
+	// Instantiate a new instance.
+	void Instantiate(Frame* f);
+
+	// For old-style semantics, the following simply return the
+	// individual "when" components.  For capture semantics, however,
+	// these instead return different invocations of a lambda that
+	// manages the captures.
+	ExprPtr Cond();
+	StmtPtr WhenBody();
+
+	ExprPtr TimeoutExpr() { return timeout; }
+	StmtPtr TimeoutStmt();
+
+	FuncType::CaptureList* Captures() { return cl; }
+
+	bool IsReturn() const { return is_return; }
+
+	const LambdaExprPtr& Lambda() const { return lambda; }
+
+	// The locals and globals used in the conditional expression
+	// (other than newly introduced locals), necessary for registering
+	// the associated triggers for when their values change.
+	const IDSet& WhenExprLocals() const { return when_expr_locals; }
+	const IDSet& WhenExprGlobals() const { return when_expr_globals; }
+
+private:
+	ExprPtr cond;
+	StmtPtr s;
+	ExprPtr timeout;
+	StmtPtr timeout_s;
+	FuncType::CaptureList* cl;
+
+	bool is_return = false;
+
+	// The name of parameter passed ot the lambda.
+	std::string lambda_param_id;
+
+	// The expression for constructing the lambda.
+	LambdaExprPtr lambda;
+
+	// The current instance of the lambda.  Created by Instantiate(),
+	// for immediate use via calls to Cond() etc.
+	ConstExprPtr curr_lambda;
+
+	// Arguments to use when calling the lambda to either evaluate
+	// the conditional, or execute the body or the timeout statement.
+	ListExprPtr invoke_cond;
+	ListExprPtr invoke_s;
+	ListExprPtr invoke_timeout;
+
+	IDSet when_expr_locals;
+	IDSet when_expr_globals;
+
+	// Used for identifying deprecated instances.  Holds all of the local
+	// variables in the scope prior to parsing the "when" statement.
+	std::map<std::string, IDPtr, std::less<>> prior_vars;
+	};
+
 class WhenStmt final : public Stmt
 	{
 public:
-	// s2 is null if no timeout block given.
-	WhenStmt(ExprPtr cond, StmtPtr s1, StmtPtr s2, ExprPtr timeout, bool is_return);
+	// The constructor takes ownership of the WhenInfo object.
+	WhenStmt(WhenInfo* wi);
 	~WhenStmt() override;
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 	bool IsPure() const override;
 
-	const Expr* Cond() const { return cond.get(); }
-	const Stmt* Body() const { return s1.get(); }
-	const Expr* TimeoutExpr() const { return timeout.get(); }
-	const Stmt* TimeoutBody() const { return s2.get(); }
-	bool IsReturn() const { return is_return; }
+	ExprPtr Cond() const { return wi->Cond(); }
+	StmtPtr Body() const { return wi->WhenBody(); }
+	ExprPtr TimeoutExpr() const { return wi->TimeoutExpr(); }
+	StmtPtr TimeoutBody() const { return wi->TimeoutStmt(); }
+	bool IsReturn() const { return wi->IsReturn(); }
+
+	const WhenInfo* Info() const { return wi; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -561,12 +648,8 @@ public:
 
 	bool IsReduced(Reducer* c) const override;
 
-protected:
-	ExprPtr cond;
-	StmtPtr s1;
-	StmtPtr s2;
-	ExprPtr timeout;
-	bool is_return;
+private:
+	WhenInfo* wi;
 	};
 
 // Internal statement used for inlining.  Executes a block and stops

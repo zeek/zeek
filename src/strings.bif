@@ -541,7 +541,7 @@ function to_lower%(str: string%): string
 			*ls++ = s[i];
 		}
 
-    *ls++ = '\0';
+	*ls++ = '\0';
 
 	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, lower_s, n));
 	%}
@@ -570,7 +570,7 @@ function to_upper%(str: string%): string
 			*us++ = s[i];
 		}
 
-    *us++ = '\0';
+	*us++ = '\0';
 
 	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, upper_s, n));
 	%}
@@ -614,6 +614,7 @@ function to_string_literal%(str: string%): string
 	%}
 
 ## Determines whether a given string contains only ASCII characters.
+## The empty string is ASCII.
 ##
 ## str: The string to examine.
 ##
@@ -1145,7 +1146,7 @@ function count_substr%(str: string, sub: string%) : count
 
 %%{
 
-static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t start, int64_t end, bool rfind)
+static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t start, int64_t end, bool rfind, bool case_sensitive)
 	{
 	// Don't bother if the start is after the end of the string.
 	if ( start > str->Len() )
@@ -1168,11 +1169,19 @@ static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t s
 		return -1;
 
 	string s = str->ToStdString().substr(start, end_pos);
+	string sb = sub->ToStdString();
 	size_t pos = string::npos;
+
+	if ( ! case_sensitive )
+		{
+		transform(s.begin(), s.end(), s.begin(), ::tolower);
+		transform(sb.begin(), sb.end(), sb.begin(), ::tolower);
+		}
+
 	if ( rfind )
-		pos = s.rfind(sub->ToStdString());
+		pos = s.rfind(sb);
 	else
-		pos = s.find(sub->ToStdString());
+		pos = s.find(sb);
 
 	if ( pos == string::npos )
 		return -1;
@@ -1193,13 +1202,16 @@ static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t s
 ## end: An optional position for the end of the substring. A value less than
 ##      zero (such as the default -1) means a search until the end of the
 ##      string.
+## case_sensitive: Set to false to perform a case-insensitive search.
+##                 (default: T). Note that case-insensitive searches use the
+##                 ``tolower`` libc function, which is locale-sensitive.
 ##
 ## Returns: The position of the substring. Returns -1 if the string wasn't
 ##          found. Prints an error if the starting position is after the ending
 ##          position.
-function find_str%(str: string, sub: string, start: count &default=0, end: int &default=-1%) : int
+function find_str%(str: string, sub: string, start: count &default=0, end: int &default=-1, case_sensitive: bool &default=T%) : int
 	%{
-	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, false));
+	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, false, case_sensitive));
 	%}
 
 ## The same as :zeek:see:`find_str`, but returns the highest index matching
@@ -1210,13 +1222,16 @@ function find_str%(str: string, sub: string, start: count &default=0, end: int &
 ## start: An optional position for the start of the substring.
 ## end: An optional position for the end of the substring. A value less than
 ##      zero (such as the default -1) means a search from the end of the string.
+## case_sensitive: Set to false to perform a case-insensitive search.
+##                 (default: T). Note that case-insensitive searches use the
+##                 ``tolower`` libc function, which is locale-sensitive.
 ##
 ## Returns: The position of the substring. Returns -1 if the string wasn't
 ##          found. Prints an error if the starting position is after the ending
 ##          position.
-function rfind_str%(str: string, sub: string, start: count &default=0, end: int &default=-1%) : int
+function rfind_str%(str: string, sub: string, start: count &default=0, end: int &default=-1, case_sensitive: bool &default=T%) : int
 	%{
-	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, true));
+	return zeek::val_mgr->Int(do_find_str(str, sub, start, end, true, case_sensitive));
 	%}
 
 ## Returns whether a string starts with a substring.
@@ -1239,13 +1254,17 @@ function ends_with%(str: string, sub: string%) : bool
 	return zeek::val_mgr->Bool(s.rfind(sub_s) == (s.size() - sub_s.size()));
 	%}
 
-## Returns whether an entire string consists only of digits.
+## Returns whether a string consists entirely of digits.
+## The empty string is not numeric.
 ##
 function is_num%(str: string%) : bool
 	%{
 	// Python's version of this method (which this is based on) just checks to see if every
 	// character in the string is a numeric value. If something more than this is desired, we
 	// could use something like std::from_chars or std::strto{ul,f} to check it.
+	if ( str->Len() == 0 )
+		return zeek::val_mgr->False();
+
 	const char* s = str->CheckString();
 	for ( int i = 0; i < str->Len(); i++ )
 		if ( ! std::isdigit(s[i]) )
@@ -1254,10 +1273,14 @@ function is_num%(str: string%) : bool
 	return zeek::val_mgr->True();
 	%}
 
-## Returns whether an entire string is alphabetic characters.
+## Returns whether a string consists entirely of alphabetic characters.
+## The empty string is not alphabetic.
 ##
 function is_alpha%(str: string%) : bool
 	%{
+	if ( str->Len() == 0 )
+		return zeek::val_mgr->False();
+
 	const char* s = str->CheckString();
 	for ( int i = 0; i < str->Len(); i++ )
 		if ( ! std::isalpha(s[i]) )
@@ -1266,10 +1289,14 @@ function is_alpha%(str: string%) : bool
 	return zeek::val_mgr->True();
 	%}
 
-## Returns whether an entire string is alphanumeric characters
+## Returns whether a string consists entirely of alphanumeric characters.
+## The empty string is not alphanumeric.
 ##
 function is_alnum%(str: string%) : bool
 	%{
+	if ( str->Len() == 0 )
+		return zeek::val_mgr->False();
+
 	const char* s = str->CheckString();
 	for ( int i = 0; i < str->Len(); i++ )
 		if ( ! std::isalnum(s[i]) )

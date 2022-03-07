@@ -11,12 +11,12 @@ export {
 		## Counter to track how many commands have been executed.
 		seq:  count &default=0;
 	};
-	
+
 	## Structure for tracking pending commands in the event that the client
-	## sends a large number of commands before the server has a chance to 
+	## sends a large number of commands before the server has a chance to
 	## reply.
 	type PendingCmds: table[count] of CmdArg;
-	
+
 	## Possible response codes for a wide variety of FTP commands.
 	option cmd_reply_code: set[string, count] = {
 		# According to RFC 959
@@ -65,7 +65,7 @@ export {
 		["MDTM", [213, 500, 501, 550]],           # RFC3659
 		["MLST", [150, 226, 250, 500, 501, 550]], # RFC3659
 		["MLSD", [150, 226, 250, 500, 501, 550]], # RFC3659
-		
+
 		["CLNT", [200, 500]],           # No RFC (indicate client software)
 		["MACB", [200, 500, 550]],      # No RFC (test for MacBinary support)
 
@@ -79,11 +79,11 @@ function add_pending_cmd(pc: PendingCmds, cmd: string, arg: string): CmdArg
 	{
 	local ca = [$cmd = cmd, $arg = arg, $seq=|pc|+1, $ts=network_time()];
 	pc[ca$seq] = ca;
-	
+
 	return ca;
 	}
 
-# Determine which is the best command to match with based on the 
+# Determine which is the best command to match with based on the
 # response code and message.
 function get_pending_cmd(pc: PendingCmds, reply_code: count, reply_msg: string): CmdArg
 	{
@@ -94,18 +94,18 @@ function get_pending_cmd(pc: PendingCmds, reply_code: count, reply_msg: string):
 	for ( cmd_seq, cmd in pc )
 		{
 		local score: int = 0;
-		
+
 		# if the command is compatible with the reply code
 		# code 500 (syntax error) is compatible with all commands
 		if ( reply_code == 500 || [cmd$cmd, reply_code] in cmd_reply_code )
 			score = score + 100;
-		
+
 		# if the command or the command arg appears in the reply message
 		if ( strstr(reply_msg, cmd$cmd) > 0 )
 			score = score + 20;
 		if ( strstr(reply_msg, cmd$arg) > 0 )
 			score = score + 10;
-		
+
 		if ( score > best_score ||
 		     ( score == best_score && best_seq > cmd_seq ) ) # break tie with sequence number
 			{
@@ -132,7 +132,7 @@ function remove_pending_cmd(pc: PendingCmds, ca: CmdArg): bool
 	else
 		return F;
 	}
-	
+
 function pop_pending_cmd(pc: PendingCmds, reply_code: count, reply_msg: string): CmdArg
 	{
 	local ca = get_pending_cmd(pc, reply_code, reply_msg);

@@ -1,3 +1,735 @@
+5.0.0-dev.160 | 2022-03-02 13:48:07 +0000
+
+  * restored record constructor checking for missing-but-mandatory fields. This includea a new btest
+    as well as a fix to the base-scrpts. (Vern Paxson, Corelight)
+
+5.0.0-dev.156 | 2022-03-02 08:23:50 +0000
+
+  * The is_num(), is_alpha(), and is_alnum() BiFs now return F on empty string.
+    The testcases for these functions, and for is_ascii() were expanded. The documentation of is_ascii()
+    concerning behavior of an empty string was clarified (Christian Kreibich, Corelight)
+
+5.0.0-dev.151 | 2022-03-02 08:09:28 +0000
+
+  * SSL: rudimentary decryption for TLS 1.2 (Florian Wilkens, Johanna Amann)
+
+    With this version, we support rudimentary decryption of TLS 1.2 connections, if the key material
+    of the connection (in our case the pre-master secret) is available. Note that this functionality
+    only works for TLS 1.2 connections using the TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 cipher suite.
+    No other combinations are currently supported.
+
+    For more information, see the NEWS entry and the TLS Decryption documentation.
+
+5.0.0-dev.121 | 2022-02-24 09:11:03 -0700
+
+  * GH-1980: Deprecate and return warning for zeek-config's caf-root option (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.118 | 2022-02-23 10:51:57 -0700
+
+  * GH-1949: Remove unused timer_mgr_inactivity_timeout global (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.116 | 2022-02-21 18:17:13 -0700
+
+  * remove deprecated union and timer types, addressing #1898 (Matthew Luckie)
+
+5.0.0-dev.114 | 2022-02-11 09:30:04 -0800
+
+  * Minor modernizations to Github workflows (Christian Kreibich, Corelight)
+
+5.0.0-dev.112 | 2022-02-10 17:56:27 -0800
+
+  * Reorg of the cluster controller to new "Management framework" layout (Christian Kreibich, Corelight)
+
+  * Bump external cluster testsuite to reflect Management framework reorg (Christian Kreibich, Corelight)
+
+  * Bump zeek-client to reflect Management framework reorg (Christian Kreibich, Corelight)
+
+5.0.0-dev.108 | 2022-02-10 10:35:02 -0700
+
+  * Fixing a big pile of Coverity issues (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.106 | 2022-02-09 15:15:21 -0800
+
+  * Expand generate-docs Github workflow to test docs build on PRs (Christian Kreibich, Corelight)
+
+5.0.0-dev.104 | 2022-02-09 13:14:04 -0800
+
+  * Updates to the cluster controller scripts to fix the docs build (Christian Kreibich, Corelight)
+
+  * Bump zeek-client for Broker enum fix/workaround (Christian Kreibich, Corelight)
+
+5.0.0-dev.100 | 2022-02-07 14:18:50 -0800
+
+  * Add capture to a Sumstats when-statement to fix deprecation warning (Christian Kreibich, Corelight)
+
+5.0.0-dev.97 | 2022-02-07 16:24:06 +0100
+
+  * Update to latest Broker without public CAF dependencies. (Dominik
+    Charousset, Corelight)
+
+  * Fix GCC builds and string output for Broker errors (Dominik
+    Charousset, Corelight)
+
+5.0.0-dev.94 | 2022-02-07 08:14:47 -0700
+
+  * String/StringVal: Replace char*/string constructors with string_view (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.92 | 2022-02-04 10:33:47 -0700
+
+  * fix existing checks for looking to use C++ when it's not available (Vern Paxson, Corelight)
+
+5.0.0-dev.90 | 2022-02-04 10:32:41 -0700
+
+  * fixes for ZAM profiling, which didn't get fully integrated originally (Vern Paxson, Corelight)
+
+  * minor enhancements for ZAM inlining (Vern Paxson, Corelight)
+
+5.0.0-dev.87 | 2022-02-03 13:17:25 -0800
+
+  * Expansion of cluster controller functionality (Christian Kreibich, Corelight)
+
+    - Bump external cluster testsuite
+    - Bump zeek-client for the get-nodes command
+    - Add ClusterController::API::get_nodes_request/response event pair
+    - Support optional listening ports for cluster nodes
+    - Don't auto-publish Supervisor response events in the cluster agent
+    - Make members of the ClusterController::Types::State enum all-caps
+    - Be more conservative with triggering request timeout events
+    - Move redefs of ClusterController::Request::Request to their places of use
+    - Simplify ClusterController::API::set_configuration_request/response
+
+5.0.0-dev.77 | 2022-02-03 11:20:16 +0000
+
+  * Match DPD TLS signature on one-sided connections. (Johanna Amann, Corelight)
+
+    This commit changes DPD matching for TLS connections. A one-sided match
+    is enough to enable DPD now.
+
+    This commit also removes DPD for SSLv2 connections. SSLv2 connections do
+    basically no longer happen in the wild. SSLv2 is also really finnicky to
+    identify correctly - there is very little data required to match it, and
+    basically all matches today will be false positives. If DPD for SSLv2 is
+    still desired, the optional signature in policy/protocols/ssl/dpd-v2.sig
+    can be loaded.
+
+5.0.0-dev.74 | 2022-02-02 09:46:00 +0100
+
+  * GH-1890: Consistently warn about mixing vector and scalar operand
+    depreciaton (Zeke Medley, Corelight)
+
+5.0.0-dev.72 | 2022-02-02 09:36:30 +0100
+
+  * Let TCP-based application analyzers operate without any TCP parent
+    analyzer. (Robin Sommer, Corelight)
+
+5.0.0-dev.70 | 2022-01-25 13:52:00 -0700
+
+  * bug fix for vector slice assignment (Vern Paxson, Corelight)
+
+5.0.0-dev.67 | 2022-01-25 12:25:48 +0000
+
+  * updated Bro->Zeek in comments in the source tree (Vern Paxson, Corelight)
+
+5.0.0-dev.65 | 2022-01-24 13:41:25 -0800
+
+  * CI updates (Christian Kreibich, Corelight)
+
+    - add Ubuntu 21.10
+    - remove OpenSUSE Leap 15.2 (EOL)
+    - add CentOS Stream 9
+
+5.0.0-dev.61 | 2022-01-17 10:35:15 +0000
+
+  * fix for adding a non-managed type to an empty vector (Vern Paxson, Corelight)
+
+5.0.0-dev.58 | 2022-01-14 14:41:15 -0700
+
+  * explicitly provide the frame for evaluating a "when" timeout expression (Vern Paxson, Corelight)
+
+  * tests for new "when" semantics/errors (Vern Paxson, Corelight)
+
+  * captures for "when" statements (Vern Paxson, Corelight)
+    update Triggers to IntrusivePtr's and simpler AST traversal
+    introduce IDSet type, migrate associated "ID*" types to "const ID*"
+
+  * logic (other than in profiling) for assignments that yield separate values (Vern Paxson, Corelight)
+
+  * option for internal use to mark a function type as allowing non-expression returns (Vern Paxson, Corelight)
+
+  * removed some now-obsolete profiling functionality (Vern Paxson, Corelight)
+
+5.0.0-dev.47 | 2022-01-14 12:22:11 -0700
+
+  * Remove Fedora 33 from CI. (Johanna Amann, Corelight)
+
+    EOL date was 2021‑11‑30
+
+5.0.0-dev.45 | 2022-01-14 12:21:25 -0700
+
+  * Have `make dist` cleanup a few more wayward files before tarring (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.43 | 2022-01-14 15:59:53 +0000
+
+  * Make more StringVal member functions const (Johanna Amann, Corelight)
+
+5.0.0-dev.41 | 2022-01-12 10:16:38 -0700
+
+  * Fix --with-jemalloc configure option on FreeBSD (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.39 | 2022-01-11 15:02:37 -0700
+
+  * support for compiling type-based switches to C++ (Vern Paxson, Corelight)
+
+  * make encountering uncompilable "standalone" functions to be a hard error (Vern Paxson, Corelight)
+
+  * fix: ZAM could misinterpret a "type" switch that starts with a "default" (Vern Paxson, Corelight)
+
+  * fix: don't treat pseudo-identifiers in type cases as local variables (Vern Paxson, Corelight)
+
+  * removed development helper scripts now obsolete with --optimize-files= (Vern Paxson, Corelight)
+
+5.0.0-dev.33 | 2022-01-11 14:57:58 -0700
+
+  * Bump CI sanitizer task to Ubuntu 20.04 (Tim Wojtulewicz, Corelight)
+
+  * Fix uninitialized variable warning (Tim Wojtulewicz, Corelight)
+
+  * Enable null check for UBSan (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.28 | 2022-01-10 10:30:39 -0700
+
+  * fix for avoiding de-ref of nil pointer (Vern Paxson, Corelight)
+
+5.0.0-dev.25 | 2022-01-10 14:42:50 +0100
+
+  * GH-1844: Fix host header normalization in intel framework. (Robin
+    Sommer, Corelight)
+
+  * GH-1844: Switch to recording unmodified HTTP header. (Robin
+    Sommer, Corelight)
+
+5.0.0-dev.22 | 2022-01-07 12:34:25 -0700
+
+  * GH-1624: Migrate check_and_promote and a few Expr methods to IntrusivePtr (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.19 | 2022-01-06 15:06:59 -0700
+
+  * bug fix for reporting poorly formed record constructors (Vern Paxson, Corelight)
+
+5.0.0-dev.17 | 2022-01-06 14:04:48 -0700
+
+  * Remove CentOS 8 from CI. (Johanna Amann, Corelight)
+
+    EOL was 2021-12-31
+
+5.0.0-dev.15 | 2022-01-06 13:54:38 -0700
+
+  * test suite alternative baseline fixes for recent test renaming (Vern Paxson, Corelight)
+
+  * addressed a couple of memory leaks in ZAM execution (Vern Paxson, Corelight)
+
+5.0.0-dev.10 | 2022-01-05 09:13:45 -0700
+
+  * Make FreeBSD more flexible, don't look for jemalloc unless we were (Craig Leres)
+    given a specific path for it.
+
+  * Set JEMALLOC_FOUND when on FreeBSD (suggested by Tim Wojtulewicz) (Craig Leres)
+
+  * FreeBSD: don't look for jemalloc as a package, it's in the base system (Craig Leres)
+
+5.0.0-dev.6 | 2022-01-05 09:12:33 -0700
+
+  * Fix return type of double_to_int (Johanna Amann, Corelight)
+
+    Fixes GH-1919
+
+4.2.0-dev.514 | 2022-01-03 13:56:12 -0700
+
+  * deprecation warning on use of out-of-scope local (Vern Paxson, Corelight)
+
+4.2.0-dev.510 | 2022-01-03 13:54:52 -0700
+
+  * Switch BitTorrent analyzer to Zeek's regex engine (Avinal Kumar)
+
+    - Removes dependency on <regex.h>
+    - Replaces regex function with Zeek's standard regex functions
+    - Some replacements are workaround, may be improved later via an
+    appropiate API
+    - Update test baseline to fix what seems to be capturing on a bug in the
+    existing code.
+
+    Edit pass by Robin Sommer. Note that our test doesn't cover all the code
+    paths, but it does go through the one with the most substantial change.
+
+  * Adding test for BitTorrent tracker. (Robin Sommer, Corelight)
+
+    Our test trace is extracted from https://www.cloudshark.org/captures/b9089aac6eee.
+
+    There actually seems to be a bug in the existing code: the URI passed to
+    bt_tracker_request() includes a partial HTTP version. This commits
+    includes the baseline as the current code produces it, we'll fix that in
+    a subsequent comment.
+
+4.2.0-dev.506 | 2022-01-03 09:33:43 -0800
+
+  * Expansion of the emerging cluster controller framework (Christian Kreibich, Corelight)
+
+    - Controller/agent connectivity is now controlled by pushed configurations
+    - The Request module now supports state timeouts
+    - Use Result records consistently for responses to the client
+    - Track successful config deployment in cluster controller
+    - Add ClusterController::API::notify_agents_ready event
+    - Make all globals start with a "g_" prefix
+    - Add missing debug() log function to log module's API
+    - Add separate utility module for controller and agent
+    - Additional infrastructure for printing types
+    - Bump zeek-client to v0.2.0
+    - Add Github action job for cluster tests
+    - Tweak Docker image configure invocation to include zeek-client
+    - Zeekygen documentation pass
+
+4.2.0-dev.477 | 2021-12-14 16:53:57 -0700
+
+  * fixes for double-delete and reducing '?' operator with constant alternatives (Vern Paxson, Corelight)
+
+  * correct usage info for -u flag; -uu no longer supported (Vern Paxson, Corelight)
+
+4.2.0-dev.468 | 2021-12-14 11:34:47 -0700
+
+  * factoring of generating C++ initializations, no semantic changes (Vern Paxson, Corelight)
+
+  * restored support for incremental compilation of scripts to C++ (Vern Paxson, Corelight)
+
+  * fixes for -O gen-standalone-C++ (Vern Paxson, Corelight)
+
+  * new ZEEK_FILE_ONLY and ZEEK_FUNC_ONLY environment variables for debugging script optimization - replaces ZEEK_ONLY (Vern Paxson, Corelight)
+
+  * fix for compiling record constructors to C++ (Vern Paxson, Corelight)
+
+  * fixes for compiling vector operations to C++ (Vern Paxson, Corelight)
+
+  * fixed for profiling missing some profile elements (Vern Paxson, Corelight)
+
+  * minor efficiency tweak for ZAM record construction (Vern Paxson, Corelight)
+
+4.2.0-dev.456 | 2021-12-14 09:23:47 -0700
+
+  * GH-1860: Add double_to_int() bif (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.454 | 2021-12-13 09:41:32 -0700
+
+  * Check for sets before attempting to check for same Yield types (Tim Wojtulewicz)
+
+  * Add early bail-outs to same_type() (Tim Wojtulewicz)
+
+  * Fix types for Analyzer::register_for_port(s) to be the same (Tim Wojtulewicz)
+
+  * Update cmake submodule across all other submodules (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.448 | 2021-12-10 15:35:34 -0700
+
+  * update btest to no longer use (unsupported) %S formatting, no longer needed (Vern Paxson, Corelight)
+
+  * replace --optimize-only with --optimize-funcs and --optimize-files (Vern Paxson, Corelight)
+
+4.2.0-dev.444 | 2021-12-10 13:13:13 -0700
+
+  * reintroduction of "-O add-C++" option (Vern Paxson, Corelight)
+
+4.2.0-dev.442 | 2021-12-10 13:12:43 -0700
+
+  * fixes for vector operations (Vern Paxson, Corelight)
+
+  * flag globals initialized to opaque values as non-compilable (Vern Paxson, Corelight)
+
+  * skip type signatures for lambdas (Vern Paxson, Corelight)
+
+  * fix for translating filenames beginning with numbers to C++ variable names (Vern Paxson, Corelight)
+
+4.2.0-dev.436 | 2021-12-10 13:11:36 -0700
+
+  * update script-to-C++ compilation for new record constructor internals (Vern Paxson, Corelight)
+
+4.2.0-dev.434 | 2021-12-10 13:11:10 -0700
+
+  * updates to ZAM to track recent changes in script semantics (Vern Paxson, Corelight)
+
+4.2.0-dev.432 | 2021-12-10 09:28:23 -0700
+
+  * GH-1741: Print error if calling a non-hook with hook keyword (Tim Wojtulewicz, Corelight)
+
+  * GH-1740: Report a better error message if table key is not a list (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.428 | 2021-12-09 14:58:53 -0700
+
+  * GH-1125: Support GRE ARUBA headers (Tim Wojtulewicz, Corelight)
+
+  * Fix ethertype for ARP in Geneve forwarding rules (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.425 | 2021-12-09 13:45:17 -0800
+
+  * Add LogAscii::json_include_unset_fields flag to control unset field rendering (Christian Kreibich, Corelight)
+
+4.2.0-dev.423 | 2021-12-09 19:56:43 +0000
+
+  * Improve error message for clash between variable and function name (Johanna Amann, Corelight)
+    Fixes GH-1832
+
+  * Restore --disable-zeekctl configure argument (Tim Wojtulewicz, Corelight)
+
+  * Update plugin.hooks baseline for recent Geneve change (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.419 | 2021-12-07 09:34:45 -0700
+
+  * GH-1764: Update mappings for Geneve analyzer to IP4/IP6/ARP (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.417 | 2021-12-06 17:00:16 -0800
+
+  * Flip C++ unit tests to being enabled by default (Christian Kreibich, Corelight)
+
+    To disable them, configure with --disable-cpp-tests.
+
+  * Support for unit tests in plugins (Christian Kreibich, Corelight)
+
+4.2.0-dev.410 | 2021-12-06 11:29:32 -0700
+
+  * Remove separate Tag types, note breaking change in NEWS (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.408 | 2021-12-06 09:15:24 -0700
+
+  * GH-1768: Properly cleanup existing log stream when recreated on with the same ID (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.406 | 2021-12-01 10:32:34 -0700
+
+  * Format Python scripts with yapf. (Benjamin Bannier, Corelight)
+
+    We also add a very basic yapf configuration file. Most of the changes in
+    this patch were performed automatically, but we broke one overly long
+    string into multiple components on `src/make_dbg_constants.py`.
+
+  * Format shell scripts with shfmt. (Benjamin Bannier, Corelight)
+
+    All changes in this patch were performed automatically with `shfmt` with
+    configuration flags specified in `.pre-commit-config.yaml`.
+
+4.2.0-dev.403 | 2021-12-01 10:25:32 -0700
+
+  * fix btest comment to more accurately describe the test (Vern Paxson, Corelight)
+
+  * btests for erroneous script conditionals (Vern Paxson, Corelight)
+
+  * avoid compiling-to-C++ for functions potentially influenced by conditionals (Vern Paxson, Corelight)
+
+  * track the use of conditionals in functions and files (Vern Paxson, Corelight)
+
+  * AST profiles track the associated function/body/expression (Vern Paxson, Corelight)
+
+4.2.0-dev.396 | 2021-12-01 09:44:03 -0700
+
+  * GH-1873: Deprecate the tag types differently to avoid type clashes (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.394 | 2021-11-30 11:53:35 -0700
+
+  * Fix for the recent patch that allows segment offloaded packets. (Johanna Amann, Corelight)
+
+    We recently added support for segment offloaded packets. It turns out
+    that this can lead to problems in UDP/ICMP based parsers since I missed
+    correctly also updating the payloadlength there, and using the capture
+    length instead when segment offloading is enabled.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=41391
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=41394
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=41395
+    (Link to details becomes public 30 days after patch release)
+
+4.2.0-dev.393 | 2021-11-29 13:46:59 -0700
+
+  * Fix a number of Coverity findings (Tim Wojtulewicz, Corelight)
+
+    1466460: Uninitialized field in gtp-analyzer.pac
+    1462465: Null pointer dereference in CompositeHash::SingleValHash
+    1462463: Copy/paste error in TCPSessionAdapter::build_syn_packet_val
+    1462067: Uninitialized fields in Zinst
+
+4.2.0-dev.391 | 2021-11-29 13:44:11 -0700
+
+  * suppress unneeded initializations (Vern Paxson, Corelight)
+
+4.2.0-dev.387 | 2021-11-24 13:32:33 -0700
+
+  * fixes for constructing and assigning records with fields that are empty vectors (Vern Paxson, Corelight)
+
+4.2.0-dev.385 | 2021-11-23 19:43:48 -0700
+
+  * Changes to speed up compilation of Compiled-to-C++ Zeek Scripts (Vern Paxson, Corelight)
+
+  * removing unused SubNetType class (Vern Paxson, Corelight)
+
+4.2.0-dev.371 | 2021-11-23 19:41:10 -0700
+
+  * Add new tunnel packet analyzers, remove old ones (Tim Wojtulewicz, Corelight)
+
+  * Add PacketAnalyzer::register_for_port(s) functions (Tim Wojtulewicz, Corelight)
+
+    These allow packet analyzers to register ports as identifiers to forward from
+    parent analyzers, while also adding those ports to the now-global
+    Analyzer::ports table at the same time.
+
+  * Add analyzer_confirmation and analyzer_violation events (Tim Wojtulewicz, Corelight)
+
+  * Add utility function for tunnel analyzers to setup encapsulation (Tim Wojtulewicz, Corelight)
+
+  * Store some additional information in the packet during processing (Tim Wojtulewicz, Corelight)
+
+    - Session related to the packet
+    - is_orig information if a UDP header was found
+
+  * Minor fix in UDP to avoid duplicating tunnels (Tim Wojtulewicz, Corelight)
+
+  * Fix error text in IPTunnel analyzer (Tim Wojtulewicz, Corelight)
+
+  * Change Packet::ip_hdr to be a shared_ptr so it can be copied into EncapsulatingConn (Tim Wojtulewicz, Corelight)
+
+  * Add method for packet analyzers to register for protocol detection (Tim Wojtulewicz, Corelight)
+
+  * Add concept of "parent" tag namespaces (Tim Wojtulewicz, Corelight)
+
+    This allows us to create an EnumType that groups all of the analyzer
+    tag values into a single type, while still having the existing types
+    that split them up. We can then use this for certain events that benefit
+    from taking all of the tag types at once.
+
+  * Unify plugin::Component and plugin::TaggedComponent into a single class (Tim Wojtulewicz, Corelight)
+
+    These two are almost always used in conjunction with each other, and
+    TaggedComponent is never used by itself. Combining them together into
+    a single class will help simplify some of the code around managing
+    the mapping between Tags and Components.
+
+  * Remove uses of deprecated Tag types (Tim Wojtulewicz, Corelight)
+
+  * Unify all of the Tag types into one type (Tim Wojtulewicz, Corelight)
+
+    - Remove tag types for each component type (analyzer, etc)
+    - Add deprecated versions of the old types
+    - Remove unnecessary tag element from templates for TaggedComponent and ComponentManager
+    - Enable TaggedComponent to pass an EnumType when initializing Tag objects
+    - Update some tests that are affected by the tag enum values changing order
+
+4.2.0-dev.350 | 2021-11-23 15:35:06 +0000
+
+  * Add testcase for TCP segment offloading (GH-1829). (Johanna Amann, Corelight)
+
+4.2.0-dev.348 | 2021-11-23 13:45:39 +0000
+
+  * OpenSSL 3 compatibility (Johanna Amann, Corelight)
+
+    Zeek is now compatible with OpenSSL 3.0, our test baselines pass cleanly, and
+    we have a CI run for OpenSSL 3.0. This has a certain amount of new code for
+    X.509 certificate parsing. Apart from that, the main chainge is that we
+    use an older, legacy, API for OpaqueVal hashing, since the newer API
+    does not allow us to serialize data anymore. For details see ticket 1379.
+
+4.2.0-dev.340 | 2021-11-23 10:10:13 +0000
+
+  * Accept packets that use tcp segment offloading. (Johanna Amann, Corelight)
+
+    When checksum offloading is enabled, we now forward packets that
+    have 0 header lengths set - and assume that they have TSO enabled.
+
+    If checksum offloading is not enabled, we drop the packets (GH-1829)
+
+  * Updates to NEWS to cover recent additions. [nomail] [skip ci] (Christian Kreibich, Corelight)
+
+  * Update doc and auxil/zeek-aux submodules [nomail] [skip ci] (Christian Kreibich, Corelight)
+
+  * Update cmake and aux/zeek-aux submodules [nomail] [skip ci] (Christian Kreibich, Corelight)
+
+4.2.0-dev.333 | 2021-11-17 11:57:04 -0800
+
+  * Clean up fully after successful Docker btests (Christian Kreibich, Corelight)
+
+4.2.0-dev.331 | 2021-11-15 10:10:52 -0800
+
+  * Fix ref-naming typo in the Github Docker workflow (Christian Kreibich, Corelight)
+
+4.2.0-dev.328 | 2021-11-12 13:46:32 -0700
+
+  * Update libkqueue submodule (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.326 | 2021-11-12 09:30:54 -0700
+
+  * Added plugin.unprocessed_packet_hook btest (Tim Wojtulewicz, Corelight)
+
+  * Fix whitespace in help output (Tim Wojtulewicz, Corelight)
+
+  * Add command-line option to write unprocessed packets to a file (Tim Wojtulewicz, Corelight)
+
+    This commit also changes the PcapDumper to automatically flush after
+    every called to Dump(). This is because pcap_dump has an internal buffer
+    of some sort that only writes to the file after a set amount of bytes.
+    When using the new option on a low-traffic network, it might be a while
+    before you see any packets written since it has to overcome that buffer
+    limit first.
+
+  * GH-1620: Add event and plugin hook to track packets not processed (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.319 | 2021-11-10 10:20:01 -0700
+
+  * Install include headers from `src/3rdparty/`. (Benjamin Bannier, Corelight)
+
+    This is a fixup commit for 72cbc7cd13b7c1bda98658104431c3b530ff68d6
+    where we move some header files from `src/` to `src/3rdparty/` but
+    missed adding install rules for these header. Since some of these
+    headers are exposed in installed headers they need to be installed as
+    well.
+
+4.2.0-dev.317 | 2021-11-10 11:33:29 +0000
+
+  * Add case-insensitive search for find_str and rfind_str (Abdel)
+
+4.2.0-dev.314 | 2021-11-10 11:16:28 +0100
+
+  * GH-1757: Add new hook `HookLoadFileExtended` that allows plugins
+    to supply Zeek script and signature code to parse. (Robin Sommer)
+
+    The new hook works similar to the existing `HookLoadFile` but,
+    additionally, allows the plugin to return a string that contains
+    the code to be used for the file being loaded. If the plugin does
+    so, the content of any actual file on disk will be ignored. This
+    works for both Zeek scripts and signatures.
+
+  * Fix an issue where signature files supplied on the command line
+    wouldn't pass through the file loading hooks. (Robin Sommer,
+    Corelight)
+
+4.2.0-dev.310 | 2021-11-09 10:29:59 -0700
+
+  * Add Github action exercising pre-commit (Benjamin Bannier, Corelight)
+
+    This patch adds a Github action which exercises pre-commit linters for
+    commits to the `master` branch or for pull requests.  We adds this task
+    as a Github action since we expect it to finish quickly; running outside
+    of Cirrus makes it possible provide feedback quickly.
+
+  * Add pre-commit config. (Benjamin Bannier, Corelight)
+
+    This patch adds `clang-format` as only linter for now. This replaces the
+    previously used script from `auxil/run-clang-format` which we remove.
+
+    This requires the Python program `pre-commit`
+    (https://pypi.org/project/pre-commit/). With that one can then run
+    `clang-format` on the whole codebase with
+
+        $ pre-commit run -a clang-format
+
+    or on just the staged files
+
+        # Explicitly selecting linter.
+        $ pre-commit run clang-format
+
+        # Run all linters (currently just `clang-format`).
+        $ pre-commit
+
+    `pre-commit` supports managing Git commit hooks so that linters are run
+    on commit. Linters can be installed with
+
+        $ pre-commit install
+
+    The documentation at https://pre-commit.com/ covers these topics in
+    addition to more information.
+
+  * Format code with `clang-format` (Benjamin Bannier, Corelight)
+
+    This patch formats files not conforming to the C++ formatting with
+    `clang-format`.
+
+  * Remove stale files `src/DebugCmdInfoConstants.*` (Benjamin Bannier, Corelight)
+
+    The files generated from `src/DebugCmdInfoConstants.in` are placed in
+    `build/src/` by the build setup, and generated file in `src/` removed
+    here were unused and possibly out-of-date.
+
+  * Disable formatting for files in `testing/btest/plugins` (Benjamin Bannier, Corelight)
+
+    Files in that folder were previously not formatted. With this patch we
+    now disable formatting in that folder explicitly by adding a dedicated
+    `clang-format` config which deactivates any formatting changes.
+
+  * Move 3rdparty source files to `3rdparty/` (Benjamin Bannier, Corelight)
+
+    This patch moves in-tree 3rdparty source files to `3rdparty/`. With that
+    we can remove special treatment of these files for `run-clang-format`.
+
+4.2.0-dev.303 | 2021-11-09 09:45:57 -0700
+
+  * GH-1819: Handle recursive types when describing type in binary mode (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.301 | 2021-11-09 09:28:18 -0700
+
+  * Remove no-op false-teredo test (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.297 | 2021-11-05 12:49:55 -0700
+
+  * Only push CI's Docker images when we're on the main repo (Christian Kreibich, Corelight)
+
+  * Add macOS Monterey and drop Catalina in CI (Christian Kreibich, Corelight)
+
+  * Add Fedora 35 to CI (Christian Kreibich, Corelight)
+
+4.2.0-dev.292 | 2021-11-04 14:28:35 -0700
+
+  * Fix C++ set intersection code (Yacin Nadji, Corelight)
+
+4.2.0-dev.286 | 2021-11-03 09:36:41 -0700
+
+  * GH-693: use pcap_dump_open_append where supported (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.284 | 2021-11-03 09:35:10 -0700
+
+  * GH-1781: Add .git-blame-ignore-revs file (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.280 | 2021-11-01 09:20:16 -0700
+
+  * Fix issue with broken libpcaps that return repeat packets (Tim Wojtulewicz, Corelight)
+
+    This is apparently a problem with the Myricom version of libpcap, where
+    instead of returning a null or a zero if no packets are available, it
+    returns the previous packet. This causes Zeek to improperly parse the
+    packet and crash. We thought we had fixed this previously with a check
+    for a null packet but that fix was not enough.
+
+4.2.0-dev.277 | 2021-10-21 17:23:46 -0700
+
+  * Apply some missing clang-format changes (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.274 | 2021-10-20 11:13:16 -0700
+
+  * Remove trailing whitespace from script files (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.271 | 2021-10-19 14:54:56 +0200
+
+  * Add parsing of DNS SVCB/HTTPS records (FlyingWithJerome)
+
+4.2.0-dev.260 | 2021-10-15 09:45:45 +0100
+
+  * logging/writers/ascii: shadow files: Add fsync() before rename(). This
+    prevents potential problems with leftover files after unclean shutdowns.
+    (Arne Welzel, Corelight)
+
+  * Fix typo in typedef changes that broke tests on 32-bit Debian 9 (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.255 | 2021-10-12 09:22:37 -0700
+
+  * Replace most uses of typedef with using for type aliasing (Tim Wojtulewicz, Corelight)
+
+4.2.0-dev.253 | 2021-10-11 11:38:30 -0700
+
+  * Don't initialize private testsuite in CI when not running out of Zeek project (Christian Kreibich, Corelight)
+
+  * Drop FreeBSD 11.4 (now EOL), add FreeBSD 14 as informational build (Christian Kreibich, Corelight)
+
 4.2.0-dev.249 | 2021-10-04 12:47:42 -0700
 
   * Expand table/set tests to cover new index types (Christian Kreibich, Corelight)

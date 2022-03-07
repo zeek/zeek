@@ -30,10 +30,13 @@ Contents_Rlogin_Analyzer::~Contents_Rlogin_Analyzer() { }
 
 void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 	{
-	auto* tcp = static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
-	assert(tcp);
+	int endp_state;
 
-	int endp_state = IsOrig() ? tcp->OrigState() : tcp->RespState();
+	if ( auto* tcp = static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP() )
+		endp_state = IsOrig() ? tcp->OrigState() : tcp->RespState();
+	else
+		endp_state = tcp::TCP_ENDPOINT_ESTABLISHED; // no TCP parent, assume somebody's feeding us a
+		                                            // legitimate stream
 
 	for ( ; len > 0; --len, ++data )
 		{

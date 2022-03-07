@@ -18,16 +18,11 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/ZeekList.h"
 
-namespace caf
-	{
-template <class> class expected;
-	}
-
 namespace broker
 	{
 class data;
 using vector = std::vector<data>;
-using caf::expected;
+template <class> class expected;
 	}
 
 namespace zeek
@@ -144,8 +139,8 @@ protected:
 
 	std::vector<Body> bodies;
 	detail::ScopePtr scope;
-	Kind kind;
-	uint32_t unique_id;
+	Kind kind = SCRIPT_FUNC;
+	uint32_t unique_id = 0;
 	FuncTypePtr type;
 	std::string name;
 	static inline std::vector<FuncPtr> unique_ids;
@@ -303,7 +298,7 @@ protected:
 	virtual void SetCaptures(Frame* f);
 
 private:
-	size_t frame_size;
+	size_t frame_size = 0;
 
 	// List of the outer IDs used in the function.
 	IDPList outer_ids;
@@ -374,8 +369,8 @@ struct function_ingredients
 	IDPtr id;
 	StmtPtr body;
 	std::vector<IDPtr> inits;
-	int frame_size;
-	int priority;
+	int frame_size = 0;
+	int priority = 0;
 	ScopePtr scope;
 	};
 

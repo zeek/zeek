@@ -9,4 +9,5 @@ event zeek_init()
 
 	print is_ascii(a);
 	print is_ascii(b);
+	print is_ascii("");
 	}

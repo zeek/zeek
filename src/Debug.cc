@@ -1,4 +1,4 @@
-// Debugging support for Bro policy files.
+// Debugging support for Zeek policy files.
 
 #include "zeek/Debug.h"
 
@@ -34,7 +34,7 @@
 
 extern "C"
 	{
-#include "zeek/setsignal.h"
+#include "zeek/3rdparty/setsignal.h"
 	}
 
 using namespace std;
@@ -59,7 +59,7 @@ bool in_debug = false;
 
 // ### fix this hardwired access to external variables etc.
 struct yy_buffer_state;
-typedef struct yy_buffer_state* YY_BUFFER_STATE;
+using YY_BUFFER_STATE = struct yy_buffer_state*;
 YY_BUFFER_STATE bro_scan_string(const char*);
 
 extern YYLTYPE yylloc; // holds start line and column of token

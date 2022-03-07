@@ -16,12 +16,12 @@ else
     rm -f $diag
 fi
 
-rc=0;
+rc=0
 
-files_cwd=`ls $@`
-files_baseline=`cd $TEST_BASELINE && ls $@`
+files_cwd=$(ls $@)
+files_baseline=$(cd $TEST_BASELINE && ls $@)
 
-for i in `echo $files_cwd $files_baseline | sort | uniq`; do
+for i in $(echo $files_cwd $files_baseline | sort | uniq); do
     if [[ "$i" != "loaded_scripts.log" && "$i" != "prof.log" && "$i" != "debug.log" && "$i" != "stats.log" && "$i" != broker_*.log ]]; then
 
         if [[ "$i" == "reporter.log" ]]; then
@@ -33,11 +33,11 @@ for i in `echo $files_cwd $files_baseline | sort | uniq`; do
         fi
 
         if ! btest-diff $i; then
-           echo "" >>$diag
-           echo "#### btest-diff $i" >>$diag
-           echo "" >>$diag
-           cat $diag.tmp >>$diag
-           rc=1
+            echo "" >>$diag
+            echo "#### btest-diff $i" >>$diag
+            echo "" >>$diag
+            cat $diag.tmp >>$diag
+            rc=1
         fi
     fi
 done

@@ -58,7 +58,7 @@ public:
 
 	/**
 	 * Call this when a new value is encountered. Note that on the first
-	 * call, the Bro type of the value types that are counted is set. All
+	 * call, the Zeek type of the value types that are counted is set. All
 	 * following calls to encountered have to specify the same type.
 	 *
 	 * @param value The encountered element
@@ -81,7 +81,7 @@ public:
 	 * certain val. Returns 0 if the val is unknown (and logs the error
 	 * to reporter).
 	 *
-	 * @param value Bro value to get counts for
+	 * @param value Zeek value to get counts for
 	 *
 	 * @returns internal count for val, 0 if unknown
 	 */
@@ -91,7 +91,7 @@ public:
 	 * Get the current epsilon tracked in the top-k data structure for a
 	 * certain val.
 	 *
-	 * @param value Bro value to get epsilons for
+	 * @param value Zeek value to get epsilons for
 	 *
 	 * @returns the epsilon. Returns 0 if the val is unknown (and logs
 	 * the error to reporter)
@@ -171,12 +171,12 @@ private:
 	void Typify(TypePtr t);
 
 	TypePtr type;
-	zeek::detail::CompositeHash* hash;
+	zeek::detail::CompositeHash* hash = nullptr;
 	std::list<Bucket*> buckets;
-	PDict<Element>* elementDict;
-	uint64_t size; // how many elements are we tracking?
-	uint64_t numElements; // how many elements do we have at the moment
-	bool pruned; // was this data structure pruned?
+	PDict<Element>* elementDict = nullptr;
+	uint64_t size = 0; // how many elements are we tracking?
+	uint64_t numElements = 0; // how many elements do we have at the moment
+	bool pruned = false; // was this data structure pruned?
 	};
 
 	} // namespace zeek::probabilistic::detail

@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 #include <vector>
 
 #include "zeek/Attr.h"
@@ -55,6 +56,7 @@ enum IDScope
 
 class ID;
 using IDPtr = IntrusivePtr<ID>;
+using IDSet = std::unordered_set<const ID*>;
 
 class IDOptInfo;
 

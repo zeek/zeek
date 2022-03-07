@@ -1,5 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+// We use deprecated APIs for MD5, SHA1 and SHA256. The reason is that, as of OpenSSL 3.0, there is
+// no API anymore that lets you store the internal state of hashing functions. For more information,
+// see https://github.com/zeek/zeek/issues/1379 and https://github.com/openssl/openssl/issues/14222
+// Since I don't feel like getting warnings every time we compile this file - let's silence them.
+
+#define OPENSSL_SUPPRESS_DEPRECATED
+
 #include "zeek/OpaqueVal.h"
 
 #include <broker/data.hh>
@@ -208,13 +215,12 @@ HashVal::HashVal(OpaqueTypePtr t) : OpaqueVal(std::move(t))
 	valid = false;
 	}
 
-MD5Val::MD5Val() : HashVal(md5_type) { }
-
-MD5Val::~MD5Val()
+MD5Val::MD5Val() : HashVal(md5_type)
 	{
-	if ( IsValid() )
-		EVP_MD_CTX_free(ctx);
+	memset(&ctx, 0, sizeof(ctx));
 	}
+
+MD5Val::~MD5Val() { }
 
 void HashVal::digest_one(EVP_MD_CTX* h, const Val* v)
 	{
@@ -245,7 +251,7 @@ ValPtr MD5Val::DoClone(CloneState* state)
 		if ( ! out->Init() )
 			return nullptr;
 
-		EVP_MD_CTX_copy_ex(out->ctx, ctx);
+		out->ctx = ctx;
 		}
 
 	return state->NewClone(this, std::move(out));
@@ -254,7 +260,7 @@ ValPtr MD5Val::DoClone(CloneState* state)
 bool MD5Val::DoInit()
 	{
 	assert(! IsValid());
-	ctx = detail::hash_init(detail::Hash_MD5);
+	MD5_Init(&ctx);
 	return true;
 	}
 
@@ -263,7 +269,7 @@ bool MD5Val::DoFeed(const void* data, size_t size)
 	if ( ! IsValid() )
 		return false;
 
-	detail::hash_update(ctx, data, size);
+	MD5_Update(&ctx, data, size);
 	return true;
 	}
 
@@ -273,7 +279,7 @@ StringValPtr MD5Val::DoGet()
 		return val_mgr->EmptyString();
 
 	u_char digest[MD5_DIGEST_LENGTH];
-	detail::hash_final(ctx, digest);
+	MD5_Final(digest, &ctx);
 	return make_intrusive<StringVal>(detail::md5_digest_print(digest));
 	}
 
@@ -284,20 +290,9 @@ broker::expected<broker::data> MD5Val::DoSerialize() const
 	if ( ! IsValid() )
 		return {broker::vector{false}};
 
-	MD5_CTX* md = (MD5_CTX*)EVP_MD_CTX_md_data(ctx);
+	auto data = std::string(reinterpret_cast<const char*>(&ctx), sizeof(ctx));
 
-	broker::vector d = {true,
-	                    static_cast<uint64_t>(md->A),
-	                    static_cast<uint64_t>(md->B),
-	                    static_cast<uint64_t>(md->C),
-	                    static_cast<uint64_t>(md->D),
-	                    static_cast<uint64_t>(md->Nl),
-	                    static_cast<uint64_t>(md->Nh),
-	                    static_cast<uint64_t>(md->num)};
-
-	for ( int i = 0; i < MD5_LBLOCK; ++i )
-		d.emplace_back(static_cast<uint64_t>(md->data[i]));
-
+	broker::vector d = {true, data};
 	return {std::move(d)};
 	}
 
@@ -317,40 +312,27 @@ bool MD5Val::DoUnserialize(const broker::data& data)
 		return true;
 		}
 
+	if ( (*d).size() != 2 )
+		return false;
+
+	auto s = broker::get_if<std::string>(&(*d)[1]);
+	if ( ! s )
+		return false;
+
+	if ( sizeof(ctx) != s->size() )
+		return false;
+
 	Init();
-	MD5_CTX* md = (MD5_CTX*)EVP_MD_CTX_md_data(ctx);
-
-	if ( ! get_vector_idx<uint64_t>(*d, 1, &md->A) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 2, &md->B) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 3, &md->C) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 4, &md->D) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 5, &md->Nl) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 6, &md->Nh) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 7, &md->num) )
-		return false;
-
-	for ( int i = 0; i < MD5_LBLOCK; ++i )
-		{
-		if ( ! get_vector_idx<uint64_t>(*d, 8 + i, &md->data[i]) )
-			return false;
-		}
-
+	memcpy(&ctx, s->data(), s->size());
 	return true;
 	}
 
-SHA1Val::SHA1Val() : HashVal(sha1_type) { }
-
-SHA1Val::~SHA1Val()
+SHA1Val::SHA1Val() : HashVal(sha1_type)
 	{
-	if ( IsValid() )
-		EVP_MD_CTX_free(ctx);
+	memset(&ctx, 0, sizeof(ctx));
 	}
+
+SHA1Val::~SHA1Val() { }
 
 ValPtr SHA1Val::DoClone(CloneState* state)
 	{
@@ -361,7 +343,7 @@ ValPtr SHA1Val::DoClone(CloneState* state)
 		if ( ! out->Init() )
 			return nullptr;
 
-		EVP_MD_CTX_copy_ex(out->ctx, ctx);
+		out->ctx = ctx;
 		}
 
 	return state->NewClone(this, std::move(out));
@@ -370,7 +352,7 @@ ValPtr SHA1Val::DoClone(CloneState* state)
 bool SHA1Val::DoInit()
 	{
 	assert(! IsValid());
-	ctx = detail::hash_init(detail::Hash_SHA1);
+	SHA1_Init(&ctx);
 	return true;
 	}
 
@@ -379,7 +361,7 @@ bool SHA1Val::DoFeed(const void* data, size_t size)
 	if ( ! IsValid() )
 		return false;
 
-	detail::hash_update(ctx, data, size);
+	SHA1_Update(&ctx, data, size);
 	return true;
 	}
 
@@ -389,7 +371,7 @@ StringValPtr SHA1Val::DoGet()
 		return val_mgr->EmptyString();
 
 	u_char digest[SHA_DIGEST_LENGTH];
-	detail::hash_final(ctx, digest);
+	SHA1_Final(digest, &ctx);
 	return make_intrusive<StringVal>(detail::sha1_digest_print(digest));
 	}
 
@@ -400,20 +382,9 @@ broker::expected<broker::data> SHA1Val::DoSerialize() const
 	if ( ! IsValid() )
 		return {broker::vector{false}};
 
-	SHA_CTX* md = (SHA_CTX*)EVP_MD_CTX_md_data(ctx);
+	auto data = std::string(reinterpret_cast<const char*>(&ctx), sizeof(ctx));
 
-	broker::vector d = {true,
-	                    static_cast<uint64_t>(md->h0),
-	                    static_cast<uint64_t>(md->h1),
-	                    static_cast<uint64_t>(md->h2),
-	                    static_cast<uint64_t>(md->h3),
-	                    static_cast<uint64_t>(md->h4),
-	                    static_cast<uint64_t>(md->Nl),
-	                    static_cast<uint64_t>(md->Nh),
-	                    static_cast<uint64_t>(md->num)};
-
-	for ( int i = 0; i < SHA_LBLOCK; ++i )
-		d.emplace_back(static_cast<uint64_t>(md->data[i]));
+	broker::vector d = {true, data};
 
 	return {std::move(d)};
 	}
@@ -434,42 +405,27 @@ bool SHA1Val::DoUnserialize(const broker::data& data)
 		return true;
 		}
 
+	if ( (*d).size() != 2 )
+		return false;
+
+	auto s = broker::get_if<std::string>(&(*d)[1]);
+	if ( ! s )
+		return false;
+
+	if ( sizeof(ctx) != s->size() )
+		return false;
+
 	Init();
-	SHA_CTX* md = (SHA_CTX*)EVP_MD_CTX_md_data(ctx);
-
-	if ( ! get_vector_idx<uint64_t>(*d, 1, &md->h0) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 2, &md->h1) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 3, &md->h2) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 4, &md->h3) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 5, &md->h4) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 6, &md->Nl) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 7, &md->Nh) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 8, &md->num) )
-		return false;
-
-	for ( int i = 0; i < SHA_LBLOCK; ++i )
-		{
-		if ( ! get_vector_idx<uint64_t>(*d, 9 + i, &md->data[i]) )
-			return false;
-		}
-
+	memcpy(&ctx, s->data(), s->size());
 	return true;
 	}
 
-SHA256Val::SHA256Val() : HashVal(sha256_type) { }
-
-SHA256Val::~SHA256Val()
+SHA256Val::SHA256Val() : HashVal(sha256_type)
 	{
-	if ( IsValid() )
-		EVP_MD_CTX_free(ctx);
+	memset(&ctx, 0, sizeof(ctx));
 	}
+
+SHA256Val::~SHA256Val() { }
 
 ValPtr SHA256Val::DoClone(CloneState* state)
 	{
@@ -480,7 +436,7 @@ ValPtr SHA256Val::DoClone(CloneState* state)
 		if ( ! out->Init() )
 			return nullptr;
 
-		EVP_MD_CTX_copy_ex(out->ctx, ctx);
+		out->ctx = ctx;
 		}
 
 	return state->NewClone(this, std::move(out));
@@ -489,7 +445,7 @@ ValPtr SHA256Val::DoClone(CloneState* state)
 bool SHA256Val::DoInit()
 	{
 	assert(! IsValid());
-	ctx = detail::hash_init(detail::Hash_SHA256);
+	SHA256_Init(&ctx);
 	return true;
 	}
 
@@ -498,7 +454,7 @@ bool SHA256Val::DoFeed(const void* data, size_t size)
 	if ( ! IsValid() )
 		return false;
 
-	detail::hash_update(ctx, data, size);
+	SHA256_Update(&ctx, data, size);
 	return true;
 	}
 
@@ -508,7 +464,7 @@ StringValPtr SHA256Val::DoGet()
 		return val_mgr->EmptyString();
 
 	u_char digest[SHA256_DIGEST_LENGTH];
-	detail::hash_final(ctx, digest);
+	SHA256_Final(digest, &ctx);
 	return make_intrusive<StringVal>(detail::sha256_digest_print(digest));
 	}
 
@@ -519,16 +475,9 @@ broker::expected<broker::data> SHA256Val::DoSerialize() const
 	if ( ! IsValid() )
 		return {broker::vector{false}};
 
-	SHA256_CTX* md = (SHA256_CTX*)EVP_MD_CTX_md_data(ctx);
+	auto data = std::string(reinterpret_cast<const char*>(&ctx), sizeof(ctx));
 
-	broker::vector d = {true, static_cast<uint64_t>(md->Nl), static_cast<uint64_t>(md->Nh),
-	                    static_cast<uint64_t>(md->num), static_cast<uint64_t>(md->md_len)};
-
-	for ( int i = 0; i < 8; ++i )
-		d.emplace_back(static_cast<uint64_t>(md->h[i]));
-
-	for ( int i = 0; i < SHA_LBLOCK; ++i )
-		d.emplace_back(static_cast<uint64_t>(md->data[i]));
+	broker::vector d = {true, data};
 
 	return {std::move(d)};
 	}
@@ -549,30 +498,18 @@ bool SHA256Val::DoUnserialize(const broker::data& data)
 		return true;
 		}
 
+	if ( (*d).size() != 2 )
+		return false;
+
+	auto s = broker::get_if<std::string>(&(*d)[1]);
+	if ( ! s )
+		return false;
+
+	if ( sizeof(ctx) != s->size() )
+		return false;
+
 	Init();
-	SHA256_CTX* md = (SHA256_CTX*)EVP_MD_CTX_md_data(ctx);
-
-	if ( ! get_vector_idx<uint64_t>(*d, 1, &md->Nl) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 2, &md->Nh) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 3, &md->num) )
-		return false;
-	if ( ! get_vector_idx<uint64_t>(*d, 4, &md->md_len) )
-		return false;
-
-	for ( int i = 0; i < 8; ++i )
-		{
-		if ( ! get_vector_idx<uint64_t>(*d, 5 + i, &md->h[i]) )
-			return false;
-		}
-
-	for ( int i = 0; i < SHA_LBLOCK; ++i )
-		{
-		if ( ! get_vector_idx<uint64_t>(*d, 13 + i, &md->data[i]) )
-			return false;
-		}
-
+	memcpy(&ctx, s->data(), s->size());
 	return true;
 	}
 

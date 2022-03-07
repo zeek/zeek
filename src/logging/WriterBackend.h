@@ -53,7 +53,7 @@ public:
 	struct WriterInfo
 		{
 		// Structure takes ownership of these strings.
-		typedef std::map<const char*, const char*, util::CompareString> config_map;
+		using config_map = std::map<const char*, const char*, util::CompareString>;
 
 		/**
 		 * A string left to the interpretation of the writer
@@ -243,7 +243,7 @@ public:
 	 * @param close: The timestamp when the origina file was closed.
 	 *
 	 * @param terminating: True if the original rotation request occured
-	 * due to the main Bro process shutting down.
+	 * due to the main Zeek process shutting down.
 	 */
 	bool FinishedRotation(const char* new_name, const char* old_name, double open, double close,
 	                      bool terminating);
@@ -363,7 +363,7 @@ protected:
 	 * @param close The network time when the *current* file was closed.
 	 *
 	 * @param terminating Indicates whether the rotation request occurs
-	 * due the main Bro prcoess terminating (and not because we've
+	 * due the main Zeek prcoess terminating (and not because we've
 	 * reached a regularly scheduled time for rotation).
 	 */
 	virtual bool DoRotate(const char* rotated_path, double open, double close,

@@ -53,7 +53,7 @@ namespace plugin
 class Manager
 	{
 public:
-	typedef void (*bif_init_func)(Plugin*);
+	using bif_init_func = void (*)(Plugin*);
 	using plugin_list = std::list<Plugin*>;
 	using component_list = Plugin::component_list;
 	using inactive_plugin_list = std::list<std::pair<std::string, std::string>>;
@@ -108,7 +108,7 @@ public:
 
 	/**
 	 * First-stage initializion of the manager. This is called early on
-	 * during Bro's initialization, before any scripts are processed, and
+	 * during Zeek's initialization, before any scripts are processed, and
 	 * forwards to the corresponding Plugin methods.
 	 */
 	void InitPreScript();
@@ -121,7 +121,7 @@ public:
 
 	/**
 	 * Third-stage initialization of the manager. This is called late during
-	 * Bro's initialization after any scripts are processed, and forwards to
+	 * Zeek's initialization after any scripts are processed, and forwards to
 	 * the corresponding Plugin methods.
 	 */
 	void InitPostScript();
@@ -206,8 +206,8 @@ public:
 	/**
 	 * Registers interest in an event by a plugin, even if there's no handler
 	 * for it. Normally a plugin receives events through HookQueueEvent()
-	 * only if Bro actually has code to execute for it. By calling this
-	 * method, the plugin tells Bro to raise the event even if there's no
+	 * only if Zeek actually has code to execute for it. By calling this
+	 * method, the plugin tells Zeek to raise the event even if there's no
 	 * correspondong handler; it will then go into HookQueueEvent() just as
 	 * any other.
 	 *
@@ -218,7 +218,7 @@ public:
 	void RequestEvent(EventHandlerPtr handler, Plugin* plugin);
 
 	/**
-	 * Register interest in the destruction of a Obj instance. When Bro's
+	 * Register interest in the destruction of a Obj instance. When Zeek's
 	 * reference counting triggers the objects destructor to run, the \a
 	 * HookBroObjDtor will be called.
 	 *
@@ -233,9 +233,9 @@ public:
 	/**
 	 * Hook that gives plugins a chance to take over loading an input
 	 * file. This method must be called between InitPreScript() and
-	 * InitPostScript() for each input file Bro is about to load, either
+	 * InitPostScript() for each input file Zeek is about to load, either
 	 * given on the command line or via @load script directives. The hook can
-	 * take over the file, in which case Bro must not further process it
+	 * take over the file, in which case Zeek must not further process it
 	 * otherwise.
 	 *
 	 * @return 1 if a plugin took over the file and loaded it successfully; 0
@@ -244,6 +244,32 @@ public:
 	 */
 	virtual int HookLoadFile(const Plugin::LoadType type, const std::string& file,
 	                         const std::string& resolved);
+
+	/**
+	 * Hook that gives plugins a chance to take over loading an input file,
+	 * including replacing the file's content. This method must be called
+	 * between InitPreScript() and InitPostScript() for each input file Zeek is
+	 * about to load, either given on the command line or via @load script
+	 * directives. The hook can take over the file, in which case Zeek must not
+	 * further process it otherwise; or provide its content, in which case Zeek
+	 * must use that and ignore the original file.
+	 *
+	 * @return tuple where the first element is 1 if a plugin took over the
+	 * file; 0 if a plugin took over the file but had trouble loading it; and
+	 * -1 if no plugin was interested in the file at all.
+	 *
+	 * If the plugins takes over by returning 1, there are two cases: if the
+	 * second tuple element remains unset, the plugin handled the loading
+	 * completely internally; the caller must not process it any further.
+	 * Alternatively, the plugin may optionally return the acutal content to
+	 * use for the file as a string through the tuple's second element. If so,
+	 * the caller must ignore the file on disk and use that provided content
+	 * instead (including when there's actually no physical file in place on
+	 * disk at all).
+	 */
+	virtual std::pair<int, std::optional<std::string>>
+	HookLoadFileExtended(const Plugin::LoadType type, const std::string& file,
+	                     const std::string& resolved);
 
 	/**
 	 * Hook that filters calls to a script function/event/hook.
@@ -371,7 +397,7 @@ public:
 	 *
 	 * @param conn The associated connection
 	 *
-	 * @param addl Additional Bro values; typically will be passed to the event
+	 * @param addl Additional Zeek values; typically will be passed to the event
 	 *             by the reporter framework.
 	 *
 	 * @param location True if event expects location information
@@ -392,6 +418,15 @@ public:
 	                  const zeek::detail::Location* location1,
 	                  const zeek::detail::Location* location2, bool time,
 	                  const std::string& message);
+
+	/**
+	 * Hook for packets that are considered unprocessed by an Analyzer. This
+	 * typically means that a packet has not had a log entry written for it by
+	 * the time analysis finishes.
+	 *
+	 * @param packet The data for an unprocessed packet
+	 */
+	void HookUnprocessedPacket(const Packet* packet) const;
 
 	/**
 	 * Internal method that registers a freshly instantiated plugin with

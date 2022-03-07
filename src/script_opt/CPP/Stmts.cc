@@ -233,6 +233,104 @@ void CPPCompile::GenSwitchStmt(const SwitchStmt* sw)
 	auto e = sw->StmtExpr();
 	auto cases = sw->Cases();
 
+	if ( sw->TypeMap()->empty() )
+		GenValueSwitchStmt(e, cases);
+	else
+		GenTypeSwitchStmt(e, cases);
+	}
+
+void CPPCompile::GenTypeSwitchStmt(const Expr* e, const case_list* cases)
+	{
+	// Start a scoping block so we avoid naming conflicts if a function
+	// has multiple type switches.
+	Emit("{");
+	Emit("static std::vector<int> CPP__switch_types =");
+	StartBlock();
+
+	for ( const auto& c : *cases )
+		{
+		auto tc = c->TypeCases();
+		if ( tc )
+			for ( auto id : *tc )
+				Emit(Fmt(TypeOffset(id->GetType())) + ",");
+		}
+	EndBlock(true);
+
+	NL();
+
+	Emit("ValPtr CPP__sw_val = %s;", GenExpr(e, GEN_VAL_PTR));
+	Emit("auto& CPP__sw_val_t = CPP__sw_val->GetType();");
+	Emit("int CPP__sw_type_ind = 0;");
+
+	Emit("for ( auto CPP__st : CPP__switch_types )");
+	StartBlock();
+	Emit("if ( can_cast_value_to_type(CPP__sw_val.get(), CPP__Type__[CPP__st].get()) )");
+	Emit("\tbreak;");
+	Emit("++CPP__sw_type_ind;");
+	EndBlock();
+
+	Emit("switch ( CPP__sw_type_ind ) {");
+
+	++break_level;
+
+	int case_offset = 0;
+
+	for ( const auto& c : *cases )
+		{
+		auto tc = c->TypeCases();
+		if ( tc )
+			{
+			bool is_multi = tc->size() > 1;
+			for ( auto id : *tc )
+				GenTypeSwitchCase(id, case_offset++, is_multi);
+			}
+		else
+			Emit("default:");
+
+		StartBlock();
+		GenStmt(c->Body());
+		EndBlock();
+		}
+
+	--break_level;
+
+	Emit("}"); // end the switch
+	Emit("}"); // end the scoping block
+	}
+
+void CPPCompile::GenTypeSwitchCase(const ID* id, int case_offset, bool is_multi)
+	{
+	Emit("case %s:", Fmt(case_offset));
+
+	if ( ! id->Name() )
+		// No assignment, we're done.
+		return;
+
+	// It's an assignment case.  If it's a collection of multiple cases,
+	// assign to the variable only for this particular case.
+	IndentUp();
+
+	if ( is_multi )
+		{
+		Emit("if ( CPP__sw_type_ind == %s )", Fmt(case_offset));
+		IndentUp();
+		}
+
+	auto targ_val = "CPP__sw_val.get()";
+	auto targ_type = string("CPP__Type__[CPP__switch_types[") + Fmt(case_offset) + "]].get()";
+
+	auto cast = string("cast_value_to_type(") + targ_val + ", " + targ_type + ")";
+
+	Emit("%s = %s;", LocalName(id), GenericValPtrToGT(cast, id->GetType(), GEN_NATIVE));
+
+	IndentDown();
+
+	if ( is_multi )
+		IndentDown();
+	}
+
+void CPPCompile::GenValueSwitchStmt(const Expr* e, const case_list* cases)
+	{
 	auto e_it = e->GetType()->InternalType();
 	bool is_int = e_it == TYPE_INTERNAL_INT;
 	bool is_uint = e_it == TYPE_INTERNAL_UNSIGNED;
@@ -245,7 +343,7 @@ void CPPCompile::GenSwitchStmt(const SwitchStmt* sw)
 	else
 		sw_val = string("p_hash(") + GenExpr(e, GEN_VAL_PTR) + ")";
 
-	Emit("switch ( %s ) {", sw_val.c_str());
+	Emit("switch ( %s ) {", sw_val);
 
 	++break_level;
 

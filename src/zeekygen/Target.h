@@ -43,7 +43,7 @@ struct TargetFile
 
 /**
  * A Zeekygen target abstract base class.  A target is generally any portion of
- * documentation that Bro can build.  It's identified by a type (e.g. script,
+ * documentation that Zeek can build.  It's identified by a type (e.g. script,
  * identifier, package), a pattern (e.g. "example.zeek", "HTTP::Info"), and
  * a path to an output file.
  */
@@ -149,8 +149,8 @@ public:
 		}
 
 private:
-	typedef Target* (*TargetFactoryFn)(const std::string& name, const std::string& pattern);
-	typedef std::map<std::string, TargetFactoryFn> target_creator_map;
+	using TargetFactoryFn = Target* (*)(const std::string& name, const std::string& pattern);
+	using target_creator_map = std::map<std::string, TargetFactoryFn>;
 	target_creator_map target_creators;
 	};
 
@@ -167,7 +167,7 @@ public:
 	void CreateAnalyzerDoc(FILE* f) const { return DoCreateAnalyzerDoc(f); }
 
 protected:
-	typedef void (*doc_creator_fn)(FILE*);
+	using doc_creator_fn = void (*)(FILE*);
 
 	AnalyzerTarget(const std::string& name, const std::string& pattern) : Target(name, pattern) { }
 
@@ -262,7 +262,8 @@ private:
 
 	std::vector<PackageInfo*> pkg_deps;
 	std::vector<ScriptInfo*> script_deps;
-	typedef std::map<PackageInfo*, std::vector<ScriptInfo*>> manifest_t;
+
+	using manifest_t = std::map<PackageInfo*, std::vector<ScriptInfo*>>;
 	manifest_t pkg_manifest;
 	};
 

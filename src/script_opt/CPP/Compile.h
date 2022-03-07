@@ -4,19 +4,19 @@
 
 #include "zeek/Desc.h"
 #include "zeek/script_opt/CPP/Func.h"
-#include "zeek/script_opt/CPP/HashMgr.h"
+#include "zeek/script_opt/CPP/InitsInfo.h"
 #include "zeek/script_opt/CPP/Tracker.h"
 #include "zeek/script_opt/CPP/Util.h"
 #include "zeek/script_opt/ScriptOpt.h"
 
 // We structure the compiler for generating C++ versions of Zeek script
-// bodies as a single large class.  While we divide the compiler's
+// bodies maily as a single large class.  While we divide the compiler's
 // functionality into a number of groups (see below), these interact with
 // one another, and in particular with various member variables, enough
 // so that it's not clear there's benefit to further splitting the
-// functionality into multiple classes.  (Some splitting has already been
-// done for more self-contained functionality, resulting in the CPPTracker
-// and CPPHashManager classes.)
+// functionality into multiple classes.  (Some splitting has already been done
+// for more self-contained functionality, resulting in the CPPTracker class
+// and initialization information in InitsInfo.{h,cc} and RuntimeInits.{h,cc}.)
 //
 // Most aspects of translating to C++ have a straightforward nature.
 // We can turn many Zeek script statements directly into the C++ that's
@@ -44,26 +44,6 @@
 // for example, "zeek -b -O gen-C++ foo.zeek" will generate C++ code for
 // all of the scripts loaded in "bare" mode, plus those for foo.zeek; and
 // without the "-b" for all of the default scripts plus those in foo.zeek.
-//
-// One of the design goals employed is to support "incremental" compilation,
-// i.e., compiling *additional* Zeek scripts at a later point after an
-// initial compilation.  This comes in two forms.
-//
-// "-O update-C++" produces C++ code that extends that already compiled,
-// in a manner where subsequent compilations can leverage both the original
-// and the newly added.  Such compilations *must* be done in a consistent
-// context (for example, any types extended in the original are extended in
-// the same manner - plus then perhaps further extensions - in the updated
-// code).
-//
-// "-O add-C++" instead produces C++ code that (1) will not be leveraged in
-// any subsequent compilations, and (2) can be inconsistent with other
-// "-O add-C++" code added in the future.  The main use of this feature is
-// to support compiling polyglot versions of Zeek scripts used to run
-// the test suite.
-//
-// Zeek invocations specifying "-O use-C++" will activate any code compiled
-// into the zeek binary; otherwise, the code lies dormant.
 //
 // "-O report-C++" reports on which compiled functions will/won't be used
 // (including ones that are available but not relevant to the scripts loaded
@@ -104,29 +84,41 @@
 //
 //	Emit		Low-level code generation.
 //
-// Of these, Inits is probably the most subtle.  It turns out to be
-// very tricky ensuring that we create run-time variables in the
-// proper order.  For example, a global might need a record type to be
-// defined; one of the record's fields is a table; that table contains
-// another record; one of that other record's fields is the original
-// record (recursion); another field has an &default expression that
-// requires the compiler to generate a helper function to construct
-// the expression dynamically; and that helper function might in turn
-// refer to other types that require initialization.
+// Of these, Inits is the most subtle and complex.  There are two major
+// challenges in creating run-time values (such as Zeek types and constants).
 //
-// To deal with these dependencies, for every run-time object the compiler
-// maintains (1) all of the other run-time objects on which its initialization
-// depends, and (2) the C++ statements needed to initialize it, once those
-// other objects have been initialized.  It then beings initialization with
-// objects that have no dependencies, marks those as done (essentially), finds
-// objects that now can be initialized and emits their initializations,
-// marks those as done, etc.
+// First, generating individual code for creating each of these winds up
+// incurring unacceptable compile times (for example, clang compiling all
+// of the base scripts with optimization takes many hours on a high-end
+// laptop).  As a result, we employ a table-driven approach that compiles
+// much faster (though still taking many minutes on the same high-end laptop,
+// running about 40x faster however).
 //
-// Below in declaring the CPPCompiler class, we group methods in accordance
-// with those listed above.  We also locate member variables with the group
-// most relevant for their usage.  However, keep in mind that many member
-// variables are used by multiple groups, which is why we haven't created
-// distinct per-group classes.
+// Second, initializations frequently rely upon *other* initializations
+// having occurred first.  For example, a global might need a record type
+// to be defined; one of the record's fields is a table; that table contains
+// another record; one of that other record's fields is the original record
+// (recursion); another field has an &default expression that requires the
+// compiler to generate a helper function to construct the expression
+// dynamically; and that helper function might in turn refer to other types
+// that require initialization.  What's required is a framework for ensuring
+// that everything occurs in the proper order.
+//
+// The logic for dealing with these complexities is isolated into several
+// sets of classes.  InitsInfo.{h,cc} provides the classes related to tracking
+// how to generate initializations in the proper order.  RuntimeInits.{h,cc}
+// provides the classes used when initialization generated code in order
+// to instantiate all of the necessary values.  See those files for discussions
+// on how they address the points framed above.
+//
+// In declaring the CPPCompiler class, we group methods in accordance with
+// those listed above, locating member variables with the group most relevant
+// for their usage.  However, keep in mind that many member variables are
+// used by multiple groups, which is why we haven't created distinct
+// per-group classes.  In addition, we make a number of methods public
+// in order to avoid the need for numerous "friend" declarations to allow
+// associated classes (like those for initialization) access to a the
+// necessary compiler methods.
 
 namespace zeek::detail
 	{
@@ -135,9 +127,126 @@ class CPPCompile
 	{
 public:
 	CPPCompile(std::vector<FuncInfo>& _funcs, ProfileFuncs& pfs, const std::string& gen_name,
-	           const std::string& addl_name, CPPHashManager& _hm, bool _update, bool _standalone,
-	           bool report_uncompilable);
+	           bool add, bool _standalone, bool report_uncompilable);
 	~CPPCompile();
+
+	// Constructing a CPPCompile object does all of the compilation.
+	// The public methods here are for use by helper classes.
+
+	// Tracks the given type (with support methods for ones that
+	// are complicated), recursively including its sub-types, and
+	// creating initializations for constructing C++ variables
+	// representing the types.
+	//
+	// Returns the initialization info associated with the type.
+	std::shared_ptr<CPP_InitInfo> RegisterType(const TypePtr& t);
+
+	// Easy access to the global offset and the initialization
+	// cohort associated with a given type.
+	int TypeOffset(const TypePtr& t) { return GI_Offset(RegisterType(t)); }
+	int TypeCohort(const TypePtr& t) { return GI_Cohort(RegisterType(t)); }
+
+	// Tracks a Zeek ValPtr used as a constant value.  These occur
+	// in two contexts: directly as constant expressions, and indirectly
+	// as elements within aggregate constants (such as in vector
+	// initializers).
+	//
+	// Returns the associated initialization info.  In addition,
+	// consts_offset returns an offset into an initialization-time
+	// global that tracks all constructed globals, providing
+	// general access to them for aggregate constants.
+	std::shared_ptr<CPP_InitInfo> RegisterConstant(const ValPtr& vp, int& consts_offset);
+
+	// Tracks a global to generate the necessary initialization.
+	// Returns the associated initialization info.
+	std::shared_ptr<CPP_InitInfo> RegisterGlobal(const ID* g);
+
+	// Tracks a use of the given set of attributes, including
+	// initialization dependencies and the generation of any
+	// associated expressions.
+	//
+	// Returns the initialization info associated with the set of
+	// attributes.
+	std::shared_ptr<CPP_InitInfo> RegisterAttributes(const AttributesPtr& attrs);
+
+	// Convenient access to the global offset associated with
+	// a set of Attributes.
+	int AttributesOffset(const AttributesPtr& attrs)
+		{
+		return GI_Offset(RegisterAttributes(attrs));
+		}
+
+	// The same, for a single attribute.
+	std::shared_ptr<CPP_InitInfo> RegisterAttr(const AttrPtr& attr);
+	int AttrOffset(const AttrPtr& attr) { return GI_Offset(RegisterAttr(attr)); }
+
+	// Returns a mapping of from Attr objects to their associated
+	// initialization information.  The Attr must have previously
+	// been registered.
+	auto& ProcessedAttr() const { return processed_attr; }
+
+	// True if the given expression is simple enough that we can
+	// generate code to evaluate it directly, and don't need to
+	// create a separate function per RegisterInitExpr() to track it.
+	static bool IsSimpleInitExpr(const ExprPtr& e);
+
+	// Tracks expressions used in attributes (such as &default=<expr>).
+	//
+	// We need to generate code to evaluate these, via CallExpr's
+	// that invoke functions that return the value of the expression.
+	// However, we can't generate that code when first encountering
+	// the attribute, because doing so will need to refer to the names
+	// of types, and initially those are unavailable (because the type's
+	// representatives, per pfs.RepTypes(), might not have yet been
+	// tracked).  So instead we track the associated CallExprInitInfo
+	// objects, and after all types have been tracked, then spin
+	// through them to generate the code.
+	//
+	// Returns the associated initialization information.
+	std::shared_ptr<CPP_InitInfo> RegisterInitExpr(const ExprPtr& e);
+
+	// Tracks a C++ string value needed for initialization.  Returns
+	// an offset into the global vector that will hold these.
+	int TrackString(std::string s)
+		{
+		auto ts = tracked_strings.find(s);
+		if ( ts != tracked_strings.end() )
+			return ts->second;
+
+		int offset = ordered_tracked_strings.size();
+		tracked_strings[s] = offset;
+		ordered_tracked_strings.emplace_back(s);
+
+		return offset;
+		}
+
+	// Tracks a profile hash value needed for initialization.  Returns
+	// an offset into the global vector that will hold these.
+	int TrackHash(p_hash_type h)
+		{
+		auto th = tracked_hashes.find(h);
+		if ( th != tracked_hashes.end() )
+			return th->second;
+
+		int offset = ordered_tracked_hashes.size();
+		tracked_hashes[h] = offset;
+		ordered_tracked_hashes.emplace_back(h);
+
+		return offset;
+		}
+
+	// Returns the hash associated with a given function body.
+	// It's a fatal error to call this for a body that hasn't
+	// been compiled.
+	p_hash_type BodyHash(const Stmt* body);
+
+	// Returns true if at least one of the function bodies associated
+	// with the function/hook/event handler of the given fname is
+	// not compilable.
+	bool NotFullyCompilable(const std::string& fname) const
+		{
+		return not_fully_compilable.count(fname) > 0;
+		}
 
 private:
 	// Start of methods related to driving the overall compilation
@@ -147,6 +256,37 @@ private:
 
 	// Main driver, invoked by constructor.
 	void Compile(bool report_uncompilable);
+
+	// The following methods all create objects that track the
+	// initializations of a given type of value.  In each, "tag"
+	// is the name used to identify the initializer global
+	// associated with the given type of value, and "type" is
+	// its C++ representation.  Often "tag" is concatenated with
+	// "type" to designate a specific C++ type.  For example,
+	// "tag" might be "Double" and "type" might be "ValPtr";
+	// the resulting global's type is "DoubleValPtr".
+
+	// Creates an object for tracking values associated with Zeek
+	// constants.  "c_type" is the C++ type used in the initializer
+	// for each object; or, if empty, it specifies that we represent
+	// the value using an index into a separate vector that holds
+	// the constant.
+	std::shared_ptr<CPP_InitsInfo> CreateConstInitInfo(const char* tag, const char* type,
+	                                                   const char* c_type);
+
+	// Creates an object for tracking compound initializers, which
+	// are whose initialization uses indexes into other vectors.
+	std::shared_ptr<CPP_InitsInfo> CreateCompoundInitInfo(const char* tag, const char* type);
+
+	// Creates an object for tracking initializers that have custom
+	// C++ objects to hold their initialization information.
+	std::shared_ptr<CPP_InitsInfo> CreateCustomInitInfo(const char* tag, const char* type);
+
+	// Generates the declaration associated with a set of initializations
+	// and tracks the object to facilitate looping over all so
+	// initializations.  As a convenience, returns the object.
+	std::shared_ptr<CPP_InitsInfo> RegisterInitInfo(const char* tag, const char* type,
+	                                                std::shared_ptr<CPP_InitsInfo> gi);
 
 	// Generate the beginning of the compiled code: run-time functions,
 	// namespace, auxiliary globals.
@@ -158,8 +298,22 @@ private:
 	void RegisterCompiledBody(const std::string& f);
 
 	// After compilation, generate the final code.  Most of this is
-	// run-time initialization of various dynamic values.
+	// in support of run-time initialization of various dynamic values.
 	void GenEpilog();
+
+	// Generate the main method of the CPPDynStmt class, doing dynamic
+	// dispatch for function invocation.
+	void GenCPPDynStmt();
+
+	// Generate a function to load BiFs.
+	void GenLoadBiFs();
+
+	// Generate the main initialization function, which finalizes
+	// the run-time environment.
+	void GenFinishInit();
+
+	// Generate the function that registers compiled script bodies.
+	void GenRegisterBodies();
 
 	// True if the given function (plus body and profile) is one
 	// that should be compiled.  If non-nil, sets reason to the
@@ -174,10 +328,6 @@ private:
 	// The global profile of all of the functions.
 	ProfileFuncs& pfs;
 
-	// Hash-indexed information about previously compiled code (and used
-	// to update it from this compilation run).
-	CPPHashManager& hm;
-
 	// Script functions that we are able to compile.  We compute
 	// these ahead of time so that when compiling script function A
 	// which makes a call to script function B, we know whether
@@ -185,8 +335,12 @@ private:
 	// it including some functionality we don't currently support
 	// for compilation.
 	//
-	// Indexed by the name of the function.
+	// Indexed by the C++ name of the function.
 	std::unordered_set<std::string> compilable_funcs;
+
+	// Tracks which functions/hooks/events have at least one non-compilable
+	// body.  Indexed by the Zeek name of function.
+	std::unordered_set<std::string> not_fully_compilable;
 
 	// Maps functions (not hooks or events) to upstream compiled names.
 	std::unordered_map<std::string, std::string> hashed_funcs;
@@ -200,10 +354,6 @@ private:
 	// compilation units.
 	int addl_tag = 0;
 
-	// If true, then we're updating the C++ base (i.e., generating
-	// code meant for use by subsequently generated code).
-	bool update = false;
-
 	// If true, the generated code should run "standalone".
 	bool standalone = false;
 
@@ -211,7 +361,7 @@ private:
 	// needed for "seatbelts", to ensure that we can produce a
 	// unique hash relating to this compilation (*and* its
 	// compilation time, which is why these are "seatbelts" and
-	// likely not important to make distinct.
+	// likely not important to make distinct).
 	p_hash_type total_hash = 0;
 
 	// Working directory in which we're compiling.  Used to quasi-locate
@@ -226,20 +376,10 @@ private:
 	// See Vars.cc for definitions.
 	//
 
-	// Returns true if the current compilation context has collisions
-	// with previously generated code (globals with conflicting types
-	// or initialization values, or types with differing elements).
-	bool CheckForCollisions();
-
 	// Generate declarations associated with the given global, and, if
 	// it's used as a variable (not just as a function being called),
 	// track it as such.
 	void CreateGlobal(const ID* g);
-
-	// For the globals used in the compilation, if new then append
-	// them to the hash file to make the information available
-	// to subsequent compilation runs.
-	void UpdateGlobalHashes();
 
 	// Register the given identifier as a BiF.  If is_var is true
 	// then the BiF is also used in a non-call context.
@@ -247,10 +387,8 @@ private:
 
 	// Register the given global name.  "suffix" distinguishs particular
 	// types of globals, such as the names of bifs, global (non-function)
-	// variables, or compiled Zeek functions.  If "track" is true then
-	// if we're compiling incrementally, and this is a new global not
-	// previously compiled, then we track its hash for future compilations.
-	bool AddGlobal(const std::string& g, const char* suffix, bool track);
+	// variables, or compiled Zeek functions.
+	bool AddGlobal(const std::string& g, const char* suffix);
 
 	// Tracks that the body we're currently compiling refers to the
 	// given event.
@@ -258,10 +396,9 @@ private:
 
 	// The following match various forms of identifiers to the
 	// name used for their C++ equivalent.
-	const char* IDName(const ID& id) { return IDName(&id); }
 	const char* IDName(const IDPtr& id) { return IDName(id.get()); }
 	const char* IDName(const ID* id) { return IDNameStr(id).c_str(); }
-	const std::string& IDNameStr(const ID* id) const;
+	const std::string& IDNameStr(const ID* id);
 
 	// Returns a canonicalized version of a variant of a global made
 	// distinct by the given suffix.
@@ -280,17 +417,25 @@ private:
 	// conflict with C++ keywords.
 	std::string Canonicalize(const char* name) const;
 
+	// Returns the name of the global corresponding to an expression
+	// (which must be a EXPR_NAME).
+	std::string GlobalName(const ExprPtr& e) { return globals[e->AsNameExpr()->Id()->Name()]; }
+
 	// Maps global names (not identifiers) to the names we use for them.
 	std::unordered_map<std::string, std::string> globals;
 
 	// Similar for locals, for the function currently being compiled.
 	std::unordered_map<const ID*, std::string> locals;
 
+	// Retrieves the initialization information associated with the
+	// given global.
+	std::unordered_map<const ID*, std::shared_ptr<CPP_InitInfo>> global_gis;
+
 	// Maps event names to the names we use for them.
 	std::unordered_map<std::string, std::string> events;
 
 	// Globals that correspond to variables, not functions.
-	std::unordered_set<const ID*> global_vars;
+	IDSet global_vars;
 
 	//
 	// End of methods related to script/C++ variables.
@@ -307,14 +452,37 @@ private:
 	// Similar, but for lambdas.
 	void DeclareLambda(const LambdaExpr* l, const ProfileFunc* pf);
 
-	// Declares the CPPStmt subclass used for compiling the given
+	// Generates code to declare the compiled version of a script
 	// function.  "ft" gives the functions type, "pf" its profile,
 	// "fname" its C++ name, "body" its AST, "l" if non-nil its
 	// corresponding lambda expression, and "flavor" whether it's
 	// a hook/event/function.
+	//
+	// We use two basic approaches.  Most functions are represented
+	// by a "CPPDynStmt" object that's parameterized by a void* pointer
+	// to the underlying C++ function and an index used to dynamically
+	// cast the pointer to having the correct type for then calling it.
+	// Lambdas, however (including "implicit" lambdas used to associate
+	// complex expressions with &attributes), each have a unique
+	// subclass derived from CPPStmt that calls the underlying C++
+	// function without requiring a cast, and that holds the values
+	// of the lambda's captures.
+	//
+	// It would be cleanest to use the latter approach for all functions,
+	// but the hundreds/thousands of additional classes required for
+	// doing so significantly slows down C++ compilation, so we instead
+	// opt for the uglier dynamic casting approach, which only requires
+	// one additional class.
+	void CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, const std::string& fname,
+	                    const StmtPtr& body, int priority, const LambdaExpr* l,
+	                    FunctionFlavor flavor);
+
+	// Used for the case of creating a custom subclass of CPPStmt.
 	void DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, const std::string& fname,
-	                     const StmtPtr& body, int priority, const LambdaExpr* l,
-	                     FunctionFlavor flavor);
+	                     const std::string& args, const IDPList* lambda_ids);
+
+	// Used for the case of employing an instance of a CPPDynStmt object.
+	void DeclareDynCPPStmt();
 
 	// Generates the declarations (and in-line definitions) associated
 	// with compiling a lambda.
@@ -331,10 +499,39 @@ private:
 	// the given type, lambda captures (if non-nil), and profile.
 	std::string ParamDecl(const FuncTypePtr& ft, const IDPList* lambda_ids, const ProfileFunc* pf);
 
+	// Returns in p_types the types associated with the parameters for a function
+	// of the given type, set of lambda captures (if any), and profile.
+	void GatherParamTypes(std::vector<std::string>& p_types, const FuncTypePtr& ft,
+	                      const IDPList* lambda_ids, const ProfileFunc* pf);
+
+	// Same, but instead returns the parameter's names.
+	void GatherParamNames(std::vector<std::string>& p_names, const FuncTypePtr& ft,
+	                      const IDPList* lambda_ids, const ProfileFunc* pf);
+
 	// Inspects the given profile to find the i'th parameter (starting
 	// at 0).  Returns nil if the profile indicates that that parameter
 	// is not used by the function.
 	const ID* FindParam(int i, const ProfileFunc* pf);
+
+	// Information associated with a CPPDynStmt dynamic dispatch.
+	struct DispatchInfo
+		{
+		std::string cast; // C++ cast to use for function pointer
+		std::string args; // arguments to pass to the function
+		bool is_hook; // whether the function is a hook
+		TypePtr yield; // what type the function returns, if any
+		};
+
+	// An array of cast/invocation pairs used to generate the CPPDynStmt
+	// Exec method.
+	std::vector<DispatchInfo> func_casting_glue;
+
+	// Maps casting strings to indices into func_casting_glue.  The index
+	// is what's used to dynamically switch to the right dispatch.
+	std::unordered_map<std::string, int> casting_index;
+
+	// Maps functions (using their C++ name) to their casting strings.
+	std::unordered_map<std::string, std::string> func_index;
 
 	// Names for lambda capture ID's.  These require a separate space
 	// that incorporates the lambda's name, to deal with nested lambda's
@@ -342,9 +539,9 @@ private:
 	std::unordered_map<const ID*, std::string> lambda_names;
 
 	// The function's parameters.  Tracked so we don't re-declare them.
-	std::unordered_set<const ID*> params;
+	IDSet params;
 
-	// Whether we're parsing a hook.
+	// Whether we're compiling a hook.
 	bool in_hook = false;
 
 	//
@@ -362,8 +559,12 @@ private:
 	void CompileLambda(const LambdaExpr* l, const ProfileFunc* pf);
 
 	// Generates the body of the Invoke() method (which supplies the
-	// "glue" between for calling the C++-generated code).
-	void GenInvokeBody(const std::string& fname, const TypePtr& t, const std::string& args);
+	// "glue" for calling the C++-generated code, for CPPStmt subclasses).
+	void GenInvokeBody(const std::string& fname, const TypePtr& t, const std::string& args)
+		{
+		GenInvokeBody(fname + "(" + args + ")", t);
+		}
+	void GenInvokeBody(const std::string& call, const TypePtr& t);
 
 	// Generates the code for the body of a script function with
 	// the given type, profile, C++ name, AST, lambda captures
@@ -398,15 +599,8 @@ private:
 	// function name, and maps to the C++ name.
 	std::unordered_map<std::string, std::string> compiled_simple_funcs;
 
-	// Maps those to their associated files - used to make add-C++ body
-	// hashes distinct.
-	std::unordered_map<std::string, std::string> cf_locs;
-
 	// Maps function bodies to the names we use for them.
 	std::unordered_map<const Stmt*, std::string> body_names;
-
-	// Reverse mapping.
-	std::unordered_map<std::string, const Stmt*> names_to_bodies;
 
 	// Maps function names to hashes of bodies.
 	std::unordered_map<std::string, p_hash_type> body_hashes;
@@ -426,62 +620,84 @@ private:
 	//
 	// End of methods related to generating compiled script bodies.
 
-	// Start of methods related to generating code for representing
-	// script constants as run-time values.
-	// See Consts.cc for definitions.
-	//
+	// Methods related to generating code for representing script constants
+	// as run-time values.  There's only one nontrivial one of these,
+	// RegisterConstant() (declared above, as it's public).  All the other
+	// work is done by secondary objects - see InitsInfo.{h,cc} for those.
 
-	// Returns an instantiation of a constant - either as a native
-	// C++ constant, or as a C++ variable that will be bound to
-	// a Zeek value at run-time initialization - that is needed
-	// by the given "parent" object (which acquires an initialization
-	// dependency, if a C++ variable is needed).
-	std::string BuildConstant(IntrusivePtr<Obj> parent, const ValPtr& vp)
-		{
-		return BuildConstant(parent.get(), vp);
-		}
-	std::string BuildConstant(const Obj* parent, const ValPtr& vp);
+	// Returns the object used to track indices (vectors of integers
+	// that are used to index various other vectors, including other
+	// indices).  Only used by CPP_InitsInfo objects, but stored
+	// in the CPPCompile object to make it available across different
+	// CPP_InitsInfo objects.
 
-	// Called to create a constant appropriate for the given expression
-	// or, more directly, the given value.  The second method returns
-	// "true" if a C++ variable needed to be created to construct the
-	// constant at run-time initialization, false if can be instantiated
-	// directly as a C++ constant.
-	void AddConstant(const ConstExpr* c);
-	bool AddConstant(const ValPtr& v);
-
-	// Build particular types of C++ variables (with the given name)
-	// to hold constants initialized at run-time.
-	void AddStringConstant(const ValPtr& v, std::string& const_name);
-	void AddPatternConstant(const ValPtr& v, std::string& const_name);
-	void AddListConstant(const ValPtr& v, std::string& const_name);
-	void AddRecordConstant(const ValPtr& v, std::string& const_name);
-	void AddTableConstant(const ValPtr& v, std::string& const_name);
-	void AddVectorConstant(const ValPtr& v, std::string& const_name);
+	friend class CPP_InitsInfo;
+	IndicesManager& IndMgr() { return indices_mgr; }
 
 	// Maps (non-native) constants to associated C++ globals.
 	std::unordered_map<const ConstExpr*, std::string> const_exprs;
 
-	// Maps the values of (non-native) constants to associated C++ globals.
-	std::unordered_map<const Val*, std::string> const_vals;
+	// Maps the values of (non-native) constants to associated initializer
+	// information.
+	std::unordered_map<const Val*, std::shared_ptr<CPP_InitInfo>> const_vals;
+
+	// Same, but for the offset into the vector that tracks all constants
+	// collectively (to support initialization of compound constants).
+	std::unordered_map<const Val*, int> const_offsets;
+
+	// The same as the above pair, but indexed by the string representation
+	// rather than the Val*.  The reason for having both is to enable
+	// reusing common constants even though their Val*'s differ.
+	std::unordered_map<std::string, std::shared_ptr<CPP_InitInfo>> constants;
+	std::unordered_map<std::string, int> constants_offsets;
 
 	// Used for memory management associated with const_vals's index.
 	std::vector<ValPtr> cv_indices;
 
-	// Maps string representations of (non-native) constants to
-	// associated C++ globals.
-	std::unordered_map<std::string, std::string> constants;
+	// For different types of constants (as indicated by TypeTag),
+	// provides the associated object that manages the initializers
+	// for those constants.
+	std::unordered_map<TypeTag, std::shared_ptr<CPP_InitsInfo>> const_info;
 
-	// Maps the same representations to the Val* associated with their
-	// original creation.  This enables us to construct initialization
-	// dependencies for later Val*'s that are able to reuse the same
-	// constant.
-	std::unordered_map<std::string, const Val*> constants_to_vals;
+	// Tracks entries for constructing the vector of all constants
+	// (regardless of type).  Each entry provides a TypeTag, used
+	// to identify the type-specific vector for a given constant,
+	// and the offset into that vector.
+	std::vector<std::pair<TypeTag, int>> consts;
 
-	// Function variables that we need to create dynamically for
-	// initializing globals, coupled with the name of their associated
-	// constant.
-	std::unordered_map<FuncVal*, std::string> func_vars;
+	// The following objects track initialization information for
+	// different types of initializers: Zeek types, individual
+	// attributes, sets of attributes, expressions that call script
+	// functions (for attribute expressions), registering lambda
+	// bodies, and registering Zeek globals.
+	std::shared_ptr<CPP_InitsInfo> type_info;
+	std::shared_ptr<CPP_InitsInfo> attr_info;
+	std::shared_ptr<CPP_InitsInfo> attrs_info;
+	std::shared_ptr<CPP_InitsInfo> call_exprs_info;
+	std::shared_ptr<CPP_InitsInfo> lambda_reg_info;
+	std::shared_ptr<CPP_InitsInfo> global_id_info;
+
+	// Tracks all of the above objects (as well as each entry in
+	// const_info), to facilitate easy iterating over them.
+	std::set<std::shared_ptr<CPP_InitsInfo>> all_global_info;
+
+	// Tracks the attribute expressions for which we need to generate
+	// function calls to evaluate them.
+	std::unordered_map<std::string, std::shared_ptr<CallExprInitInfo>> init_infos;
+
+	// See IndMgr() above for the role of this variable.
+	IndicesManager indices_mgr;
+
+	// Maps strings to associated offsets.
+	std::unordered_map<std::string, int> tracked_strings;
+
+	// Tracks strings we've registered in order (corresponding to
+	// their offsets).
+	std::vector<std::string> ordered_tracked_strings;
+
+	// The same as the previous two, but for profile hashes.
+	std::vector<p_hash_type> ordered_tracked_hashes;
+	std::unordered_map<p_hash_type, int> tracked_hashes;
 
 	//
 	// End of methods related to generating code for script constants.
@@ -502,7 +718,11 @@ private:
 	void GenAddStmt(const ExprStmt* es);
 	void GenDeleteStmt(const ExprStmt* es);
 	void GenEventStmt(const EventStmt* ev);
+
 	void GenSwitchStmt(const SwitchStmt* sw);
+	void GenTypeSwitchStmt(const Expr* e, const case_list* cases);
+	void GenTypeSwitchCase(const ID* id, int case_offset, bool is_multi);
+	void GenValueSwitchStmt(const Expr* e, const case_list* cases);
 
 	void GenForStmt(const ForStmt* f);
 	void GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var, const IDPList* loop_vars);
@@ -649,9 +869,9 @@ private:
 	// not the outer map).
 	int num_rf_mappings = 0;
 
-	// For each entry in "field_mapping", the record and TypeDecl
-	// associated with the mapping.
-	std::vector<std::pair<const RecordType*, const TypeDecl*>> field_decls;
+	// For each entry in "field_mapping", the record (as a global
+	// offset) and TypeDecl associated with the mapping.
+	std::vector<std::pair<int, const TypeDecl*>> field_decls;
 
 	// For enums that are extended via redef's, maps each distinct
 	// value (that the compiled scripts refer to) to locations in the
@@ -665,9 +885,9 @@ private:
 	// not the outer map).
 	int num_ev_mappings = 0;
 
-	// For each entry in "enum_mapping", the record and name
-	// associated with the mapping.
-	std::vector<std::pair<const EnumType*, std::string>> enum_names;
+	// For each entry in "enum_mapping", the EnumType (as a global
+	// offset) and name associated with the mapping.
+	std::vector<std::pair<int, std::string>> enum_names;
 
 	//
 	// End of methods related to generating code for AST Expr's.
@@ -690,24 +910,6 @@ private:
 	// given script type 't', converts it as needed to the given GenType.
 	std::string GenericValPtrToGT(const std::string& expr, const TypePtr& t, GenType gt);
 
-	// For a given type, generates the code necessary to initialize
-	// it at run time.  The term "expand" in the method's name refers
-	// to the fact that the type has already been previously declared
-	// (necessary to facilitate defining recursive types), so this method
-	// generates the "meat" of the type but not its original declaration.
-	void ExpandTypeVar(const TypePtr& t);
-
-	// Methods for expanding specific such types.  "tn" is the name
-	// of the C++ variable used for the particular type.
-	void ExpandListTypeVar(const TypePtr& t, std::string& tn);
-	void ExpandRecordTypeVar(const TypePtr& t, std::string& tn);
-	void ExpandEnumTypeVar(const TypePtr& t, std::string& tn);
-	void ExpandTableTypeVar(const TypePtr& t, std::string& tn);
-	void ExpandFuncTypeVar(const TypePtr& t, std::string& tn);
-
-	// The following assumes we're populating a type_decl_list called "tl".
-	std::string GenTypeDecl(const TypeDecl* td);
-
 	// Returns the name of a C++ variable that will hold a TypePtr
 	// of the appropriate flavor.  't' does not need to be a type
 	// representative.
@@ -721,20 +923,10 @@ private:
 	const Type* TypeRep(const TypePtr& t) { return TypeRep(t.get()); }
 
 	// Low-level C++ representations for types, of various flavors.
-	const char* TypeTagName(TypeTag tag) const;
+	static const char* TypeTagName(TypeTag tag);
 	const char* TypeName(const TypePtr& t);
 	const char* FullTypeName(const TypePtr& t);
 	const char* TypeType(const TypePtr& t);
-
-	// Track the given type (with support methods for onces that
-	// are complicated), recursively including its sub-types, and
-	// creating initializations (and dependencies) for constructing
-	// C++ variables representing the types.
-	void RegisterType(const TypePtr& t);
-	void RegisterListType(const TypePtr& t);
-	void RegisterTableType(const TypePtr& t);
-	void RegisterRecordType(const TypePtr& t);
-	void RegisterFuncType(const TypePtr& t);
 
 	// Access to a type's underlying values.
 	const char* NativeAccessor(const TypePtr& t);
@@ -744,11 +936,13 @@ private:
 	const char* IntrusiveVal(const TypePtr& t);
 
 	// Maps types to indices in the global "types__CPP" array.
-	CPPTracker<Type> types = {"types", &compiled_items};
+	CPPTracker<Type> types = {"types", true};
 
 	// Used to prevent analysis of mutually-referring types from
-	// leading to infinite recursion.
-	std::unordered_set<const Type*> processed_types;
+	// leading to infinite recursion.  Maps types to their global
+	// initialization information (or, initially, to nullptr, if
+	// they're in the process of being registered).
+	std::unordered_map<const Type*, std::shared_ptr<CPP_InitInfo>> processed_types;
 
 	//
 	// End of methods related to managing script types.
@@ -758,30 +952,22 @@ private:
 	// See Attrs.cc for definitions.
 	//
 
-	// Tracks a use of the given set of attributes, including
-	// initialization dependencies and the generation of any
-	// associated expressions.
-	void RegisterAttributes(const AttributesPtr& attrs);
-
 	// Populates the 2nd and 3rd arguments with C++ representations
 	// of the tags and (optional) values/expressions associated with
 	// the set of attributes.
 	void BuildAttrs(const AttributesPtr& attrs, std::string& attr_tags, std::string& attr_vals);
 
-	// Generates code to create the given attributes at run-time.
-	void GenAttrs(const AttributesPtr& attrs);
-	std::string GenAttrExpr(const ExprPtr& e);
-
-	// Returns the name of the C++ variable that will hold the given
-	// attributes at run-time.
-	std::string AttrsName(const AttributesPtr& attrs);
-
 	// Returns a string representation of the name associated with
-	// different attributes (e.g., "ATTR_DEFAULT").
-	const char* AttrName(const AttrPtr& attr);
+	// different attribute tags (e.g., "ATTR_DEFAULT").
+	static const char* AttrName(AttrTag t);
 
 	// Similar for attributes, so we can reconstruct record types.
-	CPPTracker<Attributes> attributes = {"attrs", &compiled_items};
+	CPPTracker<Attributes> attributes = {"attrs", false};
+
+	// Maps Attributes and Attr's to their global initialization
+	// information.
+	std::unordered_map<const Attributes*, std::shared_ptr<CPP_InitInfo>> processed_attrs;
+	std::unordered_map<const Attr*, std::shared_ptr<CPP_InitInfo>> processed_attr;
 
 	//
 	// End of methods related to managing script type attributes.
@@ -790,121 +976,42 @@ private:
 	// See Inits.cc for definitions.
 	//
 
-	// Generates code to construct a CallExpr that can be used to
-	// evaluate the expression 'e' as an initializer (typically
-	// for a record &default attribute).
-	void GenInitExpr(const ExprPtr& e);
-
-	// True if the given expression is simple enough that we can
-	// generate code to evaluate it directly, and don't need to
-	// create a separate function per GenInitExpr().
-	bool IsSimpleInitExpr(const ExprPtr& e) const;
+	// Generates code for dynamically generating an expression
+	// associated with an attribute, via a function call.
+	void GenInitExpr(std::shared_ptr<CallExprInitInfo> ce_init);
 
 	// Returns the name of a function used to evaluate an
 	// initialization expression.
 	std::string InitExprName(const ExprPtr& e);
 
-	// Generates code to initializes the global 'g' (with C++ name "gl")
-	// to the given value *if* on start-up it doesn't already have a value.
-	void GenGlobalInit(const ID* g, std::string& gl, const ValPtr& v);
-
-	// Generates code to initialize all of the function-valued globals
-	// (i.e., those pointing to lambdas).
-	void GenFuncVarInits();
-
-	// Generates the "pre-initialization" for a given type.  For
-	// extensible types (records, enums, lists), these are empty
-	// versions that we'll later populate.
-	void GenPreInit(const Type* t);
-
-	// Generates a function that executes the pre-initializations.
-	void GenPreInits();
-
-	// The following all track that for a given object, code associated
-	// with initializing it.  Multiple calls for the same object append
-	// additional lines of code (the order of the calls is preserved).
-	//
-	// Versions with "lhs" and "rhs" arguments provide an initialization
-	// of the form "lhs = rhs;", as a convenience.
-	void AddInit(const IntrusivePtr<Obj>& o, const std::string& lhs, const std::string& rhs)
+	// Convenience functions for return the offset or initialization cohort
+	// associated with an initialization.
+	int GI_Offset(const std::shared_ptr<CPP_InitInfo>& gi) const { return gi ? gi->Offset() : -1; }
+	int GI_Cohort(const std::shared_ptr<CPP_InitInfo>& gi) const
 		{
-		AddInit(o.get(), lhs + " = " + rhs + ";");
-		}
-	void AddInit(const Obj* o, const std::string& lhs, const std::string& rhs)
-		{
-		AddInit(o, lhs + " = " + rhs + ";");
-		}
-	void AddInit(const IntrusivePtr<Obj>& o, const std::string& init) { AddInit(o.get(), init); }
-	void AddInit(const Obj* o, const std::string& init);
-
-	// We do consistency checking of initialization dependencies by
-	// looking for depended-on objects have initializations.  Sometimes
-	// it's unclear whether the object will actually require
-	// initialization, in which case we add an empty initialization
-	// for it so that the consistency-checking is happy.
-	void AddInit(const IntrusivePtr<Obj>& o) { AddInit(o.get()); }
-	void AddInit(const Obj* o);
-
-	// This is akin to an initialization, but done separately
-	// (upon "activation") so it can include initializations that
-	// rely on parsing having finished (in particular, BiFs having
-	// been registered).  Only used when generating  standalone code.
-	void AddActivation(std::string a) { activations.emplace_back(a); }
-
-	// Records the fact that the initialization of object o1 depends
-	// on that of object o2.
-	void NoteInitDependency(const IntrusivePtr<Obj>& o1, const IntrusivePtr<Obj>& o2)
-		{
-		NoteInitDependency(o1.get(), o2.get());
-		}
-	void NoteInitDependency(const IntrusivePtr<Obj>& o1, const Obj* o2)
-		{
-		NoteInitDependency(o1.get(), o2);
-		}
-	void NoteInitDependency(const Obj* o1, const IntrusivePtr<Obj>& o2)
-		{
-		NoteInitDependency(o1, o2.get());
-		}
-	void NoteInitDependency(const Obj* o1, const Obj* o2);
-
-	// Records an initialization dependency of the given object
-	// on the given type, unless the type is a record.  We need
-	// this notion to protect against circular dependencies in
-	// the face of recursive records.
-	void NoteNonRecordInitDependency(const Obj* o, const TypePtr& t)
-		{
-		if ( t && t->Tag() != TYPE_RECORD )
-			NoteInitDependency(o, TypeRep(t));
-		}
-	void NoteNonRecordInitDependency(const IntrusivePtr<Obj> o, const TypePtr& t)
-		{
-		NoteNonRecordInitDependency(o.get(), t);
+		return gi ? gi->InitCohort() : 0;
 		}
 
-	// Analyzes the initialization dependencies to ensure that they're
-	// consistent, i.e., every object that either depends on another,
-	// or is itself depended on, appears in the "to_do" set.
-	void CheckInitConsistency(std::unordered_set<const Obj*>& to_do);
-
-	// Generate initializations for the items in the "to_do" set,
-	// in accordance with their dependencies.  Returns 'n', the
-	// number of initialization functions generated.  They should
-	// be called in order, from 1 to n.
-	int GenDependentInits(std::unordered_set<const Obj*>& to_do);
-
-	// Generates a function for initializing the nc'th cohort.
-	void GenInitCohort(int nc, std::unordered_set<const Obj*>& cohort);
-
-	// Initialize the mappings for record field offsets for field
-	// accesses into regions of records that can be extensible (and
-	// thus can vary at run-time to the offsets encountered during
-	// compilation).
+	// Generate code to initialize the mappings for record field
+	// offsets for field accesses into regions of records that
+	// can be extensible (and thus can vary at run-time to the
+	// offsets encountered during compilation).
 	void InitializeFieldMappings();
 
-	// Same, but for enum types.  The second form does a single
-	// initialization corresponding to the given index in the mapping.
+	// Same, but for enum types.
 	void InitializeEnumMappings();
-	void InitializeEnumMappings(const EnumType* et, const std::string& e_name, int index);
+
+	// Generate code to initialize BiFs.
+	void InitializeBiFs();
+
+	// Generate code to initialize strings that we track.
+	void InitializeStrings();
+
+	// Generate code to initialize hashes that we track.
+	void InitializeHashes();
+
+	// Generate code to initialize indirect references to constants.
+	void InitializeConsts();
 
 	// Generate the initialization hook for this set of compiled code.
 	void GenInitHook();
@@ -917,25 +1024,15 @@ private:
 	// what we compiled.
 	void GenLoad();
 
-	// A list of pre-initializations (those potentially required by
-	// other initializations, and that themselves have no dependencies).
-	std::vector<std::string> pre_inits;
-
-	// A list of "activations" (essentially, post-initializations).
-	// See AddActivation() above.
-	std::vector<std::string> activations;
+	// A list of BiFs to look up during initialization.  First
+	// string is the name of the C++ global holding the BiF, the
+	// second is its name as known to Zeek.
+	std::unordered_map<std::string, std::string> BiFs;
 
 	// Expressions for which we need to generate initialization-time
 	// code.  Currently, these are only expressions appearing in
 	// attributes.
-	CPPTracker<Expr> init_exprs = {"gen_init_expr", &compiled_items};
-
-	// Maps an object requiring initialization to its initializers.
-	std::unordered_map<const Obj*, std::vector<std::string>> obj_inits;
-
-	// Maps an object requiring initializations to its dependencies
-	// on other such objects.
-	std::unordered_map<const Obj*, std::unordered_set<const Obj*>> obj_deps;
+	CPPTracker<Expr> init_exprs = {"gen_init_expr", false};
 
 	//
 	// End of methods related to run-time initialization.
@@ -944,11 +1041,19 @@ private:
 	// See Emit.cc for definitions.
 	//
 
+	// The following all need to be able to emit code.
+	friend class CPP_BasicConstInitsInfo;
+	friend class CPP_CompoundInitsInfo;
+	friend class IndicesManager;
+
 	// Used to create (indented) C++ {...} code blocks.  "needs_semi"
 	// controls whether to terminate the block with a ';' (such as
 	// for class definitions.
 	void StartBlock();
 	void EndBlock(bool needs_semi = false);
+
+	void IndentUp() { ++block_level; }
+	void IndentDown() { --block_level; }
 
 	// Various ways of generating code.  The multi-argument methods
 	// assume that the first argument is a printf-style format
@@ -960,11 +1065,12 @@ private:
 		NL();
 		}
 
-	void Emit(const std::string& fmt, const std::string& arg) const
+	void Emit(const std::string& fmt, const std::string& arg, bool do_NL = true) const
 		{
 		Indent();
 		fprintf(write_file, fmt.c_str(), arg.c_str());
-		NL();
+		if ( do_NL )
+			NL();
 		}
 
 	void Emit(const std::string& fmt, const std::string& arg1, const std::string& arg2) const
@@ -999,14 +1105,15 @@ private:
 		NL();
 		}
 
-	// Returns an expression for constructing a Zeek String object
-	// corresponding to the given byte array.
-	std::string GenString(const char* b, int len) const;
-
-	// For the given byte array / string, returns a version expanded
-	// with escape sequences in order to represent it as a C++ string.
-	std::string CPPEscape(const char* b, int len) const;
-	std::string CPPEscape(const char* s) const { return CPPEscape(s, strlen(s)); }
+	void Emit(const std::string& fmt, const std::string& arg1, const std::string& arg2,
+	          const std::string& arg3, const std::string& arg4, const std::string& arg5,
+	          const std::string& arg6) const
+		{
+		Indent();
+		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str(), arg4.c_str(),
+		        arg5.c_str(), arg6.c_str());
+		NL();
+		}
 
 	void NL() const { fputc('\n', write_file); }
 
@@ -1015,9 +1122,6 @@ private:
 
 	// File to which we're generating code.
 	FILE* write_file;
-
-	// Name of file holding potential "additional" code.
-	std::string addl_name;
 
 	// Indentation level.
 	int block_level = 0;

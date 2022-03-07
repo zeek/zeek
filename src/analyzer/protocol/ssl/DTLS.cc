@@ -72,8 +72,15 @@ void DTLS_Analyzer::SendHandshake(uint16_t raw_tls_version, uint8_t msg_type, ui
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+		AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
+	}
+
+bool DTLS_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool is_orig,
+                                              uint8_t content_type, uint16_t raw_tls_version)
+	{
+	// noop for now as DTLS decryption is currently not supported
+	return false;
 	}
 
 	} // namespace zeek::analyzer::dtls

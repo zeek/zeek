@@ -44,7 +44,7 @@ refine flow DHCP_Flow += {
 		// the message options.
 		if ( ${msg.cookie} != 0x63825363 )
 			{
-			connection()->zeek_analyzer()->ProtocolViolation(zeek::util::fmt("bad cookie (%d)", ${msg.cookie}));
+			connection()->zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("bad cookie (%d)", ${msg.cookie}));
 			return false;
 			}
 
@@ -105,8 +105,8 @@ refine flow DHCP_Flow += {
 		// because it's not uncommon to see a single DHCP message
 		// on a "connection".
 		// The binpac analyzer would have thrown an error before this point
-		// if there was a problem too (and subsequently called ProtocolViolation).
-		connection()->zeek_analyzer()->ProtocolConfirmation();
+		// if there was a problem too (and subsequently called AnalyzerViolation).
+		connection()->zeek_analyzer()->AnalyzerConfirmation();
 
 		return true;
 		%}

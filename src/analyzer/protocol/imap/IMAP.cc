@@ -47,8 +47,7 @@ void IMAP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		return;
 		}
 
-	assert(TCP());
-	if ( TCP()->IsPartial() )
+	if ( TCP() && TCP()->IsPartial() )
 		return;
 
 	if ( had_gap )
@@ -63,7 +62,7 @@ void IMAP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+		AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 

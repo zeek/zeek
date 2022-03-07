@@ -22,10 +22,10 @@ inline ValPtr vector_append__CPP(VectorValPtr v1, ValPtr v2)
 	}
 
 // Unary vector operations.
-extern VectorValPtr vec_op_pos__CPP(const VectorValPtr& v);
-extern VectorValPtr vec_op_neg__CPP(const VectorValPtr& v);
-extern VectorValPtr vec_op_not__CPP(const VectorValPtr& v);
-extern VectorValPtr vec_op_comp__CPP(const VectorValPtr& v);
+extern VectorValPtr vec_op_pos__CPP(const VectorValPtr& v, const TypePtr& t);
+extern VectorValPtr vec_op_neg__CPP(const VectorValPtr& v, const TypePtr& t);
+extern VectorValPtr vec_op_not__CPP(const VectorValPtr& v, const TypePtr& t);
+extern VectorValPtr vec_op_comp__CPP(const VectorValPtr& v, const TypePtr& t);
 
 // Binary vector operations.
 extern VectorValPtr vec_op_add__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
@@ -79,5 +79,9 @@ extern VectorValPtr vector_coerce_to__CPP(const VectorValPtr& v, const TypePtr& 
 extern VectorValPtr vec_coerce_to_bro_int_t__CPP(const VectorValPtr& v, TypePtr targ);
 extern VectorValPtr vec_coerce_to_bro_uint_t__CPP(const VectorValPtr& v, TypePtr targ);
 extern VectorValPtr vec_coerce_to_double__CPP(const VectorValPtr& v, TypePtr targ);
+
+// A dummy function used during code generation for unsupported operations
+// that mix vector and scalar arguments.
+extern VectorValPtr vec_scalar_mixed_with_vector();
 
 	} // namespace zeek::detail

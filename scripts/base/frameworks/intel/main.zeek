@@ -49,7 +49,7 @@ export {
 		## A URL for more information about the data.
 		url:         string      &optional;
 	};
-	
+
 	## Represents a piece of intelligence.
 	type Item: record {
 		## The intelligence indicator.
@@ -57,12 +57,12 @@ export {
 
 		## The type of data that the indicator field represents.
 		indicator_type: Type;
-		
+
 		## Metadata for the item. Typically represents more deeply
 		## descriptive data for a piece of intelligence.
 		meta:           MetaData;
 	};
-	
+
 	## Enum to represent where data came from when it was discovered.
 	## The convention is to prefix the name with ``IN_``.
 	type Where: enum {
@@ -158,8 +158,8 @@ export {
 	global extend_match: hook(info: Info, s: Seen, items: set[Item]);
 
 	## The expiration timeout for intelligence items. Once an item expires, the
-	## :zeek:id:`Intel::item_expired` hook is called. Reinsertion of an item 
-	## resets the timeout. A negative value disables expiration of intelligence 
+	## :zeek:id:`Intel::item_expired` hook is called. Reinsertion of an item
+	## resets the timeout. A negative value disables expiration of intelligence
 	## items.
 	const item_expiration = -1 min &redef;
 

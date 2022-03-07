@@ -36,7 +36,7 @@ public:
 	};
 
 #define YYLTYPE zeek::detail::yyltype
-typedef Location yyltype;
+using yyltype = Location;
 YYLTYPE GetCurrentLocation();
 
 // Used to mean "no location associated with this object".

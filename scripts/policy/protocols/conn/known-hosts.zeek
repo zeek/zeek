@@ -1,5 +1,5 @@
 ##! This script logs hosts that Zeek determines have performed complete TCP
-##! handshakes and logs the address once per day (by default).  The log that 
+##! handshakes and logs the address once per day (by default).  The log that
 ##! is output provides an easy way to determine a count of the IP addresses in
 ##! use on a network per day.
 
@@ -29,11 +29,11 @@ export {
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
 	const use_host_store = T &redef;
-	
+
 	## The hosts whose existence should be logged and tracked.
 	## See :zeek:type:`Host` for possible choices.
 	option host_tracking = LOCAL_HOSTS;
-	
+
 	## Holds the set of all known hosts.  Keys in the store are addresses
 	## and their associated value will always be the "true" boolean.
 	global host_store: Cluster::StoreInfo;
@@ -49,8 +49,8 @@ export {
 	## :zeek:see:`Known::host_store`.
 	option host_store_timeout = 15sec;
 
-	## The set of all known addresses to store for preventing duplicate 
-	## logging of addresses.  It can also be used from other scripts to 
+	## The set of all known addresses to store for preventing duplicate
+	## logging of addresses.  It can also be used from other scripts to
 	## inspect if an address has been seen in use.
 	## Maintain the list of known hosts for 24 hours so that the existence
 	## of each individual address is logged each day.
@@ -77,7 +77,7 @@ event Known::host_found(info: HostsInfo)
 	if ( ! Known::use_host_store )
 		return;
 
-	when ( local r = Broker::put_unique(Known::host_store$store, info$host,
+	when [info] ( local r = Broker::put_unique(Known::host_store$store, info$host,
 	                                    T, Known::host_store_expiry) )
 		{
 		if ( r$status == Broker::SUCCESS )

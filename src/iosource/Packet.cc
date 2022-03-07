@@ -68,6 +68,8 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
 	tunnel_type = BifEnum::Tunnel::IP;
 	gre_version = -1;
 	gre_link_type = DLT_RAW;
+
+	processed = false;
 	}
 
 Packet::~Packet()
@@ -144,6 +146,33 @@ RecordValPtr Packet::ToRawPktHdrVal() const
 		return ip_hdr->ToPktHdrVal(std::move(pkt_hdr), 1);
 	else
 		return pkt_hdr;
+	}
+
+RecordValPtr Packet::ToVal(const Packet* p)
+	{
+	static auto pcap_packet = zeek::id::find_type<zeek::RecordType>("pcap_packet");
+	auto val = zeek::make_intrusive<zeek::RecordVal>(pcap_packet);
+
+	if ( p )
+		{
+		val->Assign(0, static_cast<uint32_t>(p->ts.tv_sec));
+		val->Assign(1, static_cast<uint32_t>(p->ts.tv_usec));
+		val->Assign(2, p->cap_len);
+		val->Assign(3, p->len);
+		val->Assign(4, zeek::make_intrusive<zeek::StringVal>(p->cap_len, (const char*)p->data));
+		val->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(p->link_type));
+		}
+	else
+		{
+		val->Assign(0, 0);
+		val->Assign(1, 0);
+		val->Assign(2, 0);
+		val->Assign(3, 0);
+		val->Assign(4, zeek::val_mgr->EmptyString());
+		val->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_UNKNOWN));
+		}
+
+	return val;
 	}
 
 ValPtr Packet::FmtEUI48(const u_char* mac) const

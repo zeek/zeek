@@ -32,7 +32,7 @@ class ScriptInfo;
  */
 template <class T> struct InfoMap
 	{
-	typedef std::map<std::string, T*> map_type;
+	using map_type = std::map<std::string, T*>;
 
 	/**
 	 * @param name Name of an info object to retrieve.
@@ -58,8 +58,8 @@ public:
 	 * Ctor.
 	 * @param config Path to a Zeekygen config file if documentation is to be
 	 * written to disk.
-	 * @param bro_command The command used to invoke the bro process.
-	 * It's used when checking for out-of-date targets.  If the bro binary is
+	 * @param bro_command The command used to invoke the Zeek process.
+	 * It's used when checking for out-of-date targets.  If the Zeek binary is
 	 * newer then a target, it needs to be rebuilt.
 	 */
 	Manager(const std::string& config, const std::string& bro_command);
@@ -88,15 +88,15 @@ public:
 	void GenerateDocs() const;
 
 	/**
-	 * Register Bro script for which information/documentation will be gathered.
-	 * @param path Absolute path to Bro script.
+	 * Register Zeek script for which information/documentation will be gathered.
+	 * @param path Absolute path to Zeek script.
 	 */
 	void Script(const std::string& path);
 
 	/**
-	 * Register Bro script dependency ("@load").
-	 * @param path Absolute path to a Bro script.
-	 * @param dep Absolute path to a Bro script being "@load"d from script given
+	 * Register Zeek script dependency ("@load").
+	 * @param path Absolute path to a Zeek script.
+	 * @param dep Absolute path to a Zeek script being "@load"d from script given
 	 * by \a path.
 	 */
 	void ScriptDependency(const std::string& path, const std::string& dep);
@@ -104,7 +104,7 @@ public:
 	/**
 	 * Register a module usage (script may export identifiers in to the
 	 * module namespace).
-	 * @param path Absolute path to a Bro script.
+	 * @param path Absolute path to a Zeek script.
 	 * @param module The module which script given by \a path is using.
 	 */
 	void ModuleUsage(const std::string& path, const std::string& module);
@@ -128,7 +128,7 @@ public:
 	 * gathered.
 	 * @param id The identifier of the record type which has the field.
 	 * @param field The field name/type information.
-	 * @param path Absolute path to a Bro script in which this field is
+	 * @param path Absolute path to a Zeek script in which this field is
 	 * declared.  This can be different from the place where the record type
 	 * is declared due to redefs.
 	 * @param from_redef  The field is from a record redefinition.
@@ -139,7 +139,7 @@ public:
 	/**
 	 * Register a redefinition of a particular identifier.
 	 * @param id The identifier being redef'd.
-	 * @param path Absolute path to a Bro script doing the redef.
+	 * @param path Absolute path to a Zeek script doing the redef.
 	 * @param ic The initialization class that was used (e.g. =, +=, -=).
 	 * @param init_expr The intiialization expression that was used.
 	 */
@@ -150,7 +150,7 @@ public:
 
 	/**
 	 * Register Zeekygen script summary content.
-	 * @param path Absolute path to a Bro script.
+	 * @param path Absolute path to a Zeek script.
 	 * @param comment Zeekygen-style summary comment ("##!") to associate with
 	 * script given by \a path.
 	 */
@@ -209,15 +209,15 @@ public:
 	 * @param target_file output file of a Zeekygen target.
 	 * @param dependencies all dependencies of the target.
 	 * @return true if modification time of \a target_file is newer than
-	 * modification time of Bro binary, Zeekygen config file, and all
+	 * modification time of Zeek binary, Zeekygen config file, and all
 	 * dependencies, else false.
 	 */
 	template <class T>
 	bool IsUpToDate(const std::string& target_file, const std::vector<T*>& dependencies) const;
 
 private:
-	typedef std::vector<std::string> comment_buffer_t;
-	typedef std::map<std::string, comment_buffer_t> comment_buffer_map_t;
+	using comment_buffer_t = std::vector<std::string>;
+	using comment_buffer_map_t = std::map<std::string, comment_buffer_t>;
 
 	IdentifierInfo* CreateIdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script,
 	                                     bool from_redef = false);

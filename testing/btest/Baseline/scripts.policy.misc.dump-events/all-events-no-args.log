@@ -8,7 +8,7 @@ XXXXXXXXXX.XXXXXX filter_change_tracking
 XXXXXXXXXX.XXXXXX new_connection
 XXXXXXXXXX.XXXXXX dns_message
 XXXXXXXXXX.XXXXXX dns_request
-XXXXXXXXXX.XXXXXX protocol_confirmation
+XXXXXXXXXX.XXXXXX analyzer_confirmation
 XXXXXXXXXX.XXXXXX dns_end
 XXXXXXXXXX.XXXXXX dns_message
 XXXXXXXXXX.XXXXXX dns_CNAME_reply
@@ -19,7 +19,7 @@ XXXXXXXXXX.XXXXXX connection_established
 XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX smtp_reply
-XXXXXXXXXX.XXXXXX protocol_confirmation
+XXXXXXXXXX.XXXXXX analyzer_confirmation
 XXXXXXXXXX.XXXXXX smtp_request
 XXXXXXXXXX.XXXXXX Broker::log_flush
 XXXXXXXXXX.XXXXXX smtp_reply
@@ -120,7 +120,7 @@ XXXXXXXXXX.XXXXXX Broker::log_flush
 XXXXXXXXXX.XXXXXX new_connection
 XXXXXXXXXX.XXXXXX connection_established
 XXXXXXXXXX.XXXXXX smtp_reply
-XXXXXXXXXX.XXXXXX protocol_confirmation
+XXXXXXXXXX.XXXXXX analyzer_confirmation
 XXXXXXXXXX.XXXXXX smtp_request
 XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX smtp_reply
@@ -173,7 +173,7 @@ XXXXXXXXXX.XXXXXX ssl_extension
 XXXXXXXXXX.XXXXXX ssl_extension
 XXXXXXXXXX.XXXXXX ssl_extension
 XXXXXXXXXX.XXXXXX ssl_extension
-XXXXXXXXXX.XXXXXX protocol_confirmation
+XXXXXXXXXX.XXXXXX analyzer_confirmation
 XXXXXXXXXX.XXXXXX ssl_client_hello
 XXXXXXXXXX.XXXXXX ssl_handshake_message
 XXXXXXXXXX.XXXXXX ssl_plaintext_data

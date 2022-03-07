@@ -61,8 +61,6 @@ void SMB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	assert(TCP());
-
 	// It we need to resync and we don't have an SMB header, bail!
 	if ( need_sync && ! HasSMBHeader(len, data) )
 		return;
@@ -77,11 +75,11 @@ void SMB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		// Let's assume that if there are no binpac exceptions after
 		// 3 data chunks that this is probably actually SMB.
 		if ( ++chunks == 3 )
-			ProtocolConfirmation();
+			AnalyzerConfirmation();
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+		AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		NeedResync();
 		}
 	}

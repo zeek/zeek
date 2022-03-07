@@ -173,7 +173,7 @@ if ( ZEEK_SANITIZERS )
                 # list(APPEND _check_list "implicit-integer-sign-change") # Not truly UB
                 list(APPEND _check_list "integer-divide-by-zero")
                 list(APPEND _check_list "nonnull-attribute")
-                # list(APPEND _check_list "null") # TODO: fix associated errors
+                list(APPEND _check_list "null")
                 # list(APPEND _check_list "nullability-arg") # Not normally part of "undefined"
                 # list(APPEND _check_list "nullability-assign") # Not normally part of "undefined"
                 # list(APPEND _check_list "nullability-return") # Not normally part of "undefined"
@@ -295,7 +295,17 @@ if ( NOT BIFCL_EXE_PATH )
 endif ()
 
 if (ENABLE_JEMALLOC)
-    find_package(JeMalloc)
+    if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+        if (DEFINED JEMALLOC_ROOT_DIR)
+            # Look for jemalloc at a specific path
+            find_package(JeMalloc)
+        else()
+            # jemalloc is in the base system
+            set(JEMALLOC_FOUND true)
+        endif()
+    else()
+        find_package(JeMalloc)
+    endif()
 
     if (NOT JEMALLOC_FOUND)
         message(FATAL_ERROR "Could not find requested JeMalloc")
@@ -321,42 +331,15 @@ if ( PYTHON_VERSION_STRING VERSION_LESS ${ZEEK_PYTHON_MIN} )
     message(FATAL_ERROR "Python ${ZEEK_PYTHON_MIN} or greater is required.")
 endif ()
 
-if ( CAF_ROOT OR BROKER_ROOT_DIR )
-  # TODO: drop < 3.12 compatibility check when raising the minimum CMake version
-  if ( CAF_ROOT AND CMAKE_VERSION VERSION_LESS 3.12 )
-    find_package(CAF ${CAF_VERSION_MIN_REQUIRED} REQUIRED
-                 COMPONENTS openssl test io core
-                 PATHS "${CAF_ROOT}")
-  else ()
-    find_package(CAF ${CAF_VERSION_MIN_REQUIRED} REQUIRED
-                 COMPONENTS openssl test io core)
-  endif ()
-  message(STATUS "Using system CAF version ${CAF_VERSION}")
-  # TODO: drop these legacy variables and simply use the targets consistently
-  set(CAF_LIBRARIES CAF::core CAF::io CAF::openssl CACHE INTERNAL "")
-  set(caf_dirs "")
-  foreach (caf_lib IN LISTS CAF_LIBRARIES ITEMS CAF::test)
-    get_target_property(dirs ${caf_lib} INTERFACE_INCLUDE_DIRECTORIES)
-    if ( dirs )
-      list(APPEND caf_dirs ${dirs})
-    endif ()
-  endforeach ()
-  list(REMOVE_DUPLICATES caf_dirs)
-  list(GET caf_dirs 0 caf_dir)
-  set(CAF_INCLUDE_DIRS "${caf_dirs}" CACHE INTERNAL "")
-endif ()
-
 add_subdirectory(auxil/paraglob)
 set(zeekdeps ${zeekdeps} paraglob)
 
 if ( Broker_ROOT )
-  find_package(Broker CONFIG REQUIRED)
-  message(STATUS "Using Broker ${Broker_VERSION} from ${Broker_DIR}")
+  find_package(Broker REQUIRED PATHS "${Broker_ROOT}")
   set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
   set(broker_includes ${BROKER_INCLUDE_DIR})
 elseif ( BROKER_ROOT_DIR )
-  find_package(Broker REQUIRED)
-  message(STATUS "Using system Broker version ${BROKER_VERSION}")
+  find_package(Broker REQUIRED PATHS "${BROKER_ROOT_DIR}")
   set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
   set(broker_includes ${BROKER_INCLUDE_DIR})
 else ()
@@ -381,11 +364,6 @@ else ()
   set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/include ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/include)
 endif ()
 
-# CAF_LIBRARIES and CAF_INCLUDE_DIRS are defined either by calling
-# find_package(CAF) or by calling add_subdirectory(auxil/broker). In either case,
-# we have to care about CAF here because Broker headers can pull in CAF
-# headers.
-set(zeekdeps ${zeekdeps} ${CAF_LIBRARIES})
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
@@ -458,7 +436,7 @@ endif ()
 # Any headers that are possibly bundled in the Zeek source-tree and that are supposed
 # to have priority over any pre-existing/system-wide headers need to appear early in
 # compiler search path.
-include_directories(BEFORE ${broker_includes} ${CAF_INCLUDE_DIRS})
+include_directories(BEFORE ${broker_includes})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/highwayhash)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/paraglob/include)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include)
@@ -496,6 +474,9 @@ include(FindKqueue)
 if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
   set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
 endif()
+if ( (OPENSSL_VERSION VERSION_EQUAL "3.0.0") OR (OPENSSL_VERSION VERSION_GREATER "3.0.0") )
+  set(ZEEK_HAVE_OPENSSL_3_0 true CACHE INTERNAL "" FORCE)
+endif()
 
 # Tell the plugin code that we're building as part of the main tree.
 set(ZEEK_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
@@ -514,12 +495,6 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek
 execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
                 "."
                 "${CMAKE_CURRENT_BINARY_DIR}/zeek")
-
-if ( CAF_ROOT )
-  set(ZEEK_CONFIG_CAF_ROOT_DIR ${CAF_ROOT})
-else ()
-  set(ZEEK_CONFIG_CAF_ROOT_DIR ${ZEEK_ROOT_DIR})
-endif ()
 
 if ( BinPAC_ROOT_DIR )
   set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${BinPAC_ROOT_DIR})

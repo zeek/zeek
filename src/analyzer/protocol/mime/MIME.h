@@ -191,7 +191,7 @@ protected:
 
 // The reason I separate MIME_Message as an abstract class is to
 // present the *interface* separated from its implementation to
-// generate Bro events.
+// generate Zeek events.
 
 class MIME_Message
 	{

@@ -22,6 +22,7 @@ const char* hook_name(HookType h)
 	static constexpr const char* hook_names[int(NUM_HOOKS) + 1] = {
 		// Order must match that of HookType.
 		"LoadFile",
+		"LoadFileExtended",
 		"CallFunction",
 		"QueueEvent",
 		"DrainEvents",
@@ -30,6 +31,7 @@ const char* hook_name(HookType h)
 		"SetupAnalyzerTree",
 		"LogInit",
 		"LogWrite",
+		"UnprocessedPacket",
 		// MetaHooks
 		"MetaHookPre",
 		"MetaHookPost",
@@ -230,6 +232,25 @@ void HookArgument::Describe(ODesc* d) const
 				{
 				d->Add("<no location>");
 				}
+			break;
+
+		case INPUT_FILE:
+			{
+			d->Add("(");
+			d->Add(input_file.first);
+			d->Add(", ");
+			if ( input_file.second )
+				d->Add(input_file.second->substr(0, 20)); // cut content off
+			else
+				d->Add("<no content>");
+
+			d->Add(")");
+			break;
+			}
+
+		case PACKET:
+			d->Add("<packet>");
+			break;
 		}
 	}
 
@@ -368,6 +389,13 @@ int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std
 	return -1;
 	}
 
+std::pair<int, std::optional<std::string>> Plugin::HookLoadFileExtended(const LoadType type,
+                                                                        const std::string& file,
+                                                                        const std::string& resolved)
+	{
+	return std::make_pair(-1, std::nullopt);
+	}
+
 std::pair<bool, ValPtr> Plugin::HookFunctionCall(const Func* func, zeek::detail::Frame* parent,
                                                  Args* args)
 	{
@@ -408,6 +436,8 @@ bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event
 	{
 	return true;
 	}
+
+void Plugin::HookUnprocessedPacket(const Packet* packet) { }
 
 void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args) { }
 

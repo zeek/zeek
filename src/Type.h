@@ -49,21 +49,19 @@ enum TypeTag
 	TYPE_STRING, // 7
 	TYPE_PATTERN, // 8
 	TYPE_ENUM, // 9
-	TYPE_TIMER, // 10
-	TYPE_PORT, // 11
-	TYPE_ADDR, // 12
-	TYPE_SUBNET, // 13
-	TYPE_ANY, // 14
-	TYPE_TABLE, // 15
-	TYPE_UNION, // 16
-	TYPE_RECORD, // 17
-	TYPE_LIST, // 18
-	TYPE_FUNC, // 19
-	TYPE_FILE, // 20
-	TYPE_VECTOR, // 21
-	TYPE_OPAQUE, // 22
-	TYPE_TYPE, // 23
-	TYPE_ERROR // 24
+	TYPE_PORT, // 10
+	TYPE_ADDR, // 11
+	TYPE_SUBNET, // 12
+	TYPE_ANY, // 13
+	TYPE_TABLE, // 14
+	TYPE_RECORD, // 15
+	TYPE_LIST, // 16
+	TYPE_FUNC, // 17
+	TYPE_FILE, // 18
+	TYPE_VECTOR, // 19
+	TYPE_OPAQUE, // 20
+	TYPE_TYPE, // 21
+	TYPE_ERROR // 22
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
 	};
 
@@ -126,10 +124,8 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 			return TYPE_INTERNAL_SUBNET;
 
 		case TYPE_PATTERN:
-		case TYPE_TIMER:
 		case TYPE_ANY:
 		case TYPE_TABLE:
-		case TYPE_UNION:
 		case TYPE_RECORD:
 		case TYPE_LIST:
 		case TYPE_FUNC:
@@ -152,7 +148,6 @@ class TypeList;
 class TableType;
 class SetType;
 class RecordType;
-class SubNetType;
 class FuncType;
 class EnumType;
 class VectorType;
@@ -165,7 +160,6 @@ using TypeListPtr = IntrusivePtr<TypeList>;
 using TableTypePtr = IntrusivePtr<TableType>;
 using SetTypePtr = IntrusivePtr<SetType>;
 using RecordTypePtr = IntrusivePtr<RecordType>;
-using SubNetTypePtr = IntrusivePtr<SubNetType>;
 using FuncTypePtr = IntrusivePtr<FuncType>;
 using EnumTypePtr = IntrusivePtr<EnumType>;
 using VectorTypePtr = IntrusivePtr<VectorType>;
@@ -225,9 +219,6 @@ public:
 
 	const RecordType* AsRecordType() const;
 	RecordType* AsRecordType();
-
-	const SubNetType* AsSubNetType() const;
-	SubNetType* AsSubNetType();
 
 	const FuncType* AsFuncType() const;
 	FuncType* AsFuncType();
@@ -520,6 +511,20 @@ public:
 	 */
 	const std::optional<CaptureList>& GetCaptures() const { return captures; }
 
+	/**
+	 * Returns whether it's acceptable for a "return" inside the function
+	 * to not have an expression (even though the function has a return
+	 * type).  Used internally for lambdas built for "when" statements.
+	 */
+	bool ExpressionlessReturnOkay() const { return expressionless_return_okay; }
+
+	/**
+	 * Sets whether it's acceptable for a "return" inside the function
+	 * to not have an expression (even though the function has a return
+	 * type).  Used internally for lambdas built for "when" statements.
+	 */
+	void SetExpressionlessReturnOkay(bool is_ok) { expressionless_return_okay = is_ok; }
+
 protected:
 	friend FuncTypePtr make_intrusive<FuncType>();
 
@@ -531,6 +536,8 @@ protected:
 	std::vector<Prototype> prototypes;
 
 	std::optional<CaptureList> captures; // if nil then no captures specified
+	// Used for internal lambdas built for "when" statements:
+	bool expressionless_return_okay = false;
 	};
 
 class TypeType final : public Type
@@ -700,13 +707,6 @@ protected:
 	type_decl_list* types;
 	};
 
-class SubNetType final : public Type
-	{
-public:
-	SubNetType();
-	void Describe(ODesc* d) const override;
-	};
-
 class FileType final : public Type
 	{
 public:
@@ -743,7 +743,7 @@ protected:
 class EnumType final : public Type
 	{
 public:
-	typedef std::list<std::pair<std::string, bro_int_t>> enum_name_list;
+	using enum_name_list = std::list<std::pair<std::string, bro_int_t>>;
 
 	explicit EnumType(const EnumType* e);
 	explicit EnumType(const std::string& arg_name);
@@ -792,7 +792,7 @@ protected:
 	                     bool is_export, detail::Expr* deprecation = nullptr,
 	                     bool from_redef = false);
 
-	typedef std::map<std::string, bro_int_t> NameMap;
+	using NameMap = std::map<std::string, bro_int_t>;
 	NameMap names;
 
 	// Whether any of the elements of the enum were added via redef's.
@@ -840,21 +840,37 @@ extern bool same_type(const Type& t1, const Type& t2, bool is_init = false,
 inline bool same_type(const TypePtr& t1, const TypePtr& t2, bool is_init = false,
                       bool match_record_field_names = true)
 	{
+	// If the pointers are identical, the type should be the same type.
+	if ( t1.get() == t2.get() )
+		return true;
+
 	return same_type(*t1, *t2, is_init, match_record_field_names);
 	}
 inline bool same_type(const Type* t1, const Type* t2, bool is_init = false,
                       bool match_record_field_names = true)
 	{
+	// If the pointers are identical, the type should be the same type.
+	if ( t1 == t2 )
+		return true;
+
 	return same_type(*t1, *t2, is_init, match_record_field_names);
 	}
 inline bool same_type(const TypePtr& t1, const Type* t2, bool is_init = false,
                       bool match_record_field_names = true)
 	{
+	// If the pointers are identical, the type should be the same type.
+	if ( t1.get() == t2 )
+		return true;
+
 	return same_type(*t1, *t2, is_init, match_record_field_names);
 	}
 inline bool same_type(const Type* t1, const TypePtr& t2, bool is_init = false,
                       bool match_record_field_names = true)
 	{
+	// If the pointers are identical, the type should be the same type.
+	if ( t1 == t2.get() )
+		return true;
+
 	return same_type(*t1, *t2, is_init, match_record_field_names);
 	}
 
@@ -931,7 +947,7 @@ inline bool IsInterval(TypeTag t)
 // True if the given type tag corresponds to a record type.
 inline bool IsRecord(TypeTag t)
 	{
-	return (t == TYPE_RECORD || t == TYPE_UNION);
+	return (t == TYPE_RECORD);
 	}
 
 // True if the given type tag corresponds to a function type.

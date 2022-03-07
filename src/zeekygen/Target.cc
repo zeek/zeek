@@ -260,7 +260,7 @@ void AnalyzerTarget::DoFindDependencies(const std::vector<Info*>& infos)
 	{
 	// TODO: really should add to dependency list the tag type's ID and
 	// all bif items for matching analyzer plugins, but that's all dependent
-	// on the bro binary itself, so I'm cheating.
+	// on the Zeek binary itself, so I'm cheating.
 	}
 
 void AnalyzerTarget::DoGenerate() const
@@ -282,6 +282,7 @@ void ProtoAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 	fprintf(f, "==================\n\n");
 
 	WriteAnalyzerTagDefn(f, "Analyzer");
+	WriteAnalyzerTagDefn(f, "AllAnalyzers");
 
 	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 	plugin::Manager::plugin_list::const_iterator it;

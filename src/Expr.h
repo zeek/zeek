@@ -137,6 +137,7 @@ using EventExprPtr = IntrusivePtr<EventExpr>;
 using ExprPtr = IntrusivePtr<Expr>;
 using NameExprPtr = IntrusivePtr<NameExpr>;
 using RefExprPtr = IntrusivePtr<RefExpr>;
+using LambdaExprPtr = IntrusivePtr<LambdaExpr>;
 
 class Stmt;
 using StmtPtr = IntrusivePtr<Stmt>;
@@ -167,7 +168,7 @@ public:
 	// into the given aggregate of the given type.  Note that
 	// return type is void since it's updating an existing
 	// value, rather than creating a new one.
-	virtual void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const;
+	virtual void EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const;
 
 	// Assign to the given value, if appropriate.
 	virtual void Assign(Frame* f, ValPtr v);
@@ -187,7 +188,7 @@ public:
 	// with the given type.  If "aggr" is non-nil, then this expression
 	// is an element of the given aggregate, and it is added to it
 	// accordingly.
-	virtual ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const;
+	virtual ValPtr InitVal(const TypePtr& t, ValPtr aggr) const;
 
 	// True if the expression has no side effects, false otherwise.
 	virtual bool IsPure() const;
@@ -621,6 +622,14 @@ protected:
 
 	void ExprDescribe(ODesc* d) const override;
 
+	// Reports on if this BinaryExpr involves a scalar and aggregate
+	// type (vec, list, table, record).
+	bool IsScalarAggregateOp() const;
+
+	// Warns about deprecated scalar vector operations like
+	// `[1, 2, 3] == 1` or `["a", "b", "c"] + "a"`.
+	void CheckScalarAggOp() const;
+
 	ExprPtr op1;
 	ExprPtr op2;
 	};
@@ -939,10 +948,10 @@ public:
 	           const AttributesPtr& attrs = nullptr, bool type_check = true);
 
 	ValPtr Eval(Frame* f) const override;
-	void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const override;
+	void EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const override;
 	TypePtr InitType() const override;
 	bool IsRecordElement(TypeDecl* td) const override;
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 	bool IsPure() const override;
 
 	// Optimization-related:
@@ -958,6 +967,15 @@ public:
 	// Whether this is an assignment to a temporary.
 	bool IsTemp() const { return is_temp; }
 	void SetIsTemp() { is_temp = true; }
+
+	// The following is a hack that's used in "when" expressions to support
+	// assignments to new locals, like "when ( (local l = foo()) && ...".
+	// These methods return the value to use when evaluating such
+	// assignments.  That would normally be the RHS of the assignment,
+	// but to get when's to work in a convenient fashion, for them it's
+	// instead boolean T.
+	ValPtr AssignVal() { return val; }
+	const ValPtr& AssignVal() const { return val; }
 
 protected:
 	bool TypeCheck(const AttributesPtr& attrs = nullptr);
@@ -1143,13 +1161,14 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 	bool HasReducedOps(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -1175,7 +1194,7 @@ public:
 	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -1200,7 +1219,7 @@ public:
 	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -1220,7 +1239,7 @@ public:
 	bool HasReducedOps(Reducer* c) const override;
 
 protected:
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 	};
@@ -1240,7 +1259,7 @@ public:
 	// (in which case an error is reported).
 	bool PromoteTo(TypePtr t);
 
-	void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const override;
+	void EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const override;
 	bool IsRecordElement(TypeDecl* td) const override;
 
 	// Optimization-related:
@@ -1282,7 +1301,7 @@ public:
 	const std::vector<int>& Map() const { return map; }
 
 protected:
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 	ValPtr Fold(Val* v) const override;
 
 	// For each super-record slot, gives subrecord slot with which to
@@ -1419,7 +1438,8 @@ protected:
 class LambdaExpr final : public Expr
 	{
 public:
-	LambdaExpr(std::unique_ptr<function_ingredients> ingredients, IDPList outer_ids);
+	LambdaExpr(std::unique_ptr<function_ingredients> ingredients, IDPList outer_ids,
+	           StmtPtr when_parent = nullptr);
 
 	const std::string& Name() const { return my_name; }
 	const IDPList& OuterIDs() const { return outer_ids; }
@@ -1440,7 +1460,7 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 private:
-	void CheckCaptures();
+	void CheckCaptures(StmtPtr when_parent);
 
 	std::unique_ptr<function_ingredients> ingredients;
 
@@ -1470,7 +1490,7 @@ public:
 	ValPtr Eval(Frame* f) const override;
 
 	TypePtr InitType() const override;
-	ValPtr InitVal(const zeek::Type* t, ValPtr aggr) const override;
+	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 	ExprPtr MakeLvalue() override;
 	void Assign(Frame* f, ValPtr v) override;
 
@@ -1486,7 +1506,7 @@ public:
 	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
-	ValPtr AddSetInit(const zeek::Type* t, ValPtr aggr) const;
+	ValPtr AddSetInit(TypePtr t, ValPtr aggr) const;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -1767,7 +1787,7 @@ ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init);
  */
 extern ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t);
 
-extern bool check_and_promote_exprs(ListExpr* elements, TypeList* types);
+extern bool check_and_promote_exprs(ListExpr* elements, const TypeListPtr& types);
 extern bool check_and_promote_args(ListExpr* args, const RecordType* types);
 extern bool check_and_promote_exprs_to_type(ListExpr* elements, TypePtr type);
 
@@ -1788,6 +1808,17 @@ inline bool is_vector(Expr* e)
 inline bool is_vector(const ExprPtr& e)
 	{
 	return is_vector(e.get());
+	}
+
+// True if the given Expr* has a list type
+inline bool is_list(Expr* e)
+	{
+	return e->GetType()->Tag() == TYPE_LIST;
+	}
+
+inline bool is_list(const ExprPtr& e)
+	{
+	return is_list(e.get());
 	}
 
 	} // namespace detail

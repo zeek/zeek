@@ -239,7 +239,7 @@ bool Config::DoUpdate()
 
 		// we only send the event if the underlying value has changed. Let's check that.
 		// (Yes, this means we keep all configuration options in memory twice - once here in
-		// the reader and once in memory in Bro; that is difficult to change.
+		// the reader and once in memory in Zeek; that is difficult to change.
 		auto search = option_values.find(key);
 		if ( search != option_values.end() && search->second == value )
 			{

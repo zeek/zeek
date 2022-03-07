@@ -107,30 +107,26 @@ void Inliner::Analyze()
 		}
 
 	for ( auto& f : funcs )
+		{
+		const auto& func_ptr = f.FuncPtr();
+		const auto& func = func_ptr.get();
+		const auto& body = f.Body();
+
 		// Candidates are non-event, non-hook, non-recursive,
 		// non-compiled functions ... that don't use lambdas or when's,
 		// since we don't currently compute the closures/frame
 		// sizes for them correctly, and more fundamentally since
 		// we don't compile them and hence inlining them will
 		// make the parent non-compilable.
-		if ( f.Func()->Flavor() == FUNC_FLAVOR_FUNCTION &&
-		     non_recursive_funcs.count(f.Func()) > 0 && f.Profile()->NumLambdas() == 0 &&
-		     f.Profile()->NumWhenStmts() == 0 && f.Body()->Tag() != STMT_CPP )
-			inline_ables.insert(f.Func());
+		if ( should_analyze(func_ptr, body) && func->Flavor() == FUNC_FLAVOR_FUNCTION &&
+		     non_recursive_funcs.count(func) > 0 && f.Profile()->NumLambdas() == 0 &&
+		     f.Profile()->NumWhenStmts() == 0 && body->Tag() != STMT_CPP )
+			inline_ables.insert(func);
+		}
 
 	for ( auto& f : funcs )
-		{
-		// Processing optimization: only spend time trying to inline f
-		// if we haven't marked it as inlineable.  This trades off a
-		// bunch of compilation load (inlining every single function,
-		// even though almost none will be called directly) for a
-		// modest gain of having compiled code for those rare
-		// circumstances in which a Zeek function can be called
-		// not ultimately stemming from an event (such as global
-		// scripting, or expiration functions).
-		if ( inline_ables.count(f.Func()) == 0 )
+		if ( should_analyze(f.FuncPtr(), f.Body()) )
 			InlineFunction(&f);
-		}
 	}
 
 void Inliner::InlineFunction(FuncInfo* f)

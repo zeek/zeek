@@ -21,9 +21,9 @@ namespace zeek::probabilistic::detail
 class BitVector
 	{
 public:
-	typedef uint64_t block_type;
-	typedef size_t size_type;
-	typedef bool const_reference;
+	using block_type = uint64_t;
+	using size_type = size_t;
+	using const_reference = bool;
 
 	static size_type npos;
 	static block_type bits_per_block;

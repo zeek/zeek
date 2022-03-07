@@ -25,9 +25,106 @@
 
 refine connection Handshake_Conn += {
 
-	%include proc-client-hello.pac
-	%include proc-server-hello.pac
 	%include proc-certificate.pac
+
+	function proc_client_hello(
+					version : uint16, ts : double,
+					client_random : bytestring,
+					session_id : uint8[],
+					cipher_suites16 : uint16[],
+					cipher_suites24 : uint24[],
+					compression_methods: uint8[]) : bool
+		%{
+		if ( ! version_ok(version) )
+			{
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("unsupported client SSL version 0x%04x", version));
+			zeek_analyzer()->SetSkip(true);
+			}
+		else
+			zeek_analyzer()->AnalyzerConfirmation();
+
+		if ( ssl_client_hello )
+			{
+			vector<int> cipher_suites;
+
+			if ( cipher_suites16 )
+				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(cipher_suites));
+			else
+				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(cipher_suites), to_int());
+
+			auto cipher_vec = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
+
+			for ( unsigned int i = 0; i < cipher_suites.size(); ++i )
+				{
+				auto ciph = zeek::val_mgr->Count(cipher_suites[i]);
+				cipher_vec->Assign(i, ciph);
+				}
+
+			auto comp_vec = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
+
+			if ( compression_methods )
+				{
+				for ( unsigned int i = 0; i < compression_methods->size(); ++i )
+					{
+					auto comp = zeek::val_mgr->Count((*compression_methods)[i]);
+					comp_vec->Assign(i, comp);
+					}
+				}
+
+			set_client_random(client_random);
+			set_gmt_unix_time(ts);
+			zeek::BifEvent::enqueue_ssl_client_hello(zeek_analyzer(), zeek_analyzer()->Conn(),
+							version, record_version(), ts,
+							zeek::make_intrusive<zeek::StringVal>(client_random.length(),
+							                                      (const char*) client_random.data()),
+							{zeek::AdoptRef{}, to_string_val(session_id)},
+							std::move(cipher_vec), std::move(comp_vec));
+			}
+
+		return true;
+		%}
+
+	function proc_server_hello(
+					version : uint16, v2 : bool,
+					server_random : bytestring,
+					session_id : uint8[],
+					cipher_suites16 : uint16[],
+					cipher_suites24 : uint24[],
+					comp_method : uint8) : bool
+		%{
+		if ( ! version_ok(version) )
+			{
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("unsupported server SSL version 0x%04x", version));
+			zeek_analyzer()->SetSkip(true);
+			}
+
+		if ( ssl_server_hello )
+			{
+			vector<int>* ciphers = new vector<int>();
+
+			if ( cipher_suites16 )
+				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*ciphers));
+			else
+				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*ciphers), to_int());
+
+			uint32 ts = 0;
+			if ( v2 == 0 && server_random.length() >= 4 )
+				ts = ntohl(*((uint32*)server_random.data()));
+
+			set_server_random(server_random);
+			zeek::BifEvent::enqueue_ssl_server_hello(zeek_analyzer(),
+							zeek_analyzer()->Conn(),
+							version, record_version(), ts,
+							zeek::make_intrusive<zeek::StringVal>(server_random.length(),
+							                                      (const char*) server_random.data()),
+							{zeek::AdoptRef{}, to_string_val(session_id)},
+							ciphers->size()==0 ? 0 : ciphers->at(0), comp_method);
+
+			delete ciphers;
+			}
+
+		return true;
+		%}
 
 	function proc_session_ticket_handshake(rec: SessionTicketHandshake, is_orig: bool): bool
 		%{
@@ -54,7 +151,7 @@ refine connection Handshake_Conn += {
 			{
 			// This should be impossible due to the binpac parser
 			// and protocol description
-			zeek_analyzer()->ProtocolViolation(zeek::util::fmt("Impossible extension length: %zu", length));
+			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("Impossible extension length: %zu", length));
 			zeek_analyzer()->SetSkip(true);
 			return true;
 			}
@@ -287,7 +384,7 @@ refine connection Handshake_Conn += {
 
 	function proc_unknown_handshake(hs: HandshakeRecord, is_orig: bool) : bool
 		%{
-		zeek_analyzer()->ProtocolViolation(zeek::util::fmt("unknown handshake message (%d) from %s",
+		zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("unknown handshake message (%d) from %s",
 			${hs.msg_type}, orig_label(is_orig).c_str()));
 		return true;
 		%}

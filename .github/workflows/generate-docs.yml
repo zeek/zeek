@@ -1,8 +1,13 @@
 name: Generate Documentation
 
 on:
+  pull_request:
   schedule:
     - cron: '0 0 * * *'
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   generate:
@@ -12,16 +17,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          token: ${{ secrets.ZEEK_BOT_TOKEN }}
+          submodules: "recursive"
 
-      - name: Sync Submodules
-        shell: bash
-        run: |
-          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
-          git submodule sync --recursive
-          git -c "http.extraheader=$auth_header" -c protocol.version=2 \
-            submodule update --init --force --recursive --depth=1
-          ( cd doc && git checkout master )
+      - name: Switch doc submodule to master
+        run: cd doc && git checkout master
 
       - name: Fetch Dependencies
         run: |
@@ -54,11 +53,9 @@ jobs:
         run: ./configure
 
       - name: Build
-        run: |
-          ( cd build && make -j 3 )
+        run: cd build && make -j $(nproc)
 
       - name: Generate Docs
-        shell: bash
         run: |
           git config --global user.name zeek-bot
           git config --global user.email info@zeek.org
@@ -76,16 +73,19 @@ jobs:
           echo "*** Check for Sphinx Warnings ***"
           grep -q WARNING make.out && exit 1
           rm make.out
-          echo "*** Pushing zeek-docs Changes ***"
+
+      - name: Push zeek-docs Changes
+        if: github.event_name == 'schedule'
+        run: |
+          cd doc
           git remote set-url origin "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek-docs"
           git add scripts/ script-reference/
           git status
           git commit -m "Generate docs" && git push || /bin/true
-          cd ..
 
       - name: Update zeek-docs Submodule
+        if: github.event_name == 'schedule'
         run: |
-          echo "*** Update zeek/doc Submodule ***"
           git config --global user.name zeek-bot
           git config --global user.email info@zeek.org
           git remote add auth "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek"

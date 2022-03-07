@@ -9,7 +9,7 @@
         without fee is hereby granted, without any conditions or restrictions.
         This software is provided “as is” without express or implied warranty.
 
-    Modified for Bro by Seth Hall - July 2010
+    Modified for Zeek/Bro by Seth Hall - July 2010
 */
 
 #include "zeek/RandTest.h"

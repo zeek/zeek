@@ -286,7 +286,7 @@ analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id)
 	return adapter ? adapter->FindChild(id) : nullptr;
 	}
 
-analyzer::Analyzer* Connection::FindAnalyzer(const analyzer::Tag& tag)
+analyzer::Analyzer* Connection::FindAnalyzer(const zeek::Tag& tag)
 	{
 	return adapter ? adapter->FindChild(tag) : nullptr;
 	}

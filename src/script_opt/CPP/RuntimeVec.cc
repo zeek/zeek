@@ -47,8 +47,9 @@ static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt)
 #define VEC_OP1_KERNEL(accessor, type, op)                                                         \
 	for ( unsigned int i = 0; i < v->Size(); ++i )                                                 \
 		{                                                                                          \
-		auto v_i = v->ValAt(i)->accessor();                                                        \
-		v_result->Assign(i, make_intrusive<type>(op v_i));                                         \
+		auto v_i = v->ValAt(i);                                                                    \
+		if ( v_i )                                                                                 \
+			v_result->Assign(i, make_intrusive<type>(op v_i->accessor()));                         \
 		}
 
 // A macro (since it's beyond my templating skillz to deal with the
@@ -58,9 +59,9 @@ static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt)
 // is "double".  It needs to be optional because C++ will (rightfully)
 // complain about applying certain C++ unary operations to doubles.
 #define VEC_OP1(name, op, double_kernel)                                                           \
-	VectorValPtr vec_op_##name##__CPP(const VectorValPtr& v)                                       \
+	VectorValPtr vec_op_##name##__CPP(const VectorValPtr& v, const TypePtr& t)                     \
 		{                                                                                          \
-		auto vt = base_vector_type__CPP(v->GetType<VectorType>());                                 \
+		auto vt = base_vector_type__CPP(cast_intrusive<VectorType>(t));                            \
 		auto v_result = make_intrusive<VectorVal>(vt);                                             \
                                                                                                    \
 		switch ( vt->Yield()->InternalType() )                                                     \
@@ -89,9 +90,9 @@ static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt)
 #define VEC_OP1_WITH_DOUBLE(name, op)                                                              \
 	VEC_OP1(                                                                                       \
 		name, op, case TYPE_INTERNAL_DOUBLE                                                        \
-		:                                                                                          \
-		{                                                                                          \
-			VEC_OP1_KERNEL(AsDouble, DoubleVal, op) break;                                         \
+		: {                                                                                        \
+			VEC_OP1_KERNEL(AsDouble, DoubleVal, op)                                                \
+			break;                                                                                 \
 		})
 
 // The unary operations supported for vectors.
@@ -105,9 +106,10 @@ VEC_OP1(comp, ~, )
 #define VEC_OP2_KERNEL(accessor, type, op)                                                         \
 	for ( unsigned int i = 0; i < v1->Size(); ++i )                                                \
 		{                                                                                          \
-		auto v1_i = v1->ValAt(i)->accessor();                                                      \
-		auto v2_i = v2->ValAt(i)->accessor();                                                      \
-		v_result->Assign(i, make_intrusive<type>(v1_i op v2_i));                                   \
+		auto v1_i = v1->ValAt(i);                                                                  \
+		auto v2_i = v2->ValAt(i);                                                                  \
+		if ( v1_i && v2_i )                                                                        \
+			v_result->Assign(i, make_intrusive<type>(v1_i->accessor() op v2_i->accessor()));       \
 		}
 
 // Analogous to VEC_OP1, instantiates a function for a given binary operation,
@@ -152,9 +154,9 @@ VEC_OP1(comp, ~, )
 #define VEC_OP2_WITH_DOUBLE(name, op)                                                              \
 	VEC_OP2(                                                                                       \
 		name, op, case TYPE_INTERNAL_DOUBLE                                                        \
-		:                                                                                          \
-		{                                                                                          \
-			VEC_OP2_KERNEL(AsDouble, DoubleVal, op) break;                                         \
+		: {                                                                                        \
+			VEC_OP2_KERNEL(AsDouble, DoubleVal, op)                                                \
+			break;                                                                                 \
 		})
 
 // The binary operations supported for vectors.
@@ -387,27 +389,42 @@ VectorValPtr vector_coerce_to__CPP(const VectorValPtr& v, const TypePtr& targ)
 	for ( unsigned int i = 0; i < n; ++i )
 		{
 		ValPtr v_i = v->ValAt(i);
+		if ( ! v_i )
+			continue;
+
 		ValPtr r_i;
 		switch ( ytag )
 			{
 			case TYPE_BOOL:
-				r_i = val_mgr->Bool(v_i->AsBool());
+				r_i = val_mgr->Bool(v_i->CoerceToInt() != 0);
+				break;
+
+			case TYPE_INT:
+				r_i = val_mgr->Int(v_i->CoerceToInt());
+				break;
+
+			case TYPE_COUNT:
+				r_i = val_mgr->Count(v_i->CoerceToUnsigned());
 				break;
 
 			case TYPE_ENUM:
-				r_i = yt->AsEnumType()->GetEnumVal(v_i->AsInt());
+				r_i = yt->AsEnumType()->GetEnumVal(v_i->CoerceToInt());
 				break;
 
 			case TYPE_PORT:
-				r_i = make_intrusive<PortVal>(v_i->AsCount());
+				r_i = make_intrusive<PortVal>(v_i->CoerceToUnsigned());
+				break;
+
+			case TYPE_DOUBLE:
+				r_i = make_intrusive<DoubleVal>(v_i->CoerceToDouble());
 				break;
 
 			case TYPE_INTERVAL:
-				r_i = make_intrusive<IntervalVal>(v_i->AsDouble());
+				r_i = make_intrusive<IntervalVal>(v_i->CoerceToDouble());
 				break;
 
 			case TYPE_TIME:
-				r_i = make_intrusive<TimeVal>(v_i->AsDouble());
+				r_i = make_intrusive<TimeVal>(v_i->CoerceToDouble());
 				break;
 
 			default:
@@ -420,40 +437,10 @@ VectorValPtr vector_coerce_to__CPP(const VectorValPtr& v, const TypePtr& targ)
 	return v_result;
 	}
 
-VectorValPtr vec_coerce_to_bro_int_t__CPP(const VectorValPtr& v, TypePtr targ)
+VectorValPtr vec_scalar_mixed_with_vector()
 	{
-	auto res_t = cast_intrusive<VectorType>(targ);
-	auto v_result = make_intrusive<VectorVal>(move(res_t));
-	auto n = v->Size();
-
-	for ( unsigned int i = 0; i < n; ++i )
-		v_result->Assign(i, val_mgr->Int(v->IntAt(i)));
-
-	return v_result;
-	}
-
-VectorValPtr vec_coerce_to_bro_uint_t__CPP(const VectorValPtr& v, TypePtr targ)
-	{
-	auto res_t = cast_intrusive<VectorType>(targ);
-	auto v_result = make_intrusive<VectorVal>(move(res_t));
-	auto n = v->Size();
-
-	for ( unsigned int i = 0; i < n; ++i )
-		v_result->Assign(i, val_mgr->Count(v->CountAt(i)));
-
-	return v_result;
-	}
-
-VectorValPtr vec_coerce_to_double__CPP(const VectorValPtr& v, TypePtr targ)
-	{
-	auto res_t = cast_intrusive<VectorType>(targ);
-	auto v_result = make_intrusive<VectorVal>(move(res_t));
-	auto n = v->Size();
-
-	for ( unsigned int i = 0; i < n; ++i )
-		v_result->Assign(i, make_intrusive<DoubleVal>(v->DoubleAt(i)));
-
-	return v_result;
+	reporter->CPPRuntimeError("vector-mixed-with-scalar operations not supported");
+	return nullptr;
 	}
 
 	} // namespace zeek::detail

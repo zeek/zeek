@@ -18,11 +18,12 @@
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/script_opt/StmtOptInfo.h"
 
 namespace zeek::detail
 	{
 
-static ValPtr init_val(Expr* init, const Type* t, ValPtr aggr)
+static ValPtr init_val(ExprPtr init, TypePtr t, ValPtr aggr)
 	{
 	try
 		{
@@ -288,7 +289,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 
 			if ( init )
 				{
-				v = init_val(init.get(), t.get(), aggr);
+				v = init_val(init, t, aggr);
 
 				if ( ! v )
 					return;
@@ -617,8 +618,14 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
 	std::optional<FuncType::Prototype> prototype;
 
 	if ( id->GetType() )
+		{
+		if ( id->GetType()->Tag() != TYPE_FUNC )
+			{
+			id->Error("Function clash with previous definition with incompatible type", t.get());
+			reporter->FatalError("invalid definition of '%s' (see previous errors)", id->Name());
+			}
 		prototype = get_prototype(id, t);
-
+		}
 	else if ( is_redef )
 		id->Error("redef of not-previously-declared value");
 
@@ -673,12 +680,31 @@ class OuterIDBindingFinder : public TraversalCallback
 public:
 	OuterIDBindingFinder(ScopePtr s) { scopes.emplace_back(s); }
 
+	TraversalCode PreStmt(const Stmt*) override;
 	TraversalCode PreExpr(const Expr*) override;
 	TraversalCode PostExpr(const Expr*) override;
 
 	std::vector<ScopePtr> scopes;
 	std::unordered_set<ID*> outer_id_references;
 	};
+
+TraversalCode OuterIDBindingFinder::PreStmt(const Stmt* stmt)
+	{
+	if ( stmt->Tag() != STMT_WHEN )
+		return TC_CONTINUE;
+
+	auto ws = static_cast<const WhenStmt*>(stmt);
+	auto lambda = ws->Info()->Lambda();
+
+	if ( ! lambda )
+		// Old-style semantics.
+		return TC_CONTINUE;
+
+	// The semantics of identifiers for the "when" statement are those
+	// of the lambda it's transformed into.
+	lambda->Traverse(this);
+	return TC_ABORTSTMT;
+	}
 
 TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	{
@@ -715,9 +741,13 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
+// The following is only used for debugging AST duplication.  If activated,
+// each AST is replaced with its duplicate.  In the absence of a duplication
+// error, this shouldn't change any semantics, so running the test suite
+// with this variable set can find flaws in the duplication machinery.
 static bool duplicate_ASTs = getenv("ZEEK_DUPLICATE_ASTS");
 
-void end_func(StmtPtr body)
+void end_func(StmtPtr body, bool free_of_conditionals)
 	{
 	if ( duplicate_ASTs && reporter->Errors() == 0 )
 		// Only try duplication in the absence of errors.  If errors
@@ -728,6 +758,8 @@ void end_func(StmtPtr body)
 		// We duplicate twice to make sure that the AST produced
 		// by duplicating can itself be correctly duplicated.
 		body = body->Duplicate()->Duplicate();
+
+	body->GetOptInfo()->is_free_of_conditionals = free_of_conditionals;
 
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 

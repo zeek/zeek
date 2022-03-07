@@ -12,11 +12,9 @@ set(analyzer_SRCS
     Analyzer.cc
     Manager.cc
     Component.cc
-    Tag.cc
 )
 
 bif_target(analyzer.bif)
 
 bro_add_subdir_library(analyzer ${analyzer_SRCS})
 add_dependencies(bro_analyzer generate_outputs)
-

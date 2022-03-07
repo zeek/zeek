@@ -105,6 +105,7 @@ struct CompiledScript
 	CPPStmtPtr body;
 	int priority;
 	std::vector<std::string> events;
+	void (*finish_init_func)();
 	};
 
 // Maps hashes to compiled information.

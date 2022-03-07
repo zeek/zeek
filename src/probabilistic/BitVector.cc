@@ -5,6 +5,7 @@
 #include <broker/data.hh>
 #include <openssl/sha.h>
 #include <cassert>
+#include <cstring>
 #include <limits>
 
 #include "zeek/digest.h"

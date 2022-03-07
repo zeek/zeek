@@ -45,11 +45,14 @@ void FTP_Analyzer::Done()
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
-	if ( nvt_orig->HasPartialLine() &&
-	     (TCP()->OrigState() == analyzer::tcp::TCP_ENDPOINT_CLOSED ||
-	      TCP()->OrigPrevState() == analyzer::tcp::TCP_ENDPOINT_CLOSED) )
-		// ### should include the partial text
-		Weird("partial_ftp_request");
+	if ( TCP() )
+		{
+		if ( nvt_orig->HasPartialLine() &&
+		     (TCP()->OrigState() == analyzer::tcp::TCP_ENDPOINT_CLOSED ||
+		      TCP()->OrigPrevState() == analyzer::tcp::TCP_ENDPOINT_CLOSED) )
+			// ### should include the partial text
+			Weird("partial_ftp_request");
+		}
 	}
 
 static uint32_t get_reply_code(int len, const char* line)
@@ -103,7 +106,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		};
 
 		f = ftp_request;
-		ProtocolConfirmation();
+		AnalyzerConfirmation();
 
 		if ( strncmp((const char*)cmd_str->Bytes(), "AUTH", cmd_len) == 0 )
 			auth_requested = std::string(line, end_of_line - line);
@@ -146,7 +149,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 				if ( reply_code > 0 )
 					line += 3;
 				else
-					ProtocolViolation("non-numeric reply code", (const char*)data, length);
+					AnalyzerViolation("non-numeric reply code", (const char*)data, length);
 
 				if ( line < end_of_line )
 					line = util::skip_whitespace(line, end_of_line);

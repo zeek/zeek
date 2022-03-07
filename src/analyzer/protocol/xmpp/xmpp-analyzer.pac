@@ -19,7 +19,7 @@ refine connection XMPP_Conn += {
 
 		if ( is_orig && token == "stream:stream" )
 			// Yup, looks like xmpp...
-			zeek_analyzer()->ProtocolConfirmation();
+			zeek_analyzer()->AnalyzerConfirmation();
 
 		if ( token == "success" || token == "message" || token == "db:result"
 		     || token == "db:verify" || token == "presence" )

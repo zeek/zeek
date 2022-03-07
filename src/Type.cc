@@ -42,21 +42,19 @@ const char* type_name(TypeTag t)
 		"string", // 7
 		"pattern", // 8
 		"enum", // 9
-		"timer", // 10
-		"port", // 11
-		"addr", // 12
-		"subnet", // 13
-		"any", // 14
-		"table", // 15
-		"union", // 16
-		"record", // 17
-		"types", // 18
-		"func", // 19
-		"file", // 20
-		"vector", // 21
-		"opaque", // 22
-		"type", // 23
-		"error", // 24
+		"port", // 10
+		"addr", // 11
+		"subnet", // 12
+		"any", // 13
+		"table", // 14
+		"record", // 15
+		"types", // 16
+		"func", // 17
+		"file", // 18
+		"vector", // 19
+		"opaque", // 20
+		"type", // 21
+		"error", // 22
 	};
 
 	if ( int(t) >= NUM_TYPES )
@@ -121,18 +119,6 @@ RecordType* Type::AsRecordType()
 	{
 	CHECK_TYPE_TAG(TYPE_RECORD, "Type::AsRecordType");
 	return (RecordType*)this;
-	}
-
-const SubNetType* Type::AsSubNetType() const
-	{
-	CHECK_TYPE_TAG(TYPE_SUBNET, "Type::AsSubNetType");
-	return (const SubNetType*)this;
-	}
-
-SubNetType* Type::AsSubNetType()
-	{
-	CHECK_TYPE_TAG(TYPE_SUBNET, "Type::AsSubNetType");
-	return (SubNetType*)this;
 	}
 
 const FuncType* Type::AsFuncType() const
@@ -220,7 +206,6 @@ TypePtr Type::ShallowClone()
 		case TYPE_INTERVAL:
 		case TYPE_STRING:
 		case TYPE_PATTERN:
-		case TYPE_TIMER:
 		case TYPE_PORT:
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
@@ -357,8 +342,8 @@ int IndexType::MatchesIndex(detail::ListExpr* const index) const
 	     exprs[0]->GetType()->Tag() == TYPE_ADDR )
 		return MATCHES_INDEX_SCALAR;
 
-	return check_and_promote_exprs(index, GetIndices().get()) ? MATCHES_INDEX_SCALAR
-	                                                          : DOES_NOT_MATCH_INDEX;
+	return check_and_promote_exprs(index, GetIndices()) ? MATCHES_INDEX_SCALAR
+	                                                    : DOES_NOT_MATCH_INDEX;
 	}
 
 void IndexType::Describe(ODesc* d) const
@@ -602,7 +587,7 @@ SetType::SetType(TypeListPtr ind, detail::ListExprPtr arg_elements)
 		{
 		if ( indices )
 			{ // We already have a type.
-			if ( ! check_and_promote_exprs(elements.get(), indices.get()) )
+			if ( ! check_and_promote_exprs(elements.get(), indices) )
 				SetError();
 			}
 		else
@@ -1326,9 +1311,14 @@ void RecordType::DescribeFields(ODesc* d) const
 			d->AddCount(types->length());
 			for ( const auto& type : *types )
 				{
-				type->type->Describe(d);
-				d->SP();
 				d->Add(type->id);
+				d->SP();
+
+				if ( d->FindType(type->type.get()) )
+					d->Add("<recursion>");
+				else
+					type->type->Describe(d);
+
 				d->SP();
 				}
 			}
@@ -1440,16 +1430,6 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 		}
 
 	return "";
-	}
-
-SubNetType::SubNetType() : Type(TYPE_SUBNET) { }
-
-void SubNetType::Describe(ODesc* d) const
-	{
-	if ( d->IsReadable() )
-		d->Add("subnet");
-	else
-		d->Add(int(Tag()));
 	}
 
 FileType::FileType(TypePtr yield_type) : Type(TYPE_FILE), yield(std::move(yield_type)) { }
@@ -1689,8 +1669,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 
 	// Create temporary, reverse name map so that enums can be documented
 	// in ascending order of their actual integral value instead of by name.
-	typedef map<bro_int_t, std::string> RevNameMap;
-
+	using RevNameMap = std::map<bro_int_t, std::string>;
 	RevNameMap rev;
 
 	for ( NameMap::const_iterator it = names.begin(); it != names.end(); ++it )
@@ -1888,7 +1867,6 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 		case TYPE_INTERVAL:
 		case TYPE_STRING:
 		case TYPE_PATTERN:
-		case TYPE_TIMER:
 		case TYPE_PORT:
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
@@ -1919,6 +1897,11 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 			const auto& tl2 = it2->GetIndices();
 
 			if ( (tl1 || tl2) && ! (tl1 && tl2) )
+				return false;
+
+			// If one is a set and one isn't, they shouldn't
+			// be considered the same type.
+			if ( (t1->IsSet() && ! t2->IsSet()) || (t2->IsSet() && ! t1->IsSet()) )
 				return false;
 
 			const auto& y1 = t1->Yield();
@@ -1984,9 +1967,6 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 		case TYPE_FILE:
 		case TYPE_TYPE:
 			break;
-
-		case TYPE_UNION:
-			reporter->Error("union type in same_type()");
 		}
 
 	// If we get to here, then we're dealing with a type with
@@ -2033,6 +2013,12 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 
 			if ( ! same_type(tl1, tl2, is_init, match_record_field_names) )
 				result = false;
+			else if ( t1->IsSet() && t2->IsSet() )
+				// Sets don't have yield types because they don't have values. If
+				// both types are sets, and we already matched on the indices
+				// above consider that a success. We already checked the case
+				// where only one of the two is a set earlier.
+				result = true;
 			else
 				{
 				const auto& y1 = t1->Yield();
@@ -2197,7 +2183,6 @@ bool is_assignable(TypeTag t)
 		case TYPE_STRING:
 		case TYPE_PATTERN:
 		case TYPE_ENUM:
-		case TYPE_TIMER:
 		case TYPE_PORT:
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
@@ -2217,9 +2202,6 @@ bool is_assignable(TypeTag t)
 
 		case TYPE_VOID:
 			return false;
-
-		case TYPE_UNION:
-			reporter->Error("union type in is_assignable()");
 		}
 
 	return false;
@@ -2276,7 +2258,6 @@ TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2)
 		case TYPE_INTERVAL:
 		case TYPE_STRING:
 		case TYPE_PATTERN:
-		case TYPE_TIMER:
 		case TYPE_PORT:
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
@@ -2477,10 +2458,6 @@ TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2)
 				}
 
 			return make_intrusive<FileType>(merge_types(t1->Yield(), t2->Yield()));
-
-		case TYPE_UNION:
-			reporter->InternalError("union type in merge_types()");
-			return nullptr;
 
 		default:
 			reporter->InternalError("bad type in merge_types()");

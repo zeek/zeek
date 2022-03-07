@@ -6,11 +6,11 @@
 #include <string>
 #include <utility>
 
+#include "zeek/Tag.h"
 #include "zeek/WeirdState.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/ZeekList.h" // for ValPList
 #include "zeek/ZeekString.h"
-#include "zeek/analyzer/Tag.h"
 #include "zeek/file_analysis/AnalyzerSet.h"
 
 namespace zeek
@@ -27,7 +27,6 @@ namespace file_analysis
 	{
 
 class FileReassembler;
-class Tag;
 
 /**
  * Wrapper class around \c fa_file record values from script layer.
@@ -120,7 +119,7 @@ public:
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return false if analyzer can't be instantiated, else true.
 	 */
-	bool AddAnalyzer(file_analysis::Tag tag, RecordValPtr args);
+	bool AddAnalyzer(zeek::Tag tag, RecordValPtr args);
 
 	/**
 	 * Queues removal of an analyzer.
@@ -128,7 +127,7 @@ public:
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return true if analyzer was active at time of call, else false.
 	 */
-	bool RemoveAnalyzer(file_analysis::Tag tag, RecordValPtr args);
+	bool RemoveAnalyzer(zeek::Tag tag, RecordValPtr args);
 
 	/**
 	 * Signal that this analyzer can be deleted once it's safe to do so.
@@ -224,7 +223,7 @@ protected:
 	 *        direction.
 	 */
 	File(const std::string& file_id, const std::string& source_name, Connection* conn = nullptr,
-	     analyzer::Tag tag = analyzer::Tag::Error, bool is_orig = false);
+	     zeek::Tag tag = zeek::Tag::Error, bool is_orig = false);
 
 	/**
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the

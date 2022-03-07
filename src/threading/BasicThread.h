@@ -27,7 +27,7 @@ public:
 	 * Creates a new thread object. Instantiating the object does however
 	 * not yet start the actual OS thread, that requires calling Start().
 	 *
-	 * Only Bro's main thread may create new thread instances.
+	 * Only Zeek's main thread may create new thread instances.
 	 *
 	 * @param name A descriptive name for thread the thread. This may
 	 * show up in messages to the user.
@@ -68,7 +68,7 @@ public:
 	 * executing Run(). Note that one can't restart a thread after a
 	 * Stop(), doing so will be ignored.
 	 *
-	 * Only Bro's main thread must call this method.
+	 * Only Zeek's main thread must call this method.
 	 */
 	void Start();
 
@@ -83,7 +83,7 @@ public:
 	 * Calling this method has no effect if Start() hasn't been executed
 	 * yet.
 	 *
-	 * Only Bro's main thread must call this method.
+	 * Only Zeek's main thread must call this method.
 	 */
 	void SignalStop();
 
@@ -94,7 +94,7 @@ public:
 	 * yet. If this is executed without calling SignalStop() first,
 	 * results are undefined.
 	 *
-	 * Only Bro's main thread must call this method.
+	 * Only Zeek's main thread must call this method.
 	 */
 	void WaitForStop();
 
@@ -143,14 +143,14 @@ protected:
 
 	/**
 	 * Executed with Start(). This is a hook into starting the thread. It
-	 * will be called from Bro's main thread after the OS thread has been
+	 * will be called from Zeek's main thread after the OS thread has been
 	 * started.
 	 */
 	virtual void OnStart() { }
 
 	/**
 	 * Executed with SignalStop(). This is a hook into preparing the
-	 * thread for stopping. It will be called from Bro's main thread
+	 * thread for stopping. It will be called from Zeek's main thread
 	 * before the thread has been signaled to stop.
 	 */
 	virtual void OnSignalStop() { }
@@ -159,7 +159,7 @@ protected:
 	 * Executed with WaitForStop(). This is a hook into waiting for the
 	 * thread to stop. It must be overridden by derived classes and only
 	 * return once the thread has indeed finished processing. The method
-	 * will be called from Bro's main thread.
+	 * will be called from Zeek's main thread.
 	 */
 	virtual void OnWaitForStop() = 0;
 
@@ -171,7 +171,7 @@ protected:
 	/**
 	 * Destructor. This will be called by the manager.
 	 *
-	 * Only Bro's main thread may delete thread instances.
+	 * Only Zeek's main thread may delete thread instances.
 	 *
 	 */
 	virtual ~BasicThread();

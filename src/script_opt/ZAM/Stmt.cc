@@ -379,6 +379,13 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v)
 	else
 		branch_v = 2;
 
+// clang 10 gets perturbed that the indentation of the "default" in the
+// following switch block doesn't match that of the cases that we include
+// from "ZAM-Conds.h".  It really shouldn't worry about indentation mismatches
+// across included files since those are not indicative of possible
+// logic errors, but Oh Well.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
 	switch ( e->Tag() )
 		{
 #include "ZAM-Conds.h"
@@ -386,6 +393,7 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v)
 		default:
 			reporter->InternalError("bad expression type in ZAMCompiler::GenCond");
 		}
+#pragma GCC diagnostic pop
 
 	// Not reached.
 	}
@@ -402,12 +410,10 @@ const ZAMStmt ZAMCompiler::CompileSwitch(const SwitchStmt* sw)
 	// Need to track a new set of contexts for "break" statements.
 	PushBreaks();
 
-	auto& cases = *sw->Cases();
-
-	if ( cases.length() > 0 && cases[0]->TypeCases() )
-		return TypeSwitch(sw, n, c);
-	else
+	if ( sw->TypeMap()->empty() )
 		return ValueSwitch(sw, n, c);
+	else
+		return TypeSwitch(sw, n, c);
 	}
 
 const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, const ConstExpr* c)
@@ -705,9 +711,8 @@ const ZAMStmt ZAMCompiler::CompileDel(const DelStmt* ds)
 	if ( index_list->Tag() != EXPR_LIST )
 		reporter->InternalError("non-list in \"delete\"");
 
-	auto internal_ind = BuildVals(index_list->AsListExprPtr());
-
-	return DelTableVO(aggr, internal_ind);
+	auto internal_ind = std::unique_ptr<OpaqueVals>(BuildVals(index_list->AsListExprPtr()));
+	return DelTableVO(aggr, internal_ind.get());
 	}
 
 const ZAMStmt ZAMCompiler::CompileWhile(const WhileStmt* ws)
@@ -1107,7 +1112,7 @@ const ZAMStmt ZAMCompiler::CompileWhen(const WhenStmt* ws)
 		z.v1 = is_return;
 		}
 
-	z.e = cond;
+	z.e = cond.get();
 
 	auto when_eval = AddInst(z);
 

@@ -1,5 +1,0 @@
-#! /bin/sh
-
-cd ../../../build
-echo >CPP-gen.cc
-ninja || echo Non-embedded build failed

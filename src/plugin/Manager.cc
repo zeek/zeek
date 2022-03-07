@@ -423,16 +423,26 @@ void Manager::ExtendZeekPathForPlugins()
 		if ( p->DynamicPlugin() || p->Name().empty() )
 			continue;
 
-		string canon = std::regex_replace(p->Name(), std::regex("::"), "_");
-		string dir = "builtin-plugins/" + canon;
+		try
+			{
+			string canon = std::regex_replace(p->Name(), std::regex("::"), "_");
+			string dir = "builtin-plugins/" + canon;
 
-		// Use find_file to find the directory in the path.
-		string script_dir = util::find_file(dir, util::zeek_path());
-		if ( script_dir.empty() || ! util::is_dir(script_dir) )
-			continue;
+			// Use find_file to find the directory in the path.
+			string script_dir = util::find_file(dir, util::zeek_path());
+			if ( script_dir.empty() || ! util::is_dir(script_dir) )
+				continue;
 
-		DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", script_dir.c_str());
-		path_additions.push_back(script_dir);
+			DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", script_dir.c_str());
+			path_additions.push_back(script_dir);
+			}
+		catch ( const std::regex_error& e )
+			{
+			// This really shouldn't ever happen, but we do need to catch the exception.
+			// Report a fatal error because something is wrong if this occurs.
+			reporter->FatalError("Failed to replace colons in plugin name %s: %s",
+			                     p->Name().c_str(), e.what());
+			}
 		}
 
 	for ( const auto& plugin_path : path_additions )
@@ -688,6 +698,41 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_LOAD_FILE, args, HookArgument(rc));
+
+	return rc;
+	}
+
+std::pair<int, std::optional<std::string>>
+Manager::HookLoadFileExtended(const Plugin::LoadType type, const string& file,
+                              const string& resolved)
+	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(HookArgument(type));
+		args.push_back(HookArgument(file));
+		args.push_back(HookArgument(resolved));
+		MetaHookPre(HOOK_LOAD_FILE_EXT, args);
+		}
+
+	hook_list* l = hooks[HOOK_LOAD_FILE_EXT];
+
+	std::pair<int, std::optional<std::string>> rc = {-1, std::nullopt};
+
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+
+			rc = p->HookLoadFileExtended(type, file, resolved);
+
+			if ( rc.first >= 0 )
+				break;
+			}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_LOAD_FILE_EXT, args, HookArgument(rc));
 
 	return rc;
 	}
@@ -975,6 +1020,29 @@ bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr even
 		MetaHookPost(HOOK_REPORTER, args, HookArgument(result));
 
 	return result;
+	}
+
+void Manager::HookUnprocessedPacket(const Packet* packet) const
+	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.emplace_back(HookArgument{packet});
+		MetaHookPre(HOOK_UNPROCESSED_PACKET, args);
+		}
+
+	hook_list* l = hooks[HOOK_UNPROCESSED_PACKET];
+
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+			p->HookUnprocessedPacket(packet);
+			}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_UNPROCESSED_PACKET, args, HookArgument());
 	}
 
 void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const

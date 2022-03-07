@@ -46,7 +46,7 @@ function debug_add_rule(p: PluginState, r: Rule) : bool
 	local s = fmt("add_rule: %s", r);
 	debug_log(p, s);
 
-	if ( do_something(p) ) 
+	if ( do_something(p) )
 		{
 		event NetControl::rule_added(r, p);
 		return T;
@@ -76,12 +76,10 @@ global debug_plugin = Plugin(
 function create_debug(do_something: bool) : PluginState
 	{
 	local p: PluginState = [$plugin=debug_plugin];
-	
+
 	# FIXME: Why's the default not working?
 	p$config = table();
 	p$config["all"] = (do_something ? "1" : "0");
 
 	return p;
 	}
-
-

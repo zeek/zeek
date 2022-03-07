@@ -40,7 +40,7 @@ void NCP_Session::Deliver(bool is_orig, int len, const u_char* data)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		analyzer->ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+		analyzer->AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 
@@ -180,8 +180,12 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 	if ( ! resync_set )
 		{
 		resync_set = true;
-		resync = (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
-		         analyzer::tcp::TCP_ENDPOINT_ESTABLISHED;
+
+		if ( tcp )
+			resync = (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
+			         analyzer::tcp::TCP_ENDPOINT_ESTABLISHED;
+		else
+			resync = false;
 		}
 
 	if ( tcp && tcp->HadGap(orig) )

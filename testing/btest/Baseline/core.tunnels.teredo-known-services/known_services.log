@@ -7,5 +7,7 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	host	port_num	port_proto	service
 #types	time	addr	port	enum	set[string]
-XXXXXXXXXX.XXXXXX	192.168.1.1	53	udp	DNS
+XXXXXXXXXX.XXXXXX	192.168.2.1	53	udp	DNS
+XXXXXXXXXX.XXXXXX	192.168.2.16	1577	tcp	(empty)
+XXXXXXXXXX.XXXXXX	192.168.2.16	1576	tcp	(empty)
 #close XXXX-XX-XX-XX-XX-XX

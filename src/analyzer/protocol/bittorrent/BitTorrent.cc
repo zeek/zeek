@@ -36,10 +36,7 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	assert(TCP());
-
-	if ( TCP()->IsPartial() )
-		// punt on partial.
+	if ( TCP() && TCP()->IsPartial() )
 		return;
 
 	if ( this_stop )
@@ -65,7 +62,7 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				orig);
 			this_stop = true;
 			if ( stop_orig && stop_resp )
-				ProtocolViolation("BitTorrent: content gap and/or protocol violation");
+				AnalyzerViolation("BitTorrent: content gap and/or protocol violation");
 			}
 		}
 	}
@@ -92,7 +89,7 @@ void BitTorrent_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	//	DeliverWeird("Stopping BitTorrent analysis: cannot recover from content gap", orig);
 	//	this_stop = true;
 	//	if ( stop_orig && stop_resp )
-	//		ProtocolViolation("BitTorrent: content gap and/or protocol violation");
+	//		AnalyzerViolation("BitTorrent: content gap and/or protocol violation");
 	//	}
 	// else
 	//	{ // fill the gap
@@ -107,7 +104,7 @@ void BitTorrent_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	//		DeliverWeird("Stopping BitTorrent analysis: filling content gap failed", orig);
 	//		this_stop = true;
 	//		if ( stop_orig && stop_resp )
-	//			ProtocolViolation("BitTorrent: content gap and/or protocol violation");
+	//			AnalyzerViolation("BitTorrent: content gap and/or protocol violation");
 	//		}
 	//	}
 	}

@@ -939,9 +939,7 @@ StringVal::StringVal(int length, const char* s)
 	{
 	}
 
-StringVal::StringVal(const char* s) : StringVal(new String(s)) { }
-
-StringVal::StringVal(const string& s) : StringVal(s.length(), s.data()) { }
+StringVal::StringVal(std::string_view s) : StringVal(s.length(), s.data()) { }
 
 StringVal::~StringVal()
 	{
@@ -953,17 +951,17 @@ ValPtr StringVal::SizeVal() const
 	return val_mgr->Count(string_val->Len());
 	}
 
-int StringVal::Len()
+int StringVal::Len() const
 	{
 	return AsString()->Len();
 	}
 
-const u_char* StringVal::Bytes()
+const u_char* StringVal::Bytes() const
 	{
 	return AsString()->Bytes();
 	}
 
-const char* StringVal::CheckString()
+const char* StringVal::CheckString() const
 	{
 	return AsString()->CheckString();
 	}
@@ -1715,8 +1713,7 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const
 		t0 = tmp;
 		}
 
-	const PDict<TableEntryVal>* tbl = AsTable();
-	for ( const auto& tble : *tbl )
+	for ( const auto& tble : *t1 )
 		{
 		auto k = tble.GetHashKey();
 
@@ -2147,7 +2144,6 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 			case ELEMENT_CHANGED:
 				{
 				std::optional<broker::timespan> expiry;
-
 				auto expire_time = GetExpireTime();
 				if ( expire_time == 0 )
 					// Entry is set to immediately expire. Let's not forward it.
@@ -3230,9 +3226,12 @@ bool VectorVal::CheckElementType(const ValPtr& element)
 		int n = vector_val->size();
 
 		if ( n == 0 )
+			{
 			// First addition to an empty vector-of-any, perhaps
 			// it will be homogeneous.
 			yield_type = element->GetType();
+			managed_yield = ZVal::IsManagedType(yield_type);
+			}
 
 		else
 			{
@@ -3317,19 +3316,10 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 	auto n = vector_val->size();
 
 	if ( index < n )
-		{ // May need to delete previous element
+		{ // Find location within existing vector elements.
 		it = std::next(vector_val->begin(), index);
 		if ( yield_types )
-			{
-			if ( *it )
-				ZVal::DeleteIfManaged(**it, element->GetType());
 			types_it = std::next(yield_types->begin(), index);
-			}
-		else if ( managed_yield )
-			{
-			if ( *it )
-				ZVal::DeleteManagedType(**it);
-			}
 		}
 	else
 		{
@@ -3640,6 +3630,7 @@ bool VectorVal::Concretize(const TypePtr& t)
 		}
 
 	// Require that this vector be treated consistently in the future.
+	type = make_intrusive<VectorType>(t);
 	yield_type = t;
 	managed_yield = ZVal::IsManagedType(yield_type);
 	delete yield_types;
@@ -3723,8 +3714,19 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
-ValPtr check_and_promote(ValPtr v, const Type* t, bool is_init,
+ValPtr check_and_promote(ValPtr v, const TypePtr& t, bool is_init,
                          const detail::Location* expr_location)
+	{
+		// Once 5.0 comes out, this function can merge with the deprecated one below it, and this
+		// pragma block can go away.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	return check_and_promote(v, t.get(), is_init, expr_location);
+#pragma GCC diagnostic pop
+	}
+
+[[deprecated("Remove in v5.1. Use version that takes TypePtr instead.")]] ValPtr
+check_and_promote(ValPtr v, const Type* t, bool is_init, const detail::Location* expr_location)
 	{
 	if ( ! v )
 		return nullptr;

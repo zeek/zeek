@@ -11,19 +11,22 @@
 
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
-@load frameworks/cluster/agent/__load__.zeek
-@load frameworks/cluster/agent/api.zeek
-@load frameworks/cluster/agent/boot.zeek
-@load frameworks/cluster/agent/config.zeek
-# @load frameworks/cluster/agent/main.zeek
-@load frameworks/cluster/controller/__load__.zeek
-@load frameworks/cluster/controller/api.zeek
-@load frameworks/cluster/controller/boot.zeek
-@load frameworks/cluster/controller/config.zeek
-@load frameworks/cluster/controller/log.zeek
-# @load frameworks/cluster/controller/main.zeek
-@load frameworks/cluster/controller/request.zeek
-@load frameworks/cluster/controller/types.zeek
+@load frameworks/management/agent/__load__.zeek
+@load frameworks/management/agent/api.zeek
+@load frameworks/management/agent/boot.zeek
+@load frameworks/management/agent/config.zeek
+# @load frameworks/management/agent/main.zeek
+@load frameworks/management/controller/__load__.zeek
+@load frameworks/management/controller/api.zeek
+@load frameworks/management/controller/boot.zeek
+@load frameworks/management/controller/config.zeek
+# @load frameworks/management/controller/main.zeek
+@load frameworks/management/__load__.zeek
+@load frameworks/management/config.zeek
+@load frameworks/management/log.zeek
+@load frameworks/management/request.zeek
+@load frameworks/management/types.zeek
+@load frameworks/management/util.zeek
 @load frameworks/dpd/detect-protocols.zeek
 @load frameworks/dpd/packet-segment-logging.zeek
 @load frameworks/intel/do_notice.zeek
@@ -115,6 +118,7 @@
 @load protocols/ssh/geo-data.zeek
 @load protocols/ssh/interesting-hostnames.zeek
 @load protocols/ssh/software.zeek
+@load protocols/ssl/decryption.zeek
 @load protocols/ssl/expiring-certs.zeek
 # @load protocols/ssl/extract-certs-pem.zeek
 @load protocols/ssl/heartbleed.zeek

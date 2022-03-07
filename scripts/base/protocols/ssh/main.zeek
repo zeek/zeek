@@ -355,7 +355,7 @@ event ssh_server_host_key(c: connection, hash: string) &priority=5
 	c$ssh$host_key = hash;
 	}
 
-event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=20
+event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=20
 	{
 	if ( atype == Analyzer::ANALYZER_SSH )
 		{

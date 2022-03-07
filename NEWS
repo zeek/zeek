@@ -3,8 +3,45 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 5.0.0
+==========
+
+Breaking Changes
+----------------
+
+New Functionality
+-----------------
+
+Changed Functionality
+---------------------
+
+- The is_num(), is_alpha(), and is_alnum() BiFs now return F for the empty string.
+
+Deprecated Functionality
+------------------------
+
 Zeek 4.2.0
 ==========
+
+Breaking Changes
+----------------
+
+- The existing ``Tag`` types in C++ (``zeek::Analyzer::Tag``, etc) have been
+  merged into a single type called ``zeek::Tag``. This is a breaking change, and
+  may result in plugins failing to build where they were relying on those types
+  being different for function overloading and such. We attempted to include
+  deprecated versions of the old types, but were unable to do so because of
+  changes to return types from a number of methods. With this change, any uses
+  of the `zeek::*::Tag` types will need to be replaced by `zeek::Tag`.
+
+- The DPD signature for SSL version 2 is no longer enabled by default. SSLv2
+  is basically extinct nowadays - and the protocol has a relatively high probability
+  of matching with random traffic and being misidentified. If you want to enable
+  the SSLv2 dpd signature, you can load the signature from `policy/protocols/ssl/dpd-v2.sig`
+
+  The DPD signature for SSL version 3 and up (including TLS 1.0 and above) now matches
+  for one-sided connections and does not require a reverst match anymore. This prevents
+  missed handshakes, where the client handshake contains a lot of data.
 
 New Functionality
 -----------------
@@ -22,18 +59,96 @@ New Functionality
   example to build a Zeek plugin. You can add any required system packages in a
   derived image, or install them directly in the running container.
 
-- Zeek now supports formatting the C++ code using clang-format. It requires at
-  least clang-format 12.0.1 due to some additions that were made in that version
-  to better support the Whitesmiths style. Zeek also includes a set of python
-  scripts to more easily reformat in the auxil/run-clang-format directory. An
-  example command to reformat the code:
-
-  `python3 auxil/run-clang-format/run-clang-format.py --clang-format-executable `which clang-format-12` -r src -i`
+- Zeek now supports formatting the C++ code using clang-format. Also provided is
+  a configuration for ``pre-commit`` to run clang-format when add new commits via
+  ``git``. More details can be found at https://github.com/zeek/zeek/wiki/Coding-Style-and-Conventions#clang-format.
 
 - Experimental support for speeding up Zeek script execution by compiling
   scripts to a low-level form called "ZAM".  You activate this feature by
   specifying ``-O ZAM`` on the command line.  See
   ``src/script_opt/ZAM/README.md`` for more information.
+
+- Improvements for compiling scripts to C++ (an experimental optimization
+  feature introduced in 4.1).  The generated C++ now compiles much faster than
+  previously, though it can still take quite a while when using C++ optimization
+  on large sets of scripts.  You can incrementally compile additional scripts
+  using ``-O add-C++``.  See ``src/script_opt/CPP/README.md`` for details.
+
+- The new flags --optimize-files=/pat/ and --optimize-funcs=/pat/ apply
+  to both ZAM and compile-to-C++ script optimization.  The first instructs
+  Zeek to optimize any functions/hooks/event handlers residing in files
+  matching the given pattern (unanchored).  The second does the same but
+  based on the function name, and with the pattern anchored (so for example
+  --optimize-funcs=foo will optimize any functions named "foo" but not
+  those named "foobar", or "MYSCOPE::foo").  The flags can be combined
+  and can also be used multiple times to specify a set of patterns.
+  If neither flag is used then optimization is applied to all loaded
+  scripts; if used, then only to those that match.
+
+- The ``-uu`` flag for analyzing potentially unused record fields has been
+  removed because, due to other changes in script optimization, keeping it
+  would now require about 1,800 lines of code not otherwise needed.
+
+- The DNS analyzer has initial support for the SVCB and HTTPS types. The new
+  events are ``dns_SVCB`` and ``dns_HTTPS``.
+
+- The ``find_str`` and ``rfind_str`` bifs now support case-insensitive searches.
+
+- Added a new plugin hook for capturing packets that made it through analysis
+  without being processed called ``Plugin::HookUnprocessedPacket``. Currently
+  ARP packets or packets with a valid IP-based transport header are marked as
+  processed. This also adds an event called ``packet_not_processed`` that
+  reports the same packets.
+
+- A new command-line option ``-c`` or ``--capture-unprocessed`` will dump any
+  packets not marked as being processed, similar to the new hook and event
+  above.
+
+- In Zeek plugins, the new cmake function ``zeek_plugin_scripts()`` should be
+  used alongside ``zeek_plugin_cc()`` and related functions to establish
+  dependency tracking between Zeek scripts shipped with the plugin and plugin
+  rebuilds.  Previously, updates to included Zeek scripts didn't reliably
+  trigger a rebuild.
+
+- Added PacketAnalyzer::register_for_port(s) functions to the packet analyzer
+  framework in script-land. This allows a packet analyzer to register a port
+  mapping with a parent analyzer just like any other numeric identifier, while
+  also adding that port to the now-global Analyzer::ports table used by BPF
+  filtering.
+
+- Added AllAnalyzers::Tag enum type that combines the existing Analyzer::Tag,
+  PacketAnalyzer::Tag, and Files::Tags into a single enum. The existing types
+  still exist, but the new type can be used as an argument for
+  functions/hooks/events that need to handle any of the analyzer types.
+
+- Added protocol detection functionality to the packet analyzer framework.
+  Packet analyzers can register for protocol detection using the
+  ``PacketAnalyzer::register_protocol_detection`` script function and implement
+  the ``PacketAnalyzer::DetectProtocol`` method in C++. This allows packet
+  analyzer plugins to detect a protocol via byte matching or other heuristics
+  instead of relying solely on a numeric identifier for forwarding.
+
+- The JSON logger's new LogAscii::json_include_unset_fields flag provides
+  control over how to handle unset "&optional" fields. By default it continues
+  to skip such fields entirely. When redef'ing the flag to T it includes such
+  fields, with a "null" value. This simplifies data import use cases that
+  require fields to be present at all times, regardless of their value.
+
+- A new external testsuite, https://github.com/zeek/zeek-testing-cluster,
+  focuses on testing the emerging controller framework. It leverages the new
+  official Zeek Docker image for building docker-compose test setups, driven via
+  btest. The Github CI setup now includes a workflow that deploys and runs this
+  testsuite.
+
+- The GRE analyzer now supports the Aruba WLAN protocol type.
+
+- Zeek now features limited TLS decryption capabilities. This feature is experimental
+  and only works for TLS 1.2 connections that use the TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  ciphersuite. Furthermore Zeek requires access to the pre-master secret of each TLS
+  connection. Typically this functionality will be most useful when analyzing trace-files
+  where the TLS client recorded the key material. For more details and examples how to
+  use this functionality, see the TLS Decryption documentation at
+  https://docs.zeek.org/en/master/frameworks/tls-decryption.html
 
 Changed Functionality
 ---------------------
@@ -43,18 +158,78 @@ Changed Functionality
   to serialize, meaning that you can now also index with sets, vectors,
   patterns, and even tables.
 
-- The traditional TSV Zeek logs are now valid UTF8 by default. It's possible
-  to revert to the previous behavior by setting ``LogAscii::enable_utf_8`` to
+- The traditional TSV Zeek logs are now valid UTF8 by default. It's possible to
+  revert to the previous behavior by setting ``LogAscii::enable_utf_8`` to
   false.
 
-- The ``SYN_packet`` record now records TCP timestamps (TSval/TSecr)
-  when available.
+- The ``SYN_packet`` record now records TCP timestamps (TSval/TSecr) when
+  available.
 
-Removed Functionality
----------------------
+- The ``init-plugin`` script now focuses purely on dynamic Zeek plugins. It no
+  longer generates Zeek packages. To instantiate new Zeek packages, use the
+  ``zkg create`` command instead.
+
+- The ``ignore_checksums`` options and the ``-C`` command-line option now
+  additionally cause Zeek to accept IPv4 packets that provide a length of zero
+  in the total-length IPv4 header field. When the length is set to zero, the
+  capture length of the packet is used instead.  This can be used to replay
+  traces, or analyze traffic when TCP sequence offloading is enabled on the
+  local NIC - which typically causes the total-length of affected packets to be
+  set to zero.
+
+- The existing tunnel analyzers for AYIYA, Geneve, GTPv1, Teredo, and VXLAN are
+  now packet analyzers.
+
+- C++ unit tests are now compiled in by default and can be disabled by
+  configuring the build with --disable-cpp-tests. We removed the former
+  --enable-cpp-tests configure flag. Unit tests now also work in (static and
+  dynamic) Zeek plugins.
+
+- This release expands the emerging cluster controller framework. Most changes
+  concern internals of the framework. Agent/controller connectivity management
+  has become more flexible: configuration updates pushed by the client can now
+  convey the agent topology, removing the need to hardwire/redef settings
+  in the controller. The new ClusterController::API::notify_agents_ready event
+  declares the management infrastructure ready for use. zeek-client's CLI has
+  expanded to support the new functionality.
+
+  The framework is still experimental and provides only a small subset of
+  ZeekControl's functionality. ZeekControl remains the recommended tool for
+  maintaining your cluster.
+
+- Entries in ``http.log`` now record the original ``HOST`` headers.
+  Previously, they would skip any port specification a header might
+  include.
 
 Deprecated Functionality
 ------------------------
+
+- The ``protocol_confirmation`` and ``protocol_violation`` events along with the
+  corresponding ``Analyzer::ProtocolConfirmation` and
+  ``Analyzer::ProtocolViolation`` C++ methods are marked as deprecated. They are
+  replaced by ``analyzer_confirmation`` and ``analyzer_violation`` which can
+  also now be implemented in packet analyzers.
+
+- Declaring a local variable in an inner scope and then accessing it in an
+  outer scope is now deprecated.  For example,
+
+	if ( foo() )
+		{
+		local a = 5;
+		...
+		}
+	print a;
+
+  is deprecated.  You can address the issue by hoisting the declaration
+  to the outer scope, such as:
+
+	local a: count;
+	if ( foo() )
+		{
+		a = 5;
+		...
+		}
+	print a;
 
 Zeek 4.1.0
 ==========

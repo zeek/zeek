@@ -49,6 +49,9 @@
 /* Define if you have the <pcap-int.h> header file. */
 #cmakedefine HAVE_PCAP_INT_H
 
+/* Define if libpcap supports pcap_dump_open_append(). */
+#cmakedefine HAVE_PCAP_DUMP_OPEN_APPEND
+
 /* line editing & history powers */
 #cmakedefine HAVE_READLINE
 
@@ -79,6 +82,9 @@
 
 /* Compatibility for Darwin */
 #cmakedefine NEED_NAMESER_COMPAT_H
+
+/* openssl/kdf.h for TLS PRF (key derivation) */
+#cmakedefine OPENSSL_HAVE_KDF_H
 
 /* d2i_x509 uses const char** */
 #cmakedefine OPENSSL_D2I_X509_USES_CONST_CHAR

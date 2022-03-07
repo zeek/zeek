@@ -23,7 +23,13 @@ p_hash_type p_hash(const Obj* o)
 	return p_hash(d.Description());
 	}
 
-std::string script_specific_filename(const StmtPtr& body)
+// Returns a filename associated with the given function body.  Used to
+// provide distinctness to identical function bodies seen in separate,
+// potentially conflicting incremental compilations.  An example of this
+// is a function named foo() that calls bar(), for which in two different
+// compilation contexts bar() has differing semantics, even though foo()'s
+// (shallow) semantics are the same.
+static std::string script_specific_filename(const Stmt* body)
 	{
 	// The specific filename is taken from the location filename, making
 	// it absolute if necessary.
@@ -52,7 +58,9 @@ std::string script_specific_filename(const StmtPtr& body)
 	return bl_f;
 	}
 
-p_hash_type script_specific_hash(const StmtPtr& body, p_hash_type generic_hash)
+// Returns a incremental-compilation-specific hash for the given function
+// body, given its non-specific hash is "generic_hash".
+static p_hash_type script_specific_hash(const Stmt* body, p_hash_type generic_hash)
 	{
 	auto bl_f = script_specific_filename(body);
 	return merge_p_hashes(generic_hash, p_hash(bl_f));
@@ -60,12 +68,23 @@ p_hash_type script_specific_hash(const StmtPtr& body, p_hash_type generic_hash)
 
 ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fields)
 	{
+	profiled_func = func;
+	profiled_body = body.get();
 	abs_rec_fields = _abs_rec_fields;
 	Profile(func->GetType().get(), body);
 	}
 
+ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields)
+	{
+	profiled_body = s;
+	abs_rec_fields = _abs_rec_fields;
+	s->Traverse(this);
+	}
+
 ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields)
 	{
+	profiled_expr = e;
+
 	abs_rec_fields = _abs_rec_fields;
 
 	if ( e->Tag() == EXPR_LAMBDA )
@@ -82,12 +101,6 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields)
 		// We don't have a function type, so do the traversal
 		// directly.
 		e->Traverse(this);
-	}
-
-ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields)
-	{
-	abs_rec_fields = _abs_rec_fields;
-	s->Traverse(this);
 	}
 
 void ProfileFunc::Profile(const FuncType* ft, const StmtPtr& body)
@@ -117,15 +130,6 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 
 		case STMT_WHEN:
 			++num_when_stmts;
-
-			in_when = true;
-			s->AsWhenStmt()->Cond()->Traverse(this);
-			in_when = false;
-
-			// It doesn't do any harm for us to re-traverse the
-			// conditional, so we don't bother hand-traversing the
-			// rest of the "when", but just let the usual processing
-			// do it.
 			break;
 
 		case STMT_FOR:
@@ -161,7 +165,11 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 				if ( idl )
 					{
 					for ( auto id : *idl )
-						locals.insert(id);
+						// Make sure it's not a placeholder
+						// identifier, used when there's
+						// no explicit one.
+						if ( id->Name() )
+							locals.insert(id);
 
 					is_type_switch = true;
 					}
@@ -266,13 +274,26 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 		case EXPR_REMOVE_FROM:
 		case EXPR_ASSIGN:
 			{
-			if ( e->GetOp1()->Tag() == EXPR_REF )
+			if ( e->GetOp1()->Tag() != EXPR_REF )
+				// this isn't a direct assignment
+				break;
+
+			auto lhs = e->GetOp1()->GetOp1();
+			if ( lhs->Tag() != EXPR_NAME )
+				break;
+
+			auto id = lhs->AsNameExpr()->Id();
+			TrackAssignment(id);
+
+			if ( e->Tag() == EXPR_ASSIGN )
 				{
-				auto lhs = e->GetOp1()->GetOp1();
-				if ( lhs->Tag() == EXPR_NAME )
-					TrackAssignment(lhs->AsNameExpr()->Id());
+				auto a_e = static_cast<const AssignExpr*>(e);
+				auto& av = a_e->AssignVal();
+				if ( av )
+					// This is a funky "local" assignment
+					// inside a when clause.
+					when_locals.insert(id);
 				}
-			// else this isn't a direct assignment.
 			break;
 			}
 
@@ -307,9 +328,6 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 					{
 					auto bf = static_cast<ScriptFunc*>(func_vf);
 					script_calls.insert(bf);
-
-					if ( in_when )
-						when_calls.insert(bf);
 					}
 				else
 					BiF_globals.insert(func);
@@ -456,8 +474,6 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
 
 		if ( ! pred || (*pred)(pf.get(), nullptr) )
 			MergeInProfile(pf.get());
-		else
-			f.SetSkip(true);
 
 		f.SetProfile(std::move(pf));
 		func_profs[f.Func()] = f.ProfilePtr();
@@ -467,16 +483,22 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
 	// functions.  Recursively compute their hashes.
 	ComputeTypeHashes(main_types);
 
-	// Computing the hashes can have marked expressions (seen in
-	// record attributes) for further analysis.  Likewise, when
-	// doing the profile merges above we may have noted lambda
-	// expressions.  Analyze these, and iteratively any further
-	// expressions that that analysis uncovers.
-	DrainPendingExprs();
+	do
+		{
+		// Computing the hashes can have marked expressions (seen in
+		// record attributes) for further analysis.  Likewise, when
+		// doing the profile merges above we may have noted lambda
+		// expressions.  Analyze these, and iteratively any further
+		// expressions that that analysis uncovers.
+		DrainPendingExprs();
 
-	// We now have all the information we need to form definitive,
-	// deterministic hashes.
-	ComputeBodyHashes(funcs);
+		// We now have all the information we need to form definitive,
+		// deterministic hashes.
+		ComputeBodyHashes(funcs);
+
+		// Computing those hashes could have led to traversals that
+		// create more pending expressions to analyze.
+		} while ( ! pending_exprs.empty() );
 	}
 
 void ProfileFuncs::MergeInProfile(ProfileFunc* pf)
@@ -554,8 +576,6 @@ void ProfileFuncs::TraverseValue(const ValPtr& v)
 		case TYPE_STRING:
 		case TYPE_SUBNET:
 		case TYPE_TIME:
-		case TYPE_TIMER:
-		case TYPE_UNION:
 		case TYPE_VOID:
 			break;
 
@@ -689,6 +709,9 @@ void ProfileFuncs::ComputeProfileHash(std::shared_ptr<ProfileFunc> pf)
 	for ( auto i : pf->AdditionalHashes() )
 		h = merge_p_hashes(h, i);
 
+	if ( ! pf->Stmts().empty() )
+		h = script_specific_hash(pf->Stmts()[0], h);
+
 	pf->SetHashVal(h);
 	}
 
@@ -752,8 +775,6 @@ p_hash_type ProfileFuncs::HashType(const Type* t)
 		case TYPE_STRING:
 		case TYPE_SUBNET:
 		case TYPE_TIME:
-		case TYPE_TIMER:
-		case TYPE_UNION:
 		case TYPE_VOID:
 			h = merge_p_hashes(h, p_hash(t));
 			break;

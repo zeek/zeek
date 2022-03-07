@@ -6,7 +6,7 @@
 # exit code.
 
 function deprecated {
-cat >&2 <<EOF
+    cat >&2 <<EOF
 Error: Use of '$1' is no longer supported. Please use '$2' instead.
 
 EOF

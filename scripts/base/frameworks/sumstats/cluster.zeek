@@ -220,7 +220,7 @@ event zeek_init() &priority=100
 # This variable is maintained by manager nodes as they collect and aggregate
 # results.
 # Index on a uid.
-global stats_keys: table[string] of set[Key] &read_expire=1min 
+global stats_keys: table[string] of set[Key] &read_expire=1min
 	&expire_func=function(s: table[string] of set[Key], idx: string): interval
 		{
 		Reporter::warning(fmt("SumStat key request for the %s SumStat uid took longer than 1 minute and was automatically cancelled.", idx));
@@ -481,7 +481,7 @@ function request_key(ss_name: string, key: Key): Result
 	add dynamic_requests[uid];
 
 	event SumStats::cluster_get_result(uid, ss_name, key, F);
-	return when ( uid in done_with && Cluster::worker_count == done_with[uid] )
+	return when [uid, ss_name, key] ( uid in done_with && Cluster::worker_count == done_with[uid] )
 		{
 		#print "done with request_key";
 		local result = key_requests[uid];

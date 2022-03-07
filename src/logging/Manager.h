@@ -36,7 +36,7 @@ class RotationTimer;
 /**
  * Singleton class for managing log streams.
  */
-class Manager : public plugin::ComponentManager<Tag, Component>
+class Manager : public plugin::ComponentManager<Component>
 	{
 public:
 	/**
@@ -226,7 +226,7 @@ public:
 	bool Flush(EnumVal* id);
 
 	/**
-	 * Signals the manager to shutdown at Bro's termination.
+	 * Signals the manager to shutdown at Zeek's termination.
 	 */
 	void Terminate();
 
@@ -298,6 +298,8 @@ private:
 	WriterInfo* FindWriter(WriterFrontend* writer);
 	bool CompareFields(const Filter* filter, const WriterFrontend* writer);
 	bool CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter);
+
+	bool RemoveStream(unsigned int idx);
 
 	std::vector<Stream*> streams; // Indexed by stream enum.
 	int rotations_pending; // Number of rotations not yet finished.

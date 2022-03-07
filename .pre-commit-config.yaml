@@ -1,0 +1,19 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+#
+repos:
+- repo: https://github.com/pre-commit/mirrors-clang-format
+  rev: 'v13.0.0'
+  hooks:
+  - id: clang-format
+
+- repo: https://github.com/maxwinterstein/shfmt-py
+  rev: 3.3.1.8
+  hooks:
+    - id: shfmt
+      args: ["-w", "-i", "4", "-ci"]
+
+- repo: https://github.com/pre-commit/mirrors-yapf
+  rev: v0.31.0
+  hooks:
+  - id: yapf

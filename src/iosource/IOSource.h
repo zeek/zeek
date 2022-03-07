@@ -6,7 +6,7 @@ namespace zeek::iosource
 	{
 
 /**
- * Interface class for components providing/consuming data inside Bro's main
+ * Interface class for components providing/consuming data inside Zeek's main
  * loop.
  */
 class IOSource

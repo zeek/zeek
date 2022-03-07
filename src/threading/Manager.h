@@ -35,7 +35,7 @@ protected:
  * In addition to basic threads, the manager also provides additional
  * functionality specific to MsgThread instances. In particular, it polls
  * their outgoing message queue on a regular basis and feeds data sent into
- * the rest of Bro. It also triggers the regular heartbeats.
+ * the rest of Zeek. It also triggers the regular heartbeats.
  */
 class Manager
 	{
@@ -65,7 +65,7 @@ public:
 	 */
 	bool Terminating() const { return terminating; }
 
-	typedef std::list<std::pair<std::string, MsgThread::Stats>> msg_stats_list;
+	using msg_stats_list = std::list<std::pair<std::string, MsgThread::Stats>>;
 
 	/**
 	 * Returns statistics from all current MsgThread instances.
@@ -143,10 +143,10 @@ protected:
 	void StartHeartbeatTimer();
 
 private:
-	typedef std::list<BasicThread*> all_thread_list;
+	using all_thread_list = std::list<BasicThread*>;
 	all_thread_list all_threads;
 
-	typedef std::list<MsgThread*> msg_thread_list;
+	using msg_thread_list = std::list<MsgThread*>;
 	msg_thread_list msg_threads;
 
 	bool did_process; // True if the last Process() found some work to do.

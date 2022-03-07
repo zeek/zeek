@@ -9,7 +9,7 @@
 #include "zeek/Hash.h"
 
 // Type for function to be called when deleting elements.
-typedef void (*dict_delete_func)(void*);
+using dict_delete_func = void (*)(void*);
 
 namespace zeek
 	{

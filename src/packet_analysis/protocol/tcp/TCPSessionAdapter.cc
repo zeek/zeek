@@ -422,7 +422,7 @@ static zeek::RecordValPtr build_syn_packet_val(bool is_orig, const zeek::IP_Hdr*
 	if ( TSval )
 		v->Assign(8, *TSval);
 
-	if ( TSval )
+	if ( TSecr )
 		v->Assign(9, *TSecr);
 
 	return v;
@@ -542,7 +542,7 @@ static int32_t update_last_seq(analyzer::tcp::TCP_Endpoint* endpoint, uint32_t l
 	}
 
 void TCPSessionAdapter::Process(bool is_orig, const struct tcphdr* tp, int len,
-                                const std::unique_ptr<IP_Hdr>& ip, const u_char* data,
+                                const std::shared_ptr<IP_Hdr>& ip, const u_char* data,
                                 int remaining)
 	{
 	analyzer::tcp::TCP_Flags flags(tp);
@@ -566,7 +566,7 @@ void TCPSessionAdapter::Process(bool is_orig, const struct tcphdr* tp, int len,
 
 	if ( seq_underflow && ! flags.RST() )
 		// Can't tell if if this is a retransmit/out-of-order or something
-		// before the sequence Bro initialized the endpoint at or the TCP is
+		// before the sequence Zeek initialized the endpoint at or the TCP is
 		// just broken and sending garbage sequences.  In either case, some
 		// standard analysis doesn't apply (e.g. reassembly).
 		Weird("TCP_seq_underflow_or_misorder");
@@ -724,7 +724,7 @@ analyzer::Analyzer* TCPSessionAdapter::FindChild(analyzer::ID arg_id)
 	return nullptr;
 	}
 
-analyzer::Analyzer* TCPSessionAdapter::FindChild(analyzer::Tag arg_tag)
+analyzer::Analyzer* TCPSessionAdapter::FindChild(zeek::Tag arg_tag)
 	{
 	analyzer::Analyzer* child = packet_analysis::IP::SessionAdapter::FindChild(arg_tag);
 
@@ -1599,8 +1599,8 @@ bool TCPSessionAdapter::IsReuse(double t, const u_char* pkt)
 
 void TCPSessionAdapter::AddExtraAnalyzers(Connection* conn)
 	{
-	static analyzer::Tag analyzer_connsize = analyzer_mgr->GetComponentTag("CONNSIZE");
-	static analyzer::Tag analyzer_tcpstats = analyzer_mgr->GetComponentTag("TCPSTATS");
+	static zeek::Tag analyzer_connsize = analyzer_mgr->GetComponentTag("CONNSIZE");
+	static zeek::Tag analyzer_tcpstats = analyzer_mgr->GetComponentTag("TCPSTATS");
 
 	// We have to decide whether to reassamble the stream.
 	// We turn it on right away if we already have an app-layer

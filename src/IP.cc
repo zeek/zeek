@@ -384,7 +384,13 @@ RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const
 			auto tcp_hdr = make_intrusive<RecordVal>(tcp_hdr_type);
 
 			int tcp_hdr_len = tp->th_off * 4;
-			int data_len = PayloadLen() - tcp_hdr_len;
+
+			// account for cases in which the payload length in the TCP header is not set,
+			// or is set to an impossible value. In these cases, return 0.
+			int data_len = 0;
+			auto payload_len = PayloadLen();
+			if ( payload_len >= tcp_hdr_len )
+				data_len = payload_len - tcp_hdr_len;
 
 			tcp_hdr->Assign(0, val_mgr->Port(ntohs(tp->th_sport), TRANSPORT_TCP));
 			tcp_hdr->Assign(1, val_mgr->Port(ntohs(tp->th_dport), TRANSPORT_TCP));

@@ -6,6 +6,8 @@
 #include "zeek/Val.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/file_analysis/Analyzer.h"
+#include "zeek/iosource/Packet.h"
+#include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/util.h"
 
 #include "event.bif.func_h"
@@ -15,9 +17,11 @@ namespace binpac
 
 using ZeekAnalyzer = zeek::analyzer::Analyzer*;
 using ZeekFileAnalyzer = zeek::file_analysis::Analyzer;
+using ZeekPacketAnalyzer = zeek::packet_analysis::Analyzer*;
 using ZeekVal = zeek::Val*;
 using ZeekPortVal = zeek::PortVal*;
 using ZeekStringVal = zeek::StringVal*;
+using ZeekPacket = zeek::Packet;
 
 inline zeek::StringValPtr to_stringval(const_bytestring const& str)
 	{

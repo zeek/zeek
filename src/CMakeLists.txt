@@ -280,7 +280,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ZAM-AssignFlavorsDefs.h
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
+set_source_files_properties(3rdparty/nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
 set(MAIN_SRCS
@@ -297,7 +297,6 @@ set(MAIN_SRCS
     CCL.cc
     CompHash.cc
     Conn.cc
-    ConvertUTF.c
     DFA.cc
     DbgBreakpoint.cc
     DbgHelp.cc
@@ -367,13 +366,6 @@ set(MAIN_SRCS
     ZeekArgs.cc
     ZeekString.cc
     ZVal.cc
-    bsd-getopt-long.c
-    bro_inet_ntop.c
-    in_cksum.cc
-    patricia.c
-    setsignal.c
-    strsep.c
-    modp_numtoa.c
 
     supervisor/Supervisor.cc
 
@@ -387,7 +379,6 @@ set(MAIN_SRCS
 
     plugin/Component.cc
     plugin/ComponentManager.h
-    plugin/TaggedComponent.h
     plugin/Manager.cc
     plugin/Plugin.cc
 
@@ -399,9 +390,10 @@ set(MAIN_SRCS
     script_opt/CPP/Exprs.cc
     script_opt/CPP/Func.cc
     script_opt/CPP/GenFunc.cc
-    script_opt/CPP/HashMgr.cc
     script_opt/CPP/Inits.cc
-    script_opt/CPP/RuntimeInit.cc
+    script_opt/CPP/InitsInfo.cc
+    script_opt/CPP/RuntimeInits.cc
+    script_opt/CPP/RuntimeInitSupport.cc
     script_opt/CPP/RuntimeOps.cc
     script_opt/CPP/RuntimeVec.cc
     script_opt/CPP/Stmts.cc
@@ -437,17 +429,21 @@ set(MAIN_SRCS
     script_opt/ZAM/ZInst.cc
     script_opt/ZAM/ZOp.cc
 
-    nb_dns.c
     digest.h
 )
 
-# When building broker statically, we will have all sqlite symbols defined by
-# libbroker.a.
-if ( NOT BUILD_STATIC_BROKER )
-  set(THIRD_PARTY_SRCS
-      3rdparty/sqlite3.c
-  )
-endif ()
+set(THIRD_PARTY_SRCS
+    3rdparty/bro_inet_ntop.c
+    3rdparty/bsd-getopt-long.c
+    3rdparty/ConvertUTF.c
+    3rdparty/in_cksum.cc
+    3rdparty/modp_numtoa.c
+    3rdparty/nb_dns.c
+    3rdparty/patricia.c
+    3rdparty/setsignal.c
+    3rdparty/sqlite3.c
+    3rdparty/strsep.c
+)
 
 set(GEN_ZAM_SRCS
     script_opt/ZAM/Gen-ZAM.cc
@@ -624,7 +620,15 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
 )
 
 install(FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/ConvertUTF.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/bro_inet_ntop.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/bsd-getopt-long.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/modp_numtoa.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/nb_dns.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/patricia.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/setsignal.h
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/doctest.h
         DESTINATION include/zeek/3rdparty
 )
 

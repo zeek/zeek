@@ -218,7 +218,7 @@ finger	{ rules_lval.val = zeek::detail::Rule::FINGER; return TOK_PATTERN_TYPE; }
 
 %%
 
-// We're about to parse a Bro policy-layer symbol.
+// We're about to parse a Zeek policy-layer symbol.
 void begin_PS()
 	{
 	BEGIN(PS);
@@ -228,3 +228,23 @@ void end_PS()
 	{
 	BEGIN(INITIAL);
 	}
+
+static YY_BUFFER_STATE rules_buffer;
+
+void rules_set_input_from_buffer(const char* data, size_t size)
+	{
+	rules_buffer = yy_scan_bytes(data, size); // this copies the data
+	}
+
+void rules_set_input_from_file(FILE* f)
+	{
+	rules_buffer = yy_create_buffer(f, YY_BUF_SIZE);
+	}
+
+void rules_parse_input()
+	{
+	yy_switch_to_buffer(rules_buffer);
+	rules_parse();
+	yy_delete_buffer(rules_buffer);
+	}
+

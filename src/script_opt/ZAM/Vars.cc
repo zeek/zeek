@@ -24,7 +24,7 @@ bool ZAMCompiler::IsUnused(const IDPtr& id, const Stmt* where) const
 	return ! usage || ! usage->HasID(id.get());
 	}
 
-void ZAMCompiler::LoadParam(ID* id)
+void ZAMCompiler::LoadParam(const ID* id)
 	{
 	if ( id->IsType() )
 		reporter->InternalError(
@@ -45,7 +45,7 @@ void ZAMCompiler::LoadParam(ID* id)
 	(void)AddInst(z);
 	}
 
-const ZAMStmt ZAMCompiler::LoadGlobal(ID* id)
+const ZAMStmt ZAMCompiler::LoadGlobal(const ID* id)
 	{
 	ZOp op;
 
@@ -69,7 +69,7 @@ const ZAMStmt ZAMCompiler::LoadGlobal(ID* id)
 	return AddInst(z);
 	}
 
-int ZAMCompiler::AddToFrame(ID* id)
+int ZAMCompiler::AddToFrame(const ID* id)
 	{
 	frame_layout1[id] = frame_sizeI;
 	frame_denizens.push_back(id);

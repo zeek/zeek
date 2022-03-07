@@ -4,9 +4,8 @@
 
 #include "zeek/zeek-config.h"
 
-#include "zeek/file_analysis/Tag.h"
+#include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
-#include "zeek/plugin/TaggedComponent.h"
 
 namespace zeek
 	{
@@ -27,7 +26,7 @@ class Manager;
  * A plugin can provide a specific file analyzer by registering this
  * analyzer component, describing the analyzer.
  */
-class Component : public plugin::Component, public plugin::TaggedComponent<file_analysis::Tag>
+class Component : public plugin::Component
 	{
 public:
 	using factory_function = Analyzer* (*)(RecordValPtr args, File* file);
@@ -47,15 +46,15 @@ public:
 	 *
 	 * @param subtype A subtype associated with this component that
 	 * further distinguishes it. The subtype will be integrated into the
-	 * analyzer::Tag that the manager associates with this analyzer, and
-	 * analyzer instances can accordingly access it via analyzer::Tag().
+	 * Tag that the manager associates with this analyzer, and
+	 * analyzer instances can accordingly access it via Tag().
 	 * If not used, leave at zero.
 	 *
 	 * @param enabled If false the analyzer starts out as disabled and
 	 * hence won't be used. It can still be enabled later via the
 	 * manager, including from script-land.
 	 */
-	Component(const std::string& name, factory_function factory, Tag::subtype_t subtype = 0,
+	Component(const std::string& name, factory_function factory, zeek::Tag::subtype_t subtype = 0,
 	          bool enabled = true);
 
 	/**

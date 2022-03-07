@@ -1,7 +1,7 @@
-##! This script will generate a notice if an apparent SSH login originates 
-##! or heads to a host with a reverse hostname that looks suspicious.  By 
-##! default, the regular expression to match "interesting" hostnames includes 
-##! names that are typically used for infrastructure hosts like nameservers, 
+##! This script will generate a notice if an apparent SSH login originates
+##! or heads to a host with a reverse hostname that looks suspicious.  By
+##! default, the regular expression to match "interesting" hostnames includes
+##! names that are typically used for infrastructure hosts like nameservers,
 ##! mail servers, web servers and ftp servers.
 
 @load base/frameworks/notice
@@ -15,7 +15,7 @@ export {
 		## :zeek:id:`SSH::interesting_hostnames` regular expression.
 		Interesting_Hostname_Login,
 	};
-	
+
 	## Strange/bad host names to see successful SSH logins from or to.
 	option interesting_hostnames =
 			/^d?ns[0-9]*\./ |
@@ -29,7 +29,7 @@ export {
 
 function check_ssh_hostname(id: conn_id, uid: string, host: addr)
 	{
-	when ( local hostname = lookup_addr(host) )
+	when [id, uid, host] ( local hostname = lookup_addr(host) )
 		{
 		if ( interesting_hostnames in hostname )
 			{
@@ -49,4 +49,3 @@ event ssh_auth_successful(c: connection, auth_method_none: bool)
 		check_ssh_hostname(c$id, c$uid, host);
 		}
 	}
-

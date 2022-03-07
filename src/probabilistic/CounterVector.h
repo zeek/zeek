@@ -25,8 +25,8 @@ class BitVector;
 class CounterVector
 	{
 public:
-	typedef size_t size_type;
-	typedef uint64_t count_type;
+	using size_type = size_t;
+	using count_type = uint64_t;
 
 	/**
 	 * Constructs a counter vector having cells of a given width.
@@ -150,13 +150,13 @@ public:
 protected:
 	friend CounterVector operator|(const CounterVector& x, const CounterVector& y);
 
-	CounterVector() { }
+	CounterVector() = default;
 
 private:
 	CounterVector& operator=(const CounterVector&); // Disable.
 
-	BitVector* bits;
-	size_t width;
+	BitVector* bits = nullptr;
+	size_t width = 0;
 	};
 
 	} // namespace zeek::probabilistic::detail

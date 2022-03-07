@@ -46,7 +46,7 @@ function check_terminate_conditions()
 
 function check_it(name: string, s: opaque of Broker::Store)
 	{
-	when ( local r = Broker::keys(s) )
+	when [name, s] ( local r = Broker::keys(s) )
 		{
 		check_terminate_conditions();
 		print fmt("%s keys result: %s", name, r);

@@ -6,7 +6,7 @@
 module SMTP;
 
 export {
-	redef enum Notice::Type += { 
+	redef enum Notice::Type += {
 		## An SMTP server sent a reply mentioning an SMTP block list.
 		Blocklist_Error_Message,
 		## The originator's address is seen in the block list error message.
@@ -21,19 +21,19 @@ export {
 		  /spamhaus\.org\//
 		| /sophos\.com\/security\//
 		| /spamcop\.net\/bl/
-		| /cbl\.abuseat\.org\// 
-		| /sorbs\.net\// 
+		| /cbl\.abuseat\.org\//
+		| /sorbs\.net\//
 		| /bsn\.borderware\.com\//
 		| /mail-abuse\.com\//
 		| /b\.barracudacentral\.com\//
-		| /psbl\.surriel\.com\// 
-		| /antispam\.imp\.ch\// 
+		| /psbl\.surriel\.com\//
+		| /antispam\.imp\.ch\//
 		| /dyndns\.com\/.*spam/
 		| /rbl\.knology\.net\//
 		| /intercept\.datapacket\.net\//
 		| /uceprotect\.net\//
 		| /hostkarma\.junkemailfilter\.com\//;
-	
+
 }
 
 event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
@@ -55,8 +55,8 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 				note = Blocklist_Blocked_Host;
 				message = fmt("%s is on an SMTP block list", c$id$orig_h);
 				}
-			
-			NOTICE([$note=note, $conn=c, $msg=message, $sub=msg, 
+
+			NOTICE([$note=note, $conn=c, $msg=message, $sub=msg,
 			        $identifier=cat(c$id$orig_h)]);
 			}
 		}

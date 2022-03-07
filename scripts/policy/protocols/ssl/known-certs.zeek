@@ -12,13 +12,13 @@ export {
 	redef enum Log::ID += { CERTS_LOG };
 
 	global log_policy_certs: Log::PolicyHook;
-	
+
 	type CertsInfo: record {
 		## The timestamp when the certificate was detected.
 		ts:             time   &log;
 		## The address that offered the certificate.
 		host:           addr   &log;
-		## If the certificate was handed out by a server, this is the 
+		## If the certificate was handed out by a server, this is the
 		## port that the server was listening on.
 		port_num:       port   &log &optional;
 		## Certificate subject.
@@ -28,7 +28,7 @@ export {
 		## Serial number for the certificate.
 		serial:         string &log &optional;
 	};
-	
+
 	## The certificates whose existence should be logged and tracked.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
 	option cert_tracking = LOCAL_HOSTS;
@@ -38,7 +38,7 @@ export {
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
 	const use_cert_store = T &redef;
-	
+
 	type AddrCertHashPair: record {
 		host: addr;
 		hash: string;
@@ -60,15 +60,15 @@ export {
 	## :zeek:see:`Known::cert_store`.
 	option cert_store_timeout = 15sec;
 
-	## The set of all known certificates to store for preventing duplicate 
-	## logging. It can also be used from other scripts to 
-	## inspect if a certificate has been seen in use. The string value 
+	## The set of all known certificates to store for preventing duplicate
+	## logging. It can also be used from other scripts to
+	## inspect if a certificate has been seen in use. The string value
 	## in the set is for storing the DER formatted certificate' SHA1 hash.
 	##
 	## In cluster operation, this set is uniformly distributed across
 	## proxy nodes.
 	global certs: set[addr, string] &create_expire=1day &redef;
-	
+
 	## Event that can be handled to access the loggable record as it is sent
 	## on to the logging framework.
 	global log_known_certs: event(rec: CertsInfo);
@@ -89,7 +89,7 @@ event Known::cert_found(info: CertsInfo, hash: string)
 
 	local key = AddrCertHashPair($host = info$host, $hash = hash);
 
-	when ( local r = Broker::put_unique(Known::cert_store$store, key,
+	when [info, key] ( local r = Broker::put_unique(Known::cert_store$store, key,
 	                                    T, Known::cert_store_expiry) )
 		{
 		if ( r$status == Broker::SUCCESS )

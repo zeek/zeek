@@ -45,7 +45,7 @@ extern void add_type(ID* id, TypePtr t, std::unique_ptr<std::vector<AttrPtr>> at
 extern void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool is_redef,
                        FuncTypePtr t, std::unique_ptr<std::vector<AttrPtr>> attrs = nullptr);
 
-extern void end_func(StmtPtr body);
+extern void end_func(StmtPtr body, bool free_of_conditionals);
 
 // Gather all IDs referenced inside a body that aren't part of a given scope.
 extern IDPList gather_outer_ids(ScopePtr scope, StmtPtr body);

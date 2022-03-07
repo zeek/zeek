@@ -74,17 +74,6 @@ inline p_hash_type merge_p_hashes(p_hash_type h1, p_hash_type h2)
 	return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
 	}
 
-// Returns a filename associated with the given function body.  Used to
-// provide distinctness to identical function bodies seen in separate,
-// potentially conflicting incremental compilations.  This is only germane
-// for allowing incremental compilation of subsets of the test suite, so
-// if we decide to forgo that capability, we can remove this.
-extern std::string script_specific_filename(const StmtPtr& body);
-
-// Returns a incremental-compilation-specific hash for the given function
-// body, given it's non-specific hash is "generic_hash".
-extern p_hash_type script_specific_hash(const StmtPtr& body, p_hash_type generic_hash);
-
 // Class for profiling the components of a single function (or expression).
 class ProfileFunc : public TraversalCallback
 	{
@@ -100,25 +89,31 @@ public:
 	ProfileFunc(const Stmt* body, bool abs_rec_fields = false);
 	ProfileFunc(const Expr* func, bool abs_rec_fields = false);
 
+	// Returns the function, body, or expression profiled.  Each can be
+	// null depending on the constructor used.
+	const Func* ProfiledFunc() const { return profiled_func; }
+	const Stmt* ProfiledBody() const { return profiled_body; }
+	const Expr* ProfiledExpr() const { return profiled_expr; }
+
 	// See the comments for the associated member variables for each
 	// of these accessors.
-	const std::unordered_set<const ID*>& Globals() const { return globals; }
-	const std::unordered_set<const ID*>& AllGlobals() const { return all_globals; }
-	const std::unordered_set<const ID*>& Locals() const { return locals; }
-	const std::unordered_set<const ID*>& Params() const { return params; }
+	const IDSet& Globals() const { return globals; }
+	const IDSet& AllGlobals() const { return all_globals; }
+	const IDSet& Locals() const { return locals; }
+	const IDSet& WhenLocals() const { return when_locals; }
+	const IDSet& Params() const { return params; }
 	const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
-	const std::unordered_set<const ID*>& Inits() const { return inits; }
+	const IDSet& Inits() const { return inits; }
 	const std::vector<const Stmt*>& Stmts() const { return stmts; }
 	const std::vector<const Expr*>& Exprs() const { return exprs; }
 	const std::vector<const LambdaExpr*>& Lambdas() const { return lambdas; }
 	const std::vector<const ConstExpr*>& Constants() const { return constants; }
-	const std::unordered_set<const ID*>& UnorderedIdentifiers() const { return ids; }
+	const IDSet& UnorderedIdentifiers() const { return ids; }
 	const std::vector<const ID*>& OrderedIdentifiers() const { return ordered_ids; }
 	const std::unordered_set<const Type*>& UnorderedTypes() const { return types; }
 	const std::vector<const Type*>& OrderedTypes() const { return ordered_types; }
 	const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
-	const std::unordered_set<const ID*>& BiFGlobals() const { return BiF_globals; }
-	const std::unordered_set<ScriptFunc*>& WhenCalls() const { return when_calls; }
+	const IDSet& BiFGlobals() const { return BiF_globals; }
 	const std::unordered_set<std::string>& Events() const { return events; }
 	const std::unordered_set<const Attributes*>& ConstructorAttrs() const
 		{
@@ -157,21 +152,30 @@ protected:
 	// Take note of an assignment to an identifier.
 	void TrackAssignment(const ID* id);
 
+	// The function, body, or expression profiled.  Can be null
+	// depending on which constructor was used.
+	const Func* profiled_func = nullptr;
+	const Stmt* profiled_body = nullptr;
+	const Expr* profiled_expr = nullptr;
+
 	// Globals seen in the function.
 	//
 	// Does *not* include globals solely seen as the function being
 	// called in a call.
-	std::unordered_set<const ID*> globals;
+	IDSet globals;
 
 	// Same, but also includes globals only seen as called functions.
-	std::unordered_set<const ID*> all_globals;
+	IDSet all_globals;
 
 	// Locals seen in the function.
-	std::unordered_set<const ID*> locals;
+	IDSet locals;
+
+	// Same, but for those declared in "when" expressions.
+	IDSet when_locals;
 
 	// The function's parameters.  Empty if our starting point was
 	// profiling an expression.
-	std::unordered_set<const ID*> params;
+	IDSet params;
 
 	// How many parameters the function has.  The default value flags
 	// that we started the profile with an expression rather than a
@@ -186,7 +190,7 @@ protected:
 
 	// Same for locals seen in initializations, so we can find,
 	// for example, unused aggregates.
-	std::unordered_set<const ID*> inits;
+	IDSet inits;
 
 	// Statements seen in the function.  Does not include indirect
 	// statements, such as those in lambda bodies.
@@ -202,13 +206,13 @@ protected:
 	std::vector<const LambdaExpr*> lambdas;
 
 	// If we're profiling a lambda function, this holds the captures.
-	std::unordered_set<const ID*> captures;
+	IDSet captures;
 
 	// Constants seen in the function.
 	std::vector<const ConstExpr*> constants;
 
 	// Identifiers seen in the function.
-	std::unordered_set<const ID*> ids;
+	IDSet ids;
 
 	// The same, but in a deterministic order.
 	std::vector<const ID*> ordered_ids;
@@ -225,7 +229,7 @@ protected:
 
 	// Same for BiF's, though for them we record the corresponding global
 	// rather than the BuiltinFunc*.
-	std::unordered_set<const ID*> BiF_globals;
+	IDSet BiF_globals;
 
 	// Script functions appearing in "when" clauses.
 	std::unordered_set<ScriptFunc*> when_calls;
@@ -259,10 +263,6 @@ protected:
 	// Whether we should treat record field accesses as absolute
 	// (integer offset) or relative (name-based).
 	bool abs_rec_fields;
-
-	// Whether we're separately processing a "when" condition to
-	// mine out its script calls.
-	bool in_when = false;
 	};
 
 // Function pointer for a predicate that determines whether a given
@@ -286,13 +286,13 @@ public:
 	// The following accessors provide a global profile across all of
 	// the (non-skipped) functions in "funcs".  See the comments for
 	// the associated member variables for documentation.
-	const std::unordered_set<const ID*>& Globals() const { return globals; }
-	const std::unordered_set<const ID*>& AllGlobals() const { return all_globals; }
+	const IDSet& Globals() const { return globals; }
+	const IDSet& AllGlobals() const { return all_globals; }
 	const std::unordered_set<const ConstExpr*>& Constants() const { return constants; }
 	const std::vector<const Type*>& MainTypes() const { return main_types; }
 	const std::vector<const Type*>& RepTypes() const { return rep_types; }
 	const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
-	const std::unordered_set<const ID*>& BiFGlobals() const { return BiF_globals; }
+	const IDSet& BiFGlobals() const { return BiF_globals; }
 	const std::unordered_set<const LambdaExpr*>& Lambdas() const { return lambdas; }
 	const std::unordered_set<std::string>& Events() const { return events; }
 
@@ -348,10 +348,10 @@ protected:
 
 	// Globals seen across the functions, other than those solely seen
 	// as the function being called in a call.
-	std::unordered_set<const ID*> globals;
+	IDSet globals;
 
 	// Same, but also includes globals only seen as called functions.
-	std::unordered_set<const ID*> all_globals;
+	IDSet all_globals;
 
 	// Constants seen across the functions.
 	std::unordered_set<const ConstExpr*> constants;
@@ -372,7 +372,7 @@ protected:
 	std::unordered_set<ScriptFunc*> script_calls;
 
 	// Same for BiF's.
-	std::unordered_set<const ID*> BiF_globals;
+	IDSet BiF_globals;
 
 	// And for lambda's.
 	std::unordered_set<const LambdaExpr*> lambdas;

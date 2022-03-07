@@ -82,6 +82,7 @@ class TypeVal;
 
 using AddrValPtr = IntrusivePtr<AddrVal>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
+using FuncValPtr = IntrusivePtr<FuncVal>;
 using ListValPtr = IntrusivePtr<ListVal>;
 using PortValPtr = IntrusivePtr<PortVal>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
@@ -526,16 +527,15 @@ class StringVal final : public Val
 	{
 public:
 	explicit StringVal(String* s);
-	explicit StringVal(const char* s);
-	explicit StringVal(const std::string& s);
+	StringVal(std::string_view s);
 	StringVal(int length, const char* s);
 	~StringVal() override;
 
 	ValPtr SizeVal() const override;
 
-	int Len();
-	const u_char* Bytes();
-	const char* CheckString();
+	int Len() const;
+	const u_char* Bytes() const;
+	const char* CheckString() const;
 
 	// Note that one needs to de-allocate the return value of
 	// ExpandedString() to avoid a memory leak.
@@ -821,7 +821,7 @@ public:
 	// Returns true if this set contains the same members as the
 	// given set.  Note that comparisons are done using hash keys,
 	// so errors can arise for compound sets such as sets-of-sets.
-	// See https://bro-tracker.atlassian.net/browse/BIT-1949.
+	// See https://github.com/zeek/zeek/issues/151.
 	bool EqualTo(const TableVal& v) const;
 
 	// Returns true if this set is a subset (not necessarily proper)
@@ -1354,7 +1354,7 @@ public:
 	TableValPtr GetRecordFieldsVal() const;
 
 	// This is an experiment to associate a Obj within the
-	// event engine to a record value in bro script.
+	// event engine to a record value in Zeek script.
 	void SetOrigin(Obj* o) { origin = o; }
 	Obj* GetOrigin() const { return origin; }
 
@@ -1699,8 +1699,11 @@ UNDERLYING_ACCESSOR_DEF(TypeVal, zeek::Type*, AsType)
 // exact match, returns it.  If promotable, returns the promoted version.
 // If not a match, generates an error message and return nil.  If is_init is
 // true, then the checking is done in the context of an initialization.
-extern ValPtr check_and_promote(ValPtr v, const Type* t, bool is_init,
+extern ValPtr check_and_promote(ValPtr v, const TypePtr& t, bool is_init,
                                 const detail::Location* expr_location = nullptr);
+[[deprecated("Remove in v5.1. Use version that takes TypePtr instead.")]] extern ValPtr
+check_and_promote(ValPtr v, const Type* t, bool is_init,
+                  const detail::Location* expr_location = nullptr);
 
 extern bool same_val(const Val* v1, const Val* v2);
 extern bool same_atomic_val(const Val* v1, const Val* v2);

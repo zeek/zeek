@@ -30,7 +30,7 @@ namespace zeek::input
 /**
  * InputHashes are used as Dictionaries to store the value and index hashes
  * for all lines currently stored in a table. Index hash is stored as
- * HashKey*, because it is thrown into other Bro functions that need the
+ * HashKey*, because it is thrown into other Zeek functions that need the
  * complex structure of it. For everything we do (with values), we just take
  * the hash_t value and compare it directly with "=="
  */
@@ -179,7 +179,7 @@ Manager::AnalysisStream::AnalysisStream() : Manager::Stream::Stream(ANALYSIS_STR
 
 Manager::AnalysisStream::~AnalysisStream() { }
 
-Manager::Manager() : plugin::ComponentManager<input::Tag, input::Component>("Input", "Reader")
+Manager::Manager() : plugin::ComponentManager<input::Component>("Input", "Reader")
 	{
 	end_of_data = event_registry->Register("Input::end_of_data");
 	}
@@ -1473,8 +1473,9 @@ void Manager::SendEndOfData(const Stream* i)
 #ifdef DEBUG
 	DBG_LOG(DBG_INPUT, "SendEndOfData for stream %s", i->name.c_str());
 #endif
-	SendEvent(end_of_data, 2, new StringVal(i->name.c_str()),
-	          new StringVal(i->reader->Info().source));
+	auto name = make_intrusive<StringVal>(i->name.c_str());
+	auto source = make_intrusive<StringVal>(i->reader->Info().source);
+	SendEvent(end_of_data, 2, name->Ref(), source->Ref());
 
 	if ( i->stream_type == ANALYSIS_STREAM )
 		file_mgr->EndOfFile(static_cast<const AnalysisStream*>(i)->file_id);
@@ -1889,7 +1890,7 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 		event_mgr.Enqueue(ev, std::move(vl), util::detail::SOURCE_LOCAL);
 	}
 
-// Convert a bro list value to a bro record value.
+// Convert a Zeek list value to a Zeek record value.
 // I / we could think about moving this functionality to val.cc
 RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType* request_type, int* position) const
 	{
@@ -2067,7 +2068,7 @@ int Manager::GetValueLength(const Value* val) const
 	}
 
 // Given a threading::value, copy the raw data bytes into *data and return how many bytes were
-// copied. Used for hashing the values for lookup in the bro table
+// copied. Used for hashing the values for lookup in the Zeek table
 int Manager::CopyValue(char* data, const int startpos, const Value* val) const
 	{
 	assert(val->present); // presence has to be checked elsewhere
@@ -2243,7 +2244,7 @@ zeek::detail::HashKey* Manager::HashValues(const int num_elements, const Value* 
 	return key;
 	}
 
-// convert threading value to Bro value
+// convert threading value to Zeek value
 // have_error is a reference to a boolean which is set to true as soon as an error occurs.
 // When have_error is set to true at the beginning of the function, it is assumed that
 // an error already occurred in the past and processing is aborted.
@@ -2440,7 +2441,7 @@ Manager::Stream* Manager::FindStream(ReaderFrontend* reader) const
 	return nullptr;
 	}
 
-// Function is called on Bro shutdown.
+// Function is called on Zeek shutdown.
 // Signal all frontends that they will cease operation.
 void Manager::Terminate()
 	{
@@ -2560,8 +2561,8 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 				__builtin_unreachable();
 			}
 
-		auto* message = new StringVal(buf);
-		SendEvent(i->error_event, 3, i->description->Ref(), message, ev.release());
+		auto message = make_intrusive<StringVal>(buf);
+		SendEvent(i->error_event, 3, i->description->Ref(), message->Ref(), ev.release());
 		}
 
 	if ( reporter_send )

@@ -1055,7 +1055,17 @@ macro EvalConstructRecord(map_init, map_accessor)
 	auto n = aux->n;
 	map_init
 	for ( auto i = 0; i < n; ++i )
-		new_r->Assign(map_accessor, aux->ToVal(frame, i));
+		{
+		auto v_i = aux->ToVal(frame, i);
+		auto ind = map_accessor;
+		if ( v_i && v_i->GetType()->Tag() == TYPE_VECTOR &&
+		     v_i->GetType<VectorType>()->IsUnspecifiedVector() )
+			{
+			const auto& t_ind = rt->GetFieldType(ind);
+			v_i->AsVectorVal()->Concretize(t_ind->Yield());
+			}
+		new_r->Assign(ind, v_i);
+		}
 	auto& r = frame[z.v1].record_val;
 	Unref(r);
 	r = new_r;
@@ -1099,7 +1109,7 @@ eval	auto v = frame[z.v2].double_val;
 		ZAM_run_time_error(z.loc, "underflow converting double to count");
 		break;
 		}
-	if ( v > UINT64_MAX )
+	if ( v > static_cast<double>(UINT64_MAX) )
 		{
 		ZAM_run_time_error(z.loc, "overflow converting double to count");
 		break;
@@ -1659,7 +1669,7 @@ internal-op Next-Table-Iter-Val-Var
 # v3 = branch target if loop done
 type VVV
 eval	NextTableIterPre(v2, v3)
-	frame[z.v1] = ti.IterValue();
+	AssignV1(ti.IterValue());
 	ti.NextIter(frame);
 
 internal-op Next-Table-Iter-Val-Var-No-Vars
@@ -1668,7 +1678,7 @@ internal-op Next-Table-Iter-Val-Var-No-Vars
 # v3 = branch target if loop done
 type VVV
 eval	NextTableIterPre(v2, v3)
-	frame[z.v1] = ti.IterValue();
+	AssignV1(ti.IterValue());
 	ti.IterFinished();
 
 
@@ -1730,20 +1740,23 @@ eval    (*tiv_ptr)[z.v1].Clear();
 op When
 op1-read
 type VVVV
-eval	auto when_body = new ZAMResumption(this, z.v2);
-	auto timeout_body = new ZAMResumption(this, z.v3);
-	new trigger::Trigger(z.e, when_body, timeout_body, frame[z.v1].double_val, f, z.v4, z.loc);
+eval	auto when_body = make_intrusive<ZAMResumption>(this, z.v2);
+	auto timeout_body = make_intrusive<ZAMResumption>(this, z.v3);
+	ExprPtr when_cond = {NewRef{}, const_cast<Expr*>(z.e)};
+	new trigger::Trigger(when_cond, when_body, timeout_body, frame[z.v1].double_val, f, z.v4, z.loc);
 
 op When
 type VVVC
-eval	auto when_body = new ZAMResumption(this, z.v1);
-	auto timeout_body = new ZAMResumption(this, z.v2);
-	new trigger::Trigger(z.e, when_body, timeout_body, z.c.double_val, f, z.v3, z.loc);
+eval	auto when_body = make_intrusive<ZAMResumption>(this, z.v1);
+	auto timeout_body = make_intrusive<ZAMResumption>(this, z.v2);
+	ExprPtr when_cond = {NewRef{}, const_cast<Expr*>(z.e)};
+	new trigger::Trigger(when_cond, when_body, timeout_body, z.c.double_val, f, z.v3, z.loc);
 
 op When
 type VV
-eval	auto when_body = new ZAMResumption(this, z.v2);
-	new trigger::Trigger(z.e, when_body, nullptr, -1.0, f, z.v1, z.loc);
+eval	auto when_body = make_intrusive<ZAMResumption>(this, z.v2);
+	ExprPtr when_cond = {NewRef{}, const_cast<Expr*>(z.e)};
+	new trigger::Trigger(when_cond, when_body, nullptr, -1.0, f, z.v1, z.loc);
 
 op CheckAnyLen
 op1-read
@@ -2084,9 +2097,17 @@ eval	EvalStrStr(frame[z.v2], z.c)
 internal-op Analyzer--Name
 type VV
 eval	auto atype = frame[z.v2].ToVal(z.t);
-	auto& name = analyzer_mgr->GetComponentName(cast_intrusive<EnumVal>(atype));
+	auto val = atype->AsEnumVal();
 	Unref(frame[z.v1].string_val);
-	frame[z.v1].string_val = new StringVal(name);
+	plugin::Component* component = zeek::analyzer_mgr->Lookup(val);
+	if ( ! component )
+		component = zeek::packet_mgr->Lookup(val);
+	if ( ! component )
+		component = zeek::file_mgr->Lookup(val);
+	if ( component )
+		frame[z.v1].string_val = new StringVal(component->CanonicalName());
+	else
+		frame[z.v1].string_val = new StringVal("<error>");
 
 internal-op Files--Enable-Reassembly
 op1-read

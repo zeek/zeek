@@ -1,4 +1,4 @@
-// Each event raised/handled by Bro is registered in the EventRegistry.
+// Each event raised/handled by Zeek is registered in the EventRegistry.
 
 #pragma once
 

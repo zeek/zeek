@@ -23,14 +23,17 @@ event zeek_init()
 	print "----------------";
 	print fmt("is_num abc   : %d", is_num("abc"));
 	print fmt("is_num 123   : %d", is_num("123"));
+	print fmt("is_num ''    : %d", is_num(""));
 	print fmt("is_alpha ab  : %d", is_alpha("ab"));
 	print fmt("is_alpha 1a  : %d", is_alpha("1a"));
 	print fmt("is_alpha a1  : %d", is_alpha("a1"));
+	print fmt("is_alpha ''  : %d", is_alpha(""));
 	print fmt("is_alnum ab  : %d", is_alnum("ab"));
 	print fmt("is_alnum 1a  : %d", is_alnum("1a"));
 	print fmt("is_alnum a1  : %d", is_alnum("a1"));
 	print fmt("is_alnum 12  : %d", is_alnum("12"));
 	print fmt("is_alnum ##12: %d", is_alnum("##12"));
+	print fmt("is_alnum ''  : %d", is_alnum(""));
 	print "";
 
 	print "String counting (input str 'aabbaa')";

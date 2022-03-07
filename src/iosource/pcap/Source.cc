@@ -247,6 +247,14 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 	++stats.received;
 	stats.bytes_received += header->len;
 
+	// Some versions of libpcap (myricom) are somewhat broken and will return a duplicate
+	// packet if there are no more packets available. Namely, it returns the exact same
+	// packet structure (including the header) out of the library without reinitializing
+	// any of the values. If we set the header lengths to zero here, we can keep from
+	// processing it a second time.
+	header->len = 0;
+	header->caplen = 0;
+
 	return true;
 	}
 

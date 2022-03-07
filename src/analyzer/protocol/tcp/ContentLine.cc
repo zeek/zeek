@@ -331,9 +331,7 @@ void ContentLine_Analyzer::CheckNUL()
 	// had been an initial SYN, so we check for whether
 	// the connection has at most two bytes so far.
 
-	auto* tcp = static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
-
-	if ( tcp )
+	if ( auto* tcp = static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP() )
 		{
 		TCP_Endpoint* endp = IsOrig() ? tcp->Orig() : tcp->Resp();
 		if ( endp->state == TCP_ENDPOINT_PARTIAL && endp->LastSeq() - endp->StartSeq() <= 2 )
@@ -349,7 +347,7 @@ void ContentLine_Analyzer::CheckNUL()
 
 void ContentLine_Analyzer::SkipBytesAfterThisLine(int64_t length)
 	{
-	// This is a little complicated because Bro has to handle
+	// This is a little complicated because Zeek has to handle
 	// both CR and CRLF as a line break. When a line is delivered,
 	// it's possible that only a CR is seen, and we may not know
 	// if an LF is following until we see the next packet.  If an

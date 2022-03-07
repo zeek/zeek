@@ -81,7 +81,7 @@ refine flow MQTT_Flow += {
 			}
 
 		// If a connect message was seen, let's say that confirms it.
-		connection()->zeek_analyzer()->ProtocolConfirmation();
+		connection()->zeek_analyzer()->AnalyzerConfirmation();
 		return true;
 		%}
 };

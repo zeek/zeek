@@ -1,3 +1,8 @@
+5.0.0-dev.162 | 2022-03-07 12:36:37 +0100
+
+  * Improve error message when receiving unexpected record content via
+    Broker. (Robin Sommer, Corelight)
+
 5.0.0-dev.160 | 2022-03-02 13:48:07 +0000
 
   * restored record constructor checking for missing-but-mandatory fields. This includea a new btest

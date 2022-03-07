@@ -1391,17 +1391,35 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		{
 		auto got_type = args[i].get_type_name();
 		const auto& expected_type = arg_types[i];
-		auto val = detail::data_to_val(std::move(args[i]), expected_type.get());
+		auto val = detail::data_to_val(args[i], expected_type.get());
 
 		if ( val )
 			vl.emplace_back(std::move(val));
 		else
 			{
 			auto expected_name = type_name(expected_type->Tag());
+			std::string msg_addl = util::fmt("got %s, expected %s", got_type, expected_name);
 
-			reporter->Warning("failed to convert remote event '%s' arg #%zu,"
-			                  " got %s, expected %s",
-			                  name.data(), i, got_type, expected_name);
+			if ( strcmp(expected_name, "record") == 0 && strcmp("vector", got_type) == 0 )
+				{
+				// This means the vector elements didn't align with the record
+				// fields. Produce an error message that shows what we
+				// received.
+				std::string elements;
+				for ( const auto& e : broker::get<broker::vector>(args[i]) )
+					{
+					if ( ! elements.empty() )
+						elements += ", ";
+
+					elements += e.get_type_name();
+					}
+
+				msg_addl = util::fmt("got mismatching field types [%s] for record type '%s'",
+				                     elements.c_str(), expected_type->GetName().c_str());
+				}
+
+			reporter->Warning("failed to convert remote event '%s' arg #%zu, %s", name.data(), i,
+			                  msg_addl.c_str());
 
 			// If we got a vector and expected a function this is
 			// possibly because of a mismatch between

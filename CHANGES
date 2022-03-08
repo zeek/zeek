@@ -1,3 +1,7 @@
+5.0.0-dev.164 | 2022-03-08 09:30:37 -0700
+
+  * Update 3rdparty submodule for bsd-getopt-long fix (Tim Wojtulewicz)
+
 5.0.0-dev.162 | 2022-03-07 12:36:37 +0100
 
   * Improve error message when receiving unexpected record content via

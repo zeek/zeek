@@ -2731,7 +2731,7 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 ## .. zeek:see:: raw_bytes_to_v6_addr to_addr to_subnet
 function raw_bytes_to_v6_addr%(x: string%): addr
 	%{
-	uint32_t bytes[4];
+	uint32_t bytes[4] = {0, 0, 0, 0};
 
 	if ( x->Len() < 16 )
 		zeek::emit_builtin_error("too short a string as input to raw_bytes_to_v6_addr()");

@@ -355,6 +355,7 @@ set(MAIN_SRCS
     Stmt.cc
     Tag.cc
     Timer.cc
+    Trace.cc
     Traverse.cc
     Trigger.cc
     TunnelEncapsulation.cc
@@ -532,7 +533,7 @@ add_executable(zeek main.cc
                ${bro_SUBDIR_LIBS}
                ${bro_PLUGIN_LIBS}
 )
-target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} ${OPENTELEMETRY_CPP_LIBRARIES})
 # Export symbols from zeek executable for use by plugins
 set_target_properties(zeek PROPERTIES ENABLE_EXPORTS TRUE)
 

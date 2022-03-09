@@ -80,6 +80,10 @@ Connection::~Connection()
 	if ( ! finished )
 		reporter->InternalError("Done() not called before destruction of Connection");
 
+	auto desc = ODesc();
+	this->Describe(&desc);
+	span->SetAttribute("connection", desc.Description());
+
 	CancelTimers();
 
 	if ( conn_val )
@@ -88,6 +92,8 @@ Connection::~Connection()
 	delete adapter;
 
 	--current_connections;
+
+	span->End();
 	}
 
 void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& arg_encap)
@@ -149,6 +155,19 @@ void Connection::NextPacket(double t, bool is_orig, const IP_Hdr* ip, int len, i
                             // arguments for reproducing packets
                             const Packet* pkt)
 	{
+
+	auto current_span_context = zeek::trace::tracer->GetCurrentSpan()->GetContext();
+	auto token = opentelemetry::context::RuntimeContext::Attach(context);
+
+	auto local_span = zeek::trace::tracer->StartSpan("zeek::Connection::NextPacket", {{}},
+	                                                 {{current_span_context, {{}}}});
+	auto scope = zeek::trace::tracer->WithActiveSpan(local_span);
+
+	if ( local_span->IsRecording() )
+		{
+		local_span->SetAttribute("packet", pkt->ToRawPktHdrVal()->ToJSON()->ToStdString());
+		}
+
 	run_state::current_timestamp = t;
 	run_state::current_pkt = pkt;
 

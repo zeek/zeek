@@ -32,6 +32,7 @@ extern "C"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/Timer.h"
+#include "zeek/Trace.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktDumper.h"
@@ -63,6 +64,8 @@ double current_wallclock = 0.0;
 double current_pseudo = 0.0;
 bool zeek_init_done = false;
 bool time_updated = false;
+
+opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> tracer;
 
 RETSIGTYPE watchdog(int /* signo */)
 	{
@@ -215,6 +218,9 @@ void expire_timers()
 
 void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src)
 	{
+	auto span = tracer->StartSpan("dispatch_packet");
+	auto scope = tracer->WithActiveSpan(span);
+
 	double t = run_state::pseudo_realtime ? check_pseudo_time(pkt) : pkt->time;
 
 	if ( ! zeek_start_network_time )
@@ -288,6 +294,9 @@ void run_loop()
 
 	while ( iosource_mgr->Size() || (BifConst::exit_only_after_terminate && ! terminating) )
 		{
+		auto span = zeek::trace::tracer->StartSpan("run loop iteration");
+		auto scope = zeek::trace::tracer->WithActiveSpan(span);
+
 		time_updated = false;
 		iosource_mgr->FindReadySources(&ready);
 
@@ -348,10 +357,14 @@ void run_loop()
 		current_iosrc = nullptr;
 
 		if ( ::signal_val == SIGTERM || ::signal_val == SIGINT )
+			{
+			span->AddEvent("received signal", {{"signal", ::signal_val}});
 			// We received a signal while processing the
 			// current packet and its related events.
 			// Should we put the signal handling into an IOSource?
+			span->End();
 			zeek_terminate_loop("received termination signal");
+			}
 
 		if ( ! reading_traces )
 			// Check whether we have timers scheduled for
@@ -405,6 +418,9 @@ void get_final_stats()
 
 void finish_run(int drain_events)
 	{
+	auto span = tracer->StartSpan("finish_run");
+	auto scope = tracer->WithActiveSpan(span);
+
 	util::detail::set_processing_status("TERMINATING", "finish_run");
 
 	if ( drain_events )

@@ -4,6 +4,9 @@
 
 #include "zeek/Options.h"
 
+#include "opentelemetry/sdk/trace/tracer_provider.h"
+#include "opentelemetry/trace/provider.h"
+
 namespace zeek::detail
 	{
 

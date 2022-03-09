@@ -2,10 +2,13 @@
 
 #include "zeek/session/Session.h"
 
+#include "opentelemetry/trace/context.h"
+
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/IP.h"
 #include "zeek/Reporter.h"
+#include "zeek/Trace.h"
 #include "zeek/Val.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/session/Manager.h"
@@ -62,6 +65,25 @@ Session::Session(double t, EventHandlerPtr timeout_event, EventHandlerPtr status
 	timers_canceled = 0;
 	inactivity_timeout = 0;
 	installed_status_timer = 0;
+
+	const opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span>& current_span =
+		zeek::trace::tracer->GetCurrentSpan();
+	auto current_span_context = current_span->GetContext();
+
+	auto empty_context = opentelemetry::context::Context();
+	auto token = opentelemetry::context::RuntimeContext::Attach(empty_context);
+
+	span = zeek::trace::tracer->StartSpan("zeek::session::Session", {{}}, {{current_span_context, {{}}}});
+	context = opentelemetry::trace::SetSpan(empty_context, span);
+
+	char trace_id[32];
+	char span_id[16];
+
+	span->GetContext().trace_id().ToLowerBase16(trace_id);
+	span->GetContext().span_id().ToLowerBase16(span_id);
+
+	// https://opentelemetry.io/docs/reference/specification/trace/sdk_exporters/jaeger/#links
+	current_span->AddEvent("link", {{"trace_id", std::string(trace_id, 32)}, {"span_id", std::string(span_id, 16)}});
 	}
 
 unsigned int Session::MemoryAllocation() const
@@ -82,6 +104,19 @@ void Session::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char*
 
 void Session::EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* a, Args args)
 	{
+	// auto current_span_context = zeek::trace::tracer->GetCurrentSpan()->GetContext();
+	auto token = opentelemetry::context::RuntimeContext::Attach(context);
+
+	/*
+	opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span> local_span;
+	if (current_span_context.IsValid())
+		local_span = zeek::trace::tracer->StartSpan("Connection::EnqueueEvent", {{}}, {{current_span_context, {{}}}});
+	else
+		local_span = opentelemetry::nostd::shared_ptr<opentelemetry::trace::NoopSpan>();
+
+	auto scope = zeek::trace::tracer->WithActiveSpan(local_span);
+	*/
+
 	// "this" is passed as a cookie for the event
 	event_mgr.Enqueue(f, std::move(args), util::detail::SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}

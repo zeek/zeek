@@ -42,6 +42,7 @@
 #include "zeek/RunState.h"
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
+#include "zeek/Trace.h"
 #include "zeek/Traverse.h"
 #include "zeek/Var.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
@@ -294,6 +295,36 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFl
 		}
 	}
 
+const opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span>
+Func::StartSpan(zeek::Args* args, detail::Frame* parent) const
+	{
+	// XXX Func::Invoke or Name()?
+	auto span = zeek::trace::tracer->StartSpan(Name());
+	span->SetAttribute("method", "Func::Invoke");
+	span->SetAttribute("name", Name());
+
+	const char* function_type;
+	switch ( Flavor() )
+		{
+		case zeek::FUNC_FLAVOR_FUNCTION:
+			function_type = GetKind() ? "built-in function" : "script-land function";
+			break;
+		case zeek::FUNC_FLAVOR_EVENT:
+			function_type = "event";
+			break;
+		case zeek::FUNC_FLAVOR_HOOK:
+			function_type = "hook";
+			break;
+		default:
+			function_type = "unknown";
+			break;
+		}
+
+	span->SetAttribute("function_type", function_type);
+
+	return span;
+	}
+
 namespace detail
 	{
 
@@ -362,6 +393,9 @@ bool ScriptFunc::IsPure() const
 
 ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 	{
+	auto span = StartSpan(args, parent);
+	auto scope = zeek::trace::tracer->WithActiveSpan(span);
+
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
 #endif
@@ -766,6 +800,9 @@ bool BuiltinFunc::IsPure() const
 
 ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const
 	{
+	auto span = StartSpan(args, parent);
+	auto scope = zeek::trace::tracer->WithActiveSpan(span);
+
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
 #endif

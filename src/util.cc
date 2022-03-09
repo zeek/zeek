@@ -52,6 +52,7 @@
 #include "zeek/Obj.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
+#include "zeek/Trace.h"
 #include "zeek/Val.h"
 #include "zeek/digest.h"
 #include "zeek/input.h"
@@ -906,6 +907,10 @@ void set_processing_status(const char* status, const char* reason)
 	// This function can be called from a signal context, so we have to
 	// make sure to only call reentrant & async-signal-safe functions,
 	// and to restore errno afterwards.
+
+	auto span = zeek::trace::tracer->GetCurrentSpan();
+	if ( span->IsRecording() )
+		span->AddEvent("set_processing_status", {{"status", status}, {"reason", reason}});
 
 	if ( ! proc_status_file )
 		return;

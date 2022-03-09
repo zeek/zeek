@@ -7,6 +7,7 @@
 #include "zeek/Event.h"
 #include "zeek/RunState.h"
 #include "zeek/session/Manager.h"
+#include "zeek/Trace.h"
 #include "zeek/util.h"
 
 namespace zeek::packet_analysis
@@ -77,6 +78,9 @@ AnalyzerPtr Analyzer::Lookup(uint32_t identifier) const
 bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
                              uint32_t identifier) const
 	{
+	auto span = zeek::trace::tracer->StartSpan("zeek::packet_analysis::Analzyer::ForwardPacket");
+	auto scope = zeek::trace::tracer->WithActiveSpan(span);
+
 	auto inner_analyzer = Lookup(identifier);
 	if ( ! inner_analyzer )
 		{
@@ -110,7 +114,16 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
 
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
 	        GetAnalyzerName(), identifier);
-	return inner_analyzer->AnalyzePacket(len, data, packet);
+
+	span->SetAttribute("analyzer", inner_analyzer->GetAnalyzerName());
+
+		{
+		std::ostringstream span_name;
+		span_name << "(" << inner_analyzer->GetAnalyzerName() << " analyzer)::AnalyzePacket";
+		auto analyzer_span = zeek::trace::tracer->StartSpan(span_name.str());
+		auto analyzer_scope = zeek::trace::tracer->WithActiveSpan(span);
+		return inner_analyzer->AnalyzePacket(len, data, packet);
+		}
 	}
 
 bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const

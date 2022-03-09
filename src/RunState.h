@@ -7,6 +7,8 @@
 #include <optional>
 #include <string>
 
+#include "opentelemetry/trace/provider.h"
+
 namespace zeek
 	{
 
@@ -64,6 +66,8 @@ extern double current_wallclock;
 extern double current_pseudo;
 
 extern bool zeek_init_done;
+
+extern opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> tracer;
 
 	} // namespace detail
 

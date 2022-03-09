@@ -5,6 +5,7 @@
 #include <openssl/md5.h>
 
 #include "zeek/Event.h"
+#include "zeek/Trace.h"
 #include "zeek/UID.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/digest.h"
@@ -49,6 +50,9 @@ void Manager::InitMagic()
 
 void Manager::Terminate()
 	{
+	auto span = zeek::trace::tracer->StartSpan("zeek::file_analysis::Manager::Terminate");
+	auto scope = zeek::trace::tracer->WithActiveSpan(span);
+
 	vector<string> keys;
 	keys.reserve(id_map.size());
 
@@ -417,6 +421,9 @@ bool Manager::IsIgnored(const string& file_id)
 
 string Manager::GetFileID(const zeek::Tag& tag, Connection* c, bool is_orig)
 	{
+	auto span = zeek::trace::tracer->StartSpan("zeek::file_analysis::Manager::GetFileID");
+	auto scope = zeek::trace::tracer->WithActiveSpan(span);
+
 	current_file_id.clear();
 
 	if ( IsDisabled(tag) )

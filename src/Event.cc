@@ -8,11 +8,15 @@
 #include "zeek/Func.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
+#include "zeek/Trace.h"
 #include "zeek/Trigger.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
 #include "zeek/plugin/Manager.h"
+
+#include "opentelemetry/common/attribute_value.h"
+#include "opentelemetry/trace/provider.h"
 
 zeek::EventMgr zeek::event_mgr;
 zeek::EventMgr& mgr = zeek::event_mgr;
@@ -46,8 +50,21 @@ void Event::Describe(ODesc* d) const
 
 void Event::Dispatch(bool no_remote)
 	{
+	auto span = zeek::trace::StartSpanForAsync("Event::Dispatch", span_context);
+	if ( span->IsRecording() )
+		{
+		span->SetAttribute("no_remote", no_remote);
+		AddDetailsToSpan(span);
+		}
+
+	auto scope = zeek::trace::tracer->WithActiveSpan(span);
+
 	if ( src == util::detail::SOURCE_BROKER )
+		{
 		no_remote = true;
+		if ( span->IsRecording() )
+			span->SetAttribute("no_remote_override", no_remote);
+		}
 
 	if ( handler->ErrorHandler() )
 		reporter->BeginErrorHandler();
@@ -68,6 +85,35 @@ void Event::Dispatch(bool no_remote)
 
 	if ( handler->ErrorHandler() )
 		reporter->EndErrorHandler();
+	}
+
+void Event::AddDetailsToSpan(opentelemetry::nostd::shared_ptr<opentelemetry::v1::trace::Span> span)
+	{
+	if ( src )
+		span->SetAttribute("source", (unsigned int)src); // XXX is this cast right?
+
+	span->SetAttribute("analyzer_id",
+	                   aid); // XXX is there a way to lookup the analyzer name from this?
+	span->SetAttribute("handler", handler->Name());
+
+	std::vector<opentelemetry::nostd::string_view> arg_names;
+	for ( const auto& item : args )
+		{
+		auto name = item->GetType()->GetName();
+		// Sometimes GetName() can return an empty string like with the boolean on get_file_handle
+		if ( name.empty() )
+			name = "(no name, tag " + std::to_string(item->GetType()->Tag()) + ")";
+		arg_names.push_back(name);
+		}
+	span->SetAttribute("arg_types", opentelemetry::common::AttributeValue(arg_names));
+
+	std::vector<opentelemetry::nostd::string_view> args_formatted;
+	for ( const auto& item : args )
+		{
+		std::string* str = new std::string(item->ToJSON()->ToStdString());
+		args_formatted.push_back(*str);
+		}
+	span->SetAttribute("args", opentelemetry::common::AttributeValue(args_formatted));
 	}
 
 EventMgr::EventMgr()
@@ -99,6 +145,13 @@ void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID
 
 void EventMgr::QueueEvent(Event* event)
 	{
+	assert(tracer);
+
+	auto span = tracer->StartSpan("EventMgr::QueueEvent");
+	auto scope = tracer->WithActiveSpan(span);
+
+	event->span_context = span->GetContext();
+
 	bool done = PLUGIN_HOOK_WITH_RESULT(HOOK_QUEUE_EVENT, HookQueueEvent(event), false);
 
 	if ( done )
@@ -120,6 +173,9 @@ void EventMgr::QueueEvent(Event* event)
 
 void EventMgr::Dispatch(Event* event, bool no_remote)
 	{
+	auto span = tracer->StartSpan("EventMgr::Dispatch");
+	auto scope = tracer->WithActiveSpan(span);
+
 	current_src = event->Source();
 	event->Dispatch(no_remote);
 	Unref(event);
@@ -127,6 +183,9 @@ void EventMgr::Dispatch(Event* event, bool no_remote)
 
 void EventMgr::Drain()
 	{
+	auto span = tracer->StartSpan("EventMgr::Drain");
+	auto scope = tracer->WithActiveSpan(span);
+
 	if ( event_queue_flush_point )
 		Enqueue(event_queue_flush_point, Args{});
 

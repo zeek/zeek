@@ -8,6 +8,7 @@
 
 #include "zeek/Hash.h"
 #include "zeek/RunState.h"
+#include "zeek/Trace.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/iosource/BPF_Program.h"
 #include "zeek/iosource/Manager.h"
@@ -29,6 +30,10 @@ PktSrc::Properties::Properties()
 
 PktSrc::PktSrc()
 	{
+	tracer = zeek::trace::GetTracerIfEnabled(zeek::trace::options.trace_pktsrc);
+	auto span = tracer->StartSpan("PktSrc::PktSrc");
+	auto scope = tracer->WithActiveSpan(span);
+
 	have_packet = false;
 	errbuf = "";
 	SetClosed(true);
@@ -36,6 +41,9 @@ PktSrc::PktSrc()
 
 PktSrc::~PktSrc()
 	{
+	auto span = tracer->StartSpan("PktSrc::~PktSrc");
+	auto scope = tracer->WithActiveSpan(span);
+
 	for ( auto code : filters )
 		delete code;
 	}
@@ -73,8 +81,13 @@ bool PktSrc::IsLive() const
 
 void PktSrc::Opened(const Properties& arg_props)
 	{
+	auto span = tracer->StartSpan("PktSrc::Opened");
+	auto scope = tracer->WithActiveSpan(span);
+
 	props = arg_props;
 	SetClosed(false);
+
+	span->SetAttribute("path", props.path);
 
 	if ( ! PrecompileFilter(0, "") || ! SetFilter(0) )
 		{
@@ -100,6 +113,9 @@ void PktSrc::Opened(const Properties& arg_props)
 
 void PktSrc::Closed()
 	{
+	auto span = tracer->StartSpan("PktSrc::Closed");
+	auto scope = tracer->WithActiveSpan(span);
+
 	SetClosed(true);
 
 	if ( props.is_live && props.selectable_fd != -1 )
@@ -145,11 +161,18 @@ void PktSrc::Done()
 
 void PktSrc::Process()
 	{
+	auto span = tracer->StartSpan("PktSrc::Process");
+	auto scope = tracer->WithActiveSpan(span);
+
 	if ( ! IsOpen() )
 		return;
 
 	if ( ! ExtractNextPacketInternal() )
 		return;
+
+	if ( span->IsRecording() )
+		span->SetAttribute("packet_header",
+		                   current_packet.ToRawPktHdrVal()->ToJSON()->ToStdString());
 
 	run_state::detail::dispatch_packet(&current_packet, this);
 
@@ -164,15 +187,25 @@ const char* PktSrc::Tag()
 
 bool PktSrc::ExtractNextPacketInternal()
 	{
+	auto span = zeek::trace::tracer->GetCurrentSpan();
+
 	if ( have_packet )
+		{
+		if ( span->IsRecording() )
+			span->SetAttribute("status", "already_have_packet");
 		return true;
+		}
 
 	have_packet = false;
 
 	// Don't return any packets if processing is suspended (except for the
 	// very first packet which we need to set up times).
 	if ( run_state::is_processing_suspended() && run_state::detail::first_timestamp )
+		{
+		if ( span->IsRecording() )
+			span->SetAttribute("status", "processing_suspended");
 		return false;
+		}
 
 	if ( run_state::pseudo_realtime )
 		run_state::detail::current_wallclock = util::current_time(true);
@@ -182,6 +215,8 @@ bool PktSrc::ExtractNextPacketInternal()
 		if ( current_packet.time < 0 )
 			{
 			Weird("negative_packet_timestamp", &current_packet);
+			if ( span->IsRecording() )
+				span->SetAttribute("status", "negative_packet_timestamp");
 			return false;
 			}
 
@@ -189,6 +224,8 @@ bool PktSrc::ExtractNextPacketInternal()
 			run_state::detail::first_timestamp = current_packet.time;
 
 		have_packet = true;
+		if ( span->IsRecording() )
+			span->SetAttribute("status", "received_packet");
 		return true;
 		}
 
@@ -197,6 +234,9 @@ bool PktSrc::ExtractNextPacketInternal()
 		if ( broker_mgr->Active() )
 			iosource_mgr->Terminate();
 		}
+
+	if ( span->IsRecording() )
+		span->SetAttribute("status", "no_packet");
 
 	return false;
 	}

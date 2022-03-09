@@ -7,6 +7,7 @@
 #include "zeek/Event.h"
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
+#include "zeek/Trace.h"
 #include "zeek/Type.h"
 #include "zeek/Val.h"
 #include "zeek/analyzer/Analyzer.h"
@@ -604,6 +605,9 @@ void File::FileEvent(EventHandlerPtr h)
 
 void File::FileEvent(EventHandlerPtr h, Args args)
 	{
+	auto span = zeek::trace::tracer->StartSpan("File::FileEvent");
+	auto scope = zeek::trace::tracer->WithActiveSpan(span);
+
 	event_mgr.Enqueue(h, std::move(args));
 
 	if ( h == file_new || h == file_over_new_connection || h == file_sniff || h == file_timeout ||

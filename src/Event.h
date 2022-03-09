@@ -5,6 +5,9 @@
 #include <tuple>
 #include <type_traits>
 
+#include "opentelemetry/trace/provider.h"
+#include "opentelemetry/trace/span.h"
+
 #include "zeek/Flare.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/ZeekArgs.h"
@@ -47,6 +50,10 @@ protected:
 	analyzer::ID aid;
 	Obj* obj;
 	Event* next_event;
+	opentelemetry::trace::SpanContext span_context =
+		opentelemetry::trace::SpanContext::GetInvalid();
+
+	void AddDetailsToSpan(opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span> span);
 	};
 
 class EventMgr final : public Obj, public iosource::IOSource
@@ -106,6 +113,8 @@ public:
 
 	uint64_t num_events_queued = 0;
 	uint64_t num_events_dispatched = 0;
+
+	opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> tracer;
 
 protected:
 	void QueueEvent(Event* event);

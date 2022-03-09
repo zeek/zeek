@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include "zeek/Trace.h"
 #include "zeek/logging/Component.h"
 #include "zeek/threading/MsgThread.h"
+
+#include "opentelemetry/trace/provider.h"
 
 namespace broker
 	{
@@ -401,6 +404,9 @@ private:
 	bool buffering; // True if buffering is enabled.
 
 	int rotation_counter; // Tracks FinishedRotation() calls.
+
+	opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> tracer =
+		zeek::trace::GetTracerIfEnabled(zeek::trace::options.trace_logging);
 	};
 
 	} // namespace zeek::logging

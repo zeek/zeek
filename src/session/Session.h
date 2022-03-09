@@ -10,6 +10,7 @@
 #include "zeek/Obj.h"
 #include "zeek/Tag.h"
 #include "zeek/Timer.h"
+#include "zeek/Trace.h"
 #include "zeek/session/Key.h"
 
 namespace zeek
@@ -225,6 +226,9 @@ public:
 
 	AnalyzerConfirmationState AnalyzerState(const zeek::Tag& tag) const;
 	void SetAnalyzerState(const zeek::Tag& tag, AnalyzerConfirmationState);
+
+	opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span> span;
+	opentelemetry::context::Context context;
 
 protected:
 	friend class detail::Timer;

@@ -4,10 +4,15 @@
 
 #include <broker/data.hh>
 
+#include "zeek/Desc.h"
+#include "zeek/Trace.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/WriterFrontend.h"
 #include "zeek/threading/SerialTypes.h"
+#include "zeek/threading/formatters/JSON.h"
 #include "zeek/util.h"
+
+#include "opentelemetry/trace/context.h"
 
 // Messages sent from backend to frontend (i.e., "OutputMessages").
 
@@ -165,7 +170,8 @@ void WriterBackend::DeleteVals(int num_writes, Value*** vals)
 	for ( int j = 0; j < num_writes; ++j )
 		{
 		// Note this code is duplicated in Manager::DeleteVals().
-		for ( int i = 0; i < num_fields; i++ )
+		// We need to delete num_fields and + 1 for the span context.
+		for ( int i = 0; i <= num_fields; i++ )
 			delete vals[j][i];
 
 		delete[] vals[j];
@@ -215,6 +221,14 @@ bool WriterBackend::Init(int arg_num_fields, const Field* const* arg_fields)
 
 bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 	{
+	auto span = tracer->StartSpan("WriterBackend::Write");
+	auto scope = tracer->WithActiveSpan(span);
+
+	span->SetAttribute("name", Name());
+	if ( info->path )
+		span->SetAttribute("path", info->path);
+	span->SetAttribute("num_writes", num_writes);
+
 	// Double-check that the arguments match. If we get this from remote,
 	// something might be mixed up.
 	if ( num_fields != arg_num_fields )
@@ -229,6 +243,14 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 		DeleteVals(num_writes, vals);
 		DisableFrontend();
 		return false;
+		}
+
+	std::vector<opentelemetry::nostd::string_view> field_names;
+	for ( int i = 0; i < num_fields; i++ )
+		{
+		auto field = fields[i];
+		auto name = field->TypeName();
+		field_names.push_back(name);
 		}
 
 	// Double-check all the types match.
@@ -257,6 +279,30 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 		{
 		for ( int j = 0; j < num_writes; j++ )
 			{
+			// Manager::RecordToFilterVals puts the span context an extra Value at the end of the
+			// logged fields
+			auto trace_parent_val = vals[j][num_fields];
+			std::string trace_parent = trace_parent_val->val.string_val.data;
+			auto new_context = zeek::trace::ExtractContextFromTraceHeaders(trace_parent, "");
+			auto dowrite_span = zeek::trace::StartSpanForAsync("WriterBackend::DoWrite",
+			                                                   new_context);
+
+			// Use the global tracer so this is always enabled
+			auto dowrite_scope = zeek::trace::tracer->WithActiveSpan(dowrite_span);
+
+			if ( dowrite_span->IsRecording() )
+				{
+				dowrite_span->SetAttribute("name", Name());
+				if ( info->path )
+					dowrite_span->SetAttribute("path", info->path);
+
+				auto formatter = new threading::formatter::JSON(
+					this, threading::formatter::JSON::TS_EPOCH);
+				auto odesc = ODesc();
+				formatter->Describe(&odesc, num_fields, fields, vals[j]);
+				dowrite_span->SetAttribute("record", odesc.Description());
+				}
+
 			success = DoWrite(num_fields, fields, vals[j]);
 
 			if ( ! success )

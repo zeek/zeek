@@ -4,6 +4,7 @@
 
 #include "zeek/RunState.h"
 #include "zeek/Stats.h"
+#include "zeek/Trace.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktDumper.h"
 #include "zeek/packet_analysis/Analyzer.h"
@@ -90,6 +91,9 @@ AnalyzerPtr Manager::GetAnalyzer(const std::string& name)
 
 void Manager::ProcessPacket(Packet* packet)
 	{
+	auto span = zeek::trace::tracer->StartSpan("zeek::packet_analysis::Manager::ProcessPacket");
+	auto scope = zeek::trace::tracer->WithActiveSpan(span);
+
 #ifdef DEBUG
 	static size_t counter = 0;
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analyzing packet %ld, ts=%.3f...", ++counter, packet->time);

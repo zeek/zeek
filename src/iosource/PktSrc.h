@@ -8,6 +8,8 @@
 #include "zeek/iosource/IOSource.h"
 #include "zeek/iosource/Packet.h"
 
+#include "opentelemetry/trace/provider.h"
+
 struct pcap_pkthdr;
 
 namespace zeek::iosource
@@ -204,6 +206,8 @@ public:
 	 * -1 if this should should not be considered.
 	 */
 	virtual double GetNextTimeout() override;
+
+	opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> tracer;
 
 protected:
 	friend class Manager;

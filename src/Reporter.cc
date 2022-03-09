@@ -18,6 +18,7 @@
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
 #include "zeek/Timer.h"
+#include "zeek/Trace.h"
 #include "zeek/file_analysis/File.h"
 #include "zeek/input.h"
 #include "zeek/plugin/Manager.h"
@@ -681,6 +682,10 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 		if ( out )
 			fprintf(out, "%s", s.c_str());
 		}
+
+	auto span = zeek::trace::tracer->GetCurrentSpan();
+	if ( span->IsRecording() )
+		span->AddEvent("DoLog", {{"prefix", prefix}, {"message", buffer}});
 
 	if ( alloced )
 		free(alloced);

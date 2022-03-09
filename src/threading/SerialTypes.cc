@@ -432,6 +432,9 @@ void Value::delete_value_ptr_array(Value** vals, int num_fields)
 	for ( int i = 0; i < num_fields; ++i )
 		delete vals[i];
 
+	// This is the extra one for traceparent
+	delete vals[num_fields];
+
 	delete[] vals;
 	}
 

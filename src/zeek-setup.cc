@@ -17,6 +17,9 @@
 
 #include "zeek/3rdparty/sqlite3.h"
 
+#include "opentelemetry/context/context.h"
+#include "opentelemetry/trace/context.h"
+
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/Anon.h"
@@ -43,6 +46,7 @@
 #include "zeek/Stmt.h"
 #include "zeek/Tag.h"
 #include "zeek/Timer.h"
+#include "zeek/Trace.h"
 #include "zeek/Traverse.h"
 #include "zeek/Trigger.h"
 #include "zeek/Var.h"
@@ -54,6 +58,7 @@
 #include "zeek/input/Manager.h"
 #include "zeek/input/readers/raw/Raw.h"
 #include "zeek/iosource/Manager.h"
+#include "zeek/iosource/PktSrc.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/module_util.h"
 #include "zeek/packet_analysis/Manager.h"
@@ -237,6 +242,9 @@ static bool show_plugins(int level)
 
 static void done_with_network()
 	{
+	auto span = zeek::trace::tracer->StartSpan("done_with_network");
+	auto scope = zeek::trace::tracer->WithActiveSpan(span);
+
 	util::detail::set_processing_status("TERMINATING", "done_with_network");
 
 	// Cancel any pending alarms (watchdog, in particular).
@@ -283,6 +291,9 @@ static void done_with_network()
 
 static void terminate_bro()
 	{
+	auto span = zeek::trace::tracer->StartSpan("terminate_bro");
+	auto scope = zeek::trace::tracer->WithActiveSpan(span);
+
 	util::detail::set_processing_status("TERMINATING", "terminate_bro");
 
 	run_state::terminating = true;
@@ -345,6 +356,8 @@ static void terminate_bro()
 	pop_scope();
 
 	reporter = nullptr;
+	span->End();
+	zeek::trace::EarlyShutdown();
 	}
 
 RETSIGTYPE sig_handler(int signo)
@@ -361,6 +374,7 @@ RETSIGTYPE sig_handler(int signo)
 static void atexit_handler()
 	{
 	util::detail::set_processing_status("TERMINATED", "atexit");
+	zeek::trace::Shutdown();
 	}
 
 static void bro_new_handler()
@@ -406,6 +420,14 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		zeek_argv[i] = util::copy_string(argv[i]);
 
 	auto options = zopts ? *zopts : parse_cmdline(argc, argv);
+
+	zeek::trace::SetupTracing(zeek_argc, zeek_argv);
+
+	opentelemetry::trace::StartSpanOptions span_opts;
+	span_opts.parent = zeek::trace::rootSpan->GetContext();
+
+	auto span = zeek::trace::tracer->StartSpan("setup", span_opts);
+	auto scope = zeek::trace::tracer->WithActiveSpan(span);
 
 	// Set up the global that facilitates access to analysis/optimization
 	// options from deep within some modules.
@@ -967,6 +989,9 @@ namespace run_state::detail
 
 void zeek_terminate_loop(const char* reason)
 	{
+	auto span = tracer->StartSpan("zeek_terminate_loop");
+	auto scope = tracer->WithActiveSpan(span);
+
 	util::detail::set_processing_status("TERMINATING", reason);
 	reporter->Info("%s", reason);
 
@@ -981,6 +1006,8 @@ void zeek_terminate_loop(const char* reason)
 	File::CloseOpenFiles();
 
 	delete zeek::detail::rule_matcher;
+
+	span->End();
 
 	exit(0);
 	}

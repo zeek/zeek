@@ -375,6 +375,10 @@ include_directories(BEFORE
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include/rapidjson
         DESTINATION include/zeek/3rdparty/rapidjson/include)
 
+find_package(opentelemetry-cpp CONFIG REQUIRED)
+find_package(CURL REQUIRED) # COMPONENTS libcurl)
+find_package(Thrift REQUIRED)
+
 # Optional Dependencies
 
 set(USE_GEOIP false)

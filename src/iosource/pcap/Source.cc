@@ -9,6 +9,7 @@
 #endif
 
 #include "zeek/Event.h"
+#include "zeek/Trace.h"
 #include "zeek/iosource/BPF_Program.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/iosource/pcap/pcap.bif.h"
@@ -219,6 +220,11 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 			return false;
 		case 0:
 			// Read from live interface timed out (ok).
+				{
+				auto span = zeek::trace::tracer->GetCurrentSpan();
+				if ( span->IsRecording() )
+					span->AddEvent("PCAP read timed out");
+				}
 			return false;
 		case 1:
 			// Read a packet without problem.

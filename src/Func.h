@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+#include "opentelemetry/trace/provider.h"
+
 #include "zeek/BifReturnVal.h"
 #include "zeek/Obj.h"
 #include "zeek/Scope.h"
@@ -144,6 +146,9 @@ protected:
 	FuncTypePtr type;
 	std::string name;
 	static inline std::vector<FuncPtr> unique_ids;
+
+	const opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span>
+	StartSpan(Args* args, detail::Frame* parent) const;
 	};
 
 namespace detail

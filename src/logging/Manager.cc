@@ -1273,7 +1273,7 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
 #ifdef DEBUG
 		ODesc desc;
 		id->Describe(&desc);
-		DBG_LOG(DBG_LOGGING, "unknown stream %s in Manager::Write()", desc.Description());
+		DBG_LOG(DBG_LOGGING, "unknown stream %s in Manager::WriteFromRemote()", desc.Description());
 #endif
 		DeleteVals(num_fields, vals);
 		return false;
@@ -1294,7 +1294,7 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
 #ifdef DEBUG
 		ODesc desc;
 		id->Describe(&desc);
-		DBG_LOG(DBG_LOGGING, "unknown writer %s in Manager::Write()", desc.Description());
+		DBG_LOG(DBG_LOGGING, "unknown writer %s in Manager::WriteFromRemote()", desc.Description());
 #endif
 		DeleteVals(num_fields, vals);
 		return false;

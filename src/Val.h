@@ -828,10 +828,6 @@ public:
 	// of the given set.
 	bool IsSubsetOf(const TableVal& v) const;
 
-	// Expands any lists in the index into multiple initializations.
-	// Returns true if the initializations typecheck, false if not.
-	bool ExpandAndInit(ValPtr index, ValPtr new_val);
-
 	/**
 	 * Finds an index in the table and returns its associated value.
 	 * @param index  The index to lookup in the table.
@@ -1003,8 +999,6 @@ protected:
 	void RebuildTable(ParseTimeTableState ptts);
 
 	void CheckExpireAttr(detail::AttrTag at);
-	bool ExpandCompoundAndInit(ListVal* lv, int k, ValPtr new_val);
-	bool CheckAndAssign(ValPtr index, ValPtr new_val);
 
 	// Calculates default value for index.  Returns nullptr if none.
 	ValPtr Default(const ValPtr& index);
@@ -1359,18 +1353,16 @@ public:
 	Obj* GetOrigin() const { return origin; }
 
 	// Returns a new value representing the value coerced to the given
-	// type. If coercion is not possible, returns 0. The non-const
+	// type. If coercion is not possible, returns nil. The non-const
 	// version may return the current value ref'ed if its type matches
 	// directly.
 	//
-	// *aggr* is optional; if non-zero, we add to it. See
-	// Expr::InitVal(). We leave it out in the non-const version to make
-	// the choice unambigious.
-	//
 	// The *allow_orphaning* parameter allows for a record to be demoted
 	// down to a record type that contains less fields.
-	RecordValPtr CoerceTo(RecordTypePtr other, RecordValPtr aggr,
-	                      bool allow_orphaning = false) const;
+	RecordValPtr CoerceTo(RecordTypePtr other, bool allow_orphaning = false) const
+		{
+		return DoCoerceTo(other, allow_orphaning);
+		}
 	RecordValPtr CoerceTo(RecordTypePtr other, bool allow_orphaning = false);
 
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
@@ -1389,6 +1381,8 @@ public:
 
 protected:
 	friend class zeek::detail::ZBody;
+
+	RecordValPtr DoCoerceTo(RecordTypePtr other, bool allow_orphaning) const;
 
 	/**
 	 * Appends a value to the record's fields.  The caller is responsible

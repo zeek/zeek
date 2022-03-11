@@ -95,7 +95,7 @@ export {
 	## even if it exposes itself with an alternate name.  The
 	## yielded string is the name that will be logged and generally
 	## used for everything.
-	global alternate_names: table[string] of string {
+	global alternate_names: table[string] of string = {
 		["Flash Player"] = "Flash",
 	} &default=function(a: string): string { return a; };
 

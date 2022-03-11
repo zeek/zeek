@@ -900,7 +900,7 @@ TypePtr merge_types(const TypePtr& t1, const TypePtr& t2);
 TypePtr merge_type_list(detail::ListExpr* elements);
 
 // Given an expression, infer its type when used for an initialization.
-TypePtr init_type(detail::Expr* init);
+TypePtr init_type(const detail::ExprPtr& init);
 
 // Returns true if argument is an atomic type.
 bool is_atomic_type(const Type& t);

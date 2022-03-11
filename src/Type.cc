@@ -2510,26 +2510,85 @@ static Type* reduce_type(Type* t)
 		return t;
 	}
 
-TypePtr init_type(detail::Expr* init)
+static TableTypePtr init_table_type(detail::ListExpr* l)
 	{
-	if ( init->Tag() != detail::EXPR_LIST )
+	auto& elems = l->Exprs();
+	TypePtr index;
+	TypePtr yield;
+
+	for ( auto e : elems )
 		{
-		auto t = init->InitType();
-
-		if ( ! t )
-			return nullptr;
-
-		if ( t->Tag() == TYPE_LIST && t->AsTypeList()->GetTypes().size() != 1 )
+		if ( e->Tag() != detail::EXPR_ASSIGN )
 			{
-			init->Error("list used in scalar initialization");
+			e->Error("table constructor element lacks '=' structure");
 			return nullptr;
 			}
 
-		return t;
+		auto& ind = e->GetOp1()->GetType();
+		auto& y = e->GetOp2()->GetType();
+
+		if ( ! index )
+			{
+			index = ind;
+			yield = y;
+			continue;
+			}
+
+		index = merge_types(index, ind);
+		yield = merge_types(yield, y);
+
+		if ( ! index || ! yield )
+			// Error message already generated.
+			return nullptr;
 		}
 
-	detail::ListExpr* init_list = init->AsListExpr();
-	const ExprPList& el = init_list->Exprs();
+	if ( index->Tag() != TYPE_LIST )
+		return nullptr;
+
+	return make_intrusive<TableType>(cast_intrusive<TypeList>(index), yield);
+	}
+
+static SetTypePtr init_set_type(detail::ListExpr* l)
+	{
+	auto& elems = l->Exprs();
+	TypePtr index;
+
+	for ( auto e : elems )
+		{
+		auto& ind = e->GetType();
+
+		if ( ! index )
+			{
+			index = ind;
+			continue;
+			}
+
+		index = merge_types(index, ind);
+
+		if ( ! index )
+			return nullptr;
+		}
+
+	TypeListPtr ind_list;
+
+	if ( index->Tag() == TYPE_LIST )
+		ind_list = cast_intrusive<TypeList>(index);
+	else
+		{
+		ind_list = make_intrusive<TypeList>(index);
+		ind_list->Append(index);
+		}
+
+	return make_intrusive<SetType>(ind_list, nullptr);
+	}
+
+TypePtr init_type(const detail::ExprPtr& init)
+	{
+	if ( init->Tag() != detail::EXPR_LIST )
+		return init->InitType();
+
+	auto init_list = init->AsListExpr();
+	const auto& el = init_list->Exprs();
 
 	if ( el.length() == 0 )
 		{
@@ -2538,58 +2597,16 @@ TypePtr init_type(detail::Expr* init)
 		}
 
 	// Could be a record, a set, or a list of table elements.
-	detail::Expr* e0 = el[0];
+	auto e0 = el[0];
 
 	if ( e0->IsRecordElement(nullptr) )
-		// ListExpr's know how to build a record from their
-		// components.
+		// ListExpr's know how to build a record from their components.
 		return init_list->InitType();
 
-	auto t = e0->InitType();
-
-	if ( t )
-		t = {NewRef{}, reduce_type(t.get())};
-
-	if ( ! t )
-		return nullptr;
-
-	for ( int i = 1; t && i < el.length(); ++i )
-		{
-		auto el_t = el[i]->InitType();
-		TypePtr ti;
-
-		if ( el_t )
-			ti = {NewRef{}, reduce_type(el_t.get())};
-
-		if ( ! ti )
-			return nullptr;
-
-		if ( same_type(t, ti) )
-			continue;
-
-		t = merge_types(t, ti);
-		}
-
-	if ( ! t )
-		{
-		init->Error("type error in initialization");
-		return nullptr;
-		}
-
-	if ( t->Tag() == TYPE_TABLE && ! t->AsTableType()->IsSet() )
-		// A list of table elements.
-		return t;
-
-	// A set.  If the index type isn't yet a type list, make
-	// it one, as that's what's required for creating a set type.
-	if ( t->Tag() != TYPE_LIST )
-		{
-		auto tl = make_intrusive<TypeList>(t);
-		tl->Append(std::move(t));
-		t = std::move(tl);
-		}
-
-	return make_intrusive<SetType>(cast_intrusive<TypeList>(std::move(t)), nullptr);
+	if ( e0->Tag() == detail::EXPR_ASSIGN )
+		return init_table_type(init_list);
+	else
+		return init_set_type(init_list);
 	}
 
 bool is_atomic_type(const Type& t)

@@ -35,7 +35,7 @@ global matched_software: table[string] of Software::Description = {
 	["curl/7.15.1 (i486-pc-linux-gnu) libcurl/7.15.1 OpenSSL/0.9.8a zlib/1.2.3 libidn/0.5.18"] =
 		[$name="curl", $version=[$major=7,$minor=15,$minor2=1,$addl="i486-pc-linux-gnu"], $unparsed_version=""],
 	["Apache"] = 
-		[$name="Apache", $unparsed_version=""],
+		[$name="Apache", $version=[], $unparsed_version=""],
 	["Zope/(Zope 2.7.8-final, python 2.3.5, darwin) ZServer/1.1 Plone/Unknown"] =
 		[$name="Zope/(Zope", $version=[$major=2,$minor=7,$minor2=8,$addl="final"], $unparsed_version=""],
 	["The Bat! (v2.00.9) Personal"] =

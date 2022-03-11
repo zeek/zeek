@@ -5,4 +5,9 @@
 
 global asdfasdf;
 const blah = [$ports=asdfasdf];
-print blah;
+const x = blah;
+
+global asdfasdf2: port;
+const blah2 = [$ports=asdfasdf2];
+
+print blah, blah2;

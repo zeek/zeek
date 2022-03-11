@@ -1,4 +1,5 @@
 # @TEST-EXEC: zeek -b %INPUT >out
+# @TEST-EXEC: btest-diff .stderr
 # @TEST-EXEC: btest-diff out
 
 const my_table: table[subnet] of subnet &redef;

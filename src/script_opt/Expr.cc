@@ -881,40 +881,77 @@ ExprPtr AddToExpr::Duplicate()
 	return SetSucc(new AddToExpr(op1_d, op2_d));
 	}
 
+bool AddToExpr::IsReduced(Reducer* c) const
+	{
+	auto t = op1->GetType();
+	auto tag = t->Tag();
+
+	if ( tag == TYPE_PATTERN )
+		return op1->HasReducedOps(c) && op2->IsReduced(c);
+
+	if ( tag == TYPE_TABLE )
+		return op1->IsReduced(c) && op2->IsReduced(c);
+
+	if ( tag == TYPE_VECTOR && same_type(t, op2->GetType()) )
+		return op1->IsReduced(c) && op2->IsReduced(c);
+
+	return NonReduced(this);
+	}
+
 ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	{
-	if ( IsVector(op1->GetType()->Tag()) )
+	auto tag = op1->GetType()->Tag();
+
+	switch ( tag )
 		{
-		StmtPtr red_stmt1;
-		StmtPtr red_stmt2;
+		case TYPE_PATTERN:
+		case TYPE_TABLE:
+		case TYPE_VECTOR:
+			{
+			StmtPtr red_stmt1;
+			StmtPtr red_stmt2;
 
-		if ( op1->Tag() == EXPR_FIELD )
-			red_stmt1 = op1->ReduceToSingletons(c);
-		else
-			op1 = op1->Reduce(c, red_stmt1);
+			if ( tag == TYPE_PATTERN && op1->Tag() == EXPR_FIELD )
+				red_stmt1 = op1->ReduceToSingletons(c);
+			else
+				op1 = op1->Reduce(c, red_stmt1);
 
-		op2 = op2->Reduce(c, red_stmt2);
+			auto& t = op1->GetType();
+			op2 = op2->Reduce(c, red_stmt2);
 
-		auto append = make_intrusive<AppendToExpr>(op1->Duplicate(), op2);
-		append->SetOriginal(ThisPtr());
+			red_stmt = MergeStmts(red_stmt1, red_stmt2);
 
-		auto append_stmt = make_intrusive<ExprStmt>(append);
+			if ( tag == TYPE_VECTOR && ! same_type(t, op2->GetType()) )
+				{
+				auto append = make_intrusive<AppendToExpr>(op1->Duplicate(), op2);
+				append->SetOriginal(ThisPtr());
 
-		red_stmt = MergeStmts(red_stmt1, red_stmt2, append_stmt);
+				auto append_stmt = make_intrusive<ExprStmt>(append);
 
-		return op1;
+				red_stmt = MergeStmts(red_stmt, append_stmt);
+
+				return op1;
+				}
+
+			return ThisPtr();
+			}
+
+		default:
+			{
+			auto rhs = op1->AsRefExprPtr()->GetOp1();
+			auto do_incr = make_intrusive<AddExpr>(rhs->Duplicate(), op2);
+			auto assign = make_intrusive<AssignExpr>(op1, do_incr, false, nullptr, nullptr, false);
+
+			return assign->ReduceToSingleton(c, red_stmt);
+			}
 		}
+	}
 
-	else
-		{
-		// We could do an ASSERT that op1 is an EXPR_REF, but
-		// the following is basically equivalent.
-		auto rhs = op1->AsRefExprPtr()->GetOp1();
-		auto do_incr = make_intrusive<AddExpr>(rhs->Duplicate(), op2);
-		auto assign = make_intrusive<AssignExpr>(op1, do_incr, false, nullptr, nullptr, false);
-
-		return assign->ReduceToSingleton(c, red_stmt);
-		}
+ExprPtr AddToExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
+	{
+	auto at_stmt = make_intrusive<ExprStmt>(Duplicate());
+	red_stmt = at_stmt->Reduce(c);
+	return op1;
 	}
 
 ExprPtr SubExpr::Duplicate()
@@ -972,13 +1009,41 @@ ExprPtr RemoveFromExpr::Duplicate()
 	return SetSucc(new RemoveFromExpr(op1_d, op2_d));
 	}
 
+bool RemoveFromExpr::IsReduced(Reducer* c) const
+	{
+	if ( op1->GetType()->Tag() == TYPE_TABLE )
+		return op1->IsReduced(c) && op2->IsReduced(c);
+
+	return NonReduced(this);
+	}
+
 ExprPtr RemoveFromExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	{
-	auto rhs = op1->AsRefExprPtr()->GetOp1();
-	auto do_decr = make_intrusive<SubExpr>(rhs->Duplicate(), op2);
+	if ( op1->GetType()->Tag() == TYPE_TABLE )
+		{
+		StmtPtr red_stmt1;
+		StmtPtr red_stmt2;
+
+		op1 = op1->Reduce(c, red_stmt1);
+		op2 = op2->Reduce(c, red_stmt2);
+
+		red_stmt = MergeStmts(red_stmt1, red_stmt2);
+
+		return ThisPtr();
+		}
+
+	auto lhs = op1->AsRefExprPtr()->GetOp1();
+	auto do_decr = make_intrusive<SubExpr>(lhs->Duplicate(), op2);
 	auto assign = make_intrusive<AssignExpr>(op1, do_decr, false, nullptr, nullptr, false);
 
 	return assign->Reduce(c, red_stmt);
+	}
+
+ExprPtr RemoveFromExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
+	{
+	auto rf_stmt = make_intrusive<ExprStmt>(Duplicate());
+	red_stmt = rf_stmt->Reduce(c);
+	return op1;
 	}
 
 ExprPtr TimesExpr::Duplicate()
@@ -2674,6 +2739,13 @@ ExprPtr AppendToExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		}
 
 	return ThisPtr();
+	}
+
+ExprPtr AppendToExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
+	{
+	auto at_stmt = make_intrusive<ExprStmt>(Duplicate());
+	red_stmt = at_stmt->Reduce(c);
+	return op1->AsRefExprPtr()->GetOp1();
 	}
 
 IndexAssignExpr::IndexAssignExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)

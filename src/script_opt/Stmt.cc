@@ -161,7 +161,8 @@ StmtPtr ExprStmt::DoReduce(Reducer* c)
 		return TransformMe(make_intrusive<NullStmt>(), c);
 
 	if ( (t == EXPR_ASSIGN || t == EXPR_CALL || t == EXPR_INDEX_ASSIGN ||
-	      t == EXPR_FIELD_LHS_ASSIGN || t == EXPR_APPEND_TO) &&
+	      t == EXPR_FIELD_LHS_ASSIGN || t == EXPR_APPEND_TO || t == EXPR_ADD_TO ||
+	      t == EXPR_REMOVE_FROM) &&
 	     e->IsReduced(c) )
 		return ThisPtr();
 

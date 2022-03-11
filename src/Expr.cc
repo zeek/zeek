@@ -28,16 +28,6 @@
 namespace zeek::detail
 	{
 
-static bool init_tag_check(const Expr* expr, const char* name, TypeTag expect_tag, TypeTag init_tag)
-	{
-	if ( expect_tag == init_tag )
-		return true;
-
-	auto msg = util::fmt("unexpected use of %s in '%s' initialization", name, type_name(init_tag));
-	expr->Error(msg);
-	return false;
-	}
-
 const char* expr_name(BroExprTag t)
 	{
 	static const char* expr_names[int(NUM_EXPRS)] = {
@@ -265,11 +255,6 @@ bool Expr::InvertSense()
 	return false;
 	}
 
-void Expr::EvalIntoAggregate(const TypePtr& /* t */, ValPtr /* aggr */, Frame* /* f */) const
-	{
-	Internal("Expr::EvalIntoAggregate called");
-	}
-
 void Expr::Assign(Frame* /* f */, ValPtr /* v */)
 	{
 	Internal("Expr::Assign called");
@@ -411,25 +396,6 @@ TypePtr Expr::InitType() const
 bool Expr::IsRecordElement(TypeDecl* /* td */) const
 	{
 	return false;
-	}
-
-bool Expr::IsPure() const
-	{
-	return true;
-	}
-
-ValPtr Expr::InitVal(const TypePtr& t, ValPtr aggr) const
-	{
-	if ( aggr )
-		{
-		Error("bad initializer");
-		return nullptr;
-		}
-
-	if ( IsError() )
-		return nullptr;
-
-	return check_and_promote(Eval(nullptr), t, true);
 	}
 
 bool Expr::IsError() const
@@ -582,11 +548,6 @@ void NameExpr::Assign(Frame* f, ValPtr v)
 		id->SetVal(std::move(v));
 	else
 		f->SetElement(id, std::move(v));
-	}
-
-bool NameExpr::IsPure() const
-	{
-	return id->IsConst();
 	}
 
 TraversalCode NameExpr::Traverse(TraversalCallback* cb) const
@@ -840,16 +801,27 @@ void BinaryExpr::ExprDescribe(ODesc* d) const
 
 ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 	{
-	InternalTypeTag it = v1->GetType()->InternalType();
+	auto& t1 = v1->GetType();
+	InternalTypeTag it = t1->InternalType();
 
 	if ( it == TYPE_INTERNAL_STRING )
 		return StringFold(v1, v2);
 
-	if ( v1->GetType()->Tag() == TYPE_PATTERN )
+	if ( t1->Tag() == TYPE_PATTERN )
 		return PatternFold(v1, v2);
 
-	if ( v1->GetType()->IsSet() )
+	if ( t1->IsSet() )
 		return SetFold(v1, v2);
+
+	if ( t1->IsTable() )
+		return TableFold(v1, v2);
+
+	if ( t1->Tag() == TYPE_VECTOR )
+		{
+		// We only get here when using a matching vector on the RHS.
+		v2->AsVectorVal()->AddTo(v1, false);
+		return {NewRef{}, v1};
+		}
 
 	if ( it == TYPE_INTERNAL_ADDR )
 		return AddrFold(v1, v2);
@@ -1145,12 +1117,52 @@ ValPtr BinaryExpr::SetFold(Val* v1, Val* v2) const
 			reporter->InternalError("confusion over canonicalization in set comparison");
 			break;
 
+		case EXPR_ADD_TO:
+			// Avoid doing the AddTo operation if tv2 is empty,
+			// because then it might not type-check for trivial
+			// reasons.
+			if ( tv2->Size() > 0 )
+				tv2->AddTo(tv1, false);
+			return {NewRef{}, tv1};
+
+		case EXPR_REMOVE_FROM:
+			if ( tv2->Size() > 0 )
+				tv2->RemoveFrom(tv1);
+			return {NewRef{}, tv1};
+
 		default:
 			BadTag("BinaryExpr::SetFold", expr_name(tag));
 			return nullptr;
 		}
 
 	return val_mgr->Bool(res);
+	}
+
+ValPtr BinaryExpr::TableFold(Val* v1, Val* v2) const
+	{
+	TableVal* tv1 = v1->AsTableVal();
+	TableVal* tv2 = v2->AsTableVal();
+
+	switch ( tag )
+		{
+		case EXPR_ADD_TO:
+			// Avoid doing the AddTo operation if tv2 is empty,
+			// because then it might not type-check for trivial
+			// reasons.
+			if ( tv2->Size() > 0 )
+				tv2->AddTo(tv1, false);
+			return {NewRef{}, tv1};
+
+		case EXPR_REMOVE_FROM:
+			if ( tv2->Size() > 0 )
+				tv2->RemoveFrom(tv1);
+			return {NewRef{}, tv1};
+
+		default:
+			BadTag("BinaryExpr::TableFold", expr_name(tag));
+		}
+
+	return nullptr;
 	}
 
 ValPtr BinaryExpr::AddrFold(Val* v1, Val* v2) const
@@ -1267,6 +1279,90 @@ void BinaryExpr::CheckScalarAggOp() const
 		}
 	}
 
+bool BinaryExpr::CheckForRHSList()
+	{
+	if ( op2->Tag() != EXPR_LIST )
+		return false;
+
+	auto lhs_t = op1->GetType();
+	auto rhs = cast_intrusive<ListExpr>(op2);
+	auto& rhs_exprs = rhs->Exprs();
+
+	if ( lhs_t->Tag() == TYPE_TABLE )
+		{
+		if ( lhs_t->IsSet() && rhs_exprs.size() >= 1 && same_type(lhs_t, rhs_exprs[0]->GetType()) )
+			{
+			// This is potentially the idiom of "set1 += { set2 }"
+			// or "set1 += { set2, set3, set4 }".
+			op2 = {NewRef{}, rhs_exprs[0]};
+
+			for ( auto i = 1U; i < rhs_exprs.size(); ++i )
+				{
+				ExprPtr re_i = {NewRef{}, rhs_exprs[i]};
+				op2 = make_intrusive<BitExpr>(EXPR_OR, op2, re_i);
+				}
+
+			SetType(op1->GetType());
+
+			return true;
+			}
+
+		if ( lhs_t->IsTable() && rhs_exprs.size() == 1 &&
+		     same_type(lhs_t, rhs_exprs[0]->GetType()) )
+			{
+			// This is the idiom of "table1 += { table2 }" (or -=).
+			// Unlike for sets we don't allow more than one table
+			// in the RHS list because table "union" isn't
+			// well-defined.
+			op2 = {NewRef{}, rhs_exprs[0]};
+			SetType(op1->GetType());
+
+			return true;
+			}
+
+		if ( lhs_t->IsTable() )
+			op2 = make_intrusive<TableConstructorExpr>(rhs, nullptr, lhs_t);
+		else
+			op2 = make_intrusive<SetConstructorExpr>(rhs, nullptr, lhs_t);
+		}
+
+	else if ( lhs_t->Tag() == TYPE_VECTOR )
+		{
+		if ( tag == EXPR_REMOVE_FROM )
+			{
+			ExprError("constructor list not allowed for -= operations on vectors");
+			return false;
+			}
+
+		op2 = make_intrusive<VectorConstructorExpr>(rhs, lhs_t);
+		}
+
+	else
+		{
+		ExprError("invalid constructor list on RHS of assignment");
+		return false;
+		}
+
+	if ( op2->IsError() )
+		{
+		// Message should have already been generated, but propagate.
+		SetError();
+		return false;
+		}
+
+	// Don't bother type-checking for the degenerate case of the RHS
+	// being empty, since it won't actually matter.
+	if ( ! rhs_exprs.empty() && ! same_type(op1->GetType(), op2->GetType()) )
+		{
+		ExprError("type clash for constructor list on RHS of assignment");
+		return false;
+		}
+
+	SetType(op1->GetType());
+
+	return true;
+	}
+
 CloneExpr::CloneExpr(ExprPtr arg_op) : UnaryExpr(EXPR_CLONE, std::move(arg_op))
 	{
 	if ( IsError() )
@@ -1366,11 +1462,6 @@ ValPtr IncrExpr::Eval(Frame* f) const
 		op->Assign(f, new_v);
 		return new_v;
 		}
-	}
-
-bool IncrExpr::IsPure() const
-	{
-	return false;
 	}
 
 ComplementExpr::ComplementExpr(ExprPtr arg_op) : UnaryExpr(EXPR_COMPLEMENT, std::move(arg_op))
@@ -1558,23 +1649,54 @@ void AddExpr::Canonicize()
 	}
 
 AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
-	: BinaryExpr(EXPR_ADD_TO, is_vector(arg_op1) ? std::move(arg_op1) : arg_op1->MakeLvalue(),
-                 std::move(arg_op2))
+	: BinaryExpr(EXPR_ADD_TO, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->GetType()->Tag();
-	TypeTag bt2 = op2->GetType()->Tag();
+	auto& t1 = op1->GetType();
+	auto& t2 = op2->GetType();
+	TypeTag bt1 = t1->Tag();
+	TypeTag bt2 = t2->Tag();
+
+	if ( bt1 != TYPE_TABLE && bt1 != TYPE_VECTOR && bt1 != TYPE_PATTERN )
+		op1 = op1->MakeLvalue();
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 	else if ( BothString(bt1, bt2) || BothInterval(bt1, bt2) )
 		SetType(base_type(bt1));
 
+	else if ( bt2 == TYPE_LIST )
+		(void)CheckForRHSList();
+
+	else if ( bt1 == TYPE_TABLE )
+		{
+		if ( same_type(t1, t2) )
+			SetType(t1);
+		else
+			ExprError("RHS type mismatch for table/set +=");
+		}
+
+	else if ( bt1 == TYPE_PATTERN )
+		{
+		if ( bt2 != TYPE_PATTERN )
+			ExprError("pattern += op requires op to be a pattern");
+		else
+			SetType(t1);
+		}
+
 	else if ( IsVector(bt1) )
 		{
-		bt1 = op1->GetType()->AsVectorType()->Yield()->Tag();
+		if ( same_type(t1, t2) )
+			{
+			SetType(t1);
+			return;
+			}
+
+		is_vector_elem_append = true;
+
+		bt1 = t1->AsVectorType()->Yield()->Tag();
 
 		if ( IsArithmetic(bt1) )
 			{
@@ -1583,7 +1705,7 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 				if ( bt2 != bt1 )
 					op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), bt1);
 
-				SetType(op1->GetType());
+				SetType(t1);
 				}
 
 			else
@@ -1595,7 +1717,7 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 				util::fmt("incompatible vector append: %s and %s", type_name(bt1), type_name(bt2)));
 
 		else
-			SetType(op1->GetType());
+			SetType(t1);
 		}
 
 	else
@@ -1614,13 +1736,19 @@ ValPtr AddToExpr::Eval(Frame* f) const
 	if ( ! v2 )
 		return nullptr;
 
-	if ( is_vector(v1) )
+	if ( is_vector_elem_append )
 		{
 		VectorVal* vv = v1->AsVectorVal();
 
 		if ( ! vv->Assign(vv->Size(), v2) )
 			RuntimeError("type-checking failed in vector append");
 
+		return v1;
+		}
+
+	if ( type->Tag() == TYPE_PATTERN )
+		{
+		v2->AddTo(v1.get(), false);
 		return v1;
 		}
 
@@ -1684,18 +1812,35 @@ SubExpr::SubExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	}
 
 RemoveFromExpr::RemoveFromExpr(ExprPtr arg_op1, ExprPtr arg_op2)
-	: BinaryExpr(EXPR_REMOVE_FROM, arg_op1->MakeLvalue(), std::move(arg_op2))
+	: BinaryExpr(EXPR_REMOVE_FROM, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->GetType()->Tag();
-	TypeTag bt2 = op2->GetType()->Tag();
+	auto& t1 = op1->GetType();
+	auto& t2 = op2->GetType();
+	TypeTag bt1 = t1->Tag();
+	TypeTag bt2 = t2->Tag();
+
+	if ( bt1 != TYPE_TABLE )
+		op1 = op1->MakeLvalue();
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 	else if ( BothInterval(bt1, bt2) )
 		SetType(base_type(bt1));
+
+	else if ( bt2 == TYPE_LIST )
+		(void)CheckForRHSList();
+
+	else if ( bt1 == TYPE_TABLE )
+		{
+		if ( same_type(t1, t2) )
+			SetType(t1);
+		else
+			ExprError("RHS type mismatch for table/set -=");
+		}
+
 	else
 		ExprError("requires two arithmetic operands");
 	}
@@ -2451,7 +2596,15 @@ AssignExpr::AssignExpr(ExprPtr arg_op1, ExprPtr arg_op2, bool arg_is_init, ValPt
 		return;
 		}
 
-	if ( typecheck )
+	if ( op2->Tag() == EXPR_LIST && CheckForRHSList() )
+		{
+		if ( op2->Tag() == EXPR_TABLE_CONSTRUCTOR )
+			cast_intrusive<TableConstructorExpr>(op2)->SetAttrs(attrs);
+		else if ( op2->Tag() == EXPR_SET_CONSTRUCTOR )
+			cast_intrusive<SetConstructorExpr>(op2)->SetAttrs(attrs);
+		}
+
+	else if ( typecheck )
 		// We discard the status from TypeCheck since it has already
 		// generated error messages.
 		(void)TypeCheck(attrs);
@@ -2493,25 +2646,6 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 		return true;
 		}
 
-	if ( bt1 == TYPE_TABLE && op2->Tag() == EXPR_LIST )
-		{
-		std::unique_ptr<std::vector<AttrPtr>> attr_copy;
-
-		if ( attrs )
-			attr_copy = std::make_unique<std::vector<AttrPtr>>(attrs->GetAttrs());
-
-		if ( op1->GetType()->IsSet() )
-			op2 = make_intrusive<SetConstructorExpr>(cast_intrusive<ListExpr>(op2),
-			                                         std::move(attr_copy), op1->GetType());
-		else
-			op2 = make_intrusive<TableConstructorExpr>(cast_intrusive<ListExpr>(op2),
-			                                           std::move(attr_copy), op1->GetType());
-
-		// The constructor expressions are performing the type
-		// checking and will set op2 to an error state on failure.
-		return ! op2->IsError();
-		}
-
 	if ( bt1 == TYPE_VECTOR )
 		{
 		if ( bt2 == bt1 && op2->GetType()->AsVectorType()->IsUnspecifiedVector() )
@@ -2522,8 +2656,8 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 
 		if ( op2->Tag() == EXPR_LIST )
 			{
-			op2 = make_intrusive<VectorConstructorExpr>(
-				IntrusivePtr{AdoptRef{}, op2.release()->AsListExpr()}, op1->GetType());
+			op2 = make_intrusive<VectorConstructorExpr>(cast_intrusive<ListExpr>(op2),
+			                                            op1->GetType());
 			return true;
 			}
 		}
@@ -2555,7 +2689,7 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 					return false;
 					}
 
-				ListExpr* ctor_list = dynamic_cast<ListExpr*>(sce->Op());
+				auto ctor_list = cast_intrusive<ListExpr>(sce->GetOp1());
 
 				if ( ! ctor_list )
 					{
@@ -2572,8 +2706,8 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 					}
 
 				int errors_before = reporter->Errors();
-				op2 = make_intrusive<SetConstructorExpr>(IntrusivePtr{NewRef{}, ctor_list},
-				                                         std::move(attr_copy), op1->GetType());
+				op2 = make_intrusive<SetConstructorExpr>(ctor_list, std::move(attr_copy),
+				                                         op1->GetType());
 				int errors_after = reporter->Errors();
 
 				if ( errors_after > errors_before )
@@ -2669,163 +2803,6 @@ TypePtr AssignExpr::InitType() const
 	return make_intrusive<TableType>(IntrusivePtr{NewRef{}, tl->AsTypeList()}, op2->GetType());
 	}
 
-void AssignExpr::EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const
-	{
-	if ( IsError() )
-		return;
-
-	TypeDecl td;
-
-	if ( IsRecordElement(&td) )
-		{
-		if ( t->Tag() != TYPE_RECORD )
-			{
-			RuntimeError("not a record initializer");
-			return;
-			}
-
-		const RecordType* rt = t->AsRecordType();
-		int field = rt->FieldOffset(td.id);
-
-		if ( field < 0 )
-			{
-			RuntimeError("no such field");
-			return;
-			}
-
-		RecordVal* aggr_r = aggr->AsRecordVal();
-
-		auto v = op2->Eval(f);
-
-		if ( v )
-			aggr_r->Assign(field, std::move(v));
-
-		return;
-		}
-
-	if ( op1->Tag() != EXPR_LIST )
-		RuntimeError("bad table insertion");
-
-	TableVal* tv = aggr->AsTableVal();
-
-	auto index = op1->Eval(f);
-	auto v = check_and_promote(op2->Eval(f), t->Yield(), true);
-
-	if ( ! index || ! v )
-		return;
-
-	if ( ! tv->Assign(std::move(index), std::move(v)) )
-		RuntimeError("type clash in table assignment");
-	}
-
-ValPtr AssignExpr::InitVal(const TypePtr& t, ValPtr aggr) const
-	{
-	if ( ! aggr )
-		{
-		Error("assignment in initialization");
-		return nullptr;
-		}
-
-	if ( IsError() )
-		return nullptr;
-
-	TypeDecl td;
-
-	if ( IsRecordElement(&td) )
-		{
-		if ( t->Tag() != TYPE_RECORD )
-			{
-			Error("not a record initializer", t.get());
-			return nullptr;
-			}
-
-		const RecordType* rt = t->AsRecordType();
-		int field = rt->FieldOffset(td.id);
-
-		if ( field < 0 )
-			{
-			Error("no such field");
-			return nullptr;
-			}
-
-		if ( aggr->GetType()->Tag() != TYPE_RECORD )
-			Internal("bad aggregate in AssignExpr::InitVal");
-
-		RecordVal* aggr_r = aggr->AsRecordVal();
-
-		auto v = op2->InitVal(rt->GetFieldType(td.id), nullptr);
-
-		if ( ! v )
-			return nullptr;
-
-		aggr_r->Assign(field, v);
-		return v;
-		}
-
-	else if ( op1->Tag() == EXPR_LIST )
-		{
-		if ( t->Tag() != TYPE_TABLE )
-			{
-			Error("not a table initialization", t.get());
-			return nullptr;
-			}
-
-		if ( aggr->GetType()->Tag() != TYPE_TABLE )
-			Internal("bad aggregate in AssignExpr::InitVal");
-
-		auto tv = cast_intrusive<TableVal>(std::move(aggr));
-		const TableType* tt = tv->GetType()->AsTableType();
-		const auto& yt = tv->GetType()->Yield();
-
-		auto index = op1->InitVal(tt->GetIndices(), nullptr);
-
-		if ( yt->Tag() == TYPE_RECORD )
-			{
-			if ( op2->GetType()->Tag() != TYPE_RECORD )
-				{
-				Error(util::fmt("type mismatch in table value initialization: "
-				                "assigning '%s' to table with values of type '%s'",
-				                type_name(op2->GetType()->Tag()), type_name(yt->Tag())));
-				return nullptr;
-				}
-
-			if ( ! same_type(*yt, *op2->GetType()) &&
-			     ! record_promotion_compatible(yt->AsRecordType(), op2->GetType()->AsRecordType()) )
-				{
-				Error("type mismatch in table value initialization: "
-				      "incompatible record types");
-				return nullptr;
-				}
-			}
-		else
-			{
-			if ( ! same_type(*yt, *op2->GetType(), true) )
-				{
-				Error(util::fmt("type mismatch in table value initialization: "
-				                "assigning '%s' to table with values of type '%s'",
-				                type_name(op2->GetType()->Tag()), type_name(yt->Tag())));
-				return nullptr;
-				}
-			}
-
-		auto v = op2->InitVal(yt, nullptr);
-
-		if ( ! index || ! v )
-			return nullptr;
-
-		if ( ! tv->ExpandAndInit(std::move(index), std::move(v)) )
-			return nullptr;
-
-		return tv;
-		}
-
-	else
-		{
-		Error("illegal initializer");
-		return nullptr;
-		}
-	}
-
 bool AssignExpr::IsRecordElement(TypeDecl* td) const
 	{
 	if ( op1->Tag() == EXPR_NAME )
@@ -2840,11 +2817,6 @@ bool AssignExpr::IsRecordElement(TypeDecl* td) const
 		return true;
 		}
 
-	return false;
-	}
-
-bool AssignExpr::IsPure() const
-	{
 	return false;
 	}
 
@@ -3427,34 +3399,6 @@ RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr
 			}
 	}
 
-ValPtr RecordConstructorExpr::InitVal(const TypePtr& t, ValPtr aggr) const
-	{
-	if ( IsError() )
-		{
-		Error("bad record initializer");
-		return nullptr;
-		}
-
-	if ( ! init_tag_check(this, "record constructor", TYPE_RECORD, t->Tag()) )
-		return nullptr;
-
-	auto v = Eval(nullptr);
-
-	if ( v )
-		{
-		RecordVal* rv = v->AsRecordVal();
-		RecordTypePtr rt{NewRef{}, t->AsRecordType()};
-		auto aggr_rec = cast_intrusive<RecordVal>(std::move(aggr));
-		auto ar = rv->CoerceTo(std::move(rt), std::move(aggr_rec));
-
-		if ( ar )
-			return ar;
-		}
-
-	Error("bad record initializer");
-	return nullptr;
-	}
-
 ValPtr RecordConstructorExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
@@ -3522,10 +3466,161 @@ TraversalCode RecordConstructorExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
+static ExprPtr expand_one_elem(const ExprPList& index_exprs, ExprPtr yield, ExprPtr elem,
+                               int elem_offset)
+	{
+	auto expanded_elem = make_intrusive<ListExpr>();
+
+	for ( int i = 0; i < index_exprs.length(); ++i )
+		if ( i == elem_offset )
+			expanded_elem->Append(elem);
+		else
+			expanded_elem->Append({NewRef{}, index_exprs[i]});
+
+	if ( yield )
+		return make_intrusive<AssignExpr>(expanded_elem, yield, true);
+	else
+		return expanded_elem;
+	}
+
+static bool expand_op_elem(ListExprPtr elems, ExprPtr elem, TypePtr t)
+	{
+	ExprPtr index;
+	ExprPtr yield;
+
+	if ( elem->Tag() == EXPR_ASSIGN )
+		{
+		if ( t )
+			{
+			if ( ! t->IsTable() )
+				{
+				elem->Error("table constructor used in a non-table context");
+				return false;
+				}
+
+			t = t->AsTableType()->GetIndices();
+			}
+
+		index = elem->GetOp1();
+		yield = elem->GetOp2();
+		}
+	else
+		index = elem; // this is a set - no yield
+
+	// If the index isn't a list, then there's nothing to consider
+	// expanding.
+	if ( index->Tag() != EXPR_LIST )
+		{
+		elems->Append(elem);
+		return false;
+		}
+
+	// Look inside the index for any sub-lists or sets, and expand those.
+	// There might be more than one, but we'll pick that up recursively
+	// later.
+	auto& index_exprs = index->AsListExpr()->Exprs();
+	int index_n = index_exprs.length();
+	int list_offset = -1;
+	int set_offset = -1;
+	for ( int i = 0; i < index_n; ++i )
+		{
+		auto& ie_i = index_exprs[i];
+
+		if ( ie_i->Tag() == EXPR_LIST )
+			{
+			list_offset = i;
+			break;
+			}
+
+		if ( ie_i->GetType()->IsSet() )
+			{
+			// Check for this set corresponding to what's expected
+			// in this location, in which case it shouldn't be
+			// expanded.
+			const TypeList* tl = nullptr;
+			if ( t && t->Tag() == TYPE_LIST )
+				tl = t->AsTypeList();
+
+			// So we're good-to-go in expanding if either
+			// (1) we weren't given a type, or it's not a list,
+			// or (2) it's a list, but doesn't correspond in
+			// length to the list of expressions, or (3) it does
+			// but its corresponding element at this position
+			// doesn't have the same type as this set.
+			if ( ! tl || static_cast<int>(tl->GetTypes().size()) != index_n ||
+			     ! same_type(tl->GetTypes()[i], ie_i->GetType()) )
+				{
+				set_offset = i;
+				break;
+				}
+			}
+		}
+
+	if ( set_offset >= 0 )
+		{ // expand the set
+		auto s_e = index_exprs[set_offset];
+		auto v = s_e->Eval(nullptr);
+		if ( ! v )
+			{
+			s_e->Error(
+				"cannot expand constructor elements using a value that depends on local variables");
+			elems->SetError();
+			return false;
+			}
+
+		for ( auto& s_elem : v->AsTableVal()->ToMap() )
+			{
+			auto c_elem = make_intrusive<ConstExpr>(s_elem.first);
+			elems->Append(expand_one_elem(index_exprs, yield, c_elem, set_offset));
+			}
+
+		return true;
+		}
+
+	if ( list_offset < 0 )
+		{ // No embedded lists.
+		elems->Append(elem);
+		return false;
+		}
+
+	// Expand the identified list.
+	auto sub_list = index_exprs[list_offset]->AsListExpr();
+	for ( auto& sub_list_i : sub_list->Exprs() )
+		{
+		ExprPtr e = {NewRef{}, sub_list_i};
+		elems->Append(expand_one_elem(index_exprs, yield, e, list_offset));
+		}
+
+	return true;
+	}
+
+ListExprPtr expand_op(ListExprPtr op, const TypePtr& t)
+	{
+	auto new_list = make_intrusive<ListExpr>();
+	bool did_expansion = false;
+
+	for ( auto e : op->Exprs() )
+		{
+		if ( expand_op_elem(new_list, {NewRef{}, e}, t) )
+			did_expansion = true;
+
+		if ( new_list->IsError() )
+			{
+			op->SetError();
+			return op;
+			}
+		}
+
+	if ( did_expansion )
+		return expand_op(new_list, t);
+	else
+		return op;
+	}
+
 TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
                                            std::unique_ptr<std::vector<AttrPtr>> arg_attrs,
                                            TypePtr arg_type, AttributesPtr arg_attrs2)
-	: UnaryExpr(EXPR_TABLE_CONSTRUCTOR, std::move(constructor_list))
+	: UnaryExpr(EXPR_TABLE_CONSTRUCTOR, expand_op(constructor_list, arg_type))
 	{
 	if ( IsError() )
 		return;
@@ -3548,7 +3643,7 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 				make_intrusive<TableType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
 		else
 			{
-			SetType(init_type(op.get()));
+			SetType(init_type(op));
 
 			if ( ! type )
 				{
@@ -3557,14 +3652,17 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 				}
 
 			else if ( type->Tag() != TYPE_TABLE || type->AsTableType()->IsSet() )
+				{
 				SetError("values in table(...) constructor do not specify a table");
+				return;
+				}
 			}
 		}
 
 	if ( arg_attrs )
-		attrs = make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false);
+		SetAttrs(make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false));
 	else
-		attrs = arg_attrs2;
+		SetAttrs(arg_attrs2);
 
 	const auto& indices = type->AsTableType()->GetIndices()->GetTypes();
 	const ExprPList& cle = op->AsListExpr()->Exprs();
@@ -3573,7 +3671,11 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 	for ( const auto& expr : cle )
 		{
 		if ( expr->Tag() != EXPR_ASSIGN )
-			continue;
+			{
+			expr->Error("illegal table constructor element");
+			SetError();
+			return;
+			}
 
 		auto idx_expr = expr->AsAssignExpr()->GetOp1();
 		auto val_expr = expr->AsAssignExpr()->GetOp2();
@@ -3623,35 +3725,30 @@ ValPtr TableConstructorExpr::Eval(Frame* f) const
 	if ( IsError() )
 		return nullptr;
 
-	auto aggr = make_intrusive<TableVal>(GetType<TableType>(), attrs);
+	auto tv = make_intrusive<TableVal>(GetType<TableType>(), attrs);
 	const ExprPList& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
-		expr->EvalIntoAggregate(type, aggr, f);
+		{
+		auto op1 = expr->GetOp1();
+		auto op2 = expr->GetOp2();
 
-	aggr->InitDefaultFunc(f);
+		if ( ! op1 || ! op2 )
+			return nullptr;
 
-	return aggr;
-	}
+		auto index = op1->Eval(f);
+		auto v = op2->Eval(f);
 
-ValPtr TableConstructorExpr::InitVal(const TypePtr& t, ValPtr aggr) const
-	{
-	if ( IsError() )
-		return nullptr;
+		if ( ! index || ! v )
+			return nullptr;
 
-	if ( ! init_tag_check(this, "table constructor", TYPE_TABLE, t->Tag()) )
-		return nullptr;
+		if ( ! tv->Assign(std::move(index), std::move(v)) )
+			RuntimeError("type clash in table assignment");
+		}
 
-	auto tt = GetType<TableType>();
+	tv->InitDefaultFunc(f);
 
-	auto tval = aggr ? TableValPtr{AdoptRef{}, aggr.release()->AsTableVal()}
-	                 : make_intrusive<TableVal>(std::move(tt), attrs);
-	const ExprPList& exprs = op->AsListExpr()->Exprs();
-
-	for ( const auto& expr : exprs )
-		expr->EvalIntoAggregate(t, tval, nullptr);
-
-	return tval;
+	return tv;
 	}
 
 void TableConstructorExpr::ExprDescribe(ODesc* d) const
@@ -3664,7 +3761,7 @@ void TableConstructorExpr::ExprDescribe(ODesc* d) const
 SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
                                        std::unique_ptr<std::vector<AttrPtr>> arg_attrs,
                                        TypePtr arg_type, AttributesPtr arg_attrs2)
-	: UnaryExpr(EXPR_SET_CONSTRUCTOR, std::move(constructor_list))
+	: UnaryExpr(EXPR_SET_CONSTRUCTOR, expand_op(constructor_list, arg_type))
 	{
 	if ( IsError() )
 		return;
@@ -3686,7 +3783,7 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 			SetType(make_intrusive<zeek::SetType>(make_intrusive<TypeList>(base_type(TYPE_ANY)),
 			                                      nullptr));
 		else
-			SetType(init_type(op.get()));
+			SetType(init_type(op));
 		}
 
 	if ( ! type )
@@ -3696,9 +3793,9 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 		SetError("values in set(...) constructor do not specify a set");
 
 	if ( arg_attrs )
-		attrs = make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false);
+		SetAttrs(make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false));
 	else
-		attrs = arg_attrs2;
+		SetAttrs(arg_attrs2);
 
 	const auto& indices = type->AsTableType()->GetIndices()->GetTypes();
 	ExprPList& cle = op->AsListExpr()->Exprs();
@@ -3715,9 +3812,16 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 		loop_over_list(cle, i)
 			{
 			Expr* ce = cle[i];
+
+			if ( ce->Tag() != EXPR_LIST )
+				{
+				ce->Error("not a list of indices");
+				SetError();
+				return;
+				}
+
 			ListExpr* le = ce->AsListExpr();
 
-			assert(ce->Tag() == EXPR_LIST);
 			if ( check_and_promote_exprs(le, type->AsTableType()->GetIndices()) )
 				{
 				if ( le != cle[i] )
@@ -3746,34 +3850,6 @@ ValPtr SetConstructorExpr::Eval(Frame* f) const
 		}
 
 	return aggr;
-	}
-
-ValPtr SetConstructorExpr::InitVal(const TypePtr& t, ValPtr aggr) const
-	{
-	if ( IsError() )
-		return nullptr;
-
-	if ( ! init_tag_check(this, "set constructor", TYPE_TABLE, t->Tag()) )
-		return nullptr;
-
-	const auto& index_type = t->AsTableType()->GetIndices();
-	auto tt = GetType<TableType>();
-	auto tval = aggr ? TableValPtr{AdoptRef{}, aggr.release()->AsTableVal()}
-	                 : make_intrusive<TableVal>(std::move(tt), attrs);
-	const ExprPList& exprs = op->AsListExpr()->Exprs();
-
-	for ( const auto& e : exprs )
-		{
-		auto element = check_and_promote(e->Eval(nullptr), index_type, true);
-
-		if ( ! element || ! tval->Assign(std::move(element), nullptr) )
-			{
-			Error(util::fmt("initialization type mismatch in set"), e);
-			return nullptr;
-			}
-		}
-
-	return tval;
 	}
 
 void SetConstructorExpr::ExprDescribe(ODesc* d) const
@@ -3846,34 +3922,6 @@ ValPtr VectorConstructorExpr::Eval(Frame* f) const
 	return vec;
 	}
 
-ValPtr VectorConstructorExpr::InitVal(const TypePtr& t, ValPtr aggr) const
-	{
-	if ( IsError() )
-		return nullptr;
-
-	if ( ! init_tag_check(this, "vector constructor", TYPE_VECTOR, t->Tag()) )
-		return nullptr;
-
-	auto vt = GetType<VectorType>();
-	auto vec = aggr ? VectorValPtr{AdoptRef{}, aggr.release()->AsVectorVal()}
-	                : make_intrusive<VectorVal>(std::move(vt));
-	const ExprPList& exprs = op->AsListExpr()->Exprs();
-
-	loop_over_list(exprs, i)
-		{
-		Expr* e = exprs[i];
-		auto v = check_and_promote(e->Eval(nullptr), t->Yield(), true);
-
-		if ( ! v || ! vec->Assign(i, std::move(v)) )
-			{
-			Error(util::fmt("initialization type mismatch at index %d", i), e);
-			return nullptr;
-			}
-		}
-
-	return vec;
-	}
-
 void VectorConstructorExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add("vector(");
@@ -3891,25 +3939,6 @@ bool FieldAssignExpr::PromoteTo(TypePtr t)
 	{
 	op = check_and_promote_expr(op, t);
 	return op != nullptr;
-	}
-
-void FieldAssignExpr::EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const
-	{
-	if ( IsError() )
-		return;
-
-	if ( auto v = op->Eval(f) )
-		{
-		RecordVal* rec = aggr->AsRecordVal();
-		const RecordType* rt = t->AsRecordType();
-
-		int idx = rt->FieldOffset(field_name.c_str());
-
-		if ( idx < 0 )
-			reporter->InternalError("Missing record field: %s", field_name.c_str());
-
-		rec->Assign(idx, std::move(v));
-		}
 	}
 
 bool FieldAssignExpr::IsRecordElement(TypeDecl* td) const
@@ -4101,31 +4130,6 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 		}
 	}
 
-ValPtr RecordCoerceExpr::InitVal(const TypePtr& t, ValPtr aggr) const
-	{
-	if ( IsError() )
-		{
-		Error("bad record initializer");
-		return nullptr;
-		}
-
-	if ( ! init_tag_check(this, "record", TYPE_RECORD, t->Tag()) )
-		return nullptr;
-
-	if ( auto v = Eval(nullptr) )
-		{
-		RecordVal* rv = v->AsRecordVal();
-		RecordTypePtr rt{NewRef{}, t->AsRecordType()};
-		auto aggr_rec = cast_intrusive<RecordVal>(std::move(aggr));
-
-		if ( auto ar = rv->CoerceTo(std::move(rt), std::move(aggr_rec)) )
-			return ar;
-		}
-
-	Error("bad record initializer");
-	return nullptr;
-	}
-
 ValPtr RecordCoerceExpr::Fold(Val* v) const
 	{
 	if ( same_type(GetType(), Op()->GetType()) )
@@ -4298,11 +4302,6 @@ ScheduleExpr::ScheduleExpr(ExprPtr arg_when, EventExprPtr arg_event)
 
 	if ( bt != TYPE_TIME && bt != TYPE_INTERVAL )
 		ExprError("schedule expression requires a time or time interval");
-	}
-
-bool ScheduleExpr::IsPure() const
-	{
-	return false;
 	}
 
 ValPtr ScheduleExpr::Eval(Frame* f) const
@@ -4997,202 +4996,6 @@ TypePtr ListExpr::InitType() const
 
 		return tl;
 		}
-	}
-
-ValPtr ListExpr::InitVal(const TypePtr& t, ValPtr aggr) const
-	{
-	// While fairly similar to the EvalIntoAggregate() code,
-	// we keep this separate since it also deals with initialization
-	// idioms such as embedded aggregates and cross-product
-	// expansion.
-	if ( IsError() )
-		return nullptr;
-
-	// Check whether each element of this list itself matches t,
-	// in which case we should expand as a ListVal.
-	if ( ! aggr && type->AsTypeList()->AllMatch(t, true) )
-		{
-		auto v = make_intrusive<ListVal>(TYPE_ANY);
-		const auto& tl = type->AsTypeList()->GetTypes();
-
-		if ( exprs.length() != static_cast<int>(tl.size()) )
-			{
-			Error("index mismatch", t.get());
-			return nullptr;
-			}
-
-		loop_over_list(exprs, i)
-			{
-			auto vi = exprs[i]->InitVal(tl[i], nullptr);
-			if ( ! vi )
-				return nullptr;
-
-			v->Append(std::move(vi));
-			}
-
-		return v;
-		}
-
-	if ( t->Tag() == TYPE_LIST )
-		{
-		if ( aggr )
-			{
-			Error("bad use of list in initialization", t.get());
-			return nullptr;
-			}
-
-		const auto& tl = t->AsTypeList()->GetTypes();
-
-		if ( exprs.length() != static_cast<int>(tl.size()) )
-			{
-			Error("index mismatch", t.get());
-			return nullptr;
-			}
-
-		auto v = make_intrusive<ListVal>(TYPE_ANY);
-
-		loop_over_list(exprs, i)
-			{
-			auto vi = exprs[i]->InitVal(tl[i], nullptr);
-
-			if ( ! vi )
-				return nullptr;
-
-			v->Append(std::move(vi));
-			}
-
-		return v;
-		}
-
-	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TABLE && t->Tag() != TYPE_VECTOR )
-		{
-		if ( exprs.length() == 1 )
-			// Allow "global x:int = { 5 }"
-			return exprs[0]->InitVal(t, aggr);
-		else
-			{
-			Error("aggregate initializer for scalar type", t.get());
-			return nullptr;
-			}
-		}
-
-	if ( ! aggr )
-		Internal("missing aggregate in ListExpr::InitVal");
-
-	if ( t->IsSet() )
-		return AddSetInit(t, std::move(aggr));
-
-	if ( t->Tag() == TYPE_VECTOR )
-		{
-		// v: vector = [10, 20, 30];
-		VectorVal* vec = aggr->AsVectorVal();
-
-		loop_over_list(exprs, i)
-			{
-			ExprPtr e = {NewRef{}, exprs[i]};
-			const auto& vyt = vec->GetType()->AsVectorType()->Yield();
-			auto promoted_e = check_and_promote_expr(e, vyt);
-
-			if ( promoted_e )
-				e = promoted_e;
-
-			if ( ! vec->Assign(i, e->Eval(nullptr)) )
-				{
-				e->Error(util::fmt("type mismatch at index %d", i));
-				return nullptr;
-				}
-			}
-
-		return aggr;
-		}
-
-	// If we got this far, then it's either a table or record
-	// initialization.  Both of those involve AssignExpr's, which
-	// know how to add themselves to a table or record.  Another
-	// possibility is an expression that evaluates itself to a
-	// table, which we can then add to the aggregate.
-	for ( const auto& e : exprs )
-		{
-		if ( e->Tag() == EXPR_ASSIGN || e->Tag() == EXPR_FIELD_ASSIGN )
-			{
-			if ( ! e->InitVal(t, aggr) )
-				return nullptr;
-			}
-		else
-			{
-			if ( t->Tag() == TYPE_RECORD )
-				{
-				e->Error("bad record initializer", t.get());
-				return nullptr;
-				}
-
-			auto v = e->Eval(nullptr);
-
-			if ( ! same_type(v->GetType(), t) )
-				{
-				v->GetType()->Error("type clash in table initializer", t.get());
-				return nullptr;
-				}
-
-			if ( ! v->AsTableVal()->AddTo(aggr->AsTableVal(), true) )
-				return nullptr;
-			}
-		}
-
-	return aggr;
-	}
-
-ValPtr ListExpr::AddSetInit(TypePtr t, ValPtr aggr) const
-	{
-	if ( aggr->GetType()->Tag() != TYPE_TABLE )
-		Internal("bad aggregate in ListExpr::AddSetInit");
-
-	TableVal* tv = aggr->AsTableVal();
-	const TableType* tt = tv->GetType()->AsTableType();
-	TypeListPtr it = tt->GetIndices();
-
-	for ( const auto& expr : exprs )
-		{
-		ValPtr element;
-
-		if ( expr->GetType()->IsSet() )
-			// A set to flatten.
-			element = expr->Eval(nullptr);
-		else if ( expr->GetType()->Tag() == TYPE_LIST )
-			element = expr->InitVal(it, nullptr);
-		else
-			element = expr->InitVal(it->GetTypes()[0], nullptr);
-
-		if ( ! element )
-			return nullptr;
-
-		if ( element->GetType()->IsSet() )
-			{
-			if ( ! same_type(element->GetType(), t) )
-				{
-				element->Error("type clash in set initializer", t.get());
-				return nullptr;
-				}
-
-			if ( ! element->AsTableVal()->AddTo(tv, true) )
-				return nullptr;
-
-			continue;
-			}
-
-		if ( expr->GetType()->Tag() == TYPE_LIST )
-			element = check_and_promote(std::move(element), it, true);
-		else
-			element = check_and_promote(std::move(element), it->GetTypes()[0], true);
-
-		if ( ! element )
-			return nullptr;
-
-		if ( ! tv->ExpandAndInit(std::move(element), nullptr) )
-			return nullptr;
-		}
-
-	return aggr;
 	}
 
 void ListExpr::ExprDescribe(ODesc* d) const

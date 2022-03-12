@@ -670,7 +670,15 @@ void ZAMCompiler::ReMapVar(const ID* id, int slot, bro_uint_t inst)
 	// powerful allocation method like graph coloring.  However, far and
 	// away the bulk of our variables are short-lived temporaries,
 	// for which greedy should work fine.
-	bool is_managed = ZVal::IsManagedType(id->GetType());
+	//
+	// Note, we also need to make sure that denizens sharing a slot
+	// are all consistently either managed, or non-managed, types.
+	// One subtlety in this regard is that identifiers that are types
+	// should always be deemed "managed", even if the type they refer
+	// to is not managed, because what matters for uses of those
+	// identifiers is interpreting them as "any" values having an
+	// internal type of TYPE_TYPE.
+	bool is_managed = ZVal::IsManagedType(id->GetType()) || id->IsType();
 
 	int apt_slot = -1;
 	for ( unsigned int i = 0; i < shared_frame_denizens.size(); ++i )

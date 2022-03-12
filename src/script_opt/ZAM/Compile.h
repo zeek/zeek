@@ -178,6 +178,8 @@ private:
 
 	const ZAMStmt CompileIncrExpr(const IncrExpr* e);
 	const ZAMStmt CompileAppendToExpr(const AppendToExpr* e);
+	const ZAMStmt CompileAddToExpr(const AddToExpr* e);
+	const ZAMStmt CompileRemoveFromExpr(const RemoveFromExpr* e);
 	const ZAMStmt CompileAssignExpr(const AssignExpr* e);
 	const ZAMStmt CompileAssignToIndex(const NameExpr* lhs, const IndexExpr* rhs);
 	const ZAMStmt CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e);
@@ -232,9 +234,6 @@ private:
 
 	const ZAMStmt AssignVecElems(const Expr* e);
 	const ZAMStmt AssignTableElem(const Expr* e);
-
-	const ZAMStmt AppendToField(const NameExpr* n1, const NameExpr* n2, const ConstExpr* c,
-	                            int offset);
 
 	const ZAMStmt ConstructTable(const NameExpr* n, const Expr* e);
 	const ZAMStmt ConstructSet(const NameExpr* n, const Expr* e);

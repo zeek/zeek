@@ -1,3 +1,7 @@
+5.0.0-dev.173 | 2022-03-16 15:06:05 -0700
+
+  * Fix document generation (Christian Kreibich, Corelight)
+
 5.0.0-dev.169 | 2022-03-10 11:09:37 -0700
 
   * add raw_bytes_to_v6_addr in docs when raw_bytes_to_v4_addr is present (Yacin Nadji, Corelight)

@@ -1,6 +1,6 @@
-// See the file "COPYING" in the main distribution directory for copyright.
+// See the file "COPYING" in the toplevel directory for copyright.
 
-#include "zeek/script_opt/ZAM/Gen-ZAM.h"
+#include "Gen-ZAM.h"
 
 #include <ctype.h>
 #include <regex>

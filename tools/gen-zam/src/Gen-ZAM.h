@@ -1,4 +1,4 @@
-// See the file "COPYING" in the main distribution directory for copyright.
+// See the file "COPYING" in the toplevel directory for copyright.
 
 // Gen-ZAM is a standalone program that takes as input a file specifying
 // ZAM operations and from them generates a (large) set of C++ include

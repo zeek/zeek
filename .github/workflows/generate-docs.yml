@@ -15,6 +15,14 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
+      - name: check ZEEK_BOT_TOKEN
+        env:
+          ZEEK_BOT_TOKEN: ${{ secrets.ZEEK_BOT_TOKEN }}
+        run: |
+          echo "${ZEEK_BOT_TOKEN}"
+          echo "${#ZEEK_BOT_TOKEN}"
+          [ -n "${ZEEK_BOT_TOKEN}" ] && echo "yep"
+
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"

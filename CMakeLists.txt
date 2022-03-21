@@ -637,6 +637,21 @@ else ()
     set(_install_btest_tools_msg "no pcaps")
 endif ()
 
+set(_bifcl_exe_path "included")
+if ( BIFCL_EXE_PATH )
+    set(_bifcl_exe_path ${BIFCL_EXE_PATH})
+endif ()
+
+set(_binpac_exe_path "included")
+if ( BINPAC_EXE_PATH )
+    set(_binpac_exe_path ${BINPAC_EXE_PATH})
+endif ()
+
+set(_gen_zam_exe_path "included")
+if ( GEN_ZAM_EXE_PATH )
+    set(_gen_zam_exe_path ${GEN_ZAM_EXE_PATH})
+endif ()
+
 message(
     "\n====================|  Zeek Build Summary  |===================="
     "\n"
@@ -658,8 +673,11 @@ message(
     "\n"
     "\nZeekControl:       ${INSTALL_ZEEKCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
+    "\nBifCL:             ${_bifcl_exe_path}"
+    "\nBinPAC:            ${_binpac_exe_path}"
     "\nBTest:             ${INSTALL_BTEST}"
     "\nBTest tooling:     ${_install_btest_tools_msg}"
+    "\nGen-ZAM:           ${_gen_zam_exe_path}"
     "\nzkg:               ${INSTALL_ZKG}"
     "\n"
     "\nlibmaxminddb:      ${USE_GEOIP}"

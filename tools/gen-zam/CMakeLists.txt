@@ -3,8 +3,6 @@ project(Gen-ZAM C CXX)
 
 include(cmake/CommonCMakeConfig.cmake)
 
-include(FindRequiredPackage)
-
 include(RequireCXX17)
 
 set(GEN_ZAM_SRCS src/Gen-ZAM.cc)

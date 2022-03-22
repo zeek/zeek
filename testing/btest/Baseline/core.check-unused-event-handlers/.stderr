@@ -7,4 +7,5 @@ warning in <params>, line 1: event handler never invoked: SupervisorControl::des
 warning in <params>, line 1: event handler never invoked: SupervisorControl::restart_request
 warning in <params>, line 1: event handler never invoked: SupervisorControl::status_request
 warning in <params>, line 1: event handler never invoked: SupervisorControl::stop_request
+warning in <params>, line 1: event handler never invoked: spicy_analyzer_for_mime_type
 warning in <params>, line 1: event handler never invoked: this_is_never_used

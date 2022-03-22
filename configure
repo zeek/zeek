@@ -71,6 +71,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-btest-pcaps  don't install Zeek's BTest input pcaps
     --disable-cpp-tests    don't build Zeek's C++ unit tests
     --disable-python       don't try to build python bindings for Broker
+    --disable-spicy        don't include Spicy
     --disable-zeekctl      don't install ZeekControl
     --disable-zkg          don't install zkg
 
@@ -101,6 +102,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-perftools=PATH  path to Google Perftools install root
     --with-python-inc=PATH path to Python headers
     --with-python-lib=PATH path to libpython
+    --with-spicy=PATH      path to Spicy install root
+    --with-spicy-plugin=PATH path to Spicy plugin source tree
     --with-swig=PATH       path to SWIG executable
 
   Packaging Options (for developers):
@@ -313,6 +316,9 @@ while [ $# -ne 0 ]; do
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS BOOL true
             ;;
+        --disable-spicy)
+            append_cache_entry DISABLE_SPICY BOOL true
+            ;;
         --disable-zeekctl)
             append_cache_entry INSTALL_ZEEKCTL BOOL false
             ;;
@@ -374,6 +380,12 @@ while [ $# -ne 0 ]; do
             ;;
         --with-python-lib=*)
             append_cache_entry PYTHON_LIBRARY PATH $optarg
+            ;;
+        --with-spicy=*)
+            append_cache_entry SPICY_ROOT PATH $optarg
+            ;;
+        --with-spicy-plugin=*)
+            append_cache_entry SPICY_PLUGIN_PATH PATH $optarg
             ;;
         --with-swig=*)
             append_cache_entry SWIG_EXECUTABLE PATH $optarg

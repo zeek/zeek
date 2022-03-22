@@ -6,7 +6,7 @@ RUN apk add --no-cache \
   g++ \
   python3 \
   python3-dev \
-  flex \
+  flex-dev \
   bison \
   libpcap-dev \
   openssl-dev \

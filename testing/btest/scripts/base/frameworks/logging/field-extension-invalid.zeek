@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: test -x ${BUILD}/auxil/spicy/spicy/bin/spicy-config
 # @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff .stderr

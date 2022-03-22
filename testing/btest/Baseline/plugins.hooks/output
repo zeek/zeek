@@ -815,6 +815,9 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_Spicy.consts.bif.zeek, <...>/Zeek_Spicy.consts.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_Spicy.events.bif.zeek, <...>/Zeek_Spicy.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_Spicy.functions.bif.zeek, <...>/Zeek_Spicy.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek) -> -1
@@ -830,9 +833,6 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, ./_Zeek_Spicy.consts.bif.zeek, <...>/_Zeek_Spicy.consts.bif.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, ./_Zeek_Spicy.events.bif.zeek, <...>/_Zeek_Spicy.events.bif.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, ./_Zeek_Spicy.functions.bif.zeek, <...>/_Zeek_Spicy.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./acld, <...>/acld.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./addrs, <...>/addrs.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek) -> -1
@@ -936,8 +936,8 @@
 0.000000   MetaHookPost  LoadFile(0, <...>/hooks.zeek, <...>/hooks.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, Zeek<...>/bare.zeek, <...>/bare.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, Zeek<...>/default.zeek, <...>/default.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, _Zeek_Spicy/__load__.zeek, <...>/__load__.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, _Zeek_Spicy/__preload__.zeek, <...>/__preload__.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, Zeek_Spicy/__load__.zeek, <...>/__load__.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, Zeek_Spicy/__preload__.zeek, <...>/__preload__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base/bif, <...>/bif) -> -1
 0.000000   MetaHookPost  LoadFile(0, base/init-default.zeek, <...>/init-default.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek) -> -1
@@ -1199,6 +1199,9 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Spicy.consts.bif.zeek, <...>/Zeek_Spicy.consts.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Spicy.events.bif.zeek, <...>/Zeek_Spicy.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Spicy.functions.bif.zeek, <...>/Zeek_Spicy.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek) -> (-1, <no content>)
@@ -1214,9 +1217,6 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, ./_Zeek_Spicy.consts.bif.zeek, <...>/_Zeek_Spicy.consts.bif.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, ./_Zeek_Spicy.events.bif.zeek, <...>/_Zeek_Spicy.events.bif.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, ./_Zeek_Spicy.functions.bif.zeek, <...>/_Zeek_Spicy.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./acld, <...>/acld.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./addrs, <...>/addrs.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek) -> (-1, <no content>)
@@ -1320,8 +1320,8 @@
 0.000000   MetaHookPost  LoadFileExtended(0, <...>/hooks.zeek, <...>/hooks.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, Zeek<...>/bare.zeek, <...>/bare.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, Zeek<...>/default.zeek, <...>/default.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, _Zeek_Spicy/__load__.zeek, <...>/__load__.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, _Zeek_Spicy/__preload__.zeek, <...>/__preload__.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, Zeek_Spicy/__load__.zeek, <...>/__load__.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, Zeek_Spicy/__preload__.zeek, <...>/__preload__.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base/bif, <...>/bif) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base/init-default.zeek, <...>/init-default.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek) -> (-1, <no content>)
@@ -2293,6 +2293,9 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_Spicy.consts.bif.zeek, <...>/Zeek_Spicy.consts.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_Spicy.events.bif.zeek, <...>/Zeek_Spicy.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_Spicy.functions.bif.zeek, <...>/Zeek_Spicy.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek)
@@ -2308,9 +2311,6 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek)
-0.000000   MetaHookPre   LoadFile(0, ./_Zeek_Spicy.consts.bif.zeek, <...>/_Zeek_Spicy.consts.bif.zeek)
-0.000000   MetaHookPre   LoadFile(0, ./_Zeek_Spicy.events.bif.zeek, <...>/_Zeek_Spicy.events.bif.zeek)
-0.000000   MetaHookPre   LoadFile(0, ./_Zeek_Spicy.functions.bif.zeek, <...>/_Zeek_Spicy.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./acld, <...>/acld.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./addrs, <...>/addrs.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek)
@@ -2414,8 +2414,8 @@
 0.000000   MetaHookPre   LoadFile(0, <...>/hooks.zeek, <...>/hooks.zeek)
 0.000000   MetaHookPre   LoadFile(0, Zeek<...>/bare.zeek, <...>/bare.zeek)
 0.000000   MetaHookPre   LoadFile(0, Zeek<...>/default.zeek, <...>/default.zeek)
-0.000000   MetaHookPre   LoadFile(0, _Zeek_Spicy/__load__.zeek, <...>/__load__.zeek)
-0.000000   MetaHookPre   LoadFile(0, _Zeek_Spicy/__preload__.zeek, <...>/__preload__.zeek)
+0.000000   MetaHookPre   LoadFile(0, Zeek_Spicy/__load__.zeek, <...>/__load__.zeek)
+0.000000   MetaHookPre   LoadFile(0, Zeek_Spicy/__preload__.zeek, <...>/__preload__.zeek)
 0.000000   MetaHookPre   LoadFile(0, base/bif, <...>/bif)
 0.000000   MetaHookPre   LoadFile(0, base/init-default.zeek, <...>/init-default.zeek)
 0.000000   MetaHookPre   LoadFile(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek)
@@ -2677,6 +2677,9 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Spicy.consts.bif.zeek, <...>/Zeek_Spicy.consts.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Spicy.events.bif.zeek, <...>/Zeek_Spicy.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Spicy.functions.bif.zeek, <...>/Zeek_Spicy.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek)
@@ -2692,9 +2695,6 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, ./_Zeek_Spicy.consts.bif.zeek, <...>/_Zeek_Spicy.consts.bif.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, ./_Zeek_Spicy.events.bif.zeek, <...>/_Zeek_Spicy.events.bif.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, ./_Zeek_Spicy.functions.bif.zeek, <...>/_Zeek_Spicy.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./acld, <...>/acld.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./addrs, <...>/addrs.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek)
@@ -2798,8 +2798,8 @@
 0.000000   MetaHookPre   LoadFileExtended(0, <...>/hooks.zeek, <...>/hooks.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, Zeek<...>/bare.zeek, <...>/bare.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, Zeek<...>/default.zeek, <...>/default.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, _Zeek_Spicy/__load__.zeek, <...>/__load__.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, _Zeek_Spicy/__preload__.zeek, <...>/__preload__.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, Zeek_Spicy/__load__.zeek, <...>/__load__.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, Zeek_Spicy/__preload__.zeek, <...>/__preload__.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base/bif, <...>/bif)
 0.000000   MetaHookPre   LoadFileExtended(0, base/init-default.zeek, <...>/init-default.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek)
@@ -3770,6 +3770,9 @@
 0.000000 | HookLoadFile  ./Zeek_SSL.events.bif.zeek <...>/Zeek_SSL.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SSL.functions.bif.zeek <...>/Zeek_SSL.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SSL.types.bif.zeek <...>/Zeek_SSL.types.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_Spicy.consts.bif.zeek <...>/Zeek_Spicy.consts.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_Spicy.events.bif.zeek <...>/Zeek_Spicy.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_Spicy.functions.bif.zeek <...>/Zeek_Spicy.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Syslog.events.bif.zeek <...>/Zeek_Syslog.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_TCP.events.bif.zeek <...>/Zeek_TCP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_TCP.functions.bif.zeek <...>/Zeek_TCP.functions.bif.zeek
@@ -3785,9 +3788,6 @@
 0.000000 | HookLoadFile  ./Zeek_X509.ocsp_events.bif.zeek <...>/Zeek_X509.ocsp_events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_X509.types.bif.zeek <...>/Zeek_X509.types.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_XMPP.events.bif.zeek <...>/Zeek_XMPP.events.bif.zeek
-0.000000 | HookLoadFile  ./_Zeek_Spicy.consts.bif.zeek <...>/_Zeek_Spicy.consts.bif.zeek
-0.000000 | HookLoadFile  ./_Zeek_Spicy.events.bif.zeek <...>/_Zeek_Spicy.events.bif.zeek
-0.000000 | HookLoadFile  ./_Zeek_Spicy.functions.bif.zeek <...>/_Zeek_Spicy.functions.bif.zeek
 0.000000 | HookLoadFile  ./acld <...>/acld.zeek
 0.000000 | HookLoadFile  ./addrs <...>/addrs.zeek
 0.000000 | HookLoadFile  ./analyzer.bif.zeek <...>/analyzer.bif.zeek
@@ -3903,8 +3903,8 @@
 0.000000 | HookLoadFile  <...>/hooks.zeek <...>/hooks.zeek
 0.000000 | HookLoadFile  Zeek<...>/bare.zeek <...>/bare.zeek
 0.000000 | HookLoadFile  Zeek<...>/default.zeek <...>/default.zeek
-0.000000 | HookLoadFile  _Zeek_Spicy/__load__.zeek <...>/__load__.zeek
-0.000000 | HookLoadFile  _Zeek_Spicy/__preload__.zeek <...>/__preload__.zeek
+0.000000 | HookLoadFile  Zeek_Spicy/__load__.zeek <...>/__load__.zeek
+0.000000 | HookLoadFile  Zeek_Spicy/__preload__.zeek <...>/__preload__.zeek
 0.000000 | HookLoadFile  base/bif <...>/bif
 0.000000 | HookLoadFile  base/init-default.zeek <...>/init-default.zeek
 0.000000 | HookLoadFile  base/init-frameworks-and-bifs.zeek <...>/init-frameworks-and-bifs.zeek
@@ -4154,6 +4154,9 @@
 0.000000 | HookLoadFileExtended ./Zeek_SSL.events.bif.zeek <...>/Zeek_SSL.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SSL.functions.bif.zeek <...>/Zeek_SSL.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SSL.types.bif.zeek <...>/Zeek_SSL.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Spicy.consts.bif.zeek <...>/Zeek_Spicy.consts.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Spicy.events.bif.zeek <...>/Zeek_Spicy.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Spicy.functions.bif.zeek <...>/Zeek_Spicy.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_Syslog.events.bif.zeek <...>/Zeek_Syslog.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_TCP.events.bif.zeek <...>/Zeek_TCP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_TCP.functions.bif.zeek <...>/Zeek_TCP.functions.bif.zeek
@@ -4169,9 +4172,6 @@
 0.000000 | HookLoadFileExtended ./Zeek_X509.ocsp_events.bif.zeek <...>/Zeek_X509.ocsp_events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_X509.types.bif.zeek <...>/Zeek_X509.types.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_XMPP.events.bif.zeek <...>/Zeek_XMPP.events.bif.zeek
-0.000000 | HookLoadFileExtended ./_Zeek_Spicy.consts.bif.zeek <...>/_Zeek_Spicy.consts.bif.zeek
-0.000000 | HookLoadFileExtended ./_Zeek_Spicy.events.bif.zeek <...>/_Zeek_Spicy.events.bif.zeek
-0.000000 | HookLoadFileExtended ./_Zeek_Spicy.functions.bif.zeek <...>/_Zeek_Spicy.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./acld <...>/acld.zeek
 0.000000 | HookLoadFileExtended ./addrs <...>/addrs.zeek
 0.000000 | HookLoadFileExtended ./analyzer.bif.zeek <...>/analyzer.bif.zeek
@@ -4287,8 +4287,8 @@
 0.000000 | HookLoadFileExtended <...>/hooks.zeek <...>/hooks.zeek
 0.000000 | HookLoadFileExtended Zeek<...>/bare.zeek <...>/bare.zeek
 0.000000 | HookLoadFileExtended Zeek<...>/default.zeek <...>/default.zeek
-0.000000 | HookLoadFileExtended _Zeek_Spicy/__load__.zeek <...>/__load__.zeek
-0.000000 | HookLoadFileExtended _Zeek_Spicy/__preload__.zeek <...>/__preload__.zeek
+0.000000 | HookLoadFileExtended Zeek_Spicy/__load__.zeek <...>/__load__.zeek
+0.000000 | HookLoadFileExtended Zeek_Spicy/__preload__.zeek <...>/__preload__.zeek
 0.000000 | HookLoadFileExtended base/bif <...>/bif
 0.000000 | HookLoadFileExtended base/init-default.zeek <...>/init-default.zeek
 0.000000 | HookLoadFileExtended base/init-frameworks-and-bifs.zeek <...>/init-frameworks-and-bifs.zeek

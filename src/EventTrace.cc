@@ -74,7 +74,7 @@ static std::string escape_string(const u_char* b, int len)
 	return res + "\"";
 	}
 
-ValTrace::ValTrace(const ValPtr& _v)
+ValTrace::ValTrace(const ValPtr& _v) : v(_v)
 	{
 	v = _v;
 	t = v->GetType();
@@ -552,7 +552,7 @@ void ValTrace::ComputeVectorDelta(const ValTrace* prev, DeltaVector& deltas) con
 	auto n = elems.size();
 	auto prev_n = prev_elems.size();
 
-	// The following hasn't been tested for robustness to vector holes.
+	// TODO: The following hasn't been tested for robustness to vector holes.
 
 	if ( n < prev_n )
 		{

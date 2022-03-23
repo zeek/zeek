@@ -31,8 +31,6 @@ export {
 	## authenticated.
 	const disable_ssl = F &redef;
 
-	const disable_forwarding = F &redef;
-
 	## Path to a file containing concatenated trusted certificates
 	## in PEM format. If set, Zeek will require valid certificates for
 	## all peers.

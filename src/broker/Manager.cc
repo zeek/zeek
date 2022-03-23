@@ -295,10 +295,8 @@ void Manager::InitPostScript()
 
 	broker::broker_options options;
 	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
+	options.disable_forwarding = !get_option("Broker::forward_messages")->AsBool();
 	options.use_real_time = use_real_time;
-
-	if ( get_option("Broker::disable_forwarding")->AsBool() )
-		options.disable_forwarding = true;
 
 	broker::configuration config{std::move(options)};
 
@@ -496,10 +494,6 @@ void Manager::Terminate()
 		CloseStore(x);
 
 	FlushLogBuffers();
-
-	for ( auto& p : bstate->endpoint.peers() )
-		if ( p.peer.network )
-			bstate->endpoint.unpeer(p.peer.network->address, p.peer.network->port);
 	}
 
 bool Manager::Active()

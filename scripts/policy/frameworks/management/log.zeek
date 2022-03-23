@@ -82,6 +82,7 @@ global l2s: table[Level] of string = {
 global r2s: table[Management::Role] of string = {
 	[Management::AGENT] = "AGENT",
 	[Management::CONTROLLER] = "CONTROLLER",
+	[Management::NODE] = "NODE",
 };
 
 function debug(message: string)

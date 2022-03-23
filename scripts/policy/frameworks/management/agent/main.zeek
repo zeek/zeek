@@ -5,6 +5,8 @@
 
 @load base/frameworks/broker
 @load policy/frameworks/management
+@load policy/frameworks/management/node/api
+@load policy/frameworks/management/node/config
 
 @load ./api
 @load ./config
@@ -120,7 +122,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 
 	g_nodes = table();
 
-	# Refresh the data cluster and nodes tables
+	# Refresh the cluster and nodes tables
 
 	g_data_cluster = table();
 	for ( node in config$nodes )
@@ -166,6 +168,11 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		if ( node?$env )
 			nc$env = node$env;
 
+		# Always add the policy/management/node scripts to any cluster
+		# node, since we require it to be able to communicate with the
+		# node.
+		nc$scripts[|nc$scripts|] = "policy/frameworks/management/node";
+
 		# XXX could use options to enable per-node overrides for
 		# directory, stdout, stderr, others?
 
@@ -209,7 +216,7 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 		local cns = Management::NodeStatus(
 			    $node=node, $state=Management::PENDING);
 
-		# Identify the role of the node. For data cluster roles (worker,
+		# Identify the role of the node. For cluster roles (worker,
 		# manager, etc) we derive this from the cluster node table.  For
 		# agent and controller, we identify via environment variables
 		# that the controller framework establishes upon creation (see
@@ -342,10 +349,11 @@ event zeek_init()
 
 	Broker::peer(supervisor_addr, Broker::default_port, Broker::default_listen_retry);
 
-	# Agents need receive communication targeted at it, and any responses
-	# from the supervisor.
+	# Agents need receive communication targeted at it, any responses
+	# from the supervisor, and any responses from cluster nodes.
 	Broker::subscribe(agent_topic);
 	Broker::subscribe(SupervisorControl::topic_prefix);
+	Broker::subscribe(Management::Node::node_topic);
 
 	# Auto-publish a bunch of events. Glob patterns or module-level
 	# auto-publish would be helpful here.
@@ -373,11 +381,10 @@ event zeek_init()
 		             Management::Agent::controller$bound_port,
 		             Management::connect_retry);
 		}
-	else
-		{
-		# Controller connects to us; listen for it.
-		Broker::listen(cat(epi$network$address), epi$network$bound_port);
-		}
+
+	# The agent always listens, to allow cluster nodes to peer with it.
+	# If the controller connects to us, it also uses this port.
+	Broker::listen(cat(epi$network$address), epi$network$bound_port);
 
 	Management::Log::info("agent is live");
 	}

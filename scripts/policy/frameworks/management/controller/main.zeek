@@ -386,10 +386,10 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 	g_config_reqid_pending = req$id;
 
 	# Compare the instance configuration to our current one. If it matches,
-	# we can proceed to deploying the new data cluster topology. If it does
+	# we can proceed to deploying the new cluster topology. If it does
 	# not, we need to establish connectivity with agents we connect to, or
 	# wait until all instances that connect to us have done so. Either triggers
-	# a notify_agents_ready event, upon which we then deploy the data cluster.
+	# a notify_agents_ready event, upon which we then deploy the topology.
 
 	# The current & new set of instance names.
 	local insts_current: set[string];

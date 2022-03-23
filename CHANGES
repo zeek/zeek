@@ -1,3 +1,30 @@
+5.0.0-dev.177 | 2022-03-23 13:05:51 +0100
+
+  * Improve the formatting of the SSL::Info::ssl_history documentation (Johanna Amann, Corelight)
+
+5.0.0-dev.173 | 2022-03-16 15:06:05 -0700
+
+  * Fix document generation (Christian Kreibich, Corelight)
+
+5.0.0-dev.169 | 2022-03-10 11:09:37 -0700
+
+  * add raw_bytes_to_v6_addr in docs when raw_bytes_to_v4_addr is present (Yacin Nadji, Corelight)
+
+  * Zero out bytes by default for consistent return value on error (Yacin Nadji, Corelight)
+
+  * Add tests for raw_bytes_to_v6_addr (Yacin Nadji, Corelight)
+
+  * Add raw_bytes_to_v6_addr function (Yacin Nadji, Corelight)
+
+5.0.0-dev.164 | 2022-03-08 09:30:37 -0700
+
+  * Update 3rdparty submodule for bsd-getopt-long fix (Tim Wojtulewicz)
+
+5.0.0-dev.162 | 2022-03-07 12:36:37 +0100
+
+  * Improve error message when receiving unexpected record content via
+    Broker. (Robin Sommer, Corelight)
+
 5.0.0-dev.160 | 2022-03-02 13:48:07 +0000
 
   * restored record constructor checking for missing-but-mandatory fields. This includea a new btest

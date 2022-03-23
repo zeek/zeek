@@ -18,6 +18,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
+          token: ${{ secrets.ZEEK_BOT_TOKEN }}
 
       - name: Switch doc submodule to master
         run: cd doc && git checkout master
@@ -78,20 +79,21 @@ jobs:
         if: github.event_name == 'schedule'
         run: |
           cd doc
-          git remote set-url origin "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek-docs"
           git add scripts/ script-reference/
           git status
-          git commit -m "Generate docs" && git push || /bin/true
+          # git commit errors when there's nothing to commit, so guard it
+          # with a check that detects whether there's anything to commit/push.
+          git diff-index --quiet HEAD || { git commit -m "Generate docs" && git push; }
 
       - name: Update zeek-docs Submodule
         if: github.event_name == 'schedule'
         run: |
           git config --global user.name zeek-bot
           git config --global user.email info@zeek.org
-          git remote add auth "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek"
           git add doc
           git status
-          git commit -m 'Update doc submodule [nomail] [skip ci]' && git push auth master || /bin/true
+          # Similar logic here: proceed only if there's a change in the submodule.
+          git diff-index --quiet HEAD || { git commit -m 'Update doc submodule [nomail] [skip ci]' && git push; }
 
       - name: Send email
         if: failure()

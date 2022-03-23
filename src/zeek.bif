@@ -2574,7 +2574,7 @@ function count_to_port%(num: count, proto: transport_proto%): port
 ## Returns: The :zeek:type:`string` *ip* as :zeek:type:`addr`, or the unspecified
 ##          address ``::`` if the input string does not parse correctly.
 ##
-## .. zeek:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
+## .. zeek:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr raw_bytes_to_v6_addr
 ##    to_subnet
 function to_addr%(ip: string%): addr
 	%{
@@ -2614,7 +2614,7 @@ function is_valid_ip%(ip: string%): bool
 ## Returns: The *sn* string as a :zeek:type:`subnet`, or the unspecified subnet
 ##          ``::/0`` if the input string does not parse correctly.
 ##
-## .. zeek:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
+## .. zeek:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr raw_bytes_to_v6_addr
 ##    to_addr
 function to_subnet%(sn: string%): subnet
 	%{
@@ -2696,7 +2696,7 @@ function to_double%(str: string%): double
 ##
 ## Returns: The :zeek:type:`count` *ip* as :zeek:type:`addr`.
 ##
-## .. zeek:see:: raw_bytes_to_v4_addr to_addr to_subnet
+## .. zeek:see:: raw_bytes_to_v4_addr to_addr to_subnet raw_bytes_to_v6_addr
 function count_to_v4_addr%(ip: count%): addr
 	%{
 	if ( ip > 4294967295LU )
@@ -2731,6 +2731,34 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 		}
 
 	return zeek::make_intrusive<zeek::AddrVal>(htonl(a));
+	%}
+
+## Converts a :zeek:type:`string` of bytes into an IPv6 address. In particular,
+## this function interprets the first 16 bytes of the string as an IPv6 address
+## in network order.
+##
+## b: The raw bytes (:zeek:type:`string`) to convert.
+##
+## Returns: The byte :zeek:type:`string` *b* as :zeek:type:`addr`.
+##
+## .. zeek:see:: raw_bytes_to_v6_addr to_addr to_subnet
+function raw_bytes_to_v6_addr%(x: string%): addr
+	%{
+	uint32_t bytes[4] = {0, 0, 0, 0};
+
+	if ( x->Len() < 16 )
+		zeek::emit_builtin_error("too short a string as input to raw_bytes_to_v6_addr()");
+
+	else
+		{
+		const u_char* xp = x->Bytes();
+		bytes[0] = htonl((xp[0] << 24) | (xp[1] << 16) | (xp[2] << 8) | xp[3]);
+		bytes[1] = htonl((xp[0+4] << 24) | (xp[1+4] << 16) | (xp[2+4] << 8) | xp[3+4]);
+		bytes[2] = htonl((xp[0+8] << 24) | (xp[1+8] << 16) | (xp[2+8] << 8) | xp[3+8]);
+		bytes[3] = htonl((xp[0+12] << 24) | (xp[1+12] << 16) | (xp[2+12] << 8) | xp[3+12]);
+		}
+
+	return zeek::make_intrusive<zeek::AddrVal>(bytes);
 	%}
 
 ## Converts a :zeek:type:`string` to a :zeek:type:`port`.

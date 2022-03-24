@@ -113,6 +113,21 @@ inline TableValPtr table_coerce__CPP(const ValPtr& v, const TypePtr& t)
 	return make_intrusive<TableVal>(cast_intrusive<TableType>(t), tv->GetAttrs());
 	}
 
+// For tables, executes t1 += t2.
+inline TableValPtr table_append__CPP(const TableValPtr& t1, const TableValPtr& t2)
+	{
+	t2->AddTo(t1.get(), false);
+	return t1;
+	}
+
+// For tables, executes t1 -= t2.
+inline TableValPtr table_remove_from__CPP(const TableValPtr& t1, const TableValPtr& t2)
+	{
+	if ( t2->Size() > 0 )
+		t2->RemoveFrom(t1.get());
+	return t1;
+	}
+
 // The same, for an empty record.
 inline VectorValPtr vector_coerce__CPP(const ValPtr& v, const TypePtr& t)
 	{
@@ -146,6 +161,13 @@ extern RecordValPtr record_constructor_map__CPP(std::vector<ValPtr> vals, std::v
 
 // Constructs a vector of the given type, populated with the given values.
 extern VectorValPtr vector_constructor__CPP(std::vector<ValPtr> vals, VectorTypePtr t);
+
+// For patterns, executes p1 += p2.
+inline PatternValPtr re_append__CPP(const PatternValPtr& p1, const PatternValPtr& p2)
+	{
+	p2->AddTo(p1.get(), false);
+	return p1;
+	}
 
 // Schedules an event to occur at the given absolute time, parameterized
 // with the given set of values.  A separate function to facilitate avoiding

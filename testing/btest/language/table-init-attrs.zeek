@@ -11,7 +11,7 @@ redef my_set_ctor_init += {
 	"test3",
 };
 
-redef my_set_ctor_init += set("test4");
+redef my_set_ctor_init += { "test4" };
 
 const my_table_ctor_init: table[count] of string = table([1] = "test1") &redef &default="nope";
 
@@ -29,7 +29,7 @@ redef my_set_init += {
 	"test3",
 };
 
-redef my_set_init += set("test4");
+redef my_set_init += { "test4" };
 
 const my_table_init: table[count] of string = { [1] = "test1" } &redef &default="nope";
 
@@ -38,7 +38,7 @@ redef my_table_init += {
     [3] = "test3",
 };
 
-redef my_table_init += table([4] = "test4");
+redef my_table_init += { [4] = "test4" };
 
 # For tables that yield tables, we can apply attributes to the both other and
 # inner tables...

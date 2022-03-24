@@ -192,6 +192,9 @@ void Attributes::AddAttr(AttrPtr attr, bool is_redef)
 	{
 	auto acceptable_duplicate_attr = [](const AttrPtr& attr, const AttrPtr& existing) -> bool
 	{
+		if ( attr == existing )
+			return true;
+
 		AttrTag new_tag = attr->Tag();
 
 		if ( new_tag == ATTR_DEPRECATED )

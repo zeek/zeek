@@ -108,7 +108,7 @@ export {
 
 	## The default root CA bundle.  By default, the mozilla-ca-list.zeek
 	## script sets this to Mozilla's root CA list.
-	const root_certs: table[string] of string = {} &redef;
+	const root_certs: table[string] of string &redef;
 
 	## The record type which contains the field for the Certificate
 	## Transparency log bundle.

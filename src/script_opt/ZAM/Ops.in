@@ -353,31 +353,73 @@ unary-op AppendTo
 # value itself.
 op1-read
 set-type $1
-eval	auto copy = CopyVal($1);
-	auto vv = frame[z.v1].vector_val;
-	vv->RawVec()->push_back(copy);
-	vv->Modified();
+eval	auto vv = frame[z.v1].vector_val;
+	if ( vv->Size() == 0 )
+		// Use the slightly more expensive Assign(), since it
+		// knows how to deal with empty vectors that do not yet
+		// have concrete types.
+		vv->Assign(0, $1.ToVal(z.t));
+	else
+		{
+		vv->RawVec()->push_back(CopyVal($1));
+		vv->Modified();
+		}
 
-internal-op AppendToField
+# For vectors-of-any, we always go through the Assign() interface because
+# it's needed for tracking the potentially differing types.
+unary-op AppendToAnyVec
+op1-read
+set-type $1
+eval	auto vv = frame[z.v1].vector_val;
+	vv->Assign(vv->Size(), $1.ToVal(z.t));
+
+internal-op AddPatternToField
 type VVi
 op1-read
-eval	EvalAppendToField(frame[z.v2], v3)
+eval	EvalAddPatternToField(frame[z.v2], v3)
 
-macro EvalAppendToField(val, f)
-	auto v = CopyVal(val);
-	auto fvv = frame[z.v1].record_val->GetField(z.f)->AsVectorVal();
-	if ( fvv )
+macro EvalAddPatternToField(v, f)
+	auto fpat = frame[z.v1].record_val->GetField(z.f)->AsPatternVal();
+	if ( fpat )
 		{
-		fvv->RawVec()->push_back(v);
-		fvv->Modified();
+		v.re_val->AddTo(fpat, false);
+		frame[z.v1].record_val->Modified();
 		}
 	else
 		ZAM_run_time_error(z.loc, util::fmt("field value missing: $%s", frame[z.v1].record_val->GetType()->AsRecordType()->FieldName(z.f)));
 
-internal-op AppendToField
+internal-op AddPatternToField
 type VCi
 op1-read
-eval	EvalAppendToField(z.c, v2)
+eval	EvalAddPatternToField(z.c, v2)
+
+unary-op ExtendPattern
+op1-read
+eval	$1.re_val->AddTo(frame[z.v1].re_val, false);
+
+unary-op AddVecToVec
+op1-read
+eval	$1.vector_val->AddTo(frame[z.v1].vector_val, false);
+
+unary-op AddTableToTable
+op1-read
+eval	auto t = frame[z.v1].table_val;
+	auto v = $1.table_val;
+	if ( v->Size() > 0 )
+		{
+		v->AddTo(t, false);
+		t->Modified();
+		}
+
+unary-op RemoveTableFromTable
+op1-read
+eval	auto t = frame[z.v1].table_val;
+	auto v = $1.table_val;
+	if ( v->Size() > 0 )
+		{
+		v->RemoveFrom(t);
+		t->Modified();
+		}
 
 unary-expr-op Cast
 op-type X
@@ -1714,7 +1756,7 @@ eval	step_iters[z.v2].InitLoop(frame[z.v1].string_val->AsString());
 
 internal-op Init-String-Loop
 type VC
-eval	step_iters[z.v2].InitLoop(z.c.string_val->AsString());
+eval	step_iters[z.v1].InitLoop(z.c.string_val->AsString());
 
 internal-op Next-String-Iter
 # v1 = iteration variable

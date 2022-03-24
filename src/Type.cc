@@ -2233,12 +2233,218 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 		}
 	}
 
+TypePtr merge_enum_types(const Type* t1, const Type* t2)
+	{
+	// Could compare pointers t1 == t2, but maybe there's someone out
+	// there creating clones of the type, so safer to compare name.
+	if ( t1->GetName() != t2->GetName() )
+		{
+		std::string msg = util::fmt("incompatible enum types: '%s' and '%s'", t1->GetName().data(),
+		                            t2->GetName().data());
+
+		t1->Error(msg.data(), t2);
+		return nullptr;
+		}
+
+	// Doing a lookup here as a roundabout way of ref-ing t1, without
+	// changing the function params which has t1 as const and also
+	// (potentially) avoiding a pitfall mentioned earlier about clones.
+	const auto& id = detail::global_scope()->Find(t1->GetName());
+
+	if ( id && id->IsType() && id->GetType()->Tag() == TYPE_ENUM )
+		// It should make most sense to return the real type here rather
+		// than a copy since it may be redef'd later in parsing.  If we
+		// return a copy, then whoever is using this return value won't
+		// actually see those changes from the redef.
+		return id->GetType();
+
+	std::string msg = util::fmt("incompatible enum types: '%s' and '%s'"
+	                            " ('%s' enum type ID is invalid)",
+	                            t1->GetName().data(), t2->GetName().data(), t1->GetName().data());
+	t1->Error(msg.data(), t2);
+	return nullptr;
+	}
+
+TypePtr merge_table_types(const Type* t1, const Type* t2)
+	{
+	const IndexType* it1 = (const IndexType*)t1;
+	const IndexType* it2 = (const IndexType*)t2;
+
+	const auto& tl1 = it1->GetIndexTypes();
+	const auto& tl2 = it2->GetIndexTypes();
+	TypeListPtr tl3;
+
+	if ( tl1.size() != tl2.size() )
+		{
+		t1->Error("incompatible types", t2);
+		return nullptr;
+		}
+
+	tl3 = make_intrusive<TypeList>();
+
+	for ( auto i = 0u; i < tl1.size(); ++i )
+		{
+		auto tl3_i = merge_types(tl1[i], tl2[i]);
+		if ( ! tl3_i )
+			return nullptr;
+
+		tl3->Append(std::move(tl3_i));
+		}
+
+	const auto& y1 = t1->Yield();
+	const auto& y2 = t2->Yield();
+	TypePtr y3;
+
+	if ( y1 || y2 )
+		{
+		if ( ! y1 || ! y2 )
+			{
+			t1->Error("incompatible types", t2);
+			return nullptr;
+			}
+
+		y3 = merge_types(y1, y2);
+		if ( ! y3 )
+			return nullptr;
+		}
+
+	if ( t1->IsSet() )
+		return make_intrusive<SetType>(std::move(tl3), nullptr);
+	else
+		return make_intrusive<TableType>(std::move(tl3), std::move(y3));
+	}
+
+TypePtr merge_func_types(const Type* t1, const Type* t2)
+	{
+	if ( ! same_type(t1, t2) )
+		{
+		t1->Error("incompatible types", t2);
+		return nullptr;
+		}
+
+	const FuncType* ft1 = (const FuncType*)t1;
+	const FuncType* ft2 = (const FuncType*)t1;
+	auto args = cast_intrusive<RecordType>(merge_types(ft1->Params(), ft2->Params()));
+	auto yield = t1->Yield() ? merge_types(t1->Yield(), t2->Yield()) : nullptr;
+
+	return make_intrusive<FuncType>(std::move(args), std::move(yield), ft1->Flavor());
+	}
+
+TypePtr merge_record_types(const Type* t1, const Type* t2)
+	{
+	const RecordType* rt1 = (const RecordType*)t1;
+	const RecordType* rt2 = (const RecordType*)t2;
+
+	// We allow the records to have different numbers of fields.
+	// We first go through all of the fields in rt1, and then we
+	// check for whether rt2 has any additional fields.
+
+	type_decl_list* tdl3 = new type_decl_list();
+
+	for ( int i = 0; i < rt1->NumFields(); ++i )
+		{
+		auto td1 = rt1->FieldDecl(i);
+		auto td2_offset_i = rt2->FieldOffset(rt1->FieldName(i));
+
+		TypePtr tdl3_i;
+		auto attrs3 = make_intrusive<detail::Attributes>(nullptr, true, false);
+
+		if ( td1->attrs )
+			attrs3->AddAttrs(td1->attrs);
+
+		if ( td2_offset_i >= 0 )
+			{
+			auto td2 = rt2->FieldDecl(td2_offset_i);
+			tdl3_i = merge_types(td1->type, td2->type);
+
+			if ( td2->attrs )
+				attrs3->AddAttrs(td2->attrs);
+
+			if ( ! util::streq(td1->id, td2->id) || ! tdl3_i )
+				{
+				t1->Error("incompatible record fields", t2);
+				delete tdl3;
+				return nullptr;
+				}
+			}
+		else
+			{
+			tdl3_i = td1->type;
+			attrs3->AddAttr(make_intrusive<detail::Attr>(detail::ATTR_OPTIONAL));
+			}
+
+		if ( attrs3->GetAttrs().empty() )
+			attrs3 = nullptr;
+
+		auto td3 = new TypeDecl(util::copy_string(td1->id), std::move(tdl3_i), attrs3);
+
+		tdl3->push_back(td3);
+		}
+
+	// Now add in any extras from rt2.
+	for ( int i = 0; i < rt2->NumFields(); ++i )
+		{
+		auto td2 = rt2->FieldDecl(i);
+		auto td1_offset_i = rt1->FieldOffset(rt2->FieldName(i));
+
+		if ( td1_offset_i < 0 )
+			{
+			auto attrs3 = make_intrusive<detail::Attributes>(nullptr, true, false);
+			if ( td2->attrs )
+				attrs3->AddAttrs(td2->attrs);
+
+			attrs3->AddAttr(make_intrusive<detail::Attr>(detail::ATTR_OPTIONAL));
+			auto td_merge = new TypeDecl(util::copy_string(td2->id), std::move(td2->type), attrs3);
+			tdl3->push_back(td_merge);
+			}
+		}
+
+	return make_intrusive<RecordType>(tdl3);
+	}
+
+TypePtr merge_list_types(const Type* t1, const Type* t2)
+	{
+	const TypeList* tl1 = t1->AsTypeList();
+	const TypeList* tl2 = t2->AsTypeList();
+
+	if ( tl1->IsPure() != tl2->IsPure() )
+		{
+		tl1->Error("incompatible lists", tl2);
+		return nullptr;
+		}
+
+	const auto& l1 = tl1->GetTypes();
+	const auto& l2 = tl2->GetTypes();
+
+	if ( l1.size() == 0 || l2.size() == 0 )
+		{
+		if ( l1.size() == 0 )
+			tl1->Error("empty list");
+		else
+			tl2->Error("empty list");
+		return nullptr;
+		}
+
+	if ( l1.size() != l2.size() )
+		{
+		tl1->Error("different number of indices", tl2);
+		return nullptr;
+		}
+
+	auto tl3 = make_intrusive<TypeList>();
+
+	for ( auto i = 0u; i < l1.size(); ++i )
+		tl3->Append(merge_types(l1[i], l2[i]));
+
+	return tl3;
+	}
+
 TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2)
 	{
 	auto t1 = arg_t1.get();
 	auto t2 = arg_t2.get();
-	t1 = flatten_type(t1);
-	t2 = flatten_type(t2);
+	// t1 = flatten_type(t1);
+	// t2 = flatten_type(t2);
 
 	TypeTag tg1 = t1->Tag();
 	TypeTag tg2 = t2->Tag();
@@ -2267,179 +2473,19 @@ TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2)
 			return base_type(tg1);
 
 		case TYPE_ENUM:
-			{
-			// Could compare pointers t1 == t2, but maybe there's someone out
-			// there creating clones of the type, so safer to compare name.
-			if ( t1->GetName() != t2->GetName() )
-				{
-				std::string msg = util::fmt("incompatible enum types: '%s' and '%s'",
-				                            t1->GetName().data(), t2->GetName().data());
-
-				t1->Error(msg.data(), t2);
-				return nullptr;
-				}
-
-			// Doing a lookup here as a roundabout way of ref-ing t1, without
-			// changing the function params which has t1 as const and also
-			// (potentially) avoiding a pitfall mentioned earlier about clones.
-			const auto& id = detail::global_scope()->Find(t1->GetName());
-
-			if ( id && id->IsType() && id->GetType()->Tag() == TYPE_ENUM )
-				// It should make most sense to return the real type here rather
-				// than a copy since it may be redef'd later in parsing.  If we
-				// return a copy, then whoever is using this return value won't
-				// actually see those changes from the redef.
-				return id->GetType();
-
-			std::string msg = util::fmt("incompatible enum types: '%s' and '%s'"
-			                            " ('%s' enum type ID is invalid)",
-			                            t1->GetName().data(), t2->GetName().data(),
-			                            t1->GetName().data());
-			t1->Error(msg.data(), t2);
-			return nullptr;
-			}
+			return merge_enum_types(t1, t2);
 
 		case TYPE_TABLE:
-			{
-			const IndexType* it1 = (const IndexType*)t1;
-			const IndexType* it2 = (const IndexType*)t2;
-
-			const auto& tl1 = it1->GetIndexTypes();
-			const auto& tl2 = it2->GetIndexTypes();
-			TypeListPtr tl3;
-
-			if ( tl1.size() != tl2.size() )
-				{
-				t1->Error("incompatible types", t2);
-				return nullptr;
-				}
-
-			tl3 = make_intrusive<TypeList>();
-
-			for ( auto i = 0u; i < tl1.size(); ++i )
-				{
-				auto tl3_i = merge_types(tl1[i], tl2[i]);
-				if ( ! tl3_i )
-					return nullptr;
-
-				tl3->Append(std::move(tl3_i));
-				}
-
-			const auto& y1 = t1->Yield();
-			const auto& y2 = t2->Yield();
-			TypePtr y3;
-
-			if ( y1 || y2 )
-				{
-				if ( ! y1 || ! y2 )
-					{
-					t1->Error("incompatible types", t2);
-					return nullptr;
-					}
-
-				y3 = merge_types(y1, y2);
-				if ( ! y3 )
-					return nullptr;
-				}
-
-			if ( t1->IsSet() )
-				return make_intrusive<SetType>(std::move(tl3), nullptr);
-			else
-				return make_intrusive<TableType>(std::move(tl3), std::move(y3));
-			}
+			return merge_table_types(t1, t2);
 
 		case TYPE_FUNC:
-			{
-			if ( ! same_type(t1, t2) )
-				{
-				t1->Error("incompatible types", t2);
-				return nullptr;
-				}
-
-			const FuncType* ft1 = (const FuncType*)t1;
-			const FuncType* ft2 = (const FuncType*)t1;
-			auto args = cast_intrusive<RecordType>(merge_types(ft1->Params(), ft2->Params()));
-			auto yield = t1->Yield() ? merge_types(t1->Yield(), t2->Yield()) : nullptr;
-
-			return make_intrusive<FuncType>(std::move(args), std::move(yield), ft1->Flavor());
-			}
+			return merge_func_types(t1, t2);
 
 		case TYPE_RECORD:
-			{
-			const RecordType* rt1 = (const RecordType*)t1;
-			const RecordType* rt2 = (const RecordType*)t2;
-
-			if ( rt1->NumFields() != rt2->NumFields() )
-				return nullptr;
-
-			type_decl_list* tdl3 = new type_decl_list(rt1->NumFields());
-
-			for ( int i = 0; i < rt1->NumFields(); ++i )
-				{
-				const TypeDecl* td1 = rt1->FieldDecl(i);
-				const TypeDecl* td2 = rt2->FieldDecl(i);
-				auto tdl3_i = merge_types(td1->type, td2->type);
-
-				if ( ! util::streq(td1->id, td2->id) || ! tdl3_i )
-					{
-					t1->Error("incompatible record fields", t2);
-					delete tdl3;
-					return nullptr;
-					}
-
-				tdl3->push_back(new TypeDecl(util::copy_string(td1->id), std::move(tdl3_i)));
-				}
-
-			return make_intrusive<RecordType>(tdl3);
-			}
+			return merge_record_types(t1, t2);
 
 		case TYPE_LIST:
-			{
-			const TypeList* tl1 = t1->AsTypeList();
-			const TypeList* tl2 = t2->AsTypeList();
-
-			if ( tl1->IsPure() != tl2->IsPure() )
-				{
-				tl1->Error("incompatible lists", tl2);
-				return nullptr;
-				}
-
-			const auto& l1 = tl1->GetTypes();
-			const auto& l2 = tl2->GetTypes();
-
-			if ( l1.size() == 0 || l2.size() == 0 )
-				{
-				if ( l1.size() == 0 )
-					tl1->Error("empty list");
-				else
-					tl2->Error("empty list");
-				return nullptr;
-				}
-
-			if ( tl1->IsPure() )
-				{
-				// We will be expanding the pure list when converting
-				// the initialization expression into a set of values.
-				// So the merge type of the list is the type of one
-				// of the elements, providing they're consistent.
-				return merge_types(l1[0], l2[0]);
-				}
-
-			// Impure lists - must have the same size and match element
-			// by element.
-			if ( l1.size() != l2.size() )
-				{
-				tl1->Error("different number of indices", tl2);
-				return nullptr;
-				}
-
-			auto tl3 = make_intrusive<TypeList>();
-
-			for ( auto i = 0u; i < l1.size(); ++i )
-				tl3->Append(merge_types(l1[i], l2[i]));
-
-			return tl3;
-			}
+			return merge_list_types(t1, t2);
 
 		case TYPE_VECTOR:
 			if ( ! same_type(t1->Yield(), t2->Yield()) )
@@ -2510,26 +2556,85 @@ static Type* reduce_type(Type* t)
 		return t;
 	}
 
-TypePtr init_type(detail::Expr* init)
+static TableTypePtr init_table_type(detail::ListExpr* l)
 	{
-	if ( init->Tag() != detail::EXPR_LIST )
+	auto& elems = l->Exprs();
+	TypePtr index;
+	TypePtr yield;
+
+	for ( auto e : elems )
 		{
-		auto t = init->InitType();
-
-		if ( ! t )
-			return nullptr;
-
-		if ( t->Tag() == TYPE_LIST && t->AsTypeList()->GetTypes().size() != 1 )
+		if ( e->Tag() != detail::EXPR_ASSIGN )
 			{
-			init->Error("list used in scalar initialization");
+			e->Error("table constructor element lacks '=' structure");
 			return nullptr;
 			}
 
-		return t;
+		auto& ind = e->GetOp1()->GetType();
+		auto& y = e->GetOp2()->GetType();
+
+		if ( ! index )
+			{
+			index = ind;
+			yield = y;
+			continue;
+			}
+
+		index = merge_types(index, ind);
+		yield = merge_types(yield, y);
+
+		if ( ! index || ! yield )
+			// Error message already generated.
+			return nullptr;
 		}
 
-	detail::ListExpr* init_list = init->AsListExpr();
-	const ExprPList& el = init_list->Exprs();
+	if ( index->Tag() != TYPE_LIST )
+		return nullptr;
+
+	return make_intrusive<TableType>(cast_intrusive<TypeList>(index), yield);
+	}
+
+static SetTypePtr init_set_type(detail::ListExpr* l)
+	{
+	auto& elems = l->Exprs();
+	TypePtr index;
+
+	for ( auto e : elems )
+		{
+		auto& ind = e->GetType();
+
+		if ( ! index )
+			{
+			index = ind;
+			continue;
+			}
+
+		index = merge_types(index, ind);
+
+		if ( ! index )
+			return nullptr;
+		}
+
+	TypeListPtr ind_list;
+
+	if ( index->Tag() == TYPE_LIST )
+		ind_list = cast_intrusive<TypeList>(index);
+	else
+		{
+		ind_list = make_intrusive<TypeList>(index);
+		ind_list->Append(index);
+		}
+
+	return make_intrusive<SetType>(ind_list, nullptr);
+	}
+
+TypePtr init_type(const detail::ExprPtr& init)
+	{
+	if ( init->Tag() != detail::EXPR_LIST )
+		return init->InitType();
+
+	auto init_list = init->AsListExpr();
+	const auto& el = init_list->Exprs();
 
 	if ( el.length() == 0 )
 		{
@@ -2538,58 +2643,16 @@ TypePtr init_type(detail::Expr* init)
 		}
 
 	// Could be a record, a set, or a list of table elements.
-	detail::Expr* e0 = el[0];
+	auto e0 = el[0];
 
 	if ( e0->IsRecordElement(nullptr) )
-		// ListExpr's know how to build a record from their
-		// components.
+		// ListExpr's know how to build a record from their components.
 		return init_list->InitType();
 
-	auto t = e0->InitType();
-
-	if ( t )
-		t = {NewRef{}, reduce_type(t.get())};
-
-	if ( ! t )
-		return nullptr;
-
-	for ( int i = 1; t && i < el.length(); ++i )
-		{
-		auto el_t = el[i]->InitType();
-		TypePtr ti;
-
-		if ( el_t )
-			ti = {NewRef{}, reduce_type(el_t.get())};
-
-		if ( ! ti )
-			return nullptr;
-
-		if ( same_type(t, ti) )
-			continue;
-
-		t = merge_types(t, ti);
-		}
-
-	if ( ! t )
-		{
-		init->Error("type error in initialization");
-		return nullptr;
-		}
-
-	if ( t->Tag() == TYPE_TABLE && ! t->AsTableType()->IsSet() )
-		// A list of table elements.
-		return t;
-
-	// A set.  If the index type isn't yet a type list, make
-	// it one, as that's what's required for creating a set type.
-	if ( t->Tag() != TYPE_LIST )
-		{
-		auto tl = make_intrusive<TypeList>(t);
-		tl->Append(std::move(t));
-		t = std::move(tl);
-		}
-
-	return make_intrusive<SetType>(cast_intrusive<TypeList>(std::move(t)), nullptr);
+	if ( e0->Tag() == detail::EXPR_ASSIGN )
+		return init_table_type(init_list);
+	else
+		return init_set_type(init_list);
 	}
 
 bool is_atomic_type(const Type& t)

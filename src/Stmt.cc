@@ -396,7 +396,7 @@ void do_print_stmt(const std::vector<ValPtr>& vals)
 
 ExprStmt::ExprStmt(ExprPtr arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))
 	{
-	if ( e && e->IsPure() && e->GetType()->Tag() != TYPE_ERROR )
+	if ( e && e->Tag() != EXPR_CALL && e->IsPure() && e->GetType()->Tag() != TYPE_ERROR )
 		Warn("expression value ignored");
 
 	SetLocationInfo(e->GetLocationInfo());

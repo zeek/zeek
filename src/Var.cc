@@ -23,18 +23,6 @@
 namespace zeek::detail
 	{
 
-static ValPtr init_val(ExprPtr init, TypePtr t, ValPtr aggr)
-	{
-	try
-		{
-		return init->InitVal(t, std::move(aggr));
-		}
-	catch ( InterpreterException& e )
-		{
-		return nullptr;
-		}
-	}
-
 static bool add_prototype(const IDPtr& id, Type* t, std::vector<AttrPtr>* attrs,
                           const ExprPtr& init)
 	{
@@ -129,9 +117,103 @@ static bool add_prototype(const IDPtr& id, Type* t, std::vector<AttrPtr>* attrs,
 	return true;
 	}
 
+static void initialize_var(const IDPtr& id, InitClass c, ExprPtr init)
+	{
+	if ( ! id->HasVal() )
+		{
+		if ( c == INIT_REMOVE )
+			return;
+
+		bool no_init = ! init;
+
+		if ( ! no_init && init->Tag() == EXPR_LIST )
+			no_init = init->AsListExpr()->Exprs().empty();
+
+		if ( no_init )
+			{
+			auto& t = id->GetType();
+
+			if ( ! IsAggr(t) )
+				return;
+
+			ValPtr init_val;
+
+			if ( t->Tag() == TYPE_RECORD )
+				{
+				try
+					{
+					init_val = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
+					}
+				catch ( InterpreterException& )
+					{
+					id->Error("initialization failed");
+					return;
+					}
+				}
+
+			else if ( t->Tag() == TYPE_TABLE )
+				init_val = make_intrusive<TableVal>(cast_intrusive<TableType>(t), id->GetAttrs());
+
+			else if ( t->Tag() == TYPE_VECTOR )
+				init_val = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
+
+			id->SetVal(init_val);
+			return;
+			}
+
+		if ( c == INIT_EXTRA )
+			c = INIT_FULL;
+		}
+
+	bool is_const = id->IsConst() || id->IsOption();
+	auto lhs = make_intrusive<NameExpr>(id, is_const);
+	ExprPtr assignment;
+
+	if ( c == INIT_FULL )
+		assignment = make_intrusive<AssignExpr>(lhs, init, false);
+	else if ( c == INIT_EXTRA )
+		assignment = make_intrusive<AddToExpr>(lhs, init);
+	else if ( c == INIT_REMOVE )
+		assignment = make_intrusive<RemoveFromExpr>(lhs, init);
+	else
+		reporter->InternalError("bad InitClass in initialize_var");
+
+	if ( assignment->IsError() )
+		return;
+
+	try
+		{
+		(void)assignment->Eval(nullptr);
+		}
+	catch ( InterpreterException& )
+		{
+		id->Error("initialization failed");
+		}
+	}
+
 static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
                      std::unique_ptr<std::vector<AttrPtr>> attr, DeclType dt, bool do_init)
 	{
+	if ( c == INIT_NONE && init )
+		{
+		// This can happen because the grammar allows any "init_class",
+		// including none, to be followed by an expression.
+		init->Warn("initialization not preceded by =/+=/-= is deprecated");
+
+		// The historical instances of these, such as the
+		// language/redef-same-prefixtable-idx.zeek btest, treat
+		// this as += rather than =, and with the initializer
+		// implicitly inside a list.
+		init = make_intrusive<ListExpr>(init);
+		c = INIT_EXTRA;
+		}
+
+	if ( init && init->Tag() == EXPR_LIST )
+		{
+		auto& init_t = t ? t : id->GetType();
+		init = expand_op(cast_intrusive<ListExpr>(init), init_t);
+		}
+
 	if ( id->GetType() )
 		{
 		if ( id->IsRedefinable() || (! init && attr && ! IsFunc(id->GetType()->Tag())) )
@@ -166,7 +248,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 
 	if ( id->GetType() && id->GetType()->Tag() != TYPE_ERROR )
 		{
-		if ( dt != VAR_REDEF && (! init || ! do_init || (! t && ! (t = init_type(init.get())))) )
+		if ( dt != VAR_REDEF && (! init || ! do_init || (! t && ! (t = init_type(init)))) )
 			{
 			id->Error("already defined", init.get());
 			return;
@@ -205,7 +287,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 			return;
 			}
 
-		t = init_type(init.get());
+		t = init_type(init);
 		if ( ! t )
 			{
 			id->SetType(error_type());
@@ -228,6 +310,8 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 				auto* ctor = static_cast<TableConstructorExpr*>(init.get());
 				if ( ctor->GetAttrs() )
 					id->AddAttrs(ctor->GetAttrs());
+				else
+					ctor->SetAttrs(id->GetAttrs());
 				}
 				break;
 
@@ -236,6 +320,8 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 				auto* ctor = static_cast<SetConstructorExpr*>(init.get());
 				if ( ctor->GetAttrs() )
 					id->AddAttrs(ctor->GetAttrs());
+				else
+					ctor->SetAttrs(id->GetAttrs());
 				}
 				break;
 
@@ -258,48 +344,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 			id->SetVal(init, c);
 
 		else if ( dt != VAR_REDEF || init || ! attr )
-			{
-			ValPtr aggr;
-
-			if ( t->Tag() == TYPE_RECORD )
-				{
-				try
-					{
-					aggr = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
-					}
-				catch ( InterpreterException& )
-					{
-					id->Error("initialization failed");
-					return;
-					}
-
-				if ( init && t )
-					// Have an initialization and type is not deduced.
-					init = make_intrusive<RecordCoerceExpr>(
-						std::move(init), IntrusivePtr{NewRef{}, t->AsRecordType()});
-				}
-
-			else if ( t->Tag() == TYPE_TABLE )
-				aggr = make_intrusive<TableVal>(cast_intrusive<TableType>(t), id->GetAttrs());
-
-			else if ( t->Tag() == TYPE_VECTOR )
-				aggr = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
-
-			ValPtr v;
-
-			if ( init )
-				{
-				v = init_val(init, t, aggr);
-
-				if ( ! v )
-					return;
-				}
-
-			if ( aggr )
-				id->SetVal(std::move(aggr), c);
-			else if ( v )
-				id->SetVal(std::move(v), c);
-			}
+			initialize_var(id, c, init);
 		}
 
 	if ( dt == VAR_CONST )

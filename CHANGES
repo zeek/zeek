@@ -1,3 +1,17 @@
+5.0.0-dev.195 | 2022-03-24 11:01:28 -0700
+
+  * switch variable initialization over to being expression-based (Vern Paxson, Corelight)
+
+  * simplification of Val classes now that they don't have to support initialization (Vern Paxson, Corelight)
+
+  * rework type inference due to switch from separate initializers to expressions (Vern Paxson, Corelight)
+
+  * avoid evaluating calls to determine whether an expression value is ignored (Vern Paxson, Corelight)
+
+  * reworking of expressions to unify =/+=/-= with initialization (Vern Paxson, Corelight)
+
+  * allow {} expression lists for =/+=/-= RHS (Vern Paxson, Corelight)
+
 5.0.0-dev.177 | 2022-03-23 13:05:51 +0100
 
   * Improve the formatting of the SSL::Info::ssl_history documentation (Johanna Amann, Corelight)

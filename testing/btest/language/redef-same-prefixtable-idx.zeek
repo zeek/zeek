@@ -1,4 +1,5 @@
 # @TEST-EXEC: zeek -b %INPUT >out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 # @TEST-EXEC: btest-diff out
 
 const my_table: table[subnet] of subnet &redef;

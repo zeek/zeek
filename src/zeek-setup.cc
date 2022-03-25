@@ -516,6 +516,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	auto options = zopts ? *zopts : parse_cmdline(argc, argv);
 
+	run_state::detail::bare_mode = options.bare_mode;
+
 	// Set up the global that facilitates access to analysis/optimization
 	// options from deep within some modules.
 	analysis_options = options.analysis_options;

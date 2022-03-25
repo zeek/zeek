@@ -65,6 +65,8 @@ extern double current_pseudo;
 
 extern bool zeek_init_done;
 
+extern bool bare_mode; // True if Zeek was started in bare mode.
+
 	} // namespace detail
 
 // Functions to temporarily suspend processing of live input (network packets

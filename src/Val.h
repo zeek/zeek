@@ -47,6 +47,7 @@ class PrefixTable;
 class CompositeHash;
 class HashKey;
 
+class ValTrace;
 class ZBody;
 
 	} // namespace detail
@@ -1380,6 +1381,7 @@ public:
 	static void DoneParsing();
 
 protected:
+	friend class zeek::detail::ValTrace;
 	friend class zeek::detail::ZBody;
 
 	RecordValPtr DoCoerceTo(RecordTypePtr other, bool allow_orphaning) const;
@@ -1401,9 +1403,9 @@ protected:
 			record_val->emplace_back(std::nullopt);
 		}
 
-	// For use by low-level ZAM instructions.  Caller assumes
-	// responsibility for memory management.  The first version
-	// allows manipulation of whether the field is present at all.
+	// For internal use by low-level ZAM instructions and event tracing.
+	// Caller assumes responsibility for memory management.  The first
+	// version allows manipulation of whether the field is present at all.
 	// The second version ensures that the optional value is present.
 	std::optional<ZVal>& RawOptField(int field) { return (*record_val)[field]; }
 
@@ -1614,9 +1616,12 @@ public:
 		}
 	const String* StringAt(unsigned int index) const { return StringValAt(index)->AsString(); }
 
-	// Only intended for low-level access by compiled code.
+	// Only intended for low-level access by internal or compiled code.
 	const auto& RawVec() const { return vector_val; }
 	auto& RawVec() { return vector_val; }
+
+	const auto& RawYieldType() const { return yield_type; }
+	const auto& RawYieldTypes() const { return yield_types; }
 
 protected:
 	/**

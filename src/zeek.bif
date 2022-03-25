@@ -321,7 +321,7 @@ static int next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, in
 ##
 ## Returns: The wall-clock time.
 ##
-## .. zeek:see:: network_time
+## .. zeek:see:: network_time set_network_time
 function current_time%(%): time
 	%{
 	return zeek::make_intrusive<zeek::TimeVal>(zeek::util::current_time());
@@ -333,10 +333,24 @@ function current_time%(%): time
 ##
 ## Returns: The timestamp of the packet processed.
 ##
-## .. zeek:see:: current_time
+## .. zeek:see:: current_time set_network_time
 function network_time%(%): time
 	%{
 	return zeek::make_intrusive<zeek::TimeVal>(zeek::run_state::network_time);
+	%}
+
+## Sets the timestamp associated with the last packet processed. Used for
+## event replaying.
+##
+## nt: The time to which to set "network time".
+##
+## Returns: The timestamp of the packet processed.
+##
+## .. zeek:see:: current_time network_time
+function set_network_time%(nt: time%): bool
+	%{
+	zeek::run_state::network_time = nt;
+	return zeek::val_mgr->True();
 	%}
 
 ## Returns a system environment variable.

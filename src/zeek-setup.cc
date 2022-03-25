@@ -26,6 +26,7 @@
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/EventRegistry.h"
+#include "zeek/EventTrace.h"
 #include "zeek/File.h"
 #include "zeek/Frag.h"
 #include "zeek/Frame.h"
@@ -281,13 +282,13 @@ static void done_with_network()
 	ZEEK_LSAN_DISABLE();
 	}
 
-static void terminate_bro()
+static void terminate_zeek()
 	{
-	util::detail::set_processing_status("TERMINATING", "terminate_bro");
+	util::detail::set_processing_status("TERMINATING", "terminate_zeek");
 
 	run_state::terminating = true;
 
-	iosource_mgr->Wakeup("terminate_bro");
+	iosource_mgr->Wakeup("terminate_zeek");
 
 	// File analysis termination may produce events, so do it early on in
 	// the termination process.
@@ -299,7 +300,18 @@ static void terminate_bro()
 		event_mgr.Enqueue(zeek_done, Args{});
 
 	timer_mgr->Expire();
+
+	// Drain() limits how many "generations" of newly created events
+	// it will process.  When we're terminating, however, we're okay
+	// with long chains of events, and this makes the workings of
+	// event-tracing simpler.
+	//
+	// That said, we also need to ensure that it runs at least once,
+	// as it has side effects such as tickling triggers.
 	event_mgr.Drain();
+
+	while ( event_mgr.HasEvents() )
+		event_mgr.Drain();
 
 	if ( profiling_logger )
 		{
@@ -658,6 +670,9 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		};
 		auto ipbb = make_intrusive<BuiltinFunc>(init_bifs, ipbid->Name(), false);
 
+		if ( options.event_trace_file )
+			etm = make_unique<EventTraceMgr>(*options.event_trace_file);
+
 		run_state::is_parsing = true;
 		yyparse();
 		run_state::is_parsing = false;
@@ -943,7 +958,7 @@ int cleanup(bool did_run_loop)
 		done_with_network();
 
 	run_state::detail::delete_run();
-	terminate_bro();
+	terminate_zeek();
 
 	sqlite3_shutdown();
 
@@ -974,7 +989,7 @@ void zeek_terminate_loop(const char* reason)
 	zeek::detail::done_with_network();
 	delete_run();
 
-	zeek::detail::terminate_bro();
+	zeek::detail::terminate_zeek();
 
 	// Close files after net_delete(), because net_delete()
 	// might write to connection content files.

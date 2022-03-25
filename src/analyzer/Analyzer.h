@@ -605,6 +605,8 @@ public:
 	 * use this method to attach additional data to the connections. A
 	 * call to BuildConnVal() will in turn trigger a call to
 	 * UpdateConnVal().
+	 * TODO: The above comment needs updating, there's no BuildConnVal()
+	 * anymore -VP
 	 *
 	 * @param conn_val The connenction value being updated.
 	 */

@@ -8,6 +8,7 @@
 #include "zeek/Debug.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
+#include "zeek/EventTrace.h"
 #include "zeek/Expr.h"
 #include "zeek/File.h"
 #include "zeek/Frame.h"
@@ -1076,11 +1077,17 @@ EventStmt::EventStmt(EventExprPtr arg_e) : ExprStmt(STMT_EVENT, arg_e), event_ex
 ValPtr EventStmt::Exec(Frame* f, StmtFlowType& flow)
 	{
 	RegisterAccess();
+
 	auto args = eval_list(f, event_expr->Args());
 	auto h = event_expr->Handler();
 
 	if ( args && h )
+		{
+		if ( etm )
+			etm->ScriptEventQueued(h);
+
 		event_mgr.Enqueue(h, std::move(*args));
+		}
 
 	flow = FLOW_NEXT;
 	return nullptr;

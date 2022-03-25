@@ -20,7 +20,7 @@ class EventHandler
 public:
 	explicit EventHandler(std::string name);
 
-	const char* Name() { return name.data(); }
+	const char* Name() const { return name.data(); }
 
 	const FuncPtr& GetFunc() { return local; }
 

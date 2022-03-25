@@ -1,3 +1,15 @@
+5.0.0-dev.204 | 2022-03-25 15:31:21 -0700
+
+  * --event-trace / -E option to generate event trace (Vern Paxson, Corelight)
+
+  * hooks to support event tracing (Vern Paxson, Corelight)
+
+  * classes providing event-tracing/dumping functionality (Vern Paxson, Corelight)
+
+  * provide access to Val internals for event tracing purposes (Vern Paxson, Corelight)
+
+  * set_network_time() BiF in support of event replaying (Vern Paxson, Corelight)
+
 5.0.0-dev.195 | 2022-03-24 11:01:28 -0700
 
   * switch variable initialization over to being expression-based (Vern Paxson, Corelight)

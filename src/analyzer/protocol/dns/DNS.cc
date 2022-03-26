@@ -693,6 +693,10 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
 	// parse EDNS options
 	while ( len > 0 )
 		{
+#if (defined(__GNUC__) && __GNUC__ < 8)
+		// Older versions of GCC will add strange infinite loop instructions here
+		util::do_not_optimize(len);
+#endif
 		uint16_t option_code = ExtractShort(data, len);
 		int option_len = ExtractShort(data, len);
 		// check for invalid option length

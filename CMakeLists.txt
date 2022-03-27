@@ -38,6 +38,15 @@ if ( MSVC )
         string(REGEX REPLACE "[/|-]W3" "" ${CompilerFlag} "${${CompilerFlag}}")
         string(REGEX REPLACE "[/|-]W4" "" ${CompilerFlag} "${${CompilerFlag}}")
     endforeach()
+    
+    # Set compilation flags for Windows
+    add_compile_options(
+        /guard:cf # required by CheckCFlags
+        /Z7)      # required by CheckCFlags
+        
+    add_link_options(
+        /debug:full # required by CheckCFlags
+    )
 
     # Set always to static runtime
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")

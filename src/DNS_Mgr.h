@@ -45,6 +45,7 @@ using StringValPtr = IntrusivePtr<StringVal>;
 namespace zeek::detail
 	{
 class DNS_Mapping;
+using DNS_MappingPtr = std::shared_ptr<DNS_Mapping>;
 class DNS_Request;
 
 enum DNS_MgrMode
@@ -258,17 +259,17 @@ protected:
 	void CheckAsyncHostRequest(const std::string& host, bool timeout);
 	void CheckAsyncOtherRequest(const std::string& host, bool timeout, int request_type);
 
-	void Event(EventHandlerPtr e, DNS_Mapping* dm);
-	void Event(EventHandlerPtr e, DNS_Mapping* dm, ListValPtr l1, ListValPtr l2);
-	void Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm);
+	void Event(EventHandlerPtr e, const DNS_MappingPtr& dm);
+	void Event(EventHandlerPtr e, const DNS_MappingPtr& dm, ListValPtr l1, ListValPtr l2);
+	void Event(EventHandlerPtr e, const DNS_MappingPtr& old_dm, DNS_MappingPtr new_dm);
 
-	ValPtr BuildMappingVal(DNS_Mapping* dm);
+	ValPtr BuildMappingVal(const DNS_MappingPtr& dm);
 
-	void CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm);
-	ListValPtr AddrListDelta(ListVal* al1, ListVal* al2);
+	void CompareMappings(const DNS_MappingPtr& prev_dm, const DNS_MappingPtr& new_dm);
+	ListValPtr AddrListDelta(ListValPtr al1, ListValPtr al2);
 
 	using MappingKey = std::variant<IPAddr, std::pair<int, std::string>>;
-	using MappingMap = std::map<MappingKey, DNS_Mapping*>;
+	using MappingMap = std::map<MappingKey, DNS_MappingPtr>;
 	void LoadCache(const std::string& path);
 	void Save(FILE* f, const MappingMap& m);
 

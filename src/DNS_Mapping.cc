@@ -171,7 +171,7 @@ void DNS_Mapping::Save(FILE* f) const
 		fprintf(f, "%s\n", addr.AsString().c_str());
 	}
 
-void DNS_Mapping::Merge(DNS_Mapping* other)
+void DNS_Mapping::Merge(const DNS_MappingPtr& other)
 	{
 	std::copy(other->names.begin(), other->names.end(), std::back_inserter(names));
 	std::copy(other->addrs.begin(), other->addrs.end(), std::back_inserter(addrs));

@@ -11,6 +11,9 @@
 namespace zeek::detail
 	{
 
+class DNS_Mapping;
+using DNS_MappingPtr = std::shared_ptr<DNS_Mapping>;
+
 class DNS_Mapping
 	{
 public:
@@ -51,7 +54,7 @@ public:
 		return util::current_time() > (creation_time + req_ttl);
 		}
 
-	void Merge(DNS_Mapping* other);
+	void Merge(const DNS_MappingPtr& other);
 
 	static void InitializeCache(FILE* f);
 	static bool ValidateCacheVersion(FILE* f);

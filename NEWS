@@ -12,6 +12,10 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Zeek now supports generation and replay of event traces via the new
+  ``--event-trace`` / ``-E`` command-line options. For details, see:
+  https://docs.zeek.org/en/master/quickstart.html#tracing-events
+
 - The new --with-gen-zam configure flag and its corresponding GEN_ZAM_EXE_PATH
   cmake variable allow reuse of a previously built Gen-ZAM code generator. This
   aids cross-compilation: the Zeek build process normally compiles Gen-ZAM on
@@ -22,6 +26,13 @@ New Functionality
 
 Changed Functionality
 ---------------------
+
+- The behavior of the ``=``, ``+=``, and ``-=`` operators has been expanded and
+  unified. It now covers ``{ ... }`` initializer lists, supports cross-product
+  initialization, enables ``+=`` for table, set, vector and pattern values,
+  similarly allows ``-=`` for table and set values, and supports listing
+  multiple sets for ``+=`` initialization. For details, see:
+  https://docs.zeek.org/en/master/script-reference/operators.html#assignment-operators
 
 - The is_num(), is_alpha(), and is_alnum() BiFs now return F for the empty string.
 

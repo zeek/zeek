@@ -55,3 +55,6 @@
 [submodule "auxil/c-ares"]
 	path = auxil/c-ares
 	url = https://github.com/c-ares/c-ares
+[submodule "auxil/out_ptr"]
+	path = auxil/out_ptr
+	url = https://github.com/soasis/out_ptr.git

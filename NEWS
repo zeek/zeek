@@ -12,6 +12,14 @@ Breaking Changes
 New Functionality
 -----------------
 
+- The new --with-gen-zam configure flag and its corresponding GEN_ZAM_EXE_PATH
+  cmake variable allow reuse of a previously built Gen-ZAM code generator. This
+  aids cross-compilation: the Zeek build process normally compiles Gen-ZAM on
+  the fly, but when cross-compiling will do so for the target platform, breaking
+  its use on the host platform. Gen-ZAM is similar to binpac and bifcl in this
+  regard. Like binpac and bifcl, it's now also available as a standalone git
+  repository and hooked into the Zeek distribution as a submodule.
+
 Changed Functionality
 ---------------------
 

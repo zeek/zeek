@@ -1,3 +1,9 @@
+5.0.0-dev.210 | 2022-03-28 17:04:51 -0700
+
+  * Add cmake-time reporting of bifcl, binpac, and gen-zam used for build (Christian Kreibich, Corelight)
+
+  * Build Gen-ZAM from a submodule and support use of pre-existing executable (Christian Kreibich, Corelight)
+
 5.0.0-dev.204 | 2022-03-25 15:31:21 -0700
 
   * --event-trace / -E option to generate event trace (Vern Paxson, Corelight)

@@ -38,12 +38,12 @@ if ( MSVC )
         string(REGEX REPLACE "[/|-]W3" "" ${CompilerFlag} "${${CompilerFlag}}")
         string(REGEX REPLACE "[/|-]W4" "" ${CompilerFlag} "${${CompilerFlag}}")
     endforeach()
-    
+
     # Set compilation flags for Windows
     add_compile_options(
         /guard:cf # required by CheckCFlags
         /Z7)      # required by CheckCFlags
-        
+
     add_link_options(
         /debug:full # required by CheckCFlags
     )
@@ -71,11 +71,11 @@ if ( MSVC )
                             SETTINGS ${settings})
     endif()
 
-    # Set LibPCAP to point to wpcap binaries.
-    find_package(npcap-wpcap)
-    set(PCAP_ROOT_DIR "${npcap-wpcap_LIB_DIRS}/../")
-    set(PCAP_INCLUDE_DIR ${npcap-wpcap_INCLUDES})
-    set(PCAP_LIBRARY ${npcap-wpcap_LIBS})
+    # Set LibPCAP to point to libpcap binaries.
+    find_package(libpcap)
+    set(PCAP_ROOT_DIR "${libpcap_LIB_DIRS}/../")
+    set(PCAP_INCLUDE_DIR ${libpcap_INCLUDES})
+    set(PCAP_LIBRARY ${libpcap_LIBS})
     set(LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER false)
 
     # Set ZLib to point at the right variable.

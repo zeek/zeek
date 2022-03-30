@@ -35,22 +35,17 @@ RUN [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePoin
 SHELL ["cmd", "/S", "/C"]
 
 # Install prerequisites
+RUN choco install powershell-core -y
 RUN choco install conan -y
+RUN choco install sed -y
 RUN choco install winflexbison -y
-RUN choco install openssl -y
-RUN choco install python -y
 # Can't install a proper msys2 because it caused console hanging in the container during docker build.
 RUN choco install msysgit -y
-RUN choco install sed -y
-RUN choco install powershell-core -y
 
 # Set working environment.
 RUN setx /M PATH "%PATH%;C:\\Program Files\\Git\\bin"
 RUN mkdir C:\build
 WORKDIR C:\build
-
-# Configure conan
-ADD default C:\Users\ContainerAdministrator\.conan\profiles\default
 
 # Define the entry point for the docker container.
 # This entry point starts the developer command prompt and launches the PowerShell shell.

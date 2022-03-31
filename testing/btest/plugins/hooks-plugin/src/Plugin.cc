@@ -1,6 +1,8 @@
 
 #include "Plugin.h"
 
+#include <cstring>
+
 #include <Func.h>
 #include <Event.h>
 #include <Conn.h>
@@ -40,13 +42,36 @@ zeek::plugin::Configuration Plugin::Configure()
 static void describe_hook_args(const zeek::plugin::HookArgumentList& args, zeek::ODesc* d)
 	{
 	bool first = true;
+	bool serialize_args = true;
 
 	for ( zeek::plugin::HookArgumentList::const_iterator i = args.begin(); i != args.end(); i++ )
 		{
-		if ( ! first )
-			d->Add(", ");
+		if ( first )
+			{
+			first = false;
 
-		i->Describe(d);
+			i->Describe(d);
+
+			// For function calls we remove args for unstable arguments
+			// from parsing the version in `base/misc/version`.
+			if ( i->GetType() == zeek::plugin::HookArgument::FUNC &&
+			    (::strcmp(d->Description(), "Version::parse") == 0 ||
+			     ::strcmp(d->Description(), "gsub") == 0 ||
+			     ::strcmp(d->Description(), "split_string1") == 0 ||
+			     ::strcmp(d->Description(), "lstrip") == 0 ||
+			     ::strcmp(d->Description(), "to_count") == 0))
+				serialize_args = false;
+
+			continue;
+			}
+
+		d->Add(", ");
+
+		if ( serialize_args )
+			i->Describe(d);
+		else
+			d->Add("...");
+
 		first = false;
 		}
 	}
@@ -70,8 +95,20 @@ std::pair<bool, zeek::ValPtr> Plugin::HookFunctionCall(const zeek::Func* func, z
 	{
 	zeek::ODesc d;
 	d.SetShort();
+
 	zeek::plugin::HookArgument(func).Describe(&d);
-	zeek::plugin::HookArgument(args).Describe(&d);
+
+	// For function calls we remove args for unstable arguments
+	// from parsing the version in `base/misc/version`.
+	if ( ::strcmp(d.Description(), "Version::parse") == 0 ||
+	     ::strcmp(d.Description(), "gsub") == 0 ||
+	     ::strcmp(d.Description(), "split_string1") == 0 ||
+	     ::strcmp(d.Description(), "lstrip") == 0 ||
+	     ::strcmp(d.Description(), "to_count") == 0)
+		d.Add("(...)");
+	else
+		zeek::plugin::HookArgument(args).Describe(&d);
+
 	fprintf(stderr, "%.6f %-15s %s\n", zeek::run_state::network_time, "| HookCallFunction",
 		d.Description());
 

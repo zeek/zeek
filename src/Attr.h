@@ -139,5 +139,16 @@ protected:
 	bool global_var;
 	};
 
+// Checks whether default attribute "a" is compatible with the given type.
+// "global_var" specifies whether the attribute is being associated with
+// a global variable, and "in_record" whether it's occurring inside of
+// a record declaration.
+//
+// Returns true on compatibility (which might include modifying "a"), false
+// on an error.  If an error message hasn't been directly generated, then
+// it will be returned in err_msg.
+extern bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool in_record,
+                               std::string& err_msg);
+
 	} // namespace detail
 	} // namespace zeek

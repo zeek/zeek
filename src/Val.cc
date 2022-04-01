@@ -2511,6 +2511,14 @@ void TableVal::InitDefaultFunc(detail::Frame* f)
 		return;
 
 	const auto& ytype = GetType()->Yield();
+
+	if ( ! ytype )
+		// This happens for empty table() constructors.  Don't
+		// instantiate a default value at this point, as we'll
+		// first need to type-check the attribute when the value
+		// is finally used.
+		return;
+
 	const auto& dtype = def_attr->GetExpr()->GetType();
 
 	if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD && ! same_type(dtype, ytype) &&

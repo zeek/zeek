@@ -935,7 +935,7 @@ public:
 	void InitTimer(double delay);
 	void DoExpire(double t);
 
-	// If the &default attribute is not a function, or the functon has
+	// If the &default attribute is not a function, or the function has
 	// already been initialized, this does nothing. Otherwise, evaluates
 	// the function in the frame allowing it to capture its closure.
 	void InitDefaultFunc(detail::Frame* f);

@@ -406,6 +406,12 @@ public:
 	// Returns true if this table type is "unspecified", which is
 	// what one gets using an empty "set()" or "table()" constructor.
 	bool IsUnspecifiedTable() const;
+
+private:
+	bool DoExpireCheck(const detail::AttrPtr& attr);
+
+	// Used to prevent repeated error messages.
+	bool reported_error = false;
 	};
 
 class SetType final : public TableType
@@ -538,6 +544,9 @@ protected:
 	std::optional<CaptureList> captures; // if nil then no captures specified
 	// Used for internal lambdas built for "when" statements:
 	bool expressionless_return_okay = false;
+
+	// Used to prevent repeated error messages.
+	bool reported_error = false;
 	};
 
 class TypeType final : public Type

@@ -17,4 +17,7 @@ event zeek_init()
     print global_table[0];
     print local_table;
     print local_table[0];
+
+    # Catch regression where this used to crash.
+    print table() &default=record($crash=F);
     }

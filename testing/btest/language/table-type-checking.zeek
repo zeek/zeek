@@ -3,6 +3,9 @@
 
 type MyTable: table[port] of count;
 
+# global, type deduction, empty ctor.
+global gempty = table();
+
 # global, type deduction, named ctor
 global gdn = MyTable(["zero"] = 0); # type clash in init
 
@@ -43,4 +46,10 @@ event zeek_init()
 event zeek_init()
     {
     local lea: MyTable = table(["thousand-three"] = 1003); # type clash
+    }
+
+# local, type explicit, empty ctor has incompatible &default
+event zeek_init()
+    {
+    local lei: MyTable = table() &default="foo"; # type clash
     }

@@ -9,3 +9,6 @@ global table default
 [3] = three
 }
 local table default
+{
+
+}

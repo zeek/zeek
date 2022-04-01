@@ -1310,7 +1310,7 @@ extern RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector
 class TableCoerceExpr final : public UnaryExpr
 	{
 public:
-	TableCoerceExpr(ExprPtr op, TableTypePtr r);
+	TableCoerceExpr(ExprPtr op, TableTypePtr r, bool type_check = true);
 	~TableCoerceExpr() override;
 
 	// Optimization-related:

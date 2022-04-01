@@ -2682,21 +2682,11 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs)
 				// Some elements in constructor list must not match, see if
 				// we can create a new constructor now that the expected type
 				// of LHS is known and let it do coercions where possible.
-				SetConstructorExpr* sce = dynamic_cast<SetConstructorExpr*>(op2.get());
-
-				if ( ! sce )
-					{
-					ExprError("Failed typecast to SetConstructorExpr");
-					return false;
-					}
-
+				auto sce = cast_intrusive<SetConstructorExpr>(op2);
 				auto ctor_list = cast_intrusive<ListExpr>(sce->GetOp1());
 
 				if ( ! ctor_list )
-					{
-					ExprError("Failed typecast to ListExpr");
-					return false;
-					}
+					Internal("failed typecast to ListExpr");
 
 				std::unique_ptr<std::vector<AttrPtr>> attr_copy;
 
@@ -4226,13 +4216,23 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector<int>& 
 	return val;
 	}
 
-TableCoerceExpr::TableCoerceExpr(ExprPtr arg_op, TableTypePtr r)
+TableCoerceExpr::TableCoerceExpr(ExprPtr arg_op, TableTypePtr tt, bool type_check)
 	: UnaryExpr(EXPR_TABLE_COERCE, std::move(arg_op))
 	{
 	if ( IsError() )
 		return;
 
-	SetType(std::move(r));
+	if ( type_check )
+		{
+		op = check_and_promote_expr(op, tt);
+		if ( ! op )
+			{
+			SetError();
+			return;
+			}
+		}
+
+	SetType(std::move(tt));
 
 	if ( GetType()->Tag() != TYPE_TABLE )
 		ExprError("coercion to non-table");
@@ -5260,7 +5260,26 @@ ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t)
 		{
 		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
 		     et->AsTableType()->IsUnspecifiedTable() )
-			return make_intrusive<TableCoerceExpr>(e, IntrusivePtr{NewRef{}, t->AsTableType()});
+			{
+			if ( e->Tag() == EXPR_TABLE_CONSTRUCTOR )
+				{
+				auto& attrs = cast_intrusive<TableConstructorExpr>(e)->GetAttrs();
+				auto& def = attrs ? attrs->Find(ATTR_DEFAULT) : nullptr;
+				if ( def )
+					{
+					std::string err_msg;
+					if ( ! check_default_attr(def.get(), t, false, false, err_msg) )
+						{
+						if ( ! err_msg.empty() )
+							t->Error(err_msg.c_str(), e.get());
+						return nullptr;
+						}
+					}
+				}
+
+			return make_intrusive<TableCoerceExpr>(e, IntrusivePtr{NewRef{}, t->AsTableType()},
+			                                       false);
+			}
 
 		if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR &&
 		     et->AsVectorType()->IsUnspecifiedVector() )

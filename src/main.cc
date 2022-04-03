@@ -9,6 +9,8 @@
 
 int main(int argc, char** argv)
 	{
+	  setvbuf(stdout, NULL, _IONBF, 0);
+
 	auto time_start = zeek::util::current_time(true);
 	auto setup_result = zeek::detail::setup(argc, argv);
 

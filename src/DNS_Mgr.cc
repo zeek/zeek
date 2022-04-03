@@ -52,6 +52,10 @@ constexpr int DNS_TIMEOUT = 5;
 // The maximum allowed number of pending asynchronous requests.
 constexpr int MAX_PENDING_REQUESTS = 20;
 
+// The maximum number of bytes requested via UDP. TCP fallback won't happen on
+// requests until a response is larger than this.
+constexpr int MAX_UDP_BUFFER_SIZE = 4096;
+
 // This unfortunately doesn't exist in c-ares, even though it seems rather useful.
 static const char* request_type_string(int request_type)
 	{
@@ -268,9 +272,9 @@ void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr)
 
 		std::unique_ptr<unsigned char, ares_deleter> query_str;
 		int len = 0;
-		int status = ares_create_query(query_host.c_str(), C_IN, request_type,
-		                               DNS_Request::request_id, 1,
-		                               out_ptr<unsigned char*>(query_str), &len, 0);
+		int status = ares_create_query(
+			query_host.c_str(), C_IN, request_type, DNS_Request::request_id, 1,
+			out_ptr<unsigned char*>(query_str), &len, MAX_UDP_BUFFER_SIZE);
 
 		if ( status != ARES_SUCCESS )
 			return;
@@ -587,10 +591,17 @@ void DNS_Mgr::InitSource()
 	ares_options options;
 	int optmask = 0;
 
-	// Don't close the socket for the server even if we have no active
-	// requests.
-	options.flags = ARES_FLAG_STAYOPEN;
+	// Enable an EDNS option to be sent with the requests. This allows us to set
+	// a bigger UDP buffer size in the request, which prevents fallback to TCP
+	// at least up to that size.
+	options.flags = ARES_FLAG_EDNS;
 	optmask |= ARES_OPT_FLAGS;
+
+	options.ednspsz = MAX_UDP_BUFFER_SIZE;
+	optmask |= ARES_OPT_EDNSPSZ;
+
+	options.socket_receive_buffer_size = MAX_UDP_BUFFER_SIZE;
+	optmask |= ARES_OPT_SOCK_RCVBUF;
 
 	// This option is in milliseconds.
 	options.timeout = DNS_TIMEOUT * 1000;

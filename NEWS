@@ -12,6 +12,18 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Zeek now supports generation and replay of event traces via the new
+  ``--event-trace`` / ``-E`` command-line options. For details, see:
+  https://docs.zeek.org/en/master/quickstart.html#tracing-events
+
+- Zeek now features limited TLS decryption capabilities. This feature is experimental
+  and only works for TLS 1.2 connections that use the TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  ciphersuite. Furthermore Zeek requires access to the pre-master secret of each TLS
+  connection. Typically this functionality will be most useful when analyzing trace-files
+  where the TLS client recorded the key material. For more details and examples how to
+  use this functionality, see the TLS Decryption documentation at
+  https://docs.zeek.org/en/master/frameworks/tls-decryption.html
+
 - The new --with-gen-zam configure flag and its corresponding GEN_ZAM_EXE_PATH
   cmake variable allow reuse of a previously built Gen-ZAM code generator. This
   aids cross-compilation: the Zeek build process normally compiles Gen-ZAM on
@@ -22,6 +34,13 @@ New Functionality
 
 Changed Functionality
 ---------------------
+
+- The behavior of the ``=``, ``+=``, and ``-=`` operators has been expanded and
+  unified. It now covers ``{ ... }`` initializer lists, supports cross-product
+  initialization, enables ``+=`` for table, set, vector and pattern values,
+  similarly allows ``-=`` for table and set values, and supports listing
+  multiple sets for ``+=`` initialization. For details, see:
+  https://docs.zeek.org/en/master/script-reference/operators.html#assignment-operators
 
 - The is_num(), is_alpha(), and is_alnum() BiFs now return F for the empty string.
 
@@ -149,14 +168,6 @@ New Functionality
   testsuite.
 
 - The GRE analyzer now supports the Aruba WLAN protocol type.
-
-- Zeek now features limited TLS decryption capabilities. This feature is experimental
-  and only works for TLS 1.2 connections that use the TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-  ciphersuite. Furthermore Zeek requires access to the pre-master secret of each TLS
-  connection. Typically this functionality will be most useful when analyzing trace-files
-  where the TLS client recorded the key material. For more details and examples how to
-  use this functionality, see the TLS Decryption documentation at
-  https://docs.zeek.org/en/master/frameworks/tls-decryption.html
 
 Changed Functionality
 ---------------------

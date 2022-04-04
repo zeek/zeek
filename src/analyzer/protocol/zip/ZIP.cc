@@ -59,7 +59,7 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	zip->next_in = (Bytef*)data;
 	zip->avail_in = len;
 
-	Bytef* orig_next_in = zip->next_in;
+	auto orig_next_in = zip->next_in;
 	size_t orig_avail_in = zip->avail_in;
 
 	while ( true )

@@ -1,3 +1,7 @@
+5.0.0-dev.212 | 2022-04-04 10:51:20 -0700
+
+  * GH-2009: Use auto to fix ZIP analyzer failure on some platforms (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.210 | 2022-03-28 17:04:51 -0700
 
   * Add cmake-time reporting of bifcl, binpac, and gen-zam used for build (Christian Kreibich, Corelight)

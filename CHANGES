@@ -1,3 +1,7 @@
+5.0.0-dev.214 | 2022-04-04 10:52:41 -0700
+
+  * fix & btest for ZAM bug with inlined nested loop (Vern Paxson, Corelight)
+
 5.0.0-dev.212 | 2022-04-04 10:51:20 -0700
 
   * GH-2009: Use auto to fix ZIP analyzer failure on some platforms (Tim Wojtulewicz, Corelight)

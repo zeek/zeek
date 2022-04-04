@@ -261,7 +261,7 @@ void ZAMCompiler::ComputeLoopLevels()
 				// We're extending an existing loop.  Find
 				// its current end.
 				auto depth = t->loop_depth;
-				while ( j < i && insts1[j]->loop_depth == depth )
+				while ( j < i && insts1[j]->loop_depth >= depth )
 					++j;
 
 				ASSERT(insts1[j]->loop_depth == depth - 1);

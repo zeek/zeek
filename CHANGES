@@ -1,3 +1,7 @@
+5.0.0-dev.219 | 2022-04-05 16:07:48 -0700
+
+  * Correct origin documentation of the version field in the HTTP log. (Christian Kreibich, Corelight)
+
 5.0.0-dev.217 | 2022-04-04 13:27:32 -0700
 
   * Move new TLS decryption capabilities up to Zeek 5 in NEWS file (Christian Kreibich, Corelight)

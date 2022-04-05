@@ -43,9 +43,12 @@ export {
 		uri:                     string    &log &optional;
 		## Value of the "referer" header.  The comment is deliberately
 		## misspelled like the standard declares, but the name used here
-		## is "referrer" spelled correctly.
+		## is "referrer", spelled correctly.
 		referrer:                string    &log &optional;
-		## Value of the version portion of the request.
+		## Value of the version portion of the reply. If you require
+		## message-level detail, consider the :zeek:see:`http_request` and
+		## :zeek:see:`http_reply` events, which report each message's
+		## version string.
 		version:		string	   &log &optional;
 		## Value of the User-Agent header from the client.
 		user_agent:              string    &log &optional;

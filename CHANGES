@@ -1,3 +1,16 @@
+5.0.0-dev.231 | 2022-04-05 18:04:47 -0700
+
+  * fix for ill-formed (complex) &default function (Vern Paxson, Corelight)
+
+  * type-checking for use of empty table constructors in expressions (Vern Paxson, Corelight)
+
+  * catch empty constructors used for type inference (Vern Paxson, Corelight)
+    suppress repeated error messages
+
+  * factoring to make checking of &default attributes externally accessible (Vern Paxson, Corelight)
+
+  * bug fix for empty table constructors with &default attributes (plus a typo) (Vern Paxson, Corelight)
+
 5.0.0-dev.222 | 2022-04-05 18:04:15 -0700
 
   * reduce interpreter frames for compiled function bodies (Vern Paxson, Corelight)

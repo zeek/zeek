@@ -344,116 +344,12 @@ void Attributes::CheckAttr(Attr* a)
 
 		case ATTR_DEFAULT:
 			{
-			// &default is allowed for global tables, since it's used in initialization
-			// of table fields. it's not allowed otherwise.
-			if ( global_var && ! type->IsTable() )
-				{
-				Error("&default is not valid for global variables except for tables");
-				break;
-				}
-
-			const auto& atype = a->GetExpr()->GetType();
-
-			if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
-				{
-				if ( same_type(atype, type) )
-					// Ok.
-					break;
-
-				// Record defaults may be promotable.
-				if ( (type->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
-				      record_promotion_compatible(atype->AsRecordType(), type->AsRecordType())) )
-					// Ok.
-					break;
-
-				if ( type->Tag() == TYPE_TABLE && type->AsTableType()->IsUnspecifiedTable() )
-					// Ok.
-					break;
-
-				auto e = check_and_promote_expr(a->GetExpr(), type);
-
-				if ( e )
-					{
-					a->SetAttrExpr(std::move(e));
-					// Ok.
-					break;
-					}
-
-				a->GetExpr()->Error("&default value has inconsistent type", type.get());
-				return;
-				}
-
-			TableType* tt = type->AsTableType();
-			const auto& ytype = tt->Yield();
-
-			if ( ! in_record )
-				{
-				// &default applies to the type itself.
-				if ( ! same_type(atype, ytype) )
-					{
-					// It can still be a default function.
-					if ( atype->Tag() == TYPE_FUNC )
-						{
-						FuncType* f = atype->AsFuncType();
-						if ( ! f->CheckArgs(tt->GetIndexTypes()) || ! same_type(f->Yield(), ytype) )
-							Error("&default function type clash");
-
-						// Ok.
-						break;
-						}
-
-					// Table defaults may be promotable.
-					if ( (ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
-					      record_promotion_compatible(atype->AsRecordType(),
-					                                  ytype->AsRecordType())) )
-						// Ok.
-						break;
-
-					auto e = check_and_promote_expr(a->GetExpr(), ytype);
-
-					if ( e )
-						{
-						a->SetAttrExpr(std::move(e));
-						// Ok.
-						break;
-						}
-
-					Error("&default value has inconsistent type 2");
-					}
-
-				// Ok.
-				break;
-				}
-
-			else
-				{
-				// &default applies to record field.
-
-				if ( same_type(atype, type) )
-					// Ok.
-					break;
-
-				if ( (atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
-					{
-					auto e = check_and_promote_expr(a->GetExpr(), type);
-
-					if ( e )
-						{
-						a->SetAttrExpr(std::move(e));
-						break;
-						}
-					}
-
-				// Table defaults may be promotable.
-				if ( ytype && ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
-				     record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType()) )
-					// Ok.
-					break;
-
-				Error("&default value has inconsistent type");
-				}
-			}
+			std::string err_msg;
+			if ( ! check_default_attr(a, type, global_var, in_record, err_msg) &&
+			     ! err_msg.empty() )
+				Error(err_msg.c_str());
 			break;
+			}
 
 		case ATTR_EXPIRE_READ:
 			{
@@ -749,6 +645,115 @@ bool Attributes::operator==(const Attributes& other) const
 		}
 
 	return true;
+	}
+
+bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool in_record,
+                        std::string& err_msg)
+	{
+	// &default is allowed for global tables, since it's used in
+	// initialization of table fields. It's not allowed otherwise.
+	if ( global_var && ! type->IsTable() )
+		{
+		err_msg = "&default is not valid for global variables except for tables";
+		return false;
+		}
+
+	const auto& atype = a->GetExpr()->GetType();
+
+	if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
+		{
+		if ( same_type(atype, type) )
+			// Ok.
+			return true;
+
+		// Record defaults may be promotable.
+		if ( (type->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
+		      record_promotion_compatible(atype->AsRecordType(), type->AsRecordType())) )
+			// Ok.
+			return true;
+
+		if ( type->Tag() == TYPE_TABLE && type->AsTableType()->IsUnspecifiedTable() )
+			// Ok.
+			return true;
+
+		auto e = check_and_promote_expr(a->GetExpr(), type);
+
+		if ( e )
+			{
+			a->SetAttrExpr(std::move(e));
+			// Ok.
+			return true;
+			}
+
+		a->GetExpr()->Error("&default value has inconsistent type", type.get());
+		return false;
+		}
+
+	TableType* tt = type->AsTableType();
+	const auto& ytype = tt->Yield();
+
+	if ( ! in_record )
+		{ // &default applies to the type itself.
+		if ( same_type(atype, ytype) )
+			return true;
+
+		// It can still be a default function.
+		if ( atype->Tag() == TYPE_FUNC )
+			{
+			FuncType* f = atype->AsFuncType();
+			if ( ! f->CheckArgs(tt->GetIndexTypes()) || ! same_type(f->Yield(), ytype) )
+				{
+				err_msg = "&default function type clash";
+				return false;
+				}
+
+			// Ok.
+			return true;
+			}
+
+		// Table defaults may be promotable.
+		if ( (ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
+		      record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType())) )
+			// Ok.
+			return true;
+
+		auto e = check_and_promote_expr(a->GetExpr(), ytype);
+
+		if ( e )
+			{
+			a->SetAttrExpr(std::move(e));
+			// Ok.
+			return true;
+			}
+
+		err_msg = "&default value has inconsistent type";
+		return false;
+		}
+
+	// &default applies to record field.
+
+	if ( same_type(atype, type) )
+		return true;
+
+	if ( (atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
+		{
+		auto e = check_and_promote_expr(a->GetExpr(), type);
+
+		if ( e )
+			{
+			a->SetAttrExpr(std::move(e));
+			return true;
+			}
+		}
+
+	// Table defaults may be promotable.
+	if ( ytype && ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
+	     record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType()) )
+		// Ok.
+		return true;
+
+	err_msg = "&default value has inconsistent type";
+	return false;
 	}
 
 	}

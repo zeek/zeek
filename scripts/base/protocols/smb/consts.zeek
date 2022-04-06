@@ -112,7 +112,7 @@ export {
 	const rpc_sub_cmds: table[string] of rpc_cmd_table = {
 		["4b324fc8-1670-01d3-1278-5a47bf6ee188"] = srv_cmds,
 		["6bffd098-a112-3610-9833-46c3f87e345a"] = wksta_cmds,
-	} &redef &default=function(i: string):rpc_cmd_table { return table() &default=function(j: string):string { return fmt("unknown-uuid-%s", j); }; };
+	} &redef &default=function(i: string):rpc_cmd_table { return table() &default=function(j: count):string { return fmt("unknown-uuid-%d", j); }; };
 
 }
 

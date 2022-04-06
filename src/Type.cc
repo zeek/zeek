@@ -516,6 +516,29 @@ TableType::TableType(TypeListPtr ind, TypePtr yield)
 
 bool TableType::CheckExpireFuncCompatibility(const detail::AttrPtr& attr)
 	{
+	if ( reported_error )
+		return false;
+
+	bool success = DoExpireCheck(attr);
+	if ( ! success )
+		reported_error = true;
+
+	return success;
+	}
+
+TypePtr TableType::ShallowClone()
+	{
+	return make_intrusive<TableType>(indices, yield_type);
+	}
+
+bool TableType::IsUnspecifiedTable() const
+	{
+	// Unspecified types have an empty list of indices.
+	return indices->GetTypes().empty();
+	}
+
+bool TableType::DoExpireCheck(const detail::AttrPtr& attr)
+	{
 	assert(attr->Tag() == detail::ATTR_EXPIRE_FUNC);
 
 	const auto& expire_func = attr->GetExpr();
@@ -567,17 +590,6 @@ bool TableType::CheckExpireFuncCompatibility(const detail::AttrPtr& attr)
 		}
 
 	return true;
-	}
-
-TypePtr TableType::ShallowClone()
-	{
-	return make_intrusive<TableType>(indices, yield_type);
-	}
-
-bool TableType::IsUnspecifiedTable() const
-	{
-	// Unspecified types have an empty list of indices.
-	return indices->GetTypes().empty();
 	}
 
 SetType::SetType(TypeListPtr ind, detail::ListExprPtr arg_elements)
@@ -716,6 +728,9 @@ bool FuncType::CheckArgs(const TypePList* args, bool is_init, bool do_warn) cons
 
 bool FuncType::CheckArgs(const std::vector<TypePtr>& args, bool is_init, bool do_warn) const
 	{
+	if ( reported_error )
+		return false;
+
 	const auto& my_args = arg_types->GetTypes();
 
 	if ( my_args.size() != args.size() )
@@ -723,6 +738,7 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args, bool is_init, bool do
 		if ( do_warn )
 			Warn(util::fmt("Wrong number of arguments for function. Expected %zu, got %zu.",
 			               args.size(), my_args.size()));
+		const_cast<FuncType*>(this)->reported_error = true;
 		return false;
 		}
 
@@ -736,6 +752,8 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args, bool is_init, bool do
 				               type_name(args[i]->Tag()), type_name(my_args[i]->Tag())));
 			success = false;
 			}
+
+	const_cast<FuncType*>(this)->reported_error = ! success;
 
 	return success;
 	}
@@ -2631,7 +2649,18 @@ static SetTypePtr init_set_type(detail::ListExpr* l)
 TypePtr init_type(const detail::ExprPtr& init)
 	{
 	if ( init->Tag() != detail::EXPR_LIST )
-		return init->InitType();
+		{
+		auto t = init->InitType();
+
+		if ( (t->Tag() == TYPE_TABLE && cast_intrusive<TableType>(t)->IsUnspecifiedTable()) ||
+		     (t->Tag() == TYPE_VECTOR && cast_intrusive<VectorType>(t)->IsUnspecifiedVector()) )
+			{
+			init->Error("empty constructor in untyped initialization");
+			return nullptr;
+			}
+
+		return t;
+		}
 
 	auto init_list = init->AsListExpr();
 	const auto& el = init_list->Exprs();

@@ -537,10 +537,10 @@ static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, in
 static void sock_cb(void* data, int s, int read, int write)
 	{
 	auto mgr = reinterpret_cast<DNS_Mgr*>(data);
-	mgr->RegisterSocket(s, read == 1);
+	mgr->RegisterSocket(s, read == 1, write == 1);
 	}
 
-DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode) : mode(arg_mode)
+DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode) : IOSource(true), mode(arg_mode)
 	{
 	ares_library_init(ARES_LIB_INIT_ALL);
 	}
@@ -554,17 +554,28 @@ DNS_Mgr::~DNS_Mgr()
 	ares_library_cleanup();
 	}
 
-void DNS_Mgr::RegisterSocket(int fd, bool active)
+void DNS_Mgr::RegisterSocket(int fd, bool read, bool write)
 	{
-	if ( active && socket_fds.count(fd) == 0 )
+	if ( read && socket_fds.count(fd) == 0 )
 		{
 		socket_fds.insert(fd);
-		iosource_mgr->RegisterFd(fd, this);
+		iosource_mgr->RegisterFd(fd, this, IOSource::READ);
 		}
-	else if ( ! active && socket_fds.count(fd) != 0 )
+	else if ( ! read && socket_fds.count(fd) != 0 )
 		{
 		socket_fds.erase(fd);
-		iosource_mgr->UnregisterFd(fd, this);
+		iosource_mgr->UnregisterFd(fd, this, IOSource::READ);
+		}
+
+	if ( write && write_socket_fds.count(fd) == 0 )
+		{
+		write_socket_fds.insert(fd);
+		iosource_mgr->RegisterFd(fd, this, IOSource::WRITE);
+		}
+	else if ( ! write && write_socket_fds.count(fd) != 0 )
+		{
+		write_socket_fds.erase(fd);
+		iosource_mgr->UnregisterFd(fd, this, IOSource::WRITE);
 		}
 	}
 
@@ -1385,20 +1396,13 @@ double DNS_Mgr::GetNextTimeout()
 	return run_state::network_time + DNS_TIMEOUT;
 	}
 
-void DNS_Mgr::Process()
+void DNS_Mgr::ProcessFd(int fd, int flags)
 	{
-	// If iosource_mgr says that we got a result on the socket fd, we don't have to ask c-ares
-	// to retrieve it for us. We have the file descriptor already, just call ares_process_fd()
-	// with it. Unfortunately, we may also have sockets close during this call, so we need to
-	// to make a copy of the list first. Having a list change while looping over it can
-	// cause segfaults.
-	decltype(socket_fds) temp_fds{socket_fds};
-
-	for ( int fd : temp_fds )
+	if ( socket_fds.count(fd) != 0 )
 		{
-		// double check this one wasn't removed already before trying to process it
-		if ( socket_fds.count(fd) != 0 )
-			ares_process_fd(channel, fd, ARES_SOCKET_BAD);
+		int read_fd = (flags & IOSource::ProcessFlags::READ) != 0 ? fd : ARES_SOCKET_BAD;
+		int write_fd = (flags & IOSource::ProcessFlags::WRITE) != 0 ? fd : ARES_SOCKET_BAD;
+		ares_process_fd(channel, read_fd, write_fd);
 		}
 
 	IssueAsyncRequests();

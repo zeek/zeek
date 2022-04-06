@@ -12,10 +12,20 @@ namespace zeek::iosource
 class IOSource
 	{
 public:
+	enum ProcessFlags
+		{
+		READ = 0x01,
+		WRITE = 0x02
+		};
+
 	/**
 	 * Constructor.
+	 *
+	 * @param process_fd A flag for indicating whether the child class implements
+	 * the ProcessFd() method. This is used by the run loop for dispatching to the
+	 * appropriate process method.
 	 */
-	IOSource() { closed = false; }
+	IOSource(bool process_fd = false) : implements_process_fd(process_fd) { }
 
 	/**
 	 * Destructor.
@@ -67,6 +77,19 @@ public:
 	virtual void Process() = 0;
 
 	/**
+	 * Optional process method that allows an IOSource to only process
+	 * the file descriptor that is found ready and not every possible
+	 * descriptor. If this method is implemented, true must be passed
+	 * to the IOSource constructor via the child class.
+	 *
+	 * @param fd The file descriptor to process.
+	 * @param flags Flags indicating what type of event is being
+	 * processed.
+	 */
+	virtual void ProcessFd(int fd, int flags) { }
+	bool ImplementsProcessFd() const { return implements_process_fd; }
+
+	/**
 	 * Returns a descriptive tag representing the source for debugging.
 	 *
 	 * Must be overridden by derived classes.
@@ -84,7 +107,8 @@ protected:
 	void SetClosed(bool is_closed) { closed = is_closed; }
 
 private:
-	bool closed;
+	bool closed = false;
+	bool implements_process_fd = false;
 	};
 
 	} // namespace zeek::iosource

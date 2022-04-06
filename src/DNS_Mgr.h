@@ -240,7 +240,9 @@ public:
 	/**
 	 * Used by the c-ares socket call back to register/unregister a socket file descriptor.
 	 */
-	void RegisterSocket(int fd, bool active);
+	void RegisterSocket(int fd, bool read, bool write);
+
+	ares_channel& GetChannel() { return channel; }
 
 protected:
 	friend class LookupCallback;
@@ -277,7 +279,8 @@ protected:
 	void IssueAsyncRequests();
 
 	// IOSource interface.
-	void Process() override;
+	void Process() override { }
+	void ProcessFd(int fd, int flags) override;
 	void InitSource() override;
 	const char* Tag() override { return "DNS_Mgr"; }
 	double GetNextTimeout() override;
@@ -337,6 +340,7 @@ protected:
 	unsigned long failed = 0;
 
 	std::set<int> socket_fds;
+	std::set<int> write_socket_fds;
 	};
 
 extern DNS_Mgr* dns_mgr;

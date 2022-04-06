@@ -511,6 +511,8 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 
 	if ( ! did_one )
 		reporter->FatalError("no matching functions/files for -O ZAM");
+
+	finalize_functions(funcs);
 	}
 
 void analyze_scripts()

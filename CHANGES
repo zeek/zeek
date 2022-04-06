@@ -1,3 +1,7 @@
+5.0.0-dev.222 | 2022-04-05 18:04:15 -0700
+
+  * reduce interpreter frames for compiled function bodies (Vern Paxson, Corelight)
+
 5.0.0-dev.219 | 2022-04-05 16:07:48 -0700
 
   * Correct origin documentation of the version field in the HTTP log. (Christian Kreibich, Corelight)

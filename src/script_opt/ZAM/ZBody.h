@@ -34,8 +34,8 @@ public:
 	~ZBody() override;
 
 	// These are split out from the constructor to allow construction
-	// of a ZBody from either save-file full instructions (first method)
-	// or intermediary instructions (second method).
+	// of a ZBody from either save-file full instructions (first method,
+	// not currently supported) or intermediary instructions (second method).
 	void SetInsts(std::vector<ZInst*>& insts);
 	void SetInsts(std::vector<ZInstI*>& instsI);
 

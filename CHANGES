@@ -1,3 +1,7 @@
+5.0.0-dev.233 | 2022-04-08 11:30:52 -0700
+
+  * Bump submodules to pull in InstallSymlink fix (Christian Kreibich, Corelight)
+
 5.0.0-dev.231 | 2022-04-05 18:04:47 -0700
 
   * fix for ill-formed (complex) &default function (Vern Paxson, Corelight)

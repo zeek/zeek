@@ -18,8 +18,10 @@
 
 #if defined(DEBUG) && defined(ZEEK_DICT_DEBUG)
 #define ASSERT_VALID(o) o->AssertValid()
+#define ASSERT_EQUAL(a, b) ASSERT(a == b)
 #else
 #define ASSERT_VALID(o)
+#define ASSERT_EQUAL(a, b)
 #endif // DEBUG
 
 namespace zeek
@@ -749,7 +751,7 @@ int Dictionary::Next(int position) const
 #define DUMPIF(f)                                                                                  \
 	if ( f )                                                                                       \
 	Dump(1)
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
 void Dictionary::AssertValid() const
 	{
 	bool valid = true;
@@ -797,7 +799,7 @@ void Dictionary::AssertValid() const
 			}
 		}
 	}
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
 
 size_t Dictionary::MemoryAllocation() const
 	{
@@ -1057,14 +1059,14 @@ int Dictionary::LookupIndex(const void* key, int key_size, detail::hash_t hash,
 		return -1;
 
 	int bucket = BucketByHash(hash, log2_buckets);
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
 	int linear_position = LinearLookupIndex(key, key_size, hash);
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
 	int position = LookupIndex(key, key_size, hash, bucket, Capacity(), insert_position,
 	                           insert_distance);
 	if ( position >= 0 )
 		{
-		ASSERT(position == linear_position); // same as linearLookup
+		ASSERT_EQUAL(position, linear_position); // same as linearLookup
 		return position;
 		}
 
@@ -1078,26 +1080,26 @@ int Dictionary::LookupIndex(const void* key, int key_size, detail::hash_t hash,
 			position = LookupIndex(key, key_size, hash, prev_bucket, remap_end + 1);
 			if ( position >= 0 )
 				{
-				ASSERT(position == linear_position); // same as linearLookup
+				ASSERT_EQUAL(position, linear_position); // same as linearLookup
 				// remap immediately if no iteration is on.
 				if ( ! num_iterators )
 					{
 					Remap(position, &position);
-					ASSERT(position == LookupIndex(key, key_size, hash));
+					ASSERT_EQUAL(position, LookupIndex(key, key_size, hash));
 					}
 				return position;
 				}
 			}
 		}
 	// not found
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
 	if ( linear_position >= 0 )
 		{ // different. stop and try to see whats happending.
 		ASSERT(false);
 		// rerun the function in debugger to track down the bug.
 		LookupIndex(key, key_size, hash);
 		}
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
 	return -1;
 	}
 
@@ -1229,9 +1231,9 @@ void* Dictionary::Insert(void* key, int key_size, detail::hash_t hash, void* val
 /// e.distance is adjusted to be the one at insert_position.
 void Dictionary::InsertRelocateAndAdjust(detail::DictEntry& entry, int insert_position)
 	{
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
 	entry.bucket = BucketByHash(entry.hash, log2_buckets);
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
 	int last_affected_position = insert_position;
 	InsertAndRelocate(entry, insert_position, &last_affected_position);
 
@@ -1403,11 +1405,11 @@ detail::DictEntry Dictionary::RemoveRelocateAndAdjust(int position)
 	int last_affected_position = position;
 	detail::DictEntry entry = RemoveAndRelocate(position, &last_affected_position);
 
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
 	// validation: index to i-1 should be continuous without empty spaces.
 	for ( int k = position; k < last_affected_position; k++ )
 		ASSERT(! table[k].Empty());
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
 
 	if ( cookies && ! cookies->empty() )
 		for ( auto c : *cookies )
@@ -1552,9 +1554,9 @@ bool Dictionary::Remap(int position, int* new_position)
 		return false;
 	detail::DictEntry entry = RemoveAndRelocate(
 		position); // no iteration cookies to adjust, no need for last_affected_position.
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
 	entry.bucket = expected;
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
 
 	// find insert position.
 	int insert_position = EndOfClusterByBucket(expected);

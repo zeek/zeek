@@ -1,3 +1,7 @@
+5.0.0-dev.235 | 2022-04-09 00:08:50 +0000
+
+  * Update libkqueue to 2.6.0 release [skip ci] [nomail] (Tim Wojtulewicz)
+
 5.0.0-dev.233 | 2022-04-08 11:30:52 -0700
 
   * Bump submodules to pull in InstallSymlink fix (Christian Kreibich, Corelight)

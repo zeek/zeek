@@ -1,3 +1,7 @@
+5.0.0-dev.240 | 2022-04-11 12:46:51 -0700
+
+  * Mask our signal handlers' triggering signals around thread creation (Christian Kreibich, Corelight)
+
 5.0.0-dev.238 | 2022-04-11 12:40:02 -0700
 
   * GH-2026: Ensure both protocol and analyzer confirmation and violation events can be called (Tim Wojtulewicz, Corelight)

@@ -398,6 +398,22 @@ static std::vector<std::string> get_script_signature_files()
 	return rval;
 	}
 
+// Helper for masking/unmasking the set of signals that apply to our signal
+// handlers: sig_handler() in this file, as well as stem_signal_handler() and
+// supervisor_signal_handler() in the Supervisor.
+static void set_signal_mask(bool do_block)
+	{
+	sigset_t mask_set;
+
+	sigemptyset(&mask_set);
+	sigaddset(&mask_set, SIGCHLD);
+	sigaddset(&mask_set, SIGTERM);
+	sigaddset(&mask_set, SIGINT);
+
+	int res = pthread_sigmask(do_block ? SIG_BLOCK : SIG_UNBLOCK, &mask_set, 0);
+	assert(res == 0);
+	}
+
 SetupResult setup(int argc, char** argv, Options* zopts)
 	{
 	ZEEK_LSAN_DISABLE();
@@ -499,6 +515,12 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			debug_logger.OpenDebugLog("debug");
 		}
 #endif
+
+	// Mask signals relevant for our signal handlers here. We unmask them
+	// again further down, when all components that launch threads have done
+	// so. The launched threads inherit the active signal mask and thus
+	// prevent our signal handlers from running in unintended threads.
+	set_signal_mask(true);
 
 	if ( options.supervisor_mode )
 		{
@@ -737,6 +759,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 #ifdef USE_PERFTOOLS_DEBUG
 		}
 #endif
+		set_signal_mask(false);
 
 		if ( reporter->Errors() > 0 )
 			{

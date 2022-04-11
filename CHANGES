@@ -1,3 +1,7 @@
+5.0.0-dev.238 | 2022-04-11 12:40:02 -0700
+
+  * GH-2026: Ensure both protocol and analyzer confirmation and violation events can be called (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.235 | 2022-04-09 00:08:50 +0000
 
   * Update libkqueue to 2.6.0 release [skip ci] [nomail] (Tim Wojtulewicz)

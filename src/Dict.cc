@@ -1299,6 +1299,15 @@ void Dictionary::AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, i
 	{
 	ASSERT(c);
 	ASSERT_VALID(c);
+
+	// Remove any previous instances of this value that we may have recorded as
+	// their pointers will get invalid. We won't need that knowledge anymore
+	// anyways, will update with new information below as needed.
+	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
+	                   c->inserted->end());
+	c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
+	                  c->visited->end());
+
 	if ( insert_position < c->next )
 		c->inserted->push_back(entry);
 	if ( insert_position < c->next && c->next <= last_affected_position )
@@ -1314,6 +1323,12 @@ void Dictionary::AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, i
 void Dictionary::AdjustOnInsert(RobustDictIterator* c, const detail::DictEntry& entry,
                                 int insert_position, int last_affected_position)
 	{
+	// See note in Dictionary::AdjustOnInsert() above.
+	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
+	                   c->inserted->end());
+	c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
+	                  c->visited->end());
+
 	if ( insert_position < c->next )
 		c->inserted->push_back(entry);
 	if ( insert_position < c->next && c->next <= last_affected_position )
@@ -1442,8 +1457,13 @@ void Dictionary::AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, i
                                 int last_affected_position)
 	{
 	ASSERT_VALID(c);
+
+	// See note in Dictionary::AdjustOnInsert() above.
 	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
 	                   c->inserted->end());
+	c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
+	                  c->visited->end());
+
 	if ( position < c->next && c->next <= last_affected_position )
 		{
 		int moved = HeadOfClusterByPosition(c->next - 1);
@@ -1462,8 +1482,12 @@ void Dictionary::AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, i
 void Dictionary::AdjustOnRemove(RobustDictIterator* c, const detail::DictEntry& entry, int position,
                                 int last_affected_position)
 	{
+	// See note in Dictionary::AdjustOnInsert() above.
 	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
 	                   c->inserted->end());
+	c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
+	                  c->visited->end());
+
 	if ( position < c->next && c->next <= last_affected_position )
 		{
 		int moved = HeadOfClusterByPosition(c->next - 1);

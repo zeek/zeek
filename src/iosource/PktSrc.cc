@@ -273,25 +273,33 @@ bool PktSrc::GetCurrentPacket(const Packet** pkt)
 
 double PktSrc::GetNextTimeout()
 	{
+	bool pkt_available = have_packet;
+
+	if ( props.selectable_fd == -1 || run_state::pseudo_realtime )
+		pkt_available = ExtractNextPacketInternal();
+
+	if ( run_state::is_processing_suspended() )
+		return -1;
+
 	// If there's no file descriptor for the source, which is the case for some interfaces like
 	// myricom, we can't rely on the polling mechanism to wait for data to be available. As gross
 	// as it is, just spin with a short timeout here so that it will continually poll the
 	// interface. The old IOSource code had a 20 microsecond timeout between calls to select()
 	// so just use that.
 	if ( props.selectable_fd == -1 )
-		return 0.00002;
-
+		{
+		if ( ! pkt_available && ! run_state::pseudo_realtime )
+			return 0.00002;
+		}
 	// If we're live we want poll to do what it has to with the file descriptor. If we're not live
 	// but we're not in pseudo-realtime mode, let the loop just spin as fast as it can. If we're
 	// in pseudo-realtime mode, find the next time that a packet is ready and have poll block until
 	// then.
-	if ( IsLive() || run_state::is_processing_suspended() )
+	else if ( IsLive() )
 		return -1;
-	else if ( ! run_state::pseudo_realtime )
-		return 0;
 
-	if ( ! have_packet )
-		ExtractNextPacketInternal();
+	if ( ! run_state::pseudo_realtime )
+		return 0;
 
 	// This duplicates the calculation used in run_state::check_pseudo_time().
 	double pseudo_time = current_packet.time - run_state::detail::first_timestamp;

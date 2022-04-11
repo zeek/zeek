@@ -685,20 +685,19 @@ void Analyzer::ProtocolConfirmation(zeek::Tag arg_tag)
 
 	protocol_confirmed = true;
 
-	if ( ! protocol_confirmation )
-		return;
-
 	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
 	// Enqueue both of these events. In the base scripts, only the analyzer version is handled.
 	// The protocol remains just for handling scripts that haven't been updated. Once that event
 	// is removed, this method is also removed.
-	event_mgr.Enqueue(analyzer_confirmation, ConnVal(), tval, val_mgr->Count(id));
-	event_mgr.Enqueue(protocol_confirmation, ConnVal(), tval, val_mgr->Count(id));
+	if ( analyzer_confirmation )
+		event_mgr.Enqueue(analyzer_confirmation, ConnVal(), tval, val_mgr->Count(id));
+	if ( protocol_confirmation )
+		event_mgr.Enqueue(protocol_confirmation, ConnVal(), tval, val_mgr->Count(id));
 	}
 
 void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	{
-	if ( ! protocol_violation )
+	if ( ! protocol_violation && ! analyzer_violation )
 		return;
 
 	StringValPtr r;
@@ -717,8 +716,10 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	// Enqueue both of these events. In the base scripts, only the analyzer version is handled.
 	// The protocol remains just for handling scripts that haven't been updated. Once that event
 	// is removed, this method is also removed.
-	event_mgr.Enqueue(analyzer_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
-	event_mgr.Enqueue(protocol_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
+	if ( analyzer_confirmation )
+		event_mgr.Enqueue(analyzer_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
+	if ( protocol_confirmation )
+		event_mgr.Enqueue(protocol_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
 	}
 
 void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag)

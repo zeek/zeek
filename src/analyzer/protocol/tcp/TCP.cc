@@ -34,7 +34,8 @@ void TCP_ApplicationAnalyzer::Init()
 		SetTCP(static_cast<packet_analysis::TCP::TCPSessionAdapter*>(Parent()));
 	}
 
-void TCP_ApplicationAnalyzer::AnalyzerViolation(const char* reason, const char* data, int len)
+void TCP_ApplicationAnalyzer::AnalyzerViolation(const char* reason, const char* data, int len,
+                                                zeek::Tag tag)
 	{
 	if ( auto* tcp = TCP() )
 		{
@@ -44,7 +45,7 @@ void TCP_ApplicationAnalyzer::AnalyzerViolation(const char* reason, const char* 
 			return;
 		}
 
-	Analyzer::AnalyzerViolation(reason, data, len);
+	Analyzer::AnalyzerViolation(reason, data, len, tag);
 	}
 
 void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,

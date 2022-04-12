@@ -156,7 +156,8 @@ public:
 	 * @param len If \a data is given, the length of it.
 	 */
 	virtual void AnalyzerViolation(const char* reason, session::Session* session,
-	                               const char* data = nullptr, int len = 0);
+	                               const char* data = nullptr, int len = 0,
+	                               zeek::Tag tag = zeek::Tag());
 
 	/**
 	 * Returns true if ProtocolConfirmation() has been called at least

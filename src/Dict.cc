@@ -1832,7 +1832,20 @@ detail::DictEntry Dictionary::GetNextRobustIteration(RobustDictIterator* iter)
 	if ( iter->next < 0 )
 		iter->next = Next(-1);
 
-	ASSERT(iter->next >= Capacity() || ! table[iter->next].Empty());
+	if ( iter->next < Capacity() && table[iter->next].Empty() )
+		{
+		// [Robin] I believe this means that the table has resized in a way
+		// that we're now inside the overflow area where elements are empty,
+		// because elsewhere empty slots aren't allowed. Assuming that's right,
+		// then it means we'll always be at the end of the table now and could
+		// also just set `next` to capacity. However, just to be sure, we
+		// instead reuse logic from below to move forward "to a valid position"
+		// and then double check, through an assertion in debug mode, that it's
+		// actually the end. If this ever triggered, the above assumption would
+		// be wrong (but the Next() call would probably still be right).
+		iter->next = Next(iter->next);
+		ASSERT(iter->next == Capacity());
+		}
 
 	// Filter out visited keys.
 	int capacity = Capacity();

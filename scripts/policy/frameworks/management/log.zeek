@@ -16,10 +16,10 @@ export {
 
 	## The controller/agent log supports four different log levels.
 	type Level: enum {
-		DEBUG,
-		INFO,
-		WARNING,
-		ERROR,
+		DEBUG = 10,
+		INFO = 20,
+		WARNING = 30,
+		ERROR = 40,
 	};
 
 	## The record type containing the column fields of the agent/controller log.
@@ -36,8 +36,9 @@ export {
 		message:  string;
 	} &log;
 
-	## The log level in use for this node.
-	global log_level = DEBUG &redef;
+	## The log level in use for this node. This is the minimum
+	## log level required to produce output.
+	global log_level = INFO &redef;
 
 	## A debug-level log message writer.
 	##

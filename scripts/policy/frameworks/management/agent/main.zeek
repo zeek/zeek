@@ -42,7 +42,7 @@ global g_nodes: table[string] of Management::Node;
 # The node map employed by the supervisor to describe the cluster
 # topology to newly forked nodes. We refresh it when we receive
 # new configurations.
-global g_data_cluster: table[string] of Supervisor::ClusterEndpoint;
+global g_cluster: table[string] of Supervisor::ClusterEndpoint;
 
 
 event SupervisorControl::create_response(reqid: string, result: string)
@@ -124,7 +124,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 
 	# Refresh the cluster and nodes tables
 
-	g_data_cluster = table();
+	g_cluster = table();
 	for ( node in config$nodes )
 		{
 		if ( node$instance == Management::Agent::name )
@@ -146,7 +146,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		if ( node?$interface )
 			cep$interface = node$interface;
 
-		g_data_cluster[node$name] = cep;
+		g_cluster[node$name] = cep;
 		}
 
 	# Apply the new configuration via the supervisor
@@ -176,7 +176,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		# XXX could use options to enable per-node overrides for
 		# directory, stdout, stderr, others?
 
-		nc$cluster = g_data_cluster;
+		nc$cluster = g_cluster;
 		supervisor_create(nc);
 		}
 

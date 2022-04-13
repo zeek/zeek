@@ -178,7 +178,6 @@ if ( ZEEK_SANITIZERS )
                 # list(APPEND _check_list "nullability-assign") # Not normally part of "undefined"
                 # list(APPEND _check_list "nullability-return") # Not normally part of "undefined"
                 # list(APPEND _check_list "objc-cast") # Not truly UB
-                list(APPEND _check_list "object-size")
                 # list(APPEND _check_list "pointer-overflow") # Not implemented in older GCCs
                 list(APPEND _check_list "return")
                 list(APPEND _check_list "returns-nonnull-attribute")
@@ -189,6 +188,13 @@ if ( ZEEK_SANITIZERS )
                 # list(APPEND _check_list "unsigned-integer-overflow") # Not truly UB
                 list(APPEND _check_list "vla-bound")
                 # list(APPEND _check_list "vptr") # TODO: fix associated errors
+
+                # Clang complains if this one is defined and the optimizer is set to -O0. We
+                # only set that optimization level if NO_OPTIMIZATIONS is passed, so disable
+                # the option if that's set.
+                if ( NOT DEFINED ENV{NO_OPTIMIZATIONS} )
+                    list(APPEND _check_list "object-size")
+                endif ()
 
                 string(REPLACE ";" "," _ub_checks "${_check_list}")
                 set(ZEEK_SANITIZER_UB_CHECKS "${_ub_checks}" CACHE INTERNAL "" FORCE)

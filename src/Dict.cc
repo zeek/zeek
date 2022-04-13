@@ -1499,6 +1499,14 @@ void Dictionary::AdjustOnRemove(RobustDictIterator* c, const detail::DictEntry& 
 	// if not already the end of the dictionary, adjust next to a valid one.
 	if ( c->next < Capacity() && table[c->next].Empty() )
 		c->next = Next(c->next);
+
+	if ( c->curr == entry )
+		{
+		if ( c->next >= 0 && c->next < Capacity() && ! table[c->next].Empty() )
+			c->curr = table[c->next];
+		else
+			c->curr = detail::DictEntry(nullptr); // -> c == end_robust()
+		}
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

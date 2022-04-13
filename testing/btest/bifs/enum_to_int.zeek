@@ -18,12 +18,24 @@ export {
 
 event zeek_init()
 	{
-
-
 	print A, enum_to_int(A);
 	print B, enum_to_int(B);
 	print C, enum_to_int(C);
 	print AV, enum_to_int(AV);
 	print BV, enum_to_int(BV);
 	print CV, enum_to_int(CV);
+
+	print enum_to_int(A) != enum_to_int(B);
+	print enum_to_int(A) != enum_to_int(C);
+	print enum_to_int(B) != enum_to_int(C);
+	print enum_to_int(A) < enum_to_int(B);
+	print enum_to_int(A) < enum_to_int(C);
+	print enum_to_int(B) < enum_to_int(C);
+
+	print enum_to_int(AV) != enum_to_int(BV);
+	print enum_to_int(AV) != enum_to_int(CV);
+	print enum_to_int(BV) != enum_to_int(CV);
+	print enum_to_int(AV) < enum_to_int(BV);
+	print enum_to_int(AV) < enum_to_int(CV);
+	print enum_to_int(BV) < enum_to_int(CV);
 	}

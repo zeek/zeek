@@ -1,3 +1,7 @@
+5.0.0-dev.244 | 2022-04-13 10:52:58 -0700
+
+  * Add test to ensure enum_to_int's return values are ordered (Yacin Nadji, Corelight)
+
 5.0.0-dev.242 | 2022-04-13 10:51:21 -0700
 
   * Add unit test for other get_word() version (Tim Wojtulewicz, Corelight)

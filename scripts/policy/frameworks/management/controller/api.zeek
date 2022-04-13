@@ -90,7 +90,12 @@ export {
 	## reqid: a request identifier string, echoed in the response event.
 	##
 	## id: the name of the variable whose value to retrieve.
-	global get_id_value_request: event(reqid: string, id: string);
+	##
+	## nodes: a set of cluster node names (e.g. "worker-01") to retrieve
+	##    the values from. An empty set, supplied by default, means
+	##    retrieval from all current cluster nodes.
+	global get_id_value_request: event(reqid: string, id: string,
+	    nodes: set[string] &default=set());
 
 	## Response to a get_id_value_request event. The controller sends this
 	## back to the client.

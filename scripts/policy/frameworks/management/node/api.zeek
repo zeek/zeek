@@ -14,7 +14,13 @@ export {
 	## reqid: a request identifier string, echoed in the response event.
 	##
 	## action: the requested dispatch command, with any arguments.
-	global node_dispatch_request: event(reqid: string, action: vector of string);
+	##
+	## nodes: the cluster node names this dispatch targets. An empty set,
+	##     supplied by default, means it applies to all nodes. Since nodes
+	##     receive all dispatch requests, they can use any node names provided
+	##     here to filter themselves out of responding.
+	global node_dispatch_request: event(reqid: string, action: vector of string,
+	    nodes: set[string] &default=set());
 
 	## Response to a node_dispatch_request event. The nodes send this back
 	## to the agent. This is the agent-node equivalent of

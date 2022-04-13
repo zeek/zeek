@@ -230,6 +230,17 @@ function is_instance_connectivity_change(inst: Management::Instance): bool
 	return F;
 	}
 
+function filter_config_nodes_by_name(nodes: set[string]): set[string]
+	{
+	local res: set[string];
+	local cluster_nodes: set[string];
+
+	for ( node in g_config_current$nodes )
+		add cluster_nodes[node$name];
+
+	return nodes & cluster_nodes;
+	}
+
 event Management::Controller::API::notify_agents_ready(instances: set[string])
 	{
 	local insts = Management::Util::set_to_vector(instances);
@@ -643,7 +654,7 @@ event Management::Agent::API::node_dispatch_response(reqid: string, results: Man
 	Management::Request::finish(req$id);
 	}
 
-event Management::Controller::API::get_id_value_request(reqid: string, id: string)
+event Management::Controller::API::get_id_value_request(reqid: string, id: string, nodes: set[string])
 	{
 	Management::Log::info(fmt("rx Management::Controller::API::get_id_value_request %s %s", reqid, id));
 
@@ -660,6 +671,42 @@ event Management::Controller::API::get_id_value_request(reqid: string, id: strin
 	local req = Management::Request::create(reqid);
 	req$node_dispatch_state = NodeDispatchState($action=action);
 
+	local nodes_final: set[string];
+	local node: string;
+	local res: Management::Result;
+
+	# Input sanitization: check for any requested nodes that aren't part of
+	# the current configuration. We send back error results for those and
+	# don't propagate them to the agents.
+	if ( |nodes| > 0 )
+		{
+		# Requested nodes that are in the current configuration:
+		nodes_final = filter_config_nodes_by_name(nodes);
+		# Requested nodes that are not in current configuration:
+		local nodes_invalid = nodes - nodes_final;
+
+		# Assemble error results for all invalid nodes
+		for ( node in nodes_invalid )
+			{
+			res = Management::Result($reqid=reqid, $node=node);
+			res$success = F;
+			res$error = "unknown cluster node";
+			req$results += res;
+			}
+
+		# If only invalid nodes got requested, we're now done.
+		if ( |nodes_final| == 0 )
+			{
+			Management::Log::info(fmt(
+			    "tx Management::Controller::API::get_id_value_response %s",
+			    Management::Request::to_string(req)));
+			event Management::Controller::API::get_id_value_response(req$id, req$results);
+			Management::Request::finish(req$id);
+			return;
+			}
+		}
+
+	# Send dispatch requests to all agents, with the final set of nodes
 	for ( name in g_instances )
 		{
 		if ( name !in g_instances_ready )
@@ -675,7 +722,9 @@ event Management::Controller::API::get_id_value_request(reqid: string, id: strin
 		    "tx Management::Agent::API::node_dispatch_request %s %s to %s",
 		    areq$id, action, name));
 
-		Broker::publish(agent_topic, Management::Agent::API::node_dispatch_request, areq$id, action);
+		Broker::publish(agent_topic,
+		    Management::Agent::API::node_dispatch_request,
+		    areq$id, action, nodes_final);
 		}
 	}
 

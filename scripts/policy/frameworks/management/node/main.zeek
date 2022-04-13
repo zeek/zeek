@@ -51,9 +51,18 @@ global g_dispatch_table: table[string] of DispatchCallback = {
 	["get_id_value"] = dispatch_get_id_value,
 };
 
-event Management::Node::API::node_dispatch_request(reqid: string, action: vector of string)
+event Management::Node::API::node_dispatch_request(reqid: string, action: vector of string,
+    nodes: set[string])
 	{
-	Management::Log::info(fmt("rx Management::Node::API::node_dispatch_request %s %s", reqid, action));
+	Management::Log::info(fmt("rx Management::Node::API::node_dispatch_request %s %s %s", reqid, action, nodes));
+
+	if ( |nodes| > 0 && Cluster::node !in nodes )
+		{
+		Management::Log::debug(fmt(
+		    "dispatch %s not targeting this node (%s !in %s), skipping",
+		    reqid, Cluster::node, nodes));
+		return;
+		}
 
 	local res = Management::Result(
 	    $reqid = reqid, $node = Cluster::node);

@@ -51,9 +51,9 @@ global g_instances: table[string] of Management::Instance;
 # A map for the nodes we run on this instance, via this agent.
 global g_nodes: table[string] of Management::Node;
 
-# The node map employed by the supervisor to describe the cluster
-# topology to newly forked nodes. We refresh it when we receive
-# new configurations.
+# The complete node map employed by the supervisor to describe the cluster
+# topology to newly forked nodes. We refresh it when we receive new
+# configurations.
 global g_cluster: table[string] of Supervisor::ClusterEndpoint;
 
 
@@ -311,7 +311,11 @@ event Management::Agent::API::get_nodes_request(reqid: string)
 
 event Management::Node::API::node_dispatch_response(reqid: string, result: Management::Result)
 	{
-	Management::Log::info(fmt("rx Management::Node::API::node_dispatch_response %s", reqid));
+	local node = "unknown node";
+	if ( result?$node )
+		node = result$node;
+
+	Management::Log::info(fmt("rx Management::Node::API::node_dispatch_response %s from %s", reqid, node));
 
 	# Retrieve state for the request we just got a response to
 	local nreq = Management::Request::lookup(reqid);
@@ -326,8 +330,17 @@ event Management::Node::API::node_dispatch_response(reqid: string, result: Manag
 	# Mark the responding node as done. Nodes normally fill their own name
 	# into the result; we only double-check for resilience. Nodes failing to
 	# report themselves would eventually lead to request timeout.
-	if ( result?$node && result$node in req$node_dispatch_state$requests )
-		delete req$node_dispatch_state$requests[result$node];
+	if ( result?$node )
+		{
+		if ( result$node in req$node_dispatch_state$requests )
+			delete req$node_dispatch_state$requests[result$node];
+		else
+			{
+			# An unknown or duplicate response -- do nothing.
+			Management::Log::debug(fmt("response %s not expected, ignoring", reqid));
+			return;
+			}
+		}
 
 	# The usual special treatment for Broker values that are of type "any":
 	# confirm their type here based on the requested dispatch command.
@@ -366,26 +379,94 @@ event Management::Node::API::node_dispatch_response(reqid: string, result: Manag
 	Management::Request::finish(req$id);
 	}
 
-event Management::Agent::API::node_dispatch_request(reqid: string, action: vector of string)
+event Management::Agent::API::node_dispatch_request(reqid: string, action: vector of string, nodes: set[string])
 	{
-	Management::Log::info(fmt("rx Management::Agent::API::node_dispatch_request %s %s", reqid, action));
+	Management::Log::info(fmt("rx Management::Agent::API::node_dispatch_request %s %s %s", reqid, action, nodes));
+
+	local node: string;
+	local cluster_nodes: set[string];
+	local nodes_final: set[string];
+
+	for ( node in g_nodes )
+		add cluster_nodes[node];
+
+	# If this request includes cluster nodes to query, check if this agent
+	# manages any of those nodes. If it doesn't, respond with an empty
+	# results vector immediately. Note that any globally unknown nodes
+	# that the client might have requested already got filtered by the
+	# controller, so we don't need to worry about them here.
+
+	if ( |nodes| > 0 )
+		{
+		nodes_final = nodes & cluster_nodes;
+
+		if ( |nodes_final| == 0 )
+			{
+			Management::Log::info(fmt(
+			    "tx Management::Agent::API::node_dispatch_response %s, no node overlap",
+			    reqid));
+			event Management::Agent::API::node_dispatch_response(reqid, vector());
+			return;
+			}
+		}
+	else if ( |g_nodes| == 0 )
+		{
+		# Special case: the client did not request specific nodes.  If
+		# we aren't running any nodes, respond right away, since there's
+		# nothing to dispatch to.
+		Management::Log::info(fmt(
+		    "tx Management::Agent::API::node_dispatch_response %s, no nodes registered",
+		    reqid));
+		event Management::Agent::API::node_dispatch_response(reqid, vector());
+		return;
+		}
+	else
+		{
+		# We send to all known nodes.
+		nodes_final = cluster_nodes;
+		}
 
 	local res: Management::Result;
 	local req = Management::Request::create(reqid);
 
 	req$node_dispatch_state = NodeDispatchState($action=action);
 
-	for ( node in g_nodes )
-		add req$node_dispatch_state$requests[node];
+	# Build up dispatch state for tracking responses. We only dispatch to
+	# nodes that are in state RUNNING, as those have confirmed they're ready
+	# to communicate. For others, establish error state in now.
+	for ( node in nodes_final )
+		{
+		if ( g_nodes[node]$state == Management::RUNNING )
+			add req$node_dispatch_state$requests[node];
+		else
+			{
+			res = Management::Result($reqid=reqid, $node=node);
+			res$success = F;
+			res$error = fmt("cluster node %s not in runnning state", node);
+			req$results += res;
+			}
+		}
 
-	# We use a single request record to track all node responses. We know
-	# when all nodes have responded via the requests set we built up above.
+	# Corner case: nothing is in state RUNNING.
+	if ( |req$node_dispatch_state$requests| == 0 )
+		{
+		Management::Log::info(fmt(
+		    "tx Management::Agent::API::node_dispatch_response %s, no nodes running",
+		    reqid));
+		event Management::Agent::API::node_dispatch_response(reqid, req$results);
+		Management::Request::finish(req$id);
+		return;
+		}
+
+	# We use a single request record to track all node responses, and a
+	# single event that Broker publishes to all nodes. We know when all
+	# nodes have responded by checking the requests set we built up above.
 	local nreq = Management::Request::create();
 	nreq$parent_id = reqid;
 
 	Management::Log::info(fmt("tx Management::Node::API::node_dispatch_request %s %s", nreq$id, action));
 	Broker::publish(Management::Node::node_topic,
-	    Management::Node::API::node_dispatch_request, nreq$id, action);
+	    Management::Node::API::node_dispatch_request, nreq$id, action, nodes);
 	}
 
 event Management::Agent::API::agent_welcome_request(reqid: string)

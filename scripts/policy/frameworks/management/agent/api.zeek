@@ -75,7 +75,12 @@ export {
 	## reqid: a request identifier string, echoed in the response event.
 	##
 	## action: the requested dispatch command, with any arguments.
-	global node_dispatch_request: event(reqid: string, action: vector of string);
+	##
+	## nodes: a set of cluster node names (e.g. "worker-01") to retrieve
+	##    the values from. An empty set, supplied by default, means
+	##    retrieval from all nodes managed by the agent.
+	global node_dispatch_request: event(reqid: string, action: vector of string,
+	    nodes: set[string] &default=set());
 
 	## Response to a node_dispatch_request event. Each agent sends this back
 	## to the controller to report the dispatch outcomes on all nodes managed

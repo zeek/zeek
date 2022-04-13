@@ -66,7 +66,11 @@ export {
 	## The controller sends this to every agent to request a dispatch (the
 	## execution of a pre-implemented activity) to all cluster nodes.  This
 	## is the generic controller-agent "back-end" implementation of explicit
-	## client-controller "front-end" interactions.
+	## client-controller "front-end" interactions, including:
+	##
+	## - :zeek:see:`Management::Controller::API::get_id_value_request`: two
+	##   arguments, the first being "get_id_value" and the second the name
+	##   of the ID to look up.
 	##
 	## reqid: a request identifier string, echoed in the response event.
 	##

@@ -321,6 +321,10 @@ event Management::Node::API::node_dispatch_response(reqid: string, result: Manag
 	# confirm their type here based on the requested dispatch command.
 	switch req$node_dispatch_state$action[0]
 		{
+		case "get_id_value":
+			if ( result?$data )
+				result$data = result$data as string;
+			break;
 		default:
 			Management::Log::error(fmt("unexpected dispatch command %s",
 			    req$node_dispatch_state$action[0]));

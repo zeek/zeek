@@ -19,7 +19,36 @@ redef Management::Log::role = Management::NODE;
 ## provided result record.
 type DispatchCallback: function(args: vector of string, res: Management::Result);
 
+## Implementation of the "get_id_value" dispatch. Its only argument is the name
+## of the ID to look up.
+function dispatch_get_id_value(args: vector of string, res: Management::Result)
+	{
+	if ( |args| == 0 )
+		{
+		res$success = F;
+		res$error = "get_id_value expects name of global identifier";
+		return;
+		}
+
+	local val = lookup_ID(args[0]);
+
+	# The following lookup_ID() result strings indicate errors:
+	if ( type_name(val) == "string" )
+		{
+		local valstr: string = val;
+		if ( valstr == "<unknown id>" || valstr == "<no ID value>" )
+			{
+			res$success = F;
+			res$error = valstr[1:-1];
+			}
+		}
+
+	if ( res$success )
+		res$data = to_json(val);
+	}
+
 global g_dispatch_table: table[string] of DispatchCallback = {
+	["get_id_value"] = dispatch_get_id_value,
 };
 
 event Management::Node::API::node_dispatch_request(reqid: string, action: vector of string)

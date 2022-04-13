@@ -42,7 +42,11 @@ export {
 	## and report their outcomes. See
 	## :zeek:see:`Management::Agent::API::node_dispatch_request` and
 	## :zeek:see:`Management::Agent::API::node_dispatch_response` for the
-	## agent/controller interaction.
+	## agent/controller interaction, and
+	## :zeek:see:`Management::Controller::API::get_id_value_request` and
+	## :zeek:see:`Management::Controller::API::get_id_value_response`
+	## for an example of a specific API the controller generalizes into
+	## a dispatch.
 	type NodeDispatchState: record {
 		## The dispatched action. The first string is a command,
 		## any remaining strings its arguments.
@@ -598,6 +602,10 @@ event Management::Agent::API::node_dispatch_response(reqid: string, results: Man
 		# type "any": confirm their (known) type here.
 		switch req$node_dispatch_state$action[0]
 			{
+			case "get_id_value":
+				if ( results[i]?$data )
+					results[i]$data = results[i]$data as string;
+				break;
 			default:
 				Management::Log::error(fmt("unexpected dispatch command %s",
 				    req$node_dispatch_state$action[0]));
@@ -620,6 +628,12 @@ event Management::Agent::API::node_dispatch_response(reqid: string, results: Man
 	# Send response event to the client based upon the dispatch type.
 	switch req$node_dispatch_state$action[0]
 		{
+		case "get_id_value":
+			Management::Log::info(fmt(
+			    "tx Management::Controller::API::get_id_value_response %s",
+			    Management::Request::to_string(req)));
+			event Management::Controller::API::get_id_value_response(req$id, req$results);
+			break;
 		default:
 			Management::Log::error(fmt("unexpected dispatch command %s",
 			    req$node_dispatch_state$action[0]));
@@ -627,6 +641,42 @@ event Management::Agent::API::node_dispatch_response(reqid: string, results: Man
 		}
 
 	Management::Request::finish(req$id);
+	}
+
+event Management::Controller::API::get_id_value_request(reqid: string, id: string)
+	{
+	Management::Log::info(fmt("rx Management::Controller::API::get_id_value_request %s %s", reqid, id));
+
+	# Special case: if we have no instances, respond right away.
+	if ( |g_instances| == 0 )
+		{
+		Management::Log::info(fmt("tx Management::Controller::API::get_id_value_response %s", reqid));
+		event Management::Controller::API::get_id_value_response(reqid, vector(
+		    Management::Result($reqid=reqid, $success=F, $error="no instances connected")));
+		return;
+		}
+
+	local action = vector("get_id_value", id);
+	local req = Management::Request::create(reqid);
+	req$node_dispatch_state = NodeDispatchState($action=action);
+
+	for ( name in g_instances )
+		{
+		if ( name !in g_instances_ready )
+			next;
+
+		local agent_topic = Management::Agent::topic_prefix + "/" + name;
+		local areq = Management::Request::create();
+
+		areq$parent_id = req$id;
+		add req$node_dispatch_state$requests[areq$id];
+
+		Management::Log::info(fmt(
+		    "tx Management::Agent::API::node_dispatch_request %s %s to %s",
+		    areq$id, action, name));
+
+		Broker::publish(agent_topic, Management::Agent::API::node_dispatch_request, areq$id, action);
+		}
 	}
 
 event Management::Request::request_expired(req: Management::Request::Request)
@@ -665,6 +715,12 @@ event Management::Request::request_expired(req: Management::Request::Request)
 
 		switch req$node_dispatch_state$action[0]
 			{
+			case "get_id_value":
+				Management::Log::info(fmt(
+				    "tx Management::Controller::API::get_id_value_response %s",
+				    Management::Request::to_string(req)));
+				event Management::Controller::API::get_id_value_response(req$id, req$results);
+				break;
 			default:
 				Management::Log::error(fmt("unexpected dispatch command %s",
 				    req$node_dispatch_state$action[0]));
@@ -717,6 +773,7 @@ event zeek_init()
 	    Management::Controller::API::get_instances_response,
 	    Management::Controller::API::set_configuration_response,
 	    Management::Controller::API::get_nodes_response,
+	    Management::Controller::API::get_id_value_response,
 	    Management::Controller::API::test_timeout_response
 	    ];
 

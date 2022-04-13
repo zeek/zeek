@@ -21,10 +21,22 @@ export {
 	type SupervisorState: record {
 		node: string; ##< Name of the node the Supervisor is acting on.
 	};
+
+	## Request state for node dispatches, tracking the requested action
+	## as well as received responses.
+	type NodeDispatchState: record {
+		## The dispatched action. The first string is a command,
+		## any remaining strings its arguments.
+		action: vector of string;
+
+		## Request state for every node managed by this agent.
+		requests: set[string] &default=set();
+	};
 }
 
 redef record Management::Request::Request += {
 	supervisor_state: SupervisorState &optional;
+	node_dispatch_state: NodeDispatchState &optional;
 };
 
 # Tag our logs correctly
@@ -285,6 +297,81 @@ event Management::Agent::API::get_nodes_request(reqid: string)
 	Management::Log::info(fmt("issued supervisor status, %s", req$id));
 	}
 
+event Management::Node::API::node_dispatch_response(reqid: string, result: Management::Result)
+	{
+	Management::Log::info(fmt("rx Management::Node::API::node_dispatch_response %s", reqid));
+
+	# Retrieve state for the request we just got a response to
+	local nreq = Management::Request::lookup(reqid);
+	if ( Management::Request::is_null(nreq) )
+		return;
+
+	# Find the original request from the controller
+	local req = Management::Request::lookup(nreq$parent_id);
+	if ( Management::Request::is_null(req) )
+		return;
+
+	# Mark the responding node as done. Nodes normally fill their own name
+	# into the result; we only double-check for resilience. Nodes failing to
+	# report themselves would eventually lead to request timeout.
+	if ( result?$node && result$node in req$node_dispatch_state$requests )
+		delete req$node_dispatch_state$requests[result$node];
+
+	# The usual special treatment for Broker values that are of type "any":
+	# confirm their type here based on the requested dispatch command.
+	switch req$node_dispatch_state$action[0]
+		{
+		default:
+			Management::Log::error(fmt("unexpected dispatch command %s",
+			    req$node_dispatch_state$action[0]));
+			break;
+		}
+
+	# The result has the reporting node filled in but not the agent/instance
+	# (which the node doesn't know about), so add it now.
+	result$instance = Management::Agent::instance()$name;
+
+	# Add this result to the overall response
+	req$results[|req$results|] = result;
+
+	# If we still have pending queries out to the agents, do nothing: we'll
+	# handle this soon, or our request will time out and we respond with
+	# error.
+	if ( |req$node_dispatch_state$requests| > 0 )
+		return;
+
+	# Release the agent-nodes request state, since we now have all responses.
+	Management::Request::finish(nreq$id);
+
+	# Send response event back to controller and clean up main request state.
+	Management::Log::info(fmt("tx Management::Agent::API::node_dispatch_response %s",
+	    Management::Request::to_string(req)));
+	event Management::Agent::API::node_dispatch_response(req$id, req$results);
+	Management::Request::finish(req$id);
+	}
+
+event Management::Agent::API::node_dispatch_request(reqid: string, action: vector of string)
+	{
+	Management::Log::info(fmt("rx Management::Agent::API::node_dispatch_request %s %s", reqid, action));
+
+	local res: Management::Result;
+	local req = Management::Request::create(reqid);
+
+	req$node_dispatch_state = NodeDispatchState($action=action);
+
+	for ( node in g_nodes )
+		add req$node_dispatch_state$requests[node];
+
+	# We use a single request record to track all node responses. We know
+	# when all nodes have responded via the requests set we built up above.
+	local nreq = Management::Request::create();
+	nreq$parent_id = reqid;
+
+	Management::Log::info(fmt("tx Management::Node::API::node_dispatch_request %s %s", nreq$id, action));
+	Broker::publish(Management::Node::node_topic,
+	    Management::Node::API::node_dispatch_request, nreq$id, action);
+	}
+
 event Management::Agent::API::agent_welcome_request(reqid: string)
 	{
 	Management::Log::info(fmt("rx Management::Agent::API::agent_welcome_request %s", reqid));
@@ -357,21 +444,31 @@ event zeek_init()
 
 	# Auto-publish a bunch of events. Glob patterns or module-level
 	# auto-publish would be helpful here.
-	Broker::auto_publish(agent_topic, Management::Agent::API::get_nodes_response);
-	Broker::auto_publish(agent_topic, Management::Agent::API::set_configuration_response);
-	Broker::auto_publish(agent_topic, Management::Agent::API::agent_welcome_response);
-	Broker::auto_publish(agent_topic, Management::Agent::API::agent_standby_response);
+	local agent_to_controller_events: vector of any = [
+	    Management::Agent::API::get_nodes_response,
+	    Management::Agent::API::set_configuration_response,
+	    Management::Agent::API::agent_welcome_response,
+	    Management::Agent::API::agent_standby_response,
+	    Management::Agent::API::node_dispatch_response,
+	    Management::Agent::API::notify_agent_hello,
+	    Management::Agent::API::notify_change,
+	    Management::Agent::API::notify_error,
+	    Management::Agent::API::notify_log
+	    ];
 
-	Broker::auto_publish(agent_topic, Management::Agent::API::notify_agent_hello);
-	Broker::auto_publish(agent_topic, Management::Agent::API::notify_change);
-	Broker::auto_publish(agent_topic, Management::Agent::API::notify_error);
-	Broker::auto_publish(agent_topic, Management::Agent::API::notify_log);
+	for ( i in agent_to_controller_events )
+		Broker::auto_publish(agent_topic, agent_to_controller_events[i]);
 
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::create_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::status_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::destroy_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::restart_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::stop_request);
+	local agent_to_sup_events: vector of any = [
+	    SupervisorControl::create_request,
+	    SupervisorControl::status_request,
+	    SupervisorControl::destroy_request,
+	    SupervisorControl::restart_request,
+	    SupervisorControl::stop_request
+	    ];
+
+	for ( i in agent_to_sup_events )
+		Broker::auto_publish(SupervisorControl::topic_prefix, agent_to_sup_events[i]);
 
 	# Establish connectivity with the controller.
 	if ( Management::Agent::controller$address != "0.0.0.0" )

@@ -60,8 +60,32 @@ export {
 	##     records, covering the nodes at this instance. The result may also
 	##     indicate failure, with error messages indicating what went wrong.
 	##
-	global get_nodes_response: event(reqid: string,
-	    result: Management::Result);
+	global get_nodes_response: event(reqid: string, result: Management::Result);
+
+
+	## The controller sends this to every agent to request a dispatch (the
+	## execution of a pre-implemented activity) to all cluster nodes.  This
+	## is the generic controller-agent "back-end" implementation of explicit
+	## client-controller "front-end" interactions.
+	##
+	## reqid: a request identifier string, echoed in the response event.
+	##
+	## action: the requested dispatch command, with any arguments.
+	global node_dispatch_request: event(reqid: string, action: vector of string);
+
+	## Response to a node_dispatch_request event. Each agent sends this back
+	## to the controller to report the dispatch outcomes on all nodes managed
+	## by that agent.
+	##
+	## reqid: the request identifier used in the request event.
+	##
+	## result: a :zeek:type:`vector` of :zeek:see:`Management::Result`
+	##     records. Each record covers one Zeek cluster node managed by this
+	##     agent. Upon success, each :zeek:see:`Management::Result` record's
+	##     data member contains the dispatches' response in a data type
+	##     appropriate for the respective dispatch.
+	global node_dispatch_response: event(reqid: string, result: Management::ResultVec);
+
 
 	## The controller sends this event to confirm to the agent that it is
 	## part of the current cluster topology. The agent acknowledges with the

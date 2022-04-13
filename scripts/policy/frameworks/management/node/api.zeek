@@ -7,6 +7,27 @@
 module Management::Node::API;
 
 export {
+	## Management agents send this event to every Zeek cluster node to run a
+	## "dispatch" -- a particular, pre-implemented action. This is the agent-node
+	## complement to :zeek:see:`Management::Agent::API::node_dispatch_request`.
+	##
+	## reqid: a request identifier string, echoed in the response event.
+	##
+	## action: the requested dispatch command, with any arguments.
+	global node_dispatch_request: event(reqid: string, action: vector of string);
+
+	## Response to a node_dispatch_request event. The nodes send this back
+	## to the agent. This is the agent-node equivalent of
+	## :zeek:see:`Management::Agent::API::node_dispatch_response`.
+	##
+	## reqid: the request identifier used in the request event.
+	##
+	## result: a :zeek:see:`Management::Result` record covering one Zeek
+	##     cluster node managed by the agent. Upon success, the data field
+	##     contains a value appropriate for the requested dispatch.
+	global node_dispatch_response: event(reqid: string, result: Management::Result);
+
+
 	# Notification events, node -> agent
 
 	## The cluster nodes send this event upon peering as a "check-in" to

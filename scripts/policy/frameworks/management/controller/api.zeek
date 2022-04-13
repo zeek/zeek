@@ -71,7 +71,7 @@ export {
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: a :zeek:type`vector` of :zeek:see:`Management::Result`
+	## result: a :zeek:type:`vector` of :zeek:see:`Management::Result`
 	##     records. Each record covers one cluster instance. Each record's data
 	##     member is a vector of :zeek:see:`Management::NodeStatus`
 	##     records, covering the nodes at that instance. Results may also indicate

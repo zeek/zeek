@@ -32,6 +32,11 @@ New Functionality
   regard. Like binpac and bifcl, it's now also available as a standalone git
   repository and hooked into the Zeek distribution as a submodule.
 
+- Zeek now uses the c-ares (https://c-ares.org) library for performing DNS
+  requests, replacing an old custom implementation of a DNS resolver. Switching
+  to this library simplifies the DNS code, adds support for IPv6 lookups, and
+  adds the ability to support more DNS request types in the future.
+
 Changed Functionality
 ---------------------
 

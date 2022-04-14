@@ -1299,6 +1299,15 @@ void Dictionary::AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, i
 	{
 	ASSERT(c);
 	ASSERT_VALID(c);
+
+	// Remove any previous instances of this value that we may have recorded as
+	// their pointers will get invalid. We won't need that knowledge anymore
+	// anyways, will update with new information below as needed.
+	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
+	                   c->inserted->end());
+	c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
+	                  c->visited->end());
+
 	if ( insert_position < c->next )
 		c->inserted->push_back(entry);
 	if ( insert_position < c->next && c->next <= last_affected_position )
@@ -1314,6 +1323,12 @@ void Dictionary::AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, i
 void Dictionary::AdjustOnInsert(RobustDictIterator* c, const detail::DictEntry& entry,
                                 int insert_position, int last_affected_position)
 	{
+	// See note in Dictionary::AdjustOnInsert() above.
+	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
+	                   c->inserted->end());
+	c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
+	                  c->visited->end());
+
 	if ( insert_position < c->next )
 		c->inserted->push_back(entry);
 	if ( insert_position < c->next && c->next <= last_affected_position )
@@ -1442,8 +1457,13 @@ void Dictionary::AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, i
                                 int last_affected_position)
 	{
 	ASSERT_VALID(c);
+
+	// See note in Dictionary::AdjustOnInsert() above.
 	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
 	                   c->inserted->end());
+	c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
+	                  c->visited->end());
+
 	if ( position < c->next && c->next <= last_affected_position )
 		{
 		int moved = HeadOfClusterByPosition(c->next - 1);
@@ -1462,8 +1482,12 @@ void Dictionary::AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, i
 void Dictionary::AdjustOnRemove(RobustDictIterator* c, const detail::DictEntry& entry, int position,
                                 int last_affected_position)
 	{
+	// See note in Dictionary::AdjustOnInsert() above.
 	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
 	                   c->inserted->end());
+	c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
+	                  c->visited->end());
+
 	if ( position < c->next && c->next <= last_affected_position )
 		{
 		int moved = HeadOfClusterByPosition(c->next - 1);
@@ -1475,6 +1499,14 @@ void Dictionary::AdjustOnRemove(RobustDictIterator* c, const detail::DictEntry& 
 	// if not already the end of the dictionary, adjust next to a valid one.
 	if ( c->next < Capacity() && table[c->next].Empty() )
 		c->next = Next(c->next);
+
+	if ( c->curr == entry )
+		{
+		if ( c->next >= 0 && c->next < Capacity() && ! table[c->next].Empty() )
+			c->curr = table[c->next];
+		else
+			c->curr = detail::DictEntry(nullptr); // -> c == end_robust()
+		}
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1808,7 +1840,20 @@ detail::DictEntry Dictionary::GetNextRobustIteration(RobustDictIterator* iter)
 	if ( iter->next < 0 )
 		iter->next = Next(-1);
 
-	ASSERT(iter->next >= Capacity() || ! table[iter->next].Empty());
+	if ( iter->next < Capacity() && table[iter->next].Empty() )
+		{
+		// [Robin] I believe this means that the table has resized in a way
+		// that we're now inside the overflow area where elements are empty,
+		// because elsewhere empty slots aren't allowed. Assuming that's right,
+		// then it means we'll always be at the end of the table now and could
+		// also just set `next` to capacity. However, just to be sure, we
+		// instead reuse logic from below to move forward "to a valid position"
+		// and then double check, through an assertion in debug mode, that it's
+		// actually the end. If this ever triggered, the above assumption would
+		// be wrong (but the Next() call would probably still be right).
+		iter->next = Next(iter->next);
+		ASSERT(iter->next == Capacity());
+		}
 
 	// Filter out visited keys.
 	int capacity = Capacity();

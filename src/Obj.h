@@ -38,6 +38,7 @@ public:
 #define YYLTYPE zeek::detail::yyltype
 using yyltype = Location;
 YYLTYPE GetCurrentLocation();
+void SetCurrentLocation(YYLTYPE currloc);
 
 // Used to mean "no location associated with this object".
 inline constexpr Location no_location("<no location>", 0, 0, 0, 0);

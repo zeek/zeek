@@ -1,3 +1,39 @@
+5.0.0-dev.255 | 2022-04-14 10:12:49 -0700
+
+  * Fix another crash during dictionary iteration. (Robin Sommer, Corelight)
+
+    Closes #2017.
+
+  * Fix assertions in dictionary that can trigger for benign reasons. (Robin Sommer, Corelight)
+
+    These assertions were checking for a situation that I believe can
+    happen legitimately: a robust iterator pointing to an index that,
+    after some table resizing, happens to be inside the overflow area and
+    hence empty. We'll now move it to the end of the table in the case.
+
+  * Fix robust iterators when modifying dictionary during iteration. (Robin Sommer, Corelight)
+
+    When inserting/deleting elements, we now remove their `DictEntries`
+    from any robust iterators' bookkeeping. First, we don't need that
+    information anymore, and second the `DictEntries` contain pointers
+    that may become invalid.
+
+    I don't know how to write a unit test for this unfortunately because
+    it depends on where exactly things land in the hash table.
+
+    Btw, memory mgmt for DictEntries is pretty fragile: They contain
+    pointers to both memory they own (`key`) and memory they don't own
+    (`value`). The former type of pointers is shallow-copied on
+    assignment/copy-construction, meaning that there can be multiple
+    instances seemingly owning the same memory. That only works because
+    deletion is manual, and not part of standard destruction. The second
+    type of pointer has a similar problem, except that it's managed
+    externally. It's important to not end up with multiple `DictEntries`
+    pointing to the same value (which is actually what that iterator
+    bookkeeping did).
+
+    Addresses #2032.
+
 5.0.0-dev.250 | 2022-04-14 09:51:23 -0700
 
   * Split asan/ubsan CI builds, add tsan build (Tim Wojtulewicz, Corelight)

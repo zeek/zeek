@@ -1,3 +1,7 @@
+5.0.0-dev.250 | 2022-04-14 09:51:23 -0700
+
+  * Split asan/ubsan CI builds, add tsan build (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.248 | 2022-04-14 08:59:34 -0700
 
   * Disable object-size analysis if optimization set to -O0 (Tim Wojtulewicz, Corelight)

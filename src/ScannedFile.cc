@@ -49,8 +49,9 @@ bool ScannedFile::AlreadyScanned() const
 
 SignatureFile::SignatureFile(std::string file) : file(std::move(file)) { }
 
-SignatureFile::SignatureFile(std::string file, std::string full_path)
-	: file(std::move(file)), full_path(std::move(full_path))
+SignatureFile::SignatureFile(std::string file, std::string full_path, Location load_location)
+	: file(std::move(file)), full_path(std::move(full_path)),
+	  load_location(std::move(load_location))
 	{
 	}
 

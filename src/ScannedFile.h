@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <zeek/Obj.h>
 #include <list>
 #include <optional>
 #include <string>
@@ -40,9 +41,10 @@ struct SignatureFile
 	{
 	std::string file;
 	std::optional<std::string> full_path;
+	Location load_location;
 
 	SignatureFile(std::string file);
-	SignatureFile(std::string file, std::string full_path);
+	SignatureFile(std::string file, std::string full_path, Location load_location);
 	};
 
 extern std::vector<SignatureFile> sig_files;

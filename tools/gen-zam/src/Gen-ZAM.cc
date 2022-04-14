@@ -2,6 +2,7 @@
 
 #include "Gen-ZAM.h"
 
+#include <cstring>
 #include <ctype.h>
 #include <regex>
 

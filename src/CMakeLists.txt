@@ -575,6 +575,10 @@ install(CODE "
    )
 ")
 
+# Make sure to escape a bunch of special characters in the path before trying to use it as a
+# regular expression below.
+string(REGEX REPLACE "([][+.*()^])" "\\\\\\1" escaped_path "${CMAKE_CURRENT_SOURCE_DIR}/zeek")
+
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/zeek
         FILES_MATCHING
@@ -582,7 +586,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         PATTERN "*.pac"
         PATTERN "3rdparty/*" EXCLUDE
         # The "zeek -> ." symlink isn't needed in the install-tree
-        REGEX "^${CMAKE_CURRENT_SOURCE_DIR}/zeek$" EXCLUDE
+        REGEX "^${escaped_path}$" EXCLUDE
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/

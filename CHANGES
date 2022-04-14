@@ -1,3 +1,13 @@
+5.0.0-dev.257 | 2022-04-14 10:13:28 -0700
+
+  * Re-instantiate providing location information to `LoadFile` hooks. (Robin Sommer, Corelight)
+
+    #1835 subtly changed the semantics of the `LoadFile` plugin hook to no
+    longer have the current script location available for signature files
+    being loaded through `@load-sigs`. This was undocumented behavior, so
+    it's technically not a regression, but since at least one external
+    plugin is depending on it, this change restores the old behavior.
+
 5.0.0-dev.255 | 2022-04-14 10:12:49 -0700
 
   * Fix another crash during dictionary iteration. (Robin Sommer, Corelight)

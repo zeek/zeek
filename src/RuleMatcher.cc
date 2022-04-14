@@ -266,6 +266,13 @@ bool RuleMatcher::ReadFiles(const std::vector<SignatureFile>& files)
 		if ( ! f.full_path )
 			f.full_path = util::find_file(f.file, util::zeek_path(), ".sig");
 
+		// We mimic previous Zeek versions by temporarily setting the current
+		// script location to the place where the loading happened. This
+		// behavior was never documented, but seems worth not breaking as some
+		// plugins ended up relying on it.
+		Location orig_location = detail::GetCurrentLocation();
+		detail::SetCurrentLocation(f.load_location);
+
 		std::pair<int, std::optional<std::string>> rc = {-1, std::nullopt};
 		rc.first = PLUGIN_HOOK_WITH_RESULT(
 			HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::SIGNATURES, f.file, *f.full_path),
@@ -276,6 +283,9 @@ bool RuleMatcher::ReadFiles(const std::vector<SignatureFile>& files)
 				HOOK_LOAD_FILE_EXT,
 				HookLoadFileExtended(zeek::plugin::Plugin::SIGNATURES, f.file, *f.full_path),
 				std::make_pair(-1, std::nullopt));
+
+		// Restore original location information.
+		detail::SetCurrentLocation(orig_location);
 
 		switch ( rc.first )
 			{

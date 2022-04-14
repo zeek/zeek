@@ -590,8 +590,12 @@ public:
 	 * @param data An optional pointer to the malformed data.
 	 *
 	 * @param len If \a data is given, the length of it.
+	 *
+	 * @param tag If tag is given, it overrides the analyzer tag passed to the
+	 * scripting layer; the default is the one of the analyzer itself.
 	 */
-	virtual void AnalyzerViolation(const char* reason, const char* data = nullptr, int len = 0);
+	virtual void AnalyzerViolation(const char* reason, const char* data = nullptr, int len = 0,
+	                               zeek::Tag tag = zeek::Tag());
 
 	/**
 	 * Returns true if ProtocolConfirmation() has been called at least

@@ -736,7 +736,7 @@ void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag)
 	event_mgr.Enqueue(analyzer_confirmation, ConnVal(), tval, val_mgr->Count(id));
 	}
 
-void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len)
+void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, zeek::Tag arg_tag)
 	{
 	if ( ! analyzer_violation )
 		return;
@@ -753,7 +753,7 @@ void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len)
 	else
 		r = make_intrusive<StringVal>(reason);
 
-	const auto& tval = tag.AsVal();
+	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
 	event_mgr.Enqueue(analyzer_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
 	}
 

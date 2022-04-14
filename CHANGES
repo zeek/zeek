@@ -1,3 +1,13 @@
+5.0.0-dev.259 | 2022-04-14 10:26:29 -0700
+
+  * GH-2038: Don't sleep when non-selectable PktSrc has data available (Anthony Coddington)
+
+    PktSrc::GetNextTimeout always returned a fixed timeout of 20 microseconds for non-selectable packet sources regardless of whether they have packets available. This adds unnecessary delay every FindReadySources poll_interval when packets are available to be read.
+
+    Instead, for non-selectable packet sources, check whether packets are available and return a timeout of 0 to indicate data is available. This is closer to the behaviour of the old capture loop.
+
+    This was mitigated somewhat by the fact FindReadySources poll interval defaults to 100 packets, and live sources are added to the ready list regardless of whether they have packets available (unless it is time to force a poll).
+
 5.0.0-dev.257 | 2022-04-14 10:13:28 -0700
 
   * Re-instantiate providing location information to `LoadFile` hooks. (Robin Sommer, Corelight)

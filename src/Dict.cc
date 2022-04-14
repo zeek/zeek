@@ -927,6 +927,15 @@ void Dictionary::AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, i
 	{
 	ASSERT(c);
 	ASSERT_VALID(c);
+
+	// Remove any previous instances of this value that we may have recorded as
+	// their pointers will get invalid. We won't need that knowledge anymore
+	// anyways, will update with new information below as needed.
+	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
+	                   c->inserted->end());
+	c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
+	                  c->visited->end());
+
 	if ( insert_position < c->next )
 		c->inserted->push_back(entry);
 	if ( insert_position < c->next && c->next <= last_affected_position )
@@ -1038,7 +1047,13 @@ detail::DictEntry Dictionary::RemoveAndRelocate(int position, int* last_affected
 void Dictionary::AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, int position, int last_affected_position)
 	{
 	ASSERT_VALID(c);
-	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry), c->inserted->end());
+
+	// See note in Dictionary::AdjustOnInsert() above.
+	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
+	                   c->inserted->end());
+	c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
+	                  c->visited->end());
+
 	if ( position < c->next && c->next <= last_affected_position )
 		{
 		int moved = HeadOfClusterByPosition(c->next-1);
@@ -1047,7 +1062,7 @@ void Dictionary::AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, i
 		c->inserted->push_back(table[moved]);
 		}
 
-	//if not already the end of the dictionary, adjust next to a valid one.
+	// if not already the end of the dictionary, adjust next to a valid one.
 	if ( c->next < Capacity() && table[c->next].Empty() )
 		c->next = Next(c->next);
 	}

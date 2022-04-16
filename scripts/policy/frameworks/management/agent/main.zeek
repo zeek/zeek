@@ -132,11 +132,10 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 	for ( nodename in g_nodes )
 		supervisor_destroy(nodename);
 
-	g_nodes = table();
-
 	# Refresh the cluster and nodes tables
-
+	g_nodes = table();
 	g_cluster = table();
+
 	for ( node in config$nodes )
 		{
 		if ( node$instance == Management::Agent::name )
@@ -166,6 +165,8 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 	for ( nodename in g_nodes )
 		{
 		node = g_nodes[nodename];
+		node$state = Management::PENDING;
+
 		nc = Supervisor::NodeConfig($name=nodename);
 
 		if ( Management::Agent::cluster_directory != "" )
@@ -237,6 +238,11 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 			{
 			cns$cluster_role = sns$node$cluster[node]$role;
 
+			# For cluster nodes, copy run state from g_nodes, our
+			# live node status table.
+			if ( node in g_nodes )
+				cns$state = g_nodes[node]$state;
+
 			# The supervisor's responses use 0/tcp (not 0/unknown)
 			# when indicating an unused port because its internal
 			# serialization always assumes TCP.
@@ -251,12 +257,22 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 				if ( role == "CONTROLLER" )
 					{
 					cns$mgmt_role = Management::CONTROLLER;
+
+					# Automatically declare the controller in running state
+					# here -- we'd not have received a request that brought
+					# us here otherwise.
+					cns$state = Management::RUNNING;
+
 					# The controller always listens, so the Zeek client can connect.
 					cns$p = Management::Agent::endpoint_info()$network$bound_port;
 					}
 				else if ( role == "AGENT" )
 					{
 					cns$mgmt_role = Management::AGENT;
+
+					# Similarly to above, always declare agent running. We are. :)
+					cns$state = Management::RUNNING;
+
 					# If we have a controller address, the agent connects to it
 					# and does not listen. See zeek_init() below for similar logic.
 					if ( Management::Agent::controller$address == "0.0.0.0" )
@@ -268,13 +284,9 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 				}
 			}
 
-		# A PID is available if a supervised node has fully launched
-		# and is therefore running.
+		# A PID is available if a supervised node has fully launched.
 		if ( sns?$pid )
-			{
 			cns$pid = sns$pid;
-			cns$state = Management::RUNNING;
-			}
 
 		node_statuses += cns;
 		}
@@ -407,6 +419,14 @@ event Management::Agent::API::agent_standby_request(reqid: string)
 	Management::Log::info(fmt("tx Management::Agent::API::agent_standby_response %s",
 	                          Management::result_to_string(res)));
 	event Management::Agent::API::agent_standby_response(reqid, res);
+	}
+
+event Management::Node::API::notify_node_hello(node: string)
+	{
+	Management::Log::info(fmt("rx Management::Node::API::notify_node_hello %s", node));
+
+	if ( node in g_nodes )
+		g_nodes[node]$state = Management::RUNNING;
 	}
 
 event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)

@@ -61,9 +61,7 @@ public:
 		BUILTIN_FUNC
 		};
 
-	explicit Func(Kind arg_kind);
-
-	~Func() override;
+	explicit Func(Kind arg_kind) : kind(arg_kind) { }
 
 	virtual bool IsPure() const = 0;
 	FunctionFlavor Flavor() const { return GetType()->Flavor(); }
@@ -122,14 +120,8 @@ public:
 
 	virtual detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
 
-	uint32_t GetUniqueFuncID() const { return unique_id; }
-	static const FuncPtr& GetFuncPtrByID(uint32_t id)
-		{
-		return id >= unique_ids.size() ? Func::nil : unique_ids[id];
-		}
-
 protected:
-	Func();
+	Func() = default;
 
 	// Copies this function's state into other.
 	void CopyStateInto(Func* other) const;
@@ -140,10 +132,8 @@ protected:
 	std::vector<Body> bodies;
 	detail::ScopePtr scope;
 	Kind kind = SCRIPT_FUNC;
-	uint32_t unique_id = 0;
 	FuncTypePtr type;
 	std::string name;
-	static inline std::vector<FuncPtr> unique_ids;
 	};
 
 namespace detail

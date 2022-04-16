@@ -260,12 +260,15 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
 					{
 					uint32_t id;
 					hk.Read("func", id);
-					const auto& f = Func::GetFuncPtrByID(id);
 
-					if ( ! f )
+					ASSERT(func_id_to_func != nullptr);
+
+					if ( id >= func_id_to_func->size() )
 						reporter->InternalError("failed to look up unique function id %" PRIu32
 						                        " in CompositeHash::RecoverOneVal()",
 						                        id);
+
+					const auto& f = func_id_to_func->at(id);
 
 					*pval = make_intrusive<FuncVal>(f);
 					const auto& pvt = (*pval)->GetType();
@@ -547,7 +550,31 @@ bool CompositeHash::SingleValHash(HashKey& hk, const Val* v, Type* bt, bool type
 			switch ( v->GetType()->Tag() )
 				{
 				case TYPE_FUNC:
-					hk.Write("func", v->AsFunc()->GetUniqueFuncID());
+					{
+					auto f = v->AsFunc();
+
+					if ( ! func_to_func_id )
+						const_cast<CompositeHash*>(this)->BuildFuncMappings();
+
+					auto id_mapping = func_to_func_id->find(f);
+					uint32_t id;
+
+					if ( id_mapping == func_to_func_id->end() )
+						{
+						// We need the pointer to stick around
+						// for our lifetime, so we have to get
+						// a non-const version we can ref.
+						FuncPtr fptr = {NewRef{}, const_cast<Func*>(f)};
+
+						id = func_id_to_func->size();
+						func_id_to_func->push_back(std::move(fptr));
+						func_to_func_id->insert_or_assign(f, id);
+						}
+					else
+						id = id_mapping->second;
+
+					hk.Write("func", id);
+					}
 					break;
 
 				case TYPE_PATTERN:

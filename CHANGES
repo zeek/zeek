@@ -1,3 +1,7 @@
+5.0.0-dev.265 | 2022-04-18 12:45:08 -0700
+
+  * state-holding fix: track unique identifiers for Func's in CompHash's, not Func's themselves (Vern Paxson, Corelight)
+
 5.0.0-dev.263 | 2022-04-18 09:22:30 -0700
 
   * Add "Reporter" entry to fix plugin hook_name() vs HookType imbalance (Christian Kreibich, Corelight)

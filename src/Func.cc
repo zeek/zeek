@@ -133,20 +133,6 @@ std::string render_call_stack()
 	return rval;
 	}
 
-Func::Func()
-	{
-	unique_id = unique_ids.size();
-	unique_ids.push_back({NewRef{}, this});
-	}
-
-Func::Func(Kind arg_kind) : kind(arg_kind)
-	{
-	unique_id = unique_ids.size();
-	unique_ids.push_back({NewRef{}, this});
-	}
-
-Func::~Func() = default;
-
 void Func::AddBody(detail::StmtPtr /* new_body */,
                    const std::vector<detail::IDPtr>& /* new_inits */, size_t /* new_frame_size */,
                    int /* priority */)
@@ -238,7 +224,6 @@ void Func::CopyStateInto(Func* other) const
 	other->type = type;
 
 	other->name = name;
-	other->unique_id = unique_id;
 	}
 
 void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFlavor flavor) const

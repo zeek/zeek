@@ -1,3 +1,91 @@
+4.2.1 | 2022-04-18 10:13:23 -0700
+
+  * Release 4.2.1
+
+  * Add "Reporter" entry to fix plugin hook_name() vs HookType imbalance (Christian Kreibich, Corelight)
+
+    The hook_name() list was missing an entry corresponding to HOOK_REPORTER.
+
+    Co-authored-by: Peter Cullen <peter.cullen@corelight.com>
+
+    (cherry picked from commit 0235541a9597b3393fb41aa574afe1453b90fda7)
+
+  * Fix compile error on GCC-12/Ubuntu 22.04 (Johanna Amann, Corelight)
+
+  * Fix another crash during dictionary iteration. (Robin Sommer, Corelight)
+
+    Closes #2017.
+
+    (cherry picked from commit 2aa90616f66abb71a3f2312210aaa9bdf7cd7f3f)
+
+  * Fix assertions in dictionary that can trigger for benign reasons. (Robin Sommer, Corelight)
+
+    These assertions were checking for a situation that I believe can
+    happen legitimately: a robust iterator pointing to an index that,
+    after some table resizing, happens to be inside the overflow area and
+    hence empty. We'll now move it to the end of the table in the case.
+
+    (cherry picked from commit 2aa90616f66abb71a3f2312210aaa9bdf7cd7f3f)
+
+  * Fix robust iterators when modifying dictionary during iteration. (Robin Sommer, Corelight)
+
+    When inserting/deleting elements, we now remove their `DictEntries`
+    from any robust iterators' bookkeeping. First, we don't need that
+    information anymore, and second the `DictEntries` contain pointers
+    that may become invalid.
+
+    I don't know how to write a unit test for this unfortunately because
+    it depends on where exactly things land in the hash table.
+
+    Btw, memory mgmt for DictEntries is pretty fragile: They contain
+    pointers to both memory they own (`key`) and memory they don't own
+    (`value`). The former type of pointers is shallow-copied on
+    assignment/copy-construction, meaning that there can be multiple
+    instances seemingly owning the same memory. That only works because
+    deletion is manual, and not part of standard destruction. The second
+    type of pointer has a similar problem, except that it's managed
+    externally. It's important to not end up with multiple `DictEntries`
+    pointing to the same value (which is actually what that iterator
+    bookkeeping did).
+
+    Addresses #2032.
+
+    (cherry picked from commit 2aa90616f66abb71a3f2312210aaa9bdf7cd7f3f)
+
+  * Allow analyzer violations to explicitly set tag. (Robin Sommer, Corelight)
+
+    (cherry picked from commit 98b505e9dc5ce90284de9002c29bec5ecca4da30)
+
+  * Re-instantiate providing location information to `LoadFile` hooks. (Robin Sommer, Corelight)
+
+    #1835 subtly changed the semantics of the `LoadFile` plugin hook to no
+    longer have the current script location available for signature files
+    being loaded through `@load-sigs`. This was undocumented behavior, so
+    it's technically not a regression, but since at least one external
+    plugin is depending on it, this change restores the old behavior.
+
+    (cherry picked from commit a3b022ed988b3e10a9b31b725f61c399fe7a7098)
+
+  * reduce interpreter frames for compiled function bodies (Vern Paxson, Corelight)
+
+    (cherry picked from commit e0ad92c9f495cb18c1f502af767978b3f4444b20)
+
+  * fix & btest for ZAM bug with inlined nested loop (Vern Paxson, Corelight)
+
+    (cherry picked from commit 03109733e790b3194a671cde2d78c73d981a4383)
+
+  * bug fix for empty table constructors with &default attributes (plus a typo) (Vern Paxson, Corelight)
+
+    (cherry picked from commit 18fe9d84f602c90724dcec0e349789932ab9f931)
+
+  * GH-2026: Ensure both protocol and analyzer confirmation and violation events can be called (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 8a99e343a5c109ad9c7140bcd06cc62b028a0354)
+
+  * Have `make dist` cleanup a few more wayward files before tarring (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit cdf39840bb7974dc714666f2401e9b949c778f42(
+
 4.2.0 | 2022-01-24 14:27:44 -0700
 
   * Release 4.2.0.

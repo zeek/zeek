@@ -29,6 +29,7 @@ static constexpr const char* hook_names[int(NUM_HOOKS) + 1] = {
 		"SetupAnalyzerTree",
 		"LogInit",
 		"LogWrite",
+		"Reporter",
 		// MetaHooks
 		"MetaHookPre",
 		"MetaHookPost",

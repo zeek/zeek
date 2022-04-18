@@ -376,8 +376,8 @@ void TelnetBinaryOption::InconsistentOption(unsigned int /* type */)
 
 	} // namespace detail
 
-NVT_Analyzer::NVT_Analyzer(Connection* conn, bool orig)
-	: analyzer::tcp::ContentLine_Analyzer("NVT", conn, orig), options()
+NVT_Analyzer::NVT_Analyzer(Connection* conn, bool orig, int max_line_length)
+	: analyzer::tcp::ContentLine_Analyzer("NVT", conn, orig, max_line_length), options()
 	{
 	}
 
@@ -505,6 +505,13 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data)
 		offset = 0;                                                                                \
 		}
 
+		if ( offset >= max_line_length )
+			{
+			Weird("nvt_size_exceeded");
+			EMIT_LINE
+			return;
+			}
+
 		switch ( c )
 			{
 			case '\r':
@@ -596,21 +603,33 @@ void NVT_Analyzer::ScanOption(int& len, const u_char*& data)
 
 		else if ( code == TELNET_OPT_SB )
 			{
-			is_suboption = true;
-			last_was_IAC = false;
-
 			if ( offset >= buf_len )
 				InitBuffer(buf_len * 2);
+
+			if ( offset >= max_line_length )
+				{
+				Weird("nvt_size_exceeded");
+				return;
+				}
+
+			is_suboption = true;
+			last_was_IAC = false;
 
 			buf[offset++] = code;
 			}
 
 		else if ( IS_3_BYTE_OPTION(code) )
 			{
-			is_suboption = false;
-
 			if ( offset >= buf_len )
 				InitBuffer(buf_len * 2);
+
+			if ( offset >= max_line_length )
+				{
+				Weird("nvt_size_exceeded");
+				return;
+				}
+
+			is_suboption = false;
 
 			buf[offset++] = code;
 			}
@@ -649,6 +668,12 @@ void NVT_Analyzer::ScanOption(int& len, const u_char*& data)
 		{
 		if ( offset >= buf_len )
 			InitBuffer(buf_len * 2);
+
+		if ( offset >= max_line_length )
+			{
+			Weird("nvt_size_exceeded");
+			return;
+			}
 
 		unsigned int code = data[0];
 

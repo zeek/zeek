@@ -18,17 +18,31 @@
 namespace zeek::analyzer::ftp
 	{
 
+// Value passed to the NVT analyzer to keep it from going crazy creating bigger
+// and bigger buffers (and eventually crashing).
+constexpr int MAX_LINE_LENGTH = 16384;
+
+// The maximum size of an actual FTP command word. All of the words in the RFC
+// are 4 or below.
+constexpr int MAX_CMD_LENGTH = 20;
+
+// FTP doesn't really have a maximum length for a command (according to the RFC)
+// but we can kind of fake one by using the maximum length of a path in Linux. The
+// only commands that should be this long are the ones that request a full path.
+// Everything else should be shorter.
+constexpr int MAX_CMD_LINE_LENGTH = 4096 + MAX_CMD_LENGTH;
+
 FTP_Analyzer::FTP_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer("FTP", conn)
 	{
 	pending_reply = 0;
 
-	nvt_orig = new analyzer::login::NVT_Analyzer(conn, true);
+	nvt_orig = new analyzer::login::NVT_Analyzer(conn, true, MAX_LINE_LENGTH);
 	nvt_orig->SetIsNULSensitive(true);
 	nvt_orig->SetIsNULSensitive(true);
 	nvt_orig->SetCRLFAsEOL(LF_as_EOL);
 	nvt_orig->SetIsNULSensitive(LF_as_EOL);
 
-	nvt_resp = new analyzer::login::NVT_Analyzer(conn, false);
+	nvt_resp = new analyzer::login::NVT_Analyzer(conn, false, MAX_LINE_LENGTH);
 	nvt_resp->SetIsNULSensitive(true);
 	nvt_resp->SetIsNULSensitive(true);
 	nvt_resp->SetCRLFAsEOL(LF_as_EOL);
@@ -67,13 +81,16 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 	if ( (orig && ! ftp_request) || (! orig && ! ftp_reply) )
 		return;
 
-	// const char* orig_line = line;
-	const char* line = (const char*)data;
-	const char* end_of_line = line + length;
-
 	if ( length == 0 )
 		// Could emit "ftp empty request/reply" weird, but maybe not worth it.
 		return;
+
+	// Limit how much data we look at below when trying to find a command word.
+	if ( length > MAX_CMD_LINE_LENGTH )
+		length = MAX_CMD_LINE_LENGTH;
+
+	const char* line = (const char*)data;
+	const char* end_of_line = line + length;
 
 	Args vl;
 
@@ -92,6 +109,11 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 			{
 			// Weird("FTP command missing", end_of_line - orig_line, orig_line);
 			cmd_str = new StringVal("<missing>");
+			}
+		else if ( cmd_len > MAX_CMD_LENGTH )
+			{
+			Weird("ftp_invalid_cmd_length", util::fmt("%d", cmd_len));
+			return;
 			}
 		else
 			cmd_str = (new StringVal(cmd_len, cmd))->ToUpper();

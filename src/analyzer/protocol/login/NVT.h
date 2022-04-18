@@ -144,7 +144,7 @@ protected:
 class NVT_Analyzer final : public analyzer::tcp::ContentLine_Analyzer
 	{
 public:
-	NVT_Analyzer(Connection* conn, bool orig);
+	NVT_Analyzer(Connection* conn, bool orig, int max_line_length = tcp::DEFAULT_MAX_LINE_LENGTH);
 	~NVT_Analyzer() override;
 
 	TelnetOption* FindOption(unsigned int code);

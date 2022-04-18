@@ -2,6 +2,7 @@
 
 #include "zeek/script_opt/ZAM/Gen-ZAM.h"
 
+#include <cstring>
 #include <ctype.h>
 #include <regex>
 

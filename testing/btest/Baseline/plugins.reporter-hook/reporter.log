@@ -7,8 +7,8 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	level	message	location
 #types	time	enum	string	string
-XXXXXXXXXX.XXXXXX	Reporter::INFO	Some Info	<...>/reporter-hook.zeek, line 16
-XXXXXXXXXX.XXXXXX	Reporter::WARNING	A warning	<...>/reporter-hook.zeek, line 17
-XXXXXXXXXX.XXXXXX	Reporter::ERROR	An Error	<...>/reporter-hook.zeek, line 18
-XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (b$a)	<...>/reporter-hook.zeek, line 23
+XXXXXXXXXX.XXXXXX	Reporter::INFO	Some Info	<...>/reporter-hook.zeek, line 17
+XXXXXXXXXX.XXXXXX	Reporter::WARNING	A warning	<...>/reporter-hook.zeek, line 18
+XXXXXXXXXX.XXXXXX	Reporter::ERROR	An Error	<...>/reporter-hook.zeek, line 19
+XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (b$a)	<...>/reporter-hook.zeek, line 24
 #close XXXX-XX-XX-XX-XX-XX

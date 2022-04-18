@@ -5,6 +5,8 @@
 
 @load base/frameworks/broker
 @load policy/frameworks/management
+@load policy/frameworks/management/node/api
+@load policy/frameworks/management/node/config
 
 @load ./api
 @load ./config
@@ -19,10 +21,22 @@ export {
 	type SupervisorState: record {
 		node: string; ##< Name of the node the Supervisor is acting on.
 	};
+
+	## Request state for node dispatches, tracking the requested action
+	## as well as received responses.
+	type NodeDispatchState: record {
+		## The dispatched action. The first string is a command,
+		## any remaining strings its arguments.
+		action: vector of string;
+
+		## Request state for every node managed by this agent.
+		requests: set[string] &default=set();
+	};
 }
 
 redef record Management::Request::Request += {
 	supervisor_state: SupervisorState &optional;
+	node_dispatch_state: NodeDispatchState &optional;
 };
 
 # Tag our logs correctly
@@ -37,10 +51,10 @@ global g_instances: table[string] of Management::Instance;
 # A map for the nodes we run on this instance, via this agent.
 global g_nodes: table[string] of Management::Node;
 
-# The node map employed by the supervisor to describe the cluster
-# topology to newly forked nodes. We refresh it when we receive
-# new configurations.
-global g_data_cluster: table[string] of Supervisor::ClusterEndpoint;
+# The complete node map employed by the supervisor to describe the cluster
+# topology to newly forked nodes. We refresh it when we receive new
+# configurations.
+global g_cluster: table[string] of Supervisor::ClusterEndpoint;
 
 
 event SupervisorControl::create_response(reqid: string, result: string)
@@ -118,11 +132,10 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 	for ( nodename in g_nodes )
 		supervisor_destroy(nodename);
 
+	# Refresh the cluster and nodes tables
 	g_nodes = table();
+	g_cluster = table();
 
-	# Refresh the data cluster and nodes tables
-
-	g_data_cluster = table();
 	for ( node in config$nodes )
 		{
 		if ( node$instance == Management::Agent::name )
@@ -144,7 +157,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		if ( node?$interface )
 			cep$interface = node$interface;
 
-		g_data_cluster[node$name] = cep;
+		g_cluster[node$name] = cep;
 		}
 
 	# Apply the new configuration via the supervisor
@@ -152,6 +165,8 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 	for ( nodename in g_nodes )
 		{
 		node = g_nodes[nodename];
+		node$state = Management::PENDING;
+
 		nc = Supervisor::NodeConfig($name=nodename);
 
 		if ( Management::Agent::cluster_directory != "" )
@@ -166,10 +181,15 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		if ( node?$env )
 			nc$env = node$env;
 
+		# Always add the policy/management/node scripts to any cluster
+		# node, since we require it to be able to communicate with the
+		# node.
+		nc$scripts[|nc$scripts|] = "policy/frameworks/management/node";
+
 		# XXX could use options to enable per-node overrides for
 		# directory, stdout, stderr, others?
 
-		nc$cluster = g_data_cluster;
+		nc$cluster = g_cluster;
 		supervisor_create(nc);
 		}
 
@@ -209,7 +229,7 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 		local cns = Management::NodeStatus(
 			    $node=node, $state=Management::PENDING);
 
-		# Identify the role of the node. For data cluster roles (worker,
+		# Identify the role of the node. For cluster roles (worker,
 		# manager, etc) we derive this from the cluster node table.  For
 		# agent and controller, we identify via environment variables
 		# that the controller framework establishes upon creation (see
@@ -217,6 +237,11 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 		if ( node in sns$node$cluster )
 			{
 			cns$cluster_role = sns$node$cluster[node]$role;
+
+			# For cluster nodes, copy run state from g_nodes, our
+			# live node status table.
+			if ( node in g_nodes )
+				cns$state = g_nodes[node]$state;
 
 			# The supervisor's responses use 0/tcp (not 0/unknown)
 			# when indicating an unused port because its internal
@@ -232,12 +257,22 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 				if ( role == "CONTROLLER" )
 					{
 					cns$mgmt_role = Management::CONTROLLER;
+
+					# Automatically declare the controller in running state
+					# here -- we'd not have received a request that brought
+					# us here otherwise.
+					cns$state = Management::RUNNING;
+
 					# The controller always listens, so the Zeek client can connect.
 					cns$p = Management::Agent::endpoint_info()$network$bound_port;
 					}
 				else if ( role == "AGENT" )
 					{
 					cns$mgmt_role = Management::AGENT;
+
+					# Similarly to above, always declare agent running. We are. :)
+					cns$state = Management::RUNNING;
+
 					# If we have a controller address, the agent connects to it
 					# and does not listen. See zeek_init() below for similar logic.
 					if ( Management::Agent::controller$address == "0.0.0.0" )
@@ -249,13 +284,9 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 				}
 			}
 
-		# A PID is available if a supervised node has fully launched
-		# and is therefore running.
+		# A PID is available if a supervised node has fully launched.
 		if ( sns?$pid )
-			{
 			cns$pid = sns$pid;
-			cns$state = Management::RUNNING;
-			}
 
 		node_statuses += cns;
 		}
@@ -276,6 +307,166 @@ event Management::Agent::API::get_nodes_request(reqid: string)
 
 	event SupervisorControl::status_request(req$id, "");
 	Management::Log::info(fmt("issued supervisor status, %s", req$id));
+	}
+
+event Management::Node::API::node_dispatch_response(reqid: string, result: Management::Result)
+	{
+	local node = "unknown node";
+	if ( result?$node )
+		node = result$node;
+
+	Management::Log::info(fmt("rx Management::Node::API::node_dispatch_response %s from %s", reqid, node));
+
+	# Retrieve state for the request we just got a response to
+	local nreq = Management::Request::lookup(reqid);
+	if ( Management::Request::is_null(nreq) )
+		return;
+
+	# Find the original request from the controller
+	local req = Management::Request::lookup(nreq$parent_id);
+	if ( Management::Request::is_null(req) )
+		return;
+
+	# Mark the responding node as done. Nodes normally fill their own name
+	# into the result; we only double-check for resilience. Nodes failing to
+	# report themselves would eventually lead to request timeout.
+	if ( result?$node )
+		{
+		if ( result$node in req$node_dispatch_state$requests )
+			delete req$node_dispatch_state$requests[result$node];
+		else
+			{
+			# An unknown or duplicate response -- do nothing.
+			Management::Log::debug(fmt("response %s not expected, ignoring", reqid));
+			return;
+			}
+		}
+
+	# The usual special treatment for Broker values that are of type "any":
+	# confirm their type here based on the requested dispatch command.
+	switch req$node_dispatch_state$action[0]
+		{
+		case "get_id_value":
+			if ( result?$data )
+				result$data = result$data as string;
+			break;
+		default:
+			Management::Log::error(fmt("unexpected dispatch command %s",
+			    req$node_dispatch_state$action[0]));
+			break;
+		}
+
+	# The result has the reporting node filled in but not the agent/instance
+	# (which the node doesn't know about), so add it now.
+	result$instance = Management::Agent::instance()$name;
+
+	# Add this result to the overall response
+	req$results[|req$results|] = result;
+
+	# If we still have pending queries out to the agents, do nothing: we'll
+	# handle this soon, or our request will time out and we respond with
+	# error.
+	if ( |req$node_dispatch_state$requests| > 0 )
+		return;
+
+	# Release the agent-nodes request state, since we now have all responses.
+	Management::Request::finish(nreq$id);
+
+	# Send response event back to controller and clean up main request state.
+	Management::Log::info(fmt("tx Management::Agent::API::node_dispatch_response %s",
+	    Management::Request::to_string(req)));
+	event Management::Agent::API::node_dispatch_response(req$id, req$results);
+	Management::Request::finish(req$id);
+	}
+
+event Management::Agent::API::node_dispatch_request(reqid: string, action: vector of string, nodes: set[string])
+	{
+	Management::Log::info(fmt("rx Management::Agent::API::node_dispatch_request %s %s %s", reqid, action, nodes));
+
+	local node: string;
+	local cluster_nodes: set[string];
+	local nodes_final: set[string];
+
+	for ( node in g_nodes )
+		add cluster_nodes[node];
+
+	# If this request includes cluster nodes to query, check if this agent
+	# manages any of those nodes. If it doesn't, respond with an empty
+	# results vector immediately. Note that any globally unknown nodes
+	# that the client might have requested already got filtered by the
+	# controller, so we don't need to worry about them here.
+
+	if ( |nodes| > 0 )
+		{
+		nodes_final = nodes & cluster_nodes;
+
+		if ( |nodes_final| == 0 )
+			{
+			Management::Log::info(fmt(
+			    "tx Management::Agent::API::node_dispatch_response %s, no node overlap",
+			    reqid));
+			event Management::Agent::API::node_dispatch_response(reqid, vector());
+			return;
+			}
+		}
+	else if ( |g_nodes| == 0 )
+		{
+		# Special case: the client did not request specific nodes.  If
+		# we aren't running any nodes, respond right away, since there's
+		# nothing to dispatch to.
+		Management::Log::info(fmt(
+		    "tx Management::Agent::API::node_dispatch_response %s, no nodes registered",
+		    reqid));
+		event Management::Agent::API::node_dispatch_response(reqid, vector());
+		return;
+		}
+	else
+		{
+		# We send to all known nodes.
+		nodes_final = cluster_nodes;
+		}
+
+	local res: Management::Result;
+	local req = Management::Request::create(reqid);
+
+	req$node_dispatch_state = NodeDispatchState($action=action);
+
+	# Build up dispatch state for tracking responses. We only dispatch to
+	# nodes that are in state RUNNING, as those have confirmed they're ready
+	# to communicate. For others, establish error state in now.
+	for ( node in nodes_final )
+		{
+		if ( g_nodes[node]$state == Management::RUNNING )
+			add req$node_dispatch_state$requests[node];
+		else
+			{
+			res = Management::Result($reqid=reqid, $node=node);
+			res$success = F;
+			res$error = fmt("cluster node %s not in runnning state", node);
+			req$results += res;
+			}
+		}
+
+	# Corner case: nothing is in state RUNNING.
+	if ( |req$node_dispatch_state$requests| == 0 )
+		{
+		Management::Log::info(fmt(
+		    "tx Management::Agent::API::node_dispatch_response %s, no nodes running",
+		    reqid));
+		event Management::Agent::API::node_dispatch_response(reqid, req$results);
+		Management::Request::finish(req$id);
+		return;
+		}
+
+	# We use a single request record to track all node responses, and a
+	# single event that Broker publishes to all nodes. We know when all
+	# nodes have responded by checking the requests set we built up above.
+	local nreq = Management::Request::create();
+	nreq$parent_id = reqid;
+
+	Management::Log::info(fmt("tx Management::Node::API::node_dispatch_request %s %s", nreq$id, action));
+	Broker::publish(Management::Node::node_topic,
+	    Management::Node::API::node_dispatch_request, nreq$id, action, nodes);
 	}
 
 event Management::Agent::API::agent_welcome_request(reqid: string)
@@ -311,6 +502,14 @@ event Management::Agent::API::agent_standby_request(reqid: string)
 	event Management::Agent::API::agent_standby_response(reqid, res);
 	}
 
+event Management::Node::API::notify_node_hello(node: string)
+	{
+	Management::Log::info(fmt("rx Management::Node::API::notify_node_hello %s", node));
+
+	if ( node in g_nodes )
+		g_nodes[node]$state = Management::RUNNING;
+	}
+
 event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	{
 	# This does not (cannot?) immediately verify that the new peer
@@ -342,28 +541,39 @@ event zeek_init()
 
 	Broker::peer(supervisor_addr, Broker::default_port, Broker::default_listen_retry);
 
-	# Agents need receive communication targeted at it, and any responses
-	# from the supervisor.
+	# Agents need receive communication targeted at it, any responses
+	# from the supervisor, and any responses from cluster nodes.
 	Broker::subscribe(agent_topic);
 	Broker::subscribe(SupervisorControl::topic_prefix);
+	Broker::subscribe(Management::Node::node_topic);
 
 	# Auto-publish a bunch of events. Glob patterns or module-level
 	# auto-publish would be helpful here.
-	Broker::auto_publish(agent_topic, Management::Agent::API::get_nodes_response);
-	Broker::auto_publish(agent_topic, Management::Agent::API::set_configuration_response);
-	Broker::auto_publish(agent_topic, Management::Agent::API::agent_welcome_response);
-	Broker::auto_publish(agent_topic, Management::Agent::API::agent_standby_response);
+	local agent_to_controller_events: vector of any = [
+	    Management::Agent::API::get_nodes_response,
+	    Management::Agent::API::set_configuration_response,
+	    Management::Agent::API::agent_welcome_response,
+	    Management::Agent::API::agent_standby_response,
+	    Management::Agent::API::node_dispatch_response,
+	    Management::Agent::API::notify_agent_hello,
+	    Management::Agent::API::notify_change,
+	    Management::Agent::API::notify_error,
+	    Management::Agent::API::notify_log
+	    ];
 
-	Broker::auto_publish(agent_topic, Management::Agent::API::notify_agent_hello);
-	Broker::auto_publish(agent_topic, Management::Agent::API::notify_change);
-	Broker::auto_publish(agent_topic, Management::Agent::API::notify_error);
-	Broker::auto_publish(agent_topic, Management::Agent::API::notify_log);
+	for ( i in agent_to_controller_events )
+		Broker::auto_publish(agent_topic, agent_to_controller_events[i]);
 
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::create_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::status_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::destroy_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::restart_request);
-	Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::stop_request);
+	local agent_to_sup_events: vector of any = [
+	    SupervisorControl::create_request,
+	    SupervisorControl::status_request,
+	    SupervisorControl::destroy_request,
+	    SupervisorControl::restart_request,
+	    SupervisorControl::stop_request
+	    ];
+
+	for ( i in agent_to_sup_events )
+		Broker::auto_publish(SupervisorControl::topic_prefix, agent_to_sup_events[i]);
 
 	# Establish connectivity with the controller.
 	if ( Management::Agent::controller$address != "0.0.0.0" )
@@ -373,11 +583,10 @@ event zeek_init()
 		             Management::Agent::controller$bound_port,
 		             Management::connect_retry);
 		}
-	else
-		{
-		# Controller connects to us; listen for it.
-		Broker::listen(cat(epi$network$address), epi$network$bound_port);
-		}
+
+	# The agent always listens, to allow cluster nodes to peer with it.
+	# If the controller connects to us, it also uses this port.
+	Broker::listen(cat(epi$network$address), epi$network$bound_port);
 
 	Management::Log::info("agent is live");
 	}

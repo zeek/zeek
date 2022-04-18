@@ -1,3 +1,21 @@
+5.0.0-dev.277 | 2022-04-18 16:38:27 -0700
+
+  * Management framework updates (Christian Kreibich, Corelight)
+
+    - bump external testsuite
+    - allow selecting cluster nodes in get_id_value
+    - minor tweaks to logging component
+    - bump zeek-client to pull in get-id-value command
+    - improve handling of node run states
+    - add get_id_value dispatch
+    - allow dispatching "actions" on cluster nodes.
+    - some renaming to avoid the term "data cluster"
+    - allow agents to communicate with cluster nodes
+
+  * Avoid whitespace around function type strings in JSON rendering (Christian Kreibich, Corelight)
+
+  * Disable TSan CI task temporarily while we sort out some intermittent test failures (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.265 | 2022-04-18 12:45:08 -0700
 
   * state-holding fix: track unique identifiers for Func's in CompHash's, not Func's themselves (Vern Paxson, Corelight)

@@ -6,12 +6,13 @@ module Management;
 
 export {
 	## Management infrastructure node type. This intentionally does not
-	## include the data cluster node types (worker, logger, etc) -- those
+	## include the managed cluster node types (worker, logger, etc) -- those
 	## continue to be managed by the cluster framework.
 	type Role: enum {
 		NONE,       ##< No active role in cluster management
 		AGENT,      ##< A cluster management agent.
 		CONTROLLER, ##< The cluster's controller.
+		NODE,       ##< A managed cluster node (worker, manager, etc).
 	};
 
 	## A Zeek-side option with value.

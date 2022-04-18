@@ -420,8 +420,9 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 		}
 
 	rapidjson::Value j;
+	auto tag = val->GetType()->Tag();
 
-	switch ( val->GetType()->Tag() )
+	switch ( tag )
 		{
 		case TYPE_BOOL:
 			writer.Bool(val->AsBool());
@@ -475,8 +476,15 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			ODesc d;
 			d.SetStyle(RAW_STYLE);
 			val->Describe(&d);
-			writer.String(util::json_escape_utf8(
-				std::string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
+			std::string desc(reinterpret_cast<const char*>(d.Bytes()), d.Len());
+
+			// None of our function types should have surrounding
+			// whitespace, but ODesc might produce it due to its
+			// many output modes and flags. Strip it.
+			if ( tag == TYPE_FUNC )
+				desc = util::strstrip(desc);
+
+			writer.String(util::json_escape_utf8(desc));
 			break;
 			}
 

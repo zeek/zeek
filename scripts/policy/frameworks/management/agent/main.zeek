@@ -57,6 +57,12 @@ global g_nodes: table[string] of Management::Node;
 global g_cluster: table[string] of Supervisor::ClusterEndpoint;
 
 
+function agent_topic(): string
+	{
+	local epi = Management::Agent::endpoint_info();
+	return Management::Agent::topic_prefix + "/" + epi$id;
+	}
+
 event SupervisorControl::create_response(reqid: string, result: string)
 	{
 	local req = Management::Request::lookup(reqid);
@@ -69,7 +75,9 @@ event SupervisorControl::create_response(reqid: string, result: string)
 		{
 		local msg = fmt("failed to create node %s: %s", name, result);
 		Management::Log::error(msg);
-		event Management::Agent::API::notify_error(Management::Agent::name, msg, name);
+		Broker::publish(agent_topic(),
+		    Management::Agent::API::notify_error,
+		    Management::Agent::name, msg, name);
 		}
 
 	Management::Request::finish(reqid);
@@ -87,7 +95,9 @@ event SupervisorControl::destroy_response(reqid: string, result: bool)
 		{
 		local msg = fmt("failed to destroy node %s, %s", name, reqid);
 		Management::Log::error(msg);
-		event Management::Agent::API::notify_error(Management::Agent::name, msg, name);
+		Broker::publish(agent_topic(),
+		    Management::Agent::API::notify_error,
+		    Management::Agent::name, msg, name);
 		}
 
 	Management::Request::finish(reqid);
@@ -97,7 +107,8 @@ function supervisor_create(nc: Supervisor::NodeConfig)
 	{
 	local req = Management::Request::create();
 	req$supervisor_state = SupervisorState($node = nc$name);
-	event SupervisorControl::create_request(req$id, nc);
+	Broker::publish(SupervisorControl::topic_prefix,
+	    SupervisorControl::create_request, req$id, nc);
 	Management::Log::info(fmt("issued supervisor create for %s, %s", nc$name, req$id));
 	}
 
@@ -105,7 +116,8 @@ function supervisor_destroy(node: string)
 	{
 	local req = Management::Request::create();
 	req$supervisor_state = SupervisorState($node = node);
-	event SupervisorControl::destroy_request(req$id, node);
+	Broker::publish(SupervisorControl::topic_prefix,
+	    SupervisorControl::destroy_request, req$id, node);
 	Management::Log::info(fmt("issued supervisor destroy for %s, %s", node, req$id));
 	}
 
@@ -205,8 +217,9 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		    $instance = Management::Agent::name);
 
 		Management::Log::info(fmt("tx Management::Agent::API::set_configuration_response %s",
-		                          Management::result_to_string(res)));
-		event Management::Agent::API::set_configuration_response(reqid, res);
+		    Management::result_to_string(res)));
+		Broker::publish(agent_topic(),
+		    Management::Agent::API::set_configuration_response, reqid, res);
 		}
 	}
 
@@ -294,8 +307,9 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 	res$data = node_statuses;
 
 	Management::Log::info(fmt("tx Management::Agent::API::get_nodes_response %s",
-	                          Management::result_to_string(res)));
-	event Management::Agent::API::get_nodes_response(req$parent_id, res);
+	    Management::result_to_string(res)));
+	Broker::publish(agent_topic(),
+	    Management::Agent::API::get_nodes_response, req$parent_id, res);
 	}
 
 event Management::Agent::API::get_nodes_request(reqid: string)
@@ -305,7 +319,8 @@ event Management::Agent::API::get_nodes_request(reqid: string)
 	local req = Management::Request::create();
 	req$parent_id = reqid;
 
-	event SupervisorControl::status_request(req$id, "");
+	Broker::publish(SupervisorControl::topic_prefix,
+	    SupervisorControl::status_request, req$id, "");
 	Management::Log::info(fmt("issued supervisor status, %s", req$id));
 	}
 
@@ -375,7 +390,8 @@ event Management::Node::API::node_dispatch_response(reqid: string, result: Manag
 	# Send response event back to controller and clean up main request state.
 	Management::Log::info(fmt("tx Management::Agent::API::node_dispatch_response %s",
 	    Management::Request::to_string(req)));
-	event Management::Agent::API::node_dispatch_response(req$id, req$results);
+	Broker::publish(agent_topic(),
+	    Management::Agent::API::node_dispatch_response, req$id, req$results);
 	Management::Request::finish(req$id);
 	}
 
@@ -405,7 +421,8 @@ event Management::Agent::API::node_dispatch_request(reqid: string, action: vecto
 			Management::Log::info(fmt(
 			    "tx Management::Agent::API::node_dispatch_response %s, no node overlap",
 			    reqid));
-			event Management::Agent::API::node_dispatch_response(reqid, vector());
+			Broker::publish(agent_topic(),
+			    Management::Agent::API::node_dispatch_response, reqid, vector());
 			return;
 			}
 		}
@@ -417,7 +434,8 @@ event Management::Agent::API::node_dispatch_request(reqid: string, action: vecto
 		Management::Log::info(fmt(
 		    "tx Management::Agent::API::node_dispatch_response %s, no nodes registered",
 		    reqid));
-		event Management::Agent::API::node_dispatch_response(reqid, vector());
+		Broker::publish(agent_topic(),
+		    Management::Agent::API::node_dispatch_response, reqid, vector());
 		return;
 		}
 	else
@@ -453,7 +471,8 @@ event Management::Agent::API::node_dispatch_request(reqid: string, action: vecto
 		Management::Log::info(fmt(
 		    "tx Management::Agent::API::node_dispatch_response %s, no nodes running",
 		    reqid));
-		event Management::Agent::API::node_dispatch_response(reqid, req$results);
+		Broker::publish(agent_topic(),
+		    Management::Agent::API::node_dispatch_response, reqid, req$results);
 		Management::Request::finish(req$id);
 		return;
 		}
@@ -478,8 +497,9 @@ event Management::Agent::API::agent_welcome_request(reqid: string)
 	    $instance = Management::Agent::name);
 
 	Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_response %s",
-	                          Management::result_to_string(res)));
-	event Management::Agent::API::agent_welcome_response(reqid, res);
+	    Management::result_to_string(res)));
+	Broker::publish(agent_topic(),
+	    Management::Agent::API::agent_welcome_response, reqid, res);
 	}
 
 event Management::Agent::API::agent_standby_request(reqid: string)
@@ -498,8 +518,9 @@ event Management::Agent::API::agent_standby_request(reqid: string)
 	    $instance = Management::Agent::name);
 
 	Management::Log::info(fmt("tx Management::Agent::API::agent_standby_response %s",
-	                          Management::result_to_string(res)));
-	event Management::Agent::API::agent_standby_response(reqid, res);
+	    Management::result_to_string(res)));
+	Broker::publish(agent_topic(),
+	    Management::Agent::API::agent_standby_response, reqid, res);
 	}
 
 event Management::Node::API::notify_node_hello(node: string)
@@ -518,8 +539,10 @@ event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 
 	local epi = Management::Agent::endpoint_info();
 
-	event Management::Agent::API::notify_agent_hello(epi$id,
-	    to_addr(epi$network$address), Management::Agent::API::version);
+	Broker::publish(agent_topic(),
+	    Management::Agent::API::notify_agent_hello,
+	    epi$id, to_addr(epi$network$address),
+	    Management::Agent::API::version);
 	}
 
 # XXX We may want a request timeout event handler here. It's arguably cleaner to
@@ -529,7 +552,6 @@ event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 event zeek_init()
 	{
 	local epi = Management::Agent::endpoint_info();
-	local agent_topic = Management::Agent::topic_prefix + "/" + epi$id;
 
 	# The agent needs to peer with the supervisor -- this doesn't currently
 	# happen automatically. The address defaults to Broker's default, which
@@ -543,45 +565,17 @@ event zeek_init()
 
 	# Agents need receive communication targeted at it, any responses
 	# from the supervisor, and any responses from cluster nodes.
-	Broker::subscribe(agent_topic);
+	Broker::subscribe(agent_topic());
 	Broker::subscribe(SupervisorControl::topic_prefix);
 	Broker::subscribe(Management::Node::node_topic);
-
-	# Auto-publish a bunch of events. Glob patterns or module-level
-	# auto-publish would be helpful here.
-	local agent_to_controller_events: vector of any = [
-	    Management::Agent::API::get_nodes_response,
-	    Management::Agent::API::set_configuration_response,
-	    Management::Agent::API::agent_welcome_response,
-	    Management::Agent::API::agent_standby_response,
-	    Management::Agent::API::node_dispatch_response,
-	    Management::Agent::API::notify_agent_hello,
-	    Management::Agent::API::notify_change,
-	    Management::Agent::API::notify_error,
-	    Management::Agent::API::notify_log
-	    ];
-
-	for ( i in agent_to_controller_events )
-		Broker::auto_publish(agent_topic, agent_to_controller_events[i]);
-
-	local agent_to_sup_events: vector of any = [
-	    SupervisorControl::create_request,
-	    SupervisorControl::status_request,
-	    SupervisorControl::destroy_request,
-	    SupervisorControl::restart_request,
-	    SupervisorControl::stop_request
-	    ];
-
-	for ( i in agent_to_sup_events )
-		Broker::auto_publish(SupervisorControl::topic_prefix, agent_to_sup_events[i]);
 
 	# Establish connectivity with the controller.
 	if ( Management::Agent::controller$address != "0.0.0.0" )
 		{
 		# We connect to the controller.
 		Broker::peer(Management::Agent::controller$address,
-		             Management::Agent::controller$bound_port,
-		             Management::connect_retry);
+		    Management::Agent::controller$bound_port,
+		    Management::connect_retry);
 		}
 
 	# The agent always listens, to allow cluster nodes to peer with it.

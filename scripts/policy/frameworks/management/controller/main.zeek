@@ -113,8 +113,7 @@ global g_config_reqid_pending: string = "";
 # the one we send whenever the client requests it.
 global g_config_current: Management::Configuration;
 
-function send_config_to_agents(req: Management::Request::Request,
-                               config: Management::Configuration)
+function send_config_to_agents(req: Management::Request::Request, config: Management::Configuration)
 	{
 	for ( name in g_instances )
 		{
@@ -156,7 +155,7 @@ function add_instance(inst: Management::Instance)
 
 	if ( inst?$listen_port )
 		Broker::peer(cat(inst$host), inst$listen_port,
-		             Management::connect_retry);
+		    Management::connect_retry);
 
 	if ( inst$name in g_instances_known )
 		{
@@ -169,7 +168,7 @@ function add_instance(inst: Management::Instance)
 
 		Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_request to %s", inst$name));
 		Broker::publish(Management::Agent::topic_prefix + "/" + inst$name,
-		                Management::Agent::API::agent_welcome_request, req$id);
+		    Management::Agent::API::agent_welcome_request, req$id);
 		}
 	}
 
@@ -181,7 +180,7 @@ function drop_instance(inst: Management::Instance)
 	# Send the agent a standby so it shuts down its cluster nodes & state
 	Management::Log::info(fmt("tx Management::Agent::API::agent_standby_request to %s", inst$name));
 	Broker::publish(Management::Agent::topic_prefix + "/" + inst$name,
-	                Management::Agent::API::agent_standby_request, "");
+	    Management::Agent::API::agent_standby_request, "");
 
 	delete g_instances[inst$name];
 
@@ -292,7 +291,7 @@ event Management::Agent::API::notify_agent_hello(instance: string, host: addr, a
 
 		Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_request to %s", instance));
 		Broker::publish(Management::Agent::topic_prefix + "/" + instance,
-		                Management::Agent::API::agent_welcome_request, req$id);
+		    Management::Agent::API::agent_welcome_request, req$id);
 		}
 	}
 
@@ -315,7 +314,7 @@ event Management::Agent::API::agent_welcome_response(reqid: string, result: Mana
 		Management::Log::info(fmt(
 		    "tx Management::Agent::API::agent_standby_request to %s", result$instance));
 		Broker::publish(Management::Agent::topic_prefix + "/" + result$instance,
-		                Management::Agent::API::agent_standby_request, "");
+		    Management::Agent::API::agent_standby_request, "");
 		return;
 		}
 
@@ -326,8 +325,7 @@ event Management::Agent::API::agent_welcome_response(reqid: string, result: Mana
 	}
 
 event Management::Agent::API::notify_change(instance: string, n: Management::Node,
-                                       old: Management::State,
-                                       new: Management::State)
+    old: Management::State, new: Management::State)
 	{
 	# XXX TODO
 	}
@@ -379,8 +377,9 @@ event Management::Agent::API::set_configuration_response(reqid: string, result: 
 	g_config_reqid_pending = "";
 
 	Management::Log::info(fmt("tx Management::Controller::API::set_configuration_response %s",
-	                          Management::Request::to_string(req)));
-	event Management::Controller::API::set_configuration_response(req$id, req$results);
+	    Management::Request::to_string(req)));
+	Broker::publish(Management::Controller::topic,
+	    Management::Controller::API::set_configuration_response, req$id, req$results);
 	Management::Request::finish(req$id);
 	}
 
@@ -402,8 +401,9 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 		req$results += res;
 
 		Management::Log::info(fmt("tx Management::Controller::API::set_configuration_response %s",
-		                          Management::Request::to_string(req)));
-		event Management::Controller::API::set_configuration_response(req$id, req$results);
+		    Management::Request::to_string(req)));
+		Broker::publish(Management::Controller::topic,
+		    Management::Controller::API::set_configuration_response, req$id, req$results);
 		Management::Request::finish(req$id);
 		return;
 		}
@@ -508,7 +508,8 @@ event Management::Controller::API::get_instances_request(reqid: string)
 	res$data = insts;
 
 	Management::Log::info(fmt("tx Management::Controller::API::get_instances_response %s", reqid));
-	event Management::Controller::API::get_instances_response(reqid, res);
+	Broker::publish(Management::Controller::topic,
+	    Management::Controller::API::get_instances_response, reqid, res);
 	}
 
 event Management::Agent::API::get_nodes_response(reqid: string, result: Management::Result)
@@ -551,8 +552,9 @@ event Management::Agent::API::get_nodes_response(reqid: string, result: Manageme
 		return;
 
 	Management::Log::info(fmt("tx Management::Controller::API::get_nodes_response %s",
-	                          Management::Request::to_string(req)));
-	event Management::Controller::API::get_nodes_response(req$id, req$results);
+	    Management::Request::to_string(req)));
+	Broker::publish(Management::Controller::topic,
+	    Management::Controller::API::get_nodes_response, req$id, req$results);
 	Management::Request::finish(req$id);
 	}
 
@@ -564,9 +566,10 @@ event Management::Controller::API::get_nodes_request(reqid: string)
 	if ( |g_instances| == 0 )
 		{
 		Management::Log::info(fmt("tx Management::Controller::API::get_nodes_response %s", reqid));
-		event Management::Controller::API::get_nodes_response(reqid, vector(
-		    Management::Result($reqid=reqid, $success=F,
-		        $error="no instances connected")));
+		local res = Management::Result($reqid=reqid, $success=F,
+		    $error="no instances connected");
+		Broker::publish(Management::Controller::topic,
+		    Management::Controller::API::get_nodes_response, reqid, vector(res));
 		return;
 		}
 
@@ -643,7 +646,9 @@ event Management::Agent::API::node_dispatch_response(reqid: string, results: Man
 			Management::Log::info(fmt(
 			    "tx Management::Controller::API::get_id_value_response %s",
 			    Management::Request::to_string(req)));
-			event Management::Controller::API::get_id_value_response(req$id, req$results);
+			Broker::publish(Management::Controller::topic,
+			    Management::Controller::API::get_id_value_response,
+			    req$id, req$results);
 			break;
 		default:
 			Management::Log::error(fmt("unexpected dispatch command %s",
@@ -658,12 +663,16 @@ event Management::Controller::API::get_id_value_request(reqid: string, id: strin
 	{
 	Management::Log::info(fmt("rx Management::Controller::API::get_id_value_request %s %s", reqid, id));
 
+	local res: Management::Result;
+
 	# Special case: if we have no instances, respond right away.
 	if ( |g_instances| == 0 )
 		{
 		Management::Log::info(fmt("tx Management::Controller::API::get_id_value_response %s", reqid));
-		event Management::Controller::API::get_id_value_response(reqid, vector(
-		    Management::Result($reqid=reqid, $success=F, $error="no instances connected")));
+		res = Management::Result($reqid=reqid, $success=F, $error="no instances connected");
+		Broker::publish(Management::Controller::topic,
+		    Management::Controller::API::get_id_value_response,
+		    reqid, vector(res));
 		return;
 		}
 
@@ -673,7 +682,6 @@ event Management::Controller::API::get_id_value_request(reqid: string, id: strin
 
 	local nodes_final: set[string];
 	local node: string;
-	local res: Management::Result;
 
 	# Input sanitization: check for any requested nodes that aren't part of
 	# the current configuration. We send back error results for those and
@@ -700,7 +708,9 @@ event Management::Controller::API::get_id_value_request(reqid: string, id: strin
 			Management::Log::info(fmt(
 			    "tx Management::Controller::API::get_id_value_response %s",
 			    Management::Request::to_string(req)));
-			event Management::Controller::API::get_id_value_response(req$id, req$results);
+			Broker::publish(Management::Controller::topic,
+			    Management::Controller::API::get_id_value_response,
+			    req$id, req$results);
 			Management::Request::finish(req$id);
 			return;
 			}
@@ -745,8 +755,9 @@ event Management::Request::request_expired(req: Management::Request::Request)
 		req$results += res;
 
 		Management::Log::info(fmt("tx Management::Controller::API::set_configuration_response %s",
-		                          Management::Request::to_string(req)));
-		event Management::Controller::API::set_configuration_response(req$id, req$results);
+		    Management::Request::to_string(req)));
+		Broker::publish(Management::Controller::topic,
+		    Management::Controller::API::set_configuration_response, req$id, req$results);
 		}
 
 	if ( req?$get_nodes_state )
@@ -754,8 +765,9 @@ event Management::Request::request_expired(req: Management::Request::Request)
 		req$results += res;
 
 		Management::Log::info(fmt("tx Management::Controller::API::get_nodes_response %s",
-		                          Management::Request::to_string(req)));
-		event Management::Controller::API::get_nodes_response(req$id, req$results);
+		    Management::Request::to_string(req)));
+		Broker::publish(Management::Controller::topic,
+		    Management::Controller::API::get_nodes_response, req$id, req$results);
 		}
 
 	if ( req?$node_dispatch_state )
@@ -768,7 +780,9 @@ event Management::Request::request_expired(req: Management::Request::Request)
 				Management::Log::info(fmt(
 				    "tx Management::Controller::API::get_id_value_response %s",
 				    Management::Request::to_string(req)));
-				event Management::Controller::API::get_id_value_response(req$id, req$results);
+				Broker::publish(Management::Controller::topic,
+				    Management::Controller::API::get_id_value_response,
+				    req$id, req$results);
 				break;
 			default:
 				Management::Log::error(fmt("unexpected dispatch command %s",
@@ -780,7 +794,8 @@ event Management::Request::request_expired(req: Management::Request::Request)
 	if ( req?$test_state )
 		{
 		Management::Log::info(fmt("tx Management::Controller::API::test_timeout_response %s", req$id));
-		event Management::Controller::API::test_timeout_response(req$id, res);
+		Broker::publish(Management::Controller::topic,
+		    Management::Controller::API::test_timeout_response, req$id, res);
 		}
 	}
 
@@ -816,18 +831,6 @@ event zeek_init()
 
 	Broker::subscribe(Management::Agent::topic_prefix);
 	Broker::subscribe(Management::Controller::topic);
-
-	# Events sent to the client:
-	local events: vector of any = [
-	    Management::Controller::API::get_instances_response,
-	    Management::Controller::API::set_configuration_response,
-	    Management::Controller::API::get_nodes_response,
-	    Management::Controller::API::get_id_value_response,
-	    Management::Controller::API::test_timeout_response
-	    ];
-
-	for ( i in events )
-		Broker::auto_publish(Management::Controller::topic, events[i]);
 
 	Management::Log::info("controller is live");
 	}

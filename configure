@@ -442,6 +442,8 @@ echo "Build Directory : $builddir"
 echo "Source Directory: $sourcedir"
 cd $builddir
 
+echo "Using $(cmake --version | head -1)"
+echo
 if [ -n "$CMakeGenerator" ]; then
     "$CMakeCommand" -G "$CMakeGenerator" $CMakeCacheEntries $sourcedir
 else

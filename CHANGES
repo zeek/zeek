@@ -1,3 +1,7 @@
+5.0.0-dev.280 | 2022-04-19 09:42:28 -0700
+
+  * Escape special characters in paths before using them as regexes (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.277 | 2022-04-18 16:38:27 -0700
 
   * Management framework updates (Christian Kreibich, Corelight)

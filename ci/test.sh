@@ -19,6 +19,10 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 . ${SCRIPT_DIR}/common.sh
 
+if [ -n "${ZEEK_TSAN_OPTIONS}" ]; then
+    export TSAN_OPTIONS=${ZEEK_TSAN_OPTIONS}
+fi
+
 function pushd {
     command pushd "$@" >/dev/null || exit 1
 }

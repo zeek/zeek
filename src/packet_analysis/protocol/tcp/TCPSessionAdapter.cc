@@ -1670,29 +1670,66 @@ int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 
 		unsigned int opt_len;
 
+		// Non-standard TCP option kinds should not be common
+		// https://www.iana[.]org/assignments/tcp-parameters/tcp-parameters.xhtml
+		if ( opt == 25 || (opt >= 31 && opt <= 33) || (opt >= 35 && opt <= 68) ||
+		     (opt >= 70 && opt <= 252) )
+			Weird("tcp_nonstandard_option", util::fmt("%d", opt));
+
 		if ( opt < 2 )
 			opt_len = 1;
 
 		else if ( options + 1 >= opt_end )
+			{
 			// We've run off the end, no room for the length.
+			Weird("tcp_option_no_room_for_length", util::fmt("%d", opt));
 			break;
+			}
 
 		else
 			opt_len = options[1];
 
 		if ( opt_len == 0 )
+			{
+			Weird("tcp_option_trashed_length", util::fmt("%d", opt));
 			break; // trashed length field
+			}
 
 		if ( options + opt_len > opt_end )
-			// No room for rest of option.
+			{
+			// No room for rest of option, which is unexpected, so create a Weird entry.
+			Weird("tcp_option_length_exceeds_options_space", util::fmt("%d", opt_len));
+
+			// Try to patch the length of the option (second byte, or [1])
+			// First, create temporary patched variables
+			u_char* options_patched = (u_char*)options;
+			unsigned int opt_len_patched;
+
+			// Calculate the expected length by subtracting the expected end with the current
+			// position -2 because it also includes the `kind` and `length` bytes
+			opt_len_patched = opt_end - options - 2;
+
+			// Apply the patch and put it in the options list
+			options_patched[1] = opt_len_patched;
+			opts.emplace_back(options_patched);
+			options += opt_len_patched;
+
+			// Break since we assumed this was the last one and filled up the remaining length
 			break;
+			}
 
 		opts.emplace_back(options);
 		options += opt_len;
 
 		if ( opt == TCPOPT_EOL )
-			// All done - could flag if more junk left over ....
-			break;
+			{
+			// if this was indeed the end of the TCP options, break
+			if ( options + 1 >= opt_end )
+				break;
+
+			// otherwise, just keep processing since it's apparently not the last option
+			Weird("tcp_remaining_options_after_TCPOPT_EOL", util::fmt("T"));
+			}
 		}
 
 	if ( tcp_option )

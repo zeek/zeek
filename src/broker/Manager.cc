@@ -275,7 +275,7 @@ void Manager::InitPostScript()
 
 	broker::broker_options options;
 	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
-	options.disable_forwarding = !get_option("Broker::forward_messages")->AsBool();
+	options.disable_forwarding = ! get_option("Broker::forward_messages")->AsBool();
 	options.use_real_time = use_real_time;
 
 	broker::configuration config{std::move(options)};
@@ -550,8 +550,8 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 	if ( bstate->endpoint.is_shutdown() )
 		return;
 
-	DBG_LOG(DBG_BROKER, "Starting to peer with %s:%" PRIu16 " (retry: %fs)",
-		addr.c_str(), port, retry);
+	DBG_LOG(DBG_BROKER, "Starting to peer with %s:%" PRIu16 " (retry: %fs)", addr.c_str(), port,
+	        retry);
 
 	auto e = getenv("ZEEK_DEFAULT_CONNECT_RETRY");
 

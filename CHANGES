@@ -1,6 +1,10 @@
-4.2.1 | 2022-04-21 11:28:32 -0700
+4.2.1 | 2022-04-21 11:29:01 -0700
 
-  * Release 4.2.1
+  * Release 4.2.1.
+
+  * Suppress progress dots in zkg's output in Docker package-install check (Christian Kreibich, Corelight)
+
+  (cherry picked from commit 5ccc19db56c40773e7138d1ee3671523e79a46e7)
 
   * Set the maximum FTP command length to 16KB (Tim Wojtulewicz, Corelight)
 

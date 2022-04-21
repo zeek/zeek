@@ -1,3 +1,7 @@
+5.0.0-dev.286 | 2022-04-21 13:34:34 -0700
+
+  * Suppress progress dots in zkg's output in Docker package-install check (Christian Kreibich, Corelight)
+
 5.0.0-dev.284 | 2022-04-21 09:17:28 -0700
 
   * Enable vptr undefined behavior check (Tim Wojtulewicz, Corelight)

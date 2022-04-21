@@ -1,3 +1,7 @@
+5.0.0-dev.284 | 2022-04-21 09:17:28 -0700
+
+  * Enable vptr undefined behavior check (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.282 | 2022-04-20 17:17:55 -0700
 
   * Update libkqueue for Coverity and build warning fixes (Tim Wojtulewicz, Corelight)

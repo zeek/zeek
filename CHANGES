@@ -1,4 +1,10 @@
-4.0.6 | 2022-04-18 10:16:11 -0700
+4.0.6 | 2022-04-21 09:25:17 -0700
+
+  * Set the maximum FTP command length to 16KB (Tim Wojtulewicz, Corelight)
+
+  * Add length checking after calls to InitBuffer in NVT (Tim Wojtulewicz, Corelight)
+
+  * Allow NVT-based analyzer to set maximum line length (Tim Wojtulewicz, Corelight)
 
   * Add "Reporter" entry to fix plugin hook_name() vs HookType imbalance (Christian Kreibich, Corelight)
 

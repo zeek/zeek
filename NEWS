@@ -2,6 +2,34 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 4.0.6
+==========
+
+This release fixes the following security issues:
+
+- Fix potential unbounded state growth in the FTP analyzer when receiving
+  a specially-crafted stream of commands. This may lead to a buffer overflow
+  and cause Zeek to crash. Due to the possibility of this happening with
+  packets received from the network, this is a potential DoS vulnerabilty.
+
+  Thank you to Jason Ish at OISF for reporting this vulnerability.
+
+This release fixes the following bugs:
+
+- Empty table constructors with &default attributes may cause a crash.
+
+  https://github.com/zeek/zeek/commit/18fe9d84f602c90724dcec0e349789932ab9f931
+
+- Fix a bug in ZAM when a function containing a loop is inlined.
+
+- Fix a number of bugs with robust dictionary iteration.
+
+  https://github.com/zeek/zeek/pull/2040
+
+- Fix missing "Reporter" entries when reporting hooks via `zeek -NN`.
+
+  https://github.com/zeek/zeek/issues/2052
+
 Zeek 4.0.5
 ==========
 

@@ -29,6 +29,15 @@ class PktDumper;
 class Manager
 	{
 public:
+	struct ReadySource
+		{
+		IOSource* src = nullptr;
+		int fd = -1;
+		int flags = 0;
+		};
+
+	using ReadySources = std::vector<ReadySource>;
+
 	/**
 	 * Constructor.
 	 */
@@ -110,22 +119,25 @@ public:
 	 *
 	 * @param ready A vector used to return the set of sources that are ready.
 	 */
-	void FindReadySources(std::vector<IOSource*>* ready);
+	void FindReadySources(ReadySources* ready);
 
 	/**
 	 * Registers a file descriptor and associated IOSource with the manager
-	 * to be checked during FindReadySources.
+	 * to be checked during FindReadySources. This will register the file
+	 * descriptor to check for read events.
 	 *
 	 * @param fd A file descriptor pointing at some resource that should be
 	 * checked for readiness.
 	 * @param src The IOSource that owns the file descriptor.
+	 * @param flags A combination of values from IOSource::ProcessFlags for
+	 * which modes we should register for this file descriptor.
 	 */
-	bool RegisterFd(int fd, IOSource* src);
+	bool RegisterFd(int fd, IOSource* src, int flags = IOSource::READ);
 
 	/**
 	 * Unregisters a file descriptor from the FindReadySources checks.
 	 */
-	bool UnregisterFd(int fd, IOSource* src);
+	bool UnregisterFd(int fd, IOSource* src, int flags = IOSource::READ);
 
 	/**
 	 * Forces the poll in FindReadySources to wake up immediately. This method
@@ -147,7 +159,7 @@ private:
 	 * @param timeout_src The source associated with the current timeout value.
 	 * This is typically a timer manager object.
 	 */
-	void Poll(std::vector<IOSource*>* ready, double timeout, IOSource* timeout_src);
+	void Poll(ReadySources* ready, double timeout, IOSource* timeout_src);
 
 	/**
 	 * Converts a double timeout value into a timespec struct used for calls
@@ -208,6 +220,7 @@ private:
 
 	int event_queue = -1;
 	std::map<int, IOSource*> fd_map;
+	std::map<int, IOSource*> write_fd_map;
 
 	// This is only used for the output of the call to kqueue in FindReadySources().
 	// The actual events are stored as part of the queue.

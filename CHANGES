@@ -1,3 +1,50 @@
+5.0.0-dev.309 | 2022-04-22 13:11:12 -0700
+
+  * Add DNS fuzzing corpus from c-ares (Tim Wojtulewicz, Corelight)
+
+  * Set larger UDP buffer to avoid TCP fallback if possible (Tim Wojtulewicz, Corelight)
+
+    This commit sets the UDP buffer to a larger size, as well as adds
+    an EDNS block to the DNS request passing this size. This allows
+    DNS servers to return larger responses, and in turn allow c-ares
+    to avoid TCP fallback due to requests failing because of the lack
+    of buffer size.
+
+  * Add new features to IOSource::Manager, used by DNS_Mgr (Tim Wojtulewicz, Corelight)
+
+    - iosource_mgr can now track write events to file descriptors as well
+      as read events. This adds an argument to both RegisterFd() and
+      UnregisterFd() for setting the mode, defaulting to read.
+    - IOSources can now implement a ProcessFd() method that allows them to
+      handle events to single file descriptors instead of of having to
+      loop through/track sets of them at processing time.
+
+  * Add out_ptr, use for c-ares interface calls (Tim Wojtulewicz, Corelight)
+
+  * Store all mappings in a single map instead of split by type (Tim Wojtulewicz, Corelight)
+
+    This opens up the possibility of storing other request types outside
+    of T_A, T_PTR and T_TXT without requiring redoing the caching. It
+    also fixes the caching code in DNS_Mapping, adding a version number
+    to the start of the cache file so the cache structure can be modified
+    and old caches invalidated more easily.
+
+  * Add merging to DNS_Mgr::AddResult() to support both ipv4 and ipv6 responses simultaneously (Tim Wojtulewicz, Corelight)
+
+  * Rework DNS_Mgr API to be more consistent and to support more request types (Tim Wojtulewicz, Corelight)
+
+  * Replace nb_dns library with C-Ares (Tim Wojtulewicz, Corelight)
+
+  * Add unit testing for DNS_Mgr and related classes (Tim Wojtulewicz, Corelight)
+
+  * Update doc gen VM to ubuntu-latest, output cmake version during configure (Tim Wojtulewicz, Corelight)
+
+  * Use doctest macro to tie Reporter output to test cases (Tim Wojtulewicz, Corelight)
+
+  * Add const versions of dereference operators for DictEntry (Tim Wojtulewicz, Corelight)
+
+  * Add DNS fuzzer (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.288 | 2022-04-22 07:00:56 -0700
 
   * Fix generate-docs action for running on forks. (Benjamin Bannier, Corelight)

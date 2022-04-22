@@ -4,7 +4,7 @@
 7a5f:b783:9808:380e:b1a2:ce20:b58e:2a4a,
 4cc7:de52:d869:b2f9:f215:19b8:c828:3bdd
 }
-lookup_hostname_txt, fake_text_lookup_result_bro.wp.dg.cx
+lookup_hostname_txt, fake_lookup_result_T_TXT_bro.wp.dg.cx
 lookup_hostname, {
 ce06:236:f21f:587:8c10:121d:c47d:b412
 }

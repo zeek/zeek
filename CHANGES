@@ -1,3 +1,18 @@
+5.0.0-dev.288 | 2022-04-22 07:00:56 -0700
+
+  * Fix generate-docs action for running on forks. (Benjamin Bannier, Corelight)
+
+    The generate-docs action previously always required secrets to run so
+    that it could possibly perform a push (if run from a schedule), and to
+    send out an email on failure. Since secrets are unavailable for forks
+    this meant that this action would always fail for PRs from forks.
+
+    In this patch we use an unauthenticated clone unless running from a
+    schedule. This is fine as for PRs this action would just regenerate the
+    docs to check for errors, but not to actually update them (no push
+    performed). We also change the failure notification step to only execute
+    for scheduled runs.
+
 5.0.0-dev.286 | 2022-04-21 13:34:34 -0700
 
   * Suppress progress dots in zkg's output in Docker package-install check (Christian Kreibich, Corelight)

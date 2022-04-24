@@ -1307,7 +1307,6 @@ void DNS_Mgr::IssueAsyncRequests()
 
 		dns_req->MakeRequest(channel, this);
 
-		asyncs_timeouts.push(req);
 		++asyncs_pending;
 		}
 	}
@@ -1401,7 +1400,7 @@ void DNS_Mgr::Flush()
 
 double DNS_Mgr::GetNextTimeout()
 	{
-	if ( asyncs_timeouts.empty() )
+	if ( asyncs_pending == 0 )
 		return -1;
 
 	return run_state::network_time + DNS_TIMEOUT;

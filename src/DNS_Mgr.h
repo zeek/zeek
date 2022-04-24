@@ -331,10 +331,6 @@ protected:
 	using QueuedList = std::list<AsyncRequest*>;
 	QueuedList asyncs_queued;
 
-	using TimeoutQueue =
-		std::priority_queue<AsyncRequest*, std::vector<AsyncRequest*>, AsyncRequestCompare>;
-	TimeoutQueue asyncs_timeouts;
-
 	unsigned long num_requests = 0;
 	unsigned long successful = 0;
 	unsigned long failed = 0;

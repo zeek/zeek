@@ -297,7 +297,7 @@ protected:
 
 	RecordTypePtr dm_rec;
 
-	ares_channel channel;
+	ares_channel channel{};
 
 	using CallbackList = std::list<LookupCallback*>;
 

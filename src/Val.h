@@ -824,6 +824,7 @@ public:
 	// so errors can arise for compound sets such as sets-of-sets.
 	// See https://github.com/zeek/zeek/issues/151.
 	bool EqualTo(const TableVal& v) const;
+	bool EqualTo(const TableValPtr& v) const { return EqualTo(*(v.get())); }
 
 	// Returns true if this set is a subset (not necessarily proper)
 	// of the given set.

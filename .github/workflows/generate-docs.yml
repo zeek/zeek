@@ -12,13 +12,22 @@ defaults:
 jobs:
   generate:
     if: github.repository == 'zeek/zeek'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     steps:
+      # We only perform a push if the action was triggered via a schedule
+      # event, so we only need to authenticate in that case. Use
+      # unauthenticated access otherwise so this action can e.g., also run from
+      # clones.
       - uses: actions/checkout@v2
+        if: github.event_name == 'schedule'
         with:
           submodules: "recursive"
           token: ${{ secrets.ZEEK_BOT_TOKEN }}
+      - uses: actions/checkout@v2
+        if: github.event_name != 'schedule'
+        with:
+          submodules: "recursive"
 
       - name: Switch doc submodule to master
         run: cd doc && git checkout master
@@ -51,7 +60,7 @@ jobs:
           sudo pip3 install -r doc/requirements.txt
 
       - name: Configure
-        run: ./configure
+        run: ./configure --disable-broker-tests --disable-cpp-tests
 
       - name: Build
         run: cd build && make -j $(nproc)
@@ -96,7 +105,9 @@ jobs:
           git diff-index --quiet HEAD || { git commit -m 'Update doc submodule [nomail] [skip ci]' && git push; }
 
       - name: Send email
-        if: failure()
+        # Only send notifications for scheduled runs. Runs from pull requests
+        # show failures in the Github UI.
+        if: failure() && github.event_name == 'schedule'
         uses: dawidd6/action-send-mail@v3.4.1
         with:
           server_address: ${{secrets.SMTP_HOST}}

@@ -187,7 +187,7 @@ if ( ZEEK_SANITIZERS )
                 list(APPEND _check_list "unreachable")
                 # list(APPEND _check_list "unsigned-integer-overflow") # Not truly UB
                 list(APPEND _check_list "vla-bound")
-                # list(APPEND _check_list "vptr") # TODO: fix associated errors
+                list(APPEND _check_list "vptr")
 
                 # Clang complains if this one is defined and the optimizer is set to -O0. We
                 # only set that optimization level if NO_OPTIMIZATIONS is passed, so disable
@@ -480,6 +480,8 @@ include(CheckNameserCompat)
 include(GetArchitecture)
 include(RequireCXX17)
 include(FindKqueue)
+include(FindCAres)
+include_directories(BEFORE "auxil/out_ptr/include")
 
 if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
   set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)

@@ -5,6 +5,7 @@
 #include "zeek/zeek-config.h"
 
 #include <openssl/err.h>
+#include <openssl/opensslv.h>
 #include <openssl/ssl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -544,10 +545,12 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	ERR_load_crypto_strings();
 	OPENSSL_add_all_algorithms_conf();
 	SSL_library_init();
 	SSL_load_error_strings();
+#endif
 
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD

@@ -168,9 +168,7 @@ public:
 	DictIterator& operator=(DictIterator&& that);
 
 	reference operator*() { return *curr; }
-	reference operator*() const { return *curr; }
 	pointer operator->() { return curr; }
-	pointer operator->() const { return curr; }
 
 	DictIterator& operator++();
 	DictIterator operator++(int)

@@ -103,7 +103,7 @@ void Manager::Wakeup(const std::string& where)
 		wakeup->Ping(where);
 	}
 
-void Manager::FindReadySources(ReadySources* ready)
+void Manager::FindReadySources(std::vector<IOSource*>* ready)
 	{
 	ready->clear();
 
@@ -155,7 +155,7 @@ void Manager::FindReadySources(ReadySources* ready)
 				if ( timeout == 0 && ! time_to_poll )
 					{
 					added = true;
-					ready->push_back({timeout_src, -1, 0});
+					ready->push_back(timeout_src);
 					}
 				}
 
@@ -167,13 +167,13 @@ void Manager::FindReadySources(ReadySources* ready)
 						// Avoid calling Poll() if we can help it since on very
 						// high-traffic networks, we spend too much time in
 						// Poll() and end up dropping packets.
-						ready->push_back({pkt_src, -1, 0});
+						ready->push_back(pkt_src);
 					}
 				else
 					{
 					if ( ! run_state::pseudo_realtime && ! time_to_poll )
 						// A pcap file is always ready to process unless it's suspended
-						ready->push_back({pkt_src, -1, 0});
+						ready->push_back(pkt_src);
 					}
 				}
 			}
@@ -189,7 +189,7 @@ void Manager::FindReadySources(ReadySources* ready)
 		Poll(ready, timeout, timeout_src);
 	}
 
-void Manager::Poll(ReadySources* ready, double timeout, IOSource* timeout_src)
+void Manager::Poll(std::vector<IOSource*>* ready, double timeout, IOSource* timeout_src)
 	{
 	struct timespec kqueue_timeout;
 	ConvertTimeout(timeout, kqueue_timeout);
@@ -205,7 +205,7 @@ void Manager::Poll(ReadySources* ready, double timeout, IOSource* timeout_src)
 	else if ( ret == 0 )
 		{
 		if ( timeout_src )
-			ready->push_back({timeout_src, -1, 0});
+			ready->push_back(timeout_src);
 		}
 	else
 		{
@@ -217,15 +217,7 @@ void Manager::Poll(ReadySources* ready, double timeout, IOSource* timeout_src)
 				{
 				std::map<int, IOSource*>::const_iterator it = fd_map.find(events[i].ident);
 				if ( it != fd_map.end() )
-					ready->push_back({it->second, static_cast<int>(events[i].ident),
-					                  IOSource::ProcessFlags::READ});
-				}
-			else if ( events[i].filter == EVFILT_WRITE )
-				{
-				std::map<int, IOSource*>::const_iterator it = write_fd_map.find(events[i].ident);
-				if ( it != write_fd_map.end() )
-					ready->push_back({it->second, static_cast<int>(events[i].ident),
-					                  IOSource::ProcessFlags::WRITE});
+					ready->push_back(it->second);
 				}
 			}
 		}
@@ -248,97 +240,41 @@ void Manager::ConvertTimeout(double timeout, struct timespec& spec)
 		}
 	}
 
-bool Manager::RegisterFd(int fd, IOSource* src, int flags)
+bool Manager::RegisterFd(int fd, IOSource* src)
 	{
-	std::vector<struct kevent> new_events;
-
-	if ( (flags & IOSource::READ) != 0 )
+	struct kevent event;
+	EV_SET(&event, fd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+	int ret = kevent(event_queue, &event, 1, NULL, 0, NULL);
+	if ( ret != -1 )
 		{
-		if ( fd_map.count(fd) == 0 )
-			{
-			new_events.push_back({});
-			EV_SET(&(new_events.back()), fd, EVFILT_READ, EV_ADD, 0, 0, NULL);
-			}
+		events.push_back({});
+		DBG_LOG(DBG_MAINLOOP, "Registered fd %d from %s", fd, src->Tag());
+		fd_map[fd] = src;
+
+		Wakeup("RegisterFd");
+		return true;
 		}
-	if ( (flags & IOSource::WRITE) != 0 )
+	else
 		{
-		if ( write_fd_map.count(fd) == 0 )
-			{
-			new_events.push_back({});
-			EV_SET(&(new_events.back()), fd, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
-			}
+		reporter->Error("Failed to register fd %d from %s: %s", fd, src->Tag(), strerror(errno));
+		return false;
 		}
-
-	if ( ! new_events.empty() )
-		{
-		int ret = kevent(event_queue, new_events.data(), new_events.size(), NULL, 0, NULL);
-		if ( ret != -1 )
-			{
-			DBG_LOG(DBG_MAINLOOP, "Registered fd %d from %s", fd, src->Tag());
-			for ( const auto& a : new_events )
-				events.push_back({});
-
-			if ( (flags & IOSource::READ) != 0 )
-				fd_map[fd] = src;
-			if ( (flags & IOSource::WRITE) != 0 )
-				write_fd_map[fd] = src;
-
-			Wakeup("RegisterFd");
-			return true;
-			}
-		else
-			{
-			reporter->Error("Failed to register fd %d from %s: %s (flags %d)", fd, src->Tag(),
-			                strerror(errno), flags);
-			return false;
-			}
-		}
-
-	return true;
 	}
 
-bool Manager::UnregisterFd(int fd, IOSource* src, int flags)
+bool Manager::UnregisterFd(int fd, IOSource* src)
 	{
-	std::vector<struct kevent> new_events;
-
-	if ( (flags & IOSource::READ) != 0 )
+	if ( fd_map.find(fd) != fd_map.end() )
 		{
-		if ( fd_map.count(fd) != 0 )
-			{
-			new_events.push_back({});
-			EV_SET(&(new_events.back()), fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-			}
-		}
-	if ( (flags & IOSource::WRITE) != 0 )
-		{
-		if ( write_fd_map.count(fd) != 0 )
-			{
-			new_events.push_back({});
-			EV_SET(&(new_events.back()), fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-			}
-		}
-
-	if ( ! new_events.empty() )
-		{
-		int ret = kevent(event_queue, new_events.data(), new_events.size(), NULL, 0, NULL);
+		struct kevent event;
+		EV_SET(&event, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+		int ret = kevent(event_queue, &event, 1, NULL, 0, NULL);
 		if ( ret != -1 )
-			{
 			DBG_LOG(DBG_MAINLOOP, "Unregistered fd %d from %s", fd, src->Tag());
-			for ( const auto& a : new_events )
-				events.pop_back();
 
-			if ( (flags & IOSource::READ) != 0 )
-				fd_map.erase(fd);
-			if ( (flags & IOSource::WRITE) != 0 )
-				write_fd_map.erase(fd);
+		fd_map.erase(fd);
 
-			Wakeup("UnregisterFd");
-			return true;
-			}
-
-		// We don't care about failure here. If it failed to unregister, it's likely because
-		// the file descriptor was already closed, and kqueue already automatically removed
-		// it.
+		Wakeup("UnregisterFd");
+		return true;
 		}
 	else
 		{
@@ -346,8 +282,6 @@ bool Manager::UnregisterFd(int fd, IOSource* src, int flags)
 		                src->Tag());
 		return false;
 		}
-
-	return true;
 	}
 
 void Manager::Register(IOSource* src, bool dont_count, bool manage_lifetime)

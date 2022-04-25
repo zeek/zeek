@@ -286,7 +286,6 @@ set(MAIN_SRCS
     Desc.cc
     Dict.cc
     Discard.cc
-    DNS_Mapping.cc
     DNS_Mgr.cc
     EquivClass.cc
     Event.cc

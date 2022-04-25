@@ -283,7 +283,7 @@ void run_loop()
 	{
 	util::detail::set_processing_status("RUNNING", "run_loop");
 
-	iosource::Manager::ReadySources ready;
+	std::vector<iosource::IOSource*> ready;
 	ready.reserve(iosource_mgr->TotalSize());
 
 	while ( iosource_mgr->Size() || (BifConst::exit_only_after_terminate && ! terminating) )
@@ -310,16 +310,11 @@ void run_loop()
 
 		if ( ! ready.empty() )
 			{
-			for ( const auto& src : ready )
+			for ( auto src : ready )
 				{
-				auto* iosrc = src.src;
-
-				DBG_LOG(DBG_MAINLOOP, "processing source %s", iosrc->Tag());
-				current_iosrc = iosrc;
-				if ( iosrc->ImplementsProcessFd() && src.fd != -1 )
-					iosrc->ProcessFd(src.fd, src.flags);
-				else
-					iosrc->Process();
+				DBG_LOG(DBG_MAINLOOP, "processing source %s", src->Tag());
+				current_iosrc = src;
+				src->Process();
 				}
 			}
 		else if ( (have_pending_timers || communication_enabled ||

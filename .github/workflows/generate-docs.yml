@@ -12,7 +12,7 @@ defaults:
 jobs:
   generate:
     if: github.repository == 'zeek/zeek'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
       # We only perform a push if the action was triggered via a schedule
@@ -60,7 +60,7 @@ jobs:
           sudo pip3 install -r doc/requirements.txt
 
       - name: Configure
-        run: ./configure --disable-broker-tests --disable-cpp-tests
+        run: ./configure
 
       - name: Build
         run: cd build && make -j $(nproc)

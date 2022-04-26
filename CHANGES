@@ -1,3 +1,7 @@
+5.0.0-dev.312 | 2022-04-26 09:52:34 -0700
+
+  * Rework FindCAres.cmake to not use ExternalProject, fixing OBS builds (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.309 | 2022-04-22 13:11:12 -0700
 
   * Add DNS fuzzing corpus from c-ares (Tim Wojtulewicz, Corelight)

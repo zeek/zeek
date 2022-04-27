@@ -678,13 +678,28 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 
 		s += buffer;
 
+#ifdef ENABLE_ZEEK_UNIT_TESTS
 		if ( doctest::is_running_in_test )
-			MESSAGE(s);
+			{
+			try
+				{
+				MESSAGE(s);
+				}
+			catch ( const doctest::detail::TestFailureException& e )
+				{
+				// If doctest throws an exception, just write the string out to stdout
+				// like normal, just so it's captured somewhere.
+				fprintf(out, "%s\n", s.c_str());
+				}
+			}
 		else
 			{
+#endif
 			s += "\n";
 			fprintf(out, "%s", s.c_str());
+#ifdef ENABLE_ZEEK_UNIT_TESTS
 			}
+#endif
 		}
 
 	if ( alloced )

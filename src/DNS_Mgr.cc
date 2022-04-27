@@ -1307,7 +1307,6 @@ void DNS_Mgr::IssueAsyncRequests()
 
 		dns_req->MakeRequest(channel, this);
 
-		asyncs_timeouts.push(req);
 		++asyncs_pending;
 		}
 	}
@@ -1401,10 +1400,24 @@ void DNS_Mgr::Flush()
 
 double DNS_Mgr::GetNextTimeout()
 	{
-	if ( asyncs_timeouts.empty() )
+	if ( asyncs_pending == 0 )
 		return -1;
 
-	return run_state::network_time + DNS_TIMEOUT;
+	fd_set read_fds, write_fds;
+
+	FD_ZERO(&read_fds);
+	FD_ZERO(&write_fds);
+	int nfds = ares_fds(channel, &read_fds, &write_fds);
+	if ( nfds == 0 )
+		return -1;
+
+	struct timeval tv;
+	tv.tv_sec = DNS_TIMEOUT;
+	tv.tv_usec = 0;
+
+	struct timeval* tvp = ares_timeout(channel, &tv, &tv);
+
+	return run_state::network_time + static_cast<double>(tvp->tv_sec) + (static_cast<double>(tvp->tv_usec) / 1e6);
 	}
 
 void DNS_Mgr::ProcessFd(int fd, int flags)

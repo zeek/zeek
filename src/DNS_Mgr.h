@@ -297,7 +297,7 @@ protected:
 
 	RecordTypePtr dm_rec;
 
-	ares_channel channel;
+	ares_channel channel{};
 
 	using CallbackList = std::list<LookupCallback*>;
 
@@ -330,10 +330,6 @@ protected:
 
 	using QueuedList = std::list<AsyncRequest*>;
 	QueuedList asyncs_queued;
-
-	using TimeoutQueue =
-		std::priority_queue<AsyncRequest*, std::vector<AsyncRequest*>, AsyncRequestCompare>;
-	TimeoutQueue asyncs_timeouts;
 
 	unsigned long num_requests = 0;
 	unsigned long successful = 0;

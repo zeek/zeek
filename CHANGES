@@ -1,3 +1,15 @@
+5.0.0-dev.319 | 2022-04-27 17:42:42 +0000
+
+  * Wrap call to doctest's MESSAGE() method in Reporter in try/catch block (Tim Wojtulewicz, Corelight)
+
+    Also check whether doctest is even enabled before trying to use it.
+
+  * Pre-initialize c-ares channel object. Fixes Coverity 1488318 (Tim Wojtulewicz, Corelight)
+
+  * Ask c-ares for the next timeout instead of passing a fixed value (Tim Wojtulewicz, Corelight)
+
+  * Remove obsolete DNS_Mgr::asyncs_timeouts (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.314 | 2022-04-27 09:43:23 -0700
 
   * Management framework: consistency fixes around event() vs Broker::publish() (Christian Kreibich, Corelight)

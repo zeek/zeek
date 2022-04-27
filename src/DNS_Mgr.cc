@@ -1417,7 +1417,8 @@ double DNS_Mgr::GetNextTimeout()
 
 	struct timeval* tvp = ares_timeout(channel, &tv, &tv);
 
-	return run_state::network_time + static_cast<double>(tvp->tv_sec) + (static_cast<double>(tvp->tv_usec) / 1e6);
+	return run_state::network_time + static_cast<double>(tvp->tv_sec) +
+	       (static_cast<double>(tvp->tv_usec) / 1e6);
 	}
 
 void DNS_Mgr::ProcessFd(int fd, int flags)

@@ -135,7 +135,7 @@ export {
 	    result: Management::Result);
 
 
-	# Notification events, agent -> controller
+	# Notification events
 
 	## The controller triggers this event when the operational cluster
 	## instances align with the ones desired by the cluster

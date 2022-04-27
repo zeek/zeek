@@ -1,3 +1,7 @@
+5.0.0-dev.314 | 2022-04-27 09:43:23 -0700
+
+  * Management framework: consistency fixes around event() vs Broker::publish() (Christian Kreibich, Corelight)
+
 5.0.0-dev.312 | 2022-04-26 09:52:34 -0700
 
   * Rework FindCAres.cmake to not use ExternalProject, fixing OBS builds (Tim Wojtulewicz, Corelight)

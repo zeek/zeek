@@ -51,8 +51,7 @@ global g_dispatch_table: table[string] of DispatchCallback = {
 	["get_id_value"] = dispatch_get_id_value,
 };
 
-event Management::Node::API::node_dispatch_request(reqid: string, action: vector of string,
-    nodes: set[string])
+event Management::Node::API::node_dispatch_request(reqid: string, action: vector of string, nodes: set[string])
 	{
 	Management::Log::info(fmt("rx Management::Node::API::node_dispatch_request %s %s %s", reqid, action, nodes));
 
@@ -64,8 +63,7 @@ event Management::Node::API::node_dispatch_request(reqid: string, action: vector
 		return;
 		}
 
-	local res = Management::Result(
-	    $reqid = reqid, $node = Cluster::node);
+	local res = Management::Result($reqid = reqid, $node = Cluster::node);
 
 	if ( |action| == 0 )
 		{
@@ -82,15 +80,15 @@ event Management::Node::API::node_dispatch_request(reqid: string, action: vector
 		{
 		Management::Log::info(fmt("tx Management::Node::API::node_dispatch_response %s",
 		    Management::result_to_string(res)));
-		event Management::Node::API::node_dispatch_response(reqid, res);
+		Broker::publish(node_topic, Management::Node::API::node_dispatch_response, reqid, res);
 		return;
 		}
 
 	g_dispatch_table[action[0]](action[1:], res);
 
 	Management::Log::info(fmt("tx Management::Node::API::node_dispatch_response %s",
-	                          Management::result_to_string(res)));
-	event Management::Node::API::node_dispatch_response(reqid, res);
+	    Management::result_to_string(res)));
+	Broker::publish(node_topic, Management::Node::API::node_dispatch_response, reqid, res);
 	}
 
 event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
@@ -100,7 +98,7 @@ event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	# If this is the agent peering, notify it that we're ready
 	if ( peer$network$address == epi$network$address &&
 	     peer$network$bound_port == epi$network$bound_port )
-		event Management::Node::API::notify_node_hello(Cluster::node);
+		Broker::publish(node_topic, Management::Node::API::notify_node_hello, Cluster::node);
 	}
 
 event zeek_init()
@@ -109,13 +107,4 @@ event zeek_init()
 
 	Broker::peer(epi$network$address, epi$network$bound_port, Management::connect_retry);
 	Broker::subscribe(node_topic);
-
-	# Events automatically sent to the Management agent.
-	local events: vector of any = [
-	    Management::Node::API::node_dispatch_response,
-	    Management::Node::API::notify_node_hello
-	    ];
-
-	for ( i in events )
-		Broker::auto_publish(node_topic, events[i]);
 	}

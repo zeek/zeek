@@ -1,3 +1,13 @@
+5.0.0-dev.322 | 2022-04-27 21:00:29 +0000
+
+  * Disable OpenSSL initialization starting with 1.1.0 (Johanna Amann, Corelight)
+
+    Starting with OpenSSL 1.1.0, library initialization is no longer
+    required - and might even be harmful.
+
+    See https://wiki.openssl.org/index.php/Library_Initialization for
+    details.
+
 5.0.0-dev.319 | 2022-04-27 17:42:42 +0000
 
   * Wrap call to doctest's MESSAGE() method in Reporter in try/catch block (Tim Wojtulewicz, Corelight)

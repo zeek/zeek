@@ -1985,6 +1985,49 @@ function global_sizes%(%): var_sizes &deprecated="Remove in v5.1. MemoryAllocati
 	return sizes;
 	%}
 
+## Generates a table of the footprint of all global container variables.
+## The table index is the variable name and the value is the footprint.
+## The argument specifies whether the footprint should (recursively) include
+## the number of entries in each global.
+##
+## Returns: A table that maps variable names to their footprints.
+##
+## .. zeek:see:: value_footprint
+function global_container_footprints%(count_entries: bool%): var_sizes
+	%{
+	auto sizes = zeek::make_intrusive<zeek::TableVal>(IntrusivePtr{zeek::NewRef{}, var_sizes});
+	const auto& globals = zeek::detail::global_scope()->Vars();
+
+	for ( const auto& global : globals )
+		{
+		auto& id = global.second;
+		auto v = id->GetVal();
+
+		if ( ! v || ! IsAggr(v->GetType()) )
+			continue;
+
+		auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
+		auto fp = zeek::val_mgr->Count(v->Footprint(count_entries));
+		sizes->Assign(std::move(id_name), std::move(fp));
+		}
+
+	return sizes;
+	%}
+
+## Computes a value's "footprint" (number of atomic elements included, either
+## directly or indirectly).  The argument, if true, specifies that the
+## footprint should also include the number of entries in each included
+## container.
+##
+## Returns: the total number of atomic elements plus (optionally) the
+## number of entries in included containers.
+##
+## .. zeek:see:: global_container_footprints
+function value_footprint%(v: any, count_entries: bool%): count
+	%{
+	return zeek::val_mgr->Count(v->Footprint(count_entries));
+	%}
+
 ## Generates a table with information about all global identifiers. The table
 ## value is a record containing the type name of the identifier, whether it is
 ## exported, a constant, an enum constant, redefinable, and its value (if it

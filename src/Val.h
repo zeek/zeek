@@ -121,6 +121,18 @@ public:
 	// size depends on the Val's type.
 	virtual ValPtr SizeVal() const;
 
+	/**
+	 * Returns the Val's "footprint", i.e., how many atomic (non-container)
+	 * values it includes, either directly or indirectly.
+	 *
+	 * @param count_entries  If true, (recursively) include in the
+	 * footprint the count of the number of container elements as well
+	 * as each element's footprint.
+	 *
+	 * @return  The total footprint, optionally including element counts.
+	 */
+	virtual unsigned int Footprint(bool count_entries) const { return 1; }
+
 	// Bytes in total value object.
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] virtual unsigned int
@@ -666,6 +678,8 @@ public:
 
 	void Describe(ODesc* d) const override;
 
+	unsigned int Footprint(bool count_entries) const override;
+
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] unsigned int
 	MemoryAllocation() const override;
@@ -940,6 +954,8 @@ public:
 	// already been initialized, this does nothing. Otherwise, evaluates
 	// the function in the frame allowing it to capture its closure.
 	void InitDefaultFunc(detail::Frame* f);
+
+	unsigned int Footprint(bool count_entries) const override;
 
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] unsigned int
@@ -1367,6 +1383,8 @@ public:
 		}
 	RecordValPtr CoerceTo(RecordTypePtr other, bool allow_orphaning = false);
 
+	unsigned int Footprint(bool count_entries) const override;
+
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] unsigned int
 	MemoryAllocation() const override;
@@ -1623,6 +1641,8 @@ public:
 
 	const auto& RawYieldType() const { return yield_type; }
 	const auto& RawYieldTypes() const { return yield_types; }
+
+	unsigned int Footprint(bool count_entries) const override;
 
 protected:
 	/**

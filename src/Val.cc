@@ -1322,6 +1322,18 @@ ValPtr ListVal::DoClone(CloneState* state)
 	return lv;
 	}
 
+unsigned int ListVal::Footprint(bool count_entries) const
+	{
+	unsigned int fp = 0;
+	for ( const auto& val : vals )
+		fp += val->Footprint(count_entries);
+
+	if ( count_entries )
+		fp += vals.size();
+
+	return fp;
+	}
+
 unsigned int ListVal::MemoryAllocation() const
 	{
 #pragma GCC diagnostic push
@@ -2673,6 +2685,27 @@ ValPtr TableVal::DoClone(CloneState* state)
 	return tv;
 	}
 
+unsigned int TableVal::Footprint(bool count_entries) const
+	{
+	unsigned int fp = 0;
+
+	for ( const auto& iter : *table_val )
+		{
+		auto k = iter.GetHashKey();
+		auto vl = table_hash->RecoverVals(*k);
+		auto v = iter.GetValue<TableEntryVal*>()->GetVal();
+
+		fp += vl->Footprint(count_entries);
+		if ( v )
+			fp += v->Footprint(count_entries);
+		}
+
+	if ( count_entries )
+		fp += table_val->Length();
+
+	return fp;
+	}
+
 unsigned int TableVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
@@ -3036,6 +3069,27 @@ ValPtr RecordVal::DoClone(CloneState* state)
 		}
 
 	return rv;
+	}
+
+unsigned int RecordVal::Footprint(bool count_entries) const
+	{
+	unsigned int fp = 0;
+	int n = NumFields();
+
+	for ( auto i = 0; i < n; ++i )
+		{
+		if ( ! HasField(i) )
+			continue;
+
+		auto f_i = GetField(i);
+		if ( f_i )
+			fp += f_i->Footprint(count_entries);
+		}
+
+	if ( count_entries )
+		fp += n;
+
+	return fp;
 	}
 
 unsigned int RecordVal::MemoryAllocation() const
@@ -3559,6 +3613,24 @@ bool VectorVal::Concretize(const TypePtr& t)
 	any_yield = false;
 
 	return true;
+	}
+
+unsigned int VectorVal::Footprint(bool count_entries) const
+	{
+	unsigned int fp = 0;
+	auto n = vector_val->size();
+
+	for ( auto i = 0U; i < n; ++i )
+		{
+		auto v = At(i);
+		if ( v )
+			fp += v->Footprint(count_entries);
+		}
+
+	if ( count_entries )
+		fp += n;
+
+	return fp;
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)

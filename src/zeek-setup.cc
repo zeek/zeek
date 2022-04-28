@@ -89,13 +89,13 @@ int perftools_profile = 0;
 #endif
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
-namespace
-	{
-
 struct CRYPTO_dynlock_value
 	{
 	std::mutex mtx;
 	};
+
+namespace
+	{
 
 std::unique_ptr<std::mutex[]> ssl_mtx_tbl;
 
@@ -627,7 +627,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
-  do_ssl_init();
+	do_ssl_init();
 
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
@@ -1070,7 +1070,7 @@ int cleanup(bool did_run_loop)
 
 	sqlite3_shutdown();
 
-  do_ssl_deinit();
+	do_ssl_deinit();
 
 	// Close files after net_delete(), because net_delete()
 	// might write to connection content files.

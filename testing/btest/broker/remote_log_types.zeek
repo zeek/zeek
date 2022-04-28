@@ -1,3 +1,5 @@
+# @TEST-GROUP: broker
+#
 # @TEST-PORT: BROKER_PORT
 
 # @TEST-EXEC: btest-bg-run recv "zeek -b ../recv.zeek >recv.out"

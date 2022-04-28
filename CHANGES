@@ -1,3 +1,13 @@
+5.0.0-dev.332 | 2022-04-28 19:52:04 +0000
+
+  * Initialize OpenSSL on startup (Dominik Charousset, Corelight)
+
+  * Avoid double-initialization of OpenSSL (Dominik Charousset, Corelight)
+
+  * Canonify intel.log in read-file-dist-cluster test (Dominik Charousset, Corelight)
+
+  * Port Zeek to latest Broker API (Dominik Charousset)
+
 5.0.0-dev.322 | 2022-04-27 21:00:29 +0000
 
   * Disable OpenSSL initialization starting with 1.1.0 (Johanna Amann, Corelight)

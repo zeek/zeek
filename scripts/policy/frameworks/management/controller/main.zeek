@@ -495,6 +495,30 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 	check_instances_ready();
 	}
 
+event Management::Controller::API::get_configuration_request(reqid: string)
+	{
+	Management::Log::info(fmt("rx Management::Controller::API::get_configuration_request %s", reqid));
+
+	local res = Management::Result($reqid=reqid);
+
+	if ( is_null_config(g_config_current) )
+		{
+		# We don't have a live configuration yet.
+		res$success = F;
+		res$error = "no configuration deployed";
+		}
+	else
+		{
+		res$data = g_config_current;
+		}
+
+	Management::Log::info(fmt(
+	    "tx Management::Controller::API::get_configuration_response %s",
+	    Management::result_to_string(res)));
+	Broker::publish(Management::Controller::topic,
+	    Management::Controller::API::get_configuration_response, reqid, res);
+	}
+
 event Management::Controller::API::get_instances_request(reqid: string)
 	{
 	Management::Log::info(fmt("rx Management::Controller::API::set_instances_request %s", reqid));

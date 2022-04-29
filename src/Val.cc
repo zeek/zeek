@@ -1322,14 +1322,12 @@ ValPtr ListVal::DoClone(CloneState* state)
 	return lv;
 	}
 
-unsigned int ListVal::Footprint(bool count_entries) const
+unsigned int ListVal::Footprint() const
 	{
-	unsigned int fp = 0;
-	for ( const auto& val : vals )
-		fp += val->Footprint(count_entries);
+	unsigned int fp = vals.size();
 
-	if ( count_entries )
-		fp += vals.size();
+	for ( const auto& val : vals )
+		fp += val->Footprint();
 
 	return fp;
 	}
@@ -2685,9 +2683,9 @@ ValPtr TableVal::DoClone(CloneState* state)
 	return tv;
 	}
 
-unsigned int TableVal::Footprint(bool count_entries) const
+unsigned int TableVal::Footprint() const
 	{
-	unsigned int fp = 0;
+	unsigned int fp = table_val->Length();
 
 	for ( const auto& iter : *table_val )
 		{
@@ -2695,13 +2693,10 @@ unsigned int TableVal::Footprint(bool count_entries) const
 		auto vl = table_hash->RecoverVals(*k);
 		auto v = iter.GetValue<TableEntryVal*>()->GetVal();
 
-		fp += vl->Footprint(count_entries);
+		fp += vl->Footprint();
 		if ( v )
-			fp += v->Footprint(count_entries);
+			fp += v->Footprint();
 		}
-
-	if ( count_entries )
-		fp += table_val->Length();
 
 	return fp;
 	}
@@ -3071,7 +3066,7 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	return rv;
 	}
 
-unsigned int RecordVal::Footprint(bool count_entries) const
+unsigned int RecordVal::Footprint() const
 	{
 	// Which records we're in the process of analyzing - used to
 	// avoid infinite recursion for circular types (which can only
@@ -3084,8 +3079,8 @@ unsigned int RecordVal::Footprint(bool count_entries) const
 
 	pending_records.insert(this);
 
-	unsigned int fp = 0;
 	int n = NumFields();
+	unsigned int fp = n;
 
 	for ( auto i = 0; i < n; ++i )
 		{
@@ -3094,11 +3089,8 @@ unsigned int RecordVal::Footprint(bool count_entries) const
 
 		auto f_i = GetField(i);
 		if ( f_i )
-			fp += f_i->Footprint(count_entries);
+			fp += f_i->Footprint();
 		}
-
-	if ( count_entries )
-		fp += n;
 
 	pending_records.erase(this);
 
@@ -3628,20 +3620,17 @@ bool VectorVal::Concretize(const TypePtr& t)
 	return true;
 	}
 
-unsigned int VectorVal::Footprint(bool count_entries) const
+unsigned int VectorVal::Footprint() const
 	{
-	unsigned int fp = 0;
 	auto n = vector_val->size();
+	unsigned int fp = n;
 
 	for ( auto i = 0U; i < n; ++i )
 		{
 		auto v = At(i);
 		if ( v )
-			fp += v->Footprint(count_entries);
+			fp += v->Footprint();
 		}
-
-	if ( count_entries )
-		fp += n;
 
 	return fp;
 	}

@@ -122,16 +122,14 @@ public:
 	virtual ValPtr SizeVal() const;
 
 	/**
-	 * Returns the Val's "footprint", i.e., how many atomic (non-container)
-	 * values it includes, either directly or indirectly.
+	 * Returns the Val's "footprint", i.e., how many elements / Val
+	 * objects the value includes, either directly or indirectly.
+	 * The number is not meant to be precise, but rather comparable:
+	 * larger footprint correlates with more memory consumption.
 	 *
-	 * @param count_entries  If true, (recursively) include in the
-	 * footprint the count of the number of container elements as well
-	 * as each element's footprint.
-	 *
-	 * @return  The total footprint, optionally including element counts.
+	 * @return  The total footprint.
 	 */
-	virtual unsigned int Footprint(bool count_entries) const { return 1; }
+	virtual unsigned int Footprint() const { return 1; }
 
 	// Bytes in total value object.
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
@@ -678,7 +676,7 @@ public:
 
 	void Describe(ODesc* d) const override;
 
-	unsigned int Footprint(bool count_entries) const override;
+	unsigned int Footprint() const override;
 
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] unsigned int
@@ -955,7 +953,7 @@ public:
 	// the function in the frame allowing it to capture its closure.
 	void InitDefaultFunc(detail::Frame* f);
 
-	unsigned int Footprint(bool count_entries) const override;
+	unsigned int Footprint() const override;
 
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] unsigned int
@@ -1383,7 +1381,7 @@ public:
 		}
 	RecordValPtr CoerceTo(RecordTypePtr other, bool allow_orphaning = false);
 
-	unsigned int Footprint(bool count_entries) const override;
+	unsigned int Footprint() const override;
 
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] unsigned int
@@ -1642,7 +1640,7 @@ public:
 	const auto& RawYieldType() const { return yield_type; }
 	const auto& RawYieldTypes() const { return yield_types; }
 
-	unsigned int Footprint(bool count_entries) const override;
+	unsigned int Footprint() const override;
 
 protected:
 	/**

@@ -3073,6 +3073,17 @@ ValPtr RecordVal::DoClone(CloneState* state)
 
 unsigned int RecordVal::Footprint(bool count_entries) const
 	{
+	// Which records we're in the process of analyzing - used to
+	// avoid infinite recursion for circular types (which can only
+	// occur due to the presence of records).
+	static std::unordered_set<const RecordVal*> pending_records;
+
+	if ( pending_records.count(this) > 0 )
+		// Footprint is 1 for the RecordVal itself.
+		return 1;
+
+	pending_records.insert(this);
+
 	unsigned int fp = 0;
 	int n = NumFields();
 
@@ -3088,6 +3099,8 @@ unsigned int RecordVal::Footprint(bool count_entries) const
 
 	if ( count_entries )
 		fp += n;
+
+	pending_records.erase(this);
 
 	return fp;
 	}

@@ -239,6 +239,14 @@ const TypePtr& Type::Yield() const
 
 void Type::Describe(ODesc* d) const
 	{
+	if ( ! d->IsBinary() && ! name.empty() )
+		d->Add(name);
+	else
+		DoDescribe(d);
+	}
+
+void Type::DoDescribe(ODesc* d) const
+	{
 	if ( d->IsBinary() )
 		d->Add(int(Tag()));
 	else
@@ -290,7 +298,7 @@ void TypeList::AppendEvenIfNotPure(TypePtr t)
 	types.emplace_back(std::move(t));
 	}
 
-void TypeList::Describe(ODesc* d) const
+void TypeList::DoDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
 		d->AddSP("list of");
@@ -346,9 +354,9 @@ int IndexType::MatchesIndex(detail::ListExpr* const index) const
 	                                                    : DOES_NOT_MATCH_INDEX;
 	}
 
-void IndexType::Describe(ODesc* d) const
+void IndexType::DoDescribe(ODesc* d) const
 	{
-	Type::Describe(d);
+	Type::DoDescribe(d);
 	if ( ! d->IsBinary() )
 		d->Add("[");
 
@@ -763,7 +771,7 @@ void FuncType::SetCaptures(std::optional<CaptureList> _captures)
 	captures = std::move(_captures);
 	}
 
-void FuncType::Describe(ODesc* d) const
+void FuncType::DoDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
 		{
@@ -1084,7 +1092,7 @@ TypeDecl* RecordType::FieldDecl(int field)
 	return (*types)[field];
 	}
 
-void RecordType::Describe(ODesc* d) const
+void RecordType::DoDescribe(ODesc* d) const
 	{
 	d->PushType(this);
 
@@ -1454,7 +1462,7 @@ FileType::FileType(TypePtr yield_type) : Type(TYPE_FILE), yield(std::move(yield_
 
 FileType::~FileType() = default;
 
-void FileType::Describe(ODesc* d) const
+void FileType::DoDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
 		{
@@ -1473,7 +1481,7 @@ OpaqueType::OpaqueType(const string& arg_name) : Type(TYPE_OPAQUE)
 	name = arg_name;
 	}
 
-void OpaqueType::Describe(ODesc* d) const
+void OpaqueType::DoDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
 		d->AddSP("opaque of");
@@ -1660,7 +1668,7 @@ const EnumValPtr& EnumType::GetEnumVal(bro_int_t i)
 	return it->second;
 	}
 
-void EnumType::Describe(ODesc* d) const
+void EnumType::DoDescribe(ODesc* d) const
 	{
 	auto t = Tag();
 
@@ -1804,7 +1812,7 @@ bool VectorType::IsUnspecifiedVector() const
 	return yield_type->Tag() == TYPE_VOID;
 	}
 
-void VectorType::Describe(ODesc* d) const
+void VectorType::DoDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
 		d->AddSP("vector of");

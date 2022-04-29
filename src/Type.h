@@ -249,6 +249,7 @@ public:
 		}
 
 	void Describe(ODesc* d) const override;
+	virtual void DoDescribe(ODesc* d) const;
 	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
@@ -347,7 +348,7 @@ public:
 	void Append(TypePtr t);
 	void AppendEvenIfNotPure(TypePtr t);
 
-	void Describe(ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] unsigned int
@@ -369,7 +370,7 @@ public:
 
 	const TypePtr& Yield() const override { return yield_type; }
 
-	void Describe(ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 	// Returns true if this table is solely indexed by subnet.
@@ -474,7 +475,7 @@ public:
 
 	const TypeListPtr& ParamList() const { return arg_types; }
 
-	void Describe(ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 	/**
@@ -675,7 +676,7 @@ public:
 	 */
 	void Create(std::vector<std::optional<ZVal>>& r) const;
 
-	void Describe(ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 	void DescribeFields(ODesc* d) const;
 	void DescribeFieldsReST(ODesc* d, bool func_args) const;
@@ -725,7 +726,7 @@ public:
 
 	const TypePtr& Yield() const override { return yield; }
 
-	void Describe(ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 
 protected:
 	TypePtr yield;
@@ -740,7 +741,7 @@ public:
 
 	const std::string& Name() const { return name; }
 
-	void Describe(ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
@@ -783,7 +784,7 @@ public:
 
 	bool HasRedefs() const { return has_redefs; }
 
-	void Describe(ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 	const EnumValPtr& GetEnumVal(bro_int_t i);
@@ -834,7 +835,7 @@ public:
 	// gets using an empty "vector()" constructor.
 	bool IsUnspecifiedVector() const;
 
-	void Describe(ODesc* d) const override;
+	void DoDescribe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:

@@ -15,6 +15,18 @@ type r2: record {
 	d: string &optional;
 };
 
+# For testing mutually recursive records.
+type X: record {
+};
+
+type Y: record {
+    x: X;
+};
+
+redef record X += {
+    y: Y &optional;
+};
+
 event zeek_init()
 	{
 	print "bool", value_footprint(T, F);
@@ -100,4 +112,15 @@ event zeek_init()
 	local s4 = set(vector(l1b), vector(l1b), vector(l1b));
 	print "s4", value_footprint(s4, F);
 	print "s4", value_footprint(s4, T);
+
+	local x: X;
+	local y: Y;
+
+	x$y = y;
+	y$x = x;
+
+	print value_footprint(x, F);
+	print value_footprint(x, T);
+	print value_footprint(y, F);
+	print value_footprint(y, T);
 	}

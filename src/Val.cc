@@ -1367,7 +1367,10 @@ static void table_entry_val_delete_func(void* val)
 	delete tv;
 	}
 
-static void find_nested_record_types(const TypePtr& t, std::set<RecordType*>* found)
+// Third argument tracks records currently being analyzed, to avoid infinite
+// loops in the face of recursive records.
+static void find_nested_record_types(const TypePtr& t, std::set<RecordType*>* found,
+                                     std::set<const RecordType*>* analyzed_records)
 	{
 	if ( ! t )
 		return;
@@ -1377,31 +1380,38 @@ static void find_nested_record_types(const TypePtr& t, std::set<RecordType*>* fo
 		case TYPE_RECORD:
 			{
 			auto rt = t->AsRecordType();
+
+			if ( analyzed_records->count(rt) > 0 )
+				return;
+
+			analyzed_records->insert(rt);
 			found->emplace(rt);
 
 			for ( auto i = 0; i < rt->NumFields(); ++i )
-				find_nested_record_types(rt->FieldDecl(i)->type, found);
+				find_nested_record_types(rt->FieldDecl(i)->type, found, analyzed_records);
+
+			analyzed_records->erase(rt);
 			}
 			return;
 		case TYPE_TABLE:
-			find_nested_record_types(t->AsTableType()->GetIndices(), found);
-			find_nested_record_types(t->AsTableType()->Yield(), found);
+			find_nested_record_types(t->AsTableType()->GetIndices(), found, analyzed_records);
+			find_nested_record_types(t->AsTableType()->Yield(), found, analyzed_records);
 			return;
 		case TYPE_LIST:
 			{
 			for ( const auto& type : t->AsTypeList()->GetTypes() )
-				find_nested_record_types(type, found);
+				find_nested_record_types(type, found, analyzed_records);
 			}
 			return;
 		case TYPE_FUNC:
-			find_nested_record_types(t->AsFuncType()->Params(), found);
-			find_nested_record_types(t->AsFuncType()->Yield(), found);
+			find_nested_record_types(t->AsFuncType()->Params(), found, analyzed_records);
+			find_nested_record_types(t->AsFuncType()->Yield(), found, analyzed_records);
 			return;
 		case TYPE_VECTOR:
-			find_nested_record_types(t->AsVectorType()->Yield(), found);
+			find_nested_record_types(t->AsVectorType()->Yield(), found, analyzed_records);
 			return;
 		case TYPE_TYPE:
-			find_nested_record_types(t->AsTypeType()->GetType(), found);
+			find_nested_record_types(t->AsTypeType()->GetType(), found, analyzed_records);
 			return;
 		default:
 			return;
@@ -1419,9 +1429,10 @@ TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t)
 	for ( const auto& t : table_type->GetIndexTypes() )
 		{
 		std::set<RecordType*> found;
+		std::set<const RecordType*> analyzed_records;
 		// TODO: this likely doesn't have to be repeated for each new TableVal,
 		//       can remember the resulting dependencies per TableType
-		find_nested_record_types(t, &found);
+		find_nested_record_types(t, &found, &analyzed_records);
 
 		for ( auto rt : found )
 			parse_time_table_record_dependencies[rt].emplace_back(NewRef{}, this);

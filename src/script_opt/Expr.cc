@@ -2175,8 +2175,7 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 	red_stmt = nullptr;
 
-	if ( ! op->IsReduced(c) )
-		op = op->ReduceToSingleton(c, red_stmt);
+	op = op->ReduceToSingleton(c, red_stmt);
 
 	if ( op->Tag() == EXPR_CONST )
 		{

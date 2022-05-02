@@ -127,6 +127,17 @@ public:
 	 * The number is not meant to be precise, but rather comparable:
 	 * larger footprint correlates with more memory consumption.
 	 *
+	 * @return  The total footprint.
+	 */
+	unsigned int Footprint() const
+		{
+		std::set<const RecordVal*> analyzed_records;
+		return Footprint(&analyzed_records);
+		}
+
+	/**
+	 * Internal function for computing a Val's "footprint".
+	 *
 	 * @param analyzed_records  A pointer to a set used to track which
 	 * records have been analyzed to date, used to prevent infinite
 	 * recursion.  The set should be empty (but not nil) on the first call.

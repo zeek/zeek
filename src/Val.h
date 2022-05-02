@@ -127,9 +127,13 @@ public:
 	 * The number is not meant to be precise, but rather comparable:
 	 * larger footprint correlates with more memory consumption.
 	 *
+	 * @param analyzed_records  A pointer to a set used to track which
+	 * records have been analyzed to date, used to prevent infinite
+	 * recursion.  The set should be empty (but not nil) on the first call.
+	 *
 	 * @return  The total footprint.
 	 */
-	virtual unsigned int Footprint() const { return 1; }
+	virtual unsigned int Footprint(std::set<const RecordVal*>* analyzed_records) const { return 1; }
 
 	// Bytes in total value object.
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
@@ -676,7 +680,7 @@ public:
 
 	void Describe(ODesc* d) const override;
 
-	unsigned int Footprint() const override;
+	unsigned int Footprint(std::set<const RecordVal*>* analyzed_records) const override;
 
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] unsigned int
@@ -953,7 +957,7 @@ public:
 	// the function in the frame allowing it to capture its closure.
 	void InitDefaultFunc(detail::Frame* f);
 
-	unsigned int Footprint() const override;
+	unsigned int Footprint(std::set<const RecordVal*>* analyzed_records) const override;
 
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] unsigned int
@@ -1381,7 +1385,7 @@ public:
 		}
 	RecordValPtr CoerceTo(RecordTypePtr other, bool allow_orphaning = false);
 
-	unsigned int Footprint() const override;
+	unsigned int Footprint(std::set<const RecordVal*>* analyzed_records) const override;
 
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] unsigned int
@@ -1640,7 +1644,7 @@ public:
 	const auto& RawYieldType() const { return yield_type; }
 	const auto& RawYieldTypes() const { return yield_types; }
 
-	unsigned int Footprint() const override;
+	unsigned int Footprint(std::set<const RecordVal*>* analyzed_records) const override;
 
 protected:
 	/**

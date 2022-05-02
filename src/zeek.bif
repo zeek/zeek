@@ -2008,7 +2008,8 @@ function global_container_footprints%(%): var_sizes
 			continue;
 
 		auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
-		auto fp = zeek::val_mgr->Count(v->Footprint());
+		std::set<const RecordVal*> analyzed_records;
+		auto fp = zeek::val_mgr->Count(v->Footprint(&analyzed_records));
 		sizes->Assign(std::move(id_name), std::move(fp));
 		}
 
@@ -2024,7 +2025,8 @@ function global_container_footprints%(%): var_sizes
 ## .. zeek:see:: global_container_footprints
 function val_footprint%(v: any%): count
 	%{
-	return zeek::val_mgr->Count(v->Footprint());
+	std::set<const RecordVal*> analyzed_records;
+	return zeek::val_mgr->Count(v->Footprint(&analyzed_records));
 	%}
 
 ## Generates a table with information about all global identifiers. The table

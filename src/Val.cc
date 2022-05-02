@@ -1322,12 +1322,12 @@ ValPtr ListVal::DoClone(CloneState* state)
 	return lv;
 	}
 
-unsigned int ListVal::Footprint() const
+unsigned int ListVal::Footprint(std::set<const RecordVal*>* analyzed_records) const
 	{
 	unsigned int fp = vals.size();
 
 	for ( const auto& val : vals )
-		fp += val->Footprint();
+		fp += val->Footprint(analyzed_records);
 
 	return fp;
 	}
@@ -2683,7 +2683,7 @@ ValPtr TableVal::DoClone(CloneState* state)
 	return tv;
 	}
 
-unsigned int TableVal::Footprint() const
+unsigned int TableVal::Footprint(std::set<const RecordVal*>* analyzed_records) const
 	{
 	unsigned int fp = table_val->Length();
 
@@ -2693,9 +2693,9 @@ unsigned int TableVal::Footprint() const
 		auto vl = table_hash->RecoverVals(*k);
 		auto v = iter.GetValue<TableEntryVal*>()->GetVal();
 
-		fp += vl->Footprint();
+		fp += vl->Footprint(analyzed_records);
 		if ( v )
-			fp += v->Footprint();
+			fp += v->Footprint(analyzed_records);
 		}
 
 	return fp;
@@ -3066,18 +3066,13 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	return rv;
 	}
 
-unsigned int RecordVal::Footprint() const
+unsigned int RecordVal::Footprint(std::set<const RecordVal*>* analyzed_records) const
 	{
-	// Which records we're in the process of analyzing - used to
-	// avoid infinite recursion for circular types (which can only
-	// occur due to the presence of records).
-	static std::unordered_set<const RecordVal*> pending_records;
-
-	if ( pending_records.count(this) > 0 )
+	if ( analyzed_records->count(this) > 0 )
 		// Footprint is 1 for the RecordVal itself.
 		return 1;
 
-	pending_records.insert(this);
+	analyzed_records->insert(this);
 
 	int n = NumFields();
 	unsigned int fp = n;
@@ -3089,10 +3084,10 @@ unsigned int RecordVal::Footprint() const
 
 		auto f_i = GetField(i);
 		if ( f_i )
-			fp += f_i->Footprint();
+			fp += f_i->Footprint(analyzed_records);
 		}
 
-	pending_records.erase(this);
+	analyzed_records->erase(this);
 
 	return fp;
 	}
@@ -3620,7 +3615,7 @@ bool VectorVal::Concretize(const TypePtr& t)
 	return true;
 	}
 
-unsigned int VectorVal::Footprint() const
+unsigned int VectorVal::Footprint(std::set<const RecordVal*>* analyzed_records) const
 	{
 	auto n = vector_val->size();
 	unsigned int fp = n;
@@ -3629,7 +3624,7 @@ unsigned int VectorVal::Footprint() const
 		{
 		auto v = At(i);
 		if ( v )
-			fp += v->Footprint();
+			fp += v->Footprint(analyzed_records);
 		}
 
 	return fp;

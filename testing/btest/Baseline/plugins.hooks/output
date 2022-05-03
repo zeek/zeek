@@ -679,7 +679,7 @@
 0.000000   MetaHookPost  CallFunction(filter_change_tracking, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (CLUSTER_NODE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS)) -> <no result>
-0.000000   MetaHookPost  CallFunction(global_ids, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(global_options, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(network_time, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2152/udp)) -> <no result>
@@ -2136,7 +2136,7 @@
 0.000000   MetaHookPre   CallFunction(filter_change_tracking, <null>, ())
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (CLUSTER_NODE))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS))
-0.000000   MetaHookPre   CallFunction(global_ids, <frame>, ())
+0.000000   MetaHookPre   CallFunction(global_options, <frame>, ())
 0.000000   MetaHookPre   CallFunction(network_time, <frame>, ())
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2123/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2152/udp))
@@ -3592,7 +3592,7 @@
 0.000000 | HookCallFunction filter_change_tracking()
 0.000000 | HookCallFunction getenv(CLUSTER_NODE)
 0.000000 | HookCallFunction getenv(ZEEK_DEFAULT_LISTEN_ADDRESS)
-0.000000 | HookCallFunction global_ids()
+0.000000 | HookCallFunction global_options()
 0.000000 | HookCallFunction network_time()
 0.000000 | HookCallFunction port_to_count(2123/udp)
 0.000000 | HookCallFunction port_to_count(2152/udp)

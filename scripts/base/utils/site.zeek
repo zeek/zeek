@@ -243,5 +243,4 @@ event zeek_init() &priority=10
 	# Create the local_nets mapping table.
 	for ( cidr in Site::local_nets )
 		local_nets_table[cidr] = cidr;
-
 	}

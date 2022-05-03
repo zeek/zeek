@@ -1,3 +1,7 @@
+5.0.0-dev.338 | 2022-05-03 14:40:57 -0700
+
+  * fix for sets containing recursive records (Vern Paxson, Corelight)
+
 5.0.0-dev.336 | 2022-05-03 17:09:54 +0100
 
   * Update X.509 and CT trust anchors (Johanna Amann, Corelight)

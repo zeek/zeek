@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b %INPUT  >output 2>&1
+# @TEST-EXEC: zeek %INPUT  >output 2>&1
 # @TEST-EXEC: btest-diff output
 
 # Make sure a set can be indexed with a record that has optional fields
@@ -53,3 +53,7 @@ event zeek_init()
         print f3 in set_of_foo;
 
         }
+
+# Also make sure that we can declare sets of recursive records.
+# This used to crash in Zeek 4.x.
+global crash_me: set[Conn::RemovalHook];

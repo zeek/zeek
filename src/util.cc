@@ -2058,6 +2058,13 @@ int time_compare(struct timeval* tv_a, struct timeval* tv_b)
 		return tv_a->tv_sec - tv_b->tv_sec;
 	}
 
+double curr_CPU_time()
+	{
+	struct timespec ts;
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+	return double(ts.tv_sec) + double(ts.tv_nsec) / 1e9;
+	}
+
 struct UIDEntry
 	{
 	UIDEntry() : key(0, 0), needs_init(true) { }

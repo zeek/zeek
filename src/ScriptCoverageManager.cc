@@ -127,27 +127,27 @@ bool ScriptCoverageManager::WriteStats()
 		return false;
 		}
 
-	for ( list<Stmt*>::const_iterator it = stmts.begin(); it != stmts.end(); ++it )
+	for ( auto s : stmts )
 		{
 		ODesc location_info;
-		(*it)->GetLocationInfo()->Describe(&location_info);
+		s->GetLocationInfo()->Describe(&location_info);
 		ODesc desc_info;
-		(*it)->Describe(&desc_info);
+		s->Describe(&desc_info);
 		string desc(desc_info.Description());
 		canonicalize_desc cd{delim};
 		for_each(desc.begin(), desc.end(), cd);
 		pair<string, string> location_desc(location_info.Description(), desc);
 		if ( usage_map.find(location_desc) != usage_map.end() )
-			usage_map[location_desc] += (*it)->GetAccessCount();
+			usage_map[location_desc] += s->GetAccessCount();
 		else
-			usage_map[location_desc] = (*it)->GetAccessCount();
+			usage_map[location_desc] = s->GetAccessCount();
 		}
 
 	map<pair<string, string>, uint64_t>::const_iterator it;
-	for ( it = usage_map.begin(); it != usage_map.end(); ++it )
+	for ( auto& um : usage_map )
 		{
-		fprintf(f, "%" PRIu64 "%c%s%c%s\n", it->second, delim, it->first.first.c_str(), delim,
-		        it->first.second.c_str());
+		fprintf(f, "%" PRIu64 "%c%s%c%s\n", um.second, delim, um.first.first.c_str(), delim,
+		        um.first.second.c_str());
 		}
 
 	fclose(f);

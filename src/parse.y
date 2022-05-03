@@ -1665,28 +1665,33 @@ stmt:
 			{
 			set_location(@1, @4);
 			$$ = new IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, make_intrusive<NullStmt>());
+			script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_IF '(' expr ')' stmt TOK_ELSE stmt
 			{
 			set_location(@1, @4);
 			$$ = new IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, {AdoptRef{}, $7});
+			script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_SWITCH expr '{' case_list '}'
 			{
 			set_location(@1, @2);
 			$$ = new SwitchStmt({AdoptRef{}, $2}, $4);
+			script_coverage_mgr.AddStmt($$);
 			}
 
 	|	for_head stmt
 			{
 			$1->AsForStmt()->AddBody({AdoptRef{}, $2});
+			script_coverage_mgr.AddStmt($1);
 			}
 
 	|	TOK_WHILE '(' expr ')' stmt
 			{
 			$$ = new WhileStmt({AdoptRef{}, $3}, {AdoptRef{}, $5});
+			script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_NEXT ';' opt_no_test
@@ -1762,6 +1767,7 @@ stmt:
 	|	when_clause
 			{
 			$$ = new WhenStmt($1);
+			script_coverage_mgr.AddStmt($$);
 			}
 
 	|	index_slice '=' expr ';' opt_no_test
@@ -1786,6 +1792,7 @@ stmt:
 			{
 			set_location(@1, @1);
 			$$ = new NullStmt;
+			script_coverage_mgr.AddStmt($$);
 			}
 
 	|	conditional

@@ -314,7 +314,8 @@ TEST_CASE("dns_mapping save reload")
 	char buffer[4096];
 	memset(buffer, 0, 4096);
 	FILE* tmpfile = fmemopen(buffer, 4096, "r+");
-	fseek(tmpfile, 0, SEEK_END);
+	if ( fseek(tmpfile, 0, SEEK_END) < 0 )
+		reporter->Error("DNS_Mapping: seek failed");
 
 	// Try loading from the file at EOF. This should cause a mapping failure.
 	DNS_Mapping mapping(tmpfile);

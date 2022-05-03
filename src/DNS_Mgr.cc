@@ -246,7 +246,9 @@ DNS_Request::~DNS_Request() { }
 void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr)
 	{
 	// This needs to get deleted at the end of the callback method.
-	auto req_data = new CallbackArgs{this, mgr};
+	auto req_data = std::make_unique<CallbackArgs>();
+	req_data->req = this;
+	req_data->mgr = mgr;
 
 	// It's completely fine if this rolls over. It's just to keep the query ID different
 	// from one query to the next, and it's unlikely we'd do 2^16 queries so fast that
@@ -260,7 +262,7 @@ void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr)
 		// back in the same request if use ares_getaddrinfo() so we can store them both
 		// in the same mapping.
 		ares_addrinfo_hints hints = {ARES_AI_CANONNAME, AF_UNSPEC, 0, 0};
-		ares_getaddrinfo(channel, host.c_str(), NULL, &hints, addrinfo_cb, req_data);
+		ares_getaddrinfo(channel, host.c_str(), NULL, &hints, addrinfo_cb, req_data.release());
 		}
 	else
 		{
@@ -276,12 +278,12 @@ void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr)
 			query_host.c_str(), C_IN, request_type, DNS_Request::request_id, 1,
 			out_ptr<unsigned char*>(query_str), &len, MAX_UDP_BUFFER_SIZE);
 
-		if ( status != ARES_SUCCESS )
+		if ( status != ARES_SUCCESS || query_str == nullptr )
 			return;
 
 		// Store this so it can be destroyed when the request is destroyed.
 		this->query = std::move(query_str);
-		ares_send(channel, this->query.get(), len, query_cb, req_data);
+		ares_send(channel, this->query.get(), len, query_cb, req_data.release());
 		}
 	}
 
@@ -983,8 +985,9 @@ void DNS_Mgr::Resolve()
 			break;
 
 		tvp = ares_timeout(channel, &tv, &tv);
-		select(nfds, &read_fds, &write_fds, NULL, tvp);
-		ares_process(channel, &read_fds, &write_fds);
+		int res = select(nfds, &read_fds, &write_fds, NULL, tvp);
+		if ( res >= 0 )
+			ares_process(channel, &read_fds, &write_fds);
 		}
 	}
 
@@ -1166,7 +1169,10 @@ void DNS_Mgr::LoadCache(const std::string& path)
 		return;
 
 	if ( ! DNS_Mapping::ValidateCacheVersion(f) )
+		{
+		fclose(f);
 		return;
+		}
 
 	// Loop until we find a mapping that doesn't initialize correctly.
 	auto m = std::make_shared<DNS_Mapping>(f);

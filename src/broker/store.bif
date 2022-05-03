@@ -100,6 +100,11 @@ function Broker::__close%(h: opaque of Broker::Store%): bool
 		return val_mgr->False();
 		}
 
+	if ( ! handle->have_store )
+		{
+		return val_mgr->False();
+		}
+
 	return zeek::val_mgr->Bool(broker_mgr->CloseStore(handle->store.name()));
 	%}
 
@@ -322,6 +327,12 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
+		return zeek::Broker::detail::query_result();
+		}
+
+	if ( ! handle->have_store )
+		{
+		zeek::emit_builtin_error("cannot retrieve keys from a closed store", h);
 		return zeek::Broker::detail::query_result();
 		}
 

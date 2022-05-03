@@ -61,11 +61,11 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 	if ( getenv("ZEEK_DISABLE_ZEEKYGEN") )
 		disabled = true;
 
-	// If running bro without the "-X" option, then we don't need bro_mtime.
+	// If running Zeek without the "-X" option, then we don't need bro_mtime.
 	if ( disabled || arg_config.empty() )
 		return;
 
-	// Find the absolute or relative path to bro by checking each PATH
+	// Find the absolute or relative path to Zeek by checking each PATH
 	// component and also the current directory (so that this works if
 	// bro_command is a relative path).
 	const char* env_path = getenv("PATH");
@@ -73,9 +73,9 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 	string path_to_bro = util::find_file(bro_command, path);
 	struct stat s;
 
-	// One way that find_file() could fail is when bro is located in
+	// One way that find_file() could fail is when Zeek is located in
 	// a PATH component that starts with a tilde (such as "~/bin").  A simple
-	// workaround is to just run bro with a relative or absolute path.
+	// workaround is to just run Zeek with a relative or absolute path.
 	if ( path_to_bro.empty() || stat(path_to_bro.c_str(), &s) < 0 )
 		reporter->InternalError("Zeekygen can't get mtime of zeek binary %s (try again by "
 		                        "specifying the absolute or relative path to Zeek): %s",

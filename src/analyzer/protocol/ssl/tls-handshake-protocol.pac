@@ -943,6 +943,9 @@ refine connection Handshake_Conn += {
 		uint32 chosen_cipher_;
 		uint16 chosen_version_;
 		uint16 record_version_;
+		bytestring client_random_;
+		bytestring server_random_;
+		uint32 gmt_unix_time_;
 	%}
 
 	%init{
@@ -950,6 +953,12 @@ refine connection Handshake_Conn += {
 		chosen_version_ = UNKNOWN_VERSION;
 
 		record_version_ = 0;
+		gmt_unix_time_ = 0;
+	%}
+
+	%cleanup{
+		client_random_.free();
+		server_random_.free();
 	%}
 
 	function chosen_cipher() : int %{ return chosen_cipher_; %}
@@ -981,6 +990,32 @@ refine connection Handshake_Conn += {
 	function set_record_version(version: uint16) : bool
 		%{
 		record_version_ = version;
+		return true;
+		%}
+
+	function client_random() : bytestring %{ return client_random_; %}
+
+	function set_client_random(client_random: bytestring) : bool
+		%{
+		client_random_.free();
+		client_random_.init(client_random.data(), client_random.length());
+		return true;
+		%}
+
+	function server_random() : bytestring %{ return server_random_; %}
+
+	function set_server_random(server_random: bytestring) : bool
+		%{
+		server_random_.free();
+		server_random_.init(server_random.data(), server_random.length());
+		return true;
+		%}
+
+	function gmt_unix_time() : uint32 %{ return gmt_unix_time_; %}
+
+	function set_gmt_unix_time(ts: uint32) : bool
+		%{
+		gmt_unix_time_ = ts;
 		return true;
 		%}
 };

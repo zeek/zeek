@@ -35,7 +35,7 @@ protected:
  * In addition to basic threads, the manager also provides additional
  * functionality specific to MsgThread instances. In particular, it polls
  * their outgoing message queue on a regular basis and feeds data sent into
- * the rest of Bro. It also triggers the regular heartbeats.
+ * the rest of Zeek. It also triggers the regular heartbeats.
  */
 class Manager
 	{

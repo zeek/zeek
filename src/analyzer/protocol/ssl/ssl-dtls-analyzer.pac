@@ -13,10 +13,12 @@ refine connection SSL_Conn += {
 
 	%member{
 		int established_;
+		int decryption_failed_;
 	%}
 
 	%init{
 		established_ = false;
+		decryption_failed_ = false;
 	%}
 
 	%cleanup{
@@ -43,7 +45,7 @@ refine connection SSL_Conn += {
 		return true;
 		%}
 
-	function proc_ciphertext_record(rec : SSLRecord) : bool
+	function proc_ciphertext_record(rec : SSLRecord, cont: const_bytestring) : bool
 		%{
 		if ( established_ == false && determine_tls13() == 1 )
 			{
@@ -62,8 +64,17 @@ refine connection SSL_Conn += {
 			}
 
 		if ( ssl_encrypted_data )
+			{
 			zeek::BifEvent::enqueue_ssl_encrypted_data(zeek_analyzer(),
 				zeek_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
+			}
+
+		if ( rec->content_type() == APPLICATION_DATA && decryption_failed_ == false )
+			{
+			// If decryption of one packet fails, do not try to decrypt future packets.
+			if ( ! zeek_analyzer()->TryDecryptApplicationData(cont.length(), cont.begin(), rec->is_orig(), rec->content_type(), rec->raw_tls_version()) )
+				decryption_failed_ = true;
+			}
 
 		return true;
 		%}
@@ -123,7 +134,7 @@ refine typeattr UnknownRecord += &let {
 };
 
 refine typeattr CiphertextRecord += &let {
-	proc : bool = $context.connection.proc_ciphertext_record(rec);
+	proc : bool = $context.connection.proc_ciphertext_record(rec, cont);
 }
 
 refine typeattr PlaintextRecord += &let {

@@ -178,7 +178,6 @@ if ( ZEEK_SANITIZERS )
                 # list(APPEND _check_list "nullability-assign") # Not normally part of "undefined"
                 # list(APPEND _check_list "nullability-return") # Not normally part of "undefined"
                 # list(APPEND _check_list "objc-cast") # Not truly UB
-                list(APPEND _check_list "object-size")
                 # list(APPEND _check_list "pointer-overflow") # Not implemented in older GCCs
                 list(APPEND _check_list "return")
                 list(APPEND _check_list "returns-nonnull-attribute")
@@ -188,7 +187,14 @@ if ( ZEEK_SANITIZERS )
                 list(APPEND _check_list "unreachable")
                 # list(APPEND _check_list "unsigned-integer-overflow") # Not truly UB
                 list(APPEND _check_list "vla-bound")
-                # list(APPEND _check_list "vptr") # TODO: fix associated errors
+                list(APPEND _check_list "vptr")
+
+                # Clang complains if this one is defined and the optimizer is set to -O0. We
+                # only set that optimization level if NO_OPTIMIZATIONS is passed, so disable
+                # the option if that's set.
+                if ( NOT DEFINED ENV{NO_OPTIMIZATIONS} )
+                    list(APPEND _check_list "object-size")
+                endif ()
 
                 string(REPLACE ";" "," _ub_checks "${_check_list}")
                 set(ZEEK_SANITIZER_UB_CHECKS "${_ub_checks}" CACHE INTERNAL "" FORCE)
@@ -294,6 +300,10 @@ if ( NOT BIFCL_EXE_PATH )
   add_subdirectory(auxil/bifcl)
 endif ()
 
+if ( NOT GEN_ZAM_EXE_PATH )
+  add_subdirectory(auxil/gen-zam)
+endif ()
+
 if (ENABLE_JEMALLOC)
     if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
         if (DEFINED JEMALLOC_ROOT_DIR)
@@ -331,36 +341,15 @@ if ( PYTHON_VERSION_STRING VERSION_LESS ${ZEEK_PYTHON_MIN} )
     message(FATAL_ERROR "Python ${ZEEK_PYTHON_MIN} or greater is required.")
 endif ()
 
-if ( CAF_ROOT OR BROKER_ROOT_DIR )
-  # TODO: drop < 3.12 compatibility check when raising the minimum CMake version
-  if ( CAF_ROOT AND CMAKE_VERSION VERSION_LESS 3.12 )
-    find_package(CAF ${CAF_VERSION_MIN_REQUIRED} REQUIRED
-                 COMPONENTS openssl test io core
-                 PATHS "${CAF_ROOT}")
-  else ()
-    find_package(CAF ${CAF_VERSION_MIN_REQUIRED} REQUIRED
-                 COMPONENTS openssl test io core)
-  endif ()
-  message(STATUS "Using system CAF version ${CAF_VERSION}")
-  # TODO: drop these legacy variables and simply use the targets consistently
-  set(CAF_LIBRARIES CAF::core CAF::io CAF::openssl CACHE INTERNAL "")
-  set(caf_dirs "")
-  foreach (caf_lib IN LISTS CAF_LIBRARIES ITEMS CAF::test)
-    get_target_property(dirs ${caf_lib} INTERFACE_INCLUDE_DIRECTORIES)
-    if ( dirs )
-      list(APPEND caf_dirs ${dirs})
-    endif ()
-  endforeach ()
-  list(REMOVE_DUPLICATES caf_dirs)
-  list(GET caf_dirs 0 caf_dir)
-  set(CAF_INCLUDE_DIRS "${caf_dirs}" CACHE INTERNAL "")
-endif ()
-
 add_subdirectory(auxil/paraglob)
 set(zeekdeps ${zeekdeps} paraglob)
 
-if ( BROKER_ROOT_DIR )
-  find_package(Broker REQUIRED)
+if ( Broker_ROOT )
+  find_package(Broker REQUIRED PATHS "${Broker_ROOT}")
+  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
+  set(broker_includes ${BROKER_INCLUDE_DIR})
+elseif ( BROKER_ROOT_DIR )
+  find_package(Broker REQUIRED PATHS "${BROKER_ROOT_DIR}")
   set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
   set(broker_includes ${BROKER_INCLUDE_DIR})
 else ()
@@ -385,11 +374,6 @@ else ()
   set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/include ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/include)
 endif ()
 
-# CAF_LIBRARIES and CAF_INCLUDE_DIRS are defined either by calling
-# find_package(CAF) or by calling add_subdirectory(auxil/broker). In either case,
-# we have to care about CAF here because Broker headers can pull in CAF
-# headers.
-set(zeekdeps ${zeekdeps} ${CAF_LIBRARIES})
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
@@ -462,7 +446,7 @@ endif ()
 # Any headers that are possibly bundled in the Zeek source-tree and that are supposed
 # to have priority over any pre-existing/system-wide headers need to appear early in
 # compiler search path.
-include_directories(BEFORE ${broker_includes} ${CAF_INCLUDE_DIRS})
+include_directories(BEFORE ${broker_includes})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/highwayhash)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/paraglob/include)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include)
@@ -496,6 +480,8 @@ include(CheckNameserCompat)
 include(GetArchitecture)
 include(RequireCXX17)
 include(FindKqueue)
+include(FindCAres)
+include_directories(BEFORE "auxil/out_ptr/include")
 
 if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
   set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
@@ -521,12 +507,6 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek
 execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
                 "."
                 "${CMAKE_CURRENT_BINARY_DIR}/zeek")
-
-if ( CAF_ROOT )
-  set(ZEEK_CONFIG_CAF_ROOT_DIR ${CAF_ROOT})
-else ()
-  set(ZEEK_CONFIG_CAF_ROOT_DIR ${ZEEK_ROOT_DIR})
-endif ()
 
 if ( BinPAC_ROOT_DIR )
   set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${BinPAC_ROOT_DIR})
@@ -665,6 +645,21 @@ else ()
     set(_install_btest_tools_msg "no pcaps")
 endif ()
 
+set(_bifcl_exe_path "included")
+if ( BIFCL_EXE_PATH )
+    set(_bifcl_exe_path ${BIFCL_EXE_PATH})
+endif ()
+
+set(_binpac_exe_path "included")
+if ( BINPAC_EXE_PATH )
+    set(_binpac_exe_path ${BINPAC_EXE_PATH})
+endif ()
+
+set(_gen_zam_exe_path "included")
+if ( GEN_ZAM_EXE_PATH )
+    set(_gen_zam_exe_path ${GEN_ZAM_EXE_PATH})
+endif ()
+
 message(
     "\n====================|  Zeek Build Summary  |===================="
     "\n"
@@ -686,8 +681,11 @@ message(
     "\n"
     "\nZeekControl:       ${INSTALL_ZEEKCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
+    "\nBifCL:             ${_bifcl_exe_path}"
+    "\nBinPAC:            ${_binpac_exe_path}"
     "\nBTest:             ${INSTALL_BTEST}"
     "\nBTest tooling:     ${_install_btest_tools_msg}"
+    "\nGen-ZAM:           ${_gen_zam_exe_path}"
     "\nzkg:               ${INSTALL_ZKG}"
     "\n"
     "\nlibmaxminddb:      ${USE_GEOIP}"

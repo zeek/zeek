@@ -164,12 +164,6 @@ public:
 	// or nil if the expression's value isn't fixed.
 	virtual ValPtr Eval(Frame* f) const = 0;
 
-	// Same, but the context is that we are adding an element
-	// into the given aggregate of the given type.  Note that
-	// return type is void since it's updating an existing
-	// value, rather than creating a new one.
-	virtual void EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const;
-
 	// Assign to the given value, if appropriate.
 	virtual void Assign(Frame* f, ValPtr v);
 
@@ -183,15 +177,8 @@ public:
 	// TypeDecl with a description of the element.
 	virtual bool IsRecordElement(TypeDecl* td) const;
 
-	// Returns a value corresponding to this expression interpreted
-	// as an initialization, or nil if the expression is inconsistent
-	// with the given type.  If "aggr" is non-nil, then this expression
-	// is an element of the given aggregate, and it is added to it
-	// accordingly.
-	virtual ValPtr InitVal(const TypePtr& t, ValPtr aggr) const;
-
 	// True if the expression has no side effects, false otherwise.
-	virtual bool IsPure() const;
+	virtual bool IsPure() const { return true; }
 
 	// True if the expression is a constant, false otherwise.
 	bool IsConst() const { return tag == EXPR_CONST; }
@@ -467,7 +454,6 @@ public:
 	ValPtr Eval(Frame* f) const override;
 	void Assign(Frame* f, ValPtr v) override;
 	ExprPtr MakeLvalue() override;
-	bool IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -599,6 +585,9 @@ protected:
 	// Same for when the constants are sets.
 	virtual ValPtr SetFold(Val* v1, Val* v2) const;
 
+	// Same for when the constants are tables.
+	virtual ValPtr TableFold(Val* v1, Val* v2) const;
+
 	// Same for when the constants are addresses or subnets.
 	virtual ValPtr AddrFold(Val* v1, Val* v2) const;
 	virtual ValPtr SubNetFold(Val* v1, Val* v2) const;
@@ -621,6 +610,20 @@ protected:
 	void PromoteForInterval(ExprPtr& op);
 
 	void ExprDescribe(ODesc* d) const override;
+
+	// Reports on if this BinaryExpr involves a scalar and aggregate
+	// type (vec, list, table, record).
+	bool IsScalarAggregateOp() const;
+
+	// Warns about deprecated scalar vector operations like
+	// `[1, 2, 3] == 1` or `["a", "b", "c"] + "a"`.
+	void CheckScalarAggOp() const;
+
+	// For assignment operations (=, +=, -=) checks for a valid
+	// expression-list on the RHS (op2), potentially transforming
+	// op2 in the process.  Returns true if the list is present
+	// and type-checks correctly, false otherwise.
+	bool CheckForRHSList();
 
 	ExprPtr op1;
 	ExprPtr op2;
@@ -646,7 +649,7 @@ public:
 
 	ValPtr Eval(Frame* f) const override;
 	ValPtr DoSingleEval(Frame* f, Val* v) const;
-	bool IsPure() const override;
+	bool IsPure() const override { return false; }
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -749,21 +752,33 @@ public:
 	ValPtr Eval(Frame* f) const override;
 
 	// Optimization-related:
+	bool IsPure() const override { return false; }
 	ExprPtr Duplicate() override;
+	bool HasReducedOps(Reducer* c) const override { return false; }
 	bool WillTransform(Reducer* c) const override { return true; }
+	bool IsReduced(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+	ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
+
+private:
+	// Whether this operation is appending a single element to a vector.
+	bool is_vector_elem_append = false;
 	};
 
 class RemoveFromExpr final : public BinaryExpr
 	{
 public:
+	bool IsPure() const override { return false; }
 	RemoveFromExpr(ExprPtr op1, ExprPtr op2);
 	ValPtr Eval(Frame* f) const override;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	bool HasReducedOps(Reducer* c) const override { return false; }
 	bool WillTransform(Reducer* c) const override { return true; }
+	bool IsReduced(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+	ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
 	};
 
 class SubExpr final : public BinaryExpr
@@ -940,11 +955,9 @@ public:
 	           const AttributesPtr& attrs = nullptr, bool type_check = true);
 
 	ValPtr Eval(Frame* f) const override;
-	void EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const override;
 	TypePtr InitType() const override;
 	bool IsRecordElement(TypeDecl* td) const override;
-	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
-	bool IsPure() const override;
+	bool IsPure() const override { return false; }
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -1153,14 +1166,13 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
+	ExprPtr Inline(Inliner* inl) override;
 
 	bool HasReducedOps(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
-	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
-
 	void ExprDescribe(ODesc* d) const override;
 
 	ListExprPtr op;
@@ -1173,6 +1185,7 @@ public:
 	TableConstructorExpr(ListExprPtr constructor_list, std::unique_ptr<std::vector<AttrPtr>> attrs,
 	                     TypePtr arg_type = nullptr, AttributesPtr arg_attrs = nullptr);
 
+	void SetAttrs(AttributesPtr _attrs) { attrs = std::move(_attrs); }
 	const AttributesPtr& GetAttrs() const { return attrs; }
 
 	ValPtr Eval(Frame* f) const override;
@@ -1185,8 +1198,6 @@ public:
 	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
-	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
-
 	void ExprDescribe(ODesc* d) const override;
 
 	AttributesPtr attrs;
@@ -1198,6 +1209,7 @@ public:
 	SetConstructorExpr(ListExprPtr constructor_list, std::unique_ptr<std::vector<AttrPtr>> attrs,
 	                   TypePtr arg_type = nullptr, AttributesPtr arg_attrs = nullptr);
 
+	void SetAttrs(AttributesPtr _attrs) { attrs = std::move(_attrs); }
 	const AttributesPtr& GetAttrs() const { return attrs; }
 
 	ValPtr Eval(Frame* f) const override;
@@ -1210,8 +1222,6 @@ public:
 	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
-	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
-
 	void ExprDescribe(ODesc* d) const override;
 
 	AttributesPtr attrs;
@@ -1230,8 +1240,6 @@ public:
 	bool HasReducedOps(Reducer* c) const override;
 
 protected:
-	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
-
 	void ExprDescribe(ODesc* d) const override;
 	};
 
@@ -1250,12 +1258,10 @@ public:
 	// (in which case an error is reported).
 	bool PromoteTo(TypePtr t);
 
-	void EvalIntoAggregate(const TypePtr& t, ValPtr aggr, Frame* f) const override;
 	bool IsRecordElement(TypeDecl* td) const override;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
-
 	bool WillTransform(Reducer* c) const override { return true; }
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
@@ -1292,7 +1298,6 @@ public:
 	const std::vector<int>& Map() const { return map; }
 
 protected:
-	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 	ValPtr Fold(Val* v) const override;
 
 	// For each super-record slot, gives subrecord slot with which to
@@ -1305,7 +1310,7 @@ extern RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector
 class TableCoerceExpr final : public UnaryExpr
 	{
 public:
-	TableCoerceExpr(ExprPtr op, TableTypePtr r);
+	TableCoerceExpr(ExprPtr op, TableTypePtr r, bool type_check = true);
 	~TableCoerceExpr() override;
 
 	// Optimization-related:
@@ -1346,7 +1351,7 @@ class ScheduleExpr final : public Expr
 public:
 	ScheduleExpr(ExprPtr when, EventExprPtr event);
 
-	bool IsPure() const override;
+	bool IsPure() const override { return false; }
 
 	ValPtr Eval(Frame* f) const override;
 
@@ -1481,7 +1486,6 @@ public:
 	ValPtr Eval(Frame* f) const override;
 
 	TypePtr InitType() const override;
-	ValPtr InitVal(const TypePtr& t, ValPtr aggr) const override;
 	ExprPtr MakeLvalue() override;
 	void Assign(Frame* f, ValPtr v) override;
 
@@ -1497,8 +1501,6 @@ public:
 	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
-	ValPtr AddSetInit(TypePtr t, ValPtr aggr) const;
-
 	void ExprDescribe(ODesc* d) const override;
 
 	ExprPList exprs;
@@ -1616,10 +1618,12 @@ public:
 	AppendToExpr(ExprPtr op1, ExprPtr op2);
 	ValPtr Eval(Frame* f) const override;
 
+	ExprPtr Duplicate() override;
+
+	bool IsPure() const override { return false; }
 	bool IsReduced(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
-
-	ExprPtr Duplicate() override;
+	ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
 	};
 
 // An internal class for reduced form.
@@ -1633,6 +1637,7 @@ public:
 
 	ExprPtr Duplicate() override;
 
+	bool IsPure() const override { return false; }
 	bool IsReduced(Reducer* c) const override;
 	bool HasReducedOps(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -1664,6 +1669,7 @@ public:
 
 	ExprPtr Duplicate() override;
 
+	bool IsPure() const override { return false; }
 	bool IsReduced(Reducer* c) const override;
 	bool HasReducedOps(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -1763,7 +1769,14 @@ inline Val* Expr::ExprVal() const
 	}
 
 // Decides whether to return an AssignExpr or a RecordAssignExpr.
-ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init);
+extern ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init);
+
+// Takes a RHS constructor list and returns a version with any embedded
+// indices within it (used to concisely represent multiple set/table entries)
+// expanded.
+//
+// Second argument gives the type that the list will expand to, if known.
+extern ListExprPtr expand_op(ListExprPtr op, const TypePtr& t);
 
 /**
  * Type-check the given expression(s) against the given type(s).  Complain
@@ -1784,7 +1797,7 @@ extern bool check_and_promote_exprs_to_type(ListExpr* elements, TypePtr type);
 
 // Returns a ListExpr simplified down to a list a values, or nil
 // if they couldn't all be reduced.
-std::optional<std::vector<ValPtr>> eval_list(Frame* f, const ListExpr* l);
+extern std::optional<std::vector<ValPtr>> eval_list(Frame* f, const ListExpr* l);
 
 // Returns true if e1 is "greater" than e2 - here "greater" is just
 // a heuristic, used with commutative operators to put them into
@@ -1799,6 +1812,17 @@ inline bool is_vector(Expr* e)
 inline bool is_vector(const ExprPtr& e)
 	{
 	return is_vector(e.get());
+	}
+
+// True if the given Expr* has a list type
+inline bool is_list(Expr* e)
+	{
+	return e->GetType()->Tag() == TYPE_LIST;
+	}
+
+inline bool is_list(const ExprPtr& e)
+	{
+	return is_list(e.get());
 	}
 
 	} // namespace detail

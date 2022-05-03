@@ -792,6 +792,7 @@ private:
 	std::string GenIndexExpr(const Expr* e, GenType gt);
 	std::string GenAssignExpr(const Expr* e, GenType gt, bool top_level);
 	std::string GenAddToExpr(const Expr* e, GenType gt, bool top_level);
+	std::string GenRemoveFromExpr(const Expr* e, GenType gt, bool top_level);
 	std::string GenSizeExpr(const Expr* e, GenType gt);
 	std::string GenScheduleExpr(const Expr* e);
 	std::string GenLambdaExpr(const Expr* e);

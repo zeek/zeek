@@ -182,7 +182,7 @@ void Analyzer::AnalyzerConfirmation(session::Session* session, zeek::Tag arg_tag
 	}
 
 void Analyzer::AnalyzerViolation(const char* reason, session::Session* session, const char* data,
-                                 int len)
+                                 int len, zeek::Tag arg_tag)
 	{
 	if ( ! analyzer_violation )
 		return;
@@ -201,7 +201,7 @@ void Analyzer::AnalyzerViolation(const char* reason, session::Session* session, 
 	else
 		r = make_intrusive<StringVal>(reason);
 
-	const auto& tval = tag.AsVal();
+	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
 	event_mgr.Enqueue(analyzer_violation, session->GetVal(), tval, val_mgr->Count(0), std::move(r));
 	}
 

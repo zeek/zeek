@@ -297,9 +297,7 @@ switch	return TOK_SWITCH;
 table	return TOK_TABLE;
 time	return TOK_TIME;
 timeout	return TOK_TIMEOUT;
-timer	return TOK_TIMER;
 type	return TOK_TYPE;
-union	return TOK_UNION;
 vector	return TOK_VECTOR;
 when	return TOK_WHEN;
 
@@ -376,7 +374,7 @@ when	return TOK_WHEN;
 @load-sigs{WS}{FILE} {
 	const char* file = zeek::util::skip_whitespace(yytext + 10);
 	std::string path = find_relative_file(file, ".sig");
-	sig_files.emplace_back(file, path);
+	sig_files.emplace_back(file, path, GetCurrentLocation());
 	}
 
 @load-plugin{WS}{ID} {
@@ -587,6 +585,11 @@ YYLTYPE zeek::detail::GetCurrentLocation()
 
 	return currloc;
 	}
+
+void zeek::detail::SetCurrentLocation(YYLTYPE currloc) {
+	::filename = currloc.filename;
+	line_number = currloc.first_line;
+}
 
 static int load_files(const char* orig_file)
 	{

@@ -18,16 +18,11 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/ZeekList.h"
 
-namespace caf
-	{
-template <class> class expected;
-	}
-
 namespace broker
 	{
 class data;
 using vector = std::vector<data>;
-using caf::expected;
+template <class> class expected;
 	}
 
 namespace zeek
@@ -66,9 +61,7 @@ public:
 		BUILTIN_FUNC
 		};
 
-	explicit Func(Kind arg_kind);
-
-	~Func() override;
+	explicit Func(Kind arg_kind) : kind(arg_kind) { }
 
 	virtual bool IsPure() const = 0;
 	FunctionFlavor Flavor() const { return GetType()->Flavor(); }
@@ -127,14 +120,8 @@ public:
 
 	virtual detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
 
-	uint32_t GetUniqueFuncID() const { return unique_id; }
-	static const FuncPtr& GetFuncPtrByID(uint32_t id)
-		{
-		return id >= unique_ids.size() ? Func::nil : unique_ids[id];
-		}
-
 protected:
-	Func();
+	Func() = default;
 
 	// Copies this function's state into other.
 	void CopyStateInto(Func* other) const;
@@ -144,11 +131,9 @@ protected:
 
 	std::vector<Body> bodies;
 	detail::ScopePtr scope;
-	Kind kind;
-	uint32_t unique_id;
+	Kind kind = SCRIPT_FUNC;
 	FuncTypePtr type;
 	std::string name;
-	static inline std::vector<FuncPtr> unique_ids;
 	};
 
 namespace detail
@@ -303,7 +288,7 @@ protected:
 	virtual void SetCaptures(Frame* f);
 
 private:
-	size_t frame_size;
+	size_t frame_size = 0;
 
 	// List of the outer IDs used in the function.
 	IDPList outer_ids;
@@ -374,8 +359,8 @@ struct function_ingredients
 	IDPtr id;
 	StmtPtr body;
 	std::vector<IDPtr> inits;
-	int frame_size;
-	int priority;
+	int frame_size = 0;
+	int priority = 0;
 	ScopePtr scope;
 	};
 

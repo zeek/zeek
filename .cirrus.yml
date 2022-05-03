@@ -8,11 +8,13 @@
 cpus: &CPUS 4
 btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
-memory: &MEMORY 4GB
+memory: &MEMORY 8GB
 
 config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
 static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install
-sanitizer_config: &SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address,undefined --enable-fuzzers --enable-coverage
+asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage
+ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers
+tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers
 mobile_ipv6_config: &MOBILE_IPV6_CONFIG --build-type=release --enable-mobile-ipv6 --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
 openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install
 
@@ -108,9 +110,16 @@ fedora34_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+centosstream9_task:
+  container:
+    # Stream 9 EOL: Around Dec 2027
+    dockerfile: ci/centos-stream-9/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 centosstream8_task:
   container:
-    # Stream 8 support should be 5 years, so until 2024. but I cannot find a concrete timeline --cpk
+    # Stream 8 EOL: May 31, 2024
     dockerfile: ci/centos-stream-8/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
@@ -160,17 +169,17 @@ debian9_32bit_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-opensuse_leap_15_2_task:
-  container:
-    # Opensuse Leap 15.2 EOL: Dec 2021
-    dockerfile: ci/opensuse-leap-15.2/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
 opensuse_leap_15_3_task:
   container:
     # Opensuse Leap 15.3 EOL: TBD
     dockerfile: ci/opensuse-leap-15.3/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
+ubuntu21_task:
+  container:
+    # Ubuntu 21.10 EOL: July 2022
+    dockerfile: ci/ubuntu-21.10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
@@ -261,7 +270,7 @@ openssl30_task:
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *OPENSSL30_CONFIG
 
-sanitizer_task:
+asan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile
@@ -270,10 +279,38 @@ sanitizer_task:
     memory: 12GB
   << : *CI_TEMPLATE
   test_fuzzers_script: ./ci/test-fuzzers.sh
-  coverage_script: ./ci/upload-coverage.sh
   env:
     CXXFLAGS: -DZEEK_DICT_DEBUG
-    ZEEK_CI_CONFIGURE_FLAGS: *SANITIZER_CONFIG
-    ZEEK_TAILORED_UB_CHECKS: 1
+    ZEEK_CI_CONFIGURE_FLAGS: *ASAN_SANITIZER_CONFIG
     ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
+    ASAN_OPTIONS: detect_leaks=1
+
+ubsan_sanitizer_task:
+  container:
+    # Just uses a recent/common distro to run undefined behavior checks.
+    dockerfile: ci/ubuntu-20.04/Dockerfile
+    cpu: 4
+    # AddressSanitizer uses a lot more memory than a typical config.
+    memory: 12GB
+  << : *CI_TEMPLATE
+  test_fuzzers_script: ./ci/test-fuzzers.sh
+  env:
+    CXXFLAGS: -DZEEK_DICT_DEBUG
+    ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
+    ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
+    ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
+
+# tsan_sanitizer_task:
+#   container:
+#     # Just uses a recent/common distro to run memory error/leak checks.
+#     dockerfile: ci/ubuntu-20.04/Dockerfile
+#     cpu: 4
+#     # AddressSanitizer uses a lot more memory than a typical config.
+#     memory: 12GB
+#   << : *CI_TEMPLATE
+#   test_fuzzers_script: ./ci/test-fuzzers.sh
+#   env:
+#     CXXFLAGS: -DZEEK_DICT_DEBUG
+#     ZEEK_CI_CONFIGURE_FLAGS: *TSAN_SANITIZER_CONFIG
+#     ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1

@@ -141,7 +141,7 @@ public:
 	virtual void AnalyzerConfirmation(session::Session* session, zeek::Tag tag = zeek::Tag());
 
 	/**
-	 * Signals Bro's protocol detection that the analyzer has found a
+	 * Signals Zeek's protocol detection that the analyzer has found a
 	 * severe protocol violation that could indicate that it's not
 	 * parsing the expected protocol. This turns into \c
 	 * analyzer_violation events at the script-layer (one such event is
@@ -156,7 +156,8 @@ public:
 	 * @param len If \a data is given, the length of it.
 	 */
 	virtual void AnalyzerViolation(const char* reason, session::Session* session,
-	                               const char* data = nullptr, int len = 0);
+	                               const char* data = nullptr, int len = 0,
+	                               zeek::Tag tag = zeek::Tag());
 
 	/**
 	 * Returns true if ProtocolConfirmation() has been called at least

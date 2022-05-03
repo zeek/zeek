@@ -151,6 +151,15 @@ binpac_target(binpac_zeek-lib.pac)
 list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 
 ########################################################################
+## Gen-ZAM setup
+
+include(Gen-ZAM)
+
+set(GEN_ZAM_SRC ${CMAKE_CURRENT_SOURCE_DIR}/script_opt/ZAM/Ops.in)
+
+gen_zam_target(${GEN_ZAM_SRC})
+
+########################################################################
 ## Including subdirectories.
 ########################################################################
 
@@ -248,37 +257,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
 
 set(_gen_zeek_script_cpp ${CMAKE_CURRENT_BINARY_DIR}/../CPP-gen.cc)
 add_custom_command(OUTPUT ${_gen_zeek_script_cpp}
-		    COMMAND ${CMAKE_COMMAND} -E touch ${_gen_zeek_script_cpp})
-
-# define a command that's used to run the ZAM instruction generator;
-# building the zeek binary depends on the outputs of this script
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ZAM-AssignFlavorsDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Conds.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-DirectDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-EvalDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-EvalMacros.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenExprsDefsC1.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenExprsDefsC2.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenExprsDefsC3.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenExprsDefsV.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenFieldsDefsC1.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenFieldsDefsC2.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-GenFieldsDefsV.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDecls.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Op1FlavorsDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpSideEffects.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsNamesDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Vec1EvalDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Vec2EvalDefs.h
-                   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/Gen-ZAM
-                   ARGS ${CMAKE_CURRENT_SOURCE_DIR}/script_opt/ZAM/Ops.in
-                   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Gen-ZAM
-                           ${CMAKE_CURRENT_SOURCE_DIR}/script_opt/ZAM/Ops.in
-                   COMMENT "[sh] Generating ZAM operations"
-                   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-)
+		   COMMAND ${CMAKE_COMMAND} -E touch ${_gen_zeek_script_cpp})
 
 set_source_files_properties(3rdparty/nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
@@ -307,12 +286,14 @@ set(MAIN_SRCS
     Desc.cc
     Dict.cc
     Discard.cc
+    DNS_Mapping.cc
     DNS_Mgr.cc
     EquivClass.cc
     Event.cc
     EventHandler.cc
     EventLauncher.cc
     EventRegistry.cc
+    EventTrace.cc
     Expr.cc
     File.cc
     Flare.cc
@@ -445,10 +426,6 @@ set(THIRD_PARTY_SRCS
     3rdparty/strsep.c
 )
 
-set(GEN_ZAM_SRCS
-    script_opt/ZAM/Gen-ZAM.cc
-)
-
 # Highwayhash. Highwayhash is a bit special since it has architecture dependent code...
 
 set(HH_SRCS
@@ -504,6 +481,8 @@ set(zeek_SRCS
     ${BIF_SRCS}
     ${BINPAC_AUXSRC}
     ${BINPAC_OUTPUTS}
+    ${GEN_ZAM_SRC}
+    ${GEN_ZAM_OUTPUT_H}
     ${TRANSFORMED_BISON_OUTPUTS}
     ${FLEX_RuleScanner_OUTPUTS}
     ${FLEX_RuleScanner_INPUT}
@@ -522,7 +501,6 @@ set(zeek_SRCS
 )
 
 collect_headers(zeek_HEADERS ${zeek_SRCS})
-collect_headers(GEN_ZAM_HEADERS ${GEN_ZAM_SRCS})
 
 add_library(zeek_objs OBJECT ${zeek_SRCS})
 
@@ -537,8 +515,6 @@ target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS
 set_target_properties(zeek PROPERTIES ENABLE_EXPORTS TRUE)
 
 install(TARGETS zeek DESTINATION bin)
-
-add_executable(Gen-ZAM ${GEN_ZAM_SRCS} ${GEN_ZAM_HEADERS})
 
 # Install wrapper script for Bro-to-Zeek renaming.
 include(InstallSymlink)
@@ -600,6 +576,10 @@ install(CODE "
    )
 ")
 
+# Make sure to escape a bunch of special characters in the path before trying to use it as a
+# regular expression below.
+string(REGEX REPLACE "([][+.*()^])" "\\\\\\1" escaped_path "${CMAKE_CURRENT_SOURCE_DIR}/zeek")
+
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/zeek
         FILES_MATCHING
@@ -607,7 +587,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         PATTERN "*.pac"
         PATTERN "3rdparty/*" EXCLUDE
         # The "zeek -> ." symlink isn't needed in the install-tree
-        REGEX "^${CMAKE_CURRENT_SOURCE_DIR}/zeek$" EXCLUDE
+        REGEX "^${escaped_path}$" EXCLUDE
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/

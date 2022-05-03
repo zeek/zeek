@@ -150,8 +150,8 @@ private:
 /**
  * This class wraps an OpenSSL X509 data structure.
  *
- * We need these to be able to pass OpenSSL pointers around in Bro
- * script-land. Otherwise, we cannot verify certificates from Bro
+ * We need these to be able to pass OpenSSL pointers around in Zeek
+ * script-land. Otherwise, we cannot verify certificates from Zeek
  * scriptland
  */
 class X509Val : public OpaqueVal

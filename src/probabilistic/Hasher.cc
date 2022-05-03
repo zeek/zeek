@@ -60,15 +60,15 @@ broker::expected<broker::data> Hasher::Serialize() const
 
 std::unique_ptr<Hasher> Hasher::Unserialize(const broker::data& data)
 	{
-	auto v = caf::get_if<broker::vector>(&data);
+	auto v = broker::get_if<broker::vector>(&data);
 
 	if ( ! (v && v->size() == 4) )
 		return nullptr;
 
-	auto type = caf::get_if<uint64_t>(&(*v)[0]);
-	auto k = caf::get_if<uint64_t>(&(*v)[1]);
-	auto h1 = caf::get_if<uint64_t>(&(*v)[2]);
-	auto h2 = caf::get_if<uint64_t>(&(*v)[3]);
+	auto type = broker::get_if<uint64_t>(&(*v)[0]);
+	auto k = broker::get_if<uint64_t>(&(*v)[1]);
+	auto h1 = broker::get_if<uint64_t>(&(*v)[2]);
+	auto h2 = broker::get_if<uint64_t>(&(*v)[3]);
 
 	if ( ! (type && k && h1 && h2) )
 		return nullptr;

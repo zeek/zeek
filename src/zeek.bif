@@ -321,7 +321,7 @@ static int next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, in
 ##
 ## Returns: The wall-clock time.
 ##
-## .. zeek:see:: network_time
+## .. zeek:see:: network_time set_network_time
 function current_time%(%): time
 	%{
 	return zeek::make_intrusive<zeek::TimeVal>(zeek::util::current_time());
@@ -333,10 +333,24 @@ function current_time%(%): time
 ##
 ## Returns: The timestamp of the packet processed.
 ##
-## .. zeek:see:: current_time
+## .. zeek:see:: current_time set_network_time
 function network_time%(%): time
 	%{
 	return zeek::make_intrusive<zeek::TimeVal>(zeek::run_state::network_time);
+	%}
+
+## Sets the timestamp associated with the last packet processed. Used for
+## event replaying.
+##
+## nt: The time to which to set "network time".
+##
+## Returns: The timestamp of the packet processed.
+##
+## .. zeek:see:: current_time network_time
+function set_network_time%(nt: time%): bool
+	%{
+	zeek::run_state::network_time = nt;
+	return zeek::val_mgr->True();
 	%}
 
 ## Returns a system environment variable.
@@ -2574,7 +2588,7 @@ function count_to_port%(num: count, proto: transport_proto%): port
 ## Returns: The :zeek:type:`string` *ip* as :zeek:type:`addr`, or the unspecified
 ##          address ``::`` if the input string does not parse correctly.
 ##
-## .. zeek:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
+## .. zeek:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr raw_bytes_to_v6_addr
 ##    to_subnet
 function to_addr%(ip: string%): addr
 	%{
@@ -2614,7 +2628,7 @@ function is_valid_ip%(ip: string%): bool
 ## Returns: The *sn* string as a :zeek:type:`subnet`, or the unspecified subnet
 ##          ``::/0`` if the input string does not parse correctly.
 ##
-## .. zeek:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
+## .. zeek:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr raw_bytes_to_v6_addr
 ##    to_addr
 function to_subnet%(sn: string%): subnet
 	%{
@@ -2696,7 +2710,7 @@ function to_double%(str: string%): double
 ##
 ## Returns: The :zeek:type:`count` *ip* as :zeek:type:`addr`.
 ##
-## .. zeek:see:: raw_bytes_to_v4_addr to_addr to_subnet
+## .. zeek:see:: raw_bytes_to_v4_addr to_addr to_subnet raw_bytes_to_v6_addr
 function count_to_v4_addr%(ip: count%): addr
 	%{
 	if ( ip > 4294967295LU )
@@ -2731,6 +2745,34 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 		}
 
 	return zeek::make_intrusive<zeek::AddrVal>(htonl(a));
+	%}
+
+## Converts a :zeek:type:`string` of bytes into an IPv6 address. In particular,
+## this function interprets the first 16 bytes of the string as an IPv6 address
+## in network order.
+##
+## b: The raw bytes (:zeek:type:`string`) to convert.
+##
+## Returns: The byte :zeek:type:`string` *b* as :zeek:type:`addr`.
+##
+## .. zeek:see:: raw_bytes_to_v6_addr to_addr to_subnet
+function raw_bytes_to_v6_addr%(x: string%): addr
+	%{
+	uint32_t bytes[4] = {0, 0, 0, 0};
+
+	if ( x->Len() < 16 )
+		zeek::emit_builtin_error("too short a string as input to raw_bytes_to_v6_addr()");
+
+	else
+		{
+		const u_char* xp = x->Bytes();
+		bytes[0] = htonl((xp[0] << 24) | (xp[1] << 16) | (xp[2] << 8) | xp[3]);
+		bytes[1] = htonl((xp[0+4] << 24) | (xp[1+4] << 16) | (xp[2+4] << 8) | xp[3+4]);
+		bytes[2] = htonl((xp[0+8] << 24) | (xp[1+8] << 16) | (xp[2+8] << 8) | xp[3+8]);
+		bytes[3] = htonl((xp[0+12] << 24) | (xp[1+12] << 16) | (xp[2+12] << 8) | xp[3+12]);
+		}
+
+	return zeek::make_intrusive<zeek::AddrVal>(bytes);
 	%}
 
 ## Converts a :zeek:type:`string` to a :zeek:type:`port`.
@@ -3600,8 +3642,8 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 
 class LookupHostCallback : public zeek::detail::DNS_Mgr::LookupCallback {
 public:
-	LookupHostCallback(zeek::detail::trigger::Trigger* arg_trigger, const zeek::detail::CallExpr* arg_call,
-				bool arg_lookup_name)
+	LookupHostCallback(zeek::detail::trigger::Trigger* arg_trigger,
+                           const zeek::detail::CallExpr* arg_call, bool arg_lookup_name)
 		{
 		Ref(arg_trigger);
 		trigger = arg_trigger;
@@ -3615,7 +3657,7 @@ public:
 		}
 
 	// Overridden from zeek::detail::DNS_Mgr:Lookup:Callback.
-	virtual void Resolved(const char* name)
+	void Resolved(const std::string& name) override
 		{
 		zeek::Val* result = new zeek::StringVal(name);
 		trigger->Cache(call, result);
@@ -3623,14 +3665,14 @@ public:
 		trigger->Release();
 		}
 
-	virtual void Resolved(zeek::TableVal* addrs)
+	void Resolved(zeek::TableValPtr addrs) override
 		{
 		// No Ref() for addrs.
-		trigger->Cache(call, addrs);
+		trigger->Cache(call, addrs.get());
 		trigger->Release();
 		}
 
-	virtual void Timeout()
+	void Timeout() override
 		{
 		if ( lookup_name )
 			{
@@ -3682,7 +3724,7 @@ function lookup_addr%(host: addr%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-	zeek::detail::dns_mgr->AsyncLookupAddr(host->AsAddr(),
+	zeek::detail::dns_mgr->LookupAddr(host->AsAddr(),
 			new LookupHostCallback(trigger, frame->GetCall(), true));
 	return nullptr;
 	%}
@@ -3711,7 +3753,7 @@ function lookup_hostname_txt%(host: string%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-	zeek::detail::dns_mgr->AsyncLookupNameText(host->CheckString(),
+	zeek::detail::dns_mgr->Lookup(host->CheckString(), T_TXT,
 				 new LookupHostCallback(trigger, frame->GetCall(), true));
 	return nullptr;
 	%}
@@ -3740,7 +3782,7 @@ function lookup_hostname%(host: string%) : addr_set
 	frame->SetDelayed();
 	trigger->Hold();
 
-	zeek::detail::dns_mgr->AsyncLookupName(host->CheckString(),
+	zeek::detail::dns_mgr->LookupHost(host->CheckString(),
 			new LookupHostCallback(trigger, frame->GetCall(), false));
 	return nullptr;
 	%}

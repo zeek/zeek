@@ -279,7 +279,6 @@ void CPP_TypeInits::Generate(InitsManager* im, vector<TypePtr>& ivec, int offset
 		case TYPE_PORT:
 		case TYPE_STRING:
 		case TYPE_TIME:
-		case TYPE_TIMER:
 		case TYPE_VOID:
 		case TYPE_SUBNET:
 		case TYPE_FILE:

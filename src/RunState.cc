@@ -190,7 +190,7 @@ void init_run(const std::optional<std::string>& interface,
 		if ( const auto& id = zeek::detail::global_scope()->Find("trace_output_file") )
 			id->SetVal(make_intrusive<StringVal>(writefile));
 		else
-			reporter->Error("trace_output_file not defined in bro.init");
+			reporter->Error("trace_output_file not defined");
 		}
 
 	zeek::detail::init_ip_addr_anonymizers();
@@ -283,7 +283,7 @@ void run_loop()
 	{
 	util::detail::set_processing_status("RUNNING", "run_loop");
 
-	std::vector<iosource::IOSource*> ready;
+	iosource::Manager::ReadySources ready;
 	ready.reserve(iosource_mgr->TotalSize());
 
 	while ( iosource_mgr->Size() || (BifConst::exit_only_after_terminate && ! terminating) )
@@ -310,11 +310,16 @@ void run_loop()
 
 		if ( ! ready.empty() )
 			{
-			for ( auto src : ready )
+			for ( const auto& src : ready )
 				{
-				DBG_LOG(DBG_MAINLOOP, "processing source %s", src->Tag());
-				current_iosrc = src;
-				src->Process();
+				auto* iosrc = src.src;
+
+				DBG_LOG(DBG_MAINLOOP, "processing source %s", iosrc->Tag());
+				current_iosrc = iosrc;
+				if ( iosrc->ImplementsProcessFd() && src.fd != -1 )
+					iosrc->ProcessFd(src.fd, src.flags);
+				else
+					iosrc->Process();
 				}
 			}
 		else if ( (have_pending_timers || communication_enabled ||
@@ -472,7 +477,7 @@ double pseudo_realtime = 0.0;
 double network_time = 0.0; // time according to last packet timestamp
                            // (or current time)
 double processing_start_time = 0.0; // time started working on current pkt
-double zeek_start_time = 0.0; // time Bro started.
+double zeek_start_time = 0.0; // time Zeek started.
 double zeek_start_network_time; // timestamp of first packet
 bool terminating = false; // whether we're done reading and finishing up
 bool is_parsing = false;

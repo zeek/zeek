@@ -5,6 +5,7 @@
 #include "zeek/zeek-config.h"
 
 #include <openssl/err.h>
+#include <openssl/opensslv.h>
 #include <openssl/ssl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -18,6 +19,7 @@
 #include "zeek/3rdparty/sqlite3.h"
 
 #define DOCTEST_CONFIG_IMPLEMENT
+
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/Anon.h"
 #include "zeek/DFA.h"
@@ -26,6 +28,7 @@
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/EventRegistry.h"
+#include "zeek/EventTrace.h"
 #include "zeek/File.h"
 #include "zeek/Frag.h"
 #include "zeek/Frame.h"
@@ -83,6 +86,88 @@ extern "C"
 HeapLeakChecker* heap_checker = 0;
 int perftools_leaks = 0;
 int perftools_profile = 0;
+#endif
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+struct CRYPTO_dynlock_value
+	{
+	std::mutex mtx;
+	};
+
+namespace
+	{
+
+std::unique_ptr<std::mutex[]> ssl_mtx_tbl;
+
+void ssl_lock_fn(int mode, int n, const char*, int)
+	{
+	if ( mode & CRYPTO_LOCK )
+		ssl_mtx_tbl[static_cast<size_t>(n)].lock();
+	else
+		ssl_mtx_tbl[static_cast<size_t>(n)].unlock();
+	}
+
+CRYPTO_dynlock_value* ssl_dynlock_create(const char*, int)
+	{
+	return new CRYPTO_dynlock_value;
+	}
+
+void ssl_dynlock_lock(int mode, CRYPTO_dynlock_value* ptr, const char*, int)
+	{
+	if ( mode & CRYPTO_LOCK )
+		ptr->mtx.lock();
+	else
+		ptr->mtx.unlock();
+	}
+
+void ssl_dynlock_destroy(CRYPTO_dynlock_value* ptr, const char*, int)
+	{
+	delete ptr;
+	}
+
+void do_ssl_init()
+	{
+	ERR_load_crypto_strings();
+	OPENSSL_add_all_algorithms_conf();
+	SSL_library_init();
+	SSL_load_error_strings();
+	ssl_mtx_tbl.reset(new std::mutex[CRYPTO_num_locks()]);
+	CRYPTO_set_locking_callback(ssl_lock_fn);
+	CRYPTO_set_dynlock_create_callback(ssl_dynlock_create);
+	CRYPTO_set_dynlock_lock_callback(ssl_dynlock_lock);
+	CRYPTO_set_dynlock_destroy_callback(ssl_dynlock_destroy);
+	}
+
+void do_ssl_deinit()
+	{
+	ERR_free_strings();
+	EVP_cleanup();
+	CRYPTO_cleanup_all_ex_data();
+	CRYPTO_set_locking_callback(nullptr);
+	CRYPTO_set_dynlock_create_callback(nullptr);
+	CRYPTO_set_dynlock_lock_callback(nullptr);
+	CRYPTO_set_dynlock_destroy_callback(nullptr);
+	ssl_mtx_tbl.reset();
+	}
+
+	} // namespace
+#else
+namespace
+	{
+
+void do_ssl_init()
+	{
+	OPENSSL_init_ssl(0, nullptr);
+	}
+
+void do_ssl_deinit()
+	{
+	ERR_free_strings();
+	EVP_cleanup();
+	CRYPTO_cleanup_all_ex_data();
+	}
+
+	} // namespace
 #endif
 
 zeek::ValManager* zeek::val_mgr = nullptr;
@@ -281,13 +366,13 @@ static void done_with_network()
 	ZEEK_LSAN_DISABLE();
 	}
 
-static void terminate_bro()
+static void terminate_zeek()
 	{
-	util::detail::set_processing_status("TERMINATING", "terminate_bro");
+	util::detail::set_processing_status("TERMINATING", "terminate_zeek");
 
 	run_state::terminating = true;
 
-	iosource_mgr->Wakeup("terminate_bro");
+	iosource_mgr->Wakeup("terminate_zeek");
 
 	// File analysis termination may produce events, so do it early on in
 	// the termination process.
@@ -299,12 +384,23 @@ static void terminate_bro()
 		event_mgr.Enqueue(zeek_done, Args{});
 
 	timer_mgr->Expire();
+
+	// Drain() limits how many "generations" of newly created events
+	// it will process.  When we're terminating, however, we're okay
+	// with long chains of events, and this makes the workings of
+	// event-tracing simpler.
+	//
+	// That said, we also need to ensure that it runs at least once,
+	// as it has side effects such as tickling triggers.
 	event_mgr.Drain();
+
+	while ( event_mgr.HasEvents() )
+		event_mgr.Drain();
 
 	if ( profiling_logger )
 		{
 		// FIXME: There are some occasional crashes in the memory
-		// allocation code when killing Bro.  Disabling this for now.
+		// allocation code when killing Zeek.  Disabling this for now.
 		if ( ! (signal_val == SIGTERM || signal_val == SIGINT) )
 			profiling_logger->Log();
 
@@ -318,17 +414,18 @@ static void terminate_bro()
 	input_mgr->Terminate();
 	thread_mgr->Terminate();
 	broker_mgr->Terminate();
-	dns_mgr->Terminate();
 
 	event_mgr.Drain();
 
 	plugin_mgr->FinishPlugins();
 
+	finish_script_execution();
+
 	delete zeekygen_mgr;
 	delete packet_mgr;
 	delete analyzer_mgr;
 	delete file_mgr;
-	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
+	// broker_mgr, timer_mgr, supervisor, and dns_mgr are deleted via iosource_mgr
 	delete iosource_mgr;
 	delete event_registry;
 	delete log_mgr;
@@ -384,6 +481,22 @@ static std::vector<std::string> get_script_signature_files()
 	return rval;
 	}
 
+// Helper for masking/unmasking the set of signals that apply to our signal
+// handlers: sig_handler() in this file, as well as stem_signal_handler() and
+// supervisor_signal_handler() in the Supervisor.
+static void set_signal_mask(bool do_block)
+	{
+	sigset_t mask_set;
+
+	sigemptyset(&mask_set);
+	sigaddset(&mask_set, SIGCHLD);
+	sigaddset(&mask_set, SIGTERM);
+	sigaddset(&mask_set, SIGINT);
+
+	int res = pthread_sigmask(do_block ? SIG_BLOCK : SIG_UNBLOCK, &mask_set, 0);
+	assert(res == 0);
+	}
+
 SetupResult setup(int argc, char** argv, Options* zopts)
 	{
 	ZEEK_LSAN_DISABLE();
@@ -429,6 +542,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	if ( dns_type == DNS_DEFAULT && fake_dns() )
 		dns_type = DNS_FAKE;
+
+	dns_mgr = new DNS_Mgr(dns_type);
 
 	RETSIGTYPE (*oldhandler)(int);
 
@@ -486,6 +601,12 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		}
 #endif
 
+	// Mask signals relevant for our signal handlers here. We unmask them
+	// again further down, when all components that launch threads have done
+	// so. The launched threads inherit the active signal mask and thus
+	// prevent our signal handlers from running in unintended threads.
+	set_signal_mask(true);
+
 	if ( options.supervisor_mode )
 		{
 		Supervisor::Config cfg = {};
@@ -506,10 +627,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
-	ERR_load_crypto_strings();
-	OPENSSL_add_all_algorithms_conf();
-	SSL_library_init();
-	SSL_load_error_strings();
+	do_ssl_init();
 
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
@@ -563,8 +681,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	push_scope(nullptr, nullptr);
 
-	dns_mgr = new DNS_Mgr(dns_type);
-
 	// It would nice if this were configurable.  This is similar to the
 	// chicken and the egg problem.  It would be configurable by parsing
 	// policy, but we can't parse policy without DNS resolution.
@@ -579,7 +695,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	file_mgr = new file_analysis::Manager();
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
 	broker_mgr = new Broker::Manager(broker_real_time);
-	telemetry_mgr = broker_mgr->NewTelemetryManager().release();
+	telemetry_mgr = new telemetry::Manager;
 	trigger_mgr = new trigger::Manager();
 
 	plugin_mgr->InitPreScript();
@@ -656,6 +772,9 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		};
 		auto ipbb = make_intrusive<BuiltinFunc>(init_bifs, ipbid->Name(), false);
 
+		if ( options.event_trace_file )
+			etm = make_unique<EventTraceMgr>(*options.event_trace_file);
+
 		run_state::is_parsing = true;
 		yyparse();
 		run_state::is_parsing = false;
@@ -717,9 +836,12 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		file_mgr->InitPostScript();
 		dns_mgr->InitPostScript();
 
+		//		dns_mgr->LookupAddr("17.253.144.10");
+
 #ifdef USE_PERFTOOLS_DEBUG
 		}
 #endif
+		set_signal_mask(false);
 
 		if ( reporter->Errors() > 0 )
 			{
@@ -819,9 +941,12 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		if ( (oldhandler = setsignal(SIGHUP, sig_handler)) != SIG_DFL )
 			(void)setsignal(SIGHUP, oldhandler);
 
+		// If we were priming the DNS cache (i.e. -P was passed as an argument), flush anything
+		// remaining to be resolved and save the cache to disk. We can just exit now because
+		// we've done everything we need to do. The run loop isn't started in this case, so
+		// nothing else should be happening.
 		if ( dns_type == DNS_PRIME )
 			{
-			dns_mgr->Verify();
 			dns_mgr->Resolve();
 
 			if ( ! dns_mgr->Save() )
@@ -941,13 +1066,11 @@ int cleanup(bool did_run_loop)
 		done_with_network();
 
 	run_state::detail::delete_run();
-	terminate_bro();
+	terminate_zeek();
 
 	sqlite3_shutdown();
 
-	ERR_free_strings();
-	EVP_cleanup();
-	CRYPTO_cleanup_all_ex_data();
+	do_ssl_deinit();
 
 	// Close files after net_delete(), because net_delete()
 	// might write to connection content files.
@@ -972,7 +1095,7 @@ void zeek_terminate_loop(const char* reason)
 	zeek::detail::done_with_network();
 	delete_run();
 
-	zeek::detail::terminate_bro();
+	zeek::detail::terminate_zeek();
 
 	// Close files after net_delete(), because net_delete()
 	// might write to connection content files.

@@ -28,7 +28,7 @@ export {
 	} &default = function(n: count): string { return fmt("unknown-message-type-%d", n); };
 
 	## Option types mapped to their names.
-	const option_types: table[int] of string = {
+	const option_types = {
 		[0] = "Pad",
 		[1] = "Subnet Mask",
 		[2] = "Time Offset",
@@ -185,5 +185,5 @@ export {
 		[221] = "Virtual Subnet Selection (VSS) Option",
 		[252] = "auto-proxy-config",
 		[255] = "End",
-	} &default = function(n: int): string { return fmt("unknown-option-type-%d", n); };
+	} &default = function(n: count): string { return fmt("unknown-option-type-%d", n); };
 }

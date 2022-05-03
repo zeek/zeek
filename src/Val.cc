@@ -420,8 +420,9 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 		}
 
 	rapidjson::Value j;
+	auto tag = val->GetType()->Tag();
 
-	switch ( val->GetType()->Tag() )
+	switch ( tag )
 		{
 		case TYPE_BOOL:
 			writer.Bool(val->AsBool());
@@ -475,8 +476,15 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			ODesc d;
 			d.SetStyle(RAW_STYLE);
 			val->Describe(&d);
-			writer.String(util::json_escape_utf8(
-				std::string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
+			std::string desc(reinterpret_cast<const char*>(d.Bytes()), d.Len());
+
+			// None of our function types should have surrounding
+			// whitespace, but ODesc might produce it due to its
+			// many output modes and flags. Strip it.
+			if ( tag == TYPE_FUNC )
+				desc = util::strstrip(desc);
+
+			writer.String(util::json_escape_utf8(desc));
 			break;
 			}
 
@@ -939,9 +947,7 @@ StringVal::StringVal(int length, const char* s)
 	{
 	}
 
-StringVal::StringVal(const char* s) : StringVal(new String(s)) { }
-
-StringVal::StringVal(const string& s) : StringVal(s.length(), s.data()) { }
+StringVal::StringVal(std::string_view s) : StringVal(s.length(), s.data()) { }
 
 StringVal::~StringVal()
 	{
@@ -1770,57 +1776,6 @@ bool TableVal::IsSubsetOf(const TableVal& tv) const
 	return true;
 	}
 
-bool TableVal::ExpandAndInit(ValPtr index, ValPtr new_val)
-	{
-	const auto& index_type = index->GetType();
-
-	if ( index_type->IsSet() )
-		{
-		index = index->AsTableVal()->ToListVal();
-		return ExpandAndInit(std::move(index), std::move(new_val));
-		}
-
-	if ( index_type->Tag() != TYPE_LIST )
-		// Nothing to expand.
-		return CheckAndAssign(std::move(index), std::move(new_val));
-
-	ListVal* iv = index->AsListVal();
-	if ( iv->BaseTag() != TYPE_ANY )
-		{
-		if ( table_type->GetIndices()->GetTypes().size() != 1 )
-			reporter->InternalError("bad singleton list index");
-
-		for ( int i = 0; i < iv->Length(); ++i )
-			if ( ! ExpandAndInit(iv->Idx(i), new_val) )
-				return false;
-
-		return true;
-		}
-
-	else
-		{ // Compound table.
-		int i;
-
-		for ( i = 0; i < iv->Length(); ++i )
-			{
-			const auto& v = iv->Idx(i);
-			// ### if CompositeHash::ComputeHash did flattening
-			// of 1-element lists (like ComputeSingletonHash does),
-			// then we could optimize here.
-			const auto& t = v->GetType();
-
-			if ( t->IsSet() || t->Tag() == TYPE_LIST )
-				break;
-			}
-
-		if ( i >= iv->Length() )
-			// Nothing to expand.
-			return CheckAndAssign(std::move(index), std::move(new_val));
-		else
-			return ExpandCompoundAndInit(iv, i, std::move(new_val));
-		}
-	}
-
 ValPtr TableVal::Default(const ValPtr& index)
 	{
 	const auto& def_attr = GetAttr(detail::ATTR_DEFAULT);
@@ -2145,15 +2100,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 			case ELEMENT_NEW:
 			case ELEMENT_CHANGED:
 				{
-#ifndef __clang__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-				broker::optional<broker::timespan> expiry;
-#ifndef __clang__
-#pragma GCC diagnostic pop
-#endif
-
+				std::optional<broker::timespan> expiry;
 				auto expire_time = GetExpireTime();
 				if ( expire_time == 0 )
 					// Entry is set to immediately expire. Let's not forward it.
@@ -2456,49 +2403,6 @@ void TableVal::Describe(ODesc* d) const
 		}
 	}
 
-bool TableVal::ExpandCompoundAndInit(ListVal* lv, int k, ValPtr new_val)
-	{
-	Val* ind_k_v = lv->Idx(k).get();
-	auto ind_k = ind_k_v->GetType()->IsSet() ? ind_k_v->AsTableVal()->ToListVal()
-	                                         : ListValPtr{NewRef{}, ind_k_v->AsListVal()};
-
-	for ( int i = 0; i < ind_k->Length(); ++i )
-		{
-		const auto& ind_k_i = ind_k->Idx(i);
-		auto expd = make_intrusive<ListVal>(TYPE_ANY);
-
-		for ( auto j = 0; j < lv->Length(); ++j )
-			{
-			const auto& v = lv->Idx(j);
-
-			if ( j == k )
-				expd->Append(ind_k_i);
-			else
-				expd->Append(v);
-			}
-
-		if ( ! ExpandAndInit(std::move(expd), new_val) )
-			return false;
-		}
-
-	return true;
-	}
-
-bool TableVal::CheckAndAssign(ValPtr index, ValPtr new_val)
-	{
-	Val* v = nullptr;
-	if ( subnets )
-		// We need an exact match here.
-		v = (Val*)subnets->Lookup(index.get(), true);
-	else
-		v = Find(index).get();
-
-	if ( v )
-		index->Warn("multiple initializations for index");
-
-	return Assign(std::move(index), std::move(new_val));
-	}
-
 void TableVal::InitDefaultFunc(detail::Frame* f)
 	{
 	// Value aready initialized.
@@ -2511,6 +2415,14 @@ void TableVal::InitDefaultFunc(detail::Frame* f)
 		return;
 
 	const auto& ytype = GetType()->Yield();
+
+	if ( ! ytype )
+		// This happens for empty table() constructors.  Don't
+		// instantiate a default value at this point, as we'll
+		// first need to type-check the attribute when the value
+		// is finally used.
+		return;
+
 	const auto& dtype = def_attr->GetExpr()->GetType();
 
 	if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD && ! same_type(dtype, ytype) &&
@@ -2969,13 +2881,12 @@ ValPtr RecordVal::GetFieldOrDefault(const char* field) const
 	return GetFieldOrDefault(idx);
 	}
 
-RecordValPtr RecordVal::CoerceTo(RecordTypePtr t, RecordValPtr aggr, bool allow_orphaning) const
+RecordValPtr RecordVal::DoCoerceTo(RecordTypePtr t, bool allow_orphaning) const
 	{
 	if ( ! record_promotion_compatible(t.get(), GetType()->AsRecordType()) )
 		return nullptr;
 
-	if ( ! aggr )
-		aggr = make_intrusive<RecordVal>(std::move(t));
+	auto aggr = make_intrusive<RecordVal>(std::move(t));
 
 	RecordType* ar_t = aggr->GetType()->AsRecordType();
 	const RecordType* rv_t = GetType()->AsRecordType();
@@ -3033,7 +2944,7 @@ RecordValPtr RecordVal::CoerceTo(RecordTypePtr t, bool allow_orphaning)
 	if ( same_type(GetType(), t) )
 		return {NewRef{}, this};
 
-	return CoerceTo(std::move(t), nullptr, allow_orphaning);
+	return DoCoerceTo(std::move(t), allow_orphaning);
 	}
 
 TableValPtr RecordVal::GetRecordFieldsVal() const
@@ -3326,19 +3237,10 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 	auto n = vector_val->size();
 
 	if ( index < n )
-		{ // May need to delete previous element
+		{ // Find location within existing vector elements.
 		it = std::next(vector_val->begin(), index);
 		if ( yield_types )
-			{
-			if ( *it )
-				ZVal::DeleteIfManaged(**it, element->GetType());
 			types_it = std::next(yield_types->begin(), index);
-			}
-		else if ( managed_yield )
-			{
-			if ( *it )
-				ZVal::DeleteManagedType(**it);
-			}
 		}
 	else
 		{

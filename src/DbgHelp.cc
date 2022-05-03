@@ -1,4 +1,4 @@
-// Bro Debugger Help
+// Zeek Debugger Help
 
 #include "zeek/zeek-config.h"
 

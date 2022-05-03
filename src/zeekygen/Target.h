@@ -43,7 +43,7 @@ struct TargetFile
 
 /**
  * A Zeekygen target abstract base class.  A target is generally any portion of
- * documentation that Bro can build.  It's identified by a type (e.g. script,
+ * documentation that Zeek can build.  It's identified by a type (e.g. script,
  * identifier, package), a pattern (e.g. "example.zeek", "HTTP::Info"), and
  * a path to an output file.
  */

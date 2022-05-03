@@ -1,4 +1,4 @@
-// Structures and methods for implementing breakpoints in the Bro debugger.
+// Structures and methods for implementing breakpoints in the Zeek debugger.
 
 #pragma once
 

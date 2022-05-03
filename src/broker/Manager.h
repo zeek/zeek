@@ -8,10 +8,6 @@
 #include <broker/endpoint_info.hh>
 #include <broker/error.hh>
 #include <broker/peer_info.hh>
-#include <broker/publisher_id.hh>
-#include <broker/status.hh>
-#include <broker/store.hh>
-#include <broker/topic.hh>
 #include <broker/zeek.hh>
 #include <memory>
 #include <string>
@@ -77,7 +73,7 @@ struct Stats
 	};
 
 /**
- * Manages various forms of communication between peer Bro processes
+ * Manages various forms of communication between peer Zeek processes
  * or other external applications via use of the Broker messaging library.
  */
 class Manager : public iosource::IOSource
@@ -96,7 +92,7 @@ public:
 	~Manager() override;
 
 	/**
-	 * Initialization of the manager. This is called late during Bro's
+	 * Initialization of the manager. This is called late during Zeek's
 	 * initialization after any scripts are processed.
 	 */
 	void InitPostScript();
@@ -223,7 +219,7 @@ public:
 	 * @param topic a topic string associated with the event message.
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
-	 * @param event a Bro event value.
+	 * @param event a Zeek event value.
 	 * @return true if automatic event sending is now enabled.
 	 */
 	bool AutoPublishEvent(std::string topic, Val* event);
@@ -395,11 +391,6 @@ public:
 	 *               selecting all metrics.
 	 */
 	void SetMetricsExportPrefixes(std::vector<std::string> filter);
-
-	/**
-	 * Allocates a new manager for telemetry data.
-	 */
-	std::unique_ptr<telemetry::Manager> NewTelemetryManager();
 
 private:
 	void DispatchMessage(const broker::topic& topic, broker::data msg);

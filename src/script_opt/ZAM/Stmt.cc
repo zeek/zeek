@@ -711,9 +711,8 @@ const ZAMStmt ZAMCompiler::CompileDel(const DelStmt* ds)
 	if ( index_list->Tag() != EXPR_LIST )
 		reporter->InternalError("non-list in \"delete\"");
 
-	auto internal_ind = BuildVals(index_list->AsListExprPtr());
-
-	return DelTableVO(aggr, internal_ind);
+	auto internal_ind = std::unique_ptr<OpaqueVals>(BuildVals(index_list->AsListExprPtr()));
+	return DelTableVO(aggr, internal_ind.get());
 	}
 
 const ZAMStmt ZAMCompiler::CompileWhile(const WhileStmt* ws)

@@ -283,7 +283,7 @@ public:
 		}
 
 	/**
-	 * Constructor with a Bro value argument.
+	 * Constructor with a Zeek value argument.
 	 */
 	explicit HookArgument(const Val* a)
 		{
@@ -292,7 +292,7 @@ public:
 		}
 
 	/**
-	 * Constructor with a list of Bro values argument.
+	 * Constructor with a list of Zeek values argument.
 	 */
 	explicit HookArgument(const ValPList* a)
 		{
@@ -453,7 +453,7 @@ public:
 		}
 
 	/**
-	 * Returns the value for a Bro value argument. The argument's type must
+	 * Returns the value for a Zeek value argument. The argument's type must
 	 * match accordingly.
 	 */
 	const Val* AsVal() const
@@ -463,7 +463,7 @@ public:
 		}
 
 	/**
-	 * Returns the value for a Bro wrapped value argument.  The argument's type must
+	 * Returns the value for a Zeek wrapped value argument.  The argument's type must
 	 * match accordingly.
 	 */
 	const std::pair<bool, Val*> AsFuncResult() const
@@ -473,7 +473,7 @@ public:
 		}
 
 	/**
-	 * Returns the value for a Bro frame argument.  The argument's type must
+	 * Returns the value for a Zeek frame argument.  The argument's type must
 	 * match accordingly.
 	 */
 	const zeek::detail::Frame* AsFrame() const
@@ -503,7 +503,7 @@ public:
 		}
 
 	/**
-	 * Returns the value for a list of Bro values argument. The argument's type must
+	 * Returns the value for a list of Zeek values argument. The argument's type must
 	 * match accordingly.
 	 */
 	const ValPList* AsValList() const
@@ -584,7 +584,7 @@ using HookArgumentList = std::list<HookArgument>;
 /**
  * Base class for all plugins.
  *
- * Plugins encapsulate functionality that extends one or more of Bro's major
+ * Plugins encapsulate functionality that extends one or more of Zeek's major
  * subsystems, such as analysis of a specific protocol, or logging output in
  * a particular format. A plugin acts a logical container that can provide a
  * set of functionality. Specifically, it may:
@@ -599,7 +599,7 @@ using HookArgumentList = std::list<HookArgument>;
  *   they'll be defined in *.bif files, but a plugin can also create them
  *   internally.
  *
- * - Provide hooks (aka callbacks) into Bro's core processing to inject
+ * - Provide hooks (aka callbacks) into Zeek's core processing to inject
  *   and/or alter functionality.
  *
  * A plugin needs to explicitly register all the functionality it provides.
@@ -699,7 +699,7 @@ public:
 	 *
 	 * Note that this method is rarely the right one to use. As it's for
 	 * informational purposes only, the plugin still needs to register
-	 * the BiF items themselves with the corresponding Bro parts. Doing
+	 * the BiF items themselves with the corresponding Zeek parts. Doing
 	 * so can be tricky, and it's recommned to instead define BiF items
 	 * in separate *.bif files that the plugin then pulls in. If defined
 	 * there, one does *not* need to call this method.
@@ -711,8 +711,8 @@ public:
 	void AddBifItem(const std::string& name, BifItem::Type type);
 
 	/**
-	 * Adds a file to the list of files that Bro loads at startup. This
-	 * will normally be a Bro script, but it passes through the plugin
+	 * Adds a file to the list of files that Zeek loads at startup. This
+	 * will normally be a Zeek script, but it passes through the plugin
 	 * system as well to load files with other extensions as supported by
 	 * any of the current plugins. In other words, calling this method is
 	 * similar to giving a file on the command line. Note that the file
@@ -732,7 +732,7 @@ protected:
 	friend class Manager;
 
 	/**
-	 * First-stage initialization of the plugin called early during Bro's
+	 * First-stage initialization of the plugin called early during Zeek's
 	 * startup, before scripts are parsed. This can be overridden by
 	 * derived classes; they must however call the parent's
 	 * implementation.
@@ -740,7 +740,7 @@ protected:
 	virtual void InitPreScript();
 
 	/**
-	 * Second-stage initialization of the plugin called late during Bro's
+	 * Second-stage initialization of the plugin called late during Zeek's
 	 * startup, after scripts are parsed. This can be overridden by
 	 * derived classes; they must however call the parent's
 	 * implementation.
@@ -768,12 +768,12 @@ protected:
 
 	/**
 	 * Enables a hook. The corresponding virtual method will now be
-	 * called as Bro's processing proceeds. Note that enabling hooks can
-	 * have performance impact as many trigger frequently inside Bro's
+	 * called as Zeek's processing proceeds. Note that enabling hooks can
+	 * have performance impact as many trigger frequently inside Zeek's
 	 * main processing path.
 	 *
 	 * Note that while hooks may be enabled/disabled dynamically at any
-	 * time, the output of Bro's \c -NN option will only reflect their
+	 * time, the output of Zeek's \c -NN option will only reflect their
 	 * state at startup time. Usually one should call this method for a
 	 * plugin's hooks in either the plugin's constructor or in
 	 * InitPreScript().
@@ -788,7 +788,7 @@ protected:
 	void EnableHook(HookType hook, int priority = 0);
 
 	/**
-	 * Disables a hook. Bro will no longer call the corresponding virtual
+	 * Disables a hook. Zeek will no longer call the corresponding virtual
 	 * method.
 	 *
 	 * @param hook The hook to disable.
@@ -803,9 +803,9 @@ protected:
 
 	/**
 	 * Registers interest in an event, even if there's no handler for it.
-	 * Normally a plugin receives events through HookQueueEvent() only if Bro
+	 * Normally a plugin receives events through HookQueueEvent() only if Zeek
 	 * actually has code to execute for it. By calling this method, the
-	 * plugin tells Bro to raise the event even if there's no correspondong
+	 * plugin tells Zeek to raise the event even if there's no correspondong
 	 * handler; it will then go into HookQueueEvent() just as any other.
 	 *
 	 * @param handler The event handler being interested in.
@@ -814,7 +814,7 @@ protected:
 
 	/**
 	 * Registers interest in the destruction of a Obj instance. When
-	 * Bro's reference counting triggers the objects destructor to run,
+	 * Zeek's reference counting triggers the objects destructor to run,
 	 * \a HookBroObjDtor will be called.
 	 *
 	 * Note that his can get expensive if triggered for many objects.
@@ -828,10 +828,10 @@ protected:
 	/**
 	 * Hook into loading input files. This method will be called between
 	 * InitPreScript() and InitPostScript(), but with no further order or
-	 * timing guaranteed. It will be called once for each input file Bro
+	 * timing guaranteed. It will be called once for each input file Zeek
 	 * is about to load, either given on the command line or via @load
 	 * script directives. The hook can take over the file, in which case
-	 * Bro will not further process it otherwise.
+	 * Zeek will not further process it otherwise.
 	 *
 	 * @param type The type of load encountered: script load, signatures load,
 	 *             or plugin load.
@@ -839,13 +839,13 @@ protected:
 	 * @param file The filename that was passed to @load. Only includes
 	 *             an extension if it was given in @load.
 	 *
-	 * @param resolved The file or directory name Bro resolved from
+	 * @param resolved The file or directory name Zeek resolved from
 	 *                 the given path and is going to load. Empty string
-	 *                 if Bro was not able to resolve a path.
+	 *                 if Zeek was not able to resolve a path.
 	 *
 	 * @return 1 if the plugin took over the file and loaded it
 	 * successfully; 0 if the plugin took over the file but had trouble
-	 * loading it (Bro will abort in this case, and the plugin should
+	 * loading it (Zeek will abort in this case, and the plugin should
 	 * have printed an error message); and -1 if the plugin wasn't
 	 * interested in the file at all.
 	 */
@@ -856,10 +856,10 @@ protected:
 	 * Hook into loading input files, with extended capabilities. This method
 	 * will be called between InitPreScript() and InitPostScript(), but with no
 	 * further order or timing guaranteed. It will be called once for each
-	 * input file Bro is about to load, either given on the command line or via
+	 * input file Zeek is about to load, either given on the command line or via
 	 * @load script directives. The hook can take over the file, in which case
-	 * Bro will not further process it otherwise. It can, alternatively, also
-	 * provide the file content as a string, which Bro will then process just
+	 * Zeek will not further process it otherwise. It can, alternatively, also
+	 * provide the file content as a string, which Zeek will then process just
 	 * as if it had read it from a file.
 	 *
 	 * @param type The type of load encountered: script load, signatures load,
@@ -868,21 +868,21 @@ protected:
 	 * @param file The filename that was passed to @load. Only includes
 	 *             an extension if it was given in @load.
 	 *
-	 * @param resolved The file or directory name Bro resolved from
+	 * @param resolved The file or directory name Zeek resolved from
 	 *                 the given path and is going to load. Empty string
-	 *                 if Bro was not able to resolve a path.
+	 *                 if Zeek was not able to resolve a path.
 	 *
 	 * @return tuple of an integer and an optional string, where: the integer
 	 * must be 1 if the plugin takes over loading the file (see below); 0 if
 	 * the plugin wanted to take over the file but had trouble loading it
 	 * (processing will abort in this case, and the plugin should have printed
-	 * an error message); and -1 if the plugin wants Bro to proceeed processing
+	 * an error message); and -1 if the plugin wants Zeek to proceeed processing
 	 * the file normally. If the plugins takes over by returning 1, there are
 	 * two cases: if the second tuple element remains unset, the plugin handled
-	 * the loading completely internally; Bro will not do anything further with
+	 * the loading completely internally; Zeek will not do anything further with
 	 * it. Alternatively, the plugin may optionally return the acutal content
 	 * to use for the file as a string through the tuple's second element. If
-	 * so, Bro will ignore the file on disk and use that provided content
+	 * so, Zeek will ignore the file on disk and use that provided content
 	 * instead (including when there's actually no physical file in place on
 	 * disk at all, and loading would have hence failed otherwise).
 	 */
@@ -959,7 +959,7 @@ protected:
 
 	/**
 	 * Hook for destruction of objects registered with
-	 * RequestBroObjDtor(). When Bro's reference counting triggers the
+	 * RequestBroObjDtor(). When Zeek's reference counting triggers the
 	 * objects destructor to run, this method will be run. It may also
 	 * run for other objects that this plugin has not registered for.
 	 *
@@ -1041,7 +1041,7 @@ protected:
 	 *
 	 * @param conn The associated connection
 	 *
-	 * @param addl Additional Bro values; typically will be passed to the event
+	 * @param addl Additional Zeek values; typically will be passed to the event
 	 *             by the reporter framework.
 	 *
 	 * @param location True if event expects location information

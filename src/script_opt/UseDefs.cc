@@ -466,6 +466,15 @@ UDs UseDefs::ExprUDs(const Expr* e)
 			AddInExprUDs(uds, e->GetOp1()->AsRefExprPtr()->GetOp1().get());
 			break;
 
+		case EXPR_ADD_TO:
+		case EXPR_REMOVE_FROM:
+			{
+			AddInExprUDs(uds, e->GetOp1().get());
+			auto rhs_UDs = ExprUDs(e->GetOp2().get());
+			uds = UD_Union(uds, rhs_UDs);
+			break;
+			}
+
 		case EXPR_RECORD_CONSTRUCTOR:
 			{
 			auto r = static_cast<const RecordConstructorExpr*>(e);
@@ -527,6 +536,10 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 	{
 	switch ( e->Tag() )
 		{
+		case EXPR_REF:
+			AddInExprUDs(uds, e->GetOp1().get());
+			break;
+
 		case EXPR_NAME:
 			AddID(uds, e->AsNameExpr()->Id());
 			break;
@@ -548,8 +561,9 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 			AddInExprUDs(uds, e->GetOp1()->AsRefExprPtr()->GetOp1().get());
 			break;
 
-		case EXPR_ASSIGN:
-			// These occur inside of table constructors.
+		case EXPR_ASSIGN: // can occur inside a table constructor
+		case EXPR_ADD_TO:
+		case EXPR_REMOVE_FROM:
 			AddInExprUDs(uds, e->GetOp1().get());
 			AddInExprUDs(uds, e->GetOp2().get());
 			break;

@@ -1,3 +1,5 @@
+# @TEST-GROUP: broker
+#
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run listen "zeek -b %INPUT connect=F Broker::disable_ssl=T"

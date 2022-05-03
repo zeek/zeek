@@ -18,7 +18,7 @@ namespace zeek::detail
 // can't do this when compiling individual functions since for event handlers
 // and hooks it needs to be computed across all of their bodies.
 //
-// Note, this is now not really needed, because we no longer use any
+// Note, this is now not actually needed, because we no longer use any
 // interpreter frame entries other than those for the function's arguments.
 // We keep the code in case that changes, for example when deciding to
 // compile functions that include "return when" conditions.
@@ -26,40 +26,39 @@ std::unordered_map<const Func*, int> remapped_intrp_frame_sizes;
 
 void finalize_functions(const std::vector<FuncInfo>& funcs)
 	{
-	// Given we've now compiled all of the function bodies, we
-	// can reset the interpreter frame sizes of each function
-	// to be the maximum needed to accommodate all of its
-	// remapped bodies.
+	// Given we've now compiled all of the function bodies, we can reset
+	// the interpreter frame sizes to what's actually used.  This can be
+	// a huge win for massively inlined event handlers, which otherwise
+	// can have frames sized for 100s of variables, none of which (other
+	// than the arguments) need TLC such as via calls to Frame::Reset().
 
 	// Find any functions with bodies that weren't compiled and
-	// make sure we don't reduce their frame size.  For any loaded
-	// from ZAM save files, use the associated maximum interpreter
-	// frame size as a minimum.
+	// make sure we don't reduce their frame size.
+	std::unordered_set<const Func*> leave_alone;
+
+	for ( auto& f : funcs )
+		if ( f.Body()->Tag() != STMT_ZAM )
+			// This function has a body that wasn't compiled,
+			// don't mess with its size.
+			leave_alone.insert(f.Func());
+
 	for ( auto& f : funcs )
 		{
 		auto func = f.Func();
 
-		// If we have non-compiled versions of the function's body,
-		// preserve the size they need.
-		int size = func->FrameSize();
-
-		if ( f.Body()->Tag() != STMT_ZAM && remapped_intrp_frame_sizes.count(func) > 0 &&
-		     size > remapped_intrp_frame_sizes[func] )
-			remapped_intrp_frame_sizes[func] = size;
-		}
-
-	for ( auto& f : funcs )
-		{
-		auto func = f.Func();
+		if ( leave_alone.count(func) > 0 )
+			continue;
 
 		if ( remapped_intrp_frame_sizes.count(func) == 0 )
 			// No entry for this function, keep current frame size.
 			continue;
 
-		// Note, functions with multiple bodies appear in "funcs"
-		// multiple times, but the following doesn't hurt to do
-		// more than once.
-		func->SetFrameSize(remapped_intrp_frame_sizes[func]);
+		auto& ft = func->GetType();
+		auto& params = ft->Params();
+		func->SetFrameSize(params->NumFields());
+
+		// Don't bother processing any future instances.
+		leave_alone.insert(func);
 		}
 	}
 
@@ -670,7 +669,15 @@ void ZAMCompiler::ReMapVar(const ID* id, int slot, bro_uint_t inst)
 	// powerful allocation method like graph coloring.  However, far and
 	// away the bulk of our variables are short-lived temporaries,
 	// for which greedy should work fine.
-	bool is_managed = ZVal::IsManagedType(id->GetType());
+	//
+	// Note, we also need to make sure that denizens sharing a slot
+	// are all consistently either managed, or non-managed, types.
+	// One subtlety in this regard is that identifiers that are types
+	// should always be deemed "managed", even if the type they refer
+	// to is not managed, because what matters for uses of those
+	// identifiers is interpreting them as "any" values having an
+	// internal type of TYPE_TYPE.
+	bool is_managed = ZVal::IsManagedType(id->GetType()) || id->IsType();
 
 	int apt_slot = -1;
 	for ( unsigned int i = 0; i < shared_frame_denizens.size(); ++i )

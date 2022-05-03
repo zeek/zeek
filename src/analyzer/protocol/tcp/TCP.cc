@@ -34,16 +34,18 @@ void TCP_ApplicationAnalyzer::Init()
 		SetTCP(static_cast<packet_analysis::TCP::TCPSessionAdapter*>(Parent()));
 	}
 
-void TCP_ApplicationAnalyzer::AnalyzerViolation(const char* reason, const char* data, int len)
+void TCP_ApplicationAnalyzer::AnalyzerViolation(const char* reason, const char* data, int len,
+                                                zeek::Tag tag)
 	{
-	auto* tcp = TCP();
+	if ( auto* tcp = TCP() )
+		{
+		if ( tcp->IsPartial() || tcp->HadGap(false) || tcp->HadGap(true) )
+			// Filter out incomplete connections.  Parsing them is
+			// too unreliable.
+			return;
+		}
 
-	if ( tcp && (tcp->IsPartial() || tcp->HadGap(false) || tcp->HadGap(true)) )
-		// Filter out incomplete connections.  Parsing them is
-		// too unreliable.
-		return;
-
-	Analyzer::AnalyzerViolation(reason, data, len);
+	Analyzer::AnalyzerViolation(reason, data, len, tag);
 	}
 
 void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,

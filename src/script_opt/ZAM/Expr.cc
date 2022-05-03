@@ -20,6 +20,12 @@ const ZAMStmt ZAMCompiler::CompileExpr(const Expr* e)
 		case EXPR_APPEND_TO:
 			return CompileAppendToExpr(static_cast<const AppendToExpr*>(e));
 
+		case EXPR_ADD_TO:
+			return CompileAddToExpr(static_cast<const AddToExpr*>(e));
+
+		case EXPR_REMOVE_FROM:
+			return CompileRemoveFromExpr(static_cast<const RemoveFromExpr*>(e));
+
 		case EXPR_ASSIGN:
 			return CompileAssignExpr(static_cast<const AssignExpr*>(e));
 
@@ -76,44 +82,72 @@ const ZAMStmt ZAMCompiler::CompileIncrExpr(const IncrExpr* e)
 
 const ZAMStmt ZAMCompiler::CompileAppendToExpr(const AppendToExpr* e)
 	{
-	auto op1 = e->GetOp1();
+	auto n1 = e->GetOp1()->AsNameExpr();
 	auto op2 = e->GetOp2();
+	auto n2 = op2->Tag() == EXPR_NAME ? op2->AsNameExpr() : nullptr;
+	auto cc = op2->Tag() != EXPR_NAME ? op2->AsConstExpr() : nullptr;
 
+	if ( n1->GetType()->Yield()->Tag() == TYPE_ANY )
+		return n2 ? AppendToAnyVecVV(n1, n2) : AppendToAnyVecVC(n1, cc);
+
+	return n2 ? AppendToVV(n1, n2) : AppendToVC(n1, cc);
+	}
+
+const ZAMStmt ZAMCompiler::CompileAddToExpr(const AddToExpr* e)
+	{
+	auto op1 = e->GetOp1();
+	auto t1 = op1->GetType()->Tag();
+
+	auto op2 = e->GetOp2();
 	auto n2 = op2->Tag() == EXPR_NAME ? op2->AsNameExpr() : nullptr;
 	auto cc = op2->Tag() != EXPR_NAME ? op2->AsConstExpr() : nullptr;
 
 	if ( op1->Tag() == EXPR_FIELD )
 		{
+		assert(t1 == TYPE_PATTERN);
 		auto f = op1->AsFieldExpr()->Field();
 		auto n1 = op1->GetOp1()->AsNameExpr();
-		return AppendToField(n1, n2, cc, f);
+
+		ZInstI z;
+
+		if ( n2 )
+			{
+			z = ZInstI(OP_ADDPATTERNTOFIELD_VVi, FrameSlot(n1), FrameSlot(n2), f);
+			z.op_type = OP_VVV_I3;
+			}
+		else
+			{
+			z = ZInstI(OP_ADDPATTERNTOFIELD_VCi, FrameSlot(n1), f, cc);
+			z.op_type = OP_VVC_I2;
+			}
+
+		z.SetType(n2 ? n2->GetType() : cc->GetType());
+
+		return AddInst(z);
 		}
 
 	auto n1 = op1->AsNameExpr();
 
-	return n2 ? AppendToVV(n1, n2) : AppendToVC(n1, cc);
+	if ( t1 == TYPE_PATTERN )
+		return n2 ? ExtendPatternVV(n1, n2) : ExtendPatternVC(n1, cc);
+
+	if ( t1 == TYPE_VECTOR )
+		return n2 ? AddVecToVecVV(n1, n2) : AddVecToVecVC(n1, cc);
+
+	assert(t1 == TYPE_TABLE);
+
+	return n2 ? AddTableToTableVV(n1, n2) : AddTableToTableVC(n1, cc);
 	}
 
-const ZAMStmt ZAMCompiler::AppendToField(const NameExpr* n1, const NameExpr* n2, const ConstExpr* c,
-                                         int offset)
+const ZAMStmt ZAMCompiler::CompileRemoveFromExpr(const RemoveFromExpr* e)
 	{
-	ZInstI z;
+	auto n1 = e->GetOp1()->AsNameExpr();
+	auto op2 = e->GetOp2();
 
-	if ( n2 )
-		{
-		z = ZInstI(OP_APPENDTOFIELD_VVi, FrameSlot(n1), FrameSlot(n2), offset);
-		z.op_type = OP_VVV_I3;
-		}
-	else
-		{
-		ASSERT(c);
-		z = ZInstI(OP_APPENDTOFIELD_VCi, FrameSlot(n1), offset, c);
-		z.op_type = OP_VVC_I2;
-		}
+	auto n2 = op2->Tag() == EXPR_NAME ? op2->AsNameExpr() : nullptr;
+	auto cc = op2->Tag() != EXPR_NAME ? op2->AsConstExpr() : nullptr;
 
-	z.SetType(n2 ? n2->GetType() : c->GetType());
-
-	return AddInst(z);
+	return n2 ? RemoveTableFromTableVV(n1, n2) : RemoveTableFromTableVC(n1, cc);
 	}
 
 const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e)

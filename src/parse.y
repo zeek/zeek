@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 140
+%expect 196
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -18,7 +18,7 @@
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
-%token TOK_TIME TOK_TIMEOUT TOK_TIMER TOK_TYPE TOK_UNION TOK_VECTOR TOK_WHEN
+%token TOK_TIME TOK_TIMEOUT TOK_TYPE TOK_VECTOR TOK_WHEN
 %token TOK_WHILE TOK_AS TOK_IS
 
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_DEFAULT TOK_ATTR_OPTIONAL TOK_ATTR_REDEF
@@ -58,7 +58,7 @@
 %type <id_l> local_id_list case_type_list
 %type <ic> init_class
 %type <val> TOK_CONSTANT
-%type <expr> expr opt_expr init opt_init anonymous_function lambda_body index_slice opt_deprecated when_condition
+%type <expr> expr opt_expr rhs opt_init anonymous_function lambda_body index_slice opt_deprecated when_condition
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> type opt_type enum_body
@@ -67,7 +67,7 @@
 %type <type_decl> type_decl formal_args_decl
 %type <type_decl_l> type_decl_list formal_args_decl_list
 %type <record> formal_args
-%type <list> expr_list opt_expr_list
+%type <list> expr_list opt_expr_list rhs_expr_list
 %type <c_case> case
 %type <case_l> case_list
 %type <attr> attr
@@ -488,7 +488,7 @@ expr:
 			$$ = new AddExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
-	|	expr TOK_ADD_TO expr
+	|	expr TOK_ADD_TO rhs
 			{
 			set_location(@1, @3);
 			$$ = new AddToExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
@@ -500,7 +500,7 @@ expr:
 			$$ = new SubExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
-	|	expr TOK_REMOVE_FROM expr
+	|	expr TOK_REMOVE_FROM rhs
 			{
 			set_location(@1, @3);
 			$$ = new RemoveFromExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
@@ -596,7 +596,7 @@ expr:
 			$$ = new CondExpr({AdoptRef{}, $1}, {AdoptRef{}, $3}, {AdoptRef{}, $5});
 			}
 
-	|	expr '=' expr
+	|	expr '=' rhs
 			{
 			set_location(@1, @3);
 
@@ -608,7 +608,7 @@ expr:
 			$$ = get_assign_expr({AdoptRef{}, $1}, {AdoptRef{}, $3}, in_init).release();
 			}
 
-	|	TOK_LOCAL local_id '=' expr
+	|	TOK_LOCAL local_id '=' rhs
 			{
 			set_location(@2, @4);
 			if ( ! locals_at_this_scope.empty() )
@@ -794,7 +794,6 @@ expr:
 
 	|	anonymous_function
 
-
 	|	TOK_SCHEDULE expr '{' event '}'
 			{
 			set_location(@1, @5);
@@ -904,6 +903,19 @@ expr:
 			set_location(@1, @3);
 			$$ = new IsExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
+	;
+
+rhs:		'{' { ++in_init; } rhs_expr_list '}'
+			{
+			--in_init;
+			$$ = $3;
+			}
+	|	expr
+	;
+
+rhs_expr_list: expr_list opt_comma
+	|
+		{ $$ = new ListExpr(); }
 	;
 
 expr_list:
@@ -1023,11 +1035,6 @@ type:
 				$$ = base_type(TYPE_PATTERN)->Ref();
 				}
 
-	|	TOK_TIMER	{
-				set_location(@1);
-				$$ = base_type(TYPE_TIMER)->Ref();
-				}
-
 	|	TOK_PORT	{
 				set_location(@1);
 				$$ = base_type(TYPE_PORT)->Ref();
@@ -1068,13 +1075,6 @@ type:
 				{
 				set_location(@1, @5);
 				$$ = new RecordType($4);
-				}
-
-	|	TOK_UNION '{' type_list '}'
-				{
-				set_location(@1, @4);
-				reporter->Error("union type not implemented");
-				$$ = 0;
 				}
 
 	|	TOK_ENUM '{' { set_location(@1); parse_new_enum(); } enum_body '}'
@@ -1520,18 +1520,10 @@ init_class:
 	;
 
 opt_init:
-		{ ++in_init; } init { --in_init; }
+		{ ++in_init; } rhs { --in_init; }
 			{ $$ = $2; }
 	|
 			{ $$ = 0; }
-	;
-
-init:
-		'{' opt_expr_list '}'
-			{ $$ = $2; }
-	|	'{' expr_list ',' '}'
-			{ $$ = $2; }
-	|	expr
 	;
 
 index_slice:
@@ -2076,12 +2068,14 @@ opt_no_test:
 			{ $$ = true; }
 	|
 			{ $$ = false; }
+	;
 
 opt_no_test_block:
 		TOK_NO_TEST
 			{ $$ = true; script_coverage_mgr.IncIgnoreDepth(); }
 	|
 			{ $$ = false; }
+	;
 
 opt_deprecated:
 		TOK_ATTR_DEPRECATED
@@ -2102,6 +2096,11 @@ opt_deprecated:
 			}
 	|
 			{ $$ = nullptr; }
+	;
+
+opt_comma: ','
+	|
+	;
 
 %%
 

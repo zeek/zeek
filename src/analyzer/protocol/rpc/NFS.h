@@ -68,7 +68,7 @@ protected:
 	                                BifEnum::NFS3::status_t status);
 
 	// Consumes the file data in the RPC message. Depending on NFS::return_data* consts
-	// in bro.init returns NULL or the data as string val:
+	// in zeek.init returns NULL or the data as string val:
 	//   * offset is the offset of the read/write call
 	//   * size is the amount of bytes read (or requested to be written),
 	StringValPtr nfs3_file_data(const u_char*& buf, int& n, uint64_t offset, int size);

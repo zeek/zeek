@@ -1,27 +1,36 @@
 name: Generate Documentation
 
 on:
+  pull_request:
   schedule:
     - cron: '0 0 * * *'
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   generate:
     if: github.repository == 'zeek/zeek'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     steps:
+      # We only perform a push if the action was triggered via a schedule
+      # event, so we only need to authenticate in that case. Use
+      # unauthenticated access otherwise so this action can e.g., also run from
+      # clones.
       - uses: actions/checkout@v2
+        if: github.event_name == 'schedule'
         with:
+          submodules: "recursive"
           token: ${{ secrets.ZEEK_BOT_TOKEN }}
+      - uses: actions/checkout@v2
+        if: github.event_name != 'schedule'
+        with:
+          submodules: "recursive"
 
-      - name: Sync Submodules
-        shell: bash
-        run: |
-          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
-          git submodule sync --recursive
-          git -c "http.extraheader=$auth_header" -c protocol.version=2 \
-            submodule update --init --force --recursive --depth=1
-          ( cd doc && git checkout master )
+      - name: Switch doc submodule to master
+        run: cd doc && git checkout master
 
       - name: Fetch Dependencies
         run: |
@@ -51,14 +60,12 @@ jobs:
           sudo pip3 install -r doc/requirements.txt
 
       - name: Configure
-        run: ./configure
+        run: ./configure --disable-broker-tests --disable-cpp-tests
 
       - name: Build
-        run: |
-          ( cd build && make -j 3 )
+        run: cd build && make -j $(nproc)
 
       - name: Generate Docs
-        shell: bash
         run: |
           git config --global user.name zeek-bot
           git config --global user.email info@zeek.org
@@ -76,25 +83,31 @@ jobs:
           echo "*** Check for Sphinx Warnings ***"
           grep -q WARNING make.out && exit 1
           rm make.out
-          echo "*** Pushing zeek-docs Changes ***"
-          git remote set-url origin "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek-docs"
+
+      - name: Push zeek-docs Changes
+        if: github.event_name == 'schedule'
+        run: |
+          cd doc
           git add scripts/ script-reference/
           git status
-          git commit -m "Generate docs" && git push || /bin/true
-          cd ..
+          # git commit errors when there's nothing to commit, so guard it
+          # with a check that detects whether there's anything to commit/push.
+          git diff-index --quiet HEAD || { git commit -m "Generate docs" && git push; }
 
       - name: Update zeek-docs Submodule
+        if: github.event_name == 'schedule'
         run: |
-          echo "*** Update zeek/doc Submodule ***"
           git config --global user.name zeek-bot
           git config --global user.email info@zeek.org
-          git remote add auth "https://zeek-bot:${{ secrets.ZEEK_BOT_TOKEN }}@github.com/zeek/zeek"
           git add doc
           git status
-          git commit -m 'Update doc submodule [nomail] [skip ci]' && git push auth master || /bin/true
+          # Similar logic here: proceed only if there's a change in the submodule.
+          git diff-index --quiet HEAD || { git commit -m 'Update doc submodule [nomail] [skip ci]' && git push; }
 
       - name: Send email
-        if: failure()
+        # Only send notifications for scheduled runs. Runs from pull requests
+        # show failures in the Github UI.
+        if: failure() && github.event_name == 'schedule'
         uses: dawidd6/action-send-mail@v3.4.1
         with:
           server_address: ${{secrets.SMTP_HOST}}

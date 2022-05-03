@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+
+scripts=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+
+$scripts/diff-remove-timestamps | $scripts/diff-sort

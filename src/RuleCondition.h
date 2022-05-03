@@ -122,7 +122,7 @@ private:
 	Comp comp;
 	};
 
-// Implements "eval" which evaluates the given Bro identifier.
+// Implements "eval" which evaluates the given Zeek identifier.
 class RuleConditionEval : public RuleCondition
 	{
 public:

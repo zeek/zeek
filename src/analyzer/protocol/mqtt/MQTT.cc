@@ -37,8 +37,6 @@ void MQTT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	assert(TCP());
-
 	try
 		{
 		interp->NewData(orig, data, data + len);

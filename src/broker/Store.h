@@ -52,9 +52,9 @@ inline RecordValPtr query_result(RecordValPtr data)
  * @param e: expire interval as double; 0 if no expiry
  * @return expire interval in Broker format
  */
-static broker::optional<broker::timespan> convert_expiry(double e)
+static std::optional<broker::timespan> convert_expiry(double e)
 	{
-	broker::optional<broker::timespan> ts;
+	std::optional<broker::timespan> ts;
 
 	if ( e )
 		{
@@ -122,7 +122,7 @@ public:
 
 	broker::store store;
 	broker::store::proxy proxy;
-	broker::publisher_id store_pid;
+	broker::entity_id store_pid;
 	// Zeek table that events are forwarded to.
 	TableValPtr forward_to;
 	bool have_store = false;

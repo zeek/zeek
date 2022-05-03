@@ -71,38 +71,44 @@ export {
 
 		## SSL history showing which types of packets we received in which order.
 		## Letters have the following meaning with client-sent letters being capitalized:
-		## H  hello_request
-		## C  client_hello
-		## S  server_hello
-		## V  hello_verify_request
-		## T  NewSessionTicket
-		## X  certificate
-		## K  server_key_exchange
-		## R  certificate_request
-		## N  server_hello_done
-		## Y  certificate_verify
-		## G  client_key_exchange
-		## F  finished
-		## W  certificate_url
-		## U  certificate_status
-		## A  supplemental_data
-		## Z  unassigned_handshake_type
-		## I  change_cipher_spec
-		## B  heartbeat
-		## D  application_data
-		## E  end_of_early_data
-		## O  encrypted_extensions
-		## P  key_update
-		## M  message_hash
-		## J  hello_retry_request
-		## L  alert
-		## Q  unknown_content_type
+		##
+		## ======  ====================================================
+		## Letter  Meaning
+		## ======  ====================================================
+		## H       hello_request
+		## C       client_hello
+		## S       server_hello
+		## V       hello_verify_request
+		## T       NewSessionTicket
+		## X       certificate
+		## K       server_key_exchange
+		## R       certificate_request
+		## N       server_hello_done
+		## Y       certificate_verify
+		## G       client_key_exchange
+		## F       finished
+		## W       certificate_url
+		## U       certificate_status
+		## A       supplemental_data
+		## Z       unassigned_handshake_type
+		## I       change_cipher_spec
+		## B       heartbeat
+		## D       application_data
+		## E       end_of_early_data
+		## O       encrypted_extensions
+		## P       key_update
+		## M       message_hash
+		## J       hello_retry_request
+		## L       alert
+		## Q       unknown_content_type
+		## ======  ====================================================
+		##
 		ssl_history:          string &log &default="";
 	};
 
 	## The default root CA bundle.  By default, the mozilla-ca-list.zeek
 	## script sets this to Mozilla's root CA list.
-	const root_certs: table[string] of string = {} &redef;
+	const root_certs: table[string] of string &redef;
 
 	## The record type which contains the field for the Certificate
 	## Transparency log bundle.

@@ -49,7 +49,7 @@ public:
 	 * @param data A pointer to contiguous data that should be crunched into a
 	 * seed. If 0, the function tries to find a global_hash_seed script variable
 	 * to derive a seed from. If this variable does not exist, the function uses
-	 * the initial seed generated at Bro startup.
+	 * the initial seed generated at Zeek startup.
 	 *
 	 * @param size The number of bytes of *data*.
 	 *
@@ -148,7 +148,7 @@ public:
 
 	/**
 	 * Constructs an hash function seeded with a given seed and an
-	 * optional extra seed to replace the initial Bro seed.
+	 * optional extra seed to replace the initial Zeek seed.
 	 *
 	 * @param arg_seed The seed to use for this instance.
 	 */

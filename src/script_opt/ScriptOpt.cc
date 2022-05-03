@@ -286,9 +286,6 @@ static void init_options()
 	if ( analysis_options.use_CPP && generating_CPP )
 		reporter->FatalError("generating C++ incompatible with using C++");
 
-	if ( analysis_options.use_CPP && ! CPP_init_hook )
-		reporter->FatalError("no C++ functions available to use");
-
 	auto usage = getenv("ZEEK_USAGE_ISSUES");
 
 	if ( usage )
@@ -336,10 +333,7 @@ static void init_options()
 static void report_CPP()
 	{
 	if ( ! CPP_init_hook )
-		{
-		printf("no C++ script bodies available\n");
-		exit(0);
-		}
+		reporter->FatalError("no C++ script bodies available");
 
 	printf("C++ script bodies available that match loaded scripts:\n");
 
@@ -373,6 +367,9 @@ static void report_CPP()
 
 static void use_CPP()
 	{
+	if ( ! CPP_init_hook )
+		reporter->FatalError("no C++ functions available to use");
+
 	for ( auto& f : funcs )
 		{
 		auto hash = f.Profile()->HashVal();
@@ -511,6 +508,8 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 
 	if ( ! did_one )
 		reporter->FatalError("no matching functions/files for -O ZAM");
+
+	finalize_functions(funcs);
 	}
 
 void analyze_scripts()
@@ -553,7 +552,14 @@ void analyze_scripts()
 	auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
 
 	if ( CPP_init_hook )
+		{
 		(*CPP_init_hook)();
+		if ( compiled_scripts.empty() )
+			// The initialization failed to produce any
+			// script bodies.  Make this easily available
+			// to subsequent checks.
+			CPP_init_hook = nullptr;
+		}
 
 	if ( analysis_options.report_CPP )
 		{
@@ -576,6 +582,25 @@ void analyze_scripts()
 	// At this point we're done with C++ considerations, so instead
 	// are compiling to ZAM.
 	analyze_scripts_for_ZAM(pfs);
+	}
+
+void profile_script_execution()
+	{
+	if ( analysis_options.profile_ZAM )
+		{
+		report_ZOP_profile();
+
+		for ( auto& f : funcs )
+			{
+			if ( f.Body()->Tag() == STMT_ZAM )
+				cast_intrusive<ZBody>(f.Body())->ProfileExecution();
+			}
+		}
+	}
+
+void finish_script_execution()
+	{
+	profile_script_execution();
 	}
 
 	} // namespace zeek::detail

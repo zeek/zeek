@@ -5,6 +5,8 @@
 #include "zeek/OpaqueVal.h"
 #include "zeek/Reporter.h"
 
+#include "broker/data.hh"
+
 namespace zeek
 	{
 
@@ -33,8 +35,8 @@ extern OpaqueTypePtr opaque_of_record_iterator;
 TransportProto to_zeek_port_proto(broker::port::protocol tp);
 
 /**
- * Create a Broker::Data value from a Bro value.
- * @param v the Bro value to convert to a Broker data value.
+ * Create a Broker::Data value from a Zeek value.
+ * @param v the Zeek value to convert to a Broker data value.
  * @return a Broker::Data value, where the optional field is set if the conversion
  * was possible, else it is unset.
  */
@@ -56,17 +58,17 @@ RecordValPtr make_data_val(broker::data d);
 EnumValPtr get_data_type(RecordVal* v, zeek::detail::Frame* frame);
 
 /**
- * Convert a Bro value to a Broker data value.
- * @param v a Bro value.
- * @return a Broker data value if the Bro value could be converted to one.
+ * Convert a Zeek value to a Broker data value.
+ * @param v a Zeek value.
+ * @return a Broker data value if the Zeek value could be converted to one.
  */
 broker::expected<broker::data> val_to_data(const Val* v);
 
 /**
- * Convert a Broker data value to a Bro value.
+ * Convert a Broker data value to a Zeek value.
  * @param d a Broker data value.
  * @param type the expected type of the value to return.
- * @return a pointer to a new Bro value or a nullptr if the conversion was not
+ * @return a pointer to a new Zeek value or a nullptr if the conversion was not
  * possible.
  */
 ValPtr data_to_val(broker::data d, Type* type);
@@ -87,7 +89,7 @@ broker::data threading_field_to_data(const threading::Field* f);
 threading::Field* data_to_threading_field(broker::data d);
 
 /**
- * A Bro value which wraps a Broker data value.
+ * A Zeek value which wraps a Broker data value.
  */
 class DataVal : public OpaqueVal
 	{
@@ -99,7 +101,7 @@ public:
 	ValPtr castTo(zeek::Type* t);
 	bool canCastTo(zeek::Type* t) const;
 
-	// Returns the Bro type that scripts use to represent a Broker data
+	// Returns the Zeek type that scripts use to represent a Broker data
 	// instance. This may be wrapping the opaque value inside another
 	// type.
 	static const TypePtr& ScriptDataType();
@@ -160,7 +162,7 @@ struct type_name_getter
 	};
 
 /**
- * Retrieve Broker data value associated with a Broker::Data Bro value.
+ * Retrieve Broker data value associated with a Broker::Data Zeek value.
  * @param v a Broker::Data value.
  * @param f used to get location information on error.
  * @return a reference to the wrapped Broker data value.  A runtime interpreter
@@ -172,7 +174,7 @@ broker::data& opaque_field_to_data(zeek::RecordVal* v, zeek::detail::Frame* f);
  * Retrieve variant data from a Broker data value.
  * @tparam T a type that the variant may contain.
  * @param d a Broker data value to get variant data out of.
- * @param tag a Bro tag which corresponds to T (just used for error reporting).
+ * @param tag a Zeek tag which corresponds to T (just used for error reporting).
  * @param f used to get location information on error.
  * @return a refrence to the requested type in the variant Broker data.
  * A runtime interpret exception is thrown if trying to access a type which
@@ -181,10 +183,10 @@ broker::data& opaque_field_to_data(zeek::RecordVal* v, zeek::detail::Frame* f);
 template <typename T>
 T& require_data_type(broker::data& d, zeek::TypeTag tag, zeek::detail::Frame* f)
 	{
-	auto ptr = caf::get_if<T>(&d);
+	auto ptr = broker::get_if<T>(&d);
 	if ( ! ptr )
 		zeek::reporter->RuntimeError(f->GetCallLocation(), "data is of type '%s' not of type '%s'",
-		                             caf::visit(type_name_getter{tag}, d), zeek::type_name(tag));
+		                             visit(type_name_getter{tag}, d), zeek::type_name(tag));
 
 	return *ptr;
 	}

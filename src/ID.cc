@@ -248,13 +248,9 @@ void ID::UpdateValAttrs()
 	if ( ! attrs )
 		return;
 
-	if ( val && val->GetType()->Tag() == TYPE_TABLE )
-		val->AsTableVal()->SetAttrs(attrs);
+	auto tag = GetType()->Tag();
 
-	if ( val && val->GetType()->Tag() == TYPE_FILE )
-		val->AsFile()->SetAttrs(attrs.get());
-
-	if ( GetType()->Tag() == TYPE_FUNC )
+	if ( tag == TYPE_FUNC )
 		{
 		const auto& attr = attrs->Find(ATTR_ERROR_HANDLER);
 
@@ -262,7 +258,7 @@ void ID::UpdateValAttrs()
 			event_registry->SetErrorHandler(Name());
 		}
 
-	if ( GetType()->Tag() == TYPE_RECORD )
+	if ( tag == TYPE_RECORD )
 		{
 		const auto& attr = attrs->Find(ATTR_LOG);
 
@@ -281,6 +277,17 @@ void ID::UpdateValAttrs()
 				}
 			}
 		}
+
+	if ( ! val )
+		return;
+
+	auto vtag = val->GetType()->Tag();
+
+	if ( vtag == TYPE_TABLE )
+		val->AsTableVal()->SetAttrs(attrs);
+
+	else if ( vtag == TYPE_FILE )
+		val->AsFile()->SetAttrs(attrs.get());
 	}
 
 const AttrPtr& ID::GetAttr(AttrTag t) const

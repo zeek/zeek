@@ -90,8 +90,6 @@ extern int dpd_ignore_ports;
 
 extern int check_for_unused_event_handlers;
 
-extern double timer_mgr_inactivity_timeout;
-
 extern int record_all_packets;
 
 extern bro_uint_t bits_per_uid;

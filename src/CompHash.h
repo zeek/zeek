@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include "zeek/IntrusivePtr.h"
+#include "zeek/Func.h"
 #include "zeek/Type.h"
 
 namespace zeek
@@ -60,6 +60,18 @@ protected:
 	                              bool calc_static_size, bool singleton) const;
 
 	bool EnsureTypeReserve(HashKey& hk, const Val* v, Type* bt, bool type_check) const;
+
+	// The following are for allowing hashing of function values.
+	// These can occur, for example, in sets of predicates that get
+	// iterated over.  We use pointers in order to keep storage
+	// lower for the common case of these not being needed.
+	std::unique_ptr<std::unordered_map<const Func*, uint32_t>> func_to_func_id;
+	std::unique_ptr<std::vector<FuncPtr>> func_id_to_func;
+	void BuildFuncMappings()
+		{
+		func_to_func_id = std::make_unique<std::unordered_map<const Func*, uint32_t>>();
+		func_id_to_func = std::make_unique<std::vector<FuncPtr>>();
+		}
 
 	TypeListPtr type;
 	bool is_singleton = false; // if just one type in index

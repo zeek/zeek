@@ -77,8 +77,6 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level)
 			return GenBinary(e, gt, "+", "add");
 		case EXPR_SUB:
 			return GenBinary(e, gt, "-", "sub");
-		case EXPR_REMOVE_FROM:
-			return GenBinary(e, gt, "-=");
 		case EXPR_TIMES:
 			return GenBinary(e, gt, "*", "mul");
 		case EXPR_DIVIDE:
@@ -127,6 +125,8 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level)
 			return GenAssignExpr(e, gt, top_level);
 		case EXPR_ADD_TO:
 			return GenAddToExpr(e, gt, top_level);
+		case EXPR_REMOVE_FROM:
+			return GenRemoveFromExpr(e, gt, top_level);
 		case EXPR_REF:
 			return GenExpr(e->GetOp1(), gt);
 		case EXPR_SIZE:
@@ -476,16 +476,34 @@ string CPPCompile::GenAssignExpr(const Expr* e, GenType gt, bool top_level)
 string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level)
 	{
 	const auto& t = e->GetType();
+	auto lhs = e->GetOp1();
+	auto rhs = e->GetOp2();
+
+	std::string add_to_func;
 
 	if ( t->Tag() == TYPE_VECTOR )
 		{
-		auto gen = string("vector_append__CPP(") + GenExpr(e->GetOp1(), GEN_VAL_PTR) + ", " +
-		           GenExpr(e->GetOp2(), GEN_VAL_PTR) + ")";
+		if ( same_type(lhs->GetType(), rhs->GetType()) )
+			add_to_func = "vector_vec_append__CPP";
+		else
+			add_to_func = "vector_append__CPP";
+		}
+
+	else if ( t->Tag() == TYPE_PATTERN )
+		add_to_func = "re_append__CPP";
+
+	else if ( t->Tag() == TYPE_TABLE )
+		add_to_func = "table_append__CPP";
+
+	if ( ! add_to_func.empty() )
+		{
+		auto gen = add_to_func + "(" + GenExpr(lhs, GEN_VAL_PTR) + ", " +
+		           GenExpr(rhs, GEN_VAL_PTR) + ")";
 		return GenericValPtrToGT(gen, t, gt);
 		}
 
-	// Second GetOp1 is because for non-vectors, LHS will be a RefExpr.
-	auto lhs = e->GetOp1()->GetOp1();
+	// Second GetOp1 is because if we get this far, LHS will be a RefExpr.
+	lhs = lhs->GetOp1();
 
 	if ( t->Tag() == TYPE_STRING )
 		{
@@ -499,7 +517,7 @@ string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level)
 		{
 		// LHS is a compound, or a global (and thus doesn't
 		// equate to a C++ variable); expand x += y to x = x + y
-		auto rhs = make_intrusive<AddExpr>(lhs, e->GetOp2());
+		rhs = make_intrusive<AddExpr>(lhs, rhs);
 		auto assign = make_intrusive<AssignExpr>(lhs, rhs, false, nullptr, nullptr, false);
 
 		// Make sure any newly created types are known to
@@ -511,6 +529,40 @@ string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level)
 		}
 
 	return GenBinary(e, gt, "+=");
+	}
+
+string CPPCompile::GenRemoveFromExpr(const Expr* e, GenType gt, bool top_level)
+	{
+	const auto& t = e->GetType();
+	auto lhs = e->GetOp1();
+	auto rhs = e->GetOp2();
+
+	if ( t->Tag() == TYPE_TABLE && same_type(lhs->GetType(), rhs->GetType()) )
+		{
+		auto gen = std::string("table_remove_from__CPP(") + GenExpr(lhs, GEN_VAL_PTR) + ", " +
+		           GenExpr(rhs, GEN_VAL_PTR) + ")";
+		return GenericValPtrToGT(gen, t, gt);
+		}
+
+	// Second GetOp1 is because if we get this far, LHS will be a RefExpr.
+	lhs = lhs->GetOp1();
+
+	if ( lhs->Tag() != EXPR_NAME || lhs->AsNameExpr()->Id()->IsGlobal() )
+		{
+		// LHS is a compound, or a global (and thus doesn't
+		// equate to a C++ variable); expand x -= y to x = x - y
+		rhs = make_intrusive<SubExpr>(lhs, rhs);
+		auto assign = make_intrusive<AssignExpr>(lhs, rhs, false, nullptr, nullptr, false);
+
+		// Make sure any newly created types are known to
+		// the profiler.
+		(void)pfs.HashType(rhs->GetType());
+		(void)pfs.HashType(assign->GetType());
+
+		return GenExpr(assign, gt, top_level);
+		}
+
+	return GenBinary(e, gt, "-=");
 	}
 
 string CPPCompile::GenSizeExpr(const Expr* e, GenType gt)

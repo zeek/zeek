@@ -158,13 +158,13 @@ public:
 protected:
 	friend CounterVector operator|(const CounterVector& x, const CounterVector& y);
 
-	CounterVector() { }
+	CounterVector() = default;
 
 private:
 	CounterVector& operator=(const CounterVector&); // Disable.
 
-	BitVector* bits;
-	size_t width;
+	BitVector* bits = nullptr;
+	size_t width = 0;
 	};
 
 	} // namespace zeek::probabilistic::detail

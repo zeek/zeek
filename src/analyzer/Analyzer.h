@@ -523,7 +523,7 @@ public:
 	void RemoveSupportAnalyzer(SupportAnalyzer* analyzer);
 
 	/**
-	 * Signals Bro's protocol detection that the analyzer has recognized
+	 * Signals Zeek's protocol detection that the analyzer has recognized
 	 * the input to indeed conform to the expected protocol. This should
 	 * be called as early as possible during a connection's life-time. It
 	 * may turn into \c protocol_confirmed event at the script-layer (but
@@ -537,7 +537,7 @@ public:
 	ProtocolConfirmation(zeek::Tag tag = zeek::Tag());
 
 	/**
-	 * Signals Bro's protocol detection that the analyzer has found a
+	 * Signals Zeek's protocol detection that the analyzer has found a
 	 * severe protocol violation that could indicate that it's not
 	 * parsing the expected protocol. This turns into \c
 	 * protocol_violation events at the script-layer (one such event is
@@ -577,7 +577,7 @@ public:
 	virtual void AnalyzerConfirmation(zeek::Tag tag = zeek::Tag());
 
 	/**
-	 * Signals Bro's protocol detection that the analyzer has found a
+	 * Signals Zeek's protocol detection that the analyzer has found a
 	 * severe protocol violation that could indicate that it's not
 	 * parsing the expected protocol. This turns into \c
 	 * analyzer_violation events at the script-layer (one such event is
@@ -590,8 +590,12 @@ public:
 	 * @param data An optional pointer to the malformed data.
 	 *
 	 * @param len If \a data is given, the length of it.
+	 *
+	 * @param tag If tag is given, it overrides the analyzer tag passed to the
+	 * scripting layer; the default is the one of the analyzer itself.
 	 */
-	virtual void AnalyzerViolation(const char* reason, const char* data = nullptr, int len = 0);
+	virtual void AnalyzerViolation(const char* reason, const char* data = nullptr, int len = 0,
+	                               zeek::Tag tag = zeek::Tag());
 
 	/**
 	 * Returns true if ProtocolConfirmation() has been called at least
@@ -605,6 +609,8 @@ public:
 	 * use this method to attach additional data to the connections. A
 	 * call to BuildConnVal() will in turn trigger a call to
 	 * UpdateConnVal().
+	 * TODO: The above comment needs updating, there's no BuildConnVal()
+	 * anymore -VP
 	 *
 	 * @param conn_val The connenction value being updated.
 	 */
@@ -683,7 +689,7 @@ protected:
 	 *
 	 * @param  t The absolute time when the timer will fire.
 	 *
-	 * @param do_expire If true, the timer will also fire when Bro
+	 * @param do_expire If true, the timer will also fire when Zeek
 	 * terminates even if \a t has not been reache yet.
 	 *
 	 * @param type The timer's type.
@@ -899,7 +905,7 @@ private:
 	SupportAnalyzer* sibling;
 	};
 
-// The following need to be consistent with bro.init.
+// The following need to be consistent with zeek.init.
 #define CONTENTS_NONE 0
 #define CONTENTS_ORIG 1
 #define CONTENTS_RESP 2

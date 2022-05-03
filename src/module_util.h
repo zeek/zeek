@@ -1,5 +1,5 @@
 //
-// These functions are used by both Bro and bifcl.
+// These functions are used by both Zeek and bifcl.
 //
 
 #pragma once

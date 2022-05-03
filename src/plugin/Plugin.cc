@@ -31,6 +31,7 @@ const char* hook_name(HookType h)
 		"SetupAnalyzerTree",
 		"LogInit",
 		"LogWrite",
+		"Reporter",
 		"UnprocessedPacket",
 		// MetaHooks
 		"MetaHookPre",

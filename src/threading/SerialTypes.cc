@@ -73,7 +73,7 @@ std::string Field::TypeName() const
 	{
 	std::string n;
 
-	// We do not support tables, if the internal Bro type is table it
+	// We do not support tables, if the internal Zeek type is table it
 	// always is a set.
 	if ( type == TYPE_TABLE )
 		n = "set";

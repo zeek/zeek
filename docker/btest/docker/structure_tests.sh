@@ -17,7 +17,9 @@ docker run --rm "${TEST_TAG}" btest --version | sed 's/^[0-9].*/XXX/g'
 docker run --rm "${TEST_TAG}" zkg config
 
 # Check that a plugin can be installed. We pick any plugin with minimal deps here.
-docker run --rm "${TEST_TAG}" zkg install --force sethhall/domain-tld | sed 's/(.*)/(XXX)/'
+docker run --rm "${TEST_TAG}" zkg install --force sethhall/domain-tld |
+    sed 's/"\.*$/"/' |
+    sed 's/(.*)/(XXX)/'
 
 # Check that the Broker Python module loads
 docker run --rm "${TEST_TAG}" python3 -c "import broker"

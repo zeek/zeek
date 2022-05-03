@@ -1223,6 +1223,20 @@ char* get_word(char*& s)
 	return w;
 	}
 
+TEST_CASE("util get_word 2")
+	{
+	char orig[10];
+	strcpy(orig, "two words");
+
+	char* a = (char*)orig;
+	const char* b;
+	int blen;
+
+	get_word(9, a, blen, b);
+	CHECK(blen == 3);
+	CHECK(a == b);
+	}
+
 void get_word(int length, const char* s, int& pwlen, const char*& pw)
 	{
 	pw = s;

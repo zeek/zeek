@@ -85,6 +85,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (Zeek uses an embedded version by default)
     --with-caf=PATH        path to C++ Actor Framework install root
                            (a Broker dependency that is embedded by default)
+    --with-gen-zam=PATH    path to Gen-ZAM code generator
+                           (Zeek uses an embedded version by default)
     --with-flex=PATH       path to flex executable
     --with-libkqueue=PATH  path to libkqueue install root
                            (Zeek uses an embedded version by default)
@@ -338,6 +340,9 @@ while [ $# -ne 0 ]; do
         --with-flex=*)
             append_cache_entry FLEX_EXECUTABLE PATH $optarg
             ;;
+        --with-gen-zam=*)
+            append_cache_entry GEN_ZAM_EXE_PATH PATH $optarg
+            ;;
         --with-geoip=*)
             append_cache_entry LibMMDB_ROOT_DIR PATH $optarg
             ;;
@@ -437,6 +442,8 @@ echo "Build Directory : $builddir"
 echo "Source Directory: $sourcedir"
 cd $builddir
 
+echo "Using $(cmake --version | head -1)"
+echo
 if [ -n "$CMakeGenerator" ]; then
     "$CMakeCommand" -G "$CMakeGenerator" $CMakeCacheEntries $sourcedir
 else

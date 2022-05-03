@@ -161,7 +161,8 @@ StmtPtr ExprStmt::DoReduce(Reducer* c)
 		return TransformMe(make_intrusive<NullStmt>(), c);
 
 	if ( (t == EXPR_ASSIGN || t == EXPR_CALL || t == EXPR_INDEX_ASSIGN ||
-	      t == EXPR_FIELD_LHS_ASSIGN || t == EXPR_APPEND_TO) &&
+	      t == EXPR_FIELD_LHS_ASSIGN || t == EXPR_APPEND_TO || t == EXPR_ADD_TO ||
+	      t == EXPR_REMOVE_FROM) &&
 	     e->IsReduced(c) )
 		return ThisPtr();
 
@@ -728,7 +729,7 @@ bool StmtList::IsReduced(Reducer* c) const
 
 StmtPtr StmtList::DoReduce(Reducer* c)
 	{
-	StmtPList* f_stmts = new StmtPList;
+	StmtPList* f_stmts = new StmtPList{};
 	bool did_change = false;
 
 	int n = Stmts().length();
@@ -749,7 +750,10 @@ StmtPtr StmtList::DoReduce(Reducer* c)
 		}
 
 	if ( f_stmts->length() == 0 )
+		{
+		delete f_stmts;
 		return TransformMe(make_intrusive<NullStmt>(), c);
+		}
 
 	if ( f_stmts->length() == 1 )
 		return (*f_stmts)[0]->Reduce(c);

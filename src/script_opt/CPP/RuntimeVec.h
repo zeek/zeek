@@ -15,10 +15,17 @@ namespace zeek::detail
 
 // Appends v2 to the vector v1.  A separate function because of the
 // need to support assignment cascades.
-inline ValPtr vector_append__CPP(VectorValPtr v1, ValPtr v2)
+inline ValPtr vector_append__CPP(VectorValPtr v1, const ValPtr& v2)
 	{
 	v1->Assign(v1->Size(), v2);
-	return v2;
+	return v1;
+	}
+
+// Appends vector v2 to the vector v1.
+inline ValPtr vector_vec_append__CPP(VectorValPtr v1, const VectorValPtr& v2)
+	{
+	v2->AddTo(v1.get(), false);
+	return v1;
 	}
 
 // Unary vector operations.

@@ -99,12 +99,12 @@ public:
 	bool RemoveStream(const std::string& id);
 
 	/**
-	 * Signals the manager to shutdown at Bro's termination.
+	 * Signals the manager to shutdown at Zeek's termination.
 	 */
 	void Terminate();
 
 	/**
-	 * Checks if a Bro type can be used for data reading. Note that
+	 * Checks if a Zeek type can be used for data reading. Note that
 	 * this function only applies to input streams; the logging framework
 	 * has an equivalent function; however we support logging of a wider
 	 * variety of types (e.g. functions).
@@ -229,11 +229,11 @@ private:
 	// startpos.
 	int CopyValue(char* data, const int startpos, const threading::Value* val) const;
 
-	// Convert Threading::Value to an internal Bro Type (works with Records).
+	// Convert Threading::Value to an internal Zeek Type (works with Records).
 	Val* ValueToVal(const Stream* i, const threading::Value* val, Type* request_type,
 	                bool& have_error) const;
 
-	// Convert Threading::Value to an internal Bro list type.
+	// Convert Threading::Value to an internal Zeek list type.
 	Val* ValueToIndexVal(const Stream* i, int num_fields, const RecordType* type,
 	                     const threading::Value* const* vals, bool& have_error) const;
 
@@ -244,7 +244,7 @@ private:
 
 	Val* RecordValToIndexVal(RecordVal* r) const;
 
-	// Converts a Bro ListVal to a RecordVal given the record type.
+	// Converts a Zeek ListVal to a RecordVal given the record type.
 	RecordVal* ListValToRecordVal(ListVal* list, RecordType* request_type, int* position) const;
 
 	// Internally signal errors, warnings, etc.

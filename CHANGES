@@ -1,3 +1,477 @@
+5.0.0-dev.332 | 2022-04-28 19:52:04 +0000
+
+  * Initialize OpenSSL on startup (Dominik Charousset, Corelight)
+
+  * Avoid double-initialization of OpenSSL (Dominik Charousset, Corelight)
+
+  * Canonify intel.log in read-file-dist-cluster test (Dominik Charousset, Corelight)
+
+  * Port Zeek to latest Broker API (Dominik Charousset)
+
+5.0.0-dev.322 | 2022-04-27 21:00:29 +0000
+
+  * Disable OpenSSL initialization starting with 1.1.0 (Johanna Amann, Corelight)
+
+    Starting with OpenSSL 1.1.0, library initialization is no longer
+    required - and might even be harmful.
+
+    See https://wiki.openssl.org/index.php/Library_Initialization for
+    details.
+
+5.0.0-dev.319 | 2022-04-27 17:42:42 +0000
+
+  * Wrap call to doctest's MESSAGE() method in Reporter in try/catch block (Tim Wojtulewicz, Corelight)
+
+    Also check whether doctest is even enabled before trying to use it.
+
+  * Pre-initialize c-ares channel object. Fixes Coverity 1488318 (Tim Wojtulewicz, Corelight)
+
+  * Ask c-ares for the next timeout instead of passing a fixed value (Tim Wojtulewicz, Corelight)
+
+  * Remove obsolete DNS_Mgr::asyncs_timeouts (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.314 | 2022-04-27 09:43:23 -0700
+
+  * Management framework: consistency fixes around event() vs Broker::publish() (Christian Kreibich, Corelight)
+
+5.0.0-dev.312 | 2022-04-26 09:52:34 -0700
+
+  * Rework FindCAres.cmake to not use ExternalProject, fixing OBS builds (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.309 | 2022-04-22 13:11:12 -0700
+
+  * Add DNS fuzzing corpus from c-ares (Tim Wojtulewicz, Corelight)
+
+  * Set larger UDP buffer to avoid TCP fallback if possible (Tim Wojtulewicz, Corelight)
+
+    This commit sets the UDP buffer to a larger size, as well as adds
+    an EDNS block to the DNS request passing this size. This allows
+    DNS servers to return larger responses, and in turn allow c-ares
+    to avoid TCP fallback due to requests failing because of the lack
+    of buffer size.
+
+  * Add new features to IOSource::Manager, used by DNS_Mgr (Tim Wojtulewicz, Corelight)
+
+    - iosource_mgr can now track write events to file descriptors as well
+      as read events. This adds an argument to both RegisterFd() and
+      UnregisterFd() for setting the mode, defaulting to read.
+    - IOSources can now implement a ProcessFd() method that allows them to
+      handle events to single file descriptors instead of of having to
+      loop through/track sets of them at processing time.
+
+  * Add out_ptr, use for c-ares interface calls (Tim Wojtulewicz, Corelight)
+
+  * Store all mappings in a single map instead of split by type (Tim Wojtulewicz, Corelight)
+
+    This opens up the possibility of storing other request types outside
+    of T_A, T_PTR and T_TXT without requiring redoing the caching. It
+    also fixes the caching code in DNS_Mapping, adding a version number
+    to the start of the cache file so the cache structure can be modified
+    and old caches invalidated more easily.
+
+  * Add merging to DNS_Mgr::AddResult() to support both ipv4 and ipv6 responses simultaneously (Tim Wojtulewicz, Corelight)
+
+  * Rework DNS_Mgr API to be more consistent and to support more request types (Tim Wojtulewicz, Corelight)
+
+  * Replace nb_dns library with C-Ares (Tim Wojtulewicz, Corelight)
+
+  * Add unit testing for DNS_Mgr and related classes (Tim Wojtulewicz, Corelight)
+
+  * Update doc gen VM to ubuntu-latest, output cmake version during configure (Tim Wojtulewicz, Corelight)
+
+  * Use doctest macro to tie Reporter output to test cases (Tim Wojtulewicz, Corelight)
+
+  * Add const versions of dereference operators for DictEntry (Tim Wojtulewicz, Corelight)
+
+  * Add DNS fuzzer (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.288 | 2022-04-22 07:00:56 -0700
+
+  * Fix generate-docs action for running on forks. (Benjamin Bannier, Corelight)
+
+    The generate-docs action previously always required secrets to run so
+    that it could possibly perform a push (if run from a schedule), and to
+    send out an email on failure. Since secrets are unavailable for forks
+    this meant that this action would always fail for PRs from forks.
+
+    In this patch we use an unauthenticated clone unless running from a
+    schedule. This is fine as for PRs this action would just regenerate the
+    docs to check for errors, but not to actually update them (no push
+    performed). We also change the failure notification step to only execute
+    for scheduled runs.
+
+5.0.0-dev.286 | 2022-04-21 13:34:34 -0700
+
+  * Suppress progress dots in zkg's output in Docker package-install check (Christian Kreibich, Corelight)
+
+5.0.0-dev.284 | 2022-04-21 09:17:28 -0700
+
+  * Enable vptr undefined behavior check (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.282 | 2022-04-20 17:17:55 -0700
+
+  * Update libkqueue for Coverity and build warning fixes (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.280 | 2022-04-19 09:42:28 -0700
+
+  * Escape special characters in paths before using them as regexes (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.277 | 2022-04-18 16:38:27 -0700
+
+  * Management framework updates (Christian Kreibich, Corelight)
+
+    - bump external testsuite
+    - allow selecting cluster nodes in get_id_value
+    - minor tweaks to logging component
+    - bump zeek-client to pull in get-id-value command
+    - improve handling of node run states
+    - add get_id_value dispatch
+    - allow dispatching "actions" on cluster nodes.
+    - some renaming to avoid the term "data cluster"
+    - allow agents to communicate with cluster nodes
+
+  * Avoid whitespace around function type strings in JSON rendering (Christian Kreibich, Corelight)
+
+  * Disable TSan CI task temporarily while we sort out some intermittent test failures (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.265 | 2022-04-18 12:45:08 -0700
+
+  * state-holding fix: track unique identifiers for Func's in CompHash's, not Func's themselves (Vern Paxson, Corelight)
+
+5.0.0-dev.263 | 2022-04-18 09:22:30 -0700
+
+  * Add "Reporter" entry to fix plugin hook_name() vs HookType imbalance (Christian Kreibich, Corelight)
+
+    The hook_name() list was missing an entry corresponding to HOOK_REPORTER.
+
+    Co-authored-by: Peter Cullen <peter.cullen@corelight.com>
+
+5.0.0-dev.259 | 2022-04-14 10:26:29 -0700
+
+  * GH-2038: Don't sleep when non-selectable PktSrc has data available (Anthony Coddington)
+
+    PktSrc::GetNextTimeout always returned a fixed timeout of 20 microseconds for non-selectable packet sources regardless of whether they have packets available. This adds unnecessary delay every FindReadySources poll_interval when packets are available to be read.
+
+    Instead, for non-selectable packet sources, check whether packets are available and return a timeout of 0 to indicate data is available. This is closer to the behaviour of the old capture loop.
+
+    This was mitigated somewhat by the fact FindReadySources poll interval defaults to 100 packets, and live sources are added to the ready list regardless of whether they have packets available (unless it is time to force a poll).
+
+5.0.0-dev.257 | 2022-04-14 10:13:28 -0700
+
+  * Re-instantiate providing location information to `LoadFile` hooks. (Robin Sommer, Corelight)
+
+    #1835 subtly changed the semantics of the `LoadFile` plugin hook to no
+    longer have the current script location available for signature files
+    being loaded through `@load-sigs`. This was undocumented behavior, so
+    it's technically not a regression, but since at least one external
+    plugin is depending on it, this change restores the old behavior.
+
+5.0.0-dev.255 | 2022-04-14 10:12:49 -0700
+
+  * Fix another crash during dictionary iteration. (Robin Sommer, Corelight)
+
+    Closes #2017.
+
+  * Fix assertions in dictionary that can trigger for benign reasons. (Robin Sommer, Corelight)
+
+    These assertions were checking for a situation that I believe can
+    happen legitimately: a robust iterator pointing to an index that,
+    after some table resizing, happens to be inside the overflow area and
+    hence empty. We'll now move it to the end of the table in the case.
+
+  * Fix robust iterators when modifying dictionary during iteration. (Robin Sommer, Corelight)
+
+    When inserting/deleting elements, we now remove their `DictEntries`
+    from any robust iterators' bookkeeping. First, we don't need that
+    information anymore, and second the `DictEntries` contain pointers
+    that may become invalid.
+
+    I don't know how to write a unit test for this unfortunately because
+    it depends on where exactly things land in the hash table.
+
+    Btw, memory mgmt for DictEntries is pretty fragile: They contain
+    pointers to both memory they own (`key`) and memory they don't own
+    (`value`). The former type of pointers is shallow-copied on
+    assignment/copy-construction, meaning that there can be multiple
+    instances seemingly owning the same memory. That only works because
+    deletion is manual, and not part of standard destruction. The second
+    type of pointer has a similar problem, except that it's managed
+    externally. It's important to not end up with multiple `DictEntries`
+    pointing to the same value (which is actually what that iterator
+    bookkeeping did).
+
+    Addresses #2032.
+
+5.0.0-dev.250 | 2022-04-14 09:51:23 -0700
+
+  * Split asan/ubsan CI builds, add tsan build (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.248 | 2022-04-14 08:59:34 -0700
+
+  * Disable object-size analysis if optimization set to -O0 (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.246 | 2022-04-14 10:48:19 +0200
+
+  * Allow analyzer violations to explicitly set tag. (Robin Sommer, Corelight)
+
+5.0.0-dev.244 | 2022-04-13 10:52:58 -0700
+
+  * Add test to ensure enum_to_int's return values are ordered (Yacin Nadji, Corelight)
+
+5.0.0-dev.242 | 2022-04-13 10:51:21 -0700
+
+  * Add unit test for other get_word() version (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.240 | 2022-04-11 12:46:51 -0700
+
+  * Mask our signal handlers' triggering signals around thread creation (Christian Kreibich, Corelight)
+
+5.0.0-dev.238 | 2022-04-11 12:40:02 -0700
+
+  * GH-2026: Ensure both protocol and analyzer confirmation and violation events can be called (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.235 | 2022-04-09 00:08:50 +0000
+
+  * Update libkqueue to 2.6.0 release [skip ci] [nomail] (Tim Wojtulewicz)
+
+5.0.0-dev.233 | 2022-04-08 11:30:52 -0700
+
+  * Bump submodules to pull in InstallSymlink fix (Christian Kreibich, Corelight)
+
+5.0.0-dev.231 | 2022-04-05 18:04:47 -0700
+
+  * fix for ill-formed (complex) &default function (Vern Paxson, Corelight)
+
+  * type-checking for use of empty table constructors in expressions (Vern Paxson, Corelight)
+
+  * catch empty constructors used for type inference (Vern Paxson, Corelight)
+    suppress repeated error messages
+
+  * factoring to make checking of &default attributes externally accessible (Vern Paxson, Corelight)
+
+  * bug fix for empty table constructors with &default attributes (plus a typo) (Vern Paxson, Corelight)
+
+5.0.0-dev.222 | 2022-04-05 18:04:15 -0700
+
+  * reduce interpreter frames for compiled function bodies (Vern Paxson, Corelight)
+
+5.0.0-dev.219 | 2022-04-05 16:07:48 -0700
+
+  * Correct origin documentation of the version field in the HTTP log. (Christian Kreibich, Corelight)
+
+5.0.0-dev.217 | 2022-04-04 13:27:32 -0700
+
+  * Move new TLS decryption capabilities up to Zeek 5 in NEWS file (Christian Kreibich, Corelight)
+
+  * Update NEWS to reflect recent updates (Christian Kreibich, Corelight)
+
+5.0.0-dev.214 | 2022-04-04 10:52:41 -0700
+
+  * fix & btest for ZAM bug with inlined nested loop (Vern Paxson, Corelight)
+
+5.0.0-dev.212 | 2022-04-04 10:51:20 -0700
+
+  * GH-2009: Use auto to fix ZIP analyzer failure on some platforms (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.210 | 2022-03-28 17:04:51 -0700
+
+  * Add cmake-time reporting of bifcl, binpac, and gen-zam used for build (Christian Kreibich, Corelight)
+
+  * Build Gen-ZAM from a submodule and support use of pre-existing executable (Christian Kreibich, Corelight)
+
+5.0.0-dev.204 | 2022-03-25 15:31:21 -0700
+
+  * --event-trace / -E option to generate event trace (Vern Paxson, Corelight)
+
+  * hooks to support event tracing (Vern Paxson, Corelight)
+
+  * classes providing event-tracing/dumping functionality (Vern Paxson, Corelight)
+
+  * provide access to Val internals for event tracing purposes (Vern Paxson, Corelight)
+
+  * set_network_time() BiF in support of event replaying (Vern Paxson, Corelight)
+
+5.0.0-dev.195 | 2022-03-24 11:01:28 -0700
+
+  * switch variable initialization over to being expression-based (Vern Paxson, Corelight)
+
+  * simplification of Val classes now that they don't have to support initialization (Vern Paxson, Corelight)
+
+  * rework type inference due to switch from separate initializers to expressions (Vern Paxson, Corelight)
+
+  * avoid evaluating calls to determine whether an expression value is ignored (Vern Paxson, Corelight)
+
+  * reworking of expressions to unify =/+=/-= with initialization (Vern Paxson, Corelight)
+
+  * allow {} expression lists for =/+=/-= RHS (Vern Paxson, Corelight)
+
+5.0.0-dev.177 | 2022-03-23 13:05:51 +0100
+
+  * Improve the formatting of the SSL::Info::ssl_history documentation (Johanna Amann, Corelight)
+
+5.0.0-dev.173 | 2022-03-16 15:06:05 -0700
+
+  * Fix document generation (Christian Kreibich, Corelight)
+
+5.0.0-dev.169 | 2022-03-10 11:09:37 -0700
+
+  * add raw_bytes_to_v6_addr in docs when raw_bytes_to_v4_addr is present (Yacin Nadji, Corelight)
+
+  * Zero out bytes by default for consistent return value on error (Yacin Nadji, Corelight)
+
+  * Add tests for raw_bytes_to_v6_addr (Yacin Nadji, Corelight)
+
+  * Add raw_bytes_to_v6_addr function (Yacin Nadji, Corelight)
+
+5.0.0-dev.164 | 2022-03-08 09:30:37 -0700
+
+  * Update 3rdparty submodule for bsd-getopt-long fix (Tim Wojtulewicz)
+
+5.0.0-dev.162 | 2022-03-07 12:36:37 +0100
+
+  * Improve error message when receiving unexpected record content via
+    Broker. (Robin Sommer, Corelight)
+
+5.0.0-dev.160 | 2022-03-02 13:48:07 +0000
+
+  * restored record constructor checking for missing-but-mandatory fields. This includea a new btest
+    as well as a fix to the base-scrpts. (Vern Paxson, Corelight)
+
+5.0.0-dev.156 | 2022-03-02 08:23:50 +0000
+
+  * The is_num(), is_alpha(), and is_alnum() BiFs now return F on empty string.
+    The testcases for these functions, and for is_ascii() were expanded. The documentation of is_ascii()
+    concerning behavior of an empty string was clarified (Christian Kreibich, Corelight)
+
+5.0.0-dev.151 | 2022-03-02 08:09:28 +0000
+
+  * SSL: rudimentary decryption for TLS 1.2 (Florian Wilkens, Johanna Amann)
+
+    With this version, we support rudimentary decryption of TLS 1.2 connections, if the key material
+    of the connection (in our case the pre-master secret) is available. Note that this functionality
+    only works for TLS 1.2 connections using the TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 cipher suite.
+    No other combinations are currently supported.
+
+    For more information, see the NEWS entry and the TLS Decryption documentation.
+
+5.0.0-dev.121 | 2022-02-24 09:11:03 -0700
+
+  * GH-1980: Deprecate and return warning for zeek-config's caf-root option (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.118 | 2022-02-23 10:51:57 -0700
+
+  * GH-1949: Remove unused timer_mgr_inactivity_timeout global (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.116 | 2022-02-21 18:17:13 -0700
+
+  * remove deprecated union and timer types, addressing #1898 (Matthew Luckie)
+
+5.0.0-dev.114 | 2022-02-11 09:30:04 -0800
+
+  * Minor modernizations to Github workflows (Christian Kreibich, Corelight)
+
+5.0.0-dev.112 | 2022-02-10 17:56:27 -0800
+
+  * Reorg of the cluster controller to new "Management framework" layout (Christian Kreibich, Corelight)
+
+  * Bump external cluster testsuite to reflect Management framework reorg (Christian Kreibich, Corelight)
+
+  * Bump zeek-client to reflect Management framework reorg (Christian Kreibich, Corelight)
+
+5.0.0-dev.108 | 2022-02-10 10:35:02 -0700
+
+  * Fixing a big pile of Coverity issues (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.106 | 2022-02-09 15:15:21 -0800
+
+  * Expand generate-docs Github workflow to test docs build on PRs (Christian Kreibich, Corelight)
+
+5.0.0-dev.104 | 2022-02-09 13:14:04 -0800
+
+  * Updates to the cluster controller scripts to fix the docs build (Christian Kreibich, Corelight)
+
+  * Bump zeek-client for Broker enum fix/workaround (Christian Kreibich, Corelight)
+
+5.0.0-dev.100 | 2022-02-07 14:18:50 -0800
+
+  * Add capture to a Sumstats when-statement to fix deprecation warning (Christian Kreibich, Corelight)
+
+5.0.0-dev.97 | 2022-02-07 16:24:06 +0100
+
+  * Update to latest Broker without public CAF dependencies. (Dominik
+    Charousset, Corelight)
+
+  * Fix GCC builds and string output for Broker errors (Dominik
+    Charousset, Corelight)
+
+5.0.0-dev.94 | 2022-02-07 08:14:47 -0700
+
+  * String/StringVal: Replace char*/string constructors with string_view (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.92 | 2022-02-04 10:33:47 -0700
+
+  * fix existing checks for looking to use C++ when it's not available (Vern Paxson, Corelight)
+
+5.0.0-dev.90 | 2022-02-04 10:32:41 -0700
+
+  * fixes for ZAM profiling, which didn't get fully integrated originally (Vern Paxson, Corelight)
+
+  * minor enhancements for ZAM inlining (Vern Paxson, Corelight)
+
+5.0.0-dev.87 | 2022-02-03 13:17:25 -0800
+
+  * Expansion of cluster controller functionality (Christian Kreibich, Corelight)
+
+    - Bump external cluster testsuite
+    - Bump zeek-client for the get-nodes command
+    - Add ClusterController::API::get_nodes_request/response event pair
+    - Support optional listening ports for cluster nodes
+    - Don't auto-publish Supervisor response events in the cluster agent
+    - Make members of the ClusterController::Types::State enum all-caps
+    - Be more conservative with triggering request timeout events
+    - Move redefs of ClusterController::Request::Request to their places of use
+    - Simplify ClusterController::API::set_configuration_request/response
+
+5.0.0-dev.77 | 2022-02-03 11:20:16 +0000
+
+  * Match DPD TLS signature on one-sided connections. (Johanna Amann, Corelight)
+
+    This commit changes DPD matching for TLS connections. A one-sided match
+    is enough to enable DPD now.
+
+    This commit also removes DPD for SSLv2 connections. SSLv2 connections do
+    basically no longer happen in the wild. SSLv2 is also really finnicky to
+    identify correctly - there is very little data required to match it, and
+    basically all matches today will be false positives. If DPD for SSLv2 is
+    still desired, the optional signature in policy/protocols/ssl/dpd-v2.sig
+    can be loaded.
+
+5.0.0-dev.74 | 2022-02-02 09:46:00 +0100
+
+  * GH-1890: Consistently warn about mixing vector and scalar operand
+    depreciaton (Zeke Medley, Corelight)
+
+5.0.0-dev.72 | 2022-02-02 09:36:30 +0100
+
+  * Let TCP-based application analyzers operate without any TCP parent
+    analyzer. (Robin Sommer, Corelight)
+
+5.0.0-dev.70 | 2022-01-25 13:52:00 -0700
+
+  * bug fix for vector slice assignment (Vern Paxson, Corelight)
+
+5.0.0-dev.67 | 2022-01-25 12:25:48 +0000
+
+  * updated Bro->Zeek in comments in the source tree (Vern Paxson, Corelight)
+
+5.0.0-dev.65 | 2022-01-24 13:41:25 -0800
+
+  * CI updates (Christian Kreibich, Corelight)
+
+    - add Ubuntu 21.10
+    - remove OpenSUSE Leap 15.2 (EOL)
+    - add CentOS Stream 9
+
 5.0.0-dev.61 | 2022-01-17 10:35:15 +0000
 
   * fix for adding a non-managed type to an empty vector (Vern Paxson, Corelight)

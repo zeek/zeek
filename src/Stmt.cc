@@ -2073,7 +2073,7 @@ void WhenStmt::StmtDescribe(ODesc* d) const
 	wi->WhenBody()->Describe(d);
 	d->PopIndent();
 
-	if ( wi->TimeoutStmt() )
+	if ( wi->TimeoutExpr() )
 		{
 		if ( d->IsReadable() )
 			{
@@ -2088,7 +2088,10 @@ void WhenStmt::StmtDescribe(ODesc* d) const
 			d->PopIndent();
 			}
 		else
+			{
+			wi->TimeoutExpr()->Describe(d);
 			wi->TimeoutStmt()->Describe(d);
+			}
 		}
 	}
 

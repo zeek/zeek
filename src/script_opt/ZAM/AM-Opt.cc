@@ -800,6 +800,16 @@ void ZAMCompiler::CheckSlotUse(int slot, const ZInstI* inst)
 
 void ZAMCompiler::ExtendLifetime(int slot, const ZInstI* inst)
 	{
+	// When using old-style lambda closure semantics, a function that
+	// returns a lambda needs to stick around for calls to that lambda.
+	// We ensure that by extending its lifetime to the end of this
+	// function.
+	auto id = frame_denizens[slot];
+	auto& t = id->GetType();
+
+	if ( t->Tag() == TYPE_FUNC && t->Yield() && t->Yield()->Tag() == TYPE_FUNC )
+		inst = insts1.back();
+
 	if ( denizen_ending.count(slot) > 0 )
 		{
 		// End of denizen's lifetime already seen.  Check for

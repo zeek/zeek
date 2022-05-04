@@ -1,3 +1,9 @@
+5.0.0-dev.344 | 2022-05-04 11:57:50 -0700
+
+  * fix for coverage reporting for functions that use "when" statements (Vern Paxson, Corelight)
+
+  * ZAM maintenance for recent changes and some newly exercised corner cases (Vern Paxson, Corelight)
+
 5.0.0-dev.341 | 2022-05-04 09:23:55 -0700
 
   * Fixes Coverity issues reported from DNS_Mgr merge (Tim Wojtulewicz, Corelight)

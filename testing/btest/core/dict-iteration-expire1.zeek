@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-DOC:  Regression test #2017; no output check, just shouldn't crash
 
 redef table_expire_interval = 0.1sec;

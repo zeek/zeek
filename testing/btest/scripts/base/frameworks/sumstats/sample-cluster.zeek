@@ -1,3 +1,7 @@
+# the scripts and triggers the timeout.  Ultimately we need to address this
+# by capping the size of inlined functions, since the main delay comes from
+# traversing enormous AST function bodies.
+# @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
 # @TEST-PORT: BROKER_PORT1
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3

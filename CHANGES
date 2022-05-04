@@ -1,3 +1,9 @@
+5.0.0-dev.341 | 2022-05-04 09:23:55 -0700
+
+  * Fixes Coverity issues reported from DNS_Mgr merge (Tim Wojtulewicz, Corelight)
+
+    Reports fixed: 1488295, 1488292, 1488281, 1488279
+
 5.0.0-dev.338 | 2022-05-03 14:40:57 -0700
 
   * fix for sets containing recursive records (Vern Paxson, Corelight)

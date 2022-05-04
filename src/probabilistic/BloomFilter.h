@@ -143,6 +143,7 @@ class CountingBloomFilter;
 class BasicBloomFilter : public BloomFilter
 	{
 	friend class CountingBloomFilter;
+
 public:
 	/**
 	 * Constructs a basic Bloom filter with a given number of cells. The
@@ -259,7 +260,6 @@ public:
 	 * @return Intersecting BloomFilter on success, nullptr otherwise.
 	 */
 	BasicBloomFilter* Intersect(const BloomFilter* other) const override;
-
 
 protected:
 	friend class BloomFilter;

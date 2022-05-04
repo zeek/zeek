@@ -152,7 +152,7 @@ BitVector CounterVector::ToBitVector() const
 		bool set = false;
 
 		for ( size_t i = 0; i < width; ++i )
-			set |= (*bits)[lsb+1];
+			set |= (*bits)[lsb + 1];
 
 		newbits[cell] = set;
 		}

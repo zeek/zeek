@@ -755,7 +755,6 @@ BloomFilterValPtr BloomFilterVal::Intersect(const BloomFilterVal* x, const Bloom
 	return intersected;
 	}
 
-
 BloomFilterVal::~BloomFilterVal()
 	{
 	delete hash;

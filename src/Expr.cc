@@ -3752,6 +3752,9 @@ void TableConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add("table(");
 	op->Describe(d);
 	d->Add(")");
+
+	if ( attrs )
+		attrs->Describe(d);
 	}
 
 SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
@@ -3853,6 +3856,9 @@ void SetConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add("set(");
 	op->Describe(d);
 	d->Add(")");
+
+	if ( attrs )
+		attrs->Describe(d);
 	}
 
 VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list, TypePtr arg_type)

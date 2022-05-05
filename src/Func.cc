@@ -864,7 +864,7 @@ static int get_func_priority(const std::vector<AttrPtr>& attrs)
 
 	for ( const auto& a : attrs )
 		{
-		if ( a->Tag() == ATTR_DEPRECATED )
+		if ( a->Tag() == ATTR_DEPRECATED || a->Tag() == ATTR_IS_USED )
 			continue;
 
 		if ( a->Tag() != ATTR_PRIORITY )
@@ -903,7 +903,23 @@ function_ingredients::function_ingredients(ScopePtr scope, StmtPtr body)
 
 	const auto& attrs = this->scope->Attrs();
 
-	priority = (attrs ? get_func_priority(*attrs) : 0);
+	if ( attrs )
+		{
+		priority = get_func_priority(*attrs);
+
+		for ( const auto& a : *attrs )
+			if ( a->Tag() == ATTR_IS_USED )
+				{
+				// Associate this with the identifier, too.
+				std::vector<AttrPtr> used_attr;
+				used_attr.emplace_back(make_intrusive<Attr>(ATTR_IS_USED));
+				id->AddAttrs(make_intrusive<Attributes>(used_attr, nullptr, false, true));
+				break;
+				}
+		}
+	else
+		priority = 0;
+
 	this->body = std::move(body);
 	}
 

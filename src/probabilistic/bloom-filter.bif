@@ -286,6 +286,7 @@ function bloomfilter_merge%(bf1: opaque of bloomfilter,
 ## bf2: The second Bloom filter handle.
 ##
 ## Returns: The intersection of *bf1* and *bf2*.
+##
 ## .. zeek:see:: bloomfilter_basic_init bloomfilter_basic_init2
 ##    bloomfilter_counting_init bloomfilter_add bloomfilter_lookup
 ##    bloomfilter_clear bloomfilter_merge

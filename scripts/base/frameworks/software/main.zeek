@@ -454,7 +454,7 @@ function cmp_versions(v1: Version, v2: Version): int
 	return 0;
 	}
 
-function software_endpoint_name(id: conn_id, host: addr): string
+function software_endpoint_name(id: conn_id, host: addr): string &deprecated
 	{
 	return fmt("%s %s", host, (host == id$orig_h ? "client" : "server"));
 	}

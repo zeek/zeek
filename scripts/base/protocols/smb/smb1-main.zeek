@@ -271,7 +271,7 @@ event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, 
 	c$smb_state$pipe_map[file_id] = c$smb_state$current_file$uuid;
 	}
 
-event smb_pipe_bind_ack_response(c: connection, hdr: SMB1::Header)
+event smb_pipe_bind_ack_response(c: connection, hdr: SMB1::Header) &deprecated
 	{
 	if ( ! c$smb_state?$current_file || ! c$smb_state$current_file?$uuid )
 		{
@@ -283,7 +283,7 @@ event smb_pipe_bind_ack_response(c: connection, hdr: SMB1::Header)
 	c$smb_state$current_cmd$argument = SMB::rpc_uuids[c$smb_state$current_file$uuid];
 	}
 
-event smb_pipe_bind_request(c: connection, hdr: SMB1::Header, uuid: string, version: string)
+event smb_pipe_bind_request(c: connection, hdr: SMB1::Header, uuid: string, version: string) &deprecated
 	{
 	if ( ! c$smb_state?$current_file || ! c$smb_state$current_file?$uuid )
 		{
@@ -296,7 +296,7 @@ event smb_pipe_bind_request(c: connection, hdr: SMB1::Header, uuid: string, vers
 	c$smb_state$current_cmd$argument = fmt("%s v%s", SMB::rpc_uuids[uuid], version);
 	}
 
-event smb_pipe_request(c: connection, hdr: SMB1::Header, op_num: count)
+event smb_pipe_request(c: connection, hdr: SMB1::Header, op_num: count) &deprecated
 	{
 	if ( ! c$smb_state?$current_file )
 		{

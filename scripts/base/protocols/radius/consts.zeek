@@ -182,7 +182,7 @@ const attr_types: table[count] of string = {
 	[171] = "Delegated-IPv6-Prefix-Pool",
 	[172] = "Stateful-IPv6-Address-Pool",
 	[173] = "IPv6-6rd-Configuration"
-} &default=function(i: count): string { return fmt("unknown-%d", i); };
+} &default=function(i: count): string { return fmt("unknown-%d", i); } &deprecated;
 
 const nas_port_types: table[count] of string = {
 	[0] = "Async",
@@ -205,7 +205,7 @@ const nas_port_types: table[count] of string = {
 	[17] = "Cable",
 	[18] = "Wireless - Other",
 	[19] = "Wireless - IEEE 802.11"
-} &default=function(i: count): string { return fmt("unknown-%d", i); };
+} &default=function(i: count): string { return fmt("unknown-%d", i); } &deprecated;
 
 const service_types: table[count] of string = {
 	[1] = "Login",
@@ -219,7 +219,7 @@ const service_types: table[count] of string = {
 	[9] = "Callback NAS Prompt",
 	[10] = "Call Check",
 	[11] = "Callback Administrative",
-} &default=function(i: count): string { return fmt("unknown-%d", i); };
+} &default=function(i: count): string { return fmt("unknown-%d", i); } &deprecated;
 
 const framed_protocol_types: table[count] of string = {
 	[1] = "PPP",
@@ -228,4 +228,4 @@ const framed_protocol_types: table[count] of string = {
 	[4] = "Gandalf proprietary SingleLink/MultiLink protocol",
 	[5] = "Xylogics proprietary IPX/SLIP",
 	[6] = "X.75 Synchronous"
-} &default=function(i: count): string { return fmt("unknown-%d", i); };
+} &default=function(i: count): string { return fmt("unknown-%d", i); } &deprecated;

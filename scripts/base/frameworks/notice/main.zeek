@@ -585,7 +585,7 @@ function is_being_suppressed(n: Notice::Info): bool
 
 # Executes a script with all of the notice fields put into the
 # new process' environment as "ZEEK_ARG_<field>" variables.
-function execute_with_notice(cmd: string, n: Notice::Info)
+function execute_with_notice(cmd: string, n: Notice::Info) &deprecated
 	{
 	# TODO: fix system calls
 	#local tgs = tags(n);

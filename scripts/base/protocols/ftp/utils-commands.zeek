@@ -133,7 +133,7 @@ function remove_pending_cmd(pc: PendingCmds, ca: CmdArg): bool
 		return F;
 	}
 
-function pop_pending_cmd(pc: PendingCmds, reply_code: count, reply_msg: string): CmdArg
+function pop_pending_cmd(pc: PendingCmds, reply_code: count, reply_msg: string): CmdArg &deprecated
 	{
 	local ca = get_pending_cmd(pc, reply_code, reply_msg);
 	remove_pending_cmd(pc, ca);

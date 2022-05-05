@@ -1208,6 +1208,8 @@ public:
 
 	ValPtr Eval(Frame* f) const override;
 
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
 	// Optimization-related:
 	ExprPtr Duplicate() override;
 
@@ -1231,6 +1233,8 @@ public:
 	const AttributesPtr& GetAttrs() const { return attrs; }
 
 	ValPtr Eval(Frame* f) const override;
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -1479,6 +1483,7 @@ private:
 	void CheckCaptures(StmtPtr when_parent);
 
 	std::unique_ptr<function_ingredients> ingredients;
+	IDPtr lambda_id;
 
 	IDPList outer_ids;
 	bool capture_by_ref; // if true, use deprecated reference semantics

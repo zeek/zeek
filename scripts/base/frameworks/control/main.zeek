@@ -74,7 +74,7 @@ export {
 	global shutdown_response: event();
 }
 
-event terminate_event()
+event terminate_event() &is_used
 	{
 	terminate();
 	}

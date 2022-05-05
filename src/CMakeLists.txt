@@ -398,6 +398,7 @@ set(MAIN_SRCS
     script_opt/ScriptOpt.cc
     script_opt/Stmt.cc
     script_opt/TempVar.cc
+    script_opt/UsageAnalyzer.cc
     script_opt/UseDefs.cc
 
     script_opt/ZAM/AM-Opt.cc

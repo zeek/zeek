@@ -1,4 +1,3 @@
-
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/ID.h"
@@ -18,6 +17,7 @@
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/IDOptInfo.h"
+#include "zeek/script_opt/UsageAnalyzer.h"
 #include "zeek/zeekygen/IdentifierInfo.h"
 #include "zeek/zeekygen/Manager.h"
 #include "zeek/zeekygen/ScriptInfo.h"
@@ -167,6 +167,9 @@ void ID::SetVal(ValPtr v)
 			handler = new EventHandler(name);
 			handler->SetFunc(func);
 			event_registry->Register(handler);
+
+			if ( ! IsExport() )
+				register_new_event({NewRef{}, this});
 			}
 		else
 			{

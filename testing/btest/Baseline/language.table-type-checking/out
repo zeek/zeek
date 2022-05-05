@@ -14,4 +14,4 @@ error in port and <...>/table-type-checking.zeek, line 42: type clash (port and 
 error in <...>/table-type-checking.zeek, line 42: inconsistent types in table constructor (table(thousand-two = 1002))
 error in <...>/table-type-checking.zeek, line 48: type clash in assignment (lea = table(thousand-three = 1003))
 error in count and <...>/table-type-checking.zeek, line 54: arithmetic mixed with non-arithmetic (count and foo)
-error in <...>/table-type-checking.zeek, line 4 and <...>/table-type-checking.zeek, line 54: &default value has inconsistent type (table[port] of count and table()&default=foo, &optional)
+error in <...>/table-type-checking.zeek, line 4 and <...>/table-type-checking.zeek, line 54: &default value has inconsistent type (MyTable and table()&default=foo, &optional)

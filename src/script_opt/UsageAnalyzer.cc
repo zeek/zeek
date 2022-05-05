@@ -1,8 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/script_opt/UsageAnalyzer.h"
+
 #include "zeek/module_util.h"
 #include "zeek/script_opt/IDOptInfo.h"
-#include "zeek/script_opt/UsageAnalyzer.h"
 
 namespace zeek::detail
 	{
@@ -51,7 +52,8 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs)
 		auto flavor = t->AsFuncType()->FlavorString();
 		auto loc = id->GetLocationInfo();
 
-		reporter->Warning("%s %s (%s:%d): cannot be invoked", flavor.c_str(), id->Name(), loc->filename, loc->first_line);
+		reporter->Warning("%s %s (%s:%d): cannot be invoked", flavor.c_str(), id->Name(),
+		                  loc->filename, loc->first_line);
 
 		// Don't ding any functions that are reachable via this
 		// identifier.  This will also suppress flagging other events
@@ -75,7 +77,8 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs)
 
 		auto loc = id->GetLocationInfo();
 
-		reporter->Warning("function %s (%s:%d): cannot be called", id->Name(), loc->filename, loc->first_line);
+		reporter->Warning("function %s (%s:%d): cannot be called", id->Name(), loc->filename,
+		                  loc->first_line);
 
 		// Unlike for events/hooks above, we don't add the function to
 		// the reachables.  This is because an orphan function is a

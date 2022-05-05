@@ -99,7 +99,7 @@ public:
 		return true;
 		}
 
-        detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
+	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
 
 protected:
 	void AddTag(ODesc* d) const;
@@ -132,7 +132,7 @@ public:
 
 	bool operator==(const Attributes& other) const;
 
-        detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
+	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
 
 protected:
 	void CheckAttr(Attr* attr);

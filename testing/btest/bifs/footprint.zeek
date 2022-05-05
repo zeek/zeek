@@ -97,4 +97,9 @@ event zeek_init()
 
 	print val_footprint(x);
 	print val_footprint(y);
+
+	local self_ref_table: table[string] of any;
+	print "srt", val_footprint(self_ref_table);
+	self_ref_table["x"] = self_ref_table;
+	print "srt", val_footprint(self_ref_table);
 	}

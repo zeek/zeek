@@ -57,6 +57,27 @@ export {
 	    result: Management::ResultVec);
 
 
+	## zeek-client sends this event to retrieve the currently deployed
+	## cluster configuration.
+	##
+	## reqid: a request identifier string, echoed in the response event.
+	##
+	global get_configuration_request: event(reqid: string);
+
+	## Response to a get_configuration_request event. The controller sends
+	## this back to the client.
+	##
+	## reqid: the request identifier used in the request event.
+	##
+	## result: a :zeek:see:`Management::Result` record with a successful
+	##     :zeek:see:`Management::Configuration` in the data member, if
+	##     a configuration is currently deployed. Otherwise, a Result
+	##     record in error state, with no data value assigned.
+	##
+	global get_configuration_response: event(reqid: string,
+	    result: Management::Result);
+
+
 	## zeek-client sends this event to request a list of
 	## :zeek:see:`Management::NodeStatus` records that capture
 	## the status of Supervisor-managed nodes running on the cluster's

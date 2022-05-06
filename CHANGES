@@ -1,3 +1,9 @@
+5.0.0-dev.347 | 2022-05-05 18:09:44 -0700
+
+  * Management framework: add get_configuration_request/response transaction (Christian Kreibich, Corelight)
+
+  * Update zeek-archiver submodule (Christian Kreibich, Corelight)
+
 5.0.0-dev.344 | 2022-05-04 11:57:50 -0700
 
   * fix for coverage reporting for functions that use "when" statements (Vern Paxson, Corelight)

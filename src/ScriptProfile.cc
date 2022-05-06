@@ -117,6 +117,9 @@ ScriptProfileMgr::~ScriptProfileMgr()
 
 	fprintf(f, "non-scripts\t<no-location>\tTOTAL\t%d\t%.06f\t%.06f\t%lld\t%lld\n",
 	        non_scripts.NumCalls(), non_scripts.CPUTime(), 0.0, non_scripts.Memory(), 0LL);
+
+	if ( f != stdout )
+		fclose(f);
 	}
 
 void ScriptProfileMgr::StartInvocation(const Func* f, const detail::StmtPtr& body)

@@ -1,3 +1,20 @@
+5.0.0-dev.359 | 2022-05-06 11:32:13 -0700
+
+  * to avoid recursion, track all aggregates, not just records (Vern Paxson, Corelight)
+    isolate the internal methods
+
+  * simpler public calling interface for computing footprint (Vern Paxson, Corelight)
+
+  * use stack-based set to prevent infinite recursion rather than a static one (Vern Paxson, Corelight)
+
+  * change value_footprint() to val_footprint() to be more similar to val_size() (Vern Paxson, Corelight)
+
+  * make including count of container elements non-optional (Vern Paxson, Corelight)
+
+  * fix for tracking footprints of mutually-recursive records (Vern Paxson, Corelight)
+
+  * added value_footprint() and global_container_footprints() BiFs (Vern Paxson, Corelight)
+
 5.0.0-dev.347 | 2022-05-05 18:09:44 -0700
 
   * Management framework: add get_configuration_request/response transaction (Christian Kreibich, Corelight)

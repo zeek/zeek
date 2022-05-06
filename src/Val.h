@@ -121,6 +121,20 @@ public:
 	// size depends on the Val's type.
 	virtual ValPtr SizeVal() const;
 
+	/**
+	 * Returns the Val's "footprint", i.e., how many elements / Val
+	 * objects the value includes, either directly or indirectly.
+	 * The number is not meant to be precise, but rather comparable:
+	 * larger footprint correlates with more memory consumption.
+	 *
+	 * @return  The total footprint.
+	 */
+	unsigned int Footprint() const
+		{
+		std::unordered_set<const Val*> analyzed_vals;
+		return Footprint(&analyzed_vals);
+		}
+
 	// Bytes in total value object.
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] virtual unsigned int
@@ -230,6 +244,7 @@ protected:
 	friend class EnumType;
 	friend class ListVal;
 	friend class RecordVal;
+	friend class TableVal;
 	friend class VectorVal;
 	friend class ValManager;
 	friend class TableEntryVal;
@@ -242,6 +257,21 @@ protected:
 	static ValPtr MakeCount(bro_uint_t u);
 
 	explicit Val(TypePtr t) noexcept : type(std::move(t)) { }
+
+	/**
+	 * Internal function for computing a Val's "footprint".
+	 *
+	 * @param analyzed_vals  A pointer to a set used to track which values
+	 * have been analyzed to date, used to prevent infinite recursion.
+	 * The set should be empty (but not nil) on the first call.
+	 *
+	 * @return  The total footprint.
+	 */
+	unsigned int Footprint(std::unordered_set<const Val*>* analyzed_vals) const;
+	virtual unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const
+		{
+		return 1;
+		}
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState
@@ -671,6 +701,8 @@ public:
 	MemoryAllocation() const override;
 
 protected:
+	unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
+
 	ValPtr DoClone(CloneState* state) override;
 
 	std::vector<ValPtr> vals;
@@ -1030,6 +1062,8 @@ protected:
 
 	// Sends data on to backing Broker Store
 	void SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType tpe);
+
+	unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
 
 	ValPtr DoClone(CloneState* state) override;
 
@@ -1439,6 +1473,8 @@ private:
 	// Just for template inferencing.
 	RecordVal* Get() { return this; }
 
+	unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
+
 	// Keep this handy for quick access during low-level operations.
 	RecordTypePtr rt;
 
@@ -1637,6 +1673,9 @@ protected:
 	ValPtr At(unsigned int index) const;
 
 	void ValDescribe(ODesc* d) const override;
+
+	unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
+
 	ValPtr DoClone(CloneState* state) override;
 
 private:

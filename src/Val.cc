@@ -1322,6 +1322,16 @@ ValPtr ListVal::DoClone(CloneState* state)
 	return lv;
 	}
 
+unsigned int ListVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const
+	{
+	unsigned int fp = vals.size();
+
+	for ( const auto& val : vals )
+		fp += val->Footprint(analyzed_vals);
+
+	return fp;
+	}
+
 unsigned int ListVal::MemoryAllocation() const
 	{
 #pragma GCC diagnostic push
@@ -2684,6 +2694,24 @@ ValPtr TableVal::DoClone(CloneState* state)
 	return tv;
 	}
 
+unsigned int TableVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const
+	{
+	unsigned int fp = table_val->Length();
+
+	for ( const auto& iter : *table_val )
+		{
+		auto k = iter.GetHashKey();
+		auto vl = table_hash->RecoverVals(*k);
+		auto v = iter.GetValue<TableEntryVal*>()->GetVal();
+
+		fp += vl->Footprint(analyzed_vals);
+		if ( v )
+			fp += v->Footprint(analyzed_vals);
+		}
+
+	return fp;
+	}
+
 unsigned int TableVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
@@ -3047,6 +3075,24 @@ ValPtr RecordVal::DoClone(CloneState* state)
 		}
 
 	return rv;
+	}
+
+unsigned int RecordVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const
+	{
+	int n = NumFields();
+	unsigned int fp = n;
+
+	for ( auto i = 0; i < n; ++i )
+		{
+		if ( ! HasField(i) )
+			continue;
+
+		auto f_i = GetField(i);
+		if ( f_i )
+			fp += f_i->Footprint(analyzed_vals);
+		}
+
+	return fp;
 	}
 
 unsigned int RecordVal::MemoryAllocation() const
@@ -3572,6 +3618,21 @@ bool VectorVal::Concretize(const TypePtr& t)
 	return true;
 	}
 
+unsigned int VectorVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const
+	{
+	auto n = vector_val->size();
+	unsigned int fp = n;
+
+	for ( auto i = 0U; i < n; ++i )
+		{
+		auto v = At(i);
+		if ( v )
+			fp += v->Footprint(analyzed_vals);
+		}
+
+	return fp;
+	}
+
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
 	{
 	unsigned int oldsize = vector_val->size();
@@ -3951,6 +4012,31 @@ ValPtr Val::MakeInt(bro_int_t i)
 ValPtr Val::MakeCount(bro_uint_t u)
 	{
 	return make_intrusive<CountVal>(u);
+	}
+
+unsigned int Val::Footprint(std::unordered_set<const Val*>* analyzed_vals) const
+	{
+	auto is_aggr = IsAggr(type);
+
+	// We only need to check containers for possible recursion, as there's
+	// no way to construct a cycle using only non-aggregates.
+	if ( is_aggr )
+		{
+		if ( analyzed_vals->count(this) > 0 )
+			// Footprint is 1 for generating a cycle.
+			return 1;
+
+		analyzed_vals->insert(this);
+		}
+
+	auto fp = ComputeFootprint(analyzed_vals);
+
+	if ( is_aggr )
+		// Allow the aggregate to be revisited providing it's not
+		// in the context of a cycle.
+		analyzed_vals->erase(this);
+
+	return fp;
 	}
 
 ValManager::ValManager()

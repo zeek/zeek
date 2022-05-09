@@ -56,6 +56,7 @@ public:
 	bool operator==(const String& bs) const;
 	bool operator<(const String& bs) const;
 	bool operator==(std::string_view s) const;
+	bool operator!=(std::string_view s) const;
 
 	byte_vec Bytes() const { return b; }
 	int Len() const { return n; }

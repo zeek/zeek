@@ -115,6 +115,11 @@ bool String::operator==(std::string_view s) const
 	return (memcmp(b, s.data(), n) == 0);
 	}
 
+bool String::operator!=(std::string_view s) const
+	{
+	return ! (*this == s);
+	}
+
 void String::Adopt(byte_vec bytes, int len)
 	{
 	Reset();

@@ -1,3 +1,7 @@
+5.0.0-dev.368 | 2022-05-09 10:37:44 +0100
+
+  * when printing a description of a type, use its name if available (Vern Paxson, Corelight)
+
 5.0.0-dev.363 | 2022-05-06 15:28:34 -0700
 
   * Management framework: consistency tweaks in zeek-client, plus test updates (Christian Kreibich, Corelight)

@@ -306,6 +306,8 @@ public:
 		}
 
 protected:
+	virtual void DoDescribe(ODesc* d) const;
+
 	Type() = default;
 
 	void SetError();
@@ -347,13 +349,13 @@ public:
 	void Append(TypePtr t);
 	void AppendEvenIfNotPure(TypePtr t);
 
-	void Describe(ODesc* d) const override;
-
 	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
 	             "GHI-572.")]] unsigned int
 	MemoryAllocation() const override;
 
 protected:
+	void DoDescribe(ODesc* d) const override;
+
 	TypePtr pure_type;
 	std::vector<TypePtr> types;
 	};
@@ -369,7 +371,6 @@ public:
 
 	const TypePtr& Yield() const override { return yield_type; }
 
-	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 	// Returns true if this table is solely indexed by subnet.
@@ -382,6 +383,8 @@ protected:
 		}
 
 	~IndexType() override = default;
+
+	void DoDescribe(ODesc* d) const override;
 
 	TypeListPtr indices;
 	TypePtr yield_type;
@@ -474,7 +477,6 @@ public:
 
 	const TypeListPtr& ParamList() const { return arg_types; }
 
-	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 	/**
@@ -535,6 +537,9 @@ protected:
 	friend FuncTypePtr make_intrusive<FuncType>();
 
 	FuncType() : Type(TYPE_FUNC) { flavor = FUNC_FLAVOR_FUNCTION; }
+
+	void DoDescribe(ODesc* d) const override;
+
 	RecordTypePtr args;
 	TypeListPtr arg_types;
 	TypePtr yield;
@@ -675,7 +680,6 @@ public:
 	 */
 	void Create(std::vector<std::optional<ZVal>>& r) const;
 
-	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 	void DescribeFields(ODesc* d) const;
 	void DescribeFieldsReST(ODesc* d, bool func_args) const;
@@ -698,6 +702,8 @@ protected:
 	RecordType() { types = nullptr; }
 
 	void AddField(unsigned int field, const TypeDecl* td);
+
+	void DoDescribe(ODesc* d) const override;
 
 	// Maps each field to how to initialize it.  Uses pointers due to
 	// keeping the FieldInit definition private to Type.cc (see above).
@@ -725,9 +731,9 @@ public:
 
 	const TypePtr& Yield() const override { return yield; }
 
-	void Describe(ODesc* d) const override;
-
 protected:
+	void DoDescribe(ODesc* d) const override;
+
 	TypePtr yield;
 	};
 
@@ -740,11 +746,12 @@ public:
 
 	const std::string& Name() const { return name; }
 
-	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
 	OpaqueType() { }
+
+	void DoDescribe(ODesc* d) const override;
 
 	std::string name;
 	};
@@ -783,7 +790,6 @@ public:
 
 	bool HasRedefs() const { return has_redefs; }
 
-	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 	const EnumValPtr& GetEnumVal(bro_int_t i);
@@ -800,6 +806,8 @@ protected:
 	void CheckAndAddName(const std::string& module_name, const char* name, bro_int_t val,
 	                     bool is_export, detail::Expr* deprecation = nullptr,
 	                     bool from_redef = false);
+
+	void DoDescribe(ODesc* d) const override;
 
 	using NameMap = std::map<std::string, bro_int_t>;
 	NameMap names;
@@ -834,10 +842,11 @@ public:
 	// gets using an empty "vector()" constructor.
 	bool IsUnspecifiedVector() const;
 
-	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
+	void DoDescribe(ODesc* d) const override;
+
 	TypePtr yield_type;
 	};
 

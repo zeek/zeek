@@ -49,6 +49,9 @@ Changed Functionality
 
 - The is_num(), is_alpha(), and is_alnum() BiFs now return F for the empty string.
 
+- Type mismatch error messages now print the easier to understand type names, instead
+  of the fully expanded raw type.
+
 Deprecated Functionality
 ------------------------
 

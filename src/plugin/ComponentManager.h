@@ -13,6 +13,7 @@
 #include "zeek/Type.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h" // for add_type()
+#include "zeek/ZeekString.h"
 #include "zeek/module_util.h"
 #include "zeek/zeekygen/Manager.h"
 
@@ -193,9 +194,7 @@ template <class C> const std::string& ComponentManager<C>::GetComponentName(zeek
 	if ( ! tag )
 		return error;
 
-	C* c = Lookup(tag);
-
-	if ( c )
+	if ( C* c = Lookup(tag) )
 		return c->CanonicalName();
 
 	reporter->InternalWarning("requested name of unknown component tag %s", tag.AsString().c_str());
@@ -204,7 +203,17 @@ template <class C> const std::string& ComponentManager<C>::GetComponentName(zeek
 
 template <class C> const std::string& ComponentManager<C>::GetComponentName(EnumValPtr val) const
 	{
-	return GetComponentName(zeek::Tag(std::move(val)));
+	static const std::string error = "<error>";
+
+	if ( ! val )
+		return error;
+
+	if ( C* c = Lookup(val.get()) )
+		return c->CanonicalName();
+
+	reporter->InternalWarning("requested name of unknown component tag %s",
+	                          val->AsString()->CheckString());
+	return error;
 	}
 
 template <class C> zeek::Tag ComponentManager<C>::GetComponentTag(const std::string& name) const

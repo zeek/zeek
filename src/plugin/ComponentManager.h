@@ -75,6 +75,22 @@ public:
 	const std::string& GetComponentName(EnumValPtr val) const;
 
 	/**
+	 * Get a component name from its tag.
+	 *
+	 * @param tag A component's tag.
+	 * @return The canonical component name as a StringValPtr.
+	 */
+	StringValPtr GetComponentNameVal(zeek::Tag tag) const;
+
+	/**
+	 * Get a component name from it's enum value.
+	 *
+	 * @param val A component's enum value.
+	 * @return The canonical component name as a StringValPtr.
+	 */
+	StringValPtr GetComponentNameVal(EnumValPtr val) const;
+
+	/**
 	 * Get a component tag from its name.
 	 *
 	 * @param name A component's canonical name.
@@ -210,6 +226,35 @@ template <class C> const std::string& ComponentManager<C>::GetComponentName(Enum
 
 	if ( C* c = Lookup(val.get()) )
 		return c->CanonicalName();
+
+	reporter->InternalWarning("requested name of unknown component tag %s",
+	                          val->AsString()->CheckString());
+	return error;
+	}
+
+template <class C> StringValPtr ComponentManager<C>::GetComponentNameVal(zeek::Tag tag) const
+	{
+	static auto error = make_intrusive<StringVal>("<error>");
+
+	if ( ! tag )
+		return error;
+
+	if ( C* c = Lookup(tag) )
+		return c->CanonicalNameVal();
+
+	reporter->InternalWarning("requested name of unknown component tag %s", tag.AsString().c_str());
+	return error;
+	}
+
+template <class C> StringValPtr ComponentManager<C>::GetComponentNameVal(EnumValPtr val) const
+	{
+	static auto error = make_intrusive<StringVal>("<error>");
+
+	if ( ! val )
+		return error;
+
+	if ( C* c = Lookup(val.get()) )
+		return c->CanonicalNameVal();
 
 	reporter->InternalWarning("requested name of unknown component tag %s",
 	                          val->AsString()->CheckString());

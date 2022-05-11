@@ -2,6 +2,31 @@
 #include "zeek/probabilistic/CountMinSketch.h"
 %%}
 
+function count_min_sketch_init%(epsilon: double, delta: double%): opaque of countminsketch
+	%{
+	auto wd = CountMinSketch::CalculateWD(epsilon, delta);
+	if ( wd.first == -1 || wd.second == -1 )
+		{
+		reporter->Error("Invalid parameters passed to count_min_sketch_init");
+		return nullptr;
+		}
+
+	auto v = zeek::make_intrusive<zeek::CountMSVal>(std::make_unique<zeek::probabilistic::CountMinSketch>(wd.first, wd.second));
+	return v;
+	%}
+
+function count_min_sketch_calculate_required_width%(epsilon: double, delta: double%): int
+	%{
+	auto wd = CountMinSketch::CalculateWD(epsilon, delta);
+	return zeek::val_mgr->Int(wd.first);
+	%}
+
+function count_min_sketch_calculate_required_depth%(epsilon: double, delta: double%): int
+	%{
+	auto wd = CountMinSketch::CalculateWD(epsilon, delta);
+	return zeek::val_mgr->Int(wd.second);
+	%}
+
 function count_min_sketch_advanced_init%(w: count, d: count%): opaque of countminsketch
 	%{
 	auto v = zeek::make_intrusive<zeek::CountMSVal>(std::make_unique<zeek::probabilistic::CountMinSketch>(w, d));
@@ -30,7 +55,16 @@ function count_min_sketch_estimate%(cms: opaque of countminsketch, item: any%): 
 		return zeek::val_mgr->Count(0);
 	else if ( ! same_type(cmv->Type(), item->GetType()) )
 		reporter->Error("incompatible Count-Min sketch types");
+	
 	return zeek::val_mgr->Count(cmv->Estimate(item));
+	%}
 
-	return zeek::val_mgr->Count(0);
+function count_min_sketch_get_total%(cms: opaque of countminsketch%): count
+	%{
+	auto cmv = static_cast<zeek::CountMSVal*>(cms);
+
+	if ( !cmv->Type() )
+		return zeek::val_mgr->Count(0);
+
+	return zeek::val_mgr->Count(cmv->GetTotal());
 	%}

@@ -11,9 +11,10 @@ function print_test_result(c: opaque of countminsketch, v: count)
 	print fmt("Exact: %d, estimate: %d", exact[v], count_min_sketch_estimate(c, v));
 	}
 
-event zeek_init()
+function advanced_test()
 	{
 	local cms = count_min_sketch_advanced_init(2000, 10);
+	exact = table();
 
   local i : count = 0;
 	while ( i < 10000 )
@@ -31,4 +32,52 @@ event zeek_init()
 
 	print_test_result(cms, 7);
 	print_test_result(cms, 77);
+	print "Total observations", count_min_sketch_get_total(cms);
+	}
+
+function advanced_test_two()
+	{
+	local cms = count_min_sketch_advanced_init(2719, 7);
+	exact = table();
+
+  local i : count = 0;
+	while ( i < 10000 )
+		{
+		local randvalue = rand(10000);
+		count_min_sketch_update(cms, randvalue);
+		if ( randvalue in exact )
+			exact[randvalue] += 1;
+		else
+			exact[randvalue] = 1;
+		i += 1;
+		#if ( i % 1000 == 0 )
+		#	print i;
+		}
+
+	print_test_result(cms, 7);
+	print_test_result(cms, 77);
+	print "Total observations", count_min_sketch_get_total(cms);
+	}
+event zeek_init()
+	{
+	# hundred elements, 1% error allowable
+	print count_min_sketch_calculate_required_width(0.001, .01);
+	print count_min_sketch_calculate_required_depth(0.001, .01);
+	# thousand elements, 1% error allowable
+	print count_min_sketch_calculate_required_width(0.001, .001);
+	print count_min_sketch_calculate_required_depth(0.001, .001);
+	# a hundred thousand elements, 1% error allowable
+	print count_min_sketch_calculate_required_width(0.001, .00001);
+	print count_min_sketch_calculate_required_depth(0.001, .00001);
+	# one million elements, 1% error allowable
+	print count_min_sketch_calculate_required_width(0.001, .000001);
+	print count_min_sketch_calculate_required_depth(0.001, .000001);
+	# one million elements, 10% error allowable
+	print count_min_sketch_calculate_required_width(0.01, .000001);
+	print count_min_sketch_calculate_required_depth(0.01, .000001);
+	# a hundred thousand elements, 10% error allowable
+	print count_min_sketch_calculate_required_width(0.01, .00001);
+	print count_min_sketch_calculate_required_depth(0.01, .00001);
+	advanced_test();
+	advanced_test_two();
 	}

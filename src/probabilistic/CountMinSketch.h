@@ -3,11 +3,12 @@
 #pragma once
 
 #include "zeek/zeek-config.h"
-#include "zeek/Hash.h"
 
 #include <stdint.h>
 #include <utility>
 #include <vector>
+
+#include "zeek/Hash.h"
 
 namespace zeek::probabilistic
 	{
@@ -53,6 +54,14 @@ public:
 	 * Returns: w, d on success; -1, -1 when invalid parameters are given
 	 **/
 	static std::pair<int, int> CalculateWD(double epsilon, double delta);
+
+	/**
+	 * Returns the total number of observations (*c*) that were added to the sketch. Can be used
+	 * for error calculations
+	 *
+	 * Returns: total number of observations
+	 **/
+	uint64_t GetTotal() const { return total; };
 
 	void Update(countms_data_t i, uint16_t c);
 	void Update(const zeek::detail::HashKey* item, uint16_t c);

@@ -914,11 +914,10 @@ bool BloomFilterVal::DoUnserialize(const broker::data& data)
 	return true;
 	}
 
-CountMSVal::CountMSVal() : OpaqueVal(countminsketch_type)
-	{
-	}
+CountMSVal::CountMSVal() : OpaqueVal(countminsketch_type) { }
 
-CountMSVal::CountMSVal(std::unique_ptr<probabilistic::CountMinSketch> sketch) : OpaqueVal(countminsketch_type), sketch(std::move(sketch))
+CountMSVal::CountMSVal(std::unique_ptr<probabilistic::CountMinSketch> sketch)
+	: OpaqueVal(countminsketch_type), sketch(std::move(sketch))
 	{
 	}
 
@@ -939,14 +938,19 @@ bool CountMSVal::Typify(TypePtr arg_type)
 void CountMSVal::Update(const Val* val, uint16_t count)
 	{
 	auto key = hash->MakeHashKey(*val, true);
-	sketch->Update(key.get(), count);	
+	sketch->Update(key.get(), count);
 	}
 
 size_t CountMSVal::Estimate(const Val* val) const
-{
+	{
 	auto key = hash->MakeHashKey(*val, true);
-	return sketch->Estimate(key.get());	
-}
+	return sketch->Estimate(key.get());
+	}
+
+uint64_t CountMSVal::GetTotal() const
+	{
+	return sketch ? (sketch->GetTotal()) : 0;
+	}
 
 broker::expected<broker::data> CountMSVal::DoSerialize() const
 	{
@@ -960,7 +964,6 @@ bool CountMSVal::DoUnserialize(const broker::data& data)
 	}
 
 IMPLEMENT_OPAQUE_VALUE(CountMSVal)
-
 
 CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type)
 	{

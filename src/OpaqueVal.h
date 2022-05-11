@@ -373,7 +373,7 @@ private:
 class CountMSVal : public OpaqueVal
 	{
 public:
-	explicit CountMSVal(std::unique_ptr<probabilistic::CountMinSketch> bf);
+	explicit CountMSVal(std::unique_ptr<probabilistic::CountMinSketch> cms);
 
 	//ValPtr DoClone(CloneState* state) override;
 
@@ -383,6 +383,7 @@ public:
 
 	void Update(const Val* val, uint16_t count);
 	size_t Estimate(const Val* val) const;
+	uint64_t GetTotal() const;
 	//void Clear();
 	//bool Empty() const;
 	//std::string InternalState() const;

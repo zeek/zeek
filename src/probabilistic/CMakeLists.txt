@@ -11,12 +11,14 @@ set(probabilistic_SRCS
     BloomFilter.cc
     CardinalityCounter.cc
     CounterVector.cc
+    CountMinSketch.cc
     Hasher.cc
     Topk.cc)
 
 bif_target(bloom-filter.bif)
 bif_target(cardinality-counter.bif)
 bif_target(top-k.bif)
+bif_target(countminsketch.bif)
 bro_add_subdir_library(probabilistic ${probabilistic_SRCS})
 
 add_dependencies(bro_probabilistic generate_outputs)

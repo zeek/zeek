@@ -26,6 +26,7 @@ namespace zeek
 namespace probabilistic
 	{
 class BloomFilter;
+class CountMinSketch;
 	}
 namespace probabilistic::detail
 	{
@@ -37,6 +38,9 @@ using OpaqueValPtr = IntrusivePtr<OpaqueVal>;
 
 class BloomFilterVal;
 using BloomFilterValPtr = IntrusivePtr<BloomFilterVal>;
+
+class CountMSVal;
+using CountMSValPtr = IntrusivePtr<CountMSVal>;
 
 /**
  * Singleton that registers all available all available types of opaque
@@ -348,6 +352,39 @@ private:
 	TypePtr type;
 	detail::CompositeHash* hash;
 	probabilistic::BloomFilter* bloom_filter;
+	};
+
+class CountMSVal : public OpaqueVal
+	{
+public:
+	explicit CountMSVal(std::unique_ptr<probabilistic::CountMinSketch> bf);
+
+	//ValPtr DoClone(CloneState* state) override;
+
+	const TypePtr& Type() const { return type; }
+
+	bool Typify(TypePtr type);
+
+	void Update(const Val* val, uint16_t count);
+	size_t Estimate(const Val* val) const;
+	//void Clear();
+	//bool Empty() const;
+	//std::string InternalState() const;
+
+	//static CountMSValPtr Merge(const CountMSVal* x, const CountMSVal* y);
+
+protected:
+	friend class Val;
+	CountMSVal();
+
+	DECLARE_OPAQUE_VALUE(CountMSVal)
+private:
+	CountMSVal(const CountMSVal&);
+	CountMSVal& operator=(const CountMSVal&);
+
+	TypePtr type;
+	std::unique_ptr<detail::CompositeHash> hash;
+	std::unique_ptr<probabilistic::CountMinSketch> sketch;
 	};
 
 class CardinalityVal : public OpaqueVal

@@ -1066,6 +1066,7 @@ extern zeek::OpaqueTypePtr entropy_type;
 extern zeek::OpaqueTypePtr cardinality_type;
 extern zeek::OpaqueTypePtr topk_type;
 extern zeek::OpaqueTypePtr bloomfilter_type;
+extern zeek::OpaqueTypePtr countminsketch_type;
 extern zeek::OpaqueTypePtr x509_opaque_type;
 extern zeek::OpaqueTypePtr ocsp_resp_opaque_type;
 extern zeek::OpaqueTypePtr paraglob_type;

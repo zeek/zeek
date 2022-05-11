@@ -213,6 +213,7 @@ zeek::OpaqueTypePtr entropy_type;
 zeek::OpaqueTypePtr cardinality_type;
 zeek::OpaqueTypePtr topk_type;
 zeek::OpaqueTypePtr bloomfilter_type;
+zeek::OpaqueTypePtr countminsketch_type;
 zeek::OpaqueTypePtr x509_opaque_type;
 zeek::OpaqueTypePtr ocsp_resp_opaque_type;
 zeek::OpaqueTypePtr paraglob_type;
@@ -734,6 +735,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	cardinality_type = make_intrusive<OpaqueType>("cardinality");
 	topk_type = make_intrusive<OpaqueType>("topk");
 	bloomfilter_type = make_intrusive<OpaqueType>("bloomfilter");
+	countminsketch_type = make_intrusive<OpaqueType>("countminsketch");
 	x509_opaque_type = make_intrusive<OpaqueType>("x509");
 	ocsp_resp_opaque_type = make_intrusive<OpaqueType>("ocsp_resp");
 	paraglob_type = make_intrusive<OpaqueType>("paraglob");

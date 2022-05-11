@@ -1,0 +1,36 @@
+%%{
+#include "zeek/probabilistic/CountMinSketch.h"
+%%}
+
+function count_min_sketch_advanced_init%(w: count, d: count%): opaque of countminsketch
+	%{
+	auto v = zeek::make_intrusive<zeek::CountMSVal>(std::make_unique<zeek::probabilistic::CountMinSketch>(w, d));
+	return v;
+	%}
+
+function count_min_sketch_update%(cms: opaque of countminsketch, item: any, c: count &default=1%): any
+	%{
+	auto cmv = static_cast<zeek::CountMSVal*>(cms);
+
+	if ( !cmv->Type() && ! cmv->Typify(item->GetType()) )
+		reporter->Error("failed to set Count-Min sketch type");
+	else if ( ! same_type(cmv->Type(), item->GetType()) )
+		reporter->Error("incompatible Count-Min sketch types");
+	else
+		cmv->Update(item, c);
+
+	return nullptr;
+	%}
+
+function count_min_sketch_estimate%(cms: opaque of countminsketch, item: any%): count
+	%{
+	auto cmv = static_cast<zeek::CountMSVal*>(cms);
+
+	if ( !cmv->Type() )
+		return zeek::val_mgr->Count(0);
+	else if ( ! same_type(cmv->Type(), item->GetType()) )
+		reporter->Error("incompatible Count-Min sketch types");
+	return zeek::val_mgr->Count(cmv->Estimate(item));
+
+	return zeek::val_mgr->Count(0);
+	%}

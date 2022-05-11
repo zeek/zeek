@@ -21,6 +21,7 @@
 #include "zeek/Var.h"
 #include "zeek/probabilistic/BloomFilter.h"
 #include "zeek/probabilistic/CardinalityCounter.h"
+#include "zeek/probabilistic/CountMinSketch.h"
 
 namespace zeek
 	{
@@ -758,6 +759,54 @@ bool BloomFilterVal::DoUnserialize(const broker::data& data)
 	bloom_filter = bf.release();
 	return true;
 	}
+
+CountMSVal::CountMSVal() : OpaqueVal(countminsketch_type)
+	{
+	}
+
+CountMSVal::CountMSVal(std::unique_ptr<probabilistic::CountMinSketch> sketch) : OpaqueVal(countminsketch_type), sketch(std::move(sketch))
+	{
+	}
+
+bool CountMSVal::Typify(TypePtr arg_type)
+	{
+	if ( type )
+		return false;
+
+	type = std::move(arg_type);
+
+	auto tl = make_intrusive<TypeList>(type);
+	tl->Append(type);
+	hash = std::unique_ptr<detail::CompositeHash>(new detail::CompositeHash(std::move(tl)));
+
+	return true;
+	}
+
+void CountMSVal::Update(const Val* val, uint16_t count)
+	{
+	auto key = hash->MakeHashKey(*val, true);
+	sketch->Update(key.get(), count);	
+	}
+
+size_t CountMSVal::Estimate(const Val* val) const
+{
+	auto key = hash->MakeHashKey(*val, true);
+	return sketch->Estimate(key.get());	
+}
+
+broker::expected<broker::data> CountMSVal::DoSerialize() const
+	{
+	broker::vector d;
+	return {d};
+	}
+
+bool CountMSVal::DoUnserialize(const broker::data& data)
+	{
+	return false;
+	}
+
+IMPLEMENT_OPAQUE_VALUE(CountMSVal)
+
 
 CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type)
 	{

@@ -2064,6 +2064,25 @@ function global_ids%(%): id_table
 	return ids;
 	%}
 
+## Returns a set giving the names of all global options.
+function global_options%(%): string_set
+	%{
+	auto options = make_intrusive<zeek::TableVal>(zeek::id::string_set);
+	const auto& globals = zeek::detail::global_scope()->Vars();
+
+	for ( const auto& global : globals )
+		{
+		const auto& id = global.second;
+		if ( ! id->IsOption() )
+			continue;
+
+		auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
+		options->Assign(std::move(id_name), nullptr);
+		}
+
+	return options;
+	%}
+
 ## Returns the value of a global identifier.
 ##
 ## id: The global identifier.

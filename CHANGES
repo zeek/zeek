@@ -1,3 +1,29 @@
+5.0.0-dev.382 | 2022-05-11 12:56:13 -0700
+
+  * tidy up after generating profile (Vern Paxson, Corelight)
+
+  * fix for coverage reporting for functions that use "when" statements (Vern Paxson, Corelight)
+
+  * new global_options() BiF to speed up startup, plus a micro-preen (Vern Paxson, Corelight)
+
+  * hooks for new --profile-scripts option (Vern Paxson, Corelight)
+
+  * classes for managing script profiles (Vern Paxson, Corelight)
+
+  * address some holes in script coverage (Vern Paxson, Corelight)
+
+  * fix for script coverage missing on-exit activity (Vern Paxson, Corelight)
+
+  * memory management fixes for loggers (Vern Paxson, Corelight)
+
+  * make curr_CPU_time() broadly available rather than just isolated to ZAM (Vern Paxson, Corelight)
+
+  * Add exact name of the Top-k algorithm. (Johanna Amann)
+
+    I needed to figure out which exact algorithm we use for our
+    probabilistic top-k measurements. It turns out that we do not mention
+    this in our source tree at all so far.
+
 5.0.0-dev.368 | 2022-05-09 10:37:44 +0100
 
   * when printing a description of a type, use its name if available (Vern Paxson, Corelight)

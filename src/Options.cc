@@ -6,6 +6,7 @@
 
 #include <unistd.h>
 
+#include "zeek/ScriptProfile.h"
 #include "zeek/script_opt/ScriptOpt.h"
 
 #ifdef HAVE_GETOPT_H
@@ -142,6 +143,9 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    -m|--mem-leaks                  | show leaks  [perftools]\n");
 	fprintf(stderr, "    -M|--mem-profile                | record heap [perftools]\n");
 #endif
+	fprintf(
+		stderr,
+		"    --profile-scripts[=file]        | profile scripts to given file (default stdout)\n");
 	fprintf(stderr, "    --pseudo-realtime[=<speedup>]   | enable pseudo-realtime for performance "
 	                "evaluation (default 1)\n");
 	fprintf(stderr, "    -j|--jobs                       | enable supervisor mode\n");
@@ -362,7 +366,9 @@ Options parse_cmdline(int argc, char** argv)
 			}
 		}
 
-	constexpr struct option long_opts[] = {
+	int profile_scripts = 0;
+
+	struct option long_opts[] = {
 		{"parse-only", no_argument, nullptr, 'a'},
 		{"bare-mode", no_argument, nullptr, 'b'},
 		{"capture-unprocessed", required_argument, nullptr, 'c'},
@@ -403,6 +409,7 @@ Options parse_cmdline(int argc, char** argv)
 		{"mem-profile", no_argument, nullptr, 'M'},
 #endif
 
+		{"profile-scripts", optional_argument, &profile_scripts, 1},
 		{"pseudo-realtime", optional_argument, nullptr, '~'},
 		{"jobs", optional_argument, nullptr, 'j'},
 		{"test", no_argument, nullptr, '#'},
@@ -601,6 +608,11 @@ Options parse_cmdline(int argc, char** argv)
 			case 0:
 				// This happens for long options that don't have
 				// a short-option equivalent.
+				if ( profile_scripts )
+					{
+					activate_script_profiling(optarg);
+					profile_scripts = 0;
+					}
 				break;
 
 			case '?':

@@ -52,10 +52,6 @@ void EventHandler::SetFunc(FuncPtr f)
 
 void EventHandler::Call(Args* vl, bool no_remote)
 	{
-#ifdef PROFILE_BRO_FUNCTIONS
-	DEBUG_MSG("Event: %s\n", Name());
-#endif
-
 	if ( new_event )
 		NewEvent(vl);
 

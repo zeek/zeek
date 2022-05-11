@@ -8,6 +8,7 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <memory>
 
 namespace zeek
 	{
@@ -41,15 +42,15 @@ class SegmentProfiler
 	{
 public:
 	// The constructor takes some way of identifying the segment.
-	SegmentProfiler(SegmentStatsReporter* arg_reporter, const char* arg_name)
-		: reporter(arg_reporter), name(arg_name), loc(), initial_rusage()
+	SegmentProfiler(std::shared_ptr<SegmentStatsReporter> arg_reporter, const char* arg_name)
+		: reporter(std::move(arg_reporter)), name(arg_name), loc(), initial_rusage()
 		{
 		if ( reporter )
 			Init();
 		}
 
-	SegmentProfiler(SegmentStatsReporter* arg_reporter, const Location* arg_loc)
-		: reporter(arg_reporter), name(), loc(arg_loc), initial_rusage()
+	SegmentProfiler(std::shared_ptr<SegmentStatsReporter> arg_reporter, const Location* arg_loc)
+		: reporter(std::move(arg_reporter)), name(), loc(arg_loc), initial_rusage()
 		{
 		if ( reporter )
 			Init();
@@ -65,7 +66,7 @@ protected:
 	void Init();
 	void Report();
 
-	SegmentStatsReporter* reporter;
+	std::shared_ptr<SegmentStatsReporter> reporter;
 	const char* name;
 	const Location* loc;
 	struct rusage initial_rusage;
@@ -106,9 +107,9 @@ protected:
 	TableVal* load_samples;
 	};
 
-extern ProfileLogger* profiling_logger;
-extern ProfileLogger* segment_logger;
-extern SampleLogger* sample_logger;
+extern std::shared_ptr<ProfileLogger> profiling_logger;
+extern std::shared_ptr<ProfileLogger> segment_logger;
+extern std::shared_ptr<SampleLogger> sample_logger;
 
 // Connection statistics.
 extern uint64_t killed_by_inactivity;

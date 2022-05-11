@@ -5,18 +5,6 @@
 
 #include "zeek/zeek-config.h"
 
-#include <sys/stat.h>
-#include <sys/types.h>
-#ifdef TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif
 #include <broker/error.hh>
 #include <ctype.h>
 #include <errno.h>
@@ -25,7 +13,6 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/param.h>
-#include <sys/resource.h>
 #include <unistd.h>
 #include <algorithm>
 
@@ -42,6 +29,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/Scope.h"
+#include "zeek/ScriptProfile.h"
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
 #include "zeek/Var.h"
@@ -348,9 +336,6 @@ bool ScriptFunc::IsPure() const
 
 ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 	{
-#ifdef PROFILE_BRO_FUNCTIONS
-	DEBUG_MSG("Function: %s\n", Name());
-#endif
 	SegmentProfiler prof(segment_logger, location);
 
 	if ( sample_logger )
@@ -417,6 +402,9 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 				f->SetElement(j, arg);
 			}
 
+		if ( spm )
+			spm->StartInvocation(this, body.stmts);
+
 		f->Reset(args->size());
 
 		try
@@ -438,6 +426,9 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 			// Continue exec'ing remaining bodies of hooks/events.
 			continue;
 			}
+
+		if ( spm )
+			spm->EndInvocation();
 
 		if ( f->HasDelayed() )
 			{
@@ -758,9 +749,9 @@ bool BuiltinFunc::IsPure() const
 
 ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const
 	{
-#ifdef PROFILE_BRO_FUNCTIONS
-	DEBUG_MSG("Function: %s\n", Name());
-#endif
+	if ( spm )
+		spm->StartInvocation(this);
+
 	SegmentProfiler prof(segment_logger, Name());
 
 	if ( sample_logger )
@@ -772,7 +763,11 @@ ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const
 	CheckPluginResult(handled, hook_result, FUNC_FLAVOR_FUNCTION);
 
 	if ( handled )
+		{
+		if ( spm )
+			spm->EndInvocation();
 		return hook_result;
+		}
 
 	if ( g_trace_state.DoTrace() )
 		{
@@ -794,6 +789,9 @@ ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const
 
 		g_trace_state.LogTrace("\tFunction return: %s\n", d.Description());
 		}
+
+	if ( spm )
+		spm->EndInvocation();
 
 	return result;
 	}

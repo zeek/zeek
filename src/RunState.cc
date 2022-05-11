@@ -251,7 +251,7 @@ void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src)
 			// charged against this sample.
 			event_mgr.Drain();
 
-			zeek::detail::sample_logger = new zeek::detail::SampleLogger();
+			zeek::detail::sample_logger = std::make_shared<zeek::detail::SampleLogger>();
 			sp = new zeek::detail::SegmentProfiler(zeek::detail::sample_logger, "load-samp");
 			}
 		}
@@ -262,7 +262,6 @@ void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src)
 	if ( sp )
 		{
 		delete sp;
-		delete zeek::detail::sample_logger;
 		zeek::detail::sample_logger = nullptr;
 		}
 

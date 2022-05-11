@@ -258,7 +258,7 @@ ExprListStmt::~ExprListStmt() = default;
 
 ValPtr ExprListStmt::Exec(Frame* f, StmtFlowType& flow)
 	{
-	last_access = run_state::network_time;
+	RegisterAccess();
 	flow = FLOW_NEXT;
 
 	auto vals = eval_list(f, l.get());
@@ -325,7 +325,6 @@ static void print_log(const std::vector<ValPtr>& vals)
 
 ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals, StmtFlowType& /* flow */)
 	{
-	RegisterAccess();
 	do_print_stmt(vals);
 	return nullptr;
 	}

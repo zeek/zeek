@@ -162,13 +162,7 @@ event zeek_init() &priority=10
 @if ( !Cluster::is_enabled() || Cluster::local_node_type() == Cluster::MANAGER )
 	# Iterate over all existing options and add ourselves as change handlers
 	# with a low priority so that we can log the changes.
-	local gids = global_ids();
-	for ( i, gid in gids )
-		{
-		if ( ! gid$option_value )
-			next;
-
-		Option::set_change_handler(i, config_option_changed, -100);
-		}
+	for ( opt in global_options() )
+		Option::set_change_handler(opt, config_option_changed, -100);
 @endif
 	}

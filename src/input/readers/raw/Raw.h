@@ -55,6 +55,7 @@ private:
 	bool firstrun;
 	time_t mtime;
 	ino_t ino;
+	dev_t dev;
 
 	// options set from the script-level.
 	std::string separator;

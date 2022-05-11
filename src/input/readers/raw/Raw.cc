@@ -293,16 +293,18 @@ bool Raw::OpenInput()
 			return false;
 			}
 
-		struct stat sb;
-		if ( fstat(fileno(file.get()), &sb) == -1 )
+		if ( Info().mode == MODE_STREAM )
 			{
-			Error(Fmt("Could not get fstat for %s", fname.c_str()));
-			}
-		else
-			{
-			mtime = sb.st_mtime;
-			ino = sb.st_ino;
-			dev = sb.st_dev;
+			struct stat sb;
+			if ( fstat(fileno(file.get()), &sb) == -1 )
+				{
+				Error(Fmt("Could not get fstat for %s", fname.c_str()));
+				}
+			else
+				{
+				ino = sb.st_ino;
+				dev = sb.st_dev;
+				}
 			}
 
 		if ( ! SetFDFlags(fileno(file.get()), F_SETFD, FD_CLOEXEC) )

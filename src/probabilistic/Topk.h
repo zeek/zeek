@@ -7,8 +7,11 @@
 #include "zeek/OpaqueVal.h"
 #include "zeek/Val.h"
 
-// This class implements the top-k algorithm. Or - to be more precise - an
-// interpretation of it.
+// This class implements the Space-Saving algorithm for counting the Top-k elements
+// in a datastream as presented in the paper "Efficient Computation of Frequent and
+// Top-k Elements in Data Streams", by Metwally et al. (2005).
+//
+// Or - to be more precise - it implements an interpretation of it.
 
 namespace zeek::detail
 	{

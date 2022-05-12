@@ -49,12 +49,23 @@ export {
 	## output gets garbled.
 	const directory = "" &redef;
 
+	## Returns the effective name of the controller.
+	global get_name: function(): string;
+
 	## Returns a :zeek:see:`Broker::NetworkInfo` record describing the controller.
 	global network_info: function(): Broker::NetworkInfo;
 
 	## Returns a :zeek:see:`Broker::EndpointInfo` record describing the controller.
 	global endpoint_info: function(): Broker::EndpointInfo;
 }
+
+function get_name(): string
+	{
+	if ( name != "" )
+		return name;
+
+	return fmt("controller-%s", gethostname());
+	}
 
 function network_info(): Broker::NetworkInfo
 	{
@@ -79,11 +90,7 @@ function endpoint_info(): Broker::EndpointInfo
 	{
 	local epi: Broker::EndpointInfo;
 
-	if ( Management::Controller::name != "" )
-		epi$id = Management::Controller::name;
-	else
-		epi$id = fmt("controller-%s", gethostname());
-
+	epi$id = Management::Controller::get_name();
 	epi$network = network_info();
 
 	return epi;

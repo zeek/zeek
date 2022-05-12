@@ -79,6 +79,7 @@ export {
 	## nodes: a set of cluster node names (e.g. "worker-01") to retrieve
 	##    the values from. An empty set, supplied by default, means
 	##    retrieval from all nodes managed by the agent.
+	##
 	global node_dispatch_request: event(reqid: string, action: vector of string,
 	    nodes: set[string] &default=set());
 
@@ -93,6 +94,7 @@ export {
 	##     agent. Upon success, each :zeek:see:`Management::Result` record's
 	##     data member contains the dispatches' response in a data type
 	##     appropriate for the respective dispatch.
+	##
 	global node_dispatch_response: event(reqid: string, result: Management::ResultVec);
 
 
@@ -145,7 +147,8 @@ export {
 	## communicate with. It is a controller-level equivalent of
 	## `:zeek:see:`Broker::peer_added`.
 	##
-	## instance: an instance name, really the agent's name as per :zeek:see:`Management::Agent::name`.
+	## instance: an instance name, really the agent's name as per
+	##    :zeek:see:`Management::Agent::get_name`.
 	##
 	## host: the IP address of the agent. (This may change in the future.)
 	##
@@ -168,4 +171,4 @@ export {
 
 	# Report informational message.
 	global notify_log: event(instance: string, msg: string, node: string &default="");
-	}
+}

@@ -77,7 +77,7 @@ event SupervisorControl::create_response(reqid: string, result: string)
 		Management::Log::error(msg);
 		Broker::publish(agent_topic(),
 		    Management::Agent::API::notify_error,
-		    Management::Agent::name, msg, name);
+		    Management::Agent::get_name(), msg, name);
 		}
 
 	Management::Request::finish(reqid);
@@ -97,7 +97,7 @@ event SupervisorControl::destroy_response(reqid: string, result: bool)
 		Management::Log::error(msg);
 		Broker::publish(agent_topic(),
 		    Management::Agent::API::notify_error,
-		    Management::Agent::name, msg, name);
+		    Management::Agent::get_name(), msg, name);
 		}
 
 	Management::Request::finish(reqid);
@@ -150,7 +150,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 
 	for ( node in config$nodes )
 		{
-		if ( node$instance == Management::Agent::name )
+		if ( node$instance == Management::Agent::get_name() )
 			g_nodes[node$name] = node;
 
 		# The cluster and supervisor frameworks require a port for every
@@ -214,7 +214,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		{
 		local res = Management::Result(
 		    $reqid = reqid,
-		    $instance = Management::Agent::name);
+		    $instance = Management::Agent::get_name());
 
 		Management::Log::info(fmt("tx Management::Agent::API::set_configuration_response %s",
 		    Management::result_to_string(res)));
@@ -232,7 +232,7 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 	Management::Request::finish(reqid);
 
 	local res = Management::Result(
-	    $reqid = req$parent_id, $instance = Management::Agent::name);
+	    $reqid = req$parent_id, $instance = Management::Agent::get_name());
 
 	local node_statuses: Management::NodeStatusVec;
 
@@ -494,7 +494,7 @@ event Management::Agent::API::agent_welcome_request(reqid: string)
 
 	local res = Management::Result(
 	    $reqid = reqid,
-	    $instance = Management::Agent::name);
+	    $instance = Management::Agent::get_name());
 
 	Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_response %s",
 	    Management::result_to_string(res)));
@@ -515,7 +515,7 @@ event Management::Agent::API::agent_standby_request(reqid: string)
 
 	local res = Management::Result(
 	    $reqid = reqid,
-	    $instance = Management::Agent::name);
+	    $instance = Management::Agent::get_name());
 
 	Management::Log::info(fmt("tx Management::Agent::API::agent_standby_response %s",
 	    Management::result_to_string(res)));

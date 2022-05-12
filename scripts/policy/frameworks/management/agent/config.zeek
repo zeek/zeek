@@ -15,7 +15,7 @@ export {
 	## Agent stdout log configuration. If the string is non-empty, Zeek will
 	## produce a free-form log (i.e., not one governed by Zeek's logging
 	## framework) in Zeek's working directory. The final log's name is
-	## "<name>.<suffix>", where the name is taken from :zeek:see:`Management::Agent::name`,
+	## "<name>.<suffix>", where the name is taken from :zeek:see:`Management::Agent::get_name`,
 	## and the suffix is defined by the following variable. If left empty,
 	## no such log results.
 	##
@@ -44,7 +44,7 @@ export {
 	const default_port = 2151/tcp &redef;
 
 	## The agent's Broker topic prefix. For its own communication, the agent
-	## suffixes this with "/<name>", based on :zeek:see:`Management::Agent::name`.
+	## suffixes this with "/<name>", based on :zeek:see:`Management::Agent::get_name`.
 	const topic_prefix = "zeek/management/agent" &redef;
 
 	## The network coordinates of the controller. When defined, the agent
@@ -66,6 +66,9 @@ export {
 	## cluster nodes.
 	const cluster_directory = "" &redef;
 
+	## Returns the effective name of this agent.
+	global get_name: function(): string;
+
 	## Returns a :zeek:see:`Management::Instance` describing this
 	## instance (its agent name plus listening address/port, as applicable).
 	global instance: function(): Management::Instance;
@@ -75,6 +78,14 @@ export {
 	## data format.
 	global endpoint_info: function(): Broker::EndpointInfo;
 }
+
+function get_name(): string
+	{
+	if ( name != "" )
+		return name;
+
+	return fmt("agent-%s", gethostname());
+	}
 
 function instance(): Management::Instance
 	{
@@ -89,10 +100,7 @@ function endpoint_info(): Broker::EndpointInfo
 	local epi: Broker::EndpointInfo;
 	local network: Broker::NetworkInfo;
 
-	if ( Management::Agent::name != "" )
-		epi$id = Management::Agent::name;
-	else
-		epi$id = fmt("agent-%s", gethostname());
+	epi$id = get_name();
 
 	if ( Management::Agent::listen_address != "" )
 		network$address = Management::Agent::listen_address;

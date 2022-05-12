@@ -52,7 +52,7 @@ function die()
     {
     local h: addr = 127.0.0.1;
 
-	when ( local hname = lookup_addr(h) )
+	when [h] ( local hname = lookup_addr(h) )
 		{
 		print "lookup successful";
 		terminate();

@@ -201,6 +201,7 @@ Frame* Frame::Clone() const
 	other->CaptureClosure(closure, outer_ids);
 
 	other->call = call;
+	other->assoc = assoc;
 	other->trigger = trigger;
 
 	for ( int i = 0; i < size; i++ )

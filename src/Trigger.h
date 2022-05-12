@@ -25,7 +25,6 @@ namespace detail
 class Frame;
 class Stmt;
 class Expr;
-class CallExpr;
 class ID;
 class WhenInfo;
 
@@ -86,9 +85,11 @@ public:
 
 	// Cache for return values of delayed function calls.  Returns whether
 	// the trigger is queued for later evaluation -- it may not be queued
-	// if the Val is null or it's disabled.
-	bool Cache(const CallExpr* expr, Val* val);
-	Val* Lookup(const CallExpr*);
+	// if the Val is null or it's disabled.  The cache is managed using
+	// void*'s so that the value can be associated with either a CallExpr
+	// (for interpreted execution) or a C++ function (for compiled-to-C++).
+	bool Cache(const void* obj, Val* val);
+	Val* Lookup(const void*);
 
 	// Disable this trigger completely. Needed because Unref'ing the trigger
 	// may not immediately delete it as other references may still exist.
@@ -153,7 +154,7 @@ private:
 
 	std::vector<std::pair<Obj*, notifier::detail::Modifiable*>> objs;
 
-	using ValCache = std::map<const CallExpr*, Val*>;
+	using ValCache = std::map<const void*, Val*>;
 	ValCache cache;
 	};
 

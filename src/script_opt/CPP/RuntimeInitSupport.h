@@ -70,6 +70,10 @@ extern Func* lookup_bif__CPP(const char* bif);
 extern FuncValPtr lookup_func__CPP(std::string name, int num_bodies, std::vector<p_hash_type> h,
                                    const TypePtr& t);
 
+// Looks for a global with the given name, generating a run-time error
+// if not present.
+extern IDPtr find_global__CPP(const char* g);
+
 // Returns the record corresponding to the given name, as long as the
 // name is indeed a record type.  Otherwise (or if the name is nil)
 // creates a new empty record.

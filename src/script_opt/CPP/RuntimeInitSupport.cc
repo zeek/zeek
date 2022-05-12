@@ -245,6 +245,16 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
 	return make_intrusive<FuncVal>(move(sf));
 	}
 
+IDPtr find_global__CPP(const char* g)
+	{
+	auto gl = lookup_ID(g, GLOBAL_MODULE_NAME, false, false, false);
+
+	if ( ! gl )
+		reporter->CPPRuntimeError("global %s is missing", g);
+
+	return gl;
+	}
+
 RecordTypePtr get_record_type__CPP(const char* record_type_name)
 	{
 	IDPtr existing_type;

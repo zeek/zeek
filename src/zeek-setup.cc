@@ -829,11 +829,11 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		// Broker is still accessing OpenSSL but OpenSSL has already cleaned up
 		// its state due to calling exit().
 		auto early_shutdown = []
-			{
+		{
 			broker_mgr->Terminate();
 			delete iosource_mgr;
 			delete telemetry_mgr;
-			};
+		};
 
 		if ( options.print_plugins )
 			{

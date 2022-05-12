@@ -2105,6 +2105,12 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 	tc = wi->WhenBody()->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);
 
+	if ( wi->TimeoutExpr() )
+		{
+		tc = wi->TimeoutExpr()->Traverse(cb);
+		HANDLE_TC_STMT_PRE(tc);
+		}
+
 	if ( wi->TimeoutStmt() )
 		{
 		tc = wi->TimeoutStmt()->Traverse(cb);

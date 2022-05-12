@@ -44,7 +44,7 @@ export {
 	const topic = "zeek/management/controller" &redef;
 
 	## An optional custom output directory for stdout/stderr. Agent and
-	## controller currently only log locally, not via the data cluster's
+	## controller currently only log locally, not via the Zeek cluster's
 	## logger node. This means that if both write to the same log file,
 	## output gets garbled.
 	const directory = "" &redef;

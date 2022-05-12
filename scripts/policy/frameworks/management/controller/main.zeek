@@ -81,11 +81,10 @@ global null_config: function(): Management::Configuration;
 global is_null_config: function(config: Management::Configuration): bool;
 
 # Checks whether the given instance is one that we know with different
-# communication settings: a a different peering direction, a different listening
+# communication settings: a different peering direction, a different listening
 # port, etc. Used as a predicate to indicate when we need to drop the existing
 # one from our internal state.
-global is_instance_connectivity_change: function
-    (inst: Management::Instance): bool;
+global is_instance_connectivity_change: function(inst: Management::Instance): bool;
 
 # The set of agents the controller interacts with to manage to currently
 # configured cluster. This may be a subset of all the agents known to the

@@ -172,7 +172,13 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		g_cluster[node$name] = cep;
 		}
 
-	# Apply the new configuration via the supervisor
+	# Apply the new configuration via the supervisor.
+	#
+	# XXX this should launch in the nodes in controlled order (loggers ->
+	# manager -> proxies -> workers), ideally checking that one stage is up
+	# before launching the next. This is tricky because that's not the point
+	# of the Supervisor's response event. Until we have this, bootstrap
+	# might be noisy, particular in the Broker log.
 
 	for ( nodename in g_nodes )
 		{

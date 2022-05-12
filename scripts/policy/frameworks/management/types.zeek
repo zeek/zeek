@@ -81,7 +81,7 @@ export {
 		state: State;
 		## Role the node plays in cluster management.
 		mgmt_role: Role &default=NONE;
-		## Role the node plays in the data cluster.
+		## Role the node plays in the Zeek cluster.
 		cluster_role: Supervisor::ClusterRole &default=Supervisor::NONE;
 		## Process ID of the node. This is optional because the Supervisor may not have
 		## a PID when a node is still bootstrapping.

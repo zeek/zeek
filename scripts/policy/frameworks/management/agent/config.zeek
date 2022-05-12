@@ -55,12 +55,12 @@ export {
 		$address="0.0.0.0", $bound_port=0/unknown] &redef;
 
 	## An optional custom output directory for stdout/stderr. Agent and
-	## controller currently only log locally, not via the data cluster's
+	## controller currently only log locally, not via the Zeek cluster's
 	## logger node. This means that if both write to the same log file,
 	## output gets garbled.
 	const directory = "" &redef;
 
-	## The working directory for data cluster nodes created by this
+	## The working directory for Zeek cluster nodes created by this
 	## agent. If you make this a relative path, note that the path is
 	## relative to the agent's working directory, since it creates data
 	## cluster nodes.

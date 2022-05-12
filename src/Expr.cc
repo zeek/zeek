@@ -4590,7 +4590,7 @@ ValPtr CallExpr::Eval(Frame* f) const
 		{
 		if ( trigger::Trigger* trigger = f->GetTrigger() )
 			{
-			if ( Val* v = trigger->Lookup(this) )
+			if ( Val* v = trigger->Lookup((void*)this) )
 				{
 				DBG_LOG(DBG_NOTIFIERS, "%s: provides cached function result", trigger->Name());
 				return {NewRef{}, v};

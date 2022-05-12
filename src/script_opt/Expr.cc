@@ -1863,7 +1863,7 @@ ExprPtr IndexExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
 	auto op2_l = op2->Duplicate()->AsListExprPtr();
-	return SetSucc(new IndexExpr(op1_d, op2_l, is_slice));
+	return SetSucc(new IndexExpr(op1_d, op2_l, is_slice, is_inside_when));
 	}
 
 bool IndexExpr::HasReducedOps(Reducer* c) const

@@ -1005,7 +1005,7 @@ public:
 class IndexExpr : public BinaryExpr
 	{
 public:
-	IndexExpr(ExprPtr op1, ListExprPtr op2, bool is_slice = false);
+	IndexExpr(ExprPtr op1, ListExprPtr op2, bool is_slice = false, bool is_inside_when = false);
 
 	bool CanAdd() const override;
 	bool CanDel() const override;
@@ -1021,6 +1021,7 @@ public:
 	ValPtr Eval(Frame* f) const override;
 
 	bool IsSlice() const { return is_slice; }
+	bool IsInsideWhen() const { return is_inside_when; }
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -1034,6 +1035,7 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 	bool is_slice;
+	bool is_inside_when;
 	};
 
 // The following execute the heart of IndexExpr functionality for
@@ -1059,6 +1061,13 @@ extern VectorValPtr vector_bool_select(VectorTypePtr vt, const VectorVal* v1, co
 // indices to select).
 extern VectorValPtr vector_int_select(VectorTypePtr vt, const VectorVal* v1, const VectorVal* v2);
 
+// The following is used for index expressions that occur inside "when"
+// clauses.  It tracks all the results produced by evaluating indexing
+// aggregates, so that if any of them are Modifiable(), the associated
+// Trigger can register interest in changes to them.
+//
+// One Fine Day we should do the equivalent for accessing fields in records,
+// too.
 class IndexExprWhen final : public IndexExpr
 	{
 public:
@@ -1077,7 +1086,7 @@ public:
 		}
 
 	IndexExprWhen(ExprPtr op1, ListExprPtr op2, bool is_slice = false)
-		: IndexExpr(std::move(op1), std::move(op2), is_slice)
+		: IndexExpr(std::move(op1), std::move(op2), is_slice, true)
 		{
 		}
 
@@ -1398,13 +1407,14 @@ protected:
 class CallExpr final : public Expr
 	{
 public:
-	CallExpr(ExprPtr func, ListExprPtr args, bool in_hook = false);
+	CallExpr(ExprPtr func, ListExprPtr args, bool in_hook = false, bool in_when = false);
 
 	Expr* Func() const { return func.get(); }
 	ListExpr* Args() const { return args.get(); }
 	ListExprPtr ArgsPtr() const { return args; }
 
 	bool IsPure() const override;
+	bool IsInWhen() const { return in_when; }
 
 	ValPtr Eval(Frame* f) const override;
 
@@ -1424,6 +1434,7 @@ protected:
 
 	ExprPtr func;
 	ListExprPtr args;
+	bool in_when;
 	};
 
 /**

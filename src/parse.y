@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 196
+%expect 195
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -13,7 +13,8 @@
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_DEFAULT TOK_DELETE
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FALLTHROUGH
 %token TOK_FILE TOK_FOR TOK_FUNCTION TOK_GLOBAL TOK_HOOK TOK_ID TOK_IF TOK_INT
-%token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE
+%token TOK_INTERVAL TOK_LIST TOK_MODULE
+%token TOK_LOCAL TOK_WHEN_LOCAL
 %token TOK_NEXT TOK_OF TOK_OPAQUE TOK_PATTERN TOK_PATTERN_END TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
@@ -111,7 +112,7 @@ extern int conditional_epoch; // let's us track embedded conditionals
 // Whether the file we're currently parsing includes @if conditionals.
 extern bool current_file_has_conditionals;
 
-YYLTYPE GetCurrentLocation();
+extern YYLTYPE GetCurrentLocation();
 extern int yyerror(const char[]);
 extern int brolex();
 
@@ -133,7 +134,8 @@ extern Expr* g_curr_debug_expr;
 extern bool in_debug;
 extern const char* g_curr_debug_error;
 
-static int in_when_cond = 0;
+extern int in_when_cond;
+
 static int in_hook = 0;
 int in_init = 0;
 int in_record = 0;
@@ -618,7 +620,7 @@ expr:
 			$$ = get_assign_expr({AdoptRef{}, $1}, {AdoptRef{}, $3}, in_init).release();
 			}
 
-	|	TOK_LOCAL local_id '=' rhs
+	|	TOK_WHEN_LOCAL local_id '=' rhs
 			{
 			set_location(@2, @4);
 			if ( ! locals_at_this_scope.empty() )
@@ -780,7 +782,7 @@ expr:
 				}
 
 			else
-				$$ = new CallExpr({AdoptRef{}, $1}, {AdoptRef{}, $4}, in_hook > 0);
+				$$ = new CallExpr({AdoptRef{}, $1}, {AdoptRef{}, $4}, in_hook > 0, in_when_cond);
 			}
 
 	|	TOK_HOOK { ++in_hook; } expr

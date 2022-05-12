@@ -2830,8 +2830,10 @@ ValPtr IndexSliceAssignExpr::Eval(Frame* f) const
 	return nullptr;
 	}
 
-IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice)
-	: BinaryExpr(EXPR_INDEX, std::move(arg_op1), std::move(arg_op2)), is_slice(arg_is_slice)
+IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice,
+                     bool arg_is_inside_when)
+	: BinaryExpr(EXPR_INDEX, std::move(arg_op1), std::move(arg_op2)), is_slice(arg_is_slice),
+	  is_inside_when(arg_is_inside_when)
 	{
 	if ( IsError() )
 		return;
@@ -4467,8 +4469,8 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const
 	return val_mgr->Bool(res);
 	}
 
-CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook)
-	: Expr(EXPR_CALL), func(std::move(arg_func)), args(std::move(arg_args))
+CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook, bool _in_when)
+	: Expr(EXPR_CALL), func(std::move(arg_func)), args(std::move(arg_args)), in_when(_in_when)
 	{
 	if ( func->IsError() || args->IsError() )
 		{

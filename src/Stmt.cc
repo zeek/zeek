@@ -1808,33 +1808,30 @@ WhenInfo::WhenInfo(ExprPtr _cond, FuncType::CaptureList* _cl, bool _is_return)
 
 	ProfileFunc cond_pf(cond.get());
 
-	if ( ! cl )
-		{
-		for ( auto& wl : cond_pf.WhenLocals() )
-			prior_vars.erase(wl->Name());
-		return;
-		}
-
 	when_expr_locals = cond_pf.Locals();
-	when_expr_globals = cond_pf.Globals();
+	when_expr_globals = cond_pf.AllGlobals();
+	when_new_locals = cond_pf.WhenLocals();
 
 	// Make any when-locals part of our captures, if not already present,
 	// to enable sharing between the condition and the body/timeout code.
-	for ( auto& wl : cond_pf.WhenLocals() )
+	for ( auto& wl : when_new_locals )
 		{
 		bool is_present = false;
 
-		for ( auto& c : *cl )
-			if ( c.id == wl )
-				{
-				is_present = true;
-				break;
-				}
-
-		if ( ! is_present )
+		if ( cl )
 			{
-			IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
-			cl->emplace_back(FuncType::Capture{wl_ptr, false});
+			for ( auto& c : *cl )
+				if ( c.id == wl )
+					{
+					is_present = true;
+					break;
+					}
+
+			if ( ! is_present )
+				{
+				IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
+				cl->emplace_back(FuncType::Capture{wl_ptr, false});
+				}
 			}
 
 		// In addition, don't treat them as external locals that
@@ -1851,61 +1848,49 @@ WhenInfo::WhenInfo(ExprPtr _cond, FuncType::CaptureList* _cl, bool _is_return)
 	param_list->push_back(new TypeDecl(util::copy_string(lambda_param_id.c_str()), count_t));
 	auto params = make_intrusive<RecordType>(param_list);
 
-	auto ft = make_intrusive<FuncType>(params, base_type(TYPE_ANY), FUNC_FLAVOR_FUNCTION);
-	ft->SetCaptures(*cl);
+	lambda_ft = make_intrusive<FuncType>(params, base_type(TYPE_ANY), FUNC_FLAVOR_FUNCTION);
 
 	if ( ! is_return )
-		ft->SetExpressionlessReturnOkay(true);
+		lambda_ft->SetExpressionlessReturnOkay(true);
 
 	auto id = current_scope()->GenerateTemporary("when-internal");
+	id->SetType(lambda_ft);
+	push_scope(std::move(id), nullptr);
 
-	// This begin_func will be completed by WhenInfo::Build().
-	begin_func(id, current_module.c_str(), FUNC_FLAVOR_FUNCTION, false, ft);
+	auto arg_id = install_ID(lambda_param_id.c_str(), current_module.c_str(), false, false);
+	arg_id->SetType(count_t);
+	}
+
+WhenInfo::WhenInfo(bool _is_return) : is_return(_is_return)
+	{
+	// This won't be needed once we remove the deprecated semantics.
+	cl = new zeek::FuncType::CaptureList;
+	BuildInvokeElems();
 	}
 
 void WhenInfo::Build(StmtPtr ws)
 	{
-	if ( ! cl )
+	if ( IsDeprecatedSemantics(ws) )
 		{
-		// Old-style semantics.
-		auto locals = when_expr_locals;
-
-		ProfileFunc cond_pf(cond.get());
-		for ( auto& bl : cond_pf.Locals() )
-			if ( prior_vars.count(bl->Name()) > 0 )
-				locals.insert(bl);
-
-		ProfileFunc body_pf(s.get());
-		for ( auto& bl : body_pf.Locals() )
-			if ( prior_vars.count(bl->Name()) > 0 )
-				locals.insert(bl);
-
-		if ( timeout_s )
-			{
-			ProfileFunc to_pf(timeout_s.get());
-			for ( auto& tl : to_pf.Locals() )
-				if ( prior_vars.count(tl->Name()) > 0 )
-					locals.insert(tl);
-			}
-
-		if ( ! locals.empty() )
-			{
-			std::string vars;
-			for ( auto& l : locals )
-				{
-				if ( ! vars.empty() )
-					vars += ", ";
-				vars += l->Name();
-				}
-
-			std::string msg = util::fmt("\"when\" statement referring to locals without an "
-			                            "explicit [] capture is deprecated: %s",
-			                            vars.c_str());
-			ws->Warn(msg.c_str());
-			}
-
+		pop_scope();
 		return;
 		}
+
+	if ( ! cl )
+		{
+		// This instance is compatible with new-style semantics,
+		// so create a capture list for it and populate with any
+		// when-locals.
+		cl = new zeek::FuncType::CaptureList;
+
+		for ( auto& wl : when_new_locals )
+			{
+			IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
+			cl->emplace_back(FuncType::Capture{wl_ptr, false});
+			}
+		}
+
+	lambda_ft->SetCaptures(*cl);
 
 	// Our general strategy is to construct a single lambda (so that
 	// the values of captures are shared across all of its elements)
@@ -1924,14 +1909,9 @@ void WhenInfo::Build(StmtPtr ws)
 	// Build the AST elements of the lambda.
 
 	// First, the constants we'll need.
-	auto true_const = make_intrusive<ConstExpr>(val_mgr->True());
-	auto one_const = make_intrusive<ConstExpr>(val_mgr->Count(1));
-	auto two_const = make_intrusive<ConstExpr>(val_mgr->Count(2));
-	auto three_const = make_intrusive<ConstExpr>(val_mgr->Count(3));
+	BuildInvokeElems();
 
-	invoke_cond = make_intrusive<ListExpr>(one_const);
-	invoke_s = make_intrusive<ListExpr>(two_const);
-	invoke_timeout = make_intrusive<ListExpr>(three_const);
+	auto true_const = make_intrusive<ConstExpr>(val_mgr->True());
 
 	// Access to the parameter that selects which action we're doing.
 	auto param_id = lookup_ID(lambda_param_id.c_str(), current_module.c_str());
@@ -1963,7 +1943,13 @@ void WhenInfo::Build(StmtPtr ws)
 void WhenInfo::Instantiate(Frame* f)
 	{
 	if ( cl )
-		curr_lambda = make_intrusive<ConstExpr>(lambda->Eval(f));
+		Instantiate(lambda->Eval(f));
+	}
+
+void WhenInfo::Instantiate(ValPtr func)
+	{
+	if ( cl )
+		curr_lambda = make_intrusive<ConstExpr>(std::move(func));
 	}
 
 ExprPtr WhenInfo::Cond()
@@ -1983,6 +1969,18 @@ StmtPtr WhenInfo::WhenBody()
 	return make_intrusive<ReturnStmt>(invoke, true);
 	}
 
+double WhenInfo::TimeoutVal(Frame* f)
+	{
+	if ( timeout )
+		{
+		auto t = timeout->Eval(f);
+		if ( t )
+			return t->AsDouble();
+		}
+
+	return -1.0; // signals "no timeout"
+	}
+
 StmtPtr WhenInfo::TimeoutStmt()
 	{
 	if ( ! curr_lambda )
@@ -1990,6 +1988,65 @@ StmtPtr WhenInfo::TimeoutStmt()
 
 	auto invoke = make_intrusive<CallExpr>(curr_lambda, invoke_timeout);
 	return make_intrusive<ReturnStmt>(invoke, true);
+	}
+
+bool WhenInfo::IsDeprecatedSemantics(StmtPtr ws)
+	{
+	if ( cl )
+		return false;
+
+	// Which locals of the outer function are used in any of the "when"
+	// elements.
+	IDSet locals;
+
+	for ( auto& wl : when_new_locals )
+		prior_vars.erase(wl->Name());
+
+	for ( auto& bl : when_expr_locals )
+		if ( prior_vars.count(bl->Name()) > 0 )
+			locals.insert(bl);
+
+	ProfileFunc body_pf(s.get());
+	for ( auto& bl : body_pf.Locals() )
+		if ( prior_vars.count(bl->Name()) > 0 )
+			locals.insert(bl);
+
+	if ( timeout_s )
+		{
+		ProfileFunc to_pf(timeout_s.get());
+		for ( auto& tl : to_pf.Locals() )
+			if ( prior_vars.count(tl->Name()) > 0 )
+				locals.insert(tl);
+		}
+
+	if ( locals.empty() )
+		return false;
+
+	std::string vars;
+	for ( auto& l : locals )
+		{
+		if ( ! vars.empty() )
+			vars += ", ";
+		vars += l->Name();
+		}
+
+	std::string msg = util::fmt("\"when\" statement referring to locals without an "
+	                            "explicit [] capture is deprecated: %s",
+	                            vars.c_str());
+	ws->Warn(msg.c_str());
+
+	return true;
+	}
+
+void WhenInfo::BuildInvokeElems()
+	{
+	one_const = make_intrusive<ConstExpr>(val_mgr->Count(1));
+	two_const = make_intrusive<ConstExpr>(val_mgr->Count(2));
+	three_const = make_intrusive<ConstExpr>(val_mgr->Count(3));
+
+	invoke_cond = make_intrusive<ListExpr>(one_const);
+	invoke_s = make_intrusive<ListExpr>(two_const);
+	invoke_timeout = make_intrusive<ListExpr>(three_const);
 	}
 
 WhenStmt::WhenStmt(WhenInfo* _wi) : Stmt(STMT_WHEN), wi(_wi)
@@ -2026,6 +2083,8 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 
 	wi->Instantiate(f);
 
+	auto timeout = wi->TimeoutVal(f);
+
 	if ( wi->Captures() )
 		{
 		std::vector<ValPtr> local_aggrs;
@@ -2037,12 +2096,12 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 				local_aggrs.emplace_back(std::move(v));
 			}
 
-		new trigger::Trigger(wi, wi->WhenExprGlobals(), local_aggrs, f, location);
+		new trigger::Trigger(wi, timeout, wi->WhenExprGlobals(), local_aggrs, f, location);
 		}
 
 	else
 		// The new trigger object will take care of its own deletion.
-		new trigger::Trigger(wi->Cond(), wi->WhenBody(), wi->TimeoutStmt(), wi->TimeoutExpr(), f,
+		new trigger::Trigger(wi->Cond(), wi->WhenBody(), wi->TimeoutStmt(), timeout, f,
 		                     wi->IsReturn(), location);
 
 	return nullptr;

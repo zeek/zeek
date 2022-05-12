@@ -47,16 +47,13 @@ public:
 	// statements are executed immediately and the object is deleted
 	// right away.
 
-	// These first two constructors are for the deprecated deep-copy
-	// semantics.
-	Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, ExprPtr timeout, Frame* f,
-	        bool is_return, const Location* loc);
+	// These first constructor is for the deprecated deep-copy semantics.
 	Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* f,
 	        bool is_return, const Location* loc);
 
 	// Used for capture-list semantics.
-	Trigger(WhenInfo* wi, const IDSet& globals, std::vector<ValPtr> local_aggrs, Frame* f,
-	        const Location* loc);
+	Trigger(WhenInfo* wi, double timeout, const IDSet& globals, std::vector<ValPtr> local_aggrs,
+	        Frame* f, const Location* loc);
 
 	~Trigger() override;
 
@@ -108,12 +105,11 @@ public:
 	// for any further progress to be made, so just Unref ourselves.
 	void Terminate() override;
 
-	const char* Name() const;
+	const char* Name() const { return name.c_str(); }
+	void SetName(const char* new_name) { name = new_name; }
 
 private:
 	friend class TriggerTimer;
-
-	void GetTimeout(const ExprPtr& timeout_expr, Frame* f);
 
 	void Init(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, Frame* frame, bool is_return,
 	          const Location* location);
@@ -131,7 +127,8 @@ private:
 	double timeout_value;
 	Frame* frame;
 	bool is_return;
-	const Location* location;
+
+	std::string name;
 
 	TriggerTimer* timer;
 	Trigger* attached;

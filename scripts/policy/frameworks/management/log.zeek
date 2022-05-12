@@ -136,7 +136,7 @@ event zeek_init()
 	# Defining the stream outside of the stream creation call sidesteps
 	# the coverage.find-bro-logs test, which tries to inventory all logs.
 	# This log isn't yet ready for that level of scrutiny.
-	local stream = Log::Stream($columns=Info, $path=fmt("cluster-%s", node$name),
+	local stream = Log::Stream($columns=Info, $path=fmt("management-%s", node$name),
 	                           $policy=log_policy);
 
 	Log::create_stream(Management::Log::LOG, stream);

@@ -1101,7 +1101,15 @@ Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType*
 					{
 					// Since we're building a (list) value for indexing into
 					// a table, it is for sure an error to miss a value.
-					Warning(i, "Skipping input with missing non-optional value");
+					auto source = i->reader->Info().source;
+					auto file_pos = vals[position]->GetFileLineNumber();
+
+					const char* warning = "Skipping input with missing non-optional value";
+					if ( source && file_pos != -1 )
+						Warning(i, "%s:%d: %s", source, file_pos, warning);
+					else
+						Warning(i, "%s", warning);
+
 					have_error = true;
 					}
 
@@ -1950,7 +1958,15 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const* v
 		else if ( ! vals[*position]->present &&
 		          ! request_type->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) )
 			{
-			Warning(stream, "Skipping input with missing non-optional value");
+			auto source = stream->reader->Info().source;
+			auto file_pos = vals[*position]->GetFileLineNumber();
+
+			const char* warning = "Skipping input with missing non-optional value";
+			if ( source && file_pos != -1 )
+				Warning(stream, "%s:%d: %s", source, file_pos, warning);
+			else
+				Warning(stream, "%s", warning);
+
 			have_error = true;
 			}
 		else

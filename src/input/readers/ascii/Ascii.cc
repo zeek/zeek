@@ -157,8 +157,11 @@ bool Ascii::OpenFile()
 		return ! fail_on_file_problem;
 		}
 
-	read_location = std::make_unique<zeek::detail::Location>();
-	read_location->filename = util::copy_string(fname.c_str());
+	if ( ! read_location )
+		{
+		read_location = LocationPtr(new zeek::detail::Location());
+		read_location->filename = util::copy_string(fname.c_str());
+		}
 
 	StopWarningSuppression();
 	return true;
@@ -389,6 +392,8 @@ bool Ascii::DoUpdate()
 				{
 				// add non-present field
 				fields[fpos] = new Value((*fit).type, false);
+				if ( read_location )
+					fields[fpos]->SetFileLineNumber(read_location->first_line);
 				fpos++;
 				continue;
 				}
@@ -420,7 +425,6 @@ bool Ascii::DoUpdate()
 
 			Value* val = formatter->ParseValue(stringfields[(*fit).position], (*fit).name,
 			                                   (*fit).type, (*fit).subtype);
-
 			if ( ! val )
 				{
 				Warning(Fmt("Could not convert line '%s' of %s to Val. Ignoring line.",
@@ -428,6 +432,9 @@ bool Ascii::DoUpdate()
 				error = true;
 				break;
 				}
+
+			if ( read_location )
+				val->SetFileLineNumber(read_location->first_line);
 
 			if ( (*fit).secondary_position != -1 )
 				{

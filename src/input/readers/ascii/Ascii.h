@@ -91,7 +91,21 @@ private:
 	std::string path_prefix;
 
 	std::unique_ptr<threading::Formatter> formatter;
-	std::unique_ptr<zeek::detail::Location> read_location;
+
+	// zeek::detail::Location doesn't have a destructor because it's constexpr, so we have to
+	// define a custom deleter for the unique_ptr here to make sure the filename gets deleted
+	// correctly when the unique_ptr gets reset.
+	struct LocationDeleter
+		{
+		void operator()(zeek::detail::Location* loc) const
+			{
+			delete[] loc->filename;
+			delete loc;
+			}
+		};
+
+	using LocationPtr = std::unique_ptr<zeek::detail::Location, LocationDeleter>;
+	LocationPtr read_location;
 	};
 
 	} // namespace zeek::input::reader::detail

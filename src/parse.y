@@ -317,12 +317,22 @@ static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
 %%
 
 zeek:
-		decl_list stmt_list
+		decl_list
+			{
+			// Without the following, in some scenarios the
+			// location associated with global statements gets
+			// associated with the last @load'd file rather than
+			// the script that includes the global statements.
+			auto loc = zeek::detail::GetCurrentLocation();
+			if ( loc.filename )
+				set_location(loc);
+			}
+		stmt_list
 			{
 			if ( stmts )
-				stmts->AsStmtList()->Stmts().push_back($2);
+				stmts->AsStmtList()->Stmts().push_back($3);
 			else
-				stmts = $2;
+				stmts = $3;
 
 			// Any objects creates from here on out should not
 			// have file positions associated with them.

@@ -28,8 +28,8 @@ event zeek_init()
 	if ( Management::Agent::stderr_file_suffix != "" )
 		sn$stderr_file = epi$id + "." + Management::Agent::stderr_file_suffix;
 
-	# This helps Zeek run controller and agent with a minimal set of scripts.
-	sn$env["ZEEK_CLUSTER_MGMT_NODE"] = "AGENT";
+	# This helps identify Management framework nodes reliably.
+	sn$env["ZEEK_MANAGEMENT_NODE"] = "AGENT";
 
 	local res = Supervisor::create(sn);
 

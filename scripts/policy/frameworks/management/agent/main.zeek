@@ -264,9 +264,9 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 			}
 		else
 			{
-			if ( "ZEEK_CLUSTER_MGMT_NODE" in sns$node$env )
+			if ( "ZEEK_MANAGEMENT_NODE" in sns$node$env )
 				{
-				local role = sns$node$env["ZEEK_CLUSTER_MGMT_NODE"];
+				local role = sns$node$env["ZEEK_MANAGEMENT_NODE"];
 				if ( role == "CONTROLLER" )
 					{
 					cns$mgmt_role = Management::CONTROLLER;

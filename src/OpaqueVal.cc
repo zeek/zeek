@@ -722,14 +722,6 @@ BloomFilterValPtr BloomFilterVal::Intersect(const BloomFilterVal* x, const Bloom
 		return nullptr;
 		}
 
-	auto final_type = x->Type() ? x->Type() : y->Type();
-
-	if ( typeid(*x->bloom_filter) != typeid(*y->bloom_filter) )
-		{
-		reporter->Error("cannot merge different Bloom filter types");
-		return nullptr;
-		}
-
 	if ( typeid(*x->bloom_filter) != typeid(*y->bloom_filter) )
 		{
 		reporter->Error("cannot intersect different Bloom filter types");
@@ -743,6 +735,8 @@ BloomFilterValPtr BloomFilterVal::Intersect(const BloomFilterVal* x, const Bloom
 		reporter->Error("failed to intersect Bloom filter");
 		return nullptr;
 		}
+
+	auto final_type = x->Type() ? x->Type() : y->Type();
 
 	auto intersected = make_intrusive<BloomFilterVal>(intersected_bf);
 

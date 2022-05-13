@@ -14,18 +14,16 @@ export {
 
 	## Agent stdout log configuration. If the string is non-empty, Zeek will
 	## produce a free-form log (i.e., not one governed by Zeek's logging
-	## framework) in Zeek's working directory. The final log's name is
-	## "<name>.<suffix>", where the name is taken from :zeek:see:`Management::Agent::get_name`,
-	## and the suffix is defined by the following variable. If left empty,
-	## no such log results.
+	## framework) in the agent's working directory. If left empty, no such
+	## log results.
 	##
 	## Note that the agent also establishes a "proper" Zeek log via the
 	## :zeek:see:`Management::Log` module.
-	const stdout_file_suffix = "agent.stdout" &redef;
+	const stdout_file = "stdout" &redef;
 
-	## Agent stderr log configuration. Like :zeek:see:`Management::Agent::stdout_file_suffix`,
+	## Agent stderr log configuration. Like :zeek:see:`Management::Agent::stdout_file`,
 	## but for the stderr stream.
-	const stderr_file_suffix = "agent.stderr" &redef;
+	const stderr_file = "stderr" &redef;
 
 	## The network address the agent listens on. This only takes effect if
 	## the agent isn't configured to connect to the controller (see

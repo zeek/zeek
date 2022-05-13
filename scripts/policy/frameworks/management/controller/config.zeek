@@ -12,18 +12,18 @@ export {
 	## "controller-<hostname>".
 	const name = getenv("ZEEK_CONTROLLER_NAME") &redef;
 
-	## The controller's stdout log name. If the string is non-empty, Zeek will
-	## produce a free-form log (i.e., not one governed by Zeek's logging
-	## framework) in Zeek's working directory. If left empty, no such log
-	## results.
+	## The controller's stdout log name. If the string is non-empty, Zeek
+	## will produce a free-form log (i.e., not one governed by Zeek's
+	## logging framework) in the controller's working directory. If left
+	## empty, no such log results.
 	##
 	## Note that the controller also establishes a "proper" Zeek log via the
 	## :zeek:see:`Management::Log` module.
-	const stdout_file = "controller.stdout" &redef;
+	const stdout_file = "stdout" &redef;
 
 	## The controller's stderr log name. Like :zeek:see:`Management::Controller::stdout_file`,
 	## but for the stderr stream.
-	const stderr_file = "controller.stderr" &redef;
+	const stderr_file = "stderr" &redef;
 
 	## The network address the controller listens on. By default this uses
 	## the value of the ZEEK_CONTROLLER_ADDR environment variable, but you

@@ -23,10 +23,10 @@ event zeek_init()
 
 	if ( Management::Agent::directory != "" )
 		sn$directory = Management::Agent::directory;
-	if ( Management::Agent::stdout_file_suffix != "" )
-		sn$stdout_file = epi$id + "." + Management::Agent::stdout_file_suffix;
-	if ( Management::Agent::stderr_file_suffix != "" )
-		sn$stderr_file = epi$id + "." + Management::Agent::stderr_file_suffix;
+	if ( Management::Agent::stdout_file != "" )
+		sn$stdout_file = Management::Agent::stdout_file;
+	if ( Management::Agent::stderr_file != "" )
+		sn$stderr_file = Management::Agent::stderr_file;
 
 	# This helps identify Management framework nodes reliably.
 	sn$env["ZEEK_MANAGEMENT_NODE"] = "AGENT";

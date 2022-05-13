@@ -3,6 +3,10 @@ This is a collection of scripts to support maintenance of -O gen-C++
 suite, and are currently tailored for the lead maintainer's own environment.
 The scripts all assume you're running them from build/ .
 
+If you make changes to the scripts, format them using
+
+	shfmt -w -i 4 -ci *.sh
+
 The maintenance workflow:
 
 1.  Update this timestamp, so this file will be changed and you'll remember

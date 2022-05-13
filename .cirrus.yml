@@ -283,7 +283,6 @@ asan_sanitizer_task:
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *ASAN_SANITIZER_CONFIG
     ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
-    ZEEK_CI_ASAN_SKIP_TEST: 1
     ASAN_OPTIONS: detect_leaks=1
 
 ubsan_sanitizer_task:

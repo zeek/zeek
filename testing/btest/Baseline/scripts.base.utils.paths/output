@@ -79,7 +79,10 @@ test build_path_compressed()
 /usr/local/bro/share/bro/somefile.zeek
 /usr/local/bro/somefile.zeek
 ===============================
-test build_full_path()
+test build_path()
 ===============================
-/home/bro//policy/somefile.zeek
+/home/bro/policy/somefile.zeek
 /usr/local/bro/share/bro/somefile.zeek
+policy/somefile.zeek
+/usr/local/bro/share/bro/somefile.zeek
+/policy/somefile.zeek

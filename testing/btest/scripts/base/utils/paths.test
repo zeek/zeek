@@ -50,8 +50,10 @@ print build_path_compressed("/home/bro/", "/usr/local/bro/share/bro/somefile.zee
 print build_path_compressed("/home/bro/", "/usr/local/bro/share/../../bro/somefile.zeek");
 
 print "===============================";
-print "test build_full_path()";
+print "test build_path()";
 print "===============================";
 print build_path("/home/bro/", "policy/somefile.zeek");
 print build_path("/home/bro/", "/usr/local/bro/share/bro/somefile.zeek");
-
+print build_path("", "policy/somefile.zeek");
+print build_path("", "/usr/local/bro/share/bro/somefile.zeek");
+print build_path("/", "policy/somefile.zeek");

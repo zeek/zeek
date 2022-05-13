@@ -1,3 +1,7 @@
+5.0.0-dev.396 | 2022-05-13 16:50:53 -0700
+
+  * Fix UB during early shutdown on OpenSSL state (Dominik Charousset, Corelight)
+
 5.0.0-dev.393 | 2022-05-13 16:48:56 -0700
 
   * Correcly typify bloom filters in all cases during merge (Johanna Amann)

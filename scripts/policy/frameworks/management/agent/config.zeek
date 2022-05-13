@@ -3,6 +3,10 @@
 @load policy/frameworks/management/config
 @load policy/frameworks/management/types
 
+# We source the controller configuration to obtain its network coordinates, so
+# we can default to connecting to it.
+@load policy/frameworks/management/controller/config
+
 module Management::Agent;
 
 export {
@@ -45,12 +49,15 @@ export {
 	## suffixes this with "/<name>", based on :zeek:see:`Management::Agent::get_name`.
 	const topic_prefix = "zeek/management/agent" &redef;
 
-	## The network coordinates of the controller. When defined, the agent
-	## peers with (and connects to) the controller; otherwise the controller
-	## will peer (and connect to) the agent, listening as defined by
-	## :zeek:see:`Management::Agent::listen_address` and :zeek:see:`Management::Agent::listen_port`.
-	const controller: Broker::NetworkInfo = [
-		$address="0.0.0.0", $bound_port=0/unknown] &redef;
+	## The network coordinates of the controller. By default, the agent
+	## connects locally to the controller at its default port. Assigning
+	## a :zeek:see:`Broker::NetworkInfo` record with IP address "0.0.0.0"
+	## means the controller should instead connect to the agent. If you'd
+	## like to use that mode, make sure to set
+	## :zeek:see:`Management::Agent::listen_address` and
+	## :zeek:see:`Management::Agent::listen_port` as needed.
+	const controller = Broker::NetworkInfo($address="127.0.0.1",
+	    $bound_port=Management::Controller::network_info()$bound_port) &redef;
 
 	## An optional custom output directory for stdout/stderr. Agent and
 	## controller currently only log locally, not via the Zeek cluster's

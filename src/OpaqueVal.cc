@@ -620,6 +620,7 @@ ValPtr BloomFilterVal::DoClone(CloneState* state)
 	if ( bloom_filter )
 		{
 		auto bf = make_intrusive<BloomFilterVal>(bloom_filter->Clone());
+		assert(type);
 		bf->Typify(type);
 		return state->NewClone(this, std::move(bf));
 		}
@@ -645,6 +646,12 @@ void BloomFilterVal::Add(const Val* val)
 	{
 	auto key = hash->MakeHashKey(*val, true);
 	bloom_filter->Add(key.get());
+	}
+
+bool BloomFilterVal::Decrement(const Val* val)
+	{
+	auto key = hash->MakeHashKey(*val, true);
+	return bloom_filter->Decrement(key.get());
 	}
 
 size_t BloomFilterVal::Count(const Val* val) const
@@ -678,6 +685,8 @@ BloomFilterValPtr BloomFilterVal::Merge(const BloomFilterVal* x, const BloomFilt
 		return nullptr;
 		}
 
+	auto final_type = x->Type() ? x->Type() : y->Type();
+
 	if ( typeid(*x->bloom_filter) != typeid(*y->bloom_filter) )
 		{
 		reporter->Error("cannot merge different Bloom filter types");
@@ -695,13 +704,49 @@ BloomFilterValPtr BloomFilterVal::Merge(const BloomFilterVal* x, const BloomFilt
 
 	auto merged = make_intrusive<BloomFilterVal>(copy);
 
-	if ( x->Type() && ! merged->Typify(x->Type()) )
+	if ( final_type && ! merged->Typify(final_type) )
 		{
 		reporter->Error("failed to set type on merged Bloom filter");
 		return nullptr;
 		}
 
 	return merged;
+	}
+
+BloomFilterValPtr BloomFilterVal::Intersect(const BloomFilterVal* x, const BloomFilterVal* y)
+	{
+	if ( x->Type() && // any one 0 is ok here
+	     y->Type() && ! same_type(x->Type(), y->Type()) )
+		{
+		reporter->Error("cannot merge Bloom filters with different types");
+		return nullptr;
+		}
+
+	if ( typeid(*x->bloom_filter) != typeid(*y->bloom_filter) )
+		{
+		reporter->Error("cannot intersect different Bloom filter types");
+		return nullptr;
+		}
+
+	auto intersected_bf = x->bloom_filter->Intersect(y->bloom_filter);
+
+	if ( ! intersected_bf )
+		{
+		reporter->Error("failed to intersect Bloom filter");
+		return nullptr;
+		}
+
+	auto final_type = x->Type() ? x->Type() : y->Type();
+
+	auto intersected = make_intrusive<BloomFilterVal>(intersected_bf);
+
+	if ( final_type && ! intersected->Typify(final_type) )
+		{
+		reporter->Error("Failed to set type on intersected bloom filter");
+		return nullptr;
+		}
+
+	return intersected;
 	}
 
 BloomFilterVal::~BloomFilterVal()

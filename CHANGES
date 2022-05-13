@@ -1,3 +1,30 @@
+5.0.0-dev.393 | 2022-05-13 16:48:56 -0700
+
+  * Correcly typify bloom filters in all cases during merge (Johanna Amann)
+
+    Before, there were edge-cases where the type was not transferred if one
+    of the involved bloom-filters was untypified.
+
+    Fixes GH-1938
+
+  * Add intersect operation for bloom filters (Johanna Amann)
+
+    Intersecting two bloom filters yields a bloom filter that returns true
+    when an element was contained in both bloom filters. The false positive
+    rate is potentially a bit higher than in the original bloom filters.
+
+    This operation also works for counting bloom filters, however the
+    counters are discarded and the bloomfilters are converted to basic bloom
+    filters. The reason is that there is no obvious meaning to the counters
+    when two bloom filters are intersected - besides the fact if an element
+    was inserted at all.
+
+  * Add bloomfilter_decrement bif (Johanna Amann)
+
+    This bif implements the decrement operation for counting bloom filters.
+
+    It also clarifies some of the documentation.
+
 5.0.0-dev.385 | 2022-05-12 11:03:25 +0100
 
   * Include certificate information in SSL::Weak_Key notice (Johanna Amann, Corelight)

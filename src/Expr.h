@@ -1066,8 +1066,8 @@ extern VectorValPtr vector_int_select(VectorTypePtr vt, const VectorVal* v1, con
 // aggregates, so that if any of them are Modifiable(), the associated
 // Trigger can register interest in changes to them.
 //
-// One Fine Day we should do the equivalent for accessing fields in records,
-// too.
+// TODO: One Fine Day we should do the equivalent for accessing fields
+// in records, too.
 class IndexExprWhen final : public IndexExpr
 	{
 public:

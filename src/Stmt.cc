@@ -1801,8 +1801,8 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-WhenInfo::WhenInfo(ExprPtr _cond, FuncType::CaptureList* _cl, bool _is_return)
-	: cond(std::move(_cond)), cl(_cl), is_return(_is_return)
+WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_return)
+	: cond(std::move(arg_cond)), cl(arg_cl), is_return(arg_is_return)
 	{
 	prior_vars = current_scope()->Vars();
 
@@ -1861,7 +1861,7 @@ WhenInfo::WhenInfo(ExprPtr _cond, FuncType::CaptureList* _cl, bool _is_return)
 	arg_id->SetType(count_t);
 	}
 
-WhenInfo::WhenInfo(bool _is_return) : is_return(_is_return)
+WhenInfo::WhenInfo(bool arg_is_return) : is_return(arg_is_return)
 	{
 	// This won't be needed once we remove the deprecated semantics.
 	cl = new zeek::FuncType::CaptureList;
@@ -2049,7 +2049,7 @@ void WhenInfo::BuildInvokeElems()
 	invoke_timeout = make_intrusive<ListExpr>(three_const);
 	}
 
-WhenStmt::WhenStmt(WhenInfo* _wi) : Stmt(STMT_WHEN), wi(_wi)
+WhenStmt::WhenStmt(WhenInfo* arg_wi) : Stmt(STMT_WHEN), wi(arg_wi)
 	{
 	wi->Build(ThisPtr());
 

@@ -7,6 +7,8 @@ If you make changes to the scripts, format them using
 
 	shfmt -w -i 4 -ci *.sh
 
+(or set up "pre-commit" and use "pre-commit run -a")
+
 The maintenance workflow:
 
 1.  Update this timestamp, so this file will be changed and you'll remember

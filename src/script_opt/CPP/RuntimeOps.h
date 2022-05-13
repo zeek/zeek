@@ -59,8 +59,6 @@ extern ValPtr when_invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame, 
 // Thrown when a call inside a "when" delays.
 class DelayedCallException : public InterpreterException
 	{
-public:
-	DelayedCallException() { }
 	};
 
 // Assigns the given value to the given global.  A separate function because

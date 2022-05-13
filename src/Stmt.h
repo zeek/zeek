@@ -546,19 +546,19 @@ class WhenInfo
 public:
 	// Takes ownership of the CaptureList, which if nil signifies
 	// old-style frame semantics.
-	WhenInfo(ExprPtr _cond, FuncType::CaptureList* _cl, bool _is_return);
+	WhenInfo(ExprPtr cond, FuncType::CaptureList* cl, bool is_return);
 
 	// Constructor used by script optimization to create a stub.
-	WhenInfo(bool _is_return);
+	WhenInfo(bool is_return);
 
 	~WhenInfo() { delete cl; }
 
-	void AddBody(StmtPtr _s) { s = std::move(_s); }
+	void AddBody(StmtPtr arg_s) { s = std::move(arg_s); }
 
-	void AddTimeout(ExprPtr _timeout, StmtPtr _timeout_s)
+	void AddTimeout(ExprPtr arg_timeout, StmtPtr arg_timeout_s)
 		{
-		timeout = std::move(_timeout);
-		timeout_s = std::move(_timeout_s);
+		timeout = std::move(arg_timeout);
+		timeout_s = std::move(arg_timeout_s);
 		}
 
 	// Complete construction of the associated internals, including

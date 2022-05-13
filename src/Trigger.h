@@ -89,12 +89,14 @@ public:
 	bool Cache(const void* obj, Val* val);
 	Val* Lookup(const void* obj);
 
-	[[deprecated("Remove in v5.1. Use const void* interface instead.")]] bool
+	[[deprecated(
+		"Remove in v5.1. Use Frame::GetTriggerAssoc() / const void* interface instead.")]] bool
 	Cache(const CallExpr* call, Val* val)
 		{
 		return Cache((const void*)call, val);
 		}
-	[[deprecated("Remove in v5.1. Use const void* interface instead.")]] Val*
+	[[deprecated(
+		"Remove in v5.1. Use Frame::GetTriggerAssoc() / const void* interface instead.")]] Val*
 	Lookup(const CallExpr* call)
 		{
 		return Lookup((const void*)call);

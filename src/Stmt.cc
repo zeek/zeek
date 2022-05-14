@@ -59,6 +59,8 @@ const char* stmt_name(StmtTag t)
 	return stmt_names[int(t)];
 	}
 
+int Stmt::num_stmts = 0;
+
 Stmt::Stmt(StmtTag arg_tag)
 	{
 	tag = arg_tag;
@@ -69,6 +71,8 @@ Stmt::Stmt(StmtTag arg_tag)
 	opt_info = new StmtOptInfo();
 
 	SetLocationInfo(&start_location, &end_location);
+
+	++num_stmts;
 	}
 
 Stmt::~Stmt()

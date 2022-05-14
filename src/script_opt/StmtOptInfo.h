@@ -26,6 +26,10 @@ public:
 	// Whether this statement is free of the possible influence
 	// of conditional code.
 	bool is_free_of_conditionals = true;
+
+	// Number of statements and expressions in a function body.
+	int num_stmts = 0;
+	int num_exprs = 0;
 	};
 
 	} // namespace zeek::detail

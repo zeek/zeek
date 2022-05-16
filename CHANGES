@@ -1,3 +1,9 @@
+5.0.0-dev.403 | 2022-05-16 09:10:15 -0700
+
+  * Explicitly define copy and move operators/constructors for ScriptProfileStats (Tim Wojtulewicz, Corelight)
+
+    Fixes Coverity 1488768
+
 5.0.0-dev.401 | 2022-05-16 09:09:37 -0700
 
   * Add --retry to curl invocations in update-traces (Tim Wojtulewicz, Corelight)

@@ -50,7 +50,7 @@ function __name%(atype: AllAnalyzers::Tag%) : string
 	if ( ! component )
 		return zeek::make_intrusive<zeek::StringVal>("<error>");
 
-	return zeek::make_intrusive<zeek::StringVal>(component->CanonicalName());
+	return component->CanonicalNameVal();
 	%}
 
 function __tag%(name: string%) : AllAnalyzers::Tag

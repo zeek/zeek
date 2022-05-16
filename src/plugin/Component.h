@@ -8,6 +8,7 @@
 
 #include "zeek/Tag.h"
 #include "zeek/Type.h"
+#include "zeek/Val.h"
 
 namespace zeek
 	{
@@ -98,6 +99,7 @@ public:
 	 * ID.
 	 */
 	const std::string& CanonicalName() const { return canon_name; }
+	StringValPtr CanonicalNameVal() const { return canon_name_val; }
 
 	/**
 	 * Returns a textual representation of the component. This goes into
@@ -135,6 +137,7 @@ private:
 	component::Type type;
 	std::string name;
 	std::string canon_name;
+	StringValPtr canon_name_val;
 
 	/** The automatically assigned component tag */
 	zeek::Tag tag;

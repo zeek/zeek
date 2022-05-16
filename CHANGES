@@ -1,3 +1,13 @@
+5.0.0-dev.408 | 2022-05-16 09:10:53 -0700
+
+  * Store hash analyzer kind StringVals for later reuse (Tim Wojtulewicz, Corelight)
+
+  * Add Component::GetCanonicalNameVal to avoid extra StringVal allocations (Tim Wojtulewicz, Corelight)
+
+  * Avoid type unnecessary type conversion in ComponentManager::GetComponentName (Tim Wojtulewicz, Corelight)
+
+  * Only set connection history if strings differ (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.403 | 2022-05-16 09:10:15 -0700
 
   * Explicitly define copy and move operators/constructors for ScriptProfileStats (Tim Wojtulewicz, Corelight)

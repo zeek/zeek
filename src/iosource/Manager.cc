@@ -43,10 +43,10 @@ void Manager::WakeupHandler::Process()
 	flare.Extinguish();
 	}
 
-void Manager::WakeupHandler::Ping(const std::string& where)
+void Manager::WakeupHandler::Ping(std::string_view where)
 	{
-	DBG_LOG(DBG_MAINLOOP, "Pinging WakeupHandler from %s", where.c_str());
-	flare.Fire();
+	DBG_LOG(DBG_MAINLOOP, "Pinging WakeupHandler from %s", where.data());
+	flare.Fire(true);
 	}
 
 Manager::Manager()
@@ -98,7 +98,7 @@ void Manager::RemoveAll()
 	dont_counts = sources.size();
 	}
 
-void Manager::Wakeup(const std::string& where)
+void Manager::Wakeup(std::string_view where)
 	{
 	if ( wakeup )
 		wakeup->Ping(where);

@@ -1,3 +1,7 @@
+5.0.0-dev.401 | 2022-05-16 09:09:37 -0700
+
+  * Add --retry to curl invocations in update-traces (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.399 | 2022-05-16 09:09:05 -0700
 
   * GH-2103: Disable leak detection for bifs.footprint in another way (Tim Wojtulewicz, Corelight)

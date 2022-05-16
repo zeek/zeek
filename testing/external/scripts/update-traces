@@ -53,7 +53,7 @@ cat $cfg | while read line; do
 
     # Get the fingerprint file.
     echo Getting $safe_url.md5sum ...
-    eval "$proxy curl $auth -fsS --anyauth $url.md5sum -o $fp.tmp" || {
+    eval "$proxy curl $auth -fsS --anyauth --retry 2 $url.md5sum -o $fp.tmp" || {
         echo "Error: Could not get $safe_url.md5sum"
         exit 1
     }
@@ -71,7 +71,7 @@ cat $cfg | while read line; do
 
     if [ "$download" = "1" ]; then
         echo Getting $safe_url ...
-        eval "$proxy curl $auth -f --anyauth $url -o $file" || {
+        eval "$proxy curl $auth --retry 2 -f --anyauth $url -o $file" || {
             echo "Error: Could not get $safe_url"
             exit 1
         }

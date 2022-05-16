@@ -129,7 +129,15 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 			return TC_ABORTSTMT;
 
 		case STMT_WHEN:
+			{
 			++num_when_stmts;
+
+			auto w = s->AsWhenStmt();
+			auto wi = w->Info();
+			auto wl = wi ? wi->Lambda() : nullptr;
+			if ( wl )
+				lambdas.push_back(wl.get());
+			}
 			break;
 
 		case STMT_FOR:

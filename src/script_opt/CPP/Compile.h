@@ -724,6 +724,7 @@ private:
 	void GenTypeSwitchCase(const ID* id, int case_offset, bool is_multi);
 	void GenValueSwitchStmt(const Expr* e, const case_list* cases);
 
+	void GenWhenStmt(const WhenStmt* w);
 	void GenForStmt(const ForStmt* f);
 	void GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var, const IDPList* loop_vars);
 	void GenForOverVector(const ExprPtr& tbl, const IDPList* loop_vars);

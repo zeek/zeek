@@ -9,7 +9,7 @@ event zeek_init()
 {
 	local h: addr = 127.0.0.1;
 
-	when ( local hname = lookup_addr(h) )
+	when [h] ( local hname = lookup_addr(h) )
 		{ 
 		print "lookup successful";
 		terminate();
@@ -21,9 +21,9 @@ event zeek_init()
 
 	local to = 5sec;
 	# Just checking that timeouts can use arbitrary expressions...
-	when ( local hname2 = lookup_addr(h) ) {}
+	when [h] ( local hname2 = lookup_addr(h) ) {}
 	timeout to {}
-	when ( local hname3 = lookup_addr(h) ) {}
+	when [h] ( local hname3 = lookup_addr(h) ) {}
 	timeout to + 2sec {}
 
 	print "done";

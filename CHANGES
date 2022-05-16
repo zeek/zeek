@@ -1,3 +1,35 @@
+5.0.0-dev.427 | 2022-05-16 16:59:31 -0700
+
+  * NEWS items for script profiling, "footprint" BiFs, and Trigger method deprecations (Vern Paxson, Corelight)
+
+  * make deprecation advice a bit more helpful (Vern Paxson, Corelight)
+
+  * add deprecation for Trigger Cache/Lookup interfaces (Vern Paxson, Corelight)
+
+  * helper scripts for -O C++ maintenance (Vern Paxson, Corelight)
+
+  * "-O use-C++" now fails if no C++ bodies wound up being applicable (Vern Paxson, Corelight)
+
+  * update environemnt variable names to match command-line arguments (Vern Paxson, Corelight)
+
+  * final changes for -O C++ feature completeness, mainly "when" statement support (Vern Paxson, Corelight)
+
+  * Change "when" statements that don't require closures to use new implementation. (Vern Paxson, Corelight)
+    Provide hooks for script optimization access to "when" statements.
+    Regularize treatment of naming and timeouts for Triggers.
+
+  * switch cached Trigger values to be opaque-and-generic, rather than assuming CallExpr's (Vern Paxson, Corelight)
+
+  * tracking of when statements/expressions occur in a "when" context (Vern Paxson, Corelight)
+
+  * fix bug that sometimes associated the wrong location with global statements (Vern Paxson, Corelight)
+
+  * fix incomplete AST traversal of "when" statements (Vern Paxson, Corelight)
+
+  * add some missing "when" closures (Vern Paxson, Corelight)
+
+  * regularize test suite names to avoid custom/outdated suffices (Vern Paxson, Corelight)
+
 5.0.0-dev.410 | 2022-05-16 13:14:31 -0700
 
   * Call pip using python -m flag during FreeBSD CI prep (Tim Wojtulewicz, Corelight)

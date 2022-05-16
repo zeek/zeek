@@ -99,13 +99,6 @@ protected:
 	double time;
 	};
 
-Trigger::Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, ExprPtr timeout_expr,
-                 Frame* frame, bool is_return, const Location* location)
-	{
-	GetTimeout(timeout_expr, frame);
-	Init(cond, body, timeout_stmts, frame, is_return, location);
-	}
-
 Trigger::Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* frame,
                  bool is_return, const Location* location)
 	{
@@ -113,41 +106,19 @@ Trigger::Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, double timeo
 	Init(cond, body, timeout_stmts, frame, is_return, location);
 	}
 
-Trigger::Trigger(WhenInfo* wi, const IDSet& _globals, std::vector<ValPtr> _local_aggrs, Frame* f,
-                 const Location* loc)
+Trigger::Trigger(WhenInfo* wi, double timeout, const IDSet& _globals,
+                 std::vector<ValPtr> _local_aggrs, Frame* f, const Location* loc)
 	{
+	timeout_value = timeout;
 	globals = _globals;
 	local_aggrs = std::move(_local_aggrs);
 	have_trigger_elems = true;
 
-	GetTimeout(wi->TimeoutExpr(), f);
-
 	Init(wi->Cond(), wi->WhenBody(), wi->TimeoutStmt(), f, wi->IsReturn(), loc);
 	}
 
-void Trigger::GetTimeout(const ExprPtr& timeout_expr, Frame* f)
-	{
-	timeout_value = -1.0;
-
-	if ( timeout_expr )
-		{
-		ValPtr timeout_val;
-
-		try
-			{
-			timeout_val = timeout_expr->Eval(f);
-			}
-		catch ( InterpreterException& )
-			{ /* Already reported */
-			}
-
-		if ( timeout_val )
-			timeout_value = timeout_val->AsInterval();
-		}
-	}
-
 void Trigger::Init(ExprPtr arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts, Frame* arg_frame,
-                   bool arg_is_return, const Location* arg_location)
+                   bool arg_is_return, const Location* location)
 	{
 	cond = arg_cond;
 	body = arg_body;
@@ -157,7 +128,11 @@ void Trigger::Init(ExprPtr arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts
 	disabled = false;
 	attached = nullptr;
 	is_return = arg_is_return;
-	location = arg_location;
+
+	if ( location )
+		name = util::fmt("%s:%d-%d", location->filename, location->first_line, location->last_line);
+	else
+		name = "<no-trigger-location>";
 
 	if ( arg_frame )
 		frame = arg_frame->Clone();
@@ -350,7 +325,7 @@ bool Trigger::Eval()
 		{
 		Trigger* trigger = frame->GetTrigger();
 		assert(trigger);
-		assert(frame->GetCall());
+		assert(frame->GetTriggerAssoc());
 		assert(trigger->attached == this);
 
 #ifdef DEBUG
@@ -359,7 +334,7 @@ bool Trigger::Eval()
 		delete[] pname;
 #endif
 
-		auto queued = trigger->Cache(frame->GetCall(), v.get());
+		auto queued = trigger->Cache(frame->GetTriggerAssoc(), v.get());
 		trigger->Release();
 		frame->ClearTrigger();
 
@@ -404,7 +379,7 @@ void Trigger::Timeout()
 			{
 			Trigger* trigger = frame->GetTrigger();
 			assert(trigger);
-			assert(frame->GetCall());
+			assert(frame->GetTriggerAssoc());
 			assert(trigger->attached == this);
 
 #ifdef DEBUG
@@ -413,7 +388,7 @@ void Trigger::Timeout()
 			        pname);
 			delete[] pname;
 #endif
-			auto queued = trigger->Cache(frame->GetCall(), v.get());
+			auto queued = trigger->Cache(frame->GetTriggerAssoc(), v.get());
 			trigger->Release();
 			frame->ClearTrigger();
 
@@ -480,12 +455,12 @@ void Trigger::Attach(Trigger* trigger)
 	Hold();
 	}
 
-bool Trigger::Cache(const CallExpr* expr, Val* v)
+bool Trigger::Cache(const void* obj, Val* v)
 	{
 	if ( disabled || ! v )
 		return false;
 
-	ValCache::iterator i = cache.find(expr);
+	ValCache::iterator i = cache.find(obj);
 
 	if ( i != cache.end() )
 		{
@@ -494,7 +469,7 @@ bool Trigger::Cache(const CallExpr* expr, Val* v)
 		}
 
 	else
-		cache.insert(ValCache::value_type(expr, v));
+		cache.insert(ValCache::value_type(obj, v));
 
 	Ref(v);
 
@@ -502,11 +477,11 @@ bool Trigger::Cache(const CallExpr* expr, Val* v)
 	return true;
 	}
 
-Val* Trigger::Lookup(const CallExpr* expr)
+Val* Trigger::Lookup(const void* obj)
 	{
 	assert(! disabled);
 
-	ValCache::iterator i = cache.find(expr);
+	ValCache::iterator i = cache.find(obj);
 	return (i != cache.end()) ? i->second : 0;
 	}
 
@@ -524,12 +499,6 @@ void Trigger::Describe(ODesc* d) const
 void Trigger::Modified(notifier::detail::Modifiable* m)
 	{
 	trigger_mgr->Queue(this);
-	}
-
-const char* Trigger::Name() const
-	{
-	assert(location);
-	return util::fmt("%s:%d-%d", location->filename, location->first_line, location->last_line);
 	}
 
 Manager::Manager() : iosource::IOSource()

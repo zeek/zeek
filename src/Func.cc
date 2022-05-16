@@ -365,7 +365,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 	if ( parent )
 		{
 		f->SetTrigger({NewRef{}, parent->GetTrigger()});
-		f->SetCall(parent->GetCall());
+		f->SetTriggerAssoc(parent->GetTriggerAssoc());
 		}
 
 	g_frame_stack.push_back(f.get()); // used for backtracing

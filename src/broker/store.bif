@@ -156,7 +156,7 @@ function Broker::__exists%(h: opaque of Broker::Store,
 	frame->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetCall(),
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetTriggerAssoc(),
 	                                               handle->store);
 	auto req_id = handle->proxy.exists(std::move(*key));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
@@ -202,7 +202,7 @@ function Broker::__get%(h: opaque of Broker::Store,
 	frame->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetCall(),
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetTriggerAssoc(),
 	                                               handle->store);
 	auto req_id = handle->proxy.get(std::move(*key));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
@@ -255,7 +255,7 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 	frame->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetCall(),
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetTriggerAssoc(),
 	                                               handle->store);
 
 	auto req_id = handle->proxy.put_unique(std::move(*key), std::move(*val),
@@ -311,7 +311,7 @@ function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 	frame->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetCall(),
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetTriggerAssoc(),
 						       handle->store);
 	auto req_id = handle->proxy.get_index_from_value(std::move(*key),
 	                                                 std::move(*index));
@@ -355,7 +355,7 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 	frame->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetCall(),
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetTriggerAssoc(),
 	                                             handle->store);
 	auto req_id = handle->proxy.keys();
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);

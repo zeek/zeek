@@ -289,7 +289,7 @@ protected:
 	 * @return A Location pointer containing the file location information,
 	 * or nullptr if nothing is available.
 	 */
-	virtual zeek::detail::Location* GetLocationInfo() const { return nullptr; }
+	virtual const zeek::detail::Location* GetLocationInfo() const { return nullptr; }
 
 private:
 	/**
@@ -352,6 +352,8 @@ private:
 	 *  has finished processing. Called from child.
 	 */
 	void Finished();
+
+	std::string BuildMsgWithLocation(const char* msg);
 
 	Queue<BasicInputMessage*> queue_in;
 	Queue<BasicOutputMessage*> queue_out;

@@ -59,7 +59,7 @@ protected:
 	bool DoUpdate() override;
 	bool DoHeartbeat(double network_time, double current_time) override;
 
-	zeek::detail::Location* GetLocationInfo() const override { return read_location.get(); }
+	const zeek::detail::Location* GetLocationInfo() const override { return read_location.get(); }
 
 private:
 	bool ReadHeader(bool useCached);

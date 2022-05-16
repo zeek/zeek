@@ -10,4 +10,5 @@ pkg install -y bash git cmake swig bison python3 base64
 pkg upgrade -y curl
 pyver=$(python3 -c 'import sys; print(f"py{sys.version_info[0]}{sys.version_info[1]}")')
 pkg install -y $pyver-sqlite3 $pyver-pip
-pip install junit2html
+
+python -m pip install junit2html

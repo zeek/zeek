@@ -1,3 +1,7 @@
+5.0.0-dev.410 | 2022-05-16 13:14:31 -0700
+
+  * Call pip using python -m flag during FreeBSD CI prep (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.408 | 2022-05-16 09:10:53 -0700
 
   * Store hash analyzer kind StringVals for later reuse (Tim Wojtulewicz, Corelight)

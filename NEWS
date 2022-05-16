@@ -6,11 +6,24 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 5.0.0
 ==========
 
+New Dependencies
+----------------
+
+- Zeek now requires at least CMake version 3.15.0.
+
+- If Zeek is configured with support for included Spicy (the default) we now
+  require at least Flex version 2.6 and its development headers, at least Bison
+  version 3.3, and GCC version 8.3 or Clang version 9.0 or higher.
+
 Breaking Changes
 ----------------
 
 New Functionality
 -----------------
+
+- Zeek now includes support for building Spicy and spicy-plugin as part of
+  Zeek. This feature is enabled by default, and can be turned off by passing
+  the ``--disable-spicy`` flag to ``./configure``.
 
 - Zeek now supports generation and replay of event traces via the new
   ``--event-trace`` / ``-E`` command-line options. For details, see:

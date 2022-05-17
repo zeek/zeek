@@ -1,3 +1,7 @@
+5.0.0-dev.442 | 2022-05-17 09:15:27 -0700
+
+  * Remove unnecessary uses of util::fmt() (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.440 | 2022-05-17 08:50:15 -0700
 
   * Add NEWS item for new requirements due to default-enabled Spicy support. (Benjamin Bannier, Corelight)

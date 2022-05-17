@@ -47,7 +47,7 @@ STACK_OF(X509)* x509_get_untrusted_stack(zeek::VectorVal* certs_vec)
 		if ( ! x )
 			{
 			sk_X509_free(untrusted_certs);
-			zeek::emit_builtin_error(zeek::util::fmt("No certificate in opaque in stack"));
+			zeek::emit_builtin_error("No certificate in opaque in stack");
 			return 0;
 			}
 
@@ -292,7 +292,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
 		{
-		zeek::emit_builtin_error(zeek::util::fmt("No certificate in opaque"));
+		zeek::emit_builtin_error("No certificate in opaque");
 		return x509_result_record(-1, "No certificate in opaque");
 		}
 
@@ -577,7 +577,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
 		{
-		zeek::emit_builtin_error(zeek::util::fmt("No certificate in opaque"));
+		zeek::emit_builtin_error("No certificate in opaque");
 		return x509_result_record(-1, "No certificate in opaque");
 		}
 
@@ -1022,7 +1022,7 @@ function x509_check_cert_hostname%(cert_opaque: opaque of x509, hostname: string
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
 		{
-		zeek::emit_builtin_error(zeek::util::fmt("No certificate in opaque"));
+		zeek::emit_builtin_error("No certificate in opaque");
 		return zeek::make_intrusive<zeek::StringVal>("");
 		}
 
@@ -1034,14 +1034,14 @@ function x509_check_cert_hostname%(cert_opaque: opaque of x509, hostname: string
 		auto* ex = X509_get_ext(cert, sanpos);
 		if ( ! ex )
 			{
-			zeek::emit_builtin_error(zeek::util::fmt("Could not get SAN from cert"));
+			zeek::emit_builtin_error("Could not get SAN from cert");
 			return zeek::make_intrusive<zeek::StringVal>("");
 			}
 
 		auto *altname = reinterpret_cast<GENERAL_NAMES*>(X509V3_EXT_d2i(ex));
 		if ( ! altname )
 			{
-			zeek::emit_builtin_error(zeek::util::fmt("Could not get names from SAN ext"));
+			zeek::emit_builtin_error("Could not get names from SAN ext");
 			return zeek::make_intrusive<zeek::StringVal>("");
 			}
 
@@ -1079,7 +1079,7 @@ function x509_check_cert_hostname%(cert_opaque: opaque of x509, hostname: string
 		auto* subject = X509_get_subject_name(cert);
 		if ( ! subject )
 			{
-			zeek::emit_builtin_error(zeek::util::fmt("Could not get certificate subject"));
+			zeek::emit_builtin_error("Could not get certificate subject");
 			return zeek::make_intrusive<zeek::StringVal>("");
 			}
 
@@ -1095,7 +1095,7 @@ function x509_check_cert_hostname%(cert_opaque: opaque of x509, hostname: string
 			BIO *bio = BIO_new(BIO_s_mem());
 			if ( ! bio )
 			{
-			zeek::emit_builtin_error(zeek::util::fmt("Could create bio"));
+			zeek::emit_builtin_error("Could create bio");
 			return zeek::make_intrusive<zeek::StringVal>("");
 			}
 			ASN1_STRING_print(bio, X509_NAME_ENTRY_get_data(X509_NAME_get_entry(subject, found_nid)));

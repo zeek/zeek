@@ -3,6 +3,7 @@ FROM opensuse/leap:15.3
 RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.2:Update/standard/openSUSE:Leap:15.2:Update.repo \
  && zypper refresh \
  && zypper in -y \
+  ccache \
   cmake \
   make \
   gcc9 \

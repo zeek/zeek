@@ -1,6 +1,7 @@
 FROM fedora:35
 
 RUN dnf -y install \
+    ccache \
     bison \
     cmake \
     diffutils \

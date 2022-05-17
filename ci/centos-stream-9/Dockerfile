@@ -16,6 +16,7 @@ RUN dnf -y install \
 # package versioning conflicts around OpenSSL.
 RUN dnf -y --nobest install \
     bison \
+    ccache \
     cmake \
     diffutils \
     flex \

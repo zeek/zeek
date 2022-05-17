@@ -11,7 +11,7 @@ RUN sed -i 's/enabled=1/enabled=0/' /etc/yum/pluginconf.d/fastestmirror.conf
 RUN yum -y install \
     https://repo.ius.io/ius-release-el7.rpm \
     https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
-  && yum -y install git224 \
+  && yum -y install git224 ccache \
   && yum clean all && rm -rf /var/cache/yum
 
 RUN yum -y install \

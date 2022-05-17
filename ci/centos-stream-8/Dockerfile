@@ -1,9 +1,11 @@
 FROM quay.io/centos/centos:stream8
 
+RUN dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 RUN dnf config-manager --set-enabled powertools
 
 RUN dnf -y install \
     bison \
+    ccache \
     cmake \
     diffutils \
     flex \

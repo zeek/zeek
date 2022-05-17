@@ -10,14 +10,14 @@ btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 12GB
 
-config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
-static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install
-asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy
-ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy
-tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy
-mobile_ipv6_config: &MOBILE_IPV6_CONFIG --build-type=release --enable-mobile-ipv6 --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
-openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install
-homebrew_flex_bison_config: &HOMEBREW_FLEX_BISON_CONFIG --with-flex=/usr/local/opt/flex/bin/flex --with-bison=/usr/local/opt/bison/bin/bison
+config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache
+static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache
+asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache
+ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache
+tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache
+mobile_ipv6_config: &MOBILE_IPV6_CONFIG --build-type=release --enable-mobile-ipv6 --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache
+openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install --ccache
+homebrew_flex_bison_config: &HOMEBREW_FLEX_BISON_CONFIG --with-flex=/usr/local/opt/flex/bin/flex --with-bison=/usr/local/opt/bison/bin/bison --ccache
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -54,6 +54,13 @@ ci_template: &CI_TEMPLATE
     folder: testing/external/zeek-testing-traces
     fingerprint_script: echo zeek-testing-traces
     populate_script: ./ci/init-external-repos.sh
+
+  always:
+    ccache_cache:
+      folder: /tmp/ccache
+      fingerprint_script: echo $CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+
   init_external_repos_script: ./ci/init-external-repos.sh
 
   build_script: ./ci/build.sh
@@ -70,6 +77,8 @@ ci_template: &CI_TEMPLATE
     upload_btest_html_results_artifacts:
       path: "testing/**/btest-results.html"
       type: text/html
+    cache_statistics_script:
+      ccache --show-stats
 
 env:
   CIRRUS_WORKING_DIR: /zeek
@@ -93,6 +102,10 @@ env:
 
   # The repo token used for uploading data to Coveralls.io
   ZEEK_COVERALLS_REPO_TOKEN: ENCRYPTED[7ffd1e041f848f02b62f5abc7fda8a5a8a1561fbb2b46d88cefb67c74408ddeef6ea6f3b279c7953ca14ae9b4d050e2d]
+
+  CCACHE_BASEDIR: $CIRRUS_WORKING_DIR
+  CCACHE_DIR: /tmp/ccache
+  CCACHE_COMPRESS: 1
 
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle

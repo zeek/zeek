@@ -1,3 +1,9 @@
+5.0.0-dev.431 | 2022-05-16 17:00:24 -0700
+
+  * Store location during Ascii input parsing for use in error messages (Tim Wojtulewicz, Corelight)
+
+  * Include file information in input reader error messages (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.427 | 2022-05-16 16:59:31 -0700
 
   * NEWS items for script profiling, "footprint" BiFs, and Trigger method deprecations (Vern Paxson, Corelight)

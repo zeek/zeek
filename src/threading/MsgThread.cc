@@ -5,6 +5,8 @@
 #include <unistd.h>
 
 #include "zeek/DebugLogger.h"
+#include "zeek/Desc.h"
+#include "zeek/Obj.h"
 #include "zeek/RunState.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/threading/Manager.h"
@@ -87,11 +89,11 @@ public:
 		INTERNAL_ERROR
 		};
 
-	ReporterMessage(Type arg_type, MsgThread* thread, const char* arg_msg)
+	ReporterMessage(Type arg_type, MsgThread* thread, std::string_view arg_msg)
 		: OutputMessage<MsgThread>("ReporterMessage", thread)
 		{
 		type = arg_type;
-		msg = util::copy_string(arg_msg);
+		msg = util::copy_string(arg_msg.data());
 		}
 
 	~ReporterMessage() override { delete[] msg; }
@@ -123,11 +125,11 @@ public:
 class DebugMessage final : public OutputMessage<MsgThread>
 	{
 public:
-	DebugMessage(DebugStream arg_stream, MsgThread* thread, const char* arg_msg)
+	DebugMessage(DebugStream arg_stream, MsgThread* thread, std::string_view arg_msg)
 		: OutputMessage<MsgThread>("DebugMessage", thread)
 		{
 		stream = arg_stream;
-		msg = util::copy_string(arg_msg);
+		msg = util::copy_string(arg_msg.data());
 		}
 
 	~DebugMessage() override { delete[] msg; }
@@ -339,40 +341,59 @@ void MsgThread::Finished()
 	SendOut(new detail::FinishedMessage(this));
 	}
 
+std::string MsgThread::BuildMsgWithLocation(const char* msg)
+	{
+	ODesc desc;
+
+	if ( auto* location = GetLocationInfo() )
+		{
+		location->Describe(&desc);
+		desc.Add(": ");
+		}
+
+	desc.Add(msg);
+	return std::string(desc.Description());
+	}
+
 void MsgThread::Info(const char* msg)
 	{
-	SendOut(new detail::ReporterMessage(detail::ReporterMessage::INFO, this, msg));
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::INFO, this,
+	                                    BuildMsgWithLocation(msg)));
 	}
 
 void MsgThread::Warning(const char* msg)
 	{
-	SendOut(new detail::ReporterMessage(detail::ReporterMessage::WARNING, this, msg));
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::WARNING, this,
+	                                    BuildMsgWithLocation(msg)));
 	}
 
 void MsgThread::Error(const char* msg)
 	{
-	SendOut(new detail::ReporterMessage(detail::ReporterMessage::ERROR, this, msg));
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::ERROR, this,
+	                                    BuildMsgWithLocation(msg)));
 	}
 
 void MsgThread::FatalError(const char* msg)
 	{
-	SendOut(new detail::ReporterMessage(detail::ReporterMessage::FATAL_ERROR, this, msg));
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::FATAL_ERROR, this,
+	                                    BuildMsgWithLocation(msg)));
 	}
 
 void MsgThread::FatalErrorWithCore(const char* msg)
 	{
-	SendOut(new detail::ReporterMessage(detail::ReporterMessage::FATAL_ERROR_WITH_CORE, this, msg));
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::FATAL_ERROR_WITH_CORE, this,
+	                                    BuildMsgWithLocation(msg)));
 	}
 
 void MsgThread::InternalWarning(const char* msg)
 	{
-	SendOut(new detail::ReporterMessage(detail::ReporterMessage::INTERNAL_WARNING, this, msg));
+	SendOut(new detail::ReporterMessage(detail::ReporterMessage::INTERNAL_WARNING, this,
+	                                    BuildMsgWithLocation(msg)));
 	}
 
 void MsgThread::InternalError(const char* msg)
 	{
-	// This one aborts immediately.
-	fprintf(stderr, "internal error in thread: %s\n", msg);
+	fprintf(stderr, "internal error in thread: %s\n", BuildMsgWithLocation(msg).c_str());
 	abort();
 	}
 
@@ -380,7 +401,7 @@ void MsgThread::InternalError(const char* msg)
 
 void MsgThread::Debug(DebugStream stream, const char* msg)
 	{
-	SendOut(new detail::DebugMessage(stream, this, msg));
+	SendOut(new detail::DebugMessage(stream, this, BuildMsgWithLocation(msg)));
 	}
 
 #endif

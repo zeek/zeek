@@ -7,6 +7,11 @@
 #include "zeek/threading/MsgThread.h"
 #include "zeek/threading/SerialTypes.h"
 
+namespace zeek::detail
+	{
+class Location;
+	}
+
 namespace zeek::input
 	{
 
@@ -55,6 +60,12 @@ enum ReaderMode
 class ReaderBackend : public threading::MsgThread
 	{
 public:
+	// Silence a warning from clang about hidden overloaded functions and the
+	// Info() function that this class provides.
+	using threading::MsgThread::Error;
+	using threading::MsgThread::Info;
+	using threading::MsgThread::Warning;
+
 	/**
 	 * Constructor.
 	 *

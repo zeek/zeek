@@ -63,6 +63,7 @@ double current_wallclock = 0.0;
 double current_pseudo = 0.0;
 bool zeek_init_done = false;
 bool time_updated = false;
+bool bare_mode = false;
 
 RETSIGTYPE watchdog(int /* signo */)
 	{

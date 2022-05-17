@@ -1748,6 +1748,20 @@ function zeek_version%(%): string
 	return zeek::make_intrusive<zeek::StringVal>(zeek::zeek_version());
 	%}
 
+%%{
+namespace zeek::run_state::detail {
+extern bool bare_mode;
+} // namespace zeek::run_state::detail
+%%}
+
+## Returns whether Zeek was started in bare mode.
+##
+## Returns: True if Zeek was started in bare mode, false otherwise.
+function bare_mode%(%): bool
+	%{
+	return zeek::val_mgr->Bool(zeek::run_state::detail::bare_mode);
+	%}
+
 ## Converts a record type name to a vector of strings, where each element is
 ## the name of a record field. Nested records are flattened.
 ##

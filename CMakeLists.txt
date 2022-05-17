@@ -1,6 +1,6 @@
 # When changing the minimum version here, also adapt
 # auxil/zeek-aux/plugin-support/skeleton/CMakeLists.txt
-cmake_minimum_required(VERSION 3.5...3.18 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)
 
 project(Zeek C CXX)
 
@@ -73,12 +73,16 @@ execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
      "export ZEEKPATH=`${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
      "export ZEEK_PLUGIN_PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":${ZEEK_PLUGIN_PATH}\n"
-     "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
+     "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":\"${CMAKE_CURRENT_BINARY_DIR}/auxil/spicy/spicy/bin\":\"${CMAKE_CURRENT_BINARY_DIR}/src/builtin-plugins/spicy-plugin/bin/\":$PATH\n"
+     "export SPICY_PATH=\"`${CMAKE_CURRENT_BINARY_DIR}/spicy-path`\"\n"
+     "export HILTI_CXX_INCLUDE_DIRS=\"`${CMAKE_CURRENT_BINARY_DIR}/hilti-cxx-include-dirs`\"\n")
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
      "setenv ZEEKPATH `${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
      "setenv ZEEK_PLUGIN_PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":${ZEEK_PLUGIN_PATH}\n"
-     "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
+     "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":\"${CMAKE_CURRENT_BINARY_DIR}/auxil/spicy/spicy/bin\":\"${CMAKE_CURRENT_BINARY_DIR}/src/builtin-plugins/spicy-plugin/bin/\":$PATH\n"
+     "setenv SPICY_PATH \"`${CMAKE_CURRENT_BINARY_DIR}/spicy-path`\"\n"
+     "setenv HILTI_CXX_INCLUDE_DIRS \"`${CMAKE_CURRENT_BINARY_DIR}/hilti-cxx-include-dirs`\"\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
 execute_process(COMMAND grep "^#define  *BRO_PLUGIN_API_VERSION"
@@ -374,6 +378,54 @@ else ()
   set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/include ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/include)
 endif ()
 
+if ( NOT DISABLE_SPICY )
+    if ( NOT Spicy_ROOT )
+        add_subdirectory(auxil/spicy)
+
+        # Set variables used by the spicy-plugin build since we are building Spicy
+        # as part of Zeek so spicy-plugin cannot use `spicy-config` at configure
+        # time to set these.
+        set(SPICY_CONFIG "<builtin>")
+        set(HAVE_SPICY "YES")
+        set(SPICY_HAVE_TOOLCHAIN "YES")
+        set(SPICY_INCLUDE_DIRS_RUNTIME
+            ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy/hilti/runtime/include
+            ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy/spicy/runtime/include
+            ${PROJECT_BINARY_DIR}/auxil/spicy/spicy/include)
+        set(SPICY_INCLUDE_DIRS_TOOLCHAIN
+            ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy/hilti/toolchain/include
+            ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy/spicy/toolchain/include)
+        set(SPICY_LIBRARY spicy)
+
+        # Needed only for logging from CMake configure phase.
+        get_directory_property(
+            SPICY_VERSION
+            DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
+            DEFINITION SPICY_VERSION)
+        get_directory_property(
+            SPICY_VERSION_NUMBER
+            DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
+            DEFINITION SPICY_VERSION_NUMBER)
+        get_directory_property(
+            SPICY_PREFIX
+            DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
+            DEFINITION CMAKE_INSTALL_PREFIX)
+        get_directory_property(
+            SPICY_BUILD_MODE
+            DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
+            DEFINITION CMAKE_BUILD_TYPE)
+        set(SPICYC "<bundled>")
+    endif ()
+
+    if ( NOT SPICY_PLUGIN_PATH )
+        set(SPICY_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/spicy-plugin)
+    endif ()
+
+    # set(ZEEK_SPICY_PLUGIN_BUILD_LIBDIR ${CMAKE_BINARY_DIR}/auxil/spicy-plugin)
+    # set(ZEEK_SPICY_PLUGIN_BUILD_LIBDIR ${CMAKE_BINARY_DIR}/src/builtin-plugins/spicy-plugin)
+    string(APPEND ZEEK_INCLUDE_PLUGINS ";${SPICY_PLUGIN_PATH}")
+endif ()
+
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
@@ -502,7 +554,7 @@ endif ()
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
 execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
                 "."
@@ -615,6 +667,53 @@ CheckOptionalBuildSources(auxil/zeekctl   ZeekControl INSTALL_ZEEKCTL)
 CheckOptionalBuildSources(auxil/zeek-aux  Zeek-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER)
 CheckOptionalBuildSources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
+
+if ( NOT DISABLE_SPICY )
+    if ( NOT Spicy_ROOT )
+        list(APPEND _spicy_rt_libs spicy-rt hilti-rt)
+
+        # Use the debug runtime libraries if we are building a debug Zeek.
+        if ( SPICY_BUILD_MODE STREQUAL "Debug" )
+            list(TRANSFORM _spicy_rt_libs APPEND "-debug")
+        endif ()
+
+        # If we build spicy-plugin into Zeek we also need to build the Spicy
+        # runtime dependencies into Zeek. Since no matter how Spicy itself was
+        # linked this is always a static library, link the object files so we
+        # get all symbols and can can resolve all potential dependencies of
+        # HLTO files at runtime.
+        #
+        # TODO(bbannier): Conceptually cleaner would be linking the runtime
+        # objects into spicy-plugin and then inherit that up to zeek, but it
+        # seems this does not work reliable (due incomplete support for object
+        # libraries in CMake?).
+        list(TRANSFORM _spicy_rt_libs APPEND "-objects")
+        target_link_libraries(zeek ${_spicy_rt_libs})
+
+        # Make sure we build targets of spicy-plugin after the `spicy` target.
+        add_dependencies(plugin-Zeek-Spicy spicy)
+        add_dependencies(spicyz spicy)
+
+        # Spicy JIT relies on the path of the current executable to figure out
+        # whether it is run from a build or an install tree. This assumption
+        # gets broken for e.g., `spicyz` when running from the build tree
+        # (probably fixable), and also when JIT'ing directly from a `zeek`
+        # invocation (much harder to fix). Instead we generate shell
+        # definitions to support running and using Spicy or spicy-plugin
+        # functionality in the build tree, including JIT'ing directly from
+        # Zeek.
+        configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path @ONLY)
+        configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/hilti-cxx-include-dirs.in ${CMAKE_BINARY_DIR}/hilti-cxx-include-dirs @ONLY)
+
+        # Also install spicy-plugin's CMake files into Zeek's global `cmake/` folder.
+        #
+        # NOTE: We do not install spicy-plugin's `FindZeek.cmake` since another
+        # version of this file is already provided by Zeek.
+        install(FILES auxil/spicy-plugin/cmake/ZeekSpicyAnalyzerSupport.cmake
+                      auxil/spicy-plugin/cmake/FindSpicy.cmake
+                DESTINATION share/zeek/cmake)
+    endif ()
+endif ()
 
 ########################################################################
 ## Packaging Setup

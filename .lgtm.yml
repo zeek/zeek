@@ -7,6 +7,8 @@ path_classifiers:
     - "auxil/libkqueue/"
     - "auxil/highwayhash/"
     - "auxil/rapidjson/"
+    - "auxil/spicy"
+    - "auxil/spicy-plugin"
     - "src/3rdparty/"
 
 # Filter out alerts that aren't concerning.
@@ -38,7 +40,9 @@ extraction:
 
     configure:
       command:
-        - ./configure --build-type=debug --generator=Ninja
+        # Disabling Spicy in LGTM build since it seems to lead to a LGTM
+        # performance edge case where analysis does not finish in 4h.
+        - ./configure --build-type=debug --generator=Ninja --disable-spicy
 
     index:
       build_command:

@@ -1,10 +1,12 @@
 FROM opensuse/leap:15.3
 
-RUN zypper in -y \
+RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.2:Update/standard/openSUSE:Leap:15.2:Update.repo \
+ && zypper refresh \
+ && zypper in -y \
   cmake \
   make \
-  gcc \
-  gcc-c++ \
+  gcc9 \
+  gcc9-c++ \
   python3 \
   python3-devel \
   flex \
@@ -21,5 +23,7 @@ RUN zypper in -y \
   tar \
   && rm -rf /var/cache/zypp
 
-
 RUN pip3 install junit2html
+
+ENV CXX g++-9
+ENV CC gcc-9

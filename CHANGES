@@ -1,3 +1,49 @@
+5.0.0-dev.440 | 2022-05-17 08:50:15 -0700
+
+  * Add NEWS item for new requirements due to default-enabled Spicy support. (Benjamin Bannier, Corelight)
+
+  * Include headers in binary dir before other headers. (Benjamin Bannier, Corelight)
+
+    If e.g., optional dependencies are installed in the same prefix as a
+    previous Zeek installation, the build would have previously found
+    `zeek-config.h` from the external prefix instead of from the current
+    build.
+
+    With this patch we now include the current binary dir before any
+    previously configured include directories (here in particular: optional
+    dependencies). With that the correct `zeek-config.h` is found.
+
+  * Increase memory in CI. (Benjamin Bannier, Corelight)
+
+    Spicy requires substantial amounts of RAM to compile. In this patch we
+    bump the amount of RAM available in CI so a build including Spicy can be
+    performed.
+
+  * Add tests for bundled Spicy infrastructure. (Benjamin Bannier, Corelight)
+
+  * Include spicy in build. (Benjamin Bannier, Corelight)
+
+  * Add `bare_mode` bif. (Benjamin Bannier, Corelight)
+
+  * Change test so included plugins can load notice framework. (Benjamin Bannier, Corelight)
+
+  * Do not log function arguments in test. (Benjamin Bannier, Corelight)
+
+    This was excercising hooks to validate that they were called. For that
+    it uses pretty verbose logging. Since version numbers are not stable and
+    hard to canonify this script already unloads the version module (there
+    is e.g., code in `base/misc/version` which splits the version strings
+    and works on single components which might appear like pretty ordinary
+    floating point numbers in the log).
+
+    This test however worked under the assumption that nothing in bare mode
+    loads `base/misc/version` which is hard to guarantee, especially
+    considering that plugins can be embedded and might load that module
+    themself.
+
+    With this patch we now make the logging slightly less verbose so that
+    function call arguments are not logged anymore.
+
 5.0.0-dev.431 | 2022-05-16 17:00:24 -0700
 
   * Store location during Ascii input parsing for use in error messages (Tim Wojtulewicz, Corelight)

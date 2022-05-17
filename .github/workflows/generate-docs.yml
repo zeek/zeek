@@ -43,6 +43,8 @@ jobs:
             g++ \
             flex \
             bison \
+            libfl2 \
+            libfl-dev \
             libpcap-dev \
             libssl-dev \
             python3 \
@@ -60,7 +62,7 @@ jobs:
           sudo pip3 install -r doc/requirements.txt
 
       - name: Configure
-        run: ./configure --disable-broker-tests --disable-cpp-tests
+        run: ./configure --disable-broker-tests --disable-cpp-tests --disable-spicy
 
       - name: Build
         run: cd build && make -j $(nproc)

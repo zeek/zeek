@@ -3,7 +3,9 @@
 #pragma once
 
 #include <broker/expected.hh>
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
 #include <openssl/md5.h>
+#endif
 #include <paraglob/paraglob.h>
 #include <sys/types.h> // for u_char
 
@@ -246,7 +248,11 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(MD5Val)
 private:
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	EVP_MD_CTX* ctx;
+#else
 	MD5_CTX ctx;
+#endif
 	};
 
 class SHA1Val : public HashVal
@@ -271,7 +277,11 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(SHA1Val)
 private:
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	EVP_MD_CTX* ctx;
+#else
 	SHA_CTX ctx;
+#endif
 	};
 
 class SHA256Val : public HashVal
@@ -296,7 +306,11 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(SHA256Val)
 private:
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	EVP_MD_CTX* ctx;
+#else
 	SHA256_CTX ctx;
+#endif
 	};
 
 class EntropyVal : public OpaqueVal

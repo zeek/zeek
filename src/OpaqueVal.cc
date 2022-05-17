@@ -1,9 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-// We use deprecated APIs for MD5, SHA1 and SHA256. The reason is that, as of OpenSSL 3.0, there is
-// no API anymore that lets you store the internal state of hashing functions. For more information,
-// see https://github.com/zeek/zeek/issues/1379 and https://github.com/openssl/openssl/issues/14222
-// Since I don't feel like getting warnings every time we compile this file - let's silence them.
+// When using OpenSSL 3, we use deprecated APIs for MD5, SHA1 and SHA256. The reason is that, as of
+// OpenSSL 3.0, there is no API anymore that lets you store the internal state of hashing functions.
+// For more information, see https://github.com/zeek/zeek/issues/1379 and
+// https://github.com/openssl/openssl/issues/14222 Since I don't feel like getting warnings every
+// time we compile this file - let's silence them.
 
 #define OPENSSL_SUPPRESS_DEPRECATED
 
@@ -220,7 +221,13 @@ MD5Val::MD5Val() : HashVal(md5_type)
 	memset(&ctx, 0, sizeof(ctx));
 	}
 
-MD5Val::~MD5Val() { }
+MD5Val::~MD5Val()
+	{
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	if ( IsValid() )
+		EVP_MD_CTX_free(ctx);
+#endif
+	}
 
 void HashVal::digest_one(EVP_MD_CTX* h, const Val* v)
 	{
@@ -251,7 +258,11 @@ ValPtr MD5Val::DoClone(CloneState* state)
 		if ( ! out->Init() )
 			return nullptr;
 
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+		EVP_MD_CTX_copy_ex(out->ctx, ctx);
+#else
 		out->ctx = ctx;
+#endif
 		}
 
 	return state->NewClone(this, std::move(out));
@@ -260,7 +271,11 @@ ValPtr MD5Val::DoClone(CloneState* state)
 bool MD5Val::DoInit()
 	{
 	assert(! IsValid());
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	ctx = detail::hash_init(detail::Hash_MD5);
+#else
 	MD5_Init(&ctx);
+#endif
 	return true;
 	}
 
@@ -269,7 +284,11 @@ bool MD5Val::DoFeed(const void* data, size_t size)
 	if ( ! IsValid() )
 		return false;
 
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	detail::hash_update(ctx, data, size);
+#else
 	MD5_Update(&ctx, data, size);
+#endif
 	return true;
 	}
 
@@ -279,7 +298,11 @@ StringValPtr MD5Val::DoGet()
 		return val_mgr->EmptyString();
 
 	u_char digest[MD5_DIGEST_LENGTH];
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	detail::hash_final(ctx, digest);
+#else
 	MD5_Final(digest, &ctx);
+#endif
 	return make_intrusive<StringVal>(detail::md5_digest_print(digest));
 	}
 
@@ -290,7 +313,12 @@ broker::expected<broker::data> MD5Val::DoSerialize() const
 	if ( ! IsValid() )
 		return {broker::vector{false}};
 
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	MD5_CTX* md = (MD5_CTX*)EVP_MD_CTX_md_data(ctx);
+	auto data = std::string(reinterpret_cast<const char*>(md), sizeof(MD5_CTX));
+#else
 	auto data = std::string(reinterpret_cast<const char*>(&ctx), sizeof(ctx));
+#endif
 
 	broker::vector d = {true, data};
 	return {std::move(d)};
@@ -319,11 +347,20 @@ bool MD5Val::DoUnserialize(const broker::data& data)
 	if ( ! s )
 		return false;
 
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	if ( sizeof(MD5_CTX) != s->size() )
+#else
 	if ( sizeof(ctx) != s->size() )
+#endif
 		return false;
 
 	Init();
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	MD5_CTX* md = (MD5_CTX*)EVP_MD_CTX_md_data(ctx);
+	memcpy(md, s->data(), s->size());
+#else
 	memcpy(&ctx, s->data(), s->size());
+#endif
 	return true;
 	}
 
@@ -332,7 +369,13 @@ SHA1Val::SHA1Val() : HashVal(sha1_type)
 	memset(&ctx, 0, sizeof(ctx));
 	}
 
-SHA1Val::~SHA1Val() { }
+SHA1Val::~SHA1Val()
+	{
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	if ( IsValid() )
+		EVP_MD_CTX_free(ctx);
+#endif
+	}
 
 ValPtr SHA1Val::DoClone(CloneState* state)
 	{
@@ -343,7 +386,11 @@ ValPtr SHA1Val::DoClone(CloneState* state)
 		if ( ! out->Init() )
 			return nullptr;
 
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+		EVP_MD_CTX_copy_ex(out->ctx, ctx);
+#else
 		out->ctx = ctx;
+#endif
 		}
 
 	return state->NewClone(this, std::move(out));
@@ -352,7 +399,11 @@ ValPtr SHA1Val::DoClone(CloneState* state)
 bool SHA1Val::DoInit()
 	{
 	assert(! IsValid());
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	ctx = detail::hash_init(detail::Hash_SHA1);
+#else
 	SHA1_Init(&ctx);
+#endif
 	return true;
 	}
 
@@ -361,7 +412,11 @@ bool SHA1Val::DoFeed(const void* data, size_t size)
 	if ( ! IsValid() )
 		return false;
 
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	detail::hash_update(ctx, data, size);
+#else
 	SHA1_Update(&ctx, data, size);
+#endif
 	return true;
 	}
 
@@ -371,7 +426,11 @@ StringValPtr SHA1Val::DoGet()
 		return val_mgr->EmptyString();
 
 	u_char digest[SHA_DIGEST_LENGTH];
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	detail::hash_final(ctx, digest);
+#else
 	SHA1_Final(digest, &ctx);
+#endif
 	return make_intrusive<StringVal>(detail::sha1_digest_print(digest));
 	}
 
@@ -382,7 +441,12 @@ broker::expected<broker::data> SHA1Val::DoSerialize() const
 	if ( ! IsValid() )
 		return {broker::vector{false}};
 
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	SHA_CTX* md = (SHA_CTX*)EVP_MD_CTX_md_data(ctx);
+	auto data = std::string(reinterpret_cast<const char*>(md), sizeof(SHA_CTX));
+#else
 	auto data = std::string(reinterpret_cast<const char*>(&ctx), sizeof(ctx));
+#endif
 
 	broker::vector d = {true, data};
 
@@ -412,11 +476,20 @@ bool SHA1Val::DoUnserialize(const broker::data& data)
 	if ( ! s )
 		return false;
 
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	if ( sizeof(SHA_CTX) != s->size() )
+#else
 	if ( sizeof(ctx) != s->size() )
+#endif
 		return false;
 
 	Init();
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	SHA_CTX* md = (SHA_CTX*)EVP_MD_CTX_md_data(ctx);
+	memcpy(md, s->data(), s->size());
+#else
 	memcpy(&ctx, s->data(), s->size());
+#endif
 	return true;
 	}
 
@@ -425,7 +498,13 @@ SHA256Val::SHA256Val() : HashVal(sha256_type)
 	memset(&ctx, 0, sizeof(ctx));
 	}
 
-SHA256Val::~SHA256Val() { }
+SHA256Val::~SHA256Val()
+	{
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	if ( IsValid() )
+		EVP_MD_CTX_free(ctx);
+#endif
+	}
 
 ValPtr SHA256Val::DoClone(CloneState* state)
 	{
@@ -436,7 +515,11 @@ ValPtr SHA256Val::DoClone(CloneState* state)
 		if ( ! out->Init() )
 			return nullptr;
 
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+		EVP_MD_CTX_copy_ex(out->ctx, ctx);
+#else
 		out->ctx = ctx;
+#endif
 		}
 
 	return state->NewClone(this, std::move(out));
@@ -445,7 +528,11 @@ ValPtr SHA256Val::DoClone(CloneState* state)
 bool SHA256Val::DoInit()
 	{
 	assert(! IsValid());
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	ctx = detail::hash_init(detail::Hash_SHA256);
+#else
 	SHA256_Init(&ctx);
+#endif
 	return true;
 	}
 
@@ -454,7 +541,11 @@ bool SHA256Val::DoFeed(const void* data, size_t size)
 	if ( ! IsValid() )
 		return false;
 
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	detail::hash_update(ctx, data, size);
+#else
 	SHA256_Update(&ctx, data, size);
+#endif
 	return true;
 	}
 
@@ -464,7 +555,11 @@ StringValPtr SHA256Val::DoGet()
 		return val_mgr->EmptyString();
 
 	u_char digest[SHA256_DIGEST_LENGTH];
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	detail::hash_final(ctx, digest);
+#else
 	SHA256_Final(digest, &ctx);
+#endif
 	return make_intrusive<StringVal>(detail::sha256_digest_print(digest));
 	}
 
@@ -475,7 +570,12 @@ broker::expected<broker::data> SHA256Val::DoSerialize() const
 	if ( ! IsValid() )
 		return {broker::vector{false}};
 
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	SHA256_CTX* md = (SHA256_CTX*)EVP_MD_CTX_md_data(ctx);
+	auto data = std::string(reinterpret_cast<const char*>(md), sizeof(SHA256_CTX));
+#else
 	auto data = std::string(reinterpret_cast<const char*>(&ctx), sizeof(ctx));
+#endif
 
 	broker::vector d = {true, data};
 
@@ -505,11 +605,20 @@ bool SHA256Val::DoUnserialize(const broker::data& data)
 	if ( ! s )
 		return false;
 
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	if ( sizeof(SHA256_CTX) != s->size() )
+#else
 	if ( sizeof(ctx) != s->size() )
+#endif
 		return false;
 
 	Init();
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	SHA256_CTX* md = (SHA256_CTX*)EVP_MD_CTX_md_data(ctx);
+	memcpy(md, s->data(), s->size());
+#else
 	memcpy(&ctx, s->data(), s->size());
+#endif
 	return true;
 	}
 

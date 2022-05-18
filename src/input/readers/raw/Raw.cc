@@ -632,7 +632,7 @@ bool Raw::DoUpdate()
 					}
 
 				// File was replaced
-				FILE *tfile;
+				FILE* tfile;
 				tfile = fopen(fname.c_str(), "r");
 				if ( ! tfile )
 					break;

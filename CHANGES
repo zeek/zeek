@@ -1,3 +1,7 @@
+5.0.0-dev.445 | 2022-05-18 11:07:02 -0700
+
+  * GH-1672: Keep a reference to a table being expired, just in case (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.442 | 2022-05-17 09:15:27 -0700
 
   * Remove unnecessary uses of util::fmt() (Tim Wojtulewicz, Corelight)

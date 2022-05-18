@@ -1,3 +1,15 @@
+5.0.0-dev.447 | 2022-05-18 11:07:30 -0700
+
+  * Partially revert OpenSSL hashing changes (Johanna Amann, Corelight)
+
+    This commit partially reverts the changes that we made in
+    6217851d6db3859b2add34773be5a6b3ecba49f0. It turns out that reverting to
+    the legacy OpenSSL API means that Zeek can no longer be run in FIPS mode
+    for old (but still used) versions of OpenSSL.
+
+    This commit thus uses a bunch of #ifdefs to support both implementations
+    simultaneously.
+
 5.0.0-dev.445 | 2022-05-18 11:07:02 -0700
 
   * GH-1672: Keep a reference to a table being expired, just in case (Tim Wojtulewicz, Corelight)

@@ -20,7 +20,7 @@ The following will compile and install the AF_Packet plugin alongside Zeek, assu
 If the headers are installed somewhere non-standard, add `--with-kernel=<kernel-header-directory>` to the `configure` command. Furthermore, `--with-latest-kernel` will use the latest headers available instead of looking for the headers matching the running kernel's version. If everything built and installed correctly, you should see this:
 
     # zeek -NN Zeek::AF_Packet
-    Zeek::AF_Packet - Packet acquisition via AF_Packet (dynamic, version 3.1.0)
+    Zeek::AF_Packet - Packet acquisition via AF_Packet (dynamic, version 3.1.1)
     [Packet Source] AF_PacketReader (interface prefix "af_packet"; supports live input)
     [Type] AF_Packet::FanoutMode
     [Constant] AF_Packet::buffer_size

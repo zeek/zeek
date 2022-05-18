@@ -1,3 +1,15 @@
+5.0.0-dev.449 | 2022-05-18 11:11:58 -0700
+
+  * Always generate helper scripts for Spicy. (Benjamin Bannier, Corelight)
+
+    We previously only generated these files if configuring a build which
+    included Spicy. This meant that e.g., `zeek-path-dev.*` scripts would
+    emit errors for non-existing paths if Spicy was not included.
+
+    We now always generate the helper scripts so we can reference them
+    regardless of build configuration. If Spicy is not included the files
+    will still be sourced, but have no actual effect.
+
 5.0.0-dev.447 | 2022-05-18 11:07:30 -0700
 
   * Partially revert OpenSSL hashing changes (Johanna Amann, Corelight)

@@ -10,7 +10,7 @@ global result_count = 0;
 
 function print_keys(a: opaque of Broker::Store)
 	{
-	when ( local s = Broker::keys(a) )
+	when [a] ( local s = Broker::keys(a) )
 		{
 		print "keys", s;
 		++result_count;

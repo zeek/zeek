@@ -3,8 +3,10 @@
 #include "zeek/script_opt/CPP/RuntimeOps.h"
 
 #include "zeek/EventRegistry.h"
+#include "zeek/Frame.h"
 #include "zeek/IPAddr.h"
 #include "zeek/RunState.h"
+#include "zeek/Trigger.h"
 #include "zeek/ZeekString.h"
 
 namespace zeek::detail
@@ -58,6 +60,50 @@ ValPtr index_vec__CPP(const VectorValPtr& vec, int index)
 ValPtr index_string__CPP(const StringValPtr& svp, vector<ValPtr> indices)
 	{
 	return index_string(svp->AsString(), index_val__CPP(move(indices)).get());
+	}
+
+ValPtr when_index_table__CPP(const TableValPtr& t, vector<ValPtr> indices)
+	{
+	auto v = index_table__CPP(t, std::move(indices));
+	if ( v && IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.emplace_back(v);
+	return v;
+	}
+
+ValPtr when_index_vec__CPP(const VectorValPtr& vec, int index)
+	{
+	auto v = index_vec__CPP(vec, index);
+	if ( v && IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.emplace_back(v);
+	return v;
+	}
+
+ValPtr when_index_slice__CPP(VectorVal* vec, const ListVal* lv)
+	{
+	auto v = index_slice(vec, lv);
+	if ( v && IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.emplace_back(v);
+	return v;
+	}
+
+ValPtr when_invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame, void* caller_addr)
+	{
+	auto trigger = frame->GetTrigger();
+
+	if ( trigger )
+		{
+		Val* v = trigger->Lookup(caller_addr);
+		if ( v )
+			return {NewRef{}, v};
+		}
+
+	frame->SetTriggerAssoc(caller_addr);
+
+	auto res = f->Invoke(&args, frame);
+	if ( ! res )
+		throw DelayedCallException();
+
+	return res;
 	}
 
 ValPtr set_event__CPP(IDPtr g, ValPtr v, EventHandlerPtr& gh)

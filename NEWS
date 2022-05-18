@@ -9,8 +9,31 @@ Zeek 5.0.0
 Breaking Changes
 ----------------
 
+- Zeek now requires at least CMake version 3.15.0.
+
+- If Zeek is configured with support for included Spicy (the default) we now
+  require at least Flex version 2.6 and its development headers, at least Bison
+  version 3.3, and GCC version 8.3 or Clang version 9.0 or higher.
+
 New Functionality
 -----------------
+
+- A new feature, ``--profile-scripts[=file]`` instructs Zeek to write (upon
+  termination) a profile of every function body to the given file (default:
+  stdout), along with some aggregate profiles. A function body is associated
+  with a function or a BiF (they can only have one), or a hook or event
+  handler (they can have multiple).  The profile is in TSV, quasi-Zeek-log
+  format.  It includes (1) the name of the script body, (2) its location,
+  (3) its type (e.g., "BiF" or "function"), (4) how many times it was called,
+  (5) the total CPU time that accumulated during its execution, (6) how much
+  of that time was due to execution of its "children" (other functions it
+  called), (7) the total memory allocated during its execution (approximately),
+  and (8) how much of that memory was due to its children.  Note that profiling
+  is expensive and may not be suitable for execution on live traffic.
+
+- Zeek now includes support for building Spicy and spicy-plugin as part of
+  Zeek. This feature is enabled by default, and can be turned off by passing
+  the ``--disable-spicy`` flag to ``./configure``.
 
 - Zeek now supports generation and replay of event traces via the new
   ``--event-trace`` / ``-E`` command-line options. For details, see:
@@ -37,6 +60,12 @@ New Functionality
   to this library simplifies the DNS code, adds support for IPv6 lookups, and
   adds the ability to support more DNS request types in the future.
 
+- Two new BiFs, val_footprint() and global_container_footprints(), offer
+  substitutes for the deprecated val_size() and global_sizes() BiFs.
+  A value's "footprint" is the number of elements it includes either
+  directly or indirectly.  The number is not meant to be precise, but
+  rather comparable: larger footprint correlates with more memory consumption.
+
 Changed Functionality
 ---------------------
 
@@ -54,6 +83,12 @@ Changed Functionality
 
 Deprecated Functionality
 ------------------------
+
+- For developers of asynchronous BiFs, or other uses of ``when`` statement
+  triggers, the versions of ``Trigger::Cache`` and ``Trigger::Lookup`` that
+  take ``const CallExpr*`` parameters have been deprecated.  The replacements
+  take ``const void*`` parameters.  Usually all you'll need to do is replace
+  previous uses of ``Frame::GetCall`` with ``Frame::GetTriggerAssoc``.
 
 Zeek 4.2.0
 ==========

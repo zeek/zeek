@@ -62,7 +62,7 @@ public:
 	 *
 	 * @param val the Value to render to the ODesc object.
 	 *
-	 * @param The name of a field associated with the value.
+	 * @param name The name of a field associated with the value.
 	 *
 	 * @return Returns true on success, false on error. Errors are also
 	 * flagged via the thread.
@@ -75,7 +75,7 @@ public:
 	 *
 	 * @param s The string to parse.
 	 *
-	 * @param The name of a field associated with the value. Used only
+	 * @param name The name of a field associated with the value. Used only
 	 * for error reporting.
 	 *
 	 * @return The new value, or null on error. Errors must also be

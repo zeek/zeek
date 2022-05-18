@@ -12,7 +12,7 @@ global h: opaque of Broker::Store;
 
 function print_index(k: any)
 	{
-	when ( local r = Broker::get(h, k) )
+	when [k] ( local r = Broker::get(h, k) )
 		{
 		print k, r$status, r$result;
 		}

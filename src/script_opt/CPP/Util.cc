@@ -38,13 +38,6 @@ string scope_prefix(int scope)
 
 bool is_CPP_compilable(const ProfileFunc* pf, const char** reason)
 	{
-	if ( pf->NumWhenStmts() > 0 )
-		{
-		if ( reason )
-			*reason = "use of \"when\"";
-		return false;
-		}
-
 	auto body = pf->ProfiledBody();
 	if ( body && ! body->GetOptInfo()->is_free_of_conditionals )
 		{

@@ -1,0 +1,11 @@
+# @TEST-DOC: Smoke test for a bundled Spicy.
+#
+# @TEST-REQUIRES: $SCRIPTS/have-spicy
+# @TEST-EXEC: printf 12345 | ${BUILD}/auxil/spicy/spicy/bin/spicy-dump -d %INPUT >output 2>&1
+# @TEST-EXEC: btest-diff output
+
+module test;
+
+public type X = unit {
+    xs: (bytes &size=1 &convert=$$.to_int()*11)[];
+};

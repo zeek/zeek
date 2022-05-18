@@ -13,6 +13,7 @@
 #include "zeek/RE.h"
 #include "zeek/RunState.h"
 #include "zeek/Scope.h"
+#include "zeek/Trigger.h"
 #include "zeek/Val.h"
 #include "zeek/ZeekString.h"
 #include "zeek/module_util.h"

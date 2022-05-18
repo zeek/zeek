@@ -43,11 +43,22 @@ public:
 	virtual ~BloomFilter();
 
 	/**
-	 * Adds an element to the Bloom filter.
+	 * Adds an element to the Bloom filter, or increments its value for counting
+	 * bloom filters
 	 *
 	 * @param key The key associated with the element to add.
 	 */
 	virtual void Add(const zeek::detail::HashKey* key) = 0;
+
+	/**
+	 * Decrements the value of an element in the bloom filter, if the underlying
+	 * filter supports the operation
+	 *
+	 * #param key The key associated with the element to decrement.
+	 *
+	 * @return True if the decrement operation succeeded.
+	 */
+	virtual bool Decrement(const zeek::detail::HashKey* key) = 0;
 
 	/**
 	 * Retrieves the associated count of a given value.
@@ -71,13 +82,22 @@ public:
 	virtual void Clear() = 0;
 
 	/**
-	 * Merges another Bloom filter into a copy of this one.
+	 * Merges another Bloom filter into this one.
 	 *
 	 * @param other The other Bloom filter.
 	 *
 	 * @return `true` on success.
 	 */
 	virtual bool Merge(const BloomFilter* other) = 0;
+
+	/**
+	 * Intersects another Bloom filter with a copy of this one and returns the copy.
+	 *
+	 * @param other The other Bloom filter.
+	 *
+	 * @return Intersecting BloomFilter on success, nullptr otherwise.
+	 */
+	virtual BloomFilter* Intersect(const BloomFilter* other) const = 0;
 
 	/**
 	 * Constructs a copy of this Bloom filter.
@@ -115,11 +135,15 @@ protected:
 	const detail::Hasher* hasher;
 	};
 
+class CountingBloomFilter;
+
 /**
  * A basic Bloom filter.
  */
 class BasicBloomFilter : public BloomFilter
 	{
+	friend class CountingBloomFilter;
+
 public:
 	/**
 	 * Constructs a basic Bloom filter with a given number of cells. The
@@ -170,6 +194,7 @@ public:
 	void Clear() override;
 	bool Merge(const BloomFilter* other) override;
 	BasicBloomFilter* Clone() const override;
+	BasicBloomFilter* Intersect(const BloomFilter* other) const override;
 	std::string InternalState() const override;
 
 protected:
@@ -182,6 +207,7 @@ protected:
 
 	// Overridden from BloomFilter.
 	void Add(const zeek::detail::HashKey* key) override;
+	bool Decrement(const zeek::detail::HashKey* key) override;
 	size_t Count(const zeek::detail::HashKey* key) const override;
 	broker::expected<broker::data> DoSerialize() const override;
 	bool DoUnserialize(const broker::data& data) override;
@@ -221,6 +247,20 @@ public:
 	CountingBloomFilter* Clone() const override;
 	std::string InternalState() const override;
 
+	/**
+	 * Intersects another Bloom filter this one and returns a new BasicBloomFilter.
+	 *
+	 * Please note that the Intersection of two Counting bloom filters results in a
+	 * basic bloom filter. The reason for this is that the counters loose meaning during
+	 * the intersection process. The BasicBloomFilter will have bits set in cases where
+	 * both Counting Bloom filters has cell values greater than zero.
+	 *
+	 * @param other The other Bloom filter.
+	 *
+	 * @return Intersecting BloomFilter on success, nullptr otherwise.
+	 */
+	BasicBloomFilter* Intersect(const BloomFilter* other) const override;
+
 protected:
 	friend class BloomFilter;
 
@@ -231,6 +271,7 @@ protected:
 
 	// Overridden from BloomFilter.
 	void Add(const zeek::detail::HashKey* key) override;
+	bool Decrement(const zeek::detail::HashKey* key) override;
 	size_t Count(const zeek::detail::HashKey* key) const override;
 	broker::expected<broker::data> DoSerialize() const override;
 	bool DoUnserialize(const broker::data& data) override;

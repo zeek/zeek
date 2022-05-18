@@ -1,5 +1,7 @@
 # @TEST-GROUP: broker
 #
+# @TEST-REQUIRES: $SCRIPTS/have-spicy  # The logging of Broker's `num_logs_outgoing` depends on whether the Spicy plugin is loaded or not.
+#
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run recv "zeek -b ../recv.zeek >recv.out"

@@ -292,6 +292,7 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt)
 	const auto& t = c->GetType();
 	auto f = c->Func();
 	auto args_l = c->Args();
+	bool is_async = c->IsInWhen();
 
 	auto gen = GenExpr(f, GEN_DONT_CARE);
 
@@ -304,8 +305,8 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt)
 		bool is_compiled = compiled_simple_funcs.count(id_name) > 0;
 		bool was_compiled = hashed_funcs.count(id_name) > 0;
 
-		if ( is_compiled || was_compiled )
-			{
+		if ( ! is_async && (is_compiled || was_compiled) )
+			{ // Can call directly.
 			string fname;
 
 			if ( was_compiled )
@@ -340,8 +341,14 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt)
 		// Indirect call.
 		gen = string("(") + gen + ")->AsFunc()";
 
+	string invoke_func = is_async ? "when_invoke__CPP" : "invoke__CPP";
 	auto args_list = string(", {") + GenExpr(args_l, GEN_VAL_PTR) + "}";
-	auto invoker = string("invoke__CPP(") + gen + args_list + ", f__CPP)";
+	auto invoker = invoke_func + "(" + gen + args_list + ", f__CPP";
+
+	if ( is_async )
+		invoker += ", (void*) &" + body_name;
+
+	invoker += ")";
 
 	if ( IsNativeType(t) && gt != GEN_VAL_PTR )
 		return invoker + NativeAccessor(t);
@@ -408,12 +415,17 @@ string CPPCompile::GenIndexExpr(const Expr* e, GenType gt)
 	{
 	auto aggr = e->GetOp1();
 	const auto& aggr_t = aggr->GetType();
+	bool inside_when = e->AsIndexExpr()->IsInsideWhen();
 
 	string gen;
+	string func;
 
 	if ( aggr_t->Tag() == TYPE_TABLE )
-		gen = string("index_table__CPP(") + GenExpr(aggr, GEN_NATIVE) + ", {" +
-		      GenExpr(e->GetOp2(), GEN_VAL_PTR) + "})";
+		{
+		func = inside_when ? "when_index_table__CPP" : "index_table__CPP";
+		gen = func + "(" + GenExpr(aggr, GEN_NATIVE) + ", {" + GenExpr(e->GetOp2(), GEN_VAL_PTR) +
+		      "})";
+		}
 
 	else if ( aggr_t->Tag() == TYPE_VECTOR )
 		{
@@ -426,12 +438,16 @@ string CPPCompile::GenIndexExpr(const Expr* e, GenType gt)
 			auto& inds = op2->AsListExpr()->Exprs();
 			auto first = inds[0];
 			auto last = inds[1];
-			gen = string("index_slice(") + GenExpr(aggr, GEN_VAL_PTR) + ".get(), " +
+			func = inside_when ? "when_index_slice__CPP" : "index_slice";
+			gen = func + "(" + GenExpr(aggr, GEN_VAL_PTR) + ".get(), " +
 			      GenExpr(first, GEN_NATIVE) + ", " + GenExpr(last, GEN_NATIVE) + ")";
 			}
 		else
-			gen = string("index_vec__CPP(") + GenExpr(aggr, GEN_NATIVE) + ", " +
-			      GenExpr(e->GetOp2(), GEN_NATIVE) + ")";
+			{
+			func = inside_when ? "when_index_vec__CPP" : "index_vec__CPP";
+			gen = func + "(" + GenExpr(aggr, GEN_NATIVE) + ", " + GenExpr(e->GetOp2(), GEN_NATIVE) +
+			      ")";
+			}
 		}
 
 	else if ( aggr_t->Tag() == TYPE_STRING )

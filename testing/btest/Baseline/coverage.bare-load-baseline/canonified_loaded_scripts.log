@@ -243,8 +243,18 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_AsciiWriter.ascii.bif.zeek
     build/scripts/base/bif/plugins/Zeek_NoneWriter.none.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SQLiteWriter.sqlite.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_Spicy.consts.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_Spicy.events.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_Spicy.functions.bif.zeek
 build/scripts/builtin-plugins/__preload__.zeek
+  build/scripts/builtin-plugins/Zeek_Spicy/__preload__.zeek
 build/scripts/builtin-plugins/__load__.zeek
+  build/scripts/builtin-plugins/Zeek_Spicy/__load__.zeek
+    build/scripts/builtin-plugins/Zeek_Spicy/Zeek/Spicy/bare.zeek
+      scripts/base/misc/version.zeek
+        scripts/base/frameworks/reporter/__load__.zeek
+          scripts/base/frameworks/reporter/main.zeek
+        scripts/base/utils/strings.zeek
 scripts/policy/misc/loaded-scripts.zeek
   scripts/base/utils/paths.zeek
 #close XXXX-XX-XX-XX-XX-XX

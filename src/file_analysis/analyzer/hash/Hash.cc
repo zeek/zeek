@@ -11,10 +11,14 @@
 namespace zeek::file_analysis::detail
 	{
 
-Hash::Hash(RecordValPtr args, file_analysis::File* file, HashVal* hv, const char* arg_kind)
-	: file_analysis::Analyzer(file_mgr->GetComponentTag(util::to_upper(arg_kind).c_str()),
+StringValPtr MD5::kind_val = make_intrusive<StringVal>("md5");
+StringValPtr SHA1::kind_val = make_intrusive<StringVal>("sha1");
+StringValPtr SHA256::kind_val = make_intrusive<StringVal>("sha256");
+
+Hash::Hash(RecordValPtr args, file_analysis::File* file, HashVal* hv, StringValPtr arg_kind)
+	: file_analysis::Analyzer(file_mgr->GetComponentTag(util::to_upper(arg_kind->ToStdString())),
                               std::move(args), file),
-	  hash(hv), fed(false), kind(arg_kind)
+	  hash(hv), fed(false), kind(std::move(arg_kind))
 	{
 	hash->Init();
 	}
@@ -55,7 +59,7 @@ void Hash::Finalize()
 	if ( ! file_hash )
 		return;
 
-	event_mgr.Enqueue(file_hash, GetFile()->ToVal(), make_intrusive<StringVal>(kind), hash->Get());
+	event_mgr.Enqueue(file_hash, GetFile()->ToVal(), kind, hash->Get());
 	}
 
 	} // namespace zeek::file_analysis::detail

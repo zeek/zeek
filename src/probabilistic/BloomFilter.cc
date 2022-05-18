@@ -125,6 +125,31 @@ bool BasicBloomFilter::Merge(const BloomFilter* other)
 	return true;
 	}
 
+BasicBloomFilter* BasicBloomFilter::Intersect(const BloomFilter* other) const
+	{
+	if ( typeid(*this) != typeid(*other) )
+		return nullptr;
+
+	const BasicBloomFilter* o = static_cast<const BasicBloomFilter*>(other);
+
+	if ( ! hasher->Equals(o->hasher) )
+		{
+		reporter->Error("incompatible hashers in BasicBloomFilter intersect");
+		return nullptr;
+		}
+
+	else if ( bits->Size() != o->bits->Size() )
+		{
+		reporter->Error("different bitvector size in BasicBloomFilter intersect");
+		return nullptr;
+		}
+
+	auto copy = Clone();
+	(*copy->bits) &= *o->bits;
+
+	return copy;
+	}
+
 BasicBloomFilter* BasicBloomFilter::Clone() const
 	{
 	BasicBloomFilter* copy = new BasicBloomFilter();
@@ -161,6 +186,12 @@ void BasicBloomFilter::Add(const zeek::detail::HashKey* key)
 
 	for ( size_t i = 0; i < h.size(); ++i )
 		bits->Set(h[i] % bits->Size());
+	}
+
+bool BasicBloomFilter::Decrement(const zeek::detail::HashKey* key)
+	{
+	// operation not supported by basic bloom filter
+	return false;
 	}
 
 size_t BasicBloomFilter::Count(const zeek::detail::HashKey* key) const
@@ -243,6 +274,32 @@ bool CountingBloomFilter::Merge(const BloomFilter* other)
 	return true;
 	}
 
+BasicBloomFilter* CountingBloomFilter::Intersect(const BloomFilter* other) const
+	{
+	if ( typeid(*this) != typeid(*other) )
+		return nullptr;
+
+	const CountingBloomFilter* o = static_cast<const CountingBloomFilter*>(other);
+
+	if ( ! hasher->Equals(o->hasher) )
+		{
+		reporter->Error("incompatible hashers in CountingBloomFilter merge");
+		return nullptr;
+		}
+
+	else if ( cells->Size() != o->cells->Size() )
+		{
+		reporter->Error("different bitvector size in CountingBloomFilter merge");
+		return nullptr;
+		}
+
+	auto outbf = new BasicBloomFilter(hasher->Clone(), cells->Size());
+	*outbf->bits |= cells->ToBitVector();
+	*outbf->bits &= o->cells->ToBitVector();
+
+	return outbf;
+	}
+
 CountingBloomFilter* CountingBloomFilter::Clone() const
 	{
 	CountingBloomFilter* copy = new CountingBloomFilter();
@@ -265,6 +322,20 @@ void CountingBloomFilter::Add(const zeek::detail::HashKey* key)
 
 	for ( size_t i = 0; i < h.size(); ++i )
 		cells->Increment(h[i] % cells->Size());
+	}
+
+bool CountingBloomFilter::Decrement(const zeek::detail::HashKey* key)
+	{
+	// Only decrement if a member.
+	if ( Count(key) == 0 )
+		return false;
+
+	detail::Hasher::digest_vector h = hasher->Hash(key);
+
+	for ( size_t i = 0; i < h.size(); ++i )
+		cells->Decrement(h[i] % cells->Size());
+
+	return true;
 	}
 
 size_t CountingBloomFilter::Count(const zeek::detail::HashKey* key) const

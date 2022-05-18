@@ -328,12 +328,14 @@ public:
 	bool Typify(TypePtr type);
 
 	void Add(const Val* val);
+	bool Decrement(const Val* val);
 	size_t Count(const Val* val) const;
 	void Clear();
 	bool Empty() const;
 	std::string InternalState() const;
 
 	static BloomFilterValPtr Merge(const BloomFilterVal* x, const BloomFilterVal* y);
+	static BloomFilterValPtr Intersect(const BloomFilterVal* x, const BloomFilterVal* y);
 
 protected:
 	friend class Val;

@@ -22,10 +22,16 @@ namespace detail
 class ScriptProfileStats
 	{
 public:
-	ScriptProfileStats() { }
+	ScriptProfileStats() = default;
 	ScriptProfileStats(std::string arg_name) : name(std::move(arg_name)) { }
 
-	virtual ~ScriptProfileStats() { }
+	virtual ~ScriptProfileStats() = default;
+
+	ScriptProfileStats(ScriptProfileStats&&) = default;
+	ScriptProfileStats(const ScriptProfileStats&) = default;
+
+	ScriptProfileStats& operator=(ScriptProfileStats&&) = default;
+	ScriptProfileStats& operator=(const ScriptProfileStats&) = default;
 
 	const auto Name() const { return name; }
 

@@ -142,6 +142,24 @@ CounterVector& CounterVector::Merge(const CounterVector& other)
 	return *this;
 	}
 
+BitVector CounterVector::ToBitVector() const
+	{
+	auto newbits = BitVector(Size());
+
+	for ( size_t cell = 0; cell < Size(); ++cell )
+		{
+		size_t lsb = cell * width;
+		bool set = false;
+
+		for ( size_t i = 0; i < width; ++i )
+			set |= (*bits)[lsb + 1];
+
+		newbits[cell] = set;
+		}
+
+	return newbits;
+	}
+
 CounterVector& CounterVector::operator|=(const CounterVector& other)
 	{
 	return Merge(other);

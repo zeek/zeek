@@ -1748,6 +1748,20 @@ function zeek_version%(%): string
 	return zeek::make_intrusive<zeek::StringVal>(zeek::zeek_version());
 	%}
 
+%%{
+namespace zeek::run_state::detail {
+extern bool bare_mode;
+} // namespace zeek::run_state::detail
+%%}
+
+## Returns whether Zeek was started in bare mode.
+##
+## Returns: True if Zeek was started in bare mode, false otherwise.
+function bare_mode%(%): bool
+	%{
+	return zeek::val_mgr->Bool(zeek::run_state::detail::bare_mode);
+	%}
+
 ## Converts a record type name to a vector of strings, where each element is
 ## the name of a record field. Nested records are flattened.
 ##
@@ -3704,11 +3718,11 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 class LookupHostCallback : public zeek::detail::DNS_Mgr::LookupCallback {
 public:
 	LookupHostCallback(zeek::detail::trigger::Trigger* arg_trigger,
-                           const zeek::detail::CallExpr* arg_call, bool arg_lookup_name)
+                           const void* arg_assoc, bool arg_lookup_name)
 		{
 		Ref(arg_trigger);
 		trigger = arg_trigger;
-		call = arg_call;
+		assoc = arg_assoc;
 		lookup_name = arg_lookup_name;
 		}
 
@@ -3721,7 +3735,7 @@ public:
 	void Resolved(const std::string& name) override
 		{
 		zeek::Val* result = new zeek::StringVal(name);
-		trigger->Cache(call, result);
+		trigger->Cache(assoc, result);
 		Unref(result);
 		trigger->Release();
 		}
@@ -3729,7 +3743,7 @@ public:
 	void Resolved(zeek::TableValPtr addrs) override
 		{
 		// No Ref() for addrs.
-		trigger->Cache(call, addrs.get());
+		trigger->Cache(assoc, addrs.get());
 		trigger->Release();
 		}
 
@@ -3738,7 +3752,7 @@ public:
 		if ( lookup_name )
 			{
 			zeek::Val* result = new zeek::StringVal("<\?\?\?>");
-			trigger->Cache(call, result);
+			trigger->Cache(assoc, result);
 			Unref(result);
 			}
 
@@ -3747,7 +3761,7 @@ public:
 			auto* lv = new zeek::ListVal(zeek::TYPE_ADDR);
 			lv->Append(zeek::make_intrusive<zeek::AddrVal>("0.0.0.0"));
 			auto result = lv->ToSetVal();
-			trigger->Cache(call, result.get());
+			trigger->Cache(assoc, result.get());
 			Unref(lv);
 			}
 
@@ -3756,7 +3770,7 @@ public:
 
 private:
 	zeek::detail::trigger::Trigger* trigger;
-	const zeek::detail::CallExpr* call;
+	const void* assoc;
 	bool lookup_name;
 };
 %%}
@@ -3786,7 +3800,7 @@ function lookup_addr%(host: addr%) : string
 	trigger->Hold();
 
 	zeek::detail::dns_mgr->LookupAddr(host->AsAddr(),
-			new LookupHostCallback(trigger, frame->GetCall(), true));
+			new LookupHostCallback(trigger, frame->GetTriggerAssoc(), true));
 	return nullptr;
 	%}
 
@@ -3815,7 +3829,7 @@ function lookup_hostname_txt%(host: string%) : string
 	trigger->Hold();
 
 	zeek::detail::dns_mgr->Lookup(host->CheckString(), T_TXT,
-				 new LookupHostCallback(trigger, frame->GetCall(), true));
+				 new LookupHostCallback(trigger, frame->GetTriggerAssoc(), true));
 	return nullptr;
 	%}
 
@@ -3844,7 +3858,7 @@ function lookup_hostname%(host: string%) : addr_set
 	trigger->Hold();
 
 	zeek::detail::dns_mgr->LookupHost(host->CheckString(),
-			new LookupHostCallback(trigger, frame->GetCall(), false));
+			new LookupHostCallback(trigger, frame->GetTriggerAssoc(), false));
 	return nullptr;
 	%}
 

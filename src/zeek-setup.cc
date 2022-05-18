@@ -516,6 +516,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	auto options = zopts ? *zopts : parse_cmdline(argc, argv);
 
+	run_state::detail::bare_mode = options.bare_mode;
+
 	// Set up the global that facilitates access to analysis/optimization
 	// options from deep within some modules.
 	analysis_options = options.analysis_options;
@@ -823,8 +825,21 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		if ( supervisor_mgr )
 			supervisor_mgr->InitPostScript();
 
+		// After spinning up Broker, we have background threads running now. If
+		// we exit early, we need to shut down at least Broker to get a clean
+		// program exit. Otherwise, we may run into undefined behavior, e.g., if
+		// Broker is still accessing OpenSSL but OpenSSL has already cleaned up
+		// its state due to calling exit().
+		auto early_shutdown = []
+		{
+			broker_mgr->Terminate();
+			delete iosource_mgr;
+			delete telemetry_mgr;
+		};
+
 		if ( options.print_plugins )
 			{
+			early_shutdown();
 			bool success = show_plugins(options.print_plugins);
 			exit(success ? 0 : 1);
 			}
@@ -843,7 +858,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 		if ( reporter->Errors() > 0 )
 			{
-			delete dns_mgr;
+			early_shutdown();
 			exit(1);
 			}
 
@@ -880,7 +895,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			rule_matcher = new RuleMatcher(options.signature_re_level);
 			if ( ! rule_matcher->ReadFiles(all_signature_files) )
 				{
-				delete dns_mgr;
+				early_shutdown();
 				exit(1);
 				}
 
@@ -913,6 +928,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			if ( analysis_options.usage_issues > 0 )
 				analyze_scripts();
 
+			early_shutdown();
 			exit(reporter->Errors() != 0);
 			}
 
@@ -921,8 +937,11 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		analyze_scripts();
 
 		if ( analysis_options.report_recursive )
+			{
 			// This option is report-and-exit.
+			early_shutdown();
 			exit(0);
+			}
 
 		if ( dns_type != DNS_PRIME )
 			run_state::detail::init_run(options.interface, options.pcap_file,
@@ -951,7 +970,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 				reporter->FatalError("can't update DNS cache");
 
 			event_mgr.Drain();
-			delete dns_mgr;
+			early_shutdown();
 			exit(0);
 			}
 
@@ -968,6 +987,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			id->DescribeExtended(&desc);
 
 			fprintf(stdout, "%s\n", desc.Description());
+			early_shutdown();
 			exit(0);
 			}
 

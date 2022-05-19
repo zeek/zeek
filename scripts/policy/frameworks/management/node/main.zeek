@@ -12,7 +12,7 @@
 module Management::Node;
 
 # Tag our logs correctly
-redef Management::Log::role = Management::NODE;
+redef Management::role = Management::NODE;
 
 ## The type of dispatch callbacks. These implement a particular dispatch action,
 ## using the provided string vector as arguments, filling results into the

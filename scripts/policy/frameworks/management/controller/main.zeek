@@ -71,7 +71,7 @@ redef record Management::Request::Request += {
 };
 
 # Tag our logs correctly
-redef Management::Log::role = Management::CONTROLLER;
+redef Management::role = Management::CONTROLLER;
 
 global check_instances_ready: function();
 global add_instance: function(inst: Management::Instance);

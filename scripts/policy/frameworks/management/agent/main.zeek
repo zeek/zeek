@@ -40,7 +40,7 @@ redef record Management::Request::Request += {
 };
 
 # Tag our logs correctly
-redef Management::Log::role = Management::AGENT;
+redef Management::role = Management::AGENT;
 
 # The global configuration as passed to us by the controller
 global g_config: Management::Configuration;

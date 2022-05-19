@@ -5,9 +5,16 @@
 ##! anyway). For role-specific settings, see management/controller/config.zeek
 ##! and management/agent/config.zeek.
 
+@load ./types
+
 module Management;
 
 export {
+	## The role of this process in cluster management. Use this to
+	## differentiate code based on the type of node in which it ends up
+	## running.
+	const role = Management::NONE &redef;
+
 	## The fallback listen address if more specific adddresses, such as
 	## the controller's :zeek:see:`Management::Controller::listen_address`
 	## remains empty. Unless redefined, this uses Broker's own default

@@ -406,6 +406,12 @@ public:
 	// this statement.
 	ExprOptInfo* GetOptInfo() const { return opt_info; }
 
+	// Returns the number of expressions created since the last reset.
+	static int GetNumExprs() { return num_exprs; }
+
+	// Clears the number of expressions created.
+	static void ResetNumExprs() { num_exprs = 0; }
+
 	~Expr() override;
 
 protected:
@@ -441,6 +447,9 @@ protected:
 	// Information associated with the Expr for purposes of
 	// script optimization.
 	ExprOptInfo* opt_info;
+
+	// Number of expressions created thus far.
+	static int num_exprs;
 	};
 
 class NameExpr final : public Expr

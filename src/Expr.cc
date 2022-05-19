@@ -110,10 +110,13 @@ const char* expr_name(BroExprTag t)
 	return expr_names[int(t)];
 	}
 
+int Expr::num_exprs = 0;
+
 Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), paren(false), type(nullptr)
 	{
 	SetLocationInfo(&start_location, &end_location);
 	opt_info = new ExprOptInfo();
+	++num_exprs;
 	}
 
 Expr::~Expr()

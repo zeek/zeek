@@ -9,7 +9,7 @@
 
 # @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-2 zeek -b --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
 # This timeout needs to be large to accommodate ZAM compilation delays.
-# @TEST-EXEC: btest-bg-wait 90
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff worker-1/.stdout
 # @TEST-EXEC: btest-diff worker-2/.stdout
 

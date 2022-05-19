@@ -75,14 +75,14 @@ Result: SUCCESS
 ===============================
 test build_path_compressed()
 ===============================
-/home/bro/policy/somefile.zeek
-/usr/local/bro/share/bro/somefile.zeek
-/usr/local/bro/somefile.zeek
+/home/zeek/policy/somefile.zeek
+/usr/local/zeek/share/zeek/somefile.zeek
+/usr/local/zeek/somefile.zeek
 ===============================
 test build_path()
 ===============================
-/home/bro/policy/somefile.zeek
-/usr/local/bro/share/bro/somefile.zeek
+/home/zeek/policy/somefile.zeek
+/usr/local/zeek/share/zeek/somefile.zeek
 policy/somefile.zeek
-/usr/local/bro/share/bro/somefile.zeek
+/usr/local/zeek/share/zeek/somefile.zeek
 /policy/somefile.zeek

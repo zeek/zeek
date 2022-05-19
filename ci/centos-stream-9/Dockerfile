@@ -31,6 +31,10 @@ RUN dnf -y --nobest install \
     swig \
     which \
     zlib-devel \
+    tar \
   && dnf clean all && rm -rf /var/cache/dnf
+
+# Set the crypto policy to allow SHA-1 certificates - which we have in our tests
+RUN dnf -y --nobest install crypto-policies-scripts && update-crypto-policies --set LEGACY
 
 RUN pip3 install junit2html

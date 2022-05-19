@@ -4,6 +4,8 @@
 ##! supervisor.
 
 @load base/frameworks/broker
+@load base/utils/paths
+
 @load policy/frameworks/management
 @load policy/frameworks/management/node/api
 @load policy/frameworks/management/node/config
@@ -203,6 +205,11 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		# node, since we require it to be able to communicate with the
 		# node.
 		nc$scripts[|nc$scripts|] = "policy/frameworks/management/node";
+
+		if ( Management::Node::stdout_file != "" )
+			nc$stdout_file = Management::Node::stdout_file;
+		if ( Management::Node::stderr_file != "" )
+			nc$stderr_file = Management::Node::stderr_file;
 
 		# XXX could use options to enable per-node overrides for
 		# directory, stdout, stderr, others?

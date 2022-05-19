@@ -5,6 +5,8 @@
 ##!
 ##! If the current process is not the Zeek supervisor, this does nothing.
 
+@load base/utils/paths
+
 @load ./config
 
 event zeek_init()

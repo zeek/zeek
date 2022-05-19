@@ -4,6 +4,8 @@
 ##!
 ##! If the current process is not the Zeek supervisor, this does nothing.
 
+@load base/utils/paths
+
 @load ./config
 
 # The agent needs the supervisor to listen for node management requests.  We

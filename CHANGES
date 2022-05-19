@@ -1,3 +1,7 @@
+5.0.0-dev.451 | 2022-05-19 09:13:13 -0700
+
+  * Disable Spicy in Zeek Coverity builds (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.449 | 2022-05-18 11:11:58 -0700
 
   * Always generate helper scripts for Spicy. (Benjamin Bannier, Corelight)

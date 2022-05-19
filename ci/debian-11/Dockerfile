@@ -3,6 +3,7 @@ FROM debian:11
 ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
 RUN apt-get update && apt-get -y install \
+    ccache \
     git \
     cmake \
     make \

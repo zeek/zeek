@@ -29,6 +29,7 @@ RUN apt-get update && apt-get -y install \
     ruby \
     bc \
     lcov \
+    ccache \
   && rm -rf /var/lib/apt/lists/* \
   # Recent CMake.
   && mkdir -p "${CMAKE_DIR}" \

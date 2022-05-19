@@ -1,3 +1,23 @@
+5.0.0-dev.457 | 2022-05-19 10:51:45 -0700
+
+  * Rework .cirrus.yml a bit to commonize some parts (Tim Wojtulewicz)
+
+  * Enable 'greedy' mode for other CI builds (Tim Wojtulewicz, Corelight)
+
+  * Enable ccache for Cirrus builds (Tim Wojtulewicz, Corelight)
+
+  * Fix SSL tests on Centos Stream 9 (Johanna Amann, Corelight)
+
+    SHA1 signatures are only allowed in the legacy policy. I have no idea
+    where this is documented - I found it in a patch for the OpenSSL source
+    package.
+
+    Also adding tar as a specific dependency, since we have a test that
+    requires it, and at least for me it was not present in a minimal
+    installation.
+
+    Fixes #2115
+
 5.0.0-dev.451 | 2022-05-19 09:13:13 -0700
 
   * Disable Spicy in Zeek Coverity builds (Tim Wojtulewicz, Corelight)

@@ -25,6 +25,7 @@ RUN apt-get update && apt-get -y install \
     curl \
     wget \
     xz-utils \
+    ccache \
   && rm -rf /var/lib/apt/lists/* \
   # Install a recent CMake to build Spicy.
   && mkdir -p "${CMAKE_DIR}" \

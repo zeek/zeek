@@ -30,4 +30,4 @@ RUN apt-get update && apt-get -y install \
     xz-utils \
   && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install junit2html
+RUN pip3 install websockets junit2html

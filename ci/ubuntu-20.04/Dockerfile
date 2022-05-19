@@ -34,5 +34,5 @@ RUN apt-get update && apt-get -y install \
     lcov \
   && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install junit2html
+RUN pip3 install websockets junit2html
 RUN gem install coveralls-lcov

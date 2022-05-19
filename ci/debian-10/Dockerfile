@@ -35,6 +35,6 @@ RUN apt-get update && apt-get -y install \
   && mkdir -p "${CMAKE_DIR}" \
   && curl -sSL "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz" | tar xzf - -C "${CMAKE_DIR}" --strip-components 1 \
 
-  && pip3 install junit2html
+  && pip3 install websockets junit2html
 
 ENV PATH "${CMAKE_DIR}/bin:${PATH}"

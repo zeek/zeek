@@ -26,4 +26,4 @@ RUN apk add --no-cache \
   openssh-client \
   py3-pip
 
-RUN pip3 install junit2html
+RUN pip3 install websockets junit2html

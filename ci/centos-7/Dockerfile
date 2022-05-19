@@ -15,7 +15,7 @@ RUN sed -i 's/enabled=1/enabled=0/' /etc/yum/pluginconf.d/fastestmirror.conf
 RUN yum -y install \
     https://repo.ius.io/ius-release-el7.rpm \
     https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
-  && yum -y install git224 ccache \
+  && yum -y install git236 ccache \
   && yum clean all && rm -rf /var/cache/yum
 
 RUN yum -y install \
@@ -55,7 +55,7 @@ RUN curl -sSL "https://github.com/westes/flex/releases/download/v${FLEX_VERSION}
      && make -j`nproc` install) \
  && rm -rf /tmp/flex-${FLEX_VERSION}
 
-RUN pip3 install junit2html
+RUN pip3 install websockets junit2html
 
 RUN echo 'unset BASH_ENV PROMPT_COMMAND ENV' > /usr/bin/zeek-ci-env && \
     echo 'source /opt/rh/devtoolset-8/enable' >> /usr/bin/zeek-ci-env && \

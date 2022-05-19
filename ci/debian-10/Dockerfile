@@ -2,9 +2,11 @@ FROM debian:10
 
 ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
+ENV CMAKE_DIR "/opt/cmake"
+ENV CMAKE_VERSION "3.19.1"
+
 RUN apt-get update && apt-get -y install \
     git \
-    cmake \
     make \
     gcc \
     g++ \
@@ -23,6 +25,11 @@ RUN apt-get update && apt-get -y install \
     curl \
     wget \
     xz-utils \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* \
+  # Install a recent CMake to build Spicy.
+  && mkdir -p "${CMAKE_DIR}" \
+  && curl -sSL "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz" | tar xzf - -C "${CMAKE_DIR}" --strip-components 1 \
 
-RUN pip3 install junit2html
+  && pip3 install junit2html
+
+ENV PATH "${CMAKE_DIR}/bin:${PATH}"

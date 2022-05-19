@@ -53,7 +53,7 @@ event zeek_init()
 		print node_output_file, "supervised node zeek_init()";
 
 # This is only defined when we're loading init-default.zeek:
-@ifdef ( Notice::Info )
+@ifdef ( Conn::LOG )
 		print node_output_file, "default mode";
 @else
 		print node_output_file, "bare mode";

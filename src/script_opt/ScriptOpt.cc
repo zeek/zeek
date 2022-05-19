@@ -293,14 +293,14 @@ static void init_options()
 
 	if ( analysis_options.only_funcs.empty() )
 		{
-		auto zo = getenv("ZEEK_FUNC_ONLY");
+		auto zo = getenv("ZEEK_OPT_FUNCS");
 		if ( zo )
 			add_func_analysis_pattern(analysis_options, zo);
 		}
 
 	if ( analysis_options.only_files.empty() )
 		{
-		auto zo = getenv("ZEEK_FILE_ONLY");
+		auto zo = getenv("ZEEK_OPT_FILES");
 		if ( zo )
 			add_file_analysis_pattern(analysis_options, zo);
 		}
@@ -370,6 +370,8 @@ static void use_CPP()
 	if ( ! CPP_init_hook )
 		reporter->FatalError("no C++ functions available to use");
 
+	int num_used = 0;
+
 	for ( auto& f : funcs )
 		{
 		auto hash = f.Profile()->HashVal();
@@ -377,6 +379,8 @@ static void use_CPP()
 
 		if ( s != compiled_scripts.end() )
 			{
+			++num_used;
+
 			auto b = s->second.body;
 			b->SetHash(hash);
 
@@ -406,6 +410,9 @@ static void use_CPP()
 				(*finish)();
 			}
 		}
+
+	if ( num_used == 0 )
+		reporter->FatalError("no C++ functions found to use");
 
 	// Now that we've loaded all of the compiled scripts
 	// relevant for the AST, activate standalone ones.

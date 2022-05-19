@@ -8,6 +8,11 @@
 #include "zeek/threading/BasicThread.h"
 #include "zeek/threading/Queue.h"
 
+namespace zeek::detail
+	{
+class Location;
+	}
+
 namespace zeek::threading
 	{
 
@@ -275,6 +280,17 @@ protected:
 	void OnSignalStop() override;
 	void OnKill() override;
 
+	/**
+	 * Method for child classes to override to provide file location
+	 * information in log messages. This is primarily used by the input
+	 * framework's ReaderBackend classes to give more descriptive error
+	 * messages.
+	 *
+	 * @return A Location pointer containing the file location information,
+	 * or nullptr if nothing is available.
+	 */
+	virtual const zeek::detail::Location* GetLocationInfo() const { return nullptr; }
+
 private:
 	/**
 	 * Pops a message sent by the main thread from the main-to-chold
@@ -336,6 +352,8 @@ private:
 	 *  has finished processing. Called from child.
 	 */
 	void Finished();
+
+	std::string BuildMsgWithLocation(const char* msg);
 
 	Queue<BasicInputMessage*> queue_in;
 	Queue<BasicOutputMessage*> queue_out;

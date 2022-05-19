@@ -673,13 +673,17 @@
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Supervisor::__is_supervisor, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Supervisor::is_supervisor, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(Version::parse, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(__init_primary_bifs, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(__init_secondary_bifs, <null>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(bare_mode, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(current_time, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(filter_change_tracking, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (CLUSTER_NODE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS)) -> <no result>
-0.000000   MetaHookPost  CallFunction(global_ids, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(global_options, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(gsub, ..., ...) -> <no result>
+0.000000   MetaHookPost  CallFunction(lstrip, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(network_time, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2152/udp)) -> <no result>
@@ -690,12 +694,15 @@
 0.000000   MetaHookPost  CallFunction(reading_live_traffic, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_traces, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$)) -> <no result>
+0.000000   MetaHookPost  CallFunction(split_string1, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, )) -> <no result>
+0.000000   MetaHookPost  CallFunction(to_count, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(x509_set_certificate_cache, <frame>, ({})) -> <no result>
 0.000000   MetaHookPost  CallFunction(x509_set_certificate_cache_hit_callback, <frame>, (X509::x509_certificate_cache_replay{ <init> X509::i{ if (X509::f$info?$x509) return event x509_certificate(X509::f, X509::e$handle, X509::e$certificate)for ([X509::i] in X509::e$extensions_cache) { X509::ext = X509::e$extensions_cache[X509::i]if (X509::ext is X509::Extension) event x509_extension(X509::f, (X509::ext as X509::Extension))elseif (X509::ext is X509::BasicConstraints) event x509_ext_basic_constraints(X509::f, (X509::ext as X509::BasicConstraints))elseif (X509::ext is X509::SubjectAlternativeName) event x509_ext_subject_alternative_name(X509::f, (X509::ext as X509::SubjectAlternativeName))elseif (X509::ext is X509::SctInfo) { X509::s = (X509::ext as X509::SctInfo)event x509_ocsp_ext_signed_certificate_timestamp(X509::f, X509::s$version, X509::s$logid, X509::s$timestamp, X509::s$hash_alg, X509::s$sig_alg, X509::s$signature)}elseReporter::error(fmt(Encountered unknown extension while replaying certificate with fuid %s, X509::f$id))}}})) -> <no result>
 0.000000   MetaHookPost  CallFunction(zeek_args, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(zeek_init, <null>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(zeek_version, <null>, ()) -> <no result>
 0.000000   MetaHookPost  DrainEvents() -> <void>
 0.000000   MetaHookPost  LoadFile(0, ../main, <...>/main.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ../plugin, <...>/plugin.zeek) -> -1
@@ -808,6 +815,9 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_Spicy.consts.bif.zeek, <...>/Zeek_Spicy.consts.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_Spicy.events.bif.zeek, <...>/Zeek_Spicy.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_Spicy.functions.bif.zeek, <...>/Zeek_Spicy.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek) -> -1
@@ -924,8 +934,12 @@
 0.000000   MetaHookPost  LoadFile(0, <...>/__load__.zeek, <...>/__load__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, <...>/__preload__.zeek, <...>/__preload__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, <...>/hooks.zeek, <...>/hooks.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, Zeek<...>/bare.zeek, <...>/bare.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, Zeek<...>/default.zeek, <...>/default.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, Zeek_Spicy/__load__.zeek, <...>/__load__.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, Zeek_Spicy/__preload__.zeek, <...>/__preload__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base/bif, <...>/bif) -> -1
-0.000000   MetaHookPost  LoadFile(0, base/init-default, <...>/init-default.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base/init-default.zeek, <...>/init-default.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base/packet-protocols, <...>/packet-protocols) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek) -> -1
@@ -1185,6 +1199,9 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Spicy.consts.bif.zeek, <...>/Zeek_Spicy.consts.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Spicy.events.bif.zeek, <...>/Zeek_Spicy.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Spicy.functions.bif.zeek, <...>/Zeek_Spicy.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek) -> (-1, <no content>)
@@ -1301,8 +1318,12 @@
 0.000000   MetaHookPost  LoadFileExtended(0, <...>/__load__.zeek, <...>/__load__.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, <...>/__preload__.zeek, <...>/__preload__.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, <...>/hooks.zeek, <...>/hooks.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, Zeek<...>/bare.zeek, <...>/bare.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, Zeek<...>/default.zeek, <...>/default.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, Zeek_Spicy/__load__.zeek, <...>/__load__.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, Zeek_Spicy/__preload__.zeek, <...>/__preload__.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base/bif, <...>/bif) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, base/init-default, <...>/init-default.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base/init-default.zeek, <...>/init-default.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base/packet-protocols, <...>/packet-protocols) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek) -> (-1, <no content>)
@@ -2130,13 +2151,17 @@
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Supervisor::__is_supervisor, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Supervisor::is_supervisor, <frame>, ())
+0.000000   MetaHookPre   CallFunction(Version::parse, ..., ...)
 0.000000   MetaHookPre   CallFunction(__init_primary_bifs, <null>, ())
 0.000000   MetaHookPre   CallFunction(__init_secondary_bifs, <null>, ())
+0.000000   MetaHookPre   CallFunction(bare_mode, <null>, ())
 0.000000   MetaHookPre   CallFunction(current_time, <frame>, ())
 0.000000   MetaHookPre   CallFunction(filter_change_tracking, <null>, ())
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (CLUSTER_NODE))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS))
-0.000000   MetaHookPre   CallFunction(global_ids, <frame>, ())
+0.000000   MetaHookPre   CallFunction(global_options, <frame>, ())
+0.000000   MetaHookPre   CallFunction(gsub, ..., ...)
+0.000000   MetaHookPre   CallFunction(lstrip, ..., ...)
 0.000000   MetaHookPre   CallFunction(network_time, <frame>, ())
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2123/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2152/udp))
@@ -2147,12 +2172,15 @@
 0.000000   MetaHookPre   CallFunction(reading_live_traffic, <frame>, ())
 0.000000   MetaHookPre   CallFunction(reading_traces, <frame>, ())
 0.000000   MetaHookPre   CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$))
+0.000000   MetaHookPre   CallFunction(split_string1, ..., ...)
 0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F))
 0.000000   MetaHookPre   CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, ))
+0.000000   MetaHookPre   CallFunction(to_count, ..., ...)
 0.000000   MetaHookPre   CallFunction(x509_set_certificate_cache, <frame>, ({}))
 0.000000   MetaHookPre   CallFunction(x509_set_certificate_cache_hit_callback, <frame>, (X509::x509_certificate_cache_replay{ <init> X509::i{ if (X509::f$info?$x509) return event x509_certificate(X509::f, X509::e$handle, X509::e$certificate)for ([X509::i] in X509::e$extensions_cache) { X509::ext = X509::e$extensions_cache[X509::i]if (X509::ext is X509::Extension) event x509_extension(X509::f, (X509::ext as X509::Extension))elseif (X509::ext is X509::BasicConstraints) event x509_ext_basic_constraints(X509::f, (X509::ext as X509::BasicConstraints))elseif (X509::ext is X509::SubjectAlternativeName) event x509_ext_subject_alternative_name(X509::f, (X509::ext as X509::SubjectAlternativeName))elseif (X509::ext is X509::SctInfo) { X509::s = (X509::ext as X509::SctInfo)event x509_ocsp_ext_signed_certificate_timestamp(X509::f, X509::s$version, X509::s$logid, X509::s$timestamp, X509::s$hash_alg, X509::s$sig_alg, X509::s$signature)}elseReporter::error(fmt(Encountered unknown extension while replaying certificate with fuid %s, X509::f$id))}}}))
 0.000000   MetaHookPre   CallFunction(zeek_args, <frame>, ())
 0.000000   MetaHookPre   CallFunction(zeek_init, <null>, ())
+0.000000   MetaHookPre   CallFunction(zeek_version, <null>, ())
 0.000000   MetaHookPre   DrainEvents()
 0.000000   MetaHookPre   LoadFile(0, ../main, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFile(0, ../plugin, <...>/plugin.zeek)
@@ -2265,6 +2293,9 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_Spicy.consts.bif.zeek, <...>/Zeek_Spicy.consts.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_Spicy.events.bif.zeek, <...>/Zeek_Spicy.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_Spicy.functions.bif.zeek, <...>/Zeek_Spicy.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek)
@@ -2381,8 +2412,12 @@
 0.000000   MetaHookPre   LoadFile(0, <...>/__load__.zeek, <...>/__load__.zeek)
 0.000000   MetaHookPre   LoadFile(0, <...>/__preload__.zeek, <...>/__preload__.zeek)
 0.000000   MetaHookPre   LoadFile(0, <...>/hooks.zeek, <...>/hooks.zeek)
+0.000000   MetaHookPre   LoadFile(0, Zeek<...>/bare.zeek, <...>/bare.zeek)
+0.000000   MetaHookPre   LoadFile(0, Zeek<...>/default.zeek, <...>/default.zeek)
+0.000000   MetaHookPre   LoadFile(0, Zeek_Spicy/__load__.zeek, <...>/__load__.zeek)
+0.000000   MetaHookPre   LoadFile(0, Zeek_Spicy/__preload__.zeek, <...>/__preload__.zeek)
 0.000000   MetaHookPre   LoadFile(0, base/bif, <...>/bif)
-0.000000   MetaHookPre   LoadFile(0, base/init-default, <...>/init-default.zeek)
+0.000000   MetaHookPre   LoadFile(0, base/init-default.zeek, <...>/init-default.zeek)
 0.000000   MetaHookPre   LoadFile(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek)
 0.000000   MetaHookPre   LoadFile(0, base/packet-protocols, <...>/packet-protocols)
 0.000000   MetaHookPre   LoadFile(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek)
@@ -2642,6 +2677,9 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Spicy.consts.bif.zeek, <...>/Zeek_Spicy.consts.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Spicy.events.bif.zeek, <...>/Zeek_Spicy.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Spicy.functions.bif.zeek, <...>/Zeek_Spicy.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek)
@@ -2758,8 +2796,12 @@
 0.000000   MetaHookPre   LoadFileExtended(0, <...>/__load__.zeek, <...>/__load__.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, <...>/__preload__.zeek, <...>/__preload__.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, <...>/hooks.zeek, <...>/hooks.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, Zeek<...>/bare.zeek, <...>/bare.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, Zeek<...>/default.zeek, <...>/default.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, Zeek_Spicy/__load__.zeek, <...>/__load__.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, Zeek_Spicy/__preload__.zeek, <...>/__preload__.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base/bif, <...>/bif)
-0.000000   MetaHookPre   LoadFileExtended(0, base/init-default, <...>/init-default.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base/init-default.zeek, <...>/init-default.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base/packet-protocols, <...>/packet-protocols)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek)
@@ -3586,13 +3628,17 @@
 0.000000 | HookCallFunction SumStats::register_observe_plugins()
 0.000000 | HookCallFunction Supervisor::__is_supervisor()
 0.000000 | HookCallFunction Supervisor::is_supervisor()
+0.000000 | HookCallFunction Version::parse(...)
 0.000000 | HookCallFunction __init_primary_bifs()
 0.000000 | HookCallFunction __init_secondary_bifs()
+0.000000 | HookCallFunction bare_mode()
 0.000000 | HookCallFunction current_time()
 0.000000 | HookCallFunction filter_change_tracking()
 0.000000 | HookCallFunction getenv(CLUSTER_NODE)
 0.000000 | HookCallFunction getenv(ZEEK_DEFAULT_LISTEN_ADDRESS)
-0.000000 | HookCallFunction global_ids()
+0.000000 | HookCallFunction global_options()
+0.000000 | HookCallFunction gsub(...)
+0.000000 | HookCallFunction lstrip(...)
 0.000000 | HookCallFunction network_time()
 0.000000 | HookCallFunction port_to_count(2123/udp)
 0.000000 | HookCallFunction port_to_count(2152/udp)
@@ -3603,12 +3649,15 @@
 0.000000 | HookCallFunction reading_live_traffic()
 0.000000 | HookCallFunction reading_traces()
 0.000000 | HookCallFunction set_to_regex({}, (^\.?|\.)(~~)$)
+0.000000 | HookCallFunction split_string1(...)
 0.000000 | HookCallFunction string_to_pattern((^\.?|\.)()$, F)
 0.000000 | HookCallFunction sub((^\.?|\.)(~~)$, <...>/, )
+0.000000 | HookCallFunction to_count(...)
 0.000000 | HookCallFunction x509_set_certificate_cache({})
 0.000000 | HookCallFunction x509_set_certificate_cache_hit_callback(X509::x509_certificate_cache_replay{ <init> X509::i{ if (X509::f$info?$x509) return event x509_certificate(X509::f, X509::e$handle, X509::e$certificate)for ([X509::i] in X509::e$extensions_cache) { X509::ext = X509::e$extensions_cache[X509::i]if (X509::ext is X509::Extension) event x509_extension(X509::f, (X509::ext as X509::Extension))elseif (X509::ext is X509::BasicConstraints) event x509_ext_basic_constraints(X509::f, (X509::ext as X509::BasicConstraints))elseif (X509::ext is X509::SubjectAlternativeName) event x509_ext_subject_alternative_name(X509::f, (X509::ext as X509::SubjectAlternativeName))elseif (X509::ext is X509::SctInfo) { X509::s = (X509::ext as X509::SctInfo)event x509_ocsp_ext_signed_certificate_timestamp(X509::f, X509::s$version, X509::s$logid, X509::s$timestamp, X509::s$hash_alg, X509::s$sig_alg, X509::s$signature)}elseReporter::error(fmt(Encountered unknown extension while replaying certificate with fuid %s, X509::f$id))}}})
 0.000000 | HookCallFunction zeek_args()
 0.000000 | HookCallFunction zeek_init()
+0.000000 | HookCallFunction zeek_version()
 0.000000 | HookDrainEvents
 0.000000 | HookLoadFile  ../main <...>/main.zeek
 0.000000 | HookLoadFile  ../plugin <...>/plugin.zeek
@@ -3721,6 +3770,9 @@
 0.000000 | HookLoadFile  ./Zeek_SSL.events.bif.zeek <...>/Zeek_SSL.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SSL.functions.bif.zeek <...>/Zeek_SSL.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SSL.types.bif.zeek <...>/Zeek_SSL.types.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_Spicy.consts.bif.zeek <...>/Zeek_Spicy.consts.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_Spicy.events.bif.zeek <...>/Zeek_Spicy.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_Spicy.functions.bif.zeek <...>/Zeek_Spicy.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Syslog.events.bif.zeek <...>/Zeek_Syslog.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_TCP.events.bif.zeek <...>/Zeek_TCP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_TCP.functions.bif.zeek <...>/Zeek_TCP.functions.bif.zeek
@@ -3849,8 +3901,12 @@
 0.000000 | HookLoadFile  <...>/__load__.zeek <...>/__load__.zeek
 0.000000 | HookLoadFile  <...>/__preload__.zeek <...>/__preload__.zeek
 0.000000 | HookLoadFile  <...>/hooks.zeek <...>/hooks.zeek
+0.000000 | HookLoadFile  Zeek<...>/bare.zeek <...>/bare.zeek
+0.000000 | HookLoadFile  Zeek<...>/default.zeek <...>/default.zeek
+0.000000 | HookLoadFile  Zeek_Spicy/__load__.zeek <...>/__load__.zeek
+0.000000 | HookLoadFile  Zeek_Spicy/__preload__.zeek <...>/__preload__.zeek
 0.000000 | HookLoadFile  base/bif <...>/bif
-0.000000 | HookLoadFile  base/init-default <...>/init-default.zeek
+0.000000 | HookLoadFile  base/init-default.zeek <...>/init-default.zeek
 0.000000 | HookLoadFile  base/init-frameworks-and-bifs.zeek <...>/init-frameworks-and-bifs.zeek
 0.000000 | HookLoadFile  base/packet-protocols <...>/packet-protocols
 0.000000 | HookLoadFile  base<...>/CPP-load.bif <...>/CPP-load.bif.zeek
@@ -4098,6 +4154,9 @@
 0.000000 | HookLoadFileExtended ./Zeek_SSL.events.bif.zeek <...>/Zeek_SSL.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SSL.functions.bif.zeek <...>/Zeek_SSL.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SSL.types.bif.zeek <...>/Zeek_SSL.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Spicy.consts.bif.zeek <...>/Zeek_Spicy.consts.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Spicy.events.bif.zeek <...>/Zeek_Spicy.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Spicy.functions.bif.zeek <...>/Zeek_Spicy.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_Syslog.events.bif.zeek <...>/Zeek_Syslog.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_TCP.events.bif.zeek <...>/Zeek_TCP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_TCP.functions.bif.zeek <...>/Zeek_TCP.functions.bif.zeek
@@ -4226,8 +4285,12 @@
 0.000000 | HookLoadFileExtended <...>/__load__.zeek <...>/__load__.zeek
 0.000000 | HookLoadFileExtended <...>/__preload__.zeek <...>/__preload__.zeek
 0.000000 | HookLoadFileExtended <...>/hooks.zeek <...>/hooks.zeek
+0.000000 | HookLoadFileExtended Zeek<...>/bare.zeek <...>/bare.zeek
+0.000000 | HookLoadFileExtended Zeek<...>/default.zeek <...>/default.zeek
+0.000000 | HookLoadFileExtended Zeek_Spicy/__load__.zeek <...>/__load__.zeek
+0.000000 | HookLoadFileExtended Zeek_Spicy/__preload__.zeek <...>/__preload__.zeek
 0.000000 | HookLoadFileExtended base/bif <...>/bif
-0.000000 | HookLoadFileExtended base/init-default <...>/init-default.zeek
+0.000000 | HookLoadFileExtended base/init-default.zeek <...>/init-default.zeek
 0.000000 | HookLoadFileExtended base/init-frameworks-and-bifs.zeek <...>/init-frameworks-and-bifs.zeek
 0.000000 | HookLoadFileExtended base/packet-protocols <...>/packet-protocols
 0.000000 | HookLoadFileExtended base<...>/CPP-load.bif <...>/CPP-load.bif.zeek

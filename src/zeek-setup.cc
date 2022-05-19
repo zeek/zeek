@@ -193,9 +193,9 @@ zeek::detail::trigger::Manager* zeek::detail::trigger_mgr = nullptr;
 std::vector<std::string> zeek::detail::zeek_script_prefixes;
 zeek::detail::Stmt* zeek::detail::stmts = nullptr;
 zeek::EventRegistry* zeek::event_registry = nullptr;
-zeek::detail::ProfileLogger* zeek::detail::profiling_logger = nullptr;
-zeek::detail::ProfileLogger* zeek::detail::segment_logger = nullptr;
-zeek::detail::SampleLogger* zeek::detail::sample_logger = nullptr;
+std::shared_ptr<zeek::detail::ProfileLogger> zeek::detail::profiling_logger;
+std::shared_ptr<zeek::detail::ProfileLogger> zeek::detail::segment_logger;
+std::shared_ptr<zeek::detail::SampleLogger> zeek::detail::sample_logger;
 
 zeek::detail::FragmentManager* zeek::detail::fragment_mgr = nullptr;
 
@@ -379,8 +379,6 @@ static void terminate_zeek()
 	// the termination process.
 	file_mgr->Terminate();
 
-	script_coverage_mgr.WriteStats();
-
 	if ( zeek_done )
 		event_mgr.Enqueue(zeek_done, Args{});
 
@@ -404,8 +402,6 @@ static void terminate_zeek()
 		// allocation code when killing Zeek.  Disabling this for now.
 		if ( ! (signal_val == SIGTERM || signal_val == SIGINT) )
 			profiling_logger->Log();
-
-		delete profiling_logger;
 		}
 
 	event_mgr.Drain();
@@ -421,6 +417,8 @@ static void terminate_zeek()
 	plugin_mgr->FinishPlugins();
 
 	finish_script_execution();
+
+	script_coverage_mgr.WriteStats();
 
 	delete zeekygen_mgr;
 	delete packet_mgr;
@@ -518,6 +516,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		zeek_argv[i] = util::copy_string(argv[i]);
 
 	auto options = zopts ? *zopts : parse_cmdline(argc, argv);
+
+	run_state::detail::bare_mode = options.bare_mode;
 
 	// Set up the global that facilitates access to analysis/optimization
 	// options from deep within some modules.
@@ -827,8 +827,21 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		if ( supervisor_mgr )
 			supervisor_mgr->InitPostScript();
 
+		// After spinning up Broker, we have background threads running now. If
+		// we exit early, we need to shut down at least Broker to get a clean
+		// program exit. Otherwise, we may run into undefined behavior, e.g., if
+		// Broker is still accessing OpenSSL but OpenSSL has already cleaned up
+		// its state due to calling exit().
+		auto early_shutdown = []
+		{
+			broker_mgr->Terminate();
+			delete iosource_mgr;
+			delete telemetry_mgr;
+		};
+
 		if ( options.print_plugins )
 			{
+			early_shutdown();
 			bool success = show_plugins(options.print_plugins);
 			exit(success ? 0 : 1);
 			}
@@ -847,7 +860,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 		if ( reporter->Errors() > 0 )
 			{
-			delete dns_mgr;
+			early_shutdown();
 			exit(1);
 			}
 
@@ -884,7 +897,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			rule_matcher = new RuleMatcher(options.signature_re_level);
 			if ( ! rule_matcher->ReadFiles(all_signature_files) )
 				{
-				delete dns_mgr;
+				early_shutdown();
 				exit(1);
 				}
 
@@ -917,6 +930,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			if ( analysis_options.usage_issues > 0 )
 				analyze_scripts();
 
+			early_shutdown();
 			exit(reporter->Errors() != 0);
 			}
 
@@ -925,8 +939,11 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		analyze_scripts();
 
 		if ( analysis_options.report_recursive )
+			{
 			// This option is report-and-exit.
+			early_shutdown();
 			exit(0);
+			}
 
 		if ( dns_type != DNS_PRIME )
 			run_state::detail::init_run(options.interface, options.pcap_file,
@@ -955,7 +972,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 				reporter->FatalError("can't update DNS cache");
 
 			event_mgr.Drain();
-			delete dns_mgr;
+			early_shutdown();
 			exit(0);
 			}
 
@@ -972,13 +989,15 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			id->DescribeExtended(&desc);
 
 			fprintf(stdout, "%s\n", desc.Description());
+			early_shutdown();
 			exit(0);
 			}
 
 		if ( profiling_interval > 0 )
 			{
 			const auto& profiling_file = id::find_val("profiling_file");
-			profiling_logger = new ProfileLogger(profiling_file->AsFile(), profiling_interval);
+			profiling_logger = std::make_shared<ProfileLogger>(profiling_file->AsFile(),
+			                                                   profiling_interval);
 
 			if ( segment_profiling )
 				segment_logger = profiling_logger;

@@ -48,16 +48,13 @@ public:
 	// statements are executed immediately and the object is deleted
 	// right away.
 
-	// These first two constructors are for the deprecated deep-copy
-	// semantics.
-	Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, ExprPtr timeout, Frame* f,
-	        bool is_return, const Location* loc);
+	// These first constructor is for the deprecated deep-copy semantics.
 	Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* f,
 	        bool is_return, const Location* loc);
 
 	// Used for capture-list semantics.
-	Trigger(WhenInfo* wi, const IDSet& globals, std::vector<ValPtr> local_aggrs, Frame* f,
-	        const Location* loc);
+	Trigger(WhenInfo* wi, double timeout, const IDSet& globals, std::vector<ValPtr> local_aggrs,
+	        Frame* f, const Location* loc);
 
 	~Trigger() override;
 
@@ -86,9 +83,24 @@ public:
 
 	// Cache for return values of delayed function calls.  Returns whether
 	// the trigger is queued for later evaluation -- it may not be queued
-	// if the Val is null or it's disabled.
-	bool Cache(const CallExpr* expr, Val* val);
-	Val* Lookup(const CallExpr*);
+	// if the Val is null or it's disabled.  The cache is managed using
+	// void*'s so that the value can be associated with either a CallExpr
+	// (for interpreted execution) or a C++ function (for compiled-to-C++).
+	bool Cache(const void* obj, Val* val);
+	Val* Lookup(const void* obj);
+
+	[[deprecated(
+		"Remove in v5.1. Use Frame::GetTriggerAssoc() / const void* interface instead.")]] bool
+	Cache(const CallExpr* call, Val* val)
+		{
+		return Cache((const void*)call, val);
+		}
+	[[deprecated(
+		"Remove in v5.1. Use Frame::GetTriggerAssoc() / const void* interface instead.")]] Val*
+	Lookup(const CallExpr* call)
+		{
+		return Lookup((const void*)call);
+		}
 
 	// Disable this trigger completely. Needed because Unref'ing the trigger
 	// may not immediately delete it as other references may still exist.
@@ -107,12 +119,11 @@ public:
 	// for any further progress to be made, so just Unref ourselves.
 	void Terminate() override;
 
-	const char* Name() const;
+	const char* Name() const { return name.c_str(); }
+	void SetName(const char* new_name) { name = new_name; }
 
 private:
 	friend class TriggerTimer;
-
-	void GetTimeout(const ExprPtr& timeout_expr, Frame* f);
 
 	void Init(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, Frame* frame, bool is_return,
 	          const Location* location);
@@ -130,7 +141,8 @@ private:
 	double timeout_value;
 	Frame* frame;
 	bool is_return;
-	const Location* location;
+
+	std::string name;
 
 	TriggerTimer* timer;
 	Trigger* attached;
@@ -153,7 +165,7 @@ private:
 
 	std::vector<std::pair<Obj*, notifier::detail::Modifiable*>> objs;
 
-	using ValCache = std::map<const CallExpr*, Val*>;
+	using ValCache = std::map<const void*, Val*>;
 	ValCache cache;
 	};
 

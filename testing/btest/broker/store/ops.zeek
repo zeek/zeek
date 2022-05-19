@@ -12,7 +12,7 @@ global step: count = 0;
 
 function print_index(k: any)
 	{
-	when ( local r = Broker::get(h, k) )
+	when [k] ( local r = Broker::get(h, k) )
 		{
 		step += 1;
 		print fmt("[%d]", step), k, r$status, r$result;
@@ -26,7 +26,7 @@ function print_index(k: any)
 
 function print_exists(k: any)
 	{
-	when ( local r = Broker::exists(h, k) )
+	when [k] ( local r = Broker::exists(h, k) )
 		{
 		step += 1;
 		print fmt("[%d]", step), k, r;
@@ -40,7 +40,7 @@ function print_exists(k: any)
 
 function print_index_from_value(k: any, i: any)
 	{
-	when ( local r = Broker::get_index_from_value(h, k, i) )
+	when [k, i] ( local r = Broker::get_index_from_value(h, k, i) )
 		{
 		step += 1;
 		print fmt("[%d]", step), k, r$status, r$result;

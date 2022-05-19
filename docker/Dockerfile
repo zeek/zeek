@@ -12,6 +12,8 @@ RUN apt-get -q update \
      flex \
      g++ \
      gcc \
+     libfl2 \
+     libfl-dev \
      libmaxminddb-dev \
      libpcap-dev \
      libssl-dev \

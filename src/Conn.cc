@@ -273,8 +273,12 @@ const RecordValPtr& Connection::GetVal()
 	conn_val->AssignTime(3, start_time); // ###
 	conn_val->AssignInterval(4, last_time - start_time);
 
-	if ( history.size() )
-		conn_val->Assign(6, history);
+	if ( ! history.empty() )
+		{
+		auto v = conn_val->GetFieldAs<StringVal>(6);
+		if ( *v != history )
+			conn_val->Assign(6, history);
+		}
 
 	conn_val->SetOrigin(this);
 

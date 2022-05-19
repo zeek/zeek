@@ -33,6 +33,14 @@ extern ValPtr index_table__CPP(const TableValPtr& t, std::vector<ValPtr> indices
 extern ValPtr index_vec__CPP(const VectorValPtr& vec, int index);
 extern ValPtr index_string__CPP(const StringValPtr& svp, std::vector<ValPtr> indices);
 
+// The same, but for indexing happening inside a "when" clause.
+extern ValPtr when_index_table__CPP(const TableValPtr& t, std::vector<ValPtr> indices);
+extern ValPtr when_index_vec__CPP(const VectorValPtr& vec, int index);
+
+// For vector slices, we use the existing index_slice(), but we need a
+// custom one for those occurring inside a "when" clause.
+extern ValPtr when_index_slice__CPP(VectorVal* vec, const ListVal* lv);
+
 // Calls out to the given script or BiF function.  A separate function because
 // of the need to (1) construct the "args" vector using {} initializers,
 // but (2) needing to have the address of that vector.
@@ -40,6 +48,18 @@ inline ValPtr invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame)
 	{
 	return f->Invoke(&args, frame);
 	}
+
+// The same, but raises an interpreter exception if the function does
+// not return a value.  Used for calls inside "when" conditions.  The
+// last argument is the address of the calling function; we just need
+// it to be distinct to the call, so we can associate a Trigger cache
+// with it.
+extern ValPtr when_invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame, void* caller_addr);
+
+// Thrown when a call inside a "when" delays.
+class DelayedCallException : public InterpreterException
+	{
+	};
 
 // Assigns the given value to the given global.  A separate function because
 // we also need to return the value, for use in assignment cascades.

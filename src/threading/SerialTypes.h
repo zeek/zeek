@@ -253,9 +253,16 @@ struct Value
 	static Val* ValueToVal(const std::string& source, const threading::Value* val,
 	                       bool& have_error);
 
+	void SetFileLineNumber(int line) { line_number = line; }
+	int GetFileLineNumber() const { return line_number; }
+
 private:
 	friend class IPAddr;
 	Value(const Value& other) = delete;
+
+	// For values read by the input framework, this can represent the line number
+	// containing this value. Used by the Ascii reader primarily.
+	int line_number = -1;
 	};
 
 	} // namespace zeek::threading

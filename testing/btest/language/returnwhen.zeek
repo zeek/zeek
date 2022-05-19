@@ -43,7 +43,7 @@ event do_another()
 	if ( ! done )
 		schedule 1sec { set_flag() };
 
-	when ( local result = async_func("from do_another()") )
+	when [local_dummy, anon] ( local result = async_func("from do_another()") )
 		{
 		print "async_func() return result in do_another()", result;
 		print local_dummy("from do_another() when block");
@@ -66,7 +66,7 @@ event zeek_init()
 
 	schedule 1sec { set_flag() };
 
-	when ( local result = async_func("from zeek_init()") )
+	when [local_dummy, anon] ( local result = async_func("from zeek_init()") )
 		{
 		print "async_func() return result in zeek_init()", result;
 		print local_dummy("from zeek_init() when block");

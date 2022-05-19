@@ -1,8 +1,7 @@
-# The ASAN CI job complains (correctly!) about this script leaking memory
-# due to the script-level cycles it includes as stress-tests.
-# @TEST-REQUIRES: test "${ZEEK_CI_ASAN_SKIP_TEST}" != "1"
-#
-# @TEST-EXEC: zeek -b %INPUT >out
+# The ASAN leak detection complains (correctly!) about this script
+# leaking memory due to the script-level cycles it includes as
+# stress-tests, so just disable leak checking.
+# @TEST-EXEC: ASAN_OPTIONS="$ASAN_OPTIONS,detect_leaks=0" zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 type r1: record {

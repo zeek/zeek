@@ -47,13 +47,13 @@ public:
 	 * separators.
 	 */
 	Ascii(MsgThread* t, const SeparatorInfo& info);
-	virtual ~Ascii();
+	~Ascii() override;
 
-	virtual bool Describe(ODesc* desc, Value* val, const std::string& name = "") const;
+	virtual bool Describe(ODesc* desc, Value* val, const std::string& name = "") const override;
 	virtual bool Describe(ODesc* desc, int num_fields, const Field* const* fields,
-	                      Value** vals) const;
+	                      Value** vals) const override;
 	virtual Value* ParseValue(const std::string& s, const std::string& name, TypeTag type,
-	                          TypeTag subtype = TYPE_ERROR) const;
+	                          TypeTag subtype = TYPE_ERROR) const override;
 
 private:
 	bool CheckNumberError(const char* start, const char* end, bool nonneg_only = false) const;

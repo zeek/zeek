@@ -1,4 +1,9 @@
 ##! Keep the top-k (i.e., most frequently occurring) observations.
+##!
+##! This plugin uses a probabilistic algorithm to count the top-k elements.
+##! The algorithm (called Space-Saving) is described in the paper Efficient
+##! Computation of Frequent and Top-k Elements in Data Streams", by
+##! Metwally et al. (2005).
 
 @load base/frameworks/sumstats
 

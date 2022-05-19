@@ -1,3 +1,208 @@
+5.0.0-dev.449 | 2022-05-18 11:11:58 -0700
+
+  * Always generate helper scripts for Spicy. (Benjamin Bannier, Corelight)
+
+    We previously only generated these files if configuring a build which
+    included Spicy. This meant that e.g., `zeek-path-dev.*` scripts would
+    emit errors for non-existing paths if Spicy was not included.
+
+    We now always generate the helper scripts so we can reference them
+    regardless of build configuration. If Spicy is not included the files
+    will still be sourced, but have no actual effect.
+
+5.0.0-dev.447 | 2022-05-18 11:07:30 -0700
+
+  * Partially revert OpenSSL hashing changes (Johanna Amann, Corelight)
+
+    This commit partially reverts the changes that we made in
+    6217851d6db3859b2add34773be5a6b3ecba49f0. It turns out that reverting to
+    the legacy OpenSSL API means that Zeek can no longer be run in FIPS mode
+    for old (but still used) versions of OpenSSL.
+
+    This commit thus uses a bunch of #ifdefs to support both implementations
+    simultaneously.
+
+5.0.0-dev.445 | 2022-05-18 11:07:02 -0700
+
+  * GH-1672: Keep a reference to a table being expired, just in case (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.442 | 2022-05-17 09:15:27 -0700
+
+  * Remove unnecessary uses of util::fmt() (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.440 | 2022-05-17 08:50:15 -0700
+
+  * Add NEWS item for new requirements due to default-enabled Spicy support. (Benjamin Bannier, Corelight)
+
+  * Include headers in binary dir before other headers. (Benjamin Bannier, Corelight)
+
+    If e.g., optional dependencies are installed in the same prefix as a
+    previous Zeek installation, the build would have previously found
+    `zeek-config.h` from the external prefix instead of from the current
+    build.
+
+    With this patch we now include the current binary dir before any
+    previously configured include directories (here in particular: optional
+    dependencies). With that the correct `zeek-config.h` is found.
+
+  * Increase memory in CI. (Benjamin Bannier, Corelight)
+
+    Spicy requires substantial amounts of RAM to compile. In this patch we
+    bump the amount of RAM available in CI so a build including Spicy can be
+    performed.
+
+  * Add tests for bundled Spicy infrastructure. (Benjamin Bannier, Corelight)
+
+  * Include spicy in build. (Benjamin Bannier, Corelight)
+
+  * Add `bare_mode` bif. (Benjamin Bannier, Corelight)
+
+  * Change test so included plugins can load notice framework. (Benjamin Bannier, Corelight)
+
+  * Do not log function arguments in test. (Benjamin Bannier, Corelight)
+
+    This was excercising hooks to validate that they were called. For that
+    it uses pretty verbose logging. Since version numbers are not stable and
+    hard to canonify this script already unloads the version module (there
+    is e.g., code in `base/misc/version` which splits the version strings
+    and works on single components which might appear like pretty ordinary
+    floating point numbers in the log).
+
+    This test however worked under the assumption that nothing in bare mode
+    loads `base/misc/version` which is hard to guarantee, especially
+    considering that plugins can be embedded and might load that module
+    themself.
+
+    With this patch we now make the logging slightly less verbose so that
+    function call arguments are not logged anymore.
+
+5.0.0-dev.431 | 2022-05-16 17:00:24 -0700
+
+  * Store location during Ascii input parsing for use in error messages (Tim Wojtulewicz, Corelight)
+
+  * Include file information in input reader error messages (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.427 | 2022-05-16 16:59:31 -0700
+
+  * NEWS items for script profiling, "footprint" BiFs, and Trigger method deprecations (Vern Paxson, Corelight)
+
+  * make deprecation advice a bit more helpful (Vern Paxson, Corelight)
+
+  * add deprecation for Trigger Cache/Lookup interfaces (Vern Paxson, Corelight)
+
+  * helper scripts for -O C++ maintenance (Vern Paxson, Corelight)
+
+  * "-O use-C++" now fails if no C++ bodies wound up being applicable (Vern Paxson, Corelight)
+
+  * update environemnt variable names to match command-line arguments (Vern Paxson, Corelight)
+
+  * final changes for -O C++ feature completeness, mainly "when" statement support (Vern Paxson, Corelight)
+
+  * Change "when" statements that don't require closures to use new implementation. (Vern Paxson, Corelight)
+    Provide hooks for script optimization access to "when" statements.
+    Regularize treatment of naming and timeouts for Triggers.
+
+  * switch cached Trigger values to be opaque-and-generic, rather than assuming CallExpr's (Vern Paxson, Corelight)
+
+  * tracking of when statements/expressions occur in a "when" context (Vern Paxson, Corelight)
+
+  * fix bug that sometimes associated the wrong location with global statements (Vern Paxson, Corelight)
+
+  * fix incomplete AST traversal of "when" statements (Vern Paxson, Corelight)
+
+  * add some missing "when" closures (Vern Paxson, Corelight)
+
+  * regularize test suite names to avoid custom/outdated suffices (Vern Paxson, Corelight)
+
+5.0.0-dev.410 | 2022-05-16 13:14:31 -0700
+
+  * Call pip using python -m flag during FreeBSD CI prep (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.408 | 2022-05-16 09:10:53 -0700
+
+  * Store hash analyzer kind StringVals for later reuse (Tim Wojtulewicz, Corelight)
+
+  * Add Component::GetCanonicalNameVal to avoid extra StringVal allocations (Tim Wojtulewicz, Corelight)
+
+  * Avoid type unnecessary type conversion in ComponentManager::GetComponentName (Tim Wojtulewicz, Corelight)
+
+  * Only set connection history if strings differ (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.403 | 2022-05-16 09:10:15 -0700
+
+  * Explicitly define copy and move operators/constructors for ScriptProfileStats (Tim Wojtulewicz, Corelight)
+
+    Fixes Coverity 1488768
+
+5.0.0-dev.401 | 2022-05-16 09:09:37 -0700
+
+  * Add --retry to curl invocations in update-traces (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.399 | 2022-05-16 09:09:05 -0700
+
+  * GH-2103: Disable leak detection for bifs.footprint in another way (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.396 | 2022-05-13 16:50:53 -0700
+
+  * Fix UB during early shutdown on OpenSSL state (Dominik Charousset, Corelight)
+
+5.0.0-dev.393 | 2022-05-13 16:48:56 -0700
+
+  * Correcly typify bloom filters in all cases during merge (Johanna Amann)
+
+    Before, there were edge-cases where the type was not transferred if one
+    of the involved bloom-filters was untypified.
+
+    Fixes GH-1938
+
+  * Add intersect operation for bloom filters (Johanna Amann)
+
+    Intersecting two bloom filters yields a bloom filter that returns true
+    when an element was contained in both bloom filters. The false positive
+    rate is potentially a bit higher than in the original bloom filters.
+
+    This operation also works for counting bloom filters, however the
+    counters are discarded and the bloomfilters are converted to basic bloom
+    filters. The reason is that there is no obvious meaning to the counters
+    when two bloom filters are intersected - besides the fact if an element
+    was inserted at all.
+
+  * Add bloomfilter_decrement bif (Johanna Amann)
+
+    This bif implements the decrement operation for counting bloom filters.
+
+    It also clarifies some of the documentation.
+
+5.0.0-dev.385 | 2022-05-12 11:03:25 +0100
+
+  * Include certificate information in SSL::Weak_Key notice (Johanna Amann, Corelight)
+
+5.0.0-dev.382 | 2022-05-11 12:56:13 -0700
+
+  * tidy up after generating profile (Vern Paxson, Corelight)
+
+  * fix for coverage reporting for functions that use "when" statements (Vern Paxson, Corelight)
+
+  * new global_options() BiF to speed up startup, plus a micro-preen (Vern Paxson, Corelight)
+
+  * hooks for new --profile-scripts option (Vern Paxson, Corelight)
+
+  * classes for managing script profiles (Vern Paxson, Corelight)
+
+  * address some holes in script coverage (Vern Paxson, Corelight)
+
+  * fix for script coverage missing on-exit activity (Vern Paxson, Corelight)
+
+  * memory management fixes for loggers (Vern Paxson, Corelight)
+
+  * make curr_CPU_time() broadly available rather than just isolated to ZAM (Vern Paxson, Corelight)
+
+  * Add exact name of the Top-k algorithm. (Johanna Amann)
+
+    I needed to figure out which exact algorithm we use for our
+    probabilistic top-k measurements. It turns out that we do not mention
+    this in our source tree at all so far.
+
 5.0.0-dev.368 | 2022-05-09 10:37:44 +0100
 
   * when printing a description of a type, use its name if available (Vern Paxson, Corelight)

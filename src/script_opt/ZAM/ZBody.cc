@@ -124,13 +124,6 @@ VEC_COERCE(UD, TYPE_COUNT, bro_uint_t, AsDouble(), double_to_count_would_overflo
            "double to unsigned")
 VEC_COERCE(UI, TYPE_COUNT, bro_int_t, AsInt(), int_to_count_would_overflow, "signed to unsigned")
 
-double curr_CPU_time()
-	{
-	struct timespec ts;
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-	return double(ts.tv_sec) + double(ts.tv_nsec) / 1e9;
-	}
-
 ZBody::ZBody(const char* _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM)
 	{
 	func_name = _func_name;
@@ -240,14 +233,14 @@ void ZBody::InitProfile()
 ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow)
 	{
 #ifdef DEBUG
-	double t = analysis_options.profile_ZAM ? curr_CPU_time() : 0.0;
+	double t = analysis_options.profile_ZAM ? util::curr_CPU_time() : 0.0;
 #endif
 
 	auto val = DoExec(f, 0, flow);
 
 #ifdef DEBUG
 	if ( analysis_options.profile_ZAM )
-		*CPU_time += curr_CPU_time() - t;
+		*CPU_time += util::curr_CPU_time() - t;
 #endif
 
 	return val;
@@ -305,7 +298,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 			++(*inst_count)[pc];
 
 			profile_pc = pc;
-			profile_CPU = curr_CPU_time();
+			profile_CPU = util::curr_CPU_time();
 			}
 #endif
 
@@ -327,7 +320,7 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 #ifdef DEBUG
 		if ( do_profile )
 			{
-			double dt = curr_CPU_time() - profile_CPU;
+			double dt = util::curr_CPU_time() - profile_CPU;
 			inst_CPU->at(profile_pc) += dt;
 			ZOP_CPU[z.op] += dt;
 			}

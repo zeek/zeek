@@ -57,7 +57,7 @@ event ssl_established(c: connection) &priority=3
 
 	local fuid = c$ssl$cert_chain[0]$fuid;
 	local cert = c$ssl$cert_chain[0]$x509$certificate;
-	local hash = c$ssl$cert_chain[0]$sha1;
+	local hash = c$ssl$cert_chain[0]$x509$fingerprint;
 
 	if ( !cert?$key_type || !cert?$key_length )
 		return;
@@ -71,7 +71,9 @@ event ssl_established(c: connection) &priority=3
 		NOTICE([$note=Weak_Key,
 			$msg=fmt("Host uses weak certificate with %d bit key", key_length),
 			$conn=c, $suppress_for=1day,
-			$identifier=cat(c$id$resp_h, c$id$resp_h, hash, key_length)
+			$identifier=cat(c$id$resp_h, c$id$resp_h, hash, key_length),
+			$sub=fmt("Subject: %s", cert$subject),
+			$file_desc=fmt("Fingerprint: %s", hash)
 		]);
 	}
 

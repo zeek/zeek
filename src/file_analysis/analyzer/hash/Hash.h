@@ -55,7 +55,7 @@ protected:
 	 * @param hv specific hash calculator object.
 	 * @param kind human readable name of the hash algorithm to use.
 	 */
-	Hash(RecordValPtr args, file_analysis::File* file, HashVal* hv, const char* kind);
+	Hash(RecordValPtr args, file_analysis::File* file, HashVal* hv, StringValPtr kind);
 
 	/**
 	 * If some file contents have been seen, finalizes the hash of them and
@@ -66,13 +66,13 @@ protected:
 private:
 	HashVal* hash;
 	bool fed;
-	const char* kind;
+	StringValPtr kind;
 	};
 
 /**
  * An analyzer to produce an MD5 hash of file contents.
  */
-class MD5 : public Hash
+class MD5 final : public Hash
 	{
 public:
 	/**
@@ -87,22 +87,24 @@ public:
 		return file_hash ? new MD5(std::move(args), file) : nullptr;
 		}
 
-protected:
+private:
 	/**
 	 * Constructor.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
 	 * @param file the file to which the analyzer will be attached.
 	 */
 	MD5(RecordValPtr args, file_analysis::File* file)
-		: Hash(std::move(args), file, new MD5Val(), "md5")
+		: Hash(std::move(args), file, new MD5Val(), MD5::kind_val)
 		{
 		}
+
+	static StringValPtr kind_val;
 	};
 
 /**
  * An analyzer to produce a SHA1 hash of file contents.
  */
-class SHA1 : public Hash
+class SHA1 final : public Hash
 	{
 public:
 	/**
@@ -117,22 +119,24 @@ public:
 		return file_hash ? new SHA1(std::move(args), file) : nullptr;
 		}
 
-protected:
+private:
 	/**
 	 * Constructor.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
 	 * @param file the file to which the analyzer will be attached.
 	 */
 	SHA1(RecordValPtr args, file_analysis::File* file)
-		: Hash(std::move(args), file, new SHA1Val(), "sha1")
+		: Hash(std::move(args), file, new SHA1Val(), SHA1::kind_val)
 		{
 		}
+
+	static StringValPtr kind_val;
 	};
 
 /**
  * An analyzer to produce a SHA256 hash of file contents.
  */
-class SHA256 : public Hash
+class SHA256 final : public Hash
 	{
 public:
 	/**
@@ -147,16 +151,18 @@ public:
 		return file_hash ? new SHA256(std::move(args), file) : nullptr;
 		}
 
-protected:
+private:
 	/**
 	 * Constructor.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
 	 * @param file the file to which the analyzer will be attached.
 	 */
 	SHA256(RecordValPtr args, file_analysis::File* file)
-		: Hash(std::move(args), file, new SHA256Val(), "sha256")
+		: Hash(std::move(args), file, new SHA256Val(), SHA256::kind_val)
 		{
 		}
+
+	static StringValPtr kind_val;
 	};
 
 	} // namespace zeek::file_analysis

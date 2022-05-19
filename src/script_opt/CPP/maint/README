@@ -1,0 +1,85 @@
+This is a collection of scripts to support maintenance of -O gen-C++
+(and friends).  They're oriented around running against the BTest test
+suite, and are currently tailored for the lead maintainer's own environment.
+The scripts all assume you're running them from build/ .
+
+If you make changes to the scripts, format them using
+
+	shfmt -w -i 4 -ci *.sh
+
+(or set up "pre-commit" and use "pre-commit run -a")
+
+The maintenance workflow:
+
+1.  Update this timestamp, so this file will be changed and you'll remember
+    to check in updates to the list of how the compiler currently fares
+    on various btests (see end of this doc):
+
+	Thu May 12 12:54:10 PDT 2022
+
+2.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
+    possible Zeek source files found in the test suite.
+
+3.  For each such Zeek file, run "check-zeek.sh" to see whether Zeek can
+    parse it.  This helps remove from further consideration difficult
+    tests (like those that have embedded input files, or multiple separate
+    scripts).
+
+4.  "mkdir CPP-test" - a directory for holding results relating to C++ testing
+
+5.  Run "check-CPP-gen.sh" for each Zeek file that passed "check-zeek.sh".
+    This will generate a corresponding file in CPP-test/out* indicating whether
+    "-O gen-C++" can successfully run on the input.  Presently, it should
+    be able to do so for all of them.
+
+6.  Copy ./src/zeek to ./zeek.HOLD.  This is used to speed up recompilation used
+    in the next step.  However, it's also a headache to do development to
+    fix a bug and then forget to update zeek.HOLD, which means you wind up
+    running the old version.  You can combat that by removing ./zeek.HOLD
+    every time you start working on fixing a bug.
+
+7.  Use the appended database to remove inputs that have known issues.
+
+8.  For every input that survives that pruning, run "do-CPP-btest.sh".
+    This will generate C++ for the BTest, compile it, and run the result
+    to see if it succeeds.  It populates CPP-test/diag* with the Btest
+    diagnostic output (empty means success).  For non-empty output,
+    either fix the problem or update the database if it's not fixable.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+Database Of Known Issues (be sure to keep sorted)
+
+These BTests won't successfully run due to the indicated issue:
+
+	@if - has conditional code
+	bad-when - deliberately has old-style "when" without captures
+	command-line-error - a deliberate command-line error
+	complex-to-debug - hard-to-figure-out failure
+	deprecated - uses features deprecated for -O C++
+	no-script - there's no actual script to compile
+	ZAM - meant specifically for -O ZAM
+
+../testing/btest/core/negative-time.test no-script
+../testing/btest/core/pcap/dumper.zeek no-script
+../testing/btest/core/pcap/input-error.zeek command-line-error
+../testing/btest/core/proc-status-file.zeek no-script
+../testing/btest/language/at-if-event.zeek @if
+../testing/btest/language/at-if.zeek @if
+../testing/btest/language/at-ifdef.zeek @if
+../testing/btest/language/at-ifndef.zeek @if
+../testing/btest/language/vector-in-operator.zeek deprecated
+../testing/btest/language/when-aggregates.zeek bad-when
+../testing/btest/opt/opt-files.zeek ZAM
+../testing/btest/opt/opt-files2.zeek ZAM
+../testing/btest/opt/opt-files3.zeek ZAM
+../testing/btest/opt/opt-func.zeek ZAM
+../testing/btest/opt/opt-func2.zeek ZAM
+../testing/btest/opt/opt-func3.zeek ZAM
+../testing/btest/scripts/base/protocols/dhcp/dhcp-ack-msg-types.zeek no-script
+../testing/btest/scripts/base/protocols/dhcp/dhcp-all-msg-types.zeek no-script
+../testing/btest/scripts/base/protocols/dhcp/dhcp-discover-msg-types.zeek no-script
+../testing/btest/scripts/base/protocols/dhcp/inform.test no-script
+../testing/btest/scripts/base/utils/active-http.test complex-to-debug
+../testing/btest/scripts/policy/protocols/ssl/validate-certs.zeek no-script
+../testing/btest/supervisor/config-bare-mode.zeek @if

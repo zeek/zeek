@@ -1,3 +1,9 @@
+5.0.0-dev.460 | 2022-05-19 11:24:50 -0700
+
+  * Zeekify the scripts.base.utils.paths test (Christian Kreibich, Corelight)
+
+  * Expand build_path() function to handle empty dir arguments gracefully (Christian Kreibich, Corelight)
+
 5.0.0-dev.457 | 2022-05-19 10:51:45 -0700
 
   * Rework .cirrus.yml a bit to commonize some parts (Tim Wojtulewicz)

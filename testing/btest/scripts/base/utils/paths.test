@@ -45,13 +45,15 @@ test_extract("here's two dirs: /foo/bar and /foo/baz", "/foo/bar");
 
 print "test build_path_compressed()";
 print "===============================";
-print build_path_compressed("/home/bro/", "policy/somefile.zeek");
-print build_path_compressed("/home/bro/", "/usr/local/bro/share/bro/somefile.zeek");
-print build_path_compressed("/home/bro/", "/usr/local/bro/share/../../bro/somefile.zeek");
+print build_path_compressed("/home/zeek/", "policy/somefile.zeek");
+print build_path_compressed("/home/zeek/", "/usr/local/zeek/share/zeek/somefile.zeek");
+print build_path_compressed("/home/zeek/", "/usr/local/zeek/share/../../zeek/somefile.zeek");
 
 print "===============================";
-print "test build_full_path()";
+print "test build_path()";
 print "===============================";
-print build_path("/home/bro/", "policy/somefile.zeek");
-print build_path("/home/bro/", "/usr/local/bro/share/bro/somefile.zeek");
-
+print build_path("/home/zeek/", "policy/somefile.zeek");
+print build_path("/home/zeek/", "/usr/local/zeek/share/zeek/somefile.zeek");
+print build_path("", "policy/somefile.zeek");
+print build_path("", "/usr/local/zeek/share/zeek/somefile.zeek");
+print build_path("/", "policy/somefile.zeek");

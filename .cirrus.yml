@@ -25,7 +25,7 @@ resources_template: &RESOURCES_TEMPLATE
   # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
   greedy: true
 
-macos_resources_template: &MACOS_RESOURCES_TEMPLATE
+macos_environment: &MACOS_ENVIRONMENT
   # https://medium.com/cirruslabs/new-macos-task-execution-architecture-for-cirrus-ci-604250627c94
   # suggests we can go faster here:
   env:
@@ -33,6 +33,25 @@ macos_resources_template: &MACOS_RESOURCES_TEMPLATE
     ZEEK_CI_BTEST_JOBS: 12
     # No permission to write to default location of /zeek
     CIRRUS_WORKING_DIR: /tmp/zeek
+
+freebsd_resources_template: &FREEBSD_RESOURCES_TEMPLATE
+  cpu: 8
+  # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
+  memory: 8GB
+  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
+  greedy: true
+
+freebsd_environment: &FREEBSD_ENVIRONMENT
+  env:
+    ZEEK_CI_CPUS: 8
+    ZEEK_CI_BTEST_JOBS: 8
+
+sanitizers_resource_template: &SANITIZERS_RESOURCE_TEMPLATE
+  cpu: 4
+  # Sanitizers uses a lot more memory than a typical config.
+  memory: 12GB
+  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
+  greedy: true
 
 ci_template: &CI_TEMPLATE
   only_if: >
@@ -54,11 +73,12 @@ ci_template: &CI_TEMPLATE
     folder: testing/external/zeek-testing-traces
     fingerprint_script: echo zeek-testing-traces
     populate_script: ./ci/init-external-repos.sh
+    reupload_on_changes: true
 
   always:
     ccache_cache:
       folder: /tmp/ccache
-      fingerprint_script: echo $CIRRUS_TASK_NAME-$CIRRUS_OS
+      fingerprint_script: echo ccache-$CIRRUS_TASK_NAME-$CIRRUS_OS
       reupload_on_changes: true
 
   init_external_repos_script: ./ci/init-external-repos.sh
@@ -229,7 +249,7 @@ macos_monterey_task:
     image: monterey-xcode-13.1
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
-  << : *MACOS_RESOURCES_TEMPLATE
+  << : *MACOS_ENVIRONMENT
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *HOMEBREW_FLEX_BISON_CONFIG
 
@@ -238,7 +258,7 @@ macos_big_sur_task:
     image: big-sur-xcode-12.5
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
-  << : *MACOS_RESOURCES_TEMPLATE
+  << : *MACOS_ENVIRONMENT
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *HOMEBREW_FLEX_BISON_CONFIG
 
@@ -247,42 +267,33 @@ freebsd14_task:
   freebsd_instance:
     # We don't support FreeBSD 14 yet, this is a purely informative task
     image_family: freebsd-14-0-snap
-    cpu: 8
-    # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
-    memory: 8GB
-    # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
-    greedy: true
-
     allow_failures: true
     skip_notification: true
+    << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
+  << : *FREEBSD_ENVIRONMENT
 
 freebsd13_task:
   freebsd_instance:
     # FreeBSD 13 EOL: January 31, 2026
     image_family: freebsd-13-0
-    cpu: 8
-    # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
-    memory: 8GB
-    # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
-    greedy: true
+    << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
+  << : *FREEBSD_ENVIRONMENT
 
 freebsd12_task:
   freebsd_instance:
     # FreeBSD 12 EOL: June 30, 2024
     image_family: freebsd-12-2
-    cpu: 8
-    # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
-    memory: 8GB
-    # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
-    greedy: true
+    << : *FREEBSD_RESOURCES_TEMPLATE
+
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
+  << : *FREEBSD_ENVIRONMENT
 
 # This can be removed as soon as the first distribution that we use ships
 # OpenSSL 3.0
@@ -299,11 +310,8 @@ asan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile
-    cpu: 4
-    # AddressSanitizer uses a lot more memory than a typical config.
-    memory: 12GB
-    # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
-    greedy: true
+    << : *SANITIZERS_RESOURCE_TEMPLATE
+
   << : *CI_TEMPLATE
   test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
@@ -316,11 +324,8 @@ ubsan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run undefined behavior checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile
-    cpu: 4
-    # AddressSanitizer uses a lot more memory than a typical config.
-    memory: 12GB
-    # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
-    greedy: true
+    << : *SANITIZERS_RESOURCE_TEMPLATE
+
   << : *CI_TEMPLATE
   test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
@@ -334,11 +339,8 @@ ubsan_sanitizer_task:
 #   container:
 #     # Just uses a recent/common distro to run memory error/leak checks.
 #     dockerfile: ci/ubuntu-20.04/Dockerfile
-#     cpu: 4
-#     # AddressSanitizer uses a lot more memory than a typical config.
-#     memory: 12GB
-#     # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
-#     greedy: true
+#     << : *SANITIZERS_RESOURCE_TEMPLATE
+#
 #   << : *CI_TEMPLATE
 #   test_fuzzers_script: ./ci/test-fuzzers.sh
 #   env:

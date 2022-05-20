@@ -1,10 +1,14 @@
 ##! This module provides Management framework functionality present in every
 ##! cluster node, to allowing Management agents to interact with the nodes.
 
+@load base/frameworks/broker/store
 @load base/frameworks/cluster
+@load base/frameworks/logging/writers/ascii
+@load base/misc/installation
+@load base/utils/paths
 
+@load policy/frameworks/management
 @load policy/frameworks/management/agent/config
-@load policy/frameworks/management/log
 
 @load ./api
 @load ./config
@@ -103,6 +107,13 @@ event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 
 event zeek_init()
 	{
+	if ( Broker::table_store_db_directory != "" && ! mkdir(Broker::table_store_db_directory) )
+		Management::Log::error(fmt("could not create Broker data store directory '%s'",
+		    Broker::table_store_db_directory));
+	if ( Cluster::default_store_dir != "" && ! mkdir(Cluster::default_store_dir) )
+		Management::Log::error(fmt("could not create Cluster store directory '%s'",
+		    Cluster::default_store_dir));
+
 	local epi = Management::Agent::endpoint_info();
 
 	Broker::peer(epi$network$address, epi$network$bound_port, Management::connect_retry);

@@ -1,7 +1,6 @@
 ##! Configuration settings for a cluster agent.
 
-@load policy/frameworks/management/config
-@load policy/frameworks/management/types
+@load policy/frameworks/management
 
 # We source the controller configuration to obtain its network coordinates, so
 # we can default to connecting to it.

@@ -1,7 +1,6 @@
 ##! Configuration settings for the cluster controller.
 
-@load policy/frameworks/management/config
-@load policy/frameworks/management/types
+@load policy/frameworks/management
 
 module Management::Controller;
 

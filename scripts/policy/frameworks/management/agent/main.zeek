@@ -189,8 +189,17 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 
 		nc = Supervisor::NodeConfig($name=nodename);
 
-		if ( Management::Agent::cluster_directory != "" )
-			nc$directory = Management::Agent::cluster_directory;
+		local statedir = build_path(Management::get_state_dir(), "nodes");
+
+		if ( ! mkdir(statedir) )
+			Management::Log::warning(fmt("could not create state dir '%s'", statedir));
+
+		statedir = build_path(statedir, nodename);
+
+		if ( ! mkdir(statedir) )
+			Management::Log::warning(fmt("could not create node state dir '%s'", statedir));
+
+		nc$directory = statedir;
 
 		if ( node?$interface )
 			nc$interface = node$interface;

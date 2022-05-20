@@ -58,17 +58,12 @@ export {
 	const controller = Broker::NetworkInfo($address="127.0.0.1",
 	    $bound_port=Management::Controller::network_info()$bound_port) &redef;
 
-	## An optional custom output directory for stdout/stderr. Agent and
-	## controller currently only log locally, not via the Zeek cluster's
-	## logger node. This means that if both write to the same log file,
-	## output gets garbled.
+	## An optional working directory for the agent. Agent and controller
+	## currently only log locally, not via the Zeek cluster's logger
+	## node. This means that if multiple agents and/or controllers work from
+	## the same directory, output may get garbled. When not set, defaults to
+	## a directory named after the agent (as per its get_name() result).
 	const directory = "" &redef;
-
-	## The working directory for Zeek cluster nodes created by this
-	## agent. If you make this a relative path, note that the path is
-	## relative to the agent's working directory, since it creates data
-	## cluster nodes.
-	const cluster_directory = "" &redef;
 
 	## Returns the effective name of this agent.
 	global get_name: function(): string;

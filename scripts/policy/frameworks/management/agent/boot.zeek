@@ -23,8 +23,22 @@ event zeek_init()
 	local sn = Supervisor::NodeConfig($name=epi$id, $bare_mode=T,
 		$scripts=vector("policy/frameworks/management/agent/main.zeek"));
 
+	# Establish the agent's working directory. If one is configured
+	# explicitly, use as-is if absolute. Otherwise, append it to the state
+	# path. Without an explicit directory, fall back to the agent name.
+	local statedir = build_path(Management::get_state_dir(), "nodes");
+
+	if ( ! mkdir(statedir) )
+		print(fmt("warning: could not create state dir '%s'", statedir));
+
 	if ( Management::Agent::directory != "" )
-		sn$directory = Management::Agent::directory;
+		sn$directory = build_path(statedir, Management::Agent::directory);
+	else
+		sn$directory = build_path(statedir, Management::Agent::get_name());
+
+	if ( ! mkdir(sn$directory) )
+		print(fmt("warning: could not create agent state dir '%s'", sn$directory));
+
 	if ( Management::Agent::stdout_file != "" )
 		sn$stdout_file = Management::Agent::stdout_file;
 	if ( Management::Agent::stderr_file != "" )

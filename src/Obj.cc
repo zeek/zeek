@@ -23,7 +23,7 @@ void Location::Describe(ODesc* d) const
 	{
 	if ( filename )
 		{
-		d->Add(filename);
+		d->Add(zeek::util::detail::normalize_path(filename));
 
 		if ( first_line == 0 )
 			return;

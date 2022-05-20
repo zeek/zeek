@@ -560,7 +560,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 		else if ( filename && *filename )
 			{
 			// Take from globals.
-			loc_str = filename;
+			loc_str = util::detail::normalize_path(filename);
 			char tmp[32];
 			snprintf(tmp, 32, "%d", line_number);
 			loc_str += std::string(", line ") + std::string(tmp);

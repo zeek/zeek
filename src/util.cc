@@ -2547,7 +2547,12 @@ static void strerror_r_helper(int result, char* buf, size_t buflen)
 
 void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen)
 	{
+#if defined(_MSC_VER)
+	auto str = "Error number: " + std::to_string(zeek_errno);
+	auto res = str.data();
+#else
 	auto res = strerror_r(zeek_errno, buf, buflen);
+#endif
 	// GNU vs. XSI flavors make it harder to use strerror_r.
 	strerror_r_helper(res, buf, buflen);
 	}

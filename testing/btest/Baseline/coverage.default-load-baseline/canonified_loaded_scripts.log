@@ -444,6 +444,7 @@ scripts/base/init-default.zeek
     scripts/base/files/extract/main.zeek
   scripts/base/misc/find-checksum-offloading.zeek
   scripts/base/misc/find-filtered-trace.zeek
+  build/scripts/base/misc/installation.zeek
   scripts/base/misc/version.zeek
 build/scripts/builtin-plugins/__preload__.zeek
   build/scripts/builtin-plugins/Zeek_Spicy/__preload__.zeek

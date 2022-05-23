@@ -38,13 +38,12 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --localstatedir=PATH   when using ZeekControl, path to store log files
                            and run-time data (within log/ and spool/ subdirs)
                            [PREFIX]
-    --spooldir=PATH        when using ZeekControl, path to store run-time data
-                           [PREFIX/spool]
-    --logdir=PATH          when using ZeekControl, path to store log file
-                           [PREFIX/logs]
+    --spooldir=PATH        directory for in-progress logs [PREFIX/spool]
+    --statedir=PATH        directory for variable state [PREFIX/var/lib]
+    --logdir=PATH          directory for finalized logs [PREFIX/logs]
     --libdir=PATH          installation directory for library files [PREFIX/lib]
     --plugindir=PATH       installation directory for plugins [LIBDIR/zeek/plugin]
-    --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
+    --conf-files-dir=PATH  installation directory for config files [PREFIX/etc]
     --mandir=PATH          installation path for man pages [PREFIX/share/man]
     --python-dir=PATH      explicit installation directory for Python modules
     --python-prefix=PATH   versioned installation directory for Python modules,
@@ -255,6 +254,9 @@ while [ $# -ne 0 ]; do
             ;;
         --spooldir=*)
             append_cache_entry ZEEK_SPOOL_DIR PATH $optarg
+            ;;
+        --statedir=*)
+            append_cache_entry ZEEK_STATE_DIR PATH $optarg
             ;;
         --logdir=*)
             append_cache_entry ZEEK_LOG_DIR PATH $optarg

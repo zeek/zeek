@@ -1,3 +1,11 @@
+5.0.0-dev.470 | 2022-05-24 11:55:37 -0700
+
+  * Ensure presence of Zeek-related directories in toplevel CMakeLists.txt (Christian Kreibich, Corelight)
+
+  * Add base/misc/installation.zeek, with Zeek installation directories (Christian Kreibich, Corelight)
+
+  * Add scripts.base.misc.installation btest (Christian Kreibich, Corelight)
+
 5.0.0-dev.466 | 2022-05-23 17:47:08 -0700
 
   * Add DOCKERFILE_VERSION variable to all CI dockerfiles (Tim Wojtulewicz, Corelight)

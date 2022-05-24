@@ -66,6 +66,13 @@ New Functionality
   directly or indirectly.  The number is not meant to be precise, but
   rather comparable: larger footprint correlates with more memory consumption.
 
+- The new ``configure --statedir`` option lets you adjust the installation's
+  persistent state directory. It defaults to ``var/lib`` under your Zeek
+  installation's root directory.
+
+- The ``base/misc/installation.zeek`` script provides your Zeek installation's
+  key directories.
+
 Changed Functionality
 ---------------------
 

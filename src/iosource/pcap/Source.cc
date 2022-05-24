@@ -268,6 +268,25 @@ bool PcapSource::PrecompileFilter(int index, const std::string& filter)
 	return PktSrc::PrecompileBPFFilter(index, filter);
 	}
 
+detail::BPF_Program* PcapSource::CompileFilter(const std::string& filter)
+	{
+	std::string errbuf;
+	auto code = std::make_unique<detail::BPF_Program>();
+
+	if ( ! code->Compile(pd, filter.c_str(), Netmask(), errbuf) )
+		{
+		std::string msg = util::fmt("cannot compile BPF filter \"%s\"", filter.c_str());
+
+		if ( ! errbuf.empty() )
+			msg += ": " + errbuf;
+
+		Error(msg);
+		return nullptr;
+		}
+
+	return code.release();
+	}
+
 bool PcapSource::SetFilter(int index)
 	{
 	if ( ! pd )

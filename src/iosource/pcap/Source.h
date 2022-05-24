@@ -31,6 +31,7 @@ protected:
 	bool PrecompileFilter(int index, const std::string& filter) override;
 	bool SetFilter(int index) override;
 	void Statistics(Stats* stats) override;
+	detail::BPF_Program* CompileFilter(const std::string& filter) override;
 
 private:
 	void OpenLive();

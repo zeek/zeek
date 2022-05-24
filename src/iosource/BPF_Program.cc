@@ -6,6 +6,8 @@
 
 #include <string.h>
 
+#include "zeek/util.h"
+
 #ifdef DONT_HAVE_LIBPCAP_PCAP_FREECODE
 extern "C"
 	{
@@ -76,8 +78,8 @@ BPF_Program::~BPF_Program()
 	FreeCode();
 	}
 
-bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, char* errbuf,
-                          unsigned int errbuf_len, bool optimize)
+bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, std::string& errbuf,
+                          bool optimize)
 	{
 	if ( ! pcap )
 		return false;
@@ -86,9 +88,7 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, ch
 
 	if ( pcap_compile(pcap, &m_program, (char*)filter, optimize, netmask) < 0 )
 		{
-		if ( errbuf )
-			snprintf(errbuf, errbuf_len, "pcap_compile(%s): %s", filter, pcap_geterr(pcap));
-
+		errbuf = util::fmt("pcap_compile(%s): %s", filter, pcap_geterr(pcap));
 		return false;
 		}
 
@@ -99,7 +99,7 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, ch
 	}
 
 bool BPF_Program::Compile(int snaplen, int linktype, const char* filter, uint32_t netmask,
-                          char* errbuf, unsigned int errbuf_len, bool optimize)
+                          std::string& errbuf, bool optimize)
 	{
 	FreeCode();
 
@@ -119,14 +119,13 @@ bool BPF_Program::Compile(int snaplen, int linktype, const char* filter, uint32_
 
 	int err = pcap_compile_nopcap(snaplen, linktype, &m_program, (char*)filter, optimize, netmask,
 	                              my_error);
-	if ( err < 0 && errbuf )
-		safe_strncpy(errbuf, my_error, errbuf_len);
-	*errbuf = '\0';
+	if ( err < 0 )
+		errbuf = std::string(my_error);
 #else
 	int err = pcap_compile_nopcap(snaplen, linktype, &m_program, (char*)filter, optimize, netmask);
 
-	if ( err < 0 && errbuf && errbuf_len )
-		*errbuf = '\0';
+	if ( err < 0 )
+		errbuf.clear();
 #endif
 
 	if ( err == 0 )

@@ -1,3 +1,7 @@
+5.0.0-dev.466 | 2022-05-23 17:47:08 -0700
+
+  * Add DOCKERFILE_VERSION variable to all CI dockerfiles (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.462 | 2022-05-19 11:45:38 -0700
 
   * speed up ZAM compilation by capping function size when inlining (Vern Paxson, Corelight)

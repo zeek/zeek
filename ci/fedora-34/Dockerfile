@@ -1,5 +1,9 @@
 FROM fedora:34
 
+# A version field to invalide Cirrus's build cache when needed, as suggested in
+# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
+ENV DOCKERFILE_VERSION 20220519
+
 RUN dnf -y install \
     ccache \
     bison \

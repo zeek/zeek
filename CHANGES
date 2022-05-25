@@ -1,3 +1,7 @@
+5.0.0-dev.477 | 2022-05-25 09:37:58 -0700
+
+  * Use ZEEK_DICT_DEBUG more in Dict.cc instead of DEBUG (Tim Wojtulewicz)
+
 5.0.0-dev.475 | 2022-05-25 09:37:19 -0700
 
   * Move fuzzer setup in CMake below builtin plugin setup (Tim Wojtulewicz, Corelight)

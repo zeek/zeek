@@ -1,3 +1,12 @@
+5.0.0-dev.482 | 2022-05-25 09:40:18 -0700
+
+  * Bump Spicy and spicy-plugin. (Benjamin Bannier, Corelight)
+
+  * Clean up test `spicy.spicyz-jit`. (Benjamin Bannier, Corelight)
+
+    This test was created from a copy of `spicy.spicyz-aot`, but updated
+    incompletly. This patch removes the last ahead-of-time compilation bits.
+
 5.0.0-dev.479 | 2022-05-25 09:38:20 -0700
 
   * GH-2125: Fix compiler warnings in ScriptProfile (Tim Wojtulewicz, Corelight)

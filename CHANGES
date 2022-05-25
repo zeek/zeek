@@ -1,3 +1,9 @@
+5.0.0-dev.485 | 2022-05-25 12:09:42 -0700
+
+  * Propagate BPF_Program error message to script land (Tim Wojtulewicz, Corelight)
+
+  * Allow pcap pktsrc to use other BPF_Program::Compile method (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.482 | 2022-05-25 09:40:18 -0700
 
   * Bump Spicy and spicy-plugin. (Benjamin Bannier, Corelight)

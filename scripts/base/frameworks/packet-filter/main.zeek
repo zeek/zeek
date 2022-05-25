@@ -281,10 +281,17 @@ function install(): bool
 		NOTICE([$note=Compile_Failure,
 		        $msg=fmt("Compiling packet filter failed"),
 		        $sub=tmp_filter]);
+
+		local error_string = fmt("Bad pcap filter '%s'", tmp_filter);
+
+		local pkt_src_error : string = Pcap::error();
+		if ( pkt_src_error != "no error" )
+			error_string = pkt_src_error;
+
 		if ( network_time() == 0.0 )
-			Reporter::fatal(fmt("Bad pcap filter '%s'", tmp_filter));
+			Reporter::fatal(error_string);
 		else
-			Reporter::warning(fmt("Bad pcap filter '%s'", tmp_filter));
+			Reporter::warning(error_string);
 		}
 	local diff = current_time()-ts;
 	if ( diff > max_filter_compile_time )

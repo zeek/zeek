@@ -1,3 +1,9 @@
+5.0.0-dev.475 | 2022-05-25 09:37:19 -0700
+
+  * Move fuzzer setup in CMake below builtin plugin setup (Tim Wojtulewicz, Corelight)
+
+  * Remove flex/bison flags from CI build (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.470 | 2022-05-24 11:55:37 -0700
 
   * Ensure presence of Zeek-related directories in toplevel CMakeLists.txt (Christian Kreibich, Corelight)

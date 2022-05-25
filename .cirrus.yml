@@ -17,7 +17,6 @@ ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-bro
 tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache
 mobile_ipv6_config: &MOBILE_IPV6_CONFIG --build-type=release --enable-mobile-ipv6 --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache
 openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install --ccache
-homebrew_flex_bison_config: &HOMEBREW_FLEX_BISON_CONFIG --with-flex=/usr/local/opt/flex/bin/flex --with-bison=/usr/local/opt/bison/bin/bison --ccache
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -250,8 +249,6 @@ macos_monterey_task:
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *HOMEBREW_FLEX_BISON_CONFIG
 
 macos_big_sur_task:
   macos_instance:
@@ -259,8 +256,6 @@ macos_big_sur_task:
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *HOMEBREW_FLEX_BISON_CONFIG
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/security.html#sup
 freebsd14_task:

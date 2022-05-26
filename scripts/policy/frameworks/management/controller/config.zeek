@@ -1,7 +1,6 @@
 ##! Configuration settings for the cluster controller.
 
-@load policy/frameworks/management/config
-@load policy/frameworks/management/types
+@load policy/frameworks/management
 
 module Management::Controller;
 
@@ -12,18 +11,18 @@ export {
 	## "controller-<hostname>".
 	const name = getenv("ZEEK_CONTROLLER_NAME") &redef;
 
-	## The controller's stdout log name. If the string is non-empty, Zeek will
-	## produce a free-form log (i.e., not one governed by Zeek's logging
-	## framework) in Zeek's working directory. If left empty, no such log
-	## results.
+	## The controller's stdout log name. If the string is non-empty, Zeek
+	## will produce a free-form log (i.e., not one governed by Zeek's
+	## logging framework) in the controller's working directory. If left
+	## empty, no such log results.
 	##
 	## Note that the controller also establishes a "proper" Zeek log via the
 	## :zeek:see:`Management::Log` module.
-	const stdout_file = "controller.stdout" &redef;
+	const stdout_file = "stdout" &redef;
 
 	## The controller's stderr log name. Like :zeek:see:`Management::Controller::stdout_file`,
 	## but for the stderr stream.
-	const stderr_file = "controller.stderr" &redef;
+	const stderr_file = "stderr" &redef;
 
 	## The network address the controller listens on. By default this uses
 	## the value of the ZEEK_CONTROLLER_ADDR environment variable, but you
@@ -44,10 +43,13 @@ export {
 	const topic = "zeek/management/controller" &redef;
 
 	## An optional custom output directory for stdout/stderr. Agent and
-	## controller currently only log locally, not via the data cluster's
+	## controller currently only log locally, not via the Zeek cluster's
 	## logger node. This means that if both write to the same log file,
 	## output gets garbled.
 	const directory = "" &redef;
+
+	## Returns the effective name of the controller.
+	global get_name: function(): string;
 
 	## Returns a :zeek:see:`Broker::NetworkInfo` record describing the controller.
 	global network_info: function(): Broker::NetworkInfo;
@@ -55,6 +57,14 @@ export {
 	## Returns a :zeek:see:`Broker::EndpointInfo` record describing the controller.
 	global endpoint_info: function(): Broker::EndpointInfo;
 }
+
+function get_name(): string
+	{
+	if ( name != "" )
+		return name;
+
+	return fmt("controller-%s", gethostname());
+	}
 
 function network_info(): Broker::NetworkInfo
 	{
@@ -79,11 +89,7 @@ function endpoint_info(): Broker::EndpointInfo
 	{
 	local epi: Broker::EndpointInfo;
 
-	if ( Management::Controller::name != "" )
-		epi$id = Management::Controller::name;
-	else
-		epi$id = fmt("controller-%s", gethostname());
-
+	epi$id = Management::Controller::get_name();
 	epi$network = network_info();
 
 	return epi;

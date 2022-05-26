@@ -6,6 +6,7 @@
 
 @load ./config
 @load ./log
+@load ./persistence
 @load ./request
 @load ./types
 @load ./util

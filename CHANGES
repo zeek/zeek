@@ -1,3 +1,25 @@
+5.0.0-dev.505 | 2022-05-26 16:08:42 -0700
+
+  * Management framework updates (Christian Kreibich, Corelight)
+
+    - bump zeek-client to pull in instance serialization fixes
+    - bump external cluster testsuite
+    - update agent-checkin test to reflect recent changes
+    - place each Zeek process in its own working dir
+    - set defaults for log rotation and persistent state
+    - add spool and state directory config settings
+    - establish stdout/stderr files also for cluster nodes
+    - default to having agents check in with the (local) controller
+    - move role variable from logging into framework-wide config
+    - distinguish supervisor/supervisee when loading agent/controller
+    - simplify agent and controller stdout/stderr files
+    - prefix the management logs with "management-"
+    - comment and layouting tweaks, no functional change
+    - rename env var that labels agents/controllers
+    - increase robustness of agent/controller naming
+
+  * Add some missing NEWS entries (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.488 | 2022-05-26 08:23:42 -0700
 
   * GH-2054: Allow nulls as separators for join_string_vec (Tim Wojtulewicz, Corelight)

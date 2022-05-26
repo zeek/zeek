@@ -4,6 +4,8 @@
 ##! supervisor.
 
 @load base/frameworks/broker
+@load base/utils/paths
+
 @load policy/frameworks/management
 @load policy/frameworks/management/node/api
 @load policy/frameworks/management/node/config
@@ -40,7 +42,7 @@ redef record Management::Request::Request += {
 };
 
 # Tag our logs correctly
-redef Management::Log::role = Management::AGENT;
+redef Management::role = Management::AGENT;
 
 # The global configuration as passed to us by the controller
 global g_config: Management::Configuration;
@@ -77,7 +79,7 @@ event SupervisorControl::create_response(reqid: string, result: string)
 		Management::Log::error(msg);
 		Broker::publish(agent_topic(),
 		    Management::Agent::API::notify_error,
-		    Management::Agent::name, msg, name);
+		    Management::Agent::get_name(), msg, name);
 		}
 
 	Management::Request::finish(reqid);
@@ -97,7 +99,7 @@ event SupervisorControl::destroy_response(reqid: string, result: bool)
 		Management::Log::error(msg);
 		Broker::publish(agent_topic(),
 		    Management::Agent::API::notify_error,
-		    Management::Agent::name, msg, name);
+		    Management::Agent::get_name(), msg, name);
 		}
 
 	Management::Request::finish(reqid);
@@ -150,7 +152,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 
 	for ( node in config$nodes )
 		{
-		if ( node$instance == Management::Agent::name )
+		if ( node$instance == Management::Agent::get_name() )
 			g_nodes[node$name] = node;
 
 		# The cluster and supervisor frameworks require a port for every
@@ -172,7 +174,13 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		g_cluster[node$name] = cep;
 		}
 
-	# Apply the new configuration via the supervisor
+	# Apply the new configuration via the supervisor.
+	#
+	# XXX this should launch in the nodes in controlled order (loggers ->
+	# manager -> proxies -> workers), ideally checking that one stage is up
+	# before launching the next. This is tricky because that's not the point
+	# of the Supervisor's response event. Until we have this, bootstrap
+	# might be noisy, particular in the Broker log.
 
 	for ( nodename in g_nodes )
 		{
@@ -181,8 +189,17 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 
 		nc = Supervisor::NodeConfig($name=nodename);
 
-		if ( Management::Agent::cluster_directory != "" )
-			nc$directory = Management::Agent::cluster_directory;
+		local statedir = build_path(Management::get_state_dir(), "nodes");
+
+		if ( ! mkdir(statedir) )
+			Management::Log::warning(fmt("could not create state dir '%s'", statedir));
+
+		statedir = build_path(statedir, nodename);
+
+		if ( ! mkdir(statedir) )
+			Management::Log::warning(fmt("could not create node state dir '%s'", statedir));
+
+		nc$directory = statedir;
 
 		if ( node?$interface )
 			nc$interface = node$interface;
@@ -197,6 +214,11 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		# node, since we require it to be able to communicate with the
 		# node.
 		nc$scripts[|nc$scripts|] = "policy/frameworks/management/node";
+
+		if ( Management::Node::stdout_file != "" )
+			nc$stdout_file = Management::Node::stdout_file;
+		if ( Management::Node::stderr_file != "" )
+			nc$stderr_file = Management::Node::stderr_file;
 
 		# XXX could use options to enable per-node overrides for
 		# directory, stdout, stderr, others?
@@ -214,7 +236,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		{
 		local res = Management::Result(
 		    $reqid = reqid,
-		    $instance = Management::Agent::name);
+		    $instance = Management::Agent::get_name());
 
 		Management::Log::info(fmt("tx Management::Agent::API::set_configuration_response %s",
 		    Management::result_to_string(res)));
@@ -232,7 +254,7 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 	Management::Request::finish(reqid);
 
 	local res = Management::Result(
-	    $reqid = req$parent_id, $instance = Management::Agent::name);
+	    $reqid = req$parent_id, $instance = Management::Agent::get_name());
 
 	local node_statuses: Management::NodeStatusVec;
 
@@ -264,9 +286,9 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 			}
 		else
 			{
-			if ( "ZEEK_CLUSTER_MGMT_NODE" in sns$node$env )
+			if ( "ZEEK_MANAGEMENT_NODE" in sns$node$env )
 				{
-				local role = sns$node$env["ZEEK_CLUSTER_MGMT_NODE"];
+				local role = sns$node$env["ZEEK_MANAGEMENT_NODE"];
 				if ( role == "CONTROLLER" )
 					{
 					cns$mgmt_role = Management::CONTROLLER;
@@ -494,7 +516,7 @@ event Management::Agent::API::agent_welcome_request(reqid: string)
 
 	local res = Management::Result(
 	    $reqid = reqid,
-	    $instance = Management::Agent::name);
+	    $instance = Management::Agent::get_name());
 
 	Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_response %s",
 	    Management::result_to_string(res)));
@@ -515,7 +537,7 @@ event Management::Agent::API::agent_standby_request(reqid: string)
 
 	local res = Management::Result(
 	    $reqid = reqid,
-	    $instance = Management::Agent::name);
+	    $instance = Management::Agent::get_name());
 
 	Management::Log::info(fmt("tx Management::Agent::API::agent_standby_response %s",
 	    Management::result_to_string(res)));

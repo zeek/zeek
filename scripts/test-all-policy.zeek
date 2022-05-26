@@ -24,6 +24,7 @@
 @load frameworks/management/__load__.zeek
 @load frameworks/management/config.zeek
 @load frameworks/management/log.zeek
+@load frameworks/management/persistence.zeek
 # @load frameworks/management/node/__load__.zeek
 @load frameworks/management/node/api.zeek
 @load frameworks/management/node/config.zeek

@@ -5,6 +5,8 @@
 ##!
 ##! If the current process is not the Zeek supervisor, this does nothing.
 
+@load base/utils/paths
+
 @load ./config
 
 event zeek_init()
@@ -16,15 +18,29 @@ event zeek_init()
 	local sn = Supervisor::NodeConfig($name=epi$id, $bare_mode=T,
 	    $scripts=vector("policy/frameworks/management/controller/main.zeek"));
 
+	# Establish the controller's working directory. If one is configured
+	# explicitly, use as-is if absolute. Otherwise, append it to the state
+	# path. Without an explicit directory, fall back to the agent name.
+	local statedir = build_path(Management::get_state_dir(), "nodes");
+
+	if ( ! mkdir(statedir) )
+		print(fmt("warning: could not create state dir '%s'", statedir));
+
 	if ( Management::Controller::directory != "" )
-		sn$directory = Management::Controller::directory;
+		sn$directory = build_path(statedir, Management::Controller::directory);
+	else
+		sn$directory = build_path(statedir, Management::Controller::get_name());
+
+	if ( ! mkdir(sn$directory) )
+		print(fmt("warning: could not create controller state dir '%s'", sn$directory));
+
 	if ( Management::Controller::stdout_file != "" )
 		sn$stdout_file = Management::Controller::stdout_file;
 	if ( Management::Controller::stderr_file != "" )
 		sn$stderr_file = Management::Controller::stderr_file;
 
-	# This helps Zeek run controller and agent with a minimal set of scripts.
-	sn$env["ZEEK_CLUSTER_MGMT_NODE"] = "CONTROLLER";
+	# This helps identify Management framework nodes reliably.
+	sn$env["ZEEK_MANAGEMENT_NODE"] = "CONTROLLER";
 
 	local res = Supervisor::create(sn);
 

@@ -1,3 +1,7 @@
+5.0.0-dev.488 | 2022-05-26 08:23:42 -0700
+
+  * GH-2054: Allow nulls as separators for join_string_vec (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.485 | 2022-05-25 12:09:42 -0700
 
   * Propagate BPF_Program error message to script land (Tim Wojtulewicz, Corelight)

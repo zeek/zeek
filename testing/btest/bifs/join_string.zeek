@@ -18,4 +18,5 @@ event zeek_init()
 	print join_string_vec(c, "");
 	print join_string_vec(d, "-");
 	print join_string_vec(e, ".");
+	print join_string_vec(c, "\x00");
 	}

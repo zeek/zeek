@@ -3,3 +3,4 @@ this__is__another__test
 thisisanothertest
 Test
 ...hi..there
+this\x00is\x00another\x00test

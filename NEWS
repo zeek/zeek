@@ -15,6 +15,11 @@ Breaking Changes
   require at least Flex version 2.6 and its development headers, at least Bison
   version 3.3, and GCC version 8.3 or Clang version 9.0 or higher.
 
+- The script-land ``union`` and ``timer`` types have been removed. They haven't
+  had any actual semantics backing them for some time and shouldn't have functioned
+  in any useable way. We opted to skip the deprecation cycle for these types for
+  that reason.
+
 New Functionality
 -----------------
 
@@ -88,6 +93,12 @@ Changed Functionality
 - Type mismatch error messages now print the easier to understand type names, instead
   of the fully expanded raw type.
 
+- Errors caused by setting a filter at start-up are now more informative about
+  what actually caused the error, including with the default ``ip or no ip`` filter.
+
+- Log messages about errors in input files are now more informative about
+  where errors occured.
+
 Deprecated Functionality
 ------------------------
 
@@ -96,6 +107,9 @@ Deprecated Functionality
   take ``const CallExpr*`` parameters have been deprecated.  The replacements
   take ``const void*`` parameters.  Usually all you'll need to do is replace
   previous uses of ``Frame::GetCall`` with ``Frame::GetTriggerAssoc``.
+
+- The ``--caf-root`` option of ``zeek-config`` was made obsolete by the changes
+  to how we include CAF and has been marked as deprecated.
 
 Zeek 4.2.0
 ==========

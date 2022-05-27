@@ -454,7 +454,7 @@ function cmp_versions(v1: Version, v2: Version): int
 	return 0;
 	}
 
-function software_endpoint_name(id: conn_id, host: addr): string &deprecated
+function software_endpoint_name(id: conn_id, host: addr): string &deprecated="Remove in v6.1.  Usage testing indicates this function is unused."
 	{
 	return fmt("%s %s", host, (host == id$orig_h ? "client" : "server"));
 	}

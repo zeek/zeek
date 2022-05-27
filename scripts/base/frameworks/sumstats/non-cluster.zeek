@@ -71,7 +71,7 @@ function data_added(ss: SumStat, key: Key, result: Result)
 		threshold_crossed(ss, key, result);
 	}
 
-function request(ss_name: string): ResultTable &deprecated
+function request(ss_name: string): ResultTable &deprecated="Remove in v6.1.  Usage testing indicates this function is unused."
 	{
 	# This only needs to be implemented this way for cluster compatibility.
 	return when [ss_name] ( T )

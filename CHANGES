@@ -1,3 +1,7 @@
+5.0.0-dev.508 | 2022-05-27 14:33:47 -0700
+
+  * Update zeek-aux submodule to fix a compiler warning (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.505 | 2022-05-26 16:08:42 -0700
 
   * Management framework updates (Christian Kreibich, Corelight)

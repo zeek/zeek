@@ -86,7 +86,7 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs)
 
 		auto loc = id->GetLocationInfo();
 
-		id->Warn("function does not have any callers");
+		id->Warn("non-exported function does not have any callers");
 
 		// Unlike for events/hooks above, we don't add the function to
 		// the reachables.  This is because an orphan function is a

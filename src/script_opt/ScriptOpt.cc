@@ -520,7 +520,7 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	finalize_functions(funcs);
 	}
 
-void analyze_scripts(bool no_usage_warnings)
+void analyze_scripts(bool no_unused_warnings)
 	{
 	static bool did_init = false;
 
@@ -531,7 +531,7 @@ void analyze_scripts(bool no_usage_warnings)
 		}
 
 	std::unique_ptr<UsageAnalyzer> ua;
-	if ( ! no_usage_warnings )
+	if ( ! no_unused_warnings )
 		ua = std::make_unique<UsageAnalyzer>(funcs);
 
 	auto& ofuncs = analysis_options.only_funcs;

@@ -166,7 +166,7 @@ void ID::SetVal(ValPtr v)
 			{
 			handler = new EventHandler(name);
 			handler->SetFunc(func);
-			event_registry->Register(handler);
+			event_registry->Register(handler, true);
 
 			if ( ! IsExport() )
 				register_new_event({NewRef{}, this});

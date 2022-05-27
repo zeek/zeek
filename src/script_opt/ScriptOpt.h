@@ -184,7 +184,7 @@ extern bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body);
 
 // Analyze all of the parsed scripts collectively for usage issues (unless
 // suppressed by the flag) and optimization.
-extern void analyze_scripts(bool no_usage_warnings);
+extern void analyze_scripts(bool no_unused_warnings);
 
 // Called when Zeek is terminating.
 extern void finish_script_execution();

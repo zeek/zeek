@@ -2,6 +2,7 @@
 
 #include "zeek/script_opt/UsageAnalyzer.h"
 
+#include "zeek/EventRegistry.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/IDOptInfo.h"
 
@@ -19,6 +20,15 @@ void register_new_event(const IDPtr& id)
 
 UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs)
 	{
+	// First, prune the script events to only those that were never
+	// registered in a non-script context.
+	auto script_events_orig = script_events;
+	script_events.clear();
+
+	for ( auto& ev : script_events_orig )
+		if ( ! event_registry->NotOnlyRegisteredFromScript(ev) )
+			script_events.insert(ev);
+
 	// Setting a scope cues ID::Traverse to delve into function values.
 	current_scope = global_scope();
 
@@ -52,8 +62,7 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs)
 		auto flavor = t->AsFuncType()->FlavorString();
 		auto loc = id->GetLocationInfo();
 
-		reporter->Warning("%s %s (%s:%d): cannot be invoked", flavor.c_str(), id->Name(),
-		                  loc->filename, loc->first_line);
+		id->Warn(util::fmt("handler for non-existing %s cannot be invoked", flavor.c_str()));
 
 		// Don't ding any functions that are reachable via this
 		// identifier.  This will also suppress flagging other events
@@ -77,8 +86,7 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs)
 
 		auto loc = id->GetLocationInfo();
 
-		reporter->Warning("function %s (%s:%d): cannot be called", id->Name(), loc->filename,
-		                  loc->first_line);
+		id->Warn("function does not have any callers");
 
 		// Unlike for events/hooks above, we don't add the function to
 		// the reachables.  This is because an orphan function is a

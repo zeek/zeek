@@ -4877,7 +4877,7 @@ EventExpr::EventExpr(const char* arg_name, ListExprPtr arg_args)
 	if ( ! h )
 		{
 		h = new EventHandler(name.c_str());
-		event_registry->Register(h);
+		event_registry->Register(h, true);
 		}
 
 	h->SetUsed();

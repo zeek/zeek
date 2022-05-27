@@ -236,6 +236,11 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
 		analyzer->Weird("DNS_truncated_RR_rdlength_lt_len");
 		return false;
 		}
+	else if ( rdlength == 0 && len > 0 )
+		{
+		analyzer->Weird("DNS_zero_rdlength");
+		return false;
+		}
 
 	bool status;
 	switch ( msg->atype )
@@ -690,8 +695,9 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
 		analyzer->EnqueueConnEvent(dns_EDNS_addl, analyzer->ConnVal(), msg->BuildHdrVal(),
 		                           msg->BuildEDNS_Val());
 
-	// parse EDNS options
-	while ( len > 0 )
+	// parse EDNS options. length has to be at least 4 to parse out the option
+	// code and length.
+	while ( len >= 4 )
 		{
 		uint16_t option_code = ExtractShort(data, len);
 		int option_len = ExtractShort(data, len);
@@ -889,6 +895,12 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
 				break;
 				}
 			}
+		}
+
+	if ( len > 0 )
+		{
+		analyzer->Weird("EDNS_truncated_option");
+		return false;
 		}
 
 	return true;

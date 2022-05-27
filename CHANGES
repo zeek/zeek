@@ -1,3 +1,9 @@
+5.0.0-dev.572 | 2022-06-03 10:31:51 -0700
+
+  * Fix hang in DNS analyzer with malformed packet (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit dfc9f77b68f6d02d059ade322b9c132e32c26872)
+
 5.0.0-dev.571 | 2022-06-03 09:50:45 -0700
 
   * Additional &is_used tags in the Netcontrol and Sumstats frameworks (Christian Kreibich, Corelight)

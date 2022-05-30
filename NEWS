@@ -71,6 +71,12 @@ New Functionality
   directly or indirectly.  The number is not meant to be precise, but
   rather comparable: larger footprint correlates with more memory consumption.
 
+- The Supervisor features two new events, ``Supervisor::node_status`` and
+  ``SupervisorControl::node_status``, to notify recipients of the fact that
+  the stem process has (re-)started a node. The events indicate the node's
+  name and its new PID, reflecting the information the stem already shares
+  with the Supervisor core.
+
 - The new ``configure --statedir`` option lets you adjust the installation's
   persistent state directory. It defaults to ``var/lib`` under your Zeek
   installation's root directory.

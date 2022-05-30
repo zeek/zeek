@@ -2,6 +2,7 @@
 ### NOTE: This file has been sorted with diff-sort.
 warning in <params>, line 1: event handler never invoked: InputConfig::new_value
 warning in <params>, line 1: event handler never invoked: InputRaw::process_finished
+warning in <params>, line 1: event handler never invoked: Supervisor::node_status
 warning in <params>, line 1: event handler never invoked: SupervisorControl::create_request
 warning in <params>, line 1: event handler never invoked: SupervisorControl::destroy_request
 warning in <params>, line 1: event handler never invoked: SupervisorControl::restart_request

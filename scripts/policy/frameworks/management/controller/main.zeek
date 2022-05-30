@@ -169,6 +169,8 @@ function add_instance(inst: Management::Instance)
 		Broker::publish(Management::Agent::topic_prefix + "/" + inst$name,
 		    Management::Agent::API::agent_welcome_request, req$id);
 		}
+	else
+		Management::Log::debug(fmt("instance %s not known to us, skipping", inst$name));
 	}
 
 function drop_instance(inst: Management::Instance)
@@ -281,6 +283,7 @@ event Management::Agent::API::notify_agent_hello(instance: string, host: addr, a
 		}
 
 	add g_instances_known[instance];
+	Management::Log::debug(fmt("instance %s now known to us", instance));
 
 	if ( instance in g_instances && instance !in g_instances_ready )
 		{
@@ -485,9 +488,15 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 	# case we need to re-establish connectivity with an agent.
 
 	for ( inst_name in insts_to_drop )
+		{
+		Management::Log::debug(fmt("dropping instance %s", inst_name));
 		drop_instance(g_instances[inst_name]);
+		}
 	for ( inst_name in insts_to_peer )
+		{
+		Management::Log::debug(fmt("adding instance %s", inst_name));
 		add_instance(insts_to_peer[inst_name]);
+		}
 
 	# Updates to out instance tables are complete, now check if we're already
 	# able to send the config to the agents:

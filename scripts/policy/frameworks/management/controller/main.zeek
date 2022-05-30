@@ -73,6 +73,10 @@ redef record Management::Request::Request += {
 # Tag our logs correctly
 redef Management::role = Management::CONTROLLER;
 
+# Conduct more frequent table expiration checks. This helps get more predictable
+# timing for request timeouts and only affects the agent, which is mostly idle.
+redef table_expire_interval = 2 sec;
+
 global check_instances_ready: function();
 global add_instance: function(inst: Management::Instance);
 global drop_instance: function(inst: Management::Instance);

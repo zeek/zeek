@@ -96,21 +96,34 @@ function agent_topic(): string
 
 function send_set_configuration_response(req: Management::Request::Request)
 	{
-	local res = Management::Result(
-	    $reqid = req$id,
-	    $instance = Management::Agent::get_name());
+	local node: string;
+	local res: Management::Result;
 
-	if ( |req$set_configuration_state$nodes_pending| > 0 )
+	# Put together the results vector for the response event.
+	for ( node in g_nodes )
 		{
-		res$success = F;
-		res$error = "some nodes failed to start";
-		res$data = req$set_configuration_state$nodes_pending;
+		res = Management::Result(
+		    $reqid = req$id,
+		    $instance = Management::Agent::get_name(),
+		    $node = node);
+
+		if ( node in req$set_configuration_state$nodes_pending )
+			{
+			# This node failed. Pull in any stdout/stderr context
+			# we might have.
+			res$success = F;
+
+			# XXX fill in stdout/stderr here if possible
+			}
+
+		# Add this result to the overall response
+		req$results[|req$results|] = res;
 		}
 
 	Management::Log::info(fmt("tx Management::Agent::API::set_configuration_response %s",
 	    Management::result_to_string(res)));
 	Broker::publish(agent_topic(),
-	    Management::Agent::API::set_configuration_response, req$id, res);
+	    Management::Agent::API::set_configuration_response, req$id, req$results);
 
 	Management::Request::finish(req$id);
 
@@ -215,7 +228,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		Management::Log::info(fmt("tx Management::Agent::API::set_configuration_response %s",
 		    Management::result_to_string(res)));
 		Broker::publish(agent_topic(),
-		    Management::Agent::API::set_configuration_response, reqid, res);
+		    Management::Agent::API::set_configuration_response, reqid, vector(res));
 		return;
 		}
 

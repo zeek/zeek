@@ -346,7 +346,7 @@ event Management::Agent::API::notify_log(instance: string, msg: string, node: st
 	# XXX TODO
 	}
 
-event Management::Agent::API::set_configuration_response(reqid: string, result: Management::Result)
+event Management::Agent::API::set_configuration_response(reqid: string, results: Management::ResultVec)
 	{
 	Management::Log::info(fmt("rx Management::Agent::API::set_configuration_response %s", reqid));
 
@@ -363,8 +363,11 @@ event Management::Agent::API::set_configuration_response(reqid: string, result: 
 	if ( Management::Request::is_null(req) )
 		return;
 
-	# Add this result to the overall response
-	req$results[|req$results|] = result;
+	# XXX the usual "any" handling needs to happen here if data is filled in
+
+	# Add this agent's results to the overall response
+	for ( i in results )
+		req$results[|req$results|] = results[i];
 
 	# Mark this request as done by removing it from the table of pending
 	# ones. The following if-check should always be true.

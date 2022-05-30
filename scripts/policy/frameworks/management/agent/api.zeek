@@ -38,7 +38,7 @@ export {
 	## result: the result record.
 	##
 	global set_configuration_response: event(reqid: string,
-	    result: Management::Result);
+	    result: Management::ResultVec);
 
 
 	## The controller sends this event to request a list of

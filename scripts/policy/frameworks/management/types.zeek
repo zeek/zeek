@@ -104,6 +104,18 @@ export {
 
 	type ResultVec: vector of Result;
 
+	## In :zeek:see:`Management::Controller::API::set_configuration_response`,
+	## events, each :zeek:see:`Management::Result` indicates the outcome of a
+	## requested cluster node. If a node does not launch properly (meaning
+	## it doesn't check in with the agent on thee machine it's running on),
+	## the result will indicate failure, and its data field will be an
+	## instance of this record, capturing the stdout and stderr output of
+	## the failing node.
+	type NodeOutputs: record {
+		stdout: string; ##< The stdout stream of a Zeek process
+		stderr: string; ##< The stderr stream of a Zeek process
+	};
+
 	## Given a :zeek:see:`Management::Result` record,
 	## this function returns a string summarizing it.
 	global result_to_string: function(res: Result): string;

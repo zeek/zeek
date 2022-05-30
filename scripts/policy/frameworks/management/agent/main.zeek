@@ -43,10 +43,14 @@ export {
 	};
 }
 
+# We need to go out of our way here to avoid colliding record field names with
+# the similar redef in the controller -- not because of real-world use, but
+# because Zeekygen loads it both during documentation extraction. Suffix all
+# members with _agent to disambiguate.
 redef record Management::Request::Request += {
-	supervisor_state: SupervisorState &optional;
-	set_configuration_state: SetConfigurationState &optional;
-	node_dispatch_state: NodeDispatchState &optional;
+	supervisor_state_agent: SupervisorState &optional;
+	set_configuration_state_agent: SetConfigurationState &optional;
+	node_dispatch_state_agent: NodeDispatchState &optional;
 };
 
 # Tag our logs correctly
@@ -107,7 +111,7 @@ function send_set_configuration_response(req: Management::Request::Request)
 		    $instance = Management::Agent::get_name(),
 		    $node = node);
 
-		if ( node in req$set_configuration_state$nodes_pending )
+		if ( node in req$set_configuration_state_agent$nodes_pending )
 			{
 			# This node failed. Pull in any stdout/stderr context
 			# we might have.
@@ -137,7 +141,7 @@ event SupervisorControl::create_response(reqid: string, result: string)
 	if ( Management::Request::is_null(req) )
 		return;
 
-	local name = req$supervisor_state$node;
+	local name = req$supervisor_state_agent$node;
 
 	if ( |result| > 0 )
 		{
@@ -157,7 +161,7 @@ event SupervisorControl::destroy_response(reqid: string, result: bool)
 	if ( Management::Request::is_null(req) )
 		return;
 
-	local name = req$supervisor_state$node;
+	local name = req$supervisor_state_agent$node;
 
 	if ( ! result )
 		{
@@ -174,7 +178,7 @@ event SupervisorControl::destroy_response(reqid: string, result: bool)
 function supervisor_create(nc: Supervisor::NodeConfig)
 	{
 	local req = Management::Request::create();
-	req$supervisor_state = SupervisorState($node = nc$name);
+	req$supervisor_state_agent = SupervisorState($node = nc$name);
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::create_request, req$id, nc);
 	Management::Log::info(fmt("issued supervisor create for %s, %s", nc$name, req$id));
@@ -183,7 +187,7 @@ function supervisor_create(nc: Supervisor::NodeConfig)
 function supervisor_destroy(node: string)
 	{
 	local req = Management::Request::create();
-	req$supervisor_state = SupervisorState($node = node);
+	req$supervisor_state_agent = SupervisorState($node = node);
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::destroy_request, req$id, node);
 	Management::Log::info(fmt("issued supervisor destroy for %s, %s", node, req$id));
@@ -233,7 +237,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		}
 
 	local req = Management::Request::create(reqid);
-	req$set_configuration_state = SetConfigurationState();
+	req$set_configuration_state_agent = SetConfigurationState();
 
 	# Establish this request as the pending one:
 	g_config_reqid_pending = reqid;
@@ -244,7 +248,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		if ( node$instance == Management::Agent::get_name() )
 			{
 			g_nodes[node$name] = node;
-			add req$set_configuration_state$nodes_pending[node$name];
+			add req$set_configuration_state_agent$nodes_pending[node$name];
 			}
 
 		# The cluster and supervisor frameworks require a port for every
@@ -452,8 +456,8 @@ event Management::Node::API::node_dispatch_response(reqid: string, result: Manag
 	# report themselves would eventually lead to request timeout.
 	if ( result?$node )
 		{
-		if ( result$node in req$node_dispatch_state$requests )
-			delete req$node_dispatch_state$requests[result$node];
+		if ( result$node in req$node_dispatch_state_agent$requests )
+			delete req$node_dispatch_state_agent$requests[result$node];
 		else
 			{
 			# An unknown or duplicate response -- do nothing.
@@ -464,7 +468,7 @@ event Management::Node::API::node_dispatch_response(reqid: string, result: Manag
 
 	# The usual special treatment for Broker values that are of type "any":
 	# confirm their type here based on the requested dispatch command.
-	switch req$node_dispatch_state$action[0]
+	switch req$node_dispatch_state_agent$action[0]
 		{
 		case "get_id_value":
 			if ( result?$data )
@@ -472,7 +476,7 @@ event Management::Node::API::node_dispatch_response(reqid: string, result: Manag
 			break;
 		default:
 			Management::Log::error(fmt("unexpected dispatch command %s",
-			    req$node_dispatch_state$action[0]));
+			    req$node_dispatch_state_agent$action[0]));
 			break;
 		}
 
@@ -486,7 +490,7 @@ event Management::Node::API::node_dispatch_response(reqid: string, result: Manag
 	# If we still have pending queries out to the agents, do nothing: we'll
 	# handle this soon, or our request will time out and we respond with
 	# error.
-	if ( |req$node_dispatch_state$requests| > 0 )
+	if ( |req$node_dispatch_state_agent$requests| > 0 )
 		return;
 
 	# Release the agent-nodes request state, since we now have all responses.
@@ -552,7 +556,7 @@ event Management::Agent::API::node_dispatch_request(reqid: string, action: vecto
 	local res: Management::Result;
 	local req = Management::Request::create(reqid);
 
-	req$node_dispatch_state = NodeDispatchState($action=action);
+	req$node_dispatch_state_agent = NodeDispatchState($action=action);
 
 	# Build up dispatch state for tracking responses. We only dispatch to
 	# nodes that are in state RUNNING, as those have confirmed they're ready
@@ -560,7 +564,7 @@ event Management::Agent::API::node_dispatch_request(reqid: string, action: vecto
 	for ( node in nodes_final )
 		{
 		if ( g_nodes[node]$state == Management::RUNNING )
-			add req$node_dispatch_state$requests[node];
+			add req$node_dispatch_state_agent$requests[node];
 		else
 			{
 			res = Management::Result($reqid=reqid, $node=node);
@@ -571,7 +575,7 @@ event Management::Agent::API::node_dispatch_request(reqid: string, action: vecto
 		}
 
 	# Corner case: nothing is in state RUNNING.
-	if ( |req$node_dispatch_state$requests| == 0 )
+	if ( |req$node_dispatch_state_agent$requests| == 0 )
 		{
 		Management::Log::info(fmt(
 		    "tx Management::Agent::API::node_dispatch_response %s, no nodes running",
@@ -642,13 +646,13 @@ event Management::Node::API::notify_node_hello(node: string)
 
 	local req = Management::Request::lookup(g_config_reqid_pending);
 
-	if ( Management::Request::is_null(req) || ! req?$set_configuration_state )
+	if ( Management::Request::is_null(req) || ! req?$set_configuration_state_agent )
 		return;
 
-	if ( node in req$set_configuration_state$nodes_pending )
+	if ( node in req$set_configuration_state_agent$nodes_pending )
 		{
-		delete req$set_configuration_state$nodes_pending[node];
-		if ( |req$set_configuration_state$nodes_pending| == 0 )
+		delete req$set_configuration_state_agent$nodes_pending[node];
+		if ( |req$set_configuration_state_agent$nodes_pending| == 0 )
 			send_set_configuration_response(req);
 		}
 	}
@@ -659,7 +663,7 @@ event Management::Request::request_expired(req: Management::Request::Request)
 	    $success = F,
 	    $error = "request timed out");
 
-	if ( req?$set_configuration_state )
+	if ( req?$set_configuration_state_agent )
 		{
 		send_set_configuration_response(req);
 		# This timeout means we no longer have a pending request.

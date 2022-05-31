@@ -150,4 +150,15 @@ export {
 	##
 	## msg: line-buffered contents from the stderr of a child process.
 	global stderr_hook: hook(node: string, msg: string);
+
+	## A notification event the Supervisor generates when it receives a
+	## status message update from the stem, indicating node has
+	## (re-)started.
+	##
+	## node: the name of a previously created node via
+	##       :zeek:see:`Supervisor::create` indicating to which
+	##       child process the stdout line is associated.
+	##
+	## pid: the process ID the stem reported for this node.
+	global node_status: event(node: string, pid: count);
 }

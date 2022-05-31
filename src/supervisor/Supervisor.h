@@ -332,6 +332,7 @@ private:
 	detail::Flare signal_flare;
 	NodeMap nodes;
 	std::string msg_buffer;
+	EventHandlerPtr node_status;
 	};
 
 namespace detail

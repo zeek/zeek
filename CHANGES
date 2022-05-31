@@ -1,3 +1,7 @@
+5.0.0-dev.525 | 2022-05-31 12:53:01 -0700
+
+  * Add Supervisor::node_status notification event (Christian Kreibich, Corelight)
+
 5.0.0-dev.523 | 2022-05-31 11:13:47 -0700
 
   * Update spicy-plugin with change that checks for zeek version (Tim Wojtulewicz, Corelight)

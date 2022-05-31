@@ -3,6 +3,7 @@
 warning in <...>/check-unused-event-handlers.test, line 6: handler for non-existing event cannot be invoked (this_is_never_used)
 warning in <params>, line 1: event handler never invoked: InputConfig::new_value
 warning in <params>, line 1: event handler never invoked: InputRaw::process_finished
+warning in <params>, line 1: event handler never invoked: Supervisor::node_status
 warning in <params>, line 1: event handler never invoked: SupervisorControl::create_request
 warning in <params>, line 1: event handler never invoked: SupervisorControl::destroy_request
 warning in <params>, line 1: event handler never invoked: SupervisorControl::restart_request

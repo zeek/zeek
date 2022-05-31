@@ -12,5 +12,6 @@
 @endif
 
 @if ( Supervisor::is_supervisor() )
+@load policy/frameworks/management/supervisor
 @load ./boot
 @endif

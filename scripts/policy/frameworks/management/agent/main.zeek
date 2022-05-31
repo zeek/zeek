@@ -9,6 +9,8 @@
 @load policy/frameworks/management
 @load policy/frameworks/management/node/api
 @load policy/frameworks/management/node/config
+@load policy/frameworks/management/supervisor/api
+@load policy/frameworks/management/supervisor/config
 
 @load ./api
 @load ./config
@@ -91,6 +93,10 @@ global g_config_reqid_pending: string = "";
 # configurations.
 global g_cluster: table[string] of Supervisor::ClusterEndpoint;
 
+# The most recent output contexts we've received from the Supervisor, for
+# any of our nodes.
+global g_outputs: table[string] of Management::NodeOutputs;
+
 
 function agent_topic(): string
 	{
@@ -113,11 +119,12 @@ function send_set_configuration_response(req: Management::Request::Request)
 
 		if ( node in req$set_configuration_state_agent$nodes_pending )
 			{
-			# This node failed. Pull in any stdout/stderr context
-			# we might have.
+			# This node failed.
 			res$success = F;
 
-			# XXX fill in stdout/stderr here if possible
+			# Pull in any stdout/stderr context we might have.
+			if ( node in g_outputs )
+				res$data = g_outputs[node];
 			}
 
 		# Add this result to the overall response
@@ -133,6 +140,12 @@ function send_set_configuration_response(req: Management::Request::Request)
 
 	if ( req$id == g_config_reqid_pending )
 		g_config_reqid_pending = "";
+	}
+
+event Management::Supervisor::API::notify_node_exit(node: string, outputs: Management::NodeOutputs)
+	{
+	if ( node in g_nodes )
+		g_outputs[node] = outputs;
 	}
 
 event SupervisorControl::create_response(reqid: string, result: string)
@@ -315,10 +328,10 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		# node.
 		nc$scripts[|nc$scripts|] = "policy/frameworks/management/node";
 
-		if ( Management::Node::stdout_file != "" )
-			nc$stdout_file = Management::Node::stdout_file;
-		if ( Management::Node::stderr_file != "" )
-			nc$stderr_file = Management::Node::stderr_file;
+		# We don't set nc$stdout_file/stderr_file here because the
+		# Management framework's Supervisor shim manages those output
+		# files itself. See frameworks/management/supervisor/main.zeek
+		# for details.
 
 		# XXX could use options to enable per-node overrides for
 		# directory, stdout, stderr, others?
@@ -708,6 +721,7 @@ event zeek_init()
 	Broker::subscribe(agent_topic());
 	Broker::subscribe(SupervisorControl::topic_prefix);
 	Broker::subscribe(Management::Node::node_topic);
+	Broker::subscribe(Management::Supervisor::topic_prefix);
 
 	# Establish connectivity with the controller.
 	if ( Management::Agent::controller$address != "0.0.0.0" )

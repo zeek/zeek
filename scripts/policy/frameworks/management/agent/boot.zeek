@@ -39,10 +39,9 @@ event zeek_init()
 	if ( ! mkdir(sn$directory) )
 		print(fmt("warning: could not create agent state dir '%s'", sn$directory));
 
-	if ( Management::Agent::stdout_file != "" )
-		sn$stdout_file = Management::Agent::stdout_file;
-	if ( Management::Agent::stderr_file != "" )
-		sn$stderr_file = Management::Agent::stderr_file;
+	# We don't set sn$stdout_file/stderr_file here because the Management
+	# framework's Supervisor shim manages those output files itself. See
+	# frameworks/management/supervisor/main.zeek for details.
 
 	# This helps identify Management framework nodes reliably.
 	sn$env["ZEEK_MANAGEMENT_NODE"] = "AGENT";

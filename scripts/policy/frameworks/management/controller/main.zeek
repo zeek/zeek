@@ -363,11 +363,15 @@ event Management::Agent::API::set_configuration_response(reqid: string, results:
 	if ( Management::Request::is_null(req) )
 		return;
 
-	# XXX the usual "any" handling needs to happen here if data is filled in
-
 	# Add this agent's results to the overall response
 	for ( i in results )
+		{
+		# The usual "any" treatment to keep access predictable
+		if ( results[i]?$data )
+			results[i]$data = results[i]$data as Management::NodeOutputs;
+
 		req$results[|req$results|] = results[i];
+		}
 
 	# Mark this request as done by removing it from the table of pending
 	# ones. The following if-check should always be true.

@@ -1,3 +1,17 @@
+5.0.0-dev.535 | 2022-05-31 12:58:32 -0700
+
+  * Management framework updates (Christian Kreibich, Corelight)
+
+    - bump external cluster testsuite
+    - bump zeek-client to pull in set-config rendering
+    - enable stdout/stderr reporting
+    - Supervisor extensions for stdout/stderr handling
+    - disambiguate redef field names in agent and controller
+    - move to ResultVec in agent's set_configuration response
+    - tune request timeout granularity and interval
+    - verify node starts when deploying a configuration
+    - a bit of debug-level logging for troubleshooting
+
 5.0.0-dev.525 | 2022-05-31 12:53:01 -0700
 
   * Add Supervisor::node_status notification event (Christian Kreibich, Corelight)

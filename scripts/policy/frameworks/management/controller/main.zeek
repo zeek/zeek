@@ -73,6 +73,10 @@ redef record Management::Request::Request += {
 # Tag our logs correctly
 redef Management::role = Management::CONTROLLER;
 
+# Conduct more frequent table expiration checks. This helps get more predictable
+# timing for request timeouts and only affects the agent, which is mostly idle.
+redef table_expire_interval = 2 sec;
+
 global check_instances_ready: function();
 global add_instance: function(inst: Management::Instance);
 global drop_instance: function(inst: Management::Instance);
@@ -169,6 +173,8 @@ function add_instance(inst: Management::Instance)
 		Broker::publish(Management::Agent::topic_prefix + "/" + inst$name,
 		    Management::Agent::API::agent_welcome_request, req$id);
 		}
+	else
+		Management::Log::debug(fmt("instance %s not known to us, skipping", inst$name));
 	}
 
 function drop_instance(inst: Management::Instance)
@@ -281,6 +287,7 @@ event Management::Agent::API::notify_agent_hello(instance: string, host: addr, a
 		}
 
 	add g_instances_known[instance];
+	Management::Log::debug(fmt("instance %s now known to us", instance));
 
 	if ( instance in g_instances && instance !in g_instances_ready )
 		{
@@ -339,7 +346,7 @@ event Management::Agent::API::notify_log(instance: string, msg: string, node: st
 	# XXX TODO
 	}
 
-event Management::Agent::API::set_configuration_response(reqid: string, result: Management::Result)
+event Management::Agent::API::set_configuration_response(reqid: string, results: Management::ResultVec)
 	{
 	Management::Log::info(fmt("rx Management::Agent::API::set_configuration_response %s", reqid));
 
@@ -356,8 +363,15 @@ event Management::Agent::API::set_configuration_response(reqid: string, result: 
 	if ( Management::Request::is_null(req) )
 		return;
 
-	# Add this result to the overall response
-	req$results[|req$results|] = result;
+	# Add this agent's results to the overall response
+	for ( i in results )
+		{
+		# The usual "any" treatment to keep access predictable
+		if ( results[i]?$data )
+			results[i]$data = results[i]$data as Management::NodeOutputs;
+
+		req$results[|req$results|] = results[i];
+		}
 
 	# Mark this request as done by removing it from the table of pending
 	# ones. The following if-check should always be true.
@@ -485,9 +499,15 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 	# case we need to re-establish connectivity with an agent.
 
 	for ( inst_name in insts_to_drop )
+		{
+		Management::Log::debug(fmt("dropping instance %s", inst_name));
 		drop_instance(g_instances[inst_name]);
+		}
 	for ( inst_name in insts_to_peer )
+		{
+		Management::Log::debug(fmt("adding instance %s", inst_name));
 		add_instance(insts_to_peer[inst_name]);
+		}
 
 	# Updates to out instance tables are complete, now check if we're already
 	# able to send the config to the agents:

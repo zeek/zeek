@@ -34,10 +34,9 @@ event zeek_init()
 	if ( ! mkdir(sn$directory) )
 		print(fmt("warning: could not create controller state dir '%s'", sn$directory));
 
-	if ( Management::Controller::stdout_file != "" )
-		sn$stdout_file = Management::Controller::stdout_file;
-	if ( Management::Controller::stderr_file != "" )
-		sn$stderr_file = Management::Controller::stderr_file;
+	# We don't set sn$stdout_file/stderr_file here because the Management
+	# framework's Supervisor shim manages those output files itself. See
+	# frameworks/management/supervisor/main.zeek for details.
 
 	# This helps identify Management framework nodes reliably.
 	sn$env["ZEEK_MANAGEMENT_NODE"] = "CONTROLLER";

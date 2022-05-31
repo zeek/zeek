@@ -330,7 +330,7 @@ function compose_resultvals(rv1: ResultVal, rv2: ResultVal): ResultVal
 	return result;
 	}
 
-function compose_results(r1: Result, r2: Result): Result
+function compose_results(r1: Result, r2: Result): Result &is_used
 	{
 	local result: Result = table();
 

@@ -3716,6 +3716,24 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 		}
 	}
 
+TraversalCode TableConstructorExpr::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreExpr(this);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = op->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	if ( attrs )
+		{
+		tc = attrs->Traverse(cb);
+		HANDLE_TC_EXPR_PRE(tc);
+		}
+
+	tc = cb->PostExpr(this);
+	HANDLE_TC_EXPR_POST(tc);
+	}
+
 ValPtr TableConstructorExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
@@ -3752,6 +3770,9 @@ void TableConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add("table(");
 	op->Describe(d);
 	d->Add(")");
+
+	if ( attrs )
+		attrs->Describe(d);
 	}
 
 SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
@@ -3831,6 +3852,24 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 		}
 	}
 
+TraversalCode SetConstructorExpr::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreExpr(this);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = op->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	if ( attrs )
+		{
+		tc = attrs->Traverse(cb);
+		HANDLE_TC_EXPR_PRE(tc);
+		}
+
+	tc = cb->PostExpr(this);
+	HANDLE_TC_EXPR_POST(tc);
+	}
+
 ValPtr SetConstructorExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
@@ -3853,6 +3892,9 @@ void SetConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add("set(");
 	op->Describe(d);
 	d->Add(")");
+
+	if ( attrs )
+		attrs->Describe(d);
 	}
 
 VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list, TypePtr arg_type)
@@ -4694,15 +4736,15 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList ar
 		}
 
 	// Install that in the global_scope
-	auto id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
+	lambda_id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
 	// Update lamb's name
 	dummy_func->SetName(my_name.c_str());
 
 	auto v = make_intrusive<FuncVal>(std::move(dummy_func));
-	id->SetVal(std::move(v));
-	id->SetType(ingredients->id->GetType());
-	id->SetConst();
+	lambda_id->SetVal(std::move(v));
+	lambda_id->SetType(ingredients->id->GetType());
+	lambda_id->SetConst();
 	}
 
 void LambdaExpr::CheckCaptures(StmtPtr when_parent)
@@ -4817,8 +4859,11 @@ TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreExpr(this);
 	HANDLE_TC_EXPR_PRE(tc);
 
+	tc = lambda_id->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
 	tc = ingredients->body->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
+	HANDLE_TC_EXPR_PRE(tc);
 
 	tc = cb->PostExpr(this);
 	HANDLE_TC_EXPR_POST(tc);
@@ -4832,7 +4877,7 @@ EventExpr::EventExpr(const char* arg_name, ListExprPtr arg_args)
 	if ( ! h )
 		{
 		h = new EventHandler(name.c_str());
-		event_registry->Register(h);
+		event_registry->Register(h, true);
 		}
 
 	h->SetUsed();
@@ -4888,6 +4933,22 @@ TraversalCode EventExpr::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreExpr(this);
 	HANDLE_TC_EXPR_PRE(tc);
+
+	auto& f = handler->GetFunc();
+	if ( f )
+		{
+		// We don't traverse the function, because that can lead
+		// to infinite traversals.  We do, however, see if we can
+		// locate the corresponding identifier, and traverse that.
+
+		auto& id = lookup_ID(f->Name(), GLOBAL_MODULE_NAME, false, false, false);
+
+		if ( id )
+			{
+			tc = id->Traverse(cb);
+			HANDLE_TC_EXPR_PRE(tc);
+			}
+		}
 
 	tc = args->Traverse(cb);
 	HANDLE_TC_EXPR_PRE(tc);

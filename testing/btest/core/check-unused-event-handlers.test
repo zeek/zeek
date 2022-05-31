@@ -1,7 +1,7 @@
 # This test should print a warning that the event handler is never invoked.
 # @TEST-REQUIRES: $SCRIPTS/have-spicy  # This test logs uninvoked event handlers, so disable it if Spicy and its plugin is unavailable.
 # @TEST-EXEC: zeek -b %INPUT check_for_unused_event_handlers=T
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff .stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort-and-remove-abspath btest-diff .stderr
 
 event this_is_never_used()
 	{

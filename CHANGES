@@ -1,3 +1,25 @@
+5.0.0-dev.523 | 2022-05-31 11:13:47 -0700
+
+  * Update spicy-plugin with change that checks for zeek version (Tim Wojtulewicz, Corelight)
+
+  * deprecation messages for unused base script functions (Vern Paxson, Corelight)
+
+  * clearer messages for warning about unused functions (Vern Paxson, Corelight)
+
+  * annotate orphan base script components with &deprecated (Vern Paxson, Corelight)
+
+  * annotate base scripts with &is_used as needed (Vern Paxson, Corelight)
+
+  * --no-usage-warnings flag to suppress analysis (Vern Paxson, Corelight)
+
+  * support for associating &is_used attributes with functions (Vern Paxson, Corelight)
+
+  * classes for evaluating function/hook/event usage (Vern Paxson, Corelight)
+
+  * broader support for AST traversal, including Attr and Attributes objects (Vern Paxson, Corelight)
+
+  * include attributes in descriptions of sets and tables (Vern Paxson, Corelight)
+
 5.0.0-dev.508 | 2022-05-27 14:33:47 -0700
 
   * Update zeek-aux submodule to fix a compiler warning (Tim Wojtulewicz, Corelight)

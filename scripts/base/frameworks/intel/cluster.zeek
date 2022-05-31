@@ -6,9 +6,10 @@
 
 module Intel;
 
-# Internal events for cluster data distribution.
-global insert_item: event(item: Item);
-global insert_indicator: event(item: Item);
+# Internal events for cluster data distribution.  Marked as &is_used since
+# they're communicated via Broker.
+global insert_item: event(item: Item) &is_used;
+global insert_indicator: event(item: Item) &is_used;
 
 # If this process is not a manager process, we don't want the full metadata.
 @if ( Cluster::local_node_type() != Cluster::MANAGER )

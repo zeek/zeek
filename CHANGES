@@ -1,3 +1,7 @@
+5.0.0-dev.538 | 2022-06-01 09:20:21 -0700
+
+  * GH-2101: Update cmake submodule to fix c-ares include path problem (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.535 | 2022-05-31 12:58:32 -0700
 
   * Management framework updates (Christian Kreibich, Corelight)

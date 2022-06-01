@@ -1,3 +1,11 @@
+4.2.2 | 2022-06-01 14:15:48 -0700
+
+  * Release 4.2.2.
+
+  * Fix hang in DNS analyzer with malformed packet (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit dc60633f7fe658fb8094055ce091e906c20065aa)
+
 4.2.1 | 2022-04-21 11:29:01 -0700
 
   * Release 4.2.1.

@@ -61,11 +61,12 @@ Manager::~Manager()
 	delete wakeup;
 	wakeup = nullptr;
 
-	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
-		{
-		auto src = *i;
+	// Make sure all of the sources are done before we try to delete any of them.
+	for ( auto& src : sources )
 		src->src->Done();
 
+	for ( auto& src : sources )
+		{
 		if ( src->manage_lifetime )
 			delete src->src;
 

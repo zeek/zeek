@@ -2,6 +2,24 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 4.0.7
+==========
+
+This release fixes the following security issues:
+
+- Fix potential hang in the DNS analyzer when receiving a specially-crafted
+  packet. Due to the possibility of this happening with packets received
+  from the network, this is a potential DoS vulnerability.
+
+  Thank you to Google's OSS-Fuzz project for reporting this vulernability.
+
+This release fixes the following bugs:
+
+- Fix issue with broken libpcaps that return repeat packets, most notably
+  the version provided with Myricom hardware.
+
+  https://github.com/zeek/zeek/issues/724
+
 Zeek 4.0.6
 ==========
 

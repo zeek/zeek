@@ -1,3 +1,21 @@
+4.0.7 | 2022-06-01 14:09:05 -0700
+
+  * Release 4.0.7.
+
+  * Fix hang in DNS analyzer with malformed packet (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit dc60633f7fe658fb8094055ce091e906c20065aa)
+
+  * Fix issue with broken libpcaps that return repeat packets (Tim Wojtulewicz, Corelight)
+
+    This is apparently a problem with the Myricom version of libpcap, where
+    instead of returning a null or a zero if no packets are available, it
+    returns the previous packet. This causes Zeek to improperly parse the
+    packet and crash. We thought we had fixed this previously with a check
+    for a null packet but that fix was not enough.
+
+    (cherry picked from commit 86e5aec47779d87b247deb9f1a2f163a10623ae0)
+
 4.0.6 | 2022-04-21 09:26:08 -0700
 
   * Release 4.0.6.

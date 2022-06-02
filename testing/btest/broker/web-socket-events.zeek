@@ -1,5 +1,9 @@
 # @TEST-GROUP: broker
 #
+# This test requires the websockets module, available via
+# "pip install websockets".
+# @TEST-REQUIRES: python3 -c 'import websockets'
+#
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run server "zeek -b %INPUT >output"

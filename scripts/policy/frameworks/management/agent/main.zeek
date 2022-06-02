@@ -59,7 +59,7 @@ redef record Management::Request::Request += {
 redef Management::role = Management::AGENT;
 
 # Conduct more frequent table expiration checks. This helps get more predictable
-# timing for request timeouts and only affects the controller, which is mostly idle.
+# timing for request timeouts and only affects the agent, which is mostly idle.
 redef table_expire_interval = 2 sec;
 
 # Tweak the request timeout so it's relatively quick, and quick enough always to

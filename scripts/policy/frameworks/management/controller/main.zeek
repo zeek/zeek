@@ -74,13 +74,22 @@ redef record Management::Request::Request += {
 redef Management::role = Management::CONTROLLER;
 
 # Conduct more frequent table expiration checks. This helps get more predictable
-# timing for request timeouts and only affects the agent, which is mostly idle.
+# timing for request timeouts and only affects the controller, which is mostly idle.
 redef table_expire_interval = 2 sec;
 
+# Helper that checks whether the agents that are ready match those we need to
+# operate the current cluster configuration. When that is the case, triggers
+# notify_agents_ready event.
 global check_instances_ready: function();
+
+# Adds the given instance to g_instances and peers, if needed.
 global add_instance: function(inst: Management::Instance);
+
+# Drops the given instance from g_instances and sends it an
+# agent_standby_request, so it drops its current cluster nodes (if any).
 global drop_instance: function(inst: Management::Instance);
 
+# Helpers to simplify handling of config records.
 global null_config: function(): Management::Configuration;
 global is_null_config: function(config: Management::Configuration): bool;
 
@@ -90,13 +99,13 @@ global is_null_config: function(config: Management::Configuration): bool;
 # one from our internal state.
 global is_instance_connectivity_change: function(inst: Management::Instance): bool;
 
-# The set of agents the controller interacts with to manage to currently
+# The set of agents the controller interacts with to manage the currently
 # configured cluster. This may be a subset of all the agents known to the
-# controller, as tracked by the g_instances_known set. They key is the instance
+# controller, tracked by the g_instances_known set. They key is the instance
 # name and should match the $name member of the corresponding instance record.
 global g_instances: table[string] of Management::Instance = table();
 
-# The set of instances that have checked in with the controller. This is a
+# The set of instances that the controller communicates with. This may be a
 # superset of g_instances, since it covers any agent that has sent us a
 # notify_agent_hello event.
 global g_instances_known: set[string] = set();
@@ -139,8 +148,6 @@ function send_config_to_agents(req: Management::Request::Request, config: Manage
 		}
 	}
 
-# This is the &on_change handler for the g_instances_ready set, meaning
-# it runs whenever a required agent has confirmed it's ready.
 function check_instances_ready()
 	{
 	local cur_instances: set[string];
@@ -291,8 +298,8 @@ event Management::Agent::API::notify_agent_hello(instance: string, host: addr, a
 
 	if ( instance in g_instances && instance !in g_instances_ready )
 		{
-		# We need this instance for our cluster and have full context for
-		# it from the configuration. Tell agent.
+		# We need this instance for the requested cluster and have full
+		# context for it from the configuration. Tell agent.
 		local req = Management::Request::create();
 
 		Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_request to %s", instance));
@@ -540,7 +547,7 @@ event Management::Controller::API::get_configuration_request(reqid: string)
 
 event Management::Controller::API::get_instances_request(reqid: string)
 	{
-	Management::Log::info(fmt("rx Management::Controller::API::set_instances_request %s", reqid));
+	Management::Log::info(fmt("rx Management::Controller::API::get_instances_request %s", reqid));
 
 	local res = Management::Result($reqid = reqid);
 	local insts: vector of Management::Instance;

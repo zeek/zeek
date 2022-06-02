@@ -164,8 +164,8 @@ export {
 	## The controller triggers this event when the operational cluster
 	## instances align with the ones desired by the cluster
 	## configuration. It's essentially a cluster management readiness
-	## event. This event is currently only used by the controller and not
-	## published to other topics.
+	## event. This event is currently only used internally by the controller,
+	## and not published to topics.
 	##
 	## instances: the set of instance names now ready.
 	##

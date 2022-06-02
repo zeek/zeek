@@ -34,13 +34,14 @@ RUN apt-get update && apt-get -y install \
     bc \
     lcov \
     ccache \
-  && rm -rf /var/lib/apt/lists/* \
-  # Recent CMake.
-  && mkdir -p "${CMAKE_DIR}" \
-  && curl -sSL "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz" | tar xzf - -C "${CMAKE_DIR}" --strip-components 1
+  && rm -rf /var/lib/apt/lists/*
 
-ENV CC=/usr/bin/clang-10
-ENV CXX=/usr/bin/clang++-10
+# Recent CMake.
+RUN mkdir -p "${CMAKE_DIR}" \
+  && curl -sSL "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz" | tar xzf - -C "${CMAKE_DIR}" --strip-components 1
 
 RUN pip3 install websockets junit2html
 RUN gem install coveralls-lcov
+
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/clang-10 100
+RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-10 100

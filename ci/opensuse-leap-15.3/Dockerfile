@@ -30,5 +30,5 @@ RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.2
 
 RUN pip3 install websockets junit2html
 
-ENV CXX g++-9
-ENV CC gcc-9
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-9 100
+RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-9 100

@@ -20,6 +20,12 @@ Breaking Changes
   functioned in any useable way. We opted to skip the deprecation cycle for
   these types for that reason.
 
+- Broker now uses a new network backend with a custom network protocol that is
+  incompatible with the pre-5.0 backend. In practice, this means Zeek 4.x will
+  not be able to exchange events with Zeek 5.x. Going forward, this new backend
+  will allow us to keep the Broker protocol more stable and add new capabilities
+  in a backwards compatible way.
+
 New Functionality
 -----------------
 
@@ -90,6 +96,12 @@ New Functionality
 
 - The ``base/misc/installation.zeek`` script provides your Zeek installation's
   key directories.
+
+- Broker now allows clients to connect as lightweight peers via WebSocket. Zeek
+  scripts may expose a WebSocket port by calling
+  `Broker::listen_websocket`. Zeek/Broker communicates via JSON messages, the
+  format is documented here:
+  https://docs.zeek.org/projects/broker/en/current/web-socket.html
 
 Changed Functionality
 ---------------------

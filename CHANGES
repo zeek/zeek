@@ -1,3 +1,13 @@
+5.0.0-dev.551 | 2022-06-02 12:19:32 -0700
+
+  * Expand scripts.base.frameworks.intel.cluster-transparency test (Christian Kreibich, Corelight)
+
+  * Fix races in scripts.base.frameworks.intel.cluster-transparency-with-proxy test (Christian Kreibich, Corelight)
+
+  * Add Intel::send_store_on_node_up boolean to control min_data_store delivery (Christian Kreibich, Corelight)
+
+  * Fix a -Wstringop-overflow memset size warning with GCC 12 (Christian Kreibich, Corelight)
+
 5.0.0-dev.545 | 2022-06-02 12:00:53 +0200
 
   * Add WebSocket support for exchanging events with external clients.

@@ -1,3 +1,6 @@
+# This test verifies intel data propagation via a cluster. The manager and both
+# workers insert intel items, and both workers do lookups that we expect to hit.
+
 # @TEST-PORT: BROKER_PORT1
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
@@ -9,7 +12,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff manager-1/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff worker-1/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff worker-2/.stdout
-# @TEST-EXEC: btest-diff manager-1/intel.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-timestamps-and-sort btest-diff manager-1/intel.log
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
@@ -35,8 +38,10 @@ event Cluster::node_up(name: string, id: string)
 		}
 	}
 
-global worker2_data = 0;
+global log_writes = 0;
+global worker_data = 0;
 global sent_data = F;
+
 # Watch for new indicators send to workers.
 event Intel::insert_indicator(item: Intel::Item)
 	{
@@ -53,16 +58,23 @@ event Intel::insert_indicator(item: Intel::Item)
 			Intel::insert([$indicator="4.3.2.1", $indicator_type=Intel::ADDR, $meta=[$source="worker-2"]]);
 		}
 
-	# We're forcing worker-2 to do a lookup when it has three intelligence items
-	# which were distributed over the cluster (data inserted locally is resent).
+	# Each worker does a lookup when it has 3 intel items which were
+	# distributed over the cluster (data inserted locally is resent).
+	# Worker 1 observes the host inserted by worker 2, and vice versa.
+	if ( Cluster::node == "worker-1" )
+		{
+		if ( ++worker_data == 3 )
+			{
+			print "seeing 4.3.2.1";
+			Intel::seen([$host=4.3.2.1, $where=Intel::IN_ANYWHERE]);
+			}
+		}
+
 	if ( Cluster::node == "worker-2" )
 		{
-		++worker2_data;
-		if ( worker2_data == 3 )
+		if ( ++worker_data == 3 )
 			{
-			# Now that everything is inserted, see if we can match on the data inserted
-			# by worker-1.
-			print "Doing a lookup";
+			print "seeing 123.123.123.123";
 			Intel::seen([$host=123.123.123.123, $where=Intel::IN_ANYWHERE]);
 			}
 		}
@@ -83,7 +95,8 @@ event Intel::new_item(item: Intel::Item)
 
 event Intel::log_intel(rec: Intel::Info)
 	{
-	terminate();
+	if ( ++log_writes == 2 )
+		terminate();
 	}
 
 event Cluster::node_down(name: string, id: string)

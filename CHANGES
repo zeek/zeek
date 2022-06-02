@@ -1,3 +1,7 @@
+5.0.0-dev.553 | 2022-06-02 13:16:44 -0700
+
+  * Make broker.web-socket-events test require the Python websockets package (Christian Kreibich, Corelight)
+
 5.0.0-dev.551 | 2022-06-02 12:19:32 -0700
 
   * Expand scripts.base.frameworks.intel.cluster-transparency test (Christian Kreibich, Corelight)

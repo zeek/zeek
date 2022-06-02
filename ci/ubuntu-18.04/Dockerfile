@@ -42,5 +42,5 @@ RUN apt-get update && apt-get -y install \
 ENV CC=/usr/bin/clang-10
 ENV CXX=/usr/bin/clang++-10
 
-RUN pip3 install junit2html
+RUN pip3 install websockets junit2html
 RUN gem install coveralls-lcov

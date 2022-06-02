@@ -26,4 +26,4 @@ RUN dnf -y install \
     zlib-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
-RUN pip3 install junit2html
+RUN pip3 install websockets junit2html

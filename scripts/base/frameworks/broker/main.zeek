@@ -3,9 +3,17 @@
 module Broker;
 
 export {
-	## Default port for Broker communication. Where not specified
+	## Default port for native Broker communication. Where not specified
 	## otherwise, this is the port to connect to and listen on.
 	const default_port = 9999/tcp &redef;
+
+	## Default port for Broker WebSocket communication. Where not specified
+	## otherwise, this is the port to connect to and listen on for
+	## WebSocket connections.
+	##
+	## See the Broker documentation for a specification of the message
+	## format over WebSocket connections.
+	const default_port_websocket = 9997/tcp &redef;
 
 	## Default interval to retry listening on a port if it's currently in
 	## use already.  Use of the ZEEK_DEFAULT_LISTEN_RETRY environment variable
@@ -17,6 +25,11 @@ export {
 	##
 	## .. zeek:see:: Broker::listen
 	const default_listen_address = getenv("ZEEK_DEFAULT_LISTEN_ADDRESS") &redef;
+
+	## Default address on which to listen for WebSocket connections.
+	##
+	## .. zeek:see:: Broker::listen_websocket
+	const default_listen_address_websocket = getenv("ZEEK_DEFAULT_LISTEN_ADDRESS") &redef;
 
 	## Default interval to retry connecting to a peer if it cannot be made to
 	## work initially, or if it ever becomes disconnected.  Use of the
@@ -267,7 +280,7 @@ export {
 		val: Broker::Data;
 	};
 
-	## Listen for remote connections.
+	## Listen for remote connections using the native Broker protocol.
 	##
 	## a: an address string on which to accept connections, e.g.
 	##    "127.0.0.1".  An empty string refers to INADDR_ANY.
@@ -286,6 +299,26 @@ export {
 	global listen: function(a: string &default = default_listen_address,
 	                        p: port &default = default_port,
 	                        retry: interval &default = default_listen_retry): port;
+
+	## Listen for remote connections using WebSocket.
+	##
+	## a: an address string on which to accept connections, e.g.
+	##    "127.0.0.1".  An empty string refers to INADDR_ANY.
+	##
+	## p: the TCP port to listen on. The value 0 means that the OS should choose
+	##    the next available free port.
+	##
+	## retry: If non-zero, retries listening in regular intervals if the port cannot be
+	##        acquired immediately. 0 disables retries.  If the
+	##        ZEEK_DEFAULT_LISTEN_RETRY environment variable is set (as number
+	##        of seconds), it overrides any value given here.
+	##
+	## Returns: the bound port or 0/? on failure.
+	##
+	## .. zeek:see:: Broker::status
+	global listen_websocket: function(a: string &default = default_listen_address_websocket,
+	                                  p: port &default = default_port_websocket,
+	                                  retry: interval &default = default_listen_retry): port;
 
 	## Initiate a remote connection.
 	##
@@ -473,7 +506,7 @@ event retry_listen(a: string, p: port, retry: interval)
 
 function listen(a: string, p: port, retry: interval): port
 	{
-	local bound = __listen(a, p);
+	local bound = __listen(a, p, Broker::NATIVE);
 
 	if ( bound == 0/tcp )
 		{
@@ -484,6 +517,29 @@ function listen(a: string, p: port, retry: interval): port
 
 		if ( retry != 0secs )
 			schedule retry { retry_listen(a, p, retry) };
+		}
+
+	return bound;
+	}
+
+event retry_listen_websocket(a: string, p: port, retry: interval)
+	{
+	listen_websocket(a, p, retry);
+	}
+
+function listen_websocket(a: string, p: port, retry: interval): port
+	{
+	local bound = __listen(a, p, Broker::WEBSOCKET);
+
+	if ( bound == 0/tcp )
+		{
+		local e = getenv("ZEEK_DEFAULT_LISTEN_RETRY");
+
+		if ( e != "" )
+			retry = double_to_interval(to_double(e));
+
+		if ( retry != 0secs )
+			schedule retry { retry_listen_websocket(a, p, retry) };
 		}
 
 	return bound;

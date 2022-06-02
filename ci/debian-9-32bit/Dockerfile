@@ -43,6 +43,6 @@ RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-11 100
 # junit2html >= 31.0.0 requires jinj2 >= 3.0 which requires python >= 3.7 which is
 # a higher version of python3 than debian 9 provides. Fix the version of junit2html
 # to the last version before they required the newer jinja2.
-RUN pip3 install junit2html==30.0.6
+RUN pip3 install websockets junit2html==30.0.6
 
 ENV CXXFLAGS=-stdlib=libc++

@@ -52,6 +52,12 @@ New Functionality
   use this functionality, see the TLS Decryption documentation at
   https://docs.zeek.org/en/master/frameworks/tls-decryption.html
 
+- Zeek now provides WebSocket support for exchanging events with
+  external clients. To enable it, call `Broker::listen_websocket()`.
+  Zeek will then start listening on port 9997 for incoming WebSocket
+  connections. See the Broker documentation for a description of the
+  message format expected over these WebSocket connections.
+
 - The new --with-gen-zam configure flag and its corresponding GEN_ZAM_EXE_PATH
   cmake variable allow reuse of a previously built Gen-ZAM code generator. This
   aids cross-compilation: the Zeek build process normally compiles Gen-ZAM on

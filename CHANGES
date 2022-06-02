@@ -1,3 +1,15 @@
+5.0.0-dev.545 | 2022-06-02 12:00:53 +0200
+
+  * Add WebSocket support for exchanging events with external clients.
+    (Robin Sommer, Corelight)
+
+    This exposes Broker's new WebSocket support in Zeek. To enable it,
+    call `Broker::listen_websocket()`. Zeek will then start listening on
+    port 9997 for incoming WebSocket connections.
+
+    See the Broker documentation for a description of the message format
+    expected over these WebSocket connections.
+
 5.0.0-dev.540 | 2022-06-01 11:08:42 -0700
 
   * GH-2136: Clean up DNS_Mgr before shutting down (Tim Wojtulewicz, Corelight)

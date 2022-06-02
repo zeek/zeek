@@ -28,7 +28,7 @@ RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.2
   tar \
   && rm -rf /var/cache/zypp
 
-RUN pip3 install junit2html
+RUN pip3 install websockets junit2html
 
 ENV CXX g++-9
 ENV CC gcc-9

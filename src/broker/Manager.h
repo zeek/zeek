@@ -79,6 +79,13 @@ struct Stats
 class Manager : public iosource::IOSource
 	{
 public:
+	/** Broker protocol to expect on a listening port. */
+	enum class BrokerProtocol
+		{
+		Native, /**< Broker's native binary protocol */
+		WebSocket /** Broker's WebSocket protocol for external clients. */
+		};
+
 	static const broker::endpoint_info NoPeer;
 
 	/**
@@ -118,11 +125,13 @@ public:
 	 * @param port the TCP port to listen on.
 	 * @param addr an address string on which to accept connections, e.g.
 	 * "127.0.0.1".  The empty string refers to @p INADDR_ANY.
+	 * @param protocol protocol to speak on accepted connections
 	 * @return 0 on failure or the bound port otherwise. If *port* != 0, then the
 	 * return value equals *port* on success. If *port* equals 0, then the
 	 * return values represents the bound port as chosen by the OS.
 	 */
-	uint16_t Listen(const std::string& addr, uint16_t port);
+	uint16_t Listen(const std::string& addr, uint16_t port,
+	                BrokerProtocol protocol = BrokerProtocol::Native);
 
 	/**
 	 * Initiate a peering with a remote endpoint.

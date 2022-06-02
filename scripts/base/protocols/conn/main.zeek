@@ -99,24 +99,19 @@ export {
 
 		## Records the state history of connections as a string of
 		## letters.  The meaning of those letters is:
-		##
-		## ======  ====================================================
-		## Letter  Meaning
-		## ======  ====================================================
-		## s       a SYN w/o the ACK bit set
-		## h       a SYN+ACK ("handshake")
-		## a       a pure ACK
-		## d       packet with payload ("data")
-		## f       packet with FIN bit set
-		## r       packet with RST bit set
-		## c       packet with a bad checksum (applies to UDP too)
-		## g       a content gap
-		## t       packet with retransmitted payload
-		## w       packet with a zero window advertisement
-		## i       inconsistent packet (e.g. FIN+RST bits set)
-		## q       multi-flag packet (SYN+FIN or SYN+RST bits set)
-		## ^       connection direction was flipped by Zeek's heuristic
-		## ======  ====================================================
+		## * s       a SYN w/o the ACK bit set
+		## * h       a SYN+ACK ("handshake")
+		## * a       a pure ACK
+		## * d       packet with payload ("data")
+		## * f       packet with FIN bit set
+		## * r       packet with RST bit set
+		## * c       packet with a bad checksum (applies to UDP too)
+		## * g       a content gap
+		## * t       packet with retransmitted payload
+		## * w       packet with a zero window advertisement
+		## * i       inconsistent packet (e.g. FIN+RST bits set)
+		## * q       multi-flag packet (SYN+FIN or SYN+RST bits set)
+		## * ^       connection direction was flipped by Zeek's heuristic
 		##
 		## If the event comes from the originator, the letter is in
 		## upper-case; if it comes from the responder, it's in

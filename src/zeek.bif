@@ -3113,7 +3113,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 		}
 
 	const char* bytes = hexstr->AsString()->CheckString();
-	int outlen = (len/2);
+	size_t outlen = (len/2);
 	auto bytestring_buf = std::make_unique<char[]>(outlen);
 	auto bytestring = bytestring_buf.get();
 	memset(bytestring, 0, outlen);

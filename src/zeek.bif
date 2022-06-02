@@ -4198,7 +4198,7 @@ static bool mmdb_try_open_asn ()
 ##
 ## Returns: A boolean indicating whether the db was successfully opened.
 ##
-## .. zeek:see:: lookup_asn
+## .. zeek:see:: lookup_asn lookup_autonomous_system
 function mmdb_open_location_db%(f: string%) : bool
 	%{
 #ifdef USE_GEOIP
@@ -4208,14 +4208,14 @@ function mmdb_open_location_db%(f: string%) : bool
 #endif
 	%}
 
-## Initializes MMDB for later use of lookup_asn.
+## Initializes MMDB for later use of lookup_asn or lookup_autonomous_system.
 ## Requires Zeek to be built with ``libmaxminddb``.
 ##
 ## f: The filename of the MaxMind ASN DB.
 ##
 ## Returns: A boolean indicating whether the db was successfully opened.
 ##
-## .. zeek:see:: lookup_asn
+## .. zeek:see:: lookup_asn lookup_autonomous_system
 function mmdb_open_asn_db%(f: string%) : bool
 	%{
 #ifdef USE_GEOIP
@@ -4232,7 +4232,7 @@ function mmdb_open_asn_db%(f: string%) : bool
 ##
 ## Returns: A record with country, region, city, latitude, and longitude.
 ##
-## .. zeek:see:: lookup_asn
+## .. zeek:see:: lookup_asn lookup_autonomous_system
 function lookup_location%(a: addr%) : geo_location
 	%{
 	static auto geo_location = zeek::id::find_type<zeek::RecordType>("geo_location");
@@ -4318,7 +4318,7 @@ function lookup_location%(a: addr%) : geo_location
 ##
 ## Returns: The number of the ASN that contains *a*.
 ##
-## .. zeek:see:: lookup_location
+## .. zeek:see:: lookup_location lookup_autonomous_system
 function lookup_asn%(a: addr%) : count
 	%{
 #ifdef USE_GEOIP
@@ -4365,6 +4365,74 @@ function lookup_asn%(a: addr%) : count
 	// able to initialize it or it didn't return any information for
 	// the address.
 	return zeek::val_mgr->Count(0);
+	%}
+
+## Performs an lookup of AS numbe & organization of an IP address.
+## Requires Zeek to be built with ``libmaxminddb``.
+##
+## a: The IP address to lookup.
+##
+## Returns: A record with autonomous system number and organization that
+## contains *a*.
+##
+## .. zeek:see:: lookup_location lookup_asn
+function lookup_autonomous_system%(a: addr%) : geo_autonomous_system
+	%{
+	static auto geo_autonomous_system = zeek::id::find_type<zeek::RecordType>("geo_autonomous_system");
+	auto autonomous_system = zeek::make_intrusive<zeek::RecordVal>(geo_autonomous_system);
+
+#ifdef USE_GEOIP
+	mmdb_check_asn();
+	if ( ! mmdb_asn )
+		{
+		if ( ! mmdb_try_open_asn() )
+			{
+			if ( ! did_mmdb_asn_db_error )
+				{
+				did_mmdb_asn_db_error = true;
+				zeek::emit_builtin_error("Failed to open GeoIP ASN database");
+				}
+
+			return autonomous_system;
+			}
+		}
+
+	MMDB_lookup_result_s result;
+
+	if ( mmdb_lookup_asn(a->AsAddr(), result) )
+		{
+		MMDB_entry_data_s entry_data;
+		int status;
+
+		// Get Autonomous System Number
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "autonomous_system_number", nullptr);
+		autonomous_system->Assign(0, mmdb_getvalue(&entry_data, status,
+		                          MMDB_DATA_TYPE_UINT32));
+
+		// Get Autonomous System Organization
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "autonomous_system_organization", nullptr);
+		autonomous_system->Assign(1, mmdb_getvalue(&entry_data, status,
+		                          MMDB_DATA_TYPE_UTF8_STRING));
+
+		return autonomous_system;
+		}
+
+#else // not USE_GEOIP
+	static int missing_geoip_reported = 0;
+
+	if ( ! missing_geoip_reported )
+		{
+		zeek::emit_builtin_error("Zeek was not configured for GeoIP ASN support");
+		missing_geoip_reported = 1;
+		}
+#endif
+
+	// We can get here even if we have GeoIP support, if we weren't
+	// able to initialize it or it didn't return any information for
+	// the address.
+	return autonomous_system;
 	%}
 
 ## Calculates distance between two geographic locations using the haversine

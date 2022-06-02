@@ -4319,7 +4319,7 @@ function lookup_location%(a: addr%) : geo_location
 ## Returns: The number of the ASN that contains *a*.
 ##
 ## .. zeek:see:: lookup_location lookup_autonomous_system
-function lookup_asn%(a: addr%) : count
+function lookup_asn%(a: addr%) : count &deprecated="Remove in v6.1.  Functionality is now handled by lookup_autonomous_system()."
 	%{
 #ifdef USE_GEOIP
 	mmdb_check_asn();

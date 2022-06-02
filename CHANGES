@@ -1,3 +1,11 @@
+5.0.0-dev.559 | 2022-06-02 16:58:58 -0700
+
+  * Mark lookup_asn() BIF as deprecated in v6.1 (Phil Rzewski)
+
+  * Define geo_autonomous_system record type (Phil Rzewski)
+
+  * Add lookup_autonomous_system() BIF that returns AS number and org (Phil Rzewski)
+
 5.0.0-dev.553 | 2022-06-02 13:16:44 -0700
 
   * Make broker.web-socket-events test require the Python websockets package (Christian Kreibich, Corelight)

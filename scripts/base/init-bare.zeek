@@ -984,6 +984,14 @@ type geo_location: record {
 	longitude: double &optional;	##< Longitude.
 } &log;
 
+## GeoIP autonomous system information.
+##
+## .. zeek:see:: lookup_autonomous_system
+type geo_autonomous_system: record {
+	number: count &optional;	##< The autonomous system number.
+	organization: string &optional;	##< Associated organization.
+} &log;
+
 ## The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.
 const mmdb_dir: string = "" &redef;
 

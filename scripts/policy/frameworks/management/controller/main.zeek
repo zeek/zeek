@@ -175,10 +175,15 @@ function add_instance(inst: Management::Instance)
 
 	if ( inst$name in g_instances_known )
 		{
-		# The agent has already peered with us. Send welcome to indicate
-		# it's part of cluster management. Once it responds, we update
-		# the set of ready instances and proceed as feasible with config
-		# deployments.
+		# The agent has already peered with us. This means we have its
+		# IP address as observed by us, so use it if this agent
+		# connected to us.
+		if ( ! inst?$listen_port )
+			inst$host = g_instances_known[inst$name]$host;
+
+		# Send welcome to indicate it's part of cluster management. Once
+		# it responds, we update the set of ready instances and proceed
+		# as feasible with config deployments.
 
 		local req = Management::Request::create();
 
@@ -665,7 +670,7 @@ event Management::Controller::API::get_nodes_request(reqid: string)
 	Management::Log::info(fmt("rx Management::Controller::API::get_nodes_request %s", reqid));
 
 	# Special case: if we have no instances, respond right away.
-	if ( |g_instances| == 0 )
+	if ( |g_instances_known| == 0 )
 		{
 		Management::Log::info(fmt("tx Management::Controller::API::get_nodes_response %s", reqid));
 		local res = Management::Result($reqid=reqid, $success=F,
@@ -678,11 +683,8 @@ event Management::Controller::API::get_nodes_request(reqid: string)
 	local req = Management::Request::create(reqid);
 	req$get_nodes_state = GetNodesState();
 
-	for ( name in g_instances )
+	for ( name in g_instances_known )
 		{
-		if ( name !in g_instances_ready )
-			next;
-
 		local agent_topic = Management::Agent::topic_prefix + "/" + name;
 		local areq = Management::Request::create();
 

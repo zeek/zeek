@@ -93,6 +93,10 @@ global drop_instance: function(inst: Management::Instance);
 global null_config: function(): Management::Configuration;
 global is_null_config: function(config: Management::Configuration): bool;
 
+# Given a Broker ID, this returns the endpoint info associated with it.
+# On error, returns a dummy record with an empty ID string.
+global find_endpoint: function(id: string): Broker::EndpointInfo;
+
 # Checks whether the given instance is one that we know with different
 # communication settings: a different peering direction, a different listening
 # port, etc. Used as a predicate to indicate when we need to drop the existing
@@ -101,19 +105,21 @@ global is_instance_connectivity_change: function(inst: Management::Instance): bo
 
 # The set of agents the controller interacts with to manage the currently
 # configured cluster. This may be a subset of all the agents known to the
-# controller, tracked by the g_instances_known set. They key is the instance
+# controller, tracked by the g_instances_known table. They key is the instance
 # name and should match the $name member of the corresponding instance record.
 global g_instances: table[string] of Management::Instance = table();
 
-# The set of instances that the controller communicates with. This may be a
-# superset of g_instances, since it covers any agent that has sent us a
-# notify_agent_hello event.
-global g_instances_known: set[string] = set();
+# The instances the controller is communicating with. This can deviate from
+# g_instances, since it covers any agent that has sent us a notify_agent_hello
+# event, regardless of whether it relates to the current configuration.
+global g_instances_known: table[string] of Management::Instance = table();
 
-# A corresponding set of instances/agents that we track in order to understand
-# when all of the above instances have sent agent_welcome_response events. (An
-# alternative would be to use a record that adds a single state bit for each
-# instance, and store that above.)
+# The set of instances we need for the current configuration and that are ready
+# (meaning they have responded to our agent_welcome_request message). Once they
+# match g_instances, a Management::Controller::API::notify_agents_ready event
+# signals readiness and triggers config deployment.  (An alternative
+# implementation would be via a record that adds a single state bit for each
+# instance, and store that in g_instances.)
 global g_instances_ready: set[string] = set();
 
 # The request ID of the most recent configuration update that's come in from
@@ -210,6 +216,20 @@ function null_config(): Management::Configuration
 	return Management::Configuration($id="");
 	}
 
+function find_endpoint(id: string): Broker::EndpointInfo
+	{
+	local peers = Broker::peers();
+
+	for ( i in peers )
+		{
+		if ( peers[i]$peer$id == id )
+			return peers[i]$peer;
+		}
+
+	# Return a dummy instance.
+	return Broker::EndpointInfo($id="");
+	}
+
 function is_null_config(config: Management::Configuration): bool
 	{
 	return config$id == "";
@@ -294,8 +314,33 @@ event Management::Agent::API::notify_agent_hello(instance: string, id: string, c
 		return;
 		}
 
-	add g_instances_known[instance];
-	Management::Log::debug(fmt("instance %s now known to us", instance));
+	local ei = find_endpoint(id);
+
+	if ( ei$id == "" )
+		{
+		Management::Log::warning(fmt("notify_agent_hello from %s with unknown Broker ID %s",
+		    instance, id));
+		}
+
+	if ( ! ei?$network )
+		{
+		Management::Log::warning(fmt("notify_agent_hello from %s lacks network state, Broker ID %s",
+		    instance, id));
+		}
+
+	if ( ei$id != "" && ei?$network )
+		{
+		g_instances_known[instance] = Management::Instance(
+		    $name=instance, $host=to_addr(ei$network$address));
+
+		if ( ! connecting )
+			{
+			# We connected to this agent, note down its port.
+			g_instances_known[instance]$listen_port = ei$network$bound_port;
+			}
+
+		Management::Log::debug(fmt("instance %s now known to us", instance));
+		}
 
 	if ( instance in g_instances && instance !in g_instances_ready )
 		{
@@ -551,10 +596,16 @@ event Management::Controller::API::get_instances_request(reqid: string)
 	Management::Log::info(fmt("rx Management::Controller::API::get_instances_request %s", reqid));
 
 	local res = Management::Result($reqid = reqid);
+	local inst_names: vector of string;
 	local insts: vector of Management::Instance;
 
-	for ( i in g_instances )
-		insts += g_instances[i];
+	for ( inst in g_instances_known )
+		inst_names += inst;
+
+	sort(inst_names, strcmp);
+
+	for ( i in inst_names )
+		insts += g_instances_known[inst_names[i]];
 
 	res$data = insts;
 
@@ -861,6 +912,11 @@ event Management::Controller::API::test_timeout_request(reqid: string, with_stat
 		local req = Management::Request::create(reqid);
 		req$test_state = TestState();
 		}
+	}
+
+event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
+	{
+	Management::Log::debug(fmt("broker peer %s added: %s", peer, msg));
 	}
 
 event zeek_init()

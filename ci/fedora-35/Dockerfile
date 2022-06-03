@@ -5,8 +5,8 @@ FROM fedora:35
 ENV DOCKERFILE_VERSION 20220519
 
 RUN dnf -y install \
-    ccache \
     bison \
+    ccache \
     cmake \
     diffutils \
     findutils \

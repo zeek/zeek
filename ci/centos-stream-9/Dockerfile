@@ -36,9 +36,9 @@ RUN dnf -y --nobest install \
     python3-pip\
     sqlite \
     swig \
+    tar \
     which \
     zlib-devel \
-    tar \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Set the crypto policy to allow SHA-1 certificates - which we have in our tests

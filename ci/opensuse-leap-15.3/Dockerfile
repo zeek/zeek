@@ -7,25 +7,25 @@ ENV DOCKERFILE_VERSION 20220519
 RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.2:Update/standard/openSUSE:Leap:15.2:Update.repo \
  && zypper refresh \
  && zypper in -y \
-  ccache \
-  cmake \
-  make \
-  gcc9 \
-  gcc9-c++ \
-  python3 \
-  python3-devel \
-  flex \
-  bison \
-  libpcap-devel \
-  libopenssl-devel \
-  zlib-devel \
-  swig \
-  git \
-  curl \
-  python3-pip \
-  which \
-  gzip \
-  tar \
+    bison \
+    ccache \
+    cmake \
+    curl \
+    flex \
+    gcc9 \
+    gcc9-c++ \
+    git \
+    gzip \
+    libopenssl-devel \
+    libpcap-devel \
+    make \
+    python3 \
+    python3-devel \
+    python3-pip \
+    swig \
+    tar \
+    which \
+    zlib-devel \
   && rm -rf /var/cache/zypp
 
 RUN pip3 install websockets junit2html

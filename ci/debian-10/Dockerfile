@@ -11,26 +11,26 @@ ENV CMAKE_VERSION "3.19.1"
 ENV PATH "${CMAKE_DIR}/bin:${PATH}"
 
 RUN apt-get update && apt-get -y install \
-    git \
-    make \
-    gcc \
-    g++ \
-    flex \
     bison \
+    bsdmainutils \
+    ccache \
+    curl \
+    flex \
+    g++ \
+    gcc \
+    git \
+    libkrb5-dev \
     libpcap-dev \
     libssl-dev \
+    make \
     python3 \
     python3-dev \
     python3-pip\
-    swig \
-    zlib1g-dev \
-    libkrb5-dev \
-    bsdmainutils \
     sqlite3 \
-    curl \
+    swig \
     wget \
     xz-utils \
-    ccache \
+    zlib1g-dev \
   && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 

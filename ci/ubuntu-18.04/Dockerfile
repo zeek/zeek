@@ -34,6 +34,7 @@ RUN apt-get update && apt-get -y install \
     bc \
     lcov \
     ccache \
+  && apt-get autoclean \
   && rm -rf /var/lib/apt/lists/*
 
 # Recent CMake.

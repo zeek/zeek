@@ -28,6 +28,7 @@ RUN apt-get update && apt-get -y install \
     curl \
     wget \
     xz-utils \
+  && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install websockets junit2html

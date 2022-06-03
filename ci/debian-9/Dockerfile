@@ -32,13 +32,14 @@ RUN apt-get update && apt-get -y install \
     curl \
     wget \
     xz-utils \
+  && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 
 # Recent CMake.
 RUN mkdir -p "${CMAKE_DIR}" \
   && curl -sSL "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz" | tar xzf - -C "${CMAKE_DIR}" --strip-components 1
 
-# junit2html >= 31.0.0 requires jinj2 >= 3.0 which requires python >= 3.7 which is
+# junit2html >= 31.0.0 requires jinja2 >= 3.0 which requires python >= 3.7 which is
 # a higher version of python3 than debian 9 provides. Fix the version of junit2html
 # to the last version before they required the newer jinja2.
 RUN pip3 install websockets junit2html==30.0.6

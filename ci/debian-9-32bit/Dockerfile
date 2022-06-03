@@ -32,6 +32,7 @@ RUN apt-get update && apt-get -y install \
     curl \
     wget \
     xz-utils \
+  && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 
 # Recent CMake.

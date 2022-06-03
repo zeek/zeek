@@ -13,12 +13,14 @@ RUN dnf -y install \
     cmake \
     diffutils \
     flex \
-    git \
     gcc \
     gcc-c++ \
+    git \
     libpcap-devel \
     make \
+    openssl \
     openssl-devel \
+    python3 \
     python3-devel \
     python3-pip\
     sqlite \

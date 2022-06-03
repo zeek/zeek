@@ -32,6 +32,7 @@ RUN apt-get update && apt-get -y install \
     ruby \
     bc \
     lcov \
+  && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install websockets junit2html

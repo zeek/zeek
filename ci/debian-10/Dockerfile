@@ -31,6 +31,7 @@ RUN apt-get update && apt-get -y install \
     wget \
     xz-utils \
     ccache \
+  && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 
 # Install a recent CMake to build Spicy.

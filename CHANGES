@@ -1,3 +1,9 @@
+5.0.0-rc1 | 2022-06-03 12:09:34 -0700
+
+  * Update submodules [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Updating submodule(s) [nomail] (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.575 | 2022-06-03 10:55:47 -0700
 
   * Management framework: bump external cluster testsuite (Christian Kreibich, Corelight)

@@ -40,14 +40,12 @@ event zeek_init()
 		}
 	}
 
-event Management::Agent::API::notify_agent_hello(instance: string, host: addr, api_version: count)
+event Management::Agent::API::notify_agent_hello(instance: string, id: string, connecting: bool, api_version: count)
 	{
 	if ( Management::role == Management::CONTROLLER )
 		{
-		# On rare occasion it can happen that we log this twice, which'll need
-		# investigating. For now we ensure we only do so once.
 		if ( ! logged )
-			print(fmt("notify_agent_hello %s %s %s", instance, host, api_version));
+			print(fmt("notify_agent_hello %s %s", instance, api_version));
 
 		logged = T;
 

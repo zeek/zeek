@@ -145,17 +145,20 @@ export {
 	## The agent sends this event upon peering as a "check-in", informing
 	## the controller that an agent of the given name is now available to
 	## communicate with. It is a controller-level equivalent of
-	## `:zeek:see:`Broker::peer_added`.
+	## `:zeek:see:`Broker::peer_added` and triggered by it.
 	##
 	## instance: an instance name, really the agent's name as per
 	##    :zeek:see:`Management::Agent::get_name`.
 	##
-	## host: the IP address of the agent. (This may change in the future.)
+	## id: the Broker ID of the agent.
+	##
+	## connecting: true if this agent connected to the controller,
+	##    false if the controller connected to the agent.
 	##
 	## api_version: the API version of this agent.
 	##
-	global notify_agent_hello: event(instance: string, host: addr,
-	    api_version: count);
+	global notify_agent_hello: event(instance: string, id: string,
+	    connecting: bool, api_version: count);
 
 
 	# The following are not yet implemented.

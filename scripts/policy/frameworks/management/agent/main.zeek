@@ -694,7 +694,8 @@ event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 
 	Broker::publish(agent_topic(),
 	    Management::Agent::API::notify_agent_hello,
-	    epi$id, to_addr(epi$network$address),
+	    epi$id, Broker::node_id(),
+	    Management::Agent::controller$address != "0.0.0.0",
 	    Management::Agent::API::version);
 	}
 
@@ -736,5 +737,5 @@ event zeek_init()
 	# If the controller connects to us, it also uses this port.
 	Broker::listen(cat(epi$network$address), epi$network$bound_port);
 
-	Management::Log::info("agent is live");
+	Management::Log::info(fmt("agent is live, Broker ID %s", Broker::node_id()));
 	}

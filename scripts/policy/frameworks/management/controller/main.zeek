@@ -273,9 +273,10 @@ event Management::Controller::API::notify_agents_ready(instances: set[string])
 	send_config_to_agents(req, req$set_configuration_state$config);
 	}
 
-event Management::Agent::API::notify_agent_hello(instance: string, host: addr, api_version: count)
+event Management::Agent::API::notify_agent_hello(instance: string, id: string, connecting: bool, api_version: count)
 	{
-	Management::Log::info(fmt("rx Management::Agent::API::notify_agent_hello %s %s", instance, host));
+	Management::Log::info(fmt("rx Management::Agent::API::notify_agent_hello %s %s %s",
+	    instance, id, connecting));
 
 	# When an agent checks in with a mismatching API version, we log the
 	# fact and drop its state, if any.
@@ -283,7 +284,7 @@ event Management::Agent::API::notify_agent_hello(instance: string, host: addr, a
 		{
 		Management::Log::warning(
 		    fmt("instance %s/%s has checked in with incompatible API version %s",
-		        instance, host, api_version));
+		        instance, id, api_version));
 
 		if ( instance in g_instances )
 			drop_instance(g_instances[instance]);
@@ -882,5 +883,5 @@ event zeek_init()
 	Broker::subscribe(Management::Agent::topic_prefix);
 	Broker::subscribe(Management::Controller::topic);
 
-	Management::Log::info("controller is live");
+	Management::Log::info(fmt("controller is live, Broker ID %s", Broker::node_id()));
 	}

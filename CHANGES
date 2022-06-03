@@ -1,3 +1,15 @@
+5.0.0-dev.569 | 2022-06-03 09:50:01 -0700
+
+  * Management framework: bump zeek-client to pull in rendering tweaks (Christian Kreibich, Corelight)
+
+  * Management framework: bump external cluster testsuite (Christian Kreibich, Corelight)
+
+  * Mark lookup_asn() BIF as deprecated in v6.1 (Phil Rzewski)
+
+  * Define geo_autonomous_system record type (Phil Rzewski)
+
+  * Add lookup_autonomous_system() BIF that returns AS number and org (Phil Rzewski)
+
 5.0.0-dev.559 | 2022-06-02 16:58:58 -0700
 
   * Mark lookup_asn() BIF as deprecated in v6.1 (Phil Rzewski)

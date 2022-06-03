@@ -548,7 +548,7 @@ function check_thresholds(ss: SumStat, key: Key, result: Result, modify_pct: dou
 	return F;
 	}
 
-function threshold_crossed(ss: SumStat, key: Key, result: Result)
+function threshold_crossed(ss: SumStat, key: Key, result: Result) &is_used
 	{
 	# If there is no callback, there is no point in any of this.
 	if ( ! ss?$threshold_crossed )

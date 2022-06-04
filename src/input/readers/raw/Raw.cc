@@ -610,9 +610,6 @@ bool Raw::DoUpdate()
 				break;
 
 			case MODE_STREAM:
-				// mode may not be used to execute child programs
-				assert(childpid == -1);
-
 				// Clear possible EOF condition
 				if ( file )
 					clearerr(file.get());
@@ -620,16 +617,12 @@ bool Raw::DoUpdate()
 				// check if the file has changed
 				struct stat sb;
 				if ( stat(fname.c_str(), &sb) == -1 )
-					{
 					// File was removed
 					break;
-					}
 
 				// Is it the same file?
 				if ( sb.st_ino == ino && sb.st_dev == dev )
-					{
 					break;
-					}
 
 				// File was replaced
 				FILE* tfile;

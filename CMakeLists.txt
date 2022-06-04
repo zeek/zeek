@@ -65,6 +65,27 @@ else ()
         CACHE STRING "Installation path for plugins" FORCE)
 endif ()
 
+if ( NOT ZEEK_ETC_INSTALL_DIR )
+    set(ZEEK_ETC_INSTALL_DIR ${ZEEK_ROOT_DIR}/etc)
+endif ()
+
+if ( NOT ZEEK_STATE_DIR )
+    set(ZEEK_STATE_DIR ${ZEEK_ROOT_DIR}/var/lib)
+endif ()
+
+if ( NOT ZEEK_SPOOL_DIR )
+    set(ZEEK_SPOOL_DIR ${ZEEK_ROOT_DIR}/spool)
+endif ()
+
+if ( NOT ZEEK_LOG_DIR )
+    set(ZEEK_LOG_DIR ${ZEEK_ROOT_DIR}/logs)
+endif ()
+
+install(DIRECTORY DESTINATION ${ZEEK_ETC_INSTALL_DIR})
+install(DIRECTORY DESTINATION ${ZEEK_STATE_DIR})
+install(DIRECTORY DESTINATION ${ZEEK_SPOOL_DIR})
+install(DIRECTORY DESTINATION ${ZEEK_LOG_DIR})
+
 configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
 execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
                 "${CMAKE_CURRENT_BINARY_DIR}/zeek-wrapper.in"
@@ -612,7 +633,7 @@ if ( INSTALL_ZKG )
     # An etc/zkg directory for zkg's config file simplifies zkg's
     # config file code.
     set(ZEEK_ZKG_CONFIG_DIR "${ZEEK_ETC_INSTALL_DIR}/zkg")
-    set(ZEEK_ZKG_STATE_DIR "${ZEEK_ROOT_DIR}/var/lib/zkg")
+    set(ZEEK_ZKG_STATE_DIR "${ZEEK_STATE_DIR}/zkg")
 
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/zkg-config.in
@@ -694,17 +715,6 @@ if ( NOT DISABLE_SPICY )
         add_dependencies(plugin-Zeek-Spicy spicy)
         add_dependencies(spicyz spicy)
 
-        # Spicy JIT relies on the path of the current executable to figure out
-        # whether it is run from a build or an install tree. This assumption
-        # gets broken for e.g., `spicyz` when running from the build tree
-        # (probably fixable), and also when JIT'ing directly from a `zeek`
-        # invocation (much harder to fix). Instead we generate shell
-        # definitions to support running and using Spicy or spicy-plugin
-        # functionality in the build tree, including JIT'ing directly from
-        # Zeek.
-        configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path @ONLY)
-        configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/hilti-cxx-include-dirs.in ${CMAKE_BINARY_DIR}/hilti-cxx-include-dirs @ONLY)
-
         # Also install spicy-plugin's CMake files into Zeek's global `cmake/` folder.
         #
         # NOTE: We do not install spicy-plugin's `FindZeek.cmake` since another
@@ -714,6 +724,21 @@ if ( NOT DISABLE_SPICY )
                 DESTINATION share/zeek/cmake)
     endif ()
 endif ()
+
+# Always generate helper scripts referenced in e.g., `zeek-path-dev.*` so the
+# scripts work in any build configuration. If we do not include Spicy these
+# files have no actual effect.
+#
+# Spicy JIT relies on the path of the current executable to figure out
+# whether it is run from a build or an install tree. This assumption
+# gets broken for e.g., `spicyz` when running from the build tree
+# (probably fixable), and also when JIT'ing directly from a `zeek`
+# invocation (much harder to fix). Instead we generate shell
+# definitions to support running and using Spicy or spicy-plugin
+# functionality in the build tree, including JIT'ing directly from
+# Zeek.
+configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/hilti-cxx-include-dirs.in ${CMAKE_BINARY_DIR}/hilti-cxx-include-dirs @ONLY)
 
 ########################################################################
 ## Packaging Setup
@@ -764,10 +789,16 @@ message(
     "\n"
     "\nBuild type:        ${CMAKE_BUILD_TYPE}"
     "\nBuild dir:         ${PROJECT_BINARY_DIR}"
+    "\n"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
+    "\nConfig file dir:   ${ZEEK_ETC_INSTALL_DIR}"
+    "\nLog dir:           ${ZEEK_LOG_DIR}"
     "\nPlugin dir:        ${BRO_PLUGIN_INSTALL_PATH}"
     "\nPython module dir: ${PY_MOD_INSTALL_DIR}"
-    "\nZeek Script Path:  ${ZEEK_SCRIPT_INSTALL_PATH}"
+    "\nScript dir:        ${ZEEK_SCRIPT_INSTALL_PATH}"
+    "\nSpool dir:         ${ZEEK_SPOOL_DIR}"
+    "\nState dir:         ${ZEEK_STATE_DIR}"
+    "\n"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\nUnit tests:        ${ENABLE_ZEEK_UNIT_TESTS}"
     "\nBuiltin Plugins:   ${ZEEK_BUILTIN_PLUGINS}"

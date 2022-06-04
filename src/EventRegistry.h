@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 #include <vector>
 
 namespace zeek
@@ -28,14 +29,20 @@ public:
 	 * Performs a lookup for an existing event handler and returns it
 	 * if one exists, or else creates one, registers it, and returns it.
 	 * @param name  The name of the event handler to lookup/register.
+	 * @param name  Whether the registration is coming from a script element.
 	 * @return  The event handler.
 	 */
-	EventHandlerPtr Register(std::string_view name);
+	EventHandlerPtr Register(std::string_view name, bool is_from_script = false);
 
-	void Register(EventHandlerPtr handler);
+	void Register(EventHandlerPtr handler, bool is_from_script = false);
 
 	// Return nil if unknown.
 	EventHandler* Lookup(std::string_view name);
+
+	// True if the given event handler (1) exists, and (2) was registered
+	// in a non-script context (even if perhaps also registered in a script
+	// context).
+	bool NotOnlyRegisteredFromScript(std::string_view name);
 
 	// Returns a list of all local handlers that match the given pattern.
 	// Passes ownership of list.
@@ -55,6 +62,9 @@ public:
 
 private:
 	std::map<std::string, std::unique_ptr<EventHandler>, std::less<>> handlers;
+	// Tracks whether a given event handler was registered in a
+	// non-script context.
+	std::unordered_set<std::string> not_only_from_script;
 	};
 
 extern EventRegistry* event_registry;

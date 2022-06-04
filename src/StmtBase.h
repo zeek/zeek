@@ -177,6 +177,12 @@ public:
 	// this statement.
 	StmtOptInfo* GetOptInfo() const { return opt_info; }
 
+	// Returns the number of statements created since the last reset.
+	static int GetNumStmts() { return num_stmts; }
+
+	// Clears the number of statements created.
+	static void ResetNumStmts() { num_stmts = 0; }
+
 protected:
 	explicit Stmt(StmtTag arg_tag);
 
@@ -203,6 +209,9 @@ protected:
 	// Information associated with the Stmt for purposes of
 	// script optimization.
 	StmtOptInfo* opt_info;
+
+	// Number of statements created thus far.
+	static int num_stmts;
 	};
 
 	} // namespace detail

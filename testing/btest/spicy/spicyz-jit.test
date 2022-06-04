@@ -1,9 +1,8 @@
 # @TEST-DOC: Smoke test for a custom Spicy analyzer hooked into Zeek with JIT via Zeek itself.
 #
 # @TEST-REQUIRES: $SCRIPTS/have-spicy
-# @TEST-EXEC: ${BUILD}/src/builtin-plugins/spicy-plugin/bin/spicyz test.spicy test.evt -o test.hlto
-# @TEST-EXEC: zeek -NN test.hlto | grep -q ANALYZER_SPICY_TEST
-# @TEST-EXEC: zeek -r ${TRACES}/http/post.trace test.zeek test.spicy test.evt "Spicy::enable_print = T;" >>output 2>&1
+# @TEST-EXEC: zeek -NN test.zeek test.spicy test.evt | grep -q ANALYZER_SPICY_TEST
+# @TEST-EXEC: HILTI_DEBUG=compiler zeek -r ${TRACES}/http/post.trace test.spicy test.evt test.zeek "Spicy::enable_print = T;" >>output 2>&1
 # @TEST-EXEC: btest-diff output
 
 # @TEST-START-FILE test.spicy

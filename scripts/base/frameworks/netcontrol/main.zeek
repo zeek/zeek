@@ -889,7 +889,7 @@ function remove_rule_impl(id: string, reason: string) : bool
 	return success;
 	}
 
-function rule_expire_impl(r: Rule, p: PluginState) &priority=-5
+function rule_expire_impl(r: Rule, p: PluginState) &priority=-5 &is_used
 	{
 	# do not emit timeout events on shutdown
 	if ( zeek_is_terminating() )
@@ -913,7 +913,7 @@ function rule_expire_impl(r: Rule, p: PluginState) &priority=-5
 		event NetControl::rule_timeout(r, FlowInfo(), p); # timeout implementation will handle the removal
 	}
 
-function rule_added_impl(r: Rule, p: PluginState, exists: bool, msg: string &default="")
+function rule_added_impl(r: Rule, p: PluginState, exists: bool, msg: string &default="") &is_used
 	{
 	if ( r$id !in rules )
 		{
@@ -947,7 +947,7 @@ function rule_added_impl(r: Rule, p: PluginState, exists: bool, msg: string &def
 		}
 	}
 
-function rule_removed_impl(r: Rule, p: PluginState, msg: string &default="")
+function rule_removed_impl(r: Rule, p: PluginState, msg: string &default="") &is_used
 	{
 	if ( r$id !in rules )
 		{
@@ -973,7 +973,7 @@ function rule_removed_impl(r: Rule, p: PluginState, msg: string &default="")
 	rule_cleanup(rule);
 	}
 
-function rule_timeout_impl(r: Rule, i: FlowInfo, p: PluginState)
+function rule_timeout_impl(r: Rule, i: FlowInfo, p: PluginState) &is_used
 	{
 	if ( r$id !in rules )
 		{
@@ -1017,7 +1017,7 @@ function rule_timeout_impl(r: Rule, i: FlowInfo, p: PluginState)
 	rule_cleanup(rule);
 	}
 
-function rule_error_impl(r: Rule, p: PluginState, msg: string &default="")
+function rule_error_impl(r: Rule, p: PluginState, msg: string &default="") &is_used
 	{
 	if ( r$id !in rules )
 		{

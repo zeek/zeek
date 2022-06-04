@@ -107,6 +107,8 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    -s|--rulefile <rulefile>        | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>      | activate execution tracing\n");
 	fprintf(stderr, "    -u|--usage-issues               | find variable usage issues and exit\n");
+	fprintf(stderr, "       --no-unused-warnings          | suppress warnings of unused "
+	                "functions/hooks/events\n");
 	fprintf(stderr, "    -v|--version                    | print version and exit\n");
 	fprintf(stderr, "    -w|--writefile <writefile>      | write to given tcpdump file\n");
 #ifdef DEBUG
@@ -367,6 +369,7 @@ Options parse_cmdline(int argc, char** argv)
 		}
 
 	int profile_scripts = 0;
+	int no_unused_warnings = 0;
 
 	struct option long_opts[] = {
 		{"parse-only", no_argument, nullptr, 'a'},
@@ -410,6 +413,7 @@ Options parse_cmdline(int argc, char** argv)
 #endif
 
 		{"profile-scripts", optional_argument, &profile_scripts, 1},
+		{"no-unused-warnings", no_argument, &no_unused_warnings, 1},
 		{"pseudo-realtime", optional_argument, nullptr, '~'},
 		{"jobs", optional_argument, nullptr, 'j'},
 		{"test", no_argument, nullptr, '#'},
@@ -613,6 +617,9 @@ Options parse_cmdline(int argc, char** argv)
 					activate_script_profiling(optarg);
 					profile_scripts = 0;
 					}
+
+				if ( no_unused_warnings )
+					rval.no_unused_warnings = true;
 				break;
 
 			case '?':

@@ -7,4 +7,5 @@ set -x
 
 brew update
 brew upgrade cmake openssl@1.1
-brew install swig bison flex
+brew install swig bison flex ccache
+python3 -m pip install --user websockets

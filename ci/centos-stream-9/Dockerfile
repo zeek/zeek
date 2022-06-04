@@ -1,5 +1,9 @@
 FROM quay.io/centos/centos:stream9
 
+# A version field to invalide Cirrus's build cache when needed, as suggested in
+# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
+ENV DOCKERFILE_VERSION 20220519
+
 # dnf config-manager isn't available at first, and
 # we need it to install the CRB repo below.
 RUN dnf -y install 'dnf-command(config-manager)'
@@ -16,6 +20,7 @@ RUN dnf -y install \
 # package versioning conflicts around OpenSSL.
 RUN dnf -y --nobest install \
     bison \
+    ccache \
     cmake \
     diffutils \
     flex \
@@ -31,6 +36,10 @@ RUN dnf -y --nobest install \
     swig \
     which \
     zlib-devel \
+    tar \
   && dnf clean all && rm -rf /var/cache/dnf
 
-RUN pip3 install junit2html
+# Set the crypto policy to allow SHA-1 certificates - which we have in our tests
+RUN dnf -y --nobest install crypto-policies-scripts && update-crypto-policies --set LEGACY
+
+RUN pip3 install websockets junit2html

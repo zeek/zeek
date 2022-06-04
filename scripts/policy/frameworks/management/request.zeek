@@ -32,11 +32,15 @@ export {
 		finished: bool &default=F;
 	};
 
-	## The timeout for request state. Such state (see the :zeek:see:`Management::Request`
-	## module) ties together request and response event pairs. The timeout causes
-	## its cleanup in the absence of a timely response. It applies both to
-	## state kept for client requests, as well as state in the agents for
-	## requests to the supervisor.
+	## The timeout interval for request state. Such state (see the
+	## :zeek:see:`Management::Request` module) ties together request and
+	## response event pairs. A timeout causes cleanup of request state if
+	## regular request/response processing hasn't already done so. It
+	## applies both to request state kept in the controller and the agent,
+	## though the two use different timeout values: agent-side requests time
+	## out more quickly. This allows agents to send more meaningful error
+	## messages, while the controller's timeouts serve as a last resort to
+	## ensure response to the client.
 	const timeout_interval = 10sec &redef;
 
 	## A token request that serves as a null/nonexistant request.

@@ -57,7 +57,7 @@ global option_cache: table[string] of OptionCacheValue;
 
 global Config::cluster_set_option: event(ID: string, val: any, location: string);
 
-function broadcast_option(ID: string, val: any, location: string)
+function broadcast_option(ID: string, val: any, location: string) &is_used
 	{
 	# There's not currently a common topic to broadcast to as then enabling
 	# implicit Broker forwarding would cause a routing loop.
@@ -145,7 +145,7 @@ function format_value(value: any) : string
 	return cat(value);
 	}
 
-function config_option_changed(ID: string, new_value: any, location: string): any
+function config_option_changed(ID: string, new_value: any, location: string): any &is_used
 	{
 	local log = Info($ts=network_time(), $id=ID, $old_value=format_value(lookup_ID(ID)), $new_value=format_value(new_value));
 	if ( location != "" )

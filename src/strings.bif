@@ -102,7 +102,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 	for ( unsigned i = 0; i < v->Size(); ++i )
 		{
 		if ( i > 0 )
-			d.Add(sep->CheckString(), 0);
+			d.AddN(reinterpret_cast<const char*>(sep->Bytes()), sep->Len());
 
 		auto e = v->ValAt(i);
 

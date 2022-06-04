@@ -34,14 +34,16 @@ enum TraversalCode
 			return (code);                                                                         \
 		}
 
-#define HANDLE_TC_EXPR_PRE(code)                                                                   \
-		{                                                                                          \
-		if ( (code) == zeek::detail::TC_ABORTALL )                                                 \
-			return (code);                                                                         \
-		else if ( (code) == zeek::detail::TC_ABORTSTMT )                                           \
-			return zeek::detail::TC_CONTINUE;                                                      \
-		}
-
+#define HANDLE_TC_EXPR_PRE(code) HANDLE_TC_STMT_PRE(code)
 #define HANDLE_TC_EXPR_POST(code) return (code);
+
+#define HANDLE_TC_TYPE_PRE(code) HANDLE_TC_STMT_PRE(code)
+#define HANDLE_TC_TYPE_POST(code) return (code);
+
+#define HANDLE_TC_ATTRS_PRE(code) HANDLE_TC_STMT_PRE(code)
+#define HANDLE_TC_ATTRS_POST(code) return (code);
+
+#define HANDLE_TC_ATTR_PRE(code) HANDLE_TC_STMT_PRE(code)
+#define HANDLE_TC_ATTR_POST(code) return (code);
 
 	} // namespace zeek::detail

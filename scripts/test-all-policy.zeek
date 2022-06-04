@@ -24,10 +24,15 @@
 @load frameworks/management/__load__.zeek
 @load frameworks/management/config.zeek
 @load frameworks/management/log.zeek
+@load frameworks/management/persistence.zeek
 # @load frameworks/management/node/__load__.zeek
 @load frameworks/management/node/api.zeek
 @load frameworks/management/node/config.zeek
 # @load frameworks/management/node/main.zeek
+@load frameworks/management/supervisor/__load__.zeek
+@load frameworks/management/supervisor/api.zeek
+@load frameworks/management/supervisor/config.zeek
+@load frameworks/management/supervisor/main.zeek
 @load frameworks/management/request.zeek
 @load frameworks/management/types.zeek
 @load frameworks/management/util.zeek

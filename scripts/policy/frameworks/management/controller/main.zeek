@@ -71,37 +71,55 @@ redef record Management::Request::Request += {
 };
 
 # Tag our logs correctly
-redef Management::Log::role = Management::CONTROLLER;
+redef Management::role = Management::CONTROLLER;
 
+# Conduct more frequent table expiration checks. This helps get more predictable
+# timing for request timeouts and only affects the controller, which is mostly idle.
+redef table_expire_interval = 2 sec;
+
+# Helper that checks whether the agents that are ready match those we need to
+# operate the current cluster configuration. When that is the case, triggers
+# notify_agents_ready event.
 global check_instances_ready: function();
+
+# Adds the given instance to g_instances and peers, if needed.
 global add_instance: function(inst: Management::Instance);
+
+# Drops the given instance from g_instances and sends it an
+# agent_standby_request, so it drops its current cluster nodes (if any).
 global drop_instance: function(inst: Management::Instance);
 
+# Helpers to simplify handling of config records.
 global null_config: function(): Management::Configuration;
 global is_null_config: function(config: Management::Configuration): bool;
 
+# Given a Broker ID, this returns the endpoint info associated with it.
+# On error, returns a dummy record with an empty ID string.
+global find_endpoint: function(id: string): Broker::EndpointInfo;
+
 # Checks whether the given instance is one that we know with different
-# communication settings: a a different peering direction, a different listening
+# communication settings: a different peering direction, a different listening
 # port, etc. Used as a predicate to indicate when we need to drop the existing
 # one from our internal state.
-global is_instance_connectivity_change: function
-    (inst: Management::Instance): bool;
+global is_instance_connectivity_change: function(inst: Management::Instance): bool;
 
-# The set of agents the controller interacts with to manage to currently
+# The set of agents the controller interacts with to manage the currently
 # configured cluster. This may be a subset of all the agents known to the
-# controller, as tracked by the g_instances_known set. They key is the instance
+# controller, tracked by the g_instances_known table. They key is the instance
 # name and should match the $name member of the corresponding instance record.
 global g_instances: table[string] of Management::Instance = table();
 
-# The set of instances that have checked in with the controller. This is a
-# superset of g_instances, since it covers any agent that has sent us a
-# notify_agent_hello event.
-global g_instances_known: set[string] = set();
+# The instances the controller is communicating with. This can deviate from
+# g_instances, since it covers any agent that has sent us a notify_agent_hello
+# event, regardless of whether it relates to the current configuration.
+global g_instances_known: table[string] of Management::Instance = table();
 
-# A corresponding set of instances/agents that we track in order to understand
-# when all of the above instances have sent agent_welcome_response events. (An
-# alternative would be to use a record that adds a single state bit for each
-# instance, and store that above.)
+# The set of instances we need for the current configuration and that are ready
+# (meaning they have responded to our agent_welcome_request message). Once they
+# match g_instances, a Management::Controller::API::notify_agents_ready event
+# signals readiness and triggers config deployment.  (An alternative
+# implementation would be via a record that adds a single state bit for each
+# instance, and store that in g_instances.)
 global g_instances_ready: set[string] = set();
 
 # The request ID of the most recent configuration update that's come in from
@@ -136,8 +154,6 @@ function send_config_to_agents(req: Management::Request::Request, config: Manage
 		}
 	}
 
-# This is the &on_change handler for the g_instances_ready set, meaning
-# it runs whenever a required agent has confirmed it's ready.
 function check_instances_ready()
 	{
 	local cur_instances: set[string];
@@ -159,10 +175,15 @@ function add_instance(inst: Management::Instance)
 
 	if ( inst$name in g_instances_known )
 		{
-		# The agent has already peered with us. Send welcome to indicate
-		# it's part of cluster management. Once it responds, we update
-		# the set of ready instances and proceed as feasible with config
-		# deployments.
+		# The agent has already peered with us. This means we have its
+		# IP address as observed by us, so use it if this agent
+		# connected to us.
+		if ( ! inst?$listen_port )
+			inst$host = g_instances_known[inst$name]$host;
+
+		# Send welcome to indicate it's part of cluster management. Once
+		# it responds, we update the set of ready instances and proceed
+		# as feasible with config deployments.
 
 		local req = Management::Request::create();
 
@@ -170,6 +191,8 @@ function add_instance(inst: Management::Instance)
 		Broker::publish(Management::Agent::topic_prefix + "/" + inst$name,
 		    Management::Agent::API::agent_welcome_request, req$id);
 		}
+	else
+		Management::Log::debug(fmt("instance %s not known to us, skipping", inst$name));
 	}
 
 function drop_instance(inst: Management::Instance)
@@ -196,6 +219,20 @@ function drop_instance(inst: Management::Instance)
 function null_config(): Management::Configuration
 	{
 	return Management::Configuration($id="");
+	}
+
+function find_endpoint(id: string): Broker::EndpointInfo
+	{
+	local peers = Broker::peers();
+
+	for ( i in peers )
+		{
+		if ( peers[i]$peer$id == id )
+			return peers[i]$peer;
+		}
+
+	# Return a dummy instance.
+	return Broker::EndpointInfo($id="");
 	}
 
 function is_null_config(config: Management::Configuration): bool
@@ -261,9 +298,10 @@ event Management::Controller::API::notify_agents_ready(instances: set[string])
 	send_config_to_agents(req, req$set_configuration_state$config);
 	}
 
-event Management::Agent::API::notify_agent_hello(instance: string, host: addr, api_version: count)
+event Management::Agent::API::notify_agent_hello(instance: string, id: string, connecting: bool, api_version: count)
 	{
-	Management::Log::info(fmt("rx Management::Agent::API::notify_agent_hello %s %s", instance, host));
+	Management::Log::info(fmt("rx Management::Agent::API::notify_agent_hello %s %s %s",
+	    instance, id, connecting));
 
 	# When an agent checks in with a mismatching API version, we log the
 	# fact and drop its state, if any.
@@ -271,7 +309,7 @@ event Management::Agent::API::notify_agent_hello(instance: string, host: addr, a
 		{
 		Management::Log::warning(
 		    fmt("instance %s/%s has checked in with incompatible API version %s",
-		        instance, host, api_version));
+		        instance, id, api_version));
 
 		if ( instance in g_instances )
 			drop_instance(g_instances[instance]);
@@ -281,12 +319,38 @@ event Management::Agent::API::notify_agent_hello(instance: string, host: addr, a
 		return;
 		}
 
-	add g_instances_known[instance];
+	local ei = find_endpoint(id);
+
+	if ( ei$id == "" )
+		{
+		Management::Log::warning(fmt("notify_agent_hello from %s with unknown Broker ID %s",
+		    instance, id));
+		}
+
+	if ( ! ei?$network )
+		{
+		Management::Log::warning(fmt("notify_agent_hello from %s lacks network state, Broker ID %s",
+		    instance, id));
+		}
+
+	if ( ei$id != "" && ei?$network )
+		{
+		g_instances_known[instance] = Management::Instance(
+		    $name=instance, $host=to_addr(ei$network$address));
+
+		if ( ! connecting )
+			{
+			# We connected to this agent, note down its port.
+			g_instances_known[instance]$listen_port = ei$network$bound_port;
+			}
+
+		Management::Log::debug(fmt("instance %s now known to us", instance));
+		}
 
 	if ( instance in g_instances && instance !in g_instances_ready )
 		{
-		# We need this instance for our cluster and have full context for
-		# it from the configuration. Tell agent.
+		# We need this instance for the requested cluster and have full
+		# context for it from the configuration. Tell agent.
 		local req = Management::Request::create();
 
 		Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_request to %s", instance));
@@ -340,7 +404,7 @@ event Management::Agent::API::notify_log(instance: string, msg: string, node: st
 	# XXX TODO
 	}
 
-event Management::Agent::API::set_configuration_response(reqid: string, result: Management::Result)
+event Management::Agent::API::set_configuration_response(reqid: string, results: Management::ResultVec)
 	{
 	Management::Log::info(fmt("rx Management::Agent::API::set_configuration_response %s", reqid));
 
@@ -357,8 +421,15 @@ event Management::Agent::API::set_configuration_response(reqid: string, result: 
 	if ( Management::Request::is_null(req) )
 		return;
 
-	# Add this result to the overall response
-	req$results[|req$results|] = result;
+	# Add this agent's results to the overall response
+	for ( i in results )
+		{
+		# The usual "any" treatment to keep access predictable
+		if ( results[i]?$data )
+			results[i]$data = results[i]$data as Management::NodeOutputs;
+
+		req$results[|req$results|] = results[i];
+		}
 
 	# Mark this request as done by removing it from the table of pending
 	# ones. The following if-check should always be true.
@@ -486,9 +557,15 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 	# case we need to re-establish connectivity with an agent.
 
 	for ( inst_name in insts_to_drop )
+		{
+		Management::Log::debug(fmt("dropping instance %s", inst_name));
 		drop_instance(g_instances[inst_name]);
+		}
 	for ( inst_name in insts_to_peer )
+		{
+		Management::Log::debug(fmt("adding instance %s", inst_name));
 		add_instance(insts_to_peer[inst_name]);
+		}
 
 	# Updates to out instance tables are complete, now check if we're already
 	# able to send the config to the agents:
@@ -521,13 +598,19 @@ event Management::Controller::API::get_configuration_request(reqid: string)
 
 event Management::Controller::API::get_instances_request(reqid: string)
 	{
-	Management::Log::info(fmt("rx Management::Controller::API::set_instances_request %s", reqid));
+	Management::Log::info(fmt("rx Management::Controller::API::get_instances_request %s", reqid));
 
 	local res = Management::Result($reqid = reqid);
+	local inst_names: vector of string;
 	local insts: vector of Management::Instance;
 
-	for ( i in g_instances )
-		insts += g_instances[i];
+	for ( inst in g_instances_known )
+		inst_names += inst;
+
+	sort(inst_names, strcmp);
+
+	for ( i in inst_names )
+		insts += g_instances_known[inst_names[i]];
 
 	res$data = insts;
 
@@ -587,7 +670,7 @@ event Management::Controller::API::get_nodes_request(reqid: string)
 	Management::Log::info(fmt("rx Management::Controller::API::get_nodes_request %s", reqid));
 
 	# Special case: if we have no instances, respond right away.
-	if ( |g_instances| == 0 )
+	if ( |g_instances_known| == 0 )
 		{
 		Management::Log::info(fmt("tx Management::Controller::API::get_nodes_response %s", reqid));
 		local res = Management::Result($reqid=reqid, $success=F,
@@ -600,11 +683,8 @@ event Management::Controller::API::get_nodes_request(reqid: string)
 	local req = Management::Request::create(reqid);
 	req$get_nodes_state = GetNodesState();
 
-	for ( name in g_instances )
+	for ( name in g_instances_known )
 		{
-		if ( name !in g_instances_ready )
-			next;
-
 		local agent_topic = Management::Agent::topic_prefix + "/" + name;
 		local areq = Management::Request::create();
 
@@ -836,6 +916,11 @@ event Management::Controller::API::test_timeout_request(reqid: string, with_stat
 		}
 	}
 
+event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
+	{
+	Management::Log::debug(fmt("broker peer %s added: %s", peer, msg));
+	}
+
 event zeek_init()
 	{
 	# Initialize null config at startup. We will replace it once we have
@@ -856,5 +941,5 @@ event zeek_init()
 	Broker::subscribe(Management::Agent::topic_prefix);
 	Broker::subscribe(Management::Controller::topic);
 
-	Management::Log::info("controller is live");
+	Management::Log::info(fmt("controller is live, Broker ID %s", Broker::node_id()));
 	}

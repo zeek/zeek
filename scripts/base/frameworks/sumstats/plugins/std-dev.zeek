@@ -23,7 +23,7 @@ function calc_std_dev(rv: ResultVal)
 		rv$std_dev = sqrt(rv$variance);
 	}
 
-hook std_dev_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook std_dev_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal) &deprecated="Remove in v6.1.  Usage testing indicates this function is unused."
 	{
 	calc_std_dev(rv);
 	}

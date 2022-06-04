@@ -3,7 +3,7 @@
 ##! supervisor. In this setting Zeek's logging framework operates locally, i.e.,
 ##! this does not involve logger nodes.
 
-@load ./types
+@load ./config
 
 module Management::Log;
 
@@ -64,10 +64,6 @@ export {
 	## message: the message to log.
 	##
 	global error: function(message: string);
-
-	## The role of this process in cluster management. Agent and controller
-	## both redefine this, and we use it during logging.
-	const role = Management::NONE &redef;
 }
 
 # Enum translations to strings. This avoids those enums being reported
@@ -93,7 +89,7 @@ function debug(message: string)
 
 	local node = Supervisor::node();
 	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[DEBUG],
-			 $role=r2s[role], $message=message]);
+			 $role=r2s[Management::role], $message=message]);
 	}
 
 function info(message: string)
@@ -103,7 +99,7 @@ function info(message: string)
 
 	local node = Supervisor::node();
 	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[INFO],
-			 $role=r2s[role], $message=message]);
+			 $role=r2s[Management::role], $message=message]);
 	}
 
 function warning(message: string)
@@ -113,7 +109,7 @@ function warning(message: string)
 
 	local node = Supervisor::node();
 	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[WARNING],
-			 $role=r2s[role], $message=message]);
+			 $role=r2s[Management::role], $message=message]);
 	}
 
 function error(message: string)
@@ -123,7 +119,7 @@ function error(message: string)
 
 	local node = Supervisor::node();
 	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[ERROR],
-			 $role=r2s[role], $message=message]);
+			 $role=r2s[Management::role], $message=message]);
 	}
 
 event zeek_init()
@@ -136,7 +132,7 @@ event zeek_init()
 	# Defining the stream outside of the stream creation call sidesteps
 	# the coverage.find-bro-logs test, which tries to inventory all logs.
 	# This log isn't yet ready for that level of scrutiny.
-	local stream = Log::Stream($columns=Info, $path=fmt("cluster-%s", node$name),
+	local stream = Log::Stream($columns=Info, $path=fmt("management-%s", node$name),
 	                           $policy=log_policy);
 
 	Log::create_stream(Management::Log::LOG, stream);

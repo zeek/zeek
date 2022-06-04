@@ -22,7 +22,7 @@ public:
 
 	const char* Name() const { return name.data(); }
 
-	const FuncPtr& GetFunc() { return local; }
+	const FuncPtr& GetFunc() const { return local; }
 
 	const FuncTypePtr& GetType(bool check_export = true);
 

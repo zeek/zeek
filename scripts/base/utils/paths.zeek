@@ -28,11 +28,13 @@ function extract_path(input: string): string
 ## file_name: the name of the file.
 ##
 ## Returns: the concatenation of the directory path and file name, or just
-##          the file name if it's already an absolute path.
+##          the file name if it's already an absolute path or dir is empty.
 function build_path(dir: string, file_name: string): string
 	{
-	return (file_name == absolute_path_pat) ?
-		file_name : cat(dir, "/", file_name);
+	# Avoid introducing "//" into the result:
+	local sep = ends_with(dir, "/") ? "" : "/";
+	return (file_name == absolute_path_pat || dir == "") ?
+		file_name : cat(dir, sep, file_name);
 	}
 
 ## Returns a compressed path to a file given a directory and file name.

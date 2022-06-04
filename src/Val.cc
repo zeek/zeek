@@ -1359,15 +1359,27 @@ TableValTimer::TableValTimer(TableVal* val, double t) : detail::Timer(t, detail:
 
 TableValTimer::~TableValTimer()
 	{
-	table->ClearTimer(this);
+	if ( table )
+		table->ClearTimer(this);
 	}
 
 void TableValTimer::Dispatch(double t, bool is_expire)
 	{
 	if ( ! is_expire )
 		{
+		// Take this reference in case the expiration does something silly like resetting the
+		// table object itself. Doing so would cause a crash since the method would try to
+		// delete the table while it was being actively used.
+		TableValPtr temp = {NewRef{}, table};
+
 		table->ClearTimer(this);
 		table->DoExpire(t);
+
+		// If the table did get deleted earlier, then the only existing reference will be the
+		// one taken above. In that case, set table to nullptr here so ~TableValTimer doesn't
+		// also try to do something with it.
+		if ( table->RefCnt() == 1 )
+			table = nullptr;
 		}
 	}
 

@@ -63,7 +63,12 @@ enum PeerStatus %{
 	RECONNECTING,
 %}
 
-function Broker::__listen%(a: string, p: port%): port
+enum BrokerProtocol %{
+	NATIVE,
+	WEBSOCKET,
+%}
+
+function Broker::__listen%(a: string, p: port, proto: BrokerProtocol%): port
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
 
@@ -73,7 +78,15 @@ function Broker::__listen%(a: string, p: port%): port
 		return zeek::val_mgr->Port(0, TRANSPORT_UNKNOWN);
 		}
 
-	auto rval = broker_mgr->Listen(a->Len() ? a->CheckString() : "", p->Port());
+	zeek::Broker::Manager::BrokerProtocol proto_;
+	switch ( proto->AsEnum() )
+		{
+		case BifEnum::Broker::NATIVE: proto_ = zeek::Broker::Manager::BrokerProtocol::Native; break;
+		case BifEnum::Broker::WEBSOCKET: proto_ = zeek::Broker::Manager::BrokerProtocol::WebSocket; break;
+		default: reporter->InternalError("unknown Broker protocol");
+		}
+
+	auto rval = broker_mgr->Listen(a->Len() ? a->CheckString() : "", p->Port(), proto_);
 	return zeek::val_mgr->Port(rval, TRANSPORT_TCP);
 	%}
 

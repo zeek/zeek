@@ -1,6 +1,11 @@
 FROM alpine:latest
 
+# A version field to invalide Cirrus's build cache when needed, as suggested in
+# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
+ENV DOCKERFILE_VERSION 20220519
+
 RUN apk add --no-cache \
+  ccache \
   cmake \
   make \
   g++ \
@@ -21,4 +26,4 @@ RUN apk add --no-cache \
   openssh-client \
   py3-pip
 
-RUN pip3 install junit2html
+RUN pip3 install websockets junit2html

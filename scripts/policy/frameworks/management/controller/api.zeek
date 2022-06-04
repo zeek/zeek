@@ -97,6 +97,7 @@ export {
 	##     member is a vector of :zeek:see:`Management::NodeStatus`
 	##     records, covering the nodes at that instance. Results may also indicate
 	##     failure, with error messages indicating what went wrong.
+	##
 	global get_nodes_response: event(reqid: string,
 	    result: Management::ResultVec);
 
@@ -115,6 +116,7 @@ export {
 	## nodes: a set of cluster node names (e.g. "worker-01") to retrieve
 	##    the values from. An empty set, supplied by default, means
 	##    retrieval from all current cluster nodes.
+	##
 	global get_id_value_request: event(reqid: string, id: string,
 	    nodes: set[string] &default=set());
 
@@ -128,6 +130,7 @@ export {
 	##     data field contains a string with the JSON rendering (as produced
 	##     by :zeek:id:`to_json`, including the error strings it potentially
 	##     returns).
+	##
 	global get_id_value_response: event(reqid: string, result: Management::ResultVec);
 
 
@@ -161,10 +164,10 @@ export {
 	## The controller triggers this event when the operational cluster
 	## instances align with the ones desired by the cluster
 	## configuration. It's essentially a cluster management readiness
-	## event. This event is currently only used by the controller and not
-	## published to other topics.
+	## event. This event is currently only used internally by the controller,
+	## and not published to topics.
 	##
 	## instances: the set of instance names now ready.
 	##
 	global notify_agents_ready: event(instances: set[string]);
-	}
+}

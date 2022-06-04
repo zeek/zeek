@@ -71,7 +71,7 @@ event zeek_init() &priority=5
 # Establish the variable for tracking expected connections.
 global ftp_data_expected: table[addr, port] of Info &read_expire=5mins;
 
-function minimize_info(info: Info): Info
+function minimize_info(info: Info): Info &is_used
 	{
 	# Just minimal data for sending to other remote Zeek processes.
 	# Generally, only data that's consistent across an entire FTP session or
@@ -103,7 +103,7 @@ const directory_cmds = {
 	["XPWD", 257],
 };
 
-function ftp_relay_topic(): string
+function ftp_relay_topic(): string &is_used
 	{
 	local rval = Cluster::rr_topic(Cluster::proxy_pool, "ftp_transfer_rr_key");
 
@@ -176,7 +176,7 @@ function ftp_message(s: Info)
 	delete s$data_channel;
 	}
 
-event sync_add_expected_data(s: Info, chan: ExpectedDataChannel)
+event sync_add_expected_data(s: Info, chan: ExpectedDataChannel) &is_used
 	{
 @if ( Cluster::local_node_type() == Cluster::PROXY ||
       Cluster::local_node_type() == Cluster::MANAGER )
@@ -189,7 +189,7 @@ event sync_add_expected_data(s: Info, chan: ExpectedDataChannel)
 @endif
 	}
 
-event sync_remove_expected_data(resp_h: addr, resp_p: port)
+event sync_remove_expected_data(resp_h: addr, resp_p: port) &is_used
 	{
 @if ( Cluster::local_node_type() == Cluster::PROXY ||
       Cluster::local_node_type() == Cluster::MANAGER )

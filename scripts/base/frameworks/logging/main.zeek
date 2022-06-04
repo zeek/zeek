@@ -587,7 +587,7 @@ global filters: table[ID, string] of Filter;
 module Log;
 
 # Used internally by the log manager.
-function __default_rotation_postprocessor(info: RotationInfo) : bool
+function __default_rotation_postprocessor(info: RotationInfo) : bool &is_used
 	{
 	if ( info$writer in default_rotation_postprocessors )
 		return default_rotation_postprocessors[info$writer](info);

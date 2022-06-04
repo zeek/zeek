@@ -91,4 +91,16 @@ export {
 	## process tree.  There is no response to this message as the Supervisor
 	## simply terminates on receipt.
 	global SupervisorControl::stop_request: event();
+
+	## A notification event the Supervisor generates when it receives a
+	## status message update from the stem, indicating node has
+	## (re-)started. This is the remote equivalent of
+	## :zeek:see:`Supervisor::node_status`.
+	##
+	## node: the name of a previously created node via
+	##       :zeek:see:`Supervisor::create` indicating to which
+	##       child process the stdout line is associated.
+	##
+	## pid: the process ID the stem reported for this node.
+	global SupervisorControl::node_status: event(node: string, pid: count);
 }

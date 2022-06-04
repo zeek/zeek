@@ -2329,6 +2329,10 @@ ExprPtr CallExpr::Inline(Inliner* inl)
 	{
 	auto new_me = inl->CheckForInlining({NewRef{}, this});
 
+	if ( ! new_me )
+		// All done with inlining.
+		return ThisPtr();
+
 	if ( new_me.get() != this )
 		return new_me;
 

@@ -47,8 +47,8 @@ void ScriptProfile::Report(FILE* f) const
 
 	std::string ftype = is_BiF ? "BiF" : func->GetType()->FlavorString();
 
-	fprintf(f, "%s\t%s\t%s\t%d\t%.06f\t%.06f\t%lld\t%lld\n", Name().c_str(), l.c_str(),
-	        ftype.c_str(), NumCalls(), CPUTime(), child_stats.CPUTime(), Memory(),
+	fprintf(f, "%s\t%s\t%s\t%d\t%.06f\t%.06f\t%" PRIu64 "\t%" PRIu64 "\n", Name().c_str(),
+	        l.c_str(), ftype.c_str(), NumCalls(), CPUTime(), child_stats.CPUTime(), Memory(),
 	        child_stats.Memory());
 	}
 
@@ -102,20 +102,20 @@ ScriptProfileMgr::~ScriptProfileMgr()
 		auto& fp = fs.second;
 		auto n = func->GetBodies().size();
 		if ( n > 1 )
-			fprintf(f, "%s\t%lu-locations\t%s\t%d\t%.06f\t%0.6f\t%lld\t%lld\n", fp.Name().c_str(),
-			        n, func->GetType()->FlavorString().c_str(), fp.NumCalls(), fp.CPUTime(), 0.0,
-			        fp.Memory(), 0LL);
+			fprintf(f, "%s\t%lu-locations\t%s\t%d\t%.06f\t%0.6f\t%" PRIu64 "\t%lld\n",
+			        fp.Name().c_str(), n, func->GetType()->FlavorString().c_str(), fp.NumCalls(),
+			        fp.CPUTime(), 0.0, fp.Memory(), 0LL);
 		}
 
-	fprintf(f, "all-BiFs\t%d-locations\tBiF\t%d\t%.06f\t%.06f\t%lld\t%lld\n",
+	fprintf(f, "all-BiFs\t%d-locations\tBiF\t%d\t%.06f\t%.06f\t%" PRIu64 "\t%lld\n",
 	        BiF_stats.NumInstances(), BiF_stats.NumCalls(), BiF_stats.CPUTime(), 0.0,
 	        BiF_stats.Memory(), 0LL);
 
-	fprintf(f, "total\t%d-locations\tTOTAL\t%d\t%.06f\t%.06f\t%lld\t%lld\n",
+	fprintf(f, "total\t%d-locations\tTOTAL\t%d\t%.06f\t%.06f\t%" PRIu64 "\t%lld\n",
 	        total_stats.NumInstances(), total_stats.NumCalls(), total_stats.CPUTime(), 0.0,
 	        total_stats.Memory(), 0LL);
 
-	fprintf(f, "non-scripts\t<no-location>\tTOTAL\t%d\t%.06f\t%.06f\t%lld\t%lld\n",
+	fprintf(f, "non-scripts\t<no-location>\tTOTAL\t%d\t%.06f\t%.06f\t%" PRIu64 "\t%lld\n",
 	        non_scripts.NumCalls(), non_scripts.CPUTime(), 0.0, non_scripts.Memory(), 0LL);
 
 	if ( f != stdout )

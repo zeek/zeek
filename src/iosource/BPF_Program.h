@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
+#include <string>
 
 extern "C"
 	{
@@ -26,14 +27,14 @@ public:
 	// Creates a BPF program for the given pcap handle.
 	// Parameters are like in pcap_compile(). Returns true
 	// for successful compilation, false otherwise.
-	bool Compile(pcap_t* pcap, const char* filter, uint32_t netmask, char* errbuf = nullptr,
-	             unsigned int errbuf_len = 0, bool optimize = true);
+	bool Compile(pcap_t* pcap, const char* filter, uint32_t netmask, std::string& errbuf,
+	             bool optimize = true);
 
 	// Creates a BPF program when no pcap handle is around,
 	// similarly to pcap_compile_nopcap(). Parameters are
 	// similar. Returns true on success.
 	bool Compile(int snaplen, int linktype, const char* filter, uint32_t netmask,
-	             char* errbuf = nullptr, unsigned int errbuf_len = 0, bool optimize = true);
+	             std::string& errbuf, bool optimize = true);
 
 	// Returns true if this program currently contains compiled
 	// code, false otherwise.

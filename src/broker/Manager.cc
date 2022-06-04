@@ -527,12 +527,21 @@ void Manager::ClearStores()
 		handle->store.clear();
 	}
 
-uint16_t Manager::Listen(const string& addr, uint16_t port)
+uint16_t Manager::Listen(const string& addr, uint16_t port, BrokerProtocol type)
 	{
 	if ( bstate->endpoint.is_shutdown() )
 		return 0;
 
-	bound_port = bstate->endpoint.listen(addr, port);
+	switch ( type )
+		{
+		case BrokerProtocol::Native:
+			bound_port = bstate->endpoint.listen(addr, port);
+			break;
+
+		case BrokerProtocol::WebSocket:
+			bound_port = bstate->endpoint.web_socket_listen(addr, port);
+			break;
+		}
 
 	if ( bound_port == 0 )
 		Error("Failed to listen on %s:%" PRIu16, addr.empty() ? "INADDR_ANY" : addr.c_str(), port);

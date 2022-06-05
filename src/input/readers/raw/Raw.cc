@@ -614,7 +614,7 @@ bool Raw::DoUpdate()
 				if ( file )
 					clearerr(file.get());
 
-				// check if the file has changed
+				// Check if the file has changed
 				struct stat sb;
 				if ( stat(fname.c_str(), &sb) == -1 )
 					// File was removed
@@ -630,7 +630,7 @@ bool Raw::DoUpdate()
 				if ( ! tfile )
 					break;
 
-				// stat newly opened file
+				// Stat newly opened file
 				if ( fstat(fileno(tfile), &sb) == -1 )
 					{
 					Error(Fmt("Could not fstat %s", fname.c_str()));

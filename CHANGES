@@ -1,3 +1,7 @@
+5.1.0-dev.8 | 2022-06-06 09:38:59 -0700
+
+  * Remove duplicate entry about websockets from 5.0 NEWS (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.7 | 2022-06-06 09:36:32 -0700
 
   * NEWS updates for 5.0 (Vern Paxson, Corelight)

@@ -80,9 +80,10 @@ New Functionality
 
 - Zeek now provides WebSocket support for exchanging events with external
   clients. To enable it, call `Broker::listen_websocket()`.  Zeek will then
-  start listening on port 9997 for incoming WebSocket connections. See the
-  Broker documentation for a description of the message format expected over
-  these WebSocket connections.
+  start listening on port 9997 for incoming WebSocket connections. Zeek/Broker
+  communicates via JSON messages. See the Broker documentation for a description
+  of the message format expected over these WebSocket connections at
+  https://docs.zeek.org/projects/broker/en/current/web-socket.html.
 
 - Compiling scripts to C++ (via ``-O gen-C++``) is now "feature complete", i.e.,
   the compiler should be able to process any script - other than those
@@ -124,12 +125,6 @@ New Functionality
 
 - The ``base/misc/installation.zeek`` script provides your Zeek installation's
   key directories.
-
-- Broker now allows clients to connect as lightweight peers via WebSocket. Zeek
-  scripts may expose a WebSocket port by calling
-  `Broker::listen_websocket`. Zeek/Broker communicates via JSON messages, the
-  format is documented here:
-  https://docs.zeek.org/projects/broker/en/current/web-socket.html
 
 Changed Functionality
 ---------------------

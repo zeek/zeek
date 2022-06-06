@@ -1,12 +1,10 @@
 5.0.0-rc1 | 2022-06-03 12:09:34 -0700
 
+  * Remove duplicate entry about websockets from 5.0 NEWS (Tim Wojtulewicz, Corelight)
+
   * NEWS updates for 5.0 (Vern Paxson, Corelight)
 
   * ZAM test suite updates due to recent changes (Vern Paxson, Corelight)
-
-  * Update submodules [nomail] (Tim Wojtulewicz, Corelight)
-
-  * Updating submodule(s) [nomail] (Tim Wojtulewicz, Corelight)
 
 5.0.0-dev.575 | 2022-06-03 10:55:47 -0700
 

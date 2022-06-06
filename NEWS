@@ -29,6 +29,25 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Zeek now automatically warns about unused functions, hooks, and event
+  handlers.  The intent behind these checks is to catch instances where the
+  script writer has introduced typos in names, or has forgotten to remove
+  code that's no longer needed.
+
+  For functions and hooks, "unused" means the function/hook is not exported or
+  in the global scope (nor deprecated), and no "live" (i.e., not "unused")
+  function/hook/event handler calls it.  For event handlers, "unused" means
+  that the event engine does not generate the event, nor do any "live"
+  function/hook/event handler generates (and the event handler is not
+  deprecated).
+
+  The warnings can occasionally be or inappropriate or incorrect, such as due
+  to the use of conditional code (which Zeek does not try to incorporate
+  into its analysis), or events sent via Broker.  You can mark such instances
+  using the ``&is_used`` attribute to suppress the associated warning.
+  You can also suppress all such warnings using the ``--no-unused-warnings``
+  command-line option.
+
 - A new feature, ``--profile-scripts[=file]`` instructs Zeek to write (upon
   termination) a profile of every function body to the given file (default:
   stdout), along with some aggregate profiles. A function body is associated
@@ -64,6 +83,15 @@ New Functionality
   start listening on port 9997 for incoming WebSocket connections. See the
   Broker documentation for a description of the message format expected over
   these WebSocket connections.
+
+- Compiling scripts to C++ (via ``-O gen-C++``) is now "feature complete", i.e.,
+  the compiler should be able to process any script - other than those
+  potentially affected by ``@if`` conditionals - regardless of which Zeek
+  language constructs it uses.  That said, such compilation remains
+  experimental and only lightly tested.
+
+- ZAM script optimization (``-O ZAM``) now includes some major performance
+  improvements.
 
 - The new --with-gen-zam configure flag and its corresponding GEN_ZAM_EXE_PATH
   cmake variable allow reuse of a previously built Gen-ZAM code generator. This

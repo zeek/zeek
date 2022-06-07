@@ -1,3 +1,7 @@
+5.1.0-dev.10 | 2022-06-07 10:02:39 -0700
+
+  * Keep make dist from deleting all paths containing 'build' [skip ci] (Tim Wojtulewicz)
+
 5.1.0-dev.8 | 2022-06-06 09:38:59 -0700
 
   * Remove duplicate entry about websockets from 5.0 NEWS (Tim Wojtulewicz, Corelight)

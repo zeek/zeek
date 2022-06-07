@@ -368,7 +368,7 @@ event Management::Controller::API::notify_agents_ready(instances: set[string])
 	local insts = Management::Util::set_to_vector(instances);
 
 	Management::Log::info(fmt("rx Management::Controller::API:notify_agents_ready %s",
-	    join_string_vec(insts, ",")));
+	    join_string_vec(insts, ", ")));
 
 	local req = Management::Request::lookup(g_config_reqid_pending);
 

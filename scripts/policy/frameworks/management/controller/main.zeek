@@ -93,6 +93,22 @@ global drop_instance: function(inst: Management::Instance);
 global null_config: function(): Management::Configuration;
 global is_null_config: function(config: Management::Configuration): bool;
 
+# Returns list of names of nodes in the given configuration that require a
+# listening port. Returns empty list if the config has no such nodes.
+global config_nodes_lacking_ports: function(config: Management::Configuration): vector of string;
+
+# Assign node listening ports in the given configuration by counting up from
+# Management::Controller::auto_assign_start_port. Scans the included nodes and
+# fills in ports for any non-worker cluster node that doesn't have an existing
+# port. This assumes those ports are actually available on the instances.
+global config_assign_ports: function(config: Management::Configuration);
+
+# Rejects the given configuration with the given error message. The function
+# adds a non-success result record to the given request and send the
+# set_configuration_response event back to the client. It does not call finish()
+# on the request.
+global send_set_configuration_response_error: function(req: Management::Request::Request, error: string);
+
 # Given a Broker ID, this returns the endpoint info associated with it.
 # On error, returns a dummy record with an empty ID string.
 global find_endpoint: function(id: string): Broker::EndpointInfo;
@@ -221,6 +237,64 @@ function null_config(): Management::Configuration
 	return Management::Configuration($id="");
 	}
 
+function config_nodes_lacking_ports(config: Management::Configuration): vector of string
+	{
+	local res: vector of string;
+	local roles = { Supervisor::MANAGER, Supervisor::LOGGER, Supervisor::PROXY };
+
+	for ( node in config$nodes )
+		{
+		if ( node$role in roles && ! node?$p )
+			res += node$name;
+		}
+
+	return sort(res, strcmp);
+	}
+
+function config_assign_ports(config: Management::Configuration)
+	{
+	# We're changing nodes in the configuration's set, so need to rebuild it:
+	local new_nodes: set[Management::Node];
+
+	# Workers don't need listening ports, but these do:
+	local roles = vector(Supervisor::MANAGER, Supervisor::LOGGER, Supervisor::PROXY);
+
+	local p = port_to_count(Management::Controller::auto_assign_start_port);
+	local roles_set: set[Supervisor::ClusterRole];
+
+	for ( i in roles )
+		add roles_set[roles[i]];
+
+	# Copy any nodes to the new set that have roles we don't care about.
+	for ( node in config$nodes )
+		{
+		if ( node$role !in roles_set )
+			add new_nodes[node];
+		}
+
+	# Now process the ones that may need ports, in order.
+	for ( i in roles )
+		{
+		for ( node in config$nodes )
+			{
+			if ( node$role != roles[i] )
+				next;
+
+			if ( node?$p ) # Already has a port.
+				{
+				add new_nodes[node];
+				next;
+				}
+
+			node$p = count_to_port(p, tcp);
+			add new_nodes[node];
+			++p;
+			}
+		}
+
+	config$nodes = new_nodes;
+	}
+
 function find_endpoint(id: string): Broker::EndpointInfo
 	{
 	local peers = Broker::peers();
@@ -275,6 +349,18 @@ function filter_config_nodes_by_name(nodes: set[string]): set[string]
 		add cluster_nodes[node$name];
 
 	return nodes & cluster_nodes;
+	}
+
+function send_set_configuration_response_error(req: Management::Request::Request, error: string)
+	{
+	local res = Management::Result($reqid=req$id);
+
+	res$success = F;
+	res$error = error;
+	req$results += res;
+
+	Broker::publish(Management::Controller::topic,
+	    Management::Controller::API::set_configuration_response, req$id, req$results);
 	}
 
 event Management::Controller::API::notify_agents_ready(instances: set[string])
@@ -485,6 +571,25 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 	# - Are any node options understood?
 	# - Do node types with optional fields have required values?
 	# ...
+
+	if ( Management::Controller::auto_assign_ports )
+		config_assign_ports(config);
+	else
+		{
+		local nodes = config_nodes_lacking_ports(config);
+
+		if ( |nodes| > 0 )
+			{
+			local nodes_str = join_string_vec(nodes, ", ");
+			send_set_configuration_response_error(req,
+			    fmt("port auto-assignment disabled but nodes %s lack ports", nodes_str));
+
+			Management::Request::finish(req$id);
+			Management::Log::info(fmt("tx Management::Controller::API::set_configuration_response %s",
+			    Management::Request::to_string(req)));
+			return;
+			}
+		}
 
 	# The incoming request is now the pending one. It gets cleared when all
 	# agents have processed their config updates successfully, or their

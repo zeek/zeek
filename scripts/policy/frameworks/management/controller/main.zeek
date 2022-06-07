@@ -552,16 +552,12 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 	# At the moment there can only be one pending request.
 	if ( g_config_reqid_pending != "" )
 		{
-		res = Management::Result($reqid=reqid);
-		res$success = F;
-		res$error = fmt("request %s still pending", g_config_reqid_pending);
-		req$results += res;
+		send_set_configuration_response_error(req,
+		    fmt("request %s still pending", g_config_reqid_pending));
 
+		Management::Request::finish(req$id);
 		Management::Log::info(fmt("tx Management::Controller::API::set_configuration_response %s",
 		    Management::Request::to_string(req)));
-		Broker::publish(Management::Controller::topic,
-		    Management::Controller::API::set_configuration_response, req$id, req$results);
-		Management::Request::finish(req$id);
 		return;
 		}
 

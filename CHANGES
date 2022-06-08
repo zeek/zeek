@@ -1,3 +1,13 @@
+5.1.0-dev.16 | 2022-06-08 13:42:41 -0700
+
+  * Management framework: port auto-assignment (Christian Kreibich, Corelight)
+
+    - support auto-assignment of ports in cluster nodes
+    - also use send_set_configuration_response_error elsewhere
+    - minor log formatting tweak, for consistency
+    - bump zeek-client to pull in relaxed port handling
+    - bump external cluster testsuite
+
 5.1.0-dev.10 | 2022-06-07 10:02:39 -0700
 
   * Keep make dist from deleting all paths containing 'build' [skip ci] (Tim Wojtulewicz)

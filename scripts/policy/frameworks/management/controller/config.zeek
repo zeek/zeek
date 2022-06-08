@@ -39,6 +39,17 @@ export {
 	## remains empty.
 	const default_port = 2150/tcp &redef;
 
+	## Whether the controller should auto-assign listening ports to cluster
+	## nodes that need them and don't have them explicitly specified in
+	## cluster configurations.
+	const auto_assign_ports = T &redef;
+
+	## The TCP start port to use for auto-assigning cluster node listening
+	## ports, if :zeek:see:`Management::Controller::auto_assign_ports` is
+	## enabled (the default) and the provided configurations don't have
+	## ports assigned.
+	const auto_assign_start_port = 2200/tcp &redef;
+
 	## The controller's Broker topic. Clients send requests to this topic.
 	const topic = "zeek/management/controller" &redef;
 

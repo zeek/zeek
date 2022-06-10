@@ -15,7 +15,7 @@
 @load ./api
 @load ./config
 
-module Mangement::Agent::Runtime;
+module Management::Agent::Runtime;
 
 # This export is mainly to appease Zeekygen's need to understand redefs of the
 # Request record below. Without it, it fails to establish link targets for the

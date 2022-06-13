@@ -668,8 +668,26 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 		add_instance(insts_to_peer[inst_name]);
 		}
 
-	# Updates to out instance tables are complete, now check if we're already
-	# able to send the config to the agents:
+	# Updates to instance tables are complete. As a corner case, if the
+	# config contained no instances (and thus no nodes), we're now done
+	# since there are no agent interactions to wait for:
+	if ( |insts_new| == 0 )
+		{
+		g_config_current = req$set_configuration_state$config;
+		g_config_reqid_pending = "";
+
+		Management::Log::info(fmt("tx Management::Controller::API::set_configuration_response %s",
+		    Management::Request::to_string(req)));
+		Broker::publish(Management::Controller::topic,
+		    Management::Controller::API::set_configuration_response, req$id, req$results);
+		Management::Request::finish(req$id);
+		return;
+		}
+
+	# Otherwise, check if we're able to send the config to all agents
+	# involved. If that's the case, this will trigger a
+	# Management::Controller::API::notify_agents_ready event that implements
+	# the distribution in the controller's own event handler, above.
 	check_instances_ready();
 	}
 

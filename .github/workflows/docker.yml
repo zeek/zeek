@@ -34,7 +34,7 @@ jobs:
 
       # Create and boot a loader. This will e.g., provide caching
       # so we avoid rebuilds of the same image after this step.
-      - uses: docker/setup-buildx-action@v1
+      - uses: docker/setup-buildx-action@v2
 
       - name: Build image
         uses: docker/build-push-action@v2

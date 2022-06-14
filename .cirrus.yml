@@ -54,7 +54,7 @@ sanitizers_resource_template: &SANITIZERS_RESOURCE_TEMPLATE
 
 ci_template: &CI_TEMPLATE
   only_if: >
-    ( $CIRRUS_PR != '' && $CIRRUS_BRANCH != 'dependabot/.*' ) ||
+    ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
     ( $CIRRUS_REPO_NAME == 'zeek' &&
       (
       $CIRRUS_BRANCH == 'master' ||

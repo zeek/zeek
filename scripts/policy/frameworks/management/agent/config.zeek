@@ -106,7 +106,7 @@ function endpoint_info(): Broker::EndpointInfo
 	else if ( Management::default_address != "" )
 		network$address = Management::default_address;
 	else
-		network$address = "127.0.0.1";
+		network$address = "0.0.0.0";
 
 	if ( Management::Agent::listen_port != "" )
 		network$bound_port = to_port(Management::Agent::listen_port);

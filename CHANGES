@@ -1,3 +1,7 @@
+5.1.0-dev.38 | 2022-06-14 15:43:44 -0700
+
+  * Fix pattern matching in Cirrus dependabot check (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.35 | 2022-06-14 14:39:02 -0700
 
   * Ignore dependabot PRs on Cirrus (Tim Wojtulewicz, Corelight)

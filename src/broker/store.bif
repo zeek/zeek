@@ -260,6 +260,13 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 
 	auto req_id = handle->proxy.put_unique(std::move(*key), std::move(*val),
 	                                       zeek::Broker::detail::convert_expiry(e));
+
+	if ( req_id == 0 )
+		{
+		zeek::emit_builtin_error("Broker store cannot run put_unique without an attached clone or master");
+		return zeek::Broker::detail::query_result();
+		}
+
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
 	return nullptr;

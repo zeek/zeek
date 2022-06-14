@@ -86,7 +86,7 @@ function network_info(): Broker::NetworkInfo
 	else if ( Management::default_address != "" )
 		ni$address = Management::default_address;
 	else
-		ni$address = "127.0.0.1";
+		ni$address = "0.0.0.0";
 
 	if ( Management::Controller::listen_port != "" )
 		ni$bound_port = to_port(Management::Controller::listen_port);

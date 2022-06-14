@@ -8,11 +8,15 @@
 
 @load ./config
 
-# The agent needs the supervisor to listen for node management requests.  We
-# need to tell it to do so, and we need to do so here, in the agent
-# bootstrapping code, so the redef applies prior to the fork of the agent
-# process itself.
+# The agent needs the supervisor to listen for node management requests, which
+# by default it does not. We need to tell it to do so here, in the agent
+# bootstrap code, so the redef applies prior to the fork of the agent process.
 redef SupervisorControl::enable_listen = T;
+
+# The Supervisor listens on Broker's default address: any interface. In the
+# Management framework there's no need for other machines to interact with
+# instance Supervisors directly, so restrict it to listening locally.
+redef Broker::default_listen_address = "127.0.0.1";
 
 event zeek_init()
 	{

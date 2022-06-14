@@ -19,9 +19,8 @@ export {
 
 	## The fallback listen address if more specific adddresses, such as
 	## the controller's :zeek:see:`Management::Controller::listen_address`
-	## remains empty. Unless redefined, this uses Broker's own default
-	## listen address.
-	const default_address = Broker::default_listen_address &redef;
+	## remains empty. Unless redefined, this listens on all interfaces.
+	const default_address = "0.0.0.0" &redef;
 
 	## The retry interval for Broker connnects. Defaults to a more
 	## aggressive value compared to Broker's 30s.

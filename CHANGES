@@ -1,3 +1,9 @@
+5.1.0-dev.30 | 2022-06-14 12:02:46 -0700
+
+  * Management framework: bump external cluster testsuite (Christian Kreibich, Corelight)
+
+  * Management framework: switch default network visibilities (Christian Kreibich, Corelight)
+
 5.1.0-dev.27 | 2022-06-14 11:30:28 -0700
 
   * chore: Set permissions for GitHub actions (naveen)

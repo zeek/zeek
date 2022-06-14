@@ -288,7 +288,7 @@ function get_timer_stats%(%): TimerStats
 
 	r->Assign(n++, static_cast<uint64_t>(zeek::detail::timer_mgr->Size()));
 	r->Assign(n++, static_cast<uint64_t>(zeek::detail::timer_mgr->PeakSize()));
-	r->Assign(n++, zeek::detail::timer_mgr->CumulativeNum());
+	r->Assign(n++, static_cast<uint64_t>(zeek::detail::timer_mgr->CumulativeNum()));
 
 	return r;
 	%}

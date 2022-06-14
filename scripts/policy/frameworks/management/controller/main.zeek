@@ -103,6 +103,13 @@ global config_nodes_lacking_ports: function(config: Management::Configuration): 
 # port. This assumes those ports are actually available on the instances.
 global config_assign_ports: function(config: Management::Configuration);
 
+# Validate the given configuration in terms of missing, incorrect, or
+# conflicting content. Returns T if validation succeeds, F otherwise. The
+# function updates the given request's success state and adds any error
+# result(s) to it.
+global config_validate: function(config: Management::Configuration,
+    req: Management::Request::Request): bool;
+
 # Rejects the given configuration with the given error message. The function
 # adds a non-success result record to the given request and send the
 # set_configuration_response event back to the client. It does not call finish()
@@ -342,6 +349,146 @@ function config_assign_ports(config: Management::Configuration)
 		}
 
 	config$nodes = new_nodes;
+	}
+
+function config_validate(config: Management::Configuration,
+    req: Management::Request::Request): bool
+	{
+	local errors: Management::ResultVec;
+	local make_error = function(reqid: string, error: string): Management::Result
+		{ return Management::Result($reqid=reqid, $success=F, $error=error); };
+
+	# We could reject the config if it lists agents that connect to the
+	# controller, and the controller is currently unaware of those
+	# agents. We don't do this because setting the configuration is often
+	# the first task in scripting, and it's helpful that the controller will
+	# naturally wait for such agents to connect (hopefully soon). The
+	# alternative would be that clients need to check get-instances output
+	# until the expected connectivity is in place. We may revisit this in
+	# the future.
+
+	# Reject if node names or instance names repeat:
+
+	local inst_names: set[string];
+	local node_names: set[string];
+	local inst_names_done: set[string]; # These ensure we only report the
+	local node_names_done: set[string]; # same problem once.
+
+	for ( inst in config$instances )
+		{
+		if ( inst$name !in inst_names )
+			{
+			add inst_names[inst$name];
+			next;
+			}
+
+		if ( inst$name !in inst_names_done )
+			{
+			errors += make_error(req$id, fmt("multiple instances named '%s'", inst$name));
+			add inst_names_done[inst$name];
+			}
+		}
+
+	for ( node in config$nodes )
+		{
+		if ( node$name !in node_names )
+			{
+			add node_names[node$name];
+			next;
+			}
+
+		if ( node$name !in node_names_done )
+			{
+			errors += make_error(req$id, fmt("multiple nodes named '%s'", node$name));
+			add node_names_done[node$name];
+			}
+		}
+
+	# Also reject if instance and node names overlap:
+	local both_names = inst_names & node_names;
+
+	if ( |both_names| > 0 )
+		errors += make_error(req$id, fmt("node and instance names collide: %s",
+		    join_string_vec(Management::Util::set_to_vector(both_names), ", ")));
+
+	# Reject if a node instance name isn't actually an instance. We permit
+	# instances that aren't mentioned by nodes.
+	for ( node in config$nodes )
+		{
+		if ( node$instance !in inst_names )
+			errors += make_error(req$id, fmt("node '%s' has undeclared instance name '%s'",
+			    node$name, node$instance));
+		}
+
+	# Conflicts also apply to ports: auto-assignment avoids collisions, but
+	# nodes that spell out ports must not collide, neither with themselves
+	# nor agents. We need to track this per-instance.
+	local inst_ports: table[string] of set[port];
+	local node_ports: table[string] of set[port];
+	local node_ports_done: table[string] of set[port];
+
+	for ( inst in config$instances )
+		{
+		if ( ! inst?$listen_port )
+			next;
+		if ( inst$name !in inst_ports )
+			inst_ports[inst$name] = set();
+		add inst_ports[inst$name][inst$listen_port];
+		}
+
+	for ( node in config$nodes )
+		{
+		if ( node$instance !in node_ports )
+			node_ports[node$instance] = set();
+		if ( node$instance !in node_ports_done )
+			node_ports_done[node$instance] = set();
+
+		if ( ! node?$p )
+			next;
+
+		if ( node$instance in inst_ports && node$p in inst_ports[node$instance] )
+			errors += make_error(req$id, fmt("node '%s' port %s conflicts with agent port on instance '%s'",
+			    node$name, node$p, node$instance));
+
+		# It might not strictly be a problem if controller and cluster
+		# node have the same port, since they may well be on different
+		# machines. Ideally we'd verify this, but this too would require
+		# that the agents are already connected. Might revisit later.
+		if ( node$p == Management::Controller::network_info()$bound_port )
+			errors += make_error(req$id, fmt("node '%s' port %s conflicts with controller port",
+			    node$name, node$p));
+
+		if ( node$p !in node_ports[node$instance] )
+			{
+			add node_ports[node$instance][node$p];
+			next;
+			}
+
+		if ( node$p !in node_ports_done[node$instance] )
+			{
+			errors += make_error(req$id, fmt("multiple nodes on instance '%s' using port %s",
+			    node$instance, node$p));
+			add node_ports_done[node$instance][node$p];
+			}
+		}
+
+	# Possibilities for the future:
+	# - Are node options understood?
+	# - Do provided scripts exist/load?
+	# - Do requested interfaces exist on their instances?
+
+	if ( |errors| == 0 )
+		return T;
+
+	# Sort errors alphabetically for deterministic results, since in the
+	# above we iterated nondeterministically over several sets.
+	sort(errors, function(r1: Management::Result, r2: Management::Result): int
+		{ return strcmp(r1$error, r2$error); });
+
+	for ( i in errors )
+		req$results += errors[i];
+
+	return F;
 	}
 
 function find_endpoint(id: string): Broker::EndpointInfo
@@ -610,12 +757,16 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 		return;
 		}
 
-	# XXX validate the configuration:
-	# - Are node instances among defined instances?
-	# - Are all names unique?
-	# - Are any node options understood?
-	# - Do node types with optional fields have required values?
-	# ...
+	# If the config has problems, reject it:
+	if ( ! config_validate(config, req) )
+		{
+		Management::Request::finish(req$id);
+		Management::Log::info(fmt("tx Management::Controller::API::set_configuration_response %s",
+		    Management::Request::to_string(req)));
+		Broker::publish(Management::Controller::topic,
+		    Management::Controller::API::set_configuration_response, req$id, req$results);
+		return;
+		}
 
 	if ( Management::Controller::auto_assign_ports )
 		config_assign_ports(config);

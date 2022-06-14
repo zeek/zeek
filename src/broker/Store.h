@@ -75,12 +75,9 @@ class StoreQueryCallback
 public:
 	StoreQueryCallback(zeek::detail::trigger::Trigger* arg_trigger, const void* arg_assoc,
 	                   broker::store store)
-		: trigger(arg_trigger), assoc(arg_assoc), store(std::move(store))
+		: trigger(NewRef{}, arg_trigger), assoc(arg_assoc), store(std::move(store))
 		{
-		Ref(trigger);
 		}
-
-	~StoreQueryCallback() { Unref(trigger); }
 
 	void Result(const RecordValPtr& result)
 		{
@@ -100,7 +97,7 @@ public:
 	const broker::store& Store() const { return store; }
 
 private:
-	zeek::detail::trigger::Trigger* trigger;
+	IntrusivePtr<zeek::detail::trigger::Trigger> trigger;
 	const void* assoc;
 	broker::store store;
 	};

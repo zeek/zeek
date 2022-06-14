@@ -1,3 +1,22 @@
+5.1.0-dev.25 | 2022-06-14 10:07:32 -0700
+
+  * chore: Included githubactions in the dependabot config (naveen)
+
+    This should help with keeping the GitHub actions updated on new releases. This will also help with keeping it secure.
+
+    Dependabot helps in keeping the supply chain secure https://docs.github.com/en/code-security/dependabot
+
+    GitHub actions up to date https://docs.github.com/en/code-security/dependabot/working-with-dependabot/keeping-your-actions-up-to-date-with-dependabot
+
+    https://github.com/ossf/scorecard/blob/main/docs/checks.md#dependency-update-tool
+    Signed-off-by: naveen <172697+naveensrinivasan@users.noreply.github.com>
+
+  * Sort package names in Dockerfiles (Tim Wojtulewicz, Corelight)
+
+  * Dockerfile changes for consistency with Broker files (Tim Wojtulewicz, Corelight)
+
+  * Make some of the CI Dockerfiles more consistent (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.16 | 2022-06-08 13:42:41 -0700
 
   * Management framework: port auto-assignment (Christian Kreibich, Corelight)

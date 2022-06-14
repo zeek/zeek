@@ -91,7 +91,7 @@ global drop_instance: function(inst: Management::Instance);
 
 # Helpers to simplify handling of config records.
 global null_config: function(): Management::Configuration;
-global is_null_config: function(config: Management::Configuration): bool;
+global config_is_null: function(config: Management::Configuration): bool;
 
 # Returns list of names of nodes in the given configuration that require a
 # listening port. Returns empty list if the config has no such nodes.
@@ -505,7 +505,7 @@ function find_endpoint(id: string): Broker::EndpointInfo
 	return Broker::EndpointInfo($id="");
 	}
 
-function is_null_config(config: Management::Configuration): bool
+function config_is_null(config: Management::Configuration): bool
 	{
 	return config$id == "";
 	}
@@ -654,7 +654,6 @@ event Management::Agent::API::agent_welcome_response(reqid: string, result: Mana
 
 	# An agent we've been waiting to hear back from is ready for cluster
 	# work. Double-check we still want it, otherwise drop it.
-
 	if ( ! result$success || result$instance !in g_instances )
 		{
 		Management::Log::info(fmt(
@@ -897,7 +896,7 @@ event Management::Controller::API::get_configuration_request(reqid: string)
 
 	local res = Management::Result($reqid=reqid);
 
-	if ( is_null_config(g_config_current) )
+	if ( config_is_null(g_config_current) )
 		{
 		# We don't have a live configuration yet.
 		res$success = F;
@@ -1247,11 +1246,12 @@ event zeek_init()
 	# set_configuration request.
 	g_config_current = null_config();
 
-	# The controller always listens -- it needs to be able to respond to the
-	# Zeek client. This port is also used by the agents if they connect to
-	# the client. The client doesn't automatically establish or accept
-	# connectivity to agents: agents are defined and communicated with as
-	# defined via configurations defined by the client.
+	# The controller always listens: it needs to be able to respond to
+	# clients connecting to it, as well as agents if they connect to the
+	# controller. The controller does not automatically connect to any
+	# agents; instances with listening agents are conveyed to the controller
+	# via configurations uploaded by a client, with connections established
+	# upon deployment.
 
 	local cni = Management::Controller::network_info();
 

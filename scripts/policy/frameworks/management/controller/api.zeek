@@ -1,7 +1,7 @@
 ##! The event API of cluster controllers. Most endpoints consist of event pairs,
-##! where the controller answers a zeek-client request event with a
-##! corresponding response event. Such event pairs share the same name prefix
-##! and end in "_request" and "_response", respectively.
+##! where the controller answers the client's request event with a corresponding
+##! response event. Such event pairs share the same name prefix and end in
+##! "_request" and "_response", respectively.
 
 @load policy/frameworks/management/types
 
@@ -9,11 +9,11 @@ module Management::Controller::API;
 
 export {
 	## A simple versioning scheme, used to track basic compatibility of
-	## controller, agents, and zeek-client.
+	## controller, agents, and the client.
 	const version = 1;
 
 
-	## zeek-client sends this event to request a list of the currently
+	## The client sends this event to request a list of the currently
 	## peered agents/instances.
 	##
 	## reqid: a request identifier string, echoed in the response event.
@@ -32,7 +32,7 @@ export {
 	    result: Management::Result);
 
 
-	## zeek-client sends this event to establish a new cluster configuration,
+	## The client sends this event to establish a new cluster configuration,
 	## including the full cluster topology. The controller processes the update
 	## and relays it to the agents. Once each has responded (or a timeout occurs)
 	## the controller sends a corresponding response event back to the client.
@@ -57,7 +57,7 @@ export {
 	    result: Management::ResultVec);
 
 
-	## zeek-client sends this event to retrieve the currently deployed
+	## The client sends this event to retrieve the currently deployed
 	## cluster configuration.
 	##
 	## reqid: a request identifier string, echoed in the response event.
@@ -78,7 +78,7 @@ export {
 	    result: Management::Result);
 
 
-	## zeek-client sends this event to request a list of
+	## The client sends this event to request a list of
 	## :zeek:see:`Management::NodeStatus` records that capture
 	## the status of Supervisor-managed nodes running on the cluster's
 	## instances.
@@ -102,7 +102,7 @@ export {
 	    result: Management::ResultVec);
 
 
-	## zeek-client sends this event to retrieve the current value of a
+	## The client sends this event to retrieve the current value of a
 	## variable in Zeek's global namespace, referenced by the given
 	## identifier (i.e., variable name). The controller asks all agents
 	## to retrieve this value from each cluster node, accumulates the

@@ -161,5 +161,5 @@ function to_string(request: Request): string
 
 	return fmt("[request %s%s %s, results: %s]", request$id, parent_id,
 	           request$finished ? "finished" : "pending",
-	           join_string_vec(results, ","));
+	           join_string_vec(results, ", "));
 	}

@@ -1,3 +1,19 @@
+5.1.0-dev.27 | 2022-06-14 11:30:28 -0700
+
+  * chore: Set permissions for GitHub actions (naveen)
+
+     Restrict the GitHub token permissions only to the required ones; this way, even if the attackers will succeed in compromising your workflow, they won’t be able to do much.
+
+    - Included permissions for the action. https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions
+
+    https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+
+    https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs
+
+    [Keeping your GitHub Actions and workflows secure Part 1: Preventing pwn requests](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/)
+
+    Signed-off-by: naveen <172697+naveensrinivasan@users.noreply.github.com>
+
 5.1.0-dev.25 | 2022-06-14 10:07:32 -0700
 
   * chore: Included githubactions in the dependabot config (naveen)

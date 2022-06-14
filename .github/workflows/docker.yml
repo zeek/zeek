@@ -18,6 +18,9 @@ env:
   IMAGE_FILE: /tmp/zeek-image.tar
   IMAGE_PATH: /tmp
 
+permissions:
+  contents: read
+
 jobs:
   docker-build:
     runs-on: ubuntu-latest

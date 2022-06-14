@@ -256,40 +256,89 @@ function config_assign_ports(config: Management::Configuration)
 	# We're changing nodes in the configuration's set, so need to rebuild it:
 	local new_nodes: set[Management::Node];
 
-	# Workers don't need listening ports, but these do:
-	local roles = vector(Supervisor::MANAGER, Supervisor::LOGGER, Supervisor::PROXY);
+	# Workers don't need listening ports, but the others do. Define an ordering:
+	local roles: table[Supervisor::ClusterRole] of count = {
+		[Supervisor::MANAGER] = 0,
+		[Supervisor::LOGGER] = 1,
+		[Supervisor::PROXY] = 2
+	};
 
+	# We start counting from this port. Counting proceeds across instances,
+	# not per-instance: if the user wants auto-assignment, it seems better
+	# to avoid confusion with the same port being used on multiple
+	# instances.
 	local p = port_to_count(Management::Controller::auto_assign_start_port);
-	local roles_set: set[Supervisor::ClusterRole];
 
-	for ( i in roles )
-		add roles_set[roles[i]];
+	# A set that tracks the ports we've used so far. Helpful for avoiding
+	# collisions between manually specified and auto-enumerated ports.
+	local ports_set: set[count];
+
+	local node: Management::Node;
+
+	# Pre-populate agents ports, if we have them:
+	for ( inst in config$instances )
+		{
+		if ( inst?$listen_port )
+			add ports_set[port_to_count(inst$listen_port)];
+		}
+
+	# Pre-populate nodes with pre-defined ports:
+	for ( node in config$nodes )
+		{
+		if ( node?$p )
+			{
+			add ports_set[port_to_count(node$p)];
+			add new_nodes[node];
+			}
+		}
 
 	# Copy any nodes to the new set that have roles we don't care about.
 	for ( node in config$nodes )
 		{
-		if ( node$role !in roles_set )
+		if ( node$role !in roles )
 			add new_nodes[node];
 		}
 
-	# Now process the ones that may need ports, in order.
-	for ( i in roles )
+	# Now process the ones that may need ports, in order. We first sort by
+	# roles; we go manager -> logger -> proxy. Next are instance names, to
+	# get locally sequential ports among the same roles, and finally by
+	# name.
+	local nodes: vector of Management::Node;
+	for ( node in config$nodes )
 		{
-		for ( node in config$nodes )
-			{
-			if ( node$role != roles[i] )
-				next;
+		if ( node?$p )
+			next;
+		if ( node$role !in roles )
+			next;
+		nodes += node;
+		}
 
-			if ( node?$p ) # Already has a port.
-				{
-				add new_nodes[node];
-				next;
-				}
+	sort(nodes, function [roles] (n1: Management::Node, n2: Management::Node): int
+		{
+		if ( roles[n1$role] < roles[n2$role] )
+			return -1;
+		if ( roles[n1$role] > roles[n2$role] )
+			return 1;
+		local instcmp = strcmp(n1$instance, n2$instance);
+		if ( instcmp != 0 )
+			return instcmp;
+		return strcmp(n1$name, n2$name);
+		});
 
-			node$p = count_to_port(p, tcp);
-			add new_nodes[node];
+	for ( i in nodes )
+		{
+		node = nodes[i];
+
+		# Find next available port ...
+		while ( p in ports_set )
 			++p;
-			}
+
+		node$p = count_to_port(p, tcp);
+		add new_nodes[node];
+		add ports_set[p];
+
+		# ... and consume it.
+		++p;
 		}
 
 	config$nodes = new_nodes;

@@ -24,19 +24,21 @@ RUN dnf -y --nobest install \
     cmake \
     diffutils \
     flex \
-    git \
     gcc \
     gcc-c++ \
+    git \
     libpcap-devel \
     make \
+    openssl \
     openssl-devel \
+    python3 \
     python3-devel \
     python3-pip\
     sqlite \
     swig \
+    tar \
     which \
     zlib-devel \
-    tar \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Set the crypto policy to allow SHA-1 certificates - which we have in our tests

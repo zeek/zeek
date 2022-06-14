@@ -5,18 +5,20 @@ FROM fedora:35
 ENV DOCKERFILE_VERSION 20220519
 
 RUN dnf -y install \
-    ccache \
     bison \
+    ccache \
     cmake \
     diffutils \
     findutils \
     flex \
-    git \
     gcc \
     gcc-c++ \
+    git \
     libpcap-devel \
     make \
+    openssl \
     openssl-devel \
+    python3 \
     python3-devel \
     python3-pip\
     sqlite \

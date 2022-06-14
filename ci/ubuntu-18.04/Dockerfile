@@ -11,36 +11,38 @@ ENV CMAKE_VERSION "3.19.1"
 ENV PATH "${CMAKE_DIR}/bin:${PATH}"
 
 RUN apt-get update && apt-get -y install \
-    git \
-    clang-10 \
-    make \
-    flex \
+    bc \
     bison \
+    bsdmainutils \
+    ccache \
+    clang-10 \
+    curl \
+    flex \
+    git \
+    lcov \
+    libkrb5-dev \
+    libmaxminddb-dev \
     libpcap-dev \
     libssl-dev \
+    make \
     python3 \
     python3-dev \
     python3-pip\
-    swig \
-    zlib1g-dev \
-    libmaxminddb-dev \
-    libkrb5-dev \
-    bsdmainutils \
-    sqlite3 \
-    curl \
-    wget \
-    unzip \
     ruby \
-    bc \
-    lcov \
-    ccache \
-  && rm -rf /var/lib/apt/lists/* \
-  # Recent CMake.
-  && mkdir -p "${CMAKE_DIR}" \
-  && curl -sSL "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz" | tar xzf - -C "${CMAKE_DIR}" --strip-components 1
+    sqlite3 \
+    swig \
+    unzip \
+    wget \
+    zlib1g-dev \
+  && apt-get autoclean \
+  && rm -rf /var/lib/apt/lists/*
 
-ENV CC=/usr/bin/clang-10
-ENV CXX=/usr/bin/clang++-10
+# Recent CMake.
+RUN mkdir -p "${CMAKE_DIR}" \
+  && curl -sSL "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz" | tar xzf - -C "${CMAKE_DIR}" --strip-components 1
 
 RUN pip3 install websockets junit2html
 RUN gem install coveralls-lcov
+
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/clang-10 100
+RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-10 100

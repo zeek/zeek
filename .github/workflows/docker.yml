@@ -127,7 +127,7 @@ jobs:
         run: git submodule update --init ./auxil/btest
 
       - name: Download Docker image artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ env.IMAGE_NAME }}
           path: ${{ env.IMAGE_PATH }}

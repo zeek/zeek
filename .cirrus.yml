@@ -210,10 +210,12 @@ opensuse_leap_15_3_task:
   << : *CI_TEMPLATE
 
 ubuntu21_task:
-  container:
-    # Ubuntu 21.10 EOL: July 2022
-    dockerfile: ci/ubuntu-21.10/Dockerfile
-    << : *RESOURCES_TEMPLATE
+  persistent_worker:
+    isolation:
+      container:
+        # Ubuntu 21.10 EOL: July 2022
+        dockerfile: ci/ubuntu-21.10/Dockerfile
+        << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
 ubuntu20_task:

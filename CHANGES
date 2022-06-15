@@ -1,3 +1,11 @@
+5.0.0-rc1.5 | 2022-06-15 12:39:13 -0700
+
+  * CI: Add Ubuntu 22.04 (LTS Release, EOL 04/2027) (Johanna Amann, Corelight)
+
+  * Remove duplicate entry about websockets from 5.0 NEWS (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 5668a6a6de9fc583e7e0f5ecae94c14d853dc626)
+
 5.0.0-rc1 | 2022-06-03 12:09:34 -0700
 
   * Keep make dist from deleting all paths containing 'build' [skip ci] (Tim Wojtulewicz)

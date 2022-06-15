@@ -195,14 +195,6 @@ public:
 
 	// Statistics.
 
-	// Just a lower bound.
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocationVal() const override;
-
 	static uint64_t TotalConnections() { return total_connections; }
 	static uint64_t CurrentConnections() { return current_connections; }
 

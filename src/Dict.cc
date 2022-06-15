@@ -801,24 +801,6 @@ void Dictionary::AssertValid() const
 	}
 #endif // ZEEK_DICT_DEBUG
 
-size_t Dictionary::MemoryAllocation() const
-	{
-	size_t size = padded_sizeof(*this);
-	if ( table )
-		{
-		size += zeek::util::pad_size(Capacity() * sizeof(detail::DictEntry));
-		for ( int i = Capacity() - 1; i >= 0; i-- )
-			if ( ! table[i].Empty() && table[i].key_size > 8 )
-				size += zeek::util::pad_size(table[i].key_size);
-		}
-
-	if ( order )
-		size += padded_sizeof(std::vector<detail::DictEntry>) +
-		        zeek::util::pad_size(sizeof(detail::DictEntry) * order->capacity());
-
-	return size;
-	}
-
 void Dictionary::DumpKeys() const
 	{
 	if ( ! table )
@@ -844,11 +826,7 @@ void Dictionary::DumpKeys() const
 	if ( binary )
 		{
 		char key = char(random() % 26) + 'A';
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		sprintf(key_file, "%d.%d.%zu-%c.key", Length(), max_distance, MemoryAllocation() / Length(),
-		        key);
-#pragma GCC diagnostic pop
+		sprintf(key_file, "%d.%d-%c.key", Length(), max_distance, key);
 		std::ofstream f(key_file, std::ios::binary | std::ios::out | std::ios::trunc);
 		for ( int idx = 0; idx < Capacity(); idx++ )
 			if ( ! table[idx].Empty() )
@@ -861,11 +839,7 @@ void Dictionary::DumpKeys() const
 	else
 		{
 		char key = char(random() % 26) + 'A';
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		sprintf(key_file, "%d.%d.%zu-%d.ckey", Length(), max_distance,
-		        MemoryAllocation() / Length(), key);
-#pragma GCC diagnostic pop
+		sprintf(key_file, "%d.%d-%d.ckey", Length(), max_distance, key);
 		std::ofstream f(key_file, std::ios::out | std::ios::trunc);
 		for ( int idx = 0; idx < Capacity(); idx++ )
 			if ( ! table[idx].Empty() )
@@ -913,14 +887,10 @@ void Dictionary::Dump(int level) const
 	int distances[DICT_NUM_DISTANCES];
 	int max_distance = 0;
 	DistanceStats(max_distance, distances, DICT_NUM_DISTANCES);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	printf("cap %'7d ent %'7d %'-7d load %.2f max_dist %2d mem %10zu mem/ent %3zu key/ent %3d lg "
+	printf("cap %'7d ent %'7d %'-7d load %.2f max_dist %2d key/ent %3d lg "
 	       "%2d remaps %1d remap_end %4d ",
 	       Capacity(), Length(), MaxLength(), (double)Length() / (table ? Capacity() : 1),
-	       max_distance, MemoryAllocation(), (MemoryAllocation()) / (Length() ? Length() : 1),
-	       key_size / (Length() ? Length() : 1), log2_buckets, remaps, remap_end);
-#pragma GCC diagnostic pop
+	       max_distance, key_size / (Length() ? Length() : 1), log2_buckets, remaps, remap_end);
 	if ( Length() > 0 )
 		{
 		for ( int i = 0; i < DICT_NUM_DISTANCES - 1; i++ )

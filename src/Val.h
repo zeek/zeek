@@ -135,11 +135,6 @@ public:
 		return Footprint(&analyzed_vals);
 		}
 
-	// Bytes in total value object.
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] virtual unsigned int
-	MemoryAllocation() const;
-
 	// Add this value to the given value (if appropriate).
 	// Returns true if succcessful.  is_first_init is true only if
 	// this is the *first* initialization of the value, not
@@ -510,10 +505,6 @@ public:
 
 	const IPAddr& Get() const { return *addr_val; }
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
-
 protected:
 	ValPtr DoClone(CloneState* state) override;
 
@@ -541,10 +532,6 @@ public:
 	bool Contains(const IPAddr& addr) const;
 
 	const IPPrefix& Get() const { return *subnet_val; }
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
 
 protected:
 	void ValDescribe(ODesc* d) const override;
@@ -578,10 +565,6 @@ public:
 	StringVal* ToUpper();
 
 	const String* Get() const { return string_val; }
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
 
 	StringValPtr Replace(RE_Matcher* re, const String& repl, bool do_all);
 
@@ -644,10 +627,6 @@ public:
 
 	const RE_Matcher* Get() const { return re_val; }
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
-
 protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
@@ -695,10 +674,6 @@ public:
 	const std::vector<ValPtr>& Vals() const { return vals; }
 
 	void Describe(ODesc* d) const override;
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
 
 protected:
 	unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
@@ -972,10 +947,6 @@ public:
 	// already been initialized, this does nothing. Otherwise, evaluates
 	// the function in the frame allowing it to capture its closure.
 	void InitDefaultFunc(detail::Frame* f);
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
 
 	void ClearTimer(detail::Timer* t)
 		{
@@ -1401,9 +1372,6 @@ public:
 		}
 	RecordValPtr CoerceTo(RecordTypePtr other, bool allow_orphaning = false);
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
 
 	notifier::detail::Modifiable* Modifiable() override { return this; }

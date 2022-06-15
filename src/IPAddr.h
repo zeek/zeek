@@ -382,13 +382,6 @@ public:
 	 */
 	void ConvertToThreadingValue(threading::Value::addr_t* v) const;
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const
-		{
-		return padded_sizeof(*this);
-		}
-
 	/**
 	 * Check if an IP prefix length would be valid against this IP address.
 	 *
@@ -634,13 +627,6 @@ public:
 		{
 		v->length = length;
 		prefix.ConvertToThreadingValue(&v->prefix);
-		}
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const
-		{
-		return padded_sizeof(*this);
 		}
 
 	/**

@@ -125,27 +125,11 @@ void ProfileLogger::Log()
 	                      run_state::network_time, (utime + stime) - (first_utime + first_stime),
 	                      utime - first_utime, stime - first_stime, rtime - first_rtime));
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	int conn_mem_use = expensive ? session_mgr->SessionMemoryUsage() : 0;
-#pragma GCC diagnostic pop
-	double avg_conn_mem_use = 0;
-
-	if ( expensive && session_mgr->CurrentSessions() != 0 )
-		avg_conn_mem_use = conn_mem_use / static_cast<double>(session_mgr->CurrentSessions());
-
-		// TODO: This previously output the number of connections, but now that we're storing
-		// sessions as well as connections, this might need to be renamed.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	file->Write(util::fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32
-	                      " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
+	// TODO: This previously output the number of connections, but now that we're storing
+	// sessions as well as connections, this might need to be renamed.
+	file->Write(util::fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%u\n",
 	                      run_state::network_time, Connection::TotalConnections(),
-	                      Connection::CurrentConnections(), session_mgr->CurrentSessions(),
-	                      conn_mem_use, avg_conn_mem_use,
-	                      expensive ? session_mgr->MemoryAllocation() / 1024 : 0,
-	                      expensive ? session_mgr->SessionMemoryUsageVals() / 1024 : 0));
-#pragma GCC diagnostic pop
+	                      Connection::CurrentConnections(), session_mgr->CurrentSessions()));
 
 	session::Stats s;
 	session_mgr->GetStats(s);
@@ -175,12 +159,6 @@ void ProfileLogger::Log()
 
 	file->Write(util::fmt("%.06f Connections expired due to inactivity: %" PRIu64 "\n",
 	                      run_state::network_time, killed_by_inactivity));
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	file->Write(util::fmt("%.06f Total reassembler data: %" PRIu64 "K\n", run_state::network_time,
-	                      Reassembler::TotalMemoryAllocation() / 1024));
-#pragma GCC diagnostic pop
 
 	// Signature engine.
 	if ( expensive && rule_matcher )
@@ -251,16 +229,12 @@ void ProfileLogger::Log()
 	                      cs.num_ids_outgoing));
 
 	// Script-level state.
-	unsigned int size, mem = 0;
 	const auto& globals = global_scope()->Vars();
 
 	if ( expensive )
 		{
 		int total_table_entries = 0;
 		int total_table_rentries = 0;
-
-		file->Write(
-			util::fmt("%.06f Global_sizes > 100k: %dK\n", run_state::network_time, mem / 1024));
 
 		for ( const auto& global : globals )
 			{
@@ -272,18 +246,9 @@ void ProfileLogger::Log()
 				{
 				const auto& v = id->GetVal();
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-				size = v->MemoryAllocation();
-#pragma GCC diagnostic pop
-				mem += size;
-
 				bool print = false;
 				int entries = -1;
 				int rentries = -1;
-
-				if ( size > 100 * 1024 )
-					print = true;
 
 				if ( v->GetType()->Tag() == TYPE_TABLE )
 					{
@@ -301,21 +266,14 @@ void ProfileLogger::Log()
 						print = true;
 					}
 
-				if ( print )
+				if ( print && entries >= 0 )
 					{
-					file->Write(util::fmt("%.06f                %s = %dK", run_state::network_time,
-					                      id->Name(), size / 1024));
-
-					if ( entries >= 0 )
-						file->Write(util::fmt(" (%d/%d entries)\n", entries, rentries));
-					else
-						file->Write("\n");
+					file->Write(util::fmt("%.06f                %d/%d entries\n",
+					                      run_state::network_time, entries, rentries));
 					}
 				}
 			}
 
-		file->Write(
-			util::fmt("%.06f Global_sizes total: %dK\n", run_state::network_time, mem / 1024));
 		file->Write(util::fmt("%.06f Total number of table entries: %d/%d\n",
 		                      run_state::network_time, total_table_entries, total_table_rentries));
 		}

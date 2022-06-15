@@ -64,11 +64,6 @@ public:
 	void Describe(ODesc* d) const override;
 	void Dump(FILE* f);
 
-	// Recursivly count all the reachable states.
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	TotalMemoryAllocation() const;
-
 protected:
 	int sym; // if SYM_CCL, then use ccl
 	int id; // number that uniquely identifies this state
@@ -127,16 +122,6 @@ public:
 
 	void Describe(ODesc* d) const override;
 	void Dump(FILE* f);
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const
-		{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		return padded_sizeof(*this) + first_state->TotalMemoryAllocation();
-#pragma GCC diagnostic pop
-		}
 
 protected:
 	NFA_State* first_state;

@@ -650,13 +650,6 @@ public:
 	 */
 	void Weird(const char* name, const char* addl = "");
 
-	/**
-	 * Internal method.
-	 */
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] virtual unsigned int
-	MemoryAllocation() const;
-
 protected:
 	friend class AnalyzerTimer;
 	friend class Manager;

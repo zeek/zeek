@@ -31,10 +31,6 @@ public:
 		syms = new_syms;
 		}
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const;
-
 protected:
 	int_list* syms;
 	int negated;

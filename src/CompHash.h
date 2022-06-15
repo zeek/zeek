@@ -32,13 +32,6 @@ public:
 	// Given a hash key, recover the values used to create it.
 	ListValPtr RecoverVals(const HashKey& k) const;
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const
-		{
-		return padded_sizeof(*this);
-		}
-
 protected:
 	bool SingleValHash(HashKey& hk, const Val* v, Type* bt, bool type_check, bool optional,
 	                   bool singleton) const;

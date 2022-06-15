@@ -795,25 +795,6 @@ void Analyzer::AppendNewChildren()
 	new_children.clear();
 	}
 
-unsigned int Analyzer::MemoryAllocation() const
-	{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	unsigned int mem = padded_sizeof(*this) + (timers.MemoryAllocation() - padded_sizeof(timers));
-
-	LOOP_OVER_CONST_CHILDREN(i)
-	mem += (*i)->MemoryAllocation();
-
-	for ( SupportAnalyzer* a = orig_supporters; a; a = a->sibling )
-		mem += a->MemoryAllocation();
-
-	for ( SupportAnalyzer* a = resp_supporters; a; a = a->sibling )
-		mem += a->MemoryAllocation();
-
-	return mem;
-#pragma GCC diagnostic pop
-	}
-
 void Analyzer::UpdateConnVal(RecordVal* conn_val)
 	{
 	LOOP_OVER_CHILDREN(i)

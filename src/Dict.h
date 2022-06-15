@@ -358,10 +358,6 @@ public:
 	// Remove all entries.
 	void Clear();
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] size_t
-	MemoryAllocation() const;
-
 	/// The capacity of the table, Buckets + Overflow Size.
 	int Capacity(bool expected = false) const;
 

@@ -92,13 +92,18 @@ export {
 
 	type NodeStatusVec: vector of NodeStatus;
 
-	## Return value for request-response API event pairs
+	## Return value for request-response API event pairs. Some responses
+	## contain one, others multiple of these. The request ID allows clients
+	## to string requests and responses together. Agents and the controller
+	## fill in the instance and node fields whenever there's sufficient
+	## context to define them. Any result produced by an agent will carry an
+	## instance value, for example.
 	type Result: record {
 		reqid: string;                ##< Request ID of operation this result refers to
-		instance: string &default=""; ##< Name of associated instance (for context)
 		success: bool &default=T;     ##< True if successful
+		instance: string &optional;   ##< Name of associated instance (for context)
 		data: any &optional;          ##< Addl data returned for successful operation
-		error: string &default="";    ##< Descriptive error on failure
+		error: string &optional;      ##< Descriptive error on failure
 		node: string &optional;       ##< Name of associated node (for context)
 	};
 
@@ -127,7 +132,7 @@ function result_to_string(res: Result): string
 
 	if ( res$success )
 		result = "success";
-	else if ( res$error != "" )
+	else if ( res?$error )
 		result = fmt("error (%s)", res$error);
 	else
 		result = "error";
@@ -136,7 +141,7 @@ function result_to_string(res: Result): string
 
 	if ( res$reqid != "" )
 		details[|details|] = fmt("reqid %s", res$reqid);
-	if ( res$instance != "" )
+	if ( res?$instance )
 		details[|details|] = fmt("instance %s", res$instance);
 	if ( res?$node && res$node != "" )
 		details[|details|] = fmt("node %s", res$node);

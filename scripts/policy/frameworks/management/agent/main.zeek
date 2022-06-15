@@ -637,9 +637,11 @@ event Management::Agent::API::node_dispatch_request(reqid: string, action: vecto
 			add req$node_dispatch_state_agent$requests[node];
 		else
 			{
-			res = Management::Result($reqid=reqid, $node=node);
-			res$success = F;
-			res$error = fmt("cluster node %s not in runnning state", node);
+			res = Management::Result($reqid=reqid,
+			    $instance = Management::Agent::get_name(),
+			    $success = F,
+			    $error = fmt("cluster node %s not in runnning state", node),
+			    $node=node);
 			req$results += res;
 			}
 		}
@@ -730,6 +732,7 @@ event Management::Node::API::notify_node_hello(node: string)
 event Management::Request::request_expired(req: Management::Request::Request)
 	{
 	local res = Management::Result($reqid=req$id,
+	    $instance = Management::Agent::get_name(),
 	    $success = F,
 	    $error = "request timed out");
 

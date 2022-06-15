@@ -21,10 +21,6 @@ class TCP_Endpoint;
 class TCP_Reassembler;
 class TCP_ApplicationAnalyzer;
 
-using TCP_Analyzer
-	[[deprecated("Remove in v5.1. Use zeek::packet_analysis::TCP::TCPSessionAdapter.")]] =
-		packet_analysis::TCP::TCPSessionAdapter;
-
 /**
  * An abstract base class for analyzers for a protocol running on top
  * of TCP.

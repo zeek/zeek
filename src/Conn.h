@@ -268,6 +268,7 @@ private:
 	int suppress_event; // suppress certain events to once per conn.
 	RecordValPtr conn_val;
 	std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
+	uint8_t tunnel_changes = 0;
 
 	detail::ConnKey key;
 

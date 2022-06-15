@@ -22,10 +22,6 @@ namespace zeek
 
 ODesc::ODesc(DescType t, File* arg_f)
 	{
-	if ( t == DESC_PORTABLE )
-		zeek::reporter->Warning("Remove in v5.1. Use of DESC_PORTABLE \"Describe\" format is "
-		                        "deprecated and will be removed");
-
 	type = t;
 	style = STANDARD_STYLE;
 	f = arg_f;

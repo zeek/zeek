@@ -2677,7 +2677,7 @@ TraversalCode InlineExpr::Traverse(TraversalCallback* cb) const
 
 void InlineExpr::ExprDescribe(ODesc* d) const
 	{
-	if ( d->IsReadable() || d->IsPortable() )
+	if ( d->IsReadable() )
 		{
 		d->Add("inline(");
 		args->Describe(d);

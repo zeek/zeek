@@ -272,7 +272,7 @@ bool Val::RemoveFrom(Val* v) const
 
 void Val::Describe(ODesc* d) const
 	{
-	if ( d->IsBinary() || d->IsPortable() )
+	if ( d->IsBinary() )
 		{
 		type->Describe(d);
 		d->SP();
@@ -1250,7 +1250,7 @@ TableValPtr ListVal::ToSetVal() const
 
 void ListVal::Describe(ODesc* d) const
 	{
-	if ( d->IsBinary() || d->IsPortable() )
+	if ( d->IsBinary() )
 		{
 		type->Describe(d);
 		d->SP();
@@ -1262,7 +1262,7 @@ void ListVal::Describe(ODesc* d) const
 		{
 		if ( i > 0u )
 			{
-			if ( d->IsReadable() || d->IsPortable() )
+			if ( d->IsReadable() )
 				{
 				d->Add(",");
 				d->SP();
@@ -2273,7 +2273,7 @@ void TableVal::Describe(ODesc* d) const
 	{
 	int n = table_val->Length();
 
-	if ( d->IsBinary() || d->IsPortable() )
+	if ( d->IsBinary() )
 		{
 		table_type->Describe(d);
 		d->SP();
@@ -2281,7 +2281,7 @@ void TableVal::Describe(ODesc* d) const
 		d->SP();
 		}
 
-	if ( d->IsPortable() || d->IsReadable() )
+	if ( d->IsReadable() )
 		{
 		d->Add("{");
 		d->PushIndent();
@@ -2379,7 +2379,7 @@ void TableVal::Describe(ODesc* d) const
 			}
 		}
 
-	if ( d->IsPortable() || d->IsReadable() )
+	if ( d->IsReadable() )
 		{
 		d->PopIndent();
 		d->Add("}");
@@ -2938,7 +2938,7 @@ void RecordVal::Describe(ODesc* d) const
 	{
 	auto n = record_val->size();
 
-	if ( d->IsBinary() || d->IsPortable() )
+	if ( d->IsBinary() )
 		{
 		rt->Describe(d);
 		d->SP();

@@ -300,7 +300,7 @@ void Attributes::Describe(ODesc* d) const
 
 	for ( size_t i = 0; i < attrs.size(); ++i )
 		{
-		if ( (d->IsReadable() || d->IsPortable()) && i > 0 )
+		if ( d->IsReadable() && i > 0 )
 			d->Add(", ");
 
 		attrs[i]->Describe(d);

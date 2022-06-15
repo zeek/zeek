@@ -27,57 +27,6 @@
 namespace zeek
 	{
 
-class [[deprecated(
-	"Remove in v5.1. Use the standard-library-compatible version of iteration.")]] IterCookie
-	{
-public:
-	IterCookie(Dictionary * d) : d(d) { }
-
-	Dictionary* d = nullptr;
-	bool robust = false;
-
-	// Index for the next valid entry. -1 is the default, meaning we haven't started
-	// iterating yet.
-	int next = -1; // index for next valid entry. -1 is default not started yet.
-
-	// Tracks the new entries inserted while iterating. Only used for robust cookies.
-	std::vector<detail::DictEntry>* inserted = nullptr;
-
-	// Tracks the entries already visited but were moved across the next iteration
-	// point due to an insertion. Only used for robust cookies.
-	std::vector<detail::DictEntry>* visited = nullptr;
-
-	void MakeRobust()
-		{
-		// IterCookies can't be made robust after iteration has started.
-		ASSERT(next < 0);
-		ASSERT(d && d->cookies);
-
-		robust = true;
-		inserted = new std::vector<detail::DictEntry>();
-		visited = new std::vector<detail::DictEntry>();
-		d->cookies->push_back(this);
-		}
-
-	void AssertValid() const
-		{
-		ASSERT(d && -1 <= next && next <= d->Capacity());
-		ASSERT((! robust && ! inserted && ! visited) || (robust && inserted && visited));
-		}
-
-	~IterCookie()
-		{
-		ASSERT_VALID(this);
-		if ( robust )
-			{
-			d->cookies->erase(std::remove(d->cookies->begin(), d->cookies->end(), this),
-			                  d->cookies->end());
-			delete inserted;
-			delete visited;
-			}
-		}
-	};
-
 // namespace detail
 
 TEST_SUITE_BEGIN("Dict");
@@ -190,63 +139,6 @@ TEST_CASE("dict iteration")
 	dict.Insert(key, &val);
 	dict.Insert(key2, &val2);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	detail::HashKey* it_key;
-	IterCookie* it = dict.InitForIteration();
-	CHECK(it != nullptr);
-	int count = 0;
-
-	while ( uint32_t* entry = dict.NextEntry(it_key, it) )
-		{
-		switch ( count )
-			{
-			case 0:
-				// The DictEntry constructor typecasts this down to a uint32_t, so
-				// we can't just check the value directly.
-				// Explanation: hash_t is 64bit, open-dict only uses 32bit hash to
-				// save space for each item (24 bytes aligned). OpenDict has table
-				// size of 2^N and only take the lower bits of the hash. (The
-				// original hash takes transformation in FibHash() to map into a
-				// smaller 2^N range).
-				CHECK(it_key->Hash() == (uint32_t)key2->Hash());
-				CHECK(*entry == 10);
-				break;
-			case 1:
-				CHECK(it_key->Hash() == (uint32_t)key->Hash());
-				CHECK(*entry == 15);
-				break;
-			default:
-				break;
-			}
-		count++;
-
-		delete it_key;
-		}
-
-	CHECK(count == 2);
-
-#pragma GCC diagnostic pop
-
-	delete key;
-	delete key2;
-	}
-
-TEST_CASE("dict new iteration")
-	{
-	PDict<uint32_t> dict;
-
-	uint32_t val = 15;
-	uint32_t key_val = 5;
-	detail::HashKey* key = new detail::HashKey(key_val);
-
-	uint32_t val2 = 10;
-	uint32_t key_val2 = 25;
-	detail::HashKey* key2 = new detail::HashKey(key_val2);
-
-	dict.Insert(key, &val);
-	dict.Insert(key2, &val2);
-
 	int count = 0;
 
 	for ( const auto& entry : dict )
@@ -283,100 +175,6 @@ TEST_CASE("dict new iteration")
 	}
 
 TEST_CASE("dict robust iteration")
-	{
-	PDict<uint32_t> dict;
-
-	uint32_t val = 15;
-	uint32_t key_val = 5;
-	detail::HashKey* key = new detail::HashKey(key_val);
-
-	uint32_t val2 = 10;
-	uint32_t key_val2 = 25;
-	detail::HashKey* key2 = new detail::HashKey(key_val2);
-
-	uint32_t val3 = 20;
-	uint32_t key_val3 = 35;
-	detail::HashKey* key3 = new detail::HashKey(key_val3);
-
-	dict.Insert(key, &val);
-	dict.Insert(key2, &val2);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	detail::HashKey* it_key;
-	IterCookie* it = dict.InitForIteration();
-	CHECK(it != nullptr);
-	dict.MakeRobustCookie(it);
-
-	int count = 0;
-
-	while ( uint32_t* entry = dict.NextEntry(it_key, it) )
-		{
-		switch ( count )
-			{
-			case 0:
-				CHECK(it_key->Hash() == (uint32_t)key2->Hash());
-				CHECK(*entry == 10);
-				dict.Insert(key3, &val3);
-				break;
-			case 1:
-				CHECK(it_key->Hash() == (uint32_t)key->Hash());
-				CHECK(*entry == 15);
-				break;
-			case 2:
-				CHECK(it_key->Hash() == (uint32_t)key3->Hash());
-				CHECK(*entry == 20);
-				break;
-			default:
-				// We shouldn't get here.
-				CHECK(false);
-				break;
-			}
-
-		count++;
-		delete it_key;
-		}
-
-	CHECK(count == 3);
-
-	IterCookie* it2 = dict.InitForIteration();
-	CHECK(it2 != nullptr);
-	dict.MakeRobustCookie(it2);
-
-	count = 0;
-	while ( uint32_t* entry = dict.NextEntry(it_key, it2) )
-		{
-		switch ( count )
-			{
-			case 0:
-				CHECK(it_key->Hash() == (uint32_t)key2->Hash());
-				CHECK(*entry == 10);
-				dict.Remove(key3);
-				break;
-			case 1:
-				CHECK(it_key->Hash() == (uint32_t)key->Hash());
-				CHECK(*entry == 15);
-				break;
-			default:
-				// We shouldn't get here.
-				CHECK(false);
-				break;
-			}
-
-		count++;
-		delete it_key;
-		}
-
-	CHECK(count == 2);
-
-#pragma GCC diagnostic pop
-
-	delete key;
-	delete key2;
-	delete key3;
-	}
-
-TEST_CASE("dict new robust iteration")
 	{
 	PDict<uint32_t> dict;
 
@@ -551,12 +349,8 @@ TEST_CASE("dict iterator invalidation")
 
 	detail::HashKey* it_key;
 	bool iterators_invalidated = false;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	IterCookie* it = dict.InitForIteration();
-	CHECK(it != nullptr);
 
-	while ( uint32_t* entry = dict.NextEntry(it_key, it) )
+	for ( auto it = dict.begin(); it != dict.end(); ++it )
 		{
 		iterators_invalidated = false;
 		dict.Remove(key3, &iterators_invalidated);
@@ -572,27 +366,17 @@ TEST_CASE("dict iterator invalidation")
 		dict.Remove(key2, &iterators_invalidated);
 		// Key exists, gets removed, iteration is invalidated.
 		CHECK(iterators_invalidated);
-
-		delete it_key;
-		dict.StopIteration(it);
 		break;
 		}
 
-	it = dict.InitForIteration();
-	CHECK(it != nullptr);
-
-	while ( uint32_t* entry = dict.NextEntry(it_key, it) )
+	for ( auto it = dict.begin(); it != dict.end(); ++it )
 		{
 		iterators_invalidated = false;
 		dict.Insert(key3, &val3, &iterators_invalidated);
 		// Key doesn't exist, gets inserted, iteration is invalidated.
 		CHECK(iterators_invalidated);
-
-		delete it_key;
-		dict.StopIteration(it);
 		break;
 		}
-#pragma GCC diagnostic pop
 
 	CHECK(dict.Length() == 2);
 	CHECK(*static_cast<uint32_t*>(dict.Lookup(key)) == val2);
@@ -603,8 +387,6 @@ TEST_CASE("dict iterator invalidation")
 	delete key2;
 	delete key3;
 	}
-
-TEST_SUITE_END();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // bucket math
@@ -960,11 +742,6 @@ void Dictionary::Clear()
 		delete order;
 		order = nullptr;
 		}
-	if ( cookies )
-		{
-		delete cookies;
-		cookies = nullptr;
-		}
 	if ( iterators )
 		{
 		delete iterators;
@@ -1137,17 +914,6 @@ void* Dictionary::Insert(void* key, int key_size, detail::hash_t hash, void* val
 			it->value = val;
 			}
 
-		if ( cookies && ! cookies->empty() )
-			// need to set new v for cookies too.
-			for ( auto c : *cookies )
-				{
-				ASSERT_VALID(c);
-				// ASSERT(false);
-				auto it = std::find(c->inserted->begin(), c->inserted->end(), table[position]);
-				if ( it != c->inserted->end() )
-					it->value = val;
-				}
-
 		if ( iterators && ! iterators->empty() )
 			// need to set new v for iterators too.
 			for ( auto c : *iterators )
@@ -1215,12 +981,6 @@ void Dictionary::InsertRelocateAndAdjust(detail::DictEntry& entry, int insert_po
 		remap_end = last_affected_position; // adjust to j on the conservative side.
 		}
 
-	if ( cookies && ! cookies->empty() )
-		for ( auto c : *cookies )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-			AdjustOnInsert(c, entry, insert_position, last_affected_position);
-#pragma GCC diagnostic pop
 	if ( iterators && ! iterators->empty() )
 		for ( auto c : *iterators )
 			AdjustOnInsert(c, entry, insert_position, last_affected_position);
@@ -1261,36 +1021,6 @@ void Dictionary::InsertAndRelocate(detail::DictEntry& entry, int insert_position
 		insert_position = next; // append to the end of the current cluster.
 		}
 	}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-
-/// Adjust Cookies on Insert.
-void Dictionary::AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, int insert_position,
-                                int last_affected_position)
-	{
-	ASSERT(c);
-	ASSERT_VALID(c);
-
-	// Remove any previous instances of this value that we may have recorded as
-	// their pointers will get invalid. We won't need that knowledge anymore
-	// anyways, will update with new information below as needed.
-	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
-	                   c->inserted->end());
-	c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
-	                  c->visited->end());
-
-	if ( insert_position < c->next )
-		c->inserted->push_back(entry);
-	if ( insert_position < c->next && c->next <= last_affected_position )
-		{
-		int k = TailOfClusterByPosition(c->next);
-		ASSERT(k >= 0 && k < Capacity());
-		c->visited->push_back(table[k]);
-		}
-	}
-
-#pragma GCC diagnostic pop
 
 void Dictionary::AdjustOnInsert(RobustDictIterator* c, const detail::DictEntry& entry,
                                 int insert_position, int last_affected_position)
@@ -1381,13 +1111,6 @@ detail::DictEntry Dictionary::RemoveRelocateAndAdjust(int position)
 		ASSERT(! table[k].Empty());
 #endif // ZEEK_DICT_DEBUG
 
-	if ( cookies && ! cookies->empty() )
-		for ( auto c : *cookies )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-			AdjustOnRemove(c, entry, position, last_affected_position);
-#pragma GCC diagnostic pop
-
 	if ( iterators && ! iterators->empty() )
 		for ( auto c : *iterators )
 			AdjustOnRemove(c, entry, position, last_affected_position);
@@ -1421,35 +1144,6 @@ detail::DictEntry Dictionary::RemoveAndRelocate(int position, int* last_affected
 
 	return entry;
 	}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-
-void Dictionary::AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, int position,
-                                int last_affected_position)
-	{
-	ASSERT_VALID(c);
-
-	// See note in Dictionary::AdjustOnInsert() above.
-	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
-	                   c->inserted->end());
-	c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
-	                  c->visited->end());
-
-	if ( position < c->next && c->next <= last_affected_position )
-		{
-		int moved = HeadOfClusterByPosition(c->next - 1);
-		if ( moved < position )
-			moved = position;
-		c->inserted->push_back(table[moved]);
-		}
-
-	// if not already the end of the dictionary, adjust next to a valid one.
-	if ( c->next < Capacity() && table[c->next].Empty() )
-		c->next = Next(c->next);
-	}
-
-#pragma GCC diagnostic pop
 
 void Dictionary::AdjustOnRemove(RobustDictIterator* c, const detail::DictEntry& entry, int position,
                                 int last_affected_position)
@@ -1514,7 +1208,7 @@ bool Dictionary::Remap(int position, int* new_position)
 	ASSERT_VALID(this);
 	/// Remap changes item positions by remove() and insert(). to avoid excessive operation. avoid
 	/// it when safe iteration is in progress.
-	ASSERT((! cookies || cookies->empty()) && (! iterators || iterators->empty()));
+	ASSERT(! iterators || iterators->empty());
 	int current = BucketByPosition(position); // current bucket
 	int expected = BucketByHash(table[position].hash, log2_buckets); // expected bucket in new
 	                                                                 // table.
@@ -1552,123 +1246,6 @@ void* Dictionary::NthEntry(int n, const void*& key, int& key_size) const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Iteration
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-
-void Dictionary::MakeRobustCookie(IterCookie* cookie)
-	{ // make sure c->next >= 0.
-	if ( ! cookies )
-		cookies = new std::vector<IterCookie*>;
-	cookie->MakeRobust();
-	ASSERT_VALID(cookie);
-	}
-
-IterCookie* Dictionary::InitForIterationNonConst() // const
-	{
-	IncrIters();
-	return new IterCookie(const_cast<Dictionary*>(this));
-	}
-
-void Dictionary::StopIterationNonConst(IterCookie* cookie) // const
-	{
-	ASSERT(num_iterators > 0);
-	if ( num_iterators > 0 )
-		DecrIters();
-	delete cookie;
-	}
-
-void* Dictionary::NextEntryNonConst(detail::HashKey*& h, IterCookie*& c, bool return_hash) // const
-	{
-	// If there are any inserted entries, return them first.
-	// That keeps the list small and helps avoiding searching
-	// a large list when deleting an entry.
-	ASSERT(c);
-	ASSERT_VALID(c);
-	if ( ! table )
-		{
-		if ( num_iterators > 0 )
-			DecrIters();
-		delete c;
-		c = nullptr;
-		return nullptr; // end of iteration.
-		}
-
-	if ( c->inserted && ! c->inserted->empty() )
-		{
-		// Return the last one. Order doesn't matter,
-		// and removing from the tail is cheaper.
-		detail::DictEntry e = c->inserted->back();
-		if ( return_hash )
-			h = new detail::HashKey(e.GetKey(), e.key_size, e.hash);
-		void* v = e.value;
-		c->inserted->pop_back();
-		return v;
-		}
-
-	if ( c->next < 0 )
-		c->next = Next(-1);
-
-	ASSERT(c->next >= Capacity() || ! table[c->next].Empty());
-
-	// filter out visited keys.
-	int capacity = Capacity();
-	if ( c->visited && ! c->visited->empty() )
-		// filter out visited entries.
-		while ( c->next < capacity )
-			{
-			ASSERT(! table[c->next].Empty());
-			auto it = std::find(c->visited->begin(), c->visited->end(), table[c->next]);
-			if ( it == c->visited->end() )
-				break;
-			c->visited->erase(it);
-			c->next = Next(c->next);
-			}
-
-	if ( c->next >= capacity )
-		{ // end.
-		if ( num_iterators > 0 )
-			DecrIters();
-		delete c;
-		c = nullptr;
-		return nullptr; // end of iteration.
-		}
-
-	ASSERT(! table[c->next].Empty());
-	void* v = table[c->next].value;
-	if ( return_hash )
-		h = new detail::HashKey(table[c->next].GetKey(), table[c->next].key_size,
-		                        table[c->next].hash);
-
-	// prepare for next time.
-	c->next = Next(c->next);
-	ASSERT_VALID(c);
-	return v;
-	}
-
-IterCookie* Dictionary::InitForIteration() const
-	{
-	Dictionary* dp = const_cast<Dictionary*>(this);
-	return dp->InitForIterationNonConst();
-	}
-
-void* Dictionary::NextEntry(detail::HashKey*& h, IterCookie*& cookie, bool return_hash) const
-	{
-	Dictionary* dp = const_cast<Dictionary*>(this);
-	return dp->NextEntryNonConst(h, cookie, return_hash);
-	}
-
-void Dictionary::StopIteration(IterCookie* cookie) const
-	{
-	Dictionary* dp = const_cast<Dictionary*>(this);
-	dp->StopIterationNonConst(cookie);
-	}
-
-#pragma GCC diagnostic pop
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// New Iteration
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DictIterator::DictIterator(const Dictionary* d, detail::DictEntry* begin, detail::DictEntry* end)

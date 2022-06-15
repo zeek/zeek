@@ -32,10 +32,12 @@ export {
 	    result: Management::Result);
 
 
-	## The client sends this event to establish a new cluster configuration,
-	## including the full cluster topology. The controller processes the update
-	## and relays it to the agents. Once each has responded (or a timeout occurs)
-	## the controller sends a corresponding response event back to the client.
+	## The client sends this event to upload a new cluster configuration,
+	## including the full cluster topology. The controller validates the
+	## configuration and indicates the outcome in its response event. No
+	## deployment takes place yet, and existing deployed configurations and
+	## clusters remain intact. To trigger deployment of an uploaded
+	## configuration, use :zeek:see:`Management::Controller::API::deploy_request`.
 	##
 	## reqid: a request identifier string, echoed in the response event.
 	##
@@ -50,8 +52,10 @@ export {
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: a vector of :zeek:see:`Management::Result` records.
-	##     Each member captures one agent's response.
+	## result: a :zeek:see:`Management::Result` vector, indicating whether
+	##     the controller accepts the configuration. In case of a success,
+	##     a single result record indicates so. Otherwise, the sequence is
+	##     all errors, each indicating a configuration validation error.
 	##
 	global set_configuration_response: event(reqid: string,
 	    result: Management::ResultVec);
@@ -62,7 +66,10 @@ export {
 	##
 	## reqid: a request identifier string, echoed in the response event.
 	##
-	global get_configuration_request: event(reqid: string);
+	## deployed: when true, returns the deployed configuration (if any),
+	##     otherwise the staged one (if any).
+	##
+	global get_configuration_request: event(reqid: string, deployed: bool);
 
 	## Response to a get_configuration_request event. The controller sends
 	## this back to the client.
@@ -76,6 +83,32 @@ export {
 	##
 	global get_configuration_response: event(reqid: string,
 	    result: Management::Result);
+
+
+	## The client sends this event to trigger deployment of a previously
+	## uploaded configuration. The controller deploys the uploaded
+	## configuration to all agents involved in running the former
+	## configuration or the new one. The agents terminate any previously
+	## running cluster nodes and (re-)launch those defined in the new
+	## configuration. Once each agent has responded (or a timeout occurs),
+	## the controller sends a response event back to the client.
+	##
+	## reqid: a request identifier string, echoed in the response event.
+	##
+	global deploy_request: event(reqid: string);
+
+	## Response to a deploy_request event. The controller sends this
+	## back to the client.
+	##
+	## reqid: the request identifier used in the request event.
+	##
+	## result: a vector of :zeek:see:`Management::Result` records.
+	##     Each member captures the result of launching one cluster
+	##     node captured in the configuration, or an agent-wide error
+	##     when the result does not indicate a particular node.
+	##
+	global deploy_response: event(reqid: string,
+	    result: Management::ResultVec);
 
 
 	## The client sends this event to request a list of

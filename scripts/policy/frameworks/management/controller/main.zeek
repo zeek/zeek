@@ -172,8 +172,8 @@ function send_config_to_agents(req: Management::Request::Request, config: Manage
 
 		# We could also broadcast just once on the agent prefix, but
 		# explicit request/response pairs for each agent seems cleaner.
-		Management::Log::info(fmt("tx Management::Agent::API::set_configuration_request %s to %s", areq$id, name));
-		Broker::publish(agent_topic, Management::Agent::API::set_configuration_request, areq$id, config);
+		Management::Log::info(fmt("tx Management::Agent::API::deploy_request %s to %s", areq$id, name));
+		Broker::publish(agent_topic, Management::Agent::API::deploy_request, areq$id, config);
 		}
 	}
 
@@ -685,9 +685,9 @@ event Management::Agent::API::notify_log(instance: string, msg: string, node: st
 	# XXX TODO
 	}
 
-event Management::Agent::API::set_configuration_response(reqid: string, results: Management::ResultVec)
+event Management::Agent::API::deploy_response(reqid: string, results: Management::ResultVec)
 	{
-	Management::Log::info(fmt("rx Management::Agent::API::set_configuration_response %s", reqid));
+	Management::Log::info(fmt("rx Management::Agent::API::deploy_response %s", reqid));
 
 	# Retrieve state for the request we just got a response to
 	local areq = Management::Request::lookup(reqid);
@@ -722,7 +722,7 @@ event Management::Agent::API::set_configuration_response(reqid: string, results:
 	if ( |req$set_configuration_state$requests| > 0 )
 		return;
 
-	# All set_configuration requests to instances are done, so adopt the
+	# All deploy requests to instances are done, so adopt the
 	# client's requested configuration as the new one and respond back to
 	# client.
 	g_config_current = req$set_configuration_state$config;

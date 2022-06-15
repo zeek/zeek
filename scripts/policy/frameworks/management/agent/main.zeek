@@ -26,8 +26,8 @@ export {
 		node: string; ##< Name of the node the Supervisor is acting on.
 	};
 
-	## Request state for set_configuration requests.
-	type SetConfigurationState: record {
+	## Request state for deploy requests.
+	type DeployState: record {
 		## Zeek cluster nodes the provided configuration requested
 		## and which have not yet checked in with the agent.
 		nodes_pending: set[string];
@@ -62,7 +62,7 @@ export {
 # members with _agent to disambiguate.
 redef record Management::Request::Request += {
 	supervisor_state_agent: SupervisorState &optional;
-	set_configuration_state_agent: SetConfigurationState &optional;
+	deploy_state_agent: DeployState &optional;
 	node_dispatch_state_agent: NodeDispatchState &optional;
 };
 
@@ -80,11 +80,11 @@ redef Management::Request::timeout_interval = 5 sec;
 # Returns the effective agent topic for this agent.
 global agent_topic: function(): string;
 
-# Finalizes a set_configuration_request transaction: cleans up remaining state
+# Finalizes a deploy_request transaction: cleans up remaining state
 # and sends response event.
-global send_set_configuration_response: function(req: Management::Request::Request);
+global send_deploy_response: function(req: Management::Request::Request);
 
-# The global configuration as passed to us by the controller
+# The global configuration, as deployed by the controller.
 global g_config: Management::Configuration;
 
 # A map to make other instance info accessible
@@ -93,10 +93,9 @@ global g_instances: table[string] of Management::Instance;
 # A map for the nodes we run on this instance, via this agent.
 global g_nodes: table[string] of Management::Node;
 
-# The request ID of the most recent configuration update from the controller.
-# We track it here until the nodes_pending set in the corresponding request's
-# SetConfigurationState is cleared out, or the corresponding request state hits
-# a timeout.
+# The request ID of the most recent config deployment from the controller.  We
+# track it until the nodes_pending set in the corresponding request's
+# DeployState is cleared out, or the corresponding request state hits a timeout.
 global g_config_reqid_pending: string = "";
 
 # The complete node map employed by the supervisor to describe the cluster
@@ -115,7 +114,7 @@ function agent_topic(): string
 	return Management::Agent::topic_prefix + "/" + epi$id;
 	}
 
-function send_set_configuration_response(req: Management::Request::Request)
+function send_deploy_response(req: Management::Request::Request)
 	{
 	local node: string;
 	local res: Management::Result;
@@ -128,7 +127,7 @@ function send_set_configuration_response(req: Management::Request::Request)
 		    $instance = Management::Agent::get_name(),
 		    $node = node);
 
-		if ( node in req$set_configuration_state_agent$nodes_pending )
+		if ( node in req$deploy_state_agent$nodes_pending )
 			{
 			# This node failed.
 			res$success = F;
@@ -142,10 +141,10 @@ function send_set_configuration_response(req: Management::Request::Request)
 		req$results[|req$results|] = res;
 		}
 
-	Management::Log::info(fmt("tx Management::Agent::API::set_configuration_response %s",
+	Management::Log::info(fmt("tx Management::Agent::API::deploy_response %s",
 	    Management::result_to_string(res)));
 	Broker::publish(agent_topic(),
-	    Management::Agent::API::set_configuration_response, req$id, req$results);
+	    Management::Agent::API::deploy_response, req$id, req$results);
 
 	Management::Request::finish(req$id);
 
@@ -263,14 +262,13 @@ function supervisor_destroy(node: string)
 	Management::Log::info(fmt("issued supervisor destroy for %s, %s", node, req$id));
 	}
 
-event Management::Agent::API::set_configuration_request(reqid: string, config: Management::Configuration)
+event Management::Agent::API::deploy_request(reqid: string, config: Management::Configuration)
 	{
-	Management::Log::info(fmt("rx Management::Agent::API::set_configuration_request %s", reqid));
+	Management::Log::info(fmt("rx Management::Agent::API::deploy_request %s", reqid));
 
 	local nodename: string;
 	local node: Management::Node;
 	local nc: Supervisor::NodeConfig;
-	local msg: string;
 
 	# Adopt the global configuration provided. The act of trying to launch
 	# the requested nodes perturbs any existing ones one way or another, so
@@ -299,15 +297,15 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		    $reqid = reqid,
 		    $instance = Management::Agent::get_name());
 
-		Management::Log::info(fmt("tx Management::Agent::API::set_configuration_response %s",
+		Management::Log::info(fmt("tx Management::Agent::API::deploy_response %s",
 		    Management::result_to_string(res)));
 		Broker::publish(agent_topic(),
-		    Management::Agent::API::set_configuration_response, reqid, vector(res));
+		    Management::Agent::API::deploy_response, reqid, vector(res));
 		return;
 		}
 
 	local req = Management::Request::create(reqid);
-	req$set_configuration_state_agent = SetConfigurationState();
+	req$deploy_state_agent = DeployState();
 
 	# Establish this request as the pending one:
 	g_config_reqid_pending = reqid;
@@ -318,7 +316,7 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 		if ( node$instance == Management::Agent::get_name() )
 			{
 			g_nodes[node$name] = node;
-			add req$set_configuration_state_agent$nodes_pending[node$name];
+			add req$deploy_state_agent$nodes_pending[node$name];
 			}
 
 		# The cluster and supervisor frameworks require a port for every
@@ -399,7 +397,8 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 
 	# At this point we await Management::Node::API::notify_node_hello events
 	# from the new nodes, or a timeout, whichever happens first. These
-	# trigger the set_configuration_response event back to the controller.
+	# update the pending nodes in the request state, and eventually trigger
+	# the deploy_response event back to the controller.
 	}
 
 event SupervisorControl::status_response(reqid: string, result: Supervisor::Status)
@@ -692,7 +691,7 @@ event Management::Agent::API::agent_standby_request(reqid: string)
 	# peered/connected -- otherwise there's nothing we can do here via
 	# Broker anyway), mainly to keep open the possibility of running
 	# cluster nodes again later.
-	event Management::Agent::API::set_configuration_request("", Management::Configuration());
+	event Management::Agent::API::deploy_request("", Management::Configuration());
 
 	local res = Management::Result(
 	    $reqid = reqid,
@@ -712,20 +711,20 @@ event Management::Node::API::notify_node_hello(node: string)
 	if ( node in g_nodes )
 		g_nodes[node]$state = Management::RUNNING;
 
-	# Look up the set_configuration request this node launch was part of (if
+	# Look up the deploy request this node launch was part of (if
 	# any), and check it off. If it was the last node we expected to launch,
 	# finalize the request and respond to the controller.
 
 	local req = Management::Request::lookup(g_config_reqid_pending);
 
-	if ( Management::Request::is_null(req) || ! req?$set_configuration_state_agent )
+	if ( Management::Request::is_null(req) || ! req?$deploy_state_agent )
 		return;
 
-	if ( node in req$set_configuration_state_agent$nodes_pending )
+	if ( node in req$deploy_state_agent$nodes_pending )
 		{
-		delete req$set_configuration_state_agent$nodes_pending[node];
-		if ( |req$set_configuration_state_agent$nodes_pending| == 0 )
-			send_set_configuration_response(req);
+		delete req$deploy_state_agent$nodes_pending[node];
+		if ( |req$deploy_state_agent$nodes_pending| == 0 )
+			send_deploy_response(req);
 		}
 	}
 
@@ -736,9 +735,9 @@ event Management::Request::request_expired(req: Management::Request::Request)
 	    $success = F,
 	    $error = "request timed out");
 
-	if ( req?$set_configuration_state_agent )
+	if ( req?$deploy_state_agent )
 		{
-		send_set_configuration_response(req);
+		send_deploy_response(req);
 		# This timeout means we no longer have a pending request.
 		g_config_reqid_pending = "";
 		}

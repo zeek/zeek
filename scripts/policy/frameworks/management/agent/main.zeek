@@ -15,7 +15,7 @@
 @load ./api
 @load ./config
 
-module Mangement::Agent::Runtime;
+module Management::Agent::Runtime;
 
 # This export is mainly to appease Zeekygen's need to understand redefs of the
 # Request record below. Without it, it fails to establish link targets for the
@@ -43,6 +43,17 @@ export {
 		## Request state for every node managed by this agent.
 		requests: set[string] &default=set();
 	};
+
+	# When Management::Agent::archive_logs is T (the default) and the
+	# logging configuration doesn't permanently prevent archival
+	# (e.g. because log rotation isn't configured), the agent triggers this
+	# event each Management::Controller::archive_interval to initiate log
+	# archival.
+	#
+	# run_archival: whether to actually invoke the archiver or just
+	#     ensure (re-)scheduling.
+	#
+	global trigger_log_archival: event(run_archival: bool &default=T);
 }
 
 # We need to go out of our way here to avoid colliding record field names with
@@ -140,6 +151,52 @@ function send_set_configuration_response(req: Management::Request::Request)
 
 	if ( req$id == g_config_reqid_pending )
 		g_config_reqid_pending = "";
+	}
+
+event Management::Agent::Runtime::trigger_log_archival(run_archival: bool)
+	{
+	# This is currently final, but could be considered dynamically in the
+	# future if we make this an option.
+	if ( Management::Agent::archive_logs == F )
+		return;
+
+	local ival = Management::Agent::archive_interval;
+
+	# Fall back to the default rotation interval when not set explicitly:
+	if ( ival == 0 secs )
+		ival = Log::default_rotation_interval;
+
+	# Without a default rotation interval individual log streams might still
+	# have rotation enabled, and we could scan all filters to determine
+	# their rotation configuration. But it's not clear that this is
+	# intuitive or needed, since it's uncommon to want rotation for only
+	# some logs. So we simply don't proceed if it's not configured.
+	if ( ival == 0 secs )
+		return;
+
+	local cmd = Management::Agent::archive_cmd;
+
+	if ( cmd == "" )
+		{
+		cmd = join_string_vec(vector(Installation::root_dir, "bin"), "/");
+		cmd = build_path_compressed(cmd, "zeek-archiver");
+		}
+
+	# The logging framework creates the rotation directory on demand, so
+	# only trigger archival when it exists. Don't warn when it does not:
+	# this will often be expected, since in larger clusters many instances
+	# may not run loggers.
+	if ( run_archival && file_size(Log::default_rotation_dir) > 0 )
+		{
+		cmd = fmt("%s -1 %s %s",
+		    cmd, Log::default_rotation_dir,
+		    Management::Agent::archive_dir);
+
+		Management::Log::info(fmt("triggering log archival via '%s'", cmd));
+		system(cmd);
+		}
+
+	schedule ival { Management::Agent::Runtime::trigger_log_archival() };
 	}
 
 event Management::Supervisor::API::notify_node_exit(node: string, outputs: Management::NodeOutputs)
@@ -736,6 +793,9 @@ event zeek_init()
 	# The agent always listens, to allow cluster nodes to peer with it.
 	# If the controller connects to us, it also uses this port.
 	Broker::listen(cat(epi$network$address), epi$network$bound_port);
+
+	if ( Management::Agent::archive_logs )
+		schedule 0 secs { Management::Agent::Runtime::trigger_log_archival(F) };
 
 	Management::Log::info(fmt("agent is live, Broker ID %s", Broker::node_id()));
 	}

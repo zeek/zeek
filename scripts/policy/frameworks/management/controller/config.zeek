@@ -59,6 +59,10 @@ export {
 	## output gets garbled.
 	const directory = "" &redef;
 
+	## The name of the Broker store the controller uses to persist internal
+	## state to disk.
+	const store_name = "controller";
+
 	## Returns the effective name of the controller.
 	global get_name: function(): string;
 

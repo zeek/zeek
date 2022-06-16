@@ -18,6 +18,14 @@ module Management::Controller::Runtime;
 # Request record below. Without it, it fails to establish link targets for the
 # tucked-on types.
 export {
+	## A cluster configuration uploaded by the client goes through multiple
+	## states on its way to deployment.
+	type ConfigState: enum {
+		STAGED, ##< As provided by the client.
+		READY, ##< Necessary updates made, e.g. ports filled in.
+		DEPLOYED, ##< Sent off to the agents for deployment.
+	};
+
 	## Request state specific to
 	## :zeek:see:`Management::Controller::API::deploy_request` and
 	## :zeek:see:`Management::Controller::API::deploy_response`.
@@ -89,10 +97,6 @@ global add_instance: function(inst: Management::Instance);
 # agent_standby_request, so it drops its current cluster nodes (if any).
 global drop_instance: function(inst: Management::Instance);
 
-# Helpers to simplify handling of config records.
-global null_config: function(): Management::Configuration;
-global config_is_null: function(config: Management::Configuration): bool;
-
 # Sends the given configuration to all g_instances members via a
 # Management::Agent::API::deploy_request event. To track responses, it builds up
 # deployment state in the given request for each recipient.
@@ -161,15 +165,9 @@ global g_instances_ready: set[string] = set();
 # the update.
 global g_config_reqid_pending: string = "";
 
-# The most recent configuration we have successfully deployed. When no
-# deployment has happened yet, this is a "null config" as per null_config().
-global g_config_deployed: Management::Configuration;
-
-# The most recently provided configuration by the client. When the controller
-# hasn't yet received a configuration, this is a "null config" as per
-# null_config(). Successful deployment doesn't invalidate or clear this
-# configuration, it remains set.
-global g_config_staged: Management::Configuration;
+# This table tracks a cluster configuration through its states to deployment.
+global g_configs: table[ConfigState] of Management::Configuration
+    &broker_allow_complex_type &backend=Broker::SQLITE;
 
 function config_deploy_to_agents(config: Management::Configuration, req: Management::Request::Request)
 	{
@@ -254,16 +252,6 @@ function drop_instance(inst: Management::Instance)
 	# to communicate with it in case it's required again.
 
 	Management::Log::info(fmt("dropped instance %s", inst$name));
-	}
-
-function null_config(): Management::Configuration
-	{
-	return Management::Configuration($id="");
-	}
-
-function config_is_null(config: Management::Configuration): bool
-	{
-	return config$id == "";
 	}
 
 function config_nodes_lacking_ports(config: Management::Configuration): vector of string
@@ -744,10 +732,11 @@ event Management::Agent::API::deploy_response(reqid: string, results: Management
 
 	# All deploy requests to instances are done, so adopt the config
 	# as the new deployed one and respond back to client.
-	g_config_deployed = req$deploy_state$config;
+	local config = req$deploy_state$config;
+	g_configs[DEPLOYED] = config;
 	g_config_reqid_pending = "";
 
-	local res = Management::Result($reqid=req$id, $data=g_config_deployed$id);
+	local res = Management::Result($reqid=req$id, $data=config$id);
 	req$results += res;
 
 	Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
@@ -763,6 +752,7 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 
 	local req = Management::Request::create(reqid);
 	local res = Management::Result($reqid=req$id);
+	local config_copy: Management::Configuration;
 
 	if ( ! config_validate(config, req) )
 		{
@@ -774,9 +764,7 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 		return;
 		}
 
-	if ( Management::Controller::auto_assign_ports )
-		config_assign_ports(config);
-	else
+	if ( ! Management::Controller::auto_assign_ports )
 		{
 		local nodes = config_nodes_lacking_ports(config);
 
@@ -797,7 +785,13 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 			}
 		}
 
-	g_config_staged = config;
+	g_configs[STAGED] = config;
+	config_copy = copy(config);
+
+	if ( Management::Controller::auto_assign_ports )
+		config_assign_ports(config_copy);
+
+	g_configs[READY] = config_copy;
 
 	# We return the ID of the new configuration in the response.
 	res$data = config$id;
@@ -816,22 +810,17 @@ event Management::Controller::API::get_configuration_request(reqid: string, depl
 	Management::Log::info(fmt("rx Management::Controller::API::get_configuration_request %s", reqid));
 
 	local res = Management::Result($reqid=reqid);
-	local config: Management::Configuration;
+	local key = deployed ? DEPLOYED : STAGED;
 
-	if ( deployed )
-		config = g_config_deployed;
-	else
-		config = g_config_staged;
-
-	if ( config_is_null(config) )
+	if ( key !in g_configs )
 		{
+		# Cut off enum namespacing prefix and turn rest lower-case, for readability:
+		res$error = fmt("no %s configuration available", to_lower(sub(cat(key), /.+::/, "")));
 		res$success = F;
-		res$error = fmt("no %s configuration available",
-		    deployed ? "deployed" : "staged");
 		}
 	else
 		{
-		res$data = config;
+		res$data = g_configs[key];
 		}
 
 	Management::Log::info(fmt(
@@ -847,8 +836,7 @@ event Management::Controller::API::deploy_request(reqid: string)
 
 	local req = Management::Request::create(reqid);
 
-	# If there's no staged configuration, there's nothing to deploy.
-	if ( config_is_null(g_config_staged) )
+	if ( READY !in g_configs )
 		{
 		send_deploy_response_error(req, "no configuration available to deploy");
 		Management::Request::finish(req$id);
@@ -864,7 +852,7 @@ event Management::Controller::API::deploy_request(reqid: string)
 		return;
 		}
 
-	req$deploy_state = DeployState($config = g_config_staged);
+	req$deploy_state = DeployState($config = g_configs[READY]);
 
 	# This deployment is now pending. It clears when all agents have
 	# processed their config updates successfully, or any responses time
@@ -903,7 +891,7 @@ event Management::Controller::API::deploy_request(reqid: string)
 
 	for ( inst_name in g_instances )
 		add insts_current[inst_name];
-	for ( inst in g_config_staged$instances )
+	for ( inst in g_configs[READY]$instances )
 		add insts_new[inst$name];
 
 	# Populate TODO lists for instances we need to drop, check, or add.
@@ -911,7 +899,7 @@ event Management::Controller::API::deploy_request(reqid: string)
 	insts_to_add = insts_new - insts_current;
 	insts_to_keep = insts_new & insts_current;
 
-	for ( inst in g_config_staged$instances )
+	for ( inst in g_configs[READY]$instances )
 		{
 		if ( inst$name in insts_to_add )
 			{
@@ -954,10 +942,11 @@ event Management::Controller::API::deploy_request(reqid: string)
 	# drop_instance() calls above).
 	if ( |insts_new| == 0 )
 		{
-		g_config_deployed = req$deploy_state$config;
+		local config = req$deploy_state$config;
+		g_configs[DEPLOYED] = config;
 		g_config_reqid_pending = "";
 
-		local res = Management::Result($reqid=req$id, $data=g_config_deployed$id);
+		local res = Management::Result($reqid=req$id, $data=config$id);
 		req$results += res;
 
 		Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
@@ -1172,7 +1161,7 @@ event Management::Controller::API::get_id_value_request(reqid: string, id: strin
 	if ( |nodes| > 0 )
 		{
 		# Requested nodes that are in the deployed configuration:
-		nodes_final = config_filter_nodes_by_name(g_config_deployed, nodes);
+		nodes_final = config_filter_nodes_by_name(g_configs[DEPLOYED], nodes);
 		# Requested nodes that are not in current configuration:
 		local nodes_invalid = nodes - nodes_final;
 
@@ -1302,9 +1291,6 @@ event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 
 event zeek_init()
 	{
-	g_config_deployed = null_config();
-	g_config_staged = null_config();
-
 	# The controller always listens: it needs to be able to respond to
 	# clients connecting to it, as well as agents if they connect to the
 	# controller. The controller does not automatically connect to any

@@ -1,3 +1,10 @@
+5.1.0-dev.53 | 2022-06-16 14:27:54 -0700
+
+  * Revert "Merge remote-tracking branch 'turrisxyz/Dependabot-GitHub-Actions'" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 910e3b302406b838c1c12e016d4a05306a3bad46, reversing
+    changes made to 64198655204bee20cc6b933d07909bd30869d7e8.
+
 5.1.0-dev.52 | 2022-06-16 11:11:33 -0700
 
   * Management framework: bump external cluster testsuite (Christian Kreibich, Corelight)

@@ -230,6 +230,9 @@ public:
 
 	void AddHistory(char code) { history += code; }
 
+	const std::string& GetHistory() const { return history; }
+	void ReplaceHistory(std::string new_h) { history = std::move(new_h); }
+
 	// Sets the root of the analyzer tree as well as the primary PIA.
 	void SetSessionAdapter(packet_analysis::IP::SessionAdapter* aa, analyzer::pia::PIA* pia);
 	packet_analysis::IP::SessionAdapter* GetSessionAdapter() { return adapter; }

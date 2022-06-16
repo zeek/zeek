@@ -257,6 +257,29 @@ void TCP_Endpoint::SetContentsFile(FilePtr f)
 
 bool TCP_Endpoint::CheckHistory(uint32_t mask, char code)
 	{
+	auto conn = Conn();
+
+	if ( (code == 'A' || code == 'D') && conn->GetHistory() == "H" )
+		{
+		// This is a connection that began with a SYN-ACK rather
+		// than a SYN.  Those don't get flipped (unless they have
+		// the right combination of likely-server ports) because
+		// they can arise from stealth scans, and for those the
+		// SYN-ACK sender *is* the originator.
+		//
+		// In addition, we're now seeing productive TCP traffic
+		// (either a pure ack or a data segment).  Regardless of
+		// whether it's coming from the nominal originator or the
+		// nominal responder, its presence makes it a lot less likely
+		// that the initial SYN-ACK represented a stealth scan,
+		// since if those elicit anything, it should be a RST.
+		//
+		// Thus, at this stage we go ahead and flip the connection.
+		// We then fix up the history (which will initially be "H^").
+		conn->FlipRoles();
+		conn->ReplaceHistory("^h");
+		}
+
 	if ( ! IsOrig() )
 		{
 		mask <<= 16;

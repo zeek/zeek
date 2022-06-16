@@ -227,10 +227,7 @@ void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src)
 		}
 
 	current_iosrc = pkt_src;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	current_pktsrc = pkt_src;
-#pragma GCC diagnostic pop
 
 	// network_time never goes back.
 	update_network_time(zeek::detail::timer_mgr->Time() < t ? t : zeek::detail::timer_mgr->Time());
@@ -273,10 +270,7 @@ void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src)
 		first_wallclock = util::current_time(true);
 
 	current_iosrc = nullptr;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	current_pktsrc = nullptr;
-#pragma GCC diagnostic pop
 	}
 
 void run_loop()

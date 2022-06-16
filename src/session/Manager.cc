@@ -25,7 +25,6 @@
 #include "zeek/telemetry/Manager.h"
 
 zeek::session::Manager* zeek::session_mgr = nullptr;
-zeek::session::Manager*& zeek::sessions = zeek::session_mgr;
 
 namespace zeek::session
 	{
@@ -285,11 +284,6 @@ void Manager::InsertSession(detail::Key key, Session* session)
 		if ( stat_block->active.Value() > stat_block->max )
 			stat_block->max++;
 		}
-	}
-
-zeek::detail::PacketFilter* Manager::GetPacketFilter(bool init)
-	{
-	return packet_mgr->GetPacketFilter(init);
 	}
 
 	} // namespace zeek::session

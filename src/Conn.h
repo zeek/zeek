@@ -71,8 +71,6 @@ struct ConnTuple
 	TransportProto proto;
 	};
 
-using ConnID [[deprecated("Remove in v5.1. Use zeek::ConnTuple.")]] = ConnTuple;
-
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2,
                                      uint32_t p2)
 	{

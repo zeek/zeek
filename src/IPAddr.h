@@ -54,8 +54,6 @@ private:
 	          TransportProto t, bool one_way);
 	};
 
-using ConnIDKey [[deprecated("Remove in v5.1. Use zeek::detail::ConnKey.")]] = ConnKey;
-
 	} // namespace detail
 
 /**

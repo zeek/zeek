@@ -2523,11 +2523,6 @@ void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen)
 	strerror_r_helper(res, buf, buflen);
 	}
 
-char* zeekenv(const char* name)
-	{
-	return getenv(name);
-	}
-
 static string json_escape_byte(char c)
 	{
 	char hex[2] = {'0', '0'};

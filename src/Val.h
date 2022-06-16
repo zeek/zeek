@@ -1706,11 +1706,8 @@ UNDERLYING_ACCESSOR_DEF(TypeVal, zeek::Type*, AsType)
 // exact match, returns it.  If promotable, returns the promoted version.
 // If not a match, generates an error message and return nil.  If is_init is
 // true, then the checking is done in the context of an initialization.
-extern ValPtr check_and_promote(ValPtr v, const TypePtr& t, bool is_init,
+extern ValPtr check_and_promote(ValPtr v, const TypePtr& new_type, bool is_init,
                                 const detail::Location* expr_location = nullptr);
-[[deprecated("Remove in v5.1. Use version that takes TypePtr instead.")]] extern ValPtr
-check_and_promote(ValPtr v, const Type* t, bool is_init,
-                  const detail::Location* expr_location = nullptr);
 
 extern bool same_val(const Val* v1, const Val* v2);
 extern bool same_atomic_val(const Val* v1, const Val* v2);

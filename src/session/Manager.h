@@ -89,9 +89,6 @@ public:
 	void Weird(const char* name, const Packet* pkt, const char* addl = "", const char* source = "");
 	void Weird(const char* name, const IP_Hdr* ip, const char* addl = "");
 
-	[[deprecated("Remove in v5.1. Use packet_mgr->GetPacketFilter().")]] zeek::detail::PacketFilter*
-	GetPacketFilter(bool init = true);
-
 	unsigned int CurrentSessions() { return session_map.size(); }
 
 private:
@@ -112,9 +109,5 @@ private:
 
 // Manager for the currently active sessions.
 extern session::Manager* session_mgr;
-
-extern session::Manager*& sessions
-	[[deprecated("Remove in v5.1. Use zeek::sessions::session_mgr.")]];
-using NetSessions [[deprecated("Remove in v5.1. Use zeek::session::Manager.")]] = session::Manager;
 
 	} // namespace zeek

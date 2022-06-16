@@ -1,3 +1,11 @@
+5.1.0-dev.52 | 2022-06-16 11:11:33 -0700
+
+  * Management framework: bump external cluster testsuite (Christian Kreibich, Corelight)
+
+  * Management framework: make agents support zeek-archiver invocations (Christian Kreibich, Corelight)
+
+  * Management framework: fix module naming typo (Christian Kreibich, Corelight)
+
 5.1.0-dev.48 | 2022-06-16 10:08:14 -0700
 
   * Use ccache for docs gen github workflow (Tim Wojtulewicz, Corelight)

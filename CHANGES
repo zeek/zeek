@@ -1,3 +1,9 @@
+5.1.0-dev.48 | 2022-06-16 10:08:14 -0700
+
+  * Use ccache for docs gen github workflow (Tim Wojtulewicz, Corelight)
+
+  * CI: Add Ubuntu 22.04 (LTS Release, EOL 04/2027) (Johanna Amann, Corelight)
+
 5.1.0-dev.38 | 2022-06-14 15:43:44 -0700
 
   * Fix pattern matching in Cirrus dependabot check (Tim Wojtulewicz, Corelight)

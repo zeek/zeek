@@ -1,10 +1,10 @@
-FROM opensuse/leap:15.3
+FROM opensuse/leap:15.4
 
 # A version field to invalide Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
 ENV DOCKERFILE_VERSION 20220615
 
-RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.3:Update/standard/openSUSE:Leap:15.3:Update.repo \
+RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.4:Update/standard/openSUSE:Leap:15.4:Update.repo \
  && zypper refresh \
  && zypper in -y \
     bison \
@@ -12,8 +12,8 @@ RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.3
     cmake \
     curl \
     flex \
-    gcc9 \
-    gcc9-c++ \
+    gcc10 \
+    gcc10-c++ \
     git \
     gzip \
     libopenssl-devel \
@@ -30,5 +30,5 @@ RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.3
 
 RUN pip3 install websockets junit2html
 
-RUN update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-9 100
-RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-9 100
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-10 100
+RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-10 100

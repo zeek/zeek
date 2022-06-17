@@ -1,3 +1,9 @@
+5.1.0-dev.61 | 2022-06-17 09:21:44 -0700
+
+  * CI: Add OpenSuSE Leap 15.4, fix 15.3 (Johanna Amann, Corelight)
+
+    15.3 included the wrong update repo in the Dockerfile
+
 5.1.0-dev.59 | 2022-06-17 09:09:58 -0700
 
   * Bump Spicy and spicy-plugin to latest dev snapshot. (Benjamin Bannier, Corelight)

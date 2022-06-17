@@ -80,6 +80,9 @@ redef Management::Request::timeout_interval = 5 sec;
 # Returns the effective agent topic for this agent.
 global agent_topic: function(): string;
 
+# Returns the effective supervisor's address and port, to peer with
+global supervisor_network_info: function(): Broker::NetworkInfo;
+
 # Finalizes a deploy_request transaction: cleans up remaining state
 # and sends response event.
 global send_deploy_response: function(req: Management::Request::Request);
@@ -112,6 +115,19 @@ function agent_topic(): string
 	{
 	local epi = Management::Agent::endpoint_info();
 	return Management::Agent::topic_prefix + "/" + epi$id;
+	}
+
+function supervisor_network_info(): Broker::NetworkInfo
+	{
+	# The Supervisor's address defaults to Broker's default, which
+	# relies on ZEEK_DEFAULT_LISTEN_ADDR and so might just be "". Broker
+	# internally falls back to listening on any; we pick 127.0.0.1.
+	local address = Broker::default_listen_address;
+
+	if ( address == "" )
+		address = "127.0.0.1";
+
+	return Broker::NetworkInfo($address=address, $bound_port=Broker::default_port);
 	}
 
 function send_deploy_response(req: Management::Request::Request)
@@ -745,10 +761,16 @@ event Management::Request::request_expired(req: Management::Request::Request)
 
 event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	{
-	# This does not (cannot?) immediately verify that the new peer
-	# is in fact a controller, so we might send this in vain.
-	# Controllers register the agent upon receipt of the event.
+	Management::Log::debug(fmt("broker peer %s added: %s", peer, msg));
 
+	local sni = supervisor_network_info();
+
+	if ( peer$network$address == sni$address && peer$network$bound_port == sni$bound_port )
+		return;
+
+	# Supervisor aside, this does not (cannot?) immediately verify that the
+	# new peer is in fact a controller, so we might send this in vain.
+	# Controllers register the agent upon receipt of the event.
 	local epi = Management::Agent::endpoint_info();
 
 	Broker::publish(agent_topic(),
@@ -767,14 +789,9 @@ event zeek_init()
 	local epi = Management::Agent::endpoint_info();
 
 	# The agent needs to peer with the supervisor -- this doesn't currently
-	# happen automatically. The address defaults to Broker's default, which
-	# relies on ZEEK_DEFAULT_LISTEN_ADDR and so might just be "". Broker
-	# internally falls back to listening on any; we pick 127.0.0.1.
-	local supervisor_addr = Broker::default_listen_address;
-	if ( supervisor_addr == "" )
-		supervisor_addr = "127.0.0.1";
-
-	Broker::peer(supervisor_addr, Broker::default_port, Broker::default_listen_retry);
+	# happen automatically.
+	local sni = supervisor_network_info();
+	Broker::peer(sni$address, sni$bound_port, Broker::default_listen_retry);
 
 	# Agents need receive communication targeted at it, any responses
 	# from the supervisor, and any responses from cluster nodes.

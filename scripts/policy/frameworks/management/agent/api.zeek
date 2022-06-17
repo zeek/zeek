@@ -26,8 +26,12 @@ export {
 	##     part pertaining to this instance: the cluster framework requires
 	##     full cluster visibility to establish needed peerings.
 	##
+	## force: whether to re-deploy (i.e., restart its Zeek cluster nodes)
+	##     when the agent already runs this configuration. This relies on
+	##     the config ID to determine config equality.
+	##
 	global deploy_request: event(reqid: string,
-	    config: Management::Configuration);
+	    config: Management::Configuration, force: bool &default=F);
 
 	## Response to a deploy_request event. The agent sends
 	## this back to the controller.

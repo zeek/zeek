@@ -188,7 +188,7 @@ function config_deploy_to_agents(config: Management::Configuration, req: Managem
 		# We could also broadcast just once on the agent prefix, but
 		# explicit request/response pairs for each agent seems cleaner.
 		Management::Log::info(fmt("tx Management::Agent::API::deploy_request %s to %s", areq$id, name));
-		Broker::publish(agent_topic, Management::Agent::API::deploy_request, areq$id, config);
+		Broker::publish(agent_topic, Management::Agent::API::deploy_request, areq$id, config, F);
 		}
 	}
 

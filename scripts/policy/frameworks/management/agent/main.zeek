@@ -278,13 +278,29 @@ function supervisor_destroy(node: string)
 	Management::Log::info(fmt("issued supervisor destroy for %s, %s", node, req$id));
 	}
 
-event Management::Agent::API::deploy_request(reqid: string, config: Management::Configuration)
+event Management::Agent::API::deploy_request(reqid: string, config: Management::Configuration, force: bool)
 	{
-	Management::Log::info(fmt("rx Management::Agent::API::deploy_request %s", reqid));
+	Management::Log::info(fmt("rx Management::Agent::API::deploy_request %s %s", reqid, config$id));
 
 	local nodename: string;
 	local node: Management::Node;
 	local nc: Supervisor::NodeConfig;
+	local res: Management::Result;
+
+	# Special case: we're already running this configuration.
+	if ( g_config$id == config$id && ! force )
+		{
+		res = Management::Result(
+		    $reqid = reqid,
+		    $instance = Management::Agent::get_name());
+
+		Management::Log::info(fmt("already running config %s", config$id));
+		Management::Log::info(fmt("tx Management::Agent::API::deploy_response %s",
+		    Management::result_to_string(res)));
+		Broker::publish(agent_topic(),
+		    Management::Agent::API::deploy_response, reqid, vector(res));
+		return;
+		}
 
 	# Adopt the global configuration provided. The act of trying to launch
 	# the requested nodes perturbs any existing ones one way or another, so
@@ -309,7 +325,7 @@ event Management::Agent::API::deploy_request(reqid: string, config: Management::
 		{
 		g_config_reqid_pending = "";
 
-		local res = Management::Result(
+		res = Management::Result(
 		    $reqid = reqid,
 		    $instance = Management::Agent::get_name());
 

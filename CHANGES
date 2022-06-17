@@ -1,3 +1,21 @@
+5.0.0-rc1.7 | 2022-06-17 09:15:37 -0700
+
+  * Bump Spicy and spicy-plugin to latest dev snapshot. (Benjamin Bannier, Corelight)
+
+    This bump brings in fixes for the following issues:
+
+    - zeek/spicy#1204
+    - zeek/spicy#1208
+    - zeek/spicy#1210
+    - zeek/spicy-plugin#112
+    - zeek/spicy-plugin#117
+
+    (cherry picked from commit d15ba0889088fc889a6bc841ddf71c32e94d93e1)
+
+  * Bump Spicy to the latest development version. (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit d796b3dd576877d48f5e225ce4248dead9fafde0)
+
 5.0.0-rc1.5 | 2022-06-15 12:39:13 -0700
 
   * CI: Add Ubuntu 22.04 (LTS Release, EOL 04/2027) (Johanna Amann, Corelight)

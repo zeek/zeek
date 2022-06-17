@@ -417,20 +417,8 @@ struct val_converter
 					return nullptr;
 
 				auto* b = dynamic_cast<zeek::detail::ScriptFunc*>(rval->AsFunc());
-				if ( ! b )
+				if ( ! b || ! b->DeserializeCaptures(*frame) )
 					return nullptr;
-
-				if ( b->HasCopySemantics() )
-					{
-					if ( ! b->DeserializeCaptures(*frame) )
-						return nullptr;
-					}
-				else
-					{
-					// Support for deprecated serialization.
-					if ( ! b->UpdateClosure(*frame) )
-						return nullptr;
-					}
 				}
 
 			return rval;
@@ -906,7 +894,7 @@ broker::expected<broker::data> val_to_data(const Val* v)
 				// Only ScriptFuncs have closures.
 				if ( auto b = dynamic_cast<const zeek::detail::ScriptFunc*>(f) )
 					{
-					auto bc = b->SerializeClosure();
+					auto bc = b->SerializeCaptures();
 					if ( ! bc )
 						return broker::ec::invalid_data;
 

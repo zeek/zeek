@@ -4702,7 +4702,11 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList ar
 
 	SetType(ingredients->id->GetType());
 
-	CheckCaptures(when_parent);
+	if ( ! CheckCaptures(when_parent) )
+		{
+		SetError();
+		return;
+		}
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
@@ -4747,31 +4751,27 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList ar
 	lambda_id->SetConst();
 	}
 
-void LambdaExpr::CheckCaptures(StmtPtr when_parent)
+bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 	{
 	auto ft = type->AsFuncType();
 	const auto& captures = ft->GetCaptures();
 
-	capture_by_ref = false;
+	auto desc = when_parent ? "\"when\" statement" : "lambda";
 
 	if ( ! captures )
 		{
 		if ( outer_ids.size() > 0 )
 			{
-			// TODO: Remove in v5.1: these deprecated closure semantics
-			reporter->Warning(
-				"use of outer identifiers in lambdas without [] captures is deprecated: %s%s",
-				outer_ids.size() > 1 ? "e.g., " : "", outer_ids[0]->Name());
-			capture_by_ref = true;
+			reporter->Error("%s uses outer identifiers without [] captures: %s%s", desc,
+			                outer_ids.size() > 1 ? "e.g., " : "", outer_ids[0]->Name());
+			return false;
 			}
 
-		return;
+		return true;
 		}
 
 	std::set<const ID*> outer_is_matched;
 	std::set<const ID*> capture_is_matched;
-
-	auto desc = when_parent ? "\"when\" statement" : "lambda";
 
 	for ( const auto& c : *captures )
 		{
@@ -4790,7 +4790,8 @@ void LambdaExpr::CheckCaptures(StmtPtr when_parent)
 				when_parent->Error(msg);
 			else
 				ExprError(msg);
-			continue;
+
+			return false;
 			}
 
 		for ( auto id : outer_ids )
@@ -4810,6 +4811,8 @@ void LambdaExpr::CheckCaptures(StmtPtr when_parent)
 				when_parent->Error(msg);
 			else
 				ExprError(msg);
+
+			return false;
 			}
 
 	for ( const auto& c : *captures )
@@ -4822,8 +4825,12 @@ void LambdaExpr::CheckCaptures(StmtPtr when_parent)
 				when_parent->Error(msg);
 			else
 				ExprError(msg);
+
+			return false;
 			}
 		}
+
+	return true;
 	}
 
 ScopePtr LambdaExpr::GetScope() const
@@ -4836,10 +4843,7 @@ ValPtr LambdaExpr::Eval(Frame* f) const
 	auto lamb = make_intrusive<ScriptFunc>(ingredients->id, ingredients->body, ingredients->inits,
 	                                       ingredients->frame_size, ingredients->priority);
 
-	if ( capture_by_ref )
-		lamb->AddClosure(outer_ids, f);
-	else
-		lamb->CreateCaptures(f);
+	lamb->CreateCaptures(f);
 
 	// Set name to corresponding dummy func.
 	// Allows for lookups by the receiver.
@@ -4856,6 +4860,10 @@ void LambdaExpr::ExprDescribe(ODesc* d) const
 
 TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
 	{
+	if ( IsError() )
+		// Not well-formed.
+		return TC_CONTINUE;
+
 	TraversalCode tc = cb->PreExpr(this);
 	HANDLE_TC_EXPR_PRE(tc);
 

@@ -2,7 +2,6 @@
 error in <...>/closure-binding-errors.zeek, line 12: a is captured but not used inside lambda (function(){ print no a!})
 error in <...>/closure-binding-errors.zeek, line 13: no such local identifier: a2
 error in <...>/closure-binding-errors.zeek, line 14: b is used inside lambda but not captured (function(){ print b})
-error in <...>/closure-binding-errors.zeek, line 14: a is captured but not used inside lambda (function(){ print b})
 error in <...>/closure-binding-errors.zeek, line 15: a is captured but not used inside lambda (function(){ print b})
 error in <...>/closure-binding-errors.zeek, line 16: b listed multiple times in capture (function(){ print b})
 error in <...>/closure-binding-errors.zeek, line 18: cannot specify global in capture: c

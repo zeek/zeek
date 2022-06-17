@@ -1480,13 +1480,11 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 private:
-	void CheckCaptures(StmtPtr when_parent);
+	bool CheckCaptures(StmtPtr when_parent);
 
 	std::unique_ptr<function_ingredients> ingredients;
 	IDPtr lambda_id;
-
 	IDPList outer_ids;
-	bool capture_by_ref; // if true, use deprecated reference semantics
 
 	std::string my_name;
 	};

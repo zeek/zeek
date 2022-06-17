@@ -745,16 +745,12 @@ TraversalCode OuterIDBindingFinder::PreStmt(const Stmt* stmt)
 	if ( stmt->Tag() != STMT_WHEN )
 		return TC_CONTINUE;
 
-	auto ws = static_cast<const WhenStmt*>(stmt);
-	auto lambda = ws->Info()->Lambda();
-
-	if ( ! lambda )
-		// Old-style semantics.
-		return TC_CONTINUE;
-
 	// The semantics of identifiers for the "when" statement are those
 	// of the lambda it's transformed into.
-	lambda->Traverse(this);
+
+	auto ws = static_cast<const WhenStmt*>(stmt);
+	ws->Info()->Lambda()->Traverse(this);
+
 	return TC_ABORTSTMT;
 	}
 

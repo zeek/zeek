@@ -29,7 +29,7 @@ CPPLambdaFunc::CPPLambdaFunc(string _name, FuncTypePtr ft, CPPStmtPtr _l_body)
 	l_body = move(_l_body);
 	}
 
-broker::expected<broker::data> CPPLambdaFunc::SerializeClosure() const
+broker::expected<broker::data> CPPLambdaFunc::SerializeCaptures() const
 	{
 	auto vals = l_body->SerializeLambdaCaptures();
 

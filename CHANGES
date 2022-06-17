@@ -1,3 +1,15 @@
+5.1.0-dev.59 | 2022-06-17 09:09:58 -0700
+
+  * Bump Spicy and spicy-plugin to latest dev snapshot. (Benjamin Bannier, Corelight)
+
+    This bump brings in fixes for the following issues:
+
+    - zeek/spicy#1204
+    - zeek/spicy#1208
+    - zeek/spicy#1210
+    - zeek/spicy-plugin#112
+    - zeek/spicy-plugin#117
+
 5.1.0-dev.56 | 2022-06-16 15:57:19 -0700
 
   * flip connections that begin with SYN-ACKs if subsequent acks or data seen (Vern Paxson, Corelight)

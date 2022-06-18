@@ -146,20 +146,12 @@ function is_null(request: Request): bool
 
 function to_string(request: Request): string
 	{
-	local results: string_vec;
-	local res: Management::Result;
 	local parent_id = "";
 
 	if ( request?$parent_id )
 		parent_id = fmt(" (via %s)", request$parent_id);
 
-	for ( idx in request$results )
-		{
-		res = request$results[idx];
-		results[|results|] = Management::result_to_string(res);
-		}
-
 	return fmt("[request %s%s %s, results: %s]", request$id, parent_id,
 	           request$finished ? "finished" : "pending",
-	           join_string_vec(results, ", "));
+		   Management::result_vec_to_string(request$results));
 	}

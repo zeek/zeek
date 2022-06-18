@@ -124,6 +124,10 @@ export {
 	## Given a :zeek:see:`Management::Result` record,
 	## this function returns a string summarizing it.
 	global result_to_string: function(res: Result): string;
+
+	## Given a vector of :zeek:see:`Management::Result` records,
+	## this function returns a string summarizing them.
+	global result_vec_to_string: function(res: ResultVec): string;
 }
 
 function result_to_string(res: Result): string
@@ -150,4 +154,14 @@ function result_to_string(res: Result): string
 		result = fmt("%s (%s)", result, join_string_vec(details, ", "));
 
 	return result;
+	}
+
+function result_vec_to_string(res: ResultVec): string
+	{
+	local ret: vector of string;
+
+	for ( idx in res )
+		ret += result_to_string(res[idx]);;
+
+	return join_string_vec(ret, ", ");
 	}

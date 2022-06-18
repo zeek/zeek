@@ -695,7 +695,8 @@ event Management::Agent::API::notify_log(instance: string, msg: string, node: st
 
 event Management::Agent::API::deploy_response(reqid: string, results: Management::ResultVec)
 	{
-	Management::Log::info(fmt("rx Management::Agent::API::deploy_response %s", reqid));
+	Management::Log::info(fmt("rx Management::Agent::API::deploy_response %s %s",
+	    reqid, Management::result_vec_to_string(results)));
 
 	# Retrieve state for the request we just got a response to
 	local areq = Management::Request::lookup(reqid);

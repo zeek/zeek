@@ -32,6 +32,14 @@ export {
 		finished: bool &default=F;
 	};
 
+	# To allow a callback to refer to Requests, the Request type must
+	# exist. So redef to add it:
+	redef record Request += {
+		## A callback to invoke when this request is finished via
+		## :zeek:see:`Management::Request::finish`.
+		finish: function(req: Management::Request::Request) &optional;
+	};
+
 	## The timeout interval for request state. Such state (see the
 	## :zeek:see:`Management::Request` module) ties together request and
 	## response event pairs. A timeout causes cleanup of request state if
@@ -130,6 +138,9 @@ function finish(reqid: string): bool
 
 	local req = g_requests[reqid];
 	delete g_requests[reqid];
+
+	if ( req?$finish )
+		req$finish(req);
 
 	req$finished = T;
 

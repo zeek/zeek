@@ -125,12 +125,6 @@ global config_validate: function(config: Management::Configuration,
 global config_filter_nodes_by_name: function(config: Management::Configuration,
     nodes: set[string]): set[string];
 
-# Fails the given deployment request with the given error message. The function
-# adds a non-success result record to the request and send a deploy_response
-# event back to the client. It does not call finish() on the request.
-global send_deploy_response_error: function(
-    req: Management::Request::Request, error: string);
-
 # Given a Broker ID, this returns the endpoint info associated with it.
 # On error, returns a dummy record with an empty ID string.
 global find_endpoint: function(id: string): Broker::EndpointInfo;
@@ -553,20 +547,6 @@ function is_instance_connectivity_change(inst: Management::Instance): bool
 	return F;
 	}
 
-function send_deploy_response_error(req: Management::Request::Request, error: string)
-	{
-	local res = Management::Result($reqid=req$id);
-
-	res$success = F;
-	res$error = error;
-	req$results += res;
-
-	Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
-	    Management::Request::to_string(req)));
-	Broker::publish(Management::Controller::topic,
-	    Management::Controller::API::deploy_response, req$id, req$results);
-	}
-
 event Management::Controller::API::notify_agents_ready(instances: set[string])
 	{
 	local insts = Management::Util::set_to_vector(instances);
@@ -833,13 +813,24 @@ event Management::Controller::API::get_configuration_request(reqid: string, depl
 
 event Management::Controller::API::deploy_request(reqid: string)
 	{
+	local send_error_response = function(req: Management::Request::Request, error: string)
+		{
+		local res = Management::Result($reqid=req$id, $success=F, $error=error);
+		req$results += res;
+
+		Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
+		    Management::Request::to_string(req)));
+		Broker::publish(Management::Controller::topic,
+		    Management::Controller::API::deploy_response, req$id, req$results);
+		};
+
 	Management::Log::info(fmt("rx Management::Controller::API::deploy_request %s", reqid));
 
 	local req = Management::Request::create(reqid);
 
 	if ( READY !in g_configs )
 		{
-		send_deploy_response_error(req, "no configuration available to deploy");
+		send_error_response(req, "no configuration available to deploy");
 		Management::Request::finish(req$id);
 		return;
 		}
@@ -847,7 +838,7 @@ event Management::Controller::API::deploy_request(reqid: string)
 	# At the moment there can only be one pending deployment.
 	if ( g_config_reqid_pending != "" )
 		{
-		send_deploy_response_error(req,
+		send_error_response(req,
 		    fmt("earlier deployment %s still pending", g_config_reqid_pending));
 		Management::Request::finish(req$id);
 		return;

@@ -32,6 +32,9 @@ export {
 	type DeployState: record {
 		## The cluster configuration the controller is deploying.
 		config: Management::Configuration;
+		## Whether this is a controller-internal deployment, or
+		## triggered via a request by a remote peer/client.
+		is_internal: bool &default=F;
 		## Request state for every controller/agent transaction.
 		requests: set[string] &default=set();
 	};
@@ -729,10 +732,14 @@ event Management::Agent::API::deploy_response(reqid: string, results: Management
 	local res = Management::Result($reqid=req$id, $data=config$id);
 	req$results += res;
 
-	Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
-	    Management::Request::to_string(req)));
-	Broker::publish(Management::Controller::topic,
-	    Management::Controller::API::deploy_response, req$id, req$results);
+	if ( ! req$deploy_state$is_internal )
+		{
+		Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
+		    Management::Request::to_string(req)));
+		Broker::publish(Management::Controller::topic,
+		    Management::Controller::API::deploy_response, req$id, req$results);
+		}
+
 	Management::Request::finish(req$id);
 	}
 
@@ -950,10 +957,14 @@ event Management::Controller::API::deploy_request(reqid: string)
 		local res = Management::Result($reqid=req$id, $data=config$id);
 		req$results += res;
 
-		Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
-		    Management::Request::to_string(req)));
-		Broker::publish(Management::Controller::topic,
-		    Management::Controller::API::deploy_response, req$id, req$results);
+		if ( ! req$deploy_state$is_internal )
+			{
+			Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
+			    Management::Request::to_string(req)));
+			Broker::publish(Management::Controller::topic,
+			    Management::Controller::API::deploy_response, req$id, req$results);
+			}
+
 		Management::Request::finish(req$id);
 		return;
 		}
@@ -1229,10 +1240,13 @@ event Management::Request::request_expired(req: Management::Request::Request)
 		g_config_reqid_pending = "";
 		req$results += res;
 
-		Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
-		    Management::Request::to_string(req)));
-		Broker::publish(Management::Controller::topic,
-		    Management::Controller::API::deploy_response, req$id, req$results);
+		if ( ! req$deploy_state$is_internal )
+			{
+			Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
+			    Management::Request::to_string(req)));
+			Broker::publish(Management::Controller::topic,
+			    Management::Controller::API::deploy_response, req$id, req$results);
+			}
 		}
 
 	if ( req?$get_nodes_state )

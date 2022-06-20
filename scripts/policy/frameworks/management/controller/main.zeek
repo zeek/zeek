@@ -154,6 +154,11 @@ global g_instances_known: table[string] of Management::Instance = table();
 # instance, and store that in g_instances.)
 global g_instances_ready: set[string] = set();
 
+# A map from Broker ID values to instance names. When we lose a peering, this
+# helps us understand whether it was an instance, and if so, update its state
+# accordingly.
+global g_instances_by_id: table[string] of string;
+
 # The request ID of the most recent deployment request from a client. We track
 # it here until we know we are ready to communicate with all agents required for
 # the update.
@@ -605,6 +610,12 @@ event Management::Agent::API::notify_agent_hello(instance: string, id: string, c
 
 	if ( ei$id != "" && ei?$network )
 		{
+		if ( instance !in g_instances_known )
+			Management::Log::debug(fmt("instance %s newly checked in", instance));
+		else
+			Management::Log::debug(fmt("instance %s checked in again", instance));
+
+		g_instances_by_id[id] = instance;
 		g_instances_known[instance] = Management::Instance(
 		    $name=instance, $host=to_addr(ei$network$address));
 
@@ -613,8 +624,6 @@ event Management::Agent::API::notify_agent_hello(instance: string, id: string, c
 			# We connected to this agent, note down its port.
 			g_instances_known[instance]$listen_port = ei$network$bound_port;
 			}
-
-		Management::Log::debug(fmt("instance %s now known to us", instance));
 		}
 
 	if ( instance in g_instances && instance !in g_instances_ready )
@@ -1212,6 +1221,8 @@ event Management::Request::request_expired(req: Management::Request::Request)
 	    $success = F,
 	    $error = "request timed out");
 
+	Management::Log::info(fmt("request %s timed out", req$id));
+
 	if ( req?$deploy_state )
 		{
 		# This timeout means we no longer have a pending request.
@@ -1279,6 +1290,24 @@ event Management::Controller::API::test_timeout_request(reqid: string, with_stat
 event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	{
 	Management::Log::debug(fmt("broker peer %s added: %s", peer, msg));
+	}
+
+event Broker::peer_lost(peer: Broker::EndpointInfo, msg: string)
+	{
+	Management::Log::debug(fmt("broker peer %s lost: %s", peer, msg));
+
+	if ( peer$id in g_instances_by_id )
+		{
+		local instance = g_instances_by_id[peer$id];
+
+		if ( instance in g_instances_known )
+			delete g_instances_known[instance];
+		if ( instance in g_instances_ready )
+			delete g_instances_ready[instance];
+
+		Management::Log::info(fmt("dropped state for instance %s", instance));
+		delete g_instances_by_id[peer$id];
+		}
 	}
 
 event zeek_init()

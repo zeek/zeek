@@ -1344,4 +1344,15 @@ event zeek_init()
 	Broker::subscribe(Management::Controller::topic);
 
 	Management::Log::info(fmt("controller is live, Broker ID %s", Broker::node_id()));
+
+	# If we have a persisted deployed configuration, we need to make sure
+	# it's actually running. The agents involved might be gone, running a
+	# different config, etc. We simply run a deployment: agents already
+	# running this configuration will do nothing.
+	if ( DEPLOYED in g_configs )
+		{
+		local req = Management::Request::create();
+		req$deploy_state = DeployState($config=g_configs[DEPLOYED], $is_internal=T);
+		deploy(req);
+		}
 	}

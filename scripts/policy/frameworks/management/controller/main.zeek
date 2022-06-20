@@ -555,6 +555,116 @@ function is_instance_connectivity_change(inst: Management::Instance): bool
 	return F;
 	}
 
+function deploy(req: Management::Request::Request)
+	{
+	# This deployment is now pending. It clears when all agents have
+	# processed their config updates successfully, or any responses time
+	# out.
+	g_config_reqid_pending = req$id;
+
+	# Compare the instance configuration to our current one. If it matches,
+	# we can proceed to deploying the new cluster topology. If it does not,
+	# we need to establish connectivity with agents we connect to, or wait
+	# until all instances that connect to us have done so. Either case
+	# triggers a notify_agents_ready event, upon which we deploy the config.
+
+	# The current & new set of instance names.
+	local insts_current: set[string];
+	local insts_new: set[string];
+
+	# A set of current instances not contained in the new config.
+	# Those will need to get dropped.
+	local insts_to_drop: set[string];
+
+	# The opposite: new instances not yet in our current set. Those we will need
+	# to establish contact with (or they with us).
+	local insts_to_add: set[string];
+
+	# The overlap: instances in both the current and new set. For those we verify
+	# that we're actually dealign with the same entities, and might need to re-
+	# connect if not.
+	local insts_to_keep: set[string];
+
+	# Alternative representation of insts_to_add, directly providing the instances.
+	local insts_to_peer: table[string] of Management::Instance;
+
+	# Helpful locals.
+	local inst_name: string;
+	local inst: Management::Instance;
+
+	for ( inst_name in g_instances )
+		add insts_current[inst_name];
+	for ( inst in g_configs[READY]$instances )
+		add insts_new[inst$name];
+
+	# Populate TODO lists for instances we need to drop, check, or add.
+	insts_to_drop = insts_current - insts_new;
+	insts_to_add = insts_new - insts_current;
+	insts_to_keep = insts_new & insts_current;
+
+	for ( inst in g_configs[READY]$instances )
+		{
+		if ( inst$name in insts_to_add )
+			{
+			insts_to_peer[inst$name] = inst;
+			next;
+			}
+
+		# Focus on the keepers: check for change in identity/location.
+		if ( inst$name !in insts_to_keep )
+			next;
+
+		if ( is_instance_connectivity_change(inst) )
+			{
+			# The endpoint looks different. We drop the current one
+			# and need to re-establish connectivity with the new
+			# one.
+			add insts_to_drop[inst$name];
+			add insts_to_add[inst$name];
+			}
+		}
+
+	# Process our TODO lists. Handle drops first, then additions, in
+	# case we need to re-establish connectivity with an agent.
+
+	for ( inst_name in insts_to_drop )
+		{
+		Management::Log::debug(fmt("dropping instance %s", inst_name));
+		drop_instance(g_instances[inst_name]);
+		}
+	for ( inst_name in insts_to_peer )
+		{
+		Management::Log::debug(fmt("adding instance %s", inst_name));
+		add_instance(insts_to_peer[inst_name]);
+		}
+
+	# Updates to instance tables are complete. As a corner case, if the
+	# config contained no instances (and thus no nodes), we're now done
+	# since there are no agent interactions to wait for (any agents that
+	# need to tear down nodes are doing so asynchronously as part of the
+	# drop_instance() calls above).
+	if ( |insts_new| == 0 )
+		{
+		local config = req$deploy_state$config;
+		g_configs[DEPLOYED] = config;
+		g_config_reqid_pending = "";
+
+		local res = Management::Result($reqid=req$id, $data=config$id);
+		req$results += res;
+
+		if ( ! req$deploy_state$is_internal )
+			{
+			Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
+			    Management::Request::to_string(req)));
+			Broker::publish(Management::Controller::topic,
+			    Management::Controller::API::deploy_response, req$id, req$results);
+			}
+
+		Management::Request::finish(req$id);
+		return;
+		}
+	}
+
 event Management::Controller::API::notify_agents_ready(instances: set[string])
 	{
 	local insts = Management::Util::set_to_vector(instances);
@@ -861,118 +971,11 @@ event Management::Controller::API::deploy_request(reqid: string)
 		}
 
 	req$deploy_state = DeployState($config = g_configs[READY]);
+	deploy(req);
 
-	# This deployment is now pending. It clears when all agents have
-	# processed their config updates successfully, or any responses time
-	# out.
-	g_config_reqid_pending = req$id;
-
-	# Compare the instance configuration to our current one. If it matches,
-	# we can proceed to deploying the new cluster topology. If it does not,
-	# we need to establish connectivity with agents we connect to, or wait
-	# until all instances that connect to us have done so. Either case
-	# triggers a notify_agents_ready event, upon which we deploy the config.
-
-	# The current & new set of instance names.
-	local insts_current: set[string];
-	local insts_new: set[string];
-
-	# A set of current instances not contained in the new config.
-	# Those will need to get dropped.
-	local insts_to_drop: set[string];
-
-	# The opposite: new instances not yet in our current set. Those we will need
-	# to establish contact with (or they with us).
-	local insts_to_add: set[string];
-
-	# The overlap: instances in both the current and new set. For those we verify
-	# that we're actually dealign with the same entities, and might need to re-
-	# connect if not.
-	local insts_to_keep: set[string];
-
-	# Alternative representation of insts_to_add, directly providing the instances.
-	local insts_to_peer: table[string] of Management::Instance;
-
-	# Helpful locals.
-	local inst_name: string;
-	local inst: Management::Instance;
-
-	for ( inst_name in g_instances )
-		add insts_current[inst_name];
-	for ( inst in g_configs[READY]$instances )
-		add insts_new[inst$name];
-
-	# Populate TODO lists for instances we need to drop, check, or add.
-	insts_to_drop = insts_current - insts_new;
-	insts_to_add = insts_new - insts_current;
-	insts_to_keep = insts_new & insts_current;
-
-	for ( inst in g_configs[READY]$instances )
-		{
-		if ( inst$name in insts_to_add )
-			{
-			insts_to_peer[inst$name] = inst;
-			next;
-			}
-
-		# Focus on the keepers: check for change in identity/location.
-		if ( inst$name !in insts_to_keep )
-			next;
-
-		if ( is_instance_connectivity_change(inst) )
-			{
-			# The endpoint looks different. We drop the current one
-			# and need to re-establish connectivity with the new
-			# one.
-			add insts_to_drop[inst$name];
-			add insts_to_add[inst$name];
-			}
-		}
-
-	# Process our TODO lists. Handle drops first, then additions, in
-	# case we need to re-establish connectivity with an agent.
-
-	for ( inst_name in insts_to_drop )
-		{
-		Management::Log::debug(fmt("dropping instance %s", inst_name));
-		drop_instance(g_instances[inst_name]);
-		}
-	for ( inst_name in insts_to_peer )
-		{
-		Management::Log::debug(fmt("adding instance %s", inst_name));
-		add_instance(insts_to_peer[inst_name]);
-		}
-
-	# Updates to instance tables are complete. As a corner case, if the
-	# config contained no instances (and thus no nodes), we're now done
-	# since there are no agent interactions to wait for (any agents that
-	# need to tear down nodes are doing so asynchronously as part of the
-	# drop_instance() calls above).
-	if ( |insts_new| == 0 )
-		{
-		local config = req$deploy_state$config;
-		g_configs[DEPLOYED] = config;
-		g_config_reqid_pending = "";
-
-		local res = Management::Result($reqid=req$id, $data=config$id);
-		req$results += res;
-
-		if ( ! req$deploy_state$is_internal )
-			{
-			Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
-			    Management::Request::to_string(req)));
-			Broker::publish(Management::Controller::topic,
-			    Management::Controller::API::deploy_response, req$id, req$results);
-			}
-
-		Management::Request::finish(req$id);
-		return;
-		}
-
-	# Otherwise, check if we're able to send the config to all agents
-	# involved. If that's the case, this will trigger a
-	# Management::Controller::API::notify_agents_ready event that implements
-	# the distribution in the controller's own event handler, above.
+	# Check if we're already able to send the config to all agents involved:
+	# If so, this triggers Management::Controller::API::notify_agents_ready,
+	# which we handle above by distributing the config.
 	check_instances_ready();
 	}
 

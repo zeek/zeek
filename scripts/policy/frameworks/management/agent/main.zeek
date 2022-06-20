@@ -222,6 +222,8 @@ event Management::Supervisor::API::notify_node_exit(node: string, outputs: Manag
 
 event SupervisorControl::create_response(reqid: string, result: string)
 	{
+	Management::Log::info(fmt("rx SupervisorControl::create_response %s %s", reqid, result));
+
 	local req = Management::Request::lookup(reqid);
 	if ( Management::Request::is_null(req) )
 		return;
@@ -242,6 +244,8 @@ event SupervisorControl::create_response(reqid: string, result: string)
 
 event SupervisorControl::destroy_response(reqid: string, result: bool)
 	{
+	Management::Log::info(fmt("rx SupervisorControl::destroy_response %s %s", reqid, result));
+
 	local req = Management::Request::lookup(reqid);
 	if ( Management::Request::is_null(req) )
 		return;
@@ -264,18 +268,20 @@ function supervisor_create(nc: Supervisor::NodeConfig)
 	{
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = nc$name);
+
+	Management::Log::info(fmt("tx SupervisorControl::create_request %s %s", req$id, nc$name));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::create_request, req$id, nc);
-	Management::Log::info(fmt("issued supervisor create for %s, %s", nc$name, req$id));
 	}
 
 function supervisor_destroy(node: string)
 	{
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = node);
+
+	Management::Log::info(fmt("tx SupervisorControl::destroy_request %s %s", req$id, node));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::destroy_request, req$id, node);
-	Management::Log::info(fmt("issued supervisor destroy for %s, %s", node, req$id));
 	}
 
 event Management::Agent::API::deploy_request(reqid: string, config: Management::Configuration, force: bool)
@@ -435,7 +441,9 @@ event Management::Agent::API::deploy_request(reqid: string, config: Management::
 
 event SupervisorControl::status_response(reqid: string, result: Supervisor::Status)
 	{
+	Management::Log::info(fmt("rx SupervisorControl::status_response %s", reqid));
 	local req = Management::Request::lookup(reqid);
+
 	if ( Management::Request::is_null(req) )
 		return;
 

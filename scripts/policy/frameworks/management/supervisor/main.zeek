@@ -70,8 +70,8 @@ hook Supervisor::stdout_hook(node: string, msg: string)
 	# Update the sliding window of recent output lines.
 	Queue::put(g_outputs[node]$stdout, msg);
 
-	# Don't print this message in the Supervisor's own stdout
-	break;
+	if ( ! print_stdout )
+		break;
 	}
 
 hook Supervisor::stderr_hook(node: string, msg: string)
@@ -87,8 +87,8 @@ hook Supervisor::stderr_hook(node: string, msg: string)
 
 	Queue::put(g_outputs[node]$stderr, msg);
 
-	# Don't print this message in the Supervisor's own stdout
-	break;
+	if ( ! print_stderr )
+		break;
 	}
 
 event Supervisor::node_status(node: string, pid: count)

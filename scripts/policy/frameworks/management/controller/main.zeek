@@ -668,11 +668,24 @@ function deploy(req: Management::Request::Request)
 event Management::Controller::API::notify_agents_ready(instances: set[string])
 	{
 	local insts = Management::Util::set_to_vector(instances);
+	local req: Management::Request::Request;
 
 	Management::Log::info(fmt("rx Management::Controller::API:notify_agents_ready %s",
 	    join_string_vec(insts, ", ")));
 
-	local req = Management::Request::lookup(g_config_reqid_pending);
+	# If we're not currently deploying a configuration, but have a deployed
+	# configuration, trigger a deployment at this point. Some of our agents
+	# might have restarted, and need to get in sync with us. Agents already
+	# running this configuration will do nothing.
+	if ( g_config_reqid_pending == "" && DEPLOYED in g_configs )
+		{
+		req = Management::Request::create();
+		req$deploy_state = DeployState($config=g_configs[DEPLOYED], $is_internal=T);
+		Management::Log::info(fmt("no deployment in progress, triggering via %s", req$id));
+		deploy(req);
+		}
+
+	req = Management::Request::lookup(g_config_reqid_pending);
 
 	# If there's no pending request, when it's no longer available, or it
 	# doesn't have config state, don't do anything else.

@@ -1,3 +1,14 @@
+5.1.0-dev.71 | 2022-06-21 16:58:25 -0700
+
+  * Management framework: config validation (Christian Kreibich, Corelight)
+
+    - bump external cluster testsuite
+    - bump zeek-client
+    - add config validation
+    - improvements to port auto-enumeration
+    - control output-to-console in Supervisor
+    - handle no-instances corner case in set-config correctly
+
 5.1.0-dev.64 | 2022-06-21 12:23:20 -0700
 
   * CI: Add Fedora 36, remove Fedora 34 (Johanna Amann, Corelight)

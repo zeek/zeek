@@ -1,3 +1,9 @@
+5.1.0-dev.64 | 2022-06-21 12:23:20 -0700
+
+  * CI: Add Fedora 36, remove Fedora 34 (Johanna Amann, Corelight)
+
+  * Update broker submodule to fix put_unique issues from 5.0RC1 (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.61 | 2022-06-17 09:21:44 -0700
 
   * CI: Add OpenSuSE Leap 15.4, fix 15.3 (Johanna Amann, Corelight)

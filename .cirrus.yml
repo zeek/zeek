@@ -136,10 +136,10 @@ fedora35_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-fedora34_task:
+fedora36_task:
   container:
-    # Fedora 34 EOL: Around May 2022
-    dockerfile: ci/fedora-34/Dockerfile
+    # Fedora 36 EOL: Around May 2023
+    dockerfile: ci/fedora-36/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 

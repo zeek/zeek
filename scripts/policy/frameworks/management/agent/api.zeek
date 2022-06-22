@@ -38,10 +38,13 @@ export {
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: the result record.
+	## results: A vector of :zeek:see:`Management::Result` records, each
+	##     capturing the outcome of a single launched node. For failing
+	##     nodes, the result's data field is a
+	##     :zeek:see:`Management::NodeOutputs` record.
 	##
 	global deploy_response: event(reqid: string,
-	    result: Management::ResultVec);
+	    results: Management::ResultVec);
 
 
 	## The controller sends this event to request a list of
@@ -92,13 +95,13 @@ export {
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: a :zeek:type:`vector` of :zeek:see:`Management::Result`
+	## results: a :zeek:type:`vector` of :zeek:see:`Management::Result`
 	##     records. Each record covers one Zeek cluster node managed by this
 	##     agent. Upon success, each :zeek:see:`Management::Result` record's
 	##     data member contains the dispatches' response in a data type
 	##     appropriate for the respective dispatch.
 	##
-	global node_dispatch_response: event(reqid: string, result: Management::ResultVec);
+	global node_dispatch_response: event(reqid: string, results: Management::ResultVec);
 
 
 	## The controller sends this event to confirm to the agent that it is

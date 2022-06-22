@@ -52,13 +52,13 @@ export {
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: a :zeek:see:`Management::Result` vector, indicating whether
+	## results: a :zeek:see:`Management::Result` vector, indicating whether
 	##     the controller accepts the configuration. In case of a success,
 	##     a single result record indicates so. Otherwise, the sequence is
 	##     all errors, each indicating a configuration validation error.
 	##
 	global stage_configuration_response: event(reqid: string,
-	    result: Management::ResultVec);
+	    results: Management::ResultVec);
 
 
 	## The client sends this event to retrieve the controller's current
@@ -105,13 +105,13 @@ export {
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: a vector of :zeek:see:`Management::Result` records.
+	## results: a vector of :zeek:see:`Management::Result` records.
 	##     Each member captures the result of launching one cluster
 	##     node captured in the configuration, or an agent-wide error
 	##     when the result does not indicate a particular node.
 	##
 	global deploy_response: event(reqid: string,
-	    result: Management::ResultVec);
+	    results: Management::ResultVec);
 
 
 	## The client sends this event to request a list of
@@ -128,14 +128,14 @@ export {
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: a :zeek:type:`vector` of :zeek:see:`Management::Result`
-	##     records. Each record covers one cluster instance. Each record's data
-	##     member is a vector of :zeek:see:`Management::NodeStatus`
-	##     records, covering the nodes at that instance. Results may also indicate
-	##     failure, with error messages indicating what went wrong.
+	## results: a :zeek:type:`vector` of :zeek:see:`Management::Result`
+	##     records. Each record covers one cluster instance. Each record's
+	##     data member is a vector of :zeek:see:`Management::NodeStatus`
+	##     records, covering the nodes at that instance. Results may also
+	##     indicate failure, with error messages indicating what went wrong.
 	##
 	global get_nodes_response: event(reqid: string,
-	    result: Management::ResultVec);
+	    results: Management::ResultVec);
 
 
 	## The client sends this event to retrieve the current value of a
@@ -161,13 +161,13 @@ export {
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: a :zeek:type:`vector` of :zeek:see:`Management::Result`
+	## results: a :zeek:type:`vector` of :zeek:see:`Management::Result`
 	##     records. Each record covers one Zeek cluster node. Each record's
 	##     data field contains a string with the JSON rendering (as produced
 	##     by :zeek:id:`to_json`, including the error strings it potentially
 	##     returns).
 	##
-	global get_id_value_response: event(reqid: string, result: Management::ResultVec);
+	global get_id_value_response: event(reqid: string, results: Management::ResultVec);
 
 
 	# Testing events. These don't provide operational value but expose

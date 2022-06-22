@@ -403,6 +403,13 @@ export {
 		## cross-references the *uid* field of :zeek:type:`connection`.
 		uid: string &optional;
 	} &log;
+
+	## The number of tunnel_changed events that will be sent for a connection. Once this
+	## limit is hit, no more of those events will be sent to avoid a large number of events
+	## being sent for connections that regularly swap. This can be set to zero to disable
+	## this limiting.
+	const max_changes_per_connection: count = 5 &redef;
+
 } # end export
 module GLOBAL;
 

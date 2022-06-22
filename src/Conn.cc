@@ -96,8 +96,13 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
 		{
 		if ( *encapsulation != *arg_encap )
 			{
-			if ( tunnel_changed )
+			if ( tunnel_changed &&
+			     (zeek::detail::tunnel_max_changes_per_connection == 0 ||
+			      tunnel_changes < zeek::detail::tunnel_max_changes_per_connection) )
+				{
+				tunnel_changes++;
 				EnqueueEvent(tunnel_changed, nullptr, GetVal(), arg_encap->ToVal());
+				}
 
 			encapsulation = std::make_shared<EncapsulationStack>(*arg_encap);
 			}

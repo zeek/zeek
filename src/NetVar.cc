@@ -193,6 +193,8 @@ int record_all_packets;
 
 bro_uint_t bits_per_uid;
 
+bro_uint_t tunnel_max_changes_per_connection;
+
 	} // namespace zeek::detail. The namespace has be closed here before we include the netvar_def
 	  // files.
 
@@ -343,6 +345,9 @@ void init_net_var()
 	dpd_match_only_beginning = id::find_val("dpd_match_only_beginning")->AsBool();
 	dpd_late_match_stop = id::find_val("dpd_late_match_stop")->AsBool();
 	dpd_ignore_ports = id::find_val("dpd_ignore_ports")->AsBool();
+
+	tunnel_max_changes_per_connection =
+		id::find_val("Tunnel::max_changes_per_connection")->AsCount();
 	}
 
 	} // namespace zeek::detail

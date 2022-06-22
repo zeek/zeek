@@ -866,9 +866,9 @@ event Management::Agent::API::deploy_response(reqid: string, results: Management
 	Management::Request::finish(req$id);
 	}
 
-event Management::Controller::API::set_configuration_request(reqid: string, config: Management::Configuration)
+event Management::Controller::API::stage_configuration_request(reqid: string, config: Management::Configuration)
 	{
-	Management::Log::info(fmt("rx Management::Controller::API::set_configuration_request %s", reqid));
+	Management::Log::info(fmt("rx Management::Controller::API::stage_configuration_request %s", reqid));
 
 	local req = Management::Request::create(reqid);
 	local res = Management::Result($reqid=req$id);
@@ -877,10 +877,10 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 	if ( ! config_validate(config, req) )
 		{
 		Management::Request::finish(req$id);
-		Management::Log::info(fmt("tx Management::Controller::API::set_configuration_response %s",
+		Management::Log::info(fmt("tx Management::Controller::API::stage_configuration_response %s",
 		    Management::Request::to_string(req)));
 		Broker::publish(Management::Controller::topic,
-		    Management::Controller::API::set_configuration_response, req$id, req$results);
+		    Management::Controller::API::stage_configuration_response, req$id, req$results);
 		return;
 		}
 
@@ -896,10 +896,10 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 			res$error = fmt("port auto-assignment disabled but nodes %s lack ports", nodes_str);
 			req$results += res;
 
-			Management::Log::info(fmt("tx Management::Controller::API::set_configuration_response %s",
+			Management::Log::info(fmt("tx Management::Controller::API::stage_configuration_response %s",
 			    Management::Request::to_string(req)));
 			Broker::publish(Management::Controller::topic,
-			    Management::Controller::API::set_configuration_response, req$id, req$results);
+			    Management::Controller::API::stage_configuration_response, req$id, req$results);
 			Management::Request::finish(req$id);
 			return;
 			}
@@ -918,10 +918,10 @@ event Management::Controller::API::set_configuration_request(reqid: string, conf
 	req$results += res;
 
 	Management::Log::info(fmt(
-	    "tx Management::Controller::API::set_configuration_response %s",
+	    "tx Management::Controller::API::stage_configuration_response %s",
 	    Management::result_to_string(res)));
 	Broker::publish(Management::Controller::topic,
-	    Management::Controller::API::set_configuration_response, reqid, req$results);
+	    Management::Controller::API::stage_configuration_response, reqid, req$results);
 	Management::Request::finish(req$id);
 	}
 

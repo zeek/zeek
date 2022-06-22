@@ -1366,6 +1366,8 @@ event zeek_init()
 		{
 		local req = Management::Request::create();
 		req$deploy_state = DeployState($config=g_configs[DEPLOYED], $is_internal=T);
+		Management::Log::info(fmt("deploying persisted configuration %s, request %s",
+		    g_configs[DEPLOYED]$id, req$id));
 		deploy(req);
 		}
 	}

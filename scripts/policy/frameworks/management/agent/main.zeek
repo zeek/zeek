@@ -821,10 +821,14 @@ event Management::Node::API::notify_node_hello(node: string)
 
 event Management::Request::request_expired(req: Management::Request::Request)
 	{
+	Management::Log::info(fmt("request %s timed out", req$id));
+
 	local res = Management::Result($reqid=req$id,
 	    $instance = Management::Agent::get_name(),
 	    $success = F,
 	    $error = "request timed out");
+
+	req$results += res;
 
 	if ( req?$deploy_state_agent )
 		{

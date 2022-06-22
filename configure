@@ -62,7 +62,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools-debug use Google's perftools for debugging
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
-    --enable-zeek-client   install the Zeek cluster management client (experimental)
     --disable-archiver     don't build or install zeek-archiver tool
     --disable-auxtools     don't build or install auxiliary tools
     --disable-broker-tests don't try to build Broker unit tests
@@ -71,6 +70,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-cpp-tests    don't build Zeek's C++ unit tests
     --disable-python       don't try to build python bindings for Broker
     --disable-spicy        don't include Spicy
+    --disable-zeek-client  don't install Zeek cluster management client
     --disable-zeekctl      don't install ZeekControl
     --disable-zkg          don't install zkg
 
@@ -173,6 +173,7 @@ append_cache_entry INSTALL_AUX_TOOLS BOOL true
 append_cache_entry INSTALL_BTEST BOOL true
 append_cache_entry INSTALL_BTEST_PCAPS BOOL true
 append_cache_entry INSTALL_ZEEK_ARCHIVER BOOL true
+append_cache_entry INSTALL_ZEEK_CLIENT BOOL true
 append_cache_entry INSTALL_ZEEKCTL BOOL true
 append_cache_entry INSTALL_ZKG BOOL true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
@@ -293,9 +294,6 @@ while [ $# -ne 0 ]; do
         --enable-static-broker)
             append_cache_entry BUILD_STATIC_BROKER BOOL true
             ;;
-        --enable-zeek-client)
-            append_cache_entry INSTALL_ZEEK_CLIENT BOOL true
-            ;;
         --disable-archiver)
             append_cache_entry INSTALL_ZEEK_ARCHIVER BOOL false
             ;;
@@ -320,6 +318,9 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-spicy)
             append_cache_entry DISABLE_SPICY BOOL true
+            ;;
+        --disable-zeek-client)
+            append_cache_entry INSTALL_ZEEK_CLIENT BOOL false
             ;;
         --disable-zeekctl)
             append_cache_entry INSTALL_ZEEKCTL BOOL false

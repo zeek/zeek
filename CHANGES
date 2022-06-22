@@ -1,3 +1,7 @@
+5.1.0-dev.75 | 2022-06-22 12:06:00 -0700
+
+  * Provide zeek-client by default (Christian Kreibich, Corelight)
+
 5.1.0-dev.73 | 2022-06-22 09:40:05 -0700
 
   * GH-1991: Add option to limit the number of tunnel_changed events (Tim Wojtulewicz, Corelight)

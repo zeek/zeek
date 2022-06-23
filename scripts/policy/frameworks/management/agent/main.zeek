@@ -27,6 +27,8 @@ export {
 		node: string &default="";
 		## The result of a status request.
 		status: Supervisor::Status &optional;
+		## The result of a restart request.
+		restart_result: bool &optional;
 	};
 
 	## Request state for deploy requests.
@@ -44,6 +46,13 @@ export {
 		action: vector of string;
 
 		## Request state for every node managed by this agent.
+		requests: set[string] &default=set();
+	};
+
+	## Request state for restart requests, tracking eceived responses.
+	type RestartState: record {
+		## Request state for every node the agent asks the Supervisor
+		## to restart.
 		requests: set[string] &default=set();
 	};
 
@@ -67,6 +76,7 @@ redef record Management::Request::Request += {
 	supervisor_state_agent: SupervisorState &optional;
 	deploy_state_agent: DeployState &optional;
 	node_dispatch_state_agent: NodeDispatchState &optional;
+	restart_state_agent: RestartState &optional;
 };
 
 # Tag our logs correctly
@@ -86,6 +96,22 @@ global agent_topic: function(): string;
 # Returns the effective supervisor's address and port, to peer with
 global supervisor_network_info: function(): Broker::NetworkInfo;
 
+# Wrapper for sending a SupervisorControl::status_request to the Supervisor.
+# Establishes a request object for the transaction, and returns it.
+global supervisor_status: function(node: string): Management::Request::Request;
+
+# Wrapper for sending a SupervisorControl::create_request to the Supervisor.
+# Establishes a request object for the transaction, and returns it.
+global supervisor_create: function(nc: Supervisor::NodeConfig): Management::Request::Request;
+
+# Wrapper for sending a SupervisorControl::destroy_request to the Supervisor.
+# Establishes a request object for the transaction, and returns it.
+global supervisor_destroy: function(node: string): Management::Request::Request;
+
+# Wrapper for sending a SupervisorControl::restart_request to the Supervisor.
+# Establishes a request object for the transaction, and returns it.
+global supervisor_restart: function(node: string): Management::Request::Request;
+
 # Finalizes a deploy_request transaction: cleans up remaining state
 # and sends response event.
 global send_deploy_response: function(req: Management::Request::Request);
@@ -93,6 +119,10 @@ global send_deploy_response: function(req: Management::Request::Request);
 # Callback completing a deploy_request after the Supervisor has delivered
 # a status response.
 global deploy_request_finish: function(req: Management::Request::Request);
+
+# Callback completing a restart_request after the Supervisor has delivered
+# a restart response.
+global restart_request_finish: function(req: Management::Request::Request);
 
 # Callback completing a get_nodes_request after the Supervisor has delivered
 # a status response.
@@ -231,12 +261,29 @@ event Management::Supervisor::API::notify_node_exit(node: string, outputs: Manag
 		g_outputs[node] = outputs;
 	}
 
+event SupervisorControl::status_response(reqid: string, result: Supervisor::Status)
+	{
+	Management::Log::info(fmt("rx SupervisorControl::status_response %s", reqid));
+
+	local req = Management::Request::lookup(reqid);
+	if ( Management::Request::is_null(req) )
+		return;
+	if ( ! req?$supervisor_state_agent )
+		return;
+
+	req$supervisor_state_agent$status = result;
+
+	Management::Request::finish(reqid);
+	}
+
 event SupervisorControl::create_response(reqid: string, result: string)
 	{
 	Management::Log::info(fmt("rx SupervisorControl::create_response %s %s", reqid, result));
 
 	local req = Management::Request::lookup(reqid);
 	if ( Management::Request::is_null(req) )
+		return;
+	if ( ! req?$supervisor_state_agent )
 		return;
 
 	local name = req$supervisor_state_agent$node;
@@ -260,6 +307,8 @@ event SupervisorControl::destroy_response(reqid: string, result: bool)
 	local req = Management::Request::lookup(reqid);
 	if ( Management::Request::is_null(req) )
 		return;
+	if ( ! req?$supervisor_state_agent )
+		return;
 
 	local name = req$supervisor_state_agent$node;
 
@@ -275,7 +324,44 @@ event SupervisorControl::destroy_response(reqid: string, result: bool)
 	Management::Request::finish(reqid);
 	}
 
-function supervisor_create(nc: Supervisor::NodeConfig)
+event SupervisorControl::restart_response(reqid: string, result: bool)
+	{
+	Management::Log::info(fmt("rx SupervisorControl::restart_response %s %s", reqid, result));
+
+	local req = Management::Request::lookup(reqid);
+	if ( Management::Request::is_null(req) )
+		return;
+	if ( ! req?$supervisor_state_agent )
+		return;
+
+	local name = req$supervisor_state_agent$node;
+	req$supervisor_state_agent$restart_result = result;
+
+	if ( ! result )
+		{
+		local msg = fmt("failed to restart node %s", name);
+		Management::Log::error(msg);
+		Broker::publish(agent_topic(),
+		    Management::Agent::API::notify_error,
+		    Management::Agent::get_name(), msg, name);
+		}
+
+	Management::Request::finish(reqid);
+	}
+
+function supervisor_status(node: string): Management::Request::Request
+	{
+	local req = Management::Request::create();
+	req$supervisor_state_agent = SupervisorState($node = node);
+
+	Management::Log::info(fmt("tx SupervisorControl::status_request %s %s", req$id, node));
+	Broker::publish(SupervisorControl::topic_prefix,
+	    SupervisorControl::status_request, req$id, node);
+
+	return req;
+	}
+
+function supervisor_create(nc: Supervisor::NodeConfig): Management::Request::Request
 	{
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = nc$name);
@@ -283,9 +369,11 @@ function supervisor_create(nc: Supervisor::NodeConfig)
 	Management::Log::info(fmt("tx SupervisorControl::create_request %s %s", req$id, nc$name));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::create_request, req$id, nc);
+
+	return req;
 	}
 
-function supervisor_destroy(node: string)
+function supervisor_destroy(node: string): Management::Request::Request
 	{
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = node);
@@ -293,6 +381,20 @@ function supervisor_destroy(node: string)
 	Management::Log::info(fmt("tx SupervisorControl::destroy_request %s %s", req$id, node));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::destroy_request, req$id, node);
+
+	return req;
+	}
+
+function supervisor_restart(node: string): Management::Request::Request
+	{
+	local req = Management::Request::create();
+	req$supervisor_state_agent = SupervisorState($node = node);
+
+	Management::Log::info(fmt("tx SupervisorControl::restart_request %s %s", req$id, node));
+	Broker::publish(SupervisorControl::topic_prefix,
+	    SupervisorControl::restart_request, req$id, node);
+
+	return req;
 	}
 
 event Management::Agent::API::deploy_request(reqid: string, config: Management::Configuration, force: bool)
@@ -332,14 +434,9 @@ event Management::Agent::API::deploy_request(reqid: string, config: Management::
 	for ( inst in config$instances )
 		g_instances[inst$name] = inst;
 
-	local areq = Management::Request::create();
-	areq$parent_id = req$id;
-	areq$finish = deploy_request_finish;
-	areq$supervisor_state_agent = SupervisorState();
-
-	Management::Log::info(fmt("tx SupervisorControl::status_request %s, all nodes", areq$id));
-	Broker::publish(SupervisorControl::topic_prefix,
-	    SupervisorControl::status_request, areq$id, "");
+	local sreq = supervisor_status("");
+	sreq$parent_id = reqid;
+	sreq$finish = deploy_request_finish;
 	}
 
 function deploy_request_finish(areq: Management::Request::Request)
@@ -475,34 +572,15 @@ function deploy_request_finish(areq: Management::Request::Request)
 	# the deploy_response event back to the controller.
 	}
 
-event SupervisorControl::status_response(reqid: string, result: Supervisor::Status)
-	{
-	Management::Log::info(fmt("rx SupervisorControl::status_response %s", reqid));
-	local req = Management::Request::lookup(reqid);
-
-	if ( Management::Request::is_null(req) )
-		return;
-	if ( ! req?$supervisor_state_agent )
-		return;
-
-	req$supervisor_state_agent$status = result;
-	Management::Request::finish(reqid);
-	}
-
 event Management::Agent::API::get_nodes_request(reqid: string)
 	{
 	Management::Log::info(fmt("rx Management::Agent::API::get_nodes_request %s", reqid));
 
 	local req = Management::Request::create(reqid);
 
-	local areq = Management::Request::create();
-	areq$parent_id = req$id;
-	areq$finish = get_nodes_request_finish;
-	areq$supervisor_state_agent = SupervisorState();
-
-	Broker::publish(SupervisorControl::topic_prefix,
-	    SupervisorControl::status_request, areq$id, "");
-	Management::Log::info(fmt("issued supervisor status, %s", areq$id));
+	local sreq = supervisor_status("");
+	sreq$parent_id = reqid;
+	sreq$finish = get_nodes_request_finish;
 	}
 
 function get_nodes_request_finish(areq: Management::Request::Request)
@@ -794,6 +872,124 @@ event Management::Agent::API::agent_standby_request(reqid: string)
 	    Management::Agent::API::agent_standby_response, reqid, res);
 	}
 
+function restart_request_finish(sreq: Management::Request::Request)
+	{
+	# This is the finish callback we set on requests to the Supervisor to
+	# restart a node. We look up the parent request (the one sent to us by
+	# the controller), mark the node in question as done, and respond to the
+	# controller if we've handled all required nodes.
+
+	local req = Management::Request::lookup(sreq$parent_id);
+	if ( Management::Request::is_null(req) )
+		return;
+
+	local node = sreq$supervisor_state_agent$node;
+
+	local res = Management::Result(
+	    $reqid = req$id,
+	    $instance = Management::Agent::get_name(),
+	    $node = node);
+
+	if ( ! sreq$supervisor_state_agent$restart_result )
+		{
+		res$success = F;
+		res$error = fmt("could not restart node %s", node);
+		}
+
+	req$results += res;
+
+	if ( node in req$restart_state_agent$requests )
+		{
+		delete req$restart_state_agent$requests[node];
+		if ( |req$restart_state_agent$requests| > 0 )
+			return;
+		}
+
+	Management::Log::info(fmt(
+	    "tx Management::Agent::API::restart_response %s",
+	    Management::Request::to_string(req)));
+	Broker::publish(agent_topic(),
+	    Management::Agent::API::restart_response,
+	    req$id, req$results);
+	Management::Request::finish(req$id);
+	}
+
+event Management::Agent::API::restart_request(reqid: string,  nodes: set[string])
+	{
+	# This is very similar to node_dispatch_request, because it too works
+	# with a list of nodes that needs to be dispatched to agents.
+
+	Management::Log::info(fmt("rx Management::Agent::API::restart_request %s %s",
+	    reqid, Management::Util::set_to_vector(nodes)));
+
+	local node: string;
+	local cluster_nodes: set[string];
+	local nodes_final: set[string];
+
+	for ( node in g_nodes )
+		add cluster_nodes[node];
+
+	# If this request includes cluster nodes to query, check if this agent
+	# manages any of those nodes. If it doesn't, respond with an empty
+	# results vector immediately. Note that any globally unknown nodes
+	# that the client might have requested already got filtered by the
+	# controller, so we don't need to worry about them here.
+
+	if ( |nodes| > 0 )
+		{
+		nodes_final = nodes & cluster_nodes;
+
+		if ( |nodes_final| == 0 )
+			{
+			Management::Log::info(fmt(
+			    "tx Management::Agent::API::restart_response %s, no node overlap",
+			    reqid));
+			Broker::publish(agent_topic(),
+			    Management::Agent::API::restart_response, reqid, vector());
+			return;
+			}
+		}
+	else if ( |g_nodes| == 0 )
+		{
+		# Special case: the client did not request specific nodes.  If
+		# we aren't running any nodes, respond right away, since there's
+		# nothing to restart.
+		Management::Log::info(fmt(
+		    "tx Management::Agent::API::restart_response %s, no nodes registered",
+		    reqid));
+		Broker::publish(agent_topic(),
+		    Management::Agent::API::restart_response, reqid, vector());
+		return;
+		}
+	else
+		{
+		# We restart all nodes.
+		nodes_final = cluster_nodes;
+		}
+
+	local res: Management::Result;
+	local req = Management::Request::create(reqid);
+
+	req$restart_state_agent = RestartState();
+
+	# Build up state for tracking responses.
+	for ( node in nodes_final )
+		add req$restart_state_agent$requests[node];
+
+	# Ask the Supervisor to restart nodes. We need to enumerate the nodes
+	# because restarting all (via "") would hit the agent (and the
+	# controller, if co-located).
+	for ( node in nodes_final )
+		{
+		local sreq = supervisor_restart(node);
+		sreq$parent_id = reqid;
+		sreq$finish = restart_request_finish;
+
+		if ( node in g_nodes )
+			g_nodes[node]$state = Management::PENDING;
+		}
+	}
+
 event Management::Node::API::notify_node_hello(node: string)
 	{
 	Management::Log::info(fmt("rx Management::Node::API::notify_node_hello %s", node));
@@ -821,16 +1017,28 @@ event Management::Node::API::notify_node_hello(node: string)
 
 event Management::Request::request_expired(req: Management::Request::Request)
 	{
+	Management::Log::info(fmt("request %s timed out", req$id));
+
 	local res = Management::Result($reqid=req$id,
 	    $instance = Management::Agent::get_name(),
 	    $success = F,
 	    $error = "request timed out");
+
+	req$results += res;
 
 	if ( req?$deploy_state_agent )
 		{
 		send_deploy_response(req);
 		# This timeout means we no longer have a pending request.
 		g_config_reqid_pending = "";
+		}
+
+	if ( req?$restart_state_agent )
+		{
+		Management::Log::info(fmt("tx Management::Agent::API::restart_response %s",
+		    Management::Request::to_string(req)));
+		Broker::publish(agent_topic(),
+		    Management::Agent::API::restart_response, req$id, req$results);
 		}
 	}
 

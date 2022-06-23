@@ -146,6 +146,35 @@ export {
 	    result: Management::Result);
 
 
+	## The controller sends this event to ask the agent to restart currently
+	## running Zeek cluster nodes. For nodes currently running, the agent
+	## places these nodes into PENDING state and sends restart events to the
+	## Supervisor, rendering its responses into a list of
+	## :zeek:see:`Management::Result` records summarizing each node restart.
+	## When restarted nodes check in with the agent, they switch back to
+	## RUNNING state. The agent ignores nodes not currently running.
+	##
+	## reqid: a request identifier string, echoed in the response event.
+	##
+	## nodes: a set of cluster node names (e.g. "worker-01") to restart. An
+	##    empty set, supplied by default, means restart of all of the
+	##    agent's current cluster nodes.
+	##
+	global restart_request: event(reqid: string, nodes: set[string] &default=set());
+
+	## Response to a :zeek:see:`Management::Agent::API::restart_request`
+	## event. The agent sends this back to the controller when the
+	## Supervisor has restarted all nodes affected, or a timoeut occurs.
+	##
+	## reqid: the request identifier used in the request event.
+	##
+	## results: a :zeek:type:`vector` of :zeek:see:`Management::Result`, one
+	##     for each Supervisor transaction. Each such result identifies both
+	##     the instance and node.
+	##
+	global restart_response: event(reqid: string, results: Management::ResultVec);
+
+
 	# Notification events, agent -> controller
 
 	## The agent sends this event upon peering as a "check-in", informing

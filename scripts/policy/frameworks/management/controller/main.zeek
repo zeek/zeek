@@ -70,6 +70,14 @@ export {
 		requests: set[string] &default=set();
 	};
 
+	## Request state specific to
+	## :zeek:see:`Management::Controller::API::restart_request` and
+	## :zeek:see:`Management::Controller::API::restart_response`.
+	type RestartState: record {
+		## Request state for every controller/agent transaction.
+		requests: set[string] &default=set();
+	};
+
 	## Dummy state for internal state-keeping test cases.
 	type TestState: record { };
 }
@@ -78,6 +86,7 @@ redef record Management::Request::Request += {
 	deploy_state: DeployState &optional;
 	get_nodes_state: GetNodesState &optional;
 	node_dispatch_state: NodeDispatchState &optional;
+	restart_state: RestartState &optional;
 	test_state: TestState &optional;
 };
 
@@ -1238,6 +1247,141 @@ event Management::Controller::API::get_id_value_request(reqid: string, id: strin
 		}
 	}
 
+event Management::Agent::API::restart_response(reqid: string, results: Management::ResultVec)
+	{
+	Management::Log::info(fmt("rx Management::Agent::API::restart_response %s", reqid));
+
+	# Retrieve state for the request we just got a response to
+	local areq = Management::Request::lookup(reqid);
+	if ( Management::Request::is_null(areq) )
+		return;
+
+	# Release the request, since this agent is now done.
+	Management::Request::finish(areq$id);
+
+	# Find the original request from the client
+	local req = Management::Request::lookup(areq$parent_id);
+	if ( Management::Request::is_null(req) )
+		return;
+
+	# Add this agent's results to the overall response
+	for ( i in results )
+		req$results += results[i];
+
+	# Mark this request as done:
+	if ( areq$id in req$restart_state$requests )
+		delete req$restart_state$requests[areq$id];
+
+	# If we still have pending queries out to the agents, do nothing: we'll
+	# handle this soon, or our request will time out and we respond with
+	# error.
+	if ( |req$restart_state$requests| > 0 )
+		return;
+
+	Management::Log::info(fmt(
+	    "tx Management::Controller::API::restart_response %s",
+	    Management::Request::to_string(req)));
+	Broker::publish(Management::Controller::topic,
+	    Management::Controller::API::restart_response,
+	    req$id, req$results);
+	Management::Request::finish(req$id);
+	}
+
+event Management::Controller::API::restart_request(reqid: string, nodes: set[string])
+	{
+	# This works almost exactly like get_id_value_request, because it too
+	# works with a list of nodes that needs to be dispatched to agents.
+
+	local send_error_response = function(req: Management::Request::Request, error: string)
+		{
+		local res = Management::Result($reqid=req$id, $success=F, $error=error);
+		req$results += res;
+
+		Management::Log::info(fmt("tx Management::Controller::API::restart_response %s",
+		    Management::Request::to_string(req)));
+		Broker::publish(Management::Controller::topic,
+		    Management::Controller::API::restart_response, req$id, req$results);
+		};
+
+	Management::Log::info(fmt("rx Management::Controller::API::restart_request %s %s",
+	    reqid, Management::Util::set_to_vector(nodes)));
+
+	local res: Management::Result;
+	local req = Management::Request::create(reqid);
+	req$restart_state = RestartState();
+
+	# Special cases: if we have no instances or no deployment, respond right away.
+	if ( |g_instances_known| == 0 )
+		{
+		send_error_response(req, "no instances connected");
+		Management::Request::finish(reqid);
+		return;
+		}
+
+	if ( DEPLOYED !in g_configs )
+		{
+		send_error_response(req, "no active cluster deployment");
+		Management::Request::finish(reqid);
+		return;
+		}
+
+	local nodes_final: set[string];
+	local node: string;
+
+	# Input sanitization: check for any requested nodes that aren't part of
+	# the deployed configuration. We send back error results for those and
+	# don't propagate them to the agents.
+	if ( |nodes| > 0 )
+		{
+		# Requested nodes that are in the deployed configuration:
+		nodes_final = config_filter_nodes_by_name(g_configs[DEPLOYED], nodes);
+		# Requested nodes that are not in current configuration:
+		local nodes_invalid = nodes - nodes_final;
+
+		# Assemble error results for all invalid nodes
+		for ( node in nodes_invalid )
+			{
+			res = Management::Result($reqid=reqid, $node=node);
+			res$success = F;
+			res$error = "unknown cluster node";
+			req$results += res;
+			}
+
+		# If only invalid nodes got requested, we're now done.
+		if ( |nodes_final| == 0 )
+			{
+			Management::Log::info(fmt(
+			    "tx Management::Controller::API::restart_response %s",
+			    Management::Request::to_string(req)));
+			Broker::publish(Management::Controller::topic,
+			    Management::Controller::API::restart_response,
+			    req$id, req$results);
+			Management::Request::finish(req$id);
+			return;
+			}
+		}
+
+	for ( name in g_instances )
+		{
+		if ( name !in g_instances_ready )
+			next;
+
+		local agent_topic = Management::Agent::topic_prefix + "/" + name;
+		local areq = Management::Request::create();
+
+		areq$parent_id = req$id;
+		add req$restart_state$requests[areq$id];
+
+		Management::Log::info(fmt(
+		    "tx Management::Agent::API::restart_request %s to %s",
+		    areq$id, name));
+
+		Broker::publish(agent_topic,
+		    Management::Agent::API::restart_request,
+		    areq$id, nodes);
+		}
+	}
+
 event Management::Request::request_expired(req: Management::Request::Request)
 	{
 	# Various handlers for timed-out request state. We use the state members
@@ -1294,6 +1438,17 @@ event Management::Request::request_expired(req: Management::Request::Request)
 				    req$node_dispatch_state$action[0]));
 				break;
 			}
+		}
+
+	if ( req?$restart_state )
+		{
+		req$results += res;
+
+		Management::Log::info(fmt("tx Management::Controller::API::restart_response %s",
+		    Management::Request::to_string(req)));
+		Broker::publish(Management::Controller::topic,
+		    Management::Controller::API::restart_response,
+		    req$id, req$results);
 		}
 
 	if ( req?$test_state )

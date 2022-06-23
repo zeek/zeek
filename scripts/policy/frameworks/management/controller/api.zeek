@@ -20,13 +20,14 @@ export {
 	##
 	global get_instances_request: event(reqid: string);
 
-	## Response to a get_instances_request event. The controller sends
-	## this back to the client.
+	## Response to a
+	## :zeek:see:`Management::Controller::API::get_instances_request`
+	## event. The controller sends this back to the client.
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: the result record. Its data member is a
-	##     :zeek:see:`Management::Instance` record.
+	## result: a :zeek:see:`Management::Result`. Its data member is a vector
+	##     of :zeek:see:`Management::Instance` records.
 	##
 	global get_instances_response: event(reqid: string,
 	    result: Management::Result);
@@ -47,8 +48,10 @@ export {
 	global stage_configuration_request: event(reqid: string,
 	    config: Management::Configuration);
 
-	## Response to a stage_configuration_request event. The controller sends
-	## this back to the client, conveying validation results.
+	## Response to a
+	## :zeek:see:`Management::Controller::API::stage_configuration_request`
+	## event. The controller sends this back to the client, conveying
+	## validation results.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -71,8 +74,10 @@ export {
 	##
 	global get_configuration_request: event(reqid: string, deployed: bool);
 
-	## Response to a get_configuration_request event. The controller sends
-	## this back to the client.
+	## Response to a
+	## :zeek:see:`Management::Controller::API::get_configuration_request`
+	## event. The controller sends this back to the client, with the
+	## requested configuration.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -100,8 +105,9 @@ export {
 	##
 	global deploy_request: event(reqid: string);
 
-	## Response to a deploy_request event. The controller sends this
-	## back to the client.
+	## Response to a :zeek:see:`Management::Controller::API::deploy_request`
+	## event. The controller sends this back to the client, conveying the
+	## outcome of the deployment.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -123,8 +129,12 @@ export {
 	##
 	global get_nodes_request: event(reqid: string);
 
-	## Response to a get_nodes_request event. The controller sends this
-	## back to the client.
+	## Response to a
+	## :zeek:see:`Management::Controller::API::get_nodes_request` event. The
+	## controller sends this back to the client, with a description of the
+	## nodes currently managed by the Supervisors on all connected
+	## instances. This includes agents and possibly the controller, if it
+	## runs jointly with an agent.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -156,8 +166,10 @@ export {
 	global get_id_value_request: event(reqid: string, id: string,
 	    nodes: set[string] &default=set());
 
-	## Response to a get_id_value_request event. The controller sends this
-	## back to the client.
+	## Response to a
+	## :zeek:see:`Management::Controller::API::get_id_value_request`
+	## event. The controller sends this back to the client, with a JSON
+	## representation of the requested global ID on all relevant instances.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -216,8 +228,10 @@ export {
 	##
 	global test_timeout_request: event(reqid: string, with_state: bool);
 
-	## Response to a test_timeout_request event. The controller sends this
-	## back to the client if the original request had the with_state flag.
+	## Response to a
+	## :zeek:see:`Management::Controller::API::test_timeout_request`
+	## event. The controller sends this back to the client if the original
+	## request had the with_state flag.
 	##
 	## reqid: the request identifier used in the request event.
 	##

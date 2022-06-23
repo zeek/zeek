@@ -33,8 +33,8 @@ export {
 	global deploy_request: event(reqid: string,
 	    config: Management::Configuration, force: bool &default=F);
 
-	## Response to a deploy_request event. The agent sends
-	## this back to the controller.
+	## Response to a :zeek:see:`Management::Agent::API::deploy_request`
+	## event. The agent sends this back to the controller.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -56,8 +56,8 @@ export {
 	##
 	global get_nodes_request: event(reqid: string);
 
-	## Response to a get_nodes_request event. The agent sends this back to the
-	## controller.
+	## Response to a :zeek:see:`Management::Agent::API::get_nodes_request`
+	## event. The agent sends this back to the controller.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -89,9 +89,10 @@ export {
 	global node_dispatch_request: event(reqid: string, action: vector of string,
 	    nodes: set[string] &default=set());
 
-	## Response to a node_dispatch_request event. Each agent sends this back
-	## to the controller to report the dispatch outcomes on all nodes managed
-	## by that agent.
+	## Response to a
+	## :zeek:see:`Management::Agent::API::node_dispatch_request` event. Each
+	## agent sends this back to the controller to report the dispatch
+	## outcomes on all nodes managed by that agent.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -105,15 +106,18 @@ export {
 
 
 	## The controller sends this event to confirm to the agent that it is
-	## part of the current cluster topology. The agent acknowledges with the
-	## corresponding response event.
+	## part of the current cluster topology. The agent acknowledges with a
+	## :zeek:see:`Management::Agent::API::agent_welcome_response` event,
+	## upon which the controller may proceed with a cluster deployment to
+	## this agent.
 	##
 	## reqid: a request identifier string, echoed in the response event.
 	##
 	global agent_welcome_request: event(reqid: string);
 
-	## Response to an agent_welcome_request event. The agent sends this
-	## back to the controller.
+	## Response to a
+	## :zeek:see:`Management::Agent::API::agent_welcome_request` event. The
+	## agent sends this back to the controller.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -135,8 +139,9 @@ export {
 	##
 	global agent_standby_request: event(reqid: string);
 
-	## Response to an agent_standby_request event. The agent sends this
-	## back to the controller.
+	## Response to a
+	## :zeek:see:`Management::Agent::API::agent_standby_request` event. The
+	## agent sends this back to the controller.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -196,7 +201,7 @@ export {
 	    connecting: bool, api_version: count);
 
 
-	# The following are not yet implemented.
+	# The following are not yet meaningfully implemented.
 
 	# Report node state changes.
 	global notify_change: event(instance: string,

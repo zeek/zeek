@@ -15,29 +15,32 @@ export {
 
 	# Agent API events
 
-	## The controller sends this event to convey a new cluster configuration
-	## to the agent. Once processed, the agent responds with the response
-	## event.
+	## The controller sends this event to deploy a cluster configuration to
+	## this instance. Once processed, the agent responds with a
+	## :zeek:see:`Management::Agent::API::deploy_response` event.  event.
 	##
 	## reqid: a request identifier string, echoed in the response event.
 	##
-	## config: a :zeek:see:`Management::Configuration` record
-	##     describing the cluster topology. Note that this contains the full
-	##     topology, not just the part pertaining to this agent. That's because
-	##     the cluster framework requires full cluster visibility to establish
-	##     the needed peerings.
+	## config: a :zeek:see:`Management::Configuration` record describing the
+	##     cluster topology. This contains the full topology, not just the
+	##     part pertaining to this instance: the cluster framework requires
+	##     full cluster visibility to establish needed peerings.
 	##
-	global set_configuration_request: event(reqid: string,
-	    config: Management::Configuration);
+	## force: whether to re-deploy (i.e., restart its Zeek cluster nodes)
+	##     when the agent already runs this configuration. This relies on
+	##     the config ID to determine config equality.
+	##
+	global deploy_request: event(reqid: string,
+	    config: Management::Configuration, force: bool &default=F);
 
-	## Response to a set_configuration_request event. The agent sends
+	## Response to a deploy_request event. The agent sends
 	## this back to the controller.
 	##
 	## reqid: the request identifier used in the request event.
 	##
 	## result: the result record.
 	##
-	global set_configuration_response: event(reqid: string,
+	global deploy_response: event(reqid: string,
 	    result: Management::ResultVec);
 
 

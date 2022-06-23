@@ -1,3 +1,28 @@
+5.1.0-dev.98 | 2022-06-22 22:39:32 -0700
+
+  * Management framework: separate config staging and deployment (Christian Kreibich, Corelight)
+
+    - bump external cluster testsuite
+    - bump zeek-client
+    - rename set_configuration events to stage_configuration
+    - trigger deployment upon when instances are ready
+    - more resilient node shutdown upon deployment
+    - re-trigger deployment upon controller launch
+    - move most deployment handling to internal function
+    - distinguish internally and externally requested deployments
+    - track instances by their Broker IDs
+    - tweak Supervisor event logging
+    - make helper function a local
+    - rename "log_level" to "level"
+    - add "finish" callback to requests
+    - add a helper for rendering result vectors to a string
+    - agents now skip re-deployment of current config
+    - suppress notify_agent_hello upon Supervisor peering
+    - introduce state machine for configs and persist them
+    - introduce deployment API in controller
+    - rename agent "set_configuration" to "deploy"
+    - consistency fixes to the Result record
+
 5.1.0-dev.75 | 2022-06-22 12:06:00 -0700
 
   * Provide zeek-client by default (Christian Kreibich, Corelight)

@@ -38,7 +38,7 @@ export {
 
 	## The log level in use for this node. This is the minimum
 	## log level required to produce output.
-	global log_level = INFO &redef;
+	global level = INFO &redef;
 
 	## A debug-level log message writer.
 	##
@@ -84,7 +84,7 @@ global r2s: table[Management::Role] of string = {
 
 function debug(message: string)
 	{
-	if ( enum_to_int(log_level) > enum_to_int(DEBUG) )
+	if ( enum_to_int(level) > enum_to_int(DEBUG) )
 		return;
 
 	local node = Supervisor::node();
@@ -94,7 +94,7 @@ function debug(message: string)
 
 function info(message: string)
 	{
-	if ( enum_to_int(log_level) > enum_to_int(INFO) )
+	if ( enum_to_int(level) > enum_to_int(INFO) )
 		return;
 
 	local node = Supervisor::node();
@@ -104,7 +104,7 @@ function info(message: string)
 
 function warning(message: string)
 	{
-	if ( enum_to_int(log_level) > enum_to_int(WARNING) )
+	if ( enum_to_int(level) > enum_to_int(WARNING) )
 		return;
 
 	local node = Supervisor::node();
@@ -114,7 +114,7 @@ function warning(message: string)
 
 function error(message: string)
 	{
-	if ( enum_to_int(log_level) > enum_to_int(ERROR) )
+	if ( enum_to_int(level) > enum_to_int(ERROR) )
 		return;
 
 	local node = Supervisor::node();

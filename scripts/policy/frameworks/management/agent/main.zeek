@@ -23,11 +23,14 @@ module Management::Agent::Runtime;
 export {
 	## Request state specific to the agent's Supervisor interactions.
 	type SupervisorState: record {
-		node: string; ##< Name of the node the Supervisor is acting on.
+		## Name of the node the Supervisor is acting on, if applicable.
+		node: string &default="";
+		## The result of a status request.
+		status: Supervisor::Status &optional;
 	};
 
-	## Request state for set_configuration requests.
-	type SetConfigurationState: record {
+	## Request state for deploy requests.
+	type DeployState: record {
 		## Zeek cluster nodes the provided configuration requested
 		## and which have not yet checked in with the agent.
 		nodes_pending: set[string];
@@ -62,7 +65,7 @@ export {
 # members with _agent to disambiguate.
 redef record Management::Request::Request += {
 	supervisor_state_agent: SupervisorState &optional;
-	set_configuration_state_agent: SetConfigurationState &optional;
+	deploy_state_agent: DeployState &optional;
 	node_dispatch_state_agent: NodeDispatchState &optional;
 };
 
@@ -80,11 +83,22 @@ redef Management::Request::timeout_interval = 5 sec;
 # Returns the effective agent topic for this agent.
 global agent_topic: function(): string;
 
-# Finalizes a set_configuration_request transaction: cleans up remaining state
-# and sends response event.
-global send_set_configuration_response: function(req: Management::Request::Request);
+# Returns the effective supervisor's address and port, to peer with
+global supervisor_network_info: function(): Broker::NetworkInfo;
 
-# The global configuration as passed to us by the controller
+# Finalizes a deploy_request transaction: cleans up remaining state
+# and sends response event.
+global send_deploy_response: function(req: Management::Request::Request);
+
+# Callback completing a deploy_request after the Supervisor has delivered
+# a status response.
+global deploy_request_finish: function(req: Management::Request::Request);
+
+# Callback completing a get_nodes_request after the Supervisor has delivered
+# a status response.
+global get_nodes_request_finish: function(req: Management::Request::Request);
+
+# The global configuration, as deployed by the controller.
 global g_config: Management::Configuration;
 
 # A map to make other instance info accessible
@@ -93,10 +107,9 @@ global g_instances: table[string] of Management::Instance;
 # A map for the nodes we run on this instance, via this agent.
 global g_nodes: table[string] of Management::Node;
 
-# The request ID of the most recent configuration update from the controller.
-# We track it here until the nodes_pending set in the corresponding request's
-# SetConfigurationState is cleared out, or the corresponding request state hits
-# a timeout.
+# The request ID of the most recent config deployment from the controller.  We
+# track it until the nodes_pending set in the corresponding request's
+# DeployState is cleared out, or the corresponding request state hits a timeout.
 global g_config_reqid_pending: string = "";
 
 # The complete node map employed by the supervisor to describe the cluster
@@ -115,7 +128,20 @@ function agent_topic(): string
 	return Management::Agent::topic_prefix + "/" + epi$id;
 	}
 
-function send_set_configuration_response(req: Management::Request::Request)
+function supervisor_network_info(): Broker::NetworkInfo
+	{
+	# The Supervisor's address defaults to Broker's default, which
+	# relies on ZEEK_DEFAULT_LISTEN_ADDR and so might just be "". Broker
+	# internally falls back to listening on any; we pick 127.0.0.1.
+	local address = Broker::default_listen_address;
+
+	if ( address == "" )
+		address = "127.0.0.1";
+
+	return Broker::NetworkInfo($address=address, $bound_port=Broker::default_port);
+	}
+
+function send_deploy_response(req: Management::Request::Request)
 	{
 	local node: string;
 	local res: Management::Result;
@@ -128,7 +154,7 @@ function send_set_configuration_response(req: Management::Request::Request)
 		    $instance = Management::Agent::get_name(),
 		    $node = node);
 
-		if ( node in req$set_configuration_state_agent$nodes_pending )
+		if ( node in req$deploy_state_agent$nodes_pending )
 			{
 			# This node failed.
 			res$success = F;
@@ -142,10 +168,10 @@ function send_set_configuration_response(req: Management::Request::Request)
 		req$results[|req$results|] = res;
 		}
 
-	Management::Log::info(fmt("tx Management::Agent::API::set_configuration_response %s",
+	Management::Log::info(fmt("tx Management::Agent::API::deploy_response %s",
 	    Management::result_to_string(res)));
 	Broker::publish(agent_topic(),
-	    Management::Agent::API::set_configuration_response, req$id, req$results);
+	    Management::Agent::API::deploy_response, req$id, req$results);
 
 	Management::Request::finish(req$id);
 
@@ -207,6 +233,8 @@ event Management::Supervisor::API::notify_node_exit(node: string, outputs: Manag
 
 event SupervisorControl::create_response(reqid: string, result: string)
 	{
+	Management::Log::info(fmt("rx SupervisorControl::create_response %s %s", reqid, result));
+
 	local req = Management::Request::lookup(reqid);
 	if ( Management::Request::is_null(req) )
 		return;
@@ -227,6 +255,8 @@ event SupervisorControl::create_response(reqid: string, result: string)
 
 event SupervisorControl::destroy_response(reqid: string, result: bool)
 	{
+	Management::Log::info(fmt("rx SupervisorControl::destroy_response %s %s", reqid, result));
+
 	local req = Management::Request::lookup(reqid);
 	if ( Management::Request::is_null(req) )
 		return;
@@ -249,28 +279,48 @@ function supervisor_create(nc: Supervisor::NodeConfig)
 	{
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = nc$name);
+
+	Management::Log::info(fmt("tx SupervisorControl::create_request %s %s", req$id, nc$name));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::create_request, req$id, nc);
-	Management::Log::info(fmt("issued supervisor create for %s, %s", nc$name, req$id));
 	}
 
 function supervisor_destroy(node: string)
 	{
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = node);
+
+	Management::Log::info(fmt("tx SupervisorControl::destroy_request %s %s", req$id, node));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::destroy_request, req$id, node);
-	Management::Log::info(fmt("issued supervisor destroy for %s, %s", node, req$id));
 	}
 
-event Management::Agent::API::set_configuration_request(reqid: string, config: Management::Configuration)
+event Management::Agent::API::deploy_request(reqid: string, config: Management::Configuration, force: bool)
 	{
-	Management::Log::info(fmt("rx Management::Agent::API::set_configuration_request %s", reqid));
+	Management::Log::info(fmt("rx Management::Agent::API::deploy_request %s %s", reqid, config$id));
 
 	local nodename: string;
 	local node: Management::Node;
 	local nc: Supervisor::NodeConfig;
-	local msg: string;
+	local res: Management::Result;
+
+	# Special case: we're already running this configuration.
+	if ( g_config$id == config$id && ! force )
+		{
+		res = Management::Result(
+		    $reqid = reqid,
+		    $instance = Management::Agent::get_name());
+
+		Management::Log::info(fmt("already running config %s", config$id));
+		Management::Log::info(fmt("tx Management::Agent::API::deploy_response %s",
+		    Management::result_to_string(res)));
+		Broker::publish(agent_topic(),
+		    Management::Agent::API::deploy_response, reqid, vector(res));
+		return;
+		}
+
+	local req = Management::Request::create(reqid);
+	req$deploy_state_agent = DeployState();
 
 	# Adopt the global configuration provided. The act of trying to launch
 	# the requested nodes perturbs any existing ones one way or another, so
@@ -282,43 +332,65 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 	for ( inst in config$instances )
 		g_instances[inst$name] = inst;
 
-	# Terminate existing nodes
-	for ( nodename in g_nodes )
-		supervisor_destroy(nodename);
+	local areq = Management::Request::create();
+	areq$parent_id = req$id;
+	areq$finish = deploy_request_finish;
+	areq$supervisor_state_agent = SupervisorState();
+
+	Management::Log::info(fmt("tx SupervisorControl::status_request %s, all nodes", areq$id));
+	Broker::publish(SupervisorControl::topic_prefix,
+	    SupervisorControl::status_request, areq$id, "");
+	}
+
+function deploy_request_finish(areq: Management::Request::Request)
+	{
+	local status = areq$supervisor_state_agent$status;
+
+	for ( nodename in status$nodes )
+		{
+		if ( "ZEEK_MANAGEMENT_NODE" in status$nodes[nodename]$node$env )
+			next;
+		supervisor_destroy(status$nodes[nodename]$node$name);
+		}
+
+	local req = Management::Request::lookup(areq$parent_id);
+	if ( Management::Request::is_null(req) )
+		return;
+
+	local res: Management::Result;
+	local nc: Supervisor::NodeConfig;
+	local node: Management::Node;
 
 	# Refresh the cluster and nodes tables
 	g_nodes = table();
 	g_cluster = table();
 
 	# Special case: the config contains no nodes. We can respond right away.
-	if ( |config$nodes| == 0 )
+	if ( |g_config$nodes| == 0 )
 		{
 		g_config_reqid_pending = "";
 
-		local res = Management::Result(
-		    $reqid = reqid,
+		res = Management::Result(
+		    $reqid = req$id,
 		    $instance = Management::Agent::get_name());
 
-		Management::Log::info(fmt("tx Management::Agent::API::set_configuration_response %s",
+		Management::Log::info(fmt("tx Management::Agent::API::deploy_response %s",
 		    Management::result_to_string(res)));
 		Broker::publish(agent_topic(),
-		    Management::Agent::API::set_configuration_response, reqid, vector(res));
+		    Management::Agent::API::deploy_response, req$id, vector(res));
 		return;
 		}
 
-	local req = Management::Request::create(reqid);
-	req$set_configuration_state_agent = SetConfigurationState();
-
 	# Establish this request as the pending one:
-	g_config_reqid_pending = reqid;
+	g_config_reqid_pending = req$id;
 
-	for ( node in config$nodes )
+	for ( node in g_config$nodes )
 		{
 		# Filter the node set down to the ones this agent manages.
 		if ( node$instance == Management::Agent::get_name() )
 			{
 			g_nodes[node$name] = node;
-			add req$set_configuration_state_agent$nodes_pending[node$name];
+			add req$deploy_state_agent$nodes_pending[node$name];
 			}
 
 		# The cluster and supervisor frameworks require a port for every
@@ -399,25 +471,54 @@ event Management::Agent::API::set_configuration_request(reqid: string, config: M
 
 	# At this point we await Management::Node::API::notify_node_hello events
 	# from the new nodes, or a timeout, whichever happens first. These
-	# trigger the set_configuration_response event back to the controller.
+	# update the pending nodes in the request state, and eventually trigger
+	# the deploy_response event back to the controller.
 	}
 
 event SupervisorControl::status_response(reqid: string, result: Supervisor::Status)
 	{
+	Management::Log::info(fmt("rx SupervisorControl::status_response %s", reqid));
 	local req = Management::Request::lookup(reqid);
+
+	if ( Management::Request::is_null(req) )
+		return;
+	if ( ! req?$supervisor_state_agent )
+		return;
+
+	req$supervisor_state_agent$status = result;
+	Management::Request::finish(reqid);
+	}
+
+event Management::Agent::API::get_nodes_request(reqid: string)
+	{
+	Management::Log::info(fmt("rx Management::Agent::API::get_nodes_request %s", reqid));
+
+	local req = Management::Request::create(reqid);
+
+	local areq = Management::Request::create();
+	areq$parent_id = req$id;
+	areq$finish = get_nodes_request_finish;
+	areq$supervisor_state_agent = SupervisorState();
+
+	Broker::publish(SupervisorControl::topic_prefix,
+	    SupervisorControl::status_request, areq$id, "");
+	Management::Log::info(fmt("issued supervisor status, %s", areq$id));
+	}
+
+function get_nodes_request_finish(areq: Management::Request::Request)
+	{
+	local req = Management::Request::lookup(areq$parent_id);
 	if ( Management::Request::is_null(req) )
 		return;
 
-	Management::Request::finish(reqid);
-
-	local res = Management::Result(
-	    $reqid = req$parent_id, $instance = Management::Agent::get_name());
+	local res = Management::Result($reqid=req$id,
+	    $instance=Management::Agent::get_name());
 
 	local node_statuses: Management::NodeStatusVec;
 
-	for ( node in result$nodes )
+	for ( node in areq$supervisor_state_agent$status$nodes )
 		{
-		local sns = result$nodes[node]; # Supervisor node status
+		local sns = areq$supervisor_state_agent$status$nodes[node]; # Supervisor node status
 		local cns = Management::NodeStatus(
 			    $node=node, $state=Management::PENDING);
 
@@ -488,19 +589,8 @@ event SupervisorControl::status_response(reqid: string, result: Supervisor::Stat
 	Management::Log::info(fmt("tx Management::Agent::API::get_nodes_response %s",
 	    Management::result_to_string(res)));
 	Broker::publish(agent_topic(),
-	    Management::Agent::API::get_nodes_response, req$parent_id, res);
-	}
-
-event Management::Agent::API::get_nodes_request(reqid: string)
-	{
-	Management::Log::info(fmt("rx Management::Agent::API::get_nodes_request %s", reqid));
-
-	local req = Management::Request::create();
-	req$parent_id = reqid;
-
-	Broker::publish(SupervisorControl::topic_prefix,
-	    SupervisorControl::status_request, req$id, "");
-	Management::Log::info(fmt("issued supervisor status, %s", req$id));
+	    Management::Agent::API::get_nodes_response, req$id, res);
+	Management::Request::finish(req$id);
 	}
 
 event Management::Node::API::node_dispatch_response(reqid: string, result: Management::Result)
@@ -637,9 +727,11 @@ event Management::Agent::API::node_dispatch_request(reqid: string, action: vecto
 			add req$node_dispatch_state_agent$requests[node];
 		else
 			{
-			res = Management::Result($reqid=reqid, $node=node);
-			res$success = F;
-			res$error = fmt("cluster node %s not in runnning state", node);
+			res = Management::Result($reqid=reqid,
+			    $instance = Management::Agent::get_name(),
+			    $success = F,
+			    $error = fmt("cluster node %s not in runnning state", node),
+			    $node=node);
 			req$results += res;
 			}
 		}
@@ -690,7 +782,7 @@ event Management::Agent::API::agent_standby_request(reqid: string)
 	# peered/connected -- otherwise there's nothing we can do here via
 	# Broker anyway), mainly to keep open the possibility of running
 	# cluster nodes again later.
-	event Management::Agent::API::set_configuration_request("", Management::Configuration());
+	event Management::Agent::API::deploy_request("", Management::Configuration());
 
 	local res = Management::Result(
 	    $reqid = reqid,
@@ -710,32 +802,33 @@ event Management::Node::API::notify_node_hello(node: string)
 	if ( node in g_nodes )
 		g_nodes[node]$state = Management::RUNNING;
 
-	# Look up the set_configuration request this node launch was part of (if
+	# Look up the deploy request this node launch was part of (if
 	# any), and check it off. If it was the last node we expected to launch,
 	# finalize the request and respond to the controller.
 
 	local req = Management::Request::lookup(g_config_reqid_pending);
 
-	if ( Management::Request::is_null(req) || ! req?$set_configuration_state_agent )
+	if ( Management::Request::is_null(req) || ! req?$deploy_state_agent )
 		return;
 
-	if ( node in req$set_configuration_state_agent$nodes_pending )
+	if ( node in req$deploy_state_agent$nodes_pending )
 		{
-		delete req$set_configuration_state_agent$nodes_pending[node];
-		if ( |req$set_configuration_state_agent$nodes_pending| == 0 )
-			send_set_configuration_response(req);
+		delete req$deploy_state_agent$nodes_pending[node];
+		if ( |req$deploy_state_agent$nodes_pending| == 0 )
+			send_deploy_response(req);
 		}
 	}
 
 event Management::Request::request_expired(req: Management::Request::Request)
 	{
 	local res = Management::Result($reqid=req$id,
+	    $instance = Management::Agent::get_name(),
 	    $success = F,
 	    $error = "request timed out");
 
-	if ( req?$set_configuration_state_agent )
+	if ( req?$deploy_state_agent )
 		{
-		send_set_configuration_response(req);
+		send_deploy_response(req);
 		# This timeout means we no longer have a pending request.
 		g_config_reqid_pending = "";
 		}
@@ -743,10 +836,16 @@ event Management::Request::request_expired(req: Management::Request::Request)
 
 event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	{
-	# This does not (cannot?) immediately verify that the new peer
-	# is in fact a controller, so we might send this in vain.
-	# Controllers register the agent upon receipt of the event.
+	Management::Log::debug(fmt("broker peer %s added: %s", peer, msg));
 
+	local sni = supervisor_network_info();
+
+	if ( peer$network$address == sni$address && peer$network$bound_port == sni$bound_port )
+		return;
+
+	# Supervisor aside, this does not (cannot?) immediately verify that the
+	# new peer is in fact a controller, so we might send this in vain.
+	# Controllers register the agent upon receipt of the event.
 	local epi = Management::Agent::endpoint_info();
 
 	Broker::publish(agent_topic(),
@@ -765,14 +864,9 @@ event zeek_init()
 	local epi = Management::Agent::endpoint_info();
 
 	# The agent needs to peer with the supervisor -- this doesn't currently
-	# happen automatically. The address defaults to Broker's default, which
-	# relies on ZEEK_DEFAULT_LISTEN_ADDR and so might just be "". Broker
-	# internally falls back to listening on any; we pick 127.0.0.1.
-	local supervisor_addr = Broker::default_listen_address;
-	if ( supervisor_addr == "" )
-		supervisor_addr = "127.0.0.1";
-
-	Broker::peer(supervisor_addr, Broker::default_port, Broker::default_listen_retry);
+	# happen automatically.
+	local sni = supervisor_network_info();
+	Broker::peer(sni$address, sni$bound_port, Broker::default_listen_retry);
 
 	# Agents need receive communication targeted at it, any responses
 	# from the supervisor, and any responses from cluster nodes.

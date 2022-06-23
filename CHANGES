@@ -1,3 +1,17 @@
+5.1.0-dev.108 | 2022-06-23 12:26:26 -0700
+
+  * Management framework: support for cluster node restarts (Christian Kreibich, Corelight)
+
+    - bump external cluster testsuite
+    - bump zeek-client
+    - edit pass over docstrings
+    - node restart support
+    - more consistent Supervisor interaction in the agent
+    - log the controller's startup deployment attempt
+    - bugfix for a get_id_value corner case
+    - minor timeout bugfix
+    - make "result" argument plural in multi-result response events
+
 5.1.0-dev.98 | 2022-06-22 22:39:32 -0700
 
   * Management framework: separate config staging and deployment (Christian Kreibich, Corelight)

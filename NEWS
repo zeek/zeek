@@ -29,6 +29,39 @@ Breaking Changes
 New Functionality
 -----------------
 
+- The Zeek cluster management framework now supports operational use of
+  single-instance clusters, meaning setups in which all Zeek cluster nodes
+  (manager, workers, etc) reside on a single machine. The framework builds upon
+  Zeek's Supervisor (``-j`` is a requirement) and includes three components:
+
+  (1) A cluster controller, loaded via ``policy/frameworks/management/controller`.
+      The controller is the central management entity for a Zeek cluster. It
+      interacts with one or more agents to enact instructions delivered by a
+      management client. The controller is stateful and can persist cluster
+      state to disk.
+
+  (2) One or more cluster agents, loaded via ``policy/frameworks/management/agent`.
+      Each agent assists the controller in managing the local instance (typically
+      a machine or container) of Zeek cluster nodes. Agents interact with the
+      local Supervisor to control nodes and peer directly with running Zeek
+      nodes via Broker to carry out node-local tasks.
+
+  (3) zeek-client, the cluster management client. A standalone client running
+      outside of Zeek, it's now installed by default, alongside the other
+      executables. The client supports uploading cluster configurations to the
+      controller, deploying them, retrieving them, checking cluster node status,
+      restarting individual cluster nodes, and retrieving the current value(s)
+      of global identifiers in one or more Zeek nodes.
+
+  Controller and agent come pre-configured for single-instance deployments of
+  Zeek clusters, with automated log rotation and archival via Zeek's
+  ``zeek-archiver`` tool. For further details on the framework, please refer
+  to the Zeek documentation.
+
+  zeekctl remains included and offers more knobs and features than the
+  management framework. It remains the recommended solution for multi-machine
+  clusters and those needing rich management capabilities.
+
 - Zeek now automatically warns about unused functions, hooks, and event
   handlers.  The intent behind these checks is to catch instances where the
   script writer has introduced typos in names, or has forgotten to remove
@@ -148,6 +181,10 @@ Changed Functionality
 
 - Log messages about errors in input files are now more informative about where
   errors occured.
+
+- The ``--enable-zeek-client`` configure flag has been removed and is now the
+  default. The new ``--disable-zeek-client`` flag allows users to skip
+  installation of the client.
 
 Deprecated Functionality
 ------------------------

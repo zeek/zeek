@@ -1,3 +1,101 @@
+5.0.0-rc2 | 2022-06-23 13:20:24 -0700
+
+  * Bump Spicy to the latest development version. (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit e60c305ac1d1b711ee38809a0d0cca76084cfc59)
+
+  * Management framework: support for cluster node restarts (Christian Kreibich, Corelight)
+
+    - bump external cluster testsuite
+    - bump zeek-client
+    - edit pass over docstrings
+    - node restart support
+    - more consistent Supervisor interaction in the agent
+    - log the controller's startup deployment attempt
+    - bugfix for a get_id_value corner case
+    - minor timeout bugfix
+    - make "result" argument plural in multi-result response events
+
+    (cherry picked from commit 3287b8b793e71e28bfcdd9fe4f6712d4a2707d5e)
+
+  * Management framework: separate config staging and deployment (Christian Kreibich, Corelight)
+
+    - bump external cluster testsuite
+    - bump zeek-client
+    - rename set_configuration events to stage_configuration
+    - trigger deployment upon when instances are ready
+    - more resilient node shutdown upon deployment
+    - re-trigger deployment upon controller launch
+    - move most deployment handling to internal function
+    - distinguish internally and externally requested deployments
+    - track instances by their Broker IDs
+    - tweak Supervisor event logging
+    - make helper function a local
+    - rename "log_level" to "level"
+    - add "finish" callback to requests
+    - add a helper for rendering result vectors to a string
+    - agents now skip re-deployment of current config
+    - suppress notify_agent_hello upon Supervisor peering
+    - introduce state machine for configs and persist them
+    - introduce deployment API in controller
+    - rename agent "set_configuration" to "deploy"
+    - consistency fixes to the Result record
+
+    (cherry picked from commit 54f2f28047ad8910c0122018148fc34c57c8cb13)
+
+  * Provide zeek-client by default (Christian Kreibich, Corelight)
+
+    (cherry picked from commit d0578cf34597642e6b67c77ddce7d51d18511d5d)
+
+  * Management framework: config validation (Christian Kreibich, Corelight)
+
+    - bump external cluster testsuite
+    - bump zeek-client
+    - add config validation
+    - improvements to port auto-enumeration
+    - control output-to-console in Supervisor
+    - handle no-instances corner case in set-config correctly
+
+    (cherry picked from commit 4deacefa4c753b5f45e8504161e7b8561fe01a7c)
+
+  * Management framework: bump external cluster testsuite (Christian Kreibich, Corelight)
+
+    (cherry picked from commit e7f60d41280d91ea6c7d18059188b38dcc2f618a)
+
+  * Management framework: make agents support zeek-archiver invocations (Christian Kreibich, Corelight)
+
+    (cherry picked from commit e7f60d41280d91ea6c7d18059188b38dcc2f618a)
+
+  * Management framework: fix module naming typo (Christian Kreibich, Corelight)
+
+    (cherry picked from commit e7f60d41280d91ea6c7d18059188b38dcc2f618a)
+
+  * Management framework: bump external cluster testsuite (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 216aaa5774b24a96aa44fca0e90c3c455f7e9e8f)
+
+  * Management framework: switch default network visibilities (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 216aaa5774b24a96aa44fca0e90c3c455f7e9e8f)
+
+  * Management framework: port auto-assignment (Christian Kreibich, Corelight)
+
+    - support auto-assignment of ports in cluster nodes
+    - also use send_set_configuration_response_error elsewhere
+    - minor log formatting tweak, for consistency
+    - bump zeek-client to pull in relaxed port handling
+    - bump external cluster testsuite
+
+    (cherry picked from commit 763b0c8d10d064f8a127dbc24c9eccbfd9d15dea)
+
+  * CI: Add Fedora 36, remove Fedora 34 (Johanna Amann, Corelight)
+
+    (cherry picked from commit 94e1d5786efc4ea480670ec70062ddc71ed6f2f5)
+
+  * Update broker submodule to fix put_unique issues from 5.0RC1 (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 5b85cd6dfdfcee0d0953ce9bda15fb40cf139f44)
+
 5.0.0-rc1.7 | 2022-06-17 09:15:37 -0700
 
   * Bump Spicy and spicy-plugin to latest dev snapshot. (Benjamin Bannier, Corelight)

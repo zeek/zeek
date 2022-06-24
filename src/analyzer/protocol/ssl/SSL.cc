@@ -413,4 +413,9 @@ void SSL_Analyzer::ForwardDecryptedData(const std::vector<u_char>& data, bool is
 	ForwardStream(data.size(), data.data(), is_orig);
 	}
 
+bool SSL_Analyzer::GetFlipped()
+	{
+	return handshake_interp->flipped();
+	}
+
 	} // namespace zeek::analyzer::ssl

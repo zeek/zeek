@@ -161,7 +161,7 @@ refine connection Handshake_Conn += {
 
 		if ( ssl_extension )
 			zeek::BifEvent::enqueue_ssl_extension(zeek_analyzer(),
-						zeek_analyzer()->Conn(), ${rec.is_orig}, type,
+						zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, type,
 						zeek::make_intrusive<zeek::StringVal>(length, reinterpret_cast<const char*>(data)));
 		return true;
 		%}
@@ -180,7 +180,7 @@ refine connection Handshake_Conn += {
 			}
 
 		zeek::BifEvent::enqueue_ssl_extension_ec_point_formats(zeek_analyzer(), zeek_analyzer()->Conn(),
-		   ${rec.is_orig}, std::move(points));
+		   ${rec.is_orig} ^ flipped_, std::move(points));
 
 		return true;
 		%}
@@ -199,7 +199,7 @@ refine connection Handshake_Conn += {
 			}
 
 		zeek::BifEvent::enqueue_ssl_extension_elliptic_curves(zeek_analyzer(), zeek_analyzer()->Conn(),
-		   ${rec.is_orig}, std::move(curves));
+		   ${rec.is_orig} ^ flipped_, std::move(curves));
 
 		return true;
 		%}
@@ -217,7 +217,7 @@ refine connection Handshake_Conn += {
 				nglist->Assign(i, zeek::val_mgr->Count((*keyshare)[i]->namedgroup()));
 			}
 
-		zeek::BifEvent::enqueue_ssl_extension_key_share(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig}, std::move(nglist));
+		zeek::BifEvent::enqueue_ssl_extension_key_share(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, std::move(nglist));
 
 		return true;
 		%}
@@ -230,7 +230,7 @@ refine connection Handshake_Conn += {
 		auto nglist = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
 		nglist->Assign(0u, zeek::val_mgr->Count(keyshare->namedgroup()));
-		zeek::BifEvent::enqueue_ssl_extension_key_share(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig}, std::move(nglist));
+		zeek::BifEvent::enqueue_ssl_extension_key_share(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, std::move(nglist));
 		return true;
 		%}
 
@@ -242,7 +242,7 @@ refine connection Handshake_Conn += {
 		auto nglist = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
 		nglist->Assign(0u, zeek::val_mgr->Count(namedgroup));
-		zeek::BifEvent::enqueue_ssl_extension_key_share(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig}, std::move(nglist));
+		zeek::BifEvent::enqueue_ssl_extension_key_share(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, std::move(nglist));
 		return true;
 		%}
 
@@ -264,7 +264,7 @@ refine connection Handshake_Conn += {
 				}
 			}
 
-		zeek::BifEvent::enqueue_ssl_extension_signature_algorithm(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig}, std::move(slist));
+		zeek::BifEvent::enqueue_ssl_extension_signature_algorithm(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, std::move(slist));
 
 		return true;
 		%}
@@ -283,7 +283,7 @@ refine connection Handshake_Conn += {
 			}
 
 		zeek::BifEvent::enqueue_ssl_extension_application_layer_protocol_negotiation(zeek_analyzer(), zeek_analyzer()->Conn(),
-											${rec.is_orig}, std::move(plist));
+											${rec.is_orig} ^ flipped_, std::move(plist));
 
 		return true;
 		%}
@@ -312,7 +312,7 @@ refine connection Handshake_Conn += {
 
 		if ( ssl_extension_server_name )
 			zeek::BifEvent::enqueue_ssl_extension_server_name(zeek_analyzer(), zeek_analyzer()->Conn(),
-		   	   ${rec.is_orig}, std::move(servers));
+		   	   ${rec.is_orig} ^ flipped_, std::move(servers));
 
 		return true;
 		%}
@@ -331,7 +331,7 @@ refine connection Handshake_Conn += {
 			}
 
 		zeek::BifEvent::enqueue_ssl_extension_supported_versions(zeek_analyzer(), zeek_analyzer()->Conn(),
-			${rec.is_orig}, std::move(versions));
+			${rec.is_orig} ^ flipped_, std::move(versions));
 
 		return true;
 		%}
@@ -345,7 +345,7 @@ refine connection Handshake_Conn += {
 		versions->Assign(0u, zeek::val_mgr->Count(version));
 
 		zeek::BifEvent::enqueue_ssl_extension_supported_versions(zeek_analyzer(), zeek_analyzer()->Conn(),
-			${rec.is_orig}, std::move(versions));
+			${rec.is_orig} ^ flipped_, std::move(versions));
 
 		return true;
 		%}
@@ -364,7 +364,7 @@ refine connection Handshake_Conn += {
 			}
 
 		zeek::BifEvent::enqueue_ssl_extension_psk_key_exchange_modes(zeek_analyzer(), zeek_analyzer()->Conn(),
-			${rec.is_orig}, std::move(modes));
+			${rec.is_orig} ^ flipped_, std::move(modes));
 
 		return true;
 		%}
@@ -412,7 +412,7 @@ refine connection Handshake_Conn += {
 			if ( ssl_stapled_ocsp )
 				zeek::BifEvent::enqueue_ssl_stapled_ocsp(zeek_analyzer(),
 				        zeek_analyzer()->Conn(),
-				        ${rec.is_orig},
+				        ${rec.is_orig} ^ flipped_,
 				        zeek::make_intrusive<zeek::StringVal>(response.length(), (const char*) response.data()));
 
 			zeek::file_mgr->EndOfFile(file_id);
@@ -515,7 +515,7 @@ refine connection Handshake_Conn += {
 		ha->Assign(1, digitally_signed_algorithms->SignatureAlgorithm());
 
 		zeek::BifEvent::enqueue_ssl_extension_signed_certificate_timestamp(zeek_analyzer(),
-			zeek_analyzer()->Conn(), ${rec.is_orig},
+			zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_,
 			version,
 			zeek::make_intrusive<zeek::StringVal>(logid.length(), reinterpret_cast<const char*>(logid.begin())),
 			timestamp,
@@ -578,7 +578,7 @@ refine connection Handshake_Conn += {
 		%{
 		if ( ssl_handshake_message )
 			zeek::BifEvent::enqueue_ssl_handshake_message(zeek_analyzer(),
-				zeek_analyzer()->Conn(), is_orig, msg_type, to_int()(length));
+				zeek_analyzer()->Conn(), is_orig ^ flipped_, msg_type, to_int()(length));
 
 		return true;
 		%}
@@ -610,7 +610,7 @@ refine connection Handshake_Conn += {
 			}
 
 		zeek::BifEvent::enqueue_ssl_extension_pre_shared_key_client_hello(zeek_analyzer(), zeek_analyzer()->Conn(),
-			${rec.is_orig}, std::move(slist), std::move(blist));
+			${rec.is_orig} ^ flipped_, std::move(slist), std::move(blist));
 
 		return true;
 		%}
@@ -621,7 +621,7 @@ refine connection Handshake_Conn += {
 			return true;
 
 		zeek::BifEvent::enqueue_ssl_extension_pre_shared_key_server_hello(zeek_analyzer(),
-			zeek_analyzer()->Conn(), ${rec.is_orig}, selected_identity);
+			zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, selected_identity);
 
 		return true;
 		%}

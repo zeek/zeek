@@ -73,12 +73,12 @@ event ssl_session_ticket_handshake(c: connection, ticket_lifetime_hint: count, t
 	c$ssl$ticket_lifetime_hint = ticket_lifetime_hint;
 	}
 
-event ssl_extension(c: connection, is_orig: bool, code: count, val: string)
+event ssl_extension(c: connection, is_client: bool, code: count, val: string)
 	{
 	if ( ! c?$ssl )
 		return;
 
-	if ( is_orig )
+	if ( is_client )
 		{
 		if ( ! c$ssl?$ssl_client_exts )
 			c$ssl$ssl_client_exts = vector();
@@ -92,28 +92,28 @@ event ssl_extension(c: connection, is_orig: bool, code: count, val: string)
 		}
 	}
 
-event ssl_extension_ec_point_formats(c: connection, is_orig: bool, point_formats: index_vec)
+event ssl_extension_ec_point_formats(c: connection, is_client: bool, point_formats: index_vec)
 	{
-	if ( ! c?$ssl || ! is_orig )
+	if ( ! c?$ssl || ! is_client )
 		return;
 
 	c$ssl$point_formats = point_formats;
 	}
 
-event ssl_extension_elliptic_curves(c: connection, is_orig: bool, curves: index_vec)
+event ssl_extension_elliptic_curves(c: connection, is_client: bool, curves: index_vec)
 	{
-	if ( ! c?$ssl || ! is_orig )
+	if ( ! c?$ssl || ! is_client )
 		return;
 
 	c$ssl$client_curves = curves;
 	}
 
-event ssl_extension_application_layer_protocol_negotiation(c: connection, is_orig: bool, names: string_vec)
+event ssl_extension_application_layer_protocol_negotiation(c: connection, is_client: bool, names: string_vec)
 	{
 	if ( ! c?$ssl )
 		return;
 
-	if ( is_orig )
+	if ( is_client )
 		c$ssl$orig_alpn = names;
 	}
 
@@ -126,39 +126,39 @@ event ssl_dh_server_params(c: connection, p: string, q: string, Ys: string)
 	c$ssl$dh_param_size = key_length;
 	}
 
-event ssl_extension_supported_versions(c: connection, is_orig: bool, versions: index_vec)
+event ssl_extension_supported_versions(c: connection, is_client: bool, versions: index_vec)
 	{
 	if ( ! c?$ssl )
 		return;
 
-	if ( is_orig )
+	if ( is_client )
 		c$ssl$client_supported_versions = versions;
 	else
 		c$ssl$server_supported_version = versions[0];
 	}
 
-	event ssl_extension_psk_key_exchange_modes(c: connection, is_orig: bool, modes: index_vec)
+	event ssl_extension_psk_key_exchange_modes(c: connection, is_client: bool, modes: index_vec)
 	{
-	if ( ! c?$ssl || ! is_orig )
+	if ( ! c?$ssl || ! is_client )
 		return;
 
 	c$ssl$psk_key_exchange_modes = modes;
 	}
 
-event ssl_extension_key_share(c: connection, is_orig: bool, curves: index_vec)
+event ssl_extension_key_share(c: connection, is_client: bool, curves: index_vec)
 	{
 	if ( ! c?$ssl )
 		return;
 
-	if ( is_orig )
+	if ( is_client )
 		c$ssl$client_key_share_groups = curves;
 	else
 		c$ssl$server_key_share_group = curves[0];
 	}
 
-event ssl_extension_signature_algorithm(c: connection, is_orig: bool, signature_algorithms: signature_and_hashalgorithm_vec)
+event ssl_extension_signature_algorithm(c: connection, is_client: bool, signature_algorithms: signature_and_hashalgorithm_vec)
 	{
-	if ( ! c?$ssl || ! is_orig )
+	if ( ! c?$ssl || ! is_client )
 		return;
 
 	local sigalgs: index_vec = vector();

@@ -83,4 +83,9 @@ bool DTLS_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool 
 	return false;
 	}
 
+bool DTLS_Analyzer::GetFlipped()
+	{
+	return handshake_interp->flipped();
+	}
+
 	} // namespace zeek::analyzer::dtls

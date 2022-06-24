@@ -12,22 +12,22 @@ event ssl_established(c: connection)
 	print "Established", c$id$orig_h, c$id$resp_h;
 	}
 
-event ssl_handshake_message(c: connection, is_orig: bool, msg_type: count, length: count)
+event ssl_handshake_message(c: connection, is_client: bool, msg_type: count, length: count)
 	{
-	print "Handshake", c$id$orig_h, c$id$resp_h, is_orig, msg_type, length;
+	print "Handshake", c$id$orig_h, c$id$resp_h, is_client, msg_type, length;
 	}
 
-event ssl_change_cipher_spec(c: connection, is_orig: bool)
+event ssl_change_cipher_spec(c: connection, is_client: bool)
 	{
-	print "CCS", c$id$orig_h, c$id$resp_h, is_orig;
+	print "CCS", c$id$orig_h, c$id$resp_h, is_client;
 	}
 
-event ssl_plaintext_data(c: connection, is_orig: bool, record_version: count, content_type: count, length: count)
+event ssl_plaintext_data(c: connection, is_client: bool, record_version: count, content_type: count, length: count)
 	{
-	print "Plaintext data", c$id$orig_h, c$id$resp_h, is_orig, SSL::version_strings[record_version], content_type, length;
+	print "Plaintext data", c$id$orig_h, c$id$resp_h, is_client, SSL::version_strings[record_version], content_type, length;
 	}
 
-event ssl_encrypted_data(c: connection, is_orig: bool, record_version: count, content_type: count, length: count)
+event ssl_encrypted_data(c: connection, is_client: bool, record_version: count, content_type: count, length: count)
 	{
-	print "Encrypted data", c$id$orig_h, c$id$resp_h, is_orig, SSL::version_strings[record_version], content_type, length;
+	print "Encrypted data", c$id$orig_h, c$id$resp_h, is_client, SSL::version_strings[record_version], content_type, length;
 	}

@@ -14,8 +14,8 @@
 
 @load base/protocols/ssl
 
-event ssl_extension(c: connection, is_orig: bool, code: count, val: string)
+event ssl_extension(c: connection, is_client: bool, code: count, val: string)
 	{
-	if ( ! is_orig && code == 43 )
+	if ( ! is_client && code == 43 )
 		print bytestring_to_hexstr(val);
 	}

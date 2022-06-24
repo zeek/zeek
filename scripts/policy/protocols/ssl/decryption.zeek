@@ -99,7 +99,7 @@ event ssl_client_hello(c: connection, version: count, record_version: count, pos
 		set_secret(c, secrets[client_random]);
 	}
 
-event ssl_change_cipher_spec(c: connection, is_orig: bool)
+event ssl_change_cipher_spec(c: connection, is_client: bool)
 	{
 	if ( c$ssl?$client_random )
 		{

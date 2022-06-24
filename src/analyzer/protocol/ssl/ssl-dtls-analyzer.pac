@@ -34,7 +34,7 @@ refine connection SSL_Conn += {
 		%{
 		if ( ssl_alert )
 			zeek::BifEvent::enqueue_ssl_alert(zeek_analyzer(), zeek_analyzer()->Conn(),
-							${rec.is_orig}, level, desc);
+							${rec.is_orig} ^ zeek_analyzer()->GetFlipped(), level, desc);
 		return true;
 		%}
 	function proc_unknown_record(rec: SSLRecord) : bool
@@ -66,13 +66,13 @@ refine connection SSL_Conn += {
 		if ( ssl_encrypted_data )
 			{
 			zeek::BifEvent::enqueue_ssl_encrypted_data(zeek_analyzer(),
-				zeek_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
+				zeek_analyzer()->Conn(), ${rec.is_orig} ^ zeek_analyzer()->GetFlipped(), ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
 			}
 
 		if ( rec->content_type() == APPLICATION_DATA && decryption_failed_ == false )
 			{
 			// If decryption of one packet fails, do not try to decrypt future packets.
-			if ( ! zeek_analyzer()->TryDecryptApplicationData(cont.length(), cont.begin(), rec->is_orig(), rec->content_type(), rec->raw_tls_version()) )
+			if ( ! zeek_analyzer()->TryDecryptApplicationData(cont.length(), cont.begin(), rec->is_orig() ^ zeek_analyzer()->GetFlipped(), rec->content_type(), rec->raw_tls_version()) )
 				decryption_failed_ = true;
 			}
 
@@ -83,7 +83,7 @@ refine connection SSL_Conn += {
 		%{
 		if ( ssl_plaintext_data )
 			zeek::BifEvent::enqueue_ssl_plaintext_data(zeek_analyzer(),
-				zeek_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
+				zeek_analyzer()->Conn(), ${rec.is_orig} ^ zeek_analyzer()->GetFlipped(), ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
 
 		return true;
 		%}
@@ -92,7 +92,7 @@ refine connection SSL_Conn += {
 		%{
 		if ( ssl_heartbeat )
 			zeek::BifEvent::enqueue_ssl_heartbeat(zeek_analyzer(),
-				zeek_analyzer()->Conn(), ${rec.is_orig}, ${rec.length}, type, payload_length,
+				zeek_analyzer()->Conn(), ${rec.is_orig} ^ zeek_analyzer()->GetFlipped(), ${rec.length}, type, payload_length,
 				zeek::make_intrusive<zeek::StringVal>(data.length(), (const char*) data.data()));
 		return true;
 		%}
@@ -114,7 +114,7 @@ refine connection SSL_Conn += {
 		%{
 		if ( ssl_change_cipher_spec )
 			zeek::BifEvent::enqueue_ssl_change_cipher_spec(zeek_analyzer(),
-				zeek_analyzer()->Conn(), ${rec.is_orig});
+				zeek_analyzer()->Conn(), ${rec.is_orig} ^ zeek_analyzer()->GetFlipped());
 
 		return true;
 		%}

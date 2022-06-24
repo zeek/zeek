@@ -159,6 +159,10 @@ New Functionality
 - The ``base/misc/installation.zeek`` script provides your Zeek installation's
   key directories.
 
+- Zeek now lets you decrement Counting Bloom Filters using the new
+  ``bloomfilter_decrement`` BiF. Furthermore, two Bloom Filters can be
+  intersected using the new ``bloomfilter_intersect`` BiF.
+
 Changed Functionality
 ---------------------
 

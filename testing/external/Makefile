@@ -13,7 +13,7 @@ brief:
 	@for repo in $(REPOS); do ( cd $$repo && make -s brief ); done
 
 init:
-	git clone $(PUBLIC_REPO)
+	git clone $(PUBLIC_REPO) && ./scripts/sync-repo $$(basename $(PUBLIC_REPO))
 
 pull:
 	@for repo in $(REPOS); do ( cd $$repo && git pull ); done
@@ -29,5 +29,11 @@ coverage:
 
 update-timing:
 	@for repo in $(REPOS); do ( cd $$repo && echo "Updating timing for '$$repo' repo:" && make update-timing ); done
+
+sync-commits:
+	for repo in $(REPOS); do ./scripts/sync-commit $$repo; done
+
+sync-repos:
+	for repo in $(REPOS); do ./scripts/sync-repo $$repo; done
 
 .PHONY: all brief init pull push status coverage

@@ -33,7 +33,6 @@ To later update to upstream changes:
 
 This updates the tests and the traces as necessary.
 
-
 Running Tests
 -------------
 
@@ -52,6 +51,18 @@ test repository:
 
 All the standard ``btest`` options can be used to run individual
 tests, get diagnostic output, etc.
+
+Versioning
+----------
+
+Since external testsuites live in separate repositories, we need a way to tie
+the local Zeek codebase to a particular version of the testsuites. Normally we'd
+use git submodules, but cloning the testsuites with the rest of the distribution
+isn't always desirable or feasible. We resort to "manual submodules": a file
+"commit-hash.<testsuite-name>" in this directory contains the commit hash to use
+for the respective testsuite. The Makefile target "sync-repos" brings the local
+repositories in line with commit files, while "sync-commits" updates the commit
+files for locally available testsuites to their HEAD commits.
 
 Updating Baseline
 -----------------

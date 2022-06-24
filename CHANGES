@@ -1,3 +1,12 @@
+5.1.0-dev.116 | 2022-06-24 14:18:40 -0700
+
+  * Bump broker submodule to pick up two fixes (Tim Wojtulewicz, Corelight)
+
+    - https://github.com/zeek/broker/pull/244
+    - https://github.com/zeek/broker/pull/245
+
+  * Add NEWS entry for 5.0 management changes [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.113 | 2022-06-24 09:08:00 -0700
 
   * News entry about Bloom Filter changes in 5.0. (Johanna Amann, Corelight)

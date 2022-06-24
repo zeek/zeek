@@ -3,8 +3,8 @@
 #include "zeek/probabilistic/CardinalityCounter.h"
 
 #include <broker/data.hh>
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 #include <utility>
 
 #include "zeek/Reporter.h"

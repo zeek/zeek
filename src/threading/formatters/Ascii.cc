@@ -4,7 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include <errno.h>
+#include <cerrno>
 #include <sstream>
 
 #include "zeek/Desc.h"

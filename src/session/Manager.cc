@@ -7,8 +7,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <pcap.h>
-#include <stdlib.h>
 #include <unistd.h>
+#include <cstdlib>
 
 #include "zeek/Desc.h"
 #include "zeek/Event.h"

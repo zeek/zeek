@@ -27,7 +27,7 @@ enum IPFamily
 // clang-format off
 #include <sys/types.h>
 #include <arpa/inet.h>
-#include <assert.h>
+#include <cassert>
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>

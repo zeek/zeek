@@ -1,7 +1,7 @@
 #include "zeek/Trigger.h"
 
-#include <assert.h>
 #include <algorithm>
+#include <cassert>
 
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"

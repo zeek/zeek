@@ -7,9 +7,9 @@
 #ifdef HAVE_MEMORY_H
 #include <memory.h>
 #endif
-#include <signal.h>
 #include <algorithm>
 #include <climits>
+#include <csignal>
 #include <fstream>
 
 #include "zeek/3rdparty/doctest.h"

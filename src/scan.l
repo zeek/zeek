@@ -1,8 +1,7 @@
 %{
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <errno.h>
-
+#include <cerrno>
 #include <climits>
 #include <cstdlib>
 

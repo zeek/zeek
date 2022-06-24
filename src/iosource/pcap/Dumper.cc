@@ -2,8 +2,8 @@
 
 #include "zeek/iosource/pcap/Dumper.h"
 
-#include <errno.h>
 #include <sys/stat.h>
+#include <cerrno>
 
 #include "zeek/RunState.h"
 #include "zeek/iosource/PktSrc.h"

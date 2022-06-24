@@ -3,7 +3,7 @@
 #include "zeek/zeek-config.h"
 
 #include <pthread.h>
-#include <signal.h>
+#include <csignal>
 
 #include "zeek/threading/Manager.h"
 #include "zeek/util.h"

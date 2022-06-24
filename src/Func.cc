@@ -6,15 +6,15 @@
 #include "zeek/zeek-config.h"
 
 #include <broker/error.hh>
-#include <ctype.h>
-#include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <signal.h>
-#include <stdlib.h>
 #include <sys/param.h>
 #include <unistd.h>
 #include <algorithm>
+#include <cctype>
+#include <cerrno>
+#include <csignal>
+#include <cstdlib>
 
 #include "zeek/Base64.h"
 #include "zeek/Debug.h"

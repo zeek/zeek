@@ -2,7 +2,7 @@
 
 #include "zeek/zeekygen/PackageInfo.h"
 
-#include <errno.h>
+#include <cerrno>
 #include <fstream>
 
 #include "zeek/Reporter.h"

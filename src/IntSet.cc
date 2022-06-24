@@ -2,10 +2,7 @@
 
 #include "zeek/zeek-config.h"
 
-#ifdef HAVE_MEMORY_H
-#include <memory.h>
-#endif
-#include <stdlib.h>
+#include <cstring>
 
 namespace zeek::detail
 	{

@@ -5,7 +5,7 @@
 #include "zeek/zeek-config.h"
 
 #include <binpac.h>
-#include <ctype.h>
+#include <cctype>
 
 #include "zeek/Desc.h"
 #include "zeek/Event.h"

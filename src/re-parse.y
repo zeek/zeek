@@ -1,7 +1,7 @@
 // parse.y - parser for flex input
 
 %{
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "zeek/RE.h"
 #include "zeek/CCL.h"

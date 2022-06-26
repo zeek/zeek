@@ -24,6 +24,8 @@
 
 #define DEFAULT_PREFIX "pcap"
 
+extern int signal_val;
+
 namespace zeek::iosource
 	{
 
@@ -45,7 +47,11 @@ void Manager::WakeupHandler::Process()
 
 void Manager::WakeupHandler::Ping(std::string_view where)
 	{
-	DBG_LOG(DBG_MAINLOOP, "Pinging WakeupHandler from %s", where.data());
+	// Calling DBG_LOG calls fprintf, which isn't safe to call in a signal
+	// handler.
+	if ( signal_val != 0 )
+		DBG_LOG(DBG_MAINLOOP, "Pinging WakeupHandler from %s", where.data());
+
 	flare.Fire(true);
 	}
 

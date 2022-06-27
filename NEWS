@@ -9,6 +9,11 @@ Zeek 5.1.0
 Breaking Changes
 ----------------
 
+- The ``Packet::{l2,l3}_checksummed`` variables were reworked to correctly match
+  the network layers that they apply to. A new ``Packet::l4_checksummed``
+  variable was added to cover the transport layer. See this GitHub issue for
+  more detail: https://github.com/zeek/zeek/issues/2183.
+
 New Functionality
 -----------------
 

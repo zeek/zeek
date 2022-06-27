@@ -61,6 +61,8 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
 	l3_proto = L3_UNKNOWN;
 	l3_checksummed = false;
 
+	l4_checksummed = false;
+
 	encap.reset();
 	ip_hdr.reset();
 

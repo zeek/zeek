@@ -1,3 +1,7 @@
+5.1.0-dev.126 | 2022-06-27 11:43:27 -0700
+
+  * GH-2183: Rework Packet checksummed variable naming (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.124 | 2022-06-27 10:37:06 -0700
 
   * Code modernization: Convert from deprecated C standard library headers (Tim Wojtulewicz)

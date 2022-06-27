@@ -186,7 +186,6 @@ function Reporter::set_weird_sampling_whitelist%(weird_sampling_whitelist: strin
 	for ( const auto& tble : *wl_table )
 		{
 		auto k = tble.GetHashKey();
-		auto* v = tble.GetValue<TableEntryVal*>();
 
 		auto index = wl_val->RecreateIndex(*k);
 		string key = index->Idx(0)->AsString()->CheckString();

@@ -889,7 +889,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			for ( const auto& fcte : *filter_config_table )
 				{
 				auto k = fcte.GetHashKey();
-				auto* v = fcte.GetValue<TableEntryVal*>();
+				auto* v = fcte.value;
 
 				auto index = filter->config->RecreateIndex(*k);
 				string key = index->Idx(0)->AsString()->CheckString();

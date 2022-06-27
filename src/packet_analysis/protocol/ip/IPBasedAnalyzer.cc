@@ -22,6 +22,8 @@ IPBasedAnalyzer::~IPBasedAnalyzer() {
 }
 
 bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt) {
+    Analyzer::AnalyzePacket(len, data, pkt);
+
     ConnTuple tuple;
     if ( ! BuildConnTuple(len, data, pkt, tuple) )
         return false;

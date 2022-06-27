@@ -66,15 +66,18 @@ public:
      * layer 2 header. The pointer must remain valid for the lifetime of
      * the Packet instance, unless *copy* is true.
      *
+     * @param encap_pkt A pointer to the parent packet, if this packet was
+     * encapsulated in a tunnel.
+     *
      * @param copy If true, the constructor will make an internal copy of
      * *data*, so that the caller can release its version.
      *
      * @param tag A textual tag to associate with the packet for
      * differentiating the input streams.
      */
-    Packet(int link_type, pkt_timeval* ts, uint32_t caplen, uint32_t len, const u_char* data, bool copy = false,
-           std::string tag = "") {
-        Init(link_type, ts, caplen, len, data, copy, std::move(tag));
+    Packet(int link_type, pkt_timeval* ts, uint32_t caplen, uint32_t len, const u_char* data,
+           const Packet* encap_pkt = nullptr, bool copy = false, std::string tag = "") {
+        Init(link_type, ts, caplen, len, data, encap_pkt, copy, tag);
     }
 
     /**
@@ -106,14 +109,17 @@ public:
      * layer 2 header. The pointer must remain valid for the lifetime of
      * the Packet instance, unless *copy* is true.
      *
+     * @param encap_pkt A pointer to the parent packet, if this packet was
+     * encapsulated in a tunnel.
+     *
      * @param copy If true, the constructor will make an internal copy of
      * *data*, so that the caller can release its version.
      *
      * @param tag A textual tag to associate with the packet for
      * differentiating the input streams.
      */
-    void Init(int link_type, pkt_timeval* ts, uint32_t caplen, uint32_t len, const u_char* data, bool copy = false,
-              std::string tag = "");
+    void Init(int link_type, pkt_timeval* ts, uint32_t caplen, uint32_t len, const u_char* data,
+              const Packet* encap_pkt = nullptr, bool copy = false, std::string tag = "");
 
     /**
      * Returns a \c raw_pkt_hdr RecordVal, which includes layer 2 and
@@ -274,6 +280,21 @@ public:
      * The session related to this packet, if one exists.
      */
     session::Session* session = nullptr;
+
+    /**
+     * History of packet analyzers that have been called for this packet.
+     * Analyzer::AnalyzePacket() adds the Tag of the current analyzer to
+     * this vector.
+     */
+    std::vector<zeek::Tag> analyzer_history;
+
+    /**
+     * Translates the tags in analyzer_history to strings containing the
+     * canonical name for each packet analyzer that processed this packet.
+     *
+     * @return A vector of strings representing the packet analyzer history.
+     */
+    VectorValPtr BuildAnalyzerHistory() const;
 
 private:
     // Renders an MAC address into its ASCII representation.

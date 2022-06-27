@@ -38,6 +38,8 @@ static unsigned int gre_header_len(uint16_t flags = 0) {
 GREAnalyzer::GREAnalyzer() : zeek::packet_analysis::Analyzer("GRE") {}
 
 bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     if ( ! packet->ip_hdr ) {
         reporter->InternalError("GREAnalyzer: ip_hdr not provided from earlier analyzer");
         return false;

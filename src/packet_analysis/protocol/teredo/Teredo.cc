@@ -136,6 +136,8 @@ TeredoAnalyzer::TeredoAnalyzer() : zeek::packet_analysis::Analyzer("TEREDO") {
 }
 
 bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     // Teredo always comes from a UDP connection, which means that session should always
     // be valid and always be a connection. Store this off for the span of the
     // processing so that it can be used for other things. Return a weird if we didn't

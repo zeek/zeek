@@ -24,7 +24,7 @@ extern "C" {
 namespace zeek {
 
 void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, uint32_t arg_len, const u_char* arg_data,
-                  bool arg_copy, std::string arg_tag) {
+                  const Packet* arg_encap_pkt, bool arg_copy, std::string arg_tag) {
     if ( data && copy )
         delete[] data;
 
@@ -68,6 +68,12 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
     gre_link_type = DLT_RAW;
 
     processed = false;
+
+    analyzer_history.clear();
+    if ( arg_encap_pkt ) {
+        analyzer_history.insert(analyzer_history.end(), arg_encap_pkt->analyzer_history.begin(),
+                                arg_encap_pkt->analyzer_history.end());
+    }
 }
 
 Packet::~Packet() {
@@ -181,6 +187,17 @@ ValPtr Packet::FmtEUI48(const u_char* mac) const {
     char buf[20];
     snprintf(buf, sizeof buf, "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     return make_intrusive<StringVal>(buf);
+}
+
+VectorValPtr Packet::BuildAnalyzerHistory() const {
+    auto history = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+
+    for ( unsigned int i = 0; i < analyzer_history.size(); i++ ) {
+        auto cname = packet_mgr->Lookup(analyzer_history[i])->CanonicalName();
+        history->Assign(i, make_intrusive<StringVal>(cname));
+    }
+
+    return history;
 }
 
 } // namespace zeek

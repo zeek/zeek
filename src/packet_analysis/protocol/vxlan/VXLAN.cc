@@ -10,6 +10,8 @@ using namespace zeek::packet_analysis::VXLAN;
 VXLAN_Analyzer::VXLAN_Analyzer() : zeek::packet_analysis::Analyzer("VXLAN") {}
 
 bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     // VXLAN always comes from a UDP connection, which means that session should always
     // be valid and always be a connection. Return a weird if we didn't have a session
     // stored.

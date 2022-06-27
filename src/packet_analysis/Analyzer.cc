@@ -55,6 +55,11 @@ bool Analyzer::IsAnalyzer(const char* name) {
 
 const AnalyzerPtr& Analyzer::Lookup(uint32_t identifier) const { return dispatcher.Lookup(identifier); }
 
+bool Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    packet->analyzer_history.push_back(this->GetAnalyzerTag());
+    return false;
+}
+
 // Find the next inner analyzer using identifier or via DetectProtocol(),
 // otherwise return the default analyzer.
 const AnalyzerPtr& Analyzer::FindInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet,
@@ -100,7 +105,7 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet, ui
                 GetAnalyzerName(), identifier);
 
         if ( report_unknown_protocols )
-            packet_mgr->ReportUnknownProtocol(GetAnalyzerName(), identifier, data, len);
+            packet_mgr->ReportUnknownProtocol(GetAnalyzerName(), identifier, packet, data, len);
 
         return false;
     }

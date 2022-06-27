@@ -7,6 +7,8 @@ using namespace zeek::packet_analysis::IEEE802_11;
 IEEE802_11Analyzer::IEEE802_11Analyzer() : zeek::packet_analysis::Analyzer("IEEE802_11") {}
 
 bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     u_char len_80211 = 24; // minimal length of data frames
 
     if ( len_80211 >= len ) {

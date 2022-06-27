@@ -7,6 +7,8 @@ using namespace zeek::packet_analysis::Null;
 NullAnalyzer::NullAnalyzer() : zeek::packet_analysis::Analyzer("Null") {}
 
 bool NullAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     if ( 4 >= len ) {
         Weird("null_analyzer_failed", packet);
         return false;

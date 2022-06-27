@@ -29,6 +29,8 @@ IPAnalyzer::IPAnalyzer() : zeek::packet_analysis::Analyzer("IP") {
 IPAnalyzer::~IPAnalyzer() { delete discarder; }
 
 bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     // Check to make sure we have enough data left for an IP header to be here. Note we only
     // check ipv4 here. We'll check ipv6 later once we determine we have an ipv6 header.
     if ( len < sizeof(struct ip) ) {

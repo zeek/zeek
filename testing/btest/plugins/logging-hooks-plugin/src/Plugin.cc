@@ -1,14 +1,17 @@
 
 #include "Plugin.h"
 
-#include <Func.h>
-#include <Event.h>
 #include <Conn.h>
 #include <Desc.h>
-#include <threading/Formatter.h>
+#include <Event.h>
+#include <Func.h>
 #include <RunState.h>
+#include <threading/Formatter.h>
 
-namespace btest::plugin::Log_Hooks { Plugin plugin; }
+namespace btest::plugin::Log_Hooks
+	{
+Plugin plugin;
+	}
 
 using namespace btest::plugin::Log_Hooks;
 
@@ -27,14 +30,15 @@ zeek::plugin::Configuration Plugin::Configure()
 	return config;
 	}
 
-void Plugin::HookLogInit(const std::string& writer, const std::string& instantiating_filter, bool local,
-                         bool remote, const zeek::logging::WriterBackend::WriterInfo& info,
-                         int num_fields, const zeek::threading::Field* const* fields)
+void Plugin::HookLogInit(const std::string& writer, const std::string& instantiating_filter,
+                         bool local, bool remote,
+                         const zeek::logging::WriterBackend::WriterInfo& info, int num_fields,
+                         const zeek::threading::Field* const* fields)
 	{
 	zeek::ODesc d;
 
 	d.Add("{");
-	for ( int i=0; i < num_fields; i++ )
+	for ( int i = 0; i < num_fields; i++ )
 		{
 		const zeek::threading::Field* f = fields[i];
 
@@ -48,13 +52,14 @@ void Plugin::HookLogInit(const std::string& writer, const std::string& instantia
 		}
 	d.Add("}");
 
-	fprintf(stderr, "%.6f %-15s %s %d/%d %s\n", zeek::run_state::network_time,
-	        "| HookLogInit", info.path, local, remote, d.Description());
+	fprintf(stderr, "%.6f %-15s %s %d/%d %s\n", zeek::run_state::network_time, "| HookLogInit",
+	        info.path, local, remote, d.Description());
 	}
 
 bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
                           const zeek::logging::WriterBackend::WriterInfo& info, int num_fields,
-                          const zeek::threading::Field* const* fields, zeek::threading::Value** vals)
+                          const zeek::threading::Field* const* fields,
+                          zeek::threading::Value** vals)
 	{
 	round++;
 	if ( round == 1 ) // do not output line

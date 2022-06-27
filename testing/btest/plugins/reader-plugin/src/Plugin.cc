@@ -2,7 +2,10 @@
 
 #include "Foo.h"
 
-namespace btest::plugin::Demo_Foo { Plugin plugin; }
+namespace btest::plugin::Demo_Foo
+	{
+Plugin plugin;
+	}
 
 using namespace btest::plugin::Demo_Foo;
 

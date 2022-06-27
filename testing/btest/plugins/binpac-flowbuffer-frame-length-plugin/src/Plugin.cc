@@ -1,16 +1,18 @@
 #include "plugin/Plugin.h"
-#include "analyzer/Component.h"
 
 #include "FOO.h"
+#include "analyzer/Component.h"
 
-namespace btest::plugin::Foo_FOO {
+namespace btest::plugin::Foo_FOO
+	{
 
-class Plugin : public zeek::plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin
+	{
 public:
 	zeek::plugin::Configuration Configure()
 		{
-		AddComponent(new zeek::analyzer::Component("FOO",
-		             btest::analyzer::FOO::FOO_Analyzer::InstantiateAnalyzer));
+		AddComponent(new zeek::analyzer::Component(
+			"FOO", btest::analyzer::FOO::FOO_Analyzer::InstantiateAnalyzer));
 
 		zeek::plugin::Configuration config;
 		config.name = "FOO::Foo";
@@ -19,6 +21,6 @@ public:
 		config.version.minor = 0;
 		return config;
 		}
-} plugin;
+	} plugin;
 
-}
+	}

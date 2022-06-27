@@ -1,7 +1,10 @@
 
 #include "Plugin.h"
 
-namespace btest::plugin::Testing_Plugin1 { Plugin plugin; }
+namespace btest::plugin::Testing_Plugin1
+	{
+Plugin plugin;
+	}
 
 using namespace btest::plugin::Testing_Plugin1;
 

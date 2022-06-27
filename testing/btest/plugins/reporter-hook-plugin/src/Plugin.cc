@@ -1,13 +1,16 @@
 
 #include "Plugin.h"
 
-#include <Func.h>
-#include <Event.h>
 #include <Conn.h>
 #include <Desc.h>
+#include <Event.h>
+#include <Func.h>
 #include <threading/Formatter.h>
 
-namespace btest::plugin::Reporter_Hook { Plugin plugin; }
+namespace btest::plugin::Reporter_Hook
+	{
+Plugin plugin;
+	}
 
 using namespace btest::plugin::Reporter_Hook;
 
@@ -26,8 +29,9 @@ zeek::plugin::Configuration Plugin::Configure()
 
 bool Plugin::HookReporter(const std::string& prefix, const zeek::EventHandlerPtr event,
                           const zeek::Connection* conn, const zeek::ValPList* addl, bool location,
-                          const zeek::detail::Location* location1, const zeek::detail::Location* location2,
-                          bool time, const std::string& message)
+                          const zeek::detail::Location* location1,
+                          const zeek::detail::Location* location2, bool time,
+                          const std::string& message)
 	{
 	zeek::ODesc d;
 	if ( location1 )

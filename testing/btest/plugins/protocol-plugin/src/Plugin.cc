@@ -1,17 +1,21 @@
 
 #include "Plugin.h"
+
+#include "Foo.h"
 #include "analyzer/Component.h"
 #include "analyzer/Manager.h"
 
-#include "Foo.h"
-
-namespace btest::plugin::Demo_Foo { Plugin plugin; }
+namespace btest::plugin::Demo_Foo
+	{
+Plugin plugin;
+	}
 
 using namespace btest::plugin::Demo_Foo;
 
 zeek::plugin::Configuration Plugin::Configure()
 	{
-	AddComponent(new zeek::analyzer::Component("Foo", btest::plugin::Demo_Foo::Foo::Instantiate, 1));
+	AddComponent(
+		new zeek::analyzer::Component("Foo", btest::plugin::Demo_Foo::Foo::Instantiate, 1));
 
 	zeek::plugin::Configuration config;
 	config.name = "Demo::Foo";
@@ -22,12 +26,11 @@ zeek::plugin::Configuration Plugin::Configure()
 	return config;
 	}
 
-
 void Plugin::InitPostScript()
 	{
-		auto tag = ::zeek::analyzer_mgr->GetAnalyzerTag("Foo");
-		if ( ! tag )
-			::zeek::reporter->FatalError("cannot get analyzer Tag");
+	auto tag = ::zeek::analyzer_mgr->GetAnalyzerTag("Foo");
+	if ( ! tag )
+		::zeek::reporter->FatalError("cannot get analyzer Tag");
 
-		zeek::analyzer_mgr->RegisterAnalyzerForPort(tag, TransportProto::TRANSPORT_TCP, 4243);
+	zeek::analyzer_mgr->RegisterAnalyzerForPort(tag, TransportProto::TRANSPORT_TCP, 4243);
 	}

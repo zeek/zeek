@@ -1,16 +1,21 @@
 
-#include "Foo.h"
 #include "Plugin.h"
+
+#include "Foo.h"
 #include "file_analysis/Component.h"
 #include "file_analysis/File.h"
 
-namespace btest::plugin::Demo_Foo { Plugin plugin; }
+namespace btest::plugin::Demo_Foo
+	{
+Plugin plugin;
+	}
 
 using namespace btest::plugin::Demo_Foo;
 
 zeek::plugin::Configuration Plugin::Configure()
 	{
-	AddComponent(new zeek::file_analysis::Component("Foo", btest::plugin::Demo_Foo::Foo::Instantiate));
+	AddComponent(
+		new zeek::file_analysis::Component("Foo", btest::plugin::Demo_Foo::Foo::Instantiate));
 
 	zeek::plugin::Configuration config;
 	config.name = "Demo::Foo";

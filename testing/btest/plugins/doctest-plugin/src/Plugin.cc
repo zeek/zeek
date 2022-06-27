@@ -3,8 +3,10 @@
 
 #include <zeek/3rdparty/doctest.h>
 
-
-namespace btest::plugin::Demo_Doctest { Plugin plugin; }
+namespace btest::plugin::Demo_Doctest
+	{
+Plugin plugin;
+	}
 
 using namespace btest::plugin::Demo_Doctest;
 
@@ -20,6 +22,6 @@ zeek::plugin::Configuration Plugin::Configure()
 	}
 
 TEST_CASE("doctest-plugin/demotest")
-        {
-        CHECK(true);
-        }
+	{
+	CHECK(true);
+	}

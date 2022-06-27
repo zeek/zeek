@@ -1,10 +1,11 @@
 
 #include "Foo.h"
-#include "iosource/Packet.h"
-#include "RunState.h"
 
 #include <fcntl.h>
 #include <cstdio>
+
+#include "RunState.h"
+#include "iosource/Packet.h"
 
 using namespace btest::plugin::Demo_Foo;
 
@@ -13,9 +14,7 @@ Foo::Foo(const std::string& path, bool is_live)
 	props.path = path;
 	}
 
-Foo::~Foo()
-	{
-	}
+Foo::~Foo() { }
 
 void Foo::Open()
 	{

@@ -1,13 +1,17 @@
 
 #include "Plugin.h"
 
-namespace btest::plugin::Testing_Plugin2 { Plugin plugin; }
+namespace btest::plugin::Testing_Plugin2
+	{
+Plugin plugin;
+	}
 
 using namespace btest::plugin::Testing_Plugin2;
 
-void Plugin2_foo() {
-    printf("in Plugin2\n");
-}
+void Plugin2_foo()
+	{
+	printf("in Plugin2\n");
+	}
 
 zeek::plugin::Configuration Plugin::Configure()
 	{

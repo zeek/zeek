@@ -6,7 +6,6 @@
 
 #include "zeek/Attr.h"
 #include "zeek/Desc.h"
-#include "zeek/Dict.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Expr.h"
 #include "zeek/File.h"

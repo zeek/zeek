@@ -3,7 +3,6 @@
 #include "zeek/packet_analysis/Analyzer.h"
 
 #include "zeek/DebugLogger.h"
-#include "zeek/Dict.h"
 #include "zeek/Event.h"
 #include "zeek/RunState.h"
 #include "zeek/session/Manager.h"

@@ -7,7 +7,6 @@
 #include <tuple>
 #include <type_traits>
 
-#include "zeek/Dict.h"
 #include "zeek/IPAddr.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Rule.h"

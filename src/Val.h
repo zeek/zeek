@@ -8,7 +8,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "zeek/Dict.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Notifier.h"
 #include "zeek/Reporter.h"
@@ -37,6 +36,10 @@ class IPPrefix;
 class RE_Matcher;
 class File;
 using FilePtr = zeek::IntrusivePtr<File>;
+
+template <typename T> class RobustDictIterator;
+template <typename T> class Dictionary;
+template <typename T> using PDict = Dictionary<T>;
 
 namespace detail
 	{

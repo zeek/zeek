@@ -3,6 +3,7 @@
 #pragma once
 
 #include "zeek/Val.h"
+#include "zeek/ZeekArgs.h"
 
 namespace zeek::detail
 	{

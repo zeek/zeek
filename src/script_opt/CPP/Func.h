@@ -85,11 +85,9 @@ class CPPLambdaFunc : public ScriptFunc
 public:
 	CPPLambdaFunc(std::string name, FuncTypePtr ft, CPPStmtPtr l_body);
 
-	bool HasCopySemantics() const override { return true; }
-
 protected:
 	// Methods related to sending lambdas via Broker.
-	broker::expected<broker::data> SerializeClosure() const override;
+	broker::expected<broker::data> SerializeCaptures() const override;
 	void SetCaptures(Frame* f) override;
 
 	FuncPtr DoClone() override;

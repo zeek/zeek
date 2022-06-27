@@ -1,3 +1,7 @@
+5.1.0-dev.128 | 2022-06-27 13:04:47 -0700
+
+  * removed deprecated capture-by-reference closures (Vern Paxson, Corelight)
+
 5.1.0-dev.126 | 2022-06-27 11:43:27 -0700
 
   * GH-2183: Rework Packet checksummed variable naming (Tim Wojtulewicz, Corelight)

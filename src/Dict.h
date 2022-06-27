@@ -486,6 +486,12 @@ public:
 		return position >= 0 ? table[position].value : nullptr;
 		}
 
+	T* Lookup(const char* key) const
+		{
+		detail::HashKey h(key);
+		return Dictionary<T>::Lookup(&h);
+		}
+
 	// Returns previous value, or 0 if none.
 	// If iterators_invalidated is supplied, its value is set to true
 	// if the removal may have invalidated any existing iterators.
@@ -581,6 +587,12 @@ public:
 		return v;
 		}
 
+	T* Insert(const char* key, T* val, bool* iterators_invalidated = nullptr)
+		{
+		detail::HashKey h(key);
+		return Insert(&h, val, iterators_invalidated);
+		}
+
 	// Removes the given element.  Returns a pointer to the element in
 	// case it needs to be deleted.  Returns 0 if no such element exists.
 	// If dontdelete is true, the key's bytes will not be deleted.
@@ -624,6 +636,17 @@ public:
 		return v;
 		}
 
+	// TODO: these came from PDict. They could probably be deprecated and removed in favor of
+	// just using Remove().
+	T* RemoveEntry(const detail::HashKey* key, bool* iterators_invalidated = nullptr)
+		{
+		return Remove(key->Key(), key->Size(), key->Hash(), false, iterators_invalidated);
+		}
+	T* RemoveEntry(const detail::HashKey& key, bool* iterators_invalidated = nullptr)
+		{
+		return Remove(key.Key(), key.Size(), key.Hash(), false, iterators_invalidated);
+		}
+
 	// Number of entries.
 	int Length() const { return num_entries; }
 
@@ -657,6 +680,12 @@ public:
 		key = entry.GetKey();
 		key_size = entry.key_size;
 		return entry.value;
+		}
+
+	T* NthEntry(int n, const char*& key) const
+		{
+		int key_len;
+		return NthEntry(n, (const void*&)key, key_len);
 		}
 
 	void SetDeleteFunc(dict_delete_func f) { delete_func = f; }
@@ -1488,47 +1517,6 @@ private:
 	std::vector<detail::DictEntry<T>>* order = nullptr;
 	};
 
-/*
- * Template specialization of Dictionary that stores pointers for values.
- */
-template <typename T> class PDict : public Dictionary<T>
-	{
-public:
-	explicit PDict(DictOrder ordering = UNORDERED, int initial_size = 0)
-		: Dictionary<T>(ordering, initial_size)
-		{
-		}
-	T* Lookup(const char* key) const
-		{
-		detail::HashKey h(key);
-		return Dictionary<T>::Lookup(&h);
-		}
-	T* Lookup(const detail::HashKey* key) const { return Dictionary<T>::Lookup(key); }
-	T* Insert(const char* key, T* val, bool* iterators_invalidated = nullptr)
-		{
-		detail::HashKey h(key);
-		return Dictionary<T>::Insert(&h, val, iterators_invalidated);
-		}
-	T* Insert(detail::HashKey* key, T* val, bool* iterators_invalidated = nullptr)
-		{
-		return Dictionary<T>::Insert(key, val, iterators_invalidated);
-		}
-	T* NthEntry(int n) const { return Dictionary<T>::NthEntry(n); }
-	T* NthEntry(int n, const char*& key) const
-		{
-		int key_len;
-		return Dictionary<T>::NthEntry(n, (const void*&)key, key_len);
-		}
-	T* RemoveEntry(const detail::HashKey* key, bool* iterators_invalidated = nullptr)
-		{
-		return Dictionary<T>::Remove(key->Key(), key->Size(), key->Hash(), false,
-		                             iterators_invalidated);
-		}
-	T* RemoveEntry(const detail::HashKey& key, bool* iterators_invalidated = nullptr)
-		{
-		return Dictionary<T>::Remove(key.Key(), key.Size(), key.Hash(), false,
-		                             iterators_invalidated);
-		}
-	};
+template <typename T> using PDict = Dictionary<T>;
 
 	} // namespace zeek

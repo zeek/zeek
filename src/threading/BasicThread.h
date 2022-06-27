@@ -4,6 +4,7 @@
 #include "zeek/zeek-config.h"
 
 #include <stdint.h>
+#include <atomic>
 #include <iosfwd>
 #include <thread>
 
@@ -201,8 +202,8 @@ private:
 	const char* name;
 	std::thread thread;
 	bool started; // Set to to true once running.
-	bool terminating; // Set to to true to signal termination.
-	bool killed; // Set to true once forcefully killed.
+	std::atomic_bool terminating; // Set to to true to signal termination.
+	std::atomic_bool killed; // Set to true once forcefully killed.
 
 	// For implementing Fmt().
 	uint32_t buf_len;

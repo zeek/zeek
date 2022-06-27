@@ -1,3 +1,11 @@
+5.1.0-dev.121 | 2022-06-27 09:26:54 -0700
+
+  * Mark bools in BasicThread as atomic to avoid data races (Tim Wojtulewicz)
+
+  * Avoid calling DBG_LOG during signal handling (Tim Wojtulewicz)
+
+  * Fixes for iosource::Manager for deadlocks during shutdown (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.116 | 2022-06-24 14:18:40 -0700
 
   * Bump broker submodule to pick up two fixes (Tim Wojtulewicz, Corelight)

@@ -144,7 +144,7 @@ public:
 	 * is called during RegisterFd and UnregisterFd since those methods cause
 	 * changes to the active set of file descriptors.
 	 */
-	void Wakeup(const std::string& where);
+	void Wakeup(std::string_view where);
 
 private:
 	/**
@@ -186,7 +186,7 @@ private:
 		 * @param where a string denoting where this ping was called from. Used
 		 * for debugging output.
 		 */
-		void Ping(const std::string& where);
+		void Ping(std::string_view where);
 
 		// IOSource API methods
 		void Process() override;

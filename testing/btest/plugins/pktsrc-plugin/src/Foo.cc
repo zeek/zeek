@@ -6,7 +6,7 @@ extern "C" {
 }
 
 #include <fcntl.h>
-#include <stdio.h>
+#include <cstdio>
 
 using namespace btest::plugin::Demo_Foo;
 

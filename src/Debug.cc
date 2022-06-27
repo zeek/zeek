@@ -4,10 +4,10 @@
 
 #include "zeek/zeek-config.h"
 
-#include <ctype.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <stdio.h>
+#include <cctype>
+#include <csignal>
+#include <cstdarg>
+#include <cstdio>
 #include <string>
 
 #ifdef HAVE_READLINE

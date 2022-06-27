@@ -8,13 +8,13 @@
 ##! in this file.
 
 %%{ // C segment
-#include <math.h>
+#include <cmath>
 #include <vector>
 #include <algorithm>
 #include <cmath>
 #include <sys/stat.h>
 #include <cstdio>
-#include <time.h>
+#include <ctime>
 
 #include "zeek/digest.h"
 #include "zeek/Reporter.h"

@@ -15,13 +15,13 @@
 #endif
 
 #include <libgen.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <array>
 #include <cinttypes>
+#include <cstdarg>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <memory> // std::unique_ptr
 #include <string>
 #include <string_view>
@@ -29,18 +29,18 @@
 
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
-#include <time.h>
+#include <ctime>
 #else
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #else
-#include <time.h>
+#include <ctime>
 #endif
 #endif
 
 #ifdef DEBUG
 
-#include <assert.h>
+#include <cassert>
 
 #define ASSERT(x) assert(x)
 #define DEBUG_MSG(x...) fprintf(stderr, x)

@@ -4,7 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 
 struct in_addr;

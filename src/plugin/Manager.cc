@@ -4,10 +4,10 @@
 
 #include <dirent.h>
 #include <dlfcn.h>
-#include <errno.h>
 #include <glob.h>
-#include <limits.h> // for PATH_MAX
 #include <sys/stat.h>
+#include <cerrno>
+#include <climits> // for PATH_MAX
 #include <cstdlib>
 #include <fstream>
 #include <optional>

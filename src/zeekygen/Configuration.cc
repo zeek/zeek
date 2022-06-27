@@ -2,8 +2,8 @@
 
 #include "zeek/zeekygen/Configuration.h"
 
-#include <errno.h>
 #include <algorithm>
+#include <cerrno>
 #include <fstream>
 #include <vector>
 

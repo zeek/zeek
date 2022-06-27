@@ -2,7 +2,7 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 
-#include <errno.h>
+#include <cerrno>
 
 #include "zeek/Event.h"
 #include "zeek/File.h"

@@ -2,7 +2,7 @@
 
 #include "zeek/iosource/Manager.h"
 
-#include <assert.h>
+#include <cassert>
 // These two files have to remain in the same order or FreeBSD builds
 // stop working.
 // clang-format off

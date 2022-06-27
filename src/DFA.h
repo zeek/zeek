@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <assert.h>
 #include <sys/types.h> // for u_char
+#include <cassert>
 #include <map>
 #include <string>
 

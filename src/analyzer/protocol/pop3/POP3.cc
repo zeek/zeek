@@ -5,7 +5,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include <ctype.h>
+#include <cctype>
 #include <string>
 #include <vector>
 

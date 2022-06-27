@@ -2,11 +2,11 @@
 
 #include "zeek/zeek-config.h"
 
-#include <assert.h>
-#include <errno.h>
-#include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <cassert>
+#include <cerrno>
+#include <cstdio>
 #include <map>
 #include <string>
 #include <vector>

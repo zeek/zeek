@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include <assert.h>
-#include <string.h>
 #include <sys/types.h> // for u_char
+#include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <map>
 
 #include "zeek/Obj.h"

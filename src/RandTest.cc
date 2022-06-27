@@ -14,7 +14,7 @@
 
 #include "zeek/RandTest.h"
 
-#include <math.h>
+#include <cmath>
 
 constexpr double log2of10 = 3.32192809488736234787;
 

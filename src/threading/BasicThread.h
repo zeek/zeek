@@ -3,8 +3,8 @@
 
 #include "zeek/zeek-config.h"
 
-#include <stdint.h>
 #include <atomic>
+#include <cstdint>
 #include <iosfwd>
 #include <thread>
 

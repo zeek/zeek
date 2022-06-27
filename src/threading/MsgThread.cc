@@ -1,8 +1,8 @@
 #include "zeek/threading/MsgThread.h"
 
 #include <fcntl.h>
-#include <signal.h>
 #include <unistd.h>
+#include <csignal>
 
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"

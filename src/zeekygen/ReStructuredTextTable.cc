@@ -2,7 +2,7 @@
 
 #include "zeek/zeekygen/ReStructuredTextTable.h"
 
-#include <assert.h>
+#include <cassert>
 
 using namespace std;
 

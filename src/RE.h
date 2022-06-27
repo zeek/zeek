@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <ctype.h>
 #include <sys/types.h> // for u_char
+#include <cctype>
 #include <map>
 #include <set>
 #include <string>

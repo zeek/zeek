@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <deque>
 #include <string>
 #include <vector>

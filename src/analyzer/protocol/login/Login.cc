@@ -4,8 +4,8 @@
 
 #include "zeek/zeek-config.h"
 
-#include <ctype.h>
-#include <stdlib.h>
+#include <cctype>
+#include <cstdlib>
 
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"

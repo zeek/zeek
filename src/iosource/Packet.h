@@ -2,8 +2,8 @@
 
 #include "zeek/zeek-config.h"
 
-#include <stdint.h>
 #include <sys/types.h> // for u_char
+#include <cstdint>
 #include <string>
 
 #if defined(__OpenBSD__)

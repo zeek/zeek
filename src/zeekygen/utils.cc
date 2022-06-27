@@ -2,8 +2,8 @@
 
 #include "zeek/zeekygen/utils.h"
 
-#include <errno.h>
 #include <sys/stat.h>
+#include <cerrno>
 
 #include "zeek/Func.h"
 #include "zeek/ID.h"

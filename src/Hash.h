@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "zeek/util.h" // for bro_int_t
 

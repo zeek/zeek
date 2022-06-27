@@ -6,12 +6,12 @@
 
 #include <netdb.h>
 #include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/param.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <set>
 
 #include "zeek/Attr.h"

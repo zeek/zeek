@@ -4,8 +4,8 @@
 
 #include "zeek/zeek-config.h"
 
-#include <ctype.h>
 #include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <sstream> // Needed for unit testing
 

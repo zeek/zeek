@@ -11,20 +11,20 @@
 #include <mach/task.h>
 #endif
 
-#include <ctype.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cctype>
+#include <cerrno>
+#include <csignal>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
 
 #if defined(HAVE_MALLINFO) || defined(HAVE_MALLINFO2)
 #include <malloc.h>

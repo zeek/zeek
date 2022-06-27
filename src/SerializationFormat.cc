@@ -1,6 +1,6 @@
 #include "zeek/SerializationFormat.h"
 
-#include <ctype.h>
+#include <cctype>
 
 #include "zeek/DebugLogger.h"
 #include "zeek/IPAddr.h"

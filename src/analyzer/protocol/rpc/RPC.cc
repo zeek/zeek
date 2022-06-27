@@ -4,7 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <string>
 
 #include "zeek/NetVar.h"

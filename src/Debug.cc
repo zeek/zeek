@@ -60,7 +60,7 @@ bool in_debug = false;
 // ### fix this hardwired access to external variables etc.
 struct yy_buffer_state;
 using YY_BUFFER_STATE = struct yy_buffer_state*;
-YY_BUFFER_STATE bro_scan_string(const char*);
+YY_BUFFER_STATE zeek_scan_string(const char*);
 
 extern YYLTYPE yylloc; // holds start line and column of token
 extern int line_number;
@@ -963,7 +963,7 @@ ValPtr dbg_eval_expr(const char* expr)
 
 	// Set up the lexer to read from the string.
 	string parse_string = string("@DEBUG ") + expr;
-	bro_scan_string(parse_string.c_str());
+	zeek_scan_string(parse_string.c_str());
 
 	// Fix filename and line number for the lexer/parser, which record it.
 	filename = "<interactive>";

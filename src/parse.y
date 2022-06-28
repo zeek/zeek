@@ -114,7 +114,7 @@ extern bool current_file_has_conditionals;
 
 extern YYLTYPE GetCurrentLocation();
 extern int yyerror(const char[]);
-extern int brolex();
+extern int zeeklex();
 
 #define YYLLOC_DEFAULT(Current, Rhs, N) \
 	(Current) = (Rhs)[(N)];

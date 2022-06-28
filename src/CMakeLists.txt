@@ -91,14 +91,14 @@ set_property(SOURCE re-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-c
 # Parser/Scanner
 bison_target(Parser parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/p.cc
-             HEADER ${CMAKE_CURRENT_BINARY_DIR}/broparse.h
+             HEADER ${CMAKE_CURRENT_BINARY_DIR}/zeekparse.h
              #VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
-                         bro yy)
+                         zeek yy)
 flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
-            COMPILE_FLAGS "-Pbro")
+            COMPILE_FLAGS "-Pzeek")
 set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 
 ########################################################################

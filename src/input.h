@@ -10,7 +10,7 @@
 // These are required by the lexer in scan.l and are intentionally not namespaced.
 extern int yyparse();
 extern int yydebug;
-extern int brolex();
+extern int zeeklex();
 extern char last_tok[128];
 
 extern void add_essential_input_file(const char* file);

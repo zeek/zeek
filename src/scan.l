@@ -39,7 +39,7 @@
 
 #include "zeek/plugin/Manager.h"
 
-#include "broparse.h"
+#include "zeekparse.h"
 
 using namespace zeek::detail;
 

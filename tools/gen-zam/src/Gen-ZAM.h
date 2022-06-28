@@ -787,9 +787,9 @@ protected:
 	const char* VecEvalRE(bool have_target) const override
 		{
 		if ( have_target )
-			return "$$$$ = ZVal(bro_int_t($1))";
+			return "$$$$ = ZVal(zeek_int_t($1))";
 		else
-			return "ZVal(bro_int_t($&))";
+			return "ZVal(zeek_int_t($&))";
 		}
 
 	void Instantiate() override;

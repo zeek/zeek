@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "zeek/3rdparty/bro_inet_ntop.h"
+#include "zeek/3rdparty/zeek_inet_ntop.h"
 #include "zeek/Conn.h"
 #include "zeek/Hash.h"
 #include "zeek/Reporter.h"
@@ -246,7 +246,7 @@ std::string IPAddr::AsString() const
 		{
 		char s[INET_ADDRSTRLEN];
 
-		if ( ! bro_inet_ntop(AF_INET, &in6.s6_addr[12], s, INET_ADDRSTRLEN) )
+		if ( ! zeek_inet_ntop(AF_INET, &in6.s6_addr[12], s, INET_ADDRSTRLEN) )
 			return "<bad IPv4 address conversion";
 		else
 			return s;
@@ -255,7 +255,7 @@ std::string IPAddr::AsString() const
 		{
 		char s[INET6_ADDRSTRLEN];
 
-		if ( ! bro_inet_ntop(AF_INET6, in6.s6_addr, s, INET6_ADDRSTRLEN) )
+		if ( ! zeek_inet_ntop(AF_INET6, in6.s6_addr, s, INET6_ADDRSTRLEN) )
 			return "<bad IPv6 address conversion";
 		else
 			return s;

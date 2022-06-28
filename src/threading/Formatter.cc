@@ -6,7 +6,7 @@
 
 #include <cerrno>
 
-#include "zeek/3rdparty/bro_inet_ntop.h"
+#include "zeek/3rdparty/zeek_inet_ntop.h"
 #include "zeek/threading/MsgThread.h"
 
 using zeek::threading::Field;
@@ -28,7 +28,7 @@ std::string Formatter::Render(const threading::Value::addr_t& addr)
 		{
 		char s[INET_ADDRSTRLEN];
 
-		if ( ! bro_inet_ntop(AF_INET, &addr.in.in4, s, INET_ADDRSTRLEN) )
+		if ( ! zeek_inet_ntop(AF_INET, &addr.in.in4, s, INET_ADDRSTRLEN) )
 			return "<bad IPv4 address conversion>";
 		else
 			return s;
@@ -37,7 +37,7 @@ std::string Formatter::Render(const threading::Value::addr_t& addr)
 		{
 		char s[INET6_ADDRSTRLEN];
 
-		if ( ! bro_inet_ntop(AF_INET6, &addr.in.in6, s, INET6_ADDRSTRLEN) )
+		if ( ! zeek_inet_ntop(AF_INET6, &addr.in.in6, s, INET6_ADDRSTRLEN) )
 			return "<bad IPv6 address conversion>";
 		else
 			return s;

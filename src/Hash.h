@@ -23,7 +23,7 @@
 
 #include "zeek/util.h" // for zeek_int_t
 
-// to allow bro_md5_hmac access to the hmac seed
+// to allow md5_hmac_bif access to the hmac seed
 #include "zeek/ZeekArgs.h"
 
 namespace zeek

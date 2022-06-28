@@ -726,7 +726,12 @@ public:
 	 * @return True if successful (which however may only mean
 	 * "successfully queued").
 	 */
-	bool LoadBroFile(const std::string& file);
+	bool LoadZeekFile(const std::string& file);
+
+	[[deprecated("Remove in v6.1. Use LoadZeekFile.")]] bool LoadBroFile(const std::string& file)
+		{
+		return LoadZeekFile(file);
+		}
 
 protected:
 	friend class Manager;

@@ -2448,7 +2448,7 @@ void TableVal::DoExpire(double t)
 			{
 			// This happens when we insert val while network_time
 			// hasn't been initialized yet (e.g. in zeek_init()), and
-			// also when bro_start_network_time hasn't been initialized
+			// also when zeek_start_network_time hasn't been initialized
 			// (e.g. before first packet).  The expire_access_time is
 			// correct, so we just need to wait.
 			}

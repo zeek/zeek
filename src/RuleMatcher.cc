@@ -1327,7 +1327,7 @@ void RuleMatcher::DumpStateStats(File* f, RuleHdrTest* hdr_test)
 		DumpStateStats(f, h);
 	}
 
-static Val* get_bro_val(const char* label)
+static Val* get_zeek_val(const char* label)
 	{
 	auto id = lookup_ID(label, GLOBAL_MODULE_NAME, false);
 	if ( ! id )
@@ -1410,7 +1410,7 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to, vector<IPPrefi
 void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
                          vector<IPPrefix>* prefix_vector)
 	{
-	Val* v = get_bro_val(id);
+	Val* v = get_zeek_val(id);
 	if ( ! v )
 		return;
 
@@ -1432,7 +1432,7 @@ char* id_to_str(const char* id)
 	const String* src;
 	char* dst;
 
-	Val* v = get_bro_val(id);
+	Val* v = get_zeek_val(id);
 	if ( ! v )
 		goto error;
 
@@ -1455,7 +1455,7 @@ error:
 
 uint32_t id_to_uint(const char* id)
 	{
-	Val* v = get_bro_val(id);
+	Val* v = get_zeek_val(id);
 	if ( ! v )
 		return 0;
 

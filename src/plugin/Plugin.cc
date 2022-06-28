@@ -339,7 +339,7 @@ static bool component_cmp(const Component* a, const Component* b)
 	return a->Name() < b->Name();
 	}
 
-bool Plugin::LoadBroFile(const std::string& file)
+bool Plugin::LoadZeekFile(const std::string& file)
 	{
 	::add_input_file(file.c_str());
 	return true;

@@ -456,7 +456,7 @@ static void atexit_handler()
 	util::detail::set_processing_status("TERMINATED", "atexit");
 	}
 
-static void bro_new_handler()
+static void zeek_new_handler()
 	{
 	out_of_memory("new");
 	}
@@ -498,7 +498,7 @@ static void set_signal_mask(bool do_block)
 SetupResult setup(int argc, char** argv, Options* zopts)
 	{
 	ZEEK_LSAN_DISABLE();
-	std::set_new_handler(bro_new_handler);
+	std::set_new_handler(zeek_new_handler);
 
 	auto zeek_exe_path = util::detail::get_exe_path(argv[0]);
 

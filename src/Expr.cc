@@ -29,7 +29,7 @@
 namespace zeek::detail
 	{
 
-const char* expr_name(BroExprTag t)
+const char* expr_name(ExprTag t)
 	{
 	static const char* expr_names[int(NUM_EXPRS)] = {
 		"name",
@@ -112,7 +112,7 @@ const char* expr_name(BroExprTag t)
 
 int Expr::num_exprs = 0;
 
-Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), paren(false), type(nullptr)
+Expr::Expr(ExprTag arg_tag) : tag(arg_tag), paren(false), type(nullptr)
 	{
 	SetLocationInfo(&start_location, &end_location);
 	opt_info = new ExprOptInfo();
@@ -606,7 +606,7 @@ TraversalCode ConstExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-UnaryExpr::UnaryExpr(BroExprTag arg_tag, ExprPtr arg_op) : Expr(arg_tag), op(std::move(arg_op))
+UnaryExpr::UnaryExpr(ExprTag arg_tag, ExprPtr arg_op) : Expr(arg_tag), op(std::move(arg_op))
 	{
 	if ( op->IsError() )
 		SetError();
@@ -1386,7 +1386,7 @@ ValPtr CloneExpr::Fold(Val* v) const
 	return v->Clone();
 	}
 
-IncrExpr::IncrExpr(BroExprTag arg_tag, ExprPtr arg_op) : UnaryExpr(arg_tag, arg_op->MakeLvalue())
+IncrExpr::IncrExpr(ExprTag arg_tag, ExprPtr arg_op) : UnaryExpr(arg_tag, arg_op->MakeLvalue())
 	{
 	if ( IsError() )
 		return;
@@ -1997,7 +1997,7 @@ ModExpr::ModExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	CheckScalarAggOp();
 	}
 
-BoolExpr::BoolExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
+BoolExpr::BoolExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -2137,7 +2137,7 @@ ValPtr BoolExpr::Eval(Frame* f) const
 	return result;
 	}
 
-BitExpr::BitExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
+BitExpr::BitExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -2186,7 +2186,7 @@ BitExpr::BitExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 		ExprError("requires \"count\" or compatible \"set\" operands");
 	}
 
-EqExpr::EqExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
+EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -2301,7 +2301,7 @@ bool EqExpr::InvertSense()
 	return true;
 	}
 
-RelExpr::RelExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
+RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )

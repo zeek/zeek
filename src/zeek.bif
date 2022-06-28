@@ -437,19 +437,12 @@ static bool prepare_environment(zeek::TableVal* tbl, bool set)
 		char* tmp = zeek::util::copy_string(key->AsString()->CheckString());
 		zeek::util::to_upper(tmp);
 		std::string var1 = zeek::util::fmt("ZEEK_ARG_%s", tmp);
-		std::string var2 = zeek::util::fmt("BRO_ARG_%s", tmp); // legacy support
 		delete [] tmp;
 
 		if ( set )
-			{
 			setenv(var1.data(), val->AsString()->CheckString(), 1);
-			setenv(var2.data(), val->AsString()->CheckString(), 1);
-			}
 		else
-			{
 			unsetenv(var1.data());
-			unsetenv(var2.data());
-			}
 		}
 
 	return true;
@@ -3174,7 +3167,7 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 	%}
 
 %%{
-struct bro_uuid_t {
+struct zeek_uuid_t {
 	uint32_t time_low;
 	uint16_t time_mid;
 	uint16_t time_hi_and_version;
@@ -3197,7 +3190,7 @@ function uuid_to_string%(uuid: string%): string
 	if ( uuid->Len() != 16 )
 		return zeek::make_intrusive<zeek::StringVal>("<Invalid UUID>");
 
-	bro_uuid_t* id = (bro_uuid_t*) uuid->Bytes();
+	zeek_uuid_t* id = (zeek_uuid_t*) uuid->Bytes();
 
 	static char s[1024];
 	char* sp = s;

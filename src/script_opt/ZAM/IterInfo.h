@@ -126,8 +126,8 @@ public:
 	void IterFinished() { ++iter; }
 
 	// Counter of where we are in the iteration.
-	bro_uint_t iter; // initialized to 0 at start of loop
-	bro_uint_t n; // we loop from 0 ... n-1
+	zeek_uint_t iter; // initialized to 0 at start of loop
+	zeek_uint_t n; // we loop from 0 ... n-1
 
 	// The low-level value we're iterating over.
 	const std::vector<std::optional<ZVal>>* vv;

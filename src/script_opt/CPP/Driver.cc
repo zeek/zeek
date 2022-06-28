@@ -216,8 +216,8 @@ void CPPCompile::GenProlog()
 	NL();
 
 	const_info[TYPE_BOOL] = CreateConstInitInfo("Bool", "ValPtr", "bool");
-	const_info[TYPE_INT] = CreateConstInitInfo("Int", "ValPtr", "bro_int_t");
-	const_info[TYPE_COUNT] = CreateConstInitInfo("Count", "ValPtr", "bro_uint_t");
+	const_info[TYPE_INT] = CreateConstInitInfo("Int", "ValPtr", "zeek_int_t");
+	const_info[TYPE_COUNT] = CreateConstInitInfo("Count", "ValPtr", "zeek_uint_t");
 	const_info[TYPE_DOUBLE] = CreateConstInitInfo("Double", "ValPtr", "double");
 	const_info[TYPE_TIME] = CreateConstInitInfo("Time", "ValPtr", "double");
 	const_info[TYPE_INTERVAL] = CreateConstInitInfo("Interval", "ValPtr", "double");

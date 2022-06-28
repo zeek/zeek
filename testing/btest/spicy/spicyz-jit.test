@@ -1,8 +1,11 @@
 # @TEST-DOC: Smoke test for a custom Spicy analyzer hooked into Zeek with JIT via Zeek itself.
 #
 # @TEST-REQUIRES: $SCRIPTS/have-spicy
-# @TEST-EXEC: zeek -NN test.zeek test.spicy test.evt | grep -q ANALYZER_SPICY_TEST
-# @TEST-EXEC: HILTI_DEBUG=compiler zeek -r ${TRACES}/http/post.trace test.spicy test.evt test.zeek "Spicy::enable_print = T;" >>output 2>&1
+
+# Use a script here to prevent spicy from outputting warnings during compilation. If the build is
+# failing, the script can be modified to not redirect the output.
+# @TEST-EXEC: HILTI_CXX=$SCRIPTS/hilti-ignore-cxx-errors zeek -NN test.zeek test.spicy test.evt | grep -q ANALYZER_SPICY_TEST
+# @TEST-EXEC: HILTI_CXX=$SCRIPTS/hilti-ignore-cxx-errors zeek -r ${TRACES}/http/post.trace test.spicy test.evt test.zeek "Spicy::enable_print = T;" >>output 2>&1
 # @TEST-EXEC: btest-diff output
 
 # @TEST-START-FILE test.spicy

@@ -88,7 +88,7 @@ void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_
 	}
 
 StringValPtr KRB_Analyzer::GetAuthenticationInfo(const String* principal, const String* ciphertext,
-                                                 const bro_uint_t enctype)
+                                                 const zeek_uint_t enctype)
 	{
 #ifdef USE_KRB5
 	if ( ! krb_available )

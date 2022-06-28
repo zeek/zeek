@@ -53,7 +53,7 @@ protected:
 	RecordValPtr nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	RecordValPtr nfs3_readargs(const u_char*& buf, int& n);
 	RecordValPtr nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status,
-	                             bro_uint_t offset);
+	                             zeek_uint_t offset);
 	RecordValPtr nfs3_readlink_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	RecordValPtr nfs3_link_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	RecordValPtr nfs3_writeargs(const u_char*& buf, int& n);

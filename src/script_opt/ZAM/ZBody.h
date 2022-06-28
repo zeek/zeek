@@ -111,8 +111,8 @@ private:
 	double* CPU_time = nullptr; // cumulative CPU time for the program
 	std::vector<double>* inst_CPU = nullptr; // per-instruction CPU time.
 
-	CaseMaps<bro_int_t> int_cases;
-	CaseMaps<bro_uint_t> uint_cases;
+	CaseMaps<zeek_int_t> int_cases;
+	CaseMaps<zeek_uint_t> uint_cases;
 	CaseMaps<double> double_cases;
 	CaseMaps<std::string> str_cases;
 	};

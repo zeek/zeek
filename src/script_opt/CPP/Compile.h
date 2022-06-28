@@ -32,7 +32,7 @@
 // find optimization opportunities, including inlining.
 //
 // For some Zeek scripting types, we use their natural C++ counterparts,
-// such as "bro_uint_t" for "count" values.  In the source code these
+// such as "zeek_uint_t" for "count" values.  In the source code these
 // are referred to as "native" types.  Other types, like tables, keep
 // their interpreter-equivalent type (e.g., TableVal).  These are dealt
 // with almost entirely using IntrusivePtr's.  The few exceptions (i.e.,
@@ -899,7 +899,7 @@ private:
 	//
 
 	// "Native" types are those Zeek scripting types that we support
-	// using low-level C++ types (like "bro_uint_t" for "count").
+	// using low-level C++ types (like "zeek_uint_t" for "count").
 	// Types that we instead support using some form of ValPtr
 	// representation are "non-native".
 	bool IsNativeType(const TypePtr& t) const;

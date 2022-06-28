@@ -467,7 +467,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 	}
 
 {D}		{
-		RET_CONST(zeek::val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
+		RET_CONST(zeek::val_mgr->Count(static_cast<zeek_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
 		}
 {FLOAT}		RET_CONST(new zeek::DoubleVal(atof(yytext)))
 
@@ -515,7 +515,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 {FLOAT}{OWS}msec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Milliseconds))
 {FLOAT}{OWS}usec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Microseconds))
 
-"0x"{HEX}+	RET_CONST(zeek::val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
+"0x"{HEX}+	RET_CONST(zeek::val_mgr->Count(static_cast<zeek_uint_t>(strtoull(yytext, 0, 16))).release())
 
 ({H}".")+{HTLD}		RET_CONST(zeek::detail::dns_mgr->LookupHost(yytext).release())
 

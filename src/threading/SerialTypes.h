@@ -117,13 +117,13 @@ struct Value
 
 	struct set_t
 		{
-		bro_int_t size;
+		zeek_int_t size;
 		Value** vals;
 		};
 	using vec_t = set_t;
 	struct port_t
 		{
-		bro_uint_t port;
+		zeek_uint_t port;
 		TransportProto proto;
 		};
 
@@ -154,8 +154,8 @@ struct Value
 	     * including only the types we can log directly. See IsCompatibleType().
 	     */
 		union _val {
-		bro_int_t int_val;
-		bro_uint_t uint_val;
+		zeek_int_t int_val;
+		zeek_uint_t uint_val;
 		port_t port_val;
 		double double_val;
 		set_t set_val;

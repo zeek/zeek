@@ -23,7 +23,7 @@ public:
 		}
 
 private:
-	bro_uint_t skip_bytes = 0;
+	zeek_uint_t skip_bytes = 0;
 	};
 
 	}

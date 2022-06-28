@@ -318,8 +318,8 @@ const char* assign_to_index(ValPtr v1, ValPtr v2, ValPtr v3, bool& iterators_inv
 			if ( lv->Length() > 1 )
 				{
 				auto len = v1_vect->Size();
-				bro_int_t first = get_slice_index(lv->Idx(0)->CoerceToInt(), len);
-				bro_int_t last = get_slice_index(lv->Idx(1)->CoerceToInt(), len);
+				zeek_int_t first = get_slice_index(lv->Idx(0)->CoerceToInt(), len);
+				zeek_int_t last = get_slice_index(lv->Idx(1)->CoerceToInt(), len);
 
 				// Remove the elements from the vector within the slice.
 				for ( auto idx = first; idx < last; idx++ )
@@ -828,8 +828,8 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 	if ( it == TYPE_INTERNAL_SUBNET )
 		return SubNetFold(v1, v2);
 
-	bro_int_t i1 = 0, i2 = 0, i3 = 0;
-	bro_uint_t u1 = 0, u2 = 0, u3 = 0;
+	zeek_int_t i1 = 0, i2 = 0, i3 = 0;
+	zeek_uint_t u1 = 0, u2 = 0, u3 = 0;
 	double d1 = 0.0, d2 = 0.0, d3 = 0.0;
 	bool is_integral = false;
 	bool is_unsigned = false;
@@ -1414,7 +1414,7 @@ IncrExpr::IncrExpr(BroExprTag arg_tag, ExprPtr arg_op) : UnaryExpr(arg_tag, arg_
 
 ValPtr IncrExpr::DoSingleEval(Frame* f, Val* v) const
 	{
-	bro_int_t k = v->CoerceToInt();
+	zeek_int_t k = v->CoerceToInt();
 
 	if ( Tag() == EXPR_INCR )
 		++k;
@@ -3052,7 +3052,7 @@ StringValPtr index_string(const String* s, const ListVal* lv)
 
 	if ( lv->Length() == 1 )
 		{
-		bro_int_t idx = lv->Idx(0)->AsInt();
+		zeek_int_t idx = lv->Idx(0)->AsInt();
 
 		if ( idx < 0 )
 			idx += len;
@@ -3062,9 +3062,9 @@ StringValPtr index_string(const String* s, const ListVal* lv)
 		}
 	else
 		{
-		bro_int_t first = get_slice_index(lv->Idx(0)->AsInt(), len);
-		bro_int_t last = get_slice_index(lv->Idx(1)->AsInt(), len);
-		bro_int_t substring_len = last - first;
+		zeek_int_t first = get_slice_index(lv->Idx(0)->AsInt(), len);
+		zeek_int_t last = get_slice_index(lv->Idx(1)->AsInt(), len);
+		zeek_int_t substring_len = last - first;
 
 		if ( substring_len < 0 )
 			substring = nullptr;
@@ -3087,15 +3087,15 @@ VectorValPtr index_slice(VectorVal* vect, int _first, int _last)
 	size_t len = vect->Size();
 	auto result = make_intrusive<VectorVal>(vect->GetType<VectorType>());
 
-	bro_int_t first = get_slice_index(_first, len);
-	bro_int_t last = get_slice_index(_last, len);
-	bro_int_t sub_length = last - first;
+	zeek_int_t first = get_slice_index(_first, len);
+	zeek_int_t last = get_slice_index(_last, len);
+	zeek_int_t sub_length = last - first;
 
 	if ( sub_length >= 0 )
 		{
 		result->Resize(sub_length);
 
-		for ( bro_int_t idx = first; idx < last; idx++ )
+		for ( zeek_int_t idx = first; idx < last; idx++ )
 			result->Assign(idx - first, vect->ValAt(idx));
 		}
 

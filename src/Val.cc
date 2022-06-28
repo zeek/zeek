@@ -160,20 +160,20 @@ bool Val::IsOne() const
 		}
 	}
 
-bro_int_t Val::InternalInt() const
+zeek_int_t Val::InternalInt() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_INT )
 		return AsInt();
 	else if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
 		// ### should check here for overflow
-		return static_cast<bro_int_t>(AsCount());
+		return static_cast<zeek_int_t>(AsCount());
 	else
 		InternalWarning("bad request for InternalInt");
 
 	return 0;
 	}
 
-bro_uint_t Val::InternalUnsigned() const
+zeek_uint_t Val::InternalUnsigned() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
 		return AsCount();
@@ -193,28 +193,28 @@ double Val::InternalDouble() const
 	return 0.0;
 	}
 
-bro_int_t Val::CoerceToInt() const
+zeek_int_t Val::CoerceToInt() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_INT )
 		return AsInt();
 	else if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		return static_cast<bro_int_t>(AsCount());
+		return static_cast<zeek_int_t>(AsCount());
 	else if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
-		return static_cast<bro_int_t>(AsDouble());
+		return static_cast<zeek_int_t>(AsDouble());
 	else
 		InternalWarning("bad request for CoerceToInt");
 
 	return 0;
 	}
 
-bro_uint_t Val::CoerceToUnsigned() const
+zeek_uint_t Val::CoerceToUnsigned() const
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_UNSIGNED )
 		return AsCount();
 	else if ( type->InternalType() == TYPE_INTERNAL_INT )
-		return static_cast<bro_uint_t>(AsInt());
+		return static_cast<zeek_uint_t>(AsInt());
 	else if ( type->InternalType() == TYPE_INTERNAL_DOUBLE )
-		return static_cast<bro_uint_t>(AsDouble());
+		return static_cast<zeek_uint_t>(AsDouble());
 	else
 		InternalWarning("bad request for CoerceToUnsigned");
 
@@ -722,7 +722,7 @@ uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
 	return port_num;
 	}
 
-PortVal::PortVal(uint32_t p) : UnsignedValImplementation(base_type(TYPE_PORT), bro_uint_t(p)) { }
+PortVal::PortVal(uint32_t p) : UnsignedValImplementation(base_type(TYPE_PORT), zeek_uint_t(p)) { }
 
 uint32_t PortVal::Port() const
 	{
@@ -3911,12 +3911,12 @@ ValPtr Val::MakeBool(bool b)
 	return make_intrusive<BoolVal>(b);
 	}
 
-ValPtr Val::MakeInt(bro_int_t i)
+ValPtr Val::MakeInt(zeek_int_t i)
 	{
 	return make_intrusive<IntVal>(i);
 	}
 
-ValPtr Val::MakeCount(bro_uint_t u)
+ValPtr Val::MakeCount(zeek_uint_t u)
 	{
 	return make_intrusive<CountVal>(u);
 	}

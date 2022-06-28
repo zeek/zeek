@@ -21,7 +21,7 @@
 
 #include <cstdlib>
 
-#include "zeek/util.h" // for bro_int_t
+#include "zeek/util.h" // for zeek_int_t
 
 // to allow bro_md5_hmac access to the hmac seed
 #include "zeek/ZeekArgs.h"
@@ -234,8 +234,8 @@ public:
 	explicit HashKey() { }
 	explicit HashKey(bool b);
 	explicit HashKey(int i);
-	explicit HashKey(bro_int_t bi);
-	explicit HashKey(bro_uint_t bu);
+	explicit HashKey(zeek_int_t bi);
+	explicit HashKey(zeek_uint_t bu);
 	explicit HashKey(uint32_t u);
 	HashKey(const uint32_t u[], size_t n);
 	explicit HashKey(double d);
@@ -297,8 +297,8 @@ public:
 	// at the current marker.
 	void Write(const char* tag, bool b);
 	void Write(const char* tag, int i, bool align = true);
-	void Write(const char* tag, bro_int_t bi, bool align = true);
-	void Write(const char* tag, bro_uint_t bu, bool align = true);
+	void Write(const char* tag, zeek_int_t bi, bool align = true);
+	void Write(const char* tag, zeek_uint_t bu, bool align = true);
 	void Write(const char* tag, uint32_t u, bool align = true);
 	void Write(const char* tag, double d, bool align = true);
 
@@ -325,8 +325,8 @@ public:
 	// to the read of the item is controlled by the align boolean.
 	void Read(const char* tag, bool& b) const;
 	void Read(const char* tag, int& i, bool align = true) const;
-	void Read(const char* tag, bro_int_t& bi, bool align = true) const;
-	void Read(const char* tag, bro_uint_t& bu, bool align = true) const;
+	void Read(const char* tag, zeek_int_t& bi, bool align = true) const;
+	void Read(const char* tag, zeek_uint_t& bu, bool align = true) const;
 	void Read(const char* tag, uint32_t& u, bool align = true) const;
 	void Read(const char* tag, double& d, bool align = true) const;
 
@@ -351,8 +351,8 @@ protected:
 	// use the key_u union for storage.
 	void Set(bool b);
 	void Set(int i);
-	void Set(bro_int_t bi);
-	void Set(bro_uint_t bu);
+	void Set(zeek_int_t bi);
+	void Set(zeek_uint_t bu);
 	void Set(uint32_t u);
 	void Set(double d);
 	void Set(const void* p);
@@ -360,7 +360,7 @@ protected:
 		union {
 		bool b;
 		int i;
-		bro_int_t bi;
+		zeek_int_t bi;
 		uint32_t u32;
 		double d;
 		const void* p;

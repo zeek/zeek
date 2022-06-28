@@ -47,7 +47,7 @@ void report_ZOP_profile()
 // assigned value was missing (which we can only tell for managed types),
 // true otherwise.
 
-static bool copy_vec_elem(VectorVal* vv, bro_uint_t ind, ZVal zv, const TypePtr& t)
+static bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t)
 	{
 	if ( vv->Size() <= ind )
 		vv->Resize(ind + 1);
@@ -118,11 +118,11 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 
 VEC_COERCE(DI, TYPE_DOUBLE, double, AsInt(), false_func, "")
 VEC_COERCE(DU, TYPE_DOUBLE, double, AsCount(), false_func, "")
-VEC_COERCE(ID, TYPE_INT, bro_int_t, AsDouble(), double_to_int_would_overflow, "double to signed")
-VEC_COERCE(IU, TYPE_INT, bro_int_t, AsCount(), count_to_int_would_overflow, "unsigned to signed")
-VEC_COERCE(UD, TYPE_COUNT, bro_uint_t, AsDouble(), double_to_count_would_overflow,
+VEC_COERCE(ID, TYPE_INT, zeek_int_t, AsDouble(), double_to_int_would_overflow, "double to signed")
+VEC_COERCE(IU, TYPE_INT, zeek_int_t, AsCount(), count_to_int_would_overflow, "unsigned to signed")
+VEC_COERCE(UD, TYPE_COUNT, zeek_uint_t, AsDouble(), double_to_count_would_overflow,
            "double to unsigned")
-VEC_COERCE(UI, TYPE_COUNT, bro_int_t, AsInt(), int_to_count_would_overflow, "signed to unsigned")
+VEC_COERCE(UI, TYPE_COUNT, zeek_int_t, AsInt(), int_to_count_would_overflow, "signed to unsigned")
 
 ZBody::ZBody(const char* _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM)
 	{
@@ -141,8 +141,8 @@ ZBody::ZBody(const char* _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM)
 	globals = zc->Globals();
 	num_globals = globals.size();
 
-	int_cases = zc->GetCases<bro_int_t>();
-	uint_cases = zc->GetCases<bro_uint_t>();
+	int_cases = zc->GetCases<zeek_int_t>();
+	uint_cases = zc->GetCases<zeek_uint_t>();
 	double_cases = zc->GetCases<double>();
 	str_cases = zc->GetCases<std::string>();
 

@@ -766,7 +766,7 @@ protected:
 class EnumType final : public Type
 	{
 public:
-	using enum_name_list = std::list<std::pair<std::string, bro_int_t>>;
+	using enum_name_list = std::list<std::pair<std::string, zeek_int_t>>;
 
 	explicit EnumType(const EnumType* e);
 	explicit EnumType(const std::string& arg_name);
@@ -781,15 +781,15 @@ public:
 	// The value of this name is set to val. Once a value has been
 	// explicitly assigned using this method, no further names can be
 	// added that aren't likewise explicitly initalized.
-	void AddName(const std::string& module_name, const char* name, bro_int_t val, bool is_export,
+	void AddName(const std::string& module_name, const char* name, zeek_int_t val, bool is_export,
 	             detail::Expr* deprecation = nullptr, bool from_redef = false);
 
 	// -1 indicates not found.  Second version is for full names
 	// that already incorporate the module.
-	bro_int_t Lookup(const std::string& module_name, const char* name) const;
-	bro_int_t Lookup(const std::string& full_name) const;
+	zeek_int_t Lookup(const std::string& module_name, const char* name) const;
+	zeek_int_t Lookup(const std::string& full_name) const;
 
-	const char* Lookup(bro_int_t value) const; // Returns 0 if not found
+	const char* Lookup(zeek_int_t value) const; // Returns 0 if not found
 
 	// Returns the list of defined names with their values. The names
 	// will be fully qualified with their module name.
@@ -799,30 +799,30 @@ public:
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
-	const EnumValPtr& GetEnumVal(bro_int_t i);
+	const EnumValPtr& GetEnumVal(zeek_int_t i);
 
 	// Only for use by C++-generated code.  Non-protected because we
 	// don't know in advance the names of the functions that will
 	// access it.
-	void AddNameInternal(const std::string& full_name, bro_int_t val);
+	void AddNameInternal(const std::string& full_name, zeek_int_t val);
 
 protected:
-	void AddNameInternal(const std::string& module_name, const char* name, bro_int_t val,
+	void AddNameInternal(const std::string& module_name, const char* name, zeek_int_t val,
 	                     bool is_export);
 
-	void CheckAndAddName(const std::string& module_name, const char* name, bro_int_t val,
+	void CheckAndAddName(const std::string& module_name, const char* name, zeek_int_t val,
 	                     bool is_export, detail::Expr* deprecation = nullptr,
 	                     bool from_redef = false);
 
 	void DoDescribe(ODesc* d) const override;
 
-	using NameMap = std::map<std::string, bro_int_t>;
+	using NameMap = std::map<std::string, zeek_int_t>;
 	NameMap names;
 
 	// Whether any of the elements of the enum were added via redef's.
 	bool has_redefs = false;
 
-	using ValMap = std::unordered_map<bro_int_t, EnumValPtr>;
+	using ValMap = std::unordered_map<zeek_int_t, EnumValPtr>;
 	ValMap vals;
 
 	// The counter is initialized to 0 and incremented on every implicit
@@ -831,7 +831,7 @@ protected:
 	// specified, the counter is set to -1. This way counter can be used
 	// as a flag to prevent mixing of auto-increment and explicit
 	// enumerator specifications.
-	bro_int_t counter;
+	zeek_int_t counter;
 	};
 
 class VectorType final : public Type

@@ -158,7 +158,7 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
 		{
 		case TYPE_INTERNAL_INT:
 			{
-			bro_int_t i;
+			zeek_int_t i;
 			hk.Read("int", i);
 
 			if ( tag == TYPE_ENUM )
@@ -179,7 +179,7 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
 
 		case TYPE_INTERNAL_UNSIGNED:
 			{
-			bro_uint_t u;
+			zeek_uint_t u;
 			hk.Read("unsigned", u);
 
 			switch ( tag )
@@ -783,11 +783,11 @@ bool CompositeHash::ReserveSingleTypeKeySize(HashKey& hk, Type* bt, const Val* v
 	switch ( t )
 		{
 		case TYPE_INTERNAL_INT:
-			hk.ReserveType<bro_int_t>("int");
+			hk.ReserveType<zeek_int_t>("int");
 			break;
 
 		case TYPE_INTERNAL_UNSIGNED:
-			hk.ReserveType<bro_int_t>("unsigned");
+			hk.ReserveType<zeek_int_t>("unsigned");
 			break;
 
 		case TYPE_INTERNAL_ADDR:

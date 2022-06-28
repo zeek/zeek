@@ -478,7 +478,7 @@ void ZAMCompiler::ReMapFrame()
 	frame1_to_frame2.resize(frame_layout1.size(), -1);
 	managed_slotsI.clear();
 
-	for ( bro_uint_t i = 0; i < insts1.size(); ++i )
+	for ( zeek_uint_t i = 0; i < insts1.size(); ++i )
 		{
 		auto inst = insts1[i];
 
@@ -655,7 +655,7 @@ void ZAMCompiler::ReMapInterpreterFrame()
 		remapped_intrp_frame_sizes[func] = next_interp_slot;
 	}
 
-void ZAMCompiler::ReMapVar(const ID* id, int slot, bro_uint_t inst)
+void ZAMCompiler::ReMapVar(const ID* id, int slot, zeek_uint_t inst)
 	{
 	// A greedy algorithm for this is to simply find the first suitable
 	// frame slot.  We do that with one twist: we also look for a
@@ -731,7 +731,7 @@ void ZAMCompiler::ReMapVar(const ID* id, int slot, bro_uint_t inst)
 
 void ZAMCompiler::CheckSlotAssignment(int slot, const ZInstI* inst)
 	{
-	ASSERT(slot >= 0 && static_cast<bro_uint_t>(slot) < frame_denizens.size());
+	ASSERT(slot >= 0 && static_cast<zeek_uint_t>(slot) < frame_denizens.size());
 
 	// We construct temporaries such that their values are never used
 	// earlier than their definitions in loop bodies.  For other
@@ -770,7 +770,7 @@ void ZAMCompiler::CheckSlotUse(int slot, const ZInstI* inst)
 	if ( slot < 0 )
 		return;
 
-	ASSERT(static_cast<bro_uint_t>(slot) < frame_denizens.size());
+	ASSERT(static_cast<zeek_uint_t>(slot) < frame_denizens.size());
 
 	if ( denizen_beginning.count(slot) == 0 )
 		{
@@ -957,9 +957,9 @@ ZInstI* ZAMCompiler::FirstLiveInst(ZInstI* i, bool follow_gotos)
 		return nullptr;
 	}
 
-bro_uint_t ZAMCompiler::FirstLiveInst(bro_uint_t i, bool follow_gotos)
+zeek_uint_t ZAMCompiler::FirstLiveInst(zeek_uint_t i, bool follow_gotos)
 	{
-	bro_uint_t num_inspected = 0;
+	zeek_uint_t num_inspected = 0;
 	while ( i < insts1.size() )
 		{
 		auto i0 = insts1[i];
@@ -987,7 +987,7 @@ bro_uint_t ZAMCompiler::FirstLiveInst(bro_uint_t i, bool follow_gotos)
 	return i;
 	}
 
-void ZAMCompiler::KillInst(bro_uint_t i)
+void ZAMCompiler::KillInst(zeek_uint_t i)
 	{
 	auto inst = insts1[i];
 
@@ -1042,7 +1042,7 @@ void ZAMCompiler::KillInst(bro_uint_t i)
 		}
 	}
 
-void ZAMCompiler::KillInsts(bro_uint_t i)
+void ZAMCompiler::KillInsts(zeek_uint_t i)
 	{
 	auto inst = insts1[i];
 

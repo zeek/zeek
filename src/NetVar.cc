@@ -191,9 +191,9 @@ int check_for_unused_event_handlers;
 
 int record_all_packets;
 
-bro_uint_t bits_per_uid;
+zeek_uint_t bits_per_uid;
 
-bro_uint_t tunnel_max_changes_per_connection;
+zeek_uint_t tunnel_max_changes_per_connection;
 
 	} // namespace zeek::detail. The namespace has be closed here before we include the netvar_def
 	  // files.

@@ -8,7 +8,7 @@
 #include <utility>
 
 #include "zeek/ZeekString.h" // for byte_vec
-#include "zeek/util.h" // for bro_int_t
+#include "zeek/util.h" // for zeek_int_t
 
 namespace zeek
 	{
@@ -118,7 +118,7 @@ public:
 		SP();
 		}
 
-	void AddCount(bro_int_t n)
+	void AddCount(zeek_int_t n)
 		{
 		if ( ! IsReadable() )
 			{

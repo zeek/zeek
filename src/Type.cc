@@ -1624,7 +1624,7 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 	counter++;
 	}
 
-void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export,
+void EnumType::AddName(const string& module_name, const char* name, zeek_int_t val, bool is_export,
                        detail::Expr* deprecation, bool from_redef)
 	{
 	/* explicit value specified */
@@ -1638,7 +1638,7 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 	CheckAndAddName(module_name, name, val, is_export, deprecation, from_redef);
 	}
 
-void EnumType::CheckAndAddName(const string& module_name, const char* name, bro_int_t val,
+void EnumType::CheckAndAddName(const string& module_name, const char* name, zeek_int_t val,
                                bool is_export, detail::Expr* deprecation, bool from_redef)
 	{
 	if ( from_redef )
@@ -1696,14 +1696,14 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name, bro_
 			t->AsEnumType()->AddNameInternal(module_name, name, val, is_export);
 	}
 
-void EnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val,
+void EnumType::AddNameInternal(const string& module_name, const char* name, zeek_int_t val,
                                bool is_export)
 	{
 	string fullname = detail::make_full_var_name(module_name.c_str(), name);
 	names[fullname] = val;
 	}
 
-void EnumType::AddNameInternal(const string& full_name, bro_int_t val)
+void EnumType::AddNameInternal(const string& full_name, zeek_int_t val)
 	{
 	names[full_name] = val;
 
@@ -1711,12 +1711,12 @@ void EnumType::AddNameInternal(const string& full_name, bro_int_t val)
 		vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
 	}
 
-bro_int_t EnumType::Lookup(const string& module_name, const char* name) const
+zeek_int_t EnumType::Lookup(const string& module_name, const char* name) const
 	{
 	return Lookup(detail::make_full_var_name(module_name.c_str(), name));
 	}
 
-bro_int_t EnumType::Lookup(const string& full_name) const
+zeek_int_t EnumType::Lookup(const string& full_name) const
 	{
 	NameMap::const_iterator pos = names.find(full_name.c_str());
 
@@ -1726,7 +1726,7 @@ bro_int_t EnumType::Lookup(const string& full_name) const
 		return pos->second;
 	}
 
-const char* EnumType::Lookup(bro_int_t value) const
+const char* EnumType::Lookup(zeek_int_t value) const
 	{
 	for ( NameMap::const_iterator iter = names.begin(); iter != names.end(); ++iter )
 		if ( iter->second == value )
@@ -1744,7 +1744,7 @@ EnumType::enum_name_list EnumType::Names() const
 	return n;
 	}
 
-const EnumValPtr& EnumType::GetEnumVal(bro_int_t i)
+const EnumValPtr& EnumType::GetEnumVal(zeek_int_t i)
 	{
 	auto it = vals.find(i);
 
@@ -1784,7 +1784,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 
 	// Create temporary, reverse name map so that enums can be documented
 	// in ascending order of their actual integral value instead of by name.
-	using RevNameMap = std::map<bro_int_t, std::string>;
+	using RevNameMap = std::map<zeek_int_t, std::string>;
 	RevNameMap rev;
 
 	for ( NameMap::const_iterator it = names.begin(); it != names.end(); ++it )

@@ -119,12 +119,12 @@ HashKey::HashKey(int i)
 	Set(i);
 	}
 
-HashKey::HashKey(bro_int_t bi)
+HashKey::HashKey(zeek_int_t bi)
 	{
 	Set(bi);
 	}
 
-HashKey::HashKey(bro_uint_t bu)
+HashKey::HashKey(zeek_uint_t bu)
 	{
 	Set(bu);
 	}
@@ -273,16 +273,16 @@ void HashKey::Set(int i)
 	size = write_size = sizeof(i);
 	}
 
-void HashKey::Set(bro_int_t bi)
+void HashKey::Set(zeek_int_t bi)
 	{
 	key_u.bi = bi;
 	key = reinterpret_cast<char*>(&key_u);
 	size = write_size = sizeof(bi);
 	}
 
-void HashKey::Set(bro_uint_t bu)
+void HashKey::Set(zeek_uint_t bu)
 	{
-	key_u.bi = bro_int_t(bu);
+	key_u.bi = zeek_int_t(bu);
 	key = reinterpret_cast<char*>(&key_u);
 	size = write_size = sizeof(bu);
 	}
@@ -350,7 +350,7 @@ void HashKey::Write(const char* tag, int i, bool align)
 	Write(tag, &i, sizeof(i), align ? sizeof(i) : 0);
 	}
 
-void HashKey::Write(const char* tag, bro_int_t bi, bool align)
+void HashKey::Write(const char* tag, zeek_int_t bi, bool align)
 	{
 	if ( ! IsAllocated() )
 		{
@@ -361,7 +361,7 @@ void HashKey::Write(const char* tag, bro_int_t bi, bool align)
 	Write(tag, &bi, sizeof(bi), align ? sizeof(bi) : 0);
 	}
 
-void HashKey::Write(const char* tag, bro_uint_t bu, bool align)
+void HashKey::Write(const char* tag, zeek_uint_t bu, bool align)
 	{
 	if ( ! IsAllocated() )
 		{
@@ -464,12 +464,12 @@ void HashKey::Read(const char* tag, int& i, bool align) const
 	Read(tag, &i, sizeof(i), align ? sizeof(i) : 0);
 	}
 
-void HashKey::Read(const char* tag, bro_int_t& i, bool align) const
+void HashKey::Read(const char* tag, zeek_int_t& i, bool align) const
 	{
 	Read(tag, &i, sizeof(i), align ? sizeof(i) : 0);
 	}
 
-void HashKey::Read(const char* tag, bro_uint_t& u, bool align) const
+void HashKey::Read(const char* tag, zeek_uint_t& u, bool align) const
 	{
 	Read(tag, &u, sizeof(u), align ? sizeof(u) : 0);
 	}

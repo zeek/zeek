@@ -11,7 +11,7 @@ using std::string;
 namespace zeek::detail
 	{
 
-void ZInst::Dump(bro_uint_t inst_num, const FrameReMap* mappings) const
+void ZInst::Dump(zeek_uint_t inst_num, const FrameReMap* mappings) const
 	{
 	// printf("v%d ", n);
 
@@ -212,7 +212,7 @@ int ZInst::NumSlots() const
 	return -1;
 	}
 
-string ZInst::VName(int n, bro_uint_t inst_num, const FrameReMap* mappings) const
+string ZInst::VName(int n, zeek_uint_t inst_num, const FrameReMap* mappings) const
 	{
 	if ( n > NumFrameSlots() )
 		return "";
@@ -223,7 +223,7 @@ string ZInst::VName(int n, bro_uint_t inst_num, const FrameReMap* mappings) cons
 		return "<special>";
 
 	// Find which identifier manifests at this instruction.
-	ASSERT(slot >= 0 && static_cast<bro_uint_t>(slot) < mappings->size());
+	ASSERT(slot >= 0 && static_cast<zeek_uint_t>(slot) < mappings->size());
 
 	auto& map = (*mappings)[slot];
 
@@ -323,12 +323,12 @@ string ZInstI::VName(int n, const FrameMap* frame_ids, const FrameReMap* remappi
 
 	if ( remappings && live )
 		{ // Find which identifier manifests at this instruction.
-		ASSERT(slot >= 0 && static_cast<bro_uint_t>(slot) < remappings->size());
+		ASSERT(slot >= 0 && static_cast<zeek_uint_t>(slot) < remappings->size());
 
 		auto& map = (*remappings)[slot];
 
 		unsigned int i;
-		auto inst_num_u = static_cast<bro_uint_t>(inst_num);
+		auto inst_num_u = static_cast<zeek_uint_t>(inst_num);
 		for ( i = 0; i < map.id_start.size(); ++i )
 			{
 			// See discussion for ZInst::VName.

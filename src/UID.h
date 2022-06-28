@@ -5,12 +5,12 @@
 #include <cstring>
 #include <string>
 
-#include "zeek/util.h" // for bro_int_t
-
-#define BRO_UID_LEN 2
+#include "zeek/util.h" // for zeek_int_t
 
 namespace zeek
 	{
+
+constexpr int UID_LEN = 2;
 
 /**
  * A class for creating/managing UIDs of arbitrary bit-length and converting
@@ -28,7 +28,7 @@ public:
 	 * Construct a UID of a given bit-length, optionally from given values.
 	 * @see UID::Set
 	 */
-	explicit UID(bro_uint_t bits, const uint64_t* v = nullptr, size_t n = 0) { Set(bits, v, n); }
+	explicit UID(zeek_uint_t bits, const uint64_t* v = nullptr, size_t n = 0) { Set(bits, v, n); }
 
 	/**
 	 * Copy constructor.
@@ -38,7 +38,7 @@ public:
 	/**
 	 * Initialize a UID of a given bit-length, optionally from given values.
 	 * @param bits The desired length in bits of the UID, up to a max of
-	 *             BRO_UID_LEN * 64.
+	 *             UID_LEN * 64.
 	 * @param v A pointer to an array of values with which to initialize the
 	 *          UID.  If empty or doesn't contain enough values to satisfy
 	 *          \a bits, then values are automatically generated using
@@ -46,7 +46,7 @@ public:
 	 *          64, then a value is truncated to bit in desired bit-length.
 	 * @param n number of 64-bit elements in array pointed to by \a v.
 	 */
-	void Set(bro_uint_t bits, const uint64_t* v = nullptr, size_t n = 0);
+	void Set(zeek_uint_t bits, const uint64_t* v = nullptr, size_t n = 0);
 
 	/**
 	 * Returns a base62 (characters 0-9, A-Z, a-z) representation of the UID.
@@ -80,7 +80,7 @@ public:
 	friend bool operator!=(const UID& u1, const UID& u2) { return ! (u1 == u2); }
 
 private:
-	uint64_t uid[BRO_UID_LEN];
+	uint64_t uid[UID_LEN];
 	bool initialized; // Since technically uid == 0 is a legit UID
 	};
 
@@ -98,3 +98,5 @@ inline UID& UID::operator=(const UID& other)
 	}
 
 	} // namespace zeek
+
+constexpr int BRO_UID_LEN [[deprecated("Remove in v6.1. Use zeek::UID_LEN")]] = zeek::UID_LEN;

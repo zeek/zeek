@@ -92,9 +92,9 @@ extern int check_for_unused_event_handlers;
 
 extern int record_all_packets;
 
-extern bro_uint_t bits_per_uid;
+extern zeek_uint_t bits_per_uid;
 
-extern bro_uint_t tunnel_max_changes_per_connection;
+extern zeek_uint_t tunnel_max_changes_per_connection;
 
 // Initializes globals that don't pertain to network/event analysis.
 extern void init_general_global_var();

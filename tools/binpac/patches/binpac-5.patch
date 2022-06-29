@@ -1,10 +1,10 @@
-diff -urN bro-1.2.1-orig/src/binpac/pac_paramtype.cc bro-1.2.1-ssl-binpac/src/binpac/pac_paramtype.cc
---- bro-1.2.1-orig/src/binpac/pac_paramtype.cc	2006-07-26 15:02:40.000000000 -0700
-+++ bro-1.2.1-ssl-binpac/src/binpac/pac_paramtype.cc	2007-05-10 15:09:47.470104000 -0700
+diff -urN bro-1.2.1-orig/src/pac_paramtype.cc bro-1.2.1-ssl-binpac/src/pac_paramtype.cc
+--- bro-1.2.1-orig/src/pac_paramtype.cc	2006-07-26 15:02:40.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/pac_paramtype.cc	2007-05-10 15:09:47.470104000 -0700
 @@ -208,7 +208,13 @@
  	const char *parse_func;
  	string parse_params;
- 
+
 -	if ( ref_type->incremental_input() )
 +	if ( buffer_mode() == BUFFER_NOTHING )
 +	        {
@@ -17,7 +17,7 @@ diff -urN bro-1.2.1-orig/src/binpac/pac_paramtype.cc bro-1.2.1-ssl-binpac/src/bi
  		parse_func = kParseFuncWithBuffer;
  		parse_params = env->RValue(flow_buffer_id);
 @@ -239,15 +245,24 @@
- 
+
  	if ( incremental_input() )
  		{
 -		ASSERT(parsing_complete_var());
@@ -32,7 +32,7 @@ diff -urN bro-1.2.1-orig/src/binpac/pac_paramtype.cc bro-1.2.1-ssl-binpac/src/bi
 +		if ( buffer_mode() == BUFFER_NOTHING )
 +		        {
 +		        out_cc->println("%s;", call_parse_func.c_str());
-+			out_cc->println("%s = true;", 
++			out_cc->println("%s = true;",
 +				env->LValue(parsing_complete_var()));
 +			}
 +		else
@@ -50,14 +50,14 @@ diff -urN bro-1.2.1-orig/src/binpac/pac_paramtype.cc bro-1.2.1-ssl-binpac/src/bi
  		}
  	else
  		{
-diff -urN bro-1.2.1-orig/src/binpac/pac_type.cc bro-1.2.1-ssl-binpac/src/binpac/pac_type.cc
---- bro-1.2.1-orig/src/binpac/pac_type.cc	2006-07-26 15:02:40.000000000 -0700
-+++ bro-1.2.1-ssl-binpac/src/binpac/pac_type.cc	2007-05-24 10:56:42.140658000 -0700
+diff -urN bro-1.2.1-orig/src/pac_type.cc bro-1.2.1-ssl-binpac/src/pac_type.cc
+--- bro-1.2.1-orig/src/pac_type.cc	2006-07-26 15:02:40.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/pac_type.cc	2007-05-24 10:56:42.140658000 -0700
 @@ -501,8 +501,8 @@
- 
+
  		if ( buffer_mode() == BUFFER_NOTHING )
  			{
--			out_cc->println("%s = true;", 
+-			out_cc->println("%s = true;",
 -				env->LValue(parsing_complete_var()));
 +			// this is the empty type
 +			DoGenParseCode(out_cc, env, data, flags);

@@ -1,24 +1,24 @@
-Index: pac_type.h
+Index: src/pac_type.h
 ===================================================================
---- pac_type.h	(revision 4130)
-+++ pac_type.h	(working copy)
+--- src/pac_type.h	(revision 4130)
++++ src/pac_type.h	(working copy)
 @@ -78,12 +78,6 @@
  	string EvalByteOrder(Output *out_cc, Env *env) const;
- 
+
  	virtual string EvalMember(const ID *member_id) const;
 -#if 0
 -	// member_env() is used for finding a member of the type.
--	// Thus member_env() of a ParameterizedType should return 
+-	// Thus member_env() of a ParameterizedType should return
 -	// ReferredDataType()->env()
 -	// virtual Env *member_env() const;
 -#endif
- 
+
  	// The variable defined by the type
  	const ID *value_var() const		{ return value_var_; }
 @@ -223,6 +217,8 @@
- 
+
  	virtual bool ByteOrderSensitive() const = 0;
- 
+
 +	bool NeedsBufferingStateVar() const;
 +
  	void GenBufferingLoop(Output* out_cc, Env* env, int flags);
@@ -30,19 +30,19 @@ Index: lib/binpac_buffer.h
 +++ lib/binpac_buffer.h	(working copy)
 @@ -24,18 +24,18 @@
  	void DiscardData();
- 
+
  	// Whether there is enough data for the frame
 -	bool ready() const{ return message_complete_; }
 +	bool ready() const{ return message_complete_ || mode_ == UNKNOWN_MODE; }
- 
+
  	inline const_byteptr begin() const
  		{
 -		BINPAC_ASSERT(message_complete_);
 +		BINPAC_ASSERT(ready());
- 		return ( buffer_n_ == 0 ) ? 
+ 		return ( buffer_n_ == 0 ) ?
  			orig_data_begin_ : buffer_;
  		}
- 
+
  	inline const_byteptr end() const
  		{
 -		BINPAC_ASSERT(message_complete_);
@@ -50,25 +50,25 @@ Index: lib/binpac_buffer.h
  		if ( buffer_n_ == 0 )
  			{
  			BINPAC_ASSERT(frame_length_ >= 0);
-Index: pac_type.cc
+Index: src/pac_type.cc
 ===================================================================
---- pac_type.cc	(revision 4130)
-+++ pac_type.cc	(working copy)
+--- src/pac_type.cc	(revision 4130)
++++ src/pac_type.cc	(working copy)
 @@ -285,9 +285,8 @@
  			parsing_complete_var, extern_type_bool->Clone());
  		parsing_complete_var_field_->Prepare(env);
- 
+
 -		if ( ( buffer_mode() == BUFFER_BY_LENGTH ||
 -		       buffer_mode() == BUFFER_BY_LINE ) &&
 -		       ! env->GetDataType(buffering_state_id) )
-+		if ( NeedsBufferingStateVar() && 
++		if ( NeedsBufferingStateVar() &&
 +		     !env->GetDataType(buffering_state_id) )
  			{
  			buffering_state_var_field_ = new PrivVarField(
- 				buffering_state_id->clone(), 
+ 				buffering_state_id->clone(),
 @@ -387,17 +386,17 @@
  			break;
- 
+
  		case BUFFER_BY_LENGTH:
 -			if ( buffering_state_var_field_ )
 -				{
@@ -79,7 +79,7 @@ Index: pac_type.cc
 -				}
 +			if ( !NeedsBufferingStateVar() )
 +				break;
- 
+
 +			ASSERT(env->GetDataType(buffering_state_id));
 +			out_cc->println("if ( %s == 0 )",
 +				env->RValue(buffering_state_id));
@@ -99,12 +99,12 @@ Index: pac_type.cc
 -				frame_buffer_arg = strfmt("%d", InitialBufferLength());
 +				ASSERT(0);
  				}
- 
+
  			out_cc->println("%s->NewFrame(%s, %s);",
 @@ -415,16 +414,14 @@
  				frame_buffer_arg.c_str(),
  				attr_chunked() ? "true" : "false");
- 
+
 -			if ( buffering_state_var_field_ )
 -				{
 -				out_cc->println("%s = 1;",
@@ -117,16 +117,16 @@ Index: pac_type.cc
 +			out_cc->println("}");
 +			out_cc->dec_indent();
  			break;
- 
+
  		case BUFFER_BY_LINE:
 +			ASSERT(env->GetDataType(buffering_state_id));
  			out_cc->println("if ( %s == 0 )",
  				env->RValue(buffering_state_id));
  			out_cc->inc_indent();
 @@ -890,6 +887,25 @@
- 	return ! attr_byteorder_expr() && ByteOrderSensitive(); 
+ 	return ! attr_byteorder_expr() && ByteOrderSensitive();
  	}
- 
+
 +bool Type::NeedsBufferingStateVar() const
 +	{
 +	if ( !incremental_input() )
@@ -149,10 +149,10 @@ Index: pac_type.cc
  bool Type::DoTraverse(DataDepVisitor *visitor)
  	{
  	foreach (i, FieldList, fields_)
-Index: pac_flow.cc
+Index: src/pac_flow.cc
 ===================================================================
---- pac_flow.cc	(revision 4130)
-+++ pac_flow.cc	(working copy)
+--- src/pac_flow.cc	(revision 4130)
++++ src/pac_flow.cc	(working copy)
 @@ -224,15 +224,13 @@
  	out_cc->println("catch ( Exception const &e )");
  	out_cc->inc_indent();
@@ -169,4 +169,3 @@ Index: pac_flow.cc
 +	out_cc->println("throw e;");
  	out_cc->println("}");
  	out_cc->dec_indent();
- 

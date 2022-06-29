@@ -1,10 +1,10 @@
-diff -urN bro-1.2.1-orig/src/binpac/pac_expr.cc bro-1.2.1-ssl-binpac/src/binpac/pac_expr.cc
---- bro-1.2.1-orig/src/binpac/pac_expr.cc	2006-07-26 15:02:40.000000000 -0700
-+++ bro-1.2.1-ssl-binpac/src/binpac/pac_expr.cc	2007-05-04 14:31:11.728494000 -0700
-@@ -776,6 +776,27 @@
+diff -urN bro-1.2.1-orig/src/pac_expr.cc bro-1.2.1-ssl-binpac/src/pac_expr.cc
+--- bro-1.2.1-orig/src/pac_expr.cc	2006-07-26 15:02:40.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/pac_expr.cc	2007-05-04 14:31:11.728494000 -0700
+@@ -776,2 +776,2 @@
  			}
  			break;
- 
+
 +		case EXPR_CALLARGS:
 +		        {
 +		        mhs = 0;

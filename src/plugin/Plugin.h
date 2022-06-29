@@ -12,10 +12,6 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/logging/WriterBackend.h"
 
-// Increase this when making incompatible changes to the plugin API. Note
-// that the constant is never used in C code. It's picked up on by CMake.
-#define BRO_PLUGIN_API_VERSION 7
-
 #define BRO_PLUGIN_BRO_VERSION BRO_VERSION_FUNCTION
 
 namespace zeek::threading
@@ -25,6 +21,10 @@ struct Field;
 
 namespace zeek
 	{
+
+// Increase this when making incompatible changes to the plugin API. Note
+// that the constant is never used in C code. It's picked up on by CMake.
+constexpr int PLUGIN_API_VERSION = 7;
 
 class ODesc;
 class Event;
@@ -1158,3 +1158,8 @@ private:
 
 	} // namespace plugin
 	} // namespace zeek
+
+// Increase this when making incompatible changes to the plugin API. Note
+// that the constant is never used in C code. It's picked up on by CMake.
+constexpr int BRO_PLUGIN_API_VERSION
+	[[deprecated("Remove in v6.1. Use zeek::PLUGIN_API_VERSION")]] = zeek::PLUGIN_API_VERSION;

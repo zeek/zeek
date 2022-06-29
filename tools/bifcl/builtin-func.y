@@ -20,7 +20,7 @@ extern int alternative_mode;
 
 #define print_line_directive(fp) fprintf(fp, "\n#line %d \"%s\"\n", line_number, input_filename)
 
-extern FILE* fp_bro_init;
+extern FILE* fp_zeek_init;
 extern FILE* fp_func_def;
 extern FILE* fp_func_h;
 extern FILE* fp_func_init;
@@ -55,8 +55,8 @@ struct decl_struct {
 	string c_namespace_start; // "opening" namespace for use in netvar_*
 	string c_namespace_end;   // closing "}" for all the above namespaces
 	string c_fullname; // fully qualified name (namespace::....) for use in netvar_init
-	string bro_fullname; // fully qualified bro name, for netvar (and lookup_ID())
-	string bro_name;  // the name as we read it from input. What we write into the .zeek file
+	string zeek_fullname; // fully qualified zeek name, for netvar (and lookup_ID())
+	string zeek_name;  // the name as we read it from input. What we write into the .zeek file
 
 	// special cases for events. Events have an EventHandlerPtr
 	// and a enqueue_* function. This name is for the enqueue_* function
@@ -87,8 +87,8 @@ void set_decl_name(const char *name)
 	decl.c_namespace_start = "";
 	decl.c_namespace_end = "";
 	decl.c_fullname = "";
-	decl.bro_fullname = "";
-	decl.bro_name = "";
+	decl.zeek_fullname = "";
+	decl.zeek_name = "";
 
 	decl.enqueue_c_fullname = "";
 	decl.enqueue_c_barename = string("enqueue_") + decl.bare_name;
@@ -132,16 +132,16 @@ void set_decl_name(const char *name)
 		decl.c_namespace_start += "namespace " + decl.module_name + " { ";
 		decl.c_namespace_end += string(" }");
 		decl.c_fullname += decl.module_name + "::";
-		decl.bro_fullname += decl.module_name + "::";
+		decl.zeek_fullname += decl.module_name + "::";
 
 		decl.enqueue_c_namespace_start  += "namespace " + decl.module_name + " { ";
 		decl.enqueue_c_namespace_end += " } ";
 		decl.enqueue_c_fullname += decl.module_name + "::";
 		}
 
-	decl.bro_fullname += decl.bare_name;
+	decl.zeek_fullname += decl.bare_name;
 	decl.c_fullname += decl.bare_name;
-	decl.bro_name += name;
+	decl.zeek_name += name;
 	decl.enqueue_c_fullname += decl.enqueue_c_barename;
 	}
 
@@ -149,10 +149,10 @@ const char* arg_list_name = "BiF_ARGS";
 
 #include "bif_arg.h"
 
-/* Map bif/bro type names to C types for use in const declaration */
+/* Map bif/zeek type names to C types for use in const declaration */
 static struct {
 	const char* bif_type;
-	const char* bro_type;
+	const char* zeek_type;
 	const char* c_type;
 	const char* c_type_smart;
 	const char* accessor;
@@ -161,8 +161,8 @@ static struct {
 	const char* constructor;
 	const char* ctor_smatr;
 } builtin_types[] = {
-#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart) \
-	{bif_type, bro_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart},
+#define DEFINE_BIF_TYPE(id, bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart) \
+	{bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart},
 #include "bif_type.def"
 #undef DEFINE_BIF_TYPE
 };
@@ -252,7 +252,7 @@ static void print_event_c_body(FILE* fp)
 	for ( int i = 0; i < (int) args.size(); ++i )
 		{
 		fprintf(fp, "\t        ");
-		args[i]->PrintBroValConstructor(fp);
+		args[i]->PrintValConstructor(fp);
 		fprintf(fp, ",\n");
 
 		if ( args[i]->Type() == TYPE_CONNECTION )
@@ -312,8 +312,8 @@ void record_bif_item(const char* id, const char* type)
 
 builtin_lang:	definitions
 			{
-			fprintf(fp_bro_init, "} # end of export section\n");
-			fprintf(fp_bro_init, "module %s;\n", GLOBAL_MODULE_NAME);
+			fprintf(fp_zeek_init, "} # end of export section\n");
+			fprintf(fp_zeek_init, "module %s;\n", GLOBAL_MODULE_NAME);
 			}
 
 
@@ -323,12 +323,12 @@ definitions:	definitions definition opt_ws
 			if ( in_c_code )
 				fprintf(fp_func_def, "%s", $3);
 			else
-				fprintf(fp_bro_init, "%s", $3);
+				fprintf(fp_zeek_init, "%s", $3);
 			}
 	|	opt_ws
 			{
-			fprintf(fp_bro_init, "%s", $1);
-			fprintf(fp_bro_init, "export {\n");
+			fprintf(fp_zeek_init, "%s", $1);
+			fprintf(fp_zeek_init, "export {\n");
 			}
 	;
 
@@ -345,11 +345,11 @@ definition:	event_def
 module_def:	TOK_MODULE opt_ws TOK_ID opt_ws ';'
 			{
 			current_module = string($3);
-			fprintf(fp_bro_init, "module %s;\n", $3);
+			fprintf(fp_zeek_init, "module %s;\n", $3);
 			}
 
 	 // XXX: Add the netvar glue so that the event engine knows about
-	 // the type. One still has to define the type in bro.init.
+	 // the type. One still has to define the type in zeek.init.
 	 // Would be nice, if we could just define the record type here
 	 // and then copy to the .bif.zeek file, but type declarations in
 	 // Zeek can be quite powerful. Don't know whether it's worth it
@@ -374,9 +374,9 @@ type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws type_def_types opt_ws ';'
 			fprintf(fp_netvar_init,
 				"\tzeek::%s = zeek::id::find_type<zeek::%sType>(\"%s\");\n",
 				decl.c_fullname.c_str(), type_name.c_str(),
-				decl.bro_fullname.c_str());
+				decl.zeek_fullname.c_str());
 
-			record_bif_item(decl.bro_fullname.c_str(), "TYPE");
+			record_bif_item(decl.zeek_fullname.c_str(), "TYPE");
 			}
 	;
 
@@ -397,27 +397,27 @@ opt_func_attrs:	attr_list opt_ws
 	;
 
 event_def:	event_prefix opt_ws plain_head opt_func_attrs
-			{ fprintf(fp_bro_init, "%s", $4); } end_of_head ';'
+			{ fprintf(fp_zeek_init, "%s", $4); } end_of_head ';'
 			{
-			if ( events.find(decl.bro_fullname) == events.end() )
+			if ( events.find(decl.zeek_fullname) == events.end() )
 				{
 				print_event_c_prototype_header(fp_func_h);
 				print_event_c_prototype_impl(fp_func_def);
 				print_event_c_body(fp_func_def);
-				events.insert(decl.bro_fullname);
+				events.insert(decl.zeek_fullname);
 				}
 			}
 
 func_def:	func_prefix opt_ws typed_head opt_func_attrs
-			{ fprintf(fp_bro_init, "%s", $4); } end_of_head body
+			{ fprintf(fp_zeek_init, "%s", $4); } end_of_head body
 	;
 
 enum_def:	enum_def_1 enum_list TOK_RPB opt_attr_list
 			{
 			// First, put an end to the enum type decl.
-			fprintf(fp_bro_init, "} ");
-			fprintf(fp_bro_init, "%s", $4);
-			fprintf(fp_bro_init, ";\n");
+			fprintf(fp_zeek_init, "} ");
+			fprintf(fp_zeek_init, "%s", $4);
+			fprintf(fp_zeek_init, ";\n");
 			if ( decl.module_name != GLOBAL_MODULE_NAME )
 				fprintf(fp_netvar_h, "}; } }\n");
 			else
@@ -433,9 +433,9 @@ enum_def:	enum_def_1 enum_list TOK_RPB opt_attr_list
 
 			fprintf(fp_netvar_init,
 				"\tzeek::%s = zeek::id::find_type<zeek::EnumType>(\"%s\");\n",
-				decl.c_fullname.c_str(), decl.bro_fullname.c_str());
+				decl.c_fullname.c_str(), decl.zeek_fullname.c_str());
 
-			record_bif_item(decl.bro_fullname.c_str(), "TYPE");
+			record_bif_item(decl.zeek_fullname.c_str(), "TYPE");
 			}
 	;
 
@@ -443,7 +443,7 @@ enum_def_1:	TOK_ENUM opt_ws TOK_ID opt_ws TOK_LPB opt_ws
 			{
 			set_definition_type(TYPE_DEF, "Enum");
 			set_decl_name($3);
-			fprintf(fp_bro_init, "type %s: enum %s{%s", decl.bro_name.c_str(), $4, $6);
+			fprintf(fp_zeek_init, "type %s: enum %s{%s", decl.zeek_name.c_str(), $4, $6);
 
 			// this is the namespace were the enumerators are defined, not where
 			// the type is defined.
@@ -457,12 +457,12 @@ enum_def_1:	TOK_ENUM opt_ws TOK_ID opt_ws TOK_LPB opt_ws
 
 enum_list:	enum_list TOK_ID opt_ws ',' opt_ws
 			{
-			fprintf(fp_bro_init, "%s%s,%s", $2, $3, $5);
+			fprintf(fp_zeek_init, "%s%s,%s", $2, $3, $5);
 			fprintf(fp_netvar_h, "\t%s,\n", $2);
 			}
 	| 		enum_list TOK_ID opt_ws '=' opt_ws TOK_INT opt_ws ',' opt_ws
 			{
-			fprintf(fp_bro_init, "%s = %s%s,%s", $2, $6, $7, $9);
+			fprintf(fp_zeek_init, "%s = %s%s,%s", $2, $6, $7, $9);
 			fprintf(fp_netvar_h, "\t%s = %s,\n", $2, $6);
 			}
 	|	/* nothing */
@@ -500,7 +500,7 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 
 			fprintf(fp_netvar_init, "\t{\n");
 			fprintf(fp_netvar_init, "\tconst auto& v = zeek::id::find_const%s(\"%s\");\n",
-					builtin_types[typeidx].cast_smart, decl.bro_fullname.c_str());
+					builtin_types[typeidx].cast_smart, decl.zeek_fullname.c_str());
 			fprintf(fp_netvar_init, "\tzeek::%s = v%s;\n",
 					decl.c_fullname.c_str(), accessor_smart);
 			fprintf(fp_netvar_init, "\t}\n");
@@ -508,7 +508,7 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 			if ( alternative_mode && ! plugin )
 				fprintf(fp_netvar_init, "\t);\n");
 
-			record_bif_item(decl.bro_fullname.c_str(), "CONSTANT");
+			record_bif_item(decl.zeek_fullname.c_str(), "CONSTANT");
 			}
 
 attr_list:
@@ -534,7 +534,7 @@ event_prefix:	TOK_EVENT
 
 end_of_head:	/* nothing */
 			{
-			fprintf(fp_bro_init, ";\n");
+			fprintf(fp_zeek_init, ";\n");
 			}
 	;
 
@@ -546,20 +546,20 @@ typed_head:	plain_head return_type
 plain_head:	head_1 args arg_end opt_ws
 			{
 			if ( var_arg )
-				fprintf(fp_bro_init, "va_args: any");
+				fprintf(fp_zeek_init, "va_args: any");
 			else
 				{
 				for ( int i = 0; i < (int) args.size(); ++i )
 					{
 					if ( i > 0 )
-						fprintf(fp_bro_init, ", ");
-					args[i]->PrintBro(fp_bro_init);
+						fprintf(fp_zeek_init, ", ");
+					args[i]->PrintZeek(fp_zeek_init);
 					}
 				}
 
-			fprintf(fp_bro_init, ")");
+			fprintf(fp_zeek_init, ")");
 
-			fprintf(fp_bro_init, "%s", $4);
+			fprintf(fp_zeek_init, "%s", $4);
 			fprintf(fp_func_def, "%s", $4);
 			}
 	;
@@ -578,18 +578,18 @@ head_1:		TOK_ID opt_ws arg_begin
 				method_type = "event";
 
 			if ( method_type )
-				fprintf(fp_bro_init,
+				fprintf(fp_zeek_init,
 					"global %s: %s%s(",
-					decl.bro_name.c_str(), method_type, $2);
+					decl.zeek_name.c_str(), method_type, $2);
 
 			if ( definition_type == FUNC_DEF )
 				{
 				fprintf(fp_func_init,
 					"\t(void) new zeek::detail::BuiltinFunc(zeek::%s_bif, \"%s\", 0);\n",
-					decl.c_fullname.c_str(), decl.bro_fullname.c_str());
+					decl.c_fullname.c_str(), decl.zeek_fullname.c_str());
 
 				// This is the "canonical" version, with argument type and order
-				// mostly for historical reasons.  There's also no "bro_" prefix
+				// mostly for historical reasons.  There's also no "zeek_" prefix
 				// in the function name itself, but does have a "_bif" suffix
 				// to potentially help differentiate from other functions
 				// (e.g. ones at global scope that may be used to implement
@@ -602,11 +602,11 @@ head_1:		TOK_ID opt_ws arg_begin
 					"zeek::detail::BifReturnVal zeek::%s_bif(zeek::detail::Frame* frame, const zeek::Args* %s)",
 					decl.c_fullname.c_str(), arg_list_name);
 
-				record_bif_item(decl.bro_fullname.c_str(), "FUNCTION");
+				record_bif_item(decl.zeek_fullname.c_str(), "FUNCTION");
 				}
 			else if ( definition_type == EVENT_DEF )
 				{
-				if ( events.find(decl.bro_fullname) == events.end() )
+				if ( events.find(decl.zeek_fullname) == events.end() )
 					{
 					// TODO: add namespace for events here
 					fprintf(fp_netvar_h,
@@ -619,10 +619,10 @@ head_1:		TOK_ID opt_ws arg_begin
 
 					fprintf(fp_netvar_init,
 						"\t%s = zeek::event_registry->Register(\"%s\");\n",
-						decl.c_fullname.c_str(), decl.bro_fullname.c_str());
+						decl.c_fullname.c_str(), decl.zeek_fullname.c_str());
 
-					record_bif_item(decl.bro_fullname.c_str(), "EVENT");
-					// C++ prototypes of bro_event_* functions will
+					record_bif_item(decl.zeek_fullname.c_str(), "EVENT");
+					// C++ prototypes of zeek_event_* functions will
 					// be generated later.
 					}
 				}
@@ -670,7 +670,7 @@ arg:		TOK_ID opt_ws ':' opt_ws type
 return_type:	':' opt_ws type opt_ws
 			{
 			BuiltinFuncArg* ret = new BuiltinFuncArg("", $3);
-			ret->PrintBro(fp_bro_init);
+			ret->PrintZeek(fp_zeek_init);
 			delete ret;
 			fprintf(fp_func_def, "%s", $4);
 			}
@@ -710,7 +710,7 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
 					"\t\treporter->Error(\"%s() takes exactly %d argument(s)\");\n",
-					decl.bro_fullname.c_str(), argc);
+					decl.zeek_fullname.c_str(), argc);
 				fprintf(fp_func_def, "\t\treturn nullptr;\n");
 				fprintf(fp_func_def, "\t\t}\n");
 				}
@@ -720,7 +720,7 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
 					"\t\treporter->Error(\"%s() takes at least %d argument(s)\");\n",
-					decl.bro_fullname.c_str(), argc);
+					decl.zeek_fullname.c_str(), argc);
 				fprintf(fp_func_def, "\t\treturn nullptr;\n");
 				fprintf(fp_func_def, "\t\t}\n");
 				}
@@ -776,7 +776,7 @@ opt_ws:		opt_ws TOK_WS
 			else
 				if ( $2[1] == '#' )
 					// This is a special type of comment that is used to
-					// generate bro script documentation, so pass it through.
+					// generate zeek script documentation, so pass it through.
 					$$ = concat($1, $2);
 				else
 					$$ = $1;

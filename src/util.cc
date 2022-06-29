@@ -544,8 +544,9 @@ uint64_t rand64bit()
 	uint64_t base = 0;
 	int i;
 
-	for ( i = 1; i <= 4; ++i )
-		base = (base << 16) | detail::random_number();
+	static_assert(RAND_MAX == 2147483647); // 2^32-1
+	for ( i = 1; i <= 2; ++i )
+		base = (base << 32) | detail::random_number();
 	return base;
 	}
 

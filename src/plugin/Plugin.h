@@ -4,6 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
+#include <functional>
 #include <list>
 #include <optional>
 #include <string>
@@ -12,7 +13,9 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/logging/WriterBackend.h"
 
-#define BRO_PLUGIN_BRO_VERSION BRO_VERSION_FUNCTION
+// Remove the BRO define in v6.1.
+#define BRO_PLUGIN_BRO_VERSION ZEEK_VERSION_FUNCTION
+#define ZEEK_PLUGIN_ZEEK_VERSION ZEEK_VERSION_FUNCTION
 
 namespace zeek::threading
 	{
@@ -113,13 +116,82 @@ public:
 	// We force this to inline so that the API version gets hardcoded
 	// into the external plugin. (Technically, it's not a "force", just a
 	// strong hint.). The attribute seems generally available.
-	inline Configuration() __attribute__((always_inline)) { bro_version = BRO_PLUGIN_BRO_VERSION; }
+	inline Configuration() __attribute__((always_inline))
+		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		bro_version = ZEEK_PLUGIN_ZEEK_VERSION;
+#pragma GCC diagnostic pop
+		zeek_version = ZEEK_PLUGIN_ZEEK_VERSION;
+		}
+
+	Configuration(Configuration&& c)
+		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		bro_version = std::move(c.bro_version);
+#pragma GCC diagnostic pop
+		zeek_version = std::move(c.zeek_version);
+
+		name = std::move(c.name);
+		description = std::move(c.description);
+		version = std::move(c.version);
+		}
+
+	Configuration(const Configuration& c)
+		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		bro_version = c.bro_version;
+#pragma GCC diagnostic pop
+		zeek_version = c.zeek_version;
+
+		name = c.name;
+		description = c.description;
+		version = c.version;
+		}
+
+	Configuration& operator=(Configuration&& c)
+		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		bro_version = std::move(c.bro_version);
+#pragma GCC diagnostic pop
+		zeek_version = std::move(c.zeek_version);
+
+		name = std::move(c.name);
+		description = std::move(c.description);
+		version = std::move(c.version);
+
+		return *this;
+		}
+
+	Configuration& operator=(const Configuration& c)
+		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		bro_version = c.bro_version;
+#pragma GCC diagnostic pop
+		zeek_version = c.zeek_version;
+
+		name = c.name;
+		description = c.description;
+		version = c.version;
+
+		return *this;
+		}
 
 	/**
-	 * One can assign BRO_PLUGIN_BRO_VERSION to this to catch
+	 * One can assign ZEEK_PLUGIN_ZEEK_VERSION to this to catch
 	 * version mismatches at link(!) time.
 	 */
-	const char* (*bro_version)();
+	[[deprecated("Remove in v6.1. Use zeek_version.")]] std::function<const char*()> bro_version;
+
+	/**
+	 * One can assign ZEEK_PLUGIN_ZEEK_VERSION to this to catch
+	 * version mismatches at link(!) time.
+	 */
+	std::function<const char*()> zeek_version;
 
 private:
 	friend class Plugin;

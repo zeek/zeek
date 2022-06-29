@@ -62,14 +62,15 @@ enum HookType
 	HOOK_LOAD_FILE_EXT, //< Activates Plugin::HookLoadFileExtended().
 	HOOK_CALL_FUNCTION, //< Activates Plugin::HookCallFunction().
 	HOOK_QUEUE_EVENT, //< Activates Plugin::HookQueueEvent().
-	HOOK_DRAIN_EVENTS, //< Activates Plugin::HookDrainEvents()
-	HOOK_UPDATE_NETWORK_TIME, //< Activates Plugin::HookUpdateNetworkTime.
-	HOOK_BRO_OBJ_DTOR, //< Activates Plugin::HookBroObjDtor.
-	HOOK_SETUP_ANALYZER_TREE, //< Activates Plugin::HookAddToAnalyzerTree
-	HOOK_LOG_INIT, //< Activates Plugin::HookLogInit
-	HOOK_LOG_WRITE, //< Activates Plugin::HookLogWrite
-	HOOK_REPORTER, //< Activates Plugin::HookReporter
-	HOOK_UNPROCESSED_PACKET, //<Activates Plugin::HookUnprocessedPacket
+	HOOK_DRAIN_EVENTS, //< Activates Plugin::HookDrainEvents().
+	HOOK_UPDATE_NETWORK_TIME, //< Activates Plugin::HookUpdateNetworkTime().
+	HOOK_BRO_OBJ_DTOR [[deprecated("Remove in v6.1. Use HOOK_OBJ_DTOR.")]],
+	HOOK_SETUP_ANALYZER_TREE, //< Activates Plugin::HookAddToAnalyzerTree().
+	HOOK_LOG_INIT, //< Activates Plugin::HookLogInit().
+	HOOK_LOG_WRITE, //< Activates Plugin::HookLogWrite().
+	HOOK_REPORTER, //< Activates Plugin::HookReporter().
+	HOOK_UNPROCESSED_PACKET, //<Activates Plugin::HookUnprocessedPacket().
+	HOOK_OBJ_DTOR, //< Activates Plugin::HookObjDtor().
 
 	// Meta hooks.
 	META_HOOK_PRE, //< Activates Plugin::MetaHookPre().
@@ -822,11 +823,22 @@ protected:
 	 * Zeek's reference counting triggers the objects destructor to run,
 	 * \a HookBroObjDtor will be called.
 	 *
-	 * Note that his can get expensive if triggered for many objects.
+	 * Note that this can get expensive if triggered for many objects.
 	 *
-	 * @param handler The object being interested in.
+	 * @param obj The object being interested in.
 	 */
-	void RequestBroObjDtor(Obj* obj);
+	[[deprecated("Remove in v6.1. Use RequestObjDtor.")]] void RequestBroObjDtor(Obj* obj);
+
+	/**
+	 * Registers interest in the destruction of a Obj instance. When
+	 * Zeek's reference counting triggers the objects destructor to run,
+	 * \a HookObjDtor will be called.
+	 *
+	 * Note that this can get expensive if triggered for many objects.
+	 *
+	 * @param obj The object being interested in.
+	 */
+	void RequestObjDtor(Obj* obj);
 
 	// Hook functions.
 
@@ -972,7 +984,19 @@ protected:
 	 * object is already considered invalid and the pointer must not be
 	 * dereferenced.
 	 */
-	virtual void HookBroObjDtor(void* obj);
+	[[deprecated("Remove in v6.1. Use HookObjDtor.")]] virtual void HookBroObjDtor(void* obj);
+
+	/**
+	 * Hook for destruction of objects registered with
+	 * RequestObjDtor(). When Zeek's reference counting triggers the
+	 * objects destructor to run, this method will be run. It may also
+	 * run for other objects that this plugin has not registered for.
+	 *
+	 * @param obj A pointer to the object being destroyed. Note that the
+	 * object is already considered invalid and the pointer must not be
+	 * dereferenced.
+	 */
+	virtual void HookObjDtor(void* obj);
 
 	/**
 	 * Hook into log initialization. This method will be called when a

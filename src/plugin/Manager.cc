@@ -669,6 +669,11 @@ void Manager::RequestBroObjDtor(Obj* obj, Plugin* plugin)
 	obj->NotifyPluginsOnDtor();
 	}
 
+void Manager::RequestObjDtor(Obj* obj, Plugin* plugin)
+	{
+	obj->NotifyPluginsOnDtor();
+	}
+
 int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const string& resolved)
 	{
 	HookArgumentList args;
@@ -903,6 +908,29 @@ void Manager::HookBroObjDtor(void* obj) const
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_BRO_OBJ_DTOR, args, HookArgument());
+	}
+
+void Manager::HookObjDtor(void* obj) const
+	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(HookArgument(obj));
+		MetaHookPre(HOOK_OBJ_DTOR, args);
+		}
+
+	hook_list* l = hooks[HOOK_OBJ_DTOR];
+
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+			p->HookObjDtor(obj);
+			}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_OBJ_DTOR, args, HookArgument());
 	}
 
 void Manager::HookLogInit(const std::string& writer, const std::string& instantiating_filter,

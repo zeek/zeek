@@ -33,6 +33,7 @@ const char* hook_name(HookType h)
 		"LogWrite",
 		"Reporter",
 		"UnprocessedPacket",
+		"ObjDtor",
 		// MetaHooks
 		"MetaHookPre",
 		"MetaHookPost",
@@ -385,6 +386,11 @@ void Plugin::RequestBroObjDtor(Obj* obj)
 	plugin_mgr->RequestBroObjDtor(obj, this);
 	}
 
+void Plugin::RequestObjDtor(Obj* obj)
+	{
+	plugin_mgr->RequestObjDtor(obj, this);
+	}
+
 int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved)
 	{
 	return -1;
@@ -415,6 +421,8 @@ void Plugin::HookUpdateNetworkTime(double network_time) { }
 void Plugin::HookSetupAnalyzerTree(Connection* conn) { }
 
 void Plugin::HookBroObjDtor(void* obj) { }
+
+void Plugin::HookObjDtor(void* obj) { }
 
 void Plugin::HookLogInit(const std::string& writer, const std::string& instantiating_filter,
                          bool local, bool remote, const logging::WriterBackend::WriterInfo& info,

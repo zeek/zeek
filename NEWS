@@ -50,6 +50,9 @@ Deprecated Functionality
 - ``LogAscii::logdir`` and per-writer log directories have been
   deprecated in favor of the new ``Log::default_logdir``.
 
+- The HOOK_BRO_OBJ_DTOR hook and associated methods have been deprecated. They
+  are replaced by the HOOK_OBJ_DTOR hook and methods.
+
 Zeek 5.0.0
 ==========
 

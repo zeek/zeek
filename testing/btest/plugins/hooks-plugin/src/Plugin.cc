@@ -31,6 +31,7 @@ zeek::plugin::Configuration Plugin::Configure()
 	EnableHook(zeek::plugin::HOOK_LOG_INIT);
 	EnableHook(zeek::plugin::HOOK_LOG_WRITE);
 	EnableHook(zeek::plugin::HOOK_UNPROCESSED_PACKET);
+	EnableHook(zeek::plugin::HOOK_OBJ_DTOR);
 
 	zeek::plugin::Configuration config;
 	config.name = "Demo::Hooks";
@@ -154,6 +155,11 @@ void Plugin::HookUpdateNetworkTime(double network_time)
 void Plugin::HookBroObjDtor(void* obj)
 	{
 	fprintf(stderr, "%.6f  %-15s\n", zeek::run_state::network_time, "| HookBroObjDtor");
+	}
+
+void Plugin::HookObjDtor(void* obj)
+	{
+	fprintf(stderr, "%.6f  %-15s\n", zeek::run_state::network_time, "| HookObjDtor");
 	}
 
 void Plugin::MetaHookPre(zeek::plugin::HookType hook, const zeek::plugin::HookArgumentList& args)

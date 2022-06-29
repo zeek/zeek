@@ -15,11 +15,13 @@
 #include <string>
 #include <vector>
 
+#include "zeek/3rdparty/doctest.h"
 #include "zeek/Func.h"
 #include "zeek/RunState.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/writers/ascii/ascii.bif.h"
 #include "zeek/threading/SerialTypes.h"
+#include "zeek/util.h"
 
 using namespace std;
 using zeek::threading::Field;
@@ -38,7 +40,7 @@ namespace zeek::logging::writer::detail
 struct LeftoverLog
 	{
 	/*
-	 * Name of leftover log, relative to working dir.
+	 * Name of leftover log.
 	 */
 	std::string filename;
 
@@ -83,9 +85,9 @@ struct LeftoverLog
 
 	/**
 	 * Return the "path" (logging framework parlance) of the log without the
-	 * file extension. E.g. the "path" of "conn.log" is just "conn".
+	 * directory or file extension. E.g. the "path" of "logs/conn.log" is just "conn".
 	 */
-	std::string Path() const { return filename.substr(0, filename.size() - extension.size()); }
+	std::string Path() const { return zeek::filesystem::path(filename).stem(); }
 
 	/**
 	 * Deletes the shadow file and returns whether it succeeded.
@@ -93,9 +95,31 @@ struct LeftoverLog
 	bool DeleteShadow() const { return unlink(shadow_filename.data()) == 0; }
 	};
 
+/**
+ * Prefix the basename part of the given path with prefix.
+ *
+ * prefix_basename_with("logs/conn.log", ".shadow") -> logs/.shadow.conn.log"
+ */
+static std::string prefix_basename_with(const std::string& path, const std::string& prefix)
+	{
+	auto fspath = zeek::filesystem::path(path);
+	auto new_filename = prefix + fspath.filename().string();
+	return (fspath.parent_path() / new_filename).string();
+	}
+
+TEST_CASE("writers.ascii prefix_basename_with")
+	{
+	CHECK(prefix_basename_with("", ".shadow.") == ".shadow.");
+	CHECK(prefix_basename_with("conn.log", ".shadow.") == ".shadow.conn.log");
+	CHECK(prefix_basename_with("/conn.log", ".shadow.") == "/.shadow.conn.log");
+	CHECK(prefix_basename_with("a/conn.log", ".shadow.") == "a/.shadow.conn.log");
+	CHECK(prefix_basename_with("/a/conn.log", ".shadow.") == "/a/.shadow.conn.log");
+	CHECK(prefix_basename_with("a/b/conn.log", ".shadow.") == "a/b/.shadow.conn.log");
+	}
+
 static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	{
-	auto sfname = shadow_file_prefix + fname;
+	auto sfname = prefix_basename_with(fname, shadow_file_prefix);
 
 	LeftoverLog rval;
 	rval.filename = fname;
@@ -457,17 +481,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 			}
 
 		if ( fname.front() != '/' && ! logdir.empty() )
-			{
-			string path = logdir;
-			std::size_t last = path.find_last_not_of('/');
-
-			if ( last == string::npos ) // Nothing but slashes -- weird but ok...
-				path = "/";
-			else
-				path.erase(last + 1);
-
-			fname = path + "/" + fname;
-			}
+			fname = zeek::filesystem::path(logdir) / fname;
 
 		fname += ext;
 
@@ -476,8 +490,8 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 
 		if ( use_shadow )
 			{
-			auto sfname = shadow_file_prefix + fname;
-			auto tmp_sfname = ".tmp" + sfname;
+			auto sfname = prefix_basename_with(fname, shadow_file_prefix);
+			auto tmp_sfname = prefix_basename_with(sfname, ".tmp");
 			auto sfd = open(tmp_sfname.data(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 			if ( sfd < 0 )
@@ -698,7 +712,7 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 
 	if ( use_shadow )
 		{
-		auto sfname = shadow_file_prefix + fname;
+		auto sfname = prefix_basename_with(fname, shadow_file_prefix);
 
 		if ( unlink(sfname.data()) != 0 )
 			{
@@ -735,21 +749,19 @@ static std::vector<LeftoverLog> find_leftover_logs()
 	std::vector<std::string> stale_shadow_files;
 	auto prefix_len = strlen(shadow_file_prefix);
 
-	auto d = opendir(".");
+	// Find any .shadow files within LogAscii::logdir if set or
+	// otherwise search in the current working directory.
+	auto logdir = zeek::filesystem::current_path();
+	if ( BifConst::LogAscii::logdir->Len() > 0 )
+		logdir = zeek::filesystem::absolute(BifConst::LogAscii::logdir->ToStdString());
+
+	auto d = opendir(logdir.c_str());
 	struct dirent* dp;
 
 	if ( ! d )
 		{
-		char cwd[PATH_MAX];
-
-		if ( ! getcwd(cwd, sizeof(cwd)) )
-			{
-			cwd[0] = '.';
-			cwd[1] = '\0';
-			}
-
-		reporter->Error("failed to open directory '%s' in search of leftover logs: %s", cwd,
-		                strerror(errno));
+		reporter->Error("failed to open directory '%s' in search of leftover logs: %s",
+		                logdir.c_str(), strerror(errno));
 		return rval;
 		}
 
@@ -758,27 +770,28 @@ static std::vector<LeftoverLog> find_leftover_logs()
 		if ( strncmp(dp->d_name, shadow_file_prefix, prefix_len) != 0 )
 			continue;
 
-		std::string log_name = dp->d_name + prefix_len;
+		std::string shadow_fname = logdir / dp->d_name;
+		std::string log_fname = logdir / (dp->d_name + prefix_len);
 
-		if ( util::is_file(log_name) )
+		if ( util::is_file(log_fname) )
 			{
-			if ( auto ll = parse_shadow_log(log_name) )
+			if ( auto ll = parse_shadow_log(log_fname) )
 				{
 				if ( ll->error.empty() )
 					rval.emplace_back(std::move(*ll));
 				else
-					reporter->Error("failed to process leftover log '%s': %s", log_name.data(),
+					reporter->Error("failed to process leftover log '%s': %s", log_fname.data(),
 					                ll->error.data());
 				}
 			}
 		else
 			// There was a log here.  It's gone now.
-			stale_shadow_files.emplace_back(dp->d_name);
+			stale_shadow_files.emplace_back(shadow_fname);
 		}
 
 	for ( const auto& f : stale_shadow_files )
 		if ( unlink(f.data()) != 0 )
-			reporter->Error("cannot unlink %s: %s", f.data(), strerror(errno));
+			reporter->Error("cannot unlink stale %s: %s", f.data(), strerror(errno));
 
 	closedir(d);
 	return rval;

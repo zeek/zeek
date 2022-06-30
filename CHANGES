@@ -1,3 +1,7 @@
+5.1.0-dev.146 | 2022-06-30 13:38:33 -0700
+
+  * Bump Spicy and spicy-plugin to their latest release. (Benjamin Bannier, Corelight)
+
 5.1.0-dev.144 | 2022-06-30 13:37:40 -0700
 
   * Optimize 64 bit random number generation (Johanna Amann)

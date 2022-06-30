@@ -1529,6 +1529,13 @@ std::string Manager::FormatRotationPath(EnumValPtr writer, std::string_view path
 		auto prefix = rp_val->GetFieldAs<StringVal>(1)->CheckString();
 		auto dir = dir_val->AsString()->CheckString();
 
+		// If rotation_format_func returned an empty dir in RotationPath
+		// and Log::default_logdir is set, use it so that rotation is
+		// confined within it.
+		auto default_logdir = zeek::id::find_const<StringVal>("Log::default_logdir")->ToStdString();
+		if ( util::streq(dir, "") && ! default_logdir.empty() )
+			dir = default_logdir.c_str();
+
 		if ( ! util::streq(dir, "") && ! util::detail::ensure_intermediate_dirs(dir) )
 			{
 			reporter->Error("Failed to create dir '%s' returned by "

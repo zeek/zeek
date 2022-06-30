@@ -26,6 +26,13 @@ export {
 	## Default writer to use if a filter does not specify anything else.
 	const default_writer = WRITER_ASCII &redef;
 
+	## Default logging directory. An empty string implies using the
+	## current working directory.
+	## This directory is also used for rotated logs in cases where
+	## :zeek:see:`Log::rotation_format_func` returns a record with
+	## an empty or unset ``dir`` field.
+	const default_logdir = "" &redef;
+
 	## Default separator to use between fields.
 	## Individual writers can use a different value.
 	const separator = "\t" &redef;

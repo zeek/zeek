@@ -1,4 +1,4 @@
-# @TEST-DOC: Test that stale .shadow files are removed from LogAscii::logdir.
+# @TEST-DOC: Test that stale .shadow files are removed from ::default_logdir
 # @TEST-EXEC: mkdir logs
 # @TEST-EXEC: echo ".log" >> logs/.shadow.conn.log
 # @TEST-EXEC: echo "my_rotation_postprocessor" >> logs/.shadow.conn.log
@@ -17,7 +17,7 @@ function my_rotation_postprocessor(info: Log::RotationInfo) : bool
 	return T;
 	}
 
-redef LogAscii::logdir = "./logs";
+redef Log::default_logdir = "./logs";
 redef LogAscii::enable_leftover_log_rotation = T;
 redef Log::default_rotation_interval = 1hr;
 redef Log::default_rotation_postprocessor_cmd = "echo";

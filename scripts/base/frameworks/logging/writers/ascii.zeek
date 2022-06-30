@@ -57,7 +57,10 @@ export {
 	## Define the default logging directory. If empty, logs are written
 	## to the current working directory.
 	##
-	const logdir = "" &redef;
+	## This setting is superseeded by :zeek:see:`Log::default_logdir`. The
+	## latter applies to all file writers and also interacts better with
+	## log rotation.
+	const logdir = "" &redef &deprecated="Remove in v6.1. Use 'Log::default_logdir'.";
 
 	## Format of timestamps when writing out JSON. By default, the JSON
 	## formatter will use double values for timestamps which represent the

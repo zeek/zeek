@@ -19,6 +19,7 @@
 #include "zeek/Func.h"
 #include "zeek/RunState.h"
 #include "zeek/logging/Manager.h"
+#include "zeek/logging/logging.bif.h"
 #include "zeek/logging/writers/ascii/ascii.bif.h"
 #include "zeek/threading/SerialTypes.h"
 #include "zeek/util.h"
@@ -262,8 +263,13 @@ void Ascii::InitConfigOptions()
 	gzip_file_extension.assign((const char*)BifConst::LogAscii::gzip_file_extension->Bytes(),
 	                           BifConst::LogAscii::gzip_file_extension->Len());
 
+	// Remove in v6.1: LogAscii::logdir should be gone in favor
+	// of using Log::default_logdir.
 	logdir.assign((const char*)BifConst::LogAscii::logdir->Bytes(),
 	              BifConst::LogAscii::logdir->Len());
+
+	if ( logdir.empty() )
+		logdir = zeek::id::find_const<StringVal>("Log::default_logdir")->ToStdString();
 	}
 
 bool Ascii::InitFilterOptions()
@@ -374,7 +380,13 @@ bool Ascii::InitFilterOptions()
 			gzip_file_extension.assign(i->second);
 
 		else if ( strcmp(i->first, "logdir") == 0 )
+			{
+			// This doesn't play nice with leftover log rotation
+			// and log rotation in general. There's no documentation
+			// or a test for this specifically, so deprecate it.
+			reporter->Warning("Remove in v6.1. Per writer logdir is deprecated.");
 			logdir.assign(i->second);
+			}
 		}
 
 	if ( ! InitFormatter() )
@@ -748,10 +760,16 @@ static std::vector<LeftoverLog> find_leftover_logs()
 	std::vector<LeftoverLog> rval;
 	std::vector<std::string> stale_shadow_files;
 	auto prefix_len = strlen(shadow_file_prefix);
+	auto default_logdir = zeek::id::find_const<StringVal>("Log::default_logdir")->ToStdString();
 
-	// Find any .shadow files within LogAscii::logdir if set or
-	// otherwise search in the current working directory.
+	// Find any .shadow files within LogAscii::logdir, Log::default_logdir
+	// or otherwise search in the current working directory.
 	auto logdir = zeek::filesystem::current_path();
+
+	if ( ! default_logdir.empty() )
+		logdir = zeek::filesystem::absolute(default_logdir);
+
+	// Remove LogAscii::logdir fallback in v6.1.
 	if ( BifConst::LogAscii::logdir->Len() > 0 )
 		logdir = zeek::filesystem::absolute(BifConst::LogAscii::logdir->ToStdString());
 

@@ -1,9 +1,9 @@
-# @TEST-DOC: Enable leftover log rotation and logdir. Note, files are rotated into the cwd.
+# @TEST-DOC: Set Log::default_logdir to ./logs. Ensure logs stay within ./logs.
 # @TEST-EXEC: mkdir logs
 # @TEST-EXEC: zeek -b -r ${TRACES}/rotation.trace %INPUT >zeek.out 2>&1
 # @TEST-EXEC: grep "test" zeek.out | sort >out
-# @TEST-EXEC: for i in `ls test.*.log | sort`; do printf '> %s\n' $i; cat $i; done >>out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps' btest-diff out
+# @TEST-EXEC: for i in `ls ./logs/test.*.log | sort`; do printf '> %s\n' $i; cat $i; done >>out
+# @TEST-EXEC: btest-diff out
 
 module Test;
 
@@ -19,8 +19,7 @@ export {
 	} &log;
 }
 
-redef LogAscii::logdir = "./logs";
-redef LogAscii::enable_leftover_log_rotation = T;
+redef Log::default_logdir = "./logs";
 redef Log::default_rotation_interval = 1hr;
 redef Log::default_rotation_postprocessor_cmd = "echo";
 

@@ -126,8 +126,6 @@ unsigned int initial_seed();
 // Returns true if the user explicitly set a seed via init_random_seed();
 extern bool have_random_seed();
 
-extern uint64_t rand64bit();
-
 /**
  * A platform-independent PRNG implementation.  Note that this is not
  * necessarily a "statistically sound" implementation as the main purpose is

@@ -1,3 +1,11 @@
+5.1.0-dev.133 | 2022-06-30 09:56:20 -0700
+
+  * Add helpers for syncing commit files with external testsuites (Christian Kreibich, Corelight)
+
+  * Fix typo in update-timing target for external testsuites (Christian Kreibich, Corelight)
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.128 | 2022-06-27 13:04:47 -0700
 
   * removed deprecated capture-by-reference closures (Vern Paxson, Corelight)

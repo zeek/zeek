@@ -3,6 +3,15 @@
 
 module Telemetry;
 
+enum MetricType %{
+	DOUBLE_COUNTER,
+	INT_COUNTER,
+	DOUBLE_GAUGE,
+	INT_GAUGE,
+	DOUBLE_HISTOGRAM,
+	INT_HISTOGRAM,
+%}
+
 %%{
 #include "zeek/telemetry/Counter.h"
 #include "zeek/telemetry/Gauge.h"
@@ -547,4 +556,31 @@ function Telemetry::__dbl_histogram_sum%(val: opaque of dbl_histogram_metric%): 
 		zeek::reporter->Error("Telemetry::dbl_histogram_sum: invalid handle.");
 		return zeek::make_intrusive<DoubleVal>(0.0);
 		}
+	%}
+
+
+function Telemetry::__collect_metrics%(prefix: string, name: string%): any_vec
+	%{
+	auto metrics = telemetry_mgr->CollectMetrics(sv(prefix), sv(name));
+
+	static auto metrics_vector_type = zeek::id::find_type<VectorType>("any_vec");
+	auto vec = zeek::make_intrusive<VectorVal>(metrics_vector_type);
+
+	for ( const auto& m : metrics )
+		vec->Append(m.AsMetricRecord());
+
+	return vec;
+	%}
+
+function Telemetry::__collect_histogram_metrics%(prefix: string, name: string%): any_vec
+	%{
+	auto metrics = telemetry_mgr->CollectHistogramMetrics(sv(prefix), sv(name));
+
+	static auto metrics_vector_type = zeek::id::find_type<VectorType>("any_vec");
+	auto vec = zeek::make_intrusive<VectorVal>(metrics_vector_type);
+
+	for ( const auto& m : metrics )
+		vec->Append(m.AsHistogramMetricRecord());
+
+	return vec;
 	%}

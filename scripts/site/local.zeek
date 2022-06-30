@@ -89,6 +89,10 @@ redef digest_salt = "Please change this value.";
 # Extend email alerting to include hostnames
 @load policy/frameworks/notice/extend-email/hostnames
 
+# Enable logging of telemetry data into telemetry.log and
+# telemetry_histogram.log.
+@load frameworks/telemetry/log
+
 # Uncomment the following line to enable detection of the heartbleed attack. Enabling
 # this might impact performance a bit.
 # @load policy/protocols/ssl/heartbleed

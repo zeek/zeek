@@ -53,7 +53,7 @@ void FOO_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	catch ( const binpac::Exception& e )
 		{
 		printf("Exception: %s\n", e.c_msg());
-		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		AnalyzerViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 

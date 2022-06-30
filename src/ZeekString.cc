@@ -294,11 +294,6 @@ void String::ToUpper()
 			b[i] = toupper(b[i]);
 	}
 
-unsigned int String::MemoryAllocation() const
-	{
-	return padded_sizeof(*this) + util::pad_size(n + final_NUL);
-	}
-
 String* String::GetSubstring(int start, int len) const
 	{
 	// This code used to live in zeek.bif's sub_bytes() routine.

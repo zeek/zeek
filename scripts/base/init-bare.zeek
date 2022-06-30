@@ -773,8 +773,6 @@ type ReporterStats: record {
 
 ## Table type used to map variable names to their memory allocation.
 ##
-## .. zeek:see:: global_sizes
-##
 ## .. todo:: We need this type definition only for declaring builtin functions
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
 ##    directly and then remove this alias.

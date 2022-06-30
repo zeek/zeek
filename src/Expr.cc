@@ -433,7 +433,7 @@ void Expr::Describe(ODesc* d) const
 	if ( IsParen() && ! d->IsBinary() )
 		d->Add("(");
 
-	if ( d->IsPortable() || d->IsBinary() )
+	if ( d->IsBinary() )
 		AddTag(d);
 
 	ExprDescribe(d);
@@ -571,12 +571,7 @@ void NameExpr::ExprDescribe(ODesc* d) const
 	if ( d->IsReadable() )
 		d->Add(id->Name());
 	else
-		{
-		if ( d->IsPortable() )
-			d->Add(id->Name());
-		else
-			d->AddCS(id->Name());
-		}
+		d->AddCS(id->Name());
 	}
 
 ConstExpr::ConstExpr(ValPtr arg_val) : Expr(EXPR_CONST), val(std::move(arg_val))
@@ -4683,7 +4678,7 @@ TraversalCode CallExpr::Traverse(TraversalCallback* cb) const
 void CallExpr::ExprDescribe(ODesc* d) const
 	{
 	func->Describe(d);
-	if ( d->IsReadable() || d->IsPortable() )
+	if ( d->IsReadable() )
 		{
 		d->Add("(");
 		args->Describe(d);
@@ -4968,7 +4963,7 @@ TraversalCode EventExpr::Traverse(TraversalCallback* cb) const
 void EventExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add(name.c_str());
-	if ( d->IsReadable() || d->IsPortable() )
+	if ( d->IsReadable() )
 		{
 		d->Add("(");
 		args->Describe(d);
@@ -5091,7 +5086,7 @@ void ListExpr::ExprDescribe(ODesc* d) const
 
 	loop_over_list(exprs, i)
 		{
-		if ( (d->IsReadable() || d->IsPortable()) && i > 0 )
+		if ( d->IsReadable() && i > 0 )
 			d->Add(", ");
 
 		exprs[i]->Describe(d);

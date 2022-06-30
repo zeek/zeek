@@ -123,10 +123,6 @@ public:
 
 	void Dump(FILE* f);
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const;
-
 protected:
 	void AddAnywherePat(const char* pat);
 	void AddExactPat(const char* pat);
@@ -236,17 +232,6 @@ public:
 	// Original text used to construct this matcher.  Empty unless
 	// the main ("explicit") constructor was used.
 	const char* OrigText() const { return orig_text.c_str(); }
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const
-		{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		return padded_sizeof(*this) + (re_anywhere ? re_anywhere->MemoryAllocation() : 0) +
-		       (re_exact ? re_exact->MemoryAllocation() : 0);
-#pragma GCC diagnostic pop
-		}
 
 protected:
 	std::string orig_text;

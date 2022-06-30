@@ -258,11 +258,6 @@ ValPtr Val::SizeVal() const
 	return val_mgr->Count(0);
 	}
 
-unsigned int Val::MemoryAllocation() const
-	{
-	return padded_sizeof(*this);
-	}
-
 bool Val::AddTo(Val* v, bool is_first_init) const
 	{
 	Error("+= initializer only applies to aggregate values");
@@ -277,7 +272,7 @@ bool Val::RemoveFrom(Val* v) const
 
 void Val::Describe(ODesc* d) const
 	{
-	if ( d->IsBinary() || d->IsPortable() )
+	if ( d->IsBinary() )
 		{
 		type->Describe(d);
 		d->SP();
@@ -807,14 +802,6 @@ AddrVal::~AddrVal()
 	delete addr_val;
 	}
 
-unsigned int AddrVal::MemoryAllocation() const
-	{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	return padded_sizeof(*this) + addr_val->MemoryAllocation();
-#pragma GCC diagnostic pop
-	}
-
 ValPtr AddrVal::SizeVal() const
 	{
 	if ( addr_val->GetFamily() == IPv4 )
@@ -875,14 +862,6 @@ const IPAddr& SubNetVal::Prefix() const
 int SubNetVal::Width() const
 	{
 	return subnet_val->Length();
-	}
-
-unsigned int SubNetVal::MemoryAllocation() const
-	{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	return padded_sizeof(*this) + subnet_val->MemoryAllocation();
-#pragma GCC diagnostic pop
 	}
 
 ValPtr SubNetVal::SizeVal() const
@@ -1000,14 +979,6 @@ void StringVal::ValDescribe(ODesc* d) const
 	d->AddBytes(string_val);
 	if ( d->WantQuotes() )
 		d->Add("\"");
-	}
-
-unsigned int StringVal::MemoryAllocation() const
-	{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	return padded_sizeof(*this) + string_val->MemoryAllocation();
-#pragma GCC diagnostic pop
 	}
 
 StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
@@ -1210,14 +1181,6 @@ void PatternVal::ValDescribe(ODesc* d) const
 	d->Add("/");
 	}
 
-unsigned int PatternVal::MemoryAllocation() const
-	{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	return padded_sizeof(*this) + re_val->MemoryAllocation();
-#pragma GCC diagnostic pop
-	}
-
 ValPtr PatternVal::DoClone(CloneState* state)
 	{
 	// We could likely treat this type as immutable and return a reference
@@ -1287,7 +1250,7 @@ TableValPtr ListVal::ToSetVal() const
 
 void ListVal::Describe(ODesc* d) const
 	{
-	if ( d->IsBinary() || d->IsPortable() )
+	if ( d->IsBinary() )
 		{
 		type->Describe(d);
 		d->SP();
@@ -1299,7 +1262,7 @@ void ListVal::Describe(ODesc* d) const
 		{
 		if ( i > 0u )
 			{
-			if ( d->IsReadable() || d->IsPortable() )
+			if ( d->IsReadable() )
 				{
 				d->Add(",");
 				d->SP();
@@ -1330,19 +1293,6 @@ unsigned int ListVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_
 		fp += val->Footprint(analyzed_vals);
 
 	return fp;
-	}
-
-unsigned int ListVal::MemoryAllocation() const
-	{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	unsigned int size = 0;
-	for ( const auto& val : vals )
-		size += val->MemoryAllocation();
-
-	size += util::pad_size(vals.capacity() * sizeof(decltype(vals)::value_type));
-	return size + padded_sizeof(*this) + type->MemoryAllocation();
-#pragma GCC diagnostic pop
 	}
 
 TableEntryVal* TableEntryVal::Clone(Val::CloneState* state)
@@ -2323,7 +2273,7 @@ void TableVal::Describe(ODesc* d) const
 	{
 	int n = table_val->Length();
 
-	if ( d->IsBinary() || d->IsPortable() )
+	if ( d->IsBinary() )
 		{
 		table_type->Describe(d);
 		d->SP();
@@ -2331,7 +2281,7 @@ void TableVal::Describe(ODesc* d) const
 		d->SP();
 		}
 
-	if ( d->IsPortable() || d->IsReadable() )
+	if ( d->IsReadable() )
 		{
 		d->Add("{");
 		d->PushIndent();
@@ -2429,7 +2379,7 @@ void TableVal::Describe(ODesc* d) const
 			}
 		}
 
-	if ( d->IsPortable() || d->IsReadable() )
+	if ( d->IsReadable() )
 		{
 		d->PopIndent();
 		d->Add("}");
@@ -2724,25 +2674,6 @@ unsigned int TableVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed
 	return fp;
 	}
 
-unsigned int TableVal::MemoryAllocation() const
-	{
-	unsigned int size = 0;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	for ( const auto& ve : *table_val )
-		{
-		auto* tv = ve.GetValue<TableEntryVal*>();
-		if ( tv->GetVal() )
-			size += tv->GetVal()->MemoryAllocation();
-		size += padded_sizeof(TableEntryVal);
-		}
-
-	return size + padded_sizeof(*this) + table_val->MemoryAllocation() +
-	       table_hash->MemoryAllocation();
-#pragma GCC diagnostic pop
-	}
-
 std::unique_ptr<detail::HashKey> TableVal::MakeHashKey(const Val& index) const
 	{
 	return table_hash->MakeHashKey(index, true);
@@ -3007,7 +2938,7 @@ void RecordVal::Describe(ODesc* d) const
 	{
 	auto n = record_val->size();
 
-	if ( d->IsBinary() || d->IsPortable() )
+	if ( d->IsBinary() )
 		{
 		rt->Describe(d);
 		d->SP();
@@ -3105,27 +3036,6 @@ unsigned int RecordVal::ComputeFootprint(std::unordered_set<const Val*>* analyze
 		}
 
 	return fp;
-	}
-
-unsigned int RecordVal::MemoryAllocation() const
-	{
-	unsigned int size = 0;
-
-	int n = NumFields();
-	for ( auto i = 0; i < n; ++i )
-		{
-		auto f_i = GetField(i);
-		if ( f_i )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-			size += f_i->MemoryAllocation();
-#pragma GCC diagnostic pop
-		}
-
-	size += util::pad_size(record_val->capacity() * sizeof(ZVal));
-	size += padded_sizeof(*record_val);
-
-	return size + padded_sizeof(*this);
 	}
 
 ValPtr EnumVal::SizeVal() const
@@ -3719,26 +3629,14 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
-ValPtr check_and_promote(ValPtr v, const TypePtr& t, bool is_init,
+ValPtr check_and_promote(ValPtr v, const TypePtr& new_type, bool is_init,
                          const detail::Location* expr_location)
-	{
-		// Once 5.0 comes out, this function can merge with the deprecated one below it, and this
-		// pragma block can go away.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	return check_and_promote(v, t.get(), is_init, expr_location);
-#pragma GCC diagnostic pop
-	}
-
-[[deprecated("Remove in v5.1. Use version that takes TypePtr instead.")]] ValPtr
-check_and_promote(ValPtr v, const Type* t, bool is_init, const detail::Location* expr_location)
 	{
 	if ( ! v )
 		return nullptr;
 
 	Type* vt = flatten_type(v->GetType().get());
-	t = flatten_type(t);
-
+	Type* t = flatten_type(new_type.get());
 	TypeTag t_tag = t->Tag();
 	TypeTag v_tag = vt->Tag();
 

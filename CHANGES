@@ -1,3 +1,29 @@
+5.1.0-dev.142 | 2022-06-30 12:27:42 -0700
+
+  * Remove other general deprecations (Tim Wojtulewicz, Corelight)
+
+  * Remove some deprecated ocsp/ssl base scripts (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated DESC_PORTABLE ODesc mode and ODesc::IsPortable() (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated UDP, ICMP, and TCP analyzers (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated protocol_confirmation/violation events and methods (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated IterCookie-based dictionary iteration (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated MemoryAllocation() methods and related code (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated --enable-mobile-ipv6 configure argument (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.133 | 2022-06-30 09:56:20 -0700
+
+  * Add helpers for syncing commit files with external testsuites (Christian Kreibich, Corelight)
+
+  * Fix typo in update-timing target for external testsuites (Christian Kreibich, Corelight)
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.128 | 2022-06-27 13:04:47 -0700
 
   * removed deprecated capture-by-reference closures (Vern Paxson, Corelight)

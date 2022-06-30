@@ -127,10 +127,6 @@ public:
 	void Describe(ODesc* d) const override;
 	void Dump(FILE* f);
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const;
-
 protected:
 	friend class DFA_State; // for DFA_State::ComputeXtion
 	friend class DFA_State_Cache;

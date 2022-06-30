@@ -14,7 +14,6 @@ using dict_delete_func = void (*)(void*);
 namespace zeek
 	{
 
-class IterCookie;
 class Dictionary;
 
 enum DictOrder
@@ -320,47 +319,10 @@ public:
 		}
 	void* NthEntry(int n, const void*& key, int& key_len) const;
 
-	// To iterate through the dictionary, first call InitForIteration()
-	// to get an "iteration cookie".  The cookie can then be handed
-	// to NextEntry() to get the next entry in the iteration and update
-	// the cookie.  If NextEntry() indicates no more entries, it will
-	// also delete the cookie, or the cookie can be manually deleted
-	// prior to this if no longer needed.
-	//
-	// Unexpected results will occur if the elements of
-	// the dictionary are changed between calls to NextEntry() without
-	// first calling InitForIteration().
-	//
-	// If return_hash is true, a HashKey for the entry is returned in h,
-	// which should be delete'd when no longer needed.
-	[[deprecated("Remove in v5.1. Use begin() and the standard-library-compatible version of "
-	             "iteration.")]] IterCookie*
-	InitForIteration() const;
-	[[deprecated("Remove in v5.1. Use begin() and the standard-library-compatible version of "
-	             "iteration.")]] void*
-	NextEntry(detail::HashKey*& h, IterCookie*& cookie, bool return_hash) const;
-	[[deprecated("Remove in v5.1. Use begin() and the standard-library-compatible version of "
-	             "iteration.")]] void
-	StopIteration(IterCookie* cookie) const;
-
 	void SetDeleteFunc(dict_delete_func f) { delete_func = f; }
-
-	// With a robust cookie, it is safe to change the dictionary while
-	// iterating. This means that (i) we will eventually visit all
-	// unmodified entries as well as all entries added during iteration,
-	// and (ii) we won't visit any still-unseen entries which are getting
-	// removed. (We don't get this for free, so only use it if
-	// necessary.)
-	[[deprecated("Remove in v5.1. Use begin_robust() and the standard-library-compatible version "
-	             "of iteration.")]] void
-	MakeRobustCookie(IterCookie* cookie);
 
 	// Remove all entries.
 	void Clear();
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] size_t
-	MemoryAllocation() const;
 
 	/// The capacity of the table, Buckets + Overflow Size.
 	int Capacity(bool expected = false) const;
@@ -395,7 +357,6 @@ public:
 	RobustDictIterator end_robust() { return RobustDictIterator(); }
 
 private:
-	friend zeek::IterCookie;
 	friend zeek::DictIterator;
 	friend zeek::RobustDictIterator;
 
@@ -440,17 +401,6 @@ private:
 
 	void Init();
 
-	// Iteration
-	[[deprecated("Remove in v5.1. Use begin() and the standard-library-compatible version of "
-	             "iteration.")]] IterCookie*
-	InitForIterationNonConst();
-	[[deprecated("Remove in v5.1. Use begin() and the standard-library-compatible version of "
-	             "iteration.")]] void*
-	NextEntryNonConst(detail::HashKey*& h, IterCookie*& cookie, bool return_hash);
-	[[deprecated("Remove in v5.1. Use begin() and the standard-library-compatible version of "
-	             "iteration.")]] void
-	StopIterationNonConst(IterCookie* cookie);
-
 	// Lookup
 	int LinearLookupIndex(const void* key, int key_size, detail::hash_t hash) const;
 	int LookupIndex(const void* key, int key_size, detail::hash_t hash,
@@ -458,32 +408,24 @@ private:
 	int LookupIndex(const void* key, int key_size, detail::hash_t hash, int begin, int end,
 	                int* insert_position = nullptr, int* insert_distance = nullptr);
 
-	/// Insert entry, Adjust cookies when necessary.
+	/// Insert entry, Adjust iterators when necessary.
 	void InsertRelocateAndAdjust(detail::DictEntry& entry, int insert_position);
 
 	/// insert entry into position, relocate other entries when necessary.
 	void InsertAndRelocate(detail::DictEntry& entry, int insert_position,
 	                       int* last_affected_position = nullptr);
 
-	/// Adjust Cookies on Insert.
-	[[deprecated("Remove in v5.1. Use the standard-library-compatible version of iteration and the "
-	             "version that takes a RobustDictIterator.")]] void
-	AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, int insert_position,
-	               int last_affected_position);
+	/// Adjust Iterators on Insert.
 	void AdjustOnInsert(RobustDictIterator* c, const detail::DictEntry& entry, int insert_position,
 	                    int last_affected_position);
 
-	/// Remove, Relocate & Adjust cookies.
+	/// Remove, Relocate & Adjust iterators.
 	detail::DictEntry RemoveRelocateAndAdjust(int position);
 
 	/// Remove & Relocate
 	detail::DictEntry RemoveAndRelocate(int position, int* last_affected_position = nullptr);
 
-	/// Adjust safe cookies after Removal of entry at position.
-	[[deprecated("Remove in v5.1. Use the standard-library-compatible version of iteration and the "
-	             "version that takes a RobustDictIterator.")]] void
-	AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, int position,
-	               int last_affected_position);
+	/// Adjust safe iterators after Removal of entry at position.
 	void AdjustOnRemove(RobustDictIterator* c, const detail::DictEntry& entry, int position,
 	                    int last_affected_position);
 
@@ -501,9 +443,7 @@ private:
 
 	bool HaveOnlyRobustIterators() const
 		{
-		return (num_iterators == 0) ||
-		       ((cookies ? cookies->size() : 0) + (iterators ? iterators->size() : 0) ==
-		        num_iterators);
+		return (num_iterators == 0) || ((iterators ? iterators->size() : 0) == num_iterators);
 		}
 
 	RobustDictIterator MakeRobustIterator();
@@ -534,7 +474,6 @@ private:
 
 	dict_delete_func delete_func = nullptr;
 	detail::DictEntry* table = nullptr;
-	std::vector<IterCookie*>* cookies = nullptr;
 	std::vector<RobustDictIterator*>* iterators = nullptr;
 
 	// Order means the order of insertion. means no deletion until exit. will be inefficient.
@@ -571,23 +510,6 @@ public:
 		{
 		int key_len;
 		return (T*)Dictionary::NthEntry(n, (const void*&)key, key_len);
-		}
-	[[deprecated("Remove in v5.1. Use the standard-library-compatible version of iteration.")]] T*
-	NextEntry(IterCookie*& cookie) const
-		{
-		detail::HashKey* h;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		return (T*)Dictionary::NextEntry(h, cookie, false);
-#pragma GCC diagnostic pop
-		}
-	[[deprecated("Remove in v5.1. Use the standard-library-compatible version of iteration.")]] T*
-	NextEntry(detail::HashKey*& h, IterCookie*& cookie) const
-		{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		return (T*)Dictionary::NextEntry(h, cookie, true);
-#pragma GCC diagnostic pop
 		}
 	T* RemoveEntry(const detail::HashKey* key, bool* iterators_invalidated = nullptr)
 		{

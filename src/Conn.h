@@ -71,8 +71,6 @@ struct ConnTuple
 	TransportProto proto;
 	};
 
-using ConnID [[deprecated("Remove in v5.1. Use zeek::ConnTuple.")]] = ConnTuple;
-
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2,
                                      uint32_t p2)
 	{
@@ -194,14 +192,6 @@ public:
 	void IDString(ODesc* d) const;
 
 	// Statistics.
-
-	// Just a lower bound.
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocationVal() const override;
 
 	static uint64_t TotalConnections() { return total_connections; }
 	static uint64_t CurrentConnections() { return current_connections; }

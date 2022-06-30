@@ -252,10 +252,6 @@ public:
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] virtual unsigned
-	MemoryAllocation() const;
-
 	void SetName(const std::string& arg_name) { name = arg_name; }
 	const std::string& GetName() const { return name; }
 
@@ -351,10 +347,6 @@ public:
 
 	void Append(TypePtr t);
 	void AppendEvenIfNotPure(TypePtr t);
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
 
 	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 

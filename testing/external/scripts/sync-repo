@@ -1,0 +1,23 @@
+#! /usr/bin/env bash
+#
+# This moves the requested test repo to the commit indicated in its commit file.
+# If repo or commit file do not exist, it does nothing.
+[[ -z "$1" ]] && {
+    echo "sync-repo needs a local testsuite repository path as argument"
+    exit 1
+}
+
+repo="$1"
+reponame=$(basename $repo)
+commitfile=commit-hash.$reponame
+
+[[ ! -d $repo || ! -f $commitfile ]] && exit 0
+
+commit=$(cat $commitfile)
+
+[[ $commit == $(cd $repo && git rev-parse HEAD) ]] && exit 0
+
+(
+    echo "Moving '$reponame' to $commit"
+    cd $repo && git -c advice.detachedHead=false checkout $commit
+)

@@ -678,50 +678,6 @@ void Analyzer::FlipRoles()
 	resp_supporters = tmp;
 	}
 
-void Analyzer::ProtocolConfirmation(zeek::Tag arg_tag)
-	{
-	if ( protocol_confirmed )
-		return;
-
-	protocol_confirmed = true;
-
-	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
-	// Enqueue both of these events. In the base scripts, only the analyzer version is handled.
-	// The protocol remains just for handling scripts that haven't been updated. Once that event
-	// is removed, this method is also removed.
-	if ( analyzer_confirmation )
-		event_mgr.Enqueue(analyzer_confirmation, ConnVal(), tval, val_mgr->Count(id));
-	if ( protocol_confirmation )
-		event_mgr.Enqueue(protocol_confirmation, ConnVal(), tval, val_mgr->Count(id));
-	}
-
-void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
-	{
-	if ( ! protocol_violation && ! analyzer_violation )
-		return;
-
-	StringValPtr r;
-
-	if ( data && len )
-		{
-		const char* tmp = util::copy_string(reason);
-		r = make_intrusive<StringVal>(util::fmt(
-			"%s [%s%s]", tmp, util::fmt_bytes(data, min(40, len)), len > 40 ? "..." : ""));
-		delete[] tmp;
-		}
-	else
-		r = make_intrusive<StringVal>(reason);
-
-	const auto& tval = tag.AsVal();
-	// Enqueue both of these events. In the base scripts, only the analyzer version is handled.
-	// The protocol remains just for handling scripts that haven't been updated. Once that event
-	// is removed, this method is also removed.
-	if ( analyzer_confirmation )
-		event_mgr.Enqueue(analyzer_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
-	if ( protocol_confirmation )
-		event_mgr.Enqueue(protocol_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
-	}
-
 void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag)
 	{
 	if ( analyzer_confirmed )
@@ -793,25 +749,6 @@ void Analyzer::AppendNewChildren()
 	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
 	children.push_back(*i);
 	new_children.clear();
-	}
-
-unsigned int Analyzer::MemoryAllocation() const
-	{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	unsigned int mem = padded_sizeof(*this) + (timers.MemoryAllocation() - padded_sizeof(timers));
-
-	LOOP_OVER_CONST_CHILDREN(i)
-	mem += (*i)->MemoryAllocation();
-
-	for ( SupportAnalyzer* a = orig_supporters; a; a = a->sibling )
-		mem += a->MemoryAllocation();
-
-	for ( SupportAnalyzer* a = resp_supporters; a; a = a->sibling )
-		mem += a->MemoryAllocation();
-
-	return mem;
-#pragma GCC diagnostic pop
 	}
 
 void Analyzer::UpdateConnVal(RecordVal* conn_val)

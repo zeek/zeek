@@ -2709,3 +2709,21 @@ extern "C" void out_of_memory(const char* where)
 
 	abort();
 	}
+
+TEST_CASE("util filesystem")
+	{
+	zeek::filesystem::path path1("/a/b");
+	CHECK(path1.is_absolute());
+	CHECK(! path1.is_relative());
+	CHECK(path1.filename() == "b");
+	CHECK(path1.parent_path() == "/a");
+
+	zeek::filesystem::path path2("/a//b//conn.log");
+	CHECK(path2.lexically_normal() == "/a/b/conn.log");
+
+	zeek::filesystem::path path3("a//b//");
+	CHECK(path3.lexically_normal() == "a/b/");
+
+	auto info = zeek::filesystem::space(".");
+	CHECK(info.capacity > 0);
+	}

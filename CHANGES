@@ -1,3 +1,13 @@
+5.1.0-dev.144 | 2022-06-30 13:37:40 -0700
+
+  * Optimize 64 bit random number generation (Johanna Amann)
+
+    rand64bit called random 4 times to generate one 64 bit number. There is
+    no reason to do this - random() is basically guaranteed to return a 32
+    bit number.
+
+    This also adds a static check to make sure that it does.
+
 5.1.0-dev.142 | 2022-06-30 12:27:42 -0700
 
   * Remove other general deprecations (Tim Wojtulewicz, Corelight)

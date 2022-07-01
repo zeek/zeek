@@ -1,3 +1,7 @@
+5.1.0-dev.149 | 2022-07-01 09:23:33 -0700
+
+  * GH-2229: Fix some typos in weak-keys.zeek (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.146 | 2022-06-30 13:38:33 -0700
 
   * Bump Spicy and spicy-plugin to their latest release. (Benjamin Bannier, Corelight)

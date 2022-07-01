@@ -298,13 +298,12 @@ bool Raw::OpenInput()
 			struct stat sb;
 			if ( fstat(fileno(file.get()), &sb) == -1 )
 				{
+				// This is unlikely to fail
 				Error(Fmt("Could not get fstat for %s", fname.c_str()));
+				return false;
 				}
-			else
-				{
-				ino = sb.st_ino;
-				dev = sb.st_dev;
-				}
+			ino = sb.st_ino;
+			dev = sb.st_dev;
 			}
 
 		if ( ! SetFDFlags(fileno(file.get()), F_SETFD, FD_CLOEXEC) )

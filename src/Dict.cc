@@ -350,33 +350,27 @@ TEST_CASE("dict iterator invalidation")
 	detail::HashKey* it_key;
 	bool iterators_invalidated = false;
 
-	for ( auto it = dict.begin(); it != dict.end(); ++it )
-		{
-		iterators_invalidated = false;
-		dict.Remove(key3, &iterators_invalidated);
-		// Key doesn't exist, nothing to remove, iteration not invalidated.
-		CHECK(! iterators_invalidated);
+	auto it = dict.begin();
+	iterators_invalidated = false;
+	dict.Remove(key3, &iterators_invalidated);
+	// Key doesn't exist, nothing to remove, iteration not invalidated.
+	CHECK(! iterators_invalidated);
 
-		iterators_invalidated = false;
-		dict.Insert(key, &val2, &iterators_invalidated);
-		// Key exists, value gets overwritten, iteration not invalidated.
-		CHECK(! iterators_invalidated);
+	iterators_invalidated = false;
+	dict.Insert(key, &val2, &iterators_invalidated);
+	// Key exists, value gets overwritten, iteration not invalidated.
+	CHECK(! iterators_invalidated);
 
-		iterators_invalidated = false;
-		dict.Remove(key2, &iterators_invalidated);
-		// Key exists, gets removed, iteration is invalidated.
-		CHECK(iterators_invalidated);
-		break;
-		}
+	iterators_invalidated = false;
+	dict.Remove(key2, &iterators_invalidated);
+	// Key exists, gets removed, iteration is invalidated.
+	CHECK(iterators_invalidated);
 
-	for ( auto it = dict.begin(); it != dict.end(); ++it )
-		{
-		iterators_invalidated = false;
-		dict.Insert(key3, &val3, &iterators_invalidated);
-		// Key doesn't exist, gets inserted, iteration is invalidated.
-		CHECK(iterators_invalidated);
-		break;
-		}
+	it = dict.begin();
+	iterators_invalidated = false;
+	dict.Insert(key3, &val3, &iterators_invalidated);
+	// Key doesn't exist, gets inserted, iteration is invalidated.
+	CHECK(iterators_invalidated);
 
 	CHECK(dict.Length() == 2);
 	CHECK(*static_cast<uint32_t*>(dict.Lookup(key)) == val2);

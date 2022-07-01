@@ -538,18 +538,6 @@ long int random_number()
 	return zeek_rand_state;
 	}
 
-// Returns a 64-bit random string.
-uint64_t rand64bit()
-	{
-	uint64_t base = 0;
-	int i;
-
-	static_assert(RAND_MAX == 2147483647); // 2^32-1
-	for ( i = 1; i <= 2; ++i )
-		base = (base << 32) | detail::random_number();
-	return base;
-	}
-
 TEST_CASE("util is_package_loader")
 	{
 	CHECK(is_package_loader("/some/path/__load__.zeek") == true);

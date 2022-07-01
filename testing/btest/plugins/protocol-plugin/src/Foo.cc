@@ -3,7 +3,7 @@
 #include "foo_pac.h"
 #include "events.bif.h"
 
-#include <zeek/analyzer/protocol/tcp/TCP_Reassembler.h>
+#include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 using namespace btest::plugin::Demo_Foo;
 
@@ -45,7 +45,7 @@ void Foo::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
+		AnalyzerViolation(zeek::util::fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
 

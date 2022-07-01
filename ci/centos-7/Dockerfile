@@ -31,21 +31,21 @@ RUN yum -y install \
   && yum clean all && rm -rf /var/cache/yum
 
 RUN yum -y install \
+    bison \
     cmake3 \
     curl \
+    findutils \
+    libpcap-devel \
     make \
-    bison \
-    swig \
     openssl \
     openssl-devel \
-    libpcap-devel \
     python3 \
     python3-devel \
     python3-pip\
-    zlib-devel \
     sqlite \
-    findutils \
+    swig \
     which \
+    zlib-devel \
   && yum clean all && rm -rf /var/cache/yum
 
 # Install a recent flex for Spicy.

@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: '0 0 * * 1,3,5'
 
+permissions:
+  contents: read
+
 jobs:
   scan:
     if: github.repository == 'zeek/zeek'

@@ -7,31 +7,31 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 ENV DOCKERFILE_VERSION 20220519
 
 RUN apt-get update && apt-get -y install \
-    ccache \
-    git \
-    cmake \
-    make \
-    gcc \
-    g++ \
-    flex \
+    bc \
     bison \
+    bsdmainutils \
+    ccache \
+    cmake \
+    curl \
+    flex \
+    g++ \
+    gcc \
+    git \
+    lcov \
+    libkrb5-dev \
+    libmaxminddb-dev \
     libpcap-dev \
     libssl-dev \
+    make \
     python3 \
     python3-dev \
     python3-pip\
-    swig \
-    zlib1g-dev \
-    libmaxminddb-dev \
-    libkrb5-dev \
-    bsdmainutils \
-    sqlite3 \
-    curl \
-    wget \
-    unzip \
     ruby \
-    bc \
-    lcov \
+    sqlite3 \
+    swig \
+    unzip \
+    wget \
+    zlib1g-dev \
   && rm -rf /var/lib/apt/lists/*
 
 # Note - the symlink is important, otherwise cmake uses the wrong .so files.

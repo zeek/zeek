@@ -5,7 +5,7 @@
 #include "zeek/zeek-config.h"
 
 #include <binpac.h>
-#include <ctype.h>
+#include <cctype>
 
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
@@ -96,8 +96,13 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
 		{
 		if ( *encapsulation != *arg_encap )
 			{
-			if ( tunnel_changed )
+			if ( tunnel_changed &&
+			     (zeek::detail::tunnel_max_changes_per_connection == 0 ||
+			      tunnel_changes < zeek::detail::tunnel_max_changes_per_connection) )
+				{
+				tunnel_changes++;
 				EnqueueEvent(tunnel_changed, nullptr, GetVal(), arg_encap->ToVal());
+				}
 
 			encapsulation = std::make_shared<EncapsulationStack>(*arg_encap);
 			}
@@ -373,27 +378,6 @@ void Connection::FlipRoles()
 	analyzer_mgr->ApplyScheduledAnalyzers(this);
 
 	AddHistory('^');
-	}
-
-unsigned int Connection::MemoryAllocation() const
-	{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	return session::Session::MemoryAllocation() + padded_sizeof(*this) +
-	       (timers.MemoryAllocation() - padded_sizeof(timers)) +
-	       (conn_val ? conn_val->MemoryAllocation() : 0) +
-	       (adapter ? adapter->MemoryAllocation() : 0)
-		// primary_PIA is already contained in the analyzer tree.
-		;
-#pragma GCC diagnostic pop
-	}
-
-unsigned int Connection::MemoryAllocationVal() const
-	{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	return conn_val ? conn_val->MemoryAllocation() : 0;
-#pragma GCC diagnostic pop
 	}
 
 void Connection::Describe(ODesc* d) const

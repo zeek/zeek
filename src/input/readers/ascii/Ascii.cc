@@ -2,10 +2,10 @@
 
 #include "zeek/input/readers/ascii/Ascii.h"
 
-#include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cerrno>
 #include <sstream>
 
 #include "zeek/input/readers/ascii/ascii.bif.h"

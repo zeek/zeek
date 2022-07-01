@@ -48,10 +48,4 @@ void CCL::Sort()
 	std::sort(syms->begin(), syms->end());
 	}
 
-unsigned int CCL::MemoryAllocation() const
-	{
-	return padded_sizeof(*this) + padded_sizeof(*syms) +
-	       util::pad_size(syms->size() * sizeof(int_list::value_type));
-	}
-
 	} // namespace zeek::detail

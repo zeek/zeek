@@ -2,9 +2,9 @@
 
 #include "zeek/script_opt/CPP/Util.h"
 
-#include <errno.h>
 #include <sys/file.h>
 #include <unistd.h>
+#include <cerrno>
 
 #include "zeek/script_opt/StmtOptInfo.h"
 

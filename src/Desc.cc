@@ -4,10 +4,10 @@
 
 #include "zeek/zeek-config.h"
 
-#include <errno.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cerrno>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/File.h"
@@ -22,10 +22,6 @@ namespace zeek
 
 ODesc::ODesc(DescType t, File* arg_f)
 	{
-	if ( t == DESC_PORTABLE )
-		zeek::reporter->Warning("Remove in v5.1. Use of DESC_PORTABLE \"Describe\" format is "
-		                        "deprecated and will be removed");
-
 	type = t;
 	style = STANDARD_STYLE;
 	f = arg_f;
@@ -179,7 +175,7 @@ void ODesc::Add(double d, bool no_exp)
 			return v < 0 ? -v < tolerance : v < tolerance;
 		};
 
-		if ( approx_equal(d, nearbyint(d), 1e-9) && isfinite(d) && ! strchr(tmp, 'e') )
+		if ( approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) && ! strchr(tmp, 'e') )
 			// disambiguate from integer
 			Add(".0");
 		}

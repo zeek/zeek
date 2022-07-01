@@ -15,30 +15,36 @@ export {
 
 	# Agent API events
 
-	## The controller sends this event to convey a new cluster configuration
-	## to the agent. Once processed, the agent responds with the response
-	## event.
+	## The controller sends this event to deploy a cluster configuration to
+	## this instance. Once processed, the agent responds with a
+	## :zeek:see:`Management::Agent::API::deploy_response` event.  event.
 	##
 	## reqid: a request identifier string, echoed in the response event.
 	##
-	## config: a :zeek:see:`Management::Configuration` record
-	##     describing the cluster topology. Note that this contains the full
-	##     topology, not just the part pertaining to this agent. That's because
-	##     the cluster framework requires full cluster visibility to establish
-	##     the needed peerings.
+	## config: a :zeek:see:`Management::Configuration` record describing the
+	##     cluster topology. This contains the full topology, not just the
+	##     part pertaining to this instance: the cluster framework requires
+	##     full cluster visibility to establish needed peerings.
 	##
-	global set_configuration_request: event(reqid: string,
-	    config: Management::Configuration);
+	## force: whether to re-deploy (i.e., restart its Zeek cluster nodes)
+	##     when the agent already runs this configuration. This relies on
+	##     the config ID to determine config equality.
+	##
+	global deploy_request: event(reqid: string,
+	    config: Management::Configuration, force: bool &default=F);
 
-	## Response to a set_configuration_request event. The agent sends
-	## this back to the controller.
+	## Response to a :zeek:see:`Management::Agent::API::deploy_request`
+	## event. The agent sends this back to the controller.
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: the result record.
+	## results: A vector of :zeek:see:`Management::Result` records, each
+	##     capturing the outcome of a single launched node. For failing
+	##     nodes, the result's data field is a
+	##     :zeek:see:`Management::NodeOutputs` record.
 	##
-	global set_configuration_response: event(reqid: string,
-	    result: Management::ResultVec);
+	global deploy_response: event(reqid: string,
+	    results: Management::ResultVec);
 
 
 	## The controller sends this event to request a list of
@@ -50,8 +56,8 @@ export {
 	##
 	global get_nodes_request: event(reqid: string);
 
-	## Response to a get_nodes_request event. The agent sends this back to the
-	## controller.
+	## Response to a :zeek:see:`Management::Agent::API::get_nodes_request`
+	## event. The agent sends this back to the controller.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -83,31 +89,35 @@ export {
 	global node_dispatch_request: event(reqid: string, action: vector of string,
 	    nodes: set[string] &default=set());
 
-	## Response to a node_dispatch_request event. Each agent sends this back
-	## to the controller to report the dispatch outcomes on all nodes managed
-	## by that agent.
+	## Response to a
+	## :zeek:see:`Management::Agent::API::node_dispatch_request` event. Each
+	## agent sends this back to the controller to report the dispatch
+	## outcomes on all nodes managed by that agent.
 	##
 	## reqid: the request identifier used in the request event.
 	##
-	## result: a :zeek:type:`vector` of :zeek:see:`Management::Result`
+	## results: a :zeek:type:`vector` of :zeek:see:`Management::Result`
 	##     records. Each record covers one Zeek cluster node managed by this
 	##     agent. Upon success, each :zeek:see:`Management::Result` record's
 	##     data member contains the dispatches' response in a data type
 	##     appropriate for the respective dispatch.
 	##
-	global node_dispatch_response: event(reqid: string, result: Management::ResultVec);
+	global node_dispatch_response: event(reqid: string, results: Management::ResultVec);
 
 
 	## The controller sends this event to confirm to the agent that it is
-	## part of the current cluster topology. The agent acknowledges with the
-	## corresponding response event.
+	## part of the current cluster topology. The agent acknowledges with a
+	## :zeek:see:`Management::Agent::API::agent_welcome_response` event,
+	## upon which the controller may proceed with a cluster deployment to
+	## this agent.
 	##
 	## reqid: a request identifier string, echoed in the response event.
 	##
 	global agent_welcome_request: event(reqid: string);
 
-	## Response to an agent_welcome_request event. The agent sends this
-	## back to the controller.
+	## Response to a
+	## :zeek:see:`Management::Agent::API::agent_welcome_request` event. The
+	## agent sends this back to the controller.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -129,8 +139,9 @@ export {
 	##
 	global agent_standby_request: event(reqid: string);
 
-	## Response to an agent_standby_request event. The agent sends this
-	## back to the controller.
+	## Response to a
+	## :zeek:see:`Management::Agent::API::agent_standby_request` event. The
+	## agent sends this back to the controller.
 	##
 	## reqid: the request identifier used in the request event.
 	##
@@ -138,6 +149,35 @@ export {
 	##
 	global agent_standby_response: event(reqid: string,
 	    result: Management::Result);
+
+
+	## The controller sends this event to ask the agent to restart currently
+	## running Zeek cluster nodes. For nodes currently running, the agent
+	## places these nodes into PENDING state and sends restart events to the
+	## Supervisor, rendering its responses into a list of
+	## :zeek:see:`Management::Result` records summarizing each node restart.
+	## When restarted nodes check in with the agent, they switch back to
+	## RUNNING state. The agent ignores nodes not currently running.
+	##
+	## reqid: a request identifier string, echoed in the response event.
+	##
+	## nodes: a set of cluster node names (e.g. "worker-01") to restart. An
+	##    empty set, supplied by default, means restart of all of the
+	##    agent's current cluster nodes.
+	##
+	global restart_request: event(reqid: string, nodes: set[string] &default=set());
+
+	## Response to a :zeek:see:`Management::Agent::API::restart_request`
+	## event. The agent sends this back to the controller when the
+	## Supervisor has restarted all nodes affected, or a timoeut occurs.
+	##
+	## reqid: the request identifier used in the request event.
+	##
+	## results: a :zeek:type:`vector` of :zeek:see:`Management::Result`, one
+	##     for each Supervisor transaction. Each such result identifies both
+	##     the instance and node.
+	##
+	global restart_response: event(reqid: string, results: Management::ResultVec);
 
 
 	# Notification events, agent -> controller
@@ -161,7 +201,7 @@ export {
 	    connecting: bool, api_version: count);
 
 
-	# The following are not yet implemented.
+	# The following are not yet meaningfully implemented.
 
 	# Report node state changes.
 	global notify_change: event(instance: string,

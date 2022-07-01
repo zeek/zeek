@@ -11,20 +11,20 @@
 #include <mach/task.h>
 #endif
 
-#include <ctype.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cctype>
+#include <cerrno>
+#include <csignal>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
 
 #if defined(HAVE_MALLINFO) || defined(HAVE_MALLINFO2)
 #include <malloc.h>
@@ -544,8 +544,9 @@ uint64_t rand64bit()
 	uint64_t base = 0;
 	int i;
 
-	for ( i = 1; i <= 4; ++i )
-		base = (base << 16) | detail::random_number();
+	static_assert(RAND_MAX == 2147483647); // 2^32-1
+	for ( i = 1; i <= 2; ++i )
+		base = (base << 32) | detail::random_number();
 	return base;
 	}
 
@@ -2521,11 +2522,6 @@ void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen)
 	auto res = strerror_r(zeek_errno, buf, buflen);
 	// GNU vs. XSI flavors make it harder to use strerror_r.
 	strerror_r_helper(res, buf, buflen);
-	}
-
-char* zeekenv(const char* name)
-	{
-	return getenv(name);
 	}
 
 static string json_escape_byte(char c)

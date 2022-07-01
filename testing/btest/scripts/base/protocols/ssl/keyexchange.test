@@ -16,7 +16,6 @@
 
 @load base/protocols/ssl
 @load base/files/x509
-@load protocols/ssl/extract-certs-pem
 
 module SSL;
 
@@ -48,11 +47,6 @@ export {
 		client_dh_Yc: string &log &optional;
 		client_ecdh_point: string &log &optional;
 	};
-
-	## Control if host certificates offered by the defined hosts
-	## will be written to the PEM certificates file.
-	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
-	redef extract_certs_pem = ALL_HOSTS;
 }
 
 event ssl_established(c: connection) &priority=5

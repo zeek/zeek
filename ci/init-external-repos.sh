@@ -13,7 +13,6 @@ set -e
 cd testing/external
 [[ ! -d zeek-testing ]] && make init
 cd zeek-testing
-git checkout -q $(cat ../commit-hash.zeek-testing)
 
 if [[ -n "${CIRRUS_CI}" ]]; then
     if [[ -d ../zeek-testing-traces ]]; then

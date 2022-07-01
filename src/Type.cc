@@ -269,11 +269,6 @@ void Type::SetError()
 	tag = TYPE_ERROR;
 	}
 
-unsigned int Type::MemoryAllocation() const
-	{
-	return padded_sizeof(*this);
-	}
-
 detail::TraversalCode Type::Traverse(detail::TraversalCallback* cb) const
 	{
 	auto tc = cb->PreType(this);
@@ -332,21 +327,6 @@ void TypeList::DoDescribe(ODesc* d) const
 			types[i]->Describe(d);
 			}
 		}
-	}
-
-unsigned int TypeList::MemoryAllocation() const
-	{
-	unsigned int size = 0;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	for ( const auto& t : types )
-		size += t->MemoryAllocation();
-
-	size += util::pad_size(types.capacity() * sizeof(decltype(types)::value_type));
-
-	return Type::MemoryAllocation() + padded_sizeof(*this) - padded_sizeof(Type) + size;
-#pragma GCC diagnostic pop
 	}
 
 detail::TraversalCode TypeList::Traverse(detail::TraversalCallback* cb) const

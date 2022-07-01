@@ -3,7 +3,7 @@
 #pragma once
 
 #include <broker/expected.hh>
-#include <stdint.h>
+#include <cstdint>
 #include <memory>
 #include <vector>
 

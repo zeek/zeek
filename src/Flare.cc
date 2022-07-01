@@ -2,9 +2,9 @@
 
 #include "zeek/Flare.h"
 
-#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cerrno>
 
 #include "zeek/Reporter.h"
 

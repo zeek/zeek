@@ -7,12 +7,12 @@
 #include <openssl/err.h>
 #include <openssl/opensslv.h>
 #include <openssl/ssl.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <list>
 #include <optional>
 
@@ -641,7 +641,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	if ( r != SQLITE_OK )
 		reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
 
-	timer_mgr = new PQ_TimerMgr();
+	timer_mgr = new TimerMgr();
 
 	auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
 	zeekygen_mgr = new zeekygen::detail::Manager(zeekygen_cfg, zeek_argv[0]);

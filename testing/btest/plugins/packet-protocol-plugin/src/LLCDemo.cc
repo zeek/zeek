@@ -16,7 +16,7 @@ bool LLCDemo::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	// Rudimentary parsing of 802.2 LLC
 	if ( 17 >= len )
 		{
-		sessions->Weird("truncated_llc_header", packet);
+		session_mgr->Weird("truncated_llc_header", packet);
 		return false;
 		}
 

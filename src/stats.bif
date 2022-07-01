@@ -215,18 +215,16 @@ function get_event_stats%(%): EventStats
 ##              get_timer_stats
 ##              get_broker_stats
 ##              get_reporter_stats
+## TODO: this should have been deprecated before?
 function get_reassembler_stats%(%): ReassemblerStats
 	%{
 	auto r = zeek::make_intrusive<zeek::RecordVal>(ReassemblerStats);
 	int n = 0;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	r->Assign(n++, Reassembler::MemoryAllocation(zeek::REASSEM_FILE));
 	r->Assign(n++, Reassembler::MemoryAllocation(zeek::REASSEM_FRAG));
 	r->Assign(n++, Reassembler::MemoryAllocation(zeek::REASSEM_TCP));
 	r->Assign(n++, Reassembler::MemoryAllocation(zeek::REASSEM_UNKNOWN));
-#pragma GCC diagnostic pop
 
 	return r;
 	%}
@@ -288,7 +286,7 @@ function get_timer_stats%(%): TimerStats
 
 	r->Assign(n++, static_cast<uint64_t>(zeek::detail::timer_mgr->Size()));
 	r->Assign(n++, static_cast<uint64_t>(zeek::detail::timer_mgr->PeakSize()));
-	r->Assign(n++, zeek::detail::timer_mgr->CumulativeNum());
+	r->Assign(n++, static_cast<uint64_t>(zeek::detail::timer_mgr->CumulativeNum()));
 
 	return r;
 	%}

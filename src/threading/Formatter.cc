@@ -4,7 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include <errno.h>
+#include <cerrno>
 
 #include "zeek/3rdparty/bro_inet_ntop.h"
 #include "zeek/threading/MsgThread.h"

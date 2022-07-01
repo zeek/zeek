@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <assert.h>
 #include <sys/types.h> // for u_char
+#include <cassert>
 #include <map>
 #include <string>
 
@@ -126,10 +126,6 @@ public:
 
 	void Describe(ODesc* d) const override;
 	void Dump(FILE* f);
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const;
 
 protected:
 	friend class DFA_State; // for DFA_State::ComputeXtion

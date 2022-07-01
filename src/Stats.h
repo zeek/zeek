@@ -4,10 +4,10 @@
 
 #include "zeek/zeek-config.h"
 
-#include <stdint.h>
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <cstdint>
 #include <memory>
 
 namespace zeek

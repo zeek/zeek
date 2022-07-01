@@ -4,7 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include <string.h>
+#include <cstring>
 
 #include "zeek/util.h"
 

@@ -2,15 +2,15 @@
 
 #include "zeek/input/readers/raw/Raw.h"
 
-#include <errno.h>
 #include <fcntl.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <cerrno>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
 
 #include "zeek/input/readers/raw/Plugin.h"
 #include "zeek/input/readers/raw/raw.bif.h"

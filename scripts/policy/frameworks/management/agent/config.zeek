@@ -1,5 +1,6 @@
 ##! Configuration settings for a cluster agent.
 
+@load base/misc/installation
 @load policy/frameworks/management
 
 # We source the controller configuration to obtain its network coordinates, so
@@ -43,6 +44,26 @@ export {
 
 	## The fallback listen port if :zeek:see:`Management::Agent::listen_port` remains empty.
 	const default_port = 2151/tcp &redef;
+
+	## Whether the agent should periodically invoke zeek-archiver to
+	## finalize logs.
+	const archive_logs = T &redef;
+
+	## The archival interval to use. When 0, it defaults to the log rotation
+	## interval.
+	const archive_interval = 0 sec &redef;
+
+	## The archival command. When empty, defaults to the zeek-archiver
+	## installed with the Zeek distribution. Whatever the command, the
+	## agent will invoke it like zeek-archiver, so take a look at its
+	## command-line arguments if you're planning to put in place a
+	## substitute. Archival happens from the
+	## :zeek:see:`Log::default_rotation_dir` to
+	## :zeek:see:`Management::Agent::archive_dir`.
+	const archive_cmd = "" &redef;
+
+	## The destination interval for archived logs.
+	const archive_dir = Installation::log_dir &redef;
 
 	## The agent's Broker topic prefix. For its own communication, the agent
 	## suffixes this with "/<name>", based on :zeek:see:`Management::Agent::get_name`.
@@ -106,7 +127,7 @@ function endpoint_info(): Broker::EndpointInfo
 	else if ( Management::default_address != "" )
 		network$address = Management::default_address;
 	else
-		network$address = "127.0.0.1";
+		network$address = "0.0.0.0";
 
 	if ( Management::Agent::listen_port != "" )
 		network$bound_port = to_port(Management::Agent::listen_port);

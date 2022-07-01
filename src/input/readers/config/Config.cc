@@ -2,11 +2,11 @@
 
 #include "zeek/input/readers/config/Config.h"
 
-#include <errno.h>
 #include <regex.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cerrno>
 #include <sstream>
 #include <unordered_set>
 

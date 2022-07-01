@@ -7,8 +7,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <pcap.h>
-#include <stdlib.h>
 #include <unistd.h>
+#include <cstdlib>
 
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
@@ -25,7 +25,6 @@
 #include "zeek/telemetry/Manager.h"
 
 zeek::session::Manager* zeek::session_mgr = nullptr;
-zeek::session::Manager*& zeek::sessions = zeek::session_mgr;
 
 namespace zeek::session
 	{
@@ -269,56 +268,6 @@ void Manager::Weird(const char* name, const IP_Hdr* ip, const char* addl)
 	reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name, addl);
 	}
 
-unsigned int Manager::SessionMemoryUsage()
-	{
-	unsigned int mem = 0;
-
-	if ( run_state::terminating )
-		// Connections have been flushed already.
-		return 0;
-
-	for ( const auto& entry : session_map )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		mem += entry.second->MemoryAllocation();
-#pragma GCC diagnostic pop
-
-	return mem;
-	}
-
-unsigned int Manager::SessionMemoryUsageVals()
-	{
-	unsigned int mem = 0;
-
-	if ( run_state::terminating )
-		// Connections have been flushed already.
-		return 0;
-
-	for ( const auto& entry : session_map )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		mem += entry.second->MemoryAllocationVal();
-#pragma GCC diagnostic pop
-
-	return mem;
-	}
-
-unsigned int Manager::MemoryAllocation()
-	{
-	if ( run_state::terminating )
-		// Connections have been flushed already.
-		return 0;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	return SessionMemoryUsage() + padded_sizeof(*this) +
-	       (session_map.size() * (sizeof(SessionMap::key_type) + sizeof(SessionMap::value_type))) +
-	       zeek::detail::fragment_mgr->MemoryAllocation();
-	// FIXME: MemoryAllocation() not implemented for rest.
-	;
-#pragma GCC diagnostic pop
-	}
-
 void Manager::InsertSession(detail::Key key, Session* session)
 	{
 	session->SetInSessionTable(true);
@@ -335,11 +284,6 @@ void Manager::InsertSession(detail::Key key, Session* session)
 		if ( stat_block->active.Value() > stat_block->max )
 			stat_block->max++;
 		}
-	}
-
-zeek::detail::PacketFilter* Manager::GetPacketFilter(bool init)
-	{
-	return packet_mgr->GetPacketFilter(init);
 	}
 
 	} // namespace zeek::session

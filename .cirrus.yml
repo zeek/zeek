@@ -15,7 +15,6 @@ static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enab
 asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache
 ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache
 tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache
-mobile_ipv6_config: &MOBILE_IPV6_CONFIG --build-type=release --enable-mobile-ipv6 --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache
 openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install --ccache
 
 resources_template: &RESOURCES_TEMPLATE
@@ -54,7 +53,7 @@ sanitizers_resource_template: &SANITIZERS_RESOURCE_TEMPLATE
 
 ci_template: &CI_TEMPLATE
   only_if: >
-    $CIRRUS_PR != '' ||
+    ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
     ( $CIRRUS_REPO_NAME == 'zeek' &&
       (
       $CIRRUS_BRANCH == 'master' ||
@@ -136,10 +135,10 @@ fedora35_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-fedora34_task:
+fedora36_task:
   container:
-    # Fedora 34 EOL: Around May 2022
-    dockerfile: ci/fedora-34/Dockerfile
+    # Fedora 36 EOL: Around May 2023
+    dockerfile: ci/fedora-36/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
@@ -202,10 +201,24 @@ debian9_32bit_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+opensuse_leap_15_4_task:
+  container:
+    # Opensuse Leap 15.4 EOL: TBD
+    dockerfile: ci/opensuse-leap-15.4/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 opensuse_leap_15_3_task:
   container:
-    # Opensuse Leap 15.3 EOL: TBD
+    # Opensuse Leap 15.3 EOL: ~Dec 2022
     dockerfile: ci/opensuse-leap-15.3/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
+ubuntu22_task:
+  container:
+    # Ubuntu 22.04 EOL: April 2027
+    dockerfile: ci/ubuntu-22.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
@@ -229,8 +242,6 @@ ubuntu18_task:
     dockerfile: ci/ubuntu-18.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *MOBILE_IPV6_CONFIG
 
 alpine_task:
   container:

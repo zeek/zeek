@@ -32,6 +32,14 @@ export {
 		finished: bool &default=F;
 	};
 
+	# To allow a callback to refer to Requests, the Request type must
+	# exist. So redef to add it:
+	redef record Request += {
+		## A callback to invoke when this request is finished via
+		## :zeek:see:`Management::Request::finish`.
+		finish: function(req: Management::Request::Request) &optional;
+	};
+
 	## The timeout interval for request state. Such state (see the
 	## :zeek:see:`Management::Request` module) ties together request and
 	## response event pairs. A timeout causes cleanup of request state if
@@ -131,6 +139,9 @@ function finish(reqid: string): bool
 	local req = g_requests[reqid];
 	delete g_requests[reqid];
 
+	if ( req?$finish )
+		req$finish(req);
+
 	req$finished = T;
 
 	return T;
@@ -146,20 +157,12 @@ function is_null(request: Request): bool
 
 function to_string(request: Request): string
 	{
-	local results: string_vec;
-	local res: Management::Result;
 	local parent_id = "";
 
 	if ( request?$parent_id )
 		parent_id = fmt(" (via %s)", request$parent_id);
 
-	for ( idx in request$results )
-		{
-		res = request$results[idx];
-		results[|results|] = Management::result_to_string(res);
-		}
-
 	return fmt("[request %s%s %s, results: %s]", request$id, parent_id,
 	           request$finished ? "finished" : "pending",
-	           join_string_vec(results, ","));
+		   Management::result_vec_to_string(request$results));
 	}

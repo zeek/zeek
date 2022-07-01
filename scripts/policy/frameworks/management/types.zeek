@@ -92,22 +92,27 @@ export {
 
 	type NodeStatusVec: vector of NodeStatus;
 
-	## Return value for request-response API event pairs
+	## Return value for request-response API event pairs. Some responses
+	## contain one, others multiple of these. The request ID allows clients
+	## to string requests and responses together. Agents and the controller
+	## fill in the instance and node fields whenever there's sufficient
+	## context to define them. Any result produced by an agent will carry an
+	## instance value, for example.
 	type Result: record {
 		reqid: string;                ##< Request ID of operation this result refers to
-		instance: string &default=""; ##< Name of associated instance (for context)
 		success: bool &default=T;     ##< True if successful
+		instance: string &optional;   ##< Name of associated instance (for context)
 		data: any &optional;          ##< Addl data returned for successful operation
-		error: string &default="";    ##< Descriptive error on failure
+		error: string &optional;      ##< Descriptive error on failure
 		node: string &optional;       ##< Name of associated node (for context)
 	};
 
 	type ResultVec: vector of Result;
 
-	## In :zeek:see:`Management::Controller::API::set_configuration_response`,
-	## events, each :zeek:see:`Management::Result` indicates the outcome of a
-	## requested cluster node. If a node does not launch properly (meaning
-	## it doesn't check in with the agent on thee machine it's running on),
+	## In :zeek:see:`Management::Controller::API::deploy_response` events,
+	## each :zeek:see:`Management::Result` indicates the outcome of a
+	## launched cluster node. If a node does not launch properly (meaning
+	## it doesn't check in with the agent on the machine it's running on),
 	## the result will indicate failure, and its data field will be an
 	## instance of this record, capturing the stdout and stderr output of
 	## the failing node.
@@ -119,6 +124,10 @@ export {
 	## Given a :zeek:see:`Management::Result` record,
 	## this function returns a string summarizing it.
 	global result_to_string: function(res: Result): string;
+
+	## Given a vector of :zeek:see:`Management::Result` records,
+	## this function returns a string summarizing them.
+	global result_vec_to_string: function(res: ResultVec): string;
 }
 
 function result_to_string(res: Result): string
@@ -127,7 +136,7 @@ function result_to_string(res: Result): string
 
 	if ( res$success )
 		result = "success";
-	else if ( res$error != "" )
+	else if ( res?$error )
 		result = fmt("error (%s)", res$error);
 	else
 		result = "error";
@@ -136,7 +145,7 @@ function result_to_string(res: Result): string
 
 	if ( res$reqid != "" )
 		details[|details|] = fmt("reqid %s", res$reqid);
-	if ( res$instance != "" )
+	if ( res?$instance )
 		details[|details|] = fmt("instance %s", res$instance);
 	if ( res?$node && res$node != "" )
 		details[|details|] = fmt("node %s", res$node);
@@ -145,4 +154,14 @@ function result_to_string(res: Result): string
 		result = fmt("%s (%s)", result, join_string_vec(details, ", "));
 
 	return result;
+	}
+
+function result_vec_to_string(res: ResultVec): string
+	{
+	local ret: vector of string;
+
+	for ( idx in res )
+		ret += result_to_string(res[idx]);;
+
+	return join_string_vec(ret, ", ");
 	}

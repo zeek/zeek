@@ -4,8 +4,8 @@
 
 #include "zeek/zeek-config.h"
 
-#include <ctype.h>
 #include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <sstream> // Needed for unit testing
 
@@ -292,11 +292,6 @@ void String::ToUpper()
 	for ( int i = 0; i < n; ++i )
 		if ( islower(b[i]) )
 			b[i] = toupper(b[i]);
-	}
-
-unsigned int String::MemoryAllocation() const
-	{
-	return padded_sizeof(*this) + util::pad_size(n + final_NUL);
 	}
 
 String* String::GetSubstring(int start, int len) const

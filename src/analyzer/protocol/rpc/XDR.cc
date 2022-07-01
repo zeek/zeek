@@ -4,8 +4,8 @@
 
 #include "zeek/zeek-config.h"
 
-#include <string.h>
 #include <algorithm>
+#include <cstring>
 
 #include "zeek/analyzer/protocol/rpc/events.bif.h"
 

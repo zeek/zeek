@@ -2,8 +2,8 @@
 
 #include "zeek/zeek-config.h"
 
-#include <stdint.h>
 #include <sys/types.h> // for u_char
+#include <cstdint>
 #include <string>
 
 #if defined(__OpenBSD__)
@@ -186,17 +186,27 @@ public:
 	 */
 	bool is_orig = false;
 
+	// Note: The following checksummed variables only apply to packets
+	// received via a packet source, and not to packets contained inside
+	// tunnels, etc.
+
 	/**
-	 * Indicates whether the layer 2 checksum was validated by the
-	 * hardware/kernel before being received by zeek.
+	 * Indicates whether the data link layer/layer 2 checksum was validated
+	 * the hardware/kernel before being received by zeek.
 	 */
 	bool l2_checksummed = false;
 
 	/**
-	 * Indicates whether the layer 3 checksum was validated by the
-	 * hardware/kernel before being received by zeek.
+	 * Indicates whether the network layer/layer 3 checksum was validated by
+	 * the hardware/kernel before being received by zeek.
 	 */
 	bool l3_checksummed = false;
+
+	/**
+	 * Indicates whether the transport layer/layer 4 checksum was validated
+	 * by the hardware/kernel before being received by zeek.
+	 */
+	bool l4_checksummed = false;
 
 	/**
 	 * Indicates whether this packet should be recorded.

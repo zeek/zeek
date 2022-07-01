@@ -4,7 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include <assert.h>
+#include <cassert>
 
 #include "zeek/Debug.h"
 #include "zeek/Desc.h"

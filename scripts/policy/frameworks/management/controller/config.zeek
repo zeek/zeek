@@ -39,6 +39,17 @@ export {
 	## remains empty.
 	const default_port = 2150/tcp &redef;
 
+	## Whether the controller should auto-assign listening ports to cluster
+	## nodes that need them and don't have them explicitly specified in
+	## cluster configurations.
+	const auto_assign_ports = T &redef;
+
+	## The TCP start port to use for auto-assigning cluster node listening
+	## ports, if :zeek:see:`Management::Controller::auto_assign_ports` is
+	## enabled (the default) and the provided configurations don't have
+	## ports assigned.
+	const auto_assign_start_port = 2200/tcp &redef;
+
 	## The controller's Broker topic. Clients send requests to this topic.
 	const topic = "zeek/management/controller" &redef;
 
@@ -47,6 +58,10 @@ export {
 	## logger node. This means that if both write to the same log file,
 	## output gets garbled.
 	const directory = "" &redef;
+
+	## The name of the Broker store the controller uses to persist internal
+	## state to disk.
+	const store_name = "controller";
 
 	## Returns the effective name of the controller.
 	global get_name: function(): string;
@@ -75,7 +90,7 @@ function network_info(): Broker::NetworkInfo
 	else if ( Management::default_address != "" )
 		ni$address = Management::default_address;
 	else
-		ni$address = "127.0.0.1";
+		ni$address = "0.0.0.0";
 
 	if ( Management::Controller::listen_port != "" )
 		ni$bound_port = to_port(Management::Controller::listen_port);

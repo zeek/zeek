@@ -5,10 +5,10 @@
 #include "zeek/zeek-config.h"
 
 #include <arpa/inet.h>
-#include <ctype.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <cctype>
 
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"

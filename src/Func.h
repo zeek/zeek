@@ -182,42 +182,12 @@ public:
 	 */
 	const OffsetMap* GetCapturesOffsetMap() const { return captures_offset_mapping; }
 
-	// The following "Closure" methods implement the deprecated
-	// capture-by-reference functionality.
-
 	/**
-	 * Adds a closure to the function. Closures are cloned and
-	 * future calls to ScriptFunc methods will not modify *f*.
+	 * Serializes this function's capture frame.
 	 *
-	 * @param ids IDs that are captured by the closure.
-	 * @param f the closure to be captured.
+	 * @return a serialized version of the function's capture frame.
 	 */
-	void AddClosure(IDPList ids, Frame* f);
-
-	/**
-	 * Replaces the current closure with one built from *data*
-	 *
-	 * @param data a serialized closure
-	 */
-	bool UpdateClosure(const broker::vector& data);
-
-	/**
-	 * If the function's closure is a weak reference to the given frame,
-	 * upgrade to a strong reference of a shallow clone of that frame.
-	 */
-	bool StrengthenClosureReference(Frame* f);
-
-	/**
-	 * Whether the function's closure uses copy semantics.
-	 */
-	virtual bool HasCopySemantics() const;
-
-	/**
-	 * Serializes this function's closure or capture frame.
-	 *
-	 * @return a serialized version of the function's closure/capture frame.
-	 */
-	virtual broker::expected<broker::data> SerializeClosure() const;
+	virtual broker::expected<broker::data> SerializeCaptures() const;
 
 	/**
 	 * Sets the captures frame to one built from *data*.
@@ -267,17 +237,9 @@ protected:
 	StmtPtr AddInits(StmtPtr body, const std::vector<IDPtr>& inits);
 
 	/**
-	 * Clones this function along with its closures.
+	 * Clones this function along with its captures.
 	 */
 	FuncPtr DoClone() override;
-
-	/**
-	 * Performs a selective clone of *f* using the IDs that were
-	 * captured in the function's closure.
-	 *
-	 * @param f the frame to be cloned.
-	 */
-	void SetClosureFrame(Frame* f);
 
 	/**
 	 * Uses the given frame for captures, and generates the
@@ -293,13 +255,7 @@ private:
 	// List of the outer IDs used in the function.
 	IDPList outer_ids;
 
-	// The following is used for deprecated capture-by-reference
-	// closures:
-	// The frame the ScriptFunc was initialized in.
-	Frame* closure = nullptr;
-	bool weak_closure_ref = false;
-
-	// Used for capture-by-copy closures.  These persist over the
+	// Frame for (capture-by-copy) closures.  These persist over the
 	// function's lifetime, providing quasi-globals that maintain
 	// state across individual calls to the function.
 	Frame* captures_frame = nullptr;

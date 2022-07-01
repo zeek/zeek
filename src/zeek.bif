@@ -8,13 +8,13 @@
 ##! in this file.
 
 %%{ // C segment
-#include <math.h>
+#include <cmath>
 #include <vector>
 #include <algorithm>
 #include <cmath>
 #include <sys/stat.h>
 #include <cstdio>
-#include <time.h>
+#include <ctime>
 
 #include "zeek/digest.h"
 #include "zeek/Reporter.h"
@@ -1265,19 +1265,6 @@ function same_object%(o1: any, o2: any%): bool
 	return zeek::val_mgr->Bool(o1 == o2);
 	%}
 
-## Returns the number of bytes that a value occupies in memory.
-##
-## v: The value
-##
-## Returns: The number of bytes that *v* occupies.
-function val_size%(v: any%): count &deprecated="Remove in v5.1. MemoryAllocation() is deprecated and will be removed."
-	%{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	return zeek::val_mgr->Count(v->MemoryAllocation());
-#pragma GCC diagnostic pop
-	%}
-
 ## Resizes a vector.
 ##
 ## aggr: The vector instance.
@@ -1971,34 +1958,6 @@ function packet_source%(%): PacketSource
 	return r;
 	%}
 
-## Generates a table of the size of all global variables. The table index is
-## the variable name and the value is the variable size in bytes.
-##
-## Returns: A table that maps variable names to their sizes.
-##
-## .. zeek:see:: global_ids
-function global_sizes%(%): var_sizes &deprecated="Remove in v5.1. MemoryAllocation() is deprecated and will be removed."
-	%{
-	auto sizes = zeek::make_intrusive<zeek::TableVal>(IntrusivePtr{zeek::NewRef{}, var_sizes});
-	const auto& globals = zeek::detail::global_scope()->Vars();
-
-	for ( const auto& global : globals )
-		{
-		auto& id = global.second;
-		if ( id->HasVal() )
-			{
-			auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-			auto id_size = zeek::val_mgr->Count(id->GetVal()->MemoryAllocation());
-#pragma GCC diagnostic pop
-			sizes->Assign(std::move(id_name), std::move(id_size));
-			}
-		}
-
-	return sizes;
-	%}
-
 ## Generates a table of the "footprint" of all global container variables.
 ## This is (approximately) the number of objects the global contains either
 ## directly or indirectly.  The number is not meant to be precise, but
@@ -2047,8 +2006,6 @@ function val_footprint%(v: any%): count
 ## has one).
 ##
 ## Returns: A table that maps identifier names to information about them.
-##
-## .. zeek:see:: global_sizes
 function global_ids%(%): id_table
 	%{
 	static auto id_table = zeek::id::find_type<zeek::TableType>("id_table");

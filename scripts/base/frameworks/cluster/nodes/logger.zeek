@@ -36,8 +36,6 @@ function archiver_rotation_format_func(ri: Log::RotationFmtInfo): Log::RotationP
 
 @if ( Supervisor::is_supervised() )
 
-global supervisor_rotation_format_func = archiver_rotation_format_func &deprecated="Remove in v5.1.  Use 'archiver_rotation_format_func'.";
-
 redef Log::default_rotation_dir = "log-queue";
 
 redef Log::rotation_format_func = archiver_rotation_format_func;

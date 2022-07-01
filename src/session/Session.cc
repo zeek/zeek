@@ -64,11 +64,6 @@ Session::Session(double t, EventHandlerPtr timeout_event, EventHandlerPtr status
 	installed_status_timer = 0;
 	}
 
-unsigned int Session::MemoryAllocation() const
-	{
-	return 0;
-	}
-
 void Session::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name)
 	{
 	if ( ! f )

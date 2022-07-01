@@ -43,7 +43,7 @@ dist:
 	@for i in . $$(git submodule foreach -q --recursive realpath --relative-to=$$(pwd) .); do (cd ../$(VERSION_FULL)/$$i && git reset -q --hard && git clean -ffdxq); done
 	@(cd ../$(VERSION_FULL) && find . -name \.git\* | xargs rm -rf)
 	@(cd ../$(VERSION_FULL) && find . -name \.idea -type d | xargs rm -rf)
-	@(cd ../$(VERSION_FULL) && find . -name build\* -type d | xargs rm -rf)
+	@(cd ../$(VERSION_FULL) && find . -maxdepth 1 -name build\* | xargs rm -rf)
 	@mv ../$(VERSION_FULL) .
 	@COPYFILE_DISABLE=true tar -czf $(VERSION_FULL).tar.gz $(VERSION_FULL)
 	@echo Package: $(VERSION_FULL).tar.gz

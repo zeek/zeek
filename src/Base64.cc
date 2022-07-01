@@ -2,7 +2,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "zeek/Conn.h"
 #include "zeek/Reporter.h"

@@ -41,7 +41,7 @@ refine flow FOO_Flow += {
     function proc_foo_message(msg: FOO_PDU): bool
         %{
         // printf("FOO %d %d\n", msg->hdr()->len(), msg->hdr_len());
-        connection()->bro_analyzer()->ProtocolConfirmation();
+        connection()->bro_analyzer()->AnalyzerConfirmation();
         zeek::BifEvent::Foo::enqueue_foo_message(
                         connection()->bro_analyzer(),
                         connection()->bro_analyzer()->Conn(),

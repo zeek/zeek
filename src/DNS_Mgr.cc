@@ -4,25 +4,25 @@
 
 #include "zeek/zeek-config.h"
 
-#include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <stdlib.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <algorithm>
+#include <cerrno>
+#include <cstdlib>
 #include <vector>
 
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
-#include <time.h>
+#include <ctime>
 #elif defined(HAVE_SYS_TIME_H)
 #include <sys/time.h>
 #else
-#include <time.h>
+#include <ctime>
 #endif
 
 #include <ztd/out_ptr.hpp>

@@ -22,10 +22,6 @@ class Analyzer;
 namespace tcp
 	{
 
-using TCP_Analyzer
-	[[deprecated("Remove in v5.1. Use zeek::packet_analysis::TCP::TCPSessionAdapter.")]] =
-		zeek::packet_analysis::TCP::TCPSessionAdapter;
-
 class TCP_Reassembler final : public Reassembler
 	{
 public:

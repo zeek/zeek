@@ -71,7 +71,7 @@ event ssl_established(c: connection) &priority=3
 		NOTICE([$note=Weak_Key,
 			$msg=fmt("Host uses weak certificate with %d bit key", key_length),
 			$conn=c, $suppress_for=1day,
-			$identifier=cat(c$id$resp_h, c$id$resp_h, hash, key_length),
+			$identifier=cat(c$id$resp_h, c$id$resp_p, hash, key_length),
 			$sub=fmt("Subject: %s", cert$subject),
 			$file_desc=fmt("Fingerprint: %s", hash)
 		]);
@@ -90,15 +90,15 @@ event ssl_server_hello(c: connection, version: count, record_version: count, pos
 		NOTICE([$note=Old_Version,
 			$msg=fmt("Host uses protocol version %s which is lower than the safe minimum %s", host_string, minimum_string),
 			$conn=c, $suppress_for=1day,
-			$identifier=cat(c$id$resp_h, c$id$resp_h)
+			$identifier=cat(c$id$resp_h, c$id$resp_p)
 		]);
 		}
 
 	if ( unsafe_ciphers_regex in c$ssl$cipher )
 		NOTICE([$note=Weak_Cipher,
-			$msg=fmt("Host established connection using unsafe ciper suite %s", c$ssl$cipher),
+			$msg=fmt("Host established connection using unsafe cipher suite %s", c$ssl$cipher),
 			$conn=c, $suppress_for=1day,
-			$identifier=cat(c$id$resp_h, c$id$resp_h, c$ssl$cipher)
+			$identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cipher)
 		]);
 	}
 

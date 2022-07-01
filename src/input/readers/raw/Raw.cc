@@ -614,6 +614,10 @@ bool Raw::DoUpdate()
 				if ( file )
 					clearerr(file.get());
 
+				// Done if reading from a pipe
+				if ( execute )
+					break;
+
 				// Check if the file has changed
 				struct stat sb;
 				if ( stat(fname.c_str(), &sb) == -1 )
@@ -633,8 +637,9 @@ bool Raw::DoUpdate()
 				// Stat newly opened file
 				if ( fstat(fileno(tfile), &sb) == -1 )
 					{
+					// This is unlikely to fail
 					Error(Fmt("Could not fstat %s", fname.c_str()));
-					break;
+					return false;
 					}
 				file.reset(nullptr);
 				file = std::unique_ptr<FILE, int (*)(FILE*)>(tfile, fclose);

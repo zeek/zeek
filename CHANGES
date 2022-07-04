@@ -1,3 +1,13 @@
+5.1.0-dev.172 | 2022-07-04 10:22:45 +0100
+
+  * The STREAM mode of the ASCII reader now behaves like `tail -F`: when file is
+    removed/replaced, it will start tracking the new file. See
+    https://github.com/zeek/zeek/pull/2097 for more detail. (Craig Leres)
+
+  * Remove loops from Dict iterator invalidation unit test (Tim Wojtulewicz, Corelight)
+
+    This fixes Coverity finding 1490366
+
 5.1.0-dev.154 | 2022-07-01 14:10:58 -0700
 
   * Remove unused util::detail::rand64bit method (Tim Wojtulewicz, Corelight)

@@ -152,6 +152,7 @@ jobs:
 
       - name: Run testsuite
         run: make -C testing/external/zeek-testing-cluster
+        continue-on-error: true
 
       - name: Preserve btest artifacts
         uses: actions/upload-artifact@v2

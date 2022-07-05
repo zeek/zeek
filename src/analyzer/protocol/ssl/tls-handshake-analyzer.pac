@@ -377,7 +377,7 @@ refine connection Handshake_Conn += {
 		std::transform(certs->begin(), certs->end(),
 		std::back_inserter(*cert_list), extract_certs());
 
-		bool ret = proc_certificate(is_orig, cert_list);
+		bool ret = proc_certificate(is_orig, flipped_, cert_list);
 		delete cert_list;
 		return ret;
 		%}

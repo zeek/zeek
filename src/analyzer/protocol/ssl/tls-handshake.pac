@@ -8,7 +8,6 @@
 
 #include "zeek/analyzer/protocol/ssl/types.bif.h"
 #include "zeek/analyzer/protocol/ssl/events.bif.h"
-#define USE_FLIPPED
 %}
 
 analyzer TLSHandshake withcontext {

@@ -458,6 +458,17 @@ include_directories(BEFORE
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include/rapidjson
         DESTINATION include/zeek/3rdparty/rapidjson/include)
 
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/filesystem/include/ghc
+        DESTINATION include/zeek/3rdparty/)
+
+# Create 3rdparty/ghc within the build directory so that the include for
+# "zeek/3rdparty/ghc/filesystem.hpp" works within the build tree.
+execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory
+                "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/")
+execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
+                "${CMAKE_CURRENT_SOURCE_DIR}/auxil/filesystem/include/ghc"
+                "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/ghc")
+
 # Optional Dependencies
 
 set(USE_GEOIP false)

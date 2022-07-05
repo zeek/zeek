@@ -1,3 +1,10 @@
+5.1.0-dev.174 | 2022-07-05 10:26:14 +0200
+
+  * Add `gulrak/filesystem` as a compiler-independent
+    `std::filesystem` replacement. The `ghc::filesystem` namespace is
+    exposed as `zeek::filesystem` in `util.h`. (Arne Welzel,
+    Corelight)
+
 5.1.0-dev.172 | 2022-07-04 10:22:45 +0100
 
   * The STREAM mode of the ASCII reader now behaves like `tail -F`: when file is

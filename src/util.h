@@ -75,6 +75,8 @@ extern "C"
 #include "zeek/3rdparty/modp_numtoa.h"
 	}
 
+#include "zeek/3rdparty/ghc/filesystem.hpp"
+
 using bro_int_t = int64_t;
 using bro_uint_t = uint64_t;
 
@@ -90,6 +92,10 @@ namespace zeek
 
 class ODesc;
 class RecordVal;
+
+// Expose ghc::filesystem as zeek::filesystem until we can
+// switch to std::filesystem.
+namespace filesystem = ghc::filesystem;
 
 namespace util
 	{

@@ -1063,10 +1063,6 @@ event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	    Management::Agent::API::version);
 	}
 
-# XXX We may want a request timeout event handler here. It's arguably cleaner to
-# send supervisor failure events back to the controller than to rely on its
-# controller-agent request timeout to kick in.
-
 event zeek_init()
 	{
 	local epi = Management::Agent::endpoint_info();

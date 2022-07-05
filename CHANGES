@@ -1,3 +1,24 @@
+5.0.0 | 2022-07-05 11:40:19 -0700
+
+  * Management framework: bump zeek-client and cluster testsuite (Christian Kreibich, Corelight)
+
+    (cherry picked from commit b96d8afa52d8aeafed7dcd3978ff437b57193cf8)
+
+  * Bump Spicy and spicy-plugin to their latest release. (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit 94c974744084d4eb164730161495f92cf39d104b)
+
+  * Bump broker submodule to pick up two fixes (Tim Wojtulewicz, Corelight)
+
+    - https://github.com/zeek/broker/pull/244
+    - https://github.com/zeek/broker/pull/245
+
+    (cherry picked from commit a6dd3af831471d88d164244c5dcdc0e4e931e768)
+
+  * News entry about Bloom Filter changes in 5.0. (Johanna Amann, Corelight)
+
+    (cherry picked from commit ce410b7ed521311f1b237966e1c9511e9dadbccf)
+
 5.0.0-rc2 | 2022-06-23 13:20:24 -0700
 
   * Bump Spicy to the latest development version. (Benjamin Bannier, Corelight)

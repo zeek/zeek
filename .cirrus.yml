@@ -201,6 +201,13 @@ opensuse_leap_15_3_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+opensuse_tumbleweed_task:
+  container:
+    # Opensuse Tumbleweed has no EOL
+    dockerfile: ci/opensuse-tumbleweed/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 ubuntu22_task:
   container:
     # Ubuntu 22.04 EOL: April 2027

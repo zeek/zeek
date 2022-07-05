@@ -1,3 +1,33 @@
+5.1.0-dev.177 | 2022-07-05 15:03:12 +0100
+
+  * SSL Analyzer: track connection direction by messages (Johanna Amann)
+
+    This PR changes the way in which the SSL analyzer tracks the direction
+    of connections. So far, the SSL analyzer assumed that the originator of
+    a connection would send the client hello (and other associated
+    client-side events), and that the responder would be the SSL servers.
+
+    In some circumstances this is not true, and the initiator of a
+    connection is the server, with the responder being the client. So far
+    this confused some of the internal statekeeping logic and could lead to
+    mis-parsing of extensions.
+
+    This reversal of roles can happen in DTLS, if a connection uses STUN -
+    and potentially in some StartTLS protocols.
+
+    This PR tracks the direction of a TLS connection using the hello
+    request, client hello and server hello handshake messages. Furthermore,
+    it changes the SSL events from providing is_orig to providing is_client,
+    where is_client is true for the client_side of a connection. Since the
+    argument positioning in the event has not changed, old scripts will
+    continue to work seamlessly - the new semantics are what everyone
+    writing SSL scripts will have expected in any case.
+
+    There is a new event that is raised when a connection is flipped. A
+    weird is raised if a flip happens repeatedly.
+
+    Addresses GH-2198.
+
 5.1.0-dev.174 | 2022-07-05 10:26:14 +0200
 
   * Add `gulrak/filesystem` as a compiler-independent

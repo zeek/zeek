@@ -34,7 +34,7 @@
 ##    ssl_session_ticket_handshake x509_certificate ssl_handshake_message
 ##    ssl_change_cipher_spec
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
-##    ssl_rsa_client_pms
+##    ssl_rsa_client_pms ssl_connection_flipped
 event ssl_client_hello%(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec%);
 
 ## Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
@@ -78,7 +78,7 @@ event ssl_client_hello%(c: connection, version: count, record_version: count, po
 ##    ssl_session_ticket_handshake x509_certificate
 ##    ssl_dh_server_params ssl_handshake_message ssl_change_cipher_spec
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
-##    ssl_rsa_client_pms
+##    ssl_rsa_client_pms ssl_connection_flipped
 event ssl_server_hello%(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count%);
 
 ## Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
@@ -90,7 +90,9 @@ event ssl_server_hello%(c: connection, version: count, record_version: count, po
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## code: The numerical code of the extension.  The values are standardized as
 ##       part of the SSL/TLS protocol. The :zeek:id:`SSL::extensions` table maps
@@ -104,7 +106,8 @@ event ssl_server_hello%(c: connection, version: count, record_version: count, po
 ##    ssl_extension_server_name ssl_extension_signature_algorithm ssl_extension_key_share
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
-event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
+##    ssl_connection_flipped
+event ssl_extension%(c: connection, is_client: bool, code: count, val: string%);
 
 ## Generated for an SSL/TLS Elliptic Curves extension. This TLS extension is
 ## defined in :rfc:`4492` and sent by the client in the initial handshake. It
@@ -112,7 +115,9 @@ event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## curves: List of supported elliptic curves.
 ##
@@ -124,7 +129,7 @@ event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
-event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index_vec%);
+event ssl_extension_elliptic_curves%(c: connection, is_client: bool, curves: index_vec%);
 
 ## Generated for an SSL/TLS Supported Point Formats extension. This TLS extension
 ## is defined in :rfc:`4492` and sent by the client and/or server in the initial
@@ -133,7 +138,9 @@ event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## point_formats: List of supported point formats.
 ##
@@ -146,7 +153,7 @@ event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms ssl_server_signature
 ##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
-event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_formats: index_vec%);
+event ssl_extension_ec_point_formats%(c: connection, is_client: bool, point_formats: index_vec%);
 
 ## Generated for an Signature Algorithms extension. This TLS extension
 ## is defined in :rfc:`5246` and sent by the client in the initial
@@ -155,7 +162,9 @@ event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_format
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## signature_algorithms: List of supported signature and hash algorithm pairs.
 ##
@@ -167,7 +176,7 @@ event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_format
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms ssl_server_signature
 ##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
-event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature_algorithms: signature_and_hashalgorithm_vec%);
+event ssl_extension_signature_algorithm%(c: connection, is_client: bool, signature_algorithms: signature_and_hashalgorithm_vec%);
 
 ## Generated for a Key Share extension. This TLS extension is defined in TLS1.3-draft16
 ## and sent by the client and the server in the initial handshake. It gives the list of
@@ -175,7 +184,9 @@ event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for the originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## curves: List of supported/chosen named groups.
 ##
@@ -187,7 +198,7 @@ event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms ssl_server_signature
 ##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
-event ssl_extension_key_share%(c: connection, is_orig: bool, curves: index_vec%);
+event ssl_extension_key_share%(c: connection, is_client: bool, curves: index_vec%);
 
 ## Generated for the pre-shared key extension as it is sent in the TLS 1.3 client hello.
 ##
@@ -196,7 +207,9 @@ event ssl_extension_key_share%(c: connection, is_orig: bool, curves: index_vec%)
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for the originator side of the connection
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## identities: A list of the identities the client is willing to negotiate with the server.
 ##
@@ -209,13 +222,15 @@ event ssl_extension_key_share%(c: connection, is_orig: bool, curves: index_vec%)
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms ssl_server_signature ssl_extension_pre_shared_key_server_hello
-event ssl_extension_pre_shared_key_client_hello%(c: connection, is_orig: bool, identities: psk_identity_vec, binders: string_vec%);
+event ssl_extension_pre_shared_key_client_hello%(c: connection, is_client: bool, identities: psk_identity_vec, binders: string_vec%);
 
 ## Generated for the pre-shared key extension as it is sent in the TLS 1.3 server hello.
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for the originator side of the connection
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## selected_identity: The identity the server chose as a 0-based index into the identities
 ##                    the client sent.
@@ -227,7 +242,7 @@ event ssl_extension_pre_shared_key_client_hello%(c: connection, is_orig: bool, i
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms ssl_server_signature ssl_extension_pre_shared_key_client_hello
-event ssl_extension_pre_shared_key_server_hello%(c: connection, is_orig: bool, selected_identity: count%);
+event ssl_extension_pre_shared_key_server_hello%(c: connection, is_client: bool, selected_identity: count%);
 
 ## Generated if a server uses an ECDH-anon or ECDHE cipher suite using a named curve
 ## This event contains the named curve name and the server ECDH parameters contained
@@ -332,7 +347,9 @@ event ssl_rsa_client_pms%(c: connection, pms: string%);
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## protocols: List of supported application layer protocols.
 ##
@@ -343,7 +360,7 @@ event ssl_rsa_client_pms%(c: connection, pms: string%);
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_extension_signed_certificate_timestamp
 ##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
-event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_orig: bool, protocols: string_vec%);
+event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_client: bool, protocols: string_vec%);
 
 ## Generated for an SSL/TLS Server Name extension. This SSL/TLS extension is
 ## defined in :rfc:`3546` and sent by the client in the initial handshake. It
@@ -353,7 +370,9 @@ event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_or
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## names: A list of server names (DNS hostnames).
 ##
@@ -365,7 +384,7 @@ event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_or
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_extension_signed_certificate_timestamp
 ##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
-event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec%);
+event ssl_extension_server_name%(c: connection, is_client: bool, names: string_vec%);
 
 ## Generated for the signed_certificate_timestamp TLS extension as defined in
 ## :rfc:`6962`. The extension is used to transmit signed proofs that are
@@ -373,7 +392,9 @@ event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## version: the version of the protocol to which the SCT conforms. Always
 ##          should be 0 (representing version 1)
@@ -396,7 +417,7 @@ event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    x509_ocsp_ext_signed_certificate_timestamp sct_verify
 ##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
-event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string%);
+event ssl_extension_signed_certificate_timestamp%(c: connection, is_client: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string%);
 
 ## Generated for an TLS Supported Versions extension. This TLS extension
 ## is defined in the TLS 1.3 rfc and sent by the client in the initial handshake.
@@ -405,7 +426,9 @@ event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, 
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## versions: List of supported TLS versions.
 ##
@@ -416,14 +439,16 @@ event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, 
 ##    ssl_extension_key_share ssl_extension_server_name
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_signed_certificate_timestamp
 ##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
-event ssl_extension_supported_versions%(c: connection, is_orig: bool, versions: index_vec%);
+event ssl_extension_supported_versions%(c: connection, is_client: bool, versions: index_vec%);
 
 ## Generated for an TLS Pre-Shared Key Exchange Modes extension. This TLS extension is defined
 ## in the TLS 1.3 rfc and sent by the client in the initial handshake. It contains the
 ## list of Pre-Shared Key Exchange Modes that it supports.
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## versions: List of supported Pre-Shared Key Exchange Modes.
 ##
@@ -434,7 +459,7 @@ event ssl_extension_supported_versions%(c: connection, is_orig: bool, versions: 
 ##    ssl_extension_key_share ssl_extension_server_name
 ##    ssl_extension_supported_versions ssl_extension_signed_certificate_timestamp
 ##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
-event ssl_extension_psk_key_exchange_modes%(c: connection, is_orig: bool, modes: index_vec%);
+event ssl_extension_psk_key_exchange_modes%(c: connection, is_client: bool, modes: index_vec%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
 ## an unencrypted handshake, and Zeek extracts as much information out of that
@@ -462,7 +487,9 @@ event ssl_established%(c: connection%);
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## level: The severity level, as sent in the *alert*. The values are defined as
 ##        part of the SSL/TLS protocol.
@@ -472,7 +499,7 @@ event ssl_established%(c: connection%);
 ##
 ## .. zeek:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_session_ticket_handshake
-event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
+event ssl_alert%(c: connection, is_client: bool, level: count, desc: count%);
 
 ## Generated for SSL/TLS handshake messages that are a part of the
 ## stateless-server session resumption mechanism. SSL/TLS sessions start with
@@ -501,7 +528,9 @@ event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, 
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## length: length of the entire heartbeat message.
 ##
@@ -515,7 +544,7 @@ event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, 
 ##
 ## .. zeek:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_alert ssl_encrypted_data
-event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count, payload: string%);
+event ssl_heartbeat%(c: connection, is_client: bool, length: count, heartbeat_type: count, payload_length: count, payload: string%);
 
 ## Generated for SSL/TLS messages that are sent before full session encryption
 ## starts. Note that "full encryption" is a bit fuzzy, especially for TLSv1.3;
@@ -526,7 +555,9 @@ event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## record_version: TLS version given in the record layer of the message.
 ##                 Set to 0 for SSLv2.
@@ -538,7 +569,7 @@ event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type
 ##
 ## .. zeek:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_alert ssl_heartbeat
-event ssl_plaintext_data%(c: connection, is_orig: bool, record_version: count, content_type: count, length: count%);
+event ssl_plaintext_data%(c: connection, is_client: bool, record_version: count, content_type: count, length: count%);
 
 ## Generated for SSL/TLS messages that are sent after session encryption
 ## started.
@@ -548,7 +579,9 @@ event ssl_plaintext_data%(c: connection, is_orig: bool, record_version: count, c
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## record_version: TLS version given in the record layer of the message.
 ##                 Set to 0 for SSLv2.
@@ -560,7 +593,7 @@ event ssl_plaintext_data%(c: connection, is_orig: bool, record_version: count, c
 ##
 ## .. zeek:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_alert ssl_heartbeat ssl_probable_encrypted_handshake_message
-event ssl_encrypted_data%(c: connection, is_orig: bool, record_version: count, content_type: count, length: count%);
+event ssl_encrypted_data%(c: connection, is_client: bool, record_version: count, content_type: count, length: count%);
 
 ## This event is generated for application data records of TLS 1.3 connections of which
 ## we suspect that they contain handshake messages.
@@ -587,13 +620,15 @@ event ssl_encrypted_data%(c: connection, is_orig: bool, record_version: count, c
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## length: length of the entire message.
 ##
 ## .. zeek:see::  ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_encrypted_data
-event ssl_probable_encrypted_handshake_message%(c: connection, is_orig: bool, length: count%);
+event ssl_probable_encrypted_handshake_message%(c: connection, is_client: bool, length: count%);
 
 ## This event contains the OCSP response contained in a Certificate Status Request
 ## message, when the client requested OCSP stapling and the server supports it.
@@ -601,16 +636,20 @@ event ssl_probable_encrypted_handshake_message%(c: connection, is_orig: bool, le
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## response: OCSP data.
-event ssl_stapled_ocsp%(c: connection, is_orig: bool, response: string%);
+event ssl_stapled_ocsp%(c: connection, is_client: bool, response: string%);
 
 ## This event is raised for each unencrypted SSL/TLS handshake message.
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## msg_type: Type of the handshake message that was seen.
 ##
@@ -618,17 +657,33 @@ event ssl_stapled_ocsp%(c: connection, is_orig: bool, response: string%);
 ##
 ## .. zeek:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
 ##    ssl_session_ticket_handshake x509_certificate ssl_client_hello
-##    ssl_change_cipher_spec
-event ssl_handshake_message%(c: connection, is_orig: bool, msg_type: count, length: count%);
+##    ssl_change_cipher_spec ssl_connection_flipped
+event ssl_handshake_message%(c: connection, is_client: bool, msg_type: count, length: count%);
 
 ## This event is raised when a SSL/TLS ChangeCipherSpec message is encountered
 ## before encryption begins. Traffic will be encrypted following this message.
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
 ##
 ## .. zeek:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
 ##    ssl_session_ticket_handshake x509_certificate ssl_client_hello
 ##    ssl_handshake_message
-event ssl_change_cipher_spec%(c: connection, is_orig: bool%);
+event ssl_change_cipher_spec%(c: connection, is_client: bool%);
+
+## Zeek typically assumes that the originator of a connection is the client of the SSL/TLS
+## session. In some scenarios this does not hold, and the responder of a connection is the
+## client, and the initiator is the server.
+##
+## In these cases, Zeek raises this event. Connection direction is detected by looking at the
+## server hello, client hello, and hello request handshake messages.
+##
+## c: The connection.
+##
+## .. zeek:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
+##    ssl_session_ticket_handshake x509_certificate ssl_client_hello
+##    ssl_handshake_message
+event ssl_connection_flipped%(c: connection%);

@@ -40,6 +40,14 @@ public:
 	static analyzer::Analyzer* Instantiate(Connection* conn) { return new DTLS_Analyzer(conn); }
 
 	/**
+	 * Check if the connection is flipped--meaning that the TLS client is the responder of the
+	 * connection.
+	 *
+	 * @return True if connection is flipped.
+	 */
+	bool GetFlipped();
+
+	/**
 	 * Try to decrypt TLS application data from a packet.
 	 *
 	 * For DTLS, this operation is not currently implemented and this function will

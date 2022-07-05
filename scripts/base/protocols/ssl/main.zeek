@@ -72,9 +72,14 @@ export {
 		## SSL history showing which types of packets we received in which order.
 		## Letters have the following meaning with client-sent letters being capitalized:
 		##
+		## A direction flip occurs when the client hello packet is not sent from the originator
+		## of a connection. This can, e.g., occur when DTLS is used in a connection that was
+		## set up using STUN.
+		##
 		## ======  ====================================================
 		## Letter  Meaning
 		## ======  ====================================================
+		## ^       direction flipped
 		## H       hello_request
 		## C       client_hello
 		## S       server_hello
@@ -198,9 +203,9 @@ function set_session(c: connection)
 		}
 	}
 
-function add_to_history(c: connection, is_orig: bool, char: string)
+function add_to_history(c: connection, is_client: bool, char: string)
 	{
-	if ( is_orig )
+	if ( is_client )
 		c$ssl$ssl_history = c$ssl$ssl_history+to_upper(char);
 	else
 		c$ssl$ssl_history = c$ssl$ssl_history+to_lower(char);
@@ -284,9 +289,9 @@ event ssl_server_hello(c: connection, version: count, record_version: count, pos
 		c$ssl$resumed = T;
 	}
 
-event ssl_extension_supported_versions(c: connection, is_orig: bool, versions: index_vec)
+event ssl_extension_supported_versions(c: connection, is_client: bool, versions: index_vec)
 	{
-	if ( is_orig || |versions| != 1 )
+	if ( is_client || |versions| != 1 )
 		return;
 
 	set_session(c);
@@ -302,20 +307,20 @@ event ssl_ecdh_server_params(c: connection, curve: count, point: string) &priori
 	c$ssl$curve = ec_curves[curve];
 	}
 
-event ssl_extension_key_share(c: connection, is_orig: bool, curves: index_vec)
+event ssl_extension_key_share(c: connection, is_client: bool, curves: index_vec)
 	{
-	if ( is_orig || |curves| != 1 )
+	if ( is_client || |curves| != 1 )
 		return;
 
 	set_session(c);
 	c$ssl$curve = ec_curves[curves[0]];
 	}
 
-event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec) &priority=5
+event ssl_extension_server_name(c: connection, is_client: bool, names: string_vec) &priority=5
 	{
 	set_session(c);
 
-	if ( is_orig && |names| > 0 )
+	if ( is_client && |names| > 0 )
 		{
 		c$ssl$server_name = names[0];
 		if ( |names| > 1 )
@@ -323,133 +328,140 @@ event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec)
 		}
 	}
 
-event ssl_extension_application_layer_protocol_negotiation(c: connection, is_orig: bool, protocols: string_vec)
+event ssl_extension_application_layer_protocol_negotiation(c: connection, is_client: bool, protocols: string_vec)
 	{
 	set_session(c);
 
-	if ( is_orig )
+	if ( is_client )
 		return;
 
 	if ( |protocols| > 0 )
 		c$ssl$next_protocol = protocols[0];
 	}
 
-event ssl_handshake_message(c: connection, is_orig: bool, msg_type: count, length: count) &priority=5
+event ssl_connection_flipped(c: connection)
 	{
 	set_session(c);
 
-	if ( is_orig && msg_type == SSL::CLIENT_KEY_EXCHANGE )
+	c$ssl$ssl_history += "^";
+	}
+
+event ssl_handshake_message(c: connection, is_client: bool, msg_type: count, length: count) &priority=5
+	{
+	set_session(c);
+
+	if ( is_client && msg_type == SSL::CLIENT_KEY_EXCHANGE )
 		c$ssl$client_key_exchange_seen = T;
 
 	switch ( msg_type )
 		{
 		case SSL::HELLO_REQUEST:
-			add_to_history(c, is_orig, "h");
+			add_to_history(c, is_client, "h");
 			break;
 		case SSL::CLIENT_HELLO:
-			add_to_history(c, is_orig, "c");
+			add_to_history(c, is_client, "c");
 			break;
 		case SSL::SERVER_HELLO:
-			add_to_history(c, is_orig, "s");
+			add_to_history(c, is_client, "s");
 			break;
 		case SSL::HELLO_VERIFY_REQUEST:
-			add_to_history(c, is_orig, "v");
+			add_to_history(c, is_client, "v");
 			break;
 		case SSL::SESSION_TICKET:
-			add_to_history(c, is_orig, "t");
+			add_to_history(c, is_client, "t");
 			break;
 		# end of early data
 		case 5:
-			add_to_history(c, is_orig, "e");
+			add_to_history(c, is_client, "e");
 			break;
 		case SSL::HELLO_RETRY_REQUEST:
-			add_to_history(c, is_orig, "j");
+			add_to_history(c, is_client, "j");
 			break;
 		case SSL::ENCRYPTED_EXTENSIONS:
-			add_to_history(c, is_orig, "o");
+			add_to_history(c, is_client, "o");
 			break;
 		case SSL::CERTIFICATE:
-			add_to_history(c, is_orig, "x");
+			add_to_history(c, is_client, "x");
 			break;
 		case SSL::SERVER_KEY_EXCHANGE:
-			add_to_history(c, is_orig, "k");
+			add_to_history(c, is_client, "k");
 			break;
 		case SSL::CERTIFICATE_REQUEST:
-			add_to_history(c, is_orig, "r");
+			add_to_history(c, is_client, "r");
 			break;
 		case SSL::SERVER_HELLO_DONE:
-			add_to_history(c, is_orig, "n");
+			add_to_history(c, is_client, "n");
 			break;
 		case SSL::CERTIFICATE_VERIFY:
-			add_to_history(c, is_orig, "y");
+			add_to_history(c, is_client, "y");
 			break;
 		case SSL::CLIENT_KEY_EXCHANGE:
-			add_to_history(c, is_orig, "g");
+			add_to_history(c, is_client, "g");
 			break;
 		case SSL::FINISHED:
-			add_to_history(c, is_orig, "f");
+			add_to_history(c, is_client, "f");
 			break;
 		case SSL::CERTIFICATE_URL:
-			add_to_history(c, is_orig, "w");
+			add_to_history(c, is_client, "w");
 			break;
 		case SSL::CERTIFICATE_STATUS:
-			add_to_history(c, is_orig, "u");
+			add_to_history(c, is_client, "u");
 			break;
 		case SSL::SUPPLEMENTAL_DATA:
-			add_to_history(c, is_orig, "a");
+			add_to_history(c, is_client, "a");
 			break;
 		case SSL::KEY_UPDATE:
-			add_to_history(c, is_orig, "p");
+			add_to_history(c, is_client, "p");
 			break;
 		# message hash
 		case 254:
-			add_to_history(c, is_orig, "m");
+			add_to_history(c, is_client, "m");
 			break;
 		default:
-			add_to_history(c, is_orig, "z");
+			add_to_history(c, is_client, "z");
 			break;
 		}
 	}
 
 # Extension event is fired _before_ the respective client or server hello.
 # Important for client_ticket_empty_session_seen.
-event ssl_extension(c: connection, is_orig: bool, code: count, val: string) &priority=5
+event ssl_extension(c: connection, is_client: bool, code: count, val: string) &priority=5
 	{
 	set_session(c);
 
-	if ( is_orig && code == SSL_EXTENSION_SESSIONTICKET_TLS && |val| > 0 )
+	if ( is_client && code == SSL_EXTENSION_SESSIONTICKET_TLS && |val| > 0 )
 		# In this case, we might have an empty ID. Set back to F in client_hello event
 		# if it is not empty after all.
 		c$ssl$client_ticket_empty_session_seen = T;
-	else if ( is_orig && code == SSL_EXTENSION_PRE_SHARED_KEY )
+	else if ( is_client && code == SSL_EXTENSION_PRE_SHARED_KEY )
 		# In this case, the client sent a PSK extension which can be used for resumption
 		c$ssl$client_psk_seen = T;
-	else if ( ! is_orig && code == SSL_EXTENSION_PRE_SHARED_KEY && c$ssl$client_psk_seen )
+	else if ( ! is_client && code == SSL_EXTENSION_PRE_SHARED_KEY && c$ssl$client_psk_seen )
 		# In this case, the server accepted the PSK offered by the client.
 		c$ssl$resumed = T;
 	}
 
-event ssl_change_cipher_spec(c: connection, is_orig: bool) &priority=5
+event ssl_change_cipher_spec(c: connection, is_client: bool) &priority=5
 	{
 	set_session(c);
-	add_to_history(c, is_orig, "i");
+	add_to_history(c, is_client, "i");
 
-	if ( is_orig && c$ssl$client_ticket_empty_session_seen && ! c$ssl$client_key_exchange_seen )
+	if ( is_client && c$ssl$client_ticket_empty_session_seen && ! c$ssl$client_key_exchange_seen )
 		c$ssl$resumed = T;
 	}
 
-event ssl_alert(c: connection, is_orig: bool, level: count, desc: count) &priority=5
+event ssl_alert(c: connection, is_client: bool, level: count, desc: count) &priority=5
 	{
 	set_session(c);
-	add_to_history(c, is_orig, "l");
+	add_to_history(c, is_client, "l");
 
 	c$ssl$last_alert = alert_descriptions[desc];
 	}
 
-event ssl_heartbeat(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count, payload: string)
+event ssl_heartbeat(c: connection, is_client: bool, length: count, heartbeat_type: count, payload_length: count, payload: string)
 	{
 	set_session(c);
-	add_to_history(c, is_orig, "b");
+	add_to_history(c, is_client, "b");
 	}
 
 event ssl_established(c: connection) &priority=7
@@ -489,7 +501,7 @@ event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count)
 		}
 	}
 
-event ssl_plaintext_data(c: connection, is_orig: bool, record_version: count, content_type: count, length: count) &priority=5
+event ssl_plaintext_data(c: connection, is_client: bool, record_version: count, content_type: count, length: count) &priority=5
 	{
 	set_session(c);
 

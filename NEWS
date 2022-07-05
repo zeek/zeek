@@ -24,6 +24,17 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The SSL analyzer now determines the direction of the SSL/TLS session by examining
+  the packets, and no longer assumes that the connection originator is the client.
+  Due to this, the ``is_orig`` field in all SSL/TLS events was renamed to ``is_client``.
+
+  Furthermore, the ``ssl_history`` now can indicate that the connection was flipped
+  (meaning that it is not in the normal order of the originator is the client) using
+  the ``^`` character. A new ``ssl_connection_flipped`` is raised when the connection
+  is flipped. Furthermore, a ``SSL_unclear_connection_direction`` weird is raised when
+  we cannot determine the connection direction, because both sides of the connection
+  send packets that are associated with being a client/server.
+
 Deprecated Functionality
 ------------------------
 

@@ -74,7 +74,7 @@ event zeek_init()
 	Files::register_for_mime_type(Files::ANALYZER_OCSP_REPLY, "application/ocsp-response");
 	}
 
-event ssl_extension_signed_certificate_timestamp(c: connection, is_orig: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string) &priority=5
+event ssl_extension_signed_certificate_timestamp(c: connection, is_client: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string) &priority=5
 	{
 	c$ssl$ct_proofs += SctInfo($version=version, $logid=logid, $timestamp=timestamp, $sig_alg=signature_and_hashalgorithm$SignatureAlgorithm, $hash_alg=signature_and_hashalgorithm$HashAlgorithm, $signature=signature, $source=SCT_TLS_EXT);
 	}

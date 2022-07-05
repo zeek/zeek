@@ -493,13 +493,10 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			else
 				writer.StartObject();
 
-			std::unique_ptr<detail::HashKey> k;
-			TableEntryVal* entry;
-
 			for ( const auto& te : *table )
 				{
-				entry = te.GetValue<TableEntryVal*>();
-				k = te.GetHashKey();
+				auto* entry = te.value;
+				auto k = te.GetHashKey();
 
 				auto lv = tval->RecreateIndex(*k);
 				Val* entry_key = lv->Length() == 1 ? lv->Idx(0).get() : lv.get();
@@ -1465,7 +1462,7 @@ int TableVal::RecursiveSize() const
 
 	for ( const auto& ve : *table_val )
 		{
-		auto* tv = ve.GetValue<TableEntryVal*>();
+		auto* tv = ve.value;
 		if ( tv->GetVal() )
 			n += tv->GetVal()->AsTableVal()->RecursiveSize();
 		}
@@ -1634,7 +1631,7 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 	for ( const auto& tble : *table_val )
 		{
 		auto k = tble.GetHashKey();
-		auto* v = tble.GetValue<TableEntryVal*>();
+		auto* v = tble.value;
 
 		if ( is_first_init && t->AsTable()->Lookup(k.get()) )
 			{
@@ -2255,7 +2252,7 @@ std::unordered_map<ValPtr, ValPtr> TableVal::ToMap() const
 	for ( const auto& iter : *table_val )
 		{
 		auto k = iter.GetHashKey();
-		auto v = iter.GetValue<TableEntryVal*>();
+		auto v = iter.value;
 		auto vl = table_hash->RecoverVals(*k);
 
 		res[std::move(vl)] = v->GetVal();
@@ -2298,7 +2295,7 @@ void TableVal::Describe(ODesc* d) const
 			reporter->InternalError("hash table underflow in TableVal::Describe");
 
 		auto k = iter->GetHashKey();
-		auto* v = iter->GetValue<TableEntryVal*>();
+		auto* v = iter->value;
 
 		auto vl = table_hash->RecoverVals(*k);
 		int dim = vl->Length();
@@ -2445,7 +2442,7 @@ void TableVal::DoExpire(double t)
 	      i < zeek::detail::table_incremental_step && *expire_iterator != table_val->end_robust();
 	      ++i, ++(*expire_iterator) )
 		{
-		auto v = (*expire_iterator)->GetValue<TableEntryVal*>();
+		auto v = (*expire_iterator)->value;
 
 		if ( v->ExpireAccessTime() == 0 )
 			{
@@ -2624,7 +2621,7 @@ ValPtr TableVal::DoClone(CloneState* state)
 	for ( const auto& tble : *table_val )
 		{
 		auto key = tble.GetHashKey();
-		auto* val = tble.GetValue<TableEntryVal*>();
+		auto* val = tble.value;
 		TableEntryVal* nval = val->Clone(state);
 		tv->table_val->Insert(key.get(), nval);
 
@@ -2664,7 +2661,7 @@ unsigned int TableVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed
 		{
 		auto k = iter.GetHashKey();
 		auto vl = table_hash->RecoverVals(*k);
-		auto v = iter.GetValue<TableEntryVal*>()->GetVal();
+		auto v = iter.value->GetVal();
 
 		fp += vl->Footprint(analyzed_vals);
 		if ( v )
@@ -2711,7 +2708,7 @@ TableVal::ParseTimeTableState TableVal::DumpTableState()
 	for ( const auto& tble : *table_val )
 		{
 		auto key = tble.GetHashKey();
-		auto* val = tble.GetValue<TableEntryVal*>();
+		auto* val = tble.value;
 
 		rval.emplace_back(RecreateIndex(*key), val->GetVal());
 		}

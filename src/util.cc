@@ -46,7 +46,6 @@
 #include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/Desc.h"
-#include "zeek/Dict.h"
 #include "zeek/Hash.h"
 #include "zeek/NetVar.h"
 #include "zeek/Obj.h"

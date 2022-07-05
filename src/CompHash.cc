@@ -8,7 +8,6 @@
 #include <map>
 #include <vector>
 
-#include "zeek/Dict.h"
 #include "zeek/Func.h"
 #include "zeek/IPAddr.h"
 #include "zeek/RE.h"

@@ -55,7 +55,7 @@ std::vector<zeek::telemetry::LabelView> sv_tbl(zeek::TableVal* xs)
 		{
 		for ( auto& val : *xs->Get() )
 			{
-			auto val_ptr = val.GetValue<zeek::TableEntryVal*>()->GetVal();
+			auto val_ptr = val.value->GetVal();
 			result.emplace_back(std::string_view{val.GetKey(), val.key_size},
 			                    sv(val_ptr->AsStringVal()));
 			}

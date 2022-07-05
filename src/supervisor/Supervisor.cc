@@ -25,7 +25,6 @@ extern "C"
 	}
 
 #include "zeek/DebugLogger.h"
-#include "zeek/Dict.h"
 #include "zeek/Event.h"
 #include "zeek/EventHandler.h"
 #include "zeek/ID.h"
@@ -1271,7 +1270,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	for ( const auto& ee : *env_table )
 		{
 		auto k = ee.GetHashKey();
-		auto* v = ee.GetValue<TableEntryVal*>();
+		auto* v = ee.value;
 
 		auto key = env_table_val->RecreateIndex(*k);
 		auto name = key->Idx(0)->AsStringVal()->ToStdString();
@@ -1286,7 +1285,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	for ( const auto& cte : *cluster_table )
 		{
 		auto k = cte.GetHashKey();
-		auto* v = cte.GetValue<TableEntryVal*>();
+		auto* v = cte.value;
 
 		auto key = cluster_table_val->RecreateIndex(*k);
 		auto name = key->Idx(0)->AsStringVal()->ToStdString();

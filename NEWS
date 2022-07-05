@@ -14,9 +14,12 @@ Breaking Changes
   variable was added to cover the transport layer. See this GitHub issue for
   more detail: https://github.com/zeek/zeek/issues/2183.
 
-- The STREAM mode of the ASCII reader now behaves like `tail -F`: when file is 
+- The STREAM mode of the ASCII reader now behaves like `tail -F`: when file is
   removed/replaced, it will start tracking the new file. See
   https://github.com/zeek/zeek/pull/2097 for more detail
+
+- The Dictionary and PDict classes are now C++ templates. This may cause
+  plugin/package builds to fail due to needing to modify uses of them to match.
 
 New Functionality
 -----------------
@@ -37,6 +40,9 @@ Changed Functionality
 
 Deprecated Functionality
 ------------------------
+
+- The PDict class is now an alias to Dictionary and has been deprecated. Use Dictionary
+  directly, passing a pointer type to the template.
 
 Zeek 5.0.0
 ==========

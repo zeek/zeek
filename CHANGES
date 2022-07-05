@@ -1,3 +1,33 @@
+5.1.0-dev.186 | 2022-07-05 22:18:52 +0000
+
+  * Remove unnecssary includes of Dict.h (Tim Wojtulewicz, Corelight)
+
+  * Turn PDict into a type alias (Tim Wojtulewicz, Corelight)
+
+  * Convert Dictionary types to be templated classes (Tim Wojtulewicz, Corelight)
+
+    This has the fortunate side-effect of also making it so we can store
+    the value objects as typed pointers, instead of void*.
+
+  * Fix signedness comparison warning in ssl analyzer (Tim Wojtulewicz, Corelight)
+
+  * Management framework: make artifact filenames Github-compatible (Christian Kreibich, Corelight)
+
+    The upload-artifact action refuses to process certain filenames:
+
+      "Invalid characters include: Double quote ", Colon :, Less than <,
+       Greater than >, Vertical bar |, Asterisk *, Question mark ?, Carriage
+       return \r, Line feed \n"
+
+    On failure, this iterates over the btest artifacts in the testsuite's .tmp
+    directory and renames any of these to dots.
+
+  * Management framework: mask testsuite result (Christian Kreibich, Corelight)
+
+    There's currently a race condition in the agent-supervisor interaction that can
+    cause requests to the Supervisor to get lost. This temporarily masks the
+    testsuite result until I've had a chance to investigate.
+
 5.1.0-dev.177 | 2022-07-05 15:03:12 +0100
 
   * SSL Analyzer: track connection direction by messages (Johanna Amann)

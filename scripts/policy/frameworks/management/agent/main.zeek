@@ -359,7 +359,8 @@ function supervisor_status(node: string): Management::Request::Request
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = node);
 
-	Management::Log::info(fmt("tx SupervisorControl::status_request %s %s", req$id, node));
+	Management::Log::info(fmt("tx SupervisorControl::status_request %s %s",
+	    req$id, node == "" ? "<all>" : node));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::status_request, req$id, node);
 
@@ -371,7 +372,8 @@ function supervisor_create(nc: Supervisor::NodeConfig): Management::Request::Req
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = nc$name);
 
-	Management::Log::info(fmt("tx SupervisorControl::create_request %s %s", req$id, nc$name));
+	Management::Log::info(fmt("tx SupervisorControl::create_request %s %s",
+	    req$id, nc$name));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::create_request, req$id, nc);
 
@@ -383,7 +385,8 @@ function supervisor_destroy(node: string): Management::Request::Request
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = node);
 
-	Management::Log::info(fmt("tx SupervisorControl::destroy_request %s %s", req$id, node));
+	Management::Log::info(fmt("tx SupervisorControl::destroy_request %s %s",
+	    req$id, node == "" ? "<all>" : node));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::destroy_request, req$id, node);
 
@@ -395,7 +398,8 @@ function supervisor_restart(node: string): Management::Request::Request
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = node);
 
-	Management::Log::info(fmt("tx SupervisorControl::restart_request %s %s", req$id, node));
+	Management::Log::info(fmt("tx SupervisorControl::restart_request %s %s",
+	    req$id, node == "" ? "<all>" : node));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::restart_request, req$id, node);
 

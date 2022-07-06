@@ -128,6 +128,11 @@ global restart_request_finish: function(req: Management::Request::Request);
 # a status response.
 global get_nodes_request_finish: function(req: Management::Request::Request);
 
+# Whether we have peered with the Supervisor. We need to make sure we've peered
+# prior to controller interactions, since we might otherwise send requests to
+# the Supervisor that it never received.
+global g_supervisor_peered = F;
+
 # The global configuration, as deployed by the controller.
 global g_config: Management::Configuration;
 
@@ -1049,6 +1054,14 @@ event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	local sni = supervisor_network_info();
 
 	if ( peer$network$address == sni$address && peer$network$bound_port == sni$bound_port )
+		g_supervisor_peered = T;
+
+	# If the Supervisor hasn't yet peered with us, don't broadcast
+	# notify_agent_hello. Doing so would exposes a race: we might receive
+	# commands from the controller that lead to requests to the Supervisor
+	# that it won't yet receive. It's easier to handle this here than to
+	# push the wait into all types of received commands.
+	if ( g_supervisor_peered == F )
 		return;
 
 	# Supervisor aside, this does not (cannot?) immediately verify that the

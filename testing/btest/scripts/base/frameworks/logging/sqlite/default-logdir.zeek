@@ -5,10 +5,8 @@
 #
 # @TEST-EXEC: mkdir logs
 # @TEST-EXEC: zeek -b -r ${TRACES}/rotation.trace %INPUT >zeek.out 2>&1
-# @TEST-EXEC: ls ./logs/* > ls.logs
 # @TEST-EXEC: sqlite3 ./logs/test.sqlite 'select * from test' > test.select
 # @TEST-EXEC: btest-diff test.select
-# @TEST-EXEC: btest-diff ls.logs
 # @TEST-EXEC: btest-diff zeek.out
 #
 # @TEST-DOC: Configure Log::default_writer, Log::default_logdir and ensure the test.sqlite database is in ./logs

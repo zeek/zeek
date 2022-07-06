@@ -847,6 +847,20 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			exit(success ? 0 : 1);
 			}
 
+#ifdef DEBUG
+		// Check debug streams. Specifically that all plugin-
+		// streams are valid now that the active plugins are known.
+		std::set<std::string> active_plugins;
+		for ( const auto p : plugin_mgr->ActivePlugins() )
+			active_plugins.insert(p->Name());
+
+		if ( ! debug_logger.CheckStreams(active_plugins) )
+			{
+			early_shutdown();
+			exit(1);
+			}
+#endif
+
 		packet_mgr->InitPostScript(options.unprocessed_output_file.value_or(""));
 		analyzer_mgr->InitPostScript();
 		file_mgr->InitPostScript();

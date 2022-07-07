@@ -1,3 +1,5 @@
+#include "pac_array.h"
+
 #include "pac_attr.h"
 #include "pac_dataptr.h"
 #include "pac_exception.h"
@@ -9,9 +11,7 @@
 #include "pac_utils.h"
 #include "pac_varfield.h"
 
-#include "pac_array.h"
-
-ArrayType::ArrayType(Type *elemtype, Expr *length)
+ArrayType::ArrayType(Type* elemtype, Expr* length)
 	: Type(ARRAY), elemtype_(elemtype), length_(length)
 	{
 	init();
@@ -67,9 +67,9 @@ ArrayType::~ArrayType()
 	delete elem_dataptr_until_expr_;
 	}
 
-Type *ArrayType::DoClone() const
+Type* ArrayType::DoClone() const
 	{
-	Type *elemtype = elemtype_->Clone();
+	Type* elemtype = elemtype_->Clone();
 	if ( ! elemtype )
 		return 0;
 	return new ArrayType(elemtype, length_);
@@ -85,45 +85,45 @@ string ArrayType::DataTypeStr() const
 	return datatype_str_;
 	}
 
-Type *ArrayType::ElementDataType() const
+Type* ArrayType::ElementDataType() const
 	{
 	return elemtype_;
 	}
 
-string ArrayType::EvalElement(const string &array, const string &index) const
+string ArrayType::EvalElement(const string& array, const string& index) const
 	{
 	if ( attr_transient_ )
-	    throw Exception(this, "cannot access element in &transient array");
+		throw Exception(this, "cannot access element in &transient array");
 
 	return strfmt("(*(%s))[%s]", array.c_str(), index.c_str());
 	}
 
-const ID *ArrayType::arraylength_var() const
+const ID* ArrayType::arraylength_var() const
 	{
 	return arraylength_var_field_ ? arraylength_var_field_->id() : 0;
 	}
 
-const ID *ArrayType::elem_it_var() const
+const ID* ArrayType::elem_it_var() const
 	{
 	return elem_it_var_field_ ? elem_it_var_field_->id() : 0;
 	}
 
-const ID *ArrayType::elem_var() const
+const ID* ArrayType::elem_var() const
 	{
 	return elem_var_field_ ? elem_var_field_->id() : 0;
 	}
 
-const ID *ArrayType::elem_dataptr_var() const
+const ID* ArrayType::elem_dataptr_var() const
 	{
 	return elem_dataptr_var_field_ ? elem_dataptr_var_field_->id() : 0;
 	}
 
-const ID *ArrayType::elem_input_var() const
+const ID* ArrayType::elem_input_var() const
 	{
 	return elem_input_var_field_ ? elem_input_var_field_->id() : 0;
 	}
 
-void ArrayType::ProcessAttr(Attr *a)
+void ArrayType::ProcessAttr(Attr* a)
 	{
 	Type::ProcessAttr(a);
 
@@ -133,15 +133,13 @@ void ArrayType::ProcessAttr(Attr *a)
 			{
 			if ( elemtype_->StaticSize(env()) != 1 )
 				{
-				throw Exception(elemtype_,
-					"&restofdata can be applied"
-					" to only byte arrays");
+				throw Exception(elemtype_, "&restofdata can be applied"
+				                           " to only byte arrays");
 				}
 			if ( length_ )
 				{
-				throw Exception(length_,
-					"&restofdata cannot be applied"
-					" to arrays with specified length");
+				throw Exception(length_, "&restofdata cannot be applied"
+				                         " to arrays with specified length");
 				}
 			attr_restofdata_ = true;
 			// As the array automatically extends to the end of
@@ -161,17 +159,15 @@ void ArrayType::ProcessAttr(Attr *a)
 			bool ref_input = a->expr()->HasReference(input_macro_id);
 			if ( ref_element && ref_input )
 				{
-				throw Exception(a->expr(),
-					"cannot reference both $element and $input "
-					"in the same &until---please separate them.");
+				throw Exception(a->expr(), "cannot reference both $element and $input "
+				                           "in the same &until---please separate them.");
 				}
 
 			if ( ref_element )
 				{
 				if ( attr_until_element_expr_ )
 					{
-					throw Exception(a->expr(),
-						"multiple &until on $element");
+					throw Exception(a->expr(), "multiple &until on $element");
 					}
 				attr_until_element_expr_ = a->expr();
 				}
@@ -179,8 +175,7 @@ void ArrayType::ProcessAttr(Attr *a)
 				{
 				if ( attr_until_input_expr_ )
 					{
-					throw Exception(a->expr(),
-						"multiple &until on $input");
+					throw Exception(a->expr(), "multiple &until on $input");
 					}
 				attr_until_input_expr_ = a->expr();
 				}
@@ -188,8 +183,7 @@ void ArrayType::ProcessAttr(Attr *a)
 				{
 				if ( attr_generic_until_expr_ )
 					{
-					throw Exception(a->expr(),
-						"multiple &until condition");
+					throw Exception(a->expr(), "multiple &until condition");
 					}
 				attr_generic_until_expr_ = a->expr();
 				}
@@ -201,51 +195,42 @@ void ArrayType::ProcessAttr(Attr *a)
 		}
 	}
 
-void ArrayType::Prepare(Env *env, int flags)
+void ArrayType::Prepare(Env* env, int flags)
 	{
 	if ( flags & TO_BE_PARSED )
 		{
-		ID *arraylength_var = new ID(strfmt("%s__arraylength", value_var()->Name()));
-		ID *elem_var = new ID(strfmt("%s__elem", value_var()->Name()));
-		ID *elem_it_var = new ID(strfmt("%s__it", elem_var->Name()));
+		ID* arraylength_var = new ID(strfmt("%s__arraylength", value_var()->Name()));
+		ID* elem_var = new ID(strfmt("%s__elem", value_var()->Name()));
+		ID* elem_it_var = new ID(strfmt("%s__it", elem_var->Name()));
 
-		elem_var_field_ =
-			new ParseVarField(Field::CLASS_MEMBER, elem_var, elemtype_);
+		elem_var_field_ = new ParseVarField(Field::CLASS_MEMBER, elem_var, elemtype_);
 		AddField(elem_var_field_);
 
 		if ( incremental_parsing() )
 			{
-			arraylength_var_field_ =
-				new PrivVarField(arraylength_var, extern_type_int->Clone());
-			elem_it_var_field_ =
-				new PrivVarField(elem_it_var, extern_type_int->Clone());
+			arraylength_var_field_ = new PrivVarField(arraylength_var, extern_type_int->Clone());
+			elem_it_var_field_ = new PrivVarField(elem_it_var, extern_type_int->Clone());
 
 			AddField(arraylength_var_field_);
 			AddField(elem_it_var_field_);
 			}
 		else
 			{
-			arraylength_var_field_ =
-				new TempVarField(arraylength_var, extern_type_int->Clone());
-			elem_it_var_field_ =
-				new TempVarField(elem_it_var, extern_type_int->Clone());
+			arraylength_var_field_ = new TempVarField(arraylength_var, extern_type_int->Clone());
+			elem_it_var_field_ = new TempVarField(elem_it_var, extern_type_int->Clone());
 
 			arraylength_var_field_->Prepare(env);
 			elem_it_var_field_->Prepare(env);
 
 			// Add elem_dataptr_var only when not parsing incrementally
-			ID *elem_dataptr_var =
-				new ID(strfmt("%s__dataptr", elem_var->Name()));
-			elem_dataptr_var_field_ = new TempVarField(
-				elem_dataptr_var,
-				extern_type_const_byteptr->Clone());
+			ID* elem_dataptr_var = new ID(strfmt("%s__dataptr", elem_var->Name()));
+			elem_dataptr_var_field_ = new TempVarField(elem_dataptr_var,
+			                                           extern_type_const_byteptr->Clone());
 			elem_dataptr_var_field_->Prepare(env);
 
 			// until(dataptr >= end_of_data)
-			elem_dataptr_until_expr_ = new Expr(
-				Expr::EXPR_GE,
-				new Expr(elem_dataptr_var->clone()),
-				new Expr(end_of_data->clone()));
+			elem_dataptr_until_expr_ = new Expr(Expr::EXPR_GE, new Expr(elem_dataptr_var->clone()),
+			                                    new Expr(end_of_data->clone()));
 			}
 
 		if ( attr_until_input_expr_ )
@@ -259,7 +244,7 @@ void ArrayType::Prepare(Env *env, int flags)
 	Type::Prepare(env, flags);
 	}
 
-void ArrayType::GenArrayLength(Output *out_cc, Env *env, const DataPtr& data)
+void ArrayType::GenArrayLength(Output* out_cc, Env* env, const DataPtr& data)
 	{
 	if ( env->Evaluated(arraylength_var()) )
 		return;
@@ -272,23 +257,17 @@ void ArrayType::GenArrayLength(Output *out_cc, Env *env, const DataPtr& data)
 
 	if ( length_ )
 		{
-		out_cc->println("%s = %s;",
-			env->LValue(arraylength_var()),
-			length_->EvalExpr(out_cc, env));
+		out_cc->println("%s = %s;", env->LValue(arraylength_var()), length_->EvalExpr(out_cc, env));
 
 		env->SetEvaluated(arraylength_var());
 
 		// Check negative array length
-		out_cc->println("if ( %s < 0 )",
-			env->LValue(arraylength_var()));
+		out_cc->println("if ( %s < 0 )", env->LValue(arraylength_var()));
 		out_cc->inc_indent();
 		out_cc->println("{");
-		out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",",
-		                data_id_str_.c_str());
-		out_cc->println("  %s, (%s) - (%s));",
-		                env->LValue(arraylength_var()),
-		                env->RValue(end_of_data),
-		                env->RValue(begin_of_data));
+		out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",", data_id_str_.c_str());
+		out_cc->println("  %s, (%s) - (%s));", env->LValue(arraylength_var()),
+		                env->RValue(end_of_data), env->RValue(begin_of_data));
 		out_cc->println("}");
 		out_cc->dec_indent();
 
@@ -305,15 +284,13 @@ void ArrayType::GenArrayLength(Output *out_cc, Env *env, const DataPtr& data)
 			// with it.  Note that this check is *not* looking for whether the
 			// contents of the array will extend past the end of the data
 			// buffer.
-			out_cc->println("// Check array element quantity: %s",
-			                data_id_str_.c_str());
+			out_cc->println("// Check array element quantity: %s", data_id_str_.c_str());
 			element_size = 1;
 			}
 		else
 			{
 			// Boundary check the entire array if elements have static size.
-			out_cc->println("// Check bounds for static-size array: %s",
-			                data_id_str_.c_str());
+			out_cc->println("// Check bounds for static-size array: %s", data_id_str_.c_str());
 			elemtype_->SetBoundaryChecked();
 			element_size = elemtype_->StaticSize(env);
 
@@ -325,66 +302,57 @@ void ArrayType::GenArrayLength(Output *out_cc, Env *env, const DataPtr& data)
 				// arbitrary number of empty records (i.e. cheap for them,
 				// but costly for us unless we have special optimization
 				// for this scenario to forgo the usual allocation).
-				throw Exception(this, "using an array of known-to-be-empty elements is possibly a bad idea");
+				throw Exception(
+					this, "using an array of known-to-be-empty elements is possibly a bad idea");
 				}
 			}
 
 		const char* array_ptr_expr = data.ptr_expr();
-		string max_elements_available = strfmt("((%s - %s) / %d)",
-		                                       env->RValue(end_of_data),
-		                                       array_ptr_expr,
-		                                       element_size);
+		string max_elements_available = strfmt("((%s - %s) / %d)", env->RValue(end_of_data),
+		                                       array_ptr_expr, element_size);
 
-		out_cc->println("if ( %s > %s )",
-		                env->RValue(arraylength_var()),
+		out_cc->println("if ( %s > %s )", env->RValue(arraylength_var()),
 		                max_elements_available.c_str());
 		out_cc->inc_indent();
-		out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",",
-		                data_id_str_.c_str());
-		out_cc->println("  %s, (%s) - (%s));",
-		                env->RValue(arraylength_var()),
-		                env->RValue(end_of_data),
-		                array_ptr_expr);
+		out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",", data_id_str_.c_str());
+		out_cc->println("  %s, (%s) - (%s));", env->RValue(arraylength_var()),
+		                env->RValue(end_of_data), array_ptr_expr);
 		out_cc->dec_indent();
 		}
 	else if ( attr_restofdata_ )
 		{
 		ASSERT(elemtype_->StaticSize(env) == 1);
-		out_cc->println("%s = (%s) - (%s);",
-			env->LValue(arraylength_var()),
-			env->RValue(end_of_data),
-			data.ptr_expr());
+		out_cc->println("%s = (%s) - (%s);", env->LValue(arraylength_var()),
+		                env->RValue(end_of_data), data.ptr_expr());
 		env->SetEvaluated(arraylength_var());
 		}
 	}
 
-void ArrayType::GenPubDecls(Output *out_h, Env *env)
+void ArrayType::GenPubDecls(Output* out_h, Env* env)
 	{
 	Type::GenPubDecls(out_h, env);
 
 	if ( declared_as_type() )
 		{
 		if ( attr_transient_ )
-		    throw Exception(this, "cannot access element in &transient array");
+			throw Exception(this, "cannot access element in &transient array");
 
 		out_h->println("int size() const	{ return %s ? %s->size() : 0; }",
-			env->RValue(value_var()),
-			env->RValue(value_var()));
+		               env->RValue(value_var()), env->RValue(value_var()));
 		out_h->println("%s operator[](int index) const { BINPAC_ASSERT(%s); return (*%s)[index]; }",
-			elemtype_->DataTypeConstRefStr().c_str(),
-			env->RValue(value_var()),
-			env->RValue(value_var()));
+		               elemtype_->DataTypeConstRefStr().c_str(), env->RValue(value_var()),
+		               env->RValue(value_var()));
 		}
 	}
 
-void ArrayType::GenPrivDecls(Output *out_h, Env *env)
+void ArrayType::GenPrivDecls(Output* out_h, Env* env)
 	{
 	ASSERT(elem_var_field_->type() == elemtype_);
 	ASSERT(elemtype_->value_var());
 	Type::GenPrivDecls(out_h, env);
 	}
 
-void ArrayType::GenInitCode(Output *out_cc, Env *env)
+void ArrayType::GenInitCode(Output* out_cc, Env* env)
 	{
 	// Do not initiate the array here
 	// out_cc->println("%s = new %s;", lvalue(), vector_str_.c_str());
@@ -393,24 +361,19 @@ void ArrayType::GenInitCode(Output *out_cc, Env *env)
 	Type::GenInitCode(out_cc, env);
 	if ( incremental_parsing() )
 		{
-		out_cc->println("%s = -1;",
-			env->LValue(elem_it_var()));
+		out_cc->println("%s = -1;", env->LValue(elem_it_var()));
 		}
 	}
 
-void ArrayType::GenCleanUpCode(Output *out_cc, Env *env)
+void ArrayType::GenCleanUpCode(Output* out_cc, Env* env)
 	{
 	Type::GenCleanUpCode(out_cc, env);
 	if ( elemtype_->NeedsCleanUp() )
 		{
 		if ( ! elem_var_field_ )
 			{
-			ID *elem_var = new ID(strfmt("%s__elem", value_var()->Name()));
-			elem_var_field_ =
-				new ParseVarField(
-					Field::NOT_CLASS_MEMBER,
-					elem_var,
-					elemtype_);
+			ID* elem_var = new ID(strfmt("%s__elem", value_var()->Name()));
+			elem_var_field_ = new ParseVarField(Field::NOT_CLASS_MEMBER, elem_var, elemtype_);
 			elem_var_field_->Prepare(env);
 			}
 
@@ -418,14 +381,11 @@ void ArrayType::GenCleanUpCode(Output *out_cc, Env *env)
 		out_cc->inc_indent();
 		out_cc->println("{");
 
-		out_cc->println("for ( int i = 0; i < (int) %s->size(); ++i )",
-			env->RValue(value_var()));
+		out_cc->println("for ( int i = 0; i < (int) %s->size(); ++i )", env->RValue(value_var()));
 		out_cc->inc_indent();
 		out_cc->println("{");
-		out_cc->println("%s %s = (*%s)[i];",
-			elemtype_->DataTypeStr().c_str(),
-			env->LValue(elem_var()),
-			lvalue());
+		out_cc->println("%s %s = (*%s)[i];", elemtype_->DataTypeStr().c_str(),
+		                env->LValue(elem_var()), lvalue());
 		elemtype_->GenCleanUpCode(out_cc, env);
 		out_cc->println("}");
 		out_cc->dec_indent();
@@ -436,28 +396,25 @@ void ArrayType::GenCleanUpCode(Output *out_cc, Env *env)
 	out_cc->println("delete %s;", lvalue());
 	}
 
-string ArrayType::GenArrayInit(Output *out_cc, Env *env, bool known_array_length)
+string ArrayType::GenArrayInit(Output* out_cc, Env* env, bool known_array_length)
 	{
 	string array_str;
 
 	array_str = lvalue();
 	if ( incremental_parsing() )
 		{
-		out_cc->println("if ( %s < 0 )",
-			env->LValue(elem_it_var()));
+		out_cc->println("if ( %s < 0 )", env->LValue(elem_it_var()));
 		out_cc->inc_indent();
 		out_cc->println("{");
 		out_cc->println("// Initialize only once");
 		out_cc->println("%s = 0;", env->LValue(elem_it_var()));
 		}
 
-	out_cc->println("%s = new %s;",
-		lvalue(), vector_str_.c_str());
+	out_cc->println("%s = new %s;", lvalue(), vector_str_.c_str());
 
 	if ( known_array_length )
 		{
-		out_cc->println("%s->reserve(%s);",
-			lvalue(), env->RValue(arraylength_var()));
+		out_cc->println("%s->reserve(%s);", lvalue(), env->RValue(arraylength_var()));
 		}
 
 	if ( incremental_parsing() )
@@ -469,34 +426,29 @@ string ArrayType::GenArrayInit(Output *out_cc, Env *env, bool known_array_length
 	return array_str;
 	}
 
-void ArrayType::GenElementAssignment(Output *out_cc, Env *env,
-		string const &array_str, bool use_vector)
+void ArrayType::GenElementAssignment(Output* out_cc, Env* env, string const& array_str,
+                                     bool use_vector)
 	{
 	if ( attr_transient_ )
-	    {
-	    // Just discard.
-	    out_cc->println("delete %s;", env->LValue(elem_var()));
-	    return;
-	    }
+		{
+		// Just discard.
+		out_cc->println("delete %s;", env->LValue(elem_var()));
+		return;
+		}
 
 	// Assign the element
 	if ( ! use_vector )
 		{
-		out_cc->println("%s[%s] = %s;",
-			array_str.c_str(),
-			env->LValue(elem_it_var()),
-			env->LValue(elem_var()));
+		out_cc->println("%s[%s] = %s;", array_str.c_str(), env->LValue(elem_it_var()),
+		                env->LValue(elem_var()));
 		}
 	else
 		{
-		out_cc->println("%s->push_back(%s);",
-			array_str.c_str(),
-			env->LValue(elem_var()));
+		out_cc->println("%s->push_back(%s);", array_str.c_str(), env->LValue(elem_var()));
 		}
 	}
 
-void ArrayType::DoGenParseCode(Output *out_cc, Env *env,
-		const DataPtr& data, int flags)
+void ArrayType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, int flags)
 	{
 	GenArrayLength(out_cc, env, data);
 
@@ -518,7 +470,7 @@ void ArrayType::DoGenParseCode(Output *out_cc, Env *env,
 	There are two cases when the input length can be determined:
 	1. The array has a static size;
 	2. The array length can be computed before parsing and
-   	each element is of constant size.
+	each element is of constant size.
 	*/
 
 	bool compute_size_var = false;
@@ -529,9 +481,8 @@ void ArrayType::DoGenParseCode(Output *out_cc, Env *env,
 		compute_size_var = false;
 
 		if ( ! incremental_parsing() &&
-		     ( StaticSize(env) >= 0 ||
-		       ( env->Evaluated(arraylength_var()) &&
-		         elemtype_->StaticSize(env) >= 0 ) ) )
+		     (StaticSize(env) >= 0 ||
+		      (env->Evaluated(arraylength_var()) && elemtype_->StaticSize(env) >= 0)) )
 			{
 			GenBoundaryCheck(out_cc, env, data);
 			}
@@ -552,22 +503,17 @@ void ArrayType::DoGenParseCode(Output *out_cc, Env *env,
 
 	if ( elem_dataptr_var() )
 		{
-		out_cc->println("const_byteptr %s = %s;",
-			env->LValue(elem_dataptr_var()), data.ptr_expr());
+		out_cc->println("const_byteptr %s = %s;", env->LValue(elem_dataptr_var()), data.ptr_expr());
 		env->SetEvaluated(elem_dataptr_var());
 
 		elem_data = DataPtr(env, elem_dataptr_var(), 0);
 		}
 
-	string for_condition = known_array_length ?
-		strfmt("%s < %s",
-			env->LValue(elem_it_var()),
-			env->RValue(arraylength_var())) :
-		"/* forever */";
+	string for_condition = known_array_length ? strfmt("%s < %s", env->LValue(elem_it_var()),
+	                                                   env->RValue(arraylength_var()))
+	                                          : "/* forever */";
 
-	out_cc->println("for (; %s; ++%s)",
-		for_condition.c_str(),
-		env->LValue(elem_it_var()));
+	out_cc->println("for (; %s; ++%s)", for_condition.c_str(), env->LValue(elem_it_var()));
 	out_cc->inc_indent();
 	out_cc->println("{");
 
@@ -597,8 +543,7 @@ void ArrayType::DoGenParseCode(Output *out_cc, Env *env,
 
 	if ( incremental_parsing() )
 		{
-		out_cc->println("if ( ! %s )",
-			elemtype_->parsing_complete(env).c_str());
+		out_cc->println("if ( ! %s )", elemtype_->parsing_complete(env).c_str());
 		out_cc->inc_indent();
 		out_cc->println("goto %s;", kNeedMoreData);
 		out_cc->dec_indent();
@@ -608,12 +553,10 @@ void ArrayType::DoGenParseCode(Output *out_cc, Env *env,
 
 	if ( elem_dataptr_var() )
 		{
-		out_cc->println("%s += %s;",
-			env->LValue(elem_dataptr_var()),
-			elemtype_->DataSize(0, env, elem_data).c_str());
-		out_cc->println("BINPAC_ASSERT(%s <= %s);",
-			env->RValue(elem_dataptr_var()),
-			env->RValue(end_of_data));
+		out_cc->println("%s += %s;", env->LValue(elem_dataptr_var()),
+		                elemtype_->DataSize(0, env, elem_data).c_str());
+		out_cc->println("BINPAC_ASSERT(%s <= %s);", env->RValue(elem_dataptr_var()),
+		                env->RValue(end_of_data));
 		}
 
 	if ( attr_until_element_expr_ )
@@ -632,55 +575,45 @@ void ArrayType::DoGenParseCode(Output *out_cc, Env *env,
 	if ( compute_size_var && elem_dataptr_var() && ! env->Evaluated(size_var()) )
 		{
 		// Compute the data size
-		out_cc->println("%s = %s - (%s);",
-			env->LValue(size_var()),
-			env->RValue(elem_dataptr_var()),
-			data.ptr_expr());
+		out_cc->println("%s = %s - (%s);", env->LValue(size_var()), env->RValue(elem_dataptr_var()),
+		                data.ptr_expr());
 		env->SetEvaluated(size_var());
 		}
 	}
 
-void ArrayType::GenUntilInputCheck(Output *out_cc, Env *env)
+void ArrayType::GenUntilInputCheck(Output* out_cc, Env* env)
 	{
-	ID *elem_input_var_id = new ID(
-		strfmt("%s__elem_input", value_var()->Name()));
-	elem_input_var_field_ = new TempVarField(
-		elem_input_var_id, extern_type_const_bytestring->Clone());
+	ID* elem_input_var_id = new ID(strfmt("%s__elem_input", value_var()->Name()));
+	elem_input_var_field_ = new TempVarField(elem_input_var_id,
+	                                         extern_type_const_bytestring->Clone());
 	elem_input_var_field_->Prepare(env);
 
-	out_cc->println("%s %s(%s, %s);",
-		extern_type_const_bytestring->DataTypeStr().c_str(),
-		env->LValue(elem_input_var()),
-		env->RValue(begin_of_data),
-		env->RValue(end_of_data));
+	out_cc->println("%s %s(%s, %s);", extern_type_const_bytestring->DataTypeStr().c_str(),
+	                env->LValue(elem_input_var()), env->RValue(begin_of_data),
+	                env->RValue(end_of_data));
 	env->SetEvaluated(elem_input_var());
 
 	GenUntilCheck(out_cc, env, attr_until_input_expr_, true);
 	}
 
-void ArrayType::GenUntilCheck(Output *out_cc, Env *env,
-		Expr *until_expr, bool delete_elem)
+void ArrayType::GenUntilCheck(Output* out_cc, Env* env, Expr* until_expr, bool delete_elem)
 	{
 	ASSERT(until_expr);
 
 	Env check_env(env, this);
-	check_env.AddMacro(element_macro_id,
-		new Expr(elem_var()->clone()));
+	check_env.AddMacro(element_macro_id, new Expr(elem_var()->clone()));
 	if ( elem_input_var() )
 		{
-		check_env.AddMacro(input_macro_id,
-			new Expr(elem_input_var()->clone()));
+		check_env.AddMacro(input_macro_id, new Expr(elem_input_var()->clone()));
 		}
 
 	out_cc->println("// Check &until(%s)", until_expr->orig());
-	out_cc->println("if ( %s )",
-		until_expr->EvalExpr(out_cc, &check_env));
+	out_cc->println("if ( %s )", until_expr->EvalExpr(out_cc, &check_env));
 	out_cc->inc_indent();
 	out_cc->println("{");
 	if ( parsing_complete_var() )
 		{
-		out_cc->println("%s = true;",
-			env->LValue(parsing_complete_var()));
+		out_cc->println("%s = true;", env->LValue(parsing_complete_var()));
 		}
 
 	if ( elemtype_->IsPointerType() )
@@ -696,18 +629,14 @@ void ArrayType::GenUntilCheck(Output *out_cc, Env *env,
 	out_cc->dec_indent();
 	}
 
-void ArrayType::GenDynamicSize(Output *out_cc, Env *env,
-		const DataPtr& data)
+void ArrayType::GenDynamicSize(Output* out_cc, Env* env, const DataPtr& data)
 	{
 	ASSERT(! incremental_input());
-	DEBUG_MSG("Generating dynamic size for array `%s'\n",
-		value_var()->Name());
+	DEBUG_MSG("Generating dynamic size for array `%s'\n", value_var()->Name());
 
 	int elem_w = elemtype_->StaticSize(env);
-	if ( elem_w >= 0 &&
-	     ! attr_until_element_expr_ &&
-	     ! attr_until_input_expr_ &&
-	     ( length_ || attr_restofdata_ ) )
+	if ( elem_w >= 0 && ! attr_until_element_expr_ && ! attr_until_input_expr_ &&
+	     (length_ || attr_restofdata_) )
 		{
 		// If the elements have a fixed size,
 		// we only need to compute the number of elements
@@ -715,8 +644,8 @@ void ArrayType::GenDynamicSize(Output *out_cc, Env *env,
 		ASSERT(compute_size_var);
 		GenArrayLength(out_cc, env, data);
 		ASSERT(env->Evaluated(arraylength_var()));
-		out_cc->println("%s = %d * %s;",
-			env->LValue(size_var()), elem_w, env->RValue(arraylength_var()));
+		out_cc->println("%s = %d * %s;", env->LValue(size_var()), elem_w,
+		                env->RValue(arraylength_var()));
 		env->SetEvaluated(size_var());
 		}
 	else
@@ -726,7 +655,7 @@ void ArrayType::GenDynamicSize(Output *out_cc, Env *env,
 		}
 	}
 
-int ArrayType::StaticSize(Env *env) const
+int ArrayType::StaticSize(Env* env) const
 	{
 	int num = 0;
 
@@ -737,8 +666,7 @@ int ArrayType::StaticSize(Env *env) const
 	if ( elem_w < 0 )
 		return -1;
 
-	DEBUG_MSG("static size of %s:%s = %d * %d\n",
-		decl_id()->Name(), lvalue(), elem_w, num);
+	DEBUG_MSG("static size of %s:%s = %d * %d\n", decl_id()->Name(), lvalue(), elem_w, num);
 
 	return num * elem_w;
 	}
@@ -767,12 +695,11 @@ void ArrayType::DoMarkIncrementalInput()
 
 bool ArrayType::RequiresAnalyzerContext()
 	{
-	return Type::RequiresAnalyzerContext() ||
-	       ( length_ && length_->RequiresAnalyzerContext() ) ||
+	return Type::RequiresAnalyzerContext() || (length_ && length_->RequiresAnalyzerContext()) ||
 	       elemtype_->RequiresAnalyzerContext();
 	}
 
-bool ArrayType::DoTraverse(DataDepVisitor *visitor)
+bool ArrayType::DoTraverse(DataDepVisitor* visitor)
 	{
 	if ( ! Type::DoTraverse(visitor) )
 		return false;

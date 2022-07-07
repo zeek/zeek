@@ -1,27 +1,22 @@
-#include "pac_id.h"
-#include "pac_primitive.h"
-#include "pac_output.h"
-
 #include "pac_embedded.h"
 
-EmbeddedCodeSegment::EmbeddedCodeSegment(const string &s)
-	: s_(s), primitive_(0)
-	{
-	}
+#include "pac_id.h"
+#include "pac_output.h"
+#include "pac_primitive.h"
 
-EmbeddedCodeSegment::EmbeddedCodeSegment(PacPrimitive *primitive)
-	: s_(""), primitive_(primitive)
-	{
-	}
+EmbeddedCodeSegment::EmbeddedCodeSegment(const string& s) : s_(s), primitive_(0) { }
+
+EmbeddedCodeSegment::EmbeddedCodeSegment(PacPrimitive* primitive)
+	: s_(""), primitive_(primitive) { }
 
 EmbeddedCodeSegment::~EmbeddedCodeSegment()
 	{
 	delete primitive_;
 	}
 
-string EmbeddedCodeSegment::ToCode(Env *env)
+string EmbeddedCodeSegment::ToCode(Env* env)
 	{
-	if ( primitive_ &&  s_.empty() )
+	if ( primitive_ && s_.empty() )
 		s_ = primitive_->ToCode(env);
 	return s_;
 	}
@@ -41,12 +36,12 @@ void EmbeddedCode::Append(int atom)
 	current_segment_ += static_cast<char>(atom);
 	}
 
-void EmbeddedCode::Append(const char *str)
+void EmbeddedCode::Append(const char* str)
 	{
 	current_segment_ += str;
 	}
 
-void EmbeddedCode::Append(PacPrimitive *primitive)
+void EmbeddedCode::Append(PacPrimitive* primitive)
 	{
 	if ( ! current_segment_.empty() )
 		{
@@ -56,7 +51,7 @@ void EmbeddedCode::Append(PacPrimitive *primitive)
 	segments_->push_back(new EmbeddedCodeSegment(primitive));
 	}
 
-void EmbeddedCode::GenCode(Output *out, Env *env)
+void EmbeddedCode::GenCode(Output* out, Env* env)
 	{
 	if ( ! current_segment_.empty() )
 		{
@@ -71,9 +66,9 @@ void EmbeddedCode::GenCode(Output *out, Env *env)
 	// ID's name is used as its RValue
 	env->set_allow_undefined_id(true);
 
-	foreach(i, EmbeddedCodeSegmentList, segments_)
+	foreach (i, EmbeddedCodeSegmentList, segments_)
 		{
-		EmbeddedCodeSegment *segment = *i;
+		EmbeddedCodeSegment* segment = *i;
 		out->print("%s", segment->ToCode(env).c_str());
 		}
 

@@ -1,13 +1,13 @@
+#include "pac_field.h"
+
 #include "pac_attr.h"
 #include "pac_common.h"
 #include "pac_exception.h"
-#include "pac_field.h"
 #include "pac_id.h"
 #include "pac_type.h"
 
-Field::Field(FieldType tof, int flags, ID *id, Type *type)
-	: DataDepElement(DataDepElement::FIELD),
-	  tof_(tof), flags_(flags), id_(id), type_(type)
+Field::Field(FieldType tof, int flags, ID* id, Type* type)
+	: DataDepElement(DataDepElement::FIELD), tof_(tof), flags_(flags), id_(id), type_(type)
 	{
 	decl_id_ = current_decl_id;
 	field_id_str_ = strfmt("%s:%s", decl_id()->Name(), id_->Name());
@@ -35,24 +35,22 @@ void Field::AddAttr(AttrList* attrs)
 		delete_attrs = true;
 		}
 
-	foreach(i, AttrList, attrs)
+	foreach (i, AttrList, attrs)
 		ProcessAttr(*i);
 
 	if ( delete_attrs )
 		delete attrs;
 	}
 
-void Field::ProcessAttr(Attr *a)
+void Field::ProcessAttr(Attr* a)
 	{
 	switch ( a->type() )
 		{
 		case ATTR_IF:
-			if ( tof() != LET_FIELD &&
-			     tof() != WITHINPUT_FIELD )
+			if ( tof() != LET_FIELD && tof() != WITHINPUT_FIELD )
 				{
-				throw Exception(a, 
-					"&if can only be applied to a "
-					"let field");
+				throw Exception(a, "&if can only be applied to a "
+				                   "let field");
 				}
 			break;
 		default:
@@ -76,7 +74,7 @@ int Field::ValueVarType() const
 		return TEMP_VAR;
 	}
 
-void Field::Prepare(Env *env)
+void Field::Prepare(Env* env)
 	{
 	if ( type_ )
 		{
@@ -86,9 +84,7 @@ void Field::Prepare(Env *env)
 			flags_ &= (~PUBLIC_READABLE);
 
 		type_->set_value_var(id(), ValueVarType());
-		type_->Prepare(env, 
-			flags_ & TYPE_TO_BE_PARSED ? 
-				Type::TO_BE_PARSED : 0);
+		type_->Prepare(env, flags_ & TYPE_TO_BE_PARSED ? Type::TO_BE_PARSED : 0);
 		env->SetField(id(), this);
 		}
 	}
@@ -109,7 +105,7 @@ void Field::GenPrivDecls(Output* out_h, Env* env)
 void Field::GenTempDecls(Output* out_h, Env* env)
 	{
 	// Generate temp field
-	if ( type_ && !(flags_ & CLASS_MEMBER) )
+	if ( type_ && ! (flags_ & CLASS_MEMBER) )
 		type_->GenPrivDecls(out_h, env);
 	}
 
@@ -125,12 +121,12 @@ void Field::GenCleanUpCode(Output* out_cc, Env* env)
 		type_->GenCleanUpCode(out_cc, env);
 	}
 
-bool Field::DoTraverse(DataDepVisitor *visitor)
+bool Field::DoTraverse(DataDepVisitor* visitor)
 	{
 	// Check parameterized type
 	if ( type_ && ! type_->Traverse(visitor) )
 		return false;
-	foreach(i, AttrList, attrs_)
+	foreach (i, AttrList, attrs_)
 		if ( ! (*i)->Traverse(visitor) )
 			return false;
 	return true;
@@ -141,7 +137,7 @@ bool Field::RequiresAnalyzerContext() const
 	// Check parameterized type
 	if ( type_ && type_->RequiresAnalyzerContext() )
 		return true;
-	foreach(i, AttrList, attrs_)
+	foreach (i, AttrList, attrs_)
 		if ( (*i)->RequiresAnalyzerContext() )
 			return true;
 	return false;

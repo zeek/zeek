@@ -1,3 +1,5 @@
+#include "pac_typedecl.h"
+
 #include "pac_attr.h"
 #include "pac_context.h"
 #include "pac_dataptr.h"
@@ -12,7 +14,6 @@
 #include "pac_paramtype.h"
 #include "pac_record.h"
 #include "pac_type.h"
-#include "pac_typedecl.h"
 #include "pac_utils.h"
 
 TypeDecl::TypeDecl(ID* id, ParamList* params, Type* type)
@@ -35,7 +36,7 @@ void TypeDecl::ProcessAttr(Attr* a)
 	type_->ProcessAttr(a);
 	}
 
-void TypeDecl::AddParam(Param *param)
+void TypeDecl::AddParam(Param* param)
 	{
 	// Cannot work after Prepare()
 	ASSERT(! env_);
@@ -65,19 +66,17 @@ void TypeDecl::Prepare()
 
 	if ( type_->attr_byteorder_expr() )
 		{
-		DEBUG_MSG("Adding byteorder field to %s\n",
-			id()->Name());
-		type_->AddField(new LetField(byteorder_id->clone(), 
-		                         extern_type_int, 
-		                         type_->attr_byteorder_expr()));
+		DEBUG_MSG("Adding byteorder field to %s\n", id()->Name());
+		type_->AddField(
+			new LetField(byteorder_id->clone(), extern_type_int, type_->attr_byteorder_expr()));
 		}
 
 	type_->Prepare(env_, Type::TO_BE_PARSED);
 	}
 
 string TypeDecl::class_name() const
-	{ 
-	return id_->Name(); 
+	{
+	return id_->Name();
 	}
 
 void TypeDecl::GenForwardDeclaration(Output* out_h)
@@ -99,13 +98,11 @@ void TypeDecl::GenCode(Output* out_h, Output* out_cc)
 
 	if ( RequiresAnalyzerContext::compute(type_) )
 		{
-		DEBUG_MSG("%s requires analyzer context\n", 
-			id()->Name());
-		Type *param_type = analyzer_context()->param_type();
+		DEBUG_MSG("%s requires analyzer context\n", id()->Name());
+		Type* param_type = analyzer_context()->param_type();
 		env_->AddID(analyzer_context_id, TEMP_VAR, param_type);
 		env_->SetEvaluated(analyzer_context_id);
-		env_->AddMacro(context_macro_id, 
-			new Expr(analyzer_context_id->clone()));
+		env_->AddMacro(context_macro_id, new Expr(analyzer_context_id->clone()));
 		}
 
 	// Add parameter "byteorder"
@@ -170,30 +167,25 @@ void TypeDecl::GenCode(Output* out_h, Output* out_cc)
 	out_h->println("};\n");
 	}
 
-void TypeDecl::GenPubDecls(Output* out_h, Output *out_cc)
+void TypeDecl::GenPubDecls(Output* out_h, Output* out_cc)
 	{
 	// GenParamPubDecls(params_, out_h, env_);
 	}
 
-void TypeDecl::GenPrivDecls(Output* out_h, Output *out_cc)
+void TypeDecl::GenPrivDecls(Output* out_h, Output* out_cc)
 	{
 	// GenParamPrivDecls(params_, out_h, env_);
 	}
 
-void TypeDecl::GenInitCode(Output *out_cc)
-	{
-	}
+void TypeDecl::GenInitCode(Output* out_cc) { }
 
-void TypeDecl::GenCleanUpCode(Output *out_cc)
-	{
-	}
+void TypeDecl::GenCleanUpCode(Output* out_cc) { }
 
 void TypeDecl::GenConstructorFunc(Output* out_h, Output* out_cc)
 	{
 	string params_str = ParamDecls(params_);
 
-	string proto = 
-		strfmt("%s(%s)", class_name().c_str(), params_str.c_str());
+	string proto = strfmt("%s(%s)", class_name().c_str(), params_str.c_str());
 
 	out_h->println("%s;", proto.c_str());
 
@@ -230,32 +222,29 @@ void TypeDecl::GenDestructorFunc(Output* out_h, Output* out_cc)
 
 string TypeDecl::ParseFuncPrototype(Env* env)
 	{
-	const char *func_name = 0;
-	const char *return_type = 0;
+	const char* func_name = 0;
+	const char* return_type = 0;
 	string params;
 
 	if ( type_->incremental_input() )
 		{
 		func_name = kParseFuncWithBuffer;
 		return_type = "bool";
-		params = strfmt("flow_buffer_t %s",
-			env->LValue(flow_buffer_id));
+		params = strfmt("flow_buffer_t %s", env->LValue(flow_buffer_id));
 		}
 	else
 		{
 		func_name = kParseFuncWithoutBuffer;
 		return_type = "int";
 		params = strfmt("const_byteptr const %s, const_byteptr const %s",
-			env->LValue(begin_of_data), 
-			env->LValue(end_of_data));
+		                env->LValue(begin_of_data), env->LValue(end_of_data));
 		}
 
 	if ( RequiresAnalyzerContext::compute(type_) )
 		{
-		Type *param_type = analyzer_context()->param_type();
-		params += strfmt(", %s %s", 
-			param_type->DataTypeConstRefStr().c_str(),
-			env->LValue(analyzer_context_id));
+		Type* param_type = analyzer_context()->param_type();
+		params += strfmt(", %s %s", param_type->DataTypeConstRefStr().c_str(),
+		                 env->LValue(analyzer_context_id));
 		}
 
 	// Add parameter "byteorder"
@@ -265,11 +254,10 @@ string TypeDecl::ParseFuncPrototype(Env* env)
 		}
 
 	// Returns "<return type> %s<func name>(<params>)%s".
-	return strfmt("%s %%s%s(%s)%%s", 
-		return_type, func_name, params.c_str());
+	return strfmt("%s %%s%s(%s)%%s", return_type, func_name, params.c_str());
 	}
 
-void TypeDecl::GenParsingEnd(Output *out_cc, Env *env, const DataPtr &data)
+void TypeDecl::GenParsingEnd(Output* out_cc, Env* env, const DataPtr& data)
 	{
 	string ret_val_0, ret_val_1;
 
@@ -283,34 +271,30 @@ void TypeDecl::GenParsingEnd(Output *out_cc, Env *env, const DataPtr &data)
 		ret_val_0 = type_->DataSize(0, env, data).c_str();
 		ret_val_1 = "@@@";
 
-		out_cc->println("BINPAC_ASSERT(%s + (%s) <= %s);", 
-			env->RValue(begin_of_data),
-			ret_val_0.c_str(),
-			env->RValue(end_of_data));
+		out_cc->println("BINPAC_ASSERT(%s + (%s) <= %s);", env->RValue(begin_of_data),
+		                ret_val_0.c_str(), env->RValue(end_of_data));
 		}
 
-	if ( type_->incremental_parsing() && 
-	     ( type_->tot() == Type::RECORD || type_->tot() == Type::ARRAY ) )
+	if ( type_->incremental_parsing() &&
+	     (type_->tot() == Type::RECORD || type_->tot() == Type::ARRAY) )
 		{
-		// In which case parsing may jump to label 
+		// In which case parsing may jump to label
 		// "need_more_data" ...
-		out_cc->println("BINPAC_ASSERT(%s);",
-			type_->parsing_complete(env).c_str());
+		out_cc->println("BINPAC_ASSERT(%s);", type_->parsing_complete(env).c_str());
 		out_cc->println("return %s;", ret_val_0.c_str());
 
 		out_cc->println("");
 		out_cc->dec_indent();
 		out_cc->println("%s:", kNeedMoreData);
 		out_cc->inc_indent();
-		out_cc->println("BINPAC_ASSERT(!(%s));",
-			type_->parsing_complete(env).c_str());
+		out_cc->println("BINPAC_ASSERT(!(%s));", type_->parsing_complete(env).c_str());
 		out_cc->println("return %s;", ret_val_1.c_str());
 		}
 	else if ( type_->incremental_input() )
 		{
 		out_cc->println("return %s;", ret_val_0.c_str());
 		}
-	else	
+	else
 		{
 		out_cc->println("return %s;", ret_val_0.c_str());
 		}
@@ -323,7 +307,7 @@ void TypeDecl::GenParseFunc(Output* out_h, Output* out_cc)
 
 	// Env within the parse function
 	Env p_func_env(env_, this);
-	Env *env = &p_func_env;
+	Env* env = &p_func_env;
 
 	if ( type_->incremental_input() )
 		{
@@ -380,21 +364,19 @@ void TypeDecl::GenInitialBufferLengthFunc(Output* out_h, Output* out_cc)
 
 	int init_buffer_length = type_->InitialBufferLength();
 
-	if ( init_buffer_length < 0 )  // cannot be statically determined
+	if ( init_buffer_length < 0 ) // cannot be statically determined
 		{
-		throw Exception(type()->attr_length_expr(), 
-		                strfmt("cannot determine initial buffer length"
-		                    " for type %s", id_->Name()));
+		throw Exception(type()->attr_length_expr(), strfmt("cannot determine initial buffer length"
+		                                                   " for type %s",
+		                                                   id_->Name()));
 		}
 
-	out_h->println("int %s() const { return %d; }", 
-	               func.c_str(),
-	               init_buffer_length);
+	out_h->println("int %s() const { return %d; }", func.c_str(), init_buffer_length);
 	}
 
-Type* TypeDecl::LookUpType(const ID *id)
+Type* TypeDecl::LookUpType(const ID* id)
 	{
-	Decl *decl = LookUpDecl(id);
+	Decl* decl = LookUpDecl(id);
 	if ( ! decl )
 		return 0;
 	switch ( decl->decl_type() )
@@ -402,11 +384,10 @@ Type* TypeDecl::LookUpType(const ID *id)
 		case TYPE:
 		case CONN:
 		case FLOW:
-			return static_cast<TypeDecl *>(decl)->type();
+			return static_cast<TypeDecl*>(decl)->type();
 		case ENUM:
-			return static_cast<EnumDecl *>(decl)->DataType();
+			return static_cast<EnumDecl*>(decl)->DataType();
 		default:
 			return 0;
 		}
 	}
-

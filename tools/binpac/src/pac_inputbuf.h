@@ -7,18 +7,18 @@
 class Expr;
 
 class InputBuffer : public Object, public DataDepElement
-{
+	{
 public:
-	InputBuffer(Expr *expr);
+	InputBuffer(Expr* expr);
 
 	bool RequiresAnalyzerContext() const;
-	DataPtr GenDataBeginEnd(Output *out_cc, Env *env);
+	DataPtr GenDataBeginEnd(Output* out_cc, Env* env);
 
 protected:
-	bool DoTraverse(DataDepVisitor *visitor);
+	bool DoTraverse(DataDepVisitor* visitor);
 
 private:
-	Expr *expr_;
-};
+	Expr* expr_;
+	};
 
 #endif // pac_inputbuf_h

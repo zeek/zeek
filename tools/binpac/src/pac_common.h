@@ -1,13 +1,12 @@
 #ifndef pac_common_h
 #define pac_common_h
 
-#include "pac_utils.h"
-
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 #include <vector>
 
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
+#include "pac_utils.h"
 
 using namespace std;
 
@@ -22,7 +21,7 @@ extern int line_number;
 // etc.
 
 class Object
-{
+	{
 public:
 	Object()
 		{
@@ -31,17 +30,15 @@ public:
 		location = strfmt("%s:%d", filename.c_str(), line_number);
 		}
 
-	~Object()
-		{
-		}
+	~Object() { }
 
-	const char* Location() const	{ return location.c_str(); }
+	const char* Location() const { return location.c_str(); }
 
 protected:
 	string filename;
 	int line_num;
 	string location;
-};
+	};
 
 class ActionParam;
 class ActionParamType;
@@ -89,47 +86,47 @@ class WithInputField;
 // The ID of the current declaration.
 extern const ID* current_decl_id;
 
-typedef vector<ActionParam*>		ActionParamList;
-typedef vector<AnalyzerAction*> 	AnalyzerActionList;
-typedef vector<AnalyzerElement*>	AnalyzerElementList;
-typedef vector<Attr*> 			AttrList;
-typedef vector<CaseExpr*> 		CaseExprList;
-typedef vector<CaseField*> 		CaseFieldList;
-typedef vector<ContextField*> 		ContextFieldList;
-typedef vector<Decl*> 			DeclList;
-typedef vector<Enum*>			EnumList;
-typedef vector<Expr*> 			ExprList;
-typedef vector<Field*> 			FieldList;
-typedef vector<LetField*> 		LetFieldList;
-typedef vector<Number*>			NumList;
-typedef vector<Param*> 			ParamList;
-typedef vector<RecordField*> 		RecordFieldList;
-typedef vector<StateVar*>		StateVarList;
+typedef vector<ActionParam*> ActionParamList;
+typedef vector<AnalyzerAction*> AnalyzerActionList;
+typedef vector<AnalyzerElement*> AnalyzerElementList;
+typedef vector<Attr*> AttrList;
+typedef vector<CaseExpr*> CaseExprList;
+typedef vector<CaseField*> CaseFieldList;
+typedef vector<ContextField*> ContextFieldList;
+typedef vector<Decl*> DeclList;
+typedef vector<Enum*> EnumList;
+typedef vector<Expr*> ExprList;
+typedef vector<Field*> FieldList;
+typedef vector<LetField*> LetFieldList;
+typedef vector<Number*> NumList;
+typedef vector<Param*> ParamList;
+typedef vector<RecordField*> RecordFieldList;
+typedef vector<StateVar*> StateVarList;
 
-#define foreach(i, ct, pc) \
-	if ( pc ) \
+#define foreach(i, ct, pc)                                                                         \
+	if ( pc )                                                                                      \
 		for ( ct::iterator i = (pc)->begin(); i != (pc)->end(); ++i )
 
-#define delete_list(ct, pc) \
-	{ \
-	foreach(delete_list_i, ct, pc) 		\
-		delete *delete_list_i;		\
-	delete pc;				\
-	pc = 0;					\
-	}
+#define delete_list(ct, pc)                                                                        \
+		{                                                                                          \
+		foreach (delete_list_i, ct, pc)                                                            \
+			delete *delete_list_i;                                                                 \
+		delete pc;                                                                                 \
+		pc = 0;                                                                                    \
+		}
 
 // Constants
-const char * const kComputeFrameLength = "compute_frame_length";
-const char * const kFlowBufferClass = "FlowBuffer";
-const char * const kFlowBufferVar = "flow_buffer";
-const char * const kFlowEOF = "FlowEOF";
-const char * const kFlowGap = "NewGap";
-const char * const kInitialBufferLengthFunc = "initial_buffer_length";
-const char * const kNeedMoreData = "need_more_data";
-const char * const kNewData = "NewData";
-const char * const kParseFuncWithBuffer = "ParseBuffer";
-const char * const kParseFuncWithoutBuffer = "Parse";
-const char * const kRefCountClass = "binpac::RefCount";
-const char * const kTypeWithLengthClass = "binpac::TypeWithLength";
+const char* const kComputeFrameLength = "compute_frame_length";
+const char* const kFlowBufferClass = "FlowBuffer";
+const char* const kFlowBufferVar = "flow_buffer";
+const char* const kFlowEOF = "FlowEOF";
+const char* const kFlowGap = "NewGap";
+const char* const kInitialBufferLengthFunc = "initial_buffer_length";
+const char* const kNeedMoreData = "need_more_data";
+const char* const kNewData = "NewData";
+const char* const kParseFuncWithBuffer = "ParseBuffer";
+const char* const kParseFuncWithoutBuffer = "Parse";
+const char* const kRefCountClass = "binpac::RefCount";
+const char* const kTypeWithLengthClass = "binpac::TypeWithLength";
 
-#endif  // pac_common_h
+#endif // pac_common_h

@@ -1,13 +1,14 @@
 #ifndef pac_output_h
 #define pac_output_h
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string>
 
 using namespace std;
 
-class OutputException {
+class OutputException
+	{
 public:
 	OutputException(const char* arg_msg);
 	~OutputException();
@@ -15,9 +16,10 @@ public:
 
 protected:
 	string msg;
-};
+	};
 
-class Output {
+class Output
+	{
 public:
 	Output(string filename);
 	~Output();
@@ -35,6 +37,6 @@ protected:
 
 	FILE* fp;
 	int indent_;
-};
+	};
 
 #endif /* pac_output_h */

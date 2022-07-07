@@ -1,3 +1,5 @@
+#include "pac_decl.h"
+
 #include "pac_attr.h"
 #include "pac_context.h"
 #include "pac_dataptr.h"
@@ -12,13 +14,10 @@
 #include "pac_type.h"
 #include "pac_utils.h"
 
-#include "pac_decl.h"
-
-DeclList *Decl::decl_list_ = 0;
+DeclList* Decl::decl_list_ = 0;
 Decl::DeclMap Decl::decl_map_;
 
-Decl::Decl(ID* id, DeclType decl_type)
-	: id_(id), decl_type_(decl_type), attrlist_(0)
+Decl::Decl(ID* id, DeclType decl_type) : id_(id), decl_type_(decl_type), attrlist_(0)
 	{
 	decl_map_[id_] = this;
 	if ( ! decl_list_ )
@@ -42,44 +41,42 @@ void Decl::AddAttrs(AttrList* attrs)
 		return;
 	if ( ! attrlist_ )
 		attrlist_ = new AttrList();
-	foreach ( i, AttrList, attrs )
+	foreach (i, AttrList, attrs)
 		{
 		attrlist_->push_back(*i);
 		ProcessAttr(*i);
 		}
 	}
 
-void Decl::ProcessAttr(Attr *attr)
+void Decl::ProcessAttr(Attr* attr)
 	{
 	throw Exception(attr, "unhandled attribute");
 	}
 
 void Decl::SetAnalyzerContext()
 	{
-	analyzer_context_ = 
-		AnalyzerContextDecl::current_analyzer_context();
+	analyzer_context_ = AnalyzerContextDecl::current_analyzer_context();
 	if ( ! analyzer_context_ )
 		{
-		throw Exception(this, 
-		                "analyzer context not defined");
+		throw Exception(this, "analyzer context not defined");
 		}
 	}
 
-void Decl::ProcessDecls(Output *out_h, Output *out_cc)
+void Decl::ProcessDecls(Output* out_h, Output* out_cc)
 	{
 	if ( ! decl_list_ )
 		return;
 
-	foreach(i, DeclList, decl_list_)
+	foreach (i, DeclList, decl_list_)
 		{
-		Decl *decl = *i;
+		Decl* decl = *i;
 		current_decl_id = decl->id();
 		decl->Prepare();
 		}
 
-	foreach(i, DeclList, decl_list_)
+	foreach (i, DeclList, decl_list_)
 		{
-		Decl *decl = *i;
+		Decl* decl = *i;
 		current_decl_id = decl->id();
 		decl->GenExternDeclaration(out_h);
 		}
@@ -87,12 +84,11 @@ void Decl::ProcessDecls(Output *out_h, Output *out_cc)
 	out_h->println("namespace binpac {\n");
 	out_cc->println("namespace binpac {\n");
 
-	AnalyzerContextDecl *analyzer_context =
-		AnalyzerContextDecl::current_analyzer_context();
+	AnalyzerContextDecl* analyzer_context = AnalyzerContextDecl::current_analyzer_context();
 
-	foreach(i, DeclList, decl_list_)
+	foreach (i, DeclList, decl_list_)
 		{
-		Decl *decl = *i;
+		Decl* decl = *i;
 		current_decl_id = decl->id();
 		decl->GenForwardDeclaration(out_h);
 		}
@@ -102,9 +98,9 @@ void Decl::ProcessDecls(Output *out_h, Output *out_cc)
 
 	out_h->println("");
 
-	foreach(i, DeclList, decl_list_)
+	foreach (i, DeclList, decl_list_)
 		{
-		Decl *decl = *i;
+		Decl* decl = *i;
 		current_decl_id = decl->id();
 		decl->GenCode(out_h, out_cc);
 		}
@@ -129,13 +125,9 @@ Decl* Decl::LookUpDecl(const ID* id)
 
 int HelperDecl::helper_id_seq = 0;
 
-HelperDecl::HelperDecl(HelperType helper_type, 
-                       ID* context_id, 
-                       EmbeddedCode* code)
- 	: Decl(new ID(strfmt("helper_%d", ++helper_id_seq)), HELPER), 
-	  helper_type_(helper_type),
-	  context_id_(context_id),
-	  code_(code)
+HelperDecl::HelperDecl(HelperType helper_type, ID* context_id, EmbeddedCode* code)
+	: Decl(new ID(strfmt("helper_%d", ++helper_id_seq)), HELPER), helper_type_(helper_type),
+	  context_id_(context_id), code_(code)
 	{
 	}
 
@@ -150,15 +142,15 @@ void HelperDecl::Prepare()
 	// Do nothing
 	}
 
-void HelperDecl::GenExternDeclaration(Output *out_h)
+void HelperDecl::GenExternDeclaration(Output* out_h)
 	{
 	if ( helper_type_ == EXTERN )
 		code_->GenCode(out_h, global_env());
 	}
 
-void HelperDecl::GenCode(Output *out_h, Output *out_cc)
+void HelperDecl::GenCode(Output* out_h, Output* out_cc)
 	{
-	Env *env = global_env();
+	Env* env = global_env();
 
 #if 0
 	if ( context_id_ )

@@ -3,8 +3,9 @@
 
 class RE_Matcher;
 
-namespace binpac {
+namespace binpac
+	{
 
 std::vector<RE_Matcher*>* uncompiled_re_matchers = 0;
 
-}
+	}

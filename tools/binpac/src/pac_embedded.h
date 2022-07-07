@@ -4,39 +4,39 @@
 #include "pac_common.h"
 
 class EmbeddedCodeSegment
-{
+	{
 public:
-	explicit EmbeddedCodeSegment(const string &s);
-	explicit EmbeddedCodeSegment(PacPrimitive *primitive);
+	explicit EmbeddedCodeSegment(const string& s);
+	explicit EmbeddedCodeSegment(PacPrimitive* primitive);
 	~EmbeddedCodeSegment();
 
-	string ToCode(Env *env);
+	string ToCode(Env* env);
 
 private:
 	string s_;
-	PacPrimitive *primitive_;
-};
+	PacPrimitive* primitive_;
+	};
 
-typedef vector<EmbeddedCodeSegment *> EmbeddedCodeSegmentList;
+typedef vector<EmbeddedCodeSegment*> EmbeddedCodeSegmentList;
 
 class EmbeddedCode : public Object
-{
+	{
 public:
 	EmbeddedCode();
 	~EmbeddedCode();
 
 	// Append a character
 	void Append(int atom);
-	void Append(const char *str);
+	void Append(const char* str);
 
 	// Append a PAC primitive
-	void Append(PacPrimitive *primitive);
+	void Append(PacPrimitive* primitive);
 
-	void GenCode(Output *out, Env *env);
+	void GenCode(Output* out, Env* env);
 
 private:
 	string current_segment_;
-	EmbeddedCodeSegmentList *segments_;
-};
+	EmbeddedCodeSegmentList* segments_;
+	};
 
-#endif  // pac_embedded_h
+#endif // pac_embedded_h

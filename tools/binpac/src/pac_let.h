@@ -5,12 +5,12 @@
 #include "pac_field.h"
 
 class LetField : public Field, Evaluatable
-{
+	{
 public:
-	LetField(ID* arg_id, Type *type, Expr* arg_expr);
+	LetField(ID* arg_id, Type* type, Expr* arg_expr);
 	~LetField();
 
-	Expr *expr() const			{ return expr_; }
+	Expr* expr() const { return expr_; }
 
 	void Prepare(Env* env);
 
@@ -21,28 +21,28 @@ public:
 	bool RequiresAnalyzerContext() const;
 
 protected:
-	bool DoTraverse(DataDepVisitor *visitor);
+	bool DoTraverse(DataDepVisitor* visitor);
 
 protected:
 	Expr* expr_;
-};
+	};
 
 class LetDecl : public Decl, Evaluatable
-{
+	{
 public:
-	LetDecl(ID *id, Type *type, Expr *expr);
+	LetDecl(ID* id, Type* type, Expr* expr);
 	~LetDecl();
 
-	Expr *expr() const	{ return expr_; }
+	Expr* expr() const { return expr_; }
 
 	void Prepare();
-	void GenForwardDeclaration(Output *out_h);
-	void GenCode(Output *out_h, Output *out_cc);
+	void GenForwardDeclaration(Output* out_h);
+	void GenCode(Output* out_h, Output* out_cc);
 	void GenEval(Output* out, Env* env);
 
 private:
-	Type *type_;
-	Expr *expr_;
-};
+	Type* type_;
+	Expr* expr_;
+	};
 
-#endif  // pac_let_h
+#endif // pac_let_h

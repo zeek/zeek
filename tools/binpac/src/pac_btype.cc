@@ -1,9 +1,10 @@
 #include "pac_btype.h"
+
 #include "pac_dataptr.h"
 #include "pac_id.h"
 #include "pac_output.h"
 
-Type *BuiltInType::DoClone() const
+Type* BuiltInType::DoClone() const
 	{
 	return new BuiltInType(bit_type());
 	}
@@ -11,20 +12,19 @@ Type *BuiltInType::DoClone() const
 bool BuiltInType::IsNumericType() const
 	{
 	BITType t = bit_type();
-	return (t == INT8 || t == INT16 || t == INT32 || t == INT64 || 
-	        t == UINT8 || t == UINT16 || t == UINT32 || t == UINT64);
+	return (t == INT8 || t == INT16 || t == INT32 || t == INT64 || t == UINT8 || t == UINT16 ||
+	        t == UINT32 || t == UINT64);
 	}
 
-bool BuiltInType::CompatibleBuiltInTypes(BuiltInType *type1, 
-	                                 BuiltInType *type2)
+bool BuiltInType::CompatibleBuiltInTypes(BuiltInType* type1, BuiltInType* type2)
 	{
 	return type1->IsNumericType() && type2->IsNumericType();
 	}
 
 static const char* basic_pactype_name[] = {
-#	define TYPE_DEF(name, pactype, ctype, size)	pactype,
-#	include "pac_type.def"
-#	undef TYPE_DEF
+#define TYPE_DEF(name, pactype, ctype, size) pactype,
+#include "pac_type.def"
+#undef TYPE_DEF
 	0,
 };
 
@@ -32,9 +32,7 @@ void BuiltInType::static_init()
 	{
 	for ( int bit_type = 0; basic_pactype_name[bit_type]; ++bit_type )
 		{
-		Type::AddPredefinedType(
-			basic_pactype_name[bit_type], 
-			new BuiltInType((BITType) bit_type));
+		Type::AddPredefinedType(basic_pactype_name[bit_type], new BuiltInType((BITType)bit_type));
 		}
 	}
 
@@ -48,9 +46,9 @@ int BuiltInType::LookUpByName(const char* name)
 	}
 
 static const char* basic_ctype_name[] = {
-#	define TYPE_DEF(name, pactype, ctype, size)	ctype,
-#	include "pac_type.def"
-#	undef TYPE_DEF
+#define TYPE_DEF(name, pactype, ctype, size) ctype,
+#include "pac_type.def"
+#undef TYPE_DEF
 	0,
 };
 
@@ -66,12 +64,11 @@ string BuiltInType::DataTypeStr() const
 
 int BuiltInType::StaticSize(Env* /* env */) const
 	{
-	static const size_t basic_type_size[] = 
-		{
-#		define TYPE_DEF(name, pactype, ctype, size)	size,
-#		include "pac_type.def"
-#		undef TYPE_DEF
-		};
+	static const size_t basic_type_size[] = {
+#define TYPE_DEF(name, pactype, ctype, size) size,
+#include "pac_type.def"
+#undef TYPE_DEF
+	};
 
 	return basic_type_size[bit_type_];
 	}
@@ -96,8 +93,7 @@ void BuiltInType::GenDynamicSize(Output* out_cc, Env* env, const DataPtr& data)
 	ASSERT(0);
 	}
 
-void BuiltInType::DoGenParseCode(Output* out_cc, Env* env,
-		const DataPtr& data, int flags)
+void BuiltInType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, int flags)
 	{
 	if ( bit_type_ == EMPTY )
 		return;
@@ -110,7 +106,7 @@ void BuiltInType::DoGenParseCode(Output* out_cc, Env* env,
 	if ( anonymous_value_var() )
 		return;
 
-	switch ( bit_type_ ) 
+	switch ( bit_type_ )
 		{
 		case EMPTY:
 			// do nothing
@@ -118,8 +114,8 @@ void BuiltInType::DoGenParseCode(Output* out_cc, Env* env,
 
 		case INT8:
 		case UINT8:
-			out_cc->println("%s = *((%s const *) (%s));",
-				lvalue(), DataTypeStr().c_str(), data.ptr_expr()); 
+			out_cc->println("%s = *((%s const *) (%s));", lvalue(), DataTypeStr().c_str(),
+			                data.ptr_expr());
 			break;
 		case INT16:
 		case UINT16:
@@ -134,13 +130,10 @@ void BuiltInType::DoGenParseCode(Output* out_cc, Env* env,
 				data.ptr_expr(),
 				EvalByteOrder(out_cc, env).c_str());
 #else
-			out_cc->println("%s = FixByteOrder(%s, *((%s const *) (%s)));",
-				lvalue(), 
-				EvalByteOrder(out_cc, env).c_str(),
-				DataTypeStr().c_str(), 
-				data.ptr_expr());
+			out_cc->println("%s = FixByteOrder(%s, *((%s const *) (%s)));", lvalue(),
+			                EvalByteOrder(out_cc, env).c_str(), DataTypeStr().c_str(),
+			                data.ptr_expr());
 #endif
 			break;
 		}
 	}
-

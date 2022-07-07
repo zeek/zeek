@@ -1,56 +1,57 @@
+#include "pac_id.h"
+
 #include "pac_exception.h"
 #include "pac_expr.h"
 #include "pac_exttype.h"
 #include "pac_field.h"
-#include "pac_id.h"
 #include "pac_type.h"
 #include "pac_utils.h"
 
-const ID *default_value_var = 0;
-const ID *null_id = 0;
-const ID *null_byteseg_id = 0;
-const ID *null_decl_id = 0;
-const ID *begin_of_data = 0;
-const ID *end_of_data = 0;
-const ID *len_of_data = 0;
-const ID *byteorder_id = 0;
-const ID *bigendian_id = 0;
-const ID *littleendian_id = 0;
-const ID *unspecified_byteorder_id = 0;
-const ID *const_true_id = 0;
-const ID *const_false_id = 0;
-const ID *analyzer_context_id = 0;
-const ID *context_macro_id = 0;
-const ID *this_id = 0;
-const ID *sourcedata_id = 0;
-const ID *connection_id = 0;
-const ID *upflow_id = 0;
-const ID *downflow_id = 0;
-const ID *dataunit_id = 0;
-const ID *flow_buffer_id = 0;
-const ID *element_macro_id = 0;
-const ID *input_macro_id = 0;
-const ID *cxt_connection_id = 0;
-const ID *cxt_flow_id = 0;
-const ID *parsing_state_id = 0;
-const ID *buffering_state_id = 0;
+const ID* default_value_var = 0;
+const ID* null_id = 0;
+const ID* null_byteseg_id = 0;
+const ID* null_decl_id = 0;
+const ID* begin_of_data = 0;
+const ID* end_of_data = 0;
+const ID* len_of_data = 0;
+const ID* byteorder_id = 0;
+const ID* bigendian_id = 0;
+const ID* littleendian_id = 0;
+const ID* unspecified_byteorder_id = 0;
+const ID* const_true_id = 0;
+const ID* const_false_id = 0;
+const ID* analyzer_context_id = 0;
+const ID* context_macro_id = 0;
+const ID* this_id = 0;
+const ID* sourcedata_id = 0;
+const ID* connection_id = 0;
+const ID* upflow_id = 0;
+const ID* downflow_id = 0;
+const ID* dataunit_id = 0;
+const ID* flow_buffer_id = 0;
+const ID* element_macro_id = 0;
+const ID* input_macro_id = 0;
+const ID* cxt_connection_id = 0;
+const ID* cxt_flow_id = 0;
+const ID* parsing_state_id = 0;
+const ID* buffering_state_id = 0;
 
 int ID::anonymous_id_seq = 0;
 
-ID *ID::NewAnonymousID(const string &prefix)
+ID* ID::NewAnonymousID(const string& prefix)
 	{
-	ID *id = new ID(strfmt("%s%03d", prefix.c_str(), ++anonymous_id_seq));
+	ID* id = new ID(strfmt("%s%03d", prefix.c_str(), ++anonymous_id_seq));
 	id->anonymous_id_ = true;
 	return id;
 	}
 
-IDRecord::IDRecord(Env *arg_env, const ID* arg_id, IDType arg_id_type)
+IDRecord::IDRecord(Env* arg_env, const ID* arg_id, IDType arg_id_type)
 	: env(arg_env), id(arg_id), id_type(arg_id_type)
 	{
 	eval = 0;
 	evaluated = in_evaluation = false;
-	setfunc = "";  // except for STATE_VAR
-	switch (id_type)
+	setfunc = ""; // except for STATE_VAR
+	switch ( id_type )
 		{
 		case MEMBER_VAR:
 			rvalue = strfmt("%s()", id->Name());
@@ -96,9 +97,7 @@ IDRecord::IDRecord(Env *arg_env, const ID* arg_id, IDType arg_id_type)
 	macro = 0;
 	}
 
-IDRecord::~IDRecord()
-	{
-	}
+IDRecord::~IDRecord() { }
 
 void IDRecord::SetConstant(int c)			
 	{ 
@@ -107,20 +106,20 @@ void IDRecord::SetConstant(int c)
 	constant = c; 
 	}
 
-bool IDRecord::GetConstant(int *pc) const
-	{ 
-	if ( constant_set ) 
+bool IDRecord::GetConstant(int* pc) const
+	{
+	if ( constant_set )
 		*pc = constant;
 	return constant_set;
 	}
 
-void IDRecord::SetMacro(Expr *e)
+void IDRecord::SetMacro(Expr* e)
 	{
 	ASSERT(id_type == MACRO);
 	macro = e;
 	}
 
-Expr *IDRecord::GetMacro() const
+Expr* IDRecord::GetMacro() const
 	{
 	ASSERT(id_type == MACRO);
 	return macro;
@@ -187,7 +186,7 @@ Env::~Env()
 		}
 	}
 
-void Env::AddID(const ID* id, IDType id_type, Type *data_type)
+void Env::AddID(const ID* id, IDType id_type, Type* data_type)
 	{
 	DEBUG_MSG("To add ID `%s'...\n", id->Name());
 	id_map_t::iterator it = id_map.find(id);
@@ -202,25 +201,25 @@ void Env::AddID(const ID* id, IDType id_type, Type *data_type)
 	SetDataType(id, data_type);
 	}
 
-void Env::AddConstID(const ID* id, const int c, Type *type)
+void Env::AddConstID(const ID* id, const int c, Type* type)
 	{
 	if ( ! type )
 		type = extern_type_int;
 	AddID(id, CONST, type);
 	SetConstant(id, c);
-	SetEvaluated(id);  // a constant is always evaluated
+	SetEvaluated(id); // a constant is always evaluated
 	}
 
-void Env::AddMacro(const ID *id, Expr *macro)
+void Env::AddMacro(const ID* id, Expr* macro)
 	{
 	AddID(id, MACRO, macro->DataType(this));
 	SetMacro(id, macro);
 	SetEvaluated(id);
 	}
 
-ID *Env::AddTempID(Type *type)
+ID* Env::AddTempID(Type* type)
 	{
-	ID *id = ID::NewAnonymousID("t_var_");
+	ID* id = ID::NewAnonymousID("t_var_");
 	AddID(id, TEMP_VAR, type);
 	return id;
 	}
@@ -249,7 +248,7 @@ IDType Env::GetIDType(const ID* id) const
 
 const char* Env::RValue(const ID* id) const
 	{
-	IDRecord *r = lookup(id, true, false);
+	IDRecord* r = lookup(id, true, false);
 	if ( r )
 		return r->RValue();
 	else
@@ -273,14 +272,14 @@ void Env::SetEvalMethod(const ID* id, Evaluatable* eval)
 
 void Env::Evaluate(Output* out, const ID* id)
 	{
-	IDRecord *r = lookup(id, true, !allow_undefined_id());
+	IDRecord* r = lookup(id, true, ! allow_undefined_id());
 	if ( r )
 		r->Evaluate(out, this);
 	}
 
 bool Env::Evaluated(const ID* id) const
 	{
-	IDRecord *r = lookup(id, true, !allow_undefined_id());
+	IDRecord* r = lookup(id, true, ! allow_undefined_id());
 	if ( r )
 		return r->Evaluated();
 	else
@@ -292,23 +291,20 @@ void Env::SetEvaluated(const ID* id, bool v)
 	{
 	if ( in_branch() )
 		{
-		Field *f = GetField(id);
-		if (f && f->tof() == LET_FIELD)
+		Field* f = GetField(id);
+		if ( f && f->tof() == LET_FIELD )
 			{
-			throw Exception(
-				context_object_,
-				strfmt("INTERNAL ERROR: "
-				"evaluating let field '%s' in a branch! "
-				"To work around this problem, "
-				"add '&requires(%s)' to the case type. "
-				"Sorry for the inconvenience.\n",
-				id->Name(),
-				id->Name()));
+			throw Exception(context_object_, strfmt("INTERNAL ERROR: "
+			                                        "evaluating let field '%s' in a branch! "
+			                                        "To work around this problem, "
+			                                        "add '&requires(%s)' to the case type. "
+			                                        "Sorry for the inconvenience.\n",
+			                                        id->Name(), id->Name()));
 			ASSERT(0);
 			}
 		}
 
-	IDRecord *r = lookup(id, false, false);
+	IDRecord* r = lookup(id, false, false);
 	if ( r )
 		r->SetEvaluated(v);
 	else if ( parent )
@@ -334,16 +330,16 @@ void Env::SetDataType(const ID* id, Type* type)
 
 Type* Env::GetDataType(const ID* id) const
 	{
-	IDRecord *r = lookup(id, true, false);
+	IDRecord* r = lookup(id, true, false);
 	if ( r )
 		return r->GetDataType();
 	else
 		return 0;  
 	}
 
-string Env::DataTypeStr(const ID *id) const
+string Env::DataTypeStr(const ID* id) const
 	{
-	Type *type = GetDataType(id);
+	Type* type = GetDataType(id);
 	if ( ! type )
 		throw Exception(id, "data type not defined");
 	return type->DataTypeStr();
@@ -365,7 +361,7 @@ bool Env::GetConstant(const ID* id, int* pc) const
 		return false;
 	}
 
-void Env::SetMacro(const ID* id, Expr *macro)
+void Env::SetMacro(const ID* id, Expr* macro)
 	{
 	lookup(id, true, true)->SetMacro(macro);
 	}
@@ -409,7 +405,7 @@ void init_builtin_identifiers()
 
 Env* global_env()
 	{
-	static Env *the_global_env = 0;
+	static Env* the_global_env = 0;
 
 	if ( ! the_global_env )
 		{
@@ -436,7 +432,7 @@ Env* global_env()
 	return the_global_env;
 	}
 
-string set_function(const ID *id)
+string set_function(const ID* id)
 	{
 	return strfmt("set_%s", id->Name());
 	}

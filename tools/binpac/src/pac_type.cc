@@ -1,3 +1,5 @@
+#include "pac_type.h"
+
 #include "pac_action.h"
 #include "pac_array.h"
 #include "pac_attr.h"
@@ -14,22 +16,19 @@
 #include "pac_output.h"
 #include "pac_paramtype.h"
 #include "pac_strtype.h"
-#include "pac_type.h"
 #include "pac_utils.h"
 #include "pac_varfield.h"
 #include "pac_withinput.h"
 
-
 Type::type_map_t Type::type_map_;
 
-Type::Type(TypeType tot) 
-	: DataDepElement(DataDepElement::TYPE), tot_(tot)
-	{ 
+Type::Type(TypeType tot) : DataDepElement(DataDepElement::TYPE), tot_(tot)
+	{
 	type_decl_ = 0;
 	type_decl_id_ = current_decl_id;
 	declared_as_type_ = false;
 	env_ = 0;
-	value_var_ = default_value_var; 
+	value_var_ = default_value_var;
 	ASSERT(value_var_);
 	value_var_type_ = MEMBER_VAR;
 	anonymous_value_var_ = false;
@@ -75,7 +74,7 @@ Type::~Type()
 	delete parsing_state_var_field_;
 	delete buffering_state_var_field_;
 	delete has_value_field_;
-	delete [] size_expr_;
+	delete[] size_expr_;
 	delete_list(FieldList, fields_);
 	delete attrs_;
 	delete attr_byteorder_expr_;
@@ -86,64 +85,64 @@ Type::~Type()
 	delete_list(ExprList, attr_requires_);
 	}
 
-Type *Type::Clone() const
+Type* Type::Clone() const
 	{
-	Type *clone = DoClone();
+	Type* clone = DoClone();
 	if ( clone )
 		{
-		foreach(i, FieldList, fields_)
+		foreach (i, FieldList, fields_)
 			{
-			Field *f = *i;
+			Field* f = *i;
 			clone->AddField(f);
 			}
 
-		foreach(i, AttrList, attrs_)
+		foreach (i, AttrList, attrs_)
 			{
-			Attr *a = *i;
+			Attr* a = *i;
 			clone->ProcessAttr(a);
 			}
 		}
 	return clone;
 	}
 
-string Type::EvalMember(const ID *member_id) const
+string Type::EvalMember(const ID* member_id) const
 	{
 	ASSERT(0);
 	return "@@@";
 	}
 
-string Type::EvalElement(const string &array, const string &index) const
+string Type::EvalElement(const string& array, const string& index) const
 	{
 	return strfmt("%s[%s]", array.c_str(), index.c_str());
 	}
 
-const ID *Type::decl_id() const
-	{ 
+const ID* Type::decl_id() const
+	{
 	return type_decl_id_;
 	}
 
-void Type::set_type_decl(const TypeDecl *decl, bool declared_as_type)	
-	{ 
-	type_decl_ = decl; 
+void Type::set_type_decl(const TypeDecl* decl, bool declared_as_type)
+	{
+	type_decl_ = decl;
 	type_decl_id_ = decl->id();
 	declared_as_type_ = declared_as_type;
 	}
 
 void Type::set_value_var(const ID* arg_id, int arg_id_type)
- 	{ 
-	value_var_ = arg_id; 
-	value_var_type_ = arg_id_type; 
+	{
+	value_var_ = arg_id;
+	value_var_type_ = arg_id_type;
 
 	if ( value_var_ )
 		anonymous_value_var_ = value_var_->is_anonymous();
 	}
 
-const ID *Type::size_var() const
+const ID* Type::size_var() const
 	{
 	return size_var_field_ ? size_var_field_->id() : 0;
 	}
 
-void Type::AddField(Field *f)
+void Type::AddField(Field* f)
 	{
 	ASSERT(f);
 	fields_->push_back(f);
@@ -179,23 +178,22 @@ void Type::ProcessAttr(Attr* a)
 
 		case ATTR_LET:
 			{
-			LetAttr *letattr = static_cast<LetAttr *>(a);
+			LetAttr* letattr = static_cast<LetAttr*>(a);
 			if ( ! attr_letfields_ )
 				attr_letfields_ = letattr->letfields();
 			else
 				{
 				// Append to attr_letfields_
-				attr_letfields_->insert(
-					attr_letfields_->end(),
-					letattr->letfields()->begin(),
-					letattr->letfields()->end());
+				attr_letfields_->insert(attr_letfields_->end(), letattr->letfields()->begin(),
+				                        letattr->letfields()->end());
 				}
 			}
 			break;
 
 		case ATTR_LINEBREAKER:
-			if (strlen(a->expr()->orig()) != 6 )
-				throw Exception(this, "invalid line breaker length, must be a single ASCII character. (Ex: \"\\001\".)");
+			if ( strlen(a->expr()->orig()) != 6 )
+				throw Exception(this, "invalid line breaker length, must be a single ASCII "
+				                      "character. (Ex: \"\\001\".)");
 			attr_linebreaker_ = a->expr();
 			break;
 
@@ -218,12 +216,12 @@ void Type::ProcessAttr(Attr* a)
 		case ATTR_TRANSIENT:
 			attr_transient_ = true;
 			break;
-		
+
 		case ATTR_CHUNKED:
 		case ATTR_UNTIL:
 		case ATTR_RESTOFDATA:
 		case ATTR_RESTOFFLOW:
-			// Ignore 
+			// Ignore
 			// ... these are processed by {
 			// {ArrayType, StringType}::ProcessAttr
 			break;
@@ -232,7 +230,7 @@ void Type::ProcessAttr(Attr* a)
 	attrs_->push_back(a);
 	}
 
-string Type::EvalByteOrder(Output *out_cc, Env *env) const
+string Type::EvalByteOrder(Output* out_cc, Env* env) const
 	{
 	// If &byteorder is specified for a field, rather
 	// than a type declaration, we do not add a byteorder variable
@@ -249,10 +247,9 @@ void Type::Prepare(Env* env, int flags)
 	ASSERT(env_);
 
 	// The name of the value variable
-	if ( value_var() )	
+	if ( value_var() )
 		{
-		data_id_str_ = strfmt("%s:%s", 
-			decl_id()->Name(), value_var()->Name());
+		data_id_str_ = strfmt("%s:%s", decl_id()->Name(), value_var()->Name());
 		}
 	else
 		{
@@ -261,13 +258,11 @@ void Type::Prepare(Env* env, int flags)
 
 	if ( value_var() )
 		{
-		env_->AddID(value_var(), 
-			static_cast<IDType>(value_var_type_), 
-			this);
+		env_->AddID(value_var(), static_cast<IDType>(value_var_type_), this);
 		lvalue_ = strfmt("%s", env_->LValue(value_var()));
 		}
 
-	foreach(i, FieldList, attr_letfields_)
+	foreach (i, FieldList, attr_letfields_)
 		{
 		AddField(*i);
 		}
@@ -275,55 +270,47 @@ void Type::Prepare(Env* env, int flags)
 	if ( attr_exportsourcedata_ )
 		{
 		ASSERT(flags & TO_BE_PARSED);
-		AddField(new PubVarField(sourcedata_id->clone(),
-			extern_type_const_bytestring->Clone()));
+		AddField(new PubVarField(sourcedata_id->clone(), extern_type_const_bytestring->Clone()));
 		}
 
 	// An optional field
 	if ( attr_if_expr() )
 		{
 		ASSERT(value_var());
-		ID *has_value_id = new ID(strfmt("has_%s", value_var()->Name()));
-		has_value_field_ = new LetField(has_value_id, 
-			extern_type_bool->Clone(),
-			attr_if_expr());
+		ID* has_value_id = new ID(strfmt("has_%s", value_var()->Name()));
+		has_value_field_ = new LetField(has_value_id, extern_type_bool->Clone(), attr_if_expr());
 		AddField(has_value_field_);
 		}
 
 	if ( incremental_input() )
 		{
 		ASSERT(flags & TO_BE_PARSED);
-		ID *parsing_complete_var = 
-			new ID(strfmt("%s_parsing_complete", 
-				value_var() ? value_var()->Name() : "val"));
-		DEBUG_MSG("Adding parsing complete var: %s\n",
-			parsing_complete_var->Name());
-		parsing_complete_var_field_ = new TempVarField(
-			parsing_complete_var, extern_type_bool->Clone());
+		ID* parsing_complete_var = new ID(
+			strfmt("%s_parsing_complete", value_var() ? value_var()->Name() : "val"));
+		DEBUG_MSG("Adding parsing complete var: %s\n", parsing_complete_var->Name());
+		parsing_complete_var_field_ = new TempVarField(parsing_complete_var,
+		                                               extern_type_bool->Clone());
 		parsing_complete_var_field_->Prepare(env);
 
-		if ( NeedsBufferingStateVar() && 
-		       ! env->GetDataType(buffering_state_id) )
+		if ( NeedsBufferingStateVar() && ! env->GetDataType(buffering_state_id) )
 			{
-			buffering_state_var_field_ = new PrivVarField(
-				buffering_state_id->clone(), 
-				extern_type_int->Clone());
+			buffering_state_var_field_ = new PrivVarField(buffering_state_id->clone(),
+			                                              extern_type_int->Clone());
 			AddField(buffering_state_var_field_);
 			}
 
 		if ( incremental_parsing() && tot_ == RECORD )
 			{
 			ASSERT(! parsing_state_var_field_);
-			parsing_state_var_field_ = new PrivVarField(
-				parsing_state_id->clone(), 
-				extern_type_int->Clone());
+			parsing_state_var_field_ = new PrivVarField(parsing_state_id->clone(),
+			                                            extern_type_int->Clone());
 			AddField(parsing_state_var_field_);
 			}
 		}
 
 	foreach (i, FieldList, fields_)
 		{
-		Field *f = *i;
+		Field* f = *i;
 		f->Prepare(env);
 		}
 	}
@@ -333,19 +320,17 @@ void Type::GenPubDecls(Output* out_h, Env* env)
 	if ( DefineValueVar() )
 		{
 		if ( attr_if_expr_ )
-		        out_h->println("%s %s const { BINPAC_ASSERT(%s); return %s; }",
-			        DataTypeConstRefStr().c_str(), 
-			        env->RValue(value_var()),
-			        env->RValue(has_value_var()), lvalue());
+			out_h->println("%s %s const { BINPAC_ASSERT(%s); return %s; }",
+			               DataTypeConstRefStr().c_str(), env->RValue(value_var()),
+			               env->RValue(has_value_var()), lvalue());
 		else
-		        out_h->println("%s %s const { return %s; }",
-			        DataTypeConstRefStr().c_str(), 
-			        env->RValue(value_var()), lvalue());
+			out_h->println("%s %s const { return %s; }", DataTypeConstRefStr().c_str(),
+			               env->RValue(value_var()), lvalue());
 		}
 
 	foreach (i, FieldList, fields_)
 		{
-		Field *f = *i;
+		Field* f = *i;
 		f->GenPubDecls(out_h, env);
 		}
 	}
@@ -354,14 +339,12 @@ void Type::GenPrivDecls(Output* out_h, Env* env)
 	{
 	if ( DefineValueVar() )
 		{
-		out_h->println("%s %s;", 
-			DataTypeStr().c_str(), 
-			env->LValue(value_var()));
+		out_h->println("%s %s;", DataTypeStr().c_str(), env->LValue(value_var()));
 		}
 
 	foreach (i, FieldList, fields_)
 		{
-		Field *f = *i;
+		Field* f = *i;
 		f->GenPrivDecls(out_h, env);
 		}
 	}
@@ -370,20 +353,18 @@ void Type::GenInitCode(Output* out_cc, Env* env)
 	{
 	foreach (i, FieldList, fields_)
 		{
-		Field *f = *i;
+		Field* f = *i;
 		f->GenInitCode(out_cc, env);
 		}
 
 	if ( parsing_state_var_field_ )
 		{
-		out_cc->println("%s = 0;", 
-			env->LValue(parsing_state_var_field_->id()));
+		out_cc->println("%s = 0;", env->LValue(parsing_state_var_field_->id()));
 		}
 
 	if ( buffering_state_var_field_ )
 		{
-		out_cc->println("%s = 0;", 
-			env->LValue(buffering_state_var_field_->id()));
+		out_cc->println("%s = 0;", env->LValue(buffering_state_var_field_->id()));
 		}
 	}
 
@@ -391,18 +372,18 @@ void Type::GenCleanUpCode(Output* out_cc, Env* env)
 	{
 	foreach (i, FieldList, fields_)
 		{
-		Field *f = *i;
+		Field* f = *i;
 		if ( f->tof() != CASE_FIELD )
 			f->GenCleanUpCode(out_cc, env);
 		}
 	}
 
-void Type::GenBufferConfiguration(Output *out_cc, Env *env)
+void Type::GenBufferConfiguration(Output* out_cc, Env* env)
 	{
 	ASSERT(buffer_input());
 
 	string frame_buffer_arg;
-	
+
 	switch ( buffer_mode() )
 		{
 		case BUFFER_NOTHING:
@@ -410,12 +391,11 @@ void Type::GenBufferConfiguration(Output *out_cc, Env *env)
 
 		case BUFFER_BY_LENGTH:
 			if ( ! NeedsBufferingStateVar() )
- 				break;
-		
+				break;
+
 			if ( buffering_state_var_field_ )
 				{
-				out_cc->println("if ( %s == 0 )",
-					env->RValue(buffering_state_id));
+				out_cc->println("if ( %s == 0 )", env->RValue(buffering_state_id));
 				out_cc->inc_indent();
 				out_cc->println("{");
 				}
@@ -435,36 +415,30 @@ void Type::GenBufferConfiguration(Output *out_cc, Env *env)
 				ASSERT(0);
 				}
 
-			out_cc->println("%s->NewFrame(%s, %s);",
-				env->LValue(flow_buffer_id),
-				frame_buffer_arg.c_str(),
-				attr_chunked() ? "true" : "false");
+			out_cc->println("%s->NewFrame(%s, %s);", env->LValue(flow_buffer_id),
+			                frame_buffer_arg.c_str(), attr_chunked() ? "true" : "false");
 
 			if ( buffering_state_var_field_ )
 				{
-				out_cc->println("%s = 1;",
-					env->LValue(buffering_state_id));
+				out_cc->println("%s = 1;", env->LValue(buffering_state_id));
 				out_cc->println("}");
 				out_cc->dec_indent();
 				}
 			break;
 
 		case BUFFER_BY_LINE:
-			out_cc->println("if ( %s == 0 )",
-				env->RValue(buffering_state_id));
+			out_cc->println("if ( %s == 0 )", env->RValue(buffering_state_id));
 			out_cc->inc_indent();
 			out_cc->println("{");
 			if ( BufferableWithLineBreaker() )
 				out_cc->println("%s->SetLineBreaker((unsigned char*)%s);",
-				    env->LValue(flow_buffer_id), LineBreaker()->orig());
-			else 
-				out_cc->println("%s->UnsetLineBreaker();", 
-				    env->LValue(flow_buffer_id));
-			out_cc->println("%s->NewLine();",
-				env->LValue(flow_buffer_id));
+				                env->LValue(flow_buffer_id), LineBreaker()->orig());
+			else
+				out_cc->println("%s->UnsetLineBreaker();", env->LValue(flow_buffer_id));
 
-			out_cc->println("%s = 1;",
-				env->LValue(buffering_state_id));
+			out_cc->println("%s->NewLine();", env->LValue(flow_buffer_id));
+
+			out_cc->println("%s = 1;", env->LValue(buffering_state_id));
 			out_cc->println("}");
 			out_cc->dec_indent();
 			break;
@@ -475,7 +449,7 @@ void Type::GenBufferConfiguration(Output *out_cc, Env *env)
 		}
 	}
 
-void Type::GenPreParsing(Output *out_cc, Env *env)
+void Type::GenPreParsing(Output* out_cc, Env* env)
 	{
 	if ( incremental_input() && IsPointerType() )
 		{
@@ -519,14 +493,12 @@ void Type::GenParseCode(Output* out_cc, Env* env, const DataPtr& data, int flags
 		{
 		parsing_complete_var_field_->GenTempDecls(out_cc, env);
 
-		out_cc->println("%s = false;", 
-			env->LValue(parsing_complete_var()));
+		out_cc->println("%s = false;", env->LValue(parsing_complete_var()));
 		env->SetEvaluated(parsing_complete_var());
 
 		if ( buffer_mode() == BUFFER_NOTHING )
 			{
-			out_cc->println("%s = true;", 
-				env->LValue(parsing_complete_var()));
+			out_cc->println("%s = true;", env->LValue(parsing_complete_var()));
 			}
 		else if ( buffer_input() )
 			{
@@ -540,20 +512,17 @@ void Type::GenParseCode(Output* out_cc, Env* env, const DataPtr& data, int flags
 		}
 	else
 		{
-		if ( attr_length_expr_)
+		if ( attr_length_expr_ )
 			{
 			EvalLengthExpr(out_cc, env);
 
 			GenBoundaryCheck(out_cc, env, data);
 
 			out_cc->println("{");
-			out_cc->println("// Setting %s with &length", 
-				env->RValue(end_of_data)); 
-			out_cc->println("%s %s = %s + %s;",
-				extern_type_const_byteptr->DataTypeStr().c_str(),
-				env->LValue(end_of_data),
-				data.ptr_expr(),
-				EvalLengthExpr(out_cc, env).c_str());
+			out_cc->println("// Setting %s with &length", env->RValue(end_of_data));
+			out_cc->println("%s %s = %s + %s;", extern_type_const_byteptr->DataTypeStr().c_str(),
+			                env->LValue(end_of_data), data.ptr_expr(),
+			                EvalLengthExpr(out_cc, env).c_str());
 
 			GenParseCode2(out_cc, env, data, flags);
 
@@ -568,9 +537,8 @@ void Type::GenParseCode(Output* out_cc, Env* env, const DataPtr& data, int flags
 
 void Type::GenBufferingLoop(Output* out_cc, Env* env, int flags)
 	{
-	out_cc->println("while ( ! %s && %s->ready() )", 
-		env->LValue(parsing_complete_var()),
-		env->LValue(flow_buffer_id));
+	out_cc->println("while ( ! %s && %s->ready() )", env->LValue(parsing_complete_var()),
+	                env->LValue(flow_buffer_id));
 
 	out_cc->inc_indent();
 	out_cc->println("{");
@@ -586,22 +554,18 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags)
 	{
 	ASSERT(incremental_input());
 
-	const ID *data_begin;
+	const ID* data_begin;
 
 	if ( ! incremental_parsing() )
 		{
 		env->AddID(begin_of_data, TEMP_VAR, extern_type_const_byteptr);
 		env->AddID(end_of_data, TEMP_VAR, extern_type_const_byteptr);
 
-		out_cc->println("%s %s = %s->begin();",
-			env->DataTypeStr(begin_of_data).c_str(),
-			env->LValue(begin_of_data),
-			env->RValue(flow_buffer_id));
+		out_cc->println("%s %s = %s->begin();", env->DataTypeStr(begin_of_data).c_str(),
+		                env->LValue(begin_of_data), env->RValue(flow_buffer_id));
 
-		out_cc->println("%s %s = %s->end();",
-			env->DataTypeStr(end_of_data).c_str(),
-			env->LValue(end_of_data),
-			env->RValue(flow_buffer_id));
+		out_cc->println("%s %s = %s->end();", env->DataTypeStr(end_of_data).c_str(),
+		                env->LValue(end_of_data), env->RValue(flow_buffer_id));
 
 		env->SetEvaluated(begin_of_data);
 		env->SetEvaluated(end_of_data);
@@ -615,9 +579,8 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags)
 		{
 		if ( incremental_parsing() )
 			{
-			throw Exception(this, 
-				"cannot handle &until($input...) "
-				"for incrementally parsed type");
+			throw Exception(this, "cannot handle &until($input...) "
+			                      "for incrementally parsed type");
 			}
 		array_until_input_->GenUntilInputCheck(out_cc, env);
 		}
@@ -627,8 +590,7 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags)
 	if ( attr_length_expr() )
 		{
 		ASSERT(buffer_mode() == BUFFER_BY_LENGTH);
-		out_cc->println("switch ( %s )", 
-			env->LValue(buffering_state_id));
+		out_cc->println("switch ( %s )", env->LValue(buffering_state_id));
 		out_cc->inc_indent();
 		out_cc->println("{");
 		out_cc->println("case 0:");
@@ -646,9 +608,8 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags)
 		out_cc->println("%s = 2;", env->LValue(buffering_state_id));
 
 		Env frame_length_env(env, this);
-		out_cc->println("%s->GrowFrame(%s);", 
-			env->LValue(flow_buffer_id),
-			attr_length_expr_->EvalExpr(out_cc, &frame_length_env));
+		out_cc->println("%s->GrowFrame(%s);", env->LValue(flow_buffer_id),
+		                attr_length_expr_->EvalExpr(out_cc, &frame_length_env));
 		out_cc->println("}");
 		out_cc->println("break;");
 
@@ -656,20 +617,16 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags)
 		out_cc->println("case 2:");
 		out_cc->inc_indent();
 
-		out_cc->println("BINPAC_ASSERT(%s->ready());", 
-			env->RValue(flow_buffer_id));
-		out_cc->println("if ( %s->ready() )", 
-			env->RValue(flow_buffer_id));
+		out_cc->println("BINPAC_ASSERT(%s->ready());", env->RValue(flow_buffer_id));
+		out_cc->println("if ( %s->ready() )", env->RValue(flow_buffer_id));
 		out_cc->inc_indent();
 		out_cc->println("{");
 
 		Env parse_env(env, this);
 		GenParseCode2(out_cc, &parse_env, data, 0);
-		
-		out_cc->println("BINPAC_ASSERT(%s);", 
-			parsing_complete(env).c_str());
-		out_cc->println("%s = 0;", 
-			env->LValue(buffering_state_id));
+
+		out_cc->println("BINPAC_ASSERT(%s);", parsing_complete(env).c_str());
+		out_cc->println("%s = 0;", env->LValue(buffering_state_id));
 		out_cc->println("}");
 		out_cc->dec_indent();
 
@@ -679,18 +636,16 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags)
 		out_cc->println("default:");
 		out_cc->inc_indent();
 
-		out_cc->println("BINPAC_ASSERT(%s <= 2);",
-			env->LValue(buffering_state_id));
+		out_cc->println("BINPAC_ASSERT(%s <= 2);", env->LValue(buffering_state_id));
 		out_cc->println("break;");
-		
+
 		out_cc->dec_indent();
 		out_cc->println("}");
 		out_cc->dec_indent();
 		}
 	else if ( attr_restofflow_ )
 		{
-		out_cc->println("BINPAC_ASSERT(%s->eof());", 
-			env->RValue(flow_buffer_id));
+		out_cc->println("BINPAC_ASSERT(%s->eof());", env->RValue(flow_buffer_id));
 		GenParseCode2(out_cc, env, data, 0);
 		}
 	else if ( buffer_mode() == BUFFER_BY_LINE )
@@ -702,8 +657,7 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags)
 		GenParseCode2(out_cc, env, data, 0);
 	}
 
-void Type::GenParseCode2(Output* out_cc, Env* env, 
-		const DataPtr& data, int flags)
+void Type::GenParseCode2(Output* out_cc, Env* env, const DataPtr& data, int flags)
 	{
 	DEBUG_MSG("GenParseCode2 for %s\n", data_id_str_.c_str());
 
@@ -711,23 +665,18 @@ void Type::GenParseCode2(Output* out_cc, Env* env,
 		{
 		if ( incremental_parsing() )
 			{
-			throw Exception(this, 
-				"cannot export raw data for incrementally parsed types");
+			throw Exception(this, "cannot export raw data for incrementally parsed types");
 			}
 
-		out_cc->println("%s = const_bytestring(%s, %s);",
-			env->LValue(sourcedata_id),
-			data.ptr_expr(),
-			env->RValue(end_of_data));
+		out_cc->println("%s = const_bytestring(%s, %s);", env->LValue(sourcedata_id),
+		                data.ptr_expr(), env->RValue(end_of_data));
 		env->SetEvaluated(sourcedata_id);
-	
+
 		GenParseCode3(out_cc, env, data, flags);
 
 		string datasize_str = DataSize(out_cc, env, data);
-		out_cc->println("%s.set_end(%s + %s);",
-			env->LValue(sourcedata_id),
-			data.ptr_expr(),
-			datasize_str.c_str());
+		out_cc->println("%s.set_end(%s + %s);", env->LValue(sourcedata_id), data.ptr_expr(),
+		                datasize_str.c_str());
 		}
 	else
 		{
@@ -737,15 +686,15 @@ void Type::GenParseCode2(Output* out_cc, Env* env,
 
 void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flags)
 	{
-	foreach(i, ExprList, attr_requires_)
+	foreach (i, ExprList, attr_requires_)
 		{
-		Expr *req = *i;
+		Expr* req = *i;
 		req->EvalExpr(out_cc, env);
 		}
 
-	foreach(i, FieldList, fields_)
+	foreach (i, FieldList, fields_)
 		{
-		Field *f = *i;
+		Field* f = *i;
 		f->GenTempDecls(out_cc, env);
 		}
 
@@ -759,17 +708,17 @@ void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flag
 		}
 
 	out_cc->println("// Evaluate 'let' and 'withinput' fields");
-	foreach(i, FieldList, fields_)
+	foreach (i, FieldList, fields_)
 		{
-		Field *f = *i;
+		Field* f = *i;
 		if ( f->tof() == LET_FIELD )
 			{
-			LetField *lf = static_cast<LetField *>(f);
+			LetField* lf = static_cast<LetField*>(f);
 			lf->GenParseCode(out_cc, env);
 			}
 		else if ( f->tof() == WITHINPUT_FIELD )
 			{
-			WithInputField *af = static_cast<WithInputField *>(f);
+			WithInputField* af = static_cast<WithInputField*>(f);
 			af->GenParseCode(out_cc, env);
 			}
 		}
@@ -791,7 +740,7 @@ void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flag
 	if ( size_var() )
 		ASSERT(env->Evaluated(size_var()));
 
-	foreach(i, ExprList, attr_enforces_)
+	foreach (i, ExprList, attr_enforces_)
 		{
 		Expr* enforce = *i;
 		const char* enforce_expr = enforce->EvalExpr(out_cc, env);
@@ -803,20 +752,19 @@ void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flag
 		out_cc->println("}");
 		out_cc->dec_indent();
 		}
-
 	}
 
-Type *Type::MemberDataType(const ID *member_id) const
+Type* Type::MemberDataType(const ID* member_id) const
 	{
 	DEBUG_MSG("MemberDataType: %s::%s\n", type_decl_id_->Name(), member_id->Name());
 	ASSERT(env_);
 	env_->set_allow_undefined_id(true);
-	Type *t = env_->GetDataType(member_id);
+	Type* t = env_->GetDataType(member_id);
 	env_->set_allow_undefined_id(false);
 	return t;
 	}
 
-Type *Type::ElementDataType() const
+Type* Type::ElementDataType() const
 	{
 	return 0;
 	}
@@ -837,13 +785,12 @@ bool Type::AddSizeVar(Output* out_cc, Env* env)
 
 	ASSERT(! incremental_input());
 
-	ID *size_var_id = new ID(strfmt("%s__size", 
-		value_var() ? value_var()->Name() : decl_id()->Name()));
+	ID* size_var_id = new ID(
+		strfmt("%s__size", value_var() ? value_var()->Name() : decl_id()->Name()));
 
 	DEBUG_MSG("adding size var `%s' to env %p\n", size_var_id->Name(), env);
 
-	size_var_field_ = new TempVarField(
-		size_var_id, extern_type_int->Clone());
+	size_var_field_ = new TempVarField(size_var_id, extern_type_int->Clone());
 	size_var_field_->Prepare(env);
 	size_var_field_->GenTempDecls(out_cc, env);
 
@@ -852,7 +799,7 @@ bool Type::AddSizeVar(Output* out_cc, Env* env)
 
 string Type::EvalLengthExpr(Output* out_cc, Env* env)
 	{
-	ASSERT(!incremental_input());
+	ASSERT(! incremental_input());
 	ASSERT(attr_length_expr_);
 	int static_length;
 	if ( attr_length_expr_->ConstFold(env, &static_length) )
@@ -860,9 +807,8 @@ string Type::EvalLengthExpr(Output* out_cc, Env* env)
 	// How do we make sure size_var is evaluated with attr_length_expr_?
 	if ( AddSizeVar(out_cc, env) )
 		{
-		out_cc->println("%s = %s;",
-			env->LValue(size_var()),
-			attr_length_expr_->EvalExpr(out_cc, env));
+		out_cc->println("%s = %s;", env->LValue(size_var()),
+		                attr_length_expr_->EvalExpr(out_cc, env));
 		env->SetEvaluated(size_var());
 		}
 	return env->RValue(size_var());
@@ -890,15 +836,12 @@ string Type::DataSize(Output* out_cc, Env* env, const DataPtr& data)
 		}
 	}
 
-void Type::GenBoundaryCheck(Output* out_cc, Env* env,
-		const DataPtr& data)
+void Type::GenBoundaryCheck(Output* out_cc, Env* env, const DataPtr& data)
 	{
 	if ( boundary_checked() )
 		return;
 
-	data.GenBoundaryCheck(out_cc, env, 
-		DataSize(out_cc, env, data).c_str(),
-		data_id_str_.c_str());
+	data.GenBoundaryCheck(out_cc, env, DataSize(out_cc, env, data).c_str(), data_id_str_.c_str());
 
 	SetBoundaryChecked();
 	}
@@ -922,13 +865,13 @@ bool Type::NeedsCleanUp() const
 	}
 
 bool Type::RequiresByteOrder() const
-	{ 
-	return ! attr_byteorder_expr() && ByteOrderSensitive(); 
+	{
+	return ! attr_byteorder_expr() && ByteOrderSensitive();
 	}
 
 bool Type::NeedsBufferingStateVar() const
 	{
-	if ( !incremental_input() )
+	if ( ! incremental_input() )
 		return false;
 	switch ( buffer_mode() )
 		{
@@ -938,14 +881,14 @@ bool Type::NeedsBufferingStateVar() const
 		case BUFFER_BY_LINE:
 			return true;
 		case BUFFER_BY_LENGTH:
-			return ( attr_length_expr_ || attr_restofflow_ );
+			return (attr_length_expr_ || attr_restofflow_);
 		default:
 			ASSERT(0);
 			return false;
 		}
 	}
 
-bool Type::DoTraverse(DataDepVisitor *visitor)
+bool Type::DoTraverse(DataDepVisitor* visitor)
 	{
 	foreach (i, FieldList, fields_)
 		{
@@ -953,7 +896,7 @@ bool Type::DoTraverse(DataDepVisitor *visitor)
 			return false;
 		}
 
-	foreach(i, AttrList, attrs_)
+	foreach (i, AttrList, attrs_)
 		{
 		if ( ! (*i)->Traverse(visitor) )
 			return false;
@@ -968,15 +911,15 @@ bool Type::RequiresAnalyzerContext()
 
 	if ( buffer_input() )
 		return true;
-	
+
 	foreach (i, FieldList, fields_)
 		{
-		Field *f = *i;
+		Field* f = *i;
 		if ( f->RequiresAnalyzerContext() )
 			return true;
 		}
 
-	foreach(i, AttrList, attrs_)
+	foreach (i, AttrList, attrs_)
 		if ( (*i)->RequiresAnalyzerContext() )
 			return true;
 
@@ -985,14 +928,13 @@ bool Type::RequiresAnalyzerContext()
 
 bool Type::IsEmptyType() const
 	{
-	return ( StaticSize(global_env()) == 0 );
+	return (StaticSize(global_env()) == 0);
 	}
 
 void Type::MarkIncrementalInput()
 	{
-	DEBUG_MSG("Handle incremental input for %s.%s\n", 
-		decl_id()->Name(),
-		value_var() ? value_var()->Name() : "*");
+	DEBUG_MSG("Handle incremental input for %s.%s\n", decl_id()->Name(),
+	          value_var() ? value_var()->Name() : "*");
 
 	incremental_input_ = true;
 	if ( Bufferable() )
@@ -1049,7 +991,7 @@ Type::BufferMode Type::buffer_mode() const
 	return NOT_BUFFERABLE;
 	}
 
-const ID *Type::parsing_complete_var() const
+const ID* Type::parsing_complete_var() const
 	{
 	if ( parsing_complete_var_field_ )
 		return parsing_complete_var_field_->id();
@@ -1057,13 +999,13 @@ const ID *Type::parsing_complete_var() const
 		return 0;
 	}
 
-string Type::parsing_complete(Env *env) const
+string Type::parsing_complete(Env* env) const
 	{
 	ASSERT(parsing_complete_var());
 	return env->RValue(parsing_complete_var());
 	}
 
-const ID *Type::has_value_var() const
+const ID* Type::has_value_var() const
 	{
 	if ( has_value_field_ )
 		return has_value_field_->id();
@@ -1078,7 +1020,7 @@ int Type::InitialBufferLength() const
 	return attr_length_expr_->MinimalHeaderSize(env());
 	}
 
-bool Type::CompatibleTypes(Type *type1, Type *type2)
+bool Type::CompatibleTypes(Type* type1, Type* type2)
 	{
 	// If we cannot deduce one of the data types, assume that
 	// they are compatible.
@@ -1097,17 +1039,15 @@ bool Type::CompatibleTypes(Type *type1, Type *type2)
 			return false;
 		}
 
-	switch( type1->tot() )
+	switch ( type1->tot() )
 		{
 		case UNDEF:
 		case EMPTY:
 			return true;
 		case BUILTIN:
 			{
-			BuiltInType *t1 = 
-				static_cast<BuiltInType *>(type1);
-			BuiltInType *t2 = 
-				static_cast<BuiltInType *>(type2);
+			BuiltInType* t1 = static_cast<BuiltInType*>(type1);
+			BuiltInType* t2 = static_cast<BuiltInType*>(type2);
 			return BuiltInType::CompatibleBuiltInTypes(t1, t2);
 			}
 
@@ -1117,15 +1057,12 @@ bool Type::CompatibleTypes(Type *type1, Type *type2)
 		case EXTERN:
 			return type1->DataTypeStr() == type2->DataTypeStr();
 			break;
-			
+
 		case ARRAY:
 			{
-			ArrayType *t1 = 
-				static_cast<ArrayType *>(type1);
-			ArrayType *t2 = 
-				static_cast<ArrayType *>(type2);
-			return CompatibleTypes(t1->ElementDataType(),
-			                       t2->ElementDataType());
+			ArrayType* t1 = static_cast<ArrayType*>(type1);
+			ArrayType* t2 = static_cast<ArrayType*>(type2);
+			return CompatibleTypes(t1->ElementDataType(), t2->ElementDataType());
 			}
 
 		default:
@@ -1134,7 +1071,7 @@ bool Type::CompatibleTypes(Type *type1, Type *type2)
 		}
 	}
 
-Type *Type::LookUpByID(ID *id)
+Type* Type::LookUpByID(ID* id)
 	{
 	// 1. Is it a pre-defined type?
 	string name = id->Name();
@@ -1144,19 +1081,19 @@ Type *Type::LookUpByID(ID *id)
 		}
 
 	// 2. Is it a simple declared type?
-	Type *type = TypeDecl::LookUpType(id);
+	Type* type = TypeDecl::LookUpType(id);
 	if ( type )
 		{
-		// Note: as a Type is always associated with a variable, 
+		// Note: as a Type is always associated with a variable,
 		// return a clone.
 		switch ( type->tot() )
 			{
 			case Type::BUILTIN:
 			case Type::EXTERN:
-	       		case Type::STRING:
+			case Type::STRING:
 				return type->Clone();
 
-	       		case Type::ARRAY:
+			case Type::ARRAY:
 			default:
 				break;
 			}
@@ -1165,7 +1102,7 @@ Type *Type::LookUpByID(ID *id)
 	return new ParameterizedType(id, 0);
 	}
 
-void Type::AddPredefinedType(const string &type_name, Type *type)
+void Type::AddPredefinedType(const string& type_name, Type* type)
 	{
 	ASSERT(type_map_.find(type_name) == type_map_.end());
 	type_map_[type_name] = type;

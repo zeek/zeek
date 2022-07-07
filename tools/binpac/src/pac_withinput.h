@@ -6,12 +6,12 @@
 #include "pac_field.h"
 
 class WithInputField : public Field, public Evaluatable
-{
+	{
 public:
-	WithInputField(ID* id, Type *type, InputBuffer* input);
+	WithInputField(ID* id, Type* type, InputBuffer* input);
 	virtual ~WithInputField();
 
-	InputBuffer *input() const	{ return input_; }
+	InputBuffer* input() const { return input_; }
 
 	void Prepare(Env* env);
 
@@ -29,10 +29,10 @@ public:
 	bool RequiresAnalyzerContext() const;
 
 protected:
-	bool DoTraverse(DataDepVisitor *visitor);
+	bool DoTraverse(DataDepVisitor* visitor);
 
 protected:
-	InputBuffer *input_;
-};
+	InputBuffer* input_;
+	};
 
-#endif  // pac_withinput_h
+#endif // pac_withinput_h

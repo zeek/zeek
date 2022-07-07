@@ -1,13 +1,17 @@
 #ifndef binpac_regex_h
 #define binpac_regex_h
 
-#include "binpac.h"
 #include "zeek/RE.h"
 
-namespace zeek { class RE_Matcher; }
+#include "binpac.h"
+
+namespace zeek
+	{
+class RE_Matcher;
+	}
 
 namespace binpac
-{
+	{
 
 // Must be called before any binpac functionality is used.
 //
@@ -19,10 +23,10 @@ inline void init(FlowBuffer::Policy* fbp = 0);
 // Internal vector recording not yet compiled matchers.
 extern std::vector<zeek::RE_Matcher*>* uncompiled_re_matchers;
 
-class RegExMatcher {
+class RegExMatcher
+	{
 public:
-	RegExMatcher(const char *pattern)
-		: pattern_(pattern)
+	RegExMatcher(const char* pattern) : pattern_(pattern)
 		{
 		if ( ! uncompiled_re_matchers )
 			uncompiled_re_matchers = new std::vector<zeek::RE_Matcher*>;
@@ -31,16 +35,10 @@ public:
 		uncompiled_re_matchers->push_back(re_matcher_);
 		}
 
-	~RegExMatcher()
-		{
-		delete re_matcher_;
-		}
+	~RegExMatcher() { delete re_matcher_; }
 
 	// Returns the length of longest match, or -1 on mismatch.
-	int MatchPrefix(const_byteptr data, int len)
-		{
-		return re_matcher_->MatchPrefix(data, len);
-		}
+	int MatchPrefix(const_byteptr data, int len) { return re_matcher_->MatchPrefix(data, len); }
 
 private:
 	friend void ::binpac::init(FlowBuffer::Policy*);
@@ -49,8 +47,8 @@ private:
 	static void init();
 
 	string pattern_;
-	zeek::RE_Matcher *re_matcher_;
-};
+	zeek::RE_Matcher* re_matcher_;
+	};
 
 inline void RegExMatcher::init()
 	{
@@ -77,6 +75,6 @@ inline void init(FlowBuffer::Policy* fbp)
 		FlowBuffer::init(*fbp);
 	}
 
-}  // namespace binpac
+	} // namespace binpac
 
-#endif  // binpac_regex_h
+#endif // binpac_regex_h

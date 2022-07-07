@@ -1,3 +1,5 @@
+#include "pac_analyzer.h"
+
 #include "pac_action.h"
 #include "pac_context.h"
 #include "pac_embedded.h"
@@ -12,11 +14,7 @@
 #include "pac_type.h"
 #include "pac_varfield.h"
 
-#include "pac_analyzer.h"
-
-AnalyzerDecl::AnalyzerDecl(ID *id, 
-                           DeclType decl_type,
-                           ParamList *params)
+AnalyzerDecl::AnalyzerDecl(ID* id, DeclType decl_type, ParamList* params)
 	: TypeDecl(id, params, new DummyType())
 	{
 	decl_type_ = decl_type;
@@ -47,74 +45,66 @@ AnalyzerDecl::~AnalyzerDecl()
 	delete_list(AnalyzerHelperList, eof_helpers_);
 	}
 
-void AnalyzerDecl::AddElements(AnalyzerElementList *elemlist)
+void AnalyzerDecl::AddElements(AnalyzerElementList* elemlist)
 	{
 	ASSERT(! env_);
-	foreach(i, AnalyzerElementList, elemlist)
+	foreach (i, AnalyzerElementList, elemlist)
 		{
-		AnalyzerElement *elem = *i;
+		AnalyzerElement* elem = *i;
 		switch ( elem->type() )
 			{
 			case AnalyzerElement::STATE:
 				{
 				ASSERT(0);
-				AnalyzerState *state_elem = 
-					(AnalyzerState *) elem;
-				statevars_->insert(
-					statevars_->end(),
-					state_elem->statevars()->begin(),
-					state_elem->statevars()->end());
+				AnalyzerState* state_elem = (AnalyzerState*)elem;
+				statevars_->insert(statevars_->end(), state_elem->statevars()->begin(),
+				                   state_elem->statevars()->end());
 				}
 				break;
 			case AnalyzerElement::ACTION:
 				{
 				ASSERT(0);
-				AnalyzerAction *action_elem = 
-					(AnalyzerAction *) elem;
+				AnalyzerAction* action_elem = (AnalyzerAction*)elem;
 				actions_->push_back(action_elem);
 				}
 				break;
 			case AnalyzerElement::HELPER:
 				{
-				AnalyzerHelper *helper_elem = 
-					(AnalyzerHelper *) elem;
+				AnalyzerHelper* helper_elem = (AnalyzerHelper*)elem;
 
 				switch ( helper_elem->helper_type() )
-				        {
+					{
 					case AnalyzerHelper::INIT_CODE:
-					        constructor_helpers_->push_back(helper_elem);
+						constructor_helpers_->push_back(helper_elem);
 						break;
 					case AnalyzerHelper::CLEANUP_CODE:
- 				                destructor_helpers_->push_back(helper_elem);
+						destructor_helpers_->push_back(helper_elem);
 						break;
 					case AnalyzerHelper::EOF_CODE:
-					        eof_helpers_->push_back(helper_elem);
+						eof_helpers_->push_back(helper_elem);
 						break;
 					default:
-					        helpers_->push_back(helper_elem);
+						helpers_->push_back(helper_elem);
 					}
 				}
 				break;
 			case AnalyzerElement::FUNCTION:
 				{
-				AnalyzerFunction *func_elem = 
-					(AnalyzerFunction *) elem;
-				Function *func = func_elem->function();
+				AnalyzerFunction* func_elem = (AnalyzerFunction*)elem;
+				Function* func = func_elem->function();
 				func->set_analyzer_decl(this);
 				functions_->push_back(func);
 				}
 				break;
 			case AnalyzerElement::FLOW:
 				{
-				AnalyzerFlow *flow_elem = 
-					(AnalyzerFlow *) elem;
+				AnalyzerFlow* flow_elem = (AnalyzerFlow*)elem;
 				ProcessFlowElement(flow_elem);
 				}
 				break;
 			case AnalyzerElement::DATAUNIT:
 				{
-				AnalyzerDataUnit *dataunit_elem = 
-					(AnalyzerDataUnit *) elem;
+				AnalyzerDataUnit* dataunit_elem = (AnalyzerDataUnit*)elem;
 				ProcessDataUnitElement(dataunit_elem);
 				}
 				break;
@@ -123,8 +113,8 @@ void AnalyzerDecl::AddElements(AnalyzerElementList *elemlist)
 	}
 
 string AnalyzerDecl::class_name() const
-	{ 
-	return id_->Name(); 
+	{
+	return id_->Name();
 	}
 
 void AnalyzerDecl::Prepare()
@@ -134,19 +124,19 @@ void AnalyzerDecl::Prepare()
 	ASSERT(statevars_->empty());
 	ASSERT(actions_->empty());
 
-	foreach(i, FunctionList, functions_)
+	foreach (i, FunctionList, functions_)
 		{
-		Function *function = *i;
+		Function* function = *i;
 		function->Prepare(env_);
 		}
-	foreach(i, StateVarList, statevars_)
+	foreach (i, StateVarList, statevars_)
 		{
-		StateVar *statevar = *i;
+		StateVar* statevar = *i;
 		env_->AddID(statevar->id(), STATE_VAR, statevar->type());
 		}
-	foreach(i, AnalyzerActionList, actions_)
+	foreach (i, AnalyzerActionList, actions_)
 		{
-		AnalyzerAction *action = *i;
+		AnalyzerAction* action = *i;
 		action->InstallHook(this);
 		}
 	}
@@ -154,30 +144,30 @@ void AnalyzerDecl::Prepare()
 void AnalyzerDecl::GenForwardDeclaration(Output* out_h)
 	{
 	out_h->println("class %s;", class_name().c_str());
-	foreach(i, FunctionList, functions_)
+	foreach (i, FunctionList, functions_)
 		{
-		Function *function = *i;
+		Function* function = *i;
 		function->GenForwardDeclaration(out_h);
 		}
 	}
 
-void AnalyzerDecl::GenActions(Output *out_h, Output *out_cc)
+void AnalyzerDecl::GenActions(Output* out_h, Output* out_cc)
 	{
-	foreach(i, AnalyzerActionList, actions_)
+	foreach (i, AnalyzerActionList, actions_)
 		{
 		(*i)->GenCode(out_h, out_cc, this);
 		}
 	}
 
-void AnalyzerDecl::GenHelpers(Output *out_h, Output *out_cc)
+void AnalyzerDecl::GenHelpers(Output* out_h, Output* out_cc)
 	{
-	foreach(i, AnalyzerHelperList, helpers_)
+	foreach (i, AnalyzerHelperList, helpers_)
 		{
 		(*i)->GenCode(out_h, out_cc, this);
 		}
 	}
 
-void AnalyzerDecl::GenPubDecls(Output *out_h, Output *out_cc)
+void AnalyzerDecl::GenPubDecls(Output* out_h, Output* out_cc)
 	{
 	TypeDecl::GenPubDecls(out_h, out_cc);
 
@@ -196,7 +186,7 @@ void AnalyzerDecl::GenPubDecls(Output *out_h, Output *out_cc)
 	// TODO: export public state variables
 	}
 
-void AnalyzerDecl::GenPrivDecls(Output *out_h, Output *out_cc)
+void AnalyzerDecl::GenPrivDecls(Output* out_h, Output* out_cc)
 	{
 	TypeDecl::GenPrivDecls(out_h, out_cc);
 
@@ -210,65 +200,65 @@ void AnalyzerDecl::GenPrivDecls(Output *out_h, Output *out_cc)
 	// TODO: declare state variables
 	}
 
-void AnalyzerDecl::GenInitCode(Output *out_cc)
+void AnalyzerDecl::GenInitCode(Output* out_cc)
 	{
 	TypeDecl::GenInitCode(out_cc);
-	foreach(i, AnalyzerHelperList, constructor_helpers_)
+	foreach (i, AnalyzerHelperList, constructor_helpers_)
 		{
 		(*i)->GenCode(0, out_cc, this);
 		}
 	}
 
-void AnalyzerDecl::GenCleanUpCode(Output *out_cc)
+void AnalyzerDecl::GenCleanUpCode(Output* out_cc)
 	{
 	TypeDecl::GenCleanUpCode(out_cc);
-	foreach(i, AnalyzerHelperList, destructor_helpers_)
+	foreach (i, AnalyzerHelperList, destructor_helpers_)
 		{
 		(*i)->GenCode(0, out_cc, this);
 		}
 	}
 
-void AnalyzerDecl::GenStateVarDecls(Output *out_h)
+void AnalyzerDecl::GenStateVarDecls(Output* out_h)
 	{
-	foreach(i, StateVarList, statevars_)
+	foreach (i, StateVarList, statevars_)
 		{
-		StateVar *var = *i;
+		StateVar* var = *i;
 		var->GenDecl(out_h, env_);
 		}
 	}
 
-void AnalyzerDecl::GenStateVarSetFunctions(Output *out_h)
+void AnalyzerDecl::GenStateVarSetFunctions(Output* out_h)
 	{
-	foreach(i, StateVarList, statevars_)
+	foreach (i, StateVarList, statevars_)
 		{
-		StateVar *var = *i;
+		StateVar* var = *i;
 		var->GenSetFunction(out_h, env_);
 		}
 	}
 
-void AnalyzerDecl::GenStateVarInitCode(Output *out_cc)
+void AnalyzerDecl::GenStateVarInitCode(Output* out_cc)
 	{
-	foreach(i, StateVarList, statevars_)
+	foreach (i, StateVarList, statevars_)
 		{
-		StateVar *var = *i;
+		StateVar* var = *i;
 		var->GenInitCode(out_cc, env_);
 		}
 	}
 
-void AnalyzerDecl::GenStateVarCleanUpCode(Output *out_cc)
+void AnalyzerDecl::GenStateVarCleanUpCode(Output* out_cc)
 	{
-	foreach(i, StateVarList, statevars_)
+	foreach (i, StateVarList, statevars_)
 		{
-		StateVar *var = *i;
+		StateVar* var = *i;
 		var->GenCleanUpCode(out_cc, env_);
 		}
 	}
 
-void AnalyzerDecl::GenFunctions(Output *out_h, Output *out_cc)
+void AnalyzerDecl::GenFunctions(Output* out_h, Output* out_cc)
 	{
-	foreach(i, FunctionList, functions_)
+	foreach (i, FunctionList, functions_)
 		{
-		Function *function = *i;
+		Function* function = *i;
 		function->GenCode(out_h, out_cc);
 		}
 	}
@@ -285,9 +275,9 @@ AnalyzerHelper::~AnalyzerHelper()
 	delete code_;
 	}
 
-void AnalyzerHelper::GenCode(Output *out_h, Output *out_cc, AnalyzerDecl *decl)
+void AnalyzerHelper::GenCode(Output* out_h, Output* out_cc, AnalyzerDecl* decl)
 	{
-	Output *out = 0;
+	Output* out = 0;
 	switch ( helper_type_ )
 		{
 		case MEMBER_DECLS:
@@ -303,22 +293,18 @@ void AnalyzerHelper::GenCode(Output *out_h, Output *out_cc, AnalyzerDecl *decl)
 	code()->GenCode(out, decl->env());
 	}
 
-FlowField::FlowField(ID *flow_id, ParameterizedType *flow_type)
-	: Field(FLOW_FIELD, 
-		TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, 
-		flow_id, flow_type)
+FlowField::FlowField(ID* flow_id, ParameterizedType* flow_type)
+	: Field(FLOW_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, flow_id, flow_type)
 	{
 	}
 
-void FlowField::GenInitCode(Output *out_cc, Env *env)
+void FlowField::GenInitCode(Output* out_cc, Env* env)
 	{
 	type_->GenPreParsing(out_cc, env);
 	}
 
-AnalyzerFlow::AnalyzerFlow(Direction dir, ID *type_id, ExprList *params)
-	: AnalyzerElement(FLOW),
-	  dir_(dir),
-	  type_id_(type_id)
+AnalyzerFlow::AnalyzerFlow(Direction dir, ID* type_id, ExprList* params)
+	: AnalyzerElement(FLOW), dir_(dir), type_id_(type_id)
 	{
 	if ( ! params )
 		params = new ExprList();
@@ -326,9 +312,9 @@ AnalyzerFlow::AnalyzerFlow(Direction dir, ID *type_id, ExprList *params)
 	// Add "this" to the list of params
 	params->insert(params->begin(), new Expr(this_id->clone()));
 
-	ID *flow_id = ((dir == UP) ? upflow_id : downflow_id)->clone();
+	ID* flow_id = ((dir == UP) ? upflow_id : downflow_id)->clone();
 
-	ParameterizedType *flow_type = new ParameterizedType(type_id_, params);
+	ParameterizedType* flow_type = new ParameterizedType(type_id_, params);
 
 	flow_field_ = new FlowField(flow_id, flow_type);
 
@@ -340,18 +326,17 @@ AnalyzerFlow::~AnalyzerFlow()
 	delete flow_field_;
 	}
 
-FlowDecl *AnalyzerFlow::flow_decl()
+FlowDecl* AnalyzerFlow::flow_decl()
 	{
 	DEBUG_MSG("Getting flow_decl for %s\n", type_id_->Name());
 	if ( ! flow_decl_ )
 		{
-		Decl *decl = Decl::LookUpDecl(type_id_);
+		Decl* decl = Decl::LookUpDecl(type_id_);
 		if ( decl && decl->decl_type() == Decl::FLOW )
-			flow_decl_ = static_cast<FlowDecl *>(decl);
+			flow_decl_ = static_cast<FlowDecl*>(decl);
 		if ( ! flow_decl_ )
 			{
-			throw Exception(this, 
-			                "cannot find the flow declaration");
+			throw Exception(this, "cannot find the flow declaration");
 			}
 		}
 	return flow_decl_;

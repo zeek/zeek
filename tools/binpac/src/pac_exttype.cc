@@ -1,6 +1,7 @@
 #include "pac_exttype.h"
-#include "pac_id.h"
+
 #include "pac_decl.h"
+#include "pac_id.h"
 #include "pac_output.h"
 
 bool ExternType::DefineValueVar() const
@@ -34,11 +35,9 @@ bool ExternType::ByteOrderSensitive() const
 	return false;
 	}
 
-string ExternType::EvalMember(const ID *member_id) const
+string ExternType::EvalMember(const ID* member_id) const
 	{
-	return strfmt("%s%s", 
-		ext_type_ == POINTER ? "->" : ".",
-		member_id->Name());
+	return strfmt("%s%s", ext_type_ == POINTER ? "->" : ".", member_id->Name());
 	}
 
 void ExternType::GenInitCode(Output* out_cc, Env* env)
@@ -58,27 +57,27 @@ void ExternType::GenDynamicSize(Output* out, Env* env, const DataPtr& data)
 	ASSERT(0);
 	}
 
-Type *ExternType::DoClone() const
-	{ 
-	return new ExternType(id_->clone(), ext_type_); 
+Type* ExternType::DoClone() const
+	{
+	return new ExternType(id_->clone(), ext_type_);
 	}
 
 // Definitions of pre-defined external types
 
-#define EXTERNTYPE(name, ctype, exttype) ExternType *extern_type_##name = 0;
+#define EXTERNTYPE(name, ctype, exttype) ExternType* extern_type_##name = 0;
 #include "pac_externtype.def"
 #undef EXTERNTYPE
 
 void ExternType::static_init()
 	{
-	ID *id;
+	ID* id;
 	// TypeDecl *decl;
 	// decl = new TypeDecl(id, 0, extern_type_##name);
 
-#define EXTERNTYPE(name, ctype, exttype) \
-	id = new ID(#ctype); \
-	extern_type_##name = new ExternType(id, ExternType::exttype); \
-	Type::AddPredefinedType(#name, extern_type_##name); 
+#define EXTERNTYPE(name, ctype, exttype)                                                           \
+	id = new ID(#ctype);                                                                           \
+	extern_type_##name = new ExternType(id, ExternType::exttype);                                  \
+	Type::AddPredefinedType(#name, extern_type_##name);
 #include "pac_externtype.def"
 #undef EXTERNTYPE
 	}

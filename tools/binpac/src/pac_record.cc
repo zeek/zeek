@@ -1,3 +1,5 @@
+#include "pac_record.h"
+
 #include "pac_attr.h"
 #include "pac_dataptr.h"
 #include "pac_exception.h"
@@ -5,15 +7,12 @@
 #include "pac_exttype.h"
 #include "pac_field.h"
 #include "pac_output.h"
-#include "pac_record.h"
 #include "pac_type.h"
 #include "pac_typedecl.h"
 #include "pac_utils.h"
 #include "pac_varfield.h"
 
-
-RecordType::RecordType(RecordFieldList* record_fields)
-	: Type(RECORD)
+RecordType::RecordType(RecordFieldList* record_fields) : Type(RECORD)
 	{
 	// Here we assume that the type is a standalone type.
 	value_var_ = 0;
@@ -36,10 +35,9 @@ RecordType::~RecordType()
 	delete parsing_dataptr_var_field_;
 	}
 
-const ID *RecordType::parsing_dataptr_var() const
-	{ 
-	return parsing_dataptr_var_field_ ?
-		parsing_dataptr_var_field_->id() : 0;
+const ID* RecordType::parsing_dataptr_var() const
+	{
+	return parsing_dataptr_var_field_ ? parsing_dataptr_var_field_->id() : 0;
 	}
 
 bool RecordType::DefineValueVar() const
@@ -57,12 +55,12 @@ void RecordType::Prepare(Env* env, int flags)
 	{
 	ASSERT(flags & TO_BE_PARSED);
 
-	RecordField *prev = 0;
+	RecordField* prev = 0;
 	int offset = 0;
 	int seq = 0;
 	foreach (i, RecordFieldList, record_fields_)
 		{
-		RecordField *f = *i;
+		RecordField* f = *i;
 		f->set_record_type(this);
 		f->set_prev(prev);
 		if ( prev )
@@ -120,71 +118,62 @@ void RecordType::GenCleanUpCode(Output* out_cc, Env* env)
 	Type::GenCleanUpCode(out_cc, env);
 	}
 
-void RecordType::DoGenParseCode(Output* out_cc, Env* env, 
-		const DataPtr& data, int flags)
+void RecordType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, int flags)
 	{
-	  if ( !incremental_input() && StaticSize(env) >= 0 )
+	if ( ! incremental_input() && StaticSize(env) >= 0 )
 		GenBoundaryCheck(out_cc, env, data);
 
 	if ( incremental_parsing() )
 		{
-		out_cc->println("switch ( %s ) {",
-			env->LValue(parsing_state_id));
+		out_cc->println("switch ( %s ) {", env->LValue(parsing_state_id));
 
 		out_cc->println("case 0:");
 		out_cc->inc_indent();
 		foreach (i, RecordFieldList, record_fields_)
 			{
-			RecordField *f = *i;
+			RecordField* f = *i;
 			f->GenParseCode(out_cc, env);
 			out_cc->println("");
 			}
 		out_cc->println("");
-		out_cc->println("%s = true;", 
-			env->LValue(parsing_complete_var()));
+		out_cc->println("%s = true;", env->LValue(parsing_complete_var()));
 		out_cc->dec_indent();
 		out_cc->println("}");
 		}
 	else
 		{
-		ASSERT(	data.id() == begin_of_data && 
-			data.offset() == 0 );
+		ASSERT(data.id() == begin_of_data && data.offset() == 0);
 		foreach (i, RecordFieldList, record_fields_)
 			{
-			RecordField *f = *i;
+			RecordField* f = *i;
 			f->GenParseCode(out_cc, env);
 			out_cc->println("");
 			}
 		if ( incremental_input() )
 			{
 			ASSERT(parsing_complete_var());
-			out_cc->println("%s = true;", 
-				env->LValue(parsing_complete_var()));
+			out_cc->println("%s = true;", env->LValue(parsing_complete_var()));
 			}
 		}
 
 	if ( ! incremental_input() && AddSizeVar(out_cc, env) )
 		{
-		const DataPtr& end_of_record_dataptr = 
-			record_fields_->back()->getFieldEnd(out_cc, env);
+		const DataPtr& end_of_record_dataptr = record_fields_->back()->getFieldEnd(out_cc, env);
 
-		out_cc->println("%s = %s - %s;", 
-			env->LValue(size_var()), 
-			end_of_record_dataptr.ptr_expr(), 
-			env->RValue(begin_of_data));
+		out_cc->println("%s = %s - %s;", env->LValue(size_var()), end_of_record_dataptr.ptr_expr(),
+		                env->RValue(begin_of_data));
 		env->SetEvaluated(size_var());
 		}
 
 	if ( ! boundary_checked() )
 		{
-		RecordField *last_field = record_fields_->back();
+		RecordField* last_field = record_fields_->back();
 		if ( ! last_field->BoundaryChecked() )
 			GenBoundaryCheck(out_cc, env, data);
 		}
 	}
 
-void RecordType::GenDynamicSize(Output* out_cc, Env* env,
-		const DataPtr& data)
+void RecordType::GenDynamicSize(Output* out_cc, Env* env, const DataPtr& data)
 	{
 	GenParseCode(out_cc, env, data, 0);
 	}
@@ -194,7 +183,7 @@ int RecordType::StaticSize(Env* env) const
 	int tot_w = 0;
 	foreach (i, RecordFieldList, record_fields_)
 		{
-		RecordField *f = *i;
+		RecordField* f = *i;
 		int w = f->StaticSize(env, tot_w);
 		if ( w < 0 )
 			return -1;
@@ -215,7 +204,7 @@ void RecordType::SetBoundaryChecked()
 
 	foreach (i, RecordFieldList, record_fields_)
 		{
-		RecordField *f = *i;
+		RecordField* f = *i;
 		f->SetBoundaryChecked();
 		}
 	}
@@ -224,12 +213,12 @@ void RecordType::DoMarkIncrementalInput()
 	{
 	foreach (i, RecordFieldList, record_fields_)
 		{
-		RecordField *f = *i;
+		RecordField* f = *i;
 		f->type()->MarkIncrementalInput();
 		}
 	}
 
-bool RecordType::DoTraverse(DataDepVisitor *visitor)
+bool RecordType::DoTraverse(DataDepVisitor* visitor)
 	{
 	return Type::DoTraverse(visitor);
 	}
@@ -238,17 +227,15 @@ bool RecordType::ByteOrderSensitive() const
 	{
 	foreach (i, RecordFieldList, record_fields_)
 		{
-		RecordField *f = *i;
+		RecordField* f = *i;
 		if ( f->RequiresByteOrder() )
 			return true;
 		}
 	return false;
 	}
 
-RecordField::RecordField(FieldType tof, ID *id, Type *type)
-	: Field(tof, 
-		TYPE_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE,
-		id, type)
+RecordField::RecordField(FieldType tof, ID* id, Type* type)
+	: Field(tof, TYPE_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, id, type)
 	{
 	begin_of_field_dataptr = 0;
 	end_of_field_dataptr = 0;
@@ -267,8 +254,8 @@ RecordField::~RecordField()
 	{
 	delete begin_of_field_dataptr;
 	delete end_of_field_dataptr;
-	delete [] field_size_expr;
-	delete [] field_offset_expr;
+	delete[] field_size_expr;
+	delete[] field_offset_expr;
 	delete end_of_field_dataptr_var;
 	}
 
@@ -281,11 +268,10 @@ const DataPtr& RecordField::getFieldBegin(Output* out_cc, Env* env)
 		// The first field
 		if ( ! begin_of_field_dataptr )
 			{
-			begin_of_field_dataptr = 
-				new DataPtr(env, begin_of_data, 0);
+			begin_of_field_dataptr = new DataPtr(env, begin_of_data, 0);
 			}
 		return *begin_of_field_dataptr;
-		}	
+		}
 	}
 
 const DataPtr& RecordField::getFieldEnd(Output* out_cc, Env* env)
@@ -300,12 +286,10 @@ const DataPtr& RecordField::getFieldEnd(Output* out_cc, Env* env)
 		ASSERT(0);
 		if ( ! end_of_field_dataptr )
 			{
-			const ID *dataptr_var = 
-				record_type()->parsing_dataptr_var();
+			const ID* dataptr_var = record_type()->parsing_dataptr_var();
 			ASSERT(dataptr_var);
 
-			end_of_field_dataptr = 
-				new DataPtr(env, dataptr_var, 0);
+			end_of_field_dataptr = new DataPtr(env, dataptr_var, 0);
 			}
 		}
 	else
@@ -314,31 +298,23 @@ const DataPtr& RecordField::getFieldEnd(Output* out_cc, Env* env)
 		if ( begin_ptr.id() == begin_of_data )
 			field_offset = begin_ptr.offset();
 		else
-			field_offset = -1;	// unknown
-			
+			field_offset = -1; // unknown
+
 		int field_size = StaticSize(env, field_offset);
-		if ( field_size >= 0 ) // can be statically determinted 
+		if ( field_size >= 0 ) // can be statically determinted
 			{
-			end_of_field_dataptr = new DataPtr(
-				env,
-				begin_ptr.id(), 
-				begin_ptr.offset() + field_size);
+			end_of_field_dataptr = new DataPtr(env, begin_ptr.id(),
+			                                   begin_ptr.offset() + field_size);
 			}
 		else
 			{
 			// If not, we add a variable for the offset after the field
-			end_of_field_dataptr_var = new ID(
-				strfmt("dataptr_after_%s", id()->Name()));
-			env->AddID(end_of_field_dataptr_var, 
-		           	TEMP_VAR, 
-		           	extern_type_const_byteptr);
+			end_of_field_dataptr_var = new ID(strfmt("dataptr_after_%s", id()->Name()));
+			env->AddID(end_of_field_dataptr_var, TEMP_VAR, extern_type_const_byteptr);
 
 			GenFieldEnd(out_cc, env, begin_ptr);
 
-			end_of_field_dataptr = new DataPtr(
-				env, 
-				end_of_field_dataptr_var, 
-				0);
+			end_of_field_dataptr = new DataPtr(env, end_of_field_dataptr_var, 0);
 			}
 		}
 
@@ -368,8 +344,7 @@ const char* RecordField::FieldOffset(Output* out_cc, Env* env)
 	if ( begin.id() == begin_of_data )
 		field_offset_expr = nfmt("%d", begin.offset());
 	else
-		field_offset_expr = nfmt("(%s - %s)", 
-			begin.ptr_expr(), env->RValue(begin_of_data));
+		field_offset_expr = nfmt("(%s - %s)", begin.ptr_expr(), env->RValue(begin_of_data));
 	return field_offset_expr;
 	}
 
@@ -382,14 +357,14 @@ bool RecordField::AttemptBoundaryCheck(Output* out_cc, Env* env)
 		return true;
 
 	// If I do not even know my size till I parse the data, my
-	// next field won't be able to check its boundary now.  
+	// next field won't be able to check its boundary now.
 
 	const DataPtr& begin = getFieldBegin(out_cc, env);
 	if ( StaticSize(env, begin.AbsOffset(begin_of_data)) < 0 )
 		return false;
 
-	// Now we ask the next field to check its boundary. 
-	if ( next() && next()->AttemptBoundaryCheck(out_cc, env) ) 
+	// Now we ask the next field to check its boundary.
+	if ( next() && next()->AttemptBoundaryCheck(out_cc, env) )
 		{
 		// If it works, we are all set
 		SetBoundaryChecked();
@@ -400,15 +375,12 @@ bool RecordField::AttemptBoundaryCheck(Output* out_cc, Env* env)
 		return GenBoundaryCheck(out_cc, env);
 	}
 
-RecordDataField::RecordDataField(ID* id, Type* type)
-	: RecordField(RECORD_FIELD, id, type)
+RecordDataField::RecordDataField(ID* id, Type* type) : RecordField(RECORD_FIELD, id, type)
 	{
 	ASSERT(type_);
 	}
 
-RecordDataField::~RecordDataField()
-	{
-	}
+RecordDataField::~RecordDataField() { }
 
 void RecordDataField::Prepare(Env* env)
 	{
@@ -430,13 +402,12 @@ void RecordDataField::GenParseCode(Output* out_cc, Env* env)
 	DataPtr data(env, 0, 0);
 	if ( ! record_type()->incremental_parsing() )
 		{
-		data = getFieldBegin(out_cc, env);	
+		data = getFieldBegin(out_cc, env);
 
 		Expr* len_expr = record_type()->attr_length_expr();
 		int len;
 
-		if ( ! record_type()->buffer_input() ||
-		     (len_expr && len_expr->ConstFold(env, &len)) )
+		if ( ! record_type()->buffer_input() || (len_expr && len_expr->ConstFold(env, &len)) )
 			AttemptBoundaryCheck(out_cc, env);
 		}
 
@@ -449,9 +420,7 @@ void RecordDataField::GenParseCode(Output* out_cc, Env* env)
 	if ( type_->incremental_input() )
 		{
 		// The enclosing record type must be incrementally parsed
-		out_cc->println("%s = %d;", 
-			env->LValue(parsing_state_id),
-			parsing_state_seq());
+		out_cc->println("%s = %d;", env->LValue(parsing_state_id), parsing_state_seq());
 		out_cc->println("/* fall through */");
 		out_cc->dec_indent();
 		out_cc->println("case %d:", parsing_state_seq());
@@ -465,8 +434,7 @@ void RecordDataField::GenParseCode(Output* out_cc, Env* env)
 		{
 		ASSERT(type_->incremental_input());
 
-		out_cc->println("if ( ! (%s) )", 
-			type_->parsing_complete(env).c_str());
+		out_cc->println("if ( ! (%s) )", type_->parsing_complete(env).c_str());
 		out_cc->inc_indent();
 		out_cc->println("goto %s;", kNeedMoreData);
 		out_cc->dec_indent();
@@ -493,18 +461,14 @@ void RecordDataField::GenEval(Output* out_cc, Env* env)
 	GenParseCode(out_cc, env);
 	}
 
-void RecordDataField::GenFieldEnd(Output* out_cc, Env* env, 
-		const DataPtr& field_begin)
+void RecordDataField::GenFieldEnd(Output* out_cc, Env* env, const DataPtr& field_begin)
 	{
-	out_cc->println("const_byteptr const %s = %s + (%s);", 
-		env->LValue(end_of_field_dataptr_var),
-		field_begin.ptr_expr(),
-		type_->DataSize(out_cc, env, field_begin).c_str());
+	out_cc->println("const_byteptr const %s = %s + (%s);", env->LValue(end_of_field_dataptr_var),
+	                field_begin.ptr_expr(), type_->DataSize(out_cc, env, field_begin).c_str());
 	env->SetEvaluated(end_of_field_dataptr_var);
 
-	out_cc->println("BINPAC_ASSERT(%s <= %s);",
-		env->RValue(end_of_field_dataptr_var),
-		env->RValue(end_of_data));
+	out_cc->println("BINPAC_ASSERT(%s <= %s);", env->RValue(end_of_field_dataptr_var),
+	                env->RValue(end_of_data));
 	}
 
 void RecordDataField::SetBoundaryChecked()
@@ -524,15 +488,14 @@ bool RecordDataField::GenBoundaryCheck(Output* out_cc, Env* env)
 	return true;
 	}
 
-bool RecordDataField::DoTraverse(DataDepVisitor *visitor)
-	{ 
+bool RecordDataField::DoTraverse(DataDepVisitor* visitor)
+	{
 	return Field::DoTraverse(visitor);
 	}
 
-bool RecordDataField::RequiresAnalyzerContext() const 
-	{ 
-	return Field::RequiresAnalyzerContext() ||
-	       type()->RequiresAnalyzerContext(); 
+bool RecordDataField::RequiresAnalyzerContext() const
+	{
+	return Field::RequiresAnalyzerContext() || type()->RequiresAnalyzerContext();
 	}
 
 RecordPaddingField::RecordPaddingField(ID* id, PaddingType ptype, Expr* expr)
@@ -541,9 +504,7 @@ RecordPaddingField::RecordPaddingField(ID* id, PaddingType ptype, Expr* expr)
 	wordsize_ = -1;
 	}
 
-RecordPaddingField::~RecordPaddingField()
-	{
-	}
+RecordPaddingField::~RecordPaddingField() { }
 
 void RecordPaddingField::Prepare(Env* env)
 	{
@@ -551,8 +512,7 @@ void RecordPaddingField::Prepare(Env* env)
 	if ( ptype_ == PAD_TO_NEXT_WORD )
 		{
 		if ( ! expr_->ConstFold(env, &wordsize_) )
-			throw ExceptionPaddingError(this, 
-				strfmt("padding word size not a constant"));
+			throw ExceptionPaddingError(this, strfmt("padding word size not a constant"));
 		}
 	}
 
@@ -589,11 +549,9 @@ int RecordPaddingField::StaticSize(Env* env, int offset) const
 			// can be statically computed, we can get its
 			// static size
 			if ( offset > target_offset )
-				throw ExceptionPaddingError(
-					this,
-					strfmt("current offset = %d, "
-					    "target offset = %d", 
-					    offset, target_offset));
+				throw ExceptionPaddingError(this, strfmt("current offset = %d, "
+				                                         "target offset = %d",
+				                                         offset, target_offset));
 			return target_offset - offset;
 
 		case PAD_TO_NEXT_WORD:
@@ -601,8 +559,7 @@ int RecordPaddingField::StaticSize(Env* env, int offset) const
 				return -1;
 
 			offset_in_word = offset % wordsize_;
-			return ( offset_in_word == 0 ) ? 
-				0 : wordsize_ - offset_in_word;
+			return (offset_in_word == 0) ? 0 : wordsize_ - offset_in_word;
 		}
 
 	return -1;
@@ -620,86 +577,67 @@ void RecordPaddingField::GenFieldEnd(Output* out_cc, Env* env, const DataPtr& fi
 			                expr_->EvalExpr(out_cc, env));
 			out_cc->inc_indent();
 			out_cc->println("{");
-			out_cc->println("throw binpac::ExceptionInvalidStringLength(\"%s\", %s);",
-			                Location(), expr_->EvalExpr(out_cc, env));
+			out_cc->println("throw binpac::ExceptionInvalidStringLength(\"%s\", %s);", Location(),
+			                expr_->EvalExpr(out_cc, env));
 			out_cc->println("}");
 			out_cc->dec_indent();
 			out_cc->println("");
 
 			out_cc->println("const_byteptr const %s = %s + (%s);",
-				env->LValue(end_of_field_dataptr_var),
-				field_begin.ptr_expr(),
-				expr_->EvalExpr(out_cc, env));
+			                env->LValue(end_of_field_dataptr_var), field_begin.ptr_expr(),
+			                expr_->EvalExpr(out_cc, env));
 
 			out_cc->println("// Checking out-of-bound padding for \"%s\"", field_id_str_.c_str());
-			out_cc->println("if ( %s > %s || %s < %s )",
-			                env->LValue(end_of_field_dataptr_var),
-			                env->RValue(end_of_data),
-			                env->LValue(end_of_field_dataptr_var),
+			out_cc->println("if ( %s > %s || %s < %s )", env->LValue(end_of_field_dataptr_var),
+			                env->RValue(end_of_data), env->LValue(end_of_field_dataptr_var),
 			                field_begin.ptr_expr());
 			out_cc->inc_indent();
 			out_cc->println("{");
 			out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",", field_id_str_.c_str());
-			out_cc->println("	(%s), ",
-			                expr_->EvalExpr(out_cc, env));
-			out_cc->println("	(%s) - (%s));",
-			                env->RValue(end_of_data), env->LValue(end_of_field_dataptr_var));
+			out_cc->println("	(%s), ", expr_->EvalExpr(out_cc, env));
+			out_cc->println("	(%s) - (%s));", env->RValue(end_of_data),
+			                env->LValue(end_of_field_dataptr_var));
 			out_cc->println("}");
 			out_cc->dec_indent();
 			out_cc->println("");
 			break;
 
 		case PAD_TO_OFFSET:
-			out_cc->println("const_byteptr %s = %s + (%s);",
-				env->LValue(end_of_field_dataptr_var),
-				env->RValue(begin_of_data),
-				expr_->EvalExpr(out_cc, env));
-			out_cc->println("if ( %s < %s )",
-				env->LValue(end_of_field_dataptr_var),
-				field_begin.ptr_expr());
+			out_cc->println("const_byteptr %s = %s + (%s);", env->LValue(end_of_field_dataptr_var),
+			                env->RValue(begin_of_data), expr_->EvalExpr(out_cc, env));
+			out_cc->println("if ( %s < %s )", env->LValue(end_of_field_dataptr_var),
+			                field_begin.ptr_expr());
 			out_cc->inc_indent();
 			out_cc->println("{");
 			out_cc->println("// throw binpac::ExceptionInvalidOffset(\"%s\", %s - %s, %s);",
-				id_->LocName(), 
-				field_begin.ptr_expr(),
-				env->RValue(begin_of_data),
-				expr_->EvalExpr(out_cc, env));
-			out_cc->println("%s = %s;", 
-				env->LValue(end_of_field_dataptr_var),
-				field_begin.ptr_expr());
+			                id_->LocName(), field_begin.ptr_expr(), env->RValue(begin_of_data),
+			                expr_->EvalExpr(out_cc, env));
+			out_cc->println("%s = %s;", env->LValue(end_of_field_dataptr_var),
+			                field_begin.ptr_expr());
 			out_cc->println("}");
 			out_cc->dec_indent();
-			out_cc->println("if ( %s > %s )",
-				env->LValue(end_of_field_dataptr_var),
-				env->RValue(end_of_data));
+			out_cc->println("if ( %s > %s )", env->LValue(end_of_field_dataptr_var),
+			                env->RValue(end_of_data));
 			out_cc->inc_indent();
 			out_cc->println("{");
 			out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",", field_id_str_.c_str());
-			out_cc->println("	(%s), ",
-			                expr_->EvalExpr(out_cc, env));
-			out_cc->println("	(%s) - (%s));",
-			                env->RValue(end_of_data), env->LValue(end_of_field_dataptr_var));
+			out_cc->println("	(%s), ", expr_->EvalExpr(out_cc, env));
+			out_cc->println("	(%s) - (%s));", env->RValue(end_of_data),
+			                env->LValue(end_of_field_dataptr_var));
 			out_cc->println("}");
 			out_cc->dec_indent();
 			break;
 
 		case PAD_TO_NEXT_WORD:
 			padding_var = nfmt("%s__size", id()->Name());
-			out_cc->println("int %s = (%s - %s) %% %d;",
-				padding_var, 
-				field_begin.ptr_expr(),
-				env->RValue(begin_of_data),
-				wordsize_);
-			out_cc->println("%s = (%s == 0) ? 0 : %d - %s;",
-				padding_var,
-				padding_var,
-				wordsize_,
-				padding_var);
+			out_cc->println("int %s = (%s - %s) %% %d;", padding_var, field_begin.ptr_expr(),
+			                env->RValue(begin_of_data), wordsize_);
+			out_cc->println("%s = (%s == 0) ? 0 : %d - %s;", padding_var, padding_var, wordsize_,
+			                padding_var);
 			out_cc->println("const_byteptr const %s = %s + %s;",
-				env->LValue(end_of_field_dataptr_var), 
-				field_begin.ptr_expr(),
-				padding_var);
-			delete [] padding_var;
+			                env->LValue(end_of_field_dataptr_var), field_begin.ptr_expr(),
+			                padding_var);
+			delete[] padding_var;
 			break;
 		}
 
@@ -715,20 +653,18 @@ bool RecordPaddingField::GenBoundaryCheck(Output* out_cc, Env* env)
 
 	char* size;
 	int ss = StaticSize(env, begin.AbsOffset(begin_of_data));
-	ASSERT ( ss >= 0 );
- 	size = nfmt("%d", ss);
-	
+	ASSERT(ss >= 0);
+	size = nfmt("%d", ss);
+
 	begin.GenBoundaryCheck(out_cc, env, size, field_id_str_.c_str());
 
-	delete [] size;
+	delete[] size;
 
 	SetBoundaryChecked();
 	return true;
 	}
 
-bool RecordPaddingField::DoTraverse(DataDepVisitor *visitor)
-	{ 
-	return Field::DoTraverse(visitor) && 
-	       (! expr_ || expr_->Traverse(visitor));
+bool RecordPaddingField::DoTraverse(DataDepVisitor* visitor)
+	{
+	return Field::DoTraverse(visitor) && (! expr_ || expr_->Traverse(visitor));
 	}
-

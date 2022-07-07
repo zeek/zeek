@@ -1,19 +1,18 @@
-#include <string.h>
+#include "pac_output.h"
+
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "pac_utils.h"
-#include "pac_output.h"
 
 OutputException::OutputException(const char* arg_msg)
 	{
 	msg = arg_msg;
 	}
 
-OutputException::~OutputException()
-	{
-	}
+OutputException::~OutputException() { }
 
 Output::Output(string filename)
 	{

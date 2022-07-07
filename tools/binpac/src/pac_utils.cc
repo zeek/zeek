@@ -1,17 +1,18 @@
-#include <stdarg.h>
-#include <string.h>
-#include <stdio.h>
-
 #include "pac_utils.h"
 
-char* copy_string(const char* s)
-        {
-        char* c = new char[strlen(s)+1];
-        strcpy(c, s);
-        return c;
-        }
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 
-namespace {
+char* copy_string(const char* s)
+	{
+	char* c = new char[strlen(s) + 1];
+	strcpy(c, s);
+	return c;
+	}
+
+namespace
+	{
 
 const char* do_fmt(const char* format, va_list ap)
 	{
@@ -20,7 +21,7 @@ const char* do_fmt(const char* format, va_list ap)
 	return buf;
 	}
 
-}
+	}
 
 string strfmt(const char* format, ...)
 	{

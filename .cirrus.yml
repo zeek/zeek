@@ -254,13 +254,23 @@ macos_big_sur_task:
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT
 
-# FreeBSD EOL timelines: https://www.freebsd.org/security/security.html#sup
+# FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
 freebsd14_task:
   freebsd_instance:
     # We don't support FreeBSD 14 yet, this is a purely informative task
     image_family: freebsd-14-0-snap
     allow_failures: true
     skip_notification: true
+    << : *FREEBSD_RESOURCES_TEMPLATE
+
+  prepare_script: ./ci/freebsd/prepare.sh
+  << : *CI_TEMPLATE
+  << : *FREEBSD_ENVIRONMENT
+
+freebsd13_1_task:
+  freebsd_instance:
+    # FreeBSD 13.1 EOL: TBD (13.2 + 3 months)
+    image_family: freebsd-13-1
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh

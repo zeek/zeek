@@ -393,12 +393,10 @@ void Type::GenBufferConfiguration(Output* out_cc, Env* env)
 			if ( ! NeedsBufferingStateVar() )
 				break;
 
-			if ( buffering_state_var_field_ )
-				{
-				out_cc->println("if ( %s == 0 )", env->RValue(buffering_state_id));
-				out_cc->inc_indent();
-				out_cc->println("{");
-				}
+			ASSERT(env->GetDataType(buffering_state_id));
+			out_cc->println("if ( %s == 0 )", env->RValue(buffering_state_id));
+			out_cc->inc_indent();
+			out_cc->println("{");
 
 			if ( attr_length_expr_ )
 				{
@@ -418,15 +416,13 @@ void Type::GenBufferConfiguration(Output* out_cc, Env* env)
 			out_cc->println("%s->NewFrame(%s, %s);", env->LValue(flow_buffer_id),
 			                frame_buffer_arg.c_str(), attr_chunked() ? "true" : "false");
 
-			if ( buffering_state_var_field_ )
-				{
-				out_cc->println("%s = 1;", env->LValue(buffering_state_id));
-				out_cc->println("}");
-				out_cc->dec_indent();
-				}
+			out_cc->println("%s = 1;", env->LValue(buffering_state_id));
+			out_cc->println("}");
+			out_cc->dec_indent();
 			break;
 
 		case BUFFER_BY_LINE:
+			ASSERT(env->GetDataType(buffering_state_id));
 			out_cc->println("if ( %s == 0 )", env->RValue(buffering_state_id));
 			out_cc->inc_indent();
 			out_cc->println("{");

@@ -38,11 +38,17 @@ Changed Functionality
   we cannot determine the connection direction, because both sides of the connection
   send packets that are associated with being a client/server.
 
+- The default logging directory is now set globally across all log
+  writers through ``Log::default_logdir``.
+
 Deprecated Functionality
 ------------------------
 
 - The PDict class is now an alias to Dictionary and has been deprecated. Use Dictionary
   directly, passing a pointer type to the template.
+
+- ``LogAscii::logdir`` and per-writer log directories have been
+  deprecated in favor of the new ``Log::default_logdir``.
 
 Zeek 5.0.0
 ==========

@@ -1,3 +1,26 @@
+5.1.0-dev.192 | 2022-07-07 07:51:04 +0200
+
+  * sqlite default-logdir test: Remove ls ./logs baseline (Arne Welzel, Corelight)
+
+    Observed .sqlite-journal files and missing reporter.sqlite files
+    in CI runs. Subsequently reading the ./test.sqlite file is more
+    reliable and should be good enough.
+
+  * logging/sqlite: Recognize Log::default_logdir and place files there if set (Arne Welzel, Corelight)
+
+  * logging: Introduce Log::default_logdir deprecate LogAscii::logdir and per writer logdir (Arne Welzel, Corelight)
+
+    Also modify FormatRotationPath to keep rotated logs within
+    Log::default_logdir unless the rotation function explicitly
+    set dir, e.g. by when the user redef'ed default_rotation_interval.
+
+  * logging/ascii: Fix .shadow paths when using LogAscii::logdir (Arne Welzel, Corelight)
+
+    With the introduction of LogAscii::logdir, log filenames can now include
+    parent directories rather than being plain basenames. Enabling log rotation,
+    leftover log rotation and setting LogAscii::logdir broke due to not
+    handling this situation.
+
 5.1.0-dev.186 | 2022-07-05 22:18:52 +0000
 
   * Remove unnecssary includes of Dict.h (Tim Wojtulewicz, Corelight)

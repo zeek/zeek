@@ -1,9 +1,14 @@
-# @TEST-EXEC-FAIL: zeek -r $TRACES/workshop_2011_browse.trace -f "kaputt" >>output 2>&1
+# Due to the instability of the output from libpcap when it comes to errors when compiling
+# filters, we can't rely on a fixed baseline here to diff against. Instead, just do some
+# greps to validate that we got a syntax error in the output with the string that we passed
+# as a filter.
+
+# @TEST-EXEC-FAIL: zeek -r $TRACES/workshop_2011_browse.trace -f "kaputt" >output 2>&1
 # @TEST-EXEC-FAIL: test -e conn.log
-# @TEST-EXEC: echo ---- >>output
-# @TEST-EXEC: zeek -r $TRACES/workshop_2011_browse.trace  %INPUT >>output 2>&1
+# @TEST-EXEC: grep "kaputt" output | grep -q "syntax error"
+# @TEST-EXEC: zeek -r $TRACES/workshop_2011_browse.trace  %INPUT >output 2>&1
 # @TEST-EXEC: test -e conn.log
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: grep "kaputt, too" output | grep -q "syntax error"
 
 redef enum PcapFilterID += { A };
 
@@ -12,5 +17,3 @@ event zeek_init()
 	if ( ! Pcap::precompile_pcap_filter(A, "kaputt, too") )
 		print "error", Pcap::error();
 	}
-
-

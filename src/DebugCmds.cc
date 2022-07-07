@@ -5,10 +5,10 @@
 
 #include "zeek/zeek-config.h"
 
-#include <assert.h>
 #include <regex.h>
-#include <string.h>
 #include <sys/types.h>
+#include <cassert>
+#include <cstring>
 
 #include "zeek/DbgBreakpoint.h"
 #include "zeek/Debug.h"

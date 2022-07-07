@@ -166,6 +166,21 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
+detail::TraversalCode Attr::Traverse(detail::TraversalCallback* cb) const
+	{
+	auto tc = cb->PreAttr(this);
+	HANDLE_TC_ATTR_PRE(tc);
+
+	if ( expr )
+		{
+		auto tc = expr->Traverse(cb);
+		HANDLE_TC_ATTR_PRE(tc);
+		}
+
+	tc = cb->PostAttr(this);
+	HANDLE_TC_ATTR_POST(tc);
+	}
+
 Attributes::Attributes(TypePtr t, bool arg_in_record, bool is_global)
 	: Attributes(std::vector<AttrPtr>{}, std::move(t), arg_in_record, is_global)
 	{
@@ -285,7 +300,7 @@ void Attributes::Describe(ODesc* d) const
 
 	for ( size_t i = 0; i < attrs.size(); ++i )
 		{
-		if ( (d->IsReadable() || d->IsPortable()) && i > 0 )
+		if ( d->IsReadable() && i > 0 )
 			d->Add(", ");
 
 		attrs[i]->Describe(d);
@@ -754,6 +769,21 @@ bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool in_r
 
 	err_msg = "&default value has inconsistent type";
 	return false;
+	}
+
+detail::TraversalCode Attributes::Traverse(detail::TraversalCallback* cb) const
+	{
+	auto tc = cb->PreAttrs(this);
+	HANDLE_TC_ATTRS_PRE(tc);
+
+	for ( const auto& a : attrs )
+		{
+		tc = a->Traverse(cb);
+		HANDLE_TC_ATTRS_PRE(tc);
+		}
+
+	tc = cb->PostAttrs(this);
+	HANDLE_TC_ATTRS_POST(tc);
 	}
 
 	}

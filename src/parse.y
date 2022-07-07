@@ -78,9 +78,9 @@
 %type <when_clause> when_head when_start when_clause
 
 %{
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
 
 #include <set>
 #include <string>

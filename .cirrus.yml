@@ -10,14 +10,12 @@ btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 12GB
 
-config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
-static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install
-asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy
-ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy
-tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy
-mobile_ipv6_config: &MOBILE_IPV6_CONFIG --build-type=release --enable-mobile-ipv6 --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install
-openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install
-homebrew_flex_bison_config: &HOMEBREW_FLEX_BISON_CONFIG --with-flex=/usr/local/opt/flex/bin/flex --with-bison=/usr/local/opt/bison/bin/bison
+config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache
+static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache
+asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache
+ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache
+tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache
+openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install --ccache
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -25,7 +23,7 @@ resources_template: &RESOURCES_TEMPLATE
   # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
   greedy: true
 
-macos_resources_template: &MACOS_RESOURCES_TEMPLATE
+macos_environment: &MACOS_ENVIRONMENT
   # https://medium.com/cirruslabs/new-macos-task-execution-architecture-for-cirrus-ci-604250627c94
   # suggests we can go faster here:
   env:
@@ -34,9 +32,28 @@ macos_resources_template: &MACOS_RESOURCES_TEMPLATE
     # No permission to write to default location of /zeek
     CIRRUS_WORKING_DIR: /tmp/zeek
 
+freebsd_resources_template: &FREEBSD_RESOURCES_TEMPLATE
+  cpu: 8
+  # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
+  memory: 8GB
+  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
+  greedy: true
+
+freebsd_environment: &FREEBSD_ENVIRONMENT
+  env:
+    ZEEK_CI_CPUS: 8
+    ZEEK_CI_BTEST_JOBS: 8
+
+sanitizers_resource_template: &SANITIZERS_RESOURCE_TEMPLATE
+  cpu: 4
+  # Sanitizers uses a lot more memory than a typical config.
+  memory: 12GB
+  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
+  greedy: true
+
 ci_template: &CI_TEMPLATE
   only_if: >
-    $CIRRUS_PR != '' ||
+    ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
     ( $CIRRUS_REPO_NAME == 'zeek' &&
       (
       $CIRRUS_BRANCH == 'master' ||
@@ -54,6 +71,14 @@ ci_template: &CI_TEMPLATE
     folder: testing/external/zeek-testing-traces
     fingerprint_script: echo zeek-testing-traces
     populate_script: ./ci/init-external-repos.sh
+    reupload_on_changes: true
+
+  always:
+    ccache_cache:
+      folder: /tmp/ccache
+      fingerprint_script: echo ccache-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+
   init_external_repos_script: ./ci/init-external-repos.sh
 
   build_script: ./ci/build.sh
@@ -70,6 +95,8 @@ ci_template: &CI_TEMPLATE
     upload_btest_html_results_artifacts:
       path: "testing/**/btest-results.html"
       type: text/html
+    cache_statistics_script:
+      ccache --show-stats
 
 env:
   CIRRUS_WORKING_DIR: /zeek
@@ -94,6 +121,10 @@ env:
   # The repo token used for uploading data to Coveralls.io
   ZEEK_COVERALLS_REPO_TOKEN: ENCRYPTED[7ffd1e041f848f02b62f5abc7fda8a5a8a1561fbb2b46d88cefb67c74408ddeef6ea6f3b279c7953ca14ae9b4d050e2d]
 
+  CCACHE_BASEDIR: $CIRRUS_WORKING_DIR
+  CCACHE_DIR: /tmp/ccache
+  CCACHE_COMPRESS: 1
+
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
@@ -104,10 +135,10 @@ fedora35_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-fedora34_task:
+fedora36_task:
   container:
-    # Fedora 34 EOL: Around May 2022
-    dockerfile: ci/fedora-34/Dockerfile
+    # Fedora 36 EOL: Around May 2023
+    dockerfile: ci/fedora-36/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
@@ -170,10 +201,24 @@ debian9_32bit_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+opensuse_leap_15_4_task:
+  container:
+    # Opensuse Leap 15.4 EOL: TBD
+    dockerfile: ci/opensuse-leap-15.4/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 opensuse_leap_15_3_task:
   container:
-    # Opensuse Leap 15.3 EOL: TBD
+    # Opensuse Leap 15.3 EOL: ~Dec 2022
     dockerfile: ci/opensuse-leap-15.3/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
+ubuntu22_task:
+  container:
+    # Ubuntu 22.04 EOL: April 2027
+    dockerfile: ci/ubuntu-22.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
@@ -197,8 +242,6 @@ ubuntu18_task:
     dockerfile: ci/ubuntu-18.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *MOBILE_IPV6_CONFIG
 
 alpine_task:
   container:
@@ -216,53 +259,47 @@ macos_monterey_task:
     image: monterey-xcode-13.1
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
-  << : *MACOS_RESOURCES_TEMPLATE
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *HOMEBREW_FLEX_BISON_CONFIG
+  << : *MACOS_ENVIRONMENT
 
 macos_big_sur_task:
   macos_instance:
     image: big-sur-xcode-12.5
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
-  << : *MACOS_RESOURCES_TEMPLATE
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *HOMEBREW_FLEX_BISON_CONFIG
+  << : *MACOS_ENVIRONMENT
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/security.html#sup
 freebsd14_task:
   freebsd_instance:
     # We don't support FreeBSD 14 yet, this is a purely informative task
     image_family: freebsd-14-0-snap
-    cpu: 8
-    # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
-    memory: 8GB
-
     allow_failures: true
     skip_notification: true
+    << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
+  << : *FREEBSD_ENVIRONMENT
 
 freebsd13_task:
   freebsd_instance:
     # FreeBSD 13 EOL: January 31, 2026
     image_family: freebsd-13-0
-    cpu: 8
-    # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
-    memory: 8GB
+    << : *FREEBSD_RESOURCES_TEMPLATE
+
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
+  << : *FREEBSD_ENVIRONMENT
 
 freebsd12_task:
   freebsd_instance:
     # FreeBSD 12 EOL: June 30, 2024
     image_family: freebsd-12-2
-    cpu: 8
-    # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
-    memory: 8GB
+    << : *FREEBSD_RESOURCES_TEMPLATE
+
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
+  << : *FREEBSD_ENVIRONMENT
 
 # This can be removed as soon as the first distribution that we use ships
 # OpenSSL 3.0
@@ -279,9 +316,8 @@ asan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile
-    cpu: 4
-    # AddressSanitizer uses a lot more memory than a typical config.
-    memory: 12GB
+    << : *SANITIZERS_RESOURCE_TEMPLATE
+
   << : *CI_TEMPLATE
   test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
@@ -294,9 +330,8 @@ ubsan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run undefined behavior checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile
-    cpu: 4
-    # AddressSanitizer uses a lot more memory than a typical config.
-    memory: 12GB
+    << : *SANITIZERS_RESOURCE_TEMPLATE
+
   << : *CI_TEMPLATE
   test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
@@ -310,9 +345,8 @@ ubsan_sanitizer_task:
 #   container:
 #     # Just uses a recent/common distro to run memory error/leak checks.
 #     dockerfile: ci/ubuntu-20.04/Dockerfile
-#     cpu: 4
-#     # AddressSanitizer uses a lot more memory than a typical config.
-#     memory: 12GB
+#     << : *SANITIZERS_RESOURCE_TEMPLATE
+#
 #   << : *CI_TEMPLATE
 #   test_fuzzers_script: ./ci/test-fuzzers.sh
 #   env:

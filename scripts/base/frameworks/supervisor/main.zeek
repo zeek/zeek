@@ -99,3 +99,12 @@ event SupervisorControl::restart_request(reqid: string, node: string)
 	local topic = SupervisorControl::topic_prefix + fmt("/restart_response/%s", reqid);
 	Broker::publish(topic, SupervisorControl::restart_response, reqid, res);
 	}
+
+event Supervisor::node_status(node: string, pid: count)
+	{
+	if ( ! Supervisor::is_supervisor() )
+		return;
+
+	local topic = SupervisorControl::topic_prefix + "/node_status";
+	Broker::publish(topic, SupervisorControl::node_status, node, pid);
+	}

@@ -25,7 +25,8 @@ extern "C"
 	}
 
 #include "zeek/DebugLogger.h"
-#include "zeek/Dict.h"
+#include "zeek/Event.h"
+#include "zeek/EventHandler.h"
 #include "zeek/ID.h"
 #include "zeek/NetVar.h"
 #include "zeek/RE.h"
@@ -484,6 +485,8 @@ void Supervisor::HandleChildSignal()
 
 void Supervisor::InitPostScript()
 	{
+	node_status = event_registry->Register("Supervisor::node_status");
+
 	stem_stdout.hook = id::find_func("Supervisor::stdout_hook");
 	stem_stderr.hook = id::find_func("Supervisor::stderr_hook");
 
@@ -597,6 +600,10 @@ size_t Supervisor::ProcessMessages()
 
 			if ( it != nodes.end() )
 				it->second.pid = std::stoi(msg_tokens[2]);
+
+			if ( node_status )
+				event_mgr.Enqueue(node_status, make_intrusive<StringVal>(name),
+				                  val_mgr->Count(std::stoi(msg_tokens[2])));
 			}
 		else if ( type == "debug" )
 			{
@@ -1263,7 +1270,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	for ( const auto& ee : *env_table )
 		{
 		auto k = ee.GetHashKey();
-		auto* v = ee.GetValue<TableEntryVal*>();
+		auto* v = ee.value;
 
 		auto key = env_table_val->RecreateIndex(*k);
 		auto name = key->Idx(0)->AsStringVal()->ToStdString();
@@ -1278,7 +1285,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	for ( const auto& cte : *cluster_table )
 		{
 		auto k = cte.GetHashKey();
-		auto* v = cte.GetValue<TableEntryVal*>();
+		auto* v = cte.value;
 
 		auto key = cluster_table_val->RecreateIndex(*k);
 		auto name = key->Idx(0)->AsStringVal()->ToStdString();

@@ -124,11 +124,11 @@ bool UseDefs::RemoveUnused(int iter)
 		// Because we're dealing with reduced statements, the
 		// assignment expression should be to a simple variable.
 		if ( r->Tag() != EXPR_REF )
-			reporter->InternalError("lhs ref inconsistency in UseDefs::FindUnused");
+			reporter->InternalError("lhs ref inconsistency in UseDefs::RemoveUnused");
 
 		auto n = r->AsRefExprPtr()->GetOp1();
 		if ( n->Tag() != EXPR_NAME )
-			reporter->InternalError("lhs name inconsistency in UseDefs::FindUnused");
+			reporter->InternalError("lhs name inconsistency in UseDefs::RemoveUnused");
 
 		auto id = n->AsNameExpr()->Id();
 

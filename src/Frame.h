@@ -54,13 +54,6 @@ public:
 	Frame(int size, const ScriptFunc* func, const zeek::Args* fn_args);
 
 	/**
-	 * Deletes the frame. Unrefs its trigger (implicitly, since it's an
-	 * IntrusivePtr), and the values that the frame contains and its
-	 * closure if applicable.
-	 */
-	virtual ~Frame() override;
-
-	/**
 	 * @param n the index to get.
 	 * @return the value at index *n* of the underlying array.
 	 */
@@ -69,7 +62,7 @@ public:
 		// Note: technically this may want to adjust by current_offset, but
 		// in practice, this method is never called from anywhere other than
 		// function call invocation, where current_offset should be zero.
-		return frame[n].val;
+		return frame[n];
 		}
 
 	/**
@@ -158,59 +151,14 @@ public:
 	bool BreakOnReturn() const { return break_on_return; }
 
 	/**
-	 * Performs a deep copy of all the values in the current frame. If
-	 * the frame has a closure the returned frame captures that closure
-	 * by reference. As such, performing a clone operation does not copy
-	 * the values in the closure.
+	 * Performs a deep copy of all the values in the current frame.
 	 *
 	 * @return a copy of this frame.
 	 */
 	Frame* Clone() const;
 
 	/**
-	 * Clones a Frame, only making copies of the values associated with
-	 * the IDs in selection. Cloning a frame does not deep-copy its
-	 * closure; instead it makes a new copy of the frame which Refs the
-	 * closure and all the elements that it might use from that closure.
-	 *
-	 * Unlike a regular clone operation where cloning the closure is quite
-	 * hard because of circular references, cloning the closure here is
-	 * possible. See Frame.cc for more notes on this.
-	 *
-	 * @return A copy of the frame where all the values associated with
-	 * *selection* have been cloned. All other values are made to be
-	 * null.
-	 */
-	Frame* SelectiveClone(const IDPList& selection, ScriptFunc* func) const;
-
-	/**
-	 * Serializes the frame in the context of supporting the (deprecated)
-	 * reference semantics for closures.  This can be fairly non-trivial.
-	 * If the frame itself has no closure then the serialized frame
-	 * is a vector:
-	 *
-	 * [ "Frame", [offset_map] [serialized_values] ]
-	 *
-	 * where serialized_values are two-element vectors. A serialized_value
-	 * has the result of calling broker::data_to_val on the value in the
-	 * first index, and an integer representing that value's type in the
-	 * second index. offset_map is a serialized version of the frame's
-	 * offset_map.
-	 *
-	 * A reference-semantics frame with its own closure needs to
-	 * (recursively) serialize more information:
-	 *
-	 * [ "ClosureFrame", [outer_ids], Serialize(closure), [offset_map],
-	 *   [serialized_values] ]
-	 *
-	 * @return the broker representation, or an error if the serialization
-	 * failed.
-	 */
-	broker::expected<broker::data> SerializeClosureFrame(const IDPList& selection);
-
-	/**
-	 * Serializes the frame in the context of supporting copy semantics
-	 * for lambdas:
+	 * Serializes the frame in support of copy semantics for lambdas:
 	 *
 	 * [ "CopyFrame", serialized_values ]
 	 *
@@ -235,23 +183,6 @@ public:
 	static std::pair<bool, FramePtr>
 	Unserialize(const broker::vector& data, const std::optional<FuncType::CaptureList>& captures);
 
-	/**
-	 * Sets the IDs that the frame knows offsets for. These offsets will
-	 * be used instead of any previously provided ones for future lookups
-	 * of IDs in *ids*.
-	 *
-	 * @param ids the ids that the frame will intake.
-	 */
-	void AddKnownOffsets(const IDPList& ids);
-
-	/**
-	 * Captures *c* as this frame's closure and Refs all of the values
-	 * corresponding to outer_ids in that closure. This also Refs *c* as
-	 * the frame will unref it upon deconstruction. When calling this,
-	 * the frame's closure must not have been set yet.
-	 */
-	void CaptureClosure(Frame* c, IDPList outer_ids);
-
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
 	void SetTrigger(trigger::TriggerPtr arg_trigger);
@@ -274,74 +205,19 @@ public:
 	void SetDelayed() { delayed = true; }
 	bool HasDelayed() const { return delayed; }
 
-	/**
-	 * Track a new function that refers to this frame for use as a closure.
-	 * This frame's destructor will then upgrade that functions reference
-	 * from weak to strong (by making a copy).  The initial use of
-	 * weak references prevents unbreakable circular references that
-	 * otherwise cause memory leaks.
-	 */
-	void AddFunctionWithClosureRef(ScriptFunc* func);
-
 private:
 	using OffsetMap = std::unordered_map<std::string, int>;
 
-	struct Element
-		{
-		ValPtr val;
-		// Weak reference is used to prevent circular reference memory leaks
-		// in lambdas/closures.
-		bool weak_ref;
-		};
+	// This has a trivial form now, but used to hold additional
+	// information, which is why we abstract it away from just being
+	// a ValPtr.
+	using Element = ValPtr;
 
 	const ValPtr& GetElementByID(const ID* id) const;
-
-	/**
-	 * Sets the element at index *n* of the underlying array to *v*, but does
-	 * not take ownership of a reference count to it.  This method is used to
-	 * break circular references between lambda functions and closure frames.
-	 * @param n the index to set
-	 * @param v the value to set it to (caller has not Ref'd and Frame will
-	 * not Unref it)
-	 */
-	void SetElementWeak(int n, Val* v);
-
-	/**
-	 * Clone an element at an offset into other frame if not equal to a given
-	 * function (in that case just assigna weak reference).  Used to break
-	 * circular references between lambda functions and closure frames.
-	 */
-	void CloneNonFuncElement(int offset, ScriptFunc* func, Frame* other) const;
-
-	/**
-	 * Resets the value at offset 'n' frame (by decrementing reference
-	 * count if not a weak reference).
-	 */
-	void ClearElement(int n);
-
-	/** Have we captured this id?  Version for deprecated semantics. */
-	bool IsOuterID(const ID* in) const;
-
-	/** Have we captured this id?  Version for current semantics. */
-	bool IsCaptureID(const ID* in) const;
-
-	/** Serializes an offset_map */
-	static broker::expected<broker::data> SerializeOffsetMap(const OffsetMap& in);
-
-	/** Serializes an IDPList */
-	static broker::expected<broker::data> SerializeIDList(const IDPList& in);
-
-	/** Unserializes an offset map. */
-	static std::pair<bool, std::unordered_map<std::string, int>>
-	UnserializeOffsetMap(const broker::vector& data);
-
-	/** Unserializes an IDPList. */
-	static std::pair<bool, IDPList> UnserializeIDList(const broker::vector& data);
 
 	/** The number of vals that can be stored in this frame. */
 	int size;
 
-	bool weak_closure_ref = false;
 	bool break_before_next_stmt;
 	bool break_on_return;
 	bool delayed;
@@ -356,29 +232,11 @@ private:
 	 */
 	int current_offset;
 
-	/** The enclosing frame of this frame. Used for reference semantics. */
-	Frame* closure;
-
-	/** ID's used in this frame from the enclosing frame, when using
-	 * reference semantics (closure != nullptr).
-	 */
-	IDPList outer_ids;
-
-	/**
-	 * Maps ID names to offsets. Used if this frame is  serialized
-	 * to maintain proper offsets after being sent elsewhere.
-	 */
-	std::unique_ptr<OffsetMap> offset_map;
-
 	/** Frame used for captures (if any) with copy semantics. */
 	Frame* captures;
 
 	/** Maps IDs to offsets into the "captures" frame.  If the ID
 	 * isn't present, then it's not a capture.
-	 *
-	 * We keep this separate from offset_map to help ensure we don't
-	 * confuse code from the deprecated semantics with the current
-	 * semantics.
 	 */
 	const OffsetMap* captures_offset_map;
 
@@ -396,8 +254,6 @@ private:
 	const CallExpr* call = nullptr;
 	const void* assoc = nullptr;
 	const Location* call_loc = nullptr; // only needed if call is nil
-
-	std::unique_ptr<std::vector<ScriptFunc*>> functions_with_closure_frame_reference;
 	};
 
 	} // namespace detail

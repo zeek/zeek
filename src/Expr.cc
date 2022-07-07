@@ -110,10 +110,13 @@ const char* expr_name(BroExprTag t)
 	return expr_names[int(t)];
 	}
 
+int Expr::num_exprs = 0;
+
 Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), paren(false), type(nullptr)
 	{
 	SetLocationInfo(&start_location, &end_location);
 	opt_info = new ExprOptInfo();
+	++num_exprs;
 	}
 
 Expr::~Expr()
@@ -430,7 +433,7 @@ void Expr::Describe(ODesc* d) const
 	if ( IsParen() && ! d->IsBinary() )
 		d->Add("(");
 
-	if ( d->IsPortable() || d->IsBinary() )
+	if ( d->IsBinary() )
 		AddTag(d);
 
 	ExprDescribe(d);
@@ -568,12 +571,7 @@ void NameExpr::ExprDescribe(ODesc* d) const
 	if ( d->IsReadable() )
 		d->Add(id->Name());
 	else
-		{
-		if ( d->IsPortable() )
-			d->Add(id->Name());
-		else
-			d->AddCS(id->Name());
-		}
+		d->AddCS(id->Name());
 	}
 
 ConstExpr::ConstExpr(ValPtr arg_val) : Expr(EXPR_CONST), val(std::move(arg_val))
@@ -3713,6 +3711,24 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 		}
 	}
 
+TraversalCode TableConstructorExpr::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreExpr(this);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = op->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	if ( attrs )
+		{
+		tc = attrs->Traverse(cb);
+		HANDLE_TC_EXPR_PRE(tc);
+		}
+
+	tc = cb->PostExpr(this);
+	HANDLE_TC_EXPR_POST(tc);
+	}
+
 ValPtr TableConstructorExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
@@ -3749,6 +3765,9 @@ void TableConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add("table(");
 	op->Describe(d);
 	d->Add(")");
+
+	if ( attrs )
+		attrs->Describe(d);
 	}
 
 SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
@@ -3828,6 +3847,24 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 		}
 	}
 
+TraversalCode SetConstructorExpr::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreExpr(this);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = op->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	if ( attrs )
+		{
+		tc = attrs->Traverse(cb);
+		HANDLE_TC_EXPR_PRE(tc);
+		}
+
+	tc = cb->PostExpr(this);
+	HANDLE_TC_EXPR_POST(tc);
+	}
+
 ValPtr SetConstructorExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
@@ -3850,6 +3887,9 @@ void SetConstructorExpr::ExprDescribe(ODesc* d) const
 	d->Add("set(");
 	op->Describe(d);
 	d->Add(")");
+
+	if ( attrs )
+		attrs->Describe(d);
 	}
 
 VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list, TypePtr arg_type)
@@ -4638,7 +4678,7 @@ TraversalCode CallExpr::Traverse(TraversalCallback* cb) const
 void CallExpr::ExprDescribe(ODesc* d) const
 	{
 	func->Describe(d);
-	if ( d->IsReadable() || d->IsPortable() )
+	if ( d->IsReadable() )
 		{
 		d->Add("(");
 		args->Describe(d);
@@ -4657,7 +4697,11 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList ar
 
 	SetType(ingredients->id->GetType());
 
-	CheckCaptures(when_parent);
+	if ( ! CheckCaptures(when_parent) )
+		{
+		SetError();
+		return;
+		}
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
@@ -4691,42 +4735,38 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList ar
 		}
 
 	// Install that in the global_scope
-	auto id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
+	lambda_id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
 	// Update lamb's name
 	dummy_func->SetName(my_name.c_str());
 
 	auto v = make_intrusive<FuncVal>(std::move(dummy_func));
-	id->SetVal(std::move(v));
-	id->SetType(ingredients->id->GetType());
-	id->SetConst();
+	lambda_id->SetVal(std::move(v));
+	lambda_id->SetType(ingredients->id->GetType());
+	lambda_id->SetConst();
 	}
 
-void LambdaExpr::CheckCaptures(StmtPtr when_parent)
+bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 	{
 	auto ft = type->AsFuncType();
 	const auto& captures = ft->GetCaptures();
 
-	capture_by_ref = false;
+	auto desc = when_parent ? "\"when\" statement" : "lambda";
 
 	if ( ! captures )
 		{
 		if ( outer_ids.size() > 0 )
 			{
-			// TODO: Remove in v5.1: these deprecated closure semantics
-			reporter->Warning(
-				"use of outer identifiers in lambdas without [] captures is deprecated: %s%s",
-				outer_ids.size() > 1 ? "e.g., " : "", outer_ids[0]->Name());
-			capture_by_ref = true;
+			reporter->Error("%s uses outer identifiers without [] captures: %s%s", desc,
+			                outer_ids.size() > 1 ? "e.g., " : "", outer_ids[0]->Name());
+			return false;
 			}
 
-		return;
+		return true;
 		}
 
 	std::set<const ID*> outer_is_matched;
 	std::set<const ID*> capture_is_matched;
-
-	auto desc = when_parent ? "\"when\" statement" : "lambda";
 
 	for ( const auto& c : *captures )
 		{
@@ -4745,7 +4785,8 @@ void LambdaExpr::CheckCaptures(StmtPtr when_parent)
 				when_parent->Error(msg);
 			else
 				ExprError(msg);
-			continue;
+
+			return false;
 			}
 
 		for ( auto id : outer_ids )
@@ -4765,6 +4806,8 @@ void LambdaExpr::CheckCaptures(StmtPtr when_parent)
 				when_parent->Error(msg);
 			else
 				ExprError(msg);
+
+			return false;
 			}
 
 	for ( const auto& c : *captures )
@@ -4777,8 +4820,12 @@ void LambdaExpr::CheckCaptures(StmtPtr when_parent)
 				when_parent->Error(msg);
 			else
 				ExprError(msg);
+
+			return false;
 			}
 		}
+
+	return true;
 	}
 
 ScopePtr LambdaExpr::GetScope() const
@@ -4791,10 +4838,7 @@ ValPtr LambdaExpr::Eval(Frame* f) const
 	auto lamb = make_intrusive<ScriptFunc>(ingredients->id, ingredients->body, ingredients->inits,
 	                                       ingredients->frame_size, ingredients->priority);
 
-	if ( capture_by_ref )
-		lamb->AddClosure(outer_ids, f);
-	else
-		lamb->CreateCaptures(f);
+	lamb->CreateCaptures(f);
 
 	// Set name to corresponding dummy func.
 	// Allows for lookups by the receiver.
@@ -4811,11 +4855,18 @@ void LambdaExpr::ExprDescribe(ODesc* d) const
 
 TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
 	{
+	if ( IsError() )
+		// Not well-formed.
+		return TC_CONTINUE;
+
 	TraversalCode tc = cb->PreExpr(this);
 	HANDLE_TC_EXPR_PRE(tc);
 
+	tc = lambda_id->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
 	tc = ingredients->body->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
+	HANDLE_TC_EXPR_PRE(tc);
 
 	tc = cb->PostExpr(this);
 	HANDLE_TC_EXPR_POST(tc);
@@ -4829,7 +4880,7 @@ EventExpr::EventExpr(const char* arg_name, ListExprPtr arg_args)
 	if ( ! h )
 		{
 		h = new EventHandler(name.c_str());
-		event_registry->Register(h);
+		event_registry->Register(h, true);
 		}
 
 	h->SetUsed();
@@ -4886,6 +4937,22 @@ TraversalCode EventExpr::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreExpr(this);
 	HANDLE_TC_EXPR_PRE(tc);
 
+	auto& f = handler->GetFunc();
+	if ( f )
+		{
+		// We don't traverse the function, because that can lead
+		// to infinite traversals.  We do, however, see if we can
+		// locate the corresponding identifier, and traverse that.
+
+		auto& id = lookup_ID(f->Name(), GLOBAL_MODULE_NAME, false, false, false);
+
+		if ( id )
+			{
+			tc = id->Traverse(cb);
+			HANDLE_TC_EXPR_PRE(tc);
+			}
+		}
+
 	tc = args->Traverse(cb);
 	HANDLE_TC_EXPR_PRE(tc);
 
@@ -4896,7 +4963,7 @@ TraversalCode EventExpr::Traverse(TraversalCallback* cb) const
 void EventExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add(name.c_str());
-	if ( d->IsReadable() || d->IsPortable() )
+	if ( d->IsReadable() )
 		{
 		d->Add("(");
 		args->Describe(d);
@@ -5019,7 +5086,7 @@ void ListExpr::ExprDescribe(ODesc* d) const
 
 	loop_over_list(exprs, i)
 		{
-		if ( (d->IsReadable() || d->IsPortable()) && i > 0 )
+		if ( d->IsReadable() && i > 0 )
 			d->Add(", ");
 
 		exprs[i]->Describe(d);

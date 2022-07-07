@@ -8,10 +8,10 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
-#include <errno.h>
-#include <math.h>
 #include <rapidjson/internal/ieee754.h>
-#include <stdint.h>
+#include <cerrno>
+#include <cmath>
+#include <cstdint>
 #include <sstream>
 
 #include "zeek/Desc.h"

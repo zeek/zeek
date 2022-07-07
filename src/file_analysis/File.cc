@@ -377,7 +377,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 
 	for ( const auto& entry : analyzers )
 		{
-		auto* a = entry.GetValue<file_analysis::Analyzer*>();
+		auto* a = entry.value;
 
 		DBG_LOG(DBG_FILE_ANALYSIS, "stream delivery to analyzer %s",
 		        file_mgr->GetComponentName(a->Tag()).c_str());
@@ -475,7 +475,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 
 	for ( const auto& entry : analyzers )
 		{
-		auto* a = entry.GetValue<file_analysis::Analyzer*>();
+		auto* a = entry.value;
 
 		DBG_LOG(DBG_FILE_ANALYSIS, "chunk delivery to analyzer %s",
 		        file_mgr->GetComponentName(a->Tag()).c_str());
@@ -539,7 +539,7 @@ void File::EndOfFile()
 
 	for ( const auto& entry : analyzers )
 		{
-		auto* a = entry.GetValue<file_analysis::Analyzer*>();
+		auto* a = entry.value;
 
 		if ( ! a->EndOfFile() )
 			analyzers.QueueRemove(a->Tag(), a->GetArgs());
@@ -574,7 +574,7 @@ void File::Gap(uint64_t offset, uint64_t len)
 
 	for ( const auto& entry : analyzers )
 		{
-		auto* a = entry.GetValue<file_analysis::Analyzer*>();
+		auto* a = entry.value;
 
 		if ( ! a->Undelivered(offset, len) )
 			analyzers.QueueRemove(a->Tag(), a->GetArgs());

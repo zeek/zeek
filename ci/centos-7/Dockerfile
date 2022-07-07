@@ -1,5 +1,9 @@
 FROM centos:7
 
+# A version field to invalide Cirrus's build cache when needed, as suggested in
+# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
+ENV DOCKERFILE_VERSION 20220519
+
 ENV FLEX_VERSION=2.6.4
 ENV FLEX_DIR=/opt/flex
 
@@ -11,7 +15,7 @@ RUN sed -i 's/enabled=1/enabled=0/' /etc/yum/pluginconf.d/fastestmirror.conf
 RUN yum -y install \
     https://repo.ius.io/ius-release-el7.rpm \
     https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
-  && yum -y install git224 \
+  && yum -y install git236 ccache \
   && yum clean all && rm -rf /var/cache/yum
 
 RUN yum -y install \
@@ -27,21 +31,21 @@ RUN yum -y install \
   && yum clean all && rm -rf /var/cache/yum
 
 RUN yum -y install \
+    bison \
     cmake3 \
     curl \
+    findutils \
+    libpcap-devel \
     make \
-    bison \
-    swig \
     openssl \
     openssl-devel \
-    libpcap-devel \
     python3 \
     python3-devel \
     python3-pip\
-    zlib-devel \
     sqlite \
-    findutils \
+    swig \
     which \
+    zlib-devel \
   && yum clean all && rm -rf /var/cache/yum
 
 # Install a recent flex for Spicy.
@@ -51,7 +55,7 @@ RUN curl -sSL "https://github.com/westes/flex/releases/download/v${FLEX_VERSION}
      && make -j`nproc` install) \
  && rm -rf /tmp/flex-${FLEX_VERSION}
 
-RUN pip3 install junit2html
+RUN pip3 install websockets junit2html
 
 RUN echo 'unset BASH_ENV PROMPT_COMMAND ENV' > /usr/bin/zeek-ci-env && \
     echo 'source /opt/rh/devtoolset-8/enable' >> /usr/bin/zeek-ci-env && \

@@ -89,42 +89,7 @@ public:
 	void Weird(const char* name, const Packet* pkt, const char* addl = "", const char* source = "");
 	void Weird(const char* name, const IP_Hdr* ip, const char* addl = "");
 
-	[[deprecated("Remove in v5.1. Use packet_mgr->GetPacketFilter().")]] zeek::detail::PacketFilter*
-	GetPacketFilter(bool init = true);
-
 	unsigned int CurrentSessions() { return session_map.size(); }
-
-	[[deprecated("Remove in v5.1. Use CurrentSessions().")]] unsigned int CurrentConnections()
-		{
-		return CurrentSessions();
-		}
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	SessionMemoryUsage();
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	SessionMemoryUsageVals();
-
-	[[deprecated("Remove in v5.1. Use SessionMemoryUsage().")]] unsigned int ConnectionMemoryUsage()
-		{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		return SessionMemoryUsage();
-#pragma GCC diagnostic pop
-		}
-	[[deprecated("Remove in v5.1. Use SessionMemoryUsageVals().")]] unsigned int
-	ConnectionMemoryUsageConnVals()
-		{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		return SessionMemoryUsageVals();
-#pragma GCC diagnostic pop
-		}
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation();
 
 private:
 	using SessionMap = std::unordered_map<detail::Key, Session*, detail::KeyHash>;
@@ -144,9 +109,5 @@ private:
 
 // Manager for the currently active sessions.
 extern session::Manager* session_mgr;
-
-extern session::Manager*& sessions
-	[[deprecated("Remove in v5.1. Use zeek::sessions::session_mgr.")]];
-using NetSessions [[deprecated("Remove in v5.1. Use zeek::session::Manager.")]] = session::Manager;
 
 	} // namespace zeek

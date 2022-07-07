@@ -130,10 +130,6 @@ public:
 	// XXX and to_upper; the latter doesn't use String::ToUpper().
 	void ToUpper();
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const;
-
 	// Returns new string containing the substring of this string,
 	// starting at @start >= 0 for going up to @length elements,
 	// A negative @length means "until end of string".  Other invalid

@@ -11,7 +11,7 @@ namespace zeek
 EventRegistry::EventRegistry() = default;
 EventRegistry::~EventRegistry() noexcept = default;
 
-EventHandlerPtr EventRegistry::Register(std::string_view name)
+EventHandlerPtr EventRegistry::Register(std::string_view name, bool is_from_script)
 	{
 	// If there already is an entry in the registry, we have a
 	// local handler on the script layer.
@@ -19,21 +19,29 @@ EventHandlerPtr EventRegistry::Register(std::string_view name)
 
 	if ( h )
 		{
+		if ( ! is_from_script )
+			not_only_from_script.insert(std::string(name));
+
 		h->SetUsed();
 		return h;
 		}
 
 	h = new EventHandler(std::string(name));
-	event_registry->Register(h);
+	event_registry->Register(h, is_from_script);
 
 	h->SetUsed();
 
 	return h;
 	}
 
-void EventRegistry::Register(EventHandlerPtr handler)
+void EventRegistry::Register(EventHandlerPtr handler, bool is_from_script)
 	{
-	handlers[std::string(handler->Name())] = std::unique_ptr<EventHandler>(handler.Ptr());
+	std::string name = handler->Name();
+
+	handlers[name] = std::unique_ptr<EventHandler>(handler.Ptr());
+
+	if ( ! is_from_script )
+		not_only_from_script.insert(name);
 	}
 
 EventHandler* EventRegistry::Lookup(std::string_view name)
@@ -43,6 +51,11 @@ EventHandler* EventRegistry::Lookup(std::string_view name)
 		return it->second.get();
 
 	return nullptr;
+	}
+
+bool EventRegistry::NotOnlyRegisteredFromScript(std::string_view name)
+	{
+	return not_only_from_script.count(std::string(name)) > 0;
 	}
 
 EventRegistry::string_list EventRegistry::Match(RE_Matcher* pattern)

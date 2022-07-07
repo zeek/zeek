@@ -995,6 +995,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/imap, <...>/imap) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/input, <...>/input) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/input.bif, <...>/input.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/installation, <...>/installation.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/intel, <...>/intel) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ip, <...>/ip) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/iptunnel, <...>/iptunnel) -> -1
@@ -1379,6 +1380,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/imap, <...>/imap) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/input, <...>/input) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/input.bif, <...>/input.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/installation, <...>/installation.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/intel, <...>/intel) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ip, <...>/ip) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/iptunnel, <...>/iptunnel) -> (-1, <no content>)
@@ -2473,6 +2475,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/imap, <...>/imap)
 0.000000   MetaHookPre   LoadFile(0, base<...>/input, <...>/input)
 0.000000   MetaHookPre   LoadFile(0, base<...>/input.bif, <...>/input.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/installation, <...>/installation.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/intel, <...>/intel)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ip, <...>/ip)
 0.000000   MetaHookPre   LoadFile(0, base<...>/iptunnel, <...>/iptunnel)
@@ -2857,6 +2860,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/imap, <...>/imap)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/input, <...>/input)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/input.bif, <...>/input.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/installation, <...>/installation.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/intel, <...>/intel)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ip, <...>/ip)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/iptunnel, <...>/iptunnel)
@@ -3962,6 +3966,7 @@
 0.000000 | HookLoadFile  base<...>/imap <...>/imap
 0.000000 | HookLoadFile  base<...>/input <...>/input
 0.000000 | HookLoadFile  base<...>/input.bif <...>/input.bif.zeek
+0.000000 | HookLoadFile  base<...>/installation <...>/installation.zeek
 0.000000 | HookLoadFile  base<...>/intel <...>/intel
 0.000000 | HookLoadFile  base<...>/ip <...>/ip
 0.000000 | HookLoadFile  base<...>/iptunnel <...>/iptunnel
@@ -4346,6 +4351,7 @@
 0.000000 | HookLoadFileExtended base<...>/imap <...>/imap
 0.000000 | HookLoadFileExtended base<...>/input <...>/input
 0.000000 | HookLoadFileExtended base<...>/input.bif <...>/input.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/installation <...>/installation.zeek
 0.000000 | HookLoadFileExtended base<...>/intel <...>/intel
 0.000000 | HookLoadFileExtended base<...>/ip <...>/ip
 0.000000 | HookLoadFileExtended base<...>/iptunnel <...>/iptunnel

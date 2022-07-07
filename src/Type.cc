@@ -269,9 +269,13 @@ void Type::SetError()
 	tag = TYPE_ERROR;
 	}
 
-unsigned int Type::MemoryAllocation() const
+detail::TraversalCode Type::Traverse(detail::TraversalCallback* cb) const
 	{
-	return padded_sizeof(*this);
+	auto tc = cb->PreType(this);
+	HANDLE_TC_TYPE_PRE(tc);
+
+	tc = cb->PostType(this);
+	HANDLE_TC_TYPE_POST(tc);
 	}
 
 bool TypeList::AllMatch(const Type* t, bool is_init) const
@@ -325,19 +329,19 @@ void TypeList::DoDescribe(ODesc* d) const
 		}
 	}
 
-unsigned int TypeList::MemoryAllocation() const
+detail::TraversalCode TypeList::Traverse(detail::TraversalCallback* cb) const
 	{
-	unsigned int size = 0;
+	auto tc = cb->PreType(this);
+	HANDLE_TC_TYPE_PRE(tc);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	for ( const auto& t : types )
-		size += t->MemoryAllocation();
+	for ( const auto& type : types )
+		{
+		tc = type->Traverse(cb);
+		HANDLE_TC_TYPE_PRE(tc);
+		}
 
-	size += util::pad_size(types.capacity() * sizeof(decltype(types)::value_type));
-
-	return Type::MemoryAllocation() + padded_sizeof(*this) - padded_sizeof(Type) + size;
-#pragma GCC diagnostic pop
+	tc = cb->PostType(this);
+	HANDLE_TC_TYPE_POST(tc);
 	}
 
 int IndexType::MatchesIndex(detail::ListExpr* const index) const
@@ -433,6 +437,27 @@ bool IndexType::IsSubNetIndex() const
 	if ( types.size() == 1 && types[0]->Tag() == TYPE_SUBNET )
 		return true;
 	return false;
+	}
+
+detail::TraversalCode IndexType::Traverse(detail::TraversalCallback* cb) const
+	{
+	auto tc = cb->PreType(this);
+	HANDLE_TC_TYPE_PRE(tc);
+
+	for ( const auto& ind : GetIndexTypes() )
+		{
+		tc = ind->Traverse(cb);
+		HANDLE_TC_TYPE_PRE(tc);
+		}
+
+	if ( yield_type )
+		{
+		tc = yield_type->Traverse(cb);
+		HANDLE_TC_TYPE_PRE(tc);
+		}
+
+	tc = cb->PostType(this);
+	HANDLE_TC_TYPE_POST(tc);
 	}
 
 static bool is_supported_index_type(const TypePtr& t, const char** tname)
@@ -863,6 +888,36 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
 		}
 
 	return {};
+	}
+
+detail::TraversalCode FuncType::Traverse(detail::TraversalCallback* cb) const
+	{
+	auto tc = cb->PreType(this);
+	HANDLE_TC_TYPE_PRE(tc);
+
+	tc = args->Traverse(cb);
+	HANDLE_TC_TYPE_PRE(tc);
+
+	if ( yield )
+		{
+		tc = yield->Traverse(cb);
+		HANDLE_TC_TYPE_PRE(tc);
+		}
+
+	tc = cb->PostType(this);
+	HANDLE_TC_TYPE_POST(tc);
+	}
+
+detail::TraversalCode TypeType::Traverse(detail::TraversalCallback* cb) const
+	{
+	auto tc = cb->PreType(this);
+	HANDLE_TC_TYPE_PRE(tc);
+
+	tc = type->Traverse(cb);
+	HANDLE_TC_TYPE_PRE(tc);
+
+	tc = cb->PostType(this);
+	HANDLE_TC_TYPE_POST(tc);
 	}
 
 TypeDecl::TypeDecl(const char* i, TypePtr t, detail::AttributesPtr arg_attrs)
@@ -1458,6 +1513,28 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 	return "";
 	}
 
+detail::TraversalCode RecordType::Traverse(detail::TraversalCallback* cb) const
+	{
+	auto tc = cb->PreType(this);
+	HANDLE_TC_TYPE_PRE(tc);
+
+	if ( types )
+		for ( const auto& td : *types )
+			{
+			tc = td->type->Traverse(cb);
+			HANDLE_TC_TYPE_PRE(tc);
+
+			if ( td->attrs )
+				{
+				tc = td->attrs->Traverse(cb);
+				HANDLE_TC_TYPE_PRE(tc);
+				}
+			}
+
+	tc = cb->PostType(this);
+	HANDLE_TC_TYPE_POST(tc);
+	}
+
 FileType::FileType(TypePtr yield_type) : Type(TYPE_FILE), yield(std::move(yield_type)) { }
 
 FileType::~FileType() = default;
@@ -1474,6 +1551,18 @@ void FileType::DoDescribe(ODesc* d) const
 		d->Add(int(Tag()));
 		yield->Describe(d);
 		}
+	}
+
+detail::TraversalCode FileType::Traverse(detail::TraversalCallback* cb) const
+	{
+	auto tc = cb->PreType(this);
+	HANDLE_TC_TYPE_PRE(tc);
+
+	tc = yield->Traverse(cb);
+	HANDLE_TC_TYPE_PRE(tc);
+
+	tc = cb->PostType(this);
+	HANDLE_TC_TYPE_POST(tc);
 	}
 
 OpaqueType::OpaqueType(const string& arg_name) : Type(TYPE_OPAQUE)
@@ -1830,6 +1919,18 @@ void VectorType::DescribeReST(ODesc* d, bool roles_only) const
 		yield_type->DescribeReST(d, roles_only);
 	else
 		d->Add(util::fmt(":zeek:type:`%s`", yield_type->GetName().c_str()));
+	}
+
+detail::TraversalCode VectorType::Traverse(detail::TraversalCallback* cb) const
+	{
+	auto tc = cb->PreType(this);
+	HANDLE_TC_TYPE_PRE(tc);
+
+	tc = yield_type->Traverse(cb);
+	HANDLE_TC_TYPE_PRE(tc);
+
+	tc = cb->PostType(this);
+	HANDLE_TC_TYPE_POST(tc);
 	}
 
 // Returns true if t1 is initialization-compatible with t2 (i.e., if an

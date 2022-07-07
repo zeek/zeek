@@ -142,7 +142,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	if ( packet_filter && packet_filter->Match(packet->ip_hdr, total_len, len) )
 		return false;
 
-	if ( ! packet->l2_checksummed && ! detail::ignore_checksums && ip4 &&
+	if ( ! packet->l3_checksummed && ! detail::ignore_checksums && ip4 &&
 	     ! IPBasedAnalyzer::GetIgnoreChecksumsNets()->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
 	     detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff )
 		{

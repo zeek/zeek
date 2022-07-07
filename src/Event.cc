@@ -15,7 +15,6 @@
 #include "zeek/plugin/Manager.h"
 
 zeek::EventMgr zeek::event_mgr;
-zeek::EventMgr& mgr = zeek::event_mgr;
 
 namespace zeek
 	{

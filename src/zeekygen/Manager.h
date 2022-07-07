@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <errno.h>
 #include <sys/stat.h>
+#include <cerrno>
 #include <ctime>
 #include <map>
 #include <string>

@@ -17,8 +17,8 @@
 #include "zeek/Traverse.h"
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
-#include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/StmtOptInfo.h"
+#include "zeek/script_opt/UsageAnalyzer.h"
 
 namespace zeek::detail
 	{
@@ -658,6 +658,9 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
 			id->Error("event cannot yield a value", t.get());
 
 		t->ClearYieldType(flavor);
+
+		if ( ! event_registry->Lookup(id->Name()) )
+			register_new_event(id);
 		}
 
 	std::optional<FuncType::Prototype> prototype;
@@ -718,6 +721,10 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
 
 	if ( Attr* depr_attr = find_attr(current_scope()->Attrs().get(), ATTR_DEPRECATED) )
 		current_scope()->GetID()->MakeDeprecated(depr_attr->GetExpr());
+
+	// Reset the AST node statistics to track afresh for this function.
+	Stmt::ResetNumStmts();
+	Expr::ResetNumExprs();
 	}
 
 class OuterIDBindingFinder : public TraversalCallback
@@ -738,16 +745,12 @@ TraversalCode OuterIDBindingFinder::PreStmt(const Stmt* stmt)
 	if ( stmt->Tag() != STMT_WHEN )
 		return TC_CONTINUE;
 
-	auto ws = static_cast<const WhenStmt*>(stmt);
-	auto lambda = ws->Info()->Lambda();
-
-	if ( ! lambda )
-		// Old-style semantics.
-		return TC_CONTINUE;
-
 	// The semantics of identifiers for the "when" statement are those
 	// of the lambda it's transformed into.
-	lambda->Traverse(this);
+
+	auto ws = static_cast<const WhenStmt*>(stmt);
+	ws->Info()->Lambda()->Traverse(this);
+
 	return TC_ABORTSTMT;
 	}
 
@@ -804,7 +807,10 @@ void end_func(StmtPtr body, bool free_of_conditionals)
 		// by duplicating can itself be correctly duplicated.
 		body = body->Duplicate()->Duplicate();
 
-	body->GetOptInfo()->is_free_of_conditionals = free_of_conditionals;
+	auto oi = body->GetOptInfo();
+	oi->is_free_of_conditionals = free_of_conditionals;
+	oi->num_stmts = Stmt::GetNumStmts();
+	oi->num_exprs = Expr::GetNumExprs();
 
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 

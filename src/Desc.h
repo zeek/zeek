@@ -21,7 +21,6 @@ class Type;
 enum DescType
 	{
 	DESC_READABLE,
-	DESC_PORTABLE,
 	DESC_BINARY,
 	};
 
@@ -39,7 +38,6 @@ public:
 	~ODesc();
 
 	bool IsReadable() const { return type == DESC_READABLE; }
-	bool IsPortable() const { return type == DESC_PORTABLE; }
 	bool IsBinary() const { return type == DESC_BINARY; }
 
 	bool IsShort() const { return is_short; }

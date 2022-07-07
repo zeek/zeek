@@ -61,7 +61,9 @@ type UnknownHandshake(hs: HandshakeRecord, is_orig: bool) = record {
 ######################################################################
 
 # Hello Request is empty
-type HelloRequest(rec: HandshakeRecord) = empty;
+type HelloRequest(rec: HandshakeRecord) = record {
+	direction_check : DirectionCheck(false, rec); # should be sent by responder
+};
 
 
 ######################################################################
@@ -69,6 +71,7 @@ type HelloRequest(rec: HandshakeRecord) = empty;
 ######################################################################
 
 type ClientHello(rec: HandshakeRecord) = record {
+	direction_check : DirectionCheck(true, rec); # should be sent by originator
 	client_version : uint16;
 	gmt_unix_time : uint32;
 	random_bytes : bytestring &length = 28;
@@ -100,6 +103,7 @@ type ClientHelloCookie(rec: HandshakeRecord) = record {
 # TLS 1.3 server hello is different from earlier versions. Trick around a
 # bit, route 1.3 requests to a different record than earlier.
 type ServerHelloChoice(rec: HandshakeRecord) = record {
+	direction_check : DirectionCheck(false, rec); # should be sent by responder
 	server_version0 : uint8;
 	server_version1 : uint8;
 	hello: case parsed_version of {
@@ -138,6 +142,13 @@ type ServerHello13(rec: HandshakeRecord, server_version: uint16) = record {
 } &let {
 	cipher_set : bool =
 		$context.connection.set_cipher(cipher_suite[0]);
+};
+
+# Used to check if originator/responder are reversed for this connection
+
+type DirectionCheck(desired: bool, rec: HandshakeRecord) = record {
+} &let {
+	proc : bool = $context.connection.check_flipped(desired, rec.is_orig);
 };
 
 ######################################################################
@@ -785,7 +796,7 @@ type SSLExtension(rec: HandshakeRecord) = record {
 
 %include tls-handshake-signed_certificate_timestamp.pac
 
-type SupportedVersionsSelector(rec: HandshakeRecord, data_len: uint16) = case rec.is_orig of {
+type SupportedVersionsSelector(rec: HandshakeRecord, data_len: uint16) = case ( rec.is_orig ^ $context.connection.flipped() ) of {
 	true -> a: SupportedVersions(rec);
 	false -> b: OneSupportedVersion(rec);
 }
@@ -946,9 +957,13 @@ refine connection Handshake_Conn += {
 		bytestring client_random_;
 		bytestring server_random_;
 		uint32 gmt_unix_time_;
+		bool flipped_;
+		bool already_alerted_;
 	%}
 
 	%init{
+		flipped_ = false;
+		already_alerted_ = false;
 		chosen_cipher_ = NO_CHOSEN_CIPHER;
 		chosen_version_ = UNKNOWN_VERSION;
 
@@ -983,6 +998,39 @@ refine connection Handshake_Conn += {
 
 		chosen_version_ = version;
 		return true;
+		%}
+
+	function check_flipped(desired: bool, is_orig: bool) : bool
+		%{
+		if ( flipped_ )
+			{
+			if ( desired == is_orig )
+				{
+				// well, I guess we get to flip it back - and alert on this
+				flipped_ = false;
+				zeek::BifEvent::enqueue_ssl_connection_flipped(zeek_analyzer(), zeek_analyzer()->Conn());
+				if ( ! already_alerted_ )
+					{
+					already_alerted_ = true;
+					zeek_analyzer()->Weird("SSL_unclear_connection_direction");
+					}
+				}
+			}
+			else
+			{
+			if ( desired != is_orig )
+				{
+				flipped_ = true;
+				zeek::BifEvent::enqueue_ssl_connection_flipped(zeek_analyzer(), zeek_analyzer()->Conn());
+				}
+			}
+
+		return true;
+		%}
+
+	function flipped() : bool
+		%{
+		return flipped_;
 		%}
 
 	function record_version() : uint16 %{ return record_version_; %}

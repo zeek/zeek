@@ -23,7 +23,6 @@
 #include <queue>
 #include <vector>
 
-#include "zeek/Dict.h"
 #include "zeek/IP.h"
 #include "zeek/Tag.h"
 #include "zeek/analyzer/Analyzer.h"

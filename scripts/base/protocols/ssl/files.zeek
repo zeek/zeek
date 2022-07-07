@@ -152,6 +152,7 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 		c$ssl$client_cert_chain_fps = string_vec();
 		}
 
+	# Note - for SSL connections, is_orig indicates client/server, not necessary originator/responder.
 	if ( f$is_orig )
 		c$ssl$client_cert_chain += f$info;
 	else

@@ -2,20 +2,30 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
+#include <fstream>
 #include <memory>
 #include <vector>
 
 #include "zeek/Hash.h"
+#include "zeek/Reporter.h"
 
 // Type for function to be called when deleting elements.
 using dict_delete_func = void (*)(void*);
 
+#if defined(DEBUG) && defined(ZEEK_DICT_DEBUG)
+#define ASSERT_VALID(o) o->AssertValid()
+#define ASSERT_EQUAL(a, b) ASSERT(a == b)
+#else
+#define ASSERT_VALID(o)
+#define ASSERT_EQUAL(a, b)
+#endif // DEBUG
+
 namespace zeek
 	{
 
-class IterCookie;
-class Dictionary;
+template <typename T> class Dictionary;
 
 enum DictOrder
 	{
@@ -28,8 +38,6 @@ extern void generic_delete_func(void*);
 
 namespace detail
 	{
-
-class DictEntry;
 
 // Default number of hash buckets in dictionary.  The dictionary will increase the size
 // of the hash table as needed.
@@ -60,7 +68,7 @@ constexpr uint16_t TOO_FAR_TO_REACH = 0xFFFF;
 /**
  * An entry stored in the dictionary.
  */
-class DictEntry
+template <typename T> class DictEntry
 	{
 public:
 #ifdef DEBUG
@@ -77,13 +85,13 @@ public:
 	// Lower 4 bytes of the 8-byte hash, which is used to calculate the position in the table.
 	uint32_t hash = 0;
 
-	void* value = nullptr;
+	T* value = nullptr;
 		union {
 		char key_here[8]; // hold key len<=8. when over 8, it's a pointer to real keys.
 		char* key;
 		};
 
-	DictEntry(void* arg_key, int key_size = 0, hash_t hash = 0, void* value = nullptr,
+	DictEntry(void* arg_key, int key_size = 0, hash_t hash = 0, T* value = nullptr,
 	          int16_t d = TOO_FAR_TO_REACH, bool copy_key = false)
 		: distance(d), key_size(key_size), hash((uint32_t)hash), value(value)
 		{
@@ -137,42 +145,135 @@ public:
 		return std::make_unique<detail::HashKey>(GetKey(), key_size, hash);
 		}
 
-	template <typename T> T GetValue() const { return static_cast<T>(value); }
-
 	bool Equal(const char* arg_key, int arg_key_size, hash_t arg_hash) const
 		{ // only 40-bit hash comparison.
 		return (0 == ((hash ^ arg_hash) & HASH_MASK)) && key_size == arg_key_size &&
 		       0 == memcmp(GetKey(), arg_key, key_size);
 		}
+
+	template <typename V>
+	[[deprecated("Remove in v6.1. Access the value in the entry directly.")]] T* GetValue() const
+		{
+		static_assert(std::is_same_v<T*, V>, "Type of DictEntry and type requested are different");
+		return value;
+		}
+
 	bool operator==(const DictEntry& r) const { return Equal(r.GetKey(), r.key_size, r.hash); }
 	bool operator!=(const DictEntry& r) const { return ! Equal(r.GetKey(), r.key_size, r.hash); }
 	};
 
 	} // namespace detail
 
-class DictIterator
+template <typename T> class DictIterator
 	{
 public:
-	using value_type = detail::DictEntry;
-	using reference = detail::DictEntry&;
-	using pointer = detail::DictEntry*;
+	using value_type = detail::DictEntry<T>;
+	using reference = detail::DictEntry<T>&;
+	using pointer = detail::DictEntry<T>*;
 	using difference_type = std::ptrdiff_t;
 	using iterator_category = std::forward_iterator_tag;
 
 	DictIterator() = default;
-	~DictIterator();
+	~DictIterator()
+		{
+		if ( dict )
+			{
+			assert(dict->num_iterators > 0);
+			dict->DecrIters();
+			}
+		}
 
-	DictIterator(const DictIterator& that);
-	DictIterator& operator=(const DictIterator& that);
-	DictIterator(DictIterator&& that);
-	DictIterator& operator=(DictIterator&& that);
+	DictIterator(const DictIterator& that)
+		{
+		if ( this == &that )
+			return;
+
+		if ( dict )
+			{
+			assert(dict->num_iterators > 0);
+			dict->DecrIters();
+			}
+
+		dict = that.dict;
+		curr = that.curr;
+		end = that.end;
+		dict->IncrIters();
+		}
+
+	DictIterator& operator=(const DictIterator& that)
+		{
+		if ( this == &that )
+			return *this;
+
+		if ( dict )
+			{
+			assert(dict->num_iterators > 0);
+			dict->DecrIters();
+			}
+
+		dict = that.dict;
+		curr = that.curr;
+		end = that.end;
+		dict->IncrIters();
+
+		return *this;
+		}
+
+	DictIterator(DictIterator&& that)
+		{
+		if ( this == &that )
+			return;
+
+		if ( dict )
+			{
+			assert(dict->num_iterators > 0);
+			dict->DecrIters();
+			}
+
+		dict = that.dict;
+		curr = that.curr;
+		end = that.end;
+
+		that.dict = nullptr;
+		}
+
+	DictIterator& operator=(DictIterator&& that)
+		{
+		if ( this == &that )
+			return *this;
+
+		if ( dict )
+			{
+			assert(dict->num_iterators > 0);
+			dict->DecrIters();
+			}
+
+		dict = that.dict;
+		curr = that.curr;
+		end = that.end;
+
+		that.dict = nullptr;
+
+		return *this;
+		}
 
 	reference operator*() { return *curr; }
 	reference operator*() const { return *curr; }
 	pointer operator->() { return curr; }
 	pointer operator->() const { return curr; }
 
-	DictIterator& operator++();
+	DictIterator& operator++()
+		{
+		// The non-robust case is easy. Just advanced the current position forward until you find
+		// one isn't empty and isn't the end.
+		do
+			{
+			++curr;
+			} while ( curr != end && curr->Empty() );
+
+		return *this;
+		}
+
 	DictIterator operator++(int)
 		{
 		auto temp(*this);
@@ -184,34 +285,110 @@ public:
 	bool operator!=(const DictIterator& that) const { return ! (*this == that); }
 
 private:
-	friend class Dictionary;
+	friend class Dictionary<T>;
 
-	DictIterator(const Dictionary* d, detail::DictEntry* begin, detail::DictEntry* end);
+	DictIterator(const Dictionary<T>* d, detail::DictEntry<T>* begin, detail::DictEntry<T>* end)
+		: curr(begin), end(end)
+		{
+		// Make sure that we're starting on a non-empty element.
+		while ( curr != end && curr->Empty() )
+			++curr;
 
-	Dictionary* dict = nullptr;
-	detail::DictEntry* curr = nullptr;
-	detail::DictEntry* end = nullptr;
+		// Cast away the constness so that the number of iterators can be modified in the
+		// dictionary. This does violate the constness guarantees of const-begin()/end() and
+		// cbegin()/cend(), but we're not modifying the actual data in the collection, just a
+		// counter in the wrapper of the collection.
+		dict = const_cast<Dictionary<T>*>(d);
+		dict->IncrIters();
+		}
+
+	Dictionary<T>* dict = nullptr;
+	detail::DictEntry<T>* curr = nullptr;
+	detail::DictEntry<T>* end = nullptr;
 	};
 
-class RobustDictIterator
+template <typename T> class RobustDictIterator
 	{
 public:
-	using value_type = detail::DictEntry;
-	using reference = detail::DictEntry&;
-	using pointer = detail::DictEntry*;
+	using value_type = detail::DictEntry<T>;
+	using reference = detail::DictEntry<T>&;
+	using pointer = detail::DictEntry<T>*;
 	using difference_type = std::ptrdiff_t;
 	using iterator_category = std::forward_iterator_tag;
 
 	RobustDictIterator() : curr(nullptr) { }
-	RobustDictIterator(Dictionary* d);
-	RobustDictIterator(const RobustDictIterator& other);
-	RobustDictIterator(RobustDictIterator&& other);
-	~RobustDictIterator();
+
+	RobustDictIterator(Dictionary<T>* d) : curr(nullptr), dict(d)
+		{
+		next = -1;
+		inserted = new std::vector<detail::DictEntry<T>>();
+		visited = new std::vector<detail::DictEntry<T>>();
+
+		dict->IncrIters();
+		dict->iterators->push_back(this);
+
+		// Advance the iterator one step so that we're at the first element.
+		curr = dict->GetNextRobustIteration(this);
+		}
+
+	RobustDictIterator(const RobustDictIterator& other) : curr(nullptr)
+		{
+		dict = nullptr;
+
+		if ( other.dict )
+			{
+			next = other.next;
+			inserted = new std::vector<detail::DictEntry<T>>();
+			visited = new std::vector<detail::DictEntry<T>>();
+
+			if ( other.inserted )
+				std::copy(other.inserted->begin(), other.inserted->end(),
+				          std::back_inserter(*inserted));
+
+			if ( other.visited )
+				std::copy(other.visited->begin(), other.visited->end(),
+				          std::back_inserter(*visited));
+
+			dict = other.dict;
+			dict->IncrIters();
+			dict->iterators->push_back(this);
+
+			curr = other.curr;
+			}
+		}
+
+	RobustDictIterator(RobustDictIterator&& other) : curr(nullptr)
+		{
+		dict = nullptr;
+
+		if ( other.dict )
+			{
+			next = other.next;
+			inserted = other.inserted;
+			visited = other.visited;
+
+			dict = other.dict;
+			dict->iterators->push_back(this);
+			dict->iterators->erase(
+				std::remove(dict->iterators->begin(), dict->iterators->end(), &other),
+				dict->iterators->end());
+			other.dict = nullptr;
+
+			curr = std::move(other.curr);
+			}
+		}
+
+	~RobustDictIterator() { Complete(); }
 
 	reference operator*() { return curr; }
 	pointer operator->() { return &curr; }
 
-	RobustDictIterator& operator++();
+	RobustDictIterator& operator++()
+		{
+		curr = dict->GetNextRobustIteration(this);
+		return *this;
+		}
+
 	RobustDictIterator operator++(int)
 		{
 		auto temp(*this);
@@ -223,19 +400,37 @@ public:
 	bool operator!=(const RobustDictIterator& that) const { return ! (*this == that); }
 
 private:
-	friend class Dictionary;
+	friend class Dictionary<T>;
 
-	void Complete();
+	void Complete()
+		{
+		if ( dict )
+			{
+			assert(dict->num_iterators > 0);
+			dict->DecrIters();
+
+			dict->iterators->erase(
+				std::remove(dict->iterators->begin(), dict->iterators->end(), this),
+				dict->iterators->end());
+
+			delete inserted;
+			delete visited;
+
+			inserted = nullptr;
+			visited = nullptr;
+			dict = nullptr;
+			}
+		}
 
 	// Tracks the new entries inserted while iterating.
-	std::vector<detail::DictEntry>* inserted = nullptr;
+	std::vector<detail::DictEntry<T>>* inserted = nullptr;
 
 	// Tracks the entries already visited but were moved across the next iteration
 	// point due to an insertion.
-	std::vector<detail::DictEntry>* visited = nullptr;
+	std::vector<detail::DictEntry<T>>* visited = nullptr;
 
-	detail::DictEntry curr;
-	Dictionary* dict = nullptr;
+	detail::DictEntry<T> curr;
+	Dictionary<T>* dict = nullptr;
 	int next = -1;
 	};
 
@@ -251,25 +446,56 @@ private:
  * the keys but not the values. The dictionary size will be bounded at around 100K. 1M
  * entries is the absolute limit. Only Connections use that many entries, and that is rare.
  */
-class Dictionary
+template <typename T> class Dictionary
 	{
 public:
 	explicit Dictionary(DictOrder ordering = UNORDERED,
-	                    int initial_size = detail::DEFAULT_DICT_SIZE);
-	~Dictionary();
+	                    int initial_size = detail::DEFAULT_DICT_SIZE)
+		{
+		if ( initial_size > 0 )
+			{
+			// If an initial size is speicified, init the table right away. Otherwise wait until the
+			// first insertion to init.
+			log2_buckets = Log2(initial_size);
+			Init();
+			}
+
+		if ( ordering == ORDERED )
+			order = new std::vector<detail::DictEntry<T>>;
+		}
+
+	~Dictionary() { Clear(); }
 
 	// Member functions for looking up a key, inserting/changing its
 	// contents, and deleting it.  These come in two flavors: one
 	// which takes a zeek::detail::HashKey, and the other which takes a raw key,
 	// its size, and its (unmodulated) hash.
 	// lookup may move the key to right place if in the old zone to speed up the next lookup.
-	void* Lookup(const detail::HashKey* key) const;
-	void* Lookup(const void* key, int key_size, detail::hash_t h) const;
+	T* Lookup(const detail::HashKey* key) const
+		{
+		return Lookup(key->Key(), key->Size(), key->Hash());
+		}
+
+	T* Lookup(const void* key, int key_size, detail::hash_t h) const
+		{
+		// Look up possibly modifies the entry. Why? if the entry is found but not positioned
+		// according to the current dict (so it's before SizeUp), it will be moved to the right
+		// position so next lookup is fast.
+		Dictionary* d = const_cast<Dictionary*>(this);
+		int position = d->LookupIndex(key, key_size, h);
+		return position >= 0 ? table[position].value : nullptr;
+		}
+
+	T* Lookup(const char* key) const
+		{
+		detail::HashKey h(key);
+		return Dictionary<T>::Lookup(&h);
+		}
 
 	// Returns previous value, or 0 if none.
 	// If iterators_invalidated is supplied, its value is set to true
 	// if the removal may have invalidated any existing iterators.
-	void* Insert(detail::HashKey* key, void* val, bool* iterators_invalidated = nullptr)
+	T* Insert(detail::HashKey* key, T* val, bool* iterators_invalidated = nullptr)
 		{
 		return Insert(key->TakeKey(), key->Size(), key->Hash(), val, false, iterators_invalidated);
 		}
@@ -279,20 +505,147 @@ public:
 	// manage as needed.
 	// If iterators_invalidated is supplied, its value is set to true
 	// if the removal may have invalidated any existing iterators.
-	void* Insert(void* key, int key_size, detail::hash_t hash, void* val, bool copy_key,
-	             bool* iterators_invalidated = nullptr);
+	T* Insert(void* key, int key_size, detail::hash_t hash, T* val, bool copy_key,
+	          bool* iterators_invalidated = nullptr)
+		{
+		ASSERT_VALID(this);
+
+		// Initialize the table if it hasn't been done yet. This saves memory storing a bunch
+		// of empty dicts.
+		if ( ! table )
+			Init();
+
+		T* v = nullptr;
+
+		// Look to see if this key is already in the table. If found, insert_position is the
+		// position of the existing element. If not, insert_position is where it'll be inserted
+		// and insert_distance is the distance of the key for the position.
+		int insert_position = -1, insert_distance = -1;
+		int position = LookupIndex(key, key_size, hash, &insert_position, &insert_distance);
+		if ( position >= 0 )
+			{
+			v = table[position].value;
+			table[position].value = val;
+			if ( ! copy_key )
+				delete[](char*) key;
+
+			if ( order )
+				{ // set new v to order too.
+				auto it = std::find(order->begin(), order->end(), table[position]);
+				ASSERT(it != order->end());
+				it->value = val;
+				}
+
+			if ( iterators && ! iterators->empty() )
+				// need to set new v for iterators too.
+				for ( auto c : *iterators )
+					{
+					// Check to see if this iterator points at the entry we're replacing. The
+					// iterator keeps a copy of the element, so we need to update it too.
+					if ( **c == table[position] )
+						(*c)->value = val;
+
+					// Check if any of the inserted elements in this iterator point at the entry
+					// being replaced. Update those too.
+					auto it = std::find(c->inserted->begin(), c->inserted->end(), table[position]);
+					if ( it != c->inserted->end() )
+						it->value = val;
+					}
+			}
+		else
+			{
+			if ( ! HaveOnlyRobustIterators() )
+				{
+				if ( iterators_invalidated )
+					*iterators_invalidated = true;
+				else
+					reporter->InternalWarning(
+						"Dictionary::Insert() possibly caused iterator invalidation");
+				}
+
+			// Allocate memory for key if necesary. Key is updated to reflect internal key if
+			// necessary.
+			detail::DictEntry<T> entry(key, key_size, hash, val, insert_distance, copy_key);
+			InsertRelocateAndAdjust(entry, insert_position);
+			if ( order )
+				order->push_back(entry);
+
+			num_entries++;
+			cum_entries++;
+			if ( max_entries < num_entries )
+				max_entries = num_entries;
+			if ( num_entries > ThresholdEntries() )
+				SizeUp();
+			}
+
+		// Remap after insert can adjust asap to shorten period of mixed table.
+		// TODO: however, if remap happens right after size up, then it consumes more cpu for this
+		// cycle, a possible hiccup point.
+		if ( Remapping() )
+			Remap();
+		ASSERT_VALID(this);
+		return v;
+		}
+
+	T* Insert(const char* key, T* val, bool* iterators_invalidated = nullptr)
+		{
+		detail::HashKey h(key);
+		return Insert(&h, val, iterators_invalidated);
+		}
 
 	// Removes the given element.  Returns a pointer to the element in
 	// case it needs to be deleted.  Returns 0 if no such element exists.
 	// If dontdelete is true, the key's bytes will not be deleted.
 	// If iterators_invalidated is supplied, its value is set to true
 	// if the removal may have invalidated any existing iterators.
-	void* Remove(const detail::HashKey* key, bool* iterators_invalidated = nullptr)
+	T* Remove(const detail::HashKey* key, bool* iterators_invalidated = nullptr)
 		{
 		return Remove(key->Key(), key->Size(), key->Hash(), false, iterators_invalidated);
 		}
-	void* Remove(const void* key, int key_size, detail::hash_t hash, bool dont_delete = false,
-	             bool* iterators_invalidated = nullptr);
+	T* Remove(const void* key, int key_size, detail::hash_t hash, bool dont_delete = false,
+	          bool* iterators_invalidated = nullptr)
+		{ // cookie adjustment: maintain inserts here. maintain next in lower level version.
+		ASSERT_VALID(this);
+
+		ASSERT(! dont_delete); // this is a poorly designed flag. if on, the internal has nowhere to
+		                       // return and memory is lost.
+
+		int position = LookupIndex(key, key_size, hash);
+		if ( position < 0 )
+			return nullptr;
+
+		if ( ! HaveOnlyRobustIterators() )
+			{
+			if ( iterators_invalidated )
+				*iterators_invalidated = true;
+			else
+				reporter->InternalWarning(
+					"Dictionary::Remove() possibly caused iterator invalidation");
+			}
+
+		detail::DictEntry<T> entry = RemoveRelocateAndAdjust(position);
+		num_entries--;
+		ASSERT(num_entries >= 0);
+		// e is about to be invalid. remove it from all references.
+		if ( order )
+			order->erase(std::remove(order->begin(), order->end(), entry), order->end());
+
+		T* v = entry.value;
+		entry.Clear();
+		ASSERT_VALID(this);
+		return v;
+		}
+
+	// TODO: these came from PDict. They could probably be deprecated and removed in favor of
+	// just using Remove().
+	T* RemoveEntry(const detail::HashKey* key, bool* iterators_invalidated = nullptr)
+		{
+		return Remove(key->Key(), key->Size(), key->Hash(), false, iterators_invalidated);
+		}
+	T* RemoveEntry(const detail::HashKey& key, bool* iterators_invalidated = nullptr)
+		{
+		return Remove(key.Key(), key.Size(), key.Hash(), false, iterators_invalidated);
+		}
 
 	// Number of entries.
 	int Length() const { return num_entries; }
@@ -312,74 +665,254 @@ public:
 	//
 	// Returns nil if the dictionary is not ordered or if "n" is out
 	// of range.
-	void* NthEntry(int n) const
+	T* NthEntry(int n) const
 		{
 		const void* key;
 		int key_len;
 		return NthEntry(n, key, key_len);
 		}
-	void* NthEntry(int n, const void*& key, int& key_len) const;
 
-	// To iterate through the dictionary, first call InitForIteration()
-	// to get an "iteration cookie".  The cookie can then be handed
-	// to NextEntry() to get the next entry in the iteration and update
-	// the cookie.  If NextEntry() indicates no more entries, it will
-	// also delete the cookie, or the cookie can be manually deleted
-	// prior to this if no longer needed.
-	//
-	// Unexpected results will occur if the elements of
-	// the dictionary are changed between calls to NextEntry() without
-	// first calling InitForIteration().
-	//
-	// If return_hash is true, a HashKey for the entry is returned in h,
-	// which should be delete'd when no longer needed.
-	[[deprecated("Remove in v5.1. Use begin() and the standard-library-compatible version of "
-	             "iteration.")]] IterCookie*
-	InitForIteration() const;
-	[[deprecated("Remove in v5.1. Use begin() and the standard-library-compatible version of "
-	             "iteration.")]] void*
-	NextEntry(detail::HashKey*& h, IterCookie*& cookie, bool return_hash) const;
-	[[deprecated("Remove in v5.1. Use begin() and the standard-library-compatible version of "
-	             "iteration.")]] void
-	StopIteration(IterCookie* cookie) const;
+	T* NthEntry(int n, const void*& key, int& key_size) const
+		{
+		if ( ! order || n < 0 || n >= Length() )
+			return nullptr;
+		detail::DictEntry<T> entry = (*order)[n];
+		key = entry.GetKey();
+		key_size = entry.key_size;
+		return entry.value;
+		}
+
+	T* NthEntry(int n, const char*& key) const
+		{
+		int key_len;
+		return NthEntry(n, (const void*&)key, key_len);
+		}
 
 	void SetDeleteFunc(dict_delete_func f) { delete_func = f; }
 
-	// With a robust cookie, it is safe to change the dictionary while
-	// iterating. This means that (i) we will eventually visit all
-	// unmodified entries as well as all entries added during iteration,
-	// and (ii) we won't visit any still-unseen entries which are getting
-	// removed. (We don't get this for free, so only use it if
-	// necessary.)
-	[[deprecated("Remove in v5.1. Use begin_robust() and the standard-library-compatible version "
-	             "of iteration.")]] void
-	MakeRobustCookie(IterCookie* cookie);
-
 	// Remove all entries.
-	void Clear();
+	void Clear()
+		{
+		if ( table )
+			{
+			for ( int i = Capacity() - 1; i >= 0; i-- )
+				{
+				if ( table[i].Empty() )
+					continue;
+				if ( delete_func )
+					delete_func(table[i].value);
+				table[i].Clear();
+				}
+			free(table);
+			table = nullptr;
+			}
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] size_t
-	MemoryAllocation() const;
+		if ( order )
+			{
+			delete order;
+			order = nullptr;
+			}
+		if ( iterators )
+			{
+			delete iterators;
+			iterators = nullptr;
+			}
+		log2_buckets = 0;
+		num_iterators = 0;
+		remaps = 0;
+		remap_end = -1;
+		num_entries = 0;
+		max_entries = 0;
+		}
 
 	/// The capacity of the table, Buckets + Overflow Size.
-	int Capacity(bool expected = false) const;
+	int Capacity(bool expected = false) const
+		{
+		int capacity = (1 << log2_buckets) + (log2_buckets + 0);
+		if ( expected )
+			return capacity;
+		return table ? capacity : 0;
+		}
 
 	// Debugging
-#ifdef DEBUG
-	void AssertValid() const;
-#endif // DEBUG
-	void Dump(int level = 0) const;
-	void DistanceStats(int& max_distance, int* distances = 0, int num_distances = 0) const;
-	void DumpKeys() const;
+#define DUMPIF(f)                                                                                  \
+	if ( f )                                                                                       \
+	Dump(1)
+
+#ifdef ZEEK_DICT_DEBUG
+	void AssertValid() const
+		{
+		bool valid = true;
+		int n = num_entries;
+
+		if ( table )
+			for ( int i = Capacity() - 1; i >= 0; i-- )
+				if ( ! table[i].Empty() )
+					n--;
+
+		valid = (n == 0);
+		ASSERT(valid);
+		DUMPIF(! valid);
+
+		// entries must clustered together
+		for ( int i = 1; i < Capacity(); i++ )
+			{
+			if ( ! table || table[i].Empty() )
+				continue;
+
+			if ( table[i - 1].Empty() )
+				{
+				valid = (table[i].distance == 0);
+				ASSERT(valid);
+				DUMPIF(! valid);
+				}
+			else
+				{
+				valid = (table[i].bucket >= table[i - 1].bucket);
+				ASSERT(valid);
+				DUMPIF(! valid);
+
+				if ( table[i].bucket == table[i - 1].bucket )
+					{
+					valid = (table[i].distance == table[i - 1].distance + 1);
+					ASSERT(valid);
+					DUMPIF(! valid);
+					}
+				else
+					{
+					valid = (table[i].distance <= table[i - 1].distance);
+					ASSERT(valid);
+					DUMPIF(! valid);
+					}
+				}
+			}
+		}
+#endif // ZEEK_DICT_DEBUG
+
+	void Dump(int level = 0) const
+		{
+		int key_size = 0;
+		for ( int i = 0; i < Capacity(); i++ )
+			{
+			if ( table[i].Empty() )
+				continue;
+			key_size += zeek::util::pad_size(table[i].key_size);
+			if ( ! table[i].value )
+				continue;
+			}
+
+#define DICT_NUM_DISTANCES 5
+		int distances[DICT_NUM_DISTANCES];
+		int max_distance = 0;
+		DistanceStats(max_distance, distances, DICT_NUM_DISTANCES);
+		printf("cap %'7d ent %'7d %'-7d load %.2f max_dist %2d key/ent %3d lg "
+		       "%2d remaps %1d remap_end %4d ",
+		       Capacity(), Length(), MaxLength(), (double)Length() / (table ? Capacity() : 1),
+		       max_distance, key_size / (Length() ? Length() : 1), log2_buckets, remaps, remap_end);
+		if ( Length() > 0 )
+			{
+			for ( int i = 0; i < DICT_NUM_DISTANCES - 1; i++ )
+				printf("[%d]%2d%% ", i, 100 * distances[i] / Length());
+			printf("[%d+]%2d%% ", DICT_NUM_DISTANCES - 1,
+			       100 * distances[DICT_NUM_DISTANCES - 1] / Length());
+			}
+		else
+			printf("\n");
+
+		printf("\n");
+		if ( level >= 1 )
+			{
+			printf("%-10s %1s %-10s %-4s %-4s %-10s %-18s %-2s\n", "Index", "*", "Bucket", "Dist",
+			       "Off", "Hash", "FibHash", "KeySize");
+			for ( int i = 0; i < Capacity(); i++ )
+				if ( table[i].Empty() )
+					printf("%'10d \n", i);
+				else
+					printf("%'10d %1s %'10d %4d %4d 0x%08x 0x%016" PRIx64 "(%3d) %2d\n", i,
+					       (i <= remap_end ? "*" : ""), BucketByPosition(i), (int)table[i].distance,
+					       OffsetInClusterByPosition(i), uint(table[i].hash),
+					       FibHash(table[i].hash), (int)FibHash(table[i].hash) & 0xFF,
+					       (int)table[i].key_size);
+			}
+		}
+
+	void DistanceStats(int& max_distance, int* distances = 0, int num_distances = 0) const
+		{
+		max_distance = 0;
+		for ( int i = 0; i < num_distances; i++ )
+			distances[i] = 0;
+
+		for ( int i = 0; i < Capacity(); i++ )
+			{
+			if ( table[i].Empty() )
+				continue;
+			if ( table[i].distance > max_distance )
+				max_distance = table[i].distance;
+			if ( num_distances <= 0 || ! distances )
+				continue;
+			if ( table[i].distance >= num_distances - 1 )
+				distances[num_distances - 1]++;
+			else
+				distances[table[i].distance]++;
+			}
+		}
+
+	void DumpKeys() const
+		{
+		if ( ! table )
+			return;
+
+		char key_file[100];
+		// Detect string or binary from first key.
+		int i = 0;
+		while ( table[i].Empty() && i < Capacity() )
+			i++;
+
+		bool binary = false;
+		const char* key = table[i].GetKey();
+		for ( int j = 0; j < table[i].key_size; j++ )
+			if ( ! isprint(key[j]) )
+				{
+				binary = true;
+				break;
+				}
+		int max_distance = 0;
+
+		DistanceStats(max_distance);
+		if ( binary )
+			{
+			char key = char(random() % 26) + 'A';
+			sprintf(key_file, "%d.%d-%c.key", Length(), max_distance, key);
+			std::ofstream f(key_file, std::ios::binary | std::ios::out | std::ios::trunc);
+			for ( int idx = 0; idx < Capacity(); idx++ )
+				if ( ! table[idx].Empty() )
+					{
+					int key_size = table[idx].key_size;
+					f.write((const char*)&key_size, sizeof(int));
+					f.write(table[idx].GetKey(), table[idx].key_size);
+					}
+			}
+		else
+			{
+			char key = char(random() % 26) + 'A';
+			sprintf(key_file, "%d.%d-%d.ckey", Length(), max_distance, key);
+			std::ofstream f(key_file, std::ios::out | std::ios::trunc);
+			for ( int idx = 0; idx < Capacity(); idx++ )
+				if ( ! table[idx].Empty() )
+					{
+					std::string s((char*)table[idx].GetKey(), table[idx].key_size);
+					f << s << std::endl;
+					}
+			}
+		}
 
 	// Type traits needed for some of the std algorithms to work
-	using value_type = detail::DictEntry;
-	using pointer = detail::DictEntry*;
-	using const_pointer = const detail::DictEntry*;
+	using value_type = detail::DictEntry<T>;
+	using pointer = detail::DictEntry<T>*;
+	using const_pointer = const detail::DictEntry<T>*;
 
 	// Iterator support
-	using iterator = DictIterator;
+	using iterator = DictIterator<T>;
 	using const_iterator = const iterator;
 	using reverse_iterator = std::reverse_iterator<iterator>;
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
@@ -391,123 +924,567 @@ public:
 	const_iterator cbegin() { return {this, table, table + Capacity()}; }
 	const_iterator cend() { return {this, table + Capacity(), table + Capacity()}; }
 
-	RobustDictIterator begin_robust() { return MakeRobustIterator(); }
-	RobustDictIterator end_robust() { return RobustDictIterator(); }
+	RobustDictIterator<T> begin_robust() { return MakeRobustIterator(); }
+	RobustDictIterator<T> end_robust() { return RobustDictIterator<T>(); }
 
 private:
-	friend zeek::IterCookie;
-	friend zeek::DictIterator;
-	friend zeek::RobustDictIterator;
+	friend zeek::DictIterator<T>;
+	friend zeek::RobustDictIterator<T>;
 
 	/// Buckets of the table, not including overflow size.
-	int Buckets(bool expected = false) const;
+	int Buckets(bool expected = false) const
+		{
+		int buckets = (1 << log2_buckets);
+		if ( expected )
+			return buckets;
+		return table ? buckets : 0;
+		}
 
 	// bucket math
-	int Log2(int num) const;
-	int ThresholdEntries() const;
+	int Log2(int num) const
+		{
+		int i = 0;
+		while ( num >>= 1 )
+			i++;
+		return i;
+		}
+
+	int ThresholdEntries() const
+		{
+		// Increase the size of the dictionary when it is 75% full. However, when the dictionary
+		// is small ( <= 20 elements ), only resize it when it's 100% full. The dictionary will
+		// always resize when the current insertion causes it to be full. This ensures that the
+		// current insertion should always be successful.
+		int capacity = Capacity();
+		if ( log2_buckets <= detail::DICT_THRESHOLD_BITS )
+			return capacity; // 20 or less elements, 1.0, only size up when necessary.
+		return capacity - (capacity >> detail::DICT_LOAD_FACTOR_BITS);
+		}
 
 	// Used to improve the distribution of the original hash.
-	detail::hash_t FibHash(detail::hash_t h) const;
+	detail::hash_t FibHash(detail::hash_t h) const
+		{
+		// GoldenRatio phi = (sqrt(5)+1)/2 = 1.6180339887...
+		// 1/phi = phi - 1
+		h &= detail::HASH_MASK;
+		h *= 11400714819323198485llu; // 2^64/phi
+		return h;
+		}
 
 	// Maps a hash to the appropriate n-bit table bucket.
-	int BucketByHash(detail::hash_t h, int bit) const;
+	int BucketByHash(detail::hash_t h, int bit) const
+		{
+		ASSERT(bit >= 0);
+		if ( ! bit )
+			return 0; //<< >> breaks on  64.
+
+#ifdef DICT_NO_FIB_HASH
+		detail::hash_t hash = h;
+#else
+		detail::hash_t hash = FibHash(h);
+#endif
+
+		int m = 64 - bit;
+		hash <<= m;
+		hash >>= m;
+
+		return hash;
+		}
 
 	// Given a position of a non-empty item in the table, find the related bucket.
-	int BucketByPosition(int position) const;
+	int BucketByPosition(int position) const
+		{
+		ASSERT(table && position >= 0 && position < Capacity() && ! table[position].Empty());
+		return position - table[position].distance;
+		}
 
 	// Given a bucket of a non-empty item in the table, find the end of its cluster.
 	// The end should be equal to tail+1 if tail exists. Otherwise it's the tail of
 	// the just-smaller cluster + 1.
-	int EndOfClusterByBucket(int bucket) const;
+	int EndOfClusterByBucket(int bucket) const
+		{
+		ASSERT(bucket >= 0 && bucket < Buckets());
+		int i = bucket;
+		while ( i < Capacity() && ! table[i].Empty() && BucketByPosition(i) <= bucket )
+			i++;
+		return i;
+		}
 
 	// Given a position of a non-empty item in the table, find the head of its cluster.
-	int HeadOfClusterByPosition(int position) const;
+	int HeadOfClusterByPosition(int position) const
+		{
+		// Finding the first entry in the bucket chain.
+		ASSERT(0 <= position && position < Capacity() && ! table[position].Empty());
+
+		// Look backward for the first item with the same bucket as myself.
+		int bucket = BucketByPosition(position);
+		int i = position;
+		while ( i >= bucket && BucketByPosition(i) == bucket )
+			i--;
+
+		return i == bucket ? i : i + 1;
+		}
 
 	// Given a position of a non-empty item in the table, find the tail of its cluster.
-	int TailOfClusterByPosition(int position) const;
+	int TailOfClusterByPosition(int position) const
+		{
+		ASSERT(0 <= position && position < Capacity() && ! table[position].Empty());
+
+		int bucket = BucketByPosition(position);
+		int i = position;
+		while ( i < Capacity() && ! table[i].Empty() && BucketByPosition(i) == bucket )
+			i++; // stop just over the tail.
+
+		return i - 1;
+		}
 
 	// Given a position of a non-empty item in the table, find the end of its cluster.
 	// The end should be equal to tail+1 if tail exists. Otherwise it's the tail of
 	// the just-smaller cluster + 1.
-	int EndOfClusterByPosition(int position) const;
+	int EndOfClusterByPosition(int position) const { return TailOfClusterByPosition(position) + 1; }
 
 	// Given a position of a non-empty item in the table, find the offset of it within
 	// its cluster.
-	int OffsetInClusterByPosition(int position) const;
+	int OffsetInClusterByPosition(int position) const
+		{
+		ASSERT(0 <= position && position < Capacity() && ! table[position].Empty());
+		int head = HeadOfClusterByPosition(position);
+		return position - head;
+		}
 
-	// Next non-empty item position in the table.
-	int Next(int i) const;
+	// Next non-empty item position in the table, starting at the specified position.
+	int Next(int position) const
+		{
+		ASSERT(table && -1 <= position && position < Capacity());
 
-	void Init();
+		do
+			{
+			position++;
+			} while ( position < Capacity() && table[position].Empty() );
 
-	// Iteration
-	[[deprecated("Remove in v5.1. Use begin() and the standard-library-compatible version of "
-	             "iteration.")]] IterCookie*
-	InitForIterationNonConst();
-	[[deprecated("Remove in v5.1. Use begin() and the standard-library-compatible version of "
-	             "iteration.")]] void*
-	NextEntryNonConst(detail::HashKey*& h, IterCookie*& cookie, bool return_hash);
-	[[deprecated("Remove in v5.1. Use begin() and the standard-library-compatible version of "
-	             "iteration.")]] void
-	StopIterationNonConst(IterCookie* cookie);
+		return position;
+		}
+
+	void Init()
+		{
+		ASSERT(! table);
+		table = (detail::DictEntry<T>*)malloc(sizeof(detail::DictEntry<T>) * Capacity(true));
+		for ( int i = Capacity() - 1; i >= 0; i-- )
+			table[i].SetEmpty();
+		}
 
 	// Lookup
-	int LinearLookupIndex(const void* key, int key_size, detail::hash_t hash) const;
-	int LookupIndex(const void* key, int key_size, detail::hash_t hash,
-	                int* insert_position = nullptr, int* insert_distance = nullptr);
-	int LookupIndex(const void* key, int key_size, detail::hash_t hash, int begin, int end,
-	                int* insert_position = nullptr, int* insert_distance = nullptr);
+	int LinearLookupIndex(const void* key, int key_size, detail::hash_t hash) const
+		{
+		for ( int i = 0; i < Capacity(); i++ )
+			if ( ! table[i].Empty() && table[i].Equal((const char*)key, key_size, hash) )
+				return i;
+		return -1;
+		}
 
-	/// Insert entry, Adjust cookies when necessary.
-	void InsertRelocateAndAdjust(detail::DictEntry& entry, int insert_position);
+	// Lookup position for all possible table_sizes caused by remapping. Remap it immediately
+	// if not in the middle of iteration.
+	int LookupIndex(const void* key, int key_size, detail::hash_t hash,
+	                int* insert_position = nullptr, int* insert_distance = nullptr)
+		{
+		ASSERT_VALID(this);
+		if ( ! table )
+			return -1;
+
+		int bucket = BucketByHash(hash, log2_buckets);
+#ifdef ZEEK_DICT_DEBUG
+		int linear_position = LinearLookupIndex(key, key_size, hash);
+#endif // ZEEK_DICT_DEBUG
+		int position = LookupIndex(key, key_size, hash, bucket, Capacity(), insert_position,
+		                           insert_distance);
+		if ( position >= 0 )
+			{
+			ASSERT_EQUAL(position, linear_position); // same as linearLookup
+			return position;
+			}
+
+		for ( int i = 1; i <= remaps; i++ )
+			{
+			int prev_bucket = BucketByHash(hash, log2_buckets - i);
+			if ( prev_bucket <= remap_end )
+				{
+				// possibly here. insert_position & insert_distance returned on failed lookup is
+				// not valid in previous table_sizes.
+				position = LookupIndex(key, key_size, hash, prev_bucket, remap_end + 1);
+				if ( position >= 0 )
+					{
+					ASSERT_EQUAL(position, linear_position); // same as linearLookup
+					// remap immediately if no iteration is on.
+					if ( ! num_iterators )
+						{
+						Remap(position, &position);
+						ASSERT_EQUAL(position, LookupIndex(key, key_size, hash));
+						}
+					return position;
+					}
+				}
+			}
+		// not found
+#ifdef ZEEK_DICT_DEBUG
+		if ( linear_position >= 0 )
+			{ // different. stop and try to see whats happending.
+			ASSERT(false);
+			// rerun the function in debugger to track down the bug.
+			LookupIndex(key, key_size, hash);
+			}
+#endif // ZEEK_DICT_DEBUG
+		return -1;
+		}
+
+	// Returns the position of the item if it exists. Otherwise returns -1, but set the insert
+	// position/distance if required. The starting point for the search may not be the bucket
+	// for the current table size since this method is also used to search for an item in the
+	// previous table size.
+	int LookupIndex(const void* key, int key_size, detail::hash_t hash, int begin, int end,
+	                int* insert_position = nullptr, int* insert_distance = nullptr)
+		{
+		ASSERT(begin >= 0 && begin < Buckets());
+		int i = begin;
+		for ( ; i < end && ! table[i].Empty() && BucketByPosition(i) <= begin; i++ )
+			if ( BucketByPosition(i) == begin && table[i].Equal((char*)key, key_size, hash) )
+				return i;
+
+		// no such cluster, or not found in the cluster.
+		if ( insert_position )
+			*insert_position = i;
+
+		if ( insert_distance )
+			{
+			*insert_distance = i - begin;
+
+			if ( *insert_distance >= detail::TOO_FAR_TO_REACH )
+				reporter->FatalErrorWithCore("Dictionary (size %d) insertion distance too far: %d",
+				                             Length(), *insert_distance);
+			}
+
+		return -1;
+		}
+
+	/// Insert entry, Adjust iterators when necessary.
+	void InsertRelocateAndAdjust(detail::DictEntry<T>& entry, int insert_position)
+		{
+/// e.distance is adjusted to be the one at insert_position.
+#ifdef ZEEK_DICT_DEBUG
+		entry.bucket = BucketByHash(entry.hash, log2_buckets);
+#endif // ZEEK_DICT_DEBUG
+		int last_affected_position = insert_position;
+		InsertAndRelocate(entry, insert_position, &last_affected_position);
+
+		// If remapping in progress, adjust the remap_end to step back a little to cover the new
+		// range if the changed range straddles over remap_end.
+		if ( Remapping() && insert_position <= remap_end && remap_end < last_affected_position )
+			{ //[i,j] range changed. if map_end in between. then possibly old entry pushed down
+			  // across
+			  // map_end.
+			remap_end = last_affected_position; // adjust to j on the conservative side.
+			}
+
+		if ( iterators && ! iterators->empty() )
+			for ( auto c : *iterators )
+				AdjustOnInsert(c, entry, insert_position, last_affected_position);
+		}
 
 	/// insert entry into position, relocate other entries when necessary.
-	void InsertAndRelocate(detail::DictEntry& entry, int insert_position,
-	                       int* last_affected_position = nullptr);
+	void InsertAndRelocate(detail::DictEntry<T>& entry, int insert_position,
+	                       int* last_affected_position = nullptr)
+		{ /// take out the head of cluster and append to the end of the cluster.
+		while ( true )
+			{
+			if ( insert_position >= Capacity() )
+				{
+				ASSERT(insert_position == Capacity());
+				SizeUp(); // copied all the items to new table. as it's just copying without
+				          // remapping, insert_position is now empty.
+				table[insert_position] = entry;
+				if ( last_affected_position )
+					*last_affected_position = insert_position;
+				return;
+				}
+			if ( table[insert_position].Empty() )
+				{ // the condition to end the loop.
+				table[insert_position] = entry;
+				if ( last_affected_position )
+					*last_affected_position = insert_position;
+				return;
+				}
 
-	/// Adjust Cookies on Insert.
-	[[deprecated("Remove in v5.1. Use the standard-library-compatible version of iteration and the "
-	             "version that takes a RobustDictIterator.")]] void
-	AdjustOnInsert(IterCookie* c, const detail::DictEntry& entry, int insert_position,
-	               int last_affected_position);
-	void AdjustOnInsert(RobustDictIterator* c, const detail::DictEntry& entry, int insert_position,
-	                    int last_affected_position);
+			// the to-be-swapped-out item appends to the end of its original cluster.
+			auto t = table[insert_position];
+			int next = EndOfClusterByPosition(insert_position);
+			t.distance += next - insert_position;
 
-	/// Remove, Relocate & Adjust cookies.
-	detail::DictEntry RemoveRelocateAndAdjust(int position);
+			// swap
+			table[insert_position] = entry;
+			entry = t;
+			insert_position = next; // append to the end of the current cluster.
+			}
+		}
+
+	/// Adjust Iterators on Insert.
+	void AdjustOnInsert(RobustDictIterator<T>* c, const detail::DictEntry<T>& entry,
+	                    int insert_position, int last_affected_position)
+		{
+		// See note in Dictionary::AdjustOnInsert() above.
+		c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
+		                   c->inserted->end());
+		c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
+		                  c->visited->end());
+
+		if ( insert_position < c->next )
+			c->inserted->push_back(entry);
+		if ( insert_position < c->next && c->next <= last_affected_position )
+			{
+			int k = TailOfClusterByPosition(c->next);
+			ASSERT(k >= 0 && k < Capacity());
+			c->visited->push_back(table[k]);
+			}
+		}
+
+	/// Remove, Relocate & Adjust iterators.
+	detail::DictEntry<T> RemoveRelocateAndAdjust(int position)
+		{
+		int last_affected_position = position;
+		detail::DictEntry<T> entry = RemoveAndRelocate(position, &last_affected_position);
+
+#ifdef ZEEK_DICT_DEBUG
+		// validation: index to i-1 should be continuous without empty spaces.
+		for ( int k = position; k < last_affected_position; k++ )
+			ASSERT(! table[k].Empty());
+#endif // ZEEK_DICT_DEBUG
+
+		if ( iterators && ! iterators->empty() )
+			for ( auto c : *iterators )
+				AdjustOnRemove(c, entry, position, last_affected_position);
+
+		return entry;
+		}
 
 	/// Remove & Relocate
-	detail::DictEntry RemoveAndRelocate(int position, int* last_affected_position = nullptr);
+	detail::DictEntry<T> RemoveAndRelocate(int position, int* last_affected_position = nullptr)
+		{
+		// fill the empty position with the tail of the cluster of position+1.
+		ASSERT(position >= 0 && position < Capacity() && ! table[position].Empty());
 
-	/// Adjust safe cookies after Removal of entry at position.
-	[[deprecated("Remove in v5.1. Use the standard-library-compatible version of iteration and the "
-	             "version that takes a RobustDictIterator.")]] void
-	AdjustOnRemove(IterCookie* c, const detail::DictEntry& entry, int position,
-	               int last_affected_position);
-	void AdjustOnRemove(RobustDictIterator* c, const detail::DictEntry& entry, int position,
-	                    int last_affected_position);
+		detail::DictEntry<T> entry = table[position];
+		while ( true )
+			{
+			if ( position == Capacity() - 1 || table[position + 1].Empty() ||
+			     table[position + 1].distance == 0 )
+				{
+				// no next cluster to fill, or next position is empty or next position is already in
+				// perfect bucket.
+				table[position].SetEmpty();
+				if ( last_affected_position )
+					*last_affected_position = position;
+				return entry;
+				}
+			int next = TailOfClusterByPosition(position + 1);
+			table[position] = table[next];
+			table[position].distance -= next - position; // distance improved for the item.
+			position = next;
+			}
+
+		return entry;
+		}
+
+	/// Adjust safe iterators after Removal of entry at position.
+	void AdjustOnRemove(RobustDictIterator<T>* c, const detail::DictEntry<T>& entry, int position,
+	                    int last_affected_position)
+		{
+		// See note in Dictionary::AdjustOnInsert() above.
+		c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry),
+		                   c->inserted->end());
+		c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry),
+		                  c->visited->end());
+
+		if ( position < c->next && c->next <= last_affected_position )
+			{
+			int moved = HeadOfClusterByPosition(c->next - 1);
+			if ( moved < position )
+				moved = position;
+			c->inserted->push_back(table[moved]);
+			}
+
+		// if not already the end of the dictionary, adjust next to a valid one.
+		if ( c->next < Capacity() && table[c->next].Empty() )
+			c->next = Next(c->next);
+
+		if ( c->curr == entry )
+			{
+			if ( c->next >= 0 && c->next < Capacity() && ! table[c->next].Empty() )
+				c->curr = table[c->next];
+			else
+				c->curr = detail::DictEntry<T>(nullptr); // -> c == end_robust()
+			}
+		}
 
 	bool Remapping() const { return remap_end >= 0; } // remap in reverse order.
 
 	/// One round of remap.
-	void Remap();
+	void Remap()
+		{
+		/// since remap should be very fast. take more at a time.
+		/// delay Remap when cookie is there. hard to handle cookie iteration while size changes.
+		/// remap from bottom up.
+		/// remap creates two parts of the dict: [0,remap_end] (remap_end, ...]. the former is mixed
+		/// with old/new entries; the latter contains all new entries.
+		///
+		if ( num_iterators > 0 )
+			return;
+
+		int left = detail::DICT_REMAP_ENTRIES;
+		while ( remap_end >= 0 && left > 0 )
+			{
+			if ( ! table[remap_end].Empty() && Remap(remap_end) )
+				left--;
+			else //< successful Remap may increase remap_end in the case of SizeUp due to insert. if
+			     // so,
+			     // remap_end need to be worked on again.
+				remap_end--;
+			}
+		if ( remap_end < 0 )
+			remaps = 0; // done remapping.
+		}
 
 	// Remap an item in position to a new position. Returns true if the relocation was
 	// successful, false otherwise. new_position will be set to the new position if a
 	// pointer is provided to store the new value.
-	bool Remap(int position, int* new_position = nullptr);
+	bool Remap(int position, int* new_position = nullptr)
+		{
+		ASSERT_VALID(this);
+		/// Remap changes item positions by remove() and insert(). to avoid excessive operation.
+		/// avoid it when safe iteration is in progress.
+		ASSERT(! iterators || iterators->empty());
+		int current = BucketByPosition(position); // current bucket
+		int expected = BucketByHash(table[position].hash, log2_buckets); // expected bucket in new
+		                                                                 // table.
+		// equal because 1: it's a new item, 2: it's an old item, but new bucket is the same as old.
+		// 50% of old items act this way due to fibhash.
+		if ( current == expected )
+			return false;
+		detail::DictEntry<T> entry = RemoveAndRelocate(
+			position); // no iteration cookies to adjust, no need for last_affected_position.
+#ifdef ZEEK_DICT_DEBUG
+		entry.bucket = expected;
+#endif // ZEEK_DICT_DEBUG
 
-	void SizeUp();
+		// find insert position.
+		int insert_position = EndOfClusterByBucket(expected);
+		if ( new_position )
+			*new_position = insert_position;
+		entry.distance = insert_position - expected;
+		InsertAndRelocate(
+			entry,
+			insert_position); // no iteration cookies to adjust, no need for last_affected_position.
+		ASSERT_VALID(this);
+		return true;
+		}
+
+	void SizeUp()
+		{
+		int prev_capacity = Capacity();
+		log2_buckets++;
+		int capacity = Capacity();
+		table = (detail::DictEntry<T>*)realloc(table, capacity * sizeof(detail::DictEntry<T>));
+		for ( int i = prev_capacity; i < capacity; i++ )
+			table[i].SetEmpty();
+
+		// REmap from last to first in reverse order. SizeUp can be triggered by 2 conditions, one
+		// of which is that the last space in the table is occupied and there's nowhere to put new
+		// items. In this case, the table doubles in capacity and the item is put at the
+		// prev_capacity position with the old hash. We need to cover this item (?).
+		remap_end = prev_capacity; // prev_capacity instead of prev_capacity-1.
+
+		// another remap starts.
+		remaps++; // used in Lookup() to cover SizeUp with incomplete remaps.
+		ASSERT(remaps <= log2_buckets); // because we only sizeUp, one direction. we know the
+		                                // previous log2_buckets.
+		}
 
 	bool HaveOnlyRobustIterators() const
 		{
-		return (num_iterators == 0) ||
-		       ((cookies ? cookies->size() : 0) + (iterators ? iterators->size() : 0) ==
-		        num_iterators);
+		return (num_iterators == 0) || ((iterators ? iterators->size() : 0) == num_iterators);
 		}
 
-	RobustDictIterator MakeRobustIterator();
-	detail::DictEntry GetNextRobustIteration(RobustDictIterator* iter);
+	RobustDictIterator<T> MakeRobustIterator()
+		{
+		if ( ! iterators )
+			iterators = new std::vector<RobustDictIterator<T>*>;
+
+		return {this};
+		}
+
+	detail::DictEntry<T> GetNextRobustIteration(RobustDictIterator<T>* iter)
+		{
+		// If there are any inserted entries, return them first.
+		// That keeps the list small and helps avoiding searching
+		// a large list when deleting an entry.
+		if ( ! table )
+			{
+			iter->Complete();
+			return detail::DictEntry<T>(nullptr); // end of iteration
+			}
+
+		if ( iter->inserted && ! iter->inserted->empty() )
+			{
+			// Return the last one. Order doesn't matter,
+			// and removing from the tail is cheaper.
+			detail::DictEntry<T> e = iter->inserted->back();
+			iter->inserted->pop_back();
+			return e;
+			}
+
+		if ( iter->next < 0 )
+			iter->next = Next(-1);
+
+		if ( iter->next < Capacity() && table[iter->next].Empty() )
+			{
+			// [Robin] I believe this means that the table has resized in a way
+			// that we're now inside the overflow area where elements are empty,
+			// because elsewhere empty slots aren't allowed. Assuming that's right,
+			// then it means we'll always be at the end of the table now and could
+			// also just set `next` to capacity. However, just to be sure, we
+			// instead reuse logic from below to move forward "to a valid position"
+			// and then double check, through an assertion in debug mode, that it's
+			// actually the end. If this ever triggered, the above assumption would
+			// be wrong (but the Next() call would probably still be right).
+			iter->next = Next(iter->next);
+			ASSERT(iter->next == Capacity());
+			}
+
+		// Filter out visited keys.
+		int capacity = Capacity();
+		if ( iter->visited && ! iter->visited->empty() )
+			// Filter out visited entries.
+			while ( iter->next < capacity )
+				{
+				ASSERT(! table[iter->next].Empty());
+				auto it = std::find(iter->visited->begin(), iter->visited->end(),
+				                    table[iter->next]);
+				if ( it == iter->visited->end() )
+					break;
+				iter->visited->erase(it);
+				iter->next = Next(iter->next);
+				}
+
+		if ( iter->next >= capacity )
+			{
+			iter->Complete();
+			return detail::DictEntry<T>(nullptr); // end of iteration
+			}
+
+		ASSERT(! table[iter->next].Empty());
+		detail::DictEntry<T> e = table[iter->next];
+
+		// prepare for next time.
+		iter->next = Next(iter->next);
+		return e;
+		}
 
 	void IncrIters() { ++num_iterators; }
 	void DecrIters() { --num_iterators; }
@@ -533,70 +1510,13 @@ private:
 	uint64_t cum_entries = 0;
 
 	dict_delete_func delete_func = nullptr;
-	detail::DictEntry* table = nullptr;
-	std::vector<IterCookie*>* cookies = nullptr;
-	std::vector<RobustDictIterator*>* iterators = nullptr;
+	detail::DictEntry<T>* table = nullptr;
+	std::vector<RobustDictIterator<T>*>* iterators = nullptr;
 
 	// Order means the order of insertion. means no deletion until exit. will be inefficient.
-	std::vector<detail::DictEntry>* order = nullptr;
+	std::vector<detail::DictEntry<T>>* order = nullptr;
 	};
 
-/*
- * Template specialization of Dictionary that stores pointers for values.
- */
-template <typename T> class PDict : public Dictionary
-	{
-public:
-	explicit PDict(DictOrder ordering = UNORDERED, int initial_size = 0)
-		: Dictionary(ordering, initial_size)
-		{
-		}
-	T* Lookup(const char* key) const
-		{
-		detail::HashKey h(key);
-		return (T*)Dictionary::Lookup(&h);
-		}
-	T* Lookup(const detail::HashKey* key) const { return (T*)Dictionary::Lookup(key); }
-	T* Insert(const char* key, T* val, bool* iterators_invalidated = nullptr)
-		{
-		detail::HashKey h(key);
-		return (T*)Dictionary::Insert(&h, (void*)val, iterators_invalidated);
-		}
-	T* Insert(detail::HashKey* key, T* val, bool* iterators_invalidated = nullptr)
-		{
-		return (T*)Dictionary::Insert(key, (void*)val, iterators_invalidated);
-		}
-	T* NthEntry(int n) const { return (T*)Dictionary::NthEntry(n); }
-	T* NthEntry(int n, const char*& key) const
-		{
-		int key_len;
-		return (T*)Dictionary::NthEntry(n, (const void*&)key, key_len);
-		}
-	[[deprecated("Remove in v5.1. Use the standard-library-compatible version of iteration.")]] T*
-	NextEntry(IterCookie*& cookie) const
-		{
-		detail::HashKey* h;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		return (T*)Dictionary::NextEntry(h, cookie, false);
-#pragma GCC diagnostic pop
-		}
-	[[deprecated("Remove in v5.1. Use the standard-library-compatible version of iteration.")]] T*
-	NextEntry(detail::HashKey*& h, IterCookie*& cookie) const
-		{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		return (T*)Dictionary::NextEntry(h, cookie, true);
-#pragma GCC diagnostic pop
-		}
-	T* RemoveEntry(const detail::HashKey* key, bool* iterators_invalidated = nullptr)
-		{
-		return (T*)Remove(key->Key(), key->Size(), key->Hash(), false, iterators_invalidated);
-		}
-	T* RemoveEntry(const detail::HashKey& key, bool* iterators_invalidated = nullptr)
-		{
-		return (T*)Remove(key.Key(), key.Size(), key.Hash(), false, iterators_invalidated);
-		}
-	};
+template <typename T> using PDict = Dictionary<T>;
 
 	} // namespace zeek

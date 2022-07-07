@@ -1,3 +1,600 @@
+5.1.0-dev.192 | 2022-07-07 07:51:04 +0200
+
+  * sqlite default-logdir test: Remove ls ./logs baseline (Arne Welzel, Corelight)
+
+    Observed .sqlite-journal files and missing reporter.sqlite files
+    in CI runs. Subsequently reading the ./test.sqlite file is more
+    reliable and should be good enough.
+
+  * logging/sqlite: Recognize Log::default_logdir and place files there if set (Arne Welzel, Corelight)
+
+  * logging: Introduce Log::default_logdir deprecate LogAscii::logdir and per writer logdir (Arne Welzel, Corelight)
+
+    Also modify FormatRotationPath to keep rotated logs within
+    Log::default_logdir unless the rotation function explicitly
+    set dir, e.g. by when the user redef'ed default_rotation_interval.
+
+  * logging/ascii: Fix .shadow paths when using LogAscii::logdir (Arne Welzel, Corelight)
+
+    With the introduction of LogAscii::logdir, log filenames can now include
+    parent directories rather than being plain basenames. Enabling log rotation,
+    leftover log rotation and setting LogAscii::logdir broke due to not
+    handling this situation.
+
+5.1.0-dev.186 | 2022-07-05 22:18:52 +0000
+
+  * Remove unnecssary includes of Dict.h (Tim Wojtulewicz, Corelight)
+
+  * Turn PDict into a type alias (Tim Wojtulewicz, Corelight)
+
+  * Convert Dictionary types to be templated classes (Tim Wojtulewicz, Corelight)
+
+    This has the fortunate side-effect of also making it so we can store
+    the value objects as typed pointers, instead of void*.
+
+  * Fix signedness comparison warning in ssl analyzer (Tim Wojtulewicz, Corelight)
+
+  * Management framework: make artifact filenames Github-compatible (Christian Kreibich, Corelight)
+
+    The upload-artifact action refuses to process certain filenames:
+
+      "Invalid characters include: Double quote ", Colon :, Less than <,
+       Greater than >, Vertical bar |, Asterisk *, Question mark ?, Carriage
+       return \r, Line feed \n"
+
+    On failure, this iterates over the btest artifacts in the testsuite's .tmp
+    directory and renames any of these to dots.
+
+  * Management framework: mask testsuite result (Christian Kreibich, Corelight)
+
+    There's currently a race condition in the agent-supervisor interaction that can
+    cause requests to the Supervisor to get lost. This temporarily masks the
+    testsuite result until I've had a chance to investigate.
+
+5.1.0-dev.177 | 2022-07-05 15:03:12 +0100
+
+  * SSL Analyzer: track connection direction by messages (Johanna Amann)
+
+    This PR changes the way in which the SSL analyzer tracks the direction
+    of connections. So far, the SSL analyzer assumed that the originator of
+    a connection would send the client hello (and other associated
+    client-side events), and that the responder would be the SSL servers.
+
+    In some circumstances this is not true, and the initiator of a
+    connection is the server, with the responder being the client. So far
+    this confused some of the internal statekeeping logic and could lead to
+    mis-parsing of extensions.
+
+    This reversal of roles can happen in DTLS, if a connection uses STUN -
+    and potentially in some StartTLS protocols.
+
+    This PR tracks the direction of a TLS connection using the hello
+    request, client hello and server hello handshake messages. Furthermore,
+    it changes the SSL events from providing is_orig to providing is_client,
+    where is_client is true for the client_side of a connection. Since the
+    argument positioning in the event has not changed, old scripts will
+    continue to work seamlessly - the new semantics are what everyone
+    writing SSL scripts will have expected in any case.
+
+    There is a new event that is raised when a connection is flipped. A
+    weird is raised if a flip happens repeatedly.
+
+    Addresses GH-2198.
+
+5.1.0-dev.174 | 2022-07-05 10:26:14 +0200
+
+  * Add `gulrak/filesystem` as a compiler-independent
+    `std::filesystem` replacement. The `ghc::filesystem` namespace is
+    exposed as `zeek::filesystem` in `util.h`. (Arne Welzel,
+    Corelight)
+
+5.1.0-dev.172 | 2022-07-04 10:22:45 +0100
+
+  * The STREAM mode of the ASCII reader now behaves like `tail -F`: when file is
+    removed/replaced, it will start tracking the new file. See
+    https://github.com/zeek/zeek/pull/2097 for more detail. (Craig Leres)
+
+  * Remove loops from Dict iterator invalidation unit test (Tim Wojtulewicz, Corelight)
+
+    This fixes Coverity finding 1490366
+
+5.1.0-dev.154 | 2022-07-01 14:10:58 -0700
+
+  * Remove unused util::detail::rand64bit method (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.151 | 2022-07-01 11:11:29 -0700
+
+  * Management framework: bump zeek-client and cluster testsuite (Christian Kreibich, Corelight)
+
+5.1.0-dev.149 | 2022-07-01 09:23:33 -0700
+
+  * GH-2229: Fix some typos in weak-keys.zeek (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.146 | 2022-06-30 13:38:33 -0700
+
+  * Bump Spicy and spicy-plugin to their latest release. (Benjamin Bannier, Corelight)
+
+5.1.0-dev.144 | 2022-06-30 13:37:40 -0700
+
+  * Optimize 64 bit random number generation (Johanna Amann)
+
+    rand64bit called random 4 times to generate one 64 bit number. There is
+    no reason to do this - random() is basically guaranteed to return a 32
+    bit number.
+
+    This also adds a static check to make sure that it does.
+
+5.1.0-dev.142 | 2022-06-30 12:27:42 -0700
+
+  * Remove other general deprecations (Tim Wojtulewicz, Corelight)
+
+  * Remove some deprecated ocsp/ssl base scripts (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated DESC_PORTABLE ODesc mode and ODesc::IsPortable() (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated UDP, ICMP, and TCP analyzers (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated protocol_confirmation/violation events and methods (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated IterCookie-based dictionary iteration (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated MemoryAllocation() methods and related code (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated --enable-mobile-ipv6 configure argument (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.133 | 2022-06-30 09:56:20 -0700
+
+  * Add helpers for syncing commit files with external testsuites (Christian Kreibich, Corelight)
+
+  * Fix typo in update-timing target for external testsuites (Christian Kreibich, Corelight)
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.128 | 2022-06-27 13:04:47 -0700
+
+  * removed deprecated capture-by-reference closures (Vern Paxson, Corelight)
+
+5.1.0-dev.126 | 2022-06-27 11:43:27 -0700
+
+  * GH-2183: Rework Packet checksummed variable naming (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.124 | 2022-06-27 10:37:06 -0700
+
+  * Code modernization: Convert from deprecated C standard library headers (Tim Wojtulewicz)
+
+5.1.0-dev.121 | 2022-06-27 09:26:54 -0700
+
+  * Mark bools in BasicThread as atomic to avoid data races (Tim Wojtulewicz)
+
+  * Avoid calling DBG_LOG during signal handling (Tim Wojtulewicz)
+
+  * Fixes for iosource::Manager for deadlocks during shutdown (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.116 | 2022-06-24 14:18:40 -0700
+
+  * Bump broker submodule to pick up two fixes (Tim Wojtulewicz, Corelight)
+
+    - https://github.com/zeek/broker/pull/244
+    - https://github.com/zeek/broker/pull/245
+
+  * Add NEWS entry for 5.0 management changes [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.113 | 2022-06-24 09:08:00 -0700
+
+  * News entry about Bloom Filter changes in 5.0. (Johanna Amann, Corelight)
+
+5.1.0-dev.110 | 2022-06-23 13:03:55 -0700
+
+  * Bump Spicy to the latest development version. (Benjamin Bannier, Corelight)
+
+5.1.0-dev.108 | 2022-06-23 12:26:26 -0700
+
+  * Management framework: support for cluster node restarts (Christian Kreibich, Corelight)
+
+    - bump external cluster testsuite
+    - bump zeek-client
+    - edit pass over docstrings
+    - node restart support
+    - more consistent Supervisor interaction in the agent
+    - log the controller's startup deployment attempt
+    - bugfix for a get_id_value corner case
+    - minor timeout bugfix
+    - make "result" argument plural in multi-result response events
+
+5.1.0-dev.98 | 2022-06-22 22:39:32 -0700
+
+  * Management framework: separate config staging and deployment (Christian Kreibich, Corelight)
+
+    - bump external cluster testsuite
+    - bump zeek-client
+    - rename set_configuration events to stage_configuration
+    - trigger deployment upon when instances are ready
+    - more resilient node shutdown upon deployment
+    - re-trigger deployment upon controller launch
+    - move most deployment handling to internal function
+    - distinguish internally and externally requested deployments
+    - track instances by their Broker IDs
+    - tweak Supervisor event logging
+    - make helper function a local
+    - rename "log_level" to "level"
+    - add "finish" callback to requests
+    - add a helper for rendering result vectors to a string
+    - agents now skip re-deployment of current config
+    - suppress notify_agent_hello upon Supervisor peering
+    - introduce state machine for configs and persist them
+    - introduce deployment API in controller
+    - rename agent "set_configuration" to "deploy"
+    - consistency fixes to the Result record
+
+5.1.0-dev.75 | 2022-06-22 12:06:00 -0700
+
+  * Provide zeek-client by default (Christian Kreibich, Corelight)
+
+5.1.0-dev.73 | 2022-06-22 09:40:05 -0700
+
+  * GH-1991: Add option to limit the number of tunnel_changed events (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.71 | 2022-06-21 16:58:25 -0700
+
+  * Management framework: config validation (Christian Kreibich, Corelight)
+
+    - bump external cluster testsuite
+    - bump zeek-client
+    - add config validation
+    - improvements to port auto-enumeration
+    - control output-to-console in Supervisor
+    - handle no-instances corner case in set-config correctly
+
+5.1.0-dev.64 | 2022-06-21 12:23:20 -0700
+
+  * CI: Add Fedora 36, remove Fedora 34 (Johanna Amann, Corelight)
+
+  * Update broker submodule to fix put_unique issues from 5.0RC1 (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.61 | 2022-06-17 09:21:44 -0700
+
+  * CI: Add OpenSuSE Leap 15.4, fix 15.3 (Johanna Amann, Corelight)
+
+    15.3 included the wrong update repo in the Dockerfile
+
+5.1.0-dev.59 | 2022-06-17 09:09:58 -0700
+
+  * Bump Spicy and spicy-plugin to latest dev snapshot. (Benjamin Bannier, Corelight)
+
+    This bump brings in fixes for the following issues:
+
+    - zeek/spicy#1204
+    - zeek/spicy#1208
+    - zeek/spicy#1210
+    - zeek/spicy-plugin#112
+    - zeek/spicy-plugin#117
+
+5.1.0-dev.56 | 2022-06-16 15:57:19 -0700
+
+  * flip connections that begin with SYN-ACKs if subsequent acks or data seen (Vern Paxson, Corelight)
+
+5.1.0-dev.53 | 2022-06-16 14:27:54 -0700
+
+  * Revert "Merge remote-tracking branch 'turrisxyz/Dependabot-GitHub-Actions'" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 910e3b302406b838c1c12e016d4a05306a3bad46, reversing
+    changes made to 64198655204bee20cc6b933d07909bd30869d7e8.
+
+5.1.0-dev.52 | 2022-06-16 11:11:33 -0700
+
+  * Management framework: bump external cluster testsuite (Christian Kreibich, Corelight)
+
+  * Management framework: make agents support zeek-archiver invocations (Christian Kreibich, Corelight)
+
+  * Management framework: fix module naming typo (Christian Kreibich, Corelight)
+
+5.1.0-dev.48 | 2022-06-16 10:08:14 -0700
+
+  * Use ccache for docs gen github workflow (Tim Wojtulewicz, Corelight)
+
+  * CI: Add Ubuntu 22.04 (LTS Release, EOL 04/2027) (Johanna Amann, Corelight)
+
+5.1.0-dev.38 | 2022-06-14 15:43:44 -0700
+
+  * Fix pattern matching in Cirrus dependabot check (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.35 | 2022-06-14 14:39:02 -0700
+
+  * Ignore dependabot PRs on Cirrus (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.33 | 2022-06-14 14:34:31 -0700
+
+  * Merge PQ_Timer into base TimerMgr class (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.30 | 2022-06-14 12:02:46 -0700
+
+  * Management framework: bump external cluster testsuite (Christian Kreibich, Corelight)
+
+  * Management framework: switch default network visibilities (Christian Kreibich, Corelight)
+
+5.1.0-dev.27 | 2022-06-14 11:30:28 -0700
+
+  * chore: Set permissions for GitHub actions (naveen)
+
+     Restrict the GitHub token permissions only to the required ones; this way, even if the attackers will succeed in compromising your workflow, they won’t be able to do much.
+
+    - Included permissions for the action. https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions
+
+    https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+
+    https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs
+
+    [Keeping your GitHub Actions and workflows secure Part 1: Preventing pwn requests](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/)
+
+    Signed-off-by: naveen <172697+naveensrinivasan@users.noreply.github.com>
+
+5.1.0-dev.25 | 2022-06-14 10:07:32 -0700
+
+  * chore: Included githubactions in the dependabot config (naveen)
+
+    This should help with keeping the GitHub actions updated on new releases. This will also help with keeping it secure.
+
+    Dependabot helps in keeping the supply chain secure https://docs.github.com/en/code-security/dependabot
+
+    GitHub actions up to date https://docs.github.com/en/code-security/dependabot/working-with-dependabot/keeping-your-actions-up-to-date-with-dependabot
+
+    https://github.com/ossf/scorecard/blob/main/docs/checks.md#dependency-update-tool
+    Signed-off-by: naveen <172697+naveensrinivasan@users.noreply.github.com>
+
+  * Sort package names in Dockerfiles (Tim Wojtulewicz, Corelight)
+
+  * Dockerfile changes for consistency with Broker files (Tim Wojtulewicz, Corelight)
+
+  * Make some of the CI Dockerfiles more consistent (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.16 | 2022-06-08 13:42:41 -0700
+
+  * Management framework: port auto-assignment (Christian Kreibich, Corelight)
+
+    - support auto-assignment of ports in cluster nodes
+    - also use send_set_configuration_response_error elsewhere
+    - minor log formatting tweak, for consistency
+    - bump zeek-client to pull in relaxed port handling
+    - bump external cluster testsuite
+
+5.1.0-dev.10 | 2022-06-07 10:02:39 -0700
+
+  * Keep make dist from deleting all paths containing 'build' [skip ci] (Tim Wojtulewicz)
+
+5.1.0-dev.8 | 2022-06-06 09:38:59 -0700
+
+  * Remove duplicate entry about websockets from 5.0 NEWS (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.7 | 2022-06-06 09:36:32 -0700
+
+  * NEWS updates for 5.0 (Vern Paxson, Corelight)
+
+  * ZAM test suite updates due to recent changes (Vern Paxson, Corelight)
+
+5.1.0-dev.1 | 2022-06-03 12:38:20 -0700
+
+  * Update local-compat test for 5.1 (Tim Wojtulewicz, Corelight)
+
+  * Start of 5.1.0 development (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.575 | 2022-06-03 10:55:47 -0700
+
+  * Management framework: bump external cluster testsuite (Christian Kreibich, Corelight)
+
+  * Management framework: bump zeek-client to bring back to master (Christian Kreibich, Corelight)
+
+5.0.0-dev.572 | 2022-06-03 10:31:51 -0700
+
+  * Fix hang in DNS analyzer with malformed packet (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit dfc9f77b68f6d02d059ade322b9c132e32c26872)
+
+5.0.0-dev.571 | 2022-06-03 09:50:45 -0700
+
+  * Additional &is_used tags in the Netcontrol and Sumstats frameworks (Christian Kreibich, Corelight)
+
+    When running a cluster, these functions only get called in select node types and
+    could trigger no-caller warnings on stderr.
+
+5.0.0-dev.569 | 2022-06-03 09:50:01 -0700
+
+  * Management framework: bump zeek-client to pull in rendering tweaks (Christian Kreibich, Corelight)
+
+  * Management framework: bump external cluster testsuite (Christian Kreibich, Corelight)
+
+  * Mark lookup_asn() BIF as deprecated in v6.1 (Phil Rzewski)
+
+  * Define geo_autonomous_system record type (Phil Rzewski)
+
+  * Add lookup_autonomous_system() BIF that returns AS number and org (Phil Rzewski)
+
+5.0.0-dev.559 | 2022-06-02 16:58:58 -0700
+
+  * Mark lookup_asn() BIF as deprecated in v6.1 (Phil Rzewski)
+
+  * Define geo_autonomous_system record type (Phil Rzewski)
+
+  * Add lookup_autonomous_system() BIF that returns AS number and org (Phil Rzewski)
+
+5.0.0-dev.553 | 2022-06-02 13:16:44 -0700
+
+  * Make broker.web-socket-events test require the Python websockets package (Christian Kreibich, Corelight)
+
+5.0.0-dev.551 | 2022-06-02 12:19:32 -0700
+
+  * Expand scripts.base.frameworks.intel.cluster-transparency test (Christian Kreibich, Corelight)
+
+  * Fix races in scripts.base.frameworks.intel.cluster-transparency-with-proxy test (Christian Kreibich, Corelight)
+
+  * Add Intel::send_store_on_node_up boolean to control min_data_store delivery (Christian Kreibich, Corelight)
+
+  * Fix a -Wstringop-overflow memset size warning with GCC 12 (Christian Kreibich, Corelight)
+
+5.0.0-dev.545 | 2022-06-02 12:00:53 +0200
+
+  * Add WebSocket support for exchanging events with external clients.
+    (Robin Sommer, Corelight)
+
+    This exposes Broker's new WebSocket support in Zeek. To enable it,
+    call `Broker::listen_websocket()`. Zeek will then start listening on
+    port 9997 for incoming WebSocket connections.
+
+    See the Broker documentation for a description of the message format
+    expected over these WebSocket connections.
+
+5.0.0-dev.540 | 2022-06-01 11:08:42 -0700
+
+  * GH-2136: Clean up DNS_Mgr before shutting down (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.538 | 2022-06-01 09:20:21 -0700
+
+  * GH-2101: Update cmake submodule to fix c-ares include path problem (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.535 | 2022-05-31 12:58:32 -0700
+
+  * Management framework updates (Christian Kreibich, Corelight)
+
+    - bump external cluster testsuite
+    - bump zeek-client to pull in set-config rendering
+    - enable stdout/stderr reporting
+    - Supervisor extensions for stdout/stderr handling
+    - disambiguate redef field names in agent and controller
+    - move to ResultVec in agent's set_configuration response
+    - tune request timeout granularity and interval
+    - verify node starts when deploying a configuration
+    - a bit of debug-level logging for troubleshooting
+
+5.0.0-dev.525 | 2022-05-31 12:53:01 -0700
+
+  * Add Supervisor::node_status notification event (Christian Kreibich, Corelight)
+
+5.0.0-dev.523 | 2022-05-31 11:13:47 -0700
+
+  * Update spicy-plugin with change that checks for zeek version (Tim Wojtulewicz, Corelight)
+
+  * deprecation messages for unused base script functions (Vern Paxson, Corelight)
+
+  * clearer messages for warning about unused functions (Vern Paxson, Corelight)
+
+  * annotate orphan base script components with &deprecated (Vern Paxson, Corelight)
+
+  * annotate base scripts with &is_used as needed (Vern Paxson, Corelight)
+
+  * --no-usage-warnings flag to suppress analysis (Vern Paxson, Corelight)
+
+  * support for associating &is_used attributes with functions (Vern Paxson, Corelight)
+
+  * classes for evaluating function/hook/event usage (Vern Paxson, Corelight)
+
+  * broader support for AST traversal, including Attr and Attributes objects (Vern Paxson, Corelight)
+
+  * include attributes in descriptions of sets and tables (Vern Paxson, Corelight)
+
+5.0.0-dev.508 | 2022-05-27 14:33:47 -0700
+
+  * Update zeek-aux submodule to fix a compiler warning (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.505 | 2022-05-26 16:08:42 -0700
+
+  * Management framework updates (Christian Kreibich, Corelight)
+
+    - bump zeek-client to pull in instance serialization fixes
+    - bump external cluster testsuite
+    - update agent-checkin test to reflect recent changes
+    - place each Zeek process in its own working dir
+    - set defaults for log rotation and persistent state
+    - add spool and state directory config settings
+    - establish stdout/stderr files also for cluster nodes
+    - default to having agents check in with the (local) controller
+    - move role variable from logging into framework-wide config
+    - distinguish supervisor/supervisee when loading agent/controller
+    - simplify agent and controller stdout/stderr files
+    - prefix the management logs with "management-"
+    - comment and layouting tweaks, no functional change
+    - rename env var that labels agents/controllers
+    - increase robustness of agent/controller naming
+
+  * Add some missing NEWS entries (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.488 | 2022-05-26 08:23:42 -0700
+
+  * GH-2054: Allow nulls as separators for join_string_vec (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.485 | 2022-05-25 12:09:42 -0700
+
+  * Propagate BPF_Program error message to script land (Tim Wojtulewicz, Corelight)
+
+  * Allow pcap pktsrc to use other BPF_Program::Compile method (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.482 | 2022-05-25 09:40:18 -0700
+
+  * Bump Spicy and spicy-plugin. (Benjamin Bannier, Corelight)
+
+  * Clean up test `spicy.spicyz-jit`. (Benjamin Bannier, Corelight)
+
+    This test was created from a copy of `spicy.spicyz-aot`, but updated
+    incompletly. This patch removes the last ahead-of-time compilation bits.
+
+5.0.0-dev.479 | 2022-05-25 09:38:20 -0700
+
+  * GH-2125: Fix compiler warnings in ScriptProfile (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.477 | 2022-05-25 09:37:58 -0700
+
+  * Use ZEEK_DICT_DEBUG more in Dict.cc instead of DEBUG (Tim Wojtulewicz)
+
+5.0.0-dev.475 | 2022-05-25 09:37:19 -0700
+
+  * Move fuzzer setup in CMake below builtin plugin setup (Tim Wojtulewicz, Corelight)
+
+  * Remove flex/bison flags from CI build (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.470 | 2022-05-24 11:55:37 -0700
+
+  * Ensure presence of Zeek-related directories in toplevel CMakeLists.txt (Christian Kreibich, Corelight)
+
+  * Add base/misc/installation.zeek, with Zeek installation directories (Christian Kreibich, Corelight)
+
+  * Add scripts.base.misc.installation btest (Christian Kreibich, Corelight)
+
+5.0.0-dev.466 | 2022-05-23 17:47:08 -0700
+
+  * Add DOCKERFILE_VERSION variable to all CI dockerfiles (Tim Wojtulewicz, Corelight)
+
+5.0.0-dev.462 | 2022-05-19 11:45:38 -0700
+
+  * speed up ZAM compilation by capping function size when inlining (Vern Paxson, Corelight)
+
+5.0.0-dev.460 | 2022-05-19 11:24:50 -0700
+
+  * Zeekify the scripts.base.utils.paths test (Christian Kreibich, Corelight)
+
+  * Expand build_path() function to handle empty dir arguments gracefully (Christian Kreibich, Corelight)
+
+5.0.0-dev.457 | 2022-05-19 10:51:45 -0700
+
+  * Rework .cirrus.yml a bit to commonize some parts (Tim Wojtulewicz)
+
+  * Enable 'greedy' mode for other CI builds (Tim Wojtulewicz, Corelight)
+
+  * Enable ccache for Cirrus builds (Tim Wojtulewicz, Corelight)
+
+  * Fix SSL tests on Centos Stream 9 (Johanna Amann, Corelight)
+
+    SHA1 signatures are only allowed in the legacy policy. I have no idea
+    where this is documented - I found it in a patch for the OpenSSL source
+    package.
+
+    Also adding tar as a specific dependency, since we have a test that
+    requires it, and at least for me it was not present in a minimal
+    installation.
+
+    Fixes #2115
+
+5.0.0-dev.451 | 2022-05-19 09:13:13 -0700
+
+  * Disable Spicy in Zeek Coverity builds (Tim Wojtulewicz, Corelight)
+
 5.0.0-dev.449 | 2022-05-18 11:11:58 -0700
 
   * Always generate helper scripts for Spicy. (Benjamin Bannier, Corelight)

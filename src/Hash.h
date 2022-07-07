@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "zeek/util.h" // for bro_int_t
 
@@ -270,13 +270,6 @@ public:
 	const void* Key() const { return key; }
 	size_t Size() const { return size; }
 	hash_t Hash() const;
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const
-		{
-		return padded_sizeof(*this) + util::pad_size(size);
-		}
 
 	static hash_t HashBytes(const void* bytes, size_t size);
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <string.h>
+#include <cstring>
 #include <string>
 
 #include "zeek/util.h" // for bro_int_t

@@ -24,10 +24,15 @@
 @load frameworks/management/__load__.zeek
 @load frameworks/management/config.zeek
 @load frameworks/management/log.zeek
+@load frameworks/management/persistence.zeek
 # @load frameworks/management/node/__load__.zeek
 @load frameworks/management/node/api.zeek
 @load frameworks/management/node/config.zeek
 # @load frameworks/management/node/main.zeek
+@load frameworks/management/supervisor/__load__.zeek
+@load frameworks/management/supervisor/api.zeek
+@load frameworks/management/supervisor/config.zeek
+@load frameworks/management/supervisor/main.zeek
 @load frameworks/management/request.zeek
 @load frameworks/management/types.zeek
 @load frameworks/management/util.zeek
@@ -62,7 +67,6 @@
 @load files/unified2/__load__.zeek
 @load files/unified2/main.zeek
 @load files/x509/disable-certificate-events-known-certs.zeek
-@load files/x509/log-ocsp.zeek
 @load frameworks/packet-filter/shunt.zeek
 @load frameworks/software/version-changes.zeek
 @load frameworks/software/vulnerable.zeek
@@ -124,13 +128,11 @@
 @load protocols/ssh/software.zeek
 @load protocols/ssl/decryption.zeek
 @load protocols/ssl/expiring-certs.zeek
-# @load protocols/ssl/extract-certs-pem.zeek
 @load protocols/ssl/heartbleed.zeek
 @load protocols/ssl/known-certs.zeek
 @load protocols/ssl/log-certs-base64.zeek
 @load protocols/ssl/ssl-log-ext.zeek
 @load protocols/ssl/log-hostcerts-only.zeek
-#@load protocols/ssl/notary.zeek
 @load protocols/ssl/validate-certs.zeek
 @load protocols/ssl/validate-ocsp.zeek
 @load protocols/ssl/validate-sct.zeek

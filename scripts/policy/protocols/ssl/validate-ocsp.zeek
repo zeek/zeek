@@ -31,7 +31,7 @@ export {
 # certificate chain is seen.
 global recently_ocsp_validated: table[string] of string = table() &read_expire=5mins;
 
-event ssl_stapled_ocsp(c: connection, is_orig: bool, response: string) &priority=3
+event ssl_stapled_ocsp(c: connection, is_client: bool, response: string) &priority=3
 	{
 	c$ssl$ocsp_response = response;
 	}

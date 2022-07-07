@@ -7,6 +7,7 @@
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Obj.h"
+#include "zeek/Traverse.h"
 #include "zeek/ZeekList.h"
 
 // Note that there are two kinds of attributes: the kind (here) which
@@ -98,6 +99,8 @@ public:
 		return true;
 		}
 
+	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
+
 protected:
 	void AddTag(ODesc* d) const;
 
@@ -128,6 +131,8 @@ public:
 	const std::vector<AttrPtr>& GetAttrs() const { return attrs; }
 
 	bool operator==(const Attributes& other) const;
+
+	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
 
 protected:
 	void CheckAttr(Attr* attr);

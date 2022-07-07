@@ -1,7 +1,7 @@
 #pragma once
 
-#include <limits.h>
 #include <sys/types.h> // for u_char
+#include <climits>
 #include <functional>
 #include <map>
 #include <set>

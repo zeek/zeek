@@ -8,7 +8,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "zeek/Dict.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Notifier.h"
 #include "zeek/Reporter.h"
@@ -37,6 +36,10 @@ class IPPrefix;
 class RE_Matcher;
 class File;
 using FilePtr = zeek::IntrusivePtr<File>;
+
+template <typename T> class RobustDictIterator;
+template <typename T> class Dictionary;
+template <typename T> using PDict = Dictionary<T>;
 
 namespace detail
 	{
@@ -134,11 +137,6 @@ public:
 		std::unordered_set<const Val*> analyzed_vals;
 		return Footprint(&analyzed_vals);
 		}
-
-	// Bytes in total value object.
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] virtual unsigned int
-	MemoryAllocation() const;
 
 	// Add this value to the given value (if appropriate).
 	// Returns true if succcessful.  is_first_init is true only if
@@ -510,10 +508,6 @@ public:
 
 	const IPAddr& Get() const { return *addr_val; }
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
-
 protected:
 	ValPtr DoClone(CloneState* state) override;
 
@@ -541,10 +535,6 @@ public:
 	bool Contains(const IPAddr& addr) const;
 
 	const IPPrefix& Get() const { return *subnet_val; }
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
 
 protected:
 	void ValDescribe(ODesc* d) const override;
@@ -578,10 +568,6 @@ public:
 	StringVal* ToUpper();
 
 	const String* Get() const { return string_val; }
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
 
 	StringValPtr Replace(RE_Matcher* re, const String& repl, bool do_all);
 
@@ -644,10 +630,6 @@ public:
 
 	const RE_Matcher* Get() const { return re_val; }
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
-
 protected:
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
@@ -695,10 +677,6 @@ public:
 	const std::vector<ValPtr>& Vals() const { return vals; }
 
 	void Describe(ODesc* d) const override;
-
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
 
 protected:
 	unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
@@ -973,10 +951,6 @@ public:
 	// the function in the frame allowing it to capture its closure.
 	void InitDefaultFunc(detail::Frame* f);
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
-
 	void ClearTimer(detail::Timer* t)
 		{
 		if ( timer == t )
@@ -1073,7 +1047,7 @@ protected:
 	detail::ExprPtr expire_time;
 	detail::ExprPtr expire_func;
 	TableValTimer* timer;
-	RobustDictIterator* expire_iterator;
+	RobustDictIterator<TableEntryVal>* expire_iterator;
 	detail::PrefixTable* subnets;
 	ValPtr def_val;
 	detail::ExprPtr change_func;
@@ -1401,9 +1375,6 @@ public:
 		}
 	RecordValPtr CoerceTo(RecordTypePtr other, bool allow_orphaning = false);
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
 
 	notifier::detail::Modifiable* Modifiable() override { return this; }
@@ -1738,11 +1709,8 @@ UNDERLYING_ACCESSOR_DEF(TypeVal, zeek::Type*, AsType)
 // exact match, returns it.  If promotable, returns the promoted version.
 // If not a match, generates an error message and return nil.  If is_init is
 // true, then the checking is done in the context of an initialization.
-extern ValPtr check_and_promote(ValPtr v, const TypePtr& t, bool is_init,
+extern ValPtr check_and_promote(ValPtr v, const TypePtr& new_type, bool is_init,
                                 const detail::Location* expr_location = nullptr);
-[[deprecated("Remove in v5.1. Use version that takes TypePtr instead.")]] extern ValPtr
-check_and_promote(ValPtr v, const Type* t, bool is_init,
-                  const detail::Location* expr_location = nullptr);
 
 extern bool same_val(const Val* v1, const Val* v2);
 extern bool same_atomic_val(const Val* v1, const Val* v2);

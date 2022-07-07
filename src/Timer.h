@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
+#include <memory>
 
 #include "zeek/PriorityQueue.h"
 #include "zeek/iosource/IOSource.h"
@@ -75,12 +76,12 @@ protected:
 	TimerType type{};
 	};
 
-class TimerMgr : public iosource::IOSource
+class TimerMgr final : public iosource::IOSource
 	{
 public:
-	virtual ~TimerMgr();
+	TimerMgr();
 
-	virtual void Add(Timer* timer) = 0;
+	void Add(Timer* timer);
 
 	/**
 	 * Advance the clock to time t, expiring at most max_expire timers.
@@ -100,7 +101,7 @@ public:
 	/**
 	 * Expire all timers.
 	 */
-	virtual void Expire() = 0;
+	void Expire();
 
 	/**
 	 * Removes a timer. Cancel() is a method separate from Remove()
@@ -115,9 +116,9 @@ public:
 
 	double Time() const { return t ? t : 1; } // 1 > 0
 
-	virtual int Size() const = 0;
-	virtual int PeakSize() const = 0;
-	virtual uint64_t CumulativeNum() const = 0;
+	size_t Size() const { return q->Size(); }
+	size_t PeakSize() const { return q->PeakSize(); }
+	size_t CumulativeNum() const { return q->CumulativeNum(); }
 
 	double LastTimestamp() const { return last_timestamp; }
 
@@ -129,7 +130,7 @@ public:
 	static unsigned int* CurrentTimers() { return current_timers; }
 
 	// IOSource API methods
-	virtual double GetNextTimeout() override { return -1; }
+	virtual double GetNextTimeout() override;
 	virtual void Process() override;
 	virtual const char* Tag() override { return "TimerMgr"; }
 
@@ -139,11 +140,12 @@ public:
 	 */
 	void InitPostScript();
 
-protected:
-	TimerMgr();
+private:
+	int DoAdvance(double t, int max_expire);
+	void Remove(Timer* timer);
 
-	virtual int DoAdvance(double t, int max_expire) = 0;
-	virtual void Remove(Timer* timer) = 0;
+	Timer* Remove();
+	Timer* Top();
 
 	double t;
 	double last_timestamp;
@@ -151,31 +153,11 @@ protected:
 
 	int num_expired;
 
+	size_t peak_size = 0;
+	size_t cumulative_num = 0;
+
 	static unsigned int current_timers[NUM_TIMER_TYPES];
-	};
-
-class PQ_TimerMgr : public TimerMgr
-	{
-public:
-	PQ_TimerMgr();
-	~PQ_TimerMgr() override;
-
-	void Add(Timer* timer) override;
-	void Expire() override;
-
-	int Size() const override { return q->Size(); }
-	int PeakSize() const override { return q->PeakSize(); }
-	uint64_t CumulativeNum() const override { return q->CumulativeNum(); }
-	double GetNextTimeout() override;
-
-protected:
-	int DoAdvance(double t, int max_expire) override;
-	void Remove(Timer* timer) override;
-
-	Timer* Remove() { return (Timer*)q->Remove(); }
-	Timer* Top() { return (Timer*)q->Top(); }
-
-	PriorityQueue* q;
+	std::unique_ptr<PriorityQueue> q;
 	};
 
 extern TimerMgr* timer_mgr;

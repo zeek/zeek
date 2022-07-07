@@ -4,12 +4,13 @@
 
 #include "zeek/zeek-config.h"
 
-#include <errno.h>
+#include <cerrno>
 #include <string>
 #include <vector>
 
 #include "zeek/logging/writers/sqlite/sqlite.bif.h"
 #include "zeek/threading/SerialTypes.h"
+#include "zeek/util.h"
 
 using namespace std;
 using zeek::threading::Field;
@@ -128,8 +129,11 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
-	string fullpath(info.path);
-	fullpath.append(".sqlite");
+	auto fullpath = zeek::filesystem::path(
+		zeek::id::find_const<StringVal>("Log::default_logdir")->ToStdString());
+
+	fullpath /= info.path;
+	fullpath += ".sqlite";
 	string tablename;
 
 	WriterInfo::config_map::const_iterator it = info.config.find("tablename");

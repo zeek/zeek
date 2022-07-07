@@ -1,9 +1,9 @@
 #include "zeek/Anon.h"
 
-#include <assert.h>
-#include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <cassert>
+#include <cstdlib>
 
 #include "zeek/Event.h"
 #include "zeek/ID.h"

@@ -26,7 +26,7 @@ redef record SSL::Info += {
 	ct_proofs: vector of LogInfo &default=vector();
 };
 
-event ssl_extension_signed_certificate_timestamp(c: connection, is_orig: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string)
+event ssl_extension_signed_certificate_timestamp(c: connection, is_client: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string)
 	{
 	print version, SSL::ct_logs[logid]$description, double_to_time(timestamp/1000.0), signature_and_hashalgorithm;
 	c$ssl$ct_proofs[|c$ssl$ct_proofs|] = LogInfo($version=version, $logid=logid, $timestamp=timestamp, $sig_alg=signature_and_hashalgorithm$SignatureAlgorithm, $hash_alg=signature_and_hashalgorithm$HashAlgorithm, $signature=signature);

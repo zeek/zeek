@@ -58,6 +58,7 @@ struct Options
 	bool perftools_profile = false;
 	bool deterministic_mode = false;
 	bool abort_on_scripting_errors = false;
+	bool no_unused_warnings = false;
 
 	bool run_unit_tests = false;
 	std::vector<std::string> doctest_args;

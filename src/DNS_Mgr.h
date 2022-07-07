@@ -98,6 +98,11 @@ public:
 	~DNS_Mgr() override;
 
 	/**
+	 * Finalizes the source when it's being closed.
+	 */
+	void Done() override;
+
+	/**
 	 * Finalizes the manager initialization. This should be called only after all
 	 * of the scripts have been parsed at startup.
 	 */
@@ -337,6 +342,8 @@ protected:
 
 	std::set<int> socket_fds;
 	std::set<int> write_socket_fds;
+
+	bool shutting_down = false;
 	};
 
 extern DNS_Mgr* dns_mgr;

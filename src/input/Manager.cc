@@ -272,7 +272,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		for ( const auto& icte : *info_config_table )
 			{
 			auto k = icte.GetHashKey();
-			auto* v = icte.GetValue<TableEntryVal*>();
+			auto* v = icte.value;
 
 			auto index = info->config->RecreateIndex(*k);
 			string key = index->Idx(0)->AsString()->CheckString();
@@ -1402,7 +1402,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	for ( auto it = stream->lastDict->begin_robust(); it != stream->lastDict->end_robust(); ++it )
 		{
 		auto lastDictIdxKey = it->GetHashKey();
-		InputHash* ih = it->GetValue<InputHash*>();
+		InputHash* ih = it->value;
 
 		ValPtr val;
 		ValPtr predidx;

@@ -3,7 +3,7 @@
 ##! supervisor. In this setting Zeek's logging framework operates locally, i.e.,
 ##! this does not involve logger nodes.
 
-@load ./types
+@load ./config
 
 module Management::Log;
 
@@ -38,7 +38,7 @@ export {
 
 	## The log level in use for this node. This is the minimum
 	## log level required to produce output.
-	global log_level = INFO &redef;
+	global level = INFO &redef;
 
 	## A debug-level log message writer.
 	##
@@ -64,10 +64,6 @@ export {
 	## message: the message to log.
 	##
 	global error: function(message: string);
-
-	## The role of this process in cluster management. Agent and controller
-	## both redefine this, and we use it during logging.
-	const role = Management::NONE &redef;
 }
 
 # Enum translations to strings. This avoids those enums being reported
@@ -88,42 +84,42 @@ global r2s: table[Management::Role] of string = {
 
 function debug(message: string)
 	{
-	if ( enum_to_int(log_level) > enum_to_int(DEBUG) )
+	if ( enum_to_int(level) > enum_to_int(DEBUG) )
 		return;
 
 	local node = Supervisor::node();
 	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[DEBUG],
-			 $role=r2s[role], $message=message]);
+			 $role=r2s[Management::role], $message=message]);
 	}
 
 function info(message: string)
 	{
-	if ( enum_to_int(log_level) > enum_to_int(INFO) )
+	if ( enum_to_int(level) > enum_to_int(INFO) )
 		return;
 
 	local node = Supervisor::node();
 	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[INFO],
-			 $role=r2s[role], $message=message]);
+			 $role=r2s[Management::role], $message=message]);
 	}
 
 function warning(message: string)
 	{
-	if ( enum_to_int(log_level) > enum_to_int(WARNING) )
+	if ( enum_to_int(level) > enum_to_int(WARNING) )
 		return;
 
 	local node = Supervisor::node();
 	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[WARNING],
-			 $role=r2s[role], $message=message]);
+			 $role=r2s[Management::role], $message=message]);
 	}
 
 function error(message: string)
 	{
-	if ( enum_to_int(log_level) > enum_to_int(ERROR) )
+	if ( enum_to_int(level) > enum_to_int(ERROR) )
 		return;
 
 	local node = Supervisor::node();
 	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[ERROR],
-			 $role=r2s[role], $message=message]);
+			 $role=r2s[Management::role], $message=message]);
 	}
 
 event zeek_init()
@@ -136,7 +132,7 @@ event zeek_init()
 	# Defining the stream outside of the stream creation call sidesteps
 	# the coverage.find-bro-logs test, which tries to inventory all logs.
 	# This log isn't yet ready for that level of scrutiny.
-	local stream = Log::Stream($columns=Info, $path=fmt("cluster-%s", node$name),
+	local stream = Log::Stream($columns=Info, $path=fmt("management-%s", node$name),
 	                           $policy=log_policy);
 
 	Log::create_stream(Management::Log::LOG, stream);

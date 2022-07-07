@@ -1,5 +1,5 @@
 %extern{
-#include <string.h>
+#include <cstring>
 #include <binpac_bytestring.h>
 %}
 

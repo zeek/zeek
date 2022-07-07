@@ -17,7 +17,7 @@ bool RawLayer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	constexpr auto layer_size = 21;
 	if ( layer_size >= len )
 		{
-		sessions->Weird("truncated_raw_layer", packet);
+		session_mgr->Weird("truncated_raw_layer", packet);
 		return false;
 		}
 

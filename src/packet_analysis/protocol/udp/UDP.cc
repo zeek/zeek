@@ -106,7 +106,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 	int chksum = up->uh_sum;
 
-	auto validate_checksum = ! run_state::current_pkt->l3_checksummed &&
+	auto validate_checksum = ! run_state::current_pkt->l4_checksummed &&
 	                         ! zeek::detail::ignore_checksums &&
 	                         ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) &&
 	                         remaining >= len;

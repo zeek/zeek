@@ -1,0 +1,30 @@
+#! /usr/bin/env bash
+#
+# This updates the requested test repo's commit file to the current HEAD commit
+# of that repo. If the repo isn't available, this does nothing. If the commit
+# file doesn't exist yet, this creates it. It doesn't stage or commit the
+# updated commit files.
+[[ -z "$1" ]] && {
+    echo "sync-commit needs a local testsuite repository path as argument"
+    exit 1
+}
+
+repo="$1"
+reponame=$(basename $repo)
+commitfile=commit-hash.$reponame
+
+[[ ! -d $repo || ! -d $repo/.git ]] && exit 0
+
+commit=$(cd $repo && git log -1 --pretty=format:%H)
+
+[[ -f $commitfile && $(cat $commitfile) == $commit ]] && exit 0
+
+if [[ -n $commit ]]; then
+    echo "Pinning '$reponame' to $commit"
+    echo $commit >$commitfile
+
+    # If git knows the commit file, show diff:
+    if git ls-files --error-unmatch $commitfile >/dev/null 2>&1; then
+        git diff $commitfile
+    fi
+fi

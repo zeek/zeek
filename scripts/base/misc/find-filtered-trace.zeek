@@ -13,7 +13,7 @@ export {
 	global enable: bool = T &redef;
 }
 
-function should_detect(): bool
+function should_detect(): bool &is_used
 	{
 	local args = zeek_args();
 

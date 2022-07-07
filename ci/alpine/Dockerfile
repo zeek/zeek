@@ -1,24 +1,29 @@
 FROM alpine:latest
 
+# A version field to invalide Cirrus's build cache when needed, as suggested in
+# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
+ENV DOCKERFILE_VERSION 20220519
+
 RUN apk add --no-cache \
+  bash \
+  bison \
+  bsd-compat-headers \
+  ccache \
   cmake \
-  make \
+  curl \
+  flex-dev \
+  fts-dev \
   g++ \
+  git \
+  libpcap-dev \
+  linux-headers \
+  make \
+  openssh-client \
+  openssl-dev \
+  py3-pip \
   python3 \
   python3-dev \
-  flex-dev \
-  bison \
-  libpcap-dev \
-  openssl-dev \
-  zlib-dev \
   swig \
-  bash \
-  bsd-compat-headers \
-  linux-headers \
-  fts-dev \
-  git \
-  curl \
-  openssh-client \
-  py3-pip
+  zlib-dev
 
-RUN pip3 install junit2html
+RUN pip3 install websockets junit2html

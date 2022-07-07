@@ -103,7 +103,7 @@ refine connection SSL_Conn += {
 	function proc_v2_certificate(is_orig: bool, cert : bytestring) : bool
 		%{
 		vector<bytestring>* cert_list = new vector<bytestring>(1,cert);
-		bool ret = proc_certificate(is_orig, cert_list);
+		bool ret = proc_certificate(is_orig, zeek_analyzer()->GetFlipped(), cert_list);
 		delete cert_list;
 		return ret;
 		%}

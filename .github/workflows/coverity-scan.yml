@@ -4,10 +4,13 @@ on:
   schedule:
     - cron: '0 0 * * 1,3,5'
 
+permissions:
+  contents: read
+
 jobs:
   scan:
     if: github.repository == 'zeek/zeek'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -32,6 +35,7 @@ jobs:
             python3-pip \
             swig \
             zlib1g-dev \
+            libmaxminddb-dev \
             libkrb5-dev \
             bsdmainutils \
             sqlite3 \
@@ -42,7 +46,7 @@ jobs:
         run: cd auxil/broker/caf && ./configure --prefix=`pwd`/build/install-root && cd build && make -j $(nproc) install
 
       - name: Configure
-        run: ./configure --build-type=debug --with-caf=`pwd`/auxil/broker/caf/build/install-root --disable-broker-tests
+        run: ./configure --build-type=debug --with-caf=`pwd`/auxil/broker/caf/build/install-root --disable-broker-tests --disable-spicy
 
       - name: Fetch Coverity Tools
         env:

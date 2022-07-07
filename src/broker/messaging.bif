@@ -37,7 +37,6 @@ std::set<std::string> val_to_topic_set(zeek::Val* val)
 		for ( const auto& te : *tbl )
 			{
 			auto k = te.GetHashKey();
-			auto* v = te.GetValue<zeek::TableEntryVal*>();
 
 			auto index = val->AsTableVal()->RecreateIndex(*k);
 			rval.emplace(index->Idx(0)->AsString()->CheckString());

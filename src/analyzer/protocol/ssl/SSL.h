@@ -97,6 +97,14 @@ public:
 	 */
 	void SetKeys(const std::vector<u_char> newkeys);
 
+	/**
+	 * Check if the connection is flipped--meaning that the TLS client is the responder of the
+	 * connection.
+	 *
+	 * @return True if connection is flipped.
+	 */
+	bool GetFlipped();
+
 protected:
 	/**
 	 * Try to decrypt TLS application data from a packet. Requires secret or keys to be set prior.

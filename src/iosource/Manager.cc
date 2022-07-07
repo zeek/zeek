@@ -2,7 +2,7 @@
 
 #include "zeek/iosource/Manager.h"
 
-#include <assert.h>
+#include <cassert>
 // These two files have to remain in the same order or FreeBSD builds
 // stop working.
 // clang-format off
@@ -24,6 +24,8 @@
 
 #define DEFAULT_PREFIX "pcap"
 
+extern int signal_val;
+
 namespace zeek::iosource
 	{
 
@@ -43,10 +45,14 @@ void Manager::WakeupHandler::Process()
 	flare.Extinguish();
 	}
 
-void Manager::WakeupHandler::Ping(const std::string& where)
+void Manager::WakeupHandler::Ping(std::string_view where)
 	{
-	DBG_LOG(DBG_MAINLOOP, "Pinging WakeupHandler from %s", where.c_str());
-	flare.Fire();
+	// Calling DBG_LOG calls fprintf, which isn't safe to call in a signal
+	// handler.
+	if ( signal_val != 0 )
+		DBG_LOG(DBG_MAINLOOP, "Pinging WakeupHandler from %s", where.data());
+
+	flare.Fire(true);
 	}
 
 Manager::Manager()
@@ -61,11 +67,12 @@ Manager::~Manager()
 	delete wakeup;
 	wakeup = nullptr;
 
-	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
-		{
-		auto src = *i;
+	// Make sure all of the sources are done before we try to delete any of them.
+	for ( auto& src : sources )
 		src->src->Done();
 
+	for ( auto& src : sources )
+		{
 		if ( src->manage_lifetime )
 			delete src->src;
 
@@ -97,7 +104,7 @@ void Manager::RemoveAll()
 	dont_counts = sources.size();
 	}
 
-void Manager::Wakeup(const std::string& where)
+void Manager::Wakeup(std::string_view where)
 	{
 	if ( wakeup )
 		wakeup->Ping(where);

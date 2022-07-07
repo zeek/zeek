@@ -8,13 +8,13 @@
 ##! in this file.
 
 %%{ // C segment
-#include <math.h>
+#include <cmath>
 #include <vector>
 #include <algorithm>
 #include <cmath>
 #include <sys/stat.h>
 #include <cstdio>
-#include <time.h>
+#include <ctime>
 
 #include "zeek/digest.h"
 #include "zeek/Reporter.h"
@@ -1265,19 +1265,6 @@ function same_object%(o1: any, o2: any%): bool
 	return zeek::val_mgr->Bool(o1 == o2);
 	%}
 
-## Returns the number of bytes that a value occupies in memory.
-##
-## v: The value
-##
-## Returns: The number of bytes that *v* occupies.
-function val_size%(v: any%): count &deprecated="Remove in v5.1. MemoryAllocation() is deprecated and will be removed."
-	%{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	return zeek::val_mgr->Count(v->MemoryAllocation());
-#pragma GCC diagnostic pop
-	%}
-
 ## Resizes a vector.
 ##
 ## aggr: The vector instance.
@@ -1971,34 +1958,6 @@ function packet_source%(%): PacketSource
 	return r;
 	%}
 
-## Generates a table of the size of all global variables. The table index is
-## the variable name and the value is the variable size in bytes.
-##
-## Returns: A table that maps variable names to their sizes.
-##
-## .. zeek:see:: global_ids
-function global_sizes%(%): var_sizes &deprecated="Remove in v5.1. MemoryAllocation() is deprecated and will be removed."
-	%{
-	auto sizes = zeek::make_intrusive<zeek::TableVal>(IntrusivePtr{zeek::NewRef{}, var_sizes});
-	const auto& globals = zeek::detail::global_scope()->Vars();
-
-	for ( const auto& global : globals )
-		{
-		auto& id = global.second;
-		if ( id->HasVal() )
-			{
-			auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-			auto id_size = zeek::val_mgr->Count(id->GetVal()->MemoryAllocation());
-#pragma GCC diagnostic pop
-			sizes->Assign(std::move(id_name), std::move(id_size));
-			}
-		}
-
-	return sizes;
-	%}
-
 ## Generates a table of the "footprint" of all global container variables.
 ## This is (approximately) the number of objects the global contains either
 ## directly or indirectly.  The number is not meant to be precise, but
@@ -2047,8 +2006,6 @@ function val_footprint%(v: any%): count
 ## has one).
 ##
 ## Returns: A table that maps identifier names to information about them.
-##
-## .. zeek:see:: global_sizes
 function global_ids%(%): id_table
 	%{
 	static auto id_table = zeek::id::find_type<zeek::TableType>("id_table");
@@ -3113,7 +3070,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 		}
 
 	const char* bytes = hexstr->AsString()->CheckString();
-	int outlen = (len/2);
+	size_t outlen = (len/2);
 	auto bytestring_buf = std::make_unique<char[]>(outlen);
 	auto bytestring = bytestring_buf.get();
 	memset(bytestring, 0, outlen);
@@ -4198,7 +4155,7 @@ static bool mmdb_try_open_asn ()
 ##
 ## Returns: A boolean indicating whether the db was successfully opened.
 ##
-## .. zeek:see:: lookup_asn
+## .. zeek:see:: lookup_asn lookup_autonomous_system
 function mmdb_open_location_db%(f: string%) : bool
 	%{
 #ifdef USE_GEOIP
@@ -4208,14 +4165,14 @@ function mmdb_open_location_db%(f: string%) : bool
 #endif
 	%}
 
-## Initializes MMDB for later use of lookup_asn.
+## Initializes MMDB for later use of lookup_asn or lookup_autonomous_system.
 ## Requires Zeek to be built with ``libmaxminddb``.
 ##
 ## f: The filename of the MaxMind ASN DB.
 ##
 ## Returns: A boolean indicating whether the db was successfully opened.
 ##
-## .. zeek:see:: lookup_asn
+## .. zeek:see:: lookup_asn lookup_autonomous_system
 function mmdb_open_asn_db%(f: string%) : bool
 	%{
 #ifdef USE_GEOIP
@@ -4232,7 +4189,7 @@ function mmdb_open_asn_db%(f: string%) : bool
 ##
 ## Returns: A record with country, region, city, latitude, and longitude.
 ##
-## .. zeek:see:: lookup_asn
+## .. zeek:see:: lookup_asn lookup_autonomous_system
 function lookup_location%(a: addr%) : geo_location
 	%{
 	static auto geo_location = zeek::id::find_type<zeek::RecordType>("geo_location");
@@ -4316,10 +4273,10 @@ function lookup_location%(a: addr%) : geo_location
 ##
 ## a: The IP address to lookup.
 ##
-## Returns: The number of the ASN that contains *a*.
+## Returns: The number of the ASN that contains the IP address.
 ##
-## .. zeek:see:: lookup_location
-function lookup_asn%(a: addr%) : count
+## .. zeek:see:: lookup_location lookup_autonomous_system
+function lookup_asn%(a: addr%) : count &deprecated="Remove in v6.1.  Functionality is now handled by lookup_autonomous_system()."
 	%{
 #ifdef USE_GEOIP
 	mmdb_check_asn();
@@ -4365,6 +4322,73 @@ function lookup_asn%(a: addr%) : count
 	// able to initialize it or it didn't return any information for
 	// the address.
 	return zeek::val_mgr->Count(0);
+	%}
+
+## Performs an lookup of AS numbe & organization of an IP address.
+## Requires Zeek to be built with ``libmaxminddb``.
+##
+## a: The IP address to lookup.
+##
+## Returns: A record with autonomous system number and organization that contains *a*.
+##
+## .. zeek:see:: lookup_location lookup_asn
+function lookup_autonomous_system%(a: addr%) : geo_autonomous_system
+	%{
+	static auto geo_autonomous_system = zeek::id::find_type<zeek::RecordType>("geo_autonomous_system");
+	auto autonomous_system = zeek::make_intrusive<zeek::RecordVal>(geo_autonomous_system);
+
+#ifdef USE_GEOIP
+	mmdb_check_asn();
+	if ( ! mmdb_asn )
+		{
+		if ( ! mmdb_try_open_asn() )
+			{
+			if ( ! did_mmdb_asn_db_error )
+				{
+				did_mmdb_asn_db_error = true;
+				zeek::emit_builtin_error("Failed to open GeoIP ASN database");
+				}
+
+			return autonomous_system;
+			}
+		}
+
+	MMDB_lookup_result_s result;
+
+	if ( mmdb_lookup_asn(a->AsAddr(), result) )
+		{
+		MMDB_entry_data_s entry_data;
+		int status;
+
+		// Get Autonomous System Number
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "autonomous_system_number", nullptr);
+		autonomous_system->Assign(0, mmdb_getvalue(&entry_data, status,
+		                          MMDB_DATA_TYPE_UINT32));
+
+		// Get Autonomous System Organization
+		status = MMDB_get_value(&result.entry, &entry_data,
+		                        "autonomous_system_organization", nullptr);
+		autonomous_system->Assign(1, mmdb_getvalue(&entry_data, status,
+		                          MMDB_DATA_TYPE_UTF8_STRING));
+
+		return autonomous_system;
+		}
+
+#else // not USE_GEOIP
+	static int missing_geoip_reported = 0;
+
+	if ( ! missing_geoip_reported )
+		{
+		zeek::emit_builtin_error("Zeek was not configured for GeoIP ASN support");
+		missing_geoip_reported = 1;
+		}
+#endif
+
+	// We can get here even if we have GeoIP support, if we weren't
+	// able to initialize it or it didn't return any information for
+	// the address.
+	return autonomous_system;
 	%}
 
 ## Calculates distance between two geographic locations using the haversine

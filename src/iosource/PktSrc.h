@@ -111,7 +111,7 @@ public:
 	 *
 	 * @return True on success, false if a problem occurred.
 	 */
-	bool PrecompileBPFFilter(int index, const std::string& filter);
+	virtual bool PrecompileBPFFilter(int index, const std::string& filter);
 
 	/**
 	 * Returns the precompiled BPF filter associated with a given index,
@@ -335,6 +335,8 @@ protected:
 	 * longer be needed.
 	 */
 	virtual void DoneWithPacket() = 0;
+
+	virtual detail::BPF_Program* CompileFilter(const std::string& filter);
 
 private:
 	// Internal helper for ExtractNextPacket().

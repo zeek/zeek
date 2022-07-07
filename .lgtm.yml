@@ -4,6 +4,7 @@
 path_classifiers:
   library:
     - "auxil/broker/caf/"
+    - "auxil/filesystem/"
     - "auxil/libkqueue/"
     - "auxil/highwayhash/"
     - "auxil/rapidjson/"

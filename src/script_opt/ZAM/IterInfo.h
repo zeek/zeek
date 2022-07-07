@@ -65,7 +65,7 @@ public:
 	// For the current iteration, returns the corresponding value.
 	ZVal IterValue()
 		{
-		auto tev = (*tbl_iter)->GetValue<TableEntryVal*>();
+		auto tev = (*tbl_iter)->value;
 		return ZVal(tev->GetVal(), aux->value_var_type);
 		}
 
@@ -88,8 +88,8 @@ private:
 	// Associated auxiliary information.
 	ZInstAux* aux = nullptr;
 
-	std::optional<DictIterator> tbl_iter;
-	std::optional<DictIterator> tbl_end;
+	std::optional<DictIterator<TableEntryVal>> tbl_iter;
+	std::optional<DictIterator<TableEntryVal>> tbl_end;
 	};
 
 // Class for simple step-wise iteration across an integer range.

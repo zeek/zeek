@@ -381,9 +381,4 @@ void FragmentManager::Remove(detail::FragReassembler* f)
 	Unref(f);
 	}
 
-uint32_t FragmentManager::MemoryAllocation() const
-	{
-	return fragments.size() * (sizeof(FragmentMap::key_type) + sizeof(FragmentMap::value_type));
-	}
-
 	} // namespace zeek::detail

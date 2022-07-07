@@ -4,10 +4,10 @@
 
 #include "zeek/zeek-config.h"
 
-#include <ctype.h>
-#include <math.h>
-#include <stdlib.h>
 #include <algorithm>
+#include <cctype>
+#include <cmath>
+#include <cstdlib>
 #include <string>
 
 #include "zeek/Event.h"

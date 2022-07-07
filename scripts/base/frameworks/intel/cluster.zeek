@@ -6,9 +6,15 @@
 
 module Intel;
 
-# Internal events for cluster data distribution.
-global insert_item: event(item: Item);
-global insert_indicator: event(item: Item);
+# Internal events for cluster data distribution.  Marked as &is_used since
+# they're communicated via Broker.
+global insert_item: event(item: Item) &is_used;
+global insert_indicator: event(item: Item) &is_used;
+
+# By default the manager sends its current min_data_store to connecting workers.
+# During testing it's handy to suppress this, since receipt of the store
+# introduces nondeterminism when mixed with explicit data insertions.
+const send_store_on_node_up = T &redef;
 
 # If this process is not a manager process, we don't want the full metadata.
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
@@ -24,9 +30,10 @@ event zeek_init()
 # Handling of new worker nodes.
 event Cluster::node_up(name: string, id: string)
 	{
-	# When a worker connects, send it the complete minimal data store.
-	# It will be kept up to date after this by the insert_indicator event.
-	if ( name in Cluster::nodes && Cluster::nodes[name]$node_type == Cluster::WORKER )
+	# When a worker connects, send it the complete minimal data store unless
+	# we turned off that feature. The store will be kept up to date after
+	# this by the insert_indicator event.
+	if ( send_store_on_node_up && name in Cluster::nodes && Cluster::nodes[name]$node_type == Cluster::WORKER )
 		{
 		Broker::publish_id(Cluster::node_topic(name), "Intel::min_data_store");
 		}

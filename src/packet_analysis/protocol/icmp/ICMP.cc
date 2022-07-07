@@ -347,7 +347,7 @@ zeek::RecordValPtr ICMPAnalyzer::ExtractICMP4Context(int len, const u_char*& dat
 		{
 		bad_hdr_len = 0;
 		ip_len = ip_hdr->TotalLen();
-		bad_checksum = ! run_state::current_pkt->l3_checksummed &&
+		bad_checksum = ! run_state::current_pkt->l4_checksummed &&
 		               (detail::in_cksum(reinterpret_cast<const uint8_t*>(ip_hdr->IP4_Hdr()),
 		                                 ip_hdr_len) != 0xffff);
 

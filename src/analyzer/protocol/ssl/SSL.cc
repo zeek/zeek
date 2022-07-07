@@ -374,7 +374,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 		EVP_DecryptUpdate(ctx, NULL, &decrypted_len, s_aead_tag.data(), s_aead_tag.size());
 		EVP_DecryptUpdate(ctx, decrypted.data(), &decrypted_len, (const u_char*)encrypted,
 		                  encrypted_len);
-		assert(decrypted_len <= decrypted.size());
+		assert(static_cast<decltype(decrypted.size())>(decrypted_len) <= decrypted.size());
 		decrypted.resize(decrypted_len);
 
 		int res = 0;
@@ -411,6 +411,11 @@ void SSL_Analyzer::ForwardDecryptedData(const std::vector<u_char>& data, bool is
 		}
 
 	ForwardStream(data.size(), data.data(), is_orig);
+	}
+
+bool SSL_Analyzer::GetFlipped()
+	{
+	return handshake_interp->flipped();
 	}
 
 	} // namespace zeek::analyzer::ssl

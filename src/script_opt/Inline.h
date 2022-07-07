@@ -27,8 +27,8 @@ public:
 		Analyze();
 		}
 
-	// Either returns the original CallExpr if it's not inline-able,
-	// or an InlineExpr if it is.
+	// Either returns the original CallExpr if it's not inline-able;
+	// or an InlineExpr if it is; or nil if further inlining should stop.
 	ExprPtr CheckForInlining(CallExprPtr c);
 
 	// True if the given function has been inlined.
@@ -56,6 +56,12 @@ protected:
 	// The size of the frame of the currently-being-inlined function,
 	// prior to increasing it to accommodate inlining.
 	int curr_frame_size;
+
+	// The number of statements and expressions in the function being
+	// inlined.  Dynamically updated as the inlining proceeds.  Used
+	// to cap inlining complexity.
+	int num_stmts;
+	int num_exprs;
 
 	// Whether to generate a report about functions either directly and
 	// indirectly recursive.

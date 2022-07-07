@@ -65,6 +65,27 @@ else ()
         CACHE STRING "Installation path for plugins" FORCE)
 endif ()
 
+if ( NOT ZEEK_ETC_INSTALL_DIR )
+    set(ZEEK_ETC_INSTALL_DIR ${ZEEK_ROOT_DIR}/etc)
+endif ()
+
+if ( NOT ZEEK_STATE_DIR )
+    set(ZEEK_STATE_DIR ${ZEEK_ROOT_DIR}/var/lib)
+endif ()
+
+if ( NOT ZEEK_SPOOL_DIR )
+    set(ZEEK_SPOOL_DIR ${ZEEK_ROOT_DIR}/spool)
+endif ()
+
+if ( NOT ZEEK_LOG_DIR )
+    set(ZEEK_LOG_DIR ${ZEEK_ROOT_DIR}/logs)
+endif ()
+
+install(DIRECTORY DESTINATION ${ZEEK_ETC_INSTALL_DIR})
+install(DIRECTORY DESTINATION ${ZEEK_STATE_DIR})
+install(DIRECTORY DESTINATION ${ZEEK_SPOOL_DIR})
+install(DIRECTORY DESTINATION ${ZEEK_LOG_DIR})
+
 configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
 execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
                 "${CMAKE_CURRENT_BINARY_DIR}/zeek-wrapper.in"
@@ -437,6 +458,17 @@ include_directories(BEFORE
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include/rapidjson
         DESTINATION include/zeek/3rdparty/rapidjson/include)
 
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/filesystem/include/ghc
+        DESTINATION include/zeek/3rdparty/)
+
+# Create 3rdparty/ghc within the build directory so that the include for
+# "zeek/3rdparty/ghc/filesystem.hpp" works within the build tree.
+execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory
+                "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/")
+execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
+                "${CMAKE_CURRENT_SOURCE_DIR}/auxil/filesystem/include/ghc"
+                "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/ghc")
+
 # Optional Dependencies
 
 set(USE_GEOIP false)
@@ -612,7 +644,7 @@ if ( INSTALL_ZKG )
     # An etc/zkg directory for zkg's config file simplifies zkg's
     # config file code.
     set(ZEEK_ZKG_CONFIG_DIR "${ZEEK_ETC_INSTALL_DIR}/zkg")
-    set(ZEEK_ZKG_STATE_DIR "${ZEEK_ROOT_DIR}/var/lib/zkg")
+    set(ZEEK_ZKG_STATE_DIR "${ZEEK_STATE_DIR}/zkg")
 
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/zkg-config.in
@@ -768,10 +800,16 @@ message(
     "\n"
     "\nBuild type:        ${CMAKE_BUILD_TYPE}"
     "\nBuild dir:         ${PROJECT_BINARY_DIR}"
+    "\n"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
+    "\nConfig file dir:   ${ZEEK_ETC_INSTALL_DIR}"
+    "\nLog dir:           ${ZEEK_LOG_DIR}"
     "\nPlugin dir:        ${BRO_PLUGIN_INSTALL_PATH}"
     "\nPython module dir: ${PY_MOD_INSTALL_DIR}"
-    "\nZeek Script Path:  ${ZEEK_SCRIPT_INSTALL_PATH}"
+    "\nScript dir:        ${ZEEK_SCRIPT_INSTALL_PATH}"
+    "\nSpool dir:         ${ZEEK_SPOOL_DIR}"
+    "\nState dir:         ${ZEEK_STATE_DIR}"
+    "\n"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\nUnit tests:        ${ENABLE_ZEEK_UNIT_TESTS}"
     "\nBuiltin Plugins:   ${ZEEK_BUILTIN_PLUGINS}"
@@ -782,6 +820,7 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
+    "\nzeek-client:       ${INSTALL_ZEEK_CLIENT}"
     "\nZeekControl:       ${INSTALL_ZEEKCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\nBifCL:             ${_bifcl_exe_path}"

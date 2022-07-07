@@ -1,5 +1,5 @@
 %{
-#include <string.h>
+#include <cstring>
 #include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -247,4 +247,3 @@ void rules_parse_input()
 	rules_parse();
 	yy_delete_buffer(rules_buffer);
 	}
-

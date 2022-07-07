@@ -13,6 +13,7 @@
 #include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Obj.h"
+#include "zeek/Traverse.h"
 #include "zeek/ZeekList.h"
 
 namespace zeek
@@ -251,12 +252,10 @@ public:
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] virtual unsigned
-	MemoryAllocation() const;
-
 	void SetName(const std::string& arg_name) { name = arg_name; }
 	const std::string& GetName() const { return name; }
+
+	virtual detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
 
 	struct TypePtrComparer
 		{
@@ -349,9 +348,7 @@ public:
 	void Append(TypePtr t);
 	void AppendEvenIfNotPure(TypePtr t);
 
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
+	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
 protected:
 	void DoDescribe(ODesc* d) const override;
@@ -375,6 +372,8 @@ public:
 
 	// Returns true if this table is solely indexed by subnet.
 	bool IsSubNetIndex() const;
+
+	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
 protected:
 	IndexType(TypeTag t, TypeListPtr arg_indices, TypePtr arg_yield_type)
@@ -533,6 +532,8 @@ public:
 	 */
 	void SetExpressionlessReturnOkay(bool is_ok) { expressionless_return_okay = is_ok; }
 
+	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
+
 protected:
 	friend FuncTypePtr make_intrusive<FuncType>();
 
@@ -563,6 +564,8 @@ public:
 	const TypePtr& GetType() const { return type; }
 
 	template <class T> IntrusivePtr<T> GetType() const { return cast_intrusive<T>(type); }
+
+	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
 protected:
 	TypePtr type;
@@ -698,6 +701,8 @@ public:
 
 	std::string GetFieldDeprecationWarning(int field, bool has_check) const;
 
+	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
+
 protected:
 	RecordType() { types = nullptr; }
 
@@ -730,6 +735,8 @@ public:
 	~FileType() override;
 
 	const TypePtr& Yield() const override { return yield; }
+
+	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
 protected:
 	void DoDescribe(ODesc* d) const override;
@@ -843,6 +850,8 @@ public:
 	bool IsUnspecifiedVector() const;
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
+
+	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
 protected:
 	void DoDescribe(ODesc* d) const override;

@@ -6,15 +6,15 @@
 #include "zeek/zeek-config.h"
 
 #include <broker/error.hh>
-#include <ctype.h>
-#include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <signal.h>
-#include <stdlib.h>
 #include <sys/param.h>
 #include <unistd.h>
 #include <algorithm>
+#include <cctype>
+#include <cerrno>
+#include <csignal>
+#include <cstdlib>
 
 #include "zeek/Base64.h"
 #include "zeek/Debug.h"
@@ -318,9 +318,6 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> b
 
 ScriptFunc::~ScriptFunc()
 	{
-	if ( ! weak_closure_ref )
-		Unref(closure);
-
 	delete captures_frame;
 	delete captures_offset_mapping;
 	}
@@ -357,9 +354,6 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 		}
 
 	auto f = make_intrusive<Frame>(frame_size, this, args);
-
-	if ( closure )
-		f->CaptureClosure(closure, outer_ids);
 
 	// Hand down any trigger.
 	if ( parent )
@@ -586,71 +580,6 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body)
 	current_body = new_body;
 	}
 
-void ScriptFunc::AddClosure(IDPList ids, Frame* f)
-	{
-	if ( ! f )
-		return;
-
-	SetOuterIDs(std::move(ids));
-	SetClosureFrame(f);
-	}
-
-bool ScriptFunc::StrengthenClosureReference(Frame* f)
-	{
-	if ( closure != f )
-		return false;
-
-	if ( ! weak_closure_ref )
-		return false;
-
-	closure = closure->SelectiveClone(outer_ids, this);
-	weak_closure_ref = false;
-	return true;
-	}
-
-bool ScriptFunc::HasCopySemantics() const
-	{
-	return type->GetCaptures().has_value();
-	}
-
-void ScriptFunc::SetClosureFrame(Frame* f)
-	{
-	if ( closure )
-		reporter->InternalError("Tried to override closure for ScriptFunc %s.", Name());
-
-	// Have to use weak references initially because otherwise Ref'ing the
-	// original frame creates a circular reference: the function holds a
-	// reference to the frame and the frame contains a reference to this
-	// function value.  And we can't just do a shallow clone of the frame
-	// up front because the closure semantics in Zeek allow mutating
-	// the outer frame.
-
-	closure = f;
-	weak_closure_ref = true;
-	f->AddFunctionWithClosureRef(this);
-	}
-
-bool ScriptFunc::UpdateClosure(const broker::vector& data)
-	{
-	auto result = Frame::Unserialize(data, {});
-
-	if ( ! result.first )
-		return false;
-
-	auto& new_closure = result.second;
-
-	if ( new_closure )
-		new_closure->SetFunction(this);
-
-	if ( ! weak_closure_ref )
-		Unref(closure);
-
-	weak_closure_ref = false;
-	closure = new_closure.release();
-
-	return true;
-	}
-
 bool ScriptFunc::DeserializeCaptures(const broker::vector& data)
 	{
 	auto result = Frame::Unserialize(data, GetType()->GetCaptures());
@@ -671,8 +600,6 @@ FuncPtr ScriptFunc::DoClone()
 	CopyStateInto(other.get());
 
 	other->frame_size = frame_size;
-	other->closure = closure ? closure->SelectiveClone(outer_ids, this) : nullptr;
-	other->weak_closure_ref = false;
 	other->outer_ids = outer_ids;
 
 	if ( captures_frame )
@@ -685,15 +612,12 @@ FuncPtr ScriptFunc::DoClone()
 	return other;
 	}
 
-broker::expected<broker::data> ScriptFunc::SerializeClosure() const
+broker::expected<broker::data> ScriptFunc::SerializeCaptures() const
 	{
 	if ( captures_frame )
 		return captures_frame->SerializeCopyFrame();
 
-	if ( closure )
-		return closure->SerializeClosureFrame(outer_ids);
-
-	// No captures/closures, return an empty vector.
+	// No captures, return an empty vector.
 	return broker::vector{};
 	}
 
@@ -864,7 +788,7 @@ static int get_func_priority(const std::vector<AttrPtr>& attrs)
 
 	for ( const auto& a : attrs )
 		{
-		if ( a->Tag() == ATTR_DEPRECATED )
+		if ( a->Tag() == ATTR_DEPRECATED || a->Tag() == ATTR_IS_USED )
 			continue;
 
 		if ( a->Tag() != ATTR_PRIORITY )
@@ -903,7 +827,23 @@ function_ingredients::function_ingredients(ScopePtr scope, StmtPtr body)
 
 	const auto& attrs = this->scope->Attrs();
 
-	priority = (attrs ? get_func_priority(*attrs) : 0);
+	if ( attrs )
+		{
+		priority = get_func_priority(*attrs);
+
+		for ( const auto& a : *attrs )
+			if ( a->Tag() == ATTR_IS_USED )
+				{
+				// Associate this with the identifier, too.
+				std::vector<AttrPtr> used_attr;
+				used_attr.emplace_back(make_intrusive<Attr>(ATTR_IS_USED));
+				id->AddAttrs(make_intrusive<Attributes>(used_attr, nullptr, false, true));
+				break;
+				}
+		}
+	else
+		priority = 0;
+
 	this->body = std::move(body);
 	}
 

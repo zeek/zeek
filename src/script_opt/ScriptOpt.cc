@@ -14,6 +14,7 @@
 #include "zeek/script_opt/Inline.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/Reduce.h"
+#include "zeek/script_opt/UsageAnalyzer.h"
 #include "zeek/script_opt/UseDefs.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
@@ -519,7 +520,7 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	finalize_functions(funcs);
 	}
 
-void analyze_scripts()
+void analyze_scripts(bool no_unused_warnings)
 	{
 	static bool did_init = false;
 
@@ -528,6 +529,10 @@ void analyze_scripts()
 		init_options();
 		did_init = true;
 		}
+
+	std::unique_ptr<UsageAnalyzer> ua;
+	if ( ! no_unused_warnings )
+		ua = std::make_unique<UsageAnalyzer>(funcs);
 
 	auto& ofuncs = analysis_options.only_funcs;
 	auto& ofiles = analysis_options.only_files;

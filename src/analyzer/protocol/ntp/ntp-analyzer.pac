@@ -1,6 +1,6 @@
 
 %extern{
-	#include <math.h>
+	#include <cmath>
 	#define FRAC_16 pow(2,-16)
 	#define FRAC_32 pow(2,-32)
 	// NTP defines the epoch from 1900, not 1970

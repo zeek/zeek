@@ -2,10 +2,10 @@
 
 #include "zeek/input/readers/benchmark/Benchmark.h"
 
-#include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cerrno>
 
 #include "zeek/input/readers/benchmark/benchmark.bif.h"
 #include "zeek/threading/Manager.h"

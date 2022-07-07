@@ -1,7 +1,3 @@
-# the scripts and triggers the timeout.  Ultimately we need to address this
-# by capping the size of inlined functions, since the main delay comes from
-# traversing enormous AST function bodies.
-# @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
 # @TEST-PORT: BROKER_PORT1
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
@@ -10,7 +6,7 @@
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b %INPUT
 # This timeout needs to be large to accommodate ZAM compilation delays.
-# @TEST-EXEC: btest-bg-wait 90
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff manager-1/.stdout
 
 @load base/frameworks/sumstats

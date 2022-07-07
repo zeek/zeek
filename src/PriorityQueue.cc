@@ -4,8 +4,8 @@
 
 #include "zeek/zeek-config.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "zeek/Reporter.h"
 #include "zeek/util.h"

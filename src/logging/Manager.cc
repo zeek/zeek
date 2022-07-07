@@ -889,7 +889,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			for ( const auto& fcte : *filter_config_table )
 				{
 				auto k = fcte.GetHashKey();
-				auto* v = fcte.GetValue<TableEntryVal*>();
+				auto* v = fcte.value;
 
 				auto index = filter->config->RecreateIndex(*k);
 				string key = index->Idx(0)->AsString()->CheckString();
@@ -1528,6 +1528,13 @@ std::string Manager::FormatRotationPath(EnumValPtr writer, std::string_view path
 		auto dir_val = rp_val->GetFieldOrDefault(0);
 		auto prefix = rp_val->GetFieldAs<StringVal>(1)->CheckString();
 		auto dir = dir_val->AsString()->CheckString();
+
+		// If rotation_format_func returned an empty dir in RotationPath
+		// and Log::default_logdir is set, use it so that rotation is
+		// confined within it.
+		auto default_logdir = zeek::id::find_const<StringVal>("Log::default_logdir")->ToStdString();
+		if ( util::streq(dir, "") && ! default_logdir.empty() )
+			dir = default_logdir.c_str();
 
 		if ( ! util::streq(dir, "") && ! util::detail::ensure_intermediate_dirs(dir) )
 			{

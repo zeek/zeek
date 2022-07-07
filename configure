@@ -38,13 +38,12 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --localstatedir=PATH   when using ZeekControl, path to store log files
                            and run-time data (within log/ and spool/ subdirs)
                            [PREFIX]
-    --spooldir=PATH        when using ZeekControl, path to store run-time data
-                           [PREFIX/spool]
-    --logdir=PATH          when using ZeekControl, path to store log file
-                           [PREFIX/logs]
+    --spooldir=PATH        directory for in-progress logs [PREFIX/spool]
+    --statedir=PATH        directory for variable state [PREFIX/var/lib]
+    --logdir=PATH          directory for finalized logs [PREFIX/logs]
     --libdir=PATH          installation directory for library files [PREFIX/lib]
     --plugindir=PATH       installation directory for plugins [LIBDIR/zeek/plugin]
-    --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
+    --conf-files-dir=PATH  installation directory for config files [PREFIX/etc]
     --mandir=PATH          installation path for man pages [PREFIX/share/man]
     --python-dir=PATH      explicit installation directory for Python modules
     --python-prefix=PATH   versioned installation directory for Python modules,
@@ -58,12 +57,10 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-debug         compile in debugging mode (like --build-type=Debug)
     --enable-fuzzers       build fuzzer targets
     --enable-jemalloc      link against jemalloc
-    --enable-mobile-ipv6   analyze mobile IPv6 features defined by RFC 6275
     --enable-perftools     enable use of Google perftools (use tcmalloc)
     --enable-perftools-debug use Google's perftools for debugging
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
-    --enable-zeek-client   install the Zeek cluster management client (experimental)
     --disable-archiver     don't build or install zeek-archiver tool
     --disable-auxtools     don't build or install auxiliary tools
     --disable-broker-tests don't try to build Broker unit tests
@@ -72,6 +69,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-cpp-tests    don't build Zeek's C++ unit tests
     --disable-python       don't try to build python bindings for Broker
     --disable-spicy        don't include Spicy
+    --disable-zeek-client  don't install Zeek cluster management client
     --disable-zeekctl      don't install ZeekControl
     --disable-zkg          don't install zkg
 
@@ -174,13 +172,12 @@ append_cache_entry INSTALL_AUX_TOOLS BOOL true
 append_cache_entry INSTALL_BTEST BOOL true
 append_cache_entry INSTALL_BTEST_PCAPS BOOL true
 append_cache_entry INSTALL_ZEEK_ARCHIVER BOOL true
+append_cache_entry INSTALL_ZEEK_CLIENT BOOL true
 append_cache_entry INSTALL_ZEEKCTL BOOL true
 append_cache_entry INSTALL_ZKG BOOL true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ZEEK_SANITIZERS STRING ""
 append_cache_entry ZEEK_INCLUDE_PLUGINS STRING ""
-
-has_enable_mobile_ipv6=0
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -256,6 +253,9 @@ while [ $# -ne 0 ]; do
         --spooldir=*)
             append_cache_entry ZEEK_SPOOL_DIR PATH $optarg
             ;;
+        --statedir=*)
+            append_cache_entry ZEEK_STATE_DIR PATH $optarg
+            ;;
         --logdir=*)
             append_cache_entry ZEEK_LOG_DIR PATH $optarg
             ;;
@@ -275,9 +275,6 @@ while [ $# -ne 0 ]; do
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC BOOL true
             ;;
-        --enable-mobile-ipv6)
-            has_enable_mobile_ipv6=1
-            ;;
         --enable-perftools)
             append_cache_entry ENABLE_PERFTOOLS BOOL true
             ;;
@@ -290,9 +287,6 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-static-broker)
             append_cache_entry BUILD_STATIC_BROKER BOOL true
-            ;;
-        --enable-zeek-client)
-            append_cache_entry INSTALL_ZEEK_CLIENT BOOL true
             ;;
         --disable-archiver)
             append_cache_entry INSTALL_ZEEK_ARCHIVER BOOL false
@@ -318,6 +312,9 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-spicy)
             append_cache_entry DISABLE_SPICY BOOL true
+            ;;
+        --disable-zeek-client)
+            append_cache_entry INSTALL_ZEEK_CLIENT BOOL false
             ;;
         --disable-zeekctl)
             append_cache_entry INSTALL_ZEEKCTL BOOL false
@@ -465,8 +462,3 @@ fi
 echo "# This is the command used to configure this build" >config.status
 echo $command >>config.status
 chmod u+x config.status
-
-if [ $has_enable_mobile_ipv6 -eq 1 ]; then
-    echo
-    echo "NOTE: The --enable-mobile-ipv6 argument no longer has any effect and will be removed in v5.1."
-fi

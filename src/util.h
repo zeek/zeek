@@ -15,13 +15,13 @@
 #endif
 
 #include <libgen.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <array>
 #include <cinttypes>
+#include <cstdarg>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <memory> // std::unique_ptr
 #include <string>
 #include <string_view>
@@ -29,18 +29,18 @@
 
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
-#include <time.h>
+#include <ctime>
 #else
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #else
-#include <time.h>
+#include <ctime>
 #endif
 #endif
 
 #ifdef DEBUG
 
-#include <assert.h>
+#include <cassert>
 
 #define ASSERT(x) assert(x)
 #define DEBUG_MSG(x...) fprintf(stderr, x)
@@ -75,6 +75,8 @@ extern "C"
 #include "zeek/3rdparty/modp_numtoa.h"
 	}
 
+#include "zeek/3rdparty/ghc/filesystem.hpp"
+
 using bro_int_t = int64_t;
 using bro_uint_t = uint64_t;
 
@@ -90,6 +92,10 @@ namespace zeek
 
 class ODesc;
 class RecordVal;
+
+// Expose ghc::filesystem as zeek::filesystem until we can
+// switch to std::filesystem.
+namespace filesystem = ghc::filesystem;
 
 namespace util
 	{
@@ -125,8 +131,6 @@ unsigned int initial_seed();
 
 // Returns true if the user explicitly set a seed via init_random_seed();
 extern bool have_random_seed();
-
-extern uint64_t rand64bit();
 
 /**
  * A platform-independent PRNG implementation.  Note that this is not
@@ -546,12 +550,6 @@ std::string canonify_name(const std::string& name);
  * XSI-compliant and the GNU-specific version of strerror_r().
  */
 void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen);
-
-/**
- * A wrapper function for getenv().  Helps check for existence of
- * legacy environment variable names that map to the latest \a name.
- */
-[[deprecated("Remove in v5.1.  Use getenv() directly.")]] char* zeekenv(const char* name);
 
 /**
  * Escapes bytes in a string that are not valid UTF8 characters with \xYY format. Used

@@ -2,7 +2,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include <stdint.h>
+#include <cstdint>
 
 #define RT_MONTEN                                                                                  \
 	6 /* Bytes used as Monte Carlo                                                                 \

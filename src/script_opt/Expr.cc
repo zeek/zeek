@@ -2329,6 +2329,10 @@ ExprPtr CallExpr::Inline(Inliner* inl)
 	{
 	auto new_me = inl->CheckForInlining({NewRef{}, this});
 
+	if ( ! new_me )
+		// All done with inlining.
+		return ThisPtr();
+
 	if ( new_me.get() != this )
 		return new_me;
 
@@ -2673,7 +2677,7 @@ TraversalCode InlineExpr::Traverse(TraversalCallback* cb) const
 
 void InlineExpr::ExprDescribe(ODesc* d) const
 	{
-	if ( d->IsReadable() || d->IsPortable() )
+	if ( d->IsReadable() )
 		{
 		d->Add("inline(");
 		args->Describe(d);

@@ -5,9 +5,12 @@
 #include "zeek/Desc.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/script_opt/StmtOptInfo.h"
 
 namespace zeek::detail
 	{
+
+constexpr int MAX_INLINE_SIZE = 1000;
 
 void Inliner::Analyze()
 	{
@@ -139,7 +142,14 @@ void Inliner::InlineFunction(FuncInfo* f)
 	// particular body.
 	curr_frame_size = f->Scope()->Length();
 
+	auto oi = f->Body()->GetOptInfo();
+	num_stmts = oi->num_stmts;
+	num_exprs = oi->num_exprs;
+
 	f->Body()->Inline(this);
+
+	oi->num_stmts = num_stmts;
+	oi->num_exprs = num_exprs;
 
 	int new_frame_size = curr_frame_size + max_inlined_frame_size;
 
@@ -175,9 +185,19 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 	if ( inline_ables.count(func_vf) == 0 )
 		return c;
 
-	ListExprPtr args = {NewRef{}, c->Args()};
+	// We're going to inline the body, unless it's too large.
 	auto body = func_vf->GetBodies()[0].stmts; // there's only 1 body
-	auto t = c->GetType();
+	auto oi = body->GetOptInfo();
+
+	if ( num_stmts + oi->num_stmts + num_exprs + oi->num_exprs > MAX_INLINE_SIZE )
+		return nullptr;
+
+	num_stmts += oi->num_stmts;
+	num_exprs += oi->num_exprs;
+
+	auto body_dup = body->Duplicate();
+	body_dup->GetOptInfo()->num_stmts = oi->num_stmts;
+	body_dup->GetOptInfo()->num_exprs = oi->num_exprs;
 
 	// Getting the names of the parameters is tricky.  It's tempting
 	// to take them from the function's type declaration, but alas
@@ -197,8 +217,6 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 
 	for ( int i = 0; i < nparam; ++i )
 		params.emplace_back(vars[i]);
-
-	auto body_dup = body->Duplicate();
 
 	// Recursively inline the body.  This is safe to do because we've
 	// ensured there are no recursive loops ... but we have to be
@@ -221,6 +239,8 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 	else
 		max_inlined_frame_size = hold_max_inlined_frame_size;
 
+	ListExprPtr args = {NewRef{}, c->Args()};
+	auto t = c->GetType();
 	auto ie = make_intrusive<InlineExpr>(args, std::move(params), body_dup, curr_frame_size, t);
 	ie->SetOriginal(c);
 

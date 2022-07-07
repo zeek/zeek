@@ -11,20 +11,20 @@
 #include <mach/task.h>
 #endif
 
-#include <ctype.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cctype>
+#include <cerrno>
+#include <csignal>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
 
 #if defined(HAVE_MALLINFO) || defined(HAVE_MALLINFO2)
 #include <malloc.h>
@@ -46,7 +46,6 @@
 #include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/Desc.h"
-#include "zeek/Dict.h"
 #include "zeek/Hash.h"
 #include "zeek/NetVar.h"
 #include "zeek/Obj.h"
@@ -536,17 +535,6 @@ long int random_number()
 	zeek_rand_state = detail::prng(zeek_rand_state);
 
 	return zeek_rand_state;
-	}
-
-// Returns a 64-bit random string.
-uint64_t rand64bit()
-	{
-	uint64_t base = 0;
-	int i;
-
-	for ( i = 1; i <= 4; ++i )
-		base = (base << 16) | detail::random_number();
-	return base;
 	}
 
 TEST_CASE("util is_package_loader")
@@ -2523,11 +2511,6 @@ void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen)
 	strerror_r_helper(res, buf, buflen);
 	}
 
-char* zeekenv(const char* name)
-	{
-	return getenv(name);
-	}
-
 static string json_escape_byte(char c)
 	{
 	char hex[2] = {'0', '0'};
@@ -2724,4 +2707,22 @@ extern "C" void out_of_memory(const char* where)
 		zeek::reporter->FatalError("out of memory in %s.\n", where);
 
 	abort();
+	}
+
+TEST_CASE("util filesystem")
+	{
+	zeek::filesystem::path path1("/a/b");
+	CHECK(path1.is_absolute());
+	CHECK(! path1.is_relative());
+	CHECK(path1.filename() == "b");
+	CHECK(path1.parent_path() == "/a");
+
+	zeek::filesystem::path path2("/a//b//conn.log");
+	CHECK(path2.lexically_normal() == "/a/b/conn.log");
+
+	zeek::filesystem::path path3("a//b//");
+	CHECK(path3.lexically_normal() == "a/b/");
+
+	auto info = zeek::filesystem::space(".");
+	CHECK(info.capacity > 0);
 	}

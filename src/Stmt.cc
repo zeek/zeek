@@ -59,6 +59,8 @@ const char* stmt_name(StmtTag t)
 	return stmt_names[int(t)];
 	}
 
+int Stmt::num_stmts = 0;
+
 Stmt::Stmt(StmtTag arg_tag)
 	{
 	tag = arg_tag;
@@ -69,6 +71,8 @@ Stmt::Stmt(StmtTag arg_tag)
 	opt_info = new StmtOptInfo();
 
 	SetLocationInfo(&start_location, &end_location);
+
+	++num_stmts;
 	}
 
 Stmt::~Stmt()
@@ -1327,7 +1331,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow)
 		for ( const auto& lve : *loop_vals )
 			{
 			auto k = lve.GetHashKey();
-			auto* current_tev = lve.GetValue<TableEntryVal*>();
+			auto* current_tev = lve.value;
 			auto ind_lv = tv->RecreateIndex(*k);
 
 			if ( value_var )
@@ -2158,22 +2162,27 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	tc = wi->Cond()->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
+	auto wl = wi->Lambda();
 
-	tc = wi->WhenBody()->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
-
-	if ( wi->TimeoutExpr() )
+	if ( wl )
 		{
-		tc = wi->TimeoutExpr()->Traverse(cb);
+		tc = wl->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 
-	if ( wi->TimeoutStmt() )
+	else
 		{
-		tc = wi->TimeoutStmt()->Traverse(cb);
+		tc = wi->Cond()->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
+
+		tc = wi->WhenBody()->Traverse(cb);
+		HANDLE_TC_STMT_PRE(tc);
+
+		if ( wi->TimeoutStmt() )
+			{
+			tc = wi->TimeoutStmt()->Traverse(cb);
+			HANDLE_TC_STMT_PRE(tc);
+			}
 		}
 
 	tc = cb->PostStmt(this);

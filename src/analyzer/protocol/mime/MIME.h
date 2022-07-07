@@ -1,8 +1,8 @@
 #pragma once
 
-#include <assert.h>
 #include <openssl/evp.h>
-#include <stdio.h>
+#include <cassert>
+#include <cstdio>
 #include <queue>
 #include <vector>
 

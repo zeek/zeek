@@ -4,8 +4,8 @@
 
 #include "zeek/zeek-config.h"
 
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 
 namespace zeek::detail
 	{

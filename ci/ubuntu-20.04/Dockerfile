@@ -2,32 +2,38 @@ FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
+# A version field to invalide Cirrus's build cache when needed, as suggested in
+# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
+ENV DOCKERFILE_VERSION 20220519
+
 RUN apt-get update && apt-get -y install \
-    git \
-    cmake \
-    make \
-    gcc \
-    g++ \
-    flex \
+    bc \
     bison \
+    bsdmainutils \
+    ccache \
+    cmake \
+    curl \
+    flex \
+    g++ \
+    gcc \
+    git \
+    lcov \
+    libkrb5-dev \
+    libmaxminddb-dev \
     libpcap-dev \
     libssl-dev \
+    make \
     python3 \
     python3-dev \
     python3-pip\
-    swig \
-    zlib1g-dev \
-    libmaxminddb-dev \
-    libkrb5-dev \
-    bsdmainutils \
-    sqlite3 \
-    curl \
-    wget \
-    unzip \
     ruby \
-    bc \
-    lcov \
+    sqlite3 \
+    swig \
+    unzip \
+    wget \
+    zlib1g-dev \
+  && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install junit2html
+RUN pip3 install websockets junit2html
 RUN gem install coveralls-lcov

@@ -7,7 +7,6 @@
 #include <tuple>
 #include <type_traits>
 
-#include "zeek/Dict.h"
 #include "zeek/IPAddr.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Rule.h"
@@ -70,8 +69,6 @@ struct ConnTuple
 	bool is_one_way; // if true, don't canonicalize order
 	TransportProto proto;
 	};
-
-using ConnID [[deprecated("Remove in v5.1. Use zeek::ConnTuple.")]] = ConnTuple;
 
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2,
                                      uint32_t p2)
@@ -195,14 +192,6 @@ public:
 
 	// Statistics.
 
-	// Just a lower bound.
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocation() const override;
-	[[deprecated("Remove in v5.1. MemoryAllocation() is deprecated and will be removed. See "
-	             "GHI-572.")]] unsigned int
-	MemoryAllocationVal() const override;
-
 	static uint64_t TotalConnections() { return total_connections; }
 	static uint64_t CurrentConnections() { return current_connections; }
 
@@ -229,6 +218,9 @@ public:
 	void HistoryThresholdEvent(EventHandlerPtr e, bool is_orig, uint32_t threshold);
 
 	void AddHistory(char code) { history += code; }
+
+	const std::string& GetHistory() const { return history; }
+	void ReplaceHistory(std::string new_h) { history = std::move(new_h); }
 
 	// Sets the root of the analyzer tree as well as the primary PIA.
 	void SetSessionAdapter(packet_analysis::IP::SessionAdapter* aa, analyzer::pia::PIA* pia);
@@ -265,6 +257,7 @@ private:
 	int suppress_event; // suppress certain events to once per conn.
 	RecordValPtr conn_val;
 	std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
+	uint8_t tunnel_changes = 0;
 
 	detail::ConnKey key;
 

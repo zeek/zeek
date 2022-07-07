@@ -4,25 +4,25 @@
 
 #include "zeek/zeek-config.h"
 
-#include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <stdlib.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <algorithm>
+#include <cerrno>
+#include <cstdlib>
 #include <vector>
 
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
-#include <time.h>
+#include <ctime>
 #elif defined(HAVE_SYS_TIME_H)
 #include <sys/time.h>
 #else
-#include <time.h>
+#include <ctime>
 #endif
 
 #include <ztd/out_ptr.hpp>
@@ -560,6 +560,12 @@ DNS_Mgr::~DNS_Mgr()
 	ares_library_cleanup();
 	}
 
+void DNS_Mgr::Done()
+	{
+	shutting_down = true;
+	Flush();
+	}
+
 void DNS_Mgr::RegisterSocket(int fd, bool read, bool write)
 	{
 	if ( read && socket_fds.count(fd) == 0 )
@@ -713,6 +719,9 @@ static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback, const std::stri
 
 ValPtr DNS_Mgr::Lookup(const std::string& name, int request_type)
 	{
+	if ( shutting_down )
+		return nullptr;
+
 	if ( request_type == T_A || request_type == T_AAAA )
 		return LookupHost(name);
 
@@ -761,6 +770,9 @@ ValPtr DNS_Mgr::Lookup(const std::string& name, int request_type)
 
 TableValPtr DNS_Mgr::LookupHost(const std::string& name)
 	{
+	if ( shutting_down )
+		return nullptr;
+
 	if ( mode == DNS_FAKE )
 		return fake_name_lookup_result(name);
 
@@ -809,6 +821,9 @@ TableValPtr DNS_Mgr::LookupHost(const std::string& name)
 
 StringValPtr DNS_Mgr::LookupAddr(const IPAddr& addr)
 	{
+	if ( shutting_down )
+		return nullptr;
+
 	if ( mode == DNS_FAKE )
 		return make_intrusive<StringVal>(fake_addr_lookup_result(addr));
 
@@ -853,6 +868,9 @@ StringValPtr DNS_Mgr::LookupAddr(const IPAddr& addr)
 
 void DNS_Mgr::LookupHost(const std::string& name, LookupCallback* callback)
 	{
+	if ( shutting_down )
+		return;
+
 	if ( mode == DNS_FAKE )
 		{
 		resolve_lookup_cb(callback, fake_name_lookup_result(name));
@@ -893,6 +911,9 @@ void DNS_Mgr::LookupHost(const std::string& name, LookupCallback* callback)
 
 void DNS_Mgr::LookupAddr(const IPAddr& addr, LookupCallback* callback)
 	{
+	if ( shutting_down )
+		return;
+
 	if ( mode == DNS_FAKE )
 		{
 		resolve_lookup_cb(callback, fake_addr_lookup_result(addr));
@@ -932,6 +953,9 @@ void DNS_Mgr::LookupAddr(const IPAddr& addr, LookupCallback* callback)
 
 void DNS_Mgr::Lookup(const std::string& name, int request_type, LookupCallback* callback)
 	{
+	if ( shutting_down )
+		return;
+
 	if ( mode == DNS_FAKE )
 		{
 		resolve_lookup_cb(callback, fake_lookup_result(name, request_type));

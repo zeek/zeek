@@ -1,8 +1,8 @@
 #pragma once
 
-#include <stdint.h>
 #include <sys/time.h>
 #include <condition_variable>
+#include <cstdint>
 #include <deque>
 #include <mutex>
 #include <queue>

@@ -76,7 +76,7 @@ type myfunctype: function(c: count) : function(d: count) : count;
 
 global global_with_same_name = 100;
 
-global pong: event(msg: string, f: myfunctype);
+global pong: event(msg: string, f: myfunctype) &is_used;
 
 # This is one, of many, ways to declare your functions that you plan to receive.
 # All you are doing is giving the parser a version of their body, so they can be
@@ -116,7 +116,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 global n = 0;
 
-event ping(msg: string, f: myfunctype)
+event ping(msg: string, f: myfunctype) &is_used
     {
     print fmt("receiver got ping: %s", msg);
     ++n;

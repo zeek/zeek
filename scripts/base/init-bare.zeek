@@ -403,6 +403,13 @@ export {
 		## cross-references the *uid* field of :zeek:type:`connection`.
 		uid: string &optional;
 	} &log;
+
+	## The number of tunnel_changed events that will be sent for a connection. Once this
+	## limit is hit, no more of those events will be sent to avoid a large number of events
+	## being sent for connections that regularly swap. This can be set to zero to disable
+	## this limiting.
+	const max_changes_per_connection: count = 5 &redef;
+
 } # end export
 module GLOBAL;
 
@@ -766,8 +773,6 @@ type ReporterStats: record {
 
 ## Table type used to map variable names to their memory allocation.
 ##
-## .. zeek:see:: global_sizes
-##
 ## .. todo:: We need this type definition only for declaring builtin functions
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
 ##    directly and then remove this alias.
@@ -982,6 +987,14 @@ type geo_location: record {
 	city: string &optional;	##< The city.
 	latitude: double &optional;	##< Latitude.
 	longitude: double &optional;	##< Longitude.
+} &log;
+
+## GeoIP autonomous system information.
+##
+## .. zeek:see:: lookup_autonomous_system
+type geo_autonomous_system: record {
+	number: count &optional;	##< The autonomous system number.
+	organization: string &optional;	##< Associated organization.
 } &log;
 
 ## The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.

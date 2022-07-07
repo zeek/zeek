@@ -93,7 +93,7 @@ public:
 	ScriptProfile(const Func* _func, const detail::StmtPtr& body)
 		: ScriptProfileStats(_func->Name())
 		{
-		func = _func;
+		func = {NewRef{}, const_cast<Func*>(_func)};
 		is_BiF = body == nullptr;
 
 		if ( is_BiF )
@@ -124,7 +124,9 @@ public:
 	void Report(FILE* f) const;
 
 private:
-	const Func* func;
+	// We store "func" as a FuncPtr to ensure it sticks around when
+	// it would otherwise be ephemeral (i.e., for lambdas).
+	FuncPtr func;
 	bool is_BiF;
 	detail::Location loc;
 

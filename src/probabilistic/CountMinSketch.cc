@@ -14,6 +14,7 @@ namespace zeek::probabilistic
 
 CountMinSketch::CountMinSketch(uint16_t w, uint16_t d)
 	{
+	using namespace util::detail;
 	uint32_t elements = w * d;
 	content.resize(elements);
 
@@ -21,9 +22,9 @@ CountMinSketch::CountMinSketch(uint16_t w, uint16_t d)
 	this->w = w;
 
 	// generate uniformly distributed aj, bj from [1..p]
-	std::random_device rd;
+	std::seed_seq seq{random_number(), random_number(), random_number(), random_number(), random_number(), random_number(), random_number(), random_number(), random_number(), random_number(), random_number(), random_number()};
 	ab.resize(d);
-	std::mt19937_64 gen(rd());
+	std::mt19937_64 gen(seq);
 	std::uniform_int_distribution<countms_ab_t> distribution(1, p);
 	for ( int i = 0; i < d; i++ )
 		{

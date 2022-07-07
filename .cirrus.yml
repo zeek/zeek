@@ -188,17 +188,10 @@ debian10_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-debian9_task:
+opensuse_leap_15_4_task:
   container:
-    # Debian 9 EOL: June 2022
-    dockerfile: ci/debian-9/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-debian9_32bit_task:
-  container:
-    # Debian 9 EOL: June 2022
-    dockerfile: ci/debian-9-32bit/Dockerfile
+    # Opensuse Leap 15.4 EOL: TBD
+    dockerfile: ci/opensuse-leap-15.4/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
@@ -209,17 +202,17 @@ opensuse_leap_15_3_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+opensuse_tumbleweed_task:
+  container:
+    # Opensuse Tumbleweed has no EOL
+    dockerfile: ci/opensuse-tumbleweed/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 ubuntu22_task:
   container:
     # Ubuntu 22.04 EOL: April 2027
     dockerfile: ci/ubuntu-22.04/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-ubuntu21_task:
-  container:
-    # Ubuntu 21.10 EOL: July 2022
-    dockerfile: ci/ubuntu-21.10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
@@ -264,13 +257,23 @@ macos_big_sur_task:
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT
 
-# FreeBSD EOL timelines: https://www.freebsd.org/security/security.html#sup
+# FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
 freebsd14_task:
   freebsd_instance:
     # We don't support FreeBSD 14 yet, this is a purely informative task
     image_family: freebsd-14-0-snap
     allow_failures: true
     skip_notification: true
+    << : *FREEBSD_RESOURCES_TEMPLATE
+
+  prepare_script: ./ci/freebsd/prepare.sh
+  << : *CI_TEMPLATE
+  << : *FREEBSD_ENVIRONMENT
+
+freebsd13_1_task:
+  freebsd_instance:
+    # FreeBSD 13.1 EOL: TBD (13.2 + 3 months)
+    image_family: freebsd-13-1
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh

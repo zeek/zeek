@@ -1,3 +1,14 @@
+5.1.0-dev.198 | 2022-07-07 14:19:23 -0700
+
+  * Bump broker and zeek-archiver submodules to pull in CI updates (Christian Kreibich, Corelight)
+
+  * CI updates  (Christian Kreibich, Corelight)
+
+    - add FreeBSD 13.1 and fix broken link
+    - Add OpenSUSE Tumbleweed
+    - drop Ubuntu 21.10, EOL 2022-07-14
+    - drop Debian 9, EOL 2022-06-30
+
 5.1.0-dev.192 | 2022-07-07 07:51:04 +0200
 
   * sqlite default-logdir test: Remove ls ./logs baseline (Arne Welzel, Corelight)

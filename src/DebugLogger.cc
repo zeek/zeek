@@ -115,7 +115,7 @@ void DebugLogger::EnableStreams(const char* s)
 			exit(0);
 			}
 
-		if ( strncmp(tok, "plugin-", strlen("plugin-")) == 0 )
+		if ( util::starts_with(tok, "plugin-") )
 			{
 			// Cannot verify this at this time, plugins may not
 			// have been loaded.
@@ -144,6 +144,29 @@ void DebugLogger::EnableStreams(const char* s)
 	delete[] tmp;
 	}
 
+bool DebugLogger::CheckStreams(const std::set<std::string>& plugin_names)
+	{
+	bool ok = true;
+
+	std::set<std::string> available_plugin_streams;
+	for ( const auto& p : plugin_names )
+		available_plugin_streams.insert(PluginStreamName(p));
+
+	for ( auto const& stream : enabled_streams )
+		{
+		if ( ! util::starts_with(stream, "plugin-") )
+			continue;
+
+		if ( available_plugin_streams.count(stream) == 0 )
+			{
+			reporter->Error("No plugin debug stream '%s' found", stream.c_str());
+			ok = false;
+			}
+		}
+
+	return ok;
+	}
+
 void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 	{
 	Stream* g = &streams[int(stream)];
@@ -168,8 +191,7 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 
 void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...)
 	{
-	std::string tok = std::string("plugin-") + plugin.Name();
-	tok = util::strreplace(tok, "::", "-");
+	std::string tok = PluginStreamName(plugin.Name());
 
 	if ( enabled_streams.find(tok) == enabled_streams.end() )
 		return;

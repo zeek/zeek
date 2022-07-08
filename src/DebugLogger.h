@@ -11,6 +11,8 @@
 #include <set>
 #include <string>
 
+#include "zeek/util.h"
+
 #define DBG_LOG(stream, args...)                                                                   \
 	if ( ::zeek::detail::debug_logger.IsEnabled(stream) )                                          \
 	::zeek::detail::debug_logger.Log(stream, args)
@@ -84,6 +86,9 @@ public:
 	// Takes comma-seperated list of stream prefixes.
 	void EnableStreams(const char* streams);
 
+	// Check the enabled streams for invalid ones.
+	bool CheckStreams(const std::set<std::string>& plugin_names);
+
 	bool IsEnabled(DebugStream stream) const { return streams[int(stream)].enabled; }
 
 	void SetVerbose(bool arg_verbose) { verbose = arg_verbose; }
@@ -105,6 +110,11 @@ private:
 	std::set<std::string> enabled_streams;
 
 	static Stream streams[NUM_DBGS];
+
+	const std::string PluginStreamName(const std::string& plugin_name)
+		{
+		return "plugin-" + util::strreplace(plugin_name, "::", "-");
+		}
 	};
 
 extern DebugLogger debug_logger;

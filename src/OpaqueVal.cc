@@ -921,6 +921,46 @@ CountMSVal::CountMSVal(std::unique_ptr<probabilistic::CountMinSketch> sketch)
 	{
 	}
 
+ValPtr CountMSVal::DoClone(CloneState* state)
+	{
+	assert(sketch);
+	auto cms = make_intrusive<CountMSVal>(std::make_unique<probabilistic::CountMinSketch>(*sketch));
+	if ( type )
+		cms->Typify(type);
+
+	return state->NewClone(this, std::move(cms));
+	}
+
+CountMSValPtr CountMSVal::Merge(const CountMSVal* x, const CountMSVal* y)
+	{
+	if ( x->Type() && // any one 0 is ok here
+	     y->Type() && ! same_type(x->Type(), y->Type()) )
+		{
+		reporter->Error("cannot merge Count-min sketches with different types");
+		return nullptr;
+		}
+
+	auto final_type = x->Type() ? x->Type() : y->Type();
+
+	auto cms_copy = std::make_unique<probabilistic::CountMinSketch>(*x->sketch);
+
+	if ( ! cms_copy->Merge(*(y->sketch)) )
+		{
+		reporter->Error("failed to merge Count-min sketch");
+		return nullptr;
+		}
+
+	auto merged = make_intrusive<CountMSVal>(std::move(cms_copy));
+
+	if ( final_type && ! merged->Typify(final_type) )
+		{
+		reporter->Error("failed to set type on merged Count-min sketch");
+		return nullptr;
+		}
+
+	return merged;
+	}
+
 bool CountMSVal::Typify(TypePtr arg_type)
 	{
 	if ( type )

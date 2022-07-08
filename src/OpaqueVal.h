@@ -375,7 +375,7 @@ class CountMSVal : public OpaqueVal
 public:
 	explicit CountMSVal(std::unique_ptr<probabilistic::CountMinSketch> cms);
 
-	//ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(CloneState* state) override;
 
 	const TypePtr& Type() const { return type; }
 
@@ -388,7 +388,7 @@ public:
 	//bool Empty() const;
 	//std::string InternalState() const;
 
-	//static CountMSValPtr Merge(const CountMSVal* x, const CountMSVal* y);
+	static CountMSValPtr Merge(const CountMSVal* x, const CountMSVal* y);
 
 protected:
 	friend class Val;

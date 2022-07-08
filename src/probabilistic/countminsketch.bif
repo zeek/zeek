@@ -2,6 +2,18 @@
 #include "zeek/probabilistic/CountMinSketch.h"
 %%}
 
+module GLOBAL;
+
+## Creates a Count-min sketch
+##
+## Epsilon and delta are defined as follows. With a probability of 1 - delta, the error is at
+## most epsilon * norm(count).
+##
+## epsilon: error factor
+##
+## delta: error probability
+##
+## Returns: A Count-min sketch handle
 function count_min_sketch_init%(epsilon: double, delta: double%): opaque of countminsketch
 	%{
 	auto wd = CountMinSketch::CalculateWD(epsilon, delta);
@@ -15,24 +27,55 @@ function count_min_sketch_init%(epsilon: double, delta: double%): opaque of coun
 	return v;
 	%}
 
+## This function calculates the required width to create a count min sketch with a given
+## error factor and error probability.
+##
+## epsilon: error factor
+##
+## delta: error probability
+##
+## Returns: The required width
 function count_min_sketch_calculate_required_width%(epsilon: double, delta: double%): int
 	%{
 	auto wd = CountMinSketch::CalculateWD(epsilon, delta);
 	return zeek::val_mgr->Int(wd.first);
 	%}
 
+## This function calculates the required depth to create a count min sketch with a given
+## error factor and error probability.
+##
+## epsilon: error factor
+##
+## delta: error probability
+##
+## Returns: The required depth
 function count_min_sketch_calculate_required_depth%(epsilon: double, delta: double%): int
 	%{
 	auto wd = CountMinSketch::CalculateWD(epsilon, delta);
 	return zeek::val_mgr->Int(wd.second);
 	%}
 
+
+## Creates a Count-min sketch using a specified witdh and depth
+##
+## w: width
+##
+## d: error depth
+##
+## Returns: A Count-min sketch handle
 function count_min_sketch_advanced_init%(w: count, d: count%): opaque of countminsketch
 	%{
 	auto v = zeek::make_intrusive<zeek::CountMSVal>(std::make_unique<zeek::probabilistic::CountMinSketch>(w, d));
 	return v;
 	%}
 
+## Increment the number of item observations.
+##
+## cms: A Count-min sketch handle
+##
+## item: item that was observed
+##
+## c: number of observations to add
 function count_min_sketch_update%(cms: opaque of countminsketch, item: any, c: count &default=1%): any
 	%{
 	auto cmv = static_cast<zeek::CountMSVal*>(cms);
@@ -47,6 +90,13 @@ function count_min_sketch_update%(cms: opaque of countminsketch, item: any, c: c
 	return nullptr;
 	%}
 
+## Estimate the number of times a specific item was encountered
+##
+## cms: A Count-min sketch
+##
+## item: item to be queried
+##
+## Returns: estimate of how often the item was observed
 function count_min_sketch_estimate%(cms: opaque of countminsketch, item: any%): count
 	%{
 	auto cmv = static_cast<zeek::CountMSVal*>(cms);
@@ -55,10 +105,16 @@ function count_min_sketch_estimate%(cms: opaque of countminsketch, item: any%): 
 		return zeek::val_mgr->Count(0);
 	else if ( ! same_type(cmv->Type(), item->GetType()) )
 		reporter->Error("incompatible Count-Min sketch types");
-	
+
 	return zeek::val_mgr->Count(cmv->Estimate(item));
 	%}
 
+## This function returns the total number of observations that were inserted into the Count-min sketch. This can
+## be used for error calculations.
+##
+## cms: A Count-min sketch handle
+##
+## Returns: Total number of observations inserted.
 function count_min_sketch_get_total%(cms: opaque of countminsketch%): count
 	%{
 	auto cmv = static_cast<zeek::CountMSVal*>(cms);
@@ -67,4 +123,27 @@ function count_min_sketch_get_total%(cms: opaque of countminsketch%): count
 		return zeek::val_mgr->Count(0);
 
 	return zeek::val_mgr->Count(cmv->GetTotal());
+	%}
+
+## This function merges two count-min sketches
+##
+## c1: first count min sketch
+##
+## c2: second count min sketch
+##
+## Returns: Merged count-min sketch.
+function count_min_sketch_merge%(c1: opaque of countminsketch, c2: opaque of countminsketch%): opaque of countminsketch
+	%{
+	const auto* cms1 = static_cast<const CountMSVal*>(c1);
+	const auto* cms2 = static_cast<const CountMSVal*>(c2);
+
+	if ( cms1->Type() && // any one 0 is ok here
+	     cms2->Type() &&
+	     ! same_type(cms1->Type(), cms2->Type()) )
+		{
+		reporter->Error("incompatible Count-min sketches");
+		return nullptr;
+		}
+
+	return CountMSVal::Merge(cms1, cms2);
 	%}

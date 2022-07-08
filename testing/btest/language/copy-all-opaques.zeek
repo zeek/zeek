@@ -45,6 +45,20 @@ event zeek_init()
 	# check that typefication transfered.
 	bloomfilter_add(bf_copy, 0.5); # causes stderr output
 
+	print "============ Count-min sketch";
+	local cms = count_min_sketch_advanced_init(2719, 7);
+	count_min_sketch_update(cms, 42);
+	count_min_sketch_update(cms, 84);
+	count_min_sketch_update(cms, 168);
+	print count_min_sketch_estimate(cms, 0);
+	print count_min_sketch_estimate(cms, 42);
+	local cms_copy = copy(cms);
+	count_min_sketch_update(cms, 0);
+	print count_min_sketch_estimate(cms_copy, 0);
+	print count_min_sketch_estimate(cms_copy, 42);
+	# check that typefication transfered.
+	count_min_sketch_update(cms_copy, 0.5); # causes stderr output
+
 	print "============ Hashes";
 	local md5a = md5_hash_init();
 	md5_hash_update(md5a, "one");

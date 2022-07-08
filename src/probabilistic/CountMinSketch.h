@@ -42,6 +42,14 @@ public:
 	explicit CountMinSketch(uint16_t w, uint16_t d);
 
 	/**
+	 * Constructs a Count-min sketch from an existing Count-min sketch. After construction both will
+	 * have exactly the same state
+	 *
+	 * @param other: original count-min sketch
+	 **/
+	explicit CountMinSketch(const CountMinSketch& other);
+
+	/**
 	 * Calculates the parameters w (width) and d (depth) of the sketch, given epsilon and delta.
 	 *
 	 * Epsilon and delta are defined as follows. With a probability of 1 - delta, the error is at
@@ -59,9 +67,23 @@ public:
 	 * Returns the total number of observations (*c*) that were added to the sketch. Can be used
 	 * for error calculations
 	 *
-	 * Returns: total number of observations
+	 * @return: total number of observations
 	 **/
-	uint64_t GetTotal() const { return total; };
+	uint64_t GetTotal() const
+		{
+		return total;
+		};
+
+  /**
+   * Merge another Count-min sketch into this one. Please note that
+	 * both Count-min sketches have to be compatible (they have to be seeded
+	 * with the same random numbers).
+   *
+   * @param value: Count-min sketch to merge into this Count-min sketch
+   *
+	 * @return: true on success, false when the sketches were incompatible and not merged
+   */
+  bool Merge(const CountMinSketch& other);
 
 	void Update(countms_data_t i, uint16_t c);
 	void Update(const zeek::detail::HashKey* item, uint16_t c);

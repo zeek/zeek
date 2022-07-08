@@ -58,6 +58,24 @@ function advanced_test_two()
 	print_test_result(cms, 77);
 	print "Total observations", count_min_sketch_get_total(cms);
 	}
+
+function merge_test()
+	{
+	local cms = count_min_sketch_advanced_init(2719, 7);
+	local cms_two = copy(cms); # copy of empty cms to get same random number initialization
+	count_min_sketch_update(cms, 0, 10);
+	count_min_sketch_update(cms, 42, 11);
+	count_min_sketch_update(cms_two, 42, 250);
+	count_min_sketch_update(cms_two, 88, 11);
+	print count_min_sketch_estimate(cms, 0);
+	print count_min_sketch_estimate(cms, 42);
+	print count_min_sketch_estimate(cms, 88);
+	local new = count_min_sketch_merge(cms, cms_two);
+	print count_min_sketch_estimate(new, 0);
+	print count_min_sketch_estimate(new, 42);
+	print count_min_sketch_estimate(new, 88);
+	}
+
 event zeek_init()
 	{
 	# hundred elements, 1% error allowable
@@ -80,4 +98,5 @@ event zeek_init()
 	print count_min_sketch_calculate_required_depth(0.01, .00001);
 	advanced_test();
 	advanced_test_two();
+	merge_test();
 	}

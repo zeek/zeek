@@ -6,6 +6,7 @@
 #include <cmath>
 #include <limits>
 #include <random>
+#include <cstring>
 
 #include "zeek/Reporter.h"
 
@@ -22,7 +23,9 @@ CountMinSketch::CountMinSketch(uint16_t w, uint16_t d)
 	this->w = w;
 
 	// generate uniformly distributed aj, bj from [1..p]
-	std::seed_seq seq{random_number(), random_number(), random_number(), random_number(), random_number(), random_number(), random_number(), random_number(), random_number(), random_number(), random_number(), random_number()};
+	std::seed_seq seq{random_number(), random_number(), random_number(), random_number(),
+	                  random_number(), random_number(), random_number(), random_number(),
+	                  random_number(), random_number(), random_number(), random_number()};
 	ab.resize(d);
 	std::mt19937_64 gen(seq);
 	std::uniform_int_distribution<countms_ab_t> distribution(1, p);
@@ -30,6 +33,15 @@ CountMinSketch::CountMinSketch(uint16_t w, uint16_t d)
 		{
 		ab[i] = {distribution(gen), distribution(gen)};
 		}
+	}
+
+CountMinSketch::CountMinSketch(const CountMinSketch& other)
+	{
+	this->d = other.d;
+	this->w = other.w;
+	this->total = other.total;
+	this->ab = other.ab;
+	this->content = other.content;
 	}
 
 std::pair<int, int> CountMinSketch::CalculateWD(double epsilon, double delta)
@@ -53,7 +65,7 @@ void CountMinSketch::Update(countms_data_t item, uint16_t c)
 		{
 		uint32_t hash = (ab[i].first * item + ab[i].second) % p % w;
 		// depth times width + hash
-		content[i*w + hash] += c;
+		content[i * w + hash] += c;
 		}
 	}
 
@@ -80,5 +92,26 @@ uint32_t CountMinSketch::Estimate(const zeek::detail::HashKey* item)
 	{
 	auto hash = item->Hash();
 	return Estimate(hash);
+	}
+
+bool CountMinSketch::Merge(const CountMinSketch& other)
+	{
+	// Only compatible if ab and w, d in both sketches is the same.
+	if ( d != other.d || w != other.w )
+		return false;
+
+	if ( ab.size() != other.ab.size() )
+		return false;
+
+	if ( std::memcmp(ab.data(), other.ab.data(), ab.size()*sizeof(countms_ab_t)) != 0 )
+		return false;
+
+	assert( content.size() == other.content.size() );
+
+	for ( auto i = 0; i < content.size(); i++ )
+		content[i] += other.content[i];
+
+	total += other.total;
+	return true;
 	}
 	}

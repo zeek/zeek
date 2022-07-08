@@ -2050,9 +2050,9 @@ void Manager::PrepareForwarding(const std::string& name)
 
 void Manager::SetMetricsExportInterval(double value)
 	{
-	broker::timespan ts;
-	if ( broker::convert(value, ts) )
-		bstate->endpoint.metrics_exporter().set_interval(ts);
+	using dbl_seconds = std::chrono::duration<double>;
+	auto ts = std::chrono::duration_cast<broker::timespan>(dbl_seconds{value});
+	bstate->endpoint.metrics_exporter().set_interval(ts);
 	}
 
 void Manager::SetMetricsExportTopic(std::string value)

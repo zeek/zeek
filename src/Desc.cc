@@ -373,10 +373,15 @@ void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
 
 void ODesc::Grow(unsigned int n)
 	{
+	bool size_changed = false;
 	while ( offset + n + SLOP >= size )
+		{
 		size *= 2;
+		size_changed = true;
+		}
 
-	base = util::safe_realloc(base, size);
+	if ( size_changed )
+		base = util::safe_realloc(base, size);
 	}
 
 void ODesc::Clear()

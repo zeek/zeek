@@ -1185,6 +1185,29 @@ function clear_table%(v: any%): any
 	return nullptr;
 	%}
 
+## Gets all values from a table.
+##
+## t: The :zeek:type:`table`
+##
+## Returns: A ``vector of T`` of all the values in t.
+function table_values%(t: any%): any
+    %{
+    if ( ! t->GetType()->IsTable() )
+        {
+        zeek::emit_builtin_error("table_values() requires a table argument");
+        return nullptr;
+        }
+
+    auto vt = zeek::make_intrusive<zeek::VectorType>(t->GetType()->AsTableType()->Yield());
+    auto vv = zeek::make_intrusive<zeek::VectorVal>(std::move(vt));
+    for ( const auto& iter : *t->AsTable() )
+        {
+        vv->Append(iter.value->GetVal());
+        }
+
+    return vv;
+    %}
+
 ## Gets all subnets that contain a given subnet from a set/table[subnet].
 ##
 ## search: the subnet to search for.

@@ -20,6 +20,7 @@ RUN apk add --no-cache \
   make \
   openssh-client \
   openssl-dev \
+  procps \
   py3-pip \
   python3 \
   python3-dev \

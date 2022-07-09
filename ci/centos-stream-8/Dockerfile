@@ -20,6 +20,7 @@ RUN dnf -y install \
     make \
     openssl \
     openssl-devel \
+    procps-ng \
     python3 \
     python3-devel \
     python3-pip\

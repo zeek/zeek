@@ -163,8 +163,21 @@ struct opt_mapping
 class BrokerState
 	{
 public:
+	static broker::endpoint_id make_id()
+		{
+		if ( ! util::detail::have_random_seed() )
+			{
+			return broker::endpoint_id::random();
+			}
+		else
+			{
+			auto useed = static_cast<unsigned>(util::detail::initial_seed());
+			return broker::endpoint_id::random(useed);
+			}
+		}
+
 	BrokerState(broker::configuration config, size_t congestion_queue_size)
-		: endpoint(std::move(config)),
+		: endpoint(std::move(config), make_id()),
 		  subscriber(endpoint.make_subscriber({broker::topic::statuses(), broker::topic::errors()},
 	                                          congestion_queue_size))
 		{

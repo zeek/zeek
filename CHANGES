@@ -1,3 +1,11 @@
+5.1.0-dev.204 | 2022-07-08 10:13:00 -0700
+
+  * Fix usage of broker::convert(double,timespan) (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.202 | 2022-07-08 09:55:35 -0700
+
+  * Avoid calling safe_realloc unnecessarily from ODesc::Grow() (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.200 | 2022-07-08 09:29:04 +0200
 
   * GH-913: zeek-setup: Validate plugin debug streams during startup.

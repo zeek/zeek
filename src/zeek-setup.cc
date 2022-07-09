@@ -606,8 +606,9 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	// Mask signals relevant for our signal handlers here. We unmask them
 	// again further down, when all components that launch threads have done
-	// so. The launched threads inherit the active signal mask and thus
-	// prevent our signal handlers from running in unintended threads.
+	// so, and intermittently during parsing. The launched threads inherit
+	// the active signal mask and thus prevent our signal handlers from
+	// running in unintended threads.
 	set_signal_mask(true);
 
 	if ( options.supervisor_mode )
@@ -778,9 +779,15 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		if ( options.event_trace_file )
 			etm = make_unique<EventTraceMgr>(*options.event_trace_file);
 
+		// Parsing involves reading input files, including any input
+		// interactively provided by the user at the console. Temporarily
+		// undo the signal mask to allow ctrl-c. Ideally we'd do this only
+		// when we actually end up reading interactively from stdin.
+		set_signal_mask(false);
 		run_state::is_parsing = true;
 		yyparse();
 		run_state::is_parsing = false;
+		set_signal_mask(true);
 
 		RecordVal::DoneParsing();
 		TableVal::DoneParsing();

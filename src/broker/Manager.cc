@@ -582,6 +582,22 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 		iosource_mgr->Register(this, false);
 	}
 
+void Manager::PeerNoRetry(const string& addr, uint16_t port)
+	{
+	if ( bstate->endpoint.is_shutdown() )
+		return;
+
+	DBG_LOG(DBG_BROKER, "Starting to peer with %s:%" PRIu16 " (no retry)", addr.c_str(), port);
+
+	bstate->endpoint.peer_nosync(addr, port, broker::timeout::seconds{0});
+
+	auto counts_as_iosource = get_option("Broker::peer_counts_as_iosource")->AsBool();
+
+	if ( counts_as_iosource )
+		// Register as a "does-count" source now.
+		iosource_mgr->Register(this, false);
+	}
+
 void Manager::Unpeer(const string& addr, uint16_t port)
 	{
 	if ( bstate->endpoint.is_shutdown() )

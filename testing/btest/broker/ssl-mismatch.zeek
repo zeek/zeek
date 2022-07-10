@@ -3,12 +3,13 @@
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run listen "zeek -b %INPUT connect=F Broker::disable_ssl=T"
+# @TEST-EXEC: $SCRIPTS/wait-for-file listen/listen_ready 20 || (btest-bg-wait -k 1 && false)
 #
 # @TEST-EXEC: btest-bg-run good_connect "zeek -b %INPUT connect=T Broker::disable_ssl=T"
-# @TEST-EXEC: $SCRIPTS/wait-for-file good_connect/listen_ready 20 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file good_connect/connected 20 || (btest-bg-wait -k 1 && false)
 #
 # @TEST-EXEC: btest-bg-run bad_connect "zeek -b %INPUT connect=T Broker::disable_ssl=F"
-# @TEST-EXEC: $SCRIPTS/wait-for-file bad_connect/done 20 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file bad_connect/failed 20 || (btest-bg-wait -k 1 && false)
 #
 # @TEST-EXEC: btest-bg-run last_connect "zeek -b %INPUT connect=T Broker::disable_ssl=T"
 #
@@ -18,12 +19,13 @@
 # And again, now reversing the SSL mismatch between client/server...
 #
 # @TEST-EXEC: btest-bg-run listen_rev "zeek -b %INPUT connect=F Broker::disable_ssl=F"
+# @TEST-EXEC: $SCRIPTS/wait-for-file listen_rev/listen_ready 20 || (btest-bg-wait -k 1 && false)
 #
 # @TEST-EXEC: btest-bg-run good_connect_rev "zeek -b %INPUT connect=T Broker::disable_ssl=F"
-# @TEST-EXEC: $SCRIPTS/wait-for-file good_connect_rev/listen_ready 20 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file good_connect_rev/connected 20 || (btest-bg-wait -k 1 && false)
 #
 # @TEST-EXEC: btest-bg-run bad_connect_rev "zeek -b %INPUT connect=T Broker::disable_ssl=T"
-# @TEST-EXEC: $SCRIPTS/wait-for-file bad_connect_rev/done 20 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file bad_connect_rev/failed 20 || (btest-bg-wait -k 1 && false)
 #
 # @TEST-EXEC: btest-bg-run last_connect_rev "zeek -b %INPUT connect=T Broker::disable_ssl=F"
 #
@@ -35,10 +37,14 @@ global num_connections = 0;
 
 event zeek_init()
 	{
+	local p = to_port(getenv("BROKER_PORT"));
 	if ( connect )
-		Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
+		Broker::__peer_no_retry("127.0.0.1", p);
 	else
-		Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
+		{
+		local actual = Broker::listen("127.0.0.1", p);
+		system("touch listen_ready");
+		}
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -48,7 +54,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 
 	if ( connect )
 		{
-		system("touch listen_ready");
+		system("touch connected");
 		terminate();
 		}
 	else if ( num_connections == 2 )
@@ -67,7 +73,7 @@ event Broker::error(code: Broker::ErrorCode, msg: string) &priority=-10
 		local f = open("broker.error");
 		print f, code;
 		close(f);
-		system("touch done");
+		system("touch failed");
 		terminate();
 		}
 	}

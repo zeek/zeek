@@ -23,4 +23,7 @@ event zeek_init()
 	print bytestring_to_double(s7);
 	print bytestring_to_double(s8);
 	print fmt("%.2e", bytestring_to_double(s9));
+
+	# Error case, passing an incorrectly-sized string. This returns zero.
+	print bytestring_to_double("\x00\x00\x00\x00\x00\x00\x00");
 	}

@@ -718,6 +718,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	// Delay the unit test until here so that plugins have been loaded.
 	if ( options.run_unit_tests )
 		{
+		set_signal_mask(false); // Allow ctrl-c to abort the tests early
 		doctest::Context context;
 		auto dargs = to_cargs(options.doctest_args);
 		context.applyCommandLine(dargs.size(), dargs.data());

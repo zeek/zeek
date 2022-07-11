@@ -36,3 +36,19 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla")
 set(HILTI_DEV_PRECOMPILE_HEADERS OFF)
 
 add_subdirectory(spicy)
+
+# Disable Spicy unit test targets.
+#
+# Spicy builds its unit tests as part of `ALL`. They are usually not only
+# uninteresting for us but might cause problems. Since any configuration
+# we do for our unit tests happens through global C++ compiler flags, they
+# would get inherited directly by Spicy which can cause issues, e.g., we set
+# `-DDOCTEST_CONFIG_DISABLE` if `ENABLE_ZEEK_UNIT_TESTS` is false, but Spicy
+# unit test do not anticipate this define being set.
+set_target_properties(
+   hilti-rt-tests
+   hilti-rt-configuration-tests
+   spicy-rt-tests
+   hilti-toolchain-tests
+   spicy-toolchain-tests
+   PROPERTIES EXCLUDE_FROM_ALL TRUE)

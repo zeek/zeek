@@ -20,6 +20,11 @@ function f2(): bool
 	return F;
 	}
 
+# The following needs to be a global to test for a ZAM regression where
+# the ZAM optimizer will optimize away the problematic condition if the
+# value is constant.
+global false = F;
+
 event zeek_init()
 	{
 	local a: count;
@@ -86,4 +91,8 @@ event zeek_init()
 	local tvc = vector(T, F, T);
 	local tvr = tvc ? vector(1, 2, 3) : vector(4, 5, 6);
 	print tvr, type_name(tvr);
+
+	# Test for ternary results
+	local tvr2 = false ? vector(1, 2, 3) : vector(4, 5, 6);
+	print tvr2, type_name(tvr2);
 	}

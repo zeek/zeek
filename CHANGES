@@ -1,3 +1,7 @@
+5.1.0-dev.210 | 2022-07-11 09:43:49 -0700
+
+  * Fix for ZAM optimization of '?' conditional with vector-valued result (Vern Paxson, Corelight)
+
 5.1.0-dev.208 | 2022-07-11 12:51:21 +0200
 
   * policy: Use literal dots for patterns used against `content-type`

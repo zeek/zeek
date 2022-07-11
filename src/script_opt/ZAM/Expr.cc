@@ -227,7 +227,7 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e)
 		return CondC2VVC(lhs, n1, c3);
 		}
 
-	if ( r1 && r2 )
+	if ( r1 && r2 && ! r3 )
 		{
 		auto v1 = IsVector(r1->GetType()->Tag());
 		auto v2 = IsVector(r2->GetType()->Tag());

@@ -1,3 +1,8 @@
+5.1.0-dev.208 | 2022-07-11 12:51:21 +0200
+
+  * policy: Use literal dots for patterns used against `content-type`
+    and `hostname`. (Arne Welzel, Corelight)
+
 5.1.0-dev.204 | 2022-07-08 10:13:00 -0700
 
   * Fix usage of broker::convert(double,timespan) (Tim Wojtulewicz, Corelight)

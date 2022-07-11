@@ -1,7 +1,7 @@
 # @TEST-EXEC: btest-bg-run zeek zeek -b ../dirtest.zeek
 # @TEST-EXEC: $SCRIPTS/wait-for-file zeek/next1 10 || (btest-bg-wait -k 1 && false)
-# @TEST-EXEC: touch testdir/newone
 # @TEST-EXEC: rm testdir/bye
+# @TEST-EXEC: touch testdir/newone
 # @TEST-EXEC: $SCRIPTS/wait-for-file zeek/next2 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: touch testdir/bye
 # @TEST-EXEC: btest-bg-wait 20

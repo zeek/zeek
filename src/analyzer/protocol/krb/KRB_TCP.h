@@ -24,7 +24,7 @@ public:
 	void EndpointEOF(bool is_orig) override;
 
 	StringValPtr GetAuthenticationInfo(const String* principal, const String* ciphertext,
-	                                   const bro_uint_t enctype)
+	                                   const zeek_uint_t enctype)
 		{
 		return val_mgr->EmptyString();
 		}

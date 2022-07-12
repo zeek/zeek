@@ -70,7 +70,7 @@ void IDOptInfo::Clear()
 	}
 
 void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
-                             const std::vector<const Stmt*>& conf_blocks, bro_uint_t conf_start)
+                             const std::vector<const Stmt*>& conf_blocks, zeek_uint_t conf_start)
 	{
 	if ( tracing )
 		printf("ID %s defined at %d: %s\n", trace_ID, s ? s->GetOptInfo()->stmt_num : NO_DEF,
@@ -174,7 +174,7 @@ void IDOptInfo::BranchBackTo(const Stmt* from, const Stmt* to, bool close_all)
 	auto from_reg = ActiveRegion();
 	auto f_oi = from->GetOptInfo();
 	auto t_oi = to->GetOptInfo();
-	bro_uint_t t_r_ind = FindRegionBeforeIndex(t_oi->stmt_num);
+	zeek_uint_t t_r_ind = FindRegionBeforeIndex(t_oi->stmt_num);
 	auto& t_r = usage_regions[t_r_ind];
 
 	if ( from_reg && from_reg->DefinedAfter() != t_r.DefinedAfter() &&

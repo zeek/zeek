@@ -442,7 +442,7 @@ template <typename T> void ZAMCompiler::DumpCases(const T& cases, const char* ty
 			std::string case_val;
 			if constexpr ( std::is_same_v<T, std::string> )
 				case_val = m.first;
-			else if constexpr ( std::is_same_v<T, bro_int_t> || std::is_same_v<T, bro_uint_t> ||
+			else if constexpr ( std::is_same_v<T, zeek_int_t> || std::is_same_v<T, zeek_uint_t> ||
 			                    std::is_same_v<T, double> )
 				case_val = std::to_string(m.first);
 

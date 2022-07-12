@@ -16,6 +16,7 @@ protected:
 	void HookDrainEvents() override;
 	void HookUpdateNetworkTime(double network_time) override;
 	void HookBroObjDtor(void* obj) override;
+	void HookObjDtor(void* obj) override;
 	void HookLogInit(const std::string& writer, const std::string& instantiating_filter, bool local, bool remote,
 	                 const zeek::logging::WriterBackend::WriterInfo& info, int num_fields,
 	                 const zeek::threading::Field* const* fields) override;

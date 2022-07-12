@@ -609,7 +609,7 @@ function clean%(str: string%): string
 ## .. zeek:see:: clean escape_string
 function to_string_literal%(str: string%): string
 	%{
-	char* s = str->AsString()->Render(zeek::String::BRO_STRING_LITERAL);
+	char* s = str->AsString()->Render(zeek::String::ZEEK_STRING_LITERAL);
 	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, byte_vec(s), strlen(s)));
 	%}
 

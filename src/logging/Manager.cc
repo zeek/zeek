@@ -1041,7 +1041,7 @@ threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
 			lval->val.set_val.size = set->Length();
 			lval->val.set_val.vals = new threading::Value*[lval->val.set_val.size];
 
-			for ( bro_int_t i = 0; i < lval->val.set_val.size; i++ )
+			for ( zeek_int_t i = 0; i < lval->val.set_val.size; i++ )
 				lval->val.set_val.vals[i] = ValToLogVal(set->Idx(i).get());
 
 			break;
@@ -1053,7 +1053,7 @@ threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
 			lval->val.vector_val.size = vec->Size();
 			lval->val.vector_val.vals = new threading::Value*[lval->val.vector_val.size];
 
-			for ( bro_int_t i = 0; i < lval->val.vector_val.size; i++ )
+			for ( zeek_int_t i = 0; i < lval->val.vector_val.size; i++ )
 				{
 				lval->val.vector_val.vals[i] = ValToLogVal(vec->ValAt(i).get(),
 				                                           vec->GetType()->Yield().get());

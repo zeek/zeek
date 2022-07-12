@@ -38,7 +38,7 @@ void UDPSessionAdapter::UpdateConnVal(RecordVal* conn_val)
 
 void UDPSessionAdapter::UpdateEndpointVal(const ValPtr& endp_arg, bool is_orig)
 	{
-	bro_int_t size = is_orig ? request_len : reply_len;
+	zeek_int_t size = is_orig ? request_len : reply_len;
 	auto endp = endp_arg->AsRecordVal();
 
 	if ( size < 0 )

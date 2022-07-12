@@ -77,8 +77,10 @@ extern "C"
 
 #include "zeek/3rdparty/ghc/filesystem.hpp"
 
-using bro_int_t = int64_t;
-using bro_uint_t = uint64_t;
+using zeek_int_t = int64_t;
+using zeek_uint_t = uint64_t;
+using bro_int_t [[deprecated("Remove in v6.1. Use zeek_int_t.")]] = zeek_int_t;
+using bro_uint_t [[deprecated("Remove in v6.1. Use zeek_uint_t.")]] = zeek_uint_t;
 
 #ifndef HAVE_STRCASESTR
 extern char* strcasestr(const char* s, const char* find);
@@ -509,7 +511,7 @@ inline char* safe_strncpy(char* dest, const char* src, size_t n)
 
 // Memory alignment helpers.
 
-inline bool is_power_of_2(bro_uint_t x)
+inline bool is_power_of_2(zeek_uint_t x)
 	{
 	return ((x - 1) & x) == 0;
 	}

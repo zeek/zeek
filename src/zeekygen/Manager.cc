@@ -53,37 +53,37 @@ static string RemoveLeadingSpace(const string& s)
 	return rval;
 	}
 
-Manager::Manager(const string& arg_config, const string& bro_command)
+Manager::Manager(const string& arg_config, const string& command)
 	: disabled(), comment_buffer(), comment_buffer_map(), packages(), scripts(), identifiers(),
 	  all_info(), last_identifier_seen(), incomplete_type(), enum_mappings(), config(arg_config),
-	  bro_mtime()
+	  mtime()
 	{
 	if ( getenv("ZEEK_DISABLE_ZEEKYGEN") )
 		disabled = true;
 
-	// If running Zeek without the "-X" option, then we don't need bro_mtime.
+	// If running Zeek without the "-X" option, then we don't need mtime.
 	if ( disabled || arg_config.empty() )
 		return;
 
 	// Find the absolute or relative path to Zeek by checking each PATH
 	// component and also the current directory (so that this works if
-	// bro_command is a relative path).
+	// command is a relative path).
 	const char* env_path = getenv("PATH");
 	string path = env_path ? string(env_path) + ":." : ".";
-	string path_to_bro = util::find_file(bro_command, path);
+	string path_to_zeek = util::find_file(command, path);
 	struct stat s;
 
 	// One way that find_file() could fail is when Zeek is located in
 	// a PATH component that starts with a tilde (such as "~/bin").  A simple
 	// workaround is to just run Zeek with a relative or absolute path.
-	if ( path_to_bro.empty() || stat(path_to_bro.c_str(), &s) < 0 )
+	if ( path_to_zeek.empty() || stat(path_to_zeek.c_str(), &s) < 0 )
 		reporter->InternalError("Zeekygen can't get mtime of zeek binary %s (try again by "
 		                        "specifying the absolute or relative path to Zeek): %s",
-		                        path_to_bro.c_str(), strerror(errno));
+		                        path_to_zeek.c_str(), strerror(errno));
 
 	// Internal error will abort above in the case that stat isn't initialized
 	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Assign)
-	bro_mtime = s.st_mtime;
+	mtime = s.st_mtime;
 	}
 
 Manager::~Manager()

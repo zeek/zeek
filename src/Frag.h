@@ -8,7 +8,7 @@
 #include "zeek/IPAddr.h"
 #include "zeek/Reassem.h"
 #include "zeek/Timer.h"
-#include "zeek/util.h" // for bro_uint_t
+#include "zeek/util.h" // for zeek_uint_t
 
 namespace zeek
 	{
@@ -26,7 +26,7 @@ namespace detail
 class FragReassembler;
 class FragTimer;
 
-using FragReassemblerKey = std::tuple<IPAddr, IPAddr, bro_uint_t>;
+using FragReassemblerKey = std::tuple<IPAddr, IPAddr, zeek_uint_t>;
 
 class FragReassembler : public Reassembler
 	{

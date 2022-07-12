@@ -296,7 +296,7 @@ int SQLite::AddParams(Value* val, int pos)
 			if ( ! val->val.set_val.size )
 				desc.Add(empty_field);
 			else
-				for ( bro_int_t j = 0; j < val->val.set_val.size; j++ )
+				for ( zeek_int_t j = 0; j < val->val.set_val.size; j++ )
 					{
 					if ( j > 0 )
 						desc.AddRaw(set_separator);
@@ -319,7 +319,7 @@ int SQLite::AddParams(Value* val, int pos)
 			if ( ! val->val.vector_val.size )
 				desc.Add(empty_field);
 			else
-				for ( bro_int_t j = 0; j < val->val.vector_val.size; j++ )
+				for ( zeek_int_t j = 0; j < val->val.vector_val.size; j++ )
 					{
 					if ( j > 0 )
 						desc.AddRaw(set_separator);

@@ -36,9 +36,9 @@ zeek::TableType* var_sizes;
 
 static zeek::iosource::PktDumper* addl_pkt_dumper = nullptr;
 
-bro_int_t parse_int(const char*& fmt)
+zeek_int_t parse_int(const char*& fmt)
 	{
-	bro_int_t k = 0;
+	zeek_int_t k = 0;
 	while ( isdigit(*fmt) )
 		{
 		k = k * 10 + (*fmt - '0');
@@ -201,7 +201,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 
 		else if ( it == zeek::TYPE_INTERNAL_UNSIGNED )
 			{
-			bro_uint_t u = v->CoerceToUnsigned();
+			zeek_uint_t u = v->CoerceToUnsigned();
 
 			if ( v->GetType()->IsNetworkOrder() )
 				{
@@ -437,19 +437,12 @@ static bool prepare_environment(zeek::TableVal* tbl, bool set)
 		char* tmp = zeek::util::copy_string(key->AsString()->CheckString());
 		zeek::util::to_upper(tmp);
 		std::string var1 = zeek::util::fmt("ZEEK_ARG_%s", tmp);
-		std::string var2 = zeek::util::fmt("BRO_ARG_%s", tmp); // legacy support
 		delete [] tmp;
 
 		if ( set )
-			{
 			setenv(var1.data(), val->AsString()->CheckString(), 1);
-			setenv(var2.data(), val->AsString()->CheckString(), 1);
-			}
 		else
-			{
 			unsetenv(var1.data());
-			unsetenv(var2.data());
-			}
 		}
 
 	return true;
@@ -949,7 +942,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 ##      provided by the OS.
 function rand%(max: count%): count
 	%{
-	auto result = bro_uint_t(double(max) * double(zeek::util::detail::random_number()) / (zeek::util::detail::max_random() + 1.0));
+	auto result = zeek_uint_t(double(max) * double(zeek::util::detail::random_number()) / (zeek::util::detail::max_random() + 1.0));
 	return zeek::val_mgr->Count(result);
 	%}
 
@@ -2435,7 +2428,7 @@ function to_int%(str: string%): int
 	const char* s = str->CheckString();
 	char* end_s;
 
-	bro_int_t i = strtoll(s, &end_s, 10);
+	zeek_int_t i = strtoll(s, &end_s, 10);
 
 #if 0
 	// Not clear we should complain.  For example, is " 205 "
@@ -2472,7 +2465,7 @@ function int_to_count%(n: int%): count
 ##          by rint().
 function double_to_int%(d: double%): int
 	%{
-	return zeek::val_mgr->Int(bro_int_t(rint(d)));
+	return zeek::val_mgr->Int(zeek_int_t(rint(d)));
 	%}
 
 ## Converts a :zeek:type:`double` to a :zeek:type:`int`.
@@ -2488,7 +2481,7 @@ function double_to_count%(d: double%): count
 	if ( d < 0.0 )
 		zeek::emit_builtin_error("bad conversion to count", @ARG@[0]);
 
-	return zeek::val_mgr->Count(bro_uint_t(rint(d)));
+	return zeek::val_mgr->Count(zeek_uint_t(rint(d)));
 	%}
 
 ## Converts a :zeek:type:`string` to a :zeek:type:`count`.
@@ -3037,13 +3030,13 @@ function addr_to_ptr_name%(a: addr%): string
 ## .. zeek:see:: hexdump hexstr_to_bytestring
 function bytestring_to_hexstr%(bytestring: string%): string
 	%{
-	bro_uint_t len = bytestring->AsString()->Len();
+	zeek_uint_t len = bytestring->AsString()->Len();
 	const u_char* bytes = bytestring->AsString()->Bytes();
 	auto hextr_buf = std::make_unique<char[]>((2 * len) + 1);
 	auto hexstr = hextr_buf.get();
 
 	hexstr[0] = 0;
-	for ( bro_uint_t i = 0; i < len; ++i )
+	for ( zeek_uint_t i = 0; i < len; ++i )
 		snprintf(hexstr + (2 * i), 3, "%.2hhx", bytes[i]);
 
 	return zeek::make_intrusive<zeek::StringVal>(hexstr);
@@ -3062,7 +3055,7 @@ function bytestring_to_hexstr%(bytestring: string%): string
 ## .. zeek:see:: hexdump bytestring_to_hexstr
 function hexstr_to_bytestring%(hexstr: string%): string
 	%{
-	bro_uint_t len = hexstr->AsString()->Len();
+	zeek_uint_t len = hexstr->AsString()->Len();
 	if ( len % 2 != 0 )
 		{
 		zeek::reporter->Error("Hex string '%s' has invalid length (not divisible by 2)", hexstr->CheckString());
@@ -3075,7 +3068,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 	auto bytestring = bytestring_buf.get();
 	memset(bytestring, 0, outlen);
 
-	for ( bro_uint_t i = 0; i < len/2; ++i )
+	for ( zeek_uint_t i = 0; i < len/2; ++i )
 		{
 		int res = sscanf(bytes + (2*i), "%2hhx", &bytestring[i]);
 
@@ -3174,7 +3167,7 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 	%}
 
 %%{
-struct bro_uuid_t {
+struct zeek_uuid_t {
 	uint32_t time_low;
 	uint16_t time_mid;
 	uint16_t time_hi_and_version;
@@ -3197,7 +3190,7 @@ function uuid_to_string%(uuid: string%): string
 	if ( uuid->Len() != 16 )
 		return zeek::make_intrusive<zeek::StringVal>("<Invalid UUID>");
 
-	bro_uuid_t* id = (bro_uuid_t*) uuid->Bytes();
+	zeek_uuid_t* id = (zeek_uuid_t*) uuid->Bytes();
 
 	static char s[1024];
 	char* sp = s;

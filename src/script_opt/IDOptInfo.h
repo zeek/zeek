@@ -144,7 +144,7 @@ public:
 	// It should be processed starting at conf_start (note that
 	// conf_blocks may be empty).
 	void DefinedAfter(const Stmt* s, const ExprPtr& e, const std::vector<const Stmt*>& conf_blocks,
-	                  bro_uint_t conf_start);
+	                  zeek_uint_t conf_start);
 
 	// Called upon encountering a "return" statement.
 	void ReturnAt(const Stmt* s);

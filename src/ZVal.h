@@ -63,8 +63,8 @@ class ZBody;
 	ZVal(const TypePtr& t);
 
 	// Construct directly.
-	ZVal(bro_int_t v) { int_val = v; }
-	ZVal(bro_uint_t v) { uint_val = v; }
+	ZVal(zeek_int_t v) { int_val = v; }
+	ZVal(zeek_uint_t v) { uint_val = v; }
 	ZVal(double v) { double_val = v; }
 
 	ZVal(StringVal* v) { string_val = v; }
@@ -96,8 +96,8 @@ class ZBody;
 	// ensure that they're providing the correct type.
 	ValPtr ToVal(const TypePtr& t) const;
 
-	bro_int_t AsInt() const { return int_val; }
-	bro_uint_t AsCount() const { return uint_val; }
+	zeek_int_t AsInt() const { return int_val; }
+	zeek_uint_t AsCount() const { return uint_val; }
 	double AsDouble() const { return double_val; }
 
 	StringVal* AsString() const { return string_val; }
@@ -119,8 +119,8 @@ class ZBody;
 
 	// The following return references that can be used to
 	// populate the ZVal.  Handy for compiled ZAM code.
-	bro_int_t& AsIntRef() { return int_val; }
-	bro_uint_t& AsCountRef() { return uint_val; }
+	zeek_int_t& AsIntRef() { return int_val; }
+	zeek_uint_t& AsCountRef() { return uint_val; }
 	double& AsDoubleRef() { return double_val; }
 	StringVal*& AsStringRef() { return string_val; }
 	AddrVal*& AsAddrRef() { return addr_val; }
@@ -168,10 +168,10 @@ private:
 	friend class zeek::detail::ZBody;
 
 	// Used for bool, int, enum.
-	bro_int_t int_val;
+	zeek_int_t int_val;
 
 	// Used for count and port.
-	bro_uint_t uint_val;
+	zeek_uint_t uint_val;
 
 	// Used for double, time, interval.
 	double double_val;

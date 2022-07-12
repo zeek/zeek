@@ -161,7 +161,7 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const
 void Attr::AddTag(ODesc* d) const
 	{
 	if ( d->IsBinary() )
-		d->Add(static_cast<bro_int_t>(Tag()));
+		d->Add(static_cast<zeek_int_t>(Tag()));
 	else
 		d->Add(attr_name(Tag()));
 	}

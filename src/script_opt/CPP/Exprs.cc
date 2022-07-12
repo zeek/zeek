@@ -666,10 +666,10 @@ string CPPCompile::GenArithCoerceExpr(const Expr* e, GenType gt)
 	switch ( t->InternalType() )
 		{
 		case TYPE_INTERNAL_INT:
-			cast_name = "bro_int_t";
+			cast_name = "zeek_int_t";
 			break;
 		case TYPE_INTERNAL_UNSIGNED:
-			cast_name = "bro_uint_t";
+			cast_name = "zeek_uint_t";
 			break;
 		case TYPE_INTERNAL_DOUBLE:
 			cast_name = "double";

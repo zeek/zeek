@@ -62,7 +62,7 @@ StringVal* ZAM_to_lower(const StringVal* sv)
 	return new StringVal(new String(1, lower_s, n));
 	}
 
-StringVal* ZAM_sub_bytes(const StringVal* s, bro_uint_t start, bro_int_t n)
+StringVal* ZAM_sub_bytes(const StringVal* s, zeek_uint_t start, zeek_int_t n)
 	{
 	if ( start > 0 )
 		--start; // make it 0-based

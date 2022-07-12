@@ -153,7 +153,7 @@ bool Ascii::Describe(ODesc* desc, Value* val, const string& name) const
 
 			desc->AddEscapeSequence(separators.set_separator);
 
-			for ( bro_int_t j = 0; j < val->val.set_val.size; j++ )
+			for ( zeek_int_t j = 0; j < val->val.set_val.size; j++ )
 				{
 				if ( j > 0 )
 					desc->AddRaw(separators.set_separator);
@@ -180,7 +180,7 @@ bool Ascii::Describe(ODesc* desc, Value* val, const string& name) const
 
 			desc->AddEscapeSequence(separators.set_separator);
 
-			for ( bro_int_t j = 0; j < val->val.vector_val.size; j++ )
+			for ( zeek_int_t j = 0; j < val->val.vector_val.size; j++ )
 				{
 				if ( j > 0 )
 					desc->AddRaw(separators.set_separator);

@@ -37,7 +37,7 @@ public:
 
 	// The ZAM instruction number where a given identifier starts its
 	// scope, parallel to "ids".
-	std::vector<bro_uint_t> id_start;
+	std::vector<zeek_uint_t> id_start;
 
 	// The current end of the frame slot's scope.  Gets updated as
 	// new IDs are added to share the slot.
@@ -69,7 +69,7 @@ public:
 	virtual ~ZInst() = default;
 
 	// Methods for printing out the instruction for debugging/maintenance.
-	void Dump(bro_uint_t inst_num, const FrameReMap* mappings) const;
+	void Dump(zeek_uint_t inst_num, const FrameReMap* mappings) const;
 	void Dump(const std::string& id1, const std::string& id2, const std::string& id3,
 	          const std::string& id4) const;
 
@@ -78,7 +78,7 @@ public:
 	// by its number within a larger set.  "mappings" provides the
 	// mappings used to translate raw slots to the corresponding
 	// script variable(s).
-	std::string VName(int n, bro_uint_t inst_num, const FrameReMap* mappings) const;
+	std::string VName(int n, zeek_uint_t inst_num, const FrameReMap* mappings) const;
 
 	// Number of slots that refer to a frame element.  These always
 	// come first, if we use additional slots.

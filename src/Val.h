@@ -112,12 +112,12 @@ public:
 	bool IsZero() const;
 	bool IsOne() const;
 
-	bro_int_t InternalInt() const;
-	bro_uint_t InternalUnsigned() const;
+	zeek_int_t InternalInt() const;
+	zeek_uint_t InternalUnsigned() const;
 	double InternalDouble() const;
 
-	bro_int_t CoerceToInt() const;
-	bro_uint_t CoerceToUnsigned() const;
+	zeek_int_t CoerceToInt() const;
+	zeek_uint_t CoerceToUnsigned() const;
 	double CoerceToDouble() const;
 
 	// Returns a new Val with the "size" of this Val.  What constitutes
@@ -153,10 +153,10 @@ public:
 
 #define UNDERLYING_ACCESSOR_DECL(ztype, ctype, name) ctype name() const;
 
-	UNDERLYING_ACCESSOR_DECL(detail::IntValImplementation, bro_int_t, AsInt)
+	UNDERLYING_ACCESSOR_DECL(detail::IntValImplementation, zeek_int_t, AsInt)
 	UNDERLYING_ACCESSOR_DECL(BoolVal, bool, AsBool)
 	UNDERLYING_ACCESSOR_DECL(EnumVal, int, AsEnum)
-	UNDERLYING_ACCESSOR_DECL(detail::UnsignedValImplementation, bro_uint_t, AsCount)
+	UNDERLYING_ACCESSOR_DECL(detail::UnsignedValImplementation, zeek_uint_t, AsCount)
 	UNDERLYING_ACCESSOR_DECL(detail::DoubleValImplementation, double, AsDouble)
 	UNDERLYING_ACCESSOR_DECL(TimeVal, double, AsTime)
 	UNDERLYING_ACCESSOR_DECL(IntervalVal, double, AsInterval)
@@ -251,8 +251,8 @@ protected:
 	virtual void ValDescribeReST(ODesc* d) const;
 
 	static ValPtr MakeBool(bool b);
-	static ValPtr MakeInt(bro_int_t i);
-	static ValPtr MakeCount(bro_uint_t u);
+	static ValPtr MakeInt(zeek_int_t i);
+	static ValPtr MakeCount(zeek_uint_t u);
 
 	explicit Val(TypePtr t) noexcept : type(std::move(t)) { }
 
@@ -298,11 +298,11 @@ protected:
 class ValManager
 	{
 public:
-	static constexpr bro_uint_t PREALLOCATED_COUNTS = 4096;
-	static constexpr bro_uint_t PREALLOCATED_INTS = 512;
-	static constexpr bro_int_t PREALLOCATED_INT_LOWEST = -255;
-	static constexpr bro_int_t PREALLOCATED_INT_HIGHEST = PREALLOCATED_INT_LOWEST +
-	                                                      PREALLOCATED_INTS - 1;
+	static constexpr zeek_uint_t PREALLOCATED_COUNTS = 4096;
+	static constexpr zeek_uint_t PREALLOCATED_INTS = 512;
+	static constexpr zeek_int_t PREALLOCATED_INT_LOWEST = -255;
+	static constexpr zeek_int_t PREALLOCATED_INT_HIGHEST = PREALLOCATED_INT_LOWEST +
+	                                                       PREALLOCATED_INTS - 1;
 
 	ValManager();
 
@@ -353,23 +353,23 @@ namespace detail
 class IntValImplementation : public Val
 	{
 public:
-	IntValImplementation(TypePtr t, bro_int_t v) : Val(std::move(t)), int_val(v) { }
+	IntValImplementation(TypePtr t, zeek_int_t v) : Val(std::move(t)), int_val(v) { }
 
-	bro_int_t Get() const { return int_val; }
+	zeek_int_t Get() const { return int_val; }
 
 protected:
-	bro_int_t int_val;
+	zeek_int_t int_val;
 	};
 
 class UnsignedValImplementation : public Val
 	{
 public:
-	UnsignedValImplementation(TypePtr t, bro_uint_t v) : Val(std::move(t)), uint_val(v) { }
+	UnsignedValImplementation(TypePtr t, zeek_uint_t v) : Val(std::move(t)), uint_val(v) { }
 
-	bro_uint_t Get() const { return uint_val; }
+	zeek_uint_t Get() const { return uint_val; }
 
 protected:
-	bro_uint_t uint_val;
+	zeek_uint_t uint_val;
 	};
 
 class DoubleValImplementation : public Val
@@ -388,7 +388,7 @@ protected:
 class IntVal final : public detail::IntValImplementation
 	{
 public:
-	IntVal(bro_int_t v) : detail::IntValImplementation(base_type(TYPE_INT), v) { }
+	IntVal(zeek_int_t v) : detail::IntValImplementation(base_type(TYPE_INT), v) { }
 
 	// No Get() method since in the current implementation the
 	// inherited one serves that role.
@@ -397,7 +397,7 @@ public:
 class BoolVal final : public detail::IntValImplementation
 	{
 public:
-	BoolVal(bro_int_t v) : detail::IntValImplementation(base_type(TYPE_BOOL), v) { }
+	BoolVal(zeek_int_t v) : detail::IntValImplementation(base_type(TYPE_BOOL), v) { }
 
 	bool Get() const { return static_cast<bool>(int_val); }
 	};
@@ -405,7 +405,7 @@ public:
 class CountVal : public detail::UnsignedValImplementation
 	{
 public:
-	CountVal(bro_uint_t v) : detail::UnsignedValImplementation(base_type(TYPE_COUNT), v) { }
+	CountVal(zeek_uint_t v) : detail::UnsignedValImplementation(base_type(TYPE_COUNT), v) { }
 
 	// Same as for IntVal: no Get() method needed.
 	};
@@ -1118,13 +1118,13 @@ public:
 	// The following provide efficient record field assignments.
 	void Assign(int field, bool new_val)
 		{
-		(*record_val)[field] = ZVal(bro_int_t(new_val));
+		(*record_val)[field] = ZVal(zeek_int_t(new_val));
 		AddedField(field);
 		}
 
 	void Assign(int field, int new_val)
 		{
-		(*record_val)[field] = ZVal(bro_int_t(new_val));
+		(*record_val)[field] = ZVal(zeek_int_t(new_val));
 		AddedField(field);
 		}
 
@@ -1133,12 +1133,12 @@ public:
 	// than the other.
 	void Assign(int field, uint32_t new_val)
 		{
-		(*record_val)[field] = ZVal(bro_uint_t(new_val));
+		(*record_val)[field] = ZVal(zeek_uint_t(new_val));
 		AddedField(field);
 		}
 	void Assign(int field, uint64_t new_val)
 		{
-		(*record_val)[field] = ZVal(bro_uint_t(new_val));
+		(*record_val)[field] = ZVal(zeek_uint_t(new_val));
 		AddedField(field);
 		}
 
@@ -1469,7 +1469,7 @@ protected:
 
 	template <class T, class... Ts> friend IntrusivePtr<T> make_intrusive(Ts&&... args);
 
-	EnumVal(EnumTypePtr t, bro_int_t i) : detail::IntValImplementation(std::move(t), i) { }
+	EnumVal(EnumTypePtr t, zeek_int_t i) : detail::IntValImplementation(std::move(t), i) { }
 
 	void ValDescribe(ODesc* d) const override;
 	ValPtr DoClone(CloneState* state) override;
@@ -1607,8 +1607,8 @@ public:
 	 * @param index  The position in the vector of the element to return.
 	 * @return  The element's underlying value.
 	 */
-	bro_int_t IntAt(unsigned int index) const { return (*vector_val)[index]->int_val; }
-	bro_uint_t CountAt(unsigned int index) const { return (*vector_val)[index]->uint_val; }
+	zeek_int_t IntAt(unsigned int index) const { return (*vector_val)[index]->int_val; }
+	zeek_uint_t CountAt(unsigned int index) const { return (*vector_val)[index]->uint_val; }
 	double DoubleAt(unsigned int index) const { return (*vector_val)[index]->double_val; }
 	const RecordVal* RecordValAt(unsigned int index) const
 		{
@@ -1689,10 +1689,10 @@ private:
 #define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name)                                                \
 	inline ctype Val::name() const { return static_cast<const ztype*>(this)->Get(); }
 
-UNDERLYING_ACCESSOR_DEF(detail::IntValImplementation, bro_int_t, AsInt)
+UNDERLYING_ACCESSOR_DEF(detail::IntValImplementation, zeek_int_t, AsInt)
 UNDERLYING_ACCESSOR_DEF(BoolVal, bool, AsBool)
 UNDERLYING_ACCESSOR_DEF(EnumVal, int, AsEnum)
-UNDERLYING_ACCESSOR_DEF(detail::UnsignedValImplementation, bro_uint_t, AsCount)
+UNDERLYING_ACCESSOR_DEF(detail::UnsignedValImplementation, zeek_uint_t, AsCount)
 UNDERLYING_ACCESSOR_DEF(detail::DoubleValImplementation, double, AsDouble)
 UNDERLYING_ACCESSOR_DEF(TimeVal, double, AsTime)
 UNDERLYING_ACCESSOR_DEF(IntervalVal, double, AsInterval)

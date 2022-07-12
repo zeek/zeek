@@ -195,7 +195,7 @@ inline PatternValPtr re_append__CPP(const PatternValPtr& p1, const PatternValPtr
 extern ValPtr schedule__CPP(double dt, EventHandlerPtr event, std::vector<ValPtr> args);
 
 // Simple helper functions for supporting absolute value.
-inline bro_uint_t iabs__CPP(bro_int_t v)
+inline zeek_uint_t iabs__CPP(zeek_int_t v)
 	{
 	return v < 0 ? -v : v;
 	}
@@ -207,28 +207,28 @@ inline double fabs__CPP(double v)
 
 // The following operations are provided using functions to support
 // error checking/reporting.
-inline bro_int_t idiv__CPP(bro_int_t v1, bro_int_t v2)
+inline zeek_int_t idiv__CPP(zeek_int_t v1, zeek_int_t v2)
 	{
 	if ( v2 == 0 )
 		reporter->CPPRuntimeError("division by zero");
 	return v1 / v2;
 	}
 
-inline bro_int_t imod__CPP(bro_int_t v1, bro_int_t v2)
+inline zeek_int_t imod__CPP(zeek_int_t v1, zeek_int_t v2)
 	{
 	if ( v2 == 0 )
 		reporter->CPPRuntimeError("modulo by zero");
 	return v1 % v2;
 	}
 
-inline bro_uint_t udiv__CPP(bro_uint_t v1, bro_uint_t v2)
+inline zeek_uint_t udiv__CPP(zeek_uint_t v1, zeek_uint_t v2)
 	{
 	if ( v2 == 0 )
 		reporter->CPPRuntimeError("division by zero");
 	return v1 / v2;
 	}
 
-inline bro_uint_t umod__CPP(bro_uint_t v1, bro_uint_t v2)
+inline zeek_uint_t umod__CPP(zeek_uint_t v1, zeek_uint_t v2)
 	{
 	if ( v2 == 0 )
 		reporter->CPPRuntimeError("modulo by zero");

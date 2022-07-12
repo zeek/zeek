@@ -83,8 +83,8 @@ extern VectorValPtr vector_select__CPP(const VectorValPtr& v1, VectorValPtr v2, 
 extern VectorValPtr vector_coerce_to__CPP(const VectorValPtr& v, const TypePtr& targ);
 
 // Similar coercion, but works for v having perhaps not the correct type.
-extern VectorValPtr vec_coerce_to_bro_int_t__CPP(const VectorValPtr& v, TypePtr targ);
-extern VectorValPtr vec_coerce_to_bro_uint_t__CPP(const VectorValPtr& v, TypePtr targ);
+extern VectorValPtr vec_coerce_to_zeek_int_t__CPP(const VectorValPtr& v, TypePtr targ);
+extern VectorValPtr vec_coerce_to_zeek_uint_t__CPP(const VectorValPtr& v, TypePtr targ);
 extern VectorValPtr vec_coerce_to_double__CPP(const VectorValPtr& v, TypePtr targ);
 
 // A dummy function used during code generation for unsupported operations

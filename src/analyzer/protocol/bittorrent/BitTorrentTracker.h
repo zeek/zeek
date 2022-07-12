@@ -90,7 +90,7 @@ protected:
 	void ResponseBody();
 	void ResponseBenc(int name_len, char* name, detail::BTT_BencTypes type, int value_len,
 	                  char* value);
-	void ResponseBenc(int name_len, char* name, detail::BTT_BencTypes type, bro_int_t value);
+	void ResponseBenc(int name_len, char* name, detail::BTT_BencTypes type, zeek_int_t value);
 	int ResponseParseBenc();
 	void EmitResponse();
 
@@ -113,7 +113,7 @@ protected:
 	char res_buf[BTTRACKER_BUF];
 	char* res_buf_pos;
 	unsigned int res_buf_len;
-	bro_uint_t res_status;
+	zeek_uint_t res_status;
 	TableVal* res_val_headers;
 	TableVal* res_val_peers;
 	TableVal* res_val_benc;
@@ -135,7 +135,7 @@ protected:
 	unsigned int benc_str_have;
 
 	char* benc_int;
-	bro_int_t benc_int_val;
+	zeek_int_t benc_int_val;
 
 	// True on protocol violation.
 	bool stop_orig, stop_resp;

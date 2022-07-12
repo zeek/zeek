@@ -1,3 +1,23 @@
+5.1.0-dev.229 | 2022-07-12 14:17:45 -0700
+
+  * Rename bro_version and BRO_PLUGIN_BRO_VERSION to zeek names (Tim Wojtulewicz, Corelight)
+
+  * Update binpac, bifcl, and gen-zam submodules for renaming changes (Tim Wojtulewicz, Corelight)
+
+  * Deprecate BRO_PLUGIN_API_VERSION, create zeek::PLUGIN_API_VERSION (Tim Wojtulewicz, Corelight)
+
+  * Deprecate HOOK_BRO_OBJ_DTOR and related methods (Tim Wojtulewicz, Corelight)
+
+  * Miscellaneous deprecations and renaming (Tim Wojtulewicz, Corelight)
+
+  * Rename all of bro lexer methods and such (Tim Wojtulewicz, Corelight)
+
+  * Stop installing the bro symlink, it's been long enough (Tim Wojtulewicz, Corelight)
+
+  * Deprecate bro_inet_ntop.{c,h} (Tim Wojtulewicz, Corelight)
+
+  * Deprecate bro_int_t and bro_uint_t (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.219 | 2022-07-12 12:00:10 -0700
 
   * Run clang-format on all of our plugin test c++ files (Tim Wojtulewicz, Corelight)

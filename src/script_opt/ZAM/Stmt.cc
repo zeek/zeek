@@ -502,8 +502,8 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, 
 	// Now fill out the corresponding jump table.
 	//
 	// We will only use one of these.
-	CaseMapI<bro_int_t> new_int_cases;
-	CaseMapI<bro_uint_t> new_uint_cases;
+	CaseMapI<zeek_int_t> new_int_cases;
+	CaseMapI<zeek_uint_t> new_uint_cases;
 	CaseMapI<double> new_double_cases;
 	CaseMapI<std::string> new_str_cases;
 

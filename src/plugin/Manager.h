@@ -226,7 +226,19 @@ public:
 	 *
 	 * @param plugin The plugin expressing interest.
 	 */
-	void RequestBroObjDtor(Obj* obj, Plugin* plugin);
+	[[deprecated("Remove in v6.1. Use RequestObjDtor.")]] void RequestBroObjDtor(Obj* obj,
+	                                                                             Plugin* plugin);
+
+	/**
+	 * Register interest in the destruction of a Obj instance. When Zeek's
+	 * reference counting triggers the objects destructor to run, the \a
+	 * HookObjDtor will be called.
+	 *
+	 * @param handler The object being interested in.
+	 *
+	 * @param plugin The plugin expressing interest.
+	 */
+	void RequestObjDtor(Obj* obj, Plugin* plugin);
 
 	// Hook entry functions.
 
@@ -321,10 +333,16 @@ public:
 	void HookDrainEvents() const;
 
 	/**
-	 * Hook that informs plugins that an BroObj is being destroyed. Will be
+	 * Hook that informs plugins that an Obj is being destroyed. Will be
 	 * called only for objects that a plugin has expressed interest in.
 	 */
-	void HookBroObjDtor(void* obj) const;
+	[[deprecated("Remove in v6.1. Use HookObjDtor.")]] void HookBroObjDtor(void* obj) const;
+
+	/**
+	 * Hook that informs plugins that an Obj is being destroyed. Will be
+	 * called only for objects that a plugin has expressed interest in.
+	 */
+	void HookObjDtor(void* obj) const;
 
 	/**
 	 * Hook into log initialization. This method will be called when a

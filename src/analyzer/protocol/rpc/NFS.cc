@@ -177,7 +177,7 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			break;
 
 		case BifEnum::NFS3::PROC_READ:
-			bro_uint_t offset;
+			zeek_uint_t offset;
 			offset = c->RequestVal()->AsRecordVal()->GetFieldAs<CountVal>(1);
 			reply = nfs3_read_reply(buf, n, nfs_status, offset);
 			event = nfs_proc_read;
@@ -546,7 +546,7 @@ RecordValPtr NFS_Interp::nfs3_readargs(const u_char*& buf, int& n)
 	}
 
 RecordValPtr NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status,
-                                         bro_uint_t offset)
+                                         zeek_uint_t offset)
 	{
 	auto rep = make_intrusive<RecordVal>(BifType::Record::NFS3::read_reply_t);
 

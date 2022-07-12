@@ -429,7 +429,7 @@ static zeek::RecordValPtr build_syn_packet_val(bool is_orig, const zeek::IP_Hdr*
 	}
 
 static void init_window(analyzer::tcp::TCP_Endpoint* endpoint, analyzer::tcp::TCP_Endpoint* peer,
-                        analyzer::tcp::TCP_Flags flags, bro_int_t scale, uint32_t base_seq,
+                        analyzer::tcp::TCP_Flags flags, zeek_int_t scale, uint32_t base_seq,
                         uint32_t ack_seq)
 	{
 	// ### In the following, we could be fooled by an

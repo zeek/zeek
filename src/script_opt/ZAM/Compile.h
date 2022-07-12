@@ -76,9 +76,9 @@ public:
 
 	template <typename T> const CaseMaps<T>& GetCases() const
 		{
-		if constexpr ( std::is_same_v<T, bro_int_t> )
+		if constexpr ( std::is_same_v<T, zeek_int_t> )
 			return int_cases;
-		else if constexpr ( std::is_same_v<T, bro_uint_t> )
+		else if constexpr ( std::is_same_v<T, zeek_uint_t> )
 			return uint_cases;
 		else if constexpr ( std::is_same_v<T, double> )
 			return double_cases;
@@ -256,7 +256,7 @@ private:
 	// being the first argument (argument "0" in the list) and the
 	// low-ordered bit being the last.  Second parameter is the number
 	// of arguments that should be present.
-	bro_uint_t ConstArgsMask(const ExprPList& args, int nargs) const;
+	zeek_uint_t ConstArgsMask(const ExprPList& args, int nargs) const;
 
 	int ConvertToInt(const Expr* e)
 		{
@@ -419,7 +419,7 @@ private:
 
 	// Computes the remapping for a variable currently in the given slot,
 	// whose scope begins at the given instruction.
-	void ReMapVar(const ID* id, int slot, bro_uint_t inst);
+	void ReMapVar(const ID* id, int slot, zeek_uint_t inst);
 
 	// Look to initialize the beginning of local lifetime based on slot
 	// assignment at instruction inst.
@@ -463,7 +463,7 @@ private:
 	// First form returns nil if there's nothing live after i.
 	// Second form returns insts1.size() in that case.
 	ZInstI* FirstLiveInst(ZInstI* i, bool follow_gotos = false);
-	bro_uint_t FirstLiveInst(bro_uint_t i, bool follow_gotos = false);
+	zeek_uint_t FirstLiveInst(zeek_uint_t i, bool follow_gotos = false);
 
 	// Same, but not including i.
 	ZInstI* NextLiveInst(ZInstI* i, bool follow_gotos = false)
@@ -482,12 +482,12 @@ private:
 	// into insts1; any labels associated with it are transferred
 	// to its next live successor, if any.
 	void KillInst(ZInstI* i) { KillInst(i->inst_num); }
-	void KillInst(bro_uint_t i);
+	void KillInst(zeek_uint_t i);
 
 	// The same, but kills any successor instructions until finding
 	// one that's labeled.
 	void KillInsts(ZInstI* i) { KillInsts(i->inst_num); }
-	void KillInsts(bro_uint_t i);
+	void KillInsts(zeek_uint_t i);
 
 	// The first of these is used as we compile down to ZInstI's.
 	// The second is the final intermediary code.  They're separate
@@ -569,8 +569,8 @@ private:
 
 	// Intermediary switch tables (branching to ZInst's rather
 	// than concrete instruction offsets).
-	CaseMapsI<bro_int_t> int_casesI;
-	CaseMapsI<bro_uint_t> uint_casesI;
+	CaseMapsI<zeek_int_t> int_casesI;
+	CaseMapsI<zeek_uint_t> uint_casesI;
 	CaseMapsI<double> double_casesI;
 
 	// Note, we use this not only for strings but for addresses
@@ -578,8 +578,8 @@ private:
 	CaseMapsI<std::string> str_casesI;
 
 	// Same, but for the concretized versions.
-	CaseMaps<bro_int_t> int_cases;
-	CaseMaps<bro_uint_t> uint_cases;
+	CaseMaps<zeek_int_t> int_cases;
+	CaseMaps<zeek_uint_t> uint_cases;
 	CaseMaps<double> double_cases;
 	CaseMaps<std::string> str_cases;
 

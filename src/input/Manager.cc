@@ -2414,7 +2414,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type,
 			// Well, this is kind of stupid, because EnumType just
 			// mangles the module name and the var name together again...
 			// but well.
-			bro_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
+			zeek_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
 			if ( index == -1 )
 				{
 				Warning(i, "Value '%s' for stream '%s' is not a valid enum.", enum_string.c_str(),

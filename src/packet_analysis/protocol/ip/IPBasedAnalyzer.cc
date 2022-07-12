@@ -139,7 +139,7 @@ bool IPBasedAnalyzer::CheckHeaderTrunc(size_t min_hdr_len, size_t remaining, Pac
 bool IPBasedAnalyzer::IsLikelyServerPort(uint32_t port) const
 	{
 	// We keep a cached in-core version of the table to speed up the lookup.
-	static std::set<bro_uint_t> port_cache;
+	static std::set<zeek_uint_t> port_cache;
 	static bool have_cache = false;
 
 	if ( ! have_cache )

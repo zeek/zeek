@@ -106,11 +106,13 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
      "setenv HILTI_CXX_INCLUDE_DIRS \"`${CMAKE_CURRENT_BINARY_DIR}/hilti-cxx-include-dirs`\"\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
-execute_process(COMMAND grep "^#define  *BRO_PLUGIN_API_VERSION"
+execute_process(COMMAND grep "^constexpr int PLUGIN_API_VERSION"
                 INPUT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/Plugin.h
                 OUTPUT_VARIABLE API_VERSION
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
-string(REGEX REPLACE "^#define.*VERSION *" "" API_VERSION "${API_VERSION}")
+
+string(REGEX MATCH "^constexpr int PLUGIN_API_VERSION = ([0-9]+);" API_VERSION "${API_VERSION}")
+set(API_VERSION "${CMAKE_MATCH_1}")
 
 string(REGEX REPLACE "[.-]" " " version_numbers ${VERSION})
 separate_arguments(version_numbers)

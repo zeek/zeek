@@ -490,7 +490,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name, detail::
 	}
 
 void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name, detail::BTT_BencTypes type,
-                                              bro_int_t value)
+                                              zeek_int_t value)
 	{
 	auto benc_value = make_intrusive<RecordVal>(bittorrent_benc_value);
 	auto name_ = make_intrusive<StringVal>(name_len, name);

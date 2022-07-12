@@ -392,7 +392,7 @@ public:
 		}
 
 private:
-	bro_uint_t p;
+	zeek_uint_t p;
 	};
 
 // Abstract class for compound items (those defined in terms of other items).

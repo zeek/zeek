@@ -641,7 +641,7 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 		auto var_ind = ind->Tag() == EXPR_NAME;
 		auto n3 = var_ind ? ind->AsNameExpr() : nullptr;
 		auto c3 = var_ind ? nullptr : ind->AsConstExpr();
-		bro_uint_t c = 0;
+		zeek_uint_t c = 0;
 
 		if ( ! var_ind )
 			{

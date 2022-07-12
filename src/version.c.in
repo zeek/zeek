@@ -7,7 +7,7 @@ char version[] = "@VERSION@";
 // One can link a shared library against this to ensure that it won't
 // load if the version of the main Zeek binary differs compared to
 // what the library was compiled against.
-const char* BRO_VERSION_FUNCTION()
+const char* ZEEK_VERSION_FUNCTION()
 {
     return "@VERSION_C_IDENT@";
 }

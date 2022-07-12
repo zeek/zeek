@@ -26,9 +26,6 @@ using namespace std::string_literals;
 namespace zeek
 	{
 
-constexpr int String::EXPANDED_STRING;
-constexpr int String::BRO_STRING_LITERAL;
-
 // This constructor forces the user to specify arg_final_NUL.  When str
 // is a *normal* NUL-terminated string, make arg_n == strlen(str) and
 // arg_final_NUL == 1; when str is a sequence of n bytes, make
@@ -678,7 +675,7 @@ TEST_CASE("rendering")
 	CHECK_EQ(test_length, 7);
 	delete[] r;
 
-	r = s2.Render(zeek::String::BRO_STRING_LITERAL);
+	r = s2.Render(zeek::String::ZEEK_STRING_LITERAL);
 	CHECK_EQ(std::string(r), "\\x03\\x04\\x05\\x06\\\\\\\'");
 	delete[] r;
 

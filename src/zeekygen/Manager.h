@@ -58,11 +58,11 @@ public:
 	 * Ctor.
 	 * @param config Path to a Zeekygen config file if documentation is to be
 	 * written to disk.
-	 * @param bro_command The command used to invoke the Zeek process.
+	 * @param command The command used to invoke the Zeek process.
 	 * It's used when checking for out-of-date targets.  If the Zeek binary is
 	 * newer then a target, it needs to be rebuilt.
 	 */
-	Manager(const std::string& config, const std::string& bro_command);
+	Manager(const std::string& config, const std::string& command);
 
 	/**
 	 * Dtor.
@@ -233,7 +233,7 @@ private:
 	IdentifierInfo* incomplete_type;
 	std::map<std::string, std::string> enum_mappings; // enum id -> enum type id
 	Config config;
-	time_t bro_mtime;
+	time_t mtime;
 	};
 
 template <class T>
@@ -251,7 +251,7 @@ bool Manager::IsUpToDate(const std::string& target_file, const std::vector<T*>& 
 		                        strerror(errno));
 		}
 
-	if ( difftime(bro_mtime, s.st_mtime) > 0 )
+	if ( difftime(mtime, s.st_mtime) > 0 )
 		return false;
 
 	if ( difftime(config.GetModificationTime(), s.st_mtime) > 0 )

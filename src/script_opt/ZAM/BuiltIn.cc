@@ -416,11 +416,11 @@ bool ZAMCompiler::BuiltIn_to_lower(const NameExpr* n, const ExprPList& args)
 	return true;
 	}
 
-bro_uint_t ZAMCompiler::ConstArgsMask(const ExprPList& args, int nargs) const
+zeek_uint_t ZAMCompiler::ConstArgsMask(const ExprPList& args, int nargs) const
 	{
 	ASSERT(args.length() == nargs);
 
-	bro_uint_t mask = 0;
+	zeek_uint_t mask = 0;
 
 	for ( int i = 0; i < nargs; ++i )
 		{

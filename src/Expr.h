@@ -31,7 +31,7 @@ struct function_ingredients;
 using IDPtr = IntrusivePtr<ID>;
 using ScopePtr = IntrusivePtr<Scope>;
 
-enum BroExprTag : int
+enum ExprTag : int
 	{
 	EXPR_ANY = -1,
 	EXPR_NAME,
@@ -104,7 +104,9 @@ enum BroExprTag : int
 #define NUM_EXPRS (int(EXPR_NOP) + 1)
 	};
 
-extern const char* expr_name(BroExprTag t);
+using BroExprTag [[deprecated("Remove in v6.1. Use ExprTag.")]] = ExprTag;
+
+extern const char* expr_name(ExprTag t);
 
 class AddToExpr;
 class AnyIndexExpr;
@@ -151,7 +153,7 @@ public:
 
 	template <class T> IntrusivePtr<T> GetType() const { return cast_intrusive<T>(type); }
 
-	BroExprTag Tag() const { return tag; }
+	ExprTag Tag() const { return tag; }
 
 	Expr* Ref()
 		{
@@ -416,7 +418,7 @@ public:
 
 protected:
 	Expr() = default;
-	explicit Expr(BroExprTag arg_tag);
+	explicit Expr(ExprTag arg_tag);
 
 	virtual void ExprDescribe(ODesc* d) const = 0;
 	void AddTag(ODesc* d) const;
@@ -435,7 +437,7 @@ protected:
 	[[noreturn]] void RuntimeError(const std::string& msg) const;
 	[[noreturn]] void RuntimeErrorWithCallStack(const std::string& msg) const;
 
-	BroExprTag tag;
+	ExprTag tag;
 	bool paren;
 	TypePtr type;
 
@@ -533,7 +535,7 @@ public:
 	void SetOp1(ExprPtr _op) override final { op = std::move(_op); }
 
 protected:
-	UnaryExpr(BroExprTag arg_tag, ExprPtr arg_op);
+	UnaryExpr(ExprTag arg_tag, ExprPtr arg_op);
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -573,7 +575,7 @@ public:
 	void SetOp2(ExprPtr _op) override final { op2 = std::move(_op); }
 
 protected:
-	BinaryExpr(BroExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
+	BinaryExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 		: Expr(arg_tag), op1(std::move(arg_op1)), op2(std::move(arg_op2))
 		{
 		if ( ! (op1 && op2) )
@@ -654,7 +656,7 @@ protected:
 class IncrExpr final : public UnaryExpr
 	{
 public:
-	IncrExpr(BroExprTag tag, ExprPtr op);
+	IncrExpr(ExprTag tag, ExprPtr op);
 
 	ValPtr Eval(Frame* f) const override;
 	ValPtr DoSingleEval(Frame* f, Val* v) const;
@@ -839,7 +841,7 @@ public:
 class BoolExpr final : public BinaryExpr
 	{
 public:
-	BoolExpr(BroExprTag tag, ExprPtr op1, ExprPtr op2);
+	BoolExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
 
 	ValPtr Eval(Frame* f) const override;
 	ValPtr DoSingleEval(Frame* f, ValPtr v1, Expr* op2) const;
@@ -858,7 +860,7 @@ protected:
 class BitExpr final : public BinaryExpr
 	{
 public:
-	BitExpr(BroExprTag tag, ExprPtr op1, ExprPtr op2);
+	BitExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -869,7 +871,7 @@ public:
 class EqExpr final : public BinaryExpr
 	{
 public:
-	EqExpr(BroExprTag tag, ExprPtr op1, ExprPtr op2);
+	EqExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
 	void Canonicize() override;
 
 	// Optimization-related:
@@ -885,7 +887,7 @@ protected:
 class RelExpr final : public BinaryExpr
 	{
 public:
-	RelExpr(BroExprTag tag, ExprPtr op1, ExprPtr op2);
+	RelExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
 	void Canonicize() override;
 
 	// Optimization-related:

@@ -161,17 +161,17 @@ const char* CPPCompile::TypeName(const TypePtr& t)
 		case TYPE_BOOL:
 			return "bool";
 		case TYPE_COUNT:
-			return "bro_uint_t";
+			return "zeek_uint_t";
 		case TYPE_DOUBLE:
 			return "double";
 		case TYPE_ENUM:
 			return "int";
 		case TYPE_INT:
-			return "bro_int_t";
+			return "zeek_int_t";
 		case TYPE_INTERVAL:
 			return "double";
 		case TYPE_PORT:
-			return "bro_uint_t";
+			return "zeek_uint_t";
 		case TYPE_TIME:
 			return "double";
 		case TYPE_VOID:

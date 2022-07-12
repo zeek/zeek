@@ -29,7 +29,7 @@ public:
 	static analyzer::Analyzer* Instantiate(Connection* conn) { return new KRB_Analyzer(conn); }
 
 	StringValPtr GetAuthenticationInfo(const String* principal, const String* ciphertext,
-	                                   const bro_uint_t enctype);
+	                                   const zeek_uint_t enctype);
 
 protected:
 	binpac::KRB::KRB_Conn* interp;

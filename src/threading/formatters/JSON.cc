@@ -184,7 +184,7 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 			{
 			writer.StartArray();
 
-			for ( bro_int_t idx = 0; idx < val->val.set_val.size; idx++ )
+			for ( zeek_int_t idx = 0; idx < val->val.set_val.size; idx++ )
 				BuildJSON(writer, val->val.set_val.vals[idx]);
 
 			writer.EndArray();
@@ -195,7 +195,7 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 			{
 			writer.StartArray();
 
-			for ( bro_int_t idx = 0; idx < val->val.vector_val.size; idx++ )
+			for ( zeek_int_t idx = 0; idx < val->val.vector_val.size; idx++ )
 				BuildJSON(writer, val->val.vector_val.vals[idx]);
 
 			writer.EndArray();

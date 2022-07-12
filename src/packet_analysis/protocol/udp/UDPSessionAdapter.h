@@ -30,8 +30,8 @@ private:
 	void UpdateEndpointVal(const ValPtr& endp_arg, bool is_orig);
 	void ChecksumEvent(bool is_orig, uint32_t threshold);
 
-	bro_int_t request_len = -1;
-	bro_int_t reply_len = -1;
+	zeek_int_t request_len = -1;
+	zeek_int_t reply_len = -1;
 	};
 
 	} // namespace zeek::packet_analysis::UDP

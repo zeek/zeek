@@ -60,7 +60,13 @@ int Obj::suppress_errors = 0;
 Obj::~Obj()
 	{
 	if ( notify_plugins )
+		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		PLUGIN_HOOK_VOID(HOOK_BRO_OBJ_DTOR, HookBroObjDtor(this));
+#pragma GCC diagnostic pop
+		PLUGIN_HOOK_VOID(HOOK_OBJ_DTOR, HookObjDtor(this));
+		}
 
 	delete location;
 	}

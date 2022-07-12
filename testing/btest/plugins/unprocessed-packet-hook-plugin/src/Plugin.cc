@@ -1,14 +1,17 @@
 
 #include "Plugin.h"
 
-#include <Func.h>
-#include <Event.h>
 #include <Conn.h>
 #include <Desc.h>
-#include <threading/Formatter.h>
+#include <Event.h>
+#include <Func.h>
 #include <RunState.h>
+#include <threading/Formatter.h>
 
-namespace btest::plugin::Demo_Unprocessed_Packet { Plugin plugin; }
+namespace btest::plugin::Demo_Unprocessed_Packet
+	{
+Plugin plugin;
+	}
 
 using namespace btest::plugin::Demo_Unprocessed_Packet;
 
@@ -35,5 +38,6 @@ void Plugin::HookUnprocessedPacket(const zeek::Packet* packet)
 	d.Add(packet->len);
 	d.Add("]");
 
-	fprintf(stdout, "%.6f %-23s %s\n", zeek::run_state::network_time, "| HookUnprocessedPacket", d.Description());
+	fprintf(stdout, "%.6f %-23s %s\n", zeek::run_state::network_time, "| HookUnprocessedPacket",
+	        d.Description());
 	}

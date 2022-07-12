@@ -1,14 +1,14 @@
 
 #include "Foo.h"
-#include "foo_pac.h"
-#include "events.bif.h"
 
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
+#include "events.bif.h"
+#include "foo_pac.h"
+
 using namespace btest::plugin::Demo_Foo;
 
-Foo::Foo(zeek::Connection* conn)
-	: zeek::analyzer::tcp::TCP_ApplicationAnalyzer("Foo", conn)
+Foo::Foo(zeek::Connection* conn) : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("Foo", conn)
 	{
 	interp = new binpac::Foo::Foo_Conn(this);
 	}

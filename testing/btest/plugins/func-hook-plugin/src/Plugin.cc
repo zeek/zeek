@@ -1,14 +1,17 @@
 
 #include "Plugin.h"
 
-#include <zeek/Val.h>
-#include <zeek/Func.h>
-#include <zeek/Event.h>
 #include <zeek/Conn.h>
 #include <zeek/Desc.h>
+#include <zeek/Event.h>
+#include <zeek/Func.h>
+#include <zeek/Val.h>
 #include <zeek/threading/Formatter.h>
 
-namespace btest::plugin::Demo_Hooks { Plugin plugin; }
+namespace btest::plugin::Demo_Hooks
+	{
+Plugin plugin;
+	}
 
 using namespace btest::plugin::Demo_Hooks;
 
@@ -41,8 +44,8 @@ static void describe_hook_args(const zeek::plugin::HookArgumentList& args, zeek:
 		}
 	}
 
-std::pair<bool, zeek::ValPtr> Plugin::HookFunctionCall(
-	const zeek::Func* func, zeek::detail::Frame* frame, zeek::Args* args)
+std::pair<bool, zeek::ValPtr> Plugin::HookFunctionCall(const zeek::Func* func,
+                                                       zeek::detail::Frame* frame, zeek::Args* args)
 	{
 	zeek::ODesc d;
 	d.SetShort();
@@ -69,8 +72,7 @@ void Plugin::MetaHookPre(zeek::plugin::HookType hook, const zeek::plugin::HookAr
 	        hook_name(hook), d.Description());
 	}
 
-void Plugin::MetaHookPost(zeek::plugin::HookType hook,
-	                      const zeek::plugin::HookArgumentList& args,
+void Plugin::MetaHookPost(zeek::plugin::HookType hook, const zeek::plugin::HookArgumentList& args,
                           zeek::plugin::HookArgument result)
 	{
 	zeek::ODesc d1;
@@ -82,6 +84,5 @@ void Plugin::MetaHookPost(zeek::plugin::HookType hook,
 	result.Describe(&d2);
 
 	fprintf(stderr, "%.6f %-15s %s(%s) -> %s\n", zeek::run_state::network_time, "  MetaHookPost",
-	        hook_name(hook), d1.Description(),
-	        d2.Description());
+	        hook_name(hook), d1.Description(), d2.Description());
 	}

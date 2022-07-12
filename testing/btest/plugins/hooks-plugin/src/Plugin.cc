@@ -1,16 +1,18 @@
 
 #include "Plugin.h"
 
-#include <cstring>
-
-#include <Func.h>
-#include <Event.h>
 #include <Conn.h>
 #include <Desc.h>
-#include <threading/Formatter.h>
+#include <Event.h>
+#include <Func.h>
 #include <RunState.h>
+#include <threading/Formatter.h>
+#include <cstring>
 
-namespace btest::plugin::Demo_Hooks { Plugin plugin; }
+namespace btest::plugin::Demo_Hooks
+	{
+Plugin plugin;
+	}
 
 using namespace btest::plugin::Demo_Hooks;
 
@@ -55,11 +57,11 @@ static void describe_hook_args(const zeek::plugin::HookArgumentList& args, zeek:
 			// For function calls we remove args for unstable arguments
 			// from parsing the version in `base/misc/version`.
 			if ( i->GetType() == zeek::plugin::HookArgument::FUNC &&
-			    (::strcmp(d->Description(), "Version::parse") == 0 ||
-			     ::strcmp(d->Description(), "gsub") == 0 ||
-			     ::strcmp(d->Description(), "split_string1") == 0 ||
-			     ::strcmp(d->Description(), "lstrip") == 0 ||
-			     ::strcmp(d->Description(), "to_count") == 0))
+			     (::strcmp(d->Description(), "Version::parse") == 0 ||
+			      ::strcmp(d->Description(), "gsub") == 0 ||
+			      ::strcmp(d->Description(), "split_string1") == 0 ||
+			      ::strcmp(d->Description(), "lstrip") == 0 ||
+			      ::strcmp(d->Description(), "to_count") == 0) )
 				serialize_args = false;
 
 			continue;
@@ -79,19 +81,21 @@ static void describe_hook_args(const zeek::plugin::HookArgumentList& args, zeek:
 int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved)
 	{
 	fprintf(stderr, "%.6f %-15s %s %s\n", zeek::run_state::network_time, "| HookLoadFile",
-		file.c_str(), resolved.c_str());
+	        file.c_str(), resolved.c_str());
 	return -1;
 	}
 
-std::pair<int, std::optional<std::string>> Plugin::HookLoadFileExtended(const LoadType type, const std::string& file, const std::string& resolved)
+std::pair<int, std::optional<std::string>> Plugin::HookLoadFileExtended(const LoadType type,
+                                                                        const std::string& file,
+                                                                        const std::string& resolved)
 	{
 	fprintf(stderr, "%.6f %-15s %s %s\n", zeek::run_state::network_time, "| HookLoadFileExtended",
-		file.c_str(), resolved.c_str());
+	        file.c_str(), resolved.c_str());
 	return std::make_pair(-1, std::nullopt);
 	}
 
-std::pair<bool, zeek::ValPtr> Plugin::HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* frame,
-                                                       zeek::Args* args)
+std::pair<bool, zeek::ValPtr> Plugin::HookFunctionCall(const zeek::Func* func,
+                                                       zeek::detail::Frame* frame, zeek::Args* args)
 	{
 	zeek::ODesc d;
 	d.SetShort();
@@ -103,14 +107,13 @@ std::pair<bool, zeek::ValPtr> Plugin::HookFunctionCall(const zeek::Func* func, z
 	if ( ::strcmp(d.Description(), "Version::parse") == 0 ||
 	     ::strcmp(d.Description(), "gsub") == 0 ||
 	     ::strcmp(d.Description(), "split_string1") == 0 ||
-	     ::strcmp(d.Description(), "lstrip") == 0 ||
-	     ::strcmp(d.Description(), "to_count") == 0)
+	     ::strcmp(d.Description(), "lstrip") == 0 || ::strcmp(d.Description(), "to_count") == 0 )
 		d.Add("(...)");
 	else
 		zeek::plugin::HookArgument(args).Describe(&d);
 
 	fprintf(stderr, "%.6f %-15s %s\n", zeek::run_state::network_time, "| HookCallFunction",
-		d.Description());
+	        d.Description());
 
 	return {false, nullptr};
 	}
@@ -121,14 +124,14 @@ bool Plugin::HookQueueEvent(zeek::Event* event)
 	d.SetShort();
 	zeek::plugin::HookArgument(event).Describe(&d);
 	fprintf(stderr, "%.6f %-15s %s\n", zeek::run_state::network_time, "| HookQueueEvent",
-		d.Description());
+	        d.Description());
 
 	static int i = 0;
 
 	if ( zeek::run_state::network_time && i == 0 )
 		{
 		fprintf(stderr, "%.6f %-15s %s\n", zeek::run_state::network_time, "| RequestObjDtor",
-			d.Description());
+		        d.Description());
 
 		RequestBroObjDtor(event);
 		i = 1;
@@ -145,7 +148,7 @@ void Plugin::HookDrainEvents()
 void Plugin::HookUpdateNetworkTime(double network_time)
 	{
 	fprintf(stderr, "%.6f  %-15s %.6f\n", zeek::run_state::network_time, "| HookUpdateNetworkTime",
-		zeek::run_state::network_time);
+	        zeek::run_state::network_time);
 	}
 
 void Plugin::HookBroObjDtor(void* obj)
@@ -159,10 +162,11 @@ void Plugin::MetaHookPre(zeek::plugin::HookType hook, const zeek::plugin::HookAr
 	d.SetShort();
 	describe_hook_args(args, &d);
 	fprintf(stderr, "%.6f %-15s %s(%s)\n", zeek::run_state::network_time, "  MetaHookPre",
-		hook_name(hook), d.Description());
+	        hook_name(hook), d.Description());
 	}
 
-void Plugin::MetaHookPost(zeek::plugin::HookType hook, const zeek::plugin::HookArgumentList& args, zeek::plugin::HookArgument result)
+void Plugin::MetaHookPost(zeek::plugin::HookType hook, const zeek::plugin::HookArgumentList& args,
+                          zeek::plugin::HookArgument result)
 	{
 	zeek::ODesc d1;
 	d1.SetShort();
@@ -173,8 +177,7 @@ void Plugin::MetaHookPost(zeek::plugin::HookType hook, const zeek::plugin::HookA
 	result.Describe(&d2);
 
 	fprintf(stderr, "%.6f %-15s %s(%s) -> %s\n", zeek::run_state::network_time, "  MetaHookPost",
-		hook_name(hook), d1.Description(),
-		d2.Description());
+	        hook_name(hook), d1.Description(), d2.Description());
 	}
 
 void Plugin::HookSetupAnalyzerTree(zeek::Connection* conn)
@@ -183,17 +186,19 @@ void Plugin::HookSetupAnalyzerTree(zeek::Connection* conn)
 	d.SetShort();
 	conn->Describe(&d);
 
-	fprintf(stderr, "%.6f %-15s %s\n", zeek::run_state::network_time, "| HookSetupAnalyzerTree", d.Description());
+	fprintf(stderr, "%.6f %-15s %s\n", zeek::run_state::network_time, "| HookSetupAnalyzerTree",
+	        d.Description());
 	}
 
-void Plugin::HookLogInit(const std::string& writer, const std::string& instantiating_filter, bool local, bool remote,
+void Plugin::HookLogInit(const std::string& writer, const std::string& instantiating_filter,
+                         bool local, bool remote,
                          const zeek::logging::WriterBackend::WriterInfo& info, int num_fields,
                          const zeek::threading::Field* const* fields)
 	{
 	zeek::ODesc d;
 
 	d.Add("{");
-	for ( int i=0; i < num_fields; i++ )
+	for ( int i = 0; i < num_fields; i++ )
 		{
 		const zeek::threading::Field* f = fields[i];
 
@@ -207,92 +212,95 @@ void Plugin::HookLogInit(const std::string& writer, const std::string& instantia
 		}
 	d.Add("}");
 
-	fprintf(stderr, "%.6f %-15s %s %d/%d %s\n", zeek::run_state::network_time, "| HookLogInit", info.path, local, remote, d.Description());
+	fprintf(stderr, "%.6f %-15s %s %d/%d %s\n", zeek::run_state::network_time, "| HookLogInit",
+	        info.path, local, remote, d.Description());
 	}
 
-void Plugin::RenderVal(const zeek::threading::Value* val, zeek::ODesc &d) const
+void Plugin::RenderVal(const zeek::threading::Value* val, zeek::ODesc& d) const
 	{
-		if ( ! val->present )
-			{
-			d.Add("<uninitialized>");
-			return;
-			}
+	if ( ! val->present )
+		{
+		d.Add("<uninitialized>");
+		return;
+		}
 
-		switch ( val->type ) {
+	switch ( val->type )
+		{
 
-			case zeek::TYPE_BOOL:
-				d.Add(val->val.int_val ? "T" : "F");
-				break;
+		case zeek::TYPE_BOOL:
+			d.Add(val->val.int_val ? "T" : "F");
+			break;
 
-			case zeek::TYPE_INT:
-				d.Add(val->val.int_val);
-				break;
+		case zeek::TYPE_INT:
+			d.Add(val->val.int_val);
+			break;
 
-			case zeek::TYPE_COUNT:
-				d.Add(val->val.uint_val);
-				break;
+		case zeek::TYPE_COUNT:
+			d.Add(val->val.uint_val);
+			break;
 
-			case zeek::TYPE_PORT:
-				d.Add(val->val.port_val.port);
-				break;
+		case zeek::TYPE_PORT:
+			d.Add(val->val.port_val.port);
+			break;
 
-			case zeek::TYPE_SUBNET:
-				d.Add(zeek::threading::Formatter::Render(val->val.subnet_val));
-				break;
+		case zeek::TYPE_SUBNET:
+			d.Add(zeek::threading::Formatter::Render(val->val.subnet_val));
+			break;
 
-			case zeek::TYPE_ADDR:
-				d.Add(zeek::threading::Formatter::Render(val->val.addr_val));
-				break;
+		case zeek::TYPE_ADDR:
+			d.Add(zeek::threading::Formatter::Render(val->val.addr_val));
+			break;
 
-			case zeek::TYPE_DOUBLE:
-				d.Add(val->val.double_val, true);
-				break;
+		case zeek::TYPE_DOUBLE:
+			d.Add(val->val.double_val, true);
+			break;
 
-			case zeek::TYPE_INTERVAL:
-			case zeek::TYPE_TIME:
-				d.Add(zeek::threading::Formatter::Render(val->val.double_val));
-				break;
+		case zeek::TYPE_INTERVAL:
+		case zeek::TYPE_TIME:
+			d.Add(zeek::threading::Formatter::Render(val->val.double_val));
+			break;
 
-			case zeek::TYPE_ENUM:
-			case zeek::TYPE_STRING:
-			case zeek::TYPE_FILE:
-			case zeek::TYPE_FUNC:
-				d.AddN(val->val.string_val.data, val->val.string_val.length);
-				break;
+		case zeek::TYPE_ENUM:
+		case zeek::TYPE_STRING:
+		case zeek::TYPE_FILE:
+		case zeek::TYPE_FUNC:
+			d.AddN(val->val.string_val.data, val->val.string_val.length);
+			break;
 
-			case zeek::TYPE_TABLE:
-				for ( int j = 0; j < val->val.set_val.size; j++ )
-					{
-					if ( j > 0 )
-						d.Add(",");
+		case zeek::TYPE_TABLE:
+			for ( int j = 0; j < val->val.set_val.size; j++ )
+				{
+				if ( j > 0 )
+					d.Add(",");
 
-					RenderVal(val->val.set_val.vals[j], d);
-					}
-				break;
+				RenderVal(val->val.set_val.vals[j], d);
+				}
+			break;
 
-			case zeek::TYPE_VECTOR:
-				for ( int j = 0; j < val->val.vector_val.size; j++ )
-					{
-					if ( j > 0 )
-						d.Add(",");
+		case zeek::TYPE_VECTOR:
+			for ( int j = 0; j < val->val.vector_val.size; j++ )
+				{
+				if ( j > 0 )
+					d.Add(",");
 
-					RenderVal(val->val.vector_val.vals[j], d);
-					}
-				break;
+				RenderVal(val->val.vector_val.vals[j], d);
+				}
+			break;
 
-			default:
-				assert(false);
+		default:
+			assert(false);
 		}
 	}
 
 bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
                           const zeek::logging::WriterBackend::WriterInfo& info, int num_fields,
-                          const zeek::threading::Field* const* fields, zeek::threading::Value** vals)
+                          const zeek::threading::Field* const* fields,
+                          zeek::threading::Value** vals)
 	{
 	zeek::ODesc d;
 
 	d.Add("[");
-	for ( int i=0; i < num_fields; i++ )
+	for ( int i = 0; i < num_fields; i++ )
 		{
 		const zeek::threading::Field* f = fields[i];
 		const zeek::threading::Value* val = vals[i];
@@ -307,7 +315,8 @@ bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
 		}
 	d.Add("]");
 
-	fprintf(stderr, "%.6f %-15s %s %s\n", zeek::run_state::network_time, "| HookLogWrite", info.path, d.Description());
+	fprintf(stderr, "%.6f %-15s %s %s\n", zeek::run_state::network_time, "| HookLogWrite",
+	        info.path, d.Description());
 	return true;
 	}
 
@@ -321,5 +330,6 @@ void Plugin::HookUnprocessedPacket(const zeek::Packet* packet)
 	d.Add(packet->len);
 	d.Add("]");
 
-	fprintf(stderr, "%.6f %-23s %s\n", zeek::run_state::network_time, "| HookUnprocessedPacket", d.Description());
+	fprintf(stderr, "%.6f %-23s %s\n", zeek::run_state::network_time, "| HookUnprocessedPacket",
+	        d.Description());
 	}

@@ -1,3 +1,9 @@
+5.1.0-dev.217 | 2022-07-11 17:29:19 -0700
+
+  * Fix race condition in scripts.base.utils.dir test (Christian Kreibich, Corelight)
+
+  * Remove needless "touch" in scripts.base.utils.dir test (Christian Kreibich, Corelight)
+
 5.1.0-dev.214 | 2022-07-11 09:46:52 -0700
 
   * Fix default build with `--disable-cpp-tests`. (Benjamin Bannier, Corelight)

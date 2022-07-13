@@ -118,4 +118,6 @@ event zeek_init()
 
 	Broker::peer(epi$network$address, epi$network$bound_port, Management::connect_retry);
 	Broker::subscribe(node_topic);
+
+	Management::Log::info(fmt("node %s is live, Broker ID %s", Cluster::node, Broker::node_id()));
 	}

@@ -23,6 +23,7 @@ RUN apt-get update && apt-get -y install \
     libpcap-dev \
     libssl-dev \
     make \
+    procps \
     python3 \
     python3-dev \
     python3-pip\

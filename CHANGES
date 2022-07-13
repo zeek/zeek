@@ -1,3 +1,13 @@
+5.1.0-dev.245 | 2022-07-13 11:57:18 -0700
+
+  * Stop signal-masking upon running unit tests (Christian Kreibich, Corelight)
+
+  * Pause signal-masking during script parsing (Christian Kreibich, Corelight)
+
+  * Add btests to verify Zeek's handling of SIGTERM and reading stdin (Christian Kreibich, Corelight)
+
+  * Add procps/procps-ng to several CI Docker images (Christian Kreibich, Corelight)
+
 5.1.0-dev.240 | 2022-07-13 11:23:38 -0700
 
   * Use clang-format for all files in `testing/btest/plugins`. (Benjamin Bannier, Corelight)

@@ -377,7 +377,7 @@ event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
 ##    Zeek's default scripts use this event to determine the ``service`` column
 ##    of :zeek:type:`Conn::Info`: once confirmed, the protocol will be listed
 ##    there (and thus in ``conn.log``).
-event analyzer_confirmation%(c: connection, atype: Analyzer::Tag, aid: count%);
+event analyzer_confirmation%(c: connection, atype: AllAnalyzers::Tag, aid: count%);
 
 ## Generated if a DPD signature matched but the DPD buffer is already exhausted
 ## and thus the analyzer could not be attached. While this does not confirm
@@ -420,7 +420,7 @@ event protocol_late_match%(c: connection, atype: Analyzer::Tag%);
 ##    :zeek:id:`disable_analyzer` if it's parsing the wrong protocol. That's
 ##    however a script-level decision and not done automatically by the event
 ##    engine.
-event analyzer_violation%(c: connection, atype: Analyzer::Tag, aid: count, reason: string%);
+event analyzer_violation%(c: connection, atype: AllAnalyzers::Tag, aid: count, reason: string%);
 
 ## Generated when a TCP connection terminated, passing on statistics about the
 ## two endpoints. This event is always generated when Zeek flushes the internal

@@ -281,14 +281,12 @@ bool Raw::OpenInput()
 	else
 		{
 		file = std::unique_ptr<FILE, int (*)(FILE*)>(fopen(fname.c_str(), "r"), fclose);
-		if ( ! file && Info().mode == MODE_STREAM )
-			{
-			// Watch /dev/null until the file appears
-			file = std::unique_ptr<FILE, int (*)(FILE*)>(fopen("/dev/null", "r"), fclose);
-			}
-
 		if ( ! file )
 			{
+			if ( Info().mode == MODE_STREAM )
+				// Wait for file to appear
+				return true;
+
 			Error(Fmt("Init: cannot open %s", fname.c_str()));
 			return false;
 			}
@@ -624,7 +622,7 @@ bool Raw::DoUpdate()
 					break;
 
 				// Is it the same file?
-				if ( sb.st_ino == ino && sb.st_dev == dev )
+				if ( file && sb.st_ino == ino && sb.st_dev == dev )
 					break;
 
 				// File was replaced
@@ -638,10 +636,10 @@ bool Raw::DoUpdate()
 					{
 					// This is unlikely to fail
 					Error(Fmt("Could not fstat %s", fname.c_str()));
-					fclose(tfile);
 					return false;
 					}
-				file.reset(nullptr);
+				if ( file )
+					file.reset(nullptr);
 				file = std::unique_ptr<FILE, int (*)(FILE*)>(tfile, fclose);
 				ino = sb.st_ino;
 				dev = sb.st_dev;
@@ -660,6 +658,10 @@ bool Raw::DoUpdate()
 		{
 		if ( stdin_towrite > 0 )
 			WriteToStdin();
+
+		if ( ! file && Info().mode == MODE_STREAM )
+			// Wait for file to appear
+			break;
 
 		int64_t length = GetLine(file.get());
 		// printf("Read %lld bytes\n", length);

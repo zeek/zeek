@@ -2831,13 +2831,16 @@ function to_port%(s: string%): port
     return zeek::val_mgr->Port(port, TRANSPORT_UNKNOWN);
 	%}
 
-## Converts a string of bytes (in network byte order) to a :zeek:type:`double`.
+## Converts a string of bytes representing a double value (in network byte order)
+## to a :zeek:type:`double`. This is similar to :zeek:id:`bytestring_to_float`
+## but works on 8-byte strings.
 ##
 ## s: A string of bytes containing the binary representation of a double value.
 ##
 ## Returns: The double value contained in *s*, or 0 if the conversion
 ##          failed.
 ##
+## .. zeek:see:: bytestring_to_float
 function bytestring_to_double%(s: string%): double
 	%{
 	if ( s->Len() != sizeof(double) )
@@ -2850,6 +2853,29 @@ function bytestring_to_double%(s: string%): double
 	double d;
 	memcpy(&d, s->Bytes(), sizeof(double));
 	return zeek::make_intrusive<zeek::DoubleVal>(ntohd(d));
+	%}
+
+## Converts a string of bytes representing a float value (in network byte order)
+## to a :zeek:type:`double`. This is similar to :zeek:id:`bytestring_to_double`
+## but works on 4-byte strings.
+##
+## s: A string of bytes containing the binary representation of a float value.
+##
+## Returns: The float value contained in *s*, or 0 if the conversion
+##          failed.
+##
+## .. zeek:see:: bytestring_to_double
+function bytestring_to_float%(s: string%): double
+	%{
+	if ( s->Len() != sizeof(float) )
+		{
+		zeek::emit_builtin_error("bad conversion to float");
+		return zeek::make_intrusive<zeek::DoubleVal>(0.0);
+		}
+
+	float f;
+	memcpy(&f, s->Bytes(), sizeof(float));
+	return zeek::make_intrusive<zeek::DoubleVal>(ntohf(f));
 	%}
 
 ## Converts a string of bytes to a :zeek:type:`count`.

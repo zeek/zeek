@@ -261,6 +261,15 @@ inline double htond(double d)
 	return d;
 	}
 
+inline float ntohf(float f)
+	{
+	return f;
+	}
+inline float htonf(float f)
+	{
+	return f;
+	}
+
 #ifndef HAVE_BYTEORDER_64
 inline uint64_t ntohll(uint64_t i)
 	{
@@ -297,6 +306,27 @@ inline double ntohd(double d)
 inline double htond(double d)
 	{
 	return ntohd(d);
+	}
+
+inline float ntohf(float f)
+	{
+	assert(sizeof(f) == 4);
+
+	float tmp;
+	char* src = (char*)&f;
+	char* dst = (char*)&tmp;
+
+	dst[0] = src[3];
+	dst[1] = src[2];
+	dst[2] = src[1];
+	dst[3] = src[0];
+
+	return tmp;
+	}
+
+inline float htonf(float f)
+	{
+	return ntohf(f);
 	}
 
 #ifndef HAVE_BYTEORDER_64

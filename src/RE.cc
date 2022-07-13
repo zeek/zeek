@@ -17,7 +17,7 @@
 zeek::detail::CCL* zeek::detail::curr_ccl = nullptr;
 zeek::detail::Specific_RE_Matcher* zeek::detail::rem = nullptr;
 zeek::detail::NFA_Machine* zeek::detail::nfa = nullptr;
-int zeek::detail::case_insensitive = 0;
+bool zeek::detail::case_insensitive = false;
 
 extern int RE_parse(void);
 extern void RE_set_input(const char* str);
@@ -28,13 +28,10 @@ namespace zeek
 namespace detail
 	{
 
-Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, int arg_multiline)
-	: equiv_class(NUM_SYM)
+Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline)
+	: mt(arg_mt), multiline(arg_multiline), equiv_class(NUM_SYM)
 	{
-	mt = arg_mt;
-	multiline = arg_multiline;
 	any_ccl = nullptr;
-	pattern_text = nullptr;
 	dfa = nullptr;
 	ecs = nullptr;
 	accepted = new AcceptingSet();
@@ -46,7 +43,6 @@ Specific_RE_Matcher::~Specific_RE_Matcher()
 		delete ccl_list[i];
 
 	Unref(dfa);
-	delete[] pattern_text;
 	delete accepted;
 	}
 
@@ -90,51 +86,32 @@ void Specific_RE_Matcher::AddExactPat(const char* new_pat)
 
 void Specific_RE_Matcher::AddPat(const char* new_pat, const char* orig_fmt, const char* app_fmt)
 	{
-	int n = strlen(new_pat);
-
-	if ( pattern_text )
-		n += strlen(pattern_text) + strlen(app_fmt);
+	if ( ! pattern_text.empty() )
+		pattern_text = util::fmt(app_fmt, pattern_text.c_str(), new_pat);
 	else
-		n += strlen(orig_fmt);
-
-	char* s = new char[n + 5 /* slop */];
-
-	if ( pattern_text )
-		sprintf(s, app_fmt, pattern_text, new_pat);
-	else
-		sprintf(s, orig_fmt, new_pat);
-
-	delete[] pattern_text;
-	pattern_text = s;
+		pattern_text = util::fmt(orig_fmt, new_pat);
 	}
 
 void Specific_RE_Matcher::MakeCaseInsensitive()
 	{
 	const char fmt[] = "(?i:%s)";
-	int n = strlen(pattern_text) + strlen(fmt);
-
-	char* s = new char[n + 5 /* slop */];
-
-	snprintf(s, n + 5, fmt, pattern_text);
-
-	delete[] pattern_text;
-	pattern_text = s;
+	pattern_text = util::fmt(fmt, pattern_text.c_str());
 	}
 
 bool Specific_RE_Matcher::Compile(bool lazy)
 	{
-	if ( ! pattern_text )
+	if ( pattern_text.empty() )
 		return false;
 
 	rem = this;
-	RE_set_input(pattern_text);
+	RE_set_input(pattern_text.c_str());
 
 	int parse_status = RE_parse();
 	RE_done_with_scan();
 
 	if ( parse_status )
 		{
-		reporter->Error("error compiling pattern /%s/", pattern_text);
+		reporter->Error("error compiling pattern /%s/", pattern_text.c_str());
 		Unref(nfa);
 		nfa = nullptr;
 		return false;

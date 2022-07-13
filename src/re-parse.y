@@ -132,7 +132,7 @@ singleton	:  singleton '*'
 			{ $$ = $2; }
 
 		|  TOK_CASE_INSENSITIVE re ')'
-			{ $$ = $2; zeek::detail::case_insensitive = 0; }
+			{ $$ = $2; zeek::detail::case_insensitive = false; }
 
 		|  TOK_CHAR
 			{

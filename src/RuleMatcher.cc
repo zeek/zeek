@@ -526,7 +526,7 @@ void RuleMatcher::BuildPatternSets(RuleHdrTest::pattern_set_list* dst, const str
 		if ( group_exprs.length() > sig_max_group_size || i == exprs.length() )
 			{
 			RuleHdrTest::PatternSet* set = new RuleHdrTest::PatternSet;
-			set->re = new Specific_RE_Matcher(MATCH_EXACTLY, 1);
+			set->re = new Specific_RE_Matcher(MATCH_EXACTLY, true);
 			set->re->CompileSet(group_exprs, group_ids);
 			set->patterns = group_exprs;
 			set->ids = group_ids;

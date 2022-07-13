@@ -144,6 +144,14 @@ public:
 	void Peer(const std::string& addr, uint16_t port, double retry = 10.0);
 
 	/**
+	 * Initiate a peering with a remote endpoint but tries only once.
+	 * This function is only intended for testing purposes.
+	 * @param addr an address to connect to, e.g. "localhost" or "127.0.0.1".
+	 * @param port the TCP port on which the remote side is listening.
+	 */
+	void PeerNoRetry(const std::string& addr, uint16_t port);
+
+	/**
 	 * Remove a remote peering.
 	 * @param addr the address used in bro_broker::Manager::Peer().
 	 * @param port the port used in bro_broker::Manager::Peer().

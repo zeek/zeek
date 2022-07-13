@@ -1,3 +1,10 @@
+5.1.0-dev.236 | 2022-07-13 09:30:59 +0100
+
+  * Avoid race conditions in broker.ssl-mismatch test (Dominik Charousset, Corelight)
+
+  * Raw reader: Fix tail -F semantics when want_record=F and add tests for the new features.
+    See GH-2266. (Craig Leres)
+
 5.1.0-dev.229 | 2022-07-12 14:17:45 -0700
 
   * Rename bro_version and BRO_PLUGIN_BRO_VERSION to zeek names (Tim Wojtulewicz, Corelight)

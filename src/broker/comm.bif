@@ -104,6 +104,20 @@ function Broker::__peer%(a: string, p: port, retry: interval%): bool
 	return zeek::val_mgr->True();
 	%}
 
+function Broker::__peer_no_retry%(a: string, p: port%): bool
+	%{
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+
+	if ( ! p->IsTCP() )
+		{
+		zeek::emit_builtin_error("remote connection port must use tcp");
+		return zeek::val_mgr->False();
+		}
+
+	broker_mgr->PeerNoRetry(a->CheckString(), p->Port());
+	return zeek::val_mgr->True();
+	%}
+
 function Broker::__unpeer%(a: string, p: port%): bool
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;

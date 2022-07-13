@@ -636,6 +636,7 @@ bool Raw::DoUpdate()
 					{
 					// This is unlikely to fail
 					Error(Fmt("Could not fstat %s", fname.c_str()));
+					fclose(tfile);
 					return false;
 					}
 				if ( file )

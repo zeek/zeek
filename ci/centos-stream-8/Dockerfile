@@ -19,6 +19,7 @@ RUN dnf -y install \
     libpcap-devel \
     make \
     openssl-devel \
+    procps-ng \
     python3-devel \
     python3-pip\
     sqlite \

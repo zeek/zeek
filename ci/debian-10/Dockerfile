@@ -18,6 +18,7 @@ RUN apt-get update && apt-get -y install \
     bison \
     libpcap-dev \
     libssl-dev \
+    procps \
     python3 \
     python3-dev \
     python3-pip\

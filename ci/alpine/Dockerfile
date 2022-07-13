@@ -9,6 +9,7 @@ RUN apk add --no-cache \
   cmake \
   make \
   g++ \
+  procps \
   python3 \
   python3-dev \
   flex-dev \

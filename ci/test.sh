@@ -39,7 +39,7 @@ function run_unit_tests {
     banner "Running unit tests"
 
     pushd build
-    (. ./zeek-path-dev.sh && zeek --test) || result=1
+    (. ./zeek-path-dev.sh && zeek --test --no-skip) || result=1
     popd
     return 0
 }

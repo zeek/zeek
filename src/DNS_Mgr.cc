@@ -1540,6 +1540,12 @@ TableValPtr DNS_Mgr::empty_addr_set()
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 
+// Unit testing coverage for the DNS_Mgr code, including making actual DNS requests to
+// test responses and timeouts. Note that all of these tests are marked with the skip
+// decorator, since they take some time to run and this slows down local developement. To
+// run them manually, pass the --no-skip flag when running tests. These tests are
+// run automatically as part of CI builds.
+
 static std::vector<IPAddr> get_result_addresses(TableValPtr addrs)
 	{
 	std::vector<IPAddr> results;
@@ -1605,7 +1611,7 @@ void TestDNS_Mgr::Process()
 	IssueAsyncRequests();
 	}
 
-TEST_CASE("dns_mgr priming")
+TEST_CASE("dns_mgr priming" * doctest::skip(true))
 	{
 	char prefix[] = "/tmp/zeek-unit-test-XXXXXX";
 	auto tmpdir = mkdtemp(prefix);
@@ -1654,7 +1660,7 @@ TEST_CASE("dns_mgr priming")
 	rmdir(tmpdir);
 	}
 
-TEST_CASE("dns_mgr alternate server")
+TEST_CASE("dns_mgr alternate server" * doctest::skip(true))
 	{
 	char* old_server = getenv("ZEEK_DNS_RESOLVER");
 
@@ -1683,7 +1689,7 @@ TEST_CASE("dns_mgr alternate server")
 		unsetenv("ZEEK_DNS_RESOLVER");
 	}
 
-TEST_CASE("dns_mgr default mode")
+TEST_CASE("dns_mgr default mode" * doctest::skip(true))
 	{
 	TestDNS_Mgr mgr(DNS_DEFAULT);
 	mgr.InitPostScript();
@@ -1715,7 +1721,7 @@ TEST_CASE("dns_mgr default mode")
 	CHECK(strcmp(addr_result->CheckString(), "240.0.0.0") == 0);
 	}
 
-TEST_CASE("dns_mgr async host")
+TEST_CASE("dns_mgr async host" * doctest::skip(true))
 	{
 	TestDNS_Mgr mgr(DNS_DEFAULT);
 	mgr.InitPostScript();
@@ -1746,7 +1752,7 @@ TEST_CASE("dns_mgr async host")
 	mgr.Flush();
 	}
 
-TEST_CASE("dns_mgr async addr")
+TEST_CASE("dns_mgr async addr" * doctest::skip(true))
 	{
 	TestDNS_Mgr mgr(DNS_DEFAULT);
 	mgr.InitPostScript();
@@ -1772,7 +1778,7 @@ TEST_CASE("dns_mgr async addr")
 	mgr.Flush();
 	}
 
-TEST_CASE("dns_mgr async text")
+TEST_CASE("dns_mgr async text" * doctest::skip(true))
 	{
 	TestDNS_Mgr mgr(DNS_DEFAULT);
 	mgr.InitPostScript();
@@ -1798,7 +1804,7 @@ TEST_CASE("dns_mgr async text")
 	mgr.Flush();
 	}
 
-TEST_CASE("dns_mgr timeouts")
+TEST_CASE("dns_mgr timeouts" * doctest::skip(true))
 	{
 	char* old_server = getenv("ZEEK_DNS_RESOLVER");
 
@@ -1824,7 +1830,7 @@ TEST_CASE("dns_mgr timeouts")
 		unsetenv("ZEEK_DNS_RESOLVER");
 	}
 
-TEST_CASE("dns_mgr async timeouts")
+TEST_CASE("dns_mgr async timeouts" * doctest::skip(true))
 	{
 	char* old_server = getenv("ZEEK_DNS_RESOLVER");
 

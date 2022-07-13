@@ -4,9 +4,11 @@
 #include <Val.h>
 #include <iosource/PktSrc.h>
 
-namespace btest::plugin::Demo_Foo {
+namespace btest::plugin::Demo_Foo
+	{
 
-class Foo : public zeek::iosource::PktSrc {
+class Foo : public zeek::iosource::PktSrc
+	{
 public:
 	Foo(const std::string& path, bool is_live);
 
@@ -24,6 +26,6 @@ protected:
 private:
 	Properties props;
 	std::string packet;
-};
+	};
 
-}
+	}

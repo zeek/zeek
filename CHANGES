@@ -1,3 +1,9 @@
+5.1.0-dev.240 | 2022-07-13 11:23:38 -0700
+
+  * Use clang-format for all files in `testing/btest/plugins`. (Benjamin Bannier, Corelight)
+
+    This is a fixup commit for dc65b6248c017b947e60afa4992decab04772111.
+
 5.1.0-dev.238 | 2022-07-13 11:11:48 -0700
 
   * GH-696: Add bytestring_to_float BIF (Tim Wojtulewicz, Corelight)

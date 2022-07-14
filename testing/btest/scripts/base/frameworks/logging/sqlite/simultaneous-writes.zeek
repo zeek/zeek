@@ -5,7 +5,7 @@
 
 # Don't run this test if we build with '--sanitizers=thread' because we
 # disable the shared cache in that case due to a SQLite bug.
-# @TEST-REQUIRES: grep -q "#define ZEEK_TSAN" zeek-config.h || test $? == 0
+# @TEST-REQUIRES: ! grep -q "#define ZEEK_TSAN" $BUILD/zeek-config.h
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: zeek -b %INPUT

@@ -1631,7 +1631,7 @@ function print_raw%(...%): bool
 ##
 ## Returns: The next lowest integer of *d* as :zeek:type:`double`.
 ##
-## .. zeek:see:: sqrt exp ln log10
+## .. zeek:see:: sqrt exp ln log10 pow
 function floor%(d: double%): double
 	%{
 	return zeek::make_intrusive<zeek::DoubleVal>(floor(d));
@@ -1643,7 +1643,7 @@ function floor%(d: double%): double
 ##
 ## Returns: The square root of *x*.
 ##
-## .. zeek:see:: floor exp ln log10
+## .. zeek:see:: floor exp ln log10 pow
 function sqrt%(x: double%): double
 	%{
 	if ( x < 0 )
@@ -1661,7 +1661,7 @@ function sqrt%(x: double%): double
 ##
 ## Returns: *e* to the power of *d*.
 ##
-## .. zeek:see:: floor sqrt ln log10
+## .. zeek:see:: floor sqrt ln log10 pow
 function exp%(d: double%): double
 	%{
 	return zeek::make_intrusive<zeek::DoubleVal>(exp(d));
@@ -1673,7 +1673,7 @@ function exp%(d: double%): double
 ##
 ## Returns: The natural logarithm of *d*.
 ##
-## .. zeek:see:: exp floor sqrt log10
+## .. zeek:see:: exp floor sqrt log10 pow
 function ln%(d: double%): double
 	%{
 	return zeek::make_intrusive<zeek::DoubleVal>(log(d));
@@ -1685,10 +1685,24 @@ function ln%(d: double%): double
 ##
 ## Returns: The common logarithm of *d*.
 ##
-## .. zeek:see:: exp floor sqrt ln
+## .. zeek:see:: exp floor sqrt ln pow
 function log10%(d: double%): double
 	%{
 	return zeek::make_intrusive<zeek::DoubleVal>(log10(d));
+	%}
+
+## Computes the *x* raised to the power *y*.
+##
+## x: The number to be raised to a power.
+##
+## y: The number that specifies a power.
+##
+## Returns: The number *x* raised to the power *y*.
+##
+## .. zeek:see:: exp floor sqrt ln log10
+function pow%(x: double, y: double%): double
+	%{
+	return zeek::make_intrusive<zeek::DoubleVal>(pow(x, y));
 	%}
 
 # ===========================================================================

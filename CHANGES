@@ -1,3 +1,7 @@
+5.1.0-dev.248 | 2022-07-13 18:17:13 -0700
+
+  * Fix requirement check in a logging framework / sqlite btest (Christian Kreibich, Corelight)
+
 5.1.0-dev.245 | 2022-07-13 11:57:18 -0700
 
   * Stop signal-masking upon running unit tests (Christian Kreibich, Corelight)

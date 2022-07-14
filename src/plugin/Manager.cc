@@ -894,20 +894,32 @@ void Manager::HookBroObjDtor(void* obj) const
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(obj));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		MetaHookPre(HOOK_BRO_OBJ_DTOR, args);
+#pragma GCC diagnostic pop
 		}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	hook_list* l = hooks[HOOK_BRO_OBJ_DTOR];
+#pragma GCC diagnostic pop
 
 	if ( l )
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
 			{
 			Plugin* p = (*i).second;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 			p->HookBroObjDtor(obj);
+#pragma GCC diagnostic pop
 			}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		MetaHookPost(HOOK_BRO_OBJ_DTOR, args, HookArgument());
+#pragma GCC diagnostic pop
 	}
 
 void Manager::HookObjDtor(void* obj) const

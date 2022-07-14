@@ -116,47 +116,46 @@ public:
 	// We force this to inline so that the API version gets hardcoded
 	// into the external plugin. (Technically, it's not a "force", just a
 	// strong hint.). The attribute seems generally available.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	inline Configuration() __attribute__((always_inline))
 		{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		bro_version = ZEEK_PLUGIN_ZEEK_VERSION;
-#pragma GCC diagnostic pop
 		zeek_version = ZEEK_PLUGIN_ZEEK_VERSION;
 		}
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	Configuration(Configuration&& c)
 		{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		bro_version = std::move(c.bro_version);
-#pragma GCC diagnostic pop
 		zeek_version = std::move(c.zeek_version);
 
 		name = std::move(c.name);
 		description = std::move(c.description);
 		version = std::move(c.version);
 		}
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	Configuration(const Configuration& c)
 		{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		bro_version = c.bro_version;
-#pragma GCC diagnostic pop
 		zeek_version = c.zeek_version;
 
 		name = c.name;
 		description = c.description;
 		version = c.version;
 		}
+#pragma GCC diagnostic pop
 
-	Configuration& operator=(Configuration&& c)
-		{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	Configuration& operator=(Configuration&& c)
+		{
 		bro_version = std::move(c.bro_version);
-#pragma GCC diagnostic pop
 		zeek_version = std::move(c.zeek_version);
 
 		name = std::move(c.name);
@@ -165,13 +164,13 @@ public:
 
 		return *this;
 		}
+#pragma GCC diagnostic pop
 
-	Configuration& operator=(const Configuration& c)
-		{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	Configuration& operator=(const Configuration& c)
+		{
 		bro_version = c.bro_version;
-#pragma GCC diagnostic pop
 		zeek_version = c.zeek_version;
 
 		name = c.name;
@@ -180,6 +179,12 @@ public:
 
 		return *this;
 		}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	~Configuration() { }
+#pragma GCC diagnostic pop
 
 	/**
 	 * One can assign ZEEK_PLUGIN_ZEEK_VERSION to this to catch

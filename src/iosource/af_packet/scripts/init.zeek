@@ -17,4 +17,6 @@ export {
 	const fanout_mode = FANOUT_HASH &redef;
 	## Fanout ID.
 	const fanout_id = 23 &redef;
+	## Link type (default Ethernet).
+	const link_type = 1 &redef;
 }

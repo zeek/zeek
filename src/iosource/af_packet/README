@@ -29,6 +29,7 @@ If the headers are installed somewhere non-standard, add `--with-kernel=<kernel-
     [Constant] AF_Packet::enable_defrag
     [Constant] AF_Packet::fanout_mode
     [Constant] AF_Packet::fanout_id
+    [Constant] AF_Packet::link_type
 
 ## Upgrade from Bro to Zeek
 

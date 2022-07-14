@@ -17,3 +17,4 @@ const enable_fanout: bool;
 const enable_defrag: bool;
 const fanout_mode: FanoutMode;
 const fanout_id: count;
+const link_type: count;

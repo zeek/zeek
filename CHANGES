@@ -1,3 +1,14 @@
+5.1.0-dev.261 | 2022-07-14 15:46:29 -0700
+
+  * Management framework: fix an agent boot-time race condition plus minor tweaks (Christian Kreibich, Corelight)
+
+      - bump cluster testsuite
+      - undo the testsuite result mask
+      - additional logging tweaks
+      - additional context in a few log messages
+      - await Supervisor peering before sending agent's hello
+      - remove outdated comment
+
 5.1.0-dev.254 | 2022-07-14 09:48:20 -0700
 
   * Add pow function (AmazingPP)

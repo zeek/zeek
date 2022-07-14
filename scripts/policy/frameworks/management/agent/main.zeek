@@ -128,6 +128,11 @@ global restart_request_finish: function(req: Management::Request::Request);
 # a status response.
 global get_nodes_request_finish: function(req: Management::Request::Request);
 
+# Whether we have peered with the Supervisor. We need to make sure we've peered
+# prior to controller interactions, since we might otherwise send requests to
+# the Supervisor that it never received.
+global g_supervisor_peered = F;
+
 # The global configuration, as deployed by the controller.
 global g_config: Management::Configuration;
 
@@ -354,7 +359,8 @@ function supervisor_status(node: string): Management::Request::Request
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = node);
 
-	Management::Log::info(fmt("tx SupervisorControl::status_request %s %s", req$id, node));
+	Management::Log::info(fmt("tx SupervisorControl::status_request %s %s",
+	    req$id, node == "" ? "<all>" : node));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::status_request, req$id, node);
 
@@ -366,7 +372,8 @@ function supervisor_create(nc: Supervisor::NodeConfig): Management::Request::Req
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = nc$name);
 
-	Management::Log::info(fmt("tx SupervisorControl::create_request %s %s", req$id, nc$name));
+	Management::Log::info(fmt("tx SupervisorControl::create_request %s %s",
+	    req$id, nc$name));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::create_request, req$id, nc);
 
@@ -378,7 +385,8 @@ function supervisor_destroy(node: string): Management::Request::Request
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = node);
 
-	Management::Log::info(fmt("tx SupervisorControl::destroy_request %s %s", req$id, node));
+	Management::Log::info(fmt("tx SupervisorControl::destroy_request %s %s",
+	    req$id, node == "" ? "<all>" : node));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::destroy_request, req$id, node);
 
@@ -390,7 +398,8 @@ function supervisor_restart(node: string): Management::Request::Request
 	local req = Management::Request::create();
 	req$supervisor_state_agent = SupervisorState($node = node);
 
-	Management::Log::info(fmt("tx SupervisorControl::restart_request %s %s", req$id, node));
+	Management::Log::info(fmt("tx SupervisorControl::restart_request %s %s",
+	    req$id, node == "" ? "<all>" : node));
 	Broker::publish(SupervisorControl::topic_prefix,
 	    SupervisorControl::restart_request, req$id, node);
 
@@ -1049,6 +1058,14 @@ event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	local sni = supervisor_network_info();
 
 	if ( peer$network$address == sni$address && peer$network$bound_port == sni$bound_port )
+		g_supervisor_peered = T;
+
+	# If the Supervisor hasn't yet peered with us, don't broadcast
+	# notify_agent_hello. Doing so would exposes a race: we might receive
+	# commands from the controller that lead to requests to the Supervisor
+	# that it won't yet receive. It's easier to handle this here than to
+	# push the wait into all types of received commands.
+	if ( g_supervisor_peered == F )
 		return;
 
 	# Supervisor aside, this does not (cannot?) immediately verify that the
@@ -1062,10 +1079,6 @@ event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	    Management::Agent::controller$address != "0.0.0.0",
 	    Management::Agent::API::version);
 	}
-
-# XXX We may want a request timeout event handler here. It's arguably cleaner to
-# send supervisor failure events back to the controller than to rely on its
-# controller-agent request timeout to kick in.
 
 event zeek_init()
 	{

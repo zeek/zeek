@@ -152,7 +152,6 @@ jobs:
 
       - name: Run testsuite
         run: make -C testing/external/zeek-testing-cluster
-        continue-on-error: true
 
       # upload-artifact balks at certain characters in artifact
       # filenames, so substitute them for dots.

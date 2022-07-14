@@ -236,7 +236,7 @@ function add_instance(inst: Management::Instance)
 
 		local req = Management::Request::create();
 
-		Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_request to %s", inst$name));
+		Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_request %s to %s", req$id, inst$name));
 		Broker::publish(Management::Agent::topic_prefix + "/" + inst$name,
 		    Management::Agent::API::agent_welcome_request, req$id);
 		}
@@ -767,7 +767,7 @@ event Management::Agent::API::notify_agent_hello(instance: string, id: string, c
 		# context for it from the configuration. Tell agent.
 		local req = Management::Request::create();
 
-		Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_request to %s", instance));
+		Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_request %s to %s", req$id, instance));
 		Broker::publish(Management::Agent::topic_prefix + "/" + instance,
 		    Management::Agent::API::agent_welcome_request, req$id);
 		}

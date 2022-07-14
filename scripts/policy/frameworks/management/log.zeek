@@ -122,7 +122,8 @@ function error(message: string)
 			 $role=r2s[Management::role], $message=message]);
 	}
 
-event zeek_init()
+# Bump priority to ensure the log stream exists when other zeek_init handlers use it.
+event zeek_init() &priority=5
 	{
 	if ( ! Supervisor::is_supervised() )
 		return;

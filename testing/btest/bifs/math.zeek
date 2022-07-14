@@ -21,4 +21,6 @@ event zeek_init()
 	print ln(a);
 
 	print log10(a);
+
+	print pow(a, b);
 	}

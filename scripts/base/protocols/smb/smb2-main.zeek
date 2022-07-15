@@ -5,6 +5,10 @@ module SMB2;
 redef record SMB::CmdInfo += {
 	## Dialects offered by the client.
 	smb2_offered_dialects: index_vec &optional;
+
+	## Keep the create_options in the command for
+	## referencing later.
+	smb2_create_options: count &default=0;
 };
 
 event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=5
@@ -127,6 +131,7 @@ event smb2_create_request(c: connection, hdr: SMB2::Header, request: SMB2::Creat
 		request$filename = "<share_root>";
 
 	c$smb_state$current_file$name = request$filename;
+	c$smb_state$current_cmd$smb2_create_options = request$create_options;
 
 	switch ( c$smb_state$current_tree$share_type )
 		{
@@ -164,6 +169,11 @@ event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::Cre
 	c$smb_state$fid_map[response$file_id$persistent+response$file_id$volatile] = c$smb_state$current_file;
 
 	c$smb_state$current_file = c$smb_state$fid_map[response$file_id$persistent+response$file_id$volatile];
+
+	# If the create request for this file had FILE_DELETE_ON_CLOSE set and
+	# the response status was success, raise a smb2_file_delete event.
+	if ( hdr$status == 0 && (c$smb_state$current_cmd$smb2_create_options & 0x00001000) != 0 )
+		event smb2_file_delete(c, hdr, response$file_id, T);
 	}
 
 event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::CreateResponse) &priority=-5

@@ -53,9 +53,8 @@ event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &prio
 
 event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &priority=-5
 	{
-	# Only log upon replies.
-	# Also, don't log now if this is an exception (log in the exception event handler)
-	if ( ! is_orig && ( headers$function_code <= 0x81 || headers$function_code >= 0x98 ) )
+	# Don't log now if this is an exception (log in the exception event handler)
+	if ( headers$function_code <= 0x81 || headers$function_code >= 0x98 )
 		Log::write(LOG, c$modbus);
 	}
 

@@ -16,6 +16,10 @@ export {
 		uid:       string         &log;
 		## Identifier for the connection.
 		id:        conn_id        &log;
+		## Modbus transaction ID
+		tid:	   count         &log &optional;
+		## The terminal unit identifier for the message
+		unit:	   count         &log &optional;
 		## The name of the function message that was sent.
 		func:      string         &log &optional;
 		## The exception if the response was a failure.
@@ -48,6 +52,8 @@ event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &prio
 		}
 
 	c$modbus$ts   = network_time();
+	c$modbus$tid = headers$tid;
+	c$modbus$unit = headers$uid;
 	c$modbus$func = function_codes[headers$function_code];
 	}
 

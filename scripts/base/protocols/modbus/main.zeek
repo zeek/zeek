@@ -22,6 +22,8 @@ export {
 		unit:	   count         &log &optional;
 		## The name of the function message that was sent.
 		func:      string         &log &optional;
+		## Whether this PDU was a response ("RESP") or request ("REQ")
+		pdu_type:  string         &log &optional;
 		## The exception if the response was a failure.
 		exception: string         &log &optional;
 	};
@@ -55,6 +57,9 @@ event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &prio
 	c$modbus$tid = headers$tid;
 	c$modbus$unit = headers$uid;
 	c$modbus$func = function_codes[headers$function_code];
+	## If this message is from the TCP originator, it is a request. Otherwise,
+	## it is a response.
+	c$modbus$pdu_type = is_orig ? "REQ" : "RESP";
 	}
 
 event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &priority=-5

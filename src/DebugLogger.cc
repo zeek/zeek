@@ -152,7 +152,7 @@ bool DebugLogger::CheckStreams(const std::set<std::string>& plugin_names)
 	for ( const auto& p : plugin_names )
 		available_plugin_streams.insert(PluginStreamName(p));
 
-	for ( auto const& stream : enabled_streams )
+	for ( const auto& stream : enabled_streams )
 		{
 		if ( ! util::starts_with(stream, "plugin-") )
 			continue;

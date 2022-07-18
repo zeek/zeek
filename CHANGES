@@ -1,3 +1,10 @@
+5.1.0-dev.269 | 2022-07-18 08:57:32 -0700
+
+  * DebugLogger: "auto const" to "const auto" (Arne Welzel, Corelight)
+
+    This was pointed out in a separate PR so fixing the occurrence I
+    had managed to sneak in already.
+
 5.1.0-dev.267 | 2022-07-18 08:55:38 -0700
 
   * Fix some warnings from bro_version deprecation (Tim Wojtulewicz)

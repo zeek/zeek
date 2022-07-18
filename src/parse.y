@@ -1911,6 +1911,9 @@ for_head:
 				{
 				if ( loop_var->IsGlobal() )
 					loop_var->Error("global variable used in for loop");
+
+				if ( loop_var->IsConst() )
+					loop_var->Error("constant used in for loop");
 				}
 
 			else
@@ -1945,6 +1948,9 @@ for_head:
 				{
 				if ( key_var->IsGlobal() )
 					key_var->Error("global variable used in for loop");
+
+				if ( key_var->IsConst() )
+					key_var->Error("constant used in for loop");
 				}
 			else
 				key_var = install_ID($3, module, false, false);
@@ -1953,6 +1959,9 @@ for_head:
 				{
 				if ( val_var->IsGlobal() )
 					val_var->Error("global variable used in for loop");
+
+				if ( val_var->IsConst() )
+					val_var->Error("constant used in for loop");
 				}
 			else
 				val_var = install_ID($5, module, false, false);
@@ -1975,6 +1984,9 @@ for_head:
 				{
 				if ( val_var->IsGlobal() )
 					val_var->Error("global variable used in for loop");
+
+				if ( val_var->IsConst() )
+					val_var->Error("constant used in for loop");
 				}
 			else
 				val_var = install_ID($7, module, false, false);
@@ -2004,6 +2016,9 @@ local_id:
 				{
 				if ( $$->IsGlobal() )
 					$$->Error("already a global identifier");
+				
+				if ( $$->IsConst() )
+					$$->Error("already a const identifier");
 				delete [] $1;
 				}
 

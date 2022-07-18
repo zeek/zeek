@@ -1039,6 +1039,16 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	ASSERT(field == field_inits.size());
 	ASSERT(field == managed_fields.size());
 
+	if ( field_ids.count(td->id) != 0 )
+		{
+		reporter->Error("Duplicate field '%s' found in record definition\n", td->id);
+		return;
+		}
+	else
+		{
+		field_ids.insert(std::string(td->id));
+		}
+
 	managed_fields.push_back(ZVal::IsManagedType(td->type));
 
 	auto init = new FieldInit();
@@ -1106,7 +1116,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 
 bool RecordType::HasField(const char* field) const
 	{
-	return FieldOffset(field) >= 0;
+	return field_ids.count(field) != 0;
 	}
 
 ValPtr RecordType::FieldDefault(int field) const

@@ -247,6 +247,15 @@ static bool expr_is_table_type_name(const Expr* expr)
 	return false;
 	}
 
+static void check_loop_var(ID* var)
+	{
+	if ( var->IsGlobal() )
+ 		var->Error("global variable used in for loop");
+
+ 	if ( var->IsConst() )
+ 		var->Error("constant used in for loop");
+	}
+
 static void build_global(ID* id, Type* t, InitClass ic, Expr* e,
                          std::vector<AttrPtr>* attrs, DeclType dt)
 	{
@@ -1908,14 +1917,7 @@ for_head:
 			auto loop_var = lookup_ID($3, current_module.c_str());
 
 			if ( loop_var )
-				{
-				if ( loop_var->IsGlobal() )
-					loop_var->Error("global variable used in for loop");
-
-				if ( loop_var->IsConst() )
-					loop_var->Error("constant used in for loop");
-				}
-
+				check_loop_var(loop_var.get());
 			else
 				{
 				loop_var = install_ID($3, current_module.c_str(),
@@ -1945,24 +1947,12 @@ for_head:
 
 			// Validate previous definitions as needed.
 			if ( key_var )
-				{
-				if ( key_var->IsGlobal() )
-					key_var->Error("global variable used in for loop");
-
-				if ( key_var->IsConst() )
-					key_var->Error("constant used in for loop");
-				}
+				check_loop_var(key_var.get());
 			else
 				key_var = install_ID($3, module, false, false);
 
 			if ( val_var )
-				{
-				if ( val_var->IsGlobal() )
-					val_var->Error("global variable used in for loop");
-
-				if ( val_var->IsConst() )
-					val_var->Error("constant used in for loop");
-				}
+				check_loop_var(val_var.get());
 			else
 				val_var = install_ID($5, module, false, false);
 
@@ -1981,13 +1971,7 @@ for_head:
 			auto val_var = lookup_ID($7, module);
 
 			if ( val_var )
-				{
-				if ( val_var->IsGlobal() )
-					val_var->Error("global variable used in for loop");
-
-				if ( val_var->IsConst() )
-					val_var->Error("constant used in for loop");
-				}
+				check_loop_var(val_var.get());
 			else
 				val_var = install_ID($7, module, false, false);
 
@@ -2014,11 +1998,7 @@ local_id:
 
 			if ( $$ )
 				{
-				if ( $$->IsGlobal() )
-					$$->Error("already a global identifier");
-				
-				if ( $$->IsConst() )
-					$$->Error("already a const identifier");
+				check_loop_var($$);
 				delete [] $1;
 				}
 

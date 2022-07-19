@@ -1,3 +1,18 @@
+5.1.0-dev.273 | 2022-07-19 12:57:11 +0100
+
+  * Remove use of fallible `get_conn_transport_proto` in `analyzer_violation`. (Benjamin Bannier, Corelight)
+
+    When setting up the DPD info we previously would get the
+    `transport_proto` for the connection with `get_conn_transport_proto`.
+    This function takes a `conn_id` and would fail fatally if the connection
+    for the given ID was unknown. It seems it was possible to run into such
+    scenarios when the `analyzer_violation` event was processed after the
+    connection had been cleaned up.
+
+    We now get the `transport_proto` directly from the ports in the
+    `connection` passed into `analyzer_violation` via
+    `get_port_transport_proto` which cannot fail.
+
 5.1.0-dev.271 | 2022-07-19 12:01:41 +0200
 
   * GH-2276: Raise smb2_file_delete for CREATE with

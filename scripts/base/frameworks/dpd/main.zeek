@@ -79,7 +79,7 @@ event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count,
 	info$ts=network_time();
 	info$uid=c$uid;
 	info$id=c$id;
-	info$proto=get_conn_transport_proto(c$id);
+	info$proto=get_port_transport_proto(c$id$orig_p);
 	info$analyzer=analyzer;
 	info$failure_reason=reason;
 	c$dpd = info;

@@ -2696,19 +2696,6 @@ string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_
 		return utf_result;
 	}
 
-	} // namespace zeek::util
-
-extern "C" void out_of_memory(const char* where)
-	{
-	fprintf(stderr, "out of memory in %s.\n", where);
-
-	if ( zeek::reporter )
-		// Guess that might fail here if memory is really tight ...
-		zeek::reporter->FatalError("out of memory in %s.\n", where);
-
-	abort();
-	}
-
 TEST_CASE("util filesystem")
 	{
 	zeek::filesystem::path path1("/a/b");
@@ -2725,4 +2712,61 @@ TEST_CASE("util filesystem")
 
 	auto info = zeek::filesystem::space(".");
 	CHECK(info.capacity > 0);
+	}
+
+TEST_CASE("util split")
+	{
+	using str_vec = std::vector<std::string>;
+	using wstr_vec = std::vector<std::wstring>;
+
+	SUBCASE("w/ delim")
+		{
+		CHECK_EQ(split("a:b:c", ""), str_vec({"a:b:c"}));
+		CHECK_EQ(split("", ""), str_vec({""}));
+		CHECK_EQ(split("a:b:c", ":"), str_vec({"a", "b", "c"}));
+		CHECK_EQ(split("a:b::c", ":"), str_vec({"a", "b", "", "c"}));
+		CHECK_EQ(split("a:b:::c", ":"), str_vec({"a", "b", "", "", "c"}));
+		CHECK_EQ(split(":a:b:c", ":"), str_vec({"", "a", "b", "c"}));
+		CHECK_EQ(split("::a:b:c", ":"), str_vec({"", "", "a", "b", "c"}));
+		CHECK_EQ(split("a:b:c:", ":"), str_vec({"a", "b", "c", ""}));
+		CHECK_EQ(split("a:b:c::", ":"), str_vec({"a", "b", "c", "", ""}));
+		CHECK_EQ(split("", ":"), str_vec({""}));
+
+		CHECK_EQ(split("12345", "1"), str_vec({"", "2345"}));
+		CHECK_EQ(split("12345", "23"), str_vec{"1", "45"});
+		CHECK_EQ(split("12345", "a"), str_vec{"12345"});
+		CHECK_EQ(split("12345", ""), str_vec{"12345"});
+		}
+
+	SUBCASE("wchar_t w/ delim")
+		{
+		CHECK_EQ(split(L"a:b:c", L""), wstr_vec({L"a:b:c"}));
+		CHECK_EQ(split(L"", L""), wstr_vec({L""}));
+		CHECK_EQ(split(L"a:b:c", L":"), wstr_vec({L"a", L"b", L"c"}));
+		CHECK_EQ(split(L"a:b::c", L":"), wstr_vec({L"a", L"b", L"", L"c"}));
+		CHECK_EQ(split(L"a:b:::c", L":"), wstr_vec({L"a", L"b", L"", L"", L"c"}));
+		CHECK_EQ(split(L":a:b:c", L":"), wstr_vec({L"", L"a", L"b", L"c"}));
+		CHECK_EQ(split(L"::a:b:c", L":"), wstr_vec({L"", L"", L"a", L"b", L"c"}));
+		CHECK_EQ(split(L"a:b:c:", L":"), wstr_vec({L"a", L"b", L"c", L""}));
+		CHECK_EQ(split(L"a:b:c::", L":"), wstr_vec({L"a", L"b", L"c", L"", L""}));
+		CHECK_EQ(split(L"", L":"), wstr_vec({L""}));
+
+		CHECK_EQ(split(L"12345", L"1"), wstr_vec({L"", L"2345"}));
+		CHECK_EQ(split(L"12345", L"23"), wstr_vec{L"1", L"45"});
+		CHECK_EQ(split(L"12345", L"a"), wstr_vec{L"12345"});
+		CHECK_EQ(split(L"12345", L""), wstr_vec{L"12345"});
+		}
+	}
+
+	} // namespace zeek::util
+
+extern "C" void out_of_memory(const char* where)
+	{
+	fprintf(stderr, "out of memory in %s.\n", where);
+
+	if ( zeek::reporter )
+		// Guess that might fail here if memory is really tight ...
+		zeek::reporter->FatalError("out of memory in %s.\n", where);
+
+	abort();
 	}

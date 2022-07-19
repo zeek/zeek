@@ -571,5 +571,56 @@ std::string json_escape_utf8(const std::string& val, bool escape_printable_contr
 std::string json_escape_utf8(const char* val, size_t val_size,
                              bool escape_printable_controls = true);
 
+/**
+ * Splits a string at all occurrences of a delimiter. Successive occurrences
+ * of the delimiter will be split into multiple pieces.
+ *
+ * \note This function is not UTF8-aware.
+ */
+template <typename T> std::vector<T> split(T s, const T& delim)
+	{
+	// If there's no delimiter, return a copy of the existing string.
+	if ( delim.empty() )
+		return {T(s)};
+
+	// If the delimiter won't fit in the string, just return a copy as well.
+	if ( s.size() < delim.size() )
+		return {T(s)};
+
+	std::vector<T> l;
+
+	const bool ends_in_delim = (s.substr(s.size() - delim.size()) == delim);
+
+	do
+		{
+		size_t p = s.find(delim);
+		l.push_back(s.substr(0, p));
+		if ( p == std::string::npos )
+			break;
+
+		s = s.substr(p + delim.size());
+		} while ( ! s.empty() );
+
+	if ( ends_in_delim )
+		l.emplace_back(T{});
+
+	return l;
+	}
+
+template <typename T, typename U = typename T::value_type*> std::vector<T> split(T s, U delim)
+	{
+	return split(s, T{delim});
+	}
+
+inline std::vector<std::string> split(const char* s, const char* delim)
+	{
+	return split(std::string(s), std::string(delim));
+	}
+
+inline std::vector<std::wstring> split(const wchar_t* s, const wchar_t* delim)
+	{
+	return split(std::wstring(s), std::wstring(delim));
+	}
+
 	} // namespace util
 	} // namespace zeek

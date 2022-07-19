@@ -83,26 +83,25 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 	                   BifConst::InputAscii::path_prefix->Len());
 
 	// Set per-filter configuration options.
-	for ( ReaderInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end();
-	      i++ )
+	for ( const auto& [k, v] : info.config )
 		{
-		if ( strcmp(i->first, "separator") == 0 )
-			separator.assign(i->second);
+		if ( strcmp(k, "separator") == 0 )
+			separator.assign(v);
 
-		else if ( strcmp(i->first, "set_separator") == 0 )
-			set_separator.assign(i->second);
+		else if ( strcmp(k, "set_separator") == 0 )
+			set_separator.assign(v);
 
-		else if ( strcmp(i->first, "empty_field") == 0 )
-			empty_field.assign(i->second);
+		else if ( strcmp(k, "empty_field") == 0 )
+			empty_field.assign(v);
 
-		else if ( strcmp(i->first, "unset_field") == 0 )
-			unset_field.assign(i->second);
+		else if ( strcmp(k, "unset_field") == 0 )
+			unset_field.assign(v);
 
-		else if ( strcmp(i->first, "fail_on_invalid_lines") == 0 )
-			fail_on_invalid_lines = (strncmp(i->second, "T", 1) == 0);
+		else if ( strcmp(k, "fail_on_invalid_lines") == 0 )
+			fail_on_invalid_lines = (strncmp(v, "T", 1) == 0);
 
-		else if ( strcmp(i->first, "fail_on_file_problem") == 0 )
-			fail_on_file_problem = (strncmp(i->second, "T", 1) == 0);
+		else if ( strcmp(k, "fail_on_file_problem") == 0 )
+			fail_on_file_problem = (strncmp(v, "T", 1) == 0);
 		}
 
 	if ( separator.size() != 1 )
@@ -206,11 +205,13 @@ bool Ascii::ReadHeader(bool useCached)
 	// printf("Updating fields from description %s\n", line.c_str());
 	columnMap.clear();
 
+	const auto* fields = Fields();
+
 	for ( int i = 0; i < NumFields(); i++ )
 		{
-		const Field* field = Fields()[i];
+		const Field* field = fields[i];
 
-		map<string, uint32_t>::iterator fit = ifields.find(field->name);
+		auto fit = ifields.find(field->name);
 		if ( fit == ifields.end() )
 			{
 			if ( field->optional )
@@ -231,11 +232,11 @@ bool Ascii::ReadHeader(bool useCached)
 			return false;
 			}
 
-		FieldMapping f(field->name, field->type, field->subtype, ifields[field->name]);
+		FieldMapping f(field->name, field->type, field->subtype, static_cast<int>(ifields[field->name]));
 
 		if ( field->secondary_name && strlen(field->secondary_name) != 0 )
 			{
-			map<string, uint32_t>::iterator fit2 = ifields.find(field->secondary_name);
+			auto fit2 = ifields.find(field->secondary_name);
 			if ( fit2 == ifields.end() )
 				{
 				FailWarn(fail_on_file_problem,
@@ -246,7 +247,7 @@ bool Ascii::ReadHeader(bool useCached)
 				return false;
 				}
 
-			f.secondary_position = ifields[field->secondary_name];
+			f.secondary_position = static_cast<int>(ifields[field->secondary_name]);
 			}
 
 		columnMap.push_back(f);
@@ -266,7 +267,7 @@ bool Ascii::GetLine(string& str)
 			read_location->last_line++;
 			}
 
-		if ( ! str.size() )
+		if ( str.empty() )
 			continue;
 
 		if ( str.back() == '\r' ) // deal with \r\n by removing \r
@@ -384,28 +385,26 @@ bool Ascii::DoUpdate()
 		Value** fields = new Value*[NumFields()];
 
 		int fpos = 0;
-		for ( vector<FieldMapping>::iterator fit = columnMap.begin(); fit != columnMap.end();
-		      fit++ )
+		for ( const auto& fit : columnMap )
 			{
-
-			if ( ! fit->present )
+			if ( ! fit.present )
 				{
 				// add non-present field
-				fields[fpos] = new Value((*fit).type, false);
+				fields[fpos] = new Value(fit.type, false);
 				if ( read_location )
 					fields[fpos]->SetFileLineNumber(read_location->first_line);
 				fpos++;
 				continue;
 				}
 
-			assert(fit->position >= 0);
+			assert(fit.position >= 0);
 
-			if ( (*fit).position > pos || (*fit).secondary_position > pos )
+			if ( fit.position > pos || fit.secondary_position > pos )
 				{
 				FailWarn(fail_on_invalid_lines, Fmt("Not enough fields in line '%s' of %s. Found "
 				                                    "%d fields, want positions %d and %d",
-				                                    line.c_str(), fname.c_str(), pos,
-				                                    (*fit).position, (*fit).secondary_position));
+				                                    line.c_str(), fname.c_str(), pos, fit.position,
+				                                    fit.secondary_position));
 
 				if ( fail_on_invalid_lines )
 					{
@@ -423,8 +422,8 @@ bool Ascii::DoUpdate()
 					}
 				}
 
-			Value* val = formatter->ParseValue(stringfields[(*fit).position], (*fit).name,
-			                                   (*fit).type, (*fit).subtype);
+			Value* val = formatter->ParseValue(stringfields[fit.position], fit.name, fit.type,
+			                                   fit.subtype);
 			if ( ! val )
 				{
 				Warning(Fmt("Could not convert line '%s' of %s to Val. Ignoring line.",
@@ -436,14 +435,14 @@ bool Ascii::DoUpdate()
 			if ( read_location )
 				val->SetFileLineNumber(read_location->first_line);
 
-			if ( (*fit).secondary_position != -1 )
+			if ( fit.secondary_position != -1 )
 				{
 				// we have a port definition :)
 				assert(val->type == TYPE_PORT);
 				//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
 
 				val->val.port_val.proto = formatter->ParseProto(
-					stringfields[(*fit).secondary_position]);
+					stringfields[fit.secondary_position]);
 				}
 
 			fields[fpos] = val;

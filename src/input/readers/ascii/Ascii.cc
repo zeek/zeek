@@ -170,7 +170,6 @@ bool Ascii::ReadHeader(bool useCached)
 	{
 	// try to read the header line...
 	string line;
-	map<string, uint32_t> ifields;
 
 	if ( ! useCached )
 		{
@@ -190,17 +189,7 @@ bool Ascii::ReadHeader(bool useCached)
 		line = headerline;
 
 	// construct list of field names.
-	istringstream splitstream(line);
-	int pos = 0;
-	while ( splitstream )
-		{
-		string s;
-		if ( ! getline(splitstream, s, separator[0]) )
-			break;
-
-		ifields[s] = pos;
-		pos++;
-		}
+	auto ifields = util::split(line, separator[0]);
 
 	// printf("Updating fields from description %s\n", line.c_str());
 	columnMap.clear();
@@ -211,7 +200,7 @@ bool Ascii::ReadHeader(bool useCached)
 		{
 		const Field* field = fields[i];
 
-		auto fit = ifields.find(field->name);
+		auto fit = std::find(ifields.begin(), ifields.end(), field->name);
 		if ( fit == ifields.end() )
 			{
 			if ( field->optional )
@@ -232,11 +221,12 @@ bool Ascii::ReadHeader(bool useCached)
 			return false;
 			}
 
-		FieldMapping f(field->name, field->type, field->subtype, static_cast<int>(ifields[field->name]));
+		int index = static_cast<int>(std::distance(ifields.begin(), fit));
+		FieldMapping f(field->name, field->type, field->subtype, index);
 
 		if ( field->secondary_name && strlen(field->secondary_name) != 0 )
 			{
-			auto fit2 = ifields.find(field->secondary_name);
+			auto fit2 = std::find(ifields.begin(), ifields.end(), field->secondary_name);
 			if ( fit2 == ifields.end() )
 				{
 				FailWarn(fail_on_file_problem,
@@ -247,7 +237,7 @@ bool Ascii::ReadHeader(bool useCached)
 				return false;
 				}
 
-			f.secondary_position = static_cast<int>(ifields[field->secondary_name]);
+			f.secondary_position = static_cast<int>(std::distance(ifields.begin(), fit2));
 			}
 
 		columnMap.push_back(f);
@@ -366,21 +356,10 @@ bool Ascii::DoUpdate()
 		{
 		// split on tabs
 		bool error = false;
-		istringstream splitstream(line);
+		auto stringfields = util::split(line, separator[0]);
 
-		map<int, string> stringfields;
-		int pos = 0;
-		while ( splitstream )
-			{
-			string s;
-			if ( ! getline(splitstream, s, separator[0]) )
-				break;
-
-			stringfields[pos] = s;
-			pos++;
-			}
-
-		pos--; // for easy comparisons of max element.
+		// This needs to be a signed value or the comparisons below will fail.
+		int pos = static_cast<int>(stringfields.size() - 1);
 
 		Value** fields = new Value*[NumFields()];
 

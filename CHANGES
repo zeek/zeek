@@ -1,3 +1,10 @@
+5.1.0-dev.279 | 2022-07-19 15:21:10 +0200
+
+  * GH-2267: Add btest that runs the doctest-based unit tests. (Robin
+    Sommer, Corelight)
+
+  * Fix local const variables can be modified via loops. (AmazingPP)
+
 5.1.0-dev.273 | 2022-07-19 12:57:11 +0100
 
   * Remove use of fallible `get_conn_transport_proto` in `analyzer_violation`. (Benjamin Bannier, Corelight)

@@ -2716,8 +2716,8 @@ TEST_CASE("util filesystem")
 
 TEST_CASE("util split")
 	{
-	using str_vec = std::vector<std::string>;
-	using wstr_vec = std::vector<std::wstring>;
+	using str_vec = std::vector<std::string_view>;
+	using wstr_vec = std::vector<std::wstring_view>;
 
 	SUBCASE("w/ delim")
 		{

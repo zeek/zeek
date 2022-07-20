@@ -612,14 +612,14 @@ template <typename T, typename U = typename T::value_type*> std::vector<T> split
 	return split(s, T{delim});
 	}
 
-inline std::vector<std::string> split(const char* s, const char* delim)
+inline std::vector<std::string_view> split(const char* s, const char* delim)
 	{
-	return split(std::string(s), std::string(delim));
+	return split(std::string_view(s), std::string_view(delim));
 	}
 
-inline std::vector<std::wstring> split(const wchar_t* s, const wchar_t* delim)
+inline std::vector<std::wstring_view> split(const wchar_t* s, const wchar_t* delim)
 	{
-	return split(std::wstring(s), std::wstring(delim));
+	return split(std::wstring_view(s), std::wstring_view(delim));
 	}
 
 	} // namespace util

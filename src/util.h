@@ -607,16 +607,40 @@ template <typename T> std::vector<T> split(T s, const T& delim)
 	return l;
 	}
 
+/**
+ * Specialized version of util::split that allows for differing string and delimiter types,
+ * with the requirement that the delimiter must be of the same type as what is stored in the
+ * string type. For example, this allows passing a std::string as the string to split with
+ * a const char* delimiter.
+ *
+ * @param s the string to split
+ * @param delim the delimiter to split the string on
+ * @return a vector of containing the separate parts of the string.
+ */
 template <typename T, typename U = typename T::value_type*> std::vector<T> split(T s, U delim)
 	{
 	return split(s, T{delim});
 	}
 
+/**
+ * Specialized version of util::split that takes a const char* string and delimiter.
+ *
+ * @param s the string to split
+ * @param delim the delimiter to split the string on
+ * @return a vector of string_view objects containing the separate parts of the string.
+ */
 inline std::vector<std::string_view> split(const char* s, const char* delim)
 	{
 	return split(std::string_view(s), std::string_view(delim));
 	}
 
+/**
+ * Specialized version of util::split that takes a const wchar_t* string and delimiter.
+ *
+ * @param s the string to split
+ * @param delim the delimiter to split the string on
+ * @return a vector of wstring_view objects containing the separate parts of the string.
+ */
 inline std::vector<std::wstring_view> split(const wchar_t* s, const wchar_t* delim)
 	{
 	return split(std::wstring_view(s), std::wstring_view(delim));

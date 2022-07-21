@@ -51,6 +51,8 @@ const char* expr_name(ExprTag t)
 		"&",
 		"|",
 		"^",
+		"<<",
+		">>",
 		"&&",
 		"||",
 		"<",
@@ -956,6 +958,12 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 			break;
 		case EXPR_XOR:
 			DO_UINT_FOLD(^);
+			break;
+		case EXPR_LSHIFT:
+			DO_INT_FOLD(<<);
+			break;
+		case EXPR_RSHIFT:
+			DO_INT_FOLD(>>);
 			break;
 
 		case EXPR_AND_AND:
@@ -2156,7 +2164,22 @@ BitExpr::BitExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( IsVector(bt2) )
 		bt2 = t2->AsVectorType()->Yield()->Tag();
 
-	if ( (bt1 == TYPE_COUNT) && (bt2 == TYPE_COUNT) )
+	if ( tag == EXPR_LSHIFT || tag == EXPR_RSHIFT )
+		{
+		if ( IsIntegral(bt1) && bt2 == TYPE_COUNT )
+			{
+			if ( is_vector(op1) || is_vector(op2) )
+				SetType(make_intrusive<VectorType>(base_type(bt1)));
+			else
+				SetType(base_type(bt1));
+			}
+		else if ( IsIntegral(bt1) && bt2 == TYPE_INT )
+			ExprError("requires \"count\" right operand");
+		else
+			ExprError("requires integral operands");
+		}
+
+	else if ( (bt1 == TYPE_COUNT) && (bt2 == TYPE_COUNT) )
 		{
 		if ( is_vector(op1) || is_vector(op2) )
 			SetType(make_intrusive<VectorType>(base_type(TYPE_COUNT)));

@@ -49,6 +49,8 @@ event zeek_init()
 	test_case( "bitwise or", c2 | 0x4 == c2 );
 	test_case( "bitwise or", c4 | 0x4 == c4 );
 	test_case( "bitwise xor", c4 ^ 0x4 == 251 );
+	test_case( "bitwise lshift", c4 << 0x4 == 4080 );
+	test_case( "bitwise rshift", c4 >> 0x4 == 15 );
 	test_case( "bitwise complement", ~c6 == 0 );
 	test_case( "bitwise complement", ~~c4 == c4 );
 

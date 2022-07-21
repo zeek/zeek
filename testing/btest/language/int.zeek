@@ -54,6 +54,7 @@ event zeek_init()
 	test_case( "assignment operator", i2 == 7 );
 	i2 -= 2;
 	test_case( "assignment operator", i2 == 5 );
+	test_case( "bitwise rshift", i10 >> 1 == -6 );
 
 	# Max/min value tests
 

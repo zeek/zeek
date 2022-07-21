@@ -248,6 +248,9 @@ ESCSEQ	(\\([^\r\n]|[0-7]+|x[[:xdigit:]]+))
 "&&"	return TOK_AND_AND;
 "||"	return TOK_OR_OR;
 
+"<<"	return TOK_LSHIFT;
+">>"	return TOK_RSHIFT;
+
 add	return TOK_ADD;
 addr	return TOK_ADDR;
 any	return TOK_ANY;

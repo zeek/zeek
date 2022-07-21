@@ -26,7 +26,7 @@ type Idx: record {
 
 type Val: record {
 	s: set[string];
-	s: vector of string;
+	ss: vector of string;
 };
 
 global servers: table[int] of Val = table();

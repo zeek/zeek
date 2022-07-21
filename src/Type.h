@@ -725,6 +725,7 @@ protected:
 	int num_orig_fields;
 
 	type_decl_list* types;
+	std::set<std::string> field_ids;
 	};
 
 class FileType final : public Type

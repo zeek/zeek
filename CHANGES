@@ -1,3 +1,23 @@
+5.1.0-dev.289 | 2022-07-21 11:54:12 -0700
+
+  * Add comments for specialized versions of util::split (Tim Wojtulewicz, Corelight)
+
+  * Make char*/wchar_t* split methods use string_view/wstring_view (Tim Wojtulewicz, Corelight)
+
+  * GH-1628: Return an error for duplicate record field names (Tim Wojtulewicz, Corelight)
+
+  * Fix a bug with splitting strings in Ascii input reader (Tim Wojtulewicz, Corelight)
+
+    The previous way of splitting strings would break if the last string in
+    the line was an empty string, and it would return one fewer fields than
+    it should have. This was breaking the last line in the
+    scripts.base.framework.input.ascii.setspecialcases once the bug fixed in
+    GH #1628 was fixed.
+
+  * Iterator and looping cleanup in Ascii input reader (Tim Wojtulewicz, Corelight)
+
+  * Add util::split methods for splitting strings (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.282 | 2022-07-21 09:06:31 -0700
 
   * Add bitshift operators (AmazingPP)

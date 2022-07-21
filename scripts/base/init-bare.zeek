@@ -3493,8 +3493,6 @@ export {
 		free_space_start_filtering : int;
 		## minimum amount of free disk space required to continue document filtering
 		free_space_threshold       : int;
-		## minimum amount of free disk space required to continue document filtering
-		free_space_threshold       : int;
 		## default per-user disk quota
 		delete_quota_threshold     : count;
 		## default per-user disk limit

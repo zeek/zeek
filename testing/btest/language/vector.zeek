@@ -226,4 +226,9 @@ event zeek_init()
 	v21[3:] = vector();
 	print "hole in vector of managed types after replacing slice", |v21|, v21;
 
+	# Test << and >> operators.
+	local v22 = v6 << 1;
+	local v23 = v6 >> 1;
+	test_case( "left shift", all_set(v22 == vector(20, 40, 60)) );
+	test_case( "right shift", all_set(v23 == vector(5, 10, 15)) );
 }

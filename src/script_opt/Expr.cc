@@ -257,6 +257,8 @@ bool Expr::IsFieldAssignable(const Expr* e) const
 		case EXPR_AND:
 		case EXPR_OR:
 		case EXPR_XOR:
+		case EXPR_LSHIFT:
+		case EXPR_RSHIFT:
 		case EXPR_FIELD:
 		case EXPR_HAS_FIELD:
 		case EXPR_IN:
@@ -1293,7 +1295,7 @@ bool BitExpr::WillTransform(Reducer* c) const
 
 ExprPtr BitExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	{
-	if ( GetType()->Tag() != TYPE_COUNT )
+	if ( ! IsIntegral(GetType()->Tag()) )
 		return BinaryExpr::Reduce(c, red_stmt);
 
 	auto zero1 = op1->IsZero();
@@ -1311,7 +1313,7 @@ ExprPtr BitExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		if ( Tag() == EXPR_AND )
 			return zero_op->ReduceToSingleton(c, red_stmt);
 		else
-			// OR or XOR
+			// OR or XOR or LSHIFT or RSHIFT
 			return non_zero_op->ReduceToSingleton(c, red_stmt);
 		}
 

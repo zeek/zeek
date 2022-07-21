@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 195
+%expect 199
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -46,6 +46,7 @@
 %left '|'
 %left '^'
 %left '&'
+%left TOK_LSHIFT TOK_RSHIFT
 %left '+' '-'
 %left '*' '/' '%'
 %left TOK_INCR TOK_DECR
@@ -552,6 +553,18 @@ expr:
 			{
 			set_location(@1, @3);
 			$$ = new BitExpr(EXPR_XOR, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			}
+
+	|	expr TOK_LSHIFT expr
+			{
+			set_location(@1, @3);
+			$$ = new BitExpr(EXPR_LSHIFT, {AdoptRef{}, $1}, {AdoptRef{}, $3});
+			}
+
+	|	expr TOK_RSHIFT expr
+			{
+			set_location(@1, @3);
+			$$ = new BitExpr(EXPR_RSHIFT, {AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr TOK_AND_AND expr

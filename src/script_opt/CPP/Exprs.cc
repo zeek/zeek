@@ -89,6 +89,10 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level)
 			return GenBinary(e, gt, "|", "or");
 		case EXPR_XOR:
 			return GenBinary(e, gt, "^", "xor");
+		case EXPR_LSHIFT:
+			return GenBinary(e, gt, "<<", "lshift");
+		case EXPR_RSHIFT:
+			return GenBinary(e, gt, ">>", "rshift");
 		case EXPR_AND_AND:
 			return GenBinary(e, gt, "&&", "andand");
 		case EXPR_OR_OR:

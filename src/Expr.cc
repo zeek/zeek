@@ -960,11 +960,47 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 			DO_UINT_FOLD(^);
 			break;
 		case EXPR_LSHIFT:
-			DO_INT_FOLD(<<);
+			{
+			if ( is_integral )
+				{
+				if ( i2 < 0 )
+					RuntimeError("left shift by negative value");
+				else if ( i1 < 1 )
+					RuntimeError("left shifting a negative number is undefined");
+
+				i3 = i1 << i2;
+				}
+			else if ( is_unsigned )
+				{
+				if ( u2 < 0 )
+					RuntimeError("left shift by negative value");
+
+				u3 = u1 << u2;
+				}
+			else
+				RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 			break;
+			}
 		case EXPR_RSHIFT:
-			DO_INT_FOLD(>>);
+			{
+			if ( is_integral )
+				{
+				if ( i2 < 0 )
+					RuntimeError("right shift by negative value");
+
+				i3 = i1 >> i2;
+				}
+			else if ( is_unsigned )
+				{
+				if ( u2 < 0 )
+					RuntimeError("right shift by negative value");
+
+				u3 = u1 >> u2;
+				}
+			else
+				RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 			break;
+			}
 
 		case EXPR_AND_AND:
 			DO_INT_FOLD(&&);

@@ -223,6 +223,12 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 				id->Warn("redefinition requires \"redef\"", redef_obj, true);
 			}
 
+		else if ( dt == VAR_REDEF && ! id->IsRedefinable() )
+			{
+			id->Error("cannot redefine a variable not marked with &redef", init.get());
+			return;
+			}
+
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
 			if ( IsFunc(id->GetType()->Tag()) )

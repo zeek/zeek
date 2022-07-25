@@ -20,7 +20,7 @@ namespace zeek::detail {
 void yyerror(const char msg[]);
 %}
 
-%token TOK_CHAR TOK_NUMBER TOK_CCL TOK_CCE TOK_CASE_INSENSITIVE
+%token TOK_CHAR TOK_NUMBER TOK_CCL TOK_CCE TOK_CASE_INSENSITIVE TOK_SINGLE_LINE
 
 %union {
 	int int_val;
@@ -112,7 +112,8 @@ singleton	:  singleton '*'
 
 		|  '.'
 			{
-			$$ = new zeek::detail::NFA_Machine(new zeek::detail::NFA_State(zeek::detail::rem->AnyCCL()));
+			$$ = new zeek::detail::NFA_Machine(new zeek::detail::NFA_State(
+                zeek::detail::rem->AnyCCL(zeek::detail::re_single_line)));
 			}
 
 		|  full_ccl
@@ -133,6 +134,9 @@ singleton	:  singleton '*'
 
 		|  TOK_CASE_INSENSITIVE re ')'
 			{ $$ = $2; zeek::detail::case_insensitive = false; }
+
+		|  TOK_SINGLE_LINE re ')'
+			{ $$ = $2; zeek::detail::re_single_line = false; }
 
 		|  TOK_CHAR
 			{

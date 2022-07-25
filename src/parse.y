@@ -922,8 +922,7 @@ expr:
 				re->MakeCaseInsensitive();
 
 			if ( $4.single_line )
-				{
-				}
+				re->MakeSingleLine();
 
 			re->Compile();
 			$$ = new ConstExpr(make_intrusive<PatternVal>(re));

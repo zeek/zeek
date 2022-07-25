@@ -33,6 +33,7 @@ class Specific_RE_Matcher;
 class CCL;
 
 extern bool case_insensitive;
+extern bool re_single_line;
 extern CCL* curr_ccl;
 extern NFA_Machine* nfa;
 extern Specific_RE_Matcher* rem;
@@ -65,7 +66,7 @@ public:
 	void AddPat(const char* pat);
 
 	void MakeCaseInsensitive();
-	void SetSingleLineMode();
+	void MakeSingleLine();
 
 	void SetPat(const char* pat) { pattern_text = pat; }
 
@@ -91,7 +92,7 @@ public:
 		return nullptr;
 		}
 	CCL* LookupCCL(int index) { return ccl_list[index]; }
-	CCL* AnyCCL();
+	CCL* AnyCCL(bool single_line_mode = false);
 
 	void ConvertCCLs();
 
@@ -147,8 +148,10 @@ protected:
 	EquivClass equiv_class;
 	int* ecs;
 	DFA_Machine* dfa;
-	CCL* any_ccl;
 	AcceptingSet* accepted;
+
+	CCL* any_ccl;
+	CCL* single_line_ccl;
 	};
 
 class RE_Match_State
@@ -208,6 +211,9 @@ public:
 	void MakeCaseInsensitive();
 	bool IsCaseInsensitive() const { return is_case_insensitive; }
 
+	void MakeSingleLine();
+	bool IsSingleLine() const { return is_single_line; }
+
 	bool Compile(bool lazy = false);
 
 	// Returns true if s exactly matches the pattern, false otherwise.
@@ -243,6 +249,7 @@ protected:
 	detail::Specific_RE_Matcher* re_exact;
 
 	bool is_case_insensitive = false;
+	bool is_single_line = false;
 	};
 
 	} // namespace zeek

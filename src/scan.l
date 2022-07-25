@@ -570,7 +570,7 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 <RE>(\/[is]{0,2})	{
 	BEGIN(INITIAL);
 
-	if (strlen(yytext) == 2)
+	if ( strlen(yytext) == 2 )
 		{
 		yylval.re_modes.ignore_case = (yytext[1] == 'i');
 		yylval.re_modes.single_line = (yytext[1] == 's');

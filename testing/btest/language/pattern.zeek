@@ -65,4 +65,9 @@ event zeek_init()
 	test_case( "(?i:...) pattern construct", /foo|(?i:bar)/ in "xFOoy" );
 	test_case( "(?i:...) pattern construct", /foo|(?i:bar)/ | /foo/i in "xFOoy" );
 
+	test_case( "/s missing", /fOO.*bAR/ != "fOOab\ncdbAR");
+	test_case( "/s pattern modifier", /fOO.*bAR/s == "fOOab\ncdbAR");
+	test_case( "/s pattern disjunction", /b.r/s | /bez/ == "b\nr" );
+	test_case( "/s pattern concatenation", /b.r/s & /bez/ == "b\nrbez" );
+
 }

@@ -18,6 +18,7 @@ zeek::detail::CCL* zeek::detail::curr_ccl = nullptr;
 zeek::detail::Specific_RE_Matcher* zeek::detail::rem = nullptr;
 zeek::detail::NFA_Machine* zeek::detail::nfa = nullptr;
 bool zeek::detail::case_insensitive = false;
+bool zeek::detail::re_single_line = false;
 
 extern int RE_parse(void);
 extern void RE_set_input(const char* str);
@@ -32,6 +33,7 @@ Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline)
 	: mt(arg_mt), multiline(arg_multiline), equiv_class(NUM_SYM)
 	{
 	any_ccl = nullptr;
+	single_line_ccl = nullptr;
 	dfa = nullptr;
 	ecs = nullptr;
 	accepted = new AcceptingSet();
@@ -46,10 +48,22 @@ Specific_RE_Matcher::~Specific_RE_Matcher()
 	delete accepted;
 	}
 
-CCL* Specific_RE_Matcher::AnyCCL()
+CCL* Specific_RE_Matcher::AnyCCL(bool single_line_mode)
 	{
+	if ( single_line_mode )
+		{
+		if ( ! single_line_ccl )
+			{
+			single_line_ccl = new CCL();
+			single_line_ccl->Negate();
+			EC()->CCL_Use(single_line_ccl);
+			}
+
+		return single_line_ccl;
+		}
+
 	if ( ! any_ccl )
-		{ // Create the '.' character class.
+		{
 		any_ccl = new CCL();
 		if ( ! multiline )
 			any_ccl->Add('\n');
@@ -95,6 +109,12 @@ void Specific_RE_Matcher::AddPat(const char* new_pat, const char* orig_fmt, cons
 void Specific_RE_Matcher::MakeCaseInsensitive()
 	{
 	const char fmt[] = "(?i:%s)";
+	pattern_text = util::fmt(fmt, pattern_text.c_str());
+	}
+
+void Specific_RE_Matcher::MakeSingleLine()
+	{
+	const char fmt[] = "(?s:%s)";
 	pattern_text = util::fmt(fmt, pattern_text.c_str());
 	}
 
@@ -394,13 +414,10 @@ static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2, c
 	const char* text1 = re1->PatternText();
 	const char* text2 = re2->PatternText();
 
-	int n = strlen(text1) + strlen(text2) + strlen(merge_op) + 32 /* slop */;
+	size_t n = strlen(text1) + strlen(text2) + strlen(merge_op) + 32 /* slop */;
 
-	char* merge_text = new char[n];
-	snprintf(merge_text, n, "(%s)%s(%s)", text1, merge_op, text2);
-
-	RE_Matcher* merge = new RE_Matcher(merge_text);
-	delete[] merge_text;
+	std::string merge_text = util::fmt("(%s)%s(%s)", text1, merge_op, text2);
+	RE_Matcher* merge = new RE_Matcher(merge_text.c_str());
 
 	merge->Compile();
 
@@ -459,6 +476,14 @@ void RE_Matcher::MakeCaseInsensitive()
 	re_exact->MakeCaseInsensitive();
 
 	is_case_insensitive = true;
+	}
+
+void RE_Matcher::MakeSingleLine()
+	{
+	re_anywhere->MakeSingleLine();
+	re_exact->MakeSingleLine();
+
+	is_single_line = true;
 	}
 
 bool RE_Matcher::Compile(bool lazy)
@@ -523,15 +548,51 @@ TEST_SUITE("re_matcher")
 		CHECK(match.MatchExactly("aBc"));
 		CHECK(match.MatchExactly("nop"));
 		CHECK_FALSE(match.MatchExactly("NoP"));
+		}
 
-		// TODO: this part isn't working at all. There's something about the second call
-		// to Compile() that's breaking something.
-		// match.MakeCaseInsensitive();
-		// match.Compile();
-		// CHECK(strcmp(match.PatternText(), "(?i:((?i:^?([a-m]+)$?))|(^?([n-z]+)$?))") == 0);
-		// CHECK(match.MatchExactly("aBc"));
-		// CHECK(match.MatchExactly("nop"));
-		// CHECK(match.MatchExactly("NoP"));
+	TEST_CASE("single_line_mode")
+		{
+		RE_Matcher match(".*");
+		match.MakeSingleLine();
+		match.Compile();
+
+		CHECK(strcmp(match.PatternText(), "(?s:^?(.*)$?)") == 0);
+		CHECK(match.MatchExactly("abc\ndef"));
+
+		RE_Matcher match2("fOO.*bAR");
+		match2.MakeSingleLine();
+		match2.Compile();
+
+		CHECK(strcmp(match2.PatternText(), "(?s:^?(fOO.*bAR)$?)") == 0);
+		CHECK(match.MatchExactly("fOOab\ncdbAR"));
+
+		RE_Matcher match3("b.r");
+		match3.MakeSingleLine();
+		match3.Compile();
+		CHECK(match3.MatchExactly("bar"));
+		CHECK(match3.MatchExactly("b\nr"));
+
+		RE_Matcher match4("a.c");
+		match4.MakeSingleLine();
+		match4.AddPat("def");
+		match4.Compile();
+		CHECK(match4.MatchExactly("abc"));
+		CHECK(match4.MatchExactly("a\nc"));
+		}
+
+	TEST_CASE("disjunction")
+		{
+		RE_Matcher match1("a.c");
+		match1.MakeSingleLine();
+		match1.Compile();
+		RE_Matcher match2("def");
+		match2.Compile();
+		auto dj = detail::RE_Matcher_disjunction(&match1, &match2);
+		CHECK(dj->MatchExactly("abc"));
+		CHECK(dj->MatchExactly("a.c"));
+		CHECK(dj->MatchExactly("a\nc"));
+		CHECK(dj->MatchExactly("def"));
+		delete dj;
 		}
 	}
 

@@ -116,6 +116,7 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 			}
 
 	"(?i:"		zeek::detail::case_insensitive = true; return TOK_CASE_INSENSITIVE;
+	"(?s:"		zeek::detail::re_single_line = true; return TOK_SINGLE_LINE;
 
 	[a-zA-Z]	{
 			if ( zeek::detail::case_insensitive )

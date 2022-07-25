@@ -24,6 +24,10 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Added support for the /s regular expression modifier. Using this modifier in
+  patterns in Zeek scripts will cause the '.' character to also match newline
+  characters.
+
 Changed Functionality
 ---------------------
 

@@ -3,3 +3,4 @@ warning: Value 'asdf' for source 'thread ../configfile/Input::READER_CONFIG' is 
 error: SendEvent for event InputConfig::new_value failed
 warning: Value '1234' for source 'thread ../configfile/Input::READER_CONFIG' is not a valid enum.
 error: SendEvent for event InputConfig::new_value failed
+received termination signal

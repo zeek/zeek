@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <utility>
 
+#include "zeek/3rdparty/doctest.h"
 #include "zeek/CCL.h"
 #include "zeek/DFA.h"
 #include "zeek/EquivClass.h"
@@ -486,6 +487,75 @@ void RE_Matcher::MakeCaseInsensitive()
 bool RE_Matcher::Compile(bool lazy)
 	{
 	return re_anywhere->Compile(lazy) && re_exact->Compile(lazy);
+	}
+
+TEST_SUITE("re_matcher")
+	{
+
+	TEST_CASE("simple_pattern")
+		{
+		RE_Matcher match("[0-9]+");
+		match.Compile();
+		CHECK(strcmp(match.OrigText(), "[0-9]+") == 0);
+		CHECK(strcmp(match.PatternText(), "^?([0-9]+)$?") == 0);
+		CHECK(strcmp(match.AnywherePatternText(), "^?(.|\\n)*([0-9]+)") == 0);
+
+		CHECK(match.MatchExactly("12345"));
+		CHECK_FALSE(match.MatchExactly("a12345"));
+
+		// The documentation for MatchAnywhere says that it returns the
+		// "index just beyond where the first match occurs", which I would
+		// think means *after* the match. This is returning the position
+		// where the match starts though.
+		CHECK(match.MatchAnywhere("a1234bcd") == 2);
+		CHECK(match.MatchAnywhere("abcd") == 0);
+		}
+
+	TEST_CASE("case_insensitive_mode")
+		{
+		RE_Matcher match("[a-z]+");
+		match.MakeCaseInsensitive();
+		match.Compile();
+		CHECK(strcmp(match.PatternText(), "(?i:^?([a-z]+)$?)") == 0);
+
+		CHECK(match.MatchExactly("abcDEF"));
+		}
+
+	TEST_CASE("multi_pattern")
+		{
+		RE_Matcher match("[0-9]+");
+		match.AddPat("[a-z]+");
+		match.Compile();
+
+		CHECK(strcmp(match.PatternText(), "(^?([0-9]+)$?)|(^?([a-z]+)$?)") == 0);
+
+		CHECK(match.MatchExactly("abc"));
+		CHECK(match.MatchExactly("123"));
+		CHECK_FALSE(match.MatchExactly("abc123"));
+		}
+
+	TEST_CASE("modes_multi_pattern")
+		{
+		RE_Matcher match("[a-m]+");
+		match.MakeCaseInsensitive();
+
+		match.AddPat("[n-z]+");
+		match.Compile();
+
+		CHECK(strcmp(match.PatternText(), "((?i:^?([a-m]+)$?))|(^?([n-z]+)$?)") == 0);
+		CHECK(match.MatchExactly("aBc"));
+		CHECK(match.MatchExactly("nop"));
+		CHECK_FALSE(match.MatchExactly("NoP"));
+
+		// TODO: this part isn't working at all. There's something about the second call
+		// to Compile() that's breaking something.
+		// match.MakeCaseInsensitive();
+		// match.Compile();
+		// CHECK(strcmp(match.PatternText(), "(?i:((?i:^?([a-m]+)$?))|(^?([n-z]+)$?))") == 0);
+		// CHECK(match.MatchExactly("aBc"));
+		// CHECK(match.MatchExactly("nop"));
+		// CHECK(match.MatchExactly("NoP"));
+		}
 	}
 
 	} // namespace zeek

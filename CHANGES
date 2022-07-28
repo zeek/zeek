@@ -1,3 +1,9 @@
+5.1.0-dev.295 | 2022-07-28 11:21:59 -0700
+
+  * Re-enable sending coverage data to Coveralls via Cirrus (Tim Wojtulewicz, Corelight)
+
+    This was lost in 903f4bcc8ea2bc260f7ca9bf8d9fff445cb22f26
+
 5.1.0-dev.292 | 2022-07-25 09:43:44 -0700
 
   * Return an error if redef'ing a variable without redef attribute (Tim Wojtulewicz, Corelight)

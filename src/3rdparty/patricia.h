@@ -1,16 +1,5 @@
 /*
- * This code originates from Dave Plonka's Net::Security perl module. An adaptation
- * of it in C is kept at https://github.com/CAIDA/cc-common/tree/master/libpatricia.
- * That repository is considered the upstream version for Zeek's fork. We make some
- * custom changes to this upstream:
- * - Replace void_fn_t with data_fn_t and prefix_data_fn_t
- * - Add patricia_search_all method
- *
- * The current version is based on commit 4a2c61374f507a420d28bd9084c976142d279605
- * from that repo.
- */
-
-/*
+ * $Id: patricia.h,v 1.6 2005/12/07 20:53:01 dplonka Exp $
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
@@ -21,6 +10,19 @@
  * I renamed it to "patricia.h" since it's not an implementation of a general
  * radix trie.  Also, pulled in various requirements from "mrt.h" and added
  * some other things it could be used as a standalone API.
+ */
+
+/*
+ * This code originates from Dave Plonka's Net::Security perl module. An
+ * adaptation of it in C is kept at
+ * https://github.com/CAIDA/cc-common/tree/master/libpatricia. That repository
+ * is considered the upstream version for Zeek's fork. We make some custom
+ * changes to this upstream:
+ * - Replace void_fn_t with data_fn_t and prefix_data_fn_t
+ * - Add patricia_search_all method
+ *
+ * The current version is based on commit
+ * fd262ab5ac5bae8b0d4a8b5e2e723115b1846376 from that repo.
  */
 
 /* From copyright.txt:
@@ -53,18 +55,23 @@
  * DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#ifndef _PATRICIA_H
+#define _PATRICIA_H
 
+#define HAVE_IPV6
+
+/* typedef unsigned int u_int; */
+typedef void (*void_fn_t)();
 /* { from defs.h */
 #define prefix_touchar(prefix) ((u_char *)&(prefix)->add.sin)
 #define MAXLINE 1024
-#define BIT_TEST(f, b)  ((f) & (b))
+#define BIT_TEST(f, b) ((f) & (b))
 /* } */
 
 #define addroute make_and_lookup
@@ -73,10 +80,10 @@
 
 #include <errno.h> /* for EAFNOSUPPORT */
 #ifndef EAFNOSUPPORT
-#  defined EAFNOSUPPORT WSAEAFNOSUPPORT
-#  include <winsock.h>
+#defined EAFNOSUPPORT WSAEAFNOSUPPORT
+#include <winsock.h>
 #else
-#  include <netinet/in.h> /* for struct in_addr */
+#include <netinet/in.h> /* for struct in_addr */
 #endif
 
 #include <sys/socket.h> /* for AF_INET */
@@ -84,112 +91,119 @@
 /* { from mrt.h */
 
 typedef struct _prefix4_t {
-    u_short family;		/* AF_INET | AF_INET6 */
-    u_short bitlen;		/* same as mask? */
-    int ref_count;		/* reference count */
-    struct in_addr sin;
+  u_short family; /* AF_INET | AF_INET6 */
+  u_short bitlen; /* same as mask? */
+  int ref_count;  /* reference count */
+  struct in_addr sin;
 } prefix4_t;
 
 typedef struct _prefix_t {
-    u_short family;		/* AF_INET | AF_INET6 */
-    u_short bitlen;		/* same as mask? */
-    int ref_count;		/* reference count */
-    union {
-		struct in_addr sin;
-		struct in6_addr sin6;
-    } add;
+  u_short family; /* AF_INET | AF_INET6 */
+  u_short bitlen; /* same as mask? */
+  int ref_count;  /* reference count */
+  union {
+    struct in_addr sin;
+#ifdef HAVE_IPV6
+    struct in6_addr sin6;
+#endif /* IPV6 */
+  } add;
 } prefix_t;
 
-typedef void (*data_fn_t)(void*);
-typedef void (*prefix_data_fn_t)(prefix_t*, void*);
+typedef void (*data_fn_t)(void *);
+typedef void (*prefix_data_fn_t)(prefix_t *, void *);
 
 /* } */
 
 typedef struct _patricia_node_t {
-   u_int bit;			/* flag if this node used */
-   prefix_t *prefix;		/* who we are in patricia tree */
-   struct _patricia_node_t *l, *r;	/* left and right children */
-   struct _patricia_node_t *parent;/* may be used */
-   void *data;			/* pointer to data */
-   void	*user1;			/* pointer to usr data (ex. route flap info) */
+  u_int bit;                       /* flag if this node used */
+  prefix_t *prefix;                /* who we are in patricia tree */
+  struct _patricia_node_t *l, *r;  /* left and right children */
+  struct _patricia_node_t *parent; /* may be used */
+  void *data;                      /* pointer to data */
+  void *user1; /* pointer to usr data (ex. route flap info) */
 } patricia_node_t;
 
 typedef struct _patricia_tree_t {
-   patricia_node_t 	*head;
-   u_int		maxbits;	/* for IP, 32 bit addresses */
-   int num_active_node;		/* for debug purpose */
+  patricia_node_t *head;
+  u_int maxbits;       /* for IP, 32 bit addresses */
+  int num_active_node; /* for debug purpose */
 } patricia_tree_t;
 
+patricia_node_t *patricia_search_exact(patricia_tree_t *patricia,
+                                       prefix_t *prefix);
+int patricia_search_all(patricia_tree_t *patricia, prefix_t *prefix,
+                        patricia_node_t ***list, int *n);
+patricia_node_t *patricia_search_best(patricia_tree_t *patricia,
+                                      prefix_t *prefix);
+patricia_node_t *patricia_search_best2(patricia_tree_t *patricia,
+                                       prefix_t *prefix, int inclusive);
+patricia_node_t *patricia_lookup(patricia_tree_t *patricia, prefix_t *prefix);
+void patricia_remove(patricia_tree_t *patricia, patricia_node_t *node);
+patricia_tree_t *New_Patricia(int maxbits);
+void Clear_Patricia(patricia_tree_t *patricia, data_fn_t func);
+void Destroy_Patricia(patricia_tree_t *patricia, data_fn_t func);
 
-patricia_node_t *patricia_search_exact (patricia_tree_t *patricia, prefix_t *prefix);
-bool patricia_search_all (patricia_tree_t *patricia, prefix_t *prefix, patricia_node_t ***list, int *n);
-patricia_node_t *patricia_search_best (patricia_tree_t *patricia, prefix_t *prefix);
-patricia_node_t * patricia_search_best2 (patricia_tree_t *patricia, prefix_t *prefix,
-				   int inclusive);
-patricia_node_t *patricia_lookup (patricia_tree_t *patricia, prefix_t *prefix);
-void patricia_remove (patricia_tree_t *patricia, patricia_node_t *node);
-patricia_tree_t *New_Patricia (int maxbits);
-void Clear_Patricia (patricia_tree_t *patricia, data_fn_t func);
-void Destroy_Patricia (patricia_tree_t *patricia, data_fn_t func);
+void patricia_process(patricia_tree_t *patricia, prefix_data_fn_t func);
 
-void patricia_process (patricia_tree_t *patricia, prefix_data_fn_t func);
-
-void Deref_Prefix (prefix_t * prefix);
-char *prefix_toa (prefix_t * prefix);
+void Deref_Prefix(prefix_t *prefix);
+char *prefix_toa(prefix_t *prefix);
 
 /* { from demo.c */
 
-prefix_t *
-ascii2prefix (int family, char *string);
+prefix_t *ascii2prefix(int family, char *string);
 
-patricia_node_t *
-make_and_lookup (patricia_tree_t *tree, char *string);
+patricia_node_t *make_and_lookup(patricia_tree_t *tree, char *string);
 
 /* } */
 
-#define PATRICIA_MAXBITS        (sizeof(struct in6_addr) * 8)
-#define PATRICIA_NBIT(x)        (0x80 >> ((x) & 0x7f))
-#define PATRICIA_NBYTE(x)       ((x) >> 3)
+#define PATRICIA_MAXBITS (sizeof(struct in6_addr) * 8)
+#define PATRICIA_NBIT(x) (0x80 >> ((x)&0x7f))
+#define PATRICIA_NBYTE(x) ((x) >> 3)
 
 #define PATRICIA_DATA_GET(node, type) (type *)((node)->data)
 #define PATRICIA_DATA_SET(node, value) ((node)->data = (void *)(value))
 
-#define PATRICIA_WALK(Xhead, Xnode) \
-    do { \
-        patricia_node_t *Xstack[PATRICIA_MAXBITS+1]; \
-        patricia_node_t **Xsp = Xstack; \
-        patricia_node_t *Xrn = (Xhead); \
-        while ((Xnode = Xrn)) { \
-            if (Xnode->prefix)
+#define PATRICIA_WALK(Xhead, Xnode)                                            \
+  do {                                                                         \
+    patricia_node_t *Xstack[PATRICIA_MAXBITS + 1];                             \
+    patricia_node_t **Xsp = Xstack;                                            \
+    patricia_node_t *Xrn = (Xhead);                                            \
+    while ((Xnode = Xrn)) {                                                    \
+      if (Xnode->prefix)
 
-#define PATRICIA_WALK_ALL(Xhead, Xnode) \
-do { \
-        patricia_node_t *Xstack[PATRICIA_MAXBITS+1]; \
-        patricia_node_t **Xsp = Xstack; \
-        patricia_node_t *Xrn = (Xhead); \
-        while ((Xnode = Xrn)) { \
-	    if (1)
+#define PATRICIA_WALK_ALL(Xhead, Xnode)                                        \
+  do {                                                                         \
+    patricia_node_t *Xstack[PATRICIA_MAXBITS + 1];                             \
+    patricia_node_t **Xsp = Xstack;                                            \
+    patricia_node_t *Xrn = (Xhead);                                            \
+    while ((Xnode = Xrn)) {                                                    \
+      if (1)
 
-#define PATRICIA_WALK_BREAK { \
-	    if (Xsp != Xstack) { \
-		Xrn = *(--Xsp); \
-	     } else { \
-		Xrn = (patricia_node_t *) 0; \
-	    } \
-	    continue; }
+#define PATRICIA_WALK_BREAK                                                    \
+  {                                                                            \
+    if (Xsp != Xstack) {                                                       \
+      Xrn = *(--Xsp);                                                          \
+    } else {                                                                   \
+      Xrn = (patricia_node_t *)0;                                              \
+    }                                                                          \
+    continue;                                                                  \
+  }
 
-#define PATRICIA_WALK_END \
-            if (Xrn->l) { \
-                if (Xrn->r) { \
-                    *Xsp++ = Xrn->r; \
-                } \
-                Xrn = Xrn->l; \
-            } else if (Xrn->r) { \
-                Xrn = Xrn->r; \
-            } else if (Xsp != Xstack) { \
-                Xrn = *(--Xsp); \
-            } else { \
-                Xrn = (patricia_node_t *) 0; \
-            } \
-        } \
-    } while (0)
+#define PATRICIA_WALK_END                                                      \
+  if (Xrn->l) {                                                                \
+    if (Xrn->r) {                                                              \
+      *Xsp++ = Xrn->r;                                                         \
+    }                                                                          \
+    Xrn = Xrn->l;                                                              \
+  } else if (Xrn->r) {                                                         \
+    Xrn = Xrn->r;                                                              \
+  } else if (Xsp != Xstack) {                                                  \
+    Xrn = *(--Xsp);                                                            \
+  } else {                                                                     \
+    Xrn = (patricia_node_t *)0;                                                \
+  }                                                                            \
+  }                                                                            \
+  }                                                                            \
+  while (0)
+
+#endif /* _PATRICIA_H */

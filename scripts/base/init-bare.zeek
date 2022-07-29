@@ -380,6 +380,10 @@ export {
 		send_timestamp: count &optional;
 		## Kind 8: 4-byte echo reply timestamp value.
 		echo_timestamp: count &optional;
+		## Kind 27: TCP Quick Start Response value.
+                rate: count &optional;
+                ttl_diff: count &optional;
+                qs_nonce: count &optional;
 	};
 
 	## The full list of TCP Option fields parsed from a TCP header.

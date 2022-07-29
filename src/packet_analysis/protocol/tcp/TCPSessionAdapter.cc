@@ -1805,7 +1805,7 @@ int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 
 				case 27:
 					// TCP Quick Start Response
-					if ( length == 8)
+					if ( length == 8 )
 						{
 						auto rate = o[2];
 						auto ttl_diff = o[3];

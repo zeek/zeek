@@ -1,3 +1,9 @@
+5.1.0-dev.301 | 2022-07-29 12:10:20 -0700
+
+  * Add btest for vector bit-shift operators (Tim Wojtulewicz, Corelight)
+
+  * Handle error cases for bit-shift operators more cleanly (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.298 | 2022-07-29 12:00:57 -0700
 
   * Update 3rdparty submodule to get patricia reformat (Tim Wojtulewicz, Corelight)

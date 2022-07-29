@@ -1803,6 +1803,50 @@ int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 						}
 					break;
 
+				case 27:
+					// TCP Quick Start Response
+					if ( length == 8)
+						{
+						auto rate = o[2];
+						auto ttl_diff = o[3];
+						auto qs_nonce = ntohl(*reinterpret_cast<const uint32_t*>(o + 4));
+						option_record->Assign(8, rate);
+						option_record->Assign(9, ttl_diff);
+						option_record->Assign(10, qs_nonce);
+						}
+					else
+						{
+						add_option_data(option_record, o, length);
+						Weird("tcp_option_QSResponse_invalid_len", util::fmt("%d", length));
+						}
+					break;
+
+				case 28:
+					// TCP User Timeout option UTO
+					if ( length != 4 )
+						{
+						add_option_data(option_record, o, length);
+						Weird("tcp_option_UTO_invalid_len", util::fmt("%d", length));
+						}
+					break;
+
+				case 29:
+					// TCP Auth Option AO
+					if ( length < 4 )
+						{
+						add_option_data(option_record, o, length);
+						Weird("tcp_option_AO_invalid_len", util::fmt("%d", length));
+						}
+					break;
+
+				case 34:
+					// TCP Fast open TFO
+					if ( (length != 2) && (length < 6 || length > 18) )
+						{
+						add_option_data(option_record, o, length);
+						Weird("tcp_option_TFO_invalid_len", util::fmt("%d", length));
+						}
+					break;
 				default:
 					add_option_data(option_record, o, length);
 					break;

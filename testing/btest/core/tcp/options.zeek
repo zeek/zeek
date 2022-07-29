@@ -38,6 +38,9 @@ event tcp_options(c: connection, is_orig: bool, options: TCP::OptionList)
 				print fmt("    send ts: %s", o$send_timestamp);
 				print fmt("    echo ts: %s", o$echo_timestamp);
 				break;
+			case 27:
+                                print fmt("     TTL Diff: %s", o$ttl_diff);
+                                break;
 			}
 			}
 		}

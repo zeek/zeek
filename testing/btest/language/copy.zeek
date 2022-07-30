@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 function test_case(msg: string, expect: bool)
 	{

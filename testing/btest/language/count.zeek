@@ -1,26 +1,24 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 function test_case(msg: string, expect: bool)
         {
         print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
         }
 
+global c1: count = 0;
+global c2: count = 5;
+global c3: count = 0xFF;
+global c4: count = 255;
+global c5: count = 18446744073709551615;  # maximum allowed value
+global c6: count = 0xffffffffffffffff;    # maximum allowed value
+global c7 = 1;
 
 event zeek_init()
 {
-	local c1: count = 0;
-	local c2: count = 5;
-	local c3: count = 0xFF;
-	local c4: count = 255;
-	local c5: count = 18446744073709551615;  # maximum allowed value
-	local c6: count = 0xffffffffffffffff;    # maximum allowed value
-	local c7 = 1;
-
 	# Type inference test
-
 	test_case( "type inference", type_name(c7) == "count" );
-
 
 	# Test various constant representations
 
@@ -60,6 +58,5 @@ event zeek_init()
 	test_case( str1, str1 == "max count value = 18446744073709551615" );
 	local str2 = fmt("max count value = %d", c6);
 	test_case( str2, str2 == "max count value = 18446744073709551615" );
-
 }
 

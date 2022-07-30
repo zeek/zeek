@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 function test_case(msg: string, expect: bool)
         {
@@ -7,11 +8,10 @@ function test_case(msg: string, expect: bool)
         }
 
 global thisisdefined = 123;
+global xyz = 0;
 
 event zeek_init()
 {
-	local xyz = 0;
-
 	# Test "ifdef" without "else"
 
 	@ifdef ( notdefined )

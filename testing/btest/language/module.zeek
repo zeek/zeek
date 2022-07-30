@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT secondtestfile >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 # In this source file, we define a module and export some objects
 

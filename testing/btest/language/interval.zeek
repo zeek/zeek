@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 function test_case(msg: string, expect: bool)
         {
@@ -12,41 +13,39 @@ function approx_equal(x: double, y: double): bool
 	return |(x - y)/x| < 1e-6 ? T : F;
 	}
 
+# Constants without space and no letter "s"
+global in11: interval = 2usec;
+global in12: interval = 2msec;
+global in13: interval = 120sec;
+global in14: interval = 2min;
+global in15: interval = -2hr;
+global in16: interval = 2.5day;
+
+# Constants with space and no letter "s"
+global in21: interval = 2 usec;
+global in22: interval = 2 msec;
+global in23: interval = 120 sec;
+global in24: interval = 2 min;
+global in25: interval = -2 hr;
+global in26: interval = 2.5 day;
+
+# Constants with space and letter "s"
+
+global in31: interval = 2 usecs;
+global in32: interval = 2 msecs;
+global in33: interval = 1.2e2 secs;
+global in34: interval = 2 mins;
+global in35: interval = -2 hrs;
+global in36: interval = 2.5 days;
+
+# Type inference
+
+global in41 = 2 usec;
+global in42 = 2.1usec;
+global in43 = 3usecs;
+
 event zeek_init()
 {
-	# Constants without space and no letter "s"
-
-	local in11: interval = 2usec;
-	local in12: interval = 2msec;
-	local in13: interval = 120sec;
-	local in14: interval = 2min;
-	local in15: interval = -2hr;
-	local in16: interval = 2.5day;
-
-	# Constants with space and no letter "s"
-
-	local in21: interval = 2 usec;
-	local in22: interval = 2 msec;
-	local in23: interval = 120 sec;
-	local in24: interval = 2 min;
-	local in25: interval = -2 hr;
-	local in26: interval = 2.5 day;
-
-	# Constants with space and letter "s"
-
-	local in31: interval = 2 usecs;
-	local in32: interval = 2 msecs;
-	local in33: interval = 1.2e2 secs;
-	local in34: interval = 2 mins;
-	local in35: interval = -2 hrs;
-	local in36: interval = 2.5 days;
-
-	# Type inference
-
-	local in41 = 2 usec;
-	local in42 = 2.1usec;
-	local in43 = 3usecs;
-
 	# Type inference tests
 
 	test_case( "type inference", type_name(in41) == "interval" );

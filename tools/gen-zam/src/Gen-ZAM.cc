@@ -1390,9 +1390,24 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot_orig,
 		if ( ! is_none && ! is_default && find_type_info(ei.LHS_ET()).is_managed &&
 		     ! HasExplicitResultType() )
 			{
-			auto delim = zc == ZIC_VEC ? "->" : ".";
-			auto pre = "auto hold_lhs = " + lhs + delim + "ManagedVal();\n\t";
+			auto pre = "auto hold_lhs = " + lhs;
+
+			if ( zc == ZIC_VEC )
+				// For vectors, we have to check for whether
+				// the previous value is present, or a hole.
+				pre += string(" ? ") + lhs + "->";
+			else
+				pre += ".";
+
+			pre += "ManagedVal()";
+
+			if ( zc == ZIC_VEC )
+				pre += " : nullptr";
+
+			pre += ";\n\t";
+
 			auto post = "\tUnref(hold_lhs);";
+
 			eval = pre + eval + post;
 			}
 

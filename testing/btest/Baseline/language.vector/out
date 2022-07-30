@@ -81,3 +81,5 @@ copy of a vector with holes (PASS)
 copy of a vector with trailing holes, [0, 2, 3, 77, , ], [0, 2, 3, 77, , ]
 hole in vector of managed types, 5, [[a=T], [a=T], , , [a=T]]
 hole in vector of managed types after replacing slice, 3, [[a=T], [a=T], ]
+left shift (PASS)
+right shift (PASS)

@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 function test_case(msg: string, expect: bool)
         {
@@ -229,6 +230,6 @@ event zeek_init()
 	# Test << and >> operators.
 	local v22 = v6 << 1;
 	local v23 = v6 >> 1;
-	test_case( "left shift", all_set(v22 == vector(20, 40, 60)) );
-	test_case( "right shift", all_set(v23 == vector(5, 10, 15)) );
+	test_case( "left shift", all_set(v22 == vector(20, 40, 60, 80)) );
+	test_case( "right shift", all_set(v23 == vector(5, 10, 15, 20)) );
 }

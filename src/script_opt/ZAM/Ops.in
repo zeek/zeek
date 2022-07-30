@@ -833,13 +833,13 @@ internal-op Val-Is-In-Vector
 type VVV
 eval	auto& vec = frame[z.v3].vector_val;
 	auto ind = frame[z.v2].int_val;
-	frame[z.v1].int_val = ind >= 0 && static_cast<zeek_uint_t>(ind) < vec->Size();
+	frame[z.v1].int_val = vec->Has(ind);
 
 internal-op Const-Is-In-Vector
 type VCV
 eval	auto& vec = frame[z.v2].vector_val;
 	auto ind = z.c.int_val;
-	frame[z.v1].int_val = ind >= 0 && static_cast<zeek_uint_t>(ind) < vec->Size();
+	frame[z.v1].int_val = vec->Has(ind);
 
 expr-op Cond
 type VVVV

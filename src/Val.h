@@ -1593,10 +1593,8 @@ public:
 	ValPtr ValAt(unsigned int index) const { return At(index); }
 
 	bool Has(unsigned int index) const
-		// Version to use once std::optional implementation is merged.
-		// { return index < vector_val->size() && vector_val[index]; }
 		{
-		return At(index) != nullptr;
+		return index < vector_val->size() && (*vector_val)[index];
 		}
 
 	/**

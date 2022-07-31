@@ -170,18 +170,8 @@ event zeek_init()
 	local vss = vs1 + vs2;
 	test_case( "+ operator [string]", vss[0] == "fooxxx" && vss[1] == "baryyy" );
 
-	local vss2 = vs1 + "@";
-	test_case( "+ operator [string]", vss2[0] == "foo@" && vss2[1] == "bar@" );
-
 	local vss3 = (vs1 == vs3);
 	test_case( "== operator [string]", vss3[0] == F && vss3[1] == T );
-
-	local vss4 = (vs1 == "bar");
-	test_case( "== operator [string]", vss4[0] == F && vss4[1] == T );
-
-	local vss5 = ("bar" == vs1);
-	test_case( "== operator [string]", vss5[0] == F && vss5[1] == T );
-		# !=, <, >, <=, >= are handled the same as ==, skipping tests
 
 	# Test &&,|| of two vectors
 
@@ -228,8 +218,9 @@ event zeek_init()
 	print "hole in vector of managed types after replacing slice", |v21|, v21;
 
 	# Test << and >> operators.
-	local v22 = v6 << 1;
-	local v23 = v6 >> 1;
+	local four_ones = vector(1, 1, 1, 1);
+	local v22 = v6 << four_ones;
+	local v23 = v6 >> four_ones;
 	test_case( "left shift", all_set(v22 == vector(20, 40, 60, 80)) );
 	test_case( "right shift", all_set(v23 == vector(5, 10, 15, 20)) );
 }

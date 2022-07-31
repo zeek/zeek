@@ -963,20 +963,15 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 			{
 			if ( is_integral )
 				{
-				if ( i2 < 0 )
-					RuntimeError("left shift by negative value");
-				else if ( i1 < 1 )
+				if ( i1 < 1 )
 					RuntimeError("left shifting a negative number is undefined");
 
 				i3 = i1 << i2;
 				}
-			else if ( is_unsigned )
-				{
-				if ( u2 < 0 )
-					RuntimeError("left shift by negative value");
 
+			else if ( is_unsigned )
 				u3 = u1 << u2;
-				}
+
 			else
 				RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 			break;
@@ -984,19 +979,11 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 		case EXPR_RSHIFT:
 			{
 			if ( is_integral )
-				{
-				if ( i2 < 0 )
-					RuntimeError("right shift by negative value");
-
 				i3 = i1 >> i2;
-				}
-			else if ( is_unsigned )
-				{
-				if ( u2 < 0 )
-					RuntimeError("right shift by negative value");
 
+			else if ( is_unsigned )
 				u3 = u1 >> u2;
-				}
+
 			else
 				RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 			break;
@@ -2202,6 +2189,9 @@ BitExpr::BitExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 
 	if ( tag == EXPR_LSHIFT || tag == EXPR_RSHIFT )
 		{
+		if ( (is_vector(op1) || is_vector(op2)) && ! (is_vector(op1) && is_vector(op2)) )
+			ExprError("cannot mix vectors and scalars for shift operations");
+
 		if ( IsIntegral(bt1) && bt2 == TYPE_COUNT )
 			{
 			if ( is_vector(op1) || is_vector(op2) )
@@ -2209,13 +2199,19 @@ BitExpr::BitExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 			else
 				SetType(base_type(bt1));
 			}
+
 		else if ( IsIntegral(bt1) && bt2 == TYPE_INT )
 			ExprError("requires \"count\" right operand");
+
 		else
 			ExprError("requires integral operands");
+
+		return; // because following scalar check isn't apt
 		}
 
-	else if ( (bt1 == TYPE_COUNT) && (bt2 == TYPE_COUNT) )
+	CheckScalarAggOp();
+
+	if ( (bt1 == TYPE_COUNT) && (bt2 == TYPE_COUNT) )
 		{
 		if ( is_vector(op1) || is_vector(op2) )
 			SetType(make_intrusive<VectorType>(base_type(TYPE_COUNT)));

@@ -1,5 +1,8 @@
 # This tests Zeek's mechanism to prevent duplicate script loading.
 #
+# Don't run for C++ scripts, since it doesn't actually do anything and that
+# leads to complaints that there are no scripts.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: mkdir -p foo/bar
 # @TEST-EXEC: echo "@load bar/test" >loader.zeek
 # @TEST-EXEC: cp %INPUT foo/bar/test.zeek

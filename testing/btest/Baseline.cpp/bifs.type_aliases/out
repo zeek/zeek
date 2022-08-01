@@ -5,16 +5,16 @@ type aliases for 'MyRec val': MyRec MyRecAlias
 type aliases for 'MyRecAlias val': MyRec MyRecAlias
 type aliases for 'MyRec type': MyRec MyRecAlias
 type aliases for 'MyRecalias type': MyRec MyRecAlias
-type aliases for 'MyString val': MyString AnotherString
+type aliases for 'MyString val': it's just a 'string'
 type aliases for 'MyString type': MyString AnotherString
 type aliases for 'MyOtherString type': MyOtherString
 type aliases for 'AnotherString type': MyString AnotherString
-type aliases for 'string literal value': MyString AnotherString
+type aliases for 'string literal value': it's just a 'string'
 type aliases for 'count literal value': it's just a 'count'
-type aliases for 'MyTable value': MyTable2 MyTable3 MyTable MyTable4
-type aliases for 'MyTable2 value': MyTable2 MyTable3 MyTable MyTable4
-type aliases for 'MyTable3 value': MyTable2 MyTable3 MyTable MyTable4
-type aliases for 'MyTable4 value': MyTable2 MyTable3 MyTable MyTable4
+type aliases for 'MyTable value': it's just a 'table[count] of string'
+type aliases for 'MyTable2 value': it's just a 'table[count] of string'
+type aliases for 'MyTable3 value': it's just a 'table[count] of string'
+type aliases for 'MyTable4 value': it's just a 'table[count] of string'
 type aliases for 'MyTable type': MyTable2 MyTable3 MyTable MyTable4
 type aliases for 'MyTable2 type': MyTable2 MyTable3 MyTable MyTable4
 type aliases for 'MyTable3 type': MyTable2 MyTable3 MyTable MyTable4

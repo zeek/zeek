@@ -4,7 +4,11 @@
 
 global cmds = "print \"hello world\";";
 cmds = string_cat(cmds, "\nprint \"foobar\";");
-if ( piped_exec("zeek", cmds) != T )
+
+# If we're using generated C++, turn that off for the pipe execution,
+# as otherwise we'll get a complaint that there's no corresponding
+# C++ bodies found for that zeek instance.
+if ( piped_exec("export -n ZEEK_USE_CPP; zeek", cmds) != T )
 	exit(1);
 
 # Test null output.

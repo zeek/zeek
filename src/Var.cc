@@ -429,14 +429,25 @@ void add_type(ID* id, TypePtr t, std::unique_ptr<std::vector<AttrPtr>> attr)
 	{
 	std::string new_type_name = id->Name();
 	std::string old_type_name = t->GetName();
+
 	TypePtr tnew;
 
 	if ( (t->Tag() == TYPE_RECORD || t->Tag() == TYPE_ENUM) && old_type_name.empty() )
 		// An extensible type (record/enum) being declared for first time.
 		tnew = std::move(t);
 	else
+		{
+		// If the old type is an error or the old type doesn't exist, then return
+		// an error instead of trying to clone it.
+		if ( t->Tag() == TYPE_ERROR && t->InternalType() == TYPE_INTERNAL_ERROR )
+			{
+			reporter->Error("Error trying to create alias to nonexistent type");
+			return;
+			}
+
 		// Clone the type to preserve type name aliasing.
 		tnew = t->ShallowClone();
+		}
 
 	Type::RegisterAlias(new_type_name, tnew);
 

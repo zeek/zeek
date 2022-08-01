@@ -2185,6 +2185,12 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 			}
 		}
 
+	if ( wi->TimeoutExpr() )
+		{
+		tc = wi->TimeoutExpr()->Traverse(cb);
+		HANDLE_TC_STMT_PRE(tc);
+		}
+
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
 	}

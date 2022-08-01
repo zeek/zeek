@@ -279,9 +279,9 @@ const AttrPtr& Attributes::Find(AttrTag t) const
 
 void Attributes::RemoveAttr(AttrTag t)
 	{
-	for ( auto it = attrs.begin(); it != attrs.end(); )
+	for ( auto& it : attrs )
 		{
-		if ( (*it)->Tag() == t )
+		if ( it->Tag() == t )
 			it = attrs.erase(it);
 		else
 			++it;

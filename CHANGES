@@ -1,3 +1,15 @@
+5.1.0-dev.312 | 2022-08-02 12:37:51 -0700
+
+  * Update plugins.hooks baseline with new DHCP options (peter.cullen, Corelight)
+
+  * Prevent large dhcp log entries (Peter Cullen, Corelight)
+
+    A flood of DHCP traffic can result if very large log entries consisting
+    of many uids and/or msg_types. Such large log entries can disrupt a SIEM
+    ingestion pipeline. This change forcing a log entry to be written when
+    the number of uids or the number of msg_Types exceed a certain value.
+    The values are treated as options for easy configuration.
+
 5.1.0-dev.309 | 2022-08-02 11:33:22 -0700
 
   * Add support for /s modifier to RE matcher and parser (Tim Wojtulewicz, Corelight)

@@ -189,14 +189,19 @@ struct scoped_reporter_location
 	};
 
 #ifdef DEBUG
+static std::string RenderMessage(const broker::data& d)
+	{
+	return util::json_escape_utf8(broker::to_string(d));
+	}
+
 static std::string RenderMessage(std::string topic, const broker::data& x)
 	{
-	return util::fmt("%s -> %s", broker::to_string(x).c_str(), topic.c_str());
+	return util::fmt("%s -> %s", RenderMessage(x).c_str(), topic.c_str());
 	}
 
 static std::string RenderEvent(std::string topic, std::string name, const broker::data& args)
 	{
-	return util::fmt("%s(%s) -> %s", name.c_str(), broker::to_string(args).c_str(), topic.c_str());
+	return util::fmt("%s(%s) -> %s", name.c_str(), RenderMessage(args).c_str(), topic.c_str());
 	}
 
 static std::string RenderMessage(const broker::store::response& x)
@@ -208,11 +213,6 @@ static std::string RenderMessage(const broker::store::response& x)
 static std::string RenderMessage(const broker::vector* xs)
 	{
 	return broker::to_string(*xs);
-	}
-
-static std::string RenderMessage(const broker::data& d)
-	{
-	return broker::to_string(d);
 	}
 
 static std::string RenderMessage(const broker::vector& xs)

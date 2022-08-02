@@ -562,13 +562,28 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 <RE>"/"	{
 	BEGIN(INITIAL);
-	yylval.b = false;
+	yylval.re_modes.ignore_case = false;
+	yylval.re_modes.single_line = false;
 	return TOK_PATTERN_END;
 	}
 
-<RE>"/i"	{
+<RE>(\/[is]{0,2})	{
 	BEGIN(INITIAL);
-	yylval.b = true;
+
+	if ( strlen(yytext) == 2 )
+		{
+		yylval.re_modes.ignore_case = (yytext[1] == 'i');
+		yylval.re_modes.single_line = (yytext[1] == 's');
+		}
+	else
+		{
+		if ( yytext[1] == yytext[2] )
+			zeek::reporter->Error("pattern has duplicate mode %c", yytext[1]);
+
+		yylval.re_modes.ignore_case = (yytext[1] == 'i' || yytext[2] == 'i');
+		yylval.re_modes.single_line = (yytext[1] == 's' || yytext[2] == 's');
+		}
+
 	return TOK_PATTERN_END;
 	}
 

@@ -145,7 +145,7 @@ TeredoAnalyzer::TeredoAnalyzer() : zeek::packet_analysis::Analyzer("TEREDO")
 	// 	}
 
 	pattern_re = std::make_unique<zeek::detail::Specific_RE_Matcher>(zeek::detail::MATCH_EXACTLY,
-	                                                                 1);
+	                                                                 true);
 	pattern_re->AddPat("^(\\x00\\x00)|(\\x00\\x01)|([\\x60-\\x6f].{7}((\\x20\\x01\\x00\\x00)).{28})"
 	                   "|([\\x60-\\x6f].{23}((\\x20\\x01\\x00\\x00))).{12}");
 	pattern_re->Compile();

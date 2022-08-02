@@ -54,7 +54,7 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 %nonassoc TOK_AS TOK_IS
 
-%type <b> opt_no_test opt_no_test_block TOK_PATTERN_END opt_deep when_flavor
+%type <b> opt_no_test opt_no_test_block opt_deep when_flavor
 %type <str> TOK_ID TOK_PATTERN_TEXT
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_lambda case_type
 %type <id_l> local_id_list case_type_list
@@ -77,6 +77,7 @@
 %type <capture> capture
 %type <captures> capture_list opt_captures when_captures
 %type <when_clause> when_head when_start when_clause
+%type <re_modes> TOK_PATTERN_END
 
 %{
 #include <cstdlib>
@@ -324,6 +325,11 @@ static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
 	zeek::FuncType::Capture* capture;
 	zeek::FuncType::CaptureList* captures;
 	zeek::detail::WhenInfo* when_clause;
+	struct
+		{
+		bool ignore_case;
+		bool single_line;
+		} re_modes;
 }
 
 %%
@@ -912,8 +918,11 @@ expr:
 			auto* re = new RE_Matcher($3);
 			delete [] $3;
 
-			if ( $4 )
+			if ( $4.ignore_case )
 				re->MakeCaseInsensitive();
+
+			if ( $4.single_line )
+				re->MakeSingleLine();
 
 			re->Compile();
 			$$ = new ConstExpr(make_intrusive<PatternVal>(re));

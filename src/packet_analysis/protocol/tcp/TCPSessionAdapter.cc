@@ -1817,7 +1817,7 @@ int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					else
 						{
 						add_option_data(option_record, o, length);
-						Weird("tcp_option_QSResponse_invalid_len", util::fmt("%d", length));
+						Weird("tcp_option_qsresponse_invalid_len", util::fmt("%d", length));
 						}
 					break;
 
@@ -1826,7 +1826,7 @@ int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					if ( length != 4 )
 						{
 						add_option_data(option_record, o, length);
-						Weird("tcp_option_UTO_invalid_len", util::fmt("%d", length));
+						Weird("tcp_option_uto_invalid_len", util::fmt("%d", length));
 						}
 					break;
 
@@ -1835,7 +1835,7 @@ int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					if ( length < 4 )
 						{
 						add_option_data(option_record, o, length);
-						Weird("tcp_option_AO_invalid_len", util::fmt("%d", length));
+						Weird("tcp_option_ao_invalid_len", util::fmt("%d", length));
 						}
 					break;
 
@@ -1844,7 +1844,7 @@ int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					if ( (length != 2) && (length < 6 || length > 18) )
 						{
 						add_option_data(option_record, o, length);
-						Weird("tcp_option_TFO_invalid_len", util::fmt("%d", length));
+						Weird("tcp_option_tfo_invalid_len", util::fmt("%d", length));
 						}
 					break;
 				default:

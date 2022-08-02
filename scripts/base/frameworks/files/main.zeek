@@ -8,6 +8,27 @@
 
 module Files;
 
+## With Zeek 5.x, the files.log log was flattened such that only a single
+## connection is associated with a files.log entry. Consequently, by default
+## the tx_hosts, rx_hosts and conn_uids fields are not included in the
+## files.log anymore. Further, these fields have been removed from the
+## File::Info record.
+##
+## The unrolling is not optional, but the removal of the fields can be
+## reverted by settings FILES_LOG_INCLUDE_SETS in the environment.
+##
+## Mostly using an environment variable as I haven't figured out if
+## there's a nicer way via a redef. Maybe this export below could live
+## in init-bare.zeek instead of here?
+##
+## Could also invert the logic: Keep them included by default, but trigger
+## a deprecation warning and ask to set ZEEK_FILES_LOG_INCLUDE_SETS=0 as
+## a solution? But not sure that helps moving this forward.
+
+export {
+	const log_include_multi_conn_fields: bool = getenv("ZEEK_FILES_LOG_INCLUDE_SETS") == "1" ? T : F;
+}
+
 export {
 	redef enum Log::ID += {
 		## Logging stream for file analysis.
@@ -41,18 +62,18 @@ export {
 		## An identifier associated with a single file.
 		fuid: string &log;
 
-		## If this file was transferred over a network
-		## connection this should show the host or hosts that
-		## the data sourced from.
-		tx_hosts: set[addr] &default=addr_set() &log;
+		## If this file, or parts of it, were transferred over a
+		## network connection, this is the uid for the connection.
+		uid: string &log &optional;
 
-		## If this file was transferred over a network
-		## connection this should show the host or hosts that
-		## the data traveled to.
-		rx_hosts: set[addr] &default=addr_set() &log;
+		## If this file, or parts of it, were transferred over a
+		## network connection, this shows the connection.
+		id: conn_id &log &optional;
 
-		## Connection UIDs over which the file was transferred.
-		conn_uids: set[string] &default=string_set() &log;
+		## TBD: Would it make sense to continue having singular
+		## rx_host, tx_host?
+		# tx_host: addr &log &optional;
+		# rx_host: addr &log &optional;
 
 		## An identification of the source of the file data.  E.g. it
 		## may be a network protocol over which it was transferred, or a
@@ -115,6 +136,7 @@ export {
 		## extracted as part of the file analysis.
 		parent_fuid: string &log &optional;
 	} &redef;
+
 
 	## A table that can be used to disable file analysis completely for
 	## any files transferred over given network protocol analyzers.
@@ -532,13 +554,9 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	{
 	set_info(f);
 
-	add f$info$conn_uids[c$uid];
 	local cid = c$id;
-	add f$info$tx_hosts[f$is_orig ? cid$orig_h : cid$resp_h];
 	if( |Site::local_nets| > 0 )
 		f$info$local_orig=Site::is_local_addr(f$is_orig ? cid$orig_h : cid$resp_h);
-
-	add f$info$rx_hosts[f$is_orig ? cid$resp_h : cid$orig_h];
 	}
 
 event file_sniff(f: fa_file, meta: fa_metadata) &priority=10
@@ -570,7 +588,40 @@ event file_state_remove(f: fa_file) &priority=10
 	set_info(f);
 	}
 
+@if ( Files::log_include_multi_conn_fields )
+@load ./deprecated-files-log-fields
+@endif
+
 event file_state_remove(f: fa_file) &priority=-10
 	{
-	Log::write(Files::LOG, f$info);
+	local conn_count = f?$conns ? |f$conns| : 0;
+	# No connection with this file? Just write it out once.
+	if ( conn_count == 0 )
+		{
+		Log::write(Files::LOG, f$info);
+		return;
+		}
+
+	# If f was seen over multiple connections, unroll them as multiple
+	# files.log entries. In previous versions of Zeek, these would result
+	# in a single files.log entry (per workers) with multiple conn_uids
+	# associated with them.
+	for ( [cid], c in f$conns )
+		{
+		local uid = c$uid;
+		f$info$uid = uid;
+		f$info$id = cid;
+
+@if ( Files::log_include_multi_conn_fields )
+		# Force the connection related sets to have size 1. Only
+		# needed when there was actually more than one connection.
+		if ( conn_count > 1 )
+			{
+			f$info$conn_uids = set(uid);
+			f$info$tx_hosts = set(f$is_orig ? cid$orig_h : cid$resp_h);
+			f$info$rx_hosts = set(f$is_orig ? cid$resp_h : cid$orig_h);
+			}
+@endif
+		Log::write(Files::LOG, f$info);
+		}
 	}

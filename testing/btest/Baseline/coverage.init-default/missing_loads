@@ -5,6 +5,7 @@
 -./frameworks/cluster/nodes/proxy.zeek
 -./frameworks/cluster/nodes/worker.zeek
 -./frameworks/cluster/setup-connections.zeek
+-./frameworks/files/deprecated-files-log-fields.zeek
 -./frameworks/intel/cluster.zeek
 -./frameworks/netcontrol/cluster.zeek
 -./frameworks/openflow/cluster.zeek

@@ -156,6 +156,8 @@ static int func_hdr_cond_epoch = 0;
 EnumType* cur_enum_type = nullptr;
 static ID* cur_decl_type_id = nullptr;
 
+std::set<std::string> module_names;
+
 static void parse_new_enum(void)
 	{
 	// Starting a new enum definition.
@@ -1269,6 +1271,7 @@ decl:
 		TOK_MODULE TOK_ID ';'
 			{
 			current_module = $2;
+			module_names.insert($2);
 			zeekygen_mgr->ModuleUsage(::filename, current_module);
 			}
 

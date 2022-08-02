@@ -1847,6 +1847,7 @@ int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 						Weird("tcp_option_tfo_invalid_len", util::fmt("%d", length));
 						}
 					break;
+					
 				default:
 					add_option_data(option_record, o, length);
 					break;

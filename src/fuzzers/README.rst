@@ -23,6 +23,9 @@ First configure and build for fuzzing (with libFuzzer) and code coverage::
    variable may be changed to use another flag or direct path to fuzzing engine
    library to link against.
 
+Text/Dictionary-based Corpus
+````````````````````````````
+
 Now start fuzzing to generate an initial corpus (this uses the POP3 fuzzer as
 an example)::
 
@@ -53,6 +56,24 @@ as seed for OSS-Fuzz (check first that the zip file is a size that's sane to
 commit)::
 
     zip -j ../src/fuzzers/pop3-corpus.zip min-corpus/*
+
+pcap-based Corpus
+`````````````````
+
+A corpus can also be generated from representative pcp files using the
+``pcap-to-pkt`` application from pcap_simplify_. The fuzzers only handle a
+single connection at a time, so pcap files with multiple connections will
+need to be split using ``PcapSplitter`` from PcapPlusPlus_ or something
+similar. Once the file has been split, the individual connections can be
+converted into separate pkt files. The ``http`` fuzzer is a good example
+of a fuzzer using such files. The corpus for that fuzzer was initially
+generated from a subset of the pcap files located in ``testing/btest/Traces/http``.
+
+.. _pcap_simplify: https://github.com/JustinAzoff/pcap_simplify
+.. _PcapPlusPlus: https://github.com/seladb/PcapPlusPlus
+
+The converted pkt files can then be zipped as in the text-based section
+above.
 
 Example Build: Run Standalone Fuzz Targets
 ------------------------------------------

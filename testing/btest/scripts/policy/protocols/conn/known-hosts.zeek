@@ -1,5 +1,8 @@
 # A basic test of the known-hosts script's logging and asset_tracking options
 
+# Don't run for C++ scripts because there's no script to compile.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+
 # @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT Known::host_tracking=LOCAL_HOSTS
 # @TEST-EXEC: mv known_hosts.log knownhosts-local.log
 # @TEST-EXEC: btest-diff knownhosts-local.log

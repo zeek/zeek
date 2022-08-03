@@ -1,3 +1,27 @@
+5.1.0-dev.326 | 2022-08-03 09:56:37 -0700
+
+  * updates for gen-C++ maintenance, including skipping some inappropriate tests (Vern Paxson, Corelight)
+
+  * fix for profiling "when" statements (Vern Paxson, Corelight)
+
+  * gen-C++ support for vector bit-shift operations (Vern Paxson, Corelight)
+
+  * corrected wording in some btest comments (Vern Paxson, Corelight)
+
+  * make gen-C++ maintenance scripts directly executable (Vern Paxson, Corelight)
+
+  * ZAM support for bit-shifting (Vern Paxson, Corelight)
+
+  * don't allow deprecated-style mixing of vectors and scaling for shifting (Vern Paxson, Corelight)
+    leverage restrictions placed on shifting (RHS is always unsigned)
+    split deprecated vector operations into separate test, with separate ZAM baseline
+
+  * ZAM fix for vector "in" operator (Vern Paxson, Corelight)
+
+  * ensure that language tests pay attention to .stderr (Vern Paxson, Corelight)
+
+  * fix vector tests, including checking for errors (Vern Paxson, Corelight)
+
 5.1.0-dev.312 | 2022-08-02 12:37:51 -0700
 
   * Update plugins.hooks baseline with new DHCP options (peter.cullen, Corelight)

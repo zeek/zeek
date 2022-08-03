@@ -1,26 +1,26 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 function test_case(msg: string, expect: bool)
         {
         print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
         }
 
+global p1: port = 1/icmp;
+global p2: port = 2/udp;
+global p3: port = 3/tcp;
+global p4: port = 4/unknown;
+global p5 = 123/tcp;
+
+# maximum allowed values for each port type
+global p6: port = 255/icmp;
+global p7: port = 65535/udp;
+global p8: port = 65535/tcp;
+global p9: port = 255/unknown;
 
 event zeek_init()
 {
-	local p1: port = 1/icmp;
-	local p2: port = 2/udp;
-	local p3: port = 3/tcp;
-	local p4: port = 4/unknown;
-	local p5 = 123/tcp;
-
-	# maximum allowed values for each port type
-	local p6: port = 255/icmp;
-	local p7: port = 65535/udp;
-	local p8: port = 65535/tcp;
-	local p9: port = 255/unknown;
-
 	# Type inference test
 
 	test_case( "type inference", type_name(p5) == "port" );

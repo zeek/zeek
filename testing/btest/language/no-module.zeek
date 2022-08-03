@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT secondtestfile >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 # This is the same test as "module.zeek", but here we omit the module definition
 

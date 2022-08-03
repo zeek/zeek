@@ -45,6 +45,8 @@ extern VectorValPtr vec_op_or__CPP(const VectorValPtr& v1, const VectorValPtr& v
 extern VectorValPtr vec_op_xor__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
 extern VectorValPtr vec_op_andand__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
 extern VectorValPtr vec_op_oror__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
+extern VectorValPtr vec_op_lshift__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
+extern VectorValPtr vec_op_rshift__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
 
 // Vector relational operations.
 extern VectorValPtr vec_op_lt__CPP(const VectorValPtr& v1, const VectorValPtr& v2);

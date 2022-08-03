@@ -1,5 +1,8 @@
 # A basic test of the known-services script's logging and asset_tracking options
 
+# Don't run for C++ scripts because there's no script to compile.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+
 # @TEST-EXEC: zeek -r $TRACES/var-services-std-ports.trace %INPUT Known::service_tracking=LOCAL_HOSTS
 # @TEST-EXEC: mv known_services.log knownservices-local.log
 # @TEST-EXEC: btest-diff knownservices-local.log

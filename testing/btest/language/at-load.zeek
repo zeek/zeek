@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 # In this script, we try to access each object defined in a "@load"ed script
 

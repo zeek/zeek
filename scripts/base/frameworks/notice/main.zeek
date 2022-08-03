@@ -538,6 +538,7 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 	     n$suppress_for != 0secs )
 		{
 		event Notice::begin_suppression(n$ts, n$suppress_for, n$note, n$identifier);
+		suppressing[n$note, n$identifier] = n$ts + n$suppress_for;
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
 		event Notice::manager_begin_suppression(n$ts, n$suppress_for, n$note, n$identifier);
 @endif

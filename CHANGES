@@ -1,3 +1,23 @@
+5.1.0-dev.329 | 2022-08-03 10:26:45 -0700
+
+  * testing/missing-enum-value: redef exit_only_after_terminate=T (Arne Welzel, Corelight)
+
+    Seems this was the intention all along as the corresponding terminate()
+    call is there.
+
+  * option.bif: Short-circuit option changes when terminating (Arne Welzel, Corelight)
+
+    Due to the asynchronous behavior of the input framework and broker
+    communication, change handlers were previously called even after
+    zeek_done() event processing completed and also broker shutdown.
+
+    Accessing broker store handles within change handlers this late
+    triggered invalid Broker store handle messages:
+
+        error in ././my_option_store.zeek, line 13: invalid Broker store handle (Broker::put(Test::store, to_any_coercemy_option, to_any_coerceTest::new_value, 0 secs) and broker::store::{})
+
+    Fixes #2010
+
 5.1.0-dev.326 | 2022-08-03 09:56:37 -0700
 
   * updates for gen-C++ maintenance, including skipping some inappropriate tests (Vern Paxson, Corelight)

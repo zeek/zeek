@@ -963,10 +963,10 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 			{
 			if ( is_integral )
 				{
-				if ( i1 < 1 )
+				if ( i1 < 0 )
 					RuntimeError("left shifting a negative number is undefined");
 
-				i3 = i1 << i2;
+				i3 = i1 << static_cast<zeek_uint_t>(i2);
 				}
 
 			else if ( is_unsigned )
@@ -979,7 +979,7 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 		case EXPR_RSHIFT:
 			{
 			if ( is_integral )
-				i3 = i1 >> i2;
+				i3 = i1 >> static_cast<zeek_uint_t>(i2);
 
 			else if ( is_unsigned )
 				u3 = u1 >> u2;

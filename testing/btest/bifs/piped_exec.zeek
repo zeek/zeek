@@ -8,7 +8,7 @@ cmds = string_cat(cmds, "\nprint \"foobar\";");
 # If we're using generated C++, turn that off for the pipe execution,
 # as otherwise we'll get a complaint that there's no corresponding
 # C++ bodies found for that zeek instance.
-if ( piped_exec("export -n ZEEK_USE_CPP; zeek", cmds) != T )
+if ( piped_exec("unset ZEEK_USE_CPP; zeek", cmds) != T )
 	exit(1);
 
 # Test null output.

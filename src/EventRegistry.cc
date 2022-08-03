@@ -136,4 +136,14 @@ void EventRegistry::SetErrorHandler(std::string_view name)
 	                          std::string(name).c_str());
 	}
 
+void EventRegistry::ActivateAllHandlers()
+	{
+	auto event_names = AllHandlers();
+	for ( const auto& name : event_names )
+		{
+		if ( auto event = Lookup(name) )
+			event->SetGenerateAlways();
+		}
+	}
+
 	} // namespace zeek

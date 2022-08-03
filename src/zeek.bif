@@ -5366,16 +5366,7 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 ## only useful for debugging and causes reduced performance.
 function generate_all_events%(%) : bool
 	%{
-	auto event_names = event_registry->AllHandlers();
-	for ( const auto& name: event_names )
-		{
-		auto event = event_registry->Lookup(name);
-		if ( event == nullptr )
-			continue;
-
-		event->SetGenerateAlways();
-		}
-
+	event_registry->ActivateAllHandlers();
 	return zeek::val_mgr->True();
 	%}
 

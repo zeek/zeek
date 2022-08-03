@@ -1,3 +1,29 @@
+5.1.0-dev.331 | 2022-08-03 10:27:28 -0700
+
+  * input/config: Use thread-safe Fmt() rather than util::fmt() for regex formatting (Arne Welzel, Corelight)
+
+    Calling util::fmt() from DoUpdate() of a thread is not safe as it is
+    using a statically allocated buffer and other threads or the main
+    thread may concurrently modify this buffer.
+
+    This was found by observing the scripts.base.frameworks.config.several-files
+    failing once in a blue moon (1/250 sometimes 1/1000 runs) with messages like
+    "Failed to compile regex: Parenthesis is not closed.":
+
+        scripts.base.frameworks.config.several-files ...
+          > btest-bg-run zeek zeek -b %INPUT
+          > btest-bg-wait 10
+        ... scripts.base.frameworks.config.several-files failed
+          % 'btest-bg-wait 10' failed unexpectedly (exit code 1)
+          % cat .stderr
+          The following processes did not terminate:
+          zeek -b /home/awelzel/corelight-oss/zeek/testing/btest/.tmp/scripts.base.frameworks.config.several-files/several-files.zeek
+          -----------
+          <<< [3667265] zeek -b /home/awelzel/corelight-oss/zeek/testing/btest/.tmp/scripts.base.frameworks.config.several-files/several-files.zeek
+          error: ../configfile1/Input::READER_CONFIG: Failed to compile regex: Parenthesis is not closed.
+          received termination signal
+          >>>
+
 5.1.0-dev.329 | 2022-08-03 10:26:45 -0700
 
   * testing/missing-enum-value: redef exit_only_after_terminate=T (Arne Welzel, Corelight)

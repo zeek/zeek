@@ -10,7 +10,7 @@ redef enum Notice::Type += {
 # The second notice needs to be scheduled due to how the notice framework
 # uses the event queue.
 
-event second_notice()
+event third_notice()
 	{
 	NOTICE([$note=Test_Notice, $msg="another test", $identifier="static"]);
 	}
@@ -18,6 +18,7 @@ event second_notice()
 event zeek_init()
 	{
 	NOTICE([$note=Test_Notice, $msg="test", $identifier="static"]);
-	schedule 1msec { second_notice() };
+	NOTICE([$note=Test_Notice, $msg="test again", $identifier="static"]);
+	schedule 1msec { third_notice() };
 	}
 

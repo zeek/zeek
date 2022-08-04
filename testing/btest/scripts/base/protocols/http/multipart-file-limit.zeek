@@ -1,3 +1,7 @@
+# Don't run for C++ scripts because the multiple invocations lead to
+# some runs having complaints that there are no scripts.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+
 # @TEST-EXEC: zeek -b -C -r $TRACES/http/multipart.trace base/protocols/http
 # @TEST-EXEC: btest-diff http.log
 # @TEST-EXEC: zeek -b -C -r $TRACES/http/multipart.trace base/protocols/http %INPUT >out-limited

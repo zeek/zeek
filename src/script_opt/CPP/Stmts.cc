@@ -495,7 +495,7 @@ void CPPCompile::GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var,
 	StartBlock();
 
 	Emit("auto k__CPP = lve__CPP.GetHashKey();");
-	Emit("auto* current_tev__CPP = lve__CPP.GetValue<TableEntryVal*>();");
+	Emit("auto* current_tev__CPP = lve__CPP.value;");
 	Emit("auto ind_lv__CPP = tv__CPP->RecreateIndex(*k__CPP);");
 
 	if ( value_var )

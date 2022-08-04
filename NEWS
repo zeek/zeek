@@ -45,6 +45,10 @@ Changed Functionality
 - The default logging directory is now set globally across all log
   writers through ``Log::default_logdir``.
 
+- Calling `Option::set()` when Zeek is terminating is now a noop and returns `F`.
+  This prevents callbacks into script-land through change handlers when parts
+  of the environment have already been torn down.
+
 Deprecated Functionality
 ------------------------
 

@@ -10,6 +10,11 @@ module Option;
 static bool call_option_handlers_and_set_value(zeek::StringVal* name, const zeek::detail::IDPtr& i,
                                                zeek::ValPtr val, zeek::StringVal* location)
 	{
+	// when shutting down, don't call back into script land handlers as
+	// these may use resources that have already been shutdown.
+	if ( zeek::run_state::terminating )
+		return false;
+
 	if ( i->HasOptionHandlers() )
 		{
 		for ( auto handler_function : i->GetOptionHandlers() )

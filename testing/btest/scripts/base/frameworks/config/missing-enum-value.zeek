@@ -13,6 +13,8 @@ no_color_vec
 
 @load base/frameworks/config
 
+redef exit_only_after_terminate=T;
+
 type Color: enum { Red, Green, Blue, };
 
 option mycolors = set(Red, Green);
@@ -23,7 +25,9 @@ option bad_color_vec: vector of Color = { Red };
 option no_color_vec: vector of Color = { Red };
 
 event zeek_init()
-	{ Config::read_config("../configfile"); }
+	{
+	Config::read_config("../configfile");
+	}
 
 event Input::end_of_data(name: string, source:string)
 	{

@@ -1,4 +1,9 @@
 # This verifies Zeek's ability to load scripts from stdin.
+#
+# Don't run for C++ scripts because the multiple invocations lead to
+# some runs having complaints that there are no scripts.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+#
 # @TEST-EXEC: echo 'print "stdin";' | zeek -b >output.implicit
 # @TEST-EXEC: echo 'print "stdin";' | zeek -b - >output.explicit
 # @TEST-EXEC: echo 'print "stdin";' | zeek -b %INPUT >output.nostdin

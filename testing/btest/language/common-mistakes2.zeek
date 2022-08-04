@@ -1,9 +1,10 @@
 # A companion to language/common-mistakes.zeek.  Split off because we skip
-# this test when using ZAM, since it employs a type-checking violation via
-# vector-of-any, which doesn't seem worth going out of our way to support
-# in ZAM (and it isn't dead simple to do so).
+# this test when using script optimization, since it employs a type-checking
+# violation via vector-of-any, which doesn't seem worth going out of our way
+# to support for script optimization.
 
 # @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 
 # @TEST-EXEC: zeek -b %INPUT >out 2>err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out

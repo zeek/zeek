@@ -1,19 +1,19 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 function test_case(msg: string, expect: bool)
         {
         print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
         }
 
+global p1: pattern = /foo|bar/; 
+global p2: pattern = /oob/; 
+global p3: pattern = /^oob/; 
+global p4 = /foo/;
 
 event zeek_init()
 {
-	local p1: pattern = /foo|bar/; 
-	local p2: pattern = /oob/; 
-	local p3: pattern = /^oob/; 
-	local p4 = /foo/;
-
 	# Type inference tests
 
 	test_case( "type inference", type_name(p4) == "pattern" );

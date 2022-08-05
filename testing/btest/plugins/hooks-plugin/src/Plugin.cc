@@ -1,4 +1,3 @@
-
 #include "Plugin.h"
 
 #include <Conn.h>
@@ -8,6 +7,7 @@
 #include <RunState.h>
 #include <threading/Formatter.h>
 #include <cstring>
+#include <set>
 
 namespace btest::plugin::Demo_Hooks
 	{
@@ -15,6 +15,22 @@ Plugin plugin;
 	}
 
 using namespace btest::plugin::Demo_Hooks;
+
+// Sanitize arguments for the following functions with (...). These
+// receiving the current version string or parts of it and make the
+// baseline non-deterministic.
+static std::set<std::string> sanitized_functions = {
+	"Version::parse",
+	"gsub",
+	"split_string1",
+	"lstrip",
+	"to_count",
+	"cat",
+	"Telemetry::__dbl_gauge_metric_get_or_add",
+	"Telemetry::gauge_with",
+	"Telemetry::make_labels",
+	"Telemetry::gauge_family_set",
+};
 
 zeek::plugin::Configuration Plugin::Configure()
 	{
@@ -58,11 +74,7 @@ static void describe_hook_args(const zeek::plugin::HookArgumentList& args, zeek:
 			// For function calls we remove args for unstable arguments
 			// from parsing the version in `base/misc/version`.
 			if ( i->GetType() == zeek::plugin::HookArgument::FUNC &&
-			     (::strcmp(d->Description(), "Version::parse") == 0 ||
-			      ::strcmp(d->Description(), "gsub") == 0 ||
-			      ::strcmp(d->Description(), "split_string1") == 0 ||
-			      ::strcmp(d->Description(), "lstrip") == 0 ||
-			      ::strcmp(d->Description(), "to_count") == 0) )
+			     sanitized_functions.count(d->Description()) != 0 )
 				serialize_args = false;
 
 			continue;
@@ -105,10 +117,8 @@ std::pair<bool, zeek::ValPtr> Plugin::HookFunctionCall(const zeek::Func* func,
 
 	// For function calls we remove args for unstable arguments
 	// from parsing the version in `base/misc/version`.
-	if ( ::strcmp(d.Description(), "Version::parse") == 0 ||
-	     ::strcmp(d.Description(), "gsub") == 0 ||
-	     ::strcmp(d.Description(), "split_string1") == 0 ||
-	     ::strcmp(d.Description(), "lstrip") == 0 || ::strcmp(d.Description(), "to_count") == 0 )
+	//
+	if ( sanitized_functions.count(d.Description()) != 0 )
 		d.Add("(...)");
 	else
 		zeek::plugin::HookArgument(args).Describe(&d);

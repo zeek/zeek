@@ -28,6 +28,23 @@ New Functionality
   patterns in Zeek scripts will cause the '.' character to also match newline
   characters.
 
+- Added a new telemetry framework for providing high-level access to Zeek's
+  metric subsystem. This framework allows script writers to use different
+  metric types (counters, gauges and histograms) for tracking metrics without
+  using lower-level BiFs from ``telemetry.bif``. Additionally, metrics can
+  now be accessed from script land using ``Telemetry::collect_metrics() and
+  ``Telemetry::collect_histogram_metrics()``.
+
+  The framework is located in ``base/frameworks/telemetry``.
+
+  In addition to the Prometheus endpoint for metrics export that has existed
+  since Zeek 4.1, two new log streams, ``telemetry.log`` and ``telemetry_histogram.log``,
+  can be enabled by loading ``policy/frameworks/telemetry/log``. This policy
+  script is included in ``local.zeek`` by default.
+
+  For further details on the framework and examples, please refer to the
+  Zeek documentation.
+
 Changed Functionality
 ---------------------
 

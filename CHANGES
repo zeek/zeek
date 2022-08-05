@@ -1,3 +1,15 @@
+5.1.0-dev.335 | 2022-08-05 16:50:18 +0200
+
+  * Introduce telemetry framework (Arne Welzel, Corelight)
+
+    Adds base/frameworks/telemetry with wrappers around telemetry.bif
+    and updates telemetry/Manager to support collecting metrics from
+    script land.
+
+    Adds policy/frameworks/telemetry/log for logging of metrics data
+    into a new telemetry.log and telemetry_histogram.log and add into
+    local.zeek by default.
+
 5.1.0-dev.331 | 2022-08-03 10:27:28 -0700
 
   * input/config: Use thread-safe Fmt() rather than util::fmt() for regex formatting (Arne Welzel, Corelight)

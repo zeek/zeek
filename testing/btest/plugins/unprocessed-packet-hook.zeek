@@ -6,5 +6,4 @@
 # @TEST-EXEC: hexdump -C unprocessed.pcap > unprocessed.pcap.hex
 # @TEST-EXEC: btest-diff unprocessed.pcap.hex
 
-@unload base/misc/version
 @load base/init-default

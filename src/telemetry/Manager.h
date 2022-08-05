@@ -256,27 +256,6 @@ public:
 		}
 
 	/**
-	 * Accesses a counter singleton, i.e., a counter that belongs to a family
-	 * without label dimensions (which thus only has a single member). Creates
-	 * the hosting metric family as well as the counter lazily if necessary.
-	 * @param prefix The prefix (namespace) this family belongs to.
-	 * @param name The human-readable name of the metric, e.g., `requests`.
-	 * @param helptext Short explanation of the metric.
-	 * @param unit Unit of measurement.
-	 * @param is_sum Indicates whether this metric accumulates something, where
-	 *               only the total value is of interest.
-	 */
-	template <class ValueType = int64_t>
-	Counter<ValueType> CounterSingleton(std::string_view prefix, std::string_view name,
-	                                    std::string_view helptext, std::string_view unit = "1",
-	                                    bool is_sum = false)
-		{
-		auto labels = Span<const std::string_view>{};
-		auto fam = CounterFamily<ValueType>(prefix, name, labels, helptext, unit, is_sum);
-		return fam.GetOrAdd({});
-		}
-
-	/**
 	 * @return A gauge metric family. Creates the family lazily if necessary.
 	 * @param prefix The prefix (namespace) this family belongs to.
 	 * @param name The human-readable name of the metric, e.g., `requests`.
@@ -349,27 +328,6 @@ public:
 		{
 		auto lbl_span = Span{labels.begin(), labels.size()};
 		return GaugeInstance(prefix, name, lbl_span, helptext, unit, is_sum);
-		}
-
-	/**
-	 * Accesses a gauge singleton, i.e., a gauge that belongs to a family
-	 * without label dimensions (which thus only has a single member). Creates
-	 * the hosting metric family as well as the gauge lazily if necessary.
-	 * @param prefix The prefix (namespace) this family belongs to.
-	 * @param name The human-readable name of the metric, e.g., `requests`.
-	 * @param helptext Short explanation of the metric.
-	 * @param unit Unit of measurement.
-	 * @param is_sum Indicates whether this metric accumulates something, where
-	 *               only the total value is of interest.
-	 */
-	template <class ValueType = int64_t>
-	Gauge<ValueType> GaugeSingleton(std::string_view prefix, std::string_view name,
-	                                std::string_view helptext, std::string_view unit = "1",
-	                                bool is_sum = false)
-		{
-		auto labels = Span<const std::string_view>{};
-		auto fam = GaugeFamily<ValueType>(prefix, name, labels, helptext, unit, is_sum);
-		return fam.GetOrAdd({});
 		}
 
 	// Forces the compiler to use the type `Span<const T>` instead of trying to
@@ -483,39 +441,6 @@ public:
 		{
 		auto lbls = Span{labels.begin(), labels.size()};
 		return HistogramInstance(prefix, name, lbls, default_upper_bounds, helptext, unit, is_sum);
-		}
-
-	/**
-	 * Returns a histogram metric singleton, i.e., the single instance of a
-	 * family without label dimensions. Creates all objects lazily if necessary,
-	 * but fails if the full name already belongs to a different family.
-	 * @param prefix The prefix (namespace) this family belongs to. Usually the
-	 *               application or protocol name, e.g., `http`. The prefix `caf`
-	 *               as well as prefixes starting with an underscore are
-	 *               reserved.
-	 * @param name The human-readable name of the metric, e.g., `requests`.
-	 * @param default_upper_bounds Upper bounds for the metric buckets.
-	 * @param helptext Short explanation of the metric.
-	 * @param unit Unit of measurement. Please use base units such as `bytes` or
-	 *             `seconds` (prefer lowercase). The pseudo-unit `1` identifies
-	 *             dimensionless counts.
-	 * @param is_sum Setting this to `true` indicates that this metric adds
-	 *               something up to a total, where only the total value is of
-	 *               interest. For example, the total number of HTTP requests.
-	 * @note The first call wins when calling this function multiple times with
-	 *       different bucket settings. Users may also override
-	 *       @p default_upper_bounds via run-time configuration.
-	 */
-	template <class ValueType = int64_t>
-	Histogram<ValueType> HistogramSingleton(std::string_view prefix, std::string_view name,
-	                                        ConstSpan<ValueType> default_upper_bounds,
-	                                        std::string_view helptext, std::string_view unit = "1",
-	                                        bool is_sum = false)
-		{
-		auto lbls = Span<const std::string_view>{};
-		auto fam = HistogramFamily<ValueType>(prefix, name, lbls, default_upper_bounds, helptext,
-		                                      unit, is_sum);
-		return fam.GetOrAdd({});
 		}
 
 protected:

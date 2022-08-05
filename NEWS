@@ -21,6 +21,10 @@ Breaking Changes
 - The Dictionary and PDict classes are now C++ templates. This may cause
   plugin/package builds to fail due to needing to modify uses of them to match.
 
+- The low-level singleton Telemetry BIFs have been removed with the assumption that
+  there haven't been any users. Singleton metrics can be instantiated by providing
+  an empty label vector instead and aren't in any way a special concept.
+
 New Functionality
 -----------------
 

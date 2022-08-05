@@ -1,3 +1,7 @@
+5.1.0-dev.337 | 2022-08-05 16:19:59 +0000
+
+  * GH-2034: Store module names and use them in lookups for ifdef (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.335 | 2022-08-05 16:50:18 +0200
 
   * Introduce telemetry framework (Arne Welzel, Corelight)

@@ -1,3 +1,9 @@
+5.1.0-dev.341 | 2022-08-05 16:21:13 +0000
+
+  * Added test case with back-to-back notices (Annie Bryan)
+
+  * Fix notice suppression atomicity bug (Annie Bryan)
+
 5.1.0-dev.337 | 2022-08-05 16:19:59 +0000
 
   * GH-2034: Store module names and use them in lookups for ifdef (Tim Wojtulewicz, Corelight)

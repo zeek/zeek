@@ -13,6 +13,11 @@ three@example.com,
 two@example.com,
 one@example.com
 }
+{
+three@example.com,
+two@example.com,
+one@example.com
+}
 one@example.com
 [one@example.com, two@example.com, three@example.com, one@example.com]
 {
@@ -26,9 +31,17 @@ john.smith@email.com
 john.smith@email.com,
 jane.doe@email.com
 }
+{
+"Smith, John" <john.smith@email.com>,
+"Doe, Jane" <jane.doe@email.com>
+}
 john.smith@email.com
 [john.smith@email.com, jane.doe@email.com]
 {
 john.smith@email.com,
 jane.doe@email.com
+}
+{
+"Smith, John" <john.smith@email.com>,
+"Doe, Jane" <jane.doe@email.com>
 }

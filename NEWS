@@ -45,6 +45,14 @@ New Functionality
   For further details on the framework and examples, please refer to the
   Zeek documentation.
 
+- Allow redef'ing the ``&log`` attribute of record fields:
+
+	redef Notice::Info$email_dest -= { &log };
+
+  While the syntax allows for any attribute, only ``&log`` is supported. The
+  semantics for other record field attributes are not easy to grasp and there
+  were no obvious use-cases identified.
+
 Changed Functionality
 ---------------------
 

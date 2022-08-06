@@ -2,6 +2,8 @@
 # that's supplied via command line script.
 
 # @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; unset BRO_DISABLE_BROXYGEN; zeek %INPUT -e 'redef myvar=10; print myvar' >output 2>&1
+# @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; unset BRO_DISABLE_BROXYGEN; zeek -e '@load %INPUT print myvar' >>output 2>&1
+# @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; unset BRO_DISABLE_BROXYGEN; zeek %INPUT -e 'module mymodule; print myvar' >>output 2>&1
 # @TEST-EXEC: btest-diff output
 
 const myvar = 5 &redef;

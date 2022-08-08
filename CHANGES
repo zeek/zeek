@@ -1,3 +1,7 @@
+5.1.0-dev.344 | 2022-08-08 11:03:24 -0700
+
+  * Squelch the zeekygen warnings for command line (AmazingPP)
+
 5.1.0-dev.341 | 2022-08-05 16:21:13 +0000
 
   * Added test case with back-to-back notices (Annie Bryan)

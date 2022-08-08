@@ -1323,7 +1323,7 @@ decl:
 				              std::unique_ptr<std::vector<AttrPtr>>($11));
 			}
 
-	|	TOK_TYPE global_id ':'
+	|	TOK_TYPE def_global_id ':'
 			{ cur_decl_type_id = $2; zeekygen_mgr->StartType({NewRef{}, $2});  }
 		type opt_attr ';'
 			{

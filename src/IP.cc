@@ -39,6 +39,10 @@ static VectorValPtr BuildOptionsVal(const u_char* data, int len)
 			{
 			// PadN or other option
 			uint16_t off = 2 * sizeof(uint8_t);
+
+			if ( len < opt->ip6o_len + off )
+				break;
+
 			rv->Assign(1, opt->ip6o_len);
 			rv->Assign(2, new String(data + off, opt->ip6o_len, true));
 			data += opt->ip6o_len + off;

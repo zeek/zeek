@@ -76,6 +76,8 @@ zeek::RecordValPtr Manager::GetMetricOptsRecord(Manager::MetricType metric_type,
                                                 const broker::telemetry::metric_family_hdl* family)
 	{
 	static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
+	static auto double_vec_type = zeek::id::find_type<zeek::VectorType>("double_vec");
+	static auto count_vec_type = zeek::id::find_type<zeek::VectorType>("index_vec");
 	static auto metric_opts_type = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
 
 	static auto prefix_idx = metric_opts_type->FieldOffset("prefix");
@@ -107,7 +109,7 @@ zeek::RecordValPtr Manager::GetMetricOptsRecord(Manager::MetricType metric_type,
 	// the template type and whether this is a counter, gauge or
 	// histogram.
 	zeek_int_t metric_type_int = -1;
-	if constexpr ( std::is_same<T, double>::value )
+	if constexpr ( std::is_same_v<T, double> )
 		{
 		switch ( metric_type )
 			{
@@ -143,6 +145,45 @@ zeek::RecordValPtr Manager::GetMetricOptsRecord(Manager::MetricType metric_type,
 
 	r->Assign(metric_type_idx,
 	          zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(metric_type_int));
+
+	// Add bounds and optionally count_bounds into the MetricOpts record.
+	static auto opts_rt = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
+	static auto opts_rt_idx_bounds = opts_rt->FieldOffset("bounds");
+	static auto opts_rt_idx_count_bounds = opts_rt->FieldOffset("count_bounds");
+
+	if ( metric_type == MetricType::Histogram )
+		{
+		auto add_double_bounds = [](auto& r, const auto* histogram_family)
+		{
+			size_t buckets = broker::telemetry::num_buckets(histogram_family);
+			auto bounds_vec = make_intrusive<zeek::VectorVal>(double_vec_type);
+			for ( size_t i = 0; i < buckets; i++ )
+				bounds_vec->Append(
+					as_double_val(broker::telemetry::upper_bound_at(histogram_family, i)));
+
+			r->Assign(opts_rt_idx_bounds, bounds_vec);
+		};
+
+		if constexpr ( std::is_same_v<T, int64_t> )
+			{
+			auto histogram_family = broker::telemetry::as_int_histogram_family(family);
+			add_double_bounds(r, histogram_family);
+
+			// Add count_bounds to int64_t histograms
+			size_t buckets = broker::telemetry::num_buckets(histogram_family);
+			auto count_bounds_vec = make_intrusive<zeek::VectorVal>(count_vec_type);
+			for ( size_t i = 0; i < buckets; i++ )
+				count_bounds_vec->Append(
+					val_mgr->Count(broker::telemetry::upper_bound_at(histogram_family, i)));
+
+			r->Assign(opts_rt_idx_count_bounds, count_bounds_vec);
+			}
+		else
+			{
+			static_assert(std::is_same_v<T, double>);
+			add_double_bounds(r, broker::telemetry::as_dbl_histogram_family(family));
+			}
+		}
 
 	metric_opts_cache.insert({family, r});
 
@@ -197,8 +238,6 @@ zeek::RecordValPtr Manager::CollectedHistogramMetric::AsHistogramMetricRecord() 
 	static auto count_observations_idx = histogram_metric_type->FieldOffset("count_observations");
 	static auto count_sum_idx = histogram_metric_type->FieldOffset("count_sum");
 
-	zeek::RecordValPtr opts_record;
-
 	auto r = make_intrusive<zeek::RecordVal>(histogram_metric_type);
 
 	auto label_values_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
@@ -210,7 +249,7 @@ zeek::RecordValPtr Manager::CollectedHistogramMetric::AsHistogramMetricRecord() 
 	auto fn = [&](const auto& histogram_data)
 	{
 		using val_t = std::decay_t<decltype(histogram_data.sum)>;
-		opts_record = telemetry_mgr->GetMetricOptsRecord<val_t>(MetricType::Histogram, family);
+		auto opts_record = telemetry_mgr->GetMetricOptsRecord<val_t>(MetricType::Histogram, family);
 		r->Assign(opts_idx, opts_record);
 
 		val_t observations = 0;
@@ -239,47 +278,6 @@ zeek::RecordValPtr Manager::CollectedHistogramMetric::AsHistogramMetricRecord() 
 	};
 
 	std::visit(fn, histogram);
-
-	// This is a bit annoying. The bounds / upper bounds of the individual
-	// buckets are not accessible through the family hdl. We set the
-	// opts$bounds field based on bounds collected from an individual
-	// metric instance.
-	//
-	// As the opts_record is cached by the manager this should only happen
-	// once and not over and over again.
-	//
-	// This is probably working around something that should be fixed
-	// on the broker::telemetry level.
-	static auto opts_rt = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
-	static auto opts_rt_off_bounds = opts_rt->FieldOffset("bounds");
-	static auto opts_rt_off_count_bounds = opts_rt->FieldOffset("count_bounds");
-	static auto bounds_default_val = opts_rt->FieldDefault(opts_rt_off_bounds);
-
-	auto bounds_field_val = opts_record->GetField(opts_rt_off_bounds);
-	if ( ! bounds_field_val || bounds_field_val == bounds_default_val )
-		{
-		auto fn = [&opts_record](const auto& histogram_data)
-		{
-			auto bounds_vec = make_intrusive<zeek::VectorVal>(double_vec_type);
-			for ( const auto& b : histogram_data.buckets )
-				bounds_vec->Append(as_double_val(b.upper_bound));
-
-			opts_record->Assign(opts_rt_off_bounds, bounds_vec);
-
-			// If this is an int64_t histogram, also fill count_bounds
-			using HistogramDataType = std::decay_t<decltype(histogram_data)>;
-			if constexpr ( std::is_same_v<HistogramDataType, IntHistogramData> )
-				{
-				auto count_bounds_vec = make_intrusive<zeek::VectorVal>(count_vec_type);
-				for ( const auto& b : histogram_data.buckets )
-					count_bounds_vec->Append(val_mgr->Count(b.upper_bound));
-
-				opts_record->Assign(opts_rt_off_count_bounds, count_bounds_vec);
-				}
-		};
-
-		std::visit(fn, histogram);
-		}
 
 	return r;
 	}

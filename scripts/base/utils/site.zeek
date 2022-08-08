@@ -257,9 +257,11 @@ function update_neighbor_zones_regex(id: string, new_value: set[string]): set[st
 
 event zeek_init() &priority=10
 	{
-	Option::set_change_handler("Site::local_nets", update_local_nets_table);
-	Option::set_change_handler("Site::local_zones", update_local_zones_regex);
-	Option::set_change_handler("Site::neighbor_zones", update_neighbor_zones_regex);
+	# Have these run with a lower priority so we account for additions/removals
+	# from user created change handlers.
+	Option::set_change_handler("Site::local_nets", update_local_nets_table, -5);
+	Option::set_change_handler("Site::local_zones", update_local_zones_regex, -5);
+	Option::set_change_handler("Site::neighbor_zones", update_neighbor_zones_regex, -5);
 
 	# Use change handler to initialize local_nets mapping table and zones
 	# regexes.

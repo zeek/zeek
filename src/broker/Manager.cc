@@ -401,6 +401,21 @@ void Manager::InitPostScript()
 			opt.broker_write(std::move(str_ls));
 			}
 		}
+	WITH_OPT_MAPPING("broker.metrics.import.topics", "Broker::metrics_import_topics")
+		{
+		if ( auto str = opt.broker_read<std::vector<std::string>>() )
+			{
+			opt.zeek_write(*str);
+			}
+		else
+			{
+			auto ptr = opt.zeek_read()->AsVectorVal();
+			std::vector<std::string> str_ls;
+			for ( unsigned index = 0; index < ptr->Size(); ++index )
+				str_ls.emplace_back(ptr->StringValAt(index)->ToStdString());
+			opt.broker_write(std::move(str_ls));
+			}
+		}
 
 	auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
 	bstate = std::make_shared<BrokerState>(std::move(config), cqs);
@@ -2074,6 +2089,12 @@ void Manager::SetMetricsExportInterval(double value)
 void Manager::SetMetricsExportTopic(std::string value)
 	{
 	bstate->endpoint.metrics_exporter().set_target(std::move(value));
+	}
+
+void Manager::SetMetricsImportTopics(std::vector<std::string> topics)
+	{
+	// XXX: Uhm...
+	// bstate->endpoint.metrics_exporter().set_prefixes(std::move(topics));
 	}
 
 void Manager::SetMetricsExportEndpointName(std::string value)

@@ -2,6 +2,7 @@
 # @TEST-EXEC: btest-diff output
 
 @load base/utils/site
+@load base/frameworks/config
 
 global a = { "site-admin@example.com", "other-site-admin@example.com" };
 global b = { "net-admin@example.com" };
@@ -10,9 +11,34 @@ redef Site::local_admins += {
     [141.142.0.0/16] = a,
     [141.142.100.0/24] = b,
 };
+redef Site::local_nets = set();
+redef Site::local_zones = set();
+redef Site::neighbor_zones = set();
 
 event zeek_init()
     {
     print Site::get_emails(141.142.1.1);
     print Site::get_emails(141.142.100.100);
+
+    print Site::is_local_name("foo.wutang.com") == F;
+    print Site::is_neighbor_name("baz.shaolin.com") == F;
+    print Site::is_local_addr(141.142.1.1) == F;
+    print Site::is_local_addr(141.142.100.100) == F;
+    print 141.142.0.0 in Site::local_nets_table == F;
+    print 141.142.100.100 in Site::local_nets_table == F;
+
+    Config::set_value("Site::local_nets", set(141.142.0.0/16, 141.142.100.0/24));
+    Config::set_value("Site::local_zones", set("wutang.com"));
+    Config::set_value("Site::neighbor_zones", set("shaolin.com"));
+
+    print Site::is_local_name("foo.wutang.com") == T;
+    print Site::is_neighbor_name("baz.shaolin.com") == T;
+    print Site::is_neighbor_name("foo.wutang.com") == F;
+    print Site::is_local_name("baz.shaolin.com") == F;
+    print Site::is_local_addr(141.142.1.1) == T;
+    print Site::is_local_addr(141.142.100.100) == T;
+    print 141.142.1.1 in Site::local_nets_table == T;
+    print 141.142.100.100 in Site::local_nets_table == T;
+    print Site::local_nets_table[141.142.1.1] == 141.142.0.0/16;
+    print Site::local_nets_table[141.142.100.100] == 141.142.100.0/24;
     }

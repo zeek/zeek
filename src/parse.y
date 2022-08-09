@@ -1936,9 +1936,13 @@ event:
 
 				if ( id->IsDeprecated() )
 					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
-				}
 
-			$$ = new EventExpr($1, {AdoptRef{}, $3});
+				$$ = new EventExpr(id->Name(), {AdoptRef{}, $3});
+				}
+			else
+				{
+				$$ = new EventExpr($1, {AdoptRef{}, $3});
+				}
 			}
 	;
 

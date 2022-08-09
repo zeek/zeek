@@ -204,7 +204,7 @@ function send_deploy_response(req: Management::Request::Request)
 		}
 
 	Management::Log::info(fmt("tx Management::Agent::API::deploy_response %s",
-	    Management::result_to_string(res)));
+	    Management::result_vec_to_string(req$results)));
 	Broker::publish(agent_topic(),
 	    Management::Agent::API::deploy_response, req$id, req$results);
 

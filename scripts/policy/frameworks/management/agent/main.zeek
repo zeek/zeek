@@ -262,6 +262,8 @@ event Management::Agent::Runtime::trigger_log_archival(run_archival: bool)
 
 event Management::Supervisor::API::notify_node_exit(node: string, outputs: Management::NodeOutputs)
 	{
+	Management::Log::info(fmt("rx Management::Supervisor::API::notify_node_exit %s", node));
+
 	if ( node in g_nodes )
 		g_outputs[node] = outputs;
 	}

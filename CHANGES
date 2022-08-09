@@ -1,3 +1,7 @@
+5.1.0-dev.351 | 2022-08-09 09:50:13 -0700
+
+  * Fix module-scoped type definitions that conflict with existing global ones (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.349 | 2022-08-08 11:09:04 -0700
 
   * lower priority for change handlers (Yacin Nadji, Corelight)

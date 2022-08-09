@@ -1,0 +1,52 @@
+# @TEST-DOC: Implement disabling_analyzer hook to keep the SSL analyzer enabled for a bit longer.
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls1.2.trace %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+@load base/protocols/ssl
+
+# This is the default, but make it explicit.
+redef SSL::disable_analyzer_after_detection = T;
+
+redef record SSL::Info += {
+	encrypted_data: count &default=0;
+};
+
+# After how many ssl_encrypted_data events to disable the analyzer. The
+# pcap triggers seven, the handshake is over after the first two.
+global encrypted_data_wanted = 4;
+
+# Prevent disabling the SSL analyzer for this connection until we've seen encrypted_data_wanted
+# encrypted data events on it. Our ssl_encrypted_data event handler has the inverse condition.
+hook disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count)
+	{
+	print "disabling_analyzer", c$id, atype, aid;
+	if ( atype != Analyzer::ANALYZER_SSL || ! c?$ssl )
+		return;
+
+	if ( c$ssl$encrypted_data < encrypted_data_wanted )
+		{
+		print "preventing disabling_analyzer", c$id, atype, aid;
+		break;
+		}
+
+	print "allowing disabling_analyzer", c$id, atype, aid;
+	}
+
+event ssl_established(c: connection)
+	{
+	print "established", c$id;
+	}
+
+event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count)
+	{
+	print "analyzer_confirmation", c$id, atype, aid;
+	}
+
+event ssl_encrypted_data(c: connection, is_client: bool, record_version: count, content_type: count, length: count)
+	{
+	++c$ssl$encrypted_data;
+	print "encrypted_data", c$id, is_client, content_type, length, c$ssl$encrypted_data;
+
+	if ( c$ssl?$analyzer_id && c$ssl$encrypted_data >= encrypted_data_wanted )
+		disable_analyzer(c$id, c$ssl$analyzer_id);
+	}

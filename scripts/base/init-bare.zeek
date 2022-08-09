@@ -584,6 +584,22 @@ type fa_metadata: record {
 	inferred: bool &default=T;
 };
 
+## A hook taking a connection, analyzer tag and analyzer id that can be
+## used to veto disabling analyzers. This hook is invoked synchronously
+## during a :zeek:see:`disable_analyzer` call.
+##
+## Scripts implementing this hook should have other logic that will eventually
+## disable the analyzer for the given connection. That is, if a script vetoes
+## disabling an analyzer, it takes responsibility for a later call to
+## :zeek:see:`disable_analyzer`, which may be never.
+##
+## c: The connection
+##
+## atype: The type / tag of the analyzer being disabled.
+##
+## aid: The analyzer ID.
+type disabling_analyzer: hook(c: connection, atype: AllAnalyzers::Tag, aid: count);
+
 ## Fields of a SYN packet.
 ##
 ## .. zeek:see:: connection_SYN_packet

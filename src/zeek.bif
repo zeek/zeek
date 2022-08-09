@@ -4590,6 +4590,15 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 		return zeek::val_mgr->False();
 		}
 
+	static auto disabling_analyzer_hook = id::find_func("disabling_analyzer");
+	if ( disabling_analyzer_hook )
+		{
+		auto hook_rval = disabling_analyzer_hook->Invoke(c->GetVal(), a->GetAnalyzerTag().AsVal(),
+		                                                 zeek::val_mgr->Count(aid));
+		if ( hook_rval && ! hook_rval->AsBool() )
+			return zeek::val_mgr->False();
+		}
+
 	if ( prevent )
 		a->Parent()->PreventChildren(a->GetAnalyzerTag());
 

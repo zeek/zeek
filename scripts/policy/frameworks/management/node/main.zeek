@@ -57,7 +57,8 @@ global g_dispatch_table: table[string] of DispatchCallback = {
 
 event Management::Node::API::node_dispatch_request(reqid: string, action: vector of string, nodes: set[string])
 	{
-	Management::Log::info(fmt("rx Management::Node::API::node_dispatch_request %s %s %s", reqid, action, nodes));
+	Management::Log::info(fmt("rx Management::Node::API::node_dispatch_request %s %s %s",
+	    reqid, action, Management::Util::set_to_vector(nodes)));
 
 	if ( |nodes| > 0 && Cluster::node !in nodes )
 		{

@@ -755,7 +755,8 @@ event Management::Node::API::node_dispatch_response(reqid: string, result: Manag
 
 event Management::Agent::API::node_dispatch_request(reqid: string, action: vector of string, nodes: set[string])
 	{
-	Management::Log::info(fmt("rx Management::Agent::API::node_dispatch_request %s %s %s", reqid, action, nodes));
+	Management::Log::info(fmt("rx Management::Agent::API::node_dispatch_request %s %s %s",
+	    reqid, action, Management::Util::set_to_vector(nodes)));
 
 	local node: string;
 	local cluster_nodes: set[string];

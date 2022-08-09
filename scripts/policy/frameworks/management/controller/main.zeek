@@ -1174,11 +1174,11 @@ event Management::Controller::API::get_id_value_request(reqid: string, id: strin
 
 	local res: Management::Result;
 
-	# Special case: if we have no instances, respond right away.
-	if ( |g_instances_known| == 0 )
+	# Special case: if we have no deployed cluster, respond right away.
+	if ( |g_instances| == 0 )
 		{
 		Management::Log::info(fmt("tx Management::Controller::API::get_id_value_response %s", reqid));
-		res = Management::Result($reqid=reqid, $success=F, $error="no instances connected");
+		res = Management::Result($reqid=reqid, $success=F, $error="no cluster deployed");
 		Broker::publish(Management::Controller::topic,
 		    Management::Controller::API::get_id_value_response,
 		    reqid, vector(res));

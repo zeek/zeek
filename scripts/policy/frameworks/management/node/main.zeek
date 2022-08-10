@@ -57,7 +57,8 @@ global g_dispatch_table: table[string] of DispatchCallback = {
 
 event Management::Node::API::node_dispatch_request(reqid: string, action: vector of string, nodes: set[string])
 	{
-	Management::Log::info(fmt("rx Management::Node::API::node_dispatch_request %s %s %s", reqid, action, nodes));
+	Management::Log::info(fmt("rx Management::Node::API::node_dispatch_request %s %s %s",
+	    reqid, action, Management::Util::set_to_vector(nodes)));
 
 	if ( |nodes| > 0 && Cluster::node !in nodes )
 		{
@@ -102,7 +103,10 @@ event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	# If this is the agent peering, notify it that we're ready
 	if ( peer$network$address == epi$network$address &&
 	     peer$network$bound_port == epi$network$bound_port )
+		{
+		Management::Log::info(fmt("tx Management::Node::API::notify_node_hello %s", Cluster::node));
 		Broker::publish(node_topic, Management::Node::API::notify_node_hello, Cluster::node);
+		}
 	}
 
 event zeek_init()

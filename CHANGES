@@ -1,3 +1,13 @@
+5.1.0-dev.357 | 2022-08-10 14:16:33 -0700
+
+  * Management framework: minor bugfixes and tweaks (Christian Kreibich, Corelight)
+
+    - bump cluster testsuite
+    - log node set in dispatch requests cleanly
+    - log additional node events
+    - upon deployment, make agent log multiple node results
+    - fix early return condition for get-id-value
+
 5.1.0-dev.351 | 2022-08-09 09:50:13 -0700
 
   * Fix module-scoped type definitions that conflict with existing global ones (Tim Wojtulewicz, Corelight)

@@ -204,7 +204,7 @@ function send_deploy_response(req: Management::Request::Request)
 		}
 
 	Management::Log::info(fmt("tx Management::Agent::API::deploy_response %s",
-	    Management::result_to_string(res)));
+	    Management::result_vec_to_string(req$results)));
 	Broker::publish(agent_topic(),
 	    Management::Agent::API::deploy_response, req$id, req$results);
 
@@ -262,6 +262,8 @@ event Management::Agent::Runtime::trigger_log_archival(run_archival: bool)
 
 event Management::Supervisor::API::notify_node_exit(node: string, outputs: Management::NodeOutputs)
 	{
+	Management::Log::info(fmt("rx Management::Supervisor::API::notify_node_exit %s", node));
+
 	if ( node in g_nodes )
 		g_outputs[node] = outputs;
 	}
@@ -753,7 +755,8 @@ event Management::Node::API::node_dispatch_response(reqid: string, result: Manag
 
 event Management::Agent::API::node_dispatch_request(reqid: string, action: vector of string, nodes: set[string])
 	{
-	Management::Log::info(fmt("rx Management::Agent::API::node_dispatch_request %s %s %s", reqid, action, nodes));
+	Management::Log::info(fmt("rx Management::Agent::API::node_dispatch_request %s %s %s",
+	    reqid, action, Management::Util::set_to_vector(nodes)));
 
 	local node: string;
 	local cluster_nodes: set[string];

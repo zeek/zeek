@@ -1,3 +1,22 @@
+5.1.0-dev.386 | 2022-08-11 11:56:55 -0700
+
+  * Add a field to Modbus/TCP log to indicate the Modbus PDU type (Michael Torres)
+
+    Add the `pdu_type` field to Modbus over TCP logs to indicate whether the Modbus
+    message was a request or a response. Due to the client/server nature of Modbus
+    over TCP/IP, all messages from the TCP session originator are requests, while
+    all messages from the TCP session responder are responses.
+
+    Adding this information to the default log surfaces protocol metadata in a way
+    that doesn't require users to understand the Modbus over TCP protocol.
+
+  * Add modbus transaction and unit ids to logs (Michael Torres)
+
+    Add transaction IDs and unit IDs to default modbus over TCP/IP logs.
+    Update the relevant testing baselines to account for the extra fields.
+
+  * Enable modbus logging for requests (Michael Torres)
+
 5.1.0-dev.382 | 2022-08-11 10:41:08 -0700
 
   * UPDATED: improving email address splitting for common comma case (TheAvgJojo)

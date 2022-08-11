@@ -16,8 +16,14 @@ export {
 		uid:       string         &log;
 		## Identifier for the connection.
 		id:        conn_id        &log;
+		## Modbus transaction ID
+		tid:	   count         &log &optional;
+		## The terminal unit identifier for the message
+		unit:	   count         &log &optional;
 		## The name of the function message that was sent.
 		func:      string         &log &optional;
+		## Whether this PDU was a response ("RESP") or request ("REQ")
+		pdu_type:  string         &log &optional;
 		## The exception if the response was a failure.
 		exception: string         &log &optional;
 	};
@@ -48,14 +54,18 @@ event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &prio
 		}
 
 	c$modbus$ts   = network_time();
+	c$modbus$tid = headers$tid;
+	c$modbus$unit = headers$uid;
 	c$modbus$func = function_codes[headers$function_code];
+	## If this message is from the TCP originator, it is a request. Otherwise,
+	## it is a response.
+	c$modbus$pdu_type = is_orig ? "REQ" : "RESP";
 	}
 
 event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &priority=-5
 	{
-	# Only log upon replies.
-	# Also, don't log now if this is an exception (log in the exception event handler)
-	if ( ! is_orig && ( headers$function_code <= 0x81 || headers$function_code >= 0x98 ) )
+	# Don't log now if this is an exception (log in the exception event handler)
+	if ( headers$function_code <= 0x81 || headers$function_code >= 0x98 )
 		Log::write(LOG, c$modbus);
 	}
 

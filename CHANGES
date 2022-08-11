@@ -1,3 +1,31 @@
+5.1.0-dev.368 | 2022-08-11 16:01:32 +0200
+
+  * GH-1678: Introduce global disabling_analyzer() hook to veto disable_analyzer() (Arne Welzel, Corelight)
+
+    This hook can be used to coordinate disabling an analyzer for a
+    given connection. The contract is simple: Any script can veto a
+    disable_analyzer() call by breaking from this hook. The decision
+    is local to the script taking into account any state attached to
+    the connection object or script specific state stored elsewhere. A
+    script breaking from the hook takes over the responsibility to
+    call disable_analyzer() at a later point when it finds the
+    condition due to which it vetoed fulfilled (which may be never).
+
+    Signature:
+
+        disabling_analyzer: hook(c: connection, atype: AllAnalyzers::Tag, aid: count);
+
+    Example use-cases are keeping the SSL analyzer enabled for
+    finger-printing until a certain amount of bytes or packets have
+    been transferred or similarly the connection duration exceed a
+    certain threshold.
+
+    Other example use-cases might be keeping analyzers for SSH, RDP or SSL
+    enabled for connections from specific subnets.
+
+  * ssl: Only delete `c$ssl$analyzer_id` when disabling the analyzer
+    was successful (Arne Welzel, Corelight)
+
 5.1.0-dev.364 | 2022-08-11 11:59:00 +0200
 
   * GH-2000: Support redef'ing the &log attribute of record fields (Arne Welzel, Corelight)

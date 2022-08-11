@@ -585,8 +585,9 @@ type fa_metadata: record {
 };
 
 ## A hook taking a connection, analyzer tag and analyzer id that can be
-## used to veto disabling analyzers. This hook is invoked synchronously
-## during a :zeek:see:`disable_analyzer` call.
+## used to veto disabling analyzers. Specifically, an analyzer can be prevented
+## from being disabled by using a :zeek:see:`break` statement within the hook.
+## This hook is invoked synchronously during a :zeek:see:`disable_analyzer` call.
 ##
 ## Scripts implementing this hook should have other logic that will eventually
 ## disable the analyzer for the given connection. That is, if a script vetoes

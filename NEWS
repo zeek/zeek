@@ -45,6 +45,16 @@ New Functionality
   For further details on the framework and examples, please refer to the
   Zeek documentation.
 
+- Introduce a global ``disabling_analyzer()`` hook to allow vetoing calls
+  to ``disable_analyzer()``.
+
+  The contract is simple: Any script can veto a ``disable_analyzer()`` call by
+  breaking from this hook. The decision is local to the script taking into
+  account any state attached to the connection or state stored elsewhere.
+  A script breaking from the hook takes over responsibility to call
+  ``disable_analyzer()`` at a later point when it finds the condition due
+  to which it vetoed fulfilled (which may be never).
+
 Changed Functionality
 ---------------------
 

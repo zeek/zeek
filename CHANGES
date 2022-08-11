@@ -1,3 +1,7 @@
+5.1.0-dev.382 | 2022-08-11 10:41:08 -0700
+
+  * UPDATED: improving email address splitting for common comma case (TheAvgJojo)
+
 5.1.0-dev.380 | 2022-08-11 10:30:33 -0700
 
   * Fix a crash related to a broken IPv6 chain (Tim Wojtulewicz)

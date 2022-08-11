@@ -932,6 +932,8 @@ public:
 
 	const PDict<TableEntryVal>* Get() const { return table_val; }
 
+	const detail::CompositeHash* GetTableHash() const { return table_hash; }
+
 	// Returns the size of the table.
 	int Size() const;
 	int RecursiveSize() const;

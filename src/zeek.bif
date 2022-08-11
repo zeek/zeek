@@ -28,6 +28,7 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/input.h"
 #include "zeek/Hash.h"
+#include "zeek/CompHash.h"
 #include "zeek/packet_analysis/Manager.h"
 
 using namespace std;
@@ -1176,6 +1177,58 @@ function clear_table%(v: any%): any
 		zeek::emit_builtin_error("clear_table() requires a table/set argument");
 
 	return nullptr;
+	%}
+
+## Gets all values from a table.
+##
+## t: The :zeek:type:`table`
+##
+## Returns: A ``vector of T`` of all the values in t.
+##
+## .. zeek:see:: table_keys
+function table_values%(t: any%): any_vec
+	%{
+	if ( ! t->GetType()->IsTable() )
+		{
+		zeek::emit_builtin_error("table_values() requires a table argument");
+		return nullptr;
+		}
+
+	auto vt = zeek::make_intrusive<zeek::VectorType>(t->GetType()->AsTableType()->Yield());
+	auto vv = zeek::make_intrusive<zeek::VectorVal>(std::move(vt));
+	for ( const auto& iter : *t->AsTable() )
+		{
+		vv->Append(iter.value->GetVal());
+		}
+
+	return vv;
+	%}
+
+## Gets all keys from a table.
+##
+## t: The :zeek:type:`table`
+##
+## Returns: A ``set of T`` of all the keys in t.
+##
+## .. zeek:see:: table_values
+function table_keys%(t: any%): any
+	%{
+	if ( ! t->GetType()->IsTable() )
+		{
+		zeek::emit_builtin_error("table_keys() requires a table argument");
+		return nullptr;
+		}
+
+	auto tl = t->GetType()->AsTableType()->GetIndices();
+	auto st = zeek::make_intrusive<zeek::SetType>(std::move(tl), nullptr);
+	auto sv = zeek::make_intrusive<zeek::TableVal>(std::move(st));
+	auto th = t->AsTableVal()->GetTableHash();
+	for ( const auto& iter : *t->AsTable() )
+		{
+		sv->Assign(th->RecoverVals(*iter.GetHashKey()), nullptr);
+		}
+
+	return sv;
 	%}
 
 ## Gets all subnets that contain a given subnet from a set/table[subnet].

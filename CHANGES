@@ -1,3 +1,9 @@
+5.1.0-dev.373 | 2022-08-11 08:49:22 -0700
+
+  * Add table_keys function (AmazingPP)
+
+  * Add table_values function (AmazingPP)
+
 5.1.0-dev.368 | 2022-08-11 16:01:32 +0200
 
   * GH-1678: Introduce global disabling_analyzer() hook to veto disable_analyzer() (Arne Welzel, Corelight)

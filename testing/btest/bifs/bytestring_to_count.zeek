@@ -1,4 +1,4 @@
- #
+#
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
@@ -9,10 +9,6 @@ event zeek_init()
 	# unsupported byte lengths
 	print bytestring_to_count("", T); # 0
 	print bytestring_to_count("", F); # 0
-	print bytestring_to_count("\xAA\xBB\xCC", T); # 0
-	print bytestring_to_count("\xAA\xBB\xCC", F); # 0
-	print bytestring_to_count("\xAA\xBB\xCC\xDD\xEE", T); # 0
-	print bytestring_to_count("\xAA\xBB\xCC\xDD\xEE", F); # 0
 
 	# 8 bit
 	print bytestring_to_count("\xff", T); # 255
@@ -42,6 +38,11 @@ event zeek_init()
 	print bytestring_to_count("\x00\x00\x00\x00", F); # 0
 	print bytestring_to_count("\x00\x00\x00\x00", T); # 0
 
+	print bytestring_to_count("\x00\xff\xff", F); # 65535
+	print bytestring_to_count("\xff\xff\x00", T); # 65535
+	print bytestring_to_count("\xff\xff\xff", F); # 16777215
+	print bytestring_to_count("\xff\xff\xff", T); # 16777215
+
 	# 64 bit
 	print bytestring_to_count("\xff\xff\xff\xff\xff\xff\xff\xff", F); # 18446744073709551615
 	print bytestring_to_count("\xff\xff\xff\xff\xff\xff\xff\xff", T); # 18446744073709551615
@@ -51,6 +52,13 @@ event zeek_init()
 	print bytestring_to_count("\xff\xff\x00\x00\x00\x00\x00\x00", T); # 65535
 	print bytestring_to_count("\x00\x00\x00\x00\x00\x00\x00\x00", T); # 0
 	print bytestring_to_count("\x00\x00\x00\x00\x00\x00\x00\x00", F); # 0
+
+	print bytestring_to_count("\xff\xff\xff\xff\xff", F);         # 1099511627775
+	print bytestring_to_count("\xff\xff\xff\xff\xff", T);         # 1099511627775
+	print bytestring_to_count("\xff\xff\xff\xff\xff\xff", F);     # 281474976710655
+	print bytestring_to_count("\xff\xff\xff\xff\xff\xff", T);     # 281474976710655
+	print bytestring_to_count("\xff\xff\xff\xff\xff\xff\xff", F); # 72057594037927935
+	print bytestring_to_count("\xff\xff\xff\xff\xff\xff\xff", T); # 72057594037927935
 
 	# test the default endianness parameter
 	print bytestring_to_count("\x00\x00\x00\x00\x00\x00\xff\xff"); # 65535

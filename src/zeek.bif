@@ -2961,26 +2961,32 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 	static const bool host_bigendian = false;
 #endif
 	const u_char *p = s->Bytes();
-	unsigned int i;
+	unsigned int i = 0;
 
-	switch ( s->Len() ) {
-	case sizeof(uint8_t):
+	if ( s->Len() == 0 )
+		{
+		return zeek::val_mgr->Count(0);
+		}
+	if ( s->Len() == sizeof(uint8_t) )
 		{
 		uint8_t value = 0;
 		memcpy(&value, p, sizeof(uint8_t));
 		return zeek::val_mgr->Count(value);
 		}
-
-	case sizeof(uint16_t):
+	else if ( s->Len() <= sizeof(uint16_t) )
 		{
 		uint16_t value = 0;
 
 		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
 			{
 			char buf[sizeof(uint16_t)];
+			memset(buf, 0, sizeof(uint16_t));
 			char *d = &buf[sizeof(uint16_t)-1];
 
-			for ( i = 0; i < sizeof(uint16_t); i++ )
+			if ( is_le )
+				d -= sizeof(uint16_t) - s->Len();
+
+			for ( i = 0; i < s->Len(); i++ )
 				*d-- = *p++;
 
 			memcpy(&value, buf, sizeof(uint16_t));
@@ -2990,47 +2996,66 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 
 		return zeek::val_mgr->Count(value);
 		}
-
-	case sizeof(uint32_t):
+	else if ( s->Len() <= sizeof(uint32_t) )
 		{
 		uint32_t value = 0;
+		char buf[sizeof(uint32_t)];
+		memset(buf, 0, sizeof(uint32_t));
 
 		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
 			{
-			char buf[sizeof(uint32_t)];
 			char *d = &buf[sizeof(uint32_t)-1];
 
-			for ( i = 0; i < sizeof(uint32_t); i++ )
-				*d-- = *p++;
+			if ( ! is_le )
+				d -= sizeof(uint32_t) - s->Len();
 
-			memcpy(&value, buf, sizeof(uint32_t));
+			for ( i = 0; i < s->Len(); i++ )
+				*d-- = *p++;
 			}
 		else
-			memcpy(&value, p, sizeof(uint32_t));
+			{
+			char* d = &buf[0];
 
+			if ( ! is_le )
+				d += sizeof(uint32_t) - s->Len();
+
+			for ( i = 0; i < s->Len(); i++ )
+				*d++ = *p++;
+			}
+
+		memcpy(&value, buf, sizeof(uint32_t));
 		return zeek::val_mgr->Count(value);
 		}
-
-	case sizeof(uint64_t):
+	else if ( s->Len() <= sizeof(uint64_t) )
 		{
 		uint64_t value = 0;
+		char buf[sizeof(uint64_t)];
+		memset(buf, 0, sizeof(uint64_t));
 
 		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
 			{
-			char buf[sizeof(uint64_t)];
 			char *d = &buf[sizeof(uint64_t)-1];
 
-			for ( i = 0; i < sizeof(uint64_t); i++ )
-				*d-- = *p++;
+			if ( ! is_le )
+				d -= sizeof(uint64_t) - s->Len();
 
-			memcpy(&value, buf, sizeof(uint64_t));
+			for ( i = 0; i < s->Len(); i++ )
+				*d-- = *p++;
 			}
 		else
-			memcpy(&value, p, sizeof(uint64_t));
+			{
+			char* d = &buf[0];
 
+			if ( ! is_le )
+				d += sizeof(uint64_t) - s->Len();
+
+			for ( i = 0; i < s->Len(); i++ )
+				*d++ = *p++;
+			}
+
+		memcpy(&value, buf, sizeof(uint64_t));
 		return zeek::val_mgr->Count(value);
 		}
-	}
 
 	zeek::emit_builtin_error("unsupported byte length for bytestring_to_count");
 	return zeek::val_mgr->Count(0);

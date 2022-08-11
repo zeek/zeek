@@ -1,3 +1,8 @@
+5.1.0-dev.360 | 2022-08-11 11:52:26 +0200
+
+  * telemetry: Switch to histogram family bucket and bound accessors
+    (Arne Welzel, Corelight)
+
 5.1.0-dev.357 | 2022-08-10 14:16:33 -0700
 
   * Management framework: minor bugfixes and tweaks (Christian Kreibich, Corelight)

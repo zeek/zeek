@@ -1,3 +1,17 @@
+5.1.0-dev.380 | 2022-08-11 10:30:33 -0700
+
+  * Fix a crash related to a broken IPv6 chain (Tim Wojtulewicz)
+
+  * Add a couple of ICMP files to corpus for packet-fuzzer (Tim Wojtulewicz, Corelight)
+
+  * Trick event handlers into returning that they exist during fuzzing (Tim Wojtulewicz, Corelight)
+
+  * Add http, ftp, imap, and smtp fuzzers and corpora (Tim Wojtulewicz, Corelight)
+
+  * Add section to fuzzer README about generating corpus from pcaps (Tim Wojtulewicz, Corelight)
+
+  * Rename fuzzers/README to README.rst so github renders it (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.373 | 2022-08-11 08:49:22 -0700
 
   * Add table_keys function (AmazingPP)

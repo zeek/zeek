@@ -4,6 +4,7 @@
 #include <cstdlib>
 
 #include "zeek/Event.h"
+#include "zeek/EventRegistry.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/session/Manager.h"
@@ -40,6 +41,11 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 
 	if ( zeek::detail::setup(*argc, *argv, &options).code )
 		abort();
+
+	// We have to trick the event handlers into returning true that they exist here
+	// even if they don't, because otherwise we lose a bit of coverage where if
+	// statements return false that would otherwise not.
+	zeek::event_registry->ActivateAllHandlers();
 
 	return 0;
 	}

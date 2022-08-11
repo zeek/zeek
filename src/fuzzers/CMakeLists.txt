@@ -81,3 +81,7 @@ target_link_libraries(zeek_fuzzer_shared
 add_fuzz_target(dns)
 add_fuzz_target(pop3)
 add_fuzz_target(packet)
+add_fuzz_target(http)
+add_fuzz_target(imap)
+add_fuzz_target(smtp)
+add_fuzz_target(ftp)

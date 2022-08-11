@@ -189,6 +189,56 @@ static void parse_redef_enum(ID* id)
 		}
 	}
 
+static void parse_redef_record_field(ID* id, const char* field, InitClass ic,
+                                     std::unique_ptr<std::vector<AttrPtr>> attrs)
+	{
+	if ( ! id->GetType() )
+		{
+		reporter->FatalError("unknown record identifier \"%s\"", id->Name());
+		return;
+		}
+
+	auto t = id->GetType();
+	if ( ! t || t->Tag() != TYPE_RECORD )
+		{
+		reporter->FatalError("identifier \"%s\" has type \"%s\", expected \"record\"",
+		                     id->Name(), type_name(t->Tag()));
+		return;
+		}
+
+	auto rt = t->AsRecordType();
+	auto idx = rt->FieldOffset(field);
+	if ( idx < 0 )
+		{
+		reporter->FatalError("field \"%s\" not in record \"%s\"", field, id->Name());
+		return;
+		}
+
+	auto decl = rt->FieldDecl(idx);
+	if ( ! decl->attrs )
+		if ( ic == INIT_EXTRA )
+			decl->attrs = make_intrusive<detail::Attributes>(decl->type,
+															 true /* in_record */,
+															 false /* is_global */);
+
+	for ( const auto& attr : *attrs )
+		{
+		// At this point, only support &log redef'ing.
+		if ( attr->Tag() != ATTR_LOG )
+			{
+				reporter->FatalError("Can only redef \"&log\" attributes of record fields");
+				return;
+			}
+
+		if ( ic == INIT_EXTRA )
+			decl->attrs->AddAttr(attr, true /* is_redef */);
+		else
+			// Removing attributes is a noop if they don't exist.
+			if ( decl->attrs )
+				decl->attrs->RemoveAttr(attr->Tag());
+		}
+	}
+
 static void extend_record(ID* id, std::unique_ptr<type_decl_list> fields,
                           std::unique_ptr<std::vector<AttrPtr>> attrs)
 	{
@@ -1306,6 +1356,20 @@ decl:
 			// Zeekygen already grabbed new enum IDs as the type created them.
 			}
 
+	|	TOK_REDEF TOK_RECORD  global_id '$' TOK_ID
+			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename, INIT_EXTRA); }
+		TOK_ADD_TO '{' attr_list '}' ';'
+			{
+			cur_decl_type_id = 0;
+			parse_redef_record_field($3, $5, INIT_EXTRA, std::unique_ptr<std::vector<AttrPtr>>($9));
+			}
+	|	TOK_REDEF TOK_RECORD  global_id '$' TOK_ID
+			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename, INIT_REMOVE); }
+		TOK_REMOVE_FROM '{' attr_list '}' ';'
+			{
+			cur_decl_type_id = 0;
+			parse_redef_record_field($3, $5, INIT_REMOVE, std::unique_ptr<std::vector<AttrPtr>>($9));
+			}
 	|	TOK_REDEF TOK_RECORD global_id
 			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename); }
 		TOK_ADD_TO '{'

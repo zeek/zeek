@@ -1,20 +1,20 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 function test_case(msg: string, expect: bool)
         {
         print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
         }
 
+global b1: bool = T; 
+global b2: bool = F;
+global b3: bool = T;
+global b4 = T;
+global b5 = F;
 
 event zeek_init()
 {
-	local b1: bool = T; 
-	local b2: bool = F;
-	local b3: bool = T;
-	local b4 = T;
-	local b5 = F;
-
 	test_case( "equality operator", b1 == b3 );
 	test_case( "inequality operator", b1 != b2 );
 	test_case( "logical or operator", b1 || b2 );

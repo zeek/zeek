@@ -32,7 +32,8 @@ class DFA_State;
 class Specific_RE_Matcher;
 class CCL;
 
-extern int case_insensitive;
+extern bool case_insensitive;
+extern bool re_single_line;
 extern CCL* curr_ccl;
 extern NFA_Machine* nfa;
 extern Specific_RE_Matcher* rem;
@@ -59,14 +60,15 @@ enum match_type
 class Specific_RE_Matcher
 	{
 public:
-	explicit Specific_RE_Matcher(match_type mt, int multiline = 0);
+	explicit Specific_RE_Matcher(match_type mt, bool multiline = false);
 	~Specific_RE_Matcher();
 
 	void AddPat(const char* pat);
 
 	void MakeCaseInsensitive();
+	void MakeSingleLine();
 
-	void SetPat(const char* pat) { pattern_text = util::copy_string(pat); }
+	void SetPat(const char* pat) { pattern_text = pat; }
 
 	bool Compile(bool lazy = false);
 
@@ -90,7 +92,7 @@ public:
 		return nullptr;
 		}
 	CCL* LookupCCL(int index) { return ccl_list[index]; }
-	CCL* AnyCCL();
+	CCL* AnyCCL(bool single_line_mode = false);
 
 	void ConvertCCLs();
 
@@ -117,7 +119,7 @@ public:
 
 	EquivClass* EC() { return &equiv_class; }
 
-	const char* PatternText() const { return pattern_text; }
+	const char* PatternText() const { return pattern_text.c_str(); }
 
 	DFA_Machine* DFA() const { return dfa; }
 
@@ -135,17 +137,21 @@ protected:
 	bool MatchAll(const u_char* bv, int n);
 
 	match_type mt;
-	int multiline;
-	char* pattern_text;
+	bool multiline;
+
+	std::string pattern_text;
 
 	std::map<std::string, std::string> defs;
 	std::map<std::string, CCL*> ccl_dict;
+	std::vector<char> modifiers;
 	PList<CCL> ccl_list;
 	EquivClass equiv_class;
 	int* ecs;
 	DFA_Machine* dfa;
-	CCL* any_ccl;
 	AcceptingSet* accepted;
+
+	CCL* any_ccl;
+	CCL* single_line_ccl;
 	};
 
 class RE_Match_State
@@ -205,6 +211,9 @@ public:
 	void MakeCaseInsensitive();
 	bool IsCaseInsensitive() const { return is_case_insensitive; }
 
+	void MakeSingleLine();
+	bool IsSingleLine() const { return is_single_line; }
+
 	bool Compile(bool lazy = false);
 
 	// Returns true if s exactly matches the pattern, false otherwise.
@@ -240,6 +249,7 @@ protected:
 	detail::Specific_RE_Matcher* re_exact;
 
 	bool is_case_insensitive = false;
+	bool is_single_line = false;
 	};
 
 	} // namespace zeek

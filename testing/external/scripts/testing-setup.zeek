@@ -12,3 +12,13 @@
 	# (json-logs.zeek activates this).
 	redef LogAscii::use_json = F;
 @endif
+
+# Exclude process metrics, they are non-deterministic.
+redef Telemetry::log_prefixes -= { "process" };
+
+# Prevent the version_info metric from being logged as it's not deterministic.
+hook Telemetry::log_policy(rec: Telemetry::Info, id: Log::ID, filter: Log::Filter)
+	{
+	if ( rec$prefix == "zeek" && rec$name == "version_info" )
+		break;
+	}

@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <utility>
 
+#include "zeek/3rdparty/doctest.h"
 #include "zeek/CCL.h"
 #include "zeek/DFA.h"
 #include "zeek/EquivClass.h"
@@ -16,7 +17,8 @@
 zeek::detail::CCL* zeek::detail::curr_ccl = nullptr;
 zeek::detail::Specific_RE_Matcher* zeek::detail::rem = nullptr;
 zeek::detail::NFA_Machine* zeek::detail::nfa = nullptr;
-int zeek::detail::case_insensitive = 0;
+bool zeek::detail::case_insensitive = false;
+bool zeek::detail::re_single_line = false;
 
 extern int RE_parse(void);
 extern void RE_set_input(const char* str);
@@ -27,13 +29,11 @@ namespace zeek
 namespace detail
 	{
 
-Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, int arg_multiline)
-	: equiv_class(NUM_SYM)
+Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline)
+	: mt(arg_mt), multiline(arg_multiline), equiv_class(NUM_SYM)
 	{
-	mt = arg_mt;
-	multiline = arg_multiline;
 	any_ccl = nullptr;
-	pattern_text = nullptr;
+	single_line_ccl = nullptr;
 	dfa = nullptr;
 	ecs = nullptr;
 	accepted = new AcceptingSet();
@@ -45,14 +45,25 @@ Specific_RE_Matcher::~Specific_RE_Matcher()
 		delete ccl_list[i];
 
 	Unref(dfa);
-	delete[] pattern_text;
 	delete accepted;
 	}
 
-CCL* Specific_RE_Matcher::AnyCCL()
+CCL* Specific_RE_Matcher::AnyCCL(bool single_line_mode)
 	{
+	if ( single_line_mode )
+		{
+		if ( ! single_line_ccl )
+			{
+			single_line_ccl = new CCL();
+			single_line_ccl->Negate();
+			EC()->CCL_Use(single_line_ccl);
+			}
+
+		return single_line_ccl;
+		}
+
 	if ( ! any_ccl )
-		{ // Create the '.' character class.
+		{
 		any_ccl = new CCL();
 		if ( ! multiline )
 			any_ccl->Add('\n');
@@ -89,51 +100,38 @@ void Specific_RE_Matcher::AddExactPat(const char* new_pat)
 
 void Specific_RE_Matcher::AddPat(const char* new_pat, const char* orig_fmt, const char* app_fmt)
 	{
-	int n = strlen(new_pat);
-
-	if ( pattern_text )
-		n += strlen(pattern_text) + strlen(app_fmt);
+	if ( ! pattern_text.empty() )
+		pattern_text = util::fmt(app_fmt, pattern_text.c_str(), new_pat);
 	else
-		n += strlen(orig_fmt);
-
-	char* s = new char[n + 5 /* slop */];
-
-	if ( pattern_text )
-		sprintf(s, app_fmt, pattern_text, new_pat);
-	else
-		sprintf(s, orig_fmt, new_pat);
-
-	delete[] pattern_text;
-	pattern_text = s;
+		pattern_text = util::fmt(orig_fmt, new_pat);
 	}
 
 void Specific_RE_Matcher::MakeCaseInsensitive()
 	{
 	const char fmt[] = "(?i:%s)";
-	int n = strlen(pattern_text) + strlen(fmt);
+	pattern_text = util::fmt(fmt, pattern_text.c_str());
+	}
 
-	char* s = new char[n + 5 /* slop */];
-
-	snprintf(s, n + 5, fmt, pattern_text);
-
-	delete[] pattern_text;
-	pattern_text = s;
+void Specific_RE_Matcher::MakeSingleLine()
+	{
+	const char fmt[] = "(?s:%s)";
+	pattern_text = util::fmt(fmt, pattern_text.c_str());
 	}
 
 bool Specific_RE_Matcher::Compile(bool lazy)
 	{
-	if ( ! pattern_text )
+	if ( pattern_text.empty() )
 		return false;
 
 	rem = this;
-	RE_set_input(pattern_text);
+	RE_set_input(pattern_text.c_str());
 
 	int parse_status = RE_parse();
 	RE_done_with_scan();
 
 	if ( parse_status )
 		{
-		reporter->Error("error compiling pattern /%s/", pattern_text);
+		reporter->Error("error compiling pattern /%s/", pattern_text.c_str());
 		Unref(nfa);
 		nfa = nullptr;
 		return false;
@@ -416,13 +414,10 @@ static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2, c
 	const char* text1 = re1->PatternText();
 	const char* text2 = re2->PatternText();
 
-	int n = strlen(text1) + strlen(text2) + strlen(merge_op) + 32 /* slop */;
+	size_t n = strlen(text1) + strlen(text2) + strlen(merge_op) + 32 /* slop */;
 
-	char* merge_text = new char[n];
-	snprintf(merge_text, n, "(%s)%s(%s)", text1, merge_op, text2);
-
-	RE_Matcher* merge = new RE_Matcher(merge_text);
-	delete[] merge_text;
+	std::string merge_text = util::fmt("(%s)%s(%s)", text1, merge_op, text2);
+	RE_Matcher* merge = new RE_Matcher(merge_text.c_str());
 
 	merge->Compile();
 
@@ -483,9 +478,122 @@ void RE_Matcher::MakeCaseInsensitive()
 	is_case_insensitive = true;
 	}
 
+void RE_Matcher::MakeSingleLine()
+	{
+	re_anywhere->MakeSingleLine();
+	re_exact->MakeSingleLine();
+
+	is_single_line = true;
+	}
+
 bool RE_Matcher::Compile(bool lazy)
 	{
 	return re_anywhere->Compile(lazy) && re_exact->Compile(lazy);
+	}
+
+TEST_SUITE("re_matcher")
+	{
+
+	TEST_CASE("simple_pattern")
+		{
+		RE_Matcher match("[0-9]+");
+		match.Compile();
+		CHECK(strcmp(match.OrigText(), "[0-9]+") == 0);
+		CHECK(strcmp(match.PatternText(), "^?([0-9]+)$?") == 0);
+		CHECK(strcmp(match.AnywherePatternText(), "^?(.|\\n)*([0-9]+)") == 0);
+
+		CHECK(match.MatchExactly("12345"));
+		CHECK_FALSE(match.MatchExactly("a12345"));
+
+		// The documentation for MatchAnywhere says that it returns the
+		// "index just beyond where the first match occurs", which I would
+		// think means *after* the match. This is returning the position
+		// where the match starts though.
+		CHECK(match.MatchAnywhere("a1234bcd") == 2);
+		CHECK(match.MatchAnywhere("abcd") == 0);
+		}
+
+	TEST_CASE("case_insensitive_mode")
+		{
+		RE_Matcher match("[a-z]+");
+		match.MakeCaseInsensitive();
+		match.Compile();
+		CHECK(strcmp(match.PatternText(), "(?i:^?([a-z]+)$?)") == 0);
+
+		CHECK(match.MatchExactly("abcDEF"));
+		}
+
+	TEST_CASE("multi_pattern")
+		{
+		RE_Matcher match("[0-9]+");
+		match.AddPat("[a-z]+");
+		match.Compile();
+
+		CHECK(strcmp(match.PatternText(), "(^?([0-9]+)$?)|(^?([a-z]+)$?)") == 0);
+
+		CHECK(match.MatchExactly("abc"));
+		CHECK(match.MatchExactly("123"));
+		CHECK_FALSE(match.MatchExactly("abc123"));
+		}
+
+	TEST_CASE("modes_multi_pattern")
+		{
+		RE_Matcher match("[a-m]+");
+		match.MakeCaseInsensitive();
+
+		match.AddPat("[n-z]+");
+		match.Compile();
+
+		CHECK(strcmp(match.PatternText(), "((?i:^?([a-m]+)$?))|(^?([n-z]+)$?)") == 0);
+		CHECK(match.MatchExactly("aBc"));
+		CHECK(match.MatchExactly("nop"));
+		CHECK_FALSE(match.MatchExactly("NoP"));
+		}
+
+	TEST_CASE("single_line_mode")
+		{
+		RE_Matcher match(".*");
+		match.MakeSingleLine();
+		match.Compile();
+
+		CHECK(strcmp(match.PatternText(), "(?s:^?(.*)$?)") == 0);
+		CHECK(match.MatchExactly("abc\ndef"));
+
+		RE_Matcher match2("fOO.*bAR");
+		match2.MakeSingleLine();
+		match2.Compile();
+
+		CHECK(strcmp(match2.PatternText(), "(?s:^?(fOO.*bAR)$?)") == 0);
+		CHECK(match.MatchExactly("fOOab\ncdbAR"));
+
+		RE_Matcher match3("b.r");
+		match3.MakeSingleLine();
+		match3.Compile();
+		CHECK(match3.MatchExactly("bar"));
+		CHECK(match3.MatchExactly("b\nr"));
+
+		RE_Matcher match4("a.c");
+		match4.MakeSingleLine();
+		match4.AddPat("def");
+		match4.Compile();
+		CHECK(match4.MatchExactly("abc"));
+		CHECK(match4.MatchExactly("a\nc"));
+		}
+
+	TEST_CASE("disjunction")
+		{
+		RE_Matcher match1("a.c");
+		match1.MakeSingleLine();
+		match1.Compile();
+		RE_Matcher match2("def");
+		match2.Compile();
+		auto dj = detail::RE_Matcher_disjunction(&match1, &match2);
+		CHECK(dj->MatchExactly("abc"));
+		CHECK(dj->MatchExactly("a.c"));
+		CHECK(dj->MatchExactly("a\nc"));
+		CHECK(dj->MatchExactly("def"));
+		delete dj;
+		}
 	}
 
 	} // namespace zeek

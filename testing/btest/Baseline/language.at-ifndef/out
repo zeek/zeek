@@ -2,3 +2,5 @@
 @ifndef (PASS)
 @ifndef...@else (PASS)
 @ifndef...@else (PASS)
+@ifndef module name (PASS)
+@ifndef child variable (PASS)

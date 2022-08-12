@@ -15,7 +15,7 @@ The maintenance workflow:
     to check in updates to the list of how the compiler currently fares
     on various btests (see end of this doc):
 
-	Thu May 12 12:54:10 PDT 2022
+	Mon Aug  1 16:39:05 PDT 2022
 
 2.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
     possible Zeek source files found in the test suite.
@@ -57,17 +57,27 @@ These BTests won't successfully run due to the indicated issue:
 	command-line-error - a deliberate command-line error
 	complex-to-debug - hard-to-figure-out failure
 	deprecated - uses features deprecated for -O C++
+	error-handling - behavior in face of an error differs
+	needs-plugin - requires knowing how to build an associated plugin
 	no-script - there's no actual script to compile
 	ZAM - meant specifically for -O ZAM
+
+Consider migrating these to have @TEST-REQUIRES clauses so we don't have
+to maintain this list.
 
 ../testing/btest/core/negative-time.test no-script
 ../testing/btest/core/pcap/dumper.zeek no-script
 ../testing/btest/core/pcap/input-error.zeek command-line-error
 ../testing/btest/core/proc-status-file.zeek no-script
+../testing/btest/core/scalar-vector.zeek deprecated
 ../testing/btest/language/at-if-event.zeek @if
 ../testing/btest/language/at-if.zeek @if
 ../testing/btest/language/at-ifdef.zeek @if
 ../testing/btest/language/at-ifndef.zeek @if
+../testing/btest/language/incr-vec-expr.test deprecated
+../testing/btest/language/uninitialized-local2.zeek error-handling
+../testing/btest/language/vector-deprecated.zeek deprecated
+../testing/btest/language/vector-in-operator.zeek
 ../testing/btest/language/vector-in-operator.zeek deprecated
 ../testing/btest/language/when-aggregates.zeek bad-when
 ../testing/btest/opt/opt-files.zeek ZAM
@@ -76,6 +86,7 @@ These BTests won't successfully run due to the indicated issue:
 ../testing/btest/opt/opt-func.zeek ZAM
 ../testing/btest/opt/opt-func2.zeek ZAM
 ../testing/btest/opt/opt-func3.zeek ZAM
+../testing/btest/plugins/packet-protocol.zeek needs-plugin
 ../testing/btest/scripts/base/protocols/dhcp/dhcp-ack-msg-types.zeek no-script
 ../testing/btest/scripts/base/protocols/dhcp/dhcp-all-msg-types.zeek no-script
 ../testing/btest/scripts/base/protocols/dhcp/dhcp-discover-msg-types.zeek no-script

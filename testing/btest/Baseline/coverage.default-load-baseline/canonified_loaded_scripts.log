@@ -336,6 +336,9 @@ scripts/base/init-default.zeek
     scripts/base/frameworks/netcontrol/drop.zeek
     scripts/base/frameworks/netcontrol/shunt.zeek
     scripts/base/frameworks/netcontrol/non-cluster.zeek
+  scripts/base/frameworks/telemetry/__load__.zeek
+    scripts/base/frameworks/telemetry/main.zeek
+      scripts/base/misc/version.zeek
   scripts/base/protocols/conn/__load__.zeek
     scripts/base/protocols/conn/main.zeek
     scripts/base/protocols/conn/contents.zeek
@@ -445,7 +448,6 @@ scripts/base/init-default.zeek
   scripts/base/misc/find-checksum-offloading.zeek
   scripts/base/misc/find-filtered-trace.zeek
   build/scripts/base/misc/installation.zeek
-  scripts/base/misc/version.zeek
 build/scripts/builtin-plugins/__preload__.zeek
   build/scripts/builtin-plugins/Zeek_Spicy/__preload__.zeek
 build/scripts/builtin-plugins/__load__.zeek

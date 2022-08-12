@@ -1,3 +1,7 @@
+# Don't run for C++ scripts, since script invocation of Zeek hashes
+# the script differently, leading to complaints that there are no scripts.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+
 # @TEST-EXEC: printf '#!' > test.zeek
 # @TEST-EXEC: printf "$BUILD/src/zeek -b --\n" >> test.zeek
 # @TEST-EXEC: cat %INPUT >> test.zeek

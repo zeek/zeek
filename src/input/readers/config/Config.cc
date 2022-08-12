@@ -184,7 +184,7 @@ bool Config::DoUpdate()
 	std::regex re;
 	try
 		{
-		std::string re_str = util::fmt(
+		std::string re_str = Fmt(
 			"^([^[:blank:]]+)[[:blank:]]+([^[:blank:]](.*[^[:blank:]%c])?)?[[:blank:]%c]*$",
 			set_separator[0], set_separator[0]);
 		re.assign(re_str, std::regex::extended);

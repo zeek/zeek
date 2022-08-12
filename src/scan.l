@@ -80,6 +80,8 @@ const char* last_tok_filename = 0;
 const char* last_last_tok_filename = 0;
 char last_tok[128];
 
+extern std::set<std::string> module_names;
+
 #define YY_USER_ACTION	strncpy(last_tok, yytext, sizeof(last_tok) - 1); \
                         last_last_tok_filename = last_tok_filename; \
                         last_tok_filename = ::filename;
@@ -562,13 +564,28 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 <RE>"/"	{
 	BEGIN(INITIAL);
-	yylval.b = false;
+	yylval.re_modes.ignore_case = false;
+	yylval.re_modes.single_line = false;
 	return TOK_PATTERN_END;
 	}
 
-<RE>"/i"	{
+<RE>(\/[is]{0,2})	{
 	BEGIN(INITIAL);
-	yylval.b = true;
+
+	if ( strlen(yytext) == 2 )
+		{
+		yylval.re_modes.ignore_case = (yytext[1] == 'i');
+		yylval.re_modes.single_line = (yytext[1] == 's');
+		}
+	else
+		{
+		if ( yytext[1] == yytext[2] )
+			zeek::reporter->Error("pattern has duplicate mode %c", yytext[1]);
+
+		yylval.re_modes.ignore_case = (yytext[1] == 'i' || yytext[2] == 'i');
+		yylval.re_modes.single_line = (yytext[1] == 's' || yytext[2] == 's');
+		}
+
 	return TOK_PATTERN_END;
 	}
 
@@ -781,7 +798,12 @@ void do_atifdef(const char* id)
 
 	const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
 
-	if ( ! i )
+	// If the ID didn't exist, look to see if this is a module name instead.
+	bool found = (i != nullptr);
+	if ( ! found )
+		found = (module_names.count(id) != 0);
+
+	if ( ! found )
 		begin_ignoring();
 	}
 
@@ -791,7 +813,12 @@ void do_atifndef(const char *id)
 
 	const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
 
-	if ( i )
+	// If the ID didn't exist, look to see if this is a module name instead.
+	bool found = (i != nullptr);
+	if ( ! found )
+		found = (module_names.count(id) != 0);
+
+	if ( found )
 		begin_ignoring();
 	}
 

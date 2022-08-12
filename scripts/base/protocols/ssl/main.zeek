@@ -255,10 +255,8 @@ function finish(c: connection, remove_analyzer: bool)
 	{
 	log_record(c$ssl);
 	if ( remove_analyzer && disable_analyzer_after_detection && c?$ssl && c$ssl?$analyzer_id )
-		{
-		disable_analyzer(c$id, c$ssl$analyzer_id);
-		delete c$ssl$analyzer_id;
-		}
+		if ( disable_analyzer(c$id, c$ssl$analyzer_id) )
+			delete c$ssl$analyzer_id;
 	}
 
 event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec) &priority=5

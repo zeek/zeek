@@ -960,11 +960,34 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 			DO_UINT_FOLD(^);
 			break;
 		case EXPR_LSHIFT:
-			DO_INT_FOLD(<<);
+			{
+			if ( is_integral )
+				{
+				if ( i1 < 0 )
+					RuntimeError("left shifting a negative number is undefined");
+
+				i3 = i1 << static_cast<zeek_uint_t>(i2);
+				}
+
+			else if ( is_unsigned )
+				u3 = u1 << u2;
+
+			else
+				RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 			break;
+			}
 		case EXPR_RSHIFT:
-			DO_INT_FOLD(>>);
+			{
+			if ( is_integral )
+				i3 = i1 >> static_cast<zeek_uint_t>(i2);
+
+			else if ( is_unsigned )
+				u3 = u1 >> u2;
+
+			else
+				RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 			break;
+			}
 
 		case EXPR_AND_AND:
 			DO_INT_FOLD(&&);
@@ -2166,6 +2189,9 @@ BitExpr::BitExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 
 	if ( tag == EXPR_LSHIFT || tag == EXPR_RSHIFT )
 		{
+		if ( (is_vector(op1) || is_vector(op2)) && ! (is_vector(op1) && is_vector(op2)) )
+			ExprError("cannot mix vectors and scalars for shift operations");
+
 		if ( IsIntegral(bt1) && bt2 == TYPE_COUNT )
 			{
 			if ( is_vector(op1) || is_vector(op2) )
@@ -2173,13 +2199,19 @@ BitExpr::BitExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 			else
 				SetType(base_type(bt1));
 			}
+
 		else if ( IsIntegral(bt1) && bt2 == TYPE_INT )
 			ExprError("requires \"count\" right operand");
+
 		else
 			ExprError("requires integral operands");
+
+		return; // because following scalar check isn't apt
 		}
 
-	else if ( (bt1 == TYPE_COUNT) && (bt2 == TYPE_COUNT) )
+	CheckScalarAggOp();
+
+	if ( (bt1 == TYPE_COUNT) && (bt2 == TYPE_COUNT) )
 		{
 		if ( is_vector(op1) || is_vector(op2) )
 			SetType(make_intrusive<VectorType>(base_type(TYPE_COUNT)));

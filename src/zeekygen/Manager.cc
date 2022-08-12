@@ -157,6 +157,10 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 	if ( disabled )
 		return;
 
+	if ( path == "<command line>" )
+		// This is a @load directive on the command line.
+		return;
+
 	if ( dep.empty() )
 		{
 		DbgAndWarn(util::fmt("Empty Zeekygen script doc dependency: %s", path.c_str()));
@@ -186,6 +190,10 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 void Manager::ModuleUsage(const string& path, const string& module)
 	{
 	if ( disabled )
+		return;
+
+	if ( path == "<command line>" )
+		// This is a moudle defined on the command line.
 		return;
 
 	string name = normalize_script_path(path);

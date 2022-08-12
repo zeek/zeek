@@ -12,4 +12,4 @@ set(telemetry_SRCS
 bif_target(telemetry.bif)
 
 bro_add_subdir_library(telemetry ${telemetry_SRCS})
-
+add_dependencies(bro_telemetry generate_outputs)

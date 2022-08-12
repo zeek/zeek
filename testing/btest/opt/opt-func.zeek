@@ -1,7 +1,7 @@
 # @TEST-EXEC: zeek -b -O ZAM --optimize-func='my_test' %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-# Tests that we can selectively a given function.
+# Tests that we can selectively pick a given function.
 
 function my_test()
 	{

@@ -60,6 +60,17 @@ public:
 
 	void PrintDebug();
 
+	/**
+	 * Marks all event handlers as active.
+	 *
+	 * By default, zeek does not generate (raise) events that have not handled by
+	 * any scripts. This means that these events will be invisible to a lot of other
+	 * event handlers - and will not raise :zeek:id:`new_event`. Calling this
+	 * function will cause all event handlers to be raised. This is likely only
+	 * useful for debugging and fuzzing, and likely causes reduced performance.
+	 */
+	void ActivateAllHandlers();
+
 private:
 	std::map<std::string, std::unique_ptr<EventHandler>, std::less<>> handlers;
 	// Tracks whether a given event handler was registered in a

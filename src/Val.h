@@ -932,6 +932,8 @@ public:
 
 	const PDict<TableEntryVal>* Get() const { return table_val; }
 
+	const detail::CompositeHash* GetTableHash() const { return table_hash; }
+
 	// Returns the size of the table.
 	int Size() const;
 	int RecursiveSize() const;
@@ -1593,10 +1595,8 @@ public:
 	ValPtr ValAt(unsigned int index) const { return At(index); }
 
 	bool Has(unsigned int index) const
-		// Version to use once std::optional implementation is merged.
-		// { return index < vector_val->size() && vector_val[index]; }
 		{
-		return At(index) != nullptr;
+		return index < vector_val->size() && (*vector_val)[index];
 		}
 
 	/**

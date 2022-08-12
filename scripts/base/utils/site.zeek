@@ -234,13 +234,38 @@ function get_emails(a: addr): string
 	return fmt_email_string(find_all_emails(a));
 	}
 
-event zeek_init() &priority=10
+function update_local_nets_table(id: string, new_value: set[subnet]): set[subnet]
+	{
+	# Create the local_nets mapping table.
+	for ( cidr in new_value )
+		local_nets_table[cidr] = cidr;
+	return new_value;
+	}
+
+function update_local_zones_regex(id: string, new_value: set[string]): set[string]
 	{
 	# Double backslashes are needed due to string parsing.
-	local_dns_suffix_regex = set_to_regex(local_zones, "(^\\.?|\\.)(~~)$");
-	local_dns_neighbor_suffix_regex = set_to_regex(neighbor_zones, "(^\\.?|\\.)(~~)$");
+	local_dns_suffix_regex = set_to_regex(new_value, "(^\\.?|\\.)(~~)$");
+	return new_value;
+	}
 
-	# Create the local_nets mapping table.
-	for ( cidr in Site::local_nets )
-		local_nets_table[cidr] = cidr;
+function update_neighbor_zones_regex(id: string, new_value: set[string]): set[string]
+	{
+	local_dns_neighbor_suffix_regex = set_to_regex(new_value, "(^\\.?|\\.)(~~)$");
+	return new_value;
+	}
+
+event zeek_init() &priority=10
+	{
+	# Have these run with a lower priority so we account for additions/removals
+	# from user created change handlers.
+	Option::set_change_handler("Site::local_nets", update_local_nets_table, -5);
+	Option::set_change_handler("Site::local_zones", update_local_zones_regex, -5);
+	Option::set_change_handler("Site::neighbor_zones", update_neighbor_zones_regex, -5);
+
+	# Use change handler to initialize local_nets mapping table and zones
+	# regexes.
+	update_local_nets_table("Site::local_nets", Site::local_nets);
+	update_local_zones_regex("Site::local_zones", Site::local_zones);
+	update_neighbor_zones_regex("Site::neighbor_zones", Site::neighbor_zones);
 	}

@@ -57,6 +57,8 @@ ssh
 ssl
 stats
 syslog
+telemetry
+telemetry_histogram
 traceroute
 tunnel
 unified2

@@ -1,3 +1,266 @@
+5.1.0-dev.386 | 2022-08-11 11:56:55 -0700
+
+  * Add a field to Modbus/TCP log to indicate the Modbus PDU type (Michael Torres)
+
+    Add the `pdu_type` field to Modbus over TCP logs to indicate whether the Modbus
+    message was a request or a response. Due to the client/server nature of Modbus
+    over TCP/IP, all messages from the TCP session originator are requests, while
+    all messages from the TCP session responder are responses.
+
+    Adding this information to the default log surfaces protocol metadata in a way
+    that doesn't require users to understand the Modbus over TCP protocol.
+
+  * Add modbus transaction and unit ids to logs (Michael Torres)
+
+    Add transaction IDs and unit IDs to default modbus over TCP/IP logs.
+    Update the relevant testing baselines to account for the extra fields.
+
+  * Enable modbus logging for requests (Michael Torres)
+
+5.1.0-dev.382 | 2022-08-11 10:41:08 -0700
+
+  * UPDATED: improving email address splitting for common comma case (TheAvgJojo)
+
+5.1.0-dev.380 | 2022-08-11 10:30:33 -0700
+
+  * Fix a crash related to a broken IPv6 chain (Tim Wojtulewicz)
+
+  * Add a couple of ICMP files to corpus for packet-fuzzer (Tim Wojtulewicz, Corelight)
+
+  * Trick event handlers into returning that they exist during fuzzing (Tim Wojtulewicz, Corelight)
+
+  * Add http, ftp, imap, and smtp fuzzers and corpora (Tim Wojtulewicz, Corelight)
+
+  * Add section to fuzzer README about generating corpus from pcaps (Tim Wojtulewicz, Corelight)
+
+  * Rename fuzzers/README to README.rst so github renders it (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.373 | 2022-08-11 08:49:22 -0700
+
+  * Add table_keys function (AmazingPP)
+
+  * Add table_values function (AmazingPP)
+
+5.1.0-dev.368 | 2022-08-11 16:01:32 +0200
+
+  * GH-1678: Introduce global disabling_analyzer() hook to veto disable_analyzer() (Arne Welzel, Corelight)
+
+    This hook can be used to coordinate disabling an analyzer for a
+    given connection. The contract is simple: Any script can veto a
+    disable_analyzer() call by breaking from this hook. The decision
+    is local to the script taking into account any state attached to
+    the connection object or script specific state stored elsewhere. A
+    script breaking from the hook takes over the responsibility to
+    call disable_analyzer() at a later point when it finds the
+    condition due to which it vetoed fulfilled (which may be never).
+
+    Signature:
+
+        disabling_analyzer: hook(c: connection, atype: AllAnalyzers::Tag, aid: count);
+
+    Example use-cases are keeping the SSL analyzer enabled for
+    finger-printing until a certain amount of bytes or packets have
+    been transferred or similarly the connection duration exceed a
+    certain threshold.
+
+    Other example use-cases might be keeping analyzers for SSH, RDP or SSL
+    enabled for connections from specific subnets.
+
+  * ssl: Only delete `c$ssl$analyzer_id` when disabling the analyzer
+    was successful (Arne Welzel, Corelight)
+
+5.1.0-dev.364 | 2022-08-11 11:59:00 +0200
+
+  * GH-2000: Support redef'ing the &log attribute of record fields (Arne Welzel, Corelight)
+
+    Add new syntax for adding and removing attributes from record fields:
+
+        redef RecordType$field_name += { &log };
+        redef RecordType$field_name -= { &log };
+
+    For now this only allowed for the &log attribute as the semantics are clear.
+    For &default and &optional the semantics aren't obvious and no use-cases have
+    been identified where those would make sense to change.
+
+    This enables a mechanism to add potentially interesting fields to the typical
+    Info records in base scripts, but letting users opt-into actually including
+    them into their log. At the same time, users that find specific fields in a
+    standard log uninteresting can opt-out without using `Log::Filter$exclude`
+    which can be difficult to use correctly. Patching or forking external packages
+    to remove columns from a log can also be avoided with this mechanism.
+
+    Closes #2000.
+
+  * GH-2262: telemetry: Remove singleton BIFs and the C++ pieces (Arne Welzel, Corelight)
+
+    The low-level singleton Telemetry BIFs have been removed with the that there
+    haven't been any users. Singleton metrics can be instantiated by providing
+    an empty label vector instead and aren't in any way a special concept.
+
+    Closes #2262.
+
+5.1.0-dev.360 | 2022-08-11 11:52:26 +0200
+
+  * telemetry: Switch to histogram family bucket and bound accessors
+    (Arne Welzel, Corelight)
+
+5.1.0-dev.357 | 2022-08-10 14:16:33 -0700
+
+  * Management framework: minor bugfixes and tweaks (Christian Kreibich, Corelight)
+
+    - bump cluster testsuite
+    - log node set in dispatch requests cleanly
+    - log additional node events
+    - upon deployment, make agent log multiple node results
+    - fix early return condition for get-id-value
+
+5.1.0-dev.351 | 2022-08-09 09:50:13 -0700
+
+  * Fix module-scoped type definitions that conflict with existing global ones (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.349 | 2022-08-08 11:09:04 -0700
+
+  * lower priority for change handlers (Yacin Nadji, Corelight)
+
+  * split update_zones_regex into two functions (Yacin Nadji, Corelight)
+
+5.1.0-dev.344 | 2022-08-08 11:03:24 -0700
+
+  * Squelch the zeekygen warnings for command line (AmazingPP)
+
+5.1.0-dev.341 | 2022-08-05 16:21:13 +0000
+
+  * Added test case with back-to-back notices (Annie Bryan)
+
+  * Fix notice suppression atomicity bug (Annie Bryan)
+
+5.1.0-dev.337 | 2022-08-05 16:19:59 +0000
+
+  * GH-2034: Store module names and use them in lookups for ifdef (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.335 | 2022-08-05 16:50:18 +0200
+
+  * Introduce telemetry framework (Arne Welzel, Corelight)
+
+    Adds base/frameworks/telemetry with wrappers around telemetry.bif
+    and updates telemetry/Manager to support collecting metrics from
+    script land.
+
+    Adds policy/frameworks/telemetry/log for logging of metrics data
+    into a new telemetry.log and telemetry_histogram.log and add into
+    local.zeek by default.
+
+5.1.0-dev.331 | 2022-08-03 10:27:28 -0700
+
+  * input/config: Use thread-safe Fmt() rather than util::fmt() for regex formatting (Arne Welzel, Corelight)
+
+    Calling util::fmt() from DoUpdate() of a thread is not safe as it is
+    using a statically allocated buffer and other threads or the main
+    thread may concurrently modify this buffer.
+
+    This was found by observing the scripts.base.frameworks.config.several-files
+    failing once in a blue moon (1/250 sometimes 1/1000 runs) with messages like
+    "Failed to compile regex: Parenthesis is not closed.":
+
+        scripts.base.frameworks.config.several-files ...
+          > btest-bg-run zeek zeek -b %INPUT
+          > btest-bg-wait 10
+        ... scripts.base.frameworks.config.several-files failed
+          % 'btest-bg-wait 10' failed unexpectedly (exit code 1)
+          % cat .stderr
+          The following processes did not terminate:
+          zeek -b /home/awelzel/corelight-oss/zeek/testing/btest/.tmp/scripts.base.frameworks.config.several-files/several-files.zeek
+          -----------
+          <<< [3667265] zeek -b /home/awelzel/corelight-oss/zeek/testing/btest/.tmp/scripts.base.frameworks.config.several-files/several-files.zeek
+          error: ../configfile1/Input::READER_CONFIG: Failed to compile regex: Parenthesis is not closed.
+          received termination signal
+          >>>
+
+5.1.0-dev.329 | 2022-08-03 10:26:45 -0700
+
+  * testing/missing-enum-value: redef exit_only_after_terminate=T (Arne Welzel, Corelight)
+
+    Seems this was the intention all along as the corresponding terminate()
+    call is there.
+
+  * option.bif: Short-circuit option changes when terminating (Arne Welzel, Corelight)
+
+    Due to the asynchronous behavior of the input framework and broker
+    communication, change handlers were previously called even after
+    zeek_done() event processing completed and also broker shutdown.
+
+    Accessing broker store handles within change handlers this late
+    triggered invalid Broker store handle messages:
+
+        error in ././my_option_store.zeek, line 13: invalid Broker store handle (Broker::put(Test::store, to_any_coercemy_option, to_any_coerceTest::new_value, 0 secs) and broker::store::{})
+
+    Fixes #2010
+
+5.1.0-dev.326 | 2022-08-03 09:56:37 -0700
+
+  * updates for gen-C++ maintenance, including skipping some inappropriate tests (Vern Paxson, Corelight)
+
+  * fix for profiling "when" statements (Vern Paxson, Corelight)
+
+  * gen-C++ support for vector bit-shift operations (Vern Paxson, Corelight)
+
+  * corrected wording in some btest comments (Vern Paxson, Corelight)
+
+  * make gen-C++ maintenance scripts directly executable (Vern Paxson, Corelight)
+
+  * ZAM support for bit-shifting (Vern Paxson, Corelight)
+
+  * don't allow deprecated-style mixing of vectors and scaling for shifting (Vern Paxson, Corelight)
+    leverage restrictions placed on shifting (RHS is always unsigned)
+    split deprecated vector operations into separate test, with separate ZAM baseline
+
+  * ZAM fix for vector "in" operator (Vern Paxson, Corelight)
+
+  * ensure that language tests pay attention to .stderr (Vern Paxson, Corelight)
+
+  * fix vector tests, including checking for errors (Vern Paxson, Corelight)
+
+5.1.0-dev.312 | 2022-08-02 12:37:51 -0700
+
+  * Update plugins.hooks baseline with new DHCP options (peter.cullen, Corelight)
+
+  * Prevent large dhcp log entries (Peter Cullen, Corelight)
+
+    A flood of DHCP traffic can result if very large log entries consisting
+    of many uids and/or msg_types. Such large log entries can disrupt a SIEM
+    ingestion pipeline. This change forcing a log entry to be written when
+    the number of uids or the number of msg_Types exceed a certain value.
+    The values are treated as options for easy configuration.
+
+5.1.0-dev.309 | 2022-08-02 11:33:22 -0700
+
+  * Add support for /s modifier to RE matcher and parser (Tim Wojtulewicz, Corelight)
+
+  * Code cleanup in RE_Matcher code (Tim Wojtulewicz, Corelight)
+
+    - Use std::string in Specific_RE_Matcher instead of char*
+    - Change a couple of ints-as-bools to bools
+
+  * Add basic unit tests for RE_Matcher (Tim Wojtulewicz, Corelight)
+
+  * Add /s modifier to parser for patterns (Tim Wojtulewicz, Corelight)
+
+  * Update gen-zam submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.303 | 2022-08-01 09:56:45 -0700
+
+  * GH-1344: Give better warning when using a type that doesn't exist (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.301 | 2022-07-29 12:10:20 -0700
+
+  * Add btest for vector bit-shift operators (Tim Wojtulewicz, Corelight)
+
+  * Handle error cases for bit-shift operators more cleanly (Tim Wojtulewicz, Corelight)
+
+5.1.0-dev.298 | 2022-07-29 12:00:57 -0700
+
+  * Update 3rdparty submodule to get patricia reformat (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.295 | 2022-07-28 11:21:59 -0700
 
   * Re-enable sending coverage data to Coveralls via Cirrus (Tim Wojtulewicz, Corelight)

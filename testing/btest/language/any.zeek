@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 function test_case(msg: string, expect: bool)
         {
@@ -11,12 +12,12 @@ function anyarg(arg1: any, arg1type: string)
 	test_case( arg1type, type_name(arg1) == arg1type );
 	}
 
+global any1: any = 5;
+global any2: any = "bar";
+global any3: any = /bar/;
+
 event zeek_init()
 {
-	local any1: any = 5;
-	local any2: any = "bar";
-	local any3: any = /bar/;
-
 	# Test using variable of type "any"
 
 	anyarg( any1, "count" );

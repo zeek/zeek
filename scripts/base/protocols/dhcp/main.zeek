@@ -91,6 +91,12 @@ export {
 	## transaction narrative.
 	option DHCP::max_txid_watch_time = 30secs;
 
+	## The maximum number of uids allowed in a single log entry.
+	option DHCP::max_uids_per_log_entry = 10;
+
+	## The maximum number of msg_types allowed in a single log entry.
+	option DHCP::max_msg_types_per_log_entry = 50;
+
 	## This event is used internally to distribute data around clusters
 	## since DHCP doesn't follow the normal "connection" model used by
 	## most protocols. It can also be handled to extend the DHCP log.
@@ -265,6 +271,13 @@ event DHCP::aggregate_msgs(ts: time, id: conn_id, uid: string, is_orig: bool, ms
 
 		if ( options?$lease )
 			log_info$lease_time = options$lease;
+		}
+
+	# Write log entry if |uids| or |msg_types| becomes too large
+	if ( |log_info$uids| >= max_uids_per_log_entry || |log_info$msg_types| >= max_msg_types_per_log_entry )
+		{
+		Log::write(LOG, log_info);
+		delete join_data[msg$xid];
 		}
 	}
 @endif

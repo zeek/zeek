@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 
 function test_case(msg: string, expect: bool)
         {
@@ -9,12 +10,16 @@ function test_case(msg: string, expect: bool)
 # This is an incomplete set of tests to demonstrate the order of precedence
 # of zeek script operators
 
+global n1: int;
+global n2: int;
+global n3: int;
+
+global r1: bool;
+global r2: bool;
+global r3: bool;
+
 event zeek_init()
 {
-	local n1: int;
-	local n2: int;
-	local n3: int;
-
 	# Tests that show "++" has higher precedence than "*"
 
 	n1 = n2 = 5;
@@ -69,10 +74,6 @@ event zeek_init()
 	test_case( "+= and +", n1 == 3 );
 	test_case( "+= and +", n2 == 3 );
 	test_case( "+= and +", n3 == 1 );
-
-	local r1: bool;
-	local r2: bool;
-	local r3: bool;
 
 	# Tests that show "&&" has higher precedence than "||"
 

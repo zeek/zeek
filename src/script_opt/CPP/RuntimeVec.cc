@@ -170,6 +170,8 @@ VEC_OP2(or, |, )
 VEC_OP2(xor, ^, )
 VEC_OP2(andand, &&, )
 VEC_OP2(oror, ||, )
+VEC_OP2(lshift, <<, )
+VEC_OP2(rshift, >>, )
 
 // A version of VEC_OP2 that instead supports relational operations, so
 // the result type is always vector-of-bool.

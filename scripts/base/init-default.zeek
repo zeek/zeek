@@ -43,6 +43,7 @@
 @load base/frameworks/tunnels
 @load base/frameworks/openflow
 @load base/frameworks/netcontrol
+@load base/frameworks/telemetry
 
 @load base/protocols/conn
 @load base/protocols/dce-rpc

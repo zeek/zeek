@@ -21,8 +21,51 @@ Breaking Changes
 - The Dictionary and PDict classes are now C++ templates. This may cause
   plugin/package builds to fail due to needing to modify uses of them to match.
 
+- The low-level singleton Telemetry BIFs have been removed with the assumption that
+  there haven't been any users. Singleton metrics can be instantiated by providing
+  an empty label vector instead and aren't in any way a special concept.
+
 New Functionality
 -----------------
+
+- Added support for the /s regular expression modifier. Using this modifier in
+  patterns in Zeek scripts will cause the '.' character to also match newline
+  characters.
+
+- Added a new telemetry framework for providing high-level access to Zeek's
+  metric subsystem. This framework allows script writers to use different
+  metric types (counters, gauges and histograms) for tracking metrics without
+  using lower-level BiFs from ``telemetry.bif``. Additionally, metrics can
+  now be accessed from script land using ``Telemetry::collect_metrics() and
+  ``Telemetry::collect_histogram_metrics()``.
+
+  The framework is located in ``base/frameworks/telemetry``.
+
+  In addition to the Prometheus endpoint for metrics export that has existed
+  since Zeek 4.1, two new log streams, ``telemetry.log`` and ``telemetry_histogram.log``,
+  can be enabled by loading ``policy/frameworks/telemetry/log``. This policy
+  script is included in ``local.zeek`` by default.
+
+  For further details on the framework and examples, please refer to the
+  Zeek documentation.
+
+- Allow redef'ing the ``&log`` attribute of record fields:
+
+	redef Notice::Info$email_dest -= { &log };
+
+  While the syntax allows for any attribute, only ``&log`` is supported. The
+  semantics for other record field attributes are not easy to grasp and there
+  were no obvious use-cases identified.
+
+- Introduce a global ``disabling_analyzer()`` hook to allow vetoing calls
+  to ``disable_analyzer()``.
+
+  The contract is simple: Any script can veto a ``disable_analyzer()`` call by
+  breaking from this hook. The decision is local to the script taking into
+  account any state attached to the connection or state stored elsewhere.
+  A script breaking from the hook takes over responsibility to call
+  ``disable_analyzer()`` at a later point when it finds the condition due
+  to which it vetoed fulfilled (which may be never).
 
 Changed Functionality
 ---------------------
@@ -40,6 +83,10 @@ Changed Functionality
 
 - The default logging directory is now set globally across all log
   writers through ``Log::default_logdir``.
+
+- Calling `Option::set()` when Zeek is terminating is now a noop and returns `F`.
+  This prevents callbacks into script-land through change handlers when parts
+  of the environment have already been torn down.
 
 Deprecated Functionality
 ------------------------

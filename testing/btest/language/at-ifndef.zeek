@@ -1,5 +1,8 @@
-# @TEST-EXEC: zeek -b %INPUT >out
+# @TEST-EXEC: zeek -b bar.zeek main.zeek >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
+
+@TEST-START-FILE main.zeek
 
 function test_case(msg: string, expect: bool)
         {
@@ -7,11 +10,10 @@ function test_case(msg: string, expect: bool)
         }
 
 global thisisdefined = 123;
+global xyz = 0;
 
 event zeek_init()
 {
-	local xyz = 0;
-
 	# Test "ifndef" without "else"
 
 	@ifndef ( notdefined )
@@ -46,5 +48,36 @@ event zeek_init()
 
 	test_case( "@ifndef...@else", xyz == 2 );
 
+	xyz = 0;
+
+	@ifndef ( Bar )
+		xyz += 1;
+	@else
+		xyz += 2;
+	@endif
+
+	test_case( "@ifndef module name", xyz == 2 );
+
+	xyz = 0;
+
+	@ifndef ( Bar::exists )
+		xyz += 1;
+	@else
+		xyz += 2;
+	@endif
+
+	test_case( "@ifndef child variable", xyz == 2 );
+
 }
 
+@TEST-END-FILE
+
+@TEST-START-FILE bar.zeek
+
+module Bar;
+
+export {
+  option exists = T;
+}
+
+@TEST-END-FILE

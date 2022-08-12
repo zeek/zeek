@@ -54,7 +54,7 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 %nonassoc TOK_AS TOK_IS
 
-%type <b> opt_no_test opt_no_test_block TOK_PATTERN_END opt_deep when_flavor
+%type <b> opt_no_test opt_no_test_block opt_deep when_flavor
 %type <str> TOK_ID TOK_PATTERN_TEXT
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_lambda case_type
 %type <id_l> local_id_list case_type_list
@@ -77,6 +77,7 @@
 %type <capture> capture
 %type <captures> capture_list opt_captures when_captures
 %type <when_clause> when_head when_start when_clause
+%type <re_modes> TOK_PATTERN_END
 
 %{
 #include <cstdlib>
@@ -155,6 +156,8 @@ static int func_hdr_cond_epoch = 0;
 EnumType* cur_enum_type = nullptr;
 static ID* cur_decl_type_id = nullptr;
 
+std::set<std::string> module_names;
+
 static void parse_new_enum(void)
 	{
 	// Starting a new enum definition.
@@ -183,6 +186,56 @@ static void parse_redef_enum(ID* id)
 		if ( ! id->GetType() || id->GetType()->Tag() != TYPE_ENUM )
 			reporter->FatalError("identifier \"%s\" is not an enum", id->Name());
 		cur_enum_type = id->GetType()->AsEnumType();
+		}
+	}
+
+static void parse_redef_record_field(ID* id, const char* field, InitClass ic,
+                                     std::unique_ptr<std::vector<AttrPtr>> attrs)
+	{
+	if ( ! id->GetType() )
+		{
+		reporter->FatalError("unknown record identifier \"%s\"", id->Name());
+		return;
+		}
+
+	auto t = id->GetType();
+	if ( ! t || t->Tag() != TYPE_RECORD )
+		{
+		reporter->FatalError("identifier \"%s\" has type \"%s\", expected \"record\"",
+		                     id->Name(), type_name(t->Tag()));
+		return;
+		}
+
+	auto rt = t->AsRecordType();
+	auto idx = rt->FieldOffset(field);
+	if ( idx < 0 )
+		{
+		reporter->FatalError("field \"%s\" not in record \"%s\"", field, id->Name());
+		return;
+		}
+
+	auto decl = rt->FieldDecl(idx);
+	if ( ! decl->attrs )
+		if ( ic == INIT_EXTRA )
+			decl->attrs = make_intrusive<detail::Attributes>(decl->type,
+															 true /* in_record */,
+															 false /* is_global */);
+
+	for ( const auto& attr : *attrs )
+		{
+		// At this point, only support &log redef'ing.
+		if ( attr->Tag() != ATTR_LOG )
+			{
+				reporter->FatalError("Can only redef \"&log\" attributes of record fields");
+				return;
+			}
+
+		if ( ic == INIT_EXTRA )
+			decl->attrs->AddAttr(attr, true /* is_redef */);
+		else
+			// Removing attributes is a noop if they don't exist.
+			if ( decl->attrs )
+				decl->attrs->RemoveAttr(attr->Tag());
 		}
 	}
 
@@ -324,6 +377,11 @@ static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
 	zeek::FuncType::Capture* capture;
 	zeek::FuncType::CaptureList* captures;
 	zeek::detail::WhenInfo* when_clause;
+	struct
+		{
+		bool ignore_case;
+		bool single_line;
+		} re_modes;
 }
 
 %%
@@ -912,8 +970,11 @@ expr:
 			auto* re = new RE_Matcher($3);
 			delete [] $3;
 
-			if ( $4 )
+			if ( $4.ignore_case )
 				re->MakeCaseInsensitive();
+
+			if ( $4.single_line )
+				re->MakeSingleLine();
 
 			re->Compile();
 			$$ = new ConstExpr(make_intrusive<PatternVal>(re));
@@ -1260,6 +1321,7 @@ decl:
 		TOK_MODULE TOK_ID ';'
 			{
 			current_module = $2;
+			module_names.insert($2);
 			zeekygen_mgr->ModuleUsage(::filename, current_module);
 			}
 
@@ -1294,6 +1356,20 @@ decl:
 			// Zeekygen already grabbed new enum IDs as the type created them.
 			}
 
+	|	TOK_REDEF TOK_RECORD  global_id '$' TOK_ID
+			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename, INIT_EXTRA); }
+		TOK_ADD_TO '{' attr_list '}' ';'
+			{
+			cur_decl_type_id = 0;
+			parse_redef_record_field($3, $5, INIT_EXTRA, std::unique_ptr<std::vector<AttrPtr>>($9));
+			}
+	|	TOK_REDEF TOK_RECORD  global_id '$' TOK_ID
+			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename, INIT_REMOVE); }
+		TOK_REMOVE_FROM '{' attr_list '}' ';'
+			{
+			cur_decl_type_id = 0;
+			parse_redef_record_field($3, $5, INIT_REMOVE, std::unique_ptr<std::vector<AttrPtr>>($9));
+			}
 	|	TOK_REDEF TOK_RECORD global_id
 			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename); }
 		TOK_ADD_TO '{'
@@ -1311,7 +1387,7 @@ decl:
 				              std::unique_ptr<std::vector<AttrPtr>>($11));
 			}
 
-	|	TOK_TYPE global_id ':'
+	|	TOK_TYPE def_global_id ':'
 			{ cur_decl_type_id = $2; zeekygen_mgr->StartType({NewRef{}, $2});  }
 		type opt_attr ';'
 			{

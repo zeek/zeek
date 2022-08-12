@@ -1,3 +1,15 @@
+5.1.0-dev.466 | 2022-08-26 11:00:06 -0700
+
+  * Check for valid ip_hdr length before trying to make a Val out of it (Tim Wojtulewicz, Corelight)
+
+  * Fix potential overflow in modbus analyzer's bytestring_to_coils (Tim Wojtulewicz, Corelight)
+
+  * Add some sanity checking to BadARPEvent method (Tim Wojtulewicz, Corelight)
+
+  * Swap DNS EDNS field order to match script-land type (Tim Wojtulewicz, Corelight)
+
+  * Reset packet cap_len before returning from IP::AnalyzePacket (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.461 | 2022-08-26 09:09:23 -0700
 
   * Revert to regular peering fn for ssl_auth_failure (Dominik Charousset, Corelight)

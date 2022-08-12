@@ -71,7 +71,7 @@ static bool filter_matches_anything(const char* filter)
 	return (! filter) || strlen(filter) == 0 || strcmp(filter, "ip or not ip") == 0;
 	}
 
-BPF_Program::BPF_Program() : m_compiled(), m_matches_anything(false), m_program() { }
+BPF_Program::BPF_Program() : m_program() { }
 
 BPF_Program::~BPF_Program()
 	{
@@ -98,7 +98,7 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, st
 	return true;
 	}
 
-bool BPF_Program::Compile(int snaplen, int linktype, const char* filter, uint32_t netmask,
+bool BPF_Program::Compile(zeek_uint_t snaplen, int linktype, const char* filter, uint32_t netmask,
                           std::string& errbuf, bool optimize)
 	{
 	FreeCode();
@@ -122,7 +122,7 @@ bool BPF_Program::Compile(int snaplen, int linktype, const char* filter, uint32_
 	if ( err < 0 )
 		errbuf = std::string(my_error);
 #else
-	int err = pcap_compile_nopcap(snaplen, linktype, &m_program, (char*)filter, optimize, netmask);
+	int err = pcap_compile_nopcap(static_cast<int>(snaplen), linktype, &m_program, (char*)filter, optimize, netmask);
 
 	if ( err < 0 )
 		errbuf.clear();

@@ -24,7 +24,7 @@ class BPF_Program;
 class PktSrc : public IOSource
 	{
 public:
-	static const int NETMASK_UNKNOWN = 0xffffffff;
+	static const uint32_t NETMASK_UNKNOWN = 0xffffffff;
 
 	/**
 	 * Struct for returning statistics on a packet source.

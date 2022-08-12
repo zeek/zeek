@@ -140,7 +140,7 @@ RecordValPtr Packet::ToRawPktHdrVal() const
 
 	pkt_hdr->Assign(0, std::move(l2_hdr));
 
-	if ( l3_proto == L3_IPV4 || l3_proto == L3_IPV6 )
+	if ( ip_hdr && cap_len >= ip_hdr->TotalLen() && (l3_proto == L3_IPV4 || l3_proto == L3_IPV6) )
 		// Packet analysis will have stored the IP header in the packet, so we can use
 		// that to build the output.
 		return ip_hdr->ToPktHdrVal(std::move(pkt_hdr), 1);

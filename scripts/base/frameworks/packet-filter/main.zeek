@@ -282,7 +282,7 @@ function install(): bool
 		        $msg=fmt("Compiling packet filter failed"),
 		        $sub=tmp_filter]);
 
-		local error_string = fmt("Bad pcap filter '%s'", tmp_filter);
+		local error_string = fmt("Bad pcap filter '%s': %s", tmp_filter, Pcap::get_filter_state_string(DefaultPcapFilter));
 
 		local pkt_src_error : string = Pcap::error();
 		if ( pkt_src_error != "no error" )

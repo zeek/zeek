@@ -78,8 +78,7 @@ BPF_Program::~BPF_Program()
 	FreeCode();
 	}
 
-bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, std::string& errbuf,
-                          bool optimize)
+bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, bool optimize)
 	{
 	if ( ! pcap )
 		return false;
@@ -88,7 +87,8 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, st
 
 	if ( pcap_compile(pcap, &m_program, (char*)filter, optimize, netmask) < 0 )
 		{
-		errbuf = util::fmt("pcap_compile(%s): %s", filter, pcap_geterr(pcap));
+		state_message = std::string(pcap_geterr(pcap));
+		state = GetStateFromMessage(state_message);
 		return false;
 		}
 
@@ -99,7 +99,7 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, st
 	}
 
 bool BPF_Program::Compile(zeek_uint_t snaplen, int linktype, const char* filter, uint32_t netmask,
-                          std::string& errbuf, bool optimize)
+                          bool optimize)
 	{
 	FreeCode();
 
@@ -120,12 +120,19 @@ bool BPF_Program::Compile(zeek_uint_t snaplen, int linktype, const char* filter,
 	int err = pcap_compile_nopcap(snaplen, linktype, &m_program, (char*)filter, optimize, netmask,
 	                              my_error);
 	if ( err < 0 )
-		errbuf = std::string(my_error);
+		{
+		state = GetStateFromMessage(errstr);
+		state_message = util::fmt("pcap_compile(%s): %s", filter, pcap_geterr(pcap);
+		}
 #else
-	int err = pcap_compile_nopcap(static_cast<int>(snaplen), linktype, &m_program, (char*)filter, optimize, netmask);
+	int err = pcap_compile_nopcap(static_cast<int>(snaplen), linktype, &m_program, (char*)filter,
+	                              optimize, netmask);
 
+	// We have no way of knowing what the error actually was because pcap_compile_nocap doesn't
+	// return an error string nor any other information, so just assume every failure is
+	// fatal.
 	if ( err < 0 )
-		errbuf.clear();
+		state = FilterState::FATAL;
 #endif
 
 	if ( err == 0 )
@@ -153,6 +160,14 @@ void BPF_Program::FreeCode()
 #endif
 		m_compiled = false;
 		}
+	}
+
+FilterState BPF_Program::GetStateFromMessage(const std::string& err)
+	{
+	if ( err.find("filtering not implemented") != std::string::npos )
+		return FilterState::WARNING;
+
+	return FilterState::FATAL;
 	}
 
 	} // namespace zeek::iosource::detail

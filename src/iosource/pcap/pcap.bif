@@ -8,6 +8,7 @@ const bufsize: count;
 %%{
 #include <pcap.h>
 
+#include "zeek/iosource/BPF_Program.h"
 #include "zeek/iosource/Manager.h"
 %%}
 
@@ -44,8 +45,13 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 	bool success = true;
 
 	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
-	if ( ps && ! ps->PrecompileFilter(id->AsInt(), s->CheckString()) )
-		success = false;
+	if ( ps )
+		{
+		bool compiled = ps->PrecompileFilter(id->AsInt(), s->CheckString());
+		auto filter = ps->GetBPFFilter(id->AsInt());
+		if ( ! compiled || ( filter && filter->GetState() != zeek::iosource::FilterState::OK ) )
+			success = false;
+		}
 
 	return zeek::val_mgr->Bool(success);
 	%}
@@ -99,7 +105,7 @@ function error%(%): string
 	if ( ps )
 		{
 		const char* err = ps->ErrorMsg();
-		if ( *err )
+		if ( err && *err )
 			return zeek::make_intrusive<zeek::StringVal>(err);
 		}
 

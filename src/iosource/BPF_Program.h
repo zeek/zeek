@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <string>
+
 #include "zeek/util.h"
 
 extern "C"
@@ -11,7 +12,17 @@ extern "C"
 #include <pcap.h>
 	}
 
-namespace zeek::iosource::detail
+namespace zeek::iosource
+	{
+
+enum class FilterState : uint8_t
+	{
+	OK,
+	FATAL, // results in Reporter::Error
+	WARNING // results in Reporter::Warning
+	};
+
+namespace detail
 	{
 
 // BPF_Programs are an abstraction around struct bpf_program,
@@ -33,8 +44,7 @@ public:
 	 *
 	 * @return true on successful compilation, false otherwise.
 	 */
-	bool Compile(pcap_t* pcap, const char* filter, uint32_t netmask, std::string& errbuf,
-	             bool optimize = true);
+	bool Compile(pcap_t* pcap, const char* filter, uint32_t netmask, bool optimize = true);
 
 	/**
 	 * Creates a BPF program when no pcap handle is available. The parameters match the usage
@@ -43,7 +53,7 @@ public:
 	 * @return true on successful compilation, false otherwise.
 	 */
 	bool Compile(zeek_uint_t snaplen, int linktype, const char* filter, uint32_t netmask,
-	             std::string& errbuf, bool optimize = true);
+	             bool optimize = true);
 
 	/**
 	 * Returns true if this program currently contains compiled code, false otherwise.
@@ -61,14 +71,30 @@ public:
 	 */
 	bpf_program* GetProgram();
 
+	/**
+	 * Returns the state of the compilation process.
+	 */
+	FilterState GetState() const { return state; }
+
+	/**
+	 * Returns an error message, if any, that was returned from the compliation process.
+	 */
+	std::string GetStateMessage() const { return state_message; }
+
 protected:
 	void FreeCode();
+
+	FilterState GetStateFromMessage(const std::string& err);
 
 	// (I like to prefix member variables with m_, makes it clear
 	// in the implementation whether it's a global or not. --ck)
 	bool m_compiled = false;
 	bool m_matches_anything = false;
 	struct bpf_program m_program;
+
+	FilterState state = FilterState::OK;
+	std::string state_message;
 	};
 
-	} // namespace zeek::iosource::detail
+	} // namespace detail
+	} // namespace zeek::iosource

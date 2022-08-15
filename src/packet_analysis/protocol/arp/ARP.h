@@ -28,13 +28,13 @@ public:
 		}
 
 private:
-	zeek::AddrValPtr ToAddrVal(const void* addr);
-	zeek::StringValPtr ToEthAddrStr(const u_char* addr);
+	zeek::AddrValPtr ToAddrVal(const void* addr, size_t len);
+	zeek::StringValPtr ToEthAddrStr(const u_char* addr, size_t len);
 
 	void BadARPEvent(const struct arp_pkthdr* hdr, const char* fmt, ...)
-			__attribute__((format(printf, 3, 4)));
+		__attribute__((format(printf, 3, 4)));
 	void RequestReplyEvent(EventHandlerPtr e, const u_char* src, const u_char* dst,
-			const char* spa, const char* sha, const char* tpa, const char* tha);
-};
+	                       const struct arp_pkthdr* hdr);
+	};
 
 }

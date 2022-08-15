@@ -159,13 +159,11 @@ bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	switch ( ntohs(ah->ar_op) )
 		{
 		case ARPOP_REQUEST:
-			RequestReplyEvent(arp_request, packet->l2_src, packet->l2_dst, ar_spa(ah), ar_sha(ah),
-			                  ar_tpa(ah), ar_tha(ah));
+			RequestReplyEvent(arp_request, packet->l2_src, packet->l2_dst, ah);
 			break;
 
 		case ARPOP_REPLY:
-			RequestReplyEvent(arp_reply, packet->l2_src, packet->l2_dst, ar_spa(ah), ar_sha(ah),
-			                  ar_tpa(ah), ar_tha(ah));
+			RequestReplyEvent(arp_reply, packet->l2_src, packet->l2_dst, ah);
 			break;
 
 		case ARPOP_REVREQUEST:
@@ -190,14 +188,20 @@ bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	return true;
 	}
 
-zeek::AddrValPtr ARPAnalyzer::ToAddrVal(const void* addr)
+zeek::AddrValPtr ARPAnalyzer::ToAddrVal(const void* addr, size_t len)
 	{
+	if ( len < 4 )
+		return zeek::make_intrusive<zeek::AddrVal>(static_cast<uint32_t>(0));
+
 	// Note: We only handle IPv4 addresses.
 	return zeek::make_intrusive<zeek::AddrVal>(*(const uint32_t*)addr);
 	}
 
-zeek::StringValPtr ARPAnalyzer::ToEthAddrStr(const u_char* addr)
+zeek::StringValPtr ARPAnalyzer::ToEthAddrStr(const u_char* addr, size_t len)
 	{
+	if ( len < 6 )
+		return zeek::make_intrusive<zeek::StringVal>("");
+
 	char buf[1024];
 	snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x", addr[0], addr[1], addr[2], addr[3],
 	         addr[4], addr[5]);
@@ -215,19 +219,24 @@ void ARPAnalyzer::BadARPEvent(const struct arp_pkthdr* hdr, const char* fmt, ...
 	vsnprintf(msg, sizeof(msg), fmt, args);
 	va_end(args);
 
-	event_mgr.Enqueue(bad_arp, ToAddrVal(ar_spa(hdr)), ToEthAddrStr((const u_char*)ar_sha(hdr)),
-	                  ToAddrVal(ar_tpa(hdr)), ToEthAddrStr((const u_char*)ar_tha(hdr)),
+	event_mgr.Enqueue(bad_arp, ToAddrVal(ar_spa(hdr), hdr->ar_pln),
+	                  ToEthAddrStr(reinterpret_cast<const u_char*>(ar_sha(hdr)), hdr->ar_hln),
+	                  ToAddrVal(ar_tpa(hdr), hdr->ar_pln),
+	                  ToEthAddrStr(reinterpret_cast<const u_char*>(ar_tha(hdr)), hdr->ar_hln),
 	                  zeek::make_intrusive<zeek::StringVal>(msg));
 	}
 
 void ARPAnalyzer::RequestReplyEvent(EventHandlerPtr e, const u_char* src, const u_char* dst,
-                                    const char* spa, const char* sha, const char* tpa,
-                                    const char* tha)
+                                    const struct arp_pkthdr* hdr)
 	{
 	if ( ! e )
 		return;
 
-	event_mgr.Enqueue(e, ToEthAddrStr(src), ToEthAddrStr(dst), ToAddrVal(spa),
-	                  ToEthAddrStr((const u_char*)sha), ToAddrVal(tpa),
-	                  ToEthAddrStr((const u_char*)tha));
+	// The src and dst pointers are the l2_src and l2_dst addresses from the packet. We assume
+	// that the length of those were validated at some point earlier in the processing.
+	event_mgr.Enqueue(e, ToEthAddrStr(src, 6), ToEthAddrStr(dst, 6),
+	                  ToAddrVal(ar_spa(hdr), hdr->ar_pln),
+	                  ToEthAddrStr(reinterpret_cast<const u_char*>(ar_sha(hdr)), hdr->ar_hln),
+	                  ToAddrVal(ar_tpa(hdr), hdr->ar_pln),
+	                  ToEthAddrStr(reinterpret_cast<const u_char*>(ar_tha(hdr)), hdr->ar_hln));
 	}

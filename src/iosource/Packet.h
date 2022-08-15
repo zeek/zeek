@@ -136,8 +136,8 @@ public:
 
 	/**
 	 * Empty layer 2 address to be used as default value. For example, the
-	 * LinuxSLL packet analyzer doesn't have a destination address in the
-	 * header and thus sets it to this default address.
+	 * LinuxSLL/LinuxSLL2 packet analyzers don't have a destination address
+	 * in the header and thus sets it to this default address.
 	 */
 	static constexpr const u_char L2_EMPTY_ADDR[L2_ADDR_LEN] = {0};
 

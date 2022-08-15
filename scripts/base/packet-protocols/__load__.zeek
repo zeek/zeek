@@ -8,6 +8,7 @@
 @load base/packet-protocols/ieee802_11
 @load base/packet-protocols/ieee802_11_radio
 @load base/packet-protocols/linux_sll
+@load base/packet-protocols/linux_sll2
 @load base/packet-protocols/nflog
 @load base/packet-protocols/null
 @load base/packet-protocols/ppp_serial

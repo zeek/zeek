@@ -619,6 +619,10 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2054, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 32821, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 34525, PacketAnalyzer::ANALYZER_IP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL2, 2048, PacketAnalyzer::ANALYZER_IP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL2, 2054, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL2, 32821, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL2, 34525, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NFLOG, 10, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NFLOG, 2, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 2, PacketAnalyzer::ANALYZER_IP)) -> <no result>
@@ -637,6 +641,7 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 113, PacketAnalyzer::ANALYZER_LINUXSLL)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 127, PacketAnalyzer::ANALYZER_IEEE802_11_RADIO)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 239, PacketAnalyzer::ANALYZER_NFLOG)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 276, PacketAnalyzer::ANALYZER_LINUXSLL2)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 50, PacketAnalyzer::ANALYZER_PPPSERIAL)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 2123, PacketAnalyzer::ANALYZER_GTPV1)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 2152, PacketAnalyzer::ANALYZER_GTPV1)) -> <no result>
@@ -1025,6 +1030,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/irc, <...>/irc) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/krb, <...>/krb) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/linux_sll, <...>/linux_sll) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/linux_sll2, <...>/linux_sll2) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/logging, <...>/logging) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/logging.bif, <...>/logging.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/main, <...>/main.zeek) -> -1
@@ -1409,6 +1415,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/irc, <...>/irc) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/krb, <...>/krb) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/linux_sll, <...>/linux_sll) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/linux_sll2, <...>/linux_sll2) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/logging, <...>/logging) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/logging.bif, <...>/logging.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/main, <...>/main.zeek) -> (-1, <no content>)
@@ -2122,6 +2129,10 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2054, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 32821, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 34525, PacketAnalyzer::ANALYZER_IP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL2, 2048, PacketAnalyzer::ANALYZER_IP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL2, 2054, PacketAnalyzer::ANALYZER_ARP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL2, 32821, PacketAnalyzer::ANALYZER_ARP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL2, 34525, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NFLOG, 10, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NFLOG, 2, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 2, PacketAnalyzer::ANALYZER_IP))
@@ -2140,6 +2151,7 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 113, PacketAnalyzer::ANALYZER_LINUXSLL))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 127, PacketAnalyzer::ANALYZER_IEEE802_11_RADIO))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 239, PacketAnalyzer::ANALYZER_NFLOG))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 276, PacketAnalyzer::ANALYZER_LINUXSLL2))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 50, PacketAnalyzer::ANALYZER_PPPSERIAL))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 2123, PacketAnalyzer::ANALYZER_GTPV1))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 2152, PacketAnalyzer::ANALYZER_GTPV1))
@@ -2528,6 +2540,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/irc, <...>/irc)
 0.000000   MetaHookPre   LoadFile(0, base<...>/krb, <...>/krb)
 0.000000   MetaHookPre   LoadFile(0, base<...>/linux_sll, <...>/linux_sll)
+0.000000   MetaHookPre   LoadFile(0, base<...>/linux_sll2, <...>/linux_sll2)
 0.000000   MetaHookPre   LoadFile(0, base<...>/logging, <...>/logging)
 0.000000   MetaHookPre   LoadFile(0, base<...>/logging.bif, <...>/logging.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/main, <...>/main.zeek)
@@ -2912,6 +2925,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/irc, <...>/irc)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/krb, <...>/krb)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/linux_sll, <...>/linux_sll)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/linux_sll2, <...>/linux_sll2)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/logging, <...>/logging)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/logging.bif, <...>/logging.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/main, <...>/main.zeek)
@@ -3624,6 +3638,10 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL, 2054, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL, 32821, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL, 34525, PacketAnalyzer::ANALYZER_IP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL2, 2048, PacketAnalyzer::ANALYZER_IP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL2, 2054, PacketAnalyzer::ANALYZER_ARP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL2, 32821, PacketAnalyzer::ANALYZER_ARP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL2, 34525, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_NFLOG, 10, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_NFLOG, 2, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_NULL, 2, PacketAnalyzer::ANALYZER_IP)
@@ -3642,6 +3660,7 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 113, PacketAnalyzer::ANALYZER_LINUXSLL)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 127, PacketAnalyzer::ANALYZER_IEEE802_11_RADIO)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 239, PacketAnalyzer::ANALYZER_NFLOG)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 276, PacketAnalyzer::ANALYZER_LINUXSLL2)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 50, PacketAnalyzer::ANALYZER_PPPSERIAL)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 2123, PacketAnalyzer::ANALYZER_GTPV1)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 2152, PacketAnalyzer::ANALYZER_GTPV1)
@@ -4042,6 +4061,7 @@
 0.000000 | HookLoadFile  base<...>/irc <...>/irc
 0.000000 | HookLoadFile  base<...>/krb <...>/krb
 0.000000 | HookLoadFile  base<...>/linux_sll <...>/linux_sll
+0.000000 | HookLoadFile  base<...>/linux_sll2 <...>/linux_sll2
 0.000000 | HookLoadFile  base<...>/logging <...>/logging
 0.000000 | HookLoadFile  base<...>/logging.bif <...>/logging.bif.zeek
 0.000000 | HookLoadFile  base<...>/main <...>/main.zeek
@@ -4426,6 +4446,7 @@
 0.000000 | HookLoadFileExtended base<...>/irc <...>/irc
 0.000000 | HookLoadFileExtended base<...>/krb <...>/krb
 0.000000 | HookLoadFileExtended base<...>/linux_sll <...>/linux_sll
+0.000000 | HookLoadFileExtended base<...>/linux_sll2 <...>/linux_sll2
 0.000000 | HookLoadFileExtended base<...>/logging <...>/logging
 0.000000 | HookLoadFileExtended base<...>/logging.bif <...>/logging.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/main <...>/main.zeek

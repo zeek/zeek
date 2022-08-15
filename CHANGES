@@ -1,3 +1,9 @@
+5.1.0-dev.389 | 2022-08-15 09:22:30 -0700
+
+  * Update zeek-testing-private commit hash after email regex changes (Tim Wojtulewicz, Corelight)
+
+    Related to https://github.com/zeek/zeek/pull/2221
+
 5.1.0-dev.386 | 2022-08-11 11:56:55 -0700
 
   * Add a field to Modbus/TCP log to indicate the Modbus PDU type (Michael Torres)

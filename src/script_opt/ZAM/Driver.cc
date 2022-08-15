@@ -370,7 +370,7 @@ void ZAMCompiler::Dump()
 	if ( remapped_frame )
 		printf("Original frame for %s:\n", func->Name());
 
-	for ( auto elem : frame_layout1 )
+	for ( const auto& elem : frame_layout1 )
 		printf("frame[%d] = %s\n", elem.second, elem.first->Name());
 
 	if ( remapped_frame )

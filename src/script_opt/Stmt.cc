@@ -895,7 +895,7 @@ StmtPtr InitStmt::Duplicate()
 	// Need to duplicate the initializer list since later reductions
 	// can modify it in place.
 	std::vector<IDPtr> new_inits;
-	for ( auto id : inits )
+	for ( const auto& id : inits )
 		new_inits.push_back(id);
 
 	return SetSucc(new InitStmt(new_inits));

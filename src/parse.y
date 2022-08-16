@@ -1531,8 +1531,8 @@ lambda_body:
 	;
 
 anonymous_function:
-		TOK_FUNCTION begin_lambda lambda_body
-			{ $$ = $3; }
+		TOK_FUNCTION begin_lambda conditional_list lambda_body
+			{ $$ = $4; }
 	;
 
 begin_lambda:

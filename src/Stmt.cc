@@ -883,7 +883,7 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 
 bool SwitchStmt::AddCaseLabelTypeMapping(ID* t, int idx)
 	{
-	for ( auto i : case_label_type_list )
+	for ( const auto& i : case_label_type_list )
 		{
 		if ( same_type(i.first->GetType(), t->GetType()) )
 			return false;
@@ -918,7 +918,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 		}
 
 	// Find matching type cases.
-	for ( auto i : case_label_type_list )
+	for ( const auto& i : case_label_type_list )
 		{
 		auto id = i.first;
 		const auto& type = id->GetType();

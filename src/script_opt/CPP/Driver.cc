@@ -314,7 +314,7 @@ void CPPCompile::GenEpilog()
 	GenCPPDynStmt();
 
 	NL();
-	for ( auto gi : all_global_info )
+	for ( const auto& gi : all_global_info )
 		gi->GenerateInitializers(this);
 
 	NL();
@@ -449,7 +449,7 @@ void CPPCompile::GenFinishInit()
 		max_cohort = std::max(max_cohort, gi->MaxCohort());
 
 	for ( auto c = 0; c <= max_cohort; ++c )
-		for ( auto gi : all_global_info )
+		for ( const auto& gi : all_global_info )
 			if ( gi->CohortSize(c) > 0 )
 				Emit("%s.InitializeCohort(&im, %s);", gi->InitializersName(), Fmt(c));
 

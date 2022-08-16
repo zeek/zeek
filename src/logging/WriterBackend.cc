@@ -120,7 +120,7 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d)
 	rotation_interval = *brotation_interval;
 	network_time = *bnetwork_time;
 
-	for ( auto i : *bconfig )
+	for ( const auto& i : *bconfig )
 		{
 		auto k = broker::get_if<std::string>(&i.first);
 		auto v = broker::get_if<std::string>(&i.second);

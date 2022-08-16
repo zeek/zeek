@@ -1,3 +1,7 @@
+5.1.0-dev.391 | 2022-08-16 09:17:06 -0700
+
+  * Fix a swath of AUTO_CAUSES_COPY issues reported by Coverity (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.389 | 2022-08-15 09:22:30 -0700
 
   * Update zeek-testing-private commit hash after email regex changes (Tim Wojtulewicz, Corelight)

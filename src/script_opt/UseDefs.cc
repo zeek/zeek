@@ -83,7 +83,7 @@ bool UseDefs::RemoveUnused(int iter)
 			const auto& inits = init->Inits();
 			std::vector<IDPtr> used_ids;
 
-			for ( auto id : inits )
+			for ( const auto& id : inits )
 				if ( is_atomic_type(id->GetType()) || ! CheckIfUnused(s, id.get(), false) )
 					used_ids.emplace_back(id);
 

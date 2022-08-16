@@ -105,5 +105,9 @@ redef digest_salt = "Please change this value.";
 # this adds the link-layer address for each connection endpoint to the conn.log file.
 # @load policy/protocols/conn/mac-logging
 
+# Uncomment the following line to add back the tx_hosts, rx_hosts and
+# conn_uids field to files.log.
+# @load policy/frameworks/files/deprecated-txhosts-rxhosts-connuids
+
 # Uncomment this to source zkg's package state
 # @load packages

@@ -7,8 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid
 #types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string
-XXXXXXXXXX.XXXXXX	FmFp351N5nhsMmAfQg	CHhAvVGS1DHFjwGM9	10.10.1.4	1470	74.53.140.153	25	SMTP	3	(empty)	text/plain	-	0.000000	-	T	77	-	0	0	F	-
-XXXXXXXXXX.XXXXXX	Fqrb1K5DWEfgy4WU2	CHhAvVGS1DHFjwGM9	10.10.1.4	1470	74.53.140.153	25	SMTP	4	(empty)	text/html	-	0.000061	-	T	1868	-	0	0	F	-
-XXXXXXXXXX.XXXXXX	FEFYSd1s8Onn9LynKj	CHhAvVGS1DHFjwGM9	10.10.1.4	1470	74.53.140.153	25	SMTP	5	(empty)	text/plain	NEWS.txt	1.165512	-	T	10809	-	0	0	F	-
-XXXXXXXXXX.XXXXXX	Fc5KpS3kUYqDLwWSMf	CUM0KZ3MLUfNB0cl11	192.168.133.100	49648	192.168.133.102	25	SMTP	1	(empty)	text/plain	-	0.000000	-	T	204	-	0	0	F	-
+XXXXXXXXXX.XXXXXX	FMnxxt3xjVcWNS2141	CHhAvVGS1DHFjwGM9	141.142.228.5	59856	192.150.187.43	80	HTTP	0	(empty)	text/plain	-	0.000263	-	F	4705	4705	0	0	F	-
 #close XXXX-XX-XX-XX-XX-XX

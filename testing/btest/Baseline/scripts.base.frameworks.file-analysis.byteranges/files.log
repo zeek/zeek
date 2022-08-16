@@ -5,7 +5,7 @@
 #unset_field	-
 #path	files
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	fuid	tx_hosts	rx_hosts	conn_uids	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
-#types	time	string	set[addr]	set[addr]	set[string]	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
-XXXXXXXXXX.XXXXXX	FZkGcy26oUimsCoAH1	198.189.255.75	192.168.1.105	CHhAvVGS1DHFjwGM9	HTTP	0	EXTRACT	-	-	0.046240	-	F	54229	605292323	4244449	0	T	-	-	-	-	extract-XXXXXXXXXX.XXXXXX-HTTP-FZkGcy26oUimsCoAH1	T	4000
+#fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
+#types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
+XXXXXXXXXX.XXXXXX	FZkGcy26oUimsCoAH1	CHhAvVGS1DHFjwGM9	192.168.1.105	49219	198.189.255.75	80	HTTP	0	EXTRACT	-	-	0.046240	-	F	54229	605292323	4244449	0	T	-	-	-	-	extract-XXXXXXXXXX.XXXXXX-HTTP-FZkGcy26oUimsCoAH1	T	4000
 #close XXXX-XX-XX-XX-XX-XX

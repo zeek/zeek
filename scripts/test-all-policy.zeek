@@ -57,6 +57,7 @@
 @load frameworks/intel/seen/where-locations.zeek
 @load frameworks/intel/seen/x509.zeek
 @load frameworks/netcontrol/catch-and-release.zeek
+@load frameworks/files/deprecated-txhosts-rxhosts-connuids.zeek
 @load frameworks/files/detect-MHR.zeek
 @load frameworks/files/entropy-test-all-files.zeek
 #@load frameworks/files/extract-all-files.zeek

@@ -41,18 +41,13 @@ export {
 		## An identifier associated with a single file.
 		fuid: string &log;
 
-		## If this file was transferred over a network
-		## connection this should show the host or hosts that
-		## the data sourced from.
-		tx_hosts: set[addr] &default=addr_set() &log;
+		## If this file, or parts of it, were transferred over a
+		## network connection, this is the uid for the connection.
+		uid: string &log &optional;
 
-		## If this file was transferred over a network
-		## connection this should show the host or hosts that
-		## the data traveled to.
-		rx_hosts: set[addr] &default=addr_set() &log;
-
-		## Connection UIDs over which the file was transferred.
-		conn_uids: set[string] &default=string_set() &log;
+		## If this file, or parts of it, were transferred over a
+		## network connection, this shows the connection.
+		id: conn_id &log &optional;
 
 		## An identification of the source of the file data.  E.g. it
 		## may be a network protocol over which it was transferred, or a
@@ -94,6 +89,8 @@ export {
 		is_orig: bool &log &optional;
 
 		## Number of bytes provided to the file analysis engine for the file.
+		## The value refers to the total number of bytes processed for this
+		## file across all connections seen by the current Zeek instance.
 		seen_bytes: count &log &default=0;
 
 		## Total number of bytes that are supposed to comprise the full file.
@@ -101,6 +98,8 @@ export {
 
 		## The number of bytes in the file stream that were completely missed
 		## during the process of analysis e.g. due to dropped packets.
+		## The value refers to number of bytes missed for this file
+		## across all connections seen by the current Zeek instance.
 		missing_bytes: count &log &default=0;
 
 		## The number of bytes in the file stream that were not delivered to
@@ -532,13 +531,9 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	{
 	set_info(f);
 
-	add f$info$conn_uids[c$uid];
 	local cid = c$id;
-	add f$info$tx_hosts[f$is_orig ? cid$orig_h : cid$resp_h];
 	if( |Site::local_nets| > 0 )
 		f$info$local_orig=Site::is_local_addr(f$is_orig ? cid$orig_h : cid$resp_h);
-
-	add f$info$rx_hosts[f$is_orig ? cid$resp_h : cid$orig_h];
 	}
 
 event file_sniff(f: fa_file, meta: fa_metadata) &priority=10
@@ -572,5 +567,28 @@ event file_state_remove(f: fa_file) &priority=10
 
 event file_state_remove(f: fa_file) &priority=-10
 	{
-	Log::write(Files::LOG, f$info);
+	# No network connection for this file? Just write it out once without
+	# uid and c$id fields.
+	if ( ! f?$conns || |f$conns| == 0 )
+		{
+		Log::write(Files::LOG, f$info);
+		return;
+		}
+
+	# If f was seen over multiple connections, unroll them here as
+	# multiple files.log entries. In previous versions of Zeek, there
+	# would only be a single files.log entry (per worker) with multiple
+	# tx_hosts, rx_hosts and conn_uids associated. This changed with v5.1
+	# to have individual log entries that all share the same fuid value.
+	for ( [cid], c in f$conns )
+		{
+		# Make a copy of the record when there's more than one
+		# connection so that the log_files event doesn't see
+		# the same record multiple times due to it being queued
+		# by reference in Log::write() rather than by copy.
+		local info = |f$conns| > 1 ? copy(f$info) : f$info;
+		info$uid = c$uid;
+		info$id = cid;
+		Log::write(Files::LOG, info);
+		}
 	}

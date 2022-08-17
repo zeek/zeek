@@ -1,3 +1,11 @@
+5.1.0-dev.410 | 2022-08-17 13:29:01 -0700
+
+  * GH-163: Use ID name (including module name) to create EventExpr when possible (Tim Wojtulewicz, Corelight)
+
+    The change to the capture-loss test is actually a fix for a bug exposed by the
+    code change. Previously it wasn't firing the scheduled event because of a failed
+    name lookup. Now that the lookup has been fixed, the event happens twice.
+
 5.1.0-dev.408 | 2022-08-17 09:00:50 -0700
 
   * Use ForwardStream in fuzzers instead of DeliverStream (Tim Wojtulewicz, Corelight)

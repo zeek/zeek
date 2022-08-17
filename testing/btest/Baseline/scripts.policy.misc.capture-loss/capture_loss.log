@@ -8,4 +8,5 @@
 #fields	ts	ts_delta	peer	gaps	acks	percent_lost
 #types	time	interval	string	count	count	double
 XXXXXXXXXX.XXXXXX	0.000000	zeek	0	0	0.0
+XXXXXXXXXX.XXXXXX	0.000000	zeek	0	0	0.0
 #close XXXX-XX-XX-XX-XX-XX

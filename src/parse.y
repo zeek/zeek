@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 199
+%expect 198
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -62,7 +62,7 @@
 %type <val> TOK_CONSTANT
 %type <expr> expr opt_expr rhs opt_init anonymous_function lambda_body index_slice opt_deprecated when_condition
 %type <event_expr> event
-%type <stmt> stmt stmt_list func_body for_head
+%type <stmt> stmt stmt_list func_body for_head stmt_conditional
 %type <type> type opt_type enum_body
 %type <func_type> func_hdr func_params
 %type <type_l> type_list
@@ -1412,6 +1412,43 @@ conditional_list:
 	|	conditional_list conditional
 	;
 
+stmt_conditional_hdr:
+		TOK_ATIF '(' expr ')'
+			{ do_atif($3); }
+	|	TOK_ATIFDEF '(' TOK_ID ')'
+			{ do_atifdef($3); }
+	|	TOK_ATIFNDEF '(' TOK_ID ')'
+			{ do_atifndef($3); }
+	;
+
+// A conditional as a single stmt that can hold another stmt_list.
+// It's a @ifXXX followed by an @endif or a @else...@endif.
+stmt_conditional:
+		stmt_conditional_hdr stmt_list TOK_ATENDIF
+			{
+			do_atendif();
+			$$ = $2;
+			}
+	|	stmt_conditional_hdr
+		stmt_list
+		TOK_ATELSE
+			{ do_atelse(); }
+		TOK_ATENDIF
+			{
+			do_atendif();
+			$$ = $2;
+			}
+	|	stmt_conditional_hdr
+		TOK_ATELSE
+		{ do_atelse(); }
+		stmt_list
+		TOK_ATENDIF
+			{
+			do_atendif();
+			$$ = $4;
+			}
+	;
+
 conditional:
 		TOK_ATIF '(' expr ')'
 			{ do_atif($3); }
@@ -1904,9 +1941,7 @@ stmt:
 			$$ = new NullStmt;
 			script_coverage_mgr.AddStmt($$);
 			}
-
-	|	conditional
-			{ $$ = new NullStmt; }
+	|	stmt_conditional
 	;
 
 stmt_list:

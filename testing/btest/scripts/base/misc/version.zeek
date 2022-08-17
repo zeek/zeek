@@ -35,6 +35,7 @@ print Version::parse("JustARandomString");
 Version::parse(zeek_version());
 
 @TEST-START-NEXT
+; # Need this one, something is funky.
 
 @if ( Version::number >= 20500 )
 print "yup";

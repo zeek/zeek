@@ -452,7 +452,7 @@ when	return TOK_WHEN;
 @ifdef	return TOK_ATIFDEF;
 @ifndef	return TOK_ATIFNDEF;
 @else   return TOK_ATELSE;
-@endif	do_atendif();
+@endif	return TOK_ATENDIF;
 
 <IGNORE>@if	start_conditional();
 <IGNORE>@ifdef	start_conditional();

@@ -1,3 +1,8 @@
+5.1.0-dev.405 | 2022-08-17 09:07:33 +0200
+
+  * Add support for parsing TCP option 27, and validate lengths for
+    TCP options 28, 29, & 34. (Fatema BW)
+
 5.1.0-dev.393 | 2022-08-17 08:59:11 +0200
 
   * files.log: Unroll and introduce uid and id fields (Arne Welzel, Corelight)

@@ -1,3 +1,7 @@
+5.1.0-dev.408 | 2022-08-17 09:00:50 -0700
+
+  * Use ForwardStream in fuzzers instead of DeliverStream (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.406 | 2022-08-17 10:38:07 +0200
 
   * Fix code formatting. (Robin Sommer, Corelight)

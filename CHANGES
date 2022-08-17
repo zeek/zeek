@@ -1,3 +1,7 @@
+5.1.0-dev.414 | 2022-08-17 15:46:05 -0700
+
+  * Support other byte lengths in bytestring_to_count (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.412 | 2022-08-17 13:31:13 -0700
 
   * Alignment tweak in help output (Christian Kreibich, Corelight)

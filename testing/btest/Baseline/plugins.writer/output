@@ -10,7 +10,7 @@ Demo::Foo - A Foo test logging writer (dynamic, version 1.0.0)
 [conn] XXXXXXXXXX.XXXXXX|CUM0KZ3MLUfNB0cl11|10.0.0.55|53994|60.190.189.214|8124|tcp|-|-|-|-|SH|-|-|0|F|1|52|0|0|-
 [conn] XXXXXXXXXX.XXXXXX|CmES5u32sYpV7JYN|10.0.0.55|53994|60.190.189.214|8124|tcp|-|-|-|-|SH|-|-|0|F|1|52|0|0|-
 [conn] XXXXXXXXXX.XXXXXX|CP5puj4I8PtEU4qzYg|10.0.0.55|53994|60.190.189.214|8124|tcp|-|-|-|-|SH|-|-|0|F|1|52|0|0|-
-[files] XXXXXXXXXX.XXXXXX|F44J9mUl78AQMlNe3|60.190.189.214|10.0.0.55|ClEkJM2Vm5giqnMf4h|HTTP|0||image/gif|-|0.000034|-|F|1368|1368|0|0|F|-|-|-|-|-|-|-
+[files] XXXXXXXXXX.XXXXXX|F44J9mUl78AQMlNe3|ClEkJM2Vm5giqnMf4h|10.0.0.55|53994|60.190.189.214|8124|HTTP|0||image/gif|-|0.000034|-|F|1368|1368|0|0|F|-|-|-|-|-|-|-
 [http] XXXXXXXXXX.XXXXXX|ClEkJM2Vm5giqnMf4h|10.0.0.55|53994|60.190.189.214|8124|1|GET|www.osnews.com|/images/printer2.gif|http://www.osnews.com/|1.1|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|-|0|0|304|Not Modified|-|-||-|-|-|-|-|-|-|-|-
 [http] XXXXXXXXXX.XXXXXX|ClEkJM2Vm5giqnMf4h|10.0.0.55|53994|60.190.189.214|8124|2|GET|www.osnews.com|/img2/shorturl.jpg|http://www.osnews.com/|1.1|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|-|0|0|304|Not Modified|-|-||-|-|-|-|-|-|-|-|-
 [http] XXXXXXXXXX.XXXXXX|ClEkJM2Vm5giqnMf4h|10.0.0.55|53994|60.190.189.214|8124|3|GET|www.osnews.com|/images/icons/9.gif|http://www.osnews.com/|1.1|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|-|0|0|304|Not Modified|-|-||-|-|-|-|-|-|-|-|-

@@ -5,8 +5,8 @@
 #unset_field	-
 #path	files
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	fuid	tx_hosts	rx_hosts	conn_uids	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
-#types	time	string	set[addr]	set[addr]	set[string]	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
-XXXXXXXXXX.XXXXXX	FVTHwlRSH2WI8fFw2	169.254.128.15	169.254.128.18	CHhAvVGS1DHFjwGM9	SMB	0	(empty)	text/plain	pythonfile	0.000000	-	F	16	16	0	0	F	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	FAI5Dc4cLr5RAw3j0e	169.254.128.18	169.254.128.15	CHhAvVGS1DHFjwGM9	SMB	0	(empty)	text/plain	pythonfile2	0.000000	-	T	7000	-	0	0	F	-	-	-	-	-	-	-
+#fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
+#types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
+XXXXXXXXXX.XXXXXX	FVTHwlRSH2WI8fFw2	CHhAvVGS1DHFjwGM9	169.254.128.18	49155	169.254.128.15	445	SMB	0	(empty)	text/plain	pythonfile	0.000000	-	F	16	16	0	0	F	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	FAI5Dc4cLr5RAw3j0e	CHhAvVGS1DHFjwGM9	169.254.128.18	49155	169.254.128.15	445	SMB	0	(empty)	text/plain	pythonfile2	0.000000	-	T	7000	-	0	0	F	-	-	-	-	-	-	-
 #close XXXX-XX-XX-XX-XX-XX

@@ -21,9 +21,32 @@ Breaking Changes
 - The Dictionary and PDict classes are now C++ templates. This may cause
   plugin/package builds to fail due to needing to modify uses of them to match.
 
-- The low-level singleton Telemetry BIFs have been removed with the assumption that
-  there haven't been any users. Singleton metrics can be instantiated by providing
-  an empty label vector instead and aren't in any way a special concept.
+- By default, ``files.log`` does not have the fields ``tx_hosts``, ``rx_hosts``
+  and ``conn_uids`` anymore. These have been replaced with the more commonly
+  used ``uid`` and ``id`` fields. They can be re-instantiated by loading the
+  following policy script through ``local.zeek``:
+
+	@load frameworks/files/deprecated-txhosts-rxhosts-connuids
+
+  Note, however, that this script will be removed with Zeek 6.1. Consumers
+  of ``files.log`` should convert to using the singular ``uid`` and ``id``
+  fields instead.
+
+- The ``files.log`` is now unrolled consistently. That is, when Zeek associates
+  multiple connections with a single file, each of these connections will result
+  in individual ``files.log`` entries with unique connection uids, all sharing
+  the same file uid.
+
+  This unrolling behavior always existed in a Zeek cluster when the network
+  connections involved in a file transfer are load-balanced to different workers.
+  Due to this affecting only a marginal ratio of files on real-world networks,
+  unrolling the log was chosen as the more efficient approach over making
+  the current logic cluster aware.
+
+  The ``seen_bytes`` and ``missing_bytes`` fields of a ``File::Info`` record
+  continue to represent the total number across all connections seen by the
+  current instance of Zeek.
+
 
 New Functionality
 -----------------

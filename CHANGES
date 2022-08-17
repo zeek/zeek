@@ -1,3 +1,23 @@
+5.1.0-dev.393 | 2022-08-17 08:59:11 +0200
+
+  * files.log: Unroll and introduce uid and id fields (Arne Welzel, Corelight)
+
+    This is a script-only change that unrolls File::Info records into
+    multiple files.log entries if the same file was seen over different
+    connections by a single worker. Consequently, the File::Info record
+    gets the commonly used uid and id fields added. These fields are
+    optional for File::Info - a file may be analyzed without relation
+    to a network connection (e.g by using Input::add_analysis()).
+
+    The existing tx_hosts, rx_hosts and conn_uids fields of Files::Info
+    are not meaningful after this change and removed by default. Therefore,
+    files.log will have them removed, too.
+
+    The tx_hosts, rx_hosts and conn_uids fields can be revived by using the
+    policy script frameworks/files/deprecated-txhosts-rxhosts-connuids.zeek
+    included in the distribution. However, with v6.1 this script will be
+    removed.
+
 5.1.0-dev.391 | 2022-08-16 09:17:06 -0700
 
   * Fix a swath of AUTO_CAUSES_COPY issues reported by Coverity (Tim Wojtulewicz, Corelight)

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: ! grep -q "#define DONT_HAVE_LIBPCAP_DLT_LINUX_SLL2" $BUILD/zeek-config.h
 # @TEST-EXEC: zeek -b -C -r $TRACES/linux_dlt_sll2.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 

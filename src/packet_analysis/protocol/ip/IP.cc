@@ -310,8 +310,7 @@ int zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* const pkt, 
 
 	else
 		{
-		zeek::reporter->InternalWarning("Bad IP protocol version in IP::ParsePacket");
-		return -1;
+		return -2;
 		}
 
 	if ( (uint32_t)caplen != inner->TotalLen() )

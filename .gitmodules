@@ -12,7 +12,7 @@
 	url = https://github.com/zeek/btest
 [submodule "cmake"]
 	path = cmake
-	url = https://github.com/zeek/cmake
+	url = https://github.com/simeonmiteff/zeek-cmake
 [submodule "src/3rdparty"]
 	path = src/3rdparty
 	url = https://github.com/zeek/zeek-3rdparty

@@ -138,6 +138,10 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	detail::FragReassembler* f = nullptr;
 
+	// Store this off so that it can be reset back to the original value before returning from
+	// this method.
+	size_t orig_cap_len = packet->cap_len;
+
 	if ( packet->ip_hdr->IsFragment() )
 		{
 		packet->dump_packet = true;	// always record fragments
@@ -170,13 +174,14 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 			len = total_len = packet->ip_hdr->TotalLen();
 			ip_hdr_len = packet->ip_hdr->HdrLen();
-			packet->cap_len = total_len + hdr_size;
 
 			if ( ip_hdr_len > total_len )
 				{
 				Weird("invalid_IP_header_size", packet);
 				return false;
 				}
+
+			packet->cap_len = total_len + hdr_size;
 			}
 		}
 
@@ -191,6 +196,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			event_mgr.Enqueue(esp_packet, packet->ip_hdr->ToPktHdrVal());
 
 		// Can't do more since upper-layer payloads are going to be encrypted.
+		packet->cap_len = orig_cap_len;
 		return true;
 		}
 
@@ -204,6 +210,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		if ( ! detail::ignore_checksums && mobility_header_checksum(packet->ip_hdr.get()) != 0xffff )
 			{
 			Weird("bad_MH_checksum", packet);
+			packet->cap_len = orig_cap_len;
 			return false;
 			}
 
@@ -213,6 +220,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		if ( packet->ip_hdr->NextProto() != IPPROTO_NONE )
 			Weird("mobility_piggyback", packet);
 
+		packet->cap_len = orig_cap_len;
 		return true;
 		}
 #endif
@@ -237,6 +245,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	if ( packet->ip_hdr->TotalLen() < packet->ip_hdr->HdrLen() )
 		{
 		Weird("bogus_IP_header_lengths", packet);
+		packet->cap_len = orig_cap_len;
 		return false;
 		}
 
@@ -272,5 +281,6 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	if ( f )
 		f->DeleteTimer();
 
+	packet->cap_len = orig_cap_len;
 	return return_val;
 	}

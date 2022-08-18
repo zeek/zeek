@@ -192,8 +192,8 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 	// but on the other hand we duplicate this work here. maybe this header could just be stored
 	// and reused in the IP analyzer somehow?
 	std::shared_ptr<IP_Hdr> inner = nullptr;
-	int rslt = packet_analysis::IP::ParsePacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
-	if ( rslt > 0 )
+	auto result = packet_analysis::IP::ParsePacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
+	if ( result == packet_analysis::IP::ParseResult::CaplenTooLarge )
 		{
 		if ( inner->NextProto() == IPPROTO_NONE && inner->PayloadLen() == 0 )
 			// Teredo bubbles having data after IPv6 header isn't strictly a
@@ -206,21 +206,20 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 			}
 		}
 
-	if ( rslt == 0 || rslt > 0 )
-		{
-		if ( packet->is_orig )
-			or_it->second.valid_orig = true;
-		else
-			or_it->second.valid_resp = true;
-
-		Confirm(or_it->second.valid_orig, or_it->second.valid_resp);
-		}
-	else
+	if ( result == packet_analysis::IP::ParseResult::CaplenTooSmall ||
+	     result == packet_analysis::IP::ParseResult::BadProtocol )
 		{
 		AnalyzerViolation("Truncated Teredo or invalid inner IP version", conn, (const char*)data,
 		                  len);
 		return false;
 		}
+
+	if ( packet->is_orig )
+		or_it->second.valid_orig = true;
+	else
+		or_it->second.valid_resp = true;
+
+	Confirm(or_it->second.valid_orig, or_it->second.valid_resp);
 
 	ValPtr teredo_hdr;
 

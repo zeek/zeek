@@ -55,9 +55,9 @@ bool GTPv1_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 	// but on the other hand we duplicate this work here. maybe this header could just be stored
 	// and reused in the IP analyzer somehow?
 	std::shared_ptr<IP_Hdr> inner = nullptr;
-	int result = packet_analysis::IP::ParsePacket(len, data, next_header, inner);
+	auto result = packet_analysis::IP::ParsePacket(len, data, next_header, inner);
 
-	if ( result == 0 )
+	if ( result == packet_analysis::IP::ParseResult::Ok )
 		{
 		cm_it->second->set_valid(packet->is_orig, true);
 
@@ -72,13 +72,13 @@ bool GTPv1_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 			gtp_hdr_val = nullptr;
 			}
 		}
-	else if ( result == -2 )
+	else if ( result == packet_analysis::IP::ParseResult::BadProtocol )
 		{
 		AnalyzerViolation("Invalid IP version in wrapped packet", packet->session);
 		gtp_hdr_val = nullptr;
 		return false;
 		}
-	else if ( result < 0 )
+	else if ( result == packet_analysis::IP::ParseResult::CaplenTooSmall )
 		{
 		AnalyzerViolation("Truncated GTPv1", packet->session);
 		gtp_hdr_val = nullptr;

@@ -1,3 +1,7 @@
+5.1.0-dev.417 | 2022-08-18 15:56:49 -0700
+
+  * Retroactively cover log filter predicate deprecation/removal in NEWS (Christian Kreibich, Corelight)
+
 5.1.0-dev.414 | 2022-08-17 15:46:05 -0700
 
   * Support other byte lengths in bytestring_to_count (Tim Wojtulewicz, Corelight)

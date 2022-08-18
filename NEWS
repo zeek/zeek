@@ -761,6 +761,10 @@ Removed Functionality
   ``configure`` now returns a warning that it will be removed in v5.1 and no
   longer has any effect.
 
+- The logging framework's filter records no longer provide predicate
+  functions. Policy hooks, introduced in Zeek 4, replace them:
+  https://docs.zeek.org/en/master/frameworks/logging.html#filtering-log-records
+
 Deprecated Functionality
 ------------------------
 
@@ -1095,6 +1099,9 @@ Deprecated Functionality
 - The ``ssh1_server_host_key`` event's modulus and exponent parameters,
   *e* and *p*, were named in misleading way (*e* is the modulus)
   and now deprecated in favor of the new *modulus* and *exponent* parameters.
+
+- The logging framework's log filter predicates are now deprecated. Please
+  use the new policy hooks instead.
 
 Zeek 3.2.0
 ==========

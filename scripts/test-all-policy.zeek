@@ -73,9 +73,6 @@
 @load frameworks/software/vulnerable.zeek
 @load frameworks/software/windows-version-detection.zeek
 @load frameworks/telemetry/log.zeek
-@load integration/barnyard2/__load__.zeek
-@load integration/barnyard2/main.zeek
-@load integration/barnyard2/types.zeek
 @load integration/collective-intel/__load__.zeek
 @load integration/collective-intel/main.zeek
 @load misc/capture-loss.zeek

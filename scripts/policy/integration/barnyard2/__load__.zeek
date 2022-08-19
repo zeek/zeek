@@ -1,2 +1,0 @@
-@load ./types
-@load ./main

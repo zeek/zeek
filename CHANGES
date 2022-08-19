@@ -1,3 +1,7 @@
+5.1.0-dev.419 | 2022-08-19 14:57:12 -0700
+
+  * Remove barnyard2 integration scripts (Arne Welzel, Corelight)
+
 5.1.0-dev.417 | 2022-08-18 15:56:49 -0700
 
   * Retroactively cover log filter predicate deprecation/removal in NEWS (Christian Kreibich, Corelight)

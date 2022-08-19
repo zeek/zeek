@@ -47,6 +47,9 @@ Breaking Changes
   continue to represent the total number across all connections seen by the
   current instance of Zeek.
 
+- The barnyard2 policy scripts have been removed. The integration in the
+  Barnyard2 project uses Broccoli, which had been removed with Zeek 3.0
+  and it's assumed there have been no users.
 
 New Functionality
 -----------------
@@ -110,6 +113,11 @@ Changed Functionality
 - Calling `Option::set()` when Zeek is terminating is now a noop and returns `F`.
   This prevents callbacks into script-land through change handlers when parts
   of the environment have already been torn down.
+
+Removed Functionality
+---------------------
+
+- The barnyard2 policy scripts have been removed.
 
 Deprecated Functionality
 ------------------------

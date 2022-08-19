@@ -47,6 +47,8 @@ Breaking Changes
   continue to represent the total number across all connections seen by the
   current instance of Zeek.
 
+- The unified2 analyzer and accompanying scripts have been removed without
+  deprecation. It has been assumed there have been no users.
 
 New Functionality
 -----------------
@@ -110,6 +112,11 @@ Changed Functionality
 - Calling `Option::set()` when Zeek is terminating is now a noop and returns `F`.
   This prevents callbacks into script-land through change handlers when parts
   of the environment have already been torn down.
+
+Removed Functionality
+---------------------
+
+- The unified2 analyzer and accompanying scripts have been removed.
 
 Deprecated Functionality
 ------------------------

@@ -228,8 +228,6 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_FileExtract.functions.bif.zeek
     build/scripts/base/bif/plugins/Zeek_FileHash.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_PE.events.bif.zeek
-    build/scripts/base/bif/plugins/Zeek_Unified2.events.bif.zeek
-    build/scripts/base/bif/plugins/Zeek_Unified2.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_X509.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_X509.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_X509.functions.bif.zeek

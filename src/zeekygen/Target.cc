@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <regex>
 
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/Component.h"
@@ -27,6 +28,16 @@ namespace zeek::zeekygen::detail
 static void write_plugin_section_heading(FILE* f, const plugin::Plugin* p)
 	{
 	const string& name = p->Name();
+
+	// A label-safe version of the plugin name: replace _ and : with -, turn
+	// sequences of - into single ones, and make lower-case. Example:
+	// "Zeek::IEEE802_11" -> "zeek-ieee802-11".
+	auto flags = std::regex_constants::match_any;
+	string label_name = std::regex_replace(name, std::regex("[_:]"), "-", flags);
+	label_name = std::regex_replace(label_name, std::regex("-+"), "-", flags);
+	label_name = zeek::util::strtolower(label_name);
+
+	fprintf(f, ".. _plugin-%s:\n\n", label_name.c_str());
 
 	fprintf(f, "%s\n", name.c_str());
 	for ( size_t i = 0; i < name.size(); ++i )

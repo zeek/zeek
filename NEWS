@@ -142,6 +142,9 @@ Deprecated Functionality
 - The HOOK_BRO_OBJ_DTOR hook and associated methods have been deprecated. They
   are replaced by the HOOK_OBJ_DTOR hook and methods.
 
+- The ``misc/scan.zeek`` script has been marked for removal in Zeek 6.1.
+  Use github.com/ncsa/bro-simple-scan instead.
+
 Zeek 5.0.0
 ==========
 

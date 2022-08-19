@@ -6,4 +6,4 @@
 #
 # @TEST-EXEC: test -d $DIST/scripts
 # @TEST-EXEC: for script in `find $DIST/scripts/ -name \*\.zeek`; do zeek -b --parse-only $script >>errors 2>&1; done
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-sort" btest-diff errors
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="grep -v 'Use the external.*bro-simple-scan package' | $SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-sort" btest-diff errors

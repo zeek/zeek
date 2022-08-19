@@ -850,8 +850,6 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Teredo.events.bif.zeek, <...>/Zeek_Teredo.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, ./Zeek_Unified2.events.bif.zeek, <...>/Zeek_Unified2.events.bif.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, ./Zeek_Unified2.types.bif.zeek, <...>/Zeek_Unified2.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek) -> -1
@@ -1236,8 +1234,6 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Teredo.events.bif.zeek, <...>/Zeek_Teredo.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Unified2.events.bif.zeek, <...>/Zeek_Unified2.events.bif.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Unified2.types.bif.zeek, <...>/Zeek_Unified2.types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek) -> (-1, <no content>)
@@ -2357,8 +2353,6 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Teredo.events.bif.zeek, <...>/Zeek_Teredo.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek)
-0.000000   MetaHookPre   LoadFile(0, ./Zeek_Unified2.events.bif.zeek, <...>/Zeek_Unified2.events.bif.zeek)
-0.000000   MetaHookPre   LoadFile(0, ./Zeek_Unified2.types.bif.zeek, <...>/Zeek_Unified2.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek)
@@ -2743,8 +2737,6 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Teredo.events.bif.zeek, <...>/Zeek_Teredo.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Unified2.events.bif.zeek, <...>/Zeek_Unified2.events.bif.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Unified2.types.bif.zeek, <...>/Zeek_Unified2.types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek)
@@ -3863,8 +3855,6 @@
 0.000000 | HookLoadFile  ./Zeek_Teredo.events.bif.zeek <...>/Zeek_Teredo.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Teredo.functions.bif.zeek <...>/Zeek_Teredo.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_UDP.events.bif.zeek <...>/Zeek_UDP.events.bif.zeek
-0.000000 | HookLoadFile  ./Zeek_Unified2.events.bif.zeek <...>/Zeek_Unified2.events.bif.zeek
-0.000000 | HookLoadFile  ./Zeek_Unified2.types.bif.zeek <...>/Zeek_Unified2.types.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_VXLAN.events.bif.zeek <...>/Zeek_VXLAN.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_X509.events.bif.zeek <...>/Zeek_X509.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_X509.functions.bif.zeek <...>/Zeek_X509.functions.bif.zeek
@@ -4249,8 +4239,6 @@
 0.000000 | HookLoadFileExtended ./Zeek_Teredo.events.bif.zeek <...>/Zeek_Teredo.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_Teredo.functions.bif.zeek <...>/Zeek_Teredo.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_UDP.events.bif.zeek <...>/Zeek_UDP.events.bif.zeek
-0.000000 | HookLoadFileExtended ./Zeek_Unified2.events.bif.zeek <...>/Zeek_Unified2.events.bif.zeek
-0.000000 | HookLoadFileExtended ./Zeek_Unified2.types.bif.zeek <...>/Zeek_Unified2.types.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_VXLAN.events.bif.zeek <...>/Zeek_VXLAN.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_X509.events.bif.zeek <...>/Zeek_X509.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_X509.functions.bif.zeek <...>/Zeek_X509.functions.bif.zeek

@@ -4251,42 +4251,6 @@ type ModbusHeaders: record {
 	function_code: count;
 };
 
-module Unified2;
-export {
-	type Unified2::IDSEvent: record {
-		sensor_id:          count;
-		event_id:           count;
-		ts:                 time;
-		signature_id:       count;
-		generator_id:       count;
-		signature_revision: count;
-		classification_id:  count;
-		priority_id:        count;
-		src_ip:             addr;
-		dst_ip:             addr;
-		src_p:              port;
-		dst_p:              port;
-		impact_flag:        count;
-		impact:             count;
-		blocked:            count;
-		## Not available in "legacy" IDS events.
-		mpls_label:         count  &optional;
-		## Not available in "legacy" IDS events.
-		vlan_id:            count  &optional;
-		## Only available in "legacy" IDS events.
-		packet_action:      count  &optional;
-	};
-
-	type Unified2::Packet: record {
-		sensor_id:    count;
-		event_id:     count;
-		event_second: count;
-		packet_ts:    time;
-		link_type:    count;
-		data:         string;
-	};
-}
-
 module SSL;
 export {
 	type SignatureAndHashAlgorithm: record {

@@ -47,9 +47,12 @@ Breaking Changes
   continue to represent the total number across all connections seen by the
   current instance of Zeek.
 
-- The barnyard2 policy scripts have been removed. The integration in the
-  Barnyard2 project uses Broccoli, which had been removed with Zeek 3.0
-  and it's assumed there have been no users.
+- The barnyard2 policy scripts have been removed. The integration with the
+  Barnyard2 project used the pre-Broker Broccoli library, which got removed in
+  Zeek 3.0.
+
+- The unified2 analyzer and accompanying scripts have been removed without
+  deprecation.
 
 New Functionality
 -----------------
@@ -118,6 +121,8 @@ Removed Functionality
 ---------------------
 
 - The barnyard2 policy scripts have been removed.
+
+- The unified2 analyzer and accompanying scripts have been removed.
 
 Deprecated Functionality
 ------------------------

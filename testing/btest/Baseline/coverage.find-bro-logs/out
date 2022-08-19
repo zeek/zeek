@@ -60,7 +60,6 @@ telemetry
 telemetry_histogram
 traceroute
 tunnel
-unified2
 unknown_protocols
 weird
 weird_stats

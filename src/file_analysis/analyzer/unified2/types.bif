@@ -1,2 +1,0 @@
-type Unified2::IDSEvent: record;
-type Unified2::Packet: record;

@@ -403,9 +403,9 @@ void Manager::InitPostScript()
 		}
 	WITH_OPT_MAPPING("broker.metrics.import.topics", "Broker::metrics_import_topics")
 		{
-		if ( auto str = opt.broker_read<std::vector<std::string>>() )
+		if ( auto topics = opt.broker_read<std::vector<std::string>>() )
 			{
-			opt.zeek_write(*str);
+			opt.zeek_write(*topics);
 			}
 		else
 			{
@@ -2093,8 +2093,7 @@ void Manager::SetMetricsExportTopic(std::string value)
 
 void Manager::SetMetricsImportTopics(std::vector<std::string> topics)
 	{
-	// XXX: Uhm...
-	// bstate->endpoint.metrics_exporter().set_prefixes(std::move(topics));
+	bstate->endpoint.metrics_exporter().set_import_topics(std::move(topics));
 	}
 
 void Manager::SetMetricsExportEndpointName(std::string value)

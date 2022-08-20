@@ -152,11 +152,12 @@ export {
 	## BROKER_METRICS_EXPORT_TOPIC is defined.
 	option metrics_export_topic = "";
 
-	## Topics imported for metrics. This should be set on the node that
-	## is importing metrics from other nodes.
-	## Zeek overrides any value provided in zeek_init or earlier at
-	## startup if the environment variable
-	## BROKER_METRICS_IMPORT_TOPICS is defined.
+	## Topics for the Prometheus exporter for collecting metrics from other
+	## peers in the network and including them in the output. Has no effect when
+	## not exporting the metrics to Prometheus.
+	##
+	## Zeek overrides any value provided in zeek_init or earlier at startup if
+	## the environment variable BROKER_METRICS_IMPORT_TOPICS is defined.
 	option metrics_import_topics: vector of string = vector();
 
 	## ID for the metrics exporter. When setting a target topic for the

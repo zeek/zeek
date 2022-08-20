@@ -13,8 +13,8 @@ count_value, 0
 ### caf |5|
 Telemetry::INT_COUNTER, caf.system, rejected-messages, [], [], 0.0
 count_value, 0
-Telemetry::INT_COUNTER, caf.system, processed-messages, [], [], 7.0
-count_value, 7
+Telemetry::INT_COUNTER, caf.system, processed-messages, [], [], 8.0
+count_value, 8
 Telemetry::INT_GAUGE, caf.system, running-actors, [], [], 2.0
 count_value, 2
 Telemetry::INT_GAUGE, caf.system, queued-messages, [], [], 0.0

@@ -54,6 +54,12 @@ Breaking Changes
 - The unified2 analyzer and accompanying scripts have been removed without
   deprecation.
 
+- The return value of ``packet_analysis::IP::ParsePacket`` has changed to return
+  enum values. This makes it easier to look at the result and immediately know
+  what it means. Unfortunately, because we can't overload a method on the return
+  value alone, we aren't able to deprecate the original version of the method.
+  This may cause build of packages to fail if they were using this method.
+
 New Functionality
 -----------------
 

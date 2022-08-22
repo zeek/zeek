@@ -1,3 +1,20 @@
+5.1.0-dev.424 | 2022-08-22 10:56:47 -0700
+
+  * Merge branch 'topic/timw/parse-packet-results' (Tim Wojtulewicz, Corelight)
+
+    * topic/timw/parse-packet-results:
+      Make result of IP::ParsePacket easier to understand
+      Remove reporter warning for bad IP protocols
+
+  * Make result of IP::ParsePacket easier to understand (Tim Wojtulewicz, Corelight)
+
+  * Remove reporter warning for bad IP protocols (Tim Wojtulewicz, Corelight)
+
+    It turns out that this can be *very* spammy on networks where we're receiving
+    lots of these packets, and can fill up the reporter log very quickly. Weirds are
+    already reported in all of these cases anyways, so it doesn't make sense to log
+    a reporter warning too.
+
 5.1.0-dev.421 | 2022-08-19 15:23:22 -0700
 
   * Remove unified2 file analyzer (Arne Welzel, Corelight)

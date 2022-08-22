@@ -90,6 +90,9 @@ if ( MSVC )
 
     # Set CAres
     find_package(c-ares)
+    set(HAVE_CARES true)
+    set(zeekdeps ${zeekdeps} ${CARES_LIBRARIES})
+    include_directories(BEFORE ${CARES_INCLUDE_DIRS})
 
     add_subdirectory(auxil/libunistd)
     set(UNISTD_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd ${CMAKE_SOURCE_DIR}/auxil/libunistd/regex)

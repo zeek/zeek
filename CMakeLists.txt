@@ -88,6 +88,9 @@ if ( MSVC )
     set(LIBKQUEUE_INCLUDE_DIRS ${kqueue_INCLUDES})
     set(LIBKQUEUE_LIBRARIES ${kqueue_LIBS})
 
+    # Set CAres
+    find_package(c-ares)
+
     add_subdirectory(auxil/libunistd)
     set(UNISTD_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd ${CMAKE_SOURCE_DIR}/auxil/libunistd/regex)
     include_directories(BEFORE ${UNISTD_INCLUDES})
@@ -100,6 +103,9 @@ if ( MSVC )
     set(BROKER_DISABLE_TESTS true)
     set(BROKER_DISABLE_DOC_EXAMPLES true)
     add_definitions(-DDOCTEST_CONFIG_NO_MULTITHREADING)
+
+    # Disable Spicy as it is not yet supported in Windows.
+    set(DISABLE_SPICY true)
 else ()
     include(GNUInstallDirs)
 endif ()

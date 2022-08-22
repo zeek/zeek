@@ -2961,19 +2961,20 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 	static const bool host_bigendian = false;
 #endif
 	const u_char *p = s->Bytes();
+	size_t string_len = static_cast<size_t>(s->Len());
 	unsigned int i = 0;
 
-	if ( s->Len() == 0 )
+	if ( string_len == 0 )
 		{
 		return zeek::val_mgr->Count(0);
 		}
-	if ( s->Len() == sizeof(uint8_t) )
+	if ( string_len == sizeof(uint8_t) )
 		{
 		uint8_t value = 0;
 		memcpy(&value, p, sizeof(uint8_t));
 		return zeek::val_mgr->Count(value);
 		}
-	else if ( s->Len() <= sizeof(uint16_t) )
+	else if ( string_len <= sizeof(uint16_t) )
 		{
 		uint16_t value = 0;
 
@@ -2984,9 +2985,9 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 			char *d = &buf[sizeof(uint16_t)-1];
 
 			if ( is_le )
-				d -= sizeof(uint16_t) - s->Len();
+				d -= sizeof(uint16_t) - string_len;
 
-			for ( i = 0; i < s->Len(); i++ )
+			for ( i = 0; i < string_len; i++ )
 				*d-- = *p++;
 
 			memcpy(&value, buf, sizeof(uint16_t));
@@ -2996,7 +2997,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 
 		return zeek::val_mgr->Count(value);
 		}
-	else if ( s->Len() <= sizeof(uint32_t) )
+	else if ( string_len <= sizeof(uint32_t) )
 		{
 		uint32_t value = 0;
 		char buf[sizeof(uint32_t)];
@@ -3007,9 +3008,9 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 			char *d = &buf[sizeof(uint32_t)-1];
 
 			if ( ! is_le )
-				d -= sizeof(uint32_t) - s->Len();
+				d -= sizeof(uint32_t) - string_len;
 
-			for ( i = 0; i < s->Len(); i++ )
+			for ( i = 0; i < string_len; i++ )
 				*d-- = *p++;
 			}
 		else
@@ -3017,16 +3018,16 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 			char* d = &buf[0];
 
 			if ( ! is_le )
-				d += sizeof(uint32_t) - s->Len();
+				d += sizeof(uint32_t) - string_len;
 
-			for ( i = 0; i < s->Len(); i++ )
+			for ( i = 0; i < string_len; i++ )
 				*d++ = *p++;
 			}
 
 		memcpy(&value, buf, sizeof(uint32_t));
 		return zeek::val_mgr->Count(value);
 		}
-	else if ( s->Len() <= sizeof(uint64_t) )
+	else if ( string_len <= sizeof(uint64_t) )
 		{
 		uint64_t value = 0;
 		char buf[sizeof(uint64_t)];
@@ -3037,9 +3038,9 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 			char *d = &buf[sizeof(uint64_t)-1];
 
 			if ( ! is_le )
-				d -= sizeof(uint64_t) - s->Len();
+				d -= sizeof(uint64_t) - string_len;
 
-			for ( i = 0; i < s->Len(); i++ )
+			for ( i = 0; i < string_len; i++ )
 				*d-- = *p++;
 			}
 		else
@@ -3047,9 +3048,9 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 			char* d = &buf[0];
 
 			if ( ! is_le )
-				d += sizeof(uint64_t) - s->Len();
+				d += sizeof(uint64_t) - string_len;
 
-			for ( i = 0; i < s->Len(); i++ )
+			for ( i = 0; i < string_len; i++ )
 				*d++ = *p++;
 			}
 

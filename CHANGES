@@ -1,3 +1,50 @@
+5.0.0-8 | 2022-08-23 16:48:21 -0700
+
+  * Remove reporter warning for bad IP protocols (Tim Wojtulewicz, Corelight)
+
+    It turns out that this can be *very* spammy on networks where we're receiving
+    lots of these packets, and can fill up the reporter log very quickly. Weirds are
+    already reported in all of these cases anyways, so it doesn't make sense to log
+    a reporter warning too.
+
+    (cherry picked from commit 40b1452905c0eed4d96300ce1aaf87a08166e396)
+
+  * Remove use of fallible `get_conn_transport_proto` in `analyzer_violation`. (Benjamin Bannier, Corelight)
+
+    When setting up the DPD info we previously would get the
+    `transport_proto` for the connection with `get_conn_transport_proto`.
+    This function takes a `conn_id` and would fail fatally if the connection
+    for the given ID was unknown. It seems it was possible to run into such
+    scenarios when the `analyzer_violation` event was processed after the
+    connection had been cleaned up.
+
+    We now get the `transport_proto` directly from the ports in the
+    `connection` passed into `analyzer_violation` via
+    `get_port_transport_proto` which cannot fail.
+
+    (cherry picked from commit b27c114d6871aa1d52699532b6035dc704195dfa)
+
+  * Avoid calling safe_realloc unnecessarily from ODesc::Grow() (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 0728676fd6a135d6b6b0dab1c67d2f3d41d67577)
+
+  * Fix default build with `--disable-cpp-tests`. (Benjamin Bannier, Corelight)
+
+    For a build configured with `--disable-cpp-tests` we globally set
+    `-DDOCTEST_CONFIG_DISABLE`. Spicy does not expect this define to be used
+    and its unit tests fail to build with it.
+
+    This patch adds a Zeek-side workaround for that. We now do not build the
+    Spicy unit test targets as part of `ALL` anymore.
+
+    Closes #2238.
+
+    (cherry picked from commit f3313df74326d678bbe57b40fc2cf44f8ad456ff)
+
+  * GH-2229: Fix some typos in weak-keys.zeek (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit ee88aa3acbe541f679b202687f00f0aa242e77a3)
+
 5.0.0-2 | 2022-08-23 11:59:23 -0700
 
   * Add missing opensuse-leap-15.4 files for CI (Tim Wojtulewicz, Corelight)

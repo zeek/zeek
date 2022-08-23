@@ -3,6 +3,34 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 5.0.1
+==========
+
+This release fixes the following bugs:
+
+- Fix a number of typos in the weak-keys.zeek script in the SSL framework.
+
+  https://github.com/zeek/zeek/issues/2229
+
+- Fix build of internal Spicy when using the --disable-cpp-tests configure flag.
+
+  https://github.com/zeek/zeek/pull/2256
+
+- Avoid calling ``safe_realloc`` unnecessarily from ``ODesc::Grow()``, providing a
+  peformance improvement in some cases.
+
+  https://github.com/zeek/zeek/pull/2244
+
+- Remove use of fallible ``get_conn_transport_proto()`` in ``analyzer_violation``
+  event handlers.
+
+  https://github.com/zeek/zeek/pull/2288
+
+- Remove a warning when receiving packets with invalid or unknown IP protocol
+  types, preventing it from spamming reporter.log.
+
+  https://github.com/zeek/zeek/commit/40b1452905c0eed4d96300ce1aaf87a08166e396
+
 Zeek 5.0.0
 ==========
 

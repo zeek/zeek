@@ -168,3 +168,16 @@ jobs:
           name: cluster-btest
           path: testing/external/zeek-testing-cluster/.tmp
           if-no-files-found: ignore
+
+      # To save storage space, truncate the Docker image artifact
+      # when this run was successful.
+      - name: Truncate Docker image
+        run: |
+          truncate -s0 ${{ env.IMAGE_FILE }}
+
+      - name: Store truncated image artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.IMAGE_NAME }}
+          path: ${{ env.IMAGE_FILE }}
+          retention-days: 1

@@ -4,6 +4,8 @@
 #            Seth Hall
 #            All the authors of the old scan.bro
 
+@deprecated "Remove in v6.1. Use the external github.com/ncsa/bro-simple-scan package instead (e.g., by installing it via `zkg install ncsa/bro-simple-scan`). The misc/scan.zeek script hasn't been maintained since 2013. Further, the external bro-simple-scan package from NCSA (Justin Azoff) has become the recommended alternative for TCP scan detection."
+
 @load base/frameworks/notice
 @load base/frameworks/sumstats
 

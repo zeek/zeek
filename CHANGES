@@ -1,3 +1,7 @@
+5.1.0-dev.436 | 2022-08-23 10:19:23 -0700
+
+  * Deprecate misc/scan.zeek (Arne Welzel, Corelight)
+
 5.1.0-dev.434 | 2022-08-23 09:33:42 -0700
 
   * stmt: Support iterating over vector values (Arne Welzel, Corelight)

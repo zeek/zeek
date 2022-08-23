@@ -18,9 +18,10 @@ redef digest_salt = "Please change this value.";
 # Enable logging of memory, packet and lag statistics.
 @load misc/stats
 
-# Load the scan detection script.  It's disabled by default because
-# it often causes performance issues.
-#@load misc/scan
+# For TCP scan detection, we recommend installing the package from
+# 'https://github.com/ncsa/bro-simple-scan'. E.g., by installing it via
+#
+#     zkg install ncsa/bro-simple-scan
 
 # Detect traceroute being run on the network. This could possibly cause
 # performance trouble when there are a lot of traceroutes on your network.

@@ -525,7 +525,7 @@ protected:
 class NullStmt final : public Stmt
 	{
 public:
-	NullStmt() : Stmt(STMT_NULL) { }
+	NullStmt(bool arg_is_directive = false);
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 	bool IsPure() const override;
@@ -536,6 +536,12 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override { return SetSucc(new NullStmt()); }
+
+	// Returns true if this NullStmt represents a directive (@if..., @else, @endif)
+	bool IsDirective() const { return is_directive; };
+
+private:
+	bool is_directive;
 	};
 
 // A helper class for tracking all of the information associated with

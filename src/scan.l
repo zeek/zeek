@@ -847,6 +847,14 @@ void do_atendif()
 	--conditional_depth;
 	}
 
+// If the given Stmt is a directive, trigger an error so that its usage is rejected.
+void reject_directive(zeek::detail::Stmt* s)
+	{
+	if ( s->Tag() == STMT_NULL )
+		if ( s->AsNullStmt()->IsDirective() )
+			zeek::reporter->Error("incorrect use of directive");
+	}
+
 // Be careful to never delete things from this list, as the strings
 // are referred to (in order to save the locations of tokens and statements,
 // for error reporting and debugging).

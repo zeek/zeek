@@ -34,6 +34,7 @@ class ExprStmt;
 class ForStmt;
 class IfStmt;
 class InitStmt;
+class NullStmt;
 class PrintStmt;
 class ReturnStmt;
 class StmtList;
@@ -92,6 +93,7 @@ public:
 	const WhileStmt* AsWhileStmt() const;
 	const WhenStmt* AsWhenStmt() const;
 	const SwitchStmt* AsSwitchStmt() const;
+	const NullStmt* AsNullStmt() const;
 
 	void RegisterAccess() const
 		{

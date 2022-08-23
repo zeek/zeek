@@ -60,6 +60,13 @@ Breaking Changes
   value alone, we aren't able to deprecate the original version of the method.
   This may cause build of packages to fail if they were using this method.
 
+- Conditional directives (``@if``, ``@ifdef``, ``@ifndef``, ``@else`` and ``@endif``)
+  can not be placed directly following ``if``, ``for`` or ``while`` statements
+  anymore. This was interpreted non-intuitively and could lead to subtle bugs.
+  The statement following the directive was placed outside of its intended block.
+  Placing braces after ``if``, ``for`` or ``while`` should result in the
+  intended behavior.
+
 New Functionality
 -----------------
 

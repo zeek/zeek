@@ -158,6 +158,12 @@ const ReturnStmt* Stmt::AsReturnStmt() const
 	return (const ReturnStmt*)this;
 	}
 
+const NullStmt* Stmt::AsNullStmt() const
+	{
+	CHECK_TAG(tag, STMT_NULL, "Stmt::AsNullStmt", stmt_name)
+	return (const NullStmt*)this;
+	}
+
 bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 	{
 	if ( ! Obj::SetLocationInfo(start, end) )
@@ -1784,6 +1790,8 @@ TraversalCode InitStmt::Traverse(TraversalCallback* cb) const
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
 	}
+
+NullStmt::NullStmt(bool arg_is_directive) : Stmt(STMT_NULL), is_directive(arg_is_directive) { }
 
 ValPtr NullStmt::Exec(Frame* /* f */, StmtFlowType& flow)
 	{

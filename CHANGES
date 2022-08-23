@@ -1,3 +1,7 @@
+5.0.0-2 | 2022-08-23 11:59:23 -0700
+
+  * Add missing opensuse-leap-15.4 files for CI (Tim Wojtulewicz, Corelight)
+
 5.0.0 | 2022-07-05 12:34:24 -0700
 
   * Management framework: bump zeek-client and cluster testsuite (Christian Kreibich, Corelight)

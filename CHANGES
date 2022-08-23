@@ -1,3 +1,7 @@
+5.1.0-dev.434 | 2022-08-23 09:33:42 -0700
+
+  * stmt: Support iterating over vector values (Arne Welzel, Corelight)
+
 5.1.0-dev.432 | 2022-08-22 17:34:10 -0700
 
   * Truncate Docker image artifact at end of Docker CI workflow (Christian Kreibich, Corelight)

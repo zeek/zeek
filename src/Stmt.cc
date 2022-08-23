@@ -1290,23 +1290,29 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr, IDPtr val_var)
 	{
 	value_var = std::move(val_var);
 
-	if ( e->GetType()->IsTable() )
-		{
-		const auto& yield_type = e->GetType()->AsTableType()->Yield();
+	auto t = e->GetType();
+	zeek::TypePtr yield_type;
 
-		// Verify value_vars type if its already been defined
-		if ( value_var->GetType() )
-			{
-			if ( ! same_type(value_var->GetType(), yield_type) )
-				value_var->GetType()->Error("type clash in iteration", yield_type.get());
-			}
-		else
-			{
-			add_local(value_var, yield_type, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
-			}
+	if ( t->IsTable() )
+		yield_type = t->AsTableType()->Yield();
+
+	else if ( t->Tag() == TYPE_VECTOR )
+		yield_type = t->AsVectorType()->Yield();
+
+	else
+		{
+		e->Error("key value for loops only support iteration over tables or vectors");
+		return;
+		}
+
+	// Verify value_vars type if it's already been defined
+	if ( value_var->GetType() )
+		{
+		if ( ! same_type(value_var->GetType(), yield_type) )
+			value_var->GetType()->Error("type clash in iteration", yield_type.get());
 		}
 	else
-		e->Error("key value for loops only support iteration over tables");
+		add_local(value_var, yield_type, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 	}
 
 ForStmt::~ForStmt()
@@ -1358,8 +1364,11 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow)
 			if ( ! raw_vv[i] )
 				continue;
 
-			// Set the loop variable to the current index, and make
-			// another pass over the loop body.
+			// Set the loop variable to the current index, the value variable
+			// to the current value, and make another pass over the loop body.
+			if ( value_var )
+				f->SetElement(value_var, vv->ValAt(i));
+
 			f->SetElement((*loop_vars)[0], val_mgr->Count(i));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);

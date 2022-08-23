@@ -102,6 +102,14 @@ New Functionality
   ``disable_analyzer()`` at a later point when it finds the condition due
   to which it vetoed fulfilled (which may be never).
 
+- Add support for iterating over indices and values of a vector using the
+  same syntax as used for iterating over key-value pairs of tables, where
+  ``value`` will be set to ``vec[idx]``.
+
+	local vec = vector("zero", "one", "two");
+	for ( idx, value in vec )
+		print idx, value;
+
 Changed Functionality
 ---------------------
 

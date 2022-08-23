@@ -1899,8 +1899,8 @@ RecordValPtr DNS_MsgInfo::BuildEDNS_Val()
 	static auto dns_edns_additional = id::find_type<RecordType>("dns_edns_additional");
 	auto r = make_intrusive<RecordVal>(dns_edns_additional);
 
-	r->Assign(0, val_mgr->Count(int(answer_type)));
-	r->Assign(1, query_name);
+	r->Assign(0, query_name);
+	r->Assign(1, val_mgr->Count(int(answer_type)));
 
 	// type = 0x29 or 41 = EDNS
 	r->Assign(2, val_mgr->Count(atype));

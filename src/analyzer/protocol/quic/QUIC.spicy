@@ -1,0 +1,411 @@
+module QUIC;
+
+import spicy;
+import zeek;
+
+# The interface to the C++ code that handles the decryption of the INITIAL packet payload using well-known keys
+public function decrypt_crypto_payload(entire_packet: bytes, connection_id: bytes, encrypted_offset: uint64, payload_offset: uint64, from_client: bool): bytes &cxxname="decrypt_crypto_payload";
+
+
+##############
+## Context - tracked in one connection
+##############
+
+type ConnectionIDInfo = unit {
+  var client_cid_len: uint8;
+  var server_cid_len: uint8;
+  var initial_destination_conn_id: bytes;
+  var initial_packets_exchanged: bool;
+  var initialized: bool;
+
+  on %init {
+    self.client_cid_len = 0;
+    self.server_cid_len = 0;
+    self.initial_packets_exchanged = False;
+    self.initialized = False;
+  }
+};
+
+##############
+# Definitions
+##############
+
+type LongPacketType = enum {
+  INITIAL         = 0,
+  ZERO_RTT        = 1,
+  HANDSHAKE       = 2,
+  RETRY           = 3,
+};
+
+type HeaderForm = enum {
+  SHORT           = 0,
+  LONG            = 1,
+};
+
+type FrameType = enum {
+  PADDING                 = 0x00,
+  PING                    = 0x01,
+  ACK1                    = 0x02,
+  ACK2                    = 0x03,
+  RESET_STREAM            = 0x04,
+  STOP_SENDING            = 0x05,
+  CRYPTO                  = 0x06,
+  NEW_TOKEN               = 0x07,
+  STREAM1                 = 0x08,
+  STREAM2                 = 0x09,
+  STREAM3                 = 0x0a,
+  STREAM4                 = 0x0b,
+  STREAM5                 = 0x0c,
+  STREAM6                 = 0x0d,
+  STREAM7                 = 0x0e,
+  STREAM8                 = 0x0f,
+  MAX_DATA                = 0x10,
+  MAX_STREAM_DATA         = 0x11,
+  MAX_STREAMS1            = 0x12,
+  MAX_STREAMS2            = 0x13,
+  DATA_BLOCKED            = 0x14,
+  STREAM_DATA_BLOCKED     = 0x15,
+  STREAMS_BLOCKED1        = 0x16,
+  STREAMS_BLOCKED2        = 0x17,
+  NEW_CONNECTION_ID       = 0x18,
+  RETIRE_CONNECTION_ID    = 0x19,
+  PATH_CHALLENGE          = 0x1a,
+  PATH_RESPONSE           = 0x1b,
+  CONNECTION_CLOSE1       = 0x1c,
+  CONNECTION_CLOSE2       = 0x1d,
+  HANDSHAKE_DONE          = 0x1e,
+};
+
+##############
+# Helper units
+##############
+
+# Used to peek into the next byte and determine if it's a long or short packet
+public type InitialByte = unit {
+  initialbyte: bitfield(8) {
+    header_form: 7 &convert=cast<HeaderForm>(cast<uint8>($$));
+  };
+  on %done{
+    self.backtrack();
+  }
+};
+
+# Used to peek into the next byte and check it's value
+type InitialUint8 = unit {
+  var bt: uint8;
+  : uint8 {
+    self.bt = $$;
+  }
+
+  on %done{
+    self.backtrack();
+  }
+};
+
+# https://datatracker.ietf.org/doc/rfc9000/ 
+# Section 16 and Appendix A
+type VariableLengthIntegerLength = unit {
+  var length: uint8;
+
+  a: bitfield(8) {
+    length: 6..7 &convert=cast<uint8>($$) &byte-order=spicy::ByteOrder::Big;
+  };
+
+  on %done {
+    self.length = self.a.length;
+    self.backtrack();
+  }
+};
+
+type VariableLengthInteger = unit {
+  var bytes_to_parse: uint64;
+  var result: uint64;
+  var result_bytes: bytes;
+
+  : VariableLengthIntegerLength &try {
+      switch ( $$.length ) {
+        case 0:
+          self.bytes_to_parse = 1;
+        case 1:
+          self.bytes_to_parse = 2;
+        case 2:
+          self.bytes_to_parse = 4;
+        case 3:
+          self.bytes_to_parse = 8;
+     }
+  }
+
+  # Parse the required amount of bytes and apply a mask to clear the 
+  # first two bits, leaving the actual length
+  remainder: bytes &size=self.bytes_to_parse {
+      switch ( self.bytes_to_parse ) {
+        case 1:
+          self.result = $$.to_uint(spicy::ByteOrder::Big) & 0x3f;
+        case 2:
+          self.result = $$.to_uint(spicy::ByteOrder::Big) & 0x3fff;
+        case 4:
+          self.result = $$.to_uint(spicy::ByteOrder::Big) & 0x3fffffff;
+        case 8:
+          self.result = $$.to_uint(spicy::ByteOrder::Big) & 0x3fffffffffffffff;
+     }
+  }
+};
+
+##############
+# Long packets
+# Generic units
+##############
+
+# Used to capture all data form the entire frame. May be inefficient, but works for now.
+# This is passed to the decryption function, as this function needs both the header and the payload
+# Performs a backtrack() at the end
+type AllData = unit {
+  var data: bytes;
+
+  : bytes &eod {
+    self.data = $$;
+  }
+
+  on %done {
+    self.backtrack();
+  }
+};
+
+public type LongHeader = unit {
+  var encrypted_offset: uint64;
+  var payload_length: uint64;
+  var client_conn_id_length: uint8;
+  var server_conn_id_length: uint8;
+
+  first_byte: bitfield(8) {
+      header_form: 7 &convert=cast<HeaderForm>(cast<uint8>($$));
+      fixed_bit: 6; 
+      packet_type: 4..5 &convert=cast<LongPacketType>(cast<uint8>($$));
+      type_specific_bits: 0..3 &convert=cast<uint8>($$);
+  };
+
+  version: uint32;
+  dest_conn_id_len: uint8 { self.server_conn_id_length = $$; }
+  dest_conn_id: bytes &size=self.server_conn_id_length;
+  src_conn_id_len: uint8 { self.client_conn_id_length = $$; }
+  src_conn_id: bytes &size=self.client_conn_id_length;
+
+  # We pass the type specific 4 bits too and don't parse them again
+  switch ( self.first_byte.packet_type ) {
+    LongPacketType::INITIAL -> initial_hdr : InitialLongPacketHeader(self.first_byte.type_specific_bits) {
+        self.encrypted_offset = self.offset() + 
+                                self.initial_hdr.payload_length.bytes_to_parse + 
+                                self.initial_hdr.token_length.bytes_to_parse + 
+                                self.initial_hdr.token_length.result;
+        self.payload_length   = self.initial_hdr.payload_length.result;
+    }
+    LongPacketType::ZERO_RTT -> zerortt_hdr : ZeroRTTLongPacketHeader(self.first_byte.type_specific_bits);
+    LongPacketType::HANDSHAKE -> handshake_hdr : HandshakeLongPacketHeader(self.first_byte.type_specific_bits);
+    LongPacketType::RETRY -> retry_hdr : RetryLongPacketHeader(self.first_byte.type_specific_bits);
+  };
+};
+
+# Decrypted long packet payload that can actually be parsed
+public type DecryptedLongPacketPayload = unit(packet_type: LongPacketType, from_client: bool) {
+  frame_type : uint8 &convert=cast<FrameType>($$);
+
+  # TODO: add other FrameTypes as well
+  switch ( self.frame_type ) {
+    FrameType::ACK1 -> a: ACKPayload;
+    FrameType::ACK2 -> b: ACKPayload;
+    FrameType::CRYPTO -> c: CRYPTOPayload(from_client);
+    FrameType::PADDING -> d: PADDINGPayload;
+  };
+};
+
+# TODO: investigate whether we can do something useful with this
+public type EncryptedLongPacketPayload = unit {
+  payload: bytes &eod;
+};
+
+# Determines how to parse the long packet payload, depending on whether is was decrypted or not
+public type LongPacketPayload = unit(packet_type: LongPacketType, from_client: bool, encrypted: bool) {
+  : DecryptedLongPacketPayload(packet_type, from_client) if (encrypted == False);
+  : EncryptedLongPacketPayload if (encrypted == True);
+};
+
+type CRYPTOPayload = unit(from_client: bool) {
+  var length_in_byte1: bytes;
+  var length_in_byte2: bytes;
+
+  offset: uint8;
+  length: VariableLengthInteger;
+  cryptodata: bytes &size=self.length.result;
+
+  on %done {
+    # As of 5 Sept. 2022 there is no function to convert a unsigned integer back to bytes.
+    # Therefore, the following (quite dirty) method is used. Should be fixed/improved whenever 
+    # a better alternative is available.
+    # It converts a uint16 to its two-byte representation.
+    self.length_in_byte1 = ("%c" % cast<uint8>((self.length.result >> 8) & 0xff)).encode();
+    self.length_in_byte2 = ("%c" % cast<uint8>(self.length.result & 0xff)).encode();
+
+    # The data is passed to the SSL analyzer as part of a HANDSHAKE (0x16) message with TLS1.3 (\x03\x03).
+    # The 2 length bytes are also passed, followed by the actual CRYPTO blob which contains a CLIENT HELLO or SERVER HELLO
+    zeek::protocol_data_in(from_client, b"\x16\x03\x03" + self.length_in_byte1 + self.length_in_byte2 + self.cryptodata);
+  }
+};
+
+type ACKPayload = unit {
+  latest_ack: uint8;
+  ack_delay: uint8;
+  ack_range_count: uint8;
+  first_ack_range: uint8;
+};
+
+public type NullBytes = unit {
+	: (b"\x00")[];
+	x: InitialUint8 &try;
+};
+
+type PADDINGPayload = unit {
+  var padding_length: uint64 = 0;
+
+  # Simply consume all next nullbytes
+	: NullBytes;
+};
+
+
+##############
+# Long packets
+# Specific long packet type units
+##############
+
+type InitialLongPacketHeader = unit(type_specific_bits: uint8) {
+  var packet_number_length_full: uint8;
+
+  token_length: VariableLengthInteger;
+  token: bytes &size=self.token_length.result;
+  payload_length: VariableLengthInteger;
+  packet_number: bytes &size=self.packet_number_length_full &convert=$$.to_uint(spicy::ByteOrder::Big);
+
+  on %init {
+    # Calculate the packet number length while the initial byte is still encoded.
+    # Will result in 0, 1, 2 or 3. So we need to read n+1 bytes to properly parse the header.
+    self.packet_number_length_full = (type_specific_bits & 0x03) + 1;
+  }
+};
+
+# TODO: implement
+type ZeroRTTLongPacketHeader = unit(type_specific_bits: uint8) {};
+type HandshakeLongPacketHeader = unit(type_specific_bits: uint8) {};
+type RetryLongPacketHeader = unit(type_specific_bits: uint8) {};
+
+##############
+# Short packets
+##############
+
+# TODO: implement
+public type ShortHeader = unit(dest_conn_id_length: uint8) {  
+  first_byte:  bitfield(8) {
+      header_form: 7 &convert=cast<HeaderForm>(cast<uint8>($$));
+      fixed_bit: 6; 
+      spin_bit: 5;
+      todo: 0..4;
+    };
+    dest_conn_id: bytes &size=dest_conn_id_length;
+};
+
+# TODO: investigate whether we can parse something useful out of this
+public type ShortPacketPayload = unit {
+  payload: bytes &eod;
+};
+
+##############
+# QUIC frame parsing
+##############
+type Frame = unit(from_client: bool, context: ConnectionIDInfo&) {
+  var hdr_form: HeaderForm;
+  var decrypted_data: bytes;
+  var full_packet: bytes;
+
+  # Peek into the header to check if it's a SHORT or LONG header
+  : InitialByte &try {
+    self.hdr_form = $$.initialbyte.header_form;
+  }
+
+  # Capture all the packet bytes if we're still have a chance of decrypting the INITIAL PACKETS
+  fpack: AllData &try if (context.initial_packets_exchanged == False);
+
+  # Depending on the header, parse it and update the src/dest ConnectionID's
+  switch ( self.hdr_form ) {
+    HeaderForm::SHORT -> short_header: ShortHeader(context.client_cid_len);
+    HeaderForm::LONG -> long_header: LongHeader {
+        # For now, only allow a change of src/dest ConnectionID's for INITIAL packets.
+        # TODO: allow this for Retry packets
+
+        if ( self.long_header.first_byte.packet_type == LongPacketType::INITIAL 
+            && context.initial_packets_exchanged == False ) {
+
+          if ( from_client ) {
+            context.server_cid_len = self.long_header.dest_conn_id_len;
+            context.client_cid_len = self.long_header.src_conn_id_len;
+
+            # This means that here, we can try to decrypt the initial packet!
+            # All data is accessible via the `long_header` unit
+
+            self.decrypted_data = decrypt_crypto_payload(self.fpack.data, 
+                                   self.long_header.dest_conn_id,
+                                   self.long_header.encrypted_offset,
+                                   self.long_header.payload_length,
+                                   from_client);
+            
+            # Set this to be the seed for the decryption
+            if ( ! context.initial_packets_exchanged ) {
+              context.initial_destination_conn_id = self.long_header.dest_conn_id;
+            }
+
+          } else {
+            context.server_cid_len = self.long_header.src_conn_id_len;
+            context.client_cid_len = self.long_header.dest_conn_id_len;
+
+            # Assuming that the client set up the connection, this can be considered the first
+            # received Initial from the client. So disable change of ConnectionID's afterwards
+            self.decrypted_data = decrypt_crypto_payload(self.fpack.data, 
+                                   context.initial_destination_conn_id,
+                                   self.long_header.encrypted_offset,
+                                   self.long_header.payload_length,
+                                   from_client);
+          }
+        }
+
+        # If it's a reply from the server and it's not a REPLY, we assume the keys are restablished and decryption is no longer possible
+        # TODO: verify if this is actually correct per RFC
+        if (self.long_header.first_byte.packet_type != LongPacketType::RETRY && ! from_client) {
+          context.initial_packets_exchanged = True;
+        }
+    }
+  };
+
+  # Depending on the type of header, we parse the remaining payload.
+  switch ( self.hdr_form ) {
+    HeaderForm::SHORT -> remaining_short_payload: ShortPacketPayload;
+    HeaderForm::LONG -> remaining_long_payload : LongPacketPayload(self.long_header.first_byte.packet_type, from_client, context.initial_packets_exchanged)[] &parse-from=self.decrypted_data;
+  };
+
+  on %init {
+    # Make sure to only attach the SSL analyzer once per QUIC connection
+    if ( ! context.initialized ) {
+      context.initialized = True;
+      zeek::protocol_begin("SSL");
+    }
+  }
+};
+
+##############
+# Entrypoints
+##############
+public type RequestFrame = unit {
+  %context = ConnectionIDInfo;
+  : Frame(True, self.context());
+};
+
+public type ResponseFrame = unit {
+  %context = ConnectionIDInfo;
+  : Frame(False, self.context());
+};

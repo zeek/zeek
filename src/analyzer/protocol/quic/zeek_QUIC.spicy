@@ -1,0 +1,12 @@
+module Zeek_QUIC;
+
+import zeek;
+import QUIC;
+
+on QUIC::ResponseFrame::%done {
+  zeek::confirm_protocol();
+}
+
+on QUIC::ResponseFrame::%error {
+  zeek::reject_protocol("error while parsing QUIC message");
+}

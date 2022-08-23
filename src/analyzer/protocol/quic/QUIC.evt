@@ -1,0 +1,10 @@
+protocol analyzer spicy::QUIC over UDP:
+    parse originator with QUIC::RequestFrame,
+    parse responder with QUIC::ResponseFrame,
+    ports { 443/udp };
+
+import QUIC;
+import Zeek_QUIC;
+
+# TODO: Add actual events, instead of this dummy event
+on QUIC::ResponseFrame -> event QUIC::example($conn);

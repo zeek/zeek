@@ -1,3 +1,7 @@
+5.0.0-14 | 2022-08-24 10:34:55 -0700
+
+  * Truncate Docker image artifact at end of Docker CI workflow (Christian Kreibich, Corelight)
+
 5.0.0-13 | 2022-08-24 10:25:03 -0700
 
   * Bump Spicy dependencies to spicy-1.5.1 and spicy-plugin-1.3.17. (Benjamin Bannier, Corelight)

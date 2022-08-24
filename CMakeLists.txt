@@ -400,7 +400,7 @@ else ()
 endif ()
 
 if ( NOT DISABLE_SPICY )
-    if ( NOT Spicy_ROOT )
+    if ( NOT SPICY_ROOT_DIR )
         add_subdirectory(auxil/spicy)
 
         # Set variables used by the spicy-plugin build since we are building Spicy
@@ -690,7 +690,7 @@ CheckOptionalBuildSources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER
 CheckOptionalBuildSources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
 
 if ( NOT DISABLE_SPICY )
-    if ( NOT Spicy_ROOT )
+    if ( NOT SPICY_ROOT_DIR )
         list(APPEND _spicy_rt_libs spicy-rt hilti-rt)
 
         # Use the debug runtime libraries if we are building a debug Zeek.

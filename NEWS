@@ -35,6 +35,10 @@ This release fixes the following bugs:
 
   https://github.com/zeek/zeek/issues/2334
 
+- Fix Zeek build failures when building against an external version of Spicy
+
+  https://github.com/zeek/zeek/pull/2364
+
 Zeek 5.0.0
 ==========
 

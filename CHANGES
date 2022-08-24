@@ -1,3 +1,17 @@
+5.0.0-11 | 2022-08-24 10:22:33 -0700
+
+  * Use correct variable to pass existing Spicy root to spicy-plugin. (Benjamin Bannier, Corelight)
+
+    spicy-plugin can find Spicy in paths given by `SPICY_ROOT_DIR` while
+    `./configure` instead set `SPICY_ROOT`. With this patch we now set the
+    correct variable.
+
+    We also adjust variations of the previous variable name with different
+    capitalization which caused us to not properly configure spicy-plugin
+    (which triggers finding Spicy in its given prefix).
+
+    Closes #2363.
+
 5.0.0-8 | 2022-08-23 16:48:21 -0700
 
   * Remove reporter warning for bad IP protocols (Tim Wojtulewicz, Corelight)

@@ -39,6 +39,10 @@ This release fixes the following bugs:
 
   https://github.com/zeek/zeek/pull/2364
 
+- Update Spicy to version 1.5.1 and spicy-plugin to 1.3.17.
+
+  https://github.com/zeek/zeek/pull/2368
+
 Zeek 5.0.0
 ==========
 

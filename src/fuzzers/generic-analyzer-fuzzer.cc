@@ -11,7 +11,9 @@
 #include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 #include "zeek/session/Manager.h"
 
-static constexpr auto ZEEK_FUZZ_ANALYZER = "http";
+// Simple macros for converting a compiler define into a string.
+#define VAL(str) #str
+#define TOSTRING(str) VAL(str)
 
 static zeek::Connection* add_connection()
 	{
@@ -37,7 +39,7 @@ static zeek::analyzer::Analyzer* add_analyzer(zeek::Connection* conn)
 	{
 	auto* tcp = new zeek::packet_analysis::TCP::TCPSessionAdapter(conn);
 	auto* pia = new zeek::analyzer::pia::PIA_TCP(conn);
-	auto a = zeek::analyzer_mgr->InstantiateAnalyzer(ZEEK_FUZZ_ANALYZER, conn);
+	auto a = zeek::analyzer_mgr->InstantiateAnalyzer(TOSTRING(ZEEK_FUZZ_ANALYZER), conn);
 	tcp->AddChildAnalyzer(a);
 	tcp->AddChildAnalyzer(pia->AsAnalyzer());
 	conn->SetSessionAdapter(tcp, pia);

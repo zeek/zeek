@@ -3,8 +3,10 @@
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run recv "zeek -b ../recv.zeek >recv.out"
-# @TEST-EXEC: btest-bg-run send-check1 "zeek -b ../send-check.zeek >send.out"
 # @TEST-EXEC: $SCRIPTS/wait-for-file recv/listen-ready 20 || (btest-bg-wait -k 1 && false)
+
+# @TEST-EXEC: btest-bg-run send-check1 "zeek -b ../send-check.zeek >send.out"
+# @TEST-EXEC: $SCRIPTS/wait-for-file recv/connected 20 || (btest-bg-wait -k 1 && false)
 #
 # @TEST-EXEC: btest-bg-run send "zeek -b ../send.zeek >send.out"
 # @TEST-EXEC: $SCRIPTS/wait-for-file send/failed 20 || (btest-bg-wait -k 1 && false)
@@ -98,7 +100,7 @@ BTdqMbieumB/zL97iK5baHUFEJ4VRtLQhh/SOXgew/BF8ccpilI=
 
 event zeek_init()
 	{
-	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
+	Broker::__peer_no_retry("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -119,7 +121,7 @@ redef Broker::ssl_certificate = "../cert.1.pem";
 
 event zeek_init()
 	{
-	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
+	Broker::__peer_no_retry("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -136,7 +138,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 event Broker::error(code: Broker::ErrorCode, msg: string)
 	{
-		system("touch failed");
+	system("touch failed");
 	print fmt("sender error: code=%s msg=%s", code, gsub(msg, /127.0.0.1:[0-9]+/, "<endpoint addr:port>"));
 	terminate();
 	}
@@ -154,6 +156,7 @@ event Broker::error(code: Broker::ErrorCode, msg: string)
 event zeek_init()
 	{
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
+	system("touch listen-ready");
 	}
 
 global peer_count = 0;
@@ -165,7 +168,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	++peer_count;
 
 	if ( peer_count == 1 )
-		system("touch listen-ready");
+		system("touch connected");
 	else if ( peer_count == 2 )
 		terminate();
 	}

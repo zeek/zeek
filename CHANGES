@@ -1,3 +1,10 @@
+5.1.0-dev.439 | 2022-08-23 20:28:05 -0700
+
+  * parse.y/anonymous_function: Allow conditionals between begin_lambda and lambda_body (Arne Welzel, Corelight)
+
+    This is to allow conditional statements following a lambda header
+    (begin_lambda) just as is done with func_hdr conditional_list func_body.
+
 5.1.0-dev.436 | 2022-08-23 10:19:23 -0700
 
   * Deprecate misc/scan.zeek (Arne Welzel, Corelight)

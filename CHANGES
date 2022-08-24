@@ -1,3 +1,17 @@
+5.1.0-dev.452 | 2022-08-24 09:33:58 -0700
+
+  * Use correct variable to pass existing Spicy root to spicy-plugin. (Benjamin Bannier, Corelight)
+
+    spicy-plugin can find Spicy in paths given by `SPICY_ROOT_DIR` while
+    `./configure` instead set `SPICY_ROOT`. With this patch we now set the
+    correct variable.
+
+    We also adjust variations of the previous variable name with different
+    capitalization which caused us to not properly configure spicy-plugin
+    (which triggers finding Spicy in its given prefix).
+
+    Closes #2363.
+
 5.1.0-dev.450 | 2022-08-24 09:22:47 -0700
 
   * Skip test based on preprocessor flag set by cmake (Simeon Miteff, Corelight)

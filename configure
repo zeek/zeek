@@ -379,7 +379,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry PYTHON_LIBRARY PATH $optarg
             ;;
         --with-spicy=*)
-            append_cache_entry SPICY_ROOT PATH $optarg
+            append_cache_entry SPICY_ROOT_DIR PATH $optarg
             ;;
         --with-spicy-plugin=*)
             append_cache_entry SPICY_PLUGIN_PATH PATH $optarg

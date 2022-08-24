@@ -131,6 +131,10 @@ Changed Functionality
   This prevents callbacks into script-land through change handlers when parts
   of the environment have already been torn down.
 
+- When running in cluster mode, the manager by default now imports metrics
+  from all other cluster nodes via broker topics and opens port 9911/tcp for
+  Prometheus metrics exposition.
+
 Removed Functionality
 ---------------------
 

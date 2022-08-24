@@ -245,7 +245,7 @@ alpine_task:
 # We aim to support both the current and previous macOS release.
 macos_monterey_task:
   macos_instance:
-    image: monterey-xcode-13.1
+    image: ghcr.io/cirruslabs/macos-monterey-base:latest
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT

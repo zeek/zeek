@@ -26,7 +26,9 @@ event zeek_init()
 		supervisor_output_file = open("supervisor.out");
 		print supervisor_output_file, "supervisor zeek_init()";
 		local sn = Supervisor::NodeConfig($name="grault",
-		                                  $scripts=vector("../qux.zeek"));
+		    $addl_base_scripts=vector("../addl_base_script.zeek"),
+		    $addl_user_scripts=vector("../addl_user_script.zeek"),
+		    $scripts=vector("../script.zeek"));
 		local res = Supervisor::create(sn);
 
 		if ( res != "" )
@@ -36,7 +38,15 @@ event zeek_init()
 		{
 		Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
 		node_output_file = open("node.out");
-		print node_output_file, "supervised node zeek_init()";
+
+@ifdef ( Pre::counter )
+		# Even though this else-block runs only in the supervised node,
+		# it still needs to parse correctly in the Supervisor, so we
+		# need to condition this with availability of the counter (which
+		# only exists in the supervised node).
+		++Pre::counter;
+		print node_output_file, fmt("supervised node zeek_init(), counter at %s", Pre::counter);
+@endif
 		}
 	}
 
@@ -60,11 +70,32 @@ event zeek_done()
 		print supervisor_output_file, "supervisor zeek_done()";
 	}
 
-@TEST-START-FILE qux.zeek
+@TEST-START-FILE addl_base_script.zeek
+
+module Pre;
+
+export {
+	global counter = 0;
+}
+
+@TEST-END-FILE
+
+@TEST-START-FILE addl_user_script.zeek
 
 event zeek_init() &priority=-10
 	{
-	print node_output_file, "supervised node loaded qux.zeek";
+	++Pre::counter;
+	print node_output_file, fmt("supervised node loaded addl_user_script.zeek, counter at %s", Pre::counter);
+	}
+
+@TEST-END-FILE
+
+@TEST-START-FILE script.zeek
+
+event zeek_init() &priority=-20
+	{
+	++Pre::counter;
+	print node_output_file, fmt("supervised node loaded script.zeek, counter at %s", Pre::counter);
 	}
 
 @TEST-END-FILE

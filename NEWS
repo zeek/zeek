@@ -31,6 +31,10 @@ This release fixes the following bugs:
 
   https://github.com/zeek/zeek/commit/40b1452905c0eed4d96300ce1aaf87a08166e396
 
+- Fix workers failing to peer with proxies if they take too long to start
+
+  https://github.com/zeek/zeek/issues/2334
+
 Zeek 5.0.0
 ==========
 

@@ -152,6 +152,14 @@ export {
 	## BROKER_METRICS_EXPORT_TOPIC is defined.
 	option metrics_export_topic = "";
 
+	## Topics for the Prometheus exporter for collecting metrics from other
+	## peers in the network and including them in the output. Has no effect when
+	## not exporting the metrics to Prometheus.
+	##
+	## Zeek overrides any value provided in zeek_init or earlier at startup if
+	## the environment variable BROKER_METRICS_IMPORT_TOPICS is defined.
+	option metrics_import_topics: vector of string = vector();
+
 	## ID for the metrics exporter. When setting a target topic for the
 	## exporter, Broker sets this option to the suffix of the new topic *unless*
 	## the ID is a non-empty string. Since setting a topic starts the periodic
@@ -462,6 +470,12 @@ function update_metrics_export_topic(id: string, val: string): string
 	return val;
 	}
 
+function update_metrics_import_topics(id: string, topics: vector of string): vector of string
+	{
+	Broker::__set_metrics_import_topics(topics);
+	return topics;
+	}
+
 function update_metrics_export_endpoint_name(id: string, val: string): string
 	{
 	Broker::__set_metrics_export_endpoint_name(val);
@@ -487,6 +501,11 @@ event zeek_init()
 	                            Broker::metrics_export_topic);
 	Option::set_change_handler("Broker::metrics_export_topic",
 	                           update_metrics_export_topic);
+	# import topics
+	update_metrics_import_topics("Broker::metrics_import_topics",
+	                             Broker::metrics_import_topics);
+	Option::set_change_handler("Broker::metrics_import_topics",
+	                           update_metrics_import_topics);
 	# endpoint name
 	update_metrics_export_endpoint_name("Broker::metrics_export_endpoint_name",
 	                                    Broker::metrics_export_endpoint_name);

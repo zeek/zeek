@@ -395,6 +395,13 @@ public:
 	void SetMetricsExportTopic(std::string value);
 
 	/**
+	 * Sets the import topics for a node importing metrics.
+	 *
+	 * @param topics List of topics from which to import metrics.
+	 */
+	void SetMetricsImportTopics(std::vector<std::string> topics);
+
+	/**
 	 * Sets a new ID for the metrics exporter. Passing an empty string has no
 	 * effect.
 	 * @param value The new ID of the exporter in published metrics.

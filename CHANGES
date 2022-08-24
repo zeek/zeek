@@ -1,3 +1,7 @@
+5.1.0-dev.442 | 2022-08-24 13:22:17 +0100
+
+  * Add Broker::metrics_import_topics (Arne Welzel & Dominik Charousset, both Corelight)
+
 5.1.0-dev.439 | 2022-08-23 20:28:05 -0700
 
   * parse.y/anonymous_function: Allow conditionals between begin_lambda and lambda_body (Arne Welzel, Corelight)

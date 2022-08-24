@@ -12,6 +12,7 @@ add_subdirectory(fddi)
 add_subdirectory(nflog)
 add_subdirectory(mpls)
 add_subdirectory(linux_sll)
+add_subdirectory(linux_sll2)
 
 add_subdirectory(arp)
 add_subdirectory(ip)

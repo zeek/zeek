@@ -9,7 +9,7 @@ event zeek_init() &priority=10
 	print "1st event";
 	}
 
-event zeek_init() &priority=10
+event zeek_init()
 	{
 	print "2nd event";
 	local v = vector(1, 2, 3);

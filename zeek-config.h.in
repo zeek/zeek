@@ -4,6 +4,8 @@
    pcap_compile_nopcap */
 #cmakedefine DONT_HAVE_LIBPCAP_PCAP_FREECODE
 
+#cmakedefine DONT_HAVE_LIBPCAP_DLT_LINUX_SLL2
+
 /* should explicitly declare socket() and friends */
 #cmakedefine DO_SOCK_DECL
 

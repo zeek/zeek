@@ -1,3 +1,22 @@
+5.1.0-dev.450 | 2022-08-24 09:22:47 -0700
+
+  * Skip test based on preprocessor flag set by cmake (Simeon Miteff, Corelight)
+
+    Relies on change in d42dcb2d55029975a6a6b2e6378fc49a268631ec
+
+  * Set flag for libpcap without DLT_LINUX_SLL2 (Simeon Miteff, Corelight)
+
+    Requires
+    https://github.com/zeek/cmake/commit/6fd82a7e1d626f68ebf616b45f9bec11ca49d295
+
+    Submodule edited until that can be merged.
+
+  * Force event order in core/init-error btest (Simeon Miteff, Corelight)
+
+    See https://github.com/zeek/zeek/pull/2340#issuecomment-1218131444
+
+  * Add support for DLT_LINUX_SLL2 PCAP link-type (Simeon Miteff, Corelight)
+
 5.1.0-dev.442 | 2022-08-24 13:22:17 +0100
 
   * Add Broker::metrics_import_topics (Arne Welzel & Dominik Charousset, both Corelight)

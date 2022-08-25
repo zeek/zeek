@@ -13,7 +13,7 @@ fuzzers=$(find ./src/fuzzers -name 'zeek-*-fuzzer')
 for fuzzer_path in ${fuzzers}; do
     fuzzer_exe=$(basename ${fuzzer_path})
     fuzzer_name=$(echo ${fuzzer_exe} | sed 's/zeek-\(.*\)-fuzzer/\1/g')
-    corpus="../src/fuzzers/${fuzzer_name}-corpus.zip"
+    corpus="../src/fuzzers/corpora/${fuzzer_name}-corpus.zip"
 
     if [[ -e ${corpus} ]]; then
         echo "Fuzzer: ${fuzzer_exe} ${corpus}"

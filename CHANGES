@@ -1,3 +1,7 @@
+5.1.0-dev.457 | 2022-08-25 15:15:29 -0700
+
+  * Switch macOS Monterey build to new m1-based VM (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.455 | 2022-08-25 12:46:00 -0700
 
   * Avoid race conditions in broker.ssl_auth_failure btest (Tim Wojtulewicz, Corelight)

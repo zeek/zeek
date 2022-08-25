@@ -3,7 +3,6 @@
 
 @load base/protocols/ssl
 @load base/protocols/conn
-@load base/frameworks/dpd
 @load base/protocols/imap
 
 event imap_capabilities(c: connection, capabilities: string_vec)

@@ -2877,7 +2877,7 @@ function raw_bytes_to_v6_addr%(x: string%): addr
 function to_port%(s: string%): port
     %{
     int port = 0;
-    if ( s->Len() < 10 )
+    if ( s->Len() > 0 && s->Len() < 10 )
         {
         char* slash;
         errno = 0;

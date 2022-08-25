@@ -6,5 +6,4 @@
 
 @load base/protocols/ssh
 @load base/protocols/ssl
-@load base/frameworks/dpd
 @load protocols/conn/known-services

@@ -8,7 +8,6 @@
 
 @load base/protocols/conn
 @load base/protocols/irc
-@load base/frameworks/dpd
 
 # dcc mime types are irrelevant to this test, so filter it out
 event zeek_init()

@@ -8,7 +8,6 @@ DPD::ignore_violations Analyzer::ANALYZER_SYSLOG
 @TEST-END-FILE
 
 @load base/frameworks/config
-@load base/frameworks/dpd
 
 redef exit_only_after_terminate = T;
 redef InputConfig::empty_field = "EMPTY";

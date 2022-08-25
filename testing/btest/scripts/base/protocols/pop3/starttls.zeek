@@ -4,7 +4,6 @@
 # @TEST-EXEC: btest-diff x509.log
 
 @load base/protocols/conn
-@load base/frameworks/dpd
 @load base/protocols/ssl
 
 module POP3;

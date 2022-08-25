@@ -6,6 +6,5 @@
 # there is sometimes already native IPv6.
 
 @load base/frameworks/tunnels
-@load base/frameworks/dpd
 @load base/protocols/conn
 @load base/protocols/dns

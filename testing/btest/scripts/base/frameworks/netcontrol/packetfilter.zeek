@@ -4,7 +4,6 @@
 @load base/protocols/conn
 @load base/protocols/smtp
 @load base/protocols/dns
-@load base/frameworks/dpd
 @load base/frameworks/netcontrol
 
 event NetControl::init()

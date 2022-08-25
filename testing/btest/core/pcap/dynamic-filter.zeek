@@ -5,7 +5,6 @@
 @load base/protocols/conn
 @load base/protocols/http
 @load base/protocols/dns
-@load base/frameworks/dpd
 
 redef enum PcapFilterID += { A, B };
 

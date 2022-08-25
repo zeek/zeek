@@ -4,7 +4,6 @@
 # @TEST-EXEC: btest-diff tunnel.log
 
 @load base/frameworks/tunnels
-@load base/frameworks/dpd
 @load base/protocols/conn
 
 event geneve_packet(c: connection, inner: pkt_hdr, vni: count)

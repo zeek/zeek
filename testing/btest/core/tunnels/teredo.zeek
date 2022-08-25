@@ -5,7 +5,6 @@
 # @TEST-EXEC: btest-diff http.log
 
 @load base/frameworks/tunnels
-@load base/frameworks/dpd
 @load base/frameworks/notice/weird
 @load base/protocols/tunnels
 @load base/protocols/conn

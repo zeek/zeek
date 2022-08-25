@@ -2,5 +2,4 @@
 # @TEST-EXEC: btest-diff conn.log
 
 @load base/protocols/http
-@load base/frameworks/dpd
 @load policy/protocols/conn/mac-logging

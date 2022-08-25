@@ -3,7 +3,6 @@
 
 @load base/protocols/conn
 @load base/protocols/ftp
-@load base/frameworks/dpd
 @load-sigs blah.sig
 
 @TEST-START-FILE blah.sig

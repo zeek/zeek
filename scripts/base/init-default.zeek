@@ -30,7 +30,6 @@
 #@load base/frameworks/logging
 @load base/frameworks/notice
 @load base/frameworks/analyzer
-@load base/frameworks/dpd
 @load base/frameworks/signatures
 @load base/frameworks/packet-filter
 @load base/frameworks/software

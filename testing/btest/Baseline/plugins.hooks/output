@@ -884,6 +884,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./data.bif.zeek, <...>/data.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./dcc-send, <...>/dcc-send.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./debug, <...>/debug.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./dpd, <...>/dpd.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./drop, <...>/drop.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./entities, <...>/entities.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./event.bif.zeek, <...>/event.bif.zeek) -> -1
@@ -1000,7 +1001,6 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/directions-and-hosts, <...>/directions-and-hosts.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/dnp3, <...>/dnp3) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/dns, <...>/dns) -> -1
-0.000000   MetaHookPost  LoadFile(0, base<...>/dpd, <...>/dpd) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/email, <...>/email.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ethernet, <...>/ethernet) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/event.bif, <...>/event.bif.zeek) -> -1
@@ -1269,6 +1269,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./data.bif.zeek, <...>/data.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./dcc-send, <...>/dcc-send.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./debug, <...>/debug.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./dpd, <...>/dpd.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./drop, <...>/drop.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./entities, <...>/entities.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./event.bif.zeek, <...>/event.bif.zeek) -> (-1, <no content>)
@@ -1385,7 +1386,6 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/directions-and-hosts, <...>/directions-and-hosts.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/dnp3, <...>/dnp3) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/dns, <...>/dns) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, base<...>/dpd, <...>/dpd) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/email, <...>/email.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ethernet, <...>/ethernet) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/event.bif, <...>/event.bif.zeek) -> (-1, <no content>)
@@ -2397,6 +2397,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./data.bif.zeek, <...>/data.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./dcc-send, <...>/dcc-send.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./debug, <...>/debug.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./dpd, <...>/dpd.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./drop, <...>/drop.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./entities, <...>/entities.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./event.bif.zeek, <...>/event.bif.zeek)
@@ -2513,7 +2514,6 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/directions-and-hosts, <...>/directions-and-hosts.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/dnp3, <...>/dnp3)
 0.000000   MetaHookPre   LoadFile(0, base<...>/dns, <...>/dns)
-0.000000   MetaHookPre   LoadFile(0, base<...>/dpd, <...>/dpd)
 0.000000   MetaHookPre   LoadFile(0, base<...>/email, <...>/email.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ethernet, <...>/ethernet)
 0.000000   MetaHookPre   LoadFile(0, base<...>/event.bif, <...>/event.bif.zeek)
@@ -2782,6 +2782,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./data.bif.zeek, <...>/data.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./dcc-send, <...>/dcc-send.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./debug, <...>/debug.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./dpd, <...>/dpd.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./drop, <...>/drop.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./entities, <...>/entities.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./event.bif.zeek, <...>/event.bif.zeek)
@@ -2898,7 +2899,6 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/directions-and-hosts, <...>/directions-and-hosts.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/dnp3, <...>/dnp3)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/dns, <...>/dns)
-0.000000   MetaHookPre   LoadFileExtended(0, base<...>/dpd, <...>/dpd)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/email, <...>/email.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ethernet, <...>/ethernet)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/event.bif, <...>/event.bif.zeek)
@@ -3911,6 +3911,7 @@
 0.000000 | HookLoadFile  ./data.bif.zeek <...>/data.bif.zeek
 0.000000 | HookLoadFile  ./dcc-send <...>/dcc-send.zeek
 0.000000 | HookLoadFile  ./debug <...>/debug.zeek
+0.000000 | HookLoadFile  ./dpd <...>/dpd.zeek
 0.000000 | HookLoadFile  ./dpd.sig <...>/dpd.sig
 0.000000 | HookLoadFile  ./drop <...>/drop.zeek
 0.000000 | HookLoadFile  ./entities <...>/entities.zeek
@@ -4037,7 +4038,6 @@
 0.000000 | HookLoadFile  base<...>/directions-and-hosts <...>/directions-and-hosts.zeek
 0.000000 | HookLoadFile  base<...>/dnp3 <...>/dnp3
 0.000000 | HookLoadFile  base<...>/dns <...>/dns
-0.000000 | HookLoadFile  base<...>/dpd <...>/dpd
 0.000000 | HookLoadFile  base<...>/email <...>/email.zeek
 0.000000 | HookLoadFile  base<...>/ethernet <...>/ethernet
 0.000000 | HookLoadFile  base<...>/event.bif <...>/event.bif.zeek
@@ -4296,6 +4296,7 @@
 0.000000 | HookLoadFileExtended ./data.bif.zeek <...>/data.bif.zeek
 0.000000 | HookLoadFileExtended ./dcc-send <...>/dcc-send.zeek
 0.000000 | HookLoadFileExtended ./debug <...>/debug.zeek
+0.000000 | HookLoadFileExtended ./dpd <...>/dpd.zeek
 0.000000 | HookLoadFileExtended ./dpd.sig <...>/dpd.sig
 0.000000 | HookLoadFileExtended ./drop <...>/drop.zeek
 0.000000 | HookLoadFileExtended ./entities <...>/entities.zeek
@@ -4422,7 +4423,6 @@
 0.000000 | HookLoadFileExtended base<...>/directions-and-hosts <...>/directions-and-hosts.zeek
 0.000000 | HookLoadFileExtended base<...>/dnp3 <...>/dnp3
 0.000000 | HookLoadFileExtended base<...>/dns <...>/dns
-0.000000 | HookLoadFileExtended base<...>/dpd <...>/dpd
 0.000000 | HookLoadFileExtended base<...>/email <...>/email.zeek
 0.000000 | HookLoadFileExtended base<...>/ethernet <...>/ethernet
 0.000000 | HookLoadFileExtended base<...>/event.bif <...>/event.bif.zeek

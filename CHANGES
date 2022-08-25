@@ -1,3 +1,7 @@
+5.1.0-dev.455 | 2022-08-25 12:46:00 -0700
+
+  * Avoid race conditions in broker.ssl_auth_failure btest (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.452 | 2022-08-24 09:33:58 -0700
 
   * Use correct variable to pass existing Spicy root to spicy-plugin. (Benjamin Bannier, Corelight)

@@ -100,7 +100,7 @@ BTdqMbieumB/zL97iK5baHUFEJ4VRtLQhh/SOXgew/BF8ccpilI=
 
 event zeek_init()
 	{
-	Broker::__peer_no_retry("127.0.0.1", to_port(getenv("BROKER_PORT")));
+	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -121,7 +121,7 @@ redef Broker::ssl_certificate = "../cert.1.pem";
 
 event zeek_init()
 	{
-	Broker::__peer_no_retry("127.0.0.1", to_port(getenv("BROKER_PORT")));
+	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

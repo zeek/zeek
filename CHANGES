@@ -1,3 +1,19 @@
+5.0.1 | 2022-08-26 10:25:19 -0700
+
+  * Release 5.0.1.
+
+  * Fix potential overflow in modbus analyzer's bytestring_to_coils (Tim Wojtulewicz, Corelight)
+
+  * Reset packet cap_len before returning from IP::AnalyzePacket (Tim Wojtulewicz, Corelight)
+
+  * Swap DNS EDNS field order to match script-land type (Tim Wojtulewicz, Corelight)
+
+  * Add some sanity checking to BadARPEvent method (Tim Wojtulewicz, Corelight)
+
+  * Check for valid ip_hdr length before trying to make a Val out of it (Tim Wojtulewicz, Corelight)
+
+  * Update broker submodule to 2.3.2 release tag (Tim Wojtulewicz, Corelight)
+
 5.0.0-18 | 2022-08-26 09:17:29 -0700
 
   * Revert to regular peering fn for ssl_auth_failure (Dominik Charousset, Corelight)

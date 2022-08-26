@@ -1,3 +1,7 @@
+5.1.0-dev.471 | 2022-08-26 14:49:04 -0700
+
+  * gtpv1: Do not register for protocol detection (Arne Welzel, Corelight)
+
 5.1.0-dev.469 | 2022-08-26 14:36:03 -0700
 
   * Move fuzzer corpus files to another directory (Tim Wojtulewicz, Corelight)

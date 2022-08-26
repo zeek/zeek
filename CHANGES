@@ -1,3 +1,9 @@
+5.1.0-dev.469 | 2022-08-26 14:36:03 -0700
+
+  * Move fuzzer corpus files to another directory (Tim Wojtulewicz, Corelight)
+
+  * Add a way to create generic fuzzers without creating new files (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.466 | 2022-08-26 11:00:06 -0700
 
   * Check for valid ip_hdr length before trying to make a Val out of it (Tim Wojtulewicz, Corelight)

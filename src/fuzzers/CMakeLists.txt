@@ -29,12 +29,8 @@ endif ()
 # the shared lib, links it.
 string(REGEX MATCH ".*\\.a$" _have_static_bind_lib "${BIND_LIBRARY}")
 
-macro(ADD_FUZZ_TARGET _name)
-    set(_fuzz_target zeek-${_name}-fuzzer)
-    set(_fuzz_source ${_name}-fuzzer.cc)
-
+macro(SETUP_FUZZ_TARGET _fuzz_target _fuzz_source)
     add_executable(${_fuzz_target} ${_fuzz_source} ${ARGN})
-
     target_link_libraries(${_fuzz_target} zeek_fuzzer_shared)
 
     if ( _have_static_bind_lib )
@@ -49,6 +45,19 @@ macro(ADD_FUZZ_TARGET _name)
         target_link_libraries(${_fuzz_target}
                               $<TARGET_OBJECTS:zeek_fuzzer_standalone>)
     endif ()
+endmacro()
+
+macro(ADD_FUZZ_TARGET _name)
+    set(_fuzz_target zeek-${_name}-fuzzer)
+    set(_fuzz_source ${_name}-fuzzer.cc)
+    setup_fuzz_target(${_fuzz_target} ${_fuzz_source})
+endmacro ()
+
+macro(ADD_GENERIC_ANALYZER_FUZZ_TARGET _name)
+    set(_fuzz_target zeek-${_name}-fuzzer)
+    set(_fuzz_source generic-analyzer-fuzzer.cc)
+    setup_fuzz_target(${_fuzz_target} ${_fuzz_source})
+    target_compile_definitions(${_fuzz_target} PUBLIC ZEEK_FUZZ_ANALYZER=${_name})
 endmacro ()
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -78,10 +87,11 @@ target_link_libraries(zeek_fuzzer_shared
                       ${zeek_fuzzer_shared_deps}
                       ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
-add_fuzz_target(dns)
-add_fuzz_target(pop3)
 add_fuzz_target(packet)
-add_fuzz_target(http)
-add_fuzz_target(imap)
-add_fuzz_target(smtp)
-add_fuzz_target(ftp)
+add_fuzz_target(dns)
+
+add_generic_analyzer_fuzz_target(ftp)
+add_generic_analyzer_fuzz_target(http)
+add_generic_analyzer_fuzz_target(imap)
+add_generic_analyzer_fuzz_target(pop3)
+add_generic_analyzer_fuzz_target(smtp)

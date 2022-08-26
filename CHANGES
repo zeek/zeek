@@ -1,3 +1,20 @@
+5.0.0-18 | 2022-08-26 09:17:29 -0700
+
+  * Revert to regular peering fn for ssl_auth_failure (Dominik Charousset, Corelight)
+
+    With the fixed Broker version, the `ssl_auth_failure` btest can use the
+    regular `peer` function again.
+
+    (cherry picked from commit 2d7bfb4ca787d6b270bd11ab57effec1f95219f2)
+
+  * Avoid race conditions in broker.ssl_auth_failure btest (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit c88a362d1b401823dbada62b9c2304124fcb0ca6)
+
+  * Avoid race conditions in broker.ssl-mismatch test (Dominik Charousset, Corelight)
+
+    (cherry picked from commit d3ad3c618a62c6b415a47c54fdd679f26c9ed34f)
+
 5.0.0-14 | 2022-08-24 10:34:55 -0700
 
   * Truncate Docker image artifact at end of Docker CI workflow (Christian Kreibich, Corelight)

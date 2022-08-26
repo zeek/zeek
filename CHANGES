@@ -1,3 +1,17 @@
+4.0.8 | 2022-08-26 10:46:08 -0700
+
+  * Release 4.0.8
+
+  * Reset packet cap_len before returning from IP::AnalyzePacket (Tim Wojtulewicz, Corelight)
+
+  * Swap DNS EDNS field order to match script-land type (Tim Wojtulewicz, Corelight)
+
+  * Add some sanity checking to BadARPEvent method (Tim Wojtulewicz, Corelight)
+
+  * Fix potential overflow in modbus analyzer's bytestring_to_coils (Tim Wojtulewicz, Corelight)
+
+  * Check for valid ip_hdr length before trying to make a Val out of it (Tim Wojtulewicz, Corelight)
+
 4.0.7 | 2022-06-01 14:09:05 -0700
 
   * Release 4.0.7.

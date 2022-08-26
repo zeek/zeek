@@ -2,6 +2,33 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 4.0.8
+==========
+
+This release fixes the following security issues:
+
+- Fix a possible overflow and crash in the ARP analyzer when receiving a
+  specially crafted packet. Due to the possibility of this happening with
+  packets received from the network, this is a potential DoS vulnerability.
+
+- Fix a possible overflow and crash in the Modbus analyzer when receiving a
+  specially crafted packet. Due to the possibility of this happening with
+  packets received from the network, this is a potential DoS vulnerability.
+
+- Fix two possible crashes when converting IP headers for output via the
+  ``raw_packet`` event. Due to the possibility of this happening with packets
+  received from the network, this is a potential DoS vulnerability. Note that
+  the ``raw_packet`` event is not enabled by default so these are likely
+  low-severity issues.
+
+- Fix an abort related to an error related to the ordering of record fields when
+  processing DNS EDNS headers via events. Due to the possibility of this
+  happening with packets received from the network, this is a potential DoS
+  vulnerability. Note that the ``dns_EDNS`` events are not implemented by
+  default so this is likely a low-severity issue.
+
+  Thank you to Google's OSS-Fuzz project for reporting all of the above issues.
+
 Zeek 4.0.7
 ==========
 

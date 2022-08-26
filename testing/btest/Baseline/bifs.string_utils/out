@@ -66,3 +66,6 @@ find_str: -1
 find_str: 4
 find_str: 4
 
+string_cat
+-----------------------------------------------------
+string_cat: abc

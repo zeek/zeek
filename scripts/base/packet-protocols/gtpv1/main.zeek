@@ -18,7 +18,6 @@ redef likely_server_ports += { gtpv1_ports };
 
 event zeek_init() &priority=20
 	{
-	PacketAnalyzer::register_protocol_detection(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GTPV1);
 	PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GTPV1, gtpv1_ports);
 	}
 

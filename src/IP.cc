@@ -384,6 +384,9 @@ RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const
 		{
 		case IPPROTO_TCP:
 			{
+			if ( PayloadLen() < sizeof(struct tcphdr) )
+				break;
+
 			const struct tcphdr* tp = (const struct tcphdr*)data;
 			auto tcp_hdr = make_intrusive<RecordVal>(tcp_hdr_type);
 
@@ -412,6 +415,9 @@ RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const
 
 		case IPPROTO_UDP:
 			{
+			if ( PayloadLen() < sizeof(struct udphdr) )
+				break;
+
 			const struct udphdr* up = (const struct udphdr*)data;
 			auto udp_hdr = make_intrusive<RecordVal>(udp_hdr_type);
 
@@ -425,6 +431,9 @@ RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const
 
 		case IPPROTO_ICMP:
 			{
+			if ( PayloadLen() < sizeof(struct icmp) )
+				break;
+
 			const struct icmp* icmpp = (const struct icmp*)data;
 			auto icmp_hdr = make_intrusive<RecordVal>(icmp_hdr_type);
 
@@ -436,6 +445,9 @@ RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const
 
 		case IPPROTO_ICMPV6:
 			{
+			if ( PayloadLen() < sizeof(struct icmp6_hdr) )
+				break;
+
 			const struct icmp6_hdr* icmpp = (const struct icmp6_hdr*)data;
 			auto icmp_hdr = make_intrusive<RecordVal>(icmp_hdr_type);
 

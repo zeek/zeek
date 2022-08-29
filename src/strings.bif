@@ -64,7 +64,15 @@ function string_cat%(...%): string
 	%{
 	int n = 0;
 	for ( const auto& a : @ARG@ )
+		{
+		if ( a->GetType()->Tag() != TYPE_STRING )
+			{
+			zeek::reporter->Error("string_cat() requires string arguments");
+			return val_mgr->EmptyString();
+			}
+
 		n += a->AsString()->Len();
+		}
 
 	u_char* b = new u_char[n+1];
 	zeek::String* s = new zeek::String(1, b, n);

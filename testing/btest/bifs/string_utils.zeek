@@ -78,4 +78,8 @@ event zeek_init()
 	print fmt("find_str: %d", rfind_str(s3, "efg"));
 	print fmt("find_str: %d", rfind_str(s3, "efg", 2, 6));
 	print "";
+
+	print fmt("string_cat");
+	print "-----------------------------------------------------";
+	print fmt("string_cat: %s", string_cat("a", "b", "c"));
 	}

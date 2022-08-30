@@ -4,6 +4,8 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 # @TEST-PORT: BROKER_PORT4
+# @TEST-PORT: BROKER_PORT4
+# @TEST-PORT: BROKER_TEST_METRICS_PORT
 #
 # @TEST-REQUIRES: which curl
 # @TEST-EXEC: zeek --parse-only %INPUT
@@ -44,7 +46,7 @@ event run_test()
 
 		terminate();
 		}
-	timeout 3sec
+	timeout 10sec
 		{
 		# This is bad.
 		print "ERROR: HTTP request timeout";
@@ -53,6 +55,17 @@ event run_test()
 	}
 
 global node_count = 0;
+
+@if ( Cluster::node == "manager-1" )
+# Use a dynamic metrics port for testing to avoid colliding on 9911/tcp
+# when running tests in parallel.
+global orig_metrics_port = Broker::metrics_port;
+redef Broker::metrics_port = to_port(getenv("BROKER_TEST_METRICS_PORT"));
+
+event zeek_init()
+	{
+	print Cluster::node, "original Broker::metrics_port", orig_metrics_port;
+	}
 
 event Cluster::node_up(name: string, id: string)
 	{
@@ -63,6 +76,7 @@ event Cluster::node_up(name: string, id: string)
 		if ( node_count == 3 )
 			schedule 2 * Broker::metrics_export_interval { run_test() };
 	}
+@endif
 
 # If any node goes down, terminate() right away.
 event Cluster::node_down(name: string, id: string)

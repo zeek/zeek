@@ -10,4 +10,5 @@
 -./frameworks/openflow/cluster.zeek
 -./frameworks/packet-filter/cluster.zeek
 -./frameworks/sumstats/cluster.zeek
+-./frameworks/telemetry/cluster.zeek
 -./init-supervisor.zeek

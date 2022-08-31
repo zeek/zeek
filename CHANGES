@@ -1,3 +1,9 @@
+5.1.0-dev.479 | 2022-08-31 10:50:05 -0700
+
+  * telemetry: Use dynamic metrics port, remove broker topic mentioning from NEWS entry (Arne Welzel, Corelight)
+
+  * telemetry: In a cluster, open port 9911 for Prometheus by default (Arne Welzel, Corelight)
+
 5.1.0-dev.476 | 2022-08-31 08:16:53 -0700
 
   * bifs/to_port: Avoid ASAN errors when calling to_port("") (Arne Welzel, Corelight)

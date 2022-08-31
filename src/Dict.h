@@ -3,6 +3,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <fstream>
 #include <memory>
@@ -456,7 +457,7 @@ public:
 			{
 			// If an initial size is speicified, init the table right away. Otherwise wait until the
 			// first insertion to init.
-			log2_buckets = Log2(initial_size);
+			log2_buckets = static_cast<unsigned char>(std::log2(initial_size));
 			Init();
 			}
 
@@ -941,14 +942,6 @@ private:
 		}
 
 	// bucket math
-	int Log2(int num) const
-		{
-		int i = 0;
-		while ( num >>= 1 )
-			i++;
-		return i;
-		}
-
 	int ThresholdEntries() const
 		{
 		// Increase the size of the dictionary when it is 75% full. However, when the dictionary

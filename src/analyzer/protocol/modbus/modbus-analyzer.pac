@@ -18,7 +18,7 @@
 		{
 		auto modbus_coils = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusCoils);
 
-		for ( uint i = 0; i < quantity && (i/8) < coils.length(); i++ )
+		for ( uint i = 0; i < quantity && (i/8) < static_cast<uint>(coils.length()); i++ )
 			{
 			char currentCoil = (coils[i/8] >> (i % 8)) % 2;
 			modbus_coils->Assign(i, zeek::val_mgr->Bool(currentCoil));

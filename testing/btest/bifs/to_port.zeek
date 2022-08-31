@@ -11,6 +11,9 @@ event zeek_init()
 	print to_port("0/udp");
 	print to_port("0/icmp");
 	print to_port("not a port");
+	print to_port("");
+	print to_port("123");
+	print to_port("123/");
 
 	local a: transport_proto = tcp;
 	local b: transport_proto = udp;

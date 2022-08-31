@@ -1,3 +1,11 @@
+5.1.0-dev.476 | 2022-08-31 08:16:53 -0700
+
+  * bifs/to_port: Avoid ASAN errors when calling to_port("") (Arne Welzel, Corelight)
+
+    Ran into this when using to_port(getenv(...)) for an undefined/empty
+    environment variable. ASAN doesn't like that the slash variable ends
+    up being access behind the string.
+
 5.1.0-dev.473 | 2022-08-29 09:26:56 -0700
 
   * Add type checking to string_cat arguments (Tim Wojtulewicz, Corelight)

@@ -7,12 +7,21 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 
 event file_new(f: fa_file)
-    {
-    Files::add_analyzer(f, Files::ANALYZER_FOO);
-    }
-    
+	{
+	Files::add_analyzer(f, Files::ANALYZER_FOO);
+	}
+
 event foo_piece(f: fa_file, data: string)
 	{
 	print "foo_piece", f$id, sub_bytes(data, 0, 20);
 	}
 
+event analyzer_confirmation_info(tag: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo)
+	{
+	print "analyzer_confirmation_info", tag, info$f$id;
+	}
+
+event analyzer_violation_info(tag: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
+	{
+	print "analyzer_violation_info", tag, info$f$id, info$reason, info$data;
+	}

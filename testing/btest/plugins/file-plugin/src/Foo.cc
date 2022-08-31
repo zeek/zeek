@@ -1,8 +1,8 @@
-
 #include "Foo.h"
 
 #include <zeek/file_analysis/File.h>
 #include <zeek/file_analysis/Manager.h>
+#include <algorithm>
 
 #include "events.bif.h"
 
@@ -21,7 +21,16 @@ zeek::file_analysis::Analyzer* Foo::Instantiate(zeek::RecordValPtr args,
 
 bool Foo::DeliverStream(const u_char* data, uint64_t len)
 	{
+	static int i = 0;
+	AnalyzerConfirmation();
 	zeek::event_mgr.Enqueue(foo_piece, GetFile()->ToVal(),
 	                        zeek::make_intrusive<zeek::StringVal>(new zeek::String(data, len, 0)));
+	if ( ++i % 5 == 0 )
+		{
+		uint64_t threshold = 16;
+		AnalyzerViolation(zeek::util::fmt("test violation %d", i),
+		                  reinterpret_cast<const char*>(data), std::min(len, threshold));
+		}
+
 	return true;
 	}

@@ -17,6 +17,9 @@ New Functionality
   on ``AllAnalyzers::Tag`` values named ``is_protocol_analyzer()``,
   ``is_packet_analyzer()`` and ``is_file_analyzer()``.
 
+- File analyzers can now raise analyzer violations to the script-layer via
+  the new AnalyzerViolation() method.
+
 Deprecated Functionality
 ------------------------
 

@@ -457,7 +457,7 @@ public:
 			{
 			// If an initial size is speicified, init the table right away. Otherwise wait until the
 			// first insertion to init.
-			log2_buckets = static_cast<unsigned char>(std::log2(initial_size));
+			SetLog2Buckets(static_cast<uint16_t>(std::log2(initial_size)));
 			Init();
 			}
 
@@ -729,10 +729,9 @@ public:
 	/// The capacity of the table, Buckets + Overflow Size.
 	int Capacity(bool expected = false) const
 		{
-		int capacity = (1 << log2_buckets) + (log2_buckets + 0);
 		if ( expected )
-			return capacity;
-		return table ? capacity : 0;
+			return bucket_capacity;
+		return table ? bucket_capacity : 0;
 		}
 
 	// Debugging
@@ -932,17 +931,23 @@ private:
 	friend zeek::DictIterator<T>;
 	friend zeek::RobustDictIterator<T>;
 
+	void SetLog2Buckets(int value)
+		{
+		log2_buckets = value;
+		bucket_count = 1 << log2_buckets;
+		bucket_capacity = (1 << log2_buckets) + log2_buckets;
+		}
+
 	/// Buckets of the table, not including overflow size.
 	int Buckets(bool expected = false) const
 		{
-		int buckets = (1 << log2_buckets);
 		if ( expected )
-			return buckets;
-		return table ? buckets : 0;
+			return bucket_count;
+		return table ? bucket_count : 0;
 		}
 
 	// bucket math
-	int ThresholdEntries() const
+	uint32_t ThresholdEntries() const
 		{
 		// Increase the size of the dictionary when it is 75% full. However, when the dictionary
 		// is small ( <= 20 elements ), only resize it when it's 100% full. The dictionary will
@@ -998,7 +1003,8 @@ private:
 		{
 		ASSERT(bucket >= 0 && bucket < Buckets());
 		int i = bucket;
-		while ( i < Capacity() && ! table[i].Empty() && BucketByPosition(i) <= bucket )
+		int current_cap = Capacity();
+		while ( i < current_cap && ! table[i].Empty() && BucketByPosition(i) <= bucket )
 			i++;
 		return i;
 		}
@@ -1025,7 +1031,8 @@ private:
 
 		int bucket = BucketByPosition(position);
 		int i = position;
-		while ( i < Capacity() && ! table[i].Empty() && BucketByPosition(i) == bucket )
+		int current_cap = Capacity();
+		while ( i < current_cap && ! table[i].Empty() && BucketByPosition(i) == bucket )
 			i++; // stop just over the tail.
 
 		return i - 1;
@@ -1050,10 +1057,11 @@ private:
 		{
 		ASSERT(table && -1 <= position && position < Capacity());
 
+		auto current_cap = Capacity();
 		do
 			{
 			position++;
-			} while ( position < Capacity() && table[position].Empty() );
+			} while ( position < current_cap && table[position].Empty() );
 
 		return position;
 		}
@@ -1069,7 +1077,8 @@ private:
 	// Lookup
 	int LinearLookupIndex(const void* key, int key_size, detail::hash_t hash) const
 		{
-		for ( int i = 0; i < Capacity(); i++ )
+		auto current_cap = Capacity();
+		for ( int i = 0; i < current_cap; i++ )
 			if ( ! table[i].Empty() && table[i].Equal((const char*)key, key_size, hash) )
 				return i;
 		return -1;
@@ -1381,7 +1390,8 @@ private:
 	void SizeUp()
 		{
 		int prev_capacity = Capacity();
-		log2_buckets++;
+		SetLog2Buckets(log2_buckets + 1);
+
 		int capacity = Capacity();
 		table = (detail::DictEntry<T>*)realloc(table, capacity * sizeof(detail::DictEntry<T>));
 		for ( int i = prev_capacity; i < capacity; i++ )
@@ -1488,18 +1498,20 @@ private:
 	// as it will be remapped to new dict size anyway. however, the missed count is recorded
 	// for lookup. if position not found for a key in the position of dict of current size, it
 	// still could be in the position of dict of previous N sizes.
-	unsigned char remaps = 0;
-	unsigned char log2_buckets = 0;
+	uint16_t remaps = 0;
+	uint16_t log2_buckets = 0;
+	uint32_t bucket_capacity = 1;
+	uint32_t bucket_count = 1;
 
 	// Pending number of iterators on the Dict, including both robust and non-robust.
 	// This is used to avoid remapping if there are any active iterators.
-	unsigned short num_iterators = 0;
+	uint16_t num_iterators = 0;
 
 	// The last index to be remapped.
-	int remap_end = -1;
+	int32_t remap_end = -1;
 
-	int num_entries = 0;
-	int max_entries = 0;
+	uint32_t num_entries = 0;
+	uint32_t max_entries = 0;
 	uint64_t cum_entries = 0;
 
 	dict_delete_func delete_func = nullptr;

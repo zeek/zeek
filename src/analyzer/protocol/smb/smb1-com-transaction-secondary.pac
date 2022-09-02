@@ -18,32 +18,11 @@ refine connection SMB_Conn += {
 	auto parameters = zeek::make_intrusive<zeek::StringVal>(${val.parameters}.length(),
 	                                            (const char*)${val.parameters}.data());
 	zeek::StringValPtr payload_str;
-	SMB1_transaction_data* payload = nullptr;
 
 	if ( ${val.data_count} > 0 )
-		{
-		payload = ${val.data};
-		}
-
-	if ( payload )
-		{
-		switch ( payload->trans_type() ) {
-		case SMB_PIPE:
-			payload_str = zeek::make_intrusive<zeek::StringVal>(${val.data_count}, (const char*)${val.data.pipe_data}.data());
-			break;
-		case SMB_UNKNOWN:
-			payload_str = zeek::make_intrusive<zeek::StringVal>(${val.data_count}, (const char*)${val.data.unknown}.data());
-			break;
-		default:
-			payload_str = zeek::make_intrusive<zeek::StringVal>(${val.data_count}, (const char*)${val.data.data}.data());
-			break;
-		}
-		}
-
-	if ( ! payload_str )
-		{
+		payload_str = transaction_data_to_val(${val.data});
+	else
 		payload_str = zeek::val_mgr->EmptyString();
-		}
 
 	zeek::BifEvent::enqueue_smb1_transaction_secondary_request(zeek_analyzer(),
 	                                                     zeek_analyzer()->Conn(),

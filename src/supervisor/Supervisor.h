@@ -143,6 +143,19 @@ public:
 	 */
 	struct NodeConfig
 		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		// This block exists because the default implementations
+		// themselves trigger deprecation warnings for accessing the
+		// "scripts" field. It can go when we remove that deprecation.
+		NodeConfig() = default;
+		NodeConfig(NodeConfig&) = default;
+		NodeConfig(const NodeConfig&) = default;
+		NodeConfig(NodeConfig&&) = default;
+		~NodeConfig() = default;
+		NodeConfig& operator=(const NodeConfig&) = default;
+#pragma GCC diagnostic pop
+
 		/**
 		 * Create configuration from script-layer record value.
 		 * @param node_val  the script-layer record value to convert.

@@ -1277,7 +1277,10 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	for ( auto i = 0u; i < scripts_val->Size(); ++i )
 		{
 		auto script = scripts_val->StringValAt(i)->ToStdString();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		rval.scripts.emplace_back(std::move(script));
+#pragma GCC diagnostic pop
 		}
 
 	auto env_table_val = node->GetField("env")->AsTableVal();
@@ -1361,7 +1364,10 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json)
 	auto& scripts = j["scripts"];
 
 	for ( auto it = scripts.Begin(); it != scripts.End(); ++it )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		rval.scripts.emplace_back(it->GetString());
+#pragma GCC diagnostic pop
 
 	auto& env = j["env"];
 
@@ -1441,7 +1447,10 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 	auto st = rt->GetFieldType<VectorType>("scripts");
 	auto scripts_val = make_intrusive<VectorVal>(std::move(st));
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	for ( const auto& s : scripts )
+#pragma GCC diagnostic pop
 		scripts_val->Assign(scripts_val->Size(), make_intrusive<StringVal>(s));
 
 	rval->AssignField("scripts", std::move(scripts_val));
@@ -1647,7 +1656,10 @@ void SupervisedNode::Init(Options* options) const
 
 	stl.insert(stl.begin(), config.addl_base_scripts.begin(), config.addl_base_scripts.end());
 	stl.insert(stl.end(), config.addl_user_scripts.begin(), config.addl_user_scripts.end());
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	stl.insert(stl.end(), config.scripts.begin(), config.scripts.end());
+#pragma GCC diagnostic pop
 	}
 
 RecordValPtr Supervisor::Status(std::string_view node_name)

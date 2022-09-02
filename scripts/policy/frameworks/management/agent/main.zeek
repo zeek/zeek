@@ -556,14 +556,14 @@ function deploy_request_finish(areq: Management::Request::Request)
 		if ( node?$cpu_affinity )
 			nc$cpu_affinity = node$cpu_affinity;
 		if ( node?$scripts )
-			nc$scripts = node$scripts;
+			nc$addl_user_scripts = node$scripts;
 		if ( node?$env )
 			nc$env = node$env;
 
 		# Always add the policy/management/node scripts to any cluster
 		# node, since we require it to be able to communicate with the
 		# node.
-		nc$scripts[|nc$scripts|] = "policy/frameworks/management/node";
+		nc$addl_user_scripts += "policy/frameworks/management/node";
 
 		# We don't set nc$stdout_file/stderr_file here because the
 		# Management framework's Supervisor shim manages those output

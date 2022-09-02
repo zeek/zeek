@@ -143,6 +143,19 @@ public:
 	 */
 	struct NodeConfig
 		{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		// This block exists because the default implementations
+		// themselves trigger deprecation warnings for accessing the
+		// "scripts" field. It can go when we remove that deprecation.
+		NodeConfig() = default;
+		NodeConfig(NodeConfig&) = default;
+		NodeConfig(const NodeConfig&) = default;
+		NodeConfig(NodeConfig&&) = default;
+		~NodeConfig() = default;
+		NodeConfig& operator=(const NodeConfig&) = default;
+#pragma GCC diagnostic pop
+
 		/**
 		 * Create configuration from script-layer record value.
 		 * @param node_val  the script-layer record value to convert.
@@ -198,9 +211,20 @@ public:
 		 */
 		std::optional<bool> bare_mode;
 		/**
-		 * Additional script filename/paths that the node should load.
+		 * Additional script filenames/paths that the node should load
+		 * after the base scripts, and prior to any user-specified ones.
 		 */
-		std::vector<std::string> scripts;
+		std::vector<std::string> addl_base_scripts;
+		/**
+		 * Additional script filename/paths that the node should load
+		 * after any user-specified scripts.
+		 */
+		std::vector<std::string> addl_user_scripts;
+		/**
+		 * The former name for addl_user_scripts, now deprecated.
+		 */
+		std::vector<std::string> scripts
+			[[deprecated("Remove in v6.1. Use NodeConfig::addl_user_scripts.")]];
 		/**
 		 * Environment variables and values  to define in the node.
 		 */

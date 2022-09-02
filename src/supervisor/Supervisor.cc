@@ -1256,12 +1256,31 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	if ( bare_mode_val )
 		rval.bare_mode = bare_mode_val->AsBool();
 
+	auto addl_base_scripts_val = node->GetField("addl_base_scripts")->AsVectorVal();
+
+	for ( auto i = 0u; i < addl_base_scripts_val->Size(); ++i )
+		{
+		auto script = addl_base_scripts_val->StringValAt(i)->ToStdString();
+		rval.addl_base_scripts.emplace_back(std::move(script));
+		}
+
+	auto addl_user_scripts_val = node->GetField("addl_user_scripts")->AsVectorVal();
+
+	for ( auto i = 0u; i < addl_user_scripts_val->Size(); ++i )
+		{
+		auto script = addl_user_scripts_val->StringValAt(i)->ToStdString();
+		rval.addl_user_scripts.emplace_back(std::move(script));
+		}
+
 	auto scripts_val = node->GetField("scripts")->AsVectorVal();
 
 	for ( auto i = 0u; i < scripts_val->Size(); ++i )
 		{
 		auto script = scripts_val->StringValAt(i)->ToStdString();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		rval.scripts.emplace_back(std::move(script));
+#pragma GCC diagnostic pop
 		}
 
 	auto env_table_val = node->GetField("env")->AsTableVal();
@@ -1332,10 +1351,23 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json)
 	if ( auto it = j.FindMember("bare_mode"); it != j.MemberEnd() )
 		rval.bare_mode = it->value.GetBool();
 
+	auto& addl_base_scripts = j["addl_base_scripts"];
+
+	for ( auto it = addl_base_scripts.Begin(); it != addl_base_scripts.End(); ++it )
+		rval.addl_base_scripts.emplace_back(it->GetString());
+
+	auto& addl_user_scripts = j["addl_user_scripts"];
+
+	for ( auto it = addl_user_scripts.Begin(); it != addl_user_scripts.End(); ++it )
+		rval.addl_user_scripts.emplace_back(it->GetString());
+
 	auto& scripts = j["scripts"];
 
 	for ( auto it = scripts.Begin(); it != scripts.End(); ++it )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		rval.scripts.emplace_back(it->GetString());
+#pragma GCC diagnostic pop
 
 	auto& env = j["env"];
 
@@ -1396,10 +1428,29 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 	if ( bare_mode )
 		rval->AssignField("bare_mode", *bare_mode);
 
+	auto abs_t = rt->GetFieldType<VectorType>("addl_base_scripts");
+	auto addl_base_scripts_val = make_intrusive<VectorVal>(std::move(abs_t));
+
+	for ( const auto& s : addl_base_scripts )
+		addl_base_scripts_val->Assign(addl_base_scripts_val->Size(), make_intrusive<StringVal>(s));
+
+	rval->AssignField("addl_base_scripts", std::move(addl_base_scripts_val));
+
+	auto aus_t = rt->GetFieldType<VectorType>("addl_user_scripts");
+	auto addl_user_scripts_val = make_intrusive<VectorVal>(std::move(aus_t));
+
+	for ( const auto& s : addl_user_scripts )
+		addl_user_scripts_val->Assign(addl_user_scripts_val->Size(), make_intrusive<StringVal>(s));
+
+	rval->AssignField("addl_user_scripts", std::move(addl_user_scripts_val));
+
 	auto st = rt->GetFieldType<VectorType>("scripts");
 	auto scripts_val = make_intrusive<VectorVal>(std::move(st));
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	for ( const auto& s : scripts )
+#pragma GCC diagnostic pop
 		scripts_val->Assign(scripts_val->Size(), make_intrusive<StringVal>(s));
 
 	rval->AssignField("scripts", std::move(scripts_val));
@@ -1601,8 +1652,14 @@ void SupervisedNode::Init(Options* options) const
 	if ( config.interface )
 		options->interface = *config.interface;
 
-	for ( const auto& s : config.scripts )
-		options->scripts_to_load.emplace_back(s);
+	auto& stl = options->scripts_to_load;
+
+	stl.insert(stl.begin(), config.addl_base_scripts.begin(), config.addl_base_scripts.end());
+	stl.insert(stl.end(), config.addl_user_scripts.begin(), config.addl_user_scripts.end());
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	stl.insert(stl.end(), config.scripts.begin(), config.scripts.end());
+#pragma GCC diagnostic pop
 	}
 
 RecordValPtr Supervisor::Status(std::string_view node_name)

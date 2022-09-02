@@ -1,3 +1,11 @@
+5.1.0-dev.486 | 2022-09-02 13:57:31 -0700
+
+  * Update Management framework to new Supervisor::NodeConfig script fields (Christian Kreibich, Corelight)
+
+  * Suppress deprecation warnings for the Supervisor's own NodeConfig::script access (Christian Kreibich, Corelight)
+
+  * Expand Supervisor to support loading additional scripts before user scripts (Christian Kreibich, Corelight)
+
 5.1.0-dev.481 | 2022-09-01 00:52:02 +0000
 
   * Fix warning in modbus analyzer (Tim Wojtulewicz, Corelight)

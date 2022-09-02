@@ -110,6 +110,15 @@ New Functionality
 	for ( idx, value in vec )
 		print idx, value;
 
+- The Supervisor framework now allows better control over where to place
+  additional scripts in the load sequence of new nodes. It previously always
+  loaded such scripts after any other user scripts, which could create pitfalls
+  when users expected their scripts to run last. Scripts placed in
+  ``NodeConfig``'s new ``addl_base_scripts`` and ``addl_user_scripts`` fields
+  will be loaded after the base scripts (and thus before any user scripts) and
+  after any user scripts, respectively. The old ``NodeConfig$scripts` field still
+  adds to the very end and is deprecated.
+
 Changed Functionality
 ---------------------
 
@@ -155,6 +164,9 @@ Deprecated Functionality
 
 - The ``misc/scan.zeek`` script has been marked for removal in Zeek 6.1.
   Use github.com/ncsa/bro-simple-scan instead.
+
+- The Supervisor framework's ``NodeConfig$scripts` field has been deprecated and
+  marked for removal in Zeek 6.1. Use ``NodeConfig$addl_user_scripts`` instead.
 
 Zeek 5.0.0
 ==========

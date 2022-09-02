@@ -16,7 +16,7 @@ event zeek_init()
 
 	local epi = Management::Controller::endpoint_info();
 	local sn = Supervisor::NodeConfig($name=epi$id, $bare_mode=T,
-	    $scripts=vector("policy/frameworks/management/controller/main.zeek"));
+	    $addl_base_scripts=vector("policy/frameworks/management/controller/main.zeek"));
 
 	# Establish the controller's working directory. If one is configured
 	# explicitly, use as-is if absolute. Otherwise, append it to the state

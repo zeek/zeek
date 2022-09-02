@@ -209,6 +209,7 @@ prefix_t *New_Prefix2(int family, void *dest, int bitlen, prefix_t *prefix)
 {
   int dynamic_allocated = 0;
   int default_bitlen = sizeof(struct in_addr) * 8;
+  prefix4_t *p4 = NULL;
 
 #ifdef HAVE_IPV6
   if (family == AF_INET6) {
@@ -243,11 +244,12 @@ prefix_t *New_Prefix2(int family, void *dest, int bitlen, prefix_t *prefix)
       return (NULL);
     }
 
-  prefix->bitlen = (bitlen >= 0) ? bitlen : default_bitlen;
-  prefix->family = family;
-  prefix->ref_count = 0;
+  p4 = (prefix4_t*) prefix;
+  p4->bitlen = (bitlen >= 0) ? bitlen : default_bitlen;
+  p4->family = family;
+  p4->ref_count = 0;
   if (dynamic_allocated) {
-    prefix->ref_count++;
+    p4->ref_count++;
   }
   /* fprintf(stderr, "[C %s, %d]\n", prefix_toa (prefix), prefix->ref_count);
    */

@@ -3443,6 +3443,8 @@ RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr
 				ExprError(err.c_str());
 				}
 			}
+		else if ( known_rt->IsFieldDeprecated(i) )
+			reporter->Warning("%s", known_rt->GetFieldDeprecationWarning(i, false).c_str());
 	}
 
 ValPtr RecordConstructorExpr::Eval(Frame* f) const
@@ -4213,7 +4215,7 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 					}
 				}
 			else if ( t_r->IsFieldDeprecated(i) )
-				reporter->Warning("%s", t_r->GetFieldDeprecationWarning(i, false).c_str());
+				Warn(t_r->GetFieldDeprecationWarning(i, false).c_str());
 			}
 		}
 	}

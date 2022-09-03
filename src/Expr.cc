@@ -3228,7 +3228,7 @@ FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
 			td = rt->FieldDecl(field);
 
 			if ( rt->IsFieldDeprecated(field) )
-				reporter->Warning("%s", rt->GetFieldDeprecationWarning(field, false).c_str());
+				Warn(rt->GetFieldDeprecationWarning(field, false).c_str());
 			}
 		}
 	}
@@ -3313,7 +3313,7 @@ HasFieldExpr::HasFieldExpr(ExprPtr arg_op, const char* arg_field_name)
 		if ( field < 0 )
 			ExprError("no such field in record");
 		else if ( rt->IsFieldDeprecated(field) )
-			reporter->Warning("%s", rt->GetFieldDeprecationWarning(field, true).c_str());
+			Warn(rt->GetFieldDeprecationWarning(field, true).c_str());
 
 		SetType(base_type(TYPE_BOOL));
 		}
@@ -3444,7 +3444,7 @@ RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr
 				}
 			}
 		else if ( known_rt->IsFieldDeprecated(i) )
-			reporter->Warning("%s", known_rt->GetFieldDeprecationWarning(i, false).c_str());
+			Warn(known_rt->GetFieldDeprecationWarning(i, false).c_str());
 	}
 
 ValPtr RecordConstructorExpr::Eval(Frame* f) const

@@ -46,6 +46,9 @@ export {
 redef record connection += {
 	dpd: Info &optional;
 	dpd_state: State &optional;
+	## The set of services (analyzers) for which Zeek has observed a
+	## violation after the same service had previously been confirmed.
+	service_violation: set[AllAnalyzers::Tag] &default=set();
 };
 
 event zeek_init() &priority=5
@@ -56,10 +59,6 @@ event zeek_init() &priority=5
 event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=10
 	{
 	local analyzer = Analyzer::name(atype);
-
-	if ( fmt("-%s",analyzer) in c$service )
-		delete c$service[fmt("-%s", analyzer)];
-
 	add c$service[analyzer];
 	}
 
@@ -73,7 +72,7 @@ event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count,
 		return;
 
 	delete c$service[analyzer];
-	add c$service[fmt("-%s", analyzer)];
+	add c$service_violation[atype];
 
 	local info: Info;
 	info$ts=network_time();

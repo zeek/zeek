@@ -6,6 +6,7 @@
 ##! the destination port being the ICMP message code.
 
 @load base/utils/site
+@load base/utils/strings
 
 module Conn;
 
@@ -225,14 +226,7 @@ function conn_state(c: connection, trans: transport_proto): string
 
 function determine_service(c: connection): string
 	{
-	local service = "";
-	for ( s in c$service )
-		{
-		if ( sub_bytes(s, 0, 1) != "-" )
-			service = service == "" ? s : cat(service, ",", s);
-		}
-
-	return to_lower(service);
+	return to_lower(join_string_set(c$service, ","));
 	}
 
 ## Fill out the c$conn record for logging

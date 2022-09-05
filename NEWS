@@ -72,6 +72,11 @@ Breaking Changes
 
 - The ``bro`` symlink to the ``zeek`` binary has finally been removed.
 
+- The connection's service field does not hold "negated" analyzer names
+  anymore (analyzers that triggered violations after a confirmation).
+  These analyzers are now tracked in a separate ``service_violation``
+  field with their respective enum values instead.
+
 New Functionality
 -----------------
 

@@ -1,3 +1,3 @@
-@deprecated "Remove in v6.1 - use @load base/frameworks/analyzer instead";
+@deprecated "Remove in v6.1 - now loaded automatically";
 
 @load base/frameworks/analyzer

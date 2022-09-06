@@ -1504,14 +1504,30 @@ event zeek_init()
 	# via configurations uploaded by a client, with connections established
 	# upon deployment.
 
+	local broker_info = "no Broker port";
+	local websocket_info = "no Websocket port";
+
 	local cni = Management::Controller::network_info();
 
-	Broker::listen(cat(cni$address), cni$bound_port);
+	if ( cni$bound_port != 0/unknown )
+		{
+		Broker::listen(cat(cni$address), cni$bound_port);
+		broker_info = fmt("Broker port %s:%s", cni$address, cni$bound_port);
+		}
+
+	cni = Management::Controller::network_info_websocket();
+
+	if ( cni$bound_port != 0/unknown )
+		{
+		Broker::listen_websocket(cat(cni$address), cni$bound_port);
+		websocket_info = fmt("websocket port %s:%s", cni$address, cni$bound_port);
+		}
 
 	Broker::subscribe(Management::Agent::topic_prefix);
 	Broker::subscribe(Management::Controller::topic);
 
-	Management::Log::info(fmt("controller is live, Broker ID %s", Broker::node_id()));
+	Management::Log::info(fmt("controller is live, Broker ID %s, %s, %s",
+	    Broker::node_id(), broker_info, websocket_info));
 
 	# If we have a persisted deployed configuration, we need to make sure
 	# it's actually running. The agents involved might be gone, running a

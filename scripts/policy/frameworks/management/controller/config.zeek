@@ -24,20 +24,42 @@ export {
 	## but for the stderr stream.
 	const stderr_file = "stderr" &redef;
 
-	## The network address the controller listens on. By default this uses
-	## the value of the ZEEK_CONTROLLER_ADDR environment variable, but you
-	## may also redef to a specific value. When empty, the implementation
-	## falls back to :zeek:see:`Management::default_address`.
+	## The network address the controller listens on for Broker clients. By
+	## default this uses the ZEEK_CONTROLLER_ADDR environment variable, but
+	## you may also redef to a specific value. When empty, the
+	## implementation falls back to :zeek:see:`Management::default_address`.
 	const listen_address = getenv("ZEEK_CONTROLLER_ADDR") &redef;
 
-	## The network port the controller listens on. Counterpart to
-	## :zeek:see:`Management::Controller::listen_address`, defaulting to the
-	## ZEEK_CONTROLLER_PORT environment variable.
+	## The network port the controller listens on for Broker clients.
+	## Defaults to the ZEEK_CONTROLLER_PORT environment variable.
+	## When that is not set, the implementation falls back to
+	## :zeek:see:`Management::Controller::default_port`.
 	const listen_port = getenv("ZEEK_CONTROLLER_PORT") &redef;
 
 	## The fallback listen port if :zeek:see:`Management::Controller::listen_port`
-	## remains empty.
+	## remains empty. When set to 0/unknown, the controller won't listen
+	## for Broker connections. Don't do this if your management agents
+	## connect to the controller (instead of the default other way around),
+	## as they require Broker connectivity.
 	const default_port = 2150/tcp &redef;
+
+	## The network address the controller listens on for websocket
+	## clients. By default this uses the ZEEK_CONTROLLER_WEBSOCKET_ADDR
+	## environment variable, but you may also redef to a specific
+	## value. When empty, the implementation falls back to
+	## :zeek:see:`Management::default_address`.
+	const listen_address_websocket = getenv("ZEEK_CONTROLLER_WEBSOCKET_ADDR") &redef;
+
+	## The network port the controller listens on for websocket clients.
+	## Defaults to the ZEEK_CONTROLLER_WEBSOCKET_PORT environment
+	## variable. When that is not set, the implementation falls back to
+	## :zeek:see:`Management::Controller::default_port_websocket`.
+	const listen_port_websocket = getenv("ZEEK_CONTROLLER_WEBSOCKET_PORT") &redef;
+
+	## The fallback listen port if :zeek:see:`Management::Controller::listen_port_websocket`
+	## remains empty. When set to 0/unknown, the controller won't listen
+	## for websocket clients.
+	const default_port_websocket = 2149/tcp &redef;
 
 	## Whether the controller should auto-assign listening ports to cluster
 	## nodes that need them and don't have them explicitly specified in
@@ -66,11 +88,21 @@ export {
 	## Returns the effective name of the controller.
 	global get_name: function(): string;
 
-	## Returns a :zeek:see:`Broker::NetworkInfo` record describing the controller.
+	## Returns a :zeek:see:`Broker::NetworkInfo` record describing the
+	## controller's Broker connectivity.
 	global network_info: function(): Broker::NetworkInfo;
 
-	## Returns a :zeek:see:`Broker::EndpointInfo` record describing the controller.
+	## Returns a :zeek:see:`Broker::NetworkInfo` record describing the
+	## controller's websocket connectivity.
+	global network_info_websocket: function(): Broker::NetworkInfo;
+
+	## Returns a :zeek:see:`Broker::EndpointInfo` record describing the
+	## controller's Broker connectivity.
 	global endpoint_info: function(): Broker::EndpointInfo;
+
+	## Returns a :zeek:see:`Broker::EndpointInfo` record describing the
+	## controller's websocket connectivity.
+	global endpoint_info_websocket: function(): Broker::EndpointInfo;
 }
 
 function get_name(): string
@@ -100,12 +132,41 @@ function network_info(): Broker::NetworkInfo
 	return ni;
 	}
 
+function network_info_websocket(): Broker::NetworkInfo
+	{
+	local ni: Broker::NetworkInfo;
+
+	if ( Management::Controller::listen_address_websocket != "" )
+		ni$address = Management::Controller::listen_address_websocket;
+	else if ( Management::default_address != "" )
+		ni$address = Management::default_address;
+	else
+		ni$address = "0.0.0.0";
+
+	if ( Management::Controller::listen_port_websocket != "" )
+		ni$bound_port = to_port(Management::Controller::listen_port_websocket);
+	else
+		ni$bound_port = Management::Controller::default_port_websocket;
+
+	return ni;
+	}
+
 function endpoint_info(): Broker::EndpointInfo
 	{
 	local epi: Broker::EndpointInfo;
 
 	epi$id = Management::Controller::get_name();
 	epi$network = network_info();
+
+	return epi;
+	}
+
+function endpoint_info_websocket(): Broker::EndpointInfo
+	{
+	local epi: Broker::EndpointInfo;
+
+	epi$id = Management::Controller::get_name();
+	epi$network = network_info_websocket();
 
 	return epi;
 	}
